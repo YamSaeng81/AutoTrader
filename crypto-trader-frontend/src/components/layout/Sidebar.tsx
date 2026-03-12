@@ -62,7 +62,7 @@ export function Sidebar() {
                     const isActive = (pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href)))
                         && !((item as any).excludePrefix && pathname.startsWith((item as any).excludePrefix));
 
-                    if (item.disabled) {
+                    if ((item as any).disabled) {
                         return (
                             <div
                                 key={item.href}
