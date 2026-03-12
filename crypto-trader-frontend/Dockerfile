@@ -4,6 +4,8 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci
 COPY . .
+ARG INTERNAL_BACKEND_URL=http://backend:8080
+ENV INTERNAL_BACKEND_URL=$INTERNAL_BACKEND_URL
 RUN rm -f playwright.config.ts && npm run build
 
 FROM node:20-alpine

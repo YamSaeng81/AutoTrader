@@ -43,8 +43,6 @@ services:
     restart: always
     ports:
       - "3000:3000"
-    environment:
-      INTERNAL_BACKEND_URL: http://backend:8080
 
 volumes:
   pgdata:
