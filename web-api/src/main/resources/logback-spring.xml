@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <property name="LOG_DIR" value="${LOG_PATH:-logs}" />
+
+    <!-- 콘솔 출력 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 1단: 시스템 로그 (전체 애플리케이션) -->
+    <appender name="SYSTEM_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/system.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/system.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 2단: 전략 로그 (전략 실행 관련) -->
+    <appender name="STRATEGY_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/strategy.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/strategy.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>90</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 3단: 거래 로그 (주문/체결 관련) -->
+    <appender name="TRADE_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/trade.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/trade.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>365</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 전략 관련 로거 -->
+    <logger name="com.cryptoautotrader.strategy" level="INFO" additivity="false">
+        <appender-ref ref="STRATEGY_LOG" />
+        <appender-ref ref="CONSOLE" />
+    </logger>
+
+    <logger name="com.cryptoautotrader.core.backtest" level="INFO" additivity="false">
+        <appender-ref ref="STRATEGY_LOG" />
+        <appender-ref ref="CONSOLE" />
+    </logger>
+
+    <!-- 거래 관련 로거 -->
+    <logger name="com.cryptoautotrader.exchange" level="INFO" additivity="false">
+        <appender-ref ref="TRADE_LOG" />
+        <appender-ref ref="CONSOLE" />
+    </logger>
+
+    <logger name="com.cryptoautotrader.core.risk" level="INFO" additivity="false">
+        <appender-ref ref="TRADE_LOG" />
+        <appender-ref ref="CONSOLE" />
+    </logger>
+
+    <!-- 루트 로거 = 시스템 로그 -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="SYSTEM_LOG" />
+    </root>
+</configuration>

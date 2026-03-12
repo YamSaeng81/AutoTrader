@@ -1,0 +1,106 @@
+package com.cryptoautotrader.api.controller;
+
+import com.cryptoautotrader.api.dto.ApiResponse;
+import com.cryptoautotrader.api.dto.BacktestRequest;
+import com.cryptoautotrader.api.dto.BulkDeleteRequest;
+import com.cryptoautotrader.api.dto.WalkForwardRequest;
+import com.cryptoautotrader.api.entity.BacktestTradeEntity;
+import com.cryptoautotrader.api.repository.BacktestTradeRepository;
+import com.cryptoautotrader.api.service.BacktestService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/v1/backtest")
+@RequiredArgsConstructor
+public class BacktestController {
+
+    private final BacktestService backtestService;
+    private final BacktestTradeRepository backtestTradeRepository;
+
+    @PostMapping("/run")
+    public ApiResponse<Map<String, Object>> runBacktest(@Valid @RequestBody BacktestRequest req) {
+        boolean fillSimEnabled = req.getFillSimulation() != null && req.getFillSimulation().isEnabled();
+        Map<String, Object> result = backtestService.runBacktest(
+                req.getStrategyType(), req.getCoinPair(), req.getTimeframe(),
+                req.getStartDate(), req.getEndDate(),
+                req.getInitialCapital(), req.getSlippagePct(), req.getFeePct(),
+                req.getConfig(),
+                fillSimEnabled,
+                fillSimEnabled ? req.getFillSimulation().getImpactFactor() : null,
+                fillSimEnabled ? req.getFillSimulation().getFillRatio() : null
+        );
+        return ApiResponse.ok(result);
+    }
+
+    @PostMapping("/walk-forward")
+    public ApiResponse<Map<String, Object>> runWalkForward(@Valid @RequestBody WalkForwardRequest req) {
+        Map<String, Object> result = backtestService.runWalkForward(
+                req.getStrategyType(), req.getCoinPair(), req.getTimeframe(),
+                req.getStartDate(), req.getEndDate(),
+                req.getInSampleRatio(), req.getWindowCount(),
+                req.getInitialCapital(), req.getSlippagePct(), req.getFeePct(),
+                req.getConfig()
+        );
+        return ApiResponse.ok(result);
+    }
+
+    @GetMapping("/{id}")
+    public ApiResponse<Map<String, Object>> getResult(@PathVariable Long id) {
+        return ApiResponse.ok(backtestService.getBacktestResult(id));
+    }
+
+    @GetMapping("/{id}/trades")
+    public ApiResponse<Page<BacktestTradeEntity>> getTrades(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size) {
+        return ApiResponse.ok(backtestTradeRepository.findByBacktestRunIdOrderByExecutedAtAsc(id, PageRequest.of(page, size)));
+    }
+
+    @GetMapping("/compare")
+    public ApiResponse<List<Map<String, Object>>> compare(@RequestParam List<Long> ids) {
+        return ApiResponse.ok(backtestService.compareBacktests(ids));
+    }
+
+    @GetMapping("/list")
+    public ApiResponse<List<Map<String, Object>>> list() {
+        return ApiResponse.ok(backtestService.listBacktests());
+    }
+
+    /**
+     * 백테스트 단건 삭제
+     * DELETE /api/v1/backtest/{id}
+     * 성공: 204 No Content
+     * 존재하지 않는 ID: 404 Not Found
+     */
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteBacktest(@PathVariable Long id) {
+        try {
+            backtestService.deleteBacktest(id);
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        }
+    }
+
+    /**
+     * 백테스트 다건 삭제
+     * DELETE /api/v1/backtest/bulk
+     * Body: { "ids": [1, 2, 3] }
+     * 성공: 204 No Content
+     */
+    @DeleteMapping("/bulk")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void bulkDeleteBacktests(@RequestBody BulkDeleteRequest request) {
+        backtestService.bulkDeleteBacktests(request.getIds());
+    }
+}

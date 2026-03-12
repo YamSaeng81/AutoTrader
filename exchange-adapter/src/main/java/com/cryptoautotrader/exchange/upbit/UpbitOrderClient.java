@@ -1,0 +1,331 @@
+package com.cryptoautotrader.exchange.upbit;
+
+import com.cryptoautotrader.exchange.upbit.dto.AccountResponse;
+import com.cryptoautotrader.exchange.upbit.dto.OrderResponse;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import io.jsonwebtoken.Jwts;
+import lombok.extern.slf4j.Slf4j;
+
+import javax.crypto.spec.SecretKeySpec;
+import java.math.BigDecimal;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.time.Duration;
+import java.util.*;
+
+/**
+ * Upbit 주문 REST API 클라이언트
+ *
+ * JWT 인증 기반으로 주문 생성/조회/취소 및 계좌 조회를 수행한다.
+ * - access_key + secret_key를 사용한 HMAC-SHA256 JWT 서명
+ * - 쿼리 파라미터가 있는 경우 SHA-512 query_hash 포함
+ * - API Key는 char[] 형태로 관리하며 사용 후 즉시 제거
+ */
+@Slf4j
+public class UpbitOrderClient {
+
+    private static final String BASE_URL = "https://api.upbit.com/v1";
+
+    private final HttpClient httpClient;
+    private final ObjectMapper objectMapper;
+
+    // API Key를 char[]로 보관 (보안)
+    private final char[] accessKey;
+    private final char[] secretKey;
+
+    /**
+     * @param accessKey Upbit API access key
+     * @param secretKey Upbit API secret key
+     */
+    public UpbitOrderClient(char[] accessKey, char[] secretKey) {
+        this.accessKey = Arrays.copyOf(accessKey, accessKey.length);
+        this.secretKey = Arrays.copyOf(secretKey, secretKey.length);
+        this.httpClient = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(10))
+                .build();
+        this.objectMapper = new ObjectMapper();
+        this.objectMapper.registerModule(new JavaTimeModule());
+    }
+
+    /**
+     * 주문 생성
+     *
+     * @param market    마켓 코드 (예: "KRW-BTC")
+     * @param side      "bid"(매수) 또는 "ask"(매도)
+     * @param volume    주문량 (시장가 매수 시 null)
+     * @param price     주문 가격 (시장가 매수 시 총액, 시장가 매도 시 null)
+     * @param orderType "limit"(지정가), "price"(시장가 매수), "market"(시장가 매도)
+     * @return 주문 응답
+     */
+    public OrderResponse createOrder(String market, String side, BigDecimal volume,
+                                     BigDecimal price, String orderType) {
+        log.info("주문 생성 요청: market={}, side={}, volume={}, price={}, type={}",
+                market, side, volume, price, orderType);
+
+        Map<String, String> params = new LinkedHashMap<>();
+        params.put("market", market);
+        params.put("side", side);
+        params.put("ord_type", orderType);
+        if (volume != null) {
+            params.put("volume", volume.toPlainString());
+        }
+        if (price != null) {
+            params.put("price", price.toPlainString());
+        }
+
+        try {
+            String queryString = buildQueryString(params);
+            String token = generateJwtWithQuery(queryString);
+            String requestBody = objectMapper.writeValueAsString(params);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(BASE_URL + "/orders"))
+                    .header("Authorization", "Bearer " + token)
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            checkResponse(response, "주문 생성");
+
+            OrderResponse result = objectMapper.readValue(response.body(), OrderResponse.class);
+            log.info("주문 생성 성공: uuid={}, market={}, side={}", result.getUuid(), market, side);
+            return result;
+        } catch (Exception e) {
+            log.error("주문 생성 실패: market={}, side={}, error={}", market, side, e.getMessage(), e);
+            throw new RuntimeException("주문 생성 실패", e);
+        }
+    }
+
+    /**
+     * 주문 조회 (단건)
+     *
+     * @param uuid 주문 UUID
+     * @return 주문 상태 정보
+     */
+    public OrderResponse getOrder(String uuid) {
+        log.debug("주문 조회: uuid={}", uuid);
+
+        Map<String, String> params = Map.of("uuid", uuid);
+        String queryString = buildQueryString(params);
+
+        try {
+            String token = generateJwtWithQuery(queryString);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(BASE_URL + "/order?" + queryString))
+                    .header("Authorization", "Bearer " + token)
+                    .GET()
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            checkResponse(response, "주문 조회");
+
+            return objectMapper.readValue(response.body(), OrderResponse.class);
+        } catch (Exception e) {
+            log.error("주문 조회 실패: uuid={}, error={}", uuid, e.getMessage(), e);
+            throw new RuntimeException("주문 조회 실패", e);
+        }
+    }
+
+    /**
+     * 대기 중인 주문 목록 조회
+     *
+     * @param market 마켓 코드 (예: "KRW-BTC")
+     * @return 대기 주문 목록
+     */
+    public List<OrderResponse> getOpenOrders(String market) {
+        log.debug("대기 주문 목록 조회: market={}", market);
+
+        Map<String, String> params = new LinkedHashMap<>();
+        params.put("market", market);
+        params.put("state", "wait");
+
+        String queryString = buildQueryString(params);
+
+        try {
+            String token = generateJwtWithQuery(queryString);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(BASE_URL + "/orders?" + queryString))
+                    .header("Authorization", "Bearer " + token)
+                    .GET()
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            checkResponse(response, "대기 주문 조회");
+
+            return objectMapper.readValue(response.body(), new TypeReference<>() {});
+        } catch (Exception e) {
+            log.error("대기 주문 조회 실패: market={}, error={}", market, e.getMessage(), e);
+            throw new RuntimeException("대기 주문 조회 실패", e);
+        }
+    }
+
+    /**
+     * 주문 취소
+     *
+     * @param uuid 취소할 주문 UUID
+     * @return 취소된 주문 정보
+     */
+    public OrderResponse cancelOrder(String uuid) {
+        log.info("주문 취소 요청: uuid={}", uuid);
+
+        Map<String, String> params = Map.of("uuid", uuid);
+        String queryString = buildQueryString(params);
+
+        try {
+            String token = generateJwtWithQuery(queryString);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(BASE_URL + "/order?" + queryString))
+                    .header("Authorization", "Bearer " + token)
+                    .method("DELETE", HttpRequest.BodyPublishers.noBody())
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            checkResponse(response, "주문 취소");
+
+            OrderResponse result = objectMapper.readValue(response.body(), OrderResponse.class);
+            log.info("주문 취소 성공: uuid={}", uuid);
+            return result;
+        } catch (Exception e) {
+            log.error("주문 취소 실패: uuid={}, error={}", uuid, e.getMessage(), e);
+            throw new RuntimeException("주문 취소 실패", e);
+        }
+    }
+
+    /**
+     * 전체 계좌 잔고 조회
+     *
+     * @return 보유 자산 목록
+     */
+    public List<AccountResponse> getAccounts() {
+        log.debug("계좌 잔고 조회");
+
+        try {
+            String token = generateJwtWithoutQuery();
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(BASE_URL + "/accounts"))
+                    .header("Authorization", "Bearer " + token)
+                    .GET()
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            checkResponse(response, "계좌 조회");
+
+            return objectMapper.readValue(response.body(), new TypeReference<>() {});
+        } catch (Exception e) {
+            log.error("계좌 조회 실패: {}", e.getMessage(), e);
+            throw new RuntimeException("계좌 조회 실패", e);
+        }
+    }
+
+    /**
+     * 리소스 정리 - API Key 메모리에서 제거
+     */
+    public void destroy() {
+        Arrays.fill(accessKey, '\0');
+        Arrays.fill(secretKey, '\0');
+        log.info("API Key 메모리 정리 완료");
+    }
+
+    // ========== JWT 생성 ==========
+
+    /**
+     * 쿼리 파라미터가 있는 요청용 JWT 생성
+     * query_hash (SHA-512)를 포함한다.
+     */
+    private String generateJwtWithQuery(String queryString) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-512");
+            md.update(queryString.getBytes(StandardCharsets.UTF_8));
+            String queryHash = bytesToHex(md.digest());
+
+            String secretKeyStr = new String(secretKey);
+            SecretKeySpec keySpec = new SecretKeySpec(
+                    secretKeyStr.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+
+            String token = Jwts.builder()
+                    .claim("access_key", new String(accessKey))
+                    .claim("nonce", UUID.randomUUID().toString())
+                    .claim("query_hash", queryHash)
+                    .claim("query_hash_alg", "SHA512")
+                    .signWith(keySpec)
+                    .compact();
+
+            // secretKeyStr 참조를 즉시 무효화할 수는 없지만 (String 불변),
+            // GC 대상으로 만들기 위해 가능한 빨리 스코프를 벗어나게 한다.
+            return token;
+        } catch (Exception e) {
+            throw new RuntimeException("JWT 생성 실패", e);
+        }
+    }
+
+    /**
+     * 쿼리 파라미터가 없는 요청용 JWT 생성 (계좌 조회 등)
+     */
+    private String generateJwtWithoutQuery() {
+        try {
+            String secretKeyStr = new String(secretKey);
+            SecretKeySpec keySpec = new SecretKeySpec(
+                    secretKeyStr.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+
+            return Jwts.builder()
+                    .claim("access_key", new String(accessKey))
+                    .claim("nonce", UUID.randomUUID().toString())
+                    .signWith(keySpec)
+                    .compact();
+        } catch (Exception e) {
+            throw new RuntimeException("JWT 생성 실패", e);
+        }
+    }
+
+    // ========== 유틸 ==========
+
+    /**
+     * 쿼리 파라미터 맵을 URL 인코딩된 쿼리 스트링으로 변환
+     */
+    private String buildQueryString(Map<String, String> params) {
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            if (sb.length() > 0) sb.append("&");
+            sb.append(URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8))
+              .append("=")
+              .append(URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8));
+        }
+        return sb.toString();
+    }
+
+    /**
+     * 바이트 배열을 16진수 문자열로 변환
+     */
+    private String bytesToHex(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02x", b));
+        }
+        return sb.toString();
+    }
+
+    /**
+     * HTTP 응답 상태 코드 확인
+     */
+    private void checkResponse(HttpResponse<String> response, String operation) {
+        if (response.statusCode() < 200 || response.statusCode() >= 300) {
+            log.error("Upbit API {} 실패: status={}, body={}",
+                    operation, response.statusCode(), response.body());
+            throw new RuntimeException(String.format(
+                    "Upbit API %s 실패: HTTP %d - %s",
+                    operation, response.statusCode(), response.body()));
+        }
+    }
+}

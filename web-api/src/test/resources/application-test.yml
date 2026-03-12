@@ -1,0 +1,41 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: none   # H2 초기화 SQL(schema-h2.sql)을 직접 사용
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+    open-in-view: false
+    show-sql: false
+
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema-h2.sql
+
+  flyway:
+    enabled: false   # H2에서는 PostgreSQL 전용 DDL(hypertable 등) 실행 불가
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+server:
+  port: 0  # 랜덤 포트 (테스트 격리)
+
+logging:
+  level:
+    com.cryptoautotrader: WARN
+    org.springframework.web: WARN
+    org.springframework.test: WARN
