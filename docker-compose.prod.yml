@@ -26,6 +26,7 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: prod
       DB_URL: jdbc:postgresql://db:5432/crypto_auto_trader
+      DB_PASSWORD: ${DB_PASSWORD}
       REDIS_HOST: redis
       UPBIT_ACCESS_KEY: ${UPBIT_ACCESS_KEY_ENCRYPTED}
       UPBIT_SECRET_KEY: ${UPBIT_SECRET_KEY_ENCRYPTED}
