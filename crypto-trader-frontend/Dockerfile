@@ -4,7 +4,7 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci
 COPY . .
-RUN npm run build
+RUN rm -f playwright.config.ts && npm run build
 
 FROM node:20-alpine
 
