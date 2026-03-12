@@ -46,6 +46,10 @@ public class VirtualBalanceEntity {
     @Column(name = "stopped_at")
     private Instant stoppedAt;
 
+    @Column(name = "telegram_enabled", nullable = false)
+    @Builder.Default
+    private Boolean telegramEnabled = false;
+
     @Column(name = "updated_at")
     private Instant updatedAt;
 

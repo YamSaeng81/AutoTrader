@@ -44,6 +44,7 @@ public class PaperTradingService {
     private final PaperPositionRepository positionRepo;
     private final PaperOrderRepository orderRepo;
     private final MarketDataCacheRepository marketDataCacheRepo;
+    private final TelegramNotificationService telegramService;
 
     // ── 공개 API ──────────────────────────────────────────────
 
@@ -63,11 +64,21 @@ public class PaperTradingService {
                 .timeframe(req.getTimeframe())
                 .status("RUNNING")
                 .startedAt(Instant.now())
+                .telegramEnabled(req.isEnableTelegram())
                 .build();
 
         log.info("모의투자 세션 시작: {} {} {} 초기자본={}",
                 req.getStrategyType(), req.getCoinPair(), req.getTimeframe(), req.getInitialCapital());
-        return balanceRepo.save(session);
+        VirtualBalanceEntity saved = balanceRepo.save(session);
+
+        if (req.isEnableTelegram()) {
+            telegramService.sendMarkdown(String.format(
+                    "🎮 *\\[모의투자\\] 세션 시작*\n\n" +
+                    "• 세션 ID: `%d`\n• 전략: `%s`\n• 코인: `%s`\n• 타임프레임: `%s`\n• 초기자본: `%,.0f KRW`",
+                    saved.getId(), req.getStrategyType(), req.getCoinPair(),
+                    req.getTimeframe(), req.getInitialCapital().doubleValue()));
+        }
+        return saved;
     }
 
     @Transactional
@@ -87,7 +98,24 @@ public class PaperTradingService {
         session.setStoppedAt(Instant.now());
 
         log.info("모의투자 세션 중단 (id={}). 최종 자산: {} KRW", sessionId, session.getTotalKrw());
-        return balanceRepo.save(session);
+        VirtualBalanceEntity stopped = balanceRepo.save(session);
+
+        if (Boolean.TRUE.equals(session.getTelegramEnabled())) {
+            BigDecimal initial = session.getInitialCapital() != null ? session.getInitialCapital() : session.getTotalKrw();
+            double returnPct = initial.compareTo(BigDecimal.ZERO) > 0
+                    ? stopped.getTotalKrw().subtract(initial)
+                              .divide(initial, 4, RoundingMode.HALF_UP)
+                              .multiply(BigDecimal.valueOf(100)).doubleValue()
+                    : 0;
+            telegramService.sendMarkdown(String.format(
+                    "🛑 *\\[모의투자\\] 세션 종료*\n\n" +
+                    "• 세션 ID: `%d`\n• 전략: `%s`\n• 코인: `%s`\n" +
+                    "• 최종 자산: `%,.0f KRW`\n• 수익률: `%s%.2f%%`",
+                    sessionId, session.getStrategyName(), session.getCoinPair(),
+                    stopped.getTotalKrw().doubleValue(),
+                    returnPct >= 0 ? "+" : "", returnPct));
+        }
+        return stopped;
     }
 
     @Transactional(readOnly = true)
@@ -253,6 +281,16 @@ public class PaperTradingService {
         balanceRepo.save(session);
 
         log.info("모의 매수 체결 (sessionId={}): {} {}개 @ {} (수수료: {})", sessionId, coinPair, quantity, price, fee);
+
+        if (Boolean.TRUE.equals(session.getTelegramEnabled())) {
+            telegramService.sendMarkdown(String.format(
+                    "📈 *\\[모의투자\\] 매수 체결*\n\n" +
+                    "• 세션 ID: `%d`\n• 코인: `%s`\n• 수량: `%s`\n• 체결가: `%,.0f KRW`\n" +
+                    "• 투자금액: `%,.0f KRW`\n• 수수료: `%,.0f KRW`\n• 신호: _%s_",
+                    sessionId, coinPair, quantity.toPlainString(), price.doubleValue(),
+                    investAmount.doubleValue(), fee.doubleValue(),
+                    reason != null ? reason.replace("_", "\\_") : ""));
+        }
     }
 
     private void closePosition(PaperPositionEntity pos, BigDecimal currentPrice,
@@ -292,6 +330,23 @@ public class PaperTradingService {
 
         log.info("모의 매도 체결 (sessionId={}): {} {}개 @ {} 손익: {} KRW",
                 pos.getSessionId(), pos.getCoinPair(), pos.getSize(), currentPrice, realizedPnl);
+
+        if (Boolean.TRUE.equals(session.getTelegramEnabled())) {
+            BigDecimal costBasisLocal = pos.getSize().multiply(pos.getAvgPrice());
+            double pnlPct = costBasisLocal.compareTo(BigDecimal.ZERO) > 0
+                    ? realizedPnl.divide(costBasisLocal, 4, RoundingMode.HALF_UP)
+                                 .multiply(BigDecimal.valueOf(100)).doubleValue()
+                    : 0;
+            telegramService.sendMarkdown(String.format(
+                    "📉 *\\[모의투자\\] 매도 체결*\n\n" +
+                    "• 세션 ID: `%d`\n• 코인: `%s`\n• 수량: `%s`\n• 체결가: `%,.0f KRW`\n" +
+                    "• 매수단가: `%,.0f KRW`\n• 실현손익: `%s%,.0f KRW` \\(`%s%.2f%%`\\)\n• 신호: _%s_",
+                    pos.getSessionId(), pos.getCoinPair(), pos.getSize().toPlainString(),
+                    currentPrice.doubleValue(), pos.getAvgPrice().doubleValue(),
+                    realizedPnl.compareTo(BigDecimal.ZERO) >= 0 ? "+" : "", realizedPnl.doubleValue(),
+                    pnlPct >= 0 ? "+" : "", pnlPct,
+                    reason != null ? reason.replace("_", "\\_") : ""));
+        }
     }
 
     private void updateUnrealizedPnl(Long sessionId, String coinPair, BigDecimal currentPrice,

@@ -27,4 +27,6 @@ public class PaperTradingStartRequest {
     private BigDecimal initialCapital;
 
     private Map<String, Object> strategyParams;
+
+    private boolean enableTelegram = false;
 }

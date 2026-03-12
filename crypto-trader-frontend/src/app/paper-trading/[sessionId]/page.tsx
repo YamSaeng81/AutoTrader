@@ -1,11 +1,10 @@
 'use client';
 
-import { use } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { paperTradingApi } from '@/lib/api';
 import { PaperPosition, PaperTradingBalance } from '@/lib/types';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { Loader2, Square, TrendingUp, TrendingDown, Clock, Briefcase, ArrowLeft, Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -37,8 +36,8 @@ function ChartTooltip({ active, payload, label }: any) {
     );
 }
 
-export default function SessionDetailPage({ params }: { params: Promise<{ sessionId: string }> }) {
-    const { sessionId } = use(params);
+export default function SessionDetailPage() {
+    const { sessionId } = useParams<{ sessionId: string }>();
     const router = useRouter();
     const queryClient = useQueryClient();
 

@@ -150,6 +150,7 @@ export interface PaperTradingStartRequest {
   timeframe: string;
   initialCapital: number;
   strategyParams?: Record<string, number>;
+  enableTelegram?: boolean;
 }
 
 export interface PaperSession {

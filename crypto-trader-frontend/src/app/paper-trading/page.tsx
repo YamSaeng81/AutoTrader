@@ -5,7 +5,7 @@ import { PaperSession, PaperTradingStartRequest, StrategyInfo } from '@/lib/type
 import { strategyApi, systemApi } from '@/lib/api';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Loader2, Play, Square, Plus, TrendingUp, TrendingDown, Activity, Settings, History } from 'lucide-react';
+import { Loader2, Play, Square, Plus, TrendingUp, TrendingDown, Activity, Settings, History, Bell } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
@@ -27,6 +27,7 @@ export default function PaperTradingPage() {
         coinPair: 'KRW-BTC',
         timeframe: 'H1',
         initialCapital: 10000000,
+        enableTelegram: false,
     });
 
     useEffect(() => {
@@ -164,6 +165,32 @@ export default function PaperTradingPage() {
                             </div>
                         </div>
                     </div>
+
+                    {/* Telegram notification toggle */}
+                    <label className="flex items-center gap-3 cursor-pointer select-none w-fit">
+                        <div className="relative">
+                            <input
+                                type="checkbox"
+                                className="sr-only"
+                                checked={!!config.enableTelegram}
+                                onChange={e => setConfig(c => ({ ...c, enableTelegram: e.target.checked }))}
+                            />
+                            <div className={cn(
+                                'w-10 h-6 rounded-full transition-colors',
+                                config.enableTelegram ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-slate-600'
+                            )}>
+                                <div className={cn(
+                                    'absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform',
+                                    config.enableTelegram ? 'translate-x-5' : 'translate-x-1'
+                                )} />
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-sm font-semibold text-slate-700 dark:text-slate-200">
+                            <Bell className="w-4 h-4 text-indigo-500" />
+                            텔레그램 알림 받기
+                        </div>
+                        <span className="text-xs text-slate-400 dark:text-slate-500">(매수·매도·시작·종료 시 알림)</span>
+                    </label>
 
                     <div className="flex items-center gap-3 pt-2">
                         <button
