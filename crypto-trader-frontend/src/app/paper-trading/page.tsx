@@ -37,8 +37,9 @@ export default function PaperTradingPage() {
                 if (available.length > 0) setConfig(c => ({ ...c, strategyType: available[0].name }));
             }
             if (cRes.success && cRes.data) {
-                setCoins(cRes.data);
-                if (cRes.data.length > 0) setConfig(c => ({ ...c, coinPair: cRes.data[0] }));
+                const coins = cRes.data;
+                setCoins(coins);
+                if (coins.length > 0) setConfig(c => ({ ...c, coinPair: coins[0] }));
             }
         }).catch(() => {});
     }, []);
