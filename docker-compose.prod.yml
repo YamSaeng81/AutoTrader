@@ -28,6 +28,7 @@ services:
       DB_URL: jdbc:postgresql://db:5432/crypto_auto_trader
       DB_PASSWORD: ${DB_PASSWORD}
       REDIS_HOST: redis
+      CORS_ALLOWED_ORIGINS: http://${HOST_IP}:3000,http://localhost:3000
       UPBIT_ACCESS_KEY: ${UPBIT_ACCESS_KEY_ENCRYPTED}
       UPBIT_SECRET_KEY: ${UPBIT_SECRET_KEY_ENCRYPTED}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
