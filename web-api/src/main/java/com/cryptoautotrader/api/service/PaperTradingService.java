@@ -250,12 +250,16 @@ public class PaperTradingService {
         BigDecimal netAmount = investAmount.subtract(fee);
         BigDecimal quantity = netAmount.divide(price, 8, RoundingMode.DOWN);
 
+        // avgPrice = 수수료 포함 실제 취득단가 (investAmount / quantity)
+        // 이렇게 해야 closePosition 에서 costBasis = investAmount 가 되어 정확한 실현손익 계산
+        BigDecimal avgPriceWithFee = investAmount.divide(quantity, 8, RoundingMode.HALF_UP);
+
         PaperPositionEntity pos = PaperPositionEntity.builder()
                 .sessionId(sessionId)
                 .coinPair(coinPair)
                 .side("BUY")
                 .entryPrice(price)
-                .avgPrice(price)
+                .avgPrice(avgPriceWithFee)
                 .size(quantity)
                 .status("OPEN")
                 .build();
@@ -283,13 +287,9 @@ public class PaperTradingService {
         log.info("모의 매수 체결 (sessionId={}): {} {}개 @ {} (수수료: {})", sessionId, coinPair, quantity, price, fee);
 
         if (Boolean.TRUE.equals(session.getTelegramEnabled())) {
-            telegramService.sendMarkdown(String.format(
-                    "📈 *\\[모의투자\\] 매수 체결*\n\n" +
-                    "• 세션 ID: `%d`\n• 코인: `%s`\n• 수량: `%s`\n• 체결가: `%,.0f KRW`\n" +
-                    "• 투자금액: `%,.0f KRW`\n• 수수료: `%,.0f KRW`\n• 신호: _%s_",
-                    sessionId, coinPair, quantity.toPlainString(), price.doubleValue(),
-                    investAmount.doubleValue(), fee.doubleValue(),
-                    reason != null ? reason.replace("_", "\\_") : ""));
+            telegramService.bufferTradeEvent(
+                    "[모의투자] 세션#" + sessionId, coinPair, "BUY",
+                    price, quantity, fee, null, reason);
         }
     }
 
@@ -332,20 +332,9 @@ public class PaperTradingService {
                 pos.getSessionId(), pos.getCoinPair(), pos.getSize(), currentPrice, realizedPnl);
 
         if (Boolean.TRUE.equals(session.getTelegramEnabled())) {
-            BigDecimal costBasisLocal = pos.getSize().multiply(pos.getAvgPrice());
-            double pnlPct = costBasisLocal.compareTo(BigDecimal.ZERO) > 0
-                    ? realizedPnl.divide(costBasisLocal, 4, RoundingMode.HALF_UP)
-                                 .multiply(BigDecimal.valueOf(100)).doubleValue()
-                    : 0;
-            telegramService.sendMarkdown(String.format(
-                    "📉 *\\[모의투자\\] 매도 체결*\n\n" +
-                    "• 세션 ID: `%d`\n• 코인: `%s`\n• 수량: `%s`\n• 체결가: `%,.0f KRW`\n" +
-                    "• 매수단가: `%,.0f KRW`\n• 실현손익: `%s%,.0f KRW` \\(`%s%.2f%%`\\)\n• 신호: _%s_",
-                    pos.getSessionId(), pos.getCoinPair(), pos.getSize().toPlainString(),
-                    currentPrice.doubleValue(), pos.getAvgPrice().doubleValue(),
-                    realizedPnl.compareTo(BigDecimal.ZERO) >= 0 ? "+" : "", realizedPnl.doubleValue(),
-                    pnlPct >= 0 ? "+" : "", pnlPct,
-                    reason != null ? reason.replace("_", "\\_") : ""));
+            telegramService.bufferTradeEvent(
+                    "[모의투자] 세션#" + pos.getSessionId(), pos.getCoinPair(), "SELL",
+                    currentPrice, pos.getSize(), fee, realizedPnl, reason);
         }
     }
 
