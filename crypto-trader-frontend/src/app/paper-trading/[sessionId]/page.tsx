@@ -5,7 +5,7 @@ import { paperTradingApi } from '@/lib/api';
 import { PaperPosition, PaperTradingBalance } from '@/lib/types';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
-import { Loader2, Square, TrendingUp, TrendingDown, Clock, Briefcase, ArrowLeft, Activity } from 'lucide-react';
+import { Loader2, Square, TrendingUp, TrendingDown, Clock, Briefcase, ArrowLeft, Activity, ShoppingCart, DollarSign, Receipt, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import {
@@ -80,6 +80,18 @@ export default function SessionDetailPage() {
 
     const chartCandles = (chartRes?.data as any)?.candles as any[] | undefined;
     const chartOrders = (chartRes?.data as any)?.orders as any[] | undefined;
+
+    // 매매 요약 통계 (chartOrders = 전체 체결 내역)
+    const tradeSummary = (() => {
+        if (!chartOrders || chartOrders.length === 0) return null;
+        const buys = chartOrders.filter((o: any) => o.side === 'BUY');
+        const sells = chartOrders.filter((o: any) => o.side === 'SELL');
+        const totalFee = chartOrders.reduce((sum: number, o: any) => sum + Number(o.fee ?? 0), 0);
+        const totalRealizedPnl = sells.reduce((sum: number, o: any) => sum + Number(o.realizedPnl ?? 0), 0);
+        const winCount = sells.filter((o: any) => Number(o.realizedPnl ?? 0) > 0).length;
+        const winRate = sells.length > 0 ? (winCount / sells.length) * 100 : 0;
+        return { buyCount: buys.length, sellCount: sells.length, totalFee, totalRealizedPnl, winCount, winRate };
+    })();
 
     // Build chart data: merge order info into nearest candle point
     const toMs = (t: any) => t ? (typeof t === 'number' ? t : new Date(t).getTime()) : null;
@@ -227,55 +239,177 @@ export default function SessionDetailPage() {
                 </div>
             </div>
 
-            {/* Chart */}
-            {chartData.length > 0 && (
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                    <div className="px-6 py-5 border-b border-slate-100 bg-slate-50/50">
-                        <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">가격 차트 (매수/매도 시점)</h2>
+            {/* Trade Summary */}
+            {tradeSummary && (
+                <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+                    <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
+                        <h2 className="text-base font-bold text-slate-800 dark:text-slate-100">매매 요약</h2>
                     </div>
-                    <div className="p-4" style={{ height: 320 }}>
-                        <ResponsiveContainer width="100%" height="100%">
-                            <ComposedChart data={chartData} margin={{ top: 10, right: 20, bottom: 0, left: 10 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                                <XAxis
-                                    dataKey="time"
-                                    type="number"
-                                    domain={['dataMin', 'dataMax']}
-                                    scale="time"
-                                    tickFormatter={(t) => format(new Date(t), 'MM/dd HH:mm')}
-                                    tick={{ fontSize: 11, fill: '#94a3b8' }}
-                                    tickCount={6}
-                                />
-                                <YAxis
-                                    domain={['auto', 'auto']}
-                                    tickFormatter={(v) => Number(v).toLocaleString()}
-                                    tick={{ fontSize: 11, fill: '#94a3b8' }}
-                                    width={80}
-                                />
-                                <Tooltip content={<ChartTooltip />} />
-                                <Line
-                                    type="monotone"
-                                    dataKey="close"
-                                    stroke="#6366f1"
-                                    strokeWidth={1.5}
-                                    dot={(props: any) => {
-                                        const { cx, cy, payload } = props;
-                                        if (payload.buyOrder) {
-                                            return <circle key={`buy-dot-${cx}`} cx={cx} cy={cy} r={7} fill="#10b981" stroke="#fff" strokeWidth={2} />;
-                                        }
-                                        if (payload.sellOrder) {
-                                            return <circle key={`sell-dot-${cx}`} cx={cx} cy={cy} r={7} fill="#f43f5e" stroke="#fff" strokeWidth={2} />;
-                                        }
-                                        return <g key={`empty-${cx}`} />;
-                                    }}
-                                    activeDot={{ r: 5, stroke: '#6366f1', strokeWidth: 2, fill: '#fff' }}
-                                    isAnimationActive={false}
-                                />
-                            </ComposedChart>
-                        </ResponsiveContainer>
+                    <div className="grid grid-cols-2 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-slate-100 dark:divide-slate-800">
+                        {/* 매수/매도 횟수 */}
+                        <div className="p-5 flex items-start gap-3">
+                            <div className="mt-0.5 p-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/30">
+                                <ShoppingCart className="w-4 h-4 text-indigo-500" />
+                            </div>
+                            <div>
+                                <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">매수 / 매도</div>
+                                <div className="text-lg font-extrabold text-slate-800 dark:text-slate-100 leading-none">
+                                    <span className="text-emerald-600">{tradeSummary.buyCount}</span>
+                                    <span className="text-slate-300 dark:text-slate-600 mx-1">/</span>
+                                    <span className="text-rose-500">{tradeSummary.sellCount}</span>
+                                    <span className="text-xs font-medium text-slate-400 ml-1">회</span>
+                                </div>
+                                <div className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                                    총 {tradeSummary.buyCount + tradeSummary.sellCount}회 체결
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 누적 수수료 */}
+                        <div className="p-5 flex items-start gap-3">
+                            <div className="mt-0.5 p-2 rounded-lg bg-amber-50 dark:bg-amber-900/30">
+                                <Receipt className="w-4 h-4 text-amber-500" />
+                            </div>
+                            <div>
+                                <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">누적 수수료</div>
+                                <div className="text-lg font-extrabold text-slate-800 dark:text-slate-100 leading-none">
+                                    {tradeSummary.totalFee.toLocaleString('ko-KR', { maximumFractionDigits: 0 })}
+                                    <span className="text-xs font-medium text-slate-400 ml-1">KRW</span>
+                                </div>
+                                <div className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                                    거래당 평균 {tradeSummary.buyCount + tradeSummary.sellCount > 0
+                                        ? Math.round(tradeSummary.totalFee / (tradeSummary.buyCount + tradeSummary.sellCount)).toLocaleString()
+                                        : 0} KRW
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 실현 손익 */}
+                        <div className="p-5 flex items-start gap-3">
+                            <div className={cn(
+                                'mt-0.5 p-2 rounded-lg',
+                                tradeSummary.totalRealizedPnl >= 0
+                                    ? 'bg-emerald-50 dark:bg-emerald-900/30'
+                                    : 'bg-rose-50 dark:bg-rose-900/30'
+                            )}>
+                                <DollarSign className={cn(
+                                    'w-4 h-4',
+                                    tradeSummary.totalRealizedPnl >= 0 ? 'text-emerald-500' : 'text-rose-500'
+                                )} />
+                            </div>
+                            <div>
+                                <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">실현 손익 합계</div>
+                                <div className={cn(
+                                    'text-lg font-extrabold leading-none',
+                                    tradeSummary.totalRealizedPnl >= 0 ? 'text-emerald-600' : 'text-rose-600'
+                                )}>
+                                    {tradeSummary.totalRealizedPnl >= 0 ? '+' : ''}
+                                    {tradeSummary.totalRealizedPnl.toLocaleString('ko-KR', { maximumFractionDigits: 0 })}
+                                    <span className="text-xs font-medium text-slate-400 ml-1">KRW</span>
+                                </div>
+                                <div className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                                    매도 {tradeSummary.sellCount}회 기준
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 승률 */}
+                        <div className="p-5 flex items-start gap-3">
+                            <div className={cn(
+                                'mt-0.5 p-2 rounded-lg',
+                                tradeSummary.winRate >= 50
+                                    ? 'bg-emerald-50 dark:bg-emerald-900/30'
+                                    : 'bg-slate-100 dark:bg-slate-800'
+                            )}>
+                                <Trophy className={cn(
+                                    'w-4 h-4',
+                                    tradeSummary.winRate >= 50 ? 'text-emerald-500' : 'text-slate-400'
+                                )} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">승률</div>
+                                <div className="text-lg font-extrabold text-slate-800 dark:text-slate-100 leading-none">
+                                    {tradeSummary.winRate.toFixed(1)}
+                                    <span className="text-xs font-medium text-slate-400 ml-0.5">%</span>
+                                </div>
+                                <div className="mt-2 h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                                    <div
+                                        className={cn(
+                                            'h-full rounded-full transition-all duration-500',
+                                            tradeSummary.winRate >= 50 ? 'bg-emerald-400' : 'bg-rose-400'
+                                        )}
+                                        style={{ width: `${tradeSummary.winRate}%` }}
+                                    />
+                                </div>
+                                <div className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                                    {tradeSummary.winCount}/{tradeSummary.sellCount}회 수익 실현
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
+
+            {/* Chart */}
+            {chartData.length > 0 && (() => {
+                const PX_PER_POINT = 16;
+                const SCROLL_THRESHOLD = 60;
+                const needsScroll = chartData.length > SCROLL_THRESHOLD;
+                const chartWidth = needsScroll ? Math.max(800, chartData.length * PX_PER_POINT) : undefined;
+                return (
+                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div className="px-6 py-5 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+                            <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">가격 차트 (매수/매도 시점)</h2>
+                            {needsScroll && (
+                                <span className="text-xs text-slate-400">← 좌우 스크롤 →</span>
+                            )}
+                        </div>
+                        <div className="overflow-x-auto">
+                            <div style={{ width: chartWidth ?? '100%', height: 320, padding: '16px 8px 16px 0' }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <ComposedChart data={chartData} margin={{ top: 10, right: 20, bottom: 0, left: 10 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                                        <XAxis
+                                            dataKey="time"
+                                            type="number"
+                                            domain={['dataMin', 'dataMax']}
+                                            scale="time"
+                                            tickFormatter={(t) => format(new Date(t), 'MM/dd HH:mm')}
+                                            tick={{ fontSize: 11, fill: '#94a3b8' }}
+                                            tickCount={needsScroll ? Math.min(chartData.length, 12) : 6}
+                                        />
+                                        <YAxis
+                                            domain={['auto', 'auto']}
+                                            tickFormatter={(v) => Number(v).toLocaleString()}
+                                            tick={{ fontSize: 11, fill: '#94a3b8' }}
+                                            width={80}
+                                        />
+                                        <Tooltip content={<ChartTooltip />} />
+                                        <Line
+                                            type="monotone"
+                                            dataKey="close"
+                                            stroke="#6366f1"
+                                            strokeWidth={1.5}
+                                            dot={(props: any) => {
+                                                const { cx, cy, payload } = props;
+                                                if (payload.buyOrder) {
+                                                    return <circle key={`buy-dot-${cx}`} cx={cx} cy={cy} r={7} fill="#10b981" stroke="#fff" strokeWidth={2} />;
+                                                }
+                                                if (payload.sellOrder) {
+                                                    return <circle key={`sell-dot-${cx}`} cx={cx} cy={cy} r={7} fill="#f43f5e" stroke="#fff" strokeWidth={2} />;
+                                                }
+                                                return <g key={`empty-${cx}`} />;
+                                            }}
+                                            activeDot={{ r: 5, stroke: '#6366f1', strokeWidth: 2, fill: '#fff' }}
+                                            isAnimationActive={false}
+                                        />
+                                    </ComposedChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+                    </div>
+                );
+            })()}
 
             {/* Positions */}
             <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
