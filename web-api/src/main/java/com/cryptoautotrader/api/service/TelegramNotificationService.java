@@ -186,11 +186,11 @@ public class TelegramNotificationService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         StringBuilder sb = new StringBuilder();
-        sb.append(String.format("📊 *%s*\n\n", escapeMarkdownV2(periodLabel)));
+        sb.append(String.format("📊 *%s*\n\n", periodLabel));
         sb.append(String.format("• 매수: `%d회` / 매도: `%d회`\n", buyCount, sellCount));
         sb.append(String.format("• 누적 수수료: `%,.0f KRW`\n", totalFee.doubleValue()));
         sb.append(String.format("• 실현 손익 합계: `%s%,.0f KRW`\n",
-                totalPnl.compareTo(BigDecimal.ZERO) >= 0 ? "\\+" : "", totalPnl.doubleValue()));
+                totalPnl.compareTo(BigDecimal.ZERO) >= 0 ? "+" : "", totalPnl.doubleValue()));
         sb.append(String.format("• 기준 시각: `%s`\n\n", KST_FMT.format(Instant.now())));
 
         // 거래 상세 목록 (최대 10건)
@@ -198,8 +198,8 @@ public class TelegramNotificationService {
         events.stream().limit(10).forEach(e -> {
             String icon = "BUY".equals(e.side()) ? "📈" : "📉";
             String pnlStr = ("SELL".equals(e.side()) && e.realizedPnl() != null)
-                    ? String.format(" \\| 손익 `%s%,.0f`",
-                        e.realizedPnl().compareTo(BigDecimal.ZERO) >= 0 ? "\\+" : "",
+                    ? String.format(" | 손익 `%s%,.0f`",
+                        e.realizedPnl().compareTo(BigDecimal.ZERO) >= 0 ? "+" : "",
                         e.realizedPnl().doubleValue())
                     : "";
             sb.append(String.format("%s `%s` `%s` @ `%,.0f` \\[%s\\]%s\n",
