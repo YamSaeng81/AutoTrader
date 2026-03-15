@@ -6,15 +6,16 @@ import com.cryptoautotrader.api.dto.TradingStatusResponse;
 import com.cryptoautotrader.api.entity.LiveTradingSessionEntity;
 import com.cryptoautotrader.api.entity.OrderEntity;
 import com.cryptoautotrader.api.entity.PositionEntity;
-import com.cryptoautotrader.api.entity.StrategyConfigEntity;
 import com.cryptoautotrader.api.repository.LiveTradingSessionRepository;
 import com.cryptoautotrader.api.repository.OrderRepository;
 import com.cryptoautotrader.api.repository.PositionRepository;
 import com.cryptoautotrader.api.repository.CandleDataRepository;
 import com.cryptoautotrader.api.repository.StrategyConfigRepository;
+import com.cryptoautotrader.api.util.TimeframeUtils;
 import com.cryptoautotrader.strategy.Candle;
 import com.cryptoautotrader.strategy.StrategyRegistry;
 import com.cryptoautotrader.strategy.StrategySignal;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
@@ -39,6 +40,7 @@ import java.util.Optional;
  * - 세션별 시작/정지/비상정지
  */
 @Service
+@RequiredArgsConstructor
 @Slf4j
 public class LiveTradingService {
 
@@ -57,24 +59,7 @@ public class LiveTradingService {
     private final OrderExecutionEngine orderExecutionEngine;
     private final PositionService positionService;
     private final ExchangeHealthMonitor exchangeHealthMonitor;
-
-    public LiveTradingService(LiveTradingSessionRepository sessionRepository,
-                               PositionRepository positionRepository,
-                               OrderRepository orderRepository,
-                               StrategyConfigRepository strategyConfigRepository,
-                               CandleDataRepository candleDataRepository,
-                               OrderExecutionEngine orderExecutionEngine,
-                               PositionService positionService,
-                               ExchangeHealthMonitor exchangeHealthMonitor) {
-        this.sessionRepository = sessionRepository;
-        this.positionRepository = positionRepository;
-        this.orderRepository = orderRepository;
-        this.strategyConfigRepository = strategyConfigRepository;
-        this.candleDataRepository = candleDataRepository;
-        this.orderExecutionEngine = orderExecutionEngine;
-        this.positionService = positionService;
-        this.exchangeHealthMonitor = exchangeHealthMonitor;
-    }
+    private final TelegramNotificationService telegramService;
 
     // -- 거래소 DOWN 이벤트 수신 -- 모든 세션 비상 정지 ----------
 
@@ -160,6 +145,9 @@ public class LiveTradingService {
 
         log.info("실전매매 세션 시작: id={} {} {} {}",
                 sessionId, session.getStrategyType(), session.getCoinPair(), session.getTimeframe());
+        telegramService.notifySessionStarted(
+                sessionId, session.getStrategyType(), session.getCoinPair(),
+                session.getTimeframe(), session.getInitialCapital().longValue());
         return session;
     }
 
@@ -185,6 +173,15 @@ public class LiveTradingService {
 
         log.info("실전매매 세션 정지: id={} 최종 자산: {} KRW",
                 sessionId, session.getTotalAssetKrw());
+
+        double returnPct = session.getTotalAssetKrw()
+                .subtract(session.getInitialCapital())
+                .divide(session.getInitialCapital(), 4, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(100))
+                .doubleValue();
+        telegramService.notifySessionStopped(
+                sessionId, session.getCoinPair(), returnPct,
+                session.getTotalAssetKrw().longValue(), false);
         return session;
     }
 
@@ -210,6 +207,15 @@ public class LiveTradingService {
         session = sessionRepository.save(session);
 
         log.error("실전매매 세션 비상 정지 완료: id={}", sessionId);
+
+        double returnPct = session.getTotalAssetKrw()
+                .subtract(session.getInitialCapital())
+                .divide(session.getInitialCapital(), 4, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(100))
+                .doubleValue();
+        telegramService.notifySessionStopped(
+                sessionId, session.getCoinPair(), returnPct,
+                session.getTotalAssetKrw().longValue(), true);
         return session;
     }
 
@@ -401,6 +407,7 @@ public class LiveTradingService {
             if (pnlPct.compareTo(stopLoss) <= 0) {
                 log.warn("손절 발동 (sessionId={}): {} 손익률={}% (한도={}%)",
                         sessionId, coinPair, pnlPct, stopLoss);
+                telegramService.notifyStopLoss(coinPair, pnlPct.doubleValue(), sessionId);
                 executeSessionSell(session, pos, currentPrice,
                         "손절 발동 -- 손익률 " + pnlPct + "%");
                 return;
@@ -586,7 +593,7 @@ public class LiveTradingService {
 
     private List<Candle> fetchRecentCandles(String coinPair, String timeframe) {
         Instant to = Instant.now();
-        Instant from = to.minus(CANDLE_LOOKBACK * timeframeMinutes(timeframe), ChronoUnit.MINUTES);
+        Instant from = to.minus(CANDLE_LOOKBACK * TimeframeUtils.toMinutes(timeframe), ChronoUnit.MINUTES);
 
         return candleDataRepository.findCandles(coinPair, timeframe, from, to).stream()
                 .map(c -> Candle.builder()
@@ -596,16 +603,4 @@ public class LiveTradingService {
                 .toList();
     }
 
-    private long timeframeMinutes(String timeframe) {
-        return switch (timeframe) {
-            case "M1" -> 1;
-            case "M5" -> 5;
-            case "M15" -> 15;
-            case "M30" -> 30;
-            case "H1" -> 60;
-            case "H4" -> 240;
-            case "D1" -> 1440;
-            default -> 60;
-        };
-    }
 }

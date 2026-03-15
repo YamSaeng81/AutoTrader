@@ -10,6 +10,7 @@ import com.cryptoautotrader.api.repository.TradeLogRepository;
 import com.cryptoautotrader.core.risk.RiskCheckResult;
 import com.cryptoautotrader.core.risk.RiskConfig;
 import com.cryptoautotrader.core.risk.RiskEngine;
+import com.cryptoautotrader.exchange.upbit.UpbitOrderClient;
 import com.cryptoautotrader.exchange.upbit.UpbitRestClient;
 import com.cryptoautotrader.exchange.upbit.dto.OrderResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -60,6 +61,9 @@ public class OrderExecutionEngine {
     // exchange-adapter 모듈에서 빈 등록 전이면 null 허용
     @Autowired(required = false)
     private UpbitRestClient upbitRestClient;
+
+    @Autowired(required = false)
+    private UpbitOrderClient upbitOrderClient;
 
     public OrderExecutionEngine(OrderRepository orderRepository,
                                  PositionRepository positionRepository,
@@ -113,8 +117,8 @@ public class OrderExecutionEngine {
         }
 
         // 4. 거래소 주문 제출
-        if (upbitRestClient == null) {
-            log.warn("UpbitRestClient 미등록 — 거래소 연동 불가 (orderId={})", order.getId());
+        if (upbitOrderClient == null) {
+            log.warn("UpbitOrderClient 미등록 — 거래소 연동 불가 (orderId={})", order.getId());
             transitionState(order, "FAILED", "거래소 클라이언트 미등록");
             return order;
         }
@@ -173,7 +177,7 @@ public class OrderExecutionEngine {
         }
 
         // 거래소에 취소 요청
-        if (upbitRestClient != null && order.getExchangeOrderId() != null) {
+        if (upbitOrderClient != null && order.getExchangeOrderId() != null) {
             try {
                 cancelOnExchange(order.getExchangeOrderId());
             } catch (Exception e) {
@@ -358,19 +362,43 @@ public class OrderExecutionEngine {
     // ── 거래소 연동 (UpbitRestClient 래핑) ─────────────────────
 
     private OrderResponse submitToExchange(OrderEntity order) throws Exception {
-        // TODO: UpbitRestClient에 주문 생성 메서드 구현 시 교체
-        // 현재는 REST API 직접 호출 placeholder
-        throw new UnsupportedOperationException("거래소 주문 API 미구현 — exchange-adapter Phase 4 구현 필요");
+        // BUY:  Upbit bid + price 타입 (총 KRW 금액 = quantity 필드에 KRW 금액이 설정된 경우)
+        //       또는 bid + market 타입 (수량 기반 시장가)
+        // SELL: Upbit ask + market 타입 (코인 수량)
+        // LIMIT: bid/ask + limit 타입 (지정가)
+        String upbitSide = "BUY".equalsIgnoreCase(order.getSide()) ? "bid" : "ask";
+        String upbitOrderType;
+        BigDecimal volume;
+        BigDecimal price;
+
+        if ("MARKET".equalsIgnoreCase(order.getOrderType())) {
+            if ("bid".equals(upbitSide)) {
+                // 시장가 매수: price 타입 — quantity 필드를 KRW 총액으로 사용
+                upbitOrderType = "price";
+                volume = null;
+                price = order.getQuantity();
+            } else {
+                // 시장가 매도: market 타입 — quantity 필드를 코인 수량으로 사용
+                upbitOrderType = "market";
+                volume = order.getQuantity();
+                price = null;
+            }
+        } else {
+            // 지정가
+            upbitOrderType = "limit";
+            volume = order.getQuantity();
+            price = order.getPrice();
+        }
+
+        return upbitOrderClient.createOrder(order.getCoinPair(), upbitSide, volume, price, upbitOrderType);
     }
 
     private OrderResponse queryExchangeOrder(String exchangeOrderId) throws Exception {
-        // TODO: UpbitRestClient에 주문 조회 메서드 구현 시 교체
-        throw new UnsupportedOperationException("거래소 주문 조회 API 미구현");
+        return upbitOrderClient.getOrder(exchangeOrderId);
     }
 
     private void cancelOnExchange(String exchangeOrderId) throws Exception {
-        // TODO: UpbitRestClient에 주문 취소 메서드 구현 시 교체
-        throw new UnsupportedOperationException("거래소 주문 취소 API 미구현");
+        upbitOrderClient.cancelOrder(exchangeOrderId);
     }
 
     // ── 상태 동기화 ────────────────────────────────────────────

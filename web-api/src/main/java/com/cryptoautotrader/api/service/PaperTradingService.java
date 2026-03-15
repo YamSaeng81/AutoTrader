@@ -9,9 +9,11 @@ import com.cryptoautotrader.api.repository.MarketDataCacheRepository;
 import com.cryptoautotrader.api.repository.paper.PaperOrderRepository;
 import com.cryptoautotrader.api.repository.paper.PaperPositionRepository;
 import com.cryptoautotrader.api.repository.paper.VirtualBalanceRepository;
+import com.cryptoautotrader.api.util.TimeframeUtils;
 import com.cryptoautotrader.exchange.upbit.UpbitCandleCollector;
 import com.cryptoautotrader.exchange.upbit.UpbitRestClient;
 import com.cryptoautotrader.strategy.Candle;
+import org.springframework.beans.factory.annotation.Autowired;
 import com.cryptoautotrader.strategy.StrategyRegistry;
 import com.cryptoautotrader.strategy.StrategySignal;
 import lombok.RequiredArgsConstructor;
@@ -45,6 +47,10 @@ public class PaperTradingService {
     private final PaperOrderRepository orderRepo;
     private final MarketDataCacheRepository marketDataCacheRepo;
     private final TelegramNotificationService telegramService;
+
+    // exchange-adapter 모듈 Bean이 없을 때 null 허용 (테스트/개발 환경 대비)
+    @Autowired(required = false)
+    private UpbitRestClient upbitRestClient;
 
     // ── 공개 API ──────────────────────────────────────────────
 
@@ -358,7 +364,7 @@ public class PaperTradingService {
 
     private List<Candle> fetchRecentCandles(String coinPair, String timeframe) {
         Instant to = Instant.now();
-        Instant from = to.minus(CANDLE_LOOKBACK * timeframeMinutes(timeframe), ChronoUnit.MINUTES);
+        Instant from = to.minus(CANDLE_LOOKBACK * TimeframeUtils.toMinutes(timeframe), ChronoUnit.MINUTES);
 
         // MarketDataSyncService 가 미리 DB에 저장한 캔들만 사용
         return marketDataCacheRepo.findCandles(coinPair, timeframe, from, to).stream()
@@ -370,34 +376,25 @@ public class PaperTradingService {
     }
 
     private BigDecimal fetchCurrentPrice(String coinPair) {
-        // DB에서 가장 최근 캔들(어떤 타임프레임이든) 조회
+        // DB에서 가장 최근 M1 캔들 조회
         Instant now = Instant.now();
         Instant from = now.minus(5, ChronoUnit.MINUTES);
         List<MarketDataCacheEntity> recent = marketDataCacheRepo.findCandles(coinPair, "M1", from, now);
         if (!recent.isEmpty()) {
             return recent.get(recent.size() - 1).getClose();
         }
-        // M1 캔들이 없으면 Upbit API 직접 호출 (중단 시 폴백)
-        try {
-            UpbitRestClient restClient = new UpbitRestClient();
-            UpbitCandleCollector collector = new UpbitCandleCollector(restClient);
-            List<Candle> candles = collector.fetchCandles(coinPair, "M1", from, now);
-            if (!candles.isEmpty()) {
-                return candles.get(candles.size() - 1).getClose();
+        // M1 캔들이 없으면 주입된 UpbitRestClient 통해 폴백 조회
+        if (upbitRestClient != null) {
+            try {
+                UpbitCandleCollector collector = new UpbitCandleCollector(upbitRestClient);
+                List<Candle> candles = collector.fetchCandles(coinPair, "M1", from, now);
+                if (!candles.isEmpty()) {
+                    return candles.get(candles.size() - 1).getClose();
+                }
+            } catch (Exception e) {
+                log.warn("현재가 조회 실패: {}", e.getMessage());
             }
-        } catch (Exception e) {
-            log.warn("현재가 조회 실패: {}", e.getMessage());
         }
         return BigDecimal.ZERO;
-    }
-
-    private long timeframeMinutes(String timeframe) {
-        return switch (timeframe) {
-            case "M1" -> 1;
-            case "M5" -> 5;
-            case "H1" -> 60;
-            case "D1" -> 1440;
-            default -> 60;
-        };
     }
 }
