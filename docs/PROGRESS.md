@@ -2,7 +2,7 @@
 
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝날 때마다 `## 최근 변경사항`과 `## 다음 할 일`을 반드시 업데이트한다.
-> **마지막 갱신**: 2026-03-15 (리팩토링 완료 — Phase 4 프론트엔드 구현 완료, 백엔드 버그 수정)
+> **마지막 갱신**: 2026-03-15 (Gemini 3차 분석 반영 — 테스트 에러코드, Rate Limiting, Timeframe 수정)
 
 ---
 
@@ -46,6 +46,28 @@ VWAP / EMA Cross / Bollinger Band / Grid / RSI(다이버전스) / MACD(히스토
 ---
 
 ## 최근 변경사항
+
+### 2026-03-15 작업 (Gemini 3차 분석 반영)
+
+#### 수정 항목 (🔴 Critical → 🟡 Medium 순)
+
+| 우선순위 | 파일 | 변경 내용 | 상태 |
+|----------|------|-----------|------|
+| 🔴 CRITICAL | `BacktestControllerIntegrationTest.java` | 에러코드 `BACKTEST_001` → `BAD_REQUEST` (GEH 변경 반영) | ✅ 완료 |
+| 🟡 MEDIUM | `MarketDataSyncService.java` | `new UpbitRestClient()` → `@Autowired` DI 주입 (Rate Limiting 복원) | ✅ 완료 |
+| 🟡 MEDIUM | `MarketDataSyncService.java` | `timeframeMinutes()` 제거 → `TimeframeUtils.toMinutes()` 사용 (M15/M30/H4 누락 수정) | ✅ 완료 |
+| 🟡 MEDIUM | `crypto-trader-frontend/src/lib/types.ts` | `Timeframe` 타입에 `M15 \| M30 \| H4` 추가 | ✅ 완료 |
+
+#### 미적용 항목 (향후 작업)
+
+| 우선순위 | 항목 | 비고 |
+|----------|------|------|
+| 🟡 MEDIUM | TradingController 이중 예외 처리 패턴 통일 | 커스텀 예외 클래스 도입 필요 |
+| 🟡 MEDIUM | StrategyController DTO 전환 + Bean Validation | 1차부터 지속 미적용 |
+| 🟢 LOW | EngineConfig `@ConditionalOnProperty` 전환 | null Bean 방지 |
+| 🟢 LOW | PaperTradingService 다중 포지션 totalKrw 계산 | 현재 1세션=1코인이라 실질 영향 없음 |
+
+---
 
 ### 2026-03-15 작업 (테이블 격리 검증 및 수정)
 
@@ -158,18 +180,23 @@ VWAP / EMA Cross / Bollinger Band / Grid / RSI(다이버전스) / MACD(히스토
 
 ### 즉시 해야 할 것
 
-- [ ] 텔레그램 수신 확인 (서버 재기동 후 12:00/00:00 정상 수신 여부)
-- [ ] **Phase 4 실전매매 배포** — `UPBIT_ACCESS_KEY`, `UPBIT_SECRET_KEY` 환경변수 설정 후 서버 재빌드
+- [ ] `🔴 CRITICAL` **Phase 4 실전매매 배포** — `UPBIT_ACCESS_KEY`, `UPBIT_SECRET_KEY` 환경변수 설정 후 서버 재빌드
+- [ ] `🔴 CRITICAL` Spring Security / API 인증 추가 — 실전매매 API 현재 무방비 (1차 분석부터 미적용)
+- [ ] `🟡 MEDIUM` 텔레그램 수신 확인 (서버 재기동 후 12:00/00:00 정상 수신 여부)
 
 ### 단기 (1~2주)
 
-- [ ] Report 에이전트 실행 (REPORT.md 최종 갱신)
+- [ ] `🟡 MEDIUM` TradingController 예외 처리 패턴 통일 (커스텀 예외 클래스 도입 — 프론트엔드 에러 응답 불일치)
+- [ ] `🟡 MEDIUM` StrategyController DTO 전환 + Bean Validation (현재 `Map<String, Object>` — 타입 안전성 부재)
+- [ ] `🟢 LOW` Report 에이전트 실행 (REPORT.md 최종 갱신)
+- [ ] `🟢 LOW` EngineConfig `@ConditionalOnProperty` 전환 (null Bean 방지)
+- [ ] `🟢 LOW` PaperTradingService 다중 포지션 totalKrw 계산 (다중 코인 지원 시)
 
-### 보류/나중에
+### 완료
 
-- [x] BacktestService / PaperTradingService / LiveTradingService 테이블 격리 검증 (2026-03-15 완료)
-- [ ] Spring Security / API 인증 추가
-- [ ] StrategyController DTO 전환 + Bean Validation (현재 `Map<String, Object>` 사용 — NPE 위험, 타입 안전성 부재)
+- [x] BacktestService / PaperTradingService / LiveTradingService 테이블 격리 검증 (2026-03-15)
+- [x] BacktestControllerIntegrationTest 에러코드 불일치 수정 (2026-03-15)
+- [x] MarketDataSyncService Rate Limiting + Timeframe 수정 (2026-03-15)
 
 ---
 

@@ -127,7 +127,7 @@ class BacktestControllerIntegrationTest extends IntegrationTestBase {
                         .content(body))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.error.code").value("BACKTEST_001"));
+                .andExpect(jsonPath("$.error.code").value("BAD_REQUEST"));
     }
 
     @Test

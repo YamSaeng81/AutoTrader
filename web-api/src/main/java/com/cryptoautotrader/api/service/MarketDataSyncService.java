@@ -3,11 +3,13 @@ package com.cryptoautotrader.api.service;
 import com.cryptoautotrader.api.entity.MarketDataCacheEntity;
 import com.cryptoautotrader.api.repository.MarketDataCacheRepository;
 import com.cryptoautotrader.api.repository.paper.VirtualBalanceRepository;
+import com.cryptoautotrader.api.util.TimeframeUtils;
 import com.cryptoautotrader.exchange.upbit.UpbitCandleCollector;
 import com.cryptoautotrader.exchange.upbit.UpbitRestClient;
 import com.cryptoautotrader.strategy.Candle;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +36,10 @@ public class MarketDataSyncService {
 
     private final VirtualBalanceRepository balanceRepo;
     private final MarketDataCacheRepository marketDataCacheRepo;
+
+    /** EngineConfig Bean — API 키 없이도 공개 캔들 API 사용 가능 */
+    @Autowired(required = false)
+    private UpbitRestClient upbitRestClient;
 
     /**
      * 60초마다 실행. PaperTradingService.runStrategy() 보다
@@ -67,11 +73,15 @@ public class MarketDataSyncService {
     }
 
     private void syncPair(String coinPair, String timeframe) {
-        Instant to = Instant.now();
-        Instant from = to.minus(SYNC_CANDLE_COUNT * timeframeMinutes(timeframe), ChronoUnit.MINUTES);
+        if (upbitRestClient == null) {
+            log.warn("UpbitRestClient Bean 미등록 — 시장 데이터 동기화 건너뜀: {} {}", coinPair, timeframe);
+            return;
+        }
 
-        UpbitRestClient restClient = new UpbitRestClient();
-        UpbitCandleCollector collector = new UpbitCandleCollector(restClient);
+        Instant to = Instant.now();
+        Instant from = to.minus(SYNC_CANDLE_COUNT * TimeframeUtils.toMinutes(timeframe), ChronoUnit.MINUTES);
+
+        UpbitCandleCollector collector = new UpbitCandleCollector(upbitRestClient);
         List<Candle> candles = collector.fetchCandles(coinPair, timeframe, from, to);
 
         if (candles.isEmpty()) {
@@ -97,13 +107,4 @@ public class MarketDataSyncService {
         log.debug("시장 데이터 동기화 완료: {} {} {}건", coinPair, timeframe, entities.size());
     }
 
-    private long timeframeMinutes(String timeframe) {
-        return switch (timeframe) {
-            case "M1" -> 1;
-            case "M5" -> 5;
-            case "H1" -> 60;
-            case "D1" -> 1440;
-            default -> 60;
-        };
-    }
 }
