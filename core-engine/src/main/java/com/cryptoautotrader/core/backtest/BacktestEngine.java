@@ -25,8 +25,20 @@ public class BacktestEngine {
 
     private static final int SCALE = 8;
 
+    /**
+     * 외부에서 생성한 Strategy를 직접 전달하는 오버로드.
+     * CompositeStrategy, MultiTimeframeFilter 등 동적으로 조합한 전략에 사용한다.
+     */
+    public BacktestResult run(BacktestConfig config, List<Candle> candles, Strategy strategy) {
+        return runWithStrategy(config, candles, strategy);
+    }
+
     public BacktestResult run(BacktestConfig config, List<Candle> candles) {
         Strategy strategy = StrategyRegistry.get(config.getStrategyName());
+        return runWithStrategy(config, candles, strategy);
+    }
+
+    private BacktestResult runWithStrategy(BacktestConfig config, List<Candle> candles, Strategy strategy) {
         MarketRegimeDetector regimeDetector = new MarketRegimeDetector();
         FillSimulator fillSimulator = config.isFillSimulationEnabled()
                 ? new FillSimulator(config.getImpactFactor(), config.getFillRatio())

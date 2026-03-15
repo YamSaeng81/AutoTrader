@@ -33,14 +33,14 @@ class OrderbookImbalanceStrategyTest {
 
     @Test
     void 최소_캔들수_확인() {
-        assertThat(strategy.getMinimumCandleCount()).isEqualTo(5);
+        assertThat(strategy.getMinimumCandleCount()).isEqualTo(15);
     }
 
     // ========== 실시간 호가 모드 테스트 ==========
 
     @Test
     void 실시간_매수_우세_BUY() {
-        List<Candle> candles = TestDataHelper.createRangeCandles(5, new BigDecimal("50000000"));
+        List<Candle> candles = TestDataHelper.createRangeCandles(15, new BigDecimal("50000000"));
         // 매수량 70%, 매도량 30% → 불균형비율 0.7 > 임계값 0.65 → BUY
         StrategySignal signal = strategy.evaluate(candles, Map.of(
                 "imbalanceThreshold", 0.65,
@@ -53,7 +53,7 @@ class OrderbookImbalanceStrategyTest {
 
     @Test
     void 실시간_매도_우세_SELL() {
-        List<Candle> candles = TestDataHelper.createRangeCandles(5, new BigDecimal("50000000"));
+        List<Candle> candles = TestDataHelper.createRangeCandles(15, new BigDecimal("50000000"));
         // 매수량 25%, 매도량 75% → 불균형비율 0.25 < (1-0.65=0.35) → SELL
         StrategySignal signal = strategy.evaluate(candles, Map.of(
                 "imbalanceThreshold", 0.65,
@@ -66,7 +66,7 @@ class OrderbookImbalanceStrategyTest {
 
     @Test
     void 실시간_균형_HOLD() {
-        List<Candle> candles = TestDataHelper.createRangeCandles(5, new BigDecimal("50000000"));
+        List<Candle> candles = TestDataHelper.createRangeCandles(15, new BigDecimal("50000000"));
         // 매수 50%, 매도 50% → 균형 → HOLD
         StrategySignal signal = strategy.evaluate(candles, Map.of(
                 "imbalanceThreshold", 0.65,
@@ -78,7 +78,7 @@ class OrderbookImbalanceStrategyTest {
 
     @Test
     void 실시간_임계값_경계에서_BUY() {
-        List<Candle> candles = TestDataHelper.createRangeCandles(5, new BigDecimal("50000000"));
+        List<Candle> candles = TestDataHelper.createRangeCandles(15, new BigDecimal("50000000"));
         // 불균형비율 = 0.65 (임계값과 동일) → BUY (compareTo >= 0)
         StrategySignal signal = strategy.evaluate(candles, Map.of(
                 "imbalanceThreshold", 0.65,
@@ -147,7 +147,7 @@ class OrderbookImbalanceStrategyTest {
 
     @Test
     void 신호_강도가_0이상_100이하_실시간() {
-        List<Candle> candles = TestDataHelper.createRangeCandles(5, new BigDecimal("50000000"));
+        List<Candle> candles = TestDataHelper.createRangeCandles(15, new BigDecimal("50000000"));
         StrategySignal signal = strategy.evaluate(candles, Map.of(
                 "bidVolume", 800.0,
                 "askVolume", 200.0

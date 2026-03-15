@@ -65,6 +65,6 @@ class EmaCrossStrategyTest {
 
     @Test
     void 최소_캔들수_확인() {
-        assertThat(strategy.getMinimumCandleCount()).isEqualTo(22);
+        assertThat(strategy.getMinimumCandleCount()).isEqualTo(51);
     }
 }

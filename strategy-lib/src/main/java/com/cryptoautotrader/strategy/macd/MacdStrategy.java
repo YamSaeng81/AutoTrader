@@ -37,6 +37,8 @@ public class MacdStrategy implements Strategy {
         int fastPeriod = getInt(params, "fastPeriod", 12);
         int slowPeriod = getInt(params, "slowPeriod", 26);
         int signalPeriod = getInt(params, "signalPeriod", 9);
+        int adxPeriod = getInt(params, "adxPeriod", 14);
+        double adxThreshold = getDouble(params, "adxThreshold", 25.0);
 
         // MACD 계산에 필요한 최소 캔들 수:
         // slowPeriod개로 첫 EMA(slow) 계산, 이후 signalPeriod개의 MACD값으로 Signal EMA 계산
@@ -44,6 +46,15 @@ public class MacdStrategy implements Strategy {
         int minRequired = slowPeriod + signalPeriod + 1;
         if (candles.size() < minRequired) {
             return StrategySignal.hold("데이터 부족: " + candles.size() + " < " + minRequired);
+        }
+
+        // ADX 필터: MACD는 추세 추종 전략, 추세가 충분히 강한 경우에만 진입
+        if (adxThreshold > 0 && candles.size() >= adxPeriod * 2 + 1) {
+            BigDecimal adx = IndicatorUtils.adx(candles, adxPeriod);
+            if (adx.compareTo(BigDecimal.valueOf(adxThreshold)) < 0) {
+                return StrategySignal.hold(String.format(
+                        "ADX 필터: 추세 약함 ADX=%.2f < %.0f (횡보장 크로스 억제)", adx, adxThreshold));
+            }
         }
 
         List<BigDecimal> closes = candles.stream().map(Candle::getClose).toList();
@@ -200,5 +211,10 @@ public class MacdStrategy implements Strategy {
     private int getInt(Map<String, Object> params, String key, int defaultVal) {
         Object v = params.get(key);
         return v instanceof Number ? ((Number) v).intValue() : defaultVal;
+    }
+
+    private double getDouble(Map<String, Object> params, String key, double defaultVal) {
+        Object v = params.get(key);
+        return v instanceof Number ? ((Number) v).doubleValue() : defaultVal;
     }
 }

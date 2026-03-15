@@ -1,6 +1,7 @@
 package com.cryptoautotrader.strategy.stochasticrsi;
 
 import com.cryptoautotrader.strategy.Candle;
+import com.cryptoautotrader.strategy.IndicatorUtils;
 import com.cryptoautotrader.strategy.Strategy;
 import com.cryptoautotrader.strategy.StrategySignal;
 
@@ -14,7 +15,7 @@ import java.util.Map;
  * Stochastic RSI 전략 (Phase 3 — 6번째 추가 전략)
  *
  * <p>개요: RSI 값 자체에 Stochastic 공식을 적용하여 RSI 의 과매수/과매도를 더 민감하게 감지한다.
- * 일반 RSI 보다 반응이 빠르고 RANGE / VOLATILE 시장에 효과적이다.
+ * 일반 RSI 보다 반응이 빠르고 RANGE / VOLATILITY 시장에 효과적이다.
  *
  * <p>계산 방식:
  * <pre>
@@ -57,8 +58,10 @@ public class StochasticRsiStrategy implements Strategy {
         int    rsiPeriod       = parseIntParam(params,    "rsiPeriod",       14);
         int    stochPeriod     = parseIntParam(params,    "stochPeriod",     14);
         int    signalPeriod    = parseIntParam(params,    "signalPeriod",    3);
-        double oversoldLevel   = parseDoubleParam(params, "oversoldLevel",   20.0);
-        double overboughtLevel = parseDoubleParam(params, "overboughtLevel", 80.0);
+        double oversoldLevel   = parseDoubleParam(params, "oversoldLevel",   15.0);
+        double overboughtLevel = parseDoubleParam(params, "overboughtLevel", 85.0);
+        int    adxPeriod       = parseIntParam(params,    "adxPeriod",       14);
+        double adxMaxThreshold = parseDoubleParam(params, "adxMaxThreshold", 30.0);
 
         // %K 이전 값과 현재 값, %D 현재 값을 구하려면
         // RSI 시계열 최소: rsiPeriod + stochPeriod 개 (stochPeriod 개의 RSI 값을 얻으려면)
@@ -66,6 +69,15 @@ public class StochasticRsiStrategy implements Strategy {
         int required = rsiPeriod + stochPeriod + signalPeriod;
         if (candles.size() < required) {
             return StrategySignal.hold("캔들 수 부족: " + candles.size() + "/" + required);
+        }
+
+        // ADX 상한선 필터: StochRSI는 레인지 구간(낮은 ADX)에서 효과적, 강한 추세장 회피
+        if (adxMaxThreshold > 0 && candles.size() >= adxPeriod * 2 + 1) {
+            BigDecimal adx = IndicatorUtils.adx(candles, adxPeriod);
+            if (adx.compareTo(BigDecimal.valueOf(adxMaxThreshold)) >= 0) {
+                return StrategySignal.hold(String.format(
+                        "ADX 필터: 강한 추세 구간 매매 회피 ADX=%.2f >= %.0f", adx, adxMaxThreshold));
+            }
         }
 
         // Step 1: 전체 캔들에 대한 RSI 시계열 계산

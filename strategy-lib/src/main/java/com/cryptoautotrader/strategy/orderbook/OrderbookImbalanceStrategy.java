@@ -12,6 +12,11 @@ import java.util.Map;
 /**
  * Orderbook Imbalance (호가 불균형) 전략
  *
+ * <p>S4-6 Delta 일관성 필터 (캔들 근사 모드):
+ *   마지막 캔들의 압력 방향이 lookback 구간 전체 누적 방향과 반대인 경우
+ *   신호 강도를 50% 할인한다. 급반전은 스푸핑 등의 허위 주문 패턴일 수 있기 때문이다.
+ *   "bidVolume/askVolume" 파라미터가 제공되는 실시간 모드에서는 적용하지 않는다.
+ *
  * 실시간 모드 (Phase 4 WebSocket 연동 시):
  *   매개변수 "bidVolume", "askVolume"이 제공될 경우 실제 호가 불균형을 계산한다.
  *   불균형비율 = bidVolume / (bidVolume + askVolume)
@@ -43,8 +48,8 @@ public class OrderbookImbalanceStrategy implements Strategy {
 
     @Override
     public StrategySignal evaluate(List<Candle> candles, Map<String, Object> params) {
-        double imbalanceThreshold = getDouble(params, "imbalanceThreshold", 0.65);
-        int lookback = getInt(params, "lookback", 5);
+        double imbalanceThreshold = getDouble(params, "imbalanceThreshold", 0.70);
+        int lookback = getInt(params, "lookback", 15);
 
         if (candles.size() < lookback) {
             return StrategySignal.hold("데이터 부족: " + candles.size() + " < " + lookback);
@@ -68,7 +73,7 @@ public class OrderbookImbalanceStrategy implements Strategy {
 
     @Override
     public int getMinimumCandleCount() {
-        return 5;
+        return 15;
     }
 
     /**
@@ -122,26 +127,36 @@ public class OrderbookImbalanceStrategy implements Strategy {
      *   상승비율 = (close - low) / (high - low + epsilon)
      *   매수량  = volume * 상승비율
      *   매도량  = volume * (1 - 상승비율)
+     *
+     * S4-6 Delta 일관성 필터:
+     *   마지막 캔들의 압력 방향이 lookback 구간 전체와 반대이면 신호 강도를 50% 할인.
      */
     private StrategySignal evaluateWithCandleApproximation(
             List<Candle> candles, int lookback, double imbalanceThreshold) {
 
         int start = candles.size() - lookback;
-        BigDecimal totalBuyVolume = BigDecimal.ZERO;
+        BigDecimal totalBuyVolume  = BigDecimal.ZERO;
         BigDecimal totalSellVolume = BigDecimal.ZERO;
+
+        // lookback-1개 캔들의 누적 압력 (마지막 캔들 제외)
+        BigDecimal priorBuyVolume  = BigDecimal.ZERO;
+        BigDecimal priorSellVolume = BigDecimal.ZERO;
 
         for (int i = start; i < candles.size(); i++) {
             Candle c = candles.get(i);
             BigDecimal hl = c.getHigh().subtract(c.getLow()).abs().add(EPSILON);
-            // 매수 압력 근사: 종가가 저가 대비 얼마나 높은지
             BigDecimal buyRatio = c.getClose().subtract(c.getLow())
                     .divide(hl, SCALE, RoundingMode.HALF_UP)
                     .max(BigDecimal.ZERO)
                     .min(BigDecimal.ONE);
-            BigDecimal buyVolume = c.getVolume().multiply(buyRatio);
+            BigDecimal buyVolume  = c.getVolume().multiply(buyRatio);
             BigDecimal sellVolume = c.getVolume().multiply(BigDecimal.ONE.subtract(buyRatio));
-            totalBuyVolume = totalBuyVolume.add(buyVolume);
+            totalBuyVolume  = totalBuyVolume.add(buyVolume);
             totalSellVolume = totalSellVolume.add(sellVolume);
+            if (i < candles.size() - 1) {   // 마지막 캔들은 제외
+                priorBuyVolume  = priorBuyVolume.add(buyVolume);
+                priorSellVolume = priorSellVolume.add(sellVolume);
+            }
         }
 
         BigDecimal totalVolume = totalBuyVolume.add(totalSellVolume);
@@ -149,34 +164,46 @@ public class OrderbookImbalanceStrategy implements Strategy {
             return StrategySignal.hold("볼륨 데이터 없음");
         }
 
-        BigDecimal imbalanceRatio = totalBuyVolume.divide(totalVolume, SCALE, RoundingMode.HALF_UP);
-        BigDecimal threshold = BigDecimal.valueOf(imbalanceThreshold);
-        BigDecimal counterThreshold = BigDecimal.ONE.subtract(threshold);
+        // S4-6 Delta 일관성: 마지막 캔들 방향 vs 이전 누적 방향 비교
+        boolean priorBuyDominant = priorBuyVolume.compareTo(priorSellVolume) >= 0;
+        BigDecimal lastBuyDelta  = totalBuyVolume.subtract(priorBuyVolume);
+        BigDecimal lastSellDelta = totalSellVolume.subtract(priorSellVolume);
+        boolean lastBuyDominant  = lastBuyDelta.compareTo(lastSellDelta) >= 0;
+        boolean deltaConsistent  = (priorBuyDominant == lastBuyDominant);
+
+        BigDecimal imbalanceRatio    = totalBuyVolume.divide(totalVolume, SCALE, RoundingMode.HALF_UP);
+        BigDecimal threshold         = BigDecimal.valueOf(imbalanceThreshold);
+        BigDecimal counterThreshold  = BigDecimal.ONE.subtract(threshold);
+        // Delta 불일치 시 강도 50% 할인
+        BigDecimal deltaDiscount = deltaConsistent ? BigDecimal.ONE : BigDecimal.valueOf(0.5);
+        String deltaTag = deltaConsistent ? "" : " [Delta반전↓50%]";
 
         if (imbalanceRatio.compareTo(threshold) >= 0) {
             BigDecimal strength = imbalanceRatio.subtract(threshold)
                     .divide(BigDecimal.ONE.subtract(threshold), SCALE, RoundingMode.HALF_UP)
                     .multiply(BigDecimal.valueOf(100))
+                    .multiply(deltaDiscount)
                     .min(BigDecimal.valueOf(100));
             return StrategySignal.buy(strength,
-                    String.format("캔들 매수 우세(근사): 불균형=%.2f%% > 임계값=%.0f%% (lookback=%d)",
+                    String.format("캔들 매수 우세(근사): 불균형=%.2f%% > 임계값=%.0f%% (lookback=%d)%s",
                             imbalanceRatio.multiply(BigDecimal.valueOf(100)),
-                            imbalanceThreshold * 100, lookback));
+                            imbalanceThreshold * 100, lookback, deltaTag));
         }
 
         if (imbalanceRatio.compareTo(counterThreshold) <= 0) {
             BigDecimal strength = counterThreshold.subtract(imbalanceRatio)
                     .divide(counterThreshold, SCALE, RoundingMode.HALF_UP)
                     .multiply(BigDecimal.valueOf(100))
+                    .multiply(deltaDiscount)
                     .min(BigDecimal.valueOf(100));
             return StrategySignal.sell(strength,
-                    String.format("캔들 매도 우세(근사): 불균형=%.2f%% < 임계값=%.0f%% (lookback=%d)",
+                    String.format("캔들 매도 우세(근사): 불균형=%.2f%% < 임계값=%.0f%% (lookback=%d)%s",
                             imbalanceRatio.multiply(BigDecimal.valueOf(100)),
-                            (1 - imbalanceThreshold) * 100, lookback));
+                            (1 - imbalanceThreshold) * 100, lookback, deltaTag));
         }
 
-        return StrategySignal.hold(String.format("캔들 볼륨 균형(근사): 불균형=%.2f%% (임계값=±%.0f%%)",
-                imbalanceRatio.multiply(BigDecimal.valueOf(100)), imbalanceThreshold * 100));
+        return StrategySignal.hold(String.format("캔들 볼륨 균형(근사): 불균형=%.2f%% (임계값=±%.0f%%)%s",
+                imbalanceRatio.multiply(BigDecimal.valueOf(100)), imbalanceThreshold * 100, deltaTag));
     }
 
     private int getInt(Map<String, Object> params, String key, int defaultVal) {

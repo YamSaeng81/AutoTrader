@@ -16,9 +16,9 @@ import java.util.Map;
  * - RSI > overboughtLevel → SELL (과매수: 하락 기대)
  * - 그 외 → HOLD
  *
- * 고급 옵션: RSI 다이버전스 감지
- *   - 가격이 신저점을 기록하는데 RSI는 이전 저점보다 높음 → 강한 BUY (강세 다이버전스)
- *   - 가격이 신고점을 기록하는데 RSI는 이전 고점보다 낮음 → 강한 SELL (약세 다이버전스)
+ * <p>S4-4 피봇 기반 다이버전스 감지 (기존 고정-lookback → 스윙 고점/저점 탐색):
+ *   - 가격 신저점(lower low) & RSI 고점(higher low) → 강세 다이버전스 BUY
+ *   - 가격 신고점(higher high) & RSI 저점(lower high) → 약세 다이버전스 SELL
  */
 public class RsiStrategy implements Strategy {
 
@@ -32,58 +32,59 @@ public class RsiStrategy implements Strategy {
     @Override
     public StrategySignal evaluate(List<Candle> candles, Map<String, Object> params) {
         int period = getInt(params, "period", 14);
-        double oversoldLevel = getDouble(params, "oversoldLevel", 30.0);
-        double overboughtLevel = getDouble(params, "overboughtLevel", 70.0);
+        double oversoldLevel = getDouble(params, "oversoldLevel", 25.0);
+        double overboughtLevel = getDouble(params, "overboughtLevel", 60.0);
         boolean useDivergence = getBoolean(params, "useDivergence", true);
-        // 다이버전스 감지에 사용할 이전 RSI 기간 (현재 RSI 계산 시점보다 lookback 이전)
-        int divergenceLookback = getInt(params, "divergenceLookback", 5);
+        int pivotWindow = getInt(params, "pivotWindow", 10);  // S4-4: 스윙 탐색 범위
 
-        // RSI 계산에는 period+1개 가격 차이가 필요하므로 최소 period+1개 캔들 필요
-        // 다이버전스 감지를 위해 divergenceLookback만큼 추가 데이터 필요
-        int minRequired = period + 1 + (useDivergence ? divergenceLookback : 0);
-        if (candles.size() < minRequired) {
-            return StrategySignal.hold("데이터 부족: " + candles.size() + " < " + minRequired);
+        // RSI 계산에는 period+1개 가격 차이 필요
+        if (candles.size() < period + 1) {
+            return StrategySignal.hold("데이터 부족: " + candles.size() + " < " + (period + 1));
         }
 
         List<BigDecimal> closes = candles.stream().map(Candle::getClose).toList();
 
         // 현재 RSI 계산
         BigDecimal currentRsi = calculateRsi(closes, period);
-        BigDecimal oversold = BigDecimal.valueOf(oversoldLevel);
+        BigDecimal oversold   = BigDecimal.valueOf(oversoldLevel);
         BigDecimal overbought = BigDecimal.valueOf(overboughtLevel);
 
-        // 다이버전스 감지
-        if (useDivergence && closes.size() >= period + 1 + divergenceLookback) {
-            List<BigDecimal> prevCloses = closes.subList(0, closes.size() - divergenceLookback);
-            BigDecimal prevRsi = calculateRsi(prevCloses, period);
+        // S4-4 피봇 기반 다이버전스 감지
+        if (useDivergence) {
+            int currentIdx = closes.size() - 1;
 
-            BigDecimal currentPrice = closes.get(closes.size() - 1);
-            BigDecimal prevPrice = closes.get(closes.size() - 1 - divergenceLookback);
-
-            // 강세 다이버전스: 가격 신저점 & RSI 신저점 아님 → 강한 BUY
-            boolean priceMakesLowerLow = currentPrice.compareTo(prevPrice) < 0;
-            boolean rsiMakesHigherLow = currentRsi.compareTo(prevRsi) > 0;
-            if (priceMakesLowerLow && rsiMakesHigherLow && currentRsi.compareTo(oversold.add(BigDecimal.TEN)) < 0) {
-                BigDecimal strength = BigDecimal.valueOf(100).subtract(currentRsi)
-                        .divide(BigDecimal.valueOf(100), SCALE, RoundingMode.HALF_UP)
-                        .multiply(BigDecimal.valueOf(100))
-                        .min(BigDecimal.valueOf(100));
-                return StrategySignal.buy(strength,
-                        String.format("강세 다이버전스: 가격=%.2f(↓) RSI=%.2f(↑ from %.2f)",
-                                currentPrice, currentRsi, prevRsi));
+            // 강세 다이버전스: 최근 스윙 저점 탐색 → 가격 Lower Low & RSI Higher Low
+            int swingLowIdx = findRecentSwingLow(closes, currentIdx, pivotWindow);
+            if (swingLowIdx >= period
+                    && closes.get(currentIdx).compareTo(closes.get(swingLowIdx)) < 0) {
+                BigDecimal swingLowRsi = calculateRsi(closes.subList(0, swingLowIdx + 1), period);
+                if (currentRsi.compareTo(swingLowRsi) > 0
+                        && currentRsi.compareTo(oversold.add(BigDecimal.TEN)) < 0) {
+                    BigDecimal strength = BigDecimal.valueOf(100).subtract(currentRsi)
+                            .divide(BigDecimal.valueOf(100), SCALE, RoundingMode.HALF_UP)
+                            .multiply(BigDecimal.valueOf(100))
+                            .min(BigDecimal.valueOf(100));
+                    return StrategySignal.buy(strength,
+                            String.format("피봇 강세 다이버전스: 가격=%.2f(↓) RSI=%.2f(↑ from %.2f)",
+                                    closes.get(currentIdx), currentRsi, swingLowRsi));
+                }
             }
 
-            // 약세 다이버전스: 가격 신고점 & RSI 신고점 아님 → 강한 SELL
-            boolean priceMakesHigherHigh = currentPrice.compareTo(prevPrice) > 0;
-            boolean rsiMakesLowerHigh = currentRsi.compareTo(prevRsi) < 0;
-            if (priceMakesHigherHigh && rsiMakesLowerHigh && currentRsi.compareTo(overbought.subtract(BigDecimal.TEN)) > 0) {
-                BigDecimal strength = currentRsi
-                        .divide(BigDecimal.valueOf(100), SCALE, RoundingMode.HALF_UP)
-                        .multiply(BigDecimal.valueOf(100))
-                        .min(BigDecimal.valueOf(100));
-                return StrategySignal.sell(strength,
-                        String.format("약세 다이버전스: 가격=%.2f(↑) RSI=%.2f(↓ from %.2f)",
-                                currentPrice, currentRsi, prevRsi));
+            // 약세 다이버전스: 최근 스윙 고점 탐색 → 가격 Higher High & RSI Lower High
+            int swingHighIdx = findRecentSwingHigh(closes, currentIdx, pivotWindow);
+            if (swingHighIdx >= period
+                    && closes.get(currentIdx).compareTo(closes.get(swingHighIdx)) > 0) {
+                BigDecimal swingHighRsi = calculateRsi(closes.subList(0, swingHighIdx + 1), period);
+                if (currentRsi.compareTo(swingHighRsi) < 0
+                        && currentRsi.compareTo(overbought.subtract(BigDecimal.TEN)) > 0) {
+                    BigDecimal strength = currentRsi
+                            .divide(BigDecimal.valueOf(100), SCALE, RoundingMode.HALF_UP)
+                            .multiply(BigDecimal.valueOf(100))
+                            .min(BigDecimal.valueOf(100));
+                    return StrategySignal.sell(strength,
+                            String.format("피봇 약세 다이버전스: 가격=%.2f(↑) RSI=%.2f(↓ from %.2f)",
+                                    closes.get(currentIdx), currentRsi, swingHighRsi));
+                }
             }
         }
 
@@ -175,6 +176,36 @@ public class RsiStrategy implements Strategy {
                 .subtract(BigDecimal.valueOf(100)
                         .divide(BigDecimal.ONE.add(rs), SCALE, RoundingMode.HALF_UP));
         return rsi.setScale(2, RoundingMode.HALF_UP);
+    }
+
+    /**
+     * fromIdx 이전에서 가장 최근 스윙 저점(local minimum) 인덱스를 반환한다.
+     * 조건: prices[i] < prices[i-1] && prices[i] < prices[i+1]
+     */
+    private int findRecentSwingLow(List<BigDecimal> prices, int fromIdx, int windowSize) {
+        for (int i = fromIdx - 1; i >= Math.max(1, fromIdx - windowSize); i--) {
+            if (i + 1 < prices.size()
+                    && prices.get(i).compareTo(prices.get(i - 1)) < 0
+                    && prices.get(i).compareTo(prices.get(i + 1)) < 0) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * fromIdx 이전에서 가장 최근 스윙 고점(local maximum) 인덱스를 반환한다.
+     * 조건: prices[i] > prices[i-1] && prices[i] > prices[i+1]
+     */
+    private int findRecentSwingHigh(List<BigDecimal> prices, int fromIdx, int windowSize) {
+        for (int i = fromIdx - 1; i >= Math.max(1, fromIdx - windowSize); i--) {
+            if (i + 1 < prices.size()
+                    && prices.get(i).compareTo(prices.get(i - 1)) > 0
+                    && prices.get(i).compareTo(prices.get(i + 1)) > 0) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     private int getInt(Map<String, Object> params, String key, int defaultVal) {

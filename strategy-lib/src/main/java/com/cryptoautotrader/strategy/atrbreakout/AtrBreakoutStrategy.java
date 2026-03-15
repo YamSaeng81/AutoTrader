@@ -28,6 +28,10 @@ import java.util.Map;
  *
  * 손절 옵션 (useStopLoss=true):
  *   매수 진입 후 종가가 매도 기준선 아래로 떨어지면 SELL 신호 발생
+ *
+ * <p>S4-5 거래량 필터 (volumeFilterEnabled=true):
+ *   돌파 시 현재 거래량 > 최근 atrPeriod개 평균 거래량 × volumeMultiplier(기본 1.5)이어야 신호 인정.
+ *   거래량 미달 시 HOLD를 반환하여 저유동성 돌파를 필터링한다.
  */
 public class AtrBreakoutStrategy implements Strategy {
 
@@ -40,9 +44,11 @@ public class AtrBreakoutStrategy implements Strategy {
 
     @Override
     public StrategySignal evaluate(List<Candle> candles, Map<String, Object> params) {
-        int atrPeriod = getInt(params, "atrPeriod", 14);
-        double multiplier = getDouble(params, "multiplier", 1.5);
-        boolean useStopLoss = getBoolean(params, "useStopLoss", true);
+        int atrPeriod              = getInt(params, "atrPeriod", 14);
+        double multiplier          = getDouble(params, "multiplier", 1.5);
+        boolean useStopLoss        = getBoolean(params, "useStopLoss", true);
+        boolean volumeFilter       = getBoolean(params, "volumeFilterEnabled", true);
+        double volumeMultiplier    = getDouble(params, "volumeMultiplier", 1.5);
 
         // ATR 계산에 atrPeriod+1개 캔들 필요
         if (candles.size() < atrPeriod + 1) {
@@ -60,6 +66,23 @@ public class AtrBreakoutStrategy implements Strategy {
         // 돌파 기준선 계산
         BigDecimal buyThreshold = currentOpen.add(atrMultiplied);
         BigDecimal sellThreshold = currentOpen.subtract(atrMultiplied);
+
+        // S4-5 거래량 필터: 평균 거래량 × volumeMultiplier 미만이면 돌파 무효
+        if (volumeFilter && candles.size() >= atrPeriod + 1) {
+            BigDecimal sumVol = BigDecimal.ZERO;
+            int volStart = candles.size() - 1 - atrPeriod;
+            for (int i = Math.max(0, volStart); i < candles.size() - 1; i++) {
+                sumVol = sumVol.add(candles.get(i).getVolume());
+            }
+            BigDecimal avgVol = sumVol.divide(BigDecimal.valueOf(atrPeriod), SCALE, RoundingMode.HALF_UP);
+            BigDecimal curVol = currentCandle.getVolume();
+
+            if (curVol.compareTo(avgVol.multiply(BigDecimal.valueOf(volumeMultiplier))) < 0) {
+                return StrategySignal.hold(String.format(
+                        "ATR 돌파 감지됐으나 거래량 부족: %.2f < avgVol=%.2f × %.1f",
+                        curVol, avgVol, volumeMultiplier));
+            }
+        }
 
         // 현재가가 매수/매도 기준선을 돌파했는지 확인
         if (currentClose.compareTo(buyThreshold) > 0) {

@@ -214,7 +214,7 @@ public class StrategyController {
             case "SUPERTREND"          -> "ATR 기반 동적 지지/저항 추세 추종";
             case "ATR_BREAKOUT"        -> "ATR 변동성 돌파 모멘텀 매매";
             case "ORDERBOOK_IMBALANCE" -> "호가 불균형 기반 단기 방향성 매매 (Phase 4 WebSocket 연동 필요)";
-            case "STOCHASTIC_RSI"      -> "RSI 에 Stochastic 적용, RANGE/VOLATILE 시장 민감 감지";
+            case "STOCHASTIC_RSI"      -> "RSI 에 Stochastic 적용, RANGE/VOLATILITY 시장 민감 감지";
             default -> "설명 없음";
         };
     }

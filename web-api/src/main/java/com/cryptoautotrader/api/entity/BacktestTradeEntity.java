@@ -46,7 +46,7 @@ public class BacktestTradeEntity {
     @Column(name = "signal_reason", columnDefinition = "text")
     private String signalReason;
 
-    @Column(name = "market_regime", length = 10)
+    @Column(name = "market_regime", length = 20)
     private String marketRegime;
 
     @Column(name = "executed_at", nullable = false)

@@ -2,6 +2,7 @@ package com.cryptoautotrader.api.controller;
 
 import com.cryptoautotrader.api.dto.ApiResponse;
 import com.cryptoautotrader.api.dto.BacktestRequest;
+import com.cryptoautotrader.api.dto.BulkBacktestRequest;
 import com.cryptoautotrader.api.dto.BulkDeleteRequest;
 import com.cryptoautotrader.api.dto.WalkForwardRequest;
 import com.cryptoautotrader.api.entity.BacktestTradeEntity;
@@ -90,6 +91,23 @@ public class BacktestController {
         } catch (IllegalArgumentException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         }
+    }
+
+    /**
+     * 전략 10종 × 지정 코인 일괄 백테스트
+     * POST /api/v1/backtest/bulk-run
+     * Body: { "coins": ["KRW-BTC","KRW-ETH"], "timeframe": "H1",
+     *         "startDate": "2023-01-01", "endDate": "2025-12-31" }
+     * 응답: totalReturn 내림차순 정렬된 비교표
+     */
+    @PostMapping("/bulk-run")
+    public ApiResponse<List<Map<String, Object>>> runBulkBacktest(
+            @RequestBody BulkBacktestRequest req) {
+        List<Map<String, Object>> results = backtestService.runBulkBacktest(
+                req.getCoins(), req.getTimeframe(),
+                req.getStartDate(), req.getEndDate(),
+                req.getInitialCapital(), req.getSlippagePct(), req.getFeePct());
+        return ApiResponse.ok(results);
     }
 
     /**

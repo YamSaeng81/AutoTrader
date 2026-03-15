@@ -2,7 +2,7 @@
 
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝날 때마다 `## 최근 변경사항`과 `## 다음 할 일`을 반드시 업데이트한다.
-> **마지막 갱신**: 2026-03-15 (Gemini 3차 분석 반영 — 테스트 에러코드, Rate Limiting, Timeframe 수정)
+> **마지막 갱신**: 2026-03-15 (전략 파라미터 최적화 + 2025 H1 백테스트 완료)
 
 ---
 
@@ -46,6 +46,56 @@ VWAP / EMA Cross / Bollinger Band / Grid / RSI(다이버전스) / MACD(히스토
 ---
 
 ## 최근 변경사항
+
+### 2026-03-15 작업 (전략 파라미터 최적화 + 백테스트)
+
+#### 배경
+이전 3년(2023-2025) 백테스트에서 STOCHASTIC_RSI(-96%), MACD(-82%), ORDERBOOK_IMBALANCE 등이
+과도한 거래(H1 기준 1,000+ 거래)로 폭락. 오버트레이딩 억제를 위해 ADX 필터 추가 및 파라미터 강화.
+
+#### 전략별 변경 내용
+
+| 전략 | 변경 내용 |
+|------|-----------|
+| `MacdStrategy.java` | **ADX > 25 필터 추가** — 횡보장 크로스 억제. `getDouble()` 헬퍼 메서드 추가 (컴파일 에러 수정) |
+| `StochasticRsiStrategy.java` | **ADX < 30 필터 추가** — 강한 추세 구간 진입 회피. 임계값 강화: 과매도 20→15, 과매수 80→85 |
+| `EmaCrossStrategy.java` | **기간 슬로우화** — fast 9→20, slow 21→50. `getMinimumCandleCount()` 22→51 |
+| `VwapStrategy.java` | **ADX < 25 필터 추가** — 추세장 역추세 매매 억제. 임계값 강화: 1.0%→2.5% |
+| `BollingerStrategy.java` | **ADX < 25 필터 추가** — 추세장 평균회귀 억제 (Squeeze 감지보다 먼저 적용) |
+| `RsiStrategy.java` | **임계값 강화** — 과매도 30→25, 과매수 70→60 (신호 발생 빈도 감소) |
+| `OrderbookImbalanceStrategy.java` | **임계값·lookback 강화** — imbalanceThreshold 0.65→0.70, lookback 5→15. `getMinimumCandleCount()` 5→15 |
+
+#### 인프라 버그 수정
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `BacktestService.java` | **`@Transactional` 제거** — 단일 트랜잭션에서 한 전략 실패 시 PostgreSQL "current transaction is aborted"로 전체 실패하던 문제 수정 |
+| `BacktestTradeEntity.java` | **`market_regime` 컬럼 길이** VARCHAR(10)→VARCHAR(20) — "TRANSITIONAL"(12자) 저장 오류 수정 |
+| DB (수동 ALTER) | `ALTER TABLE backtest_trade ALTER COLUMN market_regime TYPE VARCHAR(20)` |
+
+#### 테스트 수정
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `EmaCrossStrategyTest.java` | `getMinimumCandleCount()` 기대값 22→51 |
+| `OrderbookImbalanceStrategyTest.java` | 실시간 모드 테스트 캔들 수 5→15 (새 lookback 기본값 반영) |
+| `ConflictingSignalTest.java` | Bollinger evaluate 호출에 `adxMaxThreshold=0` 추가 (ADX 필터가 상충 시나리오 자체를 막는 문제 수정) |
+
+#### 2025 H1 백테스트 결과 요약 (KRW-BTC / KRW-ETH)
+
+| 전략 | BTC 수익률 | ETH 수익률 | 비고 |
+|------|-----------|-----------|------|
+| GRID | +8.4% | +1.4% | 양코인 안정 |
+| ORDERBOOK_IMBALANCE | +0.8% | +30.6% | ETH 강세 |
+| ATR_BREAKOUT | -29.8% | +39.0% | ETH 전용 |
+| BOLLINGER | +3.2% | -37.0% | BTC 전용 |
+| EMA_CROSS | -51.2% | +23.7% | BTC/ETH 역전 |
+| STOCHASTIC_RSI | -70.4% | -67.6% | ADX 필터 후에도 최악 |
+| MACD | -58.8% | -57.6% | 추가 개선 필요 |
+
+> 전체 결과: `docs/BACKTEST_RESULTS.md`
+
+---
 
 ### 2026-03-15 작업 (Gemini 3차 분석 반영)
 
@@ -184,6 +234,17 @@ VWAP / EMA Cross / Bollinger Band / Grid / RSI(다이버전스) / MACD(히스토
 - [ ] `🔴 CRITICAL` Spring Security / API 인증 추가 — 실전매매 API 현재 무방비 (1차 분석부터 미적용)
 - [ ] `🟡 MEDIUM` 텔레그램 수신 확인 (서버 재기동 후 12:00/00:00 정상 수신 여부)
 
+### 전략 고도화 후속 (백테스트 결과 기반)
+
+> 근거: `docs/BACKTEST_RESULTS.md` — 2025 H1 KRW-BTC/ETH 결과
+
+- [ ] `🔴 HIGH` **STOCHASTIC_RSI 구조 재설계 또는 제거** — ADX 필터 추가 후에도 BTC -70.4%, ETH -67.6%. 파라미터 문제가 아닌 구조적 결함. 제거 또는 완전 재설계 고려
+- [ ] `🔴 HIGH` **MACD 히스토그램 기울기 필터 추가** — ADX > 25 필터로도 BTC -58.8%, ETH -57.6%. 히스토그램 기울기(momentum) 추가 확인 필요
+- [ ] `🟡 MEDIUM` **VWAP 임계값 재조정** — BTC 승률 0% (거래 발생 없음). thresholdPct 2.5% → 1.5% 재테스트
+- [ ] `🟡 MEDIUM` **코인별 전략 선택 최적화** — BTC: GRID+BOLLINGER 조합 / ETH: ATR_BREAKOUT+EMA_CROSS+ORDERBOOK 조합 고려
+- [ ] `🟢 LOW` 2023~2025 전체 기간 백테스트 — 2025년만 결과이므로 장기 성과 검증 필요
+- [ ] `🟢 LOW` CompositeStrategy 백테스트 연동 — 현재 단일 전략만 백테스트, 복합 전략 결과 측정 필요
+
 ### 단기 (1~2주)
 
 - [ ] `🟡 MEDIUM` TradingController 예외 처리 패턴 통일 (커스텀 예외 클래스 도입 — 프론트엔드 에러 응답 불일치)
@@ -194,9 +255,14 @@ VWAP / EMA Cross / Bollinger Band / Grid / RSI(다이버전스) / MACD(히스토
 
 ### 완료
 
+- [x] 전략 파라미터 최적화 (ADX 필터 7개 전략 + 임계값 강화) (2026-03-15)
+- [x] 2025 H1 KRW-BTC/ETH 벌크 백테스트 실행 + 결과 문서화 (2026-03-15)
+- [x] BacktestService @Transactional 제거 (PostgreSQL cascade 실패 수정) (2026-03-15)
+- [x] BacktestTradeEntity market_regime VARCHAR 10→20 (2026-03-15)
 - [x] BacktestService / PaperTradingService / LiveTradingService 테이블 격리 검증 (2026-03-15)
 - [x] BacktestControllerIntegrationTest 에러코드 불일치 수정 (2026-03-15)
 - [x] MarketDataSyncService Rate Limiting + Timeframe 수정 (2026-03-15)
+- [x] Phase S1~S5 전략 고도화 로드맵 완료 (2026-03-15)
 
 ---
 
@@ -272,3 +338,171 @@ docker compose -f docker-compose.prod.yml logs -f frontend
 | 설계서 | `docs/DESIGN.md` | API, DB 스키마, UI 설계 |
 | 계획서 | `docs/PLAN.md` | Phase별 개발 계획 |
 | 검증 결과 | `docs/CHECK_RESULT.md` | 설계-구현 갭 분석 |
+| 전략 개선 분석 | `docs/strategy_analysis_v3.md` | 10개 전략 상세 분석 + 거시 구조 개선 로드맵 |
+| 백테스트 결과 | `docs/BACKTEST_RESULTS.md` | 실행별 수익률·승률·MDD 기록 (2025-03-15~ 누적) |
+
+---
+
+## 전략 고도화 로드맵 (strategy_analysis_v3 기반)
+
+> **기준 문서**: `docs/strategy_analysis_v3.md`
+> **추가일**: 2026-03-15
+> **목표**: 개인 프로젝트 수준 → 실전 자동매매 시스템 (Market Regime + Risk Engine + Composite Strategy)
+
+### 현재 구현 상태 (전략 고도화 관점)
+
+| 모듈 | 파일 | 상태 | 부족한 부분 |
+|------|------|------|------------|
+| MarketRegimeDetector | `core-engine/.../regime/MarketRegimeDetector.java` | ⚠️ 부분 구현 | TRANSITIONAL 상태 없음, Hysteresis 없음, BB Bandwidth 조건 없음 |
+| RiskEngine | `core-engine/.../risk/RiskEngine.java` | ⚠️ 부분 구현 | 손실 한도만 있음, Fixed Fractional Position Sizing 없음, Correlation Risk 없음 |
+| StrategySignal | `strategy-lib/.../StrategySignal.java` | ⚠️ 부분 구현 | `confidence` / `stopLoss` / `takeProfit` 필드 없음 |
+| 10개 전략 | `strategy-lib/.../` | ✅ 구현됨 | 개별 버그 및 개선 필요 (아래 Phase별 항목) |
+| StrategySelector | 미존재 | ❌ 미구현 | Regime별 전략 그룹 선택 로직 |
+| CompositeStrategy | 미존재 | ❌ 미구현 | Weighted Voting (가중 투표) |
+| StatefulStrategy | 미존재 | ❌ 미구현 | Grid 중복 매매 방지용 상태 추적 인터페이스 |
+
+---
+
+### Phase S1 — 즉시 버그 수정
+
+**우선순위**: 🔴 최우선
+
+- [x] **S1-1. Supertrend 코드 버그** ✅ 2026-03-15
+  - `SupertrendResult`에 `upperBand`/`lowerBand` 분리 추가
+  - Line 62: `band = currentUptrend ? result.lowerBand : result.upperBand` 로 수정
+  - 기존 테스트 8개 전부 통과
+
+- [x] **S1-2. Grid 하드코딩 제거** ✅ 2026-03-15
+  - `lowest = new BigDecimal("999999999999")` → `candles.get(start).getLow()` 초기화로 변경
+  - `highest` 도 동일하게 첫 캔들 값 사용, loop는 `start+1`부터 시작
+
+- [x] **S1-3. Grid 상태 추적 구현** ✅ 2026-03-15
+  - `StatefulStrategy` 인터페이스 신설 (`strategy-lib/.../StatefulStrategy.java`)
+  - `GridStrategy`가 `StatefulStrategy` 구현
+  - `Set<Integer> activeLevels` — 진입 레벨 추적, 동일 레벨 중복 BUY 차단
+  - 그리드 범위 1% 이상 변경 시 상태 자동 초기화 (`isRangeChanged()`)
+
+- [x] **S1-4. 상충 신호 테스트 케이스** ✅ 2026-03-15
+  - `ConflictingSignalTest.java` 신규 생성
+  - 강한 상승장: Supertrend=BUY + Bollinger=SELL 동시 발생 확인 (2개 테스트)
+  - 테스트 2/2 통과 — Phase S3 CompositeStrategy 구현의 근거로 활용
+
+---
+
+### Phase S2 — Market Regime + Risk Engine 강화
+
+**우선순위**: 🔴 매우 높음
+
+#### S2-1. MarketRegimeDetector 개선 ✅ 2026-03-15
+
+- [x] `TRANSITIONAL` 상태 추가 (`MarketRegime.java` + `MarketRegimeDetector.java`) ✅
+  - ADX 20~25 구간 → TRANSITIONAL (직전 Regime 유지)
+  - 기존 `VOLATILE` → `VOLATILITY`로 이름 통일 (분석 문서 기준)
+- [x] Hysteresis 로직 구현 — Regime 전환 시 3캔들 연속 유지 확인 후 전환 ✅
+  - `previousRegime`, `candidateRegime`, `holdCount` 필드 (stateful)
+- [x] Bollinger Bandwidth 기반 RANGE 감지 추가 ✅
+  - 조건: ADX < 20 **AND** BB Bandwidth < 최근 30기간 하위 20%
+  - `IndicatorUtils`에 `bollingerBandwidth()`, `bollingerBandwidths()` 추가
+- [x] 동적 ATR Spike 기반 VOLATILITY 감지 ✅
+  - 조건: ATR > ATR 20기간 이동평균 × 1.5 **AND** ADX < 25
+  - `IndicatorUtils`에 `atrList()` 추가
+- [x] `MarketRegimeFilter` VOLATILE→VOLATILITY + TRANSITIONAL(빈 집합) 추가 ✅
+- [x] 테스트 파일 `VOLATILE`→`VOLATILITY` 전면 치환 + Detector 테스트 확장 ✅
+  - Hysteresis 차단/확정, TRANSITIONAL 필터 검증 등 (52 tests, 0 failures)
+
+#### S2-2. RiskEngine 강화 ✅ 2026-03-15
+
+- [x] Fixed Fractional Position Sizing 추가 ✅
+  ```
+  Position = Account × Risk% / StopDistance%
+  예: 잔고 10,000,000, Risk 1%, 손절 2% → 5,000,000
+  ```
+- [x] Correlation Risk 관리 ✅
+  - `effectiveSlots()`: 상관계수 > 0.7 쌍마다 슬롯 +1 패널티
+  - BTC/ETH=0.85, BTC/BNB=0.78, ETH/BNB=0.80 하드코딩
+- [x] `RiskConfig`에 `maxLeverage`(기본 3.0), `correlationThreshold`(기본 0.7), `defaultRiskPercentage`(기본 0.01) 추가 ✅
+- [x] 단위 테스트 — Fixed Fractional 계산, Correlation-adjusted slot 검증 ✅
+
+---
+
+### Phase S3 — Strategy Selector & Composite Strategy ✅ 2026-03-15
+
+**우선순위**: 🟠 높음
+
+- [x] **`StrategySignal.getConfidence()`** 추가 — `strength / 100` (0.0~1.0) ✅
+- [x] **`WeightedStrategy` 래퍼 클래스** (`strategy`, `weight` 보유, `withReducedWeight()` 메서드) ✅
+- [x] **`StrategySelector` 구현** — Regime별 전략 그룹 + 가중치 반환 ✅
+  - TREND: SUPERTREND(0.5) + EMA_CROSS(0.3) + ATR_BREAKOUT(0.2)
+  - RANGE: BOLLINGER(0.4) + RSI(0.4) + GRID(0.2)
+  - VOLATILITY: ATR_BREAKOUT(0.6) + STOCHASTIC_RSI(0.4)
+  - TRANSITIONAL: 직전 전략 그룹 × 0.5 가중치 (TRANSITIONAL→RANGE 폴백으로 무한재귀 방지)
+- [x] **`CompositeStrategy` 구현** — Weighted Voting ✅
+  - `buyScore = Σ(weight × confidence)`, `sellScore` 동일
+  - buyScore > 0.6 → STRONG_BUY / > 0.4 → BUY(weak)
+  - 양쪽 모두 > 0.4 (상충) → HOLD
+- [x] 신호 조합 임계값(0.4/0.6) 테스트, TRANSITIONAL 50% 축소, 상충 감지 검증 ✅
+  - 67 tests, 0 failures
+
+---
+
+### Phase S4 — 개별 전략 고도화
+
+**우선순위**: 🟠 높음 | 각 항목은 독립적이므로 병렬 개발 가능
+
+| # | 전략 | 작업 내용 | 파일 |
+|---|------|----------|------|
+| S4-1 | **Supertrend** | ATR O(n²) → O(n): `calculateSupertrend()`에서 매 반복 `atr(subList)` 재계산 제거, ATR 배열 사전 계산 | `SupertrendStrategy.java` |
+| S4-2 | **EMA Cross** | ADX > 25 필터: 낮은 ADX 환경 Whipsaw 방지, `params`에 `adxThreshold` 추가 | `EmaCrossStrategy.java` |
+| S4-3 | **Bollinger** | Squeeze 감지: `bandwidth < 최근 30캔들 최저값` → 브레이크아웃 대기 모드 | `BollingerStrategy.java` |
+| S4-4 | **RSI** | 피봇 기반 다이버전스: fixed lookback → 스윙 고점/저점 기반 감지 | `RsiStrategy.java` |
+| S4-5 | **ATR Breakout** | 거래량 필터: 돌파 시 평균 거래량 × N배 이상일 때만 유효 신호 | `AtrBreakoutStrategy.java` |
+| S4-6 | **Orderbook** | 호가 Delta 추적: 연속 스냅샷 간 취소 패턴 분석으로 스푸핑 필터링 | `OrderbookImbalanceStrategy.java` |
+
+- [x] S4-1 Supertrend ATR 최적화 ✅ 2026-03-15
+- [x] S4-2 EMA Cross ADX 필터 ✅ 2026-03-15
+- [x] S4-3 Bollinger Squeeze 감지 ✅ 2026-03-15
+- [x] S4-4 RSI 피봇 다이버전스 ✅ 2026-03-15
+- [x] S4-5 ATR Breakout 거래량 필터 ✅ 2026-03-15
+- [x] S4-6 Orderbook 호가 Delta 추적 ✅ 2026-03-15
+
+---
+
+### Phase S5 — 신호 확장 & Multi-Timeframe & 통합 백테스트 ✅ 완료 2026-03-15
+
+**우선순위**: 🟠 중간 | Phase S1~S4 완료 후 진입
+
+- [x] `StrategySignal`에 `suggestedStopLoss`, `suggestedTakeProfit` 필드 추가 ✅
+  - `@Builder` 기본값 null, `buy(strength, reason, stopLoss, takeProfit)` / `sell(...)` 오버로드 추가
+- [x] Multi-Timeframe 파이프라인 구현 ✅
+  - `MultiTimeframeFilter` — HTF BUY+LTF SELL (또는 역) 시 역추세 억제 → HOLD
+  - `CandleDownsampler.downsample(ltfCandles, factor)` — LTF→HTF 다운샘플 (OHLCV 집계)
+  - HTF 데이터 부족 시 LTF 신호 그대로 통과
+- [x] 타임프레임별 파라미터 프리셋 ✅
+  - `TimeframePreset.forStrategy(strategyName, timeframe)` — M1/M5/M15/M30/H1/H4/D1 × 7개 전략
+- [x] `BacktestEngine.run(config, candles, Strategy)` 오버로드 추가 ✅
+  - `CompositeStrategy`, `MultiTimeframeFilter`-래핑 전략을 직접 전달 가능
+  - 내부 `runWithStrategy()` 메서드로 리팩토링
+- [x] 2025 BTC/ETH H1 백테스트 실행 완료 ✅ 2026-03-15 — 결과: `docs/BACKTEST_RESULTS.md`
+- [x] **수치 목표 도출 완료** ✅ 2026-03-15 — GRID/ORDERBOOK 안정, STOCHASTIC_RSI 구조적 결함 확인
+
+---
+
+### 전략 고도화 검증 기준
+
+| Phase | 검증 항목 | 기준 |
+|-------|----------|------|
+| Phase S1 | Supertrend 버그 수정, Grid 중복 매매 방지 | 단위 테스트 통과 |
+| Phase S2 | Regime 분류 정확도 | 수동 라벨 대비 70%+ 일치 |
+| Phase S3 | 상충 신호 비율 | 기존 대비 80%↓ |
+| Phase S4 | 개별 전략 성능/정확도 | 단위 테스트 + 단독 백테스트 성과 |
+| Phase S5 | 통합 시스템 | 2023~2025 BTC/ETH 백테스트 수치 목표 도출 |
+
+### 개발 순서 (의존 관계)
+
+```
+S1 (버그) → S2 (Regime + Risk) → S3 (Composite + Voting) → S4 (병렬 가능) → S5 (통합 백테스트)
+```
+
+S3의 Weighted Voting은 S2의 MarketRegimeDetector에 의존.
+S4는 S1 완료 후 S2/S3와 병렬 진행 가능.
+S5는 S1~S4 모두 완료 후 진입.

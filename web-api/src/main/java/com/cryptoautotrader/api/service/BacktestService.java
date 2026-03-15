@@ -15,10 +15,12 @@ import com.cryptoautotrader.core.backtest.WalkForwardTestRunner;
 import com.cryptoautotrader.core.metrics.PerformanceReport;
 import com.cryptoautotrader.core.model.TradeRecord;
 import com.cryptoautotrader.strategy.Candle;
+import com.cryptoautotrader.strategy.StrategyRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -234,6 +236,105 @@ public class BacktestService {
                     return map;
                 })
                 .toList();
+    }
+
+    /**
+     * 전략 10종 × 지정 코인 목록을 일괄 백테스트하여 성과 비교표를 반환한다.
+     * 각 결과는 DB에도 저장된다.
+     * 정렬 기준: totalReturn 내림차순
+     */
+    public List<Map<String, Object>> runBulkBacktest(
+            List<String> coins, String timeframe,
+            LocalDate startDate, LocalDate endDate,
+            BigDecimal initialCapital, BigDecimal slippagePct, BigDecimal feePct) {
+
+        Instant start = startDate.atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant();
+        Instant end   = endDate.atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant();
+
+        BigDecimal capital   = initialCapital != null ? initialCapital : new BigDecimal("10000000");
+        BigDecimal slippage  = slippagePct    != null ? slippagePct    : new BigDecimal("0.1");
+        BigDecimal fee       = feePct         != null ? feePct         : new BigDecimal("0.05");
+
+        List<String> strategyNames = new java.util.ArrayList<>(StrategyRegistry.getAll().keySet());
+        List<Map<String, Object>> results = new java.util.ArrayList<>();
+
+        for (String coin : coins) {
+            List<CandleDataEntity> entities = candleDataRepository.findCandles(coin, timeframe, start, end);
+            if (entities.size() < 30) {
+                log.warn("벌크 백테스트 건너뜀: {} {} 데이터 부족 ({}건)", coin, timeframe, entities.size());
+                continue;
+            }
+
+            List<Candle> candles = entities.stream()
+                    .map(e -> Candle.builder()
+                            .time(e.getTime())
+                            .open(e.getOpen()).high(e.getHigh())
+                            .low(e.getLow()).close(e.getClose())
+                            .volume(e.getVolume())
+                            .build())
+                    .toList();
+
+            for (String strategyName : strategyNames) {
+                try {
+                    BacktestConfig config = BacktestConfig.builder()
+                            .strategyName(strategyName)
+                            .coinPair(coin)
+                            .timeframe(timeframe)
+                            .startDate(start)
+                            .endDate(end)
+                            .initialCapital(capital)
+                            .slippagePct(slippage)
+                            .feePct(fee)
+                            .strategyParams(Map.of())
+                            .build();
+
+                    BacktestResult result = backtestEngine.run(config, candles);
+                    PerformanceReport metrics = result.getMetrics();
+
+                    BacktestRunEntity runEntity = saveRun(config, false);
+                    saveMetrics(runEntity.getId(), metrics);
+                    saveTrades(runEntity.getId(), result.getTrades());
+
+                    Map<String, Object> row = new java.util.LinkedHashMap<>();
+                    row.put("id",          runEntity.getId());
+                    row.put("coin",        coin);
+                    row.put("strategy",    strategyName);
+                    row.put("totalReturn", metrics.getTotalReturnPct());
+                    row.put("winRate",     metrics.getWinRatePct());
+                    row.put("maxDrawdown", metrics.getMddPct());
+                    row.put("sharpe",      metrics.getSharpeRatio());
+                    row.put("sortino",     metrics.getSortinoRatio());
+                    row.put("calmar",      metrics.getCalmarRatio());
+                    row.put("totalTrades", metrics.getTotalTrades());
+                    row.put("winLossRatio",metrics.getWinLossRatio());
+                    results.add(row);
+
+                    log.info("벌크 백테스트 완료: {} {} → 수익률={}, 승률={}, MDD={}",
+                            coin, strategyName,
+                            metrics.getTotalReturnPct(), metrics.getWinRatePct(), metrics.getMddPct());
+
+                } catch (Exception e) {
+                    log.error("벌크 백테스트 실패: {} {} — {}", coin, strategyName, e.getMessage());
+                    Map<String, Object> row = new java.util.LinkedHashMap<>();
+                    row.put("coin",     coin);
+                    row.put("strategy", strategyName);
+                    row.put("error",    e.getMessage());
+                    results.add(row);
+                }
+            }
+        }
+
+        // totalReturn 내림차순 정렬 (에러 행은 맨 뒤)
+        results.sort((a, b) -> {
+            BigDecimal ra = (BigDecimal) a.getOrDefault("totalReturn", null);
+            BigDecimal rb = (BigDecimal) b.getOrDefault("totalReturn", null);
+            if (ra == null && rb == null) return 0;
+            if (ra == null) return 1;
+            if (rb == null) return -1;
+            return rb.compareTo(ra);
+        });
+
+        return results;
     }
 
     private BacktestRunEntity saveRun(BacktestConfig config, boolean isWalkForward) {

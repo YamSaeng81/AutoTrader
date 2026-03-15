@@ -3,6 +3,7 @@ package com.cryptoautotrader.strategy;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -90,6 +91,65 @@ public final class IndicatorUtils {
         BigDecimal hc = current.getHigh().subtract(previous.getClose()).abs();
         BigDecimal lc = current.getLow().subtract(previous.getClose()).abs();
         return hl.max(hc).max(lc);
+    }
+
+    /**
+     * Bollinger Bandwidth: (2 × multiplier × stdDev) / sma × 100
+     * 마지막 period개 closes를 기준으로 계산한다.
+     */
+    public static BigDecimal bollingerBandwidth(List<BigDecimal> closes, int period, double multiplier) {
+        if (closes.size() < period) {
+            throw new IllegalArgumentException("데이터 부족: " + closes.size() + " < " + period);
+        }
+        BigDecimal mean = sma(closes, period);
+        if (mean.compareTo(BigDecimal.ZERO) == 0) {
+            return BigDecimal.ZERO;
+        }
+        BigDecimal stdDev = standardDeviation(closes, period);
+        return stdDev.multiply(BigDecimal.valueOf(multiplier * 2))
+                .divide(mean, SCALE, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(100));
+    }
+
+    /**
+     * 최근 count개의 rolling Bollinger Bandwidth 값을 반환한다.
+     * 각 값은 크기 period인 창에서 계산된다.
+     */
+    public static List<BigDecimal> bollingerBandwidths(List<BigDecimal> closes, int period,
+                                                        double multiplier, int count) {
+        List<BigDecimal> result = new ArrayList<>();
+        int numWindows = closes.size() - period + 1;
+        if (numWindows <= 0) return result;
+        int startIdx = Math.max(0, numWindows - count);
+        for (int i = startIdx; i < numWindows; i++) {
+            result.add(bollingerBandwidth(closes.subList(i, i + period), period, multiplier));
+        }
+        return result;
+    }
+
+    /**
+     * Wilder 평활 ATR 시계열을 반환한다. candles.size() - period 개의 값을 반환한다.
+     * 인덱스 0 = period번째 캔들 기준 ATR, 마지막 = 최신 ATR.
+     */
+    public static List<BigDecimal> atrList(List<Candle> candles, int period) {
+        List<BigDecimal> result = new ArrayList<>();
+        if (candles.size() < period + 1) return result;
+
+        BigDecimal atrVal = BigDecimal.ZERO;
+        for (int i = 1; i <= period; i++) {
+            atrVal = atrVal.add(trueRange(candles.get(i), candles.get(i - 1)));
+        }
+        atrVal = atrVal.divide(BigDecimal.valueOf(period), SCALE, RoundingMode.HALF_UP);
+        result.add(atrVal);
+
+        for (int i = period + 1; i < candles.size(); i++) {
+            BigDecimal tr = trueRange(candles.get(i), candles.get(i - 1));
+            atrVal = atrVal.multiply(BigDecimal.valueOf(period - 1))
+                    .add(tr)
+                    .divide(BigDecimal.valueOf(period), SCALE, RoundingMode.HALF_UP);
+            result.add(atrVal);
+        }
+        return result;
     }
 
     public static BigDecimal adx(List<Candle> candles, int period) {

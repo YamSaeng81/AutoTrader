@@ -57,28 +57,28 @@ class MarketRegimeFilterTest {
         assertThat(MarketRegimeFilter.isUnsuitable(MarketRegime.RANGE, "ATR_BREAKOUT")).isTrue();
     }
 
-    // ── VOLATILE ──────────────────────────────────────────────────────────
+    // ── VOLATILITY ────────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("VOLATILE: ATR_BREAKOUT, RSI, ORDERBOOK_IMBALANCE 적합")
-    void volatile_suitableStrategies() {
-        assertThat(MarketRegimeFilter.isSuitable(MarketRegime.VOLATILE, "ATR_BREAKOUT")).isTrue();
-        assertThat(MarketRegimeFilter.isSuitable(MarketRegime.VOLATILE, "RSI")).isTrue();
-        assertThat(MarketRegimeFilter.isSuitable(MarketRegime.VOLATILE, "ORDERBOOK_IMBALANCE")).isTrue();
+    @DisplayName("VOLATILITY: ATR_BREAKOUT, RSI, ORDERBOOK_IMBALANCE 적합")
+    void volatility_suitableStrategies() {
+        assertThat(MarketRegimeFilter.isSuitable(MarketRegime.VOLATILITY, "ATR_BREAKOUT")).isTrue();
+        assertThat(MarketRegimeFilter.isSuitable(MarketRegime.VOLATILITY, "RSI")).isTrue();
+        assertThat(MarketRegimeFilter.isSuitable(MarketRegime.VOLATILITY, "ORDERBOOK_IMBALANCE")).isTrue();
     }
 
     @Test
-    @DisplayName("VOLATILE: GRID, SUPERTREND 비활성화 대상")
-    void volatile_unsuitableStrategies() {
-        assertThat(MarketRegimeFilter.isUnsuitable(MarketRegime.VOLATILE, "GRID")).isTrue();
-        assertThat(MarketRegimeFilter.isUnsuitable(MarketRegime.VOLATILE, "SUPERTREND")).isTrue();
+    @DisplayName("VOLATILITY: GRID, SUPERTREND 비활성화 대상")
+    void volatility_unsuitableStrategies() {
+        assertThat(MarketRegimeFilter.isUnsuitable(MarketRegime.VOLATILITY, "GRID")).isTrue();
+        assertThat(MarketRegimeFilter.isUnsuitable(MarketRegime.VOLATILITY, "SUPERTREND")).isTrue();
     }
 
     @Test
-    @DisplayName("VOLATILE: 적합 전략은 비활성화 대상 아님")
-    void volatile_suitableIsNotUnsuitable() {
-        assertThat(MarketRegimeFilter.isUnsuitable(MarketRegime.VOLATILE, "ATR_BREAKOUT")).isFalse();
-        assertThat(MarketRegimeFilter.isUnsuitable(MarketRegime.VOLATILE, "RSI")).isFalse();
+    @DisplayName("VOLATILITY: 적합 전략은 비활성화 대상 아님")
+    void volatility_suitableIsNotUnsuitable() {
+        assertThat(MarketRegimeFilter.isUnsuitable(MarketRegime.VOLATILITY, "ATR_BREAKOUT")).isFalse();
+        assertThat(MarketRegimeFilter.isUnsuitable(MarketRegime.VOLATILITY, "RSI")).isFalse();
     }
 
     // ── getSuitableStrategies / getUnsuitableStrategies ───────────────────
@@ -107,10 +107,10 @@ class MarketRegimeFilterTest {
     }
 
     @Test
-    @DisplayName("STOCHASTIC_RSI: VOLATILE에서 적합")
-    void stochasticRsi_suitableInVolatile() {
-        assertThat(MarketRegimeFilter.isSuitable(MarketRegime.VOLATILE, "STOCHASTIC_RSI")).isTrue();
-        assertThat(MarketRegimeFilter.isUnsuitable(MarketRegime.VOLATILE, "STOCHASTIC_RSI")).isFalse();
+    @DisplayName("STOCHASTIC_RSI: VOLATILITY에서 적합")
+    void stochasticRsi_suitableInVolatility() {
+        assertThat(MarketRegimeFilter.isSuitable(MarketRegime.VOLATILITY, "STOCHASTIC_RSI")).isTrue();
+        assertThat(MarketRegimeFilter.isUnsuitable(MarketRegime.VOLATILITY, "STOCHASTIC_RSI")).isFalse();
     }
 
     @Test

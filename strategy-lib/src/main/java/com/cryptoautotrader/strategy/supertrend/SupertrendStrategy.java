@@ -58,8 +58,8 @@ public class SupertrendStrategy implements Strategy {
         boolean currentUptrend = result.isUptrend;
         boolean prevUptrend = result.wasPrevUptrend;
 
-        // 신호 강도: 가격과 Supertrend 밴드의 거리 비율
-        BigDecimal band = currentUptrend ? result.supertrendLine : result.supertrendLine;
+        // 신호 강도: 가격과 Supertrend 밴드의 거리 비율 (상승 추세=하단 밴드, 하락 추세=상단 밴드)
+        BigDecimal band = currentUptrend ? result.lowerBand : result.upperBand;
         BigDecimal distance = currentClose.subtract(band).abs();
         BigDecimal strength = distance.divide(currentClose, SCALE, RoundingMode.HALF_UP)
                 .multiply(BigDecimal.valueOf(10000))
@@ -102,19 +102,20 @@ public class SupertrendStrategy implements Strategy {
     /**
      * Supertrend를 전체 캔들 시계열로 계산하여 최종 상태를 반환한다.
      * 전체 시계열 스캔이 필요한 이유: 이전 밴드 조정이 현재 밴드에 영향을 미치기 때문.
+     *
+     * <p>S4-1 최적화: ATR을 매 반복 재계산하는 O(n²) 방식 제거.
+     * {@link IndicatorUtils#atrList}로 O(n) 선형 사전 계산 후 인덱스로 참조한다.
      */
     private SupertrendResult calculateSupertrend(List<Candle> candles, int atrPeriod, BigDecimal multiplier) {
-        // 각 캔들의 ATR과 밴드를 순차적으로 계산
-        // ATR 계산 시작점: atrPeriod 번째 인덱스부터 (0-based)
+        List<BigDecimal> atrValues = IndicatorUtils.atrList(candles, atrPeriod); // O(n) 사전 계산
+
         List<BigDecimal> finalLowerBands = new ArrayList<>();
         List<BigDecimal> finalUpperBands = new ArrayList<>();
         List<Boolean> trends = new ArrayList<>();
 
-        // 첫 캔들(atrPeriod 인덱스)의 ATR과 밴드 계산
-        for (int i = atrPeriod; i < candles.size(); i++) {
-            // i번째 캔들까지의 ATR 계산
-            List<Candle> subCandles = candles.subList(0, i + 1);
-            BigDecimal atr = IndicatorUtils.atr(subCandles, atrPeriod);
+        for (int offset = 0; offset < atrValues.size(); offset++) {
+            int i = atrPeriod + offset;
+            BigDecimal atr = atrValues.get(offset);
 
             Candle current = candles.get(i);
             BigDecimal hl2 = current.getHigh().add(current.getLow())
@@ -175,28 +176,33 @@ public class SupertrendStrategy implements Strategy {
         }
 
         if (trends.isEmpty()) {
-            return new SupertrendResult(BigDecimal.ZERO, true, true);
+            return new SupertrendResult(BigDecimal.ZERO, BigDecimal.ZERO, true, true);
         }
 
-        boolean isUptrend = trends.get(trends.size() - 1);
-        boolean wasPrevUptrend = trends.size() >= 2 ? trends.get(trends.size() - 2) : isUptrend;
+        boolean isUptrend = Boolean.TRUE.equals(trends.get(trends.size() - 1));
+        boolean wasPrevUptrend = trends.size() >= 2
+                ? Boolean.TRUE.equals(trends.get(trends.size() - 2))
+                : isUptrend;
 
-        // 현재 추세에 해당하는 Supertrend 밴드선 반환
-        BigDecimal supertrendLine = isUptrend
-                ? finalLowerBands.get(finalLowerBands.size() - 1)
-                : finalUpperBands.get(finalUpperBands.size() - 1);
+        BigDecimal finalUpper = finalUpperBands.get(finalUpperBands.size() - 1);
+        BigDecimal finalLower = finalLowerBands.get(finalLowerBands.size() - 1);
 
-        return new SupertrendResult(supertrendLine, isUptrend, wasPrevUptrend);
+        return new SupertrendResult(finalUpper, finalLower, isUptrend, wasPrevUptrend);
     }
 
     /** Supertrend 계산 결과를 담는 내부 클래스 */
     private static class SupertrendResult {
-        final BigDecimal supertrendLine; // 현재 Supertrend 밴드선 (상승 시 하단, 하락 시 상단)
+        final BigDecimal supertrendLine; // 현재 활성 밴드선 (상승=하단, 하락=상단)
+        final BigDecimal upperBand;      // 현재 최종 상단 밴드 (신호 강도 계산용)
+        final BigDecimal lowerBand;      // 현재 최종 하단 밴드 (신호 강도 계산용)
         final boolean isUptrend;         // 현재 상승 추세 여부
         final boolean wasPrevUptrend;    // 이전 시점 상승 추세 여부 (전환 감지용)
 
-        SupertrendResult(BigDecimal supertrendLine, boolean isUptrend, boolean wasPrevUptrend) {
-            this.supertrendLine = supertrendLine;
+        SupertrendResult(BigDecimal upperBand, BigDecimal lowerBand,
+                         boolean isUptrend, boolean wasPrevUptrend) {
+            this.upperBand = upperBand;
+            this.lowerBand = lowerBand;
+            this.supertrendLine = isUptrend ? lowerBand : upperBand;
             this.isUptrend = isUptrend;
             this.wasPrevUptrend = wasPrevUptrend;
         }

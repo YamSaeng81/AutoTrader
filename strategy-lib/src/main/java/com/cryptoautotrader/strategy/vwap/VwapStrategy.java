@@ -1,6 +1,7 @@
 package com.cryptoautotrader.strategy.vwap;
 
 import com.cryptoautotrader.strategy.Candle;
+import com.cryptoautotrader.strategy.IndicatorUtils;
 import com.cryptoautotrader.strategy.Strategy;
 import com.cryptoautotrader.strategy.StrategySignal;
 
@@ -25,11 +26,22 @@ public class VwapStrategy implements Strategy {
 
     @Override
     public StrategySignal evaluate(List<Candle> candles, Map<String, Object> params) {
-        double thresholdPct = getDouble(params, "thresholdPct", 1.0);
-        int period = getInt(params, "period", 20);
+        double thresholdPct    = getDouble(params, "thresholdPct",    2.5);
+        int    period          = getInt(params,    "period",          20);
+        int    adxPeriod       = getInt(params,    "adxPeriod",       14);
+        double adxMaxThreshold = getDouble(params, "adxMaxThreshold", 25.0);
 
         if (candles.size() < period) {
             return StrategySignal.hold("데이터 부족: " + candles.size() + " < " + period);
+        }
+
+        // ADX 상한선 필터: VWAP는 역추세 전략, 레인지 구간(낮은 ADX)에서만 유효
+        if (adxMaxThreshold > 0 && candles.size() >= adxPeriod * 2 + 1) {
+            BigDecimal adx = IndicatorUtils.adx(candles, adxPeriod);
+            if (adx.compareTo(BigDecimal.valueOf(adxMaxThreshold)) >= 0) {
+                return StrategySignal.hold(String.format(
+                        "ADX 필터: 추세장 역추세 매매 억제 ADX=%.2f >= %.0f", adx, adxMaxThreshold));
+            }
         }
 
         BigDecimal vwap = calculateVwap(candles, period);

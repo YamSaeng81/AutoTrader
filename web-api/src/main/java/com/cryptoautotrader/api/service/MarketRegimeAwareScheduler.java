@@ -38,8 +38,8 @@ public class MarketRegimeAwareScheduler {
 
     private static final Logger log = LoggerFactory.getLogger(MarketRegimeAwareScheduler.class);
 
-    /** ADX 계산에 사용할 캔들 수 (period * 2 + 1 이상 필요) */
-    private static final int REGIME_CANDLE_COUNT = 60;
+    /** MarketRegimeDetector.MIN_CANDLE_COUNT = 50, BB_LOOKBACK = 30 — 여유분 포함 */
+    private static final int REGIME_CANDLE_COUNT = 80;
 
     /**
      * 시장 상태 감지 기준 코인/타임프레임.
