@@ -167,8 +167,14 @@ public class TelegramNotificationService {
         List<TradeEvent> events = new ArrayList<>(tradeBuffer);
         tradeBuffer.removeAll(events);
 
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("📊 *%s*\n\n", periodLabel));
+
         if (events.isEmpty()) {
-            log.info("[Telegram] {} - 거래 없음, 요약 전송 생략", periodLabel);
+            sb.append("• 해당 시간대 매매 없음\n");
+            sb.append(String.format("• 기준 시각: `%s`\n", KST_FMT.format(Instant.now())));
+            sendMarkdown(sb.toString());
+            log.info("[Telegram] {} - 거래 없음 요약 전송", periodLabel);
             return;
         }
 
@@ -185,8 +191,6 @@ public class TelegramNotificationService {
                 .map(TradeEvent::realizedPnl)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        StringBuilder sb = new StringBuilder();
-        sb.append(String.format("📊 *%s*\n\n", periodLabel));
         sb.append(String.format("• 매수: `%d회` / 매도: `%d회`\n", buyCount, sellCount));
         sb.append(String.format("• 누적 수수료: `%,.0f KRW`\n", totalFee.doubleValue()));
         sb.append(String.format("• 실현 손익 합계: `%s%,.0f KRW`\n",

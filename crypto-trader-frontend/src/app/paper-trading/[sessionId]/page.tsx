@@ -352,10 +352,61 @@ export default function SessionDetailPage() {
 
             {/* Chart */}
             {chartData.length > 0 && (() => {
-                const PX_PER_POINT = 16;
+                const CHART_HEIGHT = 300;
+                const PX_PER_POINT = 14;
                 const SCROLL_THRESHOLD = 60;
+                const MAX_WIDTH = 4000;
                 const needsScroll = chartData.length > SCROLL_THRESHOLD;
-                const chartWidth = needsScroll ? Math.max(800, chartData.length * PX_PER_POINT) : undefined;
+                const fixedWidth = needsScroll
+                    ? Math.min(MAX_WIDTH, Math.max(800, chartData.length * PX_PER_POINT))
+                    : undefined;
+
+                const chartInner = (w?: number) => (
+                    <ComposedChart
+                        width={w}
+                        height={CHART_HEIGHT}
+                        data={chartData}
+                        margin={{ top: 10, right: 20, bottom: 0, left: 10 }}
+                    >
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                        <XAxis
+                            dataKey="time"
+                            type="number"
+                            domain={['dataMin', 'dataMax']}
+                            scale="time"
+                            tickFormatter={(t) => format(new Date(t), 'MM/dd HH:mm')}
+                            tick={{ fontSize: 11, fill: '#94a3b8' }}
+                            tickCount={6}
+                            minTickGap={40}
+                        />
+                        <YAxis
+                            domain={['auto', 'auto']}
+                            tickFormatter={(v) => Number(v).toLocaleString()}
+                            tick={{ fontSize: 11, fill: '#94a3b8' }}
+                            width={80}
+                        />
+                        <Tooltip content={<ChartTooltip />} />
+                        <Line
+                            type="monotone"
+                            dataKey="close"
+                            stroke="#6366f1"
+                            strokeWidth={1.5}
+                            dot={(props: any) => {
+                                const { cx, cy, payload } = props;
+                                if (payload.buyOrder) {
+                                    return <circle key={`buy-dot-${cx}`} cx={cx} cy={cy} r={7} fill="#10b981" stroke="#fff" strokeWidth={2} />;
+                                }
+                                if (payload.sellOrder) {
+                                    return <circle key={`sell-dot-${cx}`} cx={cx} cy={cy} r={7} fill="#f43f5e" stroke="#fff" strokeWidth={2} />;
+                                }
+                                return <g key={`empty-${cx}`} />;
+                            }}
+                            activeDot={{ r: 5, stroke: '#6366f1', strokeWidth: 2, fill: '#fff' }}
+                            isAnimationActive={false}
+                        />
+                    </ComposedChart>
+                );
+
                 return (
                     <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                         <div className="px-6 py-5 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
@@ -364,48 +415,22 @@ export default function SessionDetailPage() {
                                 <span className="text-xs text-slate-400">← 좌우 스크롤 →</span>
                             )}
                         </div>
-                        <div className="overflow-x-auto">
-                            <div style={{ width: chartWidth ?? '100%', height: 320, padding: '16px 8px 16px 0' }}>
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <ComposedChart data={chartData} margin={{ top: 10, right: 20, bottom: 0, left: 10 }}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                                        <XAxis
-                                            dataKey="time"
-                                            type="number"
-                                            domain={['dataMin', 'dataMax']}
-                                            scale="time"
-                                            tickFormatter={(t) => format(new Date(t), 'MM/dd HH:mm')}
-                                            tick={{ fontSize: 11, fill: '#94a3b8' }}
-                                            tickCount={needsScroll ? Math.min(chartData.length, 12) : 6}
-                                        />
-                                        <YAxis
-                                            domain={['auto', 'auto']}
-                                            tickFormatter={(v) => Number(v).toLocaleString()}
-                                            tick={{ fontSize: 11, fill: '#94a3b8' }}
-                                            width={80}
-                                        />
-                                        <Tooltip content={<ChartTooltip />} />
-                                        <Line
-                                            type="monotone"
-                                            dataKey="close"
-                                            stroke="#6366f1"
-                                            strokeWidth={1.5}
-                                            dot={(props: any) => {
-                                                const { cx, cy, payload } = props;
-                                                if (payload.buyOrder) {
-                                                    return <circle key={`buy-dot-${cx}`} cx={cx} cy={cy} r={7} fill="#10b981" stroke="#fff" strokeWidth={2} />;
-                                                }
-                                                if (payload.sellOrder) {
-                                                    return <circle key={`sell-dot-${cx}`} cx={cx} cy={cy} r={7} fill="#f43f5e" stroke="#fff" strokeWidth={2} />;
-                                                }
-                                                return <g key={`empty-${cx}`} />;
-                                            }}
-                                            activeDot={{ r: 5, stroke: '#6366f1', strokeWidth: 2, fill: '#fff' }}
-                                            isAnimationActive={false}
-                                        />
-                                    </ComposedChart>
-                                </ResponsiveContainer>
-                            </div>
+                        <div className="p-4">
+                            {needsScroll ? (
+                                // 데이터가 많으면 고정 픽셀 너비로 가로 스크롤
+                                <div className="overflow-x-auto">
+                                    <div style={{ width: fixedWidth }}>
+                                        {chartInner(fixedWidth)}
+                                    </div>
+                                </div>
+                            ) : (
+                                // 데이터가 적으면 컨테이너에 맞게 반응형
+                                <div style={{ height: CHART_HEIGHT }}>
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        {chartInner() as any}
+                                    </ResponsiveContainer>
+                                </div>
+                            )}
                         </div>
                     </div>
                 );
