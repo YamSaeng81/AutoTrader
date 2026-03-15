@@ -111,6 +111,7 @@ export default function PaperTradingPage() {
                                 onChange={e => setConfig(c => ({ ...c, strategyType: e.target.value }))}
                                 className="w-full border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-2.5 text-sm bg-slate-50 dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             >
+                                <option value="COMPOSITE">COMPOSITE (시장 국면 자동 선택)</option>
                                 {availableStrategies.map(s => (
                                     <option key={s.name} value={s.name}>{s.name}</option>
                                 ))}

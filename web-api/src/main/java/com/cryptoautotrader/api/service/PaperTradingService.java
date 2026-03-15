@@ -10,6 +10,11 @@ import com.cryptoautotrader.api.repository.paper.PaperOrderRepository;
 import com.cryptoautotrader.api.repository.paper.PaperPositionRepository;
 import com.cryptoautotrader.api.repository.paper.VirtualBalanceRepository;
 import com.cryptoautotrader.api.util.TimeframeUtils;
+import com.cryptoautotrader.core.regime.MarketRegime;
+import com.cryptoautotrader.core.regime.MarketRegimeDetector;
+import com.cryptoautotrader.core.selector.CompositeStrategy;
+import com.cryptoautotrader.core.selector.StrategySelector;
+import com.cryptoautotrader.core.selector.WeightedStrategy;
 import com.cryptoautotrader.exchange.upbit.UpbitCandleCollector;
 import com.cryptoautotrader.exchange.upbit.UpbitRestClient;
 import com.cryptoautotrader.strategy.Candle;
@@ -30,7 +35,9 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +48,9 @@ public class PaperTradingService {
     private static final BigDecimal FEE_RATE = new BigDecimal("0.0005");
     private static final BigDecimal INVEST_RATIO = new BigDecimal("0.80");
     private static final int CANDLE_LOOKBACK = 100;
+
+    /** COMPOSITE 전략 사용 세션별 MarketRegimeDetector (Hysteresis 상태 유지) */
+    private final Map<Long, MarketRegimeDetector> sessionDetectors = new ConcurrentHashMap<>();
 
     private final VirtualBalanceRepository balanceRepo;
     private final PaperPositionRepository positionRepo;
@@ -102,6 +112,7 @@ public class PaperTradingService {
 
         session.setStatus("STOPPED");
         session.setStoppedAt(Instant.now());
+        sessionDetectors.remove(sessionId);
 
         log.info("모의투자 세션 중단 (id={}). 최종 자산: {} KRW", sessionId, session.getTotalKrw());
         VirtualBalanceEntity stopped = balanceRepo.save(session);
@@ -172,6 +183,7 @@ public class PaperTradingService {
         orderRepo.deleteBySessionId(sessionId);
         positionRepo.deleteBySessionId(sessionId);
         balanceRepo.deleteById(sessionId);
+        sessionDetectors.remove(sessionId);
         log.info("모의투자 세션 이력 삭제 완료: id={}", sessionId);
     }
 
@@ -223,9 +235,20 @@ public class PaperTradingService {
             return;
         }
 
-        StrategySignal signal = StrategyRegistry.get(strategyName).evaluate(candles, Collections.emptyMap());
-        log.info("모의투자 신호 (sessionId={}): {} {} → {} ({})",
-                session.getId(), strategyName, coinPair, signal.getAction(), signal.getReason());
+        StrategySignal signal;
+        if ("COMPOSITE".equals(strategyName)) {
+            MarketRegimeDetector detector = sessionDetectors.computeIfAbsent(
+                    session.getId(), id -> new MarketRegimeDetector());
+            MarketRegime regime = detector.detect(candles);
+            List<WeightedStrategy> weighted = StrategySelector.select(regime);
+            signal = new CompositeStrategy(weighted).evaluate(candles, Collections.emptyMap());
+            log.info("모의투자 COMPOSITE 신호 (sessionId={}): regime={} {} → {} ({})",
+                    session.getId(), regime, coinPair, signal.getAction(), signal.getReason());
+        } else {
+            signal = StrategyRegistry.get(strategyName).evaluate(candles, Collections.emptyMap());
+            log.info("모의투자 신호 (sessionId={}): {} {} → {} ({})",
+                    session.getId(), strategyName, coinPair, signal.getAction(), signal.getReason());
+        }
 
         BigDecimal currentPrice = candles.get(candles.size() - 1).getClose();
         Optional<PaperPositionEntity> openPos = positionRepo

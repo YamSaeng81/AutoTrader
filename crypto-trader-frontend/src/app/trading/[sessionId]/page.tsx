@@ -74,7 +74,16 @@ export default function LiveSessionDetailPage({ params }: { params: Promise<{ se
   const orders = ordersData?.content ?? [];
 
   const openPositions = positions.filter(p => p.status === 'OPEN');
+  const closedPositions = positions.filter(p => p.status === 'CLOSED');
   const isRunning = session?.status === 'RUNNING';
+
+  const filledOrders = orders.filter(o => o.state === 'FILLED');
+  const buyCount = filledOrders.filter(o => o.side === 'BUY').length;
+  const sellCount = filledOrders.filter(o => o.side === 'SELL').length;
+  const totalRealizedPnl = positions.reduce((sum, p) => sum + Number(p.realizedPnl), 0);
+  const winRate = closedPositions.length > 0
+    ? (closedPositions.filter(p => Number(p.realizedPnl) > 0).length / closedPositions.length * 100)
+    : null;
 
   const returnPct = session && session.initialCapital > 0
     ? ((session.totalAssetKrw - session.initialCapital) / session.initialCapital * 100)
@@ -188,6 +197,44 @@ export default function LiveSessionDetailPage({ params }: { params: Promise<{ se
             {session.stopLossPct != null ? `${session.stopLossPct}%` : '-'}
           </div>
           <div className="text-xs text-slate-500 mt-1">Stop Loss</div>
+        </div>
+      </div>
+
+      {/* 매매 요약 */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
+          <div className="text-xs text-slate-400 mb-2">매수 횟수</div>
+          <div className="text-2xl font-bold text-green-400">{buyCount}<span className="text-sm font-normal text-slate-500 ml-1">회</span></div>
+        </div>
+        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
+          <div className="text-xs text-slate-400 mb-2">매도 횟수</div>
+          <div className="text-2xl font-bold text-red-400">{sellCount}<span className="text-sm font-normal text-slate-500 ml-1">회</span></div>
+        </div>
+        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
+          <div className="text-xs text-slate-400 mb-2">실현 손익</div>
+          <div className={`text-2xl font-bold ${totalRealizedPnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+            {totalRealizedPnl >= 0 ? '+' : ''}{totalRealizedPnl.toLocaleString()}
+            <span className="text-xs font-normal text-slate-500 ml-1">KRW</span>
+          </div>
+        </div>
+        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
+          <div className="text-xs text-slate-400 mb-2">승률</div>
+          {winRate !== null ? (
+            <>
+              <div className={`text-2xl font-bold ${winRate >= 50 ? 'text-green-400' : 'text-red-400'}`}>
+                {winRate.toFixed(1)}<span className="text-sm font-normal text-slate-500 ml-0.5">%</span>
+              </div>
+              <div className="mt-2 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all ${winRate >= 50 ? 'bg-green-500' : 'bg-red-500'}`}
+                  style={{ width: `${winRate}%` }}
+                />
+              </div>
+              <div className="text-xs text-slate-500 mt-1">{closedPositions.filter(p => Number(p.realizedPnl) > 0).length}승 {closedPositions.filter(p => Number(p.realizedPnl) <= 0).length}패</div>
+            </>
+          ) : (
+            <div className="text-xl font-bold text-slate-500">-</div>
+          )}
         </div>
       </div>
 

@@ -24,6 +24,12 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.cryptoautotrader.core.regime.MarketRegime;
+import com.cryptoautotrader.core.regime.MarketRegimeDetector;
+import com.cryptoautotrader.core.selector.CompositeStrategy;
+import com.cryptoautotrader.core.selector.StrategySelector;
+import com.cryptoautotrader.core.selector.WeightedStrategy;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
@@ -32,6 +38,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 실전 매매 서비스 -- 다중 세션 지원
@@ -50,6 +57,9 @@ public class LiveTradingService {
     private static final BigDecimal INVEST_RATIO = new BigDecimal("0.80");
     private static final List<String> ACTIVE_ORDER_STATES =
             List.of("PENDING", "SUBMITTED", "PARTIAL_FILLED");
+
+    /** COMPOSITE 전략 사용 세션별 MarketRegimeDetector (Hysteresis 상태 유지) */
+    private final Map<Long, MarketRegimeDetector> sessionDetectors = new ConcurrentHashMap<>();
 
     private final LiveTradingSessionRepository sessionRepository;
     private final PositionRepository positionRepository;
@@ -83,11 +93,13 @@ public class LiveTradingService {
                             + "현재 " + runningCount + "개 실행 중.");
         }
 
-        // 전략 유효성 검증
-        try {
-            StrategyRegistry.get(req.getStrategyType());
-        } catch (Exception e) {
-            throw new IllegalArgumentException("지원하지 않는 전략입니다: " + req.getStrategyType());
+        // 전략 유효성 검증 (COMPOSITE는 StrategyRegistry 외부에서 처리)
+        if (!"COMPOSITE".equals(req.getStrategyType())) {
+            try {
+                StrategyRegistry.get(req.getStrategyType());
+            } catch (Exception e) {
+                throw new IllegalArgumentException("지원하지 않는 전략입니다: " + req.getStrategyType());
+            }
         }
 
         BigDecimal stopLoss = req.getStopLossPct() != null
@@ -169,6 +181,7 @@ public class LiveTradingService {
 
         session.setStatus("STOPPED");
         session.setStoppedAt(Instant.now());
+        sessionDetectors.remove(sessionId);
         session = sessionRepository.save(session);
 
         log.info("실전매매 세션 정지: id={} 최종 자산: {} KRW",
@@ -204,6 +217,7 @@ public class LiveTradingService {
 
         session.setStatus("EMERGENCY_STOPPED");
         session.setStoppedAt(Instant.now());
+        sessionDetectors.remove(sessionId);
         session = sessionRepository.save(session);
 
         log.error("실전매매 세션 비상 정지 완료: id={}", sessionId);
@@ -281,6 +295,7 @@ public class LiveTradingService {
         });
 
         sessionRepository.deleteById(sessionId);
+        sessionDetectors.remove(sessionId);
         log.info("실전매매 세션 삭제 완료: id={}", sessionId);
     }
 
@@ -393,12 +408,23 @@ public class LiveTradingService {
             return;
         }
 
-        // 전략 파라미터 전달 (세션에 설정된 파라미터 사용)
-        Map<String, Object> params = session.getStrategyParams() != null
-                ? session.getStrategyParams() : Collections.emptyMap();
-        StrategySignal signal = StrategyRegistry.get(strategyType).evaluate(candles, params);
-        log.debug("세션 전략 신호 (sessionId={}): {} {} -> {} ({})",
-                sessionId, strategyType, coinPair, signal.getAction(), signal.getReason());
+        // 전략 신호 평가
+        StrategySignal signal;
+        if ("COMPOSITE".equals(strategyType)) {
+            MarketRegimeDetector detector = sessionDetectors.computeIfAbsent(
+                    sessionId, id -> new MarketRegimeDetector());
+            MarketRegime regime = detector.detect(candles);
+            List<WeightedStrategy> weighted = StrategySelector.select(regime);
+            signal = new CompositeStrategy(weighted).evaluate(candles, Collections.emptyMap());
+            log.info("실전매매 COMPOSITE 신호 (sessionId={}): regime={} {} → {} ({})",
+                    sessionId, regime, coinPair, signal.getAction(), signal.getReason());
+        } else {
+            Map<String, Object> params = session.getStrategyParams() != null
+                    ? session.getStrategyParams() : Collections.emptyMap();
+            signal = StrategyRegistry.get(strategyType).evaluate(candles, params);
+            log.debug("세션 전략 신호 (sessionId={}): {} {} -> {} ({})",
+                    sessionId, strategyType, coinPair, signal.getAction(), signal.getReason());
+        }
 
         BigDecimal currentPrice = candles.get(candles.size() - 1).getClose();
         Optional<PositionEntity> openPos = positionRepository

@@ -167,6 +167,7 @@ export default function TradingPage() {
                   onChange={e => setForm({ ...form, strategyType: e.target.value })}
                   className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
                 >
+                  <option value="COMPOSITE">COMPOSITE (시장 국면 자동 선택)</option>
                   {activeStrategies.length > 0
                     ? activeStrategies.map(s => (
                         <option key={s.name} value={s.name}>{s.name}</option>

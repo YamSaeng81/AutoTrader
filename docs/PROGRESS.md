@@ -2,7 +2,7 @@
 
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝날 때마다 `## 최근 변경사항`과 `## 다음 할 일`을 반드시 업데이트한다.
-> **마지막 갱신**: 2026-03-15 (전략 파라미터 최적화 + 2025 H1 백테스트 완료)
+> **마지막 갱신**: 2026-03-15 (CompositeStrategy 파이프라인 PaperTrading/LiveTrading 실전 연동 완료)
 
 ---
 
@@ -37,7 +37,7 @@ crypto-auto-trader/
 | Phase 3 | 전략 추가 10종 + MarketRegimeFilter + 자동 스위칭 | **100%** |
 | Phase 3.5 | 모의투자 (PaperTrading) 멀티세션 | **100%** |
 | 인프라 | Docker, Flyway V1~V13, SchedulerConfig, RedisConfig | **100%** |
-| Phase 4 | **실전매매** (LiveTrading) | **~85%** — 백엔드/프론트엔드 구현 완료, 배포 및 실거래 검증 미완 |
+| Phase 4 | **실전매매** (LiveTrading) | **~90%** — 백엔드/프론트엔드 구현 완료, 배포 및 실거래 검증 미완 |
 
 ### 구현된 전략 10종
 
@@ -46,6 +46,31 @@ VWAP / EMA Cross / Bollinger Band / Grid / RSI(다이버전스) / MACD(히스토
 ---
 
 ## 최근 변경사항
+
+### 2026-03-15 작업 (CompositeStrategy 파이프라인 PaperTrading/LiveTrading 실전 연동)
+
+#### 배경
+Phase S3에서 `MarketRegimeDetector → StrategySelector → CompositeStrategy` 3단계 파이프라인이
+`core-engine` 라이브러리 코드로 완성되었으나, `PaperTradingService`와 `LiveTradingService`가
+`StrategyRegistry.get(strategyName)` 경로만 사용하여 COMPOSITE 전략이 실제 매매에 전혀 활용되지 않던 문제 수정.
+
+#### 변경 내용
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `web-api/.../service/PaperTradingService.java` | **COMPOSITE 분기 추가** — `runSessionStrategy()`에서 strategyName=`"COMPOSITE"`이면 `sessionDetectors.computeIfAbsent()` → `MarketRegimeDetector.detect()` → `StrategySelector.select()` → `CompositeStrategy.evaluate()` 파이프라인 실행; `stop()`, `deleteSession()`에 `sessionDetectors.remove()` 추가 (메모리 누수 방지) |
+| `web-api/.../service/LiveTradingService.java` | **imports 추가** (MarketRegimeDetector, CompositeStrategy, StrategySelector, WeightedStrategy, ConcurrentHashMap) + **`sessionDetectors` 필드** 추가 + **`createSession()` 유효성 검증 우회** (COMPOSITE은 StrategyRegistry 외부 처리) + **`evaluateAndExecuteSession()`에 COMPOSITE 분기** 추가; `stopSession()`, `emergencyStopSession()`, `deleteSession()`에 `sessionDetectors.remove()` 추가 |
+| `crypto-trader-frontend/src/lib/types.ts` | `StrategyType`에 `'COMPOSITE'` 추가 |
+| `crypto-trader-frontend/src/app/paper-trading/page.tsx` | 전략 드롭다운 첫 번째 옵션으로 `COMPOSITE (시장 국면 자동 선택)` 하드코딩 추가 |
+| `crypto-trader-frontend/src/app/trading/page.tsx` | 실전매매 전략 드롭다운 첫 번째 옵션으로 `COMPOSITE (시장 국면 자동 선택)` 하드코딩 추가 |
+
+#### 핵심 구현 포인트
+
+- **per-session Hysteresis 상태 유지**: `Map<Long, MarketRegimeDetector> sessionDetectors = new ConcurrentHashMap<>()` — 세션마다 독립 Detector 인스턴스 유지. Regime 전환 시 3캔들 연속 확인 상태가 세션 간 섞이지 않음.
+- **StrategyRegistry 우회**: COMPOSITE은 Registry에 등록된 단일 전략이 아닌 동적 조합이므로, `"COMPOSITE"` 이름 체크 → StrategyRegistry 호출 없이 직접 파이프라인 실행.
+- **메모리 누수 방지**: 세션 중단(stop/emergencyStop)/삭제(delete) 시 `sessionDetectors.remove(sessionId)` 호출하여 Detector 인스턴스 정리.
+
+---
 
 ### 2026-03-15 작업 (전략 파라미터 최적화 + 백테스트)
 
@@ -234,6 +259,14 @@ VWAP / EMA Cross / Bollinger Band / Grid / RSI(다이버전스) / MACD(히스토
 - [ ] `🔴 CRITICAL` Spring Security / API 인증 추가 — 실전매매 API 현재 무방비 (1차 분석부터 미적용)
 - [ ] `🟡 MEDIUM` 텔레그램 수신 확인 (서버 재기동 후 12:00/00:00 정상 수신 여부)
 
+### Phase 4 프론트엔드 추가 개발 (2026-03-15 완료)
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `crypto-trader-frontend/src/app/trading/history/page.tsx` | **신규 생성** — 실전매매 이력 페이지: 전체/운영중/종료 요약 카드, 세션별 수익률 테이블, hover 삭제 버튼 (운영 중 비활성) |
+| `crypto-trader-frontend/src/app/trading/[sessionId]/page.tsx` | **매매 요약 섹션 추가** — 매수/매도 횟수(FILLED), 실현 손익, 승률(progress bar + 승/패 카운트) |
+| `crypto-trader-frontend/src/components/layout/Sidebar.tsx` | **"실전매매 이력" 메뉴 추가** — `/trading/history` 링크; `/trading` active 상태 excludePrefix 처리 |
+
 ### 전략 고도화 후속 (백테스트 결과 기반)
 
 > 근거: `docs/BACKTEST_RESULTS.md` — 2025 H1 KRW-BTC/ETH 결과
@@ -243,7 +276,7 @@ VWAP / EMA Cross / Bollinger Band / Grid / RSI(다이버전스) / MACD(히스토
 - [ ] `🟡 MEDIUM` **VWAP 임계값 재조정** — BTC 승률 0% (거래 발생 없음). thresholdPct 2.5% → 1.5% 재테스트
 - [ ] `🟡 MEDIUM` **코인별 전략 선택 최적화** — BTC: GRID+BOLLINGER 조합 / ETH: ATR_BREAKOUT+EMA_CROSS+ORDERBOOK 조합 고려
 - [ ] `🟢 LOW` 2023~2025 전체 기간 백테스트 — 2025년만 결과이므로 장기 성과 검증 필요
-- [ ] `🟢 LOW` CompositeStrategy 백테스트 연동 — 현재 단일 전략만 백테스트, 복합 전략 결과 측정 필요
+- [ ] `🟢 LOW` CompositeStrategy 백테스트 연동 — 현재 단일 전략만 백테스트, 복합 전략 결과 측정 필요 (PaperTrading/LiveTrading 연동은 완료, 백테스트 UI 연동만 미완)
 
 ### 단기 (1~2주)
 
@@ -255,6 +288,8 @@ VWAP / EMA Cross / Bollinger Band / Grid / RSI(다이버전스) / MACD(히스토
 
 ### 완료
 
+- [x] CompositeStrategy 파이프라인 PaperTrading/LiveTrading 실전 연동 (2026-03-15) — MarketRegimeDetector(per-session) + StrategySelector + CompositeStrategy 3단계 파이프라인, 프론트엔드 COMPOSITE 옵션 추가
+- [x] Phase 4 프론트엔드 추가 개발 — 이력 페이지, 매매 요약 섹션, 사이드바 메뉴 (2026-03-15)
 - [x] 전략 파라미터 최적화 (ADX 필터 7개 전략 + 임계값 강화) (2026-03-15)
 - [x] 2025 H1 KRW-BTC/ETH 벌크 백테스트 실행 + 결과 문서화 (2026-03-15)
 - [x] BacktestService @Transactional 제거 (PostgreSQL cascade 실패 수정) (2026-03-15)

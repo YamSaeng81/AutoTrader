@@ -37,7 +37,8 @@ const navItems: NavItem[] = [
     { href: '/paper-trading', label: '모의투자', icon: TrendingUp, phase: 3.5, excludePrefix: '/paper-trading/history' },
     { href: '/paper-trading/history', label: '모의투자 이력', icon: History, phase: 3.5 },
     // Phase 4
-    { href: '/trading', label: '실전 매매', icon: Zap, phase: 4 },
+    { href: '/trading', label: '실전 매매', icon: Zap, phase: 4, excludePrefix: '/trading/history' },
+    { href: '/trading/history', label: '실전매매 이력', icon: History, phase: 4 },
     { href: '/trading/risk', label: '리스크 설정', icon: Shield, phase: 4 },
 ];
 

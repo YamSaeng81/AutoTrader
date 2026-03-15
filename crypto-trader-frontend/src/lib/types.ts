@@ -5,7 +5,8 @@ export interface ApiResponse<T> {
 }
 
 export type StrategyType = 'VWAP' | 'EMA_CROSS' | 'BOLLINGER' | 'GRID'
-    | 'RSI' | 'MACD' | 'SUPERTREND' | 'ATR_BREAKOUT' | 'ORDERBOOK_IMBALANCE' | 'STOCHASTIC_RSI';
+    | 'RSI' | 'MACD' | 'SUPERTREND' | 'ATR_BREAKOUT' | 'ORDERBOOK_IMBALANCE' | 'STOCHASTIC_RSI'
+    | 'COMPOSITE';
 export type Timeframe = 'M1' | 'M5' | 'M15' | 'M30' | 'H1' | 'H4' | 'D1';
 export type OrderSide = 'BUY' | 'SELL';
 export type MarketRegime = 'TREND' | 'RANGE' | 'VOLATILE';
