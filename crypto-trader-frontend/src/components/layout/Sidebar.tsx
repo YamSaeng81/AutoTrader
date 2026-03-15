@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LineChart, PlusCircle, Settings, Database, TrendingUp, Zap, Briefcase, List, Shield, LayoutDashboard, GitCompare, FileText, History, Moon, Sun, FlaskConical, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -12,7 +13,16 @@ export function cn(...inputs: (string | undefined | null | false)[]) {
     return twMerge(clsx(inputs));
 }
 
-const navItems = [
+interface NavItem {
+    href: string;
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+    phase: number;
+    excludePrefix?: string;
+    disabled?: boolean;
+}
+
+const navItems: NavItem[] = [
     // Phase 2
     { href: '/', label: '대시보드', icon: LayoutDashboard, phase: 2 },
     { href: '/backtest', label: '백테스트 이력', icon: LineChart, phase: 2 },
@@ -60,9 +70,9 @@ export function Sidebar() {
                 {navItems.map((item) => {
                     const Icon = item.icon;
                     const isActive = (pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href)))
-                        && !((item as any).excludePrefix && pathname.startsWith((item as any).excludePrefix));
+                        && !(item.excludePrefix && pathname.startsWith(item.excludePrefix));
 
-                    if ((item as any).disabled) {
+                    if (item.disabled) {
                         return (
                             <div
                                 key={item.href}

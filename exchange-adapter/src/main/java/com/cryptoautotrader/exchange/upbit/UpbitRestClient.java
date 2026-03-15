@@ -14,6 +14,7 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Upbit REST API 클라이언트
@@ -25,9 +26,12 @@ public class UpbitRestClient {
     private static final DateTimeFormatter UPBIT_FORMAT = DateTimeFormatter
             .ofPattern("yyyy-MM-dd'T'HH:mm:ss")
             .withZone(ZoneOffset.UTC);
+    /** Upbit 캔들 API 제한: 초당 10회 → 110ms 간격으로 호출 (여유 10%) */
+    private static final long MIN_INTERVAL_MS = 110;
 
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
+    private final AtomicLong lastRequestTime = new AtomicLong(0);
 
     public UpbitRestClient() {
         this.httpClient = HttpClient.newBuilder()
@@ -62,6 +66,7 @@ public class UpbitRestClient {
                 .GET()
                 .build();
 
+        throttle();
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
         if (response.statusCode() != 200) {
@@ -70,5 +75,15 @@ public class UpbitRestClient {
         }
 
         return objectMapper.readValue(response.body(), new TypeReference<>() {});
+    }
+
+    /** Upbit API Rate Limit 준수 — 연속 호출 시 최소 110ms 간격 보장 (원자적 처리) */
+    private synchronized void throttle() throws InterruptedException {
+        long now = System.currentTimeMillis();
+        long elapsed = now - lastRequestTime.get();
+        if (elapsed < MIN_INTERVAL_MS) {
+            Thread.sleep(MIN_INTERVAL_MS - elapsed);
+        }
+        lastRequestTime.set(System.currentTimeMillis());
     }
 }

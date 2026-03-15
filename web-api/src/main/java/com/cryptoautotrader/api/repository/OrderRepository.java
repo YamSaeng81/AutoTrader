@@ -32,4 +32,7 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
 
     /** 특정 세션의 특정 상태 주문 조회 */
     List<OrderEntity> findBySessionIdAndStateIn(Long sessionId, List<String> states);
+
+    /** 실전매매 세션에 연결된 활성 주문 수 카운트 (session_id가 있는 것만) */
+    long countBySessionIdIsNotNullAndStateIn(List<String> states);
 }

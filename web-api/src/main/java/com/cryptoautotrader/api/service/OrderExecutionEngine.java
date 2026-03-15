@@ -21,6 +21,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Duration;
@@ -95,7 +98,7 @@ public class OrderExecutionEngine {
                             request.getCoinPair(), request.getSide()));
         }
 
-        // 2. 주문 엔티티 생성 (PENDING)
+        // 2. 주문 엔티티 생성 (PENDING) — sessionId/positionId는 request에서 직접 주입 (@Async 리턴값 의존 회피)
         OrderEntity order = OrderEntity.builder()
                 .coinPair(request.getCoinPair())
                 .side(request.getSide())
@@ -104,6 +107,8 @@ public class OrderExecutionEngine {
                 .quantity(request.getQuantity())
                 .state("PENDING")
                 .signalReason(request.getReason())
+                .sessionId(request.getSessionId())
+                .positionId(request.getPositionId())
                 .build();
         order = orderRepository.save(order);
         recordTradeLog(order.getId(), "STATE_CHANGE", null, "PENDING", "주문 생성");
@@ -219,6 +224,14 @@ public class OrderExecutionEngine {
     @Transactional(readOnly = true)
     public Optional<OrderEntity> getOrder(Long orderId) {
         return orderRepository.findById(orderId);
+    }
+
+    /**
+     * 전체 주문 내역 조회 (페이징)
+     */
+    @Transactional(readOnly = true)
+    public Page<OrderEntity> getOrders(Pageable pageable) {
+        return orderRepository.findAllByOrderByCreatedAtDesc(pageable);
     }
 
     /**

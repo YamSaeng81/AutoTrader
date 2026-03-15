@@ -15,13 +15,20 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResponse<Void> handleBadRequest(IllegalArgumentException e) {
         log.warn("잘못된 요청: {}", e.getMessage());
-        return ApiResponse.error("BACKTEST_001", e.getMessage());
+        return ApiResponse.error("BAD_REQUEST", e.getMessage());
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ApiResponse<Void> handleConflict(IllegalStateException e) {
+        log.warn("상태 충돌: {}", e.getMessage());
+        return ApiResponse.error("CONFLICT", e.getMessage());
     }
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ApiResponse<Void> handleInternalError(Exception e) {
         log.error("내부 오류: {}", e.getMessage(), e);
-        return ApiResponse.error("BACKTEST_002", "서버 내부 오류가 발생했습니다.");
+        return ApiResponse.error("INTERNAL_ERROR", "서버 내부 오류가 발생했습니다.");
     }
 }

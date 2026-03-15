@@ -100,7 +100,7 @@ public class LiveTradingService {
                 .initialCapital(req.getInitialCapital())
                 .availableKrw(req.getInitialCapital())
                 .totalAssetKrw(req.getInitialCapital())
-                .status("STOPPED")
+                .status("CREATED")
                 .strategyParams(req.getStrategyParams() != null
                         ? req.getStrategyParams() : Collections.emptyMap())
                 .stopLossPct(stopLoss)
@@ -259,7 +259,14 @@ public class LiveTradingService {
             throw new IllegalStateException("실행 중인 세션은 삭제할 수 없습니다. 먼저 정지하세요.");
         }
 
-        // 관련 주문/포지션의 session_id를 null로 설정 (참조 무결성)
+        // OPEN 포지션이 남아 있으면 삭제 불가 (orphan 방지)
+        List<PositionEntity> openPositions = positionRepository.findBySessionIdAndStatus(sessionId, "OPEN");
+        if (!openPositions.isEmpty()) {
+            throw new IllegalStateException(
+                    "미청산 포지션(" + openPositions.size() + "개)이 남아 있습니다. 포지션 청산 후 삭제하세요.");
+        }
+
+        // 관련 주문/포지션의 session_id를 null로 설정 (이력 보존)
         List<PositionEntity> positions = positionRepository.findBySessionId(sessionId);
         positions.forEach(pos -> {
             pos.setSessionId(null);
@@ -321,8 +328,8 @@ public class LiveTradingService {
     public TradingStatusResponse getGlobalStatus() {
         long runningCount = sessionRepository.countByStatus("RUNNING");
         long totalCount = sessionRepository.count();
-        int openPositionCount = (int) positionRepository.countByStatus("OPEN");
-        int activeOrderCount = orderRepository.findByStateIn(ACTIVE_ORDER_STATES).size();
+        int openPositionCount = (int) positionRepository.countBySessionIdIsNotNullAndStatus("OPEN");
+        int activeOrderCount = (int) orderRepository.countBySessionIdIsNotNullAndStateIn(ACTIVE_ORDER_STATES);
         BigDecimal totalPnl = positionService.getTotalPnl();
         String exchangeHealth = exchangeHealthMonitor != null
                 ? exchangeHealthMonitor.getStatus() : "UNKNOWN";
@@ -458,21 +465,16 @@ public class LiveTradingService {
                 .build();
         pos = positionRepository.save(pos);
 
-        // 주문 제출
+        // 주문 제출 — sessionId/positionId를 request에 미리 설정 (@Async 리턴값 의존 회피)
         OrderRequest order = new OrderRequest();
         order.setCoinPair(coinPair);
         order.setSide("BUY");
         order.setOrderType("MARKET");
         order.setQuantity(quantity);
         order.setReason(reason);
-        OrderEntity submitted = orderExecutionEngine.submitOrder(order);
-
-        // 주문에 세션 ID 연결
-        if (submitted != null) {
-            submitted.setSessionId(session.getId());
-            submitted.setPositionId(pos.getId());
-            orderRepository.save(submitted);
-        }
+        order.setSessionId(session.getId());
+        order.setPositionId(pos.getId());
+        orderExecutionEngine.submitOrder(order);
 
         // 세션 잔고 차감
         session.setAvailableKrw(session.getAvailableKrw().subtract(investAmount));
@@ -485,20 +487,16 @@ public class LiveTradingService {
     private void executeSessionSell(LiveTradingSessionEntity session,
                                      PositionEntity pos, BigDecimal currentPrice,
                                      String reason) {
+        // 주문 제출 — sessionId/positionId를 request에 미리 설정 (@Async 리턴값 의존 회피)
         OrderRequest order = new OrderRequest();
         order.setCoinPair(pos.getCoinPair());
         order.setSide("SELL");
         order.setOrderType("MARKET");
         order.setQuantity(pos.getSize());
         order.setReason(reason);
-        OrderEntity submitted = orderExecutionEngine.submitOrder(order);
-
-        // 주문에 세션 ID 연결
-        if (submitted != null) {
-            submitted.setSessionId(session.getId());
-            submitted.setPositionId(pos.getId());
-            orderRepository.save(submitted);
-        }
+        order.setSessionId(session.getId());
+        order.setPositionId(pos.getId());
+        orderExecutionEngine.submitOrder(order);
 
         // 매도 금액을 세션 잔고에 복원 (수수료 고려)
         BigDecimal proceeds = pos.getSize().multiply(currentPrice);
@@ -515,7 +513,8 @@ public class LiveTradingService {
         positionRepository.save(pos);
 
         session.setAvailableKrw(session.getAvailableKrw().add(netProceeds));
-        session.setTotalAssetKrw(session.getAvailableKrw());
+        // 총자산 = 기존 총자산 - 매도 수수료 (포지션→KRW 전환은 가치 중립, 다른 오픈 포지션 가치 유지)
+        session.setTotalAssetKrw(session.getTotalAssetKrw().subtract(fee));
         sessionRepository.save(session);
 
         log.info("실전 매도 주문 (sessionId={}): {} {}개 @ {} 손익: {} KRW",
@@ -552,13 +551,9 @@ public class LiveTradingService {
                 sellOrder.setOrderType("MARKET");
                 sellOrder.setQuantity(pos.getSize());
                 sellOrder.setReason(reason);
-                OrderEntity submitted = orderExecutionEngine.submitOrder(sellOrder);
-
-                if (submitted != null) {
-                    submitted.setSessionId(session.getId());
-                    submitted.setPositionId(pos.getId());
-                    orderRepository.save(submitted);
-                }
+                sellOrder.setSessionId(session.getId());
+                sellOrder.setPositionId(pos.getId());
+                orderExecutionEngine.submitOrder(sellOrder);
 
                 log.info("세션 포지션 청산 주문: sessionId={} {} 수량={}",
                         session.getId(), pos.getCoinPair(), pos.getSize());

@@ -2,7 +2,7 @@
 
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝날 때마다 `## 최근 변경사항`과 `## 다음 할 일`을 반드시 업데이트한다.
-> **마지막 갱신**: 2026-03-15
+> **마지막 갱신**: 2026-03-15 (리팩토링 완료 — Phase 4 프론트엔드 구현 완료, 백엔드 버그 수정)
 
 ---
 
@@ -10,7 +10,7 @@
 
 - **서비스**: 업비트 기반 가상화폐 자동매매 시스템
 - **운영 환경**: Ubuntu 서버, Docker Compose (`docker-compose.prod.yml`)
-- **기술 스택**: Spring Boot 3.2 (Java 17) + Next.js 14 (TypeScript) + TimescaleDB + Redis
+- **기술 스택**: Spring Boot 3.2 (Java 17) + Next.js 16.1.6 / React 19.2.3 (TypeScript) + TimescaleDB + Redis
 
 ### 모듈 구조
 
@@ -21,7 +21,7 @@ crypto-auto-trader/
 │   ├── strategy-lib/     # 전략 10종
 │   ├── exchange-adapter/ # Upbit REST/WebSocket
 │   └── web-api/          # REST API, 스케줄러, 서비스
-├── crypto-trader-frontend/  # Next.js 14 프론트엔드
+├── crypto-trader-frontend/  # Next.js 16.1.6 / React 19.2.3 프론트엔드
 ├── docs/                    # 설계 문서 및 진행 기록
 └── docker-compose.prod.yml  # 운영용 (backend + frontend + db + redis)
 ```
@@ -37,7 +37,7 @@ crypto-auto-trader/
 | Phase 3 | 전략 추가 10종 + MarketRegimeFilter + 자동 스위칭 | **100%** |
 | Phase 3.5 | 모의투자 (PaperTrading) 멀티세션 | **100%** |
 | 인프라 | Docker, Flyway V1~V13, SchedulerConfig, RedisConfig | **100%** |
-| Phase 4 | **실전매매** (LiveTrading) | **미착수** |
+| Phase 4 | **실전매매** (LiveTrading) | **~85%** — 백엔드/프론트엔드 구현 완료, 배포 및 실거래 검증 미완 |
 
 ### 구현된 전략 10종
 
@@ -46,6 +46,74 @@ VWAP / EMA Cross / Bollinger Band / Grid / RSI(다이버전스) / MACD(히스토
 ---
 
 ## 최근 변경사항
+
+### 2026-03-15 작업 (테이블 격리 검증 및 수정)
+
+#### 발견된 문제
+
+| 위치 | 문제 | 심각도 |
+|------|------|--------|
+| `getGlobalStatus()` | `countByStatus("OPEN")` — session_id 없는 orphan 포지션까지 합산 | 🟡 |
+| `getGlobalStatus()` | `findByStateIn(ACTIVE_ORDER_STATES).size()` — 전체 주문 엔티티 로드 후 카운트 | 🟡 |
+| `deleteSession()` | OPEN 포지션이 남은 세션 삭제 시 orphan 포지션 발생 | 🟡 |
+
+#### 수정 내용
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `PositionRepository.java` | `countBySessionIdIsNotNullAndStatus(String)` 추가 |
+| `OrderRepository.java` | `countBySessionIdIsNotNullAndStateIn(List<String>)` 추가 |
+| `LiveTradingService.java` | `getGlobalStatus()` — session 연결된 포지션/주문만 카운트 |
+| `LiveTradingService.java` | `deleteSession()` — OPEN 포지션 있으면 삭제 거부 (guard 추가) |
+
+#### 스키마 격리 결론
+
+- **paper_trading 스키마 격리**: ✅ Entity `@Table(schema="paper_trading")` + 전용 Repository로 완전 분리
+- **LiveTrading session 격리**: ✅ 수정 완료 (orphan guard + session 필터 카운트)
+- **BacktestService**: ✅ `backtest_*` 전용 테이블만 사용, position/order 미접촉
+
+---
+
+### 2026-03-15 작업 (Gemini 2차 분석 반영)
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `web-api/.../service/LiveTradingService.java` | **`closeSessionPositions()` @Async 잔여 패턴 수정** — `submitOrder()` 전에 `sellOrder.setSessionId()` / `sellOrder.setPositionId()` 사전 주입; 리턴값 사용 및 `orderRepository.save()` 제거 |
+| `web-api/.../controller/GlobalExceptionHandler.java` | **에러코드 범용화** — `BACKTEST_001/002` → `BAD_REQUEST` / `CONFLICT` / `INTERNAL_ERROR`; `IllegalStateException` 핸들러 추가 (409 CONFLICT) |
+| `exchange-adapter/.../UpbitRestClient.java` | **`throttle()` Race Condition 수정** — `synchronized` 추가로 다중 스레드 동시 호출 시 원자성 보장 |
+| `docker-compose.prod.yml` | **healthcheck 추가** — db: `pg_isready` (10s/5s/5회), redis: `redis-cli ping` (10s/3s/3회); backend `depends_on` → `condition: service_healthy` 로 변경 |
+
+---
+
+### 2026-03-15 작업 (리팩토링 2차)
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `web-api/.../entity/LiveTradingSessionEntity.java` | **`@PrePersist` 기본 status 수정** — `"STOPPED"` → `"CREATED"` (프론트엔드 SessionCard 버튼 로직과 일치) |
+| `web-api/.../service/LiveTradingService.java` | **`createSession()` status 수정** — `.status("STOPPED")` → `.status("CREATED")` |
+| `web-api/.../service/RiskManagementService.java` | **`@Transactional(readOnly=true)` 수정** — `getRiskConfig()`에서 readOnly 제거 (save() 호출 가능하게); `private createDefaultConfig()`의 `@Transactional` 제거 (AOP 프록시 불가); N+1 제거 — `checkRisk()`에서 config 1회 로딩 후 `portfolioLimit` 파라미터 전달 |
+| `web-api/.../service/OrderExecutionEngine.java` | **`getOrders(Pageable)` 추가** — 컨트롤러 서비스 레이어 준수; `Page`/`Pageable` import 추가 |
+| `web-api/.../controller/TradingController.java` | **`OrderRepository` 직접 의존 제거** — import/필드 삭제; `GET /orders`에서 `orderRepository.findAll()` → `orderExecutionEngine.getOrders()` |
+| `crypto-trader-frontend/.../Sidebar.tsx` | **TypeScript `as any` 제거** — `NavItem` 인터페이스 추가 (`excludePrefix?`, `disabled?`); `navItems: NavItem[]` 타입 선언 |
+
+---
+
+### 2026-03-15 작업 (버그 수정)
+
+#### Critical + Medium 버그 수정
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `core-engine/.../metrics/MetricsCalculator.java` | **Calmar Ratio 수식 수정** — 연환산 수익률(평균 거래 수익률 × 365) / MDD. Recovery Factor는 총 수익률 / MDD로 분리 |
+| `core-engine/.../backtest/BacktestEngine.java` | **매수 수수료 PnL 반영** — `entryFee` 변수 추가, BUY 시 저장 → SELL PnL 계산에서 차감. SELL 후 `entryFee` 리셋 |
+| `core-engine/.../backtest/BacktestEngine.java` | **Partial Fill continue 제거** — SELL 신호 무시 방지. BUY 조건에 `pendingQuantity == 0` 추가, SELL 시 pending BUY 취소 |
+| `web-api/.../dto/OrderRequest.java` | **sessionId/positionId 필드 추가** — `@Async` 리턴값 의존 해소 |
+| `web-api/.../service/OrderExecutionEngine.java` | **entity 생성 시 sessionId/positionId 반영** — request에서 직접 주입 |
+| `web-api/.../service/LiveTradingService.java` | **@Async 리턴값 제거** — BUY/SELL 양쪽에서 `submitted != null` 블록 제거, request에 ID 선설정으로 대체 |
+| `web-api/.../service/LiveTradingService.java` | **totalAssetKrw 오계산 수정** — `availableKrw` 단독 할당 → `totalAssetKrw - fee` 로 변경 |
+| `crypto-trader-frontend/src/lib/types.ts` | **StrategyType 4→10개 확장** — RSI, MACD, SUPERTREND, ATR_BREAKOUT, ORDERBOOK_IMBALANCE, STOCHASTIC_RSI 추가 |
+
+---
 
 ### 2026-03-15 작업 (리팩토링)
 
@@ -59,6 +127,14 @@ VWAP / EMA Cross / Bollinger Band / Grid / RSI(다이버전스) / MACD(히스토
 | `web-api/.../service/OrderExecutionEngine.java` | `UpbitOrderClient` `@Autowired(required=false)` 주입; `submitToExchange()`/`queryExchangeOrder()`/`cancelOnExchange()` stub → 실제 구현 (BUY: price타입, SELL: market타입, 지정가: limit타입) |
 | `web-api/.../config/EngineConfig.java` | `UpbitRestClient` Bean 등록; `UpbitOrderClient` Bean 등록 (`upbit.access-key/secret-key` 없으면 null 반환) |
 | `web-api/src/main/resources/application.yml` | `upbit.access-key/secret-key` 환경변수 설정 추가 |
+
+### 2026-03-15 작업 (Low 버그 수정)
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `exchange-adapter/.../UpbitWebSocketClient.java` | **`disconnect()` scheduler 분리** — `disconnect()`에서 `scheduler.shutdown()` 제거 (재연결 가능), `destroy()` 메서드 신설 (@PreDestroy용 완전 종료) |
+| `exchange-adapter/.../UpbitRestClient.java` | **Rate Limiting 추가** — `AtomicLong lastRequestTime`, `MIN_INTERVAL_MS=110` 상수, `throttle()` 메서드 추가. `getCandles()` 호출 전 `throttle()` 실행 |
+| `exchange-adapter/.../UpbitOrderClient.java` | **JWT secretKey 메모리 보안 강화** — `buildSecretKeySpec()` helper 추가 (CharBuffer/ByteBuffer → byte[] → 사용 후 zero-fill). `generateJwtWithQuery()`, `generateJwtWithoutQuery()` 양쪽의 `new String(secretKey)` 패턴 제거 |
 
 ### 2026-03-15 이전 작업
 
@@ -85,11 +161,15 @@ VWAP / EMA Cross / Bollinger Band / Grid / RSI(다이버전스) / MACD(히스토
 - [ ] 텔레그램 수신 확인 (서버 재기동 후 12:00/00:00 정상 수신 여부)
 - [ ] **Phase 4 실전매매 배포** — `UPBIT_ACCESS_KEY`, `UPBIT_SECRET_KEY` 환경변수 설정 후 서버 재빌드
 
+### 단기 (1~2주)
+
+- [ ] Report 에이전트 실행 (REPORT.md 최종 갱신)
+
 ### 보류/나중에
 
-- [ ] DESIGN.md v1.3 갱신 (테이블 소유권 분리 구조 반영)
-- [ ] Report 에이전트 실행 (REPORT.md 최종 갱신)
-- [ ] BacktestService / PaperTradingService / LiveTradingService 테이블 격리 검증
+- [x] BacktestService / PaperTradingService / LiveTradingService 테이블 격리 검증 (2026-03-15 완료)
+- [ ] Spring Security / API 인증 추가
+- [ ] StrategyController DTO 전환 + Bean Validation (현재 `Map<String, Object>` 사용 — NPE 위험, 타입 안전성 부재)
 
 ---
 

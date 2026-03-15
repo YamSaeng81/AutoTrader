@@ -35,7 +35,7 @@ public class RiskManagementService {
     /**
      * 현재 리스크 설정 조회. 설정이 없으면 기본값으로 신규 생성.
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public RiskConfigEntity getRiskConfig() {
         return riskConfigRepository.findTopByOrderByIdDesc()
                 .orElseGet(this::createDefaultConfig);
@@ -72,10 +72,13 @@ public class RiskManagementService {
         RiskConfig coreConfig = toRiskConfig(configEntity);
         RiskEngine engine = new RiskEngine(coreConfig);
 
+        // 포트폴리오 한도를 한 번만 조회하여 3회 반복 사용
+        BigDecimal portfolioLimit = resolvePortfolioLimit(configEntity);
+
         Instant now = Instant.now();
-        BigDecimal dailyLoss = calculateLossPct(now.minus(1, ChronoUnit.DAYS));
-        BigDecimal weeklyLoss = calculateLossPct(now.minus(7, ChronoUnit.DAYS));
-        BigDecimal monthlyLoss = calculateLossPct(now.minus(30, ChronoUnit.DAYS));
+        BigDecimal dailyLoss = calculateLossPct(now.minus(1, ChronoUnit.DAYS), portfolioLimit);
+        BigDecimal weeklyLoss = calculateLossPct(now.minus(7, ChronoUnit.DAYS), portfolioLimit);
+        BigDecimal monthlyLoss = calculateLossPct(now.minus(30, ChronoUnit.DAYS), portfolioLimit);
         int currentPositions = (int) positionRepository.countByStatus("OPEN");
 
         RiskCheckResult result = engine.check(dailyLoss, weeklyLoss, monthlyLoss, currentPositions);
@@ -95,22 +98,22 @@ public class RiskManagementService {
      * trade_log에서 FILL 이벤트의 realizedPnl을 합산하고,
      * 포트폴리오 한도 기준으로 손실 퍼센트를 계산한다.
      */
-    private BigDecimal calculateLossPct(Instant since) {
+    private BigDecimal calculateLossPct(Instant since, BigDecimal portfolioLimit) {
         BigDecimal realizedPnl = tradeLogRepository.sumRealizedPnlSince(since);
         if (realizedPnl.compareTo(BigDecimal.ZERO) >= 0) {
             return BigDecimal.ZERO; // 이익이면 손실률 0
         }
 
-        RiskConfigEntity config = getRiskConfig();
-        BigDecimal portfolioLimit = config.getPortfolioLimitKrw();
-        if (portfolioLimit == null || portfolioLimit.compareTo(BigDecimal.ZERO) <= 0) {
-            // 포트폴리오 한도 미설정 시 기본 1,000만원
-            portfolioLimit = new BigDecimal("10000000");
-        }
-
         return realizedPnl.abs()
                 .divide(portfolioLimit, 4, RoundingMode.HALF_UP)
                 .multiply(new BigDecimal("100"));
+    }
+
+    private BigDecimal resolvePortfolioLimit(RiskConfigEntity config) {
+        BigDecimal limit = config.getPortfolioLimitKrw();
+        return (limit == null || limit.compareTo(BigDecimal.ZERO) <= 0)
+                ? new BigDecimal("10000000")  // 미설정 시 기본 1,000만원
+                : limit;
     }
 
     private RiskConfig toRiskConfig(RiskConfigEntity entity) {
@@ -124,9 +127,7 @@ public class RiskManagementService {
                 .build();
     }
 
-    @Transactional
     private RiskConfigEntity createDefaultConfig() {
-        RiskConfigEntity defaultConfig = RiskConfigEntity.builder().build();
-        return riskConfigRepository.save(defaultConfig);
+        return riskConfigRepository.save(RiskConfigEntity.builder().build());
     }
 }

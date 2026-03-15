@@ -5,7 +5,6 @@ import com.cryptoautotrader.api.entity.LiveTradingSessionEntity;
 import com.cryptoautotrader.api.entity.OrderEntity;
 import com.cryptoautotrader.api.entity.PositionEntity;
 import com.cryptoautotrader.api.entity.RiskConfigEntity;
-import com.cryptoautotrader.api.repository.OrderRepository;
 import com.cryptoautotrader.api.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +32,6 @@ public class TradingController {
     private final OrderExecutionEngine orderExecutionEngine;
     private final RiskManagementService riskManagementService;
     private final ExchangeHealthMonitor exchangeHealthMonitor;
-    private final OrderRepository orderRepository;
     private final TelegramNotificationService telegramNotificationService;
 
     // -- 세션 관리 ------------------------------------------------
@@ -177,7 +175,7 @@ public class TradingController {
     public ApiResponse<Page<OrderEntity>> getOrders(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        return ApiResponse.ok(orderRepository.findAllByOrderByCreatedAtDesc(PageRequest.of(page, size)));
+        return ApiResponse.ok(orderExecutionEngine.getOrders(PageRequest.of(page, size)));
     }
 
     /** 주문 상세 조회 */

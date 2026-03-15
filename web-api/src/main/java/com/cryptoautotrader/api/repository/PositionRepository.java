@@ -24,8 +24,11 @@ public interface PositionRepository extends JpaRepository<PositionEntity, Long> 
     /** 전체 포지션 페이징 조회 */
     Page<PositionEntity> findAllByOrderByOpenedAtDesc(Pageable pageable);
 
-    /** 열린 포지션 수 카운트 */
+    /** 열린 포지션 수 카운트 (전체 — RiskManagementService용) */
     long countByStatus(String status);
+
+    /** 실전매매 세션에 연결된 포지션 수 카운트 (session_id가 있는 것만) */
+    long countBySessionIdIsNotNullAndStatus(String status);
 
     /** 특정 세션의 특정 상태 포지션 조회 */
     List<PositionEntity> findBySessionIdAndStatus(Long sessionId, String status);

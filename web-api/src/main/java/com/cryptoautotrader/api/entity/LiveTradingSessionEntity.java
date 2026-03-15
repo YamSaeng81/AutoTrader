@@ -69,7 +69,7 @@ public class LiveTradingSessionEntity {
 
     @PrePersist
     void prePersist() {
-        if (status == null) status = "STOPPED";
+        if (status == null) status = "CREATED";
         if (createdAt == null) createdAt = Instant.now();
         if (updatedAt == null) updatedAt = Instant.now();
         if (stopLossPct == null) stopLossPct = new BigDecimal("5.0");

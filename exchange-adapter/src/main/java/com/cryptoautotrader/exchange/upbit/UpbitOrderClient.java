@@ -15,6 +15,8 @@ import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.Duration;
@@ -250,21 +252,15 @@ public class UpbitOrderClient {
             md.update(queryString.getBytes(StandardCharsets.UTF_8));
             String queryHash = bytesToHex(md.digest());
 
-            String secretKeyStr = new String(secretKey);
-            SecretKeySpec keySpec = new SecretKeySpec(
-                    secretKeyStr.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+            SecretKeySpec keySpec = buildSecretKeySpec();
 
-            String token = Jwts.builder()
+            return Jwts.builder()
                     .claim("access_key", new String(accessKey))
                     .claim("nonce", UUID.randomUUID().toString())
                     .claim("query_hash", queryHash)
                     .claim("query_hash_alg", "SHA512")
                     .signWith(keySpec)
                     .compact();
-
-            // secretKeyStr 참조를 즉시 무효화할 수는 없지만 (String 불변),
-            // GC 대상으로 만들기 위해 가능한 빨리 스코프를 벗어나게 한다.
-            return token;
         } catch (Exception e) {
             throw new RuntimeException("JWT 생성 실패", e);
         }
@@ -275,9 +271,7 @@ public class UpbitOrderClient {
      */
     private String generateJwtWithoutQuery() {
         try {
-            String secretKeyStr = new String(secretKey);
-            SecretKeySpec keySpec = new SecretKeySpec(
-                    secretKeyStr.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+            SecretKeySpec keySpec = buildSecretKeySpec();
 
             return Jwts.builder()
                     .claim("access_key", new String(accessKey))
@@ -287,6 +281,19 @@ public class UpbitOrderClient {
         } catch (Exception e) {
             throw new RuntimeException("JWT 생성 실패", e);
         }
+    }
+
+    /**
+     * char[] secretKey를 CharBuffer/ByteBuffer로 변환하여 SecretKeySpec 생성.
+     * new String(secretKey) 방식 대비 평문 시크릿이 String pool에 잔류하는 위험을 줄인다.
+     */
+    private SecretKeySpec buildSecretKeySpec() {
+        ByteBuffer keyBuf = StandardCharsets.UTF_8.encode(CharBuffer.wrap(secretKey));
+        byte[] keyBytes = new byte[keyBuf.remaining()];
+        keyBuf.get(keyBytes);
+        SecretKeySpec spec = new SecretKeySpec(keyBytes, "HmacSHA256");
+        Arrays.fill(keyBytes, (byte) 0);
+        return spec;
     }
 
     // ========== 유틸 ==========

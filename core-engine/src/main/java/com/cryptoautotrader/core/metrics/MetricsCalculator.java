@@ -83,9 +83,18 @@ public final class MetricsCalculator {
 
         BigDecimal sharpeRatio = calculateSharpe(dailyReturns);
         BigDecimal sortinoRatio = calculateSortino(dailyReturns);
+
+        // Calmar Ratio = 연환산 수익률(%) / |MDD(%)|
+        // 거래당 평균 수익률을 365배 연환산
+        BigDecimal meanTradeReturn = dailyReturns.isEmpty() ? BigDecimal.ZERO
+                : dailyReturns.stream().reduce(BigDecimal.ZERO, BigDecimal::add)
+                        .divide(BigDecimal.valueOf(dailyReturns.size()), SCALE, RoundingMode.HALF_UP);
+        BigDecimal annualizedReturnPct = meanTradeReturn.multiply(BigDecimal.valueOf(365)).multiply(HUNDRED);
         BigDecimal calmarRatio = mddPct.compareTo(BigDecimal.ZERO) == 0
                 ? BigDecimal.ZERO
-                : totalReturnPct.divide(mddPct.abs(), SCALE, RoundingMode.HALF_UP);
+                : annualizedReturnPct.divide(mddPct.abs(), SCALE, RoundingMode.HALF_UP);
+
+        // Recovery Factor = 총 수익률(%) / |MDD(%)|
         BigDecimal recoveryFactor = mddPct.compareTo(BigDecimal.ZERO) == 0
                 ? BigDecimal.ZERO
                 : totalReturnPct.divide(mddPct.abs(), SCALE, RoundingMode.HALF_UP);

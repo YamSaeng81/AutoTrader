@@ -72,13 +72,24 @@ public class UpbitWebSocketClient {
     }
 
     /**
-     * WebSocket 정상 종료
+     * WebSocket 연결 종료 (재연결 가능 상태 유지)
+     * scheduler는 종료하지 않으므로 connect() 재호출 시 Ping 스케줄러가 정상 동작한다.
      */
     public synchronized void disconnect() {
         shutdownRequested = true;
         disconnectInternal();
+        log.info("Upbit WebSocket 연결 종료 (scheduler 유지 — 재연결 가능)");
+    }
+
+    /**
+     * 완전 종료 — scheduler까지 종료한다. Bean 소멸 시(@PreDestroy) 호출.
+     * 이 메서드 호출 후에는 connect() 재호출이 불가능하다.
+     */
+    public synchronized void destroy() {
+        shutdownRequested = true;
+        disconnectInternal();
         scheduler.shutdown();
-        log.info("Upbit WebSocket 클라이언트 종료 완료");
+        log.info("Upbit WebSocket 클라이언트 완전 종료");
     }
 
     /**

@@ -4,7 +4,8 @@ export interface ApiResponse<T> {
   error: { code: string; message: string } | null;
 }
 
-export type StrategyType = 'VWAP' | 'EMA_CROSS' | 'BOLLINGER' | 'GRID';
+export type StrategyType = 'VWAP' | 'EMA_CROSS' | 'BOLLINGER' | 'GRID'
+    | 'RSI' | 'MACD' | 'SUPERTREND' | 'ATR_BREAKOUT' | 'ORDERBOOK_IMBALANCE' | 'STOCHASTIC_RSI';
 export type Timeframe = 'M1' | 'M5' | 'H1' | 'D1';
 export type OrderSide = 'BUY' | 'SELL';
 export type MarketRegime = 'TREND' | 'RANGE' | 'VOLATILE';

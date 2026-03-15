@@ -36,6 +36,7 @@ public class BacktestEngine {
         BigDecimal capital = config.getInitialCapital();
         BigDecimal position = BigDecimal.ZERO; // 보유 수량
         BigDecimal entryPrice = BigDecimal.ZERO;
+        BigDecimal entryFee = BigDecimal.ZERO; // 매수 시 지불한 수수료 (SELL PnL 계산에 반영)
         BigDecimal cumulativePnl = BigDecimal.ZERO;
         BigDecimal pendingQuantity = BigDecimal.ZERO; // Partial Fill 이월 수량
         OrderSide pendingSide = null;
@@ -69,7 +70,7 @@ public class BacktestEngine {
                     capital = capital.add(executionPrice.multiply(fillQty));
                 }
                 cumulativePnl = trade.getCumulativePnl();
-                continue;
+                // continue 제거: Partial Fill 처리 후에도 전략 신호 평가 진행 (SELL 신호 무시 방지)
             }
 
             // 전략 신호 생성 (현재 캔들)
@@ -77,7 +78,10 @@ public class BacktestEngine {
             MarketRegime regime = regimeDetector.detect(window);
 
             // 다음 캔들 open에서 체결 (Look-Ahead Bias 방지)
-            if (signal.getAction() == StrategySignal.Action.BUY && position.compareTo(BigDecimal.ZERO) == 0) {
+            // BUY: 포지션 없고 pending 이월도 없을 때만 진입
+            if (signal.getAction() == StrategySignal.Action.BUY
+                    && position.compareTo(BigDecimal.ZERO) == 0
+                    && pendingQuantity.compareTo(BigDecimal.ZERO) == 0) {
                 BigDecimal orderQuantity = capital.divide(nextCandle.getOpen(), SCALE, RoundingMode.HALF_UP);
 
                 BigDecimal additionalSlippage = BigDecimal.ZERO;
@@ -97,6 +101,7 @@ public class BacktestEngine {
 
                 position = orderQuantity;
                 entryPrice = executionPrice;
+                entryFee = fee;
                 capital = capital.subtract(executionPrice.multiply(orderQuantity)).subtract(fee);
 
                 trades.add(TradeRecord.builder()
@@ -121,7 +126,7 @@ public class BacktestEngine {
                 BigDecimal totalSlippage = config.getSlippagePct().add(additionalSlippage);
                 BigDecimal executionPrice = applySlippage(nextCandle.getOpen(), OrderSide.SELL, totalSlippage);
                 BigDecimal fee = executionPrice.multiply(position).multiply(config.getFeePct()).divide(BigDecimal.valueOf(100), SCALE, RoundingMode.HALF_UP);
-                BigDecimal pnl = executionPrice.subtract(entryPrice).multiply(position).subtract(fee);
+                BigDecimal pnl = executionPrice.subtract(entryPrice).multiply(position).subtract(fee).subtract(entryFee);
                 cumulativePnl = cumulativePnl.add(pnl);
 
                 capital = capital.add(executionPrice.multiply(position)).subtract(fee);
@@ -141,6 +146,10 @@ public class BacktestEngine {
 
                 position = BigDecimal.ZERO;
                 entryPrice = BigDecimal.ZERO;
+                entryFee = BigDecimal.ZERO;
+                // SELL 시 대기 중인 Partial Fill BUY 이월 취소
+                pendingQuantity = BigDecimal.ZERO;
+                pendingSide = null;
             }
         }
 

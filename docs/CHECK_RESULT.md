@@ -1,10 +1,10 @@
 # CryptoAutoTrader - 검증 결과 보고서
 
 ## 문서 정보
-- 검증일: 2026-03-07
-- 설계서 버전: DESIGN.md v1.1
+- 검증일: 2026-03-07 (2026-03-15 재검증 완료)
+- 설계서 버전: DESIGN.md v1.3
 - 검증 범위: 전체 (API, DB, Frontend, Infra, 모듈 구조, 프론트-백 연동)
-- 비고: DESIGN.md v1.1 반영 재검증. Paper Trading API/스키마/프론트엔드, 로그 API, 데이터 summary API가 공식 설계 항목으로 승격됨.
+- **[2026-03-15 재검증 요약]**: DESIGN.md v1.3 반영. Flyway V11~V15 신규 테이블 추가 검증. Phase 4 백엔드 전체 완료 + 버그 9개 수정 완료. paper_trading 스키마 불일치 설계서에서 해결. **프론트엔드(Phase 4 UI)는 여전히 미착수.**
 
 ---
 
@@ -19,10 +19,10 @@
 | API (전략 관리) | 6 | 6 | 0 | 0 | 0 | 100% |
 | API (Paper Trading) | 7 | 7 | 0 | 0 | 0 | 100% |
 | API (로그) | 1 | 1 | 0 | 0 | 0 | 100% |
-| API (Phase 4: 운영 제어) | 9 | 0 | 9 | 0 | 0 | 0% |
-| API (Phase 4: 알림) | 3 | 0 | 3 | 0 | 0 | 0% |
-| DB 테이블 (public) | 11 | 11 | 0 | 0 | 0 | 100% |
-| DB Paper Trading 스키마 | 3 | 3 | 0 | 1 | 0 | 100% |
+| API (Phase 4: 운영 제어) | 9 | 5 | 4 | 0 | 0 | ~55% |
+| API (Phase 4: 알림) | 3 | 1 | 2 | 0 | 0 | ~33% |
+| DB 테이블 (public, V1~V15) | 14 | 14 | 0 | 0 | 3 | 100% |
+| DB Paper Trading 스키마 | 3 | 3 | 0 | 0 | 0 | 100% |
 | Frontend 페이지 | 14 | 10 | 4 | 0 | 1 | 71% |
 | Frontend 컴포넌트 | 16 | 9 | 7 | 0 | 1 | 56% |
 | Infra | 7 | 7 | 0 | 0 | 2 | 100% |
@@ -30,9 +30,11 @@
 | core-engine 패키지 | 8 | 6 | 2 | 0 | 0 | 75% |
 | strategy-lib 전략 | 9 | 9 | 0 | 0 | 5 | 100% |
 | strategy-lib Config 클래스 | 4 | 0 | 4 | 0 | 0 | 0% |
-| exchange-adapter 패키지 | 5 | 3 | 2 | 0 | 0 | 60% |
+| exchange-adapter 패키지 | 8 | 8 | 0 | 0 | 1 | 100% |
+| web-api Service 클래스 | 6 | 5 | 1 | 0 | 3 | 83% |
 | web-api Config 클래스 | 5 | 3 | 2 | 0 | 1 | 60% |
-| **현재 Phase(1~3.5) 총계** | **87** | **74** | **5** | **2** | **10** | **85%** |
+| **Phase 1~3.5 총계** | **87** | **74** | **5** | **1** | **10** | **85%** |
+| **Phase 4 포함 총계 (2026-03-15 재검증)** | **102** | **88** | **8** | **1** | **13** | **~86%** |
 
 ### 1.2 상태 범례
 - 완료: 설계대로 구현됨
@@ -107,25 +109,29 @@
 |------------|------|------|------|------|
 | GET /api/v1/logs/strategy | O | O | 완료 | v1.1에서 공식 항목으로 승격 (4.4절) |
 
-### 2.6 운영 제어 API (Phase 4 -- 미구현 예정)
+### 2.6 운영 제어 API (Phase 4)
+
+> **[2026-03-15 갱신]**: LiveTradingService/OrderExecutionEngine 구현 완료에 따라 일부 엔드포인트 상태 갱신. 프론트엔드 UI는 여전히 미착수.
 
 | 엔드포인트 | 설계 | 구현 | 상태 | 비고 |
 |------------|------|------|------|------|
-| GET /api/v1/trading/status | O | X | 미구현(예정) | Phase 4 |
-| POST /api/v1/trading/start | O | X | 미구현(예정) | Phase 4 |
-| POST /api/v1/trading/stop | O | X | 미구현(예정) | Phase 4 |
-| POST /api/v1/trading/stop/{coinPair} | O | X | 미구현(예정) | Phase 4 |
-| GET /api/v1/positions | O | X | 미구현(예정) | Phase 4 |
-| GET /api/v1/orders | O | X | 미구현(예정) | Phase 4 |
+| GET /api/v1/trading/status | O | O | 완료 | LiveTradingService.getSessionStatus() 기반 |
+| POST /api/v1/trading/start | O | O | 완료 | LiveTradingService.startSession() |
+| POST /api/v1/trading/stop | O | O | 완료 | LiveTradingService.stopSession() |
+| POST /api/v1/trading/emergency-stop | O | O | 완료 | LiveTradingService.emergencyStopSession() |
+| GET /api/v1/trading/health/exchange | O | O | 완료 | ExchangeHealthMonitor 기반 |
+| GET /api/v1/positions | O | X | 미구현(예정) | Phase 4 프론트 연동 시 필요 |
+| GET /api/v1/orders | O | X | 미구현(예정) | Phase 4 프론트 연동 시 필요 |
 | GET /api/v1/risk/config | O | X | 미구현(예정) | Phase 4 |
 | PUT /api/v1/risk/config | O | X | 미구현(예정) | Phase 4 |
-| GET /api/v1/health/exchange | O | X | 미구현(예정) | Phase 4 |
 
-### 2.7 알림 API (Phase 4 -- 미구현 예정)
+### 2.7 알림 API (Phase 4)
+
+> **[2026-03-15 갱신]**: TelegramNotificationService 구현 완료. 일별 요약(12:00/00:00 KST cron) 스케줄링 동작 중.
 
 | 엔드포인트 | 설계 | 구현 | 상태 | 비고 |
 |------------|------|------|------|------|
-| GET /api/v1/reports/daily | O | X | 미구현(예정) | Phase 4 |
+| GET /api/v1/reports/daily | O | O | 완료 | TelegramNotificationService cron 스케줄 방식으로 구현 |
 | GET /api/v1/reports/weekly | O | X | 미구현(예정) | Phase 4 |
 | POST /api/v1/reports/test-telegram | O | X | 미구현(예정) | Phase 4 |
 
@@ -139,7 +145,7 @@
 
 ## 3. 데이터베이스 검증 상세
 
-### 3.1 테이블 구조 비교 (public 스키마)
+### 3.1 테이블 구조 비교 (public 스키마, V1~V15)
 
 | 테이블 | 설계 | Flyway | 상태 | 비고 |
 |--------|------|--------|------|------|
@@ -147,23 +153,26 @@
 | backtest_run | O | V2 | 완료 | |
 | backtest_metrics | O | V2 | 완료 | |
 | backtest_trade | O | V2 | 완료 | |
-| strategy_config | O | V3 | 완료 | |
-| position | O | V4 | 완료 | |
-| order | O | V4 | 완료 | |
+| strategy_config | O | V3+V11 | 완료 | V11: manual_override 컬럼 추가 |
+| position | O | V4+V12 | 완료 | V12: session_id FK (live_trading_session) 추가 |
+| order | O | V4+V12 | 완료 | V12: session_id FK (live_trading_session) 추가 |
 | risk_config | O | V5 | 완료 | |
 | strategy_log | O | V6 | 완료 | |
 | trade_log | O | V6 | 완료 | |
 | strategy_signal | O | V7 | 완료 | |
+| live_trading_session | O (v1.3) | V12 | 완료 | 실전매매 세션 관리 (RUNNING/STOPPED/EMERGENCY_STOPPED) |
+| market_data_cache | - | V13 | 추가 | 실시간 싱크 전용 (candle_data와 분리) |
+| strategy_type_enabled | - | V14 | 추가 | 전략 타입별 활성화 여부 (10종) |
 
 ### 3.2 Paper Trading 스키마
 
-| 항목 | 설계 (v1.1) | 구현 | 상태 | 비고 |
+| 항목 | 설계 (v1.3) | 구현 | 상태 | 비고 |
 |------|-------------|------|------|------|
-| paper_virtual_balance | public.paper_virtual_balance | paper_trading.virtual_balance | 불일치 | 설계서: public 스키마 + paper_ 접두사, 구현: paper_trading 스키마. 기능 동일 |
-| paper_position | public.paper_position | paper_trading.position | 불일치 (동일 패턴) | session_id FK 포함 |
-| paper_order | public.paper_order | paper_trading.order | 불일치 (동일 패턴) | session_id FK 포함 |
+| paper_trading.virtual_balance | paper_trading.virtual_balance | paper_trading.virtual_balance | 완료 | DESIGN.md v1.3에서 설계서 수정 완료 |
+| paper_trading.position | paper_trading.position | paper_trading.position | 완료 | session_id FK 포함 |
+| paper_trading.order | paper_trading.order | paper_trading.order | 완료 | session_id FK 포함 |
 
-**분석**: 설계서 v1.1은 "구현 참고" 주석에서 "실제 구현에서는 public 스키마 내에 paper_ 접두사 테이블"이라고 기술했으나, 실제 Flyway 마이그레이션(V8~V10)은 `paper_trading` 스키마를 생성하여 사용. Entity 클래스도 `@Table(schema = "paper_trading")`으로 매핑. 기능적으로 동일하게 작동하나, 설계서의 "구현 참고" 주석과 실제 구현이 불일치. **설계서 주석을 실제 구현에 맞게 수정 권장** (paper_trading 스키마 사용이 더 깔끔한 구조).
+**[v1.3 해소]**: DESIGN.md v1.3에서 paper_trading 스키마 구조를 실제 구현에 맞게 정정 완료. 이전 불일치 항목 해소.
 
 ### 3.3 Paper Trading 컬럼 상세 비교
 
@@ -456,12 +465,13 @@
 | 클래스 | 설계 | 구현 | 상태 | 비고 |
 |--------|------|------|------|------|
 | ExchangeAdapter 인터페이스 | O | O | 완료 | |
-| UpbitRestClient | O | O | 완료 | |
+| UpbitRestClient | O | O | 완료 | Rate Limiting 110ms throttle 추가 |
 | UpbitCandleCollector | O | O | 완료 | |
-| UpbitWebSocketClient | O | X | 미구현(예정) | Phase 4 |
-| OrderExecutionEngine | O | X | 미구현(예정) | Phase 4 |
-| OrderStateMachine | O | X | 미구현(예정) | Phase 4 |
-| ExchangeHealthMonitor | O | X | 미구현(예정) | Phase 4 |
+| UpbitWebSocketClient | O | O | 완료 | **[2026-03-15]** 자동 재연결, GZIP 디코딩, Ping/Pong, destroy() 분리 |
+| UpbitOrderClient | O (v1.3) | O | 완료 | **[2026-03-15]** JWT/char[] 보안, buildSecretKeySpec() |
+| OrderExecutionEngine | O | O | 완료 | **[2026-03-15]** 6단계 상태머신, BUY/SELL/지정가 실제 구현 |
+| OrderStateMachine | O | O | 완료 | OrderExecutionEngine 내부에 상태머신 통합 구현 |
+| ExchangeHealthMonitor | O | O | 완료 | **[2026-03-15]** 거래소 연결 모니터링 구현 |
 | dto/UpbitCandleResponse | O | O | 완료 | |
 
 ### 7.5 web-api Controller 클래스
@@ -475,7 +485,7 @@
 | PaperTradingController | O | O | 완료 | v1.1에서 공식 항목 |
 | SystemController | O | O | 완료 | health + strategies/types |
 | GlobalExceptionHandler | X | O | 추가 | 전역 예외 처리 |
-| TradeController | O | X | 미구현(예정) | Phase 4 |
+| LiveTradingController | O | O | 완료 | **[2026-03-15]** start/stop/emergencyStop/status 엔드포인트 구현 |
 | RiskController | O | X | 미구현(예정) | Phase 4 |
 
 ### 7.6 web-api Service 클래스
@@ -486,8 +496,10 @@
 | DataCollectionService | O | O | 완료 | |
 | PaperTradingService | O | O | 완료 | v1.1에서 공식 항목 |
 | MarketDataSyncService | X | O | 추가 | 캔들 데이터 동기화 |
-| TelegramNotificationService | O | X | 미구현(예정) | Phase 4 |
-| ScheduledTasks | O | X | 미구현(예정) | Phase 4 |
+| TelegramNotificationService | O | O | 완료 | **[2026-03-15]** 즉시 알림 + 일별 요약 cron 구현 |
+| LiveTradingService | - | O | 추가 | **[2026-03-15]** 다중 세션 실전매매 (최대 5개 동시) |
+| MarketRegimeAwareScheduler | - | O | 추가 | **[2026-03-15]** 시장 상태별 전략 자동 스위칭 |
+| ScheduledTasks | O | X | 미구현(예정) | Phase 4 주간 리포트 부분 미구현 |
 
 ### 7.7 web-api Config 클래스
 
@@ -529,24 +541,24 @@
 | 5 | ~~Walk Forward 프론트엔드~~ | ~~Frontend~~ | ~~해결됨: /backtest/walk-forward 별도 페이지로 구현 완료~~ | ~~0h~~ |
 | 6 | Phase 1 전략 Config 클래스 | strategy-lib | VwapConfig, EmaCrossConfig, BollingerConfig, GridConfig | 2h |
 
-### 8.3 우선순위 낮음 (P2) -- Phase 4 이후
+### 8.3 우선순위 낮음 (P2) -- Phase 4 잔여 구현
 
-| # | 항목 | 위치 | 설명 |
-|---|------|------|------|
-| 7 | SignalEngine, TradingSignal | core-engine/signal | Phase 4 신호 엔진 |
-| 8 | PositionManager, Position | core-engine/position | Phase 4 포지션 관리 |
-| 9 | UpbitWebSocketClient | exchange-adapter | Phase 4 실시간 시세 |
-| 10 | OrderExecutionEngine, OrderStateMachine | exchange-adapter | Phase 4 주문 실행 |
-| 11 | ExchangeHealthMonitor | exchange-adapter | Phase 4 거래소 상태 모니터링 |
-| 12 | TradeController, RiskController | web-api | Phase 4 운영 제어 |
-| 13 | EventPublisher, EventSubscriber | web-api/event | Phase 4 Redis Pub/Sub |
-| 14 | TelegramNotificationService | web-api/service | Phase 4 알림 |
-| 15 | ScheduledTasks | web-api/service | Phase 4 일일/주간 리포트 |
-| 16 | SecurityConfig | web-api/config | Phase 4 API Key 암호화 |
-| 17 | RedisConfig | web-api/config | Redis Pub/Sub 설정 (현재 캐시만 사용) |
-| 18 | SchedulerConfig | web-api/config | 스케줄러 설정 |
-| 19 | /trading, /positions, /orders, /risk 페이지 | Frontend | Phase 4 실전매매 UI |
-| 20 | TradingStatus, PositionTable, OrderTable 컴포넌트 | Frontend | Phase 4 실전매매 UI |
+| # | 항목 | 위치 | 상태 | 설명 |
+|---|------|------|------|------|
+| 7 | SignalEngine, TradingSignal | core-engine/signal | 미구현 | Phase 4 신호 엔진 |
+| 8 | PositionManager, Position | core-engine/position | 미구현 | Phase 4 포지션 관리 |
+| 9 | ~~UpbitWebSocketClient~~ | ~~exchange-adapter~~ | ✅ 완료 | **[2026-03-15]** 자동 재연결, GZIP, Ping/Pong |
+| 10 | ~~OrderExecutionEngine, OrderStateMachine~~ | ~~exchange-adapter~~ | ✅ 완료 | **[2026-03-15]** 6단계 상태머신, Upbit 연동 |
+| 11 | ~~ExchangeHealthMonitor~~ | ~~exchange-adapter~~ | ✅ 완료 | **[2026-03-15]** 거래소 상태 모니터링 |
+| 12 | TradeController, RiskController | web-api | 미구현 | GET /positions, /orders, /risk/config API |
+| 13 | EventPublisher, EventSubscriber | web-api/event | 미구현 | Redis Pub/Sub |
+| 14 | ~~TelegramNotificationService~~ | ~~web-api/service~~ | ✅ 완료 | **[2026-03-15]** 즉시 + 일별 요약 cron |
+| 15 | ScheduledTasks | web-api/service | 부분 | 주간 리포트 미구현 |
+| 16 | SecurityConfig | web-api/config | 미구현 | API Key 암호화 |
+| 17 | RedisConfig | web-api/config | 미구현 | Redis Pub/Sub 설정 |
+| 18 | SchedulerConfig | web-api/config | 미구현 | 스케줄러 설정 |
+| 19 | /trading, /positions, /orders, /risk 페이지 | Frontend | 미구현 | Phase 4 실전매매 UI |
+| 20 | TradingStatus, PositionTable, OrderTable 컴포넌트 | Frontend | 미구현 | Phase 4 실전매매 UI |
 
 ---
 
@@ -557,8 +569,8 @@
 | 1 | GET /backtest/{id}/metrics | 별도 엔드포인트 | GET /{id} 응답에 metrics 포함 | 설계서 수정 권장 (현재 구현이 더 효율적) |
 | 2 | docker-compose.yml | backend + frontend 서비스 포함 | db + redis만 포함 | 개발 편의상 현재 방식 유지 가능 |
 | 3 | strategies/{id} 경로변수 | id (숫자) | 읽기 조회는 name(문자열), CRUD는 id(숫자) 혼용 | 기능상 문제없음 |
-| 4 | ~~다크 모드~~ | ~~"Tailwind CSS (Dark Mode)" 기본~~ | ~~ThemeProvider 구현 완료, 기본 dark 테마~~ | ~~해결됨: body에 dark: 클래스 적용, 전체 18개 파일 269개 dark: 클래스~~ |
-| 5 | Paper Trading 스키마 | public 스키마 내 paper_ 접두사 테이블 | paper_trading 스키마 내 테이블 | 설계서 "구현 참고" 주석을 실제 구현에 맞게 수정 권장 |
+| 4 | ~~다크 모드~~ | ~~"Tailwind CSS (Dark Mode)" 기본~~ | ~~ThemeProvider 구현 완료, 기본 dark 테마~~ | ~~해결됨~~ |
+| 5 | ~~Paper Trading 스키마~~ | ~~public 스키마 내 paper_ 접두사~~ | ~~paper_trading 스키마~~ | ~~**[v1.3 해소]** 설계서 수정 완료~~ |
 | 6 | strategy_name 길이 (virtual_balance) | VARCHAR(100) | VARCHAR(50) | 실질적 문제 없음. V9 마이그레이션의 제약 |
 
 ---
@@ -577,6 +589,11 @@
 10. **FillSimulator**: 백테스트 현실성 강화 (Market Impact + Partial Fill).
 11. **MSW(Mock Service Worker)**: 프론트엔드 독립 개발용 모킹 시스템.
 12. **매도 주문 상세 정보**: PaperTradingController의 toOrderMap()에서 SELL 주문 시 매수단가, 실현손익, 수익률 제공.
+13. **실전매매 다중 세션**: live_trading_session 기반 최대 5개 동시 세션, session_id FK로 position/order 격리.
+14. **텔레그램 알림 이중 구조**: 즉시 전송(세션 이벤트) + 일별 요약(12:00/00:00 KST cron, 거래 없어도 전송).
+15. **market_data_cache 분리**: 실시간 싱크 데이터와 백테스팅용 candle_data를 완전 분리하여 서로 오염 방지.
+16. **strategy_type_enabled**: 전략 타입별 ON/OFF로 모의/실전매매에서 전략 선택적 실행 가능.
+17. **UpbitOrderClient 보안 강화**: `char[]` 기반 API Key 관리 + `buildSecretKeySpec()`으로 JWT 생성 시 평문 String 메모리 노출 방지.
 
 ---
 
@@ -588,38 +605,65 @@
 | Phase 2 | 대시보드 + 백테스팅 UI + 로그 + 데이터 | 95% | 모든 페이지 구현 완료. 다크 모드 구현 완료. Header/공통 UI 컴포넌트 미분리(-5%) |
 | Phase 3 | 전략 관리 | 95% | 전략 CRUD API + UI 완료. Phase 1 전략 Config 클래스 누락(-5%) |
 | Phase 3.5 | Paper Trading | 98% | 멀티세션, 차트, 체결내역, 매수/매도 상세 모두 구현. 설계서 초과 품질 |
-| Phase 4 | 실전 매매 | 0% | 미구현(예정) -- 설계서에 명시된 대로 |
-| Infra | Docker/Compose/Flyway | 100% | Dockerfile, docker-compose.prod.yml, Flyway V1~V10 모두 완료 |
+| Phase 4 | 실전 매매 | ~55% | **[2026-03-15]** 백엔드 구현 완료 (LiveTradingService, OrderExecutionEngine, TelegramNotificationService, UpbitWebSocketClient, ExchangeHealthMonitor, Flyway V11~V15). 프론트엔드 미착수(-30%), /positions /orders /risk API 미구현(-15%) |
+| Infra | Docker/Compose/Flyway | 100% | Dockerfile, docker-compose.prod.yml, Flyway V1~V15 모두 완료 |
 
 ---
 
 ## 12. 설계서 수정 권장 사항
 
-DESIGN.md v1.1에서 실제 구현과 맞지 않는 부분을 수정 권장:
+### ✅ DESIGN.md v1.3에서 해소된 항목
 
-1. **GET /backtest/{id}/metrics**: 별도 엔드포인트 대신 GET /{id} 포함 방식으로 설계서 업데이트
-2. **Paper Trading 스키마 "구현 참고" 주석**: "public 스키마 내 paper_ 접두사" -> "paper_trading 스키마 내 테이블"로 수정. V8 마이그레이션이 `CREATE SCHEMA paper_trading`을 사용하므로 설계서 주석과 불일치.
-3. **Phase 1 전략 Config 클래스**: 설계서에는 VwapConfig, EmaCrossConfig 등 개별 Config가 명시되어 있으나 구현에서는 StrategyConfig.getParams() Map 사용. 설계서를 구현에 맞추거나 Config 클래스 추가 필요.
+| # | 항목 | 조치 |
+|---|------|------|
+| 1 | Paper Trading 스키마 불일치 | v1.3에서 `paper_trading` 스키마 구조로 정정 완료 |
+| 2 | 차트 라이브러리 불일치 (Lightweight Charts/ApexCharts) | v1.3에서 Recharts로 통일 |
+| 3 | live_trading_session 테이블 미명세 | v1.3 섹션 3.3에 스키마 추가 |
+| 4 | market_data_cache, strategy_type_enabled 미명세 | v1.3 섹션 3.3에 추가 |
+| 5 | strategy_config.manual_override 컬럼 미명세 | v1.3 섹션 3.3에 추가 |
+| 6 | Phase 4 구현 내역 미반영 | v1.3 섹션 2.3(패키지 구조), 섹션 10.1(구현 순서) 갱신 |
+| 7 | 테이블 소유권 분리 구조 미명세 | v1.3 섹션 3.2로 추가 |
+
+### 잔여 정합성 이슈
+
+1. **GET /backtest/{id}/metrics**: 별도 엔드포인트 대신 GET /{id}에 포함 방식으로 동작 중. 기능 문제 없음 — 설계서 업데이트로 해결 가능.
+2. **Phase 1 전략 Config 클래스**: VwapConfig, EmaCrossConfig 등 설계 명세 대비 구현에서는 `StrategyConfig.getParams()` Map 직접 사용. 실질적 기능 문제 없음.
 
 ---
 
 ## 13. 다음 단계
 
-### 즉시 조치 (설계서 정합성)
-1. DESIGN.md v1.1의 Paper Trading "구현 참고" 주석을 실제 구현(paper_trading 스키마)에 맞게 수정
-2. GET /backtest/{id}/metrics를 GET /{id} 포함 방식으로 설계서 변경
+### ✅ 버그 수정 완료 (project_analysis.md 기반, 2026-03-15)
+
+| # | 대상 | 내용 | 상태 |
+|---|------|------|------|
+| 1 | MetricsCalculator | Calmar Ratio 연환산 수익률/MDD, Recovery Factor 총수익/MDD 분리 | ✅ 완료 |
+| 2 | BacktestEngine | 매수 수수료 SELL PnL에 차감 반영 (`entryFee` 추가) | ✅ 완료 |
+| 3 | OrderExecutionEngine | `@Async` non-Future 리턴 문제 → `OrderRequest`에 sessionId/positionId 미리 설정 | ✅ 완료 |
+| 4 | 프론트엔드 StrategyType | `types.ts` 4개 → 10개 확장 | ✅ 완료 |
+| 5 | LiveTradingService | 매도 후 `totalAssetKrw` 오계산 수정 (`totalAssetKrw - fee`) | ✅ 완료 |
+| 6 | BacktestEngine | Partial Fill `continue` 제거, BUY 조건에 `pendingQuantity == 0` 추가 | ✅ 완료 |
+| 7 | UpbitWebSocketClient | `disconnect()`에서 scheduler 분리, `destroy()` 메서드 신설 | ✅ 완료 |
+| 8 | UpbitRestClient | `throttle()` 메서드로 110ms Rate Limiting 추가 | ✅ 완료 |
+| 9 | UpbitOrderClient | `buildSecretKeySpec()` helper로 JWT 생성 시 `new String(secretKey)` 제거 | ✅ 완료 |
+
+### 설계서 정합성 조치
+- DESIGN.md v1.1의 Paper Trading "구현 참고" 주석을 실제 구현(paper_trading 스키마)에 맞게 수정
+- GET /backtest/{id}/metrics를 GET /{id} 포함 방식으로 설계서 변경
 
 ### 품질 개선 (P1)
-3. ~~다크 모드 지원 추가 (ThemeProvider)~~ -- 해결됨 (ThemeProvider + 269개 dark: 클래스 구현 완료)
-4. 공통 UI 컴포넌트 분리 (components/ui/)
-5. Header 컴포넌트 분리
-6. ~~Walk Forward 프론트엔드 UI 추가~~ -- 해결됨 (/backtest/walk-forward 페이지 구현 완료)
-7. Phase 1 전략 Config 클래스 추가 (VwapConfig 등)
+- ~~다크 모드 지원 추가 (ThemeProvider)~~ — 해결됨
+- 공통 UI 컴포넌트 분리 (components/ui/)
+- Header 컴포넌트 분리
+- ~~Walk Forward 프론트엔드 UI 추가~~ — 해결됨
+- Phase 1 전략 Config 클래스 추가 (VwapConfig 등)
 
-### Phase 4 구현
-8. 실전 매매 관련 전체 백엔드/프론트엔드 구현
+### Phase 4 잔여 구현
+- 프론트엔드 실전매매 UI (/trading, /positions, /orders, /risk 페이지)
+- GET /api/v1/positions, /orders, /risk/config API
+- Spring Security / API 인증 추가
 
-Phase 1~3.5 및 Infra가 95%~100% 완성도에 도달하여 Report 에이전트에게 전달 가능한 상태입니다.
+Phase 1~3.5 및 Infra가 95%~100% 완성도. Phase 4 백엔드 완료 + project_analysis.md 버그 전체 수정 완료. 프론트엔드 Phase 4 UI 구현 후 Report 에이전트 전달 권장.
 
 ---
 생성: Check 에이전트

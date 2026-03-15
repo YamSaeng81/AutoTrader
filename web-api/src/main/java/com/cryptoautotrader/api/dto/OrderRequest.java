@@ -35,4 +35,10 @@ public class OrderRequest {
 
     /** 주문 사유 (전략 신호, 수동 주문 등) */
     private String reason;
+
+    /** 실전매매 세션 ID (LiveTradingService에서 설정, @Async 리턴값 의존 회피용) */
+    private Long sessionId;
+
+    /** 연결 포지션 ID (LiveTradingService에서 설정, @Async 리턴값 의존 회피용) */
+    private Long positionId;
 }

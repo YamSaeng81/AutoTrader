@@ -1,11 +1,11 @@
 # CryptoAutoTrader - 기술 설계서
 
 ## 문서 정보
-- 버전: 1.2
+- 버전: 1.3
 - 작성일: 2026-03-05
-- 최종 수정: 2026-03-08 (설계-구현 불일치 수정: metrics 엔드포인트 통합, Phase 1 Config 클래스 명세 정정)
+- 최종 수정: 2026-03-15 (v1.3: 테이블 소유권 분리 구조 반영, Flyway V11~V15 신규 테이블 추가, 차트 라이브러리 Recharts 통일, Phase 4 구현 내역 반영)
 - 기반 문서: PLAN.md, IDEA.md
-- 다음 단계: Do-Backend + Do-Frontend (병렬)
+- 다음 단계: Phase 4 프론트엔드 구현
 
 ---
 
@@ -21,7 +21,7 @@
                                ▼
 ┌──────────────────────────────────────────────────────────────────────┐
 │                  Next.js Frontend (crypto-trader-frontend)                     │
-│            React 18 + TypeScript + Tailwind CSS (Dark Mode)          │
+│         React 19 + TypeScript + Tailwind CSS v4 (Dark Mode)          │
 │                           Port: 3000                                 │
 └──────────────────────────────┬───────────────────────────────────────┘
                                │ REST API
@@ -89,13 +89,12 @@ Upbit WebSocket ─→ Market Data Service ─→ Redis Cache + Event Publish
 
 | 계층 | 기술 | 버전 | 비고 |
 |------|------|------|------|
-| Frontend | Next.js | 14.x | App Router |
-| Frontend | React | 18.x | |
+| Frontend | Next.js | 16.1.6 | App Router |
+| Frontend | React | 19.x | |
 | Frontend | TypeScript | 5.x | strict mode |
-| Frontend | Tailwind CSS | 3.x | 다크 모드 기본 |
-| Frontend | Lightweight Charts | 4.x | 캔들 차트 / 수익률 차트 |
-| Frontend | ApexCharts | 3.x | 히트맵 / 비교 차트 |
-| Frontend | Zustand | 4.x | UI 상태 관리 (사이드바, 테마 등) |
+| Frontend | Tailwind CSS | 4.x | 다크 모드 기본 |
+| Frontend | Recharts | 3.x | PnL 차트 / 월별 히트맵 / 비교 차트 |
+| Frontend | Zustand | 5.x | UI 상태 관리 (사이드바, 테마 등) |
 | Frontend | TanStack Query | 5.x | 서버 상태 + 대용량 데이터 캐싱 |
 | Backend | Spring Boot | 3.2.x | |
 | Backend | Java | 17 | LTS |
@@ -226,15 +225,22 @@ com.cryptoautotrader.api
 │   ├── StrategyController.java
 │   ├── DataController.java
 │   ├── PaperTradingController.java
+│   ├── LiveTradingController.java     # Phase 4 ✅ 구현
 │   ├── LogController.java
-│   ├── TradeController.java          # Phase 4
-│   ├── RiskController.java           # Phase 4
+│   ├── TradeController.java           # Phase 4 (미구현)
+│   ├── RiskController.java            # Phase 4 (미구현)
 │   └── SystemController.java
 ├── service/
 │   ├── BacktestService.java
 │   ├── DataCollectionService.java
-│   ├── TelegramNotificationService.java
-│   └── ScheduledTasks.java         # 일일/주간 리포트 스케줄러
+│   ├── MarketDataSyncService.java     # ✅ 구현 — 60초 fixedDelay 캔들 동기화
+│   ├── PaperTradingService.java       # ✅ 구현 — 멀티세션, 60초 fixedDelay
+│   ├── LiveTradingService.java        # ✅ 구현 — 실전매매 세션 관리
+│   ├── OrderExecutionEngine.java      # ✅ 구현 — 6단계 상태머신 + Upbit API 연동
+│   ├── TelegramNotificationService.java # ✅ 구현 — 즉시/일별 요약 알림
+│   ├── MarketRegimeAwareScheduler.java  # ✅ 구현 — 1시간 주기 전략 자동 스위칭
+│   └── util/
+│       └── TimeframeUtils.java        # ✅ 구현 — 타임프레임 → 분 변환 유틸
 └── event/
     ├── EventPublisher.java
     └── EventSubscriber.java
@@ -327,7 +333,44 @@ com.cryptoautotrader.api
 └────────────────────┘
 ```
 
-### 3.2 테이블 스키마
+### 3.2 테이블 소유권 분리 (Flyway V1~V15)
+
+> **원칙**: 백테스팅·모의투자·실전매매가 같은 DB를 공유하되, 스키마/컬럼으로 격리한다.
+> `position`, `order` 테이블은 public 스키마에 하나만 존재하며, `session_id` FK로 소유권을 구분한다.
+
+```
+crypto_auto_trader (TimescaleDB 단일 DB)
+│
+├── [공통 인프라]
+│   ├── candle_data         (hypertable, 수동 수집 — 백테스팅용)
+│   ├── market_data_cache   (실시간 싱크 — 모의/실전 전략 실행용, candle_data와 분리)
+│   ├── strategy_config     (전략 설정, manual_override 포함)
+│   ├── strategy_type_enabled (전략 타입별 활성화 여부 — 10종)
+│   ├── strategy_log        (전략 신호 로그)
+│   ├── strategy_signal     (신호 이력)
+│   └── risk_config         (리스크 파라미터)
+│
+├── [백테스팅 전용]
+│   ├── backtest_run
+│   ├── backtest_metrics
+│   └── backtest_trade
+│
+├── [모의투자 전용]  ← paper_trading 스키마
+│   ├── paper_trading.virtual_balance   (세션 관리, session_id 기준)
+│   ├── paper_trading.position          (session_id → virtual_balance)
+│   ├── paper_trading.order             (session_id → virtual_balance)
+│   ├── paper_trading.strategy_log
+│   └── paper_trading.trade_log
+│
+└── [실전매매 전용]  ← public 스키마, session_id로 격리
+    ├── live_trading_session             (세션 관리)
+    ├── public.position                  (session_id → live_trading_session)
+    └── public.order                     (session_id → live_trading_session)
+```
+
+> `trade_log` (public)는 실전매매 주문 상태 변경 이력. paper_trading.trade_log는 별도.
+
+### 3.3 테이블 스키마
 
 #### candle_data (TimescaleDB hypertable)
 ```sql
@@ -530,6 +573,71 @@ CREATE INDEX idx_strategy_log_time ON strategy_log(created_at DESC);
 CREATE INDEX idx_trade_log_order ON trade_log(order_id);
 ```
 
+#### live_trading_session (V12)
+```sql
+CREATE TABLE live_trading_session (
+    id                  BIGSERIAL PRIMARY KEY,
+    strategy_type       VARCHAR(50) NOT NULL,
+    coin_pair           VARCHAR(20) NOT NULL,
+    timeframe           VARCHAR(10) NOT NULL,
+    initial_capital     NUMERIC(20,2) NOT NULL,
+    available_krw       NUMERIC(20,2) NOT NULL,
+    total_asset_krw     NUMERIC(20,2) NOT NULL,
+    status              VARCHAR(20) NOT NULL DEFAULT 'STOPPED',  -- RUNNING, STOPPED, EMERGENCY_STOPPED
+    strategy_params     JSONB DEFAULT '{}',
+    max_investment      NUMERIC(20,2),
+    stop_loss_pct       NUMERIC(5,2) DEFAULT 5.0,
+    started_at          TIMESTAMPTZ,
+    stopped_at          TIMESTAMPTZ,
+    created_at          TIMESTAMPTZ DEFAULT NOW(),
+    updated_at          TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- position, order 테이블에 session_id 추가 (실전매매 격리)
+ALTER TABLE position ADD COLUMN session_id BIGINT REFERENCES live_trading_session(id);
+ALTER TABLE "order" ADD COLUMN session_id BIGINT REFERENCES live_trading_session(id);
+
+CREATE INDEX idx_live_session_status ON live_trading_session(status);
+CREATE INDEX idx_position_session ON position(session_id) WHERE session_id IS NOT NULL;
+CREATE INDEX idx_order_session ON "order"(session_id) WHERE session_id IS NOT NULL;
+```
+
+#### market_data_cache (V13)
+```sql
+-- 실시간 시장 데이터 캐시 (MarketDataSyncService 싱크)
+-- candle_data(수동 수집, 백테스팅용)와 완전히 분리
+CREATE TABLE market_data_cache (
+    time        TIMESTAMPTZ   NOT NULL,
+    coin_pair   VARCHAR(20)   NOT NULL,
+    timeframe   VARCHAR(10)   NOT NULL,
+    open        NUMERIC(20,8) NOT NULL,
+    high        NUMERIC(20,8) NOT NULL,
+    low         NUMERIC(20,8) NOT NULL,
+    close       NUMERIC(20,8) NOT NULL,
+    volume      NUMERIC(20,8) NOT NULL,
+    PRIMARY KEY (time, coin_pair, timeframe)
+);
+CREATE INDEX idx_market_data_cache_pair_tf_time ON market_data_cache (coin_pair, timeframe, time DESC);
+```
+
+#### strategy_type_enabled (V14)
+```sql
+-- 전략 타입별 활성화 여부 (모의/실전매매에서 사용할 전략 선택)
+CREATE TABLE strategy_type_enabled (
+    strategy_name VARCHAR(50) PRIMARY KEY,
+    is_active     BOOLEAN     NOT NULL DEFAULT TRUE,
+    updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+-- 10종 전략 기본 삽입: VWAP, EMA_CROSS, BOLLINGER, GRID, RSI, MACD, SUPERTREND,
+--                       ATR_BREAKOUT, ORDERBOOK_IMBALANCE, STOCHASTIC_RSI
+```
+
+#### strategy_config 추가 컬럼 (V11)
+```sql
+-- 수동 오버라이드 플래그: true면 MarketRegimeAwareScheduler 자동 스위칭에서 제외
+ALTER TABLE strategy_config ADD COLUMN IF NOT EXISTS manual_override BOOLEAN NOT NULL DEFAULT FALSE;
+```
+
 #### Paper Trading 스키마 (멀티세션 — `paper_trading` 스키마)
 
 > **구현**: `paper_trading` 별도 스키마를 사용하며, `position`/`order` 테이블에
@@ -565,7 +673,7 @@ ALTER TABLE paper_trading.position ADD COLUMN session_id BIGINT REFERENCES paper
 ALTER TABLE paper_trading."order" ADD COLUMN session_id BIGINT REFERENCES paper_trading.virtual_balance(id);
 ```
 
-### 3.4 Redis 키(Key) 설계
+### 3.4 Redis 키(Key) 설계 (변경 없음)
 
 ```
 # 실시간 시세 캐싱 (Upbit API Rate Limit 방어)
@@ -1058,9 +1166,9 @@ crypto-trader-frontend/
 │       ├── backtest/
 │       │   ├── BacktestForm.tsx
 │       │   ├── MetricsCards.tsx
-│       │   ├── PnlChart.tsx       # Lightweight Charts
-│       │   ├── CompareChart.tsx    # ApexCharts
-│       │   └── MonthlyHeatmap.tsx  # ApexCharts
+│       │   ├── PnlChart.tsx       # Recharts (LineChart)
+│       │   ├── CompareChart.tsx    # Recharts (BarChart)
+│       │   └── MonthlyHeatmap.tsx  # Recharts (커스텀 히트맵)
 │       ├── strategy/
 │       │   ├── StrategyList.tsx
 │       │   └── StrategyConfigForm.tsx
@@ -1255,10 +1363,16 @@ Design ─┬→ Do-Backend (Spring Boot)  ─┬→ Check (통합 검증)
 #### Phase 3.5: Paper Trading
 14. paper_trading 스키마 활성화 + PaperTradingService
 
-#### Phase 4: 실전 매매
-15. exchange-adapter: OrderExecutionEngine + OrderStateMachine + ExchangeHealthMonitor
-16. web-api: TradeController + RiskController + 이벤트 파이프라인
-17. TelegramNotificationService + ScheduledTasks
+#### Phase 4: 실전 매매 (백엔드 완료 ✅)
+15. exchange-adapter: UpbitOrderClient (JWT/char[], Rate Limit) ✅
+16. exchange-adapter: OrderExecutionEngine (6단계 상태머신, Upbit API 실제 연동) ✅
+17. exchange-adapter: UpbitWebSocketClient (GZIP, Ping/Pong, 지수 백오프 재연결) ✅
+18. web-api: LiveTradingService (세션 관리, 손절, @Async 안전 처리) ✅
+19. web-api: LiveTradingController ✅
+20. web-api: TelegramNotificationService (즉시/일별 버퍼 요약) ✅
+21. web-api: MarketRegimeAwareScheduler (1시간 자동 스위칭) ✅
+22. Flyway V11~V15: manual_override, live_trading_session, market_data_cache, strategy_type_enabled, telegram ✅
+23. web-api: TradeController + RiskController (미구현 — Phase 4 잔여)
 
 ---
 
