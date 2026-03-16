@@ -143,3 +143,8 @@ export const paperTradingApi = {
     bulkDeleteHistory: (ids: (string | number)[]) =>
         api.delete<ApiResponse<null>>('/api/v1/paper-trading/history/bulk', { data: { ids } }).then(r => r.data),
 };
+
+export const accountApi = {
+    summary: () =>
+        api.get<ApiResponse<import('./types').AccountSummary>>('/api/v1/account/summary').then(r => r.data),
+};

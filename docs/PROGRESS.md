@@ -2,7 +2,7 @@
 
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝날 때마다 `## 최근 변경사항`과 `## 다음 할 일`을 반드시 업데이트한다.
-> **마지막 갱신**: 2026-03-17 (종료 세션 분석 화면 + 차트 스크롤 수정)
+> **마지막 갱신**: 2026-03-17 (Upbit 계좌 현황 페이지 추가)
 
 ---
 
@@ -46,6 +46,22 @@ VWAP / EMA Cross / Bollinger Band / Grid / RSI(다이버전스) / MACD(히스토
 ---
 
 ## 최근 변경사항
+
+### 2026-03-17 작업 (Upbit 계좌 현황 페이지 추가)
+
+#### 변경 내용
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `exchange-adapter/.../UpbitRestClient.java` | **`getTicker(String markets)` 추가** — 인증 불필요 공개 API. Upbit `/v1/ticker?markets=KRW-BTC,...` 호출 |
+| `web-api/.../service/AccountService.java` | **신규 생성** — `getAccountSummary()`: `upbitOrderClient.getAccounts()` → 현재가 조회(`getTicker`) → 코인별 평가금액/손익 계산 → 집계. API Key 미설정 시 안내 메시지 반환 |
+| `web-api/.../controller/AccountController.java` | **신규 생성** — `GET /api/v1/account/summary` 엔드포인트 |
+| `crypto-trader-frontend/src/lib/types.ts` | **`UpbitHolding`, `AccountSummary` 타입 추가** |
+| `crypto-trader-frontend/src/lib/api.ts` | **`accountApi.summary()` 추가** — `GET /api/v1/account/summary` |
+| `crypto-trader-frontend/src/app/account/page.tsx` | **신규 생성** — 총 보유자산 카드, KRW/코인 요약, 도넛 파이 차트(자산 구성), 보유 코인 상세 테이블(평가금액 순) |
+| `crypto-trader-frontend/src/components/layout/Sidebar.tsx` | **"계좌 현황" 메뉴 추가** — `/account` 링크, Wallet 아이콘, Phase 4 |
+
+---
 
 ### 2026-03-17 작업 (종료 세션 분석 화면 + 차트 스크롤 수정)
 
@@ -406,7 +422,7 @@ docker compose -f docker-compose.prod.yml logs -f frontend
 
 ---
 
-## 참고 문서
+## 참고 문서햣
 
 | 문서 | 위치 | 내용 |
 |------|------|------|

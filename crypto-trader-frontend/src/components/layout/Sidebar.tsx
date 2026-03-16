@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LineChart, PlusCircle, Settings, Database, TrendingUp, Zap, Briefcase, List, Shield, LayoutDashboard, GitCompare, FileText, History, Moon, Sun, FlaskConical, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LineChart, PlusCircle, Settings, Database, TrendingUp, Zap, Briefcase, List, Shield, LayoutDashboard, GitCompare, FileText, History, Moon, Sun, FlaskConical, ChevronLeft, ChevronRight, Wallet } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 import { useUiStore } from '@/store';
 import { clsx } from 'clsx';
@@ -40,6 +40,7 @@ const navItems: NavItem[] = [
     { href: '/trading', label: '실전 매매', icon: Zap, phase: 4, excludePrefix: '/trading/history' },
     { href: '/trading/history', label: '실전매매 이력', icon: History, phase: 4 },
     { href: '/trading/risk', label: '리스크 설정', icon: Shield, phase: 4 },
+    { href: '/account', label: '계좌 현황', icon: Wallet, phase: 4 },
 ];
 
 export function Sidebar() {

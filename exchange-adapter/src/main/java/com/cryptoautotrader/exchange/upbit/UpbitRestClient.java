@@ -14,6 +14,7 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -74,6 +75,27 @@ public class UpbitRestClient {
             throw new RuntimeException("Upbit API 호출 실패: " + response.statusCode());
         }
 
+        return objectMapper.readValue(response.body(), new TypeReference<>() {});
+    }
+
+    /**
+     * 현재가(ticker) 조회 — 인증 불필요 (공개 API)
+     * @param markets 마켓 코드 목록 (예: "KRW-BTC,KRW-ETH")
+     * @return ticker 응답 목록
+     */
+    public List<Map<String, Object>> getTicker(String markets) throws Exception {
+        String url = BASE_URL + "/ticker?markets=" + markets;
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Accept", "application/json")
+                .GET()
+                .build();
+        throttle();
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        if (response.statusCode() != 200) {
+            log.error("Upbit ticker API 오류: status={}, body={}", response.statusCode(), response.body());
+            throw new RuntimeException("Upbit ticker API 호출 실패: " + response.statusCode());
+        }
         return objectMapper.readValue(response.body(), new TypeReference<>() {});
     }
 

@@ -265,3 +265,35 @@ export interface RiskConfig {
   cooldownMinutes: number;
   portfolioLimitKrw: number;
 }
+
+// ─── Upbit 계좌 현황 타입 ─────────────────────────────────────────────────
+
+export interface UpbitHolding {
+  currency: string;
+  market: string;
+  balance: number;
+  locked: number;
+  totalQuantity: number;
+  avgBuyPrice: number;
+  currentPrice: number;
+  evalValue: number;
+  buyCost: number;
+  unrealizedPnl: number;
+  unrealizedPnlPct: number;
+}
+
+export interface AccountSummary {
+  apiKeyConfigured: boolean;
+  message?: string;
+  error?: string;
+  totalAssetKrw?: number;
+  availableKrw?: number;
+  lockedKrw?: number;
+  totalKrwBalance?: number;
+  totalCoinValueKrw?: number;
+  totalBuyCostKrw?: number;
+  totalUnrealizedPnl?: number;
+  totalUnrealizedPnlPct?: number;
+  holdings?: UpbitHolding[];
+  fetchedAt?: string;
+}
