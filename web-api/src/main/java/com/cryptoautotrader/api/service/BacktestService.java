@@ -14,7 +14,12 @@ import com.cryptoautotrader.core.backtest.BacktestResult;
 import com.cryptoautotrader.core.backtest.WalkForwardTestRunner;
 import com.cryptoautotrader.core.metrics.PerformanceReport;
 import com.cryptoautotrader.core.model.TradeRecord;
+import com.cryptoautotrader.core.regime.MarketRegimeDetector;
+import com.cryptoautotrader.core.selector.CompositeStrategy;
+import com.cryptoautotrader.core.selector.StrategySelector;
+import com.cryptoautotrader.core.selector.WeightedStrategy;
 import com.cryptoautotrader.strategy.Candle;
+import com.cryptoautotrader.strategy.Strategy;
 import com.cryptoautotrader.strategy.StrategyRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -85,7 +90,14 @@ public class BacktestService {
                 .fillRatio(fillRatio != null ? fillRatio : new BigDecimal("0.3"))
                 .build();
 
-        BacktestResult result = backtestEngine.run(config, candles);
+        BacktestResult result;
+        if ("COMPOSITE".equals(strategyType)) {
+            MarketRegimeDetector detector = new MarketRegimeDetector();
+            List<WeightedStrategy> weighted = StrategySelector.select(detector.detect(candles));
+            result = backtestEngine.run(config, candles, new CompositeStrategy(weighted));
+        } else {
+            result = backtestEngine.run(config, candles);
+        }
 
         // DB 저장
         BacktestRunEntity runEntity = saveRun(config, false);
@@ -256,6 +268,7 @@ public class BacktestService {
         BigDecimal fee       = feePct         != null ? feePct         : new BigDecimal("0.05");
 
         List<String> strategyNames = new java.util.ArrayList<>(StrategyRegistry.getAll().keySet());
+        strategyNames.add("COMPOSITE");
         List<Map<String, Object>> results = new java.util.ArrayList<>();
 
         for (String coin : coins) {
@@ -288,7 +301,14 @@ public class BacktestService {
                             .strategyParams(Map.of())
                             .build();
 
-                    BacktestResult result = backtestEngine.run(config, candles);
+                    BacktestResult result;
+                    if ("COMPOSITE".equals(strategyName)) {
+                        MarketRegimeDetector detector = new MarketRegimeDetector();
+                        List<WeightedStrategy> weighted = StrategySelector.select(detector.detect(candles));
+                        result = backtestEngine.run(config, candles, new CompositeStrategy(weighted));
+                    } else {
+                        result = backtestEngine.run(config, candles);
+                    }
                     PerformanceReport metrics = result.getMetrics();
 
                     BacktestRunEntity runEntity = saveRun(config, false);

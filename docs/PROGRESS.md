@@ -276,7 +276,7 @@ Phase S3에서 `MarketRegimeDetector → StrategySelector → CompositeStrategy`
 - [ ] `🟡 MEDIUM` **VWAP 임계값 재조정** — BTC 승률 0% (거래 발생 없음). thresholdPct 2.5% → 1.5% 재테스트
 - [ ] `🟡 MEDIUM` **코인별 전략 선택 최적화** — BTC: GRID+BOLLINGER 조합 / ETH: ATR_BREAKOUT+EMA_CROSS+ORDERBOOK 조합 고려
 - [ ] `🟢 LOW` 2023~2025 전체 기간 백테스트 — 2025년만 결과이므로 장기 성과 검증 필요
-- [ ] `🟢 LOW` CompositeStrategy 백테스트 연동 — 현재 단일 전략만 백테스트, 복합 전략 결과 측정 필요 (PaperTrading/LiveTrading 연동은 완료, 백테스트 UI 연동만 미완)
+- [x] CompositeStrategy 백테스트 연동 완료 (2026-03-16) — BacktestService COMPOSITE 분기 추가 + BacktestForm.tsx 드롭다운 첫 번째 옵션 추가
 
 ### 단기 (1~2주)
 

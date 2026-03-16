@@ -16,7 +16,7 @@ export function BacktestForm() {
     const [coins, setCoins] = useState<string[]>([]);
 
     const [form, setForm] = useState({
-        strategyType: 'EMA_CROSS',
+        strategyType: 'COMPOSITE',
         coinPair: 'KRW-BTC',
         timeframe: 'H1' as Timeframe,
         startDate: yearStart,
@@ -32,7 +32,6 @@ export function BacktestForm() {
             if (stRes.success && stRes.data) {
                 const available = stRes.data.filter(s => s.status === 'AVAILABLE');
                 setStrategies(available);
-                if (available.length > 0) setForm(f => ({ ...f, strategyType: available[0].name }));
             }
             if (cRes.success && cRes.data) setCoins(cRes.data);
         });
@@ -78,6 +77,7 @@ export function BacktestForm() {
                             value={form.strategyType}
                             onChange={(e) => setForm({ ...form, strategyType: e.target.value as StrategyType })}
                         >
+                            <option value="COMPOSITE">COMPOSITE (시장 국면 자동 선택)</option>
                             {strategies.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
                         </select>
                         <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-slate-500 dark:text-slate-400">
