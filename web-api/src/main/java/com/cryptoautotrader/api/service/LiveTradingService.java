@@ -606,6 +606,20 @@ public class LiveTradingService {
 
     // -- 내부: 유틸 -----------------------------------------------
 
+    @Transactional(readOnly = true)
+    public List<com.cryptoautotrader.api.entity.CandleDataEntity> getChartCandles(Long sessionId) {
+        LiveTradingSessionEntity session = getSessionOrThrow(sessionId);
+        Instant from = session.getStartedAt() != null ? session.getStartedAt() : Instant.now().minus(7, ChronoUnit.DAYS);
+        Instant to = session.getStoppedAt() != null ? session.getStoppedAt() : Instant.now();
+        return candleDataRepository.findCandles(session.getCoinPair(), session.getTimeframe(), from, to);
+    }
+
+    @Transactional(readOnly = true)
+    public List<OrderEntity> getAllSessionOrders(Long sessionId) {
+        getSessionOrThrow(sessionId);
+        return orderRepository.findBySessionIdOrderByCreatedAtDesc(sessionId, Pageable.unpaged()).getContent();
+    }
+
     private LiveTradingSessionEntity getSessionOrThrow(Long sessionId) {
         return sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new IllegalArgumentException(

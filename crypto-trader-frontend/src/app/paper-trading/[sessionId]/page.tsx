@@ -49,7 +49,7 @@ export default function SessionDetailPage() {
 
     const { data: positionsRes } = useQuery({
         queryKey: ['paper-trading', 'session', sessionId, 'positions'],
-        queryFn: () => paperTradingApi.positions(sessionId),
+        queryFn: () => paperTradingApi.positions(sessionId, 'ALL'),
         refetchInterval: 5000,
     });
 
@@ -74,7 +74,9 @@ export default function SessionDetailPage() {
     });
 
     const balance = balanceRes?.data as unknown as PaperTradingBalance & { id: number; timeframe?: string };
-    const positions = (positionsRes?.data as unknown as PaperPosition[]) || [];
+    const allPositions = (positionsRes?.data as unknown as (PaperPosition & { status?: string; realizedPnl?: number; closedAt?: string; entryPrice?: number })[]) || [];
+    const positions = allPositions.filter(p => !p.status || p.status === 'OPEN');
+    const closedPositions = allPositions.filter(p => p.status === 'CLOSED');
     const orders = (ordersRes?.data as any);
     const isRunning = balance?.status === 'RUNNING';
 
@@ -484,6 +486,57 @@ export default function SessionDetailPage() {
                     </table>
                 </div>
             </div>
+
+            {/* 종료된 거래 이력 */}
+            {closedPositions.length > 0 && (
+                <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+                    <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 flex justify-between items-center">
+                        <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">종료된 거래 이력</h2>
+                        <span className="py-1 px-2.5 bg-slate-100 text-slate-600 rounded-md text-xs font-bold border border-slate-200">{closedPositions.length}건</span>
+                    </div>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left text-sm text-slate-600 dark:text-slate-300">
+                            <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                                <tr>
+                                    <th className="px-6 py-4">코인</th>
+                                    <th className="px-6 py-4 text-right">진입가</th>
+                                    <th className="px-6 py-4 text-right">수량</th>
+                                    <th className="px-6 py-4 text-right">실현 손익</th>
+                                    <th className="px-6 py-4 text-right">수익률</th>
+                                    <th className="px-6 py-4">진입 시각</th>
+                                    <th className="px-6 py-4">청산 시각</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                {closedPositions.map(pos => {
+                                    const pnl = Number(pos.realizedPnl ?? 0);
+                                    const avgPrice = Number(pos.avgEntryPrice ?? 0);
+                                    const qty = Number(pos.quantity ?? 0);
+                                    const costBasis = avgPrice * qty;
+                                    const pnlPct = costBasis > 0 ? (pnl / costBasis * 100) : 0;
+                                    return (
+                                        <tr key={pos.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                                            <td className="px-6 py-4 font-bold text-slate-800 dark:text-slate-100">{pos.coinPair.replace('KRW-', '')}</td>
+                                            <td className="px-6 py-4 text-right font-medium">{avgPrice.toLocaleString()}</td>
+                                            <td className="px-6 py-4 text-right font-medium">{qty.toFixed(8)}</td>
+                                            <td className={cn('px-6 py-4 text-right font-bold', pnl >= 0 ? 'text-emerald-600' : 'text-rose-600')}>
+                                                {pnl >= 0 ? '+' : ''}{pnl.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                            </td>
+                                            <td className="px-6 py-4 text-right">
+                                                <span className={cn('inline-flex items-center font-semibold px-2 py-0.5 rounded-full text-xs', pnlPct >= 0 ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-rose-50 text-rose-600 border border-rose-100')}>
+                                                    {pnlPct >= 0 ? '+' : ''}{pnlPct.toFixed(2)}%
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 text-xs text-slate-400">{pos.openedAt ? new Date(pos.openedAt).toLocaleString() : '-'}</td>
+                                            <td className="px-6 py-4 text-xs text-slate-400">{(pos as any).closedAt ? new Date((pos as any).closedAt).toLocaleString() : '-'}</td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
 
             {/* Orders */}
             <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">

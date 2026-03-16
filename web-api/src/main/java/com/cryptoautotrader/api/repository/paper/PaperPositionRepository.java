@@ -11,6 +11,8 @@ import java.util.Optional;
 
 public interface PaperPositionRepository extends JpaRepository<PaperPositionEntity, Long> {
 
+    List<PaperPositionEntity> findBySessionId(Long sessionId);
+
     List<PaperPositionEntity> findBySessionIdAndStatus(Long sessionId, String status);
 
     Optional<PaperPositionEntity> findBySessionIdAndCoinPairAndStatus(Long sessionId, String coinPair, String status);

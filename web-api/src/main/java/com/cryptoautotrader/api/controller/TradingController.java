@@ -1,10 +1,12 @@
 package com.cryptoautotrader.api.controller;
 
 import com.cryptoautotrader.api.dto.*;
+import com.cryptoautotrader.api.entity.CandleDataEntity;
 import com.cryptoautotrader.api.entity.LiveTradingSessionEntity;
 import com.cryptoautotrader.api.entity.OrderEntity;
 import com.cryptoautotrader.api.entity.PositionEntity;
 import com.cryptoautotrader.api.entity.RiskConfigEntity;
+import com.cryptoautotrader.api.repository.PositionRepository;
 import com.cryptoautotrader.api.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +17,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.validation.Valid;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 실전 매매 API 컨트롤러 -- 다중 세션 지원
@@ -33,6 +39,7 @@ public class TradingController {
     private final RiskManagementService riskManagementService;
     private final ExchangeHealthMonitor exchangeHealthMonitor;
     private final TelegramNotificationService telegramNotificationService;
+    private final PositionRepository positionRepository;
 
     // -- 세션 관리 ------------------------------------------------
 
@@ -117,6 +124,32 @@ public class TradingController {
     public ApiResponse<List<PositionEntity>> getSessionPositions(@PathVariable Long id) {
         try {
             return ApiResponse.ok(liveTradingService.getSessionPositions(id));
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        }
+    }
+
+    /** 세션 가격 차트 데이터 (캔들 + 매수매도 시점) */
+    @GetMapping("/sessions/{id}/chart")
+    public ApiResponse<Map<String, Object>> getSessionChart(@PathVariable Long id) {
+        try {
+            List<CandleDataEntity> candles = liveTradingService.getChartCandles(id);
+            List<Map<String, Object>> allOrders = liveTradingService.getAllSessionOrders(id).stream()
+                    .map(this::toOrderMap)
+                    .toList();
+
+            List<Map<String, Object>> candleData = candles.stream().map(c -> {
+                Map<String, Object> m = new HashMap<>();
+                m.put("time", c.getTime().toEpochMilli());
+                m.put("open", c.getOpen());
+                m.put("high", c.getHigh());
+                m.put("low", c.getLow());
+                m.put("close", c.getClose());
+                m.put("volume", c.getVolume());
+                return m;
+            }).toList();
+
+            return ApiResponse.ok(Map.of("candles", candleData, "orders", allOrders));
         } catch (IllegalArgumentException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
         }
@@ -220,6 +253,44 @@ public class TradingController {
     @GetMapping("/health/exchange")
     public ApiResponse<ExchangeHealthResponse> getExchangeHealth() {
         return ApiResponse.ok(exchangeHealthMonitor.getHealthStatus());
+    }
+
+    // -- 내부 변환 ─────────────────────────────────────────────
+
+    private static final BigDecimal FEE_RATE = new BigDecimal("0.0005");
+
+    private Map<String, Object> toOrderMap(OrderEntity o) {
+        BigDecimal price = o.getPrice() != null ? o.getPrice() : BigDecimal.ZERO;
+        BigDecimal qty = o.getQuantity() != null ? o.getQuantity() : BigDecimal.ZERO;
+        BigDecimal fee = price.multiply(qty).multiply(FEE_RATE).setScale(0, RoundingMode.HALF_UP);
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", o.getId());
+        map.put("coinPair", o.getCoinPair());
+        map.put("side", o.getSide());
+        map.put("price", price);
+        map.put("quantity", qty);
+        map.put("fee", fee);
+        map.put("state", o.getState());
+        map.put("signalReason", o.getSignalReason() != null ? o.getSignalReason() : "");
+        map.put("createdAt", o.getCreatedAt() != null ? o.getCreatedAt().toString() : null);
+        map.put("filledAt", o.getFilledAt() != null ? o.getFilledAt().toString() : null);
+
+        // SELL 주문: 연결된 포지션에서 매수단가·실현손익 추가
+        if ("SELL".equals(o.getSide()) && o.getPositionId() != null) {
+            positionRepository.findById(o.getPositionId()).ifPresent(pos -> {
+                BigDecimal buyPrice = pos.getAvgPrice();
+                BigDecimal realizedPnl = pos.getRealizedPnl() != null ? pos.getRealizedPnl() : BigDecimal.ZERO;
+                BigDecimal costBasis = buyPrice.multiply(qty);
+                BigDecimal pnlPct = costBasis.compareTo(BigDecimal.ZERO) > 0
+                        ? realizedPnl.divide(costBasis, 4, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100))
+                        : BigDecimal.ZERO;
+                map.put("buyPrice", buyPrice);
+                map.put("realizedPnl", realizedPnl);
+                map.put("realizedPnlPct", pnlPct);
+            });
+        }
+        return map;
     }
 
     // -- 텔레그램 알림 ---------------------------------------------

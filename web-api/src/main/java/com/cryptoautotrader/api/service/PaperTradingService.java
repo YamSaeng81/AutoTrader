@@ -164,6 +164,11 @@ public class PaperTradingService {
     }
 
     @Transactional(readOnly = true)
+    public List<PaperPositionEntity> getAllPositions(Long sessionId) {
+        return positionRepo.findBySessionId(sessionId);
+    }
+
+    @Transactional(readOnly = true)
     public Page<PaperOrderEntity> getOrders(Long sessionId, Pageable pageable) {
         return orderRepo.findBySessionIdOrderByCreatedAtDesc(sessionId, pageable);
     }

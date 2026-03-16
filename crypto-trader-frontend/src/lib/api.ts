@@ -97,6 +97,8 @@ export const tradingApi = {
         api.get<ApiResponse<Position[]>>(`/api/v1/trading/sessions/${id}/positions`).then(r => r.data),
     getSessionOrders: (id: number, page = 0, size = 20) =>
         api.get<ApiResponse<PageResponse<LiveOrder>>>(`/api/v1/trading/sessions/${id}/orders`, { params: { page, size } }).then(r => r.data),
+    getSessionChart: (id: number) =>
+        api.get<ApiResponse<{ candles: unknown[]; orders: unknown[] }>>(`/api/v1/trading/sessions/${id}/chart`).then(r => r.data),
 
     // 전체 상태
     getStatus: () =>
@@ -128,8 +130,8 @@ export const paperTradingApi = {
         api.post<ApiResponse<import('./types').PaperSession>>('/api/v1/paper-trading/sessions', req).then(r => r.data),
     getSession: (id: string | number) =>
         api.get<ApiResponse<PaperTradingBalance>>(`/api/v1/paper-trading/sessions/${id}`).then(r => r.data),
-    positions: (id: string | number) =>
-        api.get<ApiResponse<PaperPosition[]>>(`/api/v1/paper-trading/sessions/${id}/positions`).then(r => r.data),
+    positions: (id: string | number, status = 'OPEN') =>
+        api.get<ApiResponse<PaperPosition[]>>(`/api/v1/paper-trading/sessions/${id}/positions`, { params: { status } }).then(r => r.data),
     orders: (id: string | number, page = 0) =>
         api.get<ApiResponse<PageResponse<unknown>>>(`/api/v1/paper-trading/sessions/${id}/orders`, { params: { page } }).then(r => r.data),
     stop: (id: string | number) =>

@@ -6,6 +6,10 @@ import { tradingApi } from '@/lib/api';
 import type { LiveTradingSession, Position, LiveOrder } from '@/lib/types';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { format } from 'date-fns';
+import {
+  ComposedChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
+} from 'recharts';
 
 const sessionStatusLabel: Record<string, string> = {
   CREATED: '대기',
@@ -54,6 +58,12 @@ export default function LiveSessionDetailPage({ params }: { params: Promise<{ se
     refetchInterval: 10000,
   });
 
+  const { data: chartRes } = useQuery({
+    queryKey: ['trading', 'session', sessionId, 'chart'],
+    queryFn: () => tradingApi.getSessionChart(sessionIdNum),
+    refetchInterval: 60000,
+  });
+
   const stopMutation = useMutation({
     mutationFn: () => tradingApi.stopSession(sessionIdNum),
     onSuccess: () => {
@@ -75,6 +85,32 @@ export default function LiveSessionDetailPage({ params }: { params: Promise<{ se
 
   const openPositions = positions.filter(p => p.status === 'OPEN');
   const closedPositions = positions.filter(p => p.status === 'CLOSED');
+
+  const chartCandles = (chartRes?.data as any)?.candles as any[] | undefined;
+  const chartOrders = (chartRes?.data as any)?.orders as any[] | undefined;
+
+  const toMs = (t: any) => t ? (typeof t === 'number' ? t : new Date(t).getTime()) : null;
+  const chartData = (() => {
+    const candles = chartCandles?.map((c: any) => ({
+      time: c.time,
+      close: Number(c.close),
+      buyOrder: null as any,
+      sellOrder: null as any,
+    })) ?? [];
+    if (!chartOrders) return candles;
+    for (const o of chartOrders) {
+      const ms = toMs(o.filledAt);
+      if (!ms) continue;
+      let best = 0, bestDiff = Infinity;
+      for (let i = 0; i < candles.length; i++) {
+        const d = Math.abs(candles[i].time - ms);
+        if (d < bestDiff) { bestDiff = d; best = i; }
+      }
+      if (o.side === 'BUY') candles[best].buyOrder = o;
+      else candles[best].sellOrder = o;
+    }
+    return candles;
+  })();
   const isRunning = session?.status === 'RUNNING';
 
   const filledOrders = orders.filter(o => o.state === 'FILLED');
@@ -237,6 +273,135 @@ export default function LiveSessionDetailPage({ params }: { params: Promise<{ se
           )}
         </div>
       </div>
+
+      {/* 가격 차트 */}
+      {chartData.length > 0 && (() => {
+        const CHART_HEIGHT = 300;
+        const PX_PER_POINT = 14;
+        const SCROLL_THRESHOLD = 60;
+        const MAX_WIDTH = 4000;
+        const needsScroll = chartData.length > SCROLL_THRESHOLD;
+        const fixedWidth = needsScroll
+          ? Math.min(MAX_WIDTH, Math.max(800, chartData.length * PX_PER_POINT))
+          : undefined;
+
+        const ChartTooltipContent = ({ active, payload, label }: any) => {
+          if (!active || !payload?.length) return null;
+          const d = payload[0]?.payload;
+          const order = d?.buyOrder || d?.sellOrder;
+          const isBuy = !!d?.buyOrder;
+          return (
+            <div className="bg-slate-800 border border-slate-600 rounded-xl shadow-lg p-3 text-xs min-w-[180px]">
+              <div className="text-slate-400 mb-1">{label ? format(new Date(label), 'yyyy-MM-dd HH:mm') : ''}</div>
+              <div className="font-semibold text-slate-200">종가: {Number(d?.close).toLocaleString()} KRW</div>
+              {order && (
+                <div className={`mt-2 pt-2 border-t border-slate-700 space-y-1 ${isBuy ? 'text-green-400' : 'text-red-400'}`}>
+                  <div className="font-bold">{isBuy ? '▲ 매수 체결' : '▼ 매도 체결'}</div>
+                  <div>가격: <span className="font-semibold">{Number(order.price).toLocaleString()} KRW</span></div>
+                  <div>수량: <span className="font-semibold">{Number(order.quantity).toFixed(6)}</span></div>
+                  {order.signalReason && (
+                    <div className="text-slate-400 pt-1 border-t border-slate-700 leading-relaxed">{order.signalReason}</div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        };
+
+        const chartInner = (w?: number) => (
+          <ComposedChart width={w} height={CHART_HEIGHT} data={chartData} margin={{ top: 10, right: 20, bottom: 0, left: 10 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+            <XAxis
+              dataKey="time" type="number" domain={['dataMin', 'dataMax']} scale="time"
+              tickFormatter={(t) => format(new Date(t), 'MM/dd HH:mm')}
+              tick={{ fontSize: 11, fill: '#94a3b8' }} tickCount={6} minTickGap={40}
+            />
+            <YAxis
+              domain={['auto', 'auto']} tickFormatter={(v) => Number(v).toLocaleString()}
+              tick={{ fontSize: 11, fill: '#94a3b8' }} width={80}
+            />
+            <Tooltip content={<ChartTooltipContent />} />
+            <Line
+              type="monotone" dataKey="close" stroke="#6366f1" strokeWidth={1.5}
+              dot={(props: any) => {
+                const { cx, cy, payload } = props;
+                if (payload.buyOrder) return <circle key={`b-${cx}`} cx={cx} cy={cy} r={7} fill="#22c55e" stroke="#fff" strokeWidth={2} />;
+                if (payload.sellOrder) return <circle key={`s-${cx}`} cx={cx} cy={cy} r={7} fill="#ef4444" stroke="#fff" strokeWidth={2} />;
+                return <g key={`e-${cx}`} />;
+              }}
+              activeDot={{ r: 5, stroke: '#6366f1', strokeWidth: 2, fill: '#fff' }}
+              isAnimationActive={false}
+            />
+          </ComposedChart>
+        );
+
+        return (
+          <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-700/50 flex items-center justify-between">
+              <h2 className="text-base font-semibold text-white">가격 차트 (매수/매도 시점)</h2>
+              {needsScroll && <span className="text-xs text-slate-500">← 좌우 스크롤 →</span>}
+            </div>
+            <div className="p-4">
+              {needsScroll ? (
+                <div className="overflow-x-auto">
+                  <div style={{ width: fixedWidth }}>{chartInner(fixedWidth)}</div>
+                </div>
+              ) : (
+                <div style={{ height: CHART_HEIGHT }}>
+                  <ResponsiveContainer width="100%" height="100%">{chartInner() as any}</ResponsiveContainer>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* 종료된 거래 이력 */}
+      {closedPositions.length > 0 && (
+        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-700/50 flex items-center justify-between">
+            <h2 className="text-base font-semibold text-white">종료된 거래 이력</h2>
+            <span className="px-2 py-0.5 bg-slate-700 text-slate-300 rounded text-xs font-bold">{closedPositions.length}건</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-slate-400 border-b border-slate-700/50 text-xs uppercase">
+                  <th className="text-left py-3 px-5">코인</th>
+                  <th className="text-right py-3 px-5">진입가</th>
+                  <th className="text-right py-3 px-5">수량</th>
+                  <th className="text-right py-3 px-5">실현 손익</th>
+                  <th className="text-right py-3 px-5">수익률</th>
+                  <th className="text-left py-3 px-5">진입 시각</th>
+                  <th className="text-left py-3 px-5">청산 시각</th>
+                </tr>
+              </thead>
+              <tbody>
+                {closedPositions.map((pos: Position) => {
+                  const pnl = Number(pos.realizedPnl);
+                  const costBasis = Number(pos.avgPrice) * Number(pos.size);
+                  const pnlPct = costBasis > 0 ? (pnl / costBasis * 100) : 0;
+                  return (
+                    <tr key={pos.id} className="border-b border-slate-700/30 hover:bg-slate-700/20">
+                      <td className="py-3 px-5 font-medium text-white">{pos.coinPair}</td>
+                      <td className="py-3 px-5 text-right text-slate-300">{Number(pos.avgPrice).toLocaleString()}</td>
+                      <td className="py-3 px-5 text-right text-slate-300">{Number(pos.size).toFixed(6)}</td>
+                      <td className={`py-3 px-5 text-right font-bold ${pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        {pnl >= 0 ? '+' : ''}{pnl.toLocaleString()}
+                      </td>
+                      <td className={`py-3 px-5 text-right text-xs font-semibold ${pnlPct >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        {pnlPct >= 0 ? '+' : ''}{pnlPct.toFixed(2)}%
+                      </td>
+                      <td className="py-3 px-5 text-slate-400 text-xs">{new Date(pos.openedAt).toLocaleString('ko-KR')}</td>
+                      <td className="py-3 px-5 text-slate-400 text-xs">{pos.closedAt ? new Date(pos.closedAt).toLocaleString('ko-KR') : '-'}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* 포지션 섹션 */}
       <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl overflow-hidden">

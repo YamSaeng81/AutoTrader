@@ -71,11 +71,13 @@ public class PaperTradingController {
      * GET /api/v1/paper-trading/sessions/{sessionId}/positions
      */
     @GetMapping("/sessions/{sessionId}/positions")
-    public ApiResponse<List<Map<String, Object>>> getPositions(@PathVariable Long sessionId) {
-        List<Map<String, Object>> positions = paperTradingService.getOpenPositions(sessionId).stream()
-                .map(this::toPositionMap)
-                .toList();
-        return ApiResponse.ok(positions);
+    public ApiResponse<List<Map<String, Object>>> getPositions(
+            @PathVariable Long sessionId,
+            @RequestParam(defaultValue = "OPEN") String status) {
+        List<PaperPositionEntity> positions = "ALL".equals(status)
+                ? paperTradingService.getAllPositions(sessionId)
+                : paperTradingService.getOpenPositions(sessionId);
+        return ApiResponse.ok(positions.stream().map(this::toPositionMap).toList());
     }
 
     /**
@@ -199,16 +201,20 @@ public class PaperTradingController {
                         .multiply(BigDecimal.valueOf(100))
                 : BigDecimal.ZERO;
 
-        return Map.of(
-                "id", p.getId(),
-                "coinPair", p.getCoinPair(),
-                "side", p.getSide(),
-                "quantity", p.getSize(),
-                "avgEntryPrice", p.getAvgPrice(),
-                "unrealizedPnl", p.getUnrealizedPnl(),
-                "unrealizedPnlPct", unrealizedPnlPct,
-                "openedAt", p.getOpenedAt().toString()
-        );
+        java.util.Map<String, Object> map = new java.util.HashMap<>();
+        map.put("id", p.getId());
+        map.put("coinPair", p.getCoinPair());
+        map.put("side", p.getSide());
+        map.put("quantity", p.getSize());
+        map.put("avgEntryPrice", p.getAvgPrice());
+        map.put("entryPrice", p.getEntryPrice());
+        map.put("unrealizedPnl", p.getUnrealizedPnl());
+        map.put("unrealizedPnlPct", unrealizedPnlPct);
+        map.put("realizedPnl", p.getRealizedPnl() != null ? p.getRealizedPnl() : BigDecimal.ZERO);
+        map.put("status", p.getStatus());
+        map.put("openedAt", p.getOpenedAt().toString());
+        map.put("closedAt", p.getClosedAt() != null ? p.getClosedAt().toString() : null);
+        return map;
     }
 
     private static final BigDecimal FEE_RATE = new BigDecimal("0.0005");
