@@ -14,7 +14,7 @@ const api = axios.create({
 
 export const backtestApi = {
     run: (req: BacktestRequest) =>
-        api.post<ApiResponse<BacktestResult>>('/api/v1/backtest/run', req).then(r => r.data),
+        api.post<ApiResponse<BacktestResult>>('/api/v1/backtest/run', req, { timeout: 300000 }).then(r => r.data),
     get: (id: string) =>
         api.get<ApiResponse<BacktestResult>>(`/api/v1/backtest/${id}`).then(r => r.data),
     list: (_page = 0) =>
@@ -24,7 +24,7 @@ export const backtestApi = {
     trades: (id: string, page = 0) =>
         api.get<ApiResponse<PageResponse<TradeRecord>>>(`/api/v1/backtest/${id}/trades`, { params: { page } }).then(r => r.data),
     walkForward: (req: WalkForwardRequest) =>
-        api.post<ApiResponse<WalkForwardResult>>('/api/v1/backtest/walk-forward', req).then(r => r.data),
+        api.post<ApiResponse<WalkForwardResult>>('/api/v1/backtest/walk-forward', req, { timeout: 300000 }).then(r => r.data),
     delete: (id: string | number) =>
         api.delete<ApiResponse<null>>(`/api/v1/backtest/${id}`).then(r => r.data),
     bulkDelete: (ids: (string | number)[]) =>
