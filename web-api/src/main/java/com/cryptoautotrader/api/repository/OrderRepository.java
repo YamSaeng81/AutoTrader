@@ -24,8 +24,11 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
     /** 거래소 주문 ID로 조회 */
     Optional<OrderEntity> findByExchangeOrderId(String exchangeOrderId);
 
-    /** 특정 코인+방향+상태의 주문 존재 여부 (중복 주문 방지) */
+    /** 특정 코인+방향+상태의 주문 존재 여부 (중복 주문 방지 — 전역) */
     boolean existsByCoinPairAndSideAndStateIn(String coinPair, String side, List<String> states);
+
+    /** 특정 세션+코인+방향+상태의 주문 존재 여부 (중복 주문 방지 — 세션 단위) */
+    boolean existsBySessionIdAndCoinPairAndSideAndStateIn(Long sessionId, String coinPair, String side, List<String> states);
 
     /** 특정 세션의 주문 내역 (최신순, 페이징) */
     Page<OrderEntity> findBySessionIdOrderByCreatedAtDesc(Long sessionId, Pageable pageable);

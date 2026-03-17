@@ -89,13 +89,16 @@ public class OrderExecutionEngine {
         log.info("주문 제출 요청: {} {} {} 수량={}", request.getCoinPair(), request.getSide(),
                 request.getOrderType(), request.getQuantity());
 
-        // 1. 중복 주문 방지
-        boolean duplicateExists = orderRepository.existsByCoinPairAndSideAndStateIn(
-                request.getCoinPair(), request.getSide(), ACTIVE_STATES);
+        // 1. 중복 주문 방지 — 세션 주문은 세션 단위로, 비세션 주문은 전역으로 체크
+        boolean duplicateExists = request.getSessionId() != null
+                ? orderRepository.existsBySessionIdAndCoinPairAndSideAndStateIn(
+                        request.getSessionId(), request.getCoinPair(), request.getSide(), ACTIVE_STATES)
+                : orderRepository.existsByCoinPairAndSideAndStateIn(
+                        request.getCoinPair(), request.getSide(), ACTIVE_STATES);
         if (duplicateExists) {
-            throw new IllegalStateException(
-                    String.format("중복 주문: %s %s 방향의 활성 주문이 이미 존재합니다",
-                            request.getCoinPair(), request.getSide()));
+            log.warn("중복 주문 거부 (sessionId={}, {} {}): 이미 활성 주문이 있습니다",
+                    request.getSessionId(), request.getCoinPair(), request.getSide());
+            return null;
         }
 
         // 2. 주문 엔티티 생성 (PENDING) — sessionId/positionId는 request에서 직접 주입 (@Async 리턴값 의존 회피)
@@ -292,28 +295,28 @@ public class OrderExecutionEngine {
     }
 
     private void handleBuyFill(OrderEntity order) {
-        Optional<PositionEntity> existingPos = positionRepository
-                .findByCoinPairAndStatus(order.getCoinPair(), "OPEN");
+        // positionId가 있으면 해당 포지션을 직접 조회 (세션 데이터 혼재 방지)
+        Optional<PositionEntity> existingPos = order.getPositionId() != null
+                ? positionRepository.findById(order.getPositionId())
+                : positionRepository.findByCoinPairAndStatus(order.getCoinPair(), "OPEN");
 
         if (existingPos.isPresent()) {
-            // 기존 포지션에 추가 매수 (평균 단가 갱신)
+            // 기존 포지션에 체결가/수량 반영 (평균 단가 갱신)
             PositionEntity pos = existingPos.get();
-            BigDecimal oldTotal = pos.getAvgPrice().multiply(pos.getSize());
-            BigDecimal newTotal = order.getPrice().multiply(order.getFilledQuantity());
-            BigDecimal totalSize = pos.getSize().add(order.getFilledQuantity());
-            BigDecimal newAvgPrice = oldTotal.add(newTotal)
-                    .divide(totalSize, 8, RoundingMode.HALF_UP);
-
-            pos.setAvgPrice(newAvgPrice);
-            pos.setSize(totalSize);
+            if (order.getFilledQuantity() != null && order.getPrice() != null
+                    && order.getFilledQuantity().compareTo(BigDecimal.ZERO) > 0) {
+                BigDecimal oldTotal = pos.getAvgPrice().multiply(pos.getSize());
+                BigDecimal newTotal = order.getPrice().multiply(order.getFilledQuantity());
+                BigDecimal totalSize = pos.getSize().add(order.getFilledQuantity());
+                BigDecimal newAvgPrice = oldTotal.add(newTotal)
+                        .divide(totalSize, 8, RoundingMode.HALF_UP);
+                pos.setAvgPrice(newAvgPrice);
+                pos.setSize(totalSize);
+            }
             positionRepository.save(pos);
-
-            order.setPositionId(pos.getId());
-            orderRepository.save(order);
-
-            log.info("기존 포지션 추가 매수: posId={}, 평균단가={}, 수량={}", pos.getId(), newAvgPrice, totalSize);
+            log.info("BUY 체결 반영: posId={}, 평균단가={}, 수량={}", pos.getId(), pos.getAvgPrice(), pos.getSize());
         } else {
-            // 새 포지션 생성
+            // positionId 없는 비세션 주문만 새 포지션 생성
             PositionEntity pos = PositionEntity.builder()
                     .coinPair(order.getCoinPair())
                     .side("LONG")
@@ -323,17 +326,17 @@ public class OrderExecutionEngine {
                     .status("OPEN")
                     .build();
             pos = positionRepository.save(pos);
-
             order.setPositionId(pos.getId());
             orderRepository.save(order);
-
             log.info("새 포지션 생성: posId={}, {} @ {}", pos.getId(), order.getCoinPair(), order.getPrice());
         }
     }
 
     private void handleSellFill(OrderEntity order) {
-        Optional<PositionEntity> openPos = positionRepository
-                .findByCoinPairAndStatus(order.getCoinPair(), "OPEN");
+        // positionId가 있으면 해당 포지션을 직접 조회 (세션 데이터 혼재 방지)
+        Optional<PositionEntity> openPos = order.getPositionId() != null
+                ? positionRepository.findById(order.getPositionId())
+                : positionRepository.findByCoinPairAndStatus(order.getCoinPair(), "OPEN");
 
         if (openPos.isEmpty()) {
             log.warn("매도 체결이지만 열린 포지션 없음: {} (orderId={})", order.getCoinPair(), order.getId());

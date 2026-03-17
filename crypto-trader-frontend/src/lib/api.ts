@@ -171,4 +171,16 @@ export const settingsApi = {
         api.post<ApiResponse<{ success: boolean }>>('/api/v1/settings/telegram/test', {}).then(r => r.data),
     upbitStatus: () =>
         api.get<ApiResponse<import('./types').UpbitStatusResponse>>('/api/v1/settings/upbit/status').then(r => r.data),
+    dbStats: () =>
+        api.get<ApiResponse<DbStats>>('/api/v1/settings/db/stats').then(r => r.data),
+    dbReset: (target: 'BACKTEST' | 'PAPER_TRADING' | 'LIVE_TRADING', password: string) =>
+        api.post<ApiResponse<{ target: string; deleted: Record<string, number>; total: number }>>(
+            '/api/v1/settings/db/reset', { target, password }
+        ).then(r => r.data),
 };
+
+export interface DbStats {
+    backtest:     Record<string, number>;
+    paperTrading: Record<string, number>;
+    liveTrading:  Record<string, number>;
+}

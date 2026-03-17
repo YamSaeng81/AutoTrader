@@ -286,11 +286,14 @@ public class LiveTradingService {
             throw new SessionStateException("실행 중인 세션은 삭제할 수 없습니다. 먼저 정지하세요.");
         }
 
-        // OPEN 포지션이 남아 있으면 삭제 불가 (orphan 방지)
+        // OPEN 포지션이 남아 있으면 강제 종료 (세션 정지 후 남은 orphan 포지션 정리)
         List<PositionEntity> openPositions = positionRepository.findBySessionIdAndStatus(sessionId, "OPEN");
-        if (!openPositions.isEmpty()) {
-            throw new SessionStateException(
-                    "미청산 포지션(" + openPositions.size() + "개)이 남아 있습니다. 포지션 청산 후 삭제하세요.");
+        for (PositionEntity pos : openPositions) {
+            pos.setStatus("CLOSED");
+            pos.setClosedAt(Instant.now());
+            positionRepository.save(pos);
+            log.warn("세션 삭제 시 미청산 포지션 강제 종료: posId={} {} (sessionId={})",
+                    pos.getId(), pos.getCoinPair(), sessionId);
         }
 
         // 관련 주문/포지션의 session_id를 null로 설정 (이력 보존)
@@ -499,6 +502,14 @@ public class LiveTradingService {
 
     private void executeSessionBuy(LiveTradingSessionEntity session,
                                     String coinPair, BigDecimal price, String reason) {
+        // 사전 검증: 이미 이 세션에 활성 BUY 주문이 있으면 스킵 (orphan 포지션 방지)
+        boolean hasPendingBuy = orderRepository.existsBySessionIdAndCoinPairAndSideAndStateIn(
+                session.getId(), coinPair, "BUY", ACTIVE_ORDER_STATES);
+        if (hasPendingBuy) {
+            log.warn("매수 스킵: 세션({})에 이미 활성 BUY 주문이 있습니다 ({})", session.getId(), coinPair);
+            return;
+        }
+
         BigDecimal investAmount = session.getAvailableKrw().multiply(INVEST_RATIO);
         if (investAmount.compareTo(BigDecimal.valueOf(5000)) < 0) {
             log.warn("매수 불가: 가용 자금 부족 ({}) sessionId={}",

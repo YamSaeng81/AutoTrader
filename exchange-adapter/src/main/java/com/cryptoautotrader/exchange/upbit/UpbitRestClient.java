@@ -6,13 +6,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
@@ -84,7 +87,9 @@ public class UpbitRestClient {
      * @return ticker 응답 목록
      */
     public List<Map<String, Object>> getTicker(String markets) throws Exception {
-        String url = BASE_URL + "/ticker?markets=" + markets;
+        if (markets == null || markets.isBlank()) return Collections.emptyList();
+        String encoded = URLEncoder.encode(markets, StandardCharsets.UTF_8);
+        String url = BASE_URL + "/ticker?markets=" + encoded;
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .header("Accept", "application/json")
@@ -92,6 +97,11 @@ public class UpbitRestClient {
                 .build();
         throttle();
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        if (response.statusCode() == 404) {
+            // 존재하지 않는 마켓 코드가 포함된 경우 빈 목록 반환 (계좌 페이지 오류 방지)
+            log.warn("Upbit ticker 마켓 코드 없음 (404): markets={}", markets);
+            return Collections.emptyList();
+        }
         if (response.statusCode() != 200) {
             log.error("Upbit ticker API 오류: status={}, body={}", response.statusCode(), response.body());
             throw new RuntimeException("Upbit ticker API 호출 실패: " + response.statusCode());

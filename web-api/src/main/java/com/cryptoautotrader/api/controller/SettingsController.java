@@ -4,11 +4,14 @@ import com.cryptoautotrader.api.dto.ApiResponse;
 import com.cryptoautotrader.api.entity.TelegramNotificationLogEntity;
 import com.cryptoautotrader.api.repository.MarketDataCacheRepository;
 import com.cryptoautotrader.api.service.AccountService;
+import com.cryptoautotrader.api.service.DbResetService;
 import com.cryptoautotrader.api.service.TelegramNotificationService;
 import com.cryptoautotrader.exchange.upbit.UpbitOrderClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -36,6 +39,9 @@ public class SettingsController {
 
     @Autowired
     private MarketDataCacheRepository marketDataCacheRepository;
+
+    @Autowired
+    private DbResetService dbResetService;
 
     /** 텔레그램 전송 이력 조회 (최신순, 페이지네이션) */
     @GetMapping("/telegram/logs")
@@ -127,5 +133,44 @@ public class SettingsController {
         }
 
         return ApiResponse.ok(result);
+    }
+
+    // ── DB 초기화 ──────────────────────────────────────────────
+
+    /** DB 초기화 전 레코드 수 미리보기 */
+    @GetMapping("/db/stats")
+    public ApiResponse<Map<String, Object>> getDbStats() {
+        return ApiResponse.ok(dbResetService.getStats());
+    }
+
+    /**
+     * DB 초기화 — 비밀번호 확인 후 카테고리별 삭제
+     * target: BACKTEST | PAPER_TRADING | LIVE_TRADING
+     */
+    @PostMapping("/db/reset")
+    public ApiResponse<Map<String, Object>> resetDb(
+            @RequestBody Map<String, String> body) {
+
+        String password = body.get("password");
+        String target   = body.get("target");
+
+        if (!dbResetService.checkPassword(password)) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "비밀번호가 올바르지 않습니다.");
+        }
+
+        if (target == null || target.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "target이 필요합니다.");
+        }
+
+        Map<String, Integer> deleted = switch (target) {
+            case "BACKTEST"      -> dbResetService.resetBacktest();
+            case "PAPER_TRADING" -> dbResetService.resetPaperTrading();
+            case "LIVE_TRADING"  -> dbResetService.resetLiveTrading();
+            default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "지원하지 않는 target: " + target);
+        };
+
+        int total = deleted.values().stream().mapToInt(Integer::intValue).sum();
+        return ApiResponse.ok(Map.of("target", target, "deleted", deleted, "total", total));
     }
 }

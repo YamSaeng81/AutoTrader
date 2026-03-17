@@ -2,7 +2,7 @@
 
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝날 때마다 `## 다음 할 일`과 `## 최근 변경사항`을 반드시 업데이트한다.
-> **마지막 갱신**: 2026-03-17 (실전매매 캔들 데이터 버그 수정 + Upbit 연동 상태 페이지)
+> **마지막 갱신**: 2026-03-18 (실전매매 버그 3종 수정 + DB 초기화 페이지 추가)
 
 ---
 
@@ -64,7 +64,8 @@ VWAP / EMA Cross / Bollinger Band / Grid / RSI(다이버전스) / MACD(히스토
 
 ### 즉시
 
-- [ ] `🔴 HIGH` **실전매매 소액 테스트** — 🧪 테스트 세션(TEST_TIMED) 생성 → 매수 체결 확인 → 3분 후 자동 매도 확인
+- [ ] `🔴 HIGH` **실전매매 소액 테스트** — 서버에 최신 코드 배포 후 TEST_TIMED 세션 생성 → 매수 체결 확인 → 3분 후 자동 매도 확인
+  - 배포 전 DB 정리: `public."order"` 테이블에서 `state IN ('PENDING','SUBMITTED')` + `coin_pair = 'KRW-ETH'` + `side = 'BUY'` 주문 있으면 FAILED 처리
 - [ ] `🟡 MEDIUM` 텔레그램 수신 확인 (서버 재기동 후 12:00/00:00 정상 수신 여부)
 - [ ] `🟡 MEDIUM` 모의투자 텔레그램 이력 확인 — 세션 생성/중단 시 텔레그램 이력 페이지에 SESSION_START/STOP 로그 표시되는지 검증
 
@@ -80,6 +81,26 @@ VWAP / EMA Cross / Bollinger Band / Grid / RSI(다이버전스) / MACD(히스토
 ---
 
 ## 최근 변경사항
+
+### 2026-03-18 — DB 초기화 페이지 (설정 메뉴)
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `DbResetService.java` | **신규** — 카테고리별(백테스트/모의투자/실전매매) DELETE + 건수 통계 조회. 비밀번호 `!Iloveyhde1` 서버 검증 |
+| `SettingsController.java` | `GET /api/v1/settings/db/stats` + `POST /api/v1/settings/db/reset` 추가 |
+| `app/settings/db-reset/page.tsx` | **신규** — 3개 카테고리 카드(테이블별 건수 미리보기) + 비밀번호 모달 + 삭제 결과 표시 |
+| `lib/api.ts` | `settingsApi.dbStats()`, `settingsApi.dbReset()` 추가 |
+| `Sidebar.tsx` | 설정 그룹에 "DB 초기화" 메뉴 추가 (`/settings/db-reset`) |
+
+### 2026-03-18 — 실전매매 매수 미실행 + 데이터 혼재 + 이력 삭제 오류 수정
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `OrderRepository.java` | `existsBySessionIdAndCoinPairAndSideAndStateIn` 추가 — 세션 단위 중복 주문 체크 |
+| `OrderExecutionEngine.java` | 중복 주문 체크를 세션 단위로 변경 (기존: 전역 coinPair+side만 체크 → 다른 세션의 활성 주문이 신규 세션 매수 차단하는 버그). `@Async` 스레드에서 예외 대신 `null` 반환으로 변경 (예외가 조용히 사라지는 문제 제거). `handleBuyFill`/`handleSellFill`에서 `positionId` 직접 조회 (기존: coinPair만으로 전역 검색 → 세션간 포지션 데이터 혼재) |
+| `LiveTradingService.java` | `executeSessionBuy` 앞에 세션 단위 중복 체크 추가 → 포지션 생성 전 차단 (orphan 포지션 방지). `deleteSession` OPEN 포지션 예외 대신 강제 종료 후 진행 (이전 실패한 테스트의 orphan 포지션으로 삭제가 막히던 버그) |
+
+> **근본 원인**: `OrderExecutionEngine.submitOrder()`의 중복 주문 체크가 `sessionId`를 무시하고 전역으로 동작했음. 이전 세션의 KRW-ETH BUY 주문이 PENDING/SUBMITTED 상태로 남아있으면 모든 후속 세션의 매수가 차단됨. 게다가 `@Async`라서 예외가 사라지고 order 엔티티도 생성 안 됨. 동시에 `handleBuyFill`/`handleSellFill`이 `positionId` 대신 coinPair로 전역 검색해 세션간 데이터가 섞임.
 
 ### 2026-03-17 — 실전매매 캔들 데이터 버그 수정 + Upbit 연동 상태 페이지
 
