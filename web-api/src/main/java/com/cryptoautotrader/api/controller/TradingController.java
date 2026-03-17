@@ -1,7 +1,7 @@
 package com.cryptoautotrader.api.controller;
 
 import com.cryptoautotrader.api.dto.*;
-import com.cryptoautotrader.api.entity.CandleDataEntity;
+import com.cryptoautotrader.api.entity.MarketDataCacheEntity;
 import com.cryptoautotrader.api.entity.LiveTradingSessionEntity;
 import com.cryptoautotrader.api.entity.OrderEntity;
 import com.cryptoautotrader.api.entity.PositionEntity;
@@ -101,7 +101,7 @@ public class TradingController {
     /** 세션 가격 차트 데이터 (캔들 + 매수매도 시점) */
     @GetMapping("/sessions/{id}/chart")
     public ApiResponse<Map<String, Object>> getSessionChart(@PathVariable Long id) {
-        List<CandleDataEntity> candles = liveTradingService.getChartCandles(id);
+        List<MarketDataCacheEntity> candles = liveTradingService.getChartCandles(id);
         List<Map<String, Object>> allOrders = liveTradingService.getAllSessionOrders(id).stream()
                 .map(this::toOrderMap)
                 .toList();

@@ -17,4 +17,8 @@ public interface MarketDataCacheRepository extends JpaRepository<MarketDataCache
                                             @Param("timeframe") String timeframe,
                                             @Param("start") Instant start,
                                             @Param("end") Instant end);
+
+    @Query("SELECT c.coinPair, c.timeframe, MIN(c.time), MAX(c.time), COUNT(c) " +
+            "FROM MarketDataCacheEntity c GROUP BY c.coinPair, c.timeframe ORDER BY c.coinPair, c.timeframe")
+    List<Object[]> findDataSummary();
 }

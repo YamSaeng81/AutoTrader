@@ -21,6 +21,24 @@ export interface TelegramLogsResponse {
   size: number;
 }
 
+export interface UpbitCandleSummary {
+  coinPair: string;
+  timeframe: string;
+  from: string | null;
+  to: string | null;
+  count: number;
+}
+
+export interface UpbitStatusResponse {
+  apiKeyConfigured: boolean;
+  accountQueryOk: boolean;
+  totalAssetKrw?: number;
+  accountError?: string;
+  candleQueryOk: boolean;
+  candleSummary?: UpbitCandleSummary[];
+  candleError?: string;
+}
+
 export type StrategyType = 'VWAP' | 'EMA_CROSS' | 'BOLLINGER' | 'GRID'
     | 'RSI' | 'MACD' | 'SUPERTREND' | 'ATR_BREAKOUT' | 'ORDERBOOK_IMBALANCE' | 'STOCHASTIC_RSI'
     | 'COMPOSITE';

@@ -2,7 +2,7 @@
 
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝날 때마다 `## 다음 할 일`과 `## 최근 변경사항`을 반드시 업데이트한다.
-> **마지막 갱신**: 2026-03-17 (Upbit 주문 로그 페이지 + 시장가 매수 수량 버그 수정)
+> **마지막 갱신**: 2026-03-17 (실전매매 캔들 데이터 버그 수정 + Upbit 연동 상태 페이지)
 
 ---
 
@@ -80,6 +80,22 @@ VWAP / EMA Cross / Bollinger Band / Grid / RSI(다이버전스) / MACD(히스토
 ---
 
 ## 최근 변경사항
+
+### 2026-03-17 — 실전매매 캔들 데이터 버그 수정 + Upbit 연동 상태 페이지
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `MarketDataSyncService.java` | **버그 수정**: `VirtualBalanceRepository`(모의투자)만 체크하던 것을 `LiveTradingSessionRepository`도 포함하도록 수정 — 실전매매 세션 캔들도 `market_data_cache`에 동기화됨 |
+| `LiveTradingService.java` | **버그 수정**: `fetchRecentCandles()`가 `candle_data`(백테스트용 테이블) 읽던 것을 `market_data_cache`(실시간 캐시 테이블)로 교체. `getChartCandles()` 반환 타입도 `MarketDataCacheEntity`로 통일 |
+| `TradingController.java` | `getChartCandles()` 반환 타입 변경에 따라 `CandleDataEntity` → `MarketDataCacheEntity` 교체 |
+| `MarketDataCacheRepository.java` | `findDataSummary()` 쿼리 추가 (코인+타임프레임별 캔들 현황) |
+| `SettingsController.java` | `GET /api/v1/settings/upbit/status` 추가 — API 키 설정 여부 + 잔고 조회 + 캔들 캐시 현황 종합 점검 |
+| `lib/api.ts` | `settingsApi.upbitStatus()` 추가 |
+| `lib/types.ts` | `UpbitStatusResponse`, `UpbitCandleSummary` 타입 추가 |
+| `app/settings/upbit-status/page.tsx` | **신규** — Upbit 연동 상태 페이지. API 키/잔고/캔들 캐시 상태 + 진단 가이드 |
+| `Sidebar.tsx` | "Upbit 연동 상태" 메뉴 추가 (`/settings/upbit-status`) |
+
+> **근본 원인**: `MarketDataSyncService`가 모의투자 세션만 캔들 동기화 대상으로 포함하고 실전매매 세션은 무시했음. 동시에 `LiveTradingService`는 실시간 캐시(`market_data_cache`) 대신 백테스트 데이터(`candle_data`)를 읽고 있었음. 결과적으로 실전매매 스케줄러가 항상 "캔들 부족" 경고와 함께 전략 실행을 건너뛰었음.
 
 ### 2026-03-17 — 시장가 매수 버그 수정 + Upbit 주문 로그 페이지
 

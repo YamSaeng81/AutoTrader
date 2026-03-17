@@ -1,6 +1,7 @@
 package com.cryptoautotrader.api.service;
 
 import com.cryptoautotrader.api.entity.MarketDataCacheEntity;
+import com.cryptoautotrader.api.repository.LiveTradingSessionRepository;
 import com.cryptoautotrader.api.repository.MarketDataCacheRepository;
 import com.cryptoautotrader.api.repository.paper.VirtualBalanceRepository;
 import com.cryptoautotrader.api.util.TimeframeUtils;
@@ -16,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -36,6 +39,7 @@ public class MarketDataSyncService {
 
     private final VirtualBalanceRepository balanceRepo;
     private final MarketDataCacheRepository marketDataCacheRepo;
+    private final LiveTradingSessionRepository liveTradingSessionRepository;
 
     /** EngineConfig Bean — API 키 없이도 공개 캔들 API 사용 가능 */
     @Autowired(required = false)
@@ -48,17 +52,17 @@ public class MarketDataSyncService {
     @Scheduled(fixedDelay = 60_000)
     @Transactional
     public void syncMarketData() {
-        // RUNNING 세션에서 고유 (coinPair:timeframe) 추출
-        List<String[]> pairs = balanceRepo.findByStatusOrderByStartedAtAsc("RUNNING").stream()
-                .map(s -> new String[]{s.getCoinPair(), s.getTimeframe()})
-                .collect(Collectors.collectingAndThen(
-                        Collectors.toCollection(() -> new java.util.ArrayList<>()),
-                        list -> {
-                            Set<String> seen = new java.util.HashSet<>();
-                            list.removeIf(p -> !seen.add(p[0] + ":" + p[1]));
-                            return list;
-                        }
-                ));
+        // RUNNING 세션에서 고유 (coinPair:timeframe) 추출 — 모의투자 + 실전매매 모두 포함
+        List<String[]> rawPairs = new ArrayList<>();
+        balanceRepo.findByStatusOrderByStartedAtAsc("RUNNING")
+                .forEach(s -> rawPairs.add(new String[]{s.getCoinPair(), s.getTimeframe()}));
+        liveTradingSessionRepository.findByStatus("RUNNING")
+                .forEach(s -> rawPairs.add(new String[]{s.getCoinPair(), s.getTimeframe()}));
+
+        Set<String> seen = new HashSet<>();
+        List<String[]> pairs = rawPairs.stream()
+                .filter(p -> seen.add(p[0] + ":" + p[1]))
+                .collect(Collectors.toList());
 
         if (pairs.isEmpty()) return;
 

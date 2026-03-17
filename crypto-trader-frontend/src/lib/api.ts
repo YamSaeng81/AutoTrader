@@ -169,4 +169,6 @@ export const settingsApi = {
         api.get<ApiResponse<import('./types').TelegramLogsResponse>>('/api/v1/settings/telegram/logs', { params: { page, size } }).then(r => r.data),
     telegramTest: () =>
         api.post<ApiResponse<{ success: boolean }>>('/api/v1/settings/telegram/test', {}).then(r => r.data),
+    upbitStatus: () =>
+        api.get<ApiResponse<import('./types').UpbitStatusResponse>>('/api/v1/settings/upbit/status').then(r => r.data),
 };

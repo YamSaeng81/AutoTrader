@@ -74,8 +74,9 @@ const navGroups: NavGroup[] = [
         icon: Settings,
         items: [
             { href: '/settings/telegram',    label: '텔레그램 이력',  icon: MessageSquare },
-            { href: '/settings/upbit-logs',  label: 'Upbit 주문 로그', icon: Activity },
-            { href: '/logs',                 label: '시스템 로그',    icon: FileText },
+            { href: '/settings/upbit-logs',   label: 'Upbit 주문 로그', icon: Activity },
+            { href: '/settings/upbit-status', label: 'Upbit 연동 상태', icon: Activity },
+            { href: '/logs',                  label: '시스템 로그',    icon: FileText },
         ],
     },
 ];

@@ -12,7 +12,8 @@ import com.cryptoautotrader.api.entity.StrategyLogEntity;
 import com.cryptoautotrader.api.repository.LiveTradingSessionRepository;
 import com.cryptoautotrader.api.repository.OrderRepository;
 import com.cryptoautotrader.api.repository.PositionRepository;
-import com.cryptoautotrader.api.repository.CandleDataRepository;
+import com.cryptoautotrader.api.entity.MarketDataCacheEntity;
+import com.cryptoautotrader.api.repository.MarketDataCacheRepository;
 import com.cryptoautotrader.api.repository.StrategyConfigRepository;
 import com.cryptoautotrader.api.repository.StrategyLogRepository;
 import com.cryptoautotrader.api.util.TimeframeUtils;
@@ -69,7 +70,7 @@ public class LiveTradingService {
     private final PositionRepository positionRepository;
     private final OrderRepository orderRepository;
     private final StrategyConfigRepository strategyConfigRepository;
-    private final CandleDataRepository candleDataRepository;
+    private final MarketDataCacheRepository candleDataRepository;
     private final OrderExecutionEngine orderExecutionEngine;
     private final PositionService positionService;
     private final ExchangeHealthMonitor exchangeHealthMonitor;
@@ -639,7 +640,7 @@ public class LiveTradingService {
     // -- 내부: 유틸 -----------------------------------------------
 
     @Transactional(readOnly = true)
-    public List<com.cryptoautotrader.api.entity.CandleDataEntity> getChartCandles(Long sessionId) {
+    public List<MarketDataCacheEntity> getChartCandles(Long sessionId) {
         LiveTradingSessionEntity session = getSessionOrThrow(sessionId);
         Instant from = session.getStartedAt() != null ? session.getStartedAt() : Instant.now().minus(7, ChronoUnit.DAYS);
         Instant to = session.getStoppedAt() != null ? session.getStoppedAt() : Instant.now();
