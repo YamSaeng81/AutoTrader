@@ -523,11 +523,12 @@ public class LiveTradingService {
         pos = positionRepository.save(pos);
 
         // 주문 제출 — sessionId/positionId를 request에 미리 설정 (@Async 리턴값 의존 회피)
+        // 시장가 매수는 Upbit price 타입: quantity 필드에 KRW 금액(investAmount)을 전달해야 함
         OrderRequest order = new OrderRequest();
         order.setCoinPair(coinPair);
         order.setSide("BUY");
         order.setOrderType("MARKET");
-        order.setQuantity(quantity);
+        order.setQuantity(investAmount);
         order.setReason(reason);
         order.setSessionId(session.getId());
         order.setPositionId(pos.getId());

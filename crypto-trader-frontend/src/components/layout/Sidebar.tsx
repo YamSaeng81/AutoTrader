@@ -8,7 +8,7 @@ import {
     Shield, LayoutDashboard, GitCompare, FileText, History,
     Moon, Sun, FlaskConical, ChevronLeft, ChevronRight,
     Wallet, Settings, ChevronDown, ChevronUp,
-    BarChart2, MessageSquare,
+    BarChart2, MessageSquare, Activity,
 } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 import { useUiStore } from '@/store';
@@ -73,8 +73,9 @@ const navGroups: NavGroup[] = [
         label: '설정',
         icon: Settings,
         items: [
-            { href: '/settings/telegram', label: '텔레그램 이력', icon: MessageSquare },
-            { href: '/logs',              label: '시스템 로그',   icon: FileText },
+            { href: '/settings/telegram',    label: '텔레그램 이력',  icon: MessageSquare },
+            { href: '/settings/upbit-logs',  label: 'Upbit 주문 로그', icon: Activity },
+            { href: '/logs',                 label: '시스템 로그',    icon: FileText },
         ],
     },
 ];

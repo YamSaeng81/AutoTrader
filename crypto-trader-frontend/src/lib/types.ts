@@ -252,6 +252,7 @@ export interface Position {
 export interface LiveOrder {
   id: number;
   positionId: number | null;
+  sessionId: number | null;
   coinPair: string;
   side: LiveOrderSide;
   orderType: LiveOrderType;
@@ -261,8 +262,11 @@ export interface LiveOrder {
   exchangeOrderId: string | null;
   filledQuantity: number;
   signalReason: string;
+  failedReason: string | null;
   createdAt: string;
+  submittedAt: string | null;
   filledAt: string | null;
+  cancelledAt: string | null;
 }
 
 export interface ExchangeHealth {

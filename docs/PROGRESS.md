@@ -2,7 +2,7 @@
 
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝날 때마다 `## 다음 할 일`과 `## 최근 변경사항`을 반드시 업데이트한다.
-> **마지막 갱신**: 2026-03-17 (전략 로그 아코디언 UI + RuntimeError 버그 수정)
+> **마지막 갱신**: 2026-03-17 (Upbit 주문 로그 페이지 + 시장가 매수 수량 버그 수정)
 
 ---
 
@@ -80,6 +80,15 @@ VWAP / EMA Cross / Bollinger Band / Grid / RSI(다이버전스) / MACD(히스토
 ---
 
 ## 최근 변경사항
+
+### 2026-03-17 — 시장가 매수 버그 수정 + Upbit 주문 로그 페이지
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `service/LiveTradingService.java` | `executeSessionBuy()` 버그 수정 — `order.setQuantity(quantity)` (코인 수량) → `order.setQuantity(investAmount)` (KRW 금액). Upbit price 타입은 총 KRW 금액이 필요한데 코인 수량을 넣어 최소 주문 미달로 주문 거부됨 |
+| `lib/types.ts` | `LiveOrder`에 누락 필드 추가 — `sessionId`, `failedReason`, `submittedAt`, `cancelledAt` |
+| `app/settings/upbit-logs/page.tsx` | **신규** — Upbit 주문 로그 페이지. 상태/방향 필터, 클릭 펼치기(거래소 주문ID·신호사유·실패사유), 10초 자동갱신, 페이지네이션 |
+| `components/layout/Sidebar.tsx` | 설정 그룹에 "Upbit 주문 로그" 메뉴 추가 (`/settings/upbit-logs`) |
 
 ### 2026-03-17 — TEST_TIMED 테스트 전략 추가 (실전매매 동작 검증용)
 
