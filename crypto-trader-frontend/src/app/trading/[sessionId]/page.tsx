@@ -1,8 +1,8 @@
 'use client';
 
-import { use } from 'react';
+import { use, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { tradingApi } from '@/lib/api';
+import { tradingApi, logApi } from '@/lib/api';
 import type { LiveTradingSession, Position, LiveOrder } from '@/lib/types';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -10,6 +10,7 @@ import { format } from 'date-fns';
 import {
   ComposedChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from 'recharts';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 
 const sessionStatusLabel: Record<string, string> = {
   CREATED: '대기',
@@ -24,6 +25,123 @@ const sessionStatusBadge: Record<string, string> = {
   STOPPED: 'bg-gray-500/20 text-gray-400 border-gray-500/40',
   EMERGENCY_STOPPED: 'bg-red-500/20 text-red-300 border-red-500/40',
 };
+
+const SIGNAL_STYLE: Record<string, string> = {
+  BUY:  'bg-green-500/20 text-green-300',
+  SELL: 'bg-red-500/20 text-red-300',
+  HOLD: 'bg-slate-700 text-slate-400',
+};
+
+function StrategyLogAccordion({ logs }: { logs: any[] | undefined }) {
+  const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
+
+  if (!logs || logs.length === 0) {
+    return (
+      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-700/50">
+          <h2 className="text-base font-semibold text-white">전략 분석 로그</h2>
+        </div>
+        <div className="py-10 text-center text-slate-500 text-sm">전략 로그가 없습니다.</div>
+      </div>
+    );
+  }
+
+  const groups: Record<string, any[]> = {};
+  for (const log of logs) {
+    const key = log.strategyName ?? '알 수 없음';
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(log);
+  }
+
+  const toggle = (key: string) => {
+    setOpenGroups(prev => {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
+      return next;
+    });
+  };
+
+  return (
+    <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl overflow-hidden">
+      <div className="px-5 py-4 border-b border-slate-700/50 flex items-center justify-between">
+        <h2 className="text-base font-semibold text-white">전략 분석 로그</h2>
+        <span className="text-xs text-slate-500">{Object.keys(groups).length}개 전략</span>
+      </div>
+      <div className="divide-y divide-slate-700/30">
+        {Object.entries(groups).map(([strategyName, groupLogs]) => {
+          const isOpen = openGroups.has(strategyName);
+          const latest = groupLogs[0];
+          const signalCounts = groupLogs.reduce((acc: Record<string, number>, l: any) => {
+            acc[l.signal] = (acc[l.signal] ?? 0) + 1;
+            return acc;
+          }, {});
+
+          return (
+            <div key={strategyName}>
+              <button
+                onClick={() => toggle(strategyName)}
+                className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-slate-700/20 transition-colors"
+              >
+                <span className="shrink-0 text-slate-500">
+                  {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                </span>
+                <span className="font-semibold text-sm text-slate-200 flex-1 text-left">
+                  {strategyName}
+                </span>
+                <span className="flex items-center gap-1.5 text-xs">
+                  {Object.entries(signalCounts).map(([sig, cnt]) => (
+                    <span key={sig} className={`px-2 py-0.5 rounded-full font-bold ${SIGNAL_STYLE[sig] ?? 'bg-slate-700 text-slate-400'}`}>
+                      {sig} {cnt}
+                    </span>
+                  ))}
+                </span>
+                <span className="text-xs text-slate-500 shrink-0 ml-2">
+                  {latest?.createdAt ? format(new Date(latest.createdAt), 'MM/dd HH:mm') : ''}
+                </span>
+                <span className="text-xs text-slate-500 shrink-0 ml-3 tabular-nums">
+                  총 {groupLogs.length}건
+                </span>
+              </button>
+
+              {isOpen && (
+                <div className="border-t border-slate-700/50 overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="text-slate-500 border-b border-slate-700/50 uppercase tracking-wide">
+                        <th className="text-left py-2 px-5">시간</th>
+                        <th className="text-left py-2 px-5">신호</th>
+                        <th className="text-left py-2 px-5">마켓 상태</th>
+                        <th className="text-left py-2 px-5">판단 이유</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {groupLogs.map((log: any) => (
+                        <tr key={log.id} className="border-b border-slate-700/30 hover:bg-slate-700/20 transition-colors">
+                          <td className="py-2.5 px-5 text-slate-400 whitespace-nowrap">
+                            {log.createdAt ? new Date(log.createdAt).toLocaleString('ko-KR') : '-'}
+                          </td>
+                          <td className="py-2.5 px-5">
+                            <span className={`px-2 py-0.5 rounded font-bold ${SIGNAL_STYLE[log.signal] ?? 'bg-slate-700 text-slate-400'}`}>
+                              {log.signal}
+                            </span>
+                          </td>
+                          <td className="py-2.5 px-5 text-slate-400">{log.marketRegime ?? '-'}</td>
+                          <td className="py-2.5 px-5 text-slate-400 max-w-sm truncate" title={log.reason}>
+                            {log.reason ?? '-'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 const orderStateBadge: Record<string, string> = {
   PENDING: 'bg-yellow-500/20 text-yellow-300',
@@ -64,6 +182,12 @@ export default function LiveSessionDetailPage({ params }: { params: Promise<{ se
     refetchInterval: 60000,
   });
 
+  const { data: strategyLogsRes } = useQuery({
+    queryKey: ['logs', 'strategy', 'live', sessionId],
+    queryFn: () => logApi.strategyLogs(0, 20, 'LIVE', sessionIdNum),
+    refetchInterval: 10000,
+  });
+
   const stopMutation = useMutation({
     mutationFn: () => tradingApi.stopSession(sessionIdNum),
     onSuccess: () => {
@@ -97,7 +221,7 @@ export default function LiveSessionDetailPage({ params }: { params: Promise<{ se
       buyOrder: null as any,
       sellOrder: null as any,
     })) ?? [];
-    if (!chartOrders) return candles;
+    if (!chartOrders || candles.length === 0) return candles;
     for (const o of chartOrders) {
       const ms = toMs(o.filledAt);
       if (!ms) continue;
@@ -501,6 +625,9 @@ export default function LiveSessionDetailPage({ params }: { params: Promise<{ se
           </div>
         )}
       </div>
+
+      {/* 전략 분석 로그 */}
+      <StrategyLogAccordion logs={(strategyLogsRes?.data as any)?.content} />
 
       {/* 세션 정보 */}
       <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">

@@ -59,6 +59,16 @@ const defaultForm: LiveTradingStartRequest = {
   stopLossPct: 5,
 };
 
+const TEST_TIMED_FORM: LiveTradingStartRequest = {
+  strategyType: 'TEST_TIMED',
+  coinPair: 'KRW-ETH',
+  timeframe: 'M1',
+  initialCapital: 10000,
+  stopLossPct: 100,
+};
+
+const isTestTimed = (form: LiveTradingStartRequest) => form.strategyType === 'TEST_TIMED';
+
 export default function TradingPage() {
   const { data: status } = useTradingStatus();
   const { data: sessions } = useTradingSessions();
@@ -115,7 +125,13 @@ export default function TradingPage() {
         </div>
         <div className="flex gap-3">
           <button
-            onClick={() => setShowCreateForm(true)}
+            onClick={() => { setForm({ ...TEST_TIMED_FORM }); setShowCreateForm(true); }}
+            className="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg transition-colors"
+          >
+            🧪 테스트 세션
+          </button>
+          <button
+            onClick={() => { setForm({ ...defaultForm }); setShowCreateForm(true); }}
             className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
           >
             + 새 세션
@@ -164,84 +180,123 @@ export default function TradingPage() {
       {showCreateForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
           <div className="bg-slate-800 border border-slate-600/50 rounded-xl p-8 max-w-lg w-full mx-4 shadow-2xl">
-            <h2 className="text-xl font-bold text-white mb-6">새 매매 세션 생성</h2>
+            <h2 className="text-xl font-bold text-white mb-6">
+              {isTestTimed(form) ? '🧪 테스트 세션 생성' : '새 매매 세션 생성'}
+            </h2>
+
+            {/* TEST_TIMED 안내 배너 */}
+            {isTestTimed(form) && (
+              <div className="mb-4 px-4 py-3 bg-amber-500/10 border border-amber-500/40 rounded-lg text-sm text-amber-300 space-y-1">
+                <p className="font-semibold">실전매매 동작 검증용 테스트 전략</p>
+                <ul className="text-xs text-amber-400 list-disc list-inside space-y-0.5">
+                  <li>세션 시작 직후 KRW-ETH 즉시 매수</li>
+                  <li>3분 경과 후 무조건 매도</li>
+                  <li>코인 / 타임프레임 / 원금 고정 (변경 불가)</li>
+                </ul>
+              </div>
+            )}
+
             <div className="space-y-4">
               {/* 전략 선택 */}
-              <div>
-                <label className="block text-sm text-slate-400 mb-1">전략</label>
-                <select
-                  value={form.strategyType}
-                  onChange={e => setForm({ ...form, strategyType: e.target.value })}
-                  className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
-                >
-                  <option value="COMPOSITE">COMPOSITE (시장 국면 자동 선택)</option>
-                  {activeStrategies.length > 0
-                    ? activeStrategies.map(s => (
-                        <option key={s.name} value={s.name}>{s.name}</option>
-                      ))
-                    : <option value="">활성화된 전략이 없습니다</option>
-                  }
-                </select>
-                {activeStrategies.length === 0 && (
-                  <p className="text-xs text-amber-400 mt-1">전략 관리 페이지에서 전략을 활성화하세요.</p>
-                )}
-              </div>
+              {!isTestTimed(form) && (
+                <div>
+                  <label className="block text-sm text-slate-400 mb-1">전략</label>
+                  <select
+                    value={form.strategyType}
+                    onChange={e => setForm({ ...form, strategyType: e.target.value })}
+                    className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
+                  >
+                    <option value="COMPOSITE">COMPOSITE (시장 국면 자동 선택)</option>
+                    {activeStrategies.length > 0
+                      ? activeStrategies.map(s => (
+                          <option key={s.name} value={s.name}>{s.name}</option>
+                        ))
+                      : <option value="">활성화된 전략이 없습니다</option>
+                    }
+                  </select>
+                  {activeStrategies.length === 0 && (
+                    <p className="text-xs text-amber-400 mt-1">전략 관리 페이지에서 전략을 활성화하세요.</p>
+                  )}
+                </div>
+              )}
 
               {/* 코인 선택 */}
               <div>
                 <label className="block text-sm text-slate-400 mb-1">코인</label>
-                <select
-                  value={form.coinPair}
-                  onChange={e => setForm({ ...form, coinPair: e.target.value })}
-                  className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
-                >
-                  {COIN_OPTIONS.map(c => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
+                {isTestTimed(form) ? (
+                  <div className="w-full bg-slate-700/50 border border-slate-600/50 text-slate-400 rounded-lg px-3 py-2 cursor-not-allowed">
+                    KRW-ETH <span className="text-xs text-slate-500 ml-1">(고정)</span>
+                  </div>
+                ) : (
+                  <select
+                    value={form.coinPair}
+                    onChange={e => setForm({ ...form, coinPair: e.target.value })}
+                    className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
+                  >
+                    {COIN_OPTIONS.map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                )}
               </div>
 
               {/* 타임프레임 */}
               <div>
                 <label className="block text-sm text-slate-400 mb-1">타임프레임</label>
-                <select
-                  value={form.timeframe}
-                  onChange={e => setForm({ ...form, timeframe: e.target.value })}
-                  className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
-                >
-                  {TIMEFRAME_OPTIONS.map(t => (
-                    <option key={t.value} value={t.value}>{t.label}</option>
-                  ))}
-                </select>
+                {isTestTimed(form) ? (
+                  <div className="w-full bg-slate-700/50 border border-slate-600/50 text-slate-400 rounded-lg px-3 py-2 cursor-not-allowed">
+                    1분 (M1) <span className="text-xs text-slate-500 ml-1">(고정)</span>
+                  </div>
+                ) : (
+                  <select
+                    value={form.timeframe}
+                    onChange={e => setForm({ ...form, timeframe: e.target.value })}
+                    className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
+                  >
+                    {TIMEFRAME_OPTIONS.map(t => (
+                      <option key={t.value} value={t.value}>{t.label}</option>
+                    ))}
+                  </select>
+                )}
               </div>
 
               {/* 투자금 */}
               <div>
                 <label className="block text-sm text-slate-400 mb-1">투자 원금 (KRW)</label>
-                <input
-                  type="number"
-                  value={form.initialCapital}
-                  onChange={e => setForm({ ...form, initialCapital: Number(e.target.value) })}
-                  min={10000}
-                  step={10000}
-                  className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
-                />
-                <p className="text-xs text-slate-500 mt-1">최소 10,000 KRW</p>
+                {isTestTimed(form) ? (
+                  <div className="w-full bg-slate-700/50 border border-slate-600/50 text-slate-400 rounded-lg px-3 py-2 cursor-not-allowed">
+                    10,000 KRW <span className="text-xs text-slate-500 ml-1">(고정)</span>
+                  </div>
+                ) : (
+                  <>
+                    <input
+                      type="number"
+                      value={form.initialCapital}
+                      onChange={e => setForm({ ...form, initialCapital: Number(e.target.value) })}
+                      min={10000}
+                      step={10000}
+                      className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
+                    />
+                    <p className="text-xs text-slate-500 mt-1">최소 10,000 KRW</p>
+                  </>
+                )}
               </div>
 
-              {/* 손절률 */}
-              <div>
-                <label className="block text-sm text-slate-400 mb-1">손절률 (%)</label>
-                <input
-                  type="number"
-                  value={form.stopLossPct ?? 5}
-                  onChange={e => setForm({ ...form, stopLossPct: Number(e.target.value) })}
-                  min={1}
-                  max={50}
-                  step={0.5}
-                  className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
-                />
-              </div>
+              {/* 손절률 (테스트 전략은 숨김 - 3분 후 무조건 매도) */}
+              {!isTestTimed(form) && (
+                <div>
+                  <label className="block text-sm text-slate-400 mb-1">손절률 (%)</label>
+                  <input
+                    type="number"
+                    value={form.stopLossPct ?? 5}
+                    onChange={e => setForm({ ...form, stopLossPct: Number(e.target.value) })}
+                    min={1}
+                    max={50}
+                    step={0.5}
+                    className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+              )}
             </div>
 
             {createError && (
@@ -260,7 +315,11 @@ export default function TradingPage() {
               <button
                 onClick={handleCreate}
                 disabled={createSession.isPending}
-                className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors disabled:opacity-50"
+                className={`flex-1 px-4 py-2 text-white font-bold rounded-lg transition-colors disabled:opacity-50 ${
+                  isTestTimed(form)
+                    ? 'bg-amber-600 hover:bg-amber-700'
+                    : 'bg-blue-600 hover:bg-blue-700'
+                }`}
               >
                 {createSession.isPending ? '생성 중...' : '세션 생성'}
               </button>

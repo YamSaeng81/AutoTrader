@@ -9,6 +9,7 @@ import com.cryptoautotrader.strategy.orderbook.OrderbookImbalanceStrategy;
 import com.cryptoautotrader.strategy.rsi.RsiStrategy;
 import com.cryptoautotrader.strategy.stochasticrsi.StochasticRsiStrategy;
 import com.cryptoautotrader.strategy.supertrend.SupertrendStrategy;
+import com.cryptoautotrader.strategy.testtraded.TestTimedStrategy;
 import com.cryptoautotrader.strategy.vwap.VwapStrategy;
 
 import java.util.LinkedHashMap;
@@ -32,6 +33,8 @@ public final class StrategyRegistry {
         register(new OrderbookImbalanceStrategy());
         // Phase 3 전략 6번째 (로직 구현 완료)
         register(new StochasticRsiStrategy());
+        // 실전매매 동작 검증용 테스트 전략
+        register(new TestTimedStrategy());
     }
 
     private StrategyRegistry() {}

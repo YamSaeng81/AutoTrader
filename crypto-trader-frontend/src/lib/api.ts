@@ -81,8 +81,15 @@ export const dataApi = {
 };
 
 export const logApi = {
-    strategyLogs: (page = 0, size = 50) =>
-        api.get<ApiResponse<{ content: unknown[]; totalElements: number; totalPages: number; number: number }>>('/api/v1/logs/strategy', { params: { page, size } }).then(r => r.data),
+    strategyLogs: (page = 0, size = 50, sessionType = 'ALL', sessionId?: number) =>
+        api.get<ApiResponse<{ content: unknown[]; totalElements: number; totalPages: number; number: number }>>('/api/v1/logs/strategy', {
+            params: {
+                page,
+                size,
+                sessionType: sessionType === 'ALL' ? undefined : sessionType,
+                sessionId: sessionId ?? undefined,
+            }
+        }).then(r => r.data),
 };
 
 export const tradingApi = {
@@ -155,4 +162,11 @@ export const paperTradingApi = {
 export const accountApi = {
     summary: () =>
         api.get<ApiResponse<import('./types').AccountSummary>>('/api/v1/account/summary').then(r => r.data),
+};
+
+export const settingsApi = {
+    telegramLogs: (page = 0, size = 50) =>
+        api.get<ApiResponse<import('./types').TelegramLogsResponse>>('/api/v1/settings/telegram/logs', { params: { page, size } }).then(r => r.data),
+    telegramTest: () =>
+        api.post<ApiResponse<{ success: boolean }>>('/api/v1/settings/telegram/test', {}).then(r => r.data),
 };

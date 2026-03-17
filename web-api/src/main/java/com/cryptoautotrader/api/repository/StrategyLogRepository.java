@@ -7,4 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface StrategyLogRepository extends JpaRepository<StrategyLogEntity, Long> {
     Page<StrategyLogEntity> findAllByOrderByCreatedAtDesc(Pageable pageable);
+    Page<StrategyLogEntity> findAllBySessionTypeOrderByCreatedAtDesc(String sessionType, Pageable pageable);
+    Page<StrategyLogEntity> findAllBySessionIdOrderByCreatedAtDesc(Long sessionId, Pageable pageable);
+    Page<StrategyLogEntity> findAllBySessionTypeAndSessionIdOrderByCreatedAtDesc(String sessionType, Long sessionId, Pageable pageable);
 }

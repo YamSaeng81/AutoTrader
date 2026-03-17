@@ -5,7 +5,9 @@ import com.cryptoautotrader.api.entity.MarketDataCacheEntity;
 import com.cryptoautotrader.api.entity.paper.PaperOrderEntity;
 import com.cryptoautotrader.api.entity.paper.PaperPositionEntity;
 import com.cryptoautotrader.api.entity.paper.VirtualBalanceEntity;
+import com.cryptoautotrader.api.entity.StrategyLogEntity;
 import com.cryptoautotrader.api.repository.MarketDataCacheRepository;
+import com.cryptoautotrader.api.repository.StrategyLogRepository;
 import com.cryptoautotrader.api.repository.paper.PaperOrderRepository;
 import com.cryptoautotrader.api.repository.paper.PaperPositionRepository;
 import com.cryptoautotrader.api.repository.paper.VirtualBalanceRepository;
@@ -57,6 +59,7 @@ public class PaperTradingService {
     private final PaperOrderRepository orderRepo;
     private final MarketDataCacheRepository marketDataCacheRepo;
     private final TelegramNotificationService telegramService;
+    private final StrategyLogRepository strategyLogRepo;
 
     // exchange-adapter 모듈 Bean이 없을 때 null 허용 (테스트/개발 환경 대비)
     @Autowired(required = false)
@@ -88,11 +91,9 @@ public class PaperTradingService {
         VirtualBalanceEntity saved = balanceRepo.save(session);
 
         if (req.isEnableTelegram()) {
-            telegramService.sendMarkdown(String.format(
-                    "🎮 *\\[모의투자\\] 세션 시작*\n\n" +
-                    "• 세션 ID: `%d`\n• 전략: `%s`\n• 코인: `%s`\n• 타임프레임: `%s`\n• 초기자본: `%,.0f KRW`",
+            telegramService.notifyPaperSessionStarted(
                     saved.getId(), req.getStrategyType(), req.getCoinPair(),
-                    req.getTimeframe(), req.getInitialCapital().doubleValue()));
+                    req.getTimeframe(), req.getInitialCapital());
         }
         return saved;
     }
@@ -124,13 +125,9 @@ public class PaperTradingService {
                               .divide(initial, 4, RoundingMode.HALF_UP)
                               .multiply(BigDecimal.valueOf(100)).doubleValue()
                     : 0;
-            telegramService.sendMarkdown(String.format(
-                    "🛑 *\\[모의투자\\] 세션 종료*\n\n" +
-                    "• 세션 ID: `%d`\n• 전략: `%s`\n• 코인: `%s`\n" +
-                    "• 최종 자산: `%,.0f KRW`\n• 수익률: `%s%.2f%%`",
+            telegramService.notifyPaperSessionStopped(
                     sessionId, session.getStrategyName(), session.getCoinPair(),
-                    stopped.getTotalKrw().doubleValue(),
-                    returnPct >= 0 ? "+" : "", returnPct));
+                    stopped.getTotalKrw(), returnPct);
         }
         return stopped;
     }
@@ -215,7 +212,6 @@ public class PaperTradingService {
     // ── 스케줄: MarketDataSyncService 실행(0s) 후 35초 뒤 전략 실행 ──
 
     @Scheduled(fixedDelay = 60_000, initialDelay = 35_000)
-    @Transactional
     public void runStrategy() {
         List<VirtualBalanceEntity> runningSessions = balanceRepo.findByStatusOrderByStartedAtAsc("RUNNING");
         for (VirtualBalanceEntity session : runningSessions) {
@@ -241,10 +237,11 @@ public class PaperTradingService {
         }
 
         StrategySignal signal;
+        MarketRegime regime = null;
         if ("COMPOSITE".equals(strategyName)) {
             MarketRegimeDetector detector = sessionDetectors.computeIfAbsent(
                     session.getId(), id -> new MarketRegimeDetector());
-            MarketRegime regime = detector.detect(candles);
+            regime = detector.detect(candles);
             List<WeightedStrategy> weighted = StrategySelector.select(regime);
             signal = new CompositeStrategy(weighted).evaluate(candles, Collections.emptyMap());
             log.info("모의투자 COMPOSITE 신호 (sessionId={}): regime={} {} → {} ({})",
@@ -253,6 +250,22 @@ public class PaperTradingService {
             signal = StrategyRegistry.get(strategyName).evaluate(candles, Collections.emptyMap());
             log.info("모의투자 신호 (sessionId={}): {} {} → {} ({})",
                     session.getId(), strategyName, coinPair, signal.getAction(), signal.getReason());
+        }
+
+        // 전략 로그 DB 저장
+        try {
+            StrategyLogEntity logEntity = StrategyLogEntity.builder()
+                    .strategyName(strategyName)
+                    .coinPair(coinPair)
+                    .signal(signal.getAction().name())
+                    .reason(signal.getReason())
+                    .marketRegime(regime != null ? regime.name() : null)
+                    .sessionType("PAPER")
+                    .sessionId(session.getId())
+                    .build();
+            strategyLogRepo.save(logEntity);
+        } catch (Exception e) {
+            log.warn("전략 로그 저장 실패: {}", e.getMessage());
         }
 
         BigDecimal currentPrice = candles.get(candles.size() - 1).getClose();
@@ -374,15 +387,27 @@ public class PaperTradingService {
 
     private void updateUnrealizedPnl(Long sessionId, String coinPair, BigDecimal currentPrice,
                                       VirtualBalanceEntity session) {
+        // 현재 코인 포지션 미실현손익 갱신
         positionRepo.findBySessionIdAndCoinPairAndStatus(sessionId, coinPair, "OPEN").ifPresent(pos -> {
             BigDecimal unrealized = currentPrice.subtract(pos.getAvgPrice()).multiply(pos.getSize());
             pos.setUnrealizedPnl(unrealized);
             positionRepo.save(pos);
-
-            BigDecimal posValue = pos.getSize().multiply(currentPrice);
-            session.setTotalKrw(session.getAvailableKrw().add(posValue));
-            balanceRepo.save(session);
         });
+
+        // totalKrw = 가용 KRW + 세션 내 모든 오픈 포지션 평가금액 합산
+        // (다중 코인 지원 시에도 정확한 총자산 계산)
+        BigDecimal openPositionsValue = positionRepo.findBySessionIdAndStatus(sessionId, "OPEN")
+                .stream()
+                .map(pos -> {
+                    BigDecimal price = pos.getCoinPair().equals(coinPair)
+                            ? currentPrice
+                            : fetchCurrentPrice(pos.getCoinPair());
+                    return pos.getSize().multiply(price);
+                })
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        session.setTotalKrw(session.getAvailableKrw().add(openPositionsValue));
+        balanceRepo.save(session);
     }
 
     private VirtualBalanceEntity getSession(Long sessionId) {

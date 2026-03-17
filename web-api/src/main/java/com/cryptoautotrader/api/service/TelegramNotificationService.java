@@ -1,8 +1,14 @@
 package com.cryptoautotrader.api.service;
 
+import com.cryptoautotrader.api.entity.TelegramNotificationLogEntity;
+import com.cryptoautotrader.api.repository.TelegramNotificationLogRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -15,18 +21,21 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 /**
  * 텔레그램 봇 알림 서비스.
  * - 매수/매도 이벤트는 내부 버퍼에 적재 후 12:00 / 00:00 KST 일별 요약으로 일괄 전송.
+ * - 세션별로 분리하여 각 세션 요약을 개별 메시지로 전송.
  * - 세션 시작/종료, 손절, 거래소 장애 등 긴급 알림은 즉시 전송.
+ * - 전송 이력은 telegram_notification_log 테이블에 저장.
  */
 @Service
-@Slf4j
 public class TelegramNotificationService {
+
+    private static final Logger log = LoggerFactory.getLogger(TelegramNotificationService.class);
 
     private static final String TELEGRAM_API = "https://api.telegram.org/bot";
     private static final DateTimeFormatter KST_FMT = DateTimeFormatter
@@ -44,6 +53,9 @@ public class TelegramNotificationService {
 
     @Value("${telegram.enabled:true}")
     private boolean enabled;
+
+    @Autowired
+    private TelegramNotificationLogRepository logRepository;
 
     private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(10))
@@ -73,15 +85,10 @@ public class TelegramNotificationService {
     public void notifySessionStarted(Long sessionId, String strategyType, String coinPair, String timeframe, long initialCapital) {
         String msg = String.format(
                 "🚀 *실전매매 세션 시작*\n\n" +
-                "• 세션 ID: `%d`\n" +
-                "• 전략: `%s`\n" +
-                "• 코인: `%s`\n" +
-                "• 타임프레임: `%s`\n" +
-                "• 투자금: `%,d KRW`\n" +
-                "• 시각: `%s`",
+                "• 세션 ID: `%d`\n• 전략: `%s`\n• 코인: `%s`\n• 타임프레임: `%s`\n• 투자금: `%,d KRW`\n• 시각: `%s`",
                 sessionId, strategyType, coinPair, timeframe, initialCapital,
                 KST_FMT.format(Instant.now()));
-        sendMarkdown(msg);
+        sendMarkdownAndLog(msg, "SESSION_START", null);
     }
 
     /** 매매 세션 정지 알림 */
@@ -90,60 +97,68 @@ public class TelegramNotificationService {
         String title = isEmergency ? "비상 정지" : "세션 종료";
         String msg = String.format(
                 "%s *실전매매 %s*\n\n" +
-                "• 세션 ID: `%d`\n" +
-                "• 코인: `%s`\n" +
-                "• 총 자산: `%,d KRW`\n" +
-                "• 수익률: `%s%.2f%%`\n" +
-                "• 시각: `%s`",
+                "• 세션 ID: `%d`\n• 코인: `%s`\n• 총 자산: `%,d KRW`\n• 수익률: `%s%.2f%%`\n• 시각: `%s`",
                 icon, title, sessionId, coinPair, totalAsset,
                 returnPct >= 0 ? "+" : "", returnPct,
                 KST_FMT.format(Instant.now()));
-        sendMarkdown(msg);
+        sendMarkdownAndLog(msg, "SESSION_STOP", "세션#" + sessionId);
     }
 
     /** 손절 알림 */
     public void notifyStopLoss(String coinPair, double lossPct, long sessionId) {
         String msg = String.format(
                 "⚠️ *손절 실행*\n\n" +
-                "• 세션 ID: `%d`\n" +
-                "• 코인: `%s`\n" +
-                "• 손실률: `%.2f%%`\n" +
-                "• 시각: `%s`",
+                "• 세션 ID: `%d`\n• 코인: `%s`\n• 손실률: `%.2f%%`\n• 시각: `%s`",
                 sessionId, coinPair, Math.abs(lossPct),
                 KST_FMT.format(Instant.now()));
-        sendMarkdown(msg);
+        sendMarkdownAndLog(msg, "STOP_LOSS", "세션#" + sessionId);
     }
 
     /** 거래소 DOWN 알림 */
     public void notifyExchangeDown() {
         String msg = String.format(
                 "🔴 *거래소 연결 끊김*\n\n" +
-                "Upbit WebSocket 연결이 중단되었습니다.\n" +
-                "모든 실전매매 세션이 비상 정지됩니다.\n" +
-                "• 시각: `%s`",
+                "Upbit WebSocket 연결이 중단되었습니다.\n모든 실전매매 세션이 비상 정지됩니다.\n• 시각: `%s`",
                 KST_FMT.format(Instant.now()));
-        sendMarkdown(msg);
+        sendMarkdownAndLog(msg, "EXCHANGE_DOWN", null);
+    }
+
+    /** 모의투자 세션 시작 알림 */
+    public void notifyPaperSessionStarted(Long sessionId, String strategyType, String coinPair, String timeframe, java.math.BigDecimal initialCapital) {
+        String msg = String.format(
+                "🎮 *\\[모의투자\\] 세션 시작*\n\n" +
+                "• 세션 ID: `%d`\n• 전략: `%s`\n• 코인: `%s`\n• 타임프레임: `%s`\n• 초기자본: `%,.0f KRW`",
+                sessionId, strategyType, coinPair, timeframe, initialCapital.doubleValue());
+        sendMarkdownAndLog(msg, "SESSION_START", "[모의투자] 세션#" + sessionId);
+    }
+
+    /** 모의투자 세션 종료 알림 */
+    public void notifyPaperSessionStopped(Long sessionId, String strategyName, String coinPair, java.math.BigDecimal totalKrw, double returnPct) {
+        String msg = String.format(
+                "🛑 *\\[모의투자\\] 세션 종료*\n\n" +
+                "• 세션 ID: `%d`\n• 전략: `%s`\n• 코인: `%s`\n" +
+                "• 최종 자산: `%,.0f KRW`\n• 수익률: `%s%.2f%%`",
+                sessionId, strategyName, coinPair,
+                totalKrw.doubleValue(),
+                returnPct >= 0 ? "+" : "", returnPct);
+        sendMarkdownAndLog(msg, "SESSION_STOP", "[모의투자] 세션#" + sessionId);
     }
 
     /** 리스크 한도 초과 알림 */
     public void notifyRiskLimitBreached(String reason) {
         String msg = String.format(
-                "⛔ *리스크 한도 초과*\n\n" +
-                "• 사유: `%s`\n" +
-                "• 시각: `%s`",
+                "⛔ *리스크 한도 초과*\n\n• 사유: `%s`\n• 시각: `%s`",
                 reason, KST_FMT.format(Instant.now()));
-        sendMarkdown(msg);
+        sendMarkdownAndLog(msg, "RISK_LIMIT", null);
     }
 
     /** 테스트 메시지 전송 */
     public boolean sendTestMessage() {
         String msg = String.format(
                 "✅ *텔레그램 알림 연동 테스트*\n\n" +
-                "크립토 자동매매 시스템이 정상적으로\n" +
-                "텔레그램 알림에 연결되었습니다! 🎉\n\n" +
-                "• 시각: `%s`",
+                "크립토 자동매매 시스템이 정상적으로\n텔레그램 알림에 연결되었습니다! 🎉\n\n• 시각: `%s`",
                 KST_FMT.format(Instant.now()));
-        return sendMarkdown(msg);
+        return sendMarkdownAndLog(msg, "TEST", null);
     }
 
     // ── 일별 요약 스케줄 ────────────────────────────────────────────────────────
@@ -163,20 +178,34 @@ public class TelegramNotificationService {
     private void sendDailySummary(String periodLabel) {
         if (!enabled) return;
 
-        // 버퍼에서 현재 이벤트 전부 꺼내기 (원자적 스왑)
         List<TradeEvent> events = new ArrayList<>(tradeBuffer);
         tradeBuffer.removeAll(events);
 
-        StringBuilder sb = new StringBuilder();
-        sb.append(String.format("📊 *%s*\n\n", periodLabel));
-
         if (events.isEmpty()) {
-            sb.append("• 해당 시간대 매매 없음\n");
-            sb.append(String.format("• 기준 시각: `%s`\n", KST_FMT.format(Instant.now())));
-            sendMarkdown(sb.toString());
+            String msg = String.format("📊 *%s*\n\n• 해당 시간대 매매 없음\n• 기준 시각: `%s`\n",
+                    periodLabel, KST_FMT.format(Instant.now()));
+            sendMarkdownAndLog(msg, "TRADE_SUMMARY", null);
             log.info("[Telegram] {} - 거래 없음 요약 전송", periodLabel);
             return;
         }
+
+        // 세션별로 그룹화하여 개별 메시지 전송
+        Map<String, List<TradeEvent>> bySession = events.stream()
+                .collect(Collectors.groupingBy(TradeEvent::sessionLabel, LinkedHashMap::new, Collectors.toList()));
+
+        for (Map.Entry<String, List<TradeEvent>> entry : bySession.entrySet()) {
+            String sessionLabel = entry.getKey();
+            List<TradeEvent> sessionEvents = entry.getValue();
+            String msg = buildSessionSummary(periodLabel, sessionLabel, sessionEvents);
+            sendMarkdownAndLog(msg, "TRADE_SUMMARY", sessionLabel);
+            log.info("[Telegram] {} {} 요약 전송 완료: {}건", periodLabel, sessionLabel, sessionEvents.size());
+        }
+    }
+
+    private String buildSessionSummary(String periodLabel, String sessionLabel, List<TradeEvent> events) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("📊 *%s*\n", periodLabel));
+        sb.append(String.format("📌 세션: `%s`\n\n", escapeMarkdownV2(sessionLabel)));
 
         long buyCount  = events.stream().filter(e -> "BUY".equals(e.side())).count();
         long sellCount = events.stream().filter(e -> "SELL".equals(e.side())).count();
@@ -185,7 +214,6 @@ public class TelegramNotificationService {
                 .map(TradeEvent::fee)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // realizedPnl 은 매도 시에만 의미 있음
         BigDecimal totalPnl = events.stream()
                 .filter(e -> "SELL".equals(e.side()) && e.realizedPnl() != null)
                 .map(TradeEvent::realizedPnl)
@@ -197,7 +225,6 @@ public class TelegramNotificationService {
                 totalPnl.compareTo(BigDecimal.ZERO) >= 0 ? "+" : "", totalPnl.doubleValue()));
         sb.append(String.format("• 기준 시각: `%s`\n\n", KST_FMT.format(Instant.now())));
 
-        // 거래 상세 목록 (최대 10건)
         sb.append("*상세 내역*\n");
         events.stream().limit(10).forEach(e -> {
             String icon = "BUY".equals(e.side()) ? "📈" : "📉";
@@ -214,11 +241,26 @@ public class TelegramNotificationService {
             sb.append(String.format("_\\.\\.\\. 외 %d건_\n", events.size() - 10));
         }
 
-        sendMarkdown(sb.toString());
-        log.info("[Telegram] {} 요약 전송 완료: 매수{}회 매도{}회", periodLabel, buyCount, sellCount);
+        return sb.toString();
+    }
+
+    // ── 전송 이력 조회 ────────────────────────────────────────────────────────
+
+    public Page<TelegramNotificationLogEntity> getLogs(int page, int size) {
+        return logRepository.findAllByOrderBySentAtDesc(PageRequest.of(page, size));
     }
 
     // ── 내부 전송 ────────────────────────────────────────────────────────────
+
+    private boolean sendMarkdownAndLog(String text, String type, String sessionLabel) {
+        boolean success = sendMarkdown(text);
+        try {
+            logRepository.save(new TelegramNotificationLogEntity(type, sessionLabel, text, success));
+        } catch (Exception e) {
+            log.warn("[Telegram] 이력 저장 실패: {}", e.getMessage());
+        }
+        return success;
+    }
 
     /**
      * Markdown 형식 메시지 전송.
@@ -255,9 +297,6 @@ public class TelegramNotificationService {
         }
     }
 
-    /**
-     * MarkdownV2에서 이스케이프해야 할 특수문자 처리.
-     */
     private String escapeMarkdownV2(String text) {
         return text
                 .replace(".", "\\.")
@@ -276,23 +315,11 @@ public class TelegramNotificationService {
                 .replace("~", "\\~");
     }
 
-    /** 텔레그램 sendMessage 요청 바디 */
-    record SendMessageRequest(
-            String chat_id,
-            String text,
-            String parse_mode
-    ) {}
+    record SendMessageRequest(String chat_id, String text, String parse_mode) {}
 
-    /** 버퍼에 적재되는 거래 이벤트 */
     record TradeEvent(
-            String sessionLabel,
-            String coinPair,
-            String side,
-            BigDecimal price,
-            BigDecimal quantity,
-            BigDecimal fee,
-            BigDecimal realizedPnl,
-            String reason,
-            Instant time
+            String sessionLabel, String coinPair, String side,
+            BigDecimal price, BigDecimal quantity, BigDecimal fee,
+            BigDecimal realizedPnl, String reason, Instant time
     ) {}
 }

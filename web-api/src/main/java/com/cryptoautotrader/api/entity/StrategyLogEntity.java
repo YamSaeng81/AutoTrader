@@ -2,6 +2,8 @@ package com.cryptoautotrader.api.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 
@@ -30,11 +32,19 @@ public class StrategyLogEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String reason;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "indicators_json", columnDefinition = "jsonb")
     private String indicatorsJson;
 
     @Column(name = "market_regime", length = 10)
     private String marketRegime;
+
+    /** PAPER / LIVE */
+    @Column(name = "session_type", length = 10)
+    private String sessionType;
+
+    @Column(name = "session_id")
+    private Long sessionId;
 
     @Column(name = "created_at")
     private Instant createdAt;

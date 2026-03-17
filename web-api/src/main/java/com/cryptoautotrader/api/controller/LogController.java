@@ -22,8 +22,21 @@ public class LogController {
     @GetMapping("/strategy")
     public ApiResponse<Map<String, Object>> getStrategyLogs(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "50") int size) {
-        Page<StrategyLogEntity> logs = strategyLogRepo.findAllByOrderByCreatedAtDesc(PageRequest.of(page, size));
+            @RequestParam(defaultValue = "50") int size,
+            @RequestParam(required = false) String sessionType,
+            @RequestParam(required = false) Long sessionId) {
+        boolean hasType = sessionType != null && !sessionType.isBlank() && !"ALL".equalsIgnoreCase(sessionType);
+        PageRequest pageReq = PageRequest.of(page, size);
+        Page<StrategyLogEntity> logs;
+        if (sessionId != null && hasType) {
+            logs = strategyLogRepo.findAllBySessionTypeAndSessionIdOrderByCreatedAtDesc(sessionType.toUpperCase(), sessionId, pageReq);
+        } else if (sessionId != null) {
+            logs = strategyLogRepo.findAllBySessionIdOrderByCreatedAtDesc(sessionId, pageReq);
+        } else if (hasType) {
+            logs = strategyLogRepo.findAllBySessionTypeOrderByCreatedAtDesc(sessionType.toUpperCase(), pageReq);
+        } else {
+            logs = strategyLogRepo.findAllByOrderByCreatedAtDesc(pageReq);
+        }
         List<Map<String, Object>> content = logs.getContent().stream().map(log -> {
             Map<String, Object> m = new HashMap<>();
             m.put("id", log.getId());
@@ -33,6 +46,8 @@ public class LogController {
             m.put("reason", log.getReason());
             m.put("indicatorsJson", log.getIndicatorsJson());
             m.put("marketRegime", log.getMarketRegime());
+            m.put("sessionType", log.getSessionType());
+            m.put("sessionId", log.getSessionId());
             m.put("createdAt", log.getCreatedAt() != null ? log.getCreatedAt().toString() : null);
             return m;
         }).toList();

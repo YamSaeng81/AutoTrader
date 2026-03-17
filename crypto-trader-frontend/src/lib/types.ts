@@ -4,6 +4,23 @@ export interface ApiResponse<T> {
   error: { code: string; message: string } | null;
 }
 
+export interface TelegramNotificationLog {
+  id: number;
+  type: string;
+  sessionLabel: string;
+  messageText: string;
+  success: boolean;
+  sentAt: string;
+}
+
+export interface TelegramLogsResponse {
+  items: TelegramNotificationLog[];
+  totalCount: number;
+  totalPages: number;
+  page: number;
+  size: number;
+}
+
 export type StrategyType = 'VWAP' | 'EMA_CROSS' | 'BOLLINGER' | 'GRID'
     | 'RSI' | 'MACD' | 'SUPERTREND' | 'ATR_BREAKOUT' | 'ORDERBOOK_IMBALANCE' | 'STOCHASTIC_RSI'
     | 'COMPOSITE';

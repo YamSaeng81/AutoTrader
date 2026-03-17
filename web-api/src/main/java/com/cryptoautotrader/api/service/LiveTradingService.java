@@ -8,11 +8,13 @@ import com.cryptoautotrader.api.dto.TradingStatusResponse;
 import com.cryptoautotrader.api.entity.LiveTradingSessionEntity;
 import com.cryptoautotrader.api.entity.OrderEntity;
 import com.cryptoautotrader.api.entity.PositionEntity;
+import com.cryptoautotrader.api.entity.StrategyLogEntity;
 import com.cryptoautotrader.api.repository.LiveTradingSessionRepository;
 import com.cryptoautotrader.api.repository.OrderRepository;
 import com.cryptoautotrader.api.repository.PositionRepository;
 import com.cryptoautotrader.api.repository.CandleDataRepository;
 import com.cryptoautotrader.api.repository.StrategyConfigRepository;
+import com.cryptoautotrader.api.repository.StrategyLogRepository;
 import com.cryptoautotrader.api.util.TimeframeUtils;
 import com.cryptoautotrader.strategy.Candle;
 import com.cryptoautotrader.strategy.StrategyRegistry;
@@ -72,6 +74,7 @@ public class LiveTradingService {
     private final PositionService positionService;
     private final ExchangeHealthMonitor exchangeHealthMonitor;
     private final TelegramNotificationService telegramService;
+    private final StrategyLogRepository strategyLogRepository;
 
     // -- 거래소 DOWN 이벤트 수신 -- 모든 세션 비상 정지 ----------
 
@@ -102,6 +105,13 @@ public class LiveTradingService {
             } catch (Exception e) {
                 throw new IllegalArgumentException("지원하지 않는 전략입니다: " + req.getStrategyType());
             }
+        }
+
+        // TEST_TIMED: 코인/타임프레임/원금 강제 고정
+        if ("TEST_TIMED".equals(req.getStrategyType())) {
+            req.setCoinPair("KRW-ETH");
+            req.setTimeframe("M1");
+            req.setInitialCapital(BigDecimal.valueOf(10000));
         }
 
         BigDecimal stopLoss = req.getStopLossPct() != null
@@ -376,7 +386,6 @@ public class LiveTradingService {
     // -- 스케줄: RUNNING 세션 순회하며 전략 실행 (60초 간격) -------
 
     @Scheduled(fixedDelay = 60_000, initialDelay = 45_000)
-    @Transactional
     public void executeStrategies() {
         List<LiveTradingSessionEntity> runningSessions =
                 sessionRepository.findByStatus("RUNNING");
@@ -412,20 +421,40 @@ public class LiveTradingService {
 
         // 전략 신호 평가
         StrategySignal signal;
+        MarketRegime regime = null;
         if ("COMPOSITE".equals(strategyType)) {
             MarketRegimeDetector detector = sessionDetectors.computeIfAbsent(
                     sessionId, id -> new MarketRegimeDetector());
-            MarketRegime regime = detector.detect(candles);
+            regime = detector.detect(candles);
             List<WeightedStrategy> weighted = StrategySelector.select(regime);
             signal = new CompositeStrategy(weighted).evaluate(candles, Collections.emptyMap());
             log.info("실전매매 COMPOSITE 신호 (sessionId={}): regime={} {} → {} ({})",
                     sessionId, regime, coinPair, signal.getAction(), signal.getReason());
         } else {
-            Map<String, Object> params = session.getStrategyParams() != null
-                    ? session.getStrategyParams() : Collections.emptyMap();
+            Map<String, Object> params = new java.util.HashMap<>(
+                    session.getStrategyParams() != null ? session.getStrategyParams() : Collections.emptyMap());
+            if (session.getStartedAt() != null) {
+                params.put("sessionStartedAt", session.getStartedAt().toEpochMilli());
+            }
             signal = StrategyRegistry.get(strategyType).evaluate(candles, params);
             log.debug("세션 전략 신호 (sessionId={}): {} {} -> {} ({})",
                     sessionId, strategyType, coinPair, signal.getAction(), signal.getReason());
+        }
+
+        // 전략 로그 DB 저장
+        try {
+            StrategyLogEntity logEntity = StrategyLogEntity.builder()
+                    .strategyName(strategyType)
+                    .coinPair(coinPair)
+                    .signal(signal.getAction().name())
+                    .reason(signal.getReason())
+                    .marketRegime(regime != null ? regime.name() : null)
+                    .sessionType("LIVE")
+                    .sessionId(sessionId)
+                    .build();
+            strategyLogRepository.save(logEntity);
+        } catch (Exception e) {
+            log.warn("전략 로그 저장 실패: {}", e.getMessage());
         }
 
         BigDecimal currentPrice = candles.get(candles.size() - 1).getClose();

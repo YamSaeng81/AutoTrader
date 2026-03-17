@@ -1,11 +1,12 @@
 'use client';
 
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { paperTradingApi } from '@/lib/api';
+import { paperTradingApi, logApi } from '@/lib/api';
 import { PaperPosition, PaperTradingBalance } from '@/lib/types';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
-import { Loader2, Square, TrendingUp, TrendingDown, Clock, Briefcase, ArrowLeft, Activity, ShoppingCart, DollarSign, Receipt, Trophy } from 'lucide-react';
+import { Loader2, Square, TrendingUp, TrendingDown, Clock, Briefcase, ArrowLeft, Activity, ShoppingCart, DollarSign, Receipt, Trophy, ChevronDown, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import {
@@ -32,6 +33,126 @@ function ChartTooltip({ active, payload, label }: any) {
                     )}
                 </div>
             )}
+        </div>
+    );
+}
+
+const SIGNAL_STYLE: Record<string, string> = {
+    BUY:  'bg-emerald-100 text-emerald-700',
+    SELL: 'bg-rose-100 text-rose-700',
+    HOLD: 'bg-slate-100 text-slate-500',
+};
+
+function StrategyLogAccordion({ logs }: { logs: any[] | undefined }) {
+    const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
+
+    if (!logs || logs.length === 0) {
+        return (
+            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+                <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
+                    <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">전략 분석 로그</h2>
+                </div>
+                <div className="px-6 py-8 text-center text-slate-400 dark:text-slate-500 text-sm">전략 로그가 없습니다.</div>
+            </div>
+        );
+    }
+
+    // 전략명 기준으로 그룹화 (순서 유지)
+    const groups: Record<string, any[]> = {};
+    for (const log of logs) {
+        const key = log.strategyName ?? '알 수 없음';
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(log);
+    }
+
+    const toggle = (key: string) => {
+        setOpenGroups(prev => {
+            const next = new Set(prev);
+            next.has(key) ? next.delete(key) : next.add(key);
+            return next;
+        });
+    };
+
+    return (
+        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 flex items-center justify-between">
+                <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">전략 분석 로그</h2>
+                <span className="text-xs text-slate-400">{Object.keys(groups).length}개 전략</span>
+            </div>
+            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                {Object.entries(groups).map(([strategyName, groupLogs]) => {
+                    const isOpen = openGroups.has(strategyName);
+                    const latest = groupLogs[0];
+                    const signalCounts = groupLogs.reduce((acc: Record<string, number>, l: any) => {
+                        acc[l.signal] = (acc[l.signal] ?? 0) + 1;
+                        return acc;
+                    }, {});
+
+                    return (
+                        <div key={strategyName}>
+                            {/* 그룹 헤더 (클릭하여 펼치기) */}
+                            <button
+                                onClick={() => toggle(strategyName)}
+                                className="w-full flex items-center gap-3 px-6 py-4 text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                            >
+                                <span className="shrink-0 text-slate-400 dark:text-slate-500">
+                                    {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                                </span>
+                                <span className="font-semibold text-sm text-slate-700 dark:text-slate-200 flex-1 text-left">
+                                    {strategyName}
+                                </span>
+                                <span className="flex items-center gap-1.5 text-xs">
+                                    {Object.entries(signalCounts).map(([sig, cnt]) => (
+                                        <span key={sig} className={cn('px-2 py-0.5 rounded-full font-bold', SIGNAL_STYLE[sig] ?? 'bg-slate-100 text-slate-500')}>
+                                            {sig} {cnt}
+                                        </span>
+                                    ))}
+                                </span>
+                                <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0 ml-2">
+                                    {latest?.createdAt ? format(new Date(latest.createdAt), 'MM/dd HH:mm') : ''}
+                                </span>
+                                <span className="text-xs text-slate-400 dark:text-slate-500 shrink-0 ml-3 tabular-nums">
+                                    총 {groupLogs.length}건
+                                </span>
+                            </button>
+
+                            {/* 펼쳐진 로그 목록 */}
+                            {isOpen && (
+                                <div className="border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 overflow-x-auto">
+                                    <table className="w-full text-left text-xs text-slate-600 dark:text-slate-300">
+                                        <thead className="text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-slate-700 uppercase tracking-wide">
+                                            <tr>
+                                                <th className="px-6 py-2">시간</th>
+                                                <th className="px-6 py-2">신호</th>
+                                                <th className="px-6 py-2">마켓 상태</th>
+                                                <th className="px-6 py-2">판단 이유</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
+                                            {groupLogs.map((log: any) => (
+                                                <tr key={log.id} className="hover:bg-slate-100/50 dark:hover:bg-slate-700/30 transition-colors">
+                                                    <td className="px-6 py-2.5 whitespace-nowrap text-slate-400">
+                                                        {log.createdAt ? new Date(log.createdAt).toLocaleString('ko-KR') : '-'}
+                                                    </td>
+                                                    <td className="px-6 py-2.5">
+                                                        <span className={cn('px-2 py-0.5 rounded-full font-bold', SIGNAL_STYLE[log.signal] ?? 'bg-slate-100 text-slate-500')}>
+                                                            {log.signal}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-2.5 text-slate-500 dark:text-slate-400">{log.marketRegime ?? '-'}</td>
+                                                    <td className="px-6 py-2.5 text-slate-500 dark:text-slate-400 max-w-sm truncate" title={log.reason}>
+                                                        {log.reason ?? '-'}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
         </div>
     );
 }
@@ -63,6 +184,12 @@ export default function SessionDetailPage() {
         queryKey: ['paper-trading', 'session', sessionId, 'chart'],
         queryFn: () => paperTradingApi.chart(sessionId),
         refetchInterval: 60000,
+    });
+
+    const { data: strategyLogsRes } = useQuery({
+        queryKey: ['logs', 'strategy', 'paper', sessionId],
+        queryFn: () => logApi.strategyLogs(0, 20, 'PAPER', Number(sessionId)),
+        refetchInterval: 10000,
     });
 
     const stopMutation = useMutation({
@@ -104,7 +231,7 @@ export default function SessionDetailPage() {
             buyOrder: null as any,
             sellOrder: null as any,
         })) ?? [];
-        if (!chartOrders) return candles;
+        if (!chartOrders || candles.length === 0) return candles;
         for (const o of chartOrders) {
             const ms = toMs(o.filledAt);
             if (!ms) continue;
@@ -604,6 +731,9 @@ export default function SessionDetailPage() {
                     )}
                 </div>
             </div>
+
+            {/* Strategy Logs */}
+            <StrategyLogAccordion logs={(strategyLogsRes?.data as any)?.content} />
         </div>
     );
 }

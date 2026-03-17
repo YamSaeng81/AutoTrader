@@ -2,7 +2,7 @@
 
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝날 때마다 `## 다음 할 일`과 `## 최근 변경사항`을 반드시 업데이트한다.
-> **마지막 갱신**: 2026-03-17 (Spring Security API 인증 추가)
+> **마지막 갱신**: 2026-03-17 (전략 로그 아코디언 UI + RuntimeError 버그 수정)
 
 ---
 
@@ -64,8 +64,9 @@ VWAP / EMA Cross / Bollinger Band / Grid / RSI(다이버전스) / MACD(히스토
 
 ### 즉시
 
-- [ ] `🔴 HIGH` **실전매매 소액 테스트** — 세션 생성 → 1건 체결 확인 → 즉시 종료
+- [ ] `🔴 HIGH` **실전매매 소액 테스트** — 🧪 테스트 세션(TEST_TIMED) 생성 → 매수 체결 확인 → 3분 후 자동 매도 확인
 - [ ] `🟡 MEDIUM` 텔레그램 수신 확인 (서버 재기동 후 12:00/00:00 정상 수신 여부)
+- [ ] `🟡 MEDIUM` 모의투자 텔레그램 이력 확인 — 세션 생성/중단 시 텔레그램 이력 페이지에 SESSION_START/STOP 로그 표시되는지 검증
 
 ### 전략 고도화 후속 (백테스트 결과 기반)
 
@@ -75,14 +76,79 @@ VWAP / EMA Cross / Bollinger Band / Grid / RSI(다이버전스) / MACD(히스토
 - [ ] `🟡 MEDIUM` **코인별 전략 선택 최적화** — BTC: GRID+BOLLINGER / ETH: ATR_BREAKOUT+EMA_CROSS+ORDERBOOK
 - [ ] `🟢 LOW` 2023~2025 전체 기간 백테스트 (현재 2025년만 결과)
 
-### 단기 (1~2주)
-
-- [ ] `🟢 LOW` EngineConfig `@ConditionalOnProperty` 전환 (null Bean 방지)
-- [ ] `🟢 LOW` PaperTradingService 다중 포지션 totalKrw 계산 (다중 코인 지원 시)
 
 ---
 
 ## 최근 변경사항
+
+### 2026-03-17 — TEST_TIMED 테스트 전략 추가 (실전매매 동작 검증용)
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `strategy-lib/.../testtraded/TestTimedStrategy.java` | **신규** — 세션 시작 직후 즉시 매수, 3분 경과 후 강제 매도. `sessionStartedAt` 파라미터로 경과 시간 판단 |
+| `strategy-lib/.../StrategyRegistry.java` | `TEST_TIMED` 전략 등록 |
+| `service/LiveTradingService.java` | TEST_TIMED 세션 생성 시 coinPair=KRW-ETH / timeframe=M1 / initialCapital=10,000 강제 고정. 전략 실행 시 `sessionStartedAt` epoch millis를 params에 주입 |
+| `app/trading/page.tsx` | 🧪 테스트 세션 버튼 추가. 모달에서 TEST_TIMED 선택 시 코인/타임프레임/원금 읽기 전용 + 안내 배너 표시 |
+
+> **동작**: 스케줄러 첫 틱(~45초)에 매수 → 3~4분 후 다음 틱에 자동 매도. 전략 로그로 조건 판단 과정 확인 가능.
+
+### 2026-03-17 — 전략 로그 아코디언 UI + RuntimeError 버그 수정
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `paper-trading/[sessionId]/page.tsx` | 전략 분석 로그 섹션 → `StrategyLogAccordion` 컴포넌트로 교체. strategyName 기준 그룹화, 신호 카운트 뱃지, 클릭 펼치기 |
+| `trading/[sessionId]/page.tsx` | 동일한 아코디언 방식 적용 (다크 테마) |
+| `logs/page.tsx` | sessionType + sessionId 조합 그룹화 아코디언. 헤더에 구분/세션ID/전략명/코인/신호카운트/최근시간/총건수 표시. 페이지 이동 시 열린 그룹 초기화 |
+| `paper-trading/[sessionId]/page.tsx` | **버그 수정**: chartCandles가 빈 배열일 때 `candles[0]` undefined → `buyOrder` 설정 시 `TypeError` 발생 → `candles.length === 0` 가드 추가 |
+| `trading/[sessionId]/page.tsx` | 동일한 TypeError 버그 수정 |
+
+### 2026-03-17 — 모의투자 텔레그램 이력 누락 버그 수정 + 전략 로그 세션별 분리
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `TelegramNotificationService.java` | `notifyPaperSessionStarted()` / `notifyPaperSessionStopped()` 추가 — `sendMarkdownAndLog()` 호출로 DB 저장 포함 |
+| `PaperTradingService.java` | `sendMarkdown(...)` → `notifyPaperSessionStarted/Stopped(...)` 교체 (버그 수정: 텔레그램 전송은 됐지만 이력 DB 미저장) |
+| `StrategyLogRepository.java` | `findAllBySessionIdOrderByCreatedAtDesc`, `findAllBySessionTypeAndSessionIdOrderByCreatedAtDesc` 쿼리 추가 |
+| `LogController.java` | `GET /api/v1/logs/strategy`에 `sessionId` 쿼리 파라미터 추가 (sessionType + sessionId 4가지 조합 처리) |
+| `api.ts` | `logApi.strategyLogs()`에 `sessionId?: number` 파라미터 추가 |
+| `paper-trading/[sessionId]/page.tsx` | 체결 내역 아래 **전략 분석 로그** 섹션 추가 (해당 세션 PAPER 로그만, 10초 갱신) |
+| `trading/[sessionId]/page.tsx` | 세션 정보 위 **전략 분석 로그** 섹션 추가 (해당 세션 LIVE 로그만, 10초 갱신) |
+| `logs/page.tsx` | 세션 타입 필터 옆 세션 ID 입력 필드 추가 (숫자 입력 시 해당 세션 로그만 표시) |
+
+> **참고**: 실전매매는 원래부터 `notifySessionStarted/Stopped()` 사용 → DB 저장 정상. 버그는 모의투자 전용.
+
+### 2026-03-17 — 텔레그램 세션별 분리 + 사이드바 카테고리 + 설정 페이지
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `V16__create_telegram_notification_log.sql` | **신규** — telegram_notification_log 테이블 (type / session_label / message_text / success / sent_at) |
+| `TelegramNotificationLogEntity.java` | **신규** — 순수 Java (Lombok 없음), 4-arg 생성자 |
+| `TelegramNotificationLogRepository.java` | **신규** — findAllByOrderBySentAtDesc (페이지네이션) |
+| `TelegramNotificationService.java` | `sendDailySummary` → sessionLabel 기준 그룹화, 세션별 개별 메시지 전송. 모든 전송 이력 DB 저장. `@Slf4j`/`@RequiredArgsConstructor` 제거 → 순수 Java Logger + `@Autowired` |
+| `SettingsController.java` | **신규** — `GET /api/v1/settings/telegram/logs` (페이지네이션), `POST /api/v1/settings/telegram/test` |
+| `Sidebar.tsx` | 카테고리 그룹 구조로 전면 개편 (대시보드/백테스트/전략관리/모의투자/실전매매/설정), 접기/펼치기 토글 |
+| `app/settings/telegram/page.tsx` | **신규** — 텔레그램 전송 이력 테이블 (타입 필터, 내용 펼치기, 테스트 전송 버튼) |
+| `lib/types.ts` | `TelegramNotificationLog`, `TelegramLogsResponse` 타입 추가 |
+
+### 2026-03-17 — EngineConfig ConditionalOnProperty + PaperTradingService totalKrw 수정
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `config/EngineConfig.java` | `upbitOrderClient()` null 반환 제거 → `@ConditionalOnProperty(name = {"upbit.access-key", "upbit.secret-key"})` 전환. 키 미설정 시 Bean 자체를 등록하지 않음 |
+| `service/PaperTradingService.java` | `updateUnrealizedPnl()` — 미실현손익 갱신과 totalKrw 계산 분리. totalKrw = availableKrw + 세션 내 모든 OPEN 포지션 평가금액 합산 (다중 코인 지원 대비) |
+
+### 2026-03-17 — 예외 처리 패턴 통일 + StrategyController DTO 전환
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `exception/SessionNotFoundException.java` | **신규** — 세션 미존재 시 404 커스텀 예외 |
+| `exception/SessionStateException.java` | **신규** — 세션 상태 충돌 시 409 커스텀 예외 |
+| `controller/GlobalExceptionHandler.java` | `SessionNotFoundException` → 404, `SessionStateException` → 409, `MethodArgumentNotValidException` → 400 필드별 메시지 핸들러 추가 |
+| `service/LiveTradingService.java` | `IllegalArgumentException` / `IllegalStateException` → 커스텀 예외로 교체 |
+| `controller/TradingController.java` | 세션/포지션/주문 관련 try-catch 전면 제거 (GlobalExceptionHandler 위임) |
+| `dto/StrategyConfigCreateRequest.java` | **신규** — `@NotBlank` + `@DecimalMin` Bean Validation 적용 |
+| `dto/StrategyConfigUpdateRequest.java` | **신규** — 선택적 필드 + `@DecimalMin` 검증 |
+| `controller/StrategyController.java` | `createConfig` / `updateConfig` Raw Map → `@Valid @RequestBody` DTO로 전환 |
 
 ### 2026-03-17 — Spring Security API 인증
 
@@ -154,6 +220,7 @@ MarketRegimeDetector → StrategySelector → CompositeStrategy(Weighted Voting)
 ```
 - per-session `ConcurrentHashMap<Long, MarketRegimeDetector>` — 세션 간 Hysteresis 상태 독립 유지
 - Regime별 전략: TREND(Supertrend/EMA/ATR) / RANGE(Bollinger/RSI/Grid) / VOLATILITY(ATR/StochRSI)
+- 상세 문서: [docs/CompositeStrategy.md](CompositeStrategy.md)
 
 ### 텔레그램 알림 구조
 
