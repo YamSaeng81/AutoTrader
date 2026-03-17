@@ -52,7 +52,7 @@ const TIMEFRAME_OPTIONS = [
 ];
 
 const defaultForm: LiveTradingStartRequest = {
-  strategyType: 'VWAP',
+  strategyType: 'COMPOSITE',
   coinPair: 'KRW-BTC',
   timeframe: 'M5',
   initialCapital: 10000,
@@ -73,6 +73,7 @@ export default function TradingPage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showEmergencyConfirm, setShowEmergencyConfirm] = useState(false);
   const [form, setForm] = useState<LiveTradingStartRequest>({ ...defaultForm });
+  const [createError, setCreateError] = useState<string | null>(null);
   const [activeStrategies, setActiveStrategies] = useState<StrategyInfo[]>([]);
 
   useEffect(() => {
@@ -86,10 +87,16 @@ export default function TradingPage() {
   const runningSessions = (sessions ?? []).filter(s => s.status === 'RUNNING');
 
   const handleCreate = () => {
+    setCreateError(null);
     createSession.mutate(form, {
       onSuccess: () => {
         setShowCreateForm(false);
         setForm({ ...defaultForm });
+      },
+      onError: (err: unknown) => {
+        const msg = (err as { response?: { data?: { message?: string } }; message?: string })
+          ?.response?.data?.message ?? (err as { message?: string })?.message ?? '세션 생성에 실패했습니다.';
+        setCreateError(msg);
       },
     });
   };
@@ -237,9 +244,15 @@ export default function TradingPage() {
               </div>
             </div>
 
+            {createError && (
+              <div className="mt-4 px-4 py-3 bg-red-500/10 border border-red-500/40 rounded-lg text-sm text-red-400">
+                {createError}
+              </div>
+            )}
+
             <div className="flex gap-3 mt-6">
               <button
-                onClick={() => { setShowCreateForm(false); setForm({ ...defaultForm }); }}
+                onClick={() => { setShowCreateForm(false); setForm({ ...defaultForm }); setCreateError(null); }}
                 className="flex-1 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg transition-colors"
               >
                 취소
