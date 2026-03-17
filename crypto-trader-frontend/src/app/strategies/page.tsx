@@ -41,7 +41,12 @@ export default function StrategiesPage() {
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {strategies.map(s => (
+                            {[...strategies]
+                                .sort((a, b) => {
+                                    if (a.isActive !== b.isActive) return a.isActive ? -1 : 1;
+                                    return a.name.localeCompare(b.name);
+                                })
+                                .map(s => (
                                 <div
                                     key={s.name}
                                     onClick={() => setSelectedStrategy(s)}
