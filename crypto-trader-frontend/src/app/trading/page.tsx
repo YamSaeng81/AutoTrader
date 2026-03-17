@@ -55,7 +55,7 @@ const defaultForm: LiveTradingStartRequest = {
   strategyType: 'VWAP',
   coinPair: 'KRW-BTC',
   timeframe: 'M5',
-  initialCapital: 1000000,
+  initialCapital: 10000,
   stopLossPct: 5,
 };
 
@@ -215,11 +215,11 @@ export default function TradingPage() {
                   type="number"
                   value={form.initialCapital}
                   onChange={e => setForm({ ...form, initialCapital: Number(e.target.value) })}
-                  min={100000}
-                  step={100000}
+                  min={10000}
+                  step={10000}
                   className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
                 />
-                <p className="text-xs text-slate-500 mt-1">최소 100,000 KRW</p>
+                <p className="text-xs text-slate-500 mt-1">최소 10,000 KRW</p>
               </div>
 
               {/* 손절률 */}

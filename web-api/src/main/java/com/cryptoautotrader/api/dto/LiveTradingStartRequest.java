@@ -30,7 +30,7 @@ public class LiveTradingStartRequest {
 
     /** 투자 원금 (KRW) */
     @NotNull(message = "initialCapital은 필수입니다")
-    @DecimalMin(value = "100000", message = "최소 투자금은 100,000 KRW입니다")
+    @DecimalMin(value = "10000", message = "최소 투자금은 10,000 KRW입니다")
     private BigDecimal initialCapital;
 
     /** 손절률 (기본 5%) */
