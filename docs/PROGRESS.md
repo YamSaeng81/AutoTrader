@@ -327,5 +327,5 @@ grep -n "ERROR\|Caused by\|Exception" /tmp/backend.log | tail -30
 | 설계서 | `docs/DESIGN.md` | API, DB 스키마, UI 설계 |
 | 계획서 | `docs/PLAN.md` | Phase별 개발 계획 |
 | 검증 결과 | `docs/CHECK_RESULT.md` | 설계-구현 갭 분석 |
-| 전략 개선 분석 | `docs/strategy_analysis_v3.md` | 10개 전략 상세 분석 + 고도화 로드맵 |
+| 전략 개선 분석 | `docs/strategy_analysis_v4.md` | 10개 전략 상세 분석 + 고도화 로드맵 |
 | 백테스트 결과 | `docs/BACKTEST_RESULTS.md` | 실행별 수익률·승률·MDD 기록 |
