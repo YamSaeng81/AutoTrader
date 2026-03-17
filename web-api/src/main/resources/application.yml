@@ -40,3 +40,7 @@ telegram:
 upbit:
   access-key: ${UPBIT_ACCESS_KEY:}
   secret-key: ${UPBIT_SECRET_KEY:}
+
+api:
+  auth:
+    token: ${API_AUTH_TOKEN:dev-token-change-me-in-production}

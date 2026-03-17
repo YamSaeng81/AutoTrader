@@ -12,6 +12,14 @@ const api = axios.create({
     timeout: 30000,
 });
 
+api.interceptors.request.use(config => {
+    const token = process.env.NEXT_PUBLIC_API_TOKEN;
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
+
 export const backtestApi = {
     run: (req: BacktestRequest) =>
         api.post<ApiResponse<BacktestResult>>('/api/v1/backtest/run', req, { timeout: 300000 }).then(r => r.data),
