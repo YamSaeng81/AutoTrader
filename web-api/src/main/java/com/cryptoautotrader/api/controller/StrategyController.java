@@ -1,6 +1,8 @@
 package com.cryptoautotrader.api.controller;
 
 import com.cryptoautotrader.api.dto.ApiResponse;
+import com.cryptoautotrader.api.dto.StrategyConfigCreateRequest;
+import com.cryptoautotrader.api.dto.StrategyConfigUpdateRequest;
 import com.cryptoautotrader.api.entity.StrategyConfigEntity;
 import com.cryptoautotrader.api.entity.StrategyTypeEnabledEntity;
 import com.cryptoautotrader.api.repository.StrategyConfigRepository;
@@ -10,6 +12,7 @@ import com.cryptoautotrader.strategy.StrategyRegistry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
@@ -86,16 +89,16 @@ public class StrategyController {
      * POST /api/v1/strategies
      */
     @PostMapping
-    public ApiResponse<Map<String, Object>> createConfig(@RequestBody Map<String, Object> body) {
+    public ApiResponse<Map<String, Object>> createConfig(@Valid @RequestBody StrategyConfigCreateRequest req) {
         StrategyConfigEntity entity = StrategyConfigEntity.builder()
-                .name((String) body.getOrDefault("name", ""))
-                .strategyType((String) body.getOrDefault("strategyType", ""))
-                .coinPair((String) body.getOrDefault("coinPair", "KRW-BTC"))
-                .timeframe((String) body.getOrDefault("timeframe", "M15"))
-                .configJson(body.containsKey("configJson") ? (Map<String, Object>) body.get("configJson") : Map.of())
-                .maxInvestment(body.containsKey("maxInvestment") ? new BigDecimal(body.get("maxInvestment").toString()) : null)
-                .stopLossPct(body.containsKey("stopLossPct") ? new BigDecimal(body.get("stopLossPct").toString()) : null)
-                .reinvestPct(body.containsKey("reinvestPct") ? new BigDecimal(body.get("reinvestPct").toString()) : null)
+                .name(req.getName())
+                .strategyType(req.getStrategyType())
+                .coinPair(req.getCoinPair())
+                .timeframe(req.getTimeframe())
+                .configJson(req.getConfigJson() != null ? req.getConfigJson() : Map.of())
+                .maxInvestment(req.getMaxInvestment())
+                .stopLossPct(req.getStopLossPct())
+                .reinvestPct(req.getReinvestPct())
                 .isActive(true)
                 .build();
         StrategyConfigEntity saved = configRepo.save(entity);
@@ -107,17 +110,18 @@ public class StrategyController {
      * PUT /api/v1/strategies/{id}
      */
     @PutMapping("/{id}")
-    public ApiResponse<Map<String, Object>> updateConfig(@PathVariable Long id, @RequestBody Map<String, Object> body) {
+    public ApiResponse<Map<String, Object>> updateConfig(
+            @PathVariable Long id, @Valid @RequestBody StrategyConfigUpdateRequest req) {
         return configRepo.findById(id)
                 .map(entity -> {
-                    if (body.containsKey("name")) entity.setName((String) body.get("name"));
-                    if (body.containsKey("strategyType")) entity.setStrategyType((String) body.get("strategyType"));
-                    if (body.containsKey("coinPair")) entity.setCoinPair((String) body.get("coinPair"));
-                    if (body.containsKey("timeframe")) entity.setTimeframe((String) body.get("timeframe"));
-                    if (body.containsKey("configJson")) entity.setConfigJson((Map<String, Object>) body.get("configJson"));
-                    if (body.containsKey("maxInvestment")) entity.setMaxInvestment(new BigDecimal(body.get("maxInvestment").toString()));
-                    if (body.containsKey("stopLossPct")) entity.setStopLossPct(new BigDecimal(body.get("stopLossPct").toString()));
-                    if (body.containsKey("reinvestPct")) entity.setReinvestPct(new BigDecimal(body.get("reinvestPct").toString()));
+                    if (req.getName() != null) entity.setName(req.getName());
+                    if (req.getStrategyType() != null) entity.setStrategyType(req.getStrategyType());
+                    if (req.getCoinPair() != null) entity.setCoinPair(req.getCoinPair());
+                    if (req.getTimeframe() != null) entity.setTimeframe(req.getTimeframe());
+                    if (req.getConfigJson() != null) entity.setConfigJson(req.getConfigJson());
+                    if (req.getMaxInvestment() != null) entity.setMaxInvestment(req.getMaxInvestment());
+                    if (req.getStopLossPct() != null) entity.setStopLossPct(req.getStopLossPct());
+                    if (req.getReinvestPct() != null) entity.setReinvestPct(req.getReinvestPct());
                     StrategyConfigEntity saved = configRepo.save(entity);
                     return ApiResponse.ok(toConfigMap(saved));
                 })

@@ -23,6 +23,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+// 예외 처리는 GlobalExceptionHandler 에서 일괄 처리:
+//   SessionNotFoundException  → 404
+//   SessionStateException     → 409
+//   MethodArgumentNotValidException → 400
+
 /**
  * 실전 매매 API 컨트롤러 -- 다중 세션 지원
  * DESIGN.md 섹션 4.4 API 명세 구현
@@ -47,13 +52,7 @@ public class TradingController {
     @PostMapping("/sessions")
     public ApiResponse<LiveTradingSessionEntity> createSession(
             @Valid @RequestBody LiveTradingStartRequest request) {
-        try {
-            return ApiResponse.ok(liveTradingService.createSession(request));
-        } catch (IllegalStateException e) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
-        } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
-        }
+        return ApiResponse.ok(liveTradingService.createSession(request));
     }
 
     /** 전체 세션 목록 */
@@ -65,94 +64,60 @@ public class TradingController {
     /** 세션 상세 조회 */
     @GetMapping("/sessions/{id}")
     public ApiResponse<LiveTradingSessionEntity> getSession(@PathVariable Long id) {
-        try {
-            return ApiResponse.ok(liveTradingService.getSession(id));
-        } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-        }
+        return ApiResponse.ok(liveTradingService.getSession(id));
     }
 
     /** 세션 시작 */
     @PostMapping("/sessions/{id}/start")
     public ApiResponse<LiveTradingSessionEntity> startSession(@PathVariable Long id) {
-        try {
-            return ApiResponse.ok(liveTradingService.startSession(id));
-        } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-        } catch (IllegalStateException e) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
-        }
+        return ApiResponse.ok(liveTradingService.startSession(id));
     }
 
     /** 세션 정지 */
     @PostMapping("/sessions/{id}/stop")
     public ApiResponse<LiveTradingSessionEntity> stopSession(@PathVariable Long id) {
-        try {
-            return ApiResponse.ok(liveTradingService.stopSession(id));
-        } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-        } catch (IllegalStateException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
-        }
+        return ApiResponse.ok(liveTradingService.stopSession(id));
     }
 
     /** 세션 비상 정지 */
     @PostMapping("/sessions/{id}/emergency-stop")
     public ApiResponse<LiveTradingSessionEntity> emergencyStopSession(@PathVariable Long id) {
-        try {
-            return ApiResponse.ok(liveTradingService.emergencyStopSession(id));
-        } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-        }
+        return ApiResponse.ok(liveTradingService.emergencyStopSession(id));
     }
 
     /** 세션 삭제 (STOPPED 상태만) */
     @DeleteMapping("/sessions/{id}")
     public ApiResponse<Void> deleteSession(@PathVariable Long id) {
-        try {
-            liveTradingService.deleteSession(id);
-            return ApiResponse.ok(null);
-        } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-        } catch (IllegalStateException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
-        }
+        liveTradingService.deleteSession(id);
+        return ApiResponse.ok(null);
     }
 
     /** 세션의 포지션 목록 */
     @GetMapping("/sessions/{id}/positions")
     public ApiResponse<List<PositionEntity>> getSessionPositions(@PathVariable Long id) {
-        try {
-            return ApiResponse.ok(liveTradingService.getSessionPositions(id));
-        } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-        }
+        return ApiResponse.ok(liveTradingService.getSessionPositions(id));
     }
 
     /** 세션 가격 차트 데이터 (캔들 + 매수매도 시점) */
     @GetMapping("/sessions/{id}/chart")
     public ApiResponse<Map<String, Object>> getSessionChart(@PathVariable Long id) {
-        try {
-            List<CandleDataEntity> candles = liveTradingService.getChartCandles(id);
-            List<Map<String, Object>> allOrders = liveTradingService.getAllSessionOrders(id).stream()
-                    .map(this::toOrderMap)
-                    .toList();
+        List<CandleDataEntity> candles = liveTradingService.getChartCandles(id);
+        List<Map<String, Object>> allOrders = liveTradingService.getAllSessionOrders(id).stream()
+                .map(this::toOrderMap)
+                .toList();
 
-            List<Map<String, Object>> candleData = candles.stream().map(c -> {
-                Map<String, Object> m = new HashMap<>();
-                m.put("time", c.getTime().toEpochMilli());
-                m.put("open", c.getOpen());
-                m.put("high", c.getHigh());
-                m.put("low", c.getLow());
-                m.put("close", c.getClose());
-                m.put("volume", c.getVolume());
-                return m;
-            }).toList();
+        List<Map<String, Object>> candleData = candles.stream().map(c -> {
+            Map<String, Object> m = new HashMap<>();
+            m.put("time", c.getTime().toEpochMilli());
+            m.put("open", c.getOpen());
+            m.put("high", c.getHigh());
+            m.put("low", c.getLow());
+            m.put("close", c.getClose());
+            m.put("volume", c.getVolume());
+            return m;
+        }).toList();
 
-            return ApiResponse.ok(Map.of("candles", candleData, "orders", allOrders));
-        } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-        }
+        return ApiResponse.ok(Map.of("candles", candleData, "orders", allOrders));
     }
 
     /** 세션의 주문 내역 */
@@ -161,11 +126,7 @@ public class TradingController {
             @PathVariable Long id,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        try {
-            return ApiResponse.ok(liveTradingService.getSessionOrders(id, PageRequest.of(page, size)));
-        } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-        }
+        return ApiResponse.ok(liveTradingService.getSessionOrders(id, PageRequest.of(page, size)));
     }
 
     // -- 전체 매매 상태 -------------------------------------------
@@ -194,11 +155,7 @@ public class TradingController {
     /** 포지션 상세 조회 */
     @GetMapping("/positions/{id}")
     public ApiResponse<PositionEntity> getPosition(@PathVariable Long id) {
-        try {
-            return ApiResponse.ok(positionService.getPosition(id));
-        } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-        }
+        return ApiResponse.ok(positionService.getPosition(id));
     }
 
     // -- 주문 관리 (전체) ------------------------------------------
@@ -223,14 +180,7 @@ public class TradingController {
     /** 주문 취소 */
     @DeleteMapping("/orders/{id}")
     public ApiResponse<OrderEntity> cancelOrder(@PathVariable Long id) {
-        try {
-            OrderEntity cancelled = orderExecutionEngine.cancelOrder(id);
-            return ApiResponse.ok(cancelled);
-        } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-        } catch (IllegalStateException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
-        }
+        return ApiResponse.ok(orderExecutionEngine.cancelOrder(id));
     }
 
     // -- 리스크 설정 -----------------------------------------------

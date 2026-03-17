@@ -1,6 +1,8 @@
 package com.cryptoautotrader.api.service;
 
 import com.cryptoautotrader.api.dto.LiveTradingStartRequest;
+import com.cryptoautotrader.api.exception.SessionNotFoundException;
+import com.cryptoautotrader.api.exception.SessionStateException;
 import com.cryptoautotrader.api.dto.OrderRequest;
 import com.cryptoautotrader.api.dto.TradingStatusResponse;
 import com.cryptoautotrader.api.entity.LiveTradingSessionEntity;
@@ -88,7 +90,7 @@ public class LiveTradingService {
     public LiveTradingSessionEntity createSession(LiveTradingStartRequest req) {
         long runningCount = sessionRepository.countByStatus("RUNNING");
         if (runningCount >= MAX_CONCURRENT_SESSIONS) {
-            throw new IllegalStateException(
+            throw new SessionStateException(
                     "최대 " + MAX_CONCURRENT_SESSIONS + "개의 동시 매매 세션만 가능합니다. "
                             + "현재 " + runningCount + "개 실행 중.");
         }
@@ -135,19 +137,19 @@ public class LiveTradingService {
         LiveTradingSessionEntity session = getSessionOrThrow(sessionId);
 
         if ("RUNNING".equals(session.getStatus())) {
-            throw new IllegalStateException("세션이 이미 실행 중입니다: id=" + sessionId);
+            throw new SessionStateException("세션이 이미 실행 중입니다: id=" + sessionId);
         }
 
         // 동시 실행 세션 수 제한 확인
         long runningCount = sessionRepository.countByStatus("RUNNING");
         if (runningCount >= MAX_CONCURRENT_SESSIONS) {
-            throw new IllegalStateException(
+            throw new SessionStateException(
                     "최대 " + MAX_CONCURRENT_SESSIONS + "개의 동시 매매 세션만 가능합니다.");
         }
 
         // 거래소 상태 확인
         if (exchangeHealthMonitor != null && "DOWN".equals(exchangeHealthMonitor.getStatus())) {
-            throw new IllegalStateException("거래소 연결이 DOWN 상태입니다. 연결 복구 후 시작하세요.");
+            throw new SessionStateException("거래소 연결이 DOWN 상태입니다. 연결 복구 후 시작하세요.");
         }
 
         session.setStatus("RUNNING");
@@ -173,7 +175,7 @@ public class LiveTradingService {
         LiveTradingSessionEntity session = getSessionOrThrow(sessionId);
 
         if (!"RUNNING".equals(session.getStatus())) {
-            throw new IllegalStateException("세션이 실행 중이 아닙니다: id=" + sessionId);
+            throw new SessionStateException("세션이 실행 중이 아닙니다: id=" + sessionId);
         }
 
         // 해당 세션의 열린 포지션 청산
@@ -270,13 +272,13 @@ public class LiveTradingService {
     public void deleteSession(Long sessionId) {
         LiveTradingSessionEntity session = getSessionOrThrow(sessionId);
         if ("RUNNING".equals(session.getStatus())) {
-            throw new IllegalStateException("실행 중인 세션은 삭제할 수 없습니다. 먼저 정지하세요.");
+            throw new SessionStateException("실행 중인 세션은 삭제할 수 없습니다. 먼저 정지하세요.");
         }
 
         // OPEN 포지션이 남아 있으면 삭제 불가 (orphan 방지)
         List<PositionEntity> openPositions = positionRepository.findBySessionIdAndStatus(sessionId, "OPEN");
         if (!openPositions.isEmpty()) {
-            throw new IllegalStateException(
+            throw new SessionStateException(
                     "미청산 포지션(" + openPositions.size() + "개)이 남아 있습니다. 포지션 청산 후 삭제하세요.");
         }
 
@@ -622,8 +624,7 @@ public class LiveTradingService {
 
     private LiveTradingSessionEntity getSessionOrThrow(Long sessionId) {
         return sessionRepository.findById(sessionId)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "매매 세션을 찾을 수 없습니다: id=" + sessionId));
+                .orElseThrow(() -> new SessionNotFoundException(sessionId));
     }
 
     private List<Candle> fetchRecentCandles(String coinPair, String timeframe) {

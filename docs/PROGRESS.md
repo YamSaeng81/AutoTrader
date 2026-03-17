@@ -77,8 +77,6 @@ VWAP / EMA Cross / Bollinger Band / Grid / RSI(다이버전스) / MACD(히스토
 
 ### 단기 (1~2주)
 
-- [ ] `🟡 MEDIUM` TradingController 예외 처리 패턴 통일 (커스텀 예외 클래스 도입)
-- [ ] `🟡 MEDIUM` StrategyController DTO 전환 + Bean Validation (현재 `Map<String, Object>`)
 - [ ] `🟢 LOW` EngineConfig `@ConditionalOnProperty` 전환 (null Bean 방지)
 - [ ] `🟢 LOW` PaperTradingService 다중 포지션 totalKrw 계산 (다중 코인 지원 시)
 
