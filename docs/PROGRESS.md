@@ -200,6 +200,10 @@ docker compose -f docker-compose.prod.yml up -d --build frontend          # 프�
 
 docker compose -f docker-compose.prod.yml logs -f backend   # 로그 확인
 docker compose -f docker-compose.prod.yml logs -f frontend
+
+# 에러 원인 확인 (500 등 오류 발생 시)
+docker compose -f docker-compose.prod.yml logs backend > /tmp/backend.log 2>&1
+grep -n "ERROR\|Caused by\|Exception" /tmp/backend.log | tail -30
 ```
 
 ---

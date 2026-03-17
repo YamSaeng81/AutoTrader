@@ -270,7 +270,10 @@ public class TelegramNotificationService {
                 .replace("{", "\\{")
                 .replace("}", "\\}")
                 .replace("<", "\\<")
-                .replace(">", "\\>");
+                .replace(">", "\\>")
+                .replace("(", "\\(")
+                .replace(")", "\\)")
+                .replace("~", "\\~");
     }
 
     /** 텔레그램 sendMessage 요청 바디 */
