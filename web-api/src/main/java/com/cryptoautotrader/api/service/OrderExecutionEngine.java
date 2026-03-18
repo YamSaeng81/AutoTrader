@@ -137,8 +137,33 @@ public class OrderExecutionEngine {
             OrderResponse exchangeResponse = submitToExchange(order);
             order.setExchangeOrderId(exchangeResponse.getUuid());
             order.setSubmittedAt(Instant.now());
-            transitionState(order, "SUBMITTED", null);
-            log.info("거래소 주문 제출 완료 (orderId={}, exchangeId={})", order.getId(), exchangeResponse.getUuid());
+            log.info("거래소 주문 제출 완료 (orderId={}, exchangeId={}, initialState={})",
+                    order.getId(), exchangeResponse.getUuid(), exchangeResponse.getState());
+
+            // 주문 생성 응답에서 이미 최종 상태인 경우 즉시 처리 (폴러 대기 불필요)
+            String initialState = mapExchangeState(exchangeResponse.getState());
+            if ("FILLED".equals(initialState)) {
+                if (exchangeResponse.getExecutedVolume() != null) {
+                    order.setFilledQuantity(exchangeResponse.getExecutedVolume());
+                }
+                order.setFilledAt(Instant.now());
+                transitionState(order, "FILLED", null);
+                processFilledOrder(order);
+            } else {
+                transitionState(order, "SUBMITTED", null);
+                // CANCELLED이지만 부분 체결된 경우도 즉시 처리
+                if ("CANCELLED".equals(initialState)
+                        && "BUY".equalsIgnoreCase(order.getSide())
+                        && exchangeResponse.getExecutedVolume() != null
+                        && exchangeResponse.getExecutedVolume().compareTo(BigDecimal.ZERO) > 0) {
+                    log.warn("주문 생성 응답에서 부분 체결 후 취소 감지 (orderId={}, executed_volume={})",
+                            order.getId(), exchangeResponse.getExecutedVolume());
+                    order.setFilledQuantity(exchangeResponse.getExecutedVolume());
+                    order.setFilledAt(Instant.now());
+                    transitionState(order, "FILLED", null);
+                    processFilledOrder(order);
+                }
+            }
         } catch (Exception e) {
             log.error("거래소 주문 제출 실패 (orderId={}): {}", order.getId(), e.getMessage(), e);
             transitionState(order, "FAILED", "거래소 주문 실패: " + e.getMessage());
@@ -513,6 +538,22 @@ public class OrderExecutionEngine {
                 order.setPrice(exchangeStatus.getPrice());
             }
             // price 타입 매수는 order.getPrice() 그대로 유지 (= 원래 KRW 총액, handleBuyFill 에서 quantity/filledQty 로 재계산)
+        }
+
+        // CANCELLED지만 일부 체결된 경우 (price-type 시장가 매수의 부분 체결 후 취소)
+        // Upbit: state=cancel + executed_volume>0 → 실제로 코인을 매수한 것이므로 체결 처리
+        boolean partialFill = "CANCELLED".equals(newState)
+                && "BUY".equalsIgnoreCase(order.getSide())
+                && order.getFilledQuantity() != null
+                && order.getFilledQuantity().compareTo(BigDecimal.ZERO) > 0;
+
+        if (partialFill) {
+            log.warn("부분 체결 후 취소 감지 (orderId={}, executed_volume={}): CANCELLED → FILLED 처리",
+                    order.getId(), order.getFilledQuantity());
+            order.setFilledAt(Instant.now());
+            transitionState(order, "FILLED", null);
+            processFilledOrder(order);
+            return;
         }
 
         transitionState(order, newState, null);
