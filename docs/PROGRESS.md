@@ -2,7 +2,7 @@
 
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝날 때마다 `## 다음 할 일`과 `## 최근 변경사항`을 반드시 업데이트한다.
-> **마지막 갱신**: 2026-03-18 (실전매매 버그 3종 수정 + DB 초기화 페이지 + Upbit API 테스트 기능 추가)
+> **마지막 갱신**: 2026-03-18 (실전매매 주문 미생성 근본 원인 수정 — JSONB 타입 오류 + 포지션 size=0 초기화)
 
 ---
 
@@ -65,7 +65,8 @@ VWAP / EMA Cross / Bollinger Band / Grid / RSI(다이버전스) / MACD(히스토
 ### 즉시
 
 - [ ] `🔴 HIGH` **실전매매 소액 테스트** — 서버에 최신 코드 배포 후 TEST_TIMED 세션 생성 → 매수 체결 확인 → 3분 후 자동 매도 확인
-  - 배포 전 DB 정리: `public."order"` 테이블에서 `state IN ('PENDING','SUBMITTED')` + `coin_pair = 'KRW-ETH'` + `side = 'BUY'` 주문 있으면 FAILED 처리
+  - **배포 전 DB 정리 필수**: `position` 테이블의 `status='OPEN'` + `session_id` 있는 행 모두 삭제 또는 CLOSED 처리 (이전 orphan 포지션)
+  - `public."order"` 테이블에서 `state IN ('PENDING','SUBMITTED')` 주문도 FAILED 처리
 - [ ] `🟡 MEDIUM` 텔레그램 수신 확인 (서버 재기동 후 12:00/00:00 정상 수신 여부)
 - [ ] `🟡 MEDIUM` 모의투자 텔레그램 이력 확인 — 세션 생성/중단 시 텔레그램 이력 페이지에 SESSION_START/STOP 로그 표시되는지 검증
 
@@ -81,6 +82,15 @@ VWAP / EMA Cross / Bollinger Band / Grid / RSI(다이버전스) / MACD(히스토
 ---
 
 ## 최근 변경사항
+
+### 2026-03-18 — 실전매매 주문 미생성 근본 원인 수정
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `OrderExecutionEngine.java` | `toJsonDetail()` 메서드 추가 — `recordTradeLog()`의 `detail` 파라미터가 JSONB 컬럼에 저장 시 plain string이면 `{"message":"..."}` JSON으로 자동 래핑. **근본 원인**: "주문 생성", "거래소 클라이언트 미등록" 등 non-JSON 문자열을 JSONB 컬럼에 저장하면 PostgreSQL `invalid input syntax for type json` 오류 → `@Transactional` 전체 롤백 → 주문 엔티티가 DB에 저장되지 않음 → Upbit API 호출 자체가 실행되지 않음 |
+| `LiveTradingService.java` | `executeSessionBuy()`에서 포지션 초기 `size = BigDecimal.ZERO` — 체결 전에 예상 수량으로 포지션을 만들면 60초마다 `updateSessionUnrealizedPnl()`이 `size × currentPrice`로 totalAssetKrw를 갱신해 실제 매수 없이 자산이 오르내리는 현상 수정. 체결 후 `handleBuyFill()`에서 실제 체결 수량으로 갱신됨 |
+
+> **근본 원인**: `trade_log.detail_json`은 PostgreSQL JSONB 타입인데, `recordTradeLog()`에 plain string("주문 생성" 등)을 넘기면 `tradeLogRepository.save()` 시 `PSQLException: invalid input syntax for type json` 발생 → `submitOrder()`의 `@Transactional`이 전체 롤백 → `orderRepository.save(order)`도 취소됨. `@Async`로 인해 이 예외가 호출자에게 전달되지 않아 조용히 사라졌음. 결과적으로 주문 엔티티도, Upbit API 호출도 없었음.
 
 ### 2026-03-18 — Upbit API 테스트 기능 (연동 상태 페이지 확장)
 

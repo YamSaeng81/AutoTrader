@@ -523,12 +523,14 @@ public class LiveTradingService {
         }
 
         // 포지션 생성 (세션 연결)
+        // size=0 으로 초기화: 주문 체결(FILLED) 후 handleBuyFill()에서 실제 체결 수량으로 갱신됨
+        // 체결 전 size=0 이므로 updateSessionUnrealizedPnl()에서 totalAssetKrw가 가격에 따라 변동하지 않음
         PositionEntity pos = PositionEntity.builder()
                 .coinPair(coinPair)
                 .side("BUY")
                 .entryPrice(price)
                 .avgPrice(price)
-                .size(quantity)
+                .size(BigDecimal.ZERO)
                 .status("OPEN")
                 .sessionId(session.getId())
                 .build();

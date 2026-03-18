@@ -486,8 +486,25 @@ public class OrderExecutionEngine {
                 .eventType(eventType)
                 .oldState(oldState)
                 .newState(newState)
-                .detailJson(detail)
+                .detailJson(toJsonDetail(detail))
                 .build();
         tradeLogRepository.save(logEntry);
+    }
+
+    /**
+     * detail_json 컬럼은 JSONB 타입이므로 plain string은 JSON으로 감싸야 한다.
+     * '{' 또는 '['로 시작하면 이미 JSON으로 간주하고 그대로 사용한다.
+     */
+    private String toJsonDetail(String detail) {
+        if (detail == null) return null;
+        String trimmed = detail.trim();
+        if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+            return trimmed;
+        }
+        try {
+            return objectMapper.writeValueAsString(Map.of("message", trimmed));
+        } catch (Exception e) {
+            return "{\"message\":\"" + trimmed.replace("\"", "'") + "\"}";
+        }
     }
 }
