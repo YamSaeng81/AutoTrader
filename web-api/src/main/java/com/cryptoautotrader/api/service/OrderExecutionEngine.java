@@ -294,6 +294,23 @@ public class OrderExecutionEngine {
     }
 
     private void handleBuyFill(OrderEntity order) {
+        BigDecimal filledQty = order.getFilledQuantity();
+        if (filledQty == null || filledQty.compareTo(BigDecimal.ZERO) <= 0) {
+            log.warn("BUY 체결 처리 건너뜀: filledQty={} (orderId={})", filledQty, order.getId());
+            return;
+        }
+
+        // 평균 체결 단가 계산
+        // - MARKET(price 타입) 매수: Upbit 응답 price = 원래 KRW 총액, executed_volume = 체결 코인 수량
+        //   → avgFillPrice = KRW 총액(quantity) / 체결 코인 수량
+        // - LIMIT 매수: order.getPrice() = 지정 단가
+        BigDecimal avgFillPrice;
+        if ("MARKET".equalsIgnoreCase(order.getOrderType())) {
+            avgFillPrice = order.getQuantity().divide(filledQty, 8, RoundingMode.HALF_UP);
+        } else {
+            avgFillPrice = order.getPrice();
+        }
+
         // positionId가 있으면 해당 포지션을 직접 조회 (세션 데이터 혼재 방지)
         Optional<PositionEntity> existingPos = order.getPositionId() != null
                 ? positionRepository.findById(order.getPositionId())
@@ -302,16 +319,13 @@ public class OrderExecutionEngine {
         if (existingPos.isPresent()) {
             // 기존 포지션에 체결가/수량 반영 (평균 단가 갱신)
             PositionEntity pos = existingPos.get();
-            if (order.getFilledQuantity() != null && order.getPrice() != null
-                    && order.getFilledQuantity().compareTo(BigDecimal.ZERO) > 0) {
-                BigDecimal oldTotal = pos.getAvgPrice().multiply(pos.getSize());
-                BigDecimal newTotal = order.getPrice().multiply(order.getFilledQuantity());
-                BigDecimal totalSize = pos.getSize().add(order.getFilledQuantity());
-                BigDecimal newAvgPrice = oldTotal.add(newTotal)
-                        .divide(totalSize, 8, RoundingMode.HALF_UP);
-                pos.setAvgPrice(newAvgPrice);
-                pos.setSize(totalSize);
-            }
+            BigDecimal oldTotal = pos.getAvgPrice().multiply(pos.getSize());
+            BigDecimal newTotal = avgFillPrice.multiply(filledQty);
+            BigDecimal totalSize = pos.getSize().add(filledQty);
+            BigDecimal newAvgPrice = oldTotal.add(newTotal)
+                    .divide(totalSize, 8, RoundingMode.HALF_UP);
+            pos.setAvgPrice(newAvgPrice);
+            pos.setSize(totalSize);
             positionRepository.save(pos);
             log.info("BUY 체결 반영: posId={}, 평균단가={}, 수량={}", pos.getId(), pos.getAvgPrice(), pos.getSize());
         } else {
@@ -319,15 +333,15 @@ public class OrderExecutionEngine {
             PositionEntity pos = PositionEntity.builder()
                     .coinPair(order.getCoinPair())
                     .side("LONG")
-                    .entryPrice(order.getPrice())
-                    .avgPrice(order.getPrice())
-                    .size(order.getFilledQuantity())
+                    .entryPrice(avgFillPrice)
+                    .avgPrice(avgFillPrice)
+                    .size(filledQty)
                     .status("OPEN")
                     .build();
             pos = positionRepository.save(pos);
             order.setPositionId(pos.getId());
             orderRepository.save(order);
-            log.info("새 포지션 생성: posId={}, {} @ {}", pos.getId(), order.getCoinPair(), order.getPrice());
+            log.info("새 포지션 생성: posId={}, {} @ {}", pos.getId(), order.getCoinPair(), avgFillPrice);
         }
     }
 
@@ -344,10 +358,17 @@ public class OrderExecutionEngine {
 
         PositionEntity pos = openPos.get();
         BigDecimal soldQuantity = order.getFilledQuantity();
+        if (soldQuantity == null || soldQuantity.compareTo(BigDecimal.ZERO) <= 0) {
+            log.warn("SELL 체결 처리 건너뜀: filledQty={} (orderId={})", soldQuantity, order.getId());
+            return;
+        }
         BigDecimal remainingSize = pos.getSize().subtract(soldQuantity);
 
-        // 실현 손익 계산
-        BigDecimal realizedPnl = order.getPrice().subtract(pos.getAvgPrice()).multiply(soldQuantity);
+        // 실현 손익 계산 — order.getPrice()는 syncOrderState에서 세팅됨
+        // market 매도: executedFunds/executedVolume 으로 역산한 단가
+        // 단가 미확보 시 pos.getAvgPrice()로 대체 (PnL = 0으로 처리)
+        BigDecimal fillPrice = order.getPrice() != null ? order.getPrice() : pos.getAvgPrice();
+        BigDecimal realizedPnl = fillPrice.subtract(pos.getAvgPrice()).multiply(soldQuantity);
         pos.setRealizedPnl(pos.getRealizedPnl().add(realizedPnl));
 
         if (remainingSize.compareTo(BigDecimal.ZERO) <= 0) {
@@ -370,7 +391,7 @@ public class OrderExecutionEngine {
         // 체결 로그에 실현 손익 기록
         recordTradeLog(order.getId(), "FILL", null, null,
                 String.format("{\"realizedPnl\": %s, \"fillPrice\": %s, \"fillQuantity\": %s}",
-                        realizedPnl.toPlainString(), order.getPrice().toPlainString(),
+                        realizedPnl.toPlainString(), fillPrice.toPlainString(),
                         soldQuantity.toPlainString()));
     }
 
@@ -434,9 +455,23 @@ public class OrderExecutionEngine {
 
         if ("FILLED".equals(newState)) {
             order.setFilledAt(Instant.now());
-            if (exchangeStatus.getPrice() != null) {
+            // market 타입 매도: price 필드는 null이고 executed_funds(KRW 총수령)로 단가 역산
+            // price 타입 매수:  price 필드 = 원래 KRW 총액(order.getQuantity()와 동일) → 덮어쓰지 않음
+            // limit 타입:       price 필드 = 지정 단가 → 그대로 사용
+            if ("market".equalsIgnoreCase(exchangeStatus.getOrdType())
+                    && "ask".equalsIgnoreCase(exchangeStatus.getSide())
+                    && exchangeStatus.getExecutedFunds() != null
+                    && exchangeStatus.getExecutedVolume() != null
+                    && exchangeStatus.getExecutedVolume().compareTo(BigDecimal.ZERO) > 0) {
+                // 시장가 매도 평균 단가 = 수령 KRW / 체결 코인 수량
+                BigDecimal avgSellPrice = exchangeStatus.getExecutedFunds()
+                        .divide(exchangeStatus.getExecutedVolume(), 8, RoundingMode.HALF_UP);
+                order.setPrice(avgSellPrice);
+            } else if ("limit".equalsIgnoreCase(exchangeStatus.getOrdType())
+                    && exchangeStatus.getPrice() != null) {
                 order.setPrice(exchangeStatus.getPrice());
             }
+            // price 타입 매수는 order.getPrice() 그대로 유지 (= 원래 KRW 총액, handleBuyFill 에서 quantity/filledQty 로 재계산)
         }
 
         transitionState(order, newState, null);

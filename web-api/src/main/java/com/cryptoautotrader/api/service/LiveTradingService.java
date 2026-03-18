@@ -559,6 +559,13 @@ public class LiveTradingService {
     private void executeSessionSell(LiveTradingSessionEntity session,
                                      PositionEntity pos, BigDecimal currentPrice,
                                      String reason) {
+        // 매도 수량 검증 — position.size=0 이면 매수 체결 미감지 상태이므로 스킵
+        if (pos.getSize().compareTo(BigDecimal.ZERO) <= 0) {
+            log.warn("매도 건너뜀: position.size={} (sessionId={}, posId={}). 매수 체결 미감지 — 다음 틱에 재시도됩니다.",
+                    pos.getSize(), session.getId(), pos.getId());
+            return;
+        }
+
         // 주문 제출 — sessionId/positionId를 request에 미리 설정 (@Async 리턴값 의존 회피)
         OrderRequest order = new OrderRequest();
         order.setCoinPair(pos.getCoinPair());

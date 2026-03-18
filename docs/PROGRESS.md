@@ -2,7 +2,7 @@
 
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝날 때마다 `## 다음 할 일`과 `## 최근 변경사항`을 반드시 업데이트한다.
-> **마지막 갱신**: 2026-03-18 (매도 수량 소수점 초과 오류 수정 — setScale(8, DOWN))
+> **마지막 갱신**: 2026-03-18 (매수 체결 평균단가 오계산 수정 + 시장가 매도 단가 역산 추가)
 
 ---
 
@@ -82,6 +82,28 @@ VWAP / EMA Cross / Bollinger Band / Grid / RSI(다이버전스) / MACD(히스토
 ---
 
 ## 최근 변경사항
+
+### 2026-03-18 — 매수 체결 평균단가 오계산 수정 + 시장가 매도 단가 역산
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `OrderExecutionEngine.java` | **`handleBuyFill()` 평균단가 수정** — MARKET(price타입) 매수 시 Upbit 응답의 `price` 필드 = 원래 KRW 총액이므로 `order.price × filledQty` 계산이 틀렸음. 올바른 계산: `avgFillPrice = order.quantity / filledQty` (예: 8,000 KRW ÷ 0.00232761 = ≈3,437,000 KRW/ETH). LIMIT 매수는 `order.price` = 지정 단가 그대로 유지 |
+| `OrderExecutionEngine.java` | **`syncOrderState()` 매도 단가 역산** — market 타입 매도 체결 시 Upbit 응답 `price = null`. `executed_funds / executed_volume`으로 평균 체결 단가 역산 후 `order.price`에 세팅 |
+| `OrderExecutionEngine.java` | **`handleSellFill()` null 안전 처리** — `order.price`가 null(단가 미확보)일 때 `pos.avgPrice`로 대체하여 NPE 방지. `filledQty <= 0` 가드 추가 |
+| `OrderResponse.java` | `executed_funds` 필드 추가 (`@JsonProperty("executed_funds")`) |
+
+> **근본 원인**: Upbit `price`타입 bid(시장가 매수) 응답에서 `price` = 원래 KRW 총액(파라미터 그대로 반환). 체결 단가가 아님. `avg_price` 필드는 Upbit API에 없으므로 `quantity ÷ executed_volume`으로 직접 계산해야 함. 이 오계산으로 avgPrice ≈ 8,000으로 저장되어 실현손익 계산이 완전히 틀렸음.
+
+### 2026-03-18 — 매도 size=0 방어 처리 + 근본 원인 분석
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `LiveTradingService.java` | `executeSessionSell()` 앞에 `pos.size <= 0` 가드 추가 — size=0이면 Upbit 400 대신 WARN 로그 + 스킵, 다음 틱에 재시도 |
+
+> **근본 원인 연쇄**:
+> JSONB 오류 → `submitOrder()` 롤백 → `order.exchangeOrderId = null` → `pollActiveOrders()` 내 `checkOrderStatus()`가 `exchangeOrderId == null`로 즉시 return → `handleBuyFill()` 영원히 미실행 → `pos.size = 0` 유지 → sell 수량 0 → Upbit 400
+> **핵심 수정**: `TradeLogEntity.detailJson`에 `@JdbcTypeCode(SqlTypes.JSON)` 추가 (JSONB 타입 매핑 수정). 이 수정이 배포되면 전체 흐름이 정상화됨.
+> **배포 확인 방법**: 로그에 `주문 상태 전이 (orderId=XXX): PENDING → SUBMITTED` 나오면 JSONB 수정 적용됨.
 
 ### 2026-03-18 — 매도 수량 소수점 초과 오류 수정
 

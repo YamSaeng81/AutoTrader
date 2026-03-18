@@ -44,6 +44,10 @@ public class OrderResponse {
     @JsonProperty("executed_volume")
     private BigDecimal executedVolume;
 
+    /** 체결 금액 합계 (KRW) — market 타입 매도 시 평균 단가 산출에 사용 */
+    @JsonProperty("executed_funds")
+    private BigDecimal executedFunds;
+
     /** 지불 수수료 */
     @JsonProperty("paid_fee")
     private BigDecimal paidFee;
