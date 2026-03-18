@@ -394,8 +394,9 @@ public class OrderExecutionEngine {
                 price = order.getQuantity();
             } else {
                 // 시장가 매도: market 타입 — quantity 필드를 코인 수량으로 사용
+                // Upbit ETH 허용 소수점: 최대 8자리. price타입 매수 체결량이 8자리 초과할 수 있으므로 내림 처리
                 upbitOrderType = "market";
-                volume = order.getQuantity();
+                volume = order.getQuantity().setScale(8, RoundingMode.DOWN);
                 price = null;
             }
         } else {
