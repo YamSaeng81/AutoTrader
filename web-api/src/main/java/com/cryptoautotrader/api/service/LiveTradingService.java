@@ -559,8 +559,30 @@ public class LiveTradingService {
     private void executeSessionSell(LiveTradingSessionEntity session,
                                      PositionEntity pos, BigDecimal currentPrice,
                                      String reason) {
-        // 매도 수량 검증 — position.size=0 이면 매수 체결 미감지 상태이므로 스킵
+        // 매도 수량 검증 — position.size=0 이면 매수 체결 미감지 상태
         if (pos.getSize().compareTo(BigDecimal.ZERO) <= 0) {
+            // 매수 주문이 취소/실패됐는지 확인
+            Optional<OrderEntity> cancelledBuy = orderRepository
+                    .findByPositionIdOrderByCreatedAtDesc(pos.getId())
+                    .stream()
+                    .filter(o -> "BUY".equalsIgnoreCase(o.getSide()))
+                    .filter(o -> "CANCELLED".equals(o.getState()) || "FAILED".equals(o.getState()))
+                    .findFirst();
+
+            if (cancelledBuy.isPresent()) {
+                // 매수 취소 확정 — 포지션 종료 + 차감됐던 KRW 복원
+                OrderEntity buyOrder = cancelledBuy.get();
+                log.warn("매수 취소/실패 확인 — 포지션 종료 및 KRW 복원 (posId={}, sessionId={}, orderId={}, 복원금액={})",
+                        pos.getId(), session.getId(), buyOrder.getId(), buyOrder.getQuantity());
+                session.setAvailableKrw(session.getAvailableKrw().add(buyOrder.getQuantity()));
+                sessionRepository.save(session);
+                pos.setStatus("CLOSED");
+                pos.setClosedAt(Instant.now());
+                positionRepository.save(pos);
+                return;
+            }
+
+            // 아직 주문 체결 대기 중 — 다음 틱 재시도
             log.warn("매도 건너뜀: position.size={} (sessionId={}, posId={}). 매수 체결 미감지 — 다음 틱에 재시도됩니다.",
                     pos.getSize(), session.getId(), pos.getId());
             return;

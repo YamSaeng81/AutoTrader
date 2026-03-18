@@ -216,7 +216,7 @@ public class SettingsController {
 
     /**
      * 인메모리 서버 로그 조회
-     * level: ALL | ERROR | WARN | INFO | DEBUG
+     * level: ALL | ERROR | WARN | INFO | DEBUG (쉼표로 다중 지정 가능, 예: ERROR,WARN)
      * keyword: 로거명 또는 메시지 포함 문자열 (빈 문자열 = 전체)
      * lines: 반환할 최대 라인 수 (기본 200)
      */
@@ -226,10 +226,13 @@ public class SettingsController {
             @RequestParam(defaultValue = "")     String keyword,
             @RequestParam(defaultValue = "200")  int lines) {
 
+        List<String> levels = java.util.Arrays.asList(level.split(","));
+        boolean allLevels = levels.contains("ALL");
+
         List<InMemoryLogBuffer.LogEntry> all = InMemoryLogBuffer.getAll();
 
         List<InMemoryLogBuffer.LogEntry> filtered = all.stream()
-                .filter(e -> level.equals("ALL") || e.level().equals(level))
+                .filter(e -> allLevels || levels.contains(e.level()))
                 .filter(e -> keyword.isBlank()
                         || e.message().contains(keyword)
                         || e.logger().contains(keyword))

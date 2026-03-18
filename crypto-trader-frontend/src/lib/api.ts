@@ -179,9 +179,9 @@ export const settingsApi = {
         api.get<ApiResponse<{ orders: Record<string, unknown>[]; count: number; error?: string }>>(
             '/api/v1/settings/upbit/exchange-orders', { params: { market, state, limit } }
         ).then(r => r.data),
-    serverLogs: (level = 'ALL', keyword = '', lines = 200) =>
+    serverLogs: (levels: string[] = ['ALL'], keyword = '', lines = 200) =>
         api.get<ApiResponse<{ entries: ServerLogEntry[]; total: number; filtered: number; returned: number }>>(
-            '/api/v1/settings/server-logs', { params: { level, keyword, lines } }
+            '/api/v1/settings/server-logs', { params: { level: levels.join(','), keyword, lines } }
         ).then(r => r.data),
     dbStats: () =>
         api.get<ApiResponse<DbStats>>('/api/v1/settings/db/stats').then(r => r.data),

@@ -31,7 +31,7 @@ const LEVEL_TEXT_CLS: Record<string, string> = {
 };
 
 export default function ServerLogsPage() {
-    const [level, setLevel]     = useState('ALL');
+    const [levels, setLevels]   = useState<string[]>(['ALL']);
     const [keyword, setKeyword] = useState('');
     const [lines, setLines]     = useState(200);
     const [autoRefresh, setAutoRefresh] = useState(true);
@@ -39,9 +39,21 @@ export default function ServerLogsPage() {
     const bottomRef = useRef<HTMLDivElement>(null);
     const [autoScroll, setAutoScroll] = useState(true);
 
+    const toggleLevel = (value: string) => {
+        if (value === 'ALL') {
+            setLevels(['ALL']);
+            return;
+        }
+        setLevels(prev => {
+            const without = prev.filter(l => l !== 'ALL' && l !== value);
+            const next = prev.includes(value) ? without : [...without, value];
+            return next.length === 0 ? ['ALL'] : next;
+        });
+    };
+
     const { data: res, isLoading, refetch, isFetching, dataUpdatedAt } = useQuery({
-        queryKey: ['server-logs', level, keyword, lines],
-        queryFn: () => settingsApi.serverLogs(level, keyword, lines),
+        queryKey: ['server-logs', levels, keyword, lines],
+        queryFn: () => settingsApi.serverLogs(levels, keyword, lines),
         refetchInterval: autoRefresh ? 5000 : false,
     });
 
@@ -116,22 +128,27 @@ export default function ServerLogsPage() {
 
             {/* 필터 바 */}
             <div className="flex flex-wrap items-center gap-3 shrink-0">
-                {/* 레벨 필터 */}
+                {/* 레벨 필터 (다중 선택) */}
                 <div className="flex items-center gap-1">
-                    {LEVEL_FILTERS.map(f => (
-                        <button
-                            key={f.value}
-                            onClick={() => setLevel(f.value)}
-                            className={cn(
-                                'px-2.5 py-1 rounded text-xs font-mono font-medium transition-all',
-                                level === f.value
-                                    ? f.cls + ' ring-2 ring-white/20'
-                                    : 'bg-slate-800 text-slate-500 hover:text-slate-300'
-                            )}
-                        >
-                            {f.label}
-                        </button>
-                    ))}
+                    {LEVEL_FILTERS.map(f => {
+                        const active = f.value === 'ALL'
+                            ? levels.includes('ALL')
+                            : levels.includes(f.value);
+                        return (
+                            <button
+                                key={f.value}
+                                onClick={() => toggleLevel(f.value)}
+                                className={cn(
+                                    'px-2.5 py-1 rounded text-xs font-mono font-medium transition-all',
+                                    active
+                                        ? f.cls + ' ring-2 ring-white/20'
+                                        : 'bg-slate-800 text-slate-500 hover:text-slate-300'
+                                )}
+                            >
+                                {f.label}
+                            </button>
+                        );
+                    })}
                 </div>
 
                 {/* 키워드 검색 */}
@@ -216,7 +233,7 @@ export default function ServerLogsPage() {
                     <div className="flex flex-col items-center justify-center h-32 gap-2 text-slate-500">
                         <Terminal className="w-6 h-6" />
                         <span>
-                            {keyword || level !== 'ALL'
+                            {keyword || !levels.includes('ALL')
                                 ? '조건에 맞는 로그가 없습니다'
                                 : '로그가 없습니다 (서버 재시작 후 로그가 쌓입니다)'}
                         </span>
