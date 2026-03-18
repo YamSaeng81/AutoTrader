@@ -15,6 +15,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -98,15 +99,43 @@ public class UpbitRestClient {
         throttle();
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
         if (response.statusCode() == 404) {
-            // 존재하지 않는 마켓 코드가 포함된 경우 빈 목록 반환 (계좌 페이지 오류 방지)
-            log.warn("Upbit ticker 마켓 코드 없음 (404): markets={}", markets);
-            return Collections.emptyList();
+            // 상장폐지 등 없는 코인이 포함된 경우 — 개별 조회로 폴백하여 유효한 코인만 반환
+            log.warn("Upbit ticker 404 (상장폐지 코인 포함 가능성): markets={} — 개별 조회로 폴백", markets);
+            return getTickerIndividually(markets.split(","));
         }
         if (response.statusCode() != 200) {
             log.error("Upbit ticker API 오류: status={}, body={}", response.statusCode(), response.body());
             throw new RuntimeException("Upbit ticker API 호출 실패: " + response.statusCode());
         }
         return objectMapper.readValue(response.body(), new TypeReference<>() {});
+    }
+
+    /** 404 발생 시 마켓을 1개씩 조회하여 유효한 것만 모아 반환 (상장폐지 코인 대응) */
+    private List<Map<String, Object>> getTickerIndividually(String[] marketArr) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (String market : marketArr) {
+            market = market.trim();
+            if (market.isEmpty()) continue;
+            try {
+                String encoded = URLEncoder.encode(market, StandardCharsets.UTF_8);
+                HttpRequest req = HttpRequest.newBuilder()
+                        .uri(URI.create(BASE_URL + "/ticker?markets=" + encoded))
+                        .header("Accept", "application/json")
+                        .GET()
+                        .build();
+                throttle();
+                HttpResponse<String> res = httpClient.send(req, HttpResponse.BodyHandlers.ofString());
+                if (res.statusCode() == 200) {
+                    List<Map<String, Object>> parsed = objectMapper.readValue(res.body(), new TypeReference<>() {});
+                    result.addAll(parsed);
+                } else {
+                    log.debug("Upbit ticker 조회 실패 (상장폐지 추정): market={}, status={}", market, res.statusCode());
+                }
+            } catch (Exception e) {
+                log.debug("Upbit ticker 개별 조회 오류: market={}, error={}", market, e.getMessage());
+            }
+        }
+        return result;
     }
 
     /** Upbit API Rate Limit 준수 — 연속 호출 시 최소 110ms 간격 보장 (원자적 처리) */

@@ -2,6 +2,8 @@ package com.cryptoautotrader.api.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 
@@ -31,6 +33,7 @@ public class TradeLogEntity {
     @Column(name = "new_state", length = 20)
     private String newState;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "detail_json", columnDefinition = "jsonb")
     private String detailJson;
 

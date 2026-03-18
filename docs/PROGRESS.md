@@ -2,7 +2,7 @@
 
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝날 때마다 `## 다음 할 일`과 `## 최근 변경사항`을 반드시 업데이트한다.
-> **마지막 갱신**: 2026-03-18 (실전매매 주문 미생성 근본 원인 수정 — JSONB 타입 오류 + 포지션 size=0 초기화)
+> **마지막 갱신**: 2026-03-18 (JSONB 타입 매핑 수정 + 상장폐지 코인 404 폴백)
 
 ---
 
@@ -82,6 +82,29 @@ VWAP / EMA Cross / Bollinger Band / Grid / RSI(다이버전스) / MACD(히스토
 ---
 
 ## 최근 변경사항
+
+### 2026-03-18 — JSONB 타입 매핑 수정 + 상장폐지 코인 404 폴백
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `TradeLogEntity.java` | `detailJson` 필드에 `@JdbcTypeCode(SqlTypes.JSON)` 추가 — Hibernate 6(Spring Boot 3.x)에서 `String` → `varchar`로 매핑되어 PostgreSQL JSONB 컬럼에 INSERT 실패하던 문제 수정. `columnDefinition = "jsonb"` 는 DDL 힌트일 뿐 DML 타입에 영향 없음 |
+| `UpbitRestClient.java` | `getTickerIndividually()` 추가 — `/ticker?markets=A,B` 요청에서 상장폐지 코인 1개라도 포함되면 전체 404 반환하는 Upbit API 특성 대응. 404 시 마켓을 1개씩 재시도하여 유효한 것만 반환 |
+
+> **근본 원인**: `@Column(columnDefinition = "jsonb")`는 DDL 스키마 힌트만 제공하며 Hibernate의 DML JDBC 타입 바인딩에는 영향 없음. Hibernate 6에서는 `@JdbcTypeCode(SqlTypes.JSON)` 을 명시해야 JSON 타입으로 파라미터 바인딩됨. 이 오류로 인해 `submitOrder()` 의 `@Transactional` 전체가 롤백되어 주문 엔티티 미저장 → 매수 불가 → position.size=0 → 매도 수량 0 연쇄 발생.
+
+### 2026-03-18 — 서버 로그 뷰어 (설정 메뉴)
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `api/log/InMemoryLogBuffer.java` | **신규** — 최대 5,000개 로그를 보관하는 static 링 버퍼 |
+| `api/log/InMemoryLogAppender.java` | **신규** — Logback `AppenderBase` 구현체. 모든 로그 이벤트를 `InMemoryLogBuffer`에 기록 |
+| `logback-spring.xml` | `IN_MEMORY` appender를 루트 로거 + 전략/거래 전용 로거 모두에 추가 |
+| `SettingsController.java` | `GET /api/v1/settings/server-logs?level=ALL&keyword=&lines=200` 엔드포인트 추가 |
+| `lib/api.ts` | `settingsApi.serverLogs()`, `ServerLogEntry` 타입 추가 |
+| `app/settings/server-logs/page.tsx` | **신규** — 레벨 필터(ALL/ERROR/WARN/INFO/DEBUG), 키워드 검색, 라인 수 선택(100/200/500/1000), 자동갱신 5초, 하단 고정 토글, 키워드 하이라이트 |
+| `Sidebar.tsx` | 설정 그룹에 "서버 로그" 메뉴 추가 (`/settings/server-logs`) |
+
+> **배경**: Ubuntu 서버에서 `docker compose logs --tail=200 backend 2>&1 | grep -E "..."` 로 보던 로그를 웹 UI에서 필터링해서 볼 수 있도록 구현. 서버 재시작 이후부터 최근 5,000라인 인메모리 보관.
 
 ### 2026-03-18 — 실전매매 주문 미실행 버그 3종 수정
 
