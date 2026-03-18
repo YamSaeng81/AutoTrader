@@ -2,7 +2,7 @@
 
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝날 때마다 `## 다음 할 일`과 `## 최근 변경사항`을 반드시 업데이트한다.
-> **마지막 갱신**: 2026-03-18 (실전매매 버그 3종 수정 + DB 초기화 페이지 추가)
+> **마지막 갱신**: 2026-03-18 (실전매매 버그 3종 수정 + DB 초기화 페이지 + Upbit API 테스트 기능 추가)
 
 ---
 
@@ -81,6 +81,15 @@ VWAP / EMA Cross / Bollinger Band / Grid / RSI(다이버전스) / MACD(히스토
 ---
 
 ## 최근 변경사항
+
+### 2026-03-18 — Upbit API 테스트 기능 (연동 상태 페이지 확장)
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `UpbitOrderClient.java` | `getOrderChance()`, `createTestOrder()`, `getRecentOrders()` 메서드 추가 |
+| `SettingsController.java` | `GET /upbit/order-chance`, `POST /upbit/test-order`, `GET /upbit/exchange-orders` 엔드포인트 추가 |
+| `lib/api.ts` | `settingsApi.upbitOrderChance()`, `upbitTestOrder()`, `upbitExchangeOrders()` 추가 |
+| `app/settings/upbit-status/page.tsx` | Upbit API 테스트 섹션 3종 추가: 주문 가능 정보 조회 / 주문 생성 테스트 / 최근 주문 이력 |
 
 ### 2026-03-18 — DB 초기화 페이지 (설정 메뉴)
 

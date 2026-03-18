@@ -171,6 +171,14 @@ export const settingsApi = {
         api.post<ApiResponse<{ success: boolean }>>('/api/v1/settings/telegram/test', {}).then(r => r.data),
     upbitStatus: () =>
         api.get<ApiResponse<import('./types').UpbitStatusResponse>>('/api/v1/settings/upbit/status').then(r => r.data),
+    upbitOrderChance: (market = 'KRW-ETH') =>
+        api.get<ApiResponse<Record<string, unknown>>>('/api/v1/settings/upbit/order-chance', { params: { market } }).then(r => r.data),
+    upbitTestOrder: (market: string, side: string, amount: number) =>
+        api.post<ApiResponse<Record<string, unknown>>>('/api/v1/settings/upbit/test-order', { market, side, amount }).then(r => r.data),
+    upbitExchangeOrders: (market = 'KRW-ETH', state = 'done', limit = 10) =>
+        api.get<ApiResponse<{ orders: Record<string, unknown>[]; count: number; error?: string }>>(
+            '/api/v1/settings/upbit/exchange-orders', { params: { market, state, limit } }
+        ).then(r => r.data),
     dbStats: () =>
         api.get<ApiResponse<DbStats>>('/api/v1/settings/db/stats').then(r => r.data),
     dbReset: (target: 'BACKTEST' | 'PAPER_TRADING' | 'LIVE_TRADING', password: string) =>

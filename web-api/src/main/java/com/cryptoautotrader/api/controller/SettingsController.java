@@ -135,6 +135,80 @@ public class SettingsController {
         return ApiResponse.ok(result);
     }
 
+    // ── Upbit API 테스트 ──────────────────────────────────────
+
+    /**
+     * 주문 가능 정보 (GET /v1/orders/chance)
+     * 수수료율, 최소 주문 금액, 마켓별 잔고 확인
+     */
+    @GetMapping("/upbit/order-chance")
+    public ApiResponse<Map<String, Object>> getOrderChance(
+            @RequestParam(defaultValue = "KRW-ETH") String market) {
+        if (upbitOrderClient == null) {
+            return ApiResponse.ok(Map.of("error", "API 키 미설정"));
+        }
+        try {
+            Map<String, Object> chance = upbitOrderClient.getOrderChance(market);
+            return ApiResponse.ok(chance);
+        } catch (Exception e) {
+            return ApiResponse.ok(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * 주문 생성 테스트 (POST /v1/orders/test) — 실거래 없음
+     * body: { market, side, amount }
+     */
+    @PostMapping("/upbit/test-order")
+    public ApiResponse<Map<String, Object>> testOrder(@RequestBody Map<String, Object> body) {
+        if (upbitOrderClient == null) {
+            return ApiResponse.ok(Map.of("success", false, "error", "API 키 미설정"));
+        }
+        try {
+            String market = (String) body.getOrDefault("market", "KRW-ETH");
+            String side   = (String) body.getOrDefault("side", "bid");
+            // 시장가 매수: price 타입 (KRW 총액)
+            java.math.BigDecimal amount = new java.math.BigDecimal(
+                    body.getOrDefault("amount", "5000").toString());
+
+            com.cryptoautotrader.exchange.upbit.dto.OrderResponse result =
+                    upbitOrderClient.createTestOrder(market, side, null, amount, "price");
+
+            Map<String, Object> res = new java.util.HashMap<>();
+            res.put("success", true);
+            res.put("uuid", result.getUuid());
+            res.put("market", result.getMarket());
+            res.put("side", result.getSide());
+            res.put("ordType", result.getOrdType());
+            res.put("price", result.getPrice());
+            res.put("state", result.getState());
+            res.put("createdAt", result.getCreatedAt() != null ? result.getCreatedAt().toString() : null);
+            return ApiResponse.ok(res);
+        } catch (Exception e) {
+            return ApiResponse.ok(Map.of("success", false, "error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Upbit 최근 주문 이력 직접 조회 (거래소 기준, 우리 DB 아님)
+     * state: done | cancel | wait
+     */
+    @GetMapping("/upbit/exchange-orders")
+    public ApiResponse<Map<String, Object>> getExchangeOrders(
+            @RequestParam(defaultValue = "KRW-ETH") String market,
+            @RequestParam(defaultValue = "done") String state,
+            @RequestParam(defaultValue = "10") int limit) {
+        if (upbitOrderClient == null) {
+            return ApiResponse.ok(Map.of("error", "API 키 미설정", "orders", java.util.List.of()));
+        }
+        try {
+            var orders = upbitOrderClient.getRecentOrders(market, state, Math.min(limit, 50));
+            return ApiResponse.ok(Map.of("orders", orders, "count", orders.size()));
+        } catch (Exception e) {
+            return ApiResponse.ok(Map.of("error", e.getMessage(), "orders", java.util.List.of()));
+        }
+    }
+
     // ── DB 초기화 ──────────────────────────────────────────────
 
     /** DB 초기화 전 레코드 수 미리보기 */

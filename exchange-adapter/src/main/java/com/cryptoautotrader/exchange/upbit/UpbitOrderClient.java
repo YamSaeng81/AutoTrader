@@ -232,6 +232,82 @@ public class UpbitOrderClient {
     }
 
     /**
+     * 주문 가능 정보 조회 (GET /v1/orders/chance)
+     * - 수수료율, 최소 주문 금액, 마켓별 잔고 확인
+     */
+    public Map<String, Object> getOrderChance(String market) throws Exception {
+        Map<String, String> params = Map.of("market", market);
+        String queryString = buildQueryString(params);
+        String token = generateJwtWithQuery(queryString);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/orders/chance?" + queryString))
+                .header("Authorization", "Bearer " + token)
+                .GET()
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        checkResponse(response, "주문 가능 정보");
+        return objectMapper.readValue(response.body(), new TypeReference<>() {});
+    }
+
+    /**
+     * 주문 생성 테스트 (POST /v1/orders/test) — 실거래 없이 주문 형식/권한 검증
+     */
+    public OrderResponse createTestOrder(String market, String side, BigDecimal volume,
+                                         BigDecimal price, String orderType) throws Exception {
+        log.info("주문 생성 테스트: market={}, side={}, volume={}, price={}, type={}",
+                market, side, volume, price, orderType);
+
+        Map<String, String> params = new LinkedHashMap<>();
+        params.put("market", market);
+        params.put("side", side);
+        params.put("ord_type", orderType);
+        if (volume != null) params.put("volume", volume.toPlainString());
+        if (price != null) params.put("price", price.toPlainString());
+
+        String queryString = buildQueryString(params);
+        String token = generateJwtWithQuery(queryString);
+        String requestBody = objectMapper.writeValueAsString(params);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/orders/test"))
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        checkResponse(response, "주문 생성 테스트");
+        return objectMapper.readValue(response.body(), OrderResponse.class);
+    }
+
+    /**
+     * 최근 주문 이력 조회 (GET /v1/orders) — 거래소에서 직접 조회
+     * @param market 마켓 코드
+     * @param state  주문 상태: "done" | "cancel" | "wait"
+     * @param limit  조회 건수 (최대 100)
+     */
+    public List<Map<String, Object>> getRecentOrders(String market, String state, int limit) throws Exception {
+        Map<String, String> params = new LinkedHashMap<>();
+        params.put("market", market);
+        params.put("state", state);
+        params.put("limit", String.valueOf(limit));
+        String queryString = buildQueryString(params);
+        String token = generateJwtWithQuery(queryString);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/orders?" + queryString))
+                .header("Authorization", "Bearer " + token)
+                .GET()
+                .build();
+
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        checkResponse(response, "주문 이력 조회");
+        return objectMapper.readValue(response.body(), new TypeReference<>() {});
+    }
+
+    /**
      * 리소스 정리 - API Key 메모리에서 제거
      */
     public void destroy() {
