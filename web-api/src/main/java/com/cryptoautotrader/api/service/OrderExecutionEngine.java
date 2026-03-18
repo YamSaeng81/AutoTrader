@@ -443,17 +443,17 @@ public class OrderExecutionEngine {
      */
     private BigDecimal resolveAskVolume(OrderEntity order) {
         BigDecimal positionVolume = order.getQuantity();
-        String currency = order.getCoinPair().contains("-")
-                ? order.getCoinPair().split("-")[1]   // "KRW-ETH" → "ETH"
-                : order.getCoinPair();
+        String coinPair = order.getCoinPair();
+        int dashIdx = coinPair.indexOf('-');
+        String currency = dashIdx >= 0 ? coinPair.substring(dashIdx + 1) : coinPair;  // "KRW-ETH" → "ETH"
 
         try {
             List<AccountResponse> accounts = upbitOrderClient.getAccounts();
             BigDecimal accountBalance = accounts.stream()
                     .filter(a -> currency.equals(a.getCurrency()))
-                    .map(AccountResponse::getBalance)
-                    .filter(b -> b != null && b.compareTo(BigDecimal.ZERO) > 0)
                     .findFirst()
+                    .map(AccountResponse::getBalance)
+                    .filter(b -> b.compareTo(BigDecimal.ZERO) > 0)
                     .orElse(null);
 
             if (accountBalance != null) {
