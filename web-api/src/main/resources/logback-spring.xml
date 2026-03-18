@@ -9,6 +9,9 @@
         </encoder>
     </appender>
 
+    <!-- 인메모리 버퍼 (웹 로그 뷰어용) -->
+    <appender name="IN_MEMORY" class="com.cryptoautotrader.api.log.InMemoryLogAppender"/>
+
     <!-- 1단: 시스템 로그 (전체 애플리케이션) -->
     <appender name="SYSTEM_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_DIR}/system.log</file>
@@ -49,27 +52,32 @@
     <logger name="com.cryptoautotrader.strategy" level="INFO" additivity="false">
         <appender-ref ref="STRATEGY_LOG" />
         <appender-ref ref="CONSOLE" />
+        <appender-ref ref="IN_MEMORY" />
     </logger>
 
     <logger name="com.cryptoautotrader.core.backtest" level="INFO" additivity="false">
         <appender-ref ref="STRATEGY_LOG" />
         <appender-ref ref="CONSOLE" />
+        <appender-ref ref="IN_MEMORY" />
     </logger>
 
     <!-- 거래 관련 로거 -->
     <logger name="com.cryptoautotrader.exchange" level="INFO" additivity="false">
         <appender-ref ref="TRADE_LOG" />
         <appender-ref ref="CONSOLE" />
+        <appender-ref ref="IN_MEMORY" />
     </logger>
 
     <logger name="com.cryptoautotrader.core.risk" level="INFO" additivity="false">
         <appender-ref ref="TRADE_LOG" />
         <appender-ref ref="CONSOLE" />
+        <appender-ref ref="IN_MEMORY" />
     </logger>
 
     <!-- 루트 로거 = 시스템 로그 -->
     <root level="INFO">
         <appender-ref ref="CONSOLE" />
         <appender-ref ref="SYSTEM_LOG" />
+        <appender-ref ref="IN_MEMORY" />
     </root>
 </configuration>

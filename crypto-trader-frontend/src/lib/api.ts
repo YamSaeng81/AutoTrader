@@ -179,6 +179,10 @@ export const settingsApi = {
         api.get<ApiResponse<{ orders: Record<string, unknown>[]; count: number; error?: string }>>(
             '/api/v1/settings/upbit/exchange-orders', { params: { market, state, limit } }
         ).then(r => r.data),
+    serverLogs: (level = 'ALL', keyword = '', lines = 200) =>
+        api.get<ApiResponse<{ entries: ServerLogEntry[]; total: number; filtered: number; returned: number }>>(
+            '/api/v1/settings/server-logs', { params: { level, keyword, lines } }
+        ).then(r => r.data),
     dbStats: () =>
         api.get<ApiResponse<DbStats>>('/api/v1/settings/db/stats').then(r => r.data),
     dbReset: (target: 'BACKTEST' | 'PAPER_TRADING' | 'LIVE_TRADING', password: string) =>
@@ -186,6 +190,13 @@ export const settingsApi = {
             '/api/v1/settings/db/reset', { target, password }
         ).then(r => r.data),
 };
+
+export interface ServerLogEntry {
+    timestamp: string;
+    level: string;
+    logger: string;
+    message: string;
+}
 
 export interface DbStats {
     backtest:     Record<string, number>;

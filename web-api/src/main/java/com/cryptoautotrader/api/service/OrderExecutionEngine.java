@@ -82,10 +82,11 @@ public class OrderExecutionEngine {
 
     /**
      * 주문 제출 — PENDING 상태로 생성 후 리스크 체크 및 거래소 주문
+     * @Async 는 void 또는 Future<T> 반환만 지원 (Spring Boot 3.x)
      */
     @Transactional
     @Async("orderExecutor")
-    public OrderEntity submitOrder(OrderRequest request) {
+    public void submitOrder(OrderRequest request) {
         log.info("주문 제출 요청: {} {} {} 수량={}", request.getCoinPair(), request.getSide(),
                 request.getOrderType(), request.getQuantity());
 
@@ -98,10 +99,10 @@ public class OrderExecutionEngine {
         if (duplicateExists) {
             log.warn("중복 주문 거부 (sessionId={}, {} {}): 이미 활성 주문이 있습니다",
                     request.getSessionId(), request.getCoinPair(), request.getSide());
-            return null;
+            return;
         }
 
-        // 2. 주문 엔티티 생성 (PENDING) — sessionId/positionId는 request에서 직접 주입 (@Async 리턴값 의존 회피)
+        // 2. 주문 엔티티 생성 (PENDING)
         OrderEntity order = OrderEntity.builder()
                 .coinPair(request.getCoinPair())
                 .side(request.getSide())
@@ -121,14 +122,14 @@ public class OrderExecutionEngine {
         if (!riskResult.isApproved()) {
             log.warn("리스크 체크 거부 (orderId={}): {}", order.getId(), riskResult.getReason());
             transitionState(order, "FAILED", riskResult.getReason());
-            return order;
+            return;
         }
 
         // 4. 거래소 주문 제출
         if (upbitOrderClient == null) {
             log.warn("UpbitOrderClient 미등록 — 거래소 연동 불가 (orderId={})", order.getId());
             transitionState(order, "FAILED", "거래소 클라이언트 미등록");
-            return order;
+            return;
         }
 
         try {
@@ -141,8 +142,6 @@ public class OrderExecutionEngine {
             log.error("거래소 주문 제출 실패 (orderId={}): {}", order.getId(), e.getMessage(), e);
             transitionState(order, "FAILED", "거래소 주문 실패: " + e.getMessage());
         }
-
-        return order;
     }
 
     /**

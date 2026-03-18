@@ -2,6 +2,7 @@ package com.cryptoautotrader.api.controller;
 
 import com.cryptoautotrader.api.dto.ApiResponse;
 import com.cryptoautotrader.api.entity.TelegramNotificationLogEntity;
+import com.cryptoautotrader.api.log.InMemoryLogBuffer;
 import com.cryptoautotrader.api.repository.MarketDataCacheRepository;
 import com.cryptoautotrader.api.service.AccountService;
 import com.cryptoautotrader.api.service.DbResetService;
@@ -210,6 +211,40 @@ public class SettingsController {
     }
 
     // ── DB 초기화 ──────────────────────────────────────────────
+
+    // ── 서버 로그 ─────────────────────────────────────────────
+
+    /**
+     * 인메모리 서버 로그 조회
+     * level: ALL | ERROR | WARN | INFO | DEBUG
+     * keyword: 로거명 또는 메시지 포함 문자열 (빈 문자열 = 전체)
+     * lines: 반환할 최대 라인 수 (기본 200)
+     */
+    @GetMapping("/server-logs")
+    public ApiResponse<Map<String, Object>> getServerLogs(
+            @RequestParam(defaultValue = "ALL")  String level,
+            @RequestParam(defaultValue = "")     String keyword,
+            @RequestParam(defaultValue = "200")  int lines) {
+
+        List<InMemoryLogBuffer.LogEntry> all = InMemoryLogBuffer.getAll();
+
+        List<InMemoryLogBuffer.LogEntry> filtered = all.stream()
+                .filter(e -> level.equals("ALL") || e.level().equals(level))
+                .filter(e -> keyword.isBlank()
+                        || e.message().contains(keyword)
+                        || e.logger().contains(keyword))
+                .toList();
+
+        int from = Math.max(0, filtered.size() - Math.min(lines, 2000));
+        List<InMemoryLogBuffer.LogEntry> result = filtered.subList(from, filtered.size());
+
+        return ApiResponse.ok(Map.of(
+                "entries",  result,
+                "total",    all.size(),
+                "filtered", filtered.size(),
+                "returned", result.size()
+        ));
+    }
 
     /** DB 초기화 전 레코드 수 미리보기 */
     @GetMapping("/db/stats")

@@ -83,14 +83,15 @@ VWAP / EMA Cross / Bollinger Band / Grid / RSI(다이버전스) / MACD(히스토
 
 ## 최근 변경사항
 
-### 2026-03-18 — 실전매매 주문 미생성 근본 원인 수정
+### 2026-03-18 — 실전매매 주문 미실행 버그 3종 수정
 
 | 파일 | 변경 내용 |
 |------|-----------|
-| `OrderExecutionEngine.java` | `toJsonDetail()` 메서드 추가 — `recordTradeLog()`의 `detail` 파라미터가 JSONB 컬럼에 저장 시 plain string이면 `{"message":"..."}` JSON으로 자동 래핑. **근본 원인**: "주문 생성", "거래소 클라이언트 미등록" 등 non-JSON 문자열을 JSONB 컬럼에 저장하면 PostgreSQL `invalid input syntax for type json` 오류 → `@Transactional` 전체 롤백 → 주문 엔티티가 DB에 저장되지 않음 → Upbit API 호출 자체가 실행되지 않음 |
-| `LiveTradingService.java` | `executeSessionBuy()`에서 포지션 초기 `size = BigDecimal.ZERO` — 체결 전에 예상 수량으로 포지션을 만들면 60초마다 `updateSessionUnrealizedPnl()`이 `size × currentPrice`로 totalAssetKrw를 갱신해 실제 매수 없이 자산이 오르내리는 현상 수정. 체결 후 `handleBuyFill()`에서 실제 체결 수량으로 갱신됨 |
+| `OrderExecutionEngine.java` | **`@Async` 반환 타입 수정** — `submitOrder()` 반환 타입을 `OrderEntity` → `void`로 변경. Spring Boot 3.x에서 `@Async` 메서드는 `void` 또는 `Future<T>`만 지원하며, `OrderEntity`를 반환하면 `Invalid return type for async method` 예외가 `evaluateAndExecuteSession()`에서 발생해 전략 실행이 완전히 중단됨 |
+| `OrderExecutionEngine.java` | **JSONB 타입 수정** — `toJsonDetail()` 메서드 추가. `recordTradeLog()`가 plain string을 JSONB 컬럼에 저장하면 PostgreSQL 오류 → `@Transactional` 롤백 → 주문 엔티티 미저장 |
+| `LiveTradingService.java` | **포지션 size 초기화** — `executeSessionBuy()`에서 포지션 초기 `size = BigDecimal.ZERO`. 체결 전 예상 수량으로 포지션 생성 시 `updateSessionUnrealizedPnl()`이 가격 변동에 따라 totalAssetKrw를 갱신해 실제 매수 없이 자산이 변동하는 현상 수정 |
 
-> **근본 원인**: `trade_log.detail_json`은 PostgreSQL JSONB 타입인데, `recordTradeLog()`에 plain string("주문 생성" 등)을 넘기면 `tradeLogRepository.save()` 시 `PSQLException: invalid input syntax for type json` 발생 → `submitOrder()`의 `@Transactional`이 전체 롤백 → `orderRepository.save(order)`도 취소됨. `@Async`로 인해 이 예외가 호출자에게 전달되지 않아 조용히 사라졌음. 결과적으로 주문 엔티티도, Upbit API 호출도 없었음.
+> **실제 오류**: `Invalid return type for async method (only Future and void supported): class com.cryptoautotrader.api.entity.OrderEntity` — 이 예외가 `evaluateAndExecuteSession()` try-catch에서 잡혀 매 틱마다 전략 실행이 중단됐음
 
 ### 2026-03-18 — Upbit API 테스트 기능 (연동 상태 페이지 확장)
 

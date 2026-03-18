@@ -8,7 +8,7 @@ import {
     Shield, LayoutDashboard, GitCompare, FileText, History,
     Moon, Sun, FlaskConical, ChevronLeft, ChevronRight,
     Wallet, Settings, ChevronDown, ChevronUp,
-    BarChart2, MessageSquare, Activity, Trash2,
+    BarChart2, MessageSquare, Activity, Trash2, Terminal,
 } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 import { useUiStore } from '@/store';
@@ -77,7 +77,8 @@ const navGroups: NavGroup[] = [
             { href: '/settings/upbit-logs',   label: 'Upbit 주문 로그', icon: Activity },
             { href: '/settings/upbit-status', label: 'Upbit 연동 상태', icon: Activity },
             { href: '/settings/db-reset',     label: 'DB 초기화',      icon: Trash2 },
-            { href: '/logs',                  label: '시스템 로그',     icon: FileText },
+            { href: '/logs',                  label: '전략 로그',      icon: FileText },
+            { href: '/settings/server-logs',  label: '서버 로그',      icon: Terminal },
         ],
     },
 ];
