@@ -2,7 +2,7 @@
 
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝날 때마다 `## 다음 할 일`과 `## 최근 변경사항`을 반드시 업데이트한다.
-> **마지막 갱신**: 2026-03-18 (매수 체결 평균단가 오계산 수정 + 시장가 매도 단가 역산 추가)
+> **마지막 갱신**: 2026-03-18 (매도 수량 invalid_volume_ask 근본 해결 — 업비트 잔고 기준 수량 결정)
 
 ---
 
@@ -82,6 +82,16 @@ VWAP / EMA Cross / Bollinger Band / Grid / RSI(다이버전스) / MACD(히스토
 ---
 
 ## 최근 변경사항
+
+### 2026-03-18 — 매도 수량 invalid_volume_ask 근본 해결
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `OrderExecutionEngine.java` | **`resolveAskVolume()` 추가** — 시장가 매도 시 `upbitOrderClient.getAccounts()`로 실제 잔고 조회 후 `min(포지션수량, 잔고)`를 매도 수량으로 사용. 잔고 조회 실패 시 `setScale(8, DOWN)` 폴백 |
+| `OrderExecutionEngine.java` | **`submitToExchange()` 수정** — 시장가 매도 volume을 `order.getQuantity().setScale(8)` 대신 `resolveAskVolume()` 호출로 변경 |
+| `OrderResponse.java` | `executed_funds` 필드 추가 (`@JsonProperty("executed_funds")`) |
+
+> **근본 원인**: Upbit `price`-type 매수의 `executed_volume`은 코인별 매도 허용 단위를 초과할 수 있음 (예: 8,000 ÷ 3,437,000 = 0.002327611... 여러 자릿수). `setScale(8, DOWN)`으로도 해결 안 되는 이유는 코인별 매도 허용 최소 단위가 다르기 때문. Upbit `GET /v1/accounts`가 반환하는 `balance`는 항상 해당 코인의 유효 단위로 표현되므로 이 값을 사용하면 `invalid_volume_ask` 없이 전량 매도 가능.
 
 ### 2026-03-18 — 매수 체결 평균단가 오계산 수정 + 시장가 매도 단가 역산
 

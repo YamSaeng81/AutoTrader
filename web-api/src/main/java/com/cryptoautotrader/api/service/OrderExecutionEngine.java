@@ -12,6 +12,7 @@ import com.cryptoautotrader.core.risk.RiskConfig;
 import com.cryptoautotrader.core.risk.RiskEngine;
 import com.cryptoautotrader.exchange.upbit.UpbitOrderClient;
 import com.cryptoautotrader.exchange.upbit.UpbitRestClient;
+import com.cryptoautotrader.exchange.upbit.dto.AccountResponse;
 import com.cryptoautotrader.exchange.upbit.dto.OrderResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -414,11 +415,13 @@ public class OrderExecutionEngine {
                 volume = null;
                 price = order.getQuantity();
             } else {
-                // 시장가 매도: market 타입 — quantity 필드를 코인 수량으로 사용
-                // Upbit ETH 허용 소수점: 최대 8자리. price타입 매수 체결량이 8자리 초과할 수 있으므로 내림 처리
+                // 시장가 매도: market 타입 — Upbit 실제 잔고 기준으로 수량 결정
+                // 이유: price-type 매수 체결량(executed_volume)은 코인별 매도 허용 단위를 초과할 수 있음.
+                //       Upbit 잔고(account.balance)는 항상 해당 코인의 유효 단위로 반환되므로
+                //       invalid_volume_ask 없이 전량 매도 가능.
                 upbitOrderType = "market";
-                volume = order.getQuantity().setScale(8, RoundingMode.DOWN);
                 price = null;
+                volume = resolveAskVolume(order);
             }
         } else {
             // 지정가
@@ -428,6 +431,44 @@ public class OrderExecutionEngine {
         }
 
         return upbitOrderClient.createOrder(order.getCoinPair(), upbitSide, volume, price, upbitOrderType);
+    }
+
+    /**
+     * 시장가 매도 수량 결정 — Upbit 실제 잔고 기준
+     *
+     * Upbit price-type 매수의 executed_volume은 코인별 매도 허용 단위를 초과할 수 있다.
+     * (예: 8000 ÷ 3,437,000 = 0.00232761181... → 8자리 초과 또는 단위 불일치)
+     * 계좌 잔고(account.balance)는 Upbit이 직접 반환하는 값이므로 항상 유효한 단위이다.
+     * 포지션 수량과 잔고 중 작은 값을 사용해 과매도를 방지한다.
+     */
+    private BigDecimal resolveAskVolume(OrderEntity order) {
+        BigDecimal positionVolume = order.getQuantity();
+        String currency = order.getCoinPair().contains("-")
+                ? order.getCoinPair().split("-")[1]   // "KRW-ETH" → "ETH"
+                : order.getCoinPair();
+
+        try {
+            List<AccountResponse> accounts = upbitOrderClient.getAccounts();
+            BigDecimal accountBalance = accounts.stream()
+                    .filter(a -> currency.equals(a.getCurrency()))
+                    .map(AccountResponse::getBalance)
+                    .filter(b -> b != null && b.compareTo(BigDecimal.ZERO) > 0)
+                    .findFirst()
+                    .orElse(null);
+
+            if (accountBalance != null) {
+                // 포지션 수량과 잔고 중 작은 값 (과매도 방지)
+                BigDecimal volume = accountBalance.min(positionVolume);
+                log.info("매도 수량 결정: 포지션={}, 업비트잔고={}, 사용={} ({})",
+                        positionVolume, accountBalance, volume, currency);
+                return volume;
+            }
+        } catch (Exception e) {
+            log.warn("업비트 잔고 조회 실패, 포지션 수량 사용 ({}): {}", currency, e.getMessage());
+        }
+
+        // 폴백: setScale(8) 으로 소수점 정리
+        return positionVolume.setScale(8, RoundingMode.DOWN);
     }
 
     private OrderResponse queryExchangeOrder(String exchangeOrderId) throws Exception {
