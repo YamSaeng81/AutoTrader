@@ -355,6 +355,42 @@ export interface UpbitHolding {
   unrealizedPnlPct: number;
 }
 
+// ─── 성과 통계 타입 ──────────────────────────────────────────────────────────
+
+export interface SessionPerformance {
+  sessionId: number;
+  strategyType: string;
+  coinPair: string;
+  timeframe: string;
+  status: string;
+  initialCapital: number;
+  currentAsset: number;
+  realizedPnl: number;
+  unrealizedPnl: number;
+  totalPnl: number;
+  returnRatePct: number;
+  totalFee: number;
+  totalTrades: number;
+  winCount: number;
+  winRatePct: number;
+  startedAt: string | null;
+  stoppedAt: string | null;
+}
+
+export interface PerformanceSummary {
+  totalRealizedPnl: number;
+  totalUnrealizedPnl: number;
+  totalPnl: number;
+  totalInitialCapital: number;
+  returnRatePct: number;
+  totalFee: number;
+  totalTrades: number;
+  winCount: number;
+  lossCount: number;
+  winRatePct: number;
+  sessions: SessionPerformance[];
+}
+
 export interface AccountSummary {
   apiKeyConfigured: boolean;
   message?: string;

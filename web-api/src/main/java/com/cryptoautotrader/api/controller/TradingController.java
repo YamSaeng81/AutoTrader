@@ -250,6 +250,14 @@ public class TradingController {
         return map;
     }
 
+    // -- 성과 통계 ------------------------------------------------
+
+    /** 전체 실전매매 성과 요약 */
+    @GetMapping("/performance")
+    public ApiResponse<PerformanceSummaryResponse> getPerformance() {
+        return ApiResponse.ok(liveTradingService.getPerformanceSummary());
+    }
+
     // -- 텔레그램 알림 ---------------------------------------------
 
     /** 텔레그램 테스트 메시지 전송 */

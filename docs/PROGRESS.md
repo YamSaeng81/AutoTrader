@@ -2,7 +2,7 @@
 
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝날 때마다 `## 다음 할 일`과 `## 최근 변경사항`을 반드시 업데이트한다.
-> **마지막 갱신**: 2026-03-20 (코드 보완 전체 완료 — null 안전, 다중전략, position_fee, version 락)
+> **마지막 갱신**: 2026-03-21 (Upbit API 테스트 페이지 보강)
 
 ---
 
@@ -78,6 +78,26 @@ VWAP / EMA Cross / Bollinger Band / Grid / RSI(다이버전스) / MACD(히스토
 ---
 
 ## 최근 변경사항
+
+### 2026-03-21 — Upbit API 테스트 페이지 보강
+
+| 항목 | 내용 |
+|------|------|
+| `GET /api/v1/settings/upbit/ticker` | 현재가 조회 엔드포인트 추가 (공개 API, 인증 불필요) |
+| `settingsApi.upbitTicker()` | 프론트엔드 API 함수 추가 |
+| `upbit-status/page.tsx` 전면 재작성 | slate- 계열로 디자인 통일, 상태 카드 4개(API키·잔고·WebSocket·캔들), 잔고 상세(보유코인 테이블), 현재가 조회 섹션 신규 추가 |
+
+### 2026-03-21 — 손익 대시보드 및 성과 통계 구현
+
+| 항목 | 내용 |
+|------|------|
+| `PerformanceSummaryResponse` DTO | 전체 집계 + 세션별 성과 내역 (세션 수 / 승률 / 수익률 / 수수료 등) |
+| `LiveTradingService.getPerformanceSummary()` | 실전매매 전 세션 PositionEntity 기반 집계 |
+| `PaperTradingService.getOverallPerformance()` | 모의투자 전 세션 VirtualBalanceEntity 기반 집계 |
+| `GET /api/v1/trading/performance` | 실전매매 성과 API |
+| `GET /api/v1/paper-trading/performance` | 모의투자 성과 API |
+| `/performance` 페이지 | 실전/모의 탭 전환, 요약 카드 7개, 세션별 테이블 |
+| 사이드바 | 실전매매 그룹에 "손익 대시보드" 항목 추가 (PieChart 아이콘) |
 
 ### 2026-03-20 — 코드 보완 전체 완료
 

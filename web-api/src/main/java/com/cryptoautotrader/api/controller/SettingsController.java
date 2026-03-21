@@ -8,6 +8,7 @@ import com.cryptoautotrader.api.service.AccountService;
 import com.cryptoautotrader.api.service.DbResetService;
 import com.cryptoautotrader.api.service.TelegramNotificationService;
 import com.cryptoautotrader.exchange.upbit.UpbitOrderClient;
+import com.cryptoautotrader.exchange.upbit.UpbitRestClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -34,6 +35,9 @@ public class SettingsController {
 
     @Autowired(required = false)
     private UpbitOrderClient upbitOrderClient;
+
+    @Autowired
+    private UpbitRestClient upbitRestClient;
 
     @Autowired
     private AccountService accountService;
@@ -207,6 +211,21 @@ public class SettingsController {
             return ApiResponse.ok(Map.of("orders", orders, "count", orders.size()));
         } catch (Exception e) {
             return ApiResponse.ok(Map.of("error", e.getMessage(), "orders", java.util.List.of()));
+        }
+    }
+
+    /**
+     * 현재가(ticker) 조회 — 공개 API (인증 불필요)
+     * markets: 쉼표 구분 마켓 코드 (예: KRW-BTC,KRW-ETH)
+     */
+    @GetMapping("/upbit/ticker")
+    public ApiResponse<List<Map<String, Object>>> getTicker(
+            @RequestParam(defaultValue = "KRW-BTC,KRW-ETH,KRW-XRP,KRW-SOL,KRW-DOGE") String markets) {
+        try {
+            List<Map<String, Object>> tickers = upbitRestClient.getTicker(markets);
+            return ApiResponse.ok(tickers);
+        } catch (Exception e) {
+            return ApiResponse.error("UPBIT_ERROR", e.getMessage());
         }
     }
 

@@ -4,6 +4,7 @@ import com.cryptoautotrader.api.dto.ApiResponse;
 import com.cryptoautotrader.api.dto.BulkDeleteRequest;
 import com.cryptoautotrader.api.dto.MultiStrategyPaperRequest;
 import com.cryptoautotrader.api.dto.PaperTradingStartRequest;
+import com.cryptoautotrader.api.dto.PerformanceSummaryResponse;
 import com.cryptoautotrader.api.entity.MarketDataCacheEntity;
 import com.cryptoautotrader.api.entity.paper.PaperOrderEntity;
 import com.cryptoautotrader.api.entity.paper.PaperPositionEntity;
@@ -287,6 +288,17 @@ public class PaperTradingController {
             });
         }
         return map;
+    }
+
+    // ── 성과 통계 ──────────────────────────────────────────────
+
+    /**
+     * 전체 모의투자 성과 요약
+     * GET /api/v1/paper-trading/performance
+     */
+    @GetMapping("/performance")
+    public ApiResponse<PerformanceSummaryResponse> getPerformance() {
+        return ApiResponse.ok(paperTradingService.getOverallPerformance());
     }
 
     // ── 이력 삭제 ──────────────────────────────────────────────

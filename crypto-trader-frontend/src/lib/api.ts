@@ -5,7 +5,7 @@ import type {
     MultiStrategyPaperRequest, MultiStrategyBacktestRequest,
     WalkForwardRequest, WalkForwardResult,
     TradingStatus, Position, LiveOrder, ExchangeHealth, RiskConfig,
-    LiveTradingSession, LiveTradingStartRequest,
+    LiveTradingSession, LiveTradingStartRequest, PerformanceSummary,
 } from './types';
 
 const api = axios.create({
@@ -141,6 +141,10 @@ export const tradingApi = {
         api.put<ApiResponse<RiskConfig>>('/api/v1/trading/risk/config', config).then(r => r.data),
     getExchangeHealth: () =>
         api.get<ApiResponse<ExchangeHealth>>('/api/v1/trading/health/exchange').then(r => r.data),
+
+    // 성과 통계
+    getPerformance: () =>
+        api.get<ApiResponse<PerformanceSummary>>('/api/v1/trading/performance').then(r => r.data),
 };
 
 export const paperTradingApi = {
@@ -164,6 +168,10 @@ export const paperTradingApi = {
         api.delete<ApiResponse<null>>(`/api/v1/paper-trading/history/${id}`).then(r => r.data),
     bulkDeleteHistory: (ids: (string | number)[]) =>
         api.delete<ApiResponse<null>>('/api/v1/paper-trading/history/bulk', { data: { ids } }).then(r => r.data),
+
+    // 성과 통계
+    getPerformance: () =>
+        api.get<ApiResponse<PerformanceSummary>>('/api/v1/paper-trading/performance').then(r => r.data),
 };
 
 export const accountApi = {
@@ -186,6 +194,8 @@ export const settingsApi = {
         api.get<ApiResponse<{ orders: Record<string, unknown>[]; count: number; error?: string }>>(
             '/api/v1/settings/upbit/exchange-orders', { params: { market, state, limit } }
         ).then(r => r.data),
+    upbitTicker: (markets = 'KRW-BTC,KRW-ETH,KRW-XRP,KRW-SOL,KRW-DOGE') =>
+        api.get<ApiResponse<Record<string, unknown>[]>>('/api/v1/settings/upbit/ticker', { params: { markets } }).then(r => r.data),
     serverLogs: (levels: string[] = ['ALL'], keyword = '', lines = 200) =>
         api.get<ApiResponse<{ entries: ServerLogEntry[]; total: number; filtered: number; returned: number }>>(
             '/api/v1/settings/server-logs', { params: { level: levels.join(','), keyword, lines } }

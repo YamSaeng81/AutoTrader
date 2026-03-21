@@ -8,7 +8,7 @@ import {
     Shield, LayoutDashboard, GitCompare, FileText, History,
     Moon, Sun, FlaskConical, ChevronLeft, ChevronRight,
     Wallet, Settings, ChevronDown, ChevronUp,
-    BarChart2, MessageSquare, Activity, Trash2, Terminal, LogOut,
+    BarChart2, MessageSquare, Activity, Trash2, Terminal, LogOut, PieChart,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from './ThemeProvider';
@@ -68,6 +68,7 @@ const navGroups: NavGroup[] = [
             { href: '/trading/history', label: '실전매매 이력', icon: History },
             { href: '/trading/risk',    label: '리스크 설정',   icon: Shield },
             { href: '/account',         label: '계좌 현황',     icon: Wallet },
+            { href: '/performance',     label: '손익 대시보드', icon: PieChart },
         ],
     },
     {

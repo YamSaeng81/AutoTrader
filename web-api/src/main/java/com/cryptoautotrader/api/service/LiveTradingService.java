@@ -2,6 +2,7 @@ package com.cryptoautotrader.api.service;
 
 import com.cryptoautotrader.api.dto.LiveTradingStartRequest;
 import com.cryptoautotrader.api.dto.MultiStrategyLiveTradingRequest;
+import com.cryptoautotrader.api.dto.PerformanceSummaryResponse;
 import com.cryptoautotrader.api.exception.SessionNotFoundException;
 import com.cryptoautotrader.api.exception.SessionStateException;
 import com.cryptoautotrader.api.dto.OrderRequest;
@@ -41,6 +42,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -743,6 +745,96 @@ public class LiveTradingService {
     public List<OrderEntity> getAllSessionOrders(Long sessionId) {
         getSessionOrThrow(sessionId);
         return orderRepository.findBySessionIdOrderByCreatedAtDesc(sessionId, Pageable.unpaged()).getContent();
+    }
+
+    // -- 성과 요약 -----------------------------------------------
+
+    @Transactional(readOnly = true)
+    public PerformanceSummaryResponse getPerformanceSummary() {
+        List<LiveTradingSessionEntity> sessions = sessionRepository.findAll();
+
+        BigDecimal totalRealizedPnl = BigDecimal.ZERO;
+        BigDecimal totalUnrealizedPnl = BigDecimal.ZERO;
+        BigDecimal totalInitialCapital = BigDecimal.ZERO;
+        int totalTrades = 0;
+        int totalWins = 0;
+
+        List<PerformanceSummaryResponse.SessionPerformance> sessionPerfs = new ArrayList<>();
+
+        for (LiveTradingSessionEntity session : sessions) {
+            List<PositionEntity> positions = positionRepository.findBySessionId(session.getId());
+            List<PositionEntity> closed = positions.stream().filter(p -> "CLOSED".equals(p.getStatus())).toList();
+            List<PositionEntity> open   = positions.stream().filter(p -> "OPEN".equals(p.getStatus())).toList();
+
+            BigDecimal sessionRealized = closed.stream()
+                    .map(p -> p.getRealizedPnl() != null ? p.getRealizedPnl() : BigDecimal.ZERO)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal sessionUnrealized = open.stream()
+                    .map(p -> p.getUnrealizedPnl() != null ? p.getUnrealizedPnl() : BigDecimal.ZERO)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            int wins = (int) closed.stream()
+                    .filter(p -> p.getRealizedPnl() != null && p.getRealizedPnl().compareTo(BigDecimal.ZERO) > 0)
+                    .count();
+
+            BigDecimal sessionPnl = sessionRealized.add(sessionUnrealized);
+            BigDecimal sessionReturn = session.getInitialCapital().compareTo(BigDecimal.ZERO) > 0
+                    ? sessionPnl.divide(session.getInitialCapital(), 6, RoundingMode.HALF_UP)
+                            .multiply(new BigDecimal("100")).setScale(2, RoundingMode.HALF_UP)
+                    : BigDecimal.ZERO;
+            BigDecimal sessionWinRate = closed.isEmpty() ? BigDecimal.ZERO
+                    : new BigDecimal(wins).divide(new BigDecimal(closed.size()), 6, RoundingMode.HALF_UP)
+                            .multiply(new BigDecimal("100")).setScale(1, RoundingMode.HALF_UP);
+
+            sessionPerfs.add(PerformanceSummaryResponse.SessionPerformance.builder()
+                    .sessionId(session.getId())
+                    .strategyType(session.getStrategyType())
+                    .coinPair(session.getCoinPair())
+                    .timeframe(session.getTimeframe())
+                    .status(session.getStatus())
+                    .initialCapital(session.getInitialCapital())
+                    .currentAsset(session.getTotalAssetKrw())
+                    .realizedPnl(sessionRealized)
+                    .unrealizedPnl(sessionUnrealized)
+                    .totalPnl(sessionPnl)
+                    .returnRatePct(sessionReturn)
+                    .totalFee(BigDecimal.ZERO)
+                    .totalTrades(closed.size())
+                    .winCount(wins)
+                    .winRatePct(sessionWinRate)
+                    .startedAt(session.getStartedAt() != null ? session.getStartedAt().toString() : null)
+                    .stoppedAt(session.getStoppedAt() != null ? session.getStoppedAt().toString() : null)
+                    .build());
+
+            totalRealizedPnl = totalRealizedPnl.add(sessionRealized);
+            totalUnrealizedPnl = totalUnrealizedPnl.add(sessionUnrealized);
+            totalInitialCapital = totalInitialCapital.add(session.getInitialCapital());
+            totalTrades += closed.size();
+            totalWins += wins;
+        }
+
+        BigDecimal totalPnl = totalRealizedPnl.add(totalUnrealizedPnl);
+        BigDecimal returnRate = totalInitialCapital.compareTo(BigDecimal.ZERO) > 0
+                ? totalPnl.divide(totalInitialCapital, 6, RoundingMode.HALF_UP)
+                        .multiply(new BigDecimal("100")).setScale(2, RoundingMode.HALF_UP)
+                : BigDecimal.ZERO;
+        BigDecimal winRatePct = totalTrades > 0
+                ? new BigDecimal(totalWins).divide(new BigDecimal(totalTrades), 6, RoundingMode.HALF_UP)
+                        .multiply(new BigDecimal("100")).setScale(1, RoundingMode.HALF_UP)
+                : BigDecimal.ZERO;
+
+        return PerformanceSummaryResponse.builder()
+                .totalRealizedPnl(totalRealizedPnl)
+                .totalUnrealizedPnl(totalUnrealizedPnl)
+                .totalPnl(totalPnl)
+                .totalInitialCapital(totalInitialCapital)
+                .returnRatePct(returnRate)
+                .totalFee(BigDecimal.ZERO)
+                .totalTrades(totalTrades)
+                .winCount(totalWins)
+                .lossCount(totalTrades - totalWins)
+                .winRatePct(winRatePct)
+                .sessions(sessionPerfs)
+                .build();
     }
 
     private LiveTradingSessionEntity getSessionOrThrow(Long sessionId) {
