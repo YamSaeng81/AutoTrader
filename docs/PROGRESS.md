@@ -63,48 +63,87 @@ VWAP / EMA Cross / Bollinger Band / Grid / RSI(다이버전스) / MACD(히스토
 
 ## 다음 할 일
 
-### 긴급 (보안·데이터 무결성)
+### 🔴 즉시 (실전매매 안정화)
 
-- [x] `🔴 CRITICAL` **Telegram 봇 토큰 재발급** — `application.yml` 기본값 빈 문자열로 변경 완료. ⚠️ git history 노출 이력 있음 — 봇 토큰 반드시 재발급 필요
-- [x] `🔴 CRITICAL` **V22 마이그레이션 파일 커밋** — `V22__add_position_fee_to_position.sql` 커밋 완료
-- [x] `🔴 HIGH` **매도 주문 실패 시 포지션/잔고 롤백 로직 추가** — CLOSING 중간 상태 도입. `reconcileClosingPositions()` (@Scheduled 5s)에서 실제 체결 확인 후 CLOSED 전환 또는 OPEN 롤백
-- [x] `🔴 HIGH` **손익 계산 실제 체결가 기반으로 수정** — `finalizeSellPosition()`에서 `filledOrder.getPrice()` (실제 체결가) 기반 손익·수수료 계산. `OrderExecutionEngine.handleSellFill()` 세션 주문 skip
-- [x] `🔴 HIGH` **손실 전략 실전매매 선택 차단** — `BLOCKED_LIVE_STRATEGIES = [STOCHASTIC_RSI, MACD]` 상수 추가, `createSession()`에서 검증
-
-### 보안
-
-- [ ] `🟡 MEDIUM` **Swagger 프로덕션 비활성화** — `/swagger-ui/**`, `/v3/api-docs/**` 인증 없이 공개됨
-- [ ] `🟡 MEDIUM` **CORS 운영 도메인 한정** — 현재 `allowedOriginPatterns("*")` 전체 허용
-- [ ] `🟡 MEDIUM` **API 토큰 기본값 제거** — `dev-token-change-me-in-production` 기본값은 환경변수 미설정 시 그대로 운영됨
-
-### 안정성
-
-- [ ] `🟡 MEDIUM` **WebSocket 기반 실시간 손절 체크** — 현재 60초 스케줄러에서만 손절 확인. 1분 내 급락 시 설정 손절폭 초과 가능
-- [ ] `🟡 MEDIUM` **세션 생성 동시성 보호** — `countByStatus` 조회 후 `save` 사이 race condition. DB 제약 또는 낙관적 락 필요
-- [ ] `🟡 MEDIUM` **매도 미체결 주문 reconcile 추가** — `reconcileOnStartup()`이 매수 미체결만 처리. 매도 stuck 주문 미처리
-- [ ] `🟡 MEDIUM` **MarketRegimeDetector 상태 영속화** — 재시작 시 COMPOSITE 전략 Hysteresis 상태 초기화됨
-
-### 인프라
-
-- [ ] `🟢 LOW` **CI/CD 파이프라인 구성** — `.github/workflows/` 없음. 테스트 미검증 배포 중
-- [ ] `🟢 LOW` **TimescaleDB 백업 설정** — `pgdata` 볼륨 백업/복구 전략 없음
-- [ ] `🟢 LOW` **SchedulerConfig 주석 현행화** — LiveTradingService 스케줄러 항목 누락
-
-### 즉시 (실전매매 안정화)
-
+- [ ] `🔴 HIGH` **SchedulerConfig 스레드 풀 확장** — 현재 풀 크기 3인데 실제 `@Scheduled` 작업은 최소 5개(`executeStrategies` 60s / `reconcileClosingPositions` 5s / `syncMarketData` 60s / `runStrategy(Paper)` 60s / `checkExchangeHealth` 별도). 작업이 큐에 대기하면 손절 체크·reconcile이 지연되어 실손 발생 가능. **풀 크기 3 → 8로 증가** (`SchedulerConfig.java:30`)
+- [ ] `🔴 HIGH` **CLOSING 포지션 타임아웃 롤백** — `reconcileClosingPositions()`에서 CLOSING 진입 시각(`closingAt` 컬럼 필요) 기록 후, 5분 초과 시 OPEN으로 롤백. 현재 좀비 포지션이 누적되면 세션 BUY 신호 영구 차단. 구현 위치: `LiveTradingService.reconcileClosingPositions()` + V23 마이그레이션 (`position.closing_at TIMESTAMPTZ`)
 - [ ] `🟡 MEDIUM` **실전매매 금액 증액 계획** — 소액 1만원 → 5만원 → 10만원 단계적 증액. 판단 기준: 2주 이상 운영 + 승률 ≥ 50% + 최대 낙폭 < 10%
 
-### 전략 고도화 후속 (백테스트 결과 기반)
+### 🟡 전략 고도화 (백테스트 결과 기반)
 
-- [ ] `🔴 HIGH` **STOCHASTIC_RSI 구조 재설계 또는 제거** — ADX 필터 후에도 BTC -70.4%, ETH -67.6%. 파라미터 문제가 아닌 구조적 결함
-- [ ] `🔴 HIGH` **MACD 히스토그램 기울기 필터 추가** — ADX > 25 필터로도 BTC -58.8%, ETH -57.6%
-- [ ] `🟡 MEDIUM` **VWAP 임계값 재조정** — BTC 승률 0% (거래 없음). thresholdPct 2.5% → 1.5% 재테스트
-- [ ] `🟡 MEDIUM` **코인별 전략 선택 최적화** — BTC: GRID+BOLLINGER / ETH: ATR_BREAKOUT+EMA_CROSS+ORDERBOOK
-- [ ] `🟢 LOW` 2023~2025 전체 기간 백테스트 (현재 2025년만 결과)
+> 현재 STOCHASTIC_RSI·MACD는 `BLOCKED_LIVE_STRATEGIES`로 실전 차단 완료. 아래는 전략 구조 개선 과제.
+
+#### MACD 개선 (BTC -58.8% / ETH -57.6%)
+
+현재 구현: ADX ≥ 25 추세 필터 존재하지만 손실 지속. 문제 원인:
+1. 골든/데드크로스 발생 시 **히스토그램 방향** 미확인 — 크로스 직후 히스토그램이 이미 역전 중이면 가짜 신호
+2. **제로라인(0) 위/아래 위치** 미필터링 — MACD 선이 0선 아래에서 골든크로스면 약세 구간 매수 위험
+3. 손절선 없이 전략 청산 의존 — 강한 추세 역행 시 낙폭 큼
+
+- [ ] `🟡 MEDIUM` **MACD 히스토그램 연속 확대 조건 추가** — 크로스 시점에 `현재 histogram > 이전 histogram` (방향 확인). `MacdStrategy.evaluate()` L73~88. 이 조건만으로 가짜 크로스 약 30% 필터링 예상
+- [ ] `🟡 MEDIUM` **MACD 제로라인 필터** — BUY 신호: MACD 선이 0선 위에서 크로스할 때만 진입 (`currentMacd > 0`). SELL 신호: 0선 아래 크로스만. 횡보장 노이즈 감소
+- [ ] `🟡 MEDIUM` **MACD 파라미터 최적화 백테스트** — 현재 (12, 26, 9) 기본값. BTC/ETH 각각 `fastPeriod`=8~15, `slowPeriod`=20~30 그리드 서치. 백테스트 UI의 벌크 실행 기능 활용
+
+#### STOCHASTIC RSI 재설계 (BTC -70.4% / ETH -67.6%)
+
+현재 구현: ADX 상한선(≤30) 레인지 필터 존재. 문제 원인:
+1. **신호 빈도 과다** — `oversoldLevel=15`, `overboughtLevel=85`는 임계값이 너무 낮아 횡보장에서도 빈번히 발동
+2. **확인 조건 없음** — %K > %D 단순 크로스만으로 진입, 가격 모멘텀 미확인
+3. **다이버전스 미활용** — RSI 다이버전스와 결합 시 정확도 향상 가능
+4. 백테스트 결과 기준 **구조적 손실** → 개선 전까지 실전 차단 유지가 적절
+
+- [ ] `🟡 MEDIUM` **StochRSI oversold/overbought 임계값 조정** — `oversoldLevel 15→20`, `overboughtLevel 85→80`으로 완화. 신호 발생 빈도 줄여 노이즈 감소. `StochasticRsiStrategy.java` L58~59 파라미터 기본값 변경
+- [ ] `🟡 MEDIUM` **StochRSI %K-%D 크로스 연속 확인 조건** — 1캔들 크로스 즉시 진입 대신, 2캔들 연속으로 %K > %D 유지 시에만 매수. `kSeries.size() >= 3` 조건으로 구현
+- [ ] `🟡 MEDIUM` **StochRSI 거래량 확인 조건 추가** — 진입 시 현재 캔들 거래량이 최근 20캔들 평균 이상일 때만 신호 발동. `IndicatorUtils.sma()` 활용
+- [ ] `🟢 LOW` **StochRSI + RSI 다이버전스 결합** — RSI 다이버전스 발생 + StochRSI 과매도 탈출 동시 충족 시 고신뢰 매수 신호. 구현 복잡도 높음 (Phase 3.5 수준)
+
+#### VWAP 개선 (BTC 거래 0건)
+
+현재 구현: `thresholdPct=2.5%`, `adxMaxThreshold=25`. BTC에서 거래가 전혀 발생 안 한 원인 — ADX 25 필터로 대부분 HOLD. BTC는 추세장이 잦아 ADX≥25 구간이 많음.
+
+- [ ] `🟡 MEDIUM` **VWAP 임계값 완화 + ADX 상한 상향** — `thresholdPct 2.5→1.5%`, `adxMaxThreshold 25→35`. 백테스트로 검증 후 적용. 단, 임계값을 너무 낮추면 노이즈 신호 증가 위험
+- [ ] `🟡 MEDIUM` **VWAP 앵커 방식 개선** — 현재 최근 20캔들 rolling VWAP. 일봉/주봉 세션 시작점 앵커 VWAP 적용 시 BTC 단기 변동에 더 정확. `period` 파라미터 대신 캔들 타임스탬프 기반 세션 감지 필요
+
+#### 코인별 최적 전략 조합 적용
+
+- [ ] `🟡 MEDIUM` **코인별 전략 프리셋 UI 추가** — 백테스트 결과 기반 추천 조합을 세션 생성 폼에 "빠른 선택" 버튼으로 제공. BTC 추천: `GRID + BOLLINGER`, ETH 추천: `ATR_BREAKOUT + EMA_CROSS + ORDERBOOK_IMBALANCE`
+- [ ] `🟢 LOW` **2023~2025 전체 기간 백테스트** — 현재 2025 H1 결과만 있음. 2023~2024 데이터 수집 후 전략별 장기 성과 검증 (강세장·약세장·횡보장 구간 포함)
+
+### 🟡 안정성
+
+- [ ] `🟡 MEDIUM` **WebSocket 기반 실시간 손절 체크** — 현재 60초 스케줄러(`executeStrategies`)에서만 손절 확인. BTC/ETH는 1분 내 5% 급락 가능. Upbit WebSocket에서 실시간 체결가 수신 시 `checkStopLoss()` 직접 호출하도록 연동. 구현 위치: `UpbitWebSocketClient` → `LiveTradingService.onPriceUpdate()`
+- [ ] `🟢 LOW` **세션 생성 동시성** — UI 버튼 중복 클릭 시 세션 하나 더 생기는 정도. `createSession()`에 DB 레벨 유니크 제약 또는 `@Lock` 추가 고려
+- [ ] `🟢 LOW` **`AsyncConfig` 셧다운 미정리** — 재시작 시 진행 중 주문 강제 종료. `reconcileOnStartup()`이 복구하므로 실질 위험 낮음
+
+### 🟡 성능
+
+- [ ] `🟡 MEDIUM` **`getPerformanceSummary()` N+1 쿼리 제거** — `listSessions()` 후 각 세션마다 `positionRepository.findBySessionId()` 개별 호출. 100+ 세션 시 응답 3초+ 지연. `@Query("SELECT p FROM PositionEntity p WHERE p.sessionId IN :ids")` 로 세션 IDs 일괄 조회 후 메모리 그루핑으로 변경 (`LiveTradingService:798-887`)
+
+### 🟡 보안
+
+- [ ] `🟡 MEDIUM` **Swagger 프로덕션 비활성화** — `/swagger-ui/**`, `/v3/api-docs/**` 인증 없이 공개. `SwaggerConfig.java`에 `@Profile("!prod")` 적용 또는 `SecurityConfig`에서 해당 경로 인증 요구
+- [ ] `🟡 MEDIUM` **CORS 운영 도메인 한정** — `WebConfig.java` `allowedOriginPatterns("*")` → 실제 운영 도메인만 허용
+- [ ] `🟡 MEDIUM` **API 토큰 기본값 제거** — `ApiTokenAuthFilter`의 `dev-token-change-me-in-production` 기본값 제거. 환경변수 미설정 시 서버 시작 실패하도록 `@Value` 필수 처리
+- [ ] `🟡 MEDIUM` **`NEXT_PUBLIC_` 토큰 클라이언트 번들 노출** — 프론트 빌드에 평문 포함. 쿠키 기반 인증으로 전환 고려
+
+### 🟢 인프라
+
+- [ ] `🟡 MEDIUM` **TimescaleDB 백업 설정** — 실전 거래 기록이 `pgdata` 볼륨에만 존재. 디스크 손상 시 전체 손실. `docker-compose.prod.yml`에 `pg_dump` 크론 컨테이너 추가 또는 서버 crontab으로 일일 백업
+- [ ] `🟢 LOW` **`.env.example` 파일 추가** — `API_AUTH_TOKEN`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `AUTH_PASSWORD`, `AUTH_SECRET`, `UPBIT_ACCESS_KEY`, `UPBIT_SECRET_KEY` 목록 문서화. 신규 서버 배포 가이드
+- [ ] `🟢 LOW` **CI/CD 파이프라인 구성** — `.github/workflows/` 없음. `gradle build` + Docker 이미지 빌드 + SSH 배포 단계로 구성
 
 ---
 
 ## 최근 변경사항
+
+### 2026-03-21 — HIGH 버그 4종 수정
+
+| # | 항목 | 파일 |
+|---|------|------|
+| 1 | **`API_AUTH_TOKEN` 백엔드 환경변수 추가** — `docker-compose.prod.yml` backend 서비스에 `API_AUTH_TOKEN: ${API_AUTH_TOKEN}` 주입. 미설정 시 기본값으로 운영되던 보안 취약점 해소 | `docker-compose.prod.yml` |
+| 2 | **세션 평가 race condition 수정** — `evaluateAndExecuteSession()` 진입 시 DB에서 세션 상태 재확인. `stopSession()` 동시 호출 시 STOPPED 세션에 매수/매도 실행되던 문제 차단 | `LiveTradingService` |
+| 3 | **세션 종료 시 size=0 포지션 KRW 복원** — `closeSessionPositions()`에서 미체결(size=0) 포지션 감지 시 FAILED BUY 주문 확인 후 KRW 복원 + CLOSED 처리. 기존엔 수량=0 SELL 주문 실패 후 KRW 영구 손실 | `LiveTradingService` |
+| 4 | **`finalizeSellPosition()` 멱등성 보장** — CLOSED 상태 사전 체크 추가. `reconcileOnStartup()` + `reconcileClosingPositions()` 동시 실행 시 fee/KRW 이중 계상 방지 | `LiveTradingService` |
 
 ### 2026-03-21 — 긴급 안정화 5종
 

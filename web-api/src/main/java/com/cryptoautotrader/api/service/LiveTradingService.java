@@ -478,10 +478,19 @@ public class LiveTradingService {
     // -- 내부: 세션별 전략 평가 및 주문 실행 ----------------------
 
     private void evaluateAndExecuteSession(LiveTradingSessionEntity session) {
+        Long sessionId = session.getId();
+        // DB에서 최신 상태 재확인 — stopSession()/emergencyStop() 동시 호출 race condition 방지
+        // (session 재할당 금지: lambda 참조에서 effectively-final 위반 방지)
+        boolean stillRunning = sessionRepository.findById(sessionId)
+                .map(s -> "RUNNING".equals(s.getStatus()))
+                .orElse(false);
+        if (!stillRunning) {
+            log.debug("세션 상태 변경 감지 — 평가 스킵 (sessionId={})", sessionId);
+            return;
+        }
         String coinPair = session.getCoinPair();
         String timeframe = session.getTimeframe();
         String strategyType = session.getStrategyType();
-        Long sessionId = session.getId();
 
         List<Candle> candles = fetchRecentCandles(coinPair, timeframe);
         if (candles.size() < 10) {
@@ -739,6 +748,27 @@ public class LiveTradingService {
 
         for (PositionEntity pos : openPositions) {
             try {
+                // size=0 포지션: 매수 체결 미완료 상태 — KRW만 복원하고 종료 (SELL 주문 불필요)
+                if (pos.getSize().compareTo(BigDecimal.ZERO) <= 0) {
+                    List<OrderEntity> failedBuy = orderRepository
+                            .findByPositionIdOrderByCreatedAtDesc(pos.getId())
+                            .stream()
+                            .filter(o -> "BUY".equalsIgnoreCase(o.getSide()))
+                            .filter(o -> "CANCELLED".equals(o.getState()) || "FAILED".equals(o.getState()))
+                            .findFirst()
+                            .stream().toList();
+                    if (!failedBuy.isEmpty() && failedBuy.get(0).getQuantity() != null) {
+                        session.setAvailableKrw(
+                                session.getAvailableKrw().add(failedBuy.get(0).getQuantity()));
+                        sessionRepository.save(session);
+                        log.warn("세션 종료 시 미체결 매수 포지션 KRW 복원 (posId={}, sessionId={}, 복원={})",
+                                pos.getId(), session.getId(), failedBuy.get(0).getQuantity());
+                    }
+                    pos.setStatus("CLOSED");
+                    pos.setClosedAt(Instant.now());
+                    positionRepository.save(pos);
+                    continue;
+                }
                 pos.setStatus("CLOSING");
                 positionRepository.save(pos);
 
@@ -1029,8 +1059,14 @@ public class LiveTradingService {
 
     /**
      * 매도 주문 체결 확정 — 실제 체결가 기반 손익/수수료 계산 + 세션 KRW 복원
+     * 멱등성 보장: 이미 CLOSED인 포지션은 중복 처리하지 않음
      */
     private void finalizeSellPosition(PositionEntity pos, OrderEntity filledOrder) {
+        // 멱등성 guard — reconcileOnStartup() + reconcileClosingPositions() 동시 호출 방어
+        if ("CLOSED".equals(pos.getStatus())) {
+            log.debug("finalizeSellPosition 스킵: 이미 CLOSED (posId={})", pos.getId());
+            return;
+        }
         BigDecimal fillPrice = filledOrder.getPrice() != null ? filledOrder.getPrice() : pos.getAvgPrice();
         BigDecimal soldQty = filledOrder.getFilledQuantity() != null
                 ? filledOrder.getFilledQuantity() : pos.getSize();
