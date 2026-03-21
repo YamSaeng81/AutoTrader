@@ -18,6 +18,7 @@ public class StrategyTypeEnabledEntity {
     @Column(name = "strategy_name", length = 50)
     private String strategyName;
 
+    @Builder.Default
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 

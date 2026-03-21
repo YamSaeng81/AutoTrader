@@ -56,6 +56,8 @@ services:
     restart: always
     environment:
       INTERNAL_BACKEND_URL: http://backend:8080
+      AUTH_PASSWORD: ${AUTH_PASSWORD}
+      AUTH_SECRET: ${AUTH_SECRET}
     ports:
       - "3000:3000"
 
