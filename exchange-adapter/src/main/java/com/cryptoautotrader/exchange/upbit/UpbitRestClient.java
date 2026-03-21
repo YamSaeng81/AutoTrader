@@ -65,14 +65,8 @@ public class UpbitRestClient {
             url += "&to=" + UPBIT_FORMAT.format(to);
         }
 
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .header("Accept", "application/json")
-                .GET()
-                .build();
-
         throttle();
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpClient.send(buildGetRequest(url), HttpResponse.BodyHandlers.ofString());
 
         if (response.statusCode() != 200) {
             log.error("Upbit API 오류: status={}, body={}", response.statusCode(), response.body());
@@ -91,13 +85,8 @@ public class UpbitRestClient {
         if (markets == null || markets.isBlank()) return Collections.emptyList();
         String encoded = URLEncoder.encode(markets, StandardCharsets.UTF_8);
         String url = BASE_URL + "/ticker?markets=" + encoded;
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .header("Accept", "application/json")
-                .GET()
-                .build();
         throttle();
-        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = httpClient.send(buildGetRequest(url), HttpResponse.BodyHandlers.ofString());
         if (response.statusCode() == 404) {
             // 상장폐지 등 없는 코인이 포함된 경우 — 개별 조회로 폴백하여 유효한 코인만 반환
             log.warn("Upbit ticker 404 (상장폐지 코인 포함 가능성): markets={} — 개별 조회로 폴백", markets);
@@ -114,28 +103,53 @@ public class UpbitRestClient {
     private List<Map<String, Object>> getTickerIndividually(String[] marketArr) {
         List<Map<String, Object>> result = new ArrayList<>();
         for (String market : marketArr) {
-            market = market.trim();
-            if (market.isEmpty()) continue;
+            String m = market.trim();
+            if (m.isEmpty()) continue;
             try {
-                String encoded = URLEncoder.encode(market, StandardCharsets.UTF_8);
-                HttpRequest req = HttpRequest.newBuilder()
-                        .uri(URI.create(BASE_URL + "/ticker?markets=" + encoded))
-                        .header("Accept", "application/json")
-                        .GET()
-                        .build();
+                String encoded = URLEncoder.encode(m, StandardCharsets.UTF_8);
                 throttle();
-                HttpResponse<String> res = httpClient.send(req, HttpResponse.BodyHandlers.ofString());
+                HttpResponse<String> res = httpClient.send(
+                        buildGetRequest(BASE_URL + "/ticker?markets=" + encoded),
+                        HttpResponse.BodyHandlers.ofString());
                 if (res.statusCode() == 200) {
                     List<Map<String, Object>> parsed = objectMapper.readValue(res.body(), new TypeReference<>() {});
                     result.addAll(parsed);
                 } else {
-                    log.debug("Upbit ticker 조회 실패 (상장폐지 추정): market={}, status={}", market, res.statusCode());
+                    log.debug("Upbit ticker 조회 실패 (상장폐지 추정): market={}, status={}", m, res.statusCode());
                 }
             } catch (Exception e) {
-                log.debug("Upbit ticker 개별 조회 오류: market={}, error={}", market, e.getMessage());
+                log.debug("Upbit ticker 개별 조회 오류: market={}, error={}", m, e.getMessage());
             }
         }
         return result;
+    }
+
+    /**
+     * 호가창(Orderbook) 조회 — 인증 불필요 (공개 API)
+     * ORDERBOOK_IMBALANCE 전략에 real-time bidVolume/askVolume 제공용
+     * @param market 마켓 코드 (예: "KRW-BTC")
+     * @return 호가창 응답 목록 (total_bid_size, total_ask_size 포함)
+     */
+    public List<Map<String, Object>> getOrderbook(String market) throws Exception {
+        if (market == null || market.isBlank()) return Collections.emptyList();
+        String encoded = URLEncoder.encode(market, StandardCharsets.UTF_8);
+        String url = BASE_URL + "/orderbook?markets=" + encoded;
+        throttle();
+        HttpResponse<String> response = httpClient.send(buildGetRequest(url), HttpResponse.BodyHandlers.ofString());
+        if (response.statusCode() != 200) {
+            log.error("Upbit orderbook API 오류: status={}, body={}", response.statusCode(), response.body());
+            throw new RuntimeException("Upbit orderbook API 호출 실패: " + response.statusCode());
+        }
+        return objectMapper.readValue(response.body(), new TypeReference<>() {});
+    }
+
+    /** HTTP GET 요청 빌드 헬퍼 */
+    private HttpRequest buildGetRequest(String url) {
+        return HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Accept", "application/json")
+                .GET()
+                .build();
     }
 
     /** Upbit API Rate Limit 준수 — 연속 호출 시 최소 110ms 간격 보장 (원자적 처리) */

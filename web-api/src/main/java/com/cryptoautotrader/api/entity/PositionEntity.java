@@ -11,6 +11,8 @@ import java.time.Instant;
  */
 @Entity
 @Table(name = "position")
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -56,51 +58,16 @@ public class PositionEntity {
     @Column(name = "session_id")
     private Long sessionId;
 
+    @Column(name = "position_fee", precision = 20, scale = 2)
+    private BigDecimal positionFee;
+
     @PrePersist
     void prePersist() {
         if (status == null) status = "OPEN";
         if (openedAt == null) openedAt = Instant.now();
         if (unrealizedPnl == null) unrealizedPnl = BigDecimal.ZERO;
         if (realizedPnl == null) realizedPnl = BigDecimal.ZERO;
+        if (positionFee == null) positionFee = BigDecimal.ZERO;
     }
 
-    // ── 명시적 getter/setter ──────────────────────────────────
-
-    public Long getId() { return id; }
-
-    public String getCoinPair() { return coinPair; }
-    public void setCoinPair(String coinPair) { this.coinPair = coinPair; }
-
-    public String getSide() { return side; }
-    public void setSide(String side) { this.side = side; }
-
-    public BigDecimal getEntryPrice() { return entryPrice; }
-    public void setEntryPrice(BigDecimal entryPrice) { this.entryPrice = entryPrice; }
-
-    public BigDecimal getAvgPrice() { return avgPrice; }
-    public void setAvgPrice(BigDecimal avgPrice) { this.avgPrice = avgPrice; }
-
-    public BigDecimal getSize() { return size; }
-    public void setSize(BigDecimal size) { this.size = size; }
-
-    public BigDecimal getUnrealizedPnl() { return unrealizedPnl; }
-    public void setUnrealizedPnl(BigDecimal unrealizedPnl) { this.unrealizedPnl = unrealizedPnl; }
-
-    public BigDecimal getRealizedPnl() { return realizedPnl; }
-    public void setRealizedPnl(BigDecimal realizedPnl) { this.realizedPnl = realizedPnl; }
-
-    public Long getStrategyConfigId() { return strategyConfigId; }
-    public void setStrategyConfigId(Long strategyConfigId) { this.strategyConfigId = strategyConfigId; }
-
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
-
-    public Instant getOpenedAt() { return openedAt; }
-    public void setOpenedAt(Instant openedAt) { this.openedAt = openedAt; }
-
-    public Instant getClosedAt() { return closedAt; }
-    public void setClosedAt(Instant closedAt) { this.closedAt = closedAt; }
-
-    public Long getSessionId() { return sessionId; }
-    public void setSessionId(Long sessionId) { this.sessionId = sessionId; }
 }

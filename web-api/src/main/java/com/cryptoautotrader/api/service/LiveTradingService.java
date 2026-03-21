@@ -24,6 +24,7 @@ import com.cryptoautotrader.strategy.StrategyRegistry;
 import com.cryptoautotrader.strategy.StrategySignal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -38,8 +39,12 @@ import com.cryptoautotrader.core.selector.CompositeStrategy;
 import com.cryptoautotrader.core.selector.StrategySelector;
 import com.cryptoautotrader.core.selector.WeightedStrategy;
 
+import com.cryptoautotrader.exchange.upbit.UpbitRestClient;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -64,11 +69,18 @@ public class LiveTradingService {
     private static final int CANDLE_LOOKBACK = 100;
     private static final BigDecimal FEE_RATE = new BigDecimal("0.0005");
     private static final BigDecimal INVEST_RATIO = new BigDecimal("0.80");
+
+    /** 백테스트 기준 구조적 손실 전략 — 실전매매 세션 생성 차단 */
+    private static final List<String> BLOCKED_LIVE_STRATEGIES = List.of("STOCHASTIC_RSI", "MACD");
     private static final List<String> ACTIVE_ORDER_STATES =
             List.of("PENDING", "SUBMITTED", "PARTIAL_FILLED");
 
     /** COMPOSITE 전략 사용 세션별 MarketRegimeDetector (Hysteresis 상태 유지) */
     private final Map<Long, MarketRegimeDetector> sessionDetectors = new ConcurrentHashMap<>();
+
+    /** 낙폭 경고 쿨다운: 세션별 마지막 DRAWDOWN_WARNING 전송 시각 (30분 쿨다운) */
+    private final Map<Long, Instant> lastDrawdownWarning = new ConcurrentHashMap<>();
+    private static final long DRAWDOWN_WARNING_COOLDOWN_MIN = 30;
 
     private final LiveTradingSessionRepository sessionRepository;
     private final PositionRepository positionRepository;
@@ -81,6 +93,10 @@ public class LiveTradingService {
     private final TelegramNotificationService telegramService;
     private final StrategyLogRepository strategyLogRepository;
     private final RiskManagementService riskManagementService;
+
+    /** 호가창 조회용 (선택적 의존성 — exchange-adapter 빈이 없을 경우 null) */
+    @Autowired(required = false)
+    private UpbitRestClient upbitRestClient;
 
     // -- 거래소 DOWN 이벤트 수신 -- 모든 세션 비상 정지 ----------
 
@@ -102,6 +118,13 @@ public class LiveTradingService {
             throw new SessionStateException(
                     "최대 " + MAX_CONCURRENT_SESSIONS + "개의 동시 매매 세션만 가능합니다. "
                             + "현재 " + runningCount + "개 실행 중.");
+        }
+
+        // 백테스트 기준 구조적 손실 전략 차단
+        if (BLOCKED_LIVE_STRATEGIES.contains(req.getStrategyType())) {
+            throw new IllegalArgumentException(
+                    req.getStrategyType() + " 전략은 백테스트 기준 구조적 손실이 확인되어 실전매매가 차단됩니다. "
+                    + "전략을 개선한 후 이용하세요. (백테스트 결과: STOCHASTIC_RSI BTC -70.4%/-67.6%, MACD BTC -58.8%/-57.6%)");
         }
 
         // 전략 유효성 검증 (COMPOSITE는 StrategyRegistry 외부에서 처리)
@@ -163,7 +186,7 @@ public class LiveTradingService {
                             + MAX_CONCURRENT_SESSIONS + "개 초과합니다.");
         }
 
-        List<LiveTradingSessionEntity> sessions = new java.util.ArrayList<>();
+        List<LiveTradingSessionEntity> sessions = new ArrayList<>();
         for (String strategyType : req.getStrategyTypes()) {
             LiveTradingStartRequest single = new LiveTradingStartRequest();
             single.setStrategyType(strategyType);
@@ -236,6 +259,7 @@ public class LiveTradingService {
         session.setStatus("STOPPED");
         session.setStoppedAt(Instant.now());
         sessionDetectors.remove(sessionId);
+        lastDrawdownWarning.remove(sessionId);
         session = sessionRepository.save(session);
 
         log.info("실전매매 세션 정지: id={} 최종 자산: {} KRW",
@@ -272,6 +296,7 @@ public class LiveTradingService {
         session.setStatus("EMERGENCY_STOPPED");
         session.setStoppedAt(Instant.now());
         sessionDetectors.remove(sessionId);
+        lastDrawdownWarning.remove(sessionId);
         session = sessionRepository.save(session);
 
         log.error("실전매매 세션 비상 정지 완료: id={}", sessionId);
@@ -353,6 +378,7 @@ public class LiveTradingService {
 
         sessionRepository.deleteById(sessionId);
         sessionDetectors.remove(sessionId);
+        lastDrawdownWarning.remove(sessionId);
         log.info("실전매매 세션 삭제 완료: id={}", sessionId);
     }
 
@@ -481,6 +507,19 @@ public class LiveTradingService {
             if (session.getStartedAt() != null) {
                 params.put("sessionStartedAt", session.getStartedAt().toEpochMilli());
             }
+            // ORDERBOOK_IMBALANCE 전략: REST API로 실시간 호가창 주입 (캔들 근사 대신 실값 사용)
+            if ("ORDERBOOK_IMBALANCE".equals(strategyType) && upbitRestClient != null) {
+                try {
+                    List<Map<String, Object>> orderbook = upbitRestClient.getOrderbook(coinPair);
+                    if (!orderbook.isEmpty()) {
+                        Map<String, Object> ob = orderbook.get(0);
+                        params.put("bidVolume", ob.get("total_bid_size"));
+                        params.put("askVolume", ob.get("total_ask_size"));
+                    }
+                } catch (Exception e) {
+                    log.warn("호가창 조회 실패, 캔들 근사 방식으로 대체 (sessionId={}): {}", sessionId, e.getMessage());
+                }
+            }
             signal = StrategyRegistry.get(strategyType).evaluate(candles, params);
             log.debug("세션 전략 신호 (sessionId={}): {} {} -> {} ({})",
                     sessionId, strategyType, coinPair, signal.getAction(), signal.getReason());
@@ -506,7 +545,7 @@ public class LiveTradingService {
         Optional<PositionEntity> openPos = positionRepository
                 .findBySessionIdAndCoinPairAndStatus(sessionId, coinPair, "OPEN");
 
-        // 손절 확인
+        // 손절 확인 + 낙폭 경고
         if (openPos.isPresent()) {
             PositionEntity pos = openPos.get();
             BigDecimal pnlPct = currentPrice.subtract(pos.getAvgPrice())
@@ -515,6 +554,20 @@ public class LiveTradingService {
             BigDecimal rawStopLoss = session.getStopLossPct() != null
                     ? session.getStopLossPct() : new BigDecimal("5.0");
             BigDecimal stopLoss = rawStopLoss.negate();
+
+            // 낙폭 경고: 손절 한도의 50% 이상 손실이고 아직 손절 미도달 시 (30분 쿨다운)
+            BigDecimal warningThreshold = stopLoss.multiply(new BigDecimal("0.5"));
+            if (pnlPct.compareTo(warningThreshold) <= 0 && pnlPct.compareTo(stopLoss) > 0) {
+                Instant lastWarn = lastDrawdownWarning.get(sessionId);
+                boolean cooldownPassed = lastWarn == null ||
+                        Duration.between(lastWarn, Instant.now()).toMinutes() >= DRAWDOWN_WARNING_COOLDOWN_MIN;
+                if (cooldownPassed) {
+                    telegramService.notifyDrawdownWarning(
+                            sessionId, coinPair, pnlPct.doubleValue(), rawStopLoss.doubleValue());
+                    lastDrawdownWarning.put(sessionId, Instant.now());
+                }
+            }
+
             if (pnlPct.compareTo(stopLoss) <= 0) {
                 log.warn("손절 발동 (sessionId={}): {} 손익률={}% (한도={}%)",
                         sessionId, coinPair, pnlPct, stopLoss);
@@ -527,7 +580,9 @@ public class LiveTradingService {
 
         switch (signal.getAction()) {
             case BUY -> {
-                if (openPos.isEmpty()) {
+                boolean hasClosingPos = positionRepository
+                        .findBySessionIdAndCoinPairAndStatus(sessionId, coinPair, "CLOSING").isPresent();
+                if (openPos.isEmpty() && !hasClosingPos) {
                     RiskCheckResult riskResult = riskManagementService.checkRisk();
                     if (!riskResult.isApproved()) {
                         log.warn("리스크 한도 초과로 매수 차단 (sessionId={}): {}", sessionId, riskResult.getReason());
@@ -640,6 +695,10 @@ public class LiveTradingService {
             return;
         }
 
+        // 포지션 CLOSING 표시 — 중복 매도 신호 및 새 매수 진입 차단
+        pos.setStatus("CLOSING");
+        positionRepository.save(pos);
+
         // 주문 제출 — sessionId/positionId를 request에 미리 설정 (@Async 리턴값 의존 회피)
         OrderRequest order = new OrderRequest();
         order.setCoinPair(pos.getCoinPair());
@@ -651,27 +710,9 @@ public class LiveTradingService {
         order.setPositionId(pos.getId());
         orderExecutionEngine.submitOrder(order);
 
-        // 매도 금액을 세션 잔고에 복원 (수수료 고려)
-        BigDecimal proceeds = pos.getSize().multiply(currentPrice);
-        BigDecimal fee = proceeds.multiply(FEE_RATE);
-        BigDecimal netProceeds = proceeds.subtract(fee);
-
-        BigDecimal costBasis = pos.getSize().multiply(pos.getAvgPrice());
-        BigDecimal realizedPnl = netProceeds.subtract(costBasis);
-
-        pos.setRealizedPnl(realizedPnl);
-        pos.setUnrealizedPnl(BigDecimal.ZERO);
-        pos.setStatus("CLOSED");
-        pos.setClosedAt(Instant.now());
-        positionRepository.save(pos);
-
-        session.setAvailableKrw(session.getAvailableKrw().add(netProceeds));
-        // 총자산 = 기존 총자산 - 매도 수수료 (포지션→KRW 전환은 가치 중립, 다른 오픈 포지션 가치 유지)
-        session.setTotalAssetKrw(session.getTotalAssetKrw().subtract(fee));
-        sessionRepository.save(session);
-
-        log.info("실전 매도 주문 (sessionId={}): {} {}개 @ {} 손익: {} KRW",
-                session.getId(), pos.getCoinPair(), pos.getSize(), currentPrice, realizedPnl);
+        // KRW 복원·손익 확정은 reconcileClosingPositions()에서 실제 체결가 기반으로 처리
+        log.info("실전 매도 주문 제출 (sessionId={}): {} {}개 (CLOSING 상태, 체결 대기)",
+                session.getId(), pos.getCoinPair(), pos.getSize());
     }
 
     private void updateSessionUnrealizedPnl(LiveTradingSessionEntity session,
@@ -698,6 +739,9 @@ public class LiveTradingService {
 
         for (PositionEntity pos : openPositions) {
             try {
+                pos.setStatus("CLOSING");
+                positionRepository.save(pos);
+
                 OrderRequest sellOrder = new OrderRequest();
                 sellOrder.setCoinPair(pos.getCoinPair());
                 sellOrder.setSide("SELL");
@@ -756,6 +800,7 @@ public class LiveTradingService {
         BigDecimal totalRealizedPnl = BigDecimal.ZERO;
         BigDecimal totalUnrealizedPnl = BigDecimal.ZERO;
         BigDecimal totalInitialCapital = BigDecimal.ZERO;
+        BigDecimal totalFeeAccum = BigDecimal.ZERO;
         int totalTrades = 0;
         int totalWins = 0;
 
@@ -771,6 +816,9 @@ public class LiveTradingService {
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
             BigDecimal sessionUnrealized = open.stream()
                     .map(p -> p.getUnrealizedPnl() != null ? p.getUnrealizedPnl() : BigDecimal.ZERO)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal sessionFee = closed.stream()
+                    .map(p -> p.getPositionFee() != null ? p.getPositionFee() : BigDecimal.ZERO)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
             int wins = (int) closed.stream()
                     .filter(p -> p.getRealizedPnl() != null && p.getRealizedPnl().compareTo(BigDecimal.ZERO) > 0)
@@ -797,7 +845,7 @@ public class LiveTradingService {
                     .unrealizedPnl(sessionUnrealized)
                     .totalPnl(sessionPnl)
                     .returnRatePct(sessionReturn)
-                    .totalFee(BigDecimal.ZERO)
+                    .totalFee(sessionFee)
                     .totalTrades(closed.size())
                     .winCount(wins)
                     .winRatePct(sessionWinRate)
@@ -808,6 +856,7 @@ public class LiveTradingService {
             totalRealizedPnl = totalRealizedPnl.add(sessionRealized);
             totalUnrealizedPnl = totalUnrealizedPnl.add(sessionUnrealized);
             totalInitialCapital = totalInitialCapital.add(session.getInitialCapital());
+            totalFeeAccum = totalFeeAccum.add(sessionFee);
             totalTrades += closed.size();
             totalWins += wins;
         }
@@ -828,13 +877,186 @@ public class LiveTradingService {
                 .totalPnl(totalPnl)
                 .totalInitialCapital(totalInitialCapital)
                 .returnRatePct(returnRate)
-                .totalFee(BigDecimal.ZERO)
+                .totalFee(totalFeeAccum)
                 .totalTrades(totalTrades)
                 .winCount(totalWins)
                 .lossCount(totalTrades - totalWins)
                 .winRatePct(winRatePct)
                 .sessions(sessionPerfs)
                 .build();
+    }
+
+    // -- 서버 시작 복구 --------------------------------------------------
+
+    /**
+     * 서버 재시작 복구 — 미처리 주문 정리 + 고아 포지션 KRW 복원
+     *
+     * 처리 대상:
+     * 1) PENDING + exchangeOrderId=null → FAILED (거래소에 제출되지 못한 주문)
+     * 2) OPEN + size=0 포지션 중 활성 매수 주문이 없고 CANCELLED/FAILED 매수가 확정된 것
+     *    → 포지션 CLOSED + 세션 KRW 복원
+     */
+    @EventListener(ApplicationReadyEvent.class)
+    @Transactional
+    public void reconcileOnStartup() {
+        log.info("서버 시작 복구: 미처리 주문 및 고아 포지션 정리 시작");
+
+        // 1. 거래소에 제출되지 못한 PENDING 주문 → FAILED
+        List<OrderEntity> stuckPending = orderRepository.findByStateIn(List.of("PENDING"))
+                .stream()
+                .filter(o -> o.getExchangeOrderId() == null)
+                .toList();
+        for (OrderEntity order : stuckPending) {
+            order.setState("FAILED");
+            orderRepository.save(order);
+            log.warn("재시작 복구: 미제출 PENDING 주문 → FAILED (orderId={})", order.getId());
+        }
+
+        // 2. size=0 OPEN 포지션 — 활성 매수 없고 CANCELLED/FAILED 매수 있으면 종료 + KRW 복원
+        List<PositionEntity> orphanPositions = positionRepository.findByStatus("OPEN")
+                .stream()
+                .filter(pos -> pos.getSize().compareTo(BigDecimal.ZERO) <= 0)
+                .toList();
+        int recoveredCount = 0;
+        for (PositionEntity pos : orphanPositions) {
+            List<OrderEntity> buyOrders = orderRepository
+                    .findByPositionIdOrderByCreatedAtDesc(pos.getId())
+                    .stream()
+                    .filter(o -> "BUY".equalsIgnoreCase(o.getSide()))
+                    .toList();
+
+            boolean hasCancelledBuy = buyOrders.stream()
+                    .anyMatch(o -> "CANCELLED".equals(o.getState()) || "FAILED".equals(o.getState()));
+            boolean hasActiveBuy = buyOrders.stream()
+                    .anyMatch(o -> ACTIVE_ORDER_STATES.contains(o.getState()));
+
+            if (hasCancelledBuy && !hasActiveBuy) {
+                pos.setStatus("CLOSED");
+                pos.setClosedAt(Instant.now());
+                positionRepository.save(pos);
+
+                if (pos.getSessionId() != null) {
+                    sessionRepository.findById(pos.getSessionId()).ifPresent(session -> {
+                        buyOrders.stream()
+                                .filter(o -> "CANCELLED".equals(o.getState()) || "FAILED".equals(o.getState()))
+                                .findFirst()
+                                .ifPresent(buyOrder -> {
+                                    if (buyOrder.getQuantity() != null) {
+                                        session.setAvailableKrw(
+                                                session.getAvailableKrw().add(buyOrder.getQuantity()));
+                                        sessionRepository.save(session);
+                                    }
+                                });
+                        log.warn("재시작 복구: 고아 포지션 종료 + KRW 복원 (posId={}, sessionId={})",
+                                pos.getId(), pos.getSessionId());
+                    });
+                }
+                recoveredCount++;
+            }
+        }
+
+        log.info("서버 시작 복구 완료: FAILED 처리 {}건, 고아 포지션 복구 {}건 / 검사 {}건",
+                stuckPending.size(), recoveredCount, orphanPositions.size());
+
+        // 3. 재시작 전 CLOSING 상태로 남은 포지션 — 연결된 SELL 주문 기반으로 확정/롤백
+        List<PositionEntity> closingPositions = positionRepository.findByStatus("CLOSING");
+        for (PositionEntity pos : closingPositions) {
+            List<OrderEntity> sellOrders = orderRepository
+                    .findByPositionIdOrderByCreatedAtDesc(pos.getId())
+                    .stream()
+                    .filter(o -> "SELL".equalsIgnoreCase(o.getSide()))
+                    .toList();
+            if (sellOrders.isEmpty()) {
+                pos.setStatus("OPEN");
+                positionRepository.save(pos);
+                log.warn("재시작 복구: CLOSING 포지션에 연결된 SELL 주문 없음 — OPEN 롤백 (posId={})", pos.getId());
+            } else {
+                OrderEntity latestSell = sellOrders.get(0);
+                if ("FILLED".equals(latestSell.getState())) {
+                    finalizeSellPosition(pos, latestSell);
+                } else if ("FAILED".equals(latestSell.getState()) || "CANCELLED".equals(latestSell.getState())) {
+                    pos.setStatus("OPEN");
+                    positionRepository.save(pos);
+                    log.warn("재시작 복구: CLOSING 포지션 OPEN 롤백 (posId={}, orderState={})",
+                            pos.getId(), latestSell.getState());
+                }
+                // PENDING/SUBMITTED → 이후 reconcileClosingPositions에서 처리
+            }
+        }
+    }
+
+    /**
+     * CLOSING 포지션 처리 — 매도 주문 체결/실패에 따라 청산 확정 또는 롤백 (5초 주기)
+     *
+     * executeSessionSell()은 포지션을 CLOSING으로만 표시하고 비동기 주문 제출.
+     * 이 메서드가 실제 체결 결과를 확인해 처리한다:
+     * - FILLED → 실제 체결가 기반 손익/수수료 확정 + 세션 KRW 복원
+     * - FAILED / CANCELLED → OPEN 롤백 (다음 틱에서 재시도)
+     */
+    @Scheduled(fixedDelay = 5000)
+    @Transactional
+    public void reconcileClosingPositions() {
+        List<PositionEntity> closingPositions = positionRepository.findByStatus("CLOSING");
+        if (closingPositions.isEmpty()) return;
+
+        for (PositionEntity pos : closingPositions) {
+            List<OrderEntity> sellOrders = orderRepository
+                    .findByPositionIdOrderByCreatedAtDesc(pos.getId())
+                    .stream()
+                    .filter(o -> "SELL".equalsIgnoreCase(o.getSide()))
+                    .toList();
+
+            if (sellOrders.isEmpty()) {
+                log.warn("CLOSING 포지션에 SELL 주문 없음 — OPEN 롤백 (posId={})", pos.getId());
+                pos.setStatus("OPEN");
+                positionRepository.save(pos);
+                continue;
+            }
+
+            OrderEntity latestSell = sellOrders.get(0);
+            switch (latestSell.getState()) {
+                case "FILLED" -> finalizeSellPosition(pos, latestSell);
+                case "FAILED", "CANCELLED" -> {
+                    log.warn("매도 주문 {} — 포지션 OPEN 롤백 (orderId={}, posId={}, sessionId={})",
+                            latestSell.getState(), latestSell.getId(), pos.getId(), pos.getSessionId());
+                    pos.setStatus("OPEN");
+                    positionRepository.save(pos);
+                }
+                default -> { /* PENDING/SUBMITTED/PARTIAL_FILLED — 체결 대기 */ }
+            }
+        }
+    }
+
+    /**
+     * 매도 주문 체결 확정 — 실제 체결가 기반 손익/수수료 계산 + 세션 KRW 복원
+     */
+    private void finalizeSellPosition(PositionEntity pos, OrderEntity filledOrder) {
+        BigDecimal fillPrice = filledOrder.getPrice() != null ? filledOrder.getPrice() : pos.getAvgPrice();
+        BigDecimal soldQty = filledOrder.getFilledQuantity() != null
+                ? filledOrder.getFilledQuantity() : pos.getSize();
+
+        BigDecimal proceeds = soldQty.multiply(fillPrice);
+        BigDecimal fee = proceeds.multiply(FEE_RATE);
+        BigDecimal netProceeds = proceeds.subtract(fee);
+        BigDecimal realizedPnl = netProceeds.subtract(soldQty.multiply(pos.getAvgPrice()));
+
+        pos.setRealizedPnl(realizedPnl);
+        pos.setPositionFee(fee);
+        pos.setUnrealizedPnl(BigDecimal.ZERO);
+        pos.setStatus("CLOSED");
+        pos.setClosedAt(Instant.now());
+        positionRepository.save(pos);
+
+        if (pos.getSessionId() != null) {
+            sessionRepository.findById(pos.getSessionId()).ifPresent(session -> {
+                session.setAvailableKrw(session.getAvailableKrw().add(netProceeds));
+                session.setTotalAssetKrw(session.getTotalAssetKrw().subtract(fee));
+                sessionRepository.save(session);
+                log.info("매도 체결 확정 (sessionId={}, posId={}): {} {}개 @ {} 손익={} 수수료={}",
+                        session.getId(), pos.getId(), pos.getCoinPair(),
+                        soldQty, fillPrice, realizedPnl, fee);
+            });
+        }
     }
 
     private LiveTradingSessionEntity getSessionOrThrow(Long sessionId) {

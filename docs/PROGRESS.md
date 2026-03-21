@@ -2,7 +2,7 @@
 
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝날 때마다 `## 다음 할 일`과 `## 최근 변경사항`을 반드시 업데이트한다.
-> **마지막 갱신**: 2026-03-21 (Upbit API 테스트 페이지 보강)
+> **마지막 갱신**: 2026-03-21 (긴급 5종 처리 — Telegram 토큰 하드코딩 제거, CLOSING 패턴 + 실제 체결가 손익, 손실 전략 차단, OrderExecutionEngine 세션 skip)
 
 ---
 
@@ -38,7 +38,8 @@ crypto-auto-trader/
 | Phase 3.5 | 모의투자 (PaperTrading) 멀티세션 | **100%** |
 | Phase S1~S5 | 전략 고도화 (버그수정 → Regime/Risk → CompositeStrategy → 개별최적화 → MTF 백테스트) | **100%** |
 | 인프라 | Docker, Flyway V1~V21, SchedulerConfig, RedisConfig, Spring Security | **100%** |
-| Phase 4 | **실전매매** (LiveTrading) | **~98%** — 소액(1만원) 실거래 검증 완료 (2026-03-19~), ORDERBOOK WebSocket 미확인 |
+| Phase 4 | **실전매매** (LiveTrading) | **~99%** — 장애 복구·수수료 추적·낙폭 경고·ORDERBOOK 호가창 REST 연동 완료 |
+| Phase 5 | **손익 대시보드** (`/performance`) | **100%** — 실전/모의 탭, 요약 카드 7개, 세션별 테이블. 수수료 집계 정상화 완료 |
 
 ### 구현된 전략 10종
 
@@ -62,10 +63,36 @@ VWAP / EMA Cross / Bollinger Band / Grid / RSI(다이버전스) / MACD(히스토
 
 ## 다음 할 일
 
+### 긴급 (보안·데이터 무결성)
+
+- [x] `🔴 CRITICAL` **Telegram 봇 토큰 재발급** — `application.yml` 기본값 빈 문자열로 변경 완료. ⚠️ git history 노출 이력 있음 — 봇 토큰 반드시 재발급 필요
+- [x] `🔴 CRITICAL` **V22 마이그레이션 파일 커밋** — `V22__add_position_fee_to_position.sql` 커밋 완료
+- [x] `🔴 HIGH` **매도 주문 실패 시 포지션/잔고 롤백 로직 추가** — CLOSING 중간 상태 도입. `reconcileClosingPositions()` (@Scheduled 5s)에서 실제 체결 확인 후 CLOSED 전환 또는 OPEN 롤백
+- [x] `🔴 HIGH` **손익 계산 실제 체결가 기반으로 수정** — `finalizeSellPosition()`에서 `filledOrder.getPrice()` (실제 체결가) 기반 손익·수수료 계산. `OrderExecutionEngine.handleSellFill()` 세션 주문 skip
+- [x] `🔴 HIGH` **손실 전략 실전매매 선택 차단** — `BLOCKED_LIVE_STRATEGIES = [STOCHASTIC_RSI, MACD]` 상수 추가, `createSession()`에서 검증
+
+### 보안
+
+- [ ] `🟡 MEDIUM` **Swagger 프로덕션 비활성화** — `/swagger-ui/**`, `/v3/api-docs/**` 인증 없이 공개됨
+- [ ] `🟡 MEDIUM` **CORS 운영 도메인 한정** — 현재 `allowedOriginPatterns("*")` 전체 허용
+- [ ] `🟡 MEDIUM` **API 토큰 기본값 제거** — `dev-token-change-me-in-production` 기본값은 환경변수 미설정 시 그대로 운영됨
+
+### 안정성
+
+- [ ] `🟡 MEDIUM` **WebSocket 기반 실시간 손절 체크** — 현재 60초 스케줄러에서만 손절 확인. 1분 내 급락 시 설정 손절폭 초과 가능
+- [ ] `🟡 MEDIUM` **세션 생성 동시성 보호** — `countByStatus` 조회 후 `save` 사이 race condition. DB 제약 또는 낙관적 락 필요
+- [ ] `🟡 MEDIUM` **매도 미체결 주문 reconcile 추가** — `reconcileOnStartup()`이 매수 미체결만 처리. 매도 stuck 주문 미처리
+- [ ] `🟡 MEDIUM` **MarketRegimeDetector 상태 영속화** — 재시작 시 COMPOSITE 전략 Hysteresis 상태 초기화됨
+
+### 인프라
+
+- [ ] `🟢 LOW` **CI/CD 파이프라인 구성** — `.github/workflows/` 없음. 테스트 미검증 배포 중
+- [ ] `🟢 LOW` **TimescaleDB 백업 설정** — `pgdata` 볼륨 백업/복구 전략 없음
+- [ ] `🟢 LOW` **SchedulerConfig 주석 현행화** — LiveTradingService 스케줄러 항목 누락
+
 ### 즉시 (실전매매 안정화)
 
-- [ ] `🔴 HIGH` **ORDERBOOK_IMBALANCE WebSocket 의존성 확인** — `StrategyController` 주석에 "Phase 4 WebSocket 연동 필요" 기재됨. 현재 REST 폴링으로 동작 중인지, 실전에서 신호가 정상 생성되는지 로그로 확인 필요
-- [ ] `🟡 MEDIUM` **실전매매 금액 증액 계획** — 소액 1만원 → 5만원 → 10만원 단계적 증액. 1~2주 결과 확인 후 판단
+- [ ] `🟡 MEDIUM` **실전매매 금액 증액 계획** — 소액 1만원 → 5만원 → 10만원 단계적 증액. 판단 기준: 2주 이상 운영 + 승률 ≥ 50% + 최대 낙폭 < 10%
 
 ### 전략 고도화 후속 (백테스트 결과 기반)
 
@@ -79,6 +106,49 @@ VWAP / EMA Cross / Bollinger Band / Grid / RSI(다이버전스) / MACD(히스토
 
 ## 최근 변경사항
 
+### 2026-03-21 — 긴급 안정화 5종
+
+| # | 항목 | 파일 |
+|---|------|------|
+| 1 | **Telegram 토큰 하드코딩 제거** — `application.yml` 기본값 `${TELEGRAM_BOT_TOKEN:}` (빈 문자열). git history 노출 이력 있음 — 봇 토큰 재발급 필요 | `application.yml` |
+| 2 | **CLOSING 중간 상태 + 롤백 로직** — `executeSessionSell()`·`closeSessionPositions()`에서 포지션을 CLOSING으로 표시 후 주문 제출. `reconcileClosingPositions()` (@Scheduled 5s) + `reconcileOnStartup()`에서 FILLED→CLOSED / FAILED→OPEN 롤백 처리 | `LiveTradingService` |
+| 3 | **실제 체결가 기반 손익 계산** — `finalizeSellPosition()`에서 `filledOrder.getPrice()` 사용. `OrderExecutionEngine.handleSellFill()` 세션 주문 skip (세션 주문 처리는 reconcile에 위임) | `LiveTradingService`, `OrderExecutionEngine` |
+| 4 | **손실 전략 차단** — `BLOCKED_LIVE_STRATEGIES = [STOCHASTIC_RSI, MACD]` 상수 추가, `createSession()`에서 검증 후 `IllegalArgumentException` 발생 | `LiveTradingService` |
+| 5 | **V22 마이그레이션 커밋** — `position_fee NUMERIC(20,2) NOT NULL DEFAULT 0` 컬럼 추가 SQL 파일 커밋 | `V22__add_position_fee_to_position.sql` |
+
+### 2026-03-21 — 리팩토링 (코드 품질 개선, 기능 변경 없음)
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `PositionEntity` | `@Getter` `@Setter` 추가 → 명시적 getter/setter 40줄 제거 |
+| `UpbitRestClient` | `buildGetRequest(url)` 헬퍼 추출 → GET 요청 빌드 3곳 중복 제거, `getTickerIndividually()` 루프 변수 재할당 제거 |
+| `LiveTradingService` | `java.util.ArrayList<>()` → `ArrayList<>()`, `java.time.Instant` 로컬 변수 → `Instant` (FQN 제거) |
+| `TelegramNotificationService` | `@Autowired` 필드 주입 → `final` + `@RequiredArgsConstructor` 생성자 주입, 파라미터 FQN(`java.math.BigDecimal`) → `BigDecimal` |
+
+### 2026-03-21 — 전체 시스템 비판적 분석
+
+| 구분 | 발견 내용 |
+|------|-----------|
+| 🔴 보안 | `application.yml`에 Telegram 봇 토큰 평문 하드코딩 (git 노출) |
+| 🔴 버그 | `executeSessionSell()` — @Async 주문 실패해도 포지션 CLOSED + KRW 즉시 복원 (이중 계상) |
+| 🔴 버그 | 손익 계산이 실제 체결가 아닌 캔들 종가 추정값 기반 |
+| 🔴 배포 | `V22__add_position_fee_to_position.sql` untracked (미커밋) |
+| 🔴 운영 | 백테스트 손실 전략(STOCHASTIC_RSI, MACD) 실전매매에서 선택 가능 |
+| 🟡 보안 | Swagger 인증 없이 공개 / CORS 전체 허용 / API 토큰 기본값 취약 |
+| 🟡 안정성 | 손절 체크 60초 지연 / 세션 생성 race condition / 매도 reconcile 없음 |
+| 🟡 안정성 | MarketRegimeDetector 재시작 시 상태 초기화 |
+| 🟢 인프라 | CI/CD 없음 / DB 백업 없음 / SchedulerConfig 주석 오래됨 |
+| 🟢 테스트 | web-api 테스트가 H2 기반 + Happy Path 없음. LiveTradingService 테스트 전무 |
+
+### 2026-03-21 — 실전매매 안정화 4종
+
+| # | 항목 | 파일 |
+|---|------|------|
+| 1 | **장애 복구** — `reconcileOnStartup()` (`@EventListener(ApplicationReadyEvent)`) 추가: PENDING+exchangeOrderId=null → FAILED / OPEN+size=0 → 포지션 강제 종료+KRW 복원 | `LiveTradingService` |
+| 2 | **실전매매 수수료 추적** — V22 migration (`position_fee NUMERIC(20,2)`) + `PositionEntity.positionFee` + `executeSessionSell()`에서 fee 저장 + `getPerformanceSummary()`에서 정상 집계 | `PositionEntity`, `V22__*.sql`, `LiveTradingService` |
+| 3 | **텔레그램 낙폭 경고** — 손절 한도 50% 이상 손실 시 `DRAWDOWN_WARNING` 알림 (30분 쿨다운, `lastDrawdownWarning` ConcurrentHashMap). stopSession/emergencyStop/deleteSession 시 cleanup | `LiveTradingService`, `TelegramNotificationService` |
+| 4 | **ORDERBOOK REST 호가창 연동** — `UpbitRestClient.getOrderbook()` 추가 (`GET /v1/orderbook`). `LiveTradingService`에 `@Autowired(required=false) UpbitRestClient` 주입 → ORDERBOOK_IMBALANCE 전략 평가 전 `bidVolume`/`askVolume` 실값 주입 (실패 시 캔들 근사 폴백) | `UpbitRestClient`, `LiveTradingService` |
+
 ### 2026-03-21 — Upbit API 테스트 페이지 보강
 
 | 항목 | 내용 |
@@ -86,6 +156,15 @@ VWAP / EMA Cross / Bollinger Band / Grid / RSI(다이버전스) / MACD(히스토
 | `GET /api/v1/settings/upbit/ticker` | 현재가 조회 엔드포인트 추가 (공개 API, 인증 불필요) |
 | `settingsApi.upbitTicker()` | 프론트엔드 API 함수 추가 |
 | `upbit-status/page.tsx` 전면 재작성 | slate- 계열로 디자인 통일, 상태 카드 4개(API키·잔고·WebSocket·캔들), 잔고 상세(보유코인 테이블), 현재가 조회 섹션 신규 추가 |
+
+### 2026-03-21 — 성과 대시보드 코드 검증
+
+| 항목 | 결과 |
+|------|------|
+| API 연결 (`tradingApi.getPerformance` / `paperTradingApi.getPerformance`) | ✅ 정상 |
+| 타입 매핑 (`PerformanceSummary` ↔ `PerformanceSummaryResponse`) | ✅ 정상 |
+| 세션 0건 처리 | ✅ 빈 리스트 → "데이터가 없습니다" |
+| 실전매매 수수료 집계 | ❌ `BigDecimal.ZERO` 하드코딩 (V22 TODO) |
 
 ### 2026-03-21 — 손익 대시보드 및 성과 통계 구현
 
@@ -133,6 +212,37 @@ VWAP / EMA Cross / Bollinger Band / Grid / RSI(다이버전스) / MACD(히스토
 - TEST_TIMED / ORDERBOOK_IMBALANCE / COMPOSITE 각 1만원 매수·매도 사이클 ✅ 확인
 - 2026-03-19 07:00 ~ 지속 운영 중
 - 리스크 한도(`riskManagementService.checkRisk()`) BUY 진입 전 연동 완료
+
+---
+
+## 서버 명령어
+
+### 로컬 (Windows)
+
+```bash
+docker compose up -d                              # DB + Redis 시작
+./gradlew :web-api:bootRun                        # 백엔드 (포트 8080)
+cd crypto-trader-frontend && npm run dev          # 프론트엔드 (포트 3000)
+```
+
+### 운영 (Ubuntu)
+
+```bash
+cd ~/crypto-auto-trader
+
+# 재빌드 & 재시작
+docker compose -f docker-compose.prod.yml up -d --build           # 전체
+docker compose -f docker-compose.prod.yml up -d --build backend   # 백엔드만
+docker compose -f docker-compose.prod.yml up -d --build frontend  # 프론트엔드만
+
+# 로그 실시간 확인
+docker compose -f docker-compose.prod.yml logs -f backend
+docker compose -f docker-compose.prod.yml logs -f frontend
+
+# 오류 원인 분석 (ERROR/Exception 필터링)
+docker compose -f docker-compose.prod.yml logs backend > /tmp/backend.log 2>&1
+grep -n "ERROR\|Caused by\|Exception" /tmp/backend.log | tail -30
+```
 
 ---
 

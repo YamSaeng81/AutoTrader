@@ -3,9 +3,9 @@ package com.cryptoautotrader.api.service;
 import com.cryptoautotrader.api.entity.TelegramNotificationLogEntity;
 import com.cryptoautotrader.api.repository.TelegramNotificationLogRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
  * - 전송 이력은 telegram_notification_log 테이블에 저장.
  */
 @Service
+@RequiredArgsConstructor
 public class TelegramNotificationService {
 
     private static final Logger log = LoggerFactory.getLogger(TelegramNotificationService.class);
@@ -54,8 +55,7 @@ public class TelegramNotificationService {
     @Value("${telegram.enabled:true}")
     private boolean enabled;
 
-    @Autowired
-    private TelegramNotificationLogRepository logRepository;
+    private final TelegramNotificationLogRepository logRepository;
 
     private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(10))
@@ -142,6 +142,16 @@ public class TelegramNotificationService {
                 totalKrw.doubleValue(),
                 returnPct >= 0 ? "+" : "", returnPct);
         sendMarkdownAndLog(msg, "SESSION_STOP", "[모의투자] 세션#" + sessionId);
+    }
+
+    /** 낙폭 경고 알림 — 손절 임박 시 즉시 전송 (스팸 방지: 세션당 30분 쿨다운은 호출부에서 관리) */
+    public void notifyDrawdownWarning(long sessionId, String coinPair, double pnlPct, double stopLossPct) {
+        String msg = String.format(
+                "📉 *낙폭 경고*\n\n" +
+                "• 세션 ID: `%d`\n• 코인: `%s`\n• 현재 손실: `%.2f%%`\n• 손절 한도: `%.2f%%`\n• 시각: `%s`",
+                sessionId, coinPair, Math.abs(pnlPct), stopLossPct,
+                KST_FMT.format(Instant.now()));
+        sendMarkdownAndLog(msg, "DRAWDOWN_WARNING", "세션#" + sessionId);
     }
 
     /** 리스크 한도 초과 알림 */

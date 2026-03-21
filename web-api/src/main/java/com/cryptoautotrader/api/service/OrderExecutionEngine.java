@@ -372,6 +372,14 @@ public class OrderExecutionEngine {
     }
 
     private void handleSellFill(OrderEntity order) {
+        // 세션 연결 매도 주문은 LiveTradingService.reconcileClosingPositions()에서 처리
+        // (KRW 복원·손익 확정·수수료 기록까지 실제 체결가 기반으로 일괄 처리)
+        if (order.getSessionId() != null) {
+            log.debug("세션 매도 주문 체결 — reconcileClosingPositions에서 처리됨 (orderId={}, sessionId={})",
+                    order.getId(), order.getSessionId());
+            return;
+        }
+
         // positionId가 있으면 해당 포지션을 직접 조회 (세션 데이터 혼재 방지)
         Optional<PositionEntity> openPos = order.getPositionId() != null
                 ? positionRepository.findById(order.getPositionId())
