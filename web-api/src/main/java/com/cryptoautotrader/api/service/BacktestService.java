@@ -251,6 +251,107 @@ public class BacktestService {
     }
 
     /**
+     * 사용자가 선택한 전략 목록 × 단일 코인 백테스트 비교표를 반환한다.
+     * 각 결과는 DB에 저장되며, totalReturn 내림차순으로 정렬된다.
+     */
+    @Transactional
+    public List<Map<String, Object>> runMultiStrategyBacktest(
+            List<String> strategyTypes, String coinPair, String timeframe,
+            LocalDate startDate, LocalDate endDate,
+            BigDecimal initialCapital, BigDecimal slippagePct, BigDecimal feePct) {
+
+        Instant start = startDate.atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant();
+        Instant end   = endDate.atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant();
+
+        BigDecimal capital  = initialCapital != null ? initialCapital : new BigDecimal("10000000");
+        BigDecimal slippage = slippagePct    != null ? slippagePct    : new BigDecimal("0.1");
+        BigDecimal fee      = feePct         != null ? feePct         : new BigDecimal("0.05");
+
+        List<CandleDataEntity> entities = candleDataRepository.findCandles(coinPair, timeframe, start, end);
+        if (entities.size() < 30) {
+            throw new IllegalArgumentException("데이터 부족: " + entities.size() + "건 (최소 30건 필요)");
+        }
+
+        List<Candle> candles = entities.stream()
+                .map(e -> Candle.builder()
+                        .time(e.getTime())
+                        .open(e.getOpen()).high(e.getHigh())
+                        .low(e.getLow()).close(e.getClose())
+                        .volume(e.getVolume())
+                        .build())
+                .toList();
+
+        List<Map<String, Object>> results = new java.util.ArrayList<>();
+
+        for (String strategyName : strategyTypes) {
+            try {
+                BacktestConfig config = BacktestConfig.builder()
+                        .strategyName(strategyName)
+                        .coinPair(coinPair)
+                        .timeframe(timeframe)
+                        .startDate(start)
+                        .endDate(end)
+                        .initialCapital(capital)
+                        .slippagePct(slippage)
+                        .feePct(fee)
+                        .strategyParams(Map.of())
+                        .build();
+
+                BacktestResult result;
+                if ("COMPOSITE".equals(strategyName)) {
+                    MarketRegimeDetector detector = new MarketRegimeDetector();
+                    List<WeightedStrategy> weighted = StrategySelector.select(detector.detect(candles));
+                    result = backtestEngine.run(config, candles, new CompositeStrategy(weighted));
+                } else {
+                    result = backtestEngine.run(config, candles);
+                }
+                PerformanceReport metrics = result.getMetrics();
+
+                BacktestRunEntity runEntity = saveRun(config, false);
+                saveMetrics(runEntity.getId(), metrics);
+                saveTrades(runEntity.getId(), result.getTrades());
+
+                Map<String, Object> row = new java.util.LinkedHashMap<>();
+                row.put("id",           runEntity.getId());
+                row.put("strategy",     strategyName);
+                row.put("coinPair",     coinPair);
+                row.put("totalReturn",  metrics.getTotalReturnPct());
+                row.put("winRate",      metrics.getWinRatePct());
+                row.put("maxDrawdown",  metrics.getMddPct());
+                row.put("sharpe",       metrics.getSharpeRatio());
+                row.put("sortino",      metrics.getSortinoRatio());
+                row.put("calmar",       metrics.getCalmarRatio());
+                row.put("totalTrades",  metrics.getTotalTrades());
+                row.put("winLossRatio", metrics.getWinLossRatio());
+                results.add(row);
+
+                log.info("다중전략 백테스트 완료: {} {} → 수익률={}, 승률={}, MDD={}",
+                        strategyName, coinPair,
+                        metrics.getTotalReturnPct(), metrics.getWinRatePct(), metrics.getMddPct());
+
+            } catch (Exception e) {
+                log.error("다중전략 백테스트 실패: {} {} — {}", strategyName, coinPair, e.getMessage());
+                Map<String, Object> row = new java.util.LinkedHashMap<>();
+                row.put("strategy", strategyName);
+                row.put("coinPair", coinPair);
+                row.put("error",    e.getMessage());
+                results.add(row);
+            }
+        }
+
+        results.sort((a, b) -> {
+            BigDecimal ra = (BigDecimal) a.getOrDefault("totalReturn", null);
+            BigDecimal rb = (BigDecimal) b.getOrDefault("totalReturn", null);
+            if (ra == null && rb == null) return 0;
+            if (ra == null) return 1;
+            if (rb == null) return -1;
+            return rb.compareTo(ra);
+        });
+
+        return results;
+    }
+
+    /**
      * 전략 10종 × 지정 코인 목록을 일괄 백테스트하여 성과 비교표를 반환한다.
      * 각 결과는 DB에도 저장된다.
      * 정렬 기준: totalReturn 내림차순

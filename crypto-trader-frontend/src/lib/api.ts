@@ -2,6 +2,7 @@ import axios from 'axios';
 import type {
     ApiResponse, BacktestRequest, BacktestResult, TradeRecord, PageResponse, StrategyType,
     StrategyInfo, PaperTradingBalance, PaperPosition, PaperTradingStartRequest,
+    MultiStrategyPaperRequest, MultiStrategyBacktestRequest,
     WalkForwardRequest, WalkForwardResult,
     TradingStatus, Position, LiveOrder, ExchangeHealth, RiskConfig,
     LiveTradingSession, LiveTradingStartRequest,
@@ -23,6 +24,8 @@ api.interceptors.request.use(config => {
 export const backtestApi = {
     run: (req: BacktestRequest) =>
         api.post<ApiResponse<BacktestResult>>('/api/v1/backtest/run', req, { timeout: 300000 }).then(r => r.data),
+    runMultiStrategy: (req: MultiStrategyBacktestRequest) =>
+        api.post<ApiResponse<Record<string, unknown>[]>>('/api/v1/backtest/multi-strategy', req, { timeout: 300000 }).then(r => r.data),
     get: (id: string) =>
         api.get<ApiResponse<BacktestResult>>(`/api/v1/backtest/${id}`).then(r => r.data),
     list: (_page = 0) =>
@@ -96,6 +99,8 @@ export const tradingApi = {
     // 세션 관리
     createSession: (req: LiveTradingStartRequest) =>
         api.post<ApiResponse<LiveTradingSession>>('/api/v1/trading/sessions', req).then(r => r.data),
+    createMulti: (req: import('./types').MultiStrategyLiveRequest) =>
+        api.post<ApiResponse<LiveTradingSession[]>>('/api/v1/trading/sessions/multi', req).then(r => r.data),
     listSessions: () =>
         api.get<ApiResponse<LiveTradingSession[]>>('/api/v1/trading/sessions').then(r => r.data),
     getSession: (id: number) =>
@@ -143,6 +148,8 @@ export const paperTradingApi = {
         api.get<ApiResponse<import('./types').PaperSession[]>>('/api/v1/paper-trading/sessions').then(r => r.data),
     start: (req: PaperTradingStartRequest) =>
         api.post<ApiResponse<import('./types').PaperSession>>('/api/v1/paper-trading/sessions', req).then(r => r.data),
+    startMulti: (req: MultiStrategyPaperRequest) =>
+        api.post<ApiResponse<import('./types').PaperSession[]>>('/api/v1/paper-trading/sessions/multi', req).then(r => r.data),
     getSession: (id: string | number) =>
         api.get<ApiResponse<PaperTradingBalance>>(`/api/v1/paper-trading/sessions/${id}`).then(r => r.data),
     positions: (id: string | number, status = 'OPEN') =>

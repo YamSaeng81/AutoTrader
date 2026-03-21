@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { ThemeProvider } from '@/components/layout/ThemeProvider';
@@ -7,6 +8,8 @@ import { MainContent } from '@/components/layout/MainContent';
 import './globals.css';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const isLoginPage = pathname === '/login';
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: {
       queries: {
@@ -35,10 +38,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ThemeProvider>
         <QueryClientProvider client={queryClient}>
           {mockReady ? (
-            <div className="flex min-h-screen">
-              <Sidebar />
-              <MainContent>{children}</MainContent>
-            </div>
+            isLoginPage ? children : (
+              <div className="flex min-h-screen">
+                <Sidebar />
+                <MainContent>{children}</MainContent>
+              </div>
+            )
           ) : (
             <div className="flex h-screen w-full items-center justify-center bg-slate-50">
               <div className="flex flex-col items-center gap-4">

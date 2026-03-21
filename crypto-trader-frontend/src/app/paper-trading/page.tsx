@@ -1,9 +1,10 @@
 'use client';
 
 import { usePaperSessions, useStartPaperSession, useStopPaperSession } from '@/hooks';
-import { PaperSession, PaperTradingStartRequest, StrategyInfo } from '@/lib/types';
-import { strategyApi, systemApi } from '@/lib/api';
+import { PaperSession, PaperTradingStartRequest, MultiStrategyPaperRequest, StrategyInfo } from '@/lib/types';
+import { strategyApi, systemApi, paperTradingApi } from '@/lib/api';
 import { useState, useEffect } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { Loader2, Play, Square, Plus, TrendingUp, TrendingDown, Activity, Settings, History, Bell } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -16,14 +17,22 @@ const TIMEFRAMES = [
     { value: 'D1', label: '일봉' },
 ];
 
-const MAX_SESSIONS = 5;
+const MAX_SESSIONS = 10;
+
+const ALL_STRATEGIES = [
+    'COMPOSITE', 'EMA_CROSS', 'BOLLINGER', 'RSI', 'MACD',
+    'SUPERTREND', 'ATR_BREAKOUT', 'GRID', 'ORDERBOOK_IMBALANCE', 'STOCHASTIC_RSI', 'VWAP',
+];
+const STRATEGY_LABELS: Record<string, string> = {
+    COMPOSITE: 'COMPOSITE (시장 국면 자동 선택)',
+};
 
 export default function PaperTradingPage() {
     const [showNewForm, setShowNewForm] = useState(false);
     const [availableStrategies, setAvailableStrategies] = useState<StrategyInfo[]>([]);
     const [coins, setCoins] = useState<string[]>([]);
-    const [config, setConfig] = useState<PaperTradingStartRequest>({
-        strategyType: 'EMA_CROSS',
+    const [selectedStrategies, setSelectedStrategies] = useState<string[]>(['EMA_CROSS']);
+    const [config, setConfig] = useState<Omit<PaperTradingStartRequest, 'strategyType'>>({
         coinPair: 'KRW-BTC',
         timeframe: 'H1',
         initialCapital: 10000000,
@@ -35,7 +44,7 @@ export default function PaperTradingPage() {
             if (stRes.success && stRes.data) {
                 const available = stRes.data.filter(s => s.status === 'AVAILABLE' && s.isActive);
                 setAvailableStrategies(available);
-                if (available.length > 0) setConfig(c => ({ ...c, strategyType: available[0].name }));
+                if (available.length > 0) setSelectedStrategies([available[0].name]);
             }
             if (cRes.success && cRes.data) {
                 const coins = cRes.data;
@@ -46,11 +55,53 @@ export default function PaperTradingPage() {
     }, []);
 
     const { data: sessions = [], isLoading } = usePaperSessions();
+    const queryClient = useQueryClient();
 
     const startMutation = useStartPaperSession();
+    const startMultiMutation = useMutation({
+        mutationFn: (req: MultiStrategyPaperRequest) => paperTradingApi.startMulti(req),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['paperSessions'] }),
+    });
+
     const stopMutation = useStopPaperSession();
     const runningSessions = sessions.filter(s => s.status === 'RUNNING');
     const canAddMore = runningSessions.length < MAX_SESSIONS;
+
+    const strategyList = [
+        { name: 'COMPOSITE', label: 'COMPOSITE (시장 국면 자동 선택)' },
+        ...(availableStrategies.length > 0
+            ? availableStrategies.map(s => ({ name: s.name, label: s.name }))
+            : ALL_STRATEGIES.filter(s => s !== 'COMPOSITE').map(s => ({ name: s, label: STRATEGY_LABELS[s] ?? s }))
+        ),
+    ];
+
+    const toggleStrategy = (name: string) => {
+        setSelectedStrategies(prev =>
+            prev.includes(name) ? prev.filter(s => s !== name) : [...prev, name]
+        );
+    };
+
+    const selectAll = () => setSelectedStrategies(strategyList.map(s => s.name));
+    const clearAll = () => setSelectedStrategies([]);
+
+    const isPending = startMutation.isPending || startMultiMutation.isPending;
+    const isError = startMutation.isError || startMultiMutation.isError;
+
+    const handleStart = () => {
+        if (selectedStrategies.length === 0) return;
+        const onSuccess = () => setShowNewForm(false);
+        if (selectedStrategies.length === 1) {
+            startMutation.mutate(
+                { ...config, strategyType: selectedStrategies[0] },
+                { onSuccess }
+            );
+        } else {
+            startMultiMutation.mutate(
+                { ...config, strategyTypes: selectedStrategies },
+                { onSuccess }
+            );
+        }
+    };
 
     if (isLoading) {
         return (
@@ -73,7 +124,7 @@ export default function PaperTradingPage() {
                             실행 중 {runningSessions.length}/{MAX_SESSIONS}
                         </span>
                     </div>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">최대 5개 세션을 동시에 운영할 수 있습니다.</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">최대 10개 세션을 동시에 운영할 수 있습니다.</p>
                 </div>
                 <div className="flex gap-2">
                     <Link
@@ -104,20 +155,52 @@ export default function PaperTradingPage() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <div className="space-y-1.5">
-                            <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">전략 유형</label>
-                            <select
-                                value={config.strategyType}
-                                onChange={e => setConfig(c => ({ ...c, strategyType: e.target.value }))}
-                                className="w-full border border-slate-200 dark:border-slate-600 rounded-xl px-4 py-2.5 text-sm bg-slate-50 dark:bg-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                            >
-                                <option value="COMPOSITE">COMPOSITE (시장 국면 자동 선택)</option>
-                                {availableStrategies.map(s => (
-                                    <option key={s.name} value={s.name}>{s.name}</option>
-                                ))}
-                                {availableStrategies.length === 0 && <option value="EMA_CROSS">EMA_CROSS</option>}
-                            </select>
+                        {/* 전략 선택 — 멀티 체크박스 */}
+                        <div className="md:col-span-2 space-y-2">
+                            <div className="flex items-center justify-between">
+                                <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                                    전략 선택
+                                    <span className="ml-2 px-1.5 py-0.5 text-[11px] font-bold rounded bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300">
+                                        {selectedStrategies.length}개 선택
+                                    </span>
+                                    {selectedStrategies.length >= 2 && (
+                                        <span className="ml-1.5 text-[11px] text-indigo-500 font-normal">→ 전략별 독립 세션 {selectedStrategies.length}개 생성</span>
+                                    )}
+                                </label>
+                                <div className="flex gap-2 text-xs">
+                                    <button type="button" onClick={selectAll} className="text-indigo-500 hover:text-indigo-700 font-semibold">전체 선택</button>
+                                    <span className="text-slate-300">|</span>
+                                    <button type="button" onClick={clearAll} className="text-slate-400 hover:text-slate-600 font-semibold">전체 해제</button>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                                {strategyList.map(s => {
+                                    const checked = selectedStrategies.includes(s.name);
+                                    return (
+                                        <button
+                                            key={s.name}
+                                            type="button"
+                                            onClick={() => toggleStrategy(s.name)}
+                                            className={cn(
+                                                'flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold transition-all text-left',
+                                                checked
+                                                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                                                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:border-indigo-300'
+                                            )}
+                                        >
+                                            <span className={cn(
+                                                'w-3.5 h-3.5 rounded border-2 flex-shrink-0 flex items-center justify-center',
+                                                checked ? 'bg-white border-white' : 'border-slate-400'
+                                            )}>
+                                                {checked && <span className="w-1.5 h-1.5 rounded-sm bg-indigo-600" />}
+                                            </span>
+                                            <span className="truncate">{s.label}</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
                         </div>
+
                         <div className="space-y-1.5">
                             <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">코인 페어</label>
                             <select
@@ -195,12 +278,12 @@ export default function PaperTradingPage() {
 
                     <div className="flex items-center gap-3 pt-2">
                         <button
-                            onClick={() => startMutation.mutate(config, { onSuccess: () => setShowNewForm(false) })}
-                            disabled={startMutation.isPending}
+                            onClick={handleStart}
+                            disabled={isPending || selectedStrategies.length === 0}
                             className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-xl shadow-sm transition-colors disabled:opacity-50"
                         >
-                            {startMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" fill="currentColor" />}
-                            시작
+                            {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" fill="currentColor" />}
+                            {selectedStrategies.length >= 2 ? `${selectedStrategies.length}개 세션 시작` : '시작'}
                         </button>
                         <button
                             onClick={() => setShowNewForm(false)}
@@ -208,7 +291,10 @@ export default function PaperTradingPage() {
                         >
                             취소
                         </button>
-                        {startMutation.isError && (
+                        {selectedStrategies.length === 0 && (
+                            <span className="text-sm text-amber-600">전략을 1개 이상 선택하세요.</span>
+                        )}
+                        {isError && (
                             <span className="text-sm text-rose-600">시작 실패. 백엔드 연결을 확인하세요.</span>
                         )}
                     </div>
@@ -285,6 +371,25 @@ function SessionCard({ session, onStop, isStopping }: {
                     <span className="text-xs text-slate-400 dark:text-slate-500">
                         초기 {Number(session.initialCapital).toLocaleString()}원
                     </span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                    <div>
+                        <div className="text-[10px] text-slate-400 dark:text-slate-500">실현 손익</div>
+                        <div className={cn(
+                            'text-sm font-bold',
+                            Number(session.realizedPnl) >= 0 ? 'text-emerald-600' : 'text-rose-500'
+                        )}>
+                            {Number(session.realizedPnl) >= 0 ? '+' : ''}{Number(session.realizedPnl).toLocaleString()}
+                            <span className="text-[10px] font-normal text-slate-400 ml-0.5">KRW</span>
+                        </div>
+                    </div>
+                    <div>
+                        <div className="text-[10px] text-slate-400 dark:text-slate-500">누적 수수료</div>
+                        <div className="text-sm font-bold text-slate-500 dark:text-slate-400">
+                            {Number(session.totalFee).toLocaleString()}
+                            <span className="text-[10px] font-normal text-slate-400 ml-0.5">KRW</span>
+                        </div>
+                    </div>
                 </div>
                 {session.startedAt && (
                     <div className="text-xs text-slate-400 dark:text-slate-500">

@@ -36,6 +36,9 @@ public class LiveTradingStartRequest {
     /** 손절률 (기본 5%) */
     private BigDecimal stopLossPct;
 
+    /** 투자 비율 0.1 ~ 1.0 (기본 0.80 = 80%) — 매수 시 availableKrw × investRatio */
+    private BigDecimal investRatio;
+
     /** 전략 파라미터 (선택) */
     private Map<String, Object> strategyParams;
 }

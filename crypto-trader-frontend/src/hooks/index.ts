@@ -50,6 +50,7 @@ export {
   useTradingSessions,
   useTradingSession,
   useCreateTradingSession,
+  useCreateMultipleTradingSessions,
   useStartTradingSession,
   useStopTradingSession,
   useEmergencyStopSession,

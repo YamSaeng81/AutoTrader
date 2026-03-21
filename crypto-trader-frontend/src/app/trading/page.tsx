@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   useTradingStatus, useTradingSessions, useCreateTradingSession,
+  useCreateMultipleTradingSessions,
   useStartTradingSession, useStopTradingSession, useEmergencyStopSession,
   useDeleteTradingSession, useEmergencyStopAll, useExchangeHealth,
 } from '@/hooks';
@@ -57,6 +58,7 @@ const defaultForm: LiveTradingStartRequest = {
   timeframe: 'M5',
   initialCapital: 10000,
   stopLossPct: 5,
+  investRatio: 80,
 };
 
 const TEST_TIMED_FORM: LiveTradingStartRequest = {
@@ -74,6 +76,7 @@ export default function TradingPage() {
   const { data: sessions } = useTradingSessions();
   const { data: health } = useExchangeHealth();
   const createSession = useCreateTradingSession();
+  const createMulti = useCreateMultipleTradingSessions();
   const startSession = useStartTradingSession();
   const stopSession = useStopTradingSession();
   const emergencyStopSession = useEmergencyStopSession();
@@ -83,6 +86,7 @@ export default function TradingPage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showEmergencyConfirm, setShowEmergencyConfirm] = useState(false);
   const [form, setForm] = useState<LiveTradingStartRequest>({ ...defaultForm });
+  const [selectedStrategies, setSelectedStrategies] = useState<string[]>(['COMPOSITE']);
   const [createError, setCreateError] = useState<string | null>(null);
   const [activeStrategies, setActiveStrategies] = useState<StrategyInfo[]>([]);
 
@@ -98,17 +102,26 @@ export default function TradingPage() {
 
   const handleCreate = () => {
     setCreateError(null);
-    createSession.mutate(form, {
-      onSuccess: () => {
-        setShowCreateForm(false);
-        setForm({ ...defaultForm });
-      },
-      onError: (err: unknown) => {
-        const msg = (err as { response?: { data?: { message?: string } }; message?: string })
-          ?.response?.data?.message ?? (err as { message?: string })?.message ?? '세션 생성에 실패했습니다.';
-        setCreateError(msg);
-      },
-    });
+    const onError = (err: unknown) => {
+      const msg = (err as { response?: { data?: { message?: string } }; message?: string })
+        ?.response?.data?.message ?? (err as { message?: string })?.message ?? '세션 생성에 실패했습니다.';
+      setCreateError(msg);
+    };
+    const onSuccess = () => { setShowCreateForm(false); setForm({ ...defaultForm }); setSelectedStrategies(['COMPOSITE']); };
+
+    if (!isTestTimed(form) && selectedStrategies.length >= 2) {
+      createMulti.mutate({
+        strategyTypes: selectedStrategies,
+        coinPair: form.coinPair,
+        timeframe: form.timeframe,
+        initialCapital: form.initialCapital,
+        stopLossPct: form.stopLossPct,
+        investRatio: form.investRatio,
+      }, { onSuccess, onError });
+    } else {
+      const req = isTestTimed(form) ? form : { ...form, strategyType: selectedStrategies[0] ?? form.strategyType };
+      createSession.mutate(req, { onSuccess, onError });
+    }
   };
 
   const handleEmergencyStopAll = () => {
@@ -125,13 +138,13 @@ export default function TradingPage() {
         </div>
         <div className="flex gap-3">
           <button
-            onClick={() => { setForm({ ...TEST_TIMED_FORM }); setShowCreateForm(true); }}
+            onClick={() => { setForm({ ...TEST_TIMED_FORM }); setSelectedStrategies(['TEST_TIMED']); setShowCreateForm(true); }}
             className="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg transition-colors"
           >
             🧪 테스트 세션
           </button>
           <button
-            onClick={() => { setForm({ ...defaultForm }); setShowCreateForm(true); }}
+            onClick={() => { setForm({ ...defaultForm }); setSelectedStrategies(['COMPOSITE']); setShowCreateForm(true); }}
             className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
           >
             + 새 세션
@@ -197,25 +210,57 @@ export default function TradingPage() {
             )}
 
             <div className="space-y-4">
-              {/* 전략 선택 */}
+              {/* 전략 선택 (체크박스 멀티) */}
               {!isTestTimed(form) && (
                 <div>
-                  <label className="block text-sm text-slate-400 mb-1">전략</label>
-                  <select
-                    value={form.strategyType}
-                    onChange={e => setForm({ ...form, strategyType: e.target.value })}
-                    className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
-                  >
-                    <option value="COMPOSITE">COMPOSITE (시장 국면 자동 선택)</option>
-                    {activeStrategies.length > 0
-                      ? activeStrategies.map(s => (
-                          <option key={s.name} value={s.name}>{s.name}</option>
-                        ))
-                      : <option value="">활성화된 전략이 없습니다</option>
-                    }
-                  </select>
-                  {activeStrategies.length === 0 && (
-                    <p className="text-xs text-amber-400 mt-1">전략 관리 페이지에서 전략을 활성화하세요.</p>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-sm text-slate-400">
+                      전략
+                      <span className="ml-2 px-1.5 py-0.5 bg-blue-600 text-white text-xs rounded">
+                        {selectedStrategies.length}개 선택
+                      </span>
+                    </label>
+                    <div className="flex gap-2 text-xs">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedStrategies(['COMPOSITE', ...activeStrategies.map(s => s.name)])}
+                        className="text-slate-400 hover:text-blue-400 transition-colors"
+                      >전체 선택</button>
+                      <span className="text-slate-600">|</span>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedStrategies([])}
+                        className="text-slate-400 hover:text-slate-300 transition-colors"
+                      >전체 해제</button>
+                    </div>
+                  </div>
+                  <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-2 space-y-1 max-h-40 overflow-y-auto">
+                    {[{ name: 'COMPOSITE' }, ...activeStrategies].map(s => (
+                      <label key={s.name} className="flex items-center gap-2 px-2 py-1 hover:bg-slate-700 rounded cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={selectedStrategies.includes(s.name)}
+                          onChange={e => {
+                            if (e.target.checked) setSelectedStrategies(prev => [...prev, s.name]);
+                            else setSelectedStrategies(prev => prev.filter(x => x !== s.name));
+                          }}
+                          className="accent-blue-500"
+                        />
+                        <span className="text-sm text-white">{s.name}</span>
+                        {s.name === 'COMPOSITE' && (
+                          <span className="text-xs text-slate-400">(시장 국면 자동 선택)</span>
+                        )}
+                      </label>
+                    ))}
+                    {activeStrategies.length === 0 && (
+                      <p className="text-xs text-slate-500 px-2 py-1">전략 관리 페이지에서 전략을 활성화하세요.</p>
+                    )}
+                  </div>
+                  {selectedStrategies.length === 0 && (
+                    <p className="text-xs text-red-400 mt-1">전략을 최소 1개 선택하세요.</p>
+                  )}
+                  {selectedStrategies.length >= 2 && (
+                    <p className="text-xs text-blue-400 mt-1">{selectedStrategies.length}개 세션이 동시에 생성됩니다.</p>
                   )}
                 </div>
               )}
@@ -282,19 +327,34 @@ export default function TradingPage() {
                 )}
               </div>
 
-              {/* 손절률 (테스트 전략은 숨김 - 3분 후 무조건 매도) */}
+              {/* 손절률 / 투자비율 (테스트 전략은 숨김) */}
               {!isTestTimed(form) && (
-                <div>
-                  <label className="block text-sm text-slate-400 mb-1">손절률 (%)</label>
-                  <input
-                    type="number"
-                    value={form.stopLossPct ?? 5}
-                    onChange={e => setForm({ ...form, stopLossPct: Number(e.target.value) })}
-                    min={1}
-                    max={50}
-                    step={0.5}
-                    className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
-                  />
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm text-slate-400 mb-1">손절률 (%)</label>
+                    <input
+                      type="number"
+                      value={form.stopLossPct ?? 5}
+                      onChange={e => setForm({ ...form, stopLossPct: Number(e.target.value) })}
+                      min={1}
+                      max={50}
+                      step={0.5}
+                      className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-slate-400 mb-1">투자 비율 (%)</label>
+                    <input
+                      type="number"
+                      value={form.investRatio ?? 80}
+                      onChange={e => setForm({ ...form, investRatio: Number(e.target.value) })}
+                      min={1}
+                      max={100}
+                      step={1}
+                      className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
+                    />
+                    <p className="text-xs text-slate-500 mt-1">가용금액의 {form.investRatio ?? 80}% 매수</p>
+                  </div>
                 </div>
               )}
             </div>
@@ -307,21 +367,25 @@ export default function TradingPage() {
 
             <div className="flex gap-3 mt-6">
               <button
-                onClick={() => { setShowCreateForm(false); setForm({ ...defaultForm }); setCreateError(null); }}
+                onClick={() => { setShowCreateForm(false); setForm({ ...defaultForm }); setSelectedStrategies(['COMPOSITE']); setCreateError(null); }}
                 className="flex-1 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg transition-colors"
               >
                 취소
               </button>
               <button
                 onClick={handleCreate}
-                disabled={createSession.isPending}
+                disabled={createSession.isPending || createMulti.isPending || (!isTestTimed(form) && selectedStrategies.length === 0)}
                 className={`flex-1 px-4 py-2 text-white font-bold rounded-lg transition-colors disabled:opacity-50 ${
                   isTestTimed(form)
                     ? 'bg-amber-600 hover:bg-amber-700'
                     : 'bg-blue-600 hover:bg-blue-700'
                 }`}
               >
-                {createSession.isPending ? '생성 중...' : '세션 생성'}
+                {(createSession.isPending || createMulti.isPending)
+                  ? '생성 중...'
+                  : !isTestTimed(form) && selectedStrategies.length >= 2
+                    ? `${selectedStrategies.length}개 세션 생성`
+                    : '세션 생성'}
               </button>
             </div>
           </div>
@@ -448,6 +512,7 @@ function SessionCard({
             <div className="text-xs text-slate-500 mt-0.5">
               투자금: {session.initialCapital.toLocaleString()} KRW
               {session.stopLossPct && <span className="ml-2">손절: {session.stopLossPct}%</span>}
+              {session.investRatio && <span className="ml-2">투자비율: {Math.round(session.investRatio * 100)}%</span>}
             </div>
           </div>
         </div>

@@ -50,6 +50,22 @@ public class VirtualBalanceEntity {
     @Builder.Default
     private Boolean telegramEnabled = false;
 
+    /** 세션 누적 실현 손익 (매도 체결 시마다 합산) */
+    @Column(name = "realized_pnl", nullable = false)
+    @Builder.Default
+    private BigDecimal realizedPnl = BigDecimal.ZERO;
+
+    /** 세션 누적 수수료 (매수 + 매도 수수료 합산) */
+    @Column(name = "total_fee", nullable = false)
+    @Builder.Default
+    private BigDecimal totalFee = BigDecimal.ZERO;
+
+    /** 낙관적 락 — 동시 업데이트 시 덮어쓰기 방지 */
+    @Version
+    @Column(nullable = false)
+    @Builder.Default
+    private Long version = 0L;
+
     @Column(name = "updated_at")
     private Instant updatedAt;
 

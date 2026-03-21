@@ -1,6 +1,7 @@
 package com.cryptoautotrader.api.service;
 
 import com.cryptoautotrader.api.dto.LiveTradingStartRequest;
+import com.cryptoautotrader.api.dto.MultiStrategyLiveTradingRequest;
 import com.cryptoautotrader.api.exception.SessionNotFoundException;
 import com.cryptoautotrader.api.exception.SessionStateException;
 import com.cryptoautotrader.api.dto.OrderRequest;
@@ -31,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.cryptoautotrader.core.regime.MarketRegime;
 import com.cryptoautotrader.core.regime.MarketRegimeDetector;
+import com.cryptoautotrader.core.risk.RiskCheckResult;
 import com.cryptoautotrader.core.selector.CompositeStrategy;
 import com.cryptoautotrader.core.selector.StrategySelector;
 import com.cryptoautotrader.core.selector.WeightedStrategy;
@@ -76,6 +78,7 @@ public class LiveTradingService {
     private final ExchangeHealthMonitor exchangeHealthMonitor;
     private final TelegramNotificationService telegramService;
     private final StrategyLogRepository strategyLogRepository;
+    private final RiskManagementService riskManagementService;
 
     // -- 거래소 DOWN 이벤트 수신 -- 모든 세션 비상 정지 ----------
 
@@ -117,6 +120,9 @@ public class LiveTradingService {
 
         BigDecimal stopLoss = req.getStopLossPct() != null
                 ? req.getStopLossPct() : new BigDecimal("5.0");
+        BigDecimal investRatio = req.getInvestRatio() != null
+                ? req.getInvestRatio().max(new BigDecimal("0.01")).min(BigDecimal.ONE)
+                : new BigDecimal("0.8000");
 
         LiveTradingSessionEntity session = LiveTradingSessionEntity.builder()
                 .strategyType(req.getStrategyType())
@@ -125,6 +131,7 @@ public class LiveTradingService {
                 .initialCapital(req.getInitialCapital())
                 .availableKrw(req.getInitialCapital())
                 .totalAssetKrw(req.getInitialCapital())
+                .investRatio(investRatio)
                 .status("CREATED")
                 .strategyParams(req.getStrategyParams() != null
                         ? req.getStrategyParams() : Collections.emptyMap())
@@ -136,6 +143,38 @@ public class LiveTradingService {
                 session.getId(), req.getStrategyType(), req.getCoinPair(),
                 req.getTimeframe(), req.getInitialCapital());
         return session;
+    }
+
+    // -- 다중 세션 일괄 생성 ----------------------------------------
+
+    /**
+     * 동일 조건(코인/타임프레임/투자금)으로 여러 전략을 한 번에 세션 등록 (CREATED 상태).
+     * 현재 running 수 + 추가 수가 최대 한도를 초과하면 거부한다.
+     */
+    @Transactional
+    public List<LiveTradingSessionEntity> createMultipleSessions(MultiStrategyLiveTradingRequest req) {
+        int count = req.getStrategyTypes().size();
+        long runningCount = sessionRepository.countByStatus("RUNNING");
+        if (runningCount + count > MAX_CONCURRENT_SESSIONS) {
+            throw new SessionStateException(
+                    "세션 한도 초과: 현재 " + runningCount + "개 실행 중, " + count + "개 추가 시 최대 "
+                            + MAX_CONCURRENT_SESSIONS + "개 초과합니다.");
+        }
+
+        List<LiveTradingSessionEntity> sessions = new java.util.ArrayList<>();
+        for (String strategyType : req.getStrategyTypes()) {
+            LiveTradingStartRequest single = new LiveTradingStartRequest();
+            single.setStrategyType(strategyType);
+            single.setCoinPair(req.getCoinPair());
+            single.setTimeframe(req.getTimeframe());
+            single.setInitialCapital(req.getInitialCapital());
+            single.setStopLossPct(req.getStopLossPct());
+            single.setInvestRatio(req.getInvestRatio());
+            sessions.add(createSession(single));
+        }
+        log.info("다중 전략 실전매매 {} 세션 생성: {} {} {}",
+                count, req.getCoinPair(), req.getTimeframe(), req.getStrategyTypes());
+        return sessions;
     }
 
     // -- 세션 시작 -----------------------------------------------
@@ -471,7 +510,9 @@ public class LiveTradingService {
             BigDecimal pnlPct = currentPrice.subtract(pos.getAvgPrice())
                     .divide(pos.getAvgPrice(), 6, RoundingMode.HALF_UP)
                     .multiply(BigDecimal.valueOf(100));
-            BigDecimal stopLoss = session.getStopLossPct().negate();
+            BigDecimal rawStopLoss = session.getStopLossPct() != null
+                    ? session.getStopLossPct() : new BigDecimal("5.0");
+            BigDecimal stopLoss = rawStopLoss.negate();
             if (pnlPct.compareTo(stopLoss) <= 0) {
                 log.warn("손절 발동 (sessionId={}): {} 손익률={}% (한도={}%)",
                         sessionId, coinPair, pnlPct, stopLoss);
@@ -485,6 +526,11 @@ public class LiveTradingService {
         switch (signal.getAction()) {
             case BUY -> {
                 if (openPos.isEmpty()) {
+                    RiskCheckResult riskResult = riskManagementService.checkRisk();
+                    if (!riskResult.isApproved()) {
+                        log.warn("리스크 한도 초과로 매수 차단 (sessionId={}): {}", sessionId, riskResult.getReason());
+                        return;
+                    }
                     executeSessionBuy(session, coinPair, currentPrice,
                             String.format("전략 신호: %s -- %s", strategyType, signal.getReason()));
                 }
@@ -510,7 +556,11 @@ public class LiveTradingService {
             return;
         }
 
-        BigDecimal investAmount = session.getAvailableKrw().multiply(INVEST_RATIO);
+        BigDecimal ratio = session.getInvestRatio() != null ? session.getInvestRatio() : INVEST_RATIO;
+        BigDecimal baseAmount = session.getAvailableKrw().multiply(ratio);
+        BigDecimal investAmount = session.getMaxInvestment() != null
+                ? baseAmount.min(session.getMaxInvestment())
+                : baseAmount;
         if (investAmount.compareTo(BigDecimal.valueOf(5000)) < 0) {
             log.warn("매수 불가: 가용 자금 부족 ({}) sessionId={}",
                     session.getAvailableKrw(), session.getId());

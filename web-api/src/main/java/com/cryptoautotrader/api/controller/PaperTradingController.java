@@ -2,6 +2,7 @@ package com.cryptoautotrader.api.controller;
 
 import com.cryptoautotrader.api.dto.ApiResponse;
 import com.cryptoautotrader.api.dto.BulkDeleteRequest;
+import com.cryptoautotrader.api.dto.MultiStrategyPaperRequest;
 import com.cryptoautotrader.api.dto.PaperTradingStartRequest;
 import com.cryptoautotrader.api.entity.MarketDataCacheEntity;
 import com.cryptoautotrader.api.entity.paper.PaperOrderEntity;
@@ -43,7 +44,7 @@ public class PaperTradingController {
     }
 
     /**
-     * 새 모의투자 세션 시작
+     * 새 모의투자 세션 시작 (단일 전략)
      * POST /api/v1/paper-trading/sessions
      */
     @PostMapping("/sessions")
@@ -51,6 +52,25 @@ public class PaperTradingController {
         try {
             VirtualBalanceEntity session = paperTradingService.start(request);
             return ApiResponse.ok(toSessionSummaryMap(session));
+        } catch (IllegalStateException e) {
+            return ApiResponse.error("INVALID_REQUEST", e.getMessage());
+        }
+    }
+
+    /**
+     * 동일 조건으로 여러 전략 한 번에 모의투자 등록
+     * POST /api/v1/paper-trading/sessions/multi
+     * Body: { "strategyTypes": ["RSI","EMA_CROSS","BOLLINGER"],
+     *         "coinPair": "KRW-BTC", "timeframe": "M5", "initialCapital": 10000000 }
+     * 응답: 생성된 세션 목록
+     */
+    @PostMapping("/sessions/multi")
+    public ApiResponse<List<Map<String, Object>>> startMulti(
+            @Valid @RequestBody MultiStrategyPaperRequest request) {
+        try {
+            List<Map<String, Object>> sessions = paperTradingService.startMulti(request)
+                    .stream().map(this::toSessionSummaryMap).toList();
+            return ApiResponse.ok(sessions);
         } catch (IllegalStateException e) {
             return ApiResponse.error("INVALID_REQUEST", e.getMessage());
         }
@@ -162,6 +182,8 @@ public class PaperTradingController {
         map.put("availableKrw", s.getAvailableKrw());
         map.put("initialCapital", initial);
         map.put("totalReturnPct", totalReturn);
+        map.put("realizedPnl", s.getRealizedPnl() != null ? s.getRealizedPnl() : BigDecimal.ZERO);
+        map.put("totalFee", s.getTotalFee() != null ? s.getTotalFee() : BigDecimal.ZERO);
         map.put("startedAt", s.getStartedAt() != null ? s.getStartedAt().toString() : null);
         map.put("stoppedAt", s.getStoppedAt() != null ? s.getStoppedAt().toString() : null);
         return map;
@@ -169,11 +191,21 @@ public class PaperTradingController {
 
     private Map<String, Object> toBalanceMap(VirtualBalanceEntity b) {
         BigDecimal initial = b.getInitialCapital() != null ? b.getInitialCapital() : b.getTotalKrw();
-        BigDecimal positionValue = b.getTotalKrw().subtract(b.getAvailableKrw()).max(BigDecimal.ZERO);
-        BigDecimal unrealizedPnl = b.getTotalKrw().subtract(b.getAvailableKrw());
-        BigDecimal totalReturn = initial.compareTo(BigDecimal.ZERO) > 0
-                ? b.getTotalKrw().subtract(initial)
-                        .divide(initial, 4, RoundingMode.HALF_UP)
+        // 포지션 시가 = totalKrw - availableKrw (오픈 포지션의 현재 평가금액)
+        BigDecimal positionValueKrw = b.getTotalKrw().subtract(b.getAvailableKrw()).max(BigDecimal.ZERO);
+        // 순손익 = totalKrw - initialCapital (수익/손실 합계, 수수료 반영)
+        // 이전 코드 버그: unrealizedPnl = totalKrw - availableKrw → 포지션 시가(8,800)를 손익으로 표시했음
+        // 올바른 계산: 10,000 투자 → 8,000 매수 → 현재가 8,800 → unrealizedPnl = 10,800 - 10,000 = +800
+        BigDecimal netPnl = b.getTotalKrw().subtract(initial);
+        BigDecimal totalReturnPct = initial.compareTo(BigDecimal.ZERO) > 0
+                ? netPnl.divide(initial, 4, RoundingMode.HALF_UP)
+                        .multiply(BigDecimal.valueOf(100))
+                : BigDecimal.ZERO;
+        // 투자금 대비 포지션 손익률: positionValue 기준 (매수 시 투자원금으로 나눔)
+        BigDecimal costBasisKrw = initial.subtract(b.getAvailableKrw()).max(BigDecimal.ZERO);
+        BigDecimal positionPnlPct = costBasisKrw.compareTo(BigDecimal.ZERO) > 0
+                ? positionValueKrw.subtract(costBasisKrw)
+                        .divide(costBasisKrw, 4, RoundingMode.HALF_UP)
                         .multiply(BigDecimal.valueOf(100))
                 : BigDecimal.ZERO;
 
@@ -181,9 +213,13 @@ public class PaperTradingController {
         map.put("id", b.getId());
         map.put("totalAssetKrw", b.getTotalKrw());
         map.put("availableKrw", b.getAvailableKrw());
-        map.put("positionValueKrw", positionValue);
-        map.put("unrealizedPnl", unrealizedPnl);
-        map.put("totalReturnPct", totalReturn);
+        map.put("positionValueKrw", positionValueKrw);   // 오픈 포지션 현재 평가금액
+        map.put("costBasisKrw", costBasisKrw);            // 오픈 포지션 매수 원가
+        map.put("unrealizedPnl", netPnl);                 // 순손익 (초기자본 대비 전체 변동액)
+        map.put("positionPnlPct", positionPnlPct);        // 포지션 수익률 (매수원가 기준)
+        map.put("totalReturnPct", totalReturnPct);         // 전체 수익률 (초기자본 기준)
+        map.put("realizedPnl", b.getRealizedPnl() != null ? b.getRealizedPnl() : BigDecimal.ZERO);
+        map.put("totalFee", b.getTotalFee() != null ? b.getTotalFee() : BigDecimal.ZERO);
         map.put("initialCapital", initial);
         map.put("status", b.getStatus());
         map.put("strategyName", b.getStrategyName() != null ? b.getStrategyName() : "");

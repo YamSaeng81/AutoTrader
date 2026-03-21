@@ -55,6 +55,13 @@ public class TradingController {
         return ApiResponse.ok(liveTradingService.createSession(request));
     }
 
+    /** 다중 전략 일괄 세션 생성 (동일 코인/타임프레임/투자금, 전략별 독립 세션) */
+    @PostMapping("/sessions/multi")
+    public ApiResponse<List<LiveTradingSessionEntity>> createMultipleSessions(
+            @Valid @RequestBody MultiStrategyLiveTradingRequest request) {
+        return ApiResponse.ok(liveTradingService.createMultipleSessions(request));
+    }
+
     /** 전체 세션 목록 */
     @GetMapping("/sessions")
     public ApiResponse<List<LiveTradingSessionEntity>> listSessions() {

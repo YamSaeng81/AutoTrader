@@ -8,8 +8,9 @@ import {
     Shield, LayoutDashboard, GitCompare, FileText, History,
     Moon, Sun, FlaskConical, ChevronLeft, ChevronRight,
     Wallet, Settings, ChevronDown, ChevronUp,
-    BarChart2, MessageSquare, Activity, Trash2, Terminal,
+    BarChart2, MessageSquare, Activity, Trash2, Terminal, LogOut,
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useTheme } from './ThemeProvider';
 import { useUiStore } from '@/store';
 import { clsx } from 'clsx';
@@ -87,6 +88,13 @@ export function Sidebar() {
     const pathname = usePathname();
     const { theme, toggle } = useTheme();
     const { sidebarCollapsed, toggleSidebar } = useUiStore();
+    const router = useRouter();
+
+    const handleLogout = async () => {
+        await fetch('/api/auth/logout', { method: 'POST' });
+        router.push('/login');
+        router.refresh();
+    };
 
     // 현재 경로가 속한 그룹을 기본으로 열어둠
     const initialOpen = () => {
@@ -250,6 +258,13 @@ export function Sidebar() {
                     title={theme === 'dark' ? '라이트 모드' : '다크 모드'}
                 >
                     {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                </button>
+                <button
+                    onClick={handleLogout}
+                    className="p-2 rounded-lg text-slate-400 hover:bg-red-900 hover:text-red-300 transition-colors"
+                    title="로그아웃"
+                >
+                    <LogOut className="w-4 h-4" />
                 </button>
                 <button
                     onClick={toggleSidebar}

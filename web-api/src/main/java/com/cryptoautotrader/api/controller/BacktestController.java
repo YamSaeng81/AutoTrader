@@ -4,6 +4,7 @@ import com.cryptoautotrader.api.dto.ApiResponse;
 import com.cryptoautotrader.api.dto.BacktestRequest;
 import com.cryptoautotrader.api.dto.BulkBacktestRequest;
 import com.cryptoautotrader.api.dto.BulkDeleteRequest;
+import com.cryptoautotrader.api.dto.MultiStrategyBacktestRequest;
 import com.cryptoautotrader.api.dto.WalkForwardRequest;
 import com.cryptoautotrader.api.entity.BacktestTradeEntity;
 import com.cryptoautotrader.api.repository.BacktestTradeRepository;
@@ -105,6 +106,24 @@ public class BacktestController {
             @RequestBody BulkBacktestRequest req) {
         List<Map<String, Object>> results = backtestService.runBulkBacktest(
                 req.getCoins(), req.getTimeframe(),
+                req.getStartDate(), req.getEndDate(),
+                req.getInitialCapital(), req.getSlippagePct(), req.getFeePct());
+        return ApiResponse.ok(results);
+    }
+
+    /**
+     * 사용자 선택 전략 목록 × 단일 코인 백테스트 비교표
+     * POST /api/v1/backtest/multi-strategy
+     * Body: { "strategyTypes": ["RSI","EMA_CROSS","BOLLINGER"],
+     *         "coinPair": "KRW-BTC", "timeframe": "M5",
+     *         "startDate": "2024-01-01", "endDate": "2025-01-01" }
+     * 응답: totalReturn 내림차순 정렬된 전략별 비교표
+     */
+    @PostMapping("/multi-strategy")
+    public ApiResponse<List<Map<String, Object>>> runMultiStrategyBacktest(
+            @Valid @RequestBody MultiStrategyBacktestRequest req) {
+        List<Map<String, Object>> results = backtestService.runMultiStrategyBacktest(
+                req.getStrategyTypes(), req.getCoinPair(), req.getTimeframe(),
                 req.getStartDate(), req.getEndDate(),
                 req.getInitialCapital(), req.getSlippagePct(), req.getFeePct());
         return ApiResponse.ok(results);

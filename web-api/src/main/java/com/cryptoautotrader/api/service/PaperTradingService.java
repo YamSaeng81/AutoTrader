@@ -31,10 +31,13 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.cryptoautotrader.api.dto.MultiStrategyPaperRequest;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +49,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class PaperTradingService {
 
-    private static final int MAX_CONCURRENT_SESSIONS = 5;
+    private static final int MAX_CONCURRENT_SESSIONS = 10;
     private static final BigDecimal FEE_RATE = new BigDecimal("0.0005");
     private static final BigDecimal INVEST_RATIO = new BigDecimal("0.80");
     private static final int CANDLE_LOOKBACK = 100;
@@ -73,7 +76,38 @@ public class PaperTradingService {
         if (runningCount >= MAX_CONCURRENT_SESSIONS) {
             throw new IllegalStateException("최대 " + MAX_CONCURRENT_SESSIONS + "개의 동시 모의투자만 가능합니다.");
         }
+        return createSession(req);
+    }
 
+    /**
+     * 동일 조건(코인/타임프레임/투자금)으로 여러 전략을 한 번에 모의투자 등록.
+     * 세션 한도 초과 여부를 일괄 사전 검증한 뒤 각 전략마다 독립 세션을 생성한다.
+     */
+    @Transactional
+    public List<VirtualBalanceEntity> startMulti(MultiStrategyPaperRequest req) {
+        int count = req.getStrategyTypes().size();
+        long running = balanceRepo.countByStatus("RUNNING");
+        if (running + count > MAX_CONCURRENT_SESSIONS) {
+            throw new IllegalStateException(
+                    "세션 한도 초과: 현재 " + running + "개 실행 중, " + count + "개 추가 시 최대 "
+                            + MAX_CONCURRENT_SESSIONS + "개 초과합니다.");
+        }
+        List<VirtualBalanceEntity> sessions = new ArrayList<>();
+        for (String strategyType : req.getStrategyTypes()) {
+            PaperTradingStartRequest single = new PaperTradingStartRequest();
+            single.setStrategyType(strategyType);
+            single.setCoinPair(req.getCoinPair());
+            single.setTimeframe(req.getTimeframe());
+            single.setInitialCapital(req.getInitialCapital());
+            single.setEnableTelegram(req.isEnableTelegram());
+            sessions.add(createSession(single));
+        }
+        log.info("다중 전략 모의투자 {} 세션 생성: {} {} {}",
+                count, req.getCoinPair(), req.getTimeframe(), req.getStrategyTypes());
+        return sessions;
+    }
+
+    private VirtualBalanceEntity createSession(PaperTradingStartRequest req) {
         VirtualBalanceEntity session = VirtualBalanceEntity.builder()
                 .totalKrw(req.getInitialCapital())
                 .availableKrw(req.getInitialCapital())
@@ -308,6 +342,7 @@ public class PaperTradingService {
                 .entryPrice(price)
                 .avgPrice(avgPriceWithFee)
                 .size(quantity)
+                .positionFee(fee)
                 .status("OPEN")
                 .build();
         pos = positionRepo.save(pos);
@@ -329,6 +364,7 @@ public class PaperTradingService {
         orderRepo.save(order);
 
         session.setAvailableKrw(session.getAvailableKrw().subtract(investAmount));
+        session.setTotalFee(session.getTotalFee().add(fee));
         balanceRepo.save(session);
 
         log.info("모의 매수 체결 (sessionId={}): {} {}개 @ {} (수수료: {})", sessionId, coinPair, quantity, price, fee);
@@ -351,6 +387,8 @@ public class PaperTradingService {
 
         pos.setRealizedPnl(realizedPnl);
         pos.setUnrealizedPnl(BigDecimal.ZERO);
+        pos.setPositionFee(pos.getPositionFee() != null
+                ? pos.getPositionFee().add(fee) : fee);
         pos.setStatus("CLOSED");
         pos.setClosedAt(Instant.now());
         positionRepo.save(pos);
@@ -373,6 +411,8 @@ public class PaperTradingService {
 
         session.setAvailableKrw(session.getAvailableKrw().add(netProceeds));
         session.setTotalKrw(session.getAvailableKrw());
+        session.setRealizedPnl(session.getRealizedPnl().add(realizedPnl));
+        session.setTotalFee(session.getTotalFee().add(fee));
         balanceRepo.save(session);
 
         log.info("모의 매도 체결 (sessionId={}): {} {}개 @ {} 손익: {} KRW",

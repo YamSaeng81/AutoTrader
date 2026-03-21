@@ -40,6 +40,10 @@ public class PaperPositionEntity {
     @Column(name = "realized_pnl")
     private BigDecimal realizedPnl;
 
+    /** 포지션 누적 수수료 (매수 수수료 + 매도 수수료 합산) */
+    @Column(name = "position_fee", nullable = false)
+    private BigDecimal positionFee;
+
     /** 어떤 전략이 진입했는지 기록 (strategy_config_id 대신 이름으로 관리) */
     @Column(name = "strategy_config_id")
     private Long strategyConfigId;
@@ -62,5 +66,6 @@ public class PaperPositionEntity {
         if (status == null) status = "OPEN";
         if (unrealizedPnl == null) unrealizedPnl = BigDecimal.ZERO;
         if (realizedPnl == null) realizedPnl = BigDecimal.ZERO;
+        if (positionFee == null) positionFee = BigDecimal.ZERO;
     }
 }

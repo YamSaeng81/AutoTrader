@@ -49,6 +49,10 @@ public class LiveTradingSessionEntity {
     @Column(name = "strategy_params", columnDefinition = "jsonb")
     private Map<String, Object> strategyParams;
 
+    /** 투자 비율 (0.1 ~ 1.0, 기본 0.80) — availableKrw × investRatio 가 매수 금액 */
+    @Column(name = "invest_ratio", nullable = false, precision = 5, scale = 4)
+    private BigDecimal investRatio;
+
     @Column(name = "max_investment", precision = 20, scale = 2)
     private BigDecimal maxInvestment;
 
@@ -73,6 +77,7 @@ public class LiveTradingSessionEntity {
         if (createdAt == null) createdAt = Instant.now();
         if (updatedAt == null) updatedAt = Instant.now();
         if (stopLossPct == null) stopLossPct = new BigDecimal("5.0");
+        if (investRatio == null) investRatio = new BigDecimal("0.8000");
     }
 
     @PreUpdate
@@ -107,6 +112,9 @@ public class LiveTradingSessionEntity {
 
     public Map<String, Object> getStrategyParams() { return strategyParams; }
     public void setStrategyParams(Map<String, Object> strategyParams) { this.strategyParams = strategyParams; }
+
+    public BigDecimal getInvestRatio() { return investRatio; }
+    public void setInvestRatio(BigDecimal investRatio) { this.investRatio = investRatio; }
 
     public BigDecimal getMaxInvestment() { return maxInvestment; }
     public void setMaxInvestment(BigDecimal maxInvestment) { this.maxInvestment = maxInvestment; }

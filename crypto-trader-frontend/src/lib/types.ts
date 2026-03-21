@@ -151,6 +151,8 @@ export interface PaperTradingBalance {
   positionValueKrw: number;
   unrealizedPnl: number;
   totalReturnPct: number;
+  realizedPnl: number;
+  totalFee: number;
   initialCapital: number;
   status: 'RUNNING' | 'STOPPED';
   strategyName: string;
@@ -190,6 +192,25 @@ export interface PaperTradingStartRequest {
   enableTelegram?: boolean;
 }
 
+export interface MultiStrategyPaperRequest {
+  strategyTypes: string[];
+  coinPair: string;
+  timeframe: string;
+  initialCapital: number;
+  enableTelegram?: boolean;
+}
+
+export interface MultiStrategyBacktestRequest {
+  strategyTypes: string[];
+  coinPair: string;
+  timeframe: string;
+  startDate: string;
+  endDate: string;
+  initialCapital?: number;
+  slippagePct?: number;
+  feePct?: number;
+}
+
 export interface PaperSession {
   id: number;
   strategyName: string;
@@ -200,6 +221,8 @@ export interface PaperSession {
   availableKrw: number;
   initialCapital: number;
   totalReturnPct: number;
+  realizedPnl: number;
+  totalFee: number;
   startedAt: string | null;
   stoppedAt: string | null;
 }
@@ -237,11 +260,21 @@ export interface LiveTradingSession {
   totalAssetKrw: number;
   status: LiveSessionStatus;
   stopLossPct: number | null;
+  investRatio: number;
   strategyParams: Record<string, unknown> | null;
   createdAt: string;
   startedAt: string | null;
   stoppedAt: string | null;
   updatedAt: string;
+}
+
+export interface MultiStrategyLiveRequest {
+  strategyTypes: string[];
+  coinPair: string;
+  timeframe: string;
+  initialCapital: number;
+  stopLossPct?: number;
+  investRatio?: number;
 }
 
 export interface LiveTradingStartRequest {
@@ -250,6 +283,7 @@ export interface LiveTradingStartRequest {
   timeframe: string;
   initialCapital: number;
   stopLossPct?: number;
+  investRatio?: number;
   strategyParams?: Record<string, unknown>;
 }
 

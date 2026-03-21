@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { tradingApi } from '@/lib/api';
 import type {
   TradingStatus, Position, LiveOrder, ExchangeHealth, RiskConfig,
-  PageResponse, LiveTradingSession, LiveTradingStartRequest,
+  PageResponse, LiveTradingSession, LiveTradingStartRequest, MultiStrategyLiveRequest,
 } from '@/lib/types';
 
 // ─── Query Keys ──────────────────────────────────────────────────────────────
@@ -54,6 +54,18 @@ export function useCreateTradingSession() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (req: LiveTradingStartRequest) => tradingApi.createSession(req),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: tradingKeys.sessions() });
+      qc.invalidateQueries({ queryKey: tradingKeys.status() });
+    },
+  });
+}
+
+// ─── 다중 세션 일괄 생성 ──────────────────────────────────────────────────────
+export function useCreateMultipleTradingSessions() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (req: MultiStrategyLiveRequest) => tradingApi.createMulti(req),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: tradingKeys.sessions() });
       qc.invalidateQueries({ queryKey: tradingKeys.status() });

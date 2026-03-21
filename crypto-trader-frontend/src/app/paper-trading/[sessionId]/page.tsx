@@ -361,6 +361,29 @@ export default function SessionDetailPage() {
                                 </div>
                             </div>
                         </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <div className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 flex items-center gap-1">
+                                    <DollarSign className="w-3.5 h-3.5" /> 실현 손익
+                                </div>
+                                <div className={cn(
+                                    'text-lg font-bold leading-none',
+                                    Number(balance.realizedPnl) >= 0 ? 'text-emerald-600' : 'text-rose-500'
+                                )}>
+                                    {Number(balance.realizedPnl) >= 0 ? '+' : ''}{Number(balance.realizedPnl).toLocaleString()}
+                                    <span className="text-xs text-slate-400 dark:text-slate-500 ml-1">KRW</span>
+                                </div>
+                            </div>
+                            <div>
+                                <div className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 flex items-center gap-1">
+                                    <Receipt className="w-3.5 h-3.5" /> 누적 수수료
+                                </div>
+                                <div className="text-lg font-bold text-slate-700 dark:text-slate-200 leading-none">
+                                    {Number(balance.totalFee).toLocaleString()}
+                                    <span className="text-xs text-slate-400 dark:text-slate-500 ml-1">KRW</span>
+                                </div>
+                            </div>
+                        </div>
                         <div className="text-xs text-slate-400 dark:text-slate-500">
                             초기 자금: <strong className="text-slate-600 dark:text-slate-300">{Number(balance.initialCapital).toLocaleString()} KRW</strong>
                         </div>
