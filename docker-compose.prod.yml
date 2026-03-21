@@ -55,6 +55,8 @@ services:
     build:
       context: ./crypto-trader-frontend
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_TOKEN: ${NEXT_PUBLIC_API_TOKEN:-dev-token-change-me-in-production}
     restart: always
     environment:
       INTERNAL_BACKEND_URL: http://backend:8080
