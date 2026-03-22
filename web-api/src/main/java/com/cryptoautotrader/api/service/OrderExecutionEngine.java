@@ -482,20 +482,34 @@ public class OrderExecutionEngine {
 
         try {
             List<AccountResponse> accounts = upbitOrderClient.getAccounts();
-            BigDecimal accountBalance = accounts.stream()
+            Optional<AccountResponse> account = accounts.stream()
                     .filter(a -> currency.equals(a.getCurrency()))
-                    .findFirst()
-                    .map(AccountResponse::getBalance)
-                    .filter(b -> b.compareTo(BigDecimal.ZERO) > 0)
-                    .orElse(null);
+                    .findFirst();
 
-            if (accountBalance != null) {
-                // 포지션 수량과 잔고 중 작은 값 (과매도 방지)
-                BigDecimal volume = accountBalance.min(positionVolume);
-                log.info("매도 수량 결정: 포지션={}, 업비트잔고={}, 사용={} ({})",
-                        positionVolume, accountBalance, volume, currency);
-                return volume;
+            if (account.isPresent()) {
+                BigDecimal freeBalance = account.get().getBalance() != null
+                        ? account.get().getBalance() : BigDecimal.ZERO;
+                BigDecimal lockedBalance = account.get().getLocked() != null
+                        ? account.get().getLocked() : BigDecimal.ZERO;
+                BigDecimal totalHeld = freeBalance.add(lockedBalance);
+
+                if (freeBalance.compareTo(BigDecimal.ZERO) <= 0 && lockedBalance.compareTo(BigDecimal.ZERO) > 0) {
+                    // ETH가 pending 주문에 잠겨있는 경우 — 중복 매도 시도 차단
+                    log.warn("매도 불가: {} 잔고 전량 잠김 (locked={}, free={}). 기존 pending 주문 확인 필요.",
+                            currency, lockedBalance, freeBalance);
+                    throw new IllegalStateException(
+                            currency + " 잔고가 전량 주문 잠금 상태입니다 (locked=" + lockedBalance + "). 중복 매도 방지.");
+                }
+
+                if (freeBalance.compareTo(BigDecimal.ZERO) > 0) {
+                    BigDecimal volume = freeBalance.min(positionVolume);
+                    log.info("매도 수량 결정: 포지션={}, 가용잔고={}, 잠금잔고={}, 사용={} ({})",
+                            positionVolume, freeBalance, lockedBalance, volume, currency);
+                    return volume;
+                }
             }
+        } catch (IllegalStateException e) {
+            throw e;
         } catch (Exception e) {
             log.warn("업비트 잔고 조회 실패, 포지션 수량 사용 ({}): {}", currency, e.getMessage());
         }
