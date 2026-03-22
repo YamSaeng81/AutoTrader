@@ -34,8 +34,9 @@ public class PortfolioManager {
 
     /**
      * 전략에 자본 할당 가능 여부 확인
+     * synchronized: allocatedCapital 가시성 보장 + TOCTOU 방지
      */
-    public boolean canAllocate(String strategyId, BigDecimal amount) {
+    public synchronized boolean canAllocate(String strategyId, BigDecimal amount) {
         BigDecimal available = totalCapital.subtract(allocatedCapital);
         return amount.compareTo(available) <= 0;
     }
@@ -79,12 +80,26 @@ public class PortfolioManager {
         }
     }
 
-    public BigDecimal getAvailableCapital() {
+    public synchronized BigDecimal getAvailableCapital() {
         return totalCapital.subtract(allocatedCapital);
     }
 
     public BigDecimal getAllocationRatio() {
         if (totalCapital.compareTo(BigDecimal.ZERO) == 0) return BigDecimal.ZERO;
         return allocatedCapital.divide(totalCapital, 4, RoundingMode.HALF_UP);
+    }
+
+    /**
+     * 거래소 잔고 동기화 — 외부 스케줄러가 주기적으로 호출한다.
+     * totalCapital을 실시간 거래소 KRW 잔고(가용 + 주문 잠금)로 갱신한다.
+     * allocatedCapital이 새 totalCapital을 초과하면 안전하게 새 totalCapital로 조정한다.
+     */
+    public synchronized void syncTotalCapital(BigDecimal newCapital) {
+        if (newCapital == null || newCapital.compareTo(BigDecimal.ZERO) < 0) return;
+        this.totalCapital = newCapital;
+        // allocatedCapital이 새 totalCapital을 초과하면 조정
+        if (allocatedCapital.compareTo(newCapital) > 0) {
+            allocatedCapital = newCapital;
+        }
     }
 }

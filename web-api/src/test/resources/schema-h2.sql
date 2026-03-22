@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS backtest_trade (
     pnl             DECIMAL(20, 8),
     cumulative_pnl  DECIMAL(20, 8),
     signal_reason   TEXT,
-    market_regime   VARCHAR(10),
+    market_regime   VARCHAR(20),
     executed_at     TIMESTAMP       NOT NULL
 );
 
@@ -100,7 +100,7 @@ CREATE TABLE IF NOT EXISTS strategy_log (
     signal          VARCHAR(10),
     reason          TEXT            NOT NULL,
     indicators_json CLOB,
-    market_regime   VARCHAR(10),
+    market_regime   VARCHAR(20),
     created_at      TIMESTAMP
 );
 

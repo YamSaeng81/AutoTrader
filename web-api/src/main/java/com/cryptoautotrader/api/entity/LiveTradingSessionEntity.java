@@ -59,6 +59,18 @@ public class LiveTradingSessionEntity {
     @Column(name = "stop_loss_pct", precision = 5, scale = 2)
     private BigDecimal stopLossPct;
 
+    /** MDD 계산용 최고 자산 피크 (세션 시작 이후 기록된 최대 totalAssetKrw) */
+    @Column(name = "mdd_peak_capital", precision = 20, scale = 2)
+    private BigDecimal mddPeakCapital;
+
+    /** 서킷 브레이커 발동 시각 */
+    @Column(name = "circuit_breaker_triggered_at")
+    private Instant circuitBreakerTriggeredAt;
+
+    /** 서킷 브레이커 발동 사유 */
+    @Column(name = "circuit_breaker_reason", length = 255)
+    private String circuitBreakerReason;
+
     @Column(name = "started_at")
     private Instant startedAt;
 
@@ -131,4 +143,13 @@ public class LiveTradingSessionEntity {
     public Instant getCreatedAt() { return createdAt; }
 
     public Instant getUpdatedAt() { return updatedAt; }
+
+    public BigDecimal getMddPeakCapital() { return mddPeakCapital; }
+    public void setMddPeakCapital(BigDecimal mddPeakCapital) { this.mddPeakCapital = mddPeakCapital; }
+
+    public Instant getCircuitBreakerTriggeredAt() { return circuitBreakerTriggeredAt; }
+    public void setCircuitBreakerTriggeredAt(Instant circuitBreakerTriggeredAt) { this.circuitBreakerTriggeredAt = circuitBreakerTriggeredAt; }
+
+    public String getCircuitBreakerReason() { return circuitBreakerReason; }
+    public void setCircuitBreakerReason(String circuitBreakerReason) { this.circuitBreakerReason = circuitBreakerReason; }
 }

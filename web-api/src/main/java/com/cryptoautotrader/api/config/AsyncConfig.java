@@ -1,5 +1,7 @@
 package com.cryptoautotrader.api.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -10,6 +12,8 @@ import java.util.concurrent.Executor;
 @Configuration
 @EnableAsync
 public class AsyncConfig {
+
+    private static final Logger log = LoggerFactory.getLogger(AsyncConfig.class);
 
     // 시세 수신 전용 (WebSocket → 이벤트 발행)
     @Bean("marketDataExecutor")
@@ -31,6 +35,20 @@ public class AsyncConfig {
         executor.setMaxPoolSize(4);
         executor.setQueueCapacity(50);
         executor.setThreadNamePrefix("order-exec-");
+        executor.initialize();
+        return executor;
+    }
+
+    // 텔레그램 알림 전송 전용 — 메인 트랜잭션과 완전 분리
+    @Bean("telegramExecutor")
+    public Executor telegramExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(1);
+        executor.setMaxPoolSize(2);
+        executor.setQueueCapacity(50);
+        executor.setThreadNamePrefix("telegram-");
+        executor.setRejectedExecutionHandler((r, e) ->
+                log.warn("텔레그램 알림 큐 포화 — 메시지 드롭"));
         executor.initialize();
         return executor;
     }

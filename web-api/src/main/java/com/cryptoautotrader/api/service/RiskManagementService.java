@@ -1,5 +1,7 @@
 package com.cryptoautotrader.api.service;
 
+import com.cryptoautotrader.api.entity.LiveTradingSessionEntity;
+import com.cryptoautotrader.api.entity.PositionEntity;
 import com.cryptoautotrader.api.entity.RiskConfigEntity;
 import com.cryptoautotrader.api.repository.PositionRepository;
 import com.cryptoautotrader.api.repository.RiskConfigRepository;
@@ -16,6 +18,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 /**
  * 리스크 관리 서비스
@@ -89,6 +92,62 @@ public class RiskManagementService {
         }
 
         return result;
+    }
+
+    /**
+     * 세션 단위 서킷 브레이커 체크.
+     * ① 세션 MDD가 임계값 초과 → 트리거
+     * ② 연속 손실 횟수가 한도 초과 → 트리거
+     * 둘 다 미초과이면 pass 반환.
+     */
+    @Transactional(readOnly = true)
+    public CircuitBreakerResult checkCircuitBreaker(LiveTradingSessionEntity session) {
+        RiskConfigEntity config = getRiskConfig();
+
+        if (!Boolean.TRUE.equals(config.getCircuitBreakerEnabled())) {
+            return CircuitBreakerResult.pass();
+        }
+
+        BigDecimal mddThreshold = config.getMddThresholdPct() != null
+                ? config.getMddThresholdPct() : new BigDecimal("20.0");
+        int consecutiveLossLimit = config.getConsecutiveLossLimit() != null
+                ? config.getConsecutiveLossLimit() : 5;
+
+        // ── MDD 체크 ──────────────────────────────────────────
+        BigDecimal peak = session.getMddPeakCapital();
+        if (peak == null || peak.compareTo(BigDecimal.ZERO) <= 0) {
+            peak = session.getInitialCapital();
+        }
+        BigDecimal current = session.getTotalAssetKrw();
+        if (peak.compareTo(BigDecimal.ZERO) > 0 && current.compareTo(peak) < 0) {
+            BigDecimal drawdownPct = peak.subtract(current)
+                    .divide(peak, 4, RoundingMode.HALF_UP)
+                    .multiply(new BigDecimal("100"));
+            if (drawdownPct.compareTo(mddThreshold) >= 0) {
+                return CircuitBreakerResult.triggered(
+                        String.format("MDD %.2f%% 초과 (한도: %.2f%%, 피크: %s → 현재: %s)",
+                                drawdownPct, mddThreshold, peak.toPlainString(), current.toPlainString()));
+            }
+        }
+
+        // ── 연속 손실 체크 ────────────────────────────────────
+        List<PositionEntity> closedPositions = positionRepository
+                .findBySessionIdAndStatusOrderByClosedAtDesc(session.getId(), "CLOSED");
+        int consecutiveLosses = 0;
+        for (PositionEntity pos : closedPositions) {
+            if (pos.getRealizedPnl() != null
+                    && pos.getRealizedPnl().compareTo(BigDecimal.ZERO) < 0) {
+                consecutiveLosses++;
+            } else {
+                break;
+            }
+        }
+        if (consecutiveLosses >= consecutiveLossLimit) {
+            return CircuitBreakerResult.triggered(
+                    String.format("연속 손실 %d회 초과 (한도: %d회)", consecutiveLosses, consecutiveLossLimit));
+        }
+
+        return CircuitBreakerResult.pass();
     }
 
     // ── 내부 메서드 ───────────────────────────────────────────

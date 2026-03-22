@@ -71,6 +71,13 @@ public class CompositeStrategy implements Strategy {
 
         String detail = reasons.toString().trim();
 
+        // 가중치 합계로 정규화 (총합이 1.0 초과 시 임계값 왜곡 방지)
+        double totalWeight = strategies.stream().mapToDouble(WeightedStrategy::getWeight).sum();
+        if (totalWeight > 0) {
+            buyScore  /= totalWeight;
+            sellScore /= totalWeight;
+        }
+
         // 상충 감지
         if (buyScore > WEAK_THRESHOLD && sellScore > WEAK_THRESHOLD) {
             return StrategySignal.hold(String.format("상충 신호 buy=%.2f sell=%.2f [%s]",

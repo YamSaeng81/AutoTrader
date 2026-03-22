@@ -55,6 +55,10 @@ public class PositionEntity {
     @Column(name = "closed_at")
     private Instant closedAt;
 
+    /** CLOSING 상태 진입 시각 — 5분 초과 시 reconcileClosingPositions()에서 OPEN 롤백 */
+    @Column(name = "closing_at")
+    private Instant closingAt;
+
     @Column(name = "session_id")
     private Long sessionId;
 

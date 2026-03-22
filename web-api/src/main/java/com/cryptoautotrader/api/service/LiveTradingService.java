@@ -24,10 +24,13 @@ import com.cryptoautotrader.strategy.StrategyRegistry;
 import com.cryptoautotrader.strategy.StrategySignal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,7 +43,7 @@ import com.cryptoautotrader.core.selector.StrategySelector;
 import com.cryptoautotrader.core.selector.WeightedStrategy;
 
 import com.cryptoautotrader.exchange.upbit.UpbitRestClient;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -53,6 +56,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * 실전 매매 서비스 -- 다중 세션 지원
@@ -78,9 +82,16 @@ public class LiveTradingService {
     /** COMPOSITE 전략 사용 세션별 MarketRegimeDetector (Hysteresis 상태 유지) */
     private final Map<Long, MarketRegimeDetector> sessionDetectors = new ConcurrentHashMap<>();
 
+    /** StatefulStrategy(Grid 등) 세션별 독립 인스턴스 — 다중 세션 간 상태 오염 방지 */
+    private final Map<Long, com.cryptoautotrader.strategy.Strategy> sessionStatefulStrategies = new ConcurrentHashMap<>();
+
     /** 낙폭 경고 쿨다운: 세션별 마지막 DRAWDOWN_WARNING 전송 시각 (30분 쿨다운) */
     private final Map<Long, Instant> lastDrawdownWarning = new ConcurrentHashMap<>();
     private static final long DRAWDOWN_WARNING_COOLDOWN_MIN = 30;
+
+    /** WebSocket 실시간 손절 — 코인별 마지막 체크 시각 (5초 throttle) */
+    private final Map<String, Long> rtStopLossLastCheckMs = new ConcurrentHashMap<>();
+    private static final long RT_STOPLOSS_CHECK_INTERVAL_MS = 5_000;
 
     private final LiveTradingSessionRepository sessionRepository;
     private final PositionRepository positionRepository;
@@ -93,10 +104,15 @@ public class LiveTradingService {
     private final TelegramNotificationService telegramService;
     private final StrategyLogRepository strategyLogRepository;
     private final RiskManagementService riskManagementService;
+    private final ApplicationEventPublisher eventPublisher;
 
     /** 호가창 조회용 (선택적 의존성 — exchange-adapter 빈이 없을 경우 null) */
     @Autowired(required = false)
     private UpbitRestClient upbitRestClient;
+
+    /** WebSocket 클라이언트 (선택적 — exchange-adapter 빈이 없을 경우 null) */
+    @Autowired(required = false)
+    private UpbitWebSocketClient wsClient;
 
     // -- 거래소 DOWN 이벤트 수신 -- 모든 세션 비상 정지 ----------
 
@@ -237,6 +253,7 @@ public class LiveTradingService {
         telegramService.notifySessionStarted(
                 sessionId, session.getStrategyType(), session.getCoinPair(),
                 session.getTimeframe(), session.getInitialCapital().longValue());
+        refreshWsSubscription();
         return session;
     }
 
@@ -259,6 +276,7 @@ public class LiveTradingService {
         session.setStatus("STOPPED");
         session.setStoppedAt(Instant.now());
         sessionDetectors.remove(sessionId);
+        sessionStatefulStrategies.remove(sessionId);
         lastDrawdownWarning.remove(sessionId);
         session = sessionRepository.save(session);
 
@@ -273,6 +291,7 @@ public class LiveTradingService {
         telegramService.notifySessionStopped(
                 sessionId, session.getCoinPair(), returnPct,
                 session.getTotalAssetKrw().longValue(), false);
+        refreshWsSubscription();
         return session;
     }
 
@@ -296,6 +315,7 @@ public class LiveTradingService {
         session.setStatus("EMERGENCY_STOPPED");
         session.setStoppedAt(Instant.now());
         sessionDetectors.remove(sessionId);
+        sessionStatefulStrategies.remove(sessionId);
         lastDrawdownWarning.remove(sessionId);
         session = sessionRepository.save(session);
 
@@ -309,6 +329,7 @@ public class LiveTradingService {
         telegramService.notifySessionStopped(
                 sessionId, session.getCoinPair(), returnPct,
                 session.getTotalAssetKrw().longValue(), true);
+        refreshWsSubscription();
         return session;
     }
 
@@ -338,6 +359,7 @@ public class LiveTradingService {
         }
 
         log.error("전체 비상 정지 완료: {}개 세션 정지", runningSessions.size());
+        refreshWsSubscription();
     }
 
     // -- 세션 삭제 -----------------------------------------------
@@ -378,6 +400,7 @@ public class LiveTradingService {
 
         sessionRepository.deleteById(sessionId);
         sessionDetectors.remove(sessionId);
+        sessionStatefulStrategies.remove(sessionId);
         lastDrawdownWarning.remove(sessionId);
         log.info("실전매매 세션 삭제 완료: id={}", sessionId);
     }
@@ -488,6 +511,26 @@ public class LiveTradingService {
             log.debug("세션 상태 변경 감지 — 평가 스킵 (sessionId={})", sessionId);
             return;
         }
+
+        // ── MDD 피크 자본 갱신 ────────────────────────────────
+        BigDecimal currentTotal = session.getTotalAssetKrw();
+        if (session.getMddPeakCapital() == null
+                || currentTotal.compareTo(session.getMddPeakCapital()) > 0) {
+            session.setMddPeakCapital(currentTotal);
+            sessionRepository.save(session);
+        }
+
+        // ── 서킷 브레이커 체크 ────────────────────────────────
+        CircuitBreakerResult cbResult = riskManagementService.checkCircuitBreaker(session);
+        if (cbResult.isTriggered()) {
+            log.error("서킷 브레이커 발동 (sessionId={}): {}", sessionId, cbResult.getReason());
+            session.setCircuitBreakerTriggeredAt(Instant.now());
+            session.setCircuitBreakerReason(cbResult.getReason());
+            sessionRepository.save(session);
+            emergencyStopSession(sessionId);
+            return;
+        }
+
         String coinPair = session.getCoinPair();
         String timeframe = session.getTimeframe();
         String strategyType = session.getStrategyType();
@@ -529,7 +572,12 @@ public class LiveTradingService {
                     log.warn("호가창 조회 실패, 캔들 근사 방식으로 대체 (sessionId={}): {}", sessionId, e.getMessage());
                 }
             }
-            signal = StrategyRegistry.get(strategyType).evaluate(candles, params);
+            com.cryptoautotrader.strategy.Strategy strategyInstance =
+                    StrategyRegistry.isStateful(strategyType)
+                            ? sessionStatefulStrategies.computeIfAbsent(sessionId,
+                                    id -> StrategyRegistry.createNew(strategyType))
+                            : StrategyRegistry.get(strategyType);
+            signal = strategyInstance.evaluate(candles, params);
             log.debug("세션 전략 신호 (sessionId={}): {} {} -> {} ({})",
                     sessionId, strategyType, coinPair, signal.getAction(), signal.getReason());
         }
@@ -706,6 +754,7 @@ public class LiveTradingService {
 
         // 포지션 CLOSING 표시 — 중복 매도 신호 및 새 매수 진입 차단
         pos.setStatus("CLOSING");
+        pos.setClosingAt(Instant.now());
         positionRepository.save(pos);
 
         // 주문 제출 — sessionId/positionId를 request에 미리 설정 (@Async 리턴값 의존 회피)
@@ -770,6 +819,7 @@ public class LiveTradingService {
                     continue;
                 }
                 pos.setStatus("CLOSING");
+                pos.setClosingAt(Instant.now());
                 positionRepository.save(pos);
 
                 OrderRequest sellOrder = new OrderRequest();
@@ -1013,7 +1063,19 @@ public class LiveTradingService {
                 // PENDING/SUBMITTED → 이후 reconcileClosingPositions에서 처리
             }
         }
+
+        // WebSocket 실시간 시세 구독 — 손절 체크용
+        if (wsClient != null) {
+            wsClient.addTickerListener(ticker ->
+                eventPublisher.publishEvent(
+                    new RealtimePriceEvent(ticker.getCode(), ticker.getTradePrice())));
+            log.info("WebSocket 실시간 시세 리스너 등록 완료");
+        }
+        refreshWsSubscription();
     }
+
+    /** CLOSING 포지션 타임아웃 — 이 시간 초과 시 OPEN 롤백 */
+    private static final long CLOSING_TIMEOUT_MINUTES = 5;
 
     /**
      * CLOSING 포지션 처리 — 매도 주문 체결/실패에 따라 청산 확정 또는 롤백 (5초 주기)
@@ -1022,6 +1084,7 @@ public class LiveTradingService {
      * 이 메서드가 실제 체결 결과를 확인해 처리한다:
      * - FILLED → 실제 체결가 기반 손익/수수료 확정 + 세션 KRW 복원
      * - FAILED / CANCELLED → OPEN 롤백 (다음 틱에서 재시도)
+     * - 5분 초과 미체결 → OPEN 롤백 (좀비 포지션 방지 — BUY 신호 영구 차단 방어)
      */
     @Scheduled(fixedDelay = 5000)
     @Transactional
@@ -1039,6 +1102,7 @@ public class LiveTradingService {
             if (sellOrders.isEmpty()) {
                 log.warn("CLOSING 포지션에 SELL 주문 없음 — OPEN 롤백 (posId={})", pos.getId());
                 pos.setStatus("OPEN");
+                pos.setClosingAt(null);
                 positionRepository.save(pos);
                 continue;
             }
@@ -1050,9 +1114,23 @@ public class LiveTradingService {
                     log.warn("매도 주문 {} — 포지션 OPEN 롤백 (orderId={}, posId={}, sessionId={})",
                             latestSell.getState(), latestSell.getId(), pos.getId(), pos.getSessionId());
                     pos.setStatus("OPEN");
+                    pos.setClosingAt(null);
                     positionRepository.save(pos);
                 }
-                default -> { /* PENDING/SUBMITTED/PARTIAL_FILLED — 체결 대기 */ }
+                default -> {
+                    // PENDING/SUBMITTED/PARTIAL_FILLED — 체결 대기
+                    // 단, closingAt 기준 5분 초과 시 좀비 포지션 방지를 위해 OPEN 롤백
+                    Instant closingAt = pos.getClosingAt();
+                    if (closingAt != null &&
+                            Duration.between(closingAt, Instant.now()).toMinutes() >= CLOSING_TIMEOUT_MINUTES) {
+                        log.warn("CLOSING 타임아웃 ({}분 초과) — OPEN 롤백 (posId={}, sessionId={}, orderId={}, state={})",
+                                CLOSING_TIMEOUT_MINUTES, pos.getId(), pos.getSessionId(),
+                                latestSell.getId(), latestSell.getState());
+                        pos.setStatus("OPEN");
+                        pos.setClosingAt(null);
+                        positionRepository.save(pos);
+                    }
+                }
             }
         }
     }
@@ -1098,6 +1176,70 @@ public class LiveTradingService {
     private LiveTradingSessionEntity getSessionOrThrow(Long sessionId) {
         return sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new SessionNotFoundException(sessionId));
+    }
+
+    /**
+     * WebSocket 실시간 시세 이벤트 핸들러 — 코인별 5초 throttle 손절 체크
+     *
+     * WS 콜백 스레드(upbit-ws-scheduler)에서 직접 DB 접근하면 ping/pong 스케줄링이 지연될 수 있으므로
+     * ApplicationEventPublisher → @Async("marketDataExecutor") 패턴으로 디커플링.
+     */
+    @EventListener
+    @Async("marketDataExecutor")
+    @Transactional
+    public void onRealtimePriceEvent(RealtimePriceEvent event) {
+        String coinCode = event.getCoinCode();
+        BigDecimal price = event.getPrice();
+
+        long now = System.currentTimeMillis();
+        Long lastMs = rtStopLossLastCheckMs.get(coinCode);
+        if (lastMs != null && now - lastMs < RT_STOPLOSS_CHECK_INTERVAL_MS) return;
+        rtStopLossLastCheckMs.put(coinCode, now);
+
+        List<LiveTradingSessionEntity> sessions = sessionRepository.findByStatus("RUNNING");
+        for (LiveTradingSessionEntity session : sessions) {
+            if (!coinCode.equals(session.getCoinPair())) continue;
+
+            Optional<PositionEntity> openPos = positionRepository
+                    .findBySessionIdAndCoinPairAndStatus(session.getId(), coinCode, "OPEN");
+            if (openPos.isEmpty()) continue;
+
+            PositionEntity pos = openPos.get();
+            if (pos.getAvgPrice() == null || pos.getAvgPrice().compareTo(BigDecimal.ZERO) <= 0) continue;
+
+            BigDecimal pnlPct = price.subtract(pos.getAvgPrice())
+                    .divide(pos.getAvgPrice(), 6, RoundingMode.HALF_UP)
+                    .multiply(BigDecimal.valueOf(100));
+
+            BigDecimal stopLossPct = session.getStopLossPct() != null
+                    ? session.getStopLossPct() : new BigDecimal("5.0");
+
+            if (pnlPct.compareTo(stopLossPct.negate()) <= 0) {
+                log.warn("실시간 손절 발동 (WS): sessionId={}, {}, 손익={}%",
+                        session.getId(), coinCode, pnlPct);
+                telegramService.notifyStopLoss(coinCode, pnlPct.doubleValue(), session.getId());
+                executeSessionSell(session, pos, price, "실시간 손절(WS) — 손익률 " + pnlPct + "%");
+            }
+        }
+    }
+
+    /**
+     * RUNNING 세션의 구독 코인 목록에 맞게 WebSocket 구독을 갱신한다.
+     * 세션 시작/정지/비상정지 및 서버 재시작 시 호출된다.
+     */
+    private void refreshWsSubscription() {
+        if (wsClient == null) return;
+        List<String> coins = sessionRepository.findByStatus("RUNNING").stream()
+                .map(LiveTradingSessionEntity::getCoinPair)
+                .distinct()
+                .collect(Collectors.toList());
+        if (coins.isEmpty()) {
+            wsClient.disconnect();
+            log.info("WebSocket 구독 해제 (실행 중인 세션 없음)");
+        } else {
+            wsClient.connect(coins);
+            log.info("WebSocket 구독 갱신: {}", coins);
+        }
     }
 
     private List<Candle> fetchRecentCandles(String coinPair, String timeframe) {

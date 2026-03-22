@@ -4,7 +4,9 @@ import com.cryptoautotrader.exchange.upbit.dto.TickerData;
 import com.cryptoautotrader.exchange.upbit.dto.TradeData;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -29,6 +31,7 @@ import java.util.zip.GZIPInputStream;
  * - Ping/Pong 120초 간격 (응답 없으면 재연결)
  * - Thread-safe 설계
  */
+@Component
 @Slf4j
 public class UpbitWebSocketClient {
 
@@ -82,9 +85,10 @@ public class UpbitWebSocketClient {
     }
 
     /**
-     * 완전 종료 — scheduler까지 종료한다. Bean 소멸 시(@PreDestroy) 호출.
+     * 완전 종료 — scheduler까지 종료한다. Bean 소멸 시 Spring이 자동 호출.
      * 이 메서드 호출 후에는 connect() 재호출이 불가능하다.
      */
+    @PreDestroy
     public synchronized void destroy() {
         shutdownRequested = true;
         disconnectInternal();

@@ -44,3 +44,18 @@ upbit:
 api:
   auth:
     token: ${API_AUTH_TOKEN:dev-token-change-me-in-production}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus, health
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: never
+    prometheus:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}

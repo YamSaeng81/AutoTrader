@@ -1,8 +1,10 @@
 package com.cryptoautotrader.api.config;
 
+import com.cryptoautotrader.core.portfolio.PortfolioManager;
 import com.cryptoautotrader.core.regime.MarketRegimeDetector;
 import com.cryptoautotrader.exchange.upbit.UpbitOrderClient;
 import com.cryptoautotrader.exchange.upbit.UpbitRestClient;
+import java.math.BigDecimal;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -19,6 +21,15 @@ public class EngineConfig {
     @Bean
     public MarketRegimeDetector marketRegimeDetector() {
         return new MarketRegimeDetector();
+    }
+
+    /**
+     * PortfolioManager — 초기 totalCapital은 0으로 시작하며,
+     * PortfolioSyncService 스케줄러가 기동 직후 거래소 잔고로 동기화한다.
+     */
+    @Bean
+    public PortfolioManager portfolioManager() {
+        return new PortfolioManager(BigDecimal.ZERO);
     }
 
     @Bean

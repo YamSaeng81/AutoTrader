@@ -6,11 +6,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+
+import java.util.concurrent.Executor;
 
 import java.math.BigDecimal;
 import java.net.URI;
@@ -56,6 +60,10 @@ public class TelegramNotificationService {
     private boolean enabled;
 
     private final TelegramNotificationLogRepository logRepository;
+
+    @Autowired
+    @Qualifier("telegramExecutor")
+    private Executor telegramExecutor;
 
     private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(10))
@@ -162,13 +170,13 @@ public class TelegramNotificationService {
         sendMarkdownAndLog(msg, "RISK_LIMIT", null);
     }
 
-    /** 테스트 메시지 전송 */
+    /** 테스트 메시지 전송 — 결과 확인이 필요하므로 동기 전송 */
     public boolean sendTestMessage() {
         String msg = String.format(
                 "✅ *텔레그램 알림 연동 테스트*\n\n" +
                 "크립토 자동매매 시스템이 정상적으로\n텔레그램 알림에 연결되었습니다! 🎉\n\n• 시각: `%s`",
                 KST_FMT.format(Instant.now()));
-        return sendMarkdownAndLog(msg, "TEST", null);
+        return doSendMarkdownAndLog(msg, "TEST", null);
     }
 
     // ── 일별 요약 스케줄 ────────────────────────────────────────────────────────
@@ -262,7 +270,16 @@ public class TelegramNotificationService {
 
     // ── 내부 전송 ────────────────────────────────────────────────────────────
 
-    private boolean sendMarkdownAndLog(String text, String type, String sessionLabel) {
+    /**
+     * 비동기 전송 — telegramExecutor에 제출 후 즉시 반환.
+     * 텔레그램 서버 지연/장애가 매매 루프를 블로킹하지 않도록 분리.
+     */
+    private void sendMarkdownAndLog(String text, String type, String sessionLabel) {
+        telegramExecutor.execute(() -> doSendMarkdownAndLog(text, type, sessionLabel));
+    }
+
+    /** 동기 전송 — sendTestMessage()에서만 사용 */
+    private boolean doSendMarkdownAndLog(String text, String type, String sessionLabel) {
         boolean success = sendMarkdown(text);
         try {
             logRepository.save(new TelegramNotificationLogEntity(type, sessionLabel, text, success));

@@ -41,6 +41,18 @@ public class RiskConfigEntity {
     @Column(name = "updated_at")
     private Instant updatedAt;
 
+    /** 서킷 브레이커: 세션 MDD 임계값 (%) — 초과 시 세션 강제 정지 */
+    @Column(name = "mdd_threshold_pct", precision = 5, scale = 2)
+    private BigDecimal mddThresholdPct;
+
+    /** 서킷 브레이커: 연속 손실 허용 횟수 — 초과 시 세션 강제 정지 */
+    @Column(name = "consecutive_loss_limit")
+    private Integer consecutiveLossLimit;
+
+    /** 서킷 브레이커 활성화 여부 */
+    @Column(name = "circuit_breaker_enabled")
+    private Boolean circuitBreakerEnabled;
+
     @PrePersist
     void prePersist() {
         if (updatedAt == null) updatedAt = Instant.now();
@@ -49,6 +61,9 @@ public class RiskConfigEntity {
         if (maxMonthlyLossPct == null) maxMonthlyLossPct = new BigDecimal("15.0");
         if (maxPositions == null) maxPositions = 3;
         if (cooldownMinutes == null) cooldownMinutes = 60;
+        if (mddThresholdPct == null) mddThresholdPct = new BigDecimal("20.0");
+        if (consecutiveLossLimit == null) consecutiveLossLimit = 5;
+        if (circuitBreakerEnabled == null) circuitBreakerEnabled = Boolean.TRUE;
     }
 
     @PreUpdate
@@ -79,4 +94,13 @@ public class RiskConfigEntity {
     public void setPortfolioLimitKrw(BigDecimal portfolioLimitKrw) { this.portfolioLimitKrw = portfolioLimitKrw; }
 
     public Instant getUpdatedAt() { return updatedAt; }
+
+    public BigDecimal getMddThresholdPct() { return mddThresholdPct; }
+    public void setMddThresholdPct(BigDecimal mddThresholdPct) { this.mddThresholdPct = mddThresholdPct; }
+
+    public Integer getConsecutiveLossLimit() { return consecutiveLossLimit; }
+    public void setConsecutiveLossLimit(Integer consecutiveLossLimit) { this.consecutiveLossLimit = consecutiveLossLimit; }
+
+    public Boolean getCircuitBreakerEnabled() { return circuitBreakerEnabled; }
+    public void setCircuitBreakerEnabled(Boolean circuitBreakerEnabled) { this.circuitBreakerEnabled = circuitBreakerEnabled; }
 }
