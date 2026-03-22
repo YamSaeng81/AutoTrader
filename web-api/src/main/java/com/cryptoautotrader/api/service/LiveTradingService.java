@@ -161,8 +161,13 @@ public class LiveTradingService {
 
         BigDecimal stopLoss = req.getStopLossPct() != null
                 ? req.getStopLossPct() : new BigDecimal("5.0");
-        BigDecimal investRatio = req.getInvestRatio() != null
-                ? req.getInvestRatio().max(new BigDecimal("0.01")).min(BigDecimal.ONE)
+        BigDecimal rawRatio = req.getInvestRatio();
+        // 프론트엔드가 1~100 정수(예: 80)로 보내는 경우 0~1 범위로 변환
+        if (rawRatio != null && rawRatio.compareTo(BigDecimal.ONE) > 0) {
+            rawRatio = rawRatio.divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP);
+        }
+        BigDecimal investRatio = rawRatio != null
+                ? rawRatio.max(new BigDecimal("0.01")).min(BigDecimal.ONE)
                 : new BigDecimal("0.8000");
 
         LiveTradingSessionEntity session = LiveTradingSessionEntity.builder()
