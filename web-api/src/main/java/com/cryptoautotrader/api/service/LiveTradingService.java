@@ -787,10 +787,12 @@ public class LiveTradingService {
             pos.setUnrealizedPnl(unrealized);
             positionRepository.save(pos);
 
-            // 세션 총자산 업데이트
-            BigDecimal posValue = pos.getSize().multiply(currentPrice);
-            session.setTotalAssetKrw(session.getAvailableKrw().add(posValue));
-            sessionRepository.save(session);
+            // 세션 총자산 업데이트 (size=0이면 매수 미체결 상태 — totalAssetKrw 갱신 보류)
+            if (pos.getSize().compareTo(BigDecimal.ZERO) > 0) {
+                BigDecimal posValue = pos.getSize().multiply(currentPrice);
+                session.setTotalAssetKrw(session.getAvailableKrw().add(posValue));
+                sessionRepository.save(session);
+            }
         });
     }
 
