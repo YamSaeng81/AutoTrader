@@ -316,6 +316,7 @@ export interface LiveOrder {
   filledQuantity: number;
   signalReason: string;
   failedReason: string | null;
+  responseJson: string | null;
   createdAt: string;
   submittedAt: string | null;
   filledAt: string | null;

@@ -137,9 +137,11 @@ public class OrderExecutionEngine {
         }
 
         try {
-            OrderResponse exchangeResponse = submitToExchange(order);
+            UpbitOrderClient.ExchangeResult exchangeResult = submitToExchange(order);
+            OrderResponse exchangeResponse = exchangeResult.response();
             order.setExchangeOrderId(exchangeResponse.getUuid());
             order.setSubmittedAt(Instant.now());
+            order.setResponseJson(exchangeResult.rawBody());
             log.info("거래소 주문 제출 완료 (orderId={}, exchangeId={}, initialState={})",
                     order.getId(), exchangeResponse.getUuid(), exchangeResponse.getState());
 
@@ -440,7 +442,7 @@ public class OrderExecutionEngine {
 
     // ── 거래소 연동 (UpbitRestClient 래핑) ─────────────────────
 
-    private OrderResponse submitToExchange(OrderEntity order) throws Exception {
+    private UpbitOrderClient.ExchangeResult submitToExchange(OrderEntity order) throws Exception {
         // BUY:  Upbit bid + price 타입 (총 KRW 금액 = quantity 필드에 KRW 금액이 설정된 경우)
         //       또는 bid + market 타입 (수량 기반 시장가)
         // SELL: Upbit ask + market 타입 (코인 수량)

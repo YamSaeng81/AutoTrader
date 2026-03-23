@@ -33,6 +33,9 @@ import java.util.*;
 @Slf4j
 public class UpbitOrderClient {
 
+    /** 주문 생성 결과 — 파싱된 응답 + 원본 바디 */
+    public record ExchangeResult(OrderResponse response, String rawBody) {}
+
     private static final String BASE_URL = "https://api.upbit.com/v1";
 
     private final HttpClient httpClient;
@@ -66,8 +69,8 @@ public class UpbitOrderClient {
      * @param orderType "limit"(지정가), "price"(시장가 매수), "market"(시장가 매도)
      * @return 주문 응답
      */
-    public OrderResponse createOrder(String market, String side, BigDecimal volume,
-                                     BigDecimal price, String orderType) {
+    public ExchangeResult createOrder(String market, String side, BigDecimal volume,
+                                      BigDecimal price, String orderType) {
         log.info("주문 생성 요청: market={}, side={}, volume={}, price={}, type={}",
                 market, side, volume, price, orderType);
 
@@ -82,6 +85,7 @@ public class UpbitOrderClient {
             params.put("price", price.toPlainString());
         }
 
+        String rawBody = null;
         try {
             String queryString = buildQueryString(params);
             String token = generateJwtWithQuery(queryString);
@@ -95,14 +99,17 @@ public class UpbitOrderClient {
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            rawBody = response.body();
             checkResponse(response, "주문 생성");
 
-            OrderResponse result = objectMapper.readValue(response.body(), OrderResponse.class);
+            OrderResponse result = objectMapper.readValue(rawBody, OrderResponse.class);
             log.info("주문 생성 성공: uuid={}, market={}, side={}", result.getUuid(), market, side);
-            return result;
+            return new ExchangeResult(result, rawBody);
         } catch (Exception e) {
             log.error("주문 생성 실패: market={}, side={}, error={}", market, side, e.getMessage(), e);
-            throw new RuntimeException("주문 생성 실패", e);
+            Throwable cause = e.getCause();
+            String detail = (cause != null && cause.getMessage() != null) ? cause.getMessage() : e.getMessage();
+            throw new RuntimeException("주문 생성 실패: " + detail + (rawBody != null ? " | body=" + rawBody : ""), e);
         }
     }
 

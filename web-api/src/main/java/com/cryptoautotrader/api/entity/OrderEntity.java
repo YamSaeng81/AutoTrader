@@ -66,6 +66,9 @@ public class OrderEntity {
     @Column(name = "failed_reason", columnDefinition = "TEXT")
     private String failedReason;
 
+    @Column(name = "response_json", columnDefinition = "TEXT")
+    private String responseJson;
+
     @Column(name = "session_id")
     private Long sessionId;
 
@@ -123,6 +126,9 @@ public class OrderEntity {
 
     public String getFailedReason() { return failedReason; }
     public void setFailedReason(String failedReason) { this.failedReason = failedReason; }
+
+    public String getResponseJson() { return responseJson; }
+    public void setResponseJson(String responseJson) { this.responseJson = responseJson; }
 
     public Long getSessionId() { return sessionId; }
     public void setSessionId(Long sessionId) { this.sessionId = sessionId; }

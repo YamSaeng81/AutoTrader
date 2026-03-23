@@ -161,7 +161,7 @@ export default function UpbitLogsPage() {
                             {filtered.map(order => {
                                 const isOpen = openRows.has(order.id);
                                 const stateInfo = STATE_STYLE[order.state] ?? STATE_STYLE.PENDING;
-                                const hasDetail = order.signalReason || order.failedReason || order.exchangeOrderId;
+                                const hasDetail = order.signalReason || order.failedReason || order.exchangeOrderId || order.responseJson;
 
                                 return (
                                     <div key={order.id}>
@@ -270,6 +270,15 @@ export default function UpbitLogsPage() {
                                                         <p className="text-xs text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-500/10 rounded-lg px-3 py-2 border border-rose-100 dark:border-rose-500/20">
                                                             {order.failedReason}
                                                         </p>
+                                                    </div>
+                                                )}
+
+                                                {order.responseJson && (
+                                                    <div>
+                                                        <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wide mb-1">Upbit 응답</p>
+                                                        <pre className="text-xs text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-900/60 rounded-lg px-3 py-2 border border-slate-200 dark:border-slate-700 overflow-x-auto whitespace-pre-wrap break-all">
+                                                            {(() => { try { return JSON.stringify(JSON.parse(order.responseJson), null, 2); } catch { return order.responseJson; } })()}
+                                                        </pre>
                                                     </div>
                                                 )}
                                             </div>

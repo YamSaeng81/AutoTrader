@@ -1,0 +1,1 @@
+ALTER TABLE "order" ADD COLUMN IF NOT EXISTS response_json TEXT;
