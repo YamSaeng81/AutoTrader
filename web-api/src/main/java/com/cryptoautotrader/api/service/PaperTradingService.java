@@ -13,11 +13,6 @@ import com.cryptoautotrader.api.repository.paper.PaperOrderRepository;
 import com.cryptoautotrader.api.repository.paper.PaperPositionRepository;
 import com.cryptoautotrader.api.repository.paper.VirtualBalanceRepository;
 import com.cryptoautotrader.api.util.TimeframeUtils;
-import com.cryptoautotrader.core.regime.MarketRegime;
-import com.cryptoautotrader.core.regime.MarketRegimeDetector;
-import com.cryptoautotrader.core.selector.CompositeStrategy;
-import com.cryptoautotrader.core.selector.StrategySelector;
-import com.cryptoautotrader.core.selector.WeightedStrategy;
 import com.cryptoautotrader.exchange.upbit.UpbitCandleCollector;
 import com.cryptoautotrader.exchange.upbit.UpbitRestClient;
 import com.cryptoautotrader.strategy.Candle;
@@ -60,8 +55,8 @@ public class PaperTradingService {
     /** 기본 익절 비율 6% — R:R = 1:2 */
     private static final BigDecimal DEFAULT_TP_RATE = new BigDecimal("0.06");
 
-    /** COMPOSITE 전략 사용 세션별 MarketRegimeDetector (Hysteresis 상태 유지) */
-    private final Map<Long, MarketRegimeDetector> sessionDetectors = new ConcurrentHashMap<>();
+    /** Stateful 전략 세션별 인스턴스 (COMPOSITE, COMPOSITE_BTC 등 상태 보유 전략) */
+    private final Map<Long, com.cryptoautotrader.strategy.Strategy> sessionStatefulStrategies = new ConcurrentHashMap<>();
 
     private final VirtualBalanceRepository balanceRepo;
     private final PaperPositionRepository positionRepo;
@@ -153,7 +148,7 @@ public class PaperTradingService {
 
         session.setStatus("STOPPED");
         session.setStoppedAt(Instant.now());
-        sessionDetectors.remove(sessionId);
+        sessionStatefulStrategies.remove(sessionId);
 
         log.info("모의투자 세션 중단 (id={}). 최종 자산: {} KRW", sessionId, session.getTotalKrw());
         VirtualBalanceEntity stopped = balanceRepo.save(session);
@@ -242,7 +237,7 @@ public class PaperTradingService {
         orderRepo.deleteBySessionId(sessionId);
         positionRepo.deleteBySessionId(sessionId);
         balanceRepo.deleteById(sessionId);
-        sessionDetectors.remove(sessionId);
+        sessionStatefulStrategies.remove(sessionId);
         log.info("모의투자 세션 이력 삭제 완료: id={}", sessionId);
     }
 
@@ -384,27 +379,14 @@ public class PaperTradingService {
             return;
         }
 
-        StrategySignal signal;
-        MarketRegime regime = null;
-        if ("COMPOSITE".equals(strategyName)) {
-            MarketRegimeDetector detector = sessionDetectors.computeIfAbsent(
-                    session.getId(), id -> new MarketRegimeDetector());
-            regime = detector.detect(candles);
-            List<WeightedStrategy> weighted = StrategySelector.select(regime);
-            signal = new CompositeStrategy(weighted).evaluate(candles, Collections.emptyMap());
-            // TRANSITIONAL 국면: 신규 진입 금지 — 기존 포지션 유지(SELL)만 허용
-            if (regime == MarketRegime.TRANSITIONAL
-                    && signal.getAction() == StrategySignal.Action.BUY) {
-                signal = StrategySignal.hold(
-                        "TRANSITIONAL 국면 신규 진입 금지 [원신호: " + signal.getReason() + "]");
-            }
-            log.info("모의투자 COMPOSITE 신호 (sessionId={}): regime={} {} → {} ({})",
-                    session.getId(), regime, coinPair, signal.getAction(), signal.getReason());
-        } else {
-            signal = StrategyRegistry.get(strategyName).evaluate(candles, Collections.emptyMap());
-            log.info("모의투자 신호 (sessionId={}): {} {} → {} ({})",
-                    session.getId(), strategyName, coinPair, signal.getAction(), signal.getReason());
-        }
+        com.cryptoautotrader.strategy.Strategy strategyInstance =
+                StrategyRegistry.isStateful(strategyName)
+                        ? sessionStatefulStrategies.computeIfAbsent(session.getId(),
+                                id -> StrategyRegistry.createNew(strategyName))
+                        : StrategyRegistry.get(strategyName);
+        StrategySignal signal = strategyInstance.evaluate(candles, Collections.emptyMap());
+        log.info("모의투자 신호 (sessionId={}): {} {} → {} ({})",
+                session.getId(), strategyName, coinPair, signal.getAction(), signal.getReason());
 
         // 전략 로그 DB 저장
         try {
@@ -413,7 +395,7 @@ public class PaperTradingService {
                     .coinPair(coinPair)
                     .signal(signal.getAction().name())
                     .reason(signal.getReason())
-                    .marketRegime(regime != null ? regime.name() : null)
+                    .marketRegime(null)
                     .sessionType("PAPER")
                     .sessionId(session.getId())
                     .build();

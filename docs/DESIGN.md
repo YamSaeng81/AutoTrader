@@ -1,11 +1,11 @@
 # CryptoAutoTrader - 기술 설계서
 
 ## 문서 정보
-- 버전: 1.3
+- 버전: 1.4
 - 작성일: 2026-03-05
-- 최종 수정: 2026-03-15 (v1.3: 테이블 소유권 분리 구조 반영, Flyway V11~V15 신규 테이블 추가, 차트 라이브러리 Recharts 통일, Phase 4 구현 내역 반영)
+- 최종 수정: 2026-03-23 (v1.4: Phase 5 손익 대시보드 완료, 전략 14종 반영, Flyway V1~V26, position SL/TP 절대가 컬럼 추가, COMPOSITE_BTC EMA 필터, StrategyParamUtils/IndicatorUtils 유틸 추가, COMPOSITE TRANSITIONAL 신규 진입 금지)
 - 기반 문서: PLAN.md, IDEA.md
-- 다음 단계: Phase 4 프론트엔드 구현
+- 다음 단계: 전략 파라미터 백테스트 최적화 (MACD 그리드 서치, StochRSI+RSI 다이버전스 결합, 2023~2025 장기 백테스트)
 
 ---
 
@@ -184,14 +184,34 @@ com.cryptoautotrader.strategy
 ├── StrategyConfig.java     # 전략 파라미터 기본 클래스
 ├── StrategySignal.java     # 전략 신호 (BUY/SELL/HOLD + 강도)
 ├── vwap/
-│   └── VwapStrategy.java      # StrategyConfig.getParams() Map으로 파라미터 관리
+│   └── VwapStrategy.java          # VWAP 역추세, anchorSession=true (당일 기점)
 ├── ema/
-│   └── EmaCrossStrategy.java   # 동일
+│   └── EmaCrossStrategy.java      # EMA20/50 크로스, ADX>25 추세 필터
 ├── bollinger/
-│   └── BollingerStrategy.java  # 동일
+│   └── BollingerStrategy.java     # 볼린저 %B, ADX<25 레인지 필터
 ├── grid/
-│   └── GridStrategy.java       # 동일
-└── ... (추가 6종)
+│   └── GridStrategy.java          # StatefulStrategy, activeLevels 중복 방지
+├── rsi/
+│   └── RsiStrategy.java           # 피봇 다이버전스 포함
+├── macd/
+│   └── MacdStrategy.java          # 히스토그램 기울기 + 제로라인 필터 (v1.4)
+├── supertrend/
+│   └── SupertrendStrategy.java    # ATR O(n)
+├── atr/
+│   └── AtrBreakoutStrategy.java   # 거래량 필터
+├── orderbook/
+│   └── OrderbookImbalanceStrategy.java
+├── stochastic/
+│   └── StochasticRsiStrategy.java # 연속 2캔들 + 거래량 확인 (v1.4, 임계값 완화)
+├── composite/
+│   ├── CompositeStrategy.java     # 가중 투표 + EMA 방향 필터 (COMPOSITE_BTC)
+│   ├── WeightedStrategy.java      # 래퍼
+│   ├── StrategySelector.java      # Regime별 전략 그룹
+│   ├── MacdStochBbStrategy.java   # 복합 추세 전략 (MACD+StochRSI+BB, 6조건 AND)
+│   └── CompositePresetRegistrar.java  # @PostConstruct COMPOSITE/BTC/ETH 등록
+└── util/
+    ├── StrategyParamUtils.java    # getInt/getDouble/getBoolean 공용 파싱 헬퍼 (v1.4)
+    └── IndicatorUtils.java        # rsiSeries/stochasticKSeries/smaList/ema 공용 (v1.4)
 
 # exchange-adapter
 com.cryptoautotrader.exchange
@@ -224,23 +244,25 @@ com.cryptoautotrader.api
 │   ├── BacktestController.java
 │   ├── StrategyController.java
 │   ├── DataController.java
-│   ├── PaperTradingController.java
-│   ├── LiveTradingController.java     # Phase 4 ✅ 구현
+│   ├── PaperTradingController.java      # 9개 API, 이력 삭제 포함
+│   ├── TradingController.java           # ✅ Phase 4 — 14개 API, 실전매매 세션 CRUD
 │   ├── LogController.java
-│   ├── TradeController.java           # Phase 4 (미구현)
-│   ├── RiskController.java            # Phase 4 (미구현)
-│   └── SystemController.java
+│   ├── AccountController.java           # ✅ Upbit 연동 상태 확인
+│   └── SettingsController.java          # ✅ 설정 관리, Telegram, DB 리셋
 ├── service/
 │   ├── BacktestService.java
 │   ├── DataCollectionService.java
-│   ├── MarketDataSyncService.java     # ✅ 구현 — 60초 fixedDelay 캔들 동기화
-│   ├── PaperTradingService.java       # ✅ 구현 — 멀티세션, 60초 fixedDelay
-│   ├── LiveTradingService.java        # ✅ 구현 — 실전매매 세션 관리
-│   ├── OrderExecutionEngine.java      # ✅ 구현 — 6단계 상태머신 + Upbit API 연동
-│   ├── TelegramNotificationService.java # ✅ 구현 — 즉시/일별 요약 알림
-│   ├── MarketRegimeAwareScheduler.java  # ✅ 구현 — 1시간 주기 전략 자동 스위칭
+│   ├── MarketDataSyncService.java       # ✅ 60초 fixedDelay 캔들 동기화
+│   ├── PaperTradingService.java         # ✅ 멀티세션, TRANSITIONAL 진입 금지 (v1.4)
+│   ├── LiveTradingService.java          # ✅ 실전매매 다중 세션, TRANSITIONAL 진입 금지 (v1.4)
+│   ├── PositionService.java             # ✅ getOpenPositions(), getPosition()
+│   ├── RiskManagementService.java       # ✅ 포지션 사이징, 상관관계 리스크
+│   ├── OrderExecutionEngine.java        # ✅ 6단계 상태머신 + Upbit API 연동
+│   ├── TelegramNotificationService.java # ✅ 즉시 알림 + 일별 요약, 비상정지 사유 전송 (v1.4)
+│   ├── MarketRegimeAwareScheduler.java  # ✅ 1시간 주기 전략 자동 스위칭
+│   ├── DbResetService.java              # ✅ 백테스트 전체 삭제 (테스트용)
 │   └── util/
-│       └── TimeframeUtils.java        # ✅ 구현 — 타임프레임 → 분 변환 유틸
+│       └── TimeframeUtils.java          # ✅ 타임프레임 → 분 변환 유틸
 └── event/
     ├── EventPublisher.java
     └── EventSubscriber.java
@@ -333,7 +355,7 @@ com.cryptoautotrader.api
 └────────────────────┘
 ```
 
-### 3.2 테이블 소유권 분리 (Flyway V1~V15)
+### 3.2 테이블 소유권 분리 (Flyway V1~V26)
 
 > **원칙**: 백테스팅·모의투자·실전매매가 같은 DB를 공유하되, 스키마/컬럼으로 격리한다.
 > `position`, `order` 테이블은 public 스키마에 하나만 존재하며, `session_id` FK로 소유권을 구분한다.
@@ -499,6 +521,8 @@ CREATE TABLE position (
     realized_pnl        NUMERIC(20,8) DEFAULT 0,
     strategy_config_id  BIGINT REFERENCES strategy_config(id),
     status              VARCHAR(10) DEFAULT 'OPEN',  -- 'OPEN', 'CLOSED'
+    stop_loss_price     NUMERIC(20,8),              -- 절대가 손절 (V26, nullable — 미설정 시 pct 비교)
+    take_profit_price   NUMERIC(20,8),              -- 절대가 익절 (V26, nullable)
     opened_at           TIMESTAMPTZ DEFAULT NOW(),
     closed_at           TIMESTAMPTZ
 );
@@ -628,8 +652,10 @@ CREATE TABLE strategy_type_enabled (
     is_active     BOOLEAN     NOT NULL DEFAULT TRUE,
     updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
--- 10종 전략 기본 삽입: VWAP, EMA_CROSS, BOLLINGER, GRID, RSI, MACD, SUPERTREND,
---                       ATR_BREAKOUT, ORDERBOOK_IMBALANCE, STOCHASTIC_RSI
+-- 14종 전략 기본 삽입 (v1.4):
+-- 단일: VWAP, EMA_CROSS, BOLLINGER, GRID, RSI, MACD, SUPERTREND,
+--       ATR_BREAKOUT, ORDERBOOK_IMBALANCE, STOCHASTIC_RSI
+-- 복합: COMPOSITE, COMPOSITE_BTC, COMPOSITE_ETH, MACD_STOCH_BB
 ```
 
 #### strategy_config 추가 컬럼 (V11)

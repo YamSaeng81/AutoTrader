@@ -387,7 +387,6 @@ public class BacktestService {
         BigDecimal fee       = feePct         != null ? feePct         : new BigDecimal("0.05");
 
         List<String> strategyNames = new java.util.ArrayList<>(StrategyRegistry.getAll().keySet());
-        strategyNames.add("COMPOSITE");
         List<Map<String, Object>> results = new java.util.ArrayList<>();
 
         for (String coin : coins) {

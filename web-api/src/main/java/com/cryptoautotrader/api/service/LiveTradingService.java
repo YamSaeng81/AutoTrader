@@ -35,12 +35,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.cryptoautotrader.core.regime.MarketRegime;
-import com.cryptoautotrader.core.regime.MarketRegimeDetector;
 import com.cryptoautotrader.core.risk.RiskCheckResult;
-import com.cryptoautotrader.core.selector.CompositeStrategy;
-import com.cryptoautotrader.core.selector.StrategySelector;
-import com.cryptoautotrader.core.selector.WeightedStrategy;
 
 import com.cryptoautotrader.exchange.upbit.UpbitRestClient;
 import com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient;
@@ -79,10 +74,7 @@ public class LiveTradingService {
     private static final List<String> ACTIVE_ORDER_STATES =
             List.of("PENDING", "SUBMITTED", "PARTIAL_FILLED");
 
-    /** COMPOSITE 전략 사용 세션별 MarketRegimeDetector (Hysteresis 상태 유지) */
-    private final Map<Long, MarketRegimeDetector> sessionDetectors = new ConcurrentHashMap<>();
-
-    /** StatefulStrategy(Grid 등) 세션별 독립 인스턴스 — 다중 세션 간 상태 오염 방지 */
+    /** StatefulStrategy(COMPOSITE/Grid 등) 세션별 독립 인스턴스 — 다중 세션 간 상태 오염 방지 */
     private final Map<Long, com.cryptoautotrader.strategy.Strategy> sessionStatefulStrategies = new ConcurrentHashMap<>();
 
     /** 낙폭 경고 쿨다운: 세션별 마지막 DRAWDOWN_WARNING 전송 시각 (30분 쿨다운) */
@@ -145,13 +137,11 @@ public class LiveTradingService {
                     + "전략을 개선한 후 이용하세요. (백테스트 결과: STOCHASTIC_RSI BTC -70.4%/-67.6%, MACD BTC -58.8%/-57.6%)");
         }
 
-        // 전략 유효성 검증 (COMPOSITE는 StrategyRegistry 외부에서 처리)
-        if (!"COMPOSITE".equals(req.getStrategyType())) {
-            try {
-                StrategyRegistry.get(req.getStrategyType());
-            } catch (Exception e) {
-                throw new IllegalArgumentException("지원하지 않는 전략입니다: " + req.getStrategyType());
-            }
+        // 전략 유효성 검증
+        try {
+            StrategyRegistry.get(req.getStrategyType());
+        } catch (Exception e) {
+            throw new IllegalArgumentException("지원하지 않는 전략입니다: " + req.getStrategyType());
         }
 
         // TEST_TIMED: 코인/타임프레임/원금 강제 고정
@@ -282,7 +272,6 @@ public class LiveTradingService {
 
         session.setStatus("STOPPED");
         session.setStoppedAt(Instant.now());
-        sessionDetectors.remove(sessionId);
         sessionStatefulStrategies.remove(sessionId);
         lastDrawdownWarning.remove(sessionId);
         session = sessionRepository.save(session);
@@ -321,7 +310,6 @@ public class LiveTradingService {
 
         session.setStatus("EMERGENCY_STOPPED");
         session.setStoppedAt(Instant.now());
-        sessionDetectors.remove(sessionId);
         sessionStatefulStrategies.remove(sessionId);
         lastDrawdownWarning.remove(sessionId);
         session = sessionRepository.save(session);
@@ -414,7 +402,6 @@ public class LiveTradingService {
         });
 
         sessionRepository.deleteById(sessionId);
-        sessionDetectors.remove(sessionId);
         sessionStatefulStrategies.remove(sessionId);
         lastDrawdownWarning.remove(sessionId);
         log.info("실전매매 세션 삭제 완료: id={}", sessionId);
@@ -558,50 +545,32 @@ public class LiveTradingService {
         }
 
         // 전략 신호 평가
-        StrategySignal signal;
-        MarketRegime regime = null;
-        if ("COMPOSITE".equals(strategyType)) {
-            MarketRegimeDetector detector = sessionDetectors.computeIfAbsent(
-                    sessionId, id -> new MarketRegimeDetector());
-            regime = detector.detect(candles);
-            List<WeightedStrategy> weighted = StrategySelector.select(regime);
-            signal = new CompositeStrategy(weighted).evaluate(candles, Collections.emptyMap());
-            // TRANSITIONAL 국면: 신규 진입 금지 — 기존 포지션 유지(SELL)만 허용
-            if (regime == MarketRegime.TRANSITIONAL
-                    && signal.getAction() == StrategySignal.Action.BUY) {
-                signal = StrategySignal.hold(
-                        "TRANSITIONAL 국면 신규 진입 금지 [원신호: " + signal.getReason() + "]");
-            }
-            log.info("실전매매 COMPOSITE 신호 (sessionId={}): regime={} {} → {} ({})",
-                    sessionId, regime, coinPair, signal.getAction(), signal.getReason());
-        } else {
-            Map<String, Object> params = new java.util.HashMap<>(
-                    session.getStrategyParams() != null ? session.getStrategyParams() : Collections.emptyMap());
-            if (session.getStartedAt() != null) {
-                params.put("sessionStartedAt", session.getStartedAt().toEpochMilli());
-            }
-            // ORDERBOOK_IMBALANCE 전략: REST API로 실시간 호가창 주입 (캔들 근사 대신 실값 사용)
-            if ("ORDERBOOK_IMBALANCE".equals(strategyType) && upbitRestClient != null) {
-                try {
-                    List<Map<String, Object>> orderbook = upbitRestClient.getOrderbook(coinPair);
-                    if (!orderbook.isEmpty()) {
-                        Map<String, Object> ob = orderbook.get(0);
-                        params.put("bidVolume", ob.get("total_bid_size"));
-                        params.put("askVolume", ob.get("total_ask_size"));
-                    }
-                } catch (Exception e) {
-                    log.warn("호가창 조회 실패, 캔들 근사 방식으로 대체 (sessionId={}): {}", sessionId, e.getMessage());
-                }
-            }
-            com.cryptoautotrader.strategy.Strategy strategyInstance =
-                    StrategyRegistry.isStateful(strategyType)
-                            ? sessionStatefulStrategies.computeIfAbsent(sessionId,
-                                    id -> StrategyRegistry.createNew(strategyType))
-                            : StrategyRegistry.get(strategyType);
-            signal = strategyInstance.evaluate(candles, params);
-            log.debug("세션 전략 신호 (sessionId={}): {} {} -> {} ({})",
-                    sessionId, strategyType, coinPair, signal.getAction(), signal.getReason());
+        Map<String, Object> params = new java.util.HashMap<>(
+                session.getStrategyParams() != null ? session.getStrategyParams() : Collections.emptyMap());
+        if (session.getStartedAt() != null) {
+            params.put("sessionStartedAt", session.getStartedAt().toEpochMilli());
         }
+        // ORDERBOOK_IMBALANCE 전략: REST API로 실시간 호가창 주입 (캔들 근사 대신 실값 사용)
+        if ("ORDERBOOK_IMBALANCE".equals(strategyType) && upbitRestClient != null) {
+            try {
+                List<Map<String, Object>> orderbook = upbitRestClient.getOrderbook(coinPair);
+                if (!orderbook.isEmpty()) {
+                    Map<String, Object> ob = orderbook.get(0);
+                    params.put("bidVolume", ob.get("total_bid_size"));
+                    params.put("askVolume", ob.get("total_ask_size"));
+                }
+            } catch (Exception e) {
+                log.warn("호가창 조회 실패, 캔들 근사 방식으로 대체 (sessionId={}): {}", sessionId, e.getMessage());
+            }
+        }
+        com.cryptoautotrader.strategy.Strategy strategyInstance =
+                StrategyRegistry.isStateful(strategyType)
+                        ? sessionStatefulStrategies.computeIfAbsent(sessionId,
+                                id -> StrategyRegistry.createNew(strategyType))
+                        : StrategyRegistry.get(strategyType);
+        StrategySignal signal = strategyInstance.evaluate(candles, params);
+        log.debug("세션 전략 신호 (sessionId={}): {} {} -> {} ({})",
+                sessionId, strategyType, coinPair, signal.getAction(), signal.getReason());
 
         // 전략 로그 DB 저장
         try {
@@ -610,7 +579,7 @@ public class LiveTradingService {
                     .coinPair(coinPair)
                     .signal(signal.getAction().name())
                     .reason(signal.getReason())
-                    .marketRegime(regime != null ? regime.name() : null)
+                    .marketRegime(null)
                     .sessionType("LIVE")
                     .sessionId(sessionId)
                     .build();

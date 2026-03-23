@@ -1,6 +1,7 @@
 package com.cryptoautotrader.api.config;
 
 import com.cryptoautotrader.core.selector.CompositeStrategy;
+import com.cryptoautotrader.core.selector.RegimeAdaptiveStrategy;
 import com.cryptoautotrader.core.selector.WeightedStrategy;
 import com.cryptoautotrader.strategy.StrategyRegistry;
 import com.cryptoautotrader.strategy.atrbreakout.AtrBreakoutStrategy;
@@ -28,6 +29,9 @@ public class CompositePresetRegistrar {
 
     @PostConstruct
     public void registerPresets() {
+        // COMPOSITE: 시장 국면(regime) 기반 동적 전략 선택 — MarketRegimeDetector 상태 보유
+        StrategyRegistry.registerStateful("COMPOSITE", RegimeAdaptiveStrategy::new);
+
         // COMPOSITE_BTC: GRID는 stateful(그리드 레벨 상태 보유) → 세션마다 새 인스턴스
         // EMA 방향 필터 활성화: GRID+BOLLINGER 모두 역추세 전략이므로 추세 역행 신호 억제
         StrategyRegistry.registerStateful("COMPOSITE_BTC", () ->

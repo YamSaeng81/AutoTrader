@@ -42,7 +42,7 @@ export default function PaperTradingPage() {
     useEffect(() => {
         Promise.all([strategyApi.list(), systemApi.coins()]).then(([stRes, cRes]) => {
             if (stRes.success && stRes.data) {
-                const available = stRes.data.filter(s => s.status === 'AVAILABLE' && s.isActive);
+                const available = stRes.data.filter(s => s.status === 'AVAILABLE' && s.isActive && s.name !== 'COMPOSITE');
                 setAvailableStrategies(available);
                 if (available.length > 0) setSelectedStrategies([available[0].name]);
             }

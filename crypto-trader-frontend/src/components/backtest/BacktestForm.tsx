@@ -39,7 +39,7 @@ export function BacktestForm() {
             systemApi.coins()
         ]).then(([stRes, cRes]) => {
             if (stRes.success && stRes.data) {
-                const available = stRes.data.filter(s => s.status === 'AVAILABLE');
+                const available = stRes.data.filter(s => s.status === 'AVAILABLE' && s.name !== 'COMPOSITE');
                 setStrategies(available);
             }
             if (cRes.success && cRes.data) setCoins(cRes.data);

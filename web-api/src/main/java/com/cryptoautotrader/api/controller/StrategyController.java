@@ -202,7 +202,7 @@ public class StrategyController {
      */
     private boolean isCompositeStrategy(String name) {
         return switch (name) {
-            case "COMPOSITE_BTC", "COMPOSITE_ETH", "MACD_STOCH_BB" -> true;
+            case "COMPOSITE", "COMPOSITE_BTC", "COMPOSITE_ETH", "MACD_STOCH_BB" -> true;
             default -> false;
         };
     }
@@ -216,8 +216,8 @@ public class StrategyController {
             case "VWAP", "EMA_CROSS", "BOLLINGER", "GRID" -> true;
             // Phase 3: 로직 구현 완료
             case "RSI", "MACD", "SUPERTREND", "ATR_BREAKOUT", "ORDERBOOK_IMBALANCE", "STOCHASTIC_RSI" -> true;
-            // 코인별 복합 전략 프리셋
-            case "COMPOSITE_BTC", "COMPOSITE_ETH" -> true;
+            // 코인별 복합 전략 프리셋 + 국면 적응형 복합 전략
+            case "COMPOSITE", "COMPOSITE_BTC", "COMPOSITE_ETH" -> true;
             // 복합 추세 전략
             case "MACD_STOCH_BB" -> true;
             default -> false;
@@ -236,6 +236,7 @@ public class StrategyController {
             case "ATR_BREAKOUT"        -> "ATR 변동성 돌파 모멘텀 매매";
             case "ORDERBOOK_IMBALANCE" -> "호가 불균형 기반 단기 방향성 매매 (Phase 4 WebSocket 연동 필요)";
             case "STOCHASTIC_RSI"      -> "RSI 에 Stochastic 적용, RANGE/VOLATILITY 시장 민감 감지";
+            case "COMPOSITE"           -> "시장 국면(TREND/RANGE/VOLATILITY) 자동 감지 기반 동적 전략 선택";
             case "COMPOSITE_BTC"       -> "[BTC 프리셋] GRID × 0.6 + BOLLINGER × 0.4 — 2025 H1 백테스트 기반";
             case "COMPOSITE_ETH"       -> "[ETH 프리셋] ATR_BREAKOUT × 0.5 + ORDERBOOK_IMBALANCE × 0.3 + EMA_CROSS × 0.2";
             case "MACD_STOCH_BB"       -> "MACD 추세 + StochRSI 타이밍 + 볼린저밴드 지지선 복합 추세 전략 (1시간봉 최적화)";

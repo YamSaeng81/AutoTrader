@@ -93,7 +93,7 @@ export default function TradingPage() {
   useEffect(() => {
     strategyApi.list().then(res => {
       if (res.success && res.data) {
-        setActiveStrategies(res.data.filter(s => s.status === 'AVAILABLE' && s.isActive));
+        setActiveStrategies(res.data.filter(s => s.status === 'AVAILABLE' && s.isActive && s.name !== 'COMPOSITE'));
       }
     }).catch(() => {});
   }, []);

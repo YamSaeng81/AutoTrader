@@ -3,7 +3,7 @@
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝나면 `## 다음 할 일`에서 해당 항목을 삭제하고, 완료 내용은 [`docs/CHANGELOG.md`](CHANGELOG.md)에 추가한다.
 > **변경 이력**: [`docs/CHANGELOG.md`](CHANGELOG.md)
-> **마지막 갱신**: 2026-03-23 (COMPOSITE_ETH 모드별 가중치 분리)
+> **마지막 갱신**: 2026-03-23 (REPORT_EXECUTIVE.md v2.0, REPORT_TECHNICAL.md v2.0 작성 완료)
 
 ---
 
@@ -19,7 +19,7 @@
 crypto-auto-trader/
 ├── web-api/          # Spring Boot 백엔드 (Gradle 멀티모듈)
 │   ├── core-engine/      # 백테스팅 엔진, 리스크, 포트폴리오
-│   ├── strategy-lib/     # 전략 10종
+│   ├── strategy-lib/     # 전략 14종 (단일 10 + 복합 4)
 │   ├── exchange-adapter/ # Upbit REST/WebSocket
 │   └── web-api/          # REST API, 스케줄러, 서비스
 ├── crypto-trader-frontend/  # Next.js 16.1.6 / React 19.2.3 프론트엔드
@@ -38,13 +38,15 @@ crypto-auto-trader/
 | Phase 3 | 전략 10종 + MarketRegimeFilter + 자동 스위칭 | **100%** |
 | Phase 3.5 | 모의투자 (PaperTrading) 멀티세션 | **100%** |
 | Phase S1~S5 | 전략 고도화 (버그수정 → Regime/Risk → CompositeStrategy → 개별최적화 → MTF 백테스트) | **100%** |
-| 인프라 | Docker, Flyway V1~V23, SchedulerConfig, RedisConfig, Spring Security | **100%** |
+| 인프라 | Docker, Flyway V1~V26, SchedulerConfig, RedisConfig, Spring Security, CI/CD, Prometheus/Grafana | **100%** |
 | Phase 4 | **실전매매** (LiveTrading) | **~99%** — 장애 복구·수수료 추적·낙폭 경고·ORDERBOOK 호가창 REST 연동 완료 |
 | Phase 5 | **손익 대시보드** (`/performance`) | **100%** — 실전/모의 탭, 요약 카드 7개, 세션별 테이블. 수수료 집계 정상화 완료 |
 
-### 구현된 전략 11종
+### 구현된 전략 14종
 
-VWAP / EMA Cross / Bollinger Band / Grid / RSI(다이버전스) / MACD(히스토그램) / Supertrend / ATR Breakout / Orderbook Imbalance / Stochastic RSI / **MACD_STOCH_BB** (MACD+StochRSI+볼린저 복합 추세)
+단일 전략 (10종): VWAP / EMA Cross / Bollinger Band / Grid / RSI(다이버전스) / MACD(히스토그램+제로라인) / Supertrend / ATR Breakout / Orderbook Imbalance / Stochastic RSI
+
+복합 전략 (4종): **COMPOSITE** (Regime 자동 선택) / **COMPOSITE_BTC** (Grid×0.6 + Bollinger×0.4, EMA 방향 필터) / **COMPOSITE_ETH** (ATR_BT×0.5 + Orderbook×0.3 + EMA×0.2) / **MACD_STOCH_BB** (MACD+StochRSI+볼린저 6조건 AND)
 
 ### 2025 H1 백테스트 결과 요약 (KRW-BTC / KRW-ETH)
 
@@ -173,21 +175,22 @@ RiskManager (코어 엔진 상위)
 
 #### 1단계. MACD 개선 (BTC -58.8% / ETH -57.6%)
 
-현재 구현: ADX ≥ 25 추세 필터 존재하지만 손실 지속. 문제 원인:
-1. 골든/데드크로스 발생 시 **히스토그램 방향** 미확인 — 크로스 직후 히스토그램이 이미 역전 중이면 가짜 신호
-2. **제로라인(0) 위/아래 위치** 미필터링 — MACD 선이 0선 아래에서 골든크로스면 약세 구간 매수 위험
-3. 손절선 없이 전략 청산 의존 — 강한 추세 역행 시 낙폭 큼
+코드 개선 완료 (2026-03-23):
+- [x] **히스토그램 기울기 필터** — 크로스 시점에 `현재 histogram > 이전 histogram` 조건 추가. 가짜 크로스 ~30% 필터링
+- [x] **제로라인 필터** — BUY: MACD 선 > 0 에서만 크로스, SELL: < 0 에서만 크로스
+- [x] **글로벌 SL/TP** — 진입가 기준 절대가 손절/익절 저장, 매 틱 O(1) 비교
 
-- [ ] **MACD 파라미터 최적화 백테스트** — 현재 (12, 26, 9) 기본값. BTC/ETH 각각 `fastPeriod`=8~15, `slowPeriod`=20~30 그리드 서치. 백테스트 UI의 벌크 실행 기능 활용
+남은 작업:
+- [ ] **MACD 파라미터 그리드 서치 백테스트** — 현재 (12, 26, 9) 기본값. BTC/ETH 각각 `fastPeriod`=8~15, `slowPeriod`=20~30. 백테스트 UI의 벌크 실행 기능 활용
 
-#### 2단계. STOCHASTIC RSI 재설계 (BTC -70.4% / ETH -67.6%)
+#### 2단계. STOCHASTIC RSI 개선 (BTC -70.4% / ETH -67.6%)
 
-현재 구현: ADX 상한선(≤30) 레인지 필터 존재. 문제 원인:
-1. **신호 빈도 과다** — `oversoldLevel=15`, `overboughtLevel=85`는 임계값이 너무 낮아 횡보장에서도 빈번히 발동
-2. **확인 조건 없음** — %K > %D 단순 크로스만으로 진입, 가격 모멘텀 미확인
-3. **다이버전스 미활용** — RSI 다이버전스와 결합 시 정확도 향상 가능
-4. 백테스트 결과 기준 **구조적 손실** → 개선 전까지 실전 차단 유지가 적절
+코드 개선 완료 (2026-03-23):
+- [x] **임계값 완화** — `oversoldLevel 15→20`, `overboughtLevel 85→80`. 신호 빈도 감소
+- [x] **2캔들 연속 크로스 확인** — 즉시 진입 → 2캔들 연속 %K > %D 유지 시만 매수
+- [x] **거래량 확인 조건** — 현재 캔들 거래량 ≥ 최근 20캔들 평균일 때만 신호 발동
 
+남은 작업:
 - [ ] **StochRSI + RSI 다이버전스 결합** — RSI 다이버전스 발생 + StochRSI 과매도 탈출 동시 충족 시 고신뢰 매수 신호. 구현 복잡도 높음 (Phase 3.5 수준)
 
 #### 3단계. 코인별 최적 전략 조합 적용
