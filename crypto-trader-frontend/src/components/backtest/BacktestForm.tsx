@@ -70,8 +70,8 @@ export function BacktestForm() {
                 const res = await backtestApi.run({
                     ...form,
                     strategyType: selectedStrategies[0] as StrategyType,
-                    startDate: new Date(form.startDate).toISOString(),
-                    endDate: new Date(form.endDate).toISOString(),
+                    startDate: form.startDate,
+                    endDate: form.endDate,
                 });
                 if (res.success && res.data) {
                     router.push(`/backtest/${res.data.id}`);
@@ -83,12 +83,12 @@ export function BacktestForm() {
                     strategyTypes: selectedStrategies,
                     coinPair: form.coinPair,
                     timeframe: form.timeframe,
-                    startDate: new Date(form.startDate).toISOString(),
-                    endDate: new Date(form.endDate).toISOString(),
+                    startDate: form.startDate,
+                    endDate: form.endDate,
                     initialCapital: form.initialCapital,
                 });
                 if (res.success) {
-                    router.push('/backtest/list');
+                    router.push('/backtest');
                 } else {
                     alert(res.error?.message || '실행 실패');
                 }
