@@ -72,6 +72,17 @@ export function useStartPaperSession() {
   });
 }
 
+// ─── 전체 세션 일괄 정지 mutation ─────────────────────────────────────────────
+export function useStopAllPaperSessions() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => paperTradingApi.stopAll(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: paperKeys.all });
+    },
+  });
+}
+
 // ─── 세션 중단 mutation ────────────────────────────────────────────────────────
 export function useStopPaperSession() {
   const queryClient = useQueryClient();

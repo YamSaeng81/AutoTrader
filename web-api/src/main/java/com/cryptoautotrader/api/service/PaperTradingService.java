@@ -167,6 +167,23 @@ public class PaperTradingService {
         return stopped;
     }
 
+    @Transactional
+    public List<VirtualBalanceEntity> stopAll() {
+        List<VirtualBalanceEntity> runningSessions = balanceRepo.findAllByOrderByIdDesc().stream()
+                .filter(s -> "RUNNING".equals(s.getStatus()))
+                .toList();
+        List<VirtualBalanceEntity> stopped = new ArrayList<>();
+        for (VirtualBalanceEntity session : runningSessions) {
+            try {
+                stopped.add(stop(session.getId()));
+            } catch (Exception e) {
+                log.warn("세션 일괄 정지 중 오류 (id={}): {}", session.getId(), e.getMessage());
+            }
+        }
+        log.info("모의투자 일괄 정지 완료. 정지된 세션 수: {}", stopped.size());
+        return stopped;
+    }
+
     @Transactional(readOnly = true)
     public VirtualBalanceEntity getSessionBalance(Long sessionId) {
         return getSession(sessionId);

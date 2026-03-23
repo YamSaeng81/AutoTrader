@@ -139,6 +139,16 @@ public class PaperTradingController {
     }
 
     /**
+     * 실행 중인 모든 세션 일괄 정지
+     * POST /api/v1/paper-trading/sessions/stop-all
+     */
+    @PostMapping("/sessions/stop-all")
+    public ApiResponse<Map<String, Object>> stopAll() {
+        List<VirtualBalanceEntity> stopped = paperTradingService.stopAll();
+        return ApiResponse.ok(Map.of("stoppedCount", stopped.size()));
+    }
+
+    /**
      * 세션 가격 차트 데이터 (캔들 + 매수매도 시점)
      * GET /api/v1/paper-trading/sessions/{sessionId}/chart
      */

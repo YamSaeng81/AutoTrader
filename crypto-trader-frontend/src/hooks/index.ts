@@ -30,6 +30,7 @@ export {
   usePaperOrders,
   useStartPaperSession,
   useStopPaperSession,
+  useStopAllPaperSessions,
   usePaperHistory,
   useDeletePaperSession,
   useBulkDeletePaperSessions,

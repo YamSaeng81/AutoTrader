@@ -1,6 +1,6 @@
 'use client';
 
-import { usePaperSessions, useStartPaperSession, useStopPaperSession } from '@/hooks';
+import { usePaperSessions, useStartPaperSession, useStopPaperSession, useStopAllPaperSessions } from '@/hooks';
 import { PaperSession, PaperTradingStartRequest, MultiStrategyPaperRequest, StrategyInfo } from '@/lib/types';
 import { strategyApi, systemApi, paperTradingApi } from '@/lib/api';
 import { useState, useEffect } from 'react';
@@ -64,6 +64,7 @@ export default function PaperTradingPage() {
     });
 
     const stopMutation = useStopPaperSession();
+    const stopAllMutation = useStopAllPaperSessions();
     const runningSessions = sessions.filter(s => s.status === 'RUNNING');
     const canAddMore = runningSessions.length < MAX_SESSIONS;
 
@@ -134,6 +135,20 @@ export default function PaperTradingPage() {
                         <History className="w-4 h-4" />
                         이력
                     </Link>
+                    {runningSessions.length > 0 && (
+                        <button
+                            onClick={() => {
+                                if (confirm(`실행 중인 세션 ${runningSessions.length}개를 모두 정지하시겠습니까?`)) {
+                                    stopAllMutation.mutate();
+                                }
+                            }}
+                            disabled={stopAllMutation.isPending}
+                            className="flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-sm font-semibold rounded-xl shadow-sm transition-colors disabled:opacity-50"
+                        >
+                            {stopAllMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Square className="w-4 h-4" fill="currentColor" />}
+                            일괄 정지
+                        </button>
+                    )}
                     {canAddMore && (
                         <button
                             onClick={() => setShowNewForm(v => !v)}
