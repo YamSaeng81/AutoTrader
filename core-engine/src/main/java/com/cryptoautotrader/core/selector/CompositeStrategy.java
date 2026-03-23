@@ -1,12 +1,14 @@
 package com.cryptoautotrader.core.selector;
 
 import com.cryptoautotrader.strategy.Candle;
+import com.cryptoautotrader.strategy.IndicatorUtils;
 import com.cryptoautotrader.strategy.Strategy;
 import com.cryptoautotrader.strategy.StrategySignal;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Weighted Voting 기반 복합 전략.
@@ -25,26 +27,55 @@ import java.util.Map;
  */
 public class CompositeStrategy implements Strategy {
 
-    private static final double STRONG_THRESHOLD = 0.6;
-    private static final double WEAK_THRESHOLD   = 0.4;
+    private static final double STRONG_THRESHOLD  = 0.6;
+    private static final double WEAK_THRESHOLD    = 0.4;
 
+    /** EMA 방향 필터 기본 파라미터 */
+    private static final int DEFAULT_EMA_SHORT = 20;
+    private static final int DEFAULT_EMA_LONG  = 50;
+
+    private final String name;
     private final List<WeightedStrategy> strategies;
+    private final double totalWeight;
 
+    /**
+     * EMA 방향 필터 활성화 여부.
+     * true이면 단기 EMA > 장기 EMA(상승 추세) 구간에서 SELL 신호를,
+     * 단기 EMA < 장기 EMA(하락 추세) 구간에서 BUY 신호를 HOLD로 억제한다.
+     */
+    private final boolean emaFilterEnabled;
+
+    /** 기본 COMPOSITE 전략 (EMA 필터 미적용) */
     public CompositeStrategy(List<WeightedStrategy> strategies) {
-        this.strategies = strategies;
+        this("COMPOSITE", strategies);
+    }
+
+    /** 이름을 명시적으로 지정하는 프리셋 복합 전략 (EMA 필터 미적용) */
+    public CompositeStrategy(String name, List<WeightedStrategy> strategies) {
+        this(name, strategies, false);
+    }
+
+    /** EMA 방향 필터 활성화 여부를 명시하는 생성자 */
+    public CompositeStrategy(String name, List<WeightedStrategy> strategies, boolean emaFilterEnabled) {
+        this.name             = name;
+        this.strategies       = strategies;
+        this.totalWeight      = strategies.stream().mapToDouble(WeightedStrategy::getWeight).sum();
+        this.emaFilterEnabled = emaFilterEnabled;
     }
 
     @Override
     public String getName() {
-        return "COMPOSITE";
+        return name;
     }
 
     @Override
     public int getMinimumCandleCount() {
-        return strategies.stream()
+        int strategyMin = strategies.stream()
                 .mapToInt(ws -> ws.getStrategy().getMinimumCandleCount())
                 .max()
                 .orElse(0);
+        // EMA 필터가 활성화된 경우 장기 EMA 계산에 필요한 최소 캔들 수 보장
+        return emaFilterEnabled ? Math.max(strategyMin, DEFAULT_EMA_LONG) : strategyMin;
     }
 
     @Override
@@ -72,18 +103,19 @@ public class CompositeStrategy implements Strategy {
         String detail = reasons.toString().trim();
 
         // 가중치 합계로 정규화 (총합이 1.0 초과 시 임계값 왜곡 방지)
-        double totalWeight = strategies.stream().mapToDouble(WeightedStrategy::getWeight).sum();
         if (totalWeight > 0) {
             buyScore  /= totalWeight;
             sellScore /= totalWeight;
         }
 
-        // 상충 감지
+        return applyEmaFilter(candles, finalSignal(buyScore, sellScore, detail), detail);
+    }
+
+    private StrategySignal finalSignal(double buyScore, double sellScore, String detail) {
         if (buyScore > WEAK_THRESHOLD && sellScore > WEAK_THRESHOLD) {
             return StrategySignal.hold(String.format("상충 신호 buy=%.2f sell=%.2f [%s]",
                     buyScore, sellScore, detail));
         }
-
         if (buyScore > STRONG_THRESHOLD) {
             return StrategySignal.buy(BigDecimal.valueOf(buyScore * 100),
                     String.format("STRONG_BUY score=%.2f [%s]", buyScore, detail));
@@ -100,8 +132,45 @@ public class CompositeStrategy implements Strategy {
             return StrategySignal.sell(BigDecimal.valueOf(sellScore * 100),
                     String.format("SELL score=%.2f [%s]", sellScore, detail));
         }
-
         return StrategySignal.hold(String.format("점수 미달 buy=%.2f sell=%.2f [%s]",
                 buyScore, sellScore, detail));
+    }
+
+    /**
+     * EMA 방향 필터: 추세 방향에 역행하는 신호를 HOLD로 억제한다.
+     * - 상승 추세(EMA20 > EMA50): SELL 신호 억제
+     * - 하락 추세(EMA20 < EMA50): BUY 신호 억제
+     * emaFilterEnabled=false 또는 캔들 부족 시 원본 신호 그대로 반환.
+     */
+    private StrategySignal applyEmaFilter(List<Candle> candles, StrategySignal signal,
+                                          String detail) {
+        if (!emaFilterEnabled || candles.size() < DEFAULT_EMA_LONG) {
+            return signal;
+        }
+        if (signal.getAction() == StrategySignal.Action.HOLD) {
+            return signal;
+        }
+
+        List<BigDecimal> closes = candles.stream()
+                .map(Candle::getClose)
+                .collect(Collectors.toList());
+
+        BigDecimal emaShort = IndicatorUtils.ema(closes, DEFAULT_EMA_SHORT);
+        BigDecimal emaLong  = IndicatorUtils.ema(closes, DEFAULT_EMA_LONG);
+        boolean uptrend = emaShort.compareTo(emaLong) > 0;
+
+        if (uptrend && signal.getAction() == StrategySignal.Action.SELL) {
+            return StrategySignal.hold(String.format(
+                    "EMA필터 SELL억제 (EMA%d=%.0f > EMA%d=%.0f 상승추세) [%s]",
+                    DEFAULT_EMA_SHORT, emaShort.doubleValue(),
+                    DEFAULT_EMA_LONG,  emaLong.doubleValue(), detail));
+        }
+        if (!uptrend && signal.getAction() == StrategySignal.Action.BUY) {
+            return StrategySignal.hold(String.format(
+                    "EMA필터 BUY억제 (EMA%d=%.0f < EMA%d=%.0f 하락추세) [%s]",
+                    DEFAULT_EMA_SHORT, emaShort.doubleValue(),
+                    DEFAULT_EMA_LONG,  emaLong.doubleValue(), detail));
+        }
+        return signal;
     }
 }

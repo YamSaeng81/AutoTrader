@@ -21,12 +21,17 @@ import com.cryptoautotrader.core.selector.WeightedStrategy;
 import com.cryptoautotrader.strategy.Candle;
 import com.cryptoautotrader.strategy.Strategy;
 import com.cryptoautotrader.strategy.StrategyRegistry;
+import com.cryptoautotrader.strategy.atrbreakout.AtrBreakoutStrategy;
+import com.cryptoautotrader.strategy.ema.EmaCrossStrategy;
+import com.cryptoautotrader.strategy.orderbook.OrderbookImbalanceStrategy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -46,6 +51,7 @@ public class BacktestService {
     private final BacktestRunRepository backtestRunRepository;
     private final BacktestMetricsRepository backtestMetricsRepository;
     private final BacktestTradeRepository backtestTradeRepository;
+    private final PlatformTransactionManager transactionManager;
 
     private final BacktestEngine backtestEngine = new BacktestEngine();
     private final WalkForwardTestRunner walkForwardRunner = new WalkForwardTestRunner();
@@ -95,6 +101,10 @@ public class BacktestService {
             MarketRegimeDetector detector = new MarketRegimeDetector();
             List<WeightedStrategy> weighted = StrategySelector.select(detector.detect(candles));
             result = backtestEngine.run(config, candles, new CompositeStrategy(weighted));
+        } else if ("COMPOSITE_ETH".equals(strategyType)) {
+            // 백테스트에서 ORDERBOOK_IMBALANCE는 캔들 근사값을 사용하므로 가중치를 축소
+            // Live: ATR(0.5) + OB(0.3) + EMA(0.2) → BT: ATR(0.7) + OB(0.1) + EMA(0.2)
+            result = backtestEngine.run(config, candles, compositeEthBt());
         } else {
             result = backtestEngine.run(config, candles);
         }
@@ -253,8 +263,8 @@ public class BacktestService {
     /**
      * 사용자가 선택한 전략 목록 × 단일 코인 백테스트 비교표를 반환한다.
      * 각 결과는 DB에 저장되며, totalReturn 내림차순으로 정렬된다.
+     * 전략별로 독립 트랜잭션 사용 — 한 전략 저장 실패가 다른 전략 결과에 영향을 주지 않는다.
      */
-    @Transactional
     public List<Map<String, Object>> runMultiStrategyBacktest(
             List<String> strategyTypes, String coinPair, String timeframe,
             LocalDate startDate, LocalDate endDate,
@@ -281,6 +291,7 @@ public class BacktestService {
                         .build())
                 .toList();
 
+        TransactionTemplate tx = new TransactionTemplate(transactionManager);
         List<Map<String, Object>> results = new java.util.ArrayList<>();
 
         for (String strategyName : strategyTypes) {
@@ -302,17 +313,24 @@ public class BacktestService {
                     MarketRegimeDetector detector = new MarketRegimeDetector();
                     List<WeightedStrategy> weighted = StrategySelector.select(detector.detect(candles));
                     result = backtestEngine.run(config, candles, new CompositeStrategy(weighted));
+                } else if ("COMPOSITE_ETH".equals(strategyName)) {
+                    result = backtestEngine.run(config, candles, compositeEthBt());
                 } else {
                     result = backtestEngine.run(config, candles);
                 }
                 PerformanceReport metrics = result.getMetrics();
 
-                BacktestRunEntity runEntity = saveRun(config, false);
-                saveMetrics(runEntity.getId(), metrics);
-                saveTrades(runEntity.getId(), result.getTrades());
+                // 전략별 독립 트랜잭션 — 저장 실패가 다른 전략 결과를 오염시키지 않음
+                final BacktestResult finalResult = result;
+                Long savedId = tx.execute(status -> {
+                    BacktestRunEntity runEntity = saveRun(config, false);
+                    saveMetrics(runEntity.getId(), metrics);
+                    saveTrades(runEntity.getId(), finalResult.getTrades());
+                    return runEntity.getId();
+                });
 
                 Map<String, Object> row = new java.util.LinkedHashMap<>();
-                row.put("id",           runEntity.getId());
+                row.put("id",           savedId);
                 row.put("strategy",     strategyName);
                 row.put("coinPair",     coinPair);
                 row.put("totalReturn",  metrics.getTotalReturnPct());
@@ -407,6 +425,8 @@ public class BacktestService {
                         MarketRegimeDetector detector = new MarketRegimeDetector();
                         List<WeightedStrategy> weighted = StrategySelector.select(detector.detect(candles));
                         result = backtestEngine.run(config, candles, new CompositeStrategy(weighted));
+                    } else if ("COMPOSITE_ETH".equals(strategyName)) {
+                        result = backtestEngine.run(config, candles, compositeEthBt());
                     } else {
                         result = backtestEngine.run(config, candles);
                     }
@@ -456,6 +476,19 @@ public class BacktestService {
         });
 
         return results;
+    }
+
+    /**
+     * 백테스트 전용 COMPOSITE_ETH 인스턴스.
+     * ORDERBOOK_IMBALANCE는 실시간 호가창이 없어 캔들 근사값을 사용하므로 가중치를 축소한다.
+     * Live: ATR(0.5) + OB(0.3) + EMA(0.2)  →  BT: ATR(0.7) + OB(0.1) + EMA(0.2)
+     */
+    private CompositeStrategy compositeEthBt() {
+        return new CompositeStrategy("COMPOSITE_ETH", List.of(
+                new WeightedStrategy(new AtrBreakoutStrategy(),        0.7),
+                new WeightedStrategy(new OrderbookImbalanceStrategy(), 0.1),
+                new WeightedStrategy(new EmaCrossStrategy(),           0.2)
+        ));
     }
 
     private BacktestRunEntity saveRun(BacktestConfig config, boolean isWalkForward) {

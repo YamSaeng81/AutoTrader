@@ -55,6 +55,11 @@ public class PaperTradingService {
     private static final BigDecimal INVEST_RATIO = new BigDecimal("0.80");
     private static final int CANDLE_LOOKBACK = 100;
 
+    /** 기본 손절 비율 3% (전략이 suggestedStopLoss를 제공하지 않을 때 사용) */
+    private static final BigDecimal DEFAULT_SL_RATE = new BigDecimal("0.03");
+    /** 기본 익절 비율 6% — R:R = 1:2 */
+    private static final BigDecimal DEFAULT_TP_RATE = new BigDecimal("0.06");
+
     /** COMPOSITE 전략 사용 세션별 MarketRegimeDetector (Hysteresis 상태 유지) */
     private final Map<Long, MarketRegimeDetector> sessionDetectors = new ConcurrentHashMap<>();
 
@@ -387,6 +392,12 @@ public class PaperTradingService {
             regime = detector.detect(candles);
             List<WeightedStrategy> weighted = StrategySelector.select(regime);
             signal = new CompositeStrategy(weighted).evaluate(candles, Collections.emptyMap());
+            // TRANSITIONAL 국면: 신규 진입 금지 — 기존 포지션 유지(SELL)만 허용
+            if (regime == MarketRegime.TRANSITIONAL
+                    && signal.getAction() == StrategySignal.Action.BUY) {
+                signal = StrategySignal.hold(
+                        "TRANSITIONAL 국면 신규 진입 금지 [원신호: " + signal.getReason() + "]");
+            }
             log.info("모의투자 COMPOSITE 신호 (sessionId={}): regime={} {} → {} ({})",
                     session.getId(), regime, coinPair, signal.getAction(), signal.getReason());
         } else {
@@ -415,13 +426,35 @@ public class PaperTradingService {
         Optional<PaperPositionEntity> openPos = positionRepo
                 .findBySessionIdAndCoinPairAndStatus(session.getId(), coinPair, "OPEN");
 
+        // ── 손절/익절 체크 (전략 신호보다 우선) ──────────────────
+        if (openPos.isPresent()) {
+            PaperPositionEntity pos = openPos.get();
+            if (pos.getStopLossPrice() != null
+                    && currentPrice.compareTo(pos.getStopLossPrice()) <= 0) {
+                log.warn("모의투자 손절 발동 (sessionId={}): {} 현재가={} 손절가={}",
+                        session.getId(), coinPair, currentPrice, pos.getStopLossPrice());
+                closePosition(pos, currentPrice, session,
+                        "손절 발동 — 현재가 " + currentPrice + " ≤ 손절가 " + pos.getStopLossPrice());
+                return;
+            }
+            if (pos.getTakeProfitPrice() != null
+                    && currentPrice.compareTo(pos.getTakeProfitPrice()) >= 0) {
+                log.info("모의투자 익절 발동 (sessionId={}): {} 현재가={} 익절가={}",
+                        session.getId(), coinPair, currentPrice, pos.getTakeProfitPrice());
+                closePosition(pos, currentPrice, session,
+                        "익절 발동 — 현재가 " + currentPrice + " ≥ 익절가 " + pos.getTakeProfitPrice());
+                return;
+            }
+        }
+
+        final StrategySignal finalSignal = signal;
         switch (signal.getAction()) {
             case BUY -> {
                 if (openPos.isEmpty()) {
-                    executeBuy(session.getId(), coinPair, currentPrice, session, signal.getReason());
+                    executeBuy(session.getId(), coinPair, currentPrice, session, finalSignal);
                 }
             }
-            case SELL -> openPos.ifPresent(pos -> closePosition(pos, currentPrice, session, signal.getReason()));
+            case SELL -> openPos.ifPresent(pos -> closePosition(pos, currentPrice, session, finalSignal.getReason()));
             default -> { /* HOLD */ }
         }
 
@@ -429,7 +462,7 @@ public class PaperTradingService {
     }
 
     private void executeBuy(Long sessionId, String coinPair, BigDecimal price,
-                             VirtualBalanceEntity session, String reason) {
+                             VirtualBalanceEntity session, StrategySignal signal) {
         BigDecimal investAmount = session.getAvailableKrw().multiply(INVEST_RATIO);
         if (investAmount.compareTo(BigDecimal.valueOf(5000)) < 0) {
             log.warn("모의투자 매수 불가: 가용 자금 부족 ({}) sessionId={}", session.getAvailableKrw(), sessionId);
@@ -444,6 +477,14 @@ public class PaperTradingService {
         // 이렇게 해야 closePosition 에서 costBasis = investAmount 가 되어 정확한 실현손익 계산
         BigDecimal avgPriceWithFee = investAmount.divide(quantity, 8, RoundingMode.HALF_UP);
 
+        // 손절/익절가 계산: 전략 제안값 우선, 없으면 기본 비율 적용
+        BigDecimal stopLossPrice = (signal.getSuggestedStopLoss() != null)
+                ? signal.getSuggestedStopLoss()
+                : price.multiply(BigDecimal.ONE.subtract(DEFAULT_SL_RATE)).setScale(8, RoundingMode.HALF_DOWN);
+        BigDecimal takeProfitPrice = (signal.getSuggestedTakeProfit() != null)
+                ? signal.getSuggestedTakeProfit()
+                : price.multiply(BigDecimal.ONE.add(DEFAULT_TP_RATE)).setScale(8, RoundingMode.HALF_UP);
+
         PaperPositionEntity pos = PaperPositionEntity.builder()
                 .sessionId(sessionId)
                 .coinPair(coinPair)
@@ -453,6 +494,8 @@ public class PaperTradingService {
                 .size(quantity)
                 .positionFee(fee)
                 .status("OPEN")
+                .stopLossPrice(stopLossPrice)
+                .takeProfitPrice(takeProfitPrice)
                 .build();
         pos = positionRepo.save(pos);
 
@@ -467,7 +510,7 @@ public class PaperTradingService {
                 .filledQuantity(quantity)
                 .state("FILLED")
                 .exchangeOrderId("PAPER-" + pos.getId())
-                .signalReason(reason)
+                .signalReason(signal.getReason())
                 .filledAt(Instant.now())
                 .build();
         orderRepo.save(order);
@@ -476,12 +519,13 @@ public class PaperTradingService {
         session.setTotalFee(session.getTotalFee().add(fee));
         balanceRepo.save(session);
 
-        log.info("모의 매수 체결 (sessionId={}): {} {}개 @ {} (수수료: {})", sessionId, coinPair, quantity, price, fee);
+        log.info("모의 매수 체결 (sessionId={}): {} {}개 @ {} SL={} TP={} (수수료: {})",
+                sessionId, coinPair, quantity, price, stopLossPrice, takeProfitPrice, fee);
 
         if (Boolean.TRUE.equals(session.getTelegramEnabled())) {
             telegramService.bufferTradeEvent(
                     "[모의투자] 세션#" + sessionId, coinPair, "BUY",
-                    price, quantity, fee, null, reason);
+                    price, quantity, fee, null, signal.getReason());
         }
     }
 
@@ -555,8 +599,10 @@ public class PaperTradingService {
                 })
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        session.setTotalKrw(session.getAvailableKrw().add(openPositionsValue));
-        balanceRepo.save(session);
+        // executeBuy/closePosition이 session을 저장했을 수 있으므로 최신 버전으로 재조회
+        VirtualBalanceEntity freshSession = balanceRepo.findById(sessionId).orElse(session);
+        freshSession.setTotalKrw(freshSession.getAvailableKrw().add(openPositionsValue));
+        balanceRepo.save(freshSession);
     }
 
     private VirtualBalanceEntity getSession(Long sessionId) {

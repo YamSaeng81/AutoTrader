@@ -60,6 +60,14 @@ public class PaperPositionEntity {
     @Column(name = "closed_at")
     private Instant closedAt;
 
+    /** 진입 시 계산된 손절가 (null이면 손절 미적용) */
+    @Column(name = "stop_loss_price")
+    private BigDecimal stopLossPrice;
+
+    /** 진입 시 계산된 익절가 (null이면 익절 미적용) */
+    @Column(name = "take_profit_price")
+    private BigDecimal takeProfitPrice;
+
     @PrePersist
     void prePersist() {
         if (openedAt == null) openedAt = Instant.now();

@@ -3,6 +3,7 @@ package com.cryptoautotrader.strategy.macd;
 import com.cryptoautotrader.strategy.Candle;
 import com.cryptoautotrader.strategy.IndicatorUtils;
 import com.cryptoautotrader.strategy.Strategy;
+import com.cryptoautotrader.strategy.StrategyParamUtils;
 import com.cryptoautotrader.strategy.StrategySignal;
 
 import java.math.BigDecimal;
@@ -34,11 +35,11 @@ public class MacdStrategy implements Strategy {
 
     @Override
     public StrategySignal evaluate(List<Candle> candles, Map<String, Object> params) {
-        int fastPeriod = getInt(params, "fastPeriod", 12);
-        int slowPeriod = getInt(params, "slowPeriod", 26);
-        int signalPeriod = getInt(params, "signalPeriod", 9);
-        int adxPeriod = getInt(params, "adxPeriod", 14);
-        double adxThreshold = getDouble(params, "adxThreshold", 25.0);
+        int fastPeriod   = StrategyParamUtils.getInt(params,    "fastPeriod",    12);
+        int slowPeriod   = StrategyParamUtils.getInt(params,    "slowPeriod",    26);
+        int signalPeriod = StrategyParamUtils.getInt(params,    "signalPeriod",  9);
+        int adxPeriod    = StrategyParamUtils.getInt(params,    "adxPeriod",     14);
+        double adxThreshold = StrategyParamUtils.getDouble(params, "adxThreshold", 25.0);
 
         // MACD 계산에 필요한 최소 캔들 수:
         // slowPeriod개로 첫 EMA(slow) 계산, 이후 signalPeriod개의 MACD값으로 Signal EMA 계산
@@ -59,31 +60,55 @@ public class MacdStrategy implements Strategy {
 
         List<BigDecimal> closes = candles.stream().map(Candle::getClose).toList();
 
-        // 현재 시점과 이전 시점의 MACD 값 계산 (크로스 감지용)
-        MacdValues current = calculateMacd(closes, fastPeriod, slowPeriod, signalPeriod);
-        MacdValues prev = calculateMacd(closes.subList(0, closes.size() - 1), fastPeriod, slowPeriod, signalPeriod);
+        // 단일 패스로 현재·이전 MACD 값 동시 계산 (이중 재계산 방지)
+        MacdValues[] pair = calculateMacdPair(closes, fastPeriod, slowPeriod, signalPeriod);
+        MacdValues prev    = pair[0];
+        MacdValues current = pair[1];
 
         BigDecimal currentHistogram = current.macdLine.subtract(current.signalLine);
-        BigDecimal prevHistogram = prev.macdLine.subtract(prev.signalLine);
+        BigDecimal prevHistogram    = prev.macdLine.subtract(prev.signalLine);
 
         // 크로스 감지
         boolean currentAbove = current.macdLine.compareTo(current.signalLine) > 0;
-        boolean prevAbove = prev.macdLine.compareTo(prev.signalLine) > 0;
+        boolean prevAbove    = prev.macdLine.compareTo(prev.signalLine) > 0;
 
         if (currentAbove && !prevAbove) {
             // 골든크로스: MACD선이 Signal선을 상향 돌파
-            // 히스토그램이 커질수록 신호 강도 증가
+
+            // 제로라인 필터: MACD선이 0선 위에 있을 때만 BUY (약세 구간 매수 방지)
+            if (current.macdLine.compareTo(BigDecimal.ZERO) <= 0) {
+                return StrategySignal.hold(String.format(
+                        "MACD 골든크로스 필터: 0선 아래 크로스 무시 MACD=%.6f", current.macdLine));
+            }
+            // 히스토그램 확대 필터: 크로스 직후 히스토그램이 확대 중일 때만 BUY (가짜 크로스 방지)
+            if (currentHistogram.compareTo(prevHistogram) <= 0) {
+                return StrategySignal.hold(String.format(
+                        "MACD 골든크로스 필터: 히스토그램 미확대 현재=%.6f 이전=%.6f", currentHistogram, prevHistogram));
+            }
+
             BigDecimal strength = calculateStrength(currentHistogram, current.signalLine);
             return StrategySignal.buy(strength,
-                    String.format("MACD 골든크로스: MACD=%.6f, Signal=%.6f, Histogram=%.6f",
+                    String.format("MACD 골든크로스: MACD=%.6f, Signal=%.6f, Histogram=%.6f(확대)",
                             current.macdLine, current.signalLine, currentHistogram));
         }
 
         if (!currentAbove && prevAbove) {
             // 데드크로스: MACD선이 Signal선을 하향 돌파
+
+            // 제로라인 필터: MACD선이 0선 아래에 있을 때만 SELL (강세 구간 매도 방지)
+            if (current.macdLine.compareTo(BigDecimal.ZERO) >= 0) {
+                return StrategySignal.hold(String.format(
+                        "MACD 데드크로스 필터: 0선 위 크로스 무시 MACD=%.6f", current.macdLine));
+            }
+            // 히스토그램 확대 필터: 히스토그램이 더 음수 방향으로 확대 중일 때만 SELL
+            if (currentHistogram.compareTo(prevHistogram) >= 0) {
+                return StrategySignal.hold(String.format(
+                        "MACD 데드크로스 필터: 히스토그램 미확대 현재=%.6f 이전=%.6f", currentHistogram, prevHistogram));
+            }
+
             BigDecimal strength = calculateStrength(currentHistogram.abs(), current.signalLine.abs());
             return StrategySignal.sell(strength,
-                    String.format("MACD 데드크로스: MACD=%.6f, Signal=%.6f, Histogram=%.6f",
+                    String.format("MACD 데드크로스: MACD=%.6f, Signal=%.6f, Histogram=%.6f(확대)",
                             current.macdLine, current.signalLine, currentHistogram));
         }
 
@@ -100,44 +125,34 @@ public class MacdStrategy implements Strategy {
     }
 
     /**
-     * MACD선과 Signal선을 계산하여 반환
-     * MACD는 전체 데이터를 순차 스캔하여 정확한 EMA를 계산한다.
+     * 단일 패스로 직전·현재 MACD 값을 계산한다.
+     * [0] = prev, [1] = current
      */
-    private MacdValues calculateMacd(List<BigDecimal> closes, int fastPeriod, int slowPeriod, int signalPeriod) {
-        // 각 시점의 MACD선 값 계산 (slowPeriod 이후부터 계산 가능)
+    private MacdValues[] calculateMacdPair(List<BigDecimal> closes, int fastPeriod, int slowPeriod, int signalPeriod) {
         List<BigDecimal> macdLines = new ArrayList<>();
 
-        // EMA 계산: 초기 SMA 이후 EMA 방식으로 누적
         BigDecimal fastMultiplier = BigDecimal.valueOf(2.0 / (fastPeriod + 1));
         BigDecimal slowMultiplier = BigDecimal.valueOf(2.0 / (slowPeriod + 1));
-        BigDecimal oneMinusFast = BigDecimal.ONE.subtract(fastMultiplier);
-        BigDecimal oneMinusSlow = BigDecimal.ONE.subtract(slowMultiplier);
+        BigDecimal oneMinusFast   = BigDecimal.ONE.subtract(fastMultiplier);
+        BigDecimal oneMinusSlow   = BigDecimal.ONE.subtract(slowMultiplier);
 
         // 초기 EMA(fast) = 첫 fastPeriod개의 SMA
         BigDecimal fastEma = BigDecimal.ZERO;
-        for (int i = 0; i < fastPeriod; i++) {
-            fastEma = fastEma.add(closes.get(i));
-        }
+        for (int i = 0; i < fastPeriod; i++) fastEma = fastEma.add(closes.get(i));
         fastEma = fastEma.divide(BigDecimal.valueOf(fastPeriod), SCALE, RoundingMode.HALF_UP);
 
         // 초기 EMA(slow) = 첫 slowPeriod개의 SMA
         BigDecimal slowEma = BigDecimal.ZERO;
-        for (int i = 0; i < slowPeriod; i++) {
-            slowEma = slowEma.add(closes.get(i));
-        }
+        for (int i = 0; i < slowPeriod; i++) slowEma = slowEma.add(closes.get(i));
         slowEma = slowEma.divide(BigDecimal.valueOf(slowPeriod), SCALE, RoundingMode.HALF_UP);
 
-        // fastPeriod 이후부터 fast EMA 갱신, slowPeriod 이후부터 MACD 계산 시작
         for (int i = fastPeriod; i < slowPeriod; i++) {
             fastEma = closes.get(i).multiply(fastMultiplier, MC)
                     .add(fastEma.multiply(oneMinusFast, MC))
                     .setScale(SCALE, RoundingMode.HALF_UP);
         }
-
-        // slowPeriod 도달: 첫 MACD 기록
         macdLines.add(fastEma.subtract(slowEma));
 
-        // slowPeriod 이후: 두 EMA 모두 갱신하며 MACD 계산
         for (int i = slowPeriod; i < closes.size(); i++) {
             fastEma = closes.get(i).multiply(fastMultiplier, MC)
                     .add(fastEma.multiply(oneMinusFast, MC))
@@ -148,40 +163,19 @@ public class MacdStrategy implements Strategy {
             macdLines.add(fastEma.subtract(slowEma));
         }
 
-        // Signal선 = MACD선의 EMA(signalPeriod)
-        BigDecimal signalLine = calculateEmaFromList(macdLines, signalPeriod);
-        BigDecimal currentMacdLine = macdLines.get(macdLines.size() - 1);
+        // prev signal = macdLines[0..n-2]의 EMA, current signal = prev signal에 한 스텝 더
+        BigDecimal prevSignal = IndicatorUtils.ema(
+                macdLines.subList(0, macdLines.size() - 1), signalPeriod);
+        BigDecimal sigMult    = BigDecimal.valueOf(2.0 / (signalPeriod + 1));
+        BigDecimal currentSignal = macdLines.get(macdLines.size() - 1)
+                .multiply(sigMult, MC)
+                .add(prevSignal.multiply(BigDecimal.ONE.subtract(sigMult), MC))
+                .setScale(SCALE, RoundingMode.HALF_UP);
 
-        return new MacdValues(currentMacdLine, signalLine);
-    }
-
-    /**
-     * 리스트의 마지막 값을 기준으로 EMA를 계산한다.
-     */
-    private BigDecimal calculateEmaFromList(List<BigDecimal> values, int period) {
-        if (values.size() < period) {
-            // 데이터 부족 시 단순 평균 반환
-            BigDecimal sum = BigDecimal.ZERO;
-            for (BigDecimal v : values) sum = sum.add(v);
-            return sum.divide(BigDecimal.valueOf(values.size()), SCALE, RoundingMode.HALF_UP);
-        }
-
-        BigDecimal multiplier = BigDecimal.valueOf(2.0 / (period + 1));
-        BigDecimal oneMinusMult = BigDecimal.ONE.subtract(multiplier);
-
-        // 초기 EMA = 첫 period개의 SMA
-        BigDecimal ema = BigDecimal.ZERO;
-        for (int i = 0; i < period; i++) {
-            ema = ema.add(values.get(i));
-        }
-        ema = ema.divide(BigDecimal.valueOf(period), SCALE, RoundingMode.HALF_UP);
-
-        for (int i = period; i < values.size(); i++) {
-            ema = values.get(i).multiply(multiplier, MC)
-                    .add(ema.multiply(oneMinusMult, MC))
-                    .setScale(SCALE, RoundingMode.HALF_UP);
-        }
-        return ema;
+        return new MacdValues[]{
+            new MacdValues(macdLines.get(macdLines.size() - 2), prevSignal),
+            new MacdValues(macdLines.get(macdLines.size() - 1), currentSignal)
+        };
     }
 
     /**
@@ -203,18 +197,8 @@ public class MacdStrategy implements Strategy {
         final BigDecimal signalLine;
 
         MacdValues(BigDecimal macdLine, BigDecimal signalLine) {
-            this.macdLine = macdLine;
+            this.macdLine   = macdLine;
             this.signalLine = signalLine;
         }
-    }
-
-    private int getInt(Map<String, Object> params, String key, int defaultVal) {
-        Object v = params.get(key);
-        return v instanceof Number ? ((Number) v).intValue() : defaultVal;
-    }
-
-    private double getDouble(Map<String, Object> params, String key, double defaultVal) {
-        Object v = params.get(key);
-        return v instanceof Number ? ((Number) v).doubleValue() : defaultVal;
     }
 }

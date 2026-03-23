@@ -2,19 +2,38 @@
 
 import { useStrategies, useToggleStrategyActive } from '@/hooks';
 import { StrategyInfo } from '@/lib/types';
-import { Loader2, Settings, AlertCircle, Power } from 'lucide-react';
+import { Loader2, Settings, AlertCircle, Power, Layers, Zap } from 'lucide-react';
 import { useState } from 'react';
 import StrategyConfigForm from '@/components/features/strategy/StrategyConfigForm';
 
+type Tab = 'single' | 'composite';
+
+const tabClass = (active: boolean) =>
+    `flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+        active
+            ? 'bg-white dark:bg-slate-900 text-indigo-600 shadow-sm'
+            : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+    }`;
+
 export default function StrategiesPage() {
     const [selectedStrategy, setSelectedStrategy] = useState<StrategyInfo | null>(null);
+    const [activeTab, setActiveTab] = useState<Tab>('single');
 
     const { data: strategies = [], isLoading } = useStrategies();
     const toggleActive = useToggleStrategyActive();
 
+    const singleStrategies = strategies.filter(s => !s.isComposite);
+    const compositeStrategies = strategies.filter(s => s.isComposite);
+    const visibleStrategies = activeTab === 'single' ? singleStrategies : compositeStrategies;
+
     const handleToggleActive = (e: React.MouseEvent, strategyName: string) => {
         e.stopPropagation();
         toggleActive.mutate(strategyName);
+    };
+
+    const handleTabChange = (tab: Tab) => {
+        setActiveTab(tab);
+        setSelectedStrategy(null);
     };
 
     return (
@@ -30,18 +49,57 @@ export default function StrategiesPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                 {/* 전략 목록 */}
                 <div className="lg:col-span-2 space-y-4">
+                    {/* 탭 */}
+                    <div className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl w-fit">
+                        <button
+                            onClick={() => handleTabChange('single')}
+                            className={tabClass(activeTab === 'single')}
+                        >
+                            <Zap className="w-4 h-4" />
+                            단일 전략
+                            {!isLoading && (
+                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500">
+                                    {singleStrategies.length}
+                                </span>
+                            )}
+                        </button>
+                        <button
+                            onClick={() => handleTabChange('composite')}
+                            className={tabClass(activeTab === 'composite')}
+                        >
+                            <Layers className="w-4 h-4" />
+                            복합 전략
+                            {!isLoading && (
+                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500">
+                                    {compositeStrategies.length}
+                                </span>
+                            )}
+                        </button>
+                    </div>
+
+                    {/* 복합 전략 탭 설명 배너 */}
+                    {activeTab === 'composite' && !isLoading && (
+                        <div className="flex items-start gap-3 px-4 py-3 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 rounded-xl text-sm text-indigo-700 dark:text-indigo-300">
+                            <Layers className="w-4 h-4 mt-0.5 shrink-0" />
+                            <span>
+                                복합 전략은 시장 국면(추세·횡보·변동성)을 자동 감지하여 최적 단일 전략으로 전환합니다.
+                                단일 전략 여러 개를 동시에 운영하는 멀티세션과는 다릅니다.
+                            </span>
+                        </div>
+                    )}
+
                     {isLoading ? (
                         <div className="p-12 text-center text-slate-500 dark:text-slate-400 flex flex-col items-center gap-3 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
                             <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
                             <span>전략 목록을 불러오는 중...</span>
                         </div>
-                    ) : strategies.length === 0 ? (
+                    ) : visibleStrategies.length === 0 ? (
                         <div className="p-12 text-center text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
                             사용 가능한 전략이 없습니다.
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {[...strategies]
+                            {[...visibleStrategies]
                                 .sort((a, b) => {
                                     if (a.isActive !== b.isActive) return a.isActive ? -1 : 1;
                                     return a.name.localeCompare(b.name);

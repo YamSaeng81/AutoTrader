@@ -4,6 +4,93 @@
 
 ---
 
+### ✅ 완료 (2026-03-23) — COMPOSITE_ETH 모드별 가중치 분리 (백테스트 vs 실시간)
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `BacktestService.java` | 3곳의 전략 분기(`runBacktest`, `runMultiStrategyBacktest`, `runBulkBacktest`)에 `else if ("COMPOSITE_ETH".equals(...))` 블록 추가. `compositeEthBt()` 헬퍼 메서드 신설 |
+| 동일 파일 | 임포트 추가: `AtrBreakoutStrategy`, `EmaCrossStrategy`, `OrderbookImbalanceStrategy` |
+
+**가중치 변화**:
+
+| 구분 | ATR_BREAKOUT | ORDERBOOK_IMBALANCE | EMA_CROSS |
+|------|-------------|---------------------|-----------|
+| **Live** (기존) | 0.5 | 0.3 | 0.2 |
+| **Backtest** (신규) | 0.7 | 0.1 | 0.2 |
+
+**설계 근거**: 백테스트에서 `ORDERBOOK_IMBALANCE`는 실시간 호가창 대신 캔들 근사값(시가·종가 스프레드)을 사용하므로 실효 신뢰도가 낮다. 가중치를 0.3→0.1로 축소하고 그 0.2를 검증된 `ATR_BREAKOUT`으로 이동. 사용자는 전략명 `COMPOSITE_ETH`만 선택하면 되며, 백테스트/라이브 모드 자동 전환으로 UI 변경 없음.
+
+---
+
+
+### ✅ 완료 (2026-03-23) — COMPOSITE TRANSITIONAL 신규 진입 금지
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `PaperTradingService.java` | COMPOSITE 전략 신호 평가 후 `regime == TRANSITIONAL && action == BUY` → `StrategySignal.hold(...)` 로 억제. 원신호 이유를 메시지에 포함하여 로그 추적 용이. `finalSignal` final 변수로 람다 캡처 문제 해결 |
+| `LiveTradingService.java` | 동일 패턴 적용 |
+
+**동작**: COMPOSITE(시장 국면 자동 선택) 전략 세션에서 TRANSITIONAL 국면 감지 시 BUY 신호 차단 → 기존 포지션은 SELL 신호로 정상 청산 가능. COMPOSITE_BTC/ETH 프리셋은 regime을 사용하지 않으므로 영향 없음.
+
+---
+
+### ✅ 완료 (2026-03-23) — COMPOSITE_BTC EMA 방향 필터 추가 (추세 역행 신호 억제)
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `CompositeStrategy.java` | `emaFilterEnabled` 생성자 플래그 추가. `getMinimumCandleCount()` — EMA 필터 활성화 시 최소 50 캔들 보장. `evaluate()` → `finalSignal()` + `applyEmaFilter()` 로 분리. EMA20 > EMA50 상승추세 → SELL 억제 HOLD, EMA20 < EMA50 하락추세 → BUY 억제 HOLD |
+| `CompositePresetRegistrar.java` | `COMPOSITE_BTC` 등록 시 `emaFilterEnabled=true` 전달 (COMPOSITE_ETH는 미적용 — 추세추종 전략 포함으로 억제 불필요) |
+
+**설계 결정**: EMA20/50 파라미터 하드코딩 (일봉 기준 합리적 기본값). `emaFilterEnabled=false` 기본값 유지로 기존 전략 영향 없음.
+
+---
+
+### ✅ 완료 (2026-03-23) — 글로벌 리스크 매니저 분리 (포지션별 SL/TP 절대가 저장 및 매 틱 체크)
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `V26__add_sl_tp_to_positions.sql` (신규) | `position` 및 `paper_trading.position` 테이블에 `stop_loss_price`, `take_profit_price` 컬럼 추가 (NUMERIC 20,8, nullable — 기존 포지션 하위 호환) |
+| `PositionEntity.java` | `stopLossPrice`, `takeProfitPrice` 필드 추가 |
+| `PaperPositionEntity.java` | `stopLossPrice`, `takeProfitPrice` 필드 추가 |
+| `PaperTradingService.java` | `executeBuy()` — 매수 시 전략 제시 SL/TP 우선, 없으면 기본 3%/6% 적용하여 포지션에 저장. `runSessionStrategy()` — 전략 평가 전 SL/TP 가격 비교 체크 추가 (손절: currentPrice ≤ stopLossPrice, 익절: currentPrice ≥ takeProfitPrice) |
+| `LiveTradingService.java` | `executeSessionBuy()` — 매수 시 전략 제시 SL/TP 우선, 없으면 세션 `stopLossPct` 기반(SL×2 = TP) 기본값 적용. SL/TP 체크 블록 리팩터링: 기존 SL(%-비교)에 TP 체크 추가, `pos.stopLossPrice != null`이면 절대가 비교, null이면 pnlPct 비교(하위 호환) |
+
+**설계 결정**:
+- 전략이 `StrategySignal.suggestedStopLoss/TakeProfit`을 제공하면 그 값 우선 사용
+- 없으면 세션/기본 비율로 진입가 기준 절대가를 계산하여 저장 → 매 틱 O(1) 비교
+- 기존 포지션(`stopLossPrice == null`)은 기존 %-비교 방식 유지 (하위 호환)
+
+---
+
+### ✅ 완료 (2026-03-23) — 전략 코드 리팩토링 (기능 변경 없음)
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `StrategyParamUtils.java` (신규) | `getInt / getDouble / getBoolean` 공용 파라미터 파싱 헬퍼. `Number` 외에 `String` → 숫자 변환 fallback 포함 (JSON 역직렬화 타입 불일치 방어). 기존 4개 전략에 각각 중복 정의되어 있던 코드 제거 |
+| `IndicatorUtils.java` | `rsiSeries()` — Wilder's Smoothing RSI 시계열 / `rsiFromAvg()` — RS → RSI 변환 헬퍼 / `stochasticKSeries()` — RSI 시계열 → Stochastic %K 시계열 / `smaList()` — 롤링 SMA 시계열 (기존 `sma()`는 단일 BigDecimal 반환) 추가 |
+| `MacdStrategy.java` | `calculateEmaFromList()` 제거 → `IndicatorUtils.ema()` 직접 호출 / `getInt / getDouble` 제거 → `StrategyParamUtils` 사용 / `calculateMacd()` 이중 호출 제거: 단일 패스에서 MACD 라인 시계열 빌드 후 `prev`·`current` signal을 한 번에 산출 (이전: O(2n), 이후: O(n) + 1 EMA step) |
+| `MacdStochBbStrategy.java` | `calcEmaFromList / calcRsiSeries / rsiFromAvg / calcStochK / calcSma` 제거 → `IndicatorUtils` 위임 / `getInt / getDouble` 제거 → `StrategyParamUtils` 사용 / `calcMacd()` 이중 호출 → 단일 패스로 개선 |
+| `StochasticRsiStrategy.java` | `computeRsiSeries / rsiFromAvg / computeStochasticK / computeSma` 제거 → `IndicatorUtils` 위임 / `parseIntParam / parseDoubleParam` 제거 → `StrategyParamUtils` 사용 |
+| `VwapStrategy.java` | `getInt / getDouble / getBool` 제거 → `StrategyParamUtils` 사용 |
+| `CompositeStrategy.java` | `totalWeight` 필드 추가, 생성자에서 1회 계산 → `evaluate()` 호출마다 `stream().sum()` 재산정하던 낭비 제거 |
+| `types.ts` | `StrategyType` union에 `COMPOSITE_BTC`, `COMPOSITE_ETH`, `MACD_STOCH_BB` 추가 (등록된 전략인데 타입 미포함으로 컴파일 타임 오류 불가 상태였음) |
+| `page.tsx` (strategies) | 탭 버튼 `className` 계산 로직 → `tabClass(active: boolean)` 헬퍼 추출, 중복 제거 |
+
+> **제거된 중복 코드 규모**: 파라미터 파싱 ~40줄 (4개 파일), 지표 계산(RSI 시계열·StochK·SMA 시계열·EMA 리스트) ~210줄 (2개 파일) — 총 약 250줄
+
+---
+
+### ✅ 완료 (2026-03-23) — P4 전략 고도화
+
+- [x] **MACD 히스토그램 연속 확대 조건 추가** — 크로스 시점에 `현재 histogram > 이전 histogram` 방향 확인 조건 추가. `MacdStrategy.evaluate()` 적용. 가짜 크로스 약 30% 필터링
+- [x] **MACD 제로라인 필터** — BUY: MACD 선이 0선 위에서 크로스할 때만 진입 (`currentMacd > 0`). SELL: 0선 아래 크로스만. 횡보장 노이즈 감소
+- [x] **StochRSI oversold/overbought 임계값 조정** — `oversoldLevel 15→20`, `overboughtLevel 85→80`. 신호 발생 빈도 줄여 노이즈 감소. `StochasticRsiStrategy.java` 기본값 변경
+- [x] **StochRSI %K-%D 크로스 연속 확인 조건** — 1캔들 즉시 진입 대신 2캔들 연속 %K > %D 유지 시만 매수. `kSeries.size() >= 3` 조건으로 구현
+- [x] **StochRSI 거래량 확인 조건 추가** — 진입 시 현재 캔들 거래량 ≥ 최근 20캔들 평균일 때만 신호 발동. `IndicatorUtils.sma()` 활용
+- [x] **VWAP 임계값 완화 + ADX 상한 상향** — `thresholdPct 2.5→1.5%`, `adxMaxThreshold 25→35`. BTC 거래 0건 문제 해소
+- [x] **VWAP 앵커 방식 개선** — UTC 00:00 기점 캔들부터 당일 VWAP 누적 (`anchorSession=true`). 당일 캔들 3개 미만이면 rolling VWAP fallback. `period` 파라미터로 rolling 기간 조정 가능
+- [x] **코인별 복합 전략 프리셋 추가** — `COMPOSITE_BTC` (GRID×0.6 + BOLLINGER×0.4), `COMPOSITE_ETH` (ATR_BREAKOUT×0.5 + ORDERBOOK_IMBALANCE×0.3 + EMA_CROSS×0.2). `CompositePresetRegistrar` @PostConstruct 등록. 전략 관리 탭에서 단일/복합 분리 표시
+- [x] **MACD_STOCH_BB 신규 복합 추세 전략** — MACD(추세) + StochRSI(타이밍) + 볼린저밴드(지지선) 결합. 1시간봉 최적화. 매수 6조건 AND, 매도: Hist↓ OR K>80. 손절-2%/익절+4% 자동 첨부, 쿨다운 3캔들. `StatefulStrategy` 구현 (세션별 쿨다운 상태 격리)
 
 ### ✅ 완료 (2026-03-23)
 

@@ -41,7 +41,7 @@ export interface UpbitStatusResponse {
 
 export type StrategyType = 'VWAP' | 'EMA_CROSS' | 'BOLLINGER' | 'GRID'
     | 'RSI' | 'MACD' | 'SUPERTREND' | 'ATR_BREAKOUT' | 'ORDERBOOK_IMBALANCE' | 'STOCHASTIC_RSI'
-    | 'COMPOSITE';
+    | 'COMPOSITE' | 'COMPOSITE_BTC' | 'COMPOSITE_ETH' | 'MACD_STOCH_BB';
 export type Timeframe = 'M1' | 'M5' | 'M15' | 'M30' | 'H1' | 'H4' | 'D1';
 export type OrderSide = 'BUY' | 'SELL';
 export type MarketRegime = 'TREND' | 'RANGE' | 'VOLATILE';
@@ -116,6 +116,7 @@ export interface StrategyInfo {
   status: StrategyStatus;
   description: string;
   isActive: boolean;
+  isComposite: boolean;
 }
 
 // Phase 3.5 추가 타입

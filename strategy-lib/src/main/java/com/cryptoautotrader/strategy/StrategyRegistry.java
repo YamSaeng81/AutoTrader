@@ -7,6 +7,7 @@ import com.cryptoautotrader.strategy.grid.GridStrategy;
 import com.cryptoautotrader.strategy.macd.MacdStrategy;
 import com.cryptoautotrader.strategy.orderbook.OrderbookImbalanceStrategy;
 import com.cryptoautotrader.strategy.rsi.RsiStrategy;
+import com.cryptoautotrader.strategy.macdstochbb.MacdStochBbStrategy;
 import com.cryptoautotrader.strategy.stochasticrsi.StochasticRsiStrategy;
 import com.cryptoautotrader.strategy.supertrend.SupertrendStrategy;
 import com.cryptoautotrader.strategy.testtraded.TestTimedStrategy;
@@ -36,6 +37,8 @@ public final class StrategyRegistry {
         register(new OrderbookImbalanceStrategy());
         // Phase 3 전략 6번째 (로직 구현 완료)
         register(new StochasticRsiStrategy());
+        // MACD + StochRSI + 볼린저밴드 복합 추세 전략 (StatefulStrategy: 쿨다운 상태 보유)
+        registerStateful("MACD_STOCH_BB", MacdStochBbStrategy::new);
         // 실전매매 동작 검증용 테스트 전략
         register(new TestTimedStrategy());
     }
@@ -47,7 +50,7 @@ public final class StrategyRegistry {
     }
 
     /** StatefulStrategy 등록: 공유 인스턴스 저장 + 세션별 생성 팩토리 등록 */
-    private static void registerStateful(String name, Supplier<Strategy> factory) {
+    public static void registerStateful(String name, Supplier<Strategy> factory) {
         STRATEGIES.put(name, factory.get());
         FACTORIES.put(name, factory);
     }

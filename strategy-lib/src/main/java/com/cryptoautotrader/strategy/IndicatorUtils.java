@@ -152,6 +152,101 @@ public final class IndicatorUtils {
         return result;
     }
 
+    /**
+     * Wilder's Smoothing 방식으로 RSI 시계열을 계산한다.
+     * 반환 크기 = closes.size() - period
+     */
+    public static List<BigDecimal> rsiSeries(List<BigDecimal> closes, int period) {
+        List<BigDecimal> result = new ArrayList<>();
+        if (closes.size() <= period) return result;
+
+        List<BigDecimal> gains  = new ArrayList<>();
+        List<BigDecimal> losses = new ArrayList<>();
+        for (int i = 1; i < closes.size(); i++) {
+            BigDecimal change = closes.get(i).subtract(closes.get(i - 1));
+            if (change.compareTo(BigDecimal.ZERO) > 0) {
+                gains.add(change);
+                losses.add(BigDecimal.ZERO);
+            } else {
+                gains.add(BigDecimal.ZERO);
+                losses.add(change.abs());
+            }
+        }
+        if (gains.size() < period) return result;
+
+        BigDecimal avgGain = BigDecimal.ZERO;
+        BigDecimal avgLoss = BigDecimal.ZERO;
+        for (int i = 0; i < period; i++) {
+            avgGain = avgGain.add(gains.get(i));
+            avgLoss = avgLoss.add(losses.get(i));
+        }
+        avgGain = avgGain.divide(BigDecimal.valueOf(period), SCALE, RoundingMode.HALF_UP);
+        avgLoss = avgLoss.divide(BigDecimal.valueOf(period), SCALE, RoundingMode.HALF_UP);
+        result.add(rsiFromAvg(avgGain, avgLoss));
+
+        BigDecimal periodBD       = BigDecimal.valueOf(period);
+        BigDecimal periodMinusOne = periodBD.subtract(BigDecimal.ONE);
+        for (int i = period; i < gains.size(); i++) {
+            avgGain = avgGain.multiply(periodMinusOne)
+                    .add(gains.get(i))
+                    .divide(periodBD, SCALE, RoundingMode.HALF_UP);
+            avgLoss = avgLoss.multiply(periodMinusOne)
+                    .add(losses.get(i))
+                    .divide(periodBD, SCALE, RoundingMode.HALF_UP);
+            result.add(rsiFromAvg(avgGain, avgLoss));
+        }
+        return result;
+    }
+
+    public static BigDecimal rsiFromAvg(BigDecimal avgGain, BigDecimal avgLoss) {
+        BigDecimal hundred = BigDecimal.valueOf(100);
+        if (avgLoss.compareTo(BigDecimal.ZERO) == 0) return hundred;
+        BigDecimal rs = avgGain.divide(avgLoss, SCALE, RoundingMode.HALF_UP);
+        return hundred.subtract(hundred.divide(BigDecimal.ONE.add(rs), SCALE, RoundingMode.HALF_UP))
+                .setScale(2, RoundingMode.HALF_UP);
+    }
+
+    /**
+     * RSI 시계열에 Stochastic 공식을 적용하여 %K 시계열을 반환한다.
+     * 반환 크기 = rsiSeries.size() - stochPeriod + 1
+     */
+    public static List<BigDecimal> stochasticKSeries(List<BigDecimal> rsiSeries, int stochPeriod) {
+        List<BigDecimal> kSeries = new ArrayList<>();
+        BigDecimal fifty   = BigDecimal.valueOf(50);
+        BigDecimal hundred = BigDecimal.valueOf(100);
+        for (int i = stochPeriod - 1; i < rsiSeries.size(); i++) {
+            BigDecimal high = rsiSeries.get(i - stochPeriod + 1);
+            BigDecimal low  = rsiSeries.get(i - stochPeriod + 1);
+            for (int j = i - stochPeriod + 2; j <= i; j++) {
+                BigDecimal v = rsiSeries.get(j);
+                if (v.compareTo(high) > 0) high = v;
+                if (v.compareTo(low)  < 0) low  = v;
+            }
+            BigDecimal range = high.subtract(low);
+            kSeries.add(range.compareTo(BigDecimal.ZERO) == 0
+                    ? fifty
+                    : rsiSeries.get(i).subtract(low)
+                            .divide(range, SCALE, RoundingMode.HALF_UP)
+                            .multiply(hundred)
+                            .setScale(2, RoundingMode.HALF_UP));
+        }
+        return kSeries;
+    }
+
+    /**
+     * 롤링 SMA 시계열을 반환한다. (기존 sma()는 단일 BigDecimal 반환)
+     * 반환 크기 = values.size() - period + 1
+     */
+    public static List<BigDecimal> smaList(List<BigDecimal> values, int period) {
+        List<BigDecimal> result = new ArrayList<>();
+        for (int i = period - 1; i < values.size(); i++) {
+            BigDecimal sum = BigDecimal.ZERO;
+            for (int j = i - period + 1; j <= i; j++) sum = sum.add(values.get(j));
+            result.add(sum.divide(BigDecimal.valueOf(period), SCALE, RoundingMode.HALF_UP));
+        }
+        return result;
+    }
+
     public static BigDecimal adx(List<Candle> candles, int period) {
         if (candles.size() < period * 2 + 1) {
             throw new IllegalArgumentException("ADX 계산에 데이터 부족");

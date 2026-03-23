@@ -3,10 +3,13 @@ package com.cryptoautotrader.strategy.vwap;
 import com.cryptoautotrader.strategy.Candle;
 import com.cryptoautotrader.strategy.IndicatorUtils;
 import com.cryptoautotrader.strategy.Strategy;
+import com.cryptoautotrader.strategy.StrategyParamUtils;
 import com.cryptoautotrader.strategy.StrategySignal;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 
@@ -26,10 +29,11 @@ public class VwapStrategy implements Strategy {
 
     @Override
     public StrategySignal evaluate(List<Candle> candles, Map<String, Object> params) {
-        double thresholdPct    = getDouble(params, "thresholdPct",    2.5);
-        int    period          = getInt(params,    "period",          20);
-        int    adxPeriod       = getInt(params,    "adxPeriod",       14);
-        double adxMaxThreshold = getDouble(params, "adxMaxThreshold", 25.0);
+        double  thresholdPct    = StrategyParamUtils.getDouble(params,  "thresholdPct",    1.5);
+        int     period          = StrategyParamUtils.getInt(params,     "period",          20);
+        int     adxPeriod       = StrategyParamUtils.getInt(params,     "adxPeriod",       14);
+        double  adxMaxThreshold = StrategyParamUtils.getDouble(params,  "adxMaxThreshold", 35.0);
+        boolean anchorSession   = StrategyParamUtils.getBoolean(params, "anchorSession",   true);
 
         if (candles.size() < period) {
             return StrategySignal.hold("데이터 부족: " + candles.size() + " < " + period);
@@ -44,7 +48,9 @@ public class VwapStrategy implements Strategy {
             }
         }
 
-        BigDecimal vwap = calculateVwap(candles, period);
+        BigDecimal vwap = anchorSession
+                ? calculateSessionVwap(candles, period)
+                : calculateRollingVwap(candles, period);
         BigDecimal currentPrice = candles.get(candles.size() - 1).getClose();
         BigDecimal deviationPct = currentPrice.subtract(vwap)
                 .divide(vwap, SCALE, RoundingMode.HALF_UP)
@@ -73,32 +79,51 @@ public class VwapStrategy implements Strategy {
         return 20;
     }
 
-    private BigDecimal calculateVwap(List<Candle> candles, int period) {
-        BigDecimal sumPriceVolume = BigDecimal.ZERO;
-        BigDecimal sumVolume = BigDecimal.ZERO;
+    /**
+     * 세션 앵커 VWAP: 오늘 UTC 00:00 기점의 캔들부터 누적 계산.
+     * 당일 캔들이 3개 미만이면 rolling VWAP 으로 fallback.
+     */
+    private BigDecimal calculateSessionVwap(List<Candle> candles, int period) {
+        LocalDate today = candles.get(candles.size() - 1).getTime()
+                .atZone(ZoneOffset.UTC).toLocalDate();
 
-        int start = candles.size() - period;
-        for (int i = start; i < candles.size(); i++) {
+        int sessionStart = candles.size(); // 당일 첫 캔들 인덱스
+        for (int i = candles.size() - 1; i >= 0; i--) {
+            LocalDate d = candles.get(i).getTime().atZone(ZoneOffset.UTC).toLocalDate();
+            if (!d.equals(today)) break;
+            sessionStart = i;
+        }
+
+        int sessionLen = candles.size() - sessionStart;
+        if (sessionLen < 3) {
+            // 당일 데이터가 너무 적으면 rolling VWAP 으로 대체
+            return calculateRollingVwap(candles, period);
+        }
+
+        return accumulateVwap(candles, sessionStart, candles.size());
+    }
+
+    /** Rolling VWAP: 최근 period 개 캔들 기준 */
+    private BigDecimal calculateRollingVwap(List<Candle> candles, int period) {
+        int start = Math.max(0, candles.size() - period);
+        return accumulateVwap(candles, start, candles.size());
+    }
+
+    private BigDecimal accumulateVwap(List<Candle> candles, int from, int to) {
+        BigDecimal sumPV = BigDecimal.ZERO;
+        BigDecimal sumV  = BigDecimal.ZERO;
+        for (int i = from; i < to; i++) {
             Candle c = candles.get(i);
-            BigDecimal typicalPrice = c.getHigh().add(c.getLow()).add(c.getClose())
+            BigDecimal tp = c.getHigh().add(c.getLow()).add(c.getClose())
                     .divide(BigDecimal.valueOf(3), SCALE, RoundingMode.HALF_UP);
-            sumPriceVolume = sumPriceVolume.add(typicalPrice.multiply(c.getVolume()));
-            sumVolume = sumVolume.add(c.getVolume());
+            sumPV = sumPV.add(tp.multiply(c.getVolume()));
+            sumV  = sumV.add(c.getVolume());
         }
-
-        if (sumVolume.compareTo(BigDecimal.ZERO) == 0) {
-            return candles.get(candles.size() - 1).getClose();
+        if (sumV.compareTo(BigDecimal.ZERO) == 0) {
+            return candles.get(to - 1).getClose();
         }
-        return sumPriceVolume.divide(sumVolume, SCALE, RoundingMode.HALF_UP);
+        return sumPV.divide(sumV, SCALE, RoundingMode.HALF_UP);
     }
 
-    private double getDouble(Map<String, Object> params, String key, double defaultVal) {
-        Object v = params.get(key);
-        return v instanceof Number ? ((Number) v).doubleValue() : defaultVal;
-    }
-
-    private int getInt(Map<String, Object> params, String key, int defaultVal) {
-        Object v = params.get(key);
-        return v instanceof Number ? ((Number) v).intValue() : defaultVal;
-    }
 }
+

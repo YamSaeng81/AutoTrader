@@ -566,6 +566,12 @@ public class LiveTradingService {
             regime = detector.detect(candles);
             List<WeightedStrategy> weighted = StrategySelector.select(regime);
             signal = new CompositeStrategy(weighted).evaluate(candles, Collections.emptyMap());
+            // TRANSITIONAL 국면: 신규 진입 금지 — 기존 포지션 유지(SELL)만 허용
+            if (regime == MarketRegime.TRANSITIONAL
+                    && signal.getAction() == StrategySignal.Action.BUY) {
+                signal = StrategySignal.hold(
+                        "TRANSITIONAL 국면 신규 진입 금지 [원신호: " + signal.getReason() + "]");
+            }
             log.info("실전매매 COMPOSITE 신호 (sessionId={}): regime={} {} → {} ({})",
                     sessionId, regime, coinPair, signal.getAction(), signal.getReason());
         } else {
@@ -617,7 +623,7 @@ public class LiveTradingService {
         Optional<PositionEntity> openPos = positionRepository
                 .findBySessionIdAndCoinPairAndStatus(sessionId, coinPair, "OPEN");
 
-        // 손절 확인 + 낙폭 경고
+        // ── 익절/손절 체크 (전략 신호보다 우선) ──────────────────
         if (openPos.isPresent()) {
             PositionEntity pos = openPos.get();
             BigDecimal pnlPct = currentPrice.subtract(pos.getAvgPrice())
@@ -625,11 +631,21 @@ public class LiveTradingService {
                     .multiply(BigDecimal.valueOf(100));
             BigDecimal rawStopLoss = session.getStopLossPct() != null
                     ? session.getStopLossPct() : new BigDecimal("5.0");
-            BigDecimal stopLoss = rawStopLoss.negate();
+
+            // 익절 체크: 저장된 takeProfitPrice 도달 시 청산
+            if (pos.getTakeProfitPrice() != null
+                    && currentPrice.compareTo(pos.getTakeProfitPrice()) >= 0) {
+                log.info("익절 발동 (sessionId={}): {} 현재가={} 익절가={} 손익률={}%",
+                        sessionId, coinPair, currentPrice, pos.getTakeProfitPrice(), pnlPct);
+                executeSessionSell(session, pos, currentPrice,
+                        "익절 발동 — 현재가 " + currentPrice + " ≥ 익절가 " + pos.getTakeProfitPrice());
+                return;
+            }
 
             // 낙폭 경고: 손절 한도의 50% 이상 손실이고 아직 손절 미도달 시 (30분 쿨다운)
-            BigDecimal warningThreshold = stopLoss.multiply(new BigDecimal("0.5"));
-            if (pnlPct.compareTo(warningThreshold) <= 0 && pnlPct.compareTo(stopLoss) > 0) {
+            BigDecimal stopLossNeg = rawStopLoss.negate();
+            BigDecimal warningThreshold = stopLossNeg.multiply(new BigDecimal("0.5"));
+            if (pnlPct.compareTo(warningThreshold) <= 0 && pnlPct.compareTo(stopLossNeg) > 0) {
                 Instant lastWarn = lastDrawdownWarning.get(sessionId);
                 boolean cooldownPassed = lastWarn == null ||
                         Duration.between(lastWarn, Instant.now()).toMinutes() >= DRAWDOWN_WARNING_COOLDOWN_MIN;
@@ -640,9 +656,15 @@ public class LiveTradingService {
                 }
             }
 
-            if (pnlPct.compareTo(stopLoss) <= 0) {
-                log.warn("손절 발동 (sessionId={}): {} 손익률={}% (한도={}%)",
-                        sessionId, coinPair, pnlPct, stopLoss);
+            // 손절 체크: 저장된 stopLossPrice 우선, 없으면 세션 stopLossPct % 비교 (기존 포지션 하위 호환)
+            boolean slTriggered = (pos.getStopLossPrice() != null)
+                    ? currentPrice.compareTo(pos.getStopLossPrice()) <= 0
+                    : pnlPct.compareTo(stopLossNeg) <= 0;
+            if (slTriggered) {
+                log.warn("손절 발동 (sessionId={}): {} 현재가={} 손익률={}% (손절가={}/한도={}%)",
+                        sessionId, coinPair, currentPrice, pnlPct,
+                        pos.getStopLossPrice() != null ? pos.getStopLossPrice() : "pct",
+                        rawStopLoss);
                 telegramService.notifyStopLoss(coinPair, pnlPct.doubleValue(), sessionId);
                 executeSessionSell(session, pos, currentPrice,
                         "손절 발동 -- 손익률 " + pnlPct + "%");
@@ -650,6 +672,7 @@ public class LiveTradingService {
             }
         }
 
+        final StrategySignal finalSignal = signal;
         switch (signal.getAction()) {
             case BUY -> {
                 boolean hasClosingPos = positionRepository
@@ -661,12 +684,13 @@ public class LiveTradingService {
                         return;
                     }
                     executeSessionBuy(session, coinPair, currentPrice,
-                            String.format("전략 신호: %s -- %s", strategyType, signal.getReason()));
+                            String.format("전략 신호: %s -- %s", strategyType, finalSignal.getReason()),
+                            finalSignal);
                 }
             }
             case SELL -> {
                 openPos.ifPresent(pos -> executeSessionSell(session, pos, currentPrice,
-                        String.format("전략 신호: %s -- %s", strategyType, signal.getReason())));
+                        String.format("전략 신호: %s -- %s", strategyType, finalSignal.getReason())));
             }
             default -> { /* HOLD */ }
         }
@@ -676,7 +700,8 @@ public class LiveTradingService {
     }
 
     private void executeSessionBuy(LiveTradingSessionEntity session,
-                                    String coinPair, BigDecimal price, String reason) {
+                                    String coinPair, BigDecimal price, String reason,
+                                    StrategySignal signal) {
         // 사전 검증: 이미 이 세션에 활성 BUY 주문이 있으면 스킵 (orphan 포지션 방지)
         boolean hasPendingBuy = orderRepository.existsBySessionIdAndCoinPairAndSideAndStateIn(
                 session.getId(), coinPair, "BUY", ACTIVE_ORDER_STATES);
@@ -701,6 +726,19 @@ public class LiveTradingService {
             return;
         }
 
+        // SL/TP 계산: 전략 제시값 우선, 없으면 세션 stopLossPct 기반 기본값 적용
+        BigDecimal slPct = (session.getStopLossPct() != null)
+                ? session.getStopLossPct()
+                : new BigDecimal("5.0");
+        BigDecimal stopLossPrice = (signal != null && signal.getSuggestedStopLoss() != null)
+                ? signal.getSuggestedStopLoss()
+                : price.multiply(BigDecimal.ONE.subtract(slPct.divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP)))
+                        .setScale(8, RoundingMode.HALF_DOWN);
+        BigDecimal takeProfitPrice = (signal != null && signal.getSuggestedTakeProfit() != null)
+                ? signal.getSuggestedTakeProfit()
+                : price.multiply(BigDecimal.ONE.add(slPct.multiply(new BigDecimal("2")).divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP)))
+                        .setScale(8, RoundingMode.HALF_UP);
+
         // 포지션 생성 (세션 연결)
         // size=0 으로 초기화: 주문 체결(FILLED) 후 handleBuyFill()에서 실제 체결 수량으로 갱신됨
         // 체결 전 size=0 이므로 updateSessionUnrealizedPnl()에서 totalAssetKrw가 가격에 따라 변동하지 않음
@@ -712,6 +750,8 @@ public class LiveTradingService {
                 .size(BigDecimal.ZERO)
                 .status("OPEN")
                 .sessionId(session.getId())
+                .stopLossPrice(stopLossPrice)
+                .takeProfitPrice(takeProfitPrice)
                 .build();
         pos = positionRepository.save(pos);
 

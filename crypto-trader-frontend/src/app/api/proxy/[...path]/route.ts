@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Agent } from 'undici';
 
 /**
  * 백엔드 API 프록시 — API_TOKEN을 서버사이드에서만 주입
@@ -12,6 +13,14 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const BACKEND_URL = process.env.INTERNAL_BACKEND_URL || 'http://localhost:8080';
 const API_TOKEN = process.env.API_TOKEN;
+
+// 백테스트처럼 오래 걸리는 요청용 — undici 기본 headersTimeout(5분) 우회
+const longTimeoutAgent = new Agent({
+    headersTimeout: 30 * 60 * 1000,  // 30분
+    bodyTimeout: 30 * 60 * 1000,
+});
+
+const LONG_TIMEOUT_PATHS = ['/api/v1/backtest'];
 
 async function proxyRequest(request: NextRequest, pathSegments: string[]): Promise<NextResponse> {
     const backendPath = '/' + pathSegments.join('/');
@@ -31,12 +40,15 @@ async function proxyRequest(request: NextRequest, pathSegments: string[]): Promi
         body = await request.blob();
     }
 
+    const isLongTimeout = LONG_TIMEOUT_PATHS.some(p => backendPath.startsWith(p));
+
     const backendResponse = await fetch(targetUrl, {
         method,
         headers,
         body,
-        // @ts-expect-error — Node.js fetch duplex 옵션
+        // @ts-expect-error — Node.js fetch duplex/dispatcher 옵션
         duplex: 'half',
+        dispatcher: isLongTimeout ? longTimeoutAgent : undefined,
     });
 
     const responseHeaders = new Headers(backendResponse.headers);
