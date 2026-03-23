@@ -7,7 +7,15 @@ import org.springframework.context.ApplicationEvent;
  * ExchangeHealthMonitor → LiveTradingService 순환 참조 방지용.
  */
 public class ExchangeDownEvent extends ApplicationEvent {
-    public ExchangeDownEvent(Object source) {
+
+    private final String reason;
+
+    public ExchangeDownEvent(Object source, String reason) {
         super(source);
+        this.reason = reason;
+    }
+
+    public String getReason() {
+        return reason;
     }
 }

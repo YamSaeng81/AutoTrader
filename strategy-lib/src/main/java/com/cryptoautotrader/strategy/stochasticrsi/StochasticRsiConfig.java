@@ -53,4 +53,32 @@ public class StochasticRsiConfig extends StrategyConfig {
 
     public double getOverboughtLevel()        { return overboughtLevel; }
     public void setOverboughtLevel(double v)  { this.overboughtLevel = v; }
+
+    public static StochasticRsiConfig fromParams(Map<String, Object> params) {
+        StochasticRsiConfig config = new StochasticRsiConfig();
+        if (params == null) {
+            return config;
+        }
+        Object rsiPeriodVal = params.get("rsiPeriod");
+        if (rsiPeriodVal instanceof Number) {
+            config.setRsiPeriod(((Number) rsiPeriodVal).intValue());
+        }
+        Object stochPeriodVal = params.get("stochPeriod");
+        if (stochPeriodVal instanceof Number) {
+            config.setStochPeriod(((Number) stochPeriodVal).intValue());
+        }
+        Object signalPeriodVal = params.get("signalPeriod");
+        if (signalPeriodVal instanceof Number) {
+            config.setSignalPeriod(((Number) signalPeriodVal).intValue());
+        }
+        Object oversoldVal = params.get("oversoldLevel");
+        if (oversoldVal instanceof Number) {
+            config.setOversoldLevel(((Number) oversoldVal).doubleValue());
+        }
+        Object overboughtVal = params.get("overboughtLevel");
+        if (overboughtVal instanceof Number) {
+            config.setOverboughtLevel(((Number) overboughtVal).doubleValue());
+        }
+        return config;
+    }
 }

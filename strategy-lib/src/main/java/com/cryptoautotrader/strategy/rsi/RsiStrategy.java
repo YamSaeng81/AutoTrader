@@ -7,6 +7,7 @@ import com.cryptoautotrader.strategy.StrategySignal;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -44,8 +45,9 @@ public class RsiStrategy implements Strategy {
 
         List<BigDecimal> closes = candles.stream().map(Candle::getClose).toList();
 
-        // 현재 RSI 계산
-        BigDecimal currentRsi = calculateRsi(closes, period);
+        // RSI 시리즈 1회 계산 (이후 인덱스 룩업으로 재사용 — 중복 계산 방지)
+        List<BigDecimal> rsiSeries = calculateRsiSeries(closes, period);
+        BigDecimal currentRsi = rsiSeries.get(closes.size() - 1);
         BigDecimal oversold   = BigDecimal.valueOf(oversoldLevel);
         BigDecimal overbought = BigDecimal.valueOf(overboughtLevel);
 
@@ -57,7 +59,7 @@ public class RsiStrategy implements Strategy {
             int swingLowIdx = findRecentSwingLow(closes, currentIdx, pivotWindow);
             if (swingLowIdx >= period
                     && closes.get(currentIdx).compareTo(closes.get(swingLowIdx)) < 0) {
-                BigDecimal swingLowRsi = calculateRsi(closes.subList(0, swingLowIdx + 1), period);
+                BigDecimal swingLowRsi = rsiSeries.get(swingLowIdx);
                 if (currentRsi.compareTo(swingLowRsi) > 0
                         && currentRsi.compareTo(oversold.add(BigDecimal.TEN)) < 0) {
                     BigDecimal strength = BigDecimal.valueOf(100).subtract(currentRsi)
@@ -74,7 +76,7 @@ public class RsiStrategy implements Strategy {
             int swingHighIdx = findRecentSwingHigh(closes, currentIdx, pivotWindow);
             if (swingHighIdx >= period
                     && closes.get(currentIdx).compareTo(closes.get(swingHighIdx)) > 0) {
-                BigDecimal swingHighRsi = calculateRsi(closes.subList(0, swingHighIdx + 1), period);
+                BigDecimal swingHighRsi = rsiSeries.get(swingHighIdx);
                 if (currentRsi.compareTo(swingHighRsi) < 0
                         && currentRsi.compareTo(overbought.subtract(BigDecimal.TEN)) > 0) {
                     BigDecimal strength = currentRsi
@@ -120,16 +122,17 @@ public class RsiStrategy implements Strategy {
     }
 
     /**
-     * RSI 계산 (Wilder's Smoothing 방식)
-     * RS = 평균 상승폭 / 평균 하락폭
-     * RSI = 100 - (100 / (1 + RS))
+     * 전체 RSI 시리즈를 1-pass로 계산 (Wilder's Smoothing).
+     * 반환 리스트는 closes와 동일한 크기이며, 유효 RSI가 없는 앞부분(0~period-1)은 BigDecimal.valueOf(50)으로 채운다.
+     * evaluate()에서 인덱스 룩업으로 재사용해 중복 계산을 방지한다.
      */
-    private BigDecimal calculateRsi(List<BigDecimal> closes, int period) {
-        // 가격 변화량 계산
-        List<BigDecimal> gains = new ArrayList<>();
-        List<BigDecimal> losses = new ArrayList<>();
+    private List<BigDecimal> calculateRsiSeries(List<BigDecimal> closes, int period) {
+        int n = closes.size();
+        List<BigDecimal> result = new ArrayList<>(java.util.Collections.nCopies(n, BigDecimal.valueOf(50)));
 
-        for (int i = 1; i < closes.size(); i++) {
+        List<BigDecimal> gains = new ArrayList<>(n - 1);
+        List<BigDecimal> losses = new ArrayList<>(n - 1);
+        for (int i = 1; i < n; i++) {
             BigDecimal change = closes.get(i).subtract(closes.get(i - 1));
             if (change.compareTo(BigDecimal.ZERO) > 0) {
                 gains.add(change);
@@ -140,22 +143,21 @@ public class RsiStrategy implements Strategy {
             }
         }
 
-        if (gains.size() < period) {
-            return BigDecimal.valueOf(50); // 데이터 부족 시 중립값 반환
-        }
+        if (gains.size() < period) return result;
 
-        // 초기 평균 상승/하락 (단순 평균)
+        // 초기 단순 평균 (첫 period개)
         BigDecimal avgGain = BigDecimal.ZERO;
         BigDecimal avgLoss = BigDecimal.ZERO;
         for (int i = 0; i < period; i++) {
             avgGain = avgGain.add(gains.get(i));
             avgLoss = avgLoss.add(losses.get(i));
         }
-        avgGain = avgGain.divide(BigDecimal.valueOf(period), SCALE, RoundingMode.HALF_UP);
-        avgLoss = avgLoss.divide(BigDecimal.valueOf(period), SCALE, RoundingMode.HALF_UP);
-
-        // Wilder's Smoothing으로 이후 값 계산
         BigDecimal periodBD = BigDecimal.valueOf(period);
+        avgGain = avgGain.divide(periodBD, SCALE, RoundingMode.HALF_UP);
+        avgLoss = avgLoss.divide(periodBD, SCALE, RoundingMode.HALF_UP);
+        result.set(period, rsiFromAvgs(avgGain, avgLoss));
+
+        // Wilder's Smoothing — gains[i]는 closes[i+1]에 대응
         for (int i = period; i < gains.size(); i++) {
             avgGain = avgGain.multiply(periodBD.subtract(BigDecimal.ONE))
                     .add(gains.get(i))
@@ -163,19 +165,18 @@ public class RsiStrategy implements Strategy {
             avgLoss = avgLoss.multiply(periodBD.subtract(BigDecimal.ONE))
                     .add(losses.get(i))
                     .divide(periodBD, SCALE, RoundingMode.HALF_UP);
+            result.set(i + 1, rsiFromAvgs(avgGain, avgLoss));
         }
+        return result;
+    }
 
-        // avgLoss가 0이면 RSI = 100 (완전 상승)
-        if (avgLoss.compareTo(BigDecimal.ZERO) == 0) {
-            return BigDecimal.valueOf(100);
-        }
-
+    private BigDecimal rsiFromAvgs(BigDecimal avgGain, BigDecimal avgLoss) {
+        if (avgLoss.compareTo(BigDecimal.ZERO) == 0) return BigDecimal.valueOf(100);
         BigDecimal rs = avgGain.divide(avgLoss, SCALE, RoundingMode.HALF_UP);
-        // RSI = 100 - (100 / (1 + RS))
-        BigDecimal rsi = BigDecimal.valueOf(100)
+        return BigDecimal.valueOf(100)
                 .subtract(BigDecimal.valueOf(100)
-                        .divide(BigDecimal.ONE.add(rs), SCALE, RoundingMode.HALF_UP));
-        return rsi.setScale(2, RoundingMode.HALF_UP);
+                        .divide(BigDecimal.ONE.add(rs), SCALE, RoundingMode.HALF_UP))
+                .setScale(2, RoundingMode.HALF_UP);
     }
 
     /**

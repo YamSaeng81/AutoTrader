@@ -69,6 +69,9 @@ public class OrderExecutionEngine {
     @Autowired(required = false)
     private UpbitOrderClient upbitOrderClient;
 
+    @Autowired(required = false)
+    private TelegramNotificationService telegramService;
+
     public OrderExecutionEngine(OrderRepository orderRepository,
                                  PositionRepository positionRepository,
                                  TradeLogRepository tradeLogRepository,
@@ -354,6 +357,12 @@ public class OrderExecutionEngine {
             pos.setSize(totalSize);
             positionRepository.save(pos);
             log.info("BUY 체결 반영: posId={}, 평균단가={}, 수량={}", pos.getId(), pos.getAvgPrice(), pos.getSize());
+            if (order.getSessionId() != null && telegramService != null) {
+                BigDecimal buyFee = avgFillPrice.multiply(filledQty).multiply(new BigDecimal("0.0005"));
+                telegramService.bufferTradeEvent(
+                        "세션#" + order.getSessionId(), order.getCoinPair(), "BUY",
+                        avgFillPrice, filledQty, buyFee, null, order.getSignalReason());
+            }
         } else {
             // positionId 없는 비세션 주문만 새 포지션 생성
             PositionEntity pos = PositionEntity.builder()

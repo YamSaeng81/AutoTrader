@@ -33,4 +33,24 @@ public class AtrBreakoutConfig extends StrategyConfig {
                 "useStopLoss", useStopLoss
         );
     }
+
+    public static AtrBreakoutConfig fromParams(Map<String, Object> params) {
+        AtrBreakoutConfig config = new AtrBreakoutConfig();
+        if (params == null) {
+            return config;
+        }
+        Object atrPeriodVal = params.get("atrPeriod");
+        if (atrPeriodVal instanceof Number) {
+            config.setAtrPeriod(((Number) atrPeriodVal).intValue());
+        }
+        Object multiplierVal = params.get("multiplier");
+        if (multiplierVal instanceof Number) {
+            config.setMultiplier(((Number) multiplierVal).doubleValue());
+        }
+        Object useStopLossVal = params.get("useStopLoss");
+        if (useStopLossVal instanceof Boolean) {
+            config.setUseStopLoss((Boolean) useStopLossVal);
+        }
+        return config;
+    }
 }

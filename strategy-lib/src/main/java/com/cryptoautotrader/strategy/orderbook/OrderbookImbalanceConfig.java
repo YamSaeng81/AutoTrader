@@ -33,4 +33,24 @@ public class OrderbookImbalanceConfig extends StrategyConfig {
                 "depthLevels", depthLevels
         );
     }
+
+    public static OrderbookImbalanceConfig fromParams(Map<String, Object> params) {
+        OrderbookImbalanceConfig config = new OrderbookImbalanceConfig();
+        if (params == null) {
+            return config;
+        }
+        Object thresholdVal = params.get("imbalanceThreshold");
+        if (thresholdVal instanceof Number) {
+            config.setImbalanceThreshold(((Number) thresholdVal).doubleValue());
+        }
+        Object lookbackVal = params.get("lookback");
+        if (lookbackVal instanceof Number) {
+            config.setLookback(((Number) lookbackVal).intValue());
+        }
+        Object depthVal = params.get("depthLevels");
+        if (depthVal instanceof Number) {
+            config.setDepthLevels(((Number) depthVal).intValue());
+        }
+        return config;
+    }
 }

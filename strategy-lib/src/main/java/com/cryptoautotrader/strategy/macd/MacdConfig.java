@@ -33,4 +33,24 @@ public class MacdConfig extends StrategyConfig {
                 "signalPeriod", signalPeriod
         );
     }
+
+    public static MacdConfig fromParams(Map<String, Object> params) {
+        MacdConfig config = new MacdConfig();
+        if (params == null) {
+            return config;
+        }
+        Object fastVal = params.get("fastPeriod");
+        if (fastVal instanceof Number) {
+            config.setFastPeriod(((Number) fastVal).intValue());
+        }
+        Object slowVal = params.get("slowPeriod");
+        if (slowVal instanceof Number) {
+            config.setSlowPeriod(((Number) slowVal).intValue());
+        }
+        Object signalVal = params.get("signalPeriod");
+        if (signalVal instanceof Number) {
+            config.setSignalPeriod(((Number) signalVal).intValue());
+        }
+        return config;
+    }
 }

@@ -8,11 +8,13 @@ import com.cryptoautotrader.api.entity.PositionEntity;
 import com.cryptoautotrader.api.entity.RiskConfigEntity;
 import com.cryptoautotrader.api.repository.PositionRepository;
 import com.cryptoautotrader.api.service.*;
+import com.cryptoautotrader.exchange.upbit.UpbitOrderClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -45,6 +47,9 @@ public class TradingController {
     private final ExchangeHealthMonitor exchangeHealthMonitor;
     private final TelegramNotificationService telegramNotificationService;
     private final PositionRepository positionRepository;
+
+    @Autowired(required = false)
+    private UpbitOrderClient upbitOrderClient;
 
     // -- 세션 관리 ------------------------------------------------
 
@@ -109,8 +114,9 @@ public class TradingController {
     @GetMapping("/sessions/{id}/chart")
     public ApiResponse<Map<String, Object>> getSessionChart(@PathVariable Long id) {
         List<MarketDataCacheEntity> candles = liveTradingService.getChartCandles(id);
+        BigDecimal feeRate = fetchFeeRate(liveTradingService.getSession(id).getCoinPair());
         List<Map<String, Object>> allOrders = liveTradingService.getAllSessionOrders(id).stream()
-                .map(this::toOrderMap)
+                .map(o -> toOrderMap(o, feeRate))
                 .toList();
 
         List<Map<String, Object>> candleData = candles.stream().map(c -> {
@@ -214,12 +220,25 @@ public class TradingController {
 
     // -- 내부 변환 ─────────────────────────────────────────────
 
-    private static final BigDecimal FEE_RATE = new BigDecimal("0.0005");
+    private static final BigDecimal DEFAULT_FEE_RATE = new BigDecimal("0.0005");
 
-    private Map<String, Object> toOrderMap(OrderEntity o) {
+    /** Upbit getOrderChance() API로 실시간 수수료율 조회. 실패 시 기본값 0.0005 사용. */
+    private BigDecimal fetchFeeRate(String coinPair) {
+        if (upbitOrderClient == null) return DEFAULT_FEE_RATE;
+        try {
+            Map<String, Object> chance = upbitOrderClient.getOrderChance(coinPair);
+            Object askFee = chance.get("ask_fee");
+            if (askFee != null) return new BigDecimal(askFee.toString());
+        } catch (Exception e) {
+            // API 호출 실패 시 기본값 사용
+        }
+        return DEFAULT_FEE_RATE;
+    }
+
+    private Map<String, Object> toOrderMap(OrderEntity o, BigDecimal feeRate) {
         BigDecimal price = o.getPrice() != null ? o.getPrice() : BigDecimal.ZERO;
         BigDecimal qty = o.getQuantity() != null ? o.getQuantity() : BigDecimal.ZERO;
-        BigDecimal fee = price.multiply(qty).multiply(FEE_RATE).setScale(0, RoundingMode.HALF_UP);
+        BigDecimal fee = price.multiply(qty).multiply(feeRate).setScale(0, RoundingMode.HALF_UP);
 
         Map<String, Object> map = new HashMap<>();
         map.put("id", o.getId());

@@ -4,6 +4,8 @@ import com.cryptoautotrader.api.entity.PositionEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -41,4 +43,8 @@ public interface PositionRepository extends JpaRepository<PositionEntity, Long> 
 
     /** 서킷 브레이커용: 세션의 체결 완료 포지션을 closedAt 역순으로 조회 (연속 손실 계산) */
     List<PositionEntity> findBySessionIdAndStatusOrderByClosedAtDesc(Long sessionId, String status);
+
+    /** N+1 방지: 여러 세션의 포지션을 한 번에 일괄 조회 */
+    @Query("SELECT p FROM PositionEntity p WHERE p.sessionId IN :sessionIds")
+    List<PositionEntity> findBySessionIdIn(@Param("sessionIds") List<Long> sessionIds);
 }

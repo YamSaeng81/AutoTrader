@@ -8,17 +8,11 @@ import type {
     LiveTradingSession, LiveTradingStartRequest, PerformanceSummary,
 } from './types';
 
+// 클라이언트 컴포넌트에서 사용: /api/proxy 경유 → 서버사이드에서 API_TOKEN 주입
+// NEXT_PUBLIC_API_TOKEN을 번들에 포함하지 않기 위해 Next.js API Route proxy 사용
 const api = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL || '',
+    baseURL: '/api/proxy',
     timeout: 30000,
-});
-
-api.interceptors.request.use(config => {
-    const token = process.env.NEXT_PUBLIC_API_TOKEN;
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
 });
 
 export const backtestApi = {

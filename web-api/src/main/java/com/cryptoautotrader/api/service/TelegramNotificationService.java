@@ -123,11 +123,11 @@ public class TelegramNotificationService {
     }
 
     /** 거래소 DOWN 알림 */
-    public void notifyExchangeDown() {
+    public void notifyExchangeDown(String reason) {
         String msg = String.format(
                 "🔴 *거래소 연결 끊김*\n\n" +
-                "Upbit WebSocket 연결이 중단되었습니다.\n모든 실전매매 세션이 비상 정지됩니다.\n• 시각: `%s`",
-                KST_FMT.format(Instant.now()));
+                "• 사유: `%s`\n• 모든 실전매매 세션이 비상 정지됩니다.\n• 시각: `%s`",
+                reason, KST_FMT.format(Instant.now()));
         sendMarkdownAndLog(msg, "EXCHANGE_DOWN", null);
     }
 

@@ -4,6 +4,32 @@
 
 ---
 
+
+### ✅ 완료 (2026-03-23)
+
+- [x] **비상정지 텔레그램 사유 전송** — `ExchangeDownEvent`에 `reason` 필드 추가. `ExchangeHealthMonitor`가 연속 3회 실패 시 사유 포함 이벤트 발행. `LiveTradingService.onExchangeDown()`에서 `notifyExchangeDown(reason)` 전달. `emergencyStopAll()`에서 세션별 `notifySessionStopped(..., isEmergency=true)` 호출
+- [x] **12/24시 요약 텔레그램 "매매 없음" 버그 수정** — `LiveTradingService`에서 `bufferTradeEvent()` 미호출이 원인. `finalizeSellPosition()` SELL 체결 확정 시 + `OrderExecutionEngine.handleBuyFill()` BUY 체결 시 각각 `telegramService.bufferTradeEvent()` 추가
+- [x] **`ExchangeHealthMonitor` 연속 실패 카운터 추가** — `consecutiveFailCount` 필드 + `DOWN_THRESHOLD=3`. 1회 실패 즉시 DOWN → 3회 연속 실패 시 DOWN으로 완화. 중간은 DEGRADED
+- [x] **`getPerformanceSummary()` N+1 쿼리 제거** — `PositionRepository.findBySessionIdIn()` 추가, 세션 수와 무관하게 단 1회 쿼리로 전체 포지션 로드 후 메모리 그루핑. `LiveTradingService:884`
+- [x] **수수료율 하드코딩 제거** — `TradingController`의 고정 `FEE_RATE = 0.0005` → `UpbitOrderClient.getOrderChance()` 1회 호출 후 `ask_fee` 사용. API 실패 시 0.0005 폴백
+- [x] **`RsiStrategy` RSI 중복 계산 제거** — `calculateRsi()` 3회 호출 → `calculateRsiSeries()` 1-pass 계산 후 인덱스 룩업으로 교체. `rsiFromAvgs()` 헬퍼 분리
+
+### ✅ 완료 (2026-03-23) — P3 인프라·안정성
+
+- [x] **`.env.example` 파일 추가** — 백엔드 `.env.example`에 `API_AUTH_TOKEN`, `REDIS_PASSWORD` 항목 추가. 프론트엔드 `crypto-trader-frontend/.env.example` 신규 생성 (`API_TOKEN`, `AUTH_PASSWORD`, `AUTH_SECRET`, `INTERNAL_BACKEND_URL`)
+- [x] **API proxy 토큰 노출 제거** — `src/app/api/proxy/[...path]/route.ts` 신규 생성. `NEXT_PUBLIC_API_TOKEN` → 서버사이드 전용 `API_TOKEN`으로 전환. `api.ts` baseURL을 `/api/proxy`로 변경. `docker-compose.prod.yml` frontend 서비스 환경변수 반영
+- [x] **`createSession()` 동시성 보호** — `synchronized` 추가 (UI 버튼 중복 클릭 수준 방어)
+- [x] **`AsyncConfig` graceful shutdown** — `orderExecutor`(30s), `marketDataExecutor`(10s), `taskExecutor`(15s) 각각 `setWaitForTasksToCompleteOnShutdown(true)` + `setAwaitTerminationSeconds()` 적용
+- [x] **CI/CD GitHub Actions** — `.github/workflows/ci.yml` 추가. backend(Gradle + TimescaleDB + Redis 서비스 컨테이너) / frontend(npm lint + build) / Docker 이미지 빌드(main push 시)
+- [x] **Config `fromParams()` 타입 안전성** — `RsiConfig`, `MacdConfig`, `AtrBreakoutConfig`, `SupertrendConfig`, `OrderbookImbalanceConfig`, `StochasticRsiConfig`에 `fromParams(Map<String,Object>)` 추가
+
+### ✅ 완료 (2026-03-22)
+
+- [x] **Circuit Breaker (Auto Kill-Switch)** — MDD 임계값(기본 20%) 또는 연속 손실 한도(기본 5회) 초과 시 세션 강제 비상 정지. `RiskManagementService.checkCircuitBreaker()` + Flyway V24
+- [x] **Prometheus/Grafana 모니터링** — Spring Actuator + Micrometer 추가, `docker-compose.prod.yml`에 prometheus(9090) + grafana(3001) 서비스 추가. `monitoring/` 디렉터리
+- [x] **텔레그램 알림 비동기화** — `telegramExecutor` 전용 스레드풀 분리, 텔레그램 HTTP 호출이 매매 루프를 블로킹하지 않도록 수정
+
+
 ## 2026-03-22 — PortfolioManager.totalCapital 거래소 잔고 동기화
 
 | # | 항목 | 파일 |

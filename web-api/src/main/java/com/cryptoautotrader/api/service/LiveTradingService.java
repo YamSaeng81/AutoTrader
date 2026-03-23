@@ -119,6 +119,7 @@ public class LiveTradingService {
     @EventListener
     public void onExchangeDown(ExchangeDownEvent event) {
         log.error("거래소 DOWN 이벤트 수신 -- 모든 실전매매 세션을 비상 정지합니다.");
+        telegramService.notifyExchangeDown(event.getReason());
         emergencyStopAll();
     }
 
@@ -126,9 +127,10 @@ public class LiveTradingService {
 
     /**
      * 새 매매 세션 생성 (아직 시작하지 않음 -- status=STOPPED)
+     * UI 버튼 중복 클릭 등 동시 요청 시 세션이 중복 생성되지 않도록 synchronized
      */
     @Transactional
-    public LiveTradingSessionEntity createSession(LiveTradingStartRequest req) {
+    public synchronized LiveTradingSessionEntity createSession(LiveTradingStartRequest req) {
         long runningCount = sessionRepository.countByStatus("RUNNING");
         if (runningCount >= MAX_CONCURRENT_SESSIONS) {
             throw new SessionStateException(
@@ -358,6 +360,14 @@ public class LiveTradingService {
                 session.setStatus("EMERGENCY_STOPPED");
                 session.setStoppedAt(Instant.now());
                 sessionRepository.save(session);
+                double returnPct = session.getTotalAssetKrw()
+                        .subtract(session.getInitialCapital())
+                        .divide(session.getInitialCapital(), 4, RoundingMode.HALF_UP)
+                        .multiply(BigDecimal.valueOf(100))
+                        .doubleValue();
+                telegramService.notifySessionStopped(
+                        session.getId(), session.getCoinPair(), returnPct,
+                        session.getTotalAssetKrw().longValue(), true);
             } catch (Exception e) {
                 log.error("세션 비상 정지 실패 (id={}): {}", session.getId(), e.getMessage());
             }
@@ -884,6 +894,13 @@ public class LiveTradingService {
     public PerformanceSummaryResponse getPerformanceSummary() {
         List<LiveTradingSessionEntity> sessions = sessionRepository.findAll();
 
+        // 세션 수와 무관하게 단 1회 쿼리로 전체 포지션 로드 (N+1 방지)
+        List<Long> sessionIds = sessions.stream().map(LiveTradingSessionEntity::getId).toList();
+        Map<Long, List<PositionEntity>> positionsBySession = sessionIds.isEmpty()
+                ? Map.of()
+                : positionRepository.findBySessionIdIn(sessionIds).stream()
+                        .collect(Collectors.groupingBy(PositionEntity::getSessionId));
+
         BigDecimal totalRealizedPnl = BigDecimal.ZERO;
         BigDecimal totalUnrealizedPnl = BigDecimal.ZERO;
         BigDecimal totalInitialCapital = BigDecimal.ZERO;
@@ -894,7 +911,7 @@ public class LiveTradingService {
         List<PerformanceSummaryResponse.SessionPerformance> sessionPerfs = new ArrayList<>();
 
         for (LiveTradingSessionEntity session : sessions) {
-            List<PositionEntity> positions = positionRepository.findBySessionId(session.getId());
+            List<PositionEntity> positions = positionsBySession.getOrDefault(session.getId(), List.of());
             List<PositionEntity> closed = positions.stream().filter(p -> "CLOSED".equals(p.getStatus())).toList();
             List<PositionEntity> open   = positions.stream().filter(p -> "OPEN".equals(p.getStatus())).toList();
 
@@ -1176,6 +1193,9 @@ public class LiveTradingService {
                 log.info("매도 체결 확정 (sessionId={}, posId={}): {} {}개 @ {} 손익={} 수수료={}",
                         session.getId(), pos.getId(), pos.getCoinPair(),
                         soldQty, fillPrice, realizedPnl, fee);
+                telegramService.bufferTradeEvent(
+                        "세션#" + session.getId(), pos.getCoinPair(), "SELL",
+                        fillPrice, soldQty, fee, realizedPnl, "전략 매도");
             });
         }
     }

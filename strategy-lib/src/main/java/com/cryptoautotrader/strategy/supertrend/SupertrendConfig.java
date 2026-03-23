@@ -30,4 +30,20 @@ public class SupertrendConfig extends StrategyConfig {
                 "multiplier", multiplier
         );
     }
+
+    public static SupertrendConfig fromParams(Map<String, Object> params) {
+        SupertrendConfig config = new SupertrendConfig();
+        if (params == null) {
+            return config;
+        }
+        Object atrPeriodVal = params.get("atrPeriod");
+        if (atrPeriodVal instanceof Number) {
+            config.setAtrPeriod(((Number) atrPeriodVal).intValue());
+        }
+        Object multiplierVal = params.get("multiplier");
+        if (multiplierVal instanceof Number) {
+            config.setMultiplier(((Number) multiplierVal).doubleValue());
+        }
+        return config;
+    }
 }

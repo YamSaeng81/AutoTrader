@@ -33,4 +33,24 @@ public class RsiConfig extends StrategyConfig {
                 "overboughtLevel", overboughtLevel
         );
     }
+
+    public static RsiConfig fromParams(Map<String, Object> params) {
+        RsiConfig config = new RsiConfig();
+        if (params == null) {
+            return config;
+        }
+        Object periodVal = params.get("period");
+        if (periodVal instanceof Number) {
+            config.setPeriod(((Number) periodVal).intValue());
+        }
+        Object oversoldVal = params.get("oversoldLevel");
+        if (oversoldVal instanceof Number) {
+            config.setOversoldLevel(((Number) oversoldVal).doubleValue());
+        }
+        Object overboughtVal = params.get("overboughtLevel");
+        if (overboughtVal instanceof Number) {
+            config.setOverboughtLevel(((Number) overboughtVal).doubleValue());
+        }
+        return config;
+    }
 }

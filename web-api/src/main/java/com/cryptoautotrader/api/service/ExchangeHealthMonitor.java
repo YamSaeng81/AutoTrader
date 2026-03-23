@@ -34,10 +34,13 @@ public class ExchangeHealthMonitor {
     private final ApplicationEventPublisher eventPublisher;
     private final List<Long> recentLatencies = new CopyOnWriteArrayList<>();
 
+    private static final int DOWN_THRESHOLD = 3; // 연속 N회 실패 시 DOWN 선언
+
     private volatile String status = "UP";
     private volatile long latencyMs = 0;
     private volatile Instant lastCheckedAt;
     private volatile boolean webSocketConnected = false;
+    private volatile int consecutiveFailCount = 0;
 
     public ExchangeHealthMonitor(ApplicationEventPublisher eventPublisher) {
         this.eventPublisher = eventPublisher;
@@ -68,6 +71,7 @@ public class ExchangeHealthMonitor {
             addLatency(elapsed);
 
             if (response.statusCode() == 200) {
+                consecutiveFailCount = 0;
                 if (elapsed > DEGRADED_THRESHOLD_MS) {
                     updateStatus("DEGRADED");
                     log.warn("거래소 응답 지연: {}ms", elapsed);
@@ -75,8 +79,14 @@ public class ExchangeHealthMonitor {
                     updateStatus("UP");
                 }
             } else {
-                updateStatus("DEGRADED");
-                log.warn("거래소 비정상 응답: status={}, latency={}ms", response.statusCode(), elapsed);
+                consecutiveFailCount++;
+                log.warn("거래소 비정상 응답: status={}, latency={}ms (연속 실패 {}/{}회)",
+                        response.statusCode(), elapsed, consecutiveFailCount, DOWN_THRESHOLD);
+                if (consecutiveFailCount >= DOWN_THRESHOLD) {
+                    updateStatus("DOWN");
+                } else {
+                    updateStatus("DEGRADED");
+                }
             }
 
         } catch (Exception e) {
@@ -84,8 +94,15 @@ public class ExchangeHealthMonitor {
             latencyMs = elapsed;
             lastCheckedAt = Instant.now();
             addLatency(elapsed);
-            updateStatus("DOWN");
-            log.error("거래소 연결 실패: {} ({}ms)", e.getMessage(), elapsed);
+            consecutiveFailCount++;
+            log.warn("거래소 연결 실패 ({}/{}회): {} ({}ms)",
+                    consecutiveFailCount, DOWN_THRESHOLD, e.getMessage(), elapsed);
+            if (consecutiveFailCount >= DOWN_THRESHOLD) {
+                updateStatus("DOWN");
+                log.error("거래소 연속 {}회 실패 — DOWN 선언", consecutiveFailCount);
+            } else {
+                updateStatus("DEGRADED");
+            }
         }
     }
 
@@ -130,8 +147,9 @@ public class ExchangeHealthMonitor {
 
             // DOWN 감지 시 이벤트 발행 → LiveTradingService가 리스닝
             if ("DOWN".equals(newStatus)) {
-                log.error("거래소 DOWN 감지 — ExchangeDownEvent 발행");
-                eventPublisher.publishEvent(new ExchangeDownEvent(this));
+                String reason = String.format("Upbit API 연속 %d회 연결 실패", consecutiveFailCount);
+                log.error("거래소 DOWN 감지 — ExchangeDownEvent 발행 ({})", reason);
+                eventPublisher.publishEvent(new ExchangeDownEvent(this, reason));
             }
         }
     }
