@@ -1,13 +1,13 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { settingsApi, tradingApi, accountApi } from '@/lib/api';
-import type { UpbitCandleSummary } from '@/lib/types';
+import type { UpbitCandleSummary, WsTickerInfo } from '@/lib/types';
 import {
     Loader2, CheckCircle2, XCircle, RefreshCw, Wifi,
     Database, Key, ShoppingCart, TestTube, ClipboardList,
-    TrendingUp, Wallet, Radio,
+    TrendingUp, Wallet, Radio, RotateCcw, Signal,
 } from 'lucide-react';
 
 const MARKETS = ['KRW-BTC', 'KRW-ETH', 'KRW-XRP', 'KRW-SOL', 'KRW-DOGE'];
@@ -88,10 +88,29 @@ export default function UpbitStatusPage() {
         queryFn: () => accountApi.summary(),
         refetchInterval: false,
     });
+    const { data: wsData, isLoading: wsLoading, refetch: refetchWs } = useQuery({
+        queryKey: ['ws-status', refreshKey],
+        queryFn: () => settingsApi.wsStatus(),
+        refetchInterval: 5000,
+    });
+
+    const queryClient = useQueryClient();
+    const [reconnectMsg, setReconnectMsg] = useState('');
+    const reconnectMutation = useMutation({
+        mutationFn: () => settingsApi.wsReconnect(),
+        onSuccess: (res) => {
+            setReconnectMsg(res.data?.message ?? '재연결 요청 완료');
+            setTimeout(() => {
+                setReconnectMsg('');
+                queryClient.invalidateQueries({ queryKey: ['ws-status'] });
+            }, 3000);
+        },
+    });
 
     const status = data?.data;
     const health = healthData?.data;
     const account = accountData?.data;
+    const ws = wsData?.data;
 
     const refresh = useCallback(() => setRefreshKey(k => k + 1), []);
 
@@ -281,6 +300,115 @@ export default function UpbitStatusPage() {
                     </div>
                 </Section>
             )}
+
+            {/* ── WebSocket 진단 ── */}
+            <Section title="WebSocket 진단" icon={Signal}
+                badge={
+                    wsLoading ? <Loader2 className="w-3 h-3 animate-spin text-slate-500" /> :
+                    ws?.connected ? <Badge ok={true} label="연결됨" /> :
+                    <Badge ok={false} label="미연결" />
+                }>
+                {wsLoading ? (
+                    <div className="flex items-center gap-2 text-slate-500 text-sm"><Loader2 className="w-4 h-4 animate-spin" />조회 중...</div>
+                ) : !ws?.available ? (
+                    <p className="text-xs text-red-400">{ws?.message ?? 'WebSocket 클라이언트 없음'}</p>
+                ) : (
+                    <div className="space-y-4">
+                        {/* 상태 요약 */}
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                            <div className="bg-slate-700/50 rounded-lg p-3">
+                                <p className="text-slate-400 mb-1">연결 상태</p>
+                                <p className={`font-semibold ${ws.connected ? 'text-green-400' : 'text-red-400'}`}>
+                                    {ws.connected ? '연결됨' : '미연결'}
+                                </p>
+                            </div>
+                            <div className="bg-slate-700/50 rounded-lg p-3">
+                                <p className="text-slate-400 mb-1">구독 코인</p>
+                                <p className="text-slate-200 font-mono">
+                                    {ws.subscribedCoins.length > 0 ? ws.subscribedCoins.map(c => c.replace('KRW-', '')).join(', ') : '없음'}
+                                </p>
+                            </div>
+                            <div className="bg-slate-700/50 rounded-lg p-3">
+                                <p className="text-slate-400 mb-1">마지막 Pong</p>
+                                <p className={`font-mono ${ws.lastPongSecondsAgo < 0 ? 'text-slate-500' : ws.lastPongSecondsAgo < 300 ? 'text-green-400' : 'text-red-400'}`}>
+                                    {ws.lastPongSecondsAgo < 0 ? '-' : `${ws.lastPongSecondsAgo}초 전`}
+                                </p>
+                            </div>
+                            <div className="bg-slate-700/50 rounded-lg p-3">
+                                <p className="text-slate-400 mb-1">재연결 횟수</p>
+                                <p className={`font-mono ${ws.reconnectCount > 0 ? 'text-yellow-400' : 'text-slate-200'}`}>
+                                    {ws.reconnectCount}회
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* 마지막 수신 ticker */}
+                        {Object.keys(ws.lastTickers).length > 0 ? (
+                            <div>
+                                <p className="text-xs text-slate-500 uppercase tracking-wide font-semibold mb-2">마지막 수신 Ticker</p>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-xs">
+                                        <thead>
+                                            <tr className="text-slate-400 border-b border-slate-700">
+                                                <th className="text-left py-2">코인</th>
+                                                <th className="text-right py-2">현재가</th>
+                                                <th className="text-right py-2">등락률</th>
+                                                <th className="text-right py-2">수신 시각</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {Object.entries(ws.lastTickers).map(([code, t]: [string, WsTickerInfo]) => {
+                                                const chg = Number(t.signedChangeRate);
+                                                const isStale = t.receivedSecondsAgo > 60;
+                                                return (
+                                                    <tr key={code} className="border-b border-slate-700/50">
+                                                        <td className="py-2 font-semibold text-slate-200">{code}</td>
+                                                        <td className="py-2 text-right font-mono text-white">{Number(t.tradePrice).toLocaleString()}</td>
+                                                        <td className={`py-2 text-right font-mono font-semibold ${chg > 0 ? 'text-green-400' : chg < 0 ? 'text-red-400' : 'text-slate-400'}`}>
+                                                            {chg > 0 ? '+' : ''}{chg}%
+                                                        </td>
+                                                        <td className={`py-2 text-right font-mono ${isStale ? 'text-red-400' : 'text-green-400'}`}>
+                                                            {t.receivedSecondsAgo >= 0 ? `${t.receivedSecondsAgo}초 전` : '-'}
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        ) : (
+                            <p className="text-xs text-slate-500">
+                                {ws.connected ? '아직 수신된 ticker 없음 (잠시 대기)' : '미연결 상태 — ticker 수신 불가'}
+                            </p>
+                        )}
+
+                        {/* 재연결 버튼 */}
+                        <div className="flex items-center gap-3 pt-1">
+                            <button
+                                onClick={() => reconnectMutation.mutate()}
+                                disabled={reconnectMutation.isPending}
+                                className="flex items-center gap-1.5 px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 disabled:opacity-50 rounded-lg text-sm text-white font-medium transition-colors"
+                            >
+                                {reconnectMutation.isPending
+                                    ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                    : <RotateCcw className="w-3.5 h-3.5" />}
+                                강제 재연결
+                            </button>
+                            <button
+                                onClick={() => refetchWs()}
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm text-slate-300 transition-colors"
+                            >
+                                <RefreshCw className="w-3.5 h-3.5" />
+                                새로고침
+                            </button>
+                            {reconnectMsg && (
+                                <p className="text-xs text-amber-400">{reconnectMsg}</p>
+                            )}
+                        </div>
+                    </div>
+                )}
+            </Section>
 
             {/* ── 잔고 상세 ── */}
             <Section title="잔고 상세" icon={Wallet}

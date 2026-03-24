@@ -45,6 +45,10 @@ public class UpbitWebSocketClient {
     private final CopyOnWriteArrayList<Consumer<TradeData>> tradeListeners = new CopyOnWriteArrayList<>();
     private volatile Consumer<Boolean> connectionStateListener;
 
+    /** 코인별 마지막 수신 ticker (진단용) */
+    private final java.util.concurrent.ConcurrentHashMap<String, TickerData> lastTickers = new java.util.concurrent.ConcurrentHashMap<>();
+    private volatile int reconnectCount = 0;
+
     private volatile WebSocket webSocket;
     private volatile boolean connected = false;
     private volatile boolean shutdownRequested = false;
@@ -102,6 +106,41 @@ public class UpbitWebSocketClient {
      */
     public boolean isConnected() {
         return connected;
+    }
+
+    /** 구독 중인 코인 목록 */
+    public List<String> getSubscribedCoins() {
+        return subscribedCoins != null ? List.copyOf(subscribedCoins) : List.of();
+    }
+
+    /** 마지막 수신 ticker 맵 (코인코드 → TickerData) */
+    public java.util.Map<String, TickerData> getLastTickers() {
+        return java.util.Map.copyOf(lastTickers);
+    }
+
+    /** 마지막 Pong 수신 시각 (epoch ms) */
+    public long getLastPongTime() {
+        return lastPongTime;
+    }
+
+    /** 재연결 횟수 */
+    public int getReconnectCount() {
+        return reconnectCount;
+    }
+
+    /**
+     * 강제 재연결 — 진단/관리 API용
+     * 현재 연결을 끊고 즉시 재연결한다.
+     */
+    public synchronized void forceReconnect() {
+        if (subscribedCoins == null || subscribedCoins.isEmpty()) {
+            log.warn("강제 재연결 요청: 구독 코인 없음 — 재연결 스킵");
+            return;
+        }
+        log.info("강제 재연결 요청");
+        shutdownRequested = false;
+        disconnectInternal();
+        doConnect();
     }
 
     /**
@@ -295,6 +334,8 @@ public class UpbitWebSocketClient {
                 .timestamp(getInstantSafe(node, "tms"))
                 .build();
 
+        lastTickers.put(ticker.getCode(), ticker);
+
         for (Consumer<TickerData> listener : tickerListeners) {
             try {
                 listener.accept(ticker);
@@ -373,6 +414,7 @@ public class UpbitWebSocketClient {
 
         stopPingScheduler();
 
+        reconnectCount++;
         long delay = currentReconnectDelay;
         currentReconnectDelay = Math.min(currentReconnectDelay * 2, MAX_RECONNECT_DELAY_MS);
 

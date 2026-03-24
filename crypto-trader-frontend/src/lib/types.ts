@@ -29,6 +29,25 @@ export interface UpbitCandleSummary {
   count: number;
 }
 
+export interface WsTickerInfo {
+  tradePrice: number;
+  change: string;
+  signedChangeRate: number;
+  receivedAt: string | null;
+  receivedSecondsAgo: number;
+}
+
+export interface WsStatusResponse {
+  available: boolean;
+  message?: string;
+  connected: boolean;
+  subscribedCoins: string[];
+  reconnectCount: number;
+  lastPongMs: number;
+  lastPongSecondsAgo: number;
+  lastTickers: Record<string, WsTickerInfo>;
+}
+
 export interface UpbitStatusResponse {
   apiKeyConfigured: boolean;
   accountQueryOk: boolean;

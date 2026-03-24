@@ -9,6 +9,8 @@ import com.cryptoautotrader.api.service.DbResetService;
 import com.cryptoautotrader.api.service.TelegramNotificationService;
 import com.cryptoautotrader.exchange.upbit.UpbitOrderClient;
 import com.cryptoautotrader.exchange.upbit.UpbitRestClient;
+import com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient;
+import com.cryptoautotrader.exchange.upbit.dto.TickerData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -47,6 +49,9 @@ public class SettingsController {
 
     @Autowired
     private DbResetService dbResetService;
+
+    @Autowired(required = false)
+    private UpbitWebSocketClient wsClient;
 
     /** 텔레그램 전송 이력 조회 (최신순, 페이지네이션) */
     @GetMapping("/telegram/logs")
@@ -138,6 +143,66 @@ public class SettingsController {
         }
 
         return ApiResponse.ok(result);
+    }
+
+    // ── WebSocket 진단 ────────────────────────────────────────
+
+    /**
+     * WebSocket 연결 상태 상세 조회
+     * - 연결 여부, 구독 코인, 마지막 Pong, 재연결 횟수, 마지막 수신 ticker
+     */
+    @GetMapping("/websocket/status")
+    public ApiResponse<Map<String, Object>> getWebSocketStatus() {
+        Map<String, Object> result = new HashMap<>();
+        if (wsClient == null) {
+            result.put("available", false);
+            result.put("message", "WebSocket 클라이언트 빈이 등록되지 않았습니다.");
+            return ApiResponse.ok(result);
+        }
+
+        result.put("available", true);
+        result.put("connected", wsClient.isConnected());
+        result.put("subscribedCoins", wsClient.getSubscribedCoins());
+        result.put("reconnectCount", wsClient.getReconnectCount());
+
+        long lastPong = wsClient.getLastPongTime();
+        result.put("lastPongMs", lastPong);
+        result.put("lastPongSecondsAgo", lastPong > 0
+                ? (System.currentTimeMillis() - lastPong) / 1000 : -1);
+
+        // 마지막 수신 ticker (코인별)
+        Map<String, Object> tickers = new HashMap<>();
+        wsClient.getLastTickers().forEach((code, t) -> {
+            Map<String, Object> tickerInfo = new HashMap<>();
+            tickerInfo.put("tradePrice", t.getTradePrice());
+            tickerInfo.put("change", t.getChange());
+            tickerInfo.put("signedChangeRate", t.getSignedChangeRate() != null
+                    ? t.getSignedChangeRate().multiply(new java.math.BigDecimal("100")).setScale(2, java.math.RoundingMode.HALF_UP)
+                    : null);
+            tickerInfo.put("receivedAt", t.getTimestamp() != null ? t.getTimestamp().toString() : null);
+            tickerInfo.put("receivedSecondsAgo", t.getTimestamp() != null
+                    ? (System.currentTimeMillis() - t.getTimestamp().toEpochMilli()) / 1000 : -1);
+            tickers.put(code, tickerInfo);
+        });
+        result.put("lastTickers", tickers);
+
+        return ApiResponse.ok(result);
+    }
+
+    /**
+     * WebSocket 강제 재연결
+     */
+    @PostMapping("/websocket/reconnect")
+    public ApiResponse<Map<String, Object>> reconnectWebSocket() {
+        if (wsClient == null) {
+            return ApiResponse.ok(Map.of("success", false, "message", "WebSocket 클라이언트 없음"));
+        }
+        try {
+            wsClient.forceReconnect();
+            return ApiResponse.ok(Map.of("success", true, "message", "재연결 요청 완료 (비동기 — 잠시 후 상태 확인)"));
+        } catch (Exception e) {
+            return ApiResponse.ok(Map.of("success", false, "message", e.getMessage()));
+        }
     }
 
     // ── Upbit API 테스트 ──────────────────────────────────────

@@ -5,7 +5,7 @@ import type {
     MultiStrategyPaperRequest, MultiStrategyBacktestRequest,
     WalkForwardRequest, WalkForwardResult,
     TradingStatus, Position, LiveOrder, ExchangeHealth, RiskConfig,
-    LiveTradingSession, LiveTradingStartRequest, PerformanceSummary,
+    LiveTradingSession, LiveTradingStartRequest, PerformanceSummary, WsStatusResponse,
 } from './types';
 
 // 클라이언트 컴포넌트에서 사용: /api/proxy 경유 → 서버사이드에서 API_TOKEN 주입
@@ -194,6 +194,10 @@ export const settingsApi = {
         ).then(r => r.data),
     upbitTicker: (markets = 'KRW-BTC,KRW-ETH,KRW-XRP,KRW-SOL,KRW-DOGE') =>
         api.get<ApiResponse<Record<string, unknown>[]>>('/api/v1/settings/upbit/ticker', { params: { markets } }).then(r => r.data),
+    wsStatus: () =>
+        api.get<ApiResponse<WsStatusResponse>>('/api/v1/settings/websocket/status').then(r => r.data),
+    wsReconnect: () =>
+        api.post<ApiResponse<{ success: boolean; message: string }>>('/api/v1/settings/websocket/reconnect', {}).then(r => r.data),
     serverLogs: (levels: string[] = ['ALL'], keyword = '', lines = 200) =>
         api.get<ApiResponse<{ entries: ServerLogEntry[]; total: number; filtered: number; returned: number }>>(
             '/api/v1/settings/server-logs', { params: { level: levels.join(','), keyword, lines } }
