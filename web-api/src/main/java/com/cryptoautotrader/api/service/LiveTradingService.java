@@ -1027,6 +1027,16 @@ public class LiveTradingService {
     @Transactional
     public void reconcileOnStartup() {
         log.info("서버 시작 복구: 미처리 주문 및 고아 포지션 정리 시작");
+        try {
+            reconcileInternal();
+        } catch (Exception e) {
+            log.error("서버 시작 복구 중 오류 발생 (WebSocket 연결은 계속 진행): {}", e.getMessage(), e);
+        } finally {
+            initWebSocket();
+        }
+    }
+
+    private void reconcileInternal() {
 
         // 1. 거래소에 제출되지 못한 PENDING 주문 → FAILED
         List<OrderEntity> stuckPending = orderRepository.findByStateIn(List.of("PENDING"))
@@ -1111,7 +1121,10 @@ public class LiveTradingService {
             }
         }
 
-        // WebSocket 실시간 시세 구독 — 손절 체크용
+    }
+
+    /** WebSocket 리스너 등록 및 구독 연결 — reconcileOnStartup의 finally에서 항상 호출 */
+    private void initWebSocket() {
         if (wsClient != null) {
             wsClient.addTickerListener(ticker ->
                 eventPublisher.publishEvent(
