@@ -4,6 +4,26 @@
 
 ---
 
+### ✅ 완료 (2026-03-24) — MACD 파라미터 그리드 서치 백테스트
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `MacdGridSearchRequest.java` | 그리드 서치 전용 DTO 신규 (fastMin/Max, slowMin/Max, signalPeriod) |
+| `BacktestService.java` | `runMacdGridSearch()` 추가 — O(n) 고속 버전 (primitive double, MACD 시리즈 1회 계산) |
+| `BacktestController.java` | `POST /api/v1/backtest/macd-grid-search` 엔드포인트 추가 |
+| `MacdConfig.java` | 기본값 변경: (12,26,9) → (14,22,9) (BTC 그리드 서치 최적값) |
+
+**그리드 서치 결과 (2024~2025 H1, 176조합)**:
+
+| 코인 | 최적 파라미터 | 수익률 | Sharpe | MDD | 기본값 대비 |
+|------|--------------|--------|--------|-----|------------|
+| KRW-BTC | fast=14, slow=22 | +151.9% | 1.68 | 18.5% | +63.8%p |
+| KRW-ETH | fast=10, slow=26 | +216.0% | 1.61 | 49.5% | +41.4%p |
+
+> 성능 이슈: BacktestEngine이 O(n²)이라 그리드 서치에 부적합 → 경량 O(n) 루프로 직접 구현
+
+---
+
 ### ✅ 완료 (2026-03-24) — 급등/급락 실시간 감지 (손절 가속 + 트레일링 스탑)
 
 | 파일 | 변경 내용 |

@@ -33,11 +33,25 @@ public class MacdStrategy implements Strategy {
         return "MACD";
     }
 
+    /**
+     * 코인별 기본 파라미터: BTC (14,22) / ETH (10,26) / 그외 (12,24)
+     * 그리드 서치 결과 기반 (2024~2025 H1)
+     */
+    private static int[] coinDefaults(Map<String, Object> params) {
+        Object cp = params != null ? params.get("coinPair") : null;
+        if (cp instanceof String coinPair) {
+            if (coinPair.contains("BTC")) return new int[]{14, 22};
+            if (coinPair.contains("ETH")) return new int[]{10, 26};
+        }
+        return new int[]{12, 24};
+    }
+
     @Override
     public StrategySignal evaluate(List<Candle> candles, Map<String, Object> params) {
-        int fastPeriod   = StrategyParamUtils.getInt(params,    "fastPeriod",    12);
-        int slowPeriod   = StrategyParamUtils.getInt(params,    "slowPeriod",    26);
-        int signalPeriod = StrategyParamUtils.getInt(params,    "signalPeriod",  9);
+        int[] defaults   = coinDefaults(params);
+        int fastPeriod   = StrategyParamUtils.getInt(params, "fastPeriod",   defaults[0]);
+        int slowPeriod   = StrategyParamUtils.getInt(params, "slowPeriod",   defaults[1]);
+        int signalPeriod = StrategyParamUtils.getInt(params, "signalPeriod", 9);
         int adxPeriod    = StrategyParamUtils.getInt(params,    "adxPeriod",     14);
         double adxThreshold = StrategyParamUtils.getDouble(params, "adxThreshold", 25.0);
 

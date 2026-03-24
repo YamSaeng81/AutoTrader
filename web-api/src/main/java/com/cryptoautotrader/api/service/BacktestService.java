@@ -478,6 +478,172 @@ public class BacktestService {
     }
 
     /**
+     * MACD 파라미터 그리드 서치 (고속 O(n) 버전).
+     * fastPeriod × slowPeriod 조합을 전수 탐색하여 성과 비교표를 반환한다.
+     * BacktestEngine(O(n²)) 대신 MACD 시리즈를 한 번만 계산하는 경량 루프를 사용한다.
+     * 결과는 DB에 저장하지 않고 메모리에서 Sharpe Ratio 내림차순으로 반환한다.
+     */
+    public List<Map<String, Object>> runMacdGridSearch(
+            List<String> coins, String timeframe,
+            LocalDate startDate, LocalDate endDate,
+            int fastMin, int fastMax, int slowMin, int slowMax, int signalPeriod,
+            BigDecimal initialCapital, BigDecimal slippagePct, BigDecimal feePct) {
+
+        Instant start = startDate.atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant();
+        Instant end   = endDate.atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant();
+
+        double capital  = (initialCapital != null ? initialCapital : new BigDecimal("10000000")).doubleValue();
+        double slippage = (slippagePct    != null ? slippagePct    : new BigDecimal("0.1")).doubleValue() / 100.0;
+        double fee      = (feePct         != null ? feePct         : new BigDecimal("0.05")).doubleValue() / 100.0;
+
+        List<Map<String, Object>> results = new java.util.ArrayList<>();
+
+        for (String coin : coins) {
+            List<CandleDataEntity> entities = candleDataRepository.findCandles(coin, timeframe, start, end);
+            if (entities.size() < 50) {
+                log.warn("MACD 그리드 서치 건너뜀: {} {} 데이터 부족 ({}건)", coin, timeframe, entities.size());
+                continue;
+            }
+
+            // close, open 배열로 변환 (primitive double = BigDecimal보다 수십 배 빠름)
+            int n = entities.size();
+            double[] closes = new double[n];
+            double[] opens  = new double[n];
+            for (int i = 0; i < n; i++) {
+                closes[i] = entities.get(i).getClose().doubleValue();
+                opens[i]  = entities.get(i).getOpen().doubleValue();
+            }
+
+            int comboCnt = 0;
+            for (int fast = fastMin; fast <= fastMax; fast++) {
+                for (int slow = slowMin; slow <= slowMax; slow++) {
+                    if (fast >= slow) continue;
+
+                    // ── MACD 시리즈 한 번만 계산 (O(n)) ──────────────────────────
+                    int warmup = slow + signalPeriod + 1;
+                    if (n < warmup) continue;
+
+                    double[] macdLine   = new double[n];
+                    double[] signalLine = new double[n];
+
+                    double kFast = 2.0 / (fast + 1);
+                    double kSlow = 2.0 / (slow + 1);
+                    double kSig  = 2.0 / (signalPeriod + 1);
+
+                    // 초기 EMA = SMA(첫 period개)
+                    double emaFast = 0, emaSlow = 0;
+                    for (int i = 0; i < fast; i++) emaFast += closes[i];
+                    emaFast /= fast;
+                    for (int i = 0; i < slow; i++) emaSlow += closes[i];
+                    emaSlow /= slow;
+                    for (int i = fast; i < slow; i++) emaFast = closes[i] * kFast + emaFast * (1 - kFast);
+                    macdLine[slow - 1] = emaFast - emaSlow;
+
+                    for (int i = slow; i < n; i++) {
+                        emaFast = closes[i] * kFast + emaFast * (1 - kFast);
+                        emaSlow = closes[i] * kSlow + emaSlow * (1 - kSlow);
+                        macdLine[i] = emaFast - emaSlow;
+                    }
+
+                    // Signal EMA (slow-1 ~ n-1 구간의 macdLine으로 계산)
+                    double sigEma = 0;
+                    for (int i = slow - 1; i < slow - 1 + signalPeriod; i++) sigEma += macdLine[i];
+                    sigEma /= signalPeriod;
+                    signalLine[slow - 1 + signalPeriod - 1] = sigEma;
+                    for (int i = slow - 1 + signalPeriod; i < n; i++) {
+                        sigEma = macdLine[i] * kSig + sigEma * (1 - kSig);
+                        signalLine[i] = sigEma;
+                    }
+
+                    // ── 경량 백테스트 루프 (O(n)) ──────────────────────────────────
+                    double cash = capital;
+                    double qty  = 0.0;
+                    double entryPrice = 0.0;
+                    int wins = 0, losses = 0, trades = 0;
+                    double peakCapital = capital;
+                    double maxDd = 0.0;
+                    List<Double> dailyReturns = new java.util.ArrayList<>();
+                    double prevPortfolio = capital;
+
+                    for (int i = warmup; i < n - 1; i++) {
+                        boolean prevAbove = macdLine[i - 1] > signalLine[i - 1];
+                        boolean currAbove = macdLine[i]     > signalLine[i];
+
+                        // 골든크로스: BUY
+                        if (currAbove && !prevAbove && macdLine[i] > 0 && qty == 0.0) {
+                            double execPrice = opens[i + 1] * (1 + slippage);
+                            qty = cash / execPrice * (1 - fee);
+                            entryPrice = execPrice;
+                            cash = 0.0;
+                            trades++;
+                        }
+                        // 데드크로스: SELL
+                        else if (!currAbove && prevAbove && macdLine[i] < 0 && qty > 0.0) {
+                            double execPrice = opens[i + 1] * (1 - slippage);
+                            double proceeds = qty * execPrice * (1 - fee);
+                            if (proceeds > entryPrice * (qty / (1 - fee))) wins++; else losses++;
+                            cash = proceeds;
+                            qty = 0.0;
+                        }
+
+                        double portfolio = cash + qty * closes[i];
+                        double ret = prevPortfolio > 0 ? (portfolio - prevPortfolio) / prevPortfolio : 0;
+                        dailyReturns.add(ret);
+                        prevPortfolio = portfolio;
+                        if (portfolio > peakCapital) peakCapital = portfolio;
+                        double dd = peakCapital > 0 ? (peakCapital - portfolio) / peakCapital : 0;
+                        if (dd > maxDd) maxDd = dd;
+                    }
+
+                    // 미청산 포지션 강제 청산
+                    if (qty > 0.0) {
+                        cash = qty * closes[n - 1] * (1 - fee);
+                        qty = 0.0;
+                    }
+
+                    double finalCapital = cash;
+                    double totalReturn  = (finalCapital - capital) / capital * 100.0;
+                    int winRate = trades > 0 ? (int) Math.round((double) wins / trades * 100) : 0;
+
+                    // Sharpe (연율화: H1 기준 × √8760)
+                    double meanRet = dailyReturns.stream().mapToDouble(d -> d).average().orElse(0);
+                    double stdRet  = Math.sqrt(dailyReturns.stream()
+                            .mapToDouble(d -> (d - meanRet) * (d - meanRet)).average().orElse(0));
+                    double sharpe = stdRet > 0 ? meanRet / stdRet * Math.sqrt(8760) : 0;
+
+                    Map<String, Object> row = new java.util.LinkedHashMap<>();
+                    row.put("coin",         coin);
+                    row.put("fastPeriod",   fast);
+                    row.put("slowPeriod",   slow);
+                    row.put("signalPeriod", signalPeriod);
+                    row.put("totalReturn",  Math.round(totalReturn * 100.0) / 100.0);
+                    row.put("winRate",      winRate);
+                    row.put("maxDrawdown",  Math.round(maxDd * 10000.0) / 100.0);
+                    row.put("sharpe",       Math.round(sharpe * 100.0) / 100.0);
+                    row.put("totalTrades",  trades);
+                    row.put("wins",         wins);
+                    row.put("losses",       losses);
+                    results.add(row);
+                    comboCnt++;
+                }
+            }
+            log.info("MACD 그리드 서치 완료: {} — {}건 조합 처리", coin, comboCnt);
+        }
+
+        // Sharpe 내림차순 정렬
+        results.sort((a, b) -> {
+            Double sa = (Double) a.getOrDefault("sharpe", null);
+            Double sb = (Double) b.getOrDefault("sharpe", null);
+            if (sa == null && sb == null) return 0;
+            if (sa == null) return 1;
+            if (sb == null) return -1;
+            return Double.compare(sb, sa);
+        });
+
+        return results;
+    }
+
+    /**
      * 백테스트 전용 COMPOSITE_ETH 인스턴스.
      * ORDERBOOK_IMBALANCE는 실시간 호가창이 없어 캔들 근사값을 사용하므로 가중치를 축소한다.
      * Live: ATR(0.5) + OB(0.3) + EMA(0.2)  →  BT: ATR(0.7) + OB(0.1) + EMA(0.2)

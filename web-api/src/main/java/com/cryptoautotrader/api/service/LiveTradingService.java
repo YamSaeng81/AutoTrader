@@ -561,6 +561,7 @@ public class LiveTradingService {
         // 전략 신호 평가
         Map<String, Object> params = new java.util.HashMap<>(
                 session.getStrategyParams() != null ? session.getStrategyParams() : Collections.emptyMap());
+        params.put("coinPair", coinPair);
         if (session.getStartedAt() != null) {
             params.put("sessionStartedAt", session.getStartedAt().toEpochMilli());
         }

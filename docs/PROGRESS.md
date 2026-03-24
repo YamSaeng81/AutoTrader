@@ -77,7 +77,11 @@ crypto-auto-trader/
 > STOCHASTIC_RSI·MACD는 `BLOCKED_LIVE_STRATEGIES`로 실전 차단 완료. 전략별로 순서대로 진행.
 
 #### 1. MACD 파라미터 그리드 서치 백테스트
-- [ ] BTC/ETH 각각 `fastPeriod`=8~15, `slowPeriod`=20~30 범위 벌크 실행. 현재 기본값 (12, 26, 9)
+- [x] BTC/ETH 각각 `fastPeriod`=8~15, `slowPeriod`=20~30 범위 벌크 실행 완료 (2024~2025, H1, 176조합)
+- **BTC 최적**: fast=14, slow=22 → 수익률 +151.9%, Sharpe 1.68 (기본값 12,26 대비 +63.8%p)
+- **ETH 최적**: fast=10, slow=26 → 수익률 +216.0%, Sharpe 1.61 (기본값 대비 +41.4%p)
+- MacdConfig 기본값: 그외 코인 (12,24,9) / BTC → (14,22,9) / ETH → (10,26,9) 자동 적용
+- [x] **코인별 MacdConfig 분리 완료** — `MacdStrategy.coinDefaults()`: params의 coinPair로 BTC(14,22)/ETH(10,26)/그외(12,24) 자동 선택. BacktestEngine·LiveTradingService에서 coinPair 주입
 
 #### 2. STOCHASTIC RSI 구조적 개선
 - [ ] **StochRSI + RSI 다이버전스 결합** — RSI 다이버전스 발생 + StochRSI 과매도 탈출 동시 충족 시 고신뢰 매수 신호 (구현 복잡도 높음)

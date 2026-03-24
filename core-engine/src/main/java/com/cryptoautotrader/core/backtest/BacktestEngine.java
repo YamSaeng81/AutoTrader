@@ -14,7 +14,9 @@ import com.cryptoautotrader.strategy.StrategySignal;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 백테스팅 엔진
@@ -85,8 +87,12 @@ public class BacktestEngine {
                 // continue 제거: Partial Fill 처리 후에도 전략 신호 평가 진행 (SELL 신호 무시 방지)
             }
 
-            // 전략 신호 생성 (현재 캔들)
-            StrategySignal signal = strategy.evaluate(window, config.getStrategyParams());
+            // 전략 신호 생성 (현재 캔들) — coinPair를 params에 주입해 코인별 전략 기본값 적용
+            Map<String, Object> evalParams = new HashMap<>(config.getStrategyParams());
+            if (config.getCoinPair() != null) {
+                evalParams.put("coinPair", config.getCoinPair());
+            }
+            StrategySignal signal = strategy.evaluate(window, evalParams);
             MarketRegime regime = regimeDetector.detect(window);
 
             // 다음 캔들 open에서 체결 (Look-Ahead Bias 방지)

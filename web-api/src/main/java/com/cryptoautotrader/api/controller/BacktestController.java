@@ -4,6 +4,7 @@ import com.cryptoautotrader.api.dto.ApiResponse;
 import com.cryptoautotrader.api.dto.BacktestRequest;
 import com.cryptoautotrader.api.dto.BulkBacktestRequest;
 import com.cryptoautotrader.api.dto.BulkDeleteRequest;
+import com.cryptoautotrader.api.dto.MacdGridSearchRequest;
 import com.cryptoautotrader.api.dto.MultiStrategyBacktestRequest;
 import com.cryptoautotrader.api.dto.WalkForwardRequest;
 import com.cryptoautotrader.api.entity.BacktestTradeEntity;
@@ -139,5 +140,26 @@ public class BacktestController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void bulkDeleteBacktests(@RequestBody BulkDeleteRequest request) {
         backtestService.bulkDeleteBacktests(request.getIds());
+    }
+
+    /**
+     * MACD 파라미터 그리드 서치
+     * POST /api/v1/backtest/macd-grid-search
+     * Body: { "coins": ["KRW-BTC","KRW-ETH"], "timeframe": "H1",
+     *         "startDate": "2024-01-01", "endDate": "2025-12-31",
+     *         "fastMin": 8, "fastMax": 15, "slowMin": 20, "slowMax": 30, "signalPeriod": 9 }
+     * 응답: Sharpe Ratio 내림차순 정렬된 파라미터 조합별 성과표 (DB 저장 없음)
+     */
+    @PostMapping("/macd-grid-search")
+    public ApiResponse<List<Map<String, Object>>> runMacdGridSearch(
+            @Valid @RequestBody MacdGridSearchRequest req) {
+        List<Map<String, Object>> results = backtestService.runMacdGridSearch(
+                req.getCoins(), req.getTimeframe(),
+                req.getStartDate(), req.getEndDate(),
+                req.getFastMin(), req.getFastMax(),
+                req.getSlowMin(), req.getSlowMax(),
+                req.getSignalPeriod(),
+                req.getInitialCapital(), req.getSlippagePct(), req.getFeePct());
+        return ApiResponse.ok(results);
     }
 }

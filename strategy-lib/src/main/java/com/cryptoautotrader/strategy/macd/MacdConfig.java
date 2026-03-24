@@ -16,8 +16,10 @@ import java.util.Map;
 @Setter
 public class MacdConfig extends StrategyConfig {
 
+    // 기본값: 그외 코인용 (12,24,9)
+    // BTC → (14,22,9), ETH → (10,26,9) 는 MacdStrategy.coinDefaults()에서 자동 적용
     private int fastPeriod = 12;
-    private int slowPeriod = 26;
+    private int slowPeriod = 24;
     private int signalPeriod = 9;
 
     @Override
