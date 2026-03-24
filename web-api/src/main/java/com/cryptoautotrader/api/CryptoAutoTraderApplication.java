@@ -9,7 +9,10 @@ import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServic
  * - @EnableAsync    → AsyncConfig 로 위임
  * - @EnableScheduling → SchedulerConfig 로 위임
  */
-@SpringBootApplication(exclude = {UserDetailsServiceAutoConfiguration.class})
+@SpringBootApplication(
+        exclude = {UserDetailsServiceAutoConfiguration.class},
+        scanBasePackages = "com.cryptoautotrader"
+)
 public class CryptoAutoTraderApplication {
 
     public static void main(String[] args) {
