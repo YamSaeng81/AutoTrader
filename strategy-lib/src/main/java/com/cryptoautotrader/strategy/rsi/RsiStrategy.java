@@ -33,8 +33,8 @@ public class RsiStrategy implements Strategy {
     @Override
     public StrategySignal evaluate(List<Candle> candles, Map<String, Object> params) {
         int period = getInt(params, "period", 14);
-        double oversoldLevel = getDouble(params, "oversoldLevel", 25.0);
-        double overboughtLevel = getDouble(params, "overboughtLevel", 60.0);
+        double oversoldLevel = getDouble(params, "oversoldLevel", 30.0);
+        double overboughtLevel = getDouble(params, "overboughtLevel", 70.0);
         boolean useDivergence = getBoolean(params, "useDivergence", true);
         int pivotWindow = getInt(params, "pivotWindow", 10);  // S4-4: 스윙 탐색 범위
 

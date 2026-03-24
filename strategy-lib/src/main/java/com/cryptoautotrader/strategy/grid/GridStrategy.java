@@ -45,7 +45,7 @@ public class GridStrategy implements StatefulStrategy {
     public StrategySignal evaluate(List<Candle> candles, Map<String, Object> params) {
         int lookbackPeriod = getInt(params, "lookbackPeriod", 100);
         int gridCount = getInt(params, "gridCount", 10);
-        double triggerPct = getDouble(params, "triggerPct", 0.5);
+        double triggerPct = getDouble(params, "triggerPct", 5.0);
 
         if (candles.size() < lookbackPeriod) {
             return StrategySignal.hold("데이터 부족");

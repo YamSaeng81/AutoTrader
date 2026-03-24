@@ -45,6 +45,17 @@ sellScore = Σ (weight_i × confidence_i)   ← SELL 신호를 낸 전략만 합
 
 > **임계값 요약**: 0.6 이상 → 강한 신호, 0.4~0.6 → 약한 신호, 0.4 미만 → 관망
 
+### EMA 방향 필터 (선택적)
+
+일부 복합 전략은 **EMA 방향 필터**를 활성화하여 추세 역행 신호를 억제합니다.
+
+```
+EMA(20) > EMA(50) → 상승 추세 → SELL 신호 억제 (HOLD로 변환)
+EMA(20) < EMA(50) → 하락 추세 → BUY  신호 억제 (HOLD로 변환)
+```
+
+역추세 하위 전략(GRID, BOLLINGER)이 포함된 경우 강한 추세에서의 역방향 신호를 걸러냅니다.
+
 ---
 
 ## 2. COMPOSITE — 시장 국면 자동 감지 복합 전략
@@ -55,6 +66,8 @@ sellScore = Σ (weight_i × confidence_i)   ← SELL 신호를 낸 전략만 합
 
 ADX / ATR / 볼린저 밴드 폭을 측정하여 현재 시장 국면(추세·횡보·변동성)을 자동으로 판별하고,
 **국면에 최적화된 하위 전략 그룹**을 동적으로 선택하여 가중 투표합니다.
+
+내부 구현: `RegimeAdaptiveStrategy` (상태 보유 — 세션마다 새 인스턴스 생성)
 
 ### 시장 국면(Regime) 판별
 
@@ -90,6 +103,12 @@ buyScore = (0.5×0.85 + 0.3×0.70) / 1.0 = 0.635  →  STRONG BUY
 | **BOLLINGER** | **0.4** | 볼린저 밴드 이탈 시 평균 회귀 매매 |
 
 > BTC 2025년 상반기 백테스트 결과 기반으로 선택된 조합입니다.
+
+> **EMA 방향 필터 활성화**: GRID·BOLLINGER 모두 역추세 전략이므로 추세 방향 역행 신호를 자동 억제합니다.
+> - 상승 추세(EMA20 > EMA50): SELL 신호 억제
+> - 하락 추세(EMA20 < EMA50): BUY 신호 억제
+
+> **Stateful 전략**: GridStrategy가 상태를 보유하므로 세션마다 새 인스턴스를 생성합니다.
 
 ---
 
@@ -175,6 +194,9 @@ GRID    → BUY (하단 레벨 근접, strength=72)   → 기여: 0.6 × 0.72 = 
 BOLLINGER → BUY (%B=-0.05 하단 이탈, strength=5) → 기여: 0.4 × 0.05 = 0.020
 
 buyScore = (0.432 + 0.020) / 1.0 = 0.452  →  BUY (약한 매수)
+
+※ EMA 필터: EMA(20) > EMA(50)인 상승 추세라면 이 BUY 신호는 그대로 통과
+   EMA(20) < EMA(50)인 하락 추세라면 HOLD로 억제
 ```
 
 ---
@@ -190,6 +212,8 @@ buyScore = (0.432 + 0.020) / 1.0 = 0.452  →  BUY (약한 매수)
 | **EMA_CROSS** | **0.2** | EMA 골든/데드크로스 추세 확인 |
 
 > ETH 2025년 상반기 백테스트 결과 기반으로 선택된 조합입니다.
+
+> **Stateless 전략**: 구성 전략이 모두 상태를 보유하지 않으므로 세션 간 인스턴스를 공유합니다.
 
 ---
 
@@ -266,7 +290,7 @@ strength = 50 + 돌파 폭% / 2   (최대 100)
 ```
 최근 15캔들을 누적하여 불균형 비율을 계산합니다.
 
-#### Delta 일관성 필터 (S4-6)
+#### Delta 일관성 필터
 
 ```
 마지막 캔들의 압력 방향 ≠ 이전 누적 방향 → 신호 강도 50% 할인
@@ -326,6 +350,8 @@ buyScore = (0.325 + 0.120) / 1.0 = 0.445  →  BUY (약한 매수)
 **1시간봉 최적화 — MACD 추세 + StochRSI 타이밍 + 볼린저밴드 지지 확인**
 
 가중 투표 방식이 아닌, 단일 전략 내에서 **3가지 지표를 모두 동시에 확인**하는 AND 조건 방식입니다.
+
+> **Stateful 전략**: 쿨다운 상태를 보유하므로 세션마다 새 인스턴스를 생성합니다.
 
 ### 사용 지표 요약
 
@@ -424,18 +450,27 @@ SELL 강도 = (%K - 80) / 20 × 100   ← %K가 100에 가까울수록 강함
 | 전략 | 적합한 시장 | 특징 | 리스크 |
 |------|------------|------|--------|
 | **COMPOSITE** | 모든 시장 (자동 판별) | 시장 국면에 따라 자동으로 전략 교체 | 국면 판별 오류 시 부적절한 전략 사용 |
-| **COMPOSITE_BTC** | 횡보장 (레인지 마켓) | 그리드 분할 매수 + 밴드 이탈 역추세 | 강한 상승/하락 추세에서 손실 위험 |
+| **COMPOSITE_BTC** | 횡보장 (레인지 마켓) | 그리드 분할 매수 + 밴드 이탈 역추세 + EMA 필터 | 강한 상승/하락 추세에서 손실 위험 |
 | **COMPOSITE_ETH** | 추세장 + 변동성 장세 | ATR 돌파 + 호가 분석 + EMA 추세 | 횡보장에서 가짜 돌파 신호 위험 |
 | **MACD_STOCH_BB** | 1시간봉 상승 추세 내 눌림목 | 6가지 조건 AND → 매우 보수적 | 신호 빈도 낮음, 기회 놓칠 수 있음 |
 
 ### 주요 차이점
 
 ```
-COMPOSITE_BTC   : 격자 매수 + 역추세  →  횡보 구간에서 반복 매매
-COMPOSITE_ETH   : 돌파 진입 + 호가 분석 →  추세 초입에 진입
-MACD_STOCH_BB   : 눌림목 매수         →  추세 중 조정 시 저점 매수
-COMPOSITE       : 자동 국면 판별       →  시장 상황에 맞는 전략 자동 선택
+COMPOSITE_BTC   : 격자 매수 + 역추세 + EMA 필터 →  횡보 구간에서 반복 매매 (추세 역행 억제)
+COMPOSITE_ETH   : 돌파 진입 + 호가 분석        →  추세 초입에 진입
+MACD_STOCH_BB   : 눌림목 매수                  →  추세 중 조정 시 저점 매수
+COMPOSITE       : 자동 국면 판별               →  시장 상황에 맞는 전략 자동 선택
 ```
+
+### Stateful vs Stateless
+
+| 전략 | 상태 | 세션 인스턴스 |
+|------|------|--------------|
+| COMPOSITE | Stateful (국면 감지 상태) | 세션마다 새 인스턴스 |
+| COMPOSITE_BTC | Stateful (GridStrategy 레벨 상태) | 세션마다 새 인스턴스 |
+| COMPOSITE_ETH | Stateless | 공유 인스턴스 재사용 |
+| MACD_STOCH_BB | Stateful (쿨다운 상태) | 세션마다 새 인스턴스 |
 
 ---
 
@@ -444,6 +479,7 @@ COMPOSITE       : 자동 국면 판별       →  시장 상황에 맞는 전략
 | 전략 | 파일 |
 |------|------|
 | 가중 투표 엔진 | [CompositeStrategy.java](../core-engine/src/main/java/com/cryptoautotrader/core/selector/CompositeStrategy.java) |
+| COMPOSITE 국면 감지 | [RegimeAdaptiveStrategy.java](../core-engine/src/main/java/com/cryptoautotrader/core/selector/RegimeAdaptiveStrategy.java) |
 | COMPOSITE_BTC/ETH 등록 | [CompositePresetRegistrar.java](../web-api/src/main/java/com/cryptoautotrader/api/config/CompositePresetRegistrar.java) |
 | GRID 전략 | [GridStrategy.java](../strategy-lib/src/main/java/com/cryptoautotrader/strategy/grid/GridStrategy.java) |
 | BOLLINGER 전략 | [BollingerStrategy.java](../strategy-lib/src/main/java/com/cryptoautotrader/strategy/bollinger/BollingerStrategy.java) |

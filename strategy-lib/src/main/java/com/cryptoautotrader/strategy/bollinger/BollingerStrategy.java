@@ -36,6 +36,8 @@ public class BollingerStrategy implements Strategy {
         int     squeezeWindow  = getInt(params,     "squeezeWindow",   30);
         int     adxPeriod      = getInt(params,     "adxPeriod",       14);
         double  adxMaxThreshold = getDouble(params, "adxMaxThreshold", 25.0);
+        double  buyThreshold   = getDouble(params,  "buyThreshold",    0.2);
+        double  sellThreshold  = getDouble(params,  "sellThreshold",   0.8);
 
         if (candles.size() < period) {
             return StrategySignal.hold("데이터 부족");
@@ -81,16 +83,19 @@ public class BollingerStrategy implements Strategy {
         BigDecimal percentB = currentPrice.subtract(lowerBand)
                 .divide(bandWidth, SCALE, RoundingMode.HALF_UP);
 
+        BigDecimal buyBD  = BigDecimal.valueOf(buyThreshold);
+        BigDecimal sellBD = BigDecimal.valueOf(sellThreshold);
+
         BigDecimal strength;
-        if (percentB.compareTo(BigDecimal.ZERO) < 0) {
-            strength = percentB.abs().multiply(BigDecimal.valueOf(100)).min(BigDecimal.valueOf(100));
+        if (percentB.compareTo(buyBD) < 0) {
+            strength = buyBD.subtract(percentB).multiply(BigDecimal.valueOf(100)).min(BigDecimal.valueOf(100));
             return StrategySignal.buy(strength,
-                    String.format("하단 밴드 이탈: %%B=%.4f, 가격=%.2f, 하단=%.2f", percentB, currentPrice, lowerBand));
+                    String.format("하단 밴드 근접: %%B=%.4f < %.2f, 가격=%.2f, 하단=%.2f", percentB, buyThreshold, currentPrice, lowerBand));
         }
-        if (percentB.compareTo(BigDecimal.ONE) > 0) {
-            strength = percentB.subtract(BigDecimal.ONE).multiply(BigDecimal.valueOf(100)).min(BigDecimal.valueOf(100));
+        if (percentB.compareTo(sellBD) > 0) {
+            strength = percentB.subtract(sellBD).multiply(BigDecimal.valueOf(100)).min(BigDecimal.valueOf(100));
             return StrategySignal.sell(strength,
-                    String.format("상단 밴드 이탈: %%B=%.4f, 가격=%.2f, 상단=%.2f", percentB, currentPrice, upperBand));
+                    String.format("상단 밴드 근접: %%B=%.4f > %.2f, 가격=%.2f, 상단=%.2f", percentB, sellThreshold, currentPrice, upperBand));
         }
 
         return StrategySignal.hold(String.format("밴드 내: %%B=%.4f", percentB));
