@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,6 +33,12 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
 
     /** 특정 세션의 주문 내역 (최신순, 페이징) */
     Page<OrderEntity> findBySessionIdOrderByCreatedAtDesc(Long sessionId, Pageable pageable);
+
+    /** 날짜 범위 주문 조회 (최신순, 페이징) */
+    Page<OrderEntity> findByCreatedAtBetweenOrderByCreatedAtDesc(Instant from, Instant to, Pageable pageable);
+
+    /** 세션 + 날짜 범위 주문 조회 (최신순, 페이징) */
+    Page<OrderEntity> findBySessionIdAndCreatedAtBetweenOrderByCreatedAtDesc(Long sessionId, Instant from, Instant to, Pageable pageable);
 
     /** 특정 세션의 특정 상태 주문 조회 */
     List<OrderEntity> findBySessionIdAndStateIn(Long sessionId, List<String> states);

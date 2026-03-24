@@ -3,13 +3,13 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { tradingApi } from '@/lib/api';
-import { LiveOrder } from '@/lib/types';
+import { LiveOrder, LiveTradingSession } from '@/lib/types';
 import {
     Loader2, Activity, ChevronLeft, ChevronRight,
     ChevronDown, ChevronRight as ChevronRightIcon, RefreshCw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { format, subDays, startOfDay } from 'date-fns';
 
 const STATE_STYLE: Record<string, { label: string; cls: string }> = {
     PENDING:        { label: 'PENDING',       cls: 'bg-amber-50 text-amber-600 border border-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20' },
@@ -39,15 +39,44 @@ const SIDE_FILTERS = [
     { value: 'SELL', label: '매도' },
 ];
 
+const DATE_PRESETS = [
+    { value: 'ALL',       label: '전체' },
+    { value: 'TODAY',     label: '오늘' },
+    { value: 'YESTERDAY', label: '어제' },
+    { value: '7DAYS',     label: '7일' },
+];
+
+function getDateRange(preset: string): { dateFrom?: string; dateTo?: string } {
+    const fmt = (d: Date) => format(d, 'yyyy-MM-dd');
+    const today = new Date();
+    if (preset === 'TODAY')     return { dateFrom: fmt(today), dateTo: fmt(today) };
+    if (preset === 'YESTERDAY') { const y = subDays(today, 1); return { dateFrom: fmt(y), dateTo: fmt(y) }; }
+    if (preset === '7DAYS')     return { dateFrom: fmt(subDays(today, 6)), dateTo: fmt(today) };
+    return {};
+}
+
 export default function UpbitLogsPage() {
     const [page, setPage] = useState(0);
     const [stateFilter, setStateFilter] = useState('ALL');
     const [sideFilter, setSideFilter] = useState('ALL');
+    const [datePreset, setDatePreset] = useState('ALL');
+    const [sessionFilter, setSessionFilter] = useState<string>('ALL');
     const [openRows, setOpenRows] = useState<Set<number>>(new Set());
 
+    // 세션 목록
+    const { data: sessionsRes } = useQuery({
+        queryKey: ['trading-sessions'],
+        queryFn: () => tradingApi.listSessions(),
+        staleTime: 60_000,
+    });
+    const sessions: LiveTradingSession[] = (sessionsRes?.data as any) ?? [];
+
+    const { dateFrom, dateTo } = getDateRange(datePreset);
+    const sessionId = sessionFilter !== 'ALL' ? Number(sessionFilter) : undefined;
+
     const { data: res, isLoading, refetch, isFetching } = useQuery({
-        queryKey: ['upbit-logs', page],
-        queryFn: () => tradingApi.getOrders(page, 50),
+        queryKey: ['upbit-logs', page, datePreset, sessionFilter],
+        queryFn: () => tradingApi.getOrders(page, 50, sessionId, dateFrom, dateTo),
         refetchInterval: 10_000,
     });
 
@@ -84,6 +113,18 @@ export default function UpbitLogsPage() {
         setOpenRows(new Set());
     };
 
+    const handleDatePreset = (v: string) => {
+        setDatePreset(v);
+        setPage(0);
+        setOpenRows(new Set());
+    };
+
+    const handleSessionFilter = (v: string) => {
+        setSessionFilter(v);
+        setPage(0);
+        setOpenRows(new Set());
+    };
+
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
             {/* 헤더 */}
@@ -105,41 +146,79 @@ export default function UpbitLogsPage() {
             </div>
 
             {/* 필터 */}
-            <div className="flex items-center gap-4 flex-wrap">
-                {/* 상태 필터 */}
-                <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
-                    {STATE_FILTERS.map(f => (
-                        <button
-                            key={f.value}
-                            onClick={() => handleStateFilter(f.value)}
-                            className={cn(
-                                'px-3 py-1.5 rounded-md text-xs font-medium transition-colors',
-                                stateFilter === f.value
-                                    ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 shadow-sm'
-                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
-                            )}
-                        >
-                            {f.label}
-                        </button>
-                    ))}
+            <div className="flex flex-col gap-3">
+                {/* 1행: 날짜 + 세션 */}
+                <div className="flex items-center gap-4 flex-wrap">
+                    {/* 날짜 필터 */}
+                    <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
+                        {DATE_PRESETS.map(f => (
+                            <button
+                                key={f.value}
+                                onClick={() => handleDatePreset(f.value)}
+                                className={cn(
+                                    'px-3 py-1.5 rounded-md text-xs font-medium transition-colors',
+                                    datePreset === f.value
+                                        ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 shadow-sm'
+                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                                )}
+                            >
+                                {f.label}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* 세션 필터 */}
+                    <select
+                        value={sessionFilter}
+                        onChange={e => handleSessionFilter(e.target.value)}
+                        className="h-8 px-3 rounded-lg text-xs font-medium border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                    >
+                        <option value="ALL">세션 전체</option>
+                        {sessions.map(s => (
+                            <option key={s.id} value={String(s.id)}>
+                                #{s.id} {s.strategyType} · {s.coinPair}
+                            </option>
+                        ))}
+                    </select>
                 </div>
 
-                {/* 방향 필터 */}
-                <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
-                    {SIDE_FILTERS.map(f => (
-                        <button
-                            key={f.value}
-                            onClick={() => handleSideFilter(f.value)}
-                            className={cn(
-                                'px-3 py-1.5 rounded-md text-xs font-medium transition-colors',
-                                sideFilter === f.value
-                                    ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 shadow-sm'
-                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
-                            )}
-                        >
-                            {f.label}
-                        </button>
-                    ))}
+                {/* 2행: 상태 + 방향 */}
+                <div className="flex items-center gap-4 flex-wrap">
+                    {/* 상태 필터 */}
+                    <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
+                        {STATE_FILTERS.map(f => (
+                            <button
+                                key={f.value}
+                                onClick={() => handleStateFilter(f.value)}
+                                className={cn(
+                                    'px-3 py-1.5 rounded-md text-xs font-medium transition-colors',
+                                    stateFilter === f.value
+                                        ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 shadow-sm'
+                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                                )}
+                            >
+                                {f.label}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* 방향 필터 */}
+                    <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
+                        {SIDE_FILTERS.map(f => (
+                            <button
+                                key={f.value}
+                                onClick={() => handleSideFilter(f.value)}
+                                className={cn(
+                                    'px-3 py-1.5 rounded-md text-xs font-medium transition-colors',
+                                    sideFilter === f.value
+                                        ? 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 shadow-sm'
+                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                                )}
+                            >
+                                {f.label}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </div>
 

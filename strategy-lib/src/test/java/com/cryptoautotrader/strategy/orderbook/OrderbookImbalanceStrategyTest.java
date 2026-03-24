@@ -91,15 +91,25 @@ class OrderbookImbalanceStrategyTest {
     // ========== 캔들 기반 근사치 모드 테스트 ==========
 
     @Test
-    void 캔들_상승_연속_매수_우세_BUY() {
-        // 모두 강한 상승 캔들 (종가 >> 시가): 매수 압력이 압도적
+    void 캔들_상승_Delta_가속_BUY() {
+        // lookback=6: 전반부(0-2) 1% 상승, 후반부(3-5) 5% 상승 → Delta 가속 + 매수 우세 → BUY
         List<Candle> candles = new ArrayList<>();
         Instant base = Instant.parse("2024-01-01T00:00:00Z");
         BigDecimal price = new BigDecimal("50000000");
 
-        for (int i = 0; i < 10; i++) {
+        // 앞 9개 캔들 중 lookback=6 기준 전반부(3개)는 1% 상승
+        for (int i = 0; i < 12; i++) {
+            String riseStr;
+            int lookbackIdx = i - (12 - 6); // lookback 내 인덱스
+            if (lookbackIdx >= 0 && lookbackIdx < 3) {
+                riseStr = "0.01"; // 전반부: 1% 상승
+            } else if (lookbackIdx >= 3) {
+                riseStr = "0.05"; // 후반부: 5% 상승
+            } else {
+                riseStr = "0.02"; // lookback 이전: 중간 상승
+            }
             BigDecimal open = price;
-            BigDecimal close = price.add(price.multiply(new BigDecimal("0.03"))); // 3% 상승
+            BigDecimal close = price.add(price.multiply(new BigDecimal(riseStr)));
             BigDecimal high = close.add(price.multiply(new BigDecimal("0.001")));
             BigDecimal low = open.subtract(price.multiply(new BigDecimal("0.001")));
             candles.add(Candle.builder()
@@ -111,22 +121,32 @@ class OrderbookImbalanceStrategyTest {
         }
 
         StrategySignal signal = strategy.evaluate(candles, Map.of(
-                "imbalanceThreshold", 0.55, // 낮은 임계값으로 신호 유도
-                "lookback", 5
+                "imbalanceThreshold", 0.55,
+                "lookback", 6
         ));
-        // 강한 상승 캔들 연속 → 매수 압력 우세 → BUY 예상
         assertThat(signal.getAction()).isEqualTo(StrategySignal.Action.BUY);
+        assertThat(signal.getReason()).contains("Delta가속");
     }
 
     @Test
-    void 캔들_하락_연속_매도_우세_SELL() {
+    void 캔들_하락_Delta_가속_SELL() {
+        // lookback=6: 전반부(0-2) 1% 하락, 후반부(3-5) 5% 하락 → Delta 가속(매도) + 매도 우세 → SELL
         List<Candle> candles = new ArrayList<>();
         Instant base = Instant.parse("2024-01-01T00:00:00Z");
         BigDecimal price = new BigDecimal("50000000");
 
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 12; i++) {
+            String fallStr;
+            int lookbackIdx = i - (12 - 6);
+            if (lookbackIdx >= 0 && lookbackIdx < 3) {
+                fallStr = "0.01"; // 전반부: 1% 하락
+            } else if (lookbackIdx >= 3) {
+                fallStr = "0.05"; // 후반부: 5% 하락
+            } else {
+                fallStr = "0.02";
+            }
             BigDecimal open = price;
-            BigDecimal close = price.subtract(price.multiply(new BigDecimal("0.03"))); // 3% 하락
+            BigDecimal close = price.subtract(price.multiply(new BigDecimal(fallStr)));
             BigDecimal high = open.add(price.multiply(new BigDecimal("0.001")));
             BigDecimal low = close.subtract(price.multiply(new BigDecimal("0.001")));
             candles.add(Candle.builder()
@@ -139,10 +159,39 @@ class OrderbookImbalanceStrategyTest {
 
         StrategySignal signal = strategy.evaluate(candles, Map.of(
                 "imbalanceThreshold", 0.55,
+                "lookback", 6
+        ));
+        assertThat(signal.getAction()).isEqualTo(StrategySignal.Action.SELL);
+        assertThat(signal.getReason()).contains("Delta가속");
+    }
+
+    @Test
+    void 캔들_매수_우세이나_Delta_감속시_HOLD() {
+        // 모두 동일한 3% 상승 캔들 → 불균형은 존재하지만 Delta가 평탄(가속 없음) → HOLD
+        List<Candle> candles = new ArrayList<>();
+        Instant base = Instant.parse("2024-01-01T00:00:00Z");
+        BigDecimal price = new BigDecimal("50000000");
+
+        for (int i = 0; i < 10; i++) {
+            BigDecimal open = price;
+            BigDecimal close = price.add(price.multiply(new BigDecimal("0.03")));
+            BigDecimal high = close.add(price.multiply(new BigDecimal("0.001")));
+            BigDecimal low = open.subtract(price.multiply(new BigDecimal("0.001")));
+            candles.add(Candle.builder()
+                    .time(base.plus(i, ChronoUnit.HOURS))
+                    .open(open).high(high).low(low).close(close)
+                    .volume(BigDecimal.valueOf(100))
+                    .build());
+            price = close;
+        }
+
+        StrategySignal signal = strategy.evaluate(candles, Map.of(
+                "imbalanceThreshold", 0.55,
                 "lookback", 5
         ));
-        // 강한 하락 캔들 연속 → 매도 압력 우세 → SELL 예상
-        assertThat(signal.getAction()).isEqualTo(StrategySignal.Action.SELL);
+        // 동일 패턴 반복 → Delta 가속 없음 → HOLD 격하
+        assertThat(signal.getAction()).isEqualTo(StrategySignal.Action.HOLD);
+        assertThat(signal.getReason()).contains("Delta 감속");
     }
 
     @Test

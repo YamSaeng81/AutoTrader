@@ -7,6 +7,7 @@ import com.cryptoautotrader.strategy.grid.GridStrategy;
 import com.cryptoautotrader.strategy.macd.MacdStrategy;
 import com.cryptoautotrader.strategy.orderbook.OrderbookImbalanceStrategy;
 import com.cryptoautotrader.strategy.rsi.RsiStrategy;
+import com.cryptoautotrader.strategy.volumedelta.VolumeDeltaStrategy;
 import com.cryptoautotrader.strategy.macdstochbb.MacdStochBbStrategy;
 import com.cryptoautotrader.strategy.stochasticrsi.StochasticRsiStrategy;
 import com.cryptoautotrader.strategy.supertrend.SupertrendStrategy;
@@ -35,6 +36,7 @@ public final class StrategyRegistry {
         register(new SupertrendStrategy());
         register(new AtrBreakoutStrategy());
         register(new OrderbookImbalanceStrategy());
+        register(new VolumeDeltaStrategy());
         // Phase 3 전략 6번째 (로직 구현 완료)
         register(new StochasticRsiStrategy());
         // MACD + StochRSI + 볼린저밴드 복합 추세 전략 (StatefulStrategy: 쿨다운 상태 보유)

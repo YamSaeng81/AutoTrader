@@ -215,7 +215,7 @@ public class StrategyController {
             // Phase 1: 완전 구현
             case "VWAP", "EMA_CROSS", "BOLLINGER", "GRID" -> true;
             // Phase 3: 로직 구현 완료
-            case "RSI", "MACD", "SUPERTREND", "ATR_BREAKOUT", "ORDERBOOK_IMBALANCE", "STOCHASTIC_RSI" -> true;
+            case "RSI", "MACD", "SUPERTREND", "ATR_BREAKOUT", "ORDERBOOK_IMBALANCE", "STOCHASTIC_RSI", "VOLUME_DELTA" -> true;
             // 코인별 복합 전략 프리셋 + 국면 적응형 복합 전략
             case "COMPOSITE", "COMPOSITE_BTC", "COMPOSITE_ETH" -> true;
             // 복합 추세 전략
@@ -235,6 +235,7 @@ public class StrategyController {
             case "SUPERTREND"          -> "ATR 기반 동적 지지/저항 추세 추종";
             case "ATR_BREAKOUT"        -> "ATR 변동성 돌파 모멘텀 매매";
             case "ORDERBOOK_IMBALANCE" -> "호가 불균형 기반 단기 방향성 매매 (Phase 4 WebSocket 연동 필요)";
+            case "VOLUME_DELTA"        -> "누적 볼륨 Delta(매수-매도 압력) + 다이버전스 필터 기반 방향성 매매";
             case "STOCHASTIC_RSI"      -> "RSI 에 Stochastic 적용, RANGE/VOLATILITY 시장 민감 감지";
             case "COMPOSITE"           -> "시장 국면(TREND/RANGE/VOLATILITY) 자동 감지 기반 동적 전략 선택";
             case "COMPOSITE_BTC"       -> "[BTC 프리셋] GRID × 0.6 + BOLLINGER × 0.4 — 2025 H1 백테스트 기반";

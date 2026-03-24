@@ -123,8 +123,10 @@ export const tradingApi = {
     // 전체 포지션/주문
     getPositions: () =>
         api.get<ApiResponse<Position[]>>('/api/v1/trading/positions').then(r => r.data),
-    getOrders: (page = 0, size = 20) =>
-        api.get<ApiResponse<PageResponse<LiveOrder>>>('/api/v1/trading/orders', { params: { page, size } }).then(r => r.data),
+    getOrders: (page = 0, size = 20, sessionId?: number, dateFrom?: string, dateTo?: string) =>
+        api.get<ApiResponse<PageResponse<LiveOrder>>>('/api/v1/trading/orders', {
+            params: { page, size, sessionId, dateFrom, dateTo },
+        }).then(r => r.data),
     cancelOrder: (id: number) =>
         api.delete<ApiResponse<null>>(`/api/v1/trading/orders/${id}`).then(r => r.data),
 

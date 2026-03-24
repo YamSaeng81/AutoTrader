@@ -4,6 +4,104 @@
 
 ---
 
+### ✅ 완료 (2026-03-24) — 급등/급락 실시간 감지 (손절 가속 + 트레일링 스탑)
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `LiveTradingService.java` | `PriceSnapshot` 내부 클래스 추가. `priceHistory` / `spikeCheckLastMs` 필드 추가. 상수 6개 추가 (SPIKE_WINDOW_MS, SPIKE_DOWN/UP_THRESHOLD, SL_TIGHTEN/TRAILING_STOP_MARGIN 등). `onRealtimePriceEvent()` 재작성. `updatePriceHistory()` / `calcSpikeRate()` 헬퍼 추가. import `ArrayDeque`, `Deque` 추가 |
+
+**동작 흐름**:
+1. WebSocket ticker 수신마다 `priceHistory`에 (timestamp, price) 저장 (throttle 전, 항상 기록)
+2. 30초 윈도우 내 변동률 계산 → 급락(-1.5%) / 급등(+2.0%) 여부 판단
+3. **급등락 감지 시**: 1초 throttle (평상시 5초) + 세션 루프 진입
+4. **기존 손절 체크 강화**: `stopLossPrice` 절대가 우선 → 없으면 `stopLossPct %` (기존 로직이 `stopLossPrice` 를 무시하던 버그 함께 수정)
+5. **급락 + 손실 중 포지션**: SL을 `현재가 × 0.997`로 조임 (단방향 ratchet — 한번 조이면 완화 안 됨)
+6. **급등 + 수익 중 포지션**: TP를 `현재가 × 0.995`로 트레일링 업데이트 (단방향 ratchet — 고점 추적)
+
+**설계 결정**:
+- spike threshold는 감지 트리거일 뿐, 실제 손절/익절 기준은 세션 설정(`stopLossPct`, `takeProfitPrice`) 유지
+- SL 조임은 손실 중 포지션에만 적용 (수익 중엔 불필요)
+- TP 트레일링은 수익 중 포지션에만 적용 (손실 중엔 의미 없음)
+- `priceHistory` 는 전략과 무관하게 모든 RUNNING 세션에 공통 적용
+
+---
+
+### ✅ 완료 (2026-03-24) — WebSocket 연결 상태 표시 버그 수정
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `UpbitWebSocketClient.java` | `connectionStateListener` (`Consumer<Boolean>`) 필드 추가. `setConnectionStateListener()` 공개 메서드 추가. `notifyConnectionState(boolean)` 내부 헬퍼 추가. `onOpen()` → `notifyConnectionState(true)` 호출. `onClose()` / `onError()` / `exceptionally()` / `disconnectInternal()` → `notifyConnectionState(false)` 호출 |
+| `LiveTradingService.java` | `reconcileOnStartup()` 내 WebSocket 리스너 등록 블록에 `wsClient.setConnectionStateListener(exchangeHealthMonitor::setWebSocketConnected)` 한 줄 추가 |
+
+**수정 전 동작**: `ExchangeHealthMonitor.webSocketConnected` 필드가 항상 `false` → Upbit 연동 상태 화면에서 WebSocket이 항상 "미연결" 표시
+
+**수정 후 동작**: WebSocket `onOpen` 시 `true`, 연결 종료/오류/명시적 disconnect 시 `false`로 실시간 갱신 → 화면에 실제 연결 상태 반영
+
+**설계 결정**: `UpbitWebSocketClient`는 `exchange-adapter` 모듈, `ExchangeHealthMonitor`는 `web-api` 모듈이므로 직접 의존성 주입 대신 콜백(`Consumer<Boolean>`) 패턴 사용. 기존 `tickerListeners` / `tradeListeners` 리스너 패턴과 동일한 방식.
+
+---
+
+### 📋 참고 (2026-03-23) — AI 복합 전략 리뷰 분석 및 개선 우선순위 도출
+
+> 제미나이 · OpenAI · 퍼플렉시티 3개 AI에게 `COMPOSITE_STRATEGIES_GUIDE.md`를 보여주고 받은 피드백 요약.
+
+#### 3개 AI 모두 동의 — 완료된 개선 항목
+
+| 순위 | 항목 | 상태 |
+|------|------|------|
+| 1 | **글로벌 RiskManager 분리** — 전략 외부 SL/TP/최대노출 통합 관리 | ✅ 완료 (V26, PaperTradingService, LiveTradingService) |
+| 2 | **`COMPOSITE_BTC` EMA 방향 필터** — 추세 감지 시 역추세 신호 억제 | ✅ 완료 (CompositeStrategy.java) |
+| 3 | **`COMPOSITE` TRANSITIONAL → 신규 진입 금지** | ✅ 완료 (PaperTradingService, LiveTradingService) |
+| 4 | **`COMPOSITE_ETH` 모드별 가중치 분리** — 백테스트/실시간 프리셋 구분 | ✅ 완료 (BacktestService.java) |
+
+#### 잔여 개선 항목 (PROGRESS.md P1 추적 중)
+
+| 순위 | 항목 | 비고 |
+|------|------|------|
+| 5 | `MACD_STOCH_BB` → COMPOSITE TREND 서브필터 편입 | 복잡도: 중 |
+| 6 | 멀티 타임프레임 (1H 방향 + 15M 진입) | 복잡도: 고 |
+| 7 | 동적 가중치 (100거래 이상 샘플, 오버피팅 주의) | 복잡도: 고 |
+
+#### 주요 판단 메모
+
+- **OpenAI 충돌 판단 로직 변경 제안 반박**: `abs(buyScore-sellScore)<0.1→HOLD` 방식은 두 신호 모두 강할 때(예: buy=0.80, sell=0.75) 상충을 방치함. 현재 "양쪽 모두 0.4 이상이면 HOLD" 로직이 우월.
+- **동적 가중치 오버피팅 위험**: 최근 10~20거래 승률로 가중치 조정 시 "방금 잘 됐던 전략에 몰빵" 역효과. 최소 100거래 + 변화 ≤ 10%/회 + 최저 하한선 0.1 조건 필수.
+- **하이퍼 파라미터 자산별 최적화(제미나이 제안)**: BTC/ETH 이외 알트코인 지원 시점에 검토. 현재는 파라미터 폭발 위험.
+
+---
+
+### ✅ 완료 (2026-03-24) — VolumeDeltaStrategy 신규 구현 및 StrategyRegistry 등록
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `volumedelta/VolumeDeltaStrategy.java` (신규) | `Strategy` 인터페이스 구현. Tick Rule 근사로 캔들별 Delta(매수볼륨 − 매도볼륨) 계산. `누적Delta비율 = sum(Delta) / sum(volume)` 로 정규화. Delta 추세 확인 필터(전반부 vs 후반부 평균 비교), 다이버전스 필터(가격 방향 vs Delta 방향 역전 시 신호 억제) 포함 |
+| `volumedelta/VolumeDeltaConfig.java` (신규) | `StrategyConfig` 구현. 파라미터: `lookback`(기본 20), `signalThreshold`(기본 0.10), `divergenceMode`(기본 true). `fromParams()` 정적 팩토리 메서드 포함 |
+| `volumedelta/VolumeDeltaStrategyTest.java` (신규) | 8개 테스트: 이름/최소캔들수 확인, 데이터 부족 HOLD, 매수 압력 강화 BUY, 매도 압력 강화 SELL, 임계값 미만 HOLD, Delta 강화 없을 시 HOLD 격하, 약세 다이버전스 HOLD, 신호 강도 범위 검증 |
+| `StrategyRegistry.java` | `VolumeDeltaStrategy` import 추가. `register(new VolumeDeltaStrategy())` 등록 (`OrderbookImbalanceStrategy` 바로 다음) |
+
+**신호 로직 요약**:
+- BUY: `누적Delta비율 > signalThreshold` AND `후반부 평균Delta > 전반부 평균Delta` AND (divergenceMode OFF 또는 가격↑ 아닐 것)
+- SELL: `누적Delta비율 < -signalThreshold` AND `후반부 평균Delta < 전반부 평균Delta` AND (divergenceMode OFF 또는 가격↓ 아닐 것)
+
+**설계 근거**: ORDERBOOK_IMBALANCE의 캔들 근사 볼륨 분해 방식을 재사용하되, 호가 불균형 비율 대신 "누적 Delta 방향 + 가속 추세"를 신호 기준으로 삼는다. 다이버전스 필터는 가격과 매수/매도 압력이 반대 방향으로 움직이는 국면(압력이 실제로 소진됐을 가능성)에서의 허위 신호를 억제한다.
+
+---
+
+### ✅ 완료 (2026-03-24) — ORDERBOOK_IMBALANCE Delta 가속도 필터 추가 (Option A)
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `OrderbookImbalanceStrategy.java` | `evaluateWithCandleApproximation()` 내 per-candle delta 배열 저장 추가. lookback 구간을 전반부/후반부로 분할하여 캔들당 평균 Delta 비교. BUY: `후반부Avg > 전반부Avg` 필수, SELL: `후반부Avg < 전반부Avg` 필수. 조건 미충족 시 HOLD 격하 + reason에 전반부/후반부 Δavg 값 표기 |
+| `OrderbookImbalanceStrategyTest.java` | 기존 평탄 상승/하락 테스트 → 가속 패턴 테스트(전반부 1% / 후반부 5%)로 교체. `캔들_매수_우세이나_Delta_감속시_HOLD` 신규 테스트 추가 (동일 3% 반복 → HOLD 격하 검증) |
+
+**적용 범위**: 캔들 근사 모드(백테스팅)에만 적용. 실시간 모드(`bidVolume`/`askVolume` 파라미터 제공 시)는 호가창 데이터 자체가 정확하므로 필터 미적용.
+
+**설계 근거**: 호가 불균형 비율이 임계값을 넘더라도 Delta가 평탄하거나 감소 중이면 이미 압력이 소진된 국면일 수 있다. 후반부 평균이 전반부 평균을 상회(BUY)/하회(SELL)하는 경우만 통과시켜 허위 신호를 억제.
+
+**기존 S4-6 Delta 일관성 필터와의 관계**: 일관성 필터는 "마지막 캔들 vs 이전 누적"의 방향 역전 시 강도 50% 할인. 가속도 필터는 "전반부 vs 후반부 추세"가 진행 방향인지 확인. 두 필터는 독립적으로 동작하며 중복 없음.
+
+---
+
 ### ✅ 완료 (2026-03-23) — COMPOSITE_ETH 모드별 가중치 분리 (백테스트 vs 실시간)
 
 | 파일 | 변경 내용 |

@@ -43,6 +43,7 @@ public class UpbitWebSocketClient {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final CopyOnWriteArrayList<Consumer<TickerData>> tickerListeners = new CopyOnWriteArrayList<>();
     private final CopyOnWriteArrayList<Consumer<TradeData>> tradeListeners = new CopyOnWriteArrayList<>();
+    private volatile Consumer<Boolean> connectionStateListener;
 
     private volatile WebSocket webSocket;
     private volatile boolean connected = false;
@@ -117,6 +118,14 @@ public class UpbitWebSocketClient {
         tradeListeners.add(listener);
     }
 
+    /**
+     * WebSocket 연결 상태 변경 콜백 등록
+     * connected=true: 연결 성공, connected=false: 연결 해제/오류
+     */
+    public void setConnectionStateListener(Consumer<Boolean> listener) {
+        this.connectionStateListener = listener;
+    }
+
     // ========== 내부 구현 ==========
 
     private void doConnect() {
@@ -135,6 +144,7 @@ public class UpbitWebSocketClient {
                         connected = true;
                         currentReconnectDelay = INITIAL_RECONNECT_DELAY_MS;
                         lastPongTime = System.currentTimeMillis();
+                        notifyConnectionState(true);
 
                         sendSubscription(ws);
                         startPingScheduler();
@@ -178,6 +188,7 @@ public class UpbitWebSocketClient {
                     public CompletionStage<?> onClose(WebSocket ws, int statusCode, String reason) {
                         log.warn("Upbit WebSocket 연결 종료: code={}, reason={}", statusCode, reason);
                         connected = false;
+                        notifyConnectionState(false);
                         scheduleReconnect();
                         return null;
                     }
@@ -186,12 +197,14 @@ public class UpbitWebSocketClient {
                     public void onError(WebSocket ws, Throwable error) {
                         log.error("Upbit WebSocket 오류: {}", error.getMessage(), error);
                         connected = false;
+                        notifyConnectionState(false);
                         scheduleReconnect();
                     }
                 })
                 .exceptionally(ex -> {
                     log.error("Upbit WebSocket 연결 실패: {}", ex.getMessage(), ex);
                     connected = false;
+                    notifyConnectionState(false);
                     scheduleReconnect();
                     return null;
                 });
@@ -374,6 +387,7 @@ public class UpbitWebSocketClient {
     private void disconnectInternal() {
         stopPingScheduler();
         connected = false;
+        notifyConnectionState(false);
         if (webSocket != null) {
             try {
                 webSocket.sendClose(WebSocket.NORMAL_CLOSURE, "정상 종료");
@@ -381,6 +395,17 @@ public class UpbitWebSocketClient {
                 log.debug("WebSocket 종료 중 오류 (무시): {}", e.getMessage());
             }
             webSocket = null;
+        }
+    }
+
+    private void notifyConnectionState(boolean isConnected) {
+        Consumer<Boolean> listener = connectionStateListener;
+        if (listener != null) {
+            try {
+                listener.accept(isConnected);
+            } catch (Exception e) {
+                log.warn("연결 상태 콜백 실행 오류: {}", e.getMessage());
+            }
         }
     }
 

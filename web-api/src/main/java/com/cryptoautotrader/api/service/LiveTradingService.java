@@ -45,8 +45,10 @@ import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -84,6 +86,18 @@ public class LiveTradingService {
     /** WebSocket 실시간 손절 — 코인별 마지막 체크 시각 (5초 throttle) */
     private final Map<String, Long> rtStopLossLastCheckMs = new ConcurrentHashMap<>();
     private static final long RT_STOPLOSS_CHECK_INTERVAL_MS = 5_000;
+
+    /** 급등/급락 감지 — 코인별 가격 이력 (최근 60초) */
+    private final Map<String, Deque<PriceSnapshot>> priceHistory = new ConcurrentHashMap<>();
+    /** 급등/급락 감지 시 단축 throttle (1초) */
+    private final Map<String, Long> spikeCheckLastMs = new ConcurrentHashMap<>();
+    private static final long SPIKE_WINDOW_MS        = 30_000;   // 감지 윈도우 30초
+    private static final long SPIKE_HISTORY_TTL_MS   = 60_000;   // 버퍼 보존 60초
+    private static final long SPIKE_CHECK_INTERVAL_MS = 1_000;   // 급등락 시 1초 throttle
+    private static final BigDecimal SPIKE_DOWN_THRESHOLD  = new BigDecimal("-1.5");  // -1.5%/30s
+    private static final BigDecimal SPIKE_UP_THRESHOLD    = new BigDecimal("2.0");   // +2.0%/30s
+    private static final BigDecimal SL_TIGHTEN_MARGIN     = new BigDecimal("0.003"); // 현재가 0.3% 아래로 SL 조임
+    private static final BigDecimal TRAILING_STOP_MARGIN  = new BigDecimal("0.005"); // 현재가 0.5% 아래로 TP 갱신
 
     private final LiveTradingSessionRepository sessionRepository;
     private final PositionRepository positionRepository;
@@ -1102,6 +1116,7 @@ public class LiveTradingService {
             wsClient.addTickerListener(ticker ->
                 eventPublisher.publishEvent(
                     new RealtimePriceEvent(ticker.getCode(), ticker.getTradePrice())));
+            wsClient.setConnectionStateListener(exchangeHealthMonitor::setWebSocketConnected);
             log.info("WebSocket 실시간 시세 리스너 등록 완료");
         }
         refreshWsSubscription();
@@ -1226,10 +1241,27 @@ public class LiveTradingService {
     public void onRealtimePriceEvent(RealtimePriceEvent event) {
         String coinCode = event.getCoinCode();
         BigDecimal price = event.getPrice();
-
         long now = System.currentTimeMillis();
-        Long lastMs = rtStopLossLastCheckMs.get(coinCode);
-        if (lastMs != null && now - lastMs < RT_STOPLOSS_CHECK_INTERVAL_MS) return;
+
+        // 1. 가격 이력 업데이트 (throttle 전 — 항상 기록)
+        updatePriceHistory(coinCode, price, now);
+
+        // 2. 급등/급락 감지
+        BigDecimal spikeRate = calcSpikeRate(coinCode, now);
+        boolean spikeDown = spikeRate.compareTo(SPIKE_DOWN_THRESHOLD) <= 0;
+        boolean spikeUp   = spikeRate.compareTo(SPIKE_UP_THRESHOLD) >= 0;
+
+        // 3. throttle — 급등락 시 1초, 평상시 5초
+        if (spikeDown || spikeUp) {
+            Long lastSpike = spikeCheckLastMs.get(coinCode);
+            if (lastSpike != null && now - lastSpike < SPIKE_CHECK_INTERVAL_MS) return;
+            spikeCheckLastMs.put(coinCode, now);
+            log.info("급{}락 감지: {} {}%/30s",
+                    spikeDown ? "하" : "상", coinCode, spikeRate.setScale(2, RoundingMode.HALF_UP));
+        } else {
+            Long lastMs = rtStopLossLastCheckMs.get(coinCode);
+            if (lastMs != null && now - lastMs < RT_STOPLOSS_CHECK_INTERVAL_MS) return;
+        }
         rtStopLossLastCheckMs.put(coinCode, now);
 
         List<LiveTradingSessionEntity> sessions = sessionRepository.findByStatus("RUNNING");
@@ -1250,13 +1282,74 @@ public class LiveTradingService {
             BigDecimal stopLossPct = session.getStopLossPct() != null
                     ? session.getStopLossPct() : new BigDecimal("5.0");
 
-            if (pnlPct.compareTo(stopLossPct.negate()) <= 0) {
+            // 기존 손절 체크 (stopLossPrice 절대가 우선, 없으면 stopLossPct %)
+            boolean slTriggered = (pos.getStopLossPrice() != null)
+                    ? price.compareTo(pos.getStopLossPrice()) <= 0
+                    : pnlPct.compareTo(stopLossPct.negate()) <= 0;
+
+            if (slTriggered) {
                 log.warn("실시간 손절 발동 (WS): sessionId={}, {}, 손익={}%",
                         session.getId(), coinCode, pnlPct);
                 telegramService.notifyStopLoss(coinCode, pnlPct.doubleValue(), session.getId());
                 executeSessionSell(session, pos, price, "실시간 손절(WS) — 손익률 " + pnlPct + "%");
+                continue;
+            }
+
+            // 급락 처리 — 손실 중인 포지션 SL 조임 (단방향 ratchet, 한번 조이면 완화 안 됨)
+            if (spikeDown && pnlPct.compareTo(BigDecimal.ZERO) < 0) {
+                BigDecimal newSl = price.multiply(BigDecimal.ONE.subtract(SL_TIGHTEN_MARGIN))
+                        .setScale(8, RoundingMode.HALF_DOWN);
+                BigDecimal currentSl = pos.getStopLossPrice();
+                if (currentSl == null || newSl.compareTo(currentSl) > 0) {
+                    pos.setStopLossPrice(newSl);
+                    positionRepository.save(pos);
+                    log.info("급락 SL 조임: sessionId={}, {} SL {} → {}",
+                            session.getId(), coinCode, currentSl, newSl);
+                }
+            }
+
+            // 급등 처리 — 수익 중인 포지션 TP 트레일링 (단방향 ratchet, 고점 추적)
+            if (spikeUp && pnlPct.compareTo(BigDecimal.ZERO) > 0) {
+                BigDecimal newTp = price.multiply(BigDecimal.ONE.subtract(TRAILING_STOP_MARGIN))
+                        .setScale(8, RoundingMode.HALF_UP);
+                BigDecimal currentTp = pos.getTakeProfitPrice();
+                if (currentTp == null || newTp.compareTo(currentTp) > 0) {
+                    pos.setTakeProfitPrice(newTp);
+                    positionRepository.save(pos);
+                    log.info("급등 TP 트레일링: sessionId={}, {} TP {} → {}",
+                            session.getId(), coinCode, currentTp, newTp);
+                }
             }
         }
+    }
+
+    private void updatePriceHistory(String coin, BigDecimal price, long nowMs) {
+        Deque<PriceSnapshot> history = priceHistory.computeIfAbsent(coin, k -> new ArrayDeque<>());
+        history.addLast(new PriceSnapshot(nowMs, price));
+        // TTL 초과 항목 제거
+        while (!history.isEmpty() && nowMs - history.peekFirst().timestampMs > SPIKE_HISTORY_TTL_MS) {
+            history.pollFirst();
+        }
+    }
+
+    private BigDecimal calcSpikeRate(String coin, long nowMs) {
+        Deque<PriceSnapshot> history = priceHistory.get(coin);
+        if (history == null || history.size() < 2) return BigDecimal.ZERO;
+
+        PriceSnapshot latest = history.peekLast();
+        PriceSnapshot windowStart = null;
+        for (PriceSnapshot snap : history) {
+            if (nowMs - snap.timestampMs <= SPIKE_WINDOW_MS) {
+                windowStart = snap;
+                break;
+            }
+        }
+        if (windowStart == null || windowStart == latest) return BigDecimal.ZERO;
+        if (windowStart.price.compareTo(BigDecimal.ZERO) <= 0) return BigDecimal.ZERO;
+
+        return latest.price.subtract(windowStart.price)
+                .divide(windowStart.price, 6, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(100));
     }
 
     /**
@@ -1276,6 +1369,12 @@ public class LiveTradingService {
             wsClient.connect(coins);
             log.info("WebSocket 구독 갱신: {}", coins);
         }
+    }
+
+    private static final class PriceSnapshot {
+        final long timestampMs;
+        final BigDecimal price;
+        PriceSnapshot(long ts, BigDecimal p) { this.timestampMs = ts; this.price = p; }
     }
 
     private List<Candle> fetchRecentCandles(String coinPair, String timeframe) {

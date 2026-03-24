@@ -21,6 +21,9 @@ import org.springframework.web.server.ResponseStatusException;
 import jakarta.validation.Valid;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -173,12 +176,18 @@ public class TradingController {
 
     // -- 주문 관리 (전체) ------------------------------------------
 
-    /** 주문 내역 (페이징) */
+    /** 주문 내역 (페이징) — 세션/날짜 필터 선택 적용 */
     @GetMapping("/orders")
     public ApiResponse<Page<OrderEntity>> getOrders(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-        return ApiResponse.ok(orderExecutionEngine.getOrders(PageRequest.of(page, size)));
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) Long sessionId,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+            @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate dateTo) {
+        ZoneId kst = ZoneId.of("Asia/Seoul");
+        Instant from = dateFrom != null ? dateFrom.atStartOfDay(kst).toInstant() : null;
+        Instant to   = dateTo  != null ? dateTo.plusDays(1).atStartOfDay(kst).toInstant() : null;
+        return ApiResponse.ok(orderExecutionEngine.getOrders(PageRequest.of(page, size), sessionId, from, to));
     }
 
     /** 주문 상세 조회 */

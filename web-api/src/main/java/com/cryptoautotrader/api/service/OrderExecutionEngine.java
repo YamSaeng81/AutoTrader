@@ -260,11 +260,22 @@ public class OrderExecutionEngine {
     }
 
     /**
-     * 전체 주문 내역 조회 (페이징)
+     * 전체 주문 내역 조회 (페이징) — 세션/날짜 필터 선택 적용
      */
     @Transactional(readOnly = true)
-    public Page<OrderEntity> getOrders(Pageable pageable) {
-        return orderRepository.findAllByOrderByCreatedAtDesc(pageable);
+    public Page<OrderEntity> getOrders(Pageable pageable, Long sessionId, Instant dateFrom, Instant dateTo) {
+        boolean hasSession = sessionId != null;
+        boolean hasDate    = dateFrom != null && dateTo != null;
+
+        if (hasSession && hasDate) {
+            return orderRepository.findBySessionIdAndCreatedAtBetweenOrderByCreatedAtDesc(sessionId, dateFrom, dateTo, pageable);
+        } else if (hasSession) {
+            return orderRepository.findBySessionIdOrderByCreatedAtDesc(sessionId, pageable);
+        } else if (hasDate) {
+            return orderRepository.findByCreatedAtBetweenOrderByCreatedAtDesc(dateFrom, dateTo, pageable);
+        } else {
+            return orderRepository.findAllByOrderByCreatedAtDesc(pageable);
+        }
     }
 
     /**
