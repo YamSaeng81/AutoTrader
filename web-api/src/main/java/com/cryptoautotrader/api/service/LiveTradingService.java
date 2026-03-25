@@ -66,7 +66,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class LiveTradingService {
 
-    private static final int MAX_CONCURRENT_SESSIONS = 5;
+    private static final int MAX_CONCURRENT_SESSIONS = 10;
     private static final int CANDLE_LOOKBACK = 100;
     private static final BigDecimal FEE_RATE = new BigDecimal("0.0005");
     private static final BigDecimal INVEST_RATIO = new BigDecimal("0.80");
@@ -762,8 +762,8 @@ public class LiveTradingService {
     private void executeSessionSell(LiveTradingSessionEntity session,
                                      PositionEntity pos, BigDecimal currentPrice,
                                      String reason) {
-        // 매도 수량 검증 — position.size=0 이면 매수 체결 미감지 상태
-        if (pos.getSize().compareTo(BigDecimal.ZERO) <= 0) {
+        // 매도 수량 검증 — position.size=null or 0 이면 매수 체결 미감지 상태
+        if (pos.getSize() == null || pos.getSize().compareTo(BigDecimal.ZERO) <= 0) {
             // 매수 주문이 취소/실패됐는지 확인
             Optional<OrderEntity> cancelledBuy = orderRepository
                     .findByPositionIdOrderByCreatedAtDesc(pos.getId())
