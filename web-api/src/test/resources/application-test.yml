@@ -1,4 +1,7 @@
 spring:
+  main:
+    allow-bean-definition-overriding: true  # TestRedisConfig @Primary 빈이 RedisConfig를 덮어쓸 수 있도록
+
   datasource:
     url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     driver-class-name: org.h2.Driver
@@ -30,6 +33,10 @@ spring:
   jackson:
     serialization:
       write-dates-as-timestamps: false
+
+api:
+  auth:
+    token: test-api-token  # 통합 테스트용 고정 토큰
 
 server:
   port: 0  # 랜덤 포트 (테스트 격리)

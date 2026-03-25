@@ -6,6 +6,7 @@ import com.cryptoautotrader.api.exception.SessionStateException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -38,6 +39,13 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.joining(", "));
         log.warn("유효성 검사 실패: {}", message);
         return ApiResponse.error("VALIDATION_ERROR", message);
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse<Void> handleMissingParam(MissingServletRequestParameterException e) {
+        log.warn("필수 파라미터 누락: {}", e.getMessage());
+        return ApiResponse.error("BAD_REQUEST", e.getParameterName() + " 파라미터가 필요합니다.");
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

@@ -4,6 +4,56 @@
 
 ---
 
+### ✅ 완료 (2026-03-25) — COMPOSITE_BTC V2 재구성 (Grid+Bollinger → MACD+VWAP+Grid)
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `CompositePresetRegistrar.java` | COMPOSITE_BTC 구성 변경: `Grid×0.6 + Bollinger×0.4` → `MACD×0.5 + VWAP×0.3 + Grid×0.2`. import BollingerStrategy 제거, MacdStrategy·VwapStrategy 추가 |
+| `StrategyController.java` | COMPOSITE_BTC 설명 업데이트 |
+
+**재구성 근거**: KRW-BTC H1 백테스트 결과 분석
+- VWAP / SUPERTREND / RSI_DIVERGENCE 신규 BTC 백테스트 실시
+- VWAP: 2024 +53.38% / 2025 -6.97% → 평균 +23.2%, 승률 64.8%, MDD -15~-19% (채택)
+- SUPERTREND: 2024 +68.97% / 2025 -39.45% → 불안정, MDD -45% (기각)
+- RSI: 일관 마이너스 (기각)
+- 기존 Grid(+8.4%), Bollinger(+3.2%) 대비 MACD 최적화(+151.9%) 압도적
+
+**백테스트 검증 결과** (KRW-BTC H1, 24~25년): **+58.83%**, 승률 37.5%, MDD -25.62%
+- 구 Grid+Bollinger 추정치 ~+6% 대비 압도적 개선
+- 승률 낮음은 MACD 추세 전략 특성 (진입 빈도↓, 홀딩 기간↑)
+
+---
+
+### ✅ 완료 (2026-03-25) — COMPOSITE_ETH_VD 추가 및 백테스트 채택
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `CompositePresetRegistrar.java` | `COMPOSITE_ETH_VD` 등록: `ATR×0.4 + OB×0.3 + VD×0.2 + EMA×0.1` |
+| `BacktestService.java` | `compositeEthVdBt()` 헬퍼 추가 — 백테스트 전용 가중치 분리 |
+| `StrategyController.java` | COMPOSITE_ETH_VD 설명·구현 여부 추가 |
+
+**백테스트 비교 결과** (KRW-ETH H1, 2회):
+
+| 전략 | 결과 1 | 결과 2 | 평균 | MDD |
+|------|--------|--------|------|-----|
+| COMPOSITE_ETH_VD | +92.54% | +48.10% | **+70.3%** | -12~-17% |
+| COMPOSITE_ETH | +47.05% | +50.37% | +48.7% | -26~-28% |
+| VOLUME_DELTA 단독 | +94.04% | -22.11% | +36% | -32~-54% |
+
+**결론**: VD 편입 시 MDD 대폭 개선. VOLUME_DELTA 단독은 불안정하여 복합 편입 전략으로 채택.
+
+---
+
+### ✅ 완료 (2026-03-24) — MACD coinDefaults 코인별 분리
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `MacdStrategy.java` | `coinDefaults(String coinPair)` 정적 메서드 추가. BTC → (14,22,9), ETH → (10,26,9), 그외 → (12,24,9) 자동 선택 |
+| `BacktestEngine.java` | `coinPair` 파라미터 주입 → MacdStrategy 초기화 시 coinDefaults 적용 |
+| `LiveTradingService.java` | 세션 시작 시 coinPair 전달 → MACD 코인별 최적 파라미터 자동 적용 |
+
+---
+
 ### ✅ 완료 (2026-03-24) — MACD 파라미터 그리드 서치 백테스트
 
 | 파일 | 변경 내용 |
