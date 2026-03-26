@@ -412,6 +412,21 @@ export interface PerformanceSummary {
   sessions: SessionPerformance[];
 }
 
+// ─── 서버 리소스 메트릭 ──────────────────────────────────────────────────────
+
+export interface SystemMetrics {
+  cpuUsagePct: number;   // -1 이면 측정 불가
+  memUsedMb: number;
+  memTotalMb: number;
+  memUsagePct: number;
+  heapUsedMb: number;
+  heapMaxMb: number;
+  heapUsagePct: number;
+  diskUsedGb: number;
+  diskTotalGb: number;
+  diskUsagePct: number;
+}
+
 export interface AccountSummary {
   apiKeyConfigured: boolean;
   message?: string;

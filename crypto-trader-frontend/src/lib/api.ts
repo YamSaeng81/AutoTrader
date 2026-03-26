@@ -178,6 +178,8 @@ export const accountApi = {
 };
 
 export const settingsApi = {
+    systemMetrics: () =>
+        api.get<ApiResponse<import('./types').SystemMetrics>>('/api/v1/settings/system-metrics').then(r => r.data),
     telegramLogs: (page = 0, size = 50) =>
         api.get<ApiResponse<import('./types').TelegramLogsResponse>>('/api/v1/settings/telegram/logs', { params: { page, size } }).then(r => r.data),
     telegramTest: () =>

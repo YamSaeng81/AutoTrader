@@ -4,6 +4,26 @@
 
 ---
 
+### ✅ 완료 (2026-03-25) — COMPOSITE 개선: 전략 교체 + ADX 게이트
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `StrategySelector.java` | RANGE: `RSI(0.4)` → `VWAP(0.4)` 교체 (RSI 일관 마이너스) |
+| `StrategySelector.java` | VOLATILITY: `STOCHASTIC_RSI(0.4)` → `VOLUME_DELTA(0.4)` 교체 (StochRSI BLOCKED) |
+| `RegimeAdaptiveStrategy.java` | ADX 게이트 추가 — BUY 신호 발생 시 `ADX(14) < 20`이면 HOLD 반환 |
+
+**문제 원인**: COMPOSITE의 고승률(-14% BTC / -21% ETH) 패턴 분석
+- VOLATILITY 레짐에 BLOCKED 전략(STOCHASTIC_RSI, -70%)이 40% 가중치로 작동 중 → 큰 손실 원인
+- RANGE 레짐에서 RSI(일관 마이너스) 사용 → 횡보장 진입 손실
+- ADX < 20(횡보장)에서도 BUY 진입 허용 → 가짜 신호 다수
+
+**ADX 게이트 원리 (DMI 원칙 적용)**:
+- ADX > 20: 추세 존재 확인 → 정상 진입
+- ADX < 20: 횡보장 → BUY 차단, SELL은 허용 (포지션 정리는 가능)
+- `IndicatorUtils.adx(candles, 14)` 사용 (기존 구현 재사용)
+
+---
+
 ### ✅ 완료 (2026-03-25) — COMPOSITE_BTC V2 재구성 (Grid+Bollinger → MACD+VWAP+Grid)
 
 | 파일 | 변경 내용 |

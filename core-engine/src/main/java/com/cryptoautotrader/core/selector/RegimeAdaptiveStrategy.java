@@ -3,9 +3,12 @@ package com.cryptoautotrader.core.selector;
 import com.cryptoautotrader.core.regime.MarketRegime;
 import com.cryptoautotrader.core.regime.MarketRegimeDetector;
 import com.cryptoautotrader.strategy.Candle;
+import com.cryptoautotrader.strategy.IndicatorUtils;
 import com.cryptoautotrader.strategy.Strategy;
 import com.cryptoautotrader.strategy.StrategySignal;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
 
@@ -17,9 +20,10 @@ import java.util.Map;
  *
  * <ul>
  *   <li>TREND       — SUPERTREND(0.5) + EMA_CROSS(0.3) + ATR_BREAKOUT(0.2)</li>
- *   <li>RANGE       — BOLLINGER(0.4)  + RSI(0.4) + GRID(0.2)</li>
- *   <li>VOLATILITY  — ATR_BREAKOUT(0.6) + STOCHASTIC_RSI(0.4)</li>
+ *   <li>RANGE       — BOLLINGER(0.4)  + VWAP(0.4) + GRID(0.2)</li>
+ *   <li>VOLATILITY  — ATR_BREAKOUT(0.6) + VOLUME_DELTA(0.4)</li>
  *   <li>TRANSITIONAL — 직전 국면 전략 × 0.5, 신규 BUY 금지</li>
+ *   <li>ADX 게이트  — ADX &lt; 20 이면 BUY 차단 (횡보장 진입 방지, DMI 원칙)</li>
  * </ul>
  */
 public class RegimeAdaptiveStrategy implements Strategy {
@@ -37,6 +41,9 @@ public class RegimeAdaptiveStrategy implements Strategy {
         return 50;
     }
 
+    private static final BigDecimal ADX_GATE_THRESHOLD = BigDecimal.valueOf(20);
+    private static final int        ADX_PERIOD         = 14;
+
     @Override
     public StrategySignal evaluate(List<Candle> candles, Map<String, Object> params) {
         MarketRegime regime = detector.detect(candles);
@@ -49,6 +56,16 @@ public class RegimeAdaptiveStrategy implements Strategy {
             return StrategySignal.hold(
                     "TRANSITIONAL 국면 신규 진입 금지 [원신호: " + signal.getReason() + "]");
         }
+
+        // ADX 게이트: ADX < 20 횡보장 BUY 차단 (DMI 원칙 — 추세 미확인 시 진입 금지)
+        if (signal.getAction() == StrategySignal.Action.BUY) {
+            BigDecimal adx = IndicatorUtils.adx(candles, ADX_PERIOD);
+            if (adx.compareTo(ADX_GATE_THRESHOLD) < 0) {
+                return StrategySignal.hold(
+                        "ADX " + adx.setScale(1, RoundingMode.HALF_UP) + " < 20 횡보장 매수 차단 [원신호: " + signal.getReason() + "]");
+            }
+        }
+
         return signal;
     }
 }

@@ -1,104 +1,478 @@
 'use client';
 
-import { useBacktests, useStrategies, useDataStatus } from '@/hooks';
-import { MetricsCard } from '@/components/backtest/MetricsCard';
-import { Activity, Target, TrendingUp, Database, ChevronRight } from 'lucide-react';
-import Link from 'next/link';
-import { format } from 'date-fns';
+import { useQuery } from '@tanstack/react-query';
+import {
+    useTradingStatus, useTradingSessions, useExchangeHealth,
+    usePositions, useOrders, useStrategies, usePaperSessions,
+} from '@/hooks';
+import { accountApi, tradingApi, paperTradingApi, settingsApi } from '@/lib/api';
+import type { SystemMetrics, PerformanceSummary, AccountSummary } from '@/lib/types';
+import {
+    Activity, AlertTriangle, CheckCircle, Cpu, Database,
+    DollarSign, HardDrive, MemoryStick, Server, TrendingDown,
+    TrendingUp, Zap,
+} from 'lucide-react';
+import {
+    AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
+    Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend,
+} from 'recharts';
 
-export default function DashboardPage() {
-    const { data: backtests = [] } = useBacktests();
-    const { data: strategies = [] } = useStrategies();
-    const { data: summary = [] } = useDataStatus();
+// ─── 포맷 헬퍼 ───────────────────────────────────────────────────────────────
+const fmt = (n: number) => new Intl.NumberFormat('ko-KR').format(Math.round(n));
+const fmtPct = (n: number) => `${n >= 0 ? '+' : ''}${n.toFixed(2)}%`;
+const fmtTime = (iso: string) =>
+    new Date(iso).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-    const recentBacktests = backtests.slice(0, 3);
-    const availableStrategies = strategies.filter(s => s.status === 'AVAILABLE');
-    const dataCount = summary.length;
+const PIE_COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899'];
 
-    const bestBt = backtests
-        .filter(bt => bt.metrics != null)
-        .sort((a, b) => (Number(b.metrics?.totalReturn) || 0) - (Number(a.metrics?.totalReturn) || 0))[0];
+// ─── 신호등 색상 ──────────────────────────────────────────────────────────────
+function gaugeColor(pct: number) {
+    if (pct < 60) return { bar: 'bg-emerald-500', text: 'text-emerald-400', label: 'text-emerald-400', ring: 'border-emerald-500/40' };
+    if (pct < 85) return { bar: 'bg-amber-400',   text: 'text-amber-400',   label: 'text-amber-400',   ring: 'border-amber-400/40' };
+    return              { bar: 'bg-red-500',       text: 'text-red-400',     label: 'text-red-400',     ring: 'border-red-500/40' };
+}
 
+// ─── 퀵 서머리 카드 ───────────────────────────────────────────────────────────
+function SummaryCard({
+    title, value, sub, icon, colorClass = 'text-slate-100',
+}: {
+    title: string; value: string; sub?: string; icon: React.ReactNode; colorClass?: string;
+}) {
     return (
-        <div className="space-y-8 animate-in fade-in duration-500">
-            <div>
-                <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">대시보드</h1>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">시스템 상태 및 최근 백테스트 요약을 제공합니다.</p>
+        <div className="bg-slate-800 border border-slate-700 rounded-xl p-5 flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+                <p className="text-xs font-medium text-slate-400">{title}</p>
+                <span className="text-slate-500">{icon}</span>
             </div>
+            <p className={`text-2xl font-bold tracking-tight ${colorClass}`}>{value}</p>
+            {sub && <p className="text-xs text-slate-500">{sub}</p>}
+        </div>
+    );
+}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <MetricsCard
-                    title="사용 가능한 전략"
-                    value={`${availableStrategies.length}개`}
-                    icon={<Target className="w-5 h-5" />}
-                    subtitle={`전체 ${strategies.length}개 중`}
-                />
-                <MetricsCard
-                    title="총 백테스트"
-                    value={`${backtests.length}회`}
-                    icon={<Activity className="w-5 h-5" />}
-                    subtitle="누적 시뮬레이션"
-                />
-                <MetricsCard
-                    title="최고 수익률"
-                    value={bestBt?.metrics ? `${Number(bestBt.metrics.totalReturn) > 0 ? '+' : ''}${Number(bestBt.metrics.totalReturn).toFixed(2)}%` : '-'}
-                    icon={<TrendingUp className="w-5 h-5" />}
-                    trend={bestBt?.metrics && Number(bestBt.metrics.totalReturn) > 0 ? 'up' : undefined}
-                    subtitle={bestBt ? `${bestBt.strategyType} / ${bestBt.coinPair}` : '백테스트를 실행해보세요'}
-                />
-                <MetricsCard
-                    title="수집된 데이터"
-                    value={`${dataCount}종`}
-                    icon={<Database className="w-5 h-5" />}
-                    subtitle="코인×타임프레임 조합"
+// ─── 리소스 게이지 바 ─────────────────────────────────────────────────────────
+function ResourceGauge({ label, pct, detail, icon }: { label: string; pct: number; detail: string; icon: React.ReactNode }) {
+    const c = gaugeColor(pct);
+    return (
+        <div className={`bg-slate-800/60 border ${c.ring} rounded-lg p-4 space-y-2`}>
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-slate-300">
+                    <span className={c.text}>{icon}</span>
+                    <span className="text-xs font-semibold">{label}</span>
+                </div>
+                <span className={`text-sm font-bold ${c.label}`}>
+                    {pct < 0 ? 'N/A' : `${pct.toFixed(1)}%`}
+                </span>
+            </div>
+            <div className="w-full bg-slate-700 rounded-full h-2">
+                <div
+                    className={`h-2 rounded-full transition-all duration-500 ${c.bar}`}
+                    style={{ width: pct < 0 ? '0%' : `${Math.min(100, pct)}%` }}
                 />
             </div>
+            <p className="text-[11px] text-slate-500">{detail}</p>
+        </div>
+    );
+}
 
-            <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
-                <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/50">
-                    <h2 className="font-semibold text-slate-800 dark:text-slate-100">최근 백테스트 내역</h2>
-                    <Link href="/backtest" className="text-sm font-medium text-indigo-600 hover:text-indigo-700 flex items-center gap-0.5">
-                        모두 보기 <ChevronRight className="w-4 h-4" />
-                    </Link>
+// ─── 시스템 상태 배지 ─────────────────────────────────────────────────────────
+function StatusBadge({ health, metrics }: { health: string | undefined; metrics: SystemMetrics | null }) {
+    const isWarning =
+        health === 'DEGRADED' || health === 'DOWN' ||
+        (metrics && (metrics.cpuUsagePct > 85 || metrics.memUsagePct > 90 || metrics.diskUsagePct > 90));
+
+    if (isWarning) {
+        return (
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+                <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+                <span className="text-xs font-semibold text-amber-400">Warning</span>
+            </div>
+        );
+    }
+    return (
+        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
+            <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
+            <span className="text-xs font-semibold text-emerald-400">Normal</span>
+        </div>
+    );
+}
+
+// ─── 메인 ────────────────────────────────────────────────────────────────────
+export default function DashboardPage() {
+    // ── 데이터 페칭 ──────────────────────────────────────────────────────────
+    const { data: tradingStatus }    = useTradingStatus();
+    const { data: liveSessions = [] } = useTradingSessions();
+    const { data: paperSessions = [] } = usePaperSessions();
+    const { data: health }           = useExchangeHealth();
+    const { data: positions = [] }   = usePositions();
+    const { data: ordersPage }       = useOrders(0, 8);
+    const { data: strategies = [] }  = useStrategies();
+
+    const { data: account } = useQuery<AccountSummary | null>({
+        queryKey: ['account-summary'],
+        queryFn: async () => {
+            const res = await accountApi.summary();
+            return (res.success && res.data) ? res.data : null;
+        },
+        refetchInterval: 30000,
+    });
+
+    const { data: livePerfRaw } = useQuery<PerformanceSummary | null>({
+        queryKey: ['live-performance'],
+        queryFn: async () => {
+            const res = await tradingApi.getPerformance();
+            return (res.success && res.data) ? res.data : null;
+        },
+        refetchInterval: 10000,
+    });
+
+    const { data: paperPerfRaw } = useQuery<PerformanceSummary | null>({
+        queryKey: ['paper-performance'],
+        queryFn: async () => {
+            const res = await paperTradingApi.getPerformance();
+            return (res.success && res.data) ? res.data : null;
+        },
+        refetchInterval: 10000,
+    });
+
+    const { data: metrics = null } = useQuery<SystemMetrics | null>({
+        queryKey: ['system-metrics'],
+        queryFn: async () => {
+            const res = await settingsApi.systemMetrics();
+            return (res.success && res.data) ? res.data : null;
+        },
+        refetchInterval: 10000,
+    });
+
+    // ── 계산 ─────────────────────────────────────────────────────────────────
+    const runningLive  = liveSessions.filter(s => s.status === 'RUNNING').length;
+    const runningPaper = paperSessions.filter(s => s.status === 'RUNNING').length;
+    const activeCount  = runningLive + runningPaper;
+
+    const totalPnl        = tradingStatus?.totalPnl ?? 0;
+    const liveReturnPct   = livePerfRaw?.returnRatePct ?? 0;
+
+    const totalAsset = account?.totalAssetKrw ?? 0;
+
+    // 수익률 비교 차트: 실전 vs 모의 세션별 바
+    const perfChartData = (() => {
+        const live  = (livePerfRaw?.sessions ?? []).map(s => ({
+            name: `${s.strategyType}\n${s.coinPair}`,
+            live: Number(s.returnRatePct.toFixed(2)),
+            paper: 0,
+            type: 'live',
+        }));
+        const paper = (paperPerfRaw?.sessions ?? []).map(s => ({
+            name: `${s.strategyType}\n${s.coinPair}`,
+            live: 0,
+            paper: Number(s.returnRatePct.toFixed(2)),
+            type: 'paper',
+        }));
+        return [...live, ...paper].slice(0, 10);
+    })();
+
+    // 자산 배분 파이
+    const pieData = (() => {
+        if (!account?.totalAssetKrw) return [];
+        const data: { name: string; value: number }[] = [];
+        if ((account.totalKrwBalance ?? 0) > 0)
+            data.push({ name: 'KRW', value: account.totalKrwBalance! });
+        (account.holdings ?? []).forEach(h => {
+            if (h.evalValue > 0) data.push({ name: h.currency, value: h.evalValue });
+        });
+        return data;
+    })();
+
+    const recentOrders = ordersPage?.content ?? [];
+
+    // ── 렌더 ─────────────────────────────────────────────────────────────────
+    return (
+        <div className="space-y-8 animate-in fade-in duration-500 max-w-[1600px]">
+
+            {/* ━━━ 페이지 헤더 ━━━ */}
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-100 tracking-tight">대시보드</h1>
+                    <p className="text-sm text-slate-500 mt-0.5">실시간 운용 현황 · 자동 갱신</p>
+                </div>
+                <StatusBadge health={health?.status} metrics={metrics} />
+            </div>
+
+            {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                ① 상단: 퀵 서머리 카드 (4개)
+            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* 운용 자산 */}
+                <SummaryCard
+                    title="운용 자산 총액"
+                    value={totalAsset > 0 ? `${fmt(totalAsset)} KRW` : '-'}
+                    sub={account?.totalUnrealizedPnlPct != null
+                        ? `평가손익 ${fmtPct(account.totalUnrealizedPnlPct)}`
+                        : '계좌 미연동'}
+                    icon={<DollarSign className="w-4 h-4" />}
+                    colorClass="text-slate-100"
+                />
+
+                {/* 금일 실적 */}
+                <SummaryCard
+                    title="실전 총 손익"
+                    value={`${totalPnl >= 0 ? '+' : ''}${fmt(totalPnl)} KRW`}
+                    sub={liveReturnPct !== 0
+                        ? `수익률 ${fmtPct(liveReturnPct)}`
+                        : '진행 중인 세션 없음'}
+                    icon={totalPnl >= 0
+                        ? <TrendingUp className="w-4 h-4" />
+                        : <TrendingDown className="w-4 h-4" />}
+                    colorClass={totalPnl >= 0 ? 'text-emerald-400' : 'text-red-400'}
+                />
+
+                {/* 활성 전략 수 */}
+                <SummaryCard
+                    title="활성 전략 수"
+                    value={`${activeCount}개 구동 중`}
+                    sub={`실전 ${runningLive} · 모의 ${runningPaper} · 전략 ${strategies.filter(s => s.isActive).length}종 활성`}
+                    icon={<Activity className="w-4 h-4" />}
+                    colorClass={activeCount > 0 ? 'text-indigo-400' : 'text-slate-400'}
+                />
+
+                {/* 시스템 상태 */}
+                <SummaryCard
+                    title="시스템 상태"
+                    value={health?.status === 'UP' ? 'Normal' : health?.status === 'DEGRADED' ? 'Warning' : health?.status ?? '-'}
+                    sub={health
+                        ? `거래소 응답 ${health.latencyMs}ms · WS ${health.webSocketConnected ? '연결됨' : '끊김'}`
+                        : '정보 수집 중'}
+                    icon={<Zap className="w-4 h-4" />}
+                    colorClass={
+                        health?.status === 'UP' ? 'text-emerald-400' :
+                        health?.status === 'DEGRADED' ? 'text-amber-400' : 'text-red-400'
+                    }
+                />
+            </div>
+
+            {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                ② 중앙: 성과 시각화 (차트)
+            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                {/* 누적 수익률 비교 바 차트 (2/3 너비) */}
+                <div className="lg:col-span-2 bg-slate-800 border border-slate-700 rounded-xl p-5">
+                    <div className="flex items-center gap-2 mb-5">
+                        <TrendingUp className="w-4 h-4 text-indigo-400" />
+                        <h2 className="text-sm font-semibold text-slate-200">세션별 수익률 비교</h2>
+                        <div className="ml-auto flex items-center gap-4 text-xs text-slate-400">
+                            <span className="flex items-center gap-1.5">
+                                <span className="w-2.5 h-2.5 rounded-sm bg-indigo-500 inline-block" />실전
+                            </span>
+                            <span className="flex items-center gap-1.5">
+                                <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500 inline-block" />모의
+                            </span>
+                        </div>
+                    </div>
+
+                    {perfChartData.length === 0 ? (
+                        <div className="h-52 flex items-center justify-center text-slate-500 text-sm">
+                            진행 중인 세션이 없습니다.
+                        </div>
+                    ) : (
+                        <ResponsiveContainer width="100%" height={220}>
+                            <BarChart data={perfChartData} margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                                <XAxis
+                                    dataKey="name"
+                                    tick={{ fontSize: 10, fill: '#64748b' }}
+                                    tickLine={false} axisLine={false}
+                                />
+                                <YAxis
+                                    tickFormatter={v => `${v}%`}
+                                    tick={{ fontSize: 10, fill: '#64748b' }}
+                                    tickLine={false} axisLine={false}
+                                />
+                                <Tooltip
+                                    formatter={(v) => [`${(v as number) >= 0 ? '+' : ''}${v}%`]}
+                                    contentStyle={{
+                                        background: '#1e293b', border: '1px solid #334155',
+                                        borderRadius: 8, fontSize: 12,
+                                    }}
+                                />
+                                <Bar dataKey="live" name="실전" fill="#6366f1" radius={[3, 3, 0, 0]} maxBarSize={40} />
+                                <Bar dataKey="paper" name="모의" fill="#22c55e" radius={[3, 3, 0, 0]} maxBarSize={40} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    )}
                 </div>
 
-                {recentBacktests.length === 0 ? (
-                    <div className="p-12 text-center text-slate-500 dark:text-slate-400 bg-slate-50/30 dark:bg-slate-800/30">
-                        최근 기록이 없습니다.{' '}
-                        <Link href="/backtest/new" className="text-indigo-600 font-semibold hover:underline">첫 백테스트 실행하기</Link>
+                {/* 자산 배분 파이 차트 (1/3 너비) */}
+                <div className="bg-slate-800 border border-slate-700 rounded-xl p-5">
+                    <div className="flex items-center gap-2 mb-4">
+                        <Database className="w-4 h-4 text-indigo-400" />
+                        <h2 className="text-sm font-semibold text-slate-200">자산 배분 현황</h2>
                     </div>
-                ) : (
-                    <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                        {recentBacktests.map((bt) => (
-                            <Link key={bt.id} href={`/backtest/${bt.id}`} className="flex items-center justify-between p-5 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors group">
-                                <div className="flex flex-col gap-1.5">
-                                    <div className="flex items-center gap-2">
-                                        <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                                        <h3 className="font-semibold text-slate-800 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{bt.strategyType}</h3>
-                                        <span className="px-2 py-0.5 text-[10px] font-bold tracking-wider rounded border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 shadow-sm">{bt.coinPair}</span>
+
+                    {pieData.length === 0 ? (
+                        <div className="h-48 flex items-center justify-center text-slate-500 text-sm">
+                            계좌 정보 없음
+                        </div>
+                    ) : (
+                        <>
+                            <ResponsiveContainer width="100%" height={180}>
+                                <PieChart>
+                                    <Pie
+                                        data={pieData} cx="50%" cy="50%"
+                                        innerRadius={48} outerRadius={72}
+                                        paddingAngle={2} dataKey="value"
+                                    >
+                                        {pieData.map((_, i) => (
+                                            <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip
+                                        formatter={(v) => [`${fmt(v as number)} KRW`]}
+                                        contentStyle={{
+                                            background: '#1e293b', border: '1px solid #334155',
+                                            borderRadius: 8, fontSize: 12,
+                                        }}
+                                    />
+                                </PieChart>
+                            </ResponsiveContainer>
+                            <div className="space-y-1.5 mt-1">
+                                {pieData.map((d, i) => (
+                                    <div key={d.name} className="flex items-center justify-between text-xs">
+                                        <span className="flex items-center gap-1.5">
+                                            <span className="w-2 h-2 rounded-full" style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />
+                                            <span className="text-slate-300">{d.name}</span>
+                                        </span>
+                                        <span className="text-slate-400">
+                                            {((d.value / (account?.totalAssetKrw ?? 1)) * 100).toFixed(1)}%
+                                        </span>
                                     </div>
-                                    <div className="text-xs text-slate-500 font-medium ml-4">
-                                        {bt.startDate ? format(new Date(bt.startDate), 'yyyy.MM.dd') : '-'} ~ {bt.endDate ? format(new Date(bt.endDate), 'yyyy.MM.dd') : '-'}
-                                    </div>
-                                </div>
-                                <div className="text-right flex flex-col items-end gap-1">
-                                    {bt.metrics ? (
-                                        <>
-                                            <div className={`font-bold text-lg tracking-tight ${Number(bt.metrics.totalReturn) > 0 ? 'text-rose-600' : 'text-blue-600'}`}>
-                                                {Number(bt.metrics.totalReturn) > 0 ? '+' : ''}{Number(bt.metrics.totalReturn).toFixed(2)}%
-                                            </div>
-                                            <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">
-                                                MDD {Number(bt.metrics.maxDrawdown).toFixed(2)}%
-                                            </div>
-                                        </>
-                                    ) : (
-                                        <span className="text-slate-400 text-sm">-</span>
-                                    )}
-                                </div>
-                            </Link>
-                        ))}
+                                ))}
+                            </div>
+                        </>
+                    )}
+                </div>
+            </div>
+
+            {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                ③ 하단: 실시간 모니터링
+            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                {/* 최근 체결 내역 */}
+                <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
+                    <div className="px-5 py-4 border-b border-slate-700 flex items-center gap-2">
+                        <Activity className="w-4 h-4 text-indigo-400" />
+                        <h2 className="text-sm font-semibold text-slate-200">최근 체결 내역</h2>
+                        <span className="ml-auto text-xs text-slate-500">{recentOrders.length}건</span>
                     </div>
-                )}
+                    {recentOrders.length === 0 ? (
+                        <div className="p-8 text-center text-slate-500 text-sm">
+                            체결 내역이 없습니다.
+                        </div>
+                    ) : (
+                        <div className="divide-y divide-slate-700/50">
+                            {recentOrders.map(order => {
+                                const isBuy = order.side === 'BUY';
+                                return (
+                                    <div key={order.id} className="px-5 py-3 flex items-center justify-between hover:bg-slate-700/30 transition-colors">
+                                        <div className="flex flex-col gap-0.5">
+                                            <div className="flex items-center gap-2">
+                                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${isBuy ? 'bg-indigo-500/20 text-indigo-400' : 'bg-rose-500/20 text-rose-400'}`}>
+                                                    {isBuy ? '매수' : '매도'}
+                                                </span>
+                                                <span className="text-xs font-semibold text-slate-200">{order.coinPair}</span>
+                                            </div>
+                                            <span className="text-[11px] text-slate-500">
+                                                {order.filledAt ? fmtTime(order.filledAt) : '-'}
+                                            </span>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-xs font-semibold text-slate-200">{fmt(order.price)} KRW</p>
+                                            <p className="text-[11px] text-slate-500">{order.quantity.toFixed(6)}</p>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+
+                {/* 진행 중인 포지션 */}
+                <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
+                    <div className="px-5 py-4 border-b border-slate-700 flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4 text-indigo-400" />
+                        <h2 className="text-sm font-semibold text-slate-200">진행 중인 포지션</h2>
+                        <span className="ml-auto text-xs text-slate-500">{positions.length}건</span>
+                    </div>
+                    {positions.length === 0 ? (
+                        <div className="p-8 text-center text-slate-500 text-sm">
+                            보유 포지션이 없습니다.
+                        </div>
+                    ) : (
+                        <div className="divide-y divide-slate-700/50">
+                            {positions.slice(0, 6).map(pos => {
+                                const pnlColor = pos.unrealizedPnl >= 0 ? 'text-emerald-400' : 'text-red-400';
+                                return (
+                                    <div key={pos.id} className="px-5 py-3 flex items-center justify-between hover:bg-slate-700/30 transition-colors">
+                                        <div className="flex flex-col gap-0.5">
+                                            <span className="text-xs font-semibold text-slate-200">{pos.coinPair}</span>
+                                            <span className="text-[11px] text-slate-500">
+                                                진입 {fmt(pos.entryPrice)} · {pos.size.toFixed(6)}
+                                            </span>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className={`text-xs font-bold ${pnlColor}`}>
+                                                {pos.unrealizedPnl >= 0 ? '+' : ''}{fmt(pos.unrealizedPnl)} KRW
+                                            </p>
+                                            <p className="text-[11px] text-slate-500">미실현 손익</p>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+
+                {/* 서버 리소스 상태 */}
+                <div className="bg-slate-800 border border-slate-700 rounded-xl p-5">
+                    <div className="flex items-center gap-2 mb-4">
+                        <Server className="w-4 h-4 text-indigo-400" />
+                        <h2 className="text-sm font-semibold text-slate-200">서버 리소스 상태</h2>
+                    </div>
+
+                    {!metrics ? (
+                        <div className="h-48 flex items-center justify-center text-slate-500 text-sm">
+                            메트릭 수집 중...
+                        </div>
+                    ) : (
+                        <div className="space-y-3">
+                            <ResourceGauge
+                                label="CPU"
+                                pct={metrics.cpuUsagePct}
+                                detail={metrics.cpuUsagePct < 0 ? '측정 불가' : `${metrics.cpuUsagePct.toFixed(1)}% 사용 중`}
+                                icon={<Cpu className="w-3.5 h-3.5" />}
+                            />
+                            <ResourceGauge
+                                label="RAM (시스템)"
+                                pct={metrics.memUsagePct}
+                                detail={`${metrics.memUsedMb.toLocaleString()} MB / ${metrics.memTotalMb.toLocaleString()} MB`}
+                                icon={<MemoryStick className="w-3.5 h-3.5" />}
+                            />
+                            <ResourceGauge
+                                label="JVM Heap"
+                                pct={metrics.heapUsagePct}
+                                detail={`${metrics.heapUsedMb} MB / ${metrics.heapMaxMb} MB`}
+                                icon={<Activity className="w-3.5 h-3.5" />}
+                            />
+                            <ResourceGauge
+                                label="Disk"
+                                pct={metrics.diskUsagePct}
+                                detail={`${metrics.diskUsedGb} GB / ${metrics.diskTotalGb} GB`}
+                                icon={<HardDrive className="w-3.5 h-3.5" />}
+                            />
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

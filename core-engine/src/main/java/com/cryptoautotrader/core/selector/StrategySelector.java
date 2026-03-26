@@ -11,8 +11,8 @@ import java.util.stream.Collectors;
  *
  * <pre>
  * TREND       : SUPERTREND(0.5) + EMA_CROSS(0.3) + ATR_BREAKOUT(0.2)
- * RANGE       : BOLLINGER(0.4)  + RSI(0.4)        + GRID(0.2)
- * VOLATILITY  : ATR_BREAKOUT(0.6) + STOCHASTIC_RSI(0.4)
+ * RANGE       : BOLLINGER(0.4)  + VWAP(0.4)       + GRID(0.2)   ← RSI 제거(일관 마이너스), VWAP 대체
+ * VOLATILITY  : ATR_BREAKOUT(0.6) + VOLUME_DELTA(0.4)           ← STOCHASTIC_RSI(BLOCKED) 제거, VD 대체
  * TRANSITIONAL: 직전 Regime 전략 그룹 × 0.5 (포지션 축소)
  * </pre>
  */
@@ -58,16 +58,16 @@ public final class StrategySelector {
 
     private static List<WeightedStrategy> range() {
         return List.of(
-                new WeightedStrategy(StrategyRegistry.get("BOLLINGER"),  0.4),
-                new WeightedStrategy(StrategyRegistry.get("RSI"),        0.4),
-                new WeightedStrategy(StrategyRegistry.get("GRID"),       0.2)
+                new WeightedStrategy(StrategyRegistry.get("BOLLINGER"),    0.4),
+                new WeightedStrategy(StrategyRegistry.get("VWAP"),         0.4),
+                new WeightedStrategy(StrategyRegistry.get("GRID"),         0.2)
         );
     }
 
     private static List<WeightedStrategy> volatility() {
         return List.of(
-                new WeightedStrategy(StrategyRegistry.get("ATR_BREAKOUT"),    0.6),
-                new WeightedStrategy(StrategyRegistry.get("STOCHASTIC_RSI"), 0.4)
+                new WeightedStrategy(StrategyRegistry.get("ATR_BREAKOUT"),   0.6),
+                new WeightedStrategy(StrategyRegistry.get("VOLUME_DELTA"),   0.4)
         );
     }
 }

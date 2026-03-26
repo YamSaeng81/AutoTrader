@@ -333,6 +333,71 @@ public class SettingsController {
         ));
     }
 
+    // ── 서버 리소스 메트릭 ───────────────────────────────────────
+
+    /**
+     * JVM 힙 + 시스템 CPU/RAM/Disk 현황
+     * CPU : OperatingSystemMXBean.getCpuLoad() (0.0~1.0 → %)
+     * RAM : 시스템 물리 메모리 사용률
+     * Disk: 루트(또는 C:\) 파티션 사용률
+     */
+    @GetMapping("/system-metrics")
+    public ApiResponse<Map<String, Object>> getSystemMetrics() {
+        Map<String, Object> m = new HashMap<>();
+
+        // ── CPU + 시스템 물리 메모리 ─────────────────────────────
+        try {
+            com.sun.management.OperatingSystemMXBean osBean =
+                    (com.sun.management.OperatingSystemMXBean)
+                            java.lang.management.ManagementFactory.getOperatingSystemMXBean();
+
+            double cpuLoad = osBean.getCpuLoad();   // 0.0~1.0, 미측정 시 -1
+            m.put("cpuUsagePct", cpuLoad >= 0 ? Math.round(cpuLoad * 1000.0) / 10.0 : -1.0);
+
+            long totalMem = osBean.getTotalMemorySize();
+            long freeMem  = osBean.getFreeMemorySize();
+            long usedMem  = totalMem - freeMem;
+            m.put("memUsedMb",   usedMem  / (1024 * 1024));
+            m.put("memTotalMb",  totalMem / (1024 * 1024));
+            m.put("memUsagePct", totalMem > 0
+                    ? Math.round(usedMem * 1000.0 / totalMem) / 10.0 : 0.0);
+        } catch (Exception e) {
+            m.put("cpuUsagePct", -1.0);
+            m.put("memUsedMb",   0L);
+            m.put("memTotalMb",  0L);
+            m.put("memUsagePct", 0.0);
+        }
+
+        // ── JVM Heap ─────────────────────────────────────────
+        Runtime rt = Runtime.getRuntime();
+        long heapUsed = rt.totalMemory() - rt.freeMemory();
+        long heapMax  = rt.maxMemory();
+        m.put("heapUsedMb",   heapUsed / (1024 * 1024));
+        m.put("heapMaxMb",    heapMax  / (1024 * 1024));
+        m.put("heapUsagePct", heapMax > 0
+                ? Math.round(heapUsed * 1000.0 / heapMax) / 10.0 : 0.0);
+
+        // ── Disk ─────────────────────────────────────────────
+        try {
+            String rootPath = System.getProperty("os.name", "").toLowerCase().contains("win")
+                    ? "C:\\" : "/";
+            java.io.File root = new java.io.File(rootPath);
+            long diskTotal = root.getTotalSpace();
+            long diskFree  = root.getFreeSpace();
+            long diskUsed  = diskTotal - diskFree;
+            m.put("diskUsedGb",   diskUsed  / (1024L * 1024 * 1024));
+            m.put("diskTotalGb",  diskTotal / (1024L * 1024 * 1024));
+            m.put("diskUsagePct", diskTotal > 0
+                    ? Math.round(diskUsed * 1000.0 / diskTotal) / 10.0 : 0.0);
+        } catch (Exception e) {
+            m.put("diskUsedGb",   0L);
+            m.put("diskTotalGb",  0L);
+            m.put("diskUsagePct", 0.0);
+        }
+
+        return ApiResponse.ok(m);
+    }
+
     /** DB 초기화 전 레코드 수 미리보기 */
     @GetMapping("/db/stats")
     public ApiResponse<Map<String, Object>> getDbStats() {
