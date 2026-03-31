@@ -1253,6 +1253,14 @@ public class LiveTradingService {
     @Async("marketDataExecutor")
     @Transactional
     public void onRealtimePriceEvent(RealtimePriceEvent event) {
+        try {
+        doOnRealtimePriceEvent(event);
+        } catch (Exception e) {
+            log.error("[onRealtimePriceEvent] 처리 중 예외 발생 — coinCode={}, price={}", event.getCoinCode(), event.getPrice(), e);
+        }
+    }
+
+    private void doOnRealtimePriceEvent(RealtimePriceEvent event) {
         String coinCode = event.getCoinCode();
         BigDecimal price = event.getPrice();
         long now = System.currentTimeMillis();

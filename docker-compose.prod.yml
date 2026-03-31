@@ -49,6 +49,7 @@ services:
       TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID}
       AES_KEY: ${AES_KEY}
       API_AUTH_TOKEN: ${API_AUTH_TOKEN}
+      JAVA_OPTS: "-XX:-OmitStackTraceInFastThrow"
     ports:
       - "8080:8080"
 

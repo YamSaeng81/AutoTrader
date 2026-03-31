@@ -13,8 +13,8 @@ import {
     TrendingUp, Zap,
 } from 'lucide-react';
 import {
-    AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
-    Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend,
+    BarChart, Bar, XAxis, YAxis, CartesianGrid,
+    Tooltip, ResponsiveContainer, PieChart, Pie, Cell,
 } from 'recharts';
 
 // ─── 포맷 헬퍼 ───────────────────────────────────────────────────────────────
@@ -154,22 +154,14 @@ export default function DashboardPage() {
 
     const totalAsset = account?.totalAssetKrw ?? 0;
 
-    // 수익률 비교 차트: 실전 vs 모의 세션별 바
-    const perfChartData = (() => {
-        const live  = (livePerfRaw?.sessions ?? []).map(s => ({
-            name: `${s.strategyType}\n${s.coinPair}`,
-            live: Number(s.returnRatePct.toFixed(2)),
-            paper: 0,
-            type: 'live',
-        }));
-        const paper = (paperPerfRaw?.sessions ?? []).map(s => ({
-            name: `${s.strategyType}\n${s.coinPair}`,
-            live: 0,
-            paper: Number(s.returnRatePct.toFixed(2)),
-            type: 'paper',
-        }));
-        return [...live, ...paper].slice(0, 10);
-    })();
+    // 실전 세션별 수익률 바 차트
+    const perfChartData = (livePerfRaw?.sessions ?? []).map(s => ({
+        name: `${s.strategyType} / ${s.coinPair}`,
+        returnPct: Number(s.returnRatePct.toFixed(2)),
+        status: s.status,
+    }));
+    const CHART_BAR_WIDTH = 72; // 세션 1개당 픽셀 폭
+    const chartScrollWidth = Math.max(500, perfChartData.length * CHART_BAR_WIDTH);
 
     // 자산 배분 파이
     const pieData = (() => {
@@ -255,50 +247,67 @@ export default function DashboardPage() {
             ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                {/* 누적 수익률 비교 바 차트 (2/3 너비) */}
+                {/* 실전 세션별 수익률 바 차트 (2/3 너비, 좌우 스크롤) */}
                 <div className="lg:col-span-2 bg-slate-800 border border-slate-700 rounded-xl p-5">
                     <div className="flex items-center gap-2 mb-5">
                         <TrendingUp className="w-4 h-4 text-indigo-400" />
-                        <h2 className="text-sm font-semibold text-slate-200">세션별 수익률 비교</h2>
-                        <div className="ml-auto flex items-center gap-4 text-xs text-slate-400">
-                            <span className="flex items-center gap-1.5">
-                                <span className="w-2.5 h-2.5 rounded-sm bg-indigo-500 inline-block" />실전
+                        <h2 className="text-sm font-semibold text-slate-200">실전 세션별 수익률</h2>
+                        {perfChartData.length > 0 && (
+                            <span className="ml-auto text-xs text-slate-500">
+                                {perfChartData.length}개 세션
+                                {perfChartData.length > 6 && ' · 좌우 스크롤'}
                             </span>
-                            <span className="flex items-center gap-1.5">
-                                <span className="w-2.5 h-2.5 rounded-sm bg-emerald-500 inline-block" />모의
-                            </span>
-                        </div>
+                        )}
                     </div>
 
                     {perfChartData.length === 0 ? (
                         <div className="h-52 flex items-center justify-center text-slate-500 text-sm">
-                            진행 중인 세션이 없습니다.
+                            실전 세션이 없습니다.
                         </div>
                     ) : (
-                        <ResponsiveContainer width="100%" height={220}>
-                            <BarChart data={perfChartData} margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
-                                <XAxis
-                                    dataKey="name"
-                                    tick={{ fontSize: 10, fill: '#64748b' }}
-                                    tickLine={false} axisLine={false}
-                                />
-                                <YAxis
-                                    tickFormatter={v => `${v}%`}
-                                    tick={{ fontSize: 10, fill: '#64748b' }}
-                                    tickLine={false} axisLine={false}
-                                />
-                                <Tooltip
-                                    formatter={(v) => [`${(v as number) >= 0 ? '+' : ''}${v}%`]}
-                                    contentStyle={{
-                                        background: '#1e293b', border: '1px solid #334155',
-                                        borderRadius: 8, fontSize: 12,
-                                    }}
-                                />
-                                <Bar dataKey="live" name="실전" fill="#6366f1" radius={[3, 3, 0, 0]} maxBarSize={40} />
-                                <Bar dataKey="paper" name="모의" fill="#22c55e" radius={[3, 3, 0, 0]} maxBarSize={40} />
-                            </BarChart>
-                        </ResponsiveContainer>
+                        <div className="overflow-x-auto">
+                            <div style={{ width: chartScrollWidth, minWidth: '100%' }}>
+                                <BarChart
+                                    width={chartScrollWidth}
+                                    height={220}
+                                    data={perfChartData}
+                                    margin={{ top: 8, right: 16, left: 8, bottom: 36 }}
+                                >
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                                    <XAxis
+                                        dataKey="name"
+                                        tick={{ fontSize: 10, fill: '#64748b' }}
+                                        tickLine={false} axisLine={false}
+                                        angle={-25} textAnchor="end" interval={0}
+                                    />
+                                    <YAxis
+                                        tickFormatter={v => `${v}%`}
+                                        tick={{ fontSize: 10, fill: '#64748b' }}
+                                        tickLine={false} axisLine={false}
+                                    />
+                                    <Tooltip
+                                        formatter={(v) => [`${(v as number) >= 0 ? '+' : ''}${v}%`, '수익률']}
+                                        contentStyle={{
+                                            background: '#1e293b', border: '1px solid #334155',
+                                            borderRadius: 8, fontSize: 12,
+                                        }}
+                                    />
+                                    <Bar
+                                        dataKey="returnPct"
+                                        name="수익률"
+                                        radius={[4, 4, 0, 0]}
+                                        maxBarSize={52}
+                                    >
+                                        {perfChartData.map((entry, i) => (
+                                            <Cell
+                                                key={i}
+                                                fill={entry.returnPct >= 0 ? '#6366f1' : '#ef4444'}
+                                            />
+                                        ))}
+                                    </Bar>
+                                </BarChart>
+                            </div>
+                        </div>
                     )}
                 </div>
 

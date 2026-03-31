@@ -354,9 +354,12 @@ public class SettingsController {
             double cpuLoad = osBean.getCpuLoad();   // 0.0~1.0, 미측정 시 -1
             m.put("cpuUsagePct", cpuLoad >= 0 ? Math.round(cpuLoad * 1000.0) / 10.0 : -1.0);
 
-            long totalMem = osBean.getTotalMemorySize();
-            long freeMem  = osBean.getFreeMemorySize();
-            long usedMem  = totalMem - freeMem;
+            long totalMem     = osBean.getTotalMemorySize();
+            // Linux: page cache·buffer를 제외한 실제 가용 메모리 (/proc/meminfo MemAvailable)
+            // Windows 등: getFreeMemorySize() fallback
+            long availableMem = linuxMemAvailable();
+            if (availableMem < 0) availableMem = osBean.getFreeMemorySize();
+            long usedMem      = totalMem - availableMem;
             m.put("memUsedMb",   usedMem  / (1024 * 1024));
             m.put("memTotalMb",  totalMem / (1024 * 1024));
             m.put("memUsagePct", totalMem > 0
@@ -433,5 +436,27 @@ public class SettingsController {
 
         int total = deleted.values().stream().mapToInt(Integer::intValue).sum();
         return ApiResponse.ok(Map.of("target", target, "deleted", deleted, "total", total));
+    }
+
+    /**
+     * Linux /proc/meminfo 에서 MemAvailable(kB) 읽기.
+     * page cache·buffer를 제외한 실제 가용 메모리를 반환한다.
+     * 비-Linux 또는 파싱 실패 시 -1 반환 → caller가 fallback 처리.
+     */
+    private static long linuxMemAvailable() {
+        try (java.io.BufferedReader br = new java.io.BufferedReader(
+                new java.io.FileReader("/proc/meminfo"))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                if (line.startsWith("MemAvailable:")) {
+                    // "MemAvailable:   12345678 kB"
+                    String[] parts = line.trim().split("\\s+");
+                    return Long.parseLong(parts[1]) * 1024L; // kB → bytes
+                }
+            }
+        } catch (Exception ignored) {
+            // Windows 등 /proc/meminfo 없는 환경
+        }
+        return -1L;
     }
 }
