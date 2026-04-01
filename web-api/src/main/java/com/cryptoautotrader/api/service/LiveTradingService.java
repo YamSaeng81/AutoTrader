@@ -1347,31 +1347,38 @@ public class LiveTradingService {
 
     private void updatePriceHistory(String coin, BigDecimal price, long nowMs) {
         Deque<PriceSnapshot> history = priceHistory.computeIfAbsent(coin, k -> new ArrayDeque<>());
-        history.addLast(new PriceSnapshot(nowMs, price));
-        // TTL 초과 항목 제거
-        while (!history.isEmpty() && nowMs - history.peekFirst().timestampMs > SPIKE_HISTORY_TTL_MS) {
-            history.pollFirst();
+        synchronized (history) {
+            history.addLast(new PriceSnapshot(nowMs, price));
+            // TTL 초과 항목 제거
+            PriceSnapshot first;
+            while ((first = history.peekFirst()) != null && nowMs - first.timestampMs > SPIKE_HISTORY_TTL_MS) {
+                history.pollFirst();
+            }
         }
     }
 
     private BigDecimal calcSpikeRate(String coin, long nowMs) {
         Deque<PriceSnapshot> history = priceHistory.get(coin);
-        if (history == null || history.size() < 2) return BigDecimal.ZERO;
+        if (history == null) return BigDecimal.ZERO;
 
-        PriceSnapshot latest = history.peekLast();
-        PriceSnapshot windowStart = null;
-        for (PriceSnapshot snap : history) {
-            if (nowMs - snap.timestampMs <= SPIKE_WINDOW_MS) {
-                windowStart = snap;
-                break;
+        synchronized (history) {
+            if (history.size() < 2) return BigDecimal.ZERO;
+
+            PriceSnapshot latest = history.peekLast();
+            PriceSnapshot windowStart = null;
+            for (PriceSnapshot snap : history) {
+                if (nowMs - snap.timestampMs <= SPIKE_WINDOW_MS) {
+                    windowStart = snap;
+                    break;
+                }
             }
-        }
-        if (windowStart == null || windowStart == latest) return BigDecimal.ZERO;
-        if (windowStart.price.compareTo(BigDecimal.ZERO) <= 0) return BigDecimal.ZERO;
+            if (windowStart == null || windowStart == latest) return BigDecimal.ZERO;
+            if (windowStart.price.compareTo(BigDecimal.ZERO) <= 0) return BigDecimal.ZERO;
 
-        return latest.price.subtract(windowStart.price)
-                .divide(windowStart.price, 6, RoundingMode.HALF_UP)
-                .multiply(BigDecimal.valueOf(100));
+            return latest.price.subtract(windowStart.price)
+                    .divide(windowStart.price, 6, RoundingMode.HALF_UP)
+                    .multiply(BigDecimal.valueOf(100));
+        }
     }
 
     /**
