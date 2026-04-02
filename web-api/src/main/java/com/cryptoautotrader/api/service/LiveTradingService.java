@@ -1225,8 +1225,17 @@ public class LiveTradingService {
 
         if (pos.getSessionId() != null) {
             sessionRepository.findById(pos.getSessionId()).ifPresent(session -> {
-                session.setAvailableKrw(session.getAvailableKrw().add(netProceeds));
-                session.setTotalAssetKrw(session.getTotalAssetKrw().subtract(fee));
+                BigDecimal newAvailableKrw = session.getAvailableKrw().add(netProceeds);
+                session.setAvailableKrw(newAvailableKrw);
+                // 포지션 청산 후 열린 포지션이 없으면 totalAssetKrw = availableKrw로 정확히 동기화
+                boolean hasOpenPosition = positionRepository
+                        .findBySessionIdAndCoinPairAndStatus(session.getId(), pos.getCoinPair(), "OPEN")
+                        .isPresent();
+                if (!hasOpenPosition) {
+                    session.setTotalAssetKrw(newAvailableKrw);
+                } else {
+                    session.setTotalAssetKrw(session.getTotalAssetKrw().subtract(fee));
+                }
                 sessionRepository.save(session);
                 log.info("매도 체결 확정 (sessionId={}, posId={}): {} {}개 @ {} 손익={} 수수료={}",
                         session.getId(), pos.getId(), pos.getCoinPair(),
