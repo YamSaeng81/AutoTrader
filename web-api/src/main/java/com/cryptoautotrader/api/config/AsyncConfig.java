@@ -71,4 +71,21 @@ public class AsyncConfig {
         executor.initialize();
         return executor;
     }
+
+    // 백테스트 비동기 실행 전용
+    // 대용량 캔들(수십만 건) 처리가 오래 걸리므로 graceful shutdown 대기 시간을 길게 설정
+    @Bean("backtestExecutor")
+    public Executor backtestExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(2);
+        executor.setMaxPoolSize(4);
+        executor.setQueueCapacity(20);
+        executor.setThreadNamePrefix("backtest-");
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(600); // 최대 10분 대기
+        executor.setRejectedExecutionHandler((r, e) ->
+                log.warn("백테스트 실행 큐 포화 — 요청 드롭 (현재 큐 크기 초과)"));
+        executor.initialize();
+        return executor;
+    }
 }

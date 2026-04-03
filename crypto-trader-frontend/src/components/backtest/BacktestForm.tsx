@@ -66,20 +66,16 @@ export function BacktestForm() {
         setLoading(true);
 
         try {
+            let res;
             if (selectedStrategies.length === 1) {
-                const res = await backtestApi.run({
+                res = await backtestApi.run({
                     ...form,
                     strategyType: selectedStrategies[0] as StrategyType,
                     startDate: form.startDate,
                     endDate: form.endDate,
                 });
-                if (res.success && res.data) {
-                    router.push(`/backtest/${res.data.id}`);
-                } else {
-                    alert(res.error?.message || '실행 실패');
-                }
             } else {
-                const res = await backtestApi.runMultiStrategy({
+                res = await backtestApi.runMultiStrategy({
                     strategyTypes: selectedStrategies,
                     coinPair: form.coinPair,
                     timeframe: form.timeframe,
@@ -87,11 +83,12 @@ export function BacktestForm() {
                     endDate: form.endDate,
                     initialCapital: form.initialCapital,
                 });
-                if (res.success) {
-                    router.push('/backtest');
-                } else {
-                    alert(res.error?.message || '실행 실패');
-                }
+            }
+
+            if (res.success) {
+                router.push('/backtest');
+            } else {
+                alert(res.error?.message || '실행 실패');
             }
         } catch {
             alert('오류가 발생했습니다.');
@@ -235,7 +232,7 @@ export function BacktestForm() {
                         className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-8 rounded-xl shadow-md shadow-indigo-600/20 transition-all active:scale-[0.98] disabled:opacity-70 disabled:pointer-events-none"
                     >
                         {loading ? (
-                            <><Loader2 className="w-5 h-5 animate-spin" /> 실행 중...</>
+                            <><Loader2 className="w-5 h-5 animate-spin" /> 백그라운드 제출 중...</>
                         ) : selectedStrategies.length >= 2 ? (
                             <><Play className="w-5 h-5 fill-current" /> {selectedStrategies.length}개 전략 비교 실행</>
                         ) : (

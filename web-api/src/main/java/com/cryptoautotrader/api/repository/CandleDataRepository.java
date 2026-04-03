@@ -2,6 +2,8 @@ package com.cryptoautotrader.api.repository;
 
 import com.cryptoautotrader.api.entity.CandleDataEntity;
 import com.cryptoautotrader.api.entity.CandleDataId;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -18,6 +20,18 @@ public interface CandleDataRepository extends JpaRepository<CandleDataEntity, Ca
                                         @Param("timeframe") String timeframe,
                                         @Param("start") Instant start,
                                         @Param("end") Instant end);
+
+    /**
+     * 대용량 캔들 데이터 청크 단위 조회 (100,000건 단위 페이징 권장).
+     * JPA Entity 객체를 청크별로 GC 대상으로 만들어 힙 메모리 부담을 줄인다.
+     */
+    @Query("SELECT c FROM CandleDataEntity c WHERE c.coinPair = :coinPair AND c.timeframe = :timeframe " +
+            "AND c.time >= :start AND c.time <= :end ORDER BY c.time ASC")
+    Page<CandleDataEntity> findCandlesPage(@Param("coinPair") String coinPair,
+                                            @Param("timeframe") String timeframe,
+                                            @Param("start") Instant start,
+                                            @Param("end") Instant end,
+                                            Pageable pageable);
 
     @Query("SELECT c.coinPair, c.timeframe, MIN(c.time), MAX(c.time), COUNT(c) " +
             "FROM CandleDataEntity c GROUP BY c.coinPair, c.timeframe ORDER BY c.coinPair, c.timeframe")

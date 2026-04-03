@@ -48,6 +48,10 @@ public class OrderEntity {
     @Column(name = "filled_quantity", precision = 20, scale = 8)
     private BigDecimal filledQuantity;
 
+    /** 실제 사용된 KRW 금액 — price-type 매수 부분체결 후 취소 시 미사용 KRW 복원에 사용 */
+    @Column(name = "executed_funds", precision = 20, scale = 8)
+    private BigDecimal executedFunds;
+
     @Column(name = "signal_reason", columnDefinition = "TEXT")
     private String signalReason;
 
@@ -109,6 +113,9 @@ public class OrderEntity {
 
     public BigDecimal getFilledQuantity() { return filledQuantity; }
     public void setFilledQuantity(BigDecimal filledQuantity) { this.filledQuantity = filledQuantity; }
+
+    public BigDecimal getExecutedFunds() { return executedFunds; }
+    public void setExecutedFunds(BigDecimal executedFunds) { this.executedFunds = executedFunds; }
 
     public String getSignalReason() { return signalReason; }
     public void setSignalReason(String signalReason) { this.signalReason = signalReason; }

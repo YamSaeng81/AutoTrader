@@ -281,6 +281,11 @@ public class LiveTradingService {
             throw new SessionStateException("세션이 실행 중이 아닙니다: id=" + sessionId);
         }
 
+        // PENDING/SUBMITTED 매수 주문 먼저 취소 — closeSessionPositions()에서 KRW 복원이 가능하도록
+        // (취소 없이 closeSessionPositions()를 호출하면 size=0 포지션의 PENDING 주문이 아직 FAILED/CANCELLED 상태가
+        //  아니므로 KRW 복원 조건을 충족하지 못해 투자금이 소실됨)
+        cancelSessionActiveOrders(sessionId);
+
         // 해당 세션의 열린 포지션 청산
         closeSessionPositions(session, "세션 정지 -- 포지션 청산");
 
@@ -732,6 +737,7 @@ public class LiveTradingService {
                 .entryPrice(price)
                 .avgPrice(price)
                 .size(BigDecimal.ZERO)
+                .investedKrw(investAmount)   // 차감된 KRW — 주문 엔티티 없이도 복원 가능하도록 저장
                 .status("OPEN")
                 .sessionId(session.getId())
                 .stopLossPrice(stopLossPrice)
@@ -774,14 +780,22 @@ public class LiveTradingService {
 
             if (cancelledBuy.isPresent()) {
                 // 매수 취소 확정 — 포지션 종료 + 차감됐던 KRW 복원
+                // 원자적 CLOSE: reconcileOrphanBuyPositions()와 동시 실행 시 이중 KRW 복원 방지
                 OrderEntity buyOrder = cancelledBuy.get();
-                log.warn("매수 취소/실패 확인 — 포지션 종료 및 KRW 복원 (posId={}, sessionId={}, orderId={}, 복원금액={})",
-                        pos.getId(), session.getId(), buyOrder.getId(), buyOrder.getQuantity());
-                session.setAvailableKrw(session.getAvailableKrw().add(buyOrder.getQuantity()));
-                sessionRepository.save(session);
-                pos.setStatus("CLOSED");
-                pos.setClosedAt(Instant.now());
-                positionRepository.save(pos);
+                int closed = positionRepository.closeIfOpen(pos.getId(), Instant.now());
+                if (closed == 0) {
+                    log.debug("executeSessionSell: size=0 포지션 이미 정리됨, KRW 복원 스킵 (posId={})", pos.getId());
+                    return;
+                }
+                BigDecimal toRestore = buyOrder.getQuantity() != null
+                        ? buyOrder.getQuantity()
+                        : pos.getInvestedKrw();
+                if (toRestore != null) {
+                    log.warn("매수 취소/실패 확인 — KRW 복원 (posId={}, sessionId={}, 복원금액={})",
+                            pos.getId(), session.getId(), toRestore);
+                    session.setAvailableKrw(session.getAvailableKrw().add(toRestore));
+                    sessionRepository.save(session);
+                }
                 return;
             }
 
@@ -1191,6 +1205,88 @@ public class LiveTradingService {
                         pos.setStatus("OPEN");
                         pos.setClosingAt(null);
                         positionRepository.save(pos);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 고아 매수 포지션 주기 정리 — OPEN + size=0 포지션 중 FAILED/CANCELLED 매수가 확정된 것을 정리 (30초 주기)
+     *
+     * reconcileOnStartup()은 서버 시작 시 1회만 실행되므로,
+     * 런타임 중 발생하는 FAILED 매수로 인한 고아 포지션은 이 스케줄러가 처리한다.
+     * - FAILED/CANCELLED 매수 확정 + 활성 매수 없음 → 포지션 CLOSED + 세션 KRW 복원
+     */
+    @Scheduled(fixedDelay = 30_000)
+    @Transactional
+    public void reconcileOrphanBuyPositions() {
+        List<PositionEntity> orphanPositions = positionRepository.findByStatus("OPEN")
+                .stream()
+                .filter(pos -> pos.getSize() != null && pos.getSize().compareTo(BigDecimal.ZERO) <= 0)
+                .toList();
+        if (orphanPositions.isEmpty()) return;
+
+        for (PositionEntity pos : orphanPositions) {
+            List<OrderEntity> buyOrders = orderRepository
+                    .findByPositionIdOrderByCreatedAtDesc(pos.getId())
+                    .stream()
+                    .filter(o -> "BUY".equalsIgnoreCase(o.getSide()))
+                    .toList();
+
+            boolean hasCancelledBuy = buyOrders.stream()
+                    .anyMatch(o -> "CANCELLED".equals(o.getState()) || "FAILED".equals(o.getState()));
+            boolean hasActiveBuy = buyOrders.stream()
+                    .anyMatch(o -> ACTIVE_ORDER_STATES.contains(o.getState()));
+
+            if (hasCancelledBuy && !hasActiveBuy) {
+                // 정상 경로: FAILED/CANCELLED 주문에서 복원금액 확인
+                // 원자적 CLOSE — executeSessionSell()과 동시 실행 시 이중 KRW 복원 방지
+                int closed = positionRepository.closeIfOpen(pos.getId(), Instant.now());
+                if (closed == 0) {
+                    log.debug("고아 포지션 이미 정리됨, KRW 복원 스킵 (posId={})", pos.getId());
+                    continue;
+                }
+
+                if (pos.getSessionId() != null) {
+                    sessionRepository.findById(pos.getSessionId()).ifPresent(session -> {
+                        BigDecimal toRestore = buyOrders.stream()
+                                .filter(o -> "CANCELLED".equals(o.getState()) || "FAILED".equals(o.getState()))
+                                .findFirst()
+                                .map(o -> o.getQuantity())
+                                .orElse(null);
+                        // 주문 수량 없으면 포지션에 저장된 investedKrw 로 복원
+                        if (toRestore == null && pos.getInvestedKrw() != null) {
+                            toRestore = pos.getInvestedKrw();
+                        }
+                        if (toRestore != null) {
+                            session.setAvailableKrw(session.getAvailableKrw().add(toRestore));
+                            sessionRepository.save(session);
+                            log.info("고아 포지션 정리: KRW 복원 (posId={}, sessionId={}, 복원금액={})",
+                                    pos.getId(), session.getId(), toRestore);
+                        }
+                    });
+                }
+                log.warn("고아 포지션 정리 완료 (posId={}, coinPair={})", pos.getId(), pos.getCoinPair());
+
+            } else if (!hasActiveBuy && buyOrders.isEmpty() && pos.getSessionId() != null) {
+                // 예외 경로: 주문 엔티티가 아예 없는 경우 (async 스레드 DB 오류 등)
+                // 포지션 생성 후 5분 이상 경과 시 orphan으로 간주하고 investedKrw 기준으로 복원
+                boolean isOldEnough = pos.getOpenedAt() != null
+                        && Duration.between(pos.getOpenedAt(), Instant.now()).toMinutes() >= 5;
+                if (isOldEnough) {
+                    pos.setStatus("CLOSED");
+                    pos.setClosedAt(Instant.now());
+                    positionRepository.save(pos);
+                    if (pos.getInvestedKrw() != null) {
+                        sessionRepository.findById(pos.getSessionId()).ifPresent(session -> {
+                            session.setAvailableKrw(session.getAvailableKrw().add(pos.getInvestedKrw()));
+                            sessionRepository.save(session);
+                            log.warn("고아 포지션 정리 (주문 없음): KRW 복원 (posId={}, sessionId={}, 복원금액={})",
+                                    pos.getId(), session.getId(), pos.getInvestedKrw());
+                        });
+                    } else {
+                        log.error("고아 포지션 정리 실패: investedKrw 없음 — KRW 복원 불가 (posId={}). 수동 확인 필요.", pos.getId());
                     }
                 }
             }

@@ -170,6 +170,114 @@ public class TelegramNotificationService {
         sendMarkdownAndLog(msg, "RISK_LIMIT", null);
     }
 
+    // ── 백테스트 비동기 작업 알림 ───────────────────────────────────────────────
+
+    /**
+     * 백테스트 완료 알림 — 핵심 성과 지표 + 기간/타임프레임 포함.
+     * @param jobId      백테스트 Job ID
+     * @param coinPair   코인 쌍 (예: KRW-BTC)
+     * @param strategy   전략명
+     * @param startDate  백테스트 시작일 (yyyy.MM.dd 포맷)
+     * @param endDate    백테스트 종료일 (yyyy.MM.dd 포맷)
+     * @param timeframe  타임프레임 (예: 1M, H1)
+     * @param result     runBacktest() 반환값 (id, metrics.totalReturn 등)
+     */
+    public void notifyBacktestCompleted(Long jobId, String coinPair, String strategy,
+                                         String startDate, String endDate, String timeframe,
+                                         java.util.Map<String, Object> result) {
+        try {
+            @SuppressWarnings("unchecked")
+            java.util.Map<String, Object> metrics = result.containsKey("metrics")
+                    ? (java.util.Map<String, Object>) result.get("metrics")
+                    : java.util.Map.of();
+
+            Object totalReturn = metrics.getOrDefault("totalReturn", "N/A");
+            Object winRate     = metrics.getOrDefault("winRate",     "N/A");
+            Object mdd         = metrics.getOrDefault("maxDrawdown", "N/A");
+            Object sharpe      = metrics.getOrDefault("sharpeRatio", "N/A");
+            Object trades      = metrics.getOrDefault("totalTrades", "N/A");
+            Object runId       = result.getOrDefault("id", "N/A");
+
+            String returnStr = (totalReturn instanceof java.math.BigDecimal bd)
+                    ? String.format("%s%.2f%%", bd.compareTo(java.math.BigDecimal.ZERO) >= 0 ? "+" : "", bd.doubleValue())
+                    : String.valueOf(totalReturn);
+
+            String period = startDate + " ~ " + endDate + " / " + timeframe;
+
+            String msg = String.format(
+                    "✅ *백테스트 완료*\n\n" +
+                    "• Job ID: `%d`  \\|  Run ID: `%s`\n" +
+                    "• 전략: `%s`\n• 코인: `%s`\n" +
+                    "• 기간: `%s`\n\n" +
+                    "📊 *성과 지표*\n" +
+                    "• 수익률: `%s`\n" +
+                    "• 승률: `%s%%`\n" +
+                    "• MDD: `%s%%`\n" +
+                    "• Sharpe: `%s`\n" +
+                    "• 거래 횟수: `%s`\n\n" +
+                    "• 완료 시각: `%s`",
+                    jobId, runId,
+                    escapeMarkdownV2(strategy), escapeMarkdownV2(coinPair),
+                    escapeMarkdownV2(period),
+                    escapeMarkdownV2(returnStr),
+                    escapeMarkdownV2(String.valueOf(winRate)),
+                    escapeMarkdownV2(String.valueOf(mdd)),
+                    escapeMarkdownV2(String.valueOf(sharpe)),
+                    escapeMarkdownV2(String.valueOf(trades)),
+                    KST_FMT.format(java.time.Instant.now()));
+
+            sendMarkdownAndLog(msg, "BACKTEST_COMPLETE", "백테스트#" + jobId);
+        } catch (Exception e) {
+            log.warn("[Telegram] 백테스트 완료 알림 전송 실패: jobId={}, error={}", jobId, e.getMessage());
+        }
+    }
+
+    /**
+     * 백테스트 실패 알림 — 오류 원인 + 기간/타임프레임 포함.
+     * @param jobId      백테스트 Job ID
+     * @param coinPair   코인 쌍
+     * @param strategy   전략명
+     * @param startDate  백테스트 시작일 (yyyy.MM.dd 포맷)
+     * @param endDate    백테스트 종료일 (yyyy.MM.dd 포맷)
+     * @param timeframe  타임프레임
+     * @param cause      발생한 예외
+     */
+    public void notifyBacktestFailed(Long jobId, String coinPair, String strategy,
+                                      String startDate, String endDate, String timeframe,
+                                      Throwable cause) {
+        try {
+            String errorMsg = cause.getMessage() != null ? cause.getMessage() : cause.getClass().getSimpleName();
+            StackTraceElement[] stack = cause.getStackTrace();
+            String location = (stack != null && stack.length > 0)
+                    ? stack[0].getClassName() + "." + stack[0].getMethodName() + ":" + stack[0].getLineNumber()
+                    : "알 수 없음";
+
+            String period = startDate + " ~ " + endDate + " / " + timeframe;
+
+            String msg = String.format(
+                    "❌ *백테스트 실패*\n\n" +
+                    "• Job ID: `%d`\n" +
+                    "• 전략: `%s`\n• 코인: `%s`\n" +
+                    "• 기간: `%s`\n\n" +
+                    "🔴 *오류 정보*\n" +
+                    "• 오류 유형: `%s`\n" +
+                    "• 오류 메시지: `%s`\n" +
+                    "• 발생 위치: `%s`\n\n" +
+                    "• 시각: `%s`",
+                    jobId,
+                    escapeMarkdownV2(strategy), escapeMarkdownV2(coinPair),
+                    escapeMarkdownV2(period),
+                    escapeMarkdownV2(cause.getClass().getSimpleName()),
+                    escapeMarkdownV2(errorMsg.length() > 200 ? errorMsg.substring(0, 200) + "..." : errorMsg),
+                    escapeMarkdownV2(location),
+                    KST_FMT.format(java.time.Instant.now()));
+
+            sendMarkdownAndLog(msg, "BACKTEST_FAILED", "백테스트#" + jobId);
+        } catch (Exception e) {
+            log.warn("[Telegram] 백테스트 실패 알림 전송 실패: jobId={}, error={}", jobId, e.getMessage());
+        }
+    }
+
     /** 테스트 메시지 전송 — 결과 확인이 필요하므로 동기 전송 */
     public boolean sendTestMessage() {
         String msg = String.format(

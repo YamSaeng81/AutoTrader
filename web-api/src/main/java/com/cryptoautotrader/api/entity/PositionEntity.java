@@ -65,6 +65,10 @@ public class PositionEntity {
     @Column(name = "position_fee", precision = 20, scale = 2)
     private BigDecimal positionFee;
 
+    /** 매수 시 차감된 KRW 금액 — 주문 엔티티 없이도 KRW 복원 가능하도록 포지션에 직접 저장 */
+    @Column(name = "invested_krw", precision = 20, scale = 8)
+    private BigDecimal investedKrw;
+
     /** 진입 시 계산된 손절가 (null이면 세션 stopLossPct 기반 % 비교로 대체) */
     @Column(name = "stop_loss_price", precision = 20, scale = 8)
     private BigDecimal stopLossPrice;

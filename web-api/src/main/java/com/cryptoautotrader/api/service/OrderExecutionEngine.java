@@ -4,6 +4,7 @@ import com.cryptoautotrader.api.dto.OrderRequest;
 import com.cryptoautotrader.api.entity.OrderEntity;
 import com.cryptoautotrader.api.entity.PositionEntity;
 import com.cryptoautotrader.api.entity.TradeLogEntity;
+import com.cryptoautotrader.api.repository.LiveTradingSessionRepository;
 import com.cryptoautotrader.api.repository.OrderRepository;
 import com.cryptoautotrader.api.repository.PositionRepository;
 import com.cryptoautotrader.api.repository.TradeLogRepository;
@@ -72,6 +73,9 @@ public class OrderExecutionEngine {
     @Autowired(required = false)
     private TelegramNotificationService telegramService;
 
+    @Autowired(required = false)
+    private LiveTradingSessionRepository sessionRepository;
+
     public OrderExecutionEngine(OrderRepository orderRepository,
                                  PositionRepository positionRepository,
                                  TradeLogRepository tradeLogRepository,
@@ -122,11 +126,18 @@ public class OrderExecutionEngine {
         recordTradeLog(order.getId(), "STATE_CHANGE", null, "PENDING", "주문 생성");
 
         // 3. 리스크 체크
-        RiskCheckResult riskResult = riskManagementService.checkRisk();
-        if (!riskResult.isApproved()) {
-            log.warn("리스크 체크 거부 (orderId={}): {}", order.getId(), riskResult.getReason());
-            transitionState(order, "FAILED", riskResult.getReason());
-            return;
+        // - SELL: 손절 등 청산이 막히면 손실 확대 → 항상 허용
+        // - 세션 BUY (positionId != null): LiveTradingService에서 이미 체크 + 포지션/KRW 처리 완료 → 재체크 생략
+        // - 비세션 BUY (positionId == null): 리스크 체크 필요
+        boolean needsRiskCheck = "BUY".equalsIgnoreCase(request.getSide())
+                && request.getPositionId() == null;
+        if (needsRiskCheck) {
+            RiskCheckResult riskResult = riskManagementService.checkRisk();
+            if (!riskResult.isApproved()) {
+                log.warn("리스크 체크 거부 (orderId={}): {}", order.getId(), riskResult.getReason());
+                transitionState(order, "FAILED", riskResult.getReason());
+                return;
+            }
         }
 
         // 4. 거래소 주문 제출
@@ -370,6 +381,22 @@ public class OrderExecutionEngine {
             pos.setSize(totalSize);
             positionRepository.save(pos);
             log.info("BUY 체결 반영: posId={}, 평균단가={}, 수량={}", pos.getId(), pos.getAvgPrice(), pos.getSize());
+
+            // 부분 체결 후 취소 시 미사용 KRW 복원
+            // executedFunds(실제 사용 KRW) < quantity(원래 차감 KRW) 이면 차액을 session에 반환
+            if (order.getSessionId() != null && sessionRepository != null
+                    && order.getExecutedFunds() != null
+                    && order.getQuantity() != null
+                    && order.getExecutedFunds().compareTo(order.getQuantity()) < 0) {
+                BigDecimal unusedKrw = order.getQuantity().subtract(order.getExecutedFunds());
+                sessionRepository.findById(order.getSessionId()).ifPresent(session -> {
+                    session.setAvailableKrw(session.getAvailableKrw().add(unusedKrw));
+                    sessionRepository.save(session);
+                    log.info("부분 체결 후 미사용 KRW 복원 (orderId={}, sessionId={}, 복원={})",
+                            order.getId(), order.getSessionId(), unusedKrw);
+                });
+            }
+
             if (order.getSessionId() != null && telegramService != null) {
                 BigDecimal buyFee = avgFillPrice.multiply(filledQty).multiply(new BigDecimal("0.0005"));
                 telegramService.bufferTradeEvent(
@@ -421,10 +448,13 @@ public class OrderExecutionEngine {
         BigDecimal remainingSize = pos.getSize().subtract(soldQuantity);
 
         // 실현 손익 계산 — order.getPrice()는 syncOrderState에서 세팅됨
-        // market 매도: executedFunds/executedVolume 으로 역산한 단가
+        // market 매도: executedFunds/executedVolume 으로 역산한 단가 (gross 금액 기준)
         // 단가 미확보 시 pos.getAvgPrice()로 대체 (PnL = 0으로 처리)
         BigDecimal fillPrice = order.getPrice() != null ? order.getPrice() : pos.getAvgPrice();
-        BigDecimal realizedPnl = fillPrice.subtract(pos.getAvgPrice()).multiply(soldQuantity);
+        BigDecimal grossProceeds = fillPrice.multiply(soldQuantity);
+        BigDecimal sellFee = grossProceeds.multiply(new BigDecimal("0.0005"));
+        BigDecimal realizedPnl = grossProceeds.subtract(sellFee)
+                .subtract(soldQuantity.multiply(pos.getAvgPrice()));
         pos.setRealizedPnl(pos.getRealizedPnl().add(realizedPnl));
 
         if (remainingSize.compareTo(BigDecimal.ZERO) <= 0) {
@@ -592,8 +622,12 @@ public class OrderExecutionEngine {
                 && order.getFilledQuantity().compareTo(BigDecimal.ZERO) > 0;
 
         if (partialFill) {
-            log.warn("부분 체결 후 취소 감지 (orderId={}, executed_volume={}): CANCELLED → FILLED 처리",
-                    order.getId(), order.getFilledQuantity());
+            log.warn("부분 체결 후 취소 감지 (orderId={}, executed_volume={}, executed_funds={}): CANCELLED → FILLED 처리",
+                    order.getId(), order.getFilledQuantity(), exchangeStatus.getExecutedFunds());
+            // 실제 사용된 KRW 저장 — handleBuyFill()에서 미사용 KRW 복원에 사용
+            if (exchangeStatus.getExecutedFunds() != null) {
+                order.setExecutedFunds(exchangeStatus.getExecutedFunds());
+            }
             order.setFilledAt(Instant.now());
             transitionState(order, "FILLED", null);
             processFilledOrder(order);

@@ -46,6 +46,7 @@ export function useRunBacktest() {
   return useMutation({
     mutationFn: (req: BacktestRequest) => backtestApi.run(req),
     onSuccess: () => {
+      // 비동기 실행 — 완료 시 텔레그램 알림으로 결과 수신
       queryClient.invalidateQueries({ queryKey: backtestKeys.lists() });
     },
   });

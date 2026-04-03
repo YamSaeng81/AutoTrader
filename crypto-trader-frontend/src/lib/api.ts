@@ -17,9 +17,9 @@ const api = axios.create({
 
 export const backtestApi = {
     run: (req: BacktestRequest) =>
-        api.post<ApiResponse<BacktestResult>>('/api/v1/backtest/run', req, { timeout: 300000 }).then(r => r.data),
+        api.post<ApiResponse<{ jobId: number; message: string }>>('/api/v1/backtest/run-async', req).then(r => r.data),
     runMultiStrategy: (req: MultiStrategyBacktestRequest) =>
-        api.post<ApiResponse<Record<string, unknown>[]>>('/api/v1/backtest/multi-strategy', req, { timeout: 300000 }).then(r => r.data),
+        api.post<ApiResponse<{ jobId: number; message: string }>>('/api/v1/backtest/multi-strategy-async', req).then(r => r.data),
     get: (id: string) =>
         api.get<ApiResponse<BacktestResult>>(`/api/v1/backtest/${id}`).then(r => r.data),
     list: (_page = 0) =>

@@ -3,7 +3,7 @@
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝나면 `## 다음 할 일`에서 해당 항목을 삭제하고, 완료 내용은 [`docs/CHANGELOG.md`](CHANGELOG.md)에 추가한다.
 > **변경 이력**: [`docs/CHANGELOG.md`](CHANGELOG.md)
-> **마지막 갱신**: 2026-03-26 (대시보드 UI 전면 개편 — 3섹션 레이아웃, 서버 리소스 모니터링 추가)
+> **마지막 갱신**: 2026-04-03 (백테스트 비동기 처리 + 텔레그램 완료/실패 알림 + 청크 안정성 개선)
 
 ---
 
@@ -54,6 +54,73 @@ crypto-auto-trader/
 ---
 
 ## 다음 할 일
+
+### 🚨 P0 — 실전매매 시스템 신뢰도 검토 (우선 완료 필요)
+
+> 오늘 발견된 버그 2건(FAILED 주문 → 포지션 고착 / 리스크 카운팅 오류)을 계기로  
+> 주문·포지션·손익 전체 흐름을 순서대로 점검한다.  
+> **전략 손실은 검증 문제, 주문·손익 오류는 시스템 신뢰 문제 — 반드시 먼저 해결.**
+
+---
+
+#### 1단계 — 주문 상태 머신 (OrderExecutionEngine) ✅ 완료
+
+- [x] **FAILED 주문 → 포지션 OPEN 고착 + KRW 미복원** — `reconcileOrphanBuyPositions` 30초 주기 스케줄러 추가
+- [x] **고아 포지션이 리스크 한도 카운팅 포함** — `countRealPositionsByStatus` size>0만 카운팅으로 변경
+- [x] **SELL 주문이 리스크 체크에 막혀 손절 불가** — `submitOrder()`에서 SELL 및 세션 BUY(positionId!=null)는 리스크 체크 스킵. 비세션 BUY만 체크
+- [x] **PARTIAL_FILLED 상태** — `mapExchangeState()`에서 반환하지 않음. ACTIVE_STATES 정의만 있고 실제 할당 없음. Upbit 시장가 주문 특성상 문제 없음 (조사 결과 이슈 없음)
+- [x] **CANCELLED + 부분 체결 후 미사용 KRW 미복원** — `OrderEntity.executedFunds` 필드 추가(V28 migration), `syncOrderState()` partialFill 경로에서 저장, `handleBuyFill()`에서 `executedFunds < quantity` 시 차액을 `session.availableKrw` 복원
+
+---
+
+#### 2단계 — 포지션·잔고 정합성 (LiveTradingService) ✅ 완료
+
+- [x] **availableKrw Race Condition (async 스레드 DB 오류 시 KRW 복원 불가)** — `PositionEntity.investedKrw` 필드 추가(V29 migration) + `executeSessionBuy()`에서 저장. `reconcileOrphanBuyPositions()`에서 ① 주문 quantity 우선 ② investedKrw 폴백 ③ 주문 엔티티 없는 고아(5분 경과)도 investedKrw로 복원
+- [x] **멀티 세션 포지션 카운팅 범위** — 설계 결정: 전역 포트폴리오 리스크 한도로 의도적 설계. 현재 단일 세션 운영에서 문제 없음. 멀티 세션 확장 시 재검토 필요
+- [x] **totalAssetKrw 계산 정확성** — `availableKrw + posValue(size>0)` 방식으로 정확. CLOSING 중 일시적 과소평가는 수 초 내 해소되며 실질 문제 없음. `finalizeSellPosition()`에서 청산 후 `availableKrw`로 정확히 동기화됨
+- [x] **stopSession() KRW 복원 누락 (높은 우선순위)** — `emergencyStopSession()`은 올바른 순서였지만 `stopSession()`은 `cancelSessionActiveOrders()` 없이 `closeSessionPositions()` 직접 호출 → PENDING 매수 주문 KRW 소실. `cancelSessionActiveOrders(sessionId)` 호출을 `closeSessionPositions()` 앞에 추가
+
+---
+
+#### 3단계 — 손익(PnL) 계산 정확성 ✅ 완료
+
+- [x] **시장가 매수 평균 단가 계산** — `avgFillPrice = 8,000 / executed_volume`. Upbit이 수수료 차감 후 코인을 지급하므로 avgFillPrice에 매수 수수료(0.05%)가 정확히 내포됨. `soldQty × avgFillPrice = 8,000 (전액 비용기준)` — 정확 ✓
+- [x] **finalizeSellPosition() 수수료 반영 (세션 경로)** — `proceeds = executedFunds(gross)`, `fee = proceeds × 0.0005 ≈ paid_fee`, `realizedPnl = netProceeds - costBasis` — 정확 ✓. 실제 계좌 변동과 수식 일치 확인
+- [x] **handleSellFill() 수수료 미반영 (비세션 경로)** — 매도 수수료 0.05% 미차감으로 PnL 과다 계상. `grossProceeds - sellFee - costBasis`로 수정. (세션 거래에는 영향 없으나 정확성을 위해 수정)
+- [x] **미실현 손익** — `(currentPrice - avgFillPrice) × size`. size=0이면 0 ✓. 매도 수수료 미선반영은 업계 표준으로 허용 가능
+
+---
+
+#### 4단계 — 스케줄러 동시성·중복 처리 ✅ 완료
+
+- [x] **`pollActiveOrders` + `reconcileClosingPositions` 이중 처리** — `handleSellFill()`이 세션 SELL을 명시적 skip → `finalizeSellPosition()`은 `reconcileClosingPositions()`만 호출. `fixedDelay`로 같은 메서드 동시 실행 없음. `finalizeSellPosition()` 내 멱등성 guard("CLOSED" 체크)로 이중 처리 방어 ✓ 이슈 없음
+- [x] **fixedDelay vs fixedRate 전수 확인** — 6개 전체 스케줄러 (`executeStrategies`, `reconcileClosingPositions`, `reconcileOrphanBuyPositions`, `pollActiveOrders`, `MarketDataSyncService`, `PortfolioSyncService`) 모두 `fixedDelay` ✓ `fixedRate` 없음
+- [x] **`reconcileOrphanBuyPositions` + `executeSessionSell()` KRW 이중 복원** — WebSocket SL/TP(`marketDataExecutor` 스레드)와 30초 스케줄러가 동시에 size=0 OPEN 포지션 처리 시 이중 복원 가능. `PositionRepository.closeIfOpen()` (WHERE status='OPEN' 조건부 UPDATE) 추가 → 두 경로 모두 closeIfOpen()으로 원자적 처리. 반환 0이면 KRW 복원 스킵
+
+---
+
+#### 5단계 — 프론트엔드 UI 정합성 ✅
+
+- [x] **열린 포지션 목록에서 size=0 포지션 필터링** — `openPositions` 필터에 `&& Number(p.size) > 0` 추가. 고스트 포지션(매수 실패 후 30초 대기 중)이 UI에 표시되지 않음
+- [x] **가용현금 표시 vs 실제 업비트 잔고 비교 지표** — `accountApi.summary()` 30초 polling 추가. 내부 `availableKrw` 아래 "Upbit 실계좌" 실잔고 표시; 5,000원 이상 차이 시 노란색 경고 강조
+- [x] **주문 FAILED 사유 표시** — `order.failedReason` 존재 시 주문 목록 각 행에 "실패: {reason}" 빨간색으로 인라인 표시
+
+---
+
+#### 6단계 — 통합 테스트 (검증) ✅
+
+- [x] **FAILED 매수 → KRW 복원 E2E 테스트** — `reconcile_failedBuy_restoresKrw`: FAILED 주문 + size=0 포지션 세팅 후 `reconcileOrphanBuyPositions()` 호출 → KRW 복원 + 포지션 CLOSED 확인
+- [x] **리스크 카운팅 정확성 테스트** — `countRealPositions_excludesGhostPositions`: size=0 2개 + size>0 2개 → `countRealPositionsByStatus` = 2, `countByStatus` = 4 확인
+- [x] **maxPositions 한도 차단/허용 테스트** — 고아 포지션 2개는 한도 차지 안 함(승인), 실 포지션 2개는 maxPositions=2 차단 확인
+- [x] **closeIfOpen() 원자적 멱등성 테스트** — 첫 호출 1 반환, 두 번째 0 반환 → 이중 KRW 복원 방지 검증
+- [x] **이중 복원 방지 E2E 테스트** — `reconcile_alreadyClosedPosition_skipsKrwRestore`: 이미 CLOSED된 포지션 reconcile 재호출 시 KRW 불변 확인
+
+**부대 수정 사항:**
+- `PositionRepository.closeIfOpen()`: `@Modifying(clearAutomatically=true, flushAutomatically=true)` 추가 — JPA L1 캐시 오염 방지 (운영 안정성 개선)
+- `PositionRepository.closeIfOpen()`: `@Modifying` import 누락 수정
+- `schema-h2.sql`: V28(`executed_funds`), V29(`invested_krw`) 컬럼 추가 — H2 테스트 스키마가 운영 스키마와 동기화됨
+
+---
 
 ### 🔴 P1 — 전략 고도화
 

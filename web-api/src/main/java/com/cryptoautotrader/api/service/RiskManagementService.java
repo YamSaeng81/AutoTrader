@@ -82,7 +82,8 @@ public class RiskManagementService {
         BigDecimal dailyLoss = calculateLossPct(now.minus(1, ChronoUnit.DAYS), portfolioLimit);
         BigDecimal weeklyLoss = calculateLossPct(now.minus(7, ChronoUnit.DAYS), portfolioLimit);
         BigDecimal monthlyLoss = calculateLossPct(now.minus(30, ChronoUnit.DAYS), portfolioLimit);
-        int currentPositions = (int) positionRepository.countByStatus("OPEN");
+        // size > 0인 실제 체결 포지션만 카운팅 — FAILED 매수로 인한 size=0 고아 포지션 제외
+        int currentPositions = (int) positionRepository.countRealPositionsByStatus("OPEN");
 
         RiskCheckResult result = engine.check(dailyLoss, weeklyLoss, monthlyLoss, currentPositions);
 

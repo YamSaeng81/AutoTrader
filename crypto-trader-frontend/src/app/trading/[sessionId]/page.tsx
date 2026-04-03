@@ -2,7 +2,7 @@
 
 import { use, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { tradingApi, logApi } from '@/lib/api';
+import { tradingApi, logApi, accountApi } from '@/lib/api';
 import type { LiveTradingSession, Position, LiveOrder } from '@/lib/types';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -188,6 +188,12 @@ export default function LiveSessionDetailPage({ params }: { params: Promise<{ se
     refetchInterval: 10000,
   });
 
+  const { data: accountRes } = useQuery({
+    queryKey: ['account', 'summary'],
+    queryFn: () => accountApi.summary(),
+    refetchInterval: 30000,
+  });
+
   const stopMutation = useMutation({
     mutationFn: () => tradingApi.stopSession(sessionIdNum),
     onSuccess: () => {
@@ -206,8 +212,9 @@ export default function LiveSessionDetailPage({ params }: { params: Promise<{ se
   const positions = (positionsRes?.data as unknown as Position[]) ?? [];
   const ordersData = ordersRes?.data as unknown as { content: LiveOrder[]; totalElements: number } | undefined;
   const orders = ordersData?.content ?? [];
+  const accountSummary = accountRes?.data as import('@/lib/types').AccountSummary | undefined;
 
-  const openPositions = positions.filter(p => p.status === 'OPEN');
+  const openPositions = positions.filter(p => p.status === 'OPEN' && Number(p.size) > 0);
   const closedPositions = positions.filter(p => p.status === 'CLOSED');
 
   const chartCandles = (chartRes?.data as any)?.candles as any[] | undefined;
@@ -346,9 +353,17 @@ export default function LiveSessionDetailPage({ params }: { params: Promise<{ se
         </div>
 
         <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
-          <div className="text-xs text-slate-400 mb-2">가용 현금</div>
+          <div className="text-xs text-slate-400 mb-2">가용 현금 (내부)</div>
           <div className="text-xl font-bold text-white">{session.availableKrw.toLocaleString()}</div>
           <div className="text-xs text-slate-500 mt-1">KRW</div>
+          {accountSummary?.apiKeyConfigured && accountSummary.availableKrw != null && (
+            <div className="mt-2 pt-2 border-t border-slate-700/50">
+              <div className="text-xs text-slate-500">Upbit 실계좌</div>
+              <div className="text-sm font-semibold mt-0.5 text-slate-300">
+                {accountSummary.availableKrw.toLocaleString()} KRW
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
@@ -605,6 +620,11 @@ export default function LiveSessionDetailPage({ params }: { params: Promise<{ se
                     {order.signalReason && (
                       <div className="text-xs text-blue-400 mt-0.5 truncate max-w-xs" title={order.signalReason}>
                         {order.signalReason}
+                      </div>
+                    )}
+                    {order.failedReason && (
+                      <div className="text-xs text-red-400 mt-0.5 truncate max-w-xs" title={order.failedReason}>
+                        실패: {order.failedReason}
                       </div>
                     )}
                   </div>

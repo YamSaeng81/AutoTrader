@@ -9,6 +9,7 @@ import com.cryptoautotrader.api.dto.MultiStrategyBacktestRequest;
 import com.cryptoautotrader.api.dto.WalkForwardRequest;
 import com.cryptoautotrader.api.entity.BacktestTradeEntity;
 import com.cryptoautotrader.api.repository.BacktestTradeRepository;
+import com.cryptoautotrader.api.service.BacktestJobService;
 import com.cryptoautotrader.api.service.BacktestService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ import java.util.Map;
 public class BacktestController {
 
     private final BacktestService backtestService;
+    private final BacktestJobService backtestJobService;
     private final BacktestTradeRepository backtestTradeRepository;
 
     @PostMapping("/run")
@@ -161,5 +163,69 @@ public class BacktestController {
                 req.getSignalPeriod(),
                 req.getInitialCapital(), req.getSlippagePct(), req.getFeePct());
         return ApiResponse.ok(results);
+    }
+
+    // ── 비동기 백테스트 API ───────────────────────────────────────────────────────
+
+    /**
+     * 단일 백테스트 비동기 실행
+     * POST /api/v1/backtest/run-async
+     * 요청 즉시 jobId를 반환하고 백그라운드에서 실행한다.
+     * 완료/실패 시 텔레그램으로 알림이 전송된다.
+     * 응답: { "jobId": 42 }
+     */
+    @PostMapping("/run-async")
+    public ApiResponse<Map<String, Object>> runBacktestAsync(@Valid @RequestBody BacktestRequest req) {
+        Long jobId = backtestJobService.submitSingleJob(req);
+        return ApiResponse.ok(Map.of("jobId", jobId,
+                "message", "백테스트가 백그라운드에서 시작되었습니다. 완료 시 텔레그램으로 알림이 전송됩니다."));
+    }
+
+    /**
+     * 다중 전략 비동기 실행
+     * POST /api/v1/backtest/multi-strategy-async
+     * 응답: { "jobId": 43 }
+     */
+    @PostMapping("/multi-strategy-async")
+    public ApiResponse<Map<String, Object>> runMultiStrategyAsync(
+            @Valid @RequestBody MultiStrategyBacktestRequest req) {
+        Long jobId = backtestJobService.submitMultiStrategyJob(req);
+        return ApiResponse.ok(Map.of("jobId", jobId,
+                "message", "다중 전략 백테스트가 백그라운드에서 시작되었습니다. 완료 시 텔레그램으로 알림이 전송됩니다."));
+    }
+
+    /**
+     * 벌크 백테스트 비동기 실행
+     * POST /api/v1/backtest/bulk-run-async
+     * 응답: { "jobId": 44 }
+     */
+    @PostMapping("/bulk-run-async")
+    public ApiResponse<Map<String, Object>> runBulkAsync(@RequestBody BulkBacktestRequest req) {
+        Long jobId = backtestJobService.submitBulkJob(req);
+        return ApiResponse.ok(Map.of("jobId", jobId,
+                "message", "벌크 백테스트가 백그라운드에서 시작되었습니다. 완료 시 텔레그램으로 알림이 전송됩니다."));
+    }
+
+    /**
+     * 백테스트 Job 상태 조회
+     * GET /api/v1/backtest/job/{jobId}
+     * 응답: { id, status, progressPct, totalCandles, errorMessage, ... }
+     */
+    @GetMapping("/job/{jobId}")
+    public ApiResponse<Map<String, Object>> getJob(@PathVariable Long jobId) {
+        try {
+            return ApiResponse.ok(backtestJobService.getJob(jobId));
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        }
+    }
+
+    /**
+     * 백테스트 Job 전체 목록 조회 (최신순)
+     * GET /api/v1/backtest/jobs
+     */
+    @GetMapping("/jobs")
+    public ApiResponse<List<Map<String, Object>>> listJobs() {
+        return ApiResponse.ok(backtestJobService.listJobs());
     }
 }
