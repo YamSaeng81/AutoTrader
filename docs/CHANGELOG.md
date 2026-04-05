@@ -4,6 +4,24 @@
 
 ---
 
+### ✅ 완료 (2026-04-06) — 백테스트 비동기 전환 + 트랜잭션 레이스 컨디션 수정
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `crypto-trader-frontend/src/lib/api.ts` | `backtestApi.run` → `/run-async`, `backtestApi.runMultiStrategy` → `/multi-strategy-async` 호출로 변경. 타임아웃 제거 |
+| `crypto-trader-frontend/src/components/backtest/BacktestForm.tsx` | 비동기 응답(`jobId`) 처리로 변경 — 즉시 목록 페이지로 이동, 버튼 텍스트 "백그라운드 제출 중..." |
+| `BacktestJobService.java` | `submitSingleJob`, `submitMultiStrategyJob`, `submitBulkJob` 에서 `@Transactional` 제거 |
+
+**문제 원인**:
+- 프론트엔드가 동기 `/run` 엔드포인트를 5분 타임아웃으로 호출 → 장시간 백테스트 시 타임아웃 오류 발생, 텔레그램 알림 미전송
+- `@Transactional` submit 메서드 내에서 `@Async` 메서드 호출 시 트랜잭션 커밋 전에 비동기 스레드가 DB 조회 → `NoSuchElementException` 발생
+
+**수정 내용**:
+- 프론트엔드: 비동기 엔드포인트(`/run-async`, `/multi-strategy-async`) 호출로 변경 → 즉시 `jobId` 반환, 완료 시 텔레그램 알림 수신
+- 백엔드: submit 메서드 `@Transactional` 제거 → `save()` 즉시 커밋 후 비동기 스레드 실행으로 레이스 컨디션 해소
+
+---
+
 ### ✅ 완료 (2026-03-25) — COMPOSITE 개선: 전략 교체 + ADX 게이트
 
 | 파일 | 변경 내용 |

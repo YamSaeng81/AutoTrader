@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, History, TrendingUp, TrendingDown, Plus, Trash2, Loader2 } from 'lucide-react';
+import { ArrowLeft, History, TrendingUp, TrendingDown, Plus, Trash2, Loader2, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import { useTradingSessions, useDeleteTradingSession } from '@/hooks';
 import type { LiveTradingSession } from '@/lib/types';
@@ -128,6 +128,7 @@ export default function TradingHistoryPage() {
                   <th className="text-left px-5 py-4">시작일</th>
                   <th className="text-left px-5 py-4">종료일</th>
                   <th className="text-left px-5 py-4">상태</th>
+                  <th className="text-left px-5 py-4">정지 사유</th>
                   <th className="px-5 py-4" />
                   <th className="px-4 py-4" />
                 </tr>
@@ -185,6 +186,18 @@ export default function TradingHistoryPage() {
                           {isRunning && <span className="mr-1">●</span>}
                           {sessionStatusLabel[session.status]}
                         </span>
+                      </td>
+                      <td className="px-5 py-4 max-w-xs">
+                        {session.circuitBreakerReason ? (
+                          <span className="flex items-center gap-1 text-xs text-red-400">
+                            <AlertTriangle className="w-3 h-3 shrink-0" />
+                            <span className="truncate" title={session.circuitBreakerReason}>
+                              {session.circuitBreakerReason}
+                            </span>
+                          </span>
+                        ) : (
+                          <span className="text-slate-600 text-xs">—</span>
+                        )}
                       </td>
                       <td className="px-5 py-4">
                         <Link

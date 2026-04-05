@@ -70,7 +70,6 @@ public class BacktestJobService {
      * 단일 백테스트 작업을 제출한다. Job 레코드를 저장 후 즉시 jobId를 반환하고
      * 백그라운드에서 실행한다.
      */
-    @Transactional
     public Long submitSingleJob(BacktestRequest req) {
         String reqJson = toJson(req);
         BacktestJobEntity job = BacktestJobEntity.builder()
@@ -140,7 +139,6 @@ public class BacktestJobService {
     /**
      * 다중 전략 × 단일 코인 백테스트 작업을 제출한다.
      */
-    @Transactional
     public Long submitMultiStrategyJob(MultiStrategyBacktestRequest req) {
         String strategies = String.join(", ", req.getStrategyTypes());
         BacktestJobEntity job = BacktestJobEntity.builder()
@@ -203,7 +201,6 @@ public class BacktestJobService {
     /**
      * 전략 10종 × N개 코인 벌크 백테스트 작업을 제출한다.
      */
-    @Transactional
     public Long submitBulkJob(BulkBacktestRequest req) {
         BacktestJobEntity job = BacktestJobEntity.builder()
                 .jobType("BULK")

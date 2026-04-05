@@ -286,6 +286,8 @@ export interface LiveTradingSession {
   startedAt: string | null;
   stoppedAt: string | null;
   updatedAt: string;
+  circuitBreakerReason: string | null;
+  circuitBreakerTriggeredAt: string | null;
 }
 
 export interface MultiStrategyLiveRequest {
