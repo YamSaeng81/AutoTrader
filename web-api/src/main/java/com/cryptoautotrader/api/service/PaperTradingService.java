@@ -55,7 +55,7 @@ public class PaperTradingService {
     /** 기본 익절 비율 6% — R:R = 1:2 */
     private static final BigDecimal DEFAULT_TP_RATE = new BigDecimal("0.06");
 
-    /** Stateful 전략 세션별 인스턴스 (COMPOSITE, COMPOSITE_BTC 등 상태 보유 전략) */
+    /** Stateful 전략 세션별 인스턴스 (COMPOSITE, COMPOSITE_MOMENTUM 등 상태 보유 전략) */
     private final Map<Long, com.cryptoautotrader.strategy.Strategy> sessionStatefulStrategies = new ConcurrentHashMap<>();
 
     private final VirtualBalanceRepository balanceRepo;

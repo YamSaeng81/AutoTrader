@@ -60,7 +60,7 @@ export interface UpbitStatusResponse {
 
 export type StrategyType = 'VWAP' | 'EMA_CROSS' | 'BOLLINGER' | 'GRID'
     | 'RSI' | 'MACD' | 'SUPERTREND' | 'ATR_BREAKOUT' | 'ORDERBOOK_IMBALANCE' | 'STOCHASTIC_RSI'
-    | 'COMPOSITE' | 'COMPOSITE_BTC' | 'COMPOSITE_ETH' | 'MACD_STOCH_BB';
+    | 'COMPOSITE' | 'COMPOSITE_MOMENTUM' | 'COMPOSITE_ETH' | 'COMPOSITE_BREAKOUT' | 'MACD_STOCH_BB';
 export type Timeframe = 'M1' | 'M5' | 'M15' | 'M30' | 'H1' | 'H4' | 'D1';
 export type OrderSide = 'BUY' | 'SELL';
 export type MarketRegime = 'TREND' | 'RANGE' | 'VOLATILE';

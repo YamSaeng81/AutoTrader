@@ -33,14 +33,14 @@ crypto-auto-trader/
 
 단일 전략 (11종): VWAP / EMA Cross / Bollinger Band / Grid / RSI(다이버전스) / MACD(히스토그램+제로라인) / Supertrend / ATR Breakout / Orderbook Imbalance / Stochastic RSI / Volume Delta
 
-복합 전략 (5종): **COMPOSITE** (Regime 자동 선택) / **COMPOSITE_BTC V2** (MACD×0.5 + VWAP×0.3 + Grid×0.2, EMA 방향 필터) / **COMPOSITE_ETH** (ATR_BT×0.5 + Orderbook×0.3 + EMA×0.2) / **COMPOSITE_ETH_VD** (ATR×0.4 + VD×0.3 + RSI×0.2 + EMA×0.1, EMA+ADX 필터 활성화) / **MACD_STOCH_BB** (MACD+StochRSI+볼린저 6조건 AND)
+복합 전략 (5종): **COMPOSITE** (Regime 자동 선택) / **COMPOSITE_MOMENTUM** (MACD×0.5 + VWAP×0.3 + Grid×0.2, EMA 방향 필터 — BTC·ETH 등 대형 코인) / **COMPOSITE_ETH** (ATR_BT×0.5 + Orderbook×0.3 + EMA×0.2) / **COMPOSITE_BREAKOUT** (ATR×0.4 + VD×0.3 + RSI×0.2 + EMA×0.1, EMA+ADX 필터 — ETH·SOL·XRP 등 중대형 알트) / **MACD_STOCH_BB** (MACD+StochRSI+볼린저 6조건 AND)
 
 ### 주요 백테스트 결과 (KRW-BTC / KRW-ETH H1)
 
 | 전략 | BTC | ETH | 비고 |
 |------|-----|-----|------|
-| COMPOSITE_BTC V2 | **+58.83%** | — | 24~25년, MDD -25.62% ★주 전략 |
-| COMPOSITE_ETH_VD | — | **평균 +70.3%** | MDD -12~-17% ★주 전략 (구성 변경 후 재백테스트 필요: OB→RSI, ADX 필터 추가) |
+| COMPOSITE_MOMENTUM | **+58.83%** | — | 24~25년, MDD -25.62% ★주 전략 (구 COMPOSITE_BTC V2) |
+| COMPOSITE_BREAKOUT | — | **평균 +70.3%** | MDD -12~-17% ★주 전략 (구 COMPOSITE_ETH_VD, 재백테스트 필요: OB→RSI, ADX 필터 추가) |
 | COMPOSITE (개선후) | +28.72% | -40.53% | BTC 플러스 전환, ETH 악화. 범용 한계로 주 전략 미채택 |
 | COMPOSITE_ETH | — | 평균 +48.7% | MDD -26~-28% |
 | MACD (최적화) | +151.9% | +216.0% | BTC(14,22) / ETH(10,26) |

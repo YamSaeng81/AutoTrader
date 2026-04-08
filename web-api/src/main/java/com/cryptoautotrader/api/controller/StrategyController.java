@@ -197,12 +197,12 @@ public class StrategyController {
 
     /**
      * 복합 전략 여부 판별
-     * - CompositeStrategy (가중 투표 기반): COMPOSITE_BTC, COMPOSITE_ETH 등
+     * - CompositeStrategy (가중 투표 기반): COMPOSITE_MOMENTUM, COMPOSITE_ETH 등
      * - 내부 복합 지표 전략: MACD_STOCH_BB 등
      */
     private boolean isCompositeStrategy(String name) {
         return switch (name) {
-            case "COMPOSITE", "COMPOSITE_BTC", "COMPOSITE_ETH", "MACD_STOCH_BB" -> true;
+            case "COMPOSITE", "COMPOSITE_MOMENTUM", "COMPOSITE_ETH", "MACD_STOCH_BB" -> true;
             default -> false;
         };
     }
@@ -217,7 +217,7 @@ public class StrategyController {
             // Phase 3: 로직 구현 완료
             case "RSI", "MACD", "SUPERTREND", "ATR_BREAKOUT", "ORDERBOOK_IMBALANCE", "STOCHASTIC_RSI", "VOLUME_DELTA" -> true;
             // 코인별 복합 전략 프리셋 + 국면 적응형 복합 전략
-            case "COMPOSITE", "COMPOSITE_BTC", "COMPOSITE_ETH", "COMPOSITE_ETH_VD" -> true;
+            case "COMPOSITE", "COMPOSITE_MOMENTUM", "COMPOSITE_ETH", "COMPOSITE_BREAKOUT" -> true;
             // 복합 추세 전략
             case "MACD_STOCH_BB" -> true;
             default -> false;
@@ -238,9 +238,18 @@ public class StrategyController {
             case "VOLUME_DELTA"        -> "누적 볼륨 Delta(매수-매도 압력) + 다이버전스 필터 기반 방향성 매매";
             case "STOCHASTIC_RSI"      -> "RSI 에 Stochastic 적용, RANGE/VOLATILITY 시장 민감 감지";
             case "COMPOSITE"           -> "시장 국면(TREND/RANGE/VOLATILITY) 자동 감지 기반 동적 전략 선택";
-            case "COMPOSITE_BTC"       -> "[BTC 프리셋 V2] MACD × 0.5 + VWAP × 0.3 + GRID × 0.2 — BTC H1 백테스트 기반 (MACD +151.9%, VWAP 평균 +23.2%)";
+            case "COMPOSITE_MOMENTUM"  -> "[모멘텀 혼합] MACD×0.5 + VWAP×0.3 + GRID×0.2 | " +
+                                          "BTC·ETH 등 거래량 많은 대형 코인 최적화. " +
+                                          "MACD 모멘텀 추세 + VWAP 공정가치 역추세 + GRID 수익 혼합. " +
+                                          "소형 알트 비권장 (VWAP 신뢰도 낮음, 거래량 부족). " +
+                                          "백테스트: BTC +58.83% MDD -25.62%";
             case "COMPOSITE_ETH"       -> "[ETH 프리셋] ATR_BREAKOUT × 0.5 + ORDERBOOK_IMBALANCE × 0.3 + EMA_CROSS × 0.2";
-            case "COMPOSITE_ETH_VD"    -> "[ETH 후보] ATR_BREAKOUT × 0.4 + ORDERBOOK_IMBALANCE × 0.3 + VOLUME_DELTA × 0.2 + EMA_CROSS × 0.1 — Volume Delta 편입 검토용";
+            case "COMPOSITE_BREAKOUT"  -> "[변동성 돌파 추세] ATR×0.4 + VolDelta×0.3 + RSI×0.2 + EMA×0.1 | " +
+                                          "ETH·SOL·XRP 등 중대형 알트 최적화 (추세 뚜렷, 변동성 중간). " +
+                                          "ADX<20 횡보장 자동 차단, EMA 추세 역행 신호 억제. " +
+                                          "RSI 브레이크: 과매수 구간 ATR 돌파 신호 차단. " +
+                                          "BTC 비권장 (변동성 낮아 신호 희소), 소형 알트 비권장 (변동성 과다). " +
+                                          "백테스트: ETH 평균 +70.3% MDD -12~-17%";
             case "MACD_STOCH_BB"       -> "MACD 추세 + StochRSI 타이밍 + 볼린저밴드 지지선 복합 추세 전략 (1시간봉 최적화)";
             default -> "설명 없음";
         };

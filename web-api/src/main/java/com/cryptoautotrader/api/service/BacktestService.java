@@ -24,6 +24,7 @@ import com.cryptoautotrader.strategy.StrategyRegistry;
 import com.cryptoautotrader.strategy.atrbreakout.AtrBreakoutStrategy;
 import com.cryptoautotrader.strategy.ema.EmaCrossStrategy;
 import com.cryptoautotrader.strategy.orderbook.OrderbookImbalanceStrategy;
+import com.cryptoautotrader.strategy.rsi.RsiStrategy;
 import com.cryptoautotrader.strategy.volumedelta.VolumeDeltaStrategy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -106,10 +107,10 @@ public class BacktestService {
             // 백테스트에서 ORDERBOOK_IMBALANCE는 캔들 근사값을 사용하므로 가중치를 축소
             // Live: ATR(0.5) + OB(0.3) + EMA(0.2) → BT: ATR(0.7) + OB(0.1) + EMA(0.2)
             result = backtestEngine.run(config, candles, compositeEthBt());
-        } else if ("COMPOSITE_ETH_VD".equals(strategyType)) {
+        } else if ("COMPOSITE_BREAKOUT".equals(strategyType)) {
             // 후보: ATR(0.4) + OB(0.3) + VD(0.2) + EMA(0.1) — Volume Delta 편입 검토용
             // BT: ATR(0.6) + OB(0.1) + VD(0.2) + EMA(0.1) (OB 캔들 근사 보정)
-            result = backtestEngine.run(config, candles, compositeEthVdBt());
+            result = backtestEngine.run(config, candles, compositeBreakoutBt());
         } else {
             result = backtestEngine.run(config, candles);
         }
@@ -320,8 +321,8 @@ public class BacktestService {
                     result = backtestEngine.run(config, candles, new CompositeStrategy(weighted));
                 } else if ("COMPOSITE_ETH".equals(strategyName)) {
                     result = backtestEngine.run(config, candles, compositeEthBt());
-                } else if ("COMPOSITE_ETH_VD".equals(strategyName)) {
-                    result = backtestEngine.run(config, candles, compositeEthVdBt());
+                } else if ("COMPOSITE_BREAKOUT".equals(strategyName)) {
+                    result = backtestEngine.run(config, candles, compositeBreakoutBt());
                 } else {
                     result = backtestEngine.run(config, candles);
                 }
@@ -433,8 +434,8 @@ public class BacktestService {
                         result = backtestEngine.run(config, candles, new CompositeStrategy(weighted));
                     } else if ("COMPOSITE_ETH".equals(strategyName)) {
                         result = backtestEngine.run(config, candles, compositeEthBt());
-                    } else if ("COMPOSITE_ETH_VD".equals(strategyName)) {
-                        result = backtestEngine.run(config, candles, compositeEthVdBt());
+                    } else if ("COMPOSITE_BREAKOUT".equals(strategyName)) {
+                        result = backtestEngine.run(config, candles, compositeBreakoutBt());
                     } else {
                         result = backtestEngine.run(config, candles);
                     }
@@ -666,17 +667,17 @@ public class BacktestService {
     }
 
     /**
-     * 백테스트 전용 COMPOSITE_ETH_VD 인스턴스 (Volume Delta 편입 후보).
-     * Live: ATR(0.4) + OB(0.3) + VD(0.2) + EMA(0.1)
-     * BT:   ATR(0.6) + OB(0.1) + VD(0.2) + EMA(0.1) (OB 캔들 근사 보정)
+     * 백테스트 전용 COMPOSITE_BREAKOUT 인스턴스.
+     * Live/BT 동일 구성: ATR(0.4) + VD(0.3) + RSI(0.2) + EMA(0.1)
+     * RSI는 캔들 데이터만으로 계산되므로 BT/Live 간 보정 불필요.
      */
-    private CompositeStrategy compositeEthVdBt() {
-        return new CompositeStrategy("COMPOSITE_ETH_VD", List.of(
-                new WeightedStrategy(new AtrBreakoutStrategy(),        0.6),
-                new WeightedStrategy(new OrderbookImbalanceStrategy(), 0.1),
-                new WeightedStrategy(new VolumeDeltaStrategy(),        0.2),
-                new WeightedStrategy(new EmaCrossStrategy(),           0.1)
-        ));
+    private CompositeStrategy compositeBreakoutBt() {
+        return new CompositeStrategy("COMPOSITE_BREAKOUT", List.of(
+                new WeightedStrategy(new AtrBreakoutStrategy(), 0.4),
+                new WeightedStrategy(new VolumeDeltaStrategy(),  0.3),
+                new WeightedStrategy(new RsiStrategy(),          0.2),
+                new WeightedStrategy(new EmaCrossStrategy(),     0.1)
+        ), true, true);
     }
 
     private BacktestRunEntity saveRun(BacktestConfig config, boolean isWalkForward) {
