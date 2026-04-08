@@ -14,15 +14,15 @@ import com.cryptoautotrader.strategy.supertrend.SupertrendStrategy;
 import com.cryptoautotrader.strategy.testtraded.TestTimedStrategy;
 import com.cryptoautotrader.strategy.vwap.VwapStrategy;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 public final class StrategyRegistry {
 
-    private static final Map<String, Strategy> STRATEGIES = new LinkedHashMap<>();
+    private static final Map<String, Strategy>           STRATEGIES = new ConcurrentHashMap<>();
     /** StatefulStrategy 구현체의 인스턴스 팩토리 — 세션별 신규 인스턴스 생성에 사용 */
-    private static final Map<String, Supplier<Strategy>> FACTORIES = new LinkedHashMap<>();
+    private static final Map<String, Supplier<Strategy>> FACTORIES  = new ConcurrentHashMap<>();
 
     static {
         // Phase 1 전략

@@ -10,6 +10,7 @@ import com.cryptoautotrader.strategy.grid.GridStrategy;
 import com.cryptoautotrader.strategy.macd.MacdStrategy;
 import com.cryptoautotrader.strategy.vwap.VwapStrategy;
 import com.cryptoautotrader.strategy.orderbook.OrderbookImbalanceStrategy;
+import com.cryptoautotrader.strategy.rsi.RsiStrategy;
 import com.cryptoautotrader.strategy.volumedelta.VolumeDeltaStrategy;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Component;
@@ -53,13 +54,16 @@ public class CompositePresetRegistrar {
                 new WeightedStrategy(new EmaCrossStrategy(),           0.2)
         )));
 
-        // COMPOSITE_ETH_VD: Volume Delta 편입 후보 — 백테스트 비교용
-        // Live: ATR(0.4) + OB(0.3) + VD(0.2) + EMA(0.1)
+        // COMPOSITE_ETH_VD: ATR(0.4) + VD(0.3) + RSI(0.2) + EMA(0.1)
+        // - RSI 추가: 과매수(>70) 구간에서 ATR BUY와 상충 → HOLD (과매수 진입 방지)
+        //             RSI 단독 가중치 0.2로 buyScore 0.4 미달 → 단독 진입 불가 (브레이크 역할)
+        // - EMA 방향 필터 활성화: 추세 역행 신호(하락추세 BUY / 상승추세 SELL) 억제
+        // - ADX 횡보장 필터 활성화: ADX(14) < 20이면 하위 전략 평가 없이 즉시 HOLD
         StrategyRegistry.register(new CompositeStrategy("COMPOSITE_ETH_VD", List.of(
-                new WeightedStrategy(new AtrBreakoutStrategy(),        0.4),
-                new WeightedStrategy(new OrderbookImbalanceStrategy(), 0.3),
-                new WeightedStrategy(new VolumeDeltaStrategy(),        0.2),
-                new WeightedStrategy(new EmaCrossStrategy(),           0.1)
-        )));
+                new WeightedStrategy(new AtrBreakoutStrategy(), 0.4),
+                new WeightedStrategy(new VolumeDeltaStrategy(),  0.3),
+                new WeightedStrategy(new RsiStrategy(),          0.2),
+                new WeightedStrategy(new EmaCrossStrategy(),     0.1)
+        ), true, true));
     }
 }

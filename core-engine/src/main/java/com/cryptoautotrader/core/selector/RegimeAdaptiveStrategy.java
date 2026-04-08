@@ -58,7 +58,9 @@ public class RegimeAdaptiveStrategy implements Strategy {
         }
 
         // ADX 게이트: ADX < 20 횡보장 BUY 차단 (DMI 원칙 — 추세 미확인 시 진입 금지)
-        if (signal.getAction() == StrategySignal.Action.BUY) {
+        // ADX 계산에 period*2+1 캔들 필요 — 부족 시 게이트 스킵 (보수적 허용)
+        if (signal.getAction() == StrategySignal.Action.BUY
+                && candles.size() >= ADX_PERIOD * 2 + 1) {
             BigDecimal adx = IndicatorUtils.adx(candles, ADX_PERIOD);
             if (adx.compareTo(ADX_GATE_THRESHOLD) < 0) {
                 return StrategySignal.hold(

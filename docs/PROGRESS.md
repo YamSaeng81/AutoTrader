@@ -3,7 +3,7 @@
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝나면 `## 다음 할 일`에서 해당 항목을 삭제하고, 완료 내용은 [`docs/CHANGELOG.md`](CHANGELOG.md)에 추가한다.
 > **변경 이력**: [`docs/CHANGELOG.md`](CHANGELOG.md)
-> **마지막 갱신**: 2026-04-06 (백테스트 프론트 비동기 전환 + submit @Transactional 레이스 컨디션 수정)
+> **마지막 갱신**: 2026-04-08 (COMPOSITE_ETH_VD 전략 개선 + CompositeStrategy ADX 필터 추가)
 
 ---
 
@@ -33,14 +33,14 @@ crypto-auto-trader/
 
 단일 전략 (11종): VWAP / EMA Cross / Bollinger Band / Grid / RSI(다이버전스) / MACD(히스토그램+제로라인) / Supertrend / ATR Breakout / Orderbook Imbalance / Stochastic RSI / Volume Delta
 
-복합 전략 (5종): **COMPOSITE** (Regime 자동 선택) / **COMPOSITE_BTC V2** (MACD×0.5 + VWAP×0.3 + Grid×0.2, EMA 방향 필터) / **COMPOSITE_ETH** (ATR_BT×0.5 + Orderbook×0.3 + EMA×0.2) / **COMPOSITE_ETH_VD** (ATR×0.4 + OB×0.3 + VD×0.2 + EMA×0.1) / **MACD_STOCH_BB** (MACD+StochRSI+볼린저 6조건 AND)
+복합 전략 (5종): **COMPOSITE** (Regime 자동 선택) / **COMPOSITE_BTC V2** (MACD×0.5 + VWAP×0.3 + Grid×0.2, EMA 방향 필터) / **COMPOSITE_ETH** (ATR_BT×0.5 + Orderbook×0.3 + EMA×0.2) / **COMPOSITE_ETH_VD** (ATR×0.4 + VD×0.3 + RSI×0.2 + EMA×0.1, EMA+ADX 필터 활성화) / **MACD_STOCH_BB** (MACD+StochRSI+볼린저 6조건 AND)
 
 ### 주요 백테스트 결과 (KRW-BTC / KRW-ETH H1)
 
 | 전략 | BTC | ETH | 비고 |
 |------|-----|-----|------|
 | COMPOSITE_BTC V2 | **+58.83%** | — | 24~25년, MDD -25.62% ★주 전략 |
-| COMPOSITE_ETH_VD | — | **평균 +70.3%** | MDD -12~-17% ★주 전략 |
+| COMPOSITE_ETH_VD | — | **평균 +70.3%** | MDD -12~-17% ★주 전략 (구성 변경 후 재백테스트 필요: OB→RSI, ADX 필터 추가) |
 | COMPOSITE (개선후) | +28.72% | -40.53% | BTC 플러스 전환, ETH 악화. 범용 한계로 주 전략 미채택 |
 | COMPOSITE_ETH | — | 평균 +48.7% | MDD -26~-28% |
 | MACD (최적화) | +151.9% | +216.0% | BTC(14,22) / ETH(10,26) |

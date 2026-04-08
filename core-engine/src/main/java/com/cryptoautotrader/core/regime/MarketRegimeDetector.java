@@ -139,11 +139,7 @@ public class MarketRegimeDetector {
 
     /** 캔들 리스트에서 종가 리스트 추출 */
     private static List<BigDecimal> closes(List<Candle> candles) {
-        List<BigDecimal> result = new ArrayList<>(candles.size());
-        for (Candle c : candles) {
-            result.add(c.getClose());
-        }
-        return result;
+        return candles.stream().map(Candle::getClose).toList();
     }
 
     /** 정렬 후 주어진 퍼센타일 인덱스의 값 반환 */
