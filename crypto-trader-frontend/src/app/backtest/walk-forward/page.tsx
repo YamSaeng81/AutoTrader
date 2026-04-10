@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { strategyApi, backtestApi, systemApi } from '@/lib/api';
-import { StrategyInfo, Timeframe, WalkForwardResult, WalkForwardWindow } from '@/lib/types';
-import { useRouter } from 'next/navigation';
-import { Play, Loader2, AlertTriangle, CheckCircle, Info } from 'lucide-react';
+import { StrategyInfo, Timeframe, WalkForwardResult } from '@/lib/types';
+import { Play, Loader2, AlertTriangle, CheckCircle, History } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
 import {
-    BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell, Legend,
+    BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
 } from 'recharts';
 
 const today = new Date().toISOString().slice(0, 10);
@@ -20,11 +20,14 @@ const VERDICT_CONFIG = {
 };
 
 export default function WalkForwardPage() {
-    const router = useRouter();
+    const [tab, setTab] = useState<'run' | 'history'>('run');
     const [loading, setLoading] = useState(false);
+    const [historyLoading, setHistoryLoading] = useState(false);
     const [strategies, setStrategies] = useState<StrategyInfo[]>([]);
     const [coins, setCoins] = useState<string[]>([]);
     const [result, setResult] = useState<WalkForwardResult | null>(null);
+    const [history, setHistory] = useState<WalkForwardResult[]>([]);
+    const [selectedHistory, setSelectedHistory] = useState<WalkForwardResult | null>(null);
 
     const [form, setForm] = useState({
         strategyType: 'EMA_CROSS',
@@ -39,13 +42,22 @@ export default function WalkForwardPage() {
     useEffect(() => {
         Promise.all([strategyApi.list(), systemApi.coins()]).then(([stRes, cRes]) => {
             if (stRes.success && stRes.data) {
-                const available = stRes.data.filter(s => s.status === 'AVAILABLE');
+                const available = stRes.data.filter(s => s.status === 'AVAILABLE' && s.isActive);
                 setStrategies(available);
                 if (available.length > 0) setForm(f => ({ ...f, strategyType: available[0].name }));
             }
             if (cRes.success && cRes.data) setCoins(cRes.data);
         });
     }, []);
+
+    useEffect(() => {
+        if (tab === 'history') {
+            setHistoryLoading(true);
+            backtestApi.walkForwardHistory()
+                .then(res => { if (res.success && res.data) setHistory(res.data); })
+                .finally(() => setHistoryLoading(false));
+        }
+    }, [tab]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -71,19 +83,97 @@ export default function WalkForwardPage() {
         }
     };
 
-    const chartData = result?.windows.map((w, i) => ({
-        name: `Window ${i + 1}`,
-        inSample: Number(w.inSample?.returnPct ?? 0),
-        outSample: Number(w.outSample?.returnPct ?? 0),
-    })) ?? [];
+    const displayResult = selectedHistory ?? result;
 
-    const verdictCfg = result ? VERDICT_CONFIG[result.verdict] : null;
-    const VerdictIcon = verdictCfg?.icon ?? Info;
+    const buildChartData = (r: WalkForwardResult | null) =>
+        r?.windows.map((w, i) => ({
+            name: `Window ${i + 1}`,
+            inSample: Number(w.inSample?.totalReturn ?? 0),
+            outSample: Number(w.outSample?.totalReturn ?? 0),
+        })) ?? [];
+
+    const chartData = buildChartData(displayResult);
+    const verdictCfg = displayResult ? VERDICT_CONFIG[displayResult.verdict] : null;
+    const VerdictIcon = verdictCfg?.icon ?? CheckCircle;
 
     return (
         <div className="max-w-4xl mx-auto py-4 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* 탭 */}
+            <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-fit">
+                <button onClick={() => { setTab('run'); setSelectedHistory(null); }}
+                    className={cn('px-5 py-2 rounded-lg text-sm font-semibold transition-all',
+                        tab === 'run' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-800 dark:text-slate-100' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300')}>
+                    <span className="flex items-center gap-1.5"><Play className="w-3.5 h-3.5" /> 실행</span>
+                </button>
+                <button onClick={() => setTab('history')}
+                    className={cn('px-5 py-2 rounded-lg text-sm font-semibold transition-all',
+                        tab === 'history' ? 'bg-white dark:bg-slate-700 shadow-sm text-slate-800 dark:text-slate-100' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300')}>
+                    <span className="flex items-center gap-1.5"><History className="w-3.5 h-3.5" /> 이력</span>
+                </button>
+            </div>
+
+            {/* 이력 탭 */}
+            {tab === 'history' && (
+                <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+                    <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
+                        <h2 className="text-sm font-bold text-slate-700 dark:text-slate-200">Walk Forward 실행 이력</h2>
+                    </div>
+                    {historyLoading ? (
+                        <div className="p-10 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-indigo-500" /></div>
+                    ) : history.length === 0 ? (
+                        <div className="p-10 text-center text-slate-400 dark:text-slate-500 text-sm">이력이 없습니다.</div>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                                <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                    <tr>
+                                        <th className="px-5 py-3 text-left">전략</th>
+                                        <th className="px-5 py-3 text-left">코인</th>
+                                        <th className="px-5 py-3 text-left">타임프레임</th>
+                                        <th className="px-5 py-3 text-right">과적합 점수</th>
+                                        <th className="px-5 py-3 text-left">판정</th>
+                                        <th className="px-5 py-3 text-left">실행일</th>
+                                        <th className="px-5 py-3"></th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                    {history.map((h, i) => {
+                                        const cfg = VERDICT_CONFIG[h.verdict];
+                                        const Icon = cfg.icon;
+                                        return (
+                                            <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
+                                                <td className="px-5 py-3 font-medium text-slate-700 dark:text-slate-200">{h.strategyType}</td>
+                                                <td className="px-5 py-3 text-slate-600 dark:text-slate-300">{h.coinPair}</td>
+                                                <td className="px-5 py-3 text-slate-600 dark:text-slate-300">{h.timeframe}</td>
+                                                <td className="px-5 py-3 text-right font-mono font-bold text-slate-700 dark:text-slate-200">
+                                                    {(Number(h.overfittingScore) * 100).toFixed(1)}%
+                                                </td>
+                                                <td className="px-5 py-3">
+                                                    <span className={cn('flex items-center gap-1 text-xs font-bold', cfg.color)}>
+                                                        <Icon className="w-3.5 h-3.5" />{cfg.label}
+                                                    </span>
+                                                </td>
+                                                <td className="px-5 py-3 text-slate-500 dark:text-slate-400 text-xs">
+                                                    {h.createdAt ? format(new Date(h.createdAt), 'yyyy.MM.dd HH:mm') : '-'}
+                                                </td>
+                                                <td className="px-5 py-3">
+                                                    <button onClick={() => { setSelectedHistory(h); setTab('run'); }}
+                                                        className="text-xs text-indigo-500 hover:text-indigo-700 font-semibold">
+                                                        상세보기
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
+            )}
+
             {/* Form */}
-            <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 space-y-8">
+            {tab === 'run' && <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 space-y-8">
                 <div>
                     <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">Walk Forward Test</h2>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">데이터를 학습/검증 구간으로 분할하여 과적합 여부를 검증합니다.</p>
@@ -185,11 +275,18 @@ export default function WalkForwardPage() {
                         )}
                     </button>
                 </div>
-            </form>
+            </form>}
 
-            {/* Result */}
-            {result && (
+            {/* Result (실행 결과 or 이력에서 선택한 결과) */}
+            {tab === 'run' && displayResult && (
                 <>
+                    {selectedHistory && (
+                        <div className="flex items-center gap-2 text-sm text-indigo-600 dark:text-indigo-400 font-medium">
+                            <History className="w-4 h-4" />
+                            이력에서 불러온 결과 — {selectedHistory.strategyType} / {selectedHistory.coinPair}
+                            <button onClick={() => setSelectedHistory(null)} className="ml-2 text-xs text-slate-400 hover:text-slate-600">✕ 닫기</button>
+                        </div>
+                    )}
                     {/* Verdict */}
                     <div className={cn('rounded-2xl border p-6 flex items-center gap-4', verdictCfg?.bg)}>
                         <VerdictIcon className={cn('w-8 h-8', verdictCfg?.color)} />
@@ -198,7 +295,7 @@ export default function WalkForwardPage() {
                                 {verdictCfg?.label}
                             </div>
                             <div className="text-sm text-slate-600 dark:text-slate-300 mt-0.5">
-                                과적합 점수: <span className="font-mono font-bold">{(result.overfittingScore * 100).toFixed(1)}%</span>
+                                과적합 점수: <span className="font-mono font-bold">{(Number(displayResult.overfittingScore) * 100).toFixed(1)}%</span>
                                 <span className="text-slate-400 dark:text-slate-500 ml-2">
                                     (30% 미만: 통과, 30~50%: 주의, 50% 초과: 과적합)
                                 </span>
@@ -217,7 +314,7 @@ export default function WalkForwardPage() {
                                     <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                                     <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#94a3b8' }} />
                                     <YAxis tickFormatter={v => `${v}%`} tick={{ fontSize: 12, fill: '#94a3b8' }} />
-                                    <Tooltip formatter={(v: any) => [`${Number(v ?? 0).toFixed(2)}%`]} />
+                                    <Tooltip formatter={(v: number) => [`${Number(v ?? 0).toFixed(2)}%`]} />
                                     <Legend />
                                     <Bar dataKey="inSample" name="In-Sample (학습)" fill="#6366f1" radius={[4, 4, 0, 0]} />
                                     <Bar dataKey="outSample" name="Out-Sample (검증)" fill="#10b981" radius={[4, 4, 0, 0]} />
@@ -244,20 +341,21 @@ export default function WalkForwardPage() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                    {result.windows.map((w, i) => {
-                                        const inPct = Number(w.inSample?.returnPct ?? 0);
-                                        const outPct = Number(w.outSample?.returnPct ?? 0);
+                                    {displayResult.windows.map((w, i) => {
+                                        const inPct  = Number(w.inSample?.totalReturn  ?? 0);
+                                        const outPct = Number(w.outSample?.totalReturn ?? 0);
                                         const dropoff = inPct !== 0
                                             ? ((inPct - outPct) / Math.abs(inPct)) * 100
                                             : 0;
+                                        const fmtDate = (s?: string) => s ? format(new Date(s), 'yy.MM.dd') : '-';
                                         return (
                                             <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
                                                 <td className="px-5 py-3 font-medium text-slate-700 dark:text-slate-200">Window {i + 1}</td>
-                                                <td className="px-5 py-3 text-slate-600 dark:text-slate-300 text-xs">{w.inSample?.start} ~ {w.inSample?.end}</td>
+                                                <td className="px-5 py-3 text-slate-600 dark:text-slate-300 text-xs">{fmtDate(w.inSample?.start)} ~ {fmtDate(w.inSample?.end)}</td>
                                                 <td className={cn('px-5 py-3 text-right font-mono font-bold', inPct >= 0 ? 'text-emerald-600' : 'text-rose-600')}>
                                                     {inPct >= 0 ? '+' : ''}{inPct.toFixed(2)}%
                                                 </td>
-                                                <td className="px-5 py-3 text-slate-600 dark:text-slate-300 text-xs">{w.outSample?.start} ~ {w.outSample?.end}</td>
+                                                <td className="px-5 py-3 text-slate-600 dark:text-slate-300 text-xs">{fmtDate(w.outSample?.start)} ~ {fmtDate(w.outSample?.end)}</td>
                                                 <td className={cn('px-5 py-3 text-right font-mono font-bold', outPct >= 0 ? 'text-emerald-600' : 'text-rose-600')}>
                                                     {outPct >= 0 ? '+' : ''}{outPct.toFixed(2)}%
                                                 </td>

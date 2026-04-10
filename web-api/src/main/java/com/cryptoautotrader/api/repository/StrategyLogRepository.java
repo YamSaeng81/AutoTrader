@@ -31,4 +31,16 @@ public interface StrategyLogRepository extends JpaRepository<StrategyLogEntity, 
            "AND l.createdAt < :cutoff AND l.priceAfter24h IS NULL AND l.signalPrice IS NOT NULL " +
            "ORDER BY l.createdAt ASC")
     List<StrategyLogEntity> findPendingFor24hEval(@Param("cutoff") Instant cutoff, Pageable pageable);
+
+    /** 신호 품질 집계용 — 4h 또는 24h 평가가 완료된 BUY/SELL 신호 조회 */
+    @Query("SELECT l FROM StrategyLogEntity l WHERE l.signal IN ('BUY', 'SELL') " +
+           "AND l.createdAt >= :from " +
+           "AND (l.return4hPct IS NOT NULL OR l.return24hPct IS NOT NULL)")
+    List<StrategyLogEntity> findEvaluatedSignals(@Param("from") Instant from);
+
+    @Query("SELECT l FROM StrategyLogEntity l WHERE l.signal IN ('BUY', 'SELL') " +
+           "AND l.sessionType = :sessionType AND l.createdAt >= :from " +
+           "AND (l.return4hPct IS NOT NULL OR l.return24hPct IS NOT NULL)")
+    List<StrategyLogEntity> findEvaluatedSignalsBySessionType(
+            @Param("sessionType") String sessionType, @Param("from") Instant from);
 }

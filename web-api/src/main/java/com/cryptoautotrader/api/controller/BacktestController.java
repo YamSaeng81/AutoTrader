@@ -82,6 +82,15 @@ public class BacktestController {
     }
 
     /**
+     * Walk Forward 실행 이력 목록 조회 (최신순)
+     * GET /api/v1/backtest/walk-forward/history
+     */
+    @GetMapping("/walk-forward/history")
+    public ApiResponse<List<Map<String, Object>>> walkForwardHistory() {
+        return ApiResponse.ok(backtestService.listWalkForwardHistory());
+    }
+
+    /**
      * 백테스트 단건 삭제
      * DELETE /api/v1/backtest/{id}
      * 성공: 204 No Content

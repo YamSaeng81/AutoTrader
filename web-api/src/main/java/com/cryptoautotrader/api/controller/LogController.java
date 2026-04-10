@@ -10,9 +10,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/logs")
@@ -68,6 +71,125 @@ public class LogController {
                 "totalPages", logs.getTotalPages(),
                 "number", logs.getNumber()
         ));
+    }
+
+    /**
+     * 신호 품질 통계 집계
+     * - 전략별, 레짐별 4h/24h 적중률 및 평균 수익률
+     *
+     * @param days        최근 N일 데이터 (기본 30)
+     * @param sessionType LIVE / PAPER / ALL (기본 ALL)
+     */
+    @GetMapping("/signal-stats")
+    public ApiResponse<Map<String, Object>> getSignalStats(
+            @RequestParam(defaultValue = "30") int days,
+            @RequestParam(required = false) String sessionType) {
+
+        Instant from = Instant.now().minus(days, ChronoUnit.DAYS);
+        boolean hasType = sessionType != null && !sessionType.isBlank() && !"ALL".equalsIgnoreCase(sessionType);
+
+        List<StrategyLogEntity> signals = hasType
+                ? strategyLogRepo.findEvaluatedSignalsBySessionType(sessionType.toUpperCase(), from)
+                : strategyLogRepo.findEvaluatedSignals(from);
+
+        return ApiResponse.ok(Map.of(
+                "overall",    buildOverallStats(signals),
+                "byStrategy", buildByStrategy(signals),
+                "byRegime",   buildByRegime(signals)
+        ));
+    }
+
+    private Map<String, Object> buildOverallStats(List<StrategyLogEntity> signals) {
+        List<StrategyLogEntity> eval4h  = signals.stream().filter(l -> l.getReturn4hPct()  != null).toList();
+        List<StrategyLogEntity> eval24h = signals.stream().filter(l -> l.getReturn24hPct() != null).toList();
+        return Map.of(
+                "totalSignals",    signals.size(),
+                "evaluated4h",     eval4h.size(),
+                "winRate4h",       winRate(eval4h, true),
+                "avgReturn4h",     avgReturn(eval4h, true),
+                "evaluated24h",    eval24h.size(),
+                "winRate24h",      winRate(eval24h, false),
+                "avgReturn24h",    avgReturn(eval24h, false)
+        );
+    }
+
+    private List<Map<String, Object>> buildByStrategy(List<StrategyLogEntity> signals) {
+        // 전략명 + 코인페어 조합으로 그룹핑
+        Map<String, List<StrategyLogEntity>> grouped = signals.stream()
+                .collect(Collectors.groupingBy(
+                        l -> l.getStrategyName() + "|" + l.getCoinPair()
+                ));
+
+        return grouped.entrySet().stream()
+                .map(e -> {
+                    String[] parts = e.getKey().split("\\|", 2);
+                    List<StrategyLogEntity> group = e.getValue();
+                    List<StrategyLogEntity> eval4h  = group.stream().filter(l -> l.getReturn4hPct()  != null).toList();
+                    List<StrategyLogEntity> eval24h = group.stream().filter(l -> l.getReturn24hPct() != null).toList();
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("strategyName",  parts[0]);
+                    m.put("coinPair",      parts.length > 1 ? parts[1] : "");
+                    m.put("totalSignals",  group.size());
+                    m.put("evaluated4h",   eval4h.size());
+                    m.put("winRate4h",     winRate(eval4h, true));
+                    m.put("avgReturn4h",   avgReturn(eval4h, true));
+                    m.put("evaluated24h",  eval24h.size());
+                    m.put("winRate24h",    winRate(eval24h, false));
+                    m.put("avgReturn24h",  avgReturn(eval24h, false));
+                    return m;
+                })
+                .sorted(Comparator.comparingInt((Map<String, Object> m) -> (int) m.get("totalSignals")).reversed())
+                .collect(Collectors.toList());
+    }
+
+    private List<Map<String, Object>> buildByRegime(List<StrategyLogEntity> signals) {
+        Map<String, List<StrategyLogEntity>> grouped = signals.stream()
+                .collect(Collectors.groupingBy(
+                        l -> l.getMarketRegime() != null ? l.getMarketRegime() : "UNKNOWN"
+                ));
+
+        return grouped.entrySet().stream()
+                .map(e -> {
+                    List<StrategyLogEntity> group = e.getValue();
+                    List<StrategyLogEntity> eval4h  = group.stream().filter(l -> l.getReturn4hPct()  != null).toList();
+                    List<StrategyLogEntity> eval24h = group.stream().filter(l -> l.getReturn24hPct() != null).toList();
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("regime",       e.getKey());
+                    m.put("totalSignals", group.size());
+                    m.put("evaluated4h",  eval4h.size());
+                    m.put("winRate4h",    winRate(eval4h, true));
+                    m.put("avgReturn4h",  avgReturn(eval4h, true));
+                    m.put("evaluated24h", eval24h.size());
+                    m.put("winRate24h",   winRate(eval24h, false));
+                    m.put("avgReturn24h", avgReturn(eval24h, false));
+                    return m;
+                })
+                .sorted(Comparator.comparingInt((Map<String, Object> m) -> (int) m.get("totalSignals")).reversed())
+                .collect(Collectors.toList());
+    }
+
+    /** return > 0 이면 적중 */
+    private double winRate(List<StrategyLogEntity> list, boolean use4h) {
+        if (list.isEmpty()) return 0.0;
+        long wins = 0;
+        for (StrategyLogEntity l : list) {
+            BigDecimal v = use4h ? l.getReturn4hPct() : l.getReturn24hPct();
+            if (v != null && v.compareTo(BigDecimal.ZERO) > 0) wins++;
+        }
+        return BigDecimal.valueOf(wins)
+                .divide(BigDecimal.valueOf(list.size()), 4, RoundingMode.HALF_UP)
+                .doubleValue();
+    }
+
+    private double avgReturn(List<StrategyLogEntity> list, boolean use4h) {
+        if (list.isEmpty()) return 0.0;
+        double sum = 0.0;
+        int count = 0;
+        for (StrategyLogEntity l : list) {
+            BigDecimal v = use4h ? l.getReturn4hPct() : l.getReturn24hPct();
+            if (v != null) { sum += v.doubleValue(); count++; }
+        }
+        return count == 0 ? 0.0 : sum / count;
     }
 
     /** 레짐 전환 이력 조회 (최신순, 기본 100건) */

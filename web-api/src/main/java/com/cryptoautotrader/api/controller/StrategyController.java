@@ -202,7 +202,9 @@ public class StrategyController {
      */
     private boolean isCompositeStrategy(String name) {
         return switch (name) {
-            case "COMPOSITE", "COMPOSITE_MOMENTUM", "COMPOSITE_ETH", "MACD_STOCH_BB" -> true;
+            case "COMPOSITE", "COMPOSITE_MOMENTUM", "COMPOSITE_ETH", "COMPOSITE_BREAKOUT",
+                 "COMPOSITE_MOMENTUM_ICHIMOKU", "COMPOSITE_BREAKOUT_ICHIMOKU",
+                 "MACD_STOCH_BB" -> true;
             default -> false;
         };
     }
@@ -217,7 +219,8 @@ public class StrategyController {
             // Phase 3: 로직 구현 완료
             case "RSI", "MACD", "SUPERTREND", "ATR_BREAKOUT", "ORDERBOOK_IMBALANCE", "STOCHASTIC_RSI", "VOLUME_DELTA" -> true;
             // 코인별 복합 전략 프리셋 + 국면 적응형 복합 전략
-            case "COMPOSITE", "COMPOSITE_MOMENTUM", "COMPOSITE_ETH", "COMPOSITE_BREAKOUT" -> true;
+            case "COMPOSITE", "COMPOSITE_MOMENTUM", "COMPOSITE_ETH", "COMPOSITE_BREAKOUT",
+                 "COMPOSITE_MOMENTUM_ICHIMOKU", "COMPOSITE_BREAKOUT_ICHIMOKU" -> true;
             // 복합 추세 전략
             case "MACD_STOCH_BB" -> true;
             default -> false;
@@ -251,6 +254,16 @@ public class StrategyController {
                                           "BTC 비권장 (변동성 낮아 신호 희소), 소형 알트 비권장 (변동성 과다). " +
                                           "백테스트: ETH 평균 +70.3% MDD -12~-17%";
             case "MACD_STOCH_BB"       -> "MACD 추세 + StochRSI 타이밍 + 볼린저밴드 지지선 복합 추세 전략 (1시간봉 최적화)";
+            case "COMPOSITE_MOMENTUM_ICHIMOKU" ->
+                    "[모멘텀 혼합 + Ichimoku 필터] 기존 COMPOSITE_MOMENTUM(MACD×0.5 + VWAP×0.3 + GRID×0.2) 위에 " +
+                    "Ichimoku 구름(9/26/52) 필터 추가. " +
+                    "구름 아래 BUY·구름 위 SELL 억제 → EMA 방향 필터와 이중 추세 역행 차단. " +
+                    "BTC·ETH 등 대형 코인 최적화. 소형 알트 비권장.";
+            case "COMPOSITE_BREAKOUT_ICHIMOKU" ->
+                    "[변동성 돌파 추세 + Ichimoku 필터] 기존 COMPOSITE_BREAKOUT(ATR×0.4 + VD×0.3 + RSI×0.2 + EMA×0.1) 위에 " +
+                    "Ichimoku 구름(9/26/52) 필터 추가. " +
+                    "구름 아래 BUY·구름 위 SELL 억제 → ADX 횡보장·EMA 역행·Ichimoku 삼중 필터. " +
+                    "ETH·SOL·XRP·BNB 등 중대형 알트 최적화. BTC·소형 알트 비권장.";
             default -> "설명 없음";
         };
     }

@@ -8,6 +8,7 @@ import lombok.Getter;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,6 +33,10 @@ public class WalkForwardTestRunner {
         private final int windowIndex;
         private final PerformanceReport inSampleMetrics;
         private final PerformanceReport outSampleMetrics;
+        private final Instant inSampleStart;
+        private final Instant inSampleEnd;
+        private final Instant outSampleStart;
+        private final Instant outSampleEnd;
     }
 
     public WalkForwardResult run(BacktestConfig config, List<Candle> candles,
@@ -67,6 +72,10 @@ public class WalkForwardTestRunner {
                     .windowIndex(w)
                     .inSampleMetrics(inMetrics)
                     .outSampleMetrics(outMetrics)
+                    .inSampleStart(inSampleCandles.get(0).getTime())
+                    .inSampleEnd(inSampleCandles.get(inSampleCandles.size() - 1).getTime())
+                    .outSampleStart(outSampleCandles.get(0).getTime())
+                    .outSampleEnd(outSampleCandles.get(outSampleCandles.size() - 1).getTime())
                     .build());
 
             // In-Sample 대비 Out-of-Sample 수익률 하락률

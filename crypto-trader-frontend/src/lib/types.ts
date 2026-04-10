@@ -154,15 +154,33 @@ export interface WalkForwardRequest {
   config?: Record<string, number>;
 }
 
+export interface WalkForwardWindowMetrics {
+  totalReturn: number;
+  winRate: number;
+  maxDrawdown: number;
+  sharpeRatio: number;
+  totalTrades: number;
+  start: string;
+  end: string;
+}
+
 export interface WalkForwardWindow {
-  inSample: { start: string; end: string; returnPct: number };
-  outSample: { start: string; end: string; returnPct: number };
+  windowIndex: number;
+  inSample: WalkForwardWindowMetrics;
+  outSample: WalkForwardWindowMetrics;
 }
 
 export interface WalkForwardResult {
+  id?: number;
   windows: WalkForwardWindow[];
   overfittingScore: number;
   verdict: 'ACCEPTABLE' | 'CAUTION' | 'OVERFITTING';
+  strategyType?: string;
+  coinPair?: string;
+  timeframe?: string;
+  inSampleRatio?: number;
+  windowCount?: number;
+  createdAt?: string;
 }
 
 export interface PaperTradingBalance {
@@ -468,6 +486,36 @@ export interface RegimeChangeLog {
   toRegime: string;
   strategyChangesJson: string | null;
   detectedAt: string;
+}
+
+export interface SignalStatsBucket {
+  evaluated4h: number;
+  winRate4h: number;
+  avgReturn4h: number;
+  evaluated24h: number;
+  winRate24h: number;
+  avgReturn24h: number;
+}
+
+export interface SignalStatsOverall extends SignalStatsBucket {
+  totalSignals: number;
+}
+
+export interface SignalStatsByStrategy extends SignalStatsBucket {
+  strategyName: string;
+  coinPair: string;
+  totalSignals: number;
+}
+
+export interface SignalStatsByRegime extends SignalStatsBucket {
+  regime: string;
+  totalSignals: number;
+}
+
+export interface SignalStatsResponse {
+  overall: SignalStatsOverall;
+  byStrategy: SignalStatsByStrategy[];
+  byRegime: SignalStatsByRegime[];
 }
 
 export interface AccountSummary {

@@ -33,6 +33,7 @@ export function TradesTable({ trades }: TradesTableProps) {
                             <th className="px-5 py-3.5 whitespace-nowrap text-right">체결가(원)</th>
                             <th className="px-5 py-3.5 whitespace-nowrap text-right">수량</th>
                             <th className="px-5 py-3.5 whitespace-nowrap text-right">수익금(원)</th>
+                            <th className="px-5 py-3.5 whitespace-nowrap text-right">수익률</th>
                             <th className="px-5 py-3.5 whitespace-nowrap text-right">누적수익(원)</th>
                             <th className="px-5 py-3.5 whitespace-nowrap">신호 / 상태</th>
                         </tr>
@@ -41,7 +42,7 @@ export function TradesTable({ trades }: TradesTableProps) {
                         {trades.map((trade, i) => (
                             <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
                                 <td className="px-5 py-4 text-slate-600 dark:text-slate-300 font-medium">
-                                    {format(new Date(trade.executedAt), 'MM.dd HH:mm')}
+                                    {format(new Date(trade.executedAt), 'yyyy.MM.dd HH:mm')}
                                 </td>
                                 <td className="px-5 py-4">
                                     <span className={cn(
@@ -66,6 +67,17 @@ export function TradesTable({ trades }: TradesTableProps) {
                                     )}>
                                         {trade.pnl > 0 ? '+' : ''}{trade.pnl.toLocaleString()}
                                     </span>
+                                </td>
+                                <td className="px-5 py-4 text-right">
+                                    {trade.side === 'SELL' && trade.pnl !== 0 ? (() => {
+                                        const cost = trade.price * trade.quantity - trade.pnl;
+                                        const pct = cost !== 0 ? (trade.pnl / cost) * 100 : 0;
+                                        return (
+                                            <span className={cn("font-bold text-xs", pct > 0 ? "text-rose-600" : pct < 0 ? "text-blue-600" : "text-slate-400")}>
+                                                {pct > 0 ? '+' : ''}{pct.toFixed(2)}%
+                                            </span>
+                                        );
+                                    })() : <span className="text-slate-300 dark:text-slate-600">—</span>}
                                 </td>
                                 <td className="px-5 py-4 text-right font-semibold text-slate-900 dark:text-slate-100">
                                     {trade.cumulativePnl.toLocaleString()}

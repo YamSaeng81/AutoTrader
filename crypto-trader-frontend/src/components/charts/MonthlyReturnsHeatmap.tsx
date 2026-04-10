@@ -34,7 +34,7 @@ export function MonthlyReturnsHeatmap({ monthlyReturns }: MonthlyReturnsHeatmapP
     return (
         <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-5">
             <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-4 px-1">월별 수익률 히트맵</h3>
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2.5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
                 {entries.map(([month, val]) => (
                     <div
                         key={month}

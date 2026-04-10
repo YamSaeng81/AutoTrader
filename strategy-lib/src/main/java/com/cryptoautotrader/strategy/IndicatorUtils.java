@@ -247,6 +247,58 @@ public final class IndicatorUtils {
         return result;
     }
 
+    // ──────────────────────────────────────────────────────────────
+    // Ichimoku Kinko Hyo 지표
+    // ──────────────────────────────────────────────────────────────
+
+    /**
+     * Tenkan-sen (전환선): 최근 period개 캔들의 (최고가 + 최저가) / 2
+     * 기본값 9
+     */
+    public static BigDecimal ichimokuTenkan(List<Candle> candles, int period) {
+        return ichimokuMidpoint(candles, period);
+    }
+
+    /**
+     * Kijun-sen (기준선): 최근 period개 캔들의 (최고가 + 최저가) / 2
+     * 기본값 26
+     */
+    public static BigDecimal ichimokuKijun(List<Candle> candles, int period) {
+        return ichimokuMidpoint(candles, period);
+    }
+
+    /**
+     * Senkou Span A (선행스팬 A, 비변위): (tenkan + kijun) / 2
+     * 실제 Ichimoku는 26캔들 앞에 표시하지만 필터용으로는 현재 값을 사용
+     */
+    public static BigDecimal ichimokuSenkouA(BigDecimal tenkan, BigDecimal kijun) {
+        return tenkan.add(kijun).divide(BigDecimal.valueOf(2), SCALE, RoundingMode.HALF_UP);
+    }
+
+    /**
+     * Senkou Span B (선행스팬 B, 비변위): 최근 period개 캔들의 (최고가 + 최저가) / 2
+     * 기본값 52
+     */
+    public static BigDecimal ichimokuSenkouB(List<Candle> candles, int period) {
+        return ichimokuMidpoint(candles, period);
+    }
+
+    /** 최근 period개 캔들의 (최고가 + 최저가) / 2 */
+    private static BigDecimal ichimokuMidpoint(List<Candle> candles, int period) {
+        if (candles.size() < period) {
+            throw new IllegalArgumentException("Ichimoku 계산에 데이터 부족: " + candles.size() + " < " + period);
+        }
+        int start = candles.size() - period;
+        BigDecimal high = candles.get(start).getHigh();
+        BigDecimal low  = candles.get(start).getLow();
+        for (int i = start + 1; i < candles.size(); i++) {
+            Candle c = candles.get(i);
+            if (c.getHigh().compareTo(high) > 0) high = c.getHigh();
+            if (c.getLow().compareTo(low)   < 0) low  = c.getLow();
+        }
+        return high.add(low).divide(BigDecimal.valueOf(2), SCALE, RoundingMode.HALF_UP);
+    }
+
     public static BigDecimal adx(List<Candle> candles, int period) {
         if (candles.size() < period * 2 + 1) {
             throw new IllegalArgumentException("ADX 계산에 데이터 부족");

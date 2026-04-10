@@ -6,6 +6,7 @@ import type {
     WalkForwardRequest, WalkForwardResult,
     TradingStatus, Position, LiveOrder, ExchangeHealth, RiskConfig,
     LiveTradingSession, LiveTradingStartRequest, PerformanceSummary, WsStatusResponse,
+    SignalStatsResponse,
 } from './types';
 
 // 클라이언트 컴포넌트에서 사용: /api/proxy 경유 → 서버사이드에서 API_TOKEN 주입
@@ -30,6 +31,8 @@ export const backtestApi = {
         api.get<ApiResponse<PageResponse<TradeRecord>>>(`/api/v1/backtest/${id}/trades`, { params: { page } }).then(r => r.data),
     walkForward: (req: WalkForwardRequest) =>
         api.post<ApiResponse<WalkForwardResult>>('/api/v1/backtest/walk-forward', req, { timeout: 300000 }).then(r => r.data),
+    walkForwardHistory: () =>
+        api.get<ApiResponse<WalkForwardResult[]>>('/api/v1/backtest/walk-forward/history').then(r => r.data),
     delete: (id: string | number) =>
         api.delete<ApiResponse<null>>(`/api/v1/backtest/${id}`).then(r => r.data),
     bulkDelete: (ids: (string | number)[]) =>
@@ -85,6 +88,14 @@ export const logApi = {
                 size,
                 sessionType: sessionType === 'ALL' ? undefined : sessionType,
                 sessionId: sessionId ?? undefined,
+            }
+        }).then(r => r.data),
+
+    signalStats: (days = 30, sessionType = 'ALL') =>
+        api.get<ApiResponse<SignalStatsResponse>>('/api/v1/logs/signal-stats', {
+            params: {
+                days,
+                sessionType: sessionType === 'ALL' ? undefined : sessionType,
             }
         }).then(r => r.data),
 };

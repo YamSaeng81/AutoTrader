@@ -63,6 +63,10 @@ public class BacktestRunEntity {
     @Column(name = "wf_out_sample")
     private Instant wfOutSample;
 
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "wf_result_json", columnDefinition = "jsonb")
+    private Map<String, Object> wfResultJson;
+
     @Column(name = "created_at")
     private Instant createdAt;
 

@@ -161,20 +161,37 @@ public class BacktestService {
 
         WalkForwardTestRunner.WalkForwardResult wfResult = walkForwardRunner.run(config, candles, inSampleRatio, windowCount);
 
-        // DB 저장 (Walk Forward 결과)
-        BacktestRunEntity runEntity = saveRun(config, true);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("id", runEntity.getId());
-        response.put("windows", wfResult.getWindows().stream().map(w -> {
+        // 응답 구성 (날짜 포함)
+        List<Map<String, Object>> windowMaps = wfResult.getWindows().stream().map(w -> {
             Map<String, Object> windowMap = new HashMap<>();
             windowMap.put("windowIndex", w.getWindowIndex());
-            windowMap.put("inSample", metricsToMap(w.getInSampleMetrics()));
-            windowMap.put("outSample", metricsToMap(w.getOutSampleMetrics()));
+            Map<String, Object> inMap = metricsToMap(w.getInSampleMetrics());
+            inMap.put("start", w.getInSampleStart() != null ? w.getInSampleStart().toString() : null);
+            inMap.put("end",   w.getInSampleEnd()   != null ? w.getInSampleEnd().toString()   : null);
+            Map<String, Object> outMap = metricsToMap(w.getOutSampleMetrics());
+            outMap.put("start", w.getOutSampleStart() != null ? w.getOutSampleStart().toString() : null);
+            outMap.put("end",   w.getOutSampleEnd()   != null ? w.getOutSampleEnd().toString()   : null);
+            windowMap.put("inSample",  inMap);
+            windowMap.put("outSample", outMap);
             return windowMap;
-        }).toList());
+        }).toList();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("windows", windowMaps);
         response.put("overfittingScore", wfResult.getOverfittingScore());
         response.put("verdict", wfResult.getVerdict());
+        response.put("strategyType", strategyType);
+        response.put("coinPair", coinPair);
+        response.put("timeframe", timeframe);
+        response.put("inSampleRatio", inSampleRatio);
+        response.put("windowCount", windowCount);
+
+        // DB 저장 — 전체 결과 JSON 포함
+        BacktestRunEntity runEntity = saveRun(config, true);
+        runEntity.setWfResultJson(response);
+        backtestRunRepository.save(runEntity);
+        response.put("id", runEntity.getId());
+        response.put("createdAt", runEntity.getCreatedAt() != null ? runEntity.getCreatedAt().toString() : null);
 
         return response;
     }
@@ -205,6 +222,7 @@ public class BacktestService {
     @Transactional(readOnly = true)
     public List<Map<String, Object>> listBacktests() {
         return backtestRunRepository.findAllByOrderByCreatedAtDesc().stream()
+                .filter(run -> !Boolean.TRUE.equals(run.getIsWalkForward()))
                 .map(run -> {
                     Map<String, Object> map = new HashMap<>();
                     map.put("id", run.getId());
@@ -218,6 +236,31 @@ public class BacktestService {
                     map.put("createdAt", run.getCreatedAt());
                     backtestMetricsRepository.findByBacktestRunIdAndSegment(run.getId(), "FULL")
                             .ifPresent(m -> map.put("metrics", entityToMetricsMap(m)));
+                    return map;
+                })
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> listWalkForwardHistory() {
+        return backtestRunRepository.findAllByOrderByCreatedAtDesc().stream()
+                .filter(run -> Boolean.TRUE.equals(run.getIsWalkForward()))
+                .map(run -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("id", run.getId());
+                    map.put("strategyType", run.getStrategyName());
+                    map.put("coinPair", run.getCoinPair());
+                    map.put("timeframe", run.getTimeframe());
+                    map.put("startDate", run.getStartDate());
+                    map.put("endDate", run.getEndDate());
+                    map.put("createdAt", run.getCreatedAt());
+                    if (run.getWfResultJson() != null) {
+                        map.put("overfittingScore", run.getWfResultJson().get("overfittingScore"));
+                        map.put("verdict", run.getWfResultJson().get("verdict"));
+                        map.put("windowCount", run.getWfResultJson().get("windowCount"));
+                        map.put("inSampleRatio", run.getWfResultJson().get("inSampleRatio"));
+                        map.put("windows", run.getWfResultJson().get("windows"));
+                    }
                     return map;
                 })
                 .toList();
@@ -254,13 +297,16 @@ public class BacktestService {
         return backtestRunRepository.findByIdIn(ids).stream()
                 .map(run -> {
                     Map<String, Object> map = new HashMap<>();
-                    map.put("id", run.getId());
+                    map.put("id",           run.getId());
                     map.put("strategyType", run.getStrategyName());
-                    BacktestMetricsEntity metrics = backtestMetricsRepository
-                            .findByBacktestRunIdAndSegment(run.getId(), "FULL").orElse(null);
-                    if (metrics != null) {
-                        map.putAll(entityToMetricsMap(metrics));
-                    }
+                    map.put("coinPair",     run.getCoinPair());
+                    map.put("timeframe",    run.getTimeframe());
+                    map.put("startDate",    run.getStartDate());
+                    map.put("endDate",      run.getEndDate());
+                    map.put("status",       "COMPLETED");
+                    backtestMetricsRepository
+                            .findByBacktestRunIdAndSegment(run.getId(), "FULL")
+                            .ifPresent(m -> map.put("metrics", entityToMetricsMap(m)));
                     return map;
                 })
                 .toList();
@@ -759,7 +805,7 @@ public class BacktestService {
         map.put("totalTrades", report.getTotalTrades());
         map.put("maxConsecutiveLoss", report.getMaxConsecutiveLoss());
         map.put("monthlyReturns", report.getMonthlyReturns());
-        return map;
+        return map; // HashMap — caller may add more fields
     }
 
     private Map<String, Object> entityToMetricsMap(BacktestMetricsEntity m) {

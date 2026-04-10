@@ -23,7 +23,7 @@ export function BacktestForm() {
     const [loading, setLoading] = useState(false);
     const [strategies, setStrategies] = useState<StrategyInfo[]>([]);
     const [coins, setCoins] = useState<string[]>([]);
-    const [selectedStrategies, setSelectedStrategies] = useState<string[]>(['COMPOSITE']);
+    const [selectedStrategies, setSelectedStrategies] = useState<string[]>([]);
 
     const [form, setForm] = useState({
         coinPair: 'KRW-BTC',
@@ -39,20 +39,17 @@ export function BacktestForm() {
             systemApi.coins()
         ]).then(([stRes, cRes]) => {
             if (stRes.success && stRes.data) {
-                const available = stRes.data.filter(s => s.status === 'AVAILABLE' && s.name !== 'COMPOSITE');
+                // 활성화된 AVAILABLE 전략만 표시 (전략 관리에서 비활성화한 것 제외)
+                const available = stRes.data.filter(s => s.status === 'AVAILABLE' && s.isActive);
                 setStrategies(available);
             }
             if (cRes.success && cRes.data) setCoins(cRes.data);
         });
     }, []);
 
-    const strategyList = [
-        { name: 'COMPOSITE', label: 'COMPOSITE (시장 국면 자동 선택)' },
-        ...(strategies.length > 0
-            ? strategies.map(s => ({ name: s.name, label: s.name }))
-            : ALL_STRATEGIES.filter(s => s !== 'COMPOSITE').map(s => ({ name: s, label: STRATEGY_LABELS[s] ?? s }))
-        ),
-    ];
+    const strategyList = strategies.length > 0
+        ? strategies.map(s => ({ name: s.name, label: STRATEGY_LABELS[s.name] ?? s.name }))
+        : ALL_STRATEGIES.map(s => ({ name: s, label: STRATEGY_LABELS[s] ?? s }));
 
     const toggleStrategy = (name: string) => {
         setSelectedStrategies(prev =>
@@ -123,7 +120,7 @@ export function BacktestForm() {
                             <button type="button" onClick={() => setSelectedStrategies([])} className="text-slate-400 hover:text-slate-600 font-semibold">전체 해제</button>
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {strategyList.map(s => {
                             const checked = selectedStrategies.includes(s.name);
                             return (

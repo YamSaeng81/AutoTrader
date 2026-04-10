@@ -1,6 +1,7 @@
 package com.cryptoautotrader.api.config;
 
 import com.cryptoautotrader.core.selector.CompositeStrategy;
+import com.cryptoautotrader.core.selector.IchimokuFilteredStrategy;
 import com.cryptoautotrader.core.selector.RegimeAdaptiveStrategy;
 import com.cryptoautotrader.core.selector.WeightedStrategy;
 import com.cryptoautotrader.strategy.StrategyRegistry;
@@ -69,5 +70,30 @@ public class CompositePresetRegistrar {
                 new WeightedStrategy(new RsiStrategy(),          0.2),
                 new WeightedStrategy(new EmaCrossStrategy(),     0.1)
         ), true, true));
+
+        // ── Ichimoku 필터 추가 버전 (기존 전략 불변) ──────────────────────────────────
+        // COMPOSITE_MOMENTUM_ICHIMOKU: COMPOSITE_MOMENTUM + Ichimoku 구름 필터
+        // 기존 EMA 방향 필터 위에 Ichimoku(9/26/52) 를 추가 레이어로 적용.
+        // 구름 아래 BUY / 구름 위 SELL 억제 → 추세 역행 진입 추가 차단
+        // GRID는 stateful → 세션마다 신규 인스턴스
+        StrategyRegistry.registerStateful("COMPOSITE_MOMENTUM_ICHIMOKU", () ->
+                new IchimokuFilteredStrategy("COMPOSITE_MOMENTUM_ICHIMOKU",
+                        new CompositeStrategy("COMPOSITE_MOMENTUM_ICHIMOKU_BASE", List.of(
+                                new WeightedStrategy(new MacdStrategy(),  0.5),
+                                new WeightedStrategy(new VwapStrategy(),  0.3),
+                                new WeightedStrategy(new GridStrategy(),  0.2)
+                        ), true))  // EMA 방향 필터 유지
+        );
+
+        // COMPOSITE_BREAKOUT_ICHIMOKU: COMPOSITE_BREAKOUT + Ichimoku 구름 필터
+        // 기존 EMA·ADX 필터 위에 Ichimoku 추가 → 횡보장 및 추세 역행 이중 차단
+        // 모든 구성 전략이 stateless → 공유 인스턴스 재사용
+        StrategyRegistry.register(new IchimokuFilteredStrategy("COMPOSITE_BREAKOUT_ICHIMOKU",
+                new CompositeStrategy("COMPOSITE_BREAKOUT_ICHIMOKU_BASE", List.of(
+                        new WeightedStrategy(new AtrBreakoutStrategy(), 0.4),
+                        new WeightedStrategy(new VolumeDeltaStrategy(),  0.3),
+                        new WeightedStrategy(new RsiStrategy(),          0.2),
+                        new WeightedStrategy(new EmaCrossStrategy(),     0.1)
+                ), true, true)));  // EMA + ADX 필터 유지
     }
 }
