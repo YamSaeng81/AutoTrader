@@ -35,6 +35,12 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.cryptoautotrader.core.metrics.MetricsCalculator;
+import com.cryptoautotrader.core.metrics.PerformanceReport;
+import com.cryptoautotrader.core.model.OrderSide;
+import com.cryptoautotrader.core.model.TradeRecord;
+import com.cryptoautotrader.core.regime.MarketRegime;
+import com.cryptoautotrader.core.regime.MarketRegimeDetector;
 import com.cryptoautotrader.core.risk.RiskCheckResult;
 
 import com.cryptoautotrader.exchange.upbit.UpbitRestClient;
@@ -592,23 +598,35 @@ public class LiveTradingService {
         log.debug("세션 전략 신호 (sessionId={}): {} {} -> {} ({})",
                 sessionId, strategyType, coinPair, signal.getAction(), signal.getReason());
 
-        // 전략 로그 DB 저장
+        BigDecimal currentPrice = candles.get(candles.size() - 1).getClose();
+
+        // 시장 레짐 감지 (새 인스턴스 — 세션 간 상태 오염 방지)
+        MarketRegime currentRegime = null;
+        try {
+            currentRegime = new MarketRegimeDetector().detect(candles);
+        } catch (Exception e) {
+            log.warn("레짐 감지 실패 (sessionId={}): {}", sessionId, e.getMessage());
+        }
+        final String regimeName = currentRegime != null ? currentRegime.name() : null;
+
+        // 전략 로그 DB 저장 (신호 품질 + 레짐 포함)
+        StrategyLogEntity savedSignalLog = null;
         try {
             StrategyLogEntity logEntity = StrategyLogEntity.builder()
                     .strategyName(strategyType)
                     .coinPair(coinPair)
                     .signal(signal.getAction().name())
                     .reason(signal.getReason())
-                    .marketRegime(null)
+                    .marketRegime(regimeName)
                     .sessionType("LIVE")
                     .sessionId(sessionId)
+                    .signalPrice(currentPrice)
                     .build();
-            strategyLogRepository.save(logEntity);
+            savedSignalLog = strategyLogRepository.save(logEntity);
         } catch (Exception e) {
             log.warn("전략 로그 저장 실패: {}", e.getMessage());
         }
 
-        BigDecimal currentPrice = candles.get(candles.size() - 1).getClose();
         Optional<PositionEntity> openPos = positionRepository
                 .findBySessionIdAndCoinPairAndStatus(sessionId, coinPair, "OPEN");
 
@@ -662,6 +680,7 @@ public class LiveTradingService {
         }
 
         final StrategySignal finalSignal = signal;
+        final StrategyLogEntity signalLogRef = savedSignalLog;
         switch (signal.getAction()) {
             case BUY -> {
                 boolean hasClosingPos = positionRepository
@@ -670,18 +689,28 @@ public class LiveTradingService {
                     RiskCheckResult riskResult = riskManagementService.checkRisk();
                     if (!riskResult.isApproved()) {
                         log.warn("리스크 한도 초과로 매수 차단 (sessionId={}): {}", sessionId, riskResult.getReason());
+                        saveSignalQuality(signalLogRef, false, "리스크 한도: " + riskResult.getReason());
                         return;
                     }
                     executeSessionBuy(session, coinPair, currentPrice,
                             String.format("전략 신호: %s -- %s", strategyType, finalSignal.getReason()),
-                            finalSignal);
+                            finalSignal, regimeName);
+                    saveSignalQuality(signalLogRef, true, null);
+                } else {
+                    String reason = openPos.isPresent() ? "이미 포지션 보유 중" : "포지션 청산 진행 중";
+                    saveSignalQuality(signalLogRef, false, reason);
                 }
             }
             case SELL -> {
-                openPos.ifPresent(pos -> executeSessionSell(session, pos, currentPrice,
-                        String.format("전략 신호: %s -- %s", strategyType, finalSignal.getReason())));
+                if (openPos.isPresent()) {
+                    executeSessionSell(session, openPos.get(), currentPrice,
+                            String.format("전략 신호: %s -- %s", strategyType, finalSignal.getReason()));
+                    saveSignalQuality(signalLogRef, true, null);
+                } else {
+                    saveSignalQuality(signalLogRef, false, "청산할 포지션 없음");
+                }
             }
-            default -> { /* HOLD */ }
+            default -> { /* HOLD — 신호 품질 추적 불필요 */ }
         }
 
         // 미실현 손익 업데이트
@@ -690,7 +719,7 @@ public class LiveTradingService {
 
     private void executeSessionBuy(LiveTradingSessionEntity session,
                                     String coinPair, BigDecimal price, String reason,
-                                    StrategySignal signal) {
+                                    StrategySignal signal, String marketRegime) {
         // 사전 검증: 이미 이 세션에 활성 BUY 주문이 있으면 스킵 (orphan 포지션 방지)
         boolean hasPendingBuy = orderRepository.existsBySessionIdAndCoinPairAndSideAndStateIn(
                 session.getId(), coinPair, "BUY", ACTIVE_ORDER_STATES);
@@ -742,6 +771,7 @@ public class LiveTradingService {
                 .sessionId(session.getId())
                 .stopLossPrice(stopLossPrice)
                 .takeProfitPrice(takeProfitPrice)
+                .marketRegime(marketRegime)  // 진입 시점 시장 레짐
                 .build();
         pos = positionRepository.save(pos);
 
@@ -948,6 +978,8 @@ public class LiveTradingService {
 
         List<PerformanceSummaryResponse.SessionPerformance> sessionPerfs = new ArrayList<>();
 
+        List<PositionEntity> allClosedPositions = new ArrayList<>();
+
         for (LiveTradingSessionEntity session : sessions) {
             List<PositionEntity> positions = positionsBySession.getOrDefault(session.getId(), List.of());
             List<PositionEntity> closed = positions.stream().filter(p -> "CLOSED".equals(p.getStatus())).toList();
@@ -975,6 +1007,13 @@ public class LiveTradingService {
                     : new BigDecimal(wins).divide(new BigDecimal(closed.size()), 6, RoundingMode.HALF_UP)
                             .multiply(new BigDecimal("100")).setScale(1, RoundingMode.HALF_UP);
 
+            // 세션별 리스크 조정 지표 계산
+            List<TradeRecord> sessionTrades = toTradeRecords(closed);
+            PerformanceReport sessionReport = MetricsCalculator.calculate(sessionTrades, session.getInitialCapital());
+
+            // 세션 내 레짐별 성과 집계
+            Map<String, PerformanceSummaryResponse.RegimeStat> sessionRegime = buildRegimeBreakdown(closed);
+
             sessionPerfs.add(PerformanceSummaryResponse.SessionPerformance.builder()
                     .sessionId(session.getId())
                     .strategyType(session.getStrategyType())
@@ -993,6 +1032,15 @@ public class LiveTradingService {
                     .winRatePct(sessionWinRate)
                     .startedAt(session.getStartedAt() != null ? session.getStartedAt().toString() : null)
                     .stoppedAt(session.getStoppedAt() != null ? session.getStoppedAt().toString() : null)
+                    .mddPct(sessionReport.getMddPct())
+                    .sharpeRatio(sessionReport.getSharpeRatio())
+                    .sortinoRatio(sessionReport.getSortinoRatio())
+                    .winLossRatio(sessionReport.getWinLossRatio())
+                    .avgProfitPct(sessionReport.getAvgProfitPct())
+                    .avgLossPct(sessionReport.getAvgLossPct())
+                    .maxConsecutiveLoss(sessionReport.getMaxConsecutiveLoss())
+                    .monthlyReturns(sessionReport.getMonthlyReturns())
+                    .regimeBreakdown(sessionRegime)
                     .build());
 
             totalRealizedPnl = totalRealizedPnl.add(sessionRealized);
@@ -1001,6 +1049,7 @@ public class LiveTradingService {
             totalFeeAccum = totalFeeAccum.add(sessionFee);
             totalTrades += closed.size();
             totalWins += wins;
+            allClosedPositions.addAll(closed);
         }
 
         BigDecimal totalPnl = totalRealizedPnl.add(totalUnrealizedPnl);
@@ -1013,6 +1062,11 @@ public class LiveTradingService {
                         .multiply(new BigDecimal("100")).setScale(1, RoundingMode.HALF_UP)
                 : BigDecimal.ZERO;
 
+        // 전체 포트폴리오 리스크 조정 지표 + 레짐별 집계
+        List<TradeRecord> allTrades = toTradeRecords(allClosedPositions);
+        PerformanceReport globalReport = MetricsCalculator.calculate(allTrades, totalInitialCapital);
+        Map<String, PerformanceSummaryResponse.RegimeStat> globalRegime = buildRegimeBreakdown(allClosedPositions);
+
         return PerformanceSummaryResponse.builder()
                 .totalRealizedPnl(totalRealizedPnl)
                 .totalUnrealizedPnl(totalUnrealizedPnl)
@@ -1024,8 +1078,75 @@ public class LiveTradingService {
                 .winCount(totalWins)
                 .lossCount(totalTrades - totalWins)
                 .winRatePct(winRatePct)
+                .mddPct(globalReport.getMddPct())
+                .sharpeRatio(globalReport.getSharpeRatio())
+                .sortinoRatio(globalReport.getSortinoRatio())
+                .calmarRatio(globalReport.getCalmarRatio())
+                .winLossRatio(globalReport.getWinLossRatio())
+                .recoveryFactor(globalReport.getRecoveryFactor())
+                .avgProfitPct(globalReport.getAvgProfitPct())
+                .avgLossPct(globalReport.getAvgLossPct())
+                .maxConsecutiveLoss(globalReport.getMaxConsecutiveLoss())
+                .monthlyReturns(globalReport.getMonthlyReturns())
+                .regimeBreakdown(globalRegime)
                 .sessions(sessionPerfs)
                 .build();
+    }
+
+    /** 청산 완료 포지션을 레짐별로 집계 */
+    private Map<String, PerformanceSummaryResponse.RegimeStat> buildRegimeBreakdown(List<PositionEntity> closedPositions) {
+        Map<String, List<PositionEntity>> byRegime = closedPositions.stream()
+                .collect(Collectors.groupingBy(p ->
+                        p.getMarketRegime() != null ? p.getMarketRegime() : "UNKNOWN"));
+
+        Map<String, PerformanceSummaryResponse.RegimeStat> result = new java.util.LinkedHashMap<>();
+        for (Map.Entry<String, List<PositionEntity>> entry : byRegime.entrySet()) {
+            List<PositionEntity> positions = entry.getValue();
+            int trades = positions.size();
+            int wins = (int) positions.stream()
+                    .filter(p -> p.getRealizedPnl() != null && p.getRealizedPnl().compareTo(BigDecimal.ZERO) > 0)
+                    .count();
+            BigDecimal totalPnl = positions.stream()
+                    .map(p -> p.getRealizedPnl() != null ? p.getRealizedPnl() : BigDecimal.ZERO)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal winRate = trades > 0
+                    ? new BigDecimal(wins).divide(new BigDecimal(trades), 4, RoundingMode.HALF_UP)
+                            .multiply(new BigDecimal("100")).setScale(1, RoundingMode.HALF_UP)
+                    : BigDecimal.ZERO;
+            result.put(entry.getKey(), PerformanceSummaryResponse.RegimeStat.builder()
+                    .trades(trades).wins(wins).winRatePct(winRate).totalPnl(totalPnl).build());
+        }
+        return result;
+    }
+
+    /** 신호 품질 로그 실행 결과 업데이트 (null-safe) */
+    private void saveSignalQuality(StrategyLogEntity logEntity, boolean wasExecuted, String blockedReason) {
+        if (logEntity == null) return;
+        try {
+            logEntity.setWasExecuted(wasExecuted);
+            logEntity.setBlockedReason(blockedReason);
+            strategyLogRepository.save(logEntity);
+        } catch (Exception e) {
+            log.warn("신호 품질 로그 업데이트 실패: {}", e.getMessage());
+        }
+    }
+
+    /** 청산 완료 포지션을 MetricsCalculator용 TradeRecord로 변환 */
+    private List<TradeRecord> toTradeRecords(List<PositionEntity> closedPositions) {
+        return closedPositions.stream()
+                .filter(p -> p.getClosedAt() != null && p.getRealizedPnl() != null)
+                .sorted(java.util.Comparator.comparing(PositionEntity::getClosedAt))
+                .map(p -> TradeRecord.builder()
+                        .side(OrderSide.SELL)
+                        .price(p.getAvgPrice() != null ? p.getAvgPrice() : BigDecimal.ZERO)
+                        .quantity(BigDecimal.ZERO)
+                        .fee(p.getPositionFee() != null ? p.getPositionFee() : BigDecimal.ZERO)
+                        .slippage(BigDecimal.ZERO)
+                        .pnl(p.getRealizedPnl())
+                        .cumulativePnl(BigDecimal.ZERO)
+                        .executedAt(p.getClosedAt())
+                        .build())
+                .toList();
     }
 
     // -- 서버 시작 복구 --------------------------------------------------

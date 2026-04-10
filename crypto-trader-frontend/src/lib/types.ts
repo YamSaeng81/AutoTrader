@@ -398,6 +398,24 @@ export interface SessionPerformance {
   winRatePct: number;
   startedAt: string | null;
   stoppedAt: string | null;
+  // 리스크 조정 지표
+  mddPct: number | null;
+  sharpeRatio: number | null;
+  sortinoRatio: number | null;
+  winLossRatio: number | null;
+  avgProfitPct: number | null;
+  avgLossPct: number | null;
+  maxConsecutiveLoss: number | null;
+  monthlyReturns: Record<string, number> | null;
+  // 세션 내 레짐별 성과
+  regimeBreakdown: Record<string, RegimeStat> | null;
+}
+
+export interface RegimeStat {
+  trades: number;
+  wins: number;
+  winRatePct: number;
+  totalPnl: number;
 }
 
 export interface PerformanceSummary {
@@ -411,6 +429,19 @@ export interface PerformanceSummary {
   winCount: number;
   lossCount: number;
   winRatePct: number;
+  // 리스크 조정 지표
+  mddPct: number | null;
+  sharpeRatio: number | null;
+  sortinoRatio: number | null;
+  calmarRatio: number | null;
+  winLossRatio: number | null;
+  recoveryFactor: number | null;
+  avgProfitPct: number | null;
+  avgLossPct: number | null;
+  maxConsecutiveLoss: number | null;
+  monthlyReturns: Record<string, number> | null;
+  // 레짐별 성과
+  regimeBreakdown: Record<string, RegimeStat> | null;
   sessions: SessionPerformance[];
 }
 
@@ -427,6 +458,16 @@ export interface SystemMetrics {
   diskUsedGb: number;
   diskTotalGb: number;
   diskUsagePct: number;
+}
+
+export interface RegimeChangeLog {
+  id: number;
+  coinPair: string;
+  timeframe: string;
+  fromRegime: string | null;
+  toRegime: string;
+  strategyChangesJson: string | null;
+  detectedAt: string;
 }
 
 export interface AccountSummary {

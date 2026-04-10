@@ -77,6 +77,10 @@ public class PositionEntity {
     @Column(name = "take_profit_price", precision = 20, scale = 8)
     private BigDecimal takeProfitPrice;
 
+    /** 진입 시점 시장 레짐 (TREND / RANGE / VOLATILITY / TRANSITIONAL) */
+    @Column(name = "market_regime", length = 20)
+    private String marketRegime;
+
     @PrePersist
     void prePersist() {
         if (status == null) status = "OPEN";

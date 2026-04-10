@@ -191,35 +191,67 @@ export default function LogsPage() {
                                                 <table className="w-full text-left text-xs text-slate-600 dark:text-slate-300">
                                                     <thead className="text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-slate-700 uppercase tracking-wide">
                                                         <tr>
-                                                            <th className="px-6 py-2">시간</th>
-                                                            <th className="px-6 py-2">전략</th>
-                                                            <th className="px-6 py-2">신호</th>
-                                                            <th className="px-6 py-2">마켓 상태</th>
-                                                            <th className="px-6 py-2">판단 이유</th>
+                                                            <th className="px-4 py-2">시간</th>
+                                                            <th className="px-4 py-2">전략</th>
+                                                            <th className="px-4 py-2">신호</th>
+                                                            <th className="px-4 py-2">실행</th>
+                                                            <th className="px-4 py-2 text-right">신호가</th>
+                                                            <th className="px-4 py-2 text-right">4h 성과</th>
+                                                            <th className="px-4 py-2 text-right">24h 성과</th>
+                                                            <th className="px-4 py-2">판단 이유 / 차단 사유</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
-                                                        {group.logs.map((log: any) => (
+                                                        {group.logs.map((log: any) => {
+                                                            const isBuySell = log.signal === 'BUY' || log.signal === 'SELL';
+                                                            const ret4h: number | null = log.return4hPct ?? null;
+                                                            const ret24h: number | null = log.return24hPct ?? null;
+                                                            const retClass = (v: number | null) =>
+                                                                v == null ? 'text-slate-400' : v > 0 ? 'text-emerald-500' : v < 0 ? 'text-rose-500' : 'text-slate-400';
+                                                            return (
                                                             <tr key={log.id} className="hover:bg-slate-100/50 dark:hover:bg-slate-700/30 transition-colors">
-                                                                <td className="px-6 py-2.5 whitespace-nowrap text-slate-400">
+                                                                <td className="px-4 py-2.5 whitespace-nowrap text-slate-400 text-xs">
                                                                     {log.createdAt ? new Date(log.createdAt).toLocaleString('ko-KR') : '-'}
                                                                 </td>
-                                                                <td className="px-6 py-2.5 font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                                                                <td className="px-4 py-2.5 font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap text-xs">
                                                                     {log.strategyName ?? '-'}
                                                                 </td>
-                                                                <td className="px-6 py-2.5">
-                                                                    <span className={cn('px-2 py-0.5 rounded-full font-bold', SIGNAL_STYLE[log.signal] ?? 'bg-slate-100 text-slate-500')}>
+                                                                <td className="px-4 py-2.5">
+                                                                    <span className={cn('px-2 py-0.5 rounded-full font-bold text-xs', SIGNAL_STYLE[log.signal] ?? 'bg-slate-100 text-slate-500')}>
                                                                         {log.signal || '-'}
                                                                     </span>
                                                                 </td>
-                                                                <td className="px-6 py-2.5 text-slate-500 dark:text-slate-400">
-                                                                    {log.marketRegime || '-'}
+                                                                <td className="px-4 py-2.5 text-xs">
+                                                                    {!isBuySell ? (
+                                                                        <span className="text-slate-400">-</span>
+                                                                    ) : log.wasExecuted ? (
+                                                                        <span className="text-emerald-500 font-medium">실행</span>
+                                                                    ) : (
+                                                                        <span className="text-rose-400" title={log.blockedReason ?? ''}>
+                                                                            차단{log.blockedReason ? ' ⓘ' : ''}
+                                                                        </span>
+                                                                    )}
                                                                 </td>
-                                                                <td className="px-6 py-2.5 text-slate-500 dark:text-slate-400 max-w-sm truncate" title={log.reason}>
-                                                                    {log.reason ?? '-'}
+                                                                <td className="px-4 py-2.5 text-right text-xs text-slate-400 whitespace-nowrap">
+                                                                    {log.signalPrice != null
+                                                                        ? Number(log.signalPrice).toLocaleString('ko-KR', { maximumFractionDigits: 0 })
+                                                                        : '-'}
+                                                                </td>
+                                                                <td className={cn('px-4 py-2.5 text-right text-xs font-medium whitespace-nowrap', retClass(ret4h))}>
+                                                                    {ret4h != null ? `${ret4h > 0 ? '+' : ''}${ret4h.toFixed(2)}%` : '-'}
+                                                                </td>
+                                                                <td className={cn('px-4 py-2.5 text-right text-xs font-medium whitespace-nowrap', retClass(ret24h))}>
+                                                                    {ret24h != null ? `${ret24h > 0 ? '+' : ''}${ret24h.toFixed(2)}%` : '-'}
+                                                                </td>
+                                                                <td className="px-4 py-2.5 text-slate-500 dark:text-slate-400 text-xs max-w-xs truncate"
+                                                                    title={log.blockedReason || log.reason}>
+                                                                    {log.blockedReason
+                                                                        ? <span className="text-rose-400">{log.blockedReason}</span>
+                                                                        : log.reason ?? '-'}
                                                                 </td>
                                                             </tr>
-                                                        ))}
+                                                            );
+                                                        })}
                                                     </tbody>
                                                 </table>
                                             </div>

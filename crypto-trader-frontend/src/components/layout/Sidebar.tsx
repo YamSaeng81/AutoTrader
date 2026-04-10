@@ -9,6 +9,7 @@ import {
     Moon, Sun, FlaskConical, ChevronLeft, ChevronRight,
     Wallet, Settings, ChevronDown, ChevronUp,
     BarChart2, MessageSquare, Activity, Trash2, Terminal, LogOut, PieChart,
+    Bot, Newspaper, BookOpen, MessagesSquare,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from './ThemeProvider';
@@ -69,6 +70,16 @@ const navGroups: NavGroup[] = [
             { href: '/trading/risk',    label: '리스크 설정',   icon: Shield },
             { href: '/account',         label: '계좌 현황',     icon: Wallet },
             { href: '/performance',     label: '손익 대시보드', icon: PieChart },
+        ],
+    },
+    {
+        label: 'AI 분석',
+        icon: Bot,
+        items: [
+            { href: '/admin/llm-config',    label: 'LLM 설정',       icon: Bot },
+            { href: '/admin/news-sources',  label: '뉴스 소스',      icon: Newspaper },
+            { href: '/admin/reports',       label: 'Notion 보고서',  icon: BookOpen },
+            { href: '/admin/discord',       label: 'Discord 설정',   icon: MessagesSquare },
         ],
     },
     {

@@ -53,6 +53,10 @@ public interface PositionRepository extends JpaRepository<PositionEntity, Long> 
     @Query("SELECT p FROM PositionEntity p WHERE p.sessionId IN :sessionIds")
     List<PositionEntity> findBySessionIdIn(@Param("sessionIds") List<Long> sessionIds);
 
+    /** 분석 구간 청산 포지션 조회 (LogAnalyzerService용 — DB에서 기간 필터) */
+    @Query("SELECT p FROM PositionEntity p WHERE p.status = 'CLOSED' AND p.closedAt >= :from AND p.closedAt <= :to ORDER BY p.closedAt DESC")
+    List<PositionEntity> findClosedByPeriod(@Param("from") java.time.Instant from, @Param("to") java.time.Instant to);
+
     /**
      * 원자적 포지션 CLOSE — status='OPEN'인 경우에만 CLOSED로 변경.
      * 반환값 1: 이 트랜잭션이 성공적으로 닫음 → KRW 복원 진행.

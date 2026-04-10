@@ -34,6 +34,9 @@ telegram:
   chat-id: ${TELEGRAM_CHAT_ID:855008981}
   enabled: ${TELEGRAM_ENABLED:true}
 
+discord:
+  bot-token: ${DISCORD_BOT_TOKEN:}
+
 upbit:
   access-key: ${UPBIT_ACCESS_KEY:}
   secret-key: ${UPBIT_SECRET_KEY:}

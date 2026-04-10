@@ -177,6 +177,68 @@ export const accountApi = {
         api.get<ApiResponse<import('./types').AccountSummary>>('/api/v1/account/summary').then(r => r.data),
 };
 
+export const logsApi = {
+    regimeHistory: (size = 100) =>
+        api.get<ApiResponse<import('./types').RegimeChangeLog[]>>(`/api/v1/logs/regime-history?size=${size}`).then(r => r.data),
+};
+
+// ── Admin API ────────────────────────────────────────────────────────────────
+
+export const adminLlmApi = {
+    getProviders: () =>
+        api.get<ApiResponse<Record<string, unknown>[]>>('/api/v1/admin/llm/providers').then(r => r.data),
+    updateProvider: (providerName: string, body: Record<string, unknown>) =>
+        api.put<ApiResponse<string>>(`/api/v1/admin/llm/providers/${providerName}`, body).then(r => r.data),
+    getTasks: () =>
+        api.get<ApiResponse<Record<string, unknown>[]>>('/api/v1/admin/llm/tasks').then(r => r.data),
+    updateTask: (taskName: string, body: Record<string, unknown>) =>
+        api.put<ApiResponse<string>>(`/api/v1/admin/llm/tasks/${taskName}`, body).then(r => r.data),
+    testProvider: (providerName: string, prompt: string) =>
+        api.post<ApiResponse<Record<string, unknown>>>('/api/v1/admin/llm/test/provider', { providerName, prompt }).then(r => r.data),
+    testTask: (task: string, systemPrompt: string, userPrompt: string) =>
+        api.post<ApiResponse<Record<string, unknown>>>('/api/v1/admin/llm/test/task', { task, systemPrompt, userPrompt }).then(r => r.data),
+};
+
+export const adminNewsApi = {
+    getSources: () =>
+        api.get<ApiResponse<Record<string, unknown>[]>>('/api/v1/admin/news-sources').then(r => r.data),
+    createSource: (body: Record<string, unknown>) =>
+        api.post<ApiResponse<string>>('/api/v1/admin/news-sources', body).then(r => r.data),
+    updateSource: (sourceId: string, body: Record<string, unknown>) =>
+        api.put<ApiResponse<string>>(`/api/v1/admin/news-sources/${sourceId}`, body).then(r => r.data),
+    deleteSource: (sourceId: string) =>
+        api.delete<ApiResponse<string>>(`/api/v1/admin/news-sources/${sourceId}`).then(r => r.data),
+    fetchNow: (sourceId: string) =>
+        api.post<ApiResponse<Record<string, unknown>>>(`/api/v1/admin/news-sources/${sourceId}/fetch`).then(r => r.data),
+    getCache: (params?: { size?: number; category?: string }) =>
+        api.get<ApiResponse<Record<string, unknown>[]>>('/api/v1/admin/news-sources/cache', { params }).then(r => r.data),
+};
+
+export const adminReportApi = {
+    getConfig: () =>
+        api.get<ApiResponse<Record<string, unknown>[]>>('/api/v1/admin/reports/config').then(r => r.data),
+    updateConfig: (updates: Record<string, string>) =>
+        api.put<ApiResponse<string>>('/api/v1/admin/reports/config', updates).then(r => r.data),
+    trigger: (hours = 12) =>
+        api.post<ApiResponse<Record<string, unknown>>>('/api/v1/admin/reports/trigger', { hours }).then(r => r.data),
+    getHistory: (size = 20) =>
+        api.get<ApiResponse<Record<string, unknown>[]>>(`/api/v1/admin/reports/history?size=${size}`).then(r => r.data),
+};
+
+export const adminDiscordApi = {
+    getChannels: () =>
+        api.get<ApiResponse<Record<string, unknown>[]>>('/api/v1/admin/discord/channels').then(r => r.data),
+    updateChannel: (channelType: string, body: Record<string, unknown>) =>
+        api.put<ApiResponse<string>>(`/api/v1/admin/discord/channels/${channelType}`, body).then(r => r.data),
+    testChannel: (channelType: string) =>
+        api.post<ApiResponse<Record<string, unknown>>>(`/api/v1/admin/discord/test/${channelType}`).then(r => r.data),
+    sendBriefing: (channels?: string[]) =>
+        api.post<ApiResponse<string>>('/api/v1/admin/discord/briefing',
+            channels ? { channels } : undefined).then(r => r.data),
+    getLogs: (size = 50) =>
+        api.get<ApiResponse<Record<string, unknown>[]>>(`/api/v1/admin/discord/logs?size=${size}`).then(r => r.data),
+};
+
 export const settingsApi = {
     systemMetrics: () =>
         api.get<ApiResponse<import('./types').SystemMetrics>>('/api/v1/settings/system-metrics').then(r => r.data),

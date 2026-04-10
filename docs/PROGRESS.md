@@ -3,7 +3,7 @@
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝나면 `## 다음 할 일`에서 해당 항목을 삭제하고, 완료 내용은 [`docs/CHANGELOG.md`](CHANGELOG.md)에 추가한다.
 > **변경 이력**: [`docs/CHANGELOG.md`](CHANGELOG.md)
-> **마지막 갱신**: 2026-04-08 (COMPOSITE_ETH_VD 전략 개선 + CompositeStrategy ADX 필터 추가)
+> **마지막 갱신**: 2026-04-10 (AI 파이프라인 버그 수정 + 리팩토링)
 
 ---
 
@@ -119,6 +119,94 @@ crypto-auto-trader/
 - `PositionRepository.closeIfOpen()`: `@Modifying(clearAutomatically=true, flushAutomatically=true)` 추가 — JPA L1 캐시 오염 방지 (운영 안정성 개선)
 - `PositionRepository.closeIfOpen()`: `@Modifying` import 누락 수정
 - `schema-h2.sql`: V28(`executed_funds`), V29(`invested_krw`) 컬럼 추가 — H2 테스트 스키마가 운영 스키마와 동기화됨
+
+---
+
+### ✅ 완료 — 운영 분석 강화 (2026-04-09)
+
+- [x] **실전매매 리스크 지표 실시간 적용** — MetricsCalculator(Sharpe·MDD·Sortino·Calmar 등)를 실전매매 성과 API에 연동. `/api/v1/trading/performance` 응답에 리스크 조정 지표 포함
+- [x] **신호 품질 로깅** — `strategy_log`에 신호 발생가·실행 여부·차단 사유 기록. 30분 스케줄러로 4h/24h 사후 수익률 자동 평가
+- [x] **레짐별 성과 분리** — `position.market_regime` 필드 추가, 포지션 진입 시점 레짐 태깅. 성과 API에서 TREND/RANGE/VOLATILITY별 승률·손익 집계
+- [x] **레짐 전환 이력 로깅** — `regime_change_log` 테이블(V33) + `RegimeChangeLogEntity/Repository` 생성. `MarketRegimeAwareScheduler`에서 레짐 변화 감지 시 자동 기록 + 전략 활성화 변경 내역 JSON 저장. `GET /api/v1/logs/regime-history` 엔드포인트 추가. 성과 페이지에 타임라인 UI 추가
+
+---
+
+### ✅ 완료 — AI 보고서 · 뉴스 파이프라인 (2026-04-09)
+
+> 노션 일일보고서 + 디스코드 모닝 브리핑 구현. LLM/뉴스 소스 모두 추상화 레이어 기반 설계.
+
+#### Phase 1 — LLM 추상화 레이어 ✅ 완료
+
+- [x] `LlmProvider` 인터페이스 + `LlmRequest/Response` 모델
+- [x] `OpenAiProvider` 구현 (GPT-4o-mini 기본)
+- [x] `OllamaProvider` 구현 (로컬 LLM, base_url 설정, /api/tags ping 확인)
+- [x] `ClaudeProvider` 구현 (claude-haiku-4-5-20251001, Anthropic Messages API)
+- [x] `MockProvider` (개발/테스트용, 항상 더미 응답)
+- [x] `LlmProviderRegistry` — Spring 자동 수집, provider_name으로 조회
+- [x] `llm_provider_config` 테이블 (V34) + `LlmProviderConfigEntity/Repository`
+- [x] `llm_task_config` 테이블 (V34) + `LlmTaskConfigEntity/Repository`
+- [x] `LlmTaskRouter` — task별 provider 라우팅, DB 설정 런타임 반영
+- [x] 관리 API: `GET/PUT /api/v1/admin/llm/providers`, `GET/PUT /api/v1/admin/llm/tasks`
+- [x] 연결 테스트 API: `POST /api/v1/admin/llm/test/provider`, `POST /api/v1/admin/llm/test/task`
+- [x] H2 테스트 스키마 동기화
+
+#### Phase 2 — 뉴스 소스 프레임워크 ✅ 완료
+
+- [x] `NewsSource` 인터페이스 + `NewsItem` 모델
+- [x] `news_source_config` / `news_item_cache` 테이블 (V35) + 엔티티/레포지토리
+- [x] `NewsSourceRegistry` — Spring 자동 수집, source_type으로 조회
+- [x] `NewsAggregatorService` — 15분 스케줄러, 주기별 수집, 중복 방지
+- [x] 내장 소스: `CryptoPanicSource` (API), `RssNewsSource` (RSS 범용, XXE 방지), `CoinGeckoTrendingSource` (API 키 불필요)
+- [x] 관리 API: `GET/POST/PUT/DELETE /api/v1/admin/news-sources`, `POST /{sourceId}/fetch` (수동 테스트), `GET /cache`
+- [x] H2 테스트 스키마 동기화
+- [ ] 프론트엔드: `/admin/news-sources` 관리 페이지 (Phase 5에서)
+
+#### Phase 3 — Notion 보고서 파이프라인 ✅ 완료
+
+- [x] `AnalysisReport` — 집계 결과 모델 (신호통계·포지션·레짐·전략별·차단사유)
+- [x] `LogAnalyzerService` — 12h 로그·포지션·레짐 집계, 4h/24h 적중률 계산
+- [x] `NotionApiClient` — Notion REST API 래퍼 + 블록 빌더 (heading/paragraph/table/callout/divider)
+- [x] `ReportComposer` — LLM(LOG_SUMMARY) 요약 → LLM(SIGNAL_ANALYSIS) 분석 → Notion 페이지 생성
+- [x] `AnalysisReportScheduler` — cron 0시/12시(KST) 트리거
+- [x] `notion_report_config` / `notion_report_log` 테이블 (V36) + 엔티티/레포지토리
+- [x] 관리 API: `GET/PUT /api/v1/admin/reports/config`, `POST /trigger`, `GET /history`
+- [x] H2 테스트 스키마 동기화
+
+#### Phase 4 — Discord 모닝 브리핑 ✅ 완료
+
+- [x] `DiscordWebhookClient` — 채널별 Webhook URL, Embed 빌더 헬퍼, 다중 embed 전송
+- [x] `discord_channel_config` / `discord_send_log` 테이블 (V37) + 엔티티/레포지토리
+- [x] 채널 구성: TRADING_REPORT / CRYPTO_NEWS / ECONOMY_NEWS / ALERT (4채널)
+- [x] `MorningBriefingComposer` — 채널별 메시지 빌드 + LLM(NEWS_SUMMARY/REPORT_NARRATION) 요약
+- [x] `MorningBriefingScheduler` — cron 07:00(KST) 트리거
+- [x] 관리 API: `GET/PUT /api/v1/admin/discord/channels`, `POST /test/{channelType}`, `POST /briefing`, `GET /logs`
+- [x] H2 테스트 스키마 동기화
+
+#### Phase 5 — 관리 UI ✅ 완료
+
+- [x] `/admin/llm-config` — 프로바이더 카드(상태·설정·연결 테스트) + 작업별 라우팅 테이블
+- [x] `/admin/news-sources` — 소스 CRUD + 수동 fetch 테스트 + 뉴스 캐시 뷰어
+- [x] `/admin/reports` — Notion 연동 설정 + 수동 트리거 + 보고서 이력(LLM 내용 미리보기)
+- [x] `/admin/discord` — 채널별 Webhook 설정 + 테스트 전송 + 모닝 브리핑 즉시 전송 + 전송 로그
+
+---
+
+### ✅ 완료 — AI 파이프라인 버그 수정 + 리팩토링 (2026-04-10)
+
+**버그 수정**
+- [x] `MorningBriefingComposer` 뉴스 카테고리 대소문자 불일치 (`"CRYPTO"` → `"crypto"`, `"ECONOMY"` → `"economy"`) — DB 저장 값과 불일치로 항상 빈 결과 반환하던 문제 수정
+- [x] `adminNewsApi.getCache()` 프론트엔드 호출 파라미터 형식 불일치 — 위치 인수 → 객체 파라미터로 수정
+- [x] `news_item_cache` 7일 이상 자동 삭제 스케줄러 추가 (`NewsAggregatorService.cleanupOldCache()`, 매일 새벽 3시 KST)
+- [x] `ReportComposer` 외부 HTTP 호출 중 트랜잭션 점유 문제 — `compose()` `@Transactional` 제거, `saveInitial()`/`saveFinal()` `REQUIRES_NEW`로 분리
+- [x] Discord embed 글자수 초과 방지 — `DiscordWebhookClient.truncate()` 적용 (description 4096자, field 1024자)
+
+**리팩토링**
+- [x] `LogAnalyzerService` — 5000건 메모리 로드 후 필터링 → DB 기간 필터 쿼리 (`findByPeriod`, `findClosedByPeriod`) 로 개선. `analyze()` 분리: `buildSignalStats()` / `buildPositionStats()` / `buildRegimeStats()` + `pct()` 유틸
+- [x] `ReportComposer.buildBlocks()` — 93줄 단일 메서드 → 섹션별 메서드 7개로 분리. 상태 문자열 상수화
+- [x] `MorningBriefingComposer` — CRYPTO_NEWS·ECONOMY_NEWS 중복 코드 → `sendNewsChannel()` 공통화. `truncate()` 로컬 복사본 제거 → `DiscordWebhookClient.truncate()` 재사용
+- [x] `DiscordWebhookClient` — `STATUS_SUCCESS/FAILED/PENDING` 상수 추가. `truncate()` public static 으로 변경
+- [x] `NewsAggregatorService.isDue()` — Epoch 초 직접 계산 → `ChronoUnit.MINUTES.between()` 으로 단순화
+- [x] `AiPipelineTest` — NotionApiClient 블록 메서드 mock 누락 수정 (55개 테스트 전체 통과)
 
 ---
 

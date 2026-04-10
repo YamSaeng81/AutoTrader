@@ -42,14 +42,23 @@ async function proxyRequest(request: NextRequest, pathSegments: string[]): Promi
 
     const isLongTimeout = LONG_TIMEOUT_PATHS.some(p => backendPath.startsWith(p));
 
-    const backendResponse = await fetch(targetUrl, {
-        method,
-        headers,
-        body,
-        // @ts-expect-error — Node.js fetch duplex/dispatcher 옵션
-        duplex: 'half',
-        dispatcher: isLongTimeout ? longTimeoutAgent : undefined,
-    });
+    let backendResponse: Response;
+    try {
+        backendResponse = await fetch(targetUrl, {
+            method,
+            headers,
+            body,
+            // @ts-expect-error — Node.js fetch duplex/dispatcher 옵션
+            duplex: 'half',
+            dispatcher: isLongTimeout ? longTimeoutAgent : undefined,
+        });
+    } catch (err: any) {
+        const isConnRefused = err?.cause?.code === 'ECONNREFUSED' || err?.message?.includes('ECONNREFUSED');
+        return NextResponse.json(
+            { success: false, errorCode: 'BACKEND_UNAVAILABLE', message: '백엔드 서버에 연결할 수 없습니다. 서버가 실행 중인지 확인하세요.' },
+            { status: 503 }
+        );
+    }
 
     const responseHeaders = new Headers(backendResponse.headers);
     // 압축 인코딩은 Next.js가 자동 처리하므로 제거

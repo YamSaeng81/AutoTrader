@@ -1,8 +1,10 @@
 package com.cryptoautotrader.api.service;
 
 import com.cryptoautotrader.api.entity.CandleDataEntity;
+import com.cryptoautotrader.api.entity.RegimeChangeLogEntity;
 import com.cryptoautotrader.api.entity.StrategyConfigEntity;
 import com.cryptoautotrader.api.repository.CandleDataRepository;
+import com.cryptoautotrader.api.repository.RegimeChangeLogRepository;
 import com.cryptoautotrader.api.repository.StrategyConfigRepository;
 import com.cryptoautotrader.core.regime.MarketRegime;
 import com.cryptoautotrader.core.regime.MarketRegimeDetector;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -26,6 +29,7 @@ import java.util.List;
  *   <li>DB에서 {@code manual_override = false} 인 전략 설정 목록을 조회한다.</li>
  *   <li>{@link MarketRegimeFilter} 매핑 테이블을 참조해 각 전략을 활성/비활성 처리한다.</li>
  *   <li>변경이 발생한 전략은 로그에 기록한다.</li>
+ *   <li>레짐 전환이 발생하면 {@code regime_change_log} 테이블에 이력을 저장한다.</li>
  * </ol>
  *
  * <p>수동 오버라이드:
@@ -51,13 +55,16 @@ public class MarketRegimeAwareScheduler {
     private final StrategyConfigRepository strategyConfigRepo;
     private final CandleDataRepository candleDataRepo;
     private final MarketRegimeDetector regimeDetector;
+    private final RegimeChangeLogRepository regimeChangeLogRepo;
 
     public MarketRegimeAwareScheduler(StrategyConfigRepository strategyConfigRepo,
                                       CandleDataRepository candleDataRepo,
-                                      MarketRegimeDetector regimeDetector) {
-        this.strategyConfigRepo = strategyConfigRepo;
-        this.candleDataRepo     = candleDataRepo;
-        this.regimeDetector     = regimeDetector;
+                                      MarketRegimeDetector regimeDetector,
+                                      RegimeChangeLogRepository regimeChangeLogRepo) {
+        this.strategyConfigRepo  = strategyConfigRepo;
+        this.candleDataRepo      = candleDataRepo;
+        this.regimeDetector      = regimeDetector;
+        this.regimeChangeLogRepo = regimeChangeLogRepo;
     }
 
     /**
@@ -83,11 +90,14 @@ public class MarketRegimeAwareScheduler {
         List<StrategyConfigEntity> targets = strategyConfigRepo.findAllByManualOverrideFalse();
         if (targets.isEmpty()) {
             log.debug("[RegimeScheduler] 자동 조정 대상 전략 없음");
+            // 전략이 없어도 레짐 전환은 기록한다
+            recordTransitionIfChanged(regime, List.of());
             return;
         }
 
         int activated   = 0;
         int deactivated = 0;
+        List<String> changeDescriptions = new ArrayList<>();
 
         for (StrategyConfigEntity config : targets) {
             String  strategyType   = config.getStrategyType();
@@ -97,16 +107,16 @@ public class MarketRegimeAwareScheduler {
             boolean unsuitable = MarketRegimeFilter.isUnsuitable(regime, strategyType);
 
             if (unsuitable && currentlyActive) {
-                // 비적합 상태 → 비활성화
                 config.setIsActive(Boolean.FALSE);
                 deactivated++;
+                changeDescriptions.add("DEACTIVATED:" + strategyType);
                 log.info("[RegimeScheduler] 전략 비활성화: id={} type={} reason=시장상태={}에_부적합",
                         config.getId(), strategyType, regime);
 
             } else if (suitable && !currentlyActive) {
-                // 적합 상태 + 현재 비활성 → 활성화
                 config.setIsActive(Boolean.TRUE);
                 activated++;
+                changeDescriptions.add("ACTIVATED:" + strategyType);
                 log.info("[RegimeScheduler] 전략 활성화: id={} type={} reason=시장상태={}에_적합",
                         config.getId(), strategyType, regime);
 
@@ -121,6 +131,47 @@ public class MarketRegimeAwareScheduler {
 
         log.info("[RegimeScheduler] 자동 스위칭 완료 — 활성화: {}개, 비활성화: {}개, 시장상태: {}",
                 activated, deactivated, regime);
+
+        // 레짐 전환 이력 기록
+        recordTransitionIfChanged(regime, changeDescriptions);
+    }
+
+    /**
+     * 이전 레짐과 비교해 전환이 발생한 경우에만 {@code regime_change_log}에 기록한다.
+     * 최초 감지(이전 기록 없음)도 초기 상태로 저장한다.
+     */
+    private void recordTransitionIfChanged(MarketRegime currentRegime, List<String> strategyChanges) {
+        String currentRegimeName = currentRegime.name();
+
+        String previousRegimeName = regimeChangeLogRepo
+                .findLatestOne(REGIME_COIN_PAIR, REGIME_TIMEFRAME)
+                .map(RegimeChangeLogEntity::getToRegime)
+                .orElse(null);
+
+        // 이전과 동일한 레짐이면 기록하지 않음
+        if (currentRegimeName.equals(previousRegimeName)) {
+            log.debug("[RegimeScheduler] 레짐 변화 없음 ({}), 이력 기록 생략", currentRegimeName);
+            return;
+        }
+
+        String changesJson = strategyChanges.isEmpty()
+                ? "[]"
+                : "[\"" + String.join("\",\"", strategyChanges) + "\"]";
+
+        RegimeChangeLogEntity changeLog = RegimeChangeLogEntity.builder()
+                .coinPair(REGIME_COIN_PAIR)
+                .timeframe(REGIME_TIMEFRAME)
+                .fromRegime(previousRegimeName)
+                .toRegime(currentRegimeName)
+                .strategyChangesJson(changesJson)
+                .detectedAt(Instant.now())
+                .build();
+
+        regimeChangeLogRepo.save(changeLog);
+
+        log.info("[RegimeScheduler] 레짐 전환 이력 저장: {} → {} (전략변경: {}건)",
+                previousRegimeName == null ? "INITIAL" : previousRegimeName,
+                currentRegimeName, strategyChanges.size());
     }
 
     /**

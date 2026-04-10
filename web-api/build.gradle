@@ -22,6 +22,9 @@ dependencies {
 
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
 
+    // Discord Bot (JDA)
+    implementation 'net.dv8tion:JDA:5.2.1'
+
     // 모니터링: Spring Actuator + Micrometer Prometheus
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'io.micrometer:micrometer-registry-prometheus'
