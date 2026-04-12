@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { strategyApi, backtestApi, systemApi } from '@/lib/api';
 import { StrategyInfo, Timeframe, WalkForwardResult } from '@/lib/types';
-import { Play, Loader2, AlertTriangle, CheckCircle, History } from 'lucide-react';
+import { Play, Loader2, AlertTriangle, CheckCircle, History, Trash2, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import {
@@ -12,6 +12,16 @@ import {
 
 const today = new Date().toISOString().slice(0, 10);
 const threeYearsAgo = `${new Date().getFullYear() - 3}-01-01`;
+
+type WFSortKey = 'createdAt' | 'overfittingScore';
+type SortDir = 'asc' | 'desc';
+
+function SortIcon({ col, sortKey, sortDir }: { col: WFSortKey; sortKey: WFSortKey; sortDir: SortDir }) {
+    if (col !== sortKey) return <ChevronsUpDown className="w-3 h-3 opacity-30 inline ml-0.5" />;
+    return sortDir === 'asc'
+        ? <ChevronUp className="w-3 h-3 inline ml-0.5" />
+        : <ChevronDown className="w-3 h-3 inline ml-0.5" />;
+}
 
 const VERDICT_CONFIG = {
     ACCEPTABLE: { label: '통과', color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/30 border-emerald-200 dark:border-emerald-700', icon: CheckCircle },
@@ -28,6 +38,36 @@ export default function WalkForwardPage() {
     const [result, setResult] = useState<WalkForwardResult | null>(null);
     const [history, setHistory] = useState<WalkForwardResult[]>([]);
     const [selectedHistory, setSelectedHistory] = useState<WalkForwardResult | null>(null);
+    const [deletingId, setDeletingId] = useState<number | null>(null);
+    const [filterStrategy, setFilterStrategy] = useState('');
+    const [filterCoin, setFilterCoin] = useState('');
+    const [filterVerdict, setFilterVerdict] = useState('');
+    const [sortKey, setSortKey] = useState<WFSortKey>('createdAt');
+    const [sortDir, setSortDir] = useState<SortDir>('desc');
+
+    const historyStrategies = useMemo(() => [...new Set(history.map(h => h.strategyType ?? ''))].filter(Boolean).sort(), [history]);
+    const historyCoins = useMemo(() => [...new Set(history.map(h => h.coinPair ?? ''))].filter(Boolean).sort(), [history]);
+
+    const filteredHistory = useMemo(() => {
+        let list = history;
+        if (filterStrategy) list = list.filter(h => h.strategyType === filterStrategy);
+        if (filterCoin) list = list.filter(h => h.coinPair === filterCoin);
+        if (filterVerdict) list = list.filter(h => h.verdict === filterVerdict);
+        return [...list].sort((a, b) => {
+            const av = sortKey === 'createdAt'
+                ? new Date(a.createdAt ?? 0).getTime()
+                : Number(a.overfittingScore ?? 0);
+            const bv = sortKey === 'createdAt'
+                ? new Date(b.createdAt ?? 0).getTime()
+                : Number(b.overfittingScore ?? 0);
+            return sortDir === 'asc' ? av - bv : bv - av;
+        });
+    }, [history, filterStrategy, filterCoin, filterVerdict, sortKey, sortDir]);
+
+    function toggleSort(key: WFSortKey) {
+        if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+        else { setSortKey(key); setSortDir('desc'); }
+    }
 
     const [form, setForm] = useState({
         strategyType: 'EMA_CROSS',
@@ -58,6 +98,20 @@ export default function WalkForwardPage() {
                 .finally(() => setHistoryLoading(false));
         }
     }, [tab]);
+
+    const handleDelete = async (id: number) => {
+        if (!confirm('이 이력을 삭제하시겠습니까?')) return;
+        setDeletingId(id);
+        try {
+            await backtestApi.delete(id);
+            setHistory(prev => prev.filter(h => h.id !== id));
+            if (selectedHistory?.id === id) setSelectedHistory(null);
+        } catch {
+            alert('삭제에 실패했습니다.');
+        } finally {
+            setDeletingId(null);
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -123,6 +177,47 @@ export default function WalkForwardPage() {
                     ) : history.length === 0 ? (
                         <div className="p-10 text-center text-slate-400 dark:text-slate-500 text-sm">이력이 없습니다.</div>
                     ) : (
+                        <>
+                        {/* 필터 바 */}
+                        <div className="px-5 py-3 border-b border-slate-100 dark:border-slate-800 flex flex-wrap items-center gap-3 bg-slate-50/30 dark:bg-slate-800/30">
+                            <select
+                                value={filterStrategy}
+                                onChange={e => setFilterStrategy(e.target.value)}
+                                className="px-3 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                            >
+                                <option value="">전체 전략</option>
+                                {historyStrategies.map(s => <option key={s} value={s}>{s}</option>)}
+                            </select>
+                            <select
+                                value={filterCoin}
+                                onChange={e => setFilterCoin(e.target.value)}
+                                className="px-3 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                            >
+                                <option value="">전체 코인</option>
+                                {historyCoins.map(c => <option key={c} value={c}>{c}</option>)}
+                            </select>
+                            <select
+                                value={filterVerdict}
+                                onChange={e => setFilterVerdict(e.target.value)}
+                                className="px-3 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                            >
+                                <option value="">전체 판정</option>
+                                <option value="ACCEPTABLE">통과</option>
+                                <option value="CAUTION">주의</option>
+                                <option value="OVERFITTING">과적합</option>
+                            </select>
+                            {(filterStrategy || filterCoin || filterVerdict) && (
+                                <button
+                                    onClick={() => { setFilterStrategy(''); setFilterCoin(''); setFilterVerdict(''); }}
+                                    className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                                >
+                                    초기화
+                                </button>
+                            )}
+                            <span className="ml-auto text-xs text-slate-400 dark:text-slate-500">
+                                {filteredHistory.length} / {history.length}건
+                            </span>
+                        </div>
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm">
                                 <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
@@ -130,14 +225,20 @@ export default function WalkForwardPage() {
                                         <th className="px-5 py-3 text-left">전략</th>
                                         <th className="px-5 py-3 text-left">코인</th>
                                         <th className="px-5 py-3 text-left">타임프레임</th>
-                                        <th className="px-5 py-3 text-right">과적합 점수</th>
+                                        <th className="px-5 py-3 text-right cursor-pointer select-none hover:text-slate-700 dark:hover:text-slate-200" onClick={() => toggleSort('overfittingScore')}>
+                                            과적합 점수 <SortIcon col="overfittingScore" sortKey={sortKey} sortDir={sortDir} />
+                                        </th>
                                         <th className="px-5 py-3 text-left">판정</th>
-                                        <th className="px-5 py-3 text-left">실행일</th>
+                                        <th className="px-5 py-3 text-left cursor-pointer select-none hover:text-slate-700 dark:hover:text-slate-200" onClick={() => toggleSort('createdAt')}>
+                                            실행일 <SortIcon col="createdAt" sortKey={sortKey} sortDir={sortDir} />
+                                        </th>
                                         <th className="px-5 py-3"></th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                    {history.map((h, i) => {
+                                    {filteredHistory.length === 0 ? (
+                                        <tr><td colSpan={7} className="px-5 py-10 text-center text-slate-400 dark:text-slate-500 text-sm">필터 조건에 맞는 이력이 없습니다.</td></tr>
+                                    ) : filteredHistory.map((h, i) => {
                                         const cfg = VERDICT_CONFIG[h.verdict];
                                         const Icon = cfg.icon;
                                         return (
@@ -157,10 +258,21 @@ export default function WalkForwardPage() {
                                                     {h.createdAt ? format(new Date(h.createdAt), 'yyyy.MM.dd HH:mm') : '-'}
                                                 </td>
                                                 <td className="px-5 py-3">
-                                                    <button onClick={() => { setSelectedHistory(h); setTab('run'); }}
-                                                        className="text-xs text-indigo-500 hover:text-indigo-700 font-semibold">
-                                                        상세보기
-                                                    </button>
+                                                    <div className="flex items-center gap-3">
+                                                        <button onClick={() => { setSelectedHistory(h); setTab('run'); }}
+                                                            className="text-xs text-indigo-500 hover:text-indigo-700 font-semibold">
+                                                            상세보기
+                                                        </button>
+                                                        <button
+                                                            onClick={() => h.id && handleDelete(h.id)}
+                                                            disabled={deletingId === h.id}
+                                                            className="text-slate-400 hover:text-rose-500 transition-colors disabled:opacity-40"
+                                                        >
+                                                            {deletingId === h.id
+                                                                ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                                : <Trash2 className="w-3.5 h-3.5" />}
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         );
@@ -168,6 +280,7 @@ export default function WalkForwardPage() {
                                 </tbody>
                             </table>
                         </div>
+                        </>
                     )}
                 </div>
             )}

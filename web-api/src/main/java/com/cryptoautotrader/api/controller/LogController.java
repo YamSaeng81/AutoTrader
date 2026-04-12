@@ -5,6 +5,7 @@ import com.cryptoautotrader.api.entity.RegimeChangeLogEntity;
 import com.cryptoautotrader.api.entity.StrategyLogEntity;
 import com.cryptoautotrader.api.repository.RegimeChangeLogRepository;
 import com.cryptoautotrader.api.repository.StrategyLogRepository;
+import com.cryptoautotrader.api.service.StrategyWeightOptimizer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -24,6 +26,7 @@ public class LogController {
 
     private final StrategyLogRepository strategyLogRepo;
     private final RegimeChangeLogRepository regimeChangeLogRepo;
+    private final StrategyWeightOptimizer strategyWeightOptimizer;
 
     @GetMapping("/strategy")
     public ApiResponse<Map<String, Object>> getStrategyLogs(
@@ -93,9 +96,11 @@ public class LogController {
                 : strategyLogRepo.findEvaluatedSignals(from);
 
         return ApiResponse.ok(Map.of(
-                "overall",    buildOverallStats(signals),
-                "byStrategy", buildByStrategy(signals),
-                "byRegime",   buildByRegime(signals)
+                "overall",           buildOverallStats(signals),
+                "byStrategy",        buildByStrategy(signals),
+                "byRegime",          buildByRegime(signals),
+                "blockedVsExecuted", buildBlockedVsExecuted(signals),
+                "byHour",            buildByHour(signals)
         ));
     }
 
@@ -168,6 +173,120 @@ public class LogController {
                 .collect(Collectors.toList());
     }
 
+    // ── 시간대별 신호 품질 ────────────────────────────────────────────────────
+
+    /**
+     * 신호 발생 시각(KST 기준 시간)별 적중률·평균수익을 집계한다.
+     * 데이터가 없는 시간대(hour)도 빈 슬롯으로 반환해 프론트 히트맵이 24칸을 채울 수 있게 한다.
+     */
+    private List<Map<String, Object>> buildByHour(List<StrategyLogEntity> signals) {
+        ZoneId kst = ZoneId.of("Asia/Seoul");
+
+        Map<Integer, List<StrategyLogEntity>> grouped = signals.stream()
+                .filter(l -> l.getCreatedAt() != null)
+                .collect(Collectors.groupingBy(
+                        l -> l.getCreatedAt().atZone(kst).getHour()
+                ));
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (int hour = 0; hour < 24; hour++) {
+            List<StrategyLogEntity> group  = grouped.getOrDefault(hour, List.of());
+            List<StrategyLogEntity> eval4h  = group.stream().filter(l -> l.getReturn4hPct()  != null).toList();
+            List<StrategyLogEntity> eval24h = group.stream().filter(l -> l.getReturn24hPct() != null).toList();
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("hour",         hour);
+            m.put("totalSignals", group.size());
+            m.put("evaluated4h",  eval4h.size());
+            m.put("winRate4h",    winRate(eval4h,  true));
+            m.put("avgReturn4h",  avgReturn(eval4h, true));
+            m.put("evaluated24h", eval24h.size());
+            m.put("winRate24h",   winRate(eval24h,  false));
+            m.put("avgReturn24h", avgReturn(eval24h, false));
+            result.add(m);
+        }
+        return result;
+    }
+
+    // ── 차단 신호 사후 성과 ────────────────────────────────────────────────────
+
+    /**
+     * 실행 신호 vs 차단 신호의 사후 적중률을 비교한다.
+     * 차단 신호도 SignalQualityService가 4h/24h 가격을 채우므로 동일 기준으로 평가 가능하다.
+     */
+    private Map<String, Object> buildBlockedVsExecuted(List<StrategyLogEntity> signals) {
+        List<StrategyLogEntity> executed = signals.stream()
+                .filter(StrategyLogEntity::isWasExecuted).toList();
+        List<StrategyLogEntity> blocked  = signals.stream()
+                .filter(l -> !l.isWasExecuted() && l.getBlockedReason() != null).toList();
+
+        // 차단 사유별 집계 (콜론 앞 키만 사용 — "리스크 한도 초과: ..." → "리스크 한도 초과")
+        Map<String, List<StrategyLogEntity>> byReason = blocked.stream()
+                .collect(Collectors.groupingBy(
+                        l -> l.getBlockedReason().split(":")[0].trim()
+                ));
+
+        double execWinRate4h = winRate(
+                executed.stream().filter(l -> l.getReturn4hPct() != null).toList(), true);
+
+        List<Map<String, Object>> byReasonList = byReason.entrySet().stream()
+                .map(e -> {
+                    List<StrategyLogEntity> group  = e.getValue();
+                    List<StrategyLogEntity> eval4h  = group.stream().filter(l -> l.getReturn4hPct()  != null).toList();
+                    List<StrategyLogEntity> eval24h = group.stream().filter(l -> l.getReturn24hPct() != null).toList();
+                    double wr4h  = winRate(eval4h,  true);
+                    double avg4h = avgReturn(eval4h, true);
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("reason",       e.getKey());
+                    m.put("totalBlocked", group.size());
+                    m.put("evaluated4h",  eval4h.size());
+                    m.put("winRate4h",    wr4h);
+                    m.put("avgReturn4h",  avg4h);
+                    m.put("evaluated24h", eval24h.size());
+                    m.put("winRate24h",   winRate(eval24h,  false));
+                    m.put("avgReturn24h", avgReturn(eval24h, false));
+                    m.put("verdict",      calcVerdict(wr4h, avg4h, eval4h.size(), execWinRate4h));
+                    return m;
+                })
+                .sorted(Comparator.comparingInt((Map<String, Object> m) -> (int) m.get("totalBlocked")).reversed())
+                .collect(Collectors.toList());
+
+        return Map.of(
+                "executed",      buildSignalBucket(executed),
+                "blocked",       buildSignalBucket(blocked),
+                "byBlockReason", byReasonList
+        );
+    }
+
+    private Map<String, Object> buildSignalBucket(List<StrategyLogEntity> signals) {
+        List<StrategyLogEntity> eval4h  = signals.stream().filter(l -> l.getReturn4hPct()  != null).toList();
+        List<StrategyLogEntity> eval24h = signals.stream().filter(l -> l.getReturn24hPct() != null).toList();
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("totalSignals",  signals.size());
+        m.put("evaluated4h",   eval4h.size());
+        m.put("winRate4h",     winRate(eval4h,  true));
+        m.put("avgReturn4h",   avgReturn(eval4h, true));
+        m.put("evaluated24h",  eval24h.size());
+        m.put("winRate24h",    winRate(eval24h,  false));
+        m.put("avgReturn24h",  avgReturn(eval24h, false));
+        return m;
+    }
+
+    /**
+     * 차단 사유별 필터 효과 판정.
+     * <ul>
+     *   <li>FILTER_HURTING  — 차단 신호 적중률이 실행 신호보다 높음 → 좋은 신호를 막고 있을 가능성</li>
+     *   <li>FILTER_HELPING  — 차단 신호 적중률이 낮음 → 나쁜 신호를 제대로 막고 있음</li>
+     *   <li>NEUTRAL         — 차이가 미미하거나 판단 불가</li>
+     *   <li>INSUFFICIENT    — 샘플 부족 (5건 미만)</li>
+     * </ul>
+     */
+    private String calcVerdict(double blockedWr4h, double blockedAvg4h, int sampleSize, double execWr4h) {
+        if (sampleSize < 5)              return "INSUFFICIENT";
+        if (blockedWr4h > execWr4h + 0.05 && blockedAvg4h > 0.10) return "FILTER_HURTING";
+        if (blockedWr4h < 0.40 || blockedAvg4h < 0)               return "FILTER_HELPING";
+        return "NEUTRAL";
+    }
+
     /** return > 0 이면 적중 */
     private double winRate(List<StrategyLogEntity> list, boolean use4h) {
         if (list.isEmpty()) return 0.0;
@@ -209,5 +328,23 @@ public class LogController {
             return m;
         }).toList();
         return ApiResponse.ok(content);
+    }
+
+    /**
+     * 현재 적용 중인 전략 가중치 조회.
+     * WeightOverrideStore에 오버라이드가 없으면 기본값을 표시한다.
+     */
+    @GetMapping("/strategy-weights")
+    public ApiResponse<Map<String, Object>> getStrategyWeights() {
+        return ApiResponse.ok(strategyWeightOptimizer.getCurrentWeights());
+    }
+
+    /**
+     * 가중치 즉시 재최적화 (수동 트리거).
+     */
+    @PostMapping("/strategy-weights/optimize")
+    public ApiResponse<Map<String, Object>> triggerOptimize() {
+        strategyWeightOptimizer.optimize();
+        return ApiResponse.ok(strategyWeightOptimizer.getCurrentWeights());
     }
 }

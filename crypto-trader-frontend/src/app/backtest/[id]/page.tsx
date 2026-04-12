@@ -77,9 +77,10 @@ export default function BacktestDetailPage({ params }: { params: Promise<{ id: s
 
             {/* Metrics Row */}
             {result.metrics ? (
-                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-4">
                     <MetricsCard title="총 수익률" value={`${result.metrics.totalReturn > 0 ? '+' : ''}${result.metrics.totalReturn.toFixed(2)}%`} trend={result.metrics.totalReturn > 0 ? 'up' : 'down'} icon={<TrendingUp className="w-4 h-4" />} />
-                    <MetricsCard title="승률" value={`${result.metrics.winRate.toFixed(1)}%`} subtitle={`총 ${result.metrics.totalTrades}회 거래`} />
+                    <MetricsCard title="총 매매횟수" value={`${result.metrics.totalTrades}회`} subtitle={`실제 거래: ${trades.length}건`} />
+                    <MetricsCard title="승률" value={`${result.metrics.winRate.toFixed(1)}%`} subtitle={`승 ${Math.round(result.metrics.totalTrades * result.metrics.winRate / 100)}회 / 패 ${result.metrics.totalTrades - Math.round(result.metrics.totalTrades * result.metrics.winRate / 100)}회`} />
                     <MetricsCard title="MDD" value={`${result.metrics.maxDrawdown.toFixed(2)}%`} trend="down" subtitle={`최대연속손실 ${result.metrics.maxConsecutiveLoss}회`} />
                     <MetricsCard title="Sharpe Ratio" value={result.metrics.sharpeRatio.toFixed(2)} />
                     <MetricsCard title="Sortino Ratio" value={result.metrics.sortinoRatio.toFixed(2)} />

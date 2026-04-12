@@ -1,6 +1,7 @@
 package com.cryptoautotrader.api.service;
 
 import com.cryptoautotrader.api.dto.BacktestRequest;
+import com.cryptoautotrader.api.dto.BatchBacktestRequest;
 import com.cryptoautotrader.api.dto.BulkBacktestRequest;
 import com.cryptoautotrader.api.dto.MultiStrategyBacktestRequest;
 import com.cryptoautotrader.api.entity.BacktestJobEntity;
@@ -251,6 +252,72 @@ public class BacktestJobService {
             jobRepository.save(job);
             telegramService.notifyBacktestFailed(jobId, req.getCoins().size() + "개 코인",
                     "전략 10종 벌크",
+                    fmt(req.getStartDate()), fmt(req.getEndDate()), req.getTimeframe(), e);
+        }
+    }
+
+    // ── 배치 백테스트 (코인 N × 전략 M) ─────────────────────────────────────────────
+
+    /**
+     * 선택 코인 × 선택 전략 배치 백테스트 작업을 제출한다.
+     */
+    public Long submitBatchJob(BatchBacktestRequest req) {
+        int total = req.getCoinPairs().size() * req.getStrategyTypes().size();
+        String coinLabel = req.getCoinPairs().size() + "개 코인";
+        String stratLabel = req.getStrategyTypes().size() + "개 전략";
+        BacktestJobEntity job = BacktestJobEntity.builder()
+                .jobType("BATCH")
+                .status("PENDING")
+                .coinPair(coinLabel)
+                .strategyName(stratLabel)
+                .timeframe(req.getTimeframe())
+                .requestJson(toJson(req))
+                .totalChunks(total)
+                .build();
+        job = jobRepository.save(job);
+        Long jobId = job.getId();
+        log.info("배치 백테스트 Job 제출: jobId={}, 코인 {}개 × 전략 {}개 = {}개 조합",
+                jobId, req.getCoinPairs().size(), req.getStrategyTypes().size(), total);
+        self.executeBatchAsync(jobId, req);
+        return jobId;
+    }
+
+    @Async("backtestExecutor")
+    public void executeBatchAsync(Long jobId, BatchBacktestRequest req) {
+        BacktestJobEntity job = jobRepository.findById(jobId).orElseThrow();
+        try {
+            job.setStatus("RUNNING");
+            jobRepository.save(job);
+
+            List<Map<String, Object>> results = backtestService.runBatchBacktest(
+                    req.getCoinPairs(), req.getStrategyTypes(), req.getTimeframe(),
+                    req.getStartDate(), req.getEndDate(),
+                    req.getInitialCapital(), req.getSlippagePct(), req.getFeePct()
+            );
+
+            long failCount = results.stream().filter(r -> r.containsKey("error")).count();
+            job.setStatus(failCount == results.size() ? "FAILED" : "COMPLETED");
+            job.setCompletedChunks(results.size());
+            if (failCount > 0 && failCount < results.size()) {
+                job.setErrorMessage(failCount + "개 조합 실패 (나머지 완료)");
+            }
+            jobRepository.save(job);
+            log.info("배치 백테스트 완료: jobId={}, 총 {}개 중 실패 {}개", jobId, results.size(), failCount);
+
+            String coinLabel = req.getCoinPairs().size() + "개 코인";
+            Map<String, Object> summary = buildMultiStrategySummary(results, coinLabel);
+            telegramService.notifyBacktestCompleted(jobId, coinLabel,
+                    req.getStrategyTypes().size() + "개 전략 × " + coinLabel,
+                    fmt(req.getStartDate()), fmt(req.getEndDate()), req.getTimeframe(), summary);
+
+        } catch (Exception e) {
+            log.error("배치 백테스트 실패: jobId={}, error={}", jobId, e.getMessage(), e);
+            job.setStatus("FAILED");
+            job.setErrorMessage(truncate(e.getMessage(), 1000));
+            jobRepository.save(job);
+            telegramService.notifyBacktestFailed(jobId,
+                    req.getCoinPairs().size() + "개 코인",
+                    req.getStrategyTypes().size() + "개 전략 배치",
                     fmt(req.getStartDate()), fmt(req.getEndDate()), req.getTimeframe(), e);
         }
     }

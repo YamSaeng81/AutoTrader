@@ -2,6 +2,7 @@ package com.cryptoautotrader.api.controller;
 
 import com.cryptoautotrader.api.dto.ApiResponse;
 import com.cryptoautotrader.api.dto.BacktestRequest;
+import com.cryptoautotrader.api.dto.BatchBacktestRequest;
 import com.cryptoautotrader.api.dto.BulkBacktestRequest;
 import com.cryptoautotrader.api.dto.BulkDeleteRequest;
 import com.cryptoautotrader.api.dto.MacdGridSearchRequest;
@@ -67,7 +68,7 @@ public class BacktestController {
     public ApiResponse<Page<BacktestTradeEntity>> getTrades(
             @PathVariable Long id,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "50") int size) {
+            @RequestParam(defaultValue = "10000") int size) {
         return ApiResponse.ok(backtestTradeRepository.findByBacktestRunIdOrderByExecutedAtAsc(id, PageRequest.of(page, size)));
     }
 
@@ -213,6 +214,22 @@ public class BacktestController {
         Long jobId = backtestJobService.submitBulkJob(req);
         return ApiResponse.ok(Map.of("jobId", jobId,
                 "message", "벌크 백테스트가 백그라운드에서 시작되었습니다. 완료 시 텔레그램으로 알림이 전송됩니다."));
+    }
+
+    /**
+     * 배치 백테스트 비동기 실행 (선택 코인 N × 선택 전략 M)
+     * POST /api/v1/backtest/batch-async
+     * Body: { "coinPairs": ["KRW-BTC","KRW-ETH"], "strategyTypes": ["RSI","EMA_CROSS"], ... }
+     * 응답: { "jobId": 45, "total": 4 }
+     */
+    @PostMapping("/batch-async")
+    public ApiResponse<Map<String, Object>> runBatchAsync(@Valid @RequestBody BatchBacktestRequest req) {
+        Long jobId = backtestJobService.submitBatchJob(req);
+        int total = req.getCoinPairs().size() * req.getStrategyTypes().size();
+        return ApiResponse.ok(Map.of(
+                "jobId", jobId,
+                "total", total,
+                "message", total + "개 조합 배치 백테스트가 백그라운드에서 시작되었습니다. 완료 시 텔레그램으로 알림이 전송됩니다."));
     }
 
     /**

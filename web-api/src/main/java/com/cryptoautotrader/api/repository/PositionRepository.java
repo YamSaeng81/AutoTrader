@@ -57,6 +57,10 @@ public interface PositionRepository extends JpaRepository<PositionEntity, Long> 
     @Query("SELECT p FROM PositionEntity p WHERE p.status = 'CLOSED' AND p.closedAt >= :from AND p.closedAt <= :to ORDER BY p.closedAt DESC")
     List<PositionEntity> findClosedByPeriod(@Param("from") java.time.Instant from, @Param("to") java.time.Instant to);
 
+    /** 최근 청산 포지션 조회 (closedAt 역순) — 연속 손실 계산용 */
+    @Query("SELECT p FROM PositionEntity p WHERE p.status = 'CLOSED' ORDER BY p.closedAt DESC")
+    List<PositionEntity> findRecentClosed(org.springframework.data.domain.Pageable pageable);
+
     /**
      * 원자적 포지션 CLOSE — status='OPEN'인 경우에만 CLOSED로 변경.
      * 반환값 1: 이 트랜잭션이 성공적으로 닫음 → KRW 복원 진행.

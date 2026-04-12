@@ -1,11 +1,15 @@
 package com.cryptoautotrader.api.llm;
 
+import com.cryptoautotrader.api.entity.LlmCallLogEntity;
 import com.cryptoautotrader.api.entity.LlmTaskConfigEntity;
+import com.cryptoautotrader.api.repository.LlmCallLogRepository;
 import com.cryptoautotrader.api.repository.LlmTaskConfigRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+
+import java.time.Instant;
 
 /**
  * LLM 작업 라우터.
@@ -26,6 +30,7 @@ public class LlmTaskRouter {
 
     private final LlmTaskConfigRepository taskConfigRepo;
     private final LlmProviderRegistry providerRegistry;
+    private final LlmCallLogRepository callLogRepo;
 
     /**
      * 작업 유형에 맞는 provider로 LLM 요청을 라우팅한다.
@@ -66,13 +71,38 @@ public class LlmTaskRouter {
         log.debug("[LlmTaskRouter] 라우팅 — task={} provider={} model={}",
                 task, taskConfig.getProviderName(), taskConfig.getModel());
 
+        long startMs = System.currentTimeMillis();
         LlmResponse response = provider.complete(request);
+        long durationMs = System.currentTimeMillis() - startMs;
 
         if (!response.isSuccess()) {
             log.warn("[LlmTaskRouter] 응답 실패 — task={} provider={} error={}",
                     task, taskConfig.getProviderName(), response.getErrorMessage());
         }
 
+        saveLog(task, request, response, durationMs);
+
         return response;
+    }
+
+    private void saveLog(LlmTask task, LlmRequest request, LlmResponse response, long durationMs) {
+        try {
+            callLogRepo.save(LlmCallLogEntity.builder()
+                    .taskName(task.name())
+                    .providerName(response.getProviderName())
+                    .modelUsed(response.getModelUsed())
+                    .systemPrompt(request.getSystemPrompt())
+                    .userPrompt(request.getUserPrompt())
+                    .responseContent(response.getContent())
+                    .promptTokens(response.getPromptTokens())
+                    .completionTokens(response.getCompletionTokens())
+                    .success(response.isSuccess())
+                    .errorMessage(response.getErrorMessage())
+                    .durationMs(durationMs)
+                    .calledAt(Instant.now())
+                    .build());
+        } catch (Exception e) {
+            log.warn("[LlmTaskRouter] 로그 저장 실패 (호출 자체는 성공): {}", e.getMessage());
+        }
     }
 }

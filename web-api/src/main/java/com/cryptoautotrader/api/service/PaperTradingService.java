@@ -47,13 +47,7 @@ public class PaperTradingService {
 
     private static final int MAX_CONCURRENT_SESSIONS = 10;
     private static final BigDecimal FEE_RATE = new BigDecimal("0.0005");
-    private static final BigDecimal INVEST_RATIO = new BigDecimal("0.80");
     private static final int CANDLE_LOOKBACK = 100;
-
-    /** 기본 손절 비율 3% (전략이 suggestedStopLoss를 제공하지 않을 때 사용) */
-    private static final BigDecimal DEFAULT_SL_RATE = new BigDecimal("0.03");
-    /** 기본 익절 비율 6% — R:R = 1:2 */
-    private static final BigDecimal DEFAULT_TP_RATE = new BigDecimal("0.06");
 
     /** Stateful 전략 세션별 인스턴스 (COMPOSITE, COMPOSITE_MOMENTUM 등 상태 보유 전략) */
     private final Map<Long, com.cryptoautotrader.strategy.Strategy> sessionStatefulStrategies = new ConcurrentHashMap<>();
@@ -64,6 +58,12 @@ public class PaperTradingService {
     private final MarketDataCacheRepository marketDataCacheRepo;
     private final TelegramNotificationService telegramService;
     private final StrategyLogRepository strategyLogRepo;
+    private final RiskManagementService riskManagementService;
+
+    /** DB에서 ExitRuleChecker를 동적 로드하는 헬퍼 */
+    private com.cryptoautotrader.core.risk.ExitRuleChecker exitChecker() {
+        return riskManagementService.getExitRuleChecker();
+    }
 
     // exchange-adapter 모듈 Bean이 없을 때 null 허용 (테스트/개발 환경 대비)
     @Autowired(required = false)
@@ -408,23 +408,29 @@ public class PaperTradingService {
         Optional<PaperPositionEntity> openPos = positionRepo
                 .findBySessionIdAndCoinPairAndStatus(session.getId(), coinPair, "OPEN");
 
-        // ── 손절/익절 체크 (전략 신호보다 우선) ──────────────────
+        // ── 손절/익절 체크 (전략 신호보다 우선 — ExitRuleChecker 공통 로직) ──
         if (openPos.isPresent()) {
             PaperPositionEntity pos = openPos.get();
-            if (pos.getStopLossPrice() != null
-                    && currentPrice.compareTo(pos.getStopLossPrice()) <= 0) {
-                log.warn("모의투자 손절 발동 (sessionId={}): {} 현재가={} 손절가={}",
-                        session.getId(), coinPair, currentPrice, pos.getStopLossPrice());
-                closePosition(pos, currentPrice, session,
-                        "손절 발동 — 현재가 " + currentPrice + " ≤ 손절가 " + pos.getStopLossPrice());
-                return;
+
+            // 트레일링 스탑 갱신
+            if (pos.getStopLossPrice() != null && pos.getTakeProfitPrice() != null && pos.getEntryPrice() != null) {
+                var updatedLevels = exitChecker().updateTrailingStops(
+                        currentPrice, currentPrice, pos.getEntryPrice(),
+                        pos.getStopLossPrice(), pos.getTakeProfitPrice());
+                if (updatedLevels.getStopLossPrice().compareTo(pos.getStopLossPrice()) != 0
+                        || updatedLevels.getTakeProfitPrice().compareTo(pos.getTakeProfitPrice()) != 0) {
+                    pos.setStopLossPrice(updatedLevels.getStopLossPrice());
+                    pos.setTakeProfitPrice(updatedLevels.getTakeProfitPrice());
+                    positionRepo.save(pos);
+                }
             }
-            if (pos.getTakeProfitPrice() != null
-                    && currentPrice.compareTo(pos.getTakeProfitPrice()) >= 0) {
-                log.info("모의투자 익절 발동 (sessionId={}): {} 현재가={} 익절가={}",
-                        session.getId(), coinPair, currentPrice, pos.getTakeProfitPrice());
-                closePosition(pos, currentPrice, session,
-                        "익절 발동 — 현재가 " + currentPrice + " ≥ 익절가 " + pos.getTakeProfitPrice());
+
+            var exitCheck = exitChecker().checkPriceExit(
+                    currentPrice, pos.getStopLossPrice(), pos.getTakeProfitPrice());
+            if (exitCheck.isShouldExit()) {
+                log.warn("모의투자 {} (sessionId={}): {} 현재가={}",
+                        exitCheck.getReason(), session.getId(), coinPair, currentPrice);
+                closePosition(pos, currentPrice, session, exitCheck.getReason());
                 return;
             }
         }
@@ -445,8 +451,8 @@ public class PaperTradingService {
 
     private void executeBuy(Long sessionId, String coinPair, BigDecimal price,
                              VirtualBalanceEntity session, StrategySignal signal) {
-        BigDecimal investAmount = session.getAvailableKrw().multiply(INVEST_RATIO);
-        if (investAmount.compareTo(BigDecimal.valueOf(5000)) < 0) {
+        BigDecimal investAmount = exitChecker().calculateInvestAmount(session.getAvailableKrw());
+        if (investAmount.compareTo(BigDecimal.ZERO) == 0) {
             log.warn("모의투자 매수 불가: 가용 자금 부족 ({}) sessionId={}", session.getAvailableKrw(), sessionId);
             return;
         }
@@ -459,13 +465,10 @@ public class PaperTradingService {
         // 이렇게 해야 closePosition 에서 costBasis = investAmount 가 되어 정확한 실현손익 계산
         BigDecimal avgPriceWithFee = investAmount.divide(quantity, 8, RoundingMode.HALF_UP);
 
-        // 손절/익절가 계산: 전략 제안값 우선, 없으면 기본 비율 적용
-        BigDecimal stopLossPrice = (signal.getSuggestedStopLoss() != null)
-                ? signal.getSuggestedStopLoss()
-                : price.multiply(BigDecimal.ONE.subtract(DEFAULT_SL_RATE)).setScale(8, RoundingMode.HALF_DOWN);
-        BigDecimal takeProfitPrice = (signal.getSuggestedTakeProfit() != null)
-                ? signal.getSuggestedTakeProfit()
-                : price.multiply(BigDecimal.ONE.add(DEFAULT_TP_RATE)).setScale(8, RoundingMode.HALF_UP);
+        // 손절/익절가 계산: ExitRuleChecker 공통 로직 (전략 제안값 우선, 없으면 실전매매 기본값)
+        var stopLevels = exitChecker().calculateStopLevels(price, signal);
+        BigDecimal stopLossPrice = stopLevels.getStopLossPrice();
+        BigDecimal takeProfitPrice = stopLevels.getTakeProfitPrice();
 
         PaperPositionEntity pos = PaperPositionEntity.builder()
                 .sessionId(sessionId)

@@ -115,16 +115,16 @@ public class ReportComposer {
         String systemPrompt = """
                 당신은 암호화폐 자동매매 시스템의 로그 분석가입니다.
                 주어진 12시간 신호 통계를 바탕으로 간결하고 명확한 한국어 요약을 작성하세요.
-                핵심 수치를 포함하되 200자 이내로 요약하세요.
+                핵심 수치와 눈에 띄는 이상 패턴(과도한 차단, 낮은 적중률 등)을 포함하되 400자 이내로 요약하세요.
                 """;
         String userPrompt = String.format("""
                 [분석 구간] %s ~ %s (KST)
                 [신호 통계]
                 - 전체 신호: %d건 (매수 %d / 매도 %d / 관망 %d)
                 - 실행된 신호: %d건 / 차단된 신호: %d건
-                - 4h 방향 적중률: %s
-                - 24h 방향 적중률: %s
-                - 4h 평균 수익률: %s%%
+                - 4h 방향 적중률: %s (수수료 공제 후 실질 기준)
+                - 24h 방향 적중률: %s (수수료 공제 후 실질 기준)
+                - 4h 평균 수익률: %s%% / 24h 평균 수익률: %s%%
                 [포지션 성과]
                 - 청산 포지션: %d건 (승 %d / 패 %d, 승률 %s%%)
                 - 실현손익: %s원
@@ -136,7 +136,8 @@ public class ReportComposer {
                 r.getExecutedSignals(), r.getBlockedSignals(),
                 r.getAccuracy4h()  != null ? r.getAccuracy4h()  + "%" : "데이터 없음",
                 r.getAccuracy24h() != null ? r.getAccuracy24h() + "%" : "데이터 없음",
-                r.getAvgReturn4h() != null ? r.getAvgReturn4h().toPlainString() : "-",
+                r.getAvgReturn4h()  != null ? r.getAvgReturn4h().toPlainString()  : "-",
+                r.getAvgReturn24h() != null ? r.getAvgReturn24h().toPlainString() : "-",
                 r.getClosedPositions(), r.getWinCount(), r.getLossCount(),
                 r.getWinRate() != null ? r.getWinRate().toPlainString() : "-",
                 fmt(r.getTotalRealizedPnl()),
@@ -151,14 +152,19 @@ public class ReportComposer {
         String systemPrompt = """
                 당신은 암호화폐 자동매매 전략 분석가입니다.
                 제공된 12시간 성과 데이터를 분석하고 다음 항목을 한국어로 작성하세요:
-                1. 현재 시장 레짐에서의 전략 적합성 평가
-                2. 신호 품질 문제점 및 개선 방향
+                1. 현재 시장 레짐에서의 전략 적합성 평가 (적중률 수치 기반)
+                2. 적중률이 낮은 전략의 문제점 및 개선 방향
                 3. 다음 12시간 주의사항
-                총 300자 이내로 작성하세요.
+                총 600자 이내로 작성하세요.
                 """;
-        String userPrompt = String.format("[요약] %s\n[전략별 신호] %s\n[레짐 전환] %s",
+        String userPrompt = String.format("""
+                [요약] %s
+                [전략별 신호 품질]
+                %s
+                [레짐 전환] %s
+                """,
                 summary,
-                strategyStatsSummary(r.getStrategyStats()),
+                strategyQualitySummary(r),
                 regimeTransitionSummary(r.getRegimeTransitions()));
 
         LlmResponse resp = llmTaskRouter.route(LlmTask.SIGNAL_ANALYSIS, systemPrompt, userPrompt);
@@ -290,6 +296,31 @@ public class ReportComposer {
                         .append("/매도").append(stat.getSell())
                         .append("/실행").append(stat.getExecuted()).append(" | "));
         return sb.toString();
+    }
+
+    /**
+     * LLM 분석용 전략별 신호 품질 요약.
+     * 건수뿐 아니라 4h/24h 적중률과 평균 수익률을 포함한다.
+     */
+    private String strategyQualitySummary(AnalysisReport r) {
+        Map<String, AnalysisReport.StrategySignalStat> stats = r.getStrategyStats();
+        if (stats == null || stats.isEmpty()) return "없음";
+        StringBuilder sb = new StringBuilder();
+        stats.forEach((name, stat) -> {
+            sb.append("• ").append(name).append(": ");
+            sb.append("신호 ").append(stat.getBuy() + stat.getSell()).append("건");
+            sb.append("(실행 ").append(stat.getExecuted()).append(")");
+            if (stat.getAccuracy4h() != null)
+                sb.append(", 4h 적중률 ").append(stat.getAccuracy4h()).append("%");
+            if (stat.getAvgReturn4h() != null)
+                sb.append("(평균 ").append(stat.getAvgReturn4h()).append("%)");
+            if (stat.getAccuracy24h() != null)
+                sb.append(", 24h 적중률 ").append(stat.getAccuracy24h()).append("%");
+            if (stat.getAvgReturn24h() != null)
+                sb.append("(평균 ").append(stat.getAvgReturn24h()).append("%)");
+            sb.append("\n");
+        });
+        return sb.toString().trim();
     }
 
     private String regimeTransitionSummary(List<AnalysisReport.RegimeTransition> transitions) {

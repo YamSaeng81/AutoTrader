@@ -3,7 +3,7 @@
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝나면 `## 다음 할 일`에서 해당 항목을 삭제하고, 완료 내용은 [`docs/CHANGELOG.md`](CHANGELOG.md)에 추가한다.
 > **변경 이력**: [`docs/CHANGELOG.md`](CHANGELOG.md)
-> **마지막 갱신**: 2026-04-10 (AI 파이프라인 버그 수정 + 리팩토링)
+> **마지막 갱신**: 2026-04-11 (신호 품질 분석 고도화 + 전략 가중치 자동 조정 인프라)
 
 ---
 
@@ -210,7 +210,50 @@ crypto-auto-trader/
 
 ---
 
+### ✅ 완료 — 신호 품질 분석 고도화 (2026-04-11)
+
+- [x] **수수료 공제 실질 적중률 기준 적용** — 승/패 판정 기준을 단순 0%에서 업비트 왕복 수수료(0.10%) 초과로 변경. HOLD 신호 제외
+- [x] **차단 신호 사후 성과 비교** — `wasExecuted=false` 신호의 4h/24h 수익률 집계. 실행 신호 대비 적중률 비교 + 차단 사유별 필터 효과 판정(FILTER_HURTING / FILTER_HELPING / NEUTRAL)
+- [x] **시간대별 신호 품질 분석** — KST 기준 0~23시 히트맵 UI. 4h 적중률 색상(초록→빨강), 상위/하위 3시간대 요약
+- [x] **SignalQualityService 병목 해소** — BATCH_SIZE 20→100, 루프 방식 전환(MAX_PER_RUN=500), 서버 시작 시 `@Async` Catchup으로 쌓인 미평가 신호 전량 처리
+- [x] **전략 가중치 자동 조정 인프라** — `WeightOverrideStore`(core-engine) + `StrategySelector` 동적 가중치 읽기 + `StrategyWeightOptimizer`(daily 06:00 + 시작 시 실행). 70% 계산값 + 30% 기본값 스무딩. 최소 가중치 5% 보장
+- [x] **가중치 조회/수동 트리거 API** — `GET /api/v1/logs/strategy-weights`, `POST /api/v1/logs/strategy-weights/optimize`
+- [x] **신호 품질 페이지 개선** — 가중치 패널(레짐별 전략 바 + ±%p 변화량) + 히트맵 + 차단 신호 비교 섹션 추가
+
+> ⚠ **가중치 최적화 구조적 한계** — 아래 추후 작업 참조
+
+---
+
+### ✅ 완료 — LLM 호출 로그 저장 + 토큰 관리 (2026-04-13)
+
+- [x] **`llm_call_log` 테이블 (V40)** — task/provider/model/system·user 프롬프트 전문 + 응답 전문 + 입출력 토큰 + 소요 시간(ms) + 성공 여부 보존
+- [x] **`LlmCallLogEntity` + `LlmCallLogRepository`** — 기간별 호출 수, 토큰 합계, task별/provider별 토큰 집계 쿼리 포함
+- [x] **`LlmTaskRouter.saveLog()`** — 모든 LLM 호출 완료 후 자동 저장 (저장 실패 시 원래 응답에 영향 없음)
+- [x] **조회 API 3종** — `GET /api/v1/admin/llm/logs` (페이지네이션·task·provider 필터), `GET /api/v1/admin/llm/logs/{id}` (프롬프트 전문), `GET /api/v1/admin/llm/logs/stats` (오늘/7일 토큰·호출 통계)
+- [x] **`/logs/llm` 프론트엔드 페이지** — 통계 카드(오늘/7일/전체 호출·토큰) + task별/provider별 토큰 breakdown + 로그 테이블(필터·페이지네이션) + 상세 모달(프롬프트 전문·응답 전문)
+- [x] **사이드바 메뉴 추가** — "LLM 호출 로그" 항목, `excludePrefix` 다중값(`|`) 처리 지원
+- [x] **`BacktestService.java` 누락 `Comparator` import 수정** (기존 컴파일 오류)
+
+---
+
 ### 🔴 P1 — 전략 고도화
+
+#### 0. 전략 가중치 최적화 — 구조적 한계 해결 (⚠ 우선 검토)
+
+> **문제**: `StrategyWeightOptimizer`가 조정 대상으로 삼는 전략명(`SUPERTREND`, `EMA_CROSS` 등)이  
+> `strategy_log.strategy_name`에 기록되지 않는다.  
+> `RegimeAdaptiveStrategy`가 컴포넌트를 묶어 실행하므로 로그에는 `COMPOSITE`, `COMPOSITE_MOMENTUM` 등만 남아  
+> 현재 구현에서는 가중치가 기본값에서 벗어나지 않는다.
+
+**방향 A — Composite 단위 가중치 비교** (난이도: 낮음, 빠른 실용 효과)
+- `StrategyWeightOptimizer` 대상을 Composite 전략(`COMPOSITE_MOMENTUM`, `COMPOSITE_BREAKOUT` 등)으로 변경
+- 레짐별 어떤 Composite 전략이 더 잘 맞는지 비교 → 선택 비중 조정
+- `WeightOverrideStore` 구조를 `strategyName → weight` 단순 맵으로 변경
+
+**방향 B — 컴포넌트 전략 개별 로그 기록** (난이도: 높음, 정밀한 분석 가능)
+- `CompositeStrategy.evaluate()` 내부에서 각 컴포넌트 전략의 신호를 별도 `strategy_log`에 기록
+- 진짜 `SUPERTREND` vs `EMA_CROSS` 개별 적중률 추적 가능
+- DB 부하 증가(신호 1건당 N개 로그) 및 `strategy_log` 스키마 확장 필요
 
 #### 1. STOCHASTIC RSI 구조적 개선
 - [ ] **StochRSI + RSI 다이버전스 결합** — RSI 다이버전스 발생 + StochRSI 과매도 탈출 동시 충족 시 고신뢰 매수 신호 (구현 복잡도 높음)
@@ -242,7 +285,7 @@ crypto-auto-trader/
 ### ⏳ 장기 검토
 
 - [ ] **멀티 타임프레임** — 1H 방향 + 15M 진입. WebSocket 급등락 대응으로 단기 커버 중, 아키텍처 변경이 크므로 나중에 재검토
-- [ ] **동적 가중치** — 100거래 이상 샘플 기반, 하한선 0.1, 변화 ≤ 10%/회 조건 필수. 오버피팅 주의 (복잡도: 고)
+- [ ] **동적 가중치 완성** — 인프라(`WeightOverrideStore` + `StrategySelector`)는 구축 완료. P1-0 방향 결정 후 Optimizer 로직 완성 필요. 100거래 이상 샘플 기반, 하한선 0.05, 스무딩 70/30 적용 중. 오버피팅 주의
 - [ ] **2023~2025 전체 기간 백테스트** — 강세장·약세장·횡보장 구간 포함. 현재 2025 H1 데이터만 존재
 
 ---

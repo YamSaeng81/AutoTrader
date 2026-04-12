@@ -90,8 +90,9 @@ const navGroups: NavGroup[] = [
             { href: '/settings/upbit-logs',   label: 'Upbit 주문 로그', icon: Activity },
             { href: '/settings/upbit-status', label: 'Upbit 연동 상태', icon: Activity },
             { href: '/settings/db-reset',     label: 'DB 초기화',      icon: Trash2 },
-            { href: '/logs',                  label: '전략 로그',      icon: FileText, excludePrefix: '/logs/signal-quality' },
+            { href: '/logs',                  label: '전략 로그',      icon: FileText, excludePrefix: '/logs/signal-quality|/logs/llm' },
             { href: '/logs/signal-quality',   label: '신호 품질 분석', icon: BarChart2 },
+            { href: '/logs/llm',              label: 'LLM 호출 로그',  icon: Bot },
             { href: '/settings/server-logs',  label: '서버 로그',      icon: Terminal },
         ],
     },
@@ -114,8 +115,8 @@ export function Sidebar() {
         const set = new Set<string>();
         for (const group of navGroups) {
             for (const item of group.items) {
-                const active = (pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href)))
-                    && !(item.excludePrefix && pathname.startsWith(item.excludePrefix));
+                const excluded = item.excludePrefix?.split('|').some(p => pathname.startsWith(p.trim())) ?? false;
+                const active = (pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))) && !excluded;
                 if (active) set.add(group.label);
             }
         }
@@ -135,9 +136,10 @@ export function Sidebar() {
         });
     };
 
-    const isItemActive = (item: NavItem) =>
-        (pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href)))
-        && !(item.excludePrefix && pathname.startsWith(item.excludePrefix));
+    const isItemActive = (item: NavItem) => {
+        const excluded = item.excludePrefix?.split('|').some(p => pathname.startsWith(p.trim())) ?? false;
+        return (pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))) && !excluded;
+    };
 
     return (
         <div

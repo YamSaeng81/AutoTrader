@@ -75,7 +75,8 @@ public class LiveTradingService {
     private static final int MAX_CONCURRENT_SESSIONS = 10;
     private static final int CANDLE_LOOKBACK = 100;
     private static final BigDecimal FEE_RATE = new BigDecimal("0.0005");
-    private static final BigDecimal INVEST_RATIO = new BigDecimal("0.80");
+
+    // ExitRuleConfig는 DB에서 동적 로드 — exitConfig() 메서드 사용
 
     /** 백테스트 기준 구조적 손실 전략 — 실전매매 세션 생성 차단 */
     private static final List<String> BLOCKED_LIVE_STRATEGIES = List.of("STOCHASTIC_RSI", "MACD");
@@ -102,8 +103,7 @@ public class LiveTradingService {
     private static final long SPIKE_CHECK_INTERVAL_MS = 1_000;   // 급등락 시 1초 throttle
     private static final BigDecimal SPIKE_DOWN_THRESHOLD  = new BigDecimal("-1.5");  // -1.5%/30s
     private static final BigDecimal SPIKE_UP_THRESHOLD    = new BigDecimal("2.0");   // +2.0%/30s
-    private static final BigDecimal SL_TIGHTEN_MARGIN     = new BigDecimal("0.003"); // 현재가 0.3% 아래로 SL 조임
-    private static final BigDecimal TRAILING_STOP_MARGIN  = new BigDecimal("0.005"); // 현재가 0.5% 아래로 TP 갱신
+    // SL_TIGHTEN_MARGIN / TRAILING_STOP_MARGIN — DB에서 동적 로드, exitConfig() 호출
 
     private final LiveTradingSessionRepository sessionRepository;
     private final PositionRepository positionRepository;
@@ -125,6 +125,11 @@ public class LiveTradingService {
     /** WebSocket 클라이언트 (선택적 — exchange-adapter 빈이 없을 경우 null) */
     @Autowired(required = false)
     private UpbitWebSocketClient wsClient;
+
+    /** DB에서 ExitRuleConfig를 동적 로드하는 헬퍼 */
+    private com.cryptoautotrader.core.risk.ExitRuleConfig exitConfig() {
+        return riskManagementService.getExitRuleConfig();
+    }
 
     // -- 거래소 DOWN 이벤트 수신 -- 모든 세션 비상 정지 ----------
 
@@ -172,7 +177,7 @@ public class LiveTradingService {
         }
 
         BigDecimal stopLoss = req.getStopLossPct() != null
-                ? req.getStopLossPct() : new BigDecimal("5.0");
+                ? req.getStopLossPct() : exitConfig().getStopLossPct();
         BigDecimal rawRatio = req.getInvestRatio();
         // 프론트엔드가 1~100 정수(예: 80)로 보내는 경우 0~1 범위로 변환
         if (rawRatio != null && rawRatio.compareTo(BigDecimal.ONE) > 0) {
@@ -637,7 +642,7 @@ public class LiveTradingService {
                     .divide(pos.getAvgPrice(), 6, RoundingMode.HALF_UP)
                     .multiply(BigDecimal.valueOf(100));
             BigDecimal rawStopLoss = session.getStopLossPct() != null
-                    ? session.getStopLossPct() : new BigDecimal("5.0");
+                    ? session.getStopLossPct() : exitConfig().getStopLossPct();
 
             // 익절 체크: 저장된 takeProfitPrice 도달 시 청산
             if (pos.getTakeProfitPrice() != null
@@ -728,7 +733,7 @@ public class LiveTradingService {
             return;
         }
 
-        BigDecimal ratio = session.getInvestRatio() != null ? session.getInvestRatio() : INVEST_RATIO;
+        BigDecimal ratio = session.getInvestRatio() != null ? session.getInvestRatio() : exitConfig().getInvestRatio();
         BigDecimal baseAmount = session.getAvailableKrw().multiply(ratio);
         BigDecimal investAmount = session.getMaxInvestment() != null
                 ? baseAmount.min(session.getMaxInvestment())
@@ -745,16 +750,17 @@ public class LiveTradingService {
         }
 
         // SL/TP 계산: 전략 제시값 우선, 없으면 세션 stopLossPct 기반 기본값 적용
+        com.cryptoautotrader.core.risk.ExitRuleConfig cfg = exitConfig();
         BigDecimal slPct = (session.getStopLossPct() != null)
                 ? session.getStopLossPct()
-                : new BigDecimal("5.0");
+                : cfg.getStopLossPct();
         BigDecimal stopLossPrice = (signal != null && signal.getSuggestedStopLoss() != null)
                 ? signal.getSuggestedStopLoss()
                 : price.multiply(BigDecimal.ONE.subtract(slPct.divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP)))
                         .setScale(8, RoundingMode.HALF_DOWN);
         BigDecimal takeProfitPrice = (signal != null && signal.getSuggestedTakeProfit() != null)
                 ? signal.getSuggestedTakeProfit()
-                : price.multiply(BigDecimal.ONE.add(slPct.multiply(new BigDecimal("2")).divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP)))
+                : price.multiply(BigDecimal.ONE.add(slPct.multiply(cfg.getTakeProfitMultiplier()).divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP)))
                         .setScale(8, RoundingMode.HALF_UP);
 
         // 포지션 생성 (세션 연결)
@@ -1528,7 +1534,7 @@ public class LiveTradingService {
                     .multiply(BigDecimal.valueOf(100));
 
             BigDecimal stopLossPct = session.getStopLossPct() != null
-                    ? session.getStopLossPct() : new BigDecimal("5.0");
+                    ? session.getStopLossPct() : exitConfig().getStopLossPct();
 
             // 기존 손절 체크 (stopLossPrice 절대가 우선, 없으면 stopLossPct %)
             boolean slTriggered = (pos.getStopLossPrice() != null)
@@ -1545,7 +1551,7 @@ public class LiveTradingService {
 
             // 급락 처리 — 손실 중인 포지션 SL 조임 (단방향 ratchet, 한번 조이면 완화 안 됨)
             if (spikeDown && pnlPct.compareTo(BigDecimal.ZERO) < 0) {
-                BigDecimal newSl = price.multiply(BigDecimal.ONE.subtract(SL_TIGHTEN_MARGIN))
+                BigDecimal newSl = price.multiply(BigDecimal.ONE.subtract(exitConfig().getTrailingSlMargin()))
                         .setScale(8, RoundingMode.HALF_DOWN);
                 BigDecimal currentSl = pos.getStopLossPrice();
                 if (currentSl == null || newSl.compareTo(currentSl) > 0) {
@@ -1558,7 +1564,7 @@ public class LiveTradingService {
 
             // 급등 처리 — 수익 중인 포지션 TP 트레일링 (단방향 ratchet, 고점 추적)
             if (spikeUp && pnlPct.compareTo(BigDecimal.ZERO) > 0) {
-                BigDecimal newTp = price.multiply(BigDecimal.ONE.subtract(TRAILING_STOP_MARGIN))
+                BigDecimal newTp = price.multiply(BigDecimal.ONE.subtract(exitConfig().getTrailingTpMargin()))
                         .setScale(8, RoundingMode.HALF_UP);
                 BigDecimal currentTp = pos.getTakeProfitPrice();
                 if (currentTp == null || newTp.compareTo(currentTp) > 0) {

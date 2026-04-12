@@ -1,5 +1,6 @@
 package com.cryptoautotrader.core.backtest;
 
+import com.cryptoautotrader.core.risk.ExitRuleConfig;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -32,4 +33,12 @@ public class BacktestConfig {
     private final BigDecimal impactFactor = new BigDecimal("0.1");
     @Builder.Default
     private final BigDecimal fillRatio = new BigDecimal("0.3");
+
+    // ── 통합 리스크/청산 규칙 (실전매매 기본값과 동일) ─────────
+    /** null이면 ExitRuleConfig.defaults() 사용 */
+    private final ExitRuleConfig exitRuleConfig;
+
+    public ExitRuleConfig getExitRuleConfig() {
+        return exitRuleConfig != null ? exitRuleConfig : ExitRuleConfig.defaults();
+    }
 }

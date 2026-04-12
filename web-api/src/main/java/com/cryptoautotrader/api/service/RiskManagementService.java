@@ -6,6 +6,8 @@ import com.cryptoautotrader.api.entity.RiskConfigEntity;
 import com.cryptoautotrader.api.repository.PositionRepository;
 import com.cryptoautotrader.api.repository.RiskConfigRepository;
 import com.cryptoautotrader.api.repository.TradeLogRepository;
+import com.cryptoautotrader.core.risk.ExitRuleChecker;
+import com.cryptoautotrader.core.risk.ExitRuleConfig;
 import com.cryptoautotrader.core.risk.RiskCheckResult;
 import com.cryptoautotrader.core.risk.RiskConfig;
 import com.cryptoautotrader.core.risk.RiskEngine;
@@ -56,12 +58,53 @@ public class RiskManagementService {
                 .maxPositions(newConfig.getMaxPositions())
                 .cooldownMinutes(newConfig.getCooldownMinutes())
                 .portfolioLimitKrw(newConfig.getPortfolioLimitKrw())
+                .mddThresholdPct(newConfig.getMddThresholdPct())
+                .consecutiveLossLimit(newConfig.getConsecutiveLossLimit())
+                .circuitBreakerEnabled(newConfig.getCircuitBreakerEnabled())
+                // 포지션 수준 리스크 규칙
+                .stopLossPct(newConfig.getStopLossPct())
+                .takeProfitMultiplier(newConfig.getTakeProfitMultiplier())
+                .trailingEnabled(newConfig.getTrailingEnabled())
+                .trailingTpMarginPct(newConfig.getTrailingTpMarginPct())
+                .trailingSlMarginPct(newConfig.getTrailingSlMarginPct())
+                .investRatioPct(newConfig.getInvestRatioPct())
                 .build();
         entity = riskConfigRepository.save(entity);
-        log.info("리스크 설정 업데이트: 일일={}%, 주간={}%, 월간={}%, 최대포지션={}, 쿨다운={}분",
+        log.info("리스크 설정 업데이트: 일일={}%, 주간={}%, 월간={}%, 최대포지션={}, 쿨다운={}분, SL={}%, TP={}×, 투자비율={}%",
                 entity.getMaxDailyLossPct(), entity.getMaxWeeklyLossPct(),
-                entity.getMaxMonthlyLossPct(), entity.getMaxPositions(), entity.getCooldownMinutes());
+                entity.getMaxMonthlyLossPct(), entity.getMaxPositions(), entity.getCooldownMinutes(),
+                entity.getStopLossPct(), entity.getTakeProfitMultiplier(), entity.getInvestRatioPct());
         return entity;
+    }
+
+    /**
+     * DB 설정 기반 ExitRuleConfig 반환. 설정이 없으면 코드 기본값 사용.
+     */
+    @Transactional(readOnly = true)
+    public ExitRuleConfig getExitRuleConfig() {
+        RiskConfigEntity cfg = getRiskConfig();
+        BigDecimal pct100 = BigDecimal.valueOf(100);
+        return ExitRuleConfig.builder()
+                .stopLossPct(cfg.getStopLossPct() != null ? cfg.getStopLossPct() : new BigDecimal("5.0"))
+                .takeProfitMultiplier(cfg.getTakeProfitMultiplier() != null ? cfg.getTakeProfitMultiplier() : new BigDecimal("2.0"))
+                .trailingEnabled(cfg.getTrailingEnabled() != null ? cfg.getTrailingEnabled() : Boolean.TRUE)
+                .trailingTpMargin(cfg.getTrailingTpMarginPct() != null
+                        ? cfg.getTrailingTpMarginPct().divide(pct100, 6, RoundingMode.HALF_UP)
+                        : new BigDecimal("0.005"))
+                .trailingSlMargin(cfg.getTrailingSlMarginPct() != null
+                        ? cfg.getTrailingSlMarginPct().divide(pct100, 6, RoundingMode.HALF_UP)
+                        : new BigDecimal("0.003"))
+                .investRatio(cfg.getInvestRatioPct() != null
+                        ? cfg.getInvestRatioPct().divide(pct100, 4, RoundingMode.HALF_UP)
+                        : new BigDecimal("0.80"))
+                .build();
+    }
+
+    /**
+     * DB 설정 기반 ExitRuleChecker 반환.
+     */
+    public ExitRuleChecker getExitRuleChecker() {
+        return new ExitRuleChecker(getExitRuleConfig());
     }
 
     /**

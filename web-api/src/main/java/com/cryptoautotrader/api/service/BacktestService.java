@@ -39,6 +39,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,9 +55,23 @@ public class BacktestService {
     private final BacktestMetricsRepository backtestMetricsRepository;
     private final BacktestTradeRepository backtestTradeRepository;
     private final PlatformTransactionManager transactionManager;
+    private final RiskManagementService riskManagementService;
 
     private final BacktestEngine backtestEngine = new BacktestEngine();
     private final WalkForwardTestRunner walkForwardRunner = new WalkForwardTestRunner();
+
+    private static final BigDecimal DEFAULT_CAPITAL  = new BigDecimal("10000000");
+    private static final BigDecimal DEFAULT_SLIPPAGE = new BigDecimal("0.1");
+    private static final BigDecimal DEFAULT_FEE      = new BigDecimal("0.05");
+
+    private static final Comparator<Map<String, Object>> BY_TOTAL_RETURN = (a, b) -> {
+        BigDecimal ra = (BigDecimal) a.getOrDefault("totalReturn", null);
+        BigDecimal rb = (BigDecimal) b.getOrDefault("totalReturn", null);
+        if (ra == null && rb == null) return 0;
+        if (ra == null) return 1;
+        if (rb == null) return -1;
+        return rb.compareTo(ra);
+    };
 
     @Transactional
     public Map<String, Object> runBacktest(String strategyType, String coinPair, String timeframe,
@@ -74,14 +89,7 @@ public class BacktestService {
             throw new IllegalArgumentException("데이터 부족: " + entities.size() + "건 (최소 30건 필요)");
         }
 
-        List<Candle> candles = entities.stream()
-                .map(e -> Candle.builder()
-                        .time(e.getTime())
-                        .open(e.getOpen()).high(e.getHigh())
-                        .low(e.getLow()).close(e.getClose())
-                        .volume(e.getVolume())
-                        .build())
-                .toList();
+        List<Candle> candles = toCandles(entities);
 
         BacktestConfig config = BacktestConfig.builder()
                 .strategyName(strategyType)
@@ -89,31 +97,17 @@ public class BacktestService {
                 .timeframe(timeframe)
                 .startDate(start)
                 .endDate(end)
-                .initialCapital(initialCapital != null ? initialCapital : new BigDecimal("10000000"))
-                .slippagePct(slippagePct != null ? slippagePct : new BigDecimal("0.1"))
-                .feePct(feePct != null ? feePct : new BigDecimal("0.05"))
+                .initialCapital(initialCapital != null ? initialCapital : DEFAULT_CAPITAL)
+                .slippagePct(slippagePct != null ? slippagePct : DEFAULT_SLIPPAGE)
+                .feePct(feePct != null ? feePct : DEFAULT_FEE)
                 .strategyParams(strategyParams != null ? strategyParams : Map.of())
                 .fillSimulationEnabled(fillSimEnabled)
                 .impactFactor(impactFactor != null ? impactFactor : new BigDecimal("0.1"))
                 .fillRatio(fillRatio != null ? fillRatio : new BigDecimal("0.3"))
+                .exitRuleConfig(riskManagementService.getExitRuleConfig())
                 .build();
 
-        BacktestResult result;
-        if ("COMPOSITE".equals(strategyType)) {
-            MarketRegimeDetector detector = new MarketRegimeDetector();
-            List<WeightedStrategy> weighted = StrategySelector.select(detector.detect(candles));
-            result = backtestEngine.run(config, candles, new CompositeStrategy(weighted));
-        } else if ("COMPOSITE_ETH".equals(strategyType)) {
-            // 백테스트에서 ORDERBOOK_IMBALANCE는 캔들 근사값을 사용하므로 가중치를 축소
-            // Live: ATR(0.5) + OB(0.3) + EMA(0.2) → BT: ATR(0.7) + OB(0.1) + EMA(0.2)
-            result = backtestEngine.run(config, candles, compositeEthBt());
-        } else if ("COMPOSITE_BREAKOUT".equals(strategyType)) {
-            // 후보: ATR(0.4) + OB(0.3) + VD(0.2) + EMA(0.1) — Volume Delta 편입 검토용
-            // BT: ATR(0.6) + OB(0.1) + VD(0.2) + EMA(0.1) (OB 캔들 근사 보정)
-            result = backtestEngine.run(config, candles, compositeBreakoutBt());
-        } else {
-            result = backtestEngine.run(config, candles);
-        }
+        BacktestResult result = runStrategy(config, candles, strategyType);
 
         // DB 저장
         BacktestRunEntity runEntity = saveRun(config, false);
@@ -138,14 +132,7 @@ public class BacktestService {
             throw new IllegalArgumentException("Walk Forward에 데이터 부족: " + entities.size() + "건");
         }
 
-        List<Candle> candles = entities.stream()
-                .map(e -> Candle.builder()
-                        .time(e.getTime())
-                        .open(e.getOpen()).high(e.getHigh())
-                        .low(e.getLow()).close(e.getClose())
-                        .volume(e.getVolume())
-                        .build())
-                .toList();
+        List<Candle> candles = toCandles(entities);
 
         BacktestConfig config = BacktestConfig.builder()
                 .strategyName(strategyType)
@@ -153,10 +140,11 @@ public class BacktestService {
                 .timeframe(timeframe)
                 .startDate(start)
                 .endDate(end)
-                .initialCapital(initialCapital != null ? initialCapital : new BigDecimal("10000000"))
-                .slippagePct(slippagePct != null ? slippagePct : new BigDecimal("0.1"))
-                .feePct(feePct != null ? feePct : new BigDecimal("0.05"))
+                .initialCapital(initialCapital != null ? initialCapital : DEFAULT_CAPITAL)
+                .slippagePct(slippagePct != null ? slippagePct : DEFAULT_SLIPPAGE)
+                .feePct(feePct != null ? feePct : DEFAULT_FEE)
                 .strategyParams(strategyParams != null ? strategyParams : Map.of())
+                .exitRuleConfig(riskManagementService.getExitRuleConfig())
                 .build();
 
         WalkForwardTestRunner.WalkForwardResult wfResult = walkForwardRunner.run(config, candles, inSampleRatio, windowCount);
@@ -325,23 +313,16 @@ public class BacktestService {
         Instant start = startDate.atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant();
         Instant end   = endDate.atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant();
 
-        BigDecimal capital  = initialCapital != null ? initialCapital : new BigDecimal("10000000");
-        BigDecimal slippage = slippagePct    != null ? slippagePct    : new BigDecimal("0.1");
-        BigDecimal fee      = feePct         != null ? feePct         : new BigDecimal("0.05");
+        BigDecimal capital  = initialCapital != null ? initialCapital : DEFAULT_CAPITAL;
+        BigDecimal slippage = slippagePct    != null ? slippagePct    : DEFAULT_SLIPPAGE;
+        BigDecimal fee      = feePct         != null ? feePct         : DEFAULT_FEE;
 
         List<CandleDataEntity> entities = candleDataRepository.findCandles(coinPair, timeframe, start, end);
         if (entities.size() < 30) {
             throw new IllegalArgumentException("데이터 부족: " + entities.size() + "건 (최소 30건 필요)");
         }
 
-        List<Candle> candles = entities.stream()
-                .map(e -> Candle.builder()
-                        .time(e.getTime())
-                        .open(e.getOpen()).high(e.getHigh())
-                        .low(e.getLow()).close(e.getClose())
-                        .volume(e.getVolume())
-                        .build())
-                .toList();
+        List<Candle> candles = toCandles(entities);
 
         TransactionTemplate tx = new TransactionTemplate(transactionManager);
         List<Map<String, Object>> results = new java.util.ArrayList<>();
@@ -358,20 +339,10 @@ public class BacktestService {
                         .slippagePct(slippage)
                         .feePct(fee)
                         .strategyParams(Map.of())
+                        .exitRuleConfig(riskManagementService.getExitRuleConfig())
                         .build();
 
-                BacktestResult result;
-                if ("COMPOSITE".equals(strategyName)) {
-                    MarketRegimeDetector detector = new MarketRegimeDetector();
-                    List<WeightedStrategy> weighted = StrategySelector.select(detector.detect(candles));
-                    result = backtestEngine.run(config, candles, new CompositeStrategy(weighted));
-                } else if ("COMPOSITE_ETH".equals(strategyName)) {
-                    result = backtestEngine.run(config, candles, compositeEthBt());
-                } else if ("COMPOSITE_BREAKOUT".equals(strategyName)) {
-                    result = backtestEngine.run(config, candles, compositeBreakoutBt());
-                } else {
-                    result = backtestEngine.run(config, candles);
-                }
+                BacktestResult result = runStrategy(config, candles, strategyName);
                 PerformanceReport metrics = result.getMetrics();
 
                 // 전략별 독립 트랜잭션 — 저장 실패가 다른 전략 결과를 오염시키지 않음
@@ -411,14 +382,7 @@ public class BacktestService {
             }
         }
 
-        results.sort((a, b) -> {
-            BigDecimal ra = (BigDecimal) a.getOrDefault("totalReturn", null);
-            BigDecimal rb = (BigDecimal) b.getOrDefault("totalReturn", null);
-            if (ra == null && rb == null) return 0;
-            if (ra == null) return 1;
-            if (rb == null) return -1;
-            return rb.compareTo(ra);
-        });
+        results.sort(BY_TOTAL_RETURN);
 
         return results;
     }
@@ -436,9 +400,9 @@ public class BacktestService {
         Instant start = startDate.atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant();
         Instant end   = endDate.atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant();
 
-        BigDecimal capital   = initialCapital != null ? initialCapital : new BigDecimal("10000000");
-        BigDecimal slippage  = slippagePct    != null ? slippagePct    : new BigDecimal("0.1");
-        BigDecimal fee       = feePct         != null ? feePct         : new BigDecimal("0.05");
+        BigDecimal capital   = initialCapital != null ? initialCapital : DEFAULT_CAPITAL;
+        BigDecimal slippage  = slippagePct    != null ? slippagePct    : DEFAULT_SLIPPAGE;
+        BigDecimal fee       = feePct         != null ? feePct         : DEFAULT_FEE;
 
         List<String> strategyNames = new java.util.ArrayList<>(StrategyRegistry.getAll().keySet());
         List<Map<String, Object>> results = new java.util.ArrayList<>();
@@ -450,14 +414,7 @@ public class BacktestService {
                 continue;
             }
 
-            List<Candle> candles = entities.stream()
-                    .map(e -> Candle.builder()
-                            .time(e.getTime())
-                            .open(e.getOpen()).high(e.getHigh())
-                            .low(e.getLow()).close(e.getClose())
-                            .volume(e.getVolume())
-                            .build())
-                    .toList();
+            List<Candle> candles = toCandles(entities);
 
             for (String strategyName : strategyNames) {
                 try {
@@ -471,20 +428,10 @@ public class BacktestService {
                             .slippagePct(slippage)
                             .feePct(fee)
                             .strategyParams(Map.of())
+                            .exitRuleConfig(riskManagementService.getExitRuleConfig())
                             .build();
 
-                    BacktestResult result;
-                    if ("COMPOSITE".equals(strategyName)) {
-                        MarketRegimeDetector detector = new MarketRegimeDetector();
-                        List<WeightedStrategy> weighted = StrategySelector.select(detector.detect(candles));
-                        result = backtestEngine.run(config, candles, new CompositeStrategy(weighted));
-                    } else if ("COMPOSITE_ETH".equals(strategyName)) {
-                        result = backtestEngine.run(config, candles, compositeEthBt());
-                    } else if ("COMPOSITE_BREAKOUT".equals(strategyName)) {
-                        result = backtestEngine.run(config, candles, compositeBreakoutBt());
-                    } else {
-                        result = backtestEngine.run(config, candles);
-                    }
+                    BacktestResult result = runStrategy(config, candles, strategyName);
                     PerformanceReport metrics = result.getMetrics();
 
                     BacktestRunEntity runEntity = saveRun(config, false);
@@ -521,14 +468,94 @@ public class BacktestService {
         }
 
         // totalReturn 내림차순 정렬 (에러 행은 맨 뒤)
-        results.sort((a, b) -> {
-            BigDecimal ra = (BigDecimal) a.getOrDefault("totalReturn", null);
-            BigDecimal rb = (BigDecimal) b.getOrDefault("totalReturn", null);
-            if (ra == null && rb == null) return 0;
-            if (ra == null) return 1;
-            if (rb == null) return -1;
-            return rb.compareTo(ra);
-        });
+        results.sort(BY_TOTAL_RETURN);
+
+        return results;
+    }
+
+    /**
+     * 선택 코인 × 선택 전략 배치 백테스트.
+     * 모든 (coinPair × strategyType) 조합에 대해 독립 실행 후 totalReturn 내림차순으로 반환한다.
+     */
+    public List<Map<String, Object>> runBatchBacktest(
+            List<String> coinPairs, List<String> strategyTypes, String timeframe,
+            LocalDate startDate, LocalDate endDate,
+            BigDecimal initialCapital, BigDecimal slippagePct, BigDecimal feePct) {
+
+        Instant start = startDate.atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant();
+        Instant end   = endDate.atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant();
+
+        BigDecimal capital  = initialCapital != null ? initialCapital : DEFAULT_CAPITAL;
+        BigDecimal slippage = slippagePct    != null ? slippagePct    : DEFAULT_SLIPPAGE;
+        BigDecimal fee      = feePct         != null ? feePct         : DEFAULT_FEE;
+
+        TransactionTemplate tx = new TransactionTemplate(transactionManager);
+        List<Map<String, Object>> results = new java.util.ArrayList<>();
+
+        for (String coinPair : coinPairs) {
+            List<CandleDataEntity> entities = candleDataRepository.findCandles(coinPair, timeframe, start, end);
+            if (entities.size() < 30) {
+                log.warn("배치 백테스트 건너뜀: {} {} 데이터 부족 ({}건)", coinPair, timeframe, entities.size());
+                continue;
+            }
+
+            List<Candle> candles = toCandles(entities);
+
+            for (String strategyName : strategyTypes) {
+                try {
+                    BacktestConfig config = BacktestConfig.builder()
+                            .strategyName(strategyName)
+                            .coinPair(coinPair)
+                            .timeframe(timeframe)
+                            .startDate(start)
+                            .endDate(end)
+                            .initialCapital(capital)
+                            .slippagePct(slippage)
+                            .feePct(fee)
+                            .strategyParams(Map.of())
+                            .exitRuleConfig(riskManagementService.getExitRuleConfig())
+                            .build();
+
+                    BacktestResult result = runStrategy(config, candles, strategyName);
+                    PerformanceReport metrics = result.getMetrics();
+
+                    final BacktestResult finalResult = result;
+                    Long savedId = tx.execute(status -> {
+                        BacktestRunEntity runEntity = saveRun(config, false);
+                        saveMetrics(runEntity.getId(), metrics);
+                        saveTrades(runEntity.getId(), finalResult.getTrades());
+                        return runEntity.getId();
+                    });
+
+                    Map<String, Object> row = new java.util.LinkedHashMap<>();
+                    row.put("id",          savedId);
+                    row.put("coinPair",    coinPair);
+                    row.put("strategy",    strategyName);
+                    row.put("totalReturn", metrics.getTotalReturnPct());
+                    row.put("winRate",     metrics.getWinRatePct());
+                    row.put("maxDrawdown", metrics.getMddPct());
+                    row.put("sharpe",      metrics.getSharpeRatio());
+                    row.put("sortino",     metrics.getSortinoRatio());
+                    row.put("totalTrades", metrics.getTotalTrades());
+                    row.put("winLossRatio",metrics.getWinLossRatio());
+                    results.add(row);
+
+                    log.info("배치 백테스트 완료: {} {} → 수익률={}, 승률={}, MDD={}",
+                            strategyName, coinPair,
+                            metrics.getTotalReturnPct(), metrics.getWinRatePct(), metrics.getMddPct());
+
+                } catch (Exception e) {
+                    log.error("배치 백테스트 실패: {} {} — {}", strategyName, coinPair, e.getMessage());
+                    Map<String, Object> row = new java.util.LinkedHashMap<>();
+                    row.put("coinPair",  coinPair);
+                    row.put("strategy",  strategyName);
+                    row.put("error",     e.getMessage());
+                    results.add(row);
+                }
+            }
+        }
+
+        results.sort(BY_TOTAL_RETURN);
 
         return results;
     }
@@ -806,6 +833,31 @@ public class BacktestService {
         map.put("maxConsecutiveLoss", report.getMaxConsecutiveLoss());
         map.put("monthlyReturns", report.getMonthlyReturns());
         return map; // HashMap — caller may add more fields
+    }
+
+    private List<Candle> toCandles(List<CandleDataEntity> entities) {
+        return entities.stream()
+                .map(e -> Candle.builder()
+                        .time(e.getTime())
+                        .open(e.getOpen()).high(e.getHigh())
+                        .low(e.getLow()).close(e.getClose())
+                        .volume(e.getVolume())
+                        .build())
+                .toList();
+    }
+
+    private BacktestResult runStrategy(BacktestConfig config, List<Candle> candles, String strategyName) {
+        if ("COMPOSITE".equals(strategyName)) {
+            MarketRegimeDetector detector = new MarketRegimeDetector();
+            List<WeightedStrategy> weighted = StrategySelector.select(detector.detect(candles));
+            return backtestEngine.run(config, candles, new CompositeStrategy(weighted));
+        } else if ("COMPOSITE_ETH".equals(strategyName)) {
+            return backtestEngine.run(config, candles, compositeEthBt());
+        } else if ("COMPOSITE_BREAKOUT".equals(strategyName)) {
+            return backtestEngine.run(config, candles, compositeBreakoutBt());
+        } else {
+            return backtestEngine.run(config, candles);
+        }
     }
 
     private Map<String, Object> entityToMetricsMap(BacktestMetricsEntity m) {

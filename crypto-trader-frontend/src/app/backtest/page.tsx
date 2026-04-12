@@ -1,10 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useBacktests, useDeleteBacktest, useBulkDeleteBacktests } from '@/hooks';
 import Link from 'next/link';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
 import { format } from 'date-fns';
+
+type SortKey = 'createdAt' | 'totalReturn' | 'winRate' | 'maxDrawdown';
+type SortDir = 'asc' | 'desc';
+
+function SortIcon({ col, sortKey, sortDir }: { col: SortKey; sortKey: SortKey; sortDir: SortDir }) {
+    if (col !== sortKey) return <ChevronsUpDown className="w-3 h-3 opacity-30 inline ml-0.5" />;
+    return sortDir === 'asc'
+        ? <ChevronUp className="w-3 h-3 inline ml-0.5" />
+        : <ChevronDown className="w-3 h-3 inline ml-0.5" />;
+}
 
 export default function BacktestListPage() {
     const { data: backtests = [], isLoading } = useBacktests();
@@ -12,8 +22,37 @@ export default function BacktestListPage() {
     const bulkDeleteBacktests = useBulkDeleteBacktests();
 
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    const [filterStrategy, setFilterStrategy] = useState('');
+    const [filterCoin, setFilterCoin] = useState('');
+    const [sortKey, setSortKey] = useState<SortKey>('createdAt');
+    const [sortDir, setSortDir] = useState<SortDir>('desc');
 
-    const allIds = backtests.map((bt) => bt.id);
+    const strategies = useMemo(() => [...new Set(backtests.map(b => b.strategyType))].sort(), [backtests]);
+    const coins = useMemo(() => [...new Set(backtests.map(b => b.coinPair))].sort(), [backtests]);
+
+    const filtered = useMemo(() => {
+        let list = backtests;
+        if (filterStrategy) list = list.filter(b => b.strategyType === filterStrategy);
+        if (filterCoin) list = list.filter(b => b.coinPair === filterCoin);
+        return [...list].sort((a, b) => {
+            let av: number, bv: number;
+            if (sortKey === 'createdAt') {
+                av = new Date(a.createdAt).getTime();
+                bv = new Date(b.createdAt).getTime();
+            } else {
+                av = Number(a.metrics?.[sortKey] ?? 0);
+                bv = Number(b.metrics?.[sortKey] ?? 0);
+            }
+            return sortDir === 'asc' ? av - bv : bv - av;
+        });
+    }, [backtests, filterStrategy, filterCoin, sortKey, sortDir]);
+
+    function toggleSort(key: SortKey) {
+        if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+        else { setSortKey(key); setSortDir('desc'); }
+    }
+
+    const allIds = filtered.map((bt) => bt.id);
     const isAllSelected = allIds.length > 0 && allIds.every((id) => selectedIds.has(id));
     const isSomeSelected = selectedIds.size > 0;
 
@@ -83,6 +122,39 @@ export default function BacktestListPage() {
                 </div>
             </div>
 
+            {/* 필터 바 */}
+            {!isLoading && backtests.length > 0 && (
+                <div className="flex flex-wrap items-center gap-3">
+                    <select
+                        value={filterStrategy}
+                        onChange={e => setFilterStrategy(e.target.value)}
+                        className="px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                    >
+                        <option value="">전체 전략</option>
+                        {strategies.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                    <select
+                        value={filterCoin}
+                        onChange={e => setFilterCoin(e.target.value)}
+                        className="px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                    >
+                        <option value="">전체 코인</option>
+                        {coins.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                    {(filterStrategy || filterCoin) && (
+                        <button
+                            onClick={() => { setFilterStrategy(''); setFilterCoin(''); }}
+                            className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                        >
+                            필터 초기화
+                        </button>
+                    )}
+                    <span className="ml-auto text-xs text-slate-400 dark:text-slate-500">
+                        {filtered.length} / {backtests.length}건
+                    </span>
+                </div>
+            )}
+
             <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
                 {isLoading ? (
                     <div className="p-12 text-center text-slate-500 dark:text-slate-400 flex flex-col items-center gap-3">
@@ -92,6 +164,10 @@ export default function BacktestListPage() {
                 ) : backtests.length === 0 ? (
                     <div className="p-12 text-center text-slate-500 dark:text-slate-400 bg-slate-50/30 dark:bg-slate-800/30">
                         기록이 없습니다. 첫 백테스트를 실행해보세요.
+                    </div>
+                ) : filtered.length === 0 ? (
+                    <div className="p-12 text-center text-slate-500 dark:text-slate-400 bg-slate-50/30 dark:bg-slate-800/30">
+                        필터 조건에 맞는 이력이 없습니다.
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
@@ -110,15 +186,23 @@ export default function BacktestListPage() {
                                     <th className="px-6 py-4">상태</th>
                                     <th className="px-6 py-4">전략 유형</th>
                                     <th className="px-6 py-4">페어 / 타임프레임</th>
-                                    <th className="px-6 py-4 text-right">수익률</th>
-                                    <th className="px-6 py-4 text-right">승률</th>
-                                    <th className="px-6 py-4 text-right">MDD</th>
-                                    <th className="px-6 py-4">실행 일시</th>
+                                    <th className="px-6 py-4 text-right cursor-pointer select-none hover:text-slate-700 dark:hover:text-slate-200" onClick={() => toggleSort('totalReturn')}>
+                                        수익률 <SortIcon col="totalReturn" sortKey={sortKey} sortDir={sortDir} />
+                                    </th>
+                                    <th className="px-6 py-4 text-right cursor-pointer select-none hover:text-slate-700 dark:hover:text-slate-200" onClick={() => toggleSort('winRate')}>
+                                        승률 <SortIcon col="winRate" sortKey={sortKey} sortDir={sortDir} />
+                                    </th>
+                                    <th className="px-6 py-4 text-right cursor-pointer select-none hover:text-slate-700 dark:hover:text-slate-200" onClick={() => toggleSort('maxDrawdown')}>
+                                        MDD <SortIcon col="maxDrawdown" sortKey={sortKey} sortDir={sortDir} />
+                                    </th>
+                                    <th className="px-6 py-4 cursor-pointer select-none hover:text-slate-700 dark:hover:text-slate-200" onClick={() => toggleSort('createdAt')}>
+                                        실행 일시 <SortIcon col="createdAt" sortKey={sortKey} sortDir={sortDir} />
+                                    </th>
                                     <th className="px-4 py-4"></th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                {backtests.map((bt) => (
+                                {filtered.map((bt) => (
                                     <tr
                                         key={bt.id}
                                         className="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group"

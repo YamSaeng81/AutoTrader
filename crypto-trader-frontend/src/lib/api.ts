@@ -21,14 +21,16 @@ export const backtestApi = {
         api.post<ApiResponse<{ jobId: number; message: string }>>('/api/v1/backtest/run-async', req).then(r => r.data),
     runMultiStrategy: (req: MultiStrategyBacktestRequest) =>
         api.post<ApiResponse<{ jobId: number; message: string }>>('/api/v1/backtest/multi-strategy-async', req).then(r => r.data),
+    runBatch: (req: { coinPairs: string[]; strategyTypes: string[]; timeframe: string; startDate: string; endDate: string; initialCapital: number }) =>
+        api.post<ApiResponse<{ jobId: number; total: number; message: string }>>('/api/v1/backtest/batch-async', req).then(r => r.data),
     get: (id: string) =>
         api.get<ApiResponse<BacktestResult>>(`/api/v1/backtest/${id}`).then(r => r.data),
     list: (_page = 0) =>
         api.get<ApiResponse<BacktestResult[]>>('/api/v1/backtest/list').then(r => r.data),
     compare: (ids: string[]) =>
         api.get<ApiResponse<BacktestResult[]>>('/api/v1/backtest/compare', { params: { ids: ids.join(',') } }).then(r => r.data),
-    trades: (id: string, page = 0) =>
-        api.get<ApiResponse<PageResponse<TradeRecord>>>(`/api/v1/backtest/${id}/trades`, { params: { page } }).then(r => r.data),
+    trades: (id: string, page = 0, size = 10000) =>
+        api.get<ApiResponse<PageResponse<TradeRecord>>>(`/api/v1/backtest/${id}/trades`, { params: { page, size } }).then(r => r.data),
     walkForward: (req: WalkForwardRequest) =>
         api.post<ApiResponse<WalkForwardResult>>('/api/v1/backtest/walk-forward', req, { timeout: 300000 }).then(r => r.data),
     walkForwardHistory: () =>
@@ -191,6 +193,10 @@ export const accountApi = {
 export const logsApi = {
     regimeHistory: (size = 100) =>
         api.get<ApiResponse<import('./types').RegimeChangeLog[]>>(`/api/v1/logs/regime-history?size=${size}`).then(r => r.data),
+    strategyWeights: () =>
+        api.get<ApiResponse<Record<string, unknown>>>('/api/v1/logs/strategy-weights').then(r => r.data),
+    optimizeWeights: () =>
+        api.post<ApiResponse<Record<string, unknown>>>('/api/v1/logs/strategy-weights/optimize').then(r => r.data),
 };
 
 // ── Admin API ────────────────────────────────────────────────────────────────
@@ -208,6 +214,12 @@ export const adminLlmApi = {
         api.post<ApiResponse<Record<string, unknown>>>('/api/v1/admin/llm/test/provider', { providerName, prompt }).then(r => r.data),
     testTask: (task: string, systemPrompt: string, userPrompt: string) =>
         api.post<ApiResponse<Record<string, unknown>>>('/api/v1/admin/llm/test/task', { task, systemPrompt, userPrompt }).then(r => r.data),
+    getLogs: (params: { page?: number; size?: number; task?: string; provider?: string }) =>
+        api.get<ApiResponse<Record<string, unknown>>>('/api/v1/admin/llm/logs', { params }).then(r => r.data),
+    getLogDetail: (id: number) =>
+        api.get<ApiResponse<Record<string, unknown>>>(`/api/v1/admin/llm/logs/${id}`).then(r => r.data),
+    getTokenStats: () =>
+        api.get<ApiResponse<Record<string, unknown>>>('/api/v1/admin/llm/logs/stats').then(r => r.data),
 };
 
 export const adminNewsApi = {

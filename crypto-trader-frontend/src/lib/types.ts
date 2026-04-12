@@ -378,6 +378,16 @@ export interface RiskConfig {
   maxPositions: number;
   cooldownMinutes: number;
   portfolioLimitKrw: number;
+  mddThresholdPct: number;
+  consecutiveLossLimit: number;
+  circuitBreakerEnabled: boolean;
+  // 포지션 수준 리스크 (ExitRuleConfig)
+  stopLossPct: number;
+  takeProfitMultiplier: number;
+  trailingEnabled: boolean;
+  trailingTpMarginPct: number;
+  trailingSlMarginPct: number;
+  investRatioPct: number;
 }
 
 // ─── Upbit 계좌 현황 타입 ─────────────────────────────────────────────────
@@ -512,10 +522,35 @@ export interface SignalStatsByRegime extends SignalStatsBucket {
   totalSignals: number;
 }
 
+export interface BlockedSignalBucket extends SignalStatsBucket {
+  totalSignals: number;
+}
+
+export type FilterVerdict = 'FILTER_HURTING' | 'FILTER_HELPING' | 'NEUTRAL' | 'INSUFFICIENT';
+
+export interface BlockedReasonStat extends SignalStatsBucket {
+  reason: string;
+  totalBlocked: number;
+  verdict: FilterVerdict;
+}
+
+export interface BlockedVsExecutedStats {
+  executed: BlockedSignalBucket;
+  blocked: BlockedSignalBucket;
+  byBlockReason: BlockedReasonStat[];
+}
+
+export interface SignalStatsByHour extends SignalStatsBucket {
+  hour: number;        // 0-23 (KST)
+  totalSignals: number;
+}
+
 export interface SignalStatsResponse {
   overall: SignalStatsOverall;
   byStrategy: SignalStatsByStrategy[];
   byRegime: SignalStatsByRegime[];
+  blockedVsExecuted: BlockedVsExecutedStats;
+  byHour: SignalStatsByHour[];
 }
 
 export interface AccountSummary {

@@ -53,6 +53,32 @@ public class RiskConfigEntity {
     @Column(name = "circuit_breaker_enabled")
     private Boolean circuitBreakerEnabled;
 
+    // ── 포지션 수준 리스크 규칙 (ExitRuleConfig) ──────────────
+
+    /** 기본 손절 비율 (%) */
+    @Column(name = "stop_loss_pct", precision = 5, scale = 2)
+    private BigDecimal stopLossPct;
+
+    /** 익절 배수 — TP% = SL% × 배수 */
+    @Column(name = "take_profit_multiplier", precision = 5, scale = 2)
+    private BigDecimal takeProfitMultiplier;
+
+    /** 트레일링 스탑 활성화 */
+    @Column(name = "trailing_enabled")
+    private Boolean trailingEnabled;
+
+    /** 트레일링 TP 마진 (%) — 고점 대비 */
+    @Column(name = "trailing_tp_margin_pct", precision = 5, scale = 3)
+    private BigDecimal trailingTpMarginPct;
+
+    /** 트레일링 SL 조임 마진 (%) — 저점 대비 */
+    @Column(name = "trailing_sl_margin_pct", precision = 5, scale = 3)
+    private BigDecimal trailingSlMarginPct;
+
+    /** 가용자금 대비 투자 비율 (%) */
+    @Column(name = "invest_ratio_pct", precision = 5, scale = 2)
+    private BigDecimal investRatioPct;
+
     @PrePersist
     void prePersist() {
         if (updatedAt == null) updatedAt = Instant.now();
@@ -64,6 +90,12 @@ public class RiskConfigEntity {
         if (mddThresholdPct == null) mddThresholdPct = new BigDecimal("20.0");
         if (consecutiveLossLimit == null) consecutiveLossLimit = 5;
         if (circuitBreakerEnabled == null) circuitBreakerEnabled = Boolean.TRUE;
+        if (stopLossPct == null) stopLossPct = new BigDecimal("5.0");
+        if (takeProfitMultiplier == null) takeProfitMultiplier = new BigDecimal("2.0");
+        if (trailingEnabled == null) trailingEnabled = Boolean.TRUE;
+        if (trailingTpMarginPct == null) trailingTpMarginPct = new BigDecimal("0.5");
+        if (trailingSlMarginPct == null) trailingSlMarginPct = new BigDecimal("0.3");
+        if (investRatioPct == null) investRatioPct = new BigDecimal("80.0");
     }
 
     @PreUpdate
@@ -103,4 +135,22 @@ public class RiskConfigEntity {
 
     public Boolean getCircuitBreakerEnabled() { return circuitBreakerEnabled; }
     public void setCircuitBreakerEnabled(Boolean circuitBreakerEnabled) { this.circuitBreakerEnabled = circuitBreakerEnabled; }
+
+    public BigDecimal getStopLossPct() { return stopLossPct; }
+    public void setStopLossPct(BigDecimal stopLossPct) { this.stopLossPct = stopLossPct; }
+
+    public BigDecimal getTakeProfitMultiplier() { return takeProfitMultiplier; }
+    public void setTakeProfitMultiplier(BigDecimal takeProfitMultiplier) { this.takeProfitMultiplier = takeProfitMultiplier; }
+
+    public Boolean getTrailingEnabled() { return trailingEnabled; }
+    public void setTrailingEnabled(Boolean trailingEnabled) { this.trailingEnabled = trailingEnabled; }
+
+    public BigDecimal getTrailingTpMarginPct() { return trailingTpMarginPct; }
+    public void setTrailingTpMarginPct(BigDecimal trailingTpMarginPct) { this.trailingTpMarginPct = trailingTpMarginPct; }
+
+    public BigDecimal getTrailingSlMarginPct() { return trailingSlMarginPct; }
+    public void setTrailingSlMarginPct(BigDecimal trailingSlMarginPct) { this.trailingSlMarginPct = trailingSlMarginPct; }
+
+    public BigDecimal getInvestRatioPct() { return investRatioPct; }
+    public void setInvestRatioPct(BigDecimal investRatioPct) { this.investRatioPct = investRatioPct; }
 }

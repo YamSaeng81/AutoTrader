@@ -6,6 +6,8 @@ import com.cryptoautotrader.api.entity.StrategyLogEntity;
 import com.cryptoautotrader.api.repository.PositionRepository;
 import com.cryptoautotrader.api.repository.RegimeChangeLogRepository;
 import com.cryptoautotrader.api.repository.StrategyLogRepository;
+import com.cryptoautotrader.exchange.upbit.UpbitRestClient;
+import com.cryptoautotrader.exchange.upbit.dto.UpbitCandleResponse;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +36,7 @@ public class LogAnalyzerService {
     private final StrategyLogRepository strategyLogRepo;
     private final PositionRepository positionRepo;
     private final RegimeChangeLogRepository regimeChangeLogRepo;
+    private final UpbitRestClient upbitRestClient;
 
     /**
      * 지정 구간의 분석 보고서를 생성한다.
@@ -45,12 +48,16 @@ public class LogAnalyzerService {
         List<StrategyLogEntity> periodLogs = strategyLogRepo.findByPeriod(from, to);
         List<PositionEntity>    closedPos  = positionRepo.findClosedByPeriod(from, to);
 
-        SignalStats    signals  = buildSignalStats(periodLogs);
+        SignalStats    signals   = buildSignalStats(periodLogs);
         PositionStats  positions = buildPositionStats(closedPos);
-        RegimeStats    regime   = buildRegimeStats(from, to);
+        RegimeStats    regime    = buildRegimeStats(from, to);
+        PriceContext   price     = buildPriceContext(from);
+        int            openPos   = buildOpenPositionCount();
+        int            streak    = buildConsecutiveLosses();
 
-        log.info("[LogAnalyzer] 집계 완료 — 신호 {}건 (실행 {}/차단 {}), 포지션 {}건, 레짐 {}",
-                signals.total, signals.executed, signals.blocked, positions.closedCount, regime.currentRegime);
+        log.info("[LogAnalyzer] 집계 완료 — 신호 {}건 (실행 {}/차단 {}), 포지션 {}건, 레짐 {}, BTC {}%",
+                signals.total, signals.executed, signals.blocked, positions.closedCount,
+                regime.currentRegime, price.btcChange);
 
         return AnalysisReport.builder()
                 .periodStart(from)
@@ -77,6 +84,12 @@ public class LogAnalyzerService {
                 // 레짐
                 .currentRegime(regime.currentRegime)
                 .regimeTransitions(regime.transitions)
+                // 시장 가격 맥락
+                .btcPriceChange12h(price.btcChange)
+                .ethPriceChange12h(price.ethChange)
+                // 포지션 현황
+                .openPositionCount(openPos)
+                .consecutiveLosses(streak)
                 .build();
     }
 
@@ -106,6 +119,10 @@ public class LogAnalyzerService {
                                         .sell((int) g.stream().filter(l -> "SELL".equals(l.getSignal())).count())
                                         .hold((int) g.stream().filter(l -> "HOLD".equals(l.getSignal())).count())
                                         .executed((int) g.stream().filter(StrategyLogEntity::isWasExecuted).count())
+                                        .accuracy4h(calcAccuracy(g, true))
+                                        .accuracy24h(calcAccuracy(g, false))
+                                        .avgReturn4h(calcAvgReturn(g, true))
+                                        .avgReturn24h(calcAvgReturn(g, false))
                                         .build())));
 
         s.accuracy4h  = calcAccuracy(logs, true);
@@ -152,32 +169,110 @@ public class LogAnalyzerService {
 
     // ── 계산 헬퍼 ─────────────────────────────────────────────────────────────
 
+    /**
+     * 수수료 임계값: 업비트 왕복 수수료(매수 0.05% + 매도 0.05%) 기준.
+     * 이 값을 초과해야 실질 승리로 판정한다.
+     */
+    private static final BigDecimal FEE_THRESHOLD = new BigDecimal("0.10");
+
     /** count/total 비율을 소수점 1자리 퍼센트로 반환 */
     private static BigDecimal pct(long count, long total) {
         return BigDecimal.valueOf(count * 100.0 / total).setScale(1, RoundingMode.HALF_UP);
     }
 
+    /**
+     * BUY/SELL 신호만 대상으로 방향 적중률 계산.
+     * 승리 기준: return > FEE_THRESHOLD (수수료 차감 후 실질 수익)
+     */
     private BigDecimal calcAccuracy(List<StrategyLogEntity> logs, boolean is4h) {
         List<StrategyLogEntity> evaluated = logs.stream()
+                .filter(l -> "BUY".equals(l.getSignal()) || "SELL".equals(l.getSignal()))
                 .filter(l -> is4h ? l.getReturn4hPct() != null : l.getReturn24hPct() != null)
                 .toList();
         if (evaluated.isEmpty()) return null;
         long correct = evaluated.stream()
                 .filter(l -> {
                     BigDecimal ret = is4h ? l.getReturn4hPct() : l.getReturn24hPct();
-                    return ret != null && ret.compareTo(BigDecimal.ZERO) > 0;
+                    return ret != null && ret.compareTo(FEE_THRESHOLD) > 0;
                 }).count();
         return pct(correct, evaluated.size());
     }
 
+    /** BUY/SELL 신호만 대상으로 평균 수익률 계산 */
     private BigDecimal calcAvgReturn(List<StrategyLogEntity> logs, boolean is4h) {
         List<BigDecimal> returns = logs.stream()
+                .filter(l -> "BUY".equals(l.getSignal()) || "SELL".equals(l.getSignal()))
                 .map(l -> is4h ? l.getReturn4hPct() : l.getReturn24hPct())
                 .filter(r -> r != null)
                 .toList();
         if (returns.isEmpty()) return null;
         return returns.stream().reduce(BigDecimal.ZERO, BigDecimal::add)
                 .divide(BigDecimal.valueOf(returns.size()), 2, RoundingMode.HALF_UP);
+    }
+
+    // ── 시장 가격 맥락 ────────────────────────────────────────────────────────
+
+    /**
+     * BTC/ETH의 12h 가격 변화율(%)을 Upbit에서 조회한다.
+     * 조회 실패 시 null을 담아 반환하며 보고서 생성에 영향을 주지 않는다.
+     */
+    private PriceContext buildPriceContext(Instant from) {
+        PriceContext ctx = new PriceContext();
+        ctx.btcChange = fetchPriceChange("KRW-BTC", from);
+        ctx.ethChange = fetchPriceChange("KRW-ETH", from);
+        return ctx;
+    }
+
+    private BigDecimal fetchPriceChange(String market, Instant from) {
+        try {
+            List<UpbitCandleResponse> recent = upbitRestClient.getCandles(market, "minutes", 60, Instant.now(), 1);
+            List<UpbitCandleResponse> past   = upbitRestClient.getCandles(market, "minutes", 60, from, 1);
+            if (recent.isEmpty() || past.isEmpty()) return null;
+            BigDecimal current = recent.get(0).getTradePrice();
+            BigDecimal base    = past.get(0).getTradePrice();
+            if (base == null || base.compareTo(BigDecimal.ZERO) == 0) return null;
+            return current.subtract(base)
+                    .divide(base, 6, RoundingMode.HALF_UP)
+                    .multiply(BigDecimal.valueOf(100))
+                    .setScale(2, RoundingMode.HALF_UP);
+        } catch (Exception e) {
+            log.debug("가격 변화 조회 실패 ({}): {}", market, e.getMessage());
+            return null;
+        }
+    }
+
+    // ── 포지션 현황 ───────────────────────────────────────────────────────────
+
+    /** 현재 오픈 포지션 수 */
+    private int buildOpenPositionCount() {
+        try {
+            return (int) positionRepo.countByStatus("OPEN");
+        } catch (Exception e) {
+            log.debug("오픈 포지션 수 조회 실패: {}", e.getMessage());
+            return 0;
+        }
+    }
+
+    /**
+     * 최근 청산 포지션 기준 연속 손실 횟수를 계산한다.
+     * 첫 번째 수익 포지션이 나오면 카운트를 멈춘다.
+     */
+    private int buildConsecutiveLosses() {
+        try {
+            List<PositionEntity> recent = positionRepo.findRecentClosed(PageRequest.of(0, 20));
+            int streak = 0;
+            for (PositionEntity p : recent) {
+                if (p.getRealizedPnl() != null && p.getRealizedPnl().compareTo(BigDecimal.ZERO) < 0) {
+                    streak++;
+                } else {
+                    break;
+                }
+            }
+            return streak;
+        } catch (Exception e) {
+            log.debug("연속 손실 계산 실패: {}", e.getMessage());
+            return 0;
+        }
     }
 
     // ── 내부 집계 컨테이너 ────────────────────────────────────────────────────
@@ -197,5 +292,10 @@ public class LogAnalyzerService {
     private static class RegimeStats {
         String currentRegime;
         List<AnalysisReport.RegimeTransition> transitions;
+    }
+
+    private static class PriceContext {
+        BigDecimal btcChange;
+        BigDecimal ethChange;
     }
 }

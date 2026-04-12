@@ -47,27 +47,38 @@ public final class StrategySelector {
     }
 
     // ── 전략 그룹 정의 ───────────────────────────────────────────────────
+    // 각 메서드는 WeightOverrideStore에 해당 regime 오버라이드가 있으면 동적 가중치를 사용한다.
+    // 오버라이드가 없으면 하드코딩 기본값을 그대로 사용해 기존 동작을 보장한다.
 
     private static List<WeightedStrategy> trend() {
+        final String r = "TREND";
         return List.of(
-                new WeightedStrategy(StrategyRegistry.get("SUPERTREND"),    0.5),
-                new WeightedStrategy(StrategyRegistry.get("EMA_CROSS"),     0.3),
-                new WeightedStrategy(StrategyRegistry.get("ATR_BREAKOUT"),  0.2)
+                ws(r, "SUPERTREND",   0.5),
+                ws(r, "EMA_CROSS",    0.3),
+                ws(r, "ATR_BREAKOUT", 0.2)
         );
     }
 
     private static List<WeightedStrategy> range() {
+        final String r = "RANGE";
         return List.of(
-                new WeightedStrategy(StrategyRegistry.get("BOLLINGER"),    0.4),
-                new WeightedStrategy(StrategyRegistry.get("VWAP"),         0.4),
-                new WeightedStrategy(StrategyRegistry.get("GRID"),         0.2)
+                ws(r, "BOLLINGER", 0.4),
+                ws(r, "VWAP",      0.4),
+                ws(r, "GRID",      0.2)
         );
     }
 
     private static List<WeightedStrategy> volatility() {
+        final String r = "VOLATILITY";
         return List.of(
-                new WeightedStrategy(StrategyRegistry.get("ATR_BREAKOUT"),   0.6),
-                new WeightedStrategy(StrategyRegistry.get("VOLUME_DELTA"),   0.4)
+                ws(r, "ATR_BREAKOUT",  0.6),
+                ws(r, "VOLUME_DELTA",  0.4)
         );
+    }
+
+    /** WeightOverrideStore에서 가중치를 조회해 WeightedStrategy를 생성한다. */
+    private static WeightedStrategy ws(String regime, String name, double defaultWeight) {
+        double weight = WeightOverrideStore.get(regime, name, defaultWeight);
+        return new WeightedStrategy(StrategyRegistry.get(name), weight);
     }
 }

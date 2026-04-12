@@ -140,19 +140,96 @@ public class MorningBriefingComposer {
 
     private String buildTradingDescription(AnalysisReport r) {
         String systemPrompt = """
-                암호화폐 자동매매 시스템 분석가입니다.
-                아침 브리핑으로 오늘 주의할 점과 추천 전략을 한국어 2~3문장으로 작성하세요.
-                Discord 메시지이므로 간결하고 핵심만 담으세요.
+                당신은 암호화폐 자동매매 시스템 분석가입니다.
+                아래 12시간 성과 데이터를 바탕으로 다음 3가지를 한국어 3~4문장으로 작성하세요:
+                1. 시장 상황 판단 (레짐 + 가격 흐름 근거)
+                2. 전략 성과 평가 (적중률·손익 수치 언급)
+                3. 오늘 주의사항 또는 개선 제언
+                Discord 메시지이므로 핵심만, 수치를 근거로 구체적으로 작성하세요.
                 """;
-        String userPrompt = String.format(
-                "현재 레짐: %s | 총 신호: %d건 | 실행율: %.0f%% | 포지션 승률: %s%% | 실현손익: %s원",
-                r.getCurrentRegime(), r.getTotalSignals(),
-                r.getTotalSignals() > 0 ? (double) r.getExecutedSignals() / r.getTotalSignals() * 100 : 0,
-                r.getWinRate() != null ? r.getWinRate().toPlainString() : "-",
-                fmt(r.getTotalRealizedPnl()));
 
+        String userPrompt = buildTradingUserPrompt(r);
         LlmResponse resp = llmTaskRouter.route(LlmTask.REPORT_NARRATION, systemPrompt, userPrompt);
         return resp.isSuccess() ? resp.getContent() : "AI 분석을 불러오는 중 오류가 발생했습니다.";
+    }
+
+    private String buildTradingUserPrompt(AnalysisReport r) {
+        double execRate = r.getTotalSignals() > 0
+                ? (double) r.getExecutedSignals() / r.getTotalSignals() * 100 : 0;
+
+        StringBuilder sb = new StringBuilder();
+
+        // 시장 가격 맥락
+        sb.append("[시장 가격 맥락]\n");
+        sb.append("현재 레짐: ").append(r.getCurrentRegime());
+        if (!r.getRegimeTransitions().isEmpty())
+            sb.append(" (12h 내 전환 ").append(r.getRegimeTransitions().size()).append("회)");
+        sb.append("\n");
+        sb.append("BTC 12h 변화: ").append(r.getBtcPriceChange12h() != null ? fmtChange(r.getBtcPriceChange12h()) : "조회 실패").append("\n");
+        sb.append("ETH 12h 변화: ").append(r.getEthPriceChange12h() != null ? fmtChange(r.getEthPriceChange12h()) : "조회 실패").append("\n");
+
+        // 신호 성과
+        sb.append("\n[신호 성과]\n");
+        sb.append(String.format("총 신호: %d건 (매수 %d / 매도 %d / 관망 %d)\n",
+                r.getTotalSignals(), r.getBuySignals(), r.getSellSignals(), r.getHoldSignals()));
+        sb.append(String.format("실행: %d건 (실행율 %.0f%%) / 차단: %d건\n",
+                r.getExecutedSignals(), execRate, r.getBlockedSignals()));
+        sb.append("4h 적중률: ").append(r.getAccuracy4h() != null ? r.getAccuracy4h() + "%" : "집계 중")
+                .append(" (평균 ").append(r.getAvgReturn4h() != null ? r.getAvgReturn4h() + "%" : "-").append(")\n");
+        sb.append("24h 적중률: ").append(r.getAccuracy24h() != null ? r.getAccuracy24h() + "%" : "집계 중")
+                .append(" (평균 ").append(r.getAvgReturn24h() != null ? r.getAvgReturn24h() + "%" : "-").append(")\n");
+
+        // 전략별 성과 (샘플 ≥ 3인 것만)
+        if (r.getStrategyStats() != null && !r.getStrategyStats().isEmpty()) {
+            sb.append("\n[전략별 성과]\n");
+            r.getStrategyStats().entrySet().stream()
+                    .filter(e -> (e.getValue().getBuy() + e.getValue().getSell()) >= 3)
+                    .sorted((a, b) -> {
+                        BigDecimal ra = a.getValue().getAccuracy4h();
+                        BigDecimal rb = b.getValue().getAccuracy4h();
+                        if (ra == null && rb == null) return 0;
+                        if (ra == null) return 1;
+                        if (rb == null) return -1;
+                        return rb.compareTo(ra);
+                    })
+                    .forEach(e -> {
+                        AnalysisReport.StrategySignalStat s = e.getValue();
+                        sb.append("• ").append(e.getKey())
+                                .append(": 신호 ").append(s.getBuy() + s.getSell()).append("건");
+                        if (s.getAccuracy4h() != null)
+                            sb.append(", 4h ").append(s.getAccuracy4h()).append("%");
+                        if (s.getAvgReturn4h() != null)
+                            sb.append("(avg ").append(s.getAvgReturn4h()).append("%)");
+                        sb.append("\n");
+                    });
+        }
+
+        // 포지션 성과
+        sb.append("\n[포지션 성과]\n");
+        sb.append(String.format("청산: %d건 | 승률: %s%% | 실현손익: %s원\n",
+                r.getClosedPositions(),
+                r.getWinRate() != null ? r.getWinRate().toPlainString() : "-",
+                fmt(r.getTotalRealizedPnl())));
+        sb.append("오픈 포지션: ").append(r.getOpenPositionCount()).append("건");
+        if (r.getConsecutiveLosses() > 0)
+            sb.append(" | ⚠ 연속 손실: ").append(r.getConsecutiveLosses()).append("회");
+        sb.append("\n");
+
+        // 주요 차단 사유
+        if (r.getBlockReasons() != null && !r.getBlockReasons().isEmpty()) {
+            sb.append("\n[주요 차단 사유]\n");
+            r.getBlockReasons().entrySet().stream()
+                    .sorted((a, b) -> b.getValue() - a.getValue())
+                    .limit(3)
+                    .forEach(e -> sb.append("• ").append(e.getKey()).append(": ").append(e.getValue()).append("건\n"));
+        }
+
+        return sb.toString();
+    }
+
+    private String fmtChange(BigDecimal v) {
+        String sign = v.compareTo(BigDecimal.ZERO) >= 0 ? "+" : "";
+        return sign + v.toPlainString() + "%";
     }
 
     // ── 뉴스 채널 공통 전송 ───────────────────────────────────────────────────
