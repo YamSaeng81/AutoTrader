@@ -43,6 +43,7 @@ import com.cryptoautotrader.core.regime.MarketRegime;
 import com.cryptoautotrader.core.regime.MarketRegimeDetector;
 import com.cryptoautotrader.core.risk.RiskCheckResult;
 
+import com.cryptoautotrader.api.discord.DiscordWebhookClient;
 import com.cryptoautotrader.exchange.upbit.UpbitRestClient;
 import com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient;
 
@@ -50,6 +51,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -58,6 +61,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -78,8 +82,12 @@ public class LiveTradingService {
 
     // ExitRuleConfig는 DB에서 동적 로드 — exitConfig() 메서드 사용
 
-    /** 백테스트 기준 구조적 손실 전략 — 실전매매 세션 생성 차단 */
-    private static final List<String> BLOCKED_LIVE_STRATEGIES = List.of("STOCHASTIC_RSI", "MACD");
+    /** 백테스트 기준 구조적 손실·비활성 전략 — 실전매매 세션 생성 차단 */
+    private static final List<String> BLOCKED_LIVE_STRATEGIES = List.of(
+            "STOCHASTIC_RSI",   // BTC -70.4%/-67.6%
+            "MACD",             // BTC -58.8%/-57.6%
+            "MACD_STOCH_BB"     // 3년 H1: BTC 17건 -2.32%, 거래 극희소·수익성 없음
+    );
     private static final List<String> ACTIVE_ORDER_STATES =
             List.of("PENDING", "SUBMITTED", "PARTIAL_FILLED");
 
@@ -93,6 +101,12 @@ public class LiveTradingService {
     /** WebSocket 실시간 손절 — 코인별 마지막 체크 시각 (5초 throttle) */
     private final Map<String, Long> rtStopLossLastCheckMs = new ConcurrentHashMap<>();
     private static final long RT_STOPLOSS_CHECK_INTERVAL_MS = 5_000;
+
+    /** 거래소 DOWN으로 비상 정지된 세션 ID 목록 — 복구 시 자동 재시작 대상 */
+    private final Set<Long> exchangeStoppedSessionIds = ConcurrentHashMap.newKeySet();
+
+    private static final DateTimeFormatter KST_FMT =
+            DateTimeFormatter.ofPattern("HH:mm").withZone(ZoneId.of("Asia/Seoul"));
 
     /** 급등/급락 감지 — 코인별 가격 이력 (최근 60초) */
     private final Map<String, Deque<PriceSnapshot>> priceHistory = new ConcurrentHashMap<>();
@@ -122,6 +136,10 @@ public class LiveTradingService {
     @Autowired(required = false)
     private UpbitRestClient upbitRestClient;
 
+    /** Discord 알림용 (선택적 의존성) */
+    @Autowired(required = false)
+    private DiscordWebhookClient discordClient;
+
     /** WebSocket 클라이언트 (선택적 — exchange-adapter 빈이 없을 경우 null) */
     @Autowired(required = false)
     private UpbitWebSocketClient wsClient;
@@ -136,8 +154,67 @@ public class LiveTradingService {
     @EventListener
     public void onExchangeDown(ExchangeDownEvent event) {
         log.error("거래소 DOWN 이벤트 수신 -- 모든 실전매매 세션을 비상 정지합니다.");
+
+        // 비상 정지 전 RUNNING 세션 ID 저장 (복구 시 재시작 대상)
+        List<LiveTradingSessionEntity> runningSessions = sessionRepository.findByStatus("RUNNING");
+        List<String> sessionSummaries = runningSessions.stream()
+                .map(s -> s.getStrategyType() + " " + s.getCoinPair() + "[" + s.getTimeframe() + "]")
+                .collect(Collectors.toList());
+        runningSessions.forEach(s -> exchangeStoppedSessionIds.add(s.getId()));
+
+        // Telegram 알림
         telegramService.notifyExchangeDown(event.getReason());
+
+        // Discord ALERT
+        sendDiscordEmergencyStopAlert(event.getReason(), sessionSummaries);
+
         emergencyStopAll();
+    }
+
+    @EventListener
+    @Async("marketDataExecutor")
+    public void onExchangeRecovered(ExchangeRecoveredEvent event) {
+        if (exchangeStoppedSessionIds.isEmpty()) {
+            log.info("거래소 복구 감지 — 재시작 대상 세션 없음");
+            return;
+        }
+
+        log.info("거래소 복구 감지 — {} 세션 자동 재시작 시도", exchangeStoppedSessionIds.size());
+
+        List<Long> toRestart = new ArrayList<>(exchangeStoppedSessionIds);
+        exchangeStoppedSessionIds.clear();
+
+        List<String> restarted = new ArrayList<>();
+        List<String> failed    = new ArrayList<>();
+
+        for (Long sessionId : toRestart) {
+            try {
+                LiveTradingSessionEntity session = sessionRepository.findById(sessionId).orElse(null);
+                if (session == null) {
+                    log.warn("재시작 대상 세션 없음: id={}", sessionId);
+                    continue;
+                }
+                // EMERGENCY_STOPPED → STOPPED 으로 변경 후 startSession
+                session.setStatus("STOPPED");
+                session.setStoppedAt(null);
+                sessionRepository.save(session);
+
+                startSession(sessionId);
+                restarted.add(session.getStrategyType() + " " + session.getCoinPair()
+                        + "[" + session.getTimeframe() + "]");
+                log.info("세션 자동 재시작 완료: id={} {} {}", sessionId,
+                        session.getStrategyType(), session.getCoinPair());
+            } catch (Exception e) {
+                log.error("세션 자동 재시작 실패: id={} — {}", sessionId, e.getMessage());
+                failed.add("세션#" + sessionId + "(" + e.getMessage() + ")");
+            }
+        }
+
+        // Telegram 알림
+        telegramService.notifyExchangeRecovered(restarted, failed);
+
+        // Discord ALERT
+        sendDiscordRecoveryAlert(restarted, failed);
     }
 
     // -- 세션 생성 -----------------------------------------------
@@ -1648,6 +1725,51 @@ public class LiveTradingService {
                         .low(c.getLow()).close(c.getClose()).volume(c.getVolume())
                         .build())
                 .toList();
+    }
+
+    // ── Discord ALERT 헬퍼 ─────────────────────────────────────────────────────
+
+    /** 거래소 DOWN → 비상 정지 Discord ALERT 전송 */
+    private void sendDiscordEmergencyStopAlert(String reason, List<String> sessionSummaries) {
+        if (discordClient == null) return;
+        try {
+            String sessionList = sessionSummaries.isEmpty() ? "없음"
+                    : sessionSummaries.stream().map(s -> "• " + s).collect(Collectors.joining("\n"));
+            com.fasterxml.jackson.databind.node.ObjectNode embed = discordClient.embed(
+                    "🚨 거래소 통신 오류 — 비상 정지",
+                    "Upbit 연결 오류로 모든 세션이 비상 정지되었습니다.\n복구 후 자동 재시작됩니다.",
+                    DiscordWebhookClient.COLOR_RED);
+            discordClient.addField(embed, "사유", reason, false);
+            discordClient.addField(embed, "정지된 세션 (" + sessionSummaries.size() + "개)", sessionList, false);
+            discordClient.addField(embed, "시각", KST_FMT.format(Instant.now()) + " KST", true);
+            discordClient.sendEmbed("ALERT", embed, "EXCHANGE_DOWN");
+        } catch (Exception e) {
+            log.warn("Discord 비상정지 알림 전송 실패: {}", e.getMessage());
+        }
+    }
+
+    /** 거래소 복구 → 세션 재시작 Discord ALERT 전송 */
+    private void sendDiscordRecoveryAlert(List<String> restarted, List<String> failed) {
+        if (discordClient == null) return;
+        try {
+            boolean hasFailures = !failed.isEmpty();
+            String title = hasFailures ? "⚠️ 거래소 복구 — 일부 세션 재시작 실패" : "✅ 거래소 복구 — 세션 자동 재시작 완료";
+            int color = hasFailures ? DiscordWebhookClient.COLOR_YELLOW : DiscordWebhookClient.COLOR_GREEN;
+            com.fasterxml.jackson.databind.node.ObjectNode embed = discordClient.embed(title,
+                    "Upbit 연결이 복구되어 비상 정지 세션을 재시작했습니다.", color);
+            if (!restarted.isEmpty()) {
+                discordClient.addField(embed, "✅ 재시작 완료 (" + restarted.size() + "개)",
+                        restarted.stream().map(s -> "• " + s).collect(Collectors.joining("\n")), false);
+            }
+            if (hasFailures) {
+                discordClient.addField(embed, "❌ 재시작 실패 (" + failed.size() + "개)",
+                        failed.stream().map(s -> "• " + s).collect(Collectors.joining("\n")), false);
+            }
+            discordClient.addField(embed, "시각", KST_FMT.format(Instant.now()) + " KST", true);
+            discordClient.sendEmbed("ALERT", embed, "EXCHANGE_RECOVERED");
+        } catch (Exception e) {
+            log.warn("Discord 복구 알림 전송 실패: {}", e.getMessage());
+        }
     }
 
 }

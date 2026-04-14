@@ -143,6 +143,21 @@ public class UpbitRestClient {
         return objectMapper.readValue(response.body(), new TypeReference<>() {});
     }
 
+    /**
+     * KRW 마켓 전체 목록 조회 — 인증 불필요 (공개 API)
+     * @return 마켓 목록 (market, korean_name, english_name 등 포함)
+     */
+    public List<Map<String, Object>> getMarkets() throws Exception {
+        String url = BASE_URL + "/market/all";
+        throttle();
+        HttpResponse<String> response = httpClient.send(buildGetRequest(url), HttpResponse.BodyHandlers.ofString());
+        if (response.statusCode() != 200) {
+            log.error("Upbit market/all API 오류: status={}", response.statusCode());
+            throw new RuntimeException("Upbit market/all API 호출 실패: " + response.statusCode());
+        }
+        return objectMapper.readValue(response.body(), new TypeReference<>() {});
+    }
+
     /** HTTP GET 요청 빌드 헬퍼 */
     private HttpRequest buildGetRequest(String url) {
         return HttpRequest.newBuilder()

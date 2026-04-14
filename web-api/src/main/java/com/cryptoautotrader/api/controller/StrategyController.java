@@ -203,7 +203,7 @@ public class StrategyController {
     private boolean isCompositeStrategy(String name) {
         return switch (name) {
             case "COMPOSITE", "COMPOSITE_MOMENTUM", "COMPOSITE_ETH", "COMPOSITE_BREAKOUT",
-                 "COMPOSITE_MOMENTUM_ICHIMOKU", "COMPOSITE_BREAKOUT_ICHIMOKU",
+                 "COMPOSITE_MOMENTUM_ICHIMOKU", "COMPOSITE_MOMENTUM_ICHIMOKU_V2", "COMPOSITE_BREAKOUT_ICHIMOKU",
                  "MACD_STOCH_BB" -> true;
             default -> false;
         };
@@ -220,7 +220,7 @@ public class StrategyController {
             case "RSI", "MACD", "SUPERTREND", "ATR_BREAKOUT", "ORDERBOOK_IMBALANCE", "STOCHASTIC_RSI", "VOLUME_DELTA" -> true;
             // 코인별 복합 전략 프리셋 + 국면 적응형 복합 전략
             case "COMPOSITE", "COMPOSITE_MOMENTUM", "COMPOSITE_ETH", "COMPOSITE_BREAKOUT",
-                 "COMPOSITE_MOMENTUM_ICHIMOKU", "COMPOSITE_BREAKOUT_ICHIMOKU" -> true;
+                 "COMPOSITE_MOMENTUM_ICHIMOKU", "COMPOSITE_MOMENTUM_ICHIMOKU_V2", "COMPOSITE_BREAKOUT_ICHIMOKU" -> true;
             // 복합 추세 전략
             case "MACD_STOCH_BB" -> true;
             default -> false;
@@ -253,7 +253,8 @@ public class StrategyController {
                                           "RSI 브레이크: 과매수 구간 ATR 돌파 신호 차단. " +
                                           "BTC 비권장 (변동성 낮아 신호 희소), 소형 알트 비권장 (변동성 과다). " +
                                           "백테스트: ETH 평균 +70.3% MDD -12~-17%";
-            case "MACD_STOCH_BB"       -> "MACD 추세 + StochRSI 타이밍 + 볼린저밴드 지지선 복합 추세 전략 (1시간봉 최적화)";
+            case "MACD_STOCH_BB"       -> "MACD 추세(>0·히스토그램 확대) + StochRSI 과매도 타이밍(%K<20·골든크로스) + 거래량 필터 복합 전략 (1시간봉 최적화). " +
+                                          "v2: 볼린저밴드 %B 조건 제거 — MACD>0(상승추세)와 %B≤0.35(하단근처) 구조적 충돌로 3년 H1 기준 BTC 5건 등 극희소 신호 문제 해소.";
             case "COMPOSITE_MOMENTUM_ICHIMOKU" ->
                     "[모멘텀 혼합 + Ichimoku 필터] 기존 COMPOSITE_MOMENTUM(MACD×0.5 + VWAP×0.3 + GRID×0.2) 위에 " +
                     "Ichimoku 구름(9/26/52) 필터 추가. " +
@@ -264,6 +265,12 @@ public class StrategyController {
                     "Ichimoku 구름(9/26/52) 필터 추가. " +
                     "구름 아래 BUY·구름 위 SELL 억제 → ADX 횡보장·EMA 역행·Ichimoku 삼중 필터. " +
                     "ETH·SOL·XRP·BNB 등 중대형 알트 최적화. BTC·소형 알트 비권장.";
+            case "COMPOSITE_MOMENTUM_ICHIMOKU_V2" ->
+                    "[모멘텀 순수 추세 + Ichimoku 필터 V2] MACD×0.5 + SUPERTREND×0.3 + GRID×0.2 | " +
+                    "V1(COMPOSITE_MOMENTUM_ICHIMOKU)의 MACD(추세)↔VWAP(역추세) 충돌 해소 버전. " +
+                    "VWAP를 SUPERTREND로 교체 → 세 전략 모두 추세 추종 방향 일치. " +
+                    "EMA(20/50) 방향 역행 억제 + Ichimoku 구름 내부 차단 이중 필터. " +
+                    "XRP·ETH 등 모멘텀 계열 강세 코인 최적화. V1과 병행 운영으로 성능 비교 권장.";
             default -> "설명 없음";
         };
     }

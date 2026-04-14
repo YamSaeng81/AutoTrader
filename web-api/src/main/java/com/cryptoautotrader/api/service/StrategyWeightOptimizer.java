@@ -17,20 +17,26 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * 실전·모의 신호 품질 데이터를 기반으로 전략 가중치를 자동 조정한다.
+ * 실전·모의 신호 품질 데이터를 기반으로 Composite 전략 가중치를 자동 조정한다.
  *
  * <p>동작 원리:
  * <ol>
- *   <li>최근 LOOKBACK_DAYS 일간의 4h 평가 완료 신호를 레짐별·전략별로 집계한다.</li>
- *   <li>각 레짐 그룹 내 전략의 4h 적중률을 정규화해 가중치로 변환한다.</li>
+ *   <li>최근 LOOKBACK_DAYS 일간의 4h 평가 완료 신호를 레짐별·Composite 전략별로 집계한다.</li>
+ *   <li>각 레짐 그룹 내 Composite 전략의 4h 적중률을 정규화해 가중치로 변환한다.</li>
  *   <li>급격한 변동 방지를 위해 계산값(70%)과 기본값(30%)을 혼합한다.</li>
  *   <li>{@link WeightOverrideStore}에 저장 → {@link com.cryptoautotrader.core.selector.StrategySelector}가 즉시 적용한다.</li>
  * </ol>
  *
+ * <p>개선 이력 (방향 A):
+ * <ul>
+ *   <li>기존: SUPERTREND·EMA_CROSS 등 컴포넌트 전략명 기준 → strategy_log에 기록되지 않아 가중치 항상 기본값</li>
+ *   <li>변경: COMPOSITE_BREAKOUT·COMPOSITE_MOMENTUM 등 Composite 전략명 기준 → 로그에 실제로 기록되는 이름과 일치</li>
+ * </ul>
+ *
  * <p>보호 장치:
  * <ul>
  *   <li>레짐별 최소 샘플 {@value MIN_REGIME_SAMPLE}건 미만이면 해당 레짐은 기본값 유지</li>
- *   <li>전략별 최소 샘플 {@value MIN_STRATEGY_SAMPLE}건 미만이면 해당 전략도 기본값 사용</li>
+ *   <li>전략별 최소 샘플 {@value MIN_STRATEGY_SAMPLE}건 미만이면 해당 전략도 기본값 사용 (중립 50%)</li>
  *   <li>전략 최소 가중치 {@value MIN_WEIGHT} — 어떤 전략도 완전히 배제되지 않음</li>
  * </ul>
  */
@@ -46,11 +52,20 @@ public class StrategyWeightOptimizer {
     private static final double SMOOTHING_NEW        = 0.70; // 새 가중치 비율
     private static final double SMOOTHING_DEFAULT    = 0.30; // 기본값 유지 비율
 
-    /** regime → (strategyName → defaultWeight) */
+    /**
+     * regime → (Composite 전략명 → 기본 가중치).
+     *
+     * <p>StrategySelector와 동기화 필수 — 여기서 정의한 전략명과 가중치가 기준값으로 사용된다.
+     * 각 레짐의 기본값은 3년(2023~2025) H1 백테스트 결과를 근거로 설정한다:
+     * <ul>
+     *   <li>COMPOSITE_BREAKOUT: BTC +104.2%, SOL +64.9%, ETH +38.9% — 추세·변동성 레짐 최강</li>
+     *   <li>COMPOSITE_MOMENTUM: ETH +53.6%, SOL +59.8%, BTC +0.4% — VWAP·GRID 포함으로 레인지 적합</li>
+     * </ul>
+     */
     private static final Map<String, Map<String, Double>> DEFAULTS = Map.of(
-            "TREND",      Map.of("SUPERTREND", 0.5, "EMA_CROSS", 0.3, "ATR_BREAKOUT", 0.2),
-            "RANGE",      Map.of("BOLLINGER",  0.4, "VWAP",      0.4, "GRID",         0.2),
-            "VOLATILITY", Map.of("ATR_BREAKOUT", 0.6, "VOLUME_DELTA", 0.4)
+            "TREND",      Map.of("COMPOSITE_BREAKOUT", 0.65, "COMPOSITE_MOMENTUM", 0.35),
+            "RANGE",      Map.of("COMPOSITE_MOMENTUM",  0.60, "COMPOSITE_BREAKOUT", 0.40),
+            "VOLATILITY", Map.of("COMPOSITE_BREAKOUT", 0.70, "COMPOSITE_MOMENTUM", 0.30)
     );
 
     /** 수수료 공제 후 실질 승리 기준 (0.10% = 업비트 왕복 수수료) */

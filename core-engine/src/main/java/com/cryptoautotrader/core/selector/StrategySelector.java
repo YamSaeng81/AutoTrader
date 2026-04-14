@@ -7,14 +7,21 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * MarketRegime에 따라 활성화할 전략 목록과 가중치를 결정한다.
+ * MarketRegime에 따라 활성화할 Composite 전략과 가중치를 결정한다.
  *
  * <pre>
- * TREND       : SUPERTREND(0.5) + EMA_CROSS(0.3) + ATR_BREAKOUT(0.2)
- * RANGE       : BOLLINGER(0.4)  + VWAP(0.4)       + GRID(0.2)   ← RSI 제거(일관 마이너스), VWAP 대체
- * VOLATILITY  : ATR_BREAKOUT(0.6) + VOLUME_DELTA(0.4)           ← STOCHASTIC_RSI(BLOCKED) 제거, VD 대체
+ * TREND       : COMPOSITE_BREAKOUT(0.65) + COMPOSITE_MOMENTUM(0.35)
+ *               — ATR/VD/RSI/EMA 기반 돌파 vs MACD/VWAP/GRID 기반 모멘텀
+ *               — 백테스트 근거: BREAKOUT BTC +104%, SOL +65%, ETH +39%
+ * RANGE       : COMPOSITE_MOMENTUM(0.60) + COMPOSITE_BREAKOUT(0.40)
+ *               — VWAP·GRID(레인지 친화) vs ATR 돌파(레인지서 약화)
+ * VOLATILITY  : COMPOSITE_BREAKOUT(0.70) + COMPOSITE_MOMENTUM(0.30)
+ *               — ATR 기반 전략이 변동성 장에 최적화
  * TRANSITIONAL: 직전 Regime 전략 그룹 × 0.5 (포지션 축소)
  * </pre>
+ *
+ * <p>WeightOverrideStore에 해당 regime 오버라이드가 있으면 동적 가중치를 사용한다.
+ * 오버라이드는 StrategyWeightOptimizer가 30일 신호 품질 데이터를 기반으로 주기적으로 갱신한다.
  */
 public final class StrategySelector {
 
@@ -52,27 +59,29 @@ public final class StrategySelector {
 
     private static List<WeightedStrategy> trend() {
         final String r = "TREND";
+        // COMPOSITE_BREAKOUT: ATR×0.4 + VD×0.3 + RSI×0.2 + EMA×0.1 (3년 BTC +104%, SOL +65%, ETH +39%)
+        // COMPOSITE_MOMENTUM: MACD×0.5 + VWAP×0.3 + GRID×0.2 (ETH +54%, SOL +60%)
         return List.of(
-                ws(r, "SUPERTREND",   0.5),
-                ws(r, "EMA_CROSS",    0.3),
-                ws(r, "ATR_BREAKOUT", 0.2)
+                ws(r, "COMPOSITE_BREAKOUT",  0.65),
+                ws(r, "COMPOSITE_MOMENTUM",  0.35)
         );
     }
 
     private static List<WeightedStrategy> range() {
         final String r = "RANGE";
+        // 레인지 구간: VWAP·GRID(평균회귀·레인지) 비중이 높은 MOMENTUM이 유리
         return List.of(
-                ws(r, "BOLLINGER", 0.4),
-                ws(r, "VWAP",      0.4),
-                ws(r, "GRID",      0.2)
+                ws(r, "COMPOSITE_MOMENTUM",  0.60),
+                ws(r, "COMPOSITE_BREAKOUT",  0.40)
         );
     }
 
     private static List<WeightedStrategy> volatility() {
         final String r = "VOLATILITY";
+        // 변동성 장: ATR 기반 BREAKOUT 전략이 핵심
         return List.of(
-                ws(r, "ATR_BREAKOUT",  0.6),
-                ws(r, "VOLUME_DELTA",  0.4)
+                ws(r, "COMPOSITE_BREAKOUT",  0.70),
+                ws(r, "COMPOSITE_MOMENTUM",  0.30)
         );
     }
 

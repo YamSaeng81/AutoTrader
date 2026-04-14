@@ -21,6 +21,7 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
 
   jackson:
     serialization:
@@ -43,7 +44,10 @@ upbit:
 
 api:
   auth:
-    token: ${API_AUTH_TOKEN:dev-token-change-me-in-production}
+    token: ${API_AUTH_TOKEN}
+
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
 
 management:
   endpoints:

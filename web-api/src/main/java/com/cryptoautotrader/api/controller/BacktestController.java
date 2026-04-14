@@ -7,6 +7,7 @@ import com.cryptoautotrader.api.dto.BulkBacktestRequest;
 import com.cryptoautotrader.api.dto.BulkDeleteRequest;
 import com.cryptoautotrader.api.dto.MacdGridSearchRequest;
 import com.cryptoautotrader.api.dto.MultiStrategyBacktestRequest;
+import com.cryptoautotrader.api.dto.WalkForwardBatchRequest;
 import com.cryptoautotrader.api.dto.WalkForwardRequest;
 import com.cryptoautotrader.api.entity.BacktestTradeEntity;
 import com.cryptoautotrader.api.repository.BacktestTradeRepository;
@@ -253,5 +254,40 @@ public class BacktestController {
     @GetMapping("/jobs")
     public ApiResponse<List<Map<String, Object>>> listJobs() {
         return ApiResponse.ok(backtestJobService.listJobs());
+    }
+
+    /**
+     * 백테스트 Job 취소
+     * POST /api/v1/backtest/job/{jobId}/cancel
+     * PENDING → 즉시 CANCELLED. RUNNING → 취소 플래그 세팅 (현재 조합 완료 후 중단).
+     */
+    @PostMapping("/job/{jobId}/cancel")
+    public ApiResponse<Map<String, Object>> cancelJob(@PathVariable Long jobId) {
+        try {
+            return ApiResponse.ok(backtestJobService.cancelJob(jobId));
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (IllegalStateException e) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
+        }
+    }
+
+    /**
+     * Walk-Forward 배치 비동기 실행 (코인 N × 전략 M)
+     * POST /api/v1/backtest/walk-forward-batch-async
+     * Body: { "coinPairs": ["KRW-BTC","KRW-ETH"], "strategyTypes": ["COMPOSITE_BREAKOUT","COMPOSITE_MOMENTUM"],
+     *         "timeframe": "H1", "startDate": "2023-01-01", "endDate": "2025-12-31",
+     *         "inSampleRatio": 0.7, "windowCount": 5 }
+     * 응답: { "jobId": 50, "total": 4 }
+     */
+    @PostMapping("/walk-forward-batch-async")
+    public ApiResponse<Map<String, Object>> runWalkForwardBatchAsync(
+            @RequestBody WalkForwardBatchRequest req) {
+        Long jobId = backtestJobService.submitWalkForwardBatchJob(req);
+        int total = req.getCoinPairs().size() * req.getStrategyTypes().size();
+        return ApiResponse.ok(Map.of(
+                "jobId", jobId,
+                "total", total,
+                "message", total + "개 조합 Walk-Forward 배치가 백그라운드에서 시작되었습니다. 완료 시 텔레그램으로 알림이 전송됩니다."));
     }
 }

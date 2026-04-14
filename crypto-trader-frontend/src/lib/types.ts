@@ -60,7 +60,8 @@ export interface UpbitStatusResponse {
 
 export type StrategyType = 'VWAP' | 'EMA_CROSS' | 'BOLLINGER' | 'GRID'
     | 'RSI' | 'MACD' | 'SUPERTREND' | 'ATR_BREAKOUT' | 'ORDERBOOK_IMBALANCE' | 'STOCHASTIC_RSI'
-    | 'COMPOSITE' | 'COMPOSITE_MOMENTUM' | 'COMPOSITE_ETH' | 'COMPOSITE_BREAKOUT' | 'MACD_STOCH_BB';
+    | 'COMPOSITE' | 'COMPOSITE_MOMENTUM' | 'COMPOSITE_ETH' | 'COMPOSITE_BREAKOUT' | 'MACD_STOCH_BB'
+    | 'COMPOSITE_MOMENTUM_ICHIMOKU' | 'COMPOSITE_MOMENTUM_ICHIMOKU_V2' | 'COMPOSITE_BREAKOUT_ICHIMOKU';
 export type Timeframe = 'M1' | 'M5' | 'M15' | 'M30' | 'H1' | 'H4' | 'D1';
 export type OrderSide = 'BUY' | 'SELL';
 export type MarketRegime = 'TREND' | 'RANGE' | 'VOLATILE';
@@ -551,6 +552,45 @@ export interface SignalStatsResponse {
   byRegime: SignalStatsByRegime[];
   blockedVsExecuted: BlockedVsExecutedStats;
   byHour: SignalStatsByHour[];
+}
+
+export interface NightlySchedulerConfig {
+  enabled: boolean;
+  runHour: number;
+  runMinute: number;
+  timeframe: string;
+  startDate: string;
+  endDate: string;
+  coinPairs: string[];
+  strategyTypes: string[];
+  includeBacktest: boolean;
+  includeWalkForward: boolean;
+  inSampleRatio: number;
+  windowCount: number;
+  initialCapital: number;
+  slippagePct: number;
+  feePct: number;
+  // 읽기 전용
+  lastTriggeredAt?: string;
+  lastBatchJobId?: number;
+  lastWfJobId?: number;
+  nextRunAt?: string;
+}
+
+export interface BacktestJob {
+  id: number;
+  jobType: string;            // SINGLE | BULK | MULTI_STRATEGY | WALK_FORWARD_BATCH
+  status: string;             // PENDING | RUNNING | COMPLETED | FAILED
+  coinPair?: string;
+  strategyName?: string;
+  timeframe?: string;
+  totalChunks?: number;
+  completedChunks?: number;
+  progressPct?: number;
+  backtestRunId?: number;
+  errorMessage?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface AccountSummary {

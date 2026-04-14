@@ -14,12 +14,12 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * MACD + StochRSI + 볼린저밴드 복합 추세 전략 (1시간봉 최적화)
+ * MACD + StochRSI 복합 추세 전략 (1시간봉 최적화)
  *
  * <pre>
  * 추세  : MACD > 0 AND 히스토그램 확대
  * 타이밍: StochRSI %K < 20 (과매도) AND %K > %D (골든크로스)
- * 필터  : 볼린저 하단 지지선 근처 (%B <= supportPercentB) AND 거래량 증가
+ * 필터  : 거래량 증가
  * 횡보  : |MACD| < sidewaysThreshold → HOLD
  * 쿨다운: BUY 후 cooldownCandles 캔들 동안 재진입 금지
  *
@@ -28,8 +28,12 @@ import java.util.Map;
  *   2. MACD 히스토그램 증가             (상승 힘 확대)
  *   3. StochRSI %K < oversoldLevel(20) (과매도)
  *   4. %K > %D                          (골든크로스)
- *   5. %B <= supportPercentB(0.35)      (볼린저 하단 지지선 근처)
- *   6. 거래량 >= 평균 거래량
+ *   5. 거래량 >= 평균 거래량
+ *
+ * [개선 v2] 볼린저밴드 %B 조건 제거:
+ *   기존 조건 "%B <= 0.35 (하단 지지선 근처)"는 MACD>0(상승추세)과 구조적으로 충돌.
+ *   StochRSI 과매도가 이미 눌림목 타이밍을 포착하므로 %B 조건은 중복·과필터.
+ *   → 3년 H1 백테스트 기준 BTC 5건 등 극희소 신호 해소 목적.
  *
  * 매도 조건 (하나라도 충족):
  *   1. MACD 히스토그램 감소
@@ -37,7 +41,7 @@ import java.util.Map;
  *
  * 리스크 관리 (BUY 신호에 suggestedStopLoss/TakeProfit 포함):
  *   손절: -2% (stopLossPct)
- *   익절: +4% (takeProfitPct, 3~5% 중간값)
+ *   익절: +4% (takeProfitPct)
  *   쿨다운: 3캔들 (cooldownCandles)
  * </pre>
  */
@@ -46,7 +50,7 @@ public class MacdStochBbStrategy implements StatefulStrategy {
     private static final int SCALE = 8;
     private static final MathContext MC = new MathContext(20, RoundingMode.HALF_UP);
     private static final BigDecimal HUNDRED = BigDecimal.valueOf(100);
-    private static final BigDecimal FIFTY   = BigDecimal.valueOf(50);
+
 
     /** 마지막 BUY 신호 발생 시점의 candles.size() (-1 = 없음) */
     private int lastBuyCandleCount = -1;
@@ -77,12 +81,9 @@ public class MacdStochBbStrategy implements StatefulStrategy {
         int    stochSignal     = StrategyParamUtils.getInt(params,    "stochSignalPeriod", 3);
         double oversoldLevel   = StrategyParamUtils.getDouble(params, "oversoldLevel",     20.0);
         double overboughtLevel = StrategyParamUtils.getDouble(params, "overboughtLevel",   80.0);
-        int    bbPeriod        = StrategyParamUtils.getInt(params,    "bbPeriod",          20);
-        double bbMultiplier    = StrategyParamUtils.getDouble(params, "bbMultiplier",      2.0);
         int    volumePeriod    = StrategyParamUtils.getInt(params,    "volumePeriod",      20);
         int    cooldown        = StrategyParamUtils.getInt(params,    "cooldownCandles",   3);
         double sidewaysThr     = StrategyParamUtils.getDouble(params, "sidewaysThreshold", 0.0005);
-        double supportPercentB = StrategyParamUtils.getDouble(params, "supportPercentB",   0.35);
         double stopLossPct     = StrategyParamUtils.getDouble(params, "stopLossPct",       0.02);
         double takeProfitPct   = StrategyParamUtils.getDouble(params, "takeProfitPct",     0.04);
 
@@ -125,16 +126,6 @@ public class MacdStochBbStrategy implements StatefulStrategy {
         BigDecimal currentK = kSeries.get(kSeries.size() - 1);
         BigDecimal currentD = dSeries.get(dSeries.size() - 1);
 
-        // 볼린저밴드 %B 계산
-        BigDecimal bbSma     = IndicatorUtils.sma(closes, bbPeriod);
-        BigDecimal bbStd     = IndicatorUtils.standardDeviation(closes, bbPeriod);
-        BigDecimal upperBand = bbSma.add(bbStd.multiply(BigDecimal.valueOf(bbMultiplier)));
-        BigDecimal lowerBand = bbSma.subtract(bbStd.multiply(BigDecimal.valueOf(bbMultiplier)));
-        BigDecimal bandWidth = upperBand.subtract(lowerBand);
-        BigDecimal percentB  = bandWidth.compareTo(BigDecimal.ZERO) == 0
-                ? FIFTY
-                : currentPrice.subtract(lowerBand).divide(bandWidth, SCALE, RoundingMode.HALF_UP);
-
         // 거래량 필터
         BigDecimal avgVolume = IndicatorUtils.sma(volumes, volumePeriod);
         BigDecimal curVolume = volumes.get(volumes.size() - 1);
@@ -147,9 +138,8 @@ public class MacdStochBbStrategy implements StatefulStrategy {
         boolean stochOversold   = currentK.compareTo(BigDecimal.valueOf(oversoldLevel))  < 0;
         boolean stochOverbought = currentK.compareTo(BigDecimal.valueOf(overboughtLevel)) > 0;
         boolean kAboveD         = currentK.compareTo(currentD) > 0;
-        boolean nearSupport     = percentB.compareTo(BigDecimal.valueOf(supportPercentB)) <= 0;
 
-        if (macdPositive && histIncreasing && stochOversold && kAboveD && nearSupport && volumeOk) {
+        if (macdPositive && histIncreasing && stochOversold && kAboveD && volumeOk) {
             // 쿨다운 체크
             if (lastBuyCandleCount >= 0 && (candles.size() - lastBuyCandleCount) < cooldown) {
                 int remaining = cooldown - (candles.size() - lastBuyCandleCount);
@@ -172,9 +162,8 @@ public class MacdStochBbStrategy implements StatefulStrategy {
                     .max(BigDecimal.ZERO);
 
             return StrategySignal.buy(strength,
-                    String.format("MACD_STOCH_BB 매수: MACD=%.6f(>0), Hist=%.6f↑, K=%.1f<%.0f, K>D(%.1f), %%B=%.3f≤%.2f, 거래량OK",
-                            current.macd, curHist, currentK, oversoldLevel, currentD,
-                            percentB, supportPercentB),
+                    String.format("MACD_STOCH_BB 매수: MACD=%.6f(>0), Hist=%.6f↑, K=%.1f<%.0f, K>D(%.1f), 거래량OK",
+                            current.macd, curHist, currentK, oversoldLevel, currentD),
                     stopLoss, takeProfit);
         }
 
@@ -206,8 +195,8 @@ public class MacdStochBbStrategy implements StatefulStrategy {
         }
 
         return StrategySignal.hold(String.format(
-                "신호 없음: MACD=%.6f, Hist=%.6f, K=%.1f, D=%.1f, %%B=%.3f",
-                current.macd, curHist, currentK, currentD, percentB));
+                "신호 없음: MACD=%.6f, Hist=%.6f, K=%.1f, D=%.1f",
+                current.macd, curHist, currentK, currentD));
     }
 
     /**

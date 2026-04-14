@@ -131,6 +131,23 @@ public class TelegramNotificationService {
         sendMarkdownAndLog(msg, "EXCHANGE_DOWN", null);
     }
 
+    /** 거래소 복구 후 세션 자동 재시작 알림 */
+    public void notifyExchangeRecovered(List<String> restartedSessions, List<String> failedSessions) {
+        if (!enabled) return;
+        StringBuilder sb = new StringBuilder();
+        sb.append("🟢 *거래소 연결 복구*\n\n");
+        if (!restartedSessions.isEmpty()) {
+            sb.append("✅ *재시작 완료 ").append(restartedSessions.size()).append("개*\n");
+            restartedSessions.forEach(s -> sb.append("• `").append(s).append("`\n"));
+        }
+        if (!failedSessions.isEmpty()) {
+            sb.append("❌ *재시작 실패 ").append(failedSessions.size()).append("개*\n");
+            failedSessions.forEach(s -> sb.append("• `").append(s).append("`\n"));
+        }
+        sb.append("• 시각: `").append(KST_FMT.format(Instant.now())).append("`");
+        sendMarkdownAndLog(sb.toString(), "EXCHANGE_RECOVERED", null);
+    }
+
     /** 모의투자 세션 시작 알림 */
     public void notifyPaperSessionStarted(Long sessionId, String strategyType, String coinPair, String timeframe, java.math.BigDecimal initialCapital) {
         String msg = String.format(
@@ -275,6 +292,95 @@ public class TelegramNotificationService {
             sendMarkdownAndLog(msg, "BACKTEST_FAILED", "백테스트#" + jobId);
         } catch (Exception e) {
             log.warn("[Telegram] 백테스트 실패 알림 전송 실패: jobId={}, error={}", jobId, e.getMessage());
+        }
+    }
+
+    /**
+     * Walk-Forward 배치 완료 알림.
+     * 백테스트 완료 알림과 별도 포맷: verdict 분포(ROBUST/CAUTION/OVERFITTING) +
+     * 코인×전략별 OOS 수익률과 판정 목록을 표시한다.
+     *
+     * @param jobId    배치 Job ID
+     * @param results  executeWalkForwardBatchAsync에서 수집한 결과 리스트
+     *                 각 요소: { coin, strategy, verdict, oosTotalReturn, overfittingScore } 또는 { coin, strategy, error }
+     * @param period   "yyyy.MM.dd ~ yyyy.MM.dd / TF" 형식 기간 문자열
+     */
+    /**
+     * Walk-Forward 배치 완료 알림.
+     * verdict 값: ACCEPTABLE(양호) / CAUTION(주의) / OVERFITTING(과적합)
+     * OOS 수익률: windows[].outSample.totalReturn 합산
+     */
+    @SuppressWarnings("unchecked")
+    public void notifyWalkForwardBatchCompleted(Long jobId, java.util.List<java.util.Map<String, Object>> results, String period) {
+        try {
+            long total      = results.size();
+            long failCnt    = results.stream().filter(r -> r.containsKey("error")).count();
+            long acceptable = results.stream().filter(r -> "ACCEPTABLE".equals(r.get("verdict"))).count();
+            long caution    = results.stream().filter(r -> "CAUTION".equals(r.get("verdict"))).count();
+            long overfit    = total - failCnt - acceptable - caution;
+
+            StringBuilder detail = new StringBuilder();
+            for (var r : results) {
+                String coin     = String.valueOf(r.getOrDefault("coin", "?")).replace("KRW-", "");
+                String strategy = String.valueOf(r.getOrDefault("strategy", "?"));
+                // 전략명 축약
+                strategy = strategy.replace("COMPOSITE_MOMENTUM_ICHIMOKU_V2", "CMI_V2")
+                                   .replace("COMPOSITE_MOMENTUM_ICHIMOKU",    "CMI_V1")
+                                   .replace("COMPOSITE_MOMENTUM",             "C_MOM")
+                                   .replace("COMPOSITE_BREAKOUT",             "C_BRK");
+                if (r.containsKey("error")) {
+                    detail.append(String.format("  ❌ %s/%s — 오류\n", coin, strategy));
+                } else {
+                    String verdict = String.valueOf(r.getOrDefault("verdict", "?"));
+                    String icon    = "ACCEPTABLE".equals(verdict) ? "✅" : "CAUTION".equals(verdict) ? "⚠️" : "🔴";
+
+                    // OOS 수익률 합산: windows[].outSample.totalReturn (BigDecimal, 소수 형태 e.g. 0.1254)
+                    double oosSum = 0.0;
+                    var windows = r.get("windows");
+                    if (windows instanceof java.util.List<?> wList) {
+                        for (var w : wList) {
+                            if (w instanceof java.util.Map<?, ?> wm) {
+                                var outSample = wm.get("outSample");
+                                if (outSample instanceof java.util.Map<?, ?> om) {
+                                    Object tr = om.get("totalReturn");
+                                    if (tr instanceof java.math.BigDecimal bd) oosSum += bd.doubleValue();
+                                    else if (tr instanceof Number n) oosSum += n.doubleValue();
+                                }
+                            }
+                        }
+                    }
+                    String oosStr = String.format("%+.2f%%", oosSum * 100);
+
+                    Object score = r.get("overfittingScore");
+                    String scoreStr = (score instanceof java.math.BigDecimal bd2)
+                            ? String.format("%.4f", bd2.doubleValue())
+                            : (score instanceof Number n3) ? String.format("%.4f", n3.doubleValue()) : "-";
+
+                    detail.append(String.format("  %s %s/%s OOS:%s score:%s\n",
+                            icon, coin, strategy, oosStr, scoreStr));
+                }
+            }
+
+            String msg = String.format(
+                    "📈 *Walk\\-Forward 배치 완료*\n\n" +
+                    "• Job ID: `%d`  \\|  총 `%d`개 조합\n" +
+                    "• 기간: `%s`\n\n" +
+                    "📊 *판정 요약*\n" +
+                    "• ✅ ACCEPTABLE: `%d`개\n" +
+                    "• ⚠️ CAUTION: `%d`개\n" +
+                    "• 🔴 OVERFITTING: `%d`개\n" +
+                    "• ❌ 오류: `%d`개\n\n" +
+                    "📋 *코인×전략 결과*\n%s\n" +
+                    "• 완료 시각: `%s`",
+                    jobId, total,
+                    escapeMarkdownV2(period),
+                    acceptable, caution, overfit, failCnt,
+                    detail.toString(),
+                    KST_FMT.format(java.time.Instant.now()));
+
+            sendMarkdownAndLog(msg, "WF_BATCH_COMPLETE", "WF배치#" + jobId);
+        } catch (Exception e) {
+            log.warn("[Telegram] Walk-Forward 배치 완료 알림 전송 실패: jobId={}, error={}", jobId, e.getMessage());
         }
     }
 

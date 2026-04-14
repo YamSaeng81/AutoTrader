@@ -145,19 +145,34 @@ class VolumeDeltaStrategyTest {
 
     @Test
     void 약세_다이버전스_가격상승_Delta음수_HOLD() {
-        // 가격은 오르지만 Delta가 음수 → 약세 다이버전스 → SELL 보류 → HOLD
+        // 가격↑ + Delta음수(deltaWeakening=true) → 약세 다이버전스 → SELL 보류 → HOLD
+        //
+        // 다이버전스 필터는 Delta 추세 확인(전/후반부 비교) 이후에 평가된다.
+        // deltaWeakening=true가 되어야 SELL 경로에서 다이버전스 체크에 도달한다.
+        //
+        // lookback=20, 총 25캔들:
+        //   앞 5개(패딩): 중간 위꼬리 → buyRatio≈0.27 → delta≈-45
+        //   lookback 전반(5~14): 중간 위꼬리 → delta≈-45  (firstAvg≈-45)
+        //   lookback 후반(15~24): 큰 위꼬리  → delta≈-93  (secondAvg≈-93)
+        // → secondAvg < firstAvg → deltaWeakening=true
+        // → priceUp=true (close=open*1.002 누적)
+        // → 다이버전스 필터 발동 → HOLD("약세 다이버전스")
         List<Candle> candles = new ArrayList<>();
         Instant base  = Instant.parse("2024-01-01T00:00:00Z");
-
-        // 가격은 서서히 상승하지만, 캔들이 위꼬리 패턴(high가 훨씬 높고, close는 open보다 약간만 높음)
-        // → 매도 볼륨이 더 많아 Delta 음수
         BigDecimal price = new BigDecimal("50000000");
+
         for (int i = 0; i < 25; i++) {
             BigDecimal open  = price;
-            BigDecimal close = price.add(price.multiply(new BigDecimal("0.001")));  // 0.1% 상승 (가격↑)
-            BigDecimal high  = open.add(price.multiply(new BigDecimal("0.05")));    // high 훨씬 위
-            BigDecimal low   = open.subtract(price.multiply(new BigDecimal("0.001")));
-            // (close - low) / (high - low) ≈ 0.002/0.051 ≈ 0.039 → 매도 볼륨 압도적
+            BigDecimal close = open.add(open.multiply(new BigDecimal("0.002")));  // 0.2% 상승 (priceUp)
+            BigDecimal low   = open.subtract(open.multiply(new BigDecimal("0.001")));
+            BigDecimal high;
+            if (i < 15) {
+                // 패딩 + lookback 전반: 중간 위꼬리 → buyRatio=(0.002+0.001)/(0.01+0.001)≈0.27 → delta≈-45
+                high = open.add(open.multiply(new BigDecimal("0.01")));
+            } else {
+                // lookback 후반: 큰 위꼬리 → buyRatio=(0.002+0.001)/(0.08+0.001)≈0.037 → delta≈-93
+                high = open.add(open.multiply(new BigDecimal("0.08")));
+            }
             candles.add(Candle.builder()
                     .time(base.plus(i, ChronoUnit.HOURS))
                     .open(open).high(high).low(low).close(close)
@@ -168,9 +183,124 @@ class VolumeDeltaStrategyTest {
 
         StrategySignal signal = strategy.evaluate(candles, Map.of(
                 "lookback", 20, "signalThreshold", 0.05, "divergenceMode", true));
-        // 가격↑ + 누적Delta < 0 → 약세 다이버전스 → SELL 보류 → HOLD
         assertThat(signal.getAction()).isEqualTo(StrategySignal.Action.HOLD);
         assertThat(signal.getReason()).contains("다이버전스");
+    }
+
+    @Test
+    void Delta_강화_없으면_SELL_신호_HOLD_격하() {
+        // 모두 동일한 3% 하락 캔들 → 누적Delta는 음수지만 전/후반부 평균 Delta가 동일 → HOLD
+        List<Candle> candles = new ArrayList<>();
+        Instant base  = Instant.parse("2024-01-01T00:00:00Z");
+        BigDecimal price = new BigDecimal("50000000");
+
+        for (int i = 0; i < 25; i++) {
+            BigDecimal open  = price;
+            BigDecimal close = price.subtract(price.multiply(new BigDecimal("0.03")));
+            BigDecimal high  = open.add(price.multiply(new BigDecimal("0.001")));
+            BigDecimal low   = close.subtract(price.multiply(new BigDecimal("0.001")));
+            candles.add(Candle.builder()
+                    .time(base.plus(i, ChronoUnit.HOURS))
+                    .open(open).high(high).low(low).close(close)
+                    .volume(BigDecimal.valueOf(100))
+                    .build());
+            price = close;
+        }
+
+        StrategySignal signal = strategy.evaluate(candles, Map.of(
+                "lookback", 20, "signalThreshold", 0.05, "divergenceMode", false));
+        assertThat(signal.getAction()).isEqualTo(StrategySignal.Action.HOLD);
+        assertThat(signal.getReason()).contains("약화");
+    }
+
+    // ========== 다이버전스 필터 테스트 ==========
+
+    @Test
+    void 강세_다이버전스_가격하락_Delta양수_HOLD() {
+        // 가격↓ + Delta양수(deltaStrengthening=true) → 강세 다이버전스 → BUY 보류 → HOLD
+        //
+        // lookback=20, 총 25캔들:
+        //   앞 5개(패딩) + lookback 전반(5~14): 작은 아래꼬리 → buyRatio≈0.73 → delta≈+45
+        //   lookback 후반(15~24): 큰 아래꼬리 → buyRatio≈0.96 → delta≈+93
+        // → secondAvg > firstAvg → deltaStrengthening=true
+        // → priceDown=true (close=open*0.998 누적)
+        // → 다이버전스 필터 발동 → HOLD("강세 다이버전스")
+        List<Candle> candles = new ArrayList<>();
+        Instant base  = Instant.parse("2024-01-01T00:00:00Z");
+        BigDecimal price = new BigDecimal("50000000");
+
+        for (int i = 0; i < 25; i++) {
+            BigDecimal open  = price;
+            BigDecimal close = open.subtract(open.multiply(new BigDecimal("0.002"))); // 0.2% 하락 (priceDown)
+            BigDecimal high  = open.add(open.multiply(new BigDecimal("0.001")));
+            BigDecimal low;
+            if (i < 15) {
+                // 패딩 + lookback 전반: 작은 아래꼬리 → buyRatio=(0.002+0.001)/(0.001+0.01)≈0.73 → delta≈+45
+                low = open.subtract(open.multiply(new BigDecimal("0.01")));
+            } else {
+                // lookback 후반: 큰 아래꼬리 → buyRatio=(0.002+0.001)/(0.001+0.08)≈0.037... → 실제≈0.963 → delta≈+93
+                low = open.subtract(open.multiply(new BigDecimal("0.08")));
+            }
+            candles.add(Candle.builder()
+                    .time(base.plus(i, ChronoUnit.HOURS))
+                    .open(open).high(high).low(low).close(close)
+                    .volume(BigDecimal.valueOf(100))
+                    .build());
+            price = close;
+        }
+
+        StrategySignal signal = strategy.evaluate(candles, Map.of(
+                "lookback", 20, "signalThreshold", 0.05, "divergenceMode", true));
+        assertThat(signal.getAction()).isEqualTo(StrategySignal.Action.HOLD);
+        assertThat(signal.getReason()).contains("다이버전스");
+    }
+
+    @Test
+    void divergenceMode_false_이면_다이버전스_필터_미적용() {
+        // 강세 다이버전스 조건(가격↓ + Delta 양수, deltaStrengthening=true)이지만
+        // divergenceMode=false → BUY 그대로 발동
+        List<Candle> candles = new ArrayList<>();
+        Instant base  = Instant.parse("2024-01-01T00:00:00Z");
+        BigDecimal price = new BigDecimal("50000000");
+        for (int i = 0; i < 25; i++) {
+            BigDecimal open  = price;
+            BigDecimal close = open.subtract(open.multiply(new BigDecimal("0.002")));
+            BigDecimal high  = open.add(open.multiply(new BigDecimal("0.001")));
+            BigDecimal low   = (i < 15)
+                    ? open.subtract(open.multiply(new BigDecimal("0.01")))
+                    : open.subtract(open.multiply(new BigDecimal("0.08")));
+            candles.add(Candle.builder()
+                    .time(base.plus(i, ChronoUnit.HOURS))
+                    .open(open).high(high).low(low).close(close)
+                    .volume(BigDecimal.valueOf(100))
+                    .build());
+            price = close;
+        }
+
+        StrategySignal signal = strategy.evaluate(candles, Map.of(
+                "lookback", 20, "signalThreshold", 0.05, "divergenceMode", false));
+        assertThat(signal.getAction()).isEqualTo(StrategySignal.Action.BUY);
+    }
+
+    @Test
+    void 볼륨_데이터_없으면_HOLD() {
+        List<Candle> candles = new ArrayList<>();
+        Instant base = Instant.parse("2024-01-01T00:00:00Z");
+        BigDecimal price = new BigDecimal("50000000");
+        for (int i = 0; i < 25; i++) {
+            BigDecimal open  = price;
+            BigDecimal close = price.add(price.multiply(new BigDecimal("0.01")));
+            candles.add(Candle.builder()
+                    .time(base.plus(i, ChronoUnit.HOURS))
+                    .open(open).high(close).low(open).close(close)
+                    .volume(BigDecimal.ZERO)   // 볼륨 0
+                    .build());
+            price = close;
+        }
+
+        StrategySignal signal = strategy.evaluate(candles, Map.of("lookback", 20));
+        assertThat(signal.getAction()).isEqualTo(StrategySignal.Action.HOLD);
+        assertThat(signal.getReason()).contains("볼륨");
     }
 
     // ========== 신호 강도 테스트 ==========

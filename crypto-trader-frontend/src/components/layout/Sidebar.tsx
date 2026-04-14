@@ -7,7 +7,7 @@ import {
     LineChart, PlusCircle, Database, TrendingUp, Zap,
     Shield, LayoutDashboard, GitCompare, FileText, History,
     Moon, Sun, FlaskConical, ChevronLeft, ChevronRight,
-    Wallet, Settings, ChevronDown, ChevronUp,
+    Wallet, Settings, ChevronDown, ChevronUp, Clock,
     BarChart2, MessageSquare, Activity, Trash2, Terminal, LogOut, PieChart,
     Bot, Newspaper, BookOpen, MessagesSquare,
 } from 'lucide-react';
@@ -50,6 +50,7 @@ const navGroups: NavGroup[] = [
         icon: BarChart2,
         items: [
             { href: '/backtest/walk-forward',  label: 'Walk Forward',  icon: FlaskConical },
+            { href: '/backtest/scheduler',     label: '자동 스케줄',   icon: Clock },
             { href: '/strategies',             label: '전략 관리',     icon: Settings },
         ],
     },

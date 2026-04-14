@@ -215,6 +215,38 @@ public class MorningBriefingComposer {
             sb.append(" | ⚠ 연속 손실: ").append(r.getConsecutiveLosses()).append("회");
         sb.append("\n");
 
+        // 실행 중 세션
+        if (r.getActiveSessions() != null && !r.getActiveSessions().isEmpty()) {
+            sb.append("\n[실행 중 세션 ").append(r.getActiveSessions().size()).append("개]\n");
+            r.getActiveSessions().forEach(s -> {
+                sb.append("• ").append(s.getStrategyType())
+                        .append(" ").append(s.getCoinPair())
+                        .append(" [").append(s.getTimeframe()).append("]");
+                if (s.getReturnPct() != null) {
+                    String sign = s.getReturnPct().compareTo(BigDecimal.ZERO) >= 0 ? "+" : "";
+                    sb.append(" → ").append(sign).append(s.getReturnPct()).append("%");
+                }
+                if (r.getCoinPriceChanges() != null && r.getCoinPriceChanges().containsKey(s.getCoinPair())) {
+                    BigDecimal chg = r.getCoinPriceChanges().get(s.getCoinPair());
+                    String sign = chg.compareTo(BigDecimal.ZERO) >= 0 ? "+" : "";
+                    sb.append(", 시세 12h ").append(sign).append(chg).append("%");
+                }
+                sb.append("\n");
+            });
+        } else {
+            sb.append("\n[실행 중 세션] 없음\n");
+        }
+
+        // 코인별 포지션 성과
+        if (r.getCoinPositionStats() != null && !r.getCoinPositionStats().isEmpty()) {
+            sb.append("\n[코인별 포지션 성과]\n");
+            r.getCoinPositionStats().forEach((coin, stat) ->
+                    sb.append("• ").append(coin)
+                            .append(": 청산 ").append(stat.getClosedCount()).append("건")
+                            .append(" 승률 ").append(stat.getWinRate() != null ? stat.getWinRate() : "-").append("%")
+                            .append(" 손익 ").append(fmt(stat.getTotalPnl())).append("원\n"));
+        }
+
         // 주요 차단 사유
         if (r.getBlockReasons() != null && !r.getBlockReasons().isEmpty()) {
             sb.append("\n[주요 차단 사유]\n");

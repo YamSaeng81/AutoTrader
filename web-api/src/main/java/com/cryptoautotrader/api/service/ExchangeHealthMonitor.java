@@ -151,6 +151,12 @@ public class ExchangeHealthMonitor {
                 log.error("거래소 DOWN 감지 — ExchangeDownEvent 발행 ({})", reason);
                 eventPublisher.publishEvent(new ExchangeDownEvent(this, reason));
             }
+
+            // DOWN 후 UP 복구 시 이벤트 발행 → LiveTradingService가 세션 자동 재시작
+            if ("UP".equals(newStatus) && "DOWN".equals(oldStatus)) {
+                log.info("거래소 DOWN → UP 복구 감지 — ExchangeRecoveredEvent 발행");
+                eventPublisher.publishEvent(new ExchangeRecoveredEvent(this, oldStatus));
+            }
         }
     }
 

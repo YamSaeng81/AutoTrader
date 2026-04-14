@@ -70,6 +70,36 @@ public class AnalysisReport {
     /** 최근 청산 포지션 기준 연속 손실 횟수 */
     private final int consecutiveLosses;
 
+    // ── 실행 중 세션 현황 ─────────────────────────────────────────────────────
+    /** 현재 RUNNING 세션 목록 */
+    private final List<ActiveSessionInfo> activeSessions;
+    /** 실행 중 코인의 12h 가격 변화율 (%) — 코인 페어 → 변화율 */
+    private final Map<String, BigDecimal> coinPriceChanges;
+    /** 코인별 포지션 통계 — 코인 페어 → 통계 */
+    private final Map<String, CoinPositionStat> coinPositionStats;
+
+    @Getter
+    @Builder
+    public static class ActiveSessionInfo {
+        private final Long sessionId;
+        private final String strategyType;
+        private final String coinPair;
+        private final String timeframe;
+        /** 세션 수익률 (%) = (totalAsset - initialCapital) / initialCapital * 100 */
+        private final BigDecimal returnPct;
+        private final Instant startedAt;
+    }
+
+    @Getter
+    @Builder
+    public static class CoinPositionStat {
+        private final int closedCount;
+        private final int winCount;
+        private final int lossCount;
+        private final BigDecimal winRate;
+        private final BigDecimal totalPnl;
+    }
+
     @Getter
     @Builder
     public static class RegimeTransition {

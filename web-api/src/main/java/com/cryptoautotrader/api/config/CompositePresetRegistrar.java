@@ -10,6 +10,7 @@ import com.cryptoautotrader.strategy.ema.EmaCrossStrategy;
 import com.cryptoautotrader.strategy.grid.GridStrategy;
 import com.cryptoautotrader.strategy.macd.MacdStrategy;
 import com.cryptoautotrader.strategy.vwap.VwapStrategy;
+import com.cryptoautotrader.strategy.supertrend.SupertrendStrategy;
 import com.cryptoautotrader.strategy.orderbook.OrderbookImbalanceStrategy;
 import com.cryptoautotrader.strategy.rsi.RsiStrategy;
 import com.cryptoautotrader.strategy.volumedelta.VolumeDeltaStrategy;
@@ -85,9 +86,39 @@ public class CompositePresetRegistrar {
                         ), true))  // EMA 방향 필터 유지
         );
 
+        // ── COMPOSITE_MOMENTUM_ICHIMOKU_V2 ───────────────────────────────────────
+        // VWAP(역추세)를 SUPERTREND(추세추종)로 교체한 개선 버전.
+        //
+        // 기존 V1의 문제: MACD(추세추종) + VWAP(역추세) 공존 → ADX 25~35 구간에서
+        //   MACD BUY + VWAP SELL 상충 → buyScore/sellScore 둘 다 0.4 초과 → HOLD 남발
+        //
+        // V2 구성: MACD(0.5) + SUPERTREND(0.3) + GRID(0.2)
+        //   세 전략 모두 추세 방향에서 같은 의견 → 상충 없음
+        //   - MACD:       골든크로스 + 제로선 + 히스토그램 확대 + ADX(25) 필터
+        //   - SUPERTREND: ATR(10) 기반 동적 추세선 전환/유지 신호
+        //   - GRID:       stateful (세션마다 새 인스턴스 필요)
+        //   외부 필터: EMA(20/50) 방향 역행 억제 + Ichimoku 구름 내부 차단
+        //
+        // 적합: XRP·ETH (MOMENTUM 계열 강세 확인 코인)
+        // 비교 대상: COMPOSITE_MOMENTUM_ICHIMOKU (V1) — 동일 코인 병행 운영으로 비교
+        StrategyRegistry.registerStateful("COMPOSITE_MOMENTUM_ICHIMOKU_V2", () ->
+                new IchimokuFilteredStrategy("COMPOSITE_MOMENTUM_ICHIMOKU_V2",
+                        new CompositeStrategy("COMPOSITE_MOMENTUM_ICHIMOKU_V2_BASE", List.of(
+                                new WeightedStrategy(new MacdStrategy(),       0.5),
+                                new WeightedStrategy(new SupertrendStrategy(), 0.3),
+                                new WeightedStrategy(new GridStrategy(),       0.2)
+                        ), true))  // EMA 방향 필터 ON
+        );
+
         // COMPOSITE_BREAKOUT_ICHIMOKU: COMPOSITE_BREAKOUT + Ichimoku 구름 필터
         // 기존 EMA·ADX 필터 위에 Ichimoku 추가 → 횡보장 및 추세 역행 이중 차단
         // 모든 구성 전략이 stateless → 공유 인스턴스 재사용
+        //
+        // ⚠️ 백테스트 결과 의미없음 (COMPOSITE_BREAKOUT과 동일 결과):
+        //    ADX 필터(ADX<20 → HOLD)가 횡보장을 이미 전부 차단하기 때문에
+        //    Ichimoku 필터가 추가로 막는 신호가 없음.
+        //    ADX>20(추세 있음) 상태에서는 가격이 구름 밖에 위치하는 경우가 대부분이라
+        //    Ichimoku 구름 내부 차단 조건이 사실상 발동되지 않음.
         StrategyRegistry.register(new IchimokuFilteredStrategy("COMPOSITE_BREAKOUT_ICHIMOKU",
                 new CompositeStrategy("COMPOSITE_BREAKOUT_ICHIMOKU_BASE", List.of(
                         new WeightedStrategy(new AtrBreakoutStrategy(), 0.4),

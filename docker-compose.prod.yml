@@ -21,8 +21,9 @@ services:
   redis:
     image: redis:7-alpine
     restart: always
+    command: redis-server --requirepass ${REDIS_PASSWORD}
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 10s
       timeout: 3s
       retries: 3
@@ -43,6 +44,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       REDIS_HOST: redis
       CORS_ALLOWED_ORIGINS: http://${HOST_IP}:3000,http://localhost:3000,http://${DDNS_HOST}:3000
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
       UPBIT_ACCESS_KEY: ${UPBIT_ACCESS_KEY_ENCRYPTED}
       UPBIT_SECRET_KEY: ${UPBIT_SECRET_KEY_ENCRYPTED}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
@@ -67,6 +69,28 @@ services:
     ports:
       - "3000:3000"
 
+  db-backup:
+    image: timescale/timescaledb:latest-pg15
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGPASSWORD: ${DB_PASSWORD}
+    volumes:
+      - ./backups:/backups
+    entrypoint: >
+      /bin/sh -c "
+        mkdir -p /backups &&
+        while true; do
+          FILENAME=/backups/backup_$$(date +%Y%m%d_%H%M%S).sql.gz &&
+          pg_dump -h db -U trader crypto_auto_trader | gzip > $$FILENAME &&
+          echo \"백업 완료: $$FILENAME\" &&
+          find /backups -name '*.sql.gz' -mtime +7 -delete &&
+          sleep 86400;
+        done
+      "
+
   prometheus:
     image: prom/prometheus:latest
     restart: always
@@ -88,7 +112,7 @@ services:
       - grafana_data:/var/lib/grafana
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
     environment:
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_SERVER_ROOT_URL: http://localhost:3001
     ports:

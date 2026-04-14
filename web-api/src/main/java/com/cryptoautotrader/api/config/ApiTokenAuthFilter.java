@@ -22,13 +22,11 @@ public class ApiTokenAuthFilter extends OncePerRequestFilter {
     private final String expectedToken;
 
     public ApiTokenAuthFilter(@Value("${api.auth.token}") String expectedToken) {
-        this.expectedToken = expectedToken;
-        if (expectedToken.equals("dev-token-change-me-in-production")) {
-            log.warn("====================================================");
-            log.warn("⚠️  API 인증 토큰이 기본값입니다. 운영 환경에서는");
-            log.warn("   API_AUTH_TOKEN 환경변수를 반드시 변경하세요.");
-            log.warn("====================================================");
+        if (expectedToken == null || expectedToken.isBlank()) {
+            throw new IllegalStateException(
+                "API_AUTH_TOKEN 환경변수가 설정되지 않았습니다. 서버를 시작할 수 없습니다.");
         }
+        this.expectedToken = expectedToken;
     }
 
     @Override

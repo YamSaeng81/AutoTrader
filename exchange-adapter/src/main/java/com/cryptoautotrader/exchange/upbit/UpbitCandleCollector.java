@@ -12,7 +12,11 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Upbit 과거 캔들 데이터 수집기
@@ -82,10 +86,47 @@ public class UpbitCandleCollector implements ExchangeAdapter {
         return allCandles;
     }
 
+    /**
+     * Upbit KRW 마켓 중 24시간 거래대금 상위 20개를 반환한다.
+     * API 호출 실패 시 하드코딩 목록으로 폴백한다.
+     */
     @Override
     public List<String> getSupportedCoins() {
+        try {
+            List<Map<String, Object>> allMarkets = restClient.getMarkets();
+            List<String> krwMarkets = allMarkets.stream()
+                    .map(m -> (String) m.get("market"))
+                    .filter(m -> m != null && m.startsWith("KRW-"))
+                    .collect(Collectors.toList());
+
+            if (krwMarkets.isEmpty()) return fallbackCoins();
+
+            String marketsParam = String.join(",", krwMarkets);
+            List<Map<String, Object>> tickers = restClient.getTicker(marketsParam);
+
+            return tickers.stream()
+                    .sorted(Comparator.comparingDouble(
+                            t -> -toDouble(((Map<?, ?>) t).get("acc_trade_price_24h"))))
+                    .limit(20)
+                    .map(t -> (String) t.get("market"))
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+
+        } catch (Exception e) {
+            log.warn("Upbit 마켓 동적 조회 실패, 하드코딩 목록 사용: {}", e.getMessage());
+            return fallbackCoins();
+        }
+    }
+
+    private List<String> fallbackCoins() {
         return List.of("KRW-BTC", "KRW-ETH", "KRW-XRP", "KRW-SOL", "KRW-DOGE",
                 "KRW-ADA", "KRW-AVAX", "KRW-DOT", "KRW-MATIC", "KRW-LINK");
+    }
+
+    private double toDouble(Object val) {
+        if (val == null) return 0.0;
+        if (val instanceof Number) return ((Number) val).doubleValue();
+        try { return Double.parseDouble(val.toString()); } catch (Exception e) { return 0.0; }
     }
 
     private String resolveTimeframeUnit(String timeframe) {

@@ -6,7 +6,7 @@ import type {
     WalkForwardRequest, WalkForwardResult,
     TradingStatus, Position, LiveOrder, ExchangeHealth, RiskConfig,
     LiveTradingSession, LiveTradingStartRequest, PerformanceSummary, WsStatusResponse,
-    SignalStatsResponse,
+    SignalStatsResponse, NightlySchedulerConfig, BacktestJob,
 } from './types';
 
 // 클라이언트 컴포넌트에서 사용: /api/proxy 경유 → 서버사이드에서 API_TOKEN 주입
@@ -309,3 +309,16 @@ export interface DbStats {
     paperTrading: Record<string, number>;
     liveTrading:  Record<string, number>;
 }
+
+export const schedulerApi = {
+    getConfig: () =>
+        api.get<ApiResponse<NightlySchedulerConfig>>('/api/v1/scheduler/nightly').then(r => r.data),
+    updateConfig: (config: Partial<NightlySchedulerConfig>) =>
+        api.put<ApiResponse<NightlySchedulerConfig>>('/api/v1/scheduler/nightly', config).then(r => r.data),
+    triggerNow: () =>
+        api.post<ApiResponse<Record<string, unknown>>>('/api/v1/scheduler/nightly/trigger').then(r => r.data),
+    listJobs: () =>
+        api.get<ApiResponse<BacktestJob[]>>('/api/v1/backtest/jobs').then(r => r.data),
+    cancelJob: (jobId: number) =>
+        api.post<ApiResponse<BacktestJob>>(`/api/v1/backtest/job/${jobId}/cancel`).then(r => r.data),
+};

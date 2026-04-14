@@ -130,6 +130,8 @@ public class ReportComposer {
                 - 실현손익: %s원
                 [현재 레짐] %s
                 [차단 사유 TOP3] %s
+                [실행 중 세션]
+                %s
                 """,
                 KST_FMT.format(r.getPeriodStart()), KST_FMT.format(r.getPeriodEnd()),
                 r.getTotalSignals(), r.getBuySignals(), r.getSellSignals(), r.getHoldSignals(),
@@ -142,7 +144,8 @@ public class ReportComposer {
                 r.getWinRate() != null ? r.getWinRate().toPlainString() : "-",
                 fmt(r.getTotalRealizedPnl()),
                 r.getCurrentRegime(),
-                topBlockReasons(r.getBlockReasons(), 3));
+                topBlockReasons(r.getBlockReasons(), 3),
+                activeSessionsSummary(r));
 
         LlmResponse resp = llmTaskRouter.route(LlmTask.LOG_SUMMARY, systemPrompt, userPrompt);
         return resp.isSuccess() ? resp.getContent() : "(LLM 요약 실패: " + resp.getErrorMessage() + ")";
@@ -162,10 +165,16 @@ public class ReportComposer {
                 [전략별 신호 품질]
                 %s
                 [레짐 전환] %s
+                [실행 중 세션]
+                %s
+                [코인별 포지션 성과]
+                %s
                 """,
                 summary,
                 strategyQualitySummary(r),
-                regimeTransitionSummary(r.getRegimeTransitions()));
+                regimeTransitionSummary(r.getRegimeTransitions()),
+                activeSessionsSummary(r),
+                coinPositionStatsSummary(r));
 
         LlmResponse resp = llmTaskRouter.route(LlmTask.SIGNAL_ANALYSIS, systemPrompt, userPrompt);
         return resp.isSuccess() ? resp.getContent() : "(분석 실패: " + resp.getErrorMessage() + ")";
@@ -187,6 +196,7 @@ public class ReportComposer {
         blocks.addAll(buildSignalStatsSection(r));
         blocks.addAll(buildPositionStatsSection(r));
         if (!r.getStrategyStats().isEmpty()) blocks.addAll(buildStrategyStatsSection(r));
+        if (r.getActiveSessions() != null && !r.getActiveSessions().isEmpty()) blocks.addAll(buildActiveSessionsSection(r));
         if (!r.getRegimeTransitions().isEmpty()) blocks.addAll(buildRegimeTransitionSection(r));
         if (!r.getBlockReasons().isEmpty()) blocks.addAll(buildBlockReasonsSection(r));
         blocks.addAll(buildAnalysisSection(analysis));
@@ -329,5 +339,67 @@ public class ReportComposer {
                 .map(t -> (t.getFromRegime() != null ? t.getFromRegime() : "초기") + "→" + t.getToRegime())
                 .reduce((a, b) -> a + ", " + b)
                 .orElse("없음");
+    }
+
+    /** LLM 프롬프트용 활성 세션 요약 */
+    private String activeSessionsSummary(AnalysisReport r) {
+        List<AnalysisReport.ActiveSessionInfo> sessions = r.getActiveSessions();
+        if (sessions == null || sessions.isEmpty()) return "실행 중인 세션 없음";
+        StringBuilder sb = new StringBuilder();
+        sessions.forEach(s -> {
+            sb.append("• ").append(s.getStrategyType())
+                    .append(" ").append(s.getCoinPair())
+                    .append(" [").append(s.getTimeframe()).append("]");
+            if (s.getReturnPct() != null) {
+                String sign = s.getReturnPct().compareTo(BigDecimal.ZERO) >= 0 ? "+" : "";
+                sb.append(" 수익률 ").append(sign).append(s.getReturnPct()).append("%");
+            }
+            Map<String, BigDecimal> prices = r.getCoinPriceChanges();
+            if (prices != null && prices.containsKey(s.getCoinPair())) {
+                BigDecimal chg = prices.get(s.getCoinPair());
+                String sign = chg.compareTo(BigDecimal.ZERO) >= 0 ? "+" : "";
+                sb.append(", 12h 가격 ").append(sign).append(chg).append("%");
+            }
+            sb.append("\n");
+        });
+        return sb.toString().trim();
+    }
+
+    /** LLM 프롬프트용 코인별 포지션 통계 요약 */
+    private String coinPositionStatsSummary(AnalysisReport r) {
+        Map<String, AnalysisReport.CoinPositionStat> stats = r.getCoinPositionStats();
+        if (stats == null || stats.isEmpty()) return "없음";
+        StringBuilder sb = new StringBuilder();
+        stats.forEach((coin, stat) ->
+                sb.append("• ").append(coin)
+                        .append(": 청산 ").append(stat.getClosedCount()).append("건")
+                        .append(", 승률 ").append(stat.getWinRate() != null ? stat.getWinRate() : "-").append("%")
+                        .append(", 손익 ").append(fmt(stat.getTotalPnl())).append("원\n"));
+        return sb.toString().trim();
+    }
+
+    /** Notion 활성 세션 섹션 빌더 */
+    private List<ObjectNode> buildActiveSessionsSection(AnalysisReport r) {
+        List<List<String>> rows = new ArrayList<>();
+        r.getActiveSessions().forEach(s -> {
+            String returnStr = s.getReturnPct() != null
+                    ? (s.getReturnPct().compareTo(BigDecimal.ZERO) >= 0 ? "+" : "") + s.getReturnPct() + "%" : "-";
+            String priceStr = "-";
+            if (r.getCoinPriceChanges() != null && r.getCoinPriceChanges().containsKey(s.getCoinPair())) {
+                BigDecimal chg = r.getCoinPriceChanges().get(s.getCoinPair());
+                priceStr = (chg.compareTo(BigDecimal.ZERO) >= 0 ? "+" : "") + chg + "%";
+            }
+            rows.add(List.of(
+                    String.valueOf(s.getSessionId()),
+                    s.getStrategyType(),
+                    s.getCoinPair(),
+                    s.getTimeframe(),
+                    returnStr,
+                    priceStr));
+        });
+        return List.of(
+                notionClient.heading2("🤖 실행 중 세션"),
+                notionClient.table(List.of("세션ID", "전략", "코인", "타임프레임", "수익률", "12h 가격변화"), rows),
+                notionClient.divider());
     }
 }

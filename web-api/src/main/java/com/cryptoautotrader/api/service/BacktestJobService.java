@@ -4,6 +4,7 @@ import com.cryptoautotrader.api.dto.BacktestRequest;
 import com.cryptoautotrader.api.dto.BatchBacktestRequest;
 import com.cryptoautotrader.api.dto.BulkBacktestRequest;
 import com.cryptoautotrader.api.dto.MultiStrategyBacktestRequest;
+import com.cryptoautotrader.api.dto.WalkForwardBatchRequest;
 import com.cryptoautotrader.api.entity.BacktestJobEntity;
 import com.cryptoautotrader.api.repository.BacktestJobRepository;
 import com.cryptoautotrader.api.repository.CandleDataRepository;
@@ -27,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 백테스트 비동기 작업 제출 및 실행 서비스.
@@ -50,6 +52,9 @@ public class BacktestJobService {
     static final int CHUNK_SIZE = 100_000;
 
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy.MM.dd");
+
+    /** 취소 요청된 jobId 집합. RUNNING 중인 배치/WF 루프가 매 iteration마다 확인한다. */
+    private final ConcurrentHashMap<Long, Boolean> cancelRequested = new ConcurrentHashMap<>();
 
     private final BacktestJobRepository jobRepository;
     private final BacktestService backtestService;
@@ -285,6 +290,12 @@ public class BacktestJobService {
     @Async("backtestExecutor")
     public void executeBatchAsync(Long jobId, BatchBacktestRequest req) {
         BacktestJobEntity job = jobRepository.findById(jobId).orElseThrow();
+        // 시작 전 취소 확인
+        if (cancelRequested.remove(jobId) != null || "CANCELLED".equals(job.getStatus())) {
+            job.setStatus("CANCELLED");
+            jobRepository.save(job);
+            return;
+        }
         try {
             job.setStatus("RUNNING");
             jobRepository.save(job);
@@ -295,6 +306,12 @@ public class BacktestJobService {
                     req.getInitialCapital(), req.getSlippagePct(), req.getFeePct()
             );
 
+            if (cancelRequested.remove(jobId) != null) {
+                job.setStatus("CANCELLED");
+                jobRepository.save(job);
+                cancelRequested.remove(jobId);
+                return;
+            }
             long failCount = results.stream().filter(r -> r.containsKey("error")).count();
             job.setStatus(failCount == results.size() ? "FAILED" : "COMPLETED");
             job.setCompletedChunks(results.size());
@@ -322,6 +339,120 @@ public class BacktestJobService {
         }
     }
 
+    // ── Walk-Forward 배치 (코인 N × 전략 M) ──────────────────────────────────────
+
+    /**
+     * Walk-Forward 배치 작업을 비동기로 제출한다.
+     * 모든 (coinPair × strategyType) 조합을 순차 실행하고 결과를 텔레그램으로 알린다.
+     */
+    public Long submitWalkForwardBatchJob(WalkForwardBatchRequest req) {
+        int total = req.getCoinPairs().size() * req.getStrategyTypes().size();
+        BacktestJobEntity job = BacktestJobEntity.builder()
+                .jobType("WALK_FORWARD_BATCH")
+                .status("PENDING")
+                .coinPair(req.getCoinPairs().size() + "개 코인")
+                .strategyName(req.getStrategyTypes().size() + "개 전략")
+                .timeframe(req.getTimeframe())
+                .requestJson(toJson(req))
+                .totalChunks(total)
+                .build();
+        job = jobRepository.save(job);
+        Long jobId = job.getId();
+        log.info("Walk-Forward 배치 Job 제출: jobId={}, 코인 {}개 × 전략 {}개 = {}개 조합",
+                jobId, req.getCoinPairs().size(), req.getStrategyTypes().size(), total);
+        self.executeWalkForwardBatchAsync(jobId, req);
+        return jobId;
+    }
+
+    @Async("backtestExecutor")
+    public void executeWalkForwardBatchAsync(Long jobId, WalkForwardBatchRequest req) {
+        BacktestJobEntity job = jobRepository.findById(jobId).orElseThrow();
+        // 시작 전 취소 확인
+        if (cancelRequested.remove(jobId) != null || "CANCELLED".equals(job.getStatus())) {
+            job.setStatus("CANCELLED");
+            jobRepository.save(job);
+            return;
+        }
+        try {
+            job.setStatus("RUNNING");
+            jobRepository.save(job);
+
+            List<Map<String, Object>> results = new ArrayList<>();
+            int completed = 0;
+            outer:
+            for (String coin : req.getCoinPairs()) {
+                for (String strategy : req.getStrategyTypes()) {
+                    // 매 조합마다 취소 확인
+                    if (cancelRequested.containsKey(jobId)) {
+                        log.info("Walk-Forward 배치 취소 감지: jobId={}, 완료 {}개", jobId, completed);
+                        cancelRequested.remove(jobId);
+                        break outer;
+                    }
+                    try {
+                        Map<String, Object> result = backtestService.runWalkForward(
+                                strategy, coin, req.getTimeframe(),
+                                req.getStartDate(), req.getEndDate(),
+                                req.getInSampleRatio(), req.getWindowCount(),
+                                req.getInitialCapital(), req.getSlippagePct(), req.getFeePct(),
+                                null);
+                        result.put("coin", coin);
+                        result.put("strategy", strategy);
+                        results.add(result);
+                        log.info("Walk-Forward 완료: jobId={} {} {} verdict={}",
+                                jobId, coin, strategy, result.get("verdict"));
+                    } catch (Exception e) {
+                        log.error("Walk-Forward 실패: jobId={} {} {} error={}",
+                                jobId, coin, strategy, e.getMessage());
+                        results.add(Map.of("coin", coin, "strategy", strategy, "error", e.getMessage()));
+                    }
+                    job.setCompletedChunks(++completed);
+                    jobRepository.save(job);
+                }
+            }
+
+            // CANCELLED 상태면 부분 완료로 종료
+            if ("CANCELLED".equals(job.getStatus())) {
+                jobRepository.save(job);
+                return;
+            }
+            long failCount = results.stream().filter(r -> r.containsKey("error")).count();
+            job.setStatus(failCount == results.size() ? "FAILED" : "COMPLETED");
+            jobRepository.save(job);
+            log.info("Walk-Forward 배치 완료: jobId={}, 총 {}개 중 실패 {}개", jobId, results.size(), failCount);
+
+            // Walk-Forward 전용 텔레그램 알림
+            String period = fmt(req.getStartDate()) + " ~ " + fmt(req.getEndDate()) + " / " + req.getTimeframe();
+            telegramService.notifyWalkForwardBatchCompleted(jobId, results, period);
+
+        } catch (Exception e) {
+            log.error("Walk-Forward 배치 실패: jobId={}, error={}", jobId, e.getMessage(), e);
+            job.setStatus("FAILED");
+            job.setErrorMessage(truncate(e.getMessage(), 1000));
+            jobRepository.save(job);
+            telegramService.notifyBacktestFailed(jobId,
+                    req.getCoinPairs().size() + "개 코인",
+                    "Walk-Forward 배치",
+                    fmt(req.getStartDate()), fmt(req.getEndDate()), req.getTimeframe(), e);
+        }
+    }
+
+    private Map<String, Object> buildWalkForwardSummary(List<Map<String, Object>> results) {
+        Map<String, Object> summary = new HashMap<>();
+        summary.put("totalCount", results.size());
+        summary.put("failCount", results.stream().filter(r -> r.containsKey("error")).count());
+        long robustCount = results.stream()
+                .filter(r -> !r.containsKey("error") && "ROBUST".equals(r.get("verdict")))
+                .count();
+        long cautionCount = results.stream()
+                .filter(r -> !r.containsKey("error") && "CAUTION".equals(r.get("verdict")))
+                .count();
+        summary.put("robustCount", robustCount);
+        summary.put("cautionCount", cautionCount);
+        summary.put("overfittingCount", results.size() - robustCount - cautionCount
+                - results.stream().filter(r -> r.containsKey("error")).count());
+        return summary;
+    }
+
     // ── Job 조회 ──────────────────────────────────────────────────────────────────
 
     @Transactional(readOnly = true)
@@ -336,6 +467,42 @@ public class BacktestJobService {
         return jobRepository.findAllByOrderByCreatedAtDesc().stream()
                 .map(this::jobToMap)
                 .toList();
+    }
+
+    /**
+     * Job 취소.
+     * <ul>
+     *   <li>PENDING: DB 상태를 즉시 CANCELLED로 변경한다.</li>
+     *   <li>RUNNING: cancelRequested 플래그를 세팅한다. 배치·WF 루프가 다음 iteration에서 감지하여
+     *       현재 진행 중인 조합까지 완료 후 중단한다. SINGLE 작업은 백테스트 엔진 호출이 완료되기
+     *       전에는 중단되지 않는다 (다음 chunk 시작 전에 감지).</li>
+     * </ul>
+     * @return 취소된 Job의 상태 맵
+     */
+    @Transactional
+    public Map<String, Object> cancelJob(Long jobId) {
+        BacktestJobEntity job = jobRepository.findById(jobId)
+                .orElseThrow(() -> new IllegalArgumentException("백테스트 Job 없음: id=" + jobId));
+
+        String status = job.getStatus();
+        if ("COMPLETED".equals(status) || "FAILED".equals(status) || "CANCELLED".equals(status)) {
+            throw new IllegalStateException("이미 종료된 Job은 취소할 수 없습니다: status=" + status);
+        }
+
+        if ("PENDING".equals(status)) {
+            job.setStatus("CANCELLED");
+            job.setErrorMessage("사용자 취소");
+            jobRepository.save(job);
+            log.info("Job 취소 (PENDING): jobId={}", jobId);
+        } else {
+            // RUNNING: 플래그 세팅 + DB 상태 선반영
+            cancelRequested.put(jobId, Boolean.TRUE);
+            job.setStatus("CANCELLED");
+            job.setErrorMessage("사용자 취소 (진행 중 작업은 현재 조합 완료 후 중단)");
+            jobRepository.save(job);
+            log.info("Job 취소 요청 (RUNNING): jobId={}", jobId);
+        }
+        return jobToMap(job);
     }
 
     // ── 내부 헬퍼 ────────────────────────────────────────────────────────────────

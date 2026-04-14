@@ -45,7 +45,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class PaperTradingService {
 
-    private static final int MAX_CONCURRENT_SESSIONS = 10;
+    private static final int MAX_CONCURRENT_SESSIONS = 20;
     private static final BigDecimal FEE_RATE = new BigDecimal("0.0005");
     private static final int CANDLE_LOOKBACK = 100;
 
@@ -299,6 +299,8 @@ public class PaperTradingService {
                     : new BigDecimal(wins).divide(new BigDecimal(closed.size()), 6, RoundingMode.HALF_UP)
                             .multiply(new BigDecimal("100")).setScale(1, RoundingMode.HALF_UP);
 
+            RiskMetrics sessionRisk = computeRiskMetrics(closed, session.getInitialCapital());
+
             sessionPerfs.add(PerformanceSummaryResponse.SessionPerformance.builder()
                     .sessionId(session.getId())
                     .strategyType(session.getStrategyName())
@@ -317,6 +319,13 @@ public class PaperTradingService {
                     .winRatePct(sessionWinRate)
                     .startedAt(session.getStartedAt() != null ? session.getStartedAt().toString() : null)
                     .stoppedAt(session.getStoppedAt() != null ? session.getStoppedAt().toString() : null)
+                    .mddPct(sessionRisk.mddPct)
+                    .sharpeRatio(sessionRisk.sharpeRatio)
+                    .sortinoRatio(sessionRisk.sortinoRatio)
+                    .winLossRatio(sessionRisk.winLossRatio)
+                    .avgProfitPct(sessionRisk.avgProfitPct)
+                    .avgLossPct(sessionRisk.avgLossPct)
+                    .maxConsecutiveLoss(sessionRisk.maxConsecutiveLoss)
                     .build());
 
             totalRealizedPnl = totalRealizedPnl.add(sessionRealized);
@@ -337,6 +346,13 @@ public class PaperTradingService {
                         .multiply(new BigDecimal("100")).setScale(1, RoundingMode.HALF_UP)
                 : BigDecimal.ZERO;
 
+        // 전체 포트폴리오 리스크 지표: 모든 세션 거래를 합산
+        List<PaperPositionEntity> allClosed = sessions.stream()
+                .flatMap(s -> positionRepo.findBySessionId(s.getId()).stream())
+                .filter(p -> "CLOSED".equals(p.getStatus()))
+                .toList();
+        RiskMetrics overallRisk = computeRiskMetrics(allClosed, totalInitialCapital);
+
         return PerformanceSummaryResponse.builder()
                 .totalRealizedPnl(totalRealizedPnl)
                 .totalUnrealizedPnl(totalUnrealizedPnl)
@@ -348,8 +364,124 @@ public class PaperTradingService {
                 .winCount(totalWins)
                 .lossCount(totalTrades - totalWins)
                 .winRatePct(winRatePct)
+                .mddPct(overallRisk.mddPct)
+                .sharpeRatio(overallRisk.sharpeRatio)
+                .sortinoRatio(overallRisk.sortinoRatio)
+                .calmarRatio(overallRisk.calmarRatio)
+                .winLossRatio(overallRisk.winLossRatio)
+                .avgProfitPct(overallRisk.avgProfitPct)
+                .avgLossPct(overallRisk.avgLossPct)
+                .maxConsecutiveLoss(overallRisk.maxConsecutiveLoss)
                 .sessions(sessionPerfs)
                 .build();
+    }
+
+    // ── 리스크 지표 계산 ──────────────────────────────────────────────────────────
+
+    private static class RiskMetrics {
+        BigDecimal mddPct;
+        BigDecimal sharpeRatio;
+        BigDecimal sortinoRatio;
+        BigDecimal calmarRatio;
+        BigDecimal winLossRatio;
+        BigDecimal avgProfitPct;
+        BigDecimal avgLossPct;
+        int maxConsecutiveLoss;
+    }
+
+    /**
+     * 종료된 포지션 목록으로 MDD·Sharpe·Sortino·승패비 등 리스크 지표를 계산한다.
+     * 3건 미만이면 통계적으로 의미 없으므로 null 반환.
+     */
+    private RiskMetrics computeRiskMetrics(List<PaperPositionEntity> closed, BigDecimal initialCapital) {
+        RiskMetrics m = new RiskMetrics();
+        if (closed.isEmpty()) return m;
+
+        // closedAt 오름차순 정렬 (null이면 제외)
+        List<PaperPositionEntity> sorted = closed.stream()
+                .filter(p -> p.getClosedAt() != null && p.getRealizedPnl() != null)
+                .sorted(java.util.Comparator.comparing(PaperPositionEntity::getClosedAt))
+                .toList();
+        if (sorted.isEmpty()) return m;
+
+        // 거래별 수익률 (%)
+        List<Double> returns = new ArrayList<>();
+        List<Double> profits = new ArrayList<>();
+        List<Double> losses  = new ArrayList<>();
+        for (PaperPositionEntity pos : sorted) {
+            if (pos.getEntryPrice() == null || pos.getSize() == null) continue;
+            BigDecimal invested = pos.getEntryPrice().multiply(pos.getSize());
+            if (invested.compareTo(BigDecimal.ZERO) <= 0) continue;
+            double ret = pos.getRealizedPnl()
+                    .divide(invested, 8, RoundingMode.HALF_UP)
+                    .doubleValue() * 100.0;
+            returns.add(ret);
+            if (ret > 0) profits.add(ret);
+            else if (ret < 0) losses.add(Math.abs(ret));
+        }
+
+        // MDD: 누적 자산 곡선으로 계산
+        double equity = initialCapital.doubleValue();
+        double peak   = equity;
+        double minDD  = 0.0;
+        for (PaperPositionEntity pos : sorted) {
+            equity += pos.getRealizedPnl().doubleValue();
+            if (equity > peak) peak = equity;
+            if (peak > 0) {
+                double dd = (equity - peak) / peak * 100.0;
+                if (dd < minDD) minDD = dd;
+            }
+        }
+        m.mddPct = BigDecimal.valueOf(minDD).setScale(2, RoundingMode.HALF_UP);
+
+        // Sharpe·Sortino: 3건 이상부터 계산
+        if (returns.size() >= 3) {
+            double avg = returns.stream().mapToDouble(Double::doubleValue).average().orElse(0);
+            double std = stdDevPopulation(returns, avg);
+            if (std > 0) {
+                m.sharpeRatio = BigDecimal.valueOf(avg / std).setScale(4, RoundingMode.HALF_UP);
+            }
+            double downStd = losses.isEmpty() ? 0.0 : stdDevPopulation(
+                    losses.stream().map(v -> -v).toList(), 0.0);
+            if (downStd > 0) {
+                m.sortinoRatio = BigDecimal.valueOf(avg / downStd).setScale(4, RoundingMode.HALF_UP);
+            }
+        }
+
+        // Calmar = 평균수익률 / |MDD|
+        if (m.sharpeRatio != null && minDD < 0) {
+            double avgRet = returns.stream().mapToDouble(Double::doubleValue).average().orElse(0);
+            m.calmarRatio = BigDecimal.valueOf(avgRet / Math.abs(minDD)).setScale(4, RoundingMode.HALF_UP);
+        }
+
+        // 승패비·평균 수익/손실
+        if (!profits.isEmpty() && !losses.isEmpty()) {
+            double avgProfit = profits.stream().mapToDouble(Double::doubleValue).average().orElse(0);
+            double avgLoss   = losses.stream().mapToDouble(Double::doubleValue).average().orElse(0);
+            m.avgProfitPct   = BigDecimal.valueOf(avgProfit).setScale(2, RoundingMode.HALF_UP);
+            m.avgLossPct     = BigDecimal.valueOf(-avgLoss).setScale(2, RoundingMode.HALF_UP);
+            if (avgLoss > 0) {
+                m.winLossRatio = BigDecimal.valueOf(avgProfit / avgLoss).setScale(4, RoundingMode.HALF_UP);
+            }
+        }
+
+        // 최대 연속 손실
+        int maxCons = 0, cons = 0;
+        for (PaperPositionEntity pos : sorted) {
+            if (pos.getRealizedPnl().compareTo(BigDecimal.ZERO) < 0) {
+                maxCons = Math.max(maxCons, ++cons);
+            } else {
+                cons = 0;
+            }
+        }
+        m.maxConsecutiveLoss = maxCons;
+        return m;
+    }
+
+    private double stdDevPopulation(List<Double> values, double mean) {
+        if (values.size() < 2) return 0.0;
+        double variance = values.stream().mapToDouble(v -> (v - mean) * (v - mean)).sum() / values.size();
+        return Math.sqrt(variance);
     }
 
     // ── 스케줄: MarketDataSyncService 실행(0s) 후 35초 뒤 전략 실행 ──

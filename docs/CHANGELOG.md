@@ -4,6 +4,283 @@
 
 ---
 
+### ✅ 완료 (2026-04-14) — 모의투자 확장 + 야간 자동 스케줄러 + 리스크 지표 수정
+
+#### 1. 모의투자 최대 세션 수 확장 (10 → 20)
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `PaperTradingService.java` | `MAX_CONCURRENT_SESSIONS = 10` → `20` |
+
+> 세션당 메모리·DB 부하가 경미하므로 무리 없음. 운영 코인(BTC·ETH·SOL·XRP·DOGE) + 신규 DOGE·XRP V2 병행 운영 대비.
+
+---
+
+#### 2. 야간 자동 스케줄러 — DB 기반 동적 관리 + 전용 웹 UI
+
+**신규 파일**
+
+| 파일 | 역할 |
+|------|------|
+| `V41__create_nightly_scheduler_config.sql` | `nightly_scheduler_config` 싱글톤 테이블 (id=1). 활성화 여부, 실행 시각(KST), 타임프레임, 기간, 코인·전략 목록 등 저장 |
+| `V42__fix_scheduler_config_column_types.sql` | V41에서 SMALLINT로 생성된 run_hour/run_minute/window_count를 INTEGER로 변경 (Hibernate 타입 일치) |
+| `NightlySchedulerConfigEntity.java` | JPA 엔티티. `coinPairList()` / `strategyTypeList()` 콤마 분리 헬퍼 포함 |
+| `NightlySchedulerConfigRepository.java` | `JpaRepository<NightlySchedulerConfigEntity, Long>` |
+| `NightlySchedulerConfigDto.java` | 요청/응답 DTO. 읽기 전용 필드: lastTriggeredAt, nextRunAt, lastBatchJobId, lastWfJobId |
+| `NightlySchedulerConfigService.java` | `getConfig()` / `updateConfig()` / `triggerNow()` / `checkAndRun()`. KST 시각 비교 + 23시간 중복 실행 방지 가드. `calcNextRun()` 다음 실행 예정 시각 계산 |
+| `NightlySchedulerController.java` | `GET/PUT /api/v1/scheduler/nightly`, `POST /api/v1/scheduler/nightly/trigger` |
+| `WalkForwardBatchRequest.java` | Walk-Forward 배치 DTO |
+| `crypto-trader-frontend/src/app/backtest/scheduler/page.tsx` | 스케줄러 전용 관리 페이지 |
+
+**수정 파일**
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `BacktestAutoSchedulerService.java` | 기존 하드코딩 `@Scheduled(cron)` → `NightlySchedulerConfigService.checkAndRun()` 1분 tick 위임 |
+| `BacktestJobService.java` | `submitWalkForwardBatchJob()` + `@Async executeWalkForwardBatchAsync()` 추가 |
+| `BacktestController.java` | `POST /api/v1/backtest/walk-forward-batch-async` 엔드포인트 추가 |
+| `types.ts` | `NightlySchedulerConfig` 인터페이스 추가 |
+| `api.ts` | `schedulerApi` (getConfig / updateConfig / triggerNow) 추가 |
+| `Sidebar.tsx` | '전략관리' 그룹에 '자동 스케줄' 메뉴 추가 (`/backtest/scheduler`) |
+
+**스케줄러 UI 기능**:
+- ON/OFF 토글, KST 실행 시각 선택 (시:분)
+- 타임프레임 드롭다운 (M1/M5/M15/M30/H1/H4/D1)
+- 분석 기간 날짜 피커 (시작~종료)
+- 코인 선택 (BTC·ETH·SOL·XRP·DOGE·ADA·DOT·AVAX 프리셋 + 직접 입력)
+- 전략 선택 (복합 그룹 + 단일 그룹 칩)
+- 고급 설정 (초기자금·슬리피지·수수료)
+- 예상 작업량: N코인 × M전략 = K 조합 표시
+- "지금 실행" 수동 트리거 (확인 다이얼로그 포함)
+
+---
+
+#### 3. 모의투자 리스크 지표 (MDD·Sharpe·Sortino) 계산 수정
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `PaperTradingService.java` | `RiskMetrics` 내부 클래스 추가 (mddPct, sharpeRatio, sortinoRatio, calmarRatio, winLossRatio, avgProfitPct, avgLossPct, maxConsecutiveLoss). `computeRiskMetrics(closedPositions, initialCapital)` 메서드 추가 — 청산 포지션의 누적 손익 곡선으로 MDD, 수익률 시계열로 Sharpe/Sortino 계산 (최소 3거래). `getOverallPerformance()`에서 세션별 호출하여 대시보드에 반영 |
+
+**원인**: 기존 코드는 리스크 지표 필드가 선언되어 있었으나 실제 계산 로직이 없어 항상 0.0 반환.
+
+---
+
+### ✅ 완료 (2026-04-13) — P2-1: 5코인 × 4전략 3년 배치 백테스트
+
+**실행 조건**: KRW 마켓 H1, 2023-01-01 ~ 2025-12-31, 초기자금 1000만원, 슬리피지 0.1%, 수수료 0.05%
+
+**핵심 발견**:
+
+| 발견 | 내용 |
+|------|------|
+| SOL 전략 전환 권고 | V2(+131.1% MDD -12.0%) > BREAKOUT(+64.9% MDD -19.2%) — 수익률 2배·MDD 낮음 |
+| XRP V2 확정 | V2(+49.9%) > V1(+36.5%) — 수익률·Sharpe 모두 우위 |
+| DOGE V2 주목 | +134.4% 전 코인 최고 수익률. MDD -29.2% 주의 필요 |
+| BTC BREAKOUT 독주 | +104.2% Sharpe 6.41. MOMENTUM 계열 전부 +1~13% 수준 |
+| ETH MOMENTUM 유지 | +53.6%. V1/V2/BREAKOUT 모두 열위 |
+
+**COMPOSITE_MOMENTUM_ICHIMOKU_V2 전체 결과**:
+
+| 코인 | 수익률 | MDD | Sharpe | 거래수 |
+|------|--------|-----|--------|--------|
+| SOL | +131.07% | -11.95% | 2.72 | 167 |
+| DOGE | +134.42% | -29.15% | 2.49 | 179 |
+| XRP | +49.92% | -25.32% | 1.81 | 129 |
+| ETH | +37.31% | -22.75% | 1.33 | 170 |
+| BTC | +13.01% | -12.12% | 0.58 | 158 |
+
+**후속 작업**: SOL Walk-Forward 검증 → 실전 전환 / DOGE 소액 투입 검토 / XRP V1→V2 전환
+
+---
+
+### ✅ 완료 (2026-04-13) — P1-0 방향A: StrategyWeightOptimizer Composite 단위 전환
+
+#### 문제
+
+`StrategyWeightOptimizer`의 `DEFAULTS`가 `SUPERTREND`, `EMA_CROSS` 등 컴포넌트 전략명을 기준으로 했으나,
+`strategy_log.strategy_name`에는 `COMPOSITE_BREAKOUT`, `COMPOSITE_MOMENTUM` 등 Composite 전략명이 기록된다.
+→ 항상 0건 매칭 → 가중치가 기본값에서 벗어나지 않는 구조적 버그.
+
+#### 수정 내용
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `StrategyWeightOptimizer.java` | `DEFAULTS` 맵을 Composite 전략명(`COMPOSITE_BREAKOUT`, `COMPOSITE_MOMENTUM`) 기준으로 전환. Javadoc에 방향A 이력 추가 |
+| `StrategySelector.java` | `trend()`, `range()`, `volatility()` 3개 메서드 전략명을 동일하게 Composite 기준으로 통일 |
+
+**기본 가중치** (3년 백테스트 근거):
+- TREND: COMPOSITE_BREAKOUT 0.65 / COMPOSITE_MOMENTUM 0.35
+- RANGE: COMPOSITE_MOMENTUM 0.60 / COMPOSITE_BREAKOUT 0.40
+- VOLATILITY: COMPOSITE_BREAKOUT 0.70 / COMPOSITE_MOMENTUM 0.30
+
+**보호 장치**: 레짐별 최소 20건 / 전략별 최소 5건 미만이면 기본값 유지. 최소 가중치 0.05. 스무딩 70/30.
+
+#### MACD_STOCH_BB 영구 비활성화
+
+3년 H1 백테스트: BTC -2.32% 17건, XRP -2.02% 3건, ETH -0.33% 1건.
+MACD>0(상승추세) + StochRSI<20(극단 과매도) 동시 충족 구조적 불가 → 영구 비활성화.
+`BLOCKED_LIVE_STRATEGIES`에 `MACD_STOCH_BB` 추가. 서브필터 편입도 부적합 판정.
+
+---
+
+### ✅ 완료 (2026-04-13) — AI 분석 고도화 + 거래소 DOWN 자동 재시작
+
+#### AI 분석 데이터 고도화 (세션·코인·가격 컨텍스트 추가)
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `AnalysisReport.java` | `ActiveSessionInfo`(세션ID·전략·코인·타임프레임·수익률), `CoinPositionStat`(코인별 승률·손익) 내부 클래스 추가. `activeSessions`, `coinPriceChanges`, `coinPositionStats` 필드 추가 |
+| `LogAnalyzerService.java` | `LiveTradingSessionRepository` 주입. `buildRunningSessions()`, `buildActiveSessions()`, `buildCoinPriceChanges()`(RUNNING 코인 전체 + BTC/ETH 기본 보장), `buildCoinPositionStats()` 추가. `buildPriceContext()` 인라인화 |
+| `ReportComposer.java` | LLM 요약·분석 프롬프트에 `[실행 중 세션]`, `[코인별 포지션 성과]` 컨텍스트 추가. Notion `buildActiveSessionsSection()` 추가 |
+| `MorningBriefingComposer.java` | `buildTradingUserPrompt()`에 `[실행 중 세션 N개]`(전략·코인·수익률·12h 가격변화), `[코인별 포지션 성과]` 섹션 추가 |
+
+**효과**: LLM이 "어떤 전략이 어느 코인에서 현재 얼마나 벌고 있는지"와 "해당 코인 시세 흐름"을 함께 참고해 분석 품질 향상.
+
+#### 거래소 DOWN 비상 정지 후 자동 재시작
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `ExchangeRecoveredEvent.java` | 신규. 거래소 DOWN→UP 복구 시 발행되는 `ApplicationEvent` |
+| `ExchangeHealthMonitor.java` | `updateStatus()`에 UP+이전DOWN 조합 감지 → `ExchangeRecoveredEvent` 발행 |
+| `LiveTradingService.java` | `exchangeStoppedSessionIds`(ConcurrentHashSet) 추가. `onExchangeDown()`: DOWN 시 RUNNING 세션 ID 저장 + Discord ALERT 전송. `onExchangeRecovered()`: EMERGENCY_STOPPED → STOPPED 전환 후 `startSession()` 재호출, Telegram+Discord ALERT 전송. `DiscordWebhookClient` optional 주입. `sendDiscordEmergencyStopAlert()`, `sendDiscordRecoveryAlert()` 헬퍼 추가 |
+| `TelegramNotificationService.java` | `notifyExchangeRecovered(restarted, failed)` 추가 — 재시작 완료/실패 목록 포함 |
+
+**동작 흐름**:
+1. Upbit 3회 연속 실패 → `ExchangeDownEvent` → `onExchangeDown()` → RUNNING 세션 ID 기억 + 전체 비상 정지 + Telegram/Discord ALERT(사유·정지 세션 목록)
+2. 다음 30초 헬스체크에서 UP 복구 → `ExchangeRecoveredEvent` → `onExchangeRecovered()` → 세션 재시작 + Telegram/Discord ALERT(재시작 완료/실패 목록)
+
+---
+
+### ✅ 완료 (2026-04-13) — 신규 전략 + Upbit 동적 코인 목록 + 보안 강화
+
+#### COMPOSITE_MOMENTUM_ICHIMOKU_V2 신규 전략
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `CompositePresetRegistrar.java` | `COMPOSITE_MOMENTUM_ICHIMOKU_V2` 등록: MACD×0.5 + SUPERTREND×0.3 + GRID×0.2, EMA 방향 필터 + Ichimoku 구름 필터. `registerStateful` (GRID stateful) |
+| `StrategyController.java` | `isCompositeStrategy()` / `isStrategyImplemented()` / `getDescription()` 3개 switch에 V2 추가 |
+| `types.ts` | `StrategyType`에 `COMPOSITE_MOMENTUM_ICHIMOKU` / `COMPOSITE_MOMENTUM_ICHIMOKU_V2` / `COMPOSITE_BREAKOUT_ICHIMOKU` 추가 |
+| `CompositePresetRegistrar.java` | `COMPOSITE_BREAKOUT_ICHIMOKU` 설명에 ⚠ 백테스트 결과 무의미 주석 추가 (ADX 필터가 Ichimoku 조건 선점) |
+
+**설계 근거**: V1(COMPOSITE_MOMENTUM_ICHIMOKU)은 MACD(추세추종)와 VWAP(역추세)가 ADX 25~35 구간에서 동시 활성화 → buyScore/sellScore 둘 다 0.4 초과 → HOLD 남발. VWAP를 SUPERTREND(추세추종)로 교체하여 세 전략 방향 일치.
+
+**Walk-Forward 비교 결과**:
+- ETH: V1(53% 경고) vs V2(84.4% 경고) → **ETH는 V1 유지** (VWAP 역추세가 ETH 변동성 안전망 역할)
+- XRP: V1(0.0% 통과) vs V2(62.0% 경고) → 인샘플 수익률 자체가 0 근처. 샘플 부족. **4~6주 실전 후 재판단**
+
+#### Upbit 동적 코인 목록
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `UpbitRestClient.java` | `getMarkets()` 추가: `GET /v1/market/all` → `List<Map<String, Object>>` 반환 |
+| `UpbitCandleCollector.java` | `getSupportedCoins()` 재구현: KRW 마켓 전체 조회 → 24h 거래대금 상위 20개 동적 반환. API 실패 시 10종 하드코딩 폴백 |
+| `BacktestForm.tsx` | 코인 선택 `<select>` → 검색 가능한 콤보박스 (클릭 외부 닫힘, 빈 결과 처리, `useRef` 활용) |
+
+#### 보안 강화 (P3 전체 완료)
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `application.yml` | `api.auth.token` 기본값 완전 제거. `redis.data.password: ${REDIS_PASSWORD:}` 추가. `cors.allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}` 추가 |
+| `ApiTokenAuthFilter.java` | 토큰 공백·미설정 시 `IllegalStateException` throw → 서버 시작 자체 차단 |
+| `SecurityConfig.java` | `prod` 프로파일 시 `/swagger-ui/**`, `/v3/api-docs/**` 차단. CORS origin `*` 하드코딩 → `cors.allowed-origins` 프로퍼티 콤마 분리 처리. `Environment` 주입으로 활성 프로파일 판별 |
+| `docker-compose.prod.yml` | Redis `--requirepass ${REDIS_PASSWORD}` + healthcheck `-a ${REDIS_PASSWORD}`. backend `REDIS_PASSWORD` 환경변수 추가. `db-backup` 컨테이너 추가 (24h 주기 pg_dump, 7일 보관). Grafana `${GRAFANA_PASSWORD:-admin}` → `${GRAFANA_PASSWORD}` |
+| `application-local.yml` | 로컬 개발용 `api.auth.token: dev-token-change-me-in-production` 추가 |
+| `.env.example` | `GRAFANA_PASSWORD`, `DISCORD_BOT_TOKEN`, 프론트엔드 인증 변수 문서화 |
+
+**로컬 실행 명령어 변경**: `./gradlew :web-api:bootRun --args='--spring.profiles.active=local'`
+
+---
+
+### ✅ 완료 (2026-04-13) — LLM 호출 로그 저장 + 토큰 관리
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `V40__llm_call_log.sql` (신규) | `llm_call_log` 테이블: task/provider/model/프롬프트 전문/응답 전문/토큰/소요시간/성공여부 |
+| `LlmCallLogEntity.java` / `LlmCallLogRepository.java` | 기간별 호출 수, 토큰 합계, task별/provider별 집계 쿼리 포함 |
+| `LlmTaskRouter.java` | `saveLog()` — 모든 LLM 호출 완료 후 자동 저장 (저장 실패 시 원래 응답 영향 없음) |
+| `LogController.java` | `GET /api/v1/admin/llm/logs` (페이지네이션·필터), `/{id}` (전문), `/stats` (토큰 통계) |
+| `/logs/llm` 프론트엔드 | 통계 카드 + task별/provider별 토큰 breakdown + 로그 테이블 + 상세 모달 |
+| `Sidebar.tsx` | "LLM 호출 로그" 메뉴 추가. `excludePrefix` 다중값(`|`) 처리 지원 |
+
+---
+
+### ✅ 완료 (2026-04-11) — 신호 품질 분석 고도화 + 전략 가중치 자동 조정 인프라
+
+| 항목 | 내용 |
+|------|------|
+| 수수료 공제 실질 적중률 | 승/패 판정 기준을 업비트 왕복 수수료(0.10%) 초과로 변경. HOLD 신호 제외 |
+| 차단 신호 사후 성과 비교 | `wasExecuted=false` 신호의 4h/24h 수익률 집계. 차단 사유별 필터 효과 판정(FILTER_HURTING/HELPING/NEUTRAL) |
+| 시간대별 신호 품질 | KST 0~23시 히트맵. 4h 적중률 색상, 상위/하위 3시간대 요약 |
+| `SignalQualityService` 병목 해소 | BATCH_SIZE 20→100, MAX_PER_RUN=500, 시작 시 `@Async` Catchup으로 미평가 신호 전량 처리 |
+| 전략 가중치 자동 조정 인프라 | `WeightOverrideStore`(core-engine) + `StrategySelector` 동적 가중치 읽기 + `StrategyWeightOptimizer`(daily 06:00). 70% 계산값 + 30% 기본값 스무딩. 최소 가중치 5% 보장 |
+| 가중치 API | `GET /api/v1/logs/strategy-weights`, `POST /api/v1/logs/strategy-weights/optimize` |
+| 신호 품질 페이지 개선 | 가중치 패널(레짐별 전략 바 + ±%p 변화량) + 히트맵 + 차단 신호 비교 섹션 |
+
+> ⚠ **가중치 최적화 구조적 한계**: `StrategyWeightOptimizer` 조정 대상이 컴포넌트 전략명(`SUPERTREND` 등)인데, `strategy_log`에는 복합 전략명(`COMPOSITE_MOMENTUM` 등)만 기록됨 → 가중치가 기본값에서 벗어나지 않음. P1-0에서 해결 예정.
+
+---
+
+### ✅ 완료 (2026-04-10) — AI 파이프라인 버그 수정 + 리팩토링
+
+**버그 수정**
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `MorningBriefingComposer.java` | 뉴스 카테고리 대소문자 불일치 (`"CRYPTO"` → `"crypto"`) — 항상 빈 결과 반환 수정 |
+| `api.ts` | `adminNewsApi.getCache()` 위치 인수 → 객체 파라미터 수정 |
+| `NewsAggregatorService.java` | `news_item_cache` 7일 이상 자동 삭제 스케줄러 추가 (매일 03:00 KST) |
+| `ReportComposer.java` | 외부 HTTP 호출 중 트랜잭션 점유 — `@Transactional` 제거, `saveInitial()`/`saveFinal()` `REQUIRES_NEW` 분리 |
+| `DiscordWebhookClient.java` | embed 글자수 초과 방지 — `truncate()` 적용 (description 4096자, field 1024자) |
+
+**리팩토링**
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `LogAnalyzerService.java` | 5000건 메모리 로드 → DB 기간 필터 쿼리로 개선. `buildSignalStats()` / `buildPositionStats()` / `buildRegimeStats()` 분리 |
+| `ReportComposer.java` | `buildBlocks()` 93줄 → 섹션별 메서드 7개 분리 |
+| `MorningBriefingComposer.java` | CRYPTO/ECONOMY 뉴스 채널 중복 코드 → `sendNewsChannel()` 공통화 |
+| `DiscordWebhookClient.java` | `STATUS_SUCCESS/FAILED/PENDING` 상수 추가. `truncate()` public static 변경 |
+
+---
+
+### ✅ 완료 (2026-04-09) — AI 보고서 · 뉴스 파이프라인
+
+| Phase | 내용 |
+|-------|------|
+| Phase 1 — LLM 추상화 | `LlmProvider` 인터페이스 + OpenAI/Ollama/Claude/Mock 구현체. `LlmTaskRouter` — task별 provider 라우팅, DB 설정 런타임 반영. 관리 API + 연결 테스트 API |
+| Phase 2 — 뉴스 소스 | `NewsSource` 인터페이스 + `CryptoPanicSource` / `RssNewsSource` / `CoinGeckoTrendingSource`. 15분 스케줄러 수집. 관리 API (CRUD + 수동 fetch) |
+| Phase 3 — Notion 보고서 | `LogAnalyzerService` 12h 집계 + `NotionApiClient` 블록 빌더 + `ReportComposer` LLM 요약 → Notion 페이지. cron 0시/12시(KST) |
+| Phase 4 — Discord 브리핑 | `DiscordWebhookClient` 채널별 Webhook. 4채널(TRADING_REPORT/CRYPTO_NEWS/ECONOMY_NEWS/ALERT). `MorningBriefingScheduler` cron 07:00(KST) |
+| Phase 5 — 관리 UI | `/admin/llm-config`, `/admin/news-sources`, `/admin/reports`, `/admin/discord` 4개 페이지 |
+
+DB migrations: V34(llm), V35(news), V36(notion), V37(discord)
+
+---
+
+### ✅ 완료 (2026-04-09) — 운영 분석 강화
+
+| 항목 | 내용 |
+|------|------|
+| 실전매매 리스크 지표 | `MetricsCalculator`(Sharpe·MDD·Sortino·Calmar)를 `/api/v1/trading/performance`에 연동 |
+| 신호 품질 로깅 | `strategy_log`에 신호 발생가·실행 여부·차단 사유 기록. 30분 스케줄러로 4h/24h 사후 수익률 평가 |
+| 레짐별 성과 분리 | `position.market_regime` 필드 추가. 성과 API에서 TREND/RANGE/VOLATILITY별 승률·손익 집계 |
+| 레짐 전환 이력 | `regime_change_log` 테이블(V33) + `GET /api/v1/logs/regime-history`. 성과 페이지에 타임라인 UI |
+
+---
+
+### ✅ 완료 (2026-04) — 실전매매 시스템 신뢰도 검토 (P0 6단계)
+
+| 단계 | 내용 |
+|------|------|
+| 1단계 — 주문 상태 머신 | FAILED 주문→포지션 고착 수정: `reconcileOrphanBuyPositions` 30초 스케줄러. 리스크 카운팅 오류: size>0만 카운팅. SELL 리스크 체크 스킵. CANCELLED 부분체결 KRW 복원 (`executedFunds` 필드 V28) |
+| 2단계 — 잔고 정합성 | `availableKrw` Race Condition: `investedKrw` 필드(V29) + reconcile 폴백 로직. `stopSession()` KRW 복원 누락: `cancelSessionActiveOrders()` 선행 호출 추가 |
+| 3단계 — PnL 계산 | 시장가 매수 평균 단가 수수료 내포 확인. `finalizeSellPosition()` 수수료 반영 검증. `handleSellFill()` 비세션 경로 매도 수수료 0.05% 반영 |
+| 4단계 — 스케줄러 동시성 | `fixedDelay` 전수 확인(6개). `closeIfOpen()` 원자적 처리(WHERE status='OPEN' UPDATE)로 KRW 이중 복원 방지 |
+| 5단계 — 프론트엔드 | size=0 고스트 포지션 UI 필터링. Upbit 실계좌 잔고 비교 표시(30초 polling). 주문 FAILED 사유 인라인 표시 |
+| 6단계 — 통합 테스트 | E2E 5건: FAILED 매수 KRW 복원, 리스크 카운팅 정확성, maxPositions 차단/허용, closeIfOpen 멱등성, 이중 복원 방지 |
+
+---
+
 ### ✅ 완료 (2026-04-06) — 백테스트 비동기 전환 + 트랜잭션 레이스 컨디션 수정
 
 | 파일 | 변경 내용 |

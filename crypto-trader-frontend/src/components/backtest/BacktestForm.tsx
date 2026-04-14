@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { strategyApi, backtestApi, systemApi } from '@/lib/api';
 import { StrategyInfo, Timeframe, StrategyType } from '@/lib/types';
 import { useRouter } from 'next/navigation';
@@ -30,6 +30,9 @@ export function BacktestForm() {
     const [selectedCoins, setSelectedCoins] = useState<string[]>([]);
     const [coinSearchOpen, setCoinSearchOpen] = useState(false);
     const [coinFilter, setCoinFilter] = useState('');
+    const [singleCoinOpen, setSingleCoinOpen] = useState(false);
+    const [singleCoinSearch, setSingleCoinSearch] = useState('');
+    const singleCoinRef = useRef<HTMLDivElement>(null);
 
     const [form, setForm] = useState({
         coinPair: 'KRW-BTC',
@@ -38,6 +41,17 @@ export function BacktestForm() {
         endDate: today,
         initialCapital: 10000000,
     });
+
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (singleCoinRef.current && !singleCoinRef.current.contains(e.target as Node)) {
+                setSingleCoinOpen(false);
+                setSingleCoinSearch('');
+            }
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, []);
 
     useEffect(() => {
         Promise.all([strategyApi.list(), systemApi.coins()]).then(([stRes, cRes]) => {
@@ -54,6 +68,7 @@ export function BacktestForm() {
         : ALL_STRATEGIES.map(s => ({ name: s, label: STRATEGY_LABELS[s] ?? s }));
 
     const filteredCoins = coins.filter(c => c.toLowerCase().includes(coinFilter.toLowerCase()));
+    const filteredSingleCoins = coins.filter(c => c.toLowerCase().includes(singleCoinSearch.toLowerCase()));
 
     const toggleStrategy = (name: string) =>
         setSelectedStrategies(prev => prev.includes(name) ? prev.filter(s => s !== name) : [...prev, name]);
@@ -186,18 +201,46 @@ export function BacktestForm() {
                     </div>
                 </div>
 
-                {/* ── 단일 코인 모드: 기존 select ── */}
+                {/* ── 단일 코인 모드: 검색 콤보박스 ── */}
                 {mode === 'single-coin' && (
                     <div className="space-y-2">
                         <label className="text-sm font-semibold text-slate-700 dark:text-slate-200 ml-1">코인 페어</label>
-                        <div className="relative">
-                            <select className={selectInput} value={form.coinPair} onChange={(e) => setForm({ ...form, coinPair: e.target.value })}>
-                                <option disabled value="">로딩중...</option>
-                                {coins.map(c => <option key={c} value={c}>{c}</option>)}
-                            </select>
+                        <div className="relative" ref={singleCoinRef}>
+                            <input
+                                type="text"
+                                value={singleCoinOpen ? singleCoinSearch : form.coinPair}
+                                onChange={e => { setSingleCoinSearch(e.target.value); setSingleCoinOpen(true); }}
+                                onFocus={() => { setSingleCoinOpen(true); setSingleCoinSearch(''); }}
+                                placeholder={coins.length === 0 ? '로딩중...' : '코인 검색...'}
+                                className="w-full p-3 pr-10 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-800 dark:text-slate-100 transition-shadow focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                            />
                             <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-slate-500">
                                 <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
                             </div>
+                            {singleCoinOpen && filteredSingleCoins.length > 0 && (
+                                <div className="absolute z-20 mt-1 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg max-h-56 overflow-y-auto">
+                                    {filteredSingleCoins.map(c => (
+                                        <button
+                                            key={c}
+                                            type="button"
+                                            onClick={() => { setForm({ ...form, coinPair: c }); setSingleCoinOpen(false); setSingleCoinSearch(''); }}
+                                            className={cn(
+                                                'w-full text-left px-3 py-2 text-sm font-medium transition-colors hover:bg-indigo-50 dark:hover:bg-slate-700',
+                                                form.coinPair === c
+                                                    ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-slate-700/50'
+                                                    : 'text-slate-700 dark:text-slate-200'
+                                            )}
+                                        >
+                                            {c}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                            {singleCoinOpen && filteredSingleCoins.length === 0 && (
+                                <div className="absolute z-20 mt-1 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg px-3 py-2 text-sm text-slate-400">
+                                    검색 결과 없음
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}
