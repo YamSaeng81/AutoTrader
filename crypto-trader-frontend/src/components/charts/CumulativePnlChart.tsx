@@ -3,6 +3,7 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { TradeRecord } from '@/lib/types';
 import { format } from 'date-fns';
+import { parseUtc } from '@/lib/utils';
 
 interface CumulativePnlChartProps {
     data: TradeRecord[];
@@ -18,7 +19,7 @@ export function CumulativePnlChart({ data }: CumulativePnlChartProps) {
     }
 
     const chartData = data.map((trade) => ({
-        date: new Date(trade.executedAt).getTime(),
+        date: parseUtc(trade.executedAt)!.getTime(),
         pnl: trade.cumulativePnl,
     }));
 

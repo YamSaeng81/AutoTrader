@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { schedulerApi } from '@/lib/api';
 import type { NightlySchedulerConfig, BacktestJob } from '@/lib/types';
+import { fmtKst } from '@/lib/utils';
 import { Play, Save, Clock, Calendar, BarChart2, FlaskConical, Activity, RefreshCw, AlertCircle, CheckCircle2, Loader2, X } from 'lucide-react';
 
 // ── 상수 ────────────────────────────────────────────────────────────────────────
@@ -122,18 +123,7 @@ const DEFAULT_CONFIG: NightlySchedulerConfig = {
 
 // ── 유틸 ─────────────────────────────────────────────────────────────────────────
 
-function fmtDateTime(dt: string | undefined) {
-    if (!dt) return '-';
-    const d = new Date(dt);
-    // UTC → KST (+9)
-    const kst = new Date(d.getTime() + 9 * 60 * 60 * 1000);
-    const mm  = String(kst.getUTCMonth() + 1).padStart(2, '0');
-    const dd  = String(kst.getUTCDate()).padStart(2, '0');
-    const hh  = String(kst.getUTCHours()).padStart(2, '0');
-    const min = String(kst.getUTCMinutes()).padStart(2, '0');
-    const ss  = String(kst.getUTCSeconds()).padStart(2, '0');
-    return `${mm}/${dd} ${hh}:${min}:${ss}`;
-}
+const fmtDateTime = fmtKst;
 
 function elapsed(createdAt: string, updatedAt: string) {
     const ms = new Date(updatedAt).getTime() - new Date(createdAt).getTime();

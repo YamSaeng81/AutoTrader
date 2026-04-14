@@ -7,6 +7,7 @@ import type { LiveTradingSession, Position, LiveOrder } from '@/lib/types';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
+import { parseUtc, fmtKstLocale } from '@/lib/utils';
 import {
   ComposedChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from 'recharts';
@@ -96,7 +97,7 @@ function StrategyLogAccordion({ logs }: { logs: any[] | undefined }) {
                   ))}
                 </span>
                 <span className="text-xs text-slate-500 shrink-0 ml-2">
-                  {latest?.createdAt ? format(new Date(latest.createdAt), 'MM/dd HH:mm') : ''}
+                  {latest?.createdAt ? format(parseUtc(latest.createdAt)!, 'MM/dd HH:mm') : ''}
                 </span>
                 <span className="text-xs text-slate-500 shrink-0 ml-3 tabular-nums">
                   총 {groupLogs.length}건
@@ -118,7 +119,7 @@ function StrategyLogAccordion({ logs }: { logs: any[] | undefined }) {
                       {groupLogs.map((log: any) => (
                         <tr key={log.id} className="border-b border-slate-700/30 hover:bg-slate-700/20 transition-colors">
                           <td className="py-2.5 px-5 text-slate-400 whitespace-nowrap">
-                            {log.createdAt ? new Date(log.createdAt).toLocaleString('ko-KR') : '-'}
+                            {fmtKstLocale(log.createdAt)}
                           </td>
                           <td className="py-2.5 px-5">
                             <span className={`px-2 py-0.5 rounded font-bold ${SIGNAL_STYLE[log.signal] ?? 'bg-slate-700 text-slate-400'}`}>
@@ -220,7 +221,7 @@ export default function LiveSessionDetailPage({ params }: { params: Promise<{ se
   const chartCandles = (chartRes?.data as any)?.candles as any[] | undefined;
   const chartOrders = (chartRes?.data as any)?.orders as any[] | undefined;
 
-  const toMs = (t: any) => t ? (typeof t === 'number' ? t : new Date(t).getTime()) : null;
+  const toMs = (t: any) => t ? (typeof t === 'number' ? t : parseUtc(t)!.getTime()) : null;
   const chartData = (() => {
     const candles = chartCandles?.map((c: any) => ({
       time: c.time,
@@ -301,7 +302,7 @@ export default function LiveSessionDetailPage({ params }: { params: Promise<{ se
             </div>
             <p className="text-xs text-slate-400 mt-0.5">
               세션 #{session.id} · {session.timeframe}
-              {session.startedAt && ` · ${new Date(session.startedAt).toLocaleString('ko-KR')} 시작`}
+              {session.startedAt && ` · ${fmtKstLocale(session.startedAt)} 시작`}
             </p>
           </div>
         </div>
@@ -531,8 +532,8 @@ export default function LiveSessionDetailPage({ params }: { params: Promise<{ se
                       <td className={`py-3 px-5 text-right text-xs font-semibold ${pnlPct >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                         {pnlPct >= 0 ? '+' : ''}{pnlPct.toFixed(2)}%
                       </td>
-                      <td className="py-3 px-5 text-slate-400 text-xs">{new Date(pos.openedAt).toLocaleString('ko-KR')}</td>
-                      <td className="py-3 px-5 text-slate-400 text-xs">{pos.closedAt ? new Date(pos.closedAt).toLocaleString('ko-KR') : '-'}</td>
+                      <td className="py-3 px-5 text-slate-400 text-xs">{fmtKstLocale(pos.openedAt)}</td>
+                      <td className="py-3 px-5 text-slate-400 text-xs">{fmtKstLocale(pos.closedAt)}</td>
                     </tr>
                   );
                 })}

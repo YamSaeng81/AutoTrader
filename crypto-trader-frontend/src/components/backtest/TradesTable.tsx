@@ -1,7 +1,7 @@
 'use client';
 
 import { TradeRecord } from '@/lib/types';
-import { cn } from '@/lib/utils';
+import { cn, parseUtc } from '@/lib/utils';
 import { format } from 'date-fns';
 
 interface TradesTableProps {
@@ -42,7 +42,7 @@ export function TradesTable({ trades }: TradesTableProps) {
                         {trades.map((trade, i) => (
                             <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
                                 <td className="px-5 py-4 text-slate-600 dark:text-slate-300 font-medium">
-                                    {format(new Date(trade.executedAt), 'yyyy.MM.dd HH:mm')}
+                                    {format(parseUtc(trade.executedAt)!, 'yyyy.MM.dd HH:mm')}
                                 </td>
                                 <td className="px-5 py-4">
                                     <span className={cn(
