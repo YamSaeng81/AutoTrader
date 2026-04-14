@@ -29,6 +29,9 @@ async function proxyRequest(request: NextRequest, pathSegments: string[]): Promi
 
     const headers = new Headers(request.headers);
     headers.delete('host');
+    // 브라우저 Origin 헤더 제거: 프록시는 서버→서버 호출이므로 CORS 불필요
+    // 이 헤더를 그대로 전달하면 백엔드 CORS 필터가 브라우저 Origin을 검사해 403 반환
+    headers.delete('origin');
 
     if (API_TOKEN) {
         headers.set('Authorization', `Bearer ${API_TOKEN}`);

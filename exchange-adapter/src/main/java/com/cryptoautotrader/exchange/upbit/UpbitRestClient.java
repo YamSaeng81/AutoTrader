@@ -36,7 +36,8 @@ public class UpbitRestClient {
 
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
-    private final AtomicLong lastRequestTime = new AtomicLong(0);
+    // 전역 rate limit: 여러 인스턴스가 동시에 수집해도 Upbit 제한(초당 10회) 공유
+    private static final AtomicLong lastRequestTime = new AtomicLong(0);
 
     public UpbitRestClient() {
         this.httpClient = HttpClient.newBuilder()
