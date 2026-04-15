@@ -52,7 +52,8 @@ services:
       DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN}
       AES_KEY: ${AES_KEY}
       API_AUTH_TOKEN: ${API_AUTH_TOKEN}
-      JAVA_OPTS: "-XX:-OmitStackTraceInFastThrow"
+      # 16GB 서버: Java 6GB / 32GB 업그레이드 후 -Xmx12g 로 변경
+      JAVA_OPTS: "-XX:-OmitStackTraceInFastThrow -Xms1g -Xmx6g -XX:+UseG1GC -XX:MaxGCPauseMillis=200"
     ports:
       - "8080:8080"
 
