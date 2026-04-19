@@ -83,6 +83,19 @@ public class LiveTradingSessionEntity {
     @Column(name = "updated_at")
     private Instant updatedAt;
 
+    /**
+     * 낙관적 락 버전 — 20260415_analy.md Tier 2 §7 race 방지.
+     *
+     * <p>LiveTradingService·reconcile·WS 이벤트·finalize 가 동일 세션의
+     * {@code availableKrw}/{@code totalAssetKrw} 를 read-modify-write 하던 중 last-write-wins
+     * 덮어쓰기가 발생하던 문제(잔고 드리프트) 방지용. JPA 가 UPDATE 시 WHERE version=? 절을 추가해
+     * 충돌이 있으면 {@code ObjectOptimisticLockingFailureException} 을 던진다. 호출부는
+     * {@code SessionBalanceUpdater.apply()} 로 감싸 자동 retry 한다.</p>
+     */
+    @jakarta.persistence.Version
+    @Column(name = "version", nullable = false)
+    private Long version;
+
     @PrePersist
     void prePersist() {
         if (status == null) status = "CREATED";
@@ -143,6 +156,9 @@ public class LiveTradingSessionEntity {
     public Instant getCreatedAt() { return createdAt; }
 
     public Instant getUpdatedAt() { return updatedAt; }
+
+    public Long getVersion() { return version; }
+    public void setVersion(Long version) { this.version = version; }
 
     public BigDecimal getMddPeakCapital() { return mddPeakCapital; }
     public void setMddPeakCapital(BigDecimal mddPeakCapital) { this.mddPeakCapital = mddPeakCapital; }

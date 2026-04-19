@@ -29,19 +29,28 @@ public class ExitRuleChecker {
         private final BigDecimal takeProfitPrice;
     }
 
+    public enum ExitType { NONE, STOP_LOSS, TAKE_PROFIT }
+
     @Getter
     @RequiredArgsConstructor
     public static class ExitCheck {
         private final boolean shouldExit;
         private final BigDecimal exitPrice;
         private final String reason;
+        private final ExitType type;
+        /** 같은 캔들에서 SL·TP 양쪽이 모두 터치된 경우 true — 보수적으로 SL 로 처리되지만 소비자가 알 수 있도록 플래그. */
+        private final boolean ambiguous;
 
         public static ExitCheck none() {
-            return new ExitCheck(false, null, null);
+            return new ExitCheck(false, null, null, ExitType.NONE, false);
         }
 
-        public static ExitCheck exit(BigDecimal price, String reason) {
-            return new ExitCheck(true, price, reason);
+        public static ExitCheck stopLoss(BigDecimal price, String reason, boolean ambiguous) {
+            return new ExitCheck(true, price, reason, ExitType.STOP_LOSS, ambiguous);
+        }
+
+        public static ExitCheck takeProfit(BigDecimal price, String reason) {
+            return new ExitCheck(true, price, reason, ExitType.TAKE_PROFIT, false);
         }
     }
 
@@ -90,12 +99,18 @@ public class ExitRuleChecker {
      */
     public ExitCheck checkCandleExit(BigDecimal candleLow, BigDecimal candleHigh,
                                       BigDecimal sl, BigDecimal tp) {
-        // 손절 우선 (보수적)
-        if (sl != null && candleLow.compareTo(sl) <= 0) {
-            return ExitCheck.exit(sl, "손절 발동 — 저가 " + candleLow + " ≤ 손절가 " + sl);
+        boolean slHit = sl != null && candleLow.compareTo(sl) <= 0;
+        boolean tpHit = tp != null && candleHigh.compareTo(tp) >= 0;
+
+        // 손절 우선 (보수적) — 단, 양쪽 모두 터치된 경우는 ambiguous 플래그로 표시
+        if (slHit) {
+            return ExitCheck.stopLoss(sl,
+                    "손절 발동 — 저가 " + candleLow + " ≤ 손절가 " + sl
+                            + (tpHit ? " (경고: TP 도 동일 캔들에서 터치됨 — 경로 불확정)" : ""),
+                    tpHit);
         }
-        if (tp != null && candleHigh.compareTo(tp) >= 0) {
-            return ExitCheck.exit(tp, "익절 발동 — 고가 " + candleHigh + " ≥ 익절가 " + tp);
+        if (tpHit) {
+            return ExitCheck.takeProfit(tp, "익절 발동 — 고가 " + candleHigh + " ≥ 익절가 " + tp);
         }
         return ExitCheck.none();
     }
@@ -112,10 +127,12 @@ public class ExitRuleChecker {
      */
     public ExitCheck checkPriceExit(BigDecimal currentPrice, BigDecimal sl, BigDecimal tp) {
         if (sl != null && currentPrice.compareTo(sl) <= 0) {
-            return ExitCheck.exit(currentPrice, "손절 발동 — 현재가 " + currentPrice + " ≤ 손절가 " + sl);
+            return ExitCheck.stopLoss(currentPrice,
+                    "손절 발동 — 현재가 " + currentPrice + " ≤ 손절가 " + sl, false);
         }
         if (tp != null && currentPrice.compareTo(tp) >= 0) {
-            return ExitCheck.exit(currentPrice, "익절 발동 — 현재가 " + currentPrice + " ≥ 익절가 " + tp);
+            return ExitCheck.takeProfit(currentPrice,
+                    "익절 발동 — 현재가 " + currentPrice + " ≥ 익절가 " + tp);
         }
         return ExitCheck.none();
     }

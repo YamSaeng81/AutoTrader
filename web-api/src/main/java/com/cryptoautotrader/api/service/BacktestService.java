@@ -168,6 +168,9 @@ public class BacktestService {
         response.put("windows", windowMaps);
         response.put("overfittingScore", wfResult.getOverfittingScore());
         response.put("verdict", wfResult.getVerdict());
+        response.put("mode", wfResult.getMode() != null ? wfResult.getMode().name() : "ROLLING");
+        response.put("aggregatedOutSample", wfResult.getAggregatedOutSampleMetrics() != null
+                ? metricsToMap(wfResult.getAggregatedOutSampleMetrics()) : null);
         response.put("strategyType", strategyType);
         response.put("coinPair", coinPair);
         response.put("timeframe", timeframe);

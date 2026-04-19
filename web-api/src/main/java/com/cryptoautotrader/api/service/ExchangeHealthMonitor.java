@@ -1,7 +1,11 @@
 package com.cryptoautotrader.api.service;
 
 import com.cryptoautotrader.api.dto.ExchangeHealthResponse;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -40,7 +44,12 @@ public class ExchangeHealthMonitor {
     private volatile long latencyMs = 0;
     private volatile Instant lastCheckedAt;
     private volatile boolean webSocketConnected = false;
+    private volatile Instant wsDisconnectedSince;
     private volatile int consecutiveFailCount = 0;
+
+    /** §16 — Micrometer 메트릭 */
+    @Autowired(required = false)
+    private MeterRegistry meterRegistry;
 
     public ExchangeHealthMonitor(ApplicationEventPublisher eventPublisher) {
         this.eventPublisher = eventPublisher;
@@ -130,10 +139,37 @@ public class ExchangeHealthMonitor {
      * WebSocket 연결 상태 갱신 (UpbitWebSocketClient에서 호출)
      */
     public void setWebSocketConnected(boolean connected) {
+        boolean wasConnected = this.webSocketConnected;
         this.webSocketConnected = connected;
         if (!connected) {
+            if (wasConnected || wsDisconnectedSince == null) {
+                wsDisconnectedSince = Instant.now();
+            }
             log.warn("WebSocket 연결 해제 감지");
+        } else {
+            if (wsDisconnectedSince != null) {
+                log.info("WebSocket 재연결 — REST fallback 해제 (끊김 {}초)",
+                        Duration.between(wsDisconnectedSince, Instant.now()).getSeconds());
+                // §16 — WS 재연결 횟수 카운터 (Prometheus: exchange_ws_reconnect_total)
+                if (meterRegistry != null) {
+                    Counter.builder("exchange.ws.reconnect")
+                            .description("WebSocket 재연결 횟수")
+                            .register(meterRegistry)
+                            .increment();
+                }
+            }
+            wsDisconnectedSince = null;
         }
+    }
+
+    /**
+     * §9 — WS 끊김이 지정 시간 이상 지속되었는지 판단.
+     * @param thresholdSeconds 임계 초 (예: 30)
+     */
+    public boolean isWsDownLongerThan(long thresholdSeconds) {
+        Instant since = wsDisconnectedSince;
+        if (since == null || webSocketConnected) return false;
+        return Duration.between(since, Instant.now()).getSeconds() >= thresholdSeconds;
     }
 
     // ── 내부 메서드 ───────────────────────────────────────────
@@ -150,6 +186,13 @@ public class ExchangeHealthMonitor {
                 String reason = String.format("Upbit API 연속 %d회 연결 실패", consecutiveFailCount);
                 log.error("거래소 DOWN 감지 — ExchangeDownEvent 발행 ({})", reason);
                 eventPublisher.publishEvent(new ExchangeDownEvent(this, reason));
+                // §16 — 거래소 DOWN 이벤트 카운터 (Prometheus: exchange_down_event_total)
+                if (meterRegistry != null) {
+                    Counter.builder("exchange.down.event")
+                            .description("거래소 DOWN 감지 이벤트 횟수")
+                            .register(meterRegistry)
+                            .increment();
+                }
             }
 
             // DOWN 후 UP 복구 시 이벤트 발행 → LiveTradingService가 세션 자동 재시작

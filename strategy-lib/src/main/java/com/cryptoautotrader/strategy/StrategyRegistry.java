@@ -1,6 +1,7 @@
 package com.cryptoautotrader.strategy;
 
 import com.cryptoautotrader.strategy.atrbreakout.AtrBreakoutStrategy;
+import com.cryptoautotrader.strategy.fvg.FairValueGapStrategy;
 import com.cryptoautotrader.strategy.bollinger.BollingerStrategy;
 import com.cryptoautotrader.strategy.ema.EmaCrossStrategy;
 import com.cryptoautotrader.strategy.grid.GridStrategy;
@@ -39,6 +40,8 @@ public final class StrategyRegistry {
         register(new VolumeDeltaStrategy());
         // Phase 3 전략 6번째 (로직 구현 완료)
         register(new StochasticRsiStrategy());
+        // FVG (Fair Value Gap) 전략 — A단계 모멘텀 방식
+        register(new FairValueGapStrategy());
         // MACD + StochRSI + 볼린저밴드 복합 추세 전략 (StatefulStrategy: 쿨다운 상태 보유)
         registerStateful("MACD_STOCH_BB", MacdStochBbStrategy::new);
         // 실전매매 동작 검증용 테스트 전략

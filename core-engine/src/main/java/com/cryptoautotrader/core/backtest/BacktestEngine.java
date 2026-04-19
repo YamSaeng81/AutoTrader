@@ -87,11 +87,19 @@ public class BacktestEngine {
                 pendingQuantity = pendingQuantity.subtract(fillQty);
 
                 if (pendingSide == OrderSide.BUY) {
-                    position = position.add(fillQty);
-                    capital = capital.subtract(executionPrice.multiply(fillQty));
+                    // 가중평균 진입가 재계산 — 단순 add 는 평균 매수단가 왜곡
+                    BigDecimal newPosition = position.add(fillQty);
+                    if (newPosition.compareTo(BigDecimal.ZERO) > 0) {
+                        entryPrice = position.multiply(entryPrice)
+                                .add(fillQty.multiply(executionPrice))
+                                .divide(newPosition, SCALE, RoundingMode.HALF_UP);
+                    }
+                    position = newPosition;
+                    entryFee = entryFee.add(trade.getFee());
+                    capital = capital.subtract(executionPrice.multiply(fillQty)).subtract(trade.getFee());
                 } else {
                     position = position.subtract(fillQty);
-                    capital = capital.add(executionPrice.multiply(fillQty));
+                    capital = capital.add(executionPrice.multiply(fillQty)).subtract(trade.getFee());
                 }
                 cumulativePnl = trade.getCumulativePnl();
             }
@@ -111,7 +119,26 @@ public class BacktestEngine {
                         stopLossPrice, takeProfitPrice);
 
                 if (exitCheck.isShouldExit()) {
-                    BigDecimal executionPrice = exitCheck.getExitPrice();
+                    // ── 현실적 체결가 산출 ─────────────────────────
+                    // 1) Gap 감지: 오픈이 이미 SL/TP 를 넘어섰다면 오픈가로 체결(갭 손실/이익).
+                    // 2) 아니면 트리거 가격에 체결.
+                    // 3) 추가로 시장 충격 + 기본 슬리피지를 SELL 방향으로 적용.
+                    BigDecimal rawPrice = exitCheck.getExitPrice();
+                    if (exitCheck.getType() == ExitRuleChecker.ExitType.STOP_LOSS
+                            && nextCandle.getOpen().compareTo(stopLossPrice) < 0) {
+                        rawPrice = nextCandle.getOpen(); // gap-down — SL 아래에서 오픈 → 오픈가 체결
+                    } else if (exitCheck.getType() == ExitRuleChecker.ExitType.TAKE_PROFIT
+                            && nextCandle.getOpen().compareTo(takeProfitPrice) > 0) {
+                        rawPrice = nextCandle.getOpen(); // gap-up — TP 위에서 오픈 → 오픈가 체결
+                    }
+
+                    BigDecimal additionalSlippage = BigDecimal.ZERO;
+                    if (fillSimulator != null) {
+                        additionalSlippage = fillSimulator.calculateMarketImpact(position, nextCandle.getVolume());
+                    }
+                    BigDecimal totalSlippage = config.getSlippagePct().add(additionalSlippage);
+                    BigDecimal executionPrice = applySlippage(rawPrice, OrderSide.SELL, totalSlippage);
+
                     BigDecimal fee = executionPrice.multiply(position)
                             .multiply(config.getFeePct())
                             .divide(BigDecimal.valueOf(100), SCALE, RoundingMode.HALF_UP);
@@ -122,15 +149,20 @@ public class BacktestEngine {
                     capital = capital.add(executionPrice.multiply(position)).subtract(fee);
                     MarketRegime regime = regimeDetector.detect(window);
 
+                    String exitReason = exitCheck.getReason();
+                    if (exitCheck.isAmbiguous()) {
+                        exitReason = "[AMBIGUOUS:SL+TP] " + exitReason;
+                    }
+
                     trades.add(TradeRecord.builder()
                             .side(OrderSide.SELL)
                             .price(executionPrice)
                             .quantity(position)
                             .fee(fee)
-                            .slippage(BigDecimal.ZERO) // SL/TP는 지정가 청산
+                            .slippage(totalSlippage)
                             .pnl(pnl)
                             .cumulativePnl(cumulativePnl)
-                            .signalReason(exitCheck.getReason())
+                            .signalReason(exitReason)
                             .marketRegime(regime.name())
                             .executedAt(nextCandle.getTime())
                             .build());

@@ -11,12 +11,14 @@ import com.cryptoautotrader.api.repository.RiskConfigRepository;
 import com.cryptoautotrader.api.repository.TradeLogRepository;
 import com.cryptoautotrader.api.support.IntegrationTestBase;
 import com.cryptoautotrader.core.risk.RiskCheckResult;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -34,12 +36,16 @@ import static org.mockito.Mockito.when;
  * 3. 리스크 체크: 고아 포지션이 maxPositions 한도를 차지하지 않는지
  * 4. reconcileOrphanBuyPositions(): FAILED 매수 후 KRW 복원 E2E
  *
- * @Transactional: 각 테스트 메서드가 하나의 트랜잭션 안에서 실행되고
- *                 테스트 완료 후 자동 롤백 → DB 오염 없음
+ * 트랜잭션 전략: 클래스 레벨 @Transactional 을 쓰지 않는다.
+ *   reconcileOrphanBuyPositions 경로가 SessionBalanceUpdater#apply (REQUIRES_NEW) 를
+ *   호출하는데, 테스트 트랜잭션이 커밋되지 않으면 내부 REQUIRES_NEW 트랜잭션이 세션을
+ *   못 보게 되어 "세션을 찾을 수 없음" 이 난다. 실제 운영에선 세션이 이미 커밋된 상태에서
+ *   스케줄러가 돌기 때문에 문제가 없다. 테스트도 같은 환경을 재현하려면 각 테스트가
+ *   커밋된 상태로 실행되고 @AfterEach 에서 수동 정리해야 한다.
+ *
  * @MockBean TradeLogRepository: PostgreSQL 전용 JSON 쿼리(detail_json->>'...')가
  *                               H2에서 실행되지 않으므로 mock으로 대체
  */
-@Transactional
 class LiveTradingReliabilityTest extends IntegrationTestBase {
 
     @Autowired
@@ -60,14 +66,36 @@ class LiveTradingReliabilityTest extends IntegrationTestBase {
     @Autowired
     private LiveTradingService liveTradingService;
 
+    @Autowired
+    private PlatformTransactionManager txManager;
+
+    private TransactionTemplate tx;
+
     /** PostgreSQL JSON 문법(detail_json->>'realizedPnl')이 H2에서 실행 불가 → mock 대체 */
     @MockBean
     private TradeLogRepository tradeLogRepository;
 
     @BeforeEach
     void stubTradeLog() {
+        if (tx == null) {
+            tx = new TransactionTemplate(txManager);
+        }
         // 손익 합계는 0으로 고정 — 포지션 수 한도 검증에만 집중
         when(tradeLogRepository.sumRealizedPnlSince(any())).thenReturn(BigDecimal.ZERO);
+        when(tradeLogRepository.sumRealizedLossSince(any())).thenReturn(BigDecimal.ZERO);
+        cleanupAll();
+    }
+
+    @AfterEach
+    void cleanupAfter() {
+        cleanupAll();
+    }
+
+    private void cleanupAll() {
+        orderRepository.deleteAll();
+        positionRepository.deleteAll();
+        sessionRepository.deleteAll();
+        riskConfigRepository.deleteAll();
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -102,9 +130,9 @@ class LiveTradingReliabilityTest extends IntegrationTestBase {
         // given
         PositionEntity pos = savePosition("KRW-BTC", BigDecimal.ZERO, "OPEN");
 
-        // when
-        int firstResult = positionRepository.closeIfOpen(pos.getId(), Instant.now());
-        int secondResult = positionRepository.closeIfOpen(pos.getId(), Instant.now());
+        // when — @Modifying 쿼리이므로 트랜잭션 안에서 실행
+        int firstResult = tx.execute(s -> positionRepository.closeIfOpen(pos.getId(), Instant.now()));
+        int secondResult = tx.execute(s -> positionRepository.closeIfOpen(pos.getId(), Instant.now()));
 
         // then: 첫 호출만 성공 → 두 번째는 이미 CLOSED라 0
         assertThat(firstResult).isEqualTo(1);
@@ -247,7 +275,7 @@ class LiveTradingReliabilityTest extends IntegrationTestBase {
                 .build());
 
         // 다른 경로(executeSessionSell)가 먼저 CLOSED 처리 → reconcile은 closeIfOpen() 반환값 0 보고 KRW 복원 스킵
-        positionRepository.closeIfOpen(pos.getId(), Instant.now());
+        tx.executeWithoutResult(s -> positionRepository.closeIfOpen(pos.getId(), Instant.now()));
         // KRW는 이미 복원된 상태로 세팅
         session.setAvailableKrw(initialKrw);
         sessionRepository.save(session);

@@ -77,16 +77,8 @@ public class BacktestJobService {
      * 백그라운드에서 실행한다.
      */
     public Long submitSingleJob(BacktestRequest req) {
-        String reqJson = toJson(req);
-        BacktestJobEntity job = BacktestJobEntity.builder()
-                .jobType("SINGLE")
-                .status("PENDING")
-                .coinPair(req.getCoinPair())
-                .strategyName(req.getStrategyType())
-                .timeframe(req.getTimeframe())
-                .requestJson(reqJson)
-                .build();
-        job = jobRepository.save(job);
+        BacktestJobEntity job = createJob("SINGLE", req.getCoinPair(), req.getStrategyType(),
+                req.getTimeframe(), req, null);
         Long jobId = job.getId();
         log.info("백테스트 Job 제출: jobId={}, strategy={}, coin={}", jobId, req.getStrategyType(), req.getCoinPair());
         self.executeSingleAsync(jobId, req);
@@ -147,15 +139,9 @@ public class BacktestJobService {
      */
     public Long submitMultiStrategyJob(MultiStrategyBacktestRequest req) {
         String strategies = String.join(", ", req.getStrategyTypes());
-        BacktestJobEntity job = BacktestJobEntity.builder()
-                .jobType("MULTI_STRATEGY")
-                .status("PENDING")
-                .coinPair(req.getCoinPair())
-                .strategyName(strategies.length() > 200 ? strategies.substring(0, 197) + "..." : strategies)
-                .timeframe(req.getTimeframe())
-                .requestJson(toJson(req))
-                .build();
-        job = jobRepository.save(job);
+        String stratLabel = truncate(strategies, 200);
+        BacktestJobEntity job = createJob("MULTI_STRATEGY", req.getCoinPair(), stratLabel,
+                req.getTimeframe(), req, null);
         Long jobId = job.getId();
         log.info("다중전략 백테스트 Job 제출: jobId={}, 전략 {}개, coin={}", jobId, req.getStrategyTypes().size(), req.getCoinPair());
         self.executeMultiStrategyAsync(jobId, req);
@@ -208,15 +194,8 @@ public class BacktestJobService {
      * 전략 10종 × N개 코인 벌크 백테스트 작업을 제출한다.
      */
     public Long submitBulkJob(BulkBacktestRequest req) {
-        BacktestJobEntity job = BacktestJobEntity.builder()
-                .jobType("BULK")
-                .status("PENDING")
-                .coinPair(req.getCoins().size() + "개 코인")
-                .strategyName("전략 10종")
-                .timeframe(req.getTimeframe())
-                .requestJson(toJson(req))
-                .build();
-        job = jobRepository.save(job);
+        BacktestJobEntity job = createJob("BULK", req.getCoins().size() + "개 코인", "전략 10종",
+                req.getTimeframe(), req, null);
         Long jobId = job.getId();
         log.info("벌크 백테스트 Job 제출: jobId={}, 코인 {}개", jobId, req.getCoins().size());
         self.executeBulkAsync(jobId, req);
@@ -268,18 +247,10 @@ public class BacktestJobService {
      */
     public Long submitBatchJob(BatchBacktestRequest req) {
         int total = req.getCoinPairs().size() * req.getStrategyTypes().size();
-        String coinLabel = req.getCoinPairs().size() + "개 코인";
-        String stratLabel = req.getStrategyTypes().size() + "개 전략";
-        BacktestJobEntity job = BacktestJobEntity.builder()
-                .jobType("BATCH")
-                .status("PENDING")
-                .coinPair(coinLabel)
-                .strategyName(stratLabel)
-                .timeframe(req.getTimeframe())
-                .requestJson(toJson(req))
-                .totalChunks(total)
-                .build();
-        job = jobRepository.save(job);
+        BacktestJobEntity job = createJob("BATCH",
+                req.getCoinPairs().size() + "개 코인",
+                req.getStrategyTypes().size() + "개 전략",
+                req.getTimeframe(), req, total);
         Long jobId = job.getId();
         log.info("배치 백테스트 Job 제출: jobId={}, 코인 {}개 × 전략 {}개 = {}개 조합",
                 jobId, req.getCoinPairs().size(), req.getStrategyTypes().size(), total);
@@ -347,16 +318,10 @@ public class BacktestJobService {
      */
     public Long submitWalkForwardBatchJob(WalkForwardBatchRequest req) {
         int total = req.getCoinPairs().size() * req.getStrategyTypes().size();
-        BacktestJobEntity job = BacktestJobEntity.builder()
-                .jobType("WALK_FORWARD_BATCH")
-                .status("PENDING")
-                .coinPair(req.getCoinPairs().size() + "개 코인")
-                .strategyName(req.getStrategyTypes().size() + "개 전략")
-                .timeframe(req.getTimeframe())
-                .requestJson(toJson(req))
-                .totalChunks(total)
-                .build();
-        job = jobRepository.save(job);
+        BacktestJobEntity job = createJob("WALK_FORWARD_BATCH",
+                req.getCoinPairs().size() + "개 코인",
+                req.getStrategyTypes().size() + "개 전략",
+                req.getTimeframe(), req, total);
         Long jobId = job.getId();
         log.info("Walk-Forward 배치 Job 제출: jobId={}, 코인 {}개 × 전략 {}개 = {}개 조합",
                 jobId, req.getCoinPairs().size(), req.getStrategyTypes().size(), total);
@@ -405,18 +370,24 @@ public class BacktestJobService {
                                 jobId, coin, strategy, e.getMessage());
                         results.add(Map.of("coin", coin, "strategy", strategy, "error", e.getMessage()));
                     }
-                    job.setCompletedChunks(++completed);
-                    jobRepository.save(job);
+                    ++completed;
+                    // 10개마다 진행률 저장 (매 조합마다 저장 대비 DB 부하 감소)
+                    if (completed % 10 == 0) {
+                        job.setCompletedChunks(completed);
+                        jobRepository.save(job);
+                    }
                 }
             }
 
             // CANCELLED 상태면 부분 완료로 종료
             if ("CANCELLED".equals(job.getStatus())) {
+                job.setCompletedChunks(completed);
                 jobRepository.save(job);
                 return;
             }
             long failCount = results.stream().filter(r -> r.containsKey("error")).count();
             job.setStatus(failCount == results.size() ? "FAILED" : "COMPLETED");
+            job.setCompletedChunks(completed);
             jobRepository.save(job);
             log.info("Walk-Forward 배치 완료: jobId={}, 총 {}개 중 실패 {}개", jobId, results.size(), failCount);
 
@@ -506,6 +477,21 @@ public class BacktestJobService {
     }
 
     // ── 내부 헬퍼 ────────────────────────────────────────────────────────────────
+
+    /** Job 엔티티를 PENDING 상태로 생성·저장한다. totalChunks가 null이면 미설정. */
+    private BacktestJobEntity createJob(String jobType, String coinPair, String strategyName,
+                                        String timeframe, Object request, Integer totalChunks) {
+        BacktestJobEntity job = BacktestJobEntity.builder()
+                .jobType(jobType)
+                .status("PENDING")
+                .coinPair(coinPair)
+                .strategyName(strategyName)
+                .timeframe(timeframe)
+                .requestJson(toJson(request))
+                .totalChunks(totalChunks)
+                .build();
+        return jobRepository.save(job);
+    }
 
     /**
      * 캔들 총 건수를 청크 한 페이지로 조회하여 추정한다.

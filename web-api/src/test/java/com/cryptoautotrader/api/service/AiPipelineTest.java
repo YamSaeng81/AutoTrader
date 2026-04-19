@@ -66,7 +66,7 @@ class AiPipelineTest {
             taskConfigRepo = mock(LlmTaskConfigRepository.class);
             registry       = mock(LlmProviderRegistry.class);
             mockProvider   = new MockProvider();
-            router         = new LlmTaskRouter(taskConfigRepo, registry);
+            router         = new LlmTaskRouter(taskConfigRepo, registry, mock(com.cryptoautotrader.api.repository.LlmCallLogRepository.class));
         }
 
         @Test

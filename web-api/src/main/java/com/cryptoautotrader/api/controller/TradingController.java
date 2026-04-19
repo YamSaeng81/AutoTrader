@@ -150,7 +150,14 @@ public class TradingController {
     /** 전체 비상 정지 (모든 세션) */
     @PostMapping("/emergency-stop")
     public ApiResponse<TradingStatusResponse> emergencyStopAll() {
-        liveTradingService.emergencyStopAll();
+        liveTradingService.emergencyStopAll(false);
+        return ApiResponse.ok(liveTradingService.getGlobalStatus());
+    }
+
+    /** §10 비상 청산 dry-run — 실제 주문 없이 청산 시나리오만 로그 기록 */
+    @PostMapping("/emergency-stop/dry-run")
+    public ApiResponse<TradingStatusResponse> emergencyStopDryRun() {
+        liveTradingService.emergencyStopAll(true);
         return ApiResponse.ok(liveTradingService.getGlobalStatus());
     }
 

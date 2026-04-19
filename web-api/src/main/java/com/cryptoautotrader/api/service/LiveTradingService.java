@@ -82,12 +82,7 @@ public class LiveTradingService {
 
     // ExitRuleConfig는 DB에서 동적 로드 — exitConfig() 메서드 사용
 
-    /** 백테스트 기준 구조적 손실·비활성 전략 — 실전매매 세션 생성 차단 */
-    private static final List<String> BLOCKED_LIVE_STRATEGIES = List.of(
-            "STOCHASTIC_RSI",   // BTC -70.4%/-67.6%
-            "MACD",             // BTC -58.8%/-57.6%
-            "MACD_STOCH_BB"     // 3년 H1: BTC 17건 -2.32%, 거래 극희소·수익성 없음
-    );
+    // §11: BLOCKED 전략 목록은 StrategyLiveStatusRegistry 로 이전 — 필드 제거
     private static final List<String> ACTIVE_ORDER_STATES =
             List.of("PENDING", "SUBMITTED", "PARTIAL_FILLED");
 
@@ -131,6 +126,13 @@ public class LiveTradingService {
     private final StrategyLogRepository strategyLogRepository;
     private final RiskManagementService riskManagementService;
     private final ApplicationEventPublisher eventPublisher;
+    private final SessionBalanceUpdater balanceUpdater;
+    private final com.cryptoautotrader.core.portfolio.PortfolioManager portfolioManager;
+    private final StrategyLiveStatusRegistry strategyLiveStatusRegistry;
+    private final ExecutionDriftTracker executionDriftTracker;
+
+    /** 활성 세션 상태 목록 — 자본 배정 합산 시 사용 (§8) */
+    private static final List<String> ACTIVE_SESSION_STATUSES = List.of("RUNNING", "CREATED");
 
     /** 호가창 조회용 (선택적 의존성 — exchange-adapter 빈이 없을 경우 null) */
     @Autowired(required = false)
@@ -232,11 +234,29 @@ public class LiveTradingService {
                             + "현재 " + runningCount + "개 실행 중.");
         }
 
-        // 백테스트 기준 구조적 손실 전략 차단
-        if (BLOCKED_LIVE_STRATEGIES.contains(req.getStrategyType())) {
+        // §11 전략 운영 가능 여부 검사 (BLOCKED / DEPRECATED → 세션 생성 불가)
+        if (strategyLiveStatusRegistry.isBlocked(req.getStrategyType())) {
+            StrategyLiveStatusRegistry.StatusEntry entry =
+                    strategyLiveStatusRegistry.getStatus(req.getStrategyType());
             throw new IllegalArgumentException(
-                    req.getStrategyType() + " 전략은 백테스트 기준 구조적 손실이 확인되어 실전매매가 차단됩니다. "
-                    + "전략을 개선한 후 이용하세요. (백테스트 결과: STOCHASTIC_RSI BTC -70.4%/-67.6%, MACD BTC -58.8%/-57.6%)");
+                    req.getStrategyType() + " 전략은 실전매매가 차단됩니다 ["
+                    + entry.readiness() + "]. 사유: " + entry.reason());
+        }
+
+        // §8 자본 초과 배정 방지: 활성 세션 initialCapital 합 + 신규 세션이 계좌 잔고를 초과하면 차단
+        BigDecimal accountCapital = portfolioManager.getTotalCapital();
+        if (accountCapital.compareTo(BigDecimal.ZERO) > 0 && req.getInitialCapital() != null) {
+            BigDecimal committedCapital = sessionRepository.sumInitialCapitalByStatusIn(ACTIVE_SESSION_STATUSES);
+            BigDecimal afterCreate = committedCapital.add(req.getInitialCapital());
+            if (afterCreate.compareTo(accountCapital) > 0) {
+                throw new SessionStateException(
+                        String.format("자본 초과 배정: 활성 세션 합산 %s + 신규 %s = %s > 계좌 잔고 %s KRW. "
+                                        + "기존 세션을 정지하거나 투자금을 줄이세요.",
+                                committedCapital.toPlainString(),
+                                req.getInitialCapital().toPlainString(),
+                                afterCreate.toPlainString(),
+                                accountCapital.toPlainString()));
+            }
         }
 
         // 전략 유효성 검증
@@ -342,6 +362,21 @@ public class LiveTradingService {
             throw new SessionStateException("거래소 연결이 DOWN 상태입니다. 연결 복구 후 시작하세요.");
         }
 
+        // §8 자본 초과 배정 방지 — STOPPED→RUNNING 전환 시에도 검증
+        BigDecimal accountCapital = portfolioManager.getTotalCapital();
+        if (accountCapital.compareTo(BigDecimal.ZERO) > 0) {
+            BigDecimal committedCapital = sessionRepository.sumInitialCapitalByStatusIn(ACTIVE_SESSION_STATUSES);
+            // 이 세션이 이미 CREATED 상태라면 합산에 포함되어 있으므로 중복 차감 방지
+            boolean alreadyCounted = ACTIVE_SESSION_STATUSES.contains(session.getStatus());
+            BigDecimal afterStart = alreadyCounted ? committedCapital
+                    : committedCapital.add(session.getInitialCapital());
+            if (afterStart.compareTo(accountCapital) > 0) {
+                throw new SessionStateException(
+                        String.format("자본 초과: 활성 세션 합산 %s > 계좌 잔고 %s KRW",
+                                afterStart.toPlainString(), accountCapital.toPlainString()));
+            }
+        }
+
         session.setStatus("RUNNING");
         session.setStartedAt(Instant.now());
         session.setStoppedAt(null);
@@ -438,28 +473,60 @@ public class LiveTradingService {
     /**
      * 전체 비상 정지 -- 모든 RUNNING 세션을 비상 정지
      */
+    /**
+     * 전체 비상 정지 — 실제 주문 실행.
+     * §10: 손실 큰 세션 우선 청산 + rate limit 는 OrderExecutionEngine 이 제어.
+     */
     @Transactional
     public void emergencyStopAll() {
-        log.error("전체 비상 정지 실행!");
+        emergencyStopAll(false);
+    }
+
+    /**
+     * 전체 비상 정지.
+     * @param dryRun true 이면 실제 주문을 내지 않고 청산 시나리오만 로그에 기록한다.
+     *               §10 — 비상 청산 dry-run 모드.
+     */
+    @Transactional
+    public void emergencyStopAll(boolean dryRun) {
+        log.error("전체 비상 정지 실행! (dryRun={})", dryRun);
 
         // 모든 활성 주문 취소
-        int cancelledOrders = orderExecutionEngine.cancelAllActiveOrders();
-        log.info("전체 비상 정지: {}건 주문 취소", cancelledOrders);
+        if (!dryRun) {
+            int cancelledOrders = orderExecutionEngine.cancelAllActiveOrders();
+            log.info("전체 비상 정지: {}건 주문 취소", cancelledOrders);
+        }
 
         List<LiveTradingSessionEntity> runningSessions =
                 sessionRepository.findByStatus("RUNNING");
 
+        // §10 우선순위: 손실 큰 세션(totalAssetKrw - initialCapital 가장 낮은 것)부터 청산
+        runningSessions.sort((a, b) -> {
+            BigDecimal lossA = a.getTotalAssetKrw().subtract(a.getInitialCapital());
+            BigDecimal lossB = b.getTotalAssetKrw().subtract(b.getInitialCapital());
+            return lossA.compareTo(lossB); // 오름차순 — 큰 손실이 먼저
+        });
+
         for (LiveTradingSessionEntity session : runningSessions) {
             try {
-                closeSessionPositions(session, "전체 비상 정지 -- 강제 시장가 청산");
-                session.setStatus("EMERGENCY_STOPPED");
-                session.setStoppedAt(Instant.now());
-                sessionRepository.save(session);
                 double returnPct = session.getTotalAssetKrw()
                         .subtract(session.getInitialCapital())
                         .divide(session.getInitialCapital(), 4, RoundingMode.HALF_UP)
                         .multiply(BigDecimal.valueOf(100))
                         .doubleValue();
+
+                if (dryRun) {
+                    int openPositions = positionRepository
+                            .findBySessionIdAndStatus(session.getId(), "OPEN").size();
+                    log.warn("[DRY-RUN] 비상 청산 대상: sessionId={} coin={} 수익률={}% 열린포지션={}건",
+                            session.getId(), session.getCoinPair(), returnPct, openPositions);
+                    continue;
+                }
+
+                closeSessionPositions(session, "전체 비상 정지 -- 강제 시장가 청산");
+                session.setStatus("EMERGENCY_STOPPED");
+                session.setStoppedAt(Instant.now());
+                sessionRepository.save(session);
                 telegramService.notifySessionStopped(
                         session.getId(), session.getCoinPair(), returnPct,
                         session.getTotalAssetKrw().longValue(), true);
@@ -468,8 +535,11 @@ public class LiveTradingService {
             }
         }
 
-        log.error("전체 비상 정지 완료: {}개 세션 정지", runningSessions.size());
-        refreshWsSubscription();
+        log.error("전체 비상 정지 완료: {}개 세션 {} (dryRun={})",
+                runningSessions.size(), dryRun ? "시뮬레이션" : "정지", dryRun);
+        if (!dryRun) {
+            refreshWsSubscription();
+        }
     }
 
     // -- 세션 삭제 -----------------------------------------------
@@ -826,6 +896,17 @@ public class LiveTradingService {
             return;
         }
 
+        // §8 cross-session 초과 인출 방지: 전 세션 availableKrw 합 - 이번 매수 < 0 이면 거래소 잔고 부족 가능
+        BigDecimal accountCapital = portfolioManager.getTotalCapital();
+        if (accountCapital.compareTo(BigDecimal.ZERO) > 0) {
+            BigDecimal totalAvailableKrw = sessionRepository.sumAvailableKrwByStatusIn(ACTIVE_SESSION_STATUSES);
+            if (totalAvailableKrw.subtract(investAmount).compareTo(BigDecimal.ZERO) < 0) {
+                log.warn("[§8] 매수 차단: 전 세션 가용KRW 합산({}) - 매수금({}) < 0 → 거래소 잔고 부족 우려. sessionId={}",
+                        totalAvailableKrw, investAmount, session.getId());
+                return;
+            }
+        }
+
         // SL/TP 계산: 전략 제시값 우선, 없으면 세션 stopLossPct 기반 기본값 적용
         com.cryptoautotrader.core.risk.ExitRuleConfig cfg = exitConfig();
         BigDecimal slPct = (session.getStopLossPct() != null)
@@ -870,9 +951,9 @@ public class LiveTradingService {
         order.setPositionId(pos.getId());
         orderExecutionEngine.submitOrder(order);
 
-        // 세션 잔고 차감
-        session.setAvailableKrw(session.getAvailableKrw().subtract(investAmount));
-        sessionRepository.save(session);
+        // 세션 잔고 차감 — 낙관적 락 + 재시도 (§7 race 차단)
+        balanceUpdater.apply(session.getId(),
+                s -> s.setAvailableKrw(s.getAvailableKrw().subtract(investAmount)));
 
         log.info("실전 매수 주문 (sessionId={}): {} {}개 @ {} 사유: {}",
                 session.getId(), coinPair, quantity, price, reason);
@@ -906,8 +987,9 @@ public class LiveTradingService {
                 if (toRestore != null) {
                     log.warn("매수 취소/실패 확인 — KRW 복원 (posId={}, sessionId={}, 복원금액={})",
                             pos.getId(), session.getId(), toRestore);
-                    session.setAvailableKrw(session.getAvailableKrw().add(toRestore));
-                    sessionRepository.save(session);
+                    final BigDecimal restoreAmount = toRestore;
+                    balanceUpdater.apply(session.getId(),
+                            s -> s.setAvailableKrw(s.getAvailableKrw().add(restoreAmount)));
                 }
                 return;
             }
@@ -950,9 +1032,10 @@ public class LiveTradingService {
 
             // 세션 총자산 업데이트 (size=0이면 매수 미체결 상태 — totalAssetKrw 갱신 보류)
             if (pos.getSize().compareTo(BigDecimal.ZERO) > 0) {
-                BigDecimal posValue = pos.getSize().multiply(currentPrice);
-                session.setTotalAssetKrw(session.getAvailableKrw().add(posValue));
-                sessionRepository.save(session);
+                final BigDecimal posValue = pos.getSize().multiply(currentPrice);
+                // 낙관적 락 하에서 availableKrw 최신값을 기준으로 재계산
+                balanceUpdater.apply(session.getId(),
+                        s -> s.setTotalAssetKrw(s.getAvailableKrw().add(posValue)));
             }
         });
     }
@@ -1354,6 +1437,93 @@ public class LiveTradingService {
         refreshWsSubscription();
     }
 
+    // ── §9 REST ticker fallback ───────────────────────────────────────────
+
+    /** WS 끊김 후 REST fallback 시작까지 대기 시간 (초) */
+    private static final long WS_FALLBACK_THRESHOLD_SEC = 30;
+    /** REST fallback 진입 여부 — 로그 중복 방지 */
+    private volatile boolean restFallbackActive = false;
+    /** 세션별 마지막 SL 점검 시각 — 미점검 경고용 */
+    private final Map<Long, Instant> lastSlCheckAt = new ConcurrentHashMap<>();
+    /** SL 미점검 경고 임계값 */
+    private static final long SL_STALE_WARN_MINUTES = 3;
+
+    /**
+     * §9 — WS 끊김 >30초 지속 시 REST ticker 로 실시간 가격 대체 폴링.
+     * WS 가 복구되면 자동으로 비활성화된다.
+     * 5초 주기 — 평상시 WS 가 살아있으면 첫 조건문에서 즉시 리턴하므로 부하 거의 없음.
+     */
+    @Scheduled(fixedDelay = 5_000)
+    public void pollRestTickerFallback() {
+        if (!exchangeHealthMonitor.isWsDownLongerThan(WS_FALLBACK_THRESHOLD_SEC)) {
+            if (restFallbackActive) {
+                log.info("[§9] WS 복구 감지 — REST ticker fallback 비활성화");
+                restFallbackActive = false;
+            }
+            return;
+        }
+        if (upbitRestClient == null) return;
+
+        List<LiveTradingSessionEntity> sessions = sessionRepository.findByStatus("RUNNING");
+        if (sessions.isEmpty()) return;
+
+        if (!restFallbackActive) {
+            log.warn("[§9] WS 끊김 >{}초 지속 — REST ticker fallback 활성화 (RUNNING 세션 {}개)",
+                    WS_FALLBACK_THRESHOLD_SEC, sessions.size());
+            restFallbackActive = true;
+        }
+
+        // RUNNING 세션의 고유 코인 목록
+        String markets = sessions.stream()
+                .map(LiveTradingSessionEntity::getCoinPair)
+                .distinct()
+                .collect(Collectors.joining(","));
+
+        try {
+            List<Map<String, Object>> tickers = upbitRestClient.getTicker(markets);
+            for (Map<String, Object> ticker : tickers) {
+                String market = (String) ticker.get("market");
+                Object tradePriceObj = ticker.get("trade_price");
+                if (market == null || tradePriceObj == null) continue;
+                BigDecimal tradePrice = new BigDecimal(tradePriceObj.toString());
+                eventPublisher.publishEvent(new RealtimePriceEvent(market, tradePrice));
+            }
+        } catch (Exception e) {
+            log.error("[§9] REST ticker fallback 실패: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * §9 — SL 점검 시각 기록 (onRealtimePriceEvent 내부에서 호출).
+     */
+    private void recordSlCheck(Long sessionId) {
+        lastSlCheckAt.put(sessionId, Instant.now());
+    }
+
+    /**
+     * §9 — SL 미점검 세션 감시. 3분 이상 SL 체크를 받지 못한 RUNNING 세션이 있으면 경고.
+     */
+    @Scheduled(fixedDelay = 60_000)
+    public void warnStaleSlCheck() {
+        List<LiveTradingSessionEntity> sessions = sessionRepository.findByStatus("RUNNING");
+        Instant threshold = Instant.now().minus(SL_STALE_WARN_MINUTES, ChronoUnit.MINUTES);
+        for (LiveTradingSessionEntity s : sessions) {
+            // OPEN 포지션이 없으면 SL 체크 대상 아님
+            boolean hasOpen = positionRepository.countRealPositionsByStatus("OPEN") > 0;
+            if (!hasOpen) continue;
+
+            Instant last = lastSlCheckAt.get(s.getId());
+            if (last == null || last.isBefore(threshold)) {
+                log.warn("[§9] SL 미점검 경고: sessionId={} coin={} 마지막체크={} ({}분 초과)",
+                        s.getId(), s.getCoinPair(),
+                        last != null ? last : "기록없음", SL_STALE_WARN_MINUTES);
+                telegramService.sendCustomNotification(
+                        String.format("⚠️ SL 미점검 %d분 초과: 세션 %d (%s). WS 상태를 확인하세요.",
+                                SL_STALE_WARN_MINUTES, s.getId(), s.getCoinPair()));
+            }
+        }
+    }
+
     /** CLOSING 포지션 타임아웃 — 이 시간 초과 시 OPEN 롤백 */
     private static final long CLOSING_TIMEOUT_MINUTES = 5;
 
@@ -1453,23 +1623,21 @@ public class LiveTradingService {
                 }
 
                 if (pos.getSessionId() != null) {
-                    sessionRepository.findById(pos.getSessionId()).ifPresent(session -> {
-                        BigDecimal toRestore = buyOrders.stream()
-                                .filter(o -> "CANCELLED".equals(o.getState()) || "FAILED".equals(o.getState()))
-                                .findFirst()
-                                .map(o -> o.getQuantity())
-                                .orElse(null);
-                        // 주문 수량 없으면 포지션에 저장된 investedKrw 로 복원
-                        if (toRestore == null && pos.getInvestedKrw() != null) {
-                            toRestore = pos.getInvestedKrw();
-                        }
-                        if (toRestore != null) {
-                            session.setAvailableKrw(session.getAvailableKrw().add(toRestore));
-                            sessionRepository.save(session);
-                            log.info("고아 포지션 정리: KRW 복원 (posId={}, sessionId={}, 복원금액={})",
-                                    pos.getId(), session.getId(), toRestore);
-                        }
-                    });
+                    BigDecimal toRestore = buyOrders.stream()
+                            .filter(o -> "CANCELLED".equals(o.getState()) || "FAILED".equals(o.getState()))
+                            .findFirst()
+                            .map(o -> o.getQuantity())
+                            .orElse(null);
+                    if (toRestore == null && pos.getInvestedKrw() != null) {
+                        toRestore = pos.getInvestedKrw();
+                    }
+                    if (toRestore != null) {
+                        final BigDecimal restoreAmount = toRestore;
+                        balanceUpdater.apply(pos.getSessionId(),
+                                s -> s.setAvailableKrw(s.getAvailableKrw().add(restoreAmount)));
+                        log.info("고아 포지션 정리: KRW 복원 (posId={}, sessionId={}, 복원금액={})",
+                                pos.getId(), pos.getSessionId(), restoreAmount);
+                    }
                 }
                 log.warn("고아 포지션 정리 완료 (posId={}, coinPair={})", pos.getId(), pos.getCoinPair());
 
@@ -1483,12 +1651,11 @@ public class LiveTradingService {
                     pos.setClosedAt(Instant.now());
                     positionRepository.save(pos);
                     if (pos.getInvestedKrw() != null) {
-                        sessionRepository.findById(pos.getSessionId()).ifPresent(session -> {
-                            session.setAvailableKrw(session.getAvailableKrw().add(pos.getInvestedKrw()));
-                            sessionRepository.save(session);
-                            log.warn("고아 포지션 정리 (주문 없음): KRW 복원 (posId={}, sessionId={}, 복원금액={})",
-                                    pos.getId(), session.getId(), pos.getInvestedKrw());
-                        });
+                        final BigDecimal investedKrw = pos.getInvestedKrw();
+                        balanceUpdater.apply(pos.getSessionId(),
+                                s -> s.setAvailableKrw(s.getAvailableKrw().add(investedKrw)));
+                        log.warn("고아 포지션 정리 (주문 없음): KRW 복원 (posId={}, sessionId={}, 복원금액={})",
+                                pos.getId(), pos.getSessionId(), investedKrw);
                     } else {
                         log.error("고아 포지션 정리 실패: investedKrw 없음 — KRW 복원 불가 (posId={}). 수동 확인 필요.", pos.getId());
                     }
@@ -1524,26 +1691,33 @@ public class LiveTradingService {
         positionRepository.save(pos);
 
         if (pos.getSessionId() != null) {
-            sessionRepository.findById(pos.getSessionId()).ifPresent(session -> {
-                BigDecimal newAvailableKrw = session.getAvailableKrw().add(netProceeds);
-                session.setAvailableKrw(newAvailableKrw);
-                // 포지션 청산 후 열린 포지션이 없으면 totalAssetKrw = availableKrw로 정확히 동기화
-                boolean hasOpenPosition = positionRepository
-                        .findBySessionIdAndCoinPairAndStatus(session.getId(), pos.getCoinPair(), "OPEN")
-                        .isPresent();
+            final Long sessionId = pos.getSessionId();
+            // 열린 포지션 잔존 여부는 DB 최신 상태로 평가 — race 중에도 결정적 값
+            boolean hasOpenPosition = positionRepository
+                    .findBySessionIdAndCoinPairAndStatus(sessionId, pos.getCoinPair(), "OPEN")
+                    .isPresent();
+
+            balanceUpdater.apply(sessionId, s -> {
+                BigDecimal newAvailableKrw = s.getAvailableKrw().add(netProceeds);
+                s.setAvailableKrw(newAvailableKrw);
                 if (!hasOpenPosition) {
-                    session.setTotalAssetKrw(newAvailableKrw);
+                    s.setTotalAssetKrw(newAvailableKrw);
                 } else {
-                    session.setTotalAssetKrw(session.getTotalAssetKrw().subtract(fee));
+                    s.setTotalAssetKrw(s.getTotalAssetKrw().subtract(fee));
                 }
-                sessionRepository.save(session);
-                log.info("매도 체결 확정 (sessionId={}, posId={}): {} {}개 @ {} 손익={} 수수료={}",
-                        session.getId(), pos.getId(), pos.getCoinPair(),
-                        soldQty, fillPrice, realizedPnl, fee);
-                telegramService.bufferTradeEvent(
-                        "세션#" + session.getId(), pos.getCoinPair(), "SELL",
-                        fillPrice, soldQty, fee, realizedPnl, "전략 매도");
             });
+            log.info("매도 체결 확정 (sessionId={}, posId={}): {} {}개 @ {} 손익={} 수수료={}",
+                    sessionId, pos.getId(), pos.getCoinPair(),
+                    soldQty, fillPrice, realizedPnl, fee);
+            telegramService.bufferTradeEvent(
+                    "세션#" + sessionId, pos.getCoinPair(), "SELL",
+                    fillPrice, soldQty, fee, realizedPnl, "전략 매도");
+
+            // §14 drift 기록 — 진입평균가(signalPrice 근사치) vs 실제 체결가
+            sessionRepository.findById(sessionId).ifPresent(s ->
+                executionDriftTracker.record(
+                        sessionId, pos.getCoinPair(), s.getStrategyType(),
+                        "SELL", pos.getAvgPrice(), fillPrice, Instant.now()));
         }
     }
 
@@ -1612,6 +1786,9 @@ public class LiveTradingService {
 
             BigDecimal stopLossPct = session.getStopLossPct() != null
                     ? session.getStopLossPct() : exitConfig().getStopLossPct();
+
+            // §9 SL 점검 시각 기록
+            recordSlCheck(session.getId());
 
             // 기존 손절 체크 (stopLossPrice 절대가 우선, 없으면 stopLossPct %)
             boolean slTriggered = (pos.getStopLossPrice() != null)

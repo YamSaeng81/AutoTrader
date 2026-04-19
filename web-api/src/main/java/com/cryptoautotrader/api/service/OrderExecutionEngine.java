@@ -16,6 +16,8 @@ import com.cryptoautotrader.exchange.upbit.UpbitRestClient;
 import com.cryptoautotrader.exchange.upbit.dto.AccountResponse;
 import com.cryptoautotrader.exchange.upbit.dto.OrderResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -75,6 +77,14 @@ public class OrderExecutionEngine {
 
     @Autowired(required = false)
     private LiveTradingSessionRepository sessionRepository;
+
+    /** §10 — Upbit API rate limit 대응 */
+    @Autowired
+    private UpbitApiRateLimiter rateLimiter;
+
+    /** §16 — Micrometer 메트릭 (Prometheus export) */
+    @Autowired(required = false)
+    private MeterRegistry meterRegistry;
 
     public OrderExecutionEngine(OrderRepository orderRepository,
                                  PositionRepository positionRepository,
@@ -515,6 +525,10 @@ public class OrderExecutionEngine {
             price = order.getPrice();
         }
 
+        // §10 rate limit — permit 확보 후 Upbit API 호출
+        if (!rateLimiter.acquire()) {
+            throw new RuntimeException("Upbit API rate limit 대기 타임아웃 — 주문 제출 재시도 필요");
+        }
         return upbitOrderClient.createOrder(order.getCoinPair(), upbitSide, volume, price, upbitOrderType);
     }
 
@@ -575,6 +589,10 @@ public class OrderExecutionEngine {
     }
 
     private void cancelOnExchange(String exchangeOrderId) throws Exception {
+        // §10 rate limit — permit 확보 후 Upbit API 호출
+        if (!rateLimiter.acquire()) {
+            log.warn("Upbit API rate limit 대기 타임아웃 — 취소 재시도 필요 (orderId={})", exchangeOrderId);
+        }
         upbitOrderClient.cancelOrder(exchangeOrderId);
     }
 
@@ -669,6 +687,16 @@ public class OrderExecutionEngine {
 
         orderRepository.save(order);
         recordTradeLog(order.getId(), "STATE_CHANGE", oldState, newState, failedReason);
+
+        // §16 — 주문 상태 전이 카운터 (Prometheus: order_state_transition_total{from,to})
+        if (meterRegistry != null) {
+            Counter.builder("order.state.transition")
+                    .tag("from", oldState != null ? oldState : "UNKNOWN")
+                    .tag("to", newState)
+                    .description("주문 상태 전이 횟수")
+                    .register(meterRegistry)
+                    .increment();
+        }
 
         log.info("주문 상태 전이 (orderId={}): {} → {}{}", order.getId(), oldState, newState,
                 failedReason != null ? " (" + failedReason + ")" : "");

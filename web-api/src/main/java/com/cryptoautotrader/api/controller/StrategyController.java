@@ -7,6 +7,7 @@ import com.cryptoautotrader.api.entity.StrategyConfigEntity;
 import com.cryptoautotrader.api.entity.StrategyTypeEnabledEntity;
 import com.cryptoautotrader.api.repository.StrategyConfigRepository;
 import com.cryptoautotrader.api.repository.StrategyTypeEnabledRepository;
+import com.cryptoautotrader.api.service.StrategyLiveStatusRegistry;
 import com.cryptoautotrader.strategy.Strategy;
 import com.cryptoautotrader.strategy.StrategyRegistry;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ public class StrategyController {
 
     private final StrategyConfigRepository configRepo;
     private final StrategyTypeEnabledRepository enabledRepo;
+    private final StrategyLiveStatusRegistry liveStatusRegistry;
 
     /**
      * 전략 목록 + 상태 조회
@@ -183,8 +185,26 @@ public class StrategyController {
 
     // ── 전략 타입(레지스트리) 조회 ──────────────────────────────
 
+    /** §11 전략 운영 가능 여부 매트릭스 — GET /api/v1/strategies/live-matrix */
+    @GetMapping("/live-matrix")
+    public ApiResponse<List<Map<String, Object>>> getLiveMatrix() {
+        List<Map<String, Object>> matrix = StrategyRegistry.getAll().keySet().stream()
+                .sorted()
+                .map(name -> {
+                    StrategyLiveStatusRegistry.StatusEntry entry = liveStatusRegistry.getStatus(name);
+                    Map<String, Object> m = new HashMap<>();
+                    m.put("name", name);
+                    m.put("liveReadiness", entry.readiness().name());
+                    m.put("reason", entry.reason());
+                    return m;
+                })
+                .toList();
+        return ApiResponse.ok(matrix);
+    }
+
     private Map<String, Object> buildStrategyInfo(String name, Strategy strategy, boolean isActive) {
         boolean isImplemented = isStrategyImplemented(name);
+        StrategyLiveStatusRegistry.StatusEntry liveStatus = liveStatusRegistry.getStatus(name);
         Map<String, Object> map = new HashMap<>();
         map.put("name", name);
         map.put("minimumCandleCount", strategy.getMinimumCandleCount());
@@ -192,6 +212,8 @@ public class StrategyController {
         map.put("description", getDescription(name));
         map.put("isActive", isActive);
         map.put("isComposite", isCompositeStrategy(name));
+        map.put("liveReadiness", liveStatus.readiness().name());
+        map.put("liveReadinessReason", liveStatus.reason());
         return map;
     }
 
@@ -218,6 +240,7 @@ public class StrategyController {
             case "VWAP", "EMA_CROSS", "BOLLINGER", "GRID" -> true;
             // Phase 3: 로직 구현 완료
             case "RSI", "MACD", "SUPERTREND", "ATR_BREAKOUT", "ORDERBOOK_IMBALANCE", "STOCHASTIC_RSI", "VOLUME_DELTA" -> true;
+            case "FAIR_VALUE_GAP" -> true;
             // 코인별 복합 전략 프리셋 + 국면 적응형 복합 전략
             case "COMPOSITE", "COMPOSITE_MOMENTUM", "COMPOSITE_ETH", "COMPOSITE_BREAKOUT",
                  "COMPOSITE_MOMENTUM_ICHIMOKU", "COMPOSITE_MOMENTUM_ICHIMOKU_V2", "COMPOSITE_BREAKOUT_ICHIMOKU" -> true;
@@ -239,6 +262,7 @@ public class StrategyController {
             case "ATR_BREAKOUT"        -> "ATR 변동성 돌파 모멘텀 매매";
             case "ORDERBOOK_IMBALANCE" -> "호가 불균형 기반 단기 방향성 매매 (Phase 4 WebSocket 연동 필요)";
             case "VOLUME_DELTA"        -> "누적 볼륨 Delta(매수-매도 압력) + 다이버전스 필터 기반 방향성 매매";
+            case "FAIR_VALUE_GAP"      -> "급격한 가격 변동으로 생긴 캔들 사이 유동성 공백(FVG) 감지 → 방향 모멘텀 진입 (EMA 추세 필터 포함). A단계: 모멘텀 방식";
             case "STOCHASTIC_RSI"      -> "RSI 에 Stochastic 적용, RANGE/VOLATILITY 시장 민감 감지";
             case "COMPOSITE"           -> "시장 국면(TREND/RANGE/VOLATILITY) 자동 감지 기반 동적 전략 선택";
             case "COMPOSITE_MOMENTUM"  -> "[모멘텀 혼합] MACD×0.5 + VWAP×0.3 + GRID×0.2 | " +

@@ -50,4 +50,9 @@ public final class WeightOverrideStore {
     public static Map<String, Map<String, Double>> snapshot() {
         return Collections.unmodifiableMap(store);
     }
+
+    /** 전체 오버라이드 초기화 — 테스트 격리 전용. */
+    public static void clear() {
+        store.clear();
+    }
 }

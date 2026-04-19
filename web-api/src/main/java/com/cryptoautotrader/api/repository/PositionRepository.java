@@ -71,4 +71,29 @@ public interface PositionRepository extends JpaRepository<PositionEntity, Long> 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE PositionEntity p SET p.status = 'CLOSED', p.closedAt = :now WHERE p.id = :id AND p.status = 'OPEN'")
     int closeIfOpen(@Param("id") Long id, @Param("now") java.time.Instant now);
+
+    /**
+     * StrategyWeightOptimizer §6 — 종료 포지션의 실현 수익률을 (전략, 레짐) 기준으로 집계.
+     *
+     * <p>각 행: [strategyType(String), marketRegime(String), sumRealizedPnl(BigDecimal),
+     * sumInvestedKrw(BigDecimal), tradeCount(Long)]</p>
+     *
+     * <p>수수료·슬리피지는 이미 {@code realizedPnl} 에 반영되어 있음
+     * ({@code finalizeSellPosition} 이 (실체결가 × 수량 − 수수료 − entryFee) 로 기록).
+     * {@code investedKrw > 0} 필터로 고아(빈) 포지션 제외.</p>
+     */
+    @Query(value = "SELECT s.strategy_type AS strategy, " +
+            "       p.market_regime AS regime, " +
+            "       COALESCE(SUM(p.realized_pnl), 0) AS sum_pnl, " +
+            "       COALESCE(SUM(p.invested_krw), 0) AS sum_invested, " +
+            "       COUNT(p.id) AS trade_count " +
+            "FROM position p " +
+            "JOIN live_trading_session s ON p.session_id = s.id " +
+            "WHERE p.status = 'CLOSED' " +
+            "  AND p.closed_at >= :since " +
+            "  AND p.invested_krw > 0 " +
+            "  AND p.market_regime IS NOT NULL " +
+            "GROUP BY s.strategy_type, p.market_regime",
+            nativeQuery = true)
+    List<Object[]> aggregateRealizedReturnsByStrategyAndRegime(@Param("since") java.time.Instant since);
 }

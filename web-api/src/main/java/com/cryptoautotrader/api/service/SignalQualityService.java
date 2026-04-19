@@ -18,6 +18,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -96,6 +97,7 @@ public class SignalQualityService {
 
             if (pending.isEmpty()) break;
 
+            List<StrategyLogEntity> toSave = new ArrayList<>();
             for (StrategyLogEntity entry : pending) {
                 if (processed >= maxTotal) break;
                 try {
@@ -111,12 +113,13 @@ public class SignalQualityService {
                         entry.setPriceAfter24h(price);
                         entry.setReturn24hPct(ret);
                     }
-                    strategyLogRepository.save(entry);
+                    toSave.add(entry);
                     processed++;
                 } catch (Exception e) {
                     log.warn("[SignalQuality] {}h 평가 실패 (id={}): {}", hours, entry.getId(), e.getMessage());
                 }
             }
+            if (!toSave.isEmpty()) strategyLogRepository.saveAll(toSave);
 
             // 꽉 찬 배치가 아니면 더 이상 없음
             if (pending.size() < BATCH_SIZE) break;

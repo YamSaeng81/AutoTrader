@@ -488,6 +488,11 @@ public class TelegramNotificationService {
      * 비동기 전송 — telegramExecutor에 제출 후 즉시 반환.
      * 텔레그램 서버 지연/장애가 매매 루프를 블로킹하지 않도록 분리.
      */
+    /** 범용 알림 — 분류 가능한 type/session 이 없는 경우 */
+    public void sendCustomNotification(String message) {
+        sendMarkdownAndLog(message, "CUSTOM", "system");
+    }
+
     private void sendMarkdownAndLog(String text, String type, String sessionLabel) {
         telegramExecutor.execute(() -> doSendMarkdownAndLog(text, type, sessionLabel));
     }

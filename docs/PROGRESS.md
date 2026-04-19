@@ -3,7 +3,39 @@
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝나면 완료 내용을 [`docs/CHANGELOG.md`](CHANGELOG.md)에 추가하고, 이 파일의 해당 항목은 삭제한다.
 > **변경 이력**: [`docs/CHANGELOG.md`](CHANGELOG.md)
-> **마지막 갱신**: 2026-04-14 (야간 스케줄러 + 웹 UI 완료, 모의투자 20세션 확장, 리스크 지표 MDD·Sharpe·Sortino 계산 수정)
+> **마지막 갱신**: 2026-04-20 (Tier 4 §18 완료 — 보안 점검 스크립트 추가. Tier 1~4 전 항목 완료.)
+
+---
+
+## 🔧 Self-Audit 개선 진행 현황 ([docs/20260415_analy.md](20260415_analy.md))
+
+> `/clear` 후에도 이어서 작업할 수 있게 이 섹션을 먼저 읽을 것. 상세 근거는 `docs/20260415_analy.md`.
+
+### Tier 1 — 결과 신뢰도 직결 (우선)
+- ✅ **§1 Sharpe/Sortino/Calmar 연환산** — 일별 equity curve 기반 재계산. `MetricsCalculator` + 테스트 7건. 기존 백테스트 수치 재실행 대기 (사용자 담당).
+- ✅ **§2 Walk-Forward 윈도우 겹침** — `step=windowSize` 고정, `ANCHORED` 모드 추가, OOS 거래 병합 집계 지표. 테스트 4건.
+- ✅ **§3 백테스트 SL/TP 현실 체결** — gap-open 감지 + SELL 슬리피지 + ambiguous 플래그. [BacktestEngine.java:113](../core-engine/src/main/java/com/cryptoautotrader/core/backtest/BacktestEngine.java#L113)
+- ✅ **§4 Partial Fill 가중평균 진입가** — BUY 이월 시 `entryPrice` 재계산 + `entryFee` 누적. [BacktestEngine.java:76](../core-engine/src/main/java/com/cryptoautotrader/core/backtest/BacktestEngine.java#L76)
+- ✅ **§5 리스크 체크 자본 기준** — RUNNING 세션 `initialCapital` 합 + gross loss. `RiskManagementService` + 테스트 3건.
+- ✅ **§6 StrategyLog 4h 적중률 → realizedPnl 전환** — `PositionRepository.aggregateRealizedReturnsByStrategyAndRegime` 추가, `StrategyWeightOptimizer.computeWeightsFromRealized` 가 `sum(realizedPnl)/sum(investedKrw)` 로 점수 산출. 실현 샘플 부족 시 4h 적중률 폴백. DEFAULTS 에 `COMPOSITE_MOMENTUM_ICHIMOKU_V2` 추가. 테스트 4건.
+
+### Tier 2 — 운영 안전성 (Tier 1 후 진행)
+- ✅ **§7 LiveTradingService race** — `LiveTradingSessionEntity.@Version` + V43 Flyway 마이그레이션, `SessionBalanceUpdater`(REQUIRES_NEW TransactionTemplate + `ConcurrencyFailureException` 재시도 + jitter backoff) 헬퍼 신설. LiveTradingService 6개 read-modify-write 사이트(executeSessionBuy / 매수취소 KRW 복원 / updateSessionUnrealizedPnl / reconcileOrphanBuy 2곳 / finalizeSellPosition) 리팩터링. 회귀 테스트: SessionBalanceUpdaterTest(동시 10-thread) + LiveTradingReliabilityTest(@Transactional 제거 + @AfterEach 수동 정리).
+- ✅ **§8 세션당 1코인 암묵 가정** — 자본 초과 배정 방지 가드(createSession/startSession), 매수 시 cross-session 가용KRW 합산 초과 차단(executeSessionBuy), PortfolioSyncService drift 감지(5% 초과 경고). Repository에 `sumInitialCapitalByStatusIn` / `sumAvailableKrwByStatusIn` 집계 쿼리 추가. 테스트 4건(SessionCapitalGuardTest).
+- ✅ **§9 WebSocket 단일 장애점** — ExchangeHealthMonitor에 `wsDisconnectedSince` + `isWsDownLongerThan()` 추가. LiveTradingService에 `pollRestTickerFallback()` (5초 주기, WS>30초 끊김 시 REST ticker→RealtimePriceEvent 대체), `warnStaleSlCheck()` (1분 주기, SL 3분 미점검 세션 Telegram 경고), `recordSlCheck()` 호출 삽입. TelegramNotificationService에 `sendCustomNotification()` 추가. 테스트 3건(WsFallbackTest).
+- ✅ **§10 emergencyStopAll 연쇄 충격** — `UpbitApiRateLimiter`(Semaphore 7 permits/sec, 데몬 리필) 신설, `OrderExecutionEngine` submit/cancel 경로에 rate limit 통합, `emergencyStopAll(boolean dryRun)` 손실 내림차순 우선 청산 + dry-run 모드, `/emergency-stop/dry-run` 엔드포인트 추가. 테스트 4건(RateLimiterEmergencyStopTest).
+
+### Tier 3 — 전략/데이터 품질
+- ✅ **§11 전략 19종 중 실전 후보 3개** — `StrategyLiveStatusRegistry` 신설(ENABLED 4·BLOCKED 3·EXPERIMENTAL 13·DEPRECATED 1). `LiveTradingService.BLOCKED_LIVE_STRATEGIES` 하드코딩 흡수. `StrategyController`에 `liveReadiness` 노출 + `GET /api/v1/strategies/live-matrix` 추가. 테스트 6건.
+- ✅ **§12 파라미터 튜닝 look-ahead** — `WalkForwardTestRunner.run(…, holdOutCutoff)` 오버로드 추가. cutoff 이후 캔들은 OOS 전용, IS 포함 시 `IllegalArgumentException`. 홀드아웃 윈도우를 별도 WF 결과에 포함. 테스트 3건.
+- ✅ **§13 데이터 스냅샷 편향** — `PerformanceReport`에 `monthlyReturnStdDev`·`monthlyReturnSkewness`·`topMonthConcentrationPct` 추가. `MetricsCalculator`에 3개 헬퍼 메서드 구현. 집중도 80% 이상 시 스냅샷 편향 의심 가능. 테스트 5건.
+- ✅ **§14 실전/백테스트 drift 트래커** — `ExecutionDriftLogEntity` + `ExecutionDriftLogRepository` + `ExecutionDriftTracker`(slippage 계산·7일 평균·Telegram 경고·@Scheduled). `LiveTradingService.finalizeSellPosition` 에서 record() 호출. V44 Flyway 마이그레이션. H2 스키마 동기화. 테스트 6건.
+
+### Tier 4 — 테스트/관측/인프라
+- ✅ **§15 테스트 커버리지** — ExitRuleChecker 14건(SL/TP/트레일링/포지션사이징), 백테스트 결정론 1건, OrderExecutionEngine 상태머신 6건(PENDING/SUBMITTED→CANCELLED, FILLED/FAILED 취소불가, 중복감지, 일괄취소) 추가.
+- ✅ **§16 Observability** — Micrometer `Counter` 3종 추가: `order.state.transition`(OrderExecutionEngine), `exchange.ws.reconnect`·`exchange.down.event`(ExchangeHealthMonitor), `session.balance.race.retry`(SessionBalanceUpdater). `/actuator/prometheus` 기존 노출 확인.
+- ✅ **§17 DB 백업·복구 드릴** — `scripts/db-restore-drill.sh` 신규 작성. 최신 `.sql.gz` → 임시 Timescale 컨테이너 복원 → 필수 테이블 7종 스키마 검증 → 행 수 요약 → 컨테이너 자동 정리. `backups/drill-log.txt`에 실행 이력 누적.
+- ✅ **§18 Upbit API 키 관리 / Actuator 노출 검증** — 점검 결과: ① Git 히스토리 실제 키 없음(플레이스홀더만). ② `.env` Git 미추적 확인. ③ Actuator 노출: `prometheus/health` 만 공개, `env/beans` 차단. ④ `SecurityConfig`: 모든 API 엔드포인트 Bearer 토큰 인증. `scripts/security-check.sh` 신규 작성(Git 유출·Actuator 노출·IP 화이트리스팅 권고 자동 점검).
 
 ---
 
@@ -50,13 +82,17 @@ crypto-auto-trader/
 
 #### COMPOSITE_BREAKOUT
 
-| 코인 | 수익률 | 승률 | MDD | Sharpe | 거래수 |
-|------|--------|------|-----|--------|--------|
-| **BTC** | **+104.24%** | 24.6% | -5.98% | 6.41 | 61 |
-| ETH | +38.92% | 14.8% | -8.90% | 3.16 | 61 |
-| SOL | +64.86% | 19.6% | -19.17% | 3.81 | 46 |
-| XRP | +10.64% | 10.6% | -17.14% | 0.85 | 47 |
-| DOGE | +17.69% | 16.3% | -16.77% | 1.84 | 49 |
+> ⚠ **Sharpe 재계산 대기 (2026-04-15)**: 아래 Sharpe 값은 per-trade × sqrt(365) 버그 하에서 산출된 값이며,
+> 일별 equity curve 기반으로 재계산 시 약 4~5배 축소될 것으로 예상 (상세: [20260415_sharpe_audit.md](20260415_sharpe_audit.md)).
+> 수익률·MDD·거래수는 영향 없음.
+
+| 코인 | 수익률 | 승률 | MDD | Sharpe (구버그) | 거래수 |
+|------|--------|------|-----|----------------|--------|
+| **BTC** | **+104.24%** | 24.6% | -5.98% | ~~6.41~~ (재계산) | 61 |
+| ETH | +38.92% | 14.8% | -8.90% | ~~3.16~~ (재계산) | 61 |
+| SOL | +64.86% | 19.6% | -19.17% | ~~3.81~~ (재계산) | 46 |
+| XRP | +10.64% | 10.6% | -17.14% | ~~0.85~~ (재계산) | 47 |
+| DOGE | +17.69% | 16.3% | -16.77% | ~~1.84~~ (재계산) | 49 |
 
 > ⚠ COMPOSITE_BREAKOUT_ICHIMOKU는 BTC/ETH/SOL/XRP 모두 BREAKOUT과 완전 동일 수치 → ADX 필터 중복 확인됨.
 
@@ -148,6 +184,22 @@ crypto-auto-trader/
 
 ### 🔴 P1-1 — 전략 고도화
 
+- [x] **FVG (Fair Value Gap) 전략 — A단계 구현 완료**: `FairValueGapStrategy` + `FairValueGapConfig` 구현. EMA 필터·최소 공백 크기 필터 포함. `StrategyRegistry` 및 `StrategyController` 등록 완료.
+- [x] **FVG A단계 — 5코인 × H1 3년 백테스트 (2023~2025)**
+
+  | 코인 | 수익률 | 승률 | MDD | 판단 |
+  |------|--------|------|-----|------|
+  | SOL | +224.40% | 18.7% | -34.01% | 🔥 수익 압도적, MDD는 V2(-12%) 대비 3배 높음 |
+  | BTC | +44.47% | 20.4% | -23.04% | ❌ BREAKOUT(+104% MDD -6%) 대비 열위 |
+  | DOGE | +14.23% | 16.6% | -44.04% | ❌ V2(+134%) 대비 열위 |
+  | XRP | +10.99% | 16.8% | -46.63% | ❌ V2(+50%) 대비 열위 |
+  | ETH | -49.93% | 15.5% | -61.94% | ❌ 완전 부적합 (레인지 특성과 충돌) |
+
+  > 전 코인 승률 15~20% — 모멘텀 방식 특성상 손절 빈도 높고 MDD 전반적으로 높음.
+  > **단독 전략으로는 SOL만 의미 있으나**, MDD -34%가 V2 대비 너무 높아 단독 교체 부적절.
+  > 향후 검토: ① SOL 파라미터 최적화 (MDD 개선 여지) ② COMPOSITE 서브전략 편입 ③ B단계(평균 회귀) 구현.
+
+- [ ] **FVG 전략 — B단계 (추후 판단)**: 평균 회귀 방식으로 고도화. FVG 존(상·하한) 상태 관리 → 이후 가격이 공백 구간 재진입 시 신호 발생. 오래된 존 만료 처리 포함.
 - [ ] **STOCHASTIC_RSI 구조적 개선** — StochRSI + RSI 다이버전스 결합. RSI 다이버전스 발생 + StochRSI 과매도 탈출 동시 충족 시 고신뢰 매수 신호 (구현 복잡도 높음)
 - [x] **VOLUME_DELTA 테스트 작성** — BUY/SELL/HOLD 기본 케이스 + Delta 추세 미충족 HOLD + 강세/약세 다이버전스 HOLD + divergenceMode=false 검증 + 볼륨 0 HOLD (13개 전체 통과)
 - [ ] ~~**MACD_STOCH_BB → COMPOSITE TREND 서브필터 편입**~~ — 서브필터로도 부적합 판정. 3년 H1 BTC 17건·XRP 3건 수준으로 거래 극희소. MACD>0(상승추세) + StochRSI<20(극단 과매도) 동시 조건이 구조적으로 충족 불가. **비활성화 처리** (실전매매 차단 목록 추가)
@@ -189,6 +241,7 @@ crypto-auto-trader/
 
 - [ ] **멀티 타임프레임** — 1H 방향 + 15M 진입. WebSocket 급등락 대응으로 단기 커버 중. 아키텍처 변경이 크므로 나중에 재검토
 - [ ] **동적 가중치 완성** — 인프라(`WeightOverrideStore` + `StrategySelector`)는 구축 완료. P1-0 방향 결정 후 Optimizer 로직 완성. 100거래 이상 샘플 기반, 하한선 0.05, 스무딩 70/30 적용 예정
+- [ ] **칼만 필터 스캘핑 전략 (5m/15m)** — H1은 노이즈가 적어 효용 낮음. 분봉 스캘핑 전용으로 한정 검토. 선행 조건: ① 수수료 영향 시뮬레이션(업비트 0.05% × 거래 빈도) ② 5m/15m 캔들 데이터 충분성 확인 ③ FVG A/B 단계 완료 후 착수.
 
 ---
 

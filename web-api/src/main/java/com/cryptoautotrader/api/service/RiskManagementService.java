@@ -3,6 +3,7 @@ package com.cryptoautotrader.api.service;
 import com.cryptoautotrader.api.entity.LiveTradingSessionEntity;
 import com.cryptoautotrader.api.entity.PositionEntity;
 import com.cryptoautotrader.api.entity.RiskConfigEntity;
+import com.cryptoautotrader.api.repository.LiveTradingSessionRepository;
 import com.cryptoautotrader.api.repository.PositionRepository;
 import com.cryptoautotrader.api.repository.RiskConfigRepository;
 import com.cryptoautotrader.api.repository.TradeLogRepository;
@@ -36,6 +37,7 @@ public class RiskManagementService {
     private final RiskConfigRepository riskConfigRepository;
     private final PositionRepository positionRepository;
     private final TradeLogRepository tradeLogRepository;
+    private final LiveTradingSessionRepository sessionRepository;
 
     /**
      * 현재 리스크 설정 조회. 설정이 없으면 기본값으로 신규 생성.
@@ -118,7 +120,9 @@ public class RiskManagementService {
         RiskConfig coreConfig = toRiskConfig(configEntity);
         RiskEngine engine = new RiskEngine(coreConfig);
 
-        // 포트폴리오 한도를 한 번만 조회하여 3회 반복 사용
+        // 포트폴리오 한도: 실제 운영 중인 RUNNING 세션들의 initialCapital 합을 우선 사용.
+        // 실전매매 소액 운영(예: 1만원) 시 하드코딩 1,000만원 분모가 실손실을 희석해
+        // 서킷 브레이커가 영영 발동하지 않는 문제를 방지한다 — 20260415_analy.md Tier 1 §5.
         BigDecimal portfolioLimit = resolvePortfolioLimit(configEntity);
 
         Instant now = Instant.now();
@@ -197,25 +201,44 @@ public class RiskManagementService {
     // ── 내부 메서드 ───────────────────────────────────────────
 
     /**
-     * 특정 시점 이후의 손실률 계산 (%)
-     * trade_log에서 FILL 이벤트의 realizedPnl을 합산하고,
-     * 포트폴리오 한도 기준으로 손실 퍼센트를 계산한다.
+     * 특정 시점 이후의 "총손실(gross loss)" 기반 손실률 계산 (%).
+     *
+     * <p>순손익(net PnL)이 아닌 손실 거래만 합산해 분자로 사용한다. 이익이 손실을 상쇄해
+     * "순이익이라 loss 0%" 로 판정되던 기존 버그를 해소한다 — 20260415_analy.md Tier 1 §5.</p>
      */
     private BigDecimal calculateLossPct(Instant since, BigDecimal portfolioLimit) {
-        BigDecimal realizedPnl = tradeLogRepository.sumRealizedPnlSince(since);
-        if (realizedPnl.compareTo(BigDecimal.ZERO) >= 0) {
-            return BigDecimal.ZERO; // 이익이면 손실률 0
+        if (portfolioLimit == null || portfolioLimit.compareTo(BigDecimal.ZERO) <= 0) {
+            return BigDecimal.ZERO;
         }
-
-        return realizedPnl.abs()
+        BigDecimal grossLoss = tradeLogRepository.sumRealizedLossSince(since);
+        if (grossLoss == null || grossLoss.compareTo(BigDecimal.ZERO) >= 0) {
+            return BigDecimal.ZERO;
+        }
+        return grossLoss.abs()
                 .divide(portfolioLimit, 4, RoundingMode.HALF_UP)
                 .multiply(new BigDecimal("100"));
     }
 
+    /**
+     * 실제 운영 중인 RUNNING 세션들의 initialCapital 합계로 포트폴리오 한도를 계산한다.
+     * RUNNING 세션이 없으면 config의 portfolio_limit_krw 를 사용하고, 그것도 없으면
+     * 안전한 기본값(1,000만원)으로 폴백한다.
+     *
+     * <p>소액 운영 시(예: DOGE 1만원 세션) 하드코딩 1,000만원을 분모로 쓰던 구버그를 해소한다.</p>
+     */
     private BigDecimal resolvePortfolioLimit(RiskConfigEntity config) {
+        BigDecimal runningSum = sessionRepository.findByStatus("RUNNING").stream()
+                .map(LiveTradingSessionEntity::getInitialCapital)
+                .filter(c -> c != null && c.compareTo(BigDecimal.ZERO) > 0)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        if (runningSum.compareTo(BigDecimal.ZERO) > 0) {
+            return runningSum;
+        }
+
         BigDecimal limit = config.getPortfolioLimitKrw();
         return (limit == null || limit.compareTo(BigDecimal.ZERO) <= 0)
-                ? new BigDecimal("10000000")  // 미설정 시 기본 1,000만원
+                ? new BigDecimal("10000000")  // 최종 폴백: 1,000만원
                 : limit;
     }
 

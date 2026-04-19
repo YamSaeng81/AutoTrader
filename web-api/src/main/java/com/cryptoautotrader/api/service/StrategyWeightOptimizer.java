@@ -1,7 +1,9 @@
 package com.cryptoautotrader.api.service;
 
 import com.cryptoautotrader.api.entity.StrategyLogEntity;
+import com.cryptoautotrader.api.repository.PositionRepository;
 import com.cryptoautotrader.api.repository.StrategyLogRepository;
+import com.cryptoautotrader.api.util.TradingConstants;
 import com.cryptoautotrader.core.selector.WeightOverrideStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,10 +29,16 @@ import java.util.stream.Collectors;
  *   <li>{@link WeightOverrideStore}에 저장 → {@link com.cryptoautotrader.core.selector.StrategySelector}가 즉시 적용한다.</li>
  * </ol>
  *
- * <p>개선 이력 (방향 A):
+ * <p>개선 이력:
  * <ul>
- *   <li>기존: SUPERTREND·EMA_CROSS 등 컴포넌트 전략명 기준 → strategy_log에 기록되지 않아 가중치 항상 기본값</li>
- *   <li>변경: COMPOSITE_BREAKOUT·COMPOSITE_MOMENTUM 등 Composite 전략명 기준 → 로그에 실제로 기록되는 이름과 일치</li>
+ *   <li>v1: SUPERTREND·EMA_CROSS 등 컴포넌트 전략명 기준 → strategy_log에 기록되지 않아 가중치 항상 기본값</li>
+ *   <li>v2: COMPOSITE_BREAKOUT·COMPOSITE_MOMENTUM 등 Composite 전략명 기준으로 전환</li>
+ *   <li>v3 (20260415_analy.md §6): <strong>4h 적중률 → 종료 포지션 실현 수익률</strong> 로 교체.
+ *       4h 적중률은 신호 방향 정확성만 측정하므로 SL/TP·수수료·슬리피지가 완전히 빠진다.
+ *       본 버전은 {@code position} 테이블의 CLOSED 포지션을 (전략, 레짐) 으로 집계해
+ *       {@code sum(realizedPnl) / sum(investedKrw)} 를 net return 지표로 사용한다.
+ *       실전 체결 데이터가 MIN_STRATEGY_SAMPLE 건 미만인 경우에만 4h 적중률로 폴백.</li>
+ *   <li>v3: DEFAULTS 에 {@code COMPOSITE_MOMENTUM_ICHIMOKU_V2} 추가 — SOL/DOGE 3년 백테스트 최강.</li>
  * </ul>
  *
  * <p>보호 장치:
@@ -63,15 +71,24 @@ public class StrategyWeightOptimizer {
      * </ul>
      */
     private static final Map<String, Map<String, Double>> DEFAULTS = Map.of(
-            "TREND",      Map.of("COMPOSITE_BREAKOUT", 0.65, "COMPOSITE_MOMENTUM", 0.35),
-            "RANGE",      Map.of("COMPOSITE_MOMENTUM",  0.60, "COMPOSITE_BREAKOUT", 0.40),
-            "VOLATILITY", Map.of("COMPOSITE_BREAKOUT", 0.70, "COMPOSITE_MOMENTUM", 0.30)
+            "TREND",      Map.of(
+                    "COMPOSITE_BREAKOUT",              0.50,
+                    "COMPOSITE_MOMENTUM_ICHIMOKU_V2",  0.30,
+                    "COMPOSITE_MOMENTUM",              0.20),
+            "RANGE",      Map.of(
+                    "COMPOSITE_MOMENTUM",              0.55,
+                    "COMPOSITE_MOMENTUM_ICHIMOKU_V2",  0.25,
+                    "COMPOSITE_BREAKOUT",              0.20),
+            "VOLATILITY", Map.of(
+                    "COMPOSITE_BREAKOUT",              0.50,
+                    "COMPOSITE_MOMENTUM_ICHIMOKU_V2",  0.30,
+                    "COMPOSITE_MOMENTUM",              0.20)
     );
 
-    /** 수수료 공제 후 실질 승리 기준 (0.10% = 업비트 왕복 수수료) */
-    private static final BigDecimal FEE_THRESHOLD = new BigDecimal("0.10");
+    private static final BigDecimal FEE_THRESHOLD = TradingConstants.FEE_THRESHOLD;
 
     private final StrategyLogRepository strategyLogRepo;
+    private final PositionRepository positionRepository;
 
     // ── 스케줄링 ──────────────────────────────────────────────────────────────
 
@@ -93,33 +110,82 @@ public class StrategyWeightOptimizer {
 
     public void optimize() {
         Instant from = Instant.now().minus(LOOKBACK_DAYS, ChronoUnit.DAYS);
+
+        // Primary: 종료 포지션의 실현 수익률 집계 — (regime → strategy → PerfStats)
+        Map<String, Map<String, PerfStats>> realizedByRegime = loadRealizedReturns(from);
+
+        // Fallback: 4h 적중률 (CLOSED 포지션이 부족한 초기 단계용)
         List<StrategyLogEntity> signals = strategyLogRepo.findEvaluatedSignals(from);
-
-        if (signals.isEmpty()) {
-            log.info("[WeightOptimizer] 평가 신호 없음 — 기본값 유지");
-            return;
-        }
-
-        // regime → (strategyName → 신호 목록)
-        Map<String, Map<String, List<StrategyLogEntity>>> grouped = groupByRegimeAndStrategy(signals);
+        Map<String, Map<String, List<StrategyLogEntity>>> signalsByRegime = groupByRegimeAndStrategy(signals);
 
         for (Map.Entry<String, Map<String, Double>> regimeEntry : DEFAULTS.entrySet()) {
             String regime = regimeEntry.getKey();
             Map<String, Double> defaultWeights = regimeEntry.getValue();
-            Map<String, List<StrategyLogEntity>> strategyMap = grouped.getOrDefault(regime, Map.of());
 
-            int regimeTotalSample = strategyMap.values().stream().mapToInt(List::size).sum();
-            if (regimeTotalSample < MIN_REGIME_SAMPLE) {
-                log.info("[WeightOptimizer] {} 샘플 부족 ({}건 < {}) — 기본값 유지",
-                        regime, regimeTotalSample, MIN_REGIME_SAMPLE);
-                continue;
+            Map<String, PerfStats> perf = realizedByRegime.getOrDefault(regime, Map.of());
+            int realizedSample = perf.values().stream().mapToInt(p -> p.tradeCount).sum();
+
+            Map<String, Double> newWeights;
+            if (realizedSample >= MIN_REGIME_SAMPLE) {
+                newWeights = computeWeightsFromRealized(defaultWeights, perf);
+                log.info("[WeightOptimizer] {} 실현수익률 기반 갱신 ({}건) — {}",
+                        regime, realizedSample, formatWeights(newWeights));
+            } else {
+                // 폴백: 4h 적중률 (초기 운영 또는 레짐별 거래 부족)
+                Map<String, List<StrategyLogEntity>> strategyMap = signalsByRegime.getOrDefault(regime, Map.of());
+                int signalSample = strategyMap.values().stream().mapToInt(List::size).sum();
+                if (signalSample < MIN_REGIME_SAMPLE) {
+                    log.info("[WeightOptimizer] {} 실현/신호 샘플 모두 부족 (realized={}, signals={}) — 기본값 유지",
+                            regime, realizedSample, signalSample);
+                    continue;
+                }
+                newWeights = computeWeightsFromSignals(defaultWeights, strategyMap);
+                log.info("[WeightOptimizer] {} 4h 적중률 폴백 갱신 (realized={} < {}, signals={}) — {}",
+                        regime, realizedSample, MIN_REGIME_SAMPLE, signalSample, formatWeights(newWeights));
             }
 
-            Map<String, Double> newWeights = computeWeights(regime, defaultWeights, strategyMap);
             WeightOverrideStore.update(regime, newWeights);
+        }
+    }
 
-            log.info("[WeightOptimizer] {} 가중치 갱신 — {}",
-                    regime, formatWeights(newWeights));
+    // ── 실현 수익률 로딩 ──────────────────────────────────────────────────────
+
+    /** (regime → strategy → PerfStats) — 수수료 포함 실현 수익률. */
+    private Map<String, Map<String, PerfStats>> loadRealizedReturns(Instant from) {
+        List<Object[]> rows = positionRepository.aggregateRealizedReturnsByStrategyAndRegime(from);
+        Map<String, Map<String, PerfStats>> result = new HashMap<>();
+        for (Object[] row : rows) {
+            String strategy = (String) row[0];
+            String regime   = (String) row[1];
+            BigDecimal sumPnl      = toBigDecimal(row[2]);
+            BigDecimal sumInvested = toBigDecimal(row[3]);
+            int tradeCount = ((Number) row[4]).intValue();
+
+            if (strategy == null || regime == null) continue;
+            if (sumInvested.compareTo(BigDecimal.ZERO) <= 0) continue;
+            if ("UNKNOWN".equals(regime) || "TRANSITIONAL".equals(regime)) continue;
+
+            double netReturnPct = sumPnl.doubleValue() / sumInvested.doubleValue();
+            result.computeIfAbsent(regime, k -> new HashMap<>())
+                    .put(strategy, new PerfStats(netReturnPct, tradeCount));
+        }
+        return result;
+    }
+
+    private static BigDecimal toBigDecimal(Object o) {
+        if (o == null) return BigDecimal.ZERO;
+        if (o instanceof BigDecimal bd) return bd;
+        if (o instanceof Number n) return BigDecimal.valueOf(n.doubleValue());
+        return new BigDecimal(o.toString());
+    }
+
+    /** 전략별 실현 성과 — {@code netReturnPct} = sum(realizedPnl)/sum(investedKrw). */
+    private static final class PerfStats {
+        final double netReturnPct;
+        final int tradeCount;
+        PerfStats(double netReturnPct, int tradeCount) {
+            this.netReturnPct = netReturnPct;
+            this.tradeCount = tradeCount;
         }
     }
 
@@ -142,10 +208,45 @@ public class StrategyWeightOptimizer {
     }
 
     /**
-     * 레짐 내 전략별 4h 적중률 → 정규화 → 스무딩 적용 → 최종 가중치 맵 반환.
+     * 실현 수익률 기반 가중치 계산 — §6 핵심 개선.
+     *
+     * <p>점수: {@code max(netReturnPct, 0) + MIN_SCORE_FLOOR} — 음수 수익률 전략은 최소값만 할당.
+     * 샘플 부족 전략은 중립 점수(0 return) 로 처리해 기본값 근방으로 수렴.</p>
      */
-    private Map<String, Double> computeWeights(
-            String regime,
+    private Map<String, Double> computeWeightsFromRealized(
+            Map<String, Double> defaultWeights,
+            Map<String, PerfStats> perf) {
+
+        Map<String, Double> scores = new LinkedHashMap<>();
+        for (String strategyName : defaultWeights.keySet()) {
+            PerfStats p = perf.get(strategyName);
+            if (p == null || p.tradeCount < MIN_STRATEGY_SAMPLE) {
+                scores.put(strategyName, 0.0); // 중립 — 정규화·스무딩에서 기본값에 수렴
+            } else {
+                // 음수 수익률 전략은 0 으로 클램프 (MIN_WEIGHT 보정은 normalize 가 담당)
+                scores.put(strategyName, Math.max(p.netReturnPct, 0.0));
+            }
+        }
+
+        // 모든 점수가 0 이면 기본값으로 폴백
+        if (scores.values().stream().allMatch(v -> v == 0.0)) {
+            return new LinkedHashMap<>(defaultWeights);
+        }
+
+        Map<String, Double> normalized = normalize(scores);
+        Map<String, Double> smoothed = new LinkedHashMap<>();
+        for (String name : defaultWeights.keySet()) {
+            double computed = normalized.getOrDefault(name, defaultWeights.get(name));
+            double def      = defaultWeights.get(name);
+            smoothed.put(name, SMOOTHING_NEW * computed + SMOOTHING_DEFAULT * def);
+        }
+        return normalize(smoothed);
+    }
+
+    /**
+     * [FALLBACK] 레짐 내 전략별 4h 적중률 → 정규화 → 스무딩 — 실현 수익률 샘플 부족 시에만 사용.
+     */
+    private Map<String, Double> computeWeightsFromSignals(
             Map<String, Double> defaultWeights,
             Map<String, List<StrategyLogEntity>> strategyMap) {
 

@@ -5,6 +5,7 @@ import com.cryptoautotrader.api.entity.PositionEntity;
 import com.cryptoautotrader.api.entity.RegimeChangeLogEntity;
 import com.cryptoautotrader.api.entity.StrategyLogEntity;
 import com.cryptoautotrader.api.repository.LiveTradingSessionRepository;
+import com.cryptoautotrader.api.util.TradingConstants;
 import com.cryptoautotrader.api.repository.PositionRepository;
 import com.cryptoautotrader.api.repository.RegimeChangeLogRepository;
 import com.cryptoautotrader.api.repository.StrategyLogRepository;
@@ -114,36 +115,53 @@ public class LogAnalyzerService {
 
     private SignalStats buildSignalStats(List<StrategyLogEntity> logs) {
         SignalStats s = new SignalStats();
-        s.total    = logs.size();
-        s.buy      = (int) logs.stream().filter(l -> "BUY".equals(l.getSignal())).count();
-        s.sell     = (int) logs.stream().filter(l -> "SELL".equals(l.getSignal())).count();
-        s.hold     = (int) logs.stream().filter(l -> "HOLD".equals(l.getSignal())).count();
-        s.executed = (int) logs.stream().filter(StrategyLogEntity::isWasExecuted).count();
-        s.blocked  = (int) logs.stream()
-                .filter(l -> !l.isWasExecuted() && l.getBlockedReason() != null).count();
-
+        s.total      = logs.size();
         s.blockReasons = new HashMap<>();
-        logs.stream()
-                .filter(l -> l.getBlockedReason() != null && !l.getBlockedReason().isBlank())
-                .forEach(l -> s.blockReasons.merge(l.getBlockedReason().split(":")[0].trim(), 1, Integer::sum));
+        Map<String, List<StrategyLogEntity>> byStrategy = new HashMap<>();
 
-        s.strategyStats = logs.stream()
-                .collect(Collectors.groupingBy(
-                        l -> l.getStrategyName() != null ? l.getStrategyName() : "UNKNOWN",
-                        Collectors.collectingAndThen(Collectors.toList(), g ->
-                                AnalysisReport.StrategySignalStat.builder()
-                                        .buy((int) g.stream().filter(l -> "BUY".equals(l.getSignal())).count())
-                                        .sell((int) g.stream().filter(l -> "SELL".equals(l.getSignal())).count())
-                                        .hold((int) g.stream().filter(l -> "HOLD".equals(l.getSignal())).count())
-                                        .executed((int) g.stream().filter(StrategyLogEntity::isWasExecuted).count())
-                                        .accuracy4h(calcAccuracy(g, true))
-                                        .accuracy24h(calcAccuracy(g, false))
-                                        .avgReturn4h(calcAvgReturn(g, true))
-                                        .avgReturn24h(calcAvgReturn(g, false))
-                                        .build())));
+        // 1회 순회로 buy/sell/hold/executed/blocked/blockReasons/strategyGroups 집계
+        for (StrategyLogEntity l : logs) {
+            switch (l.getSignal() != null ? l.getSignal() : "") {
+                case "BUY"  -> s.buy++;
+                case "SELL" -> s.sell++;
+                case "HOLD" -> s.hold++;
+            }
+            if (l.isWasExecuted()) {
+                s.executed++;
+            } else if (l.getBlockedReason() != null) {
+                s.blocked++;
+                String key = l.getBlockedReason().split(":")[0].trim();
+                if (!key.isBlank()) s.blockReasons.merge(key, 1, Integer::sum);
+            }
+            String strat = l.getStrategyName() != null ? l.getStrategyName() : "UNKNOWN";
+            byStrategy.computeIfAbsent(strat, k -> new ArrayList<>()).add(l);
+        }
 
-        s.accuracy4h  = calcAccuracy(logs, true);
-        s.accuracy24h = calcAccuracy(logs, false);
+        s.strategyStats = byStrategy.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        e -> {
+                            List<StrategyLogEntity> g = e.getValue();
+                            int buy = 0, sell = 0, hold = 0, executed = 0;
+                            for (StrategyLogEntity l : g) {
+                                switch (l.getSignal() != null ? l.getSignal() : "") {
+                                    case "BUY"  -> buy++;
+                                    case "SELL" -> sell++;
+                                    case "HOLD" -> hold++;
+                                }
+                                if (l.isWasExecuted()) executed++;
+                            }
+                            return AnalysisReport.StrategySignalStat.builder()
+                                    .buy(buy).sell(sell).hold(hold).executed(executed)
+                                    .accuracy4h(calcAccuracy(g, true))
+                                    .accuracy24h(calcAccuracy(g, false))
+                                    .avgReturn4h(calcAvgReturn(g, true))
+                                    .avgReturn24h(calcAvgReturn(g, false))
+                                    .build();
+                        }));
+
+        s.accuracy4h   = calcAccuracy(logs, true);
+        s.accuracy24h  = calcAccuracy(logs, false);
         s.avgReturn4h  = calcAvgReturn(logs, true);
         s.avgReturn24h = calcAvgReturn(logs, false);
         return s;
@@ -186,11 +204,7 @@ public class LogAnalyzerService {
 
     // ── 계산 헬퍼 ─────────────────────────────────────────────────────────────
 
-    /**
-     * 수수료 임계값: 업비트 왕복 수수료(매수 0.05% + 매도 0.05%) 기준.
-     * 이 값을 초과해야 실질 승리로 판정한다.
-     */
-    private static final BigDecimal FEE_THRESHOLD = new BigDecimal("0.10");
+    private static final BigDecimal FEE_THRESHOLD = TradingConstants.FEE_THRESHOLD;
 
     /** count/total 비율을 소수점 1자리 퍼센트로 반환 */
     private static BigDecimal pct(long count, long total) {
