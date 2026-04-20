@@ -31,25 +31,64 @@ public class RiskEngine {
 
     // ── 기존 한도 검사 ────────────────────────────────────────────────────
 
+    /**
+     * 포트폴리오 수준 리스크 체크.
+     *
+     * <p>체크 순서:
+     * <ol>
+     *   <li>일일/주간/월간 손실 한도</li>
+     *   <li>자본 사용률 한도 — totalInvested / totalCapital × 100 이 maxCapitalUtilizationPct 초과 시 차단</li>
+     *   <li>포지션 수 안전망 — maxPositions(기본 20)을 초과하는 극단적 상황 방지</li>
+     * </ol>
+     *
+     * @param dailyLossPct         오늘 실현 손실률 (%)
+     * @param weeklyLossPct        이번 주 실현 손실률 (%)
+     * @param monthlyLossPct       이번 달 실현 손실률 (%)
+     * @param currentPositions     현재 열린 포지션 수 (안전망 용도)
+     * @param capitalUtilizationPct 현재 자본 사용률 (%) = 투입 자본 / 전체 자본 × 100
+     */
     public RiskCheckResult check(BigDecimal dailyLossPct, BigDecimal weeklyLossPct,
-                                  BigDecimal monthlyLossPct, int currentPositions) {
+                                  BigDecimal monthlyLossPct, int currentPositions,
+                                  BigDecimal capitalUtilizationPct) {
         if (dailyLossPct.abs().compareTo(config.getMaxDailyLossPct()) > 0) {
             return RiskCheckResult.reject(
-                    String.format("일일 손실 한도 초과: %.2f%% > %.2f%%", dailyLossPct.abs(), config.getMaxDailyLossPct()));
+                    String.format("일일 손실 한도 초과: %.2f%% > %.2f%%",
+                            dailyLossPct.abs(), config.getMaxDailyLossPct()));
         }
         if (weeklyLossPct.abs().compareTo(config.getMaxWeeklyLossPct()) > 0) {
             return RiskCheckResult.reject(
-                    String.format("주간 손실 한도 초과: %.2f%% > %.2f%%", weeklyLossPct.abs(), config.getMaxWeeklyLossPct()));
+                    String.format("주간 손실 한도 초과: %.2f%% > %.2f%%",
+                            weeklyLossPct.abs(), config.getMaxWeeklyLossPct()));
         }
         if (monthlyLossPct.abs().compareTo(config.getMaxMonthlyLossPct()) > 0) {
             return RiskCheckResult.reject(
-                    String.format("월간 손실 한도 초과: %.2f%% > %.2f%%", monthlyLossPct.abs(), config.getMaxMonthlyLossPct()));
+                    String.format("월간 손실 한도 초과: %.2f%% > %.2f%%",
+                            monthlyLossPct.abs(), config.getMaxMonthlyLossPct()));
         }
+        // 자본 사용률 한도 — 주 제어 (포지션 수 대체)
+        if (capitalUtilizationPct != null
+                && capitalUtilizationPct.compareTo(config.getMaxCapitalUtilizationPct()) > 0) {
+            return RiskCheckResult.reject(
+                    String.format("자본 사용률 한도 초과: %.1f%% > %.1f%% (추가 진입 시 과투자 위험)",
+                            capitalUtilizationPct.doubleValue(),
+                            config.getMaxCapitalUtilizationPct().doubleValue()));
+        }
+        // 포지션 수 안전망 (기본 20 — 정상 운영에서는 사용률 체크가 먼저 발동됨)
         if (currentPositions >= config.getMaxPositions()) {
             return RiskCheckResult.reject(
-                    String.format("최대 포지션 수 초과: %d >= %d", currentPositions, config.getMaxPositions()));
+                    String.format("최대 포지션 수 초과: %d >= %d (안전망)",
+                            currentPositions, config.getMaxPositions()));
         }
         return RiskCheckResult.approve();
+    }
+
+    /**
+     * 하위 호환용 오버로드 — capitalUtilizationPct 를 계산할 수 없는 경우.
+     * 자본 사용률 체크를 건너뛰고 손실 한도·포지션 수만 검사한다.
+     */
+    public RiskCheckResult check(BigDecimal dailyLossPct, BigDecimal weeklyLossPct,
+                                  BigDecimal monthlyLossPct, int currentPositions) {
+        return check(dailyLossPct, weeklyLossPct, monthlyLossPct, currentPositions, null);
     }
 
     // ── Fixed Fractional 포지션 사이징 ───────────────────────────────────

@@ -96,8 +96,9 @@ public class StrategyLiveStatusRegistry {
                 LiveReadiness.EXPERIMENTAL,
                 "구버전 ETH 프리셋. 평균 +48.7% 재검증 필요. ORDERBOOK_IMBALANCE 단독 구성 요소 실전 미검증."),
         entry("COMPOSITE_BREAKOUT_ICHIMOKU",
-                LiveReadiness.EXPERIMENTAL,
-                "COMPOSITE_BREAKOUT + Ichimoku. ADX 필터와 Ichimoku 중복 가능성 → COMPOSITE_BREAKOUT과 성능 차별화 미확인."),
+                LiveReadiness.BLOCKED,
+                "COMPOSITE_BREAKOUT의 ADX(14)<20 필터가 횡보장을 선차단하므로 Ichimoku 구름 필터가 추가로 막는 신호 없음. " +
+                "백테스트 결과 COMPOSITE_BREAKOUT과 동일 → 신규 세션 생성 불가. 기존 세션은 만료 후 COMPOSITE_BREAKOUT으로 전환 권장."),
 
         // ── DEPRECATED: 테스트 전용 ──────────────────────────────────────────────
         entry("TEST_TIMED",

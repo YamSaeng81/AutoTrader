@@ -41,6 +41,14 @@ public class RiskConfigEntity {
     @Column(name = "updated_at")
     private Instant updatedAt;
 
+    /**
+     * 포트폴리오 자본 사용률 상한 (%).
+     * 투입 자본 / 전체 자본 × 100 이 이 값을 초과하면 신규 매수 차단.
+     * null 이면 80% 기본값 사용.
+     */
+    @Column(name = "max_capital_utilization_pct", precision = 5, scale = 2)
+    private BigDecimal maxCapitalUtilizationPct;
+
     /** 서킷 브레이커: 세션 MDD 임계값 (%) — 초과 시 세션 강제 정지 */
     @Column(name = "mdd_threshold_pct", precision = 5, scale = 2)
     private BigDecimal mddThresholdPct;
@@ -85,7 +93,8 @@ public class RiskConfigEntity {
         if (maxDailyLossPct == null) maxDailyLossPct = new BigDecimal("3.0");
         if (maxWeeklyLossPct == null) maxWeeklyLossPct = new BigDecimal("7.0");
         if (maxMonthlyLossPct == null) maxMonthlyLossPct = new BigDecimal("15.0");
-        if (maxPositions == null) maxPositions = 3;
+        if (maxPositions == null) maxPositions = 20;
+        if (maxCapitalUtilizationPct == null) maxCapitalUtilizationPct = new BigDecimal("80.0");
         if (cooldownMinutes == null) cooldownMinutes = 60;
         if (mddThresholdPct == null) mddThresholdPct = new BigDecimal("20.0");
         if (consecutiveLossLimit == null) consecutiveLossLimit = 5;
@@ -126,6 +135,9 @@ public class RiskConfigEntity {
     public void setPortfolioLimitKrw(BigDecimal portfolioLimitKrw) { this.portfolioLimitKrw = portfolioLimitKrw; }
 
     public Instant getUpdatedAt() { return updatedAt; }
+
+    public BigDecimal getMaxCapitalUtilizationPct() { return maxCapitalUtilizationPct; }
+    public void setMaxCapitalUtilizationPct(BigDecimal v) { this.maxCapitalUtilizationPct = v; }
 
     public BigDecimal getMddThresholdPct() { return mddThresholdPct; }
     public void setMddThresholdPct(BigDecimal mddThresholdPct) { this.mddThresholdPct = mddThresholdPct; }

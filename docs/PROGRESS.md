@@ -3,7 +3,7 @@
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝나면 완료 내용을 [`docs/CHANGELOG.md`](CHANGELOG.md)에 추가하고, 이 파일의 해당 항목은 삭제한다.
 > **변경 이력**: [`docs/CHANGELOG.md`](CHANGELOG.md)
-> **마지막 갱신**: 2026-04-20 (Tier 4 §18 완료 — 보안 점검 스크립트 추가. Tier 1~4 전 항목 완료.)
+> **마지막 갱신**: 2026-04-20 (신호품질 개선 완료 — 자본 사용률 기반 리스크 제어 + 테스트 버그 수정)
 
 ---
 
@@ -121,19 +121,47 @@ crypto-auto-trader/
 
 ---
 
-## 코인별 전략 매칭 (2026-04-14 기준)
+## 코인별 전략 매칭 (2026-04-20 갱신)
 
-> 3년 백테스트(2023-01 ~ 2025-12) + Walk-Forward 검증 결과 종합. 현재 운영 상태 및 전환 권고 포함.
+> **데이터 2중 근거**: ① 3년 백테스트(2023-01 ~ 2025-12) + Walk-Forward 검증 ② 실전 신호 품질 대시보드 (2026-04-20 기준)
+> 실전 데이터 우선 — 백테스트와 실전이 충돌하면 실전을 따른다.
 
-| 코인 | 현재 전략 | 권장 전략 | 3년 백테스트 | Walk-Forward | 상태 |
-|------|-----------|-----------|-------------|--------------|------|
-| BTC | COMPOSITE_BREAKOUT | **COMPOSITE_BREAKOUT** | 완료 | 완료 | 확정 — 변경 불필요 |
-| ETH | COMPOSITE_MOMENTUM | **COMPOSITE_MOMENTUM** | 완료 | 완료 | 확정 — 변경 불필요 |
-| SOL | COMPOSITE_BREAKOUT | **COMPOSITE_MOMENTUM_ICHIMOKU_V2** | 완료 | 완료 | V2 전환 권고 — 배포 대기 |
-| XRP | COMPOSITE_MOMENTUM_ICHIMOKU_V1 | 미결 (V2 유력) | 완료 | 완료 | OOS 전 윈도우 음수 — 소액 병행 후 재결정 |
-| DOGE | 미운영 | **COMPOSITE_MOMENTUM_ICHIMOKU_V2** | 완료 | 완료 | V2 투입 권고 — 소액(1만원) 시작 |
+| 코인 | 권장 전략 | 백테스트 | 실전 4H | 실전 24H | 상태 |
+|------|-----------|---------|---------|---------|------|
+| BTC | **COMPOSITE_BREAKOUT** | +104.2% | 63% +0.11% | 61% -0.04% | ✅ 확정 |
+| ETH | **COMPOSITE_MOMENTUM** | +53.6% | 43% -0.01% | **71% +0.06%** | ✅ 확정 (장기보유 강점) |
+| SOL | **COMPOSITE_MOMENTUM_ICHIMOKU_V2** | +131.1% | 49% +0.05% | 52% -0.02% | ⏳ V2 전환 배포 대기 |
+| XRP | **COMPOSITE_MOMENTUM_ICHIMOKU** | +36.5% | 41% -0.00% | 52% +0.01% | ✅ V1 유지 — V2 즉시 중단 ⚠️ |
+| DOGE | **COMPOSITE_MOMENTUM_ICHIMOKU_V2** | +134.4% | 22% -0.58% | 56% +0.04% | ⏳ 소액 운영 중 — 모니터링 |
 
-> V2 = COMPOSITE_MOMENTUM_ICHIMOKU_V2 (MACD×0.5 + SUPERTREND×0.3 + Grid×0.2 + Ichimoku 필터)
+> ⚠️ **XRP V2 긴급 경고**: `COMPOSITE_MOMENTUM_ICHIMOKU_V2` + KRW-XRP 조합 실전 24H 적중률 **9%, 평균 -2.20%** — 즉시 세션 종료 검토 필요.
+> ⚠️ **DOGE MOMENTUM 금지**: `COMPOSITE_MOMENTUM` + KRW-DOGE 실전 4H/24H 모두 **0%** — 절대 사용 불가.
+
+### 실전 신호 품질 현황 (2026-04-20 대시보드 기준, 최근 30일)
+
+| 전략 | 코인 | 신호수 | 4H 적중률 | 4H 평균 | 24H 적중률 | 24H 평균 | 판정 |
+|------|------|-------|----------|--------|-----------|--------|------|
+| COMPOSITE_MOMENTUM_ICHIMOKU_V2 | DOGE | 263 | 22% | -0.58% | 56% | +0.04% | 🟡 단기 약함, 장기 회복 |
+| COMPOSITE_MOMENTUM_ICHIMOKU | XRP | 63 | 41% | -0.00% | 52% | +0.01% | ✅ 안정 |
+| COMPOSITE_MOMENTUM_ICHIMOKU_V2 | SOL | 60 | 49% | +0.05% | 52% | -0.02% | 🟡 보통 |
+| COMPOSITE_MOMENTUM_ICHIMOKU | ETH | 60 | 43% | -0.01% | **71%** | **+0.06%** | ✅ 장기보유 강점 |
+| COMPOSITE_BREAKOUT | BTC | 49 | **63%** | **+0.11%** | 61% | -0.04% | ✅ 단기 강함 |
+| COMPOSITE_MOMENTUM | BTC | 20+14 | 45%/43% | +0.16%/-0.0% | 65%/71% | **+0.32%/+0.49%** | ✅ 장기보유 탁월 |
+| COMPOSITE_MOMENTUM | DOGE | 17 | **0%** | -0.69% | **0%** | -0.06% | 🚨 즉시 세션 중단 |
+| COMPOSITE_MOMENTUM_ICHIMOKU_V2 | XRP | 15 | 38% | -0.04% | **9%** | **-2.20%** | 🚨 즉시 세션 종료 |
+| COMPOSITE_BREAKOUT | ETH | 15 | 67% | +0.41% | 47% | -0.38% | 🟡 단기만 유효, 24H 역전 |
+| COMPOSITE_BREAKOUT_ICHIMOKU | ETH | 10+15 | 63%/67% | +0.19%/+0.41% | 44%/53% | -0.41%/-0.37% | ❌ BLOCKED (BREAKOUT과 동일) |
+
+### 전략×코인별 홀딩 전략
+
+| 코인 | 전략 | 권장 홀딩 | 이유 |
+|------|------|----------|------|
+| BTC | COMPOSITE_BREAKOUT | **4H 내 익절** 우선 | 4H→24H 수익 역전(+0.11%→-0.04%). 빠른 익절이 유리 |
+| BTC | COMPOSITE_MOMENTUM | **장기 홀딩** | 24H 65~71%, +0.32~+0.49%. 보유 기간이 길수록 좋아짐 |
+| ETH | COMPOSITE_MOMENTUM_ICHIMOKU | **장기 홀딩** | 24H 71% +0.06%. 4H(43%)보다 24H가 훨씬 우수 |
+| ETH | COMPOSITE_BREAKOUT | **4H 내 익절** | 4H 67%→24H 47%로 급락. 빠른 수익실현 필수 |
+| XRP | COMPOSITE_MOMENTUM_ICHIMOKU | **중기 홀딩** | 4H 41%→24H 52%. 시간이 지날수록 확률 개선 |
+| DOGE | COMPOSITE_MOMENTUM_ICHIMOKU_V2 | **24H 이상 홀딩** | 4H 22% 불안정 → 24H 56%로 회복. 조기 손절 주의 |
 
 ### BTC — COMPOSITE_BREAKOUT 확정
 

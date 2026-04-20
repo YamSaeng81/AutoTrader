@@ -25,6 +25,28 @@ import java.util.stream.Collectors;
  */
 public final class StrategySelector {
 
+    static {
+        // Spring 컨텍스트가 없는 환경(단위 테스트 등)을 위한 폴백 등록.
+        // 실제 애플리케이션에서는 CompositePresetRegistrar(@PostConstruct)가
+        // EMA·ADX 필터가 활성화된 버전으로 덮어쓴다.
+        if (!StrategyRegistry.getAll().containsKey("COMPOSITE_BREAKOUT")) {
+            // COMPOSITE_BREAKOUT: ATR(0.4)+VD(0.3)+RSI(0.2)+EMA(0.1) — EMA+ADX 필터 ON
+            StrategyRegistry.register(new CompositeStrategy("COMPOSITE_BREAKOUT", List.of(
+                    new WeightedStrategy(StrategyRegistry.get("ATR_BREAKOUT"),   0.4),
+                    new WeightedStrategy(StrategyRegistry.get("VOLUME_DELTA"),   0.3),
+                    new WeightedStrategy(StrategyRegistry.get("RSI"),            0.2),
+                    new WeightedStrategy(StrategyRegistry.get("EMA_CROSS"),      0.1)
+            ), true, true));  // emaFilter=true, adxFilter=true
+
+            // COMPOSITE_MOMENTUM: MACD(0.5)+VWAP(0.3)+GRID(0.2) — EMA 필터 ON
+            StrategyRegistry.register(new CompositeStrategy("COMPOSITE_MOMENTUM", List.of(
+                    new WeightedStrategy(StrategyRegistry.get("MACD"),  0.5),
+                    new WeightedStrategy(StrategyRegistry.get("VWAP"),  0.3),
+                    new WeightedStrategy(StrategyRegistry.get("GRID"),  0.2)
+            ), true));  // emaFilter=true
+        }
+    }
+
     private StrategySelector() {}
 
     /**

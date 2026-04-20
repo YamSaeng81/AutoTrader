@@ -1,8 +1,8 @@
-FROM eclipse-temurin:17-jdk-alpine AS builder
+FROM gradle:8.7-jdk17-alpine AS builder
 
 WORKDIR /app
 COPY . .
-RUN chmod +x gradlew && ./gradlew :web-api:bootJar -x test --no-daemon
+RUN gradle :web-api:bootJar -x test --no-daemon
 
 FROM eclipse-temurin:17-jre-alpine
 

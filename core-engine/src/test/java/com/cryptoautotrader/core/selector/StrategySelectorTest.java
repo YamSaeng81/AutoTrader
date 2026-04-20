@@ -12,57 +12,57 @@ import static org.assertj.core.api.Assertions.assertThat;
 class StrategySelectorTest {
 
     @Test
-    @DisplayName("TREND: SUPERTREND(0.5) + EMA_CROSS(0.3) + ATR_BREAKOUT(0.2)")
+    @DisplayName("TREND: COMPOSITE_BREAKOUT(0.65) + COMPOSITE_MOMENTUM(0.35)")
     void trend_strategies() {
         List<WeightedStrategy> list = StrategySelector.select(MarketRegime.TREND);
-        assertThat(list).hasSize(3);
+        assertThat(list).hasSize(2);
         assertThat(list).extracting(ws -> ws.getStrategy().getName())
-                .containsExactly("SUPERTREND", "EMA_CROSS", "ATR_BREAKOUT");
-        assertThat(list.get(0).getWeight()).isEqualTo(0.5);
-        assertThat(list.get(1).getWeight()).isEqualTo(0.3);
-        assertThat(list.get(2).getWeight()).isEqualTo(0.2);
+                .containsExactly("COMPOSITE_BREAKOUT", "COMPOSITE_MOMENTUM");
+        assertThat(list.get(0).getWeight()).isEqualTo(0.65);
+        assertThat(list.get(1).getWeight()).isEqualTo(0.35);
     }
 
     @Test
-    @DisplayName("RANGE: BOLLINGER(0.4) + RSI(0.4) + GRID(0.2)")
+    @DisplayName("RANGE: COMPOSITE_MOMENTUM(0.60) + COMPOSITE_BREAKOUT(0.40)")
     void range_strategies() {
         List<WeightedStrategy> list = StrategySelector.select(MarketRegime.RANGE);
-        assertThat(list).hasSize(3);
+        assertThat(list).hasSize(2);
         assertThat(list).extracting(ws -> ws.getStrategy().getName())
-                .containsExactly("BOLLINGER", "RSI", "GRID");
+                .containsExactly("COMPOSITE_MOMENTUM", "COMPOSITE_BREAKOUT");
+        assertThat(list.get(0).getWeight()).isEqualTo(0.60);
+        assertThat(list.get(1).getWeight()).isEqualTo(0.40);
     }
 
     @Test
-    @DisplayName("VOLATILITY: ATR_BREAKOUT(0.6) + STOCHASTIC_RSI(0.4)")
+    @DisplayName("VOLATILITY: COMPOSITE_BREAKOUT(0.70) + COMPOSITE_MOMENTUM(0.30)")
     void volatility_strategies() {
         List<WeightedStrategy> list = StrategySelector.select(MarketRegime.VOLATILITY);
         assertThat(list).hasSize(2);
         assertThat(list).extracting(ws -> ws.getStrategy().getName())
-                .containsExactly("ATR_BREAKOUT", "STOCHASTIC_RSI");
-        assertThat(list.get(0).getWeight()).isEqualTo(0.6);
-        assertThat(list.get(1).getWeight()).isEqualTo(0.4);
+                .containsExactly("COMPOSITE_BREAKOUT", "COMPOSITE_MOMENTUM");
+        assertThat(list.get(0).getWeight()).isEqualTo(0.70);
+        assertThat(list.get(1).getWeight()).isEqualTo(0.30);
     }
 
     @Test
     @DisplayName("TRANSITIONAL(prev=TREND): TREND 전략 × 0.5 가중치 축소")
     void transitional_prev_trend() {
         List<WeightedStrategy> list = StrategySelector.select(MarketRegime.TRANSITIONAL, MarketRegime.TREND);
-        assertThat(list).hasSize(3);
+        assertThat(list).hasSize(2);
         assertThat(list).extracting(ws -> ws.getStrategy().getName())
-                .containsExactly("SUPERTREND", "EMA_CROSS", "ATR_BREAKOUT");
-        assertThat(list.get(0).getWeight()).isEqualTo(0.5 * 0.5);  // 0.25
-        assertThat(list.get(1).getWeight()).isEqualTo(0.3 * 0.5);  // 0.15
-        assertThat(list.get(2).getWeight()).isEqualTo(0.2 * 0.5);  // 0.10
+                .containsExactly("COMPOSITE_BREAKOUT", "COMPOSITE_MOMENTUM");
+        assertThat(list.get(0).getWeight()).isEqualTo(0.65 * 0.5);  // 0.325
+        assertThat(list.get(1).getWeight()).isEqualTo(0.35 * 0.5);  // 0.175
     }
 
     @Test
     @DisplayName("TRANSITIONAL(prev=RANGE): RANGE 전략 × 0.5 가중치 축소")
     void transitional_prev_range() {
         List<WeightedStrategy> list = StrategySelector.select(MarketRegime.TRANSITIONAL, MarketRegime.RANGE);
-        assertThat(list).hasSize(3);
+        assertThat(list).hasSize(2);
         assertThat(list).extracting(ws -> ws.getStrategy().getName())
-                .containsExactly("BOLLINGER", "RSI", "GRID");
-        assertThat(list.get(0).getWeight()).isEqualTo(0.4 * 0.5);  // 0.2
+                .containsExactly("COMPOSITE_MOMENTUM", "COMPOSITE_BREAKOUT");
+        assertThat(list.get(0).getWeight()).isEqualTo(0.60 * 0.5);  // 0.30
     }
 
     @Test
@@ -72,17 +72,17 @@ class StrategySelectorTest {
         assertThat(list).isNotEmpty();
         // RANGE 폴백 × 0.5
         assertThat(list).extracting(ws -> ws.getStrategy().getName())
-                .containsExactly("BOLLINGER", "RSI", "GRID");
+                .containsExactly("COMPOSITE_MOMENTUM", "COMPOSITE_BREAKOUT");
     }
 
     @Test
     @DisplayName("WeightedStrategy.withReducedWeight() — 체인 호출")
     void weightedStrategy_reducedWeight() {
         List<WeightedStrategy> trend = StrategySelector.select(MarketRegime.TREND);
-        WeightedStrategy first = trend.get(0);  // SUPERTREND 0.5
+        WeightedStrategy first = trend.get(0);  // COMPOSITE_BREAKOUT 0.65
         WeightedStrategy reduced = first.withReducedWeight(0.5);
 
-        assertThat(reduced.getWeight()).isEqualTo(0.25);
-        assertThat(reduced.getStrategy().getName()).isEqualTo("SUPERTREND");
+        assertThat(reduced.getWeight()).isEqualTo(0.65 * 0.5);
+        assertThat(reduced.getStrategy().getName()).isEqualTo("COMPOSITE_BREAKOUT");
     }
 }

@@ -14,19 +14,17 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.util.List;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * 리스크 체크 로직 단위 테스트 — 20260415_analy.md Tier 1 §5 버그 회귀 방지.
- *
- * <p>검증:</p>
- * <ul>
- *   <li>포트폴리오 한도가 RUNNING 세션 initialCapital 합으로 동적 산출되는가</li>
- *   <li>구간 손실률이 "순손익"이 아닌 "총손실(gross loss)" 기반으로 산출되는가</li>
- * </ul>
+ * 리스크 체크 로직 단위 테스트.
+ * - 20260415_analy.md Tier 1 §5: 소액 세션 / gross loss 버그 회귀 방지
+ * - 신호품질 개선: 자본 사용률 기반 차단 검증
  */
 class RiskManagementServiceTest {
 
@@ -50,13 +48,18 @@ class RiskManagementServiceTest {
                 .maxDailyLossPct(new BigDecimal("3.0"))
                 .maxWeeklyLossPct(new BigDecimal("7.0"))
                 .maxMonthlyLossPct(new BigDecimal("15.0"))
-                .maxPositions(3)
+                .maxPositions(20)
+                .maxCapitalUtilizationPct(new BigDecimal("80.0"))
                 .cooldownMinutes(60)
                 .portfolioLimitKrw(new BigDecimal("10000000"))
                 .build();
         when(riskConfigRepository.findTopByOrderByIdDesc()).thenReturn(java.util.Optional.of(config));
         when(positionRepository.countRealPositionsByStatus("OPEN")).thenReturn(0L);
         when(tradeLogRepository.sumRealizedPnlSince(any())).thenReturn(BigDecimal.ZERO);
+        when(tradeLogRepository.sumRealizedLossSince(any())).thenReturn(BigDecimal.ZERO);
+        // 자본 사용률 계산용 — 기본값: 사용률 0% (차단 안 됨)
+        when(sessionRepository.sumInitialCapitalByStatusIn(any())).thenReturn(new BigDecimal("10000000"));
+        when(sessionRepository.sumAvailableKrwByStatusIn(any())).thenReturn(new BigDecimal("10000000"));
     }
 
     @Test
@@ -108,6 +111,37 @@ class RiskManagementServiceTest {
 
         RiskCheckResult result = service.checkRisk();
         assertThat(result.isApproved()).isTrue();
+    }
+
+    @Test
+    @DisplayName("자본 사용률 80% 초과 시 신규 매수 차단")
+    void capitalUtilization_exceedsLimit_blocked() {
+        // 10M 자본 중 9M 투자 → 사용률 90% > 한도 80%
+        when(sessionRepository.sumInitialCapitalByStatusIn(any())).thenReturn(new BigDecimal("10000000"));
+        when(sessionRepository.sumAvailableKrwByStatusIn(any())).thenReturn(new BigDecimal("1000000"));
+        when(sessionRepository.findByStatus("RUNNING")).thenReturn(List.of());
+
+        RiskCheckResult result = service.checkRisk();
+
+        assertThat(result.isApproved())
+                .as("자본 사용률 90%는 한도 80%를 초과하므로 차단되어야 한다")
+                .isFalse();
+        assertThat(result.getReason()).contains("자본 사용률");
+    }
+
+    @Test
+    @DisplayName("자본 사용률 80% 이하이고 손실 없으면 통과")
+    void capitalUtilization_withinLimit_approved() {
+        // 10M 자본 중 7M 투자 → 사용률 70% < 한도 80%
+        when(sessionRepository.sumInitialCapitalByStatusIn(any())).thenReturn(new BigDecimal("10000000"));
+        when(sessionRepository.sumAvailableKrwByStatusIn(any())).thenReturn(new BigDecimal("3000000"));
+        when(sessionRepository.findByStatus("RUNNING")).thenReturn(List.of());
+
+        RiskCheckResult result = service.checkRisk();
+
+        assertThat(result.isApproved())
+                .as("자본 사용률 70%는 한도 80% 이하이므로 통과되어야 한다")
+                .isTrue();
     }
 
     private LiveTradingSessionEntity buildRunningSession(BigDecimal initialCapital) {

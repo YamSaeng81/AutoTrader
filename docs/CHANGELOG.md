@@ -4,6 +4,76 @@
 
 ---
 
+### ✅ 완료 (2026-04-20) — Ichimoku 전략 구조 정리 및 코드 정확도 수정
+
+**배경**: 신호 품질 대시보드 분석 과정에서 발견한 3가지 코드 오류 수정.
+
+**수정 내용**:
+
+1. **`StrategySelector` static 블록 — EMA·ADX 필터 누락 수정**
+   - 테스트 폴백용 등록 코드가 필터 없는 버전 사용 → `emaFilter=true, adxFilter=true` 추가
+   - Spring 환경에서는 `CompositePresetRegistrar.@PostConstruct`가 덮어씀 (정상)
+   - 역할 명시: "Spring 없는 환경(단위 테스트) 폴백 등록" 주석 추가
+
+2. **`StrategyWeightOptimizer` 주석 오류 수정**
+   - "COMPOSITE_MOMENTUM_ICHIMOKU_V2 미구현 상태" → `CompositePresetRegistrar`에 완전 구현·등록됨
+   - 실제 상태 명시: "StrategySelector 레짐 선택에 미연동 — 세션 직접 할당 방식으로 운영 중"
+
+3. **`StrategyLiveStatusRegistry` — COMPOSITE_BREAKOUT_ICHIMOKU EXPERIMENTAL→BLOCKED**
+   - `CompositePresetRegistrar` 코드 주석에 이미 명시: ADX(14)<20 필터가 횡보장 선차단 → Ichimoku 필터 발동 구간 없음
+   - 백테스트 결과 COMPOSITE_BREAKOUT과 동일 성능 → 신규 세션 생성 차단
+   - 기존 운영 세션은 만료 후 COMPOSITE_BREAKOUT 전환 권장
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `StrategySelector.java` | static 블록 주석 명확화 + EMA·ADX 필터 플래그 추가 |
+| `StrategyWeightOptimizer.java` | Ichimoku 전략 상태 주석 정정 |
+| `StrategyLiveStatusRegistry.java` | COMPOSITE_BREAKOUT_ICHIMOKU: EXPERIMENTAL → BLOCKED |
+
+---
+
+### ✅ 완료 (2026-04-20) — StrategyWeightOptimizer DEFAULTS 동기화 (Option A)
+
+**배경**: `StrategyWeightOptimizer.DEFAULTS`에 `COMPOSITE_MOMENTUM_ICHIMOKU_V2`가 포함되어 있었으나
+`StrategySelector` 및 `StrategyRegistry`에 미등록 상태 → 3전략 기준으로 가중치 정규화 후
+StrategySelector는 2전략만 조회, 합계가 1.0 미달로 왜곡되는 버그.
+
+**수정 내용**:
+- `StrategyWeightOptimizer.DEFAULTS`를 StrategySelector 실제 구성(2전략/레짐)과 동기화
+- `COMPOSITE_MOMENTUM_ICHIMOKU_V2` 제거 및 주석으로 미구현 상태 명시
+- `StrategyWeightOptimizerTest` 전면 재작성 (4건 → 5건): 2전략 구조 기준, MIN_REGIME_SAMPLE 충족 조건 명시
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `StrategyWeightOptimizer.java` | DEFAULTS: 3전략 → 2전략(BREAKOUT+MOMENTUM), StrategySelector 기본값과 동기화 |
+| `StrategyWeightOptimizerTest.java` | ICHIMOKU_V2 참조 제거, 2전략 구조 검증 5건으로 재작성 |
+
+---
+
+### ✅ 완료 (2026-04-20) — 신호품질 개선: 자본 사용률 기반 리스크 제어
+
+**배경**: 대시보드 분석에서 "차단 신호 사후 성과 > 실행 신호"가 관찰됨.
+원인: `maxPositions=3` 하드캡이 세션 수 기준으로 좋은 신호를 차단하던 문제.
+근본 해결: 포지션 수 대신 **자본 사용률(%) 기반** 차단으로 전환.
+
+**버그 수정**:
+- `CompositeStrategy` 정규화 버그: `totalWeight < 1.0`일 때 점수 역부풀림 → `Math.max(totalWeight, 1.0)` 분모 사용
+- `StrategySelectorTest`: Composite 구조로 리팩토링된 구현에 맞게 기댓값 업데이트
+- `RiskEngineTest`: `maxPositions` 기본값 3→20 변경 후 기존 테스트가 실패 → 명시적 `maxPositions(3)` 설정으로 수정
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `core-engine/.../RiskConfig.java` | `maxPositions` 기본값 3→20, `maxCapitalUtilizationPct` 필드(기본 80%) 추가 |
+| `core-engine/.../RiskEngine.java` | `check(…, capitalUtilizationPct)` 5파라미터 오버로드 추가. 자본 사용률 한도 초과 시 reject, 포지션 수는 안전망으로 격하 |
+| `core-engine/.../StrategySelector.java` | `COMPOSITE_BREAKOUT`·`COMPOSITE_MOMENTUM` 복합 전략을 static 초기화 블록에서 `StrategyRegistry`에 등록 |
+| `core-engine/.../CompositeStrategy.java` | 정규화 분모를 `Math.max(totalWeight, 1.0)`으로 변경 — 단독 저가중 전략이 임계값을 왜곡하던 버그 수정 |
+| `web-api/.../RiskManagementService.java` | `calculateCapitalUtilizationPct()` 추가 (RUNNING 세션 기반), `resolvePortfolioLimit()` — 소액 세션 gross loss 버그 수정, `checkRisk()`에 자본 사용률 전달 |
+| `web-api/.../RiskConfigEntity.java` | `max_capital_utilization_pct` 컬럼 추가, `maxPositions` 기본값 3→20 |
+| `web-api/…/V45__*.sql` (신규) | `max_capital_utilization_pct` 컬럼 추가, 기존 `max_positions=3` 레코드 → 20 업데이트 |
+| `web-api/.../RiskManagementServiceTest.java` | 자본 사용률 차단/통과 테스트 2건, gross loss 회귀 방지 3건 (총 5건) |
+
+---
+
 ### ✅ 완료 (2026-04-20) — Tier 4 §18: 보안 — Upbit API 키 관리 / Actuator 노출 검증
 
 **목표**: 실전 서버의 보안 취약점(API 키 유출, 민감 엔드포인트 노출, CORS 설정 오류)을 자동으로 점검한다.

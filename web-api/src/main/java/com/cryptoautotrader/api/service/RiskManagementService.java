@@ -70,11 +70,12 @@ public class RiskManagementService {
                 .trailingTpMarginPct(newConfig.getTrailingTpMarginPct())
                 .trailingSlMarginPct(newConfig.getTrailingSlMarginPct())
                 .investRatioPct(newConfig.getInvestRatioPct())
+                .maxCapitalUtilizationPct(newConfig.getMaxCapitalUtilizationPct())
                 .build();
         entity = riskConfigRepository.save(entity);
-        log.info("리스크 설정 업데이트: 일일={}%, 주간={}%, 월간={}%, 최대포지션={}, 쿨다운={}분, SL={}%, TP={}×, 투자비율={}%",
+        log.info("리스크 설정 업데이트: 일일={}%, 주간={}%, 월간={}%, 자본사용률한도={}%, SL={}%, TP={}×, 투자비율={}%",
                 entity.getMaxDailyLossPct(), entity.getMaxWeeklyLossPct(),
-                entity.getMaxMonthlyLossPct(), entity.getMaxPositions(), entity.getCooldownMinutes(),
+                entity.getMaxMonthlyLossPct(), entity.getMaxCapitalUtilizationPct(),
                 entity.getStopLossPct(), entity.getTakeProfitMultiplier(), entity.getInvestRatioPct());
         return entity;
     }
@@ -132,11 +133,16 @@ public class RiskManagementService {
         // size > 0인 실제 체결 포지션만 카운팅 — FAILED 매수로 인한 size=0 고아 포지션 제외
         int currentPositions = (int) positionRepository.countRealPositionsByStatus("OPEN");
 
-        RiskCheckResult result = engine.check(dailyLoss, weeklyLoss, monthlyLoss, currentPositions);
+        // 자본 사용률 계산: (총 initialCapital - 총 availableKrw) / 총 initialCapital × 100
+        BigDecimal capitalUtilizationPct = calculateCapitalUtilizationPct();
+
+        RiskCheckResult result = engine.check(
+                dailyLoss, weeklyLoss, monthlyLoss, currentPositions, capitalUtilizationPct);
 
         if (!result.isApproved()) {
-            log.warn("리스크 체크 거부: {} (일일={}%, 주간={}%, 월간={}%, 포지션={})",
-                    result.getReason(), dailyLoss, weeklyLoss, monthlyLoss, currentPositions);
+            log.warn("리스크 체크 거부: {} (일일={}%, 주간={}%, 월간={}%, 포지션={}, 자본사용률={}%)",
+                    result.getReason(), dailyLoss, weeklyLoss, monthlyLoss,
+                    currentPositions, capitalUtilizationPct);
         }
 
         return result;
@@ -242,14 +248,43 @@ public class RiskManagementService {
                 : limit;
     }
 
+    /**
+     * RUNNING 세션들의 자본 사용률(%) 계산.
+     * = (총 initialCapital - 총 availableKrw) / 총 initialCapital × 100
+     * RUNNING 세션이 없으면 0 반환.
+     */
+    private BigDecimal calculateCapitalUtilizationPct() {
+        List<String> running = List.of("RUNNING");
+        BigDecimal totalCapital  = sessionRepository.sumInitialCapitalByStatusIn(running);
+        BigDecimal totalAvailable = sessionRepository.sumAvailableKrwByStatusIn(running);
+
+        if (totalCapital == null || totalCapital.compareTo(BigDecimal.ZERO) <= 0) {
+            return BigDecimal.ZERO;
+        }
+        BigDecimal invested = totalCapital.subtract(
+                totalAvailable == null ? BigDecimal.ZERO : totalAvailable);
+        // 음수 방지 (availableKrw가 initialCapital보다 클 수 없지만 방어적 처리)
+        if (invested.compareTo(BigDecimal.ZERO) < 0) {
+            return BigDecimal.ZERO;
+        }
+        return invested
+                .divide(totalCapital, 4, RoundingMode.HALF_UP)
+                .multiply(new BigDecimal("100"))
+                .setScale(2, RoundingMode.HALF_UP);
+    }
+
     private RiskConfig toRiskConfig(RiskConfigEntity entity) {
+        BigDecimal utilLimit = entity.getMaxCapitalUtilizationPct() != null
+                ? entity.getMaxCapitalUtilizationPct()
+                : new BigDecimal("80.0");
         return RiskConfig.builder()
                 .maxDailyLossPct(entity.getMaxDailyLossPct())
                 .maxWeeklyLossPct(entity.getMaxWeeklyLossPct())
                 .maxMonthlyLossPct(entity.getMaxMonthlyLossPct())
-                .maxPositions(entity.getMaxPositions())
+                .maxPositions(entity.getMaxPositions() != null ? entity.getMaxPositions() : 20)
                 .cooldownMinutes(entity.getCooldownMinutes())
                 .portfolioLimitKrw(entity.getPortfolioLimitKrw())
+                .maxCapitalUtilizationPct(utilLimit)
                 .build();
     }
 

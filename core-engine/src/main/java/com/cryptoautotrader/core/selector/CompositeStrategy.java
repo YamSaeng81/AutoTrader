@@ -143,9 +143,10 @@ public class CompositeStrategy implements Strategy {
 
         String detail = reasons.toString().trim();
 
-        // 가중치 합계로 정규화 (총합이 1.0 초과 시 임계값 왜곡 방지)
-        buyScore  /= totalWeight;
-        sellScore /= totalWeight;
+        // 가중치 합계로 정규화 (총합이 1.0 초과 시만 — 총합 < 1.0이면 raw score 유지)
+        double normalizer = Math.max(totalWeight, 1.0);
+        buyScore  /= normalizer;
+        sellScore /= normalizer;
 
         return applyEmaFilter(candles, finalSignal(buyScore, sellScore, detail));
     }

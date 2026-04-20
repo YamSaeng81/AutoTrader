@@ -63,26 +63,30 @@ public class StrategyWeightOptimizer {
     /**
      * regime → (Composite 전략명 → 기본 가중치).
      *
-     * <p>StrategySelector와 동기화 필수 — 여기서 정의한 전략명과 가중치가 기준값으로 사용된다.
-     * 각 레짐의 기본값은 3년(2023~2025) H1 백테스트 결과를 근거로 설정한다:
+     * <p>StrategySelector의 실제 전략 구성과 반드시 동기화되어야 한다.
+     * 여기 없는 전략명은 WeightOverrideStore에 저장돼도 StrategySelector가 조회하지 않아
+     * 가중치 정규화가 왜곡된다.
+     *
+     * <p>기본값 근거 — 3년(2023~2025) H1 백테스트:
      * <ul>
      *   <li>COMPOSITE_BREAKOUT: BTC +104.2%, SOL +64.9%, ETH +38.9% — 추세·변동성 레짐 최강</li>
      *   <li>COMPOSITE_MOMENTUM: ETH +53.6%, SOL +59.8%, BTC +0.4% — VWAP·GRID 포함으로 레인지 적합</li>
      * </ul>
+     *
+     * <p>COMPOSITE_MOMENTUM_ICHIMOKU_V2 등 Ichimoku 계열은 CompositePresetRegistrar 에 구현·등록 완료.
+     * 단, StrategySelector 의 레짐 기반 선택에는 아직 미연동 — 세션 직접 할당 방식으로 운영 중.
+     * StrategySelector 에 추가 시 이 맵에도 동시 추가 필요.
      */
     private static final Map<String, Map<String, Double>> DEFAULTS = Map.of(
             "TREND",      Map.of(
-                    "COMPOSITE_BREAKOUT",              0.50,
-                    "COMPOSITE_MOMENTUM_ICHIMOKU_V2",  0.30,
-                    "COMPOSITE_MOMENTUM",              0.20),
+                    "COMPOSITE_BREAKOUT", 0.65,
+                    "COMPOSITE_MOMENTUM", 0.35),
             "RANGE",      Map.of(
-                    "COMPOSITE_MOMENTUM",              0.55,
-                    "COMPOSITE_MOMENTUM_ICHIMOKU_V2",  0.25,
-                    "COMPOSITE_BREAKOUT",              0.20),
+                    "COMPOSITE_MOMENTUM", 0.60,
+                    "COMPOSITE_BREAKOUT", 0.40),
             "VOLATILITY", Map.of(
-                    "COMPOSITE_BREAKOUT",              0.50,
-                    "COMPOSITE_MOMENTUM_ICHIMOKU_V2",  0.30,
-                    "COMPOSITE_MOMENTUM",              0.20)
+                    "COMPOSITE_BREAKOUT", 0.70,
+                    "COMPOSITE_MOMENTUM", 0.30)
     );
 
     private static final BigDecimal FEE_THRESHOLD = TradingConstants.FEE_THRESHOLD;

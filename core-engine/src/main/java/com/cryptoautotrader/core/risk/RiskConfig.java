@@ -16,11 +16,23 @@ public class RiskConfig {
     private BigDecimal maxWeeklyLossPct = new BigDecimal("7.0");
     @Builder.Default
     private BigDecimal maxMonthlyLossPct = new BigDecimal("15.0");
+    /**
+     * 최대 포지션 수 — 안전망 역할만 함. 주 제어는 maxCapitalUtilizationPct.
+     * 기본값을 높게 설정해 자본 사용률 체크가 먼저 발동되도록 한다.
+     */
     @Builder.Default
-    private int maxPositions = 3;
+    private int maxPositions = 20;
     @Builder.Default
     private int cooldownMinutes = 60;
     private BigDecimal portfolioLimitKrw;
+
+    /**
+     * 포트폴리오 자본 사용률 상한 (%).
+     * totalInvested / totalInitialCapital × 100 이 이 값을 초과하면 신규 매수 차단.
+     * 기본 80% — 전체 자본의 80% 이상 투입 시 추가 진입 금지.
+     */
+    @Builder.Default
+    private BigDecimal maxCapitalUtilizationPct = new BigDecimal("80.0");
 
     /** 최대 레버리지 배수 */
     @Builder.Default

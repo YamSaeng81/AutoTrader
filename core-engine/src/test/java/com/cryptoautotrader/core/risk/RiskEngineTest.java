@@ -45,9 +45,11 @@ class RiskEngineTest {
     @Test
     @DisplayName("최대 포지션 수 초과 → reject")
     void check_maxPositions_reject() {
-        RiskCheckResult result = engine.check(
+        // maxPositions 기본값은 20; 명시적으로 3으로 설정해 안전망 검증
+        RiskEngine smallEngine = new RiskEngine(RiskConfig.builder().maxPositions(3).build());
+        RiskCheckResult result = smallEngine.check(
                 BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
-                3   // maxPositions = 3
+                3   // currentPositions >= maxPositions(3) → reject
         );
         assertThat(result.isApproved()).isFalse();
         assertThat(result.getReason()).contains("최대 포지션 수 초과");
