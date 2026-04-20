@@ -764,6 +764,10 @@ public class LiveTradingService {
         // 전략 로그 DB 저장 (신호 품질 + 레짐 포함)
         StrategyLogEntity savedSignalLog = null;
         try {
+            // BUY/SELL 신호의 confidence: strength(0~100) → 0.0~1.0
+            BigDecimal conf = (signal.getAction() != StrategySignal.Action.HOLD)
+                    ? signal.getStrength().divide(java.math.BigDecimal.valueOf(100), 4, java.math.RoundingMode.HALF_UP)
+                    : null;
             StrategyLogEntity logEntity = StrategyLogEntity.builder()
                     .strategyName(strategyType)
                     .coinPair(coinPair)
@@ -773,6 +777,7 @@ public class LiveTradingService {
                     .sessionType("LIVE")
                     .sessionId(sessionId)
                     .signalPrice(currentPrice)
+                    .confidenceScore(conf)
                     .build();
             savedSignalLog = strategyLogRepository.save(logEntity);
         } catch (Exception e) {

@@ -258,7 +258,7 @@ class AiPipelineTest {
         @Test
         @DisplayName("Notion 미활성화 시 SUCCESS로 저장")
         void compose_notionDisabled_successWithoutPage() {
-            when(logAnalyzer.analyze(any(), any())).thenReturn(minimalReport());
+            when(logAnalyzer.analyze(any(), any(), any())).thenReturn(minimalReport());
             when(llmTaskRouter.route(any(), anyString(), anyString()))
                     .thenReturn(LlmResponse.builder().success(true).content("요약").providerName("MOCK").build());
             when(notionClient.isEnabled()).thenReturn(false);
@@ -274,7 +274,7 @@ class AiPipelineTest {
         @Test
         @DisplayName("Notion 활성화 + pageId 반환 시 SUCCESS + URL 저장")
         void compose_notionEnabled_successWithPageUrl() {
-            when(logAnalyzer.analyze(any(), any())).thenReturn(minimalReport());
+            when(logAnalyzer.analyze(any(), any(), any())).thenReturn(minimalReport());
             when(llmTaskRouter.route(any(), anyString(), anyString()))
                     .thenReturn(LlmResponse.builder().success(true).content("내용").providerName("MOCK").build());
             when(notionClient.isEnabled()).thenReturn(true);
@@ -293,7 +293,7 @@ class AiPipelineTest {
         @Test
         @DisplayName("Notion createPage null 반환 시 FAILED")
         void compose_notionPageNull_failed() {
-            when(logAnalyzer.analyze(any(), any())).thenReturn(minimalReport());
+            when(logAnalyzer.analyze(any(), any(), any())).thenReturn(minimalReport());
             when(llmTaskRouter.route(any(), anyString(), anyString()))
                     .thenReturn(LlmResponse.builder().success(true).content("내용").providerName("MOCK").build());
             when(notionClient.isEnabled()).thenReturn(true);
@@ -310,7 +310,7 @@ class AiPipelineTest {
         @Test
         @DisplayName("LLM 실패해도 파이프라인 계속 진행")
         void compose_llmFails_stillContinues() {
-            when(logAnalyzer.analyze(any(), any())).thenReturn(minimalReport());
+            when(logAnalyzer.analyze(any(), any(), any())).thenReturn(minimalReport());
             when(llmTaskRouter.route(any(), anyString(), anyString()))
                     .thenReturn(LlmResponse.builder().success(false).errorMessage("timeout").build());
             when(notionClient.isEnabled()).thenReturn(false);
@@ -326,7 +326,7 @@ class AiPipelineTest {
         @Test
         @DisplayName("예외 발생 시 FAILED 상태로 저장")
         void compose_exception_savedAsFailed() {
-            when(logAnalyzer.analyze(any(), any())).thenThrow(new RuntimeException("DB 오류"));
+            when(logAnalyzer.analyze(any(), any(), any())).thenThrow(new RuntimeException("DB 오류"));
 
             NotionReportLogEntity result = composer.compose(
                     Instant.now().minusSeconds(3600), Instant.now());

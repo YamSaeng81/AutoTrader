@@ -56,60 +56,76 @@ public final class StrategySelector {
      * @param previous TRANSITIONAL 시 사용할 이전 Regime (non-TRANSITIONAL이면 무시됨)
      */
     public static List<WeightedStrategy> select(MarketRegime current, MarketRegime previous) {
+        return select(current, previous, null);
+    }
+
+    /**
+     * 코인별 특화 가중치를 적용한 WeightedStrategy 목록을 반환한다.
+     * coinPair가 null이면 레짐 레벨 기본값을 사용한다.
+     *
+     * @param current  현재 MarketRegime
+     * @param coinPair "KRW-BTC" 등 (null 허용 → 레짐 레벨 폴백)
+     */
+    public static List<WeightedStrategy> select(MarketRegime current, String coinPair) {
+        return select(current, current, coinPair);
+    }
+
+    /**
+     * 코인별 특화 가중치 + TRANSITIONAL 처리.
+     */
+    public static List<WeightedStrategy> select(MarketRegime current, MarketRegime previous, String coinPair) {
         return switch (current) {
-            case TREND       -> trend();
-            case RANGE       -> range();
-            case VOLATILITY  -> volatility();
+            case TREND       -> trend(coinPair);
+            case RANGE       -> range(coinPair);
+            case VOLATILITY  -> volatility(coinPair);
             case TRANSITIONAL -> {
-                // 직전 Regime 전략 그룹을 0.5 가중치로 축소 — 재귀 시 TRANSITIONAL 제외
                 MarketRegime base = (previous == MarketRegime.TRANSITIONAL) ? MarketRegime.RANGE : previous;
-                yield select(base, base).stream()
+                yield select(base, base, coinPair).stream()
                         .map(ws -> ws.withReducedWeight(0.5))
                         .collect(Collectors.toList());
             }
         };
     }
 
-    /** current == previous 인 일반 호출용 오버로드 */
+    /** current == previous 인 일반 호출용 오버로드 (코인 무관) */
     public static List<WeightedStrategy> select(MarketRegime current) {
-        return select(current, current);
+        return select(current, current, null);
     }
 
     // ── 전략 그룹 정의 ───────────────────────────────────────────────────
-    // 각 메서드는 WeightOverrideStore에 해당 regime 오버라이드가 있으면 동적 가중치를 사용한다.
-    // 오버라이드가 없으면 하드코딩 기본값을 그대로 사용해 기존 동작을 보장한다.
+    // WeightOverrideStore: 코인 레벨 → 레짐 레벨 → 하드코딩 기본값 순으로 폴백
 
-    private static List<WeightedStrategy> trend() {
+    private static List<WeightedStrategy> trend(String coinPair) {
         final String r = "TREND";
-        // COMPOSITE_BREAKOUT: ATR×0.4 + VD×0.3 + RSI×0.2 + EMA×0.1 (3년 BTC +104%, SOL +65%, ETH +39%)
-        // COMPOSITE_MOMENTUM: MACD×0.5 + VWAP×0.3 + GRID×0.2 (ETH +54%, SOL +60%)
         return List.of(
-                ws(r, "COMPOSITE_BREAKOUT",  0.65),
-                ws(r, "COMPOSITE_MOMENTUM",  0.35)
+                ws(r, coinPair, "COMPOSITE_BREAKOUT",  0.65),
+                ws(r, coinPair, "COMPOSITE_MOMENTUM",  0.35)
         );
     }
 
-    private static List<WeightedStrategy> range() {
+    private static List<WeightedStrategy> range(String coinPair) {
         final String r = "RANGE";
-        // 레인지 구간: VWAP·GRID(평균회귀·레인지) 비중이 높은 MOMENTUM이 유리
         return List.of(
-                ws(r, "COMPOSITE_MOMENTUM",  0.60),
-                ws(r, "COMPOSITE_BREAKOUT",  0.40)
+                ws(r, coinPair, "COMPOSITE_MOMENTUM",  0.60),
+                ws(r, coinPair, "COMPOSITE_BREAKOUT",  0.40)
         );
     }
 
-    private static List<WeightedStrategy> volatility() {
+    private static List<WeightedStrategy> volatility(String coinPair) {
         final String r = "VOLATILITY";
-        // 변동성 장: ATR 기반 BREAKOUT 전략이 핵심
         return List.of(
-                ws(r, "COMPOSITE_BREAKOUT",  0.70),
-                ws(r, "COMPOSITE_MOMENTUM",  0.30)
+                ws(r, coinPair, "COMPOSITE_BREAKOUT",  0.70),
+                ws(r, coinPair, "COMPOSITE_MOMENTUM",  0.30)
         );
     }
 
-    /** WeightOverrideStore에서 가중치를 조회해 WeightedStrategy를 생성한다. */
-    private static WeightedStrategy ws(String regime, String name, double defaultWeight) {
-        double weight = WeightOverrideStore.get(regime, name, defaultWeight);
+    /**
+     * 코인 특화 가중치(있으면) → 레짐 레벨 → 기본값 순으로 WeightedStrategy를 생성한다.
+     */
+    private static WeightedStrategy ws(String regime, String coinPair, String name, double defaultWeight) {
+        double weight = (coinPair != null)
+                ? WeightOverrideStore.getForCoin(regime, coinPair, name, defaultWeight)
+                : WeightOverrideStore.get(regime, name, defaultWeight);
         return new WeightedStrategy(StrategyRegistry.get(name), weight);
     }
 }

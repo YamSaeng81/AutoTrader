@@ -37,7 +37,7 @@ class StrategyWeightOptimizerTest {
     void setUp() {
         positionRepository    = mock(PositionRepository.class);
         strategyLogRepository = mock(StrategyLogRepository.class);
-        when(strategyLogRepository.findEvaluatedSignals(any())).thenReturn(List.of());
+        when(strategyLogRepository.findEvaluatedSignalsBySessionType(any(), any())).thenReturn(List.of());
         optimizer = new StrategyWeightOptimizer(strategyLogRepository, positionRepository);
         WeightOverrideStore.clear();
     }
@@ -94,7 +94,7 @@ class StrategyWeightOptimizerTest {
     void 실현샘플_부족시_기본값_유지_그리고_신호폴백_안쓰이면_건너뜀() {
         when(positionRepository.aggregateRealizedReturnsByStrategyAndRegime(any()))
                 .thenReturn(List.of());
-        when(strategyLogRepository.findEvaluatedSignals(any())).thenReturn(List.of());
+        when(strategyLogRepository.findEvaluatedSignalsBySessionType(any(), any())).thenReturn(List.of());
 
         optimizer.optimize();
 

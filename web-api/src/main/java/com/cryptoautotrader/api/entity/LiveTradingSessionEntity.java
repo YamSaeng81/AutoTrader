@@ -24,6 +24,10 @@ public class LiveTradingSessionEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /** 세션 종류 — REAL(실전) / PAPER(모의). V45 마이그레이션으로 추가. */
+    @Column(name = "session_type", nullable = false, length = 10)
+    private String sessionType;
+
     @Column(name = "strategy_type", nullable = false, length = 50)
     private String strategyType;
 
@@ -98,6 +102,7 @@ public class LiveTradingSessionEntity {
 
     @PrePersist
     void prePersist() {
+        if (sessionType == null) sessionType = "REAL";
         if (status == null) status = "CREATED";
         if (createdAt == null) createdAt = Instant.now();
         if (updatedAt == null) updatedAt = Instant.now();
@@ -113,6 +118,9 @@ public class LiveTradingSessionEntity {
     // -- 명시적 getter/setter (Lombok IDE 문제 회피용) --
 
     public Long getId() { return id; }
+
+    public String getSessionType() { return sessionType; }
+    public void setSessionType(String sessionType) { this.sessionType = sessionType; }
 
     public String getStrategyType() { return strategyType; }
     public void setStrategyType(String strategyType) { this.strategyType = strategyType; }

@@ -56,21 +56,27 @@ public class ReportComposer {
 
     /**
      * 12시간 분석 보고서를 생성하고 Notion에 저장한다.
+     *
+     * <p>실전(REAL)·모의(PAPER)를 별도 집계해 하나의 Notion 페이지에 섹션으로 분리한다.
+     * LLM 요약·분석은 실전 데이터를 주(主)로 하되, 모의 비교값을 추가 컨텍스트로 제공한다.
      */
     public NotionReportLogEntity compose(Instant from, Instant to) {
         NotionReportLogEntity logEntity = saveInitial(from, to);
 
         try {
-            AnalysisReport report = logAnalyzer.analyze(from, to);
+            AnalysisReport realReport  = logAnalyzer.analyze(from, to, "REAL");
+            AnalysisReport paperReport = logAnalyzer.analyze(from, to, "PAPER");
 
-            String summaryText  = buildLlmSummary(report);
+            String summaryText  = buildLlmSummary(realReport);
             logEntity.setLlmSummary(summaryText);
 
-            String analysisText = buildLlmAnalysis(report, summaryText);
+            String analysisText = buildLlmAnalysis(realReport, paperReport, summaryText);
             logEntity.setLlmAnalysis(analysisText);
 
             if (notionClient.isEnabled()) {
-                String pageId = notionClient.createPage(buildTitle(report), buildBlocks(report, summaryText, analysisText));
+                String pageId = notionClient.createPage(
+                        buildTitle(realReport),
+                        buildBlocks(realReport, paperReport, summaryText, analysisText));
                 if (pageId != null) {
                     logEntity.setNotionPageId(pageId);
                     logEntity.setNotionPageUrl(notionClient.pageUrl(pageId));
@@ -151,30 +157,45 @@ public class ReportComposer {
         return resp.isSuccess() ? resp.getContent() : "(LLM 요약 실패: " + resp.getErrorMessage() + ")";
     }
 
-    private String buildLlmAnalysis(AnalysisReport r, String summary) {
+    private String buildLlmAnalysis(AnalysisReport real, AnalysisReport paper, String summary) {
         String systemPrompt = """
                 당신은 암호화폐 자동매매 전략 분석가입니다.
-                제공된 12시간 성과 데이터를 분석하고 다음 항목을 한국어로 작성하세요:
-                1. 현재 시장 레짐에서의 전략 적합성 평가 (적중률 수치 기반)
-                2. 적중률이 낮은 전략의 문제점 및 개선 방향
-                3. 다음 12시간 주의사항
-                총 600자 이내로 작성하세요.
+                실전(REAL)과 모의(PAPER) 매매 12시간 성과를 비교 분석하고 다음 항목을 한국어로 작성하세요:
+                1. 현재 시장 레짐에서의 전략 적합성 평가 (실전 EV·적중률 수치 기반)
+                2. 실전 vs 모의 적중률 차이 해석 (차이가 크면 과적합·데이터 편향 가능성 진단)
+                3. 레짐별 EV 분석 — 어떤 레짐에서 기대값이 양수/음수인지, 개선 방향
+                4. 신호 품질이 좋은 시간대 vs 나쁜 시간대 패턴 (있으면)
+                5. 전략 간 컨센서스 vs 분산 신호 품질 차이 해석 (컨센서스가 유효한지 여부)
+                6. 다음 12시간 주의사항
+                총 800자 이내로 작성하세요.
                 """;
         String userPrompt = String.format("""
                 [요약] %s
-                [전략별 신호 품질]
+                [실전 전략별 신호 품질 (EV 포함)]
+                %s
+                [모의 전략별 신호 품질]
+                %s
+                [실전 레짐별 신호 품질]
+                %s
+                [실전 시간대별 신호 품질]
+                %s
+                [실전 전략 간 상관관계]
+                %s
+                [실전 코인별 포지션 성과]
                 %s
                 [레짐 전환] %s
                 [실행 중 세션]
                 %s
-                [코인별 포지션 성과]
-                %s
                 """,
                 summary,
-                strategyQualitySummary(r),
-                regimeTransitionSummary(r.getRegimeTransitions()),
-                activeSessionsSummary(r),
-                coinPositionStatsSummary(r));
+                strategyQualitySummary(real),
+                strategyQualitySummary(paper),
+                regimeStatsSummary(real),
+                hourlyStatsSummary(real),
+                correlationStatsSummary(real),
+                coinPositionStatsSummary(real),
+                regimeTransitionSummary(real.getRegimeTransitions()),
+                activeSessionsSummary(real));
 
         LlmResponse resp = llmTaskRouter.route(LlmTask.SIGNAL_ANALYSIS, systemPrompt, userPrompt);
         return resp.isSuccess() ? resp.getContent() : "(분석 실패: " + resp.getErrorMessage() + ")";
@@ -188,17 +209,43 @@ public class ReportComposer {
         return prefix + " " + KST_FMT.format(r.getPeriodStart()) + " ~ " + KST_FMT.format(r.getPeriodEnd());
     }
 
-    private List<ObjectNode> buildBlocks(AnalysisReport r, String summary, String analysis) {
+    private List<ObjectNode> buildBlocks(AnalysisReport real, AnalysisReport paper,
+                                          String summary, String analysis) {
         List<ObjectNode> blocks = new ArrayList<>();
-        blocks.add(buildHeaderCallout(r));
+
+        // 헤더 — 실전 데이터 기준 기간·레짐 표시
+        blocks.add(buildHeaderCallout(real));
         blocks.add(notionClient.divider());
+
+        // AI 요약
         blocks.addAll(buildSummarySection(summary));
-        blocks.addAll(buildSignalStatsSection(r));
-        blocks.addAll(buildPositionStatsSection(r));
-        if (!r.getStrategyStats().isEmpty()) blocks.addAll(buildStrategyStatsSection(r));
-        if (r.getActiveSessions() != null && !r.getActiveSessions().isEmpty()) blocks.addAll(buildActiveSessionsSection(r));
-        if (!r.getRegimeTransitions().isEmpty()) blocks.addAll(buildRegimeTransitionSection(r));
-        if (!r.getBlockReasons().isEmpty()) blocks.addAll(buildBlockReasonsSection(r));
+
+        // ── 실전 매매 ──
+        blocks.add(notionClient.callout("📊", "실전 매매 (REAL)", "green_background"));
+        blocks.addAll(buildSignalStatsSection(real));
+        blocks.addAll(buildPositionStatsSection(real));
+        if (!real.getStrategyStats().isEmpty()) blocks.addAll(buildStrategyStatsSection(real));
+        if (!real.getBlockReasons().isEmpty())  blocks.addAll(buildBlockReasonsSection(real));
+        if (real.getRegimeSignalStats() != null && !real.getRegimeSignalStats().isEmpty())
+            blocks.addAll(buildRegimeSignalStatsSection(real));
+        if (real.getHourlySignalStats() != null && !real.getHourlySignalStats().isEmpty())
+            blocks.addAll(buildHourlySignalStatsSection(real));
+        if (real.getCorrelationStats() != null && real.getCorrelationStats().getTotalBuckets() > 0)
+            blocks.addAll(buildCorrelationStatsSection(real));
+
+        // ── 모의 매매 ──
+        blocks.add(notionClient.callout("🧪", "모의 매매 (PAPER)", "gray_background"));
+        blocks.addAll(buildSignalStatsSection(paper));
+        blocks.addAll(buildPositionStatsSection(paper));
+        if (!paper.getStrategyStats().isEmpty()) blocks.addAll(buildStrategyStatsSection(paper));
+
+        // ── 공통 섹션 ──
+        if (real.getActiveSessions() != null && !real.getActiveSessions().isEmpty())
+            blocks.addAll(buildActiveSessionsSection(real));
+        if (real.getRegimeTransitions() != null && !real.getRegimeTransitions().isEmpty())
+            blocks.addAll(buildRegimeTransitionSection(real));
+
+        // AI 분석
         blocks.addAll(buildAnalysisSection(analysis));
         return blocks;
     }
@@ -275,6 +322,59 @@ public class ReportComposer {
                 notionClient.divider());
     }
 
+    private List<ObjectNode> buildRegimeSignalStatsSection(AnalysisReport r) {
+        Map<String, AnalysisReport.RegimeSignalQuality> stats = r.getRegimeSignalStats();
+        if (stats == null || stats.isEmpty()) return List.of();
+        List<List<String>> rows = new ArrayList<>();
+        stats.forEach((regime, q) -> rows.add(List.of(
+                regime,
+                q.getSignalCount() + "건",
+                q.getBuyWinRate4h()    != null ? q.getBuyWinRate4h()    + "%" : "-",
+                q.getSellWinRate4h()   != null ? q.getSellWinRate4h()   + "%" : "-",
+                q.getAvgReturn4h()     != null ? q.getAvgReturn4h()     + "%" : "-",
+                q.getExpectedValue4h() != null ? q.getExpectedValue4h() + "%" : "-")));
+        return List.of(
+                notionClient.heading2("📐 레짐별 신호 품질"),
+                notionClient.table(List.of("레짐", "신호수", "BUY 4h 적중", "SELL 4h 적중", "4h 평균수익", "EV"), rows),
+                notionClient.divider());
+    }
+
+    private List<ObjectNode> buildHourlySignalStatsSection(AnalysisReport r) {
+        List<AnalysisReport.HourlySignalQuality> stats = r.getHourlySignalStats();
+        if (stats == null || stats.isEmpty()) return List.of();
+        List<List<String>> rows = new ArrayList<>();
+        stats.forEach(q -> rows.add(List.of(
+                q.getHourBucket() + " KST",
+                q.getSignalCount() + "건",
+                q.getAccuracy4h()  != null ? q.getAccuracy4h()  + "%" : "-",
+                q.getAvgReturn4h() != null ? q.getAvgReturn4h() + "%" : "-")));
+        return List.of(
+                notionClient.heading2("🕐 시간대별 신호 품질 (KST)"),
+                notionClient.table(List.of("시간대", "신호수", "4h 적중률", "4h 평균수익"), rows),
+                notionClient.divider());
+    }
+
+    private List<ObjectNode> buildCorrelationStatsSection(AnalysisReport r) {
+        AnalysisReport.StrategyCorrelationStats c = r.getCorrelationStats();
+        if (c == null || c.getTotalBuckets() == 0) return List.of();
+        return List.of(
+                notionClient.heading2("🔗 전략 간 상관관계 (컨센서스 vs 분산)"),
+                notionClient.table(List.of("항목", "수치"), List.of(
+                        List.of("분석 버킷 수 (≥2전략)", c.getTotalBuckets() + "개"),
+                        List.of("컨센서스 버킷", c.getConsensusBuckets() + "개"),
+                        List.of("분산(불일치) 버킷",  c.getDivergentBuckets() + "개"),
+                        List.of("컨센서스 4h 적중률",
+                                c.getConsensusAccuracy4h() != null ? c.getConsensusAccuracy4h() + "%" : "-"),
+                        List.of("분산 4h 적중률",
+                                c.getDivergentAccuracy4h() != null ? c.getDivergentAccuracy4h() + "%" : "-"),
+                        List.of("컨센서스 4h 평균수익",
+                                c.getConsensusAvgReturn4h() != null ? c.getConsensusAvgReturn4h() + "%" : "-"),
+                        List.of("분산 4h 평균수익",
+                                c.getDivergentAvgReturn4h() != null ? c.getDivergentAvgReturn4h() + "%" : "-")
+                )),
+                notionClient.divider());
+    }
+
     private List<ObjectNode> buildAnalysisSection(String analysis) {
         return List.of(
                 notionClient.heading2("🧠 AI 전략 분석"),
@@ -310,7 +410,7 @@ public class ReportComposer {
 
     /**
      * LLM 분석용 전략별 신호 품질 요약.
-     * 건수뿐 아니라 4h/24h 적중률과 평균 수익률을 포함한다.
+     * 4h/24h 적중률, 평균 수익률, EV, 고신뢰 적중률을 포함한다.
      */
     private String strategyQualitySummary(AnalysisReport r) {
         Map<String, AnalysisReport.StrategySignalStat> stats = r.getStrategyStats();
@@ -324,13 +424,65 @@ public class ReportComposer {
                 sb.append(", 4h 적중률 ").append(stat.getAccuracy4h()).append("%");
             if (stat.getAvgReturn4h() != null)
                 sb.append("(평균 ").append(stat.getAvgReturn4h()).append("%)");
-            if (stat.getAccuracy24h() != null)
-                sb.append(", 24h 적중률 ").append(stat.getAccuracy24h()).append("%");
-            if (stat.getAvgReturn24h() != null)
-                sb.append("(평균 ").append(stat.getAvgReturn24h()).append("%)");
+            if (stat.getExpectedValue4h() != null)
+                sb.append(", EV ").append(stat.getExpectedValue4h()).append("%");
+            if (stat.getHighConfCount() > 0 && stat.getHighConfAccuracy4h() != null)
+                sb.append(", 고신뢰 ").append(stat.getHighConfAccuracy4h()).append("%")
+                  .append("(").append(stat.getHighConfCount()).append("건)");
             sb.append("\n");
         });
         return sb.toString().trim();
+    }
+
+    /** LLM 프롬프트용 레짐별 신호 품질 요약 */
+    private String regimeStatsSummary(AnalysisReport r) {
+        Map<String, AnalysisReport.RegimeSignalQuality> stats = r.getRegimeSignalStats();
+        if (stats == null || stats.isEmpty()) return "없음";
+        StringBuilder sb = new StringBuilder();
+        stats.forEach((regime, q) -> {
+            sb.append("• ").append(regime).append(": 신호 ").append(q.getSignalCount()).append("건");
+            if (q.getBuyWinRate4h()  != null) sb.append(", BUY 4h ").append(q.getBuyWinRate4h()).append("%");
+            if (q.getSellWinRate4h() != null) sb.append(", SELL 4h ").append(q.getSellWinRate4h()).append("%");
+            if (q.getExpectedValue4h() != null) sb.append(", EV ").append(q.getExpectedValue4h()).append("%");
+            sb.append("\n");
+        });
+        return sb.toString().trim();
+    }
+
+    /** LLM 프롬프트용 전략 간 상관관계 요약 */
+    private String correlationStatsSummary(AnalysisReport r) {
+        AnalysisReport.StrategyCorrelationStats c = r.getCorrelationStats();
+        if (c == null || c.getTotalBuckets() == 0) return "없음 (샘플 부족)";
+        StringBuilder sb = new StringBuilder();
+        sb.append("총 ").append(c.getTotalBuckets()).append("개 버킷")
+          .append(" (컨센서스 ").append(c.getConsensusBuckets())
+          .append(" / 분산 ").append(c.getDivergentBuckets()).append(")\n");
+        sb.append("• 컨센서스 4h 적중률: ")
+          .append(c.getConsensusAccuracy4h() != null ? c.getConsensusAccuracy4h() + "%" : "-");
+        if (c.getConsensusAvgReturn4h() != null)
+            sb.append(", 평균수익 ").append(c.getConsensusAvgReturn4h()).append("%");
+        sb.append("\n• 분산 4h 적중률: ")
+          .append(c.getDivergentAccuracy4h() != null ? c.getDivergentAccuracy4h() + "%" : "-");
+        if (c.getDivergentAvgReturn4h() != null)
+            sb.append(", 평균수익 ").append(c.getDivergentAvgReturn4h()).append("%");
+        return sb.toString();
+    }
+
+    /** LLM 프롬프트용 시간대별 신호 품질 요약 */
+    private String hourlyStatsSummary(AnalysisReport r) {
+        List<AnalysisReport.HourlySignalQuality> stats = r.getHourlySignalStats();
+        if (stats == null || stats.isEmpty()) return "없음";
+        StringBuilder sb = new StringBuilder();
+        stats.stream()
+                .filter(q -> q.getSignalCount() > 0)
+                .forEach(q -> {
+                    sb.append("• ").append(q.getHourBucket()).append(" KST: ")
+                            .append(q.getSignalCount()).append("건");
+                    if (q.getAccuracy4h()  != null) sb.append(", 적중률 ").append(q.getAccuracy4h()).append("%");
+                    if (q.getAvgReturn4h() != null) sb.append(", 평균수익 ").append(q.getAvgReturn4h()).append("%");
+                    sb.append("\n");
+                });
+        return sb.length() > 0 ? sb.toString().trim() : "없음";
     }
 
     private String regimeTransitionSummary(List<AnalysisReport.RegimeTransition> transitions) {

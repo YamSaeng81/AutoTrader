@@ -57,6 +57,19 @@ public interface PositionRepository extends JpaRepository<PositionEntity, Long> 
     @Query("SELECT p FROM PositionEntity p WHERE p.status = 'CLOSED' AND p.closedAt >= :from AND p.closedAt <= :to ORDER BY p.closedAt DESC")
     List<PositionEntity> findClosedByPeriod(@Param("from") java.time.Instant from, @Param("to") java.time.Instant to);
 
+    /** 분석 구간 청산 포지션 조회 — 세션 타입(REAL/PAPER) 필터 (live_trading_session 조인) */
+    @Query(value = "SELECT p.* FROM position p " +
+            "JOIN live_trading_session s ON p.session_id = s.id " +
+            "WHERE p.status = 'CLOSED' " +
+            "  AND p.closed_at >= :from AND p.closed_at <= :to " +
+            "  AND s.session_type = :sessionType " +
+            "ORDER BY p.closed_at DESC",
+            nativeQuery = true)
+    List<PositionEntity> findClosedByPeriodAndSessionType(
+            @Param("sessionType") String sessionType,
+            @Param("from") java.time.Instant from,
+            @Param("to") java.time.Instant to);
+
     /** 최근 청산 포지션 조회 (closedAt 역순) — 연속 손실 계산용 */
     @Query("SELECT p FROM PositionEntity p WHERE p.status = 'CLOSED' ORDER BY p.closedAt DESC")
     List<PositionEntity> findRecentClosed(org.springframework.data.domain.Pageable pageable);
@@ -93,7 +106,63 @@ public interface PositionRepository extends JpaRepository<PositionEntity, Long> 
             "  AND p.closed_at >= :since " +
             "  AND p.invested_krw > 0 " +
             "  AND p.market_regime IS NOT NULL " +
+            "  AND s.session_type = 'REAL' " +
             "GROUP BY s.strategy_type, p.market_regime",
             nativeQuery = true)
     List<Object[]> aggregateRealizedReturnsByStrategyAndRegime(@Param("since") java.time.Instant since);
+
+    /**
+     * 지수 가중 최적화용 — 개별 CLOSED 포지션을 전략·레짐·closed_at 과 함께 반환.
+     * StrategyWeightOptimizer 가 exp(-days/halfLife) 가중치를 Java 에서 적용한다.
+     *
+     * <p>각 행: [strategyType, marketRegime, realizedPnl, investedKrw, closedAt]</p>
+     */
+    @Query(value = "SELECT s.strategy_type, p.market_regime, p.realized_pnl, p.invested_krw, p.closed_at " +
+            "FROM position p " +
+            "JOIN live_trading_session s ON p.session_id = s.id " +
+            "WHERE p.status = 'CLOSED' " +
+            "  AND p.closed_at >= :since " +
+            "  AND p.invested_krw > 0 " +
+            "  AND p.market_regime IS NOT NULL " +
+            "  AND s.session_type = 'REAL'",
+            nativeQuery = true)
+    List<Object[]> findClosedPositionsForWeighting(@Param("since") java.time.Instant since);
+
+    /**
+     * 지수 가중 최적화용 (코인별) — coin_pair 컬럼 포함.
+     *
+     * <p>각 행: [strategyType, marketRegime, coinPair, realizedPnl, investedKrw, closedAt]</p>
+     */
+    @Query(value = "SELECT s.strategy_type, p.market_regime, p.coin_pair, p.realized_pnl, p.invested_krw, p.closed_at " +
+            "FROM position p " +
+            "JOIN live_trading_session s ON p.session_id = s.id " +
+            "WHERE p.status = 'CLOSED' " +
+            "  AND p.closed_at >= :since " +
+            "  AND p.invested_krw > 0 " +
+            "  AND p.market_regime IS NOT NULL " +
+            "  AND s.session_type = 'REAL'",
+            nativeQuery = true)
+    List<Object[]> findClosedPositionsForWeightingByCoin(@Param("since") java.time.Instant since);
+
+    /**
+     * 코인×전략×레짐 3차원 실현 수익률 집계 — StrategyWeightOptimizer 코인별 가중치 최적화용.
+     *
+     * <p>각 행: [strategyType, marketRegime, coinPair, sumRealizedPnl, sumInvestedKrw, tradeCount]</p>
+     */
+    @Query(value = "SELECT s.strategy_type AS strategy, " +
+            "       p.market_regime AS regime, " +
+            "       p.coin_pair AS coin, " +
+            "       COALESCE(SUM(p.realized_pnl), 0) AS sum_pnl, " +
+            "       COALESCE(SUM(p.invested_krw), 0) AS sum_invested, " +
+            "       COUNT(p.id) AS trade_count " +
+            "FROM position p " +
+            "JOIN live_trading_session s ON p.session_id = s.id " +
+            "WHERE p.status = 'CLOSED' " +
+            "  AND p.closed_at >= :since " +
+            "  AND p.invested_krw > 0 " +
+            "  AND p.market_regime IS NOT NULL " +
+            "  AND s.session_type = 'REAL' " +
+            "GROUP BY s.strategy_type, p.market_regime, p.coin_pair",
+            nativeQuery = true)
+    List<Object[]> aggregateRealizedReturnsByCoinStrategyAndRegime(@Param("since") java.time.Instant since);
 }

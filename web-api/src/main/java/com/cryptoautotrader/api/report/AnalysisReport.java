@@ -78,6 +78,76 @@ public class AnalysisReport {
     /** 코인별 포지션 통계 — 코인 페어 → 통계 */
     private final Map<String, CoinPositionStat> coinPositionStats;
 
+    // ── 레짐별 신호 품질 ──────────────────────────────────────────────────────
+    /** 레짐별 BUY/SELL 신호 품질 — 레짐명 → RegimeSignalQuality */
+    private final Map<String, RegimeSignalQuality> regimeSignalStats;
+
+    // ── 시간대별 신호 품질 ────────────────────────────────────────────────────
+    /** KST 4h 시간대별 신호 품질 (00-04, 04-08, …) */
+    private final List<HourlySignalQuality> hourlySignalStats;
+
+    // ── 전략 간 상관관계 ──────────────────────────────────────────────────────
+    /**
+     * 동일 코인·동일 4h 버킷에서 여러 전략 신호가 일치(컨센서스)했을 때와
+     * 불일치(분산)했을 때의 적중률 비교 통계.
+     */
+    private final StrategyCorrelationStats correlationStats;
+
+    @Getter
+    @Builder
+    public static class RegimeSignalQuality {
+        /** 레짐명 */
+        private final String regime;
+        /** BUY/SELL 신호 수 */
+        private final int signalCount;
+        /** BUY 신호 4h 적중률 (%) */
+        private final BigDecimal buyWinRate4h;
+        /** SELL 신호 4h 적중률 (%) */
+        private final BigDecimal sellWinRate4h;
+        /** 4h 평균 수익률 (%) */
+        private final BigDecimal avgReturn4h;
+        /**
+         * 4h 기대값 EV (%) — EV = win_rate × avg_win + loss_rate × avg_loss.
+         * 양수면 이 레짐에서 기대수익 플러스, 음수면 수수료 포함 손실 우세.
+         */
+        private final BigDecimal expectedValue4h;
+    }
+
+    @Getter
+    @Builder
+    public static class HourlySignalQuality {
+        /** KST 4h 시간대 버킷 (예: "00-04", "04-08", …) */
+        private final String hourBucket;
+        /** BUY/SELL 신호 수 */
+        private final int signalCount;
+        /** 4h 방향 적중률 (%) */
+        private final BigDecimal accuracy4h;
+        /** 4h 평균 수익률 (%) */
+        private final BigDecimal avgReturn4h;
+    }
+
+    @Getter
+    @Builder
+    public static class StrategyCorrelationStats {
+        /**
+         * ≥2개 전략이 동일 코인·4h 버킷에서 BUY/SELL 신호를 낸 버킷 수.
+         * 전략 간 합의/불일치를 판단하기 위한 전체 샘플 크기.
+         */
+        private final int totalBuckets;
+        /** 모든 전략이 같은 방향(전부 BUY 또는 전부 SELL)을 낸 버킷 수 */
+        private final int consensusBuckets;
+        /** BUY/SELL 방향이 혼재한 버킷 수 */
+        private final int divergentBuckets;
+        /** 컨센서스 버킷 내 신호의 4h 방향 적중률 (%) */
+        private final BigDecimal consensusAccuracy4h;
+        /** 분산(불일치) 버킷 내 신호의 4h 방향 적중률 (%) */
+        private final BigDecimal divergentAccuracy4h;
+        /** 컨센서스 버킷 내 신호의 4h 평균 수익률 (%) */
+        private final BigDecimal consensusAvgReturn4h;
+        /** 분산(불일치) 버킷 내 신호의 4h 평균 수익률 (%) */
+        private final BigDecimal divergentAvgReturn4h;
+    }
+
     @Getter
     @Builder
     public static class ActiveSessionInfo {
@@ -123,5 +193,18 @@ public class AnalysisReport {
         private final BigDecimal avgReturn4h;
         /** 24h 평균 수익률 (%) */
         private final BigDecimal avgReturn24h;
+        /**
+         * 고신뢰 신호(confidence ≥ 0.7)만 필터한 4h 적중률 (%).
+         * 전체 적중률과 비교해 confidence 점수의 선별력을 평가한다.
+         * 고신뢰 적중률 > 전체 적중률이면 confidence가 품질 예측에 유효함을 의미.
+         */
+        private final BigDecimal highConfAccuracy4h;
+        /** 고신뢰 신호 건수 (confidence ≥ 0.7) */
+        private final int highConfCount;
+        /**
+         * 4h 기대값 EV (%) — EV = win_rate × avg_win + loss_rate × avg_loss.
+         * 양수: 수수료 공제 후 기대수익 플러스 / 음수: 기대손실
+         */
+        private final BigDecimal expectedValue4h;
     }
 }

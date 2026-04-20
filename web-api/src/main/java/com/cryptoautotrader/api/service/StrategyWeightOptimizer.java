@@ -13,7 +13,11 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -56,6 +60,11 @@ public class StrategyWeightOptimizer {
     private static final int    LOOKBACK_DAYS        = 30;
     private static final int    MIN_REGIME_SAMPLE    = 20;   // 레짐별 전체 최소 신호 수
     private static final int    MIN_STRATEGY_SAMPLE  = 5;    // 전략별 최소 신호 수
+    /**
+     * 지수 가중 반감기 (일).
+     * 14일: 14일 전 거래 가중치 = exp(-1) ≈ 0.37, 28일 전 ≈ 0.14 — 최근 데이터 2~3배 강조.
+     */
+    private static final double HALF_LIFE_DAYS       = 14.0;
     private static final double MIN_WEIGHT           = 0.05; // 전략 최소 가중치
     private static final double SMOOTHING_NEW        = 0.70; // 새 가중치 비율
     private static final double SMOOTHING_DEFAULT    = 0.30; // 기본값 유지 비율
@@ -112,14 +121,17 @@ public class StrategyWeightOptimizer {
 
     // ── 핵심 로직 ─────────────────────────────────────────────────────────────
 
+    /** 코인별 최소 샘플 — 레짐 전체보다 낮게 설정 (코인당 거래가 적음) */
+    private static final int MIN_COIN_SAMPLE = 10;
+
     public void optimize() {
         Instant from = Instant.now().minus(LOOKBACK_DAYS, ChronoUnit.DAYS);
 
         // Primary: 종료 포지션의 실현 수익률 집계 — (regime → strategy → PerfStats)
         Map<String, Map<String, PerfStats>> realizedByRegime = loadRealizedReturns(from);
 
-        // Fallback: 4h 적중률 (CLOSED 포지션이 부족한 초기 단계용)
-        List<StrategyLogEntity> signals = strategyLogRepo.findEvaluatedSignals(from);
+        // Fallback: 4h 적중률 (CLOSED 포지션이 부족한 초기 단계용) — 실전 세션만 사용
+        List<StrategyLogEntity> signals = strategyLogRepo.findEvaluatedSignalsBySessionType("REAL", from);
         Map<String, Map<String, List<StrategyLogEntity>>> signalsByRegime = groupByRegimeAndStrategy(signals);
 
         for (Map.Entry<String, Map<String, Double>> regimeEntry : DEFAULTS.entrySet()) {
@@ -150,29 +162,123 @@ public class StrategyWeightOptimizer {
 
             WeightOverrideStore.update(regime, newWeights);
         }
+
+        // 코인별 특화 가중치 최적화
+        optimizeCoinLevel(from);
     }
 
-    // ── 실현 수익률 로딩 ──────────────────────────────────────────────────────
+    /**
+     * 코인×레짐별 실현 수익률로 코인 특화 가중치를 계산해 WeightOverrideStore에 저장한다.
+     *
+     * <p>샘플이 MIN_COIN_SAMPLE 건 이상인 (regime, coin) 조합에만 적용한다.
+     * 샘플 부족 시 WeightOverrideStore에서 해당 키가 없으므로 레짐 레벨 가중치가 자동 폴백된다.
+     */
+    private void optimizeCoinLevel(Instant from) {
+        List<Object[]> rows = positionRepository.findClosedPositionsForWeightingByCoin(from);
+        Instant now = Instant.now();
 
-    /** (regime → strategy → PerfStats) — 수수료 포함 실현 수익률. */
-    private Map<String, Map<String, PerfStats>> loadRealizedReturns(Instant from) {
-        List<Object[]> rows = positionRepository.aggregateRealizedReturnsByStrategyAndRegime(from);
-        Map<String, Map<String, PerfStats>> result = new HashMap<>();
+        // (regime:coin) → strategy → [weightedPnl, weightedInvested, tradeCount]
+        Map<String, Map<String, double[]>> accum = new HashMap<>();
         for (Object[] row : rows) {
             String strategy = (String) row[0];
             String regime   = (String) row[1];
-            BigDecimal sumPnl      = toBigDecimal(row[2]);
-            BigDecimal sumInvested = toBigDecimal(row[3]);
-            int tradeCount = ((Number) row[4]).intValue();
+            String coin     = (String) row[2];
+            BigDecimal pnl      = toBigDecimal(row[3]);
+            BigDecimal invested = toBigDecimal(row[4]);
+            Instant closedAt    = toInstant(row[5]);
 
-            if (strategy == null || regime == null) continue;
-            if (sumInvested.compareTo(BigDecimal.ZERO) <= 0) continue;
+            if (strategy == null || regime == null || coin == null) continue;
             if ("UNKNOWN".equals(regime) || "TRANSITIONAL".equals(regime)) continue;
 
-            double netReturnPct = sumPnl.doubleValue() / sumInvested.doubleValue();
-            result.computeIfAbsent(regime, k -> new HashMap<>())
-                    .put(strategy, new PerfStats(netReturnPct, tradeCount));
+            double daysSince = ChronoUnit.HOURS.between(closedAt, now) / 24.0;
+            double weight    = Math.exp(-daysSince / HALF_LIFE_DAYS);
+
+            double[] arr = accum.computeIfAbsent(regime + ":" + coin, k -> new HashMap<>())
+                                .computeIfAbsent(strategy, k -> new double[]{0.0, 0.0, 0.0});
+            arr[0] += pnl.doubleValue() * weight;
+            arr[1] += invested.doubleValue() * weight;
+            arr[2] += 1;
         }
+
+        // (regime:coin) → strategy → PerfStats
+        Map<String, Map<String, PerfStats>> byCoinRegime = new HashMap<>();
+        accum.forEach((key, stratMap) -> {
+            Map<String, PerfStats> perfMap = new HashMap<>();
+            stratMap.forEach((strategy, arr) -> {
+                if (arr[1] > 0) perfMap.put(strategy, new PerfStats(arr[0] / arr[1], (int) arr[2]));
+            });
+            if (!perfMap.isEmpty()) byCoinRegime.put(key, perfMap);
+        });
+
+        for (Map.Entry<String, Map<String, PerfStats>> entry : byCoinRegime.entrySet()) {
+            String[] parts = entry.getKey().split(":", 2);
+            if (parts.length < 2) continue;
+            String regime = parts[0];
+            String coin   = parts[1];
+
+            Map<String, Double> defaultWeights = DEFAULTS.get(regime);
+            if (defaultWeights == null) continue;
+
+            Map<String, PerfStats> perf = entry.getValue();
+            int total = perf.values().stream().mapToInt(p -> p.tradeCount).sum();
+            if (total < MIN_COIN_SAMPLE) {
+                log.debug("[WeightOptimizer] {}×{} 코인 샘플 부족 ({}건 < {}) — 스킵",
+                        regime, coin, total, MIN_COIN_SAMPLE);
+                continue;
+            }
+
+            Map<String, Double> coinWeights = computeWeightsFromRealized(defaultWeights, perf);
+            WeightOverrideStore.updateForCoin(regime, coin, coinWeights);
+            log.info("[WeightOptimizer] {}×{} 코인별 가중치 갱신 ({}건) — {}",
+                    regime, coin, total, formatWeights(coinWeights));
+        }
+    }
+
+    // ── 실현 수익률 로딩 (지수 가중) ─────────────────────────────────────────
+
+    /**
+     * (regime → strategy → PerfStats) — 지수 가중 실현 수익률.
+     *
+     * <p>최근 거래에 더 높은 가중치를 부여해 레짐 전환 등 시장 변화에 빠르게 적응한다.
+     * 가중치: w = exp(−daysSinceClose / HALF_LIFE_DAYS).
+     * net_return = Σ(pnl×w) / Σ(invested×w).</p>
+     */
+    private Map<String, Map<String, PerfStats>> loadRealizedReturns(Instant from) {
+        List<Object[]> rows = positionRepository.findClosedPositionsForWeighting(from);
+        Instant now = Instant.now();
+
+        // regime → strategy → [weightedPnl, weightedInvested, tradeCount]
+        Map<String, Map<String, double[]>> accum = new HashMap<>();
+        for (Object[] row : rows) {
+            String strategy = (String) row[0];
+            String regime   = (String) row[1];
+            BigDecimal pnl      = toBigDecimal(row[2]);
+            BigDecimal invested = toBigDecimal(row[3]);
+            Instant closedAt    = toInstant(row[4]);
+
+            if (strategy == null || regime == null) continue;
+            if ("UNKNOWN".equals(regime) || "TRANSITIONAL".equals(regime)) continue;
+
+            double daysSince = ChronoUnit.HOURS.between(closedAt, now) / 24.0;
+            double weight    = Math.exp(-daysSince / HALF_LIFE_DAYS);
+
+            double[] arr = accum.computeIfAbsent(regime, k -> new HashMap<>())
+                                .computeIfAbsent(strategy, k -> new double[]{0.0, 0.0, 0.0});
+            arr[0] += pnl.doubleValue() * weight;
+            arr[1] += invested.doubleValue() * weight;
+            arr[2] += 1; // unweighted count (min-sample check용)
+        }
+
+        Map<String, Map<String, PerfStats>> result = new HashMap<>();
+        accum.forEach((regime, stratMap) -> {
+            Map<String, PerfStats> perfMap = new HashMap<>();
+            stratMap.forEach((strategy, arr) -> {
+                if (arr[1] > 0) {
+                    perfMap.put(strategy, new PerfStats(arr[0] / arr[1], (int) arr[2]));
+                }
+            });
+            if (!perfMap.isEmpty()) result.put(regime, perfMap);
+        });
         return result;
     }
 
@@ -181,6 +287,18 @@ public class StrategyWeightOptimizer {
         if (o instanceof BigDecimal bd) return bd;
         if (o instanceof Number n) return BigDecimal.valueOf(n.doubleValue());
         return new BigDecimal(o.toString());
+    }
+
+    /** SQL 결과의 timestamp 컬럼을 Instant로 변환 (DB 방언별 타입 차이 흡수). */
+    private static Instant toInstant(Object o) {
+        if (o == null) return Instant.now();
+        if (o instanceof Instant i) return i;
+        if (o instanceof Timestamp ts) return ts.toInstant();
+        if (o instanceof LocalDateTime ldt) return ldt.toInstant(ZoneOffset.UTC);
+        if (o instanceof java.util.Date d) return d.toInstant();
+        // fallback: ISO string
+        try { return Instant.parse(o.toString()); } catch (Exception ignored) {}
+        return Instant.now();
     }
 
     /** 전략별 실현 성과 — {@code netReturnPct} = sum(realizedPnl)/sum(investedKrw). */
@@ -248,42 +366,65 @@ public class StrategyWeightOptimizer {
     }
 
     /**
-     * [FALLBACK] 레짐 내 전략별 4h 적중률 → 정규화 → 스무딩 — 실현 수익률 샘플 부족 시에만 사용.
+     * [FALLBACK] 레짐 내 전략별 EV(기대값) → 정규화 → 스무딩 — 실현 수익률 샘플 부족 시에만 사용.
+     *
+     * <p>v2: 4h 적중률에서 EV(= win_rate × avg_win + loss_rate × avg_loss)로 교체.
+     * 적중률은 방향만 맞으면 동일 점수이므로 손익 비대칭(크게 이기고 조금 지거나 반대)을 반영하지 못함.
+     * EV는 기댓값이 양수인 전략에 더 높은 가중치를 부여한다.
      */
     private Map<String, Double> computeWeightsFromSignals(
             Map<String, Double> defaultWeights,
             Map<String, List<StrategyLogEntity>> strategyMap) {
 
-        // 1. 전략별 4h 적중률 계산
-        Map<String, Double> winRates = new LinkedHashMap<>();
+        // 1. 전략별 4h EV 계산
+        Map<String, Double> evScores = new LinkedHashMap<>();
         for (String strategyName : defaultWeights.keySet()) {
             List<StrategyLogEntity> group = strategyMap.getOrDefault(strategyName, List.of());
             List<StrategyLogEntity> eval4h = group.stream()
                     .filter(l -> l.getReturn4hPct() != null).toList();
 
             if (eval4h.size() < MIN_STRATEGY_SAMPLE) {
-                // 샘플 부족 → 기본 적중률 50%로 대체 (중립)
-                winRates.put(strategyName, 0.50);
+                evScores.put(strategyName, 0.0); // 중립 — 정규화 후 기본값에 수렴
             } else {
-                long wins = eval4h.stream()
+                List<BigDecimal> wins   = eval4h.stream()
                         .filter(l -> l.getReturn4hPct().compareTo(FEE_THRESHOLD) > 0)
-                        .count();
-                winRates.put(strategyName, (double) wins / eval4h.size());
+                        .map(StrategyLogEntity::getReturn4hPct).toList();
+                List<BigDecimal> losses = eval4h.stream()
+                        .filter(l -> l.getReturn4hPct().compareTo(FEE_THRESHOLD) <= 0)
+                        .map(StrategyLogEntity::getReturn4hPct).toList();
+
+                double winRate  = (double) wins.size()   / eval4h.size();
+                double lossRate = (double) losses.size() / eval4h.size();
+                double avgWin   = wins.isEmpty()   ? 0.0
+                        : wins.stream().reduce(BigDecimal.ZERO, BigDecimal::add)
+                                .divide(BigDecimal.valueOf(wins.size()), 6, RoundingMode.HALF_UP)
+                                .doubleValue();
+                double avgLoss  = losses.isEmpty() ? 0.0
+                        : losses.stream().reduce(BigDecimal.ZERO, BigDecimal::add)
+                                .divide(BigDecimal.valueOf(losses.size()), 6, RoundingMode.HALF_UP)
+                                .doubleValue();
+                double ev = winRate * avgWin + lossRate * avgLoss; // avgLoss는 음수
+                evScores.put(strategyName, Math.max(ev, 0.0)); // 음수 EV → 최소값 처리
             }
         }
 
-        // 2. 정규화: 최소 가중치(MIN_WEIGHT) 보정 후 sum=1.0
-        Map<String, Double> normalized = normalize(winRates);
+        // 2. 모든 점수 0이면 기본값 폴백
+        if (evScores.values().stream().allMatch(v -> v == 0.0)) {
+            return new LinkedHashMap<>(defaultWeights);
+        }
 
-        // 3. 스무딩: 70% 계산값 + 30% 기본값
+        // 3. 정규화: 최소 가중치(MIN_WEIGHT) 보정 후 sum=1.0
+        Map<String, Double> normalized = normalize(evScores);
+
+        // 4. 스무딩: 70% 계산값 + 30% 기본값
         Map<String, Double> smoothed = new LinkedHashMap<>();
         for (String name : defaultWeights.keySet()) {
-            double computed  = normalized.getOrDefault(name, defaultWeights.get(name));
-            double def       = defaultWeights.get(name);
+            double computed = normalized.getOrDefault(name, defaultWeights.get(name));
+            double def      = defaultWeights.get(name);
             smoothed.put(name, SMOOTHING_NEW * computed + SMOOTHING_DEFAULT * def);
         }
 
-        // 4. 스무딩 후 재정규화
+        // 5. 스무딩 후 재정규화
         return normalize(smoothed);
     }
 

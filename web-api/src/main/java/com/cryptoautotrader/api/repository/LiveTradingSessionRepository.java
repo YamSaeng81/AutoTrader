@@ -28,4 +28,7 @@ public interface LiveTradingSessionRepository extends JpaRepository<LiveTradingS
     /** 활성 세션들의 availableKrw 합산 (Tier 2 §8 — 거래소 잔고 drift 감지) */
     @Query("SELECT COALESCE(SUM(s.availableKrw), 0) FROM LiveTradingSessionEntity s WHERE s.status IN :statuses")
     BigDecimal sumAvailableKrwByStatusIn(@Param("statuses") List<String> statuses);
+
+    /** 모의→실전 승격 검사용 — 특정 타입·상태의 세션 조회 */
+    List<LiveTradingSessionEntity> findBySessionTypeAndStatus(String sessionType, String status);
 }

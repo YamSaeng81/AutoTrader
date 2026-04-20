@@ -146,6 +146,7 @@ CREATE TABLE IF NOT EXISTS live_trading_session (
     mdd_peak_capital              DECIMAL(20, 2),
     circuit_breaker_triggered_at  TIMESTAMP,
     circuit_breaker_reason        VARCHAR(255),
+    session_type                  VARCHAR(10)     NOT NULL DEFAULT 'REAL',
     started_at                    TIMESTAMP,
     stopped_at                    TIMESTAMP,
     created_at                    TIMESTAMP       DEFAULT CURRENT_TIMESTAMP,
@@ -244,7 +245,8 @@ CREATE TABLE IF NOT EXISTS strategy_log (
     price_after_4h   NUMERIC(20,8),
     price_after_24h  NUMERIC(20,8),
     return_4h_pct    NUMERIC(8,4),
-    return_24h_pct   NUMERIC(8,4)
+    return_24h_pct   NUMERIC(8,4),
+    confidence_score NUMERIC(5,4)
 );
 
 -- 활성화 전략 테이블 (V14)

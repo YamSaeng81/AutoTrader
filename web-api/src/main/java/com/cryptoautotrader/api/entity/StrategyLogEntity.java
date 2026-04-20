@@ -81,6 +81,14 @@ public class StrategyLogEntity {
     @Column(name = "return_24h_pct", precision = 8, scale = 4)
     private BigDecimal return24hPct;
 
+    /**
+     * CompositeStrategy 내부 buyScore/sellScore 정규화값 (0.0~1.0).
+     * 높을수록 컴포넌트 전략 간 합의가 강함 — 신호 신뢰도 지표.
+     * HOLD 신호는 null (방향성 없음).
+     */
+    @Column(name = "confidence_score", precision = 5, scale = 4)
+    private BigDecimal confidenceScore;
+
     @PrePersist
     void prePersist() {
         if (createdAt == null) createdAt = Instant.now();

@@ -20,9 +20,12 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -44,20 +47,37 @@ public class LogAnalyzerService {
     private final UpbitRestClient upbitRestClient;
 
     /**
-     * 지정 구간의 분석 보고서를 생성한다.
+     * 지정 구간의 분석 보고서를 생성한다 (전체 — 실전+모의 합산).
      * DB에서 기간 필터링하여 메모리 부하를 최소화한다.
      */
     public AnalysisReport analyze(Instant from, Instant to) {
-        log.info("[LogAnalyzer] 분석 시작 — {} ~ {}", from, to);
+        return analyze(from, to, null);
+    }
 
-        List<StrategyLogEntity> periodLogs = strategyLogRepo.findByPeriod(from, to);
-        List<PositionEntity>    closedPos  = positionRepo.findClosedByPeriod(from, to);
+    /**
+     * 지정 구간의 분석 보고서를 생성한다.
+     *
+     * @param sessionType "REAL" | "PAPER" | null(전체)
+     */
+    public AnalysisReport analyze(Instant from, Instant to, String sessionType) {
+        log.info("[LogAnalyzer] 분석 시작 — {} ~ {} ({})",
+                from, to, sessionType != null ? sessionType : "ALL");
 
-        SignalStats    signals   = buildSignalStats(periodLogs);
-        PositionStats  positions = buildPositionStats(closedPos);
-        RegimeStats    regime    = buildRegimeStats(from, to);
-        int            openPos   = buildOpenPositionCount();
-        int            streak    = buildConsecutiveLosses();
+        List<StrategyLogEntity> periodLogs = sessionType != null
+                ? strategyLogRepo.findByPeriodAndSessionType(sessionType, from, to)
+                : strategyLogRepo.findByPeriod(from, to);
+        List<PositionEntity> closedPos = sessionType != null
+                ? positionRepo.findClosedByPeriodAndSessionType(sessionType, from, to)
+                : positionRepo.findClosedByPeriod(from, to);
+
+        SignalStats    signals      = buildSignalStats(periodLogs);
+        PositionStats  positions    = buildPositionStats(closedPos);
+        RegimeStats    regime       = buildRegimeStats(from, to);
+        int            openPos      = buildOpenPositionCount();
+        int            streak       = buildConsecutiveLosses();
+        Map<String, AnalysisReport.RegimeSignalQuality> regimeSignalStats  = buildRegimeSignalStats(periodLogs);
+        List<AnalysisReport.HourlySignalQuality>         hourlySignalStats  = buildHourlySignalStats(periodLogs);
+        AnalysisReport.StrategyCorrelationStats          correlationStats   = buildCorrelationStats(periodLogs);
 
         // 실행 중 세션 기반 추가 컨텍스트
         List<LiveTradingSessionEntity> runningSessions = buildRunningSessions();
@@ -108,6 +128,10 @@ public class LogAnalyzerService {
                 .activeSessions(activeSessions)
                 .coinPriceChanges(coinPriceChanges)
                 .coinPositionStats(coinPositionStats)
+                // 레짐별/시간대별 신호 품질 및 전략 간 상관관계
+                .regimeSignalStats(regimeSignalStats)
+                .hourlySignalStats(hourlySignalStats)
+                .correlationStats(correlationStats)
                 .build();
     }
 
@@ -151,12 +175,19 @@ public class LogAnalyzerService {
                                 }
                                 if (l.isWasExecuted()) executed++;
                             }
+                            List<StrategyLogEntity> highConf = g.stream()
+                                    .filter(l -> l.getConfidenceScore() != null
+                                            && l.getConfidenceScore().compareTo(HIGH_CONF_THRESHOLD) >= 0)
+                                    .toList();
                             return AnalysisReport.StrategySignalStat.builder()
                                     .buy(buy).sell(sell).hold(hold).executed(executed)
                                     .accuracy4h(calcAccuracy(g, true))
                                     .accuracy24h(calcAccuracy(g, false))
                                     .avgReturn4h(calcAvgReturn(g, true))
                                     .avgReturn24h(calcAvgReturn(g, false))
+                                    .highConfAccuracy4h(calcAccuracy(highConf, true))
+                                    .highConfCount(highConf.size())
+                                    .expectedValue4h(calcExpectedValue(g, true))
                                     .build();
                         }));
 
@@ -202,9 +233,126 @@ public class LogAnalyzerService {
         return r;
     }
 
+    // ── 레짐별 신호 품질 ──────────────────────────────────────────────────────
+
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+    private static final String[] HOUR_BUCKETS = {"00-04", "04-08", "08-12", "12-16", "16-20", "20-24"};
+
+    /**
+     * 레짐별 BUY/SELL 신호 품질을 집계한다.
+     * UNKNOWN/TRANSITIONAL 레짐은 제외한다.
+     */
+    private Map<String, AnalysisReport.RegimeSignalQuality> buildRegimeSignalStats(List<StrategyLogEntity> logs) {
+        Map<String, List<StrategyLogEntity>> byRegime = logs.stream()
+                .filter(l -> l.getMarketRegime() != null
+                        && !"UNKNOWN".equals(l.getMarketRegime())
+                        && !"TRANSITIONAL".equals(l.getMarketRegime()))
+                .filter(l -> "BUY".equals(l.getSignal()) || "SELL".equals(l.getSignal()))
+                .collect(Collectors.groupingBy(StrategyLogEntity::getMarketRegime));
+
+        Map<String, AnalysisReport.RegimeSignalQuality> result = new LinkedHashMap<>();
+        byRegime.forEach((regime, regimeLogs) -> {
+            List<StrategyLogEntity> buys  = regimeLogs.stream()
+                    .filter(l -> "BUY".equals(l.getSignal())).toList();
+            List<StrategyLogEntity> sells = regimeLogs.stream()
+                    .filter(l -> "SELL".equals(l.getSignal())).toList();
+            result.put(regime, AnalysisReport.RegimeSignalQuality.builder()
+                    .regime(regime)
+                    .signalCount(regimeLogs.size())
+                    .buyWinRate4h(calcAccuracy(buys, true))
+                    .sellWinRate4h(calcAccuracy(sells, true))
+                    .avgReturn4h(calcAvgReturn(regimeLogs, true))
+                    .expectedValue4h(calcExpectedValue(regimeLogs, true))
+                    .build());
+        });
+        return result;
+    }
+
+    // ── 시간대별 신호 품질 ────────────────────────────────────────────────────
+
+    /**
+     * KST 4h 시간대별 BUY/SELL 신호 품질을 집계한다.
+     * 버킷: 00-04, 04-08, 08-12, 12-16, 16-20, 20-24
+     */
+    private List<AnalysisReport.HourlySignalQuality> buildHourlySignalStats(List<StrategyLogEntity> logs) {
+        Map<String, List<StrategyLogEntity>> byBucket = new LinkedHashMap<>();
+        for (String b : HOUR_BUCKETS) byBucket.put(b, new ArrayList<>());
+
+        logs.stream()
+                .filter(l -> "BUY".equals(l.getSignal()) || "SELL".equals(l.getSignal()))
+                .filter(l -> l.getCreatedAt() != null)
+                .forEach(l -> {
+                    ZonedDateTime kst = l.getCreatedAt().atZone(KST);
+                    int bucketIdx = kst.getHour() / 4;
+                    byBucket.get(HOUR_BUCKETS[bucketIdx]).add(l);
+                });
+
+        List<AnalysisReport.HourlySignalQuality> result = new ArrayList<>();
+        byBucket.forEach((bucket, bucketLogs) ->
+                result.add(AnalysisReport.HourlySignalQuality.builder()
+                        .hourBucket(bucket)
+                        .signalCount(bucketLogs.size())
+                        .accuracy4h(calcAccuracy(bucketLogs, true))
+                        .avgReturn4h(calcAvgReturn(bucketLogs, true))
+                        .build()));
+        return result;
+    }
+
+    // ── 전략 간 상관관계 분석 ─────────────────────────────────────────────────
+
+    /**
+     * 동일 코인·동일 4h KST 버킷에서 ≥2개 전략이 신호를 낸 경우를 기준으로
+     * 컨센서스(전부 같은 방향) vs 분산(방향 혼재) 버킷별 4h 적중률을 비교한다.
+     *
+     * <p>버킷 키 = coinPair + "|" + (epochSecond / 14400) — 4h = 14,400초
+     */
+    private AnalysisReport.StrategyCorrelationStats buildCorrelationStats(List<StrategyLogEntity> logs) {
+        // 버킷별 BUY/SELL 신호만 수집
+        Map<String, List<StrategyLogEntity>> byBucket = new HashMap<>();
+        for (StrategyLogEntity l : logs) {
+            if (!"BUY".equals(l.getSignal()) && !"SELL".equals(l.getSignal())) continue;
+            if (l.getCoinPair() == null || l.getCreatedAt() == null) continue;
+            long bucket4h = l.getCreatedAt().getEpochSecond() / 14_400L;
+            String key = l.getCoinPair() + "|" + bucket4h;
+            byBucket.computeIfAbsent(key, k -> new ArrayList<>()).add(l);
+        }
+
+        List<StrategyLogEntity> consensusSignals  = new ArrayList<>();
+        List<StrategyLogEntity> divergentSignals  = new ArrayList<>();
+        int totalBuckets = 0, consensusBuckets = 0, divergentBuckets = 0;
+
+        for (List<StrategyLogEntity> bucket : byBucket.values()) {
+            if (bucket.size() < 2) continue; // 단일 전략 버킷은 제외
+            totalBuckets++;
+            boolean hasBuy  = bucket.stream().anyMatch(l -> "BUY".equals(l.getSignal()));
+            boolean hasSell = bucket.stream().anyMatch(l -> "SELL".equals(l.getSignal()));
+            if (hasBuy && !hasSell || !hasBuy && hasSell) {
+                // 모두 같은 방향 — 컨센서스
+                consensusBuckets++;
+                consensusSignals.addAll(bucket);
+            } else {
+                // BUY와 SELL 혼재 — 분산
+                divergentBuckets++;
+                divergentSignals.addAll(bucket);
+            }
+        }
+
+        return AnalysisReport.StrategyCorrelationStats.builder()
+                .totalBuckets(totalBuckets)
+                .consensusBuckets(consensusBuckets)
+                .divergentBuckets(divergentBuckets)
+                .consensusAccuracy4h(calcAccuracy(consensusSignals, true))
+                .divergentAccuracy4h(calcAccuracy(divergentSignals, true))
+                .consensusAvgReturn4h(calcAvgReturn(consensusSignals, true))
+                .divergentAvgReturn4h(calcAvgReturn(divergentSignals, true))
+                .build();
+    }
+
     // ── 계산 헬퍼 ─────────────────────────────────────────────────────────────
 
-    private static final BigDecimal FEE_THRESHOLD = TradingConstants.FEE_THRESHOLD;
+    private static final BigDecimal FEE_THRESHOLD  = TradingConstants.FEE_THRESHOLD;
+    /** 고신뢰 신호 기준 — confidence_score ≥ 0.7 */
+    private static final BigDecimal HIGH_CONF_THRESHOLD = BigDecimal.valueOf(0.7);
 
     /** count/total 비율을 소수점 1자리 퍼센트로 반환 */
     private static BigDecimal pct(long count, long total) {
@@ -227,6 +375,39 @@ public class LogAnalyzerService {
                     return ret != null && ret.compareTo(FEE_THRESHOLD) > 0;
                 }).count();
         return pct(correct, evaluated.size());
+    }
+
+    /**
+     * BUY/SELL 신호 기대값(EV) 계산 — EV = win_rate × avg_win + loss_rate × avg_loss.
+     * avgLoss는 음수이므로 덧셈으로 처리한다. 수수료 공제 후 실질 기준.
+     */
+    private BigDecimal calcExpectedValue(List<StrategyLogEntity> logs, boolean is4h) {
+        List<StrategyLogEntity> evaluated = logs.stream()
+                .filter(l -> "BUY".equals(l.getSignal()) || "SELL".equals(l.getSignal()))
+                .filter(l -> is4h ? l.getReturn4hPct() != null : l.getReturn24hPct() != null)
+                .toList();
+        if (evaluated.isEmpty()) return null;
+
+        List<BigDecimal> wins   = new ArrayList<>();
+        List<BigDecimal> losses = new ArrayList<>();
+        for (StrategyLogEntity l : evaluated) {
+            BigDecimal ret = is4h ? l.getReturn4hPct() : l.getReturn24hPct();
+            if (ret.compareTo(FEE_THRESHOLD) > 0) wins.add(ret);
+            else losses.add(ret);
+        }
+
+        double total    = evaluated.size();
+        double winRate  = wins.size()   / total;
+        double lossRate = losses.size() / total;
+        double avgWin   = wins.isEmpty()   ? 0.0
+                : wins.stream().reduce(BigDecimal.ZERO, BigDecimal::add)
+                        .divide(BigDecimal.valueOf(wins.size()), 6, RoundingMode.HALF_UP).doubleValue();
+        double avgLoss  = losses.isEmpty() ? 0.0
+                : losses.stream().reduce(BigDecimal.ZERO, BigDecimal::add)
+                        .divide(BigDecimal.valueOf(losses.size()), 6, RoundingMode.HALF_UP).doubleValue();
+
+        double ev = winRate * avgWin + lossRate * avgLoss;
+        return BigDecimal.valueOf(ev).setScale(4, RoundingMode.HALF_UP);
     }
 
     /** BUY/SELL 신호만 대상으로 평균 수익률 계산 */

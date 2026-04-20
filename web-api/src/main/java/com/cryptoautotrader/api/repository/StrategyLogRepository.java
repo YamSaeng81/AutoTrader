@@ -20,6 +20,10 @@ public interface StrategyLogRepository extends JpaRepository<StrategyLogEntity, 
     @Query("SELECT l FROM StrategyLogEntity l WHERE l.createdAt >= :from AND l.createdAt <= :to ORDER BY l.createdAt DESC")
     List<StrategyLogEntity> findByPeriod(@Param("from") Instant from, @Param("to") Instant to);
 
+    /** 분석 구간 로그 조회 — 세션 타입(REAL/PAPER) 필터 */
+    @Query("SELECT l FROM StrategyLogEntity l WHERE l.sessionType = :sessionType AND l.createdAt >= :from AND l.createdAt <= :to ORDER BY l.createdAt DESC")
+    List<StrategyLogEntity> findByPeriodAndSessionType(@Param("sessionType") String sessionType, @Param("from") Instant from, @Param("to") Instant to);
+
     /** 4시간 경과 후 가격 평가가 아직 안 된 BUY/SELL 신호 조회 */
     @Query("SELECT l FROM StrategyLogEntity l WHERE l.signal IN ('BUY', 'SELL') " +
            "AND l.createdAt < :cutoff AND l.priceAfter4h IS NULL AND l.signalPrice IS NOT NULL " +
@@ -43,4 +47,10 @@ public interface StrategyLogRepository extends JpaRepository<StrategyLogEntity, 
            "AND (l.return4hPct IS NOT NULL OR l.return24hPct IS NOT NULL)")
     List<StrategyLogEntity> findEvaluatedSignalsBySessionType(
             @Param("sessionType") String sessionType, @Param("from") Instant from);
+
+    /** 모의→실전 승격 검사용 — 특정 세션의 평가 완료 BUY/SELL 신호 조회 */
+    @Query("SELECT l FROM StrategyLogEntity l WHERE l.signal IN ('BUY', 'SELL') " +
+           "AND l.sessionId = :sessionId " +
+           "AND l.return4hPct IS NOT NULL")
+    List<StrategyLogEntity> findEvaluatedSignalsBySessionId(@Param("sessionId") Long sessionId);
 }

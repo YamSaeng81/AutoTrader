@@ -522,6 +522,9 @@ public class PaperTradingService {
 
         // 전략 로그 DB 저장
         try {
+            BigDecimal conf = (signal.getAction() != com.cryptoautotrader.strategy.StrategySignal.Action.HOLD)
+                    ? signal.getStrength().divide(java.math.BigDecimal.valueOf(100), 4, java.math.RoundingMode.HALF_UP)
+                    : null;
             StrategyLogEntity logEntity = StrategyLogEntity.builder()
                     .strategyName(strategyName)
                     .coinPair(coinPair)
@@ -530,6 +533,7 @@ public class PaperTradingService {
                     .marketRegime(null)
                     .sessionType("PAPER")
                     .sessionId(session.getId())
+                    .confidenceScore(conf)
                     .build();
             strategyLogRepo.save(logEntity);
         } catch (Exception e) {

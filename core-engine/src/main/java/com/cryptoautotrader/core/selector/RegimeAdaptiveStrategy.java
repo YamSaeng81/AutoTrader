@@ -47,7 +47,9 @@ public class RegimeAdaptiveStrategy implements Strategy {
     @Override
     public StrategySignal evaluate(List<Candle> candles, Map<String, Object> params) {
         MarketRegime regime = detector.detect(candles);
-        List<WeightedStrategy> weighted = StrategySelector.select(regime);
+        // coinPair가 params에 있으면 코인별 특화 가중치를 사용한다 (LiveTradingService가 주입)
+        String coinPair = (params != null) ? (String) params.get("coinPair") : null;
+        List<WeightedStrategy> weighted = StrategySelector.select(regime, coinPair);
         StrategySignal signal = new CompositeStrategy(weighted).evaluate(candles, params);
 
         // TRANSITIONAL 국면: 신규 진입 금지 — 기존 포지션 유지(SELL)만 허용

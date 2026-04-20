@@ -3,7 +3,7 @@
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝나면 완료 내용을 [`docs/CHANGELOG.md`](CHANGELOG.md)에 추가하고, 이 파일의 해당 항목은 삭제한다.
 > **변경 이력**: [`docs/CHANGELOG.md`](CHANGELOG.md)
-> **마지막 갱신**: 2026-04-20 (신호품질 개선 완료 — 자본 사용률 기반 리스크 제어 + 테스트 버그 수정)
+> **마지막 갱신**: 2026-04-20 (신호품질 고도화 Tier1+2 완료 — EV 평가·레짐별/시간대별 신호 품질·성과 저하 워치독)
 
 ---
 
@@ -24,6 +24,15 @@
 - ✅ **§8 세션당 1코인 암묵 가정** — 자본 초과 배정 방지 가드(createSession/startSession), 매수 시 cross-session 가용KRW 합산 초과 차단(executeSessionBuy), PortfolioSyncService drift 감지(5% 초과 경고). Repository에 `sumInitialCapitalByStatusIn` / `sumAvailableKrwByStatusIn` 집계 쿼리 추가. 테스트 4건(SessionCapitalGuardTest).
 - ✅ **§9 WebSocket 단일 장애점** — ExchangeHealthMonitor에 `wsDisconnectedSince` + `isWsDownLongerThan()` 추가. LiveTradingService에 `pollRestTickerFallback()` (5초 주기, WS>30초 끊김 시 REST ticker→RealtimePriceEvent 대체), `warnStaleSlCheck()` (1분 주기, SL 3분 미점검 세션 Telegram 경고), `recordSlCheck()` 호출 삽입. TelegramNotificationService에 `sendCustomNotification()` 추가. 테스트 3건(WsFallbackTest).
 - ✅ **§10 emergencyStopAll 연쇄 충격** — `UpbitApiRateLimiter`(Semaphore 7 permits/sec, 데몬 리필) 신설, `OrderExecutionEngine` submit/cancel 경로에 rate limit 통합, `emergencyStopAll(boolean dryRun)` 손실 내림차순 우선 청산 + dry-run 모드, `/emergency-stop/dry-run` 엔드포인트 추가. 테스트 4건(RateLimiterEmergencyStopTest).
+
+### Tier 2 — 신호 품질 분석 고도화 (4~9)
+- ✅ **⑦ 지수 가중 수익률** — `StrategyWeightOptimizer`에서 포지션별 `exp(-days/14)` 가중치 적용. `PositionRepository`에 `closed_at` 포함 개별 포지션 쿼리 2종 추가. `toInstant()` 타입 변환 헬퍼 추가.
+- ✅ **⑧ 모의→실전 자동 승격 파이프라인** — `PaperSessionPromotionService` 신규 생성. 매일 08:00 KST 스케줄(UTC 23:00). 5개 조건(30d 운영·신호 20건·4h 적중률 ≥60%·EV ≥0.1%·MDD ≤10%) 자동 평가 + Discord 알림. In-memory 중복 방지.
+- ✅ **⑨ 전략 간 상관관계 분석** — `AnalysisReport.StrategyCorrelationStats` 추가(컨센서스/분산 버킷 수·4h 적중률·평균수익). `LogAnalyzerService.buildCorrelationStats()`: 동일 코인·4h 버킷에서 전략 방향 일치 여부 분류. Notion "🔗 전략 간 상관관계" 테이블. LLM 분석 항목 추가.
+- ✅ **④ EV(기대값) 중심 평가** — `StrategySignalStat.expectedValue4h` 추가. `LogAnalyzerService.calcExpectedValue()`: EV = win_rate × avg_win + loss_rate × avg_loss. `StrategyWeightOptimizer.computeWeightsFromSignals()` 4h 적중률 → EV 기반으로 교체. `ReportComposer.strategyQualitySummary()` EV 포함.
+- ✅ **⑤ 레짐별 신호 품질 추적** — `AnalysisReport.RegimeSignalQuality` 추가(레짐·신호수·BUY/SELL 4h 적중률·평균수익·EV). `LogAnalyzerService.buildRegimeSignalStats()` 구현. Notion 보고서에 "📐 레짐별 신호 품질" 테이블 추가. LLM 분석 프롬프트에 레짐별 EV 진단 항목 추가.
+- ✅ **⑥ 시간대별 신호 품질** — `AnalysisReport.HourlySignalQuality` 추가(KST 4h 버킷·신호수·4h 적중률·평균수익). `LogAnalyzerService.buildHourlySignalStats()` 구현. Notion 보고서에 "🕐 시간대별 신호 품질" 테이블 추가. LLM 분석 항목에 "좋은 시간대 vs 나쁜 시간대" 패턴 분석 추가.
+- ✅ **H2 스키마 동기화** — `live_trading_session.session_type` 컬럼 누락 수정 → `LiveTradingReliabilityTest` 전체 통과.
 
 ### Tier 3 — 전략/데이터 품질
 - ✅ **§11 전략 19종 중 실전 후보 3개** — `StrategyLiveStatusRegistry` 신설(ENABLED 4·BLOCKED 3·EXPERIMENTAL 13·DEPRECATED 1). `LiveTradingService.BLOCKED_LIVE_STRATEGIES` 하드코딩 흡수. `StrategyController`에 `liveReadiness` 노출 + `GET /api/v1/strategies/live-matrix` 추가. 테스트 6건.

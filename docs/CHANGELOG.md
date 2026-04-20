@@ -4,6 +4,78 @@
 
 ---
 
+### ✅ 완료 (2026-04-20) — 신호 품질 분석 고도화 ⑦⑧⑨
+
+**⑦ 지수 가중 수익률 (StrategyWeightOptimizer)**
+- `PositionRepository`에 개별 포지션 + `closed_at` 반환 쿼리 2종 추가 (`findClosedPositionsForWeighting`, `findClosedPositionsForWeightingByCoin`)
+- `loadRealizedReturns()` / `optimizeCoinLevel()` 교체 — `w = exp(-days/14)` 가중 수익률로 전략 가중치 산출
+- `toInstant(Object)` 헬퍼 추가 (Timestamp / LocalDateTime / Date / String 타입 통합 처리)
+
+**⑧ 모의→실전 자동 승격 파이프라인**
+- `PaperSessionPromotionService` 신규 생성
+- 매일 08:00 KST (cron `0 0 23 * * *`) 스케줄 — PAPER RUNNING 세션 전체 점검
+- 승격 기준 5개: 운영 ≥30d / 신호 ≥20건 / 4h 적중률 ≥60% / EV ≥0.1% / MDD ≤10%
+- 조건 충족 시 Discord embed 알림 (`PAPER_PROMOTION`) + ConcurrentHashMap 중복 방지
+- `LiveTradingSessionRepository.findBySessionTypeAndStatus`, `StrategyLogRepository.findEvaluatedSignalsBySessionId` 추가
+
+**⑨ 전략 간 상관관계 분석**
+- `AnalysisReport.StrategyCorrelationStats` 추가 (totalBuckets / consensusBuckets / divergentBuckets / 각 4h 적중률·평균수익)
+- `LogAnalyzerService.buildCorrelationStats()`: 동일 코인·4h KST 버킷에서 ≥2 전략이 신호 낸 경우, 방향 일치=컨센서스 / 혼재=분산으로 분류 후 적중률 비교
+- Notion 보고서에 "🔗 전략 간 상관관계 (컨센서스 vs 분산)" 테이블 추가
+- LLM 분석 프롬프트에 컨센서스 유효성 해석 항목 추가 (800자로 증량)
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `PositionRepository.java` | 개별 포지션 쿼리 2종 추가 |
+| `LiveTradingSessionEntity.java` | `sessionType` 필드 추가 |
+| `LiveTradingSessionRepository.java` | `findBySessionTypeAndStatus` 추가 |
+| `StrategyLogRepository.java` | `findEvaluatedSignalsBySessionId` 추가 |
+| `StrategyWeightOptimizer.java` | 지수 가중 수익률 교체, `toInstant()` 추가 |
+| `PaperSessionPromotionService.java` | 신규 파일 |
+| `AnalysisReport.java` | `StrategyCorrelationStats` 추가, `correlationStats` 필드 추가 |
+| `LogAnalyzerService.java` | `buildCorrelationStats()` 추가 |
+| `ReportComposer.java` | `correlationStatsSummary()`, `buildCorrelationStatsSection()` 추가, LLM 프롬프트 개선 |
+
+---
+
+### ✅ 완료 (2026-04-20) — 신호 품질 분석 고도화 Tier 1+2 (①~⑥)
+
+**배경**: 분석 시스템을 단순 적중률 집계에서 EV·레짐별·시간대별 다차원 분석으로 고도화.
+
+**① 코인×레짐 복합 가중치** — `WeightOverrideStore.coinStore` 추가, `StrategySelector.select(regime, coinPair)` 오버로드, `RegimeAdaptiveStrategy` coinPair 파라미터 연동.
+
+**② Confidence Score** — `StrategyLogEntity.confidenceScore`, `LiveTradingService`·`PaperTradingService` signal.getStrength()/100 저장, `LogAnalyzerService.HIGH_CONF_THRESHOLD(0.7)` 필터링, `StrategySignalStat.highConfAccuracy4h/highConfCount` 추가.
+
+**③ 성과 저하 워치독** — `StrategyDegradationWatchdog`: 6h 스케줄, 7d/30d 적중률 비교, WARN(15%p)·CRIT(25%p)·NEG_EV 경보, Discord embed 전송.
+
+**④ EV 중심 평가** — `StrategySignalStat.expectedValue4h` 추가. `calcExpectedValue()` 구현. `StrategyWeightOptimizer.computeWeightsFromSignals()` 4h 적중률 → EV 교체. Notion·LLM 프롬프트 EV 포함.
+
+**⑤ 레짐별 신호 품질** — `AnalysisReport.RegimeSignalQuality` (BUY/SELL 4h 적중률·평균수익·EV). `buildRegimeSignalStats()` 구현. Notion "📐 레짐별 신호 품질" 테이블. LLM "어떤 레짐에서 EV 양수/음수인지" 항목 추가.
+
+**⑥ 시간대별 신호 품질** — `AnalysisReport.HourlySignalQuality` (KST 4h 버킷·신호수·적중률·평균수익). `buildHourlySignalStats()` 구현. Notion "🕐 시간대별 신호 품질" 테이블. LLM "좋은/나쁜 시간대 패턴" 분석 추가.
+
+**실전/모의 보고서 분리** — `LogAnalyzerService.analyze(from, to, sessionType)`. `ReportComposer` REAL·PAPER 각각 분석 후 하나의 Notion 페이지에 섹션 분리. `AiPipelineTest` 3인자 mock 업데이트.
+
+**H2 스키마 수정** — `live_trading_session.session_type` 컬럼 누락 추가 → `LiveTradingReliabilityTest` 6건 통과.
+
+| 파일 | 변경 내용 |
+|------|-----------|
+| `WeightOverrideStore.java` | coinStore, updateForCoin, getForCoin |
+| `StrategySelector.java` | select(regime, coinPair) 오버로드 |
+| `RegimeAdaptiveStrategy.java` | coinPair params 연동 |
+| `StrategyLogEntity.java` | confidence_score 컬럼 추가 |
+| `LiveTradingService.java` / `PaperTradingService.java` | confidence 저장 |
+| `StrategyWeightOptimizer.java` | optimizeCoinLevel, EV 기반 신호 폴백 |
+| `PositionRepository.java` | session_type 필터 쿼리 2종 추가 |
+| `StrategyLogRepository.java` | findByPeriodAndSessionType 추가 |
+| `AnalysisReport.java` | RegimeSignalQuality, HourlySignalQuality, expectedValue4h |
+| `LogAnalyzerService.java` | calcExpectedValue, buildRegimeSignalStats, buildHourlySignalStats |
+| `ReportComposer.java` | REAL/PAPER 분리, 레짐·시간대 섹션, LLM 프롬프트 개선 |
+| `StrategyDegradationWatchdog.java` | 신규 파일 |
+| `schema-h2.sql` | session_type 컬럼 추가 |
+
+---
+
 ### ✅ 완료 (2026-04-20) — Ichimoku 전략 구조 정리 및 코드 정확도 수정
 
 **배경**: 신호 품질 대시보드 분석 과정에서 발견한 3가지 코드 오류 수정.
