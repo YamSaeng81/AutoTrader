@@ -279,6 +279,135 @@ class ExitRuleCheckerTest {
         }
     }
 
+    // ── checkCandleExitWithPath ─────────────────────────────────────────
+
+    @Nested
+    @DisplayName("§3 checkCandleExitWithPath — OHLC 경로 재구성 + Monte Carlo")
+    class CheckCandleExitWithPath {
+
+        // SL=95, TP=110, entry=100
+
+        @Test
+        @DisplayName("SL만 터치 — STOP_LOSS, ambiguous=false")
+        void slOnly() {
+            ExitRuleChecker.ExitCheck result = checker.checkCandleExitWithPath(
+                    bd("100"), bd("108"), bd("93"), bd("97"),
+                    bd("95"), bd("110"));
+
+            assertThat(result.getType()).isEqualTo(ExitRuleChecker.ExitType.STOP_LOSS);
+            assertThat(result.isAmbiguous()).isFalse();
+            assertThat(result.getExitPrice()).isEqualByComparingTo(bd("95"));
+        }
+
+        @Test
+        @DisplayName("TP만 터치 — TAKE_PROFIT")
+        void tpOnly() {
+            ExitRuleChecker.ExitCheck result = checker.checkCandleExitWithPath(
+                    bd("100"), bd("115"), bd("98"), bd("112"),
+                    bd("95"), bd("110"));
+
+            assertThat(result.getType()).isEqualTo(ExitRuleChecker.ExitType.TAKE_PROFIT);
+            assertThat(result.getExitPrice()).isEqualByComparingTo(bd("110"));
+        }
+
+        @Test
+        @DisplayName("둘 다 미터치 — NONE")
+        void noHit() {
+            ExitRuleChecker.ExitCheck result = checker.checkCandleExitWithPath(
+                    bd("100"), bd("108"), bd("97"), bd("103"),
+                    bd("95"), bd("110"));
+
+            assertThat(result.isShouldExit()).isFalse();
+        }
+
+        @Test
+        @DisplayName("갭 다운 — Open이 SL보다 낮으면 Open가로 체결")
+        void gapDownOpen() {
+            // open=92 already below sl=95
+            ExitRuleChecker.ExitCheck result = checker.checkCandleExitWithPath(
+                    bd("92"), bd("94"), bd("88"), bd("91"),
+                    bd("95"), bd("110"));
+
+            assertThat(result.getType()).isEqualTo(ExitRuleChecker.ExitType.STOP_LOSS);
+            assertThat(result.getExitPrice()).isEqualByComparingTo(bd("92"));
+        }
+
+        @Test
+        @DisplayName("갭 업 — Open이 TP보다 높으면 Open가로 체결")
+        void gapUpOpen() {
+            ExitRuleChecker.ExitCheck result = checker.checkCandleExitWithPath(
+                    bd("115"), bd("118"), bd("113"), bd("116"),
+                    bd("95"), bd("110"));
+
+            assertThat(result.getType()).isEqualTo(ExitRuleChecker.ExitType.TAKE_PROFIT);
+            assertThat(result.getExitPrice()).isEqualByComparingTo(bd("115"));
+        }
+
+        @Test
+        @DisplayName("양방향 터치: Open이 Low에 가깝다 → SL 우선 (경로재구성)")
+        void bothHit_openCloseToLow_slFirst() {
+            // open=96, low=94, high=115: distToLow=2 < distToHigh=19 → Low 선도 → SL
+            ExitRuleChecker.ExitCheck result = checker.checkCandleExitWithPath(
+                    bd("96"), bd("115"), bd("94"), bd("105"),
+                    bd("95"), bd("110"));
+
+            assertThat(result.getType()).isEqualTo(ExitRuleChecker.ExitType.STOP_LOSS);
+            assertThat(result.isAmbiguous()).isTrue();
+        }
+
+        @Test
+        @DisplayName("양방향 터치: Open이 High에 가깝다 → TP 우선 (경로재구성)")
+        void bothHit_openCloseToHigh_tpFirst() {
+            // open=108, high=115, low=90: distToHigh=7 < distToLow=18 → High 선도 → TP
+            ExitRuleChecker.ExitCheck result = checker.checkCandleExitWithPath(
+                    bd("108"), bd("115"), bd("90"), bd("112"),
+                    bd("95"), bd("110"));
+
+            assertThat(result.getType()).isEqualTo(ExitRuleChecker.ExitType.TAKE_PROFIT);
+        }
+
+        @Test
+        @DisplayName("양방향 터치: 거리 동일, Close < Open → SL 우선 (Close 방향 결정)")
+        void bothHit_equalDist_closeDown_slFirst() {
+            // open=100, low=90(dist=10), high=110(dist=10), close=95 → 하락 마감 → SL
+            ExitRuleChecker.ExitCheck result = checker.checkCandleExitWithPath(
+                    bd("100"), bd("112"), bd("88"), bd("95"),
+                    bd("89"), bd("111"));
+
+            assertThat(result.getType()).isEqualTo(ExitRuleChecker.ExitType.STOP_LOSS);
+            assertThat(result.isAmbiguous()).isTrue();
+        }
+
+        @Test
+        @DisplayName("양방향 터치: 거리 동일, Close > Open → TP 우선 (Close 방향 결정)")
+        void bothHit_equalDist_closeUp_tpFirst() {
+            // open=100, close=105 → 상승 마감 → TP
+            ExitRuleChecker.ExitCheck result = checker.checkCandleExitWithPath(
+                    bd("100"), bd("112"), bd("88"), bd("105"),
+                    bd("89"), bd("111"));
+
+            assertThat(result.getType()).isEqualTo(ExitRuleChecker.ExitType.TAKE_PROFIT);
+        }
+
+        @Test
+        @DisplayName("Monte Carlo 경로: Doji (open=close) + 동일 거리 — SL 또는 TP 결정됨 (확률)")
+        void bothHit_doji_monteCarlo() {
+            // open=close=100, distToLow=distToHigh=10 → Monte Carlo
+            ExitRuleChecker.ExitCheck result = checker.checkCandleExitWithPath(
+                    bd("100"), bd("112"), bd("88"), bd("100"),
+                    bd("89"), bd("111"));
+
+            // Monte Carlo는 확률적이므로 결과 타입만 검증 (SL 또는 TP 중 하나여야 함)
+            assertThat(result.isShouldExit()).isTrue();
+            assertThat(result.getType()).isIn(
+                    ExitRuleChecker.ExitType.STOP_LOSS, ExitRuleChecker.ExitType.TAKE_PROFIT);
+        }
+    }
+
+    private static BigDecimal bd(String v) {
+        return new BigDecimal(v);
+    }
+
     // ── calculateInvestAmount ───────────────────────────────────────────
 
     @Nested

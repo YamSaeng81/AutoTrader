@@ -135,14 +135,16 @@ public class RiskManagementService {
 
         // 자본 사용률 계산: (총 initialCapital - 총 availableKrw) / 총 initialCapital × 100
         BigDecimal capitalUtilizationPct = calculateCapitalUtilizationPct();
+        BigDecimal portfolioDrawdownPct = calculatePortfolioDrawdownPct();
 
         RiskCheckResult result = engine.check(
-                dailyLoss, weeklyLoss, monthlyLoss, currentPositions, capitalUtilizationPct);
+                dailyLoss, weeklyLoss, monthlyLoss, currentPositions,
+                capitalUtilizationPct, portfolioDrawdownPct);
 
         if (!result.isApproved()) {
-            log.warn("리스크 체크 거부: {} (일일={}%, 주간={}%, 월간={}%, 포지션={}, 자본사용률={}%)",
+            log.warn("리스크 체크 거부: {} (일일={}%, 주간={}%, 월간={}%, 포지션={}, 자본사용률={}%, 드로우다운={}%)",
                     result.getReason(), dailyLoss, weeklyLoss, monthlyLoss,
-                    currentPositions, capitalUtilizationPct);
+                    currentPositions, capitalUtilizationPct, portfolioDrawdownPct);
         }
 
         return result;
@@ -273,10 +275,46 @@ public class RiskManagementService {
                 .setScale(2, RoundingMode.HALF_UP);
     }
 
+    /**
+     * 전체 RUNNING 세션의 글로벌 포트폴리오 드로우다운(%) 계산.
+     *
+     * <p>= (sum(initialCapital) - sum(totalAssetKrw)) / sum(initialCapital) × 100</p>
+     *
+     * <p>기간 gross 손실과 달리 현재 보유 자산이 초기 자본 대비 얼마나 낮은지 실시간으로 추적한다.
+     * 이익이 손실을 상쇄해도 현재 자산이 낮으면 발동되므로 변동성 은닉을 방지한다.
+     * RUNNING 세션이 없거나 현재 자산 합이 초기 자본 합보다 크면 0을 반환한다.</p>
+     */
+    private BigDecimal calculatePortfolioDrawdownPct() {
+        List<LiveTradingSessionEntity> runningSessions = sessionRepository.findByStatus("RUNNING");
+        if (runningSessions.isEmpty()) return BigDecimal.ZERO;
+
+        BigDecimal initialSum = runningSessions.stream()
+                .map(LiveTradingSessionEntity::getInitialCapital)
+                .filter(c -> c != null && c.compareTo(BigDecimal.ZERO) > 0)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        if (initialSum.compareTo(BigDecimal.ZERO) <= 0) return BigDecimal.ZERO;
+
+        BigDecimal currentSum = runningSessions.stream()
+                .map(LiveTradingSessionEntity::getTotalAssetKrw)
+                .filter(c -> c != null)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal loss = initialSum.subtract(currentSum);
+        if (loss.compareTo(BigDecimal.ZERO) <= 0) return BigDecimal.ZERO;
+
+        return loss.divide(initialSum, 4, RoundingMode.HALF_UP)
+                .multiply(new BigDecimal("100"))
+                .setScale(2, RoundingMode.HALF_UP);
+    }
+
     private RiskConfig toRiskConfig(RiskConfigEntity entity) {
         BigDecimal utilLimit = entity.getMaxCapitalUtilizationPct() != null
                 ? entity.getMaxCapitalUtilizationPct()
                 : new BigDecimal("80.0");
+        BigDecimal drawdownLimit = entity.getMaxPortfolioDrawdownPct() != null
+                ? entity.getMaxPortfolioDrawdownPct()
+                : new BigDecimal("15.0");
         return RiskConfig.builder()
                 .maxDailyLossPct(entity.getMaxDailyLossPct())
                 .maxWeeklyLossPct(entity.getMaxWeeklyLossPct())
@@ -285,6 +323,7 @@ public class RiskManagementService {
                 .cooldownMinutes(entity.getCooldownMinutes())
                 .portfolioLimitKrw(entity.getPortfolioLimitKrw())
                 .maxCapitalUtilizationPct(utilLimit)
+                .maxPortfolioDrawdownPct(drawdownLimit)
                 .build();
     }
 

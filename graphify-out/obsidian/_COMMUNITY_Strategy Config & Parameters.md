@@ -1,0 +1,309 @@
+---
+type: community
+cohesion: 0.01
+members: 264
+---
+
+# Strategy Config & Parameters
+
+**Cohesion:** 0.01 - loosely connected
+**Members:** 264 nodes
+
+## Members
+- [[.CoinGeckoTrendingSource()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\news\source\CoinGeckoTrendingSource.java
+- [[.CompositeStrategy()]] - code - D:\Claude Code\projects\crypto-auto-trader\core-engine\src\main\java\com\cryptoautotrader\core\selector\CompositeStrategy.java
+- [[.IchimokuFilteredStrategy()]] - code - D:\Claude Code\projects\crypto-auto-trader\core-engine\src\main\java\com\cryptoautotrader\core\selector\IchimokuFilteredStrategy.java
+- [[.IndicatorUtils()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\IndicatorUtils.java
+- [[.MacdResult()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\macdstochbb\MacdStochBbStrategy.java
+- [[.MacdValues()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\macd\MacdStrategy.java
+- [[.StrategyParamUtils()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\StrategyParamUtils.java
+- [[.SupertrendResult()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\supertrend\SupertrendStrategy.java
+- [[.UpbitOrderClient()]] - code - D:\Claude Code\projects\crypto-auto-trader\exchange-adapter\src\main\java\com\cryptoautotrader\exchange\upbit\UpbitOrderClient.java
+- [[.applyEmaFilter()]] - code - D:\Claude Code\projects\crypto-auto-trader\core-engine\src\main\java\com\cryptoautotrader\core\selector\CompositeStrategy.java
+- [[.applyIchimokuFilter()]] - code - D:\Claude Code\projects\crypto-auto-trader\core-engine\src\main\java\com\cryptoautotrader\core\selector\IchimokuFilteredStrategy.java
+- [[.atr()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\IndicatorUtils.java
+- [[.bollingerBandwidth()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\IndicatorUtils.java
+- [[.bollingerBandwidths()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\IndicatorUtils.java
+- [[.buildObjectMapper()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\test\java\com\cryptoautotrader\api\support\IntegrationTestBase.java
+- [[.buildQueryString()]] - code - D:\Claude Code\projects\crypto-auto-trader\exchange-adapter\src\main\java\com\cryptoautotrader\exchange\upbit\UpbitOrderClient.java
+- [[.buildSecretKeySpec()]] - code - D:\Claude Code\projects\crypto-auto-trader\exchange-adapter\src\main\java\com\cryptoautotrader\exchange\upbit\UpbitOrderClient.java
+- [[.buy()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\StrategySignal.java
+- [[.bytesToHex()]] - code - D:\Claude Code\projects\crypto-auto-trader\exchange-adapter\src\main\java\com\cryptoautotrader\exchange\upbit\UpbitOrderClient.java
+- [[.calcMacdPair()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\macdstochbb\MacdStochBbStrategy.java
+- [[.calcSpikeRate()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.calculateMacdPair()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\macd\MacdStrategy.java
+- [[.calculateRsiSeries()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\rsi\RsiStrategy.java
+- [[.calculateStrength()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\macd\MacdStrategy.java
+- [[.cancelOrder()]] - code - D:\Claude Code\projects\crypto-auto-trader\exchange-adapter\src\main\java\com\cryptoautotrader\exchange\upbit\UpbitOrderClient.java
+- [[.checkResponse()]] - code - D:\Claude Code\projects\crypto-auto-trader\exchange-adapter\src\main\java\com\cryptoautotrader\exchange\upbit\UpbitOrderClient.java
+- [[.coinDefaults()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\macd\MacdStrategy.java
+- [[.createOrder()]] - code - D:\Claude Code\projects\crypto-auto-trader\exchange-adapter\src\main\java\com\cryptoautotrader\exchange\upbit\UpbitOrderClient.java
+- [[.createTestOrder()]] - code - D:\Claude Code\projects\crypto-auto-trader\exchange-adapter\src\main\java\com\cryptoautotrader\exchange\upbit\UpbitOrderClient.java
+- [[.destroy()]] - code - D:\Claude Code\projects\crypto-auto-trader\exchange-adapter\src\main\java\com\cryptoautotrader\exchange\upbit\UpbitOrderClient.java
+- [[.ema()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\IndicatorUtils.java
+- [[.evaluate()_6]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\atrbreakout\AtrBreakoutStrategy.java
+- [[.evaluate()_7]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\bollinger\BollingerStrategy.java
+- [[.evaluate()]] - code - D:\Claude Code\projects\crypto-auto-trader\core-engine\src\main\java\com\cryptoautotrader\core\selector\CompositeStrategy.java
+- [[.evaluate()_8]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\ema\EmaCrossStrategy.java
+- [[.evaluate()_10]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\grid\GridStrategy.java
+- [[.evaluate()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\core-engine\src\main\java\com\cryptoautotrader\core\selector\IchimokuFilteredStrategy.java
+- [[.evaluate()_12]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\macdstochbb\MacdStochBbStrategy.java
+- [[.evaluate()_11]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\macd\MacdStrategy.java
+- [[.evaluate()_13]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\orderbook\OrderbookImbalanceStrategy.java
+- [[.evaluate()_14]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\rsi\RsiStrategy.java
+- [[.evaluate()_15]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\stochasticrsi\StochasticRsiStrategy.java
+- [[.evaluate()_16]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\supertrend\SupertrendStrategy.java
+- [[.evaluate()_17]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\testtraded\TestTimedStrategy.java
+- [[.evaluate()_18]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\volumedelta\VolumeDeltaStrategy.java
+- [[.evaluateWithCandleApproximation()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\orderbook\OrderbookImbalanceStrategy.java
+- [[.evaluateWithRealtimeOrderbook()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\orderbook\OrderbookImbalanceStrategy.java
+- [[.fetch()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\news\source\CoinGeckoTrendingSource.java
+- [[.finalSignal()]] - code - D:\Claude Code\projects\crypto-auto-trader\core-engine\src\main\java\com\cryptoautotrader\core\selector\CompositeStrategy.java
+- [[.findRecentSwingHigh()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\rsi\RsiStrategy.java
+- [[.findRecentSwingLow()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\rsi\RsiStrategy.java
+- [[.fromParams()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\atrbreakout\AtrBreakoutConfig.java
+- [[.fromParams()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\bollinger\BollingerConfig.java
+- [[.fromParams()_2]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\ema\EmaCrossConfig.java
+- [[.fromParams()_3]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\fvg\FairValueGapConfig.java
+- [[.fromParams()_4]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\grid\GridConfig.java
+- [[.fromParams()_6]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\orderbook\OrderbookImbalanceConfig.java
+- [[.fromParams()_9]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\supertrend\SupertrendConfig.java
+- [[.fromParams()_10]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\volumedelta\VolumeDeltaConfig.java
+- [[.fromParams()_11]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\vwap\VwapConfig.java
+- [[.generateJwtWithQuery()]] - code - D:\Claude Code\projects\crypto-auto-trader\exchange-adapter\src\main\java\com\cryptoautotrader\exchange\upbit\UpbitOrderClient.java
+- [[.generateJwtWithoutQuery()]] - code - D:\Claude Code\projects\crypto-auto-trader\exchange-adapter\src\main\java\com\cryptoautotrader\exchange\upbit\UpbitOrderClient.java
+- [[.get()_3]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\news\NewsSourceRegistry.java
+- [[.getAccounts()]] - code - D:\Claude Code\projects\crypto-auto-trader\exchange-adapter\src\main\java\com\cryptoautotrader\exchange\upbit\UpbitOrderClient.java
+- [[.getBool()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\volumedelta\VolumeDeltaStrategy.java
+- [[.getBoolean()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\atrbreakout\AtrBreakoutStrategy.java
+- [[.getBoolean()_2]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\bollinger\BollingerStrategy.java
+- [[.getBoolean()_4]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\rsi\RsiStrategy.java
+- [[.getBoolean()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\StrategyParamUtils.java
+- [[.getConfidence()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\StrategySignal.java
+- [[.getDouble()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\atrbreakout\AtrBreakoutStrategy.java
+- [[.getDouble()_2]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\bollinger\BollingerStrategy.java
+- [[.getDouble()_3]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\ema\EmaCrossStrategy.java
+- [[.getDouble()_5]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\grid\GridStrategy.java
+- [[.getDouble()_6]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\orderbook\OrderbookImbalanceStrategy.java
+- [[.getDouble()_7]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\rsi\RsiStrategy.java
+- [[.getDouble()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\StrategyParamUtils.java
+- [[.getDouble()_8]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\supertrend\SupertrendStrategy.java
+- [[.getDouble()_9]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\volumedelta\VolumeDeltaStrategy.java
+- [[.getInt()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\atrbreakout\AtrBreakoutStrategy.java
+- [[.getInt()_2]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\bollinger\BollingerStrategy.java
+- [[.getInt()_3]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\ema\EmaCrossStrategy.java
+- [[.getInt()_5]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\grid\GridStrategy.java
+- [[.getInt()_6]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\orderbook\OrderbookImbalanceStrategy.java
+- [[.getInt()_7]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\rsi\RsiStrategy.java
+- [[.getInt()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\StrategyParamUtils.java
+- [[.getInt()_8]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\supertrend\SupertrendStrategy.java
+- [[.getInt()_9]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\volumedelta\VolumeDeltaStrategy.java
+- [[.getMinimumCandleCount()_4]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\atrbreakout\AtrBreakoutStrategy.java
+- [[.getMinimumCandleCount()_5]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\bollinger\BollingerStrategy.java
+- [[.getMinimumCandleCount()]] - code - D:\Claude Code\projects\crypto-auto-trader\core-engine\src\main\java\com\cryptoautotrader\core\selector\CompositeStrategy.java
+- [[.getMinimumCandleCount()_6]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\ema\EmaCrossStrategy.java
+- [[.getMinimumCandleCount()_8]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\grid\GridStrategy.java
+- [[.getMinimumCandleCount()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\core-engine\src\main\java\com\cryptoautotrader\core\selector\IchimokuFilteredStrategy.java
+- [[.getMinimumCandleCount()_10]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\macdstochbb\MacdStochBbStrategy.java
+- [[.getMinimumCandleCount()_9]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\macd\MacdStrategy.java
+- [[.getMinimumCandleCount()_11]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\orderbook\OrderbookImbalanceStrategy.java
+- [[.getMinimumCandleCount()_12]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\rsi\RsiStrategy.java
+- [[.getMinimumCandleCount()_13]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\stochasticrsi\StochasticRsiStrategy.java
+- [[.getMinimumCandleCount()_14]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\supertrend\SupertrendStrategy.java
+- [[.getMinimumCandleCount()_15]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\testtraded\TestTimedStrategy.java
+- [[.getMinimumCandleCount()_16]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\volumedelta\VolumeDeltaStrategy.java
+- [[.getName()_4]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\atrbreakout\AtrBreakoutStrategy.java
+- [[.getName()_5]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\bollinger\BollingerStrategy.java
+- [[.getName()]] - code - D:\Claude Code\projects\crypto-auto-trader\core-engine\src\main\java\com\cryptoautotrader\core\selector\CompositeStrategy.java
+- [[.getName()_6]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\ema\EmaCrossStrategy.java
+- [[.getName()_8]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\grid\GridStrategy.java
+- [[.getName()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\core-engine\src\main\java\com\cryptoautotrader\core\selector\IchimokuFilteredStrategy.java
+- [[.getName()_10]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\macdstochbb\MacdStochBbStrategy.java
+- [[.getName()_9]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\macd\MacdStrategy.java
+- [[.getName()_11]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\orderbook\OrderbookImbalanceStrategy.java
+- [[.getName()_12]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\rsi\RsiStrategy.java
+- [[.getName()_13]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\stochasticrsi\StochasticRsiStrategy.java
+- [[.getName()_14]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\supertrend\SupertrendStrategy.java
+- [[.getName()_15]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\testtraded\TestTimedStrategy.java
+- [[.getName()_16]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\volumedelta\VolumeDeltaStrategy.java
+- [[.getOpenOrders()]] - code - D:\Claude Code\projects\crypto-auto-trader\exchange-adapter\src\main\java\com\cryptoautotrader\exchange\upbit\UpbitOrderClient.java
+- [[.getOrder()]] - code - D:\Claude Code\projects\crypto-auto-trader\exchange-adapter\src\main\java\com\cryptoautotrader\exchange\upbit\UpbitOrderClient.java
+- [[.getOrderChance()]] - code - D:\Claude Code\projects\crypto-auto-trader\exchange-adapter\src\main\java\com\cryptoautotrader\exchange\upbit\UpbitOrderClient.java
+- [[.getRecentOrders()]] - code - D:\Claude Code\projects\crypto-auto-trader\exchange-adapter\src\main\java\com\cryptoautotrader\exchange\upbit\UpbitOrderClient.java
+- [[.getStrategyType()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\atrbreakout\AtrBreakoutConfig.java
+- [[.getStrategyType()_2]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\bollinger\BollingerConfig.java
+- [[.getStrategyType()_3]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\ema\EmaCrossConfig.java
+- [[.getStrategyType()_4]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\fvg\FairValueGapConfig.java
+- [[.getStrategyType()_5]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\grid\GridConfig.java
+- [[.getStrategyType()_7]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\orderbook\OrderbookImbalanceConfig.java
+- [[.getStrategyType()_10]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\supertrend\SupertrendConfig.java
+- [[.getStrategyType()_11]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\volumedelta\VolumeDeltaConfig.java
+- [[.getStrategyType()_12]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\vwap\VwapConfig.java
+- [[.getSupportedType()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\news\source\CoinGeckoTrendingSource.java
+- [[.hold()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\StrategySignal.java
+- [[.ichimokuKijun()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\IndicatorUtils.java
+- [[.ichimokuMidpoint()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\IndicatorUtils.java
+- [[.ichimokuSenkouA()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\IndicatorUtils.java
+- [[.ichimokuSenkouB()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\IndicatorUtils.java
+- [[.ichimokuTenkan()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\IndicatorUtils.java
+- [[.isRangeChanged()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\grid\GridStrategy.java
+- [[.resetState()_3]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\macdstochbb\MacdStochBbStrategy.java
+- [[.rsiFromAvg()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\IndicatorUtils.java
+- [[.rsiFromAvgs()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\rsi\RsiStrategy.java
+- [[.rsiSeries()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\IndicatorUtils.java
+- [[.sell()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\StrategySignal.java
+- [[.setupMockMvc()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\test\java\com\cryptoautotrader\api\support\IntegrationTestBase.java
+- [[.signalConfidence()]] - code - D:\Claude Code\projects\crypto-auto-trader\core-engine\src\test\java\com\cryptoautotrader\core\selector\CompositeStrategyTest.java
+- [[.sma()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\IndicatorUtils.java
+- [[.smaList()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\IndicatorUtils.java
+- [[.standardDeviation()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\IndicatorUtils.java
+- [[.stochasticKSeries()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\IndicatorUtils.java
+- [[.toParamMap()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\atrbreakout\AtrBreakoutConfig.java
+- [[.toParamMap()_2]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\bollinger\BollingerConfig.java
+- [[.toParamMap()_3]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\ema\EmaCrossConfig.java
+- [[.toParamMap()_4]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\fvg\FairValueGapConfig.java
+- [[.toParamMap()_5]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\grid\GridConfig.java
+- [[.toParamMap()_7]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\orderbook\OrderbookImbalanceConfig.java
+- [[.toParamMap()_10]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\supertrend\SupertrendConfig.java
+- [[.toParamMap()_11]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\volumedelta\VolumeDeltaConfig.java
+- [[.toParamMap()_12]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\vwap\VwapConfig.java
+- [[.백테스트_단건_조회_없는_ID_400()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\test\java\com\cryptoautotrader\api\controller\BacktestControllerIntegrationTest.java
+- [[.백테스트_단건_조회_음수_ID()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\test\java\com\cryptoautotrader\api\controller\BacktestControllerIntegrationTest.java
+- [[.백테스트_실행_전략타입_누락_400()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\test\java\com\cryptoautotrader\api\controller\BacktestControllerIntegrationTest.java
+- [[.수집_현황_DB_비어있을때_EMPTY()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\test\java\com\cryptoautotrader\api\controller\DataControllerIntegrationTest.java
+- [[.수집_현황_조회_200()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\test\java\com\cryptoautotrader\api\controller\DataControllerIntegrationTest.java
+- [[.전략_목록_EMA_CROSS_포함()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\test\java\com\cryptoautotrader\api\controller\StrategyControllerIntegrationTest.java
+- [[.전략_목록_VWAP_포함()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\test\java\com\cryptoautotrader\api\controller\StrategyControllerIntegrationTest.java
+- [[.전략_목록_조회_10개_이상()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\test\java\com\cryptoautotrader\api\controller\StrategyControllerIntegrationTest.java
+- [[.전략_설정_토글_없는_ID()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\test\java\com\cryptoautotrader\api\controller\StrategyControllerIntegrationTest.java
+- [[.캔들_수집_요청_202()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\test\java\com\cryptoautotrader\api\controller\DataControllerIntegrationTest.java
+- [[.캔들_수집_코인페어_누락_400()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\test\java\com\cryptoautotrader\api\controller\DataControllerIntegrationTest.java
+- [[.캔들_조회_DB_비어있을때_빈_배열()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\test\java\com\cryptoautotrader\api\controller\DataControllerIntegrationTest.java
+- [[ADX (Average Directional Index)]] - document - docs/old/CompositeStrategy.md
+- [[ATR (Average True Range)]] - document - docs/old/CompositeStrategy.md
+- [[AtrBreakoutConfig]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\atrbreakout\AtrBreakoutConfig.java
+- [[AtrBreakoutConfig.java]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\atrbreakout\AtrBreakoutConfig.java
+- [[AtrBreakoutStrategy]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\atrbreakout\AtrBreakoutStrategy.java
+- [[AtrBreakoutStrategy.java]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\atrbreakout\AtrBreakoutStrategy.java
+- [[BacktestControllerIntegrationTest]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\test\java\com\cryptoautotrader\api\controller\BacktestControllerIntegrationTest.java
+- [[BacktestControllerIntegrationTest.java]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\test\java\com\cryptoautotrader\api\controller\BacktestControllerIntegrationTest.java
+- [[BollingerConfig]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\bollinger\BollingerConfig.java
+- [[BollingerConfig.java]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\bollinger\BollingerConfig.java
+- [[BollingerStrategy]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\bollinger\BollingerStrategy.java
+- [[BollingerStrategy.java]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\bollinger\BollingerStrategy.java
+- [[COMPOSITE Strategy Pipeline (Detector→Selector→Composite)]] - document - docs/old/REPORT_TECHNICAL.md
+- [[CoinGeckoTrendingSource]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\news\source\CoinGeckoTrendingSource.java
+- [[CoinGeckoTrendingSource.java]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\news\source\CoinGeckoTrendingSource.java
+- [[CompositeStrategy]] - code - D:\Claude Code\projects\crypto-auto-trader\core-engine\src\main\java\com\cryptoautotrader\core\selector\CompositeStrategy.java
+- [[CompositeStrategy.java]] - code - D:\Claude Code\projects\crypto-auto-trader\core-engine\src\main\java\com\cryptoautotrader\core\selector\CompositeStrategy.java
+- [[DELETE()]] - code - D:\Claude Code\projects\crypto-auto-trader\crypto-trader-frontend\src\app\api\proxy\[...path]\route.ts
+- [[DataControllerIntegrationTest]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\test\java\com\cryptoautotrader\api\controller\DataControllerIntegrationTest.java
+- [[DataControllerIntegrationTest.java]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\test\java\com\cryptoautotrader\api\controller\DataControllerIntegrationTest.java
+- [[EmaCrossConfig]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\ema\EmaCrossConfig.java
+- [[EmaCrossConfig.java]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\ema\EmaCrossConfig.java
+- [[EmaCrossStrategy]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\ema\EmaCrossStrategy.java
+- [[EmaCrossStrategy.java]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\ema\EmaCrossStrategy.java
+- [[FairValueGapConfig]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\fvg\FairValueGapConfig.java
+- [[FairValueGapConfig.java]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\fvg\FairValueGapConfig.java
+- [[GET()]] - code - D:\Claude Code\projects\crypto-auto-trader\crypto-trader-frontend\src\app\api\proxy\[...path]\route.ts
+- [[GridConfig]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\grid\GridConfig.java
+- [[GridConfig.java]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\grid\GridConfig.java
+- [[GridStrategy]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\grid\GridStrategy.java
+- [[GridStrategy.java]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\grid\GridStrategy.java
+- [[IchimokuFilteredStrategy]] - code - D:\Claude Code\projects\crypto-auto-trader\core-engine\src\main\java\com\cryptoautotrader\core\selector\IchimokuFilteredStrategy.java
+- [[IchimokuFilteredStrategy.java]] - code - D:\Claude Code\projects\crypto-auto-trader\core-engine\src\main\java\com\cryptoautotrader\core\selector\IchimokuFilteredStrategy.java
+- [[IndicatorUtils]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\IndicatorUtils.java
+- [[IndicatorUtils.java]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\IndicatorUtils.java
+- [[IntegrationTestBase]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\test\java\com\cryptoautotrader\api\support\IntegrationTestBase.java
+- [[IntegrationTestBase.java]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\test\java\com\cryptoautotrader\api\support\IntegrationTestBase.java
+- [[MacdResult]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\macdstochbb\MacdStochBbStrategy.java
+- [[MacdStochBbStrategy]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\macdstochbb\MacdStochBbStrategy.java
+- [[MacdStochBbStrategy.java]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\macdstochbb\MacdStochBbStrategy.java
+- [[MacdStrategy]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\macd\MacdStrategy.java
+- [[MacdStrategy.java]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\macd\MacdStrategy.java
+- [[MacdValues]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\macd\MacdStrategy.java
+- [[Market Regime Absence - Root Problem (v2 analysis)]] - document - docs/old/strategy_analysis_v2.1.md
+- [[MarketRegimeDetector_1]] - document - docs/old/CompositeStrategy.md
+- [[OrderbookImbalanceConfig]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\orderbook\OrderbookImbalanceConfig.java
+- [[OrderbookImbalanceConfig.java]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\orderbook\OrderbookImbalanceConfig.java
+- [[OrderbookImbalanceStrategy]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\orderbook\OrderbookImbalanceStrategy.java
+- [[OrderbookImbalanceStrategy.java]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\orderbook\OrderbookImbalanceStrategy.java
+- [[PATCH()]] - code - D:\Claude Code\projects\crypto-auto-trader\crypto-trader-frontend\src\app\api\proxy\[...path]\route.ts
+- [[POST()]] - code - D:\Claude Code\projects\crypto-auto-trader\crypto-trader-frontend\src\app\api\proxy\[...path]\route.ts
+- [[Phase 1-3.5 100% Completion Report]] - document - docs/old/REPORT.md
+- [[RsiStrategy]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\rsi\RsiStrategy.java
+- [[RsiStrategy.java]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\rsi\RsiStrategy.java
+- [[StochasticRsiStrategy]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\stochasticrsi\StochasticRsiStrategy.java
+- [[StochasticRsiStrategy.java]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\stochasticrsi\StochasticRsiStrategy.java
+- [[StrategyControllerIntegrationTest]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\test\java\com\cryptoautotrader\api\controller\StrategyControllerIntegrationTest.java
+- [[StrategyControllerIntegrationTest.java]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\test\java\com\cryptoautotrader\api\controller\StrategyControllerIntegrationTest.java
+- [[StrategyParamUtils]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\StrategyParamUtils.java
+- [[StrategyParamUtils.java]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\StrategyParamUtils.java
+- [[StrategySelector_1]] - document - docs/old/CompositeStrategy.md
+- [[StrategySignal]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\StrategySignal.java
+- [[StrategySignal.java]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\StrategySignal.java
+- [[SupertrendConfig]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\supertrend\SupertrendConfig.java
+- [[SupertrendConfig.java]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\supertrend\SupertrendConfig.java
+- [[SupertrendResult]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\supertrend\SupertrendStrategy.java
+- [[SupertrendStrategy]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\supertrend\SupertrendStrategy.java
+- [[SupertrendStrategy.java]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\supertrend\SupertrendStrategy.java
+- [[SystemControllerIntegrationTest]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\test\java\com\cryptoautotrader\api\controller\SystemControllerIntegrationTest.java
+- [[SystemControllerIntegrationTest.java]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\test\java\com\cryptoautotrader\api\controller\SystemControllerIntegrationTest.java
+- [[Test Coverage (123 tests 58 unit + 34 integration + 31 E2E)]] - document - docs/old/REPORT.md
+- [[TestTimedStrategy]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\testtraded\TestTimedStrategy.java
+- [[TestTimedStrategy.java]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\testtraded\TestTimedStrategy.java
+- [[UpbitOrderClient]] - code - D:\Claude Code\projects\crypto-auto-trader\exchange-adapter\src\main\java\com\cryptoautotrader\exchange\upbit\UpbitOrderClient.java
+- [[UpbitOrderClient.java]] - code - D:\Claude Code\projects\crypto-auto-trader\exchange-adapter\src\main\java\com\cryptoautotrader\exchange\upbit\UpbitOrderClient.java
+- [[VolumeDeltaConfig]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\volumedelta\VolumeDeltaConfig.java
+- [[VolumeDeltaConfig.java]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\volumedelta\VolumeDeltaConfig.java
+- [[VolumeDeltaStrategy]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\volumedelta\VolumeDeltaStrategy.java
+- [[VolumeDeltaStrategy.java]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\volumedelta\VolumeDeltaStrategy.java
+- [[VwapConfig]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\vwap\VwapConfig.java
+- [[VwapConfig.java]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\vwap\VwapConfig.java
+- [[Weighted Voting Engine]] - document - docs/old/CompositeStrategy.md
+- [[getResponse()]] - code - D:\Claude Code\projects\crypto-auto-trader\crypto-trader-frontend\public\mockServiceWorker.js
+- [[handleRequest()]] - code - D:\Claude Code\projects\crypto-auto-trader\crypto-trader-frontend\public\mockServiceWorker.js
+- [[mockServiceWorker.js]] - code - D:\Claude Code\projects\crypto-auto-trader\crypto-trader-frontend\public\mockServiceWorker.js
+- [[proxy()]] - code - D:\Claude Code\projects\crypto-auto-trader\crypto-trader-frontend\src\proxy.ts
+- [[proxy.ts]] - code - D:\Claude Code\projects\crypto-auto-trader\crypto-trader-frontend\src\proxy.ts
+- [[proxyRequest()]] - code - D:\Claude Code\projects\crypto-auto-trader\crypto-trader-frontend\src\app\api\proxy\[...path]\route.ts
+- [[resolveMainClient()]] - code - D:\Claude Code\projects\crypto-auto-trader\crypto-trader-frontend\public\mockServiceWorker.js
+- [[respondWithMock()]] - code - D:\Claude Code\projects\crypto-auto-trader\crypto-trader-frontend\public\mockServiceWorker.js
+- [[route.ts]] - code - D:\Claude Code\projects\crypto-auto-trader\crypto-trader-frontend\src\app\api\auth\login\route.ts
+- [[route.ts_1]] - code - D:\Claude Code\projects\crypto-auto-trader\crypto-trader-frontend\src\app\api\auth\logout\route.ts
+- [[route.ts_2]] - code - D:\Claude Code\projects\crypto-auto-trader\crypto-trader-frontend\src\app\api\proxy\[...path]\route.ts
+- [[sendToClient()]] - code - D:\Claude Code\projects\crypto-auto-trader\crypto-trader-frontend\public\mockServiceWorker.js
+- [[serializeRequest()]] - code - D:\Claude Code\projects\crypto-auto-trader\crypto-trader-frontend\public\mockServiceWorker.js
+
+## Live Query (requires Dataview plugin)
+
+```dataview
+TABLE source_file, type FROM #community/Strategy_Config_&_Parameters
+SORT file.name ASC
+```
+
+## Connections to other communities
+- 64 edges to [[_COMMUNITY_Backtest Engine Core]]
+- 46 edges to [[_COMMUNITY_Strategy Unit Tests]]
+- 35 edges to [[_COMMUNITY_Backtest Runner & Orchestration]]
+- 29 edges to [[_COMMUNITY_Infrastructure Config]]
+- 25 edges to [[_COMMUNITY_LLM Task Router & AI Tests]]
+- 12 edges to [[_COMMUNITY_Strategy Selector & Voting]]
+- 12 edges to [[_COMMUNITY_AI Pipeline & News Feed]]
+- 11 edges to [[_COMMUNITY_Market Regime Detection]]
+- 6 edges to [[_COMMUNITY_Portfolio & WebSocket Client]]
+- 6 edges to [[_COMMUNITY_Discord & Morning Briefing]]
+- 4 edges to [[_COMMUNITY_Backtest Scheduler & UI]]
+- 4 edges to [[_COMMUNITY_Upbit Exchange Adapter]]
+- 3 edges to [[_COMMUNITY_Web API Controllers]]
+- 3 edges to [[_COMMUNITY_Indicator Configs]]
+- 2 edges to [[_COMMUNITY_Backtest Configuration]]
+- 2 edges to [[_COMMUNITY_Execution Drift Tracking]]
+- 1 edge to [[_COMMUNITY_Exchange Health Monitor]]
+
+## Top bridge nodes
+- [[.get()_3]] - degree 209, connects to 16 communities
+- [[.hold()]] - degree 24, connects to 4 communities
+- [[POST()]] - degree 19, connects to 4 communities
+- [[.evaluate()_10]] - degree 13, connects to 3 communities
+- [[.evaluate()]] - degree 11, connects to 3 communities

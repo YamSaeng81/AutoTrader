@@ -49,6 +49,14 @@ public class RiskConfigEntity {
     @Column(name = "max_capital_utilization_pct", precision = 5, scale = 2)
     private BigDecimal maxCapitalUtilizationPct;
 
+    /**
+     * 글로벌 포트폴리오 드로우다운 상한 (%).
+     * 전체 RUNNING 세션의 (initialCapital 합 - totalAssetKrw 합) / initialCapital 합 × 100
+     * 이 값 초과 시 신규 매수 차단. null 또는 0이면 비활성화. 기본 15%.
+     */
+    @Column(name = "max_portfolio_drawdown_pct", precision = 5, scale = 2)
+    private BigDecimal maxPortfolioDrawdownPct;
+
     /** 서킷 브레이커: 세션 MDD 임계값 (%) — 초과 시 세션 강제 정지 */
     @Column(name = "mdd_threshold_pct", precision = 5, scale = 2)
     private BigDecimal mddThresholdPct;
@@ -96,6 +104,7 @@ public class RiskConfigEntity {
         if (maxPositions == null) maxPositions = 20;
         if (maxCapitalUtilizationPct == null) maxCapitalUtilizationPct = new BigDecimal("80.0");
         if (cooldownMinutes == null) cooldownMinutes = 60;
+        if (maxPortfolioDrawdownPct == null) maxPortfolioDrawdownPct = new BigDecimal("15.0");
         if (mddThresholdPct == null) mddThresholdPct = new BigDecimal("20.0");
         if (consecutiveLossLimit == null) consecutiveLossLimit = 5;
         if (circuitBreakerEnabled == null) circuitBreakerEnabled = Boolean.TRUE;
@@ -138,6 +147,9 @@ public class RiskConfigEntity {
 
     public BigDecimal getMaxCapitalUtilizationPct() { return maxCapitalUtilizationPct; }
     public void setMaxCapitalUtilizationPct(BigDecimal v) { this.maxCapitalUtilizationPct = v; }
+
+    public BigDecimal getMaxPortfolioDrawdownPct() { return maxPortfolioDrawdownPct; }
+    public void setMaxPortfolioDrawdownPct(BigDecimal v) { this.maxPortfolioDrawdownPct = v; }
 
     public BigDecimal getMddThresholdPct() { return mddThresholdPct; }
     public void setMddThresholdPct(BigDecimal mddThresholdPct) { this.mddThresholdPct = mddThresholdPct; }

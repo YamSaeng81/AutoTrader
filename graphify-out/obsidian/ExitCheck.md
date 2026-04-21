@@ -1,0 +1,20 @@
+---
+source_file: "D:\Claude Code\projects\crypto-auto-trader\core-engine\src\main\java\com\cryptoautotrader\core\risk\ExitRuleChecker.java"
+type: "code"
+community: "Exit Rule Checker"
+location: "L34"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/Exit_Rule_Checker
+---
+
+# ExitCheck
+
+## Connections
+- [[.none()]] - `method` [EXTRACTED]
+- [[.stopLoss()]] - `method` [EXTRACTED]
+- [[.takeProfit()]] - `method` [EXTRACTED]
+- [[ExitRuleChecker.java]] - `contains` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/Exit_Rule_Checker

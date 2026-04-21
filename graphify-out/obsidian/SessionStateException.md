@@ -1,0 +1,18 @@
+---
+source_file: "D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\exception\SessionStateException.java"
+type: "code"
+community: "Module Group 79"
+location: "L3"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/Module_Group_79
+---
+
+# SessionStateException
+
+## Connections
+- [[.SessionStateException()]] - `method` [EXTRACTED]
+- [[SessionStateException.java]] - `contains` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/Module_Group_79

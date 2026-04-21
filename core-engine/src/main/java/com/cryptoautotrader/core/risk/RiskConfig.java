@@ -34,6 +34,15 @@ public class RiskConfig {
     @Builder.Default
     private BigDecimal maxCapitalUtilizationPct = new BigDecimal("80.0");
 
+    /**
+     * 글로벌 포트폴리오 드로우다운 상한 (%).
+     * 전체 세션의 (initialCapital - totalAssetKrw) / initialCapital × 100 이 이 값을 초과하면
+     * 신규 매수 차단. 기본 15% — 일별/주별/월별 손실 체크와 달리 현재 보유 자산 기준 실시간 낙폭.
+     * null 또는 0이면 비활성화.
+     */
+    @Builder.Default
+    private BigDecimal maxPortfolioDrawdownPct = new BigDecimal("15.0");
+
     /** 최대 레버리지 배수 */
     @Builder.Default
     private double maxLeverage = 3.0;

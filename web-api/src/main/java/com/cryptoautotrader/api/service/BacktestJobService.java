@@ -4,6 +4,7 @@ import com.cryptoautotrader.api.dto.BacktestRequest;
 import com.cryptoautotrader.api.dto.BatchBacktestRequest;
 import com.cryptoautotrader.api.dto.BulkBacktestRequest;
 import com.cryptoautotrader.api.dto.MultiStrategyBacktestRequest;
+import com.cryptoautotrader.api.dto.MultiTimeframeBatchRequest;
 import com.cryptoautotrader.api.dto.WalkForwardBatchRequest;
 import com.cryptoautotrader.api.entity.BacktestJobEntity;
 import com.cryptoautotrader.api.repository.BacktestJobRepository;
@@ -307,6 +308,118 @@ public class BacktestJobService {
                     req.getCoinPairs().size() + "개 코인",
                     req.getStrategyTypes().size() + "개 전략 배치",
                     fmt(req.getStartDate()), fmt(req.getEndDate()), req.getTimeframe(), e);
+        }
+    }
+
+    // ── 멀티타임프레임 배치 (전략 N × 코인 M × 타임프레임 K) ─────────────────────────
+
+    /**
+     * 전략 N × 코인 M × 타임프레임 K 조합 배치 백테스트 작업을 제출한다.
+     * 총 조합 수: strategyTypes.size() × coinPairs.size() × timeframes.size()
+     */
+    public Long submitMultiTimeframeBatchJob(MultiTimeframeBatchRequest req) {
+        int total = req.getStrategyTypes().size() * req.getCoinPairs().size() * req.getTimeframes().size();
+        String timeframeLabel = String.join("+", req.getTimeframes());
+        BacktestJobEntity job = createJob("MULTI_TIMEFRAME_BATCH",
+                req.getCoinPairs().size() + "개 코인",
+                req.getStrategyTypes().size() + "개 전략",
+                timeframeLabel, req, total);
+        Long jobId = job.getId();
+        log.info("멀티타임프레임 배치 Job 제출: jobId={}, 전략 {}개 × 코인 {}개 × 타임프레임 {}개 = {}개 조합",
+                jobId, req.getStrategyTypes().size(), req.getCoinPairs().size(),
+                req.getTimeframes().size(), total);
+        self.executeMultiTimeframeBatchAsync(jobId, req);
+        return jobId;
+    }
+
+    @Async("backtestExecutor")
+    public void executeMultiTimeframeBatchAsync(Long jobId, MultiTimeframeBatchRequest req) {
+        BacktestJobEntity job = jobRepository.findById(jobId).orElseThrow();
+        if (cancelRequested.remove(jobId) != null || "CANCELLED".equals(job.getStatus())) {
+            job.setStatus("CANCELLED");
+            jobRepository.save(job);
+            return;
+        }
+        try {
+            job.setStatus("RUNNING");
+            jobRepository.save(job);
+
+            List<Map<String, Object>> results = new ArrayList<>();
+            int completed = 0;
+
+            outer:
+            for (String timeframe : req.getTimeframes()) {
+                for (String coinPair : req.getCoinPairs()) {
+                    for (String strategyType : req.getStrategyTypes()) {
+                        if (cancelRequested.containsKey(jobId)) {
+                            log.info("멀티타임프레임 배치 취소 감지: jobId={}, 완료 {}개", jobId, completed);
+                            cancelRequested.remove(jobId);
+                            break outer;
+                        }
+                        try {
+                            Map<String, Object> result = backtestService.runBacktest(
+                                    strategyType, coinPair, timeframe,
+                                    req.getStartDate(), req.getEndDate(),
+                                    req.getInitialCapital(), req.getSlippagePct(), req.getFeePct(),
+                                    Map.of(), false, null, null);
+                            result.put("timeframe", timeframe);
+                            result.put("coinPair",  coinPair);
+                            result.put("strategy",  strategyType);
+                            results.add(result);
+                            log.info("멀티타임프레임 배치 진행: jobId={} [{}/{}] {} {} {}",
+                                    jobId, completed + 1, job.getTotalChunks(),
+                                    timeframe, coinPair, strategyType);
+                        } catch (Exception e) {
+                            log.error("멀티타임프레임 배치 조합 실패: jobId={} {} {} {} error={}",
+                                    jobId, timeframe, coinPair, strategyType, e.getMessage());
+                            results.add(Map.of(
+                                    "timeframe", timeframe,
+                                    "coinPair",  coinPair,
+                                    "strategy",  strategyType,
+                                    "error",     e.getMessage() != null ? e.getMessage() : "unknown"));
+                        }
+                        ++completed;
+                        if (completed % 10 == 0) {
+                            job.setCompletedChunks(completed);
+                            jobRepository.save(job);
+                        }
+                    }
+                }
+            }
+
+            if ("CANCELLED".equals(job.getStatus())) {
+                job.setCompletedChunks(completed);
+                jobRepository.save(job);
+                return;
+            }
+
+            long failCount = results.stream().filter(r -> r.containsKey("error")).count();
+            job.setStatus(failCount == results.size() ? "FAILED" : "COMPLETED");
+            job.setCompletedChunks(completed);
+            if (failCount > 0 && failCount < results.size()) {
+                job.setErrorMessage(failCount + "개 조합 실패 (나머지 완료)");
+            }
+            jobRepository.save(job);
+            log.info("멀티타임프레임 배치 완료: jobId={}, 총 {}개 중 실패 {}개", jobId, results.size(), failCount);
+
+            String coinLabel  = req.getCoinPairs().size() + "개 코인";
+            String tfLabel    = String.join("+", req.getTimeframes());
+            Map<String, Object> summary = buildMultiStrategySummary(results, coinLabel);
+            summary.put("timeframes", tfLabel);
+            telegramService.notifyBacktestCompleted(jobId, coinLabel,
+                    req.getStrategyTypes().size() + "개 전략 × " + coinLabel + " × " + tfLabel,
+                    fmt(req.getStartDate()), fmt(req.getEndDate()), tfLabel, summary);
+
+        } catch (Exception e) {
+            log.error("멀티타임프레임 배치 실패: jobId={}, error={}", jobId, e.getMessage(), e);
+            job.setStatus("FAILED");
+            job.setErrorMessage(truncate(e.getMessage(), 1000));
+            jobRepository.save(job);
+            telegramService.notifyBacktestFailed(jobId,
+                    req.getCoinPairs().size() + "개 코인",
+                    req.getStrategyTypes().size() + "개 전략 멀티타임프레임 배치",
+                    fmt(req.getStartDate()), fmt(req.getEndDate()),
+                    String.join("+", req.getTimeframes()), e);
         }
     }
 

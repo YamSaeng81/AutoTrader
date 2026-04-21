@@ -1,0 +1,353 @@
+---
+type: community
+cohesion: 0.02
+members: 294
+---
+
+# Backtest Runner & Orchestration
+
+**Cohesion:** 0.02 - loosely connected
+**Members:** 294 nodes
+
+## Members
+- [[.OrderExecutionEngine()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\OrderExecutionEngine.java
+- [[.RealtimePriceEvent()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\RealtimePriceEvent.java
+- [[.apply()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\SessionBalanceUpdater.java
+- [[.applyOnce()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\SessionBalanceUpdater.java
+- [[.bufferTradeEvent()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\TelegramNotificationService.java
+- [[.buildActiveSessions()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\report\LogAnalyzerService.java
+- [[.buildMultiStrategySummary()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\BacktestJobService.java
+- [[.buildRegimeBreakdown()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.buildSession()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\test\java\com\cryptoautotrader\api\service\LiveTradingReliabilityTest.java
+- [[.buildWalkForwardSummary()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\BacktestJobService.java
+- [[.bulkDeleteSessions()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\PaperTradingService.java
+- [[.cancelAllActiveOrders()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\OrderExecutionEngine.java
+- [[.cancelJob()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\BacktestJobService.java
+- [[.cancelOnExchange()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\OrderExecutionEngine.java
+- [[.cancelOrder()_2]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\OrderExecutionEngine.java
+- [[.cancelOrder_failedStateThrows()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\test\java\com\cryptoautotrader\api\service\OrderExecutionEngineTest.java
+- [[.cancelOrder_filledStateThrows()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\test\java\com\cryptoautotrader\api\service\OrderExecutionEngineTest.java
+- [[.cancelOrder_pendingToCancelled()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\test\java\com\cryptoautotrader\api\service\OrderExecutionEngineTest.java
+- [[.cancelOrder_submittedToCancelled()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\test\java\com\cryptoautotrader\api\service\OrderExecutionEngineTest.java
+- [[.cancelSessionActiveOrders()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.capitalUtilization_withinLimit_approved()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\test\java\com\cryptoautotrader\api\service\RiskManagementServiceTest.java
+- [[.checkOrderStatus()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\OrderExecutionEngine.java
+- [[.closeIfOpen()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\repository\PositionRepository.java
+- [[.closeIfOpen_isIdempotent()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\test\java\com\cryptoautotrader\api\service\LiveTradingReliabilityTest.java
+- [[.closePosition()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\PaperTradingService.java
+- [[.closePosition()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\PositionService.java
+- [[.closeSessionPositions()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.compareBacktests()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\BacktestService.java
+- [[.computeRiskMetrics()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\PaperTradingService.java
+- [[.count()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\DbResetService.java
+- [[.countByStatus()_2]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\repository\paper\VirtualBalanceRepository.java
+- [[.countCandles()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\BacktestJobService.java
+- [[.createJob()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\BacktestJobService.java
+- [[.createMultipleSessions()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.createSession()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.createSession()_2]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\PaperTradingService.java
+- [[.deleteBySessionId()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\repository\paper\PaperPositionRepository.java
+- [[.deleteBySessionIdIn()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\repository\paper\PaperPositionRepository.java
+- [[.deleteSession()_2]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.deleteSession()_3]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\PaperTradingService.java
+- [[.doOnRealtimePriceEvent()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.emergencyStopAll()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.emergencyStopSession()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.entityToMetricsMap()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\BacktestService.java
+- [[.error()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\llm\LlmResponse.java
+- [[.evaluateAndExecuteSession()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.executeBatchAsync()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\BacktestJobService.java
+- [[.executeBulkAsync()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\BacktestJobService.java
+- [[.executeBuy()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\PaperTradingService.java
+- [[.executeMultiStrategyAsync()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\BacktestJobService.java
+- [[.executeSessionBuy()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.executeSessionSell()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.executeSingleAsync()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\BacktestJobService.java
+- [[.executeStrategies()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.executeWalkForwardBatchAsync()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\BacktestJobService.java
+- [[.existsBySessionIdAndCoinPairAndSideAndStateIn()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\repository\OrderRepository.java
+- [[.exitChecker()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\PaperTradingService.java
+- [[.exitConfig()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.fetchCurrentPrice()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\PaperTradingService.java
+- [[.finalizeSellPosition()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.findAllByOrderByCreatedAtDesc()_6]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\repository\TradeLogRepository.java
+- [[.findAllByOrderByIdDesc()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\repository\paper\VirtualBalanceRepository.java
+- [[.findByBacktestRunIdAndSegment()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\repository\BacktestMetricsRepository.java
+- [[.findByCoinPairAndStatus()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\repository\PositionRepository.java
+- [[.findByPositionIdOrderByCreatedAtDesc()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\repository\OrderRepository.java
+- [[.findBySessionId()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\repository\paper\PaperPositionRepository.java
+- [[.findBySessionIdAndCoinPairAndStatus()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\repository\paper\PaperPositionRepository.java
+- [[.findBySessionIdAndStatus()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\repository\paper\PaperPositionRepository.java
+- [[.findBySessionIdOrderByCreatedAtDesc()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\repository\paper\PaperOrderRepository.java
+- [[.findByStateIn()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\repository\OrderRepository.java
+- [[.findByStatus()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\repository\PositionRepository.java
+- [[.findByStatusOrderByStartedAtAsc()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\repository\paper\VirtualBalanceRepository.java
+- [[.findRecent()_2]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\repository\RegimeChangeLogRepository.java
+- [[.fmt()_3]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\BacktestJobService.java
+- [[.getActiveOrders()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\OrderExecutionEngine.java
+- [[.getAllPositions()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\PaperTradingService.java
+- [[.getAllSessionOrders()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.getAvailableKrw()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\LiveTradingSessionEntity.java
+- [[.getBacktestResult()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\BacktestService.java
+- [[.getCancelledAt()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java
+- [[.getChartCandles()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.getChartCandles()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\PaperTradingService.java
+- [[.getCircuitBreakerReason()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\LiveTradingSessionEntity.java
+- [[.getCircuitBreakerTriggeredAt()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\LiveTradingSessionEntity.java
+- [[.getCoinCode()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\RealtimePriceEvent.java
+- [[.getCoinPair()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\LiveTradingSessionEntity.java
+- [[.getCoinPair()_3]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java
+- [[.getCoinPair()_4]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\StrategyConfigEntity.java
+- [[.getCreatedAt()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\LiveTradingSessionEntity.java
+- [[.getCreatedAt()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java
+- [[.getCreatedAt()_3]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\TradeLogEntity.java
+- [[.getExchangeOrderId()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java
+- [[.getExecutedFunds()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java
+- [[.getFailedReason()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java
+- [[.getFilledAt()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java
+- [[.getFilledQuantity()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java
+- [[.getHistory()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\controller\ReportController.java
+- [[.getId()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\LiveTradingSessionEntity.java
+- [[.getId()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java
+- [[.getId()_5]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\TradeLogEntity.java
+- [[.getInitialCapital()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\LiveTradingSessionEntity.java
+- [[.getInvestRatio()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\LiveTradingSessionEntity.java
+- [[.getJob()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\BacktestJobService.java
+- [[.getLogs()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\controller\DiscordController.java
+- [[.getMaxInvestment()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\LiveTradingSessionEntity.java
+- [[.getOpenPositions()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\PaperTradingService.java
+- [[.getOrder()_2]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\OrderExecutionEngine.java
+- [[.getOrderType()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java
+- [[.getOrders()_3]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\PaperTradingService.java
+- [[.getOverallPerformance()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\PaperTradingService.java
+- [[.getPerformanceSummary()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.getPositionId()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java
+- [[.getPrice()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java
+- [[.getPrice()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\RealtimePriceEvent.java
+- [[.getQuantity()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java
+- [[.getRegimeHistory()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\controller\LogController.java
+- [[.getResponseJson()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java
+- [[.getSession()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.getSession()_2]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\PaperTradingService.java
+- [[.getSessionBalance()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\PaperTradingService.java
+- [[.getSessionId()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java
+- [[.getSessionOrThrow()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.getSessionOrders()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.getSessionPositions()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.getSide()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java
+- [[.getSignalReason()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java
+- [[.getStartedAt()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\LiveTradingSessionEntity.java
+- [[.getState()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java
+- [[.getStatus()_2]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\LiveTradingSessionEntity.java
+- [[.getStatus()_4]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\StrategyLiveStatusRegistry.java
+- [[.getStopLossPct()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\LiveTradingSessionEntity.java
+- [[.getStoppedAt()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\LiveTradingSessionEntity.java
+- [[.getStrategyParams()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\LiveTradingSessionEntity.java
+- [[.getStrategyType()_13]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\LiveTradingSessionEntity.java
+- [[.getStrategyType()_14]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\StrategyConfigEntity.java
+- [[.getStrategyTypes()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\controller\SystemController.java
+- [[.getSubmittedAt()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java
+- [[.getTicker()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\controller\SettingsController.java
+- [[.getTimeframe()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\LiveTradingSessionEntity.java
+- [[.getTimeframe()_3]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\StrategyConfigEntity.java
+- [[.getTotalAssetKrw()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\LiveTradingSessionEntity.java
+- [[.getUpdatedAt()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\LiveTradingSessionEntity.java
+- [[.getVersion()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\LiveTradingSessionEntity.java
+- [[.handleBadRequest()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\controller\GlobalExceptionHandler.java
+- [[.handleBuyFill()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\OrderExecutionEngine.java
+- [[.handleConflict()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\controller\GlobalExceptionHandler.java
+- [[.handleInternalError()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\controller\GlobalExceptionHandler.java
+- [[.handleMissingParam()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\controller\GlobalExceptionHandler.java
+- [[.handleSellFill()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\OrderExecutionEngine.java
+- [[.handleSessionNotFound()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\controller\GlobalExceptionHandler.java
+- [[.handleSessionState()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\controller\GlobalExceptionHandler.java
+- [[.handleValidation()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\controller\GlobalExceptionHandler.java
+- [[.initTxTemplate()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\SessionBalanceUpdater.java
+- [[.initWebSocket()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.isTradingActive()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.jobToMap()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\BacktestJobService.java
+- [[.listBacktests()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\BacktestService.java
+- [[.listJobs()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\BacktestJobService.java
+- [[.listSessions()_2]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.listSessions()_3]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\PaperTradingService.java
+- [[.listWalkForwardHistory()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\BacktestService.java
+- [[.mapExchangeState()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\OrderExecutionEngine.java
+- [[.notifyBacktestCompleted()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\TelegramNotificationService.java
+- [[.notifyBacktestFailed()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\TelegramNotificationService.java
+- [[.notifySessionStopped()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\TelegramNotificationService.java
+- [[.onExchangeDown()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.onExchangeRecovered()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.onRealtimePriceEvent()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.pollActiveOrders()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\OrderExecutionEngine.java
+- [[.pollRestTickerFallback()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.prePersist()_4]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\LiveTradingSessionEntity.java
+- [[.prePersist()_10]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java
+- [[.preUpdate()_2]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\LiveTradingSessionEntity.java
+- [[.processFilledOrder()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\OrderExecutionEngine.java
+- [[.queryExchangeOrder()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\OrderExecutionEngine.java
+- [[.reconcileClosingPositions()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.reconcileInternal()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.reconcileOnStartup()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.reconcileOrphanBuyPositions()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.reconcile_alreadyClosedPosition_skipsKrwRestore()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\test\java\com\cryptoautotrader\api\service\LiveTradingReliabilityTest.java
+- [[.reconcile_failedBuy_restoresKrw()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\test\java\com\cryptoautotrader\api\service\LiveTradingReliabilityTest.java
+- [[.recordTradeLog()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\OrderExecutionEngine.java
+- [[.refreshWsSubscription()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.register()]] - code - D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\StrategyRegistry.java
+- [[.resolveAskVolume()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\OrderExecutionEngine.java
+- [[.runBacktest()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\controller\BacktestController.java
+- [[.runBatchAsync()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\controller\BacktestController.java
+- [[.runBulkBacktest()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\controller\BacktestController.java
+- [[.runMacdGridSearch()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\controller\BacktestController.java
+- [[.runMultiStrategyBacktest()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\controller\BacktestController.java
+- [[.runSessionStrategy()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\PaperTradingService.java
+- [[.runStrategy()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\PaperTradingService.java
+- [[.runWalkForward()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\controller\BacktestController.java
+- [[.runWalkForwardBatchAsync()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\controller\BacktestController.java
+- [[.saveSignalQuality()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.sendPromotionAlert()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\PaperSessionPromotionService.java
+- [[.setAvailableKrw()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\LiveTradingSessionEntity.java
+- [[.setCancelledAt()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java
+- [[.setCircuitBreakerReason()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\LiveTradingSessionEntity.java
+- [[.setCircuitBreakerTriggeredAt()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\LiveTradingSessionEntity.java
+- [[.setCoinPair()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\LiveTradingSessionEntity.java
+- [[.setCoinPair()_3]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java
+- [[.setCoinPair()_4]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\StrategyConfigEntity.java
+- [[.setExchangeOrderId()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java
+- [[.setExecutedFunds()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java
+- [[.setFailedReason()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java
+- [[.setFilledAt()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java
+- [[.setFilledQuantity()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java
+- [[.setInvestRatio()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\LiveTradingSessionEntity.java
+- [[.setMaxInvestment()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\LiveTradingSessionEntity.java
+- [[.setMddPeakCapital()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\LiveTradingSessionEntity.java
+- [[.setOrderType()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java
+- [[.setPositionId()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java
+- [[.setPrice()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java
+- [[.setQuantity()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java
+- [[.setResponseJson()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java
+- [[.setSessionId()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java
+- [[.setSide()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java
+- [[.setSignalReason()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java
+- [[.setStartedAt()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\LiveTradingSessionEntity.java
+- [[.setState()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java
+- [[.setStatus()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\LiveTradingSessionEntity.java
+- [[.setStopLossPct()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\LiveTradingSessionEntity.java
+- [[.setStoppedAt()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\LiveTradingSessionEntity.java
+- [[.setStrategyParams()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\LiveTradingSessionEntity.java
+- [[.setStrategyType()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\LiveTradingSessionEntity.java
+- [[.setSubmittedAt()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java
+- [[.setTimeframe()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\LiveTradingSessionEntity.java
+- [[.setTotalAssetKrw()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\LiveTradingSessionEntity.java
+- [[.setVersion()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\LiveTradingSessionEntity.java
+- [[.start()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\PaperTradingService.java
+- [[.startMulti()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\PaperTradingService.java
+- [[.startSession()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.stdDevPopulation()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\PaperTradingService.java
+- [[.stop()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\controller\PaperTradingController.java
+- [[.stop()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\PaperTradingService.java
+- [[.stopAll()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\PaperTradingService.java
+- [[.stopSession()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.submitBatchJob()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\BacktestJobService.java
+- [[.submitBulkJob()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\BacktestJobService.java
+- [[.submitMultiStrategyJob()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\BacktestJobService.java
+- [[.submitOrder()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\OrderExecutionEngine.java
+- [[.submitSingleJob()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\BacktestJobService.java
+- [[.submitToExchange()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\OrderExecutionEngine.java
+- [[.submitWalkForwardBatchJob()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\BacktestJobService.java
+- [[.sumInitialCapitalByStatusIn()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\repository\LiveTradingSessionRepository.java
+- [[.syncMarketData()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\MarketDataSyncService.java
+- [[.syncOrderState()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\OrderExecutionEngine.java
+- [[.taskScheduler()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\config\SchedulerConfig.java
+- [[.testOrder()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\controller\SettingsController.java
+- [[.toBalanceMap()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\controller\PaperTradingController.java
+- [[.toJson()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\BacktestJobService.java
+- [[.toJsonDetail()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\OrderExecutionEngine.java
+- [[.toOrderMap()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\controller\PaperTradingController.java
+- [[.toOrderMap()_1]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\controller\TradingController.java
+- [[.toPositionMap()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\controller\PaperTradingController.java
+- [[.toSessionSummaryMap()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\controller\PaperTradingController.java
+- [[.toTradeRecords()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.transitionState()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\OrderExecutionEngine.java
+- [[.triggerReport()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\controller\ReportController.java
+- [[.truncate()_2]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\BacktestJobService.java
+- [[.updatePriceHistory()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.updateSessionUnrealizedPnl()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.updateUnrealizedPnl()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\PaperTradingService.java
+- [[.warnStaleSlCheck()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[.단일_mutation_이_정상_반영된다()]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\test\java\com\cryptoautotrader\api\service\SessionBalanceUpdaterTest.java
+- [[BacktestJobService]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\BacktestJobService.java
+- [[BacktestJobService.java]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\BacktestJobService.java
+- [[GlobalExceptionHandler]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\controller\GlobalExceptionHandler.java
+- [[GlobalExceptionHandler.java]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\controller\GlobalExceptionHandler.java
+- [[LiveTradingService]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\LiveTradingService.java
+- [[LiveTradingSessionEntity]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\LiveTradingSessionEntity.java
+- [[LiveTradingSessionEntity.java]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\LiveTradingSessionEntity.java
+- [[LlmResponse]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\llm\LlmResponse.java
+- [[LlmResponse.java]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\llm\LlmResponse.java
+- [[OrderEntity]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java
+- [[OrderEntity.java]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java
+- [[OrderExecutionEngine]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\OrderExecutionEngine.java
+- [[OrderExecutionEngine.java]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\OrderExecutionEngine.java
+- [[PaperPositionRepository]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\repository\paper\PaperPositionRepository.java
+- [[PaperPositionRepository.java]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\repository\paper\PaperPositionRepository.java
+- [[PaperTradingService]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\PaperTradingService.java
+- [[PaperTradingService.java]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\PaperTradingService.java
+- [[RealtimePriceEvent]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\RealtimePriceEvent.java
+- [[RealtimePriceEvent.java]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\RealtimePriceEvent.java
+- [[RiskMetrics]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\PaperTradingService.java
+- [[SchedulerConfig]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\config\SchedulerConfig.java
+- [[SchedulerConfig.java]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\config\SchedulerConfig.java
+- [[SessionBalanceUpdater]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\SessionBalanceUpdater.java
+- [[SessionBalanceUpdater.java]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\service\SessionBalanceUpdater.java
+- [[SessionBalanceUpdaterTest]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\test\java\com\cryptoautotrader\api\service\SessionBalanceUpdaterTest.java
+- [[SessionBalanceUpdaterTest.java]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\test\java\com\cryptoautotrader\api\service\SessionBalanceUpdaterTest.java
+- [[VirtualBalanceRepository]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\repository\paper\VirtualBalanceRepository.java
+- [[VirtualBalanceRepository.java]] - code - D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\repository\paper\VirtualBalanceRepository.java
+
+## Live Query (requires Dataview plugin)
+
+```dataview
+TABLE source_file, type FROM #community/Backtest_Runner_&_Orchestration
+SORT file.name ASC
+```
+
+## Connections to other communities
+- 64 edges to [[_COMMUNITY_Web API Controllers]]
+- 60 edges to [[_COMMUNITY_Backtest Engine Core]]
+- 59 edges to [[_COMMUNITY_Strategy Unit Tests]]
+- 56 edges to [[_COMMUNITY_Infrastructure Config]]
+- 44 edges to [[_COMMUNITY_LLM Task Router & AI Tests]]
+- 35 edges to [[_COMMUNITY_Strategy Config & Parameters]]
+- 32 edges to [[_COMMUNITY_Strategy Selector & Voting]]
+- 31 edges to [[_COMMUNITY_Backtest Scheduler & UI]]
+- 31 edges to [[_COMMUNITY_Circuit Breaker & Risk]]
+- 27 edges to [[_COMMUNITY_Backtest Configuration]]
+- 18 edges to [[_COMMUNITY_Discord & Morning Briefing]]
+- 15 edges to [[_COMMUNITY_Order Execution & Repository]]
+- 12 edges to [[_COMMUNITY_Portfolio & WebSocket Client]]
+- 12 edges to [[_COMMUNITY_Session Lifecycle & Promotion]]
+- 7 edges to [[_COMMUNITY_Upbit Exchange Adapter]]
+- 6 edges to [[_COMMUNITY_Composite Preset Registry]]
+- 5 edges to [[_COMMUNITY_Exchange Health Monitor]]
+- 4 edges to [[_COMMUNITY_Market Regime Detection]]
+- 4 edges to [[_COMMUNITY_AI Pipeline & News Feed]]
+- 4 edges to [[_COMMUNITY_Execution Drift Tracking]]
+- 2 edges to [[_COMMUNITY_Module Group 31]]
+- 1 edge to [[_COMMUNITY_Exit Rule Checker]]
+- 1 edge to [[_COMMUNITY_Module Group 30]]
+- 1 edge to [[_COMMUNITY_Indicator Configs]]
+- 1 edge to [[_COMMUNITY_Module Group 38]]
+- 1 edge to [[_COMMUNITY_LLM Call Logging]]
+- 1 edge to [[_COMMUNITY_Frontend Pages]]
+- 1 edge to [[_COMMUNITY_Module Group 55]]
+- 1 edge to [[_COMMUNITY_Module Group 56]]
+- 1 edge to [[_COMMUNITY_Module Group 57]]
+- 1 edge to [[_COMMUNITY_Module Group 83]]
+
+## Top bridge nodes
+- [[.error()_1]] - degree 89, connects to 14 communities
+- [[.getId()_5]] - degree 85, connects to 11 communities
+- [[.evaluateAndExecuteSession()]] - degree 39, connects to 10 communities
+- [[.getCoinPair()_4]] - degree 72, connects to 8 communities
+- [[.getTimeframe()_3]] - degree 51, connects to 6 communities

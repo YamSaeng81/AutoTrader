@@ -493,6 +493,84 @@ public class TelegramNotificationService {
         sendMarkdownAndLog(message, "CUSTOM", "system");
     }
 
+    // ── 데이터 수집 완료 알림 ─────────────────────────────────────────────────
+
+    /**
+     * 배치 캔들 수집 완료 시 텔레그램으로 결과를 전송한다.
+     *
+     * @param timeframe      타임프레임 (H1, M5 등)
+     * @param startDate      수집 시작일
+     * @param endDate        수집 종료일
+     * @param results        코인별 수집 결과
+     * @param totalDurationMs 전체 소요 시간 (ms)
+     */
+    public void notifyDataCollectionCompleted(String timeframe,
+                                               java.time.LocalDate startDate,
+                                               java.time.LocalDate endDate,
+                                               java.util.List<com.cryptoautotrader.api.dto.CoinCollectResult> results,
+                                               long totalDurationMs) {
+        if (!enabled) return;
+        try {
+            long successCount = results.stream().filter(com.cryptoautotrader.api.dto.CoinCollectResult::isSuccess).count();
+            long totalCandleCount = results.stream().mapToLong(com.cryptoautotrader.api.dto.CoinCollectResult::getCandleCount).sum();
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("✅ *데이터 수집 완료*\n\n");
+            sb.append("📅 기간: `").append(startDate).append(" ~ ").append(endDate).append("`\n");
+            sb.append("⏱ 타임프레임: `").append(formatTimeframe(timeframe)).append("`\n");
+            sb.append("━━━━━━━━━━━━━━━━\n");
+
+            for (com.cryptoautotrader.api.dto.CoinCollectResult r : results) {
+                if (r.isSuccess()) {
+                    sb.append("✅ ").append(r.getCoinPair())
+                      .append(": `").append(String.format("%,d", r.getCandleCount())).append("개`")
+                      .append(" (").append(formatDuration(r.getDurationMs())).append(")\n");
+                } else {
+                    sb.append("❌ ").append(r.getCoinPair()).append(": 실패");
+                    if (r.getErrorMessage() != null && !r.getErrorMessage().isBlank()) {
+                        String errShort = r.getErrorMessage().length() > 50
+                                ? r.getErrorMessage().substring(0, 50) + "…"
+                                : r.getErrorMessage();
+                        sb.append(" — `").append(errShort).append("`");
+                    }
+                    sb.append("\n");
+                }
+            }
+
+            sb.append("━━━━━━━━━━━━━━━━\n");
+            sb.append("• 총 캔들: `").append(String.format("%,d", totalCandleCount)).append("개`\n");
+            sb.append("• 소요시간: `").append(formatDuration(totalDurationMs)).append("`\n");
+            sb.append("• 성공: `").append(successCount).append("/").append(results.size()).append("` 코인\n");
+            sb.append("• 시각: `").append(KST_FMT.format(Instant.now())).append("`");
+
+            sendMarkdownAndLog(sb.toString(), "DATA_COLLECTION", "데이터수집");
+        } catch (Exception e) {
+            log.warn("[Telegram] 데이터 수집 완료 알림 전송 실패: {}", e.getMessage());
+        }
+    }
+
+    private static String formatTimeframe(String tf) {
+        return switch (tf.toUpperCase()) {
+            case "M1"  -> "1분봉";
+            case "M5"  -> "5분봉";
+            case "M15" -> "15분봉";
+            case "M30" -> "30분봉";
+            case "H1"  -> "1시간봉";
+            case "H4"  -> "4시간봉";
+            case "D1"  -> "일봉";
+            default    -> tf;
+        };
+    }
+
+    private static String formatDuration(long ms) {
+        if (ms < 1000) return ms + "ms";
+        long seconds = ms / 1000;
+        if (seconds < 60) return seconds + "초";
+        long minutes = seconds / 60;
+        long remaining = seconds % 60;
+        return minutes + "분 " + (remaining > 0 ? remaining + "초" : "");
+    }
+
     private void sendMarkdownAndLog(String text, String type, String sessionLabel) {
         telegramExecutor.execute(() -> doSendMarkdownAndLog(text, type, sessionLabel));
     }

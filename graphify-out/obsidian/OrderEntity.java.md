@@ -1,0 +1,17 @@
+---
+source_file: "D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\entity\OrderEntity.java"
+type: "code"
+community: "Backtest Runner & Orchestration"
+location: "L1"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/Backtest_Runner_&_Orchestration
+---
+
+# OrderEntity.java
+
+## Connections
+- [[OrderEntity]] - `contains` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/Backtest_Runner_&_Orchestration

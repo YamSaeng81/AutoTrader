@@ -4,6 +4,117 @@
 
 ---
 
+### ✅ 완료 (2026-04-21) — 데이터 수집 멀티 코인 배치 + 텔레그램 완료 알림
+
+**백엔드**
+- `DataBatchCollectRequest`: `coinPairs(List)` + timeframe + startDate + endDate
+- `CoinCollectResult`: 코인별 결과 DTO (coinPair, success, candleCount, durationMs, errorMessage)
+- `DataCollectionService.collectBatch()`: 코인 순차 처리, 실패 시 1회 재시도(3초 후), 코인 간 2초 딜레이, 중단 인터럽트 처리
+- `DataController POST /api/v1/data/collect/batch`: 202 즉시 반환 후 비동기 실행
+- `TelegramNotificationService.notifyDataCollectionCompleted()`: 배치 완료 시 코인별 결과·총 캔들 수·소요시간·성공률 알림
+
+**프론트엔드 (`app/data/page.tsx`)**
+- 단일 코인 드롭박스 → 체크박스 멀티 선택 (토글 패널, 2~3열 그리드)
+- 전체 선택 / 전체 해제 버튼, 선택 수 뱃지
+- 예상 소요시간 자동 계산 표시 (타임프레임·기간·코인 수 기반)
+- 타임프레임 M15·M30·H4 추가 (기존 M1·M5·H1·D1 → 6종)
+- 기본 시작일 3년 전으로 변경
+- `api.ts`: `dataApi.batchCollect()` 추가
+
+---
+
+### ✅ 완료 (2026-04-21) — P1-2 §3 SL/TP intra-H1 경로 재구성 + Monte Carlo 동시 터치 해결
+
+**§3 SL/TP intra-H1 path 정확도 향상**
+- `ExitRuleChecker.checkCandleExitWithPath(open, high, low, close, sl, tp)` 신규 구현
+- OHLC 4-point 경로 재구성: Open-Low 거리 vs Open-High 거리 비교 → 캔들 내 선도 방향 결정
+  - Open이 Low에 가까울수록 하락 선도 → SL 먼저 터치로 판정
+  - Open이 High에 가까울수록 상승 선도 → TP 먼저 터치로 판정
+  - 동일 거리: Close 방향(하락/상승 마감)으로 2차 결정
+- 갭 체결 내장: Open 자체가 SL/TP를 넘어선 경우 Open가로 즉시 체결
+- `BacktestEngine`: `checkCandleExit` → `checkCandleExitWithPath` 교체
+
+**§3 SL/TP 동시 터치 Monte Carlo**
+- `ExitRuleChecker.resolveByMonteCarlo(open, sl, tp)` 신규 구현 (private)
+- Doji 또는 Open-Close 동일 + 동일 거리인 완전 대칭 케이스에 한해 Monte Carlo 적용
+- Open에서 출발, (TP-SL)/20 스텝 크기, 200회 랜덤 워크 → SL 선도 확률 ≥ 50%이면 손절
+- `ThreadLocalRandom` 사용 (thread-safe, 시드 불필요)
+- 테스트 9건 추가 (`ExitRuleCheckerTest.CheckCandleExitWithPath`)
+
+---
+
+### ✅ 완료 (2026-04-21) — P1-2 §5 글로벌 포트폴리오 드로우다운 체크 + §6 WeightStore DB 영속화
+
+**§5 리스크 구간 손실 재정의 (글로벌 포트폴리오 드로우다운)**
+- `V48__add_portfolio_drawdown_to_risk_config.sql`: `risk_config.max_portfolio_drawdown_pct DECIMAL(5,2) DEFAULT 15.0` 추가
+- `RiskConfig.maxPortfolioDrawdownPct` 필드 (`@Builder.Default` 15.0)
+- `RiskConfigEntity.maxPortfolioDrawdownPct` 컬럼 + `prePersist` 기본값
+- `RiskEngine.check(6-param)`: 전체 RUNNING 세션 드로우다운 초과 시 REJECT — 기존 daily/weekly/monthly 체크와 독립
+- `RiskManagementService.calculatePortfolioDrawdownPct()`: `Σ(initialCapital - totalAssetKrw) / Σ(initialCapital)` — per-session MDD·기간 gross loss와 별도
+- `schema-h2.sql`: 테스트 스키마 동기화
+
+**§6 WeightOverrideStore DB 영속화**
+- `V49__create_weight_optimizer_snapshot.sql`: `weight_optimizer_snapshot` 테이블 + `idx_wos_key_created` 인덱스
+- `WeightOptimizerSnapshotEntity`: `(regime, coinPair, strategyName, weight, createdAt)` — coinPair=NULL 은 레짐 레벨
+- `WeightOptimizerSnapshotRepository.findLatestPerKey()`: JPQL 서브쿼리 방식 (H2 호환)
+- `StrategyWeightOptimizer.saveSnapshot()`: optimize()/optimizeCoinLevel() 후 DB 저장
+- `StrategyWeightOptimizer.restoreFromSnapshot()`: `@EventListener(ApplicationReadyEvent)` 로 서버 재시작 시 WeightOverrideStore 복원
+- `schema-h2.sql`: 테스트 스키마 동기화
+
+---
+
+### ✅ 완료 (2026-04-21) — Self-Audit Tier1~4 전체 PROGRESS.md 정리 이관
+
+**배경**: `docs/20260415_analy.md` 자가 비판 분석서(2026-04-15)를 기반으로 한 18개 개선 항목이 2026-04-13~04-20 기간 모두 구현 완료. PROGRESS.md에서 CHANGELOG로 이관 정리. 미완 서브항목은 P1-2로 별도 추적.
+
+| 구분 | 항목 | 구현 핵심 |
+|------|------|---------|
+| Tier1 §1 | Sharpe 연환산 수정 | `MetricsCalculator` 일별 equity curve 기반 재계산. 기존 per-trade×√365 오류 수정 |
+| Tier1 §2 | Walk-Forward 겹침 | `step=windowSize` 고정, ANCHORED 모드 추가, OOS 거래 병합 집계 |
+| Tier1 §3 | 백테스트 SL/TP 현실 체결 | gap-open 감지 + SELL 슬리피지 + ambiguous 플래그 |
+| Tier1 §4 | Partial Fill 가중평균 진입가 | BUY 이월 시 `entryPrice` 재계산 + `entryFee` 누적 |
+| Tier1 §5 | 리스크 체크 자본 기준 | RUNNING 세션 `initialCapital` 합 + gross loss 분모 |
+| Tier1 §6 | StrategyLog realizedPnl 전환 | `aggregateRealizedReturnsByStrategyAndRegime` + EV 기반 폴백 |
+| Tier2 §7 | LiveTradingService race | `@Version` 낙관적 락 + V43 Flyway + `SessionBalanceUpdater` |
+| Tier2 §8 | 세션당 1코인 가드 | 자본 초과 배정 방지 + cross-session KRW 합산 초과 차단 + PortfolioSyncService drift 감지 |
+| Tier2 §9 | WebSocket SPOF | REST ticker fallback (WS 30초 끊김 시 전환) + SL 미점검 경고 |
+| Tier2 §10 | emergencyStopAll | `UpbitApiRateLimiter` + 손실 내림차순 청산 + dry-run 모드 |
+| Tier3 §11 | 전략 레지스트리 | `StrategyLiveStatusRegistry` (ENABLED/BLOCKED/EXPERIMENTAL/DEPRECATED) |
+| Tier3 §12 | 파라미터 look-ahead 방지 | `WalkForwardTestRunner.run(holdOutCutoff)` 오버로드 |
+| Tier3 §13 | 데이터 스냅샷 편향 | `monthlyReturnStdDev` · `skewness` · `topMonthConcentrationPct` 추가 |
+| Tier3 §14 | 실전/백테스트 drift | `ExecutionDriftLogEntity` + `ExecutionDriftTracker` + V44 Flyway |
+| Tier4 §15 | 테스트 커버리지 | ExitRuleChecker 14건 + 백테스트 결정론 1건 + OrderExecutionEngine 상태머신 6건 |
+| Tier4 §16 | Observability | Micrometer Counter 3종 (주문상태전이·WS재연결·race재시도) |
+| Tier4 §17 | DB 백업·복구 드릴 | `scripts/db-restore-drill.sh` 신규 작성 |
+| Tier4 §18 | 보안 점검 | `scripts/security-check.sh` 신규 + Git 히스토리·Actuator 노출 확인 |
+
+---
+
+### ✅ 완료 (2026-04-14) — P2-2: 운영 도구 개선
+
+- 모의투자 최대 세션 수 확장 (10 → 20, `PaperTradingService.MAX_CONCURRENT_SESSIONS`)
+- 야간 자동 스케줄러 DB 기반 관리 (`nightly_scheduler_config` 테이블 + `NightlySchedulerConfigService`. KST 실행 시각 설정, 23시간 중복 방지, 1분 tick)
+- 스케줄러 웹 UI (`/backtest/scheduler`): 코인·전략·타임프레임·기간 선택, ON/OFF 토글, 수동 트리거, 예상 작업량 표시
+- 모의투자 리스크 지표 계산 수정 (`PaperTradingService.computeRiskMetrics()`) — MDD·Sharpe·Sortino 실제 계산. 기존 항상 0.0 반환 버그 수정
+- V42 마이그레이션 (SMALLINT → INTEGER 컬럼 타입 수정, Hibernate 스키마 검증 오류 해결)
+
+---
+
+### ✅ 완료 (2026-04-13) — P2-1: 운영 인프라 (2023~2025 전체 백테스트)
+
+5코인(BTC·ETH·SOL·XRP·DOGE) × 4전략(BREAKOUT·MOMENTUM·V1·V2) 배치 완료.
+결과 상세: `docs/BACKTEST_RESULTS.md` 및 PROGRESS.md 코인별 전략 매칭 테이블 참조.
+
+---
+
+### ✅ 완료 (2026-04-13) — P1-0: 전략 가중치 최적화 구조적 한계 해결
+
+`StrategyWeightOptimizer` + `StrategySelector` 모두 Composite 전략명 기준으로 전환.
+`strategy_log`에 실제로 기록되는 이름(`COMPOSITE_BREAKOUT`, `COMPOSITE_MOMENTUM`)과 일치시켜
+가중치가 기본값에서 실제로 움직이도록 수정. `COMPOSITE_MOMENTUM_ICHIMOKU_V2` DEFAULTS 추가. 테스트 4건.
+
+---
+
 ### ✅ 완료 (2026-04-20) — 신호 품질 분석 고도화 ⑦⑧⑨
 
 **⑦ 지수 가중 수익률 (StrategyWeightOptimizer)**

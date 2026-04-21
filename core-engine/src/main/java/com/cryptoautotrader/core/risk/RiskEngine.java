@@ -36,20 +36,24 @@ public class RiskEngine {
      *
      * <p>체크 순서:
      * <ol>
-     *   <li>일일/주간/월간 손실 한도</li>
-     *   <li>자본 사용률 한도 — totalInvested / totalCapital × 100 이 maxCapitalUtilizationPct 초과 시 차단</li>
-     *   <li>포지션 수 안전망 — maxPositions(기본 20)을 초과하는 극단적 상황 방지</li>
+     *   <li>일일/주간/월간 gross 손실 한도</li>
+     *   <li>글로벌 포트폴리오 드로우다운 — 전체 세션의 현재 자산이 초기 자본 대비 얼마나 낮은지.
+     *       기간 손실 체크(이익이 손실 상쇄 가능)와 달리 실시간 낙폭을 추가로 검사한다.</li>
+     *   <li>자본 사용률 한도</li>
+     *   <li>포지션 수 안전망</li>
      * </ol>
      *
-     * @param dailyLossPct         오늘 실현 손실률 (%)
-     * @param weeklyLossPct        이번 주 실현 손실률 (%)
-     * @param monthlyLossPct       이번 달 실현 손실률 (%)
-     * @param currentPositions     현재 열린 포지션 수 (안전망 용도)
+     * @param dailyLossPct          오늘 gross 손실률 (%) — 이익 상쇄 없이 손실만 합산
+     * @param weeklyLossPct         이번 주 gross 손실률 (%)
+     * @param monthlyLossPct        이번 달 gross 손실률 (%)
+     * @param currentPositions      현재 열린 포지션 수 (안전망 용도)
      * @param capitalUtilizationPct 현재 자본 사용률 (%) = 투입 자본 / 전체 자본 × 100
+     * @param portfolioDrawdownPct  글로벌 드로우다운 (%) = (초기자본합 - 현재자산합) / 초기자본합 × 100
      */
     public RiskCheckResult check(BigDecimal dailyLossPct, BigDecimal weeklyLossPct,
                                   BigDecimal monthlyLossPct, int currentPositions,
-                                  BigDecimal capitalUtilizationPct) {
+                                  BigDecimal capitalUtilizationPct,
+                                  BigDecimal portfolioDrawdownPct) {
         if (dailyLossPct.abs().compareTo(config.getMaxDailyLossPct()) > 0) {
             return RiskCheckResult.reject(
                     String.format("일일 손실 한도 초과: %.2f%% > %.2f%%",
@@ -64,6 +68,16 @@ public class RiskEngine {
             return RiskCheckResult.reject(
                     String.format("월간 손실 한도 초과: %.2f%% > %.2f%%",
                             monthlyLossPct.abs(), config.getMaxMonthlyLossPct()));
+        }
+        // 글로벌 포트폴리오 드로우다운 체크 — 기간 손실과 독립적으로 실시간 낙폭을 검사한다.
+        // 이익이 손실을 상쇄해도 현재 자산이 초기 자본보다 낮으면 발동.
+        BigDecimal maxDrawdown = config.getMaxPortfolioDrawdownPct();
+        if (portfolioDrawdownPct != null
+                && maxDrawdown != null && maxDrawdown.compareTo(BigDecimal.ZERO) > 0
+                && portfolioDrawdownPct.compareTo(maxDrawdown) > 0) {
+            return RiskCheckResult.reject(
+                    String.format("포트폴리오 드로우다운 한도 초과: %.2f%% > %.2f%% (초기자본 대비 현재 낙폭)",
+                            portfolioDrawdownPct.doubleValue(), maxDrawdown.doubleValue()));
         }
         // 자본 사용률 한도 — 주 제어 (포지션 수 대체)
         if (capitalUtilizationPct != null
@@ -83,12 +97,21 @@ public class RiskEngine {
     }
 
     /**
-     * 하위 호환용 오버로드 — capitalUtilizationPct 를 계산할 수 없는 경우.
-     * 자본 사용률 체크를 건너뛰고 손실 한도·포지션 수만 검사한다.
+     * 하위 호환용 오버로드 — capitalUtilizationPct, portfolioDrawdownPct 미전달.
+     */
+    public RiskCheckResult check(BigDecimal dailyLossPct, BigDecimal weeklyLossPct,
+                                  BigDecimal monthlyLossPct, int currentPositions,
+                                  BigDecimal capitalUtilizationPct) {
+        return check(dailyLossPct, weeklyLossPct, monthlyLossPct, currentPositions,
+                capitalUtilizationPct, null);
+    }
+
+    /**
+     * 하위 호환용 오버로드 — capitalUtilizationPct, portfolioDrawdownPct 모두 미전달.
      */
     public RiskCheckResult check(BigDecimal dailyLossPct, BigDecimal weeklyLossPct,
                                   BigDecimal monthlyLossPct, int currentPositions) {
-        return check(dailyLossPct, weeklyLossPct, monthlyLossPct, currentPositions, null);
+        return check(dailyLossPct, weeklyLossPct, monthlyLossPct, currentPositions, null, null);
     }
 
     // ── Fixed Fractional 포지션 사이징 ───────────────────────────────────

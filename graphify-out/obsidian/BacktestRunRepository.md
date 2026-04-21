@@ -1,0 +1,19 @@
+---
+source_file: "D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\repository\BacktestRunRepository.java"
+type: "code"
+community: "Module Group 56"
+location: "L8"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/Module_Group_56
+---
+
+# BacktestRunRepository
+
+## Connections
+- [[.findAllByOrderByCreatedAtDesc()_1]] - `method` [EXTRACTED]
+- [[.findByIdIn()]] - `method` [EXTRACTED]
+- [[BacktestRunRepository.java]] - `contains` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/Module_Group_56

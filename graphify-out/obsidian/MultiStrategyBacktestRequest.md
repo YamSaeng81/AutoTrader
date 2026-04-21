@@ -1,0 +1,17 @@
+---
+source_file: "D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\dto\MultiStrategyBacktestRequest.java"
+type: "code"
+community: "Module Group 112"
+location: "L17"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/Module_Group_112
+---
+
+# MultiStrategyBacktestRequest
+
+## Connections
+- [[MultiStrategyBacktestRequest.java]] - `contains` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/Module_Group_112

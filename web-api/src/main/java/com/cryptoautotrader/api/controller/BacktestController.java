@@ -7,6 +7,7 @@ import com.cryptoautotrader.api.dto.BulkBacktestRequest;
 import com.cryptoautotrader.api.dto.BulkDeleteRequest;
 import com.cryptoautotrader.api.dto.MacdGridSearchRequest;
 import com.cryptoautotrader.api.dto.MultiStrategyBacktestRequest;
+import com.cryptoautotrader.api.dto.MultiTimeframeBatchRequest;
 import com.cryptoautotrader.api.dto.WalkForwardBatchRequest;
 import com.cryptoautotrader.api.dto.WalkForwardRequest;
 import com.cryptoautotrader.api.entity.BacktestTradeEntity;
@@ -231,6 +232,30 @@ public class BacktestController {
                 "jobId", jobId,
                 "total", total,
                 "message", total + "개 조합 배치 백테스트가 백그라운드에서 시작되었습니다. 완료 시 텔레그램으로 알림이 전송됩니다."));
+    }
+
+    /**
+     * 멀티타임프레임 배치 백테스트 비동기 실행 (전략 N × 코인 M × 타임프레임 K)
+     * POST /api/v1/backtest/batch-multiframe-async
+     * Body: {
+     *   "strategyTypes": ["COMPOSITE_MOMENTUM_ICHIMOKU_V2", "COMPOSITE_BREAKOUT"],
+     *   "coinPairs": ["KRW-BTC", "KRW-ETH", ...],
+     *   "timeframes": ["H1", "M15"],
+     *   "startDate": "2022-01-01",
+     *   "endDate": "2025-12-31"
+     * }
+     * 응답: { "jobId": 46, "total": 80 }
+     */
+    @PostMapping("/batch-multiframe-async")
+    public ApiResponse<Map<String, Object>> runMultiTimeframeBatchAsync(
+            @Valid @RequestBody MultiTimeframeBatchRequest req) {
+        Long jobId = backtestJobService.submitMultiTimeframeBatchJob(req);
+        int total = req.getStrategyTypes().size() * req.getCoinPairs().size() * req.getTimeframes().size();
+        return ApiResponse.ok(Map.of(
+                "jobId", jobId,
+                "total", total,
+                "timeframes", String.join("+", req.getTimeframes()),
+                "message", total + "개 조합 멀티타임프레임 배치 백테스트가 백그라운드에서 시작되었습니다. 완료 시 텔레그램으로 알림이 전송됩니다."));
     }
 
     /**

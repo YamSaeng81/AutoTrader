@@ -1,0 +1,20 @@
+---
+source_file: "D:\Claude Code\projects\crypto-auto-trader\exchange-adapter\src\main\java\com\cryptoautotrader\exchange\adapter\ExchangeAdapter.java"
+type: "code"
+community: "Module Group 36"
+location: "L13"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/Module_Group_36
+---
+
+# ExchangeAdapter
+
+## Connections
+- [[.fetchCandles()]] - `method` [EXTRACTED]
+- [[.getExchangeName()]] - `method` [EXTRACTED]
+- [[.getSupportedCoins()]] - `method` [EXTRACTED]
+- [[ExchangeAdapter.java]] - `contains` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/Module_Group_36

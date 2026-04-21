@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * 통합 청산/리스크 판정기 — 순수 계산 로직만 포함.
@@ -113,6 +114,132 @@ public class ExitRuleChecker {
             return ExitCheck.takeProfit(tp, "익절 발동 — 고가 " + candleHigh + " ≥ 익절가 " + tp);
         }
         return ExitCheck.none();
+    }
+
+    // ── OHLC 경로 재구성 기반 청산 체크 (intra-H1 정확도 향상) ──
+
+    /**
+     * OHLC 4-point 경로 재구성으로 SL/TP 도달 순서를 판정한다.
+     *
+     * <p>기존 {@link #checkCandleExit}는 고가·저가만으로 판정하므로
+     * 동일 캔들에서 SL·TP 양쪽이 모두 터치된 경우 항상 SL 우선(보수적)이었다.
+     * 이 메서드는 Open 가격이 Low·High 중 어느 쪽에 더 가까운지를 보고
+     * 캔들 내 가격 이동 방향(선도 방향)을 추정한다.
+     *
+     * <p>판정 우선순위:
+     * <ol>
+     *   <li>갭 감지: Open 자체가 SL/TP를 이미 넘어선 경우 → Open가 체결</li>
+     *   <li>단방향 터치: SL 또는 TP 중 하나만 → 해당 가격 반환</li>
+     *   <li>양방향 터치 — Open-Low 거리 vs Open-High 거리 비교:
+     *       더 가까운 방향이 선도 → 먼저 터치한 것으로 판정</li>
+     *   <li>동일 거리 → Close 방향(상승/하락 마감) 으로 결정</li>
+     *   <li>Doji 등 완전 대칭 → Monte Carlo 200회 시뮬레이션</li>
+     * </ol>
+     *
+     * @param open  해당 캔들 시가
+     * @param high  해당 캔들 고가
+     * @param low   해당 캔들 저가
+     * @param close 해당 캔들 종가
+     * @param sl    현재 손절가 (0 또는 null이면 미적용)
+     * @param tp    현재 익절가 (0 또는 null이면 미적용)
+     */
+    public ExitCheck checkCandleExitWithPath(BigDecimal open, BigDecimal high, BigDecimal low,
+                                              BigDecimal close, BigDecimal sl, BigDecimal tp) {
+        boolean slActive = sl != null && sl.compareTo(BigDecimal.ZERO) > 0;
+        boolean tpActive = tp != null && tp.compareTo(BigDecimal.ZERO) > 0;
+
+        // 갭 체결: 오픈가 자체가 SL/TP를 넘어선 경우 — 오픈가 그대로 체결
+        if (slActive && open.compareTo(sl) <= 0) {
+            boolean alsoTp = tpActive && high.compareTo(tp) >= 0;
+            return ExitCheck.stopLoss(open,
+                    "갭 손절 — 오픈가 " + open + " ≤ SL " + sl, alsoTp);
+        }
+        if (tpActive && open.compareTo(tp) >= 0) {
+            return ExitCheck.takeProfit(open,
+                    "갭 익절 — 오픈가 " + open + " ≥ TP " + tp);
+        }
+
+        boolean slHit = slActive && low.compareTo(sl) <= 0;
+        boolean tpHit = tpActive && high.compareTo(tp) >= 0;
+
+        if (!slHit && !tpHit) return ExitCheck.none();
+        if (slHit && !tpHit) return ExitCheck.stopLoss(sl,
+                "손절 — 저가 " + low + " ≤ SL " + sl, false);
+        if (!slHit) return ExitCheck.takeProfit(tp,
+                "익절 — 고가 " + high + " ≥ TP " + tp);
+
+        // 양방향 터치 — 경로 재구성
+        BigDecimal distToLow  = open.subtract(low);   // open ≥ low  → ≥ 0
+        BigDecimal distToHigh = high.subtract(open);  // high ≥ open → ≥ 0
+        int cmp = distToLow.compareTo(distToHigh);
+
+        if (cmp < 0) {
+            // Open이 Low에 더 가깝다 → 하락 선도 → SL 먼저
+            return ExitCheck.stopLoss(sl,
+                    String.format("손절 우선 (경로재구성: Low 선도, open-low=%.2f < high-open=%.2f) — SL=%s, TP=%s",
+                            distToLow.doubleValue(), distToHigh.doubleValue(), sl, tp), true);
+        }
+        if (cmp > 0) {
+            // Open이 High에 더 가깝다 → 상승 선도 → TP 먼저
+            return ExitCheck.takeProfit(tp,
+                    String.format("익절 우선 (경로재구성: High 선도, high-open=%.2f > open-low=%.2f) — SL=%s, TP=%s",
+                            distToHigh.doubleValue(), distToLow.doubleValue(), sl, tp));
+        }
+
+        // 동일 거리 → Close 방향으로 2차 결정
+        int closeCmp = close.compareTo(open);
+        if (closeCmp < 0) {
+            return ExitCheck.stopLoss(sl,
+                    "손절 우선 (Close 방향: 하락 마감) — SL=" + sl + ", TP=" + tp, true);
+        }
+        if (closeCmp > 0) {
+            return ExitCheck.takeProfit(tp,
+                    "익절 우선 (Close 방향: 상승 마감) — SL=" + sl + ", TP=" + tp);
+        }
+
+        // Doji 또는 완전 대칭 → Monte Carlo
+        return resolveByMonteCarlo(open, sl, tp);
+    }
+
+    /**
+     * SL·TP 동시 터치 & 경로 결정 불가 시 Monte Carlo 시뮬레이션으로 체결 결과를 결정한다.
+     *
+     * <p>Open에서 시작해 SL 또는 TP에 먼저 도달하는 랜덤 워크를 {@value #MC_SIMS}회 시뮬레이션한다.
+     * 각 스텝 크기는 (TP−SL)/{@value #MC_STEPS} — H1 캔들 내 약 3분 간격을 모사한다.
+     * SL 선도 확률 ≥ 50%이면 손절, 미만이면 익절로 처리한다.
+     */
+    private static final int MC_SIMS  = 200;
+    private static final int MC_STEPS = 20;
+
+    private ExitCheck resolveByMonteCarlo(BigDecimal open, BigDecimal sl, BigDecimal tp) {
+        double o = open.doubleValue();
+        double s = sl.doubleValue();
+        double t = tp.doubleValue();
+        double step = (t - s) / MC_STEPS;
+        if (step <= 0) {
+            return ExitCheck.stopLoss(sl, "손절 우선 (MC fallback — 구간 이상)", true);
+        }
+
+        ThreadLocalRandom rng = ThreadLocalRandom.current();
+        int slFirst = 0;
+        for (int i = 0; i < MC_SIMS; i++) {
+            double price = o;
+            for (int j = 0; j < MC_STEPS; j++) {
+                price += rng.nextBoolean() ? step : -step;
+                if (price <= s) { slFirst++; break; }
+                if (price >= t) break;
+            }
+        }
+
+        double pSl = (double) slFirst / MC_SIMS;
+        if (pSl >= 0.5) {
+            return ExitCheck.stopLoss(sl,
+                    String.format("손절 우선 (MC: SL 선도 확률 %.0f%%) — SL=%s, TP=%s",
+                            pSl * 100, sl, tp), true);
+        }
+        return ExitCheck.takeProfit(tp,
+                String.format("익절 우선 (MC: TP 선도 확률 %.0f%%) — SL=%s, TP=%s",
+                        (1 - pSl) * 100, sl, tp));
     }
 
     // ── 현재가 기반 청산 체크 (모의매매·실전매매용) ─────────────

@@ -1,6 +1,7 @@
 package com.cryptoautotrader.api.controller;
 
 import com.cryptoautotrader.api.dto.ApiResponse;
+import com.cryptoautotrader.api.dto.DataBatchCollectRequest;
 import com.cryptoautotrader.api.dto.DataCollectRequest;
 import com.cryptoautotrader.api.entity.CandleDataEntity;
 import com.cryptoautotrader.api.repository.CandleDataRepository;
@@ -38,6 +39,19 @@ public class DataController {
         ));
     }
 
+    @PostMapping("/collect/batch")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public ApiResponse<Map<String, Object>> collectBatch(@Valid @RequestBody DataBatchCollectRequest req) {
+        dataCollectionService.collectBatch(req.getCoinPairs(), req.getTimeframe(),
+                req.getStartDate(), req.getEndDate());
+        return ApiResponse.ok(Map.of(
+                "status", "STARTED",
+                "coinCount", req.getCoinPairs().size(),
+                "coinPairs", req.getCoinPairs(),
+                "timeframe", req.getTimeframe()
+        ));
+    }
+
     @GetMapping("/summary")
     public ApiResponse<List<Map<String, Object>>> getDataSummary() {
         List<Object[]> rows = candleDataRepository.findDataSummary();
@@ -57,6 +71,44 @@ public class DataController {
     public ApiResponse<List<String>> getSupportedCoins() {
         UpbitCandleCollector collector = new UpbitCandleCollector(new UpbitRestClient());
         return ApiResponse.ok(collector.getSupportedCoins());
+    }
+
+    /**
+     * KRW 마켓 코인 목록 (거래대금 상위 20개) — 코드·한글명·영문명 포함.
+     * 프론트엔드 코인 선택 UI에서 이름 표시용으로 사용한다.
+     */
+    @GetMapping("/markets")
+    public ApiResponse<List<Map<String, String>>> getMarkets() {
+        UpbitRestClient restClient = new UpbitRestClient();
+        UpbitCandleCollector collector = new UpbitCandleCollector(restClient);
+        List<String> topCoins = collector.getSupportedCoins();
+
+        List<Map<String, Object>> allMarkets;
+        try {
+            allMarkets = restClient.getMarkets();
+        } catch (Exception e) {
+            // 마켓 정보 조회 실패 시 코드만 반환
+            List<Map<String, String>> fallback = topCoins.stream()
+                    .map(m -> Map.of("market", m, "koreanName", m.replace("KRW-", ""), "englishName", ""))
+                    .toList();
+            return ApiResponse.ok(fallback);
+        }
+
+        Map<String, Map<String, Object>> marketInfoMap = new HashMap<>();
+        for (Map<String, Object> info : allMarkets) {
+            String market = (String) info.get("market");
+            if (market != null) marketInfoMap.put(market, info);
+        }
+
+        List<Map<String, String>> result = topCoins.stream()
+                .map(market -> {
+                    Map<String, Object> info = marketInfoMap.get(market);
+                    String korean  = info != null ? (String) info.getOrDefault("korean_name",  "") : "";
+                    String english = info != null ? (String) info.getOrDefault("english_name", "") : "";
+                    return Map.of("market", market, "koreanName", korean, "englishName", english);
+                })
+                .toList();
+        return ApiResponse.ok(result);
     }
 
     @GetMapping("/status")

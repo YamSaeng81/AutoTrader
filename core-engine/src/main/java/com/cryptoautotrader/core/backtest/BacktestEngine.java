@@ -113,10 +113,10 @@ public class BacktestEngine {
                 stopLossPrice = updatedLevels.getStopLossPrice();
                 takeProfitPrice = updatedLevels.getTakeProfitPrice();
 
-                // 캔들 고가/저가로 SL/TP 도달 체크
-                ExitCheck exitCheck = exitChecker.checkCandleExit(
-                        nextCandle.getLow(), nextCandle.getHigh(),
-                        stopLossPrice, takeProfitPrice);
+                // OHLC 경로 재구성으로 SL/TP 도달 순서 판정 (intra-H1 정확도 향상)
+                ExitCheck exitCheck = exitChecker.checkCandleExitWithPath(
+                        nextCandle.getOpen(), nextCandle.getHigh(), nextCandle.getLow(),
+                        nextCandle.getClose(), stopLossPrice, takeProfitPrice);
 
                 if (exitCheck.isShouldExit()) {
                     // ── 현실적 체결가 산출 ─────────────────────────

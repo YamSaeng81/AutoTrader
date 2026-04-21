@@ -1,8 +1,10 @@
 package com.cryptoautotrader.api.service;
 
 import com.cryptoautotrader.api.entity.StrategyLogEntity;
+import com.cryptoautotrader.api.entity.WeightOptimizerSnapshotEntity;
 import com.cryptoautotrader.api.repository.PositionRepository;
 import com.cryptoautotrader.api.repository.StrategyLogRepository;
+import com.cryptoautotrader.api.repository.WeightOptimizerSnapshotRepository;
 import com.cryptoautotrader.api.util.TradingConstants;
 import com.cryptoautotrader.core.selector.WeightOverrideStore;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +15,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -102,14 +105,60 @@ public class StrategyWeightOptimizer {
 
     private final StrategyLogRepository strategyLogRepo;
     private final PositionRepository positionRepository;
+    private final WeightOptimizerSnapshotRepository snapshotRepository;
 
     // ── 스케줄링 ──────────────────────────────────────────────────────────────
 
-    /** 서버 시작 시 한 번 즉시 실행 */
+    /**
+     * 서버 시작 시: DB 스냅샷 복원 후 최적화 실행.
+     *
+     * <p>재시작 직후 충분한 데이터가 없어 optimizer가 기본값 유지를 결정하더라도,
+     * 이전 실행에서 저장된 가중치가 먼저 WeightOverrideStore에 로드되므로
+     * 최적화 결과가 유실되지 않는다.</p>
+     */
     @EventListener(ApplicationReadyEvent.class)
     public void optimizeOnStartup() {
+        restoreFromSnapshot();
         log.info("[WeightOptimizer] 시작 최적화 실행");
         optimize();
+    }
+
+    /**
+     * DB 스냅샷에서 최신 가중치를 WeightOverrideStore로 복원한다.
+     * (regime, coinPair, strategyName) 조합별 최신 값을 로드한다.
+     */
+    private void restoreFromSnapshot() {
+        List<WeightOptimizerSnapshotEntity> snapshots = snapshotRepository.findLatestPerKey();
+        if (snapshots.isEmpty()) {
+            log.info("[WeightOptimizer] DB 스냅샷 없음 — 기본값으로 시작");
+            return;
+        }
+
+        // 레짐 레벨 복원
+        Map<String, Map<String, Double>> regimeMap = new HashMap<>();
+        // 코인 레벨 복원
+        Map<String, Map<String, Map<String, Double>>> coinMap = new HashMap<>();
+
+        for (WeightOptimizerSnapshotEntity s : snapshots) {
+            double w = s.getWeight().doubleValue();
+            if (s.getCoinPair() == null) {
+                regimeMap.computeIfAbsent(s.getRegime(), k -> new LinkedHashMap<>())
+                         .put(s.getStrategyName(), w);
+            } else {
+                coinMap.computeIfAbsent(s.getRegime(), k -> new HashMap<>())
+                       .computeIfAbsent(s.getCoinPair(), k -> new LinkedHashMap<>())
+                       .put(s.getStrategyName(), w);
+            }
+        }
+
+        regimeMap.forEach(WeightOverrideStore::update);
+        coinMap.forEach((regime, coinWeights) ->
+                coinWeights.forEach((coin, weights) ->
+                        WeightOverrideStore.updateForCoin(regime, coin, weights)));
+
+        log.info("[WeightOptimizer] DB 스냅샷 복원 완료 — 레짐={}개, 코인={}개",
+                regimeMap.size(),
+                coinMap.values().stream().mapToInt(Map::size).sum());
     }
 
     /** 매일 06:00 KST 실행 (cron: UTC 21:00 = KST 06:00) */
@@ -161,6 +210,7 @@ public class StrategyWeightOptimizer {
             }
 
             WeightOverrideStore.update(regime, newWeights);
+            saveSnapshot(regime, null, newWeights);
         }
 
         // 코인별 특화 가중치 최적화
@@ -229,6 +279,7 @@ public class StrategyWeightOptimizer {
 
             Map<String, Double> coinWeights = computeWeightsFromRealized(defaultWeights, perf);
             WeightOverrideStore.updateForCoin(regime, coin, coinWeights);
+            saveSnapshot(regime, coin, coinWeights);
             log.info("[WeightOptimizer] {}×{} 코인별 가중치 갱신 ({}건) — {}",
                     regime, coin, total, formatWeights(coinWeights));
         }
@@ -471,6 +522,20 @@ public class StrategyWeightOptimizer {
             ));
         }
         return result;
+    }
+
+    private void saveSnapshot(String regime, String coinPair, Map<String, Double> weights) {
+        Instant now = Instant.now();
+        List<WeightOptimizerSnapshotEntity> entities = weights.entrySet().stream()
+                .map(e -> WeightOptimizerSnapshotEntity.builder()
+                        .regime(regime)
+                        .coinPair(coinPair)
+                        .strategyName(e.getKey())
+                        .weight(BigDecimal.valueOf(e.getValue()).setScale(6, RoundingMode.HALF_UP))
+                        .createdAt(now)
+                        .build())
+                .toList();
+        snapshotRepository.saveAll(entities);
     }
 
     private String formatWeights(Map<String, Double> weights) {

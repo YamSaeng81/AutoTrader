@@ -1,0 +1,20 @@
+---
+source_file: "D:\Claude Code\projects\crypto-auto-trader\strategy-lib\src\main\java\com\cryptoautotrader\strategy\supertrend\SupertrendConfig.java"
+type: "code"
+community: "Strategy Config & Parameters"
+location: "L14"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/Strategy_Config_&_Parameters
+---
+
+# SupertrendConfig
+
+## Connections
+- [[.fromParams()_9]] - `method` [EXTRACTED]
+- [[.getStrategyType()_10]] - `method` [EXTRACTED]
+- [[.toParamMap()_10]] - `method` [EXTRACTED]
+- [[SupertrendConfig.java]] - `contains` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/Strategy_Config_&_Parameters

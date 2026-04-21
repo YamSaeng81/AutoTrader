@@ -1,0 +1,18 @@
+---
+source_file: "D:\Claude Code\projects\crypto-auto-trader\web-api\src\main\java\com\cryptoautotrader\api\config\SchedulerConfig.java"
+type: "code"
+community: "Backtest Runner & Orchestration"
+location: "L22"
+tags:
+  - graphify/code
+  - graphify/EXTRACTED
+  - community/Backtest_Runner_&_Orchestration
+---
+
+# SchedulerConfig
+
+## Connections
+- [[.taskScheduler()]] - `method` [EXTRACTED]
+- [[SchedulerConfig.java]] - `contains` [EXTRACTED]
+
+#graphify/code #graphify/EXTRACTED #community/Backtest_Runner_&_Orchestration
