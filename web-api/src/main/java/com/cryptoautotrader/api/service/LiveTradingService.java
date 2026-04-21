@@ -1514,7 +1514,9 @@ public class LiveTradingService {
         Instant threshold = Instant.now().minus(SL_STALE_WARN_MINUTES, ChronoUnit.MINUTES);
         for (LiveTradingSessionEntity s : sessions) {
             // OPEN 포지션이 없으면 SL 체크 대상 아님
-            boolean hasOpen = positionRepository.countRealPositionsByStatus("OPEN") > 0;
+            boolean hasOpen = positionRepository
+                    .findBySessionIdAndCoinPairAndStatus(s.getId(), s.getCoinPair(), "OPEN")
+                    .isPresent();
             if (!hasOpen) continue;
 
             Instant last = lastSlCheckAt.get(s.getId());
