@@ -334,7 +334,10 @@ export function BacktestForm() {
                         <select className={selectInput} value={form.timeframe} onChange={(e) => setForm({ ...form, timeframe: e.target.value as Timeframe })}>
                             <option value="M1">1분 (M1)</option>
                             <option value="M5">5분 (M5)</option>
+                            <option value="M15">15분 (M15)</option>
+                            <option value="M30">30분 (M30)</option>
                             <option value="H1">1시간 (H1)</option>
+                            <option value="H4">4시간 (H4)</option>
                             <option value="D1">1일 (D1)</option>
                         </select>
                         <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-slate-500">
