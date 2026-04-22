@@ -50,7 +50,7 @@ public class PortfolioSyncService {
         syncBalance();
     }
 
-    private void syncBalance() {
+    public void syncBalance() {
         if (upbitOrderClient == null) {
             log.debug("Upbit API Key 미설정 — PortfolioManager 잔고 동기화 건너뜀");
             return;

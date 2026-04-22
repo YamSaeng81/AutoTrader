@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { logApi, logsApi } from '@/lib/api';
+import { logApi, logsApi, csvExportApi } from '@/lib/api';
 import type { SignalStatsByStrategy, SignalStatsByRegime, BlockedVsExecutedStats, BlockedReasonStat, FilterVerdict, SignalStatsByHour } from '@/lib/types';
-import { Loader2, TrendingUp, Target, Activity, BarChart2, RefreshCw } from 'lucide-react';
+import { Loader2, TrendingUp, Target, Activity, BarChart2, RefreshCw, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const DAYS_OPTIONS = [
@@ -510,6 +510,14 @@ export default function SignalQualityPage() {
     const blockedVsExecuted: BlockedVsExecutedStats | undefined = stats?.blockedVsExecuted;
     const byHour: SignalStatsByHour[] = stats?.byHour ?? [];
 
+    const [csvLoading, setCsvLoading] = useState(false);
+    async function handleCsvDownload() {
+        setCsvLoading(true);
+        try { await csvExportApi.signalQuality(days, sessionType); }
+        catch { alert('CSV 다운로드 중 오류가 발생했습니다.'); }
+        finally { setCsvLoading(false); }
+    }
+
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
             {/* 헤더 */}
@@ -555,6 +563,16 @@ export default function SignalQualityPage() {
                             </button>
                         ))}
                     </div>
+                    {/* CSV 다운로드 */}
+                    <button
+                        onClick={handleCsvDownload}
+                        disabled={csvLoading}
+                        className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-semibold rounded-lg transition-colors"
+                        title="신호 품질 원본 데이터 CSV 다운로드"
+                    >
+                        <Download className="w-3.5 h-3.5" />
+                        {csvLoading ? '다운로드 중...' : 'CSV'}
+                    </button>
                 </div>
             </div>
 

@@ -3,8 +3,9 @@
 import { useState, useMemo } from 'react';
 import { useBacktests, useDeleteBacktest, useBulkDeleteBacktests } from '@/hooks';
 import Link from 'next/link';
-import { Plus, Trash2, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
+import { Plus, Trash2, ChevronUp, ChevronDown, ChevronsUpDown, Download } from 'lucide-react';
 import { format } from 'date-fns';
+import { csvExportApi } from '@/lib/api';
 
 type SortKey = 'createdAt' | 'totalReturn' | 'winRate' | 'maxDrawdown';
 type SortDir = 'asc' | 'desc';
@@ -92,6 +93,20 @@ export default function BacktestListPage() {
         });
     }
 
+    const [csvLoading, setCsvLoading] = useState<string | null>(null);
+
+    async function handleCsvDownload(type: 'history' | 'trades') {
+        setCsvLoading(type);
+        try {
+            if (type === 'history') await csvExportApi.backtestHistory();
+            else await csvExportApi.backtestTrades();
+        } catch {
+            alert('CSV 다운로드 중 오류가 발생했습니다.');
+        } finally {
+            setCsvLoading(null);
+        }
+    }
+
     const isMutating = deleteBacktest.isPending || bulkDeleteBacktests.isPending;
 
     return (
@@ -112,6 +127,24 @@ export default function BacktestListPage() {
                             선택 삭제 ({selectedIds.size})
                         </button>
                     )}
+                    <button
+                        onClick={() => handleCsvDownload('history')}
+                        disabled={csvLoading !== null}
+                        className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-2.5 px-4 rounded-xl shadow-sm hover:shadow-md transition-all active:scale-[0.98] text-sm"
+                        title="백테스트 이력 CSV 다운로드"
+                    >
+                        <Download className="w-4 h-4" />
+                        {csvLoading === 'history' ? '다운로드 중...' : '이력 CSV'}
+                    </button>
+                    <button
+                        onClick={() => handleCsvDownload('trades')}
+                        disabled={csvLoading !== null}
+                        className="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-2.5 px-4 rounded-xl shadow-sm hover:shadow-md transition-all active:scale-[0.98] text-sm"
+                        title="전체 거래 내역 CSV 다운로드"
+                    >
+                        <Download className="w-4 h-4" />
+                        {csvLoading === 'trades' ? '다운로드 중...' : '거래 CSV'}
+                    </button>
                     <Link
                         href="/backtest/new"
                         className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-5 rounded-xl shadow-sm hover:shadow-md transition-all active:scale-[0.98]"

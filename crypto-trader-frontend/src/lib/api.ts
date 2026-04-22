@@ -326,3 +326,46 @@ export const schedulerApi = {
     cancelJob: (jobId: number) =>
         api.post<ApiResponse<BacktestJob>>(`/api/v1/backtest/job/${jobId}/cancel`).then(r => r.data),
 };
+
+// ── CSV 다운로드 유틸 ─────────────────────────────────────────────────────────
+
+async function downloadCsv(path: string, filename: string) {
+    const res = await fetch(`/api/proxy${path}`, { method: 'GET' });
+    if (!res.ok) throw new Error(`CSV 다운로드 실패: ${res.status}`);
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+}
+
+const today = () => new Date().toISOString().slice(0, 10).replace(/-/g, '');
+
+export const csvExportApi = {
+    backtestHistory: () =>
+        downloadCsv('/api/v1/export/csv/backtest', `backtest_history_${today()}.csv`),
+    backtestTrades: (runId?: number) =>
+        downloadCsv(
+            `/api/v1/export/csv/backtest/trades${runId ? `?runId=${runId}` : ''}`,
+            runId ? `backtest_trades_run${runId}_${today()}.csv` : `backtest_trades_all_${today()}.csv`,
+        ),
+    walkForwardHistory: () =>
+        downloadCsv('/api/v1/export/csv/walk-forward', `walk_forward_history_${today()}.csv`),
+    liveTradingSessions: () =>
+        downloadCsv('/api/v1/export/csv/live-trading/sessions', `live_trading_sessions_${today()}.csv`),
+    liveTradingPositions: () =>
+        downloadCsv('/api/v1/export/csv/live-trading/positions', `live_trading_positions_${today()}.csv`),
+    paperTradingSessions: () =>
+        downloadCsv('/api/v1/export/csv/paper-trading/sessions', `paper_trading_sessions_${today()}.csv`),
+    paperTradingPositions: () =>
+        downloadCsv('/api/v1/export/csv/paper-trading/positions', `paper_trading_positions_${today()}.csv`),
+    signalQuality: (days = 90, sessionType = 'ALL') =>
+        downloadCsv(
+            `/api/v1/export/csv/signal-quality?days=${days}&sessionType=${sessionType}`,
+            `signal_quality_${days}d_${today()}.csv`,
+        ),
+};

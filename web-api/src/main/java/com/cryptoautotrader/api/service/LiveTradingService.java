@@ -134,6 +134,10 @@ public class LiveTradingService {
     /** 활성 세션 상태 목록 — 자본 배정 합산 시 사용 (§8) */
     private static final List<String> ACTIVE_SESSION_STATUSES = List.of("RUNNING", "CREATED");
 
+    /** 세션 생성 시 최신 잔고 반영을 위한 강제 동기화 (선택적 — API Key 미설정 시 null) */
+    @Autowired(required = false)
+    private PortfolioSyncService portfolioSyncService;
+
     /** 호가창 조회용 (선택적 의존성 — exchange-adapter 빈이 없을 경우 null) */
     @Autowired(required = false)
     private UpbitRestClient upbitRestClient;
@@ -243,7 +247,10 @@ public class LiveTradingService {
                     + entry.readiness() + "]. 사유: " + entry.reason());
         }
 
-        // §8 자본 초과 배정 방지: 활성 세션 initialCapital 합 + 신규 세션이 계좌 잔고를 초과하면 차단
+        // §8 자본 초과 배정 방지: 세션 생성 직전 거래소 잔고를 즉시 동기화하여 최신값 기준으로 검증
+        if (portfolioSyncService != null) {
+            portfolioSyncService.syncBalance();
+        }
         BigDecimal accountCapital = portfolioManager.getTotalCapital();
         if (accountCapital.compareTo(BigDecimal.ZERO) > 0 && req.getInitialCapital() != null) {
             BigDecimal committedCapital = sessionRepository.sumInitialCapitalByStatusIn(ACTIVE_SESSION_STATUSES);

@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { paperTradingApi } from '@/lib/api';
+import { paperTradingApi, csvExportApi } from '@/lib/api';
 import { useDeletePaperSession, useBulkDeletePaperSessions } from '@/hooks';
 import { PaperSession } from '@/lib/types';
 import Link from 'next/link';
-import { Loader2, History, TrendingUp, TrendingDown, ArrowLeft, Plus, Trash2 } from 'lucide-react';
+import { Loader2, History, TrendingUp, TrendingDown, ArrowLeft, Plus, Trash2, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
@@ -73,6 +73,19 @@ export default function PaperTradingHistoryPage() {
     }
 
     const isMutating = deletePaperSession.isPending || bulkDeletePaperSessions.isPending;
+    const [csvLoading, setCsvLoading] = useState<string | null>(null);
+
+    async function handleCsvDownload(type: 'sessions' | 'positions') {
+        setCsvLoading(type);
+        try {
+            if (type === 'sessions') await csvExportApi.paperTradingSessions();
+            else await csvExportApi.paperTradingPositions();
+        } catch {
+            alert('CSV 다운로드 중 오류가 발생했습니다.');
+        } finally {
+            setCsvLoading(null);
+        }
+    }
 
     if (isLoading) {
         return (
@@ -115,6 +128,24 @@ export default function PaperTradingHistoryPage() {
                             선택 삭제 ({selectedIds.size})
                         </button>
                     )}
+                    <button
+                        onClick={() => handleCsvDownload('sessions')}
+                        disabled={csvLoading !== null}
+                        className="flex items-center gap-2 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-sm font-semibold rounded-xl shadow-sm transition-colors"
+                        title="세션 이력 CSV 다운로드"
+                    >
+                        <Download className="w-4 h-4" />
+                        {csvLoading === 'sessions' ? '...' : '세션 CSV'}
+                    </button>
+                    <button
+                        onClick={() => handleCsvDownload('positions')}
+                        disabled={csvLoading !== null}
+                        className="flex items-center gap-2 px-3 py-2 bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white text-sm font-semibold rounded-xl shadow-sm transition-colors"
+                        title="포지션 이력 CSV 다운로드"
+                    >
+                        <Download className="w-4 h-4" />
+                        {csvLoading === 'positions' ? '...' : '포지션 CSV'}
+                    </button>
                     <Link
                         href="/paper-trading"
                         className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl shadow-sm transition-colors"

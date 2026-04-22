@@ -13,6 +13,8 @@ import java.util.List;
 public interface BacktestTradeRepository extends JpaRepository<BacktestTradeEntity, Long> {
     Page<BacktestTradeEntity> findByBacktestRunIdOrderByExecutedAtAsc(Long backtestRunId, Pageable pageable);
 
+    List<BacktestTradeEntity> findByBacktestRunIdOrderByExecutedAtAsc(Long backtestRunId);
+
     @Modifying
     @Query("DELETE FROM BacktestTradeEntity t WHERE t.backtestRunId = :backtestRunId")
     void deleteByBacktestRunId(@Param("backtestRunId") Long backtestRunId);

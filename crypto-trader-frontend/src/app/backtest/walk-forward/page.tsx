@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { strategyApi, backtestApi, systemApi } from '@/lib/api';
+import { strategyApi, backtestApi, systemApi, csvExportApi } from '@/lib/api';
 import { StrategyInfo, Timeframe, WalkForwardResult } from '@/lib/types';
-import { Play, Loader2, AlertTriangle, CheckCircle, History, Trash2, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
+import { Play, Loader2, AlertTriangle, CheckCircle, History, Trash2, ChevronUp, ChevronDown, ChevronsUpDown, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import {
@@ -217,6 +217,16 @@ export default function WalkForwardPage() {
                             <span className="ml-auto text-xs text-slate-400 dark:text-slate-500">
                                 {filteredHistory.length} / {history.length}건
                             </span>
+                            <button
+                                onClick={async () => {
+                                    try { await csvExportApi.walkForwardHistory(); }
+                                    catch { alert('CSV 다운로드 중 오류가 발생했습니다.'); }
+                                }}
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg transition-colors"
+                                title="Walk Forward 이력 CSV 다운로드"
+                            >
+                                <Download className="w-3.5 h-3.5" /> CSV
+                            </button>
                         </div>
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm">

@@ -4,6 +4,30 @@
 
 ---
 
+### ✅ 완료 (2026-04-22) — CSV 다운로드 기능 (백테스트/WF/모의·실전매매/신호품질)
+
+**백엔드**
+- `BacktestMetricsRepository`: `findByBacktestRunIdIn()` 추가
+- `BacktestTradeRepository`: `findByBacktestRunIdOrderByExecutedAtAsc(Long)` (List 반환 오버로드) 추가
+- `CsvExportService`: UTF-8 BOM CSV 생성 서비스 (8종 메서드)
+  - `exportBacktestHistory()` — BacktestRun × BacktestMetrics 조인, 세그먼트별 한 행
+  - `exportBacktestTrades(runId?)` — 특정 run 또는 전체 거래 내역
+  - `exportWalkForwardHistory()` — isWalkForward=true 필터, 윈도우 세그먼트별 행
+  - `exportLiveTradingSessions()` / `exportLiveTradingPositions()` — 실전매매 전체
+  - `exportPaperTradingSessions()` / `exportPaperTradingPositions()` — 모의투자 전체
+  - `exportSignalQuality(days, sessionType)` — 신호 원본 + 4h/24h 평가 필드 전체
+- `CsvExportController` `GET /api/v1/export/csv/*` (8개 엔드포인트), UTF-8 파일명 인코딩, Content-Disposition attachment
+
+**프론트엔드**
+- `api.ts`: `csvExportApi` 추가 — `downloadCsv()` 유틸 + 8종 export 함수 (Blob → objectURL 방식)
+- `backtest/page.tsx`: 헤더에 "이력 CSV" · "거래 CSV" 버튼 추가
+- `backtest/walk-forward/page.tsx`: 이력 탭 필터 바에 CSV 버튼 추가
+- `trading/history/page.tsx`: "세션 CSV" · "포지션 CSV" 버튼 추가
+- `paper-trading/history/page.tsx`: "세션 CSV" · "포지션 CSV" 버튼 추가
+- `logs/signal-quality/page.tsx`: 헤더 필터 옆에 CSV 버튼 추가 (현재 필터 days/sessionType 반영)
+
+---
+
 ### ✅ 완료 (2026-04-21) — 데이터 수집 멀티 코인 배치 + 텔레그램 완료 알림
 
 **백엔드**

@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, History, TrendingUp, TrendingDown, Plus, Trash2, Loader2, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, History, TrendingUp, TrendingDown, Plus, Trash2, Loader2, AlertTriangle, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import { useTradingSessions, useDeleteTradingSession } from '@/hooks';
 import type { LiveTradingSession } from '@/lib/types';
+import { csvExportApi } from '@/lib/api';
 
 const sessionStatusLabel: Record<string, string> = {
   CREATED: '대기',
@@ -25,6 +26,19 @@ export default function TradingHistoryPage() {
   const { data: sessions = [], isLoading } = useTradingSessions();
   const deleteSession = useDeleteTradingSession();
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [csvLoading, setCsvLoading] = useState<string | null>(null);
+
+  async function handleCsvDownload(type: 'sessions' | 'positions') {
+    setCsvLoading(type);
+    try {
+      if (type === 'sessions') await csvExportApi.liveTradingSessions();
+      else await csvExportApi.liveTradingPositions();
+    } catch {
+      alert('CSV 다운로드 중 오류가 발생했습니다.');
+    } finally {
+      setCsvLoading(null);
+    }
+  }
 
   const runningSessions = sessions.filter(s => s.status === 'RUNNING').length;
   const stoppedSessions = sessions.filter(s => s.status === 'STOPPED' || s.status === 'EMERGENCY_STOPPED').length;
@@ -69,13 +83,33 @@ export default function TradingHistoryPage() {
             </p>
           </div>
         </div>
-        <Link
-          href="/trading"
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          새 세션
-        </Link>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => handleCsvDownload('sessions')}
+            disabled={csvLoading !== null}
+            className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
+            title="세션 이력 CSV 다운로드"
+          >
+            <Download className="w-4 h-4" />
+            {csvLoading === 'sessions' ? '...' : '세션 CSV'}
+          </button>
+          <button
+            onClick={() => handleCsvDownload('positions')}
+            disabled={csvLoading !== null}
+            className="flex items-center gap-1.5 px-3 py-2 bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
+            title="포지션 이력 CSV 다운로드"
+          >
+            <Download className="w-4 h-4" />
+            {csvLoading === 'positions' ? '...' : '포지션 CSV'}
+          </button>
+          <Link
+            href="/trading"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            새 세션
+          </Link>
+        </div>
       </div>
 
       {/* 요약 카드 */}
