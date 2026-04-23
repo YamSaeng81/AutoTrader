@@ -33,6 +33,7 @@ public class BacktestController {
     private final BacktestService backtestService;
     private final BacktestJobService backtestJobService;
     private final BacktestTradeRepository backtestTradeRepository;
+    private final com.cryptoautotrader.api.repository.CandleDataRepository candleDataRepository;
 
     @PostMapping("/run")
     public ApiResponse<Map<String, Object>> runBacktest(@Valid @RequestBody BacktestRequest req) {
@@ -175,6 +176,15 @@ public class BacktestController {
                 req.getSignalPeriod(),
                 req.getInitialCapital(), req.getSlippagePct(), req.getFeePct());
         return ApiResponse.ok(results);
+    }
+
+    /**
+     * 특정 타임프레임에 캔들 데이터가 존재하는 코인 목록 조회
+     * GET /api/v1/backtest/available-coins?timeframe=M15
+     */
+    @GetMapping("/available-coins")
+    public ApiResponse<List<String>> availableCoins(@RequestParam String timeframe) {
+        return ApiResponse.ok(candleDataRepository.findDistinctCoinsByTimeframe(timeframe));
     }
 
     // ── 비동기 백테스트 API ───────────────────────────────────────────────────────

@@ -26,6 +26,7 @@ export function BacktestForm() {
     const [mode, setMode] = useState<Mode>('single-coin');
     const [strategies, setStrategies] = useState<StrategyInfo[]>([]);
     const [coins, setCoins] = useState<string[]>([]);
+    const [coinsLoading, setCoinsLoading] = useState(false);
     const [selectedStrategies, setSelectedStrategies] = useState<string[]>([]);
     const [selectedCoins, setSelectedCoins] = useState<string[]>([]);
     const [coinSearchOpen, setCoinSearchOpen] = useState(false);
@@ -54,14 +55,27 @@ export function BacktestForm() {
     }, []);
 
     useEffect(() => {
-        Promise.all([strategyApi.list(), systemApi.coins()]).then(([stRes, cRes]) => {
-            if (stRes.success && stRes.data) {
-                const available = stRes.data.filter(s => s.status === 'AVAILABLE' && s.isActive);
-                setStrategies(available);
+        strategyApi.list().then(res => {
+            if (res.success && res.data) {
+                setStrategies(res.data.filter(s => s.status === 'AVAILABLE' && s.isActive));
             }
-            if (cRes.success && cRes.data) setCoins(cRes.data);
         });
     }, []);
+
+    useEffect(() => {
+        setCoinsLoading(true);
+        setSelectedCoins([]);
+        backtestApi.availableCoins(form.timeframe).then(res => {
+            if (res.success && res.data && res.data.length > 0) {
+                setCoins(res.data);
+            } else {
+                // 데이터 없으면 거래량 TOP 목록으로 fallback
+                systemApi.coins().then(r => { if (r.success && r.data) setCoins(r.data); });
+            }
+        }).catch(() => {
+            systemApi.coins().then(r => { if (r.success && r.data) setCoins(r.data); });
+        }).finally(() => setCoinsLoading(false));
+    }, [form.timeframe]);
 
     const strategyList = strategies.length > 0
         ? strategies.map(s => ({ name: s.name, label: STRATEGY_LABELS[s.name] ?? s.name }))
@@ -211,7 +225,7 @@ export function BacktestForm() {
                                 value={singleCoinOpen ? singleCoinSearch : form.coinPair}
                                 onChange={e => { setSingleCoinSearch(e.target.value); setSingleCoinOpen(true); }}
                                 onFocus={() => { setSingleCoinOpen(true); setSingleCoinSearch(''); }}
-                                placeholder={coins.length === 0 ? '로딩중...' : '코인 검색...'}
+                                placeholder={coinsLoading ? '데이터 조회 중...' : coins.length === 0 ? '데이터 없음' : '코인 검색...'}
                                 className="w-full p-3 pr-10 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-800 dark:text-slate-100 transition-shadow focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                             />
                             <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-slate-500">
@@ -254,6 +268,13 @@ export function BacktestForm() {
                                 <span className="ml-2 px-1.5 py-0.5 text-[11px] font-bold rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300">
                                     {selectedCoins.length}개 선택
                                 </span>
+                                {coinsLoading ? (
+                                    <span className="ml-2 text-[11px] text-slate-400 font-normal">데이터 조회 중...</span>
+                                ) : (
+                                    <span className="ml-2 text-[11px] text-slate-400 font-normal">
+                                        {form.timeframe} 데이터 보유 {coins.length}개 코인
+                                    </span>
+                                )}
                                 {batchTotal > 0 && (
                                     <span className="ml-2 text-[11px] text-slate-500 font-normal">
                                         → 총 {batchTotal}개 조합 백테스트

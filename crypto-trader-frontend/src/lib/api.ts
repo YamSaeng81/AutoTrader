@@ -39,6 +39,8 @@ export const backtestApi = {
         api.delete<ApiResponse<null>>(`/api/v1/backtest/${id}`).then(r => r.data),
     bulkDelete: (ids: (string | number)[]) =>
         api.delete<ApiResponse<null>>('/api/v1/backtest/bulk', { data: { ids } }).then(r => r.data),
+    availableCoins: (timeframe: string) =>
+        api.get<ApiResponse<string[]>>('/api/v1/backtest/available-coins', { params: { timeframe } }).then(r => r.data),
 };
 
 interface StrategyTypeOption {

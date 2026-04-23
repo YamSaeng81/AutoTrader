@@ -37,6 +37,10 @@ public interface CandleDataRepository extends JpaRepository<CandleDataEntity, Ca
             "FROM CandleDataEntity c GROUP BY c.coinPair, c.timeframe ORDER BY c.coinPair, c.timeframe")
     List<Object[]> findDataSummary();
 
+    /** 특정 타임프레임에 데이터가 존재하는 코인 목록 (알파벳 오름차순) */
+    @Query("SELECT DISTINCT c.coinPair FROM CandleDataEntity c WHERE c.timeframe = :timeframe ORDER BY c.coinPair ASC")
+    List<String> findDistinctCoinsByTimeframe(@Param("timeframe") String timeframe);
+
     /** 특정 코인+타임프레임 전체 삭제 */
     @Modifying
     @Query("DELETE FROM CandleDataEntity c WHERE c.coinPair = :coinPair AND c.timeframe = :timeframe")
