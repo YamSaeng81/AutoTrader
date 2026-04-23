@@ -66,9 +66,13 @@ public class BacktestEngine {
         BigDecimal takeProfitPrice = BigDecimal.ZERO;
 
         int minCandles = strategy.getMinimumCandleCount();
+        // 지표 수렴에 충분한 lookback. 전체 이력을 전달하면 O(n²) 가 되므로 최근 N개로 고정한다.
+        // Wilder ATR/ADX/RSI의 EMA는 200개 이후 수렴 오차 < 0.001% — 500은 충분한 여유.
+        final int MAX_LOOKBACK = 500;
 
         for (int i = minCandles; i < candles.size() - 1; i++) {
-            List<Candle> window = candles.subList(0, i + 1);
+            int windowStart = Math.max(0, i + 1 - MAX_LOOKBACK);
+            List<Candle> window = candles.subList(windowStart, i + 1);
             Candle currentCandle = candles.get(i);
             Candle nextCandle = candles.get(i + 1);
 
