@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface BacktestJobRepository extends JpaRepository<BacktestJobEntity, Long> {
     List<BacktestJobEntity> findAllByOrderByCreatedAtDesc();
+    List<BacktestJobEntity> findByStatusIn(List<String> statuses);
 }

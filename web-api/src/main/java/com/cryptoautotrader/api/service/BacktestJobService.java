@@ -15,6 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Async;
@@ -70,6 +72,26 @@ public class BacktestJobService {
     @Lazy
     @Autowired
     private BacktestJobService self;
+
+    // ── 서버 재기동 정리 ──────────────────────────────────────────────────────────
+
+    /**
+     * 서버 재기동 시 이전 실행에서 미완료된 Job(RUNNING/PENDING)을 CANCELLED로 처리한다.
+     * 인메모리 스레드풀이 사라지면 해당 Job은 영구히 진행 불가 상태가 되므로 즉시 종료 처리한다.
+     */
+    @EventListener(ContextRefreshedEvent.class)
+    @Transactional
+    public void cancelStaleJobsOnStartup() {
+        List<BacktestJobEntity> staleJobs = jobRepository.findByStatusIn(List.of("RUNNING", "PENDING"));
+        if (staleJobs.isEmpty()) return;
+        log.warn("서버 재기동 감지: 미완료 Job {}개를 CANCELLED 처리", staleJobs.size());
+        for (BacktestJobEntity job : staleJobs) {
+            job.setStatus("CANCELLED");
+            job.setErrorMessage("서버 재기동으로 인한 강제 중단");
+            jobRepository.save(job);
+            log.info("Job 강제 취소: jobId={}, 이전상태={}", job.getId(), job.getStatus());
+        }
+    }
 
     // ── 단일 백테스트 ─────────────────────────────────────────────────────────────
 
