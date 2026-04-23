@@ -123,13 +123,14 @@ public class BacktestJobService {
             telegramService.notifyBacktestCompleted(jobId, req.getCoinPair(), req.getStrategyType(),
                     s, e2, req.getTimeframe(), result);
 
-        } catch (Exception e) {
+        } catch (Throwable e) {
             log.error("백테스트 실패: jobId={}, error={}", jobId, e.getMessage(), e);
             job.setStatus("FAILED");
             job.setErrorMessage(truncate(e.getMessage(), 1000));
             jobRepository.save(job);
             telegramService.notifyBacktestFailed(jobId, req.getCoinPair(), req.getStrategyType(),
-                    fmt(req.getStartDate()), fmt(req.getEndDate()), req.getTimeframe(), e);
+                    fmt(req.getStartDate()), fmt(req.getEndDate()), req.getTimeframe(),
+                    e instanceof Exception ex ? ex : new RuntimeException(e.getMessage(), e));
         }
     }
 
