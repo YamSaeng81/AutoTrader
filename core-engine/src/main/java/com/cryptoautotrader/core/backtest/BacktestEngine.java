@@ -14,12 +14,15 @@ import com.cryptoautotrader.strategy.Strategy;
 import com.cryptoautotrader.strategy.StrategyRegistry;
 import com.cryptoautotrader.strategy.StrategySignal;
 
+import com.cryptoautotrader.strategy.IndicatorUtils;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 백테스팅 엔진
@@ -194,7 +197,8 @@ public class BacktestEngine {
             // BUY: 포지션 없고 pending 이월도 없을 때만 진입
             if (signal.getAction() == StrategySignal.Action.BUY
                     && position.compareTo(BigDecimal.ZERO) == 0
-                    && pendingQuantity.compareTo(BigDecimal.ZERO) == 0) {
+                    && pendingQuantity.compareTo(BigDecimal.ZERO) == 0
+                    && isAboveEma200(window)) {
 
                 // 포지션 사이징: 가용 자금 × 투자 비율 (실전매매와 동일)
                 BigDecimal investAmount = exitChecker.calculateInvestAmount(capital);
@@ -287,6 +291,16 @@ public class BacktestEngine {
                 .trades(trades)
                 .metrics(metrics)
                 .build();
+    }
+
+    // 현재 캔들 종가가 EMA200 위에 있을 때만 BUY 허용 (횡보·하락 레짐 필터)
+    private boolean isAboveEma200(List<Candle> window) {
+        if (window.size() < 200) return true;
+        List<BigDecimal> closes = window.stream()
+                .map(Candle::getClose)
+                .collect(Collectors.toList());
+        BigDecimal ema200 = IndicatorUtils.ema(closes, 200);
+        return window.get(window.size() - 1).getClose().compareTo(ema200) > 0;
     }
 
     private BigDecimal applySlippage(BigDecimal price, OrderSide side, BigDecimal slippagePct) {

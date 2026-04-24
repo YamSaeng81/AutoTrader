@@ -42,6 +42,7 @@ export default function WalkForwardPage() {
     const [filterStrategy, setFilterStrategy] = useState('');
     const [filterCoin, setFilterCoin] = useState('');
     const [filterVerdict, setFilterVerdict] = useState('');
+    const [filterRunId, setFilterRunId] = useState('');
     const [sortKey, setSortKey] = useState<WFSortKey>('createdAt');
     const [sortDir, setSortDir] = useState<SortDir>('desc');
 
@@ -53,6 +54,7 @@ export default function WalkForwardPage() {
         if (filterStrategy) list = list.filter(h => h.strategyType === filterStrategy);
         if (filterCoin) list = list.filter(h => h.coinPair === filterCoin);
         if (filterVerdict) list = list.filter(h => h.verdict === filterVerdict);
+        if (filterRunId) list = list.filter(h => String(h.id ?? '').includes(filterRunId.trim()));
         return [...list].sort((a, b) => {
             const av = sortKey === 'createdAt'
                 ? new Date(a.createdAt ?? 0).getTime()
@@ -206,9 +208,16 @@ export default function WalkForwardPage() {
                                 <option value="CAUTION">주의</option>
                                 <option value="OVERFITTING">과적합</option>
                             </select>
-                            {(filterStrategy || filterCoin || filterVerdict) && (
+                            <input
+                                type="text"
+                                value={filterRunId}
+                                onChange={e => setFilterRunId(e.target.value)}
+                                placeholder="ID 검색"
+                                className="w-24 px-3 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                            />
+                            {(filterStrategy || filterCoin || filterVerdict || filterRunId) && (
                                 <button
-                                    onClick={() => { setFilterStrategy(''); setFilterCoin(''); setFilterVerdict(''); }}
+                                    onClick={() => { setFilterStrategy(''); setFilterCoin(''); setFilterVerdict(''); setFilterRunId(''); }}
                                     className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
                                 >
                                     초기화
@@ -232,6 +241,7 @@ export default function WalkForwardPage() {
                             <table className="w-full text-sm">
                                 <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                                     <tr>
+                                        <th className="px-4 py-3 text-right">#</th>
                                         <th className="px-5 py-3 text-left">전략</th>
                                         <th className="px-5 py-3 text-left">코인</th>
                                         <th className="px-5 py-3 text-left">타임프레임</th>
@@ -247,12 +257,13 @@ export default function WalkForwardPage() {
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                                     {filteredHistory.length === 0 ? (
-                                        <tr><td colSpan={7} className="px-5 py-10 text-center text-slate-400 dark:text-slate-500 text-sm">필터 조건에 맞는 이력이 없습니다.</td></tr>
+                                        <tr><td colSpan={8} className="px-5 py-10 text-center text-slate-400 dark:text-slate-500 text-sm">필터 조건에 맞는 이력이 없습니다.</td></tr>
                                     ) : filteredHistory.map((h, i) => {
                                         const cfg = VERDICT_CONFIG[h.verdict];
                                         const Icon = cfg.icon;
                                         return (
                                             <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
+                                                <td className="px-4 py-3 text-right font-mono text-xs text-slate-400 dark:text-slate-500">{h.id ?? '-'}</td>
                                                 <td className="px-5 py-3 font-medium text-slate-700 dark:text-slate-200">{h.strategyType}</td>
                                                 <td className="px-5 py-3 text-slate-600 dark:text-slate-300">{h.coinPair}</td>
                                                 <td className="px-5 py-3 text-slate-600 dark:text-slate-300">{h.timeframe}</td>

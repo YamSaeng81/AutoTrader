@@ -20,6 +20,7 @@ import com.cryptoautotrader.api.repository.StrategyConfigRepository;
 import com.cryptoautotrader.api.repository.StrategyLogRepository;
 import com.cryptoautotrader.api.util.TimeframeUtils;
 import com.cryptoautotrader.strategy.Candle;
+import com.cryptoautotrader.strategy.IndicatorUtils;
 import com.cryptoautotrader.strategy.StrategyRegistry;
 import com.cryptoautotrader.strategy.StrategySignal;
 import lombok.RequiredArgsConstructor;
@@ -77,7 +78,7 @@ import java.util.stream.Collectors;
 public class LiveTradingService {
 
     private static final int MAX_CONCURRENT_SESSIONS = 10;
-    private static final int CANDLE_LOOKBACK = 100;
+    private static final int CANDLE_LOOKBACK = 250;
     private static final BigDecimal FEE_RATE = new BigDecimal("0.0005");
 
     // ExitRuleConfig는 DB에서 동적 로드 — exitConfig() 메서드 사용
@@ -756,6 +757,14 @@ public class LiveTradingService {
         StrategySignal signal = strategyInstance.evaluate(candles, params);
         log.debug("세션 전략 신호 (sessionId={}): {} {} -> {} ({})",
                 sessionId, strategyType, coinPair, signal.getAction(), signal.getReason());
+
+        // EMA200 레짐 필터: DOGE 제외, BUY 신호를 EMA200 위에서만 허용
+        if (signal.getAction() == StrategySignal.Action.BUY
+                && !coinPair.contains("DOGE")
+                && !isAboveEma200Live(candles)) {
+            log.debug("EMA200 레짐 필터 — BUY 차단 (sessionId={}, {})", sessionId, coinPair);
+            signal = StrategySignal.hold("EMA200 레짐 필터 — 현재가 EMA200 이하");
+        }
 
         BigDecimal currentPrice = candles.get(candles.size() - 1).getClose();
 
@@ -1904,6 +1913,15 @@ public class LiveTradingService {
         final long timestampMs;
         final BigDecimal price;
         PriceSnapshot(long ts, BigDecimal p) { this.timestampMs = ts; this.price = p; }
+    }
+
+    private boolean isAboveEma200Live(List<Candle> candles) {
+        if (candles.size() < 200) return true;
+        List<BigDecimal> closes = candles.stream()
+                .map(Candle::getClose)
+                .collect(Collectors.toList());
+        BigDecimal ema200 = IndicatorUtils.ema(closes, 200);
+        return candles.get(candles.size() - 1).getClose().compareTo(ema200) > 0;
     }
 
     private List<Candle> fetchRecentCandles(String coinPair, String timeframe) {

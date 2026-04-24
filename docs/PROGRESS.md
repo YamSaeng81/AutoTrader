@@ -3,7 +3,7 @@
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝나면 완료 내용을 [`docs/CHANGELOG.md`](CHANGELOG.md)에 추가하고, 이 파일의 해당 항목은 삭제한다.
 > **변경 이력**: [`docs/CHANGELOG.md`](CHANGELOG.md)
-> **마지막 갱신**: 2026-04-21 (Self-Audit Tier1~4 CHANGELOG 이관 / analy.md 미완 서브항목 추가 / Tier5 장기 과제 정리)
+> **마지막 갱신**: 2026-04-24 (EMA200 레짐 필터 LiveTradingService 실전 적용 완료 / CANDLE_LOOKBACK 250 / DOGE 예외 포함)
 
 ---
 
@@ -83,121 +83,90 @@ crypto-auto-trader/
 | COMPOSITE_BREAKOUT_ICHIMOKU | COMPOSITE_BREAKOUT + Ichimoku 필터 | — | ⚠ BREAKOUT과 완전 동일 (ADX 필터 중복) |
 | MACD_STOCH_BB | MACD + StochRSI + 볼린저 6조건 AND | ❌ 비활성화 | BTC -2.32% 17건, XRP -2.02% 3건 — 거래 극희소·수익성 없음 |
 
-### 주요 백테스트 결과 요약 (KRW 마켓 H1, 2023-01 ~ 2025-12)
+### 2026-04-24 백테스트 & Walk-Forward 재실행
 
-> DB 직접 조회 기준 (2026-04-13). 강세·약세·횡보 3년 포함. 5코인 × 4전략 배치 완료.
+> **소스**: `docs/backtest_history_20260424.csv` (H1 FULL, 필터 없음), `docs/backtest_history_20260424_local.csv` (H1 FULL, **EMA200 필터 적용**), `docs/walk_forward_history_20260424_local.csv` + `(3).csv` (EMA200 필터 WF).
+> **공통 조건**: 2022-01-01 ~ 2026-04-24, 초기자금 1,000만 (WF는 100만), 슬리피지 0.1% + 수수료 0.05%.
+> **선행 조치**: M15 결과는 전면 폐기 (오버트레이딩으로 -99% 속출). 모든 후속 분석은 H1 기준.
+> **EMA200 레짐 필터**: `BacktestEngine.isAboveEma200()` 구현 완료. 현재가 > EMA200일 때만 BUY 진입 허용. SELL(청산)은 레짐 무관.
 
-#### COMPOSITE_BREAKOUT
+#### H1 FULL 백테스트 — EMA200 필터 적용 후 코인별 최고 성과
 
-> ⚠ **Sharpe 재계산 대기 (2026-04-15)**: 아래 Sharpe 값은 per-trade × sqrt(365) 버그 하에서 산출된 값이며,
-> 일별 equity curve 기반으로 재계산 시 약 4~5배 축소될 것으로 예상 (상세: [20260415_sharpe_audit.md](20260415_sharpe_audit.md)).
-> 수익률·MDD·거래수는 영향 없음.
+| 코인 | 최고 전략 | 수익률 | MDD | Sharpe | 거래수 | 변화 |
+|------|-----------|--------|-----|--------|--------|------|
+| **BTC** | COMPOSITE_BREAKOUT | **+106.71%** | -8.88% | 1.24 | 79 | ↑ (+7%, MDD 개선) |
+| **ETH** | COMPOSITE_MOMENTUM_ICHIMOKU_V2 | +58.00% | -13.31% | 0.75 | 150 | ↑ 소폭 개선 |
+| **SOL** | COMPOSITE_BREAKOUT | +62.79% | -20.45% | 0.66 | 58 | ↑ (전략 교체) |
+| **XRP** | COMPOSITE_MOMENTUM_ICHIMOKU | +1.04% | -24.22% | 0.09 | 104 | ↓ **EMA200 역효과** |
+| **DOGE** | COMPOSITE_MOMENTUM_ICHIMOKU_V2 | +124.77% | -30.75% | 0.87 | 173 | ↓ 소폭 감소 |
+| **ADA** | COMPOSITE_BREAKOUT | **+86.98%** | -14.14% | 0.96 | 46 | 🆕 신규 발굴 |
 
-| 코인 | 수익률 | 승률 | MDD | Sharpe (구버그) | 거래수 |
-|------|--------|------|-----|----------------|--------|
-| **BTC** | **+104.24%** | 24.6% | -5.98% | ~~6.41~~ (재계산) | 61 |
-| ETH | +38.92% | 14.8% | -8.90% | ~~3.16~~ (재계산) | 61 |
-| SOL | +64.86% | 19.6% | -19.17% | ~~3.81~~ (재계산) | 46 |
-| XRP | +10.64% | 10.6% | -17.14% | ~~0.85~~ (재계산) | 47 |
-| DOGE | +17.69% | 16.3% | -16.77% | ~~1.84~~ (재계산) | 49 |
+> FAIR_VALUE_GAP은 H1에서도 BTC -69%, ETH -82%, ADA -77% 등 메이저 코인 전부 대파. **전략 자체 구조 문제로 판단, 배포 금지.**
+> XRP는 EMA200 아래 구간에서도 수익 패턴이 존재 → EMA200 필터가 역효과. XRP는 CB 전략 자체 엣지로 운영.
 
-> ⚠ COMPOSITE_BREAKOUT_ICHIMOKU는 BTC/ETH/SOL/XRP 모두 BREAKOUT과 완전 동일 수치 → ADX 필터 중복 확인됨.
+#### Walk-Forward AGG_OUT — EMA200 필터 적용 (2022-01-01 ~ 2026-04-24)
 
-#### COMPOSITE_MOMENTUM / ICHIMOKU V1 / ICHIMOKU V2
+| 코인 | CB | CM | CMI | CMI_V2 | 최고 | 비고 |
+|------|-----|-----|------|--------|------|------|
+| **BTC** | +3.68% | +1.86% | +1.99% | +1.99% | CB | 필터 후 WF 감소 (2026 기간 차이) |
+| **ETH** | **+4.17%** | -4.63% | -4.63% | -5.64% | CB | CB만 양수 |
+| **SOL** | +24.30% (MDD -8.2%) | +26.25% | **+26.64%** | +20.30% | CMI | 전략 모두 양수 ✅ |
+| **XRP** | **+25.98%** | +1.37% | -5.70% | -7.97% | CB | CB만 양수 |
+| **DOGE** | -22.44% | -5.19% | -11.96% | **+2.57%** | CMI_V2 | 필터 역효과 전반적 |
+| **ADA** | **+34.76%** (MDD -4.0%) | -8.32% | -8.32% | -12.54% | CB | ⚠️ 거래수 12건, 신뢰성 낮음 |
 
-| 코인 | MOMENTUM | ICHIMOKU V1 | ICHIMOKU V2 | 3년 권장 |
-|------|----------|-------------|-------------|---------|
-| BTC | +0.44% MDD -13.1% | +1.61% MDD -12.7% | +13.01% MDD -12.1% | ❌ BREAKOUT |
-| ETH | +53.58% MDD -18.3% | +45.95% MDD -16.9% | +37.31% MDD -22.8% | **MOMENTUM** |
-| SOL | +59.77% MDD -13.8% | +62.89% MDD -13.5% | **+131.07% MDD -12.0%** | **V2** 🔥 |
-| XRP | +26.99% MDD -24.2% | +36.47% MDD -20.7% | +49.92% MDD -25.3% | **V2** |
-| DOGE | +62.36% MDD -28.8% | +55.45% MDD -28.8% | **+134.42% MDD -29.2%** | V2 (MDD 주의) |
+#### 시장 레짐별 윈도우 패턴 (전 전략 공통)
 
-> **SOL**: V2가 BREAKOUT 대비 수익률 2배(+131% vs +65%), MDD도 낮음(-12% vs -19%) → **V2 전환 권고**.
-> **DOGE**: V2 +134%로 전 코인 최고 수익률. 단 MDD -29%로 실전 투입 시 리스크 관리 필수.
+| 윈도우 | 기간 | Out-Sample 경향 |
+|--------|------|----------------|
+| W0 | 2022 하반기 (하락장 끝) | 대부분 손실 (-5~-15%) |
+| W1 | 2023 여름~가을 (횡보·약세) | **전 전략 손실** (-2~-10%) |
+| W2 | 2024 여름 (회복 초입) | 혼재 |
+| W3 | 2025 상반기 (강세장) | **전 전략 수익** (+5~+29%) |
+| W4 | 2025 Q4~2026 Q1 (변동성 확대) | 코인별 혼재 |
 
-#### 단일 전략 참고 (파라미터 최적화)
-
-| 전략 | 코인 | 수익률 | 비고 |
-|------|------|--------|------|
-| MACD (14,22,9) | BTC | +151.9% Sharpe 1.68 | 단독, 2024~2025 H1 |
-| MACD (10,26,9) | ETH | +216.0% Sharpe 1.61 | 단독, 2024~2025 H1 |
-
-> 전체 결과: `docs/BACKTEST_RESULTS.md`
+> EMA200 필터로 SOL은 전 전략 WF 양수 전환. DOGE·XRP 일부 전략은 필터 역효과 — 코인별 특성 고려 필요.
 
 ---
 
-## 코인별 전략 매칭 (2026-04-20 갱신)
+## 🟢 배포 권고 / 🚨 배포 금지 (2026-04-24 EMA200 필터 기준)
 
-> **데이터 2중 근거**: ① 3년 백테스트(2023-01 ~ 2025-12) + Walk-Forward 검증 ② 실전 신호 품질 대시보드 (2026-04-20 기준)
-> 실전 데이터 우선 — 백테스트와 실전이 충돌하면 실전을 따른다.
+> EMA200 레짐 필터 적용 후 WF 재검증 결과 기준. 이전(필터 없음) 가이드는 폐기.
 
-| 코인 | 권장 전략 | 백테스트 | 실전 4H | 실전 24H | 상태 |
-|------|-----------|---------|---------|---------|------|
-| BTC | **COMPOSITE_BREAKOUT** | +104.2% | 63% +0.11% | 61% -0.04% | ✅ 확정 |
-| ETH | **COMPOSITE_MOMENTUM** | +53.6% | 43% -0.01% | **71% +0.06%** | ✅ 확정 (장기보유 강점) |
-| SOL | **COMPOSITE_MOMENTUM_ICHIMOKU_V2** | +131.1% | 49% +0.05% | 52% -0.02% | ⏳ V2 전환 배포 대기 |
-| XRP | **COMPOSITE_MOMENTUM_ICHIMOKU** | +36.5% | 41% -0.00% | 52% +0.01% | ✅ V1 유지 — V2 즉시 중단 ⚠️ |
-| DOGE | **COMPOSITE_MOMENTUM_ICHIMOKU_V2** | +134.4% | 22% -0.58% | 56% +0.04% | ⏳ 소액 운영 중 — 모니터링 |
+### Tier 1 — 즉시 소액 투입 가능 (WF 검증 통과)
 
-> ⚠️ **XRP V2 긴급 경고**: `COMPOSITE_MOMENTUM_ICHIMOKU_V2` + KRW-XRP 조합 실전 24H 적중률 **9%, 평균 -2.20%** — 즉시 세션 종료 검토 필요.
-> ⚠️ **DOGE MOMENTUM 금지**: `COMPOSITE_MOMENTUM` + KRW-DOGE 실전 4H/24H 모두 **0%** — 절대 사용 불가.
+| 코인 | 권장 전략 | WF OOS | MDD | Sharpe | 근거 |
+|------|-----------|--------|-----|--------|------|
+| **BTC** | **COMPOSITE_BREAKOUT** | +3.68% | -8.72% | 0.19 | FULL +106.7%. MDD 안정. WF 낮지만 필터로 손실 구간 차단 |
+| **ETH** | **COMPOSITE_BREAKOUT** | +4.17% | -6.22% | 0.21 | 4전략 중 CB만 양수. MDD 최저 |
+| **SOL** | **COMPOSITE_BREAKOUT** | +24.30% | **-8.24%** | 0.54 | MDD 최저 우선. CMI(+26.6%)와 수익 차이 근소 |
+| **XRP** | **COMPOSITE_BREAKOUT** | +25.98% | -13.18% | 0.42 | EMA200 필터에도 CB만 양수 유지 — 가장 robust |
 
-### 실전 신호 품질 현황 (2026-04-20 대시보드 기준, 최근 30일)
+### Tier 2 — 관찰 후 투입
 
-| 전략 | 코인 | 신호수 | 4H 적중률 | 4H 평균 | 24H 적중률 | 24H 평균 | 판정 |
-|------|------|-------|----------|--------|-----------|--------|------|
-| COMPOSITE_MOMENTUM_ICHIMOKU_V2 | DOGE | 263 | 22% | -0.58% | 56% | +0.04% | 🟡 단기 약함, 장기 회복 |
-| COMPOSITE_MOMENTUM_ICHIMOKU | XRP | 63 | 41% | -0.00% | 52% | +0.01% | ✅ 안정 |
-| COMPOSITE_MOMENTUM_ICHIMOKU_V2 | SOL | 60 | 49% | +0.05% | 52% | -0.02% | 🟡 보통 |
-| COMPOSITE_MOMENTUM_ICHIMOKU | ETH | 60 | 43% | -0.01% | **71%** | **+0.06%** | ✅ 장기보유 강점 |
-| COMPOSITE_BREAKOUT | BTC | 49 | **63%** | **+0.11%** | 61% | -0.04% | ✅ 단기 강함 |
-| COMPOSITE_MOMENTUM | BTC | 20+14 | 45%/43% | +0.16%/-0.0% | 65%/71% | **+0.32%/+0.49%** | ✅ 장기보유 탁월 |
-| COMPOSITE_MOMENTUM | DOGE | 17 | **0%** | -0.69% | **0%** | -0.06% | 🚨 즉시 세션 중단 |
-| COMPOSITE_MOMENTUM_ICHIMOKU_V2 | XRP | 15 | 38% | -0.04% | **9%** | **-2.20%** | 🚨 즉시 세션 종료 |
-| COMPOSITE_BREAKOUT | ETH | 15 | 67% | +0.41% | 47% | -0.38% | 🟡 단기만 유효, 24H 역전 |
-| COMPOSITE_BREAKOUT_ICHIMOKU | ETH | 10+15 | 63%/67% | +0.19%/+0.41% | 44%/53% | -0.41%/-0.37% | ❌ BLOCKED (BREAKOUT과 동일) |
+| 코인 | 권장 전략 | WF OOS | 판단 |
+|------|-----------|--------|------|
+| **DOGE** | CMI_V2 | +2.57% (MDD -13.5%) | EMA200 필터 역효과로 전략 전반 부진. CMI_V2만 근소 양수. 현행 유지하되 **EMA200 예외 처리 코드 검토 필요** |
+| **ADA** | **COMPOSITE_BREAKOUT** | +34.76% (MDD -4.0%) | FULL +87%, Sharpe 0.96 우수. **단, WF 거래수 12건으로 통계 신뢰성 부족** — 소액 관찰 후 판단 |
 
-### 전략×코인별 홀딩 전략
+### 🚨 배포 금지
 
-| 코인 | 전략 | 권장 홀딩 | 이유 |
-|------|------|----------|------|
-| BTC | COMPOSITE_BREAKOUT | **4H 내 익절** 우선 | 4H→24H 수익 역전(+0.11%→-0.04%). 빠른 익절이 유리 |
-| BTC | COMPOSITE_MOMENTUM | **장기 홀딩** | 24H 65~71%, +0.32~+0.49%. 보유 기간이 길수록 좋아짐 |
-| ETH | COMPOSITE_MOMENTUM_ICHIMOKU | **장기 홀딩** | 24H 71% +0.06%. 4H(43%)보다 24H가 훨씬 우수 |
-| ETH | COMPOSITE_BREAKOUT | **4H 내 익절** | 4H 67%→24H 47%로 급락. 빠른 수익실현 필수 |
-| XRP | COMPOSITE_MOMENTUM_ICHIMOKU | **중기 홀딩** | 4H 41%→24H 52%. 시간이 지날수록 확률 개선 |
-| DOGE | COMPOSITE_MOMENTUM_ICHIMOKU_V2 | **24H 이상 홀딩** | 4H 22% 불안정 → 24H 56%로 회복. 조기 손절 주의 |
+| 조합 | 사유 |
+|------|------|
+| **전 코인 × M15 타임프레임** | 오버트레이딩 + 수수료 잠식으로 -99% 속출. M15 전면 비활성화 |
+| **전 코인 × FAIR_VALUE_GAP** | H1에서도 메이저 코인 -69~-82%. 전략 로직 자체 구조 문제 |
+| **ETH × CM / CMI / CMI_V2** | EMA200 필터 후 WF 모두 음수 (-4.6~-5.6%) |
+| **XRP × CM / CMI / CMI_V2** | EMA200 필터 후 WF 음수 또는 근0 |
+| **DOGE × CB / CM / CMI** | EMA200 필터 역효과로 WF -5~-22% |
+| **BTC × CM / CMI / CMI_V2** | WF 모두 2% 미만, CB 대비 열위 |
 
-### BTC — COMPOSITE_BREAKOUT 확정
+### 운영 세션 조치 사항
 
-- **3년 성과**: +104.2%, Sharpe 6.41(버그), MDD -5.98% — 전 전략·전 코인 통틀어 가장 안정적인 MDD
-- **Walk-Forward**: BREAKOUT OOS 합계 **+25.54%** (score 0.6741). W1 OOS +21.79%(7건) 강한 실증.
-- **MOMENTUM 배제**: 3년 BTC MOMENTUM +0.4% — 사실상 수익 없음. OOS **+0.64%** (score 0.4528 CAUTION).
-
-### ETH — COMPOSITE_MOMENTUM 확정
-
-- **3년 성과**: +53.6%, MDD -18.3%
-- **Walk-Forward**: MOMENTUM OOS 합계 **+13.50%** (score 3.5595). W1 OOS +17.32%(13건) 핵심 근거.
-- **V1·V2 배제**: Ichimoku 필터 추가 시 ETH 오히려 성과 저하 (V1 +46.0%, V2 +37.3%).
-
-### SOL — V2 전환 권고 (배포 대기)
-
-- **3년 성과 비교**: V2 +131.1% MDD -12.0% vs BREAKOUT +64.9% MDD -19.2% — 수익률 2배, MDD도 낮음
-- **Walk-Forward**: BREAKOUT OOS +12.05%이나 W0 단일 윈도우(+16.57%) 의존. V2 OOS -4.35%이나 거래 수 충분(8~13건/윈도우)하여 통계 신뢰도 높음.
-- **결론**: 3년 시뮬레이션 압도적 우위 + WF BREAKOUT 이상치 의존성 → V2 전환. 소액(1만원) 교체 리스크 낮음.
-
-### XRP — 전환 보류 (소액 병행 후 재결정)
-
-- **3년 성과 비교**: V2 +49.9% MDD -25.3% vs V1 +36.5% MDD -20.7%
-- **Walk-Forward**: V1 OOS **-14.05%** (score 1.0172) vs V2 OOS **-14.40%** (score 0.7458). 두 전략 모두 OOS 전 윈도우 음수 — 어느 쪽도 검증 미완.
-- **현재 방향**: V2 소액 병행 운영 후 실전 데이터 3개월 이상 확보 후 전환 결정.
-
-### DOGE — V2 소액 투입 권고
-
-- **3년 성과**: V2 +134.4% MDD -29.2% — 5개 코인 전 전략 통틀어 최고 수익률
-- **Walk-Forward**: V2 OOS 합계 **+48.76%** (score 9.7151). W1~W3 3개 연속 OOS 양수(+33.17%, +14.37%, +13.82%).
-- **주의**: MDD -29.2%. 1만원으로 시작하여 2주 이상 운영 후 MDD 실측치 확인.
+- ⚠️ **SOL 전환**: CMI_V2 → **COMPOSITE_BREAKOUT** (EMA200 필터 후 재검증에서도 CB MDD 최저)
+- ⚠️ **ETH 전환**: CMI → **COMPOSITE_BREAKOUT** (EMA200 필터 후 CB만 WF 양수)
+- 🟢 **BTC / XRP**: CB 유지 — 변경 없음
+- 🔵 **DOGE**: CMI_V2 유지. EMA200 예외 처리 후 재검증 필요
+- 🔵 **ADA**: 소액 관찰 시작 가능. 거래수 누적 후 증액 판단
 
 ---
 
@@ -221,8 +190,8 @@ crypto-auto-trader/
 - [x] **SL/TP 동시 터치 Monte Carlo** (§3) — `resolveByMonteCarlo()` 구현. 경로 재구성으로도 순서 불확정 시(Doji 등) Monte Carlo 200회 시뮬레이션으로 SL/TP 선도 확률 결정.
 - [x] **리스크 구간 손실 재정의** (§5) — 글로벌 포트폴리오 드로우다운 체크 추가. `RiskEngine.check()` 6-파라미터 오버로드, `RiskManagementService.calculatePortfolioDrawdownPct()`, V48 마이그레이션, `RiskConfigEntity` 필드 추가.
 - [x] **WeightOverrideStore DB 이력 저장** (§6) — `weight_optimizer_snapshot` 테이블(V49), `WeightOptimizerSnapshotEntity`, `WeightOptimizerSnapshotRepository`, `StrategyWeightOptimizer.saveSnapshot()` + `restoreFromSnapshot()` 구현.
-- [ ] **단일 전략 백테스트 기간 분리 문서화** (§12) — 파라미터 탐색 2023~2024 / 검증 2025 독립 분리. MACD(14,22,9) +151.9% 등 단일 전략 결과의 과적합 여부 재검증.
-- [ ] **2022 약세장 데이터 수집 + 재백테스트** (§13) — BTC·ETH 최소. 크립토 Winter 구간 포함 여부로 전략 견고성 재검증.
+- [~] **단일 전략 백테스트 기간 분리 문서화** (§12) — 복합 전략은 2026-04-24 Walk-Forward(In-Sample 학습/Out-of-Sample 검증 5윈도우)로 과적합 여부 정량 평가 완료 (SOL/CMI_V2 -98% 저하 등 식별). **단일 전략 11종에 대한 동일 WF 실행은 미진행** — 필요 시 별도 태스크.
+- [x] **2022 약세장 데이터 수집 + 재백테스트** (§13) — 2026-04-24 FULL 백테스트 및 WF 모두 **2022-01-01 시작**. W0(2022 하반기 하락장 말미) OOS 구간에서 전 전략 손실(-5~-15%) 확인 → 레짐 필터 필요성으로 연결. 크립토 Winter 견고성 평가 완료.
 - [ ] **테스트 커버리지 보강** (§15) — `BacktestJobService` · `PaperTradingService` · `SignalQualityService` 전용 테스트 작성.
 - [ ] **세션별 에러 카운트 대시보드** (§16) — Prometheus Counter 기존 구성됨. Grafana 대시보드 패널 추가 필요.
 - [ ] **로그 중앙화** (§16) — Loki 또는 CloudWatch Logs 연동. 현재 Docker logs grep 수준 → 운영 스케일 부족.
@@ -230,13 +199,19 @@ crypto-auto-trader/
 
 ---
 
-### 🟡 P2-0 — 실전 테스트 및 전략 검증
+### 🟡 P2-0 — 실전 테스트 및 전략 검증 (2026-04-24 EMA200 필터 WF 재검증 반영)
 
-> Walk-Forward 전체 완료 (2026-04-14): BTC·ETH 현재 전략 검증 완료. SOL V2 전환 권고. XRP 보류. DOGE V2 투입 권고.
+> EMA200 레짐 필터 적용 후 WF 재검증 결과 기반. 이전 가이드 폐기.
 
-- [ ] **SOL 전략 V2 전환 배포** — COMPOSITE_BREAKOUT → COMPOSITE_MOMENTUM_ICHIMOKU_V2. 배포 대기.
-- [ ] **DOGE V2 소액 투입 배포** — 1만원으로 시작. 2주 운영 후 MDD 실측치 확인.
-- [ ] **XRP 실전 병행 운영** — V1 유지하되 V2 소액 병행. 3개월 후 실전 수익률 비교 후 전환 결정.
+- [ ] **SOL 전략 전환: CMI_V2 → COMPOSITE_BREAKOUT** — EMA200 필터 후 WF OOS CB +24.30% (MDD -8.24%). CB가 4전략 중 MDD 최저.
+- [ ] **ETH 전략 전환: CMI → COMPOSITE_BREAKOUT** — EMA200 필터 후 CMI WF 음수(-4.6%). CB +4.17%로 유일 양수.
+- [x] **XRP COMPOSITE_BREAKOUT 유지** — 필터 후에도 CB +25.98% 유지. 운영 변경 없음.
+- [ ] **DOGE CMI_V2 유지 + EMA200 예외 처리 검토** — DOGE는 EMA200 아래에서도 수익 패턴 존재. 코인별 필터 on/off 설정 기능 또는 DOGE 전용 예외 로직 필요.
+- [ ] **ADA COMPOSITE_BREAKOUT 소액 관찰** — FULL +87%, WF +34.76% 우수하나 WF 거래수 12건으로 신뢰성 부족. 소액 세션 시작 후 거래 누적 관찰.
+- [ ] **FAIR_VALUE_GAP 전략 코드 리뷰 또는 폐기 결정** — 모든 타임프레임 × 모든 메이저 코인에서 구조적 손실. B단계 구현 전에 A단계 로직 방향성 재검증 필수.
+- [ ] **M15 타임프레임 전 세션 비활성화** — H1 전용으로 운영 표준화.
+- [x] **EMA200 레짐 필터 PoC (백테스트)** — `BacktestEngine.isAboveEma200()` 구현 완료. SOL 전 전략 WF 양수 전환 확인. DOGE 역효과 확인 → 코인별 예외 처리 과제로 분리.
+- [x] **EMA200 레짐 필터 실전 적용** — `LiveTradingService.isAboveEma200Live()` 구현 완료. CANDLE_LOOKBACK 100→250 증가. DOGE 예외 처리 포함 (coinPair.contains("DOGE") 조건). SELL 신호 영향 없음.
 - [ ] **실전매매 금액 증액** — 소액 1만원 → 5만원 → 10만원 단계적 증액. 기준: 2주 이상 운영 + 승률 ≥ 50% + MDD < 10%
 
 ---

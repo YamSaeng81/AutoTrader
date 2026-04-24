@@ -25,6 +25,7 @@ export default function BacktestListPage() {
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [filterStrategy, setFilterStrategy] = useState('');
     const [filterCoin, setFilterCoin] = useState('');
+    const [filterRunId, setFilterRunId] = useState('');
     const [sortKey, setSortKey] = useState<SortKey>('createdAt');
     const [sortDir, setSortDir] = useState<SortDir>('desc');
 
@@ -35,6 +36,7 @@ export default function BacktestListPage() {
         let list = backtests;
         if (filterStrategy) list = list.filter(b => b.strategyType === filterStrategy);
         if (filterCoin) list = list.filter(b => b.coinPair === filterCoin);
+        if (filterRunId) list = list.filter(b => String(b.id).includes(filterRunId.trim()));
         return [...list].sort((a, b) => {
             let av: number, bv: number;
             if (sortKey === 'createdAt') {
@@ -174,9 +176,16 @@ export default function BacktestListPage() {
                         <option value="">전체 코인</option>
                         {coins.map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
-                    {(filterStrategy || filterCoin) && (
+                    <input
+                        type="text"
+                        value={filterRunId}
+                        onChange={e => setFilterRunId(e.target.value)}
+                        placeholder="ID 검색"
+                        className="w-24 px-3 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                    />
+                    {(filterStrategy || filterCoin || filterRunId) && (
                         <button
-                            onClick={() => { setFilterStrategy(''); setFilterCoin(''); }}
+                            onClick={() => { setFilterStrategy(''); setFilterCoin(''); setFilterRunId(''); }}
                             className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
                         >
                             필터 초기화
@@ -216,6 +225,7 @@ export default function BacktestListPage() {
                                             aria-label="전체 선택"
                                         />
                                     </th>
+                                    <th className="px-4 py-4 text-right">#</th>
                                     <th className="px-6 py-4">상태</th>
                                     <th className="px-6 py-4">전략 유형</th>
                                     <th className="px-6 py-4">페어 / 타임프레임</th>
@@ -248,6 +258,9 @@ export default function BacktestListPage() {
                                                 className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-indigo-600 cursor-pointer"
                                                 aria-label={`${bt.strategyType} 선택`}
                                             />
+                                        </td>
+                                        <td className="px-4 py-4 text-right font-mono text-xs text-slate-400 dark:text-slate-500">
+                                            {bt.id}
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className="px-2.5 py-1 text-[10px] font-bold tracking-widest uppercase rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700">
