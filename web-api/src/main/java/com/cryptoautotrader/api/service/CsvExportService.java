@@ -155,6 +155,8 @@ public class CsvExportService {
 
         if (runs.isEmpty()) return bom("데이터 없음\n");
 
+        // WF 결과는 BacktestRunEntity.wfResultJson(JSONB)에 저장됨.
+        // 과거 호환을 위해 BacktestMetricsEntity fallback도 유지.
         List<Long> runIds = runs.stream().map(BacktestRunEntity::getId).toList();
         List<BacktestMetricsEntity> allMetrics = backtestMetricsRepository.findByBacktestRunIdIn(runIds);
         Map<Long, List<BacktestMetricsEntity>> metricsMap = allMetrics.stream()
@@ -166,6 +168,40 @@ public class CsvExportService {
         sb.append("총거래,승리거래,패배거래,평균수익(%),평균손실(%),생성일시\n");
 
         for (BacktestRunEntity run : runs) {
+            Map<String, Object> wf = run.getWfResultJson();
+            boolean wroteFromJson = false;
+
+            if (wf != null) {
+                Object windowsObj = wf.get("windows");
+                if (windowsObj instanceof List<?> windows) {
+                    for (Object wObj : windows) {
+                        if (!(wObj instanceof Map<?, ?> w)) continue;
+                        Object idx = w.get("windowIndex");
+                        Map<String, Object> in  = asMap(w.get("inSample"));
+                        Map<String, Object> out = asMap(w.get("outSample"));
+                        String trainEnd = str(in != null ? in.get("end") : null);
+                        String testEnd  = str(out != null ? out.get("end") : null);
+                        if (in != null) {
+                            appendWfJsonRow(sb, run, "W" + idx + "_IN", trainEnd, "", in);
+                            wroteFromJson = true;
+                        }
+                        if (out != null) {
+                            appendWfJsonRow(sb, run, "W" + idx + "_OUT", trainEnd, testEnd, out);
+                            wroteFromJson = true;
+                        }
+                    }
+                }
+                Map<String, Object> agg = asMap(wf.get("aggregatedOutSample"));
+                if (agg != null) {
+                    appendWfJsonRow(sb, run, "AGG_OUT",
+                            fmt(run.getWfInSample()), fmt(run.getWfOutSample()), agg);
+                    wroteFromJson = true;
+                }
+            }
+
+            if (wroteFromJson) continue;
+
+            // Fallback: metrics 테이블 기반 (레거시 데이터)
             List<BacktestMetricsEntity> metricsList = metricsMap.getOrDefault(run.getId(), List.of());
             if (metricsList.isEmpty()) {
                 appendWfRow(sb, run, null);
@@ -176,6 +212,31 @@ public class CsvExportService {
             }
         }
         return bom(sb.toString());
+    }
+
+    private void appendWfJsonRow(StringBuilder sb, BacktestRunEntity run,
+                                 String segment, String trainEnd, String testEnd,
+                                 Map<String, Object> metrics) {
+        sb.append(run.getId()).append(',');
+        sb.append(q(run.getStrategyName())).append(',');
+        sb.append(q(run.getCoinPair())).append(',');
+        sb.append(q(run.getTimeframe())).append(',');
+        sb.append(fmt(run.getStartDate())).append(',');
+        sb.append(fmt(run.getEndDate())).append(',');
+        sb.append(q(normalizeDt(trainEnd))).append(',');
+        sb.append(q(normalizeDt(testEnd))).append(',');
+        sb.append(run.getInitialCapital()).append(',');
+        sb.append(q(segment)).append(',');
+        sb.append(num(metrics.get("totalReturn"))).append(',');
+        sb.append(num(metrics.get("winRate"))).append(',');
+        sb.append(num(metrics.get("maxDrawdown"))).append(',');
+        sb.append(num(metrics.get("sharpeRatio"))).append(',');
+        sb.append(num(metrics.get("sortinoRatio"))).append(',');
+        sb.append(num(metrics.get("calmarRatio"))).append(',');
+        sb.append(num(metrics.get("totalTrades"))).append(',');
+        // 승리/패배/평균수익/평균손실은 JSON에 없음 → blank
+        sb.append(",,,,");
+        sb.append(fmt(run.getCreatedAt())).append('\n');
     }
 
     private void appendWfRow(StringBuilder sb, BacktestRunEntity run, BacktestMetricsEntity m) {
@@ -203,9 +264,32 @@ public class CsvExportService {
             sb.append(m.getAvgProfitPct()).append(',');
             sb.append(m.getAvgLossPct()).append(',');
         } else {
-            sb.append(",,,,,,,,,,,");
+            sb.append(",,,,,,,,,,,,");
         }
         sb.append(fmt(run.getCreatedAt())).append('\n');
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> asMap(Object o) {
+        return (o instanceof Map) ? (Map<String, Object>) o : null;
+    }
+
+    private String str(Object o) {
+        return o == null ? "" : o.toString();
+    }
+
+    private String num(Object o) {
+        return o == null ? "" : o.toString();
+    }
+
+    /** "2026-04-24T00:00:00Z" 형태의 ISO 문자열을 "yyyy-MM-dd HH:mm:ss" KST로 변환 (실패 시 원문 반환). */
+    private String normalizeDt(String s) {
+        if (s == null || s.isEmpty()) return "";
+        try {
+            return DT_FMT.format(Instant.parse(s));
+        } catch (Exception e) {
+            return s;
+        }
     }
 
     // ── 실전매매 이력 ─────────────────────────────────────────────────────────
