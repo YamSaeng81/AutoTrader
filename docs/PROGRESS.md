@@ -3,7 +3,27 @@
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝나면 완료 내용을 [`docs/CHANGELOG.md`](CHANGELOG.md)에 추가하고, 이 파일의 해당 항목은 삭제한다.
 > **변경 이력**: [`docs/CHANGELOG.md`](CHANGELOG.md)
-> **마지막 갱신**: 2026-04-24 (EMA200 레짐 필터 LiveTradingService 실전 적용 완료 / CANDLE_LOOKBACK 250 / DOGE 예외 포함)
+> **마지막 갱신**: 2026-04-27 (라이브 30일 분석 후 청산/ADX 핫픽스 적용)
+
+---
+
+## 🔧 2026-04-27 라이브 분석 기반 핫픽스
+
+30일 라이브 데이터 분석 결과 승률 1.63%, 121건이 "동가 청산 → 수수료만 손실" 패턴. 다음 3건 적용:
+
+1. **SELL 신호 최소 보유시간 가드** (`LiveTradingService`)
+   - `MIN_HOLD_MINUTES_FOR_SIGNAL_EXIT = 30분`
+   - 진입 30분 이내의 전략 SELL 신호는 차단 (SL/TP는 항상 작동)
+   - 신호품질 로그에 차단 사유 기록
+2. **CompositeStrategy ADX 필터 파라미터화** (`CompositeStrategy`)
+   - `adxThreshold`, `adxPeriod`, `skipAdxFilter` params로 override 가능
+   - LiveTradingService가 RANGE 레짐 자동 감지 시 `adxThreshold=15.0`으로 완화
+   - 4월 24일 시작 BREAKOUT 세션 4개(SOL/XRP/ETH/BTC)가 ADX(16~18)<20 으로 100% 차단되던 문제 해소
+3. **BUY 차단(이미 보유) 시 신호 강도/보유 손익 비교 로깅**
+   - 향후 피라미딩/교체 정책 설계용 데이터 수집
+   - blockedReason: "이미 포지션 보유 중 (신규신호강도=X, 보유포지션 pnl=Y%, 보유시간=Z분)"
+
+후순위(미적용): MACD_STOCH_BB SELL 조건(72% SELL 편향) — 현재 미사용 전략이라 보류.
 
 ---
 

@@ -98,6 +98,13 @@ public class LiveTradingService {
     private final Map<String, Long> rtStopLossLastCheckMs = new ConcurrentHashMap<>();
     private static final long RT_STOPLOSS_CHECK_INTERVAL_MS = 5_000;
 
+    /**
+     * 전략 SELL 신호로 청산하기 위한 최소 보유 시간 (분).
+     * 진입 직후 SELL 신호(예: histDecreasing)로 동가 청산 → 수수료만 손실되는 패턴 방지.
+     * SL/TP 도달은 이 가드와 무관하게 항상 작동한다.
+     */
+    private static final long MIN_HOLD_MINUTES_FOR_SIGNAL_EXIT = 30;
+
     /** 거래소 DOWN으로 비상 정지된 세션 ID 목록 — 복구 시 자동 재시작 대상 */
     private final Set<Long> exchangeStoppedSessionIds = ConcurrentHashMap.newKeySet();
 
@@ -729,12 +736,26 @@ public class LiveTradingService {
             return;
         }
 
+        // 전략 평가 전 시장 레짐 선감지 — params 주입에 사용
+        // (이전엔 evaluate 후 감지되었으나 ADX 필터 우회 등 평가-전 결정에 사용하기 위해 선행)
+        MarketRegime preEvalRegime = null;
+        try {
+            preEvalRegime = new MarketRegimeDetector().detect(candles);
+        } catch (Exception e) {
+            log.warn("레짐 선감지 실패 (sessionId={}): {}", sessionId, e.getMessage());
+        }
+
         // 전략 신호 평가
         Map<String, Object> params = new java.util.HashMap<>(
                 session.getStrategyParams() != null ? session.getStrategyParams() : Collections.emptyMap());
         params.put("coinPair", coinPair);
         if (session.getStartedAt() != null) {
             params.put("sessionStartedAt", session.getStartedAt().toEpochMilli());
+        }
+        // RANGE 레짐: COMPOSITE_BREAKOUT의 ADX(14)<20 필터가 횡보장을 100% 선차단하던 문제 해결.
+        // 호출자가 명시적으로 adxThreshold/skipAdxFilter를 지정하지 않은 경우에만 자동 완화한다.
+        if (preEvalRegime == MarketRegime.RANGE) {
+            params.putIfAbsent("adxThreshold", 15.0);
         }
         // ORDERBOOK_IMBALANCE 전략: REST API로 실시간 호가창 주입 (캔들 근사 대신 실값 사용)
         if ("ORDERBOOK_IMBALANCE".equals(strategyType) && upbitRestClient != null) {
@@ -768,14 +789,8 @@ public class LiveTradingService {
 
         BigDecimal currentPrice = candles.get(candles.size() - 1).getClose();
 
-        // 시장 레짐 감지 (새 인스턴스 — 세션 간 상태 오염 방지)
-        MarketRegime currentRegime = null;
-        try {
-            currentRegime = new MarketRegimeDetector().detect(candles);
-        } catch (Exception e) {
-            log.warn("레짐 감지 실패 (sessionId={}): {}", sessionId, e.getMessage());
-        }
-        final String regimeName = currentRegime != null ? currentRegime.name() : null;
+        // 시장 레짐 — evaluate 전에 이미 감지됨 (preEvalRegime). 재감지 불필요.
+        final String regimeName = preEvalRegime != null ? preEvalRegime.name() : null;
 
         // 전략 로그 DB 저장 (신호 품질 + 레짐 포함)
         StrategyLogEntity savedSignalLog = null;
@@ -870,15 +885,49 @@ public class LiveTradingService {
                             finalSignal, regimeName);
                     saveSignalQuality(signalLogRef, true, null);
                 } else {
-                    String reason = openPos.isPresent() ? "이미 포지션 보유 중" : "포지션 청산 진행 중";
+                    String reason;
+                    if (openPos.isPresent()) {
+                        // 신호 강도와 현재 포지션 손익률 비교 — 향후 피라미딩/교체 정책 데이터 수집용
+                        PositionEntity heldPos = openPos.get();
+                        BigDecimal newStrength = finalSignal.getStrength() != null
+                                ? finalSignal.getStrength() : BigDecimal.ZERO;
+                        BigDecimal heldPnlPct = (heldPos.getAvgPrice() != null
+                                && heldPos.getAvgPrice().compareTo(BigDecimal.ZERO) > 0)
+                                ? currentPrice.subtract(heldPos.getAvgPrice())
+                                        .divide(heldPos.getAvgPrice(), 6, RoundingMode.HALF_UP)
+                                        .multiply(BigDecimal.valueOf(100))
+                                        .setScale(2, RoundingMode.HALF_UP)
+                                : BigDecimal.ZERO;
+                        long heldMin = heldPos.getOpenedAt() != null
+                                ? Duration.between(heldPos.getOpenedAt(), Instant.now()).toMinutes() : -1;
+                        reason = String.format(
+                                "이미 포지션 보유 중 (신규신호강도=%s, 보유포지션 pnl=%s%%, 보유시간=%d분)",
+                                newStrength.toPlainString(), heldPnlPct.toPlainString(), heldMin);
+                    } else {
+                        reason = "포지션 청산 진행 중";
+                    }
                     saveSignalQuality(signalLogRef, false, reason);
                 }
             }
             case SELL -> {
                 if (openPos.isPresent()) {
-                    executeSessionSell(session, openPos.get(), currentPrice,
-                            String.format("전략 신호: %s -- %s", strategyType, finalSignal.getReason()));
-                    saveSignalQuality(signalLogRef, true, null);
+                    PositionEntity pos = openPos.get();
+                    Instant openedAt = pos.getOpenedAt();
+                    long heldMinutes = openedAt != null
+                            ? Duration.between(openedAt, Instant.now()).toMinutes()
+                            : Long.MAX_VALUE;
+                    if (heldMinutes < MIN_HOLD_MINUTES_FOR_SIGNAL_EXIT) {
+                        // 진입 직후 SELL 신호로 동가 청산되는 패턴 차단 — SL/TP는 별도로 항상 동작
+                        String blockReason = String.format(
+                                "최소 보유시간 미달: %d분 < %d분 (전략 SELL 차단, SL/TP는 유효)",
+                                heldMinutes, MIN_HOLD_MINUTES_FOR_SIGNAL_EXIT);
+                        log.info("SELL 신호 차단 (sessionId={}): {} {}", sessionId, coinPair, blockReason);
+                        saveSignalQuality(signalLogRef, false, blockReason);
+                    } else {
+                        executeSessionSell(session, pos, currentPrice,
+                                String.format("전략 신호: %s -- %s", strategyType, finalSignal.getReason()));
+                        saveSignalQuality(signalLogRef, true, null);
+                    }
                 } else {
                     saveSignalQuality(signalLogRef, false, "청산할 포지션 없음");
                 }

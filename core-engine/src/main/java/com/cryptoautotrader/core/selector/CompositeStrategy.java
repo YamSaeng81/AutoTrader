@@ -3,6 +3,7 @@ package com.cryptoautotrader.core.selector;
 import com.cryptoautotrader.strategy.Candle;
 import com.cryptoautotrader.strategy.IndicatorUtils;
 import com.cryptoautotrader.strategy.Strategy;
+import com.cryptoautotrader.strategy.StrategyParamUtils;
 import com.cryptoautotrader.strategy.StrategySignal;
 
 import java.math.BigDecimal;
@@ -112,12 +113,23 @@ public class CompositeStrategy implements Strategy {
     @Override
     public StrategySignal evaluate(List<Candle> candles, Map<String, Object> params) {
         // ADX 횡보장 필터: 추세 없는 구간에서 하위 전략 평가 전 즉시 HOLD 반환
-        if (adxFilterEnabled && candles.size() >= DEFAULT_ADX_PERIOD * 2 + 1) {
-            BigDecimal adx = IndicatorUtils.adx(candles, DEFAULT_ADX_PERIOD);
-            if (adx.doubleValue() < DEFAULT_ADX_THRESHOLD) {
-                return StrategySignal.hold(String.format(
-                        "ADX필터 횡보장 차단: ADX(%.1f) < %.0f (추세 없음)",
-                        adx.doubleValue(), DEFAULT_ADX_THRESHOLD));
+        // 임계값/주기는 params로 override 가능 ("adxThreshold", "adxPeriod"),
+        // "skipAdxFilter"=true 시 호출자(레짐 인지 등)가 필터를 비활성화할 수 있다.
+        boolean skipAdx = params != null && StrategyParamUtils.getBoolean(params, "skipAdxFilter", false);
+        if (adxFilterEnabled && !skipAdx) {
+            int adxPeriod = params != null
+                    ? StrategyParamUtils.getInt(params, "adxPeriod", DEFAULT_ADX_PERIOD)
+                    : DEFAULT_ADX_PERIOD;
+            double adxThreshold = params != null
+                    ? StrategyParamUtils.getDouble(params, "adxThreshold", DEFAULT_ADX_THRESHOLD)
+                    : DEFAULT_ADX_THRESHOLD;
+            if (candles.size() >= adxPeriod * 2 + 1) {
+                BigDecimal adx = IndicatorUtils.adx(candles, adxPeriod);
+                if (adx.doubleValue() < adxThreshold) {
+                    return StrategySignal.hold(String.format(
+                            "ADX필터 횡보장 차단: ADX(%.1f) < %.1f (추세 없음, period=%d)",
+                            adx.doubleValue(), adxThreshold, adxPeriod));
+                }
             }
         }
 
