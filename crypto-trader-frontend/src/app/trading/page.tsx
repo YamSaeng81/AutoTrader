@@ -146,7 +146,7 @@ export default function TradingPage() {
             🧪 테스트 세션
           </button>
           <button
-            onClick={() => { setForm({ ...defaultForm }); setSelectedStrategies(['COMPOSITE']); setShowCreateForm(true); }}
+            onClick={() => { setForm({ ...defaultForm }); setSelectedStrategies([]); setShowCreateForm(true); }}
             className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
           >
             + 새 세션
