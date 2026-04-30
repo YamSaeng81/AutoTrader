@@ -30,6 +30,7 @@ const STRATEGY_LABELS: Record<string, string> = {
 export default function PaperTradingPage() {
     const [showNewForm, setShowNewForm] = useState(false);
     const [availableStrategies, setAvailableStrategies] = useState<StrategyInfo[]>([]);
+    const [strategyInfoMap, setStrategyInfoMap] = useState<Record<string, StrategyInfo>>({});
     const [coins, setCoins] = useState<string[]>([]);
     const [selectedStrategies, setSelectedStrategies] = useState<string[]>(['EMA_CROSS']);
     const [config, setConfig] = useState<Omit<PaperTradingStartRequest, 'strategyType'>>({
@@ -42,8 +43,10 @@ export default function PaperTradingPage() {
     useEffect(() => {
         Promise.all([strategyApi.list(), systemApi.coins()]).then(([stRes, cRes]) => {
             if (stRes.success && stRes.data) {
-                const available = stRes.data.filter(s => s.status === 'AVAILABLE' && s.isActive && s.name !== 'COMPOSITE');
+                const all = stRes.data;
+                const available = all.filter(s => s.status === 'AVAILABLE' && s.isActive);
                 setAvailableStrategies(available);
+                setStrategyInfoMap(Object.fromEntries(all.map(s => [s.name, s])));
                 if (available.length > 0) setSelectedStrategies([available[0].name]);
             }
             if (cRes.success && cRes.data) {
@@ -68,13 +71,9 @@ export default function PaperTradingPage() {
     const runningSessions = sessions.filter(s => s.status === 'RUNNING');
     const canAddMore = runningSessions.length < MAX_SESSIONS;
 
-    const strategyList = [
-        { name: 'COMPOSITE', label: 'COMPOSITE (시장 국면 자동 선택)' },
-        ...(availableStrategies.length > 0
-            ? availableStrategies.map(s => ({ name: s.name, label: s.name }))
-            : ALL_STRATEGIES.filter(s => s !== 'COMPOSITE').map(s => ({ name: s, label: STRATEGY_LABELS[s] ?? s }))
-        ),
-    ];
+    const strategyList = availableStrategies.length > 0
+        ? availableStrategies.map(s => ({ name: s.name, label: s.name }))
+        : ALL_STRATEGIES.map(s => ({ name: s, label: STRATEGY_LABELS[s] ?? s }));
 
     const toggleStrategy = (name: string) => {
         setSelectedStrategies(prev =>
@@ -191,25 +190,45 @@ export default function PaperTradingPage() {
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                                 {strategyList.map(s => {
                                     const checked = selectedStrategies.includes(s.name);
+                                    const recCoins = strategyInfoMap[s.name]?.recommendedCoins ?? [];
                                     return (
                                         <button
                                             key={s.name}
                                             type="button"
                                             onClick={() => toggleStrategy(s.name)}
                                             className={cn(
-                                                'flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold transition-all text-left',
+                                                'flex flex-col gap-1 px-3 py-2 rounded-xl border text-xs font-semibold transition-all text-left',
                                                 checked
                                                     ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
                                                     : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:border-indigo-300'
                                             )}
                                         >
-                                            <span className={cn(
-                                                'w-3.5 h-3.5 rounded border-2 flex-shrink-0 flex items-center justify-center',
-                                                checked ? 'bg-white border-white' : 'border-slate-400'
-                                            )}>
-                                                {checked && <span className="w-1.5 h-1.5 rounded-sm bg-indigo-600" />}
+                                            <span className="flex items-center gap-2">
+                                                <span className={cn(
+                                                    'w-3.5 h-3.5 rounded border-2 flex-shrink-0 flex items-center justify-center',
+                                                    checked ? 'bg-white border-white' : 'border-slate-400'
+                                                )}>
+                                                    {checked && <span className="w-1.5 h-1.5 rounded-sm bg-indigo-600" />}
+                                                </span>
+                                                <span className="truncate">{s.label}</span>
                                             </span>
-                                            <span className="truncate">{s.label}</span>
+                                            {recCoins.length > 0 && (
+                                                <span className="flex flex-wrap gap-1 pl-5">
+                                                    {recCoins.map(coin => (
+                                                        <span
+                                                            key={coin}
+                                                            className={cn(
+                                                                'px-1.5 py-0.5 rounded text-[10px] font-bold',
+                                                                checked
+                                                                    ? 'bg-white/20 text-white'
+                                                                    : 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-300'
+                                                            )}
+                                                        >
+                                                            {coin}
+                                                        </span>
+                                                    ))}
+                                                </span>
+                                            )}
                                         </button>
                                     );
                                 })}

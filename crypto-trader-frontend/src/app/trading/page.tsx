@@ -86,14 +86,16 @@ export default function TradingPage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showEmergencyConfirm, setShowEmergencyConfirm] = useState(false);
   const [form, setForm] = useState<LiveTradingStartRequest>({ ...defaultForm });
-  const [selectedStrategies, setSelectedStrategies] = useState<string[]>(['COMPOSITE']);
+  const [selectedStrategies, setSelectedStrategies] = useState<string[]>([]);
   const [createError, setCreateError] = useState<string | null>(null);
   const [activeStrategies, setActiveStrategies] = useState<StrategyInfo[]>([]);
+  const [strategyInfoMap, setStrategyInfoMap] = useState<Record<string, StrategyInfo>>({});
 
   useEffect(() => {
     strategyApi.list().then(res => {
       if (res.success && res.data) {
-        setActiveStrategies(res.data.filter(s => s.status === 'AVAILABLE' && s.isActive && s.name !== 'COMPOSITE'));
+        setActiveStrategies(res.data.filter(s => s.status === 'AVAILABLE' && s.isActive));
+        setStrategyInfoMap(Object.fromEntries(res.data.map(s => [s.name, s])));
       }
     }).catch(() => {});
   }, []);
@@ -107,7 +109,7 @@ export default function TradingPage() {
         ?.response?.data?.message ?? (err as { message?: string })?.message ?? '세션 생성에 실패했습니다.';
       setCreateError(msg);
     };
-    const onSuccess = () => { setShowCreateForm(false); setForm({ ...defaultForm }); setSelectedStrategies(['COMPOSITE']); };
+    const onSuccess = () => { setShowCreateForm(false); setForm({ ...defaultForm }); setSelectedStrategies([]); };
 
     if (!isTestTimed(form) && selectedStrategies.length >= 2) {
       createMulti.mutate({
@@ -223,7 +225,7 @@ export default function TradingPage() {
                     <div className="flex gap-2 text-xs">
                       <button
                         type="button"
-                        onClick={() => setSelectedStrategies(['COMPOSITE', ...activeStrategies.map(s => s.name)])}
+                        onClick={() => setSelectedStrategies(activeStrategies.map(s => s.name))}
                         className="text-slate-400 hover:text-blue-400 transition-colors"
                       >전체 선택</button>
                       <span className="text-slate-600">|</span>
@@ -234,24 +236,33 @@ export default function TradingPage() {
                       >전체 해제</button>
                     </div>
                   </div>
-                  <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-2 space-y-1 max-h-40 overflow-y-auto">
-                    {[{ name: 'COMPOSITE' }, ...activeStrategies].map(s => (
-                      <label key={s.name} className="flex items-center gap-2 px-2 py-1 hover:bg-slate-700 rounded cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={selectedStrategies.includes(s.name)}
-                          onChange={e => {
-                            if (e.target.checked) setSelectedStrategies(prev => [...prev, s.name]);
-                            else setSelectedStrategies(prev => prev.filter(x => x !== s.name));
-                          }}
-                          className="accent-blue-500"
-                        />
-                        <span className="text-sm text-white">{s.name}</span>
-                        {s.name === 'COMPOSITE' && (
-                          <span className="text-xs text-slate-400">(시장 국면 자동 선택)</span>
-                        )}
-                      </label>
-                    ))}
+                  <div className="bg-slate-700/50 border border-slate-600 rounded-lg p-2 space-y-1 max-h-48 overflow-y-auto">
+                    {activeStrategies.map(s => {
+                      const recCoins = strategyInfoMap[s.name]?.recommendedCoins ?? [];
+                      return (
+                        <label key={s.name} className="flex items-center gap-2 px-2 py-1.5 hover:bg-slate-700 rounded cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={selectedStrategies.includes(s.name)}
+                            onChange={e => {
+                              if (e.target.checked) setSelectedStrategies(prev => [...prev, s.name]);
+                              else setSelectedStrategies(prev => prev.filter(x => x !== s.name));
+                            }}
+                            className="accent-blue-500 flex-shrink-0"
+                          />
+                          <span className="text-sm text-white flex-1">{s.name}</span>
+                          {recCoins.length > 0 && (
+                            <span className="flex gap-1 flex-shrink-0">
+                              {recCoins.map(coin => (
+                                <span key={coin} className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                                  {coin}
+                                </span>
+                              ))}
+                            </span>
+                          )}
+                        </label>
+                      );
+                    })}
                     {activeStrategies.length === 0 && (
                       <p className="text-xs text-slate-500 px-2 py-1">전략 관리 페이지에서 전략을 활성화하세요.</p>
                     )}

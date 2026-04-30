@@ -299,6 +299,44 @@ public final class IndicatorUtils {
         return high.add(low).divide(BigDecimal.valueOf(2), SCALE, RoundingMode.HALF_UP);
     }
 
+    /**
+     * 최근 windowSize개 캔들에 대한 ADX 값 목록을 반환한다.
+     * 각 인덱스의 ADX는 해당 위치까지의 캔들(period*2+1개)로 계산된다.
+     * 슬라이딩 윈도우 방식으로 windowSize개의 ADX 값을 반환.
+     * 최소 캔들 수 = period*2+1 + windowSize-1
+     */
+    public static List<Double> adxList(List<Candle> candles, int period, int windowSize) {
+        List<Double> result = new ArrayList<>();
+        int minRequired = period * 2 + 1;
+        if (candles.size() < minRequired) return result;
+
+        int start = Math.max(minRequired, candles.size() - windowSize);
+        for (int end = start; end <= candles.size(); end++) {
+            List<Candle> sub = candles.subList(Math.max(0, end - minRequired * 2), end);
+            if (sub.size() >= minRequired) {
+                result.add(adx(sub, period).doubleValue());
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 최근 windowSize개 캔들에서 ADX 분포의 N번째 백분위수를 반환한다.
+     * 최소 10개 샘플 미만이면 defaultValue를 반환한다.
+     * @param percentile 0.0~1.0 (예: 0.3 = 30th percentile)
+     */
+    public static double adxPercentileThreshold(List<Candle> candles, int period,
+                                                int windowSize, double percentile,
+                                                double defaultValue) {
+        List<Double> adxValues = adxList(candles, period, windowSize);
+        if (adxValues.size() < 10) return defaultValue;
+
+        List<Double> sorted = new ArrayList<>(adxValues);
+        sorted.sort(Double::compareTo);
+        int idx = (int) Math.floor(percentile * (sorted.size() - 1));
+        return sorted.get(idx);
+    }
+
     public static BigDecimal adx(List<Candle> candles, int period) {
         if (candles.size() < period * 2 + 1) {
             throw new IllegalArgumentException("ADX 계산에 데이터 부족");

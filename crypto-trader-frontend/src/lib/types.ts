@@ -137,6 +137,7 @@ export interface StrategyInfo {
   description: string;
   isActive: boolean;
   isComposite: boolean;
+  recommendedCoins?: string[];
 }
 
 // Phase 3.5 추가 타입

@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.Arrays;
 
 @RestController
 @RequestMapping("/api/v1/strategies")
@@ -214,6 +215,7 @@ public class StrategyController {
         map.put("isComposite", isCompositeStrategy(name));
         map.put("liveReadiness", liveStatus.readiness().name());
         map.put("liveReadinessReason", liveStatus.reason());
+        map.put("recommendedCoins", getRecommendedCoins(name));
         return map;
     }
 
@@ -226,6 +228,8 @@ public class StrategyController {
         return switch (name) {
             case "COMPOSITE", "COMPOSITE_MOMENTUM", "COMPOSITE_ETH", "COMPOSITE_BREAKOUT",
                  "COMPOSITE_MOMENTUM_ICHIMOKU", "COMPOSITE_MOMENTUM_ICHIMOKU_V2", "COMPOSITE_BREAKOUT_ICHIMOKU",
+                 "COMPOSITE_REGIME_ROUTER",
+                 "COMPOSITE_MTF_CONFIRMED", "COMPOSITE_MTF_BTC", "COMPOSITE_MTF_MOMENTUM",
                  "MACD_STOCH_BB" -> true;
             default -> false;
         };
@@ -243,10 +247,29 @@ public class StrategyController {
             case "FAIR_VALUE_GAP" -> true;
             // 코인별 복합 전략 프리셋 + 국면 적응형 복합 전략
             case "COMPOSITE", "COMPOSITE_MOMENTUM", "COMPOSITE_ETH", "COMPOSITE_BREAKOUT",
-                 "COMPOSITE_MOMENTUM_ICHIMOKU", "COMPOSITE_MOMENTUM_ICHIMOKU_V2", "COMPOSITE_BREAKOUT_ICHIMOKU" -> true;
+                 "COMPOSITE_MOMENTUM_ICHIMOKU", "COMPOSITE_MOMENTUM_ICHIMOKU_V2", "COMPOSITE_BREAKOUT_ICHIMOKU",
+                 "COMPOSITE_REGIME_ROUTER",
+                 "COMPOSITE_MTF_CONFIRMED", "COMPOSITE_MTF_BTC", "COMPOSITE_MTF_MOMENTUM" -> true;
             // 복합 추세 전략
             case "MACD_STOCH_BB" -> true;
             default -> false;
+        };
+    }
+
+    /** 2026-04-30 H1 FULL 백테스트 기반 코인별 추천 목록 */
+    private List<String> getRecommendedCoins(String name) {
+        return switch (name) {
+            case "COMPOSITE_BREAKOUT"            -> Arrays.asList("BTC", "ADA", "SOL");
+            case "COMPOSITE_REGIME_ROUTER"       -> Arrays.asList("SOL", "ETH");
+            case "COMPOSITE_MTF_BTC"             -> Arrays.asList("ETH", "AAVE", "CHZ");
+            case "COMPOSITE_MTF_MOMENTUM"        -> Arrays.asList("BLUR", "DOGE");
+            case "COMPOSITE_MTF_CONFIRMED"       -> Arrays.asList("XRP");
+            case "COMPOSITE_MOMENTUM_ICHIMOKU_V2"-> Arrays.asList("DOGE");
+            case "COMPOSITE_MOMENTUM_ICHIMOKU"   -> Arrays.asList("XRP");
+            case "COMPOSITE"                     -> Arrays.asList("BTC", "ETH", "SOL");
+            case "COMPOSITE_MOMENTUM"            -> Arrays.asList("ETH", "SOL");
+            case "COMPOSITE_ETH"                 -> Arrays.asList("ETH");
+            default                              -> List.of();
         };
     }
 
@@ -295,6 +318,26 @@ public class StrategyController {
                     "VWAP를 SUPERTREND로 교체 → 세 전략 모두 추세 추종 방향 일치. " +
                     "EMA(20/50) 방향 역행 억제 + Ichimoku 구름 내부 차단 이중 필터. " +
                     "XRP·ETH 등 모멘텀 계열 강세 코인 최적화. V1과 병행 운영으로 성능 비교 권장.";
+            case "COMPOSITE_MTF_CONFIRMED" ->
+                    "[멀티 타임프레임 범용] H1 레짐 라우터(CRR) 신호 + H4 Supertrend 추세 방향 일치 시에만 진입. " +
+                    "H4 방향이 H1 신호와 역행하면 HOLD → 역추세 진입 차단. " +
+                    "기대 효과: 승률 개선(14%→25%+), 진입 빈도 감소. ETH·SOL 최적.";
+            case "COMPOSITE_MTF_BTC" ->
+                    "[멀티 타임프레임 BTC 특화] H1 COMPOSITE_BREAKOUT 신호 + H4 Supertrend 추세 확인. " +
+                    "BTC 백테스트 CB +106.71% 기반. H4 추세 확인으로 추세 없는 구간 손절 감소 기대. " +
+                    "ATR(0.5)+VD(0.3)+MACD(0.2), RSI Veto·EMA·ADX 필터 유지.";
+            case "COMPOSITE_MTF_MOMENTUM" ->
+                    "[멀티 타임프레임 모멘텀] H1 CMI_V2(MACD+SUPERTREND+GRID) + H4 Supertrend 추세 확인. " +
+                    "DOGE 백테스트 CMI_V2 +124.77% 기반. H4 추세 확인으로 횡보 구간 과진입 차단. " +
+                    "Ichimoku + EMA 방향 필터 유지. DOGE·ETH 최적.";
+            case "COMPOSITE_REGIME_ROUTER" ->
+                    "[레짐 라우터 메타 전략] ADX/ATR 기반 시장 레짐을 실시간 감지하여 최적 복합 전략으로 자동 위임. " +
+                    "VOLATILITY(ATR급등) → COMPOSITE_BREAKOUT | " +
+                    "TREND(ADX>25) → CMI_V2(MACD+SUPERTREND) | " +
+                    "TRANSITIONAL(ADX 20~25) → CMI_V1(MACD+VWAP) | " +
+                    "RANGE(ADX<20) → HOLD. " +
+                    "Hysteresis 3회 연속 감지 시 전환 → 레짐 진동 방지. " +
+                    "단일 코인에 여러 전략 장점을 자동 조합. BTC·ETH·SOL 범용 권장.";
             default -> "설명 없음";
         };
     }

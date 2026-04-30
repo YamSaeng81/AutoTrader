@@ -37,6 +37,11 @@ public class CompositeStrategy implements Strategy {
     /** ADX 횡보장 필터 기본 파라미터 */
     private static final int    DEFAULT_ADX_PERIOD    = 14;
     private static final double DEFAULT_ADX_THRESHOLD = 20.0;
+    /** 동적 ADX 임계값 계산용: 최근 N개 캔들의 ADX 분포에서 이 백분위수를 임계값으로 사용 */
+    private static final int    ADX_DYNAMIC_WINDOW      = 60;   // 60캔들 ADX 분포
+    private static final double ADX_DYNAMIC_PERCENTILE  = 0.30; // 30th percentile
+    private static final double ADX_DYNAMIC_MIN         = 15.0; // 동적 임계 하한 (핫픽스 수준)
+    private static final double ADX_DYNAMIC_MAX         = 25.0; // 동적 임계 상한
 
     private final String name;
     private final List<WeightedStrategy> strategies;
@@ -120,14 +125,25 @@ public class CompositeStrategy implements Strategy {
             int adxPeriod = params != null
                     ? StrategyParamUtils.getInt(params, "adxPeriod", DEFAULT_ADX_PERIOD)
                     : DEFAULT_ADX_PERIOD;
-            double adxThreshold = params != null
-                    ? StrategyParamUtils.getDouble(params, "adxThreshold", DEFAULT_ADX_THRESHOLD)
-                    : DEFAULT_ADX_THRESHOLD;
+
+            // 동적 ADX 임계값: 최근 60캔들 ADX 분포의 30th percentile
+            // params에 adxThreshold가 명시된 경우 그 값을 우선 사용 (수동 override)
+            // 분포 샘플 부족(<10) 시 DEFAULT_ADX_THRESHOLD(20.0)로 폴백
+            double adxThreshold;
+            if (params != null && params.containsKey("adxThreshold")) {
+                adxThreshold = StrategyParamUtils.getDouble(params, "adxThreshold", DEFAULT_ADX_THRESHOLD);
+            } else {
+                double dynamic = IndicatorUtils.adxPercentileThreshold(
+                        candles, adxPeriod, ADX_DYNAMIC_WINDOW,
+                        ADX_DYNAMIC_PERCENTILE, DEFAULT_ADX_THRESHOLD);
+                adxThreshold = Math.max(ADX_DYNAMIC_MIN, Math.min(ADX_DYNAMIC_MAX, dynamic));
+            }
+
             if (candles.size() >= adxPeriod * 2 + 1) {
                 BigDecimal adx = IndicatorUtils.adx(candles, adxPeriod);
                 if (adx.doubleValue() < adxThreshold) {
                     return StrategySignal.hold(String.format(
-                            "ADX필터 횡보장 차단: ADX(%.1f) < %.1f (추세 없음, period=%d)",
+                            "ADX필터 횡보장 차단: ADX(%.1f) < %.1f (동적임계, period=%d)",
                             adx.doubleValue(), adxThreshold, adxPeriod));
                 }
             }

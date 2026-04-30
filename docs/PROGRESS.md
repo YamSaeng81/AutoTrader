@@ -3,7 +3,139 @@
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝나면 완료 내용을 [`docs/CHANGELOG.md`](CHANGELOG.md)에 추가하고, 이 파일의 해당 항목은 삭제한다.
 > **변경 이력**: [`docs/CHANGELOG.md`](CHANGELOG.md)
-> **마지막 갱신**: 2026-04-27 (라이브 30일 분석 후 청산/ADX 핫픽스 적용)
+> **마지막 갱신**: 2026-04-30 (MTF 3종 구현 완료 + 17코인 × 7전략 H1 FULL 백테스트 비교 갱신)
+
+---
+
+## 📝 2026-04-30 주요 전략 분석 문서 작성
+
+[docs/주요전략분석_v20260430.md](./주요전략분석_v20260430.md) — `COMPOSITE_BREAKOUT`,
+`COMPOSITE_MOMENTUM_ICHIMOKU` (V1), `COMPOSITE_MOMENTUM_ICHIMOKU_V2` 3종 종합 분석.
+구조·필터(ADX/EMA/Ichimoku)·하위 전략 가중치·V1↔V2 차이(VWAP→SUPERTREND)·
+2026-04-24 백테스트 비교(KRW H1, ETH/SOL/XRP/MOVE/USDT/IP/FLOCK)·
+코인별 전략 선택 의사결정 트리 포함.
+
+---
+
+## 🧨 2026-04-30 전략 분석 비판 기반 개선 로드맵
+
+> 분석 문서([docs/주요전략분석_v20260430.md](./주요전략분석_v20260430.md))의 한계를
+> 신랄하게 재검토한 결과, 다음 갭들이 식별됨. 우선순위별로 정리.
+
+### 식별된 핵심 갭
+
+1. **승률 11~19%, 백테스트 vs WF 13배 격차** → 사실상 long-tail 운에 베팅하는 lottery 구조. 통계적 검증 부재.
+2. **MDD 미개선 (V1 = base, -25.62%)** → Ichimoku 필터는 위험관리가 아닌 노이즈 필터에 불과. 문서가 이 한계를 약하게 다룸.
+3. **V1→V2 동기 미검증** → 거래수↑ + 손실 코인↑ 패턴이 "구조적 개선"이 아닌 단순 진입 빈도 증가일 가능성. HOLD 비율, 평균 보유시간, 익/손 분포 비교 미수행.
+4. **RSI(0.2) 수학적 무의미** → 단독 sellScore>0.4 만들려면 confidence>2.0 필요(불가). "반쯤 죽은 가중치"를 그대로 둠.
+5. **EMA 이중 카운팅** → EMA 방향 필터(EMA20/50) ↔ 하위 EMA_CROSS(EMA20/50) 동일 지표 중복. 가중치 0.1이 사실상 더 큰 영향.
+6. **청산 정책 통째로 누락** → 14% 승률이면 SL/TP·trailing이 PnL 거의 전부를 결정하나 분석에 빠짐.
+7. **ADX 필터의 자기모순** → 4/27 핫픽스 기록상 BREAKOUT 4개 세션 100% 차단됨. 그런데 분석은 ADX를 핵심 무기로 칭송.
+8. **Ichimoku 절반만 사용** → 가격↔구름만 사용. Tenkan/Kijun 크로스, **Chikou Span**, 구름 두께/twist 모두 미사용.
+9. **Regime 엔진 3중화** → BREAKOUT(자체 ADX), V1/V2(Ichimoku), `RegimeAdaptiveStrategy` 따로 작동. 통합 평가 부재.
+10. **통계 유의성 검정 부재** — Sharpe CI, Profit Factor CI, t-test 한 줄도 없이 거래수 6~10건짜리를 결론에 사용.
+
+### 🔴 P0 — 즉시 (검증 데이터 보강, 결론 재해석)
+
+- [ ] **거래수 30건 미만 결과 본문 결론에서 분리** — 분석 문서 v2026-04-30 의 KRW-SUPER(6건), KRW-IP(7건) 등을 "참고" 섹션으로 이동. v2 개정.
+- [ ] **MDD / Sharpe / Profit Factor / Calmar 컬럼 추가** — 수익률 단일 지표 결론 탈피. backtest_history 컬럼은 이미 존재 → 분석 문서 표 보강만 필요.
+- [ ] **연도별 분리 백테스트** (2022/2023/2024/2025) — 어느 해에 어느 전략이 실제로 망하는지 노출. 현재 시장 사이클 통합 수치만 존재.
+- [ ] **HOLD 비율 / 평균 보유시간 / 평균 익절·손절 비율 측정** — V1 vs V2 의 "진짜" 차이 정량화. BacktestEngine 결과 객체에 해당 메트릭 추가 또는 trade-level CSV로 후처리.
+- [ ] **백테스트-WF 격차 95% CI 산출** — Bootstrap 1000회로 격차 신뢰구간 제시. 13배 격차가 우연 가능성 평가.
+
+### 🟠 P1 — 단기 (전략 자체 개선)
+
+- [x] **EMA 이중 카운팅 제거** — EMA_CROSS(0.1) → MACD(0.2) 교체. 가중치 ATR 0.5 / VD 0.3 / MACD 0.2 재조정. `CompositePresetRegistrar` 반영 완료.
+- [x] **RSI(0.2) 재설계** — RSI 가중치 제거 + `RsiVetoStrategy` 래퍼 신규 구현. RSI>75 BUY 강제차단 / RSI<25 SELL 강제차단. `COMPOSITE_BREAKOUT` 및 `COMPOSITE_BREAKOUT_ICHIMOKU` 적용 완료.
+- [x] **ADX 임계값 동적화** — `IndicatorUtils.adxList()` + `adxPercentileThreshold()` 신규. 최근 60캔들 ADX 30th percentile, [15, 25] 클램프. `CompositeStrategy` 적용 완료.
+- [x] **Ichimoku 5요소 사용 확장** — `IchimokuFilteredStrategy` 3-레이어로 확장: (1) 구름 내부 차단, (2) Chikou Span vs 26봉전 가격, (3) Tenkan/Kijun 방향. 최소 캔들 52→78. 완료.
+- [ ] **청산 정책 표준화** — 진입가 -3% 손절 / +6% 익절 후 ATR×2 trailing stop 으로 통일. 현재 `MIN_HOLD_MINUTES_FOR_SIGNAL_EXIT=30분` 만 존재 → 분석 문서·실전 모두 명시.
+- [x] **분석 문서 v2 개정** — P0 결과 반영, "Ichimoku = 노이즈 필터 (위험관리 아님)" 명시, MDD 미개선을 메인 평가 섹션에 못박기. 완료.
+
+### 🟡 P2 — 중기 (구조 통합)
+
+- [ ] **Regime 엔진 통합** — `MarketRegimeDetector` 를 단일 진입점으로 만들어 BREAKOUT / V1 / V2 모두 동일 regime 신호를 입력으로 사용. 3중화 해소.
+- [ ] **Walk-Forward 자동 재최적화 활성화** — `StrategyWeightOptimizer` 인프라 이미 구축됨 ([WeightOptimizerSnapshotEntity](../web-api/src/main/java/com/cryptoautotrader/api/entity/WeightOptimizerSnapshotEntity.java)). 90일마다 가중치 자동 재조정 스케줄러 활성화.
+- [ ] **앙상블 메타 전략** — BREAKOUT / V1 / V2 출력 시그널을 voter 로 묶어 majority + confidence-weighted 최종 신호. (§ 새 전략 §1 `COMPOSITE_REGIME_ROUTER` 또는 그 상위 ensemble.)
+- [ ] **Deflated Sharpe / PBO** — 다전략 튜닝 선택 편향 보정 (장기 검토 항목 승격).
+
+---
+
+## 🆕 2026-04-30 새로운 전략 / 기능 제안
+
+> 비판 분석에서 도출된 신규 전략 7종 + 보호 메커니즘. ROI 우선순위 ★표시.
+
+### ★ 1. `COMPOSITE_REGIME_ROUTER` (메타 전략) ✅ 구현 완료
+
+단일 시점에서 ADX/ATR 변동성에 따라 BREAKOUT vs MOMENTUM 자동 위임.
+
+```
+VOLATILITY  (ATR > SMA×1.5, ADX < 25) → COMPOSITE_BREAKOUT  (ATR spike 돌파)
+TREND       (ADX > 25)                 → CMI_V2              (강한 추세 모멘텀)
+TRANSITIONAL (ADX 20~25)               → CMI_V1              (전환 구간 보수적)
+RANGE       (ADX < 20)                 → HOLD                (횡보 진입 금지)
+```
+
+- Hysteresis 3회 연속 감지 시 전환 (MarketRegimeDetector 재사용).
+- GRID stateful + RegimeDetector stateful → `registerStateful` 등록.
+- 구현: [CompositeRegimeRouter.java](../core-engine/src/main/java/com/cryptoautotrader/core/selector/CompositeRegimeRouter.java)
+
+### ★ 2. `COMPOSITE_MTF_CONFIRMED` / `COMPOSITE_MTF_BTC` / `COMPOSITE_MTF_MOMENTUM` (멀티 타임프레임) ✅ 구현 완료
+
+H1 진입 신호 + H4 Supertrend 추세 동의 시에만 진입. `CandleDownsampler.java` 재사용.
+- `COMPOSITE_MTF_BTC`: CB(H1) + Supertrend(H4) — **ETH +127.70%**, DOGE +82%, AAVE/CHZ 흑자 전환
+- `COMPOSITE_MTF_MOMENTUM`: CMI_V2(H1) + Supertrend(H4) — **BLUR +48.06%**, DOGE +83%
+- `COMPOSITE_MTF_CONFIRMED`: CRR(H1) + Supertrend(H4) — 범용, **XRP +3.37%** (유일 흑자)
+- 구현: [MtfConfirmedStrategy.java](../core-engine/src/main/java/com/cryptoautotrader/core/selector/MtfConfirmedStrategy.java)
+
+### ★ 3. `BLACK_SWAN_GUARD` (전 전략 공통 서킷 브레이커)
+
+1시간 내 -5% 하락 또는 거래량 평균×5 초과 시 **전 신규 진입 차단 + 보유 trailing stop 0.3% 강화**.
+LUNA/FTX 류 사건 방어 — 어떤 모멘텀/돌파 전략도 단독 방어 불가.
+
+### 4. `COMPOSITE_BREAKOUT_VOL_ADAPTIVE`
+
+ATR multiplier 1.5 고정 → 코인별 변동성 분포로 적응:
+```
+multiplier = 1.0 + (현재 ATR / ATR 90일 평균)
+ADX threshold = ADX 90일 30th percentile
+```
+4/27 핫픽스(ADX 20→15) 의 영구 자동화.
+
+### 5. `BAYESIAN_WEIGHT_TUNER`
+
+정적 0.5/0.3/0.2 → 베이지안 사후확률 갱신:
+```
+매 100거래마다: weight_i ← weight_i × (실제 승률_i) / (예측 confidence 평균_i)
+                재정규화 (합 1.0)
+```
+[WeightOverrideStore](../core-engine/src/main/java/com/cryptoautotrader/core/selector/WeightOverrideStore.java) 인프라 활용. 코인별 자동 가중치 분화.
+
+### 6. `CVD_DIVERGENCE`
+
+기존 VolumeDeltaStrategy 의 다이버전스 모드를 *진입 신호 격하* → *역방향 진입 신호로 승격*.
+가격 신고점 + CVD 신저점 = 약세 다이버전스 → 적극적 SELL. 횡보장에서도 매매 가능.
+
+### 7. `KELLY_SIZED_COMPOSITE`
+
+전략 신호 동일, 포지션 크기를 Kelly Criterion 으로:
+```
+Kelly% = W − (1−W)/R    (W=최근 30거래 승률, R=평균 익/손 비율)
+실제 베팅 = Kelly% × 0.25  (Half-Kelly)
+```
+14% 승률 + R=8 이면 Half-Kelly ≈ 1.6%. 현재 동일 비중 베팅의 통계적 비효율 해소.
+
+### 우선순위 권고
+
+| 우선순위 | 전략 | 사유 |
+|---------|------|------|
+| ⭐⭐⭐ | `COMPOSITE_REGIME_ROUTER` | 기존 3전략 자산 재활용, 코인별 분리 운영 단순화 |
+| ⭐⭐⭐ | `COMPOSITE_MTF_CONFIRMED` | 14% 승률 → 25%+ 가능, 인프라 존재 |
+| ⭐⭐⭐ | `BLACK_SWAN_GUARD` | 모든 전략 공통 안전망. 비용 낮고 효과 큼 |
+| ⭐⭐ | `COMPOSITE_BREAKOUT_VOL_ADAPTIVE` | 핫픽스 영구화 |
+| ⭐⭐ | `KELLY_SIZED_COMPOSITE` | 자금 효율 개선 |
+| ⭐ | `BAYESIAN_WEIGHT_TUNER` | 인프라 있으나 검증 필요 |
+| ⭐ | `CVD_DIVERGENCE` | 기존 VD 보강 수준 |
 
 ---
 
@@ -78,7 +210,7 @@
 crypto-auto-trader/
 ├── web-api/          # Spring Boot 백엔드 (Gradle 멀티모듈)
 │   ├── core-engine/      # 백테스팅 엔진, 리스크, 포트폴리오
-│   ├── strategy-lib/     # 전략 19종 (단일 11 + 복합 8)
+│   ├── strategy-lib/     # 전략 22종 (단일 11 + 복합 11)
 │   ├── exchange-adapter/ # Upbit REST/WebSocket
 │   └── web-api/          # REST API, 스케줄러, 서비스
 ├── crypto-trader-frontend/  # Next.js 16.1.6 / React 19.2.3 프론트엔드
@@ -86,22 +218,72 @@ crypto-auto-trader/
 └── docker-compose.prod.yml  # 운영용 (backend + frontend + db + redis + db-backup)
 ```
 
-### 구현된 전략 19종
+### 구현된 전략 22종
 
 **단일 전략 (11종)**: VWAP / EMA Cross / Bollinger Band / Grid / RSI / MACD / Supertrend / ATR Breakout / Orderbook Imbalance / Stochastic RSI / Volume Delta
 
-**복합 전략 (8종)**:
+**복합 전략 (11종)**:
 
-| 전략 | 구성 | 실적합 코인 (DB 검증) | 3년 백테스트 요약 |
-|------|------|----------------------|-----------------|
+| 전략 | 구성 | 실적합 코인 | 요약 |
+|------|------|------------|------|
 | COMPOSITE | Regime 자동 선택 | 범용 | — |
-| COMPOSITE_MOMENTUM | MACD×0.5 + VWAP×0.3 + Grid×0.2, EMA 필터 | ETH·SOL (BTC 비권장) | ETH +53.6%, SOL +59.8%, BTC +0.4% |
+| COMPOSITE_MOMENTUM | MACD×0.5 + VWAP×0.3 + Grid×0.2, EMA 필터 | ETH·SOL | ETH +53.6%, SOL +59.8% |
 | COMPOSITE_ETH | ATR×0.5 + OB×0.3 + EMA×0.2 | ETH | 구버전 평균 +48.7% (재검증 필요) |
-| COMPOSITE_BREAKOUT | ATR×0.4 + VD×0.3 + RSI×0.2 + EMA×0.1, EMA+ADX 필터 | **BTC·ETH** (SOL → V2 전환) | BTC +104.2%, ETH +38.9% |
-| COMPOSITE_MOMENTUM_ICHIMOKU | COMPOSITE_MOMENTUM + Ichimoku 필터 | ETH·SOL·XRP | ETH +46.0%, SOL +62.9%, XRP +36.5% |
-| COMPOSITE_MOMENTUM_ICHIMOKU_V2 | MACD×0.5 + SUPERTREND×0.3 + Grid×0.2 + Ichimoku 필터 | **SOL·XRP·DOGE** (ETH는 V1 우위) | SOL +131.1% MDD -12%, DOGE +134.4%, XRP +49.9% |
-| COMPOSITE_BREAKOUT_ICHIMOKU | COMPOSITE_BREAKOUT + Ichimoku 필터 | — | ⚠ BREAKOUT과 완전 동일 (ADX 필터 중복) |
-| MACD_STOCH_BB | MACD + StochRSI + 볼린저 6조건 AND | ❌ 비활성화 | BTC -2.32% 17건, XRP -2.02% 3건 — 거래 극희소·수익성 없음 |
+| COMPOSITE_BREAKOUT (CB) | ATR×0.5 + VD×0.3 + MACD×0.2, EMA+ADX+RSI Veto 필터 | **BTC·ADA** | BTC **+106.71%**, ADA **+86.98%** |
+| COMPOSITE_MOMENTUM_ICHIMOKU (CMI_V1) | CB_MOMENTUM + Ichimoku 필터 | XRP | XRP +1.04% (유일 양수) |
+| COMPOSITE_MOMENTUM_ICHIMOKU_V2 (CMI_V2) | MACD×0.5 + SUPERTREND×0.3 + Grid×0.2 + Ichimoku 필터 | **DOGE** | DOGE **+124.77%** |
+| COMPOSITE_BREAKOUT_ICHIMOKU | CB + Ichimoku 필터 | — | ⚠ CB와 동일 (ADX 중복) |
+| COMPOSITE_REGIME_ROUTER (CRR) | ADX/ATR 레짐 → CB/V1/V2 자동 위임 | **SOL·ETH** | SOL **+65.38%**, ETH +65.09% |
+| COMPOSITE_MTF_BTC | CB(H1) + Supertrend(H4) | **ETH·AAVE·CHZ** | ETH **+127.70%**, AAVE +28.15% |
+| COMPOSITE_MTF_MOMENTUM | CMI_V2(H1) + Supertrend(H4) | **BLUR·DOGE** | BLUR **+48.06%**, DOGE +83.40% |
+| COMPOSITE_MTF_CONFIRMED | CRR(H1) + Supertrend(H4) | **XRP** 범용 | XRP **+3.37%** (유일 흑자) |
+| MACD_STOCH_BB | MACD + StochRSI + 볼린저 6조건 AND | ❌ 비활성화 | BTC -2.32%, 거래 극희소 |
+
+### 2026-04-30 신규 전략 H1 FULL 백테스트 비교 (7전략 × 17코인)
+
+> **조건**: 2022-01-01 ~ 2026-04-30, 초기자금 1,000만, 슬리피지 0.1% + 수수료 0.05%, H1.
+> CB=COMPOSITE_BREAKOUT, V1=CMI_V1, V2=CMI_V2, CRR=COMPOSITE_REGIME_ROUTER,
+> MTF_B=COMPOSITE_MTF_BTC, MTF_M=COMPOSITE_MTF_MOMENTUM, MTF_C=COMPOSITE_MTF_CONFIRMED.
+> **굵게** = 코인별 1위 전략.
+
+| 코인 | CB | V1 | V2 | CRR | MTF_B | MTF_M | MTF_C |
+|------|-----|-----|-----|-----|-------|-------|-------|
+| **BTC** | **+106.71%** | +5.68% | +13.80% | +14.33% | +29.66% | +14.26% | +14.26% |
+| **ETH** | +30.90% | +50.73% | +58.00% | +65.09% | **+127.70%** | +75.79% | +75.79% |
+| **SOL** | +62.79% | +17.30% | +42.32% | **+65.38%** | +43.40% | +60.20% | +60.92% |
+| **XRP** | -1.60% | +1.04% | -10.35% | -0.48% | -21.74% | +2.71% | **+3.37%** |
+| **DOGE** | +17.75% | +48.86% | **+124.77%** | +59.89% | +82.06% | +83.40% | +83.40% |
+| **ADA** | **+86.98%** | +5.89% | +12.52% | +8.85% | -25.78% | +10.03% | +11.05% |
+| **AAVE** | -24.52% | -48.90% | -40.71% | -3.80% | **+28.15%** | +11.34% | +12.10% |
+| **BLUR** | -17.23% | +23.24% | +10.52% | +33.19% | +38.69%⚠ | **+48.06%** | **+48.06%** |
+| **CHZ** | -23.77% | -12.77% | -18.38% | -26.94% | **+14.09%** | -23.28% | -23.28% |
+| MOVE | -2.88% | — | — | -2.88% | -2.18% | -7.19% | -7.19% |
+| SUPER | — | — | — | -4.16% | +5.61%⚠ | -4.16% | -4.16% |
+| IP | — | — | — | +12.99%⚠ | +11.77%⚠ | +13.94%⚠ | +13.94%⚠ |
+| FLOCK | — | — | — | -8.49% | -9.18% | -8.49% | -8.49% |
+| AXL | — | — | — | -11.37% | -13.41% | -8.18% | -8.18% |
+| BIO | — | — | — | -3.49% | -4.00% | -3.49% | -3.49% |
+| KERNEL | — | — | — | -5.78% | -8.62% | -4.38% | -4.38% |
+| USDT | — | — | — | +0.55% | -6.73% | +1.10% | +1.10% |
+
+> ⚠ 거래 수 15건 미만 — 통계적 신뢰성 부족.
+> SUPER/IP/FLOCK/AXL/BIO/KERNEL: 모든 전략 거래수 1~6건으로 결론 도출 불가 (참고만).
+
+### 2026-04-30 신규 MTF 전략 — 코인별 MDD 비교
+
+| 코인 | 1위 전략 | 수익률 | MDD | Sharpe | 거래수 | 이전 대비 |
+|------|---------|--------|-----|--------|--------|---------|
+| **BTC** | COMPOSITE_BREAKOUT | **+106.71%** | -8.88% | 1.24 | 79 | 유지 |
+| **ETH** | COMPOSITE_MTF_BTC | **+127.70%** | **-7.24%** | 1.35 | 61 | ↑ 대폭 개선 (CB +30% → MTF_B +127%) |
+| **SOL** | COMPOSITE_REGIME_ROUTER | **+65.38%** | -14.93% | 0.76 | 101 | ↑ 소폭 개선 (CB → CRR) |
+| **XRP** | COMPOSITE_MTF_CONFIRMED | **+3.37%** | -15.67% | 0.13 | 62 | ↑ 유일 흑자 코인 |
+| **DOGE** | CMI_V2 | **+124.77%** | -30.75% | 0.87 | 173 | 유지 (MTF 근접하나 MDD 더 나쁨) |
+| **ADA** | COMPOSITE_BREAKOUT | **+86.98%** | -14.14% | 0.96 | 46 | 유지 (MTF_BTC -25.78%로 역효과) |
+| **AAVE** | COMPOSITE_MTF_BTC | **+28.15%** | -31.01% | 0.48 | 62 | ↑ 흑자 전환 (기존 -24.52%) |
+| **BLUR** | MTF_MOMENTUM/CONFIRMED | **+48.06%** | -11.91% | 0.91 | 39 | ↑ CRR +33% → MTF_M +48% |
+| **CHZ** | COMPOSITE_MTF_BTC | **+14.09%** | -14.88% | 0.32 | 48 | ↑ 흑자 전환 (기존 -23.77%) |
+
+---
 
 ### 2026-04-24 백테스트 & Walk-Forward 재실행
 
@@ -149,25 +331,28 @@ crypto-auto-trader/
 
 ---
 
-## 🟢 배포 권고 / 🚨 배포 금지 (2026-04-24 EMA200 필터 기준)
+## 🟢 배포 권고 / 🚨 배포 금지 (2026-04-30 MTF 백테스트 기준)
 
-> EMA200 레짐 필터 적용 후 WF 재검증 결과 기준. 이전(필터 없음) 가이드는 폐기.
+> H1 FULL 2022~2026-04-30 백테스트 결과 기반 (WF 재검증 미수행). MTF 3종 신규 전략 반영.
 
-### Tier 1 — 즉시 소액 투입 가능 (WF 검증 통과)
+### Tier 1 — 백테스트 검증 통과, 소액 투입 가능
 
-| 코인 | 권장 전략 | WF OOS | MDD | Sharpe | 근거 |
-|------|-----------|--------|-----|--------|------|
-| **BTC** | **COMPOSITE_BREAKOUT** | +3.68% | -8.72% | 0.19 | FULL +106.7%. MDD 안정. WF 낮지만 필터로 손실 구간 차단 |
-| **ETH** | **COMPOSITE_BREAKOUT** | +4.17% | -6.22% | 0.21 | 4전략 중 CB만 양수. MDD 최저 |
-| **SOL** | **COMPOSITE_BREAKOUT** | +24.30% | **-8.24%** | 0.54 | MDD 최저 우선. CMI(+26.6%)와 수익 차이 근소 |
-| **XRP** | **COMPOSITE_BREAKOUT** | +25.98% | -13.18% | 0.42 | EMA200 필터에도 CB만 양수 유지 — 가장 robust |
+| 코인 | 권장 전략 | FULL 수익률 | MDD | Sharpe | 근거 |
+|------|-----------|------------|-----|--------|------|
+| **BTC** | **COMPOSITE_BREAKOUT** | **+106.71%** | -8.88% | 1.24 | 7전략 중 압도적 1위. MDD 최저 수준. |
+| **ETH** | **COMPOSITE_MTF_BTC** | **+127.70%** | -7.24% | 1.35 | 7전략 중 1위 + MDD 최저. 기존 CB +30%에서 대폭 개선. |
+| **SOL** | **COMPOSITE_REGIME_ROUTER** | **+65.38%** | -14.93% | 0.76 | CB +62.79%를 근소 상회, 레짐 자동 적응. |
+| **DOGE** | **CMI_V2** | **+124.77%** | -30.75% | 0.87 | MTF 근접(+83%)하나 MDD 더 나쁨. 기존 전략 유지. |
+| **ADA** | **COMPOSITE_BREAKOUT** | **+86.98%** | -14.14% | 0.96 | MTF_BTC -25%로 역효과. CB 압도적. |
 
-### Tier 2 — 관찰 후 투입
+### Tier 2 — 흑자 전환·신규 발굴, 관찰 후 투입
 
-| 코인 | 권장 전략 | WF OOS | 판단 |
-|------|-----------|--------|------|
-| **DOGE** | CMI_V2 | +2.57% (MDD -13.5%) | EMA200 필터 역효과로 전략 전반 부진. CMI_V2만 근소 양수. 현행 유지하되 **EMA200 예외 처리 코드 검토 필요** |
-| **ADA** | **COMPOSITE_BREAKOUT** | +34.76% (MDD -4.0%) | FULL +87%, Sharpe 0.96 우수. **단, WF 거래수 12건으로 통계 신뢰성 부족** — 소액 관찰 후 판단 |
+| 코인 | 권장 전략 | FULL 수익률 | MDD | 판단 |
+|------|-----------|------------|-----|------|
+| **XRP** | **COMPOSITE_MTF_CONFIRMED** | **+3.37%** | -15.67% | 모든 전략 손실 또는 근0 중 유일 흑자. 소액 관찰. |
+| **AAVE** | **COMPOSITE_MTF_BTC** | **+28.15%** | -31.01% | 기존 -24.52% → 흑자 전환. MDD -31% 주의. |
+| **BLUR** | **COMPOSITE_MTF_MOMENTUM** | **+48.06%** | -11.91% | Sharpe 0.91 양호. 거래수 39건 수용 수준. |
+| **CHZ** | **COMPOSITE_MTF_BTC** | **+14.09%** | -14.88% | 기존 -23.77% → 흑자 전환. 소액 관찰. |
 
 ### 🚨 배포 금지
 
@@ -175,18 +360,24 @@ crypto-auto-trader/
 |------|------|
 | **전 코인 × M15 타임프레임** | 오버트레이딩 + 수수료 잠식으로 -99% 속출. M15 전면 비활성화 |
 | **전 코인 × FAIR_VALUE_GAP** | H1에서도 메이저 코인 -69~-82%. 전략 로직 자체 구조 문제 |
-| **ETH × CM / CMI / CMI_V2** | EMA200 필터 후 WF 모두 음수 (-4.6~-5.6%) |
-| **XRP × CM / CMI / CMI_V2** | EMA200 필터 후 WF 음수 또는 근0 |
-| **DOGE × CB / CM / CMI** | EMA200 필터 역효과로 WF -5~-22% |
-| **BTC × CM / CMI / CMI_V2** | WF 모두 2% 미만, CB 대비 열위 |
+| **ETH × CB / V1 / V2** | CB +30%, V1/V2 +50~58%. MTF_BTC +127%에 크게 열위 |
+| **XRP × MTF_BTC** | -21.74% — 가장 나쁜 조합. 절대 금지 |
+| **ADA × MTF_BTC** | -25.78% — ADA에는 역효과 큼 |
+| **CHZ × CRR / MTF_M / MTF_C** | -23~-27%. MTF_BTC만 흑자 |
+| **AAVE × CB / V1 / V2** | -24~-48%. MTF_BTC만 흑자 전환 |
+| **MOVE/SUPER/FLOCK/AXL/BIO/KERNEL** | 거래수 1~17건으로 통계 신뢰성 없음. 배포 금지 |
 
-### 운영 세션 조치 사항
+### 운영 세션 조치 사항 (2026-04-30 갱신)
 
-- ⚠️ **SOL 전환**: CMI_V2 → **COMPOSITE_BREAKOUT** (EMA200 필터 후 재검증에서도 CB MDD 최저)
-- ⚠️ **ETH 전환**: CMI → **COMPOSITE_BREAKOUT** (EMA200 필터 후 CB만 WF 양수)
-- 🟢 **BTC / XRP**: CB 유지 — 변경 없음
-- 🔵 **DOGE**: CMI_V2 유지. EMA200 예외 처리 후 재검증 필요
-- 🔵 **ADA**: 소액 관찰 시작 가능. 거래수 누적 후 증액 판단
+- 🆙 **ETH 전환**: CB → **COMPOSITE_MTF_BTC** (+127.70%, MDD -7.24% — 7전략 최고)
+- 🆙 **SOL 전환**: CB → **COMPOSITE_REGIME_ROUTER** (+65.38%, 자동 레짐 적응)
+- 🟢 **BTC**: CB 유지 (+106.71%)
+- 🟢 **DOGE**: CMI_V2 유지 (+124.77%)
+- 🟢 **ADA**: CB 유지 (+86.98%)
+- 🆕 **XRP**: MTF_CONFIRMED 소액 시작 (+3.37%, 유일 흑자)
+- 🆕 **AAVE**: MTF_BTC 소액 시작 (+28.15%, 흑자 전환)
+- 🆕 **BLUR**: MTF_MOMENTUM 소액 시작 (+48.06%, Sharpe 0.91)
+- 🆕 **CHZ**: MTF_BTC 소액 관찰 (+14.09%, 흑자 전환)
 
 ---
 
@@ -223,8 +414,8 @@ crypto-auto-trader/
 
 > EMA200 레짐 필터 적용 후 WF 재검증 결과 기반. 이전 가이드 폐기.
 
-- [ ] **SOL 전략 전환: CMI_V2 → COMPOSITE_BREAKOUT** — EMA200 필터 후 WF OOS CB +24.30% (MDD -8.24%). CB가 4전략 중 MDD 최저.
-- [ ] **ETH 전략 전환: CMI → COMPOSITE_BREAKOUT** — EMA200 필터 후 CMI WF 음수(-4.6%). CB +4.17%로 유일 양수.
+- [ ] **ETH 전략 전환: CB → COMPOSITE_MTF_BTC** — FULL +127.70%, MDD -7.24%, Sharpe 1.35. 7전략 중 압도적 1위.
+- [ ] **SOL 전략 전환: CB → COMPOSITE_REGIME_ROUTER** — FULL +65.38%, 레짐 자동 적응. CB +62.79% 근소 상회.
 - [x] **XRP COMPOSITE_BREAKOUT 유지** — 필터 후에도 CB +25.98% 유지. 운영 변경 없음.
 - [ ] **DOGE CMI_V2 유지 + EMA200 예외 처리 검토** — DOGE는 EMA200 아래에서도 수익 패턴 존재. 코인별 필터 on/off 설정 기능 또는 DOGE 전용 예외 로직 필요.
 - [ ] **ADA COMPOSITE_BREAKOUT 소액 관찰** — FULL +87%, WF +34.76% 우수하나 WF 거래수 12건으로 신뢰성 부족. 소액 세션 시작 후 거래 누적 관찰.
