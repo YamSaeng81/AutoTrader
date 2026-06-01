@@ -20,7 +20,9 @@ class StrategyLiveStatusRegistryTest {
     void enabledStrategies_areNotBlocked() {
         for (String name : new String[]{
                 "COMPOSITE_BREAKOUT", "COMPOSITE_MOMENTUM",
-                "COMPOSITE_MOMENTUM_ICHIMOKU", "COMPOSITE_MOMENTUM_ICHIMOKU_V2"}) {
+                "COMPOSITE_MOMENTUM_ICHIMOKU", "COMPOSITE_MOMENTUM_ICHIMOKU_V2",
+                // P2-A: 배포 티어1 운영 전략 등재 (SOL=ROUTER, ETH=MTF_BTC, DOGE=MTF_MOMENTUM)
+                "COMPOSITE_REGIME_ROUTER", "COMPOSITE_MTF_BTC", "COMPOSITE_MTF_MOMENTUM"}) {
             assertThat(registry.isBlocked(name))
                     .as(name + " should not be blocked")
                     .isFalse();
@@ -49,7 +51,8 @@ class StrategyLiveStatusRegistryTest {
         for (String name : new String[]{
                 "VWAP", "EMA_CROSS", "BOLLINGER", "GRID",
                 "RSI", "SUPERTREND", "ATR_BREAKOUT", "VOLUME_DELTA",
-                "FAIR_VALUE_GAP", "COMPOSITE", "COMPOSITE_ETH"}) {
+                "FAIR_VALUE_GAP", "COMPOSITE", "COMPOSITE_ETH",
+                "COMPOSITE_MTF_CONFIRMED"}) {
             assertThat(registry.isBlocked(name))
                     .as(name + " should not be blocked (EXPERIMENTAL)")
                     .isFalse();

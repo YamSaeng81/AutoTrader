@@ -172,9 +172,21 @@ public class OrderExecutionEngine {
                 if (exchangeResponse.getExecutedVolume() != null) {
                     order.setFilledQuantity(exchangeResponse.getExecutedVolume());
                 }
-                order.setFilledAt(Instant.now());
-                transitionState(order, "FILLED", null);
-                processFilledOrder(order);
+                // 체결가 확정 시도 — 시장가 매도는 executed_funds/executed_volume 로 평균 단가 산출
+                applyFillPrice(order, exchangeResponse);
+                // ⚠️ 시장가 매도가 즉시 done 으로 떠도 trades(executed_funds)가 미정산이면 체결가 null.
+                //    이대로 FILLED 확정하면 finalizeSellPosition 이 avgPrice 로 대체 → realizedPnl 이
+                //    항상 -매도수수료로 기록되는 "가짜 본전" 버그(2026-05-31 분석: 포지션 146건).
+                //    체결가 미확보 SELL 은 SUBMITTED 로 두어 5초 폴러가 정산 후 재조회하게 한다.
+                if ("SELL".equalsIgnoreCase(order.getSide()) && order.getPrice() == null) {
+                    log.warn("매도 즉시 체결이나 체결가 미정산 — SUBMITTED 유지, 폴러 재조회 (orderId={}, uuid={})",
+                            order.getId(), exchangeResponse.getUuid());
+                    transitionState(order, "SUBMITTED", null);
+                } else {
+                    order.setFilledAt(Instant.now());
+                    transitionState(order, "FILLED", null);
+                    processFilledOrder(order);
+                }
             } else {
                 transitionState(order, "SUBMITTED", null);
                 // CANCELLED이지만 부분 체결된 경우도 즉시 처리
@@ -612,24 +624,16 @@ public class OrderExecutionEngine {
         }
 
         if ("FILLED".equals(newState)) {
-            order.setFilledAt(Instant.now());
-            // market 타입 매도: price 필드는 null이고 executed_funds(KRW 총수령)로 단가 역산
-            // price 타입 매수:  price 필드 = 원래 KRW 총액(order.getQuantity()와 동일) → 덮어쓰지 않음
-            // limit 타입:       price 필드 = 지정 단가 → 그대로 사용
-            if ("market".equalsIgnoreCase(exchangeStatus.getOrdType())
-                    && "ask".equalsIgnoreCase(exchangeStatus.getSide())
-                    && exchangeStatus.getExecutedFunds() != null
-                    && exchangeStatus.getExecutedVolume() != null
-                    && exchangeStatus.getExecutedVolume().compareTo(BigDecimal.ZERO) > 0) {
-                // 시장가 매도 평균 단가 = 수령 KRW / 체결 코인 수량
-                BigDecimal avgSellPrice = exchangeStatus.getExecutedFunds()
-                        .divide(exchangeStatus.getExecutedVolume(), 8, RoundingMode.HALF_UP);
-                order.setPrice(avgSellPrice);
-            } else if ("limit".equalsIgnoreCase(exchangeStatus.getOrdType())
-                    && exchangeStatus.getPrice() != null) {
-                order.setPrice(exchangeStatus.getPrice());
+            // 체결가 확정 — 시장가 매도는 executed_funds/executed_volume 로 평균 단가 산출
+            applyFillPrice(order, exchangeStatus);
+            // ⚠️ 체결가 미확보 SELL 은 FILLED 확정 보류 — 상태를 SUBMITTED 로 유지(여기서 return)하여
+            //    다음 폴링(5초)에서 trades 정산 후 재시도한다. avgPrice 대체로 인한 "가짜 본전" 방지.
+            if ("SELL".equalsIgnoreCase(order.getSide()) && order.getPrice() == null) {
+                log.warn("매도 체결(done)이나 체결가 미정산 — FILLED 보류, 폴러 재조회 (orderId={}, uuid={})",
+                        order.getId(), exchangeStatus.getUuid());
+                return;
             }
-            // price 타입 매수는 order.getPrice() 그대로 유지 (= 원래 KRW 총액, handleBuyFill 에서 quantity/filledQty 로 재계산)
+            order.setFilledAt(Instant.now());
         }
 
         // CANCELLED지만 일부 체결된 경우 (price-type 시장가 매수의 부분 체결 후 취소)
@@ -658,6 +662,36 @@ public class OrderExecutionEngine {
         if ("FILLED".equals(newState)) {
             processFilledOrder(order);
         }
+    }
+
+    /**
+     * 체결가(평균 단가)를 주문에 반영한다. 즉시 체결 경로와 폴러 동기화 경로가 공통 사용.
+     *
+     * <ul>
+     *   <li>매도(ask): 실제 평균 체결가 = executed_funds / executed_volume.
+     *       정산 전이라 executed_funds 가 없으면 price 를 건드리지 않는다(null 유지) →
+     *       호출자가 FILLED 확정을 보류하고 재조회하도록 한다.
+     *       limit 매도이면서 funds 미정산 시에는 지정가(price)로 대체.</li>
+     *   <li>지정가 매수(limit/bid): 거래소 지정 단가(price).</li>
+     *   <li>시장가 매수(price/bid): order.price = 원래 KRW 총액 유지 (handleBuyFill 에서 재계산).</li>
+     * </ul>
+     */
+    private void applyFillPrice(OrderEntity order, OrderResponse resp) {
+        boolean hasFunds = resp.getExecutedFunds() != null
+                && resp.getExecutedVolume() != null
+                && resp.getExecutedVolume().compareTo(BigDecimal.ZERO) > 0;
+        if ("ask".equalsIgnoreCase(resp.getSide())) {
+            if (hasFunds) {
+                order.setPrice(resp.getExecutedFunds()
+                        .divide(resp.getExecutedVolume(), 8, RoundingMode.HALF_UP));
+            } else if ("limit".equalsIgnoreCase(resp.getOrdType()) && resp.getPrice() != null) {
+                order.setPrice(resp.getPrice());
+            }
+            // market 매도 + funds 미정산 → price 는 null 유지 (호출자가 재조회)
+        } else if ("limit".equalsIgnoreCase(resp.getOrdType()) && resp.getPrice() != null) {
+            order.setPrice(resp.getPrice());
+        }
+        // 시장가 매수(price/bid)는 order.price 그대로 유지
     }
 
     /**

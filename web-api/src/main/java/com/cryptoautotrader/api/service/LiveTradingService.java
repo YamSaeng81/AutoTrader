@@ -43,6 +43,7 @@ import com.cryptoautotrader.core.model.TradeRecord;
 import com.cryptoautotrader.core.regime.MarketRegime;
 import com.cryptoautotrader.core.regime.MarketRegimeDetector;
 import com.cryptoautotrader.core.risk.RiskCheckResult;
+import com.cryptoautotrader.core.selector.Ema200RegimeGate;
 
 import com.cryptoautotrader.api.discord.DiscordWebhookClient;
 import com.cryptoautotrader.exchange.upbit.UpbitRestClient;
@@ -103,7 +104,9 @@ public class LiveTradingService {
      * 진입 직후 SELL 신호(예: histDecreasing)로 동가 청산 → 수수료만 손실되는 패턴 방지.
      * SL/TP 도달은 이 가드와 무관하게 항상 작동한다.
      */
-    private static final long MIN_HOLD_MINUTES_FOR_SIGNAL_EXIT = 30;
+    private static final long MIN_HOLD_MINUTES_FOR_SIGNAL_EXIT = 180;
+    /** 전략 SELL 신호 최소 수익률 가드: 이 미만이면 SELL 무시 (수수료+노이즈 본전 청산 방지). SL/TP/트레일링은 항상 동작. */
+    private static final BigDecimal MIN_PNL_PCT_FOR_SIGNAL_EXIT = new BigDecimal("0.30");
 
     /** 거래소 DOWN으로 비상 정지된 세션 ID 목록 — 복구 시 자동 재시작 대상 */
     private final Set<Long> exchangeStoppedSessionIds = ConcurrentHashMap.newKeySet();
@@ -779,10 +782,10 @@ public class LiveTradingService {
         log.debug("세션 전략 신호 (sessionId={}): {} {} -> {} ({})",
                 sessionId, strategyType, coinPair, signal.getAction(), signal.getReason());
 
-        // EMA200 레짐 필터: DOGE 제외, BUY 신호를 EMA200 위에서만 허용
+        // EMA200 레짐 필터: BUY 신호를 EMA200 위에서만 허용 (DOGE 예외 포함).
+        // 백테스트(BacktestEngine)와 동일 로직을 Ema200RegimeGate 단일 진실 소스로 통합 (P1-B).
         if (signal.getAction() == StrategySignal.Action.BUY
-                && !coinPair.contains("DOGE")
-                && !isAboveEma200Live(candles)) {
+                && !Ema200RegimeGate.allowsBuy(candles, coinPair)) {
             log.debug("EMA200 레짐 필터 — BUY 차단 (sessionId={}, {})", sessionId, coinPair);
             signal = StrategySignal.hold("EMA200 레짐 필터 — 현재가 EMA200 이하");
         }
@@ -869,6 +872,7 @@ public class LiveTradingService {
 
         final StrategySignal finalSignal = signal;
         final StrategyLogEntity signalLogRef = savedSignalLog;
+        try {
         switch (signal.getAction()) {
             case BUY -> {
                 boolean hasClosingPos = positionRepository
@@ -916,16 +920,32 @@ public class LiveTradingService {
                     long heldMinutes = openedAt != null
                             ? Duration.between(openedAt, Instant.now()).toMinutes()
                             : Long.MAX_VALUE;
+                    BigDecimal heldPnlPctSell = (pos.getAvgPrice() != null
+                            && pos.getAvgPrice().compareTo(BigDecimal.ZERO) > 0)
+                            ? currentPrice.subtract(pos.getAvgPrice())
+                                    .divide(pos.getAvgPrice(), 6, RoundingMode.HALF_UP)
+                                    .multiply(BigDecimal.valueOf(100))
+                                    .setScale(3, RoundingMode.HALF_UP)
+                            : BigDecimal.ZERO;
                     if (heldMinutes < MIN_HOLD_MINUTES_FOR_SIGNAL_EXIT) {
                         // 진입 직후 SELL 신호로 동가 청산되는 패턴 차단 — SL/TP는 별도로 항상 동작
                         String blockReason = String.format(
-                                "최소 보유시간 미달: %d분 < %d분 (전략 SELL 차단, SL/TP는 유효)",
-                                heldMinutes, MIN_HOLD_MINUTES_FOR_SIGNAL_EXIT);
+                                "최소 보유시간 미달: %d분 < %d분 (pnl=%s%%, 전략 SELL 차단, SL/TP는 유효)",
+                                heldMinutes, MIN_HOLD_MINUTES_FOR_SIGNAL_EXIT, heldPnlPctSell.toPlainString());
+                        log.info("SELL 신호 차단 (sessionId={}): {} {}", sessionId, coinPair, blockReason);
+                        saveSignalQuality(signalLogRef, false, blockReason);
+                    } else if (heldPnlPctSell.compareTo(MIN_PNL_PCT_FOR_SIGNAL_EXIT) < 0) {
+                        // 본전 SELL 차단: 수익률이 임계 미만이면 전략 SELL 무시. 0/178 본전 청산 패턴 박멸 목적.
+                        // SL/TP/트레일링은 별도 경로로 항상 동작.
+                        String blockReason = String.format(
+                                "본전 청산 차단: pnl=%s%% < +%s%% (전략 SELL 무시, SL/TP/트레일링은 유효)",
+                                heldPnlPctSell.toPlainString(), MIN_PNL_PCT_FOR_SIGNAL_EXIT.toPlainString());
                         log.info("SELL 신호 차단 (sessionId={}): {} {}", sessionId, coinPair, blockReason);
                         saveSignalQuality(signalLogRef, false, blockReason);
                     } else {
                         executeSessionSell(session, pos, currentPrice,
-                                String.format("전략 신호: %s -- %s", strategyType, finalSignal.getReason()));
+                                String.format("전략 신호: %s -- %s (pnl=%s%%)",
+                                        strategyType, finalSignal.getReason(), heldPnlPctSell.toPlainString()));
                         saveSignalQuality(signalLogRef, true, null);
                     }
                 } else {
@@ -933,6 +953,17 @@ public class LiveTradingService {
                 }
             }
             default -> { /* HOLD — 신호 품질 추적 불필요 */ }
+        }
+        } catch (RuntimeException e) {
+            // BUY/SELL 처리 중 예외 — saveSignalQuality 미갱신으로 신호 로그가 초기 상태(blockedReason=null)로
+            // 남아 "실행 0건" 가짜 통계 발생. 예외 사유를 명시적으로 기록한 뒤 상위로 재전파.
+            if (signalLogRef != null && finalSignal.getAction() != StrategySignal.Action.HOLD) {
+                String exMsg = e.getClass().getSimpleName()
+                        + (e.getMessage() != null ? ": " + e.getMessage() : "");
+                if (exMsg.length() > 480) exMsg = exMsg.substring(0, 480);
+                saveSignalQuality(signalLogRef, false, "예외: " + exMsg);
+            }
+            throw e;
         }
 
         // 미실현 손익 업데이트
@@ -1746,7 +1777,16 @@ public class LiveTradingService {
             log.debug("finalizeSellPosition 스킵: 이미 CLOSED (posId={})", pos.getId());
             return;
         }
-        BigDecimal fillPrice = filledOrder.getPrice() != null ? filledOrder.getPrice() : pos.getAvgPrice();
+        // ⚠️ 체결가가 확정되지 않은 주문은 finalize 하지 않는다 (방어선 2).
+        //    과거: fillPrice = pos.getAvgPrice() 로 대체 → realizedPnl 이 항상 -매도수수료로
+        //    기록되는 "가짜 본전" 버그(2026-05-31 실전 로그 분석에서 포지션 146건 확인).
+        //    보류하면 포지션이 OPEN 으로 남아 다음 reconcile(10s)에서 실제 체결가로 재시도된다.
+        BigDecimal fillPrice = filledOrder.getPrice();
+        if (fillPrice == null) {
+            log.warn("매도 체결가 미확정 — finalize 보류, 다음 reconcile 재시도 (posId={}, orderId={})",
+                    pos.getId(), filledOrder.getId());
+            return;
+        }
         BigDecimal soldQty = filledOrder.getFilledQuantity() != null
                 ? filledOrder.getFilledQuantity() : pos.getSize();
 
@@ -1962,15 +2002,6 @@ public class LiveTradingService {
         final long timestampMs;
         final BigDecimal price;
         PriceSnapshot(long ts, BigDecimal p) { this.timestampMs = ts; this.price = p; }
-    }
-
-    private boolean isAboveEma200Live(List<Candle> candles) {
-        if (candles.size() < 200) return true;
-        List<BigDecimal> closes = candles.stream()
-                .map(Candle::getClose)
-                .collect(Collectors.toList());
-        BigDecimal ema200 = IndicatorUtils.ema(closes, 200);
-        return candles.get(candles.size() - 1).getClose().compareTo(ema200) > 0;
     }
 
     private List<Candle> fetchRecentCandles(String coinPair, String timeframe) {

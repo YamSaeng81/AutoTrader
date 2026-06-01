@@ -46,6 +46,15 @@ public class StrategyLiveStatusRegistry {
         entry("COMPOSITE_MOMENTUM_ICHIMOKU_V2",
                 LiveReadiness.ENABLED,
                 "SOL +131.1% MDD -12%, DOGE +134.4%, XRP +49.9%. VWAP→SUPERTREND 교체로 방향 일치성 개선."),
+        entry("COMPOSITE_REGIME_ROUTER",
+                LiveReadiness.ENABLED,
+                "SOL +65.4% (CB 근소 상회, 레짐 자동 적응). 2026-04-30 MTF 백테스트 Tier 1. SOL 운영 전략."),
+        entry("COMPOSITE_MTF_BTC",
+                LiveReadiness.ENABLED,
+                "BTC/ETH 특화 H1+H4 확인. ETH +127.7% MDD -7.2%(7전략 1위), AAVE·CHZ 흑자 전환. 2026-04-30 Tier 1. ETH 운영 전략."),
+        entry("COMPOSITE_MTF_MOMENTUM",
+                LiveReadiness.ENABLED,
+                "DOGE/ETH 특화 CMI_V2(H1)+Supertrend(H4). BLUR +48.1% Sharpe 0.91. 2026-04-30 Tier 1/2."),
 
         // ── BLOCKED: 백테스트 구조적 손실 확인 → 세션 생성 불가 ──────────────
         entry("STOCHASTIC_RSI",
@@ -95,6 +104,9 @@ public class StrategyLiveStatusRegistry {
         entry("COMPOSITE_ETH",
                 LiveReadiness.EXPERIMENTAL,
                 "구버전 ETH 프리셋. 평균 +48.7% 재검증 필요. ORDERBOOK_IMBALANCE 단독 구성 요소 실전 미검증."),
+        entry("COMPOSITE_MTF_CONFIRMED",
+                LiveReadiness.EXPERIMENTAL,
+                "범용 CRR(H1)+Supertrend(H4). XRP +3.37%로 Tier 2(유일 흑자) 수준 — 소액 관찰 단계, ENABLED 근거 부족."),
         entry("COMPOSITE_BREAKOUT_ICHIMOKU",
                 LiveReadiness.BLOCKED,
                 "COMPOSITE_BREAKOUT의 ADX(14)<20 필터가 횡보장을 선차단하므로 Ichimoku 구름 필터가 추가로 막는 신호 없음. " +

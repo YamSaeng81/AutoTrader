@@ -3,7 +3,56 @@
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝나면 완료 내용을 [`docs/CHANGELOG.md`](CHANGELOG.md)에 추가하고, 이 파일의 해당 항목은 삭제한다.
 > **변경 이력**: [`docs/CHANGELOG.md`](CHANGELOG.md)
-> **마지막 갱신**: 2026-04-30 (MTF 3종 구현 완료 + 17코인 × 7전략 H1 FULL 백테스트 비교 갱신)
+> **마지막 갱신**: 2026-05-31 (실전 로그 분석 + P0 청산/PnL 근본수정 적용·테스트 통과 / P1 죽은지표 조사 완료)
+
+---
+
+## 🚨 2026-05-31 실전 로그 분석 (docs/logs/ 3종 교차 분석)
+
+> `live_trading_sessions/positions_20260531.csv` + `signal_quality_30d_20260531.csv` 분석.
+> LIVE 세션 4개(143 ETH / 144 SOL / 145 XRP / 148 BTC) 모두 ~2개월 운영했으나 사실상 본전.
+> **P0는 코드 수정 적용 + 테스트 통과. P1은 조사만 완료(코드 변경은 백테스트 검증 후).**
+
+### 현황 수치
+- **세션 수익률**: BTC -0.04% / ETH -0.12% / SOL -0.16% / XRP +0.65% → 전부 본전권.
+- **포지션 192건**: 실이익 2건 / 수수료만 손실(-4원≈-0.05%) 146건 / 미체결·size0 44건.
+- **신호 568,338건/30일**: HOLD 99.6%(566,027) / SELL 1,351 / BUY 960 / **실제 체결 42건**.
+
+### 🔴 P0 — 청산/PnL 정확성 (돈 직결) — 진단 완료, 수정 보류
+근본 원인: 청산 시 `realizedPnl`이 거의 전부 -매도수수료(-4원)로만 기록됨 = 매도 체결가가
+진입 평균가로 대체되고 있음. 경로:
+- [`OrderExecutionEngine.syncOrderState()`](../web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java#L614): 시장가 매도 FILLED 시 평균체결가를 `executedFunds/executedVolume`로 계산하나, **`ordType=="market" && side=="ask"` 문자열 매칭 조건**에 걸려 실패하면 `order.price`가 null로 남음. (Upbit getOrder 응답의 ord_type/side DTO 매핑 점검 필요)
+- [`LiveTradingService.finalizeSellPosition()`](../web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java#L1776) & [`OrderExecutionEngine.handleSellFill()`](../web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java#L463): `order.getPrice()==null`이면 `pos.getAvgPrice()`로 대체 → 손익이 항상 -수수료.
+- [ ] **수정 방향(검증 후 적용)**: syncOrderState의 평균체결가 계산을 ord_type/side 매칭에 의존하지 말고 `executedFunds/executedVolume`가 있으면 항상 산출. finalize의 avgPrice 대체는 제거하되, **포지션이 CLOSING에 정체되지 않도록** 체결가 미확보 시 재조회/재시도 경로를 함께 보장할 것.
+- [ ] **청산 정책 표준화 검증** — SL/TP는 DB(`ExitRuleConfig`) 동적 설정(현 SL 5%/TP +10%). P0 수정 후 실거래 재수집한 뒤 조정.
+
+### 🟠 P1 — 신호 발생률 (⚠️ 실거래 진입 빈도 변경 = 백테스트 검증 필수)
+
+#### ✅ 죽은 하위지표 조사 완료 (2026-05-31, 읽기 전용)
+결론: **MACD/VWAP/GRID는 "죽은" 게 아니라, 합산 임계와 가중치·필터가 수학적으로 어긋나
+"거의 항상 HOLD"가 강제되는 구조다.** 핵심 메커니즘 3가지:
+
+1. **단일 보조지표로는 임계 돌파가 수학적으로 불가능.**
+   [`CompositeStrategy.finalSignal`](../core-engine/src/main/java/com/cryptoautotrader/core/selector/CompositeStrategy.java#L182) 임계 `WEAK=0.4`. `score=Σ(weight×confidence)`, `confidence=strength/100` ([StrategySignal](../strategy-lib/src/main/java/com/cryptoautotrader/strategy/StrategySignal.java#L46)).
+   - SUPERTREND 가중 0.3 → 추세전환 strength 70(conf 0.7)이어도 기여 **0.3×0.7=0.21 < 0.4**. 지속 신호(≤50)면 ≤0.15.
+   - VWAP 0.3 / GRID 0.2 도 동일 — **단독 최대 기여가 임계 미만.**
+   - 따라서 진입하려면 **반드시 MACD(0.5)가 동반 발화**해야 함 = 사실상 MACD 단일 의존.
+
+2. **그 MACD가 4중 필터로 거의 침묵한다.** [`MacdStrategy`](../strategy-lib/src/main/java/com/cryptoautotrader/strategy/macd/MacdStrategy.java#L66): (a) 골든/데드 **크로스 순간**에만, (b) ADX≥25, (c) 제로라인, (d) 히스토그램 확대 — 4조건 동시 충족 캔들만 발화. 그 외 전부 HOLD(0).
+
+3. **레짐↔임계 불일치 (설계 결함, 가장 치명적).**
+   [`CompositeRegimeRouter`](../core-engine/src/main/java/com/cryptoautotrader/core/selector/CompositeRegimeRouter.java#L100)는 **TRANSITIONAL(ADX 20~25)** 구간을 CMI_V1(MACD0.5+VWAP0.3+GRID0.2)에 위임한다. 그런데 MACD의 ADX 필터 임계가 **25.0** → TRANSITIONAL에서는 **주력 MACD가 100% 차단됨.** 남은 VWAP+GRID=0.5는 둘 다 풀강도 동방향이어야만 0.4 돌파인데 (역추세+평균회귀라) 거의 불가 → **TRANSITIONAL은 구조적으로 진입 거의 불가능.** 로그의 `[TRANSITIONAL] buy=0.00 sell=0.00 [MACD:HOLD(0) VWAP:HOLD(0) GRID:HOLD(0)]` 14.8만 건이 이 경로. `[TREND] sell=0.15 [SUPERTREND:SELL(50)]` 5.4만 건은 메커니즘 1(보조지표 단독 0.4 미달).
+
+#### 권고 (백테스트 검증 후 적용 — 코드 미변경)
+- [ ] **MACD ADX 임계를 레짐별로 정합화** — TRANSITIONAL 위임 시 MACD `adxThreshold`를 20 이하로 내리거나(params override), TRANSITIONAL→CMI_V1 위임 자체 재고. (라우터가 params로 MACD adxThreshold를 낮춰 주입하는 방식이 영향 최소)
+- [ ] **보조지표 단독 진입 가능하도록 가중치 또는 임계 조정** — 예: WEAK_THRESHOLD 0.4→0.3, 또는 SUPERTREND/VWAP 가중 0.3→0.4. 단 오탐↑ 위험 → 반드시 `BacktestEngine` 다코인 검증.
+- [ ] **SUPERTREND 추세지속 strength 상향 검토** — 현재 지속 신호 ≤50(conf≤0.5)이라 단독 기여 미미.
+- [ ] **SELL/RANGE 편중 점검** — 롱 전용 구조, RANGE(ADX<20) 무조건 HOLD 분류 비율 점검.
+
+### 🟡 P2 — 측정 인프라 (재진단: 일부는 이미 정상)
+- [x] ~~4h/24h 백필 / CSV 따옴표~~ — 확인 결과 [`SignalQualityService`](../web-api/src/main/java/com/cryptoautotrader/api/service/SignalQualityService.java)는 이미 과거 시점 캔들(`getCandles(targetTime)`)로 정확히 백필하고, [`CsvExportService`](../web-api/src/main/java/com/cryptoautotrader/api/service/CsvExportService.java)도 이미 `q()`로 RFC4180 인용 처리 중. **기존 115MB 파일의 손상 행은 과거 버전 산출물**로 추정(현재 코드 버그 아님).
+- [ ] **HOLD 로그 비대 — 실제 원인** = [`LiveTradingService`](../web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java#L804) 가 매 평가마다 `StrategyLogEntity`를 HOLD 포함 전량 저장(30일 56만 행). HOLD 제외/요약 적재 검토(단, HOLD 비율 리포트 의존성 확인 후).
+- [ ] **미라벨 신호 재조사** — PAPER 신호 `signalPrice=null`이면 백필 스킵되는 점 등.
 
 ---
 
@@ -480,3 +529,77 @@ docker compose -f docker-compose.prod.yml logs -f frontend
 docker compose -f docker-compose.prod.yml logs backend > /tmp/backend.log 2>&1
 grep -n "ERROR\|Caused by\|Exception" /tmp/backend.log | tail -30
 ```
+
+---
+
+## 🔬 2026-06-01 전략 전체 분석 (Strategy-wide Audit)
+
+> 범위: 기본 지표 14종 + 복합 프리셋 11종 + 라이브 신호 파이프라인 전체.
+> 목적: 실전 ~본전/약손실 + 99.6% HOLD의 구조적 원인 규명 및 우선순위 도출.
+
+### 1. 인벤토리 (실제 등록 기준)
+- **기본 지표 14종** (`StrategyRegistry`): VWAP, EMA_CROSS, BOLLINGER, GRID*, RSI, MACD, SUPERTREND, ATR_BREAKOUT, ORDERBOOK_IMBALANCE, VOLUME_DELTA, STOCHASTIC_RSI, FAIR_VALUE_GAP, MACD_STOCH_BB*, TEST_TIMED  (*=stateful)
+- **복합 프리셋 11종** (`CompositePresetRegistrar` @PostConstruct): COMPOSITE, COMPOSITE_REGIME_ROUTER, COMPOSITE_MOMENTUM, COMPOSITE_ETH, COMPOSITE_BREAKOUT, COMPOSITE_MOMENTUM_ICHIMOKU(_V2), COMPOSITE_BREAKOUT_ICHIMOKU, COMPOSITE_MTF_CONFIRMED/_BTC/_MOMENTUM
+- ⚠️ 이전 메모상의 `StrategyFactory`/`CMI_V1`/`TADA`는 **실제 코드에 없음** (오기억 정정). CompositeRegimeRouter는 내부에서 delegate를 직접 생성.
+
+### 2. 거버넌스 갭 (StrategyLiveStatusRegistry)
+- ENABLED(4): COMPOSITE_BREAKOUT, COMPOSITE_MOMENTUM, COMPOSITE_MOMENTUM_ICHIMOKU, _V2
+- BLOCKED(4): STOCHASTIC_RSI, MACD, MACD_STOCH_BB, COMPOSITE_BREAKOUT_ICHIMOKU / DEPRECATED(1): TEST_TIMED
+- **갭1**: `isBlocked()=BLOCKED||DEPRECATED` 만 검사 → "단독 미검증(EXPERIMENTAL)" 단일지표(VWAP·RSI·BOLLINGER·GRID 등)도 라이브 세션 생성 **그대로 허용**. 라벨이 강제력 없음.
+- **갭2**: 주력 메타전략 `COMPOSITE_REGIME_ROUTER` + MTF 3종이 매트릭스 **미등록** → 기본 EXPERIMENTAL.
+
+### 3. 신호 파이프라인 — 앙상블 아님
+- 라이브(`LiveTradingService.evaluateAndExecuteSession` ~775행)는 세션의 단일 `strategyType` 하나만 `evaluate()`.
+- **`StrategySelector`의 레짐별 가중 앙상블(BREAKOUT 0.65+MOMENTUM 0.35 등)은 라이브 실행 경로에서 호출되지 않음** (가중치 최적화용일 뿐). 문서/설계 ↔ 실행 불일치.
+
+### 4. 구조적 HOLD 편향 (처리량 킬러)
+라이브 BUY 1건에 필요한 직렬 게이트(곱셈적 누적):
+1. 레짐: RANGE→즉시 HOLD / TRANSITIONAL→V1인데 MACD adxThreshold=25라 MACD 무조건 침묵 → 남은 0.5로 0.4 임계 돌파 불가
+2. CompositeStrategy 동적 ADX 필터(15~25)
+3. 하위지표 합산 score>0.4 (단일 보조지표 단독 돌파 수학적 불가 — P1 기확인)
+4. EMA20/50 방향 필터
+5. Ichimoku 구름 필터(V1/V2)
+6. RSI Veto(>75, BREAKOUT)
+7. LiveTradingService EMA200 필터 (**BUY만** 차단 → 매수 비대칭)
+
+중복: **EMA 3중**(EMA_CROSS 하위 / EMA20-50 / EMA200), **ADX 2중**(Composite / MACD내부).
+
+### 5. 죽은/휴면 코드
+- 단일지표 5종(BOLLINGER, STOCHASTIC_RSI, FVG, MACD_STOCH_BB, ORDERBOOK_IMBALANCE)은 어떤 ENABLED 복합의 하위지표도 아님 → 실질 휴면
+- `SignalEvaluationService` 참조 0건 → 데드코드 후보
+- StrategySelector(RANGE 매매) ↔ CompositeRegimeRouter(RANGE 진입금지) 모순 공존
+
+### 6. 작업 우선순위 (BacktestEngine 검증 후 적용 원칙)
+- [x] **P1-A**: TRANSITIONAL 위임 시 MACD adxThreshold를 **코인 선택적(BTC/SOL만 25→20)** 으로 주입(CompositeRegimeRouter, putIfAbsent·원본 불변). 전역 20은 XRP를 망가뜨려(검증), 검증서 개선 확인된 코인만 화이트리스트. 3년 H1 다코인 검증 통과 — BTC·SOL 개선·나머지 무변동(§7). ✅ 라이브 반영 가능.
+- [x] **P1-B**: EMA200 게이트를 core-engine `Ema200RegimeGate` 단일 진실 소스로 통합. LiveTradingService·BacktestEngine 중복 제거, DOGE 예외를 게이트에 명문화 → 백테스트↔라이브 정합(이전엔 라이브에만 DOGE 예외 존재). 회귀 테스트 5건 통과, 전체 빌드 그린(2026-06-01). ⚠️ 백테스트에 DOGE 예외가 새로 반영되므로 DOGE 백테스트 수치 재확인 필요
+- [x] **P2-A** (등재만): ROUTER/MTF_BTC/MTF_MOMENTUM를 배포 티어1 근거로 ENABLED 등재, MTF_CONFIRMED는 티어2라 EXPERIMENTAL 명시. isBlocked()는 현행 유지(EXPERIMENTAL 미차단 → 운영 리스크 회피). 회귀테스트 보강·전체 빌드 그린(2026-06-01)
+- [x] **P2-B** (문서화): StrategySelector는 데드코드 아님 — `COMPOSITE`(RegimeAdaptiveStrategy) 전략·COMPOSITE 백테스트(BacktestService)가 실사용. 실제 사실은 **레짐 앙상블 2중 구현 공존**: ① StrategySelector 기반 `COMPOSITE`(가중 투표, WeightOverrideStore 동적가중) ② `CompositeRegimeRouter`(레짐별 단일 delegate 위임). 세션 단일 strategyType 평가 경로는 어느 앙상블도 안 거치고 지정 전략만 evaluate. 삭제는 빌드 파손 → 보류. 향후 통합 과제로 남김(범위 큼, 백테스트 재검증 필요).
+- [x] **P3** (기록만, 코드 미변경): 휴면 단일지표 5종(BOLLINGER·STOCHASTIC_RSI·FVG·MACD_STOCH_BB·ORDERBOOK_IMBALANCE)은 어떤 ENABLED 복합의 하위지표도 아님 = 실질 휴면이나, 단독 EXPERIMENTAL로 라이브·백테스트 생성은 가능. 향후 복합전략 재료가 될 수 있어 **제거하지 않고 보존**. `SignalEvaluationService`는 코드 전체 참조 0건 확인 — 별도 데드코드 정리 후보로 기록(이번엔 미변경).
+
+### 7. 백테스트 검증 결과 (2026-06-01, 실DB H1 2023~2025, 5코인)
+> 하니스: `web-api/.../backtest/P1ChangesBacktestVerification.java` (JDBC 직접 로드, DB 미접속 시 자동 skip). CompositeRegimeRouter를 adxThreshold=25 명시(=변경전) vs 미주입(=변경후 자동20)으로 비교.
+
+**P1-A (TRANSITIONAL adxThreshold 25→20) — 코인 선택적 효과, 전역 적용 부적절:**
+| 코인 | 변경전(25) | 변경후(20) | 판정 |
+|---|---|---|---|
+| BTC | +13.7% T72 MDD-12.7% | +20.0% T96 MDD-13.0% | ✅ 개선 |
+| ETH | +42.3% T81 MDD-13.9% | +45.3% T94 MDD-17.0% | ⚠️ 수익↑/MDD악화 |
+| SOL | +70.5% T77 MDD-13.6% | +91.3% T91 MDD-12.1% | ✅ 수익↑+MDD↓ |
+| XRP | +0.6% T56 MDD-14.3% | **-14.4%** T73 MDD-18.5% | ❌ 명확 악화 |
+| DOGE | +54.5% T106 MDD-25.3% | +52.2% T116 MDD-26.5% | ⚠️ 소폭 악화 |
+- 진입 빈도는 전 코인 증가(예상대로). BTC·SOL 명확 개선, **XRP는 망가짐**(추세 모호 코인).
+- → **코인별 차등 적용으로 수정 완료** (`ADX_RELAX_COINS = [BTC, SOL]` 화이트리스트). 화이트리스트만 20, 그 외 25 유지.
+
+**P1-A 차등 재검증 (2026-06-01, 동일 하니스):**
+| 코인 | 변경전(25) | 차등적용후 | 적용 |
+|---|---|---|---|
+| BTC | +13.7% T72 MDD-12.7% | +20.0% T96 MDD-13.0% | 20(완화) ✅개선 |
+| SOL | +70.5% T77 MDD-13.6% | +91.3% T91 MDD-12.1% | 20(완화) ✅수익↑MDD↓ |
+| ETH | +42.3% T81 MDD-13.9% | +42.3% T81 MDD-13.9% | 25(유지) =무변동 |
+| XRP | +0.6% T56 MDD-14.3% | +0.6% T56 MDD-14.3% | 25(유지) =무변동(보호) |
+| DOGE | +54.5% T106 MDD-25.3% | +54.5% T106 MDD-25.3% | 25(유지) =무변동 |
+- BTC·SOL 개선 유지 + ETH/XRP/DOGE는 변경전과 **완전 동일**(XRP -15% 악화 차단 확인). 순개선만 남고 악화 0. ✅ **라이브 반영 가능 상태.**
+
+**P1-B (EMA200 게이트 DOGE 예외) — 정합 달성, 회귀 없음:**
+- DOGE: BUY허용 26006/26006(100%) vs 순수규칙 11336(43.6%) → 예외 +56.4%p 정상 작동.
+- BTC/ETH/SOL/XRP: 적용=면제 완전 동일 → 비-DOGE **무영향(회귀 없음)** 확인. ✅ **그대로 유지 권장.**

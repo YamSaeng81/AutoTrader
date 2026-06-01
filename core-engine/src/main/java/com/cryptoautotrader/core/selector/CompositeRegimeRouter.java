@@ -13,6 +13,7 @@ import com.cryptoautotrader.strategy.supertrend.SupertrendStrategy;
 import com.cryptoautotrader.strategy.volumedelta.VolumeDeltaStrategy;
 import com.cryptoautotrader.strategy.vwap.VwapStrategy;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -46,6 +47,26 @@ import java.util.Map;
 public class CompositeRegimeRouter implements Strategy {
 
     private static final String NAME = "COMPOSITE_REGIME_ROUTER";
+
+    /**
+     * TRANSITIONAL(ADX 20~25) 위임 시 하위 MACD의 ADX 필터 임계(기본 25)를 레짐 상단 이하로 낮춰 주입한다.
+     * 그렇지 않으면 CMI_V1의 주력 MACD가 이 구간에서 100% 차단되어 사실상 진입 불가가 된다
+     * (2026-05-31 죽은지표 조사 P1-A: 레짐↔임계 불일치). V1 delegate의 CompositeStrategy는
+     * adxFilter=false 이므로 이 키의 유일한 소비자는 MACD 하위전략뿐 → 부작용 없음.
+     *
+     * <p><b>코인 선택적 적용</b> (2026-06-01 백테스트 검증 결과): 임계 완화는 진입 빈도를
+     * 늘리지만, 추세성이 강한 코인에서만 수익이 개선된다. 3년 H1 검증:
+     * <ul>
+     *   <li>BTC +13.7%→+20.0%, SOL +70.5%→+91.3%(MDD까지 개선) — 명확한 개선 → 완화 적용</li>
+     *   <li>XRP +0.6%→<b>-14.4%</b> — 추세 모호 코인에서 오탐 급증 → 완화 미적용(25 유지)</li>
+     *   <li>ETH/DOGE — 수익↑이나 MDD 악화 또는 소폭 손실 → 보수적으로 미적용(25 유지)</li>
+     * </ul>
+     * 따라서 검증으로 개선이 확인된 코인만 화이트리스트로 완화한다.
+     */
+    private static final double TRANSITIONAL_MACD_ADX_THRESHOLD = 20.0;
+
+    /** TRANSITIONAL 임계 완화(20)를 적용할 코인 — 3년 H1 백테스트에서 수익·MDD 개선 확인된 코인만. */
+    private static final List<String> ADX_RELAX_COINS = List.of("BTC", "SOL");
 
     // Stateful: 세션마다 독립 인스턴스 (MarketRegimeDetector 상태 격리)
     private final MarketRegimeDetector detector = new MarketRegimeDetector();
@@ -104,9 +125,30 @@ public class CompositeRegimeRouter implements Strategy {
         return switch (regime) {
             case VOLATILITY   -> tag(breakoutDelegate.evaluate(candles, params),   tag);
             case TREND        -> tag(momentumV2Delegate.evaluate(candles, params),  tag);
-            case TRANSITIONAL -> tag(momentumV1Delegate.evaluate(candles, params),  tag);
+            case TRANSITIONAL -> tag(momentumV1Delegate.evaluate(candles, transitionalParams(params)), tag);
             case RANGE        -> StrategySignal.hold(tag + "횡보장 진입 금지 (ADX<20)");
         };
+    }
+
+    /**
+     * TRANSITIONAL 위임용 params: 검증으로 개선이 확인된 코인(ADX_RELAX_COINS)에 한해서만
+     * MACD adxThreshold를 레짐 상단 이하(20)로 낮춰 주입한다. 그 외 코인은 MACD 기본값(25)을 유지한다.
+     * 호출자가 adxThreshold를 명시한 경우 그 값을 존중한다(putIfAbsent). 원본 맵은 변경하지 않는다.
+     */
+    private static Map<String, Object> transitionalParams(Map<String, Object> params) {
+        Map<String, Object> p = (params != null) ? new HashMap<>(params) : new HashMap<>();
+        if (isAdxRelaxCoin(p.get("coinPair"))) {
+            p.putIfAbsent("adxThreshold", TRANSITIONAL_MACD_ADX_THRESHOLD);
+        }
+        return p;
+    }
+
+    /** coinPair가 임계 완화 화이트리스트에 속하는지 (예: "KRW-BTC" → BTC 매칭). */
+    private static boolean isAdxRelaxCoin(Object coinPair) {
+        if (!(coinPair instanceof String cp)) {
+            return false;
+        }
+        return ADX_RELAX_COINS.stream().anyMatch(cp::contains);
     }
 
     /** 신호에 레짐 태그를 prefix로 붙여 반환한다. */
