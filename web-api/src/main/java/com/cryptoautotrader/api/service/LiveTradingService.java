@@ -61,8 +61,10 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -570,7 +572,12 @@ public class LiveTradingService {
     // -- 세션 삭제 -----------------------------------------------
 
     /**
-     * 세션 삭제 -- STOPPED 또는 EMERGENCY_STOPPED 상태만 삭제 가능
+     * 세션 삭제 -- STOPPED 또는 EMERGENCY_STOPPED 상태만 삭제 가능.
+     *
+     * <p>soft-delete: 행을 물리적으로 지우지 않고 status="DELETED"로 표시한다.
+     * 주문/포지션/전략로그의 session_id 링크를 보존하므로, 삭제 후에도 이력·주문로그·전략로그에서
+     * 해당 세션을 번호로 선택·조회·CSV 다운로드할 수 있다. (과거: deleteById + session_id NULL 처리
+     * → 삭제 세션의 주문이 미귀속되어 분석 불가했던 문제를 해소.)</p>
      */
     @Transactional
     public void deleteSession(Long sessionId) {
@@ -589,24 +596,13 @@ public class LiveTradingService {
                     pos.getId(), pos.getCoinPair(), sessionId);
         }
 
-        // 관련 주문/포지션의 session_id를 null로 설정 (이력 보존)
-        List<PositionEntity> positions = positionRepository.findBySessionId(sessionId);
-        positions.forEach(pos -> {
-            pos.setSessionId(null);
-            positionRepository.save(pos);
-        });
-
-        List<OrderEntity> orders = orderRepository
-                .findBySessionIdOrderByCreatedAtDesc(sessionId, Pageable.unpaged()).getContent();
-        orders.forEach(order -> {
-            order.setSessionId(null);
-            orderRepository.save(order);
-        });
-
-        sessionRepository.deleteById(sessionId);
+        // soft-delete — 행/링크 보존, 상태만 DELETED (이력·주문로그·전략로그 조회 유지)
+        session.setStatus("DELETED");
+        if (session.getStoppedAt() == null) session.setStoppedAt(Instant.now());
+        sessionRepository.save(session);
         sessionStatefulStrategies.remove(sessionId);
         lastDrawdownWarning.remove(sessionId);
-        log.info("실전매매 세션 삭제 완료: id={}", sessionId);
+        log.info("실전매매 세션 삭제(soft) 완료: id={} → status=DELETED", sessionId);
     }
 
     // -- 세션 조회 -----------------------------------------------
@@ -625,6 +621,50 @@ public class LiveTradingService {
     @Transactional(readOnly = true)
     public List<LiveTradingSessionEntity> listSessions() {
         return sessionRepository.findAllByOrderByCreatedAtDesc();
+    }
+
+    /**
+     * 세션 인덱스 — 세션 선택 UI(주문로그/전략로그 콤보박스)용 통합 목록.
+     *
+     * <p>라이브 세션 테이블(삭제 포함, soft-delete 후 DELETED 로 잔존) + 전략로그에만 존재하는
+     * 세션(이미 hard-delete 됐거나 모의투자 세션)을 합쳐 sessionId 내림차순으로 반환한다.
+     * 각 항목: {sessionId, strategyType, coinPair, status, sessionType}.
+     * status: RUNNING/STOPPED/EMERGENCY_STOPPED/CREATED/DELETED/PAPER, sessionType: LIVE/PAPER.</p>
+     */
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getSessionIndex() {
+        Map<Long, Map<String, Object>> byId = new LinkedHashMap<>();
+
+        // 1) 라이브 세션 테이블 (DELETED 포함)
+        for (LiveTradingSessionEntity s : sessionRepository.findAllByOrderByCreatedAtDesc()) {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("sessionId", s.getId());
+            m.put("strategyType", s.getStrategyType());
+            m.put("coinPair", s.getCoinPair());
+            m.put("status", s.getStatus());
+            m.put("sessionType", "LIVE");
+            byId.put(s.getId(), m);
+        }
+
+        // 2) 전략로그에만 존재하는 세션 (hard-delete 된 라이브 or 모의투자)
+        for (Object[] row : strategyLogRepository.findDistinctSessionRefs()) {
+            Long sid = row[0] != null ? ((Number) row[0]).longValue() : null;
+            if (sid == null || byId.containsKey(sid)) continue;
+            String sType = (String) row[1];   // LIVE / PAPER
+            boolean paper = "PAPER".equalsIgnoreCase(sType);
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("sessionId", sid);
+            m.put("strategyType", row[2]);
+            m.put("coinPair", row[3]);
+            m.put("status", paper ? "PAPER" : "DELETED");
+            m.put("sessionType", paper ? "PAPER" : "LIVE");
+            byId.put(sid, m);
+        }
+
+        return byId.values().stream()
+                .sorted(Comparator.comparingLong(
+                        (Map<String, Object> m) -> ((Number) m.get("sessionId")).longValue()).reversed())
+                .toList();
     }
 
     /**

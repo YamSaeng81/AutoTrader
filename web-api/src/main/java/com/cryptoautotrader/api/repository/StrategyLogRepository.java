@@ -16,6 +16,16 @@ public interface StrategyLogRepository extends JpaRepository<StrategyLogEntity, 
     Page<StrategyLogEntity> findAllBySessionIdOrderByCreatedAtDesc(Long sessionId, Pageable pageable);
     Page<StrategyLogEntity> findAllBySessionTypeAndSessionIdOrderByCreatedAtDesc(String sessionType, Long sessionId, Pageable pageable);
 
+    // ── CSV export 용 (페이징 없이) ──────────────────────────────
+    List<StrategyLogEntity> findAllBySessionIdOrderByCreatedAtDesc(Long sessionId);
+    List<StrategyLogEntity> findAllBySessionTypeOrderByCreatedAtDesc(String sessionType);
+    List<StrategyLogEntity> findAllBySessionTypeAndSessionIdOrderByCreatedAtDesc(String sessionType, Long sessionId);
+
+    /** 세션 인덱스용 — 로그에 존재하는 세션(번호·구분·전략·코인) distinct 조회 (삭제/모의 세션 포함) */
+    @Query("SELECT DISTINCT l.sessionId, l.sessionType, l.strategyName, l.coinPair " +
+           "FROM StrategyLogEntity l WHERE l.sessionId IS NOT NULL")
+    List<Object[]> findDistinctSessionRefs();
+
     /** 분석 구간 로그 조회 (LogAnalyzerService용 — DB에서 기간 필터) */
     @Query("SELECT l FROM StrategyLogEntity l WHERE l.createdAt >= :from AND l.createdAt <= :to ORDER BY l.createdAt DESC")
     List<StrategyLogEntity> findByPeriod(@Param("from") Instant from, @Param("to") Instant to);

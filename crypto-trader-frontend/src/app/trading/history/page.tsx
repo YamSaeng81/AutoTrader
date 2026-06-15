@@ -13,6 +13,7 @@ const sessionStatusLabel: Record<string, string> = {
   RUNNING: '운영 중',
   STOPPED: '정지',
   EMERGENCY_STOPPED: '비상 정지',
+  DELETED: '삭제됨',
 };
 
 const sessionStatusStyle: Record<string, string> = {
@@ -20,6 +21,7 @@ const sessionStatusStyle: Record<string, string> = {
   RUNNING: 'bg-green-500/20 text-green-300 border-green-500/30',
   STOPPED: 'bg-slate-500/20 text-slate-400 border-slate-500/30',
   EMERGENCY_STOPPED: 'bg-red-500/20 text-red-300 border-red-500/30',
+  DELETED: 'bg-slate-700/40 text-slate-500 border-slate-600/40',
 };
 
 export default function TradingHistoryPage() {
@@ -298,10 +300,10 @@ export default function TradingHistoryPage() {
                         </Link>
                       </td>
                       <td className="px-4 py-4">
-                        {isRunning ? (
+                        {isRunning || session.status === 'DELETED' ? (
                           <button
                             disabled
-                            title="운영 중인 세션은 삭제할 수 없습니다"
+                            title={session.status === 'DELETED' ? '이미 삭제된 세션입니다' : '운영 중인 세션은 삭제할 수 없습니다'}
                             className="p-1.5 rounded-lg text-slate-600 cursor-not-allowed"
                           >
                             <Trash2 className="w-4 h-4" />

@@ -420,6 +420,50 @@ public class CsvExportService {
         return bom(sb.toString());
     }
 
+    /**
+     * 전략 로그 export — /logs 화면과 동일한 sessionType(LIVE/PAPER/ALL)·sessionId 필터.
+     * 세션 미지정 시 전체를 내보내므로 데이터가 매우 클 수 있어, 분석 시 세션 지정을 권장한다.
+     */
+    public byte[] exportStrategyLogs(String sessionType, Long sessionId) {
+        boolean hasType = sessionType != null && !sessionType.isBlank()
+                && !"ALL".equalsIgnoreCase(sessionType);
+        String t = hasType ? sessionType.toUpperCase() : null;
+
+        List<StrategyLogEntity> logs;
+        if (sessionId != null && hasType) {
+            logs = strategyLogRepository.findAllBySessionTypeAndSessionIdOrderByCreatedAtDesc(t, sessionId);
+        } else if (sessionId != null) {
+            logs = strategyLogRepository.findAllBySessionIdOrderByCreatedAtDesc(sessionId);
+        } else if (hasType) {
+            logs = strategyLogRepository.findAllBySessionTypeOrderByCreatedAtDesc(t);
+        } else {
+            logs = strategyLogRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("시간,구분,세션ID,전략,코인,신호,실행여부,차단사유,신호가,4h수익률(%),24h수익률(%),");
+        sb.append("4h후가격,24h후가격,시장레짐,판단이유\n");
+
+        for (StrategyLogEntity l : logs) {
+            sb.append(fmt(l.getCreatedAt())).append(',');
+            sb.append(q(l.getSessionType())).append(',');
+            sb.append(l.getSessionId() != null ? l.getSessionId() : "").append(',');
+            sb.append(q(l.getStrategyName())).append(',');
+            sb.append(q(l.getCoinPair())).append(',');
+            sb.append(q(l.getSignal())).append(',');
+            sb.append(l.isWasExecuted() ? "실행" : "").append(',');
+            sb.append(q(l.getBlockedReason())).append(',');
+            sb.append(l.getSignalPrice() != null ? l.getSignalPrice() : "").append(',');
+            sb.append(l.getReturn4hPct() != null ? l.getReturn4hPct() : "").append(',');
+            sb.append(l.getReturn24hPct() != null ? l.getReturn24hPct() : "").append(',');
+            sb.append(l.getPriceAfter4h() != null ? l.getPriceAfter4h() : "").append(',');
+            sb.append(l.getPriceAfter24h() != null ? l.getPriceAfter24h() : "").append(',');
+            sb.append(q(l.getMarketRegime())).append(',');
+            sb.append(q(l.getReason())).append('\n');
+        }
+        return bom(sb.toString());
+    }
+
     // ── 모의투자 이력 ─────────────────────────────────────────────────────────
 
     public byte[] exportPaperTradingSessions() {

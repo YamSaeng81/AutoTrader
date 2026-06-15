@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { tradingApi, csvExportApi } from '@/lib/api';
-import { LiveOrder, LiveTradingSession } from '@/lib/types';
+import { LiveOrder, SessionIndexEntry } from '@/lib/types';
 import {
     Loader2, Activity, ChevronLeft, ChevronRight,
     ChevronsLeft, ChevronsRight,
@@ -45,6 +45,7 @@ const SESSION_STATUS: Record<string, { label: string; cls: string }> = {
     RUNNING:           { label: '운영 중',  cls: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' },
     STOPPED:           { label: '정지',     cls: 'bg-slate-100 text-slate-500 dark:bg-slate-700/40 dark:text-slate-400' },
     EMERGENCY_STOPPED: { label: '비상정지', cls: 'bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400' },
+    DELETED:           { label: '삭제됨',   cls: 'bg-slate-100 text-slate-400 dark:bg-slate-700/30 dark:text-slate-500' },
 };
 
 const DATE_PRESETS = [
@@ -79,13 +80,14 @@ export default function UpbitLogsPage() {
     const [sessionMenuOpen, setSessionMenuOpen] = useState(false);
     const [openRows, setOpenRows] = useState<Set<number>>(new Set());
 
-    // 세션 목록
+    // 세션 인덱스 (삭제 세션 포함, 주문로그용은 모의 제외)
     const { data: sessionsRes } = useQuery({
-        queryKey: ['trading-sessions'],
-        queryFn: () => tradingApi.listSessions(),
+        queryKey: ['session-index'],
+        queryFn: () => tradingApi.sessionIndex(),
         staleTime: 60_000,
     });
-    const sessions: LiveTradingSession[] = (sessionsRes?.data as any) ?? [];
+    const sessions: SessionIndexEntry[] = ((sessionsRes?.data as any) ?? [])
+        .filter((s: SessionIndexEntry) => s.sessionType !== 'PAPER');
 
     const { dateFrom, dateTo } = getDateRange(datePreset, { from: customFrom, to: customTo });
     const sessionIds = selectedSessions.size > 0 ? [...selectedSessions] : undefined;
@@ -278,17 +280,17 @@ export default function UpbitLogsPage() {
                                             const st = SESSION_STATUS[s.status] ?? SESSION_STATUS.STOPPED;
                                             return (
                                                 <label
-                                                    key={s.id}
+                                                    key={s.sessionId}
                                                     className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer"
                                                 >
                                                     <input
                                                         type="checkbox"
-                                                        checked={selectedSessions.has(s.id)}
-                                                        onChange={() => toggleSession(s.id)}
+                                                        checked={selectedSessions.has(s.sessionId)}
+                                                        onChange={() => toggleSession(s.sessionId)}
                                                         className="w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-600 text-indigo-500 focus:ring-indigo-400"
                                                     />
                                                     <span className="text-xs text-slate-700 dark:text-slate-300 truncate flex-1">
-                                                        #{s.id} {s.strategyType} · {s.coinPair}
+                                                        #{s.sessionId} {s.strategyType ?? '-'} · {s.coinPair ?? '-'}
                                                     </span>
                                                     <span className={cn('shrink-0 px-1.5 py-0.5 rounded text-[10px] font-bold', st.cls)}>
                                                         {st.label}

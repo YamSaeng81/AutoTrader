@@ -116,6 +116,8 @@ export const tradingApi = {
         api.post<ApiResponse<LiveTradingSession[]>>('/api/v1/trading/sessions/multi', req).then(r => r.data),
     listSessions: () =>
         api.get<ApiResponse<LiveTradingSession[]>>('/api/v1/trading/sessions').then(r => r.data),
+    sessionIndex: () =>
+        api.get<ApiResponse<import('./types').SessionIndexEntry[]>>('/api/v1/trading/sessions/index').then(r => r.data),
     getSession: (id: number) =>
         api.get<ApiResponse<LiveTradingSession>>(`/api/v1/trading/sessions/${id}`).then(r => r.data),
     startSession: (id: number) =>
@@ -402,4 +404,14 @@ export const csvExportApi = {
             `/api/v1/export/csv/signal-quality?days=${days}&sessionType=${sessionType}`,
             `signal_quality_${days}d_${today()}.csv`,
         ),
+    strategyLogs: (sessionType = 'ALL', sessionId?: number) => {
+        const params = new URLSearchParams();
+        if (sessionType && sessionType !== 'ALL') params.set('sessionType', sessionType);
+        if (sessionId != null) params.set('sessionId', String(sessionId));
+        const qs = params.toString();
+        return downloadCsv(
+            `/api/v1/export/csv/strategy-logs${qs ? `?${qs}` : ''}`,
+            `strategy_logs_${today()}.csv`,
+        );
+    },
 };

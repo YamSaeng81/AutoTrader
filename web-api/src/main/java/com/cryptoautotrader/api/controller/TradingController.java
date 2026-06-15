@@ -76,6 +76,12 @@ public class TradingController {
         return ApiResponse.ok(liveTradingService.listSessions());
     }
 
+    /** 세션 인덱스 — 선택 UI용 통합 목록(삭제/모의 세션 포함, sessionId 내림차순) */
+    @GetMapping("/sessions/index")
+    public ApiResponse<List<java.util.Map<String, Object>>> sessionIndex() {
+        return ApiResponse.ok(liveTradingService.getSessionIndex());
+    }
+
     /** 세션 상세 조회 */
     @GetMapping("/sessions/{id}")
     public ApiResponse<LiveTradingSessionEntity> getSession(@PathVariable Long id) {

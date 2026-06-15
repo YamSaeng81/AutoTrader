@@ -288,7 +288,16 @@ export interface TradingStatus {
   totalSessions: number;
 }
 
-export type LiveSessionStatus = 'CREATED' | 'RUNNING' | 'STOPPED' | 'EMERGENCY_STOPPED';
+export type LiveSessionStatus = 'CREATED' | 'RUNNING' | 'STOPPED' | 'EMERGENCY_STOPPED' | 'DELETED';
+
+/** 세션 선택 UI용 통합 인덱스 항목 (삭제/모의 세션 포함) */
+export interface SessionIndexEntry {
+  sessionId: number;
+  strategyType: string | null;
+  coinPair: string | null;
+  status: string;       // RUNNING | STOPPED | EMERGENCY_STOPPED | CREATED | DELETED | PAPER
+  sessionType: string;  // LIVE | PAPER
+}
 
 export interface LiveTradingSession {
   id: number;

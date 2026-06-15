@@ -89,6 +89,15 @@ public class CsvExportController {
         return csvResponse(csv, "paper_trading_positions_" + today() + ".csv");
     }
 
+    /** 전략 로그 — sessionType(ALL|LIVE|PAPER)·sessionId 필터 (/logs 화면과 동일) */
+    @GetMapping("/strategy-logs")
+    public ResponseEntity<byte[]> strategyLogs(
+            @RequestParam(required = false) String sessionType,
+            @RequestParam(required = false) Long sessionId) {
+        byte[] csv = csvExportService.exportStrategyLogs(sessionType, sessionId);
+        return csvResponse(csv, "strategy_logs_" + today() + ".csv");
+    }
+
     /** 신호 품질 분석 (days=최근N일, sessionType=ALL|LIVE|PAPER) */
     @GetMapping("/signal-quality")
     public ResponseEntity<byte[]> signalQuality(

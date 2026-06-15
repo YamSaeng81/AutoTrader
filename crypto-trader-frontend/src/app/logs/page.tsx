@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { logApi } from '@/lib/api';
-import { Loader2, FileText, ChevronLeft, ChevronRight, ChevronDown, ChevronRight as ChevronRightIcon } from 'lucide-react';
+import { logApi, tradingApi, csvExportApi } from '@/lib/api';
+import type { SessionIndexEntry } from '@/lib/types';
+import { Loader2, FileText, ChevronLeft, ChevronRight, ChevronDown, ChevronRight as ChevronRightIcon, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
@@ -12,6 +13,11 @@ const SESSION_FILTERS = [
     { value: 'PAPER', label: '모의투자' },
     { value: 'LIVE', label: '실전매매' },
 ];
+
+const SESSION_STATUS_LABEL: Record<string, string> = {
+    RUNNING: '운영중', STOPPED: '정지', EMERGENCY_STOPPED: '비상정지',
+    CREATED: '대기', DELETED: '삭제됨', PAPER: '모의',
+};
 
 const SIGNAL_STYLE: Record<string, string> = {
     BUY:  'bg-emerald-50 text-emerald-600 border border-emerald-100',
@@ -27,9 +33,21 @@ const SESSION_TYPE_STYLE: Record<string, string> = {
 export default function LogsPage() {
     const [page, setPage] = useState(0);
     const [sessionType, setSessionType] = useState('ALL');
-    const [sessionIdInput, setSessionIdInput] = useState('');
+    const [sessionSel, setSessionSel] = useState('');   // '' = 전체
     const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
-    const sessionId = sessionIdInput.trim() !== '' ? Number(sessionIdInput) : undefined;
+    const [exporting, setExporting] = useState(false);
+    const sessionId = sessionSel !== '' ? Number(sessionSel) : undefined;
+
+    // 세션 인덱스 (삭제·모의 세션 포함)
+    const { data: sessionIdxRes } = useQuery({
+        queryKey: ['session-index'],
+        queryFn: () => tradingApi.sessionIndex(),
+        staleTime: 60_000,
+    });
+    const sessionIndex: SessionIndexEntry[] = (sessionIdxRes?.data as any) ?? [];
+    const sessionOptions = sessionType === 'ALL'
+        ? sessionIndex
+        : sessionIndex.filter(s => s.sessionType === sessionType);
 
     const { data: logsRes, isLoading } = useQuery({
         queryKey: ['logs', 'strategy', page, sessionType, sessionId],
@@ -42,8 +60,20 @@ export default function LogsPage() {
 
     const handleFilterChange = (value: string) => {
         setSessionType(value);
+        setSessionSel('');   // 구분 변경 시 세션 선택 초기화
         setPage(0);
         setOpenGroups(new Set());
+    };
+
+    const handleExport = async () => {
+        setExporting(true);
+        try {
+            await csvExportApi.strategyLogs(sessionType, sessionId);
+        } catch {
+            alert('CSV 내보내기에 실패했습니다.');
+        } finally {
+            setExporting(false);
+        }
     };
 
     // 구분 + 세션ID 기준 그룹화
@@ -75,13 +105,28 @@ export default function LogsPage() {
                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">전략 분석 신호 및 판단 이유를 확인합니다.</p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <input
-                        type="number"
-                        placeholder="세션 ID"
-                        value={sessionIdInput}
-                        onChange={e => { setSessionIdInput(e.target.value); setPage(0); setOpenGroups(new Set()); }}
-                        className="w-24 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-700 dark:text-slate-300 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-300"
-                    />
+                    {/* 세션 콤보박스 (삭제·모의 세션 포함) */}
+                    <select
+                        value={sessionSel}
+                        onChange={e => { setSessionSel(e.target.value); setPage(0); setOpenGroups(new Set()); }}
+                        className="max-w-[320px] px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                    >
+                        <option value="">세션 전체</option>
+                        {sessionOptions.map(s => (
+                            <option key={s.sessionId} value={String(s.sessionId)}>
+                                #{s.sessionId} {s.strategyType ?? '-'}({s.coinPair ?? '-'}) {SESSION_STATUS_LABEL[s.status] ?? s.status}
+                            </option>
+                        ))}
+                    </select>
+                    <button
+                        onClick={handleExport}
+                        disabled={exporting}
+                        title="현재 구분·세션 필터 기준으로 전략 로그를 CSV(Excel)로 내려받습니다"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-200 dark:border-emerald-700/50 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 text-xs transition-colors disabled:opacity-50"
+                    >
+                        {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                        CSV
+                    </button>
                     <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
                         {SESSION_FILTERS.map(f => (
                             <button
