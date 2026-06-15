@@ -253,7 +253,23 @@ public class OrderExecutionEngine {
                 cancelOnExchange(order.getExchangeOrderId());
             } catch (Exception e) {
                 log.error("거래소 주문 취소 실패 (orderId={}): {}", orderId, e.getMessage());
-                // 거래소 취소 실패해도 로컬 상태는 CANCELLED로 전이
+                // (B) 취소 실패는 '이미 체결되어 취소 불가'일 수 있다 — 거래소 상태를 재확인해
+                //     실제 체결됐다면 CANCELLED 로 박지 말고 체결 처리한다 (체결을 취소로 오기록 방지).
+                try {
+                    OrderResponse latest = queryExchangeOrder(order.getExchangeOrderId());
+                    boolean executed = latest.getExecutedVolume() != null
+                            && latest.getExecutedVolume().compareTo(BigDecimal.ZERO) > 0;
+                    if ("FILLED".equals(mapExchangeState(latest.getState())) || executed) {
+                        log.warn("취소 실패 + 거래소 체결 확인 — CANCELLED 대신 체결 처리 (orderId={}, state={}, executed={})",
+                                orderId, latest.getState(), latest.getExecutedVolume());
+                        syncOrderState(order, latest);
+                        return order;
+                    }
+                } catch (Exception ex) {
+                    log.warn("취소 실패 후 상태 재조회도 실패 (orderId={}): {} — CANCELLED 전이",
+                            orderId, ex.getMessage());
+                }
+                // 그 외(미체결 확인 또는 재조회 실패): 로컬 상태는 CANCELLED 로 전이
             }
         }
 
@@ -296,14 +312,14 @@ public class OrderExecutionEngine {
      * 전체 주문 내역 조회 (페이징) — 세션/날짜 필터 선택 적용
      */
     @Transactional(readOnly = true)
-    public Page<OrderEntity> getOrders(Pageable pageable, Long sessionId, Instant dateFrom, Instant dateTo) {
-        boolean hasSession = sessionId != null;
+    public Page<OrderEntity> getOrders(Pageable pageable, List<Long> sessionIds, Instant dateFrom, Instant dateTo) {
+        boolean hasSession = sessionIds != null && !sessionIds.isEmpty();
         boolean hasDate    = dateFrom != null && dateTo != null;
 
         if (hasSession && hasDate) {
-            return orderRepository.findBySessionIdAndCreatedAtBetweenOrderByCreatedAtDesc(sessionId, dateFrom, dateTo, pageable);
+            return orderRepository.findBySessionIdInAndCreatedAtBetweenOrderByCreatedAtDesc(sessionIds, dateFrom, dateTo, pageable);
         } else if (hasSession) {
-            return orderRepository.findBySessionIdOrderByCreatedAtDesc(sessionId, pageable);
+            return orderRepository.findBySessionIdInOrderByCreatedAtDesc(sessionIds, pageable);
         } else if (hasDate) {
             return orderRepository.findByCreatedAtBetweenOrderByCreatedAtDesc(dateFrom, dateTo, pageable);
         } else {
@@ -334,6 +350,23 @@ public class OrderExecutionEngine {
             if ("SUBMITTED".equals(order.getState()) && order.getSubmittedAt() != null) {
                 Duration elapsed = Duration.between(order.getSubmittedAt(), Instant.now());
                 if (elapsed.compareTo(ORDER_TIMEOUT) > 0) {
+                    // (A) 취소 직전 거래소 최신 상태 재확인 — 이미 체결됐다면 취소가 아니라 체결 처리.
+                    //     시장가 매도가 거래소에서 done 됐는데 취소로 오기록 → 포지션 OPEN 롤백 →
+                    //     무한 재매도 + 잔고 불일치로 이어지던 버그의 근본 차단선.
+                    if (order.getExchangeOrderId() != null) {
+                        try {
+                            OrderResponse latest = queryExchangeOrder(order.getExchangeOrderId());
+                            if ("FILLED".equals(mapExchangeState(latest.getState()))) {
+                                log.warn("타임아웃 직전 체결 감지 — 취소 대신 체결 동기화 (orderId={}, state={}, executed={})",
+                                        order.getId(), latest.getState(), latest.getExecutedVolume());
+                                syncOrderState(order, latest);
+                                continue;
+                            }
+                        } catch (Exception e) {
+                            log.warn("타임아웃 전 상태 재조회 실패 (orderId={}): {} — 취소 진행",
+                                    order.getId(), e.getMessage());
+                        }
+                    }
                     log.warn("주문 타임아웃 (orderId={}, {}분 경과)", order.getId(), elapsed.toMinutes());
                     try {
                         cancelOrder(order.getId());

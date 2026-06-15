@@ -68,7 +68,8 @@ export default function UpbitLogsPage() {
     const [datePreset, setDatePreset] = useState('ALL');
     const [customFrom, setCustomFrom] = useState(() => format(new Date(), 'yyyy-MM-dd'));
     const [customTo, setCustomTo] = useState(() => format(new Date(), 'yyyy-MM-dd'));
-    const [sessionFilter, setSessionFilter] = useState<string>('ALL');
+    const [selectedSessions, setSelectedSessions] = useState<Set<number>>(new Set());
+    const [sessionMenuOpen, setSessionMenuOpen] = useState(false);
     const [openRows, setOpenRows] = useState<Set<number>>(new Set());
 
     // 세션 목록
@@ -80,11 +81,12 @@ export default function UpbitLogsPage() {
     const sessions: LiveTradingSession[] = (sessionsRes?.data as any) ?? [];
 
     const { dateFrom, dateTo } = getDateRange(datePreset, { from: customFrom, to: customTo });
-    const sessionId = sessionFilter !== 'ALL' ? Number(sessionFilter) : undefined;
+    const sessionIds = selectedSessions.size > 0 ? [...selectedSessions] : undefined;
+    const sessionKey = sessionIds ? [...sessionIds].sort((a, b) => a - b).join(',') : 'ALL';
 
     const { data: res, isLoading, refetch, isFetching } = useQuery({
-        queryKey: ['upbit-logs', page, datePreset, dateFrom, dateTo, sessionFilter],
-        queryFn: () => tradingApi.getOrders(page, 50, sessionId, dateFrom, dateTo),
+        queryKey: ['upbit-logs', page, datePreset, dateFrom, dateTo, sessionKey],
+        queryFn: () => tradingApi.getOrders(page, 50, sessionIds, dateFrom, dateTo),
         refetchInterval: 10_000,
     });
 
@@ -127,8 +129,18 @@ export default function UpbitLogsPage() {
         setOpenRows(new Set());
     };
 
-    const handleSessionFilter = (v: string) => {
-        setSessionFilter(v);
+    const toggleSession = (id: number) => {
+        setSelectedSessions(prev => {
+            const next = new Set(prev);
+            next.has(id) ? next.delete(id) : next.add(id);
+            return next;
+        });
+        setPage(0);
+        setOpenRows(new Set());
+    };
+
+    const clearSessions = () => {
+        setSelectedSessions(new Set());
         setPage(0);
         setOpenRows(new Set());
     };
@@ -137,7 +149,7 @@ export default function UpbitLogsPage() {
     const handleExport = async () => {
         setExporting(true);
         try {
-            await csvExportApi.liveTradingOrders(sessionId, dateFrom, dateTo);
+            await csvExportApi.liveTradingOrders(sessionIds, dateFrom, dateTo);
         } catch (e) {
             console.error('주문 로그 CSV 내보내기 실패', e);
             alert('CSV 내보내기에 실패했습니다.');
@@ -222,19 +234,60 @@ export default function UpbitLogsPage() {
                         </div>
                     )}
 
-                    {/* 세션 필터 */}
-                    <select
-                        value={sessionFilter}
-                        onChange={e => handleSessionFilter(e.target.value)}
-                        className="h-8 px-3 rounded-lg text-xs font-medium border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-400"
-                    >
-                        <option value="ALL">세션 전체</option>
-                        {sessions.map(s => (
-                            <option key={s.id} value={String(s.id)}>
-                                #{s.id} {s.strategyType} · {s.coinPair}
-                            </option>
-                        ))}
-                    </select>
+                    {/* 세션 다중 선택 필터 */}
+                    <div className="relative">
+                        <button
+                            onClick={() => setSessionMenuOpen(o => !o)}
+                            className="flex items-center gap-2 h-8 px-3 rounded-lg text-xs font-medium border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                        >
+                            {selectedSessions.size === 0
+                                ? '세션 전체'
+                                : `${selectedSessions.size}개 세션 선택`}
+                            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                        </button>
+                        {sessionMenuOpen && (
+                            <>
+                                {/* 바깥 클릭 닫기 */}
+                                <div className="fixed inset-0 z-10" onClick={() => setSessionMenuOpen(false)} />
+                                <div className="absolute z-20 mt-1 w-72 max-h-80 overflow-y-auto rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg p-1.5">
+                                    <div className="flex items-center justify-between px-2 py-1.5 mb-1 border-b border-slate-100 dark:border-slate-700">
+                                        <span className="text-xs text-slate-400">
+                                            {selectedSessions.size > 0
+                                                ? `${selectedSessions.size}개 선택됨`
+                                                : '전체 (선택 없음)'}
+                                        </span>
+                                        <button
+                                            onClick={clearSessions}
+                                            disabled={selectedSessions.size === 0}
+                                            className="text-xs text-indigo-500 hover:text-indigo-600 disabled:text-slate-300 dark:disabled:text-slate-600"
+                                        >
+                                            전체 해제
+                                        </button>
+                                    </div>
+                                    {sessions.length === 0 ? (
+                                        <p className="px-2 py-3 text-xs text-slate-400 text-center">세션 없음</p>
+                                    ) : (
+                                        sessions.map(s => (
+                                            <label
+                                                key={s.id}
+                                                className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer"
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedSessions.has(s.id)}
+                                                    onChange={() => toggleSession(s.id)}
+                                                    className="w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-600 text-indigo-500 focus:ring-indigo-400"
+                                                />
+                                                <span className="text-xs text-slate-700 dark:text-slate-300 truncate">
+                                                    #{s.id} {s.strategyType} · {s.coinPair}
+                                                </span>
+                                            </label>
+                                        ))
+                                    )}
+                                </div>
+                            </>
+                        )}
+                    </div>
                 </div>
 
                 {/* 2행: 상태 + 방향 */}

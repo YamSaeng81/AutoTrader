@@ -646,6 +646,30 @@ grep -n "ERROR\|Caused by\|Exception" /tmp/backend.log | tail -30
 - web-api 컴파일 ✅ / 프론트 tsc(변경파일) ✅.
 
 **후속:**
-- [ ] ADA FAILED 사유 확인 후 매도 실패 근본 원인 수정.
+- [x] ADA FAILED 사유 확인 후 매도 실패 근본 원인 수정. → §10
 - [ ] 상태/방향 필터 **서버측 쿼리화**(현재 클라이언트 측 = 현재 페이지 내에서만 필터).
 - [ ] 오염된 CLOSED 손익 1회성 보정 스크립트.
+
+### 10. 🛠 ADA 팬텀 포지션(체결을 취소로 오기록) 버그 수정 — 3중 방어 (2026-06-15)
+
+**근본 원인 (주문 3803 기준 확정):** 시장가 손절 매도가 거래소에서 실제 체결됐는데, **주문 5분 타임아웃 자동취소**가 동작 → 이미 `done`이라 거래소 취소 API가 실패하지만 `cancelOrder`가 **로컬 상태를 무조건 CANCELLED로 박음** → `reconcileClosingPositions`가 포지션 OPEN 롤백 → DB는 보유 중인데 거래소엔 코인 없음 → 무한 재매도(잔고없음 FAILED) + 허위 미실현 손익.
+
+**수정 (3중 방어):**
+- **(A) 취소 직전 체결 재확인** — `OrderExecutionEngine.pollActiveOrders` 타임아웃 분기에서 취소 전 거래소 상태 재조회, `done`이면 취소 대신 `syncOrderState`로 체결 처리.
+- **(B) 취소 실패 시 체결 의심** — `OrderExecutionEngine.cancelOrder` catch에서 거래소 재조회, FILLED/executed>0이면 CANCELLED 대신 체결 처리(체결을 취소로 오기록하는 경로 차단).
+- **(C) 팬텀 포지션 안전망** — `LiveTradingService.reconcilePhantomPositions`(60초): OPEN인데 거래소 보유량(free+locked)이 DB 기대량의 5% 미만이면 팬텀으로 간주, **3회 연속(≈3분)·보유 10분↑** 확인 후 CLOSED 확정 + 세션 KRW 복원 + 텔레그램 경고. 추정 체결가 = 최근 FILLED 매도가 → 손절가 → 최신 캔들 종가 → 평균단가 순. **현재 멈춰있는 ADA 879도 가동 시 자동 정리됨.**
+- **(C-역) 추적 안 되는 잔고 감지(경고만)** — `detectUntrackedBalances`: 거래소 보유량이 DB 추적량(OPEN size>0 + CLOSING)의 110% 초과 + **최근 24h FAILED/CANCELLED 매수 주문 존재**(dust·수동입금 구분)일 때, 3회 연속·6시간 쿨다운으로 텔레그램 경고. **매수 체결이 실패로 오기록된 거울 케이스 대응. 자동 청산/매도/포지션 생성은 안 함**(사용자 선택: 경고만).
+- 진행 중 매도는 코인이 locked → 보유량>0 이라 (C)에서 자연 제외. 매수/매도 양방향 = A·B(주문 단위) 대칭 + C(잔고 대조)는 매도방향 자동청산·매수방향 경고. web-api 컴파일 ✅.
+
+**후속:**
+- [ ] 배포 후 ADA 879 자동 청산 로그/텔레그램 확인 (추정 손익 실제값 대조).
+- [ ] 시장가 청산(SELL) 주문을 5분 타임아웃 자동취소 대상에서 제외하는 옵션 검토(추가 안전).
+- [ ] (C-역) 경고 빈발 시 → 포지션 자동 복구 또는 자동 청산으로 승격 검토.
+
+### 11. 📥 실전매매 세션/포지션 CSV — 세션별·다중 선택 다운로드 (2026-06-15)
+
+분석용으로 **운영 여부 무관 과거 세션 포함** 세션별/다중 선택 export 지원.
+- BE: `exportLiveTradingSessions(Collection<Long>)` / `exportLiveTradingPositions(Collection<Long>)` — `sessionIds` 지정 시 해당 세션만, 미지정 시 전체(기존 동작). 컨트롤러 `?sessionIds=1&sessionIds=2` 반복 파라미터. (세션 export는 원래도 전 상태 포함이었음 — 빠진 건 **선택 필터**였음.)
+- FE: `trading/history` 테이블에 **체크박스 컬럼 + 전체선택** 추가. "세션 CSV (전체/N)" · "포지션 CSV (전체/N)" 버튼이 선택분만/전체 다운로드. `csvExportApi.liveTradingSessions/Positions(sessionIds?)`.
+- **Upbit 주문 로그(`settings/upbit-logs`)도 다중 세션화**: 세션 필터를 단일 `<select>` → **체크박스 다중 선택 팝오버**로 교체. 선택분이 목록 조회·CSV 양쪽에 반영(미선택=전체). BE `getOrders`/`exportLiveTradingOrders`가 `sessionIds`(List) 수용, `OrderRepository`에 `...SessionIdIn...` 페이징/비페이징 쿼리 4종 추가. FE `tradingApi.getOrders(…, sessionIds[], …)`·`csvExportApi.liveTradingOrders(sessionIds[], …)`는 `sessionId=3&sessionId=5` 반복 파라미터로 직렬화.
+- web-api 컴파일 ✅ / 변경 파일 tsc ✅ (그 외 tsc 에러는 기존 무관 파일).

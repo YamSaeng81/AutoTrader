@@ -40,6 +40,12 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
     /** 세션 + 날짜 범위 주문 조회 (최신순, 페이징) */
     Page<OrderEntity> findBySessionIdAndCreatedAtBetweenOrderByCreatedAtDesc(Long sessionId, Instant from, Instant to, Pageable pageable);
 
+    /** 다중 세션 주문 조회 (최신순, 페이징) */
+    Page<OrderEntity> findBySessionIdInOrderByCreatedAtDesc(List<Long> sessionIds, Pageable pageable);
+
+    /** 다중 세션 + 날짜 범위 주문 조회 (최신순, 페이징) */
+    Page<OrderEntity> findBySessionIdInAndCreatedAtBetweenOrderByCreatedAtDesc(List<Long> sessionIds, Instant from, Instant to, Pageable pageable);
+
     /** 특정 세션의 특정 상태 주문 조회 */
     List<OrderEntity> findBySessionIdAndStateIn(Long sessionId, List<String> states);
 
@@ -53,6 +59,12 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
 
     /** 세션 + 날짜 범위 주문 (최신순) */
     List<OrderEntity> findBySessionIdAndCreatedAtBetweenOrderByCreatedAtDesc(Long sessionId, Instant from, Instant to);
+
+    /** 다중 세션 주문 (최신순) */
+    List<OrderEntity> findBySessionIdInOrderByCreatedAtDesc(List<Long> sessionIds);
+
+    /** 다중 세션 + 날짜 범위 주문 (최신순) */
+    List<OrderEntity> findBySessionIdInAndCreatedAtBetweenOrderByCreatedAtDesc(List<Long> sessionIds, Instant from, Instant to);
 
     /** 실전매매 세션에 연결된 활성 주문 수 카운트 (session_id가 있는 것만) */
     long countBySessionIdIsNotNullAndStateIn(List<String> states);

@@ -46,8 +46,10 @@ import com.cryptoautotrader.core.risk.RiskCheckResult;
 import com.cryptoautotrader.core.selector.Ema200RegimeGate;
 
 import com.cryptoautotrader.api.discord.DiscordWebhookClient;
+import com.cryptoautotrader.exchange.upbit.UpbitOrderClient;
 import com.cryptoautotrader.exchange.upbit.UpbitRestClient;
 import com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient;
+import com.cryptoautotrader.exchange.upbit.dto.AccountResponse;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -60,6 +62,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -160,6 +163,10 @@ public class LiveTradingService {
     /** WebSocket 클라이언트 (선택적 — exchange-adapter 빈이 없을 경우 null) */
     @Autowired(required = false)
     private UpbitWebSocketClient wsClient;
+
+    /** 거래소 실잔고 조회용 (선택적 — API Key 미설정 시 null). §15 팬텀 포지션 대조에 사용 */
+    @Autowired(required = false)
+    private UpbitOrderClient upbitOrderClient;
 
     /** DB에서 ExitRuleConfig를 동적 로드하는 헬퍼 */
     private com.cryptoautotrader.core.risk.ExitRuleConfig exitConfig() {
@@ -1630,6 +1637,26 @@ public class LiveTradingService {
     /** CLOSING 포지션 타임아웃 — 이 시간 초과 시 OPEN 롤백 */
     private static final long CLOSING_TIMEOUT_MINUTES = 5;
 
+    // ── §15 팬텀 포지션 대조 (DB OPEN vs 거래소 실잔고) ───────────────
+    /** 거래소 보유량이 DB 기대량의 이 비율 미만이면 '코인 소멸'로 간주 (5%) */
+    private static final BigDecimal PHANTOM_BALANCE_RATIO = new BigDecimal("0.05");
+    /** 팬텀 확정 전 연속 감지 횟수 (60초 주기 × 3 ≈ 3분 지속 확인) — 매수 직후 잔고 반영 지연 오판 방지 */
+    private static final int PHANTOM_CONFIRM_COUNT = 3;
+    /** 팬텀 대조 대상 최소 보유 시간 (분) — 갓 매수한 포지션의 잔고 settle 지연 제외 */
+    private static final long PHANTOM_MIN_AGE_MINUTES = 10;
+    /** 포지션별 연속 팬텀 감지 횟수 */
+    private final Map<Long, Integer> phantomDetectionCount = new ConcurrentHashMap<>();
+
+    // ── §15-역: 추적 안 되는 잔고 감지 (거래소 보유 > DB 추적, 경고만) ──
+    /** 거래소 보유가 DB 추적량의 이 비율을 초과하면 '추적 안 되는 잔고'로 의심 (110%) */
+    private static final BigDecimal UNTRACKED_MARGIN_RATIO = new BigDecimal("1.10");
+    /** 동일 통화 추적-누락 알림 쿨다운 (시간) — 스팸 방지 */
+    private static final long UNTRACKED_ALERT_COOLDOWN_HOURS = 6;
+    /** 통화별 연속 추적-누락 감지 횟수 */
+    private final Map<String, Integer> untrackedDetectionCount = new ConcurrentHashMap<>();
+    /** 통화별 마지막 추적-누락 알림 시각 */
+    private final Map<String, Instant> untrackedAlertCooldown = new ConcurrentHashMap<>();
+
     /**
      * CLOSING 포지션 처리 — 매도 주문 체결/실패에 따라 청산 확정 또는 롤백 (5초 주기)
      *
@@ -1685,6 +1712,263 @@ public class LiveTradingService {
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * §15 팬텀 포지션 안전망 — DB는 OPEN(보유 중)이나 거래소 실잔고가 비어있는 포지션을 청산 확정한다 (60초 주기).
+     *
+     * <p>배경: 시장가 손절 매도가 거래소에서 실제 체결됐는데, 주문 5분 타임아웃 자동취소가
+     * (이미 done 이라 거래소 취소가 실패해도) 로컬 상태를 CANCELLED 로 박아버려 포지션이 OPEN 으로
+     * 롤백 → 무한 매도 재시도 + 허위 미실현 손익이 발생하던 버그를 자가 치유한다.
+     * (근본 차단은 OrderExecutionEngine 의 취소 전/취소 실패 시 체결 재확인 로직이 담당.)</p>
+     *
+     * <p>안전장치:
+     * <ul>
+     *   <li>거래소 보유량(free+locked)이 DB 기대량의 5% 미만일 때만 팬텀으로 간주.
+     *       진행 중 매도는 코인이 locked → 보유량 &gt; 0 이므로 자연히 제외된다.</li>
+     *   <li>3회 연속(≈3분) 감지돼야 확정 — 매수 직후 잔고 반영 지연 오판 방지.</li>
+     *   <li>보유 10분 미만 포지션 제외.</li>
+     * </ul></p>
+     */
+    @Scheduled(fixedDelay = 60_000)
+    @Transactional
+    public void reconcilePhantomPositions() {
+        if (upbitOrderClient == null) return; // API Key 미설정(모의/키없음) — 거래소 대조 불가
+
+        List<PositionEntity> openPositions = positionRepository.findByStatus("OPEN").stream()
+                .filter(p -> p.getSize() != null && p.getSize().compareTo(BigDecimal.ZERO) > 0)
+                .filter(p -> p.getSessionId() != null)
+                .toList();
+        if (openPositions.isEmpty()) {
+            phantomDetectionCount.clear();
+            return;
+        }
+
+        // 거래소 실잔고 1회 조회 → 통화별 보유량(free+locked) 맵
+        Map<String, BigDecimal> heldByCurrency;
+        try {
+            heldByCurrency = upbitOrderClient.getAccounts().stream()
+                    .filter(a -> a.getCurrency() != null)
+                    .collect(Collectors.toMap(
+                            AccountResponse::getCurrency,
+                            a -> (a.getBalance() != null ? a.getBalance() : BigDecimal.ZERO)
+                                    .add(a.getLocked() != null ? a.getLocked() : BigDecimal.ZERO),
+                            (x, y) -> x));
+        } catch (Exception e) {
+            log.warn("[§15] 거래소 잔고 조회 실패 — 팬텀 대조 건너뜀: {}", e.getMessage());
+            return;
+        }
+
+        // 통화별 DB 기대 보유량 합산 (다중 세션이 동일 코인을 보유할 수 있으므로)
+        Map<String, BigDecimal> expectedByCurrency = new HashMap<>();
+        for (PositionEntity p : openPositions) {
+            expectedByCurrency.merge(currencyOf(p.getCoinPair()), p.getSize(), BigDecimal::add);
+        }
+
+        Set<Long> suspectedThisCycle = ConcurrentHashMap.newKeySet();
+
+        for (PositionEntity pos : openPositions) {
+            String cur = currencyOf(pos.getCoinPair());
+            BigDecimal expected = expectedByCurrency.getOrDefault(cur, BigDecimal.ZERO);
+            BigDecimal held = heldByCurrency.getOrDefault(cur, BigDecimal.ZERO);
+
+            // 거래소 보유량이 기대량의 5% 이상이면 정상 — 팬텀 아님
+            if (expected.compareTo(BigDecimal.ZERO) <= 0
+                    || held.compareTo(expected.multiply(PHANTOM_BALANCE_RATIO)) >= 0) {
+                continue;
+            }
+            // 보유 10분 미만 — 매수 직후 잔고 반영 지연 가능, 제외
+            if (pos.getOpenedAt() != null
+                    && Duration.between(pos.getOpenedAt(), Instant.now()).toMinutes() < PHANTOM_MIN_AGE_MINUTES) {
+                continue;
+            }
+
+            suspectedThisCycle.add(pos.getId());
+            int count = phantomDetectionCount.merge(pos.getId(), 1, Integer::sum);
+            log.warn("[§15] 팬텀 포지션 의심 ({}/{}): posId={} {} DB보유={} 거래소보유={} sessionId={}",
+                    count, PHANTOM_CONFIRM_COUNT, pos.getId(), pos.getCoinPair(),
+                    pos.getSize(), held, pos.getSessionId());
+
+            if (count >= PHANTOM_CONFIRM_COUNT) {
+                reconcilePhantomPosition(pos, held);
+                phantomDetectionCount.remove(pos.getId());
+                suspectedThisCycle.remove(pos.getId());
+            }
+        }
+
+        // 이번 주기에 팬텀으로 잡히지 않은 포지션의 카운터는 리셋 (일시적 잔고 흔들림 무시)
+        phantomDetectionCount.keySet().retainAll(suspectedThisCycle);
+
+        // §15-역방향: 거래소엔 코인이 있는데 DB는 미보유로 기록한 '추적 안 되는 잔고' 감지 (경고만)
+        detectUntrackedBalances(heldByCurrency);
+    }
+
+    /**
+     * §15-역 — 거래소 보유량이 DB 추적량을 초과하는 통화를 감지해 경고한다 (자동 처리 없음).
+     *
+     * <p>매수 체결이 실패로 오기록되면 코인은 거래소에 있는데 DB는 미보유로 알아 추적이 끊긴다.
+     * dust·수동 입금과 구분하기 위해 <b>최근 24h 내 FAILED/CANCELLED 매수 주문이 있는 통화</b>에만,
+     * 3회 연속 확인 + 6시간 쿨다운으로 텔레그램 경고를 보낸다.</p>
+     */
+    private void detectUntrackedBalances(Map<String, BigDecimal> heldByCurrency) {
+        // DB 추적량 = OPEN(size>0) + CLOSING 포지션 합산 (진행 중 매도의 locked 코인 포함)
+        Map<String, BigDecimal> trackedByCurrency = new HashMap<>();
+        for (String status : List.of("OPEN", "CLOSING")) {
+            for (PositionEntity p : positionRepository.findByStatus(status)) {
+                if (p.getSize() != null && p.getSize().compareTo(BigDecimal.ZERO) > 0) {
+                    trackedByCurrency.merge(currencyOf(p.getCoinPair()), p.getSize(), BigDecimal::add);
+                }
+            }
+        }
+
+        Set<String> suspected = ConcurrentHashMap.newKeySet();
+        for (Map.Entry<String, BigDecimal> e : heldByCurrency.entrySet()) {
+            String cur = e.getKey();
+            if ("KRW".equals(cur)) continue;
+            BigDecimal held = e.getValue();
+            if (held == null || held.compareTo(BigDecimal.ZERO) <= 0) continue;
+
+            BigDecimal tracked = trackedByCurrency.getOrDefault(cur, BigDecimal.ZERO);
+            // 거래소 보유가 DB 추적량의 110% 이하면 정상 (수수료·반올림 여유) — 스킵
+            if (held.compareTo(tracked.multiply(UNTRACKED_MARGIN_RATIO)) <= 0) continue;
+
+            // 원인으로 의심되는 최근(24h) 매수 실패/취소 주문 — dust/수동입금과 구분
+            OrderEntity culprit = findRecentFailedBuy(cur);
+            if (culprit == null) continue;
+
+            BigDecimal untracked = held.subtract(tracked);
+            suspected.add(cur);
+            int count = untrackedDetectionCount.merge(cur, 1, Integer::sum);
+            log.warn("[§15-역] 추적 안 되는 잔고 의심 ({}/{}): {} 거래소보유={} DB추적={} 미추적={} (의심주문 orderId={})",
+                    count, PHANTOM_CONFIRM_COUNT, cur, held, tracked, untracked, culprit.getId());
+
+            if (count >= PHANTOM_CONFIRM_COUNT) {
+                Instant last = untrackedAlertCooldown.get(cur);
+                boolean cooled = last == null
+                        || Duration.between(last, Instant.now()).toHours() >= UNTRACKED_ALERT_COOLDOWN_HOURS;
+                if (cooled) {
+                    untrackedAlertCooldown.put(cur, Instant.now());
+                    log.error("[§15-역] 추적 안 되는 잔고 확정: {} 미추적 수량={}. 매수 체결이 실패로 오기록된 것으로 의심 — 수동 확인 필요 (orderId={}).",
+                            cur, untracked, culprit.getId());
+                    telegramService.sendCustomNotification(String.format(
+                            "⚠️ 추적 안 되는 잔고 감지: %s%n" +
+                            "거래소엔 코인이 있는데 DB는 미보유로 기록돼 있습니다 (미추적 ≈ %s).%n" +
+                            "매수 체결이 실패로 오기록됐을 수 있어요 — 주문 %d 및 계좌를 확인하세요.",
+                            cur, untracked.toPlainString(), culprit.getId()));
+                }
+            }
+        }
+        untrackedDetectionCount.keySet().retainAll(suspected);
+    }
+
+    /** 최근 24시간 내 해당 통화의 FAILED/CANCELLED 매수 주문 (가장 최근 1건) */
+    private OrderEntity findRecentFailedBuy(String currency) {
+        String coinPair = "KRW-" + currency;
+        Instant from = Instant.now().minus(24, ChronoUnit.HOURS);
+        return orderRepository.findByCreatedAtBetweenOrderByCreatedAtDesc(from, Instant.now()).stream()
+                .filter(o -> coinPair.equalsIgnoreCase(o.getCoinPair()))
+                .filter(o -> "BUY".equalsIgnoreCase(o.getSide()))
+                .filter(o -> "FAILED".equals(o.getState()) || "CANCELLED".equals(o.getState()))
+                .findFirst().orElse(null);
+    }
+
+    /** "KRW-ADA" → "ADA" */
+    private String currencyOf(String coinPair) {
+        if (coinPair == null) return "";
+        int i = coinPair.indexOf('-');
+        return i >= 0 ? coinPair.substring(i + 1) : coinPair;
+    }
+
+    /**
+     * 팬텀 포지션 청산 확정 — 거래소에서 코인이 이미 사라진(매도 체결됨) 포지션을 CLOSED 처리.
+     * 실제 체결가를 알 수 없으므로 최선 추정가로 손익을 기록하고, 수동 확인 알림을 보낸다.
+     */
+    private void reconcilePhantomPosition(PositionEntity pos, BigDecimal exchangeHeld) {
+        // 원자적 CLOSE — 동시 reconcile / executeSessionSell 과의 이중 처리 방지
+        int closed = positionRepository.closeIfOpen(pos.getId(), Instant.now());
+        if (closed == 0) {
+            log.debug("[§15] 팬텀 포지션 이미 정리됨 — 스킵 (posId={})", pos.getId());
+            return;
+        }
+
+        BigDecimal exitPrice = resolvePhantomExitPrice(pos);
+        BigDecimal soldQty = pos.getSize();
+        BigDecimal proceeds = soldQty.multiply(exitPrice);
+        BigDecimal fee = proceeds.multiply(FEE_RATE);
+        BigDecimal netProceeds = proceeds.subtract(fee);
+        BigDecimal realizedPnl = netProceeds.subtract(soldQty.multiply(pos.getAvgPrice()));
+
+        // closeIfOpen 은 status/closedAt 만 변경했으므로 나머지 손익 필드를 반영
+        pos.setStatus("CLOSED");
+        pos.setClosedAt(Instant.now());
+        pos.setRealizedPnl(realizedPnl);
+        pos.setPositionFee(fee);
+        pos.setUnrealizedPnl(BigDecimal.ZERO);
+        positionRepository.save(pos);
+
+        final Long sessionId = pos.getSessionId();
+        boolean hasOpenPosition = positionRepository
+                .findBySessionIdAndCoinPairAndStatus(sessionId, pos.getCoinPair(), "OPEN")
+                .isPresent();
+        balanceUpdater.apply(sessionId, s -> {
+            BigDecimal newAvailableKrw = s.getAvailableKrw().add(netProceeds);
+            s.setAvailableKrw(newAvailableKrw);
+            if (!hasOpenPosition) {
+                s.setTotalAssetKrw(newAvailableKrw);
+            } else {
+                s.setTotalAssetKrw(s.getTotalAssetKrw().subtract(fee));
+            }
+        });
+
+        log.warn("[§15] 팬텀 포지션 청산 확정 (추정가 기반): posId={} {} {}개 추정체결가={} 추정손익={} 수수료={} (거래소보유={}). "
+                        + "실제 체결가는 알 수 없어 추정값으로 기록 — 수동 확인 권장.",
+                pos.getId(), pos.getCoinPair(), soldQty, exitPrice, realizedPnl, fee, exchangeHeld);
+
+        telegramService.sendCustomNotification(String.format(
+                "🔧 팬텀 포지션 자동 정리: 세션 %d %s%n" +
+                "거래소엔 코인이 없는데 DB는 보유 중이던 포지션을 청산 처리했습니다.%n" +
+                "추정 체결가 %s / 추정 손익 %s KRW (실제값과 다를 수 있어 확인 필요).",
+                sessionId, pos.getCoinPair(),
+                exitPrice.toPlainString(),
+                realizedPnl.setScale(0, RoundingMode.HALF_UP).toPlainString()));
+    }
+
+    /** 팬텀 청산 추정 체결가: 최근 FILLED 매도가 → 손절가 → 최신 캔들 종가 → 평균단가 순 */
+    private BigDecimal resolvePhantomExitPrice(PositionEntity pos) {
+        // 1) 이 포지션의 가장 최근 FILLED 매도 체결가 (가장 신뢰도 높음)
+        BigDecimal filledSell = orderRepository.findByPositionIdOrderByCreatedAtDesc(pos.getId()).stream()
+                .filter(o -> "SELL".equalsIgnoreCase(o.getSide()))
+                .filter(o -> "FILLED".equals(o.getState()) && o.getPrice() != null
+                        && o.getPrice().compareTo(BigDecimal.ZERO) > 0)
+                .map(OrderEntity::getPrice)
+                .findFirst().orElse(null);
+        if (filledSell != null) return filledSell;
+
+        // 2) 손절가 — 대부분의 팬텀은 손절 매도에서 발생하므로 합리적 근사
+        if (pos.getStopLossPrice() != null && pos.getStopLossPrice().compareTo(BigDecimal.ZERO) > 0) {
+            return pos.getStopLossPrice();
+        }
+
+        // 3) 최신 캔들 종가
+        BigDecimal latestClose = latestCandleClose(pos);
+        if (latestClose != null && latestClose.compareTo(BigDecimal.ZERO) > 0) return latestClose;
+
+        // 4) 평균 단가 (최후 폴백 — 손익 0 근처로 기록)
+        return pos.getAvgPrice();
+    }
+
+    private BigDecimal latestCandleClose(PositionEntity pos) {
+        try {
+            LiveTradingSessionEntity session = sessionRepository.findById(pos.getSessionId()).orElse(null);
+            if (session == null || session.getTimeframe() == null) return null;
+            List<MarketDataCacheEntity> candles = candleDataRepository.findCandles(
+                    pos.getCoinPair(), session.getTimeframe(),
+                    Instant.now().minus(7, ChronoUnit.DAYS), Instant.now());
+            if (candles.isEmpty()) return null;
+            return candles.get(candles.size() - 1).getClose();
+        } catch (Exception e) {
+            return null;
         }
     }
 

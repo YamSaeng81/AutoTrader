@@ -27,12 +27,28 @@ export default function TradingHistoryPage() {
   const deleteSession = useDeleteTradingSession();
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [csvLoading, setCsvLoading] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+
+  const toggleSelect = (id: number) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+  const allSelected = sessions.length > 0 && selectedIds.size === sessions.length;
+  const toggleSelectAll = () => {
+    setSelectedIds(allSelected ? new Set() : new Set(sessions.map((s) => s.id)));
+  };
 
   async function handleCsvDownload(type: 'sessions' | 'positions') {
     setCsvLoading(type);
+    // 선택된 세션이 있으면 해당 세션만(운영 여부 무관), 없으면 전체
+    const ids = selectedIds.size > 0 ? [...selectedIds] : undefined;
     try {
-      if (type === 'sessions') await csvExportApi.liveTradingSessions();
-      else await csvExportApi.liveTradingPositions();
+      if (type === 'sessions') await csvExportApi.liveTradingSessions(ids);
+      else await csvExportApi.liveTradingPositions(ids);
     } catch {
       alert('CSV 다운로드 중 오류가 발생했습니다.');
     } finally {
@@ -84,23 +100,44 @@ export default function TradingHistoryPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {selectedIds.size > 0 ? (
+            <span className="flex items-center gap-2 text-xs text-slate-400 mr-1">
+              <span className="px-2 py-1 bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 rounded-md font-medium">
+                {selectedIds.size}개 선택됨
+              </span>
+              <button
+                onClick={() => setSelectedIds(new Set())}
+                className="text-slate-500 hover:text-slate-300 underline"
+              >
+                선택 해제
+              </button>
+            </span>
+          ) : (
+            <span className="text-xs text-slate-600 mr-1 hidden md:inline">
+              체크박스로 세션 선택 시 해당 세션만 받습니다
+            </span>
+          )}
           <button
             onClick={() => handleCsvDownload('sessions')}
             disabled={csvLoading !== null}
             className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
-            title="세션 이력 CSV 다운로드"
+            title={selectedIds.size > 0 ? '선택 세션 CSV 다운로드' : '전체 세션 CSV 다운로드'}
           >
             <Download className="w-4 h-4" />
-            {csvLoading === 'sessions' ? '...' : '세션 CSV'}
+            {csvLoading === 'sessions'
+              ? '...'
+              : `세션 CSV${selectedIds.size > 0 ? ` (${selectedIds.size})` : ' (전체)'}`}
           </button>
           <button
             onClick={() => handleCsvDownload('positions')}
             disabled={csvLoading !== null}
             className="flex items-center gap-1.5 px-3 py-2 bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
-            title="포지션 이력 CSV 다운로드"
+            title={selectedIds.size > 0 ? '선택 세션 포지션 CSV 다운로드' : '전체 포지션 CSV 다운로드'}
           >
             <Download className="w-4 h-4" />
-            {csvLoading === 'positions' ? '...' : '포지션 CSV'}
+            {csvLoading === 'positions'
+              ? '...'
+              : `포지션 CSV${selectedIds.size > 0 ? ` (${selectedIds.size})` : ' (전체)'}`}
           </button>
           <Link
             href="/trading"
@@ -152,6 +189,15 @@ export default function TradingHistoryPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-700/50 bg-slate-900/30 text-xs uppercase tracking-wider text-slate-500">
+                  <th className="px-4 py-4">
+                    <input
+                      type="checkbox"
+                      checked={allSelected}
+                      onChange={toggleSelectAll}
+                      title="전체 선택/해제"
+                      className="w-4 h-4 rounded border-slate-600 bg-slate-800 text-indigo-500 focus:ring-indigo-500 cursor-pointer"
+                    />
+                  </th>
                   <th className="text-left px-5 py-4">#</th>
                   <th className="text-left px-5 py-4">전략</th>
                   <th className="text-left px-5 py-4">코인</th>
@@ -179,8 +225,18 @@ export default function TradingHistoryPage() {
                   return (
                     <tr
                       key={session.id}
-                      className="hover:bg-slate-700/20 transition-colors group text-slate-300"
+                      className={`hover:bg-slate-700/20 transition-colors group text-slate-300 ${
+                        selectedIds.has(session.id) ? 'bg-indigo-500/5' : ''
+                      }`}
                     >
+                      <td className="px-4 py-4">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(session.id)}
+                          onChange={() => toggleSelect(session.id)}
+                          className="w-4 h-4 rounded border-slate-600 bg-slate-800 text-indigo-500 focus:ring-indigo-500 cursor-pointer"
+                        />
+                      </td>
                       <td className="px-5 py-4 text-slate-500 font-medium">#{session.id}</td>
                       <td className="px-5 py-4 font-semibold text-white">{session.strategyType}</td>
                       <td className="px-5 py-4">{session.coinPair}</td>

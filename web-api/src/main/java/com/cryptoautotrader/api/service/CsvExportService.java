@@ -294,8 +294,13 @@ public class CsvExportService {
 
     // ── 실전매매 이력 ─────────────────────────────────────────────────────────
 
-    public byte[] exportLiveTradingSessions() {
+    /** 세션 이력 export — sessionIds 지정 시 해당 세션만(운영 여부 무관), 미지정 시 전체. */
+    public byte[] exportLiveTradingSessions(Collection<Long> sessionIds) {
         List<LiveTradingSessionEntity> sessions = sessionRepository.findAllByOrderByCreatedAtDesc();
+        if (sessionIds != null && !sessionIds.isEmpty()) {
+            Set<Long> filter = new HashSet<>(sessionIds);
+            sessions = sessions.stream().filter(s -> filter.contains(s.getId())).toList();
+        }
 
         StringBuilder sb = new StringBuilder();
         sb.append("세션ID,전략,코인페어,타임프레임,초기자금,현재자산,가용KRW,수익률(%),");
@@ -322,9 +327,18 @@ public class CsvExportService {
         return bom(sb.toString());
     }
 
-    public byte[] exportLiveTradingPositions() {
-        List<PositionEntity> positions = positionRepository.findAll(
-                Sort.by(Sort.Direction.DESC, "openedAt"));
+    /** 포지션 이력 export — sessionIds 지정 시 해당 세션의 포지션만(운영 여부 무관), 미지정 시 전체. */
+    public byte[] exportLiveTradingPositions(Collection<Long> sessionIds) {
+        List<PositionEntity> positions;
+        if (sessionIds != null && !sessionIds.isEmpty()) {
+            positions = positionRepository.findBySessionIdIn(new ArrayList<>(new HashSet<>(sessionIds)))
+                    .stream()
+                    .sorted(Comparator.comparing(PositionEntity::getOpenedAt,
+                            Comparator.nullsLast(Comparator.reverseOrder())))
+                    .toList();
+        } else {
+            positions = positionRepository.findAll(Sort.by(Sort.Direction.DESC, "openedAt"));
+        }
 
         Map<Long, LiveTradingSessionEntity> sessionMap = new HashMap<>();
         sessionRepository.findAll().forEach(s -> sessionMap.put(s.getId(), s));
@@ -362,15 +376,17 @@ public class CsvExportService {
      * 실전매매(Upbit) 주문 로그 — upbit-logs 화면과 동일한 세션/날짜 필터로 export.
      * 필터 미지정 시 전체 주문을 최신순으로 내보낸다.
      */
-    public byte[] exportLiveTradingOrders(Long sessionId, Instant from, Instant to) {
-        boolean hasSession = sessionId != null;
+    public byte[] exportLiveTradingOrders(Collection<Long> sessionIds, Instant from, Instant to) {
+        List<Long> ids = (sessionIds != null && !sessionIds.isEmpty())
+                ? new ArrayList<>(new LinkedHashSet<>(sessionIds)) : null;
+        boolean hasSession = ids != null;
         boolean hasDate    = from != null && to != null;
 
         List<OrderEntity> orders;
         if (hasSession && hasDate) {
-            orders = orderRepository.findBySessionIdAndCreatedAtBetweenOrderByCreatedAtDesc(sessionId, from, to);
+            orders = orderRepository.findBySessionIdInAndCreatedAtBetweenOrderByCreatedAtDesc(ids, from, to);
         } else if (hasSession) {
-            orders = orderRepository.findBySessionIdOrderByCreatedAtDesc(sessionId);
+            orders = orderRepository.findBySessionIdInOrderByCreatedAtDesc(ids);
         } else if (hasDate) {
             orders = orderRepository.findByCreatedAtBetweenOrderByCreatedAtDesc(from, to);
         } else {

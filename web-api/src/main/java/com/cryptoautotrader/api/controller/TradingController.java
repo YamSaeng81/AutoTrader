@@ -188,7 +188,7 @@ public class TradingController {
     public ApiResponse<Page<OrderEntity>> getOrders(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
-            @RequestParam(required = false) Long sessionId,
+            @RequestParam(required = false) java.util.List<Long> sessionId,
             @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate dateTo) {
         ZoneId kst = ZoneId.of("Asia/Seoul");

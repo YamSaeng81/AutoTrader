@@ -142,10 +142,17 @@ export const tradingApi = {
     // 전체 포지션/주문
     getPositions: () =>
         api.get<ApiResponse<Position[]>>('/api/v1/trading/positions').then(r => r.data),
-    getOrders: (page = 0, size = 20, sessionId?: number, dateFrom?: string, dateTo?: string) =>
-        api.get<ApiResponse<PageResponse<LiveOrder>>>('/api/v1/trading/orders', {
-            params: { page, size, sessionId, dateFrom, dateTo },
-        }).then(r => r.data),
+    getOrders: (page = 0, size = 20, sessionIds?: number[], dateFrom?: string, dateTo?: string) => {
+        const params = new URLSearchParams();
+        params.set('page', String(page));
+        params.set('size', String(size));
+        sessionIds?.forEach(id => params.append('sessionId', String(id)));
+        if (dateFrom) params.set('dateFrom', dateFrom);
+        if (dateTo) params.set('dateTo', dateTo);
+        return api
+            .get<ApiResponse<PageResponse<LiveOrder>>>(`/api/v1/trading/orders?${params.toString()}`)
+            .then(r => r.data);
+    },
     cancelOrder: (id: number) =>
         api.delete<ApiResponse<null>>(`/api/v1/trading/orders/${id}`).then(r => r.data),
 
@@ -357,13 +364,27 @@ export const csvExportApi = {
         ),
     walkForwardHistory: () =>
         downloadCsv('/api/v1/export/csv/walk-forward', `walk_forward_history_${today()}.csv`),
-    liveTradingSessions: () =>
-        downloadCsv('/api/v1/export/csv/live-trading/sessions', `live_trading_sessions_${today()}.csv`),
-    liveTradingPositions: () =>
-        downloadCsv('/api/v1/export/csv/live-trading/positions', `live_trading_positions_${today()}.csv`),
-    liveTradingOrders: (sessionId?: number, dateFrom?: string, dateTo?: string) => {
+    liveTradingSessions: (sessionIds?: number[]) => {
+        const qs = sessionIds?.length
+            ? `?${sessionIds.map((id) => `sessionIds=${id}`).join('&')}`
+            : '';
+        return downloadCsv(
+            `/api/v1/export/csv/live-trading/sessions${qs}`,
+            `live_trading_sessions_${today()}.csv`,
+        );
+    },
+    liveTradingPositions: (sessionIds?: number[]) => {
+        const qs = sessionIds?.length
+            ? `?${sessionIds.map((id) => `sessionIds=${id}`).join('&')}`
+            : '';
+        return downloadCsv(
+            `/api/v1/export/csv/live-trading/positions${qs}`,
+            `live_trading_positions_${today()}.csv`,
+        );
+    },
+    liveTradingOrders: (sessionIds?: number[], dateFrom?: string, dateTo?: string) => {
         const params = new URLSearchParams();
-        if (sessionId != null) params.set('sessionId', String(sessionId));
+        sessionIds?.forEach(id => params.append('sessionIds', String(id)));
         if (dateFrom) params.set('dateFrom', dateFrom);
         if (dateTo) params.set('dateTo', dateTo);
         const qs = params.toString();

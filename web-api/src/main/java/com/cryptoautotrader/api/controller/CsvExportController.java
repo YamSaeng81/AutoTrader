@@ -46,30 +46,32 @@ public class CsvExportController {
         return csvResponse(csv, "walk_forward_history_" + today() + ".csv");
     }
 
-    /** 실전매매 세션 이력 */
+    /** 실전매매 세션 이력 — sessionIds 지정 시 해당 세션만(운영 여부 무관), 미지정 시 전체 */
     @GetMapping("/live-trading/sessions")
-    public ResponseEntity<byte[]> liveTradingSessions() {
-        byte[] csv = csvExportService.exportLiveTradingSessions();
+    public ResponseEntity<byte[]> liveTradingSessions(
+            @RequestParam(required = false) java.util.List<Long> sessionIds) {
+        byte[] csv = csvExportService.exportLiveTradingSessions(sessionIds);
         return csvResponse(csv, "live_trading_sessions_" + today() + ".csv");
     }
 
-    /** 실전매매 포지션 이력 */
+    /** 실전매매 포지션 이력 — sessionIds 지정 시 해당 세션의 포지션만(운영 여부 무관), 미지정 시 전체 */
     @GetMapping("/live-trading/positions")
-    public ResponseEntity<byte[]> liveTradingPositions() {
-        byte[] csv = csvExportService.exportLiveTradingPositions();
+    public ResponseEntity<byte[]> liveTradingPositions(
+            @RequestParam(required = false) java.util.List<Long> sessionIds) {
+        byte[] csv = csvExportService.exportLiveTradingPositions(sessionIds);
         return csvResponse(csv, "live_trading_positions_" + today() + ".csv");
     }
 
-    /** 실전매매(Upbit) 주문 로그 — sessionId/dateFrom/dateTo 필터 (upbit-logs 화면과 동일) */
+    /** 실전매매(Upbit) 주문 로그 — sessionIds(다중)/dateFrom/dateTo 필터 (upbit-logs 화면과 동일) */
     @GetMapping("/live-trading/orders")
     public ResponseEntity<byte[]> liveTradingOrders(
-            @RequestParam(required = false) Long sessionId,
+            @RequestParam(required = false) java.util.List<Long> sessionIds,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo) {
         java.time.ZoneId kst = java.time.ZoneId.of("Asia/Seoul");
         java.time.Instant from = dateFrom != null ? dateFrom.atStartOfDay(kst).toInstant() : null;
         java.time.Instant to   = dateTo   != null ? dateTo.plusDays(1).atStartOfDay(kst).toInstant() : null;
-        byte[] csv = csvExportService.exportLiveTradingOrders(sessionId, from, to);
+        byte[] csv = csvExportService.exportLiveTradingOrders(sessionIds, from, to);
         return csvResponse(csv, "live_trading_orders_" + today() + ".csv");
     }
 
