@@ -43,6 +43,17 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
     /** 특정 세션의 특정 상태 주문 조회 */
     List<OrderEntity> findBySessionIdAndStateIn(Long sessionId, List<String> states);
 
+    // ── CSV export 용 (페이징 없이 전체 조회) ──────────────────────────────
+
+    /** 세션 전체 주문 (최신순) */
+    List<OrderEntity> findBySessionIdOrderByCreatedAtDesc(Long sessionId);
+
+    /** 날짜 범위 주문 (최신순) */
+    List<OrderEntity> findByCreatedAtBetweenOrderByCreatedAtDesc(Instant from, Instant to);
+
+    /** 세션 + 날짜 범위 주문 (최신순) */
+    List<OrderEntity> findBySessionIdAndCreatedAtBetweenOrderByCreatedAtDesc(Long sessionId, Instant from, Instant to);
+
     /** 실전매매 세션에 연결된 활성 주문 수 카운트 (session_id가 있는 것만) */
     long countBySessionIdIsNotNullAndStateIn(List<String> states);
 }

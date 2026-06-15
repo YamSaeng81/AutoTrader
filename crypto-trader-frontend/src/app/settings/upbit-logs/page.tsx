@@ -2,12 +2,12 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { tradingApi } from '@/lib/api';
+import { tradingApi, csvExportApi } from '@/lib/api';
 import { LiveOrder, LiveTradingSession } from '@/lib/types';
 import {
     Loader2, Activity, ChevronLeft, ChevronRight,
     ChevronsLeft, ChevronsRight,
-    ChevronDown, ChevronRight as ChevronRightIcon, RefreshCw,
+    ChevronDown, ChevronRight as ChevronRightIcon, RefreshCw, Download,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, subDays, startOfDay } from 'date-fns';
@@ -133,6 +133,19 @@ export default function UpbitLogsPage() {
         setOpenRows(new Set());
     };
 
+    const [exporting, setExporting] = useState(false);
+    const handleExport = async () => {
+        setExporting(true);
+        try {
+            await csvExportApi.liveTradingOrders(sessionId, dateFrom, dateTo);
+        } catch (e) {
+            console.error('주문 로그 CSV 내보내기 실패', e);
+            alert('CSV 내보내기에 실패했습니다.');
+        } finally {
+            setExporting(false);
+        }
+    };
+
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
             {/* 헤더 */}
@@ -143,14 +156,27 @@ export default function UpbitLogsPage() {
                         거래소 주문 제출 및 상태 변경 이력 (총 {totalElements.toLocaleString()}건)
                     </p>
                 </div>
-                <button
-                    onClick={() => refetch()}
-                    disabled={isFetching}
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 text-sm transition-colors disabled:opacity-50"
-                >
-                    <RefreshCw className={cn('w-4 h-4', isFetching && 'animate-spin')} />
-                    새로고침
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={handleExport}
+                        disabled={exporting}
+                        title="현재 날짜·세션 필터 기준으로 주문 로그를 CSV(Excel)로 내려받습니다"
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg border border-emerald-200 dark:border-emerald-700/50 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 text-sm transition-colors disabled:opacity-50"
+                    >
+                        {exporting
+                            ? <Loader2 className="w-4 h-4 animate-spin" />
+                            : <Download className="w-4 h-4" />}
+                        엑셀로 받기
+                    </button>
+                    <button
+                        onClick={() => refetch()}
+                        disabled={isFetching}
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 text-sm transition-colors disabled:opacity-50"
+                    >
+                        <RefreshCw className={cn('w-4 h-4', isFetching && 'animate-spin')} />
+                        새로고침
+                    </button>
+                </div>
             </div>
 
             {/* 필터 */}

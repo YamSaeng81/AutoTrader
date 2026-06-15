@@ -361,6 +361,17 @@ export const csvExportApi = {
         downloadCsv('/api/v1/export/csv/live-trading/sessions', `live_trading_sessions_${today()}.csv`),
     liveTradingPositions: () =>
         downloadCsv('/api/v1/export/csv/live-trading/positions', `live_trading_positions_${today()}.csv`),
+    liveTradingOrders: (sessionId?: number, dateFrom?: string, dateTo?: string) => {
+        const params = new URLSearchParams();
+        if (sessionId != null) params.set('sessionId', String(sessionId));
+        if (dateFrom) params.set('dateFrom', dateFrom);
+        if (dateTo) params.set('dateTo', dateTo);
+        const qs = params.toString();
+        return downloadCsv(
+            `/api/v1/export/csv/live-trading/orders${qs ? `?${qs}` : ''}`,
+            `live_trading_orders_${today()}.csv`,
+        );
+    },
     paperTradingSessions: () =>
         downloadCsv('/api/v1/export/csv/paper-trading/sessions', `paper_trading_sessions_${today()}.csv`),
     paperTradingPositions: () =>

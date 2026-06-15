@@ -60,6 +60,19 @@ public class CsvExportController {
         return csvResponse(csv, "live_trading_positions_" + today() + ".csv");
     }
 
+    /** 실전매매(Upbit) 주문 로그 — sessionId/dateFrom/dateTo 필터 (upbit-logs 화면과 동일) */
+    @GetMapping("/live-trading/orders")
+    public ResponseEntity<byte[]> liveTradingOrders(
+            @RequestParam(required = false) Long sessionId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo) {
+        java.time.ZoneId kst = java.time.ZoneId.of("Asia/Seoul");
+        java.time.Instant from = dateFrom != null ? dateFrom.atStartOfDay(kst).toInstant() : null;
+        java.time.Instant to   = dateTo   != null ? dateTo.plusDays(1).atStartOfDay(kst).toInstant() : null;
+        byte[] csv = csvExportService.exportLiveTradingOrders(sessionId, from, to);
+        return csvResponse(csv, "live_trading_orders_" + today() + ".csv");
+    }
+
     /** 모의투자 세션 이력 */
     @GetMapping("/paper-trading/sessions")
     public ResponseEntity<byte[]> paperTradingSessions() {

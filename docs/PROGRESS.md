@@ -630,3 +630,22 @@ grep -n "ERROR\|Caused by\|Exception" /tmp/backend.log | tail -30
 - P1-A 화이트리스트 ETH 추가 검토(수익↑/MDD악화 트레이드오프).
 - P2-B StrategySelector↔CompositeRegimeRouter 레짐 앙상블 2중 구현 통합.
 - `SignalEvaluationService` 데드코드(참조 0건) 정리.
+
+### 9. 🔎 실전 이력 분석 + 주문 로그 조회 개선 (2026-06-15)
+
+**분석 (docs/anal_data CSV 3종):**
+- **KRW-ADA(포지션879, 세션153) 허위 미실현 손익**: 6/9 매도가 **계속 FAILED** → `reconcileClosingPositions`가 OPEN 롤백 → 무한 재시도. 포지션이 OPEN으로 남아 `updateSessionUnrealizedPnl` 시가평가가 멈추지 않음(세션 허위 +5.31%). **실제 FAILED 사유는 주문 `failedReason`/Upbit 응답 확인 필요** (유력: `resolveAskVolume` 잔고 잠김 / invalid_volume_ask).
+- **손익 데이터 오염**: CLOSED 193건 중 143건 realizedPnl = -4원(매도수수료만) "가짜 본전", 44건 0원 → 성과지표 신뢰 불가. (P0 방어코드는 추가됐으나 과거 오염 레코드 미복구.)
+- **신호 품질**: 561,800건 중 99.6% HOLD, LIVE 실체결 BUY 15·SELL 9건뿐. 4h/24h 사후수익률 컬럼 거의 null(백필 미동작).
+
+**구현 — Upbit 주문 로그 화면(`settings/upbit-logs`) 조회 개선:**
+- 날짜 **"직접 지정" 프리셋 + from~to 날짜 입력** (특정일 조회).
+- 페이지네이션 **처음/끝 버튼 + 페이지 번호 직접 입력** 점프.
+- **CSV(Excel) 내보내기** "엑셀로 받기" 버튼 — 현재 날짜·세션 필터 반영.
+  - BE: `GET /api/v1/export/csv/live-trading/orders?sessionId&dateFrom&dateTo`, `CsvExportService.exportLiveTradingOrders`, `OrderRepository` non-paged 조회 3종. FE: `csvExportApi.liveTradingOrders`.
+- web-api 컴파일 ✅ / 프론트 tsc(변경파일) ✅.
+
+**후속:**
+- [ ] ADA FAILED 사유 확인 후 매도 실패 근본 원인 수정.
+- [ ] 상태/방향 필터 **서버측 쿼리화**(현재 클라이언트 측 = 현재 페이지 내에서만 필터).
+- [ ] 오염된 CLOSED 손익 1회성 보정 스크립트.
