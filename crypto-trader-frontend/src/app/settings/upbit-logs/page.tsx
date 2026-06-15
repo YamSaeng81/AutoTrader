@@ -6,6 +6,7 @@ import { tradingApi } from '@/lib/api';
 import { LiveOrder, LiveTradingSession } from '@/lib/types';
 import {
     Loader2, Activity, ChevronLeft, ChevronRight,
+    ChevronsLeft, ChevronsRight,
     ChevronDown, ChevronRight as ChevronRightIcon, RefreshCw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -44,14 +45,19 @@ const DATE_PRESETS = [
     { value: 'TODAY',     label: '오늘' },
     { value: 'YESTERDAY', label: '어제' },
     { value: '7DAYS',     label: '7일' },
+    { value: 'CUSTOM',    label: '직접 지정' },
 ];
 
-function getDateRange(preset: string): { dateFrom?: string; dateTo?: string } {
+function getDateRange(
+    preset: string,
+    custom?: { from: string; to: string },
+): { dateFrom?: string; dateTo?: string } {
     const fmt = (d: Date) => format(d, 'yyyy-MM-dd');
     const today = new Date();
     if (preset === 'TODAY')     return { dateFrom: fmt(today), dateTo: fmt(today) };
     if (preset === 'YESTERDAY') { const y = subDays(today, 1); return { dateFrom: fmt(y), dateTo: fmt(y) }; }
     if (preset === '7DAYS')     return { dateFrom: fmt(subDays(today, 6)), dateTo: fmt(today) };
+    if (preset === 'CUSTOM')    return { dateFrom: custom?.from || undefined, dateTo: custom?.to || custom?.from || undefined };
     return {};
 }
 
@@ -60,6 +66,8 @@ export default function UpbitLogsPage() {
     const [stateFilter, setStateFilter] = useState('ALL');
     const [sideFilter, setSideFilter] = useState('ALL');
     const [datePreset, setDatePreset] = useState('ALL');
+    const [customFrom, setCustomFrom] = useState(() => format(new Date(), 'yyyy-MM-dd'));
+    const [customTo, setCustomTo] = useState(() => format(new Date(), 'yyyy-MM-dd'));
     const [sessionFilter, setSessionFilter] = useState<string>('ALL');
     const [openRows, setOpenRows] = useState<Set<number>>(new Set());
 
@@ -71,11 +79,11 @@ export default function UpbitLogsPage() {
     });
     const sessions: LiveTradingSession[] = (sessionsRes?.data as any) ?? [];
 
-    const { dateFrom, dateTo } = getDateRange(datePreset);
+    const { dateFrom, dateTo } = getDateRange(datePreset, { from: customFrom, to: customTo });
     const sessionId = sessionFilter !== 'ALL' ? Number(sessionFilter) : undefined;
 
     const { data: res, isLoading, refetch, isFetching } = useQuery({
-        queryKey: ['upbit-logs', page, datePreset, sessionFilter],
+        queryKey: ['upbit-logs', page, datePreset, dateFrom, dateTo, sessionFilter],
         queryFn: () => tradingApi.getOrders(page, 50, sessionId, dateFrom, dateTo),
         refetchInterval: 10_000,
     });
@@ -166,6 +174,27 @@ export default function UpbitLogsPage() {
                             </button>
                         ))}
                     </div>
+
+                    {/* 직접 지정 날짜 입력 */}
+                    {datePreset === 'CUSTOM' && (
+                        <div className="flex items-center gap-1.5">
+                            <input
+                                type="date"
+                                value={customFrom}
+                                max={customTo || undefined}
+                                onChange={e => { setCustomFrom(e.target.value); setPage(0); setOpenRows(new Set()); }}
+                                className="h-8 px-2 rounded-lg text-xs font-medium border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                            />
+                            <span className="text-xs text-slate-400">~</span>
+                            <input
+                                type="date"
+                                value={customTo}
+                                min={customFrom || undefined}
+                                onChange={e => { setCustomTo(e.target.value); setPage(0); setOpenRows(new Set()); }}
+                                className="h-8 px-2 rounded-lg text-xs font-medium border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                            />
+                        </div>
+                    )}
 
                     {/* 세션 필터 */}
                     <select
@@ -373,20 +402,53 @@ export default function UpbitLogsPage() {
                                 <span className="text-xs text-slate-400 dark:text-slate-500">
                                     페이지 {page + 1} / {totalPages} (총 {totalElements.toLocaleString()}건)
                                 </span>
-                                <div className="flex gap-2">
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => { setPage(0); setOpenRows(new Set()); }}
+                                        disabled={page === 0}
+                                        title="처음"
+                                        className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed"
+                                    >
+                                        <ChevronsLeft className="w-4 h-4" />
+                                    </button>
                                     <button
                                         onClick={() => { setPage(p => Math.max(0, p - 1)); setOpenRows(new Set()); }}
                                         disabled={page === 0}
+                                        title="이전"
                                         className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed"
                                     >
                                         <ChevronLeft className="w-4 h-4" />
                                     </button>
+                                    {/* 페이지 직접 입력 */}
+                                    <input
+                                        type="number"
+                                        min={1}
+                                        max={totalPages}
+                                        value={page + 1}
+                                        onChange={e => {
+                                            const v = Number(e.target.value);
+                                            if (Number.isNaN(v)) return;
+                                            const next = Math.min(totalPages, Math.max(1, v)) - 1;
+                                            setPage(next);
+                                            setOpenRows(new Set());
+                                        }}
+                                        className="w-14 h-8 px-2 text-center rounded-lg text-xs font-mono border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-400 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                    />
                                     <button
                                         onClick={() => { setPage(p => Math.min(totalPages - 1, p + 1)); setOpenRows(new Set()); }}
                                         disabled={page >= totalPages - 1}
+                                        title="다음"
                                         className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed"
                                     >
                                         <ChevronRight className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                        onClick={() => { setPage(totalPages - 1); setOpenRows(new Set()); }}
+                                        disabled={page >= totalPages - 1}
+                                        title="끝"
+                                        className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed"
+                                    >
+                                        <ChevronsRight className="w-4 h-4" />
                                     </button>
                                 </div>
                             </div>

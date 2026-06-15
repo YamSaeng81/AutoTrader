@@ -3,7 +3,7 @@
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝나면 완료 내용을 [`docs/CHANGELOG.md`](CHANGELOG.md)에 추가하고, 이 파일의 해당 항목은 삭제한다.
 > **변경 이력**: [`docs/CHANGELOG.md`](CHANGELOG.md)
-> **마지막 갱신**: 2026-05-31 (실전 로그 분석 + P0 청산/PnL 근본수정 적용·테스트 통과 / P1 죽은지표 조사 완료)
+> **마지막 갱신**: 2026-06-01 (전략 전체 분석 + P1-A/P1-B 코드·백테스트 검증 완료 → 운영 반영, 5코인 소액 실거래 가동 / 2~3주 관찰 중)
 
 ---
 
@@ -603,3 +603,30 @@ grep -n "ERROR\|Caused by\|Exception" /tmp/backend.log | tail -30
 **P1-B (EMA200 게이트 DOGE 예외) — 정합 달성, 회귀 없음:**
 - DOGE: BUY허용 26006/26006(100%) vs 순수규칙 11336(43.6%) → 예외 +56.4%p 정상 작동.
 - BTC/ETH/SOL/XRP: 적용=면제 완전 동일 → 비-DOGE **무영향(회귀 없음)** 확인. ✅ **그대로 유지 권장.**
+
+### 8. 🟢 운영 반영 & 관찰 중 (2026-06-01 ~, 2~3주)
+> 코드 운영서버 빌드·반영 완료. 사용자가 5코인 소액 실거래 세션을 수동 생성·가동. H1 고정.
+
+**가동 라인업:**
+| 코인 | 전략 | 원금 | 이번 변경 발동 |
+|---|---|---|---|
+| KRW-BTC | COMPOSITE_BREAKOUT | 10만 | — (ROUTER 미사용) |
+| KRW-ETH | COMPOSITE_MTF_BTC | 10만 | — |
+| KRW-SOL | COMPOSITE_REGIME_ROUTER | 10만 | ✅ **P1-A 발동** (SOL 화이트리스트) |
+| KRW-DOGE | COMPOSITE_MOMENTUM_ICHIMOKU_V2 | 5만 | ✅ **P1-B 발동** (EMA200 예외) |
+| KRW-ADA | COMPOSITE_BREAKOUT | 10만 | — |
+- XRP는 의도적 제외(P1-A 검증서 -15% 악화). DOGE는 MDD-30.8% 최악 → 원금 절반.
+
+**3주 후 판단 체크포인트:**
+- [ ] **P0 체결가 재발 점검** — 청산 PnL이 또 -4원(수수료만)이면 P0 수정 미반영. 청산 1건이라도 나오면 즉시 확인.
+- [ ] **SOL P1-A 작동 증거** — 신호 로그 `[TRANSITIONAL]` BUY가 이전보다 발생하는지.
+- [ ] **DOGE P1-B 작동 증거** — EMA200 아래 구간 BUY 진입 + MDD 추이.
+- [ ] **백테스트↔실거래 괴리** — 승률·평균손익 (과거 13배 괴리 이력).
+- 기준 충족 시 → 나머지(BTC/ETH/ADA) 확대. `docs/logs/` CSV 수집해두면 교차분석 가능.
+
+**미커밋:** 이번 작업분(P1-A/P1-B/P2-A + 하니스 + 이 문서)은 운영 반영됐으나 **git 미커밋** 상태. 작업 브랜치 생성 후 커밋 권장.
+
+**후속 과제 (이번 미적용):**
+- P1-A 화이트리스트 ETH 추가 검토(수익↑/MDD악화 트레이드오프).
+- P2-B StrategySelector↔CompositeRegimeRouter 레짐 앙상블 2중 구현 통합.
+- `SignalEvaluationService` 데드코드(참조 0건) 정리.
