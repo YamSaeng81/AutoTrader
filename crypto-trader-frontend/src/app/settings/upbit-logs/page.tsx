@@ -40,6 +40,13 @@ const SIDE_FILTERS = [
     { value: 'SELL', label: '매도' },
 ];
 
+const SESSION_STATUS: Record<string, { label: string; cls: string }> = {
+    CREATED:           { label: '대기',     cls: 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400' },
+    RUNNING:           { label: '운영 중',  cls: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' },
+    STOPPED:           { label: '정지',     cls: 'bg-slate-100 text-slate-500 dark:bg-slate-700/40 dark:text-slate-400' },
+    EMERGENCY_STOPPED: { label: '비상정지', cls: 'bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400' },
+};
+
 const DATE_PRESETS = [
     { value: 'ALL',       label: '전체' },
     { value: 'TODAY',     label: '오늘' },
@@ -254,7 +261,7 @@ export default function UpbitLogsPage() {
                                         <span className="text-xs text-slate-400">
                                             {selectedSessions.size > 0
                                                 ? `${selectedSessions.size}개 선택됨`
-                                                : '전체 (선택 없음)'}
+                                                : `전체 ${sessions.length}개 (지난 세션 포함)`}
                                         </span>
                                         <button
                                             onClick={clearSessions}
@@ -267,22 +274,28 @@ export default function UpbitLogsPage() {
                                     {sessions.length === 0 ? (
                                         <p className="px-2 py-3 text-xs text-slate-400 text-center">세션 없음</p>
                                     ) : (
-                                        sessions.map(s => (
-                                            <label
-                                                key={s.id}
-                                                className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer"
-                                            >
-                                                <input
-                                                    type="checkbox"
-                                                    checked={selectedSessions.has(s.id)}
-                                                    onChange={() => toggleSession(s.id)}
-                                                    className="w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-600 text-indigo-500 focus:ring-indigo-400"
-                                                />
-                                                <span className="text-xs text-slate-700 dark:text-slate-300 truncate">
-                                                    #{s.id} {s.strategyType} · {s.coinPair}
-                                                </span>
-                                            </label>
-                                        ))
+                                        sessions.map(s => {
+                                            const st = SESSION_STATUS[s.status] ?? SESSION_STATUS.STOPPED;
+                                            return (
+                                                <label
+                                                    key={s.id}
+                                                    className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer"
+                                                >
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={selectedSessions.has(s.id)}
+                                                        onChange={() => toggleSession(s.id)}
+                                                        className="w-3.5 h-3.5 rounded border-slate-300 dark:border-slate-600 text-indigo-500 focus:ring-indigo-400"
+                                                    />
+                                                    <span className="text-xs text-slate-700 dark:text-slate-300 truncate flex-1">
+                                                        #{s.id} {s.strategyType} · {s.coinPair}
+                                                    </span>
+                                                    <span className={cn('shrink-0 px-1.5 py-0.5 rounded text-[10px] font-bold', st.cls)}>
+                                                        {st.label}
+                                                    </span>
+                                                </label>
+                                            );
+                                        })
                                     )}
                                 </div>
                             </>
