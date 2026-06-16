@@ -30,7 +30,7 @@ export default function TradingHistoryPage() {
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [csvLoading, setCsvLoading] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
-  const [showRunningOnly, setShowRunningOnly] = useState(false);
+  const [showRunningOnly, setShowRunningOnly] = useState(true);
 
   const displayedSessions = showRunningOnly
     ? sessions.filter((s) => s.status === 'RUNNING')

@@ -84,7 +84,7 @@ export default function TradingPage() {
   const emergencyStopAll = useEmergencyStopAll();
 
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [showRunningOnly, setShowRunningOnly] = useState(false);
+  const [showRunningOnly, setShowRunningOnly] = useState(true);
   const [showEmergencyConfirm, setShowEmergencyConfirm] = useState(false);
   const [form, setForm] = useState<LiveTradingStartRequest>({ ...defaultForm });
   const [selectedStrategies, setSelectedStrategies] = useState<string[]>([]);

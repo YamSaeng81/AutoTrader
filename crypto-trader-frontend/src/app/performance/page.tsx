@@ -252,6 +252,7 @@ export default function PerformancePage() {
     const [regimeHistory, setRegimeHistory] = useState<RegimeChangeLog[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [showRunningOnly, setShowRunningOnly] = useState(true);
 
     const load = useCallback(async () => {
         setLoading(true);
@@ -275,6 +276,10 @@ export default function PerformancePage() {
     useEffect(() => { load(); }, [load]);
 
     const data = tab === 'live' ? liveData : paperData;
+    const runningCount = data?.sessions.filter(s => s.status === 'RUNNING').length ?? 0;
+    const visibleSessions = data
+        ? (showRunningOnly ? data.sessions.filter(s => s.status === 'RUNNING') : data.sessions)
+        : [];
 
     return (
         <div className="p-6 space-y-6 max-w-screen-xl">
@@ -452,13 +457,25 @@ export default function PerformancePage() {
 
                     {/* 세션별 테이블 */}
                     <div className="bg-slate-800 rounded-xl border border-slate-700/50">
-                        <div className="px-5 py-4 border-b border-slate-700/50">
-                            <h2 className="text-sm font-semibold text-white">
-                                세션별 성과 ({data.sessions.length}개)
-                            </h2>
-                            <p className="text-xs text-slate-500 mt-0.5">MDD·Sharpe·Sortino는 실현된 거래 기준 계산</p>
+                        <div className="px-5 py-4 border-b border-slate-700/50 flex items-center justify-between">
+                            <div>
+                                <h2 className="text-sm font-semibold text-white">
+                                    세션별 성과 ({visibleSessions.length}{showRunningOnly ? `/${data.sessions.length}` : ''}개)
+                                </h2>
+                                <p className="text-xs text-slate-500 mt-0.5">MDD·Sharpe·Sortino는 실현된 거래 기준 계산</p>
+                            </div>
+                            <label className="flex items-center gap-1.5 text-xs text-slate-400 cursor-pointer select-none">
+                                <input
+                                    type="checkbox"
+                                    checked={showRunningOnly}
+                                    onChange={e => setShowRunningOnly(e.target.checked)}
+                                    className="accent-green-500"
+                                />
+                                운영 중만 보기
+                                <span className="text-slate-500">({runningCount})</span>
+                            </label>
                         </div>
-                        <SessionTable sessions={data.sessions} />
+                        <SessionTable sessions={visibleSessions} />
                     </div>
                 </>
             ) : (

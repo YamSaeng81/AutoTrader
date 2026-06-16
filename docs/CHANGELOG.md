@@ -4,17 +4,20 @@
 
 ---
 
-### ✅ 완료 (2026-06-16) — 실전매매 화면 "운영 중만 보기" 필터 + 동시 운영 한도 표기 정정
+### ✅ 완료 (2026-06-16) — 실전 관련 화면 "운영 중만 보기" 필터 + 동시 운영 한도 표기 정정
 
-**프론트엔드**
+**프론트엔드** — 세 화면 모두 "운영 중만 보기" 체크박스 **기본 체크(ON)**, RUNNING만 표시.
 - [`trading/page.tsx`](../crypto-trader-frontend/src/app/trading/page.tsx) (실전 매매)
-  - 세션 목록 헤더에 "운영 중만 보기" 체크박스 추가 (`showRunningOnly` state, RUNNING만 필터).
+  - 세션 목록 헤더에 "운영 중만 보기" 체크박스 추가 (`showRunningOnly`, 기본 true).
   - 필터 시 결과 없으면 "운영 중인 세션이 없습니다 → 전체 세션 보기" 안내.
   - **"최대 5개 동시 운영" → "최대 10개 동시 운영"** 정정 (백엔드 `MAX_CONCURRENT_SESSIONS = 10`과 일치).
 - [`trading/history/page.tsx`](../crypto-trader-frontend/src/app/trading/history/page.tsx) (실전매매 이력)
-  - 헤더에 "운영 중만 보기" 체크박스 추가 (`showRunningOnly`, RUNNING만 필터).
+  - 헤더에 "운영 중만 보기" 체크박스 추가 (`showRunningOnly`, 기본 true).
   - 테이블 렌더링·전체선택(`allSelected`/`toggleSelectAll`)을 필터된 목록(`displayedSessions`) 기준으로 변경.
   - 필터 결과 없을 때 빈 상태 안내 추가.
+- [`performance/page.tsx`](../crypto-trader-frontend/src/app/performance/page.tsx) (손익 대시보드)
+  - "세션별 성과" 테이블 헤더에 "운영 중만 보기" 체크박스 추가 (`showRunningOnly`, 기본 true).
+  - 테이블은 필터된 `visibleSessions` 렌더링, 헤더 카운트는 `보이는/전체` 표기. 상단 요약 카드는 백엔드 집계값이라 미적용.
 
 ---
 
