@@ -30,6 +30,11 @@ export default function TradingHistoryPage() {
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [csvLoading, setCsvLoading] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [showRunningOnly, setShowRunningOnly] = useState(false);
+
+  const displayedSessions = showRunningOnly
+    ? sessions.filter((s) => s.status === 'RUNNING')
+    : sessions;
 
   const toggleSelect = (id: number) => {
     setSelectedIds((prev) => {
@@ -39,9 +44,10 @@ export default function TradingHistoryPage() {
       return next;
     });
   };
-  const allSelected = sessions.length > 0 && selectedIds.size === sessions.length;
+  const allSelected = displayedSessions.length > 0
+    && displayedSessions.every((s) => selectedIds.has(s.id));
   const toggleSelectAll = () => {
-    setSelectedIds(allSelected ? new Set() : new Set(sessions.map((s) => s.id)));
+    setSelectedIds(allSelected ? new Set() : new Set(displayedSessions.map((s) => s.id)));
   };
 
   async function handleCsvDownload(type: 'sessions' | 'positions') {
@@ -99,6 +105,16 @@ export default function TradingHistoryPage() {
             <p className="text-sm text-slate-500 mt-0.5 ml-7">
               전체 {sessions.length}개 세션 · 운영 중 {runningSessions}개 · 종료 {stoppedSessions}개
             </p>
+            <label className="flex items-center gap-1.5 text-xs text-slate-400 mt-1.5 ml-7 cursor-pointer select-none w-fit">
+              <input
+                type="checkbox"
+                checked={showRunningOnly}
+                onChange={(e) => setShowRunningOnly(e.target.checked)}
+                className="w-3.5 h-3.5 rounded border-slate-600 bg-slate-800 text-green-500 focus:ring-green-500 cursor-pointer"
+              />
+              운영 중만 보기
+              <span className="text-slate-500">({runningSessions})</span>
+            </label>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -186,6 +202,17 @@ export default function TradingHistoryPage() {
               <Plus className="w-4 h-4" /> 첫 번째 세션 시작하기
             </Link>
           </div>
+        ) : displayedSessions.length === 0 ? (
+          <div className="py-16 text-center">
+            <History className="w-12 h-12 text-slate-600 mx-auto mb-4" />
+            <p className="text-slate-500 font-medium">운영 중인 세션이 없습니다.</p>
+            <button
+              onClick={() => setShowRunningOnly(false)}
+              className="mt-3 text-sm text-blue-400 hover:underline"
+            >
+              전체 세션 보기
+            </button>
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -216,7 +243,7 @@ export default function TradingHistoryPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-700/30">
-                {sessions.map((session) => {
+                {displayedSessions.map((session) => {
                   const returnPct = session.initialCapital > 0
                     ? ((session.totalAssetKrw - session.initialCapital) / session.initialCapital * 100)
                     : 0;

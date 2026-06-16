@@ -673,3 +673,17 @@ grep -n "ERROR\|Caused by\|Exception" /tmp/backend.log | tail -30
 - FE: `trading/history` 테이블에 **체크박스 컬럼 + 전체선택** 추가. "세션 CSV (전체/N)" · "포지션 CSV (전체/N)" 버튼이 선택분만/전체 다운로드. `csvExportApi.liveTradingSessions/Positions(sessionIds?)`.
 - **Upbit 주문 로그(`settings/upbit-logs`)도 다중 세션화**: 세션 필터를 단일 `<select>` → **체크박스 다중 선택 팝오버**로 교체. 선택분이 목록 조회·CSV 양쪽에 반영(미선택=전체). BE `getOrders`/`exportLiveTradingOrders`가 `sessionIds`(List) 수용, `OrderRepository`에 `...SessionIdIn...` 페이징/비페이징 쿼리 4종 추가. FE `tradingApi.getOrders(…, sessionIds[], …)`·`csvExportApi.liveTradingOrders(sessionIds[], …)`는 `sessionId=3&sessionId=5` 반복 파라미터로 직렬화.
 - web-api 컴파일 ✅ / 변경 파일 tsc ✅ (그 외 tsc 에러는 기존 무관 파일).
+
+### 12. 🗂 세션 soft-delete + 통합 세션 인덱스 + 전략로그 CSV/콤보박스 (2026-06-15)
+
+**근본 원인:** `deleteSession`이 행을 hard-delete하고 **주문·포지션의 session_id를 NULL로** 만들어, 삭제된 세션이 이력·선택지에서 사라지고 주문이 미귀속됐음. (전략로그 session_id는 보존되고 있었음.)
+
+- **soft-delete 전환** — `LiveTradingService.deleteSession`: `deleteById`+session_id NULL 처리 제거 → `status="DELETED"`로만 표시(링크 보존). 앞으로 삭제 세션도 이력·주문로그·전략로그에서 번호로 선택·조회·CSV 가능. 리컨실러는 RUNNING/CREATED/OPEN만 조회하므로 DELETED 무시(안전). **이미 hard-delete된 과거 세션은 주문이 NULL이라 주문로그엔 안 뜨지만, 전략로그는 session_id 보존돼 /logs·콤보박스에 DELETED로 노출됨.**
+- **통합 세션 인덱스** — `LiveTradingService.getSessionIndex()` → `GET /api/v1/trading/sessions/index`. 라이브 세션 테이블(DELETED 포함) + `StrategyLogRepository.findDistinctSessionRefs()`(로그에만 있는 삭제/모의 세션) 병합, sessionId 내림차순. 항목: `{sessionId,strategyType,coinPair,status,sessionType}`.
+- **upbit-logs**: 세션 팝오버 소스를 `listSessions` → `sessionIndex`(모의 제외)로 교체. `삭제됨` 배지 추가.
+- **/logs(전략로그)**: 세션ID 텍스트 입력 → **콤보박스**(`#156 STRATEGY(COIN) 운영중` 형식, sessionIndex 기반, 구분 필터 연동) + **CSV 다운로드** 버튼 추가. BE `CsvExportService.exportStrategyLogs(sessionType, sessionId)` + `GET /api/v1/export/csv/strategy-logs`, `StrategyLogRepository` 비페이징 finder 3종.
+- **trading/history**: `DELETED` 상태 라벨/스타일 추가, 삭제 세션은 재삭제 버튼 비활성. (soft-delete 후 종료 세션이 이력에 잔존.)
+- web-api 컴파일 ✅ / 변경 파일 tsc ✅.
+
+**한계/후속:**
+- [ ] 이미 hard-delete된 과거 세션의 **주문 로그**는 session_id가 NULL이라 세션별 복구 불가(전략로그는 조회 가능). 필요 시 1회성 보정 검토.

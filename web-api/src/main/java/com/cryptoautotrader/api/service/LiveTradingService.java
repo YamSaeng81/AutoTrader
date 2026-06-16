@@ -273,13 +273,16 @@ public class LiveTradingService {
         }
         BigDecimal accountCapital = portfolioManager.getTotalCapital();
         if (accountCapital.compareTo(BigDecimal.ZERO) > 0 && req.getInitialCapital() != null) {
-            BigDecimal committedCapital = sessionRepository.sumInitialCapitalByStatusIn(ACTIVE_SESSION_STATUSES);
-            BigDecimal afterCreate = committedCapital.add(req.getInitialCapital());
+            // §8 이중 차감 제거: 코인을 보유한 세션은 이미 KRW→코인 전환분이 계좌 KRW 잔고에서
+            // 빠져나갔으므로, 명목 initialCapital이 아니라 세션이 실제 보유한 KRW(availableKrw)
+            // 합산으로 비교한다. 코인 평가액은 양쪽 모두에서 제외되어 KRW끼리 일관 비교된다.
+            BigDecimal committedKrw = sessionRepository.sumAvailableKrwByStatusIn(ACTIVE_SESSION_STATUSES);
+            BigDecimal afterCreate = committedKrw.add(req.getInitialCapital());
             if (afterCreate.compareTo(accountCapital) > 0) {
                 throw new SessionStateException(
-                        String.format("자본 초과 배정: 활성 세션 합산 %s + 신규 %s = %s > 계좌 잔고 %s KRW. "
+                        String.format("자본 초과 배정: 활성 세션 보유 KRW 합산 %s + 신규 %s = %s > 계좌 KRW 잔고 %s. "
                                         + "기존 세션을 정지하거나 투자금을 줄이세요.",
-                                committedCapital.toPlainString(),
+                                committedKrw.toPlainString(),
                                 req.getInitialCapital().toPlainString(),
                                 afterCreate.toPlainString(),
                                 accountCapital.toPlainString()));
@@ -390,16 +393,17 @@ public class LiveTradingService {
         }
 
         // §8 자본 초과 배정 방지 — STOPPED→RUNNING 전환 시에도 검증
+        // 이중 차감 제거: 명목 initialCapital이 아니라 세션 보유 KRW(availableKrw) 합산으로 비교
         BigDecimal accountCapital = portfolioManager.getTotalCapital();
         if (accountCapital.compareTo(BigDecimal.ZERO) > 0) {
-            BigDecimal committedCapital = sessionRepository.sumInitialCapitalByStatusIn(ACTIVE_SESSION_STATUSES);
+            BigDecimal committedKrw = sessionRepository.sumAvailableKrwByStatusIn(ACTIVE_SESSION_STATUSES);
             // 이 세션이 이미 CREATED 상태라면 합산에 포함되어 있으므로 중복 차감 방지
             boolean alreadyCounted = ACTIVE_SESSION_STATUSES.contains(session.getStatus());
-            BigDecimal afterStart = alreadyCounted ? committedCapital
-                    : committedCapital.add(session.getInitialCapital());
+            BigDecimal afterStart = alreadyCounted ? committedKrw
+                    : committedKrw.add(session.getAvailableKrw());
             if (afterStart.compareTo(accountCapital) > 0) {
                 throw new SessionStateException(
-                        String.format("자본 초과: 활성 세션 합산 %s > 계좌 잔고 %s KRW",
+                        String.format("자본 초과: 활성 세션 보유 KRW 합산 %s > 계좌 KRW 잔고 %s",
                                 afterStart.toPlainString(), accountCapital.toPlainString()));
             }
         }

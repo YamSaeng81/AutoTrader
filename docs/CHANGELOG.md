@@ -4,6 +4,38 @@
 
 ---
 
+### ✅ 완료 (2026-06-16) — 실전매매 화면 "운영 중만 보기" 필터 + 동시 운영 한도 표기 정정
+
+**프론트엔드**
+- [`trading/page.tsx`](../crypto-trader-frontend/src/app/trading/page.tsx) (실전 매매)
+  - 세션 목록 헤더에 "운영 중만 보기" 체크박스 추가 (`showRunningOnly` state, RUNNING만 필터).
+  - 필터 시 결과 없으면 "운영 중인 세션이 없습니다 → 전체 세션 보기" 안내.
+  - **"최대 5개 동시 운영" → "최대 10개 동시 운영"** 정정 (백엔드 `MAX_CONCURRENT_SESSIONS = 10`과 일치).
+- [`trading/history/page.tsx`](../crypto-trader-frontend/src/app/trading/history/page.tsx) (실전매매 이력)
+  - 헤더에 "운영 중만 보기" 체크박스 추가 (`showRunningOnly`, RUNNING만 필터).
+  - 테이블 렌더링·전체선택(`allSelected`/`toggleSelectAll`)을 필터된 목록(`displayedSessions`) 기준으로 변경.
+  - 필터 결과 없을 때 빈 상태 안내 추가.
+
+---
+
+### ✅ 완료 (2026-06-16) — §8 자본 초과 배정 검사 이중 차감 제거
+
+**문제**: 신규 세션 생성 시 "자본 초과 배정" 오류가 코인 보유 세션이 있을 때 잘못 발생.
+- 검사가 활성 세션의 **명목 `initialCapital` 합**을 **KRW 잔고**(코인 평가액 제외)와 비교.
+- 코인 보유 세션은 이미 KRW→코인 전환분이 잔고에서 빠졌는데도 명목 자본 전액이 합산에 남아
+  **이중 차감** 발생 → 잔여 KRW가 충분해도 거부됨.
+  (실제 사례: 7세션×3만=21만 명목 + 신규 3만 = 24만 > KRW 22만 → 오거부. 코인 8만 보유 상태)
+
+**수정** ([`LiveTradingService`](../web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java) `createSession`, `startSession`)
+- 보수적 방향: 명목 `sumInitialCapitalByStatusIn` → 세션 보유 KRW `sumAvailableKrwByStatusIn`로 비교.
+- 코인 전환분이 양쪽(잔고·합산)에서 모두 빠져 **KRW끼리 일관 비교** → 이중 차감 해소.
+- `startSession`의 STOPPED→RUNNING 가산도 `getInitialCapital()` → `getAvailableKrw()`로 변경.
+- 오류 메시지도 "활성 세션 보유 KRW 합산 … > 계좌 KRW 잔고"로 정정.
+
+**테스트**: `SessionCapitalGuardTest.createSession_coinHoldingSession_doesNotDoubleCount` 추가 — 전체 통과.
+
+---
+
 ### ✅ 완료 (2026-04-22) — CSV 다운로드 기능 (백테스트/WF/모의·실전매매/신호품질)
 
 **백엔드**

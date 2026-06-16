@@ -84,6 +84,7 @@ export default function TradingPage() {
   const emergencyStopAll = useEmergencyStopAll();
 
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showRunningOnly, setShowRunningOnly] = useState(false);
   const [showEmergencyConfirm, setShowEmergencyConfirm] = useState(false);
   const [form, setForm] = useState<LiveTradingStartRequest>({ ...defaultForm });
   const [selectedStrategies, setSelectedStrategies] = useState<string[]>([]);
@@ -101,6 +102,9 @@ export default function TradingPage() {
   }, []);
 
   const runningSessions = (sessions ?? []).filter(s => s.status === 'RUNNING');
+  const displayedSessions = showRunningOnly
+    ? (sessions ?? []).filter(s => s.status === 'RUNNING')
+    : (sessions ?? []);
 
   const handleCreate = () => {
     setCreateError(null);
@@ -448,8 +452,20 @@ export default function TradingPage() {
       {/* 세션 목록 */}
       <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-white">매매 세션</h2>
-          <span className="text-xs text-slate-500">최대 5개 동시 운영</span>
+          <div className="flex items-center gap-3">
+            <h2 className="text-lg font-semibold text-white">매매 세션</h2>
+            <label className="flex items-center gap-1.5 text-xs text-slate-400 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={showRunningOnly}
+                onChange={e => setShowRunningOnly(e.target.checked)}
+                className="accent-green-500"
+              />
+              운영 중만 보기
+              <span className="text-slate-500">({runningSessions.length})</span>
+            </label>
+          </div>
+          <span className="text-xs text-slate-500">최대 10개 동시 운영</span>
         </div>
 
         {(sessions ?? []).length === 0 ? (
@@ -462,9 +478,19 @@ export default function TradingPage() {
               첫 번째 세션 만들기
             </button>
           </div>
+        ) : displayedSessions.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-slate-500">운영 중인 세션이 없습니다.</p>
+            <button
+              onClick={() => setShowRunningOnly(false)}
+              className="mt-3 text-sm text-blue-400 hover:underline"
+            >
+              전체 세션 보기
+            </button>
+          </div>
         ) : (
           <div className="space-y-3">
-            {(sessions ?? []).map((session: LiveTradingSession) => (
+            {displayedSessions.map((session: LiveTradingSession) => (
               <SessionCard
                 key={session.id}
                 session={session}

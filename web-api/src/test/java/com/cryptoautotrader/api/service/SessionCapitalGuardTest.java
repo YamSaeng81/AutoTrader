@@ -96,6 +96,38 @@ class SessionCapitalGuardTest extends IntegrationTestBase {
     }
 
     @Test
+    @DisplayName("§8 이중 차감 제거: 코인 보유로 availableKrw가 줄어든 세션은 KRW 잔고 내라면 신규 허용")
+    void createSession_coinHoldingSession_doesNotDoubleCount() {
+        // given: 계좌 KRW 잔고 22만 (코인 평가액 제외)
+        portfolioManager.syncTotalCapital(new BigDecimal("220000"));
+
+        // 기존 세션 7개 × 명목 3만 = 명목 21만. 그중 3개는 코인 보유로 KRW가 거의 소진됨.
+        // 명목 합(21만)으로 비교하면 21만 + 3만 = 24만 > 22만 → (구버전) 거부.
+        // 보유 KRW 합으로 비교하면 코인 전환분이 빠져 통과해야 한다.
+        for (int i = 0; i < 4; i++) {
+            sessionRepository.save(buildSession("RUNNING", new BigDecimal("30000")));
+        }
+        for (int i = 0; i < 3; i++) {
+            LiveTradingSessionEntity holding = buildSession("RUNNING", new BigDecimal("30000"));
+            holding.setAvailableKrw(new BigDecimal("3000")); // 27,000은 코인으로 전환
+            sessionRepository.save(holding);
+        }
+        // 보유 KRW 합 = 4×30,000 + 3×3,000 = 129,000
+
+        LiveTradingStartRequest req = new LiveTradingStartRequest();
+        req.setStrategyType("COMPOSITE_BREAKOUT");
+        req.setCoinPair("KRW-ETH");
+        req.setTimeframe("H1");
+        req.setInitialCapital(new BigDecimal("30000"));
+
+        // when: 129,000 + 30,000 = 159,000 < 220,000 → 통과
+        LiveTradingSessionEntity created = liveTradingService.createSession(req);
+
+        // then
+        assertThat(created.getId()).isNotNull();
+    }
+
+    @Test
     @DisplayName("§8 집계 쿼리: sumInitialCapitalByStatusIn은 RUNNING+CREATED만 합산")
     void sumInitialCapital_onlyActiveStatuses() {
         sessionRepository.save(buildSession("RUNNING", new BigDecimal("300000")));
