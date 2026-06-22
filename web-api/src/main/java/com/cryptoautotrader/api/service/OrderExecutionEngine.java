@@ -680,8 +680,9 @@ public class OrderExecutionEngine {
             log.warn("부분 체결 후 취소 감지 (orderId={}, executed_volume={}, executed_funds={}): CANCELLED → FILLED 처리",
                     order.getId(), order.getFilledQuantity(), exchangeStatus.getExecutedFunds());
             // 실제 사용된 KRW 저장 — handleBuyFill()에서 미사용 KRW 복원에 사용
-            if (exchangeStatus.getExecutedFunds() != null) {
-                order.setExecutedFunds(exchangeStatus.getExecutedFunds());
+            BigDecimal executedFunds = exchangeStatus.resolveExecutedFunds();
+            if (executedFunds != null) {
+                order.setExecutedFunds(executedFunds);
             }
             order.setFilledAt(Instant.now());
             transitionState(order, "FILLED", null);
@@ -710,12 +711,14 @@ public class OrderExecutionEngine {
      * </ul>
      */
     private void applyFillPrice(OrderEntity order, OrderResponse resp) {
-        boolean hasFunds = resp.getExecutedFunds() != null
+        // executed_funds 가 최상위에 없으면 trades[] 합산으로 산출 (시장가 매도 정산 신뢰 소스)
+        BigDecimal executedFunds = resp.resolveExecutedFunds();
+        boolean hasFunds = executedFunds != null
                 && resp.getExecutedVolume() != null
                 && resp.getExecutedVolume().compareTo(BigDecimal.ZERO) > 0;
         if ("ask".equalsIgnoreCase(resp.getSide())) {
             if (hasFunds) {
-                order.setPrice(resp.getExecutedFunds()
+                order.setPrice(executedFunds
                         .divide(resp.getExecutedVolume(), 8, RoundingMode.HALF_UP));
             } else if ("limit".equalsIgnoreCase(resp.getOrdType()) && resp.getPrice() != null) {
                 order.setPrice(resp.getPrice());

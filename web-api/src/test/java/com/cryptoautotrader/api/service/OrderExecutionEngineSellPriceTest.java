@@ -80,6 +80,25 @@ class OrderExecutionEngineSellPriceTest {
         return resp;
     }
 
+    /** 최상위 executed_funds 는 없고 trades[] 만 내려오는 Upbit GET /v1/order 응답 */
+    private OrderResponse doneResponseWithTrades(BigDecimal... tradeFunds) {
+        OrderResponse resp = new OrderResponse();
+        resp.setUuid("uuid-1");
+        resp.setState("done");
+        resp.setSide("ask");
+        resp.setOrdType("market");
+        resp.setExecutedVolume(new BigDecimal("0.5"));
+        resp.setExecutedFunds(null); // 최상위 미제공
+        java.util.List<OrderResponse.Trade> trades = new java.util.ArrayList<>();
+        for (BigDecimal funds : tradeFunds) {
+            OrderResponse.Trade t = new OrderResponse.Trade();
+            t.setFunds(funds);
+            trades.add(t);
+        }
+        resp.setTrades(trades);
+        return resp;
+    }
+
     @Test
     void 매도_체결가_미정산이면_FILLED_보류하고_SUBMITTED_유지() {
         OrderEntity order = submittedSellOrder();
@@ -101,6 +120,23 @@ class OrderExecutionEngineSellPriceTest {
         // executed_funds=60,000,000 / executed_volume=0.5 → 평균가 120,000,000
         when(upbitOrderClient.getOrder("uuid-1"))
                 .thenReturn(doneResponse(new BigDecimal("60000000")));
+
+        engine.checkOrderStatus(1L);
+
+        assertThat(order.getState()).isEqualTo("FILLED");
+        assertThat(order.getPrice()).isEqualByComparingTo("120000000");
+        assertThat(order.getFilledAt()).isNotNull();
+    }
+
+    @Test
+    void 최상위_funds_없어도_trades_합산으로_평균가_확정하고_FILLED_전이() {
+        OrderEntity order = submittedSellOrder();
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+        // executed_funds 미제공 + trades 합산 = 20,000,000 + 40,000,000 = 60,000,000
+        // / executed_volume 0.5 → 평균가 120,000,000
+        when(upbitOrderClient.getOrder("uuid-1"))
+                .thenReturn(doneResponseWithTrades(
+                        new BigDecimal("20000000"), new BigDecimal("40000000")));
 
         engine.checkOrderStatus(1L);
 

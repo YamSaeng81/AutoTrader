@@ -18,13 +18,15 @@
 - **포지션 192건**: 실이익 2건 / 수수료만 손실(-4원≈-0.05%) 146건 / 미체결·size0 44건.
 - **신호 568,338건/30일**: HOLD 99.6%(566,027) / SELL 1,351 / BUY 960 / **실제 체결 42건**.
 
-### 🔴 P0 — 청산/PnL 정확성 (돈 직결) — 진단 완료, 수정 보류
-근본 원인: 청산 시 `realizedPnl`이 거의 전부 -매도수수료(-4원)로만 기록됨 = 매도 체결가가
-진입 평균가로 대체되고 있음. 경로:
-- [`OrderExecutionEngine.syncOrderState()`](../web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java#L614): 시장가 매도 FILLED 시 평균체결가를 `executedFunds/executedVolume`로 계산하나, **`ordType=="market" && side=="ask"` 문자열 매칭 조건**에 걸려 실패하면 `order.price`가 null로 남음. (Upbit getOrder 응답의 ord_type/side DTO 매핑 점검 필요)
-- [`LiveTradingService.finalizeSellPosition()`](../web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java#L1776) & [`OrderExecutionEngine.handleSellFill()`](../web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java#L463): `order.getPrice()==null`이면 `pos.getAvgPrice()`로 대체 → 손익이 항상 -수수료.
-- [ ] **수정 방향(검증 후 적용)**: syncOrderState의 평균체결가 계산을 ord_type/side 매칭에 의존하지 말고 `executedFunds/executedVolume`가 있으면 항상 산출. finalize의 avgPrice 대체는 제거하되, **포지션이 CLOSING에 정체되지 않도록** 체결가 미확보 시 재조회/재시도 경로를 함께 보장할 것.
-- [ ] **청산 정책 표준화 검증** — SL/TP는 DB(`ExitRuleConfig`) 동적 설정(현 SL 5%/TP +10%). P0 수정 후 실거래 재수집한 뒤 조정.
+### 🔴 P0 — 청산/PnL 정확성 (돈 직결) — ✅ 핵심 수정 완료 (2026-06-23, CHANGELOG 참조)
+근본 원인 확정: 매도 체결가 미산출 → `realizedPnl`이 -매도수수료로만 기록되던 "가짜 본전".
+당초 가설(ord_type/side 문자열 매칭 실패)이 아니라, **Upbit `GET /v1/order` 응답이 체결 금액을
+최상위 `executed_funds`가 아닌 `trades[]` 배열로 내려주는데 DTO가 이를 파싱하지 않아
+`executedFunds`가 영원히 null**이던 것이 진짜 원인. 결과적으로 시장가 매도가 `FILLED`로
+전이되지 못하고 `SUBMITTED`에 무한 정체(실전 로그 다수 주문 확인).
+- [x] **수정 완료** — `OrderResponse.resolveExecutedFunds()`(trades 합산 폴백) 추가 + `applyFillPrice`/`syncOrderState`에서 사용. 회귀 테스트 통과. 상세: [`CHANGELOG.md`](CHANGELOG.md) 2026-06-23 항목.
+- [ ] **운영 관찰** — 배포 후 정체됐던 매도 주문들이 FILLED로 정리되고 신규 매도가 정상 체결·기록되는지 확인. PnL 재수집.
+- [ ] **청산 정책 표준화 검증** — SL/TP는 DB(`ExitRuleConfig`) 동적 설정(현 SL 5%/TP +10%). P0 수정 반영된 실거래 재수집 후 조정.
 
 ### 🟠 P1 — 신호 발생률 (⚠️ 실거래 진입 빈도 변경 = 백테스트 검증 필수)
 

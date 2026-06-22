@@ -4,6 +4,28 @@
 
 ---
 
+### ✅ 완료 (2026-06-23) — P0 해결: 시장가 매도 체결가 미정산으로 SUBMITTED 영구 정체 수정
+
+**증상**: 거래소에선 매도가 전량 체결(`done`)됐는데도 주문이 `FILLED`로 전이되지 못하고
+`SUBMITTED`에 무한 정체 → 프론트 매도 횟수 0회·차트 매도 마커 미표시, `realizedPnl`이
+-매도수수료로만 기록되는 "가짜 본전". 실전 로그에서 다수 주문(8410·8411·8435·8436 등)이
+`"매도 체결(done)이나 체결가 미정산 — FILLED 보류, 폴러 재조회"`를 영구 반복.
+
+**근본 원인**: 시장가 매도 평균 체결가는 `executed_funds / executed_volume`로만 산출하는데,
+Upbit `GET /v1/order`(단건) 응답은 체결 금액을 **최상위 `executed_funds`가 아니라 `trades[]` 배열**
+(`funds`/`price`/`volume`)로 내려준다. [`OrderResponse`](../exchange-adapter/src/main/java/com/cryptoautotrader/exchange/upbit/dto/OrderResponse.java)가
+`trades`를 파싱하지 않아 `executedFunds`가 영원히 null → `applyFillPrice`가 `price`를 못 채움 →
+[`syncOrderState`](../web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java)가
+SELL+price null이면 FILLED 보류 후 SUBMITTED 유지 → 폴러가 5초마다 무한 재조회.
+
+**수정**
+- [`OrderResponse`](../exchange-adapter/src/main/java/com/cryptoautotrader/exchange/upbit/dto/OrderResponse.java): `trades` 배열 + `Trade` DTO + `resolveExecutedFunds()` 추가 (최상위 `executed_funds` 우선, 없으면 `trades[].funds`(또는 `price*volume`) 합산).
+- [`OrderExecutionEngine`](../web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java): `applyFillPrice`·`syncOrderState`(부분체결 KRW 복원)에서 `getExecutedFunds()` → `resolveExecutedFunds()`로 교체.
+- [`OrderExecutionEngineSellPriceTest`](../web-api/src/test/java/com/cryptoautotrader/api/service/OrderExecutionEngineSellPriceTest.java): `trades` 합산 경로 회귀 테스트 추가 (3개 통과).
+- **효과**: 정체됐던 매도 주문이 다음 폴링(5초)에서 체결가 산출 → FILLED 전이 → 횟수/차트/PnL 정상화.
+
+---
+
 ### ✅ 완료 (2026-06-22) — 신규 전략 추가: HEIKIN_ASHI_STOCH (하이키나시 + 200EMA + StochRSI)
 
 유튜브 룰 기반 추세추종 전략을 코드화. 단기 소음을 줄인 하이키나시 캔들로 캔들 모양을 확인하고,
