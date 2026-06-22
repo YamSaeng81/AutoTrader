@@ -98,6 +98,10 @@ public class StrategyLiveStatusRegistry {
         entry("FAIR_VALUE_GAP",
                 LiveReadiness.EXPERIMENTAL,
                 "A단계(모멘텀 방식)만 구현. SOL 외 4코인 모두 열위. 실전 투입 전 추가 검증 필요."),
+        entry("HEIKIN_ASHI_STOCH",
+                LiveReadiness.EXPERIMENTAL,
+                "하이키나시+200EMA+StochRSI, 고정 손익비 1:2. ~100일 H1 백테스트에서 BTC/ETH/SOL 흑자·XRP 소폭 손실(4코인 중 3흑자), " +
+                "같은 구간 매수보유·EMA_CROSS 대비 우위. 단일 하락구간·소표본(8~15거래)으로 장기 검증 부족 → 실전 미권장."),
         entry("COMPOSITE",
                 LiveReadiness.EXPERIMENTAL,
                 "레짐 적응형. 레짐 분류기 정확도 미검증. 개별 레짐별 실전 근거 필요."),

@@ -245,6 +245,7 @@ public class StrategyController {
             // Phase 3: 로직 구현 완료
             case "RSI", "MACD", "SUPERTREND", "ATR_BREAKOUT", "ORDERBOOK_IMBALANCE", "STOCHASTIC_RSI", "VOLUME_DELTA" -> true;
             case "FAIR_VALUE_GAP" -> true;
+            case "HEIKIN_ASHI_STOCH" -> true;
             // 코인별 복합 전략 프리셋 + 국면 적응형 복합 전략
             case "COMPOSITE", "COMPOSITE_MOMENTUM", "COMPOSITE_ETH", "COMPOSITE_BREAKOUT",
                  "COMPOSITE_MOMENTUM_ICHIMOKU", "COMPOSITE_MOMENTUM_ICHIMOKU_V2", "COMPOSITE_BREAKOUT_ICHIMOKU",
@@ -287,6 +288,8 @@ public class StrategyController {
             case "VOLUME_DELTA"        -> "누적 볼륨 Delta(매수-매도 압력) + 다이버전스 필터 기반 방향성 매매";
             case "FAIR_VALUE_GAP"      -> "급격한 가격 변동으로 생긴 캔들 사이 유동성 공백(FVG) 감지 → 방향 모멘텀 진입 (EMA 추세 필터 포함). A단계: 모멘텀 방식";
             case "STOCHASTIC_RSI"      -> "RSI 에 Stochastic 적용, RANGE/VOLATILITY 시장 민감 감지";
+            case "HEIKIN_ASHI_STOCH"   -> "하이키나시 캔들 + 200 EMA 추세 필터 + Stochastic RSI K/D 크로스 추세추종. " +
+                                          "진입 시 고정 손익비 1:2(기본 손절 -1.5%/익절 +3.0%) 제안. 현물 롱 진입에만 실효(SELL=청산).";
             case "COMPOSITE"           -> "시장 국면(TREND/RANGE/VOLATILITY) 자동 감지 기반 동적 전략 선택";
             case "COMPOSITE_MOMENTUM"  -> "[모멘텀 혼합] MACD×0.5 + VWAP×0.3 + GRID×0.2 | " +
                                           "BTC·ETH 등 거래량 많은 대형 코인 최적화. " +
