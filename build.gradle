@@ -36,5 +36,9 @@ subprojects {
 
     test {
         useJUnitPlatform()
+        // 임시 백테스트 러너 활성화용: -Dha.backtest.csv 가 주어졌을 때만 테스트 JVM으로 전달
+        if (System.getProperty('ha.backtest.csv')) {
+            systemProperty 'ha.backtest.csv', System.getProperty('ha.backtest.csv')
+        }
     }
 }

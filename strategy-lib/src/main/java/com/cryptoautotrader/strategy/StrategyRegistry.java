@@ -5,6 +5,7 @@ import com.cryptoautotrader.strategy.fvg.FairValueGapStrategy;
 import com.cryptoautotrader.strategy.bollinger.BollingerStrategy;
 import com.cryptoautotrader.strategy.ema.EmaCrossStrategy;
 import com.cryptoautotrader.strategy.grid.GridStrategy;
+import com.cryptoautotrader.strategy.heikinashi.HeikinAshiStochStrategy;
 import com.cryptoautotrader.strategy.macd.MacdStrategy;
 import com.cryptoautotrader.strategy.orderbook.OrderbookImbalanceStrategy;
 import com.cryptoautotrader.strategy.rsi.RsiStrategy;
@@ -42,6 +43,8 @@ public final class StrategyRegistry {
         register(new StochasticRsiStrategy());
         // FVG (Fair Value Gap) 전략 — A단계 모멘텀 방식
         register(new FairValueGapStrategy());
+        // Heikin-Ashi + 200 EMA + Stochastic RSI 추세추종 전략 (고정 손익비 1:2)
+        register(new HeikinAshiStochStrategy());
         // MACD + StochRSI + 볼린저밴드 복합 추세 전략 (StatefulStrategy: 쿨다운 상태 보유)
         registerStateful("MACD_STOCH_BB", MacdStochBbStrategy::new);
         // 실전매매 동작 검증용 테스트 전략

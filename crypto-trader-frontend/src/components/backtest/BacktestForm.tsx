@@ -13,9 +13,11 @@ const yearStart = '2025-01-01';
 const ALL_STRATEGIES = [
     'COMPOSITE', 'EMA_CROSS', 'BOLLINGER', 'RSI', 'MACD',
     'SUPERTREND', 'ATR_BREAKOUT', 'GRID', 'ORDERBOOK_IMBALANCE', 'STOCHASTIC_RSI', 'VWAP',
+    'HEIKIN_ASHI_STOCH',
 ];
 const STRATEGY_LABELS: Record<string, string> = {
     COMPOSITE: 'COMPOSITE (시장 국면 자동 선택)',
+    HEIKIN_ASHI_STOCH: 'HEIKIN_ASHI_STOCH (하이키나시+200EMA+StochRSI)',
 };
 
 type Mode = 'single-coin' | 'batch';

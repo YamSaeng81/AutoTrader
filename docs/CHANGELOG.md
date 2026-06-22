@@ -4,6 +4,25 @@
 
 ---
 
+### ✅ 완료 (2026-06-22) — 신규 전략 추가: HEIKIN_ASHI_STOCH (하이키나시 + 200EMA + StochRSI)
+
+유튜브 룰 기반 추세추종 전략을 코드화. 단기 소음을 줄인 하이키나시 캔들로 캔들 모양을 확인하고,
+200 EMA로 장기 추세 방향을 고정한 뒤 Stochastic RSI K/D 크로스로 진입 타이밍을 잡는다.
+진입과 동시에 **고정 손익비 1:2(기본 손절 -1.5% / 익절 +3.0%)** 를 신호에 함께 제안한다.
+
+- **진입 조건 (3가지 동시 충족)**
+  - 롱: 종가가 200EMA 위 + StochRSI 골든크로스 + 직전보다 몸통이 긴 아래꼬리 없는 양봉 HA
+  - 숏: 종가가 200EMA 아래 + StochRSI 데드크로스 + 직전보다 몸통이 긴 위꼬리 없는 음봉 HA
+- **신규 파일**
+  - [`HeikinAshiStochStrategy.java`](../strategy-lib/src/main/java/com/cryptoautotrader/strategy/heikinashi/HeikinAshiStochStrategy.java)
+  - [`HeikinAshiStochConfig.java`](../strategy-lib/src/main/java/com/cryptoautotrader/strategy/heikinashi/HeikinAshiStochConfig.java) — `emaPeriod`/`rsiPeriod`/`stochPeriod`/`signalPeriod`/`maxWickRatio`/`stopLossPct`/`takeProfitPct` 설정 가능
+  - [`HeikinAshiStochStrategyTest.java`](../strategy-lib/src/test/java/com/cryptoautotrader/strategy/heikinashi/HeikinAshiStochStrategyTest.java) — 6개 테스트 통과
+- **공통 유틸**: [`IndicatorUtils.heikinAshi()`](../strategy-lib/src/main/java/com/cryptoautotrader/strategy/IndicatorUtils.java) 추가 (일반 OHLC → 하이키나시 변환)
+- **등록/노출**: [`StrategyRegistry`](../strategy-lib/src/main/java/com/cryptoautotrader/strategy/StrategyRegistry.java) 등록, 프론트 `types.ts`/`paper-trading`·`BacktestForm` 전략 목록·라벨 추가
+- **범위 제외 (실행/세션 계층 관심사)**: 하루 최대 5회 매매 제한, 5배 레버리지 — 전략은 신호+SL/TP만 생성(stateless)
+
+---
+
 ### ✅ 완료 (2026-06-16) — 실전 관련 화면 "운영 중만 보기" 필터 + 동시 운영 한도 표기 정정
 
 **프론트엔드** — 세 화면 모두 "운영 중만 보기" 체크박스 **기본 체크(ON)**, RUNNING만 표시.

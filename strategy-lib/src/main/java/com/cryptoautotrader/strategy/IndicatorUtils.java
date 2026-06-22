@@ -248,6 +248,53 @@ public final class IndicatorUtils {
     }
 
     // ──────────────────────────────────────────────────────────────
+    // Heikin-Ashi 캔들
+    // ──────────────────────────────────────────────────────────────
+
+    /**
+     * 일반 OHLC 캔들 목록을 Heikin-Ashi 캔들 목록으로 변환한다.
+     * 단기 소음을 평활하여 추세를 명확하게 만든다.
+     *
+     * <pre>
+     * HA_종가 = (시 + 고 + 저 + 종) / 4
+     * HA_시가 = (이전 HA_시가 + 이전 HA_종가) / 2   (첫 캔들: (시 + 종) / 2)
+     * HA_고가 = max(고, HA_시가, HA_종가)
+     * HA_저가 = min(저, HA_시가, HA_종가)
+     * </pre>
+     *
+     * <p>반환 캔들은 변환된 OHLC를 가지며, 원본의 time/volume을 그대로 유지한다.
+     */
+    public static List<Candle> heikinAshi(List<Candle> candles) {
+        List<Candle> result = new ArrayList<>();
+        if (candles.isEmpty()) return result;
+
+        BigDecimal four = BigDecimal.valueOf(4);
+        BigDecimal two  = BigDecimal.valueOf(2);
+        BigDecimal prevHaOpen  = null;
+        BigDecimal prevHaClose = null;
+
+        for (Candle c : candles) {
+            BigDecimal haClose = c.getOpen().add(c.getHigh()).add(c.getLow()).add(c.getClose())
+                    .divide(four, SCALE, RoundingMode.HALF_UP);
+            BigDecimal haOpen = (prevHaOpen == null)
+                    ? c.getOpen().add(c.getClose()).divide(two, SCALE, RoundingMode.HALF_UP)
+                    : prevHaOpen.add(prevHaClose).divide(two, SCALE, RoundingMode.HALF_UP);
+            BigDecimal haHigh = c.getHigh().max(haOpen).max(haClose);
+            BigDecimal haLow  = c.getLow().min(haOpen).min(haClose);
+
+            result.add(Candle.builder()
+                    .time(c.getTime())
+                    .open(haOpen).high(haHigh).low(haLow).close(haClose)
+                    .volume(c.getVolume())
+                    .build());
+
+            prevHaOpen  = haOpen;
+            prevHaClose = haClose;
+        }
+        return result;
+    }
+
+    // ──────────────────────────────────────────────────────────────
     // Ichimoku Kinko Hyo 지표
     // ──────────────────────────────────────────────────────────────
 
