@@ -100,8 +100,9 @@ public class StrategyLiveStatusRegistry {
                 "A단계(모멘텀 방식)만 구현. SOL 외 4코인 모두 열위. 실전 투입 전 추가 검증 필요."),
         entry("HEIKIN_ASHI_STOCH",
                 LiveReadiness.EXPERIMENTAL,
-                "하이키나시+200EMA+StochRSI, 고정 손익비 1:2. ~100일 H1 백테스트에서 BTC/ETH/SOL 흑자·XRP 소폭 손실(4코인 중 3흑자), " +
-                "같은 구간 매수보유·EMA_CROSS 대비 우위. 단일 하락구간·소표본(8~15거래)으로 장기 검증 부족 → 실전 미권장."),
+                "하이키나시+200EMA+StochRSI, 고정 손익비 1:2. 보완안 1·8 적용(꼬리 0→0.25 완화 + 거래량 0.8배 필터, 몸통증가 필수 유지). " +
+                "~100일 H1 백테스트 합산 +0.74%→+19.28%(BTC +0.35/ETH -0.68/SOL +5.82/XRP +13.79), 4코인 중 3코인 원작 상회. " +
+                "보완안 4(몸통→가산점)는 4코인 전부 악화로 기각. 단일 구간·소표본(8~17거래)·ETH 소폭 후퇴 → 추가 구간 검증 전 실전 미권장."),
         entry("COMPOSITE",
                 LiveReadiness.EXPERIMENTAL,
                 "레짐 적응형. 레짐 분류기 정확도 미검증. 개별 레짐별 실전 근거 필요."),
@@ -111,6 +112,10 @@ public class StrategyLiveStatusRegistry {
         entry("COMPOSITE_MTF_CONFIRMED",
                 LiveReadiness.EXPERIMENTAL,
                 "범용 CRR(H1)+Supertrend(H4). XRP +3.37%로 Tier 2(유일 흑자) 수준 — 소액 관찰 단계, ENABLED 근거 부족."),
+        entry("COMPOSITE_PULLBACK_MTF",
+                LiveReadiness.EXPERIMENTAL,
+                "신규 눌림목 회복 전략(H4 Supertrend 상승 + EMA200 + RSI40~55 + EMA20/VWAP 눌림 회복, ADX≥18). " +
+                "기존 돌파/모멘텀과 직교한 A/B 검증용 — 백테스트 통과(거래수≥20·PF≥1.2) 전까지 실전 미권장."),
         entry("COMPOSITE_BREAKOUT_ICHIMOKU",
                 LiveReadiness.BLOCKED,
                 "COMPOSITE_BREAKOUT의 ADX(14)<20 필터가 횡보장을 선차단하므로 Ichimoku 구름 필터가 추가로 막는 신호 없음. " +
@@ -144,6 +149,11 @@ public class StrategyLiveStatusRegistry {
     public boolean isBlocked(String strategyName) {
         return getReadiness(strategyName) == LiveReadiness.BLOCKED
                 || getReadiness(strategyName) == LiveReadiness.DEPRECATED;
+    }
+
+    /** 실험(EXPERIMENTAL) 단계 전략인지 여부 — 명시 옵션 없이는 실전 세션 생성 비허용 */
+    public boolean isExperimental(String strategyName) {
+        return getReadiness(strategyName) == LiveReadiness.EXPERIMENTAL;
     }
 
     /** 전체 매트릭스 반환 (API 노출용) */

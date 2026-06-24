@@ -107,7 +107,7 @@ public class LiveTradingSessionEntity {
         if (createdAt == null) createdAt = Instant.now();
         if (updatedAt == null) updatedAt = Instant.now();
         if (stopLossPct == null) stopLossPct = new BigDecimal("5.0");
-        if (investRatio == null) investRatio = new BigDecimal("0.8000");
+        if (investRatio == null) investRatio = new BigDecimal("0.2500");
     }
 
     @PreUpdate

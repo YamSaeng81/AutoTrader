@@ -58,6 +58,15 @@ public interface StrategyLogRepository extends JpaRepository<StrategyLogEntity, 
     List<StrategyLogEntity> findEvaluatedSignalsBySessionType(
             @Param("sessionType") String sessionType, @Param("from") Instant from);
 
+    // ── 필터 차단(HOLD) 집계용 — forward return 없음(반사실), 건수만 사용 ──────────
+    @Query("SELECT l FROM StrategyLogEntity l WHERE l.signal = 'HOLD' AND l.createdAt >= :from")
+    List<StrategyLogEntity> findHoldLogsSince(@Param("from") Instant from);
+
+    @Query("SELECT l FROM StrategyLogEntity l WHERE l.signal = 'HOLD' " +
+           "AND l.sessionType = :sessionType AND l.createdAt >= :from")
+    List<StrategyLogEntity> findHoldLogsSinceBySessionType(
+            @Param("sessionType") String sessionType, @Param("from") Instant from);
+
     /** 모의→실전 승격 검사용 — 특정 세션의 평가 완료 BUY/SELL 신호 조회 */
     @Query("SELECT l FROM StrategyLogEntity l WHERE l.signal IN ('BUY', 'SELL') " +
            "AND l.sessionId = :sessionId " +

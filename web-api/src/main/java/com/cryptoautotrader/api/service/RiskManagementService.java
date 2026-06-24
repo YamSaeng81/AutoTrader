@@ -99,7 +99,7 @@ public class RiskManagementService {
                         : new BigDecimal("0.003"))
                 .investRatio(cfg.getInvestRatioPct() != null
                         ? cfg.getInvestRatioPct().divide(pct100, 4, RoundingMode.HALF_UP)
-                        : new BigDecimal("0.80"))
+                        : new BigDecimal("0.25"))
                 .build();
     }
 
@@ -165,7 +165,7 @@ public class RiskManagementService {
         }
 
         BigDecimal mddThreshold = config.getMddThresholdPct() != null
-                ? config.getMddThresholdPct() : new BigDecimal("20.0");
+                ? config.getMddThresholdPct() : new BigDecimal("10.0");
         int consecutiveLossLimit = config.getConsecutiveLossLimit() != null
                 ? config.getConsecutiveLossLimit() : 5;
 
@@ -311,7 +311,7 @@ public class RiskManagementService {
     private RiskConfig toRiskConfig(RiskConfigEntity entity) {
         BigDecimal utilLimit = entity.getMaxCapitalUtilizationPct() != null
                 ? entity.getMaxCapitalUtilizationPct()
-                : new BigDecimal("80.0");
+                : new BigDecimal("50.0");
         BigDecimal drawdownLimit = entity.getMaxPortfolioDrawdownPct() != null
                 ? entity.getMaxPortfolioDrawdownPct()
                 : new BigDecimal("15.0");
@@ -319,7 +319,7 @@ public class RiskManagementService {
                 .maxDailyLossPct(entity.getMaxDailyLossPct())
                 .maxWeeklyLossPct(entity.getMaxWeeklyLossPct())
                 .maxMonthlyLossPct(entity.getMaxMonthlyLossPct())
-                .maxPositions(entity.getMaxPositions() != null ? entity.getMaxPositions() : 20)
+                .maxPositions(entity.getMaxPositions() != null ? entity.getMaxPositions() : 8)
                 .cooldownMinutes(entity.getCooldownMinutes())
                 .portfolioLimitKrw(entity.getPortfolioLimitKrw())
                 .maxCapitalUtilizationPct(utilLimit)

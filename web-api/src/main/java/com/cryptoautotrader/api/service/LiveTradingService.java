@@ -96,6 +96,14 @@ public class LiveTradingService {
     /** StatefulStrategy(COMPOSITE/Grid 등) 세션별 독립 인스턴스 — 다중 세션 간 상태 오염 방지 */
     private final Map<Long, com.cryptoautotrader.strategy.Strategy> sessionStatefulStrategies = new ConcurrentHashMap<>();
 
+    /**
+     * 세션별 마지막으로 전략을 평가한 "닫힌 캔들" 시각.
+     * 60초 스케줄로 같은 미완성 캔들을 반복 평가하지 않도록, 새 닫힌 캔들이 생긴 경우에만
+     * 전략 신호를 평가한다(H1이면 1시간 1회, M15면 15분 1회). 손절/익절/서킷브레이커 감시는
+     * 매 tick(60초) 그대로 수행된다.
+     */
+    private final Map<Long, Instant> lastEvaluatedClosedCandle = new ConcurrentHashMap<>();
+
     /** 낙폭 경고 쿨다운: 세션별 마지막 DRAWDOWN_WARNING 전송 시각 (30분 쿨다운) */
     private final Map<Long, Instant> lastDrawdownWarning = new ConcurrentHashMap<>();
     private static final long DRAWDOWN_WARNING_COOLDOWN_MIN = 30;
@@ -267,6 +275,15 @@ public class LiveTradingService {
                     + entry.readiness() + "]. 사유: " + entry.reason());
         }
 
+        // §11 EXPERIMENTAL(실험) 전략은 기본 차단 — allowExperimentalLive=true 명시 시에만 허용(관찰 전용).
+        if (strategyLiveStatusRegistry.isExperimental(req.getStrategyType()) && !req.isAllowExperimentalLive()) {
+            StrategyLiveStatusRegistry.StatusEntry entry =
+                    strategyLiveStatusRegistry.getStatus(req.getStrategyType());
+            throw new IllegalArgumentException(
+                    req.getStrategyType() + " 전략은 실험 단계(EXPERIMENTAL)라 충분한 실전 근거가 없습니다. "
+                    + "관찰 전용으로 실행하려면 allowExperimentalLive=true 를 명시하세요. 사유: " + entry.reason());
+        }
+
         // §8 자본 초과 배정 방지: 세션 생성 직전 거래소 잔고를 즉시 동기화하여 최신값 기준으로 검증
         if (portfolioSyncService != null) {
             portfolioSyncService.syncBalance();
@@ -312,7 +329,7 @@ public class LiveTradingService {
         }
         BigDecimal investRatio = rawRatio != null
                 ? rawRatio.max(new BigDecimal("0.01")).min(BigDecimal.ONE)
-                : new BigDecimal("0.8000");
+                : new BigDecimal("0.2500");
 
         LiveTradingSessionEntity session = LiveTradingSessionEntity.builder()
                 .strategyType(req.getStrategyType())
@@ -447,6 +464,7 @@ public class LiveTradingService {
         session.setStoppedAt(Instant.now());
         sessionStatefulStrategies.remove(sessionId);
         lastDrawdownWarning.remove(sessionId);
+        lastEvaluatedClosedCandle.remove(sessionId);
         session = sessionRepository.save(session);
 
         log.info("실전매매 세션 정지: id={} 최종 자산: {} KRW",
@@ -485,6 +503,7 @@ public class LiveTradingService {
         session.setStoppedAt(Instant.now());
         sessionStatefulStrategies.remove(sessionId);
         lastDrawdownWarning.remove(sessionId);
+        lastEvaluatedClosedCandle.remove(sessionId);
         session = sessionRepository.save(session);
 
         log.error("실전매매 세션 비상 정지 완료: id={}", sessionId);
@@ -606,6 +625,7 @@ public class LiveTradingService {
         sessionRepository.save(session);
         sessionStatefulStrategies.remove(sessionId);
         lastDrawdownWarning.remove(sessionId);
+        lastEvaluatedClosedCandle.remove(sessionId);
         log.info("실전매매 세션 삭제(soft) 완료: id={} → status=DELETED", sessionId);
     }
 
@@ -792,11 +812,20 @@ public class LiveTradingService {
 
         // 전략 평가 전 시장 레짐 선감지 — params 주입에 사용
         // (이전엔 evaluate 후 감지되었으나 ADX 필터 우회 등 평가-전 결정에 사용하기 위해 선행)
+        //
+        // detectRaw() 사용 이유: detect()는 stateful hysteresis(holdCount)를 쓰는데,
+        // 매 평가마다 detector를 새로 만들면 holdCount가 항상 0으로 리셋되어 신규 레짐이
+        // HYSTERESIS_CANDLES(3)에 도달하지 못하고 기본 previousRegime(RANGE)만 반환된다.
+        // 즉 실제 시장이 TREND/VOLATILITY여도 항상 RANGE로 오판되던 버그가 있었다.
+        // 선감지는 순간 레짐만 필요하므로 hysteresis 없는 detectRaw()로 실제 값을 사용한다.
+        // (hysteresis가 필요한 전략은 내부에 persistent detector를 보유 — 영향 없음)
         MarketRegime preEvalRegime = null;
-        try {
-            preEvalRegime = new MarketRegimeDetector().detect(candles);
-        } catch (Exception e) {
-            log.warn("레짐 선감지 실패 (sessionId={}): {}", sessionId, e.getMessage());
+        if (candles.size() >= MarketRegimeDetector.MIN_CANDLE_COUNT) {
+            try {
+                preEvalRegime = new MarketRegimeDetector().detectRaw(candles);
+            } catch (Exception e) {
+                log.warn("레짐 선감지 실패 (sessionId={}): {}", sessionId, e.getMessage());
+            }
         }
 
         // 전략 신호 평가
@@ -824,49 +853,73 @@ public class LiveTradingService {
                 log.warn("호가창 조회 실패, 캔들 근사 방식으로 대체 (sessionId={}): {}", sessionId, e.getMessage());
             }
         }
-        com.cryptoautotrader.strategy.Strategy strategyInstance =
-                StrategyRegistry.isStateful(strategyType)
-                        ? sessionStatefulStrategies.computeIfAbsent(sessionId,
-                                id -> StrategyRegistry.createNew(strategyType))
-                        : StrategyRegistry.get(strategyType);
-        StrategySignal signal = strategyInstance.evaluate(candles, params);
-        log.debug("세션 전략 신호 (sessionId={}): {} {} -> {} ({})",
-                sessionId, strategyType, coinPair, signal.getAction(), signal.getReason());
-
-        // EMA200 레짐 필터: BUY 신호를 EMA200 위에서만 허용 (DOGE 예외 포함).
-        // 백테스트(BacktestEngine)와 동일 로직을 Ema200RegimeGate 단일 진실 소스로 통합 (P1-B).
-        if (signal.getAction() == StrategySignal.Action.BUY
-                && !Ema200RegimeGate.allowsBuy(candles, coinPair)) {
-            log.debug("EMA200 레짐 필터 — BUY 차단 (sessionId={}, {})", sessionId, coinPair);
-            signal = StrategySignal.hold("EMA200 레짐 필터 — 현재가 EMA200 이하");
-        }
-
         BigDecimal currentPrice = candles.get(candles.size() - 1).getClose();
 
         // 시장 레짐 — evaluate 전에 이미 감지됨 (preEvalRegime). 재감지 불필요.
         final String regimeName = preEvalRegime != null ? preEvalRegime.name() : null;
 
-        // 전략 로그 DB 저장 (신호 품질 + 레짐 포함)
+        // ── 닫힌 캔들 게이팅 ──────────────────────────────────────────────────
+        // 60초 스케줄이 같은 미완성 캔들을 반복 평가하지 않도록, 새 닫힌 캔들이 생긴 경우에만
+        // 전략 신호를 평가한다(H1=1시간 1회, M15=15분 1회). 손절/익절·서킷브레이커 감시는
+        // 이 게이트와 무관하게 매 tick(60초) 그대로 수행된다.
+        long periodMin = TimeframeUtils.toMinutes(timeframe);
+        Instant lastCandleTime = candles.get(candles.size() - 1).getTime();
+        boolean lastCandleClosed = !lastCandleTime.plus(periodMin, ChronoUnit.MINUTES).isAfter(Instant.now());
+        // 마지막 캔들이 아직 형성 중이면 직전(닫힌) 캔들 기준으로 평가한다 — 백테스트와 동일 의미.
+        List<Candle> evalCandles = (lastCandleClosed || candles.size() < 2)
+                ? candles : candles.subList(0, candles.size() - 1);
+        Instant closedCandleTime = evalCandles.get(evalCandles.size() - 1).getTime();
+        Instant prevEvaluated = lastEvaluatedClosedCandle.get(sessionId);
+        boolean newClosedCandle = prevEvaluated == null || closedCandleTime.isAfter(prevEvaluated);
+
+        StrategySignal signal;
         StrategyLogEntity savedSignalLog = null;
-        try {
-            // BUY/SELL 신호의 confidence: strength(0~100) → 0.0~1.0
-            BigDecimal conf = (signal.getAction() != StrategySignal.Action.HOLD)
-                    ? signal.getStrength().divide(java.math.BigDecimal.valueOf(100), 4, java.math.RoundingMode.HALF_UP)
-                    : null;
-            StrategyLogEntity logEntity = StrategyLogEntity.builder()
-                    .strategyName(strategyType)
-                    .coinPair(coinPair)
-                    .signal(signal.getAction().name())
-                    .reason(signal.getReason())
-                    .marketRegime(regimeName)
-                    .sessionType("LIVE")
-                    .sessionId(sessionId)
-                    .signalPrice(currentPrice)
-                    .confidenceScore(conf)
-                    .build();
-            savedSignalLog = strategyLogRepository.save(logEntity);
-        } catch (Exception e) {
-            log.warn("전략 로그 저장 실패: {}", e.getMessage());
+        if (!newClosedCandle) {
+            // 이미 평가한 닫힌 캔들 — 전략 신호 평가 스킵 (손절/익절 감시는 아래에서 계속).
+            log.debug("닫힌 캔들 미갱신 — 전략 평가 스킵 (sessionId={}, closedCandle={})",
+                    sessionId, closedCandleTime);
+            signal = StrategySignal.hold("닫힌 캔들 미갱신 — 전략 평가 스킵");
+        } else {
+            lastEvaluatedClosedCandle.put(sessionId, closedCandleTime);
+            com.cryptoautotrader.strategy.Strategy strategyInstance =
+                    StrategyRegistry.isStateful(strategyType)
+                            ? sessionStatefulStrategies.computeIfAbsent(sessionId,
+                                    id -> StrategyRegistry.createNew(strategyType))
+                            : StrategyRegistry.get(strategyType);
+            signal = strategyInstance.evaluate(evalCandles, params);
+            log.debug("세션 전략 신호 (sessionId={}): {} {} -> {} ({})",
+                    sessionId, strategyType, coinPair, signal.getAction(), signal.getReason());
+
+            // EMA200 레짐 필터: BUY 신호를 EMA200 위에서만 허용 (DOGE 예외 포함).
+            // 백테스트(BacktestEngine)와 동일 로직을 Ema200RegimeGate 단일 진실 소스로 통합 (P1-B).
+            boolean ema200Pass = Ema200RegimeGate.allowsBuy(evalCandles, coinPair);
+            if (signal.getAction() == StrategySignal.Action.BUY && !ema200Pass) {
+                log.debug("EMA200 레짐 필터 — BUY 차단 (sessionId={}, {})", sessionId, coinPair);
+                signal = StrategySignal.hold("EMA200 레짐 필터 — 현재가 EMA200 이하");
+            }
+
+            // 전략 로그 DB 저장 (신호 품질 + 레짐 + 지표 스냅샷)
+            try {
+                // BUY/SELL 신호의 confidence: strength(0~100) → 0.0~1.0
+                BigDecimal conf = (signal.getAction() != StrategySignal.Action.HOLD)
+                        ? signal.getStrength().divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP)
+                        : null;
+                StrategyLogEntity logEntity = StrategyLogEntity.builder()
+                        .strategyName(strategyType)
+                        .coinPair(coinPair)
+                        .signal(signal.getAction().name())
+                        .reason(signal.getReason())
+                        .marketRegime(regimeName)
+                        .sessionType("LIVE")
+                        .sessionId(sessionId)
+                        .signalPrice(currentPrice)
+                        .confidenceScore(conf)
+                        .indicatorsJson(buildIndicatorsJson(evalCandles, closedCandleTime, lastCandleClosed, ema200Pass))
+                        .build();
+                savedSignalLog = strategyLogRepository.save(logEntity);
+            } catch (Exception e) {
+                log.warn("전략 로그 저장 실패: {}", e.getMessage());
+            }
         }
 
         Optional<PositionEntity> openPos = positionRepository
@@ -2342,6 +2395,29 @@ public class LiveTradingService {
                         .low(c.getLow()).close(c.getClose()).volume(c.getVolume())
                         .build())
                 .toList();
+    }
+
+    /**
+     * 전략 로그용 지표 스냅샷 JSON. 스키마 변경 없이 기존 {@code indicators_json}(jsonb) 컬럼을
+     * 재사용해 운영 테스트 분석에 필요한 컨텍스트(닫힌 캔들 기준 여부, 당시 ADX/ATR, EMA200 통과)를
+     * 함께 남긴다.
+     */
+    private String buildIndicatorsJson(List<Candle> candles, Instant closedCandleTime,
+                                       boolean lastCandleClosed, boolean ema200Pass) {
+        try {
+            BigDecimal adx = IndicatorUtils.adx(candles, 14);
+            BigDecimal atr = IndicatorUtils.atr(candles, 14);
+            return String.format(java.util.Locale.ROOT,
+                    "{\"closedCandleBased\":true,\"lastCandleClosed\":%b,\"closedCandleTime\":\"%s\","
+                    + "\"adx14\":%s,\"atr14\":%s,\"ema200Pass\":%b}",
+                    lastCandleClosed, closedCandleTime,
+                    adx != null ? adx.toPlainString() : "null",
+                    atr != null ? atr.toPlainString() : "null",
+                    ema200Pass);
+        } catch (Exception e) {
+            log.debug("지표 스냅샷 JSON 생성 실패 (sessionId 무관): {}", e.getMessage());
+            return null;
+        }
     }
 
     // ── Discord ALERT 헬퍼 ─────────────────────────────────────────────────────

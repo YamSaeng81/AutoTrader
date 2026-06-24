@@ -98,14 +98,15 @@ public class RiskConfigEntity {
     @PrePersist
     void prePersist() {
         if (updatedAt == null) updatedAt = Instant.now();
-        if (maxDailyLossPct == null) maxDailyLossPct = new BigDecimal("3.0");
-        if (maxWeeklyLossPct == null) maxWeeklyLossPct = new BigDecimal("7.0");
-        if (maxMonthlyLossPct == null) maxMonthlyLossPct = new BigDecimal("15.0");
-        if (maxPositions == null) maxPositions = 20;
-        if (maxCapitalUtilizationPct == null) maxCapitalUtilizationPct = new BigDecimal("80.0");
+        // 소액 운영 테스트 기준 보수적 기본값 (2026-06 하향). 기존 저장 행은 불변.
+        if (maxDailyLossPct == null) maxDailyLossPct = new BigDecimal("1.5");
+        if (maxWeeklyLossPct == null) maxWeeklyLossPct = new BigDecimal("4.0");
+        if (maxMonthlyLossPct == null) maxMonthlyLossPct = new BigDecimal("8.0");
+        if (maxPositions == null) maxPositions = 8;
+        if (maxCapitalUtilizationPct == null) maxCapitalUtilizationPct = new BigDecimal("50.0");
         if (cooldownMinutes == null) cooldownMinutes = 60;
         if (maxPortfolioDrawdownPct == null) maxPortfolioDrawdownPct = new BigDecimal("15.0");
-        if (mddThresholdPct == null) mddThresholdPct = new BigDecimal("20.0");
+        if (mddThresholdPct == null) mddThresholdPct = new BigDecimal("10.0");
         if (consecutiveLossLimit == null) consecutiveLossLimit = 5;
         if (circuitBreakerEnabled == null) circuitBreakerEnabled = Boolean.TRUE;
         if (stopLossPct == null) stopLossPct = new BigDecimal("5.0");
@@ -113,7 +114,7 @@ public class RiskConfigEntity {
         if (trailingEnabled == null) trailingEnabled = Boolean.TRUE;
         if (trailingTpMarginPct == null) trailingTpMarginPct = new BigDecimal("0.5");
         if (trailingSlMarginPct == null) trailingSlMarginPct = new BigDecimal("0.3");
-        if (investRatioPct == null) investRatioPct = new BigDecimal("80.0");
+        if (investRatioPct == null) investRatioPct = new BigDecimal("25.0");
     }
 
     @PreUpdate

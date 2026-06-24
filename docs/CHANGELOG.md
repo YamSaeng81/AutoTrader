@@ -4,6 +4,38 @@
 
 ---
 
+### ✅ 완료 (2026-06-24) — HEIKIN_ASHI_STOCH 신호 희소성 보완 (보완안 1·8 채택, 4 기각)
+
+**배경**: HEIKIN_ASHI_STOCH가 `maxWickRatio=0.0`(꼬리 완전 0)·"직전보다 몸통 증가" 필수 조건으로
+신호가 극희소(~100일 H1에서 코인당 8~15거래) → 장기 통계 신뢰도 부족. 진입 완화 3종을
+**전부 파라미터 토글**로 구현해 동일 데이터에서 A/B 측정 후 데이터 기반 채택 결정.
+
+**구현** ([`HeikinAshiStochStrategy`](../strategy-lib/src/main/java/com/cryptoautotrader/strategy/heikinashi/HeikinAshiStochStrategy.java), [`HeikinAshiStochConfig`](../strategy-lib/src/main/java/com/cryptoautotrader/strategy/heikinashi/HeikinAshiStochConfig.java))
+- **보완안 1 (채택)**: `maxWickRatio` 기본 0.0→0.25 — "꼬리 0" 초과잉 필터 완화.
+- **보완안 8 (채택)**: `volumeFilterRatio`(기본 0.8)·`volumeAvgPeriod`(기본 20) 추가 — 현재 거래량이
+  직전 N캔들 평균 × 비율 이상일 때만 BUY(청산엔 미적용). 완화로 늘어난 잡신호 1차 거름.
+- **보완안 4 (기각)**: `requireBodyGrowth`(기본 true) 토글 추가 — false면 몸통 증가를 진입 필수→strength
+  가산점(`bodyGrowthBonus` 기본 10)으로. **백테스트상 4코인 전부 수익 악화**하여 기본 true(원작 유지).
+
+**측정** ([`HeikinAshiStochBacktestRunner`](../core-engine/src/test/java/com/cryptoautotrader/core/backtest/HeikinAshiStochBacktestRunner.java), Upbit H1 ~100일, 손익비 1:2 고정)
+
+| 구성 | BTC | ETH | SOL | XRP | 합산 |
+|---|---|---|---|---|---|
+| ① 원작(엄격) | +0.29 | +1.42 | +0.91 | −1.88 | +0.74 |
+| ④ 1+4(몸통 가산점) | −3.49 | −0.11 | −0.35 | +8.92 | +4.97 |
+| **⑤ 1+8(몸통 필수 유지)** | **+0.35** | **−0.68** | **+5.82** | **+13.79** | **+19.28** |
+
+→ 최적 = ⑤(보완안 1+8). 신규 기본값으로 채택. ③↔④ 대조에서 보완안 4가 4코인 전부 악화 확인.
+
+**검증**: [`HeikinAshiStochStrategyTest`](../strategy-lib/src/test/java/com/cryptoautotrader/strategy/heikinashi/HeikinAshiStochStrategyTest.java)에
+거래량 필터 차단/비활성 회귀 테스트 추가. strategy-lib·core-engine·web-api 컴파일 통과.
+[`StrategyLiveStatusRegistry`](../web-api/src/main/java/com/cryptoautotrader/api/service/StrategyLiveStatusRegistry.java) 설명 갱신.
+
+**한계**: 단일 ~100일 구간·소표본(8~17거래), ETH는 소폭 후퇴(+1.42→−0.68), XRP 호조는 8거래 기반으로
+노이즈 가능. **추가 구간·워크포워드 검증 전까지 EXPERIMENTAL 유지(실전 미권장).**
+
+---
+
 ### ✅ 완료 (2026-06-23) — P0 해결: 시장가 매도 체결가 미정산으로 SUBMITTED 영구 정체 수정
 
 **증상**: 거래소에선 매도가 전량 체결(`done`)됐는데도 주문이 `FILLED`로 전이되지 못하고

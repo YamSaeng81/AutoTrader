@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 @Getter
-@Builder
+@Builder(toBuilder = true)
 public class StrategySignal {
 
     public enum Action {

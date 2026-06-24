@@ -151,13 +151,14 @@ public class CompositeRegimeRouter implements Strategy {
         return ADX_RELAX_COINS.stream().anyMatch(cp::contains);
     }
 
-    /** 신호에 레짐 태그를 prefix로 붙여 반환한다. */
+    /**
+     * 신호에 레짐 태그를 prefix로 붙여 반환한다.
+     * 하위 전략이 제안한 suggestedStopLoss/takeProfit은 toBuilder로 보존한다
+     * (reason만 교체 — 향후 SL/TP 제안 전략 확장 시 손절/익절 정보 유실 방지).
+     */
     private static StrategySignal tag(StrategySignal signal, String tag) {
-        String reason = tag + signal.getReason();
-        return switch (signal.getAction()) {
-            case BUY  -> StrategySignal.buy(signal.getStrength(), reason);
-            case SELL -> StrategySignal.sell(signal.getStrength(), reason);
-            case HOLD -> StrategySignal.hold(reason);
-        };
+        return signal.toBuilder()
+                .reason(tag + signal.getReason())
+                .build();
     }
 }

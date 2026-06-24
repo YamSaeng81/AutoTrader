@@ -45,16 +45,32 @@ class HeikinAshiStochBacktestRunner {
                 csvPath, coinPair, candles.size(),
                 candles.get(0).getTime(), candles.get(candles.size() - 1).getTime());
 
-        // 여러 파라미터 셋으로 비교 (꼬리 허용 비율에 따른 민감도)
-        runOne("기본(원작 룰: 꼬리 0%)", candles, Map.of(
-                "emaPeriod", 200, "rsiPeriod", 14, "stochPeriod", 14, "signalPeriod", 3,
-                "maxWickRatio", 0.0, "stopLossPct", 1.5, "takeProfitPct", 3.0));
-        runOne("꼬리 30% 허용", candles, Map.of(
-                "emaPeriod", 200, "rsiPeriod", 14, "stochPeriod", 14, "signalPeriod", 3,
-                "maxWickRatio", 0.3, "stopLossPct", 1.5, "takeProfitPct", 3.0));
-        runOne("꼬리 50% 허용 + EMA100", candles, Map.of(
-                "emaPeriod", 100, "rsiPeriod", 14, "stochPeriod", 14, "signalPeriod", 3,
-                "maxWickRatio", 0.5, "stopLossPct", 1.5, "takeProfitPct", 3.0));
+        // 보완안 1·4·8 A/B 비교 — 토글 파라미터로 동일 데이터에서 직접 대조.
+        // 베이스라인(원작 엄격 룰): 꼬리 0% + 몸통증가 필수 + 거래량 필터 없음.
+        runOne("① baseline(원작 엄격: 꼬리0/몸통필수/거래량X)", candles, Map.ofEntries(
+                Map.entry("maxWickRatio", 0.0),
+                Map.entry("requireBodyGrowth", true),
+                Map.entry("volumeFilterRatio", 0.0)));
+        // 1+4+8 완화(신규 기본값): 꼬리 25% + 몸통증가 가산점 + 거래량 0.8배 필터.
+        runOne("② 완화 1+4+8(꼬리0.25/몸통가산/거래량0.8)", candles, Map.ofEntries(
+                Map.entry("maxWickRatio", 0.25),
+                Map.entry("requireBodyGrowth", false),
+                Map.entry("volumeFilterRatio", 0.8),
+                Map.entry("volumeAvgPeriod", 20)));
+        // 완화 요소 기여도 분리 — 1만 / 1+4만 / 1+4+8 누적.
+        runOne("③ 1만(꼬리0.25, 몸통필수, 거래량X)", candles, Map.ofEntries(
+                Map.entry("maxWickRatio", 0.25),
+                Map.entry("requireBodyGrowth", true),
+                Map.entry("volumeFilterRatio", 0.0)));
+        runOne("④ 1+4(꼬리0.25/몸통가산, 거래량X)", candles, Map.ofEntries(
+                Map.entry("maxWickRatio", 0.25),
+                Map.entry("requireBodyGrowth", false),
+                Map.entry("volumeFilterRatio", 0.0)));
+        runOne("⑤ 1+8(꼬리0.25/몸통필수/거래량0.8)", candles, Map.ofEntries(
+                Map.entry("maxWickRatio", 0.25),
+                Map.entry("requireBodyGrowth", true),
+                Map.entry("volumeFilterRatio", 0.8),
+                Map.entry("volumeAvgPeriod", 20)));
 
         // 베이스라인 비교용 (EMA_CROSS 기본)
         runRaw("[참고] EMA_CROSS 베이스라인", candles, "EMA_CROSS",

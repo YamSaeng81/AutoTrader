@@ -26,6 +26,15 @@ import java.util.Map;
  *   <li>{@code [H4:중립]} — HTF HOLD, LTF 신호 그대로 통과</li>
  * </ul>
  *
+ * <h3>strictHtf 모드</h3>
+ * 기본(false)은 위 설명대로 HTF HOLD·데이터부족 시 LTF 신호를 통과시키는 보수적 허용이다.
+ * {@code strictHtf=true}면 HTF가 명시적으로 방향(BUY/SELL)을 확인해 주지 않는 한 진입을 막는다:
+ * <ul>
+ *   <li>HTF 데이터 부족 → 통과 대신 HOLD ({@code [H4:데이터부족·strict]})</li>
+ *   <li>HTF HOLD(중립) → 통과 대신 HOLD ({@code [H4:중립·strict]})</li>
+ * </ul>
+ * 운영 초반의 과공격 진입(데이터부족 통과)과 추세 미확인 진입을 차단하려는 용도.
+ *
  * <h3>최소 캔들 수</h3>
  * {@code max(ltfDelegate.min, htfFactor × htfStrategy.min)} — HTF 계산에 필요한 LTF 캔들 포함.
  */
@@ -35,14 +44,22 @@ public class MtfConfirmedStrategy implements Strategy {
     private final Strategy ltfDelegate;  // H1 신호 전략
     private final Strategy htfStrategy;  // HTF 추세 확인 전략 (다운샘플 캔들에 적용)
     private final int      htfFactor;    // 다운샘플 배율 (H1→H4 = 4)
+    private final boolean  strictHtf;    // true: HTF 미확인(HOLD/데이터부족) 시 진입 차단
 
+    /** 기본 생성자 — 보수적 허용 모드(strictHtf=false). */
     public MtfConfirmedStrategy(String name, Strategy ltfDelegate,
                                 Strategy htfStrategy, int htfFactor) {
+        this(name, ltfDelegate, htfStrategy, htfFactor, false);
+    }
+
+    public MtfConfirmedStrategy(String name, Strategy ltfDelegate,
+                                Strategy htfStrategy, int htfFactor, boolean strictHtf) {
         if (htfFactor < 2) throw new IllegalArgumentException("htfFactor must be >= 2: " + htfFactor);
         this.name        = name;
         this.ltfDelegate = ltfDelegate;
         this.htfStrategy = htfStrategy;
         this.htfFactor   = htfFactor;
+        this.strictHtf   = strictHtf;
     }
 
     @Override
@@ -69,16 +86,24 @@ public class MtfConfirmedStrategy implements Strategy {
         // 2. H1 → HTF 다운샘플
         List<Candle> htfCandles = CandleDownsampler.downsample(candles, htfFactor);
 
-        // 3. HTF 캔들 부족 시 LTF 신호 통과 (보수적 허용)
+        // 3. HTF 캔들 부족 — strict면 차단, 아니면 LTF 신호 통과 (보수적 허용)
         if (htfCandles.size() < htfStrategy.getMinimumCandleCount()) {
+            if (strictHtf) {
+                return StrategySignal.hold(String.format(
+                        "[H4:데이터부족·strict] HTF 미확인 진입 차단 [%s]", ltfSignal.getReason()));
+            }
             return tag(ltfSignal, "[H4:데이터부족] ");
         }
 
         // 4. HTF 추세 방향 판정
         StrategySignal htfSignal = htfStrategy.evaluate(htfCandles, params);
 
-        // 5. HTF HOLD(중립) → LTF 신호 통과
+        // 5. HTF HOLD(중립) — strict면 차단, 아니면 LTF 신호 통과
         if (htfSignal.getAction() == StrategySignal.Action.HOLD) {
+            if (strictHtf) {
+                return StrategySignal.hold(String.format(
+                        "[H4:중립·strict] HTF 추세 미확인 진입 차단 [%s]", ltfSignal.getReason()));
+            }
             return tag(ltfSignal, "[H4:중립] ");
         }
 
@@ -93,12 +118,13 @@ public class MtfConfirmedStrategy implements Strategy {
         return tag(ltfSignal, String.format("[H4:%s] ", htfSignal.getAction()));
     }
 
+    /**
+     * 신호에 HTF 태그를 prefix로 붙여 반환한다.
+     * 하위(LTF) 전략이 제안한 suggestedStopLoss/takeProfit은 toBuilder로 보존한다.
+     */
     private static StrategySignal tag(StrategySignal signal, String prefix) {
-        String reason = prefix + signal.getReason();
-        return switch (signal.getAction()) {
-            case BUY  -> StrategySignal.buy(signal.getStrength(), reason);
-            case SELL -> StrategySignal.sell(signal.getStrength(), reason);
-            case HOLD -> StrategySignal.hold(reason);
-        };
+        return signal.toBuilder()
+                .reason(prefix + signal.getReason())
+                .build();
     }
 }

@@ -1,6 +1,7 @@
 package com.cryptoautotrader.api.controller;
 
 import com.cryptoautotrader.api.dto.ApiResponse;
+import com.cryptoautotrader.api.report.FilterTagClassifier;
 import com.cryptoautotrader.api.entity.RegimeChangeLogEntity;
 import com.cryptoautotrader.api.entity.StrategyLogEntity;
 import com.cryptoautotrader.api.repository.RegimeChangeLogRepository;
@@ -95,13 +96,79 @@ public class LogController {
                 ? strategyLogRepo.findEvaluatedSignalsBySessionType(sessionType.toUpperCase(), from)
                 : strategyLogRepo.findEvaluatedSignals(from);
 
+        // 필터 차단(HOLD) 건수 집계용 — forward return 없음(반사실), 건수만 사용
+        List<StrategyLogEntity> holdLogs = hasType
+                ? strategyLogRepo.findHoldLogsSinceBySessionType(sessionType.toUpperCase(), from)
+                : strategyLogRepo.findHoldLogsSince(from);
+
         return ApiResponse.ok(Map.of(
                 "overall",           buildOverallStats(signals),
                 "byStrategy",        buildByStrategy(signals),
                 "byRegime",          buildByRegime(signals),
+                "byFilter",          buildByFilter(signals, holdLogs),
                 "blockedVsExecuted", buildBlockedVsExecuted(signals),
                 "byHour",            buildByHour(signals)
         ));
+    }
+
+    /**
+     * 필터별 성과 집계 (CODEX 권고 — 레짐/필터별 성과 로그).
+     *
+     * <ul>
+     *   <li><b>passThrough</b> — 필터를 통과한 BUY/SELL 신호를 통과 태그별로 묶어 승률·평균수익을 집계.
+     *       forward return이 있으므로 "이 필터를 통과한 신호가 실제로 맞았는가"를 측정한다.
+     *       예: {@code H4_중립통과} = MTF에서 H4 중립(HOLD)이라 그대로 통과시킨 신호의 손익.</li>
+     *   <li><b>blocks</b> — 필터가 진입을 막아 HOLD가 된 이벤트를 사유별로 <b>건수만</b> 집계.
+     *       HOLD 로그는 forward return이 없어(반사실) 승률 측정은 불가하다.
+     *       예: {@code RANGE차단}/{@code EMA200차단}/{@code RSI_Veto차단}/{@code MTF불일치차단} 빈도.</li>
+     * </ul>
+     */
+    private Map<String, Object> buildByFilter(List<StrategyLogEntity> signals, List<StrategyLogEntity> holdLogs) {
+        // 1) 통과 신호 — 통과 태그별 승률/수익 (return 보유)
+        Map<String, List<StrategyLogEntity>> byPass = signals.stream()
+                .filter(l -> FilterTagClassifier.passTag(l.getReason()) != null)
+                .collect(Collectors.groupingBy(l -> FilterTagClassifier.passTag(l.getReason())));
+
+        List<Map<String, Object>> passThrough = byPass.entrySet().stream()
+                .map(e -> {
+                    List<StrategyLogEntity> group  = e.getValue();
+                    List<StrategyLogEntity> eval4h  = group.stream().filter(l -> l.getReturn4hPct()  != null).toList();
+                    List<StrategyLogEntity> eval24h = group.stream().filter(l -> l.getReturn24hPct() != null).toList();
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("filter",       e.getKey());
+                    m.put("totalSignals", group.size());
+                    m.put("evaluated4h",  eval4h.size());
+                    m.put("winRate4h",    winRate(eval4h,  true));
+                    m.put("avgReturn4h",  avgReturn(eval4h, true));
+                    m.put("evaluated24h", eval24h.size());
+                    m.put("winRate24h",   winRate(eval24h,  false));
+                    m.put("avgReturn24h", avgReturn(eval24h, false));
+                    return m;
+                })
+                .sorted(Comparator.comparingInt((Map<String, Object> m) -> (int) m.get("totalSignals")).reversed())
+                .collect(Collectors.toList());
+
+        // 2) 차단 이벤트 — 필터 사유별 HOLD 건수 (return 없음)
+        Map<String, Long> byBlock = holdLogs.stream()
+                .map(l -> FilterTagClassifier.blockTag(l.getReason()))
+                .filter(Objects::nonNull)
+                .collect(Collectors.groupingBy(t -> t, Collectors.counting()));
+
+        List<Map<String, Object>> blocks = byBlock.entrySet().stream()
+                .map(e -> {
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("filter",       e.getKey());
+                    m.put("blockedCount", e.getValue());
+                    return m;
+                })
+                .sorted(Comparator.comparingLong((Map<String, Object> m) -> (long) m.get("blockedCount")).reversed())
+                .collect(Collectors.toList());
+
+        return Map.of(
+                "passThrough", passThrough,
+                "blocks",      blocks,
+                "note",        "passThrough는 통과 신호의 실측 손익; blocks는 HOLD 차단 건수만(반사실이라 손익 측정 불가)"
+        );
     }
 
     private Map<String, Object> buildOverallStats(List<StrategyLogEntity> signals) {

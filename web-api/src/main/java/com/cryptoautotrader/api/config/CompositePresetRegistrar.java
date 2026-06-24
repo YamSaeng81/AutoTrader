@@ -1,5 +1,6 @@
 package com.cryptoautotrader.api.config;
 
+import com.cryptoautotrader.core.selector.CompositePullbackMtfStrategy;
 import com.cryptoautotrader.core.selector.CompositeRegimeRouter;
 import com.cryptoautotrader.core.selector.CompositeStrategy;
 import com.cryptoautotrader.core.selector.IchimokuFilteredStrategy;
@@ -184,5 +185,28 @@ public class CompositePresetRegistrar {
                                 ), true)),             // EMA 방향 필터 ON
                         new SupertrendStrategy(),      // H4 추세 확인 (별도 인스턴스)
                         4));
+
+        // COMPOSITE_MTF_BTC_STRICT: COMPOSITE_MTF_BTC의 strictHtf=true A/B 변형 (EXPERIMENTAL)
+        //   기존 MTF는 H4 HOLD·데이터부족 시 LTF 신호를 통과시킨다(보수적 허용). strict 변형은
+        //   H4가 명시적으로 방향(BUY/SELL)을 확인할 때만 진입 → 운영 초반 과공격/추세 미확인 진입 차단.
+        //   동일 코인(BTC)에 기존 COMPOSITE_MTF_BTC와 병행 운영해 H4 차단 신호의 손익을 비교한다.
+        StrategyRegistry.registerStateful("COMPOSITE_MTF_BTC_STRICT", () ->
+                new MtfConfirmedStrategy("COMPOSITE_MTF_BTC_STRICT",
+                        new RsiVetoStrategy("COMPOSITE_MTF_BTC_STRICT_CB",
+                                new CompositeStrategy("COMPOSITE_MTF_BTC_STRICT_BASE", List.of(
+                                        new WeightedStrategy(new AtrBreakoutStrategy(), 0.5),
+                                        new WeightedStrategy(new VolumeDeltaStrategy(),  0.3),
+                                        new WeightedStrategy(new MacdStrategy(),         0.2)
+                                ), true, true)),       // emaFilter=ON, adxFilter=ON
+                        new SupertrendStrategy(),      // H4 추세 확인
+                        4, true));                     // htfFactor=4, strictHtf=ON
+
+        // ── COMPOSITE_PULLBACK_MTF (신규, EXPERIMENTAL) ──────────────────────────
+        // 기존 라이브 전략이 돌파/모멘텀(COMPOSITE_BREAKOUT·CMI_V2)에 쏠려 있어, 성격이 직교하는
+        // "강한 추세 중 눌림목 회복" 진입을 별도 검증하기 위한 전략.
+        //   진입: H4 Supertrend 상승 + H1 종가>EMA200 + RSI 40~55 + EMA20/VWAP 눌림 후 회복 + ADX≥18
+        //   청산: H4 Supertrend 하락 전환 또는 H1 EMA20 이탈 (SL/TP는 LiveTradingService 처리)
+        // 상태 없음(stateless) → 일반 register. 충분한 실전 근거 전까지 EXPERIMENTAL(관찰 전용).
+        StrategyRegistry.register(new CompositePullbackMtfStrategy());
     }
 }

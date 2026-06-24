@@ -36,8 +36,14 @@ public class LiveTradingStartRequest {
     /** 손절률 (기본 5%) */
     private BigDecimal stopLossPct;
 
-    /** 투자 비율 0.1 ~ 1.0 (기본 0.80 = 80%) — 매수 시 availableKrw × investRatio */
+    /** 투자 비율 0.1 ~ 1.0 (기본 0.25 = 25%) — 매수 시 availableKrw × investRatio */
     private BigDecimal investRatio;
+
+    /**
+     * EXPERIMENTAL(실험) 전략의 실전 세션 생성을 명시적으로 허용하는 안전 스위치.
+     * 기본 false → ENABLED 전략만 실전 허용. 관찰 전용으로 실험 전략을 돌릴 때만 true.
+     */
+    private boolean allowExperimentalLive = false;
 
     /** 전략 파라미터 (선택) */
     private Map<String, Object> strategyParams;

@@ -88,6 +88,36 @@ class HeikinAshiStochStrategyTest {
         assertThat(reward).isGreaterThan(risk);
     }
 
+    @Test
+    void 거래량_필터_미달시_BUY_차단() {
+        // buildLongSetup 은 그대로면 BUY. 마지막(진입) 캔들 거래량만 평균의 0.8배 미만으로 낮추면
+        // 보완안 8 거래량 필터에 막혀 HOLD 가 되어야 한다.
+        List<Candle> base = buildLongSetup();
+        List<Candle> lowVol = withLastVolume(base, BigDecimal.valueOf(10)); // 직전 평균 100 → 0.8배(80) 미만
+
+        StrategySignal blocked = strategy.evaluate(lowVol, Map.of(
+                "emaPeriod", 20, "rsiPeriod", 5, "stochPeriod", 5, "signalPeriod", 2,
+                "maxWickRatio", 1.0, "volumeFilterRatio", 0.8, "volumeAvgPeriod", 20));
+        assertThat(blocked.getAction()).isEqualTo(StrategySignal.Action.HOLD);
+
+        // 거래량 필터를 끄면(0.0) 동일 데이터에서 다시 BUY.
+        StrategySignal allowed = strategy.evaluate(lowVol, Map.of(
+                "emaPeriod", 20, "rsiPeriod", 5, "stochPeriod", 5, "signalPeriod", 2,
+                "maxWickRatio", 1.0, "volumeFilterRatio", 0.0));
+        assertThat(allowed.getAction()).isEqualTo(StrategySignal.Action.BUY);
+    }
+
+    /** 마지막 캔들의 거래량만 교체한 새 리스트 반환 */
+    private static List<Candle> withLastVolume(List<Candle> candles, BigDecimal volume) {
+        List<Candle> copy = new ArrayList<>(candles);
+        int last = copy.size() - 1;
+        Candle c = copy.get(last);
+        copy.set(last, Candle.builder()
+                .time(c.getTime()).open(c.getOpen()).high(c.getHigh())
+                .low(c.getLow()).close(c.getClose()).volume(volume).build());
+        return copy;
+    }
+
     /** 상승추세 + 눌림 + 강한 반등 양봉으로 끝나는 캔들 세트 */
     private static List<Candle> buildLongSetup() {
         List<Candle> candles = new ArrayList<>();
