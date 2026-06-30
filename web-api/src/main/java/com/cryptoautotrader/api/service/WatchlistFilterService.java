@@ -38,6 +38,8 @@ public class WatchlistFilterService {
     private static final int ATR_PERIOD = 14;
     /** ATR 계산에 필요한 최소 캔들 수 (period + 1) */
     private static final int ATR_MIN_CANDLES = ATR_PERIOD + 1;
+    /** minAtrPct 정규화 기준 타임프레임 (분) — minAtrPct 파라미터는 이 타임프레임 기준값으로 해석한다 */
+    private static final long BASELINE_TIMEFRAME_MIN = 60;
 
     private final UpbitRestClient upbitRestClient;
 
@@ -156,16 +158,34 @@ public class WatchlistFilterService {
             BigDecimal atrPct = atr.divide(tradePrice, 8, RoundingMode.HALF_UP)
                     .multiply(BigDecimal.valueOf(100));
 
-            boolean pass = atrPct.compareTo(minAtrPct) >= 0;
+            BigDecimal effectiveMinAtrPct = normalizeMinAtrPct(minAtrPct, timeframe);
+            boolean pass = atrPct.compareTo(effectiveMinAtrPct) >= 0;
             if (!pass) {
-                log.debug("[Watchlist] ATR 필터 탈락: {} atrPct={}% < {}%",
-                        market, atrPct.toPlainString(), minAtrPct.toPlainString());
+                log.debug("[Watchlist] ATR 필터 탈락: {} atrPct={}% < {}% (기준값 {}%, {} 정규화)",
+                        market, atrPct.toPlainString(), effectiveMinAtrPct.toPlainString(),
+                        minAtrPct.toPlainString(), timeframe);
             }
             return pass;
         } catch (Exception e) {
             log.debug("[Watchlist] ATR 계산 실패 ({}): {}", market, e.getMessage());
             return false;
         }
+    }
+
+    /**
+     * minAtrPct 는 {@value #BASELINE_TIMEFRAME_MIN}분(H1) 기준값으로 입력받는다고 가정하고,
+     * 실제 평가 타임프레임에 맞춰 변동성 스케일링(sqrt-of-time 근사)을 적용한다.
+     *
+     * <p>고정 0.5% 임계값을 모든 타임프레임에 그대로 쓰면, 캔들 주기가 짧을수록(M5 등) ATR(14)이
+     * 차지하는 가격 비율이 자연히 작아져 워치리스트가 텅 비는 문제가 있었다. 반대로 H4처럼 긴
+     * 타임프레임에서는 동일 임계값이 지나치게 헐거워진다. sqrt(타임프레임비율) 스케일링은 변동성이
+     * 시간의 제곱근에 비례한다는 통상적 근사치이며, 백테스트로 검증된 값은 아니므로 추정치로 사용한다.</p>
+     */
+    private BigDecimal normalizeMinAtrPct(BigDecimal minAtrPct, String timeframe) {
+        long tfMinutes = toMinutes(timeframe);
+        if (tfMinutes == BASELINE_TIMEFRAME_MIN) return minAtrPct;
+        double ratio = Math.sqrt((double) tfMinutes / BASELINE_TIMEFRAME_MIN);
+        return minAtrPct.multiply(BigDecimal.valueOf(ratio));
     }
 
     private static long toMinutes(String timeframe) {

@@ -1556,7 +1556,10 @@ public class LiveTradingService {
         }
 
         // 2. size=0 OPEN 포지션 — 활성 매수 없고 CANCELLED/FAILED 매수 있으면 종료 + KRW 복원
-        List<PositionEntity> orphanPositions = positionRepository.findByStatus("OPEN")
+        // LIVE 세션 소속만 처리 — DYNAMIC 포지션은 DynamicTradingService 의 전용 reconciler가 처리한다
+        // (live_trading_session 과 dynamic_session 은 별도 BIGSERIAL 이라 session_id 값이 겹칠 수 있어
+        //  여기서 잘못 처리하면 엉뚱한 라이브 세션의 KRW 를 복원/오염시킬 수 있다)
+        List<PositionEntity> orphanPositions = positionRepository.findBySessionKindAndStatus("LIVE", "OPEN")
                 .stream()
                 .filter(pos -> pos.getSize().compareTo(BigDecimal.ZERO) <= 0)
                 .toList();
@@ -1602,7 +1605,8 @@ public class LiveTradingService {
                 stuckPending.size(), recoveredCount, orphanPositions.size());
 
         // 3. 재시작 전 CLOSING 상태로 남은 포지션 — 연결된 SELL 주문 기반으로 확정/롤백
-        List<PositionEntity> closingPositions = positionRepository.findByStatus("CLOSING");
+        // LIVE 세션 소속만 처리 — DYNAMIC 은 DynamicTradingService.reconcileDynamicClosingPositions() 가 처리
+        List<PositionEntity> closingPositions = positionRepository.findBySessionKindAndStatus("LIVE", "CLOSING");
         for (PositionEntity pos : closingPositions) {
             List<OrderEntity> sellOrders = orderRepository
                     .findByPositionIdOrderByCreatedAtDesc(pos.getId())
@@ -1765,7 +1769,8 @@ public class LiveTradingService {
     @Scheduled(fixedDelay = 5000)
     @Transactional
     public void reconcileClosingPositions() {
-        List<PositionEntity> closingPositions = positionRepository.findByStatus("CLOSING");
+        // LIVE 세션 소속만 처리 — DYNAMIC 은 DynamicTradingService.reconcileDynamicClosingPositions() 가 처리
+        List<PositionEntity> closingPositions = positionRepository.findBySessionKindAndStatus("LIVE", "CLOSING");
         if (closingPositions.isEmpty()) return;
 
         for (PositionEntity pos : closingPositions) {
@@ -1832,7 +1837,11 @@ public class LiveTradingService {
     public void reconcilePhantomPositions() {
         if (upbitOrderClient == null) return; // API Key 미설정(모의/키없음) — 거래소 대조 불가
 
-        List<PositionEntity> openPositions = positionRepository.findByStatus("OPEN").stream()
+        // LIVE 세션 소속만 청산 확정 대상으로 삼는다 — 청산 시 balanceUpdater(LiveTradingSessionRepository
+        // 전용)로 KRW를 복원하므로 DYNAMIC 포지션을 여기서 처리하면 세션 ID 충돌로 엉뚱한 라이브 세션의
+        // 잔고가 오염될 수 있다. (expectedByCurrency 계산에서 DYNAMIC 보유량이 빠지는 것은 과소추정일
+        // 뿐이라 안전한 방향이다 — 거래소 실보유량은 항상 expected 이상으로 잡혀 오탐을 만들지 않는다.)
+        List<PositionEntity> openPositions = positionRepository.findBySessionKindAndStatus("LIVE", "OPEN").stream()
                 .filter(p -> p.getSize() != null && p.getSize().compareTo(BigDecimal.ZERO) > 0)
                 .filter(p -> p.getSessionId() != null)
                 .toList();
@@ -2078,7 +2087,8 @@ public class LiveTradingService {
     @Scheduled(fixedDelay = 30_000)
     @Transactional
     public void reconcileOrphanBuyPositions() {
-        List<PositionEntity> orphanPositions = positionRepository.findByStatus("OPEN")
+        // LIVE 세션 소속만 처리 — DYNAMIC 은 DynamicTradingService.reconcileDynamicOrphanBuyPositions() 가 처리
+        List<PositionEntity> orphanPositions = positionRepository.findBySessionKindAndStatus("LIVE", "OPEN")
                 .stream()
                 .filter(pos -> pos.getSize() != null && pos.getSize().compareTo(BigDecimal.ZERO) <= 0)
                 .toList();

@@ -18,10 +18,12 @@ import com.cryptoautotrader.strategy.Candle;
 import com.cryptoautotrader.strategy.Strategy;
 import com.cryptoautotrader.strategy.StrategyRegistry;
 import com.cryptoautotrader.strategy.StrategySignal;
+import com.cryptoautotrader.api.entity.OrderEntity;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,6 +61,10 @@ public class DynamicTradingService {
     private static final long MIN_HOLD_MINUTES = 180;
     private static final BigDecimal MIN_PNL_PCT_FOR_SELL = new BigDecimal("0.30");
     private static final BigDecimal LOSS_ESCAPE_THRESHOLD = new BigDecimal("-1.00");
+    private static final BigDecimal FEE_RATE = new BigDecimal("0.0005");
+    /** CLOSING 상태 진입 시각 — 이 시간 초과 시 reconcileClosingPositions()에서 OPEN 롤백 */
+    private static final long CLOSING_TIMEOUT_MINUTES = 5;
+    private static final String SESSION_KIND = "DYNAMIC";
 
     private final DynamicSessionRepository dynamicSessionRepo;
     private final PositionRepository positionRepository;
@@ -67,9 +73,19 @@ public class DynamicTradingService {
     private final OrderExecutionEngine orderExecutionEngine;
     private final TelegramNotificationService telegramService;
     private final ObjectMapper objectMapper;
+    private final DynamicSessionBalanceUpdater balanceUpdater;
 
     @Autowired(required = false)
     private UpbitRestClient upbitRestClient;
+
+    /**
+     * self-invocation 문제 해결용 — tick()이 @Scheduled(비-프록시 경유)로 직접 호출되면
+     * processTick() 내부의 @Transactional이 Spring 프록시를 우회해 무시된다.
+     * @Lazy 자기 참조로 프록시를 경유시켜 트랜잭션이 실제로 적용되도록 한다.
+     */
+    @Lazy
+    @Autowired
+    private DynamicTradingService self;
 
     /** 세션+코인 조합별 stateful 전략 인스턴스 (MarketRegimeDetector 상태 격리) */
     private final Map<String, Strategy> strategyInstances = new ConcurrentHashMap<>();
@@ -83,7 +99,8 @@ public class DynamicTradingService {
                                   WatchlistFilterService watchlistFilterService,
                                   OrderExecutionEngine orderExecutionEngine,
                                   TelegramNotificationService telegramService,
-                                  ObjectMapper objectMapper) {
+                                  ObjectMapper objectMapper,
+                                  DynamicSessionBalanceUpdater balanceUpdater) {
         this.dynamicSessionRepo   = dynamicSessionRepo;
         this.positionRepository   = positionRepository;
         this.orderRepository      = orderRepository;
@@ -91,6 +108,7 @@ public class DynamicTradingService {
         this.orderExecutionEngine = orderExecutionEngine;
         this.telegramService      = telegramService;
         this.objectMapper         = objectMapper;
+        this.balanceUpdater       = balanceUpdater;
     }
 
     // ── 세션 생성 ──────────────────────────────────────────────────
@@ -195,7 +213,8 @@ public class DynamicTradingService {
 
         for (DynamicSessionEntity session : running) {
             try {
-                processTick(session);
+                // self 프록시를 경유해야 @Transactional이 실제로 적용된다 (self-invocation 우회 방지)
+                self.processTick(session);
             } catch (Exception e) {
                 log.error("[Dynamic] 세션 tick 오류 (id={}): {}", session.getId(), e.getMessage(), e);
             }
@@ -204,7 +223,8 @@ public class DynamicTradingService {
 
     // ── 내부: tick 분기 ────────────────────────────────────────────
 
-    private void processTick(DynamicSessionEntity session) {
+    @Transactional
+    public void processTick(DynamicSessionEntity session) {
         Long sid = session.getId();
         boolean stillRunning = dynamicSessionRepo.findById(sid)
                 .map(s -> "RUNNING".equals(s.getStatus())).orElse(false);
@@ -224,15 +244,29 @@ public class DynamicTradingService {
         List<String> watchlist = resolveWatchlist(session);
 
         if (watchlist.isEmpty()) {
-            log.debug("[Dynamic] 워치리스트 비어 있음 (id={}), 이번 틱 스킵", sid);
+            // 진단용 — 워치리스트가 비는 것은 ATR/스프레드 필터가 너무 빡빡하거나 거래소 응답
+            // 문제일 수 있다. 어떤 설정으로 비었는지 바로 알 수 있도록 INFO 로 남긴다.
+            log.info("[Dynamic] 워치리스트 비어 있음 — 이번 틱 스킵 (id={}, maxCandidate={} target={} "
+                            + "minAtrPct={}% maxSpreadPct={} timeframe={})",
+                    sid, session.getMaxCandidateSize(), session.getTargetWatchSize(),
+                    session.getMinAtrPct(), session.getMaxSpreadPct(), session.getTimeframe());
             return;
         }
 
         log.info("[Dynamic] SCANNING 시작: id={} 감시목록({})={}", sid, watchlist.size(), watchlist);
 
+        // 진단용 게이트 차단 집계 — 매수가 막힐 때 어느 단계에서 막히는지 한눈에 보기 위함
+        int insufficientCandles = 0;
+        int staleCandle = 0;
+        int holdCount = 0;
+        int sellCount = 0;
+        int ema200Blocked = 0;
+        int rangeBlocked = 0;
+
         for (String coinPair : watchlist) {
             List<Candle> candles = fetchCandles(coinPair, session.getTimeframe());
             if (candles.size() < 15) {
+                insufficientCandles++;
                 log.debug("[Dynamic] 캔들 부족 스킵: {} ({}개)", coinPair, candles.size());
                 continue;
             }
@@ -242,6 +276,7 @@ public class DynamicTradingService {
             Instant closedTime = evalCandles.get(evalCandles.size() - 1).getTime();
             Instant prevEval = lastEvaluatedCandle.get(candleKey);
             if (prevEval != null && !closedTime.isAfter(prevEval)) {
+                staleCandle++;
                 log.debug("[Dynamic] 닫힌 캔들 미갱신 스킵: {}", coinPair);
                 continue;
             }
@@ -254,11 +289,14 @@ public class DynamicTradingService {
             if (signal.getAction() != StrategySignal.Action.HOLD) {
                 log.info("[Dynamic] 평가결과: {} → {} ({})", coinPair, signal.getAction(), signal.getReason());
             } else {
+                holdCount++;
                 log.debug("[Dynamic] 평가결과: {} → HOLD ({})", coinPair, signal.getReason());
             }
+            if (signal.getAction() == StrategySignal.Action.SELL) sellCount++;
 
             if (signal.getAction() == StrategySignal.Action.BUY
                     && !Ema200RegimeGate.allowsBuy(evalCandles, coinPair)) {
+                ema200Blocked++;
                 log.info("[Dynamic] EMA200 BUY 차단: {} (id={})", coinPair, sid);
                 continue;
             }
@@ -268,6 +306,7 @@ public class DynamicTradingService {
                 try {
                     MarketRegime regime = new MarketRegimeDetector().detectRaw(evalCandles);
                     if (regime == MarketRegime.RANGE) {
+                        rangeBlocked++;
                         log.info("[Dynamic] RANGE 레짐 BUY 차단: {} (id={})", coinPair, sid);
                         continue;
                     }
@@ -281,7 +320,10 @@ public class DynamicTradingService {
             }
         }
 
-        log.info("[Dynamic] SCANNING 완료: 진입 조건 없음 (id={}, 감시 {}개)", sid, watchlist.size());
+        log.info("[Dynamic] SCANNING 완료: 진입 조건 없음 (id={}, 감시 {}개) — "
+                        + "HOLD={} SELL={} EMA200차단={} RANGE차단={} 캔들부족={} 캔들미갱신={}",
+                sid, watchlist.size(), holdCount, sellCount, ema200Blocked, rangeBlocked,
+                insufficientCandles, staleCandle);
     }
 
     /** POSITION_MONITORING: 보유 코인만 평가 → SL/TP/SELL 처리 */
@@ -407,6 +449,7 @@ public class DynamicTradingService {
                 .investedKrw(investAmount)
                 .status("OPEN")
                 .sessionId(sid)
+                .sessionKind(SESSION_KIND)
                 .stopLossPrice(stopLossPrice)
                 .takeProfitPrice(takeProfitPrice)
                 .build();
@@ -423,13 +466,13 @@ public class DynamicTradingService {
         order.setPositionId(posId);
         orderExecutionEngine.submitOrder(order);
 
-        // KRW 차감 및 상태 전환 (같은 트랜잭션 내 직접 업데이트)
-        DynamicSessionEntity fresh = getOrThrow(sid);
-        fresh.setAvailableKrw(fresh.getAvailableKrw().subtract(investAmount));
-        fresh.setScanState("POSITION_MONITORING");
-        fresh.setCurrentCoinPair(coinPair);
-        fresh.setCurrentPositionId(posId);
-        dynamicSessionRepo.save(fresh);
+        // KRW 차감 및 상태 전환 — 낙관적 락 + 재시도 (reconcile 스케줄러와의 동시 쓰기 race 차단)
+        balanceUpdater.apply(sid, s -> {
+            s.setAvailableKrw(s.getAvailableKrw().subtract(investAmount));
+            s.setScanState("POSITION_MONITORING");
+            s.setCurrentCoinPair(coinPair);
+            s.setCurrentPositionId(posId);
+        });
 
         log.info("[Dynamic] 매수: id={} {} amount={} SL={} TP={}",
                 sid, coinPair, investAmount, stopLossPrice, takeProfitPrice);
@@ -540,14 +583,13 @@ public class DynamicTradingService {
 
     // ── 내부: 상태 전환 ────────────────────────────────────────────
 
-    @Transactional
     public void transitionToScanning(Long sessionId) {
-        DynamicSessionEntity s = getOrThrow(sessionId);
-        s.setScanState("SCANNING");
-        s.setCurrentCoinPair(null);
-        s.setCurrentPositionId(null);
-        s.setWatchlistRefreshedAt(null); // 다음 스캔에서 즉시 재필터링
-        dynamicSessionRepo.save(s);
+        balanceUpdater.apply(sessionId, s -> {
+            s.setScanState("SCANNING");
+            s.setCurrentCoinPair(null);
+            s.setCurrentPositionId(null);
+            s.setWatchlistRefreshedAt(null); // 다음 스캔에서 즉시 재필터링
+        });
         log.info("[Dynamic] SCANNING 복귀 (id={})", sessionId);
     }
 
@@ -583,6 +625,199 @@ public class DynamicTradingService {
             order.setSessionId(session.getId());
             order.setPositionId(pos.getId());
             orderExecutionEngine.submitOrder(order);
+        }
+    }
+
+    // ── 스케줄: CLOSING 포지션 정리 (5초 주기) ──────────────────────
+
+    /**
+     * CLOSING 상태의 동적 포지션을 SELL 주문 체결/실패 결과에 따라 확정/롤백한다.
+     *
+     * <p>{@link #executeSell}은 포지션을 CLOSING으로만 표시하고 비동기 주문을 제출한 뒤
+     * 즉시 SCANNING으로 전환한다. 실제 KRW 복원과 손익 확정은 이 스케줄러가 전담한다.
+     * 이 처리가 없으면 동적 세션은 매도할 때마다 {@code availableKrw}가 복원되지 않아
+     * 몇 차례 매매 후 투자 가능 금액이 5,000원 미만으로 줄어 영구적으로 매수가 멈춘다
+     * (2026-07-01 동적 멀티코인 로직 분석 — session_kind 컬럼 부재로 라이브 reconcile이
+     * 동적 세션 KRW를 복원하지 못하던 근본 원인).</p>
+     */
+    @Scheduled(fixedDelay = 5_000)
+    @Transactional
+    public void reconcileDynamicClosingPositions() {
+        List<PositionEntity> closingPositions =
+                positionRepository.findBySessionKindAndStatus(SESSION_KIND, "CLOSING");
+        if (closingPositions.isEmpty()) return;
+
+        for (PositionEntity pos : closingPositions) {
+            List<OrderEntity> sellOrders = orderRepository
+                    .findByPositionIdOrderByCreatedAtDesc(pos.getId())
+                    .stream()
+                    .filter(o -> "SELL".equalsIgnoreCase(o.getSide()))
+                    .toList();
+
+            if (sellOrders.isEmpty()) {
+                log.warn("[Dynamic] CLOSING 포지션에 SELL 주문 없음 — OPEN 롤백 (posId={})", pos.getId());
+                pos.setStatus("OPEN");
+                pos.setClosingAt(null);
+                positionRepository.save(pos);
+                continue;
+            }
+
+            OrderEntity latestSell = sellOrders.get(0);
+            switch (latestSell.getState()) {
+                case "FILLED" -> finalizeDynamicSell(pos, latestSell);
+                case "FAILED", "CANCELLED" -> {
+                    log.warn("[Dynamic] 매도 주문 {} — 포지션 OPEN 롤백 (orderId={}, posId={}, sessionId={})",
+                            latestSell.getState(), latestSell.getId(), pos.getId(), pos.getSessionId());
+                    pos.setStatus("OPEN");
+                    pos.setClosingAt(null);
+                    positionRepository.save(pos);
+                }
+                default -> {
+                    Instant closingAt = pos.getClosingAt();
+                    if (closingAt != null
+                            && Duration.between(closingAt, Instant.now()).toMinutes() >= CLOSING_TIMEOUT_MINUTES) {
+                        log.warn("[Dynamic] CLOSING 타임아웃 ({}분 초과) — OPEN 롤백 (posId={}, sessionId={})",
+                                CLOSING_TIMEOUT_MINUTES, pos.getId(), pos.getSessionId());
+                        pos.setStatus("OPEN");
+                        pos.setClosingAt(null);
+                        positionRepository.save(pos);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 매도 체결 확정 — 실제 체결가 기반 손익/수수료 계산 + 동적 세션 KRW 복원.
+     * 멱등성 보장: 이미 CLOSED인 포지션은 중복 처리하지 않음.
+     */
+    private void finalizeDynamicSell(PositionEntity pos, OrderEntity filledOrder) {
+        if ("CLOSED".equals(pos.getStatus())) {
+            log.debug("[Dynamic] finalizeDynamicSell 스킵: 이미 CLOSED (posId={})", pos.getId());
+            return;
+        }
+        // 체결가 미확정 시 보류 — 다음 reconcile(5초)에서 재시도 (가짜 본전 방지)
+        BigDecimal fillPrice = filledOrder.getPrice();
+        if (fillPrice == null) {
+            log.warn("[Dynamic] 매도 체결가 미확정 — finalize 보류, 다음 reconcile 재시도 (posId={}, orderId={})",
+                    pos.getId(), filledOrder.getId());
+            return;
+        }
+        BigDecimal soldQty = filledOrder.getFilledQuantity() != null
+                ? filledOrder.getFilledQuantity() : pos.getSize();
+
+        BigDecimal proceeds = soldQty.multiply(fillPrice);
+        BigDecimal fee = proceeds.multiply(FEE_RATE);
+        BigDecimal netProceeds = proceeds.subtract(fee);
+        BigDecimal realizedPnl = netProceeds.subtract(soldQty.multiply(pos.getAvgPrice()));
+
+        pos.setRealizedPnl(realizedPnl);
+        pos.setPositionFee(fee);
+        pos.setUnrealizedPnl(BigDecimal.ZERO);
+        pos.setStatus("CLOSED");
+        pos.setClosedAt(Instant.now());
+        positionRepository.save(pos);
+
+        if (pos.getSessionId() != null) {
+            Long sessionId = pos.getSessionId();
+            boolean hasOpenPosition = positionRepository
+                    .findBySessionIdAndCoinPairAndStatus(sessionId, pos.getCoinPair(), "OPEN")
+                    .isPresent();
+
+            balanceUpdater.apply(sessionId, s -> {
+                BigDecimal newAvailableKrw = s.getAvailableKrw().add(netProceeds);
+                s.setAvailableKrw(newAvailableKrw);
+                if (!hasOpenPosition) {
+                    s.setTotalAssetKrw(newAvailableKrw);
+                } else {
+                    s.setTotalAssetKrw(s.getTotalAssetKrw().subtract(fee));
+                }
+            });
+            log.info("[Dynamic] 매도 체결 확정 (sessionId={}, posId={}): {} {}개 @ {} 손익={} 수수료={}",
+                    sessionId, pos.getId(), pos.getCoinPair(), soldQty, fillPrice, realizedPnl, fee);
+            telegramService.bufferTradeEvent(
+                    "동적#" + sessionId, pos.getCoinPair(), "SELL",
+                    fillPrice, soldQty, fee, realizedPnl, "동적 세션 매도");
+        }
+    }
+
+    // ── 스케줄: 고아 매수 포지션 정리 (30초 주기) ───────────────────
+
+    /**
+     * OPEN + size=0 포지션 중 BUY 주문이 FAILED/CANCELLED로 확정된 경우를 정리한다.
+     *
+     * <p>이 처리가 없으면 거래소 오류 등으로 BUY가 실패했을 때 포지션이 size=0 OPEN 상태로
+     * 영구 고착되고, {@link #executeSell}의 size&le;0 가드 때문에 세션이 POSITION_MONITORING에
+     * 멈춰 다시는 스캔/매수하지 않는다.</p>
+     */
+    @Scheduled(fixedDelay = 30_000)
+    @Transactional
+    public void reconcileDynamicOrphanBuyPositions() {
+        List<PositionEntity> orphanPositions = positionRepository
+                .findBySessionKindAndStatus(SESSION_KIND, "OPEN")
+                .stream()
+                .filter(pos -> pos.getSize() != null && pos.getSize().compareTo(BigDecimal.ZERO) <= 0)
+                .toList();
+        if (orphanPositions.isEmpty()) return;
+
+        for (PositionEntity pos : orphanPositions) {
+            List<OrderEntity> buyOrders = orderRepository
+                    .findByPositionIdOrderByCreatedAtDesc(pos.getId())
+                    .stream()
+                    .filter(o -> "BUY".equalsIgnoreCase(o.getSide()))
+                    .toList();
+
+            boolean hasCancelledBuy = buyOrders.stream()
+                    .anyMatch(o -> "CANCELLED".equals(o.getState()) || "FAILED".equals(o.getState()));
+            boolean hasActiveBuy = buyOrders.stream()
+                    .anyMatch(o -> ACTIVE_ORDER_STATES.contains(o.getState()));
+
+            if (hasCancelledBuy && !hasActiveBuy) {
+                // 원자적 CLOSE — 동시 실행 시 이중 KRW 복원 방지
+                int closed = positionRepository.closeIfOpen(pos.getId(), Instant.now());
+                if (closed == 0) {
+                    log.debug("[Dynamic] 고아 포지션 이미 정리됨, KRW 복원 스킵 (posId={})", pos.getId());
+                    continue;
+                }
+
+                if (pos.getSessionId() != null) {
+                    Long sessionId = pos.getSessionId();
+                    BigDecimal toRestore = buyOrders.stream()
+                            .filter(o -> "CANCELLED".equals(o.getState()) || "FAILED".equals(o.getState()))
+                            .findFirst()
+                            .map(OrderEntity::getQuantity)
+                            .orElse(pos.getInvestedKrw());
+                    if (toRestore != null) {
+                        final BigDecimal restoreAmount = toRestore;
+                        balanceUpdater.apply(sessionId, s -> s.setAvailableKrw(s.getAvailableKrw().add(restoreAmount)));
+                        log.info("[Dynamic] 고아 포지션 정리: KRW 복원 (posId={}, sessionId={}, 복원금액={})",
+                                pos.getId(), sessionId, restoreAmount);
+                    }
+                    // 세션이 POSITION_MONITORING에 고착되지 않도록 SCANNING 복귀
+                    transitionToScanning(sessionId);
+                }
+                log.warn("[Dynamic] 고아 포지션 정리 완료 (posId={}, coinPair={})", pos.getId(), pos.getCoinPair());
+
+            } else if (!hasActiveBuy && buyOrders.isEmpty() && pos.getSessionId() != null) {
+                // 예외 경로: 주문 엔티티가 아예 없는 경우 (async 스레드 DB 오류 등)
+                boolean isOldEnough = pos.getOpenedAt() != null
+                        && Duration.between(pos.getOpenedAt(), Instant.now()).toMinutes() >= 5;
+                if (isOldEnough) {
+                    int closed = positionRepository.closeIfOpen(pos.getId(), Instant.now());
+                    if (closed == 0) continue;
+
+                    Long sessionId = pos.getSessionId();
+                    if (pos.getInvestedKrw() != null) {
+                        final BigDecimal investedKrw = pos.getInvestedKrw();
+                        balanceUpdater.apply(sessionId, s -> s.setAvailableKrw(s.getAvailableKrw().add(investedKrw)));
+                        log.warn("[Dynamic] 고아 포지션 정리(주문 없음): KRW 복원 (posId={}, sessionId={}, 복원금액={})",
+                                pos.getId(), sessionId, investedKrw);
+                    } else {
+                        log.error("[Dynamic] 고아 포지션 정리 실패: investedKrw 없음 — 수동 확인 필요 (posId={})", pos.getId());
+                    }
+                    transitionToScanning(sessionId);
+                }
+            }
         }
     }
 

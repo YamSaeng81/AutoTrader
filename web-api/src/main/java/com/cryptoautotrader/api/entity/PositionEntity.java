@@ -62,6 +62,14 @@ public class PositionEntity {
     @Column(name = "session_id")
     private Long sessionId;
 
+    /**
+     * 소속 세션 테이블 구분 — LIVE(live_trading_session) / DYNAMIC(dynamic_session).
+     * 두 세션 테이블 모두 BIGSERIAL 이라 session_id 값이 겹칠 수 있어 이 컬럼 없이는
+     * 어느 세션 소속인지 구분할 수 없다.
+     */
+    @Column(name = "session_kind", nullable = false, length = 10)
+    private String sessionKind;
+
     @Column(name = "position_fee", precision = 20, scale = 2)
     private BigDecimal positionFee;
 
@@ -88,6 +96,7 @@ public class PositionEntity {
         if (unrealizedPnl == null) unrealizedPnl = BigDecimal.ZERO;
         if (realizedPnl == null) realizedPnl = BigDecimal.ZERO;
         if (positionFee == null) positionFee = BigDecimal.ZERO;
+        if (sessionKind == null) sessionKind = "LIVE";
     }
 
 }

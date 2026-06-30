@@ -18,6 +18,9 @@ public interface PositionRepository extends JpaRepository<PositionEntity, Long> 
     /** 특정 상태의 포지션 조회 (예: "OPEN") */
     List<PositionEntity> findByStatus(String status);
 
+    /** 특정 세션 종류(LIVE/DYNAMIC) + 상태의 포지션 조회 — reconcile 로직의 세션 테이블 혼선 방지용 */
+    List<PositionEntity> findBySessionKindAndStatus(String sessionKind, String status);
+
     /** 특정 코인+상태의 포지션 조회 */
     Optional<PositionEntity> findByCoinPairAndStatus(String coinPair, String status);
 
