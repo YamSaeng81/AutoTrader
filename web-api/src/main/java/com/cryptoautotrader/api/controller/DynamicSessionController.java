@@ -3,6 +3,8 @@ package com.cryptoautotrader.api.controller;
 import com.cryptoautotrader.api.dto.ApiResponse;
 import com.cryptoautotrader.api.dto.DynamicSessionRequest;
 import com.cryptoautotrader.api.entity.DynamicSessionEntity;
+import com.cryptoautotrader.api.entity.PositionEntity;
+import com.cryptoautotrader.api.repository.PositionRepository;
 import com.cryptoautotrader.api.service.DynamicTradingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +34,7 @@ import java.util.Map;
 public class DynamicSessionController {
 
     private final DynamicTradingService dynamicTradingService;
+    private final PositionRepository positionRepository;
 
     /** 세션 생성 */
     @PostMapping
@@ -85,11 +88,31 @@ public class DynamicSessionController {
         return ApiResponse.ok(result);
     }
 
-    /** 세션 상세 */
+    /** 세션 상세 (포지션 정보 포함) */
     @GetMapping("/{id}")
     public ApiResponse<Map<String, Object>> get(@PathVariable Long id) {
         try {
-            return ApiResponse.ok(toMap(dynamicTradingService.getSession(id)));
+            DynamicSessionEntity session = dynamicTradingService.getSession(id);
+            Map<String, Object> m = toMap(session);
+            if (session.getCurrentPositionId() != null) {
+                positionRepository.findById(session.getCurrentPositionId()).ifPresent(pos -> {
+                    Map<String, Object> posMap = new LinkedHashMap<>();
+                    posMap.put("id",              pos.getId());
+                    posMap.put("coinPair",         pos.getCoinPair());
+                    posMap.put("entryPrice",       pos.getEntryPrice());
+                    posMap.put("avgPrice",         pos.getAvgPrice());
+                    posMap.put("size",             pos.getSize());
+                    posMap.put("investedKrw",      pos.getInvestedKrw());
+                    posMap.put("stopLossPrice",    pos.getStopLossPrice());
+                    posMap.put("takeProfitPrice",  pos.getTakeProfitPrice());
+                    posMap.put("unrealizedPnl",    pos.getUnrealizedPnl());
+                    posMap.put("status",           pos.getStatus());
+                    posMap.put("marketRegime",     pos.getMarketRegime());
+                    posMap.put("openedAt",         pos.getOpenedAt() != null ? pos.getOpenedAt().toString() : null);
+                    m.put("currentPosition", posMap);
+                });
+            }
+            return ApiResponse.ok(m);
         } catch (IllegalArgumentException e) {
             return ApiResponse.error("NOT_FOUND", e.getMessage());
         }
@@ -117,6 +140,7 @@ public class DynamicSessionController {
         m.put("watchlistRefreshedAt", s.getWatchlistRefreshedAt() != null
                 ? s.getWatchlistRefreshedAt().toString() : null);
         m.put("watchlistJson",     s.getWatchlistJson());
+        m.put("currentPositionId", s.getCurrentPositionId());
         m.put("startedAt",         s.getStartedAt() != null ? s.getStartedAt().toString() : null);
         m.put("stoppedAt",         s.getStoppedAt() != null ? s.getStoppedAt().toString() : null);
         m.put("createdAt",         s.getCreatedAt() != null ? s.getCreatedAt().toString() : null);

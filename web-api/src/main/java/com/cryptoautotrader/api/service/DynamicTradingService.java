@@ -224,7 +224,7 @@ public class DynamicTradingService {
         List<String> watchlist = resolveWatchlist(session);
 
         if (watchlist.isEmpty()) {
-            log.warn("[Dynamic] 워치리스트 비어 있음 (id={}), 이번 틱 스킵", sid);
+            log.debug("[Dynamic] 워치리스트 비어 있음 (id={}), 이번 틱 스킵", sid);
             return;
         }
 

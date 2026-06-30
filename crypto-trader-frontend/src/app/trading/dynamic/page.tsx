@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import {
   useDynamicSessions,
@@ -388,7 +389,7 @@ function DynamicSessionCard({
                   {scanStateLabel[scanState] ?? scanState}
                 </span>
               )}
-              {session['currentCoinPair'] && (
+              {!!session['currentCoinPair'] && (
                 <span className="text-xs px-2 py-0.5 rounded bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 font-bold">
                   {String(session['currentCoinPair'])}
                 </span>
@@ -419,6 +420,12 @@ function DynamicSessionCard({
 
         {/* 오른쪽: 버튼 */}
         <div className="flex items-center gap-2 shrink-0">
+          <Link
+            href={`/trading/dynamic/${String(session['id'])}`}
+            className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white text-xs rounded-lg transition-colors"
+          >
+            상세보기
+          </Link>
           {status === 'CREATED' && (
             <button onClick={onStart} className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs rounded-lg transition-colors">시작</button>
           )}
@@ -450,10 +457,10 @@ function DynamicSessionCard({
       )}
 
       {/* 시작/정지 시각 */}
-      {session['startedAt'] && (
+      {!!session['startedAt'] && (
         <div className="text-xs text-slate-600 mt-2">
           시작: {new Date(String(session['startedAt'])).toLocaleString('ko-KR')}
-          {session['stoppedAt'] && (
+          {!!session['stoppedAt'] && (
             <span className="ml-3">정지: {new Date(String(session['stoppedAt'])).toLocaleString('ko-KR')}</span>
           )}
         </div>

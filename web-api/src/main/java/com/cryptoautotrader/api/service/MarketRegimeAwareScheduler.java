@@ -78,7 +78,7 @@ public class MarketRegimeAwareScheduler {
 
         List<Candle> candles = fetchCandles();
         if (candles.size() < REGIME_CANDLE_COUNT) {
-            log.warn("[RegimeScheduler] 캔들 데이터 부족 ({}/{}개) — 자동 스위칭 건너뜀",
+            log.debug("[RegimeScheduler] 캔들 데이터 부족 ({}/{}개) — 자동 스위칭 건너뜀",
                     candles.size(), REGIME_CANDLE_COUNT);
             return;
         }

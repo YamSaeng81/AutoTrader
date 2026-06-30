@@ -470,7 +470,7 @@ public class TelegramNotificationService {
                     KST_TIME_FMT.format(e.time()), pnlStr));
         });
         if (events.size() > 10) {
-            sb.append(String.format("_\\.\\.\\. 외 %d건_\n", events.size() - 10));
+            sb.append(String.format("\\.\\.\\. 외 %d건\n", events.size() - 10));
         }
 
         return sb.toString();
@@ -623,6 +623,7 @@ public class TelegramNotificationService {
 
     private String escapeMarkdownV2(String text) {
         return text
+                .replace("_", "\\_")
                 .replace(".", "\\.")
                 .replace("!", "\\!")
                 .replace("#", "\\#")
