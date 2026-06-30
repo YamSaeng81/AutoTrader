@@ -56,6 +56,14 @@ interface CreateForm {
   watchlistRefreshMin: number;
 }
 
+const WATCHLIST_REFRESH_DEFAULTS: Record<string, number> = {
+  M5:  10,
+  M15: 30,
+  H1:  60,
+  H4:  240,
+  D1:  1440,
+};
+
 const defaultForm: CreateForm = {
   strategyType: 'COMPOSITE_REGIME_ROUTER',
   timeframe: 'H1',
@@ -220,7 +228,14 @@ export default function DynamicTradingPage() {
                 <label className="block text-sm text-slate-400 mb-1">타임프레임</label>
                 <select
                   value={form.timeframe}
-                  onChange={e => setForm({ ...form, timeframe: e.target.value })}
+                  onChange={e => {
+                    const tf = e.target.value;
+                    setForm(prev => ({
+                      ...prev,
+                      timeframe: tf,
+                      watchlistRefreshMin: WATCHLIST_REFRESH_DEFAULTS[tf] ?? prev.watchlistRefreshMin,
+                    }));
+                  }}
                   className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
                 >
                   {TIMEFRAME_OPTIONS.map(t => (
@@ -311,14 +326,22 @@ export default function DynamicTradingPage() {
                     />
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-xs text-slate-400 mb-1">감시목록 갱신 주기 (분)</label>
+                    <label className="block text-xs text-slate-400 mb-1">
+                      감시목록 갱신 주기 (분)
+                      <span className="ml-2 text-slate-500">
+                        — {form.timeframe} 추천: {WATCHLIST_REFRESH_DEFAULTS[form.timeframe] ?? '—'}분
+                      </span>
+                    </label>
                     <input
                       type="number"
                       value={form.watchlistRefreshMin}
                       onChange={e => setForm({ ...form, watchlistRefreshMin: Number(e.target.value) })}
-                      min={10} max={1440} step={10}
+                      min={5} max={1440} step={5}
                       className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
                     />
+                    <p className="text-xs text-slate-600 mt-1">
+                      짧을수록 시장 변화에 빠르게 반응하지만 API 호출 증가
+                    </p>
                   </div>
                 </div>
               </div>
