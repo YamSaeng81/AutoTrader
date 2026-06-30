@@ -12,7 +12,9 @@ import java.util.Set;
  *
  * <h3>차단 예외</h3>
  * <ul>
- *   <li>{@code COMPOSITE_REGIME_ROUTER} — 내부에서 RANGE 시 자동 HOLD 처리</li>
+ *   <li>{@code COMPOSITE_REGIME_ROUTER} — 내부에서 RANGE를 V1(VWAP 기반)으로 라우팅</li>
+ *   <li>{@code COMPOSITE_MOMENTUM}, {@code COMPOSITE_MOMENTUM_ICHIMOKU} — 90일 실전 분석(2026-06-30)에서
+ *       RANGE 레짐 WR 66~69%, 평균 +0.6~1.1% 확인. VWAP(역추세) 성분이 횡보에서 자연스럽게 동작.</li>
  *   <li>횡보 친화 전략: VWAP, BOLLINGER, GRID, RSI, ORDERBOOK_IMBALANCE, STOCHASTIC_RSI</li>
  * </ul>
  *
@@ -27,8 +29,10 @@ public final class RangeRegimeGate {
             "ATR_BREAKOUT", "EMA_CROSS", "MACD", "SUPERTREND",
             // 복합 추세/돌파 전략
             "COMPOSITE", "COMPOSITE_BREAKOUT", "COMPOSITE_BREAKOUT_ICHIMOKU",
-            "COMPOSITE_MOMENTUM", "COMPOSITE_ETH",
-            "COMPOSITE_MOMENTUM_ICHIMOKU", "COMPOSITE_MOMENTUM_ICHIMOKU_V2",
+            "COMPOSITE_ETH",
+            // V2(SUPERTREND 기반)는 RANGE에서 42.6% WR, -0.203% — 차단 유지
+            // V1(VWAP 기반) COMPOSITE_MOMENTUM·COMPOSITE_MOMENTUM_ICHIMOKU는 RANGE에서 우수 → 차단 해제
+            "COMPOSITE_MOMENTUM_ICHIMOKU_V2",
             // 멀티타임프레임
             "COMPOSITE_MTF_BTC", "COMPOSITE_MTF_BTC_STRICT",
             "COMPOSITE_MTF_MOMENTUM", "COMPOSITE_MTF_CONFIRMED",

@@ -43,12 +43,12 @@ public class CompositePresetRegistrar {
         // COMPOSITE: 시장 국면(regime) 기반 동적 전략 선택 — MarketRegimeDetector 상태 보유
         StrategyRegistry.registerStateful("COMPOSITE", RegimeAdaptiveStrategy::new);
 
-        // COMPOSITE_REGIME_ROUTER: 기존 복합 전략 3종(BREAKOUT/V1/V2)을 레짐 기반으로 위임하는 메타 전략.
-        // 레짐 전환(Hysteresis 3회 연속)에 따라 자동으로 최적 전략으로 교체.
+        // COMPOSITE_REGIME_ROUTER: 레짐 기반으로 최적 전략을 자동 위임하는 단일 메타 전략.
+        // 90일 실전 분석(2026-06-30) 기반 개편: CMI_V1(MACD+VWAP+GRID+Ichimoku)이 전 레짐 압도.
         //   VOLATILITY  → COMPOSITE_BREAKOUT  (ATR spike — 돌파 유리)
-        //   TREND       → CMI_V2              (강한 추세 — MACD+SUPERTREND)
-        //   TRANSITIONAL→ CMI_V1              (전환 구간 — 보수적 모멘텀)
-        //   RANGE       → HOLD                (횡보 — 진입 금지)
+        //   TREND       → CMI_V1              (MACD+VWAP+Ichimoku, V2 대비 우수)
+        //   TRANSITIONAL→ CMI_V1              (ADX 임계 완화 BTC/SOL 적용)
+        //   RANGE       → CMI_V1              (VWAP 역추세 성분이 횡보 친화, HOLD 제거)
         // GRID stateful + RegimeDetector stateful → 반드시 registerStateful
         StrategyRegistry.registerStateful("COMPOSITE_REGIME_ROUTER", CompositeRegimeRouter::new);
 
