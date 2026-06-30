@@ -66,7 +66,8 @@ const navGroups: NavGroup[] = [
         label: '실전매매',
         icon: Zap,
         items: [
-            { href: '/trading',         label: '실전 매매',     icon: Zap,     excludePrefix: '/trading/history' },
+            { href: '/trading',         label: '실전 매매',     icon: Zap,     excludePrefix: '/trading/history|/trading/dynamic' },
+            { href: '/trading/dynamic', label: '동적 멀티코인', icon: Bot },
             { href: '/trading/history', label: '실전매매 이력', icon: History },
             { href: '/trading/risk',    label: '리스크 설정',   icon: Shield },
             { href: '/account',         label: '계좌 현황',     icon: Wallet },

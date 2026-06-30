@@ -67,3 +67,14 @@ export {
   useExchangeHealth,
   tradingKeys,
 } from './useTrading';
+
+// Dynamic Multi-Coin Trading hooks
+export {
+  useDynamicSessions,
+  useDynamicSession,
+  useCreateDynamicSession,
+  useStartDynamicSession,
+  useStopDynamicSession,
+  useEmergencyStopDynamicSession,
+  dynamicKeys,
+} from './useDynamicTrading';

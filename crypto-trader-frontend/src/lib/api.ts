@@ -325,6 +325,26 @@ export interface DbStats {
     liveTrading:  Record<string, number>;
 }
 
+export const dynamicSessionApi = {
+    list: () =>
+        api.get<ApiResponse<Record<string, unknown>[]>>('/api/v1/dynamic-sessions').then(r => r.data),
+    get: (id: number) =>
+        api.get<ApiResponse<Record<string, unknown>>>(`/api/v1/dynamic-sessions/${id}`).then(r => r.data),
+    create: (req: {
+        strategyType: string; timeframe: string; initialCapital: number;
+        stopLossPct?: number; investRatio?: number;
+        maxCandidateSize?: number; targetWatchSize?: number;
+        minAtrPct?: number; maxSpreadPct?: number; watchlistRefreshMin?: number;
+    }) =>
+        api.post<ApiResponse<Record<string, unknown>>>('/api/v1/dynamic-sessions', req).then(r => r.data),
+    start: (id: number) =>
+        api.post<ApiResponse<Record<string, unknown>>>(`/api/v1/dynamic-sessions/${id}/start`).then(r => r.data),
+    stop: (id: number) =>
+        api.post<ApiResponse<Record<string, unknown>>>(`/api/v1/dynamic-sessions/${id}/stop`).then(r => r.data),
+    emergencyStop: (id: number) =>
+        api.post<ApiResponse<Record<string, unknown>>>(`/api/v1/dynamic-sessions/${id}/emergency-stop`).then(r => r.data),
+};
+
 export const schedulerApi = {
     getConfig: () =>
         api.get<ApiResponse<NightlySchedulerConfig>>('/api/v1/scheduler/nightly').then(r => r.data),
