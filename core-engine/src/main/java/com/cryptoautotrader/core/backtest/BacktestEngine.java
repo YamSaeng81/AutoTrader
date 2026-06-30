@@ -7,6 +7,7 @@ import com.cryptoautotrader.core.model.TradeRecord;
 import com.cryptoautotrader.core.regime.MarketRegime;
 import com.cryptoautotrader.core.regime.MarketRegimeDetector;
 import com.cryptoautotrader.core.selector.Ema200RegimeGate;
+import com.cryptoautotrader.core.selector.RangeRegimeGate;
 import com.cryptoautotrader.core.risk.ExitRuleChecker;
 import com.cryptoautotrader.core.risk.ExitRuleChecker.ExitCheck;
 import com.cryptoautotrader.core.risk.ExitRuleChecker.StopLevels;
@@ -193,10 +194,12 @@ public class BacktestEngine {
 
             // 다음 캔들 open에서 체결 (Look-Ahead Bias 방지)
             // BUY: 포지션 없고 pending 이월도 없을 때만 진입
+            boolean rangeGatePass = !(regime == MarketRegime.RANGE && RangeRegimeGate.isBlocked(config.getStrategyName()));
             if (signal.getAction() == StrategySignal.Action.BUY
                     && position.compareTo(BigDecimal.ZERO) == 0
                     && pendingQuantity.compareTo(BigDecimal.ZERO) == 0
-                    && Ema200RegimeGate.allowsBuy(window, config.getCoinPair())) {
+                    && Ema200RegimeGate.allowsBuy(window, config.getCoinPair())
+                    && rangeGatePass) {
 
                 // 포지션 사이징: 가용 자금 × 투자 비율 (실전매매와 동일)
                 BigDecimal investAmount = exitChecker.calculateInvestAmount(capital);

@@ -44,6 +44,7 @@ import com.cryptoautotrader.core.regime.MarketRegime;
 import com.cryptoautotrader.core.regime.MarketRegimeDetector;
 import com.cryptoautotrader.core.risk.RiskCheckResult;
 import com.cryptoautotrader.core.selector.Ema200RegimeGate;
+import com.cryptoautotrader.core.selector.RangeRegimeGate;
 
 import com.cryptoautotrader.api.discord.DiscordWebhookClient;
 import com.cryptoautotrader.exchange.upbit.UpbitOrderClient;
@@ -120,6 +121,13 @@ public class LiveTradingService {
     private static final long MIN_HOLD_MINUTES_FOR_SIGNAL_EXIT = 180;
     /** 전략 SELL 신호 최소 수익률 가드: 이 미만이면 SELL 무시 (수수료+노이즈 본전 청산 방지). SL/TP/트레일링은 항상 동작. */
     private static final BigDecimal MIN_PNL_PCT_FOR_SIGNAL_EXIT = new BigDecimal("0.30");
+    /**
+     * 손실 탈출 임계: PnL이 이 값보다 낮으면(더 큰 손실) 본전 청산 가드를 우회해 전략 SELL 허용.
+     * 노이즈 차단(본전 근처)은 유지하되, 손실이 누적되는 동안 전략의 조기 탈출 신호까지
+     * 막아 SL까지 손실이 확대되는 구조를 방지한다.
+     * (근거: 30일 분석 2026-06-30 — -1.8% 손실 중 STRONG_SELL 차단 → SL 대기로 손실 확대)
+     */
+    private static final BigDecimal LOSS_ESCAPE_THRESHOLD = new BigDecimal("-1.00");
 
     /** 거래소 DOWN으로 비상 정지된 세션 ID 목록 — 복구 시 자동 재시작 대상 */
     private final Set<Long> exchangeStoppedSessionIds = ConcurrentHashMap.newKeySet();
@@ -264,24 +272,6 @@ public class LiveTradingService {
             throw new SessionStateException(
                     "최대 " + MAX_CONCURRENT_SESSIONS + "개의 동시 매매 세션만 가능합니다. "
                             + "현재 " + runningCount + "개 실행 중.");
-        }
-
-        // §11 전략 운영 가능 여부 검사 (BLOCKED / DEPRECATED → 세션 생성 불가)
-        if (strategyLiveStatusRegistry.isBlocked(req.getStrategyType())) {
-            StrategyLiveStatusRegistry.StatusEntry entry =
-                    strategyLiveStatusRegistry.getStatus(req.getStrategyType());
-            throw new IllegalArgumentException(
-                    req.getStrategyType() + " 전략은 실전매매가 차단됩니다 ["
-                    + entry.readiness() + "]. 사유: " + entry.reason());
-        }
-
-        // §11 EXPERIMENTAL(실험) 전략은 기본 차단 — allowExperimentalLive=true 명시 시에만 허용(관찰 전용).
-        if (strategyLiveStatusRegistry.isExperimental(req.getStrategyType()) && !req.isAllowExperimentalLive()) {
-            StrategyLiveStatusRegistry.StatusEntry entry =
-                    strategyLiveStatusRegistry.getStatus(req.getStrategyType());
-            throw new IllegalArgumentException(
-                    req.getStrategyType() + " 전략은 실험 단계(EXPERIMENTAL)라 충분한 실전 근거가 없습니다. "
-                    + "관찰 전용으로 실행하려면 allowExperimentalLive=true 를 명시하세요. 사유: " + entry.reason());
         }
 
         // §8 자본 초과 배정 방지: 세션 생성 직전 거래소 잔고를 즉시 동기화하여 최신값 기준으로 검증
@@ -835,11 +825,9 @@ public class LiveTradingService {
         if (session.getStartedAt() != null) {
             params.put("sessionStartedAt", session.getStartedAt().toEpochMilli());
         }
-        // RANGE 레짐: COMPOSITE_BREAKOUT의 ADX(14)<20 필터가 횡보장을 100% 선차단하던 문제 해결.
-        // 호출자가 명시적으로 adxThreshold/skipAdxFilter를 지정하지 않은 경우에만 자동 완화한다.
-        if (preEvalRegime == MarketRegime.RANGE) {
-            params.putIfAbsent("adxThreshold", 15.0);
-        }
+        // RANGE 레짐에서 ADX 임계 완화 금지:
+        // 이전에 adxThreshold=15.0 완화 코드가 있었으나 추세 추종 전략이 횡보장에서
+        // 더 많은 신호를 발생시켜 손실을 키우는 원인이 됨 (30일 분석 2026-06-30 제거).
         // ORDERBOOK_IMBALANCE 전략: REST API로 실시간 호가창 주입 (캔들 근사 대신 실값 사용)
         if ("ORDERBOOK_IMBALANCE".equals(strategyType) && upbitRestClient != null) {
             try {
@@ -896,6 +884,15 @@ public class LiveTradingService {
             if (signal.getAction() == StrategySignal.Action.BUY && !ema200Pass) {
                 log.debug("EMA200 레짐 필터 — BUY 차단 (sessionId={}, {})", sessionId, coinPair);
                 signal = StrategySignal.hold("EMA200 레짐 필터 — 현재가 EMA200 이하");
+            }
+
+            // RANGE 레짐 게이트: 추세 추종 전략의 신규 BUY 진입 차단 (SELL은 기존 포지션 청산이므로 허용).
+            // 근거: 30일 신호품질 분석 2026-06-30 — RANGE 레짐 실전 승률 18.8%, -10,981원 손실.
+            if (preEvalRegime == MarketRegime.RANGE
+                    && signal.getAction() == StrategySignal.Action.BUY
+                    && RangeRegimeGate.isBlocked(strategyType)) {
+                log.debug("RANGE 레짐 게이트 — BUY 차단 (sessionId={}, {}, {})", sessionId, strategyType, coinPair);
+                signal = StrategySignal.hold("RANGE 레짐 — 추세 추종 전략 횡보장 신규 진입 차단");
             }
 
             // 전략 로그 DB 저장 (신호 품질 + 레짐 + 지표 스냅샷)
@@ -1038,8 +1035,10 @@ public class LiveTradingService {
                                 heldMinutes, MIN_HOLD_MINUTES_FOR_SIGNAL_EXIT, heldPnlPctSell.toPlainString());
                         log.info("SELL 신호 차단 (sessionId={}): {} {}", sessionId, coinPair, blockReason);
                         saveSignalQuality(signalLogRef, false, blockReason);
-                    } else if (heldPnlPctSell.compareTo(MIN_PNL_PCT_FOR_SIGNAL_EXIT) < 0) {
-                        // 본전 SELL 차단: 수익률이 임계 미만이면 전략 SELL 무시. 0/178 본전 청산 패턴 박멸 목적.
+                    } else if (heldPnlPctSell.compareTo(MIN_PNL_PCT_FOR_SIGNAL_EXIT) < 0
+                            && heldPnlPctSell.compareTo(LOSS_ESCAPE_THRESHOLD) >= 0) {
+                        // 본전 청산 차단: 노이즈 구간(LOSS_ESCAPE_THRESHOLD ~ MIN_PNL_PCT_FOR_SIGNAL_EXIT)에서만 차단.
+                        // PnL < LOSS_ESCAPE_THRESHOLD(-1.0%)이면 손실 탈출로 허용 — SL까지 손실 방치 방지.
                         // SL/TP/트레일링은 별도 경로로 항상 동작.
                         String blockReason = String.format(
                                 "본전 청산 차단: pnl=%s%% < +%s%% (전략 SELL 무시, SL/TP/트레일링은 유효)",

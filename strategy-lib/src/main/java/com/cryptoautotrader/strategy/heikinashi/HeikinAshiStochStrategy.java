@@ -65,6 +65,9 @@ public class HeikinAshiStochStrategy implements Strategy {
         double maxWickRatio  = StrategyParamUtils.getDouble(params, "maxWickRatio",  0.25);
         double stopLossPct   = StrategyParamUtils.getDouble(params, "stopLossPct",   1.5);
         double takeProfitPct = StrategyParamUtils.getDouble(params, "takeProfitPct", 3.0);
+        // 신호 최소 강도 임계: 30일 실전 분석(2026-06-30) — 24h 승률 0%, avg -4.45%.
+        // strength 0~100 기준. 기본 70 → crossStrength(gap≥10) 또는 몸통 성장 조건 동시 충족 시에만 진입.
+        double minStrengthPct = StrategyParamUtils.getDouble(params, "minStrengthPct", 70.0);
         // 신호 희소성 완화 (보완안 1·4·8) — 전부 파라미터 토글로 A/B 비교 가능.
         //  · maxWickRatio 0.0→0.25 (보완안 1): "꼬리 0" 초과잉 필터 완화 → 채택
         //  · volumeFilterRatio=0.8 (보완안 8): 완화로 늘어난 잡신호를 거래량으로 1차 거름 → 채택
@@ -149,6 +152,11 @@ public class HeikinAshiStochStrategy implements Strategy {
             BigDecimal tp = entry.multiply(BigDecimal.ONE.add(pct(takeProfitPct)))
                     .setScale(SCALE, RoundingMode.HALF_UP);
             BigDecimal strength = withBodyBonus(crossStrength(currentK, currentD), bodyGrew, bodyGrowthBonus);
+            if (minStrengthPct > 0 && strength.compareTo(BigDecimal.valueOf(minStrengthPct)) < 0) {
+                return StrategySignal.hold(String.format(
+                        "신뢰도 미달 BUY 차단: strength=%.1f < minStrengthPct=%.1f (K=%.2f, D=%.2f)",
+                        strength, minStrengthPct, currentK, currentD));
+            }
             return StrategySignal.buy(strength,
                     String.format("HA 롱: 200EMA 위(종가=%.2f>EMA=%.2f), StochRSI 골든크로스(K=%.2f>D=%.2f), "
                                     + "아래꼬리없는 양봉(몸통%s). 손절=%.2f 익절=%.2f",
@@ -163,6 +171,11 @@ public class HeikinAshiStochStrategy implements Strategy {
             BigDecimal tp = entry.multiply(BigDecimal.ONE.subtract(pct(takeProfitPct)))
                     .setScale(SCALE, RoundingMode.HALF_UP);
             BigDecimal strength = withBodyBonus(crossStrength(currentK, currentD), bodyGrew, bodyGrowthBonus);
+            if (minStrengthPct > 0 && strength.compareTo(BigDecimal.valueOf(minStrengthPct)) < 0) {
+                return StrategySignal.hold(String.format(
+                        "신뢰도 미달 SELL 차단: strength=%.1f < minStrengthPct=%.1f (K=%.2f, D=%.2f)",
+                        strength, minStrengthPct, currentK, currentD));
+            }
             return StrategySignal.sell(strength,
                     String.format("HA 숏: 200EMA 아래(종가=%.2f<EMA=%.2f), StochRSI 데드크로스(K=%.2f<D=%.2f), "
                                     + "위꼬리없는 음봉(몸통%s). 손절=%.2f 익절=%.2f",

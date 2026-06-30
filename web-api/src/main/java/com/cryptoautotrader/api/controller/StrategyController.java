@@ -230,6 +230,7 @@ public class StrategyController {
                  "COMPOSITE_MOMENTUM_ICHIMOKU", "COMPOSITE_MOMENTUM_ICHIMOKU_V2", "COMPOSITE_BREAKOUT_ICHIMOKU",
                  "COMPOSITE_REGIME_ROUTER",
                  "COMPOSITE_MTF_CONFIRMED", "COMPOSITE_MTF_BTC", "COMPOSITE_MTF_MOMENTUM",
+                 "COMPOSITE_MTF_BTC_STRICT", "COMPOSITE_PULLBACK_MTF",
                  "MACD_STOCH_BB" -> true;
             default -> false;
         };
@@ -250,7 +251,8 @@ public class StrategyController {
             case "COMPOSITE", "COMPOSITE_MOMENTUM", "COMPOSITE_ETH", "COMPOSITE_BREAKOUT",
                  "COMPOSITE_MOMENTUM_ICHIMOKU", "COMPOSITE_MOMENTUM_ICHIMOKU_V2", "COMPOSITE_BREAKOUT_ICHIMOKU",
                  "COMPOSITE_REGIME_ROUTER",
-                 "COMPOSITE_MTF_CONFIRMED", "COMPOSITE_MTF_BTC", "COMPOSITE_MTF_MOMENTUM" -> true;
+                 "COMPOSITE_MTF_CONFIRMED", "COMPOSITE_MTF_BTC", "COMPOSITE_MTF_MOMENTUM",
+                 "COMPOSITE_MTF_BTC_STRICT", "COMPOSITE_PULLBACK_MTF" -> true;
             // 복합 추세 전략
             case "MACD_STOCH_BB" -> true;
             default -> false;
@@ -263,6 +265,7 @@ public class StrategyController {
             case "COMPOSITE_BREAKOUT"            -> Arrays.asList("BTC", "ADA", "SOL");
             case "COMPOSITE_REGIME_ROUTER"       -> Arrays.asList("SOL", "ETH");
             case "COMPOSITE_MTF_BTC"             -> Arrays.asList("ETH", "AAVE", "CHZ");
+            case "COMPOSITE_MTF_BTC_STRICT"      -> Arrays.asList("BTC");   // MTF_BTC A/B 비교용
             case "COMPOSITE_MTF_MOMENTUM"        -> Arrays.asList("BLUR", "DOGE");
             case "COMPOSITE_MTF_CONFIRMED"       -> Arrays.asList("XRP");
             case "COMPOSITE_MOMENTUM_ICHIMOKU_V2"-> Arrays.asList("DOGE");
@@ -270,6 +273,7 @@ public class StrategyController {
             case "COMPOSITE"                     -> Arrays.asList("BTC", "ETH", "SOL");
             case "COMPOSITE_MOMENTUM"            -> Arrays.asList("ETH", "SOL");
             case "COMPOSITE_ETH"                 -> Arrays.asList("ETH");
+            case "COMPOSITE_PULLBACK_MTF"        -> Arrays.asList("ETH", "SOL");  // EXPERIMENTAL
             default                              -> List.of();
         };
     }
@@ -297,12 +301,12 @@ public class StrategyController {
                                           "소형 알트 비권장 (VWAP 신뢰도 낮음, 거래량 부족). " +
                                           "백테스트: BTC +58.83% MDD -25.62%";
             case "COMPOSITE_ETH"       -> "[ETH 프리셋] ATR_BREAKOUT × 0.5 + ORDERBOOK_IMBALANCE × 0.3 + EMA_CROSS × 0.2";
-            case "COMPOSITE_BREAKOUT"  -> "[변동성 돌파 추세] ATR×0.4 + VolDelta×0.3 + RSI×0.2 + EMA×0.1 | " +
-                                          "ETH·SOL·XRP 등 중대형 알트 최적화 (추세 뚜렷, 변동성 중간). " +
-                                          "ADX<20 횡보장 자동 차단, EMA 추세 역행 신호 억제. " +
-                                          "RSI 브레이크: 과매수 구간 ATR 돌파 신호 차단. " +
-                                          "BTC 비권장 (변동성 낮아 신호 희소), 소형 알트 비권장 (변동성 과다). " +
-                                          "백테스트: ETH 평균 +70.3% MDD -12~-17%";
+            case "COMPOSITE_BREAKOUT"  -> "[변동성 돌파 추세] ATR×0.5 + VolDelta×0.3 + MACD×0.2 | " +
+                                          "BTC·ADA·SOL 등 추세성 강한 코인 최적화. " +
+                                          "ADX<20 횡보장 자동 차단, EMA(20/50) 추세 역행 신호 억제. " +
+                                          "RSI Veto Gate: RSI>75 과매수 구간 BUY 신호 강제 차단 (가중치 방식 대비 수학적으로 확실한 차단). " +
+                                          "XRP·소형 알트 비권장 (MDD 과다). " +
+                                          "백테스트: BTC +106.71%, ADA/SOL 상위권";
             case "MACD_STOCH_BB"       -> "MACD 추세(>0·히스토그램 확대) + StochRSI 과매도 타이밍(%K<20·골든크로스) + 거래량 필터 복합 전략 (1시간봉 최적화). " +
                                           "v2: 볼린저밴드 %B 조건 제거 — MACD>0(상승추세)와 %B≤0.35(하단근처) 구조적 충돌로 3년 H1 기준 BTC 5건 등 극희소 신호 문제 해소.";
             case "COMPOSITE_MOMENTUM_ICHIMOKU" ->
@@ -311,24 +315,27 @@ public class StrategyController {
                     "구름 아래 BUY·구름 위 SELL 억제 → EMA 방향 필터와 이중 추세 역행 차단. " +
                     "BTC·ETH 등 대형 코인 최적화. 소형 알트 비권장.";
             case "COMPOSITE_BREAKOUT_ICHIMOKU" ->
-                    "[변동성 돌파 추세 + Ichimoku 필터] 기존 COMPOSITE_BREAKOUT(ATR×0.4 + VD×0.3 + RSI×0.2 + EMA×0.1) 위에 " +
-                    "Ichimoku 구름(9/26/52) 필터 추가. " +
-                    "구름 아래 BUY·구름 위 SELL 억제 → ADX 횡보장·EMA 역행·Ichimoku 삼중 필터. " +
-                    "ETH·SOL·XRP·BNB 등 중대형 알트 최적화. BTC·소형 알트 비권장.";
+                    "[변동성 돌파 추세 + Ichimoku 필터] COMPOSITE_BREAKOUT(ATR×0.5 + VD×0.3 + MACD×0.2) 위에 " +
+                    "Ichimoku 구름(9/26/52) 필터 추가. RSI Veto Gate 유지. " +
+                    "⚠️ 백테스트에서 COMPOSITE_BREAKOUT과 거의 동일한 결과 — ADX 필터가 횡보장을 이미 전부 차단해 Ichimoku 추가 효과 미미. " +
+                    "ADX 횡보장·EMA 역행·RSI 과열·Ichimoku 사중 필터. 중대형 알트 최적화. BTC·소형 알트 비권장.";
             case "COMPOSITE_MOMENTUM_ICHIMOKU_V2" ->
                     "[모멘텀 순수 추세 + Ichimoku 필터 V2] MACD×0.5 + SUPERTREND×0.3 + GRID×0.2 | " +
                     "V1(COMPOSITE_MOMENTUM_ICHIMOKU)의 MACD(추세)↔VWAP(역추세) 충돌 해소 버전. " +
                     "VWAP를 SUPERTREND로 교체 → 세 전략 모두 추세 추종 방향 일치. " +
                     "EMA(20/50) 방향 역행 억제 + Ichimoku 구름 내부 차단 이중 필터. " +
-                    "XRP·ETH 등 모멘텀 계열 강세 코인 최적화. V1과 병행 운영으로 성능 비교 권장.";
+                    "DOGE 최적 (백테스트 +124.77%) — 단, MDD 가 큰 코인이므로 원금 절반 운용 권장. " +
+                    "V1과 동일 코인 병행 운영으로 성능 비교 가능.";
             case "COMPOSITE_MTF_CONFIRMED" ->
                     "[멀티 타임프레임 범용] H1 레짐 라우터(CRR) 신호 + H4 Supertrend 추세 방향 일치 시에만 진입. " +
                     "H4 방향이 H1 신호와 역행하면 HOLD → 역추세 진입 차단. " +
                     "기대 효과: 승률 개선(14%→25%+), 진입 빈도 감소. ETH·SOL 최적.";
             case "COMPOSITE_MTF_BTC" ->
-                    "[멀티 타임프레임 BTC 특화] H1 COMPOSITE_BREAKOUT 신호 + H4 Supertrend 추세 확인. " +
-                    "BTC 백테스트 CB +106.71% 기반. H4 추세 확인으로 추세 없는 구간 손절 감소 기대. " +
-                    "ATR(0.5)+VD(0.3)+MACD(0.2), RSI Veto·EMA·ADX 필터 유지.";
+                    "[멀티 타임프레임 BTC 특화] H1 COMPOSITE_BREAKOUT + H4 Supertrend 추세 확인 (lenient 모드). " +
+                    "H4 방향 불일치 → 차단, H4 HOLD·데이터부족 → LTF 신호 통과(보수적 허용). " +
+                    "ATR×0.5+VD×0.3+MACD×0.2, RSI Veto·EMA·ADX 필터 유지. " +
+                    "BTC 백테스트 +106.71% 기반 — ETH/AAVE/CHZ에서도 강한 결과. " +
+                    "strict 차단이 필요하면 COMPOSITE_MTF_BTC_STRICT(A/B 비교용) 사용.";
             case "COMPOSITE_MTF_MOMENTUM" ->
                     "[멀티 타임프레임 모멘텀] H1 CMI_V2(MACD+SUPERTREND+GRID) + H4 Supertrend 추세 확인. " +
                     "DOGE 백테스트 CMI_V2 +124.77% 기반. H4 추세 확인으로 횡보 구간 과진입 차단. " +
@@ -340,7 +347,20 @@ public class StrategyController {
                     "TRANSITIONAL(ADX 20~25) → CMI_V1(MACD+VWAP) | " +
                     "RANGE(ADX<20) → HOLD. " +
                     "Hysteresis 3회 연속 감지 시 전환 → 레짐 진동 방지. " +
-                    "단일 코인에 여러 전략 장점을 자동 조합. BTC·ETH·SOL 범용 권장.";
+                    "TRANSITIONAL ADX 임계 완화(25→20): BTC·SOL에만 적용 (3년 H1 백테스트 검증 — XRP는 미적용). " +
+                    "레짐 태그([VOLATILITY]/[TREND] 등)·SL/TP 정보가 신호 reason에 보존됨. " +
+                    "단일 코인에 여러 전략 장점 자동 조합. SOL·ETH 최적, BTC A/B 비교 권장.";
+            case "COMPOSITE_MTF_BTC_STRICT" ->
+                    "[멀티 타임프레임 BTC strict 모드 — EXPERIMENTAL] COMPOSITE_MTF_BTC의 A/B 비교 변형. " +
+                    "H4 HOLD(중립)·데이터부족 시 LTF 신호를 통과시키는 기존 lenient 모드와 달리, " +
+                    "H4가 명시적으로 BUY·SELL 방향을 확인할 때만 진입 허용. " +
+                    "운영 초반 과공격 진입(데이터부족 통과)·추세 미확인 진입을 차단. " +
+                    "동일 코인(BTC)에 기존 COMPOSITE_MTF_BTC와 병행 운영 후 H4 차단 신호의 실제 손익을 비교해 최적 모드 결정.";
+            case "COMPOSITE_PULLBACK_MTF" ->
+                    "[강한 추세 중 눌림목 회복 진입 — EXPERIMENTAL] 돌파·모멘텀 일변도 전략군과 직교하는 성격의 관찰 전용 전략. " +
+                    "진입: H4 Supertrend 상승 + H1 종가>EMA200 + RSI 40~55(눌림) + EMA20/VWAP 눌림 후 회복 + ADX≥18. " +
+                    "청산: H4 Supertrend 하락 전환 또는 H1 EMA20 이탈. " +
+                    "최소 200캔들 필요. 실전 근거 충분히 쌓일 때까지 EXPERIMENTAL(관찰 전용) 유지. ETH·SOL 관찰 대상.";
             default -> "설명 없음";
         };
     }
