@@ -44,6 +44,7 @@ import java.util.Map;
 public class TradingController {
 
     private final LiveTradingService liveTradingService;
+    private final DynamicTradingService dynamicTradingService;
     private final PositionService positionService;
     private final OrderExecutionEngine orderExecutionEngine;
     private final RiskManagementService riskManagementService;
@@ -76,10 +77,21 @@ public class TradingController {
         return ApiResponse.ok(liveTradingService.listSessions());
     }
 
-    /** 세션 인덱스 — 선택 UI용 통합 목록(삭제/모의 세션 포함, sessionId 내림차순) */
+    /**
+     * 세션 인덱스 — 선택 UI용 통합 목록(삭제/모의/동적 세션 포함, sessionId 내림차순).
+     *
+     * <p>live_trading_session 과 dynamic_session 은 별도 BIGSERIAL 이라 sessionId 가 겹칠 수
+     * 있다. 두 목록은 각자 sessionType(LIVE/PAPER/DYNAMIC)으로 이미 구분되어 있으므로 단순
+     * 연결(concat) 후 정렬만 하면 되고, sessionId 단일 키로 병합하면 안 된다(겹치는 ID의
+     * 한쪽이 사라짐).</p>
+     */
     @GetMapping("/sessions/index")
     public ApiResponse<List<java.util.Map<String, Object>>> sessionIndex() {
-        return ApiResponse.ok(liveTradingService.getSessionIndex());
+        List<java.util.Map<String, Object>> combined = new java.util.ArrayList<>(liveTradingService.getSessionIndex());
+        combined.addAll(dynamicTradingService.getSessionIndex());
+        combined.sort(java.util.Comparator.comparingLong(
+                (java.util.Map<String, Object> m) -> ((Number) m.get("sessionId")).longValue()).reversed());
+        return ApiResponse.ok(combined);
     }
 
     /** 세션 상세 조회 */

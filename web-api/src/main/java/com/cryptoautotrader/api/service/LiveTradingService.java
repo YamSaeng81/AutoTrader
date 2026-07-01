@@ -661,10 +661,14 @@ public class LiveTradingService {
         }
 
         // 2) 전략로그에만 존재하는 세션 (hard-delete 된 라이브 or 모의투자)
+        // DYNAMIC 세션 로그는 DynamicTradingService.getSessionIndex() 가 별도로 다룬다 — 여기서
+        // 건너뛰지 않으면 session_id 가 우연히 겹치는 라이브 세션과 충돌하거나 "삭제된 라이브
+        // 세션"으로 잘못 분류된다.
         for (Object[] row : strategyLogRepository.findDistinctSessionRefs()) {
             Long sid = row[0] != null ? ((Number) row[0]).longValue() : null;
+            String sType = (String) row[1];   // LIVE / PAPER / DYNAMIC
             if (sid == null || byId.containsKey(sid)) continue;
-            String sType = (String) row[1];   // LIVE / PAPER
+            if (!"LIVE".equalsIgnoreCase(sType) && !"PAPER".equalsIgnoreCase(sType)) continue;
             boolean paper = "PAPER".equalsIgnoreCase(sType);
             Map<String, Object> m = new LinkedHashMap<>();
             m.put("sessionId", sid);

@@ -12,6 +12,7 @@ const SESSION_FILTERS = [
     { value: 'ALL', label: '전체' },
     { value: 'PAPER', label: '모의투자' },
     { value: 'LIVE', label: '실전매매' },
+    { value: 'DYNAMIC', label: '동적멀티코인' },
 ];
 
 const SESSION_STATUS_LABEL: Record<string, string> = {
@@ -26,19 +27,25 @@ const SIGNAL_STYLE: Record<string, string> = {
 };
 
 const SESSION_TYPE_STYLE: Record<string, string> = {
-    PAPER: 'bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400',
-    LIVE:  'bg-orange-50 text-orange-600 dark:bg-orange-500/15 dark:text-orange-400',
+    PAPER:   'bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400',
+    LIVE:    'bg-orange-50 text-orange-600 dark:bg-orange-500/15 dark:text-orange-400',
+    DYNAMIC: 'bg-purple-50 text-purple-600 dark:bg-purple-500/15 dark:text-purple-400',
+};
+
+const SESSION_TYPE_LABEL: Record<string, string> = {
+    PAPER: '모의', LIVE: '실전', DYNAMIC: '동적',
 };
 
 export default function LogsPage() {
     const [page, setPage] = useState(0);
     const [sessionType, setSessionType] = useState('ALL');
+    // 'TYPE:ID' 형태의 합성 키 — live_trading_session 과 dynamic_session 은 별도 BIGSERIAL 이라
+    // sessionId 만으로 선택하면 서로 다른 구분의 동일 ID 세션이 섞일 수 있다.
     const [sessionSel, setSessionSel] = useState('');   // '' = 전체
     const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
     const [exporting, setExporting] = useState(false);
-    const sessionId = sessionSel !== '' ? Number(sessionSel) : undefined;
 
-    // 세션 인덱스 (삭제·모의 세션 포함)
+    // 세션 인덱스 (삭제·모의·동적 세션 포함)
     const { data: sessionIdxRes } = useQuery({
         queryKey: ['session-index'],
         queryFn: () => tradingApi.sessionIndex(),
@@ -49,9 +56,17 @@ export default function LogsPage() {
         ? sessionIndex
         : sessionIndex.filter(s => s.sessionType === sessionType);
 
+    const selectedSession = sessionSel !== ''
+        ? sessionIndex.find(s => `${s.sessionType}:${s.sessionId}` === sessionSel)
+        : undefined;
+    const sessionId = selectedSession?.sessionId;
+    // 특정 세션이 선택되면 그 세션의 실제 구분을 우선 사용 — 탭이 '전체'여도 sessionId 단독
+    // 조회로 인한 구분 간 ID 충돌(예: LIVE #3 vs DYNAMIC #3)을 막는다.
+    const effectiveSessionType = selectedSession?.sessionType ?? sessionType;
+
     const { data: logsRes, isLoading } = useQuery({
-        queryKey: ['logs', 'strategy', page, sessionType, sessionId],
-        queryFn: () => logApi.strategyLogs(page, 50, sessionType, sessionId),
+        queryKey: ['logs', 'strategy', page, effectiveSessionType, sessionId],
+        queryFn: () => logApi.strategyLogs(page, 50, effectiveSessionType, sessionId),
     });
 
     const logs = (logsRes?.data as any);
@@ -68,7 +83,7 @@ export default function LogsPage() {
     const handleExport = async () => {
         setExporting(true);
         try {
-            await csvExportApi.strategyLogs(sessionType, sessionId);
+            await csvExportApi.strategyLogs(effectiveSessionType, sessionId);
         } catch {
             alert('CSV 내보내기에 실패했습니다.');
         } finally {
@@ -113,8 +128,8 @@ export default function LogsPage() {
                     >
                         <option value="">세션 전체</option>
                         {sessionOptions.map(s => (
-                            <option key={s.sessionId} value={String(s.sessionId)}>
-                                #{s.sessionId} {s.strategyType ?? '-'}({s.coinPair ?? '-'}) {SESSION_STATUS_LABEL[s.status] ?? s.status}
+                            <option key={`${s.sessionType}:${s.sessionId}`} value={`${s.sessionType}:${s.sessionId}`}>
+                                [{SESSION_TYPE_LABEL[s.sessionType] ?? s.sessionType}] #{s.sessionId} {s.strategyType ?? '-'}({s.coinPair ?? '-'}) {SESSION_STATUS_LABEL[s.status] ?? s.status}
                             </option>
                         ))}
                     </select>
@@ -190,7 +205,7 @@ export default function LogsPage() {
                                                 'shrink-0 px-2 py-0.5 rounded-full text-xs font-medium',
                                                 SESSION_TYPE_STYLE[group.sessionType] ?? 'bg-slate-100 text-slate-500'
                                             )}>
-                                                {group.sessionType === 'PAPER' ? '모의' : group.sessionType === 'LIVE' ? '실전' : group.sessionType ?? '-'}
+                                                {SESSION_TYPE_LABEL[group.sessionType] ?? group.sessionType ?? '-'}
                                             </span>
 
                                             {/* 세션 ID */}

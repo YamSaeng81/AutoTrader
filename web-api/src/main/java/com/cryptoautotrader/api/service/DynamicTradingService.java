@@ -4,9 +4,11 @@ import com.cryptoautotrader.api.dto.DynamicSessionRequest;
 import com.cryptoautotrader.api.dto.OrderRequest;
 import com.cryptoautotrader.api.entity.DynamicSessionEntity;
 import com.cryptoautotrader.api.entity.PositionEntity;
+import com.cryptoautotrader.api.entity.StrategyLogEntity;
 import com.cryptoautotrader.api.repository.DynamicSessionRepository;
 import com.cryptoautotrader.api.repository.OrderRepository;
 import com.cryptoautotrader.api.repository.PositionRepository;
+import com.cryptoautotrader.api.repository.StrategyLogRepository;
 import com.cryptoautotrader.api.util.TimeframeUtils;
 import com.cryptoautotrader.core.regime.MarketRegime;
 import com.cryptoautotrader.core.regime.MarketRegimeDetector;
@@ -74,6 +76,7 @@ public class DynamicTradingService {
     private final TelegramNotificationService telegramService;
     private final ObjectMapper objectMapper;
     private final DynamicSessionBalanceUpdater balanceUpdater;
+    private final StrategyLogRepository strategyLogRepository;
 
     @Autowired(required = false)
     private UpbitRestClient upbitRestClient;
@@ -100,7 +103,8 @@ public class DynamicTradingService {
                                   OrderExecutionEngine orderExecutionEngine,
                                   TelegramNotificationService telegramService,
                                   ObjectMapper objectMapper,
-                                  DynamicSessionBalanceUpdater balanceUpdater) {
+                                  DynamicSessionBalanceUpdater balanceUpdater,
+                                  StrategyLogRepository strategyLogRepository) {
         this.dynamicSessionRepo   = dynamicSessionRepo;
         this.positionRepository   = positionRepository;
         this.orderRepository      = orderRepository;
@@ -109,6 +113,7 @@ public class DynamicTradingService {
         this.telegramService      = telegramService;
         this.objectMapper         = objectMapper;
         this.balanceUpdater       = balanceUpdater;
+        this.strategyLogRepository = strategyLogRepository;
     }
 
     // ── 세션 생성 ──────────────────────────────────────────────────
@@ -204,6 +209,26 @@ public class DynamicTradingService {
         return getOrThrow(sessionId);
     }
 
+    /**
+     * 세션 인덱스 — 전략로그/주문로그 선택 UI용. {@code TradingController.sessionIndex()}가
+     * 라이브 세션 인덱스에 이 목록을 합쳐 반환한다. dynamic_session 은 hard/soft delete가 없으므로
+     * 테이블 전체를 그대로 반환한다.
+     */
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getSessionIndex() {
+        return dynamicSessionRepo.findAllByOrderByCreatedAtDesc().stream()
+                .map(s -> {
+                    Map<String, Object> m = new java.util.LinkedHashMap<>();
+                    m.put("sessionId", s.getId());
+                    m.put("strategyType", s.getStrategyType());
+                    m.put("coinPair", s.getCurrentCoinPair() != null ? s.getCurrentCoinPair() : "멀티코인");
+                    m.put("status", s.getStatus());
+                    m.put("sessionType", SESSION_KIND);
+                    return m;
+                })
+                .toList();
+    }
+
     // ── 스케줄: 60초마다 실행 ─────────────────────────────────────
 
     @Scheduled(fixedDelay = 60_000, initialDelay = 50_000)
@@ -284,21 +309,13 @@ public class DynamicTradingService {
 
             Strategy strategy = resolveStrategy(sid, coinPair, session.getStrategyType());
             StrategySignal signal = strategy.evaluate(evalCandles, Map.of("coinPair", coinPair));
-
-            // 코인별 평가 결과 로그 (BUY/SELL은 INFO, HOLD는 DEBUG)
-            if (signal.getAction() != StrategySignal.Action.HOLD) {
-                log.info("[Dynamic] 평가결과: {} → {} ({})", coinPair, signal.getAction(), signal.getReason());
-            } else {
-                holdCount++;
-                log.debug("[Dynamic] 평가결과: {} → HOLD ({})", coinPair, signal.getReason());
-            }
-            if (signal.getAction() == StrategySignal.Action.SELL) sellCount++;
+            BigDecimal evalPrice = evalCandles.get(evalCandles.size() - 1).getClose();
 
             if (signal.getAction() == StrategySignal.Action.BUY
                     && !Ema200RegimeGate.allowsBuy(evalCandles, coinPair)) {
                 ema200Blocked++;
                 log.info("[Dynamic] EMA200 BUY 차단: {} (id={})", coinPair, sid);
-                continue;
+                signal = StrategySignal.hold("EMA200 레짐 필터 — 현재가 EMA200 이하");
             }
 
             if (signal.getAction() == StrategySignal.Action.BUY
@@ -308,14 +325,26 @@ public class DynamicTradingService {
                     if (regime == MarketRegime.RANGE) {
                         rangeBlocked++;
                         log.info("[Dynamic] RANGE 레짐 BUY 차단: {} (id={})", coinPair, sid);
-                        continue;
+                        signal = StrategySignal.hold("RANGE 레짐 — 추세 추종 전략 횡보장 신규 진입 차단");
                     }
                 } catch (Exception ignored) {}
             }
 
+            // 코인별 평가 결과 로그 (BUY/SELL은 INFO, HOLD는 DEBUG) — 전략로그 페이지 노출용으로 DB에도 저장
+            if (signal.getAction() != StrategySignal.Action.HOLD) {
+                log.info("[Dynamic] 평가결과: {} → {} ({})", coinPair, signal.getAction(), signal.getReason());
+            } else {
+                holdCount++;
+                log.debug("[Dynamic] 평가결과: {} → HOLD ({})", coinPair, signal.getReason());
+            }
+            if (signal.getAction() == StrategySignal.Action.SELL) sellCount++;
+
+            StrategyLogEntity signalLog = saveStrategyLog(sid, session.getStrategyType(), coinPair, signal, evalPrice);
+
             if (signal.getAction() == StrategySignal.Action.BUY) {
                 log.info("[Dynamic] BUY 신호 진입: {} {} (id={})", coinPair, signal.getReason(), sid);
                 executeBuy(session, coinPair, evalCandles, signal);
+                updateSignalQuality(signalLog, true, null);
                 return;
             }
         }
@@ -391,21 +420,27 @@ public class DynamicTradingService {
 
         Strategy strategy = resolveStrategy(sid, coinPair, session.getStrategyType());
         StrategySignal signal = strategy.evaluate(evalCandles, Map.of("coinPair", coinPair));
+        StrategyLogEntity signalLog = saveStrategyLog(sid, session.getStrategyType(), coinPair, signal, currentPrice);
 
         if (signal.getAction() == StrategySignal.Action.SELL) {
             long heldMin = pos.getOpenedAt() != null
                     ? Duration.between(pos.getOpenedAt(), Instant.now()).toMinutes() : Long.MAX_VALUE;
             if (heldMin < MIN_HOLD_MINUTES) {
-                log.debug("[Dynamic] SELL 차단: 보유시간 미달 {}분 ({})", heldMin, coinPair);
+                String blockReason = String.format("보유시간 미달: %d분 < %d분", heldMin, MIN_HOLD_MINUTES);
+                log.debug("[Dynamic] SELL 차단: {} ({})", blockReason, coinPair);
+                updateSignalQuality(signalLog, false, blockReason);
                 return;
             }
             if (pnlPct.compareTo(MIN_PNL_PCT_FOR_SELL) < 0
                     && pnlPct.compareTo(LOSS_ESCAPE_THRESHOLD) >= 0) {
-                log.debug("[Dynamic] SELL 차단: 본전 근처 pnl={}% ({})", pnlPct, coinPair);
+                String blockReason = String.format("본전 근처 pnl=%s%%", pnlPct);
+                log.debug("[Dynamic] SELL 차단: {} ({})", blockReason, coinPair);
+                updateSignalQuality(signalLog, false, blockReason);
                 return;
             }
             executeSell(session, pos, currentPrice,
                     String.format("전략 SELL — %s (pnl=%s%%)", signal.getReason(), pnlPct));
+            updateSignalQuality(signalLog, true, null);
         }
     }
 
@@ -557,6 +592,49 @@ public class DynamicTradingService {
         }
         String key = sessionId + ":" + coinPair;
         return strategyInstances.computeIfAbsent(key, k -> StrategyRegistry.createNew(strategyType));
+    }
+
+    // ── 내부: 전략 로그 (전략로그 페이지 노출용) ──────────────────
+
+    /**
+     * 평가된 신호를 {@code strategy_log} 테이블에 저장한다 — {@code sessionType="DYNAMIC"}.
+     * 라이브 매매({@link LiveTradingService})와 동일하게 모든 평가(HOLD 포함)를 저장해야
+     * 전략로그 화면과 신호 품질 통계(/api/v1/logs/signal-stats)에서 동적 세션도 보인다.
+     * 이전까지는 application log 에만 남고 DB에는 전혀 기록되지 않아 전략로그 화면이 비어 있었다.
+     */
+    private StrategyLogEntity saveStrategyLog(Long sessionId, String strategyName, String coinPair,
+                                               StrategySignal signal, BigDecimal signalPrice) {
+        try {
+            BigDecimal conf = (signal.getAction() != StrategySignal.Action.HOLD && signal.getStrength() != null)
+                    ? signal.getStrength().divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP)
+                    : null;
+            StrategyLogEntity entity = StrategyLogEntity.builder()
+                    .strategyName(strategyName)
+                    .coinPair(coinPair)
+                    .signal(signal.getAction().name())
+                    .reason(signal.getReason())
+                    .sessionType(SESSION_KIND)
+                    .sessionId(sessionId)
+                    .signalPrice(signalPrice)
+                    .confidenceScore(conf)
+                    .build();
+            return strategyLogRepository.save(entity);
+        } catch (Exception e) {
+            log.warn("[Dynamic] 전략 로그 저장 실패: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    /** 신호 품질 로그 실행 결과 업데이트 (null-safe) */
+    private void updateSignalQuality(StrategyLogEntity logEntity, boolean wasExecuted, String blockedReason) {
+        if (logEntity == null) return;
+        try {
+            logEntity.setWasExecuted(wasExecuted);
+            logEntity.setBlockedReason(blockedReason);
+            strategyLogRepository.save(logEntity);
+        } catch (Exception e) {
+            log.warn("[Dynamic] 신호 품질 로그 업데이트 실패: {}", e.getMessage());
+        }
     }
 
     // ── 내부: 캔들 조회 ────────────────────────────────────────────
