@@ -26,6 +26,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +39,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -58,7 +61,11 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class DynamicTradingService {
 
-    private static final int CANDLE_LOOKBACK = 200;
+    // HEIKIN_ASHI_STOCH 등 EMA(200) 기반 전략은 최소 201개 닫힌 캔들이 필요하다. 200개만 가져오면
+    // closedCandleSlice()가 미마감 캔들을 하나 더 잘라내 최대 199개만 남아 구조적으로 절대 신호를
+    // 낼 수 없었다(2026-07-01 실전 로그 분석 — 해당 전략 세션 100% "데이터 부족"). 라이브 매매
+    // (LiveTradingService.CANDLE_LOOKBACK=250)와 동일 수준으로 맞춰 여유를 둔다.
+    private static final int CANDLE_LOOKBACK = 250;
     private static final List<String> ACTIVE_ORDER_STATES = List.of("PENDING", "SUBMITTED", "PARTIAL_FILLED");
     private static final long MIN_HOLD_MINUTES = 180;
     private static final BigDecimal MIN_PNL_PCT_FOR_SELL = new BigDecimal("0.30");
@@ -77,9 +84,14 @@ public class DynamicTradingService {
     private final ObjectMapper objectMapper;
     private final DynamicSessionBalanceUpdater balanceUpdater;
     private final StrategyLogRepository strategyLogRepository;
+    private final WsSubscriptionManager wsSubscriptionManager;
 
     @Autowired(required = false)
     private UpbitRestClient upbitRestClient;
+
+    /** 코인별 마지막 실시간(WS) SL/TP 점검 시각 — 5초 throttle */
+    private final Map<String, Long> rtCheckLastMs = new ConcurrentHashMap<>();
+    private static final long RT_CHECK_INTERVAL_MS = 5_000;
 
     /**
      * self-invocation 문제 해결용 — tick()이 @Scheduled(비-프록시 경유)로 직접 호출되면
@@ -104,7 +116,8 @@ public class DynamicTradingService {
                                   TelegramNotificationService telegramService,
                                   ObjectMapper objectMapper,
                                   DynamicSessionBalanceUpdater balanceUpdater,
-                                  StrategyLogRepository strategyLogRepository) {
+                                  StrategyLogRepository strategyLogRepository,
+                                  WsSubscriptionManager wsSubscriptionManager) {
         this.dynamicSessionRepo   = dynamicSessionRepo;
         this.positionRepository   = positionRepository;
         this.orderRepository      = orderRepository;
@@ -114,6 +127,7 @@ public class DynamicTradingService {
         this.objectMapper         = objectMapper;
         this.balanceUpdater       = balanceUpdater;
         this.strategyLogRepository = strategyLogRepository;
+        this.wsSubscriptionManager = wsSubscriptionManager;
     }
 
     // ── 세션 생성 ──────────────────────────────────────────────────
@@ -163,6 +177,7 @@ public class DynamicTradingService {
         log.info("[Dynamic] 세션 시작: id={} {} {}", sessionId, session.getStrategyType(), session.getTimeframe());
         telegramService.notifySessionStarted(sessionId, session.getStrategyType(),
                 "멀티코인-동적", session.getTimeframe(), session.getInitialCapital().longValue());
+        refreshWsSubscription();
         return session;
     }
 
@@ -180,6 +195,7 @@ public class DynamicTradingService {
         clearSessionState(sessionId);
         session = dynamicSessionRepo.save(session);
         log.info("[Dynamic] 세션 정지: id={}", sessionId);
+        refreshWsSubscription();
         return session;
     }
 
@@ -194,6 +210,7 @@ public class DynamicTradingService {
         clearSessionState(sessionId);
         session = dynamicSessionRepo.save(session);
         log.error("[Dynamic] 세션 비상 정지 완료: id={}", sessionId);
+        refreshWsSubscription();
         return session;
     }
 
@@ -511,6 +528,9 @@ public class DynamicTradingService {
 
         log.info("[Dynamic] 매수: id={} {} amount={} SL={} TP={}",
                 sid, coinPair, investAmount, stopLossPrice, takeProfitPrice);
+
+        // 실시간(WS) 손절/익절 감시 대상에 즉시 반영 — 폴링(60초) 대기 없이 다음 tick 전에도 방어
+        refreshWsSubscription();
     }
 
     // ── 내부: 매도 실행 ────────────────────────────────────────────
@@ -669,6 +689,7 @@ public class DynamicTradingService {
             s.setWatchlistRefreshedAt(null); // 다음 스캔에서 즉시 재필터링
         });
         log.info("[Dynamic] SCANNING 복귀 (id={})", sessionId);
+        refreshWsSubscription();
     }
 
     private void updateMddPeak(DynamicSessionEntity session) {
@@ -895,6 +916,90 @@ public class DynamicTradingService {
                     }
                     transitionToScanning(sessionId);
                 }
+            }
+        }
+    }
+
+    // ── 실시간(WS) 손절/익절 ────────────────────────────────────────
+
+    /**
+     * 현재 RUNNING 중인 동적 세션들의 보유 코인(POSITION_MONITORING 상태) 목록을 다시 계산해
+     * {@link WsSubscriptionManager}에 반영한다. LIVE 세션과 구독을 공유하므로 직접
+     * {@code UpbitWebSocketClient}를 호출하지 않는다.
+     *
+     * <p>매수/매도/세션 시작·정지 시점에 호출해 지연 없이 구독을 갱신한다 — 60초 폴링(tick)을
+     * 기다리면 그사이 실시간 손절/익절 보호가 비는 구간이 생긴다.</p>
+     */
+    private void refreshWsSubscription() {
+        List<String> coins = dynamicSessionRepo.findByStatus("RUNNING").stream()
+                .filter(s -> "POSITION_MONITORING".equals(s.getScanState()))
+                .map(DynamicSessionEntity::getCurrentCoinPair)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+        wsSubscriptionManager.updateSource(SESSION_KIND, coins);
+    }
+
+    /**
+     * WebSocket 실시간 시세 이벤트 핸들러 — 동적 세션 보유 포지션의 손절/익절을 폴링(60초)보다
+     * 즉시 반응하도록 처리한다. 라이브 매매의 급등락 SL/TP 트레일링(ratchet)은 이번 범위에
+     * 포함하지 않고, 기본 SL/TP 트리거만 실시간화한다.
+     */
+    @EventListener
+    @Async("marketDataExecutor")
+    @Transactional
+    public void onRealtimePriceEvent(RealtimePriceEvent event) {
+        try {
+            doOnRealtimePriceEvent(event);
+        } catch (Exception e) {
+            log.error("[Dynamic] 실시간 시세 이벤트 처리 오류 — coinCode={}, price={}",
+                    event.getCoinCode(), event.getPrice(), e);
+        }
+    }
+
+    private void doOnRealtimePriceEvent(RealtimePriceEvent event) {
+        String coinCode = event.getCoinCode();
+        BigDecimal price = event.getPrice();
+        long now = System.currentTimeMillis();
+
+        Long lastMs = rtCheckLastMs.get(coinCode);
+        if (lastMs != null && now - lastMs < RT_CHECK_INTERVAL_MS) return;
+        rtCheckLastMs.put(coinCode, now);
+
+        List<DynamicSessionEntity> sessions = dynamicSessionRepo.findByStatus("RUNNING");
+        for (DynamicSessionEntity session : sessions) {
+            if (!coinCode.equals(session.getCurrentCoinPair())) continue;
+
+            Optional<PositionEntity> openPos = positionRepository
+                    .findBySessionIdAndCoinPairAndStatus(session.getId(), coinCode, "OPEN");
+            if (openPos.isEmpty()) continue;
+
+            PositionEntity pos = openPos.get();
+            if (pos.getAvgPrice() == null || pos.getAvgPrice().compareTo(BigDecimal.ZERO) <= 0) continue;
+
+            BigDecimal pnlPct = price.subtract(pos.getAvgPrice())
+                    .divide(pos.getAvgPrice(), 6, RoundingMode.HALF_UP)
+                    .multiply(BigDecimal.valueOf(100));
+
+            // 익절
+            if (pos.getTakeProfitPrice() != null && price.compareTo(pos.getTakeProfitPrice()) >= 0) {
+                log.info("[Dynamic] 실시간 익절(WS): {} @ {} pnl={}% (id={})",
+                        coinCode, price, pnlPct, session.getId());
+                executeSell(session, pos, price,
+                        "실시간 익절(WS) — 현재가 " + price + " ≥ " + pos.getTakeProfitPrice());
+                continue;
+            }
+
+            // 손절
+            BigDecimal slNeg = session.getStopLossPct().negate();
+            boolean slTriggered = pos.getStopLossPrice() != null
+                    ? price.compareTo(pos.getStopLossPrice()) <= 0
+                    : pnlPct.compareTo(slNeg) <= 0;
+            if (slTriggered) {
+                log.warn("[Dynamic] 실시간 손절(WS): {} @ {} pnl={}% (id={})",
+                        coinCode, price, pnlPct, session.getId());
+                telegramService.notifyStopLoss(coinCode, pnlPct.doubleValue(), session.getId());
+                executeSell(session, pos, price, "실시간 손절(WS) — pnl " + pnlPct + "%");
             }
         }
     }

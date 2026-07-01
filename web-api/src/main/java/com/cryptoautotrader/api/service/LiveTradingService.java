@@ -162,6 +162,7 @@ public class LiveTradingService {
     private final com.cryptoautotrader.core.portfolio.PortfolioManager portfolioManager;
     private final StrategyLiveStatusRegistry strategyLiveStatusRegistry;
     private final ExecutionDriftTracker executionDriftTracker;
+    private final WsSubscriptionManager wsSubscriptionManager;
 
     /** 활성 세션 상태 목록 — 자본 배정 합산 시 사용 (§8) */
     private static final List<String> ACTIVE_SESSION_STATUSES = List.of("RUNNING", "CREATED");
@@ -2383,13 +2384,9 @@ public class LiveTradingService {
                 .map(LiveTradingSessionEntity::getCoinPair)
                 .distinct()
                 .collect(Collectors.toList());
-        if (coins.isEmpty()) {
-            wsClient.disconnect();
-            log.info("WebSocket 구독 해제 (실행 중인 세션 없음)");
-        } else {
-            wsClient.connect(coins);
-            log.info("WebSocket 구독 갱신: {}", coins);
-        }
+        // 실제 connect()/disconnect() 호출은 WsSubscriptionManager 가 DYNAMIC 소스와 합집합을
+        // 계산해 단일 진실 소스로 수행한다 (직접 호출 시 서로의 구독을 지워버림).
+        wsSubscriptionManager.updateSource("LIVE", coins);
     }
 
     private static final class PriceSnapshot {
