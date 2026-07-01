@@ -17,18 +17,18 @@ import java.util.Map;
  * buyScore  = Σ(weight × confidence)  (BUY  신호 전략 합산)
  * sellScore = Σ(weight × confidence)  (SELL 신호 전략 합산)
  *
- * buyScore  > 0.6                         → BUY  (strength ≈ score × 100)
- * sellScore > 0.6                         → SELL
- * buyScore  > 0.4                         → BUY  (weak)
- * sellScore > 0.4                         → SELL (weak)
- * 양쪽 모두 > 0.4 (상충)                  → HOLD
+ * buyScore  > 0.5                         → BUY  (strength ≈ score × 100)
+ * sellScore > 0.5                         → SELL
+ * buyScore  > 0.3                         → BUY  (weak)
+ * sellScore > 0.3                         → SELL (weak)
+ * 양쪽 모두 > 0.3 (상충)                  → HOLD
  * 그 외                                   → HOLD
  * </pre>
  */
 public class CompositeStrategy implements Strategy {
 
-    private static final double STRONG_THRESHOLD = 0.6;
-    private static final double WEAK_THRESHOLD   = 0.4;
+    private static final double STRONG_THRESHOLD = 0.5;
+    private static final double WEAK_THRESHOLD   = 0.3;
 
     /** EMA 방향 필터 기본 파라미터 */
     private static final int DEFAULT_EMA_SHORT = 20;
