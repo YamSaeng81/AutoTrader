@@ -18,6 +18,8 @@ import com.cryptoautotrader.strategy.StrategySignal;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -58,6 +60,7 @@ public class BacktestEngine {
         BigDecimal capital = config.getInitialCapital();
         BigDecimal position = BigDecimal.ZERO; // 보유 수량
         BigDecimal entryPrice = BigDecimal.ZERO;
+        Instant entryTime = null; // 최소보유시간 게이트(L-2)용 — 최초 진입 시각
         BigDecimal entryFee = BigDecimal.ZERO; // 매수 시 지불한 수수료 (SELL PnL 계산에 반영)
         BigDecimal cumulativePnl = BigDecimal.ZERO;
         BigDecimal pendingQuantity = BigDecimal.ZERO; // Partial Fill 이월 수량
@@ -175,6 +178,7 @@ public class BacktestEngine {
 
                     position = BigDecimal.ZERO;
                     entryPrice = BigDecimal.ZERO;
+                    entryTime = null;
                     entryFee = BigDecimal.ZERO;
                     stopLossPrice = BigDecimal.ZERO;
                     takeProfitPrice = BigDecimal.ZERO;
@@ -226,6 +230,7 @@ public class BacktestEngine {
 
                 position = orderQuantity;
                 entryPrice = executionPrice;
+                entryTime = nextCandle.getTime();
                 entryFee = fee;
                 capital = capital.subtract(executionPrice.multiply(orderQuantity)).subtract(fee);
 
@@ -248,6 +253,19 @@ public class BacktestEngine {
                         .build());
 
             } else if (signal.getAction() == StrategySignal.Action.SELL && position.compareTo(BigDecimal.ZERO) > 0) {
+                // 전략 SELL 게이트(L-2) — 실전매매와 동일하게 최소보유시간·본전청산차단 적용.
+                // SL/TP는 위에서 이미 별도 경로로 처리되므로 이 게이트와 무관하게 항상 동작한다.
+                long heldMinutes = entryTime != null
+                        ? Duration.between(entryTime, nextCandle.getTime()).toMinutes() : Long.MAX_VALUE;
+                BigDecimal pnlPct = entryPrice.compareTo(BigDecimal.ZERO) > 0
+                        ? currentCandle.getClose().subtract(entryPrice)
+                                .divide(entryPrice, 6, RoundingMode.HALF_UP)
+                                .multiply(BigDecimal.valueOf(100))
+                        : BigDecimal.ZERO;
+                if (!exitChecker.allowsSignalExit(heldMinutes, pnlPct)) {
+                    continue; // 게이트 차단 — HOLD 취급
+                }
+
                 BigDecimal additionalSlippage = BigDecimal.ZERO;
                 if (fillSimulator != null) {
                     additionalSlippage = fillSimulator.calculateMarketImpact(position, nextCandle.getVolume());
@@ -276,6 +294,7 @@ public class BacktestEngine {
 
                 position = BigDecimal.ZERO;
                 entryPrice = BigDecimal.ZERO;
+                entryTime = null;
                 entryFee = BigDecimal.ZERO;
                 stopLossPrice = BigDecimal.ZERO;
                 takeProfitPrice = BigDecimal.ZERO;

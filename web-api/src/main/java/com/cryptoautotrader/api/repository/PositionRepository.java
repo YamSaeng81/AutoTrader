@@ -43,11 +43,25 @@ public interface PositionRepository extends JpaRepository<PositionEntity, Long> 
     /** 특정 세션의 특정 상태 포지션 조회 */
     List<PositionEntity> findBySessionIdAndStatus(Long sessionId, String status);
 
+    /**
+     * 세션 종류(LIVE/DYNAMIC) + ID + 상태 포지션 조회 — live_trading_session과 dynamic_session이
+     * 별도 BIGSERIAL이라 같은 sessionId가 겹칠 수 있으므로(2026-07-02 감사 D-2), 세션 ID만으로
+     * 조회하면 다른 종류 세션의 포지션을 잘못 채택할 위험이 있다. 신규 코드는 이 메서드를 사용한다.
+     */
+    List<PositionEntity> findBySessionKindAndSessionIdAndStatus(String sessionKind, Long sessionId, String status);
+
     /** 특정 세션의 전체 포지션 조회 */
     List<PositionEntity> findBySessionId(Long sessionId);
 
+    /** 세션 종류 + ID의 전체 포지션 조회 (D-2 sessionId 충돌 방지) */
+    List<PositionEntity> findBySessionKindAndSessionId(String sessionKind, Long sessionId);
+
     /** 특정 세션 + 코인 + 상태 포지션 조회 */
     Optional<PositionEntity> findBySessionIdAndCoinPairAndStatus(Long sessionId, String coinPair, String status);
+
+    /** 세션 종류 + ID + 코인 + 상태 포지션 조회 (D-2 sessionId 충돌 방지) */
+    Optional<PositionEntity> findBySessionKindAndSessionIdAndCoinPairAndStatus(
+            String sessionKind, Long sessionId, String coinPair, String status);
 
     /** 서킷 브레이커용: 세션의 체결 완료 포지션을 closedAt 역순으로 조회 (연속 손실 계산) */
     List<PositionEntity> findBySessionIdAndStatusOrderByClosedAtDesc(Long sessionId, String status);

@@ -43,6 +43,7 @@ import com.cryptoautotrader.core.model.TradeRecord;
 import com.cryptoautotrader.core.regime.MarketRegime;
 import com.cryptoautotrader.core.regime.MarketRegimeDetector;
 import com.cryptoautotrader.core.risk.RiskCheckResult;
+import com.cryptoautotrader.core.selector.BlackSwanGuard;
 import com.cryptoautotrader.core.selector.Ema200RegimeGate;
 import com.cryptoautotrader.core.selector.RangeRegimeGate;
 
@@ -304,6 +305,15 @@ public class LiveTradingService {
             throw new IllegalArgumentException("지원하지 않는 전략입니다: " + req.getStrategyType());
         }
 
+        // 전략 거버넌스 검증 — BLOCKED/DEPRECATED 전략은 실전 세션 생성 자체를 차단한다.
+        // StrategyLiveStatusRegistry는 기존에 필드로만 주입되고 실제 강제력이 없었다(2026-06-01 감사 갭1).
+        if (strategyLiveStatusRegistry.isBlocked(req.getStrategyType())) {
+            StrategyLiveStatusRegistry.StatusEntry status = strategyLiveStatusRegistry.getStatus(req.getStrategyType());
+            throw new SessionStateException(String.format(
+                    "전략 '%s'은(는) 실전 세션 생성이 차단되었습니다 (%s): %s",
+                    req.getStrategyType(), status.readiness(), status.reason()));
+        }
+
         // TEST_TIMED: 코인/타임프레임/원금 강제 고정
         if ("TEST_TIMED".equals(req.getStrategyType())) {
             req.setCoinPair("KRW-ETH");
@@ -558,7 +568,7 @@ public class LiveTradingService {
 
                 if (dryRun) {
                     int openPositions = positionRepository
-                            .findBySessionIdAndStatus(session.getId(), "OPEN").size();
+                            .findBySessionKindAndSessionIdAndStatus("LIVE", session.getId(), "OPEN").size();
                     log.warn("[DRY-RUN] 비상 청산 대상: sessionId={} coin={} 수익률={}% 열린포지션={}건",
                             session.getId(), session.getCoinPair(), returnPct, openPositions);
                     continue;
@@ -601,7 +611,8 @@ public class LiveTradingService {
         }
 
         // OPEN 포지션이 남아 있으면 강제 종료 (세션 정지 후 남은 orphan 포지션 정리)
-        List<PositionEntity> openPositions = positionRepository.findBySessionIdAndStatus(sessionId, "OPEN");
+        List<PositionEntity> openPositions =
+                positionRepository.findBySessionKindAndSessionIdAndStatus("LIVE", sessionId, "OPEN");
         for (PositionEntity pos : openPositions) {
             pos.setStatus("CLOSED");
             pos.setClosedAt(Instant.now());
@@ -692,7 +703,7 @@ public class LiveTradingService {
     @Transactional(readOnly = true)
     public List<PositionEntity> getSessionPositions(Long sessionId) {
         getSessionOrThrow(sessionId); // 존재 확인
-        return positionRepository.findBySessionId(sessionId);
+        return positionRepository.findBySessionKindAndSessionId("LIVE", sessionId);
     }
 
     /**
@@ -855,6 +866,9 @@ public class LiveTradingService {
         }
         BigDecimal currentPrice = candles.get(candles.size() - 1).getClose();
 
+        // BLACK_SWAN_GUARD — 매 tick 최신 캔들로 평가(닫힌 캔들 게이팅과 무관, 안전장치는 즉시 반응해야 함).
+        BlackSwanGuard.Result blackSwanGuard = BlackSwanGuard.check(candles);
+
         // 시장 레짐 — evaluate 전에 이미 감지됨 (preEvalRegime). 재감지 불필요.
         final String regimeName = preEvalRegime != null ? preEvalRegime.name() : null;
 
@@ -907,6 +921,15 @@ public class LiveTradingService {
                 signal = StrategySignal.hold("RANGE 레짐 — 추세 추종 전략 횡보장 신규 진입 차단");
             }
 
+            // BLACK_SWAN_GUARD: 코인별 서킷 브레이커 — 1시간 내 -5% 급락 또는 거래량 5배 급증 시
+            // 신규 진입 차단 (2026-04-30 로드맵 ⭐⭐⭐, 2026-07-02 구현). 코인 단위 게이트이며
+            // 청산(SELL)에는 영향 없음 — 보유 포지션은 SL/TP가 항상 별도로 방어한다(아래 SL 강화 참조).
+            if (signal.getAction() == StrategySignal.Action.BUY && blackSwanGuard.triggered()) {
+                log.warn("BLACK_SWAN_GUARD 발동 — BUY 차단 (sessionId={}, {}): {}",
+                        sessionId, coinPair, blackSwanGuard.reason());
+                signal = StrategySignal.hold("BLACK_SWAN_GUARD 발동 — " + blackSwanGuard.reason());
+            }
+
             // 전략 로그 DB 저장 (신호 품질 + 레짐 + 지표 스냅샷)
             try {
                 // BUY/SELL 신호의 confidence: strength(0~100) → 0.0~1.0
@@ -932,7 +955,7 @@ public class LiveTradingService {
         }
 
         Optional<PositionEntity> openPos = positionRepository
-                .findBySessionIdAndCoinPairAndStatus(sessionId, coinPair, "OPEN");
+                .findBySessionKindAndSessionIdAndCoinPairAndStatus("LIVE", sessionId, coinPair, "OPEN");
 
         // ── 익절/손절 체크 (전략 신호보다 우선) ──────────────────
         if (openPos.isPresent()) {
@@ -942,6 +965,22 @@ public class LiveTradingService {
                     .multiply(BigDecimal.valueOf(100));
             BigDecimal rawStopLoss = session.getStopLossPct() != null
                     ? session.getStopLossPct() : exitConfig().getStopLossPct();
+
+            // BLACK_SWAN_GUARD 발동 시 보유 포지션 SL 강화 — 단방향 ratchet(더 타이트한 방향으로만
+            // 조임, 완화 안 됨). 신규 진입 차단만으로는 이미 보유 중인 포지션을 방어하지 못하므로
+            // 함께 적용한다. 청산 자체는 아래 손절 체크가 그대로 수행한다.
+            if (blackSwanGuard.triggered()) {
+                BigDecimal tightenedSl = currentPrice.multiply(
+                        BigDecimal.ONE.subtract(BlackSwanGuard.TIGHTENED_TRAILING_SL_MARGIN))
+                        .setScale(8, RoundingMode.HALF_DOWN);
+                BigDecimal existingSl = pos.getStopLossPrice();
+                if (existingSl == null || tightenedSl.compareTo(existingSl) > 0) {
+                    pos.setStopLossPrice(tightenedSl);
+                    positionRepository.save(pos);
+                    log.warn("BLACK_SWAN_GUARD SL 강화 (sessionId={}, {}): SL {} → {} ({})",
+                            sessionId, coinPair, existingSl, tightenedSl, blackSwanGuard.reason());
+                }
+            }
 
             // 익절 체크: 저장된 takeProfitPrice 도달 시 청산
             if (pos.getTakeProfitPrice() != null
@@ -989,7 +1028,7 @@ public class LiveTradingService {
         switch (signal.getAction()) {
             case BUY -> {
                 boolean hasClosingPos = positionRepository
-                        .findBySessionIdAndCoinPairAndStatus(sessionId, coinPair, "CLOSING").isPresent();
+                        .findBySessionKindAndSessionIdAndCoinPairAndStatus("LIVE", sessionId, coinPair, "CLOSING").isPresent();
                 if (openPos.isEmpty() && !hasClosingPos) {
                     RiskCheckResult riskResult = riskManagementService.checkRisk();
                     if (!riskResult.isApproved()) {
@@ -1241,8 +1280,8 @@ public class LiveTradingService {
 
     private void updateSessionUnrealizedPnl(LiveTradingSessionEntity session,
                                               String coinPair, BigDecimal currentPrice) {
-        positionRepository.findBySessionIdAndCoinPairAndStatus(
-                session.getId(), coinPair, "OPEN").ifPresent(pos -> {
+        positionRepository.findBySessionKindAndSessionIdAndCoinPairAndStatus(
+                "LIVE", session.getId(), coinPair, "OPEN").ifPresent(pos -> {
             BigDecimal unrealized = currentPrice.subtract(pos.getAvgPrice())
                     .multiply(pos.getSize());
             pos.setUnrealizedPnl(unrealized);
@@ -1262,7 +1301,7 @@ public class LiveTradingService {
 
     private void closeSessionPositions(LiveTradingSessionEntity session, String reason) {
         List<PositionEntity> openPositions =
-                positionRepository.findBySessionIdAndStatus(session.getId(), "OPEN");
+                positionRepository.findBySessionKindAndSessionIdAndStatus("LIVE", session.getId(), "OPEN");
 
         for (PositionEntity pos : openPositions) {
             try {
@@ -1801,7 +1840,7 @@ public class LiveTradingService {
         for (LiveTradingSessionEntity s : sessions) {
             // OPEN 포지션이 없으면 SL 체크 대상 아님
             boolean hasOpen = positionRepository
-                    .findBySessionIdAndCoinPairAndStatus(s.getId(), s.getCoinPair(), "OPEN")
+                    .findBySessionKindAndSessionIdAndCoinPairAndStatus("LIVE", s.getId(), s.getCoinPair(), "OPEN")
                     .isPresent();
             if (!hasOpen) continue;
 
@@ -2103,7 +2142,7 @@ public class LiveTradingService {
 
         final Long sessionId = pos.getSessionId();
         boolean hasOpenPosition = positionRepository
-                .findBySessionIdAndCoinPairAndStatus(sessionId, pos.getCoinPair(), "OPEN")
+                .findBySessionKindAndSessionIdAndCoinPairAndStatus("LIVE", sessionId, pos.getCoinPair(), "OPEN")
                 .isPresent();
         balanceUpdater.apply(sessionId, s -> {
             BigDecimal newAvailableKrw = s.getAvailableKrw().add(netProceeds);
@@ -2296,7 +2335,7 @@ public class LiveTradingService {
             final Long sessionId = pos.getSessionId();
             // 잔여 포지션 유무 — 부분 체결이면 이 포지션 자체가 잔존하므로 항상 true
             boolean hasOpenPosition = isPartial || positionRepository
-                    .findBySessionIdAndCoinPairAndStatus(sessionId, pos.getCoinPair(), "OPEN")
+                    .findBySessionKindAndSessionIdAndCoinPairAndStatus("LIVE", sessionId, pos.getCoinPair(), "OPEN")
                     .isPresent();
 
             balanceUpdater.apply(sessionId, s -> {
@@ -2376,7 +2415,7 @@ public class LiveTradingService {
             if (!coinCode.equals(session.getCoinPair())) continue;
 
             Optional<PositionEntity> openPos = positionRepository
-                    .findBySessionIdAndCoinPairAndStatus(session.getId(), coinCode, "OPEN");
+                    .findBySessionKindAndSessionIdAndCoinPairAndStatus("LIVE", session.getId(), coinCode, "OPEN");
             if (openPos.isEmpty()) continue;
 
             PositionEntity pos = openPos.get();

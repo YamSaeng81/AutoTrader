@@ -12,6 +12,7 @@ import com.cryptoautotrader.api.repository.StrategyLogRepository;
 import com.cryptoautotrader.api.util.TimeframeUtils;
 import com.cryptoautotrader.core.regime.MarketRegime;
 import com.cryptoautotrader.core.regime.MarketRegimeDetector;
+import com.cryptoautotrader.core.selector.BlackSwanGuard;
 import com.cryptoautotrader.core.selector.Ema200RegimeGate;
 import com.cryptoautotrader.core.selector.RangeRegimeGate;
 import com.cryptoautotrader.exchange.upbit.UpbitCandleCollector;
@@ -89,6 +90,7 @@ public class DynamicTradingService {
     private final DynamicSessionBalanceUpdater balanceUpdater;
     private final StrategyLogRepository strategyLogRepository;
     private final WsSubscriptionManager wsSubscriptionManager;
+    private final StrategyLiveStatusRegistry strategyLiveStatusRegistry;
 
     @Autowired(required = false)
     private UpbitRestClient upbitRestClient;
@@ -121,7 +123,8 @@ public class DynamicTradingService {
                                   ObjectMapper objectMapper,
                                   DynamicSessionBalanceUpdater balanceUpdater,
                                   StrategyLogRepository strategyLogRepository,
-                                  WsSubscriptionManager wsSubscriptionManager) {
+                                  WsSubscriptionManager wsSubscriptionManager,
+                                  StrategyLiveStatusRegistry strategyLiveStatusRegistry) {
         this.dynamicSessionRepo   = dynamicSessionRepo;
         this.positionRepository   = positionRepository;
         this.orderRepository      = orderRepository;
@@ -132,6 +135,7 @@ public class DynamicTradingService {
         this.balanceUpdater       = balanceUpdater;
         this.strategyLogRepository = strategyLogRepository;
         this.wsSubscriptionManager = wsSubscriptionManager;
+        this.strategyLiveStatusRegistry = strategyLiveStatusRegistry;
     }
 
     // ── 세션 생성 ──────────────────────────────────────────────────
@@ -139,6 +143,16 @@ public class DynamicTradingService {
     @Transactional
     public DynamicSessionEntity createSession(DynamicSessionRequest req) {
         StrategyRegistry.get(req.getStrategyType()); // 유효성 검증
+
+        // 전략 거버넌스 검증 — BLOCKED/DEPRECATED 전략은 동적 세션 생성도 차단한다.
+        // 기존에는 이 검사가 라이브 세션에도 동적 세션에도 강제되지 않아, 두 경로 모두
+        // StrategyLiveStatusRegistry 라벨을 우회해 BLOCKED 전략으로 실돈 세션 생성이 가능했다.
+        if (strategyLiveStatusRegistry.isBlocked(req.getStrategyType())) {
+            StrategyLiveStatusRegistry.StatusEntry status = strategyLiveStatusRegistry.getStatus(req.getStrategyType());
+            throw new IllegalArgumentException(String.format(
+                    "전략 '%s'은(는) 동적 세션 생성이 차단되었습니다 (%s): %s",
+                    req.getStrategyType(), status.readiness(), status.reason()));
+        }
 
         BigDecimal investRatio = normalizeRatio(req.getInvestRatio(), new BigDecimal("0.80"));
         BigDecimal stopLoss    = req.getStopLossPct() != null ? req.getStopLossPct() : new BigDecimal("5.0");
@@ -284,7 +298,32 @@ public class DynamicTradingService {
         }
     }
 
-    /** SCANNING: 워치리스트 코인들에 전략 평가 → 첫 BUY 진입 */
+    /**
+     * SCANNING 단계에서 BUY 신호를 낸 코인 후보 — 전체 워치리스트 평가 후 최고 강도 신호를
+     * 선택하기 위해 즉시 실행하지 않고 임시 보관한다.
+     */
+    // package-private (private 아님) — DynamicScanSelectionTest에서 선택 로직 단위 테스트를 위해 필요
+    record BuyCandidate(String coinPair, List<Candle> evalCandles,
+                         StrategySignal signal, StrategyLogEntity signalLog) {}
+
+    /**
+     * BUY 후보 중 신호 강도(strength)가 가장 높은 것을 선택한다. 동률이면 먼저 평가된(워치리스트
+     * 순서상 앞선) 코인을 유지한다(스트림 max()는 첫 최댓값을 보존).
+     */
+    static BuyCandidate pickBestBuyCandidate(List<BuyCandidate> candidates) {
+        return candidates.stream()
+                .max(java.util.Comparator.comparing(c -> c.signal().getStrength()))
+                .orElseThrow();
+    }
+
+    /**
+     * SCANNING: 워치리스트 전체 코인을 평가한 뒤, BUY 신호를 낸 코인 중 신호 강도(strength)가
+     * 가장 높은 코인 하나에만 진입한다.
+     *
+     * <p>이전에는 워치리스트를 거래대금 내림차순으로 순회하다 첫 BUY 신호에서 즉시 진입해,
+     * 실제로는 신호 품질이 아니라 "거래대금 순위"가 진입 코인을 결정하고 있었다
+     * (2026-07-02 종합분석 DM-1). 전체 평가 후 최고 confidence 선택으로 개선.</p>
+     */
     @Transactional
     public void processScanningTick(DynamicSessionEntity session) {
         Long sid = session.getId();
@@ -309,6 +348,8 @@ public class DynamicTradingService {
         int sellCount = 0;
         int ema200Blocked = 0;
         int rangeBlocked = 0;
+        int blackSwanBlocked = 0;
+        List<BuyCandidate> buyCandidates = new java.util.ArrayList<>();
 
         for (String coinPair : watchlist) {
             List<Candle> candles = fetchCandles(coinPair, session.getTimeframe());
@@ -352,6 +393,18 @@ public class DynamicTradingService {
                 } catch (Exception ignored) {}
             }
 
+            // BLACK_SWAN_GUARD: 코인별 서킷 브레이커 — 1시간 내 -5% 급락 또는 거래량 5배 급증 시
+            // 신규 진입 차단 (2026-04-30 로드맵 ⭐⭐⭐, 2026-07-02 구현).
+            if (signal.getAction() == StrategySignal.Action.BUY) {
+                BlackSwanGuard.Result guard = BlackSwanGuard.check(evalCandles);
+                if (guard.triggered()) {
+                    blackSwanBlocked++;
+                    log.warn("[Dynamic] BLACK_SWAN_GUARD 발동 — BUY 차단: {} (id={}): {}",
+                            coinPair, sid, guard.reason());
+                    signal = StrategySignal.hold("BLACK_SWAN_GUARD 발동 — " + guard.reason());
+                }
+            }
+
             // 코인별 평가 결과 로그 (BUY/SELL은 INFO, HOLD는 DEBUG) — 전략로그 페이지 노출용으로 DB에도 저장
             if (signal.getAction() != StrategySignal.Action.HOLD) {
                 log.info("[Dynamic] 평가결과: {} → {} ({})", coinPair, signal.getAction(), signal.getReason());
@@ -364,17 +417,32 @@ public class DynamicTradingService {
             StrategyLogEntity signalLog = saveStrategyLog(sid, session.getStrategyType(), coinPair, signal, evalPrice);
 
             if (signal.getAction() == StrategySignal.Action.BUY) {
-                log.info("[Dynamic] BUY 신호 진입: {} {} (id={})", coinPair, signal.getReason(), sid);
-                String blockedReason = executeBuy(session, coinPair, evalCandles, signal);
-                updateSignalQuality(signalLog, blockedReason == null, blockedReason);
-                return;
+                buyCandidates.add(new BuyCandidate(coinPair, evalCandles, signal, signalLog));
             }
         }
 
-        log.info("[Dynamic] SCANNING 완료: 진입 조건 없음 (id={}, 감시 {}개) — "
-                        + "HOLD={} SELL={} EMA200차단={} RANGE차단={} 캔들부족={} 캔들미갱신={}",
-                sid, watchlist.size(), holdCount, sellCount, ema200Blocked, rangeBlocked,
-                insufficientCandles, staleCandle);
+        if (buyCandidates.isEmpty()) {
+            log.info("[Dynamic] SCANNING 완료: 진입 조건 없음 (id={}, 감시 {}개) — "
+                            + "HOLD={} SELL={} EMA200차단={} RANGE차단={} 블랙스완차단={} 캔들부족={} 캔들미갱신={}",
+                    sid, watchlist.size(), holdCount, sellCount, ema200Blocked, rangeBlocked,
+                    blackSwanBlocked, insufficientCandles, staleCandle);
+            return;
+        }
+
+        // 전체 워치리스트 평가 완료 — BUY 후보 중 신호 강도(strength)가 가장 높은 코인 하나만 진입.
+        BuyCandidate best = pickBestBuyCandidate(buyCandidates);
+
+        log.info("[Dynamic] BUY 신호 진입: {} {} strength={} (id={}, 후보 {}개 중 최고)",
+                best.coinPair(), best.signal().getReason(), best.signal().getStrength(), sid, buyCandidates.size());
+        String blockedReason = executeBuy(session, best.coinPair(), best.evalCandles(), best.signal());
+        updateSignalQuality(best.signalLog(), blockedReason == null, blockedReason);
+
+        for (BuyCandidate other : buyCandidates) {
+            if (other == best) continue;
+            String reason = String.format("다른 코인 신호가 더 강함 — %s(strength=%s) 선택, 본 신호(strength=%s) 미선택",
+                    best.coinPair(), best.signal().getStrength(), other.signal().getStrength());
+            updateSignalQuality(other.signalLog(), false, reason);
+        }
     }
 
     /** POSITION_MONITORING: 보유 코인만 평가 → SL/TP/SELL 처리 */
@@ -394,7 +462,7 @@ public class DynamicTradingService {
         BigDecimal currentPrice = candles.get(candles.size() - 1).getClose();
 
         Optional<PositionEntity> posOpt = positionRepository
-                .findBySessionIdAndCoinPairAndStatus(sid, coinPair, "OPEN");
+                .findBySessionKindAndSessionIdAndCoinPairAndStatus(SESSION_KIND, sid, coinPair, "OPEN");
 
         if (posOpt.isEmpty()) {
             log.info("[Dynamic] 포지션 없음 — SCANNING 복귀 (id={}, {})", sid, coinPair);
@@ -410,6 +478,22 @@ public class DynamicTradingService {
         BigDecimal pnlPct = currentPrice.subtract(pos.getAvgPrice())
                 .divide(pos.getAvgPrice(), 6, RoundingMode.HALF_UP)
                 .multiply(BigDecimal.valueOf(100));
+
+        // BLACK_SWAN_GUARD 발동 시 보유 포지션 SL 강화 — 단방향 ratchet(더 타이트한 방향으로만
+        // 조임). 신규 진입 차단(SCANNING)만으로는 이미 보유 중인 포지션을 방어하지 못하므로 함께 적용.
+        BlackSwanGuard.Result blackSwanGuard = BlackSwanGuard.check(candles);
+        if (blackSwanGuard.triggered()) {
+            BigDecimal tightenedSl = currentPrice.multiply(
+                    BigDecimal.ONE.subtract(BlackSwanGuard.TIGHTENED_TRAILING_SL_MARGIN))
+                    .setScale(8, RoundingMode.HALF_DOWN);
+            BigDecimal existingSl = pos.getStopLossPrice();
+            if (existingSl == null || tightenedSl.compareTo(existingSl) > 0) {
+                pos.setStopLossPrice(tightenedSl);
+                positionRepository.save(pos);
+                log.warn("[Dynamic] BLACK_SWAN_GUARD SL 강화 (id={}, {}): SL {} → {} ({})",
+                        sid, coinPair, existingSl, tightenedSl, blackSwanGuard.reason());
+            }
+        }
 
         // 익절
         if (pos.getTakeProfitPrice() != null
@@ -481,8 +565,8 @@ public class DynamicTradingService {
             return String.format("가용 KRW 부족: 투자가능 %s원 < 최소 5,000원", investAmount.setScale(0, RoundingMode.DOWN));
         }
 
-        boolean hasPendingBuy = orderRepository.existsBySessionIdAndCoinPairAndSideAndStateIn(
-                sid, coinPair, "BUY", ACTIVE_ORDER_STATES);
+        boolean hasPendingBuy = orderRepository.existsBySessionKindAndSessionIdAndCoinPairAndSideAndStateIn(
+                SESSION_KIND, sid, coinPair, "BUY", ACTIVE_ORDER_STATES);
         if (hasPendingBuy) return "미체결 BUY 주문 존재 — 중복 매수 차단";
 
         // SL / TP 계산 (전략 제안값 우선, 없으면 stopLossPct × 2배 기본)
@@ -722,7 +806,8 @@ public class DynamicTradingService {
     // ── 내부: 청산 / 정리 ──────────────────────────────────────────
 
     private void closeOpenPositions(DynamicSessionEntity session, String reason) {
-        List<PositionEntity> opens = positionRepository.findBySessionIdAndStatus(session.getId(), "OPEN");
+        List<PositionEntity> opens = positionRepository
+                .findBySessionKindAndSessionIdAndStatus(SESSION_KIND, session.getId(), "OPEN");
         for (PositionEntity pos : opens) {
             if (pos.getSize() == null || pos.getSize().compareTo(BigDecimal.ZERO) <= 0) {
                 pos.setStatus("CLOSED");
@@ -905,7 +990,8 @@ public class DynamicTradingService {
             // 코인을 이미 매수했을 수 있고, 그때 totalAssetKrw=availableKrw로 덮으면 그 코인의
             // 평가액이 총자산에서 통째로 사라진다.
             final Long finalizedPosId = pos.getId();
-            boolean hasRemainingExposure = isPartial || positionRepository.findBySessionId(sessionId).stream()
+            boolean hasRemainingExposure = isPartial || positionRepository
+                    .findBySessionKindAndSessionId(SESSION_KIND, sessionId).stream()
                     .anyMatch(p -> !p.getId().equals(finalizedPosId)
                             && ("OPEN".equals(p.getStatus()) || "CLOSING".equals(p.getStatus())));
 
@@ -1062,7 +1148,7 @@ public class DynamicTradingService {
             if (!coinCode.equals(session.getCurrentCoinPair())) continue;
 
             Optional<PositionEntity> openPos = positionRepository
-                    .findBySessionIdAndCoinPairAndStatus(session.getId(), coinCode, "OPEN");
+                    .findBySessionKindAndSessionIdAndCoinPairAndStatus(SESSION_KIND, session.getId(), coinCode, "OPEN");
             if (openPos.isEmpty()) continue;
 
             PositionEntity pos = openPos.get();

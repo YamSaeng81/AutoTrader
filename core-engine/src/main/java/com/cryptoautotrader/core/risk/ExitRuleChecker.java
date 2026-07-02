@@ -314,6 +314,25 @@ public class ExitRuleChecker {
         return new StopLevels(newSl, newTp);
     }
 
+    // ── 전략 SELL 신호 게이트 ─────────────────────────────────
+
+    /**
+     * 전략 SELL 신호를 실제로 체결할지 판정한다 — 실전매매(LiveTradingService/
+     * DynamicTradingService)의 최소보유시간·본전청산차단 규칙과 동일하다. SL/TP는 이 게이트와
+     * 무관하게 항상 별도 경로로 동작하므로, 이 메서드는 오직 "전략 신호에 의한" SELL에만 적용한다.
+     *
+     * @param heldMinutes 진입 후 경과 시간(분)
+     * @param pnlPct      현재 손익률(%) — (currentPrice − entryPrice) / entryPrice × 100
+     * @return true면 SELL 체결 허용, false면 무시(HOLD 취급)
+     */
+    public boolean allowsSignalExit(long heldMinutes, BigDecimal pnlPct) {
+        if (heldMinutes < config.getMinHoldMinutesForSignalExit()) {
+            return false;
+        }
+        return pnlPct.compareTo(config.getMinPnlPctForSignalExit()) >= 0
+                || pnlPct.compareTo(config.getLossEscapeThresholdPct()) < 0;
+    }
+
     // ── 포지션 사이징 ─────────────────────────────────────────
 
     /**

@@ -176,15 +176,25 @@ public class CompositeStrategy implements Strategy {
         buyScore  /= normalizer;
         sellScore /= normalizer;
 
-        return applyEmaFilter(candles, finalSignal(buyScore, sellScore, detail));
+        // WEAK_THRESHOLD/STRONG_THRESHOLD는 params로 override 가능 ("weakThreshold"/"strongThreshold")
+        // — 2026-07-02 S-1: WEAK 0.4→0.3 하향의 A/B 백테스트 검증용. 미지정 시 기본값(0.3/0.5) 사용.
+        double weakThreshold = params != null
+                ? StrategyParamUtils.getDouble(params, "weakThreshold", WEAK_THRESHOLD)
+                : WEAK_THRESHOLD;
+        double strongThreshold = params != null
+                ? StrategyParamUtils.getDouble(params, "strongThreshold", STRONG_THRESHOLD)
+                : STRONG_THRESHOLD;
+
+        return applyEmaFilter(candles, finalSignal(buyScore, sellScore, detail, weakThreshold, strongThreshold));
     }
 
-    private StrategySignal finalSignal(double buyScore, double sellScore, String detail) {
-        if (buyScore > WEAK_THRESHOLD && sellScore > WEAK_THRESHOLD) {
+    private StrategySignal finalSignal(double buyScore, double sellScore, String detail,
+                                        double weakThreshold, double strongThreshold) {
+        if (buyScore > weakThreshold && sellScore > weakThreshold) {
             return StrategySignal.hold(String.format("상충 신호 buy=%.2f sell=%.2f [%s]",
                     buyScore, sellScore, detail));
         }
-        if (buyScore > STRONG_THRESHOLD) {
+        if (buyScore > strongThreshold) {
             return StrategySignal.buy(BigDecimal.valueOf(buyScore * 100),
                     String.format("STRONG_BUY score=%.2f [%s]", buyScore, detail));
         }

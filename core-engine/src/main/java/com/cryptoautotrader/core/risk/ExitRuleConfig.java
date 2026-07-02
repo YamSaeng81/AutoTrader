@@ -53,6 +53,23 @@ public class ExitRuleConfig {
     @Builder.Default
     private final BigDecimal minInvestAmount = new BigDecimal("5000");
 
+    // ── 전략 SELL 신호 게이트 (실전매매 LiveTradingService/DynamicTradingService와 동일 규칙) ──
+    // 2026-07-02 L-2: 백테스트가 이 게이트 없이 전략 SELL을 즉시 체결해 실전과 다른 청산
+    // 타이밍으로 산출된 백테스트 수치(BTC +106% 등)가 실전 거동을 반영하지 못하고 있었다.
+    // SL/TP는 이 게이트와 무관하게 항상 별도로 동작한다.
+
+    /** 최소 보유시간(분) — 이 미만이면 전략 SELL 신호를 무시(SL/TP는 항상 유효) */
+    @Builder.Default
+    private final long minHoldMinutesForSignalExit = 180;
+
+    /** 본전 청산 차단 상한 (%) — pnl이 이 미만이면(그리고 lossEscapeThresholdPct 이상이면) SELL 무시 */
+    @Builder.Default
+    private final BigDecimal minPnlPctForSignalExit = new BigDecimal("0.30");
+
+    /** 손실 탈출 허용 하한 (%) — pnl이 이 미만이면 본전가드를 무시하고 SELL 허용(손실 방치 방지) */
+    @Builder.Default
+    private final BigDecimal lossEscapeThresholdPct = new BigDecimal("-1.00");
+
     // ── 팩토리 ────────────────────────────────────────────────
     /** 실전매매 기본 설정 (모든 경로의 기본값) */
     public static ExitRuleConfig defaults() {

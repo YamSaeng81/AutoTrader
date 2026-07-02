@@ -4,6 +4,176 @@
 
 ---
 
+### ✅ 완료 (2026-07-02) — BLACK_SWAN_GUARD 신규 구현 (코인별 서킷 브레이커)
+
+**배경**: 2026-04-30 신규 전략 로드맵 ⭐⭐⭐ 3건(COMPOSITE_REGIME_ROUTER, COMPOSITE_MTF_CONFIRMED,
+BLACK_SWAN_GUARD) 중 유일하게 미구현이던 항목. "LUNA/FTX류 사건은 어떤 모멘텀/돌파 전략도 단독 방어
+불가"라는 문제의식에서 제안된, 전략과 무관한 공통 안전망.
+
+1. **`BlackSwanGuard` 신규** (`core-engine/selector`) — `Ema200RegimeGate`/`RangeRegimeGate`와 동일한
+   정적 유틸리티 게이트 패턴. 발동 조건(OR): ① 최근 1시간(wall-clock, 타임프레임 무관) 구간 고가 대비
+   현재 종가 −5% 이상 하락, ② 현재 캔들 거래량이 최근 20개 캔들 평균의 5배 이상. 캔들 부족·빈 리스트는
+   보수적으로 미발동 처리.
+2. **적용 범위 — 코인별 게이트로 스코프 확정 (사용자 확인)** — 원 로드맵 문구("전 신규 진입 차단")가
+   코인별인지 시스템 전체인지 불명확했음. 시스템 전체 버전(임의의 한 코인 급락이 전 세션을 멈춤)은
+   기준자산 선정·세션 간 상태 공유 등 설계가 더 크고 리스크도 높아, 해당 코인 자체의 신규 진입만 차단하는
+   코인별 버전으로 구현. 청산(SELL)에는 영향 없음 — 보유 포지션은 SL/TP가 항상 별도로 방어.
+3. **신규 진입 차단** — `LiveTradingService.evaluateAndExecuteSession`(EMA200/RANGE 게이트 바로 다음
+   순서)과 `DynamicTradingService.processScanningTick`(동일 위치)에 BUY 신호 차단 로직 추가. 동적 세션은
+   진단용 카운터(`blackSwanBlocked`)를 기존 EMA200/RANGE 차단 카운터와 함께 SCANNING 완료 로그에 노출.
+4. **보유 포지션 SL 강화** — 발동 시 해당 코인 보유 포지션의 손절가를 `TIGHTENED_TRAILING_SL_MARGIN`
+   (0.3%, 현재가 기준)으로 즉시 조인다. 기존 LiveTradingService의 WS 틱 기반 spike 감지(-1.5%/30s, 코인당
+   개별 포지션만 대상)와는 별개의, 더 굵은 단위(1시간/-5%·거래량 5배)의 신호로 동작 — 단방향 ratchet(더
+   타이트한 방향으로만 조임)으로 기존 SL/TP 로직과 충돌하지 않는다. `LiveTradingService`(60초 폴링 tick,
+   닫힌 캔들 게이팅과 무관하게 매 tick 평가)와 `DynamicTradingService.processMonitoringTick` 양쪽에 동일
+   적용.
+5. **신규 단위 테스트** `BlackSwanGuardTest`(8건) — 평온한 시장 미발동, 급락 발동/미발동 경계, 1시간 밖
+   과거 고점 제외, 거래량 급증 발동/미발동, 빈/부족 캔들 안전 처리.
+
+**의도적으로 제외한 것**: `BacktestEngine`에는 넣지 않았다 — L-2 사례처럼 게이트 하나 추가가 기존 검증된
+백테스트 수치 전체를 재검증 대상으로 만들 수 있어, 이번엔 라이브·동적 세션의 실전 안전장치로만 범위를
+한정했다. 백테스트 반영은 별도 A/B 측정 후 판단할 후속 과제로 기록.
+
+**검증**: `:strategy-lib:test` `:core-engine:test` 231건(신규 8건 포함), `:web-api:test` 116건 전체
+통과(0 실패). **미커밋 / 운영 미배포.**
+
+**후속**: 배포 후 실제 급락 구간에서 발동 로그·SL 강화가 의도대로 동작하는지, 평상시 변동성 큰 알트코인에서
+오탐이 없는지 2~3주 관찰 필요. 시스템 전체 차단 버전은 설계 보류(후속 과제로 기록).
+
+---
+
+### ✅ 완료 (2026-07-02) — WEAK_THRESHOLD 0.3 하향 백테스트 사후검증 (S-1)
+
+**배경**: `CompositeStrategy.WEAK_THRESHOLD`가 0.4가 아닌 0.3으로 이미 실전 코드에 반영돼 있었으나
+(2026-06-01 감사 §6 S-1: "사용자 확인상 매매빈도 부족으로 의도된 조정"), 다코인 백테스트 검증 이력이
+없어 사후 검증했다.
+
+1. **`weakThreshold`/`strongThreshold` params override 추가** — `CompositeStrategy.finalSignal()`이 참조하던
+   `WEAK_THRESHOLD`(0.3)/`STRONG_THRESHOLD`(0.5) private 상수를, 기존 `adxThreshold` override 패턴과 동일한
+   방식으로 params 우선 사용하도록 변경(미지정 시 기존 기본값 그대로). 프로덕션 동작 변경 없음 — A/B
+   백테스트를 코드 수정 없이 돌리기 위한 순수 계측용 확장.
+2. **A/B 백테스트** (`WeakThresholdAbBacktestRunner`, `-Dreview.backtest.dir=d:/tmp`, BTC/ETH/SOL/XRP H1
+   100일) — CMI_V1(MACD 0.5+VWAP 0.3+GRID 0.2, CRR의 TREND/TRANSITIONAL/RANGE 주력 delegate)과
+   COMPOSITE_BREAKOUT(CRR VOLATILITY 위임 대상)에 대해 WEAK=0.3(A, 현 실전값) vs WEAK=0.4(B, 구 기본값)
+   비교. **2전략×4코인=8개 조합 전부 수익률·거래수·MDD·Sharpe가 완전히 동일**했다.
+3. **해석** — 이 표본의 거래수가 코인당 2~11건으로 극히 적어(상위 ADX·EMA·Ichimoku 필터가 대부분을
+   이미 차단), buyScore/sellScore가 0.3~0.4 구간(경계값)에 걸리는 사례 자체가 없었던 것으로 추정된다.
+   즉 이번 검증은 "0.3 하향이 해롭지 않다"는 약한 확인은 제공하지만, "매매빈도 부족을 실제로 해소했는가"
+   라는 원래 질문에는 답하지 못한다 — 표본이 그 질문에 답하기엔 너무 작다.
+
+**검증**: `:strategy-lib:test` `:core-engine:test` 223건 전체 통과(0 실패, 신규 게이트 테스트 2건은
+`-Dreview.backtest.dir` 없이는 skip). `:web-api:compileJava`/`compileTestJava` 통과(core-engine 변경 영향
+없음 확인). **미커밋 / 운영 미배포.**
+
+**후속**: 결론을 내리려면 3년 전체기간·더 많은 코인으로 재실행 필요(인프라는 이미 존재, 실행만 하면 됨).
+
+---
+
+### ✅ 완료 (2026-07-02) — BacktestEngine 전략 SELL 게이트 부재 수정 (L-2)
+
+**배경**: 종합분석에서 "P0" 다음 우선순위로 지목했던 확인 과제 — `BacktestEngine`이 실전매매의 최소보유
+180분·본전청산차단(-1.00%~+0.30%)을 재현하는지 검증. 코드를 재확인한 결과 **재현하지 않고 있었음**을 확정.
+
+1. **원인 확인** — `ExitRuleConfig`(주석상 "백테스트·모의매매·실전매매 공통 기본값... 실전매매 현행 설정을
+   기준으로 한다")에 SL/TP/트레일링/투자비율만 있고 최소보유시간·본전가드 필드 자체가 없었다.
+   `BacktestEngine`의 전략 SELL 분기는 SL/TP 체크(엔진 상단, 항상 우선 동작)를 통과하면 신호가 나오는 즉시
+   체결했다 — `LiveTradingService.MIN_HOLD_MINUTES_FOR_SIGNAL_EXIT`(180)/`MIN_PNL_PCT_FOR_SIGNAL_EXIT`
+   (0.30)/`LOSS_ESCAPE_THRESHOLD`(-1.00), `DynamicTradingService`의 동일 상수와 대응하는 게이트가 백테스트
+   엔진에는 전혀 없었다.
+2. **수정** — `ExitRuleConfig`에 `minHoldMinutesForSignalExit`(기본 180)·`minPnlPctForSignalExit`
+   (기본 0.30)·`lossEscapeThresholdPct`(기본 -1.00) 3개 필드 추가(실전 상수값과 동일 기본값).
+   `ExitRuleChecker.allowsSignalExit(heldMinutes, pnlPct)` 신규 — 실전의 판정 로직을 그대로 이식(SL/TP는
+   무관하게 항상 별도 동작, 최소보유 미달이면 무조건 차단, 그 외엔 본전 구간(-1.00%≤pnl<0.30%)만 차단).
+   `BacktestEngine`은 진입 시각(`entryTime`)을 추적해 전략 SELL 분기 진입 직전 이 게이트를 통과하지 못하면
+   `continue`(HOLD 취급)하도록 변경. SL/TP 경로는 게이트 이전에 이미 별도로 처리되므로 영향 없음.
+3. **실측 검증** (`SignalExitGateAbBacktestRunner`, `-Dreview.backtest.dir=d:/tmp`, BTC/ETH/SOL/XRP H1
+   100일, COMPOSITE_BREAKOUT + COMPOSITE_REGIME_ROUTER) — 게이트 ON(신규 기본값) vs OFF(기존 동작, 즉시
+   체결)를 비교한 결과 **4코인 × 2전략 전 조합에서 수익률·거래수·MDD·Sharpe가 소수점까지 완전히 동일**했다.
+   즉 이 두 전략은 이 기간 동안 전략 SELL 신호에 도달하기 전에 SL/TP가 이미 모든 포지션을 청산하고
+   있었다는 뜻 — S-2(청산 경로 분포 계측, 이미 배포됨)가 실전 로그로 예측했던 "청산은 SL/TP가 지배할
+   것"이라는 가설을 백테스트 쪽에서도 뒷받침하는 결과다. 기존 Tier1 배포 권고 수치(CB BTC +106.71% 등)를
+   무너뜨리지 않는다는 점에서는 좋은 소식이지만, 검증 범위는 이 2전략·1기간·1타임프레임에 한정된다 — 다른
+   전략(특히 트레일링 폭이 넓거나 SL/TP 도달 전 전략 SELL이 자주 나오는 전략)에서는 실제로 수치가 달라질
+   수 있어 전수 재검증은 아니다.
+
+**검증**: `:strategy-lib:test` `:core-engine:test` 221건, `:web-api:test` 116건 전체 통과(0 실패) —
+게이트 추가가 기존 단위/통합 테스트의 어떤 시나리오도 깨지 않음(테스트들이 이 경계를 건드리지 않았거나
+SL/TP 우선 경로만 검증했던 것으로 추정). **미커밋 / 운영 미배포.**
+
+**후속**: 다른 ENABLED/EXPERIMENTAL 전략(CMI_V1/V2, MTF 계열 등)에서도 게이트 A/B를 확장 실행해 영향
+범위를 완전히 확인하는 것을 권장(코드 인프라는 `SignalExitGateAbBacktestRunner`로 이미 존재, 전략 목록만
+확장하면 됨).
+
+---
+
+### ✅ 완료 (2026-07-02) — 동적 세션 SCANNING "첫 BUY 승자독식" 개선 (DM-1)
+
+**배경**: P0(N-1/N-2) 수정 직후 이어서 진행한 후속 개선. `DynamicTradingService.processScanningTick`은
+워치리스트(24h 거래대금 내림차순)를 순회하며 첫 BUY 신호가 나오는 즉시 그 코인에 진입하고 나머지 워치리스트
+평가를 건너뛰었다. 즉 실제로 진입 코인을 결정하는 것은 전략 신호의 품질(confidence)이 아니라 "거래대금 순위"
+였다 — 워치리스트 3번째 코인이 가장 강한 BUY 신호를 냈어도, 1번째 코인이 약한 BUY만 냈다면 1번째가 선택됐다.
+
+1. **워치리스트 전체 평가 후 최고 강도 선택** — 루프에서 즉시 `executeBuy`+`return` 하던 것을 제거하고,
+   BUY 신호를 낸 코인들을 `BuyCandidate(coinPair, evalCandles, signal, signalLog)` 레코드로 수집. 루프
+   종료 후 `pickBestBuyCandidate()`가 `StrategySignal.getStrength()` 기준 최댓값 하나만 선택해 그 코인에만
+   진입한다. EMA200/RANGE 게이트, 전략 로그 저장(HOLD 포함), 진단 카운터(insufficientCandles 등)는
+   변경 없이 코인별로 그대로 수행된다.
+2. **미선택 후보 신호품질 로깅** — 선택되지 않은 BUY 후보는 `updateSignalQuality(false, "다른 코인
+   신호가 더 강함 — X(strength=..) 선택, 본 신호(strength=..) 미선택")`로 기록되어, 왜 진입하지 않았는지
+   신호품질 화면에서 추적 가능하다(이전에는 애초에 평가되지 않아 로그 자체가 없었음).
+3. **선택 로직 분리·단위 테스트 가능화** — `pickBestBuyCandidate(List<BuyCandidate>)`을 package-private
+   static 메서드로 분리, `DynamicScanSelectionTest`(3건)로 네트워크·전략 평가·DB 없이 선택 알고리즘만
+   검증(최고 강도 선택, 단일 후보, 동률 시 첫 후보 유지).
+
+**트레이드오프**: 이전엔 첫 BUY에서 조기 종료해 SCANNING 틱당 REST 호출이 가변적이었으나, 이제 매 틱 워치리스트
+전체(기본 10코인)를 항상 평가한다. 기존에도 HOLD/SELL 뿐인 틱은 이미 전체 순회였으므로 증가분은 "BUY가 있는
+틱에서 조기 종료가 사라진 것"에 한정된다. Upbit rate limit 여유는 기존 관찰 항목(DM-4)과 연계 모니터링.
+
+**검증**: `:web-api:test` 116건 전체 통과(기존 113 + 신규 3, 0 실패). `:strategy-lib:test` `:core-engine:test`
+통과. **미커밋 / 운영 미배포.**
+
+---
+
+### ✅ 완료 (2026-07-02) — 전략/실전매매/동적멀티코인 종합분석 P0 수정 (N-1 세션ID 충돌 방지, N-2 전략거버넌스 강제)
+
+**배경**: 전략 계층 + 실전매매 + 동적 멀티코인 시스템을 코드 레벨로 재검토하는 과정에서, 기존 감사 기록에
+없던 신규 결함 2건을 발견해 수정. 둘 다 실돈이 걸린 P0.
+
+1. **🔴 N-1 — `live_trading_session`과 `dynamic_session`의 별도 BIGSERIAL sessionId가 우연히 겹칠 때
+   포지션 교차 오염** — `position.session_kind`(V51, 2026-07-02 D-2에서 `order` 테이블에는 이미 적용됨)가
+   있음에도, `DynamicTradingService`(4곳)·`LiveTradingService`(9곳)의 포지션 조회가 전부 `sessionId`만으로
+   조회하고 있었다. 동적 세션 ID가 라이브 세션 ID 대역에 도달하면, 동적 세션이 같은 코인을 보유한 라이브
+   포지션을 자기 것으로 채택해 매도하거나, 세션 정지 시 다른 종류 세션의 포지션까지 강제 청산될 수 있는
+   구조였다. `PositionRepository`에 `findBySessionKindAndSessionIdAndStatus`,
+   `findBySessionKindAndSessionId`, `findBySessionKindAndSessionIdAndCoinPairAndStatus` 3종 신규 추가,
+   양쪽 서비스의 모든 세션 스코프 포지션 조회(라이브 9곳, 동적 4곳)를 kind-aware 메서드로 교체.
+   동적 세션의 중복매수 체크(`executeBuy`)도 기존에 존재했으나 미사용이던
+   `existsBySessionKindAndSessionIdAndCoinPairAndSideAndStateIn`으로 함께 교체.
+2. **🔴 N-2 — `StrategyLiveStatusRegistry.isBlocked()`가 실제로는 어디에도 강제되지 않던 결함** —
+   2026-06-01 감사(§11 갭1)는 "EXPERIMENTAL 전략도 라이브 세션 생성이 그대로 허용된다"는 갭만 지적했으나,
+   실제 코드를 재확인한 결과 **BLOCKED/DEPRECATED 전략조차** 라이브·동적 양쪽 세션 생성에서 전혀 차단되지
+   않고 있었다. `LiveTradingService.strategyLiveStatusRegistry` 필드는 주입만 되고 `createSession`에서
+   미사용, `DynamicTradingService`는 필드 자체가 없었다. 양쪽 `createSession`에 `isBlocked()` 검사를 추가해
+   BLOCKED 전략(MACD, STOCHASTIC_RSI, MACD_STOCH_BB, COMPOSITE_BREAKOUT_ICHIMOKU)과 DEPRECATED(TEST_TIMED
+   — 단, TEST_TIMED는 기존 강제고정 로직과 별개 검사이므로 실질 영향 없음)로 신규 세션 생성 시 사유를
+   포함한 예외를 던지도록 수정.
+3. **부수 발견 — H2 테스트 스키마에 `dynamic_session` 테이블 자체가 부재** — `schema-h2.sql`이 Flyway
+   마이그레이션과 별도로 수동 관리되는데, V50(`dynamic_session` 생성)이 반영되지 않아 동적 세션 관련
+   통합 테스트가 전무했던 것도, 테스트가 "작성되지 않은" 게 아니라 애초에 실행 불가능한 상태였음이 확인됨.
+   V50 스키마 기준으로 테이블 추가.
+4. **신규 회귀 테스트** `SessionKindIsolationTest`(`web-api/src/test/.../service/`) 4건:
+   같은 sessionId(777)로 LIVE/DYNAMIC 포지션을 각각 생성해 kind-aware 조회가 정확히 격리함을 검증,
+   BLOCKED 전략(MACD)의 라이브·동적 세션 생성 거부 각 1건, ENABLED 전략(COMPOSITE_BREAKOUT) 정상 생성 1건.
+
+**검증**: `:web-api:test` 113건 전체 통과(기존 109 + 신규 4, 0 실패). `:strategy-lib:test` `:core-engine:test`
+통과. **미커밋 / 운영 미배포.**
+
+**후속 (이번 미적용)**: `reconcileDynamicClosingPositions`/재결속/이중매도 가드 자체의 전용 단위 테스트는
+스키마 문제 해소와 별개로 여전히 미작성. `LiveTradingStartRequest.allowExperimentalLive` 플래그가 존재하나
+`isExperimental()` 검사와 연결되지 않은 것도 이번엔 미변경(EXPERIMENTAL은 기존처럼 허용 유지 — BLOCKED만 차단).
+
+---
+
 ### ✅ 완료 (2026-07-02) — 청산 경로 분포 계측 추가 (S-2)
 
 **배경**: 위 종합 감사에서 "전략 SELL 신호가 EMA/Ichimoku 3중 필터 + 최소보유 180분 + 본전가드로 대부분
