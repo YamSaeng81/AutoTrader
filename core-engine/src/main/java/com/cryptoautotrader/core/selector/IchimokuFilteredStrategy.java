@@ -3,6 +3,7 @@ package com.cryptoautotrader.core.selector;
 import com.cryptoautotrader.strategy.Candle;
 import com.cryptoautotrader.strategy.IndicatorUtils;
 import com.cryptoautotrader.strategy.Strategy;
+import com.cryptoautotrader.strategy.StrategyParamUtils;
 import com.cryptoautotrader.strategy.StrategySignal;
 
 import java.math.BigDecimal;
@@ -72,8 +73,18 @@ public class IchimokuFilteredStrategy implements Strategy {
             return base;
         }
 
+        // 표준 일목균형표는 Senkou A/B를 26봉 "선행 이동"시켜 표시한다 — 즉 현재 캔들 위의 구름은
+        // 26봉 전 데이터로 계산된 값이다. 기존 구현은 선행 이동 없이 현재 시점 값으로 구름을 계산하는
+        // 단순화 버전(비표준). ichimokuDisplaced=true 로 표준 방식과 A/B 비교 가능하다.
+        boolean displaced = params != null
+                && StrategyParamUtils.getBoolean(params, "ichimokuDisplaced", false)
+                && candles.size() >= SENKOU_B_PERIOD + KIJUN_PERIOD;
+        List<Candle> cloudBasis = displaced
+                ? candles.subList(0, candles.size() - KIJUN_PERIOD)
+                : candles;
+
         // [필터 1] 구름 내부 차단 (기존)
-        StrategySignal afterCloud = applyCloudFilter(candles, base);
+        StrategySignal afterCloud = applyCloudFilter(candles, cloudBasis, base);
         if (afterCloud.getAction() == StrategySignal.Action.HOLD) {
             return afterCloud;
         }
@@ -94,14 +105,17 @@ public class IchimokuFilteredStrategy implements Strategy {
     /**
      * [필터 1] 구름 내부 차단.
      * 가격이 Kumo(Senkou A~B 사이) 안에 있으면 방향 불확실 → HOLD.
+     *
+     * @param cloudBasis 구름 계산 기준 캔들 — 기본은 {@code candles} 전체(현재 시점 값, 비표준 단순화),
+     *                   ichimokuDisplaced=true면 마지막 26봉을 제외한 시계열(표준 선행 이동과 동일 효과)
      */
-    private StrategySignal applyCloudFilter(List<Candle> candles, StrategySignal signal) {
+    private StrategySignal applyCloudFilter(List<Candle> candles, List<Candle> cloudBasis, StrategySignal signal) {
         BigDecimal currentClose = candles.get(candles.size() - 1).getClose();
 
-        BigDecimal tenkan  = IndicatorUtils.ichimokuTenkan(candles, TENKAN_PERIOD);
-        BigDecimal kijun   = IndicatorUtils.ichimokuKijun(candles, KIJUN_PERIOD);
+        BigDecimal tenkan  = IndicatorUtils.ichimokuTenkan(cloudBasis, TENKAN_PERIOD);
+        BigDecimal kijun   = IndicatorUtils.ichimokuKijun(cloudBasis, KIJUN_PERIOD);
         BigDecimal senkouA = IndicatorUtils.ichimokuSenkouA(tenkan, kijun);
-        BigDecimal senkouB = IndicatorUtils.ichimokuSenkouB(candles, SENKOU_B_PERIOD);
+        BigDecimal senkouB = IndicatorUtils.ichimokuSenkouB(cloudBasis, SENKOU_B_PERIOD);
 
         BigDecimal cloudTop    = senkouA.max(senkouB);
         BigDecimal cloudBottom = senkouA.min(senkouB);

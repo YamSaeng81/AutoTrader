@@ -4,6 +4,94 @@
 
 ---
 
+### ✅ 완료 (2026-07-02) — 실전 4대 전략 검토 후속: 관찰 항목 일괄 반영 (A/B 백테스트 근거)
+
+**배경**: 같은 날 검토에서 "백테스트 검증 후 변경"으로 보류했던 항목들을
+[`StrategyReviewAbBacktestRunner`](../core-engine/src/test/java/com/cryptoautotrader/core/backtest/StrategyReviewAbBacktestRunner.java)
+(신규, `-Dreview.backtest.dir=d:/tmp`, 100일 H1 2,400캔들 × BTC/ETH/SOL/XRP, 실전 게이트 동일 적용)로 검증 후 반영.
+
+1. **🔴 HEIKIN_ASHI_STOCH `minStrengthPct` 기본 70 → 0 (게이트 해제)**
+   — A/B 결과 해제가 **4코인 전부 우수**: BTC -1.04%→+0.35%, ETH -3.18%→-0.68%,
+   SOL +0.96%→+5.82%(Sharpe 0.43→1.92, MDD 개선), XRP +4.75%→+13.79%(WR 40%→62.5%, MDD 개선).
+   기존 70의 근거였던 "24h 승률 0%" 통계는 동적 세션 캔들 부족(2026-07-01 수정)으로
+   평가가 왜곡되던 시기와 겹침. params 로 재활성화 가능.
+2. **🟡 RsiVetoStrategy `vetoOversold` 기본 25 → 0 (과매도 SELL 차단 해제)**
+   — A/B 결과 ON/OFF **성과 완전 동일**(4코인, 100일 내 발동 사례 없음). 현물 롱온리에서
+   SELL=청산이므로 급락 순간 전략 손절을 막는 꼬리위험만 있고 측정된 이득이 없어 기본 해제.
+   과매수 BUY 차단(75)은 유지. 임계값 0 이하 시 비활성 가드 추가.
+3. **GRID `levelDedupEnabled` 파라미터 신설 (기본 true=현행)** — 복합 투표 내 상태 오염
+   (BUY 투표만으로 레벨 소진) 가설을 A/B 검증 → **성과 동일**, 기본값 유지. 토글은 존치.
+4. **Ichimoku `ichimokuDisplaced` 파라미터 신설 (기본 false=현행 단순화)** — 표준 26봉
+   선행이동 구름과 A/B → **성과 동일**, 기본값 유지. 비표준 단순화임을 주석 명시.
+5. **Supertrend 초기 추세 판정 주석 정리** — 코드(`close ≥ basicLower` → 상승 시작)와
+   불일치하던 주석 수정 (동작 무변경).
+6. **VolumeDeltaStrategyTest 플레이키 수정** — `누적Delta_임계값_미만_HOLD`가 랜덤 거래량에
+   따라 ~50% 확률로 실패하던 문제(테스트 데이터 Delta비율 0.5 > 임계 0.40 상시 초과).
+   임계값 0.60으로 올려 결정적으로 변경.
+
+**검증**: `:strategy-lib:test` `:core-engine:test` 전체 통과, `:web-api:compileJava` 통과.
+A/B 러너 재실행으로 새 기본값이 개선 수치로 동작함을 확인.
+빌드 설정: `-Dreview.backtest.dir` 전달 + stdout 표시 (build.gradle).
+
+---
+
+### ✅ 완료 (2026-07-02) — 실전 4대 전략 코드 검토 + ATR 거래량 필터 결함 수정
+
+**배경**: 실전매매 사용 중인 COMPOSITE_REGIME_ROUTER / COMPOSITE_BREAKOUT /
+HEIKIN_ASHI_STOCH / COMPOSITE_MOMENTUM_ICHIMOKU_V2 전체 코드 검토(래퍼·하위 전략 포함).
+
+1. **🔴 수정 — [`AtrBreakoutStrategy`](../strategy-lib/src/main/java/com/cryptoautotrader/strategy/atrbreakout/AtrBreakoutStrategy.java)
+   거래량 필터가 돌파 방향 판정 전에 실행**되던 결함 2가지를 해소:
+   - 돌파가 전혀 없는 저거래량 캔들에도 "ATR 돌파 감지됐으나 거래량 부족"이라는 잘못된
+     HOLD 사유가 기록돼 신호품질 로그·죽은지표 분석을 오염시켰다 → 비돌파 캔들은 기존
+     위치 정보 사유("돌파 없음, 위치=x%")를 유지.
+   - 하방 돌파 SELL(코드 주석상 "손절" 신호)까지 거래량 부족으로 차단됐다 → 거래량 필터를
+     **상방 돌파(신규 진입)에만 적용**. 청산 경로를 필터로 막지 않는 RangeRegimeGate 원칙과 정합.
+   - 영향 범위: ATR_BREAKOUT 단독 + COMPOSITE_BREAKOUT(가중 0.5) + CRR VOLATILITY 위임
+     + COMPOSITE_MTF_BTC(_STRICT) — 저거래량 하락 구간에서 전략 차원의 청산 신호가 살아남.
+   - 회귀 테스트 3건 추가(저거래량 상방=HOLD, 저거래량 하방=SELL, 비돌파 사유 유지).
+     `:strategy-lib:test` `:core-engine:test` 전체 통과.
+2. **검토 결과(코드 무변경, 관찰 항목)** — PROGRESS.md 2026-07-02 검토 섹션 참조.
+
+---
+
+### ✅ 완료 (2026-07-02) — 동적 멀티코인 시스템 분석 보완 (결함 6건 수정)
+
+**배경**: 2026-07-01 분석(KRW 미복원·캔들 부족 등)에서 못 다룬 잔여 결함을
+[`DynamicTradingService`](../web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java) 전수 재분석으로 식별·수정.
+
+1. **🔴 매도 실패/타임아웃 롤백 시 포지션 고아화 (최중요)** — `executeSell`이 매도 주문 제출과
+   동시에 세션을 SCANNING으로 전환하므로, SELL이 FAILED/CANCELLED(또는 CLOSING 5분 타임아웃,
+   SELL 주문 부재)로 끝나 포지션이 OPEN 롤백되면 **아무도 그 코인을 감시하지 않았다** —
+   SL/TP 무방비 + 매도 재시도 없음 + WS 구독 제외 + 세션이 남은 KRW로 두 번째 코인 매수 가능.
+   → `reattachRolledBackPosition()` 신규: 세션이 SCANNING·빈손이면 POSITION_MONITORING으로
+   재결속(+WS 재구독), 이미 다른 코인 보유/세션 정지 상태면 텔레그램 경고(수동 조치 안내).
+   reconcile의 롤백 3분기(FAILED/CANCELLED·타임아웃·SELL 주문 없음) 전부에 적용.
+2. **🔴 시장가 이중 매도 race** — WS 실시간 SL/TP(`onRealtimePriceEvent`)와 60초 폴링 tick이
+   같은 OPEN 포지션을 동시에 읽으면 둘 다 시장가 SELL을 제출할 수 있었다(가격이 SL을 지나는
+   순간 두 경로가 거의 동시 발화). → `PositionRepository.markClosingIfOpen()`(원자적
+   OPEN→CLOSING UPDATE) 추가, `executeSell`·`closeOpenPositions`가 1행 갱신 성공 시에만 주문 제출.
+3. **🟠 stale 엔티티 분기/저장** — `tick()`이 트랜잭션 밖에서 읽은 세션 스냅샷으로
+   `processTick`이 분기·`updateMddPeak`이 직접 save → 그 사이 WS 매도로 상태가 바뀌면 잘못된
+   분기, reconcile(5초)과 @Version 충돌 시 **같은 tick의 SL/TP 검사까지 통째로 실패**.
+   → `processTick`이 트랜잭션 안에서 최신 엔티티 재조회 후 분기, `updateMddPeak`은
+   `DynamicSessionBalanceUpdater`(낙관적 락 재시도) 경유로 변경.
+4. **🟠 totalAssetKrw 오염** — `finalizeDynamicSell`이 "같은 코인 OPEN 없음 → totalAssetKrw =
+   availableKrw"로 덮었는데, 이전 매도 정산 지연 중 세션이 **다른 코인**을 매수한 경우 그 코인
+   평가액이 총자산에서 소거됐다. → 세션 전체(OPEN·CLOSING, 본 포지션 제외) 노출 기준으로 판정.
+5. **🟡 신호품질 오기록** — SCANNING에서 BUY 신호 시 `executeBuy`가 KRW 부족/미체결 BUY로
+   중단돼도 `wasExecuted=true`로 기록. → `executeBuy`가 차단 사유(String)를 반환, 실제 제출
+   여부·사유가 신호품질 로그에 반영.
+6. (2의 부수) 세션 정지 경로 `closeOpenPositions`도 원자적 CLOSING 전환 적용 — WS 매도와의
+   중복 제출 차단.
+
+**검증**: `:web-api:compileJava` 통과. `OrderExecutionEngineSellPriceTest`(mock) 통과.
+`OrderExecutionEngineTest` 등 DB 통합 테스트는 로컬 DB 미가동으로 실패하나 **수정 전
+베이스라인(git stash)에서도 동일 실패** 확인 — 본 변경과 무관(환경 요인).
+동적 세션 전용 테스트는 부재(기존 그대로) — 후속 과제로 기록.
+
+---
+
 ### ✅ 완료 (2026-06-24) — HEIKIN_ASHI_STOCH 신호 희소성 보완 (보완안 1·8 채택, 4 기각)
 
 **배경**: HEIKIN_ASHI_STOCH가 `maxWickRatio=0.0`(꼬리 완전 0)·"직전보다 몸통 증가" 필수 조건으로

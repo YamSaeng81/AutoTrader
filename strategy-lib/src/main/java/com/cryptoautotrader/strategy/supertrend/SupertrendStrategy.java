@@ -132,7 +132,9 @@ public class SupertrendStrategy implements Strategy {
                 // 최초 밴드: 기본값 그대로 사용
                 finalUpper = basicUpper;
                 finalLower = basicLower;
-                // 최초 추세: 종가가 상단 밴드 아래면 하락 추세로 시작
+                // 최초 추세: 종가가 하단 밴드(basicLower) 이상이면 상승 추세로 시작.
+                // 하단 밴드는 HL2 - mult×ATR 이라 종가가 그 아래인 경우는 드물어 사실상 상승 시작이 기본값이다.
+                // 이후 캔들에서 밴드 이탈로 자연 보정되므로 250개 이력에서는 초기값 영향이 소멸한다.
                 boolean uptrend = current.getClose().compareTo(basicLower) >= 0;
                 finalUpperBands.add(finalUpper);
                 finalLowerBands.add(finalLower);

@@ -20,15 +20,19 @@ import java.util.Map;
  * <h3>필터 규칙</h3>
  * <ul>
  *   <li>RSI > vetoOverbought (기본 75) 이고 내부 전략이 BUY  → HOLD (과매수 구간 매수 차단)</li>
- *   <li>RSI < vetoOversold  (기본 25) 이고 내부 전략이 SELL → HOLD (과매도 구간 매도 차단)</li>
+ *   <li>RSI < vetoOversold 이고 내부 전략이 SELL → HOLD (과매도 구간 매도 차단).
+ *       <b>기본 비활성(0)</b> — 현물 롱온리에서 SELL은 청산 신호이므로 급락(=RSI 과매도) 순간에
+ *       전략 차원 손절을 막으면 세션 SL에만 의존하게 된다. 2026-07-02 A/B 백테스트
+ *       (100일 H1, BTC/ETH/SOL/XRP)에서 차단 ON/OFF 성과 완전 동일 → 이득 없이 꼬리위험만
+ *       남는 차단이라 기본 해제. params 로 재활성화 가능.</li>
  *   <li>그 외 → 내부 전략 신호 통과</li>
  * </ul>
  *
  * <h3>파라미터</h3>
  * <ul>
  *   <li>rsiPeriod       : RSI 계산 기간 (기본 14)</li>
- *   <li>vetoOverbought  : 매수 차단 RSI 임계값 (기본 75, 표준 70보다 완화)</li>
- *   <li>vetoOversold    : 매도 차단 RSI 임계값 (기본 25, 표준 30보다 완화)</li>
+ *   <li>vetoOverbought  : 매수 차단 RSI 임계값 (기본 75, 표준 70보다 완화, 0이면 비활성)</li>
+ *   <li>vetoOversold    : 매도 차단 RSI 임계값 (기본 0=비활성, 예전 기본 25)</li>
  *   <li>skipRsiVeto     : true이면 이 필터를 비활성화 (기본 false)</li>
  * </ul>
  */
@@ -36,7 +40,8 @@ public class RsiVetoStrategy implements Strategy {
 
     private static final int    DEFAULT_RSI_PERIOD      = 14;
     private static final double DEFAULT_VETO_OVERBOUGHT = 75.0;
-    private static final double DEFAULT_VETO_OVERSOLD   = 25.0;
+    /** 과매도 SELL 차단 기본 해제(0) — 청산 경로를 막지 않는다. 2026-07-02 A/B 백테스트 근거는 클래스 javadoc 참조. */
+    private static final double DEFAULT_VETO_OVERSOLD   = 0.0;
 
     private final String   name;
     private final Strategy delegate;
@@ -76,6 +81,7 @@ public class RsiVetoStrategy implements Strategy {
         BigDecimal rsi = computeCurrentRsi(candles, period);
 
         if (base.getAction() == StrategySignal.Action.BUY
+                && vetoOverbought > 0
                 && rsi.doubleValue() > vetoOverbought) {
             return StrategySignal.hold(String.format(
                     "RSIVeto BUY차단: RSI(%.1f) > 과매수임계(%.0f) [%s]",
@@ -83,6 +89,7 @@ public class RsiVetoStrategy implements Strategy {
         }
 
         if (base.getAction() == StrategySignal.Action.SELL
+                && vetoOversold > 0
                 && rsi.doubleValue() < vetoOversold) {
             return StrategySignal.hold(String.format(
                     "RSIVeto SELL차단: RSI(%.1f) < 과매도임계(%.0f) [%s]",

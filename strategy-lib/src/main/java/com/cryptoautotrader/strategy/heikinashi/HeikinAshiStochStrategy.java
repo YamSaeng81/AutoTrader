@@ -65,9 +65,12 @@ public class HeikinAshiStochStrategy implements Strategy {
         double maxWickRatio  = StrategyParamUtils.getDouble(params, "maxWickRatio",  0.25);
         double stopLossPct   = StrategyParamUtils.getDouble(params, "stopLossPct",   1.5);
         double takeProfitPct = StrategyParamUtils.getDouble(params, "takeProfitPct", 3.0);
-        // 신호 최소 강도 임계: 30일 실전 분석(2026-06-30) — 24h 승률 0%, avg -4.45%.
-        // strength 0~100 기준. 기본 70 → crossStrength(gap≥10) 또는 몸통 성장 조건 동시 충족 시에만 진입.
-        double minStrengthPct = StrategyParamUtils.getDouble(params, "minStrengthPct", 70.0);
+        // 신호 최소 강도 임계 (0이면 게이트 해제). 2026-06-30 실전 분석(24h 승률 0%)을 근거로
+        // 70을 기본값으로 뒀으나, 그 통계는 동적 세션 캔들 부족(2026-07-01 수정)으로 평가가 왜곡되던
+        // 시기와 겹친다. 2026-07-02 A/B 백테스트(100일 H1, BTC/ETH/SOL/XRP)에서 게이트 해제(0)가
+        // 4코인 전부 수익률·승률 우수 (예: XRP +4.75%→+13.79%, WR 40%→62.5% / SOL Sharpe 0.43→1.92)
+        // → 기본값 70→0. 필요 시 params 로 재활성화 가능.
+        double minStrengthPct = StrategyParamUtils.getDouble(params, "minStrengthPct", 0.0);
         // 신호 희소성 완화 (보완안 1·4·8) — 전부 파라미터 토글로 A/B 비교 가능.
         //  · maxWickRatio 0.0→0.25 (보완안 1): "꼬리 0" 초과잉 필터 완화 → 채택
         //  · volumeFilterRatio=0.8 (보완안 8): 완화로 늘어난 잡신호를 거래량으로 1차 거름 → 채택

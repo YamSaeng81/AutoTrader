@@ -67,25 +67,27 @@ public class AtrBreakoutStrategy implements Strategy {
         BigDecimal buyThreshold = currentOpen.add(atrMultiplied);
         BigDecimal sellThreshold = currentOpen.subtract(atrMultiplied);
 
-        // S4-5 거래량 필터: 평균 거래량 × volumeMultiplier 미만이면 돌파 무효
-        if (volumeFilter && candles.size() >= atrPeriod + 1) {
-            BigDecimal sumVol = BigDecimal.ZERO;
-            int volStart = candles.size() - 1 - atrPeriod;
-            for (int i = Math.max(0, volStart); i < candles.size() - 1; i++) {
-                sumVol = sumVol.add(candles.get(i).getVolume());
-            }
-            BigDecimal avgVol = sumVol.divide(BigDecimal.valueOf(atrPeriod), SCALE, RoundingMode.HALF_UP);
-            BigDecimal curVol = currentCandle.getVolume();
-
-            if (curVol.compareTo(avgVol.multiply(BigDecimal.valueOf(volumeMultiplier))) < 0) {
-                return StrategySignal.hold(String.format(
-                        "ATR 돌파 감지됐으나 거래량 부족: %.2f < avgVol=%.2f × %.1f",
-                        curVol, avgVol, volumeMultiplier));
-            }
-        }
-
         // 현재가가 매수/매도 기준선을 돌파했는지 확인
         if (currentClose.compareTo(buyThreshold) > 0) {
+            // S4-5 거래량 필터 — 상방 돌파(신규 진입)에만 적용.
+            // 하방 돌파 SELL은 손절(청산) 신호이므로 거래량과 무관하게 통과시킨다
+            // (RangeRegimeGate와 동일 원칙: 청산 경로는 필터로 막지 않는다).
+            if (volumeFilter) {
+                BigDecimal sumVol = BigDecimal.ZERO;
+                int volStart = candles.size() - 1 - atrPeriod;
+                for (int i = Math.max(0, volStart); i < candles.size() - 1; i++) {
+                    sumVol = sumVol.add(candles.get(i).getVolume());
+                }
+                BigDecimal avgVol = sumVol.divide(BigDecimal.valueOf(atrPeriod), SCALE, RoundingMode.HALF_UP);
+                BigDecimal curVol = currentCandle.getVolume();
+
+                if (curVol.compareTo(avgVol.multiply(BigDecimal.valueOf(volumeMultiplier))) < 0) {
+                    return StrategySignal.hold(String.format(
+                            "ATR 상방 돌파 감지됐으나 거래량 부족: %.2f < avgVol=%.2f × %.1f",
+                            curVol, avgVol, volumeMultiplier));
+                }
+            }
+
             // 상방 돌파: 돌파 폭이 클수록 강한 신호
             BigDecimal breakoutPct = currentClose.subtract(buyThreshold)
                     .divide(atr, SCALE, RoundingMode.HALF_UP)

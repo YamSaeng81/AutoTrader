@@ -46,6 +46,10 @@ public class GridStrategy implements StatefulStrategy {
         int lookbackPeriod = getInt(params, "lookbackPeriod", 100);
         int gridCount = getInt(params, "gridCount", 10);
         double triggerPct = getDouble(params, "triggerPct", 5.0);
+        // 레벨 중복 진입 방지(dedup). 복합 전략의 투표 성분으로 쓰일 때는 BUY "투표"만으로
+        // 레벨이 진입됨 처리되어(실제 매수 여부와 무관) 이후 기여가 침묵하는 상태 오염이 있다.
+        // false 로 끄면 상태 추적 없이 순수 위치 신호만 반환한다 — A/B 백테스트 비교용.
+        boolean levelDedup = getBoolean(params, "levelDedupEnabled", true);
 
         if (candles.size() < lookbackPeriod) {
             return StrategySignal.hold("데이터 부족");
@@ -91,13 +95,15 @@ public class GridStrategy implements StatefulStrategy {
         if (positionRatio.compareTo(BigDecimal.valueOf(0.3)) <= 0
                 && distanceFromLevel.compareTo(triggerThreshold) <= 0) {
 
-            if (activeLevels.contains(levelIndex)) {
+            if (levelDedup && activeLevels.contains(levelIndex)) {
                 return StrategySignal.hold(
                         String.format("그리드 레벨 %d 이미 진입됨 (중복 방지)", levelIndex));
             }
 
             BigDecimal strength = BigDecimal.ONE.subtract(positionRatio).multiply(BigDecimal.valueOf(100));
-            activeLevels.add(levelIndex);
+            if (levelDedup) {
+                activeLevels.add(levelIndex);
+            }
             return StrategySignal.buy(strength,
                     String.format("그리드 하단: 레벨 %.1f/%d, 가격=%.2f", gridPosition, gridCount, currentPrice));
         }
@@ -143,5 +149,10 @@ public class GridStrategy implements StatefulStrategy {
     private int getInt(Map<String, Object> params, String key, int defaultVal) {
         Object v = params.get(key);
         return v instanceof Number ? ((Number) v).intValue() : defaultVal;
+    }
+
+    private boolean getBoolean(Map<String, Object> params, String key, boolean defaultVal) {
+        Object v = params.get(key);
+        return v instanceof Boolean ? (Boolean) v : defaultVal;
     }
 }

@@ -108,11 +108,15 @@ class VolumeDeltaStrategyTest {
 
     @Test
     void 누적Delta_임계값_미만_HOLD() {
-        // 아주 작은 상승 → 누적Delta 양수이지만 임계값(0.40) 미만 → HOLD
+        // createUpTrendCandles의 캔들 형태(0.5%↑, 위꼬리 0.2%, 아래꼬리 0.1%)는 buyRatio=0.75로
+        // 고정되어 누적Delta 비율이 정확히 0.50이 된다. 임계값 0.40은 이미 초과라 결과가
+        // 랜덤 거래량(전/후반부 Delta 강화 판정)에 좌우되는 플레이키 테스트였다 →
+        // 임계값을 0.60으로 올려 "임계값 미만 → HOLD"를 결정적으로 검증한다.
         List<Candle> candles = TestDataHelper.createUpTrendCandles(25, new BigDecimal("50000000"));
         StrategySignal signal = strategy.evaluate(candles, Map.of(
-                "lookback", 20, "signalThreshold", 0.40, "divergenceMode", false));
+                "lookback", 20, "signalThreshold", 0.60, "divergenceMode", false));
         assertThat(signal.getAction()).isEqualTo(StrategySignal.Action.HOLD);
+        assertThat(signal.getReason()).contains("누적Delta 중립");
     }
 
     @Test

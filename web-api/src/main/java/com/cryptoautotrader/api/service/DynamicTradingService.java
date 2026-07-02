@@ -268,14 +268,15 @@ public class DynamicTradingService {
     @Transactional
     public void processTick(DynamicSessionEntity session) {
         Long sid = session.getId();
-        boolean stillRunning = dynamicSessionRepo.findById(sid)
-                .map(s -> "RUNNING".equals(s.getStatus())).orElse(false);
-        if (!stillRunning) return;
+        // tick()에서 넘어온 엔티티는 트랜잭션 밖에서 읽은 스냅샷 — 그 사이 WS 매도 등으로
+        // scanState가 바뀌었을 수 있으므로 최신 상태를 다시 읽어 분기한다.
+        DynamicSessionEntity fresh = dynamicSessionRepo.findById(sid).orElse(null);
+        if (fresh == null || !"RUNNING".equals(fresh.getStatus())) return;
 
-        if ("SCANNING".equals(session.getScanState())) {
-            processScanningTick(session);
+        if ("SCANNING".equals(fresh.getScanState())) {
+            processScanningTick(fresh);
         } else {
-            processMonitoringTick(session);
+            processMonitoringTick(fresh);
         }
     }
 
@@ -360,8 +361,8 @@ public class DynamicTradingService {
 
             if (signal.getAction() == StrategySignal.Action.BUY) {
                 log.info("[Dynamic] BUY 신호 진입: {} {} (id={})", coinPair, signal.getReason(), sid);
-                executeBuy(session, coinPair, evalCandles, signal);
-                updateSignalQuality(signalLog, true, null);
+                String blockedReason = executeBuy(session, coinPair, evalCandles, signal);
+                updateSignalQuality(signalLog, blockedReason == null, blockedReason);
                 return;
             }
         }
@@ -463,8 +464,9 @@ public class DynamicTradingService {
 
     // ── 내부: 매수 실행 ────────────────────────────────────────────
 
+    /** @return {@code null}이면 매수 주문 제출 성공, 아니면 차단 사유 (신호품질 로그용) */
     @Transactional
-    public void executeBuy(DynamicSessionEntity session, String coinPair,
+    public String executeBuy(DynamicSessionEntity session, String coinPair,
                             List<Candle> evalCandles, StrategySignal signal) {
         Long sid = session.getId();
         BigDecimal currentPrice = evalCandles.get(evalCandles.size() - 1).getClose();
@@ -472,12 +474,12 @@ public class DynamicTradingService {
         BigDecimal investAmount = session.getAvailableKrw().multiply(session.getInvestRatio());
         if (investAmount.compareTo(BigDecimal.valueOf(5000)) < 0) {
             log.warn("[Dynamic] 매수 불가: 가용 KRW 부족 (id={})", sid);
-            return;
+            return String.format("가용 KRW 부족: 투자가능 %s원 < 최소 5,000원", investAmount.setScale(0, RoundingMode.DOWN));
         }
 
         boolean hasPendingBuy = orderRepository.existsBySessionIdAndCoinPairAndSideAndStateIn(
                 sid, coinPair, "BUY", ACTIVE_ORDER_STATES);
-        if (hasPendingBuy) return;
+        if (hasPendingBuy) return "미체결 BUY 주문 존재 — 중복 매수 차단";
 
         // SL / TP 계산 (전략 제안값 우선, 없으면 stopLossPct × 2배 기본)
         BigDecimal slPct = session.getStopLossPct();
@@ -531,6 +533,7 @@ public class DynamicTradingService {
 
         // 실시간(WS) 손절/익절 감시 대상에 즉시 반영 — 폴링(60초) 대기 없이 다음 tick 전에도 방어
         refreshWsSubscription();
+        return null;
     }
 
     // ── 내부: 매도 실행 ────────────────────────────────────────────
@@ -545,9 +548,13 @@ public class DynamicTradingService {
             return;
         }
 
-        pos.setStatus("CLOSING");
-        pos.setClosingAt(Instant.now());
-        positionRepository.save(pos);
+        // 원자적 CLOSING 전환 — WS 실시간 SL/TP와 60초 tick이 동시에 같은 포지션을 팔려는
+        // race에서 한쪽만 매도 주문을 제출하도록 보장 (시장가 이중 매도 방지)
+        int marked = positionRepository.markClosingIfOpen(pos.getId(), Instant.now());
+        if (marked == 0) {
+            log.debug("[Dynamic] 매도 건너뜀: 이미 CLOSING/CLOSED (posId={}, id={})", pos.getId(), sid);
+            return;
+        }
 
         OrderRequest order = new OrderRequest();
         order.setCoinPair(pos.getCoinPair());
@@ -695,8 +702,14 @@ public class DynamicTradingService {
     private void updateMddPeak(DynamicSessionEntity session) {
         if (session.getMddPeakCapital() == null
                 || session.getTotalAssetKrw().compareTo(session.getMddPeakCapital()) > 0) {
-            session.setMddPeakCapital(session.getTotalAssetKrw());
-            dynamicSessionRepo.save(session);
+            // 넘어온 엔티티를 직접 save()하면 reconcile(5초)과의 @Version 충돌로
+            // 같은 tick의 후속 SL/TP 검사까지 통째로 실패할 수 있다 — 낙관적 락 재시도 경유
+            balanceUpdater.apply(session.getId(), s -> {
+                if (s.getMddPeakCapital() == null
+                        || s.getTotalAssetKrw().compareTo(s.getMddPeakCapital()) > 0) {
+                    s.setMddPeakCapital(s.getTotalAssetKrw());
+                }
+            });
         }
     }
 
@@ -711,9 +724,10 @@ public class DynamicTradingService {
                 positionRepository.save(pos);
                 continue;
             }
-            pos.setStatus("CLOSING");
-            pos.setClosingAt(Instant.now());
-            positionRepository.save(pos);
+            // WS 실시간 SL/TP 매도와의 race 방지 — 이미 CLOSING이면 매도 주문 중복 제출 스킵
+            if (positionRepository.markClosingIfOpen(pos.getId(), Instant.now()) == 0) {
+                continue;
+            }
 
             OrderRequest order = new OrderRequest();
             order.setCoinPair(pos.getCoinPair());
@@ -758,6 +772,7 @@ public class DynamicTradingService {
                 pos.setStatus("OPEN");
                 pos.setClosingAt(null);
                 positionRepository.save(pos);
+                reattachRolledBackPosition(pos);
                 continue;
             }
 
@@ -770,6 +785,7 @@ public class DynamicTradingService {
                     pos.setStatus("OPEN");
                     pos.setClosingAt(null);
                     positionRepository.save(pos);
+                    reattachRolledBackPosition(pos);
                 }
                 default -> {
                     Instant closingAt = pos.getClosingAt();
@@ -780,9 +796,57 @@ public class DynamicTradingService {
                         pos.setStatus("OPEN");
                         pos.setClosingAt(null);
                         positionRepository.save(pos);
+                        reattachRolledBackPosition(pos);
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * 매도 실패/타임아웃으로 OPEN 롤백된 포지션을 세션 감시 대상에 재결속한다.
+     *
+     * <p>{@link #executeSell}은 매도 주문 제출과 동시에 세션을 SCANNING으로 전환하므로,
+     * 매도가 FAILED/CANCELLED로 끝나 포지션이 OPEN으로 돌아와도 세션은 이미 다른 곳을
+     * 보고 있다. 이 재결속이 없으면 롤백된 포지션은 SL/TP 감시·매도 재시도 없이 영구
+     * 방치되고(WS 구독에서도 빠짐), 세션이 남은 KRW로 두 번째 코인을 사버릴 수도 있다.</p>
+     */
+    private void reattachRolledBackPosition(PositionEntity pos) {
+        Long sessionId = pos.getSessionId();
+        if (sessionId == null) return;
+
+        DynamicSessionEntity session = dynamicSessionRepo.findById(sessionId).orElse(null);
+        if (session == null) return;
+
+        if (!"RUNNING".equals(session.getStatus())) {
+            log.error("[Dynamic] 매도 롤백 포지션 재결속 불가 — 세션 비가동 (posId={}, sessionId={}, status={}). 수동 조치 필요",
+                    pos.getId(), sessionId, session.getStatus());
+            telegramService.sendCustomNotification(String.format(
+                    "⚠️ [동적#%d] 매도 실패 포지션 방치 위험: %s (posId=%d) — 세션이 %s 상태라 자동 재결속 불가. 수동 청산 필요",
+                    sessionId, pos.getCoinPair(), pos.getId(), session.getStatus()));
+            return;
+        }
+
+        if (pos.getCoinPair().equals(session.getCurrentCoinPair())) {
+            return; // 이미 이 코인을 감시 중 — 다음 tick에서 SL/TP·매도 재시도됨
+        }
+
+        if ("SCANNING".equals(session.getScanState()) && session.getCurrentCoinPair() == null) {
+            balanceUpdater.apply(sessionId, s -> {
+                s.setScanState("POSITION_MONITORING");
+                s.setCurrentCoinPair(pos.getCoinPair());
+                s.setCurrentPositionId(pos.getId());
+            });
+            refreshWsSubscription();
+            log.warn("[Dynamic] 매도 롤백 포지션 재결속: {} → POSITION_MONITORING 복귀 (posId={}, sessionId={})",
+                    pos.getCoinPair(), pos.getId(), sessionId);
+        } else {
+            // 세션이 이미 다른 코인을 매수한 경우 — 단일 포지션 상태 머신으로는 자동 복구 불가
+            log.error("[Dynamic] 매도 롤백 포지션 재결속 불가 — 세션이 다른 코인 감시 중 (posId={}, coin={}, sessionId={}, current={})",
+                    pos.getId(), pos.getCoinPair(), sessionId, session.getCurrentCoinPair());
+            telegramService.sendCustomNotification(String.format(
+                    "🚨 [동적#%d] 매도 실패 포지션 방치: %s (posId=%d) — 세션은 이미 %s 감시 중이라 자동 재결속 불가. 수동 청산 필요",
+                    sessionId, pos.getCoinPair(), pos.getId(), session.getCurrentCoinPair()));
         }
     }
 
@@ -819,14 +883,18 @@ public class DynamicTradingService {
 
         if (pos.getSessionId() != null) {
             Long sessionId = pos.getSessionId();
-            boolean hasOpenPosition = positionRepository
-                    .findBySessionIdAndCoinPairAndStatus(sessionId, pos.getCoinPair(), "OPEN")
-                    .isPresent();
+            // 같은 코인만이 아니라 세션 전체 노출을 확인 — 이전 매도 정산 지연 중 세션이 다른
+            // 코인을 이미 매수했을 수 있고, 그때 totalAssetKrw=availableKrw로 덮으면 그 코인의
+            // 평가액이 총자산에서 통째로 사라진다.
+            final Long finalizedPosId = pos.getId();
+            boolean hasRemainingExposure = positionRepository.findBySessionId(sessionId).stream()
+                    .anyMatch(p -> !p.getId().equals(finalizedPosId)
+                            && ("OPEN".equals(p.getStatus()) || "CLOSING".equals(p.getStatus())));
 
             balanceUpdater.apply(sessionId, s -> {
                 BigDecimal newAvailableKrw = s.getAvailableKrw().add(netProceeds);
                 s.setAvailableKrw(newAvailableKrw);
-                if (!hasOpenPosition) {
+                if (!hasRemainingExposure) {
                     s.setTotalAssetKrw(newAvailableKrw);
                 } else {
                     s.setTotalAssetKrw(s.getTotalAssetKrw().subtract(fee));

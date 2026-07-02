@@ -39,6 +39,12 @@ subprojects {
         // 임시 백테스트 러너 활성화용: -Dha.backtest.csv 가 주어졌을 때만 테스트 JVM으로 전달
         if (System.getProperty('ha.backtest.csv')) {
             systemProperty 'ha.backtest.csv', System.getProperty('ha.backtest.csv')
+            testLogging.showStandardStreams = true
+        }
+        // 전략 검토 A/B 백테스트 러너: -Dreview.backtest.dir=<H1 CSV 디렉터리>
+        if (System.getProperty('review.backtest.dir')) {
+            systemProperty 'review.backtest.dir', System.getProperty('review.backtest.dir')
+            testLogging.showStandardStreams = true
         }
     }
 }

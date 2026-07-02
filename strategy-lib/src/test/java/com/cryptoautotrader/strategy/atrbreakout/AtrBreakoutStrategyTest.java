@@ -148,6 +148,80 @@ class AtrBreakoutStrategyTest {
     }
 
     @Test
+    void 저거래량_상방돌파는_거래량필터로_HOLD() {
+        List<Candle> candles = new ArrayList<>();
+        Instant base = Instant.parse("2024-01-01T00:00:00Z");
+        BigDecimal price = new BigDecimal("50000000");
+
+        for (int i = 0; i < 20; i++) {
+            candles.add(Candle.builder()
+                    .time(base.plus(i, ChronoUnit.HOURS))
+                    .open(price)
+                    .high(price.add(new BigDecimal("100000")))
+                    .low(price.subtract(new BigDecimal("100000")))
+                    .close(price)
+                    .volume(BigDecimal.valueOf(100))
+                    .build());
+        }
+        // 상방 돌파이나 거래량이 평균(100)의 1.5배 미만
+        candles.add(Candle.builder()
+                .time(base.plus(20, ChronoUnit.HOURS))
+                .open(price)
+                .high(price.add(new BigDecimal("2100000")))
+                .low(price.subtract(new BigDecimal("50000")))
+                .close(price.add(new BigDecimal("2000000")))
+                .volume(BigDecimal.valueOf(50)) // 저거래량
+                .build());
+
+        StrategySignal signal = strategy.evaluate(candles, Map.of(
+                "atrPeriod", 14, "multiplier", 1.5, "volumeFilterEnabled", true));
+        assertThat(signal.getAction()).isEqualTo(StrategySignal.Action.HOLD);
+        assertThat(signal.getReason()).contains("거래량 부족");
+    }
+
+    @Test
+    void 저거래량_하방돌파_손절SELL은_거래량필터_미적용() {
+        List<Candle> candles = new ArrayList<>();
+        Instant base = Instant.parse("2024-01-01T00:00:00Z");
+        BigDecimal price = new BigDecimal("50000000");
+
+        for (int i = 0; i < 20; i++) {
+            candles.add(Candle.builder()
+                    .time(base.plus(i, ChronoUnit.HOURS))
+                    .open(price)
+                    .high(price.add(new BigDecimal("100000")))
+                    .low(price.subtract(new BigDecimal("100000")))
+                    .close(price)
+                    .volume(BigDecimal.valueOf(100))
+                    .build());
+        }
+        // 하방 돌파 + 저거래량 — 손절(청산) 신호는 거래량과 무관하게 SELL이어야 한다
+        candles.add(Candle.builder()
+                .time(base.plus(20, ChronoUnit.HOURS))
+                .open(price)
+                .high(price.add(new BigDecimal("50000")))
+                .low(price.subtract(new BigDecimal("2100000")))
+                .close(price.subtract(new BigDecimal("2000000")))
+                .volume(BigDecimal.valueOf(50)) // 저거래량
+                .build());
+
+        StrategySignal signal = strategy.evaluate(candles, Map.of(
+                "atrPeriod", 14, "multiplier", 1.5, "useStopLoss", true, "volumeFilterEnabled", true));
+        assertThat(signal.getAction()).isEqualTo(StrategySignal.Action.SELL);
+        assertThat(signal.getReason()).contains("하방 돌파");
+    }
+
+    @Test
+    void 비돌파_저거래량_캔들은_돌파없음_사유로_HOLD() {
+        // 수정 전에는 비돌파 캔들도 거래량 미달이면 "돌파 감지됐으나 거래량 부족"이라는
+        // 오해의 소지가 있는 사유가 기록됐다 — 비돌파 캔들은 위치 정보 사유를 유지해야 한다.
+        List<Candle> candles = TestDataHelper.createRangeCandles(30, new BigDecimal("50000000"));
+        StrategySignal signal = strategy.evaluate(candles, Map.of("volumeFilterEnabled", true));
+        assertThat(signal.getAction()).isEqualTo(StrategySignal.Action.HOLD);
+        assertThat(signal.getReason()).contains("돌파 없음");
+    }
+
+    @Test
     void 비돌파_구간에서_HOLD() {
         List<Candle> candles = TestDataHelper.createRangeCandles(30, new BigDecimal("50000000"));
         StrategySignal signal = strategy.evaluate(candles, Map.of());

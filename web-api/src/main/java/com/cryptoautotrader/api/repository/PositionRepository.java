@@ -89,6 +89,17 @@ public interface PositionRepository extends JpaRepository<PositionEntity, Long> 
     int closeIfOpen(@Param("id") Long id, @Param("now") java.time.Instant now);
 
     /**
+     * 원자적 CLOSING 전환 — status='OPEN'인 경우에만 CLOSING으로 변경.
+     * 반환값 1: 이 트랜잭션이 매도 주문 제출 진행.
+     * 반환값 0: 다른 경로가 이미 CLOSING/CLOSED 처리함 → 매도 주문 제출 스킵.
+     * 동적 세션에서 WS 실시간 SL/TP와 60초 폴링 tick이 같은 포지션에 동시 매도를
+     * 제출하는 race(시장가 이중 매도)를 방지하는 용도.
+     */
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE PositionEntity p SET p.status = 'CLOSING', p.closingAt = :now WHERE p.id = :id AND p.status = 'OPEN'")
+    int markClosingIfOpen(@Param("id") Long id, @Param("now") java.time.Instant now);
+
+    /**
      * StrategyWeightOptimizer §6 — 종료 포지션의 실현 수익률을 (전략, 레짐) 기준으로 집계.
      *
      * <p>각 행: [strategyType(String), marketRegime(String), sumRealizedPnl(BigDecimal),

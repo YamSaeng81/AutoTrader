@@ -3,7 +3,30 @@
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝나면 완료 내용을 [`docs/CHANGELOG.md`](CHANGELOG.md)에 추가하고, 이 파일의 해당 항목은 삭제한다.
 > **변경 이력**: [`docs/CHANGELOG.md`](CHANGELOG.md)
-> **마지막 갱신**: 2026-06-01 (전략 전체 분석 + P1-A/P1-B 코드·백테스트 검증 완료 → 운영 반영, 5코인 소액 실거래 가동 / 2~3주 관찰 중)
+> **마지막 갱신**: 2026-07-02 (실전 4대 전략 검토 + ATR 거래량 필터 수정 — CHANGELOG 참조)
+
+---
+
+## 🔍 2026-07-02 실전 4대 전략 검토 (CRR / CB / HAS / CMI_V2) — 반영 완료
+
+> ATR 거래량 필터 결함 수정 + 관찰 항목 일괄 반영 완료(상세: [`CHANGELOG.md`](CHANGELOG.md) 2026-07-02 항목 2건).
+> A/B 백테스트 러너: [`StrategyReviewAbBacktestRunner`](../core-engine/src/test/java/com/cryptoautotrader/core/backtest/StrategyReviewAbBacktestRunner.java)
+> (`-Dreview.backtest.dir=d:/tmp`, 100일 H1 × BTC/ETH/SOL/XRP). **미커밋 / 운영 미배포.**
+
+- [ ] **CRR RANGE/TRANSITIONAL(비화이트리스트) 진입 수학적 희소 — 모니터링 유지** — RANGE(ADX<20)에서 V1 위임 시 MACD(0.5)는 자체 ADX(25) 필터로 항상 HOLD → 진입은 VWAP(0.3)+GRID(0.2) 동시 고신뢰 필요. 90일 분석의 RANGE WR 66~69%가 이 희소·이중확인 구조 덕일 수 있으므로 **완화는 백테스트 검증 전 금지**. 발화 빈도만 모니터링.
+- [ ] **CMI_V2 존속 판단 (운영 결정 필요)** — 2026-06-30 90일 분석에서 V1이 전 레짐 V2 압도 확인(CRR도 V1로 개편됨). V1 병행 비교 목적이 끝났으면 V2 단독 실전 세션을 V1 또는 CRR로 교체 권장 — 세션 교체는 운영자 판단 사항.
+- [ ] **배포 후 관찰** — HEIKIN_ASHI_STOCH 강도 게이트 해제(기본 0)로 신호 빈도가 늘어난다. 실전 신호품질 로그로 승률·빈도 재확인 (구 기본 70은 `strategyParams.minStrengthPct=70`으로 복원 가능).
+
+---
+
+## 🔄 2026-07-02 동적 멀티코인 시스템 보완 — 후속 관찰/과제
+
+> 결함 6건 수정 완료(상세: [`CHANGELOG.md`](CHANGELOG.md) 2026-07-02). 컴파일·mock 테스트 통과, **미커밋 / 운영 미배포**.
+
+- [ ] **배포 후 관찰**: 매도 FAILED 시 "매도 롤백 포지션 재결속" 로그 + 세션이 POSITION_MONITORING으로 복귀해 재매도하는지. 텔레그램 "재결속 불가" 경고가 오면 수동 청산.
+- [ ] **동적 세션 전용 테스트 부재** — `DynamicTradingService` reconcile/재결속/이중매도 가드 단위 테스트 작성 (mock 기반, DB 불필요하게).
+- [ ] (기존 설계 한계, 미변경) 보유 중 `totalAssetKrw`가 미실현 손익을 반영하지 않아 MDD 피크가 실현 기준으로만 추적됨 — 필요 시 모니터링 tick에서 시가평가 갱신 검토.
+- [ ] (기존 설계 한계, 미변경) SCANNING 60초 tick마다 워치리스트 10코인 × 캔들 250개 REST 조회 — Upbit rate limit 여유 모니터링, 필요 시 캔들 캐시 도입.
 
 ---
 
