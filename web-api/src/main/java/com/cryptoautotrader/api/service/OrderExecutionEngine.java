@@ -58,6 +58,8 @@ public class OrderExecutionEngine {
 
     private static final Duration ORDER_TIMEOUT = Duration.ofMinutes(5);
     private static final List<String> ACTIVE_STATES = List.of("PENDING", "SUBMITTED", "PARTIAL_FILLED");
+    /** Upbit 매수 수수료율 — LiveTradingService/DynamicTradingService의 FEE_RATE와 동일 (0.05%) */
+    private static final BigDecimal BUY_FEE_RATE = new BigDecimal("0.0005");
 
     private final OrderRepository orderRepository;
     private final PositionRepository positionRepository;
@@ -77,6 +79,13 @@ public class OrderExecutionEngine {
 
     @Autowired(required = false)
     private LiveTradingSessionRepository sessionRepository;
+
+    /** 동적 세션 KRW 복원용 (선택적 — DynamicTradingService 미사용 환경에서는 null) */
+    @Autowired(required = false)
+    private com.cryptoautotrader.api.repository.DynamicSessionRepository dynamicSessionRepository;
+
+    @Autowired(required = false)
+    private DynamicSessionBalanceUpdater dynamicBalanceUpdater;
 
     /** §10 — Upbit API rate limit 대응 */
     @Autowired
@@ -108,15 +117,20 @@ public class OrderExecutionEngine {
         log.info("주문 제출 요청: {} {} {} 수량={}", request.getCoinPair(), request.getSide(),
                 request.getOrderType(), request.getQuantity());
 
-        // 1. 중복 주문 방지 — 세션 주문은 세션 단위로, 비세션 주문은 전역으로 체크
+        // 세션 종류 — live_trading_session/dynamic_session은 별도 BIGSERIAL 이라 sessionId만으로는
+        // 구분 불가. 호출자(LiveTradingService/DynamicTradingService)가 명시하지 않으면 LIVE로 간주.
+        String sessionKind = request.getSessionKind() != null ? request.getSessionKind() : "LIVE";
+
+        // 1. 중복 주문 방지 — 세션 주문은 세션종류+세션 단위로, 비세션 주문은 전역으로 체크
+        //    (kind 미구분 시 live/dynamic 세션이 같은 sessionId를 가지면 서로를 오차단할 수 있었음 — 2026-07-02)
         boolean duplicateExists = request.getSessionId() != null
-                ? orderRepository.existsBySessionIdAndCoinPairAndSideAndStateIn(
-                        request.getSessionId(), request.getCoinPair(), request.getSide(), ACTIVE_STATES)
+                ? orderRepository.existsBySessionKindAndSessionIdAndCoinPairAndSideAndStateIn(
+                        sessionKind, request.getSessionId(), request.getCoinPair(), request.getSide(), ACTIVE_STATES)
                 : orderRepository.existsByCoinPairAndSideAndStateIn(
                         request.getCoinPair(), request.getSide(), ACTIVE_STATES);
         if (duplicateExists) {
-            log.warn("중복 주문 거부 (sessionId={}, {} {}): 이미 활성 주문이 있습니다",
-                    request.getSessionId(), request.getCoinPair(), request.getSide());
+            log.warn("중복 주문 거부 (sessionKind={}, sessionId={}, {} {}): 이미 활성 주문이 있습니다",
+                    sessionKind, request.getSessionId(), request.getCoinPair(), request.getSide());
             return;
         }
 
@@ -130,6 +144,7 @@ public class OrderExecutionEngine {
                 .state("PENDING")
                 .signalReason(request.getReason())
                 .sessionId(request.getSessionId())
+                .sessionKind(sessionKind)
                 .positionId(request.getPositionId())
                 .build();
         order = orderRepository.save(order);
@@ -409,12 +424,16 @@ public class OrderExecutionEngine {
         }
 
         // 평균 체결 단가 계산
-        // - MARKET(price 타입) 매수: Upbit 응답 price = 원래 KRW 총액, executed_volume = 체결 코인 수량
-        //   → avgFillPrice = KRW 총액(quantity) / 체결 코인 수량
+        // - MARKET(price 타입) 매수: executedFunds(실제 체결에 사용된 KRW) / executed_volume 이 정확한 평균단가.
+        //   부분 체결 후 취소된 경우 order.getQuantity()(원래 주문 KRW 총액)로 나누면 실제보다 낮은 체결량
+        //   대비 총액이 부풀려져 평균단가가 실제의 배수로 부풀려진다 → 즉시 허위 손절 유발(2026-07-02 감사).
+        //   executedFunds 미확보(구주문 등) 시에만 quantity로 폴백.
         // - LIMIT 매수: order.getPrice() = 지정 단가
         BigDecimal avgFillPrice;
         if ("MARKET".equalsIgnoreCase(order.getOrderType())) {
-            avgFillPrice = order.getQuantity().divide(filledQty, 8, RoundingMode.HALF_UP);
+            BigDecimal fundsUsed = order.getExecutedFunds() != null
+                    ? order.getExecutedFunds() : order.getQuantity();
+            avgFillPrice = fundsUsed.divide(filledQty, 8, RoundingMode.HALF_UP);
         } else {
             avgFillPrice = order.getPrice();
         }
@@ -434,26 +453,43 @@ public class OrderExecutionEngine {
                     .divide(totalSize, 8, RoundingMode.HALF_UP);
             pos.setAvgPrice(newAvgPrice);
             pos.setSize(totalSize);
+            // 매수 수수료 명시 계상 — 기존에는 positionFee가 매도 수수료만 반영해 대시보드
+            // "총 수수료" 합계가 실제의 절반 수준으로 과소 표시됐다 (2026-07-02 감사 D-4).
+            // 세션 KRW 자체는 investAmount(quantity)를 매수 시점에 이미 전액 차감했고 Upbit가
+            // 그 안에서 수수료를 제하고 코인을 지급하므로 잔고 드리프트는 없음 — 이건 순수 리포팅 보강.
+            BigDecimal buyFee = newTotal.multiply(BUY_FEE_RATE);
+            BigDecimal accumulatedFee = pos.getPositionFee() != null ? pos.getPositionFee() : BigDecimal.ZERO;
+            pos.setPositionFee(accumulatedFee.add(buyFee));
             positionRepository.save(pos);
             log.info("BUY 체결 반영: posId={}, 평균단가={}, 수량={}", pos.getId(), pos.getAvgPrice(), pos.getSize());
 
             // 부분 체결 후 취소 시 미사용 KRW 복원
-            // executedFunds(실제 사용 KRW) < quantity(원래 차감 KRW) 이면 차액을 session에 반환
-            if (order.getSessionId() != null && sessionRepository != null
+            // executedFunds(실제 사용 KRW) < quantity(원래 차감 KRW) 이면 차액을 session에 반환.
+            // sessionKind로 LIVE/DYNAMIC 세션 테이블을 명확히 구분한다 — 미구분 시 두 세션 테이블이
+            // 같은 sessionId를 가질 경우 엉뚱한 세션의 잔고를 복원할 수 있었다 (2026-07-02).
+            if (order.getSessionId() != null
                     && order.getExecutedFunds() != null
                     && order.getQuantity() != null
                     && order.getExecutedFunds().compareTo(order.getQuantity()) < 0) {
                 BigDecimal unusedKrw = order.getQuantity().subtract(order.getExecutedFunds());
-                sessionRepository.findById(order.getSessionId()).ifPresent(session -> {
-                    session.setAvailableKrw(session.getAvailableKrw().add(unusedKrw));
-                    sessionRepository.save(session);
-                    log.info("부분 체결 후 미사용 KRW 복원 (orderId={}, sessionId={}, 복원={})",
-                            order.getId(), order.getSessionId(), unusedKrw);
-                });
+                if ("DYNAMIC".equals(order.getSessionKind())) {
+                    if (dynamicBalanceUpdater != null) {
+                        dynamicBalanceUpdater.apply(order.getSessionId(),
+                                s -> s.setAvailableKrw(s.getAvailableKrw().add(unusedKrw)));
+                        log.info("부분 체결 후 미사용 KRW 복원 (동적, orderId={}, sessionId={}, 복원={})",
+                                order.getId(), order.getSessionId(), unusedKrw);
+                    }
+                } else if (sessionRepository != null) {
+                    sessionRepository.findById(order.getSessionId()).ifPresent(session -> {
+                        session.setAvailableKrw(session.getAvailableKrw().add(unusedKrw));
+                        sessionRepository.save(session);
+                        log.info("부분 체결 후 미사용 KRW 복원 (orderId={}, sessionId={}, 복원={})",
+                                order.getId(), order.getSessionId(), unusedKrw);
+                    });
+                }
             }
 
             if (order.getSessionId() != null && telegramService != null) {
-                BigDecimal buyFee = avgFillPrice.multiply(filledQty).multiply(new BigDecimal("0.0005"));
                 telegramService.bufferTradeEvent(
                         "세션#" + order.getSessionId(), order.getCoinPair(), "BUY",
                         avgFillPrice, filledQty, buyFee, null, order.getSignalReason());
@@ -669,20 +705,30 @@ public class OrderExecutionEngine {
             order.setFilledAt(Instant.now());
         }
 
-        // CANCELLED지만 일부 체결된 경우 (price-type 시장가 매수의 부분 체결 후 취소)
-        // Upbit: state=cancel + executed_volume>0 → 실제로 코인을 매수한 것이므로 체결 처리
+        // CANCELLED지만 일부 체결된 경우 (부분 체결 후 취소) — BUY/SELL 공통.
+        // Upbit: state=cancel + executed_volume>0 → 실제로 체결된 수량이 있으므로 체결 처리해야 한다.
+        // SELL 쪽을 누락하면 절반만 팔린 매도가 CANCELLED로만 기록되어 포지션이 전체 수량으로
+        // OPEN 롤백되고, 이미 팔린 절반의 실현손익은 어디에도 기록되지 않는 정합성 구멍이 생긴다
+        // (2026-07-02 감사 D-3).
         boolean partialFill = "CANCELLED".equals(newState)
-                && "BUY".equalsIgnoreCase(order.getSide())
                 && order.getFilledQuantity() != null
                 && order.getFilledQuantity().compareTo(BigDecimal.ZERO) > 0;
 
         if (partialFill) {
-            log.warn("부분 체결 후 취소 감지 (orderId={}, executed_volume={}, executed_funds={}): CANCELLED → FILLED 처리",
-                    order.getId(), order.getFilledQuantity(), exchangeStatus.getExecutedFunds());
+            log.warn("부분 체결 후 취소 감지 (orderId={}, side={}, executed_volume={}, executed_funds={}): CANCELLED → FILLED 처리",
+                    order.getId(), order.getSide(), order.getFilledQuantity(), exchangeStatus.getExecutedFunds());
             // 실제 사용된 KRW 저장 — handleBuyFill()에서 미사용 KRW 복원에 사용
             BigDecimal executedFunds = exchangeStatus.resolveExecutedFunds();
             if (executedFunds != null) {
                 order.setExecutedFunds(executedFunds);
+            }
+            // SELL: 체결가가 없으면 finalizeSellPosition/finalizeDynamicSell이 처리 불가 — 여기서 확정 시도.
+            if ("SELL".equalsIgnoreCase(order.getSide()) && order.getPrice() == null) {
+                applyFillPrice(order, exchangeStatus);
+                if (order.getPrice() == null) {
+                    log.warn("부분 체결 매도 취소 — 체결가 미확보로 FILLED 보류, 폴러 재조회 (orderId={})", order.getId());
+                    return;
+                }
             }
             order.setFilledAt(Instant.now());
             transitionState(order, "FILLED", null);

@@ -41,4 +41,11 @@ public class OrderRequest {
 
     /** 연결 포지션 ID (LiveTradingService에서 설정, @Async 리턴값 의존 회피용) */
     private Long positionId;
+
+    /**
+     * 소속 세션 테이블 구분 — "LIVE" 또는 "DYNAMIC". 미지정 시 OrderEntity에서 "LIVE"로 기본 처리된다.
+     * live_trading_session과 dynamic_session이 별도 BIGSERIAL이라 sessionId만으로는 구분 불가하므로
+     * 호출자(LiveTradingService/DynamicTradingService)가 명시해야 한다.
+     */
+    private String sessionKind;
 }

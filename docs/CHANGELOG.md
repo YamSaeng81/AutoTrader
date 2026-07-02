@@ -4,6 +4,70 @@
 
 ---
 
+### ✅ 완료 (2026-07-02) — 청산 경로 분포 계측 추가 (S-2)
+
+**배경**: 위 종합 감사에서 "전략 SELL 신호가 EMA/Ichimoku 3중 필터 + 최소보유 180분 + 본전가드로 대부분
+억제돼, 실제 청산은 SL/TP가 지배할 것"이라 추정했으나 데이터로 확정되지 않은 상태였음. 별도 계측 코드 없이
+이미 저장된 SELL 주문의 `signalReason` 접두어만으로 검증 가능하다는 판단에 따라 구현.
+
+- **`ExitReasonClassifier` 신규** (`web-api/service`) — 포지션의 청산 경로를 `STOP_LOSS`/`TAKE_PROFIT`/
+  `STRATEGY_SELL`/`FORCED_STOP`(세션정지·비상정지)/`PHANTOM`(§15 거래소 잔고 대조 자동정리)/
+  `BUY_FAILED`(매수 자체 실패로 무효화된 포지션 — 실거래 아님)/`OTHER`로 분류. 연결된 FILLED SELL 주문의
+  `signalReason` 접두어 우선 검사(손절→익절→강제청산→전략 순, 강제청산 문구가 "전략" 앞에 오도록 우선순위
+  고정), SELL 주문이 아예 없으면 FILLED BUY 존재 여부로 PHANTOM/BUY_FAILED 구분.
+- **`PerformanceSummaryResponse.exitReasonBreakdown` 추가** — 기존 `RegimeStat`(trades/wins/winRatePct/
+  totalPnl) 타입 재사용, 전체·세션별 양쪽에 노출. `LiveTradingService.getPerformanceSummary`에서
+  `OrderRepository.findByPositionIdIn`으로 포지션 연결 주문을 일괄 로드(N+1 방지) 후 집계.
+  `BUY_FAILED`는 실거래가 아니므로 분포에서 제외.
+- **프론트 "청산 경로 분포" 섹션 추가** (`performance/page.tsx`) — 레짐별 성과 섹션 위에 배치, 카테고리별
+  거래건수·비율(%)·승률·손익 카드로 표시.
+
+**검증**: `:web-api:test` 전체 109건 통과(0 실패). 프론트 tsc 통과. **미커밋.**
+**후속**: 배포 후 실데이터로 SL/TP 대 전략SELL 비율 확인 → 청산 로직 개선 우선순위 판단 근거로 사용.
+
+---
+
+### ✅ 완료 (2026-07-02) — 전략/실전매매/손익대시보드 종합 감사 후속 수정 (D-1~D-5, P-1, P-3)
+
+**배경**: 전략 계층 + 실전매매 운영 로직(`LiveTradingService`/`OrderExecutionEngine`/`DynamicTradingService`) +
+손익 대시보드를 코드 레벨로 재검토, 발견된 결함을 우선순위대로 수정.
+
+1. **🔴 D-1 부분체결 매수 평균단가 오계산 수정** — `OrderExecutionEngine.handleBuyFill`이 시장가 매수
+   부분체결 시 `executedFunds`(실사용 KRW)를 무시하고 원래 주문 총액(`quantity`)으로 평균단가를 계산해,
+   부분체결일수록 평균단가가 실제보다 부풀려져 즉시 허위 손절이 발동하던 결함. `executedFunds` 우선 사용으로 수정.
+2. **🔴 D-2 `order` 테이블에 `session_kind` 추가** — `live_trading_session`/`dynamic_session`이 별도
+   BIGSERIAL이라 같은 `sessionId`가 겹칠 수 있는데 `order`에는 구분 컬럼이 없어, 부분체결 미사용 KRW 복원과
+   중복주문 체크가 동적/라이브 세션을 혼동할 수 있었다(`position`은 V51에서 이미 대응됨). V52 마이그레이션 +
+   `OrderEntity`/`OrderRequest`/`OrderRepository`/`OrderExecutionEngine`/`LiveTradingService`/
+   `DynamicTradingService` 전면 반영. H2 테스트 스키마(`schema-h2.sql`)에 `position.session_kind`도
+   함께 누락돼 있던 것을 이번에 보강(기존 결함).
+3. **🟠 D-3 매도 부분체결 후 취소 처리 추가** — 매도가 부분체결 상태로 취소되면 기존엔 BUY만 승격 처리해
+   포지션이 전체 수량으로 OPEN 롤백되고 이미 팔린 부분의 손익이 유실됐다. `syncOrderState`의 부분체결
+   승격을 SELL까지 확장하고, `finalizeSellPosition`/`finalizeDynamicSell`이 판매 수량 < 포지션 수량이면
+   전체 CLOSED 대신 잔여 수량만 남기고 OPEN 유지(손익/수수료 누적) + 동적 세션은 재결속까지 처리.
+4. **🟠 D-5 CLOSING/주문 타임아웃 race 해소** — `CLOSING_TIMEOUT_MINUTES`(5분)이 `OrderExecutionEngine.
+   ORDER_TIMEOUT`(5분)과 같아, 포지션이 OPEN 롤백된 직후 지연 체결된 SELL이 CLOSING 전용 리컨실러에
+   포착되지 않던 창을 8분으로 늘려 제거(라이브/동적 공통). `evaluateAndExecuteSession`의 MDD 피크 직접
+   `save()`도 `balanceUpdater` 경유로 변경 — `@Version` 충돌 시 그 tick 평가 전체가 조용히 스킵되던 문제 방지.
+5. **🟡 D-4 매수 수수료 명시 계상** — 포지션 `positionFee`가 매도 수수료만 반영해 대시보드 "총 수수료"가
+   실제의 절반 수준으로 과소 표시되던 문제. `handleBuyFill`에서 매수 체결 시점에 수수료를 계산해
+   `positionFee`에 누적(세션 KRW는 매수 시 `investAmount` 전액 차감이라 잔고 드리프트는 없었음 — 순수 리포팅 보강).
+6. **🟠 P-1 대시보드 DELETED 세션 오염 제거** — soft-delete(2026-06-15) 이후 `getPerformanceSummary`가
+   `sessionRepository.findAll()`을 그대로 써서 삭제할수록 총 투자원금이 계속 누적되던 문제. DELETED 세션 제외.
+7. **🟠 P-3 `closedSince` 기간 필터 추가** — P0 체결가 버그(2026-06-23 수정) 이전 청산 포지션은 원 체결가가
+   저장되지 않아 소급 보정이 불가능한 "가짜 본전" 오염 데이터. `GET /api/v1/trading/performance?closedSince=`
+   파라미터로 청산일 기준 필터 지원(백엔드 오버로드 + 컨트롤러 파싱), 프론트 손익 대시보드에 날짜 필터 UI
+   추가(기본값 2026-06-23 이후만 집계, 전체 기간 보기 토글 제공).
+
+**검증**: `:web-api:compileJava`/`compileTestJava` 통과, `:web-api:test` 전체 109건 통과(0 실패, 3 skip).
+프론트 변경 파일(`performance/page.tsx`, `lib/api.ts`) tsc 통과. **미커밋.**
+
+**후속 (이번 미적용)**: S-1(CompositeStrategy WEAK_THRESHOLD 0.4→0.3 하향의 백테스트 검증 이력 확인 —
+사용자 확인상 매매빈도 부족으로 의도적 조정), S-2(청산 경로별 분포 계측), 오염 CLOSED 손익 레코드 자체의
+1회성 보정(원 체결가 미보존으로 소급 불가 판단, 기간 필터로 대체).
+
+---
+
 ### ✅ 완료 (2026-07-02) — 실전 4대 전략 검토 후속: 관찰 항목 일괄 반영 (A/B 백테스트 근거)
 
 **배경**: 같은 날 검토에서 "백테스트 검증 후 변경"으로 보류했던 항목들을

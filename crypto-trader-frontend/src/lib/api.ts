@@ -167,8 +167,12 @@ export const tradingApi = {
         api.get<ApiResponse<ExchangeHealth>>('/api/v1/trading/health/exchange').then(r => r.data),
 
     // 성과 통계
-    getPerformance: () =>
-        api.get<ApiResponse<PerformanceSummary>>('/api/v1/trading/performance').then(r => r.data),
+    // closedSince: "YYYY-MM-DD" — 지정 시 그 이후 청산된 포지션만 집계 (P0 체결가 버그 이전
+    // 오염 데이터 제외용, 2026-07-02 감사)
+    getPerformance: (closedSince?: string) =>
+        api.get<ApiResponse<PerformanceSummary>>('/api/v1/trading/performance', {
+            params: closedSince ? { closedSince } : undefined,
+        }).then(r => r.data),
 };
 
 export const paperTradingApi = {

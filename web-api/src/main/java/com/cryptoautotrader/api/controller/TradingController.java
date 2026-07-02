@@ -305,10 +305,26 @@ public class TradingController {
 
     // -- 성과 통계 ------------------------------------------------
 
-    /** 전체 실전매매 성과 요약 */
+    /**
+     * 전체 실전매매 성과 요약.
+     * @param closedSince ISO-8601 날짜/시각(예: "2026-06-23" 또는 "2026-06-23T00:00:00Z") 지정 시
+     *                     그 이후 청산된 포지션만 집계 — P0 체결가 버그(2026-06-23 수정) 이전
+     *                     오염된 "가짜 본전" 데이터를 제외하고 볼 때 사용 (날짜만 지정 시 KST 자정 기준).
+     */
     @GetMapping("/performance")
-    public ApiResponse<PerformanceSummaryResponse> getPerformance() {
-        return ApiResponse.ok(liveTradingService.getPerformanceSummary());
+    public ApiResponse<PerformanceSummaryResponse> getPerformance(
+            @RequestParam(required = false) String closedSince) {
+        Instant since = parseClosedSince(closedSince);
+        return ApiResponse.ok(liveTradingService.getPerformanceSummary(since));
+    }
+
+    private Instant parseClosedSince(String raw) {
+        if (raw == null || raw.isBlank()) return null;
+        try {
+            return Instant.parse(raw);
+        } catch (Exception e) {
+            return LocalDate.parse(raw).atStartOfDay(ZoneId.of("Asia/Seoul")).toInstant();
+        }
     }
 
     // -- 텔레그램 알림 ---------------------------------------------

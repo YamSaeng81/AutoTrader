@@ -37,6 +37,14 @@ public class PerformanceSummaryResponse {
     /** 전체 레짐별 성과 요약 */
     private Map<String, RegimeStat> regimeBreakdown;
 
+    /**
+     * 전체 청산 경로별 성과 요약 — 실제 청산이 SL/TP/전략SELL/강제청산 중 무엇으로 이뤄졌는지 분포.
+     * 카테고리: STOP_LOSS(손절) / TAKE_PROFIT(익절) / STRATEGY_SELL(전략 신호) /
+     * FORCED_STOP(세션정지·비상정지 강제청산) / PHANTOM(§15 거래소 잔고 대조 자동정리) /
+     * BUY_FAILED(매수 실패로 인한 무효 포지션 — 실제 거래 아님) / OTHER(분류 불가)
+     */
+    private Map<String, RegimeStat> exitReasonBreakdown;
+
     private List<SessionPerformance> sessions;
 
     /** 레짐별 집계 통계 */
@@ -82,5 +90,8 @@ public class PerformanceSummaryResponse {
 
         /** 세션 내 레짐별 성과 */
         private Map<String, RegimeStat> regimeBreakdown;
+
+        /** 세션 내 청산 경로별 성과 */
+        private Map<String, RegimeStat> exitReasonBreakdown;
     }
 }

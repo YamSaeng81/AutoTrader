@@ -448,6 +448,8 @@ export interface SessionPerformance {
   monthlyReturns: Record<string, number> | null;
   // 세션 내 레짐별 성과
   regimeBreakdown: Record<string, RegimeStat> | null;
+  // 세션 내 청산 경로별 성과
+  exitReasonBreakdown: Record<string, RegimeStat> | null;
 }
 
 export interface RegimeStat {
@@ -481,6 +483,8 @@ export interface PerformanceSummary {
   monthlyReturns: Record<string, number> | null;
   // 레짐별 성과
   regimeBreakdown: Record<string, RegimeStat> | null;
+  // 청산 경로별 성과 — STOP_LOSS/TAKE_PROFIT/STRATEGY_SELL/FORCED_STOP/PHANTOM
+  exitReasonBreakdown: Record<string, RegimeStat> | null;
   sessions: SessionPerformance[];
 }
 

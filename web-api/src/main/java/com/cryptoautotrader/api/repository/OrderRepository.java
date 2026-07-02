@@ -19,6 +19,9 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
     /** 특정 포지션의 주문 내역 (최신순) */
     List<OrderEntity> findByPositionIdOrderByCreatedAtDesc(Long positionId);
 
+    /** 다중 포지션의 주문 내역 일괄 조회 (청산 경로 분류용 — N+1 방지) */
+    List<OrderEntity> findByPositionIdIn(List<Long> positionIds);
+
     /** 전체 주문 페이징 조회 (최신순) */
     Page<OrderEntity> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
@@ -30,6 +33,14 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
 
     /** 특정 세션+코인+방향+상태의 주문 존재 여부 (중복 주문 방지 — 세션 단위) */
     boolean existsBySessionIdAndCoinPairAndSideAndStateIn(Long sessionId, String coinPair, String side, List<String> states);
+
+    /**
+     * 특정 세션 종류+세션+코인+방향+상태의 주문 존재 여부 (중복 주문 방지 — 세션 단위, kind 구분).
+     * live_trading_session과 dynamic_session의 sessionId가 우연히 같을 때 서로의 주문을
+     * 활성 주문으로 오인해 상호 차단하는 것을 방지한다 (2026-07-02).
+     */
+    boolean existsBySessionKindAndSessionIdAndCoinPairAndSideAndStateIn(
+            String sessionKind, Long sessionId, String coinPair, String side, List<String> states);
 
     /** 특정 세션의 주문 내역 (최신순, 페이징) */
     Page<OrderEntity> findBySessionIdOrderByCreatedAtDesc(Long sessionId, Pageable pageable);

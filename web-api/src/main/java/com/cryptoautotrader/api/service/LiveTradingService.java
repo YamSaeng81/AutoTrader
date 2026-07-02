@@ -776,11 +776,18 @@ public class LiveTradingService {
         }
 
         // ── MDD 피크 자본 갱신 ────────────────────────────────
+        // 직접 save()는 stale 엔티티(스케줄 tick 시작 시점 스냅샷) 저장이라 @Version 충돌 시
+        // 이 tick의 세션 평가 전체가 예외로 스킵될 수 있었다 — balanceUpdater 경유로 낙관적 락
+        // 재시도 보장 (DynamicTradingService.updateMddPeak과 동일 원칙, 2026-07-02 감사 D-5).
         BigDecimal currentTotal = session.getTotalAssetKrw();
         if (session.getMddPeakCapital() == null
                 || currentTotal.compareTo(session.getMddPeakCapital()) > 0) {
-            session.setMddPeakCapital(currentTotal);
-            sessionRepository.save(session);
+            balanceUpdater.apply(sessionId, s -> {
+                if (s.getMddPeakCapital() == null
+                        || s.getTotalAssetKrw().compareTo(s.getMddPeakCapital()) > 0) {
+                    s.setMddPeakCapital(s.getTotalAssetKrw());
+                }
+            });
         }
 
         // ── 서킷 브레이커 체크 ────────────────────────────────
@@ -1157,6 +1164,7 @@ public class LiveTradingService {
         order.setQuantity(investAmount);
         order.setReason(reason);
         order.setSessionId(session.getId());
+        order.setSessionKind("LIVE");
         order.setPositionId(pos.getId());
         orderExecutionEngine.submitOrder(order);
 
@@ -1222,6 +1230,7 @@ public class LiveTradingService {
         order.setQuantity(pos.getSize());
         order.setReason(reason);
         order.setSessionId(session.getId());
+        order.setSessionKind("LIVE");
         order.setPositionId(pos.getId());
         orderExecutionEngine.submitOrder(order);
 
@@ -1289,6 +1298,7 @@ public class LiveTradingService {
                 sellOrder.setQuantity(pos.getSize());
                 sellOrder.setReason(reason);
                 sellOrder.setSessionId(session.getId());
+                sellOrder.setSessionKind("LIVE");
                 sellOrder.setPositionId(pos.getId());
                 orderExecutionEngine.submitOrder(sellOrder);
 
@@ -1335,14 +1345,39 @@ public class LiveTradingService {
 
     @Transactional(readOnly = true)
     public PerformanceSummaryResponse getPerformanceSummary() {
-        List<LiveTradingSessionEntity> sessions = sessionRepository.findAll();
+        return getPerformanceSummary(null);
+    }
+
+    /**
+     * 성과 요약 — closedSince 지정 시 그 시각 이후 청산된 포지션만 집계에 반영한다.
+     *
+     * <p>2026-06-23 P0 수정 이전 청산 포지션은 매도 체결가 미확보로 realizedPnl이 항상
+     * -매도수수료로 기록된 "가짜 본전"이 다수(143건) 섞여 있어 승률·평균손익 등이 구조적으로
+     * 왜곡된다. 원 체결가가 애초에 저장되지 않아 소급 보정이 불가능하므로, 오염 구간을 데이터
+     * 변경 없이 기간 필터로 제외할 수 있게 한다 (2026-07-02 감사 P-3).</p>
+     */
+    @Transactional(readOnly = true)
+    public PerformanceSummaryResponse getPerformanceSummary(Instant closedSince) {
+        // soft-delete(2026-06-15) 이후 DELETED 세션도 행이 남아있다 — 삭제할수록 총 투자원금이
+        // 계속 누적되고 수익률·승률·Sharpe가 희석되는 문제(2026-07-02 감사) 방지를 위해 제외한다.
+        // DELETED 세션의 주문/전략로그는 getSessionIndex()로 계속 조회 가능하므로 감사 목적엔 영향 없음.
+        List<LiveTradingSessionEntity> sessions = sessionRepository.findAll().stream()
+                .filter(s -> !"DELETED".equals(s.getStatus()))
+                .toList();
 
         // 세션 수와 무관하게 단 1회 쿼리로 전체 포지션 로드 (N+1 방지)
         List<Long> sessionIds = sessions.stream().map(LiveTradingSessionEntity::getId).toList();
-        Map<Long, List<PositionEntity>> positionsBySession = sessionIds.isEmpty()
+        List<PositionEntity> allPositions = sessionIds.isEmpty()
+                ? List.of() : positionRepository.findBySessionIdIn(sessionIds);
+        Map<Long, List<PositionEntity>> positionsBySession = allPositions.stream()
+                .collect(Collectors.groupingBy(PositionEntity::getSessionId));
+
+        // 청산 경로 분류(S-2)용 — 포지션에 연결된 전체 주문을 한 번에 로드해 positionId로 그룹핑
+        List<Long> positionIds = allPositions.stream().map(PositionEntity::getId).toList();
+        Map<Long, List<OrderEntity>> ordersByPosition = positionIds.isEmpty()
                 ? Map.of()
-                : positionRepository.findBySessionIdIn(sessionIds).stream()
-                        .collect(Collectors.groupingBy(PositionEntity::getSessionId));
+                : orderRepository.findByPositionIdIn(positionIds).stream()
+                        .collect(Collectors.groupingBy(OrderEntity::getPositionId));
 
         BigDecimal totalRealizedPnl = BigDecimal.ZERO;
         BigDecimal totalUnrealizedPnl = BigDecimal.ZERO;
@@ -1357,7 +1392,10 @@ public class LiveTradingService {
 
         for (LiveTradingSessionEntity session : sessions) {
             List<PositionEntity> positions = positionsBySession.getOrDefault(session.getId(), List.of());
-            List<PositionEntity> closed = positions.stream().filter(p -> "CLOSED".equals(p.getStatus())).toList();
+            List<PositionEntity> closed = positions.stream()
+                    .filter(p -> "CLOSED".equals(p.getStatus()))
+                    .filter(p -> closedSince == null || p.getClosedAt() == null || !p.getClosedAt().isBefore(closedSince))
+                    .toList();
             List<PositionEntity> open   = positions.stream().filter(p -> "OPEN".equals(p.getStatus())).toList();
 
             BigDecimal sessionRealized = closed.stream()
@@ -1389,6 +1427,10 @@ public class LiveTradingService {
             // 세션 내 레짐별 성과 집계
             Map<String, PerformanceSummaryResponse.RegimeStat> sessionRegime = buildRegimeBreakdown(closed);
 
+            // 세션 내 청산 경로별 성과 집계 (S-2)
+            Map<String, PerformanceSummaryResponse.RegimeStat> sessionExitReason =
+                    buildExitReasonBreakdown(closed, ordersByPosition);
+
             sessionPerfs.add(PerformanceSummaryResponse.SessionPerformance.builder()
                     .sessionId(session.getId())
                     .strategyType(session.getStrategyType())
@@ -1416,6 +1458,7 @@ public class LiveTradingService {
                     .maxConsecutiveLoss(sessionReport.getMaxConsecutiveLoss())
                     .monthlyReturns(sessionReport.getMonthlyReturns())
                     .regimeBreakdown(sessionRegime)
+                    .exitReasonBreakdown(sessionExitReason)
                     .build());
 
             totalRealizedPnl = totalRealizedPnl.add(sessionRealized);
@@ -1437,10 +1480,12 @@ public class LiveTradingService {
                         .multiply(new BigDecimal("100")).setScale(1, RoundingMode.HALF_UP)
                 : BigDecimal.ZERO;
 
-        // 전체 포트폴리오 리스크 조정 지표 + 레짐별 집계
+        // 전체 포트폴리오 리스크 조정 지표 + 레짐별 집계 + 청산 경로별 집계(S-2)
         List<TradeRecord> allTrades = toTradeRecords(allClosedPositions);
         PerformanceReport globalReport = MetricsCalculator.calculate(allTrades, totalInitialCapital);
         Map<String, PerformanceSummaryResponse.RegimeStat> globalRegime = buildRegimeBreakdown(allClosedPositions);
+        Map<String, PerformanceSummaryResponse.RegimeStat> globalExitReason =
+                buildExitReasonBreakdown(allClosedPositions, ordersByPosition);
 
         return PerformanceSummaryResponse.builder()
                 .totalRealizedPnl(totalRealizedPnl)
@@ -1464,8 +1509,41 @@ public class LiveTradingService {
                 .maxConsecutiveLoss(globalReport.getMaxConsecutiveLoss())
                 .monthlyReturns(globalReport.getMonthlyReturns())
                 .regimeBreakdown(globalRegime)
+                .exitReasonBreakdown(globalExitReason)
                 .sessions(sessionPerfs)
                 .build();
+    }
+
+    /**
+     * 청산 완료 포지션을 청산 경로별(SL/TP/전략SELL/강제청산/팬텀/매수실패)로 집계한다 (S-2).
+     * BUY_FAILED(매수 자체가 체결된 적 없는 무효 포지션)는 실거래가 아니므로 집계에서 제외한다.
+     */
+    private Map<String, PerformanceSummaryResponse.RegimeStat> buildExitReasonBreakdown(
+            List<PositionEntity> closedPositions, Map<Long, List<OrderEntity>> ordersByPosition) {
+        Map<String, List<PositionEntity>> byCategory = closedPositions.stream()
+                .filter(p -> ExitReasonClassifier.classify(p, ordersByPosition.getOrDefault(p.getId(), List.of()))
+                        != ExitReasonClassifier.Category.BUY_FAILED)
+                .collect(Collectors.groupingBy(p ->
+                        ExitReasonClassifier.classify(p, ordersByPosition.getOrDefault(p.getId(), List.of())).name()));
+
+        Map<String, PerformanceSummaryResponse.RegimeStat> result = new java.util.LinkedHashMap<>();
+        for (Map.Entry<String, List<PositionEntity>> entry : byCategory.entrySet()) {
+            List<PositionEntity> positions = entry.getValue();
+            int trades = positions.size();
+            int wins = (int) positions.stream()
+                    .filter(p -> p.getRealizedPnl() != null && p.getRealizedPnl().compareTo(BigDecimal.ZERO) > 0)
+                    .count();
+            BigDecimal totalPnl = positions.stream()
+                    .map(p -> p.getRealizedPnl() != null ? p.getRealizedPnl() : BigDecimal.ZERO)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            BigDecimal winRate = trades > 0
+                    ? new BigDecimal(wins).divide(new BigDecimal(trades), 4, RoundingMode.HALF_UP)
+                            .multiply(new BigDecimal("100")).setScale(1, RoundingMode.HALF_UP)
+                    : BigDecimal.ZERO;
+            result.put(entry.getKey(), PerformanceSummaryResponse.RegimeStat.builder()
+                    .trades(trades).wins(wins).winRatePct(winRate).totalPnl(totalPnl).build());
+        }
+        return result;
     }
 
     /** 청산 완료 포지션을 레짐별로 집계 */
@@ -1739,8 +1817,14 @@ public class LiveTradingService {
         }
     }
 
-    /** CLOSING 포지션 타임아웃 — 이 시간 초과 시 OPEN 롤백 */
-    private static final long CLOSING_TIMEOUT_MINUTES = 5;
+    /**
+     * CLOSING 포지션 타임아웃 — 이 시간 초과 시 OPEN 롤백.
+     * OrderExecutionEngine.ORDER_TIMEOUT(5분)보다 반드시 길어야 한다 — 같으면 CLOSING이
+     * OPEN으로 롤백된 직후 지연 체결된 FILLED가 뒤늦게 도착해도 reconcileClosingPositions는
+     * CLOSING 상태만 스캔하므로 그 체결을 놓치고, 팬텀 감지(최소 10분)까지 방치되는 race가
+     * 있었다 (2026-07-02 감사 D-5).
+     */
+    private static final long CLOSING_TIMEOUT_MINUTES = 8;
 
     // ── §15 팬텀 포지션 대조 (DB OPEN vs 거래소 실잔고) ───────────────
     /** 거래소 보유량이 DB 기대량의 이 비율 미만이면 '코인 소멸'로 간주 (5%) */
@@ -2190,17 +2274,28 @@ public class LiveTradingService {
         BigDecimal netProceeds = proceeds.subtract(fee);
         BigDecimal realizedPnl = netProceeds.subtract(soldQty.multiply(pos.getAvgPrice()));
 
-        pos.setRealizedPnl(realizedPnl);
-        pos.setPositionFee(fee);
-        pos.setUnrealizedPnl(BigDecimal.ZERO);
-        pos.setStatus("CLOSED");
-        pos.setClosedAt(Instant.now());
+        // 부분 체결 후 취소(D-3): 판 수량이 포지션 전체보다 적으면 잔여 수량은 여전히 보유 중이다.
+        // 전체 CLOSED로 확정하면 안 팔린 코인이 추적에서 사라지므로, 잔여분을 남기고 OPEN 유지한다.
+        boolean isPartial = soldQty.compareTo(pos.getSize()) < 0;
+        if (isPartial) {
+            pos.setSize(pos.getSize().subtract(soldQty));
+            pos.setRealizedPnl(pos.getRealizedPnl().add(realizedPnl));
+            pos.setPositionFee(pos.getPositionFee().add(fee));
+            pos.setStatus("OPEN");
+            pos.setClosingAt(null);
+        } else {
+            pos.setRealizedPnl(realizedPnl);
+            pos.setPositionFee(fee);
+            pos.setUnrealizedPnl(BigDecimal.ZERO);
+            pos.setStatus("CLOSED");
+            pos.setClosedAt(Instant.now());
+        }
         positionRepository.save(pos);
 
         if (pos.getSessionId() != null) {
             final Long sessionId = pos.getSessionId();
-            // 열린 포지션 잔존 여부는 DB 최신 상태로 평가 — race 중에도 결정적 값
-            boolean hasOpenPosition = positionRepository
+            // 잔여 포지션 유무 — 부분 체결이면 이 포지션 자체가 잔존하므로 항상 true
+            boolean hasOpenPosition = isPartial || positionRepository
                     .findBySessionIdAndCoinPairAndStatus(sessionId, pos.getCoinPair(), "OPEN")
                     .isPresent();
 
@@ -2213,12 +2308,12 @@ public class LiveTradingService {
                     s.setTotalAssetKrw(s.getTotalAssetKrw().subtract(fee));
                 }
             });
-            log.info("매도 체결 확정 (sessionId={}, posId={}): {} {}개 @ {} 손익={} 수수료={}",
-                    sessionId, pos.getId(), pos.getCoinPair(),
+            log.info("매도 체결 확정 (sessionId={}, posId={}, partial={}): {} {}개 @ {} 손익={} 수수료={}",
+                    sessionId, pos.getId(), isPartial, pos.getCoinPair(),
                     soldQty, fillPrice, realizedPnl, fee);
             telegramService.bufferTradeEvent(
                     "세션#" + sessionId, pos.getCoinPair(), "SELL",
-                    fillPrice, soldQty, fee, realizedPnl, "전략 매도");
+                    fillPrice, soldQty, fee, realizedPnl, isPartial ? "전략 매도(부분체결)" : "전략 매도");
 
             // §14 drift 기록 — 진입평균가(signalPrice 근사치) vs 실제 체결가
             sessionRepository.findById(sessionId).ifPresent(s ->

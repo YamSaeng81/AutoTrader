@@ -79,6 +79,62 @@ function RegimeBreakdownSection({ data }: { data: Record<string, RegimeStat> }) 
     );
 }
 
+const EXIT_REASON_COLOR: Record<string, string> = {
+    STOP_LOSS:      'bg-red-500/20 text-red-300 border-red-500/30',
+    TAKE_PROFIT:    'bg-green-500/20 text-green-300 border-green-500/30',
+    STRATEGY_SELL:  'bg-blue-500/20 text-blue-300 border-blue-500/30',
+    FORCED_STOP:    'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
+    PHANTOM:        'bg-purple-500/20 text-purple-300 border-purple-500/30',
+    OTHER:          'bg-slate-600/40 text-slate-400 border-slate-600/50',
+};
+const EXIT_REASON_LABEL: Record<string, string> = {
+    STOP_LOSS: '손절(SL)', TAKE_PROFIT: '익절(TP)', STRATEGY_SELL: '전략 매도',
+    FORCED_STOP: '강제청산(정지)', PHANTOM: '자동정리(팬텀)', OTHER: '기타',
+};
+
+/**
+ * 청산 경로 분포 — 실제 청산이 SL/TP/전략신호/강제청산 중 무엇으로 이뤄졌는지 (2026-07-02 S-2).
+ * 전략 SELL은 EMA/Ichimoku 필터 + 최소보유시간·본전가드로 대부분 억제되는 구조라, 실제 청산이
+ * SL/TP에 얼마나 편중돼 있는지 이 섹션으로 확인할 수 있다.
+ */
+function ExitReasonBreakdownSection({ data }: { data: Record<string, RegimeStat> }) {
+    const entries = Object.entries(data).filter(([, v]) => v.trades > 0);
+    if (entries.length === 0) return null;
+    const totalTrades = entries.reduce((sum, [, v]) => sum + v.trades, 0);
+    return (
+        <div className="bg-slate-800 rounded-xl border border-slate-700/50">
+            <div className="px-5 py-4 border-b border-slate-700/50">
+                <h2 className="text-sm font-semibold text-white">청산 경로 분포</h2>
+                <p className="text-xs text-slate-500 mt-0.5">실제 청산이 손절/익절/전략신호/강제청산 중 무엇으로 이뤄졌는지</p>
+            </div>
+            <div className="p-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                {entries.map(([reason, stat]) => (
+                    <div key={reason} className={`rounded-xl p-4 border ${EXIT_REASON_COLOR[reason] ?? EXIT_REASON_COLOR['OTHER']}`}>
+                        <p className="text-xs font-semibold uppercase tracking-wider mb-2">
+                            {EXIT_REASON_LABEL[reason] ?? reason}
+                        </p>
+                        <div className="text-lg font-bold">
+                            <span className={pnlClass(stat.totalPnl)}>
+                                {stat.totalPnl > 0 ? '+' : ''}{fmt(stat.totalPnl)}원
+                            </span>
+                        </div>
+                        <div className="text-xs mt-1 space-y-0.5">
+                            <div>거래: {stat.trades}건
+                                <span className="text-slate-400 ml-1">
+                                    ({totalTrades > 0 ? fmt((stat.trades / totalTrades) * 100, 0) : 0}%)
+                                </span>
+                            </div>
+                            <div>승률: {stat.trades > 0 ? `${fmt(stat.winRatePct, 1)}%` : '-'}
+                                <span className="text-slate-400 ml-1">({stat.wins}승 {stat.trades - stat.wins}패)</span>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
 const REGIME_ARROW: Record<string, string> = {
     TREND: '↗', RANGE: '↔', VOLATILITY: '↕', TRANSITIONAL: '~', UNKNOWN: '?',
 };
@@ -253,13 +309,17 @@ export default function PerformancePage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [showRunningOnly, setShowRunningOnly] = useState(true);
+    // P0 체결가 버그(2026-06-23 수정) 이전 청산 포지션은 "가짜 본전"으로 오염돼 있어
+    // 승률·손익 지표가 왜곡된다. 기본값으로 그 이후만 집계하고, 필요 시 전체로 전환 가능 (2026-07-02 감사)
+    const P0_FIX_DATE = '2026-06-23';
+    const [closedSince, setClosedSince] = useState<string>(P0_FIX_DATE);
 
     const load = useCallback(async () => {
         setLoading(true);
         setError(null);
         try {
             const [live, paper, history] = await Promise.all([
-                tradingApi.getPerformance(),
+                tradingApi.getPerformance(closedSince || undefined),
                 paperTradingApi.getPerformance(),
                 logsApi.regimeHistory(50),
             ]);
@@ -271,7 +331,7 @@ export default function PerformancePage() {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [closedSince]);
 
     useEffect(() => { load(); }, [load]);
 
@@ -296,6 +356,30 @@ export default function PerformancePage() {
                     {loading ? '로딩...' : '새로고침'}
                 </button>
             </div>
+
+            {tab === 'live' && (
+                <div className="flex items-center gap-2 text-xs text-slate-400 bg-slate-800/60 border border-slate-700/50 rounded-lg px-3 py-2 w-fit">
+                    <span>청산일 기준</span>
+                    <input
+                        type="date"
+                        value={closedSince}
+                        onChange={e => setClosedSince(e.target.value)}
+                        className="bg-slate-700 text-slate-200 rounded px-2 py-1 text-xs border border-slate-600"
+                    />
+                    <span>이후만 집계</span>
+                    {closedSince && (
+                        <button
+                            onClick={() => setClosedSince('')}
+                            className="text-indigo-400 hover:text-indigo-300 underline underline-offset-2"
+                        >
+                            전체 기간 보기
+                        </button>
+                    )}
+                    {closedSince === P0_FIX_DATE && (
+                        <span className="text-slate-500">(P0 체결가 수정 이전 오염 데이터 제외 — 기본값)</span>
+                    )}
+                </div>
+            )}
 
             {/* 탭 */}
             <div className="flex gap-1 bg-slate-800 rounded-lg p-1 w-fit">
@@ -438,6 +522,11 @@ export default function PerformancePage() {
                                 />
                             </div>
                         </div>
+                    )}
+
+                    {/* 청산 경로 분포 */}
+                    {data.exitReasonBreakdown && Object.keys(data.exitReasonBreakdown).length > 0 && (
+                        <ExitReasonBreakdownSection data={data.exitReasonBreakdown} />
                     )}
 
                     {/* 레짐별 성과 */}

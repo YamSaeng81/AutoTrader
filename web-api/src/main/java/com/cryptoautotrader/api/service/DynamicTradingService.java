@@ -71,8 +71,12 @@ public class DynamicTradingService {
     private static final BigDecimal MIN_PNL_PCT_FOR_SELL = new BigDecimal("0.30");
     private static final BigDecimal LOSS_ESCAPE_THRESHOLD = new BigDecimal("-1.00");
     private static final BigDecimal FEE_RATE = new BigDecimal("0.0005");
-    /** CLOSING 상태 진입 시각 — 이 시간 초과 시 reconcileClosingPositions()에서 OPEN 롤백 */
-    private static final long CLOSING_TIMEOUT_MINUTES = 5;
+    /**
+     * CLOSING 상태 진입 시각 — 이 시간 초과 시 reconcileClosingPositions()에서 OPEN 롤백.
+     * OrderExecutionEngine.ORDER_TIMEOUT(5분)보다 반드시 길어야 한다 — LiveTradingService와
+     * 동일한 race 방지 이유 (2026-07-02 감사 D-5).
+     */
+    private static final long CLOSING_TIMEOUT_MINUTES = 8;
     private static final String SESSION_KIND = "DYNAMIC";
 
     private final DynamicSessionRepository dynamicSessionRepo;
@@ -517,6 +521,7 @@ public class DynamicTradingService {
         order.setQuantity(investAmount);
         order.setReason("동적 세션 BUY — " + signal.getReason());
         order.setSessionId(sid);
+        order.setSessionKind(SESSION_KIND);
         order.setPositionId(posId);
         orderExecutionEngine.submitOrder(order);
 
@@ -563,6 +568,7 @@ public class DynamicTradingService {
         order.setQuantity(pos.getSize());
         order.setReason(reason);
         order.setSessionId(sid);
+        order.setSessionKind(SESSION_KIND);
         order.setPositionId(pos.getId());
         orderExecutionEngine.submitOrder(order);
 
@@ -736,6 +742,7 @@ public class DynamicTradingService {
             order.setQuantity(pos.getSize());
             order.setReason(reason);
             order.setSessionId(session.getId());
+            order.setSessionKind(SESSION_KIND);
             order.setPositionId(pos.getId());
             orderExecutionEngine.submitOrder(order);
         }
@@ -874,11 +881,22 @@ public class DynamicTradingService {
         BigDecimal netProceeds = proceeds.subtract(fee);
         BigDecimal realizedPnl = netProceeds.subtract(soldQty.multiply(pos.getAvgPrice()));
 
-        pos.setRealizedPnl(realizedPnl);
-        pos.setPositionFee(fee);
-        pos.setUnrealizedPnl(BigDecimal.ZERO);
-        pos.setStatus("CLOSED");
-        pos.setClosedAt(Instant.now());
+        // 부분 체결 후 취소(D-3) — 판 수량이 전체보다 적으면 잔여분은 여전히 보유 중이므로
+        // 전체 CLOSED 대신 잔여 수량만 남기고 OPEN 유지한다 (LiveTradingService.finalizeSellPosition 동일 원칙).
+        boolean isPartial = soldQty.compareTo(pos.getSize()) < 0;
+        if (isPartial) {
+            pos.setSize(pos.getSize().subtract(soldQty));
+            pos.setRealizedPnl(pos.getRealizedPnl().add(realizedPnl));
+            pos.setPositionFee(pos.getPositionFee().add(fee));
+            pos.setStatus("OPEN");
+            pos.setClosingAt(null);
+        } else {
+            pos.setRealizedPnl(realizedPnl);
+            pos.setPositionFee(fee);
+            pos.setUnrealizedPnl(BigDecimal.ZERO);
+            pos.setStatus("CLOSED");
+            pos.setClosedAt(Instant.now());
+        }
         positionRepository.save(pos);
 
         if (pos.getSessionId() != null) {
@@ -887,7 +905,7 @@ public class DynamicTradingService {
             // 코인을 이미 매수했을 수 있고, 그때 totalAssetKrw=availableKrw로 덮으면 그 코인의
             // 평가액이 총자산에서 통째로 사라진다.
             final Long finalizedPosId = pos.getId();
-            boolean hasRemainingExposure = positionRepository.findBySessionId(sessionId).stream()
+            boolean hasRemainingExposure = isPartial || positionRepository.findBySessionId(sessionId).stream()
                     .anyMatch(p -> !p.getId().equals(finalizedPosId)
                             && ("OPEN".equals(p.getStatus()) || "CLOSING".equals(p.getStatus())));
 
@@ -900,8 +918,13 @@ public class DynamicTradingService {
                     s.setTotalAssetKrw(s.getTotalAssetKrw().subtract(fee));
                 }
             });
-            log.info("[Dynamic] 매도 체결 확정 (sessionId={}, posId={}): {} {}개 @ {} 손익={} 수수료={}",
-                    sessionId, pos.getId(), pos.getCoinPair(), soldQty, fillPrice, realizedPnl, fee);
+            if (isPartial) {
+                // executeSell()이 매도 제출과 동시에 세션을 이미 SCANNING으로 돌려놓았으므로,
+                // 팔리지 않은 잔여분을 계속 감시하도록 재결속한다 (전체 롤백과 동일 원칙).
+                reattachRolledBackPosition(pos);
+            }
+            log.info("[Dynamic] 매도 체결 확정 (sessionId={}, posId={}, partial={}): {} {}개 @ {} 손익={} 수수료={}",
+                    sessionId, pos.getId(), isPartial, pos.getCoinPair(), soldQty, fillPrice, realizedPnl, fee);
             telegramService.bufferTradeEvent(
                     "동적#" + sessionId, pos.getCoinPair(), "SELL",
                     fillPrice, soldQty, fee, realizedPnl, "동적 세션 매도");

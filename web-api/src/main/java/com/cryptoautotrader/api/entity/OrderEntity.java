@@ -76,11 +76,20 @@ public class OrderEntity {
     @Column(name = "session_id")
     private Long sessionId;
 
+    /**
+     * 소속 세션 테이블 구분 — LIVE(live_trading_session) / DYNAMIC(dynamic_session).
+     * position.session_kind(V51)와 동일한 이유로 필요 — 두 세션 테이블이 별도 BIGSERIAL 이라
+     * session_id 값이 겹칠 수 있다.
+     */
+    @Column(name = "session_kind", nullable = false, length = 10)
+    private String sessionKind;
+
     @PrePersist
     void prePersist() {
         if (state == null) state = "PENDING";
         if (createdAt == null) createdAt = Instant.now();
         if (filledQuantity == null) filledQuantity = BigDecimal.ZERO;
+        if (sessionKind == null) sessionKind = "LIVE";
     }
 
     // ── 명시적 getter/setter ──────────────────────────────────
@@ -139,4 +148,7 @@ public class OrderEntity {
 
     public Long getSessionId() { return sessionId; }
     public void setSessionId(Long sessionId) { this.sessionId = sessionId; }
+
+    public String getSessionKind() { return sessionKind; }
+    public void setSessionKind(String sessionKind) { this.sessionKind = sessionKind; }
 }
