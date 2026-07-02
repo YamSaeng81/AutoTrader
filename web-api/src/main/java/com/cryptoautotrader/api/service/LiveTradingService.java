@@ -44,6 +44,7 @@ import com.cryptoautotrader.core.regime.MarketRegime;
 import com.cryptoautotrader.core.regime.MarketRegimeDetector;
 import com.cryptoautotrader.core.risk.RiskCheckResult;
 import com.cryptoautotrader.core.selector.BlackSwanGuard;
+import com.cryptoautotrader.core.selector.BtcMarketGuard;
 import com.cryptoautotrader.core.selector.Ema200RegimeGate;
 import com.cryptoautotrader.core.selector.RangeRegimeGate;
 
@@ -86,7 +87,8 @@ import java.util.stream.Collectors;
 public class LiveTradingService {
 
     private static final int MAX_CONCURRENT_SESSIONS = 10;
-    private static final int CANDLE_LOOKBACK = 250;
+    // 백테스트(BacktestEngine.MAX_LOOKBACK=500)와 동일하게 맞춰 백테스트·실거래 신호 괴리를 줄인다.
+    private static final int CANDLE_LOOKBACK = 500;
     private static final BigDecimal FEE_RATE = new BigDecimal("0.0005");
 
     // ExitRuleConfig는 DB에서 동적 로드 — exitConfig() 메서드 사용
@@ -869,6 +871,11 @@ public class LiveTradingService {
         // BLACK_SWAN_GUARD — 매 tick 최신 캔들로 평가(닫힌 캔들 게이팅과 무관, 안전장치는 즉시 반응해야 함).
         BlackSwanGuard.Result blackSwanGuard = BlackSwanGuard.check(candles);
 
+        // BTC_MARKET_GUARD — BTC 1시간 급락 시 코인 무관 전체 신규 진입 차단(2026-07-02 codex 분석 §6).
+        // BTC 세션은 candles 재사용, 그 외 코인은 별도 조회(같은 timeframe, DB 캐시 조회라 저비용).
+        List<Candle> btcCandles = "KRW-BTC".equals(coinPair) ? candles : fetchRecentCandles("KRW-BTC", timeframe);
+        BtcMarketGuard.Result btcMarketGuard = BtcMarketGuard.check(btcCandles);
+
         // 시장 레짐 — evaluate 전에 이미 감지됨 (preEvalRegime). 재감지 불필요.
         final String regimeName = preEvalRegime != null ? preEvalRegime.name() : null;
 
@@ -928,6 +935,15 @@ public class LiveTradingService {
                 log.warn("BLACK_SWAN_GUARD 발동 — BUY 차단 (sessionId={}, {}): {}",
                         sessionId, coinPair, blackSwanGuard.reason());
                 signal = StrategySignal.hold("BLACK_SWAN_GUARD 발동 — " + blackSwanGuard.reason());
+            }
+
+            // BTC_MARKET_GUARD: BTC 1시간 -1.5% 이상 급락 시 코인 무관 전체 신규 진입 차단.
+            // 업비트 KRW 마켓은 BTC와 알트 상관관계가 높아 BTC 급락이 알트 동반 급락으로
+            // 이어지는 경우가 많다 (2026-07-02 codex 분석 §6). 청산(SELL)에는 영향 없음.
+            if (signal.getAction() == StrategySignal.Action.BUY && btcMarketGuard.triggered()) {
+                log.warn("BTC_MARKET_GUARD 발동 — BUY 차단 (sessionId={}, {}): {}",
+                        sessionId, coinPair, btcMarketGuard.reason());
+                signal = StrategySignal.hold("BTC_MARKET_GUARD 발동 — " + btcMarketGuard.reason());
             }
 
             // 전략 로그 DB 저장 (신호 품질 + 레짐 + 지표 스냅샷)

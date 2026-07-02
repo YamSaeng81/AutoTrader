@@ -47,7 +47,9 @@ public class PaperTradingService {
 
     private static final int MAX_CONCURRENT_SESSIONS = 20;
     private static final BigDecimal FEE_RATE = new BigDecimal("0.0005");
-    private static final int CANDLE_LOOKBACK = 100;
+    // 백테스트(BacktestEngine.MAX_LOOKBACK)·실거래(LiveTradingService.CANDLE_LOOKBACK)와 동일하게
+    // 맞춰야 페이퍼 승격 판단이 실거래 신호와 같은 조건에서 검증된다.
+    private static final int CANDLE_LOOKBACK = 500;
 
     /** Stateful 전략 세션별 인스턴스 (COMPOSITE, COMPOSITE_MOMENTUM 등 상태 보유 전략) */
     private final Map<Long, com.cryptoautotrader.strategy.Strategy> sessionStatefulStrategies = new ConcurrentHashMap<>();

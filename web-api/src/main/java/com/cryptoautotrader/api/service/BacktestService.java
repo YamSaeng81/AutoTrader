@@ -105,6 +105,7 @@ public class BacktestService {
                 .impactFactor(impactFactor != null ? impactFactor : new BigDecimal("0.1"))
                 .fillRatio(fillRatio != null ? fillRatio : new BigDecimal("0.3"))
                 .exitRuleConfig(riskManagementService.getExitRuleConfig())
+                .btcCandles(fetchBtcCandles(coinPair, timeframe, start, end, candles))
                 .build();
 
         BacktestResult result = runStrategy(config, candles, strategyType);
@@ -114,7 +115,7 @@ public class BacktestService {
         saveMetrics(runEntity.getId(), result.getMetrics());
         saveTrades(runEntity.getId(), result.getTrades());
 
-        return buildResponse(runEntity.getId(), result.getMetrics());
+        return buildResponse(runEntity.getId(), result);
     }
 
     @Transactional
@@ -783,6 +784,8 @@ public class BacktestService {
                 .calmarRatio(report.getCalmarRatio())
                 .winLossRatio(report.getWinLossRatio())
                 .recoveryFactor(report.getRecoveryFactor())
+                .profitFactor(report.getProfitFactor())
+                .expectancyPct(report.getExpectancyPct())
                 .totalTrades(report.getTotalTrades())
                 .winningTrades(report.getWinningTrades())
                 .losingTrades(report.getLosingTrades())
@@ -814,11 +817,15 @@ public class BacktestService {
         backtestTradeRepository.saveAll(entities);
     }
 
-    private Map<String, Object> buildResponse(Long id, PerformanceReport report) {
+    private Map<String, Object> buildResponse(Long id, BacktestResult result) {
         Map<String, Object> response = new HashMap<>();
         response.put("id", id);
         response.put("status", "COMPLETED");
-        response.put("metrics", metricsToMap(report));
+        response.put("metrics", metricsToMap(result.getMetrics()));
+        // 미청산 포지션 mark-to-market — "청산 성과"와 별개로 "미청산 유지 성과"를 노출
+        response.put("unrealizedPnl", result.getUnrealizedPnl());
+        response.put("openPositionValue", result.getOpenPositionValue());
+        response.put("finalEquity", result.getFinalEquity());
         return response;
     }
 
@@ -832,10 +839,26 @@ public class BacktestService {
         map.put("calmarRatio", report.getCalmarRatio());
         map.put("winLossRatio", report.getWinLossRatio());
         map.put("recoveryFactor", report.getRecoveryFactor());
+        map.put("profitFactor", report.getProfitFactor());
+        map.put("expectancyPct", report.getExpectancyPct());
         map.put("totalTrades", report.getTotalTrades());
         map.put("maxConsecutiveLoss", report.getMaxConsecutiveLoss());
         map.put("monthlyReturns", report.getMonthlyReturns());
         return map; // HashMap — caller may add more fields
+    }
+
+    /**
+     * BTC_MARKET_GUARD 판정용 BTC 캔들 조회. 대상 코인이 이미 BTC면 재조회 없이 재사용한다.
+     * 데이터가 없으면 null을 반환해 게이트를 비활성화한다(과거 구간에 BTC 캔들 수집이 없었던
+     * 경우 백테스트 자체를 막지 않기 위함 — 2026-07-02 codex 분석 §6).
+     */
+    private List<Candle> fetchBtcCandles(String coinPair, String timeframe, Instant start, Instant end,
+                                          List<Candle> candlesForCoin) {
+        if ("KRW-BTC".equals(coinPair)) {
+            return candlesForCoin;
+        }
+        List<CandleDataEntity> btcEntities = candleDataRepository.findCandles("KRW-BTC", timeframe, start, end);
+        return btcEntities.isEmpty() ? null : toCandles(btcEntities);
     }
 
     private List<Candle> toCandles(List<CandleDataEntity> entities) {
@@ -873,6 +896,8 @@ public class BacktestService {
         map.put("calmarRatio", m.getCalmarRatio());
         map.put("winLossRatio", m.getWinLossRatio());
         map.put("recoveryFactor", m.getRecoveryFactor());
+        map.put("profitFactor", m.getProfitFactor());
+        map.put("expectancyPct", m.getExpectancyPct());
         map.put("totalTrades", m.getTotalTrades());
         map.put("maxConsecutiveLoss", m.getMaxConsecutiveLoss());
         map.put("monthlyReturns", m.getMonthlyReturnsJson());

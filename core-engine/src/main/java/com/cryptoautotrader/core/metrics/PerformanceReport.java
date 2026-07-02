@@ -17,6 +17,10 @@ public class PerformanceReport {
     private final BigDecimal calmarRatio;
     private final BigDecimal winLossRatio;
     private final BigDecimal recoveryFactor;
+    /** Profit Factor = 총이익 / |총손실|. 손실 거래가 없으면 999.9999(사실상 무한대)로 캡. */
+    private final BigDecimal profitFactor;
+    /** Expectancy = 거래당 평균 손익(%) = totalReturnPct / totalTrades. */
+    private final BigDecimal expectancyPct;
     private final int totalTrades;
     private final int winningTrades;
     private final int losingTrades;

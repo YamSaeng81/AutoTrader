@@ -13,6 +13,7 @@ import com.cryptoautotrader.api.util.TimeframeUtils;
 import com.cryptoautotrader.core.regime.MarketRegime;
 import com.cryptoautotrader.core.regime.MarketRegimeDetector;
 import com.cryptoautotrader.core.selector.BlackSwanGuard;
+import com.cryptoautotrader.core.selector.BtcMarketGuard;
 import com.cryptoautotrader.core.selector.Ema200RegimeGate;
 import com.cryptoautotrader.core.selector.RangeRegimeGate;
 import com.cryptoautotrader.exchange.upbit.UpbitCandleCollector;
@@ -65,8 +66,9 @@ public class DynamicTradingService {
     // HEIKIN_ASHI_STOCH 등 EMA(200) 기반 전략은 최소 201개 닫힌 캔들이 필요하다. 200개만 가져오면
     // closedCandleSlice()가 미마감 캔들을 하나 더 잘라내 최대 199개만 남아 구조적으로 절대 신호를
     // 낼 수 없었다(2026-07-01 실전 로그 분석 — 해당 전략 세션 100% "데이터 부족"). 라이브 매매
-    // (LiveTradingService.CANDLE_LOOKBACK=250)와 동일 수준으로 맞춰 여유를 둔다.
-    private static final int CANDLE_LOOKBACK = 250;
+    // (LiveTradingService.CANDLE_LOOKBACK)·백테스트(BacktestEngine.MAX_LOOKBACK)와 동일하게
+    // 500으로 맞춰 백테스트·실거래 신호 괴리를 줄인다.
+    private static final int CANDLE_LOOKBACK = 500;
     private static final List<String> ACTIVE_ORDER_STATES = List.of("PENDING", "SUBMITTED", "PARTIAL_FILLED");
     private static final long MIN_HOLD_MINUTES = 180;
     private static final BigDecimal MIN_PNL_PCT_FOR_SELL = new BigDecimal("0.30");
@@ -349,7 +351,14 @@ public class DynamicTradingService {
         int ema200Blocked = 0;
         int rangeBlocked = 0;
         int blackSwanBlocked = 0;
+        int btcMarketGuardBlocked = 0;
         List<BuyCandidate> buyCandidates = new java.util.ArrayList<>();
+
+        // BTC_MARKET_GUARD — 워치리스트 전체가 같은 timeframe을 쓰므로 틱당 한 번만 조회한다
+        // (2026-07-02 codex 분석 §6, BTC 1시간 -1.5% 급락 시 코인 무관 신규 진입 차단).
+        List<Candle> btcCandles = fetchCandles("KRW-BTC", session.getTimeframe());
+        BtcMarketGuard.Result btcMarketGuard = BtcMarketGuard.check(
+                closedCandleSlice(btcCandles, session.getTimeframe()));
 
         for (String coinPair : watchlist) {
             List<Candle> candles = fetchCandles(coinPair, session.getTimeframe());
@@ -405,6 +414,14 @@ public class DynamicTradingService {
                 }
             }
 
+            // BTC_MARKET_GUARD: BTC 1시간 -1.5% 급락 시 코인 무관 전체 신규 진입 차단.
+            if (signal.getAction() == StrategySignal.Action.BUY && btcMarketGuard.triggered()) {
+                btcMarketGuardBlocked++;
+                log.warn("[Dynamic] BTC_MARKET_GUARD 발동 — BUY 차단: {} (id={}): {}",
+                        coinPair, sid, btcMarketGuard.reason());
+                signal = StrategySignal.hold("BTC_MARKET_GUARD 발동 — " + btcMarketGuard.reason());
+            }
+
             // 코인별 평가 결과 로그 (BUY/SELL은 INFO, HOLD는 DEBUG) — 전략로그 페이지 노출용으로 DB에도 저장
             if (signal.getAction() != StrategySignal.Action.HOLD) {
                 log.info("[Dynamic] 평가결과: {} → {} ({})", coinPair, signal.getAction(), signal.getReason());
@@ -423,9 +440,9 @@ public class DynamicTradingService {
 
         if (buyCandidates.isEmpty()) {
             log.info("[Dynamic] SCANNING 완료: 진입 조건 없음 (id={}, 감시 {}개) — "
-                            + "HOLD={} SELL={} EMA200차단={} RANGE차단={} 블랙스완차단={} 캔들부족={} 캔들미갱신={}",
+                            + "HOLD={} SELL={} EMA200차단={} RANGE차단={} 블랙스완차단={} BTC급락차단={} 캔들부족={} 캔들미갱신={}",
                     sid, watchlist.size(), holdCount, sellCount, ema200Blocked, rangeBlocked,
-                    blackSwanBlocked, insufficientCandles, staleCandle);
+                    blackSwanBlocked, btcMarketGuardBlocked, insufficientCandles, staleCandle);
             return;
         }
 

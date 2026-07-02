@@ -12,6 +12,7 @@ import com.cryptoautotrader.core.risk.ExitRuleChecker;
 import com.cryptoautotrader.core.risk.ExitRuleChecker.ExitCheck;
 import com.cryptoautotrader.core.risk.ExitRuleChecker.StopLevels;
 import com.cryptoautotrader.strategy.Candle;
+import com.cryptoautotrader.strategy.IndicatorUtils;
 import com.cryptoautotrader.strategy.Strategy;
 import com.cryptoautotrader.strategy.StrategyRegistry;
 import com.cryptoautotrader.strategy.StrategySignal;
@@ -74,6 +75,11 @@ public class BacktestEngine {
         // 지표 수렴에 충분한 lookback. 전체 이력을 전달하면 O(n²) 가 되므로 최근 N개로 고정한다.
         // Wilder ATR/ADX/RSI의 EMA는 200개 이후 수렴 오차 < 0.001% — 500은 충분한 여유.
         final int MAX_LOOKBACK = 500;
+
+        // BTC_MARKET_GUARD — 두 캔들 시리즈(대상 코인, BTC) 모두 시간 오름차순이므로
+        // 투 포인터로 O(n+m)에 정렬 위치를 추적한다. btcCandles가 null이면 게이트 비활성.
+        List<Candle> btcCandles = config.getBtcCandles();
+        int btcPtr = -1;
 
         for (int i = minCandles; i < candles.size() - 1; i++) {
             int windowStart = Math.max(0, i + 1 - MAX_LOOKBACK);
@@ -196,6 +202,22 @@ public class BacktestEngine {
             StrategySignal signal = strategy.evaluate(window, evalParams);
             MarketRegime regime = regimeDetector.detect(window);
 
+            // BTC_MARKET_GUARD — nextCandle 시점까지의 BTC 캔들 윈도우로 판정한다(look-ahead 방지,
+            // 실전매매와 동일하게 "이 시점에 알 수 있었던" BTC 데이터만 사용). 최근 200개로 윈도우를
+            // 고정해 매 캔들마다 전체 구간을 재필터링하지 않는다.
+            boolean btcGatePass = true;
+            if (btcCandles != null && !btcCandles.isEmpty()) {
+                while (btcPtr + 1 < btcCandles.size()
+                        && !btcCandles.get(btcPtr + 1).getTime().isAfter(nextCandle.getTime())) {
+                    btcPtr++;
+                }
+                if (btcPtr >= 0) {
+                    int btcWindowStart = Math.max(0, btcPtr + 1 - 200);
+                    List<Candle> btcWindow = btcCandles.subList(btcWindowStart, btcPtr + 1);
+                    btcGatePass = !com.cryptoautotrader.core.selector.BtcMarketGuard.check(btcWindow).triggered();
+                }
+            }
+
             // 다음 캔들 open에서 체결 (Look-Ahead Bias 방지)
             // BUY: 포지션 없고 pending 이월도 없을 때만 진입
             boolean rangeGatePass = !(regime == MarketRegime.RANGE && RangeRegimeGate.isBlocked(config.getStrategyName()));
@@ -203,10 +225,26 @@ public class BacktestEngine {
                     && position.compareTo(BigDecimal.ZERO) == 0
                     && pendingQuantity.compareTo(BigDecimal.ZERO) == 0
                     && Ema200RegimeGate.allowsBuy(window, config.getCoinPair())
-                    && rangeGatePass) {
+                    && rangeGatePass
+                    && btcGatePass) {
 
-                // 포지션 사이징: 가용 자금 × 투자 비율 (실전매매와 동일)
-                BigDecimal investAmount = exitChecker.calculateInvestAmount(capital);
+                // ATR(14) — atrStopLossEnabled/riskBasedSizingEnabled 둘 다 비활성이면 계산해도 쓰이지
+                // 않지만(exitChecker 내부에서 무시), window 크기 부족 시 예외를 피하려 가드한다.
+                BigDecimal atr = null;
+                if (window.size() > 14) {
+                    try {
+                        atr = IndicatorUtils.atr(window, 14);
+                    } catch (Exception ignored) {
+                        // 데이터 이상 시 ATR 기반 손절/사이징을 건너뛰고 고정 %로 폴백
+                    }
+                }
+
+                // 포지션 사이징: 가용 자금 × 투자 비율(기본) 또는 손절 거리 기반 리스크 사이징(옵트인)
+                // — 실전매매(LiveTradingService/DynamicTradingService)와 동일한 ExitRuleChecker 사용.
+                BigDecimal estimatedEntry = nextCandle.getOpen();
+                BigDecimal slDistancePct = exitChecker.resolveStopLossPct(estimatedEntry, atr)
+                        .multiply(BigDecimal.valueOf(100));
+                BigDecimal investAmount = exitChecker.calculateInvestAmount(capital, capital, slDistancePct);
                 if (investAmount.compareTo(BigDecimal.ZERO) == 0) {
                     continue; // 최소 투자 금액 미달
                 }
@@ -234,8 +272,8 @@ public class BacktestEngine {
                 entryFee = fee;
                 capital = capital.subtract(executionPrice.multiply(orderQuantity)).subtract(fee);
 
-                // SL/TP 초기값 설정 (전략 제안값 우선, 없으면 기본값)
-                StopLevels levels = exitChecker.calculateStopLevels(executionPrice, signal);
+                // SL/TP 초기값 설정 (전략 제안값 우선, 없으면 고정% 또는 ATR 기반 기본값)
+                StopLevels levels = exitChecker.calculateStopLevels(executionPrice, signal, atr);
                 stopLossPrice = levels.getStopLossPrice();
                 takeProfitPrice = levels.getTakeProfitPrice();
 
@@ -306,10 +344,26 @@ public class BacktestEngine {
 
         PerformanceReport metrics = MetricsCalculator.calculate(trades, config.getInitialCapital());
 
+        // 미청산 포지션 mark-to-market — 마지막 종가로 평가한다(강제청산하지 않음).
+        // 실현 성과(metrics)는 청산된 거래만 반영하므로, 종료 시점에 열려 있던 포지션은
+        // 별도 필드로 노출해 "청산 성과"와 "미청산 유지 성과"를 모두 볼 수 있게 한다.
+        BigDecimal unrealizedPnl = BigDecimal.ZERO;
+        BigDecimal openPositionValue = BigDecimal.ZERO;
+        if (position.compareTo(BigDecimal.ZERO) > 0 && !candles.isEmpty()) {
+            BigDecimal lastClose = candles.get(candles.size() - 1).getClose();
+            openPositionValue = position.multiply(lastClose).setScale(SCALE, RoundingMode.HALF_UP);
+            unrealizedPnl = lastClose.subtract(entryPrice).multiply(position)
+                    .subtract(entryFee).setScale(SCALE, RoundingMode.HALF_UP);
+        }
+        BigDecimal finalEquity = capital.add(openPositionValue).setScale(SCALE, RoundingMode.HALF_UP);
+
         return BacktestResult.builder()
                 .config(config)
                 .trades(trades)
                 .metrics(metrics)
+                .unrealizedPnl(unrealizedPnl)
+                .openPositionValue(openPositionValue)
+                .finalEquity(finalEquity)
                 .build();
     }
 

@@ -48,6 +48,12 @@ public class BacktestMetricsEntity {
     @Column(name = "recovery_factor")
     private BigDecimal recoveryFactor;
 
+    @Column(name = "profit_factor")
+    private BigDecimal profitFactor;
+
+    @Column(name = "expectancy_pct")
+    private BigDecimal expectancyPct;
+
     @Column(name = "total_trades")
     private Integer totalTrades;
 

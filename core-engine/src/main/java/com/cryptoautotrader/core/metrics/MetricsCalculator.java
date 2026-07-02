@@ -89,6 +89,16 @@ public final class MetricsCalculator {
                 ? BigDecimal.ZERO
                 : avgProfitPct.divide(avgLossPct.abs(), SCALE, RoundingMode.HALF_UP);
 
+        // Profit Factor = 총이익 / |총손실|
+        BigDecimal totalProfit = profits.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalLossAbs = losses.stream().reduce(BigDecimal.ZERO, BigDecimal::add).abs();
+        BigDecimal profitFactor = totalLossAbs.compareTo(BigDecimal.ZERO) == 0
+                ? (totalProfit.compareTo(BigDecimal.ZERO) > 0 ? new BigDecimal("999.9999") : BigDecimal.ZERO)
+                : totalProfit.divide(totalLossAbs, SCALE, RoundingMode.HALF_UP);
+
+        // Expectancy = 거래당 평균 손익(%)
+        BigDecimal expectancyPct = totalReturnPct.divide(BigDecimal.valueOf(totalTrades), SCALE, RoundingMode.HALF_UP);
+
         // ── 일별 equity curve 기반 리스크 조정 지표 ───────────────
         double[] dailyReturns = buildDailyReturns(sellTrades, initialCapital);
 
@@ -118,6 +128,8 @@ public final class MetricsCalculator {
                 .calmarRatio(calmarRatio)
                 .winLossRatio(winLossRatio)
                 .recoveryFactor(recoveryFactor)
+                .profitFactor(profitFactor)
+                .expectancyPct(expectancyPct)
                 .totalTrades(totalTrades)
                 .winningTrades(winningTrades)
                 .losingTrades(losingTrades)
@@ -383,6 +395,7 @@ public final class MetricsCalculator {
                 .mddPct(BigDecimal.ZERO).sharpeRatio(BigDecimal.ZERO)
                 .sortinoRatio(BigDecimal.ZERO).calmarRatio(BigDecimal.ZERO)
                 .winLossRatio(BigDecimal.ZERO).recoveryFactor(BigDecimal.ZERO)
+                .profitFactor(BigDecimal.ZERO).expectancyPct(BigDecimal.ZERO)
                 .totalTrades(0).winningTrades(0).losingTrades(0)
                 .avgProfitPct(BigDecimal.ZERO).avgLossPct(BigDecimal.ZERO)
                 .maxConsecutiveLoss(0).monthlyReturns(Map.of())

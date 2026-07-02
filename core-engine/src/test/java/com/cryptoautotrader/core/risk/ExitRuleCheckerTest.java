@@ -78,6 +78,94 @@ class ExitRuleCheckerTest {
             // TP: 100_000_000 × 1.09 = 109_000_000
             assertThat(levels.getTakeProfitPrice()).isEqualByComparingTo(new BigDecimal("109000000"));
         }
+
+        @Test
+        @DisplayName("ATR 비활성 설정이면 atr 인자를 넘겨도 고정 % 그대로 사용")
+        void atrDisabled_ignoresAtrArgument() {
+            BigDecimal entry = new BigDecimal("100000000");
+            ExitRuleChecker.StopLevels levels = checker.calculateStopLevels(entry, null, new BigDecimal("500000"));
+
+            assertThat(levels.getStopLossPrice()).isEqualByComparingTo(new BigDecimal("95000000"));
+            assertThat(levels.getTakeProfitPrice()).isEqualByComparingTo(new BigDecimal("110000000"));
+        }
+
+        @Test
+        @DisplayName("ATR 활성화 — 손절폭 = ATR × 배수 (상하한 사이)")
+        void atrEnabled_usesAtrBasedStopLoss() {
+            ExitRuleConfig cfg = ExitRuleConfig.builder()
+                    .atrStopLossEnabled(true)
+                    .atrMultiplier(new BigDecimal("2.0"))
+                    .minAtrStopLossPct(new BigDecimal("1.0"))
+                    .maxAtrStopLossPct(new BigDecimal("5.0"))
+                    .takeProfitMultiplier(new BigDecimal("2.0"))
+                    .build();
+            ExitRuleChecker custom = new ExitRuleChecker(cfg);
+            BigDecimal entry = new BigDecimal("100000000");
+            BigDecimal atr = new BigDecimal("1000000"); // ATR% = 1,000,000×2.0/100,000,000 = 2%
+
+            ExitRuleChecker.StopLevels levels = custom.calculateStopLevels(entry, null, atr);
+
+            // SL: 100_000_000 × (1-0.02) = 98_000_000
+            assertThat(levels.getStopLossPrice()).isEqualByComparingTo(new BigDecimal("98000000"));
+            // TP: slPct(0.02) × multiplier(2.0) = 0.04 → 100_000_000 × 1.04 = 104_000_000
+            assertThat(levels.getTakeProfitPrice()).isEqualByComparingTo(new BigDecimal("104000000"));
+        }
+
+        @Test
+        @DisplayName("ATR 활성화 — 계산된 손절폭이 하한 미만이면 하한으로 클램프")
+        void atrEnabled_clampsToMinimum() {
+            ExitRuleConfig cfg = ExitRuleConfig.builder()
+                    .atrStopLossEnabled(true)
+                    .atrMultiplier(new BigDecimal("1.0"))
+                    .minAtrStopLossPct(new BigDecimal("1.2"))
+                    .maxAtrStopLossPct(new BigDecimal("5.0"))
+                    .build();
+            ExitRuleChecker custom = new ExitRuleChecker(cfg);
+            BigDecimal entry = new BigDecimal("100000000");
+            BigDecimal atr = new BigDecimal("100000"); // ATR% = 0.1% — 하한(1.2%) 미만
+
+            ExitRuleChecker.StopLevels levels = custom.calculateStopLevels(entry, null, atr);
+
+            // SL: 100_000_000 × (1-0.012) = 98_800_000
+            assertThat(levels.getStopLossPrice()).isEqualByComparingTo(new BigDecimal("98800000"));
+        }
+
+        @Test
+        @DisplayName("ATR 활성화 — 계산된 손절폭이 상한 초과면 상한으로 클램프")
+        void atrEnabled_clampsToMaximum() {
+            ExitRuleConfig cfg = ExitRuleConfig.builder()
+                    .atrStopLossEnabled(true)
+                    .atrMultiplier(new BigDecimal("3.0"))
+                    .minAtrStopLossPct(new BigDecimal("1.2"))
+                    .maxAtrStopLossPct(new BigDecimal("5.0"))
+                    .build();
+            ExitRuleChecker custom = new ExitRuleChecker(cfg);
+            BigDecimal entry = new BigDecimal("100000000");
+            BigDecimal atr = new BigDecimal("5000000"); // ATR% = 5,000,000×3.0/100,000,000 = 15% — 상한(5%) 초과
+
+            ExitRuleChecker.StopLevels levels = custom.calculateStopLevels(entry, null, atr);
+
+            // SL: 100_000_000 × (1-0.05) = 95_000_000
+            assertThat(levels.getStopLossPrice()).isEqualByComparingTo(new BigDecimal("95000000"));
+        }
+
+        @Test
+        @DisplayName("신호가 suggestedStopLoss/TakeProfit를 제공하면 ATR 활성 상태에서도 신호값 우선")
+        void atrEnabled_signalOverridesAtr() {
+            ExitRuleConfig cfg = ExitRuleConfig.builder().atrStopLossEnabled(true).build();
+            ExitRuleChecker custom = new ExitRuleChecker(cfg);
+            BigDecimal entry = new BigDecimal("100000000");
+            com.cryptoautotrader.strategy.StrategySignal signal =
+                    com.cryptoautotrader.strategy.StrategySignal.builder()
+                            .suggestedStopLoss(new BigDecimal("92000000"))
+                            .suggestedTakeProfit(new BigDecimal("115000000"))
+                            .build();
+
+            ExitRuleChecker.StopLevels levels = custom.calculateStopLevels(entry, signal, new BigDecimal("1000000"));
+
+            assertThat(levels.getStopLossPrice()).isEqualByComparingTo(new BigDecimal("92000000"));
+            assertThat(levels.getTakeProfitPrice()).isEqualByComparingTo(new BigDecimal("115000000"));
+        }
     }
 
     // ── checkCandleExit ─────────────────────────────────────────────────
@@ -440,6 +528,49 @@ class ExitRuleCheckerTest {
             BigDecimal invest = checker.calculateInvestAmount(available);
 
             assertThat(invest).isGreaterThanOrEqualTo(new BigDecimal("5000"));
+        }
+
+        @Test
+        @DisplayName("리스크 사이징 비활성이면 손절거리를 넘겨도 정률 사이징 그대로")
+        void riskSizingDisabled_fallsBackToRatio() {
+            BigDecimal available = new BigDecimal("1000000");
+            BigDecimal invest = checker.calculateInvestAmount(available, available, new BigDecimal("2.0"));
+
+            assertThat(invest).isEqualByComparingTo(new BigDecimal("800000"));
+        }
+
+        @Test
+        @DisplayName("리스크 사이징 활성 — 허용손실/손절거리로 투자금 산정")
+        void riskSizingEnabled_computesFromStopDistance() {
+            ExitRuleConfig cfg = ExitRuleConfig.builder()
+                    .riskBasedSizingEnabled(true)
+                    .riskPerTradePct(new BigDecimal("0.5"))
+                    .investRatio(new BigDecimal("0.80"))
+                    .build();
+            ExitRuleChecker custom = new ExitRuleChecker(cfg);
+
+            // 계좌 1,000,000 × 0.5% = 5,000원 허용손실. 손절거리 2.5% → 5,000/0.025 = 200,000원
+            BigDecimal invest = custom.calculateInvestAmount(
+                    new BigDecimal("1000000"), new BigDecimal("1000000"), new BigDecimal("2.5"));
+
+            assertThat(invest).isEqualByComparingTo(new BigDecimal("200000"));
+        }
+
+        @Test
+        @DisplayName("리스크 사이징 — 손절폭이 매우 좁아도 정률 사이징 상한을 넘지 않음")
+        void riskSizingEnabled_cappedByRatioAmount() {
+            ExitRuleConfig cfg = ExitRuleConfig.builder()
+                    .riskBasedSizingEnabled(true)
+                    .riskPerTradePct(new BigDecimal("0.5"))
+                    .investRatio(new BigDecimal("0.80"))
+                    .build();
+            ExitRuleChecker custom = new ExitRuleChecker(cfg);
+
+            // 손절거리 0.1% → 5,000/0.001 = 5,000,000원이지만 ratioAmount(800,000)로 캡
+            BigDecimal invest = custom.calculateInvestAmount(
+                    new BigDecimal("1000000"), new BigDecimal("1000000"), new BigDecimal("0.1"));
+
+            assertThat(invest).isEqualByComparingTo(new BigDecimal("800000"));
         }
     }
 }

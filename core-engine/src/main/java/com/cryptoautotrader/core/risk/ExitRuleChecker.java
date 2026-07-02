@@ -67,11 +67,18 @@ public class ExitRuleChecker {
      * @return SL/TP 가격 쌍
      */
     public StopLevels calculateStopLevels(BigDecimal entryPrice, StrategySignal signal) {
-        BigDecimal slPct = config.getStopLossPct()
-                .divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP);
-        BigDecimal tpPct = config.getStopLossPct()
-                .multiply(config.getTakeProfitMultiplier())
-                .divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP);
+        return calculateStopLevels(entryPrice, signal, null);
+    }
+
+    /**
+     * ATR 값을 함께 받는 오버로드 — {@code atrStopLossEnabled}가 켜져 있고 atr이 유효하면
+     * 손절폭을 ATR × atrMultiplier(상/하한 클램프)로 산정한다. 그 외에는 기존 고정 %와 동일하다.
+     *
+     * @param atr 진입 시점 ATR (없으면 null — 고정 % 손절로 폴백)
+     */
+    public StopLevels calculateStopLevels(BigDecimal entryPrice, StrategySignal signal, BigDecimal atr) {
+        BigDecimal slPct = resolveStopLossPct(entryPrice, atr);
+        BigDecimal tpPct = slPct.multiply(config.getTakeProfitMultiplier());
 
         BigDecimal sl = (signal != null && signal.getSuggestedStopLoss() != null)
                 ? signal.getSuggestedStopLoss()
@@ -84,6 +91,23 @@ public class ExitRuleChecker {
                         .setScale(SCALE, RoundingMode.HALF_UP);
 
         return new StopLevels(sl, tp);
+    }
+
+    /**
+     * 손절폭(진입가 대비 비율, 0.05 = 5%)을 계산한다 — ATR 비활성/무효 시 고정 stopLossPct로 폴백.
+     * 리스크 기반 포지션 사이징에서 진입 전 예상 손절 거리를 미리 알아야 할 때도 사용한다.
+     */
+    public BigDecimal resolveStopLossPct(BigDecimal entryPrice, BigDecimal atr) {
+        BigDecimal fixedPct = config.getStopLossPct().divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP);
+        if (!config.isAtrStopLossEnabled() || atr == null || atr.compareTo(BigDecimal.ZERO) <= 0
+                || entryPrice == null || entryPrice.compareTo(BigDecimal.ZERO) <= 0) {
+            return fixedPct;
+        }
+        BigDecimal atrPct = atr.multiply(config.getAtrMultiplier())
+                .divide(entryPrice, 6, RoundingMode.HALF_UP);
+        BigDecimal minPct = config.getMinAtrStopLossPct().divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP);
+        BigDecimal maxPct = config.getMaxAtrStopLossPct().divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP);
+        return atrPct.max(minPct).min(maxPct);
     }
 
     // ── 캔들 기반 청산 체크 (백테스트용) ───────────────────────
@@ -342,8 +366,34 @@ public class ExitRuleChecker {
      * @return 투자 금액 (KRW), 최소 금액 미만이면 BigDecimal.ZERO
      */
     public BigDecimal calculateInvestAmount(BigDecimal availableCapital) {
-        BigDecimal amount = availableCapital.multiply(config.getInvestRatio())
+        return calculateInvestAmount(availableCapital, null, null);
+    }
+
+    /**
+     * 손절 거리 기반 리스크 사이징 오버로드 — {@code riskBasedSizingEnabled}가 켜져 있고
+     * stopLossDistancePct가 유효하면 "1회 허용 손실(riskPerTradePct × 계좌총액) / 손절 거리"로
+     * 투자금을 산정한다. investRatio × availableCapital을 상한으로 캡해, 손절폭이 매우 좁은
+     * 상황에서 과도하게 몰빵되는 것을 방지한다. 그 외에는 기존 정률 사이징과 동일하다.
+     *
+     * @param accountEquity        허용 손실 계산 기준 계좌 총액 (null이면 availableCapital 사용)
+     * @param stopLossDistancePct  진입가 대비 손절 거리(%, 양수). null/0 이하이면 리스크 사이징 비활성
+     */
+    public BigDecimal calculateInvestAmount(BigDecimal availableCapital, BigDecimal accountEquity,
+                                             BigDecimal stopLossDistancePct) {
+        BigDecimal ratioAmount = availableCapital.multiply(config.getInvestRatio())
                 .setScale(0, RoundingMode.HALF_UP);
+
+        BigDecimal amount = ratioAmount;
+        if (config.isRiskBasedSizingEnabled()
+                && stopLossDistancePct != null && stopLossDistancePct.compareTo(BigDecimal.ZERO) > 0) {
+            BigDecimal equity = accountEquity != null ? accountEquity : availableCapital;
+            BigDecimal riskAmount = equity.multiply(config.getRiskPerTradePct())
+                    .divide(BigDecimal.valueOf(100), 8, RoundingMode.HALF_UP);
+            BigDecimal stopFraction = stopLossDistancePct.divide(BigDecimal.valueOf(100), 8, RoundingMode.HALF_UP);
+            BigDecimal riskBasedAmount = riskAmount.divide(stopFraction, 0, RoundingMode.HALF_UP);
+            amount = riskBasedAmount.min(ratioAmount);
+        }
+
         if (amount.compareTo(config.getMinInvestAmount()) < 0) {
             return BigDecimal.ZERO;
         }

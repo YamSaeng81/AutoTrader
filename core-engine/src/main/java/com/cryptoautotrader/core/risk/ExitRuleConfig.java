@@ -31,6 +31,23 @@ public class ExitRuleConfig {
     @Builder.Default
     private final BigDecimal takeProfitMultiplier = new BigDecimal("2.0");
 
+    // ── ATR 기반 손절 (2026-07-02 codex 분석 §4 — 코인마다 다른 변동성에 손절폭을 맞춘다) ──
+    /** true면 stopLossPct 고정폭 대신 ATR × atrMultiplier 로 손절폭을 산정한다. 기본 비활성(기존 동작 유지). */
+    @Builder.Default
+    private final boolean atrStopLossEnabled = false;
+
+    /** ATR 배수 — 손절폭 = ATR × 이 값 (진입가 대비 %) */
+    @Builder.Default
+    private final BigDecimal atrMultiplier = new BigDecimal("1.5");
+
+    /** ATR 기반 손절폭 하한 (%) — 저변동성 구간에서 손절이 지나치게 좁아지는 것을 방지 */
+    @Builder.Default
+    private final BigDecimal minAtrStopLossPct = new BigDecimal("1.2");
+
+    /** ATR 기반 손절폭 상한 (%) — 고변동성 구간에서 손절이 지나치게 넓어지는 것을 방지 */
+    @Builder.Default
+    private final BigDecimal maxAtrStopLossPct = new BigDecimal("5.0");
+
     // ── 트레일링 ──────────────────────────────────────────────
     /** 트레일링 활성화 여부 */
     @Builder.Default
@@ -52,6 +69,17 @@ public class ExitRuleConfig {
     /** 최소 투자 금액 (KRW) — 이 이하면 매수 스킵 */
     @Builder.Default
     private final BigDecimal minInvestAmount = new BigDecimal("5000");
+
+    // ── 손절 거리 기반 포지션 사이징 (2026-07-02 codex 분석 §5) ─────────
+    // "투자 비율" 대신 "이번 거래가 틀렸을 때 잃는 금액"을 고정해, 손절폭이 넓은 장에서는
+    // 자동으로 적게, 손절폭이 좁은 장에서는 조금 더 사도록 한다.
+    /** true면 investRatio 정률 대신 "1회 허용 손실 / 손절 거리"로 투자금을 산정한다. 기본 비활성. */
+    @Builder.Default
+    private final boolean riskBasedSizingEnabled = false;
+
+    /** 1회 거래 허용 손실 — 계좌 총액 대비 비율 (%, 0.5 = 0.5%) */
+    @Builder.Default
+    private final BigDecimal riskPerTradePct = new BigDecimal("0.5");
 
     // ── 전략 SELL 신호 게이트 (실전매매 LiveTradingService/DynamicTradingService와 동일 규칙) ──
     // 2026-07-02 L-2: 백테스트가 이 게이트 없이 전략 SELL을 즉시 체결해 실전과 다른 청산
