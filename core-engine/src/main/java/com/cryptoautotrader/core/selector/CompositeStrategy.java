@@ -33,6 +33,14 @@ public class CompositeStrategy implements Strategy {
     /** EMA 방향 필터 기본 파라미터 */
     private static final int DEFAULT_EMA_SHORT = 20;
     private static final int DEFAULT_EMA_LONG  = 50;
+    /**
+     * EMA 역추세 감쇠 계수 기본값 — 0.0이면 기존과 동일하게 역추세 스코어를 완전히 0으로 만든다
+     * (하드 차단과 동일 효과). params로 "emaFilterDampenFactor"(0.0~1.0)를 넘기면 완전 차단 대신
+     * 점수를 비례 감쇠시켜, 강한 역추세 신호가 threshold를 넘을 여지를 남길 수 있다.
+     * 2026-07-06 실전 로그 분석: 완전 차단 방식에서 STRONG_BUY(score 0.5+) 후보조차 하락추세
+     * 판정 한 번으로 전부 취소됨 — A/B 백테스트로 완화 여지를 검증하기 위해 감쇠 방식을 추가.
+     */
+    private static final double DEFAULT_EMA_DAMPEN_FACTOR = 0.0;
 
     /** ADX 횡보장 필터 기본 파라미터 */
     private static final int    DEFAULT_ADX_PERIOD    = 14;
@@ -176,6 +184,36 @@ public class CompositeStrategy implements Strategy {
         buyScore  /= normalizer;
         sellScore /= normalizer;
 
+        // EMA 방향 필터: 역추세 스코어를 threshold 비교 전에 감쇠시킨다.
+        // dampenFactor 기본값(0.0)은 역추세 스코어를 0으로 만들어 기존의 "완전 차단" 동작과
+        // 결과가 동일하다 — params로 "emaFilterDampenFactor"(0.0~1.0)를 넘기면 완전 차단 대신
+        // 비례 감쇠로 완화해 백테스트로 효과를 검증할 수 있다.
+        if (emaFilterEnabled && candles.size() >= DEFAULT_EMA_LONG) {
+            List<BigDecimal> closes = candles.stream().map(Candle::getClose).toList();
+            BigDecimal emaShort = IndicatorUtils.ema(closes, DEFAULT_EMA_SHORT);
+            BigDecimal emaLong  = IndicatorUtils.ema(closes, DEFAULT_EMA_LONG);
+            boolean uptrend = emaShort.compareTo(emaLong) > 0;
+
+            double dampenFactor = params != null
+                    ? StrategyParamUtils.getDouble(params, "emaFilterDampenFactor", DEFAULT_EMA_DAMPEN_FACTOR)
+                    : DEFAULT_EMA_DAMPEN_FACTOR;
+            dampenFactor = Math.max(0.0, Math.min(1.0, dampenFactor));
+
+            if (uptrend && sellScore > 0) {
+                double raw = sellScore;
+                sellScore *= dampenFactor;
+                detail += String.format(" [EMA필터: 상승추세(EMA%d=%.0f>EMA%d=%.0f) SELL %.2f→%.2f]",
+                        DEFAULT_EMA_SHORT, emaShort.doubleValue(), DEFAULT_EMA_LONG, emaLong.doubleValue(),
+                        raw, sellScore);
+            } else if (!uptrend && buyScore > 0) {
+                double raw = buyScore;
+                buyScore *= dampenFactor;
+                detail += String.format(" [EMA필터: 하락추세(EMA%d=%.0f<EMA%d=%.0f) BUY %.2f→%.2f]",
+                        DEFAULT_EMA_SHORT, emaShort.doubleValue(), DEFAULT_EMA_LONG, emaLong.doubleValue(),
+                        raw, buyScore);
+            }
+        }
+
         // WEAK_THRESHOLD/STRONG_THRESHOLD는 params로 override 가능 ("weakThreshold"/"strongThreshold")
         // — 2026-07-02 S-1: WEAK 0.4→0.3 하향의 A/B 백테스트 검증용. 미지정 시 기본값(0.3/0.5) 사용.
         double weakThreshold = params != null
@@ -185,7 +223,7 @@ public class CompositeStrategy implements Strategy {
                 ? StrategyParamUtils.getDouble(params, "strongThreshold", STRONG_THRESHOLD)
                 : STRONG_THRESHOLD;
 
-        return applyEmaFilter(candles, finalSignal(buyScore, sellScore, detail, weakThreshold, strongThreshold));
+        return finalSignal(buyScore, sellScore, detail, weakThreshold, strongThreshold);
     }
 
     private StrategySignal finalSignal(double buyScore, double sellScore, String detail,
@@ -212,40 +250,5 @@ public class CompositeStrategy implements Strategy {
         }
         return StrategySignal.hold(String.format("점수 미달 buy=%.2f sell=%.2f [%s]",
                 buyScore, sellScore, detail));
-    }
-
-    /**
-     * EMA 방향 필터: 추세 방향에 역행하는 신호를 HOLD로 억제한다.
-     * - 상승 추세(EMA20 > EMA50): SELL 신호 억제
-     * - 하락 추세(EMA20 < EMA50): BUY 신호 억제
-     * emaFilterEnabled=false 또는 캔들 부족 시 원본 신호 그대로 반환.
-     */
-    private StrategySignal applyEmaFilter(List<Candle> candles, StrategySignal signal) {
-        if (!emaFilterEnabled || candles.size() < DEFAULT_EMA_LONG
-                || signal.getAction() == StrategySignal.Action.HOLD) {
-            return signal;
-        }
-
-        List<BigDecimal> closes = candles.stream()
-                .map(Candle::getClose)
-                .toList();
-
-        BigDecimal emaShort = IndicatorUtils.ema(closes, DEFAULT_EMA_SHORT);
-        BigDecimal emaLong  = IndicatorUtils.ema(closes, DEFAULT_EMA_LONG);
-        boolean uptrend = emaShort.compareTo(emaLong) > 0;
-
-        if (uptrend && signal.getAction() == StrategySignal.Action.SELL) {
-            return StrategySignal.hold(String.format(
-                    "EMA필터 SELL억제 (EMA%d=%.0f > EMA%d=%.0f 상승추세) [%s]",
-                    DEFAULT_EMA_SHORT, emaShort.doubleValue(),
-                    DEFAULT_EMA_LONG,  emaLong.doubleValue(), signal.getReason()));
-        }
-        if (!uptrend && signal.getAction() == StrategySignal.Action.BUY) {
-            return StrategySignal.hold(String.format(
-                    "EMA필터 BUY억제 (EMA%d=%.0f < EMA%d=%.0f 하락추세) [%s]",
-                    DEFAULT_EMA_SHORT, emaShort.doubleValue(),
-                    DEFAULT_EMA_LONG,  emaLong.doubleValue(), signal.getReason()));
-        }
-        return signal;
     }
 }
