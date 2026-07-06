@@ -68,7 +68,7 @@ const WATCHLIST_REFRESH_DEFAULTS: Record<string, number> = {
 const defaultForm: CreateForm = {
   strategyType: 'COMPOSITE_REGIME_ROUTER',
   timeframe: 'H1',
-  initialCapital: 100000,
+  initialCapital: 10000,
   stopLossPct: 5,
   investRatio: 80,
   maxCandidateSize: 30,
