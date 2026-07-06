@@ -8,6 +8,7 @@ import {
   useStartDynamicSession,
   useStopDynamicSession,
   useEmergencyStopDynamicSession,
+  useDeleteDynamicSession,
 } from '@/hooks';
 import { strategyApi } from '@/lib/api';
 import type { StrategyInfo } from '@/lib/types';
@@ -83,6 +84,7 @@ export default function DynamicTradingPage() {
   const startSession  = useStartDynamicSession();
   const stopSession   = useStopDynamicSession();
   const emergencyStop = useEmergencyStopDynamicSession();
+  const deleteSession = useDeleteDynamicSession();
 
   const [showForm, setShowForm]       = useState(false);
   const [form, setForm]               = useState<CreateForm>({ ...defaultForm });
@@ -222,6 +224,11 @@ export default function DynamicTradingPage() {
                 onStop={() => stopSession.mutate(n(session['id']))}
                 onEmergencyStop={() => {
                   if (confirm('비상 정지하시겠습니까?')) emergencyStop.mutate(n(session['id']));
+                }}
+                onDelete={() => {
+                  if (confirm(`세션 #${s(session['id'])} (${s(session['strategyType'])})을 삭제하시겠습니까?\n삭제 후 목록에서 사라지며 전략/주문 로그는 보존됩니다.`)) {
+                    deleteSession.mutate(n(session['id']));
+                  }
                 }}
               />
             ))}
@@ -411,11 +418,13 @@ function DynamicSessionCard({
   onStart,
   onStop,
   onEmergencyStop,
+  onDelete,
 }: {
   session: DynamicSession;
   onStart: () => void;
   onStop: () => void;
   onEmergencyStop: () => void;
+  onDelete: () => void;
 }) {
   const status    = String(session['status'] ?? '');
   const scanState = String(session['scanState'] ?? '');
@@ -490,7 +499,13 @@ function DynamicSessionCard({
             </>
           )}
           {(status === 'STOPPED' || status === 'EMERGENCY_STOPPED') && (
-            <button onClick={onStart} className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs rounded-lg transition-colors">재시작</button>
+            <>
+              <button onClick={onStart} className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs rounded-lg transition-colors">재시작</button>
+              <button onClick={onDelete} className="px-3 py-1.5 bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white text-xs rounded-lg transition-colors">삭제</button>
+            </>
+          )}
+          {status === 'CREATED' && (
+            <button onClick={onDelete} className="px-3 py-1.5 bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white text-xs rounded-lg transition-colors">삭제</button>
           )}
         </div>
       </div>

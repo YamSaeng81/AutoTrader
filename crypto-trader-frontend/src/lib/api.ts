@@ -347,6 +347,8 @@ export const dynamicSessionApi = {
         api.post<ApiResponse<Record<string, unknown>>>(`/api/v1/dynamic-sessions/${id}/stop`).then(r => r.data),
     emergencyStop: (id: number) =>
         api.post<ApiResponse<Record<string, unknown>>>(`/api/v1/dynamic-sessions/${id}/emergency-stop`).then(r => r.data),
+    delete: (id: number) =>
+        api.delete<ApiResponse<void>>(`/api/v1/dynamic-sessions/${id}`).then(r => r.data),
 };
 
 export const schedulerApi = {

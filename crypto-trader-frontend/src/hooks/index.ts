@@ -76,5 +76,6 @@ export {
   useStartDynamicSession,
   useStopDynamicSession,
   useEmergencyStopDynamicSession,
+  useDeleteDynamicSession,
   dynamicKeys,
 } from './useDynamicTrading';

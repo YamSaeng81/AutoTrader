@@ -234,11 +234,42 @@ public class DynamicTradingService {
         return session;
     }
 
+    // ── 세션 삭제 (soft) ───────────────────────────────────────────
+
+    @Transactional
+    public void deleteSession(Long sessionId) {
+        DynamicSessionEntity session = getOrThrow(sessionId);
+        if ("RUNNING".equals(session.getStatus())) {
+            throw new IllegalStateException("실행 중인 세션은 삭제할 수 없습니다. 먼저 정지하세요.");
+        }
+
+        // 정지 시 청산이 누락된 orphan OPEN 포지션 정리 (LiveTradingService.deleteSession과 동일 정책)
+        List<PositionEntity> openPositions =
+                positionRepository.findBySessionKindAndSessionIdAndStatus(SESSION_KIND, sessionId, "OPEN");
+        for (PositionEntity pos : openPositions) {
+            pos.setStatus("CLOSED");
+            pos.setClosedAt(Instant.now());
+            positionRepository.save(pos);
+            log.warn("[Dynamic] 세션 삭제 시 미청산 포지션 강제 종료: posId={} {} (sessionId={})",
+                    pos.getId(), pos.getCoinPair(), sessionId);
+        }
+
+        // soft-delete — 행/링크 보존, 상태만 DELETED (전략로그/주문로그 조회 유지)
+        session.setStatus("DELETED");
+        if (session.getStoppedAt() == null) session.setStoppedAt(Instant.now());
+        dynamicSessionRepo.save(session);
+        clearSessionState(sessionId);
+        log.info("[Dynamic] 세션 삭제(soft) 완료: id={} → status=DELETED", sessionId);
+    }
+
     // ── 조회 ───────────────────────────────────────────────────────
 
     @Transactional(readOnly = true)
     public List<DynamicSessionEntity> listSessions() {
-        return dynamicSessionRepo.findAllByOrderByCreatedAtDesc();
+        // DELETED 세션은 목록에서 제외 (로그 조회용 getSessionIndex()에는 유지)
+        return dynamicSessionRepo.findAllByOrderByCreatedAtDesc().stream()
+                .filter(s -> !"DELETED".equals(s.getStatus()))
+                .toList();
     }
 
     @Transactional(readOnly = true)

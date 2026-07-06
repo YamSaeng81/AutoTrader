@@ -57,3 +57,11 @@ export function useEmergencyStopDynamicSession() {
     onSuccess: () => qc.invalidateQueries({ queryKey: dynamicKeys.sessions() }),
   });
 }
+
+export function useDeleteDynamicSession() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => dynamicSessionApi.delete(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: dynamicKeys.sessions() }),
+  });
+}

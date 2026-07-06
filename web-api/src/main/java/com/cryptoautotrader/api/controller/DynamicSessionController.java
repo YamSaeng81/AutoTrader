@@ -24,7 +24,8 @@ import java.util.Map;
  * POST   /api/v1/dynamic-sessions/{id}/start 세션 시작
  * POST   /api/v1/dynamic-sessions/{id}/stop  세션 정지
  * POST   /api/v1/dynamic-sessions/{id}/emergency-stop 비상 정지
- * GET    /api/v1/dynamic-sessions           세션 목록
+ * DELETE /api/v1/dynamic-sessions/{id}      세션 삭제 (soft, RUNNING 거부)
+ * GET    /api/v1/dynamic-sessions           세션 목록 (DELETED 제외)
  * GET    /api/v1/dynamic-sessions/{id}      세션 상세
  * </pre>
  */
@@ -77,6 +78,19 @@ public class DynamicSessionController {
             return ApiResponse.ok(toMap(session));
         } catch (IllegalArgumentException e) {
             return ApiResponse.error("NOT_FOUND", e.getMessage());
+        }
+    }
+
+    /** 세션 삭제 (soft) — RUNNING 상태는 거부, DELETED 상태로 전환해 목록에서 제외 */
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> delete(@PathVariable Long id) {
+        try {
+            dynamicTradingService.deleteSession(id);
+            return ApiResponse.ok(null);
+        } catch (IllegalArgumentException e) {
+            return ApiResponse.error("NOT_FOUND", e.getMessage());
+        } catch (IllegalStateException e) {
+            return ApiResponse.error("INVALID_STATE", e.getMessage());
         }
     }
 
