@@ -88,6 +88,7 @@ export default function DynamicTradingPage() {
   const [form, setForm]               = useState<CreateForm>({ ...defaultForm });
   const [createError, setCreateError] = useState<string | null>(null);
   const [activeStrategies, setActiveStrategies] = useState<StrategyInfo[]>([]);
+  const [showAllSessions, setShowAllSessions] = useState(false);
 
   useEffect(() => {
     strategyApi.list().then(res => {
@@ -98,6 +99,10 @@ export default function DynamicTradingPage() {
   }, []);
 
   const runningSessions = (sessions ?? []).filter(s => s['status'] === 'RUNNING');
+  // 기본은 운영 중(RUNNING) + 대기(CREATED) 세션만 노출 — 정지된 세션이 쌓여 목록을 가리는 문제 방지
+  const visibleSessions = showAllSessions
+    ? (sessions ?? [])
+    : (sessions ?? []).filter(s => s['status'] === 'RUNNING' || s['status'] === 'CREATED');
 
   const handleCreate = () => {
     setCreateError(null);
@@ -169,7 +174,23 @@ export default function DynamicTradingPage() {
 
       {/* 세션 목록 */}
       <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
-        <h2 className="text-lg font-semibold text-white mb-4">동적 세션 목록</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-white">동적 세션 목록</h2>
+          <div className="flex rounded-lg overflow-hidden border border-slate-600/50 text-xs">
+            <button
+              onClick={() => setShowAllSessions(false)}
+              className={`px-3 py-1.5 transition-colors ${!showAllSessions ? 'bg-blue-600 text-white' : 'bg-slate-700/50 text-slate-400 hover:text-white'}`}
+            >
+              운영 중만
+            </button>
+            <button
+              onClick={() => setShowAllSessions(true)}
+              className={`px-3 py-1.5 transition-colors ${showAllSessions ? 'bg-blue-600 text-white' : 'bg-slate-700/50 text-slate-400 hover:text-white'}`}
+            >
+              전체 ({(sessions ?? []).length})
+            </button>
+          </div>
+        </div>
 
         {(sessions ?? []).length === 0 ? (
           <div className="text-center py-12">
@@ -181,9 +202,19 @@ export default function DynamicTradingPage() {
               첫 번째 세션 만들기
             </button>
           </div>
+        ) : visibleSessions.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-slate-500 mb-4">운영 중인 세션이 없습니다.</p>
+            <button
+              onClick={() => setShowAllSessions(true)}
+              className="px-5 py-2 bg-slate-700/50 text-slate-300 hover:bg-slate-600/50 rounded-lg transition-colors text-sm"
+            >
+              전체 세션 보기 ({(sessions ?? []).length}개)
+            </button>
+          </div>
         ) : (
           <div className="space-y-3">
-            {(sessions as DynamicSession[]).map(session => (
+            {(visibleSessions as DynamicSession[]).map(session => (
               <DynamicSessionCard
                 key={s(session['id'])}
                 session={session}
