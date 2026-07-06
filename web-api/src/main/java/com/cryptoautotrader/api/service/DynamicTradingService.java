@@ -9,6 +9,7 @@ import com.cryptoautotrader.api.repository.DynamicSessionRepository;
 import com.cryptoautotrader.api.repository.OrderRepository;
 import com.cryptoautotrader.api.repository.PositionRepository;
 import com.cryptoautotrader.api.repository.StrategyLogRepository;
+import com.cryptoautotrader.api.repository.StrategyTypeEnabledRepository;
 import com.cryptoautotrader.api.util.TimeframeUtils;
 import com.cryptoautotrader.core.regime.MarketRegime;
 import com.cryptoautotrader.core.regime.MarketRegimeDetector;
@@ -93,6 +94,7 @@ public class DynamicTradingService {
     private final StrategyLogRepository strategyLogRepository;
     private final WsSubscriptionManager wsSubscriptionManager;
     private final StrategyLiveStatusRegistry strategyLiveStatusRegistry;
+    private final StrategyTypeEnabledRepository strategyTypeEnabledRepository;
 
     @Autowired(required = false)
     private UpbitRestClient upbitRestClient;
@@ -126,7 +128,8 @@ public class DynamicTradingService {
                                   DynamicSessionBalanceUpdater balanceUpdater,
                                   StrategyLogRepository strategyLogRepository,
                                   WsSubscriptionManager wsSubscriptionManager,
-                                  StrategyLiveStatusRegistry strategyLiveStatusRegistry) {
+                                  StrategyLiveStatusRegistry strategyLiveStatusRegistry,
+                                  StrategyTypeEnabledRepository strategyTypeEnabledRepository) {
         this.dynamicSessionRepo   = dynamicSessionRepo;
         this.positionRepository   = positionRepository;
         this.orderRepository      = orderRepository;
@@ -138,6 +141,7 @@ public class DynamicTradingService {
         this.strategyLogRepository = strategyLogRepository;
         this.wsSubscriptionManager = wsSubscriptionManager;
         this.strategyLiveStatusRegistry = strategyLiveStatusRegistry;
+        this.strategyTypeEnabledRepository = strategyTypeEnabledRepository;
     }
 
     // ── 세션 생성 ──────────────────────────────────────────────────
@@ -145,6 +149,17 @@ public class DynamicTradingService {
     @Transactional
     public DynamicSessionEntity createSession(DynamicSessionRequest req) {
         StrategyRegistry.get(req.getStrategyType()); // 유효성 검증
+
+        // 비활성 전략 차단 — strategy_type_enabled에서 꺼진 전략은 세션 생성 거부.
+        // (UI 드롭다운 필터만으로는 select 표시/상태 불일치 등으로 우회될 수 있어 서버에서 강제)
+        boolean typeEnabled = strategyTypeEnabledRepository.findById(req.getStrategyType())
+                .map(e -> Boolean.TRUE.equals(e.getIsActive()))
+                .orElse(true);   // 테이블에 없으면 기본 활성 (StrategyController와 동일 규칙)
+        if (!typeEnabled) {
+            throw new IllegalArgumentException(String.format(
+                    "전략 '%s'은(는) 비활성화되어 세션을 생성할 수 없습니다. 전략 관리에서 활성화 후 사용하세요.",
+                    req.getStrategyType()));
+        }
 
         // 전략 거버넌스 검증 — BLOCKED/DEPRECATED 전략은 동적 세션 생성도 차단한다.
         // 기존에는 이 검사가 라이브 세션에도 동적 세션에도 강제되지 않아, 두 경로 모두

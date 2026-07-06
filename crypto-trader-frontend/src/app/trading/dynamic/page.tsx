@@ -95,7 +95,13 @@ export default function DynamicTradingPage() {
   useEffect(() => {
     strategyApi.list().then(res => {
       if (res.success && res.data) {
-        setActiveStrategies(res.data.filter(s => s.status === 'AVAILABLE' && s.isActive));
+        const actives = res.data.filter(s => s.status === 'AVAILABLE' && s.isActive);
+        setActiveStrategies(actives);
+        // 폼의 전략이 활성 목록에 없으면 첫 항목으로 보정 — select가 첫 옵션을 "표시만" 하고
+        // 상태는 목록에 없는 옛 기본값을 유지해 엉뚱한 전략으로 생성되는 문제 방지
+        setForm(prev => actives.some(s => s.name === prev.strategyType)
+          ? prev
+          : { ...prev, strategyType: actives[0]?.name ?? prev.strategyType });
       }
     }).catch(() => {});
   }, []);
@@ -146,7 +152,12 @@ export default function DynamicTradingPage() {
           </p>
         </div>
         <button
-          onClick={() => { setForm({ ...defaultForm }); setCreateError(null); setShowForm(true); }}
+          onClick={() => {
+            // 활성 전략 첫 항목을 기본 선택 — defaultForm의 전략이 비활성이면 select 표시/상태 불일치 발생
+            setForm({ ...defaultForm, strategyType: activeStrategies[0]?.name ?? defaultForm.strategyType });
+            setCreateError(null);
+            setShowForm(true);
+          }}
           className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
         >
           + 새 세션
