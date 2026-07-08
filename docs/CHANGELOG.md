@@ -4,6 +4,35 @@
 
 ---
 
+### ✅ 완료 (2026-07-08) — DriftAlert 오탐 수정 (SELL drift 기준가 버그 + 알림 쿨다운 + BUY drift 신설)
+
+**배경**: `[DriftAlert] COMPOSITE_MTF_BTC_STRICT — 7일 평균 slippage -0.8525%` 텔레그램이 매시간 반복 수신.
+운영 DB 확인 결과 해당 전략의 7일치 drift 기록은 **단 1건**이었고, `signal_price`에 매도 신호 시점 가격이
+아니라 **매수 평균단가**가 들어가 있었다 — 즉 "slippage"가 실은 그 포지션의 손실률 전체(-0.8525% = 세션 186
+BTC 손절 손익). 실제 체결 슬리피지는 SL 트리거가 대비 -0.02% 수준으로 정상. 원인은
+`finalizeSellPosition`이 drift 기록 시 `pos.getAvgPrice()`를 기준가로 사용("근사치" 주석으로 자인)한 것과,
+`checkDriftAlert`(1시간 주기)에 쿨다운이 없어 7일 롤링 윈도우 동안 같은 알림이 최대 168통 발송되는 구조.
+
+1. **주문에 신호가 보존 (V54)** — `"order".signal_price NUMERIC(20,8)` 컬럼 신설. 체결 후 `order.price`가
+   실제 체결가로 덮이므로 drift 기준가는 주문 생성 시점에 보존한다. `OrderRequest.signalPrice` →
+   `OrderExecutionEngine` 엔티티 매핑 추가. 설정 지점: Live 매수(신호 평가 시 현재가)·Live 매도(청산 트리거
+   시 현재가)·Dynamic 매수/매도(동일). 세션 정지 시 강제 청산은 측정 대상이 아니라 미설정(기록 생략).
+2. **SELL drift 기준가 교체** — `finalizeSellPosition`의 drift 기록이 `pos.getAvgPrice()` 대신
+   `filledOrder.getSignalPrice()`를 사용. V54 이전 주문(컬럼 null)은 `record()`가 생략 처리.
+3. **BUY drift 기록 신설** — `OrderExecutionEngine.handleBuyFill`에서 신호가 vs 실제 평균 체결가 기록
+   (LIVE 세션만, `ExecutionDriftTracker` optional 주입). 기존엔 SELL만 기록해 반쪽 측정이었음.
+4. **DriftAlert 쿨다운** — 전략별 24시간 내 재발송 억제, 단 평균값이 0.1%p 이상 변하면 즉시 재발송.
+   임계치 아래로 회복하면 상태 초기화(재돌파 시 즉시 알림). in-memory라 재시작 시 1회 재발송 허용.
+5. **잘못 측정된 기존 데이터 정리 (V54)** — 기존 SELL drift 레코드는 전부 매수 평균단가 기준이라
+   `DELETE FROM execution_drift_log WHERE side='SELL'`로 삭제. 남겨두면 수정 배포 후에도 7일 롤링 평균에
+   계속 포함되어 오탐 알림이 지속됨. (미삭제 시 자연 소멸일: 2026-07-14)
+6. **테스트 스키마 갱신** — `schema-h2.sql` order 테이블에 `signal_price` 반영.
+
+**검증**: `:web-api:test` 116건 전체 통과 (`:core-engine:test` `:strategy-lib:test` 기존 통과 유지).
+**미커밋 / 운영 미배포.**
+
+---
+
 ### ✅ 완료 (2026-07-08) — BLACK_SWAN_GUARD 오탐 수정 (거래량 조건 AND화 + SL 강화 폭 ATR 완화)
 
 **배경**: 운영 DB 분석에서 세션 186(BTC)·187(ETH)의 07-07 손절 2건(-0.84%/-0.63%)이 전략 신호가 아니라

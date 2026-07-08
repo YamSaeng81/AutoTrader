@@ -1221,6 +1221,7 @@ public class LiveTradingService {
         order.setOrderType("MARKET");
         order.setQuantity(investAmount);
         order.setReason(reason);
+        order.setSignalPrice(price);  // §14 drift 측정 기준가 — 신호 평가 시점 현재가
         order.setSessionId(session.getId());
         order.setSessionKind("LIVE");
         order.setPositionId(pos.getId());
@@ -1287,6 +1288,7 @@ public class LiveTradingService {
         order.setOrderType("MARKET");
         order.setQuantity(pos.getSize());
         order.setReason(reason);
+        order.setSignalPrice(currentPrice);  // §14 drift 측정 기준가 — 청산 트리거 시점 현재가
         order.setSessionId(session.getId());
         order.setSessionKind("LIVE");
         order.setPositionId(pos.getId());
@@ -2373,11 +2375,14 @@ public class LiveTradingService {
                     "세션#" + sessionId, pos.getCoinPair(), "SELL",
                     fillPrice, soldQty, fee, realizedPnl, isPartial ? "전략 매도(부분체결)" : "전략 매도");
 
-            // §14 drift 기록 — 진입평균가(signalPrice 근사치) vs 실제 체결가
+            // §14 drift 기록 — 청산 트리거 시점 가격(order.signalPrice) vs 실제 체결가.
+            // 과거엔 매수 평균단가를 기준가로 써서 slippage가 포지션 손익률 전체로 기록되는
+            // 버그가 있었다(2026-07-08, DriftAlert 오탐 — 손실 0.5%↑ 매도 1건이 7일간 매시간 알림).
+            // signalPrice 미보존 주문(V54 이전 생성분)은 record()가 생략 처리한다.
             sessionRepository.findById(sessionId).ifPresent(s ->
                 executionDriftTracker.record(
                         sessionId, pos.getCoinPair(), s.getStrategyType(),
-                        "SELL", pos.getAvgPrice(), fillPrice, Instant.now()));
+                        "SELL", filledOrder.getSignalPrice(), fillPrice, Instant.now()));
         }
     }
 

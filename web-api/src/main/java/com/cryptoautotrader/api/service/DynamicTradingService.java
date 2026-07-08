@@ -670,6 +670,7 @@ public class DynamicTradingService {
         order.setOrderType("MARKET");
         order.setQuantity(investAmount);
         order.setReason("동적 세션 BUY — " + signal.getReason());
+        order.setSignalPrice(currentPrice);  // §14 drift 측정 기준가 보존
         order.setSessionId(sid);
         order.setSessionKind(SESSION_KIND);
         order.setPositionId(posId);
@@ -717,6 +718,7 @@ public class DynamicTradingService {
         order.setOrderType("MARKET");
         order.setQuantity(pos.getSize());
         order.setReason(reason);
+        order.setSignalPrice(currentPrice);  // §14 drift 측정 기준가 보존
         order.setSessionId(sid);
         order.setSessionKind(SESSION_KIND);
         order.setPositionId(pos.getId());

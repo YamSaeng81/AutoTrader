@@ -95,6 +95,10 @@ public class OrderExecutionEngine {
     @Autowired(required = false)
     private MeterRegistry meterRegistry;
 
+    /** §14 — 실전/백테스트 drift 트래커 (BUY 체결 시 신호가 vs 체결가 기록) */
+    @Autowired(required = false)
+    private ExecutionDriftTracker executionDriftTracker;
+
     public OrderExecutionEngine(OrderRepository orderRepository,
                                  PositionRepository positionRepository,
                                  TradeLogRepository tradeLogRepository,
@@ -143,6 +147,7 @@ public class OrderExecutionEngine {
                 .quantity(request.getQuantity())
                 .state("PENDING")
                 .signalReason(request.getReason())
+                .signalPrice(request.getSignalPrice())
                 .sessionId(request.getSessionId())
                 .sessionKind(sessionKind)
                 .positionId(request.getPositionId())
@@ -493,6 +498,16 @@ public class OrderExecutionEngine {
                 telegramService.bufferTradeEvent(
                         "세션#" + order.getSessionId(), order.getCoinPair(), "BUY",
                         avgFillPrice, filledQty, buyFee, null, order.getSignalReason());
+            }
+
+            // §14 drift 기록 — 신호 시점 가격(order.signalPrice) vs 실제 평균 체결가.
+            // signalPrice 미보존 주문(V54 이전 생성분 등)은 record()가 생략 처리한다.
+            if (order.getSessionId() != null && executionDriftTracker != null
+                    && !"DYNAMIC".equals(order.getSessionKind()) && sessionRepository != null) {
+                sessionRepository.findById(order.getSessionId()).ifPresent(s ->
+                        executionDriftTracker.record(
+                                order.getSessionId(), order.getCoinPair(), s.getStrategyType(),
+                                "BUY", order.getSignalPrice(), avgFillPrice, Instant.now()));
             }
         } else {
             // positionId 없는 비세션 주문만 새 포지션 생성

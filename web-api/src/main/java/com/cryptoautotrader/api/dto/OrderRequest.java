@@ -36,6 +36,12 @@ public class OrderRequest {
     /** 주문 사유 (전략 신호, 수동 주문 등) */
     private String reason;
 
+    /**
+     * 신호/트리거 시점 가격 — drift 측정(신호가 vs 체결가) 기준가.
+     * BUY는 신호 평가 시 현재가, SELL은 청산 트리거 시 현재가. 미설정 시 drift 기록 생략.
+     */
+    private BigDecimal signalPrice;
+
     /** 실전매매 세션 ID (LiveTradingService에서 설정, @Async 리턴값 의존 회피용) */
     private Long sessionId;
 

@@ -55,6 +55,13 @@ public class OrderEntity {
     @Column(name = "signal_reason", columnDefinition = "TEXT")
     private String signalReason;
 
+    /**
+     * 신호/트리거 시점 가격 (V54) — 주문 생성 시 설정. 체결 후 order.price는 실제 체결가로
+     * 덮이므로, drift 측정(신호가 vs 체결가)의 기준가는 여기서 보존한다.
+     */
+    @Column(name = "signal_price", precision = 20, scale = 8)
+    private BigDecimal signalPrice;
+
     @Column(name = "created_at")
     private Instant createdAt;
 
@@ -128,6 +135,9 @@ public class OrderEntity {
 
     public String getSignalReason() { return signalReason; }
     public void setSignalReason(String signalReason) { this.signalReason = signalReason; }
+
+    public BigDecimal getSignalPrice() { return signalPrice; }
+    public void setSignalPrice(BigDecimal signalPrice) { this.signalPrice = signalPrice; }
 
     public Instant getCreatedAt() { return createdAt; }
 
