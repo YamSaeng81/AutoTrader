@@ -4,6 +4,34 @@
 
 ---
 
+### ✅ 완료 (2026-07-08) — BLACK_SWAN_GUARD 오탐 수정 (거래량 조건 AND화 + SL 강화 폭 ATR 완화)
+
+**배경**: 운영 DB 분석에서 세션 186(BTC)·187(ETH)의 07-07 손절 2건(-0.84%/-0.63%)이 전략 신호가 아니라
+BLACK_SWAN_GUARD 오발동의 결과로 확인됨. 급락 없이(가격 -0.3~-0.5%) **M5 거래량 5배 조건 단독**으로
+가드가 발동 → SL 강화 래칫이 손절가를 -5% → 현재가-0.3%로 조임 → ~10분 뒤 "실시간 손절(WS)" 청산.
+정량 측정(운영 M5, 최근 6~8일): 거래량≥5x는 코인당 하루 1.5~2.8회 상시 발동(BTC 16회/8일, ETH 13회/6일,
+SOL 17회/6일), 그중 -2% 하락 동반은 0~3회 — 거래량 단독 조건은 M5에서 블랙스완 판별력이 사실상 없음.
+
+1. **거래량 조건 AND화** (`BlackSwanGuard.check`) — "1시간 -5% 급락" 단독 발동은 유지(원 설계 의도),
+   "거래량 5배"는 **1시간 고가 대비 -2% 이상 하락 동반 시에만** 발동하도록 변경
+   (`VOLUME_SPIKE_DROP_CONFIRM_PCT=-2.0`). 상승 돌파·평상시 체결 몰림의 거래량 버스트 오탐 차단.
+2. **SL 강화 폭 ATR 기반 완화** — 고정 0.3%(`TIGHTENED_TRAILING_SL_MARGIN`, M5 캔들 노이즈보다 좁아
+   발동 즉시 청산 예약과 동일)를 제거하고 `BlackSwanGuard.tightenedSlMargin(candles)` 신설:
+   ATR(14)÷현재종가를 [1.2%, 5%]로 클램프(ExitRuleConfig의 min/maxAtrStopLossPct와 동일 범위),
+   계산 불가 시 하한 폴백. `LiveTradingService`(폴링 tick)·`DynamicTradingService.processMonitoringTick`
+   양쪽 교체. WS 틱 spike 감지 경로(-1.5%/30s)의 0.3% 마진은 진짜 급락 전제라 유지.
+3. **SL 강화 관측성** — 조임 발생 시 텔레그램 `sendCustomNotification`(`[BlackSwanGuard] SL 강화 — …`)
+   추가(Live/Dynamic). 기존엔 app 로그뿐이라 운영 DB에서 조임 시점·사유를 역산해야 했음.
+4. **테스트** — `BlackSwanGuardTest` 갱신/신규 7건: 하락 동반 발동, 하락 미동반 미발동, -2% 미만 미발동,
+   SL 마진 하한/상한 클램프, 캔들 부족 폴백.
+
+**검증**: `:core-engine:test` `:strategy-lib:test` `:web-api:test` 전체 통과. **미커밋 / 운영 미배포.**
+
+**운영 주의**: 배포 전 보유 포지션의 이미 조여진 SL(DB 저장값)은 자동 원복되지 않음 — 포지션 1232(BTC,
+세션 186)는 SL 94,709,018(-0.68%) 상태. 원복 여부는 별도 결정(PROGRESS 참조).
+
+---
+
 ### ✅ 완료 (2026-07-02) — BLACK_SWAN_GUARD 신규 구현 (코인별 서킷 브레이커)
 
 **배경**: 2026-04-30 신규 전략 로드맵 ⭐⭐⭐ 3건(COMPOSITE_REGIME_ROUTER, COMPOSITE_MTF_CONFIRMED,

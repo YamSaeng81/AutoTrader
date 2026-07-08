@@ -547,7 +547,7 @@ public class DynamicTradingService {
         BlackSwanGuard.Result blackSwanGuard = BlackSwanGuard.check(candles);
         if (blackSwanGuard.triggered()) {
             BigDecimal tightenedSl = currentPrice.multiply(
-                    BigDecimal.ONE.subtract(BlackSwanGuard.TIGHTENED_TRAILING_SL_MARGIN))
+                    BigDecimal.ONE.subtract(BlackSwanGuard.tightenedSlMargin(candles)))
                     .setScale(8, RoundingMode.HALF_DOWN);
             BigDecimal existingSl = pos.getStopLossPrice();
             if (existingSl == null || tightenedSl.compareTo(existingSl) > 0) {
@@ -555,6 +555,9 @@ public class DynamicTradingService {
                 positionRepository.save(pos);
                 log.warn("[Dynamic] BLACK_SWAN_GUARD SL 강화 (id={}, {}): SL {} → {} ({})",
                         sid, coinPair, existingSl, tightenedSl, blackSwanGuard.reason());
+                telegramService.sendCustomNotification(String.format(
+                        "[BlackSwanGuard] SL 강화 — 동적세션#%d %s: SL %s → %s (%s)",
+                        sid, coinPair, existingSl, tightenedSl, blackSwanGuard.reason()));
             }
         }
 

@@ -987,7 +987,7 @@ public class LiveTradingService {
             // 함께 적용한다. 청산 자체는 아래 손절 체크가 그대로 수행한다.
             if (blackSwanGuard.triggered()) {
                 BigDecimal tightenedSl = currentPrice.multiply(
-                        BigDecimal.ONE.subtract(BlackSwanGuard.TIGHTENED_TRAILING_SL_MARGIN))
+                        BigDecimal.ONE.subtract(BlackSwanGuard.tightenedSlMargin(candles)))
                         .setScale(8, RoundingMode.HALF_DOWN);
                 BigDecimal existingSl = pos.getStopLossPrice();
                 if (existingSl == null || tightenedSl.compareTo(existingSl) > 0) {
@@ -995,6 +995,9 @@ public class LiveTradingService {
                     positionRepository.save(pos);
                     log.warn("BLACK_SWAN_GUARD SL 강화 (sessionId={}, {}): SL {} → {} ({})",
                             sessionId, coinPair, existingSl, tightenedSl, blackSwanGuard.reason());
+                    telegramService.sendCustomNotification(String.format(
+                            "[BlackSwanGuard] SL 강화 — 세션#%d %s: SL %s → %s (%s)",
+                            sessionId, coinPair, existingSl, tightenedSl, blackSwanGuard.reason()));
                 }
             }
 
