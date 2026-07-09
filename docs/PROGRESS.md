@@ -3,7 +3,29 @@
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝나면 완료 내용을 [`docs/CHANGELOG.md`](CHANGELOG.md)에 추가하고, 이 파일의 해당 항목은 삭제한다.
 > **변경 이력**: [`docs/CHANGELOG.md`](CHANGELOG.md)
-> **마지막 갱신**: 2026-07-02 (전략/실전매매/동적멀티코인 종합분석 후속 P0(N-1/N-2) + DM-1 + L-2 + S-1 + BLACK_SWAN_GUARD 구현 완료 — CHANGELOG 참조)
+> **마지막 갱신**: 2026-07-09 (동적 멀티코인 진입 완화 — EMA200 마진 + SCANNING 임계값 하향)
+
+---
+
+## 🆕 2026-07-09 동적 멀티코인 진입 완화 (매수 0건 문제)
+
+> **운영 DB 분석 결과**: 동적 세션(id 26~31, H1)은 가동 이후 **매수 0건** (position에 DYNAMIC 레코드 전무).
+> 재기동(07-08 10:21 KST) 후 DYNAMIC 로그 783건 중 BUY 0 — HOLD 대부분이 buy=0.00~0.15 점수 미달,
+> 드물게 나온 BUY(전 기간 ~21건)는 EMA200 게이트(0.2~0.7% 근소 차단)·BLACK_SWAN 거래량 오탐(수정 전)·
+> RANGE 레짐이 전부 차단. 워치리스트도 목표 10개 대비 3~6개만 통과.
+
+- [x] **코드 완화 (SCANNING 진입 경로 한정, 청산 경로는 기본값 유지)** — **미커밋 / 운영 미배포.**
+  - `Ema200RegimeGate.allowsBuy(candles, coinPair, marginPct)` 오버로드 신설 — `DynamicTradingService`
+    SCANNING에서 마진 1% 적용 (EMA200의 -1%까지 BUY 허용). 라이브·백테스트는 기존 시그니처(마진 0) 유지.
+  - `DynamicTradingService` SCANNING evaluate params에 `weakThreshold=0.25`(기본 0.3),
+    `strongThreshold=0.40`(기본 0.5) 주입.
+  - `CompositeStrategy.finalSignal()` 버그 수정 — STRONG_SELL/BUY(weak)/SELL(weak) 분기가 params
+    override 대신 상수를 참조해 `weakThreshold`/`strongThreshold` override가 절반만 적용되던 문제.
+  - 테스트: `Ema200RegimeGateTest` 마진 2건 추가, `:core-engine` selector 테스트·`:web-api` Dynamic 테스트 통과.
+- [ ] **세션 설정 변경 (사용자가 UI에서 직접)** — 기존 6세션 정지 후 재생성: 타임프레임 **H1→M15**,
+  minAtrPct **0.5→0.3**, maxSpreadPct **0.1→0.15**, maxCandidateSize **30→50** (targetWatchSize 10 유지).
+- [ ] **배포 후 관찰** — 진입 발생 여부·진입 품질(완화로 인한 저품질 진입 손실) 1주 관찰.
+  약세장에서 거래 빈도 증가는 손실 횟수 증가와 동행할 수 있음(실전매매 최근 48h 3전 3패 참고).
 
 ---
 

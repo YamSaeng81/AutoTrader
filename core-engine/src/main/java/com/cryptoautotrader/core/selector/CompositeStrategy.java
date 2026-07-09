@@ -236,15 +236,15 @@ public class CompositeStrategy implements Strategy {
             return StrategySignal.buy(BigDecimal.valueOf(buyScore * 100),
                     String.format("STRONG_BUY score=%.2f [%s]", buyScore, detail));
         }
-        if (sellScore > STRONG_THRESHOLD) {
+        if (sellScore > strongThreshold) {
             return StrategySignal.sell(BigDecimal.valueOf(sellScore * 100),
                     String.format("STRONG_SELL score=%.2f [%s]", sellScore, detail));
         }
-        if (buyScore > WEAK_THRESHOLD) {
+        if (buyScore > weakThreshold) {
             return StrategySignal.buy(BigDecimal.valueOf(buyScore * 100),
                     String.format("BUY score=%.2f [%s]", buyScore, detail));
         }
-        if (sellScore > WEAK_THRESHOLD) {
+        if (sellScore > weakThreshold) {
             return StrategySignal.sell(BigDecimal.valueOf(sellScore * 100),
                     String.format("SELL score=%.2f [%s]", sellScore, detail));
         }

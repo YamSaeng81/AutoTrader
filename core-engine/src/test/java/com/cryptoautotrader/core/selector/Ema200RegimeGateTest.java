@@ -81,4 +81,20 @@ class Ema200RegimeGateTest {
         List<Candle> candles = withLastClose(flatCandles(200, "100"), "50");
         assertThat(Ema200RegimeGate.allowsBuy(candles, null)).isFalse();
     }
+
+    @Test
+    @DisplayName("마진 내 근소 하회면 BUY 허용 (동적 세션 완화)")
+    void 마진내_하회면_허용() {
+        // EMA200≈100, 종가 99.5 → 마진 0%면 차단, 1% 마진(임계 99)이면 허용
+        List<Candle> candles = withLastClose(flatCandles(200, "100"), "99.5");
+        assertThat(Ema200RegimeGate.allowsBuy(candles, "KRW-BTC")).isFalse();
+        assertThat(Ema200RegimeGate.allowsBuy(candles, "KRW-BTC", new BigDecimal("1.0"))).isTrue();
+    }
+
+    @Test
+    @DisplayName("마진을 넘는 하회는 여전히 차단")
+    void 마진초과_하회면_차단() {
+        List<Candle> candles = withLastClose(flatCandles(200, "100"), "95");
+        assertThat(Ema200RegimeGate.allowsBuy(candles, "KRW-BTC", new BigDecimal("1.0"))).isFalse();
+    }
 }

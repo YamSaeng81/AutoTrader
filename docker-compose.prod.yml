@@ -102,7 +102,9 @@ services:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.retention.time=30d'
     ports:
-      - "127.0.0.1:9090:9090"
+      # 호스트 9090은 Cockpit(cockpit-tls)이 점유 → 9091로 우회.
+      # Grafana는 컨테이너 내부 http://prometheus:9090 으로 접근하므로 영향 없음.
+      - "127.0.0.1:9091:9090"
     depends_on:
       - backend
 

@@ -83,6 +83,16 @@ public class DynamicTradingService {
     private static final long CLOSING_TIMEOUT_MINUTES = 8;
     private static final String SESSION_KIND = "DYNAMIC";
 
+    /**
+     * 진입(SCANNING) 완화 파라미터 — 2026-07-09 운영 DB 분석: 동적 세션은 가동 이후 매수 0건.
+     * HOLD 로그 대부분이 buy=0.00~0.15 점수 미달이었고, 드물게 나온 BUY도 EMA200 게이트에
+     * 0.2~0.7% 근소 차이로 전부 차단됐다. 아래 완화는 SCANNING(신규 진입) 경로에만 적용하고,
+     * POSITION_MONITORING(청산) 경로는 기본 임계값을 유지한다.
+     */
+    private static final BigDecimal EMA200_BUY_MARGIN_PCT = new BigDecimal("1.0");
+    private static final double SCAN_WEAK_THRESHOLD   = 0.25;  // CompositeStrategy 기본 0.3
+    private static final double SCAN_STRONG_THRESHOLD = 0.40;  // CompositeStrategy 기본 0.5
+
     private final DynamicSessionRepository dynamicSessionRepo;
     private final PositionRepository positionRepository;
     private final OrderRepository orderRepository;
@@ -426,11 +436,14 @@ public class DynamicTradingService {
             lastEvaluatedCandle.put(candleKey, closedTime);
 
             Strategy strategy = resolveStrategy(sid, coinPair, session.getStrategyType());
-            StrategySignal signal = strategy.evaluate(evalCandles, Map.of("coinPair", coinPair));
+            StrategySignal signal = strategy.evaluate(evalCandles, Map.of(
+                    "coinPair", coinPair,
+                    "weakThreshold", SCAN_WEAK_THRESHOLD,
+                    "strongThreshold", SCAN_STRONG_THRESHOLD));
             BigDecimal evalPrice = evalCandles.get(evalCandles.size() - 1).getClose();
 
             if (signal.getAction() == StrategySignal.Action.BUY
-                    && !Ema200RegimeGate.allowsBuy(evalCandles, coinPair)) {
+                    && !Ema200RegimeGate.allowsBuy(evalCandles, coinPair, EMA200_BUY_MARGIN_PCT)) {
                 ema200Blocked++;
                 log.info("[Dynamic] EMA200 BUY 차단: {} (id={})", coinPair, sid);
                 signal = StrategySignal.hold("EMA200 레짐 필터 — 현재가 EMA200 이하");

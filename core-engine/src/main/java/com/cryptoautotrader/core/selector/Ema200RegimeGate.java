@@ -4,6 +4,7 @@ import com.cryptoautotrader.strategy.Candle;
 import com.cryptoautotrader.strategy.IndicatorUtils;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
 /**
@@ -38,6 +39,20 @@ public final class Ema200RegimeGate {
      * @return BUY 허용이면 true
      */
     public static boolean allowsBuy(List<Candle> candles, String coinPair) {
+        return allowsBuy(candles, coinPair, BigDecimal.ZERO);
+    }
+
+    /**
+     * 허용 마진이 있는 판정 — 종가가 EMA200 × (1 - marginPct/100) 초과이면 BUY 허용.
+     *
+     * <p>2026-07-09 운영 DB 분석: 동적 세션의 EMA200 차단 사례 전부가 0.2~0.7% 차이의
+     * 근소 차단(예: 종가 2,598,000 ≤ EMA200 2,602,011)이었다. 추세 전환 초입을 마진 없이
+     * 전부 걸러내는 문제를 완화하기 위해 동적 세션 한정으로 마진을 준다. 라이브·백테스트
+     * 경로는 기존 시그니처(마진 0)를 그대로 사용한다.</p>
+     *
+     * @param marginPct EMA200 대비 허용 하회폭 % (예: 1.0 → EMA200의 -1%까지 허용)
+     */
+    public static boolean allowsBuy(List<Candle> candles, String coinPair, BigDecimal marginPct) {
         // DOGE 예외: EMA200 아래에서도 수익 패턴 존재 → 게이트 면제
         if (coinPair != null && coinPair.contains("DOGE")) {
             return true;
@@ -49,6 +64,8 @@ public final class Ema200RegimeGate {
                 .map(Candle::getClose)
                 .toList();
         BigDecimal ema200 = IndicatorUtils.ema(closes, EMA_PERIOD);
-        return candles.get(candles.size() - 1).getClose().compareTo(ema200) > 0;
+        BigDecimal threshold = ema200.multiply(
+                BigDecimal.ONE.subtract(marginPct.divide(BigDecimal.valueOf(100), 8, RoundingMode.HALF_UP)));
+        return candles.get(candles.size() - 1).getClose().compareTo(threshold) > 0;
     }
 }
