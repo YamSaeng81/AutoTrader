@@ -84,14 +84,27 @@ public class DynamicTradingService {
     private static final String SESSION_KIND = "DYNAMIC";
 
     /**
-     * 진입(SCANNING) 완화 파라미터 — 2026-07-09 운영 DB 분석: 동적 세션은 가동 이후 매수 0건.
-     * HOLD 로그 대부분이 buy=0.00~0.15 점수 미달이었고, 드물게 나온 BUY도 EMA200 게이트에
-     * 0.2~0.7% 근소 차이로 전부 차단됐다. 아래 완화는 SCANNING(신규 진입) 경로에만 적용하고,
+     * 진입(SCANNING) 완화 파라미터 — SCANNING(신규 진입) 경로에만 적용하고,
      * POSITION_MONITORING(청산) 경로는 기본 임계값을 유지한다.
+     *
+     * <p>1차 완화(2026-07-09, weak 0.25 + EMA200 마진 1%)로도 6일간 매수 0건
+     * (2026-07-15 운영 DB 분석, 평가 35,456건 분해): CompositeStrategy 내부 EMA20/50
+     * 역추세 필터가 BUY 점수를 완전 소멸(5,218건, VWAP:BUY(100) 0.30→0.00 패턴 다수)시키고,
+     * 이를 통과해 BUY로 확정된 ~323건도 EMA200 게이트(283)·BLACK_SWAN(40)이 전량 차단.
+     * 2차 완화(2026-07-15, 사용자 결정 — 관망 대신 거래 빈도 확보):</p>
+     * <ul>
+     *   <li>weak 0.25→0.20 (strong 0.40 유지)</li>
+     *   <li>EMA 역추세 감쇠 0.0(완전 소멸)→0.7 — VWAP:BUY(100) 단독 0.30→0.21로 임계 통과
+     *       가능해지되, 약신호(SUPERTREND:BUY(50)=0.15→0.105)는 여전히 걸러진다</li>
+     *   <li>EMA200 마진 1%→3% — 마진 1%에도 하락장에서 일 23~71건씩 전량 차단됐음</li>
+     * </ul>
+     * <p>ADX 필터는 건드리지 않는다 — adxThreshold 완화(15.0)는 횡보장 손실 확대로
+     * 2026-06-30 제거된 전력 (LiveTradingService 주석 참조).</p>
      */
-    private static final BigDecimal EMA200_BUY_MARGIN_PCT = new BigDecimal("1.0");
-    private static final double SCAN_WEAK_THRESHOLD   = 0.25;  // CompositeStrategy 기본 0.3
+    private static final BigDecimal EMA200_BUY_MARGIN_PCT = new BigDecimal("3.0");
+    private static final double SCAN_WEAK_THRESHOLD   = 0.20;  // CompositeStrategy 기본 0.3
     private static final double SCAN_STRONG_THRESHOLD = 0.40;  // CompositeStrategy 기본 0.5
+    private static final double SCAN_EMA_DAMPEN_FACTOR = 0.7;  // CompositeStrategy 기본 0.0(완전 소멸)
 
     private final DynamicSessionRepository dynamicSessionRepo;
     private final PositionRepository positionRepository;
@@ -439,7 +452,8 @@ public class DynamicTradingService {
             StrategySignal signal = strategy.evaluate(evalCandles, Map.of(
                     "coinPair", coinPair,
                     "weakThreshold", SCAN_WEAK_THRESHOLD,
-                    "strongThreshold", SCAN_STRONG_THRESHOLD));
+                    "strongThreshold", SCAN_STRONG_THRESHOLD,
+                    "emaFilterDampenFactor", SCAN_EMA_DAMPEN_FACTOR));
             BigDecimal evalPrice = evalCandles.get(evalCandles.size() - 1).getClose();
 
             if (signal.getAction() == StrategySignal.Action.BUY
