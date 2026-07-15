@@ -102,6 +102,34 @@ class CompositeStrategyTest {
     }
 
     @Test
+    @DisplayName("BUY score가 정확히 weak 임계값 → BUY 반환 (경계값 포함, 2026-07-16)")
+    void buyScoreExactlyAtWeakThreshold_buy() {
+        // 0.3 * 1.0 = 0.30 == WEAK_THRESHOLD(0.3) — 운영에서 MACD 단독 BUY(100)가
+        // 정확히 임계값에 떨어지는 패턴이 최다 후보였는데 strict 비교로 전부 탈락했다
+        CompositeStrategy cs = new CompositeStrategy(List.of(
+                new WeightedStrategy(stub("A", StrategySignal.Action.BUY, 100), 0.3)
+        ));
+
+        StrategySignal result = cs.evaluate(oneCandle(), Map.of());
+        assertThat(result.getAction()).isEqualTo(StrategySignal.Action.BUY);
+    }
+
+    @Test
+    @DisplayName("STRONG BUY(≥0.5) + weak SELL → 상충 아님, BUY 우세 (2026-07-16)")
+    void strongBuyBeatsWeakSell() {
+        // buyScore = 0.5*1.0 = 0.50 (strong), sellScore = 0.35*1.0 = 0.35 (weak)
+        // 등급이 다르면 상충 HOLD 대신 강한 쪽이 이긴다
+        CompositeStrategy cs = new CompositeStrategy(List.of(
+                new WeightedStrategy(stub("A", StrategySignal.Action.BUY,  100), 0.5),
+                new WeightedStrategy(stub("B", StrategySignal.Action.SELL, 100), 0.35)
+        ));
+
+        StrategySignal result = cs.evaluate(oneCandle(), Map.of());
+        assertThat(result.getAction()).isEqualTo(StrategySignal.Action.BUY);
+        assertThat(result.getReason()).contains("STRONG_BUY");
+    }
+
+    @Test
     @DisplayName("모든 전략 HOLD → HOLD 반환")
     void allHold() {
         CompositeStrategy cs = new CompositeStrategy(List.of(

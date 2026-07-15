@@ -17,11 +17,11 @@ import java.util.Map;
  * buyScore  = Σ(weight × confidence)  (BUY  신호 전략 합산)
  * sellScore = Σ(weight × confidence)  (SELL 신호 전략 합산)
  *
- * buyScore  > 0.5                         → BUY  (strength ≈ score × 100)
- * sellScore > 0.5                         → SELL
- * buyScore  > 0.3                         → BUY  (weak)
- * sellScore > 0.3                         → SELL (weak)
- * 양쪽 모두 > 0.3 (상충)                  → HOLD
+ * buyScore  ≥ 0.5                         → BUY  (strength ≈ score × 100)
+ * sellScore ≥ 0.5                         → SELL
+ * buyScore  ≥ 0.3                         → BUY  (weak)
+ * sellScore ≥ 0.3                         → SELL (weak)
+ * 양쪽 모두 ≥ 0.3 이고 강도 등급이 같음   → HOLD (상충 — 한쪽만 strong이면 그쪽 우세)
  * 그 외                                   → HOLD
  * </pre>
  */
@@ -228,23 +228,29 @@ public class CompositeStrategy implements Strategy {
 
     private StrategySignal finalSignal(double buyScore, double sellScore, String detail,
                                         double weakThreshold, double strongThreshold) {
-        if (buyScore > weakThreshold && sellScore > weakThreshold) {
+        // 임계 비교는 >= — MACD 단독 BUY(100) 등이 정확히 임계값(예: 0.20)에 떨어지는 경우가
+        // 실전에서 가장 흔한 후보 패턴이라 strict 비교(>)는 이들을 전부 탈락시킨다 (2026-07-16 운영 분석)
+        boolean buyStrong  = buyScore  >= strongThreshold;
+        boolean sellStrong = sellScore >= strongThreshold;
+        // 상충 판정은 양쪽 강도 등급이 같을 때만 — 한쪽만 strong이면 weak 반대 신호가
+        // 강신호를 무효화하지 못한다 (weak 임계 인하 시 STRONG_BUY가 감쇠 SELL에 사살되는 역효과 방지)
+        if (buyScore >= weakThreshold && sellScore >= weakThreshold && buyStrong == sellStrong) {
             return StrategySignal.hold(String.format("상충 신호 buy=%.2f sell=%.2f [%s]",
                     buyScore, sellScore, detail));
         }
-        if (buyScore > strongThreshold) {
+        if (buyStrong) {
             return StrategySignal.buy(BigDecimal.valueOf(buyScore * 100),
                     String.format("STRONG_BUY score=%.2f [%s]", buyScore, detail));
         }
-        if (sellScore > strongThreshold) {
+        if (sellStrong) {
             return StrategySignal.sell(BigDecimal.valueOf(sellScore * 100),
                     String.format("STRONG_SELL score=%.2f [%s]", sellScore, detail));
         }
-        if (buyScore > weakThreshold) {
+        if (buyScore >= weakThreshold) {
             return StrategySignal.buy(BigDecimal.valueOf(buyScore * 100),
                     String.format("BUY score=%.2f [%s]", buyScore, detail));
         }
-        if (sellScore > weakThreshold) {
+        if (sellScore >= weakThreshold) {
             return StrategySignal.sell(BigDecimal.valueOf(sellScore * 100),
                     String.format("SELL score=%.2f [%s]", sellScore, detail));
         }

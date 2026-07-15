@@ -4,6 +4,30 @@
 
 ---
 
+### ✅ 완료 (2026-07-16) — CompositeStrategy 임계 경계값 버그 + 상충 규칙 완화 역효과 수정
+
+**배경**: 동적 세션 가동 7일(07-09~) 매수 0건의 정밀 퍼널 분석(41,172건 평가 → BUY 신호 단 1건)에서
+시장 무관 결함 2건 확정. 07-15 완화 이후 임계(0.20) 도달 13건 중 12건이 아래 두 경로로 사망:
+
+1. **임계 비교 `>` → `>=`** (`CompositeStrategy.finalSignal`) — 실전 최다 매수 후보 패턴이
+   "MACD 단독 BUY(100) = 정확히 0.20"인데 strict 비교라 `0.20 > 0.20 = false`로 전부 "점수 미달" 탈락
+   (완화 이후 8건: ETH/HBAR/B3 반복). weak/strong 모두 `>=`로 변경.
+2. **상충 신호 규칙에 강도 등급 비교 추가** — 기존엔 buy·sell 둘 다 weak 초과면 무조건 HOLD.
+   weak 0.25→0.20 인하로 감쇠된 SELL 0.21이 상충 범위에 새로 들어와 **buy=0.50 STRONG_BUY 2건
+   (B3/VIRTUAL)이 HOLD로 사살**되는 역효과 발생 (완화 전 기준이면 통과였음). 수정: 양쪽 강도 등급이
+   같을 때만 상충 HOLD — 한쪽만 strong이면 그쪽이 우세 (STRONG_BUY 0.50 vs weak SELL 0.21 → BUY).
+   양쪽 다 strong(0.5/0.5) 상충 HOLD는 기존 계약 유지.
+3. **운영 즉시 효력 (무배포)** — 수정 코드 배포 전까지 strict 비교를 우회하기 위해
+   `UPDATE risk_config SET scan_weak_threshold=0.19` 적용(V56 설정화 활용, `getRiskConfig()`가 매 틱
+   DB 조회라 재시작 불필요). **배포 후 NULL로 원복 필요** (`>=` 코드와 0.19가 겹치면 이중 완화).
+
+공유 클래스라 라이브·백테스트 경로에도 동일 적용됨 (경계값 정확 일치 케이스만 영향, 영향 폭 미미).
+
+**검증**: `CompositeStrategyTest` 신규 2건(경계값 BUY / STRONG vs weak 상충 해제) + `:core-engine:test`
+`:web-api:test` 전체 통과. **미커밋 / 운영 미배포 (SQL 스탑갭만 즉시 적용됨).**
+
+---
+
 ### ✅ 완료 (2026-07-08) — DriftAlert 오탐 수정 (SELL drift 기준가 버그 + 알림 쿨다운 + BUY drift 신설)
 
 **배경**: `[DriftAlert] COMPOSITE_MTF_BTC_STRICT — 7일 평균 slippage -0.8525%` 텔레그램이 매시간 반복 수신.
