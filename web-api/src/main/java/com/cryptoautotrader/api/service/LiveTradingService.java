@@ -911,7 +911,7 @@ public class LiveTradingService {
             log.debug("세션 전략 신호 (sessionId={}): {} {} -> {} ({})",
                     sessionId, strategyType, coinPair, signal.getAction(), signal.getReason());
 
-            // EMA200 레짐 필터: BUY 신호를 EMA200 위에서만 허용 (DOGE 예외 포함).
+            // EMA200 레짐 필터: BUY 신호를 EMA200 위에서만 허용 (DOGE 예외는 2026-07-15 제거 — 세션 189 반증).
             // 백테스트(BacktestEngine)와 동일 로직을 Ema200RegimeGate 단일 진실 소스로 통합 (P1-B).
             boolean ema200Pass = Ema200RegimeGate.allowsBuy(evalCandles, coinPair);
             if (signal.getAction() == StrategySignal.Action.BUY && !ema200Pass) {

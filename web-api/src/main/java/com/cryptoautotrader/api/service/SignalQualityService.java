@@ -89,11 +89,12 @@ public class SignalQualityService {
         long hours  = is4h ? 4 : 24;
         Instant cutoff = Instant.now().minus(hours, ChronoUnit.HOURS);
         int processed = 0;
+        int page = 0;
 
         while (processed < maxTotal) {
             List<StrategyLogEntity> pending = is4h
-                    ? strategyLogRepository.findPendingFor4hEval(cutoff,  PageRequest.of(0, BATCH_SIZE))
-                    : strategyLogRepository.findPendingFor24hEval(cutoff, PageRequest.of(0, BATCH_SIZE));
+                    ? strategyLogRepository.findPendingFor4hEval(cutoff,  PageRequest.of(page, BATCH_SIZE))
+                    : strategyLogRepository.findPendingFor24hEval(cutoff, PageRequest.of(page, BATCH_SIZE));
 
             if (pending.isEmpty()) break;
 
@@ -120,6 +121,16 @@ public class SignalQualityService {
                 }
             }
             if (!toSave.isEmpty()) strategyLogRepository.saveAll(toSave);
+
+            // 실패 행 페이지 전진 가드: 캔들 조회 실패 행(상장폐지 코인 등)은 저장되지 않아
+            // 다음 조회에서도 정렬 헤드(오래된 순)에 그대로 남는다. page를 고정하면 같은 행을
+            // 무한 재조회(무한 루프)하고, 실패 행 100+건이 헤드에 쌓이면 그 뒤의 정상 행이
+            // 영영 평가되지 않는다. 실패가 있으면 다음 페이지로 전진해 후속 행을 계속 처리한다
+            // (성공분이 pending에서 빠지며 일부 행이 이번 실행에서 건너뛰어질 수 있지만,
+            // 다음 스케줄 주기(30분)에 다시 잡힌다).
+            if (pending.size() > toSave.size()) {
+                page++;
+            }
 
             // 꽉 찬 배치가 아니면 더 이상 없음
             if (pending.size() < BATCH_SIZE) break;

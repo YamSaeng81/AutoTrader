@@ -127,6 +127,10 @@ CREATE TABLE IF NOT EXISTS risk_config (
     trailing_sl_margin_pct      DECIMAL(5, 3)   DEFAULT 0.3,
     invest_ratio_pct            DECIMAL(5, 2)   DEFAULT 80.0,
     max_portfolio_drawdown_pct  DECIMAL(5, 2)   DEFAULT 15.0,
+    scan_weak_threshold         DECIMAL(4, 2),
+    scan_strong_threshold       DECIMAL(4, 2),
+    scan_ema_dampen_factor      DECIMAL(4, 2),
+    scan_ema200_buy_margin_pct  DECIMAL(5, 2),
     updated_at                  TIMESTAMP       DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -178,6 +182,8 @@ CREATE TABLE IF NOT EXISTS dynamic_session (
     watchlist_refreshed_at      TIMESTAMP,
     version                     BIGINT          NOT NULL DEFAULT 0,
     mdd_peak_capital            DECIMAL(20, 2),
+    circuit_breaker_triggered_at TIMESTAMP,
+    circuit_breaker_reason      VARCHAR(500),
     started_at                  TIMESTAMP,
     stopped_at                  TIMESTAMP,
     created_at                  TIMESTAMP       DEFAULT CURRENT_TIMESTAMP,

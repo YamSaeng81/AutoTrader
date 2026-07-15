@@ -100,6 +100,11 @@ public class DynamicTradingService {
      * </ul>
      * <p>ADX 필터는 건드리지 않는다 — adxThreshold 완화(15.0)는 횡보장 손실 확대로
      * 2026-06-30 제거된 전력 (LiveTradingService 주석 참조).</p>
+     *
+     * <p><b>설정화 (2026-07-15)</b>: 아래 상수는 코드 기본값(폴백)이다. risk_config의
+     * scan_weak_threshold / scan_strong_threshold / scan_ema_dampen_factor /
+     * scan_ema200_buy_margin_pct 가 NOT NULL이면 그 값이 우선한다 (V56) — 재빌드 없이
+     * SQL/API(PUT /api/v1/trading/risk/config)로 조정 가능.</p>
      */
     private static final BigDecimal EMA200_BUY_MARGIN_PCT = new BigDecimal("3.0");
     private static final double SCAN_WEAK_THRESHOLD   = 0.20;  // CompositeStrategy 기본 0.3
@@ -118,6 +123,7 @@ public class DynamicTradingService {
     private final WsSubscriptionManager wsSubscriptionManager;
     private final StrategyLiveStatusRegistry strategyLiveStatusRegistry;
     private final StrategyTypeEnabledRepository strategyTypeEnabledRepository;
+    private final RiskManagementService riskManagementService;
 
     @Autowired(required = false)
     private UpbitRestClient upbitRestClient;
@@ -152,7 +158,8 @@ public class DynamicTradingService {
                                   StrategyLogRepository strategyLogRepository,
                                   WsSubscriptionManager wsSubscriptionManager,
                                   StrategyLiveStatusRegistry strategyLiveStatusRegistry,
-                                  StrategyTypeEnabledRepository strategyTypeEnabledRepository) {
+                                  StrategyTypeEnabledRepository strategyTypeEnabledRepository,
+                                  RiskManagementService riskManagementService) {
         this.dynamicSessionRepo   = dynamicSessionRepo;
         this.positionRepository   = positionRepository;
         this.orderRepository      = orderRepository;
@@ -165,6 +172,7 @@ public class DynamicTradingService {
         this.wsSubscriptionManager = wsSubscriptionManager;
         this.strategyLiveStatusRegistry = strategyLiveStatusRegistry;
         this.strategyTypeEnabledRepository = strategyTypeEnabledRepository;
+        this.riskManagementService = riskManagementService;
     }
 
     // ── 세션 생성 ──────────────────────────────────────────────────
@@ -362,6 +370,22 @@ public class DynamicTradingService {
         DynamicSessionEntity fresh = dynamicSessionRepo.findById(sid).orElse(null);
         if (fresh == null || !"RUNNING".equals(fresh.getStatus())) return;
 
+        // ── 서킷 브레이커 — MDD 초과 / 연속 손실 한도 초과 시 비상 정지 ──
+        // LiveTradingService와 동일 정책. 2026-07-15 진입 2차 완화로 동적 세션이 실제 매매를
+        // 시작하므로, 라이브 191(-208원, 5연속 손절)을 멈춰준 안전장치를 동적 경로에도 적용한다.
+        // 연속 손실은 이번 가동(startedAt) 이후 청산분만 집계 — 재시작 시 즉시 재발동 방지.
+        CircuitBreakerResult cbResult = riskManagementService.checkCircuitBreaker(fresh);
+        if (cbResult.isTriggered()) {
+            log.error("[Dynamic] 서킷 브레이커 발동 (id={}): {}", sid, cbResult.getReason());
+            fresh.setCircuitBreakerTriggeredAt(Instant.now());
+            fresh.setCircuitBreakerReason(cbResult.getReason());
+            dynamicSessionRepo.save(fresh);
+            emergencyStop(sid);
+            telegramService.sendCustomNotification(String.format(
+                    "🚨 [동적#%d] 서킷 브레이커 발동 — 비상 정지: %s", sid, cbResult.getReason()));
+            return;
+        }
+
         if ("SCANNING".equals(fresh.getScanState())) {
             processScanningTick(fresh);
         } else {
@@ -421,7 +445,24 @@ public class DynamicTradingService {
         int rangeBlocked = 0;
         int blackSwanBlocked = 0;
         int btcMarketGuardBlocked = 0;
+        int lossCooldownBlocked = 0;
         List<BuyCandidate> buyCandidates = new java.util.ArrayList<>();
+
+        // SCANNING 진입 파라미터 — risk_config에서 읽고, NULL이면 코드 기본값(상수) 사용.
+        // 2026-07-15 설정화: 완화 폭 튜닝 반복 중이라 재빌드 없이 SQL/API로 조정 가능해야 한다.
+        com.cryptoautotrader.api.entity.RiskConfigEntity riskConfig = riskManagementService.getRiskConfig();
+        // 손실 청산 쿨다운(분) — 라이브 191 패턴(같은 코인 반복 진입→손절 5연속) 방지:
+        // 직전 청산이 손실이면 쿨다운 동안 같은 코인 재진입을 차단한다.
+        int lossCooldownMinutes = riskConfig.getCooldownMinutes() != null
+                ? riskConfig.getCooldownMinutes() : 60;
+        double scanWeakThreshold = riskConfig.getScanWeakThreshold() != null
+                ? riskConfig.getScanWeakThreshold().doubleValue() : SCAN_WEAK_THRESHOLD;
+        double scanStrongThreshold = riskConfig.getScanStrongThreshold() != null
+                ? riskConfig.getScanStrongThreshold().doubleValue() : SCAN_STRONG_THRESHOLD;
+        double scanEmaDampenFactor = riskConfig.getScanEmaDampenFactor() != null
+                ? riskConfig.getScanEmaDampenFactor().doubleValue() : SCAN_EMA_DAMPEN_FACTOR;
+        BigDecimal ema200BuyMarginPct = riskConfig.getScanEma200BuyMarginPct() != null
+                ? riskConfig.getScanEma200BuyMarginPct() : EMA200_BUY_MARGIN_PCT;
 
         // BTC_MARKET_GUARD — 워치리스트 전체가 같은 timeframe을 쓰므로 틱당 한 번만 조회한다
         // (2026-07-02 codex 분석 §6, BTC 1시간 -1.5% 급락 시 코인 무관 신규 진입 차단).
@@ -451,53 +492,72 @@ public class DynamicTradingService {
             Strategy strategy = resolveStrategy(sid, coinPair, session.getStrategyType());
             StrategySignal signal = strategy.evaluate(evalCandles, Map.of(
                     "coinPair", coinPair,
-                    "weakThreshold", SCAN_WEAK_THRESHOLD,
-                    "strongThreshold", SCAN_STRONG_THRESHOLD,
-                    "emaFilterDampenFactor", SCAN_EMA_DAMPEN_FACTOR));
+                    "weakThreshold", scanWeakThreshold,
+                    "strongThreshold", scanStrongThreshold,
+                    "emaFilterDampenFactor", scanEmaDampenFactor));
             BigDecimal evalPrice = evalCandles.get(evalCandles.size() - 1).getClose();
 
-            if (signal.getAction() == StrategySignal.Action.BUY
-                    && !Ema200RegimeGate.allowsBuy(evalCandles, coinPair, EMA200_BUY_MARGIN_PCT)) {
-                ema200Blocked++;
-                log.info("[Dynamic] EMA200 BUY 차단: {} (id={})", coinPair, sid);
-                signal = StrategySignal.hold("EMA200 레짐 필터 — 현재가 EMA200 이하");
-            }
+            // ── 진입 게이트 — BUY 실행만 차단하고 신호는 BUY로 보존한다 ─────────
+            // 이전에는 게이트가 signal 자체를 HOLD로 덮어써서, 차단된 BUY가 사후수익률
+            // 평가(SignalQualityService — BUY/SELL만 대상)에서 영구 제외됐다. 신호는 BUY로
+            // 저장하고 blockedReason에 게이트 사유를 남겨 "차단이 방어였는지(하락) 기회비용
+            // 이었는지(상승)"를 4h/24h 수익률로 측정 가능하게 한다 (2026-07-15).
+            String gateBlockReason = null;
 
             if (signal.getAction() == StrategySignal.Action.BUY
+                    && !Ema200RegimeGate.allowsBuy(evalCandles, coinPair, ema200BuyMarginPct)) {
+                ema200Blocked++;
+                log.info("[Dynamic] EMA200 BUY 차단: {} (id={})", coinPair, sid);
+                gateBlockReason = String.format("EMA200 레짐 필터 — 현재가 EMA200(-%s%%) 이하", ema200BuyMarginPct);
+            }
+
+            if (gateBlockReason == null && signal.getAction() == StrategySignal.Action.BUY
                     && RangeRegimeGate.isBlocked(session.getStrategyType())) {
                 try {
                     MarketRegime regime = new MarketRegimeDetector().detectRaw(evalCandles);
                     if (regime == MarketRegime.RANGE) {
                         rangeBlocked++;
                         log.info("[Dynamic] RANGE 레짐 BUY 차단: {} (id={})", coinPair, sid);
-                        signal = StrategySignal.hold("RANGE 레짐 — 추세 추종 전략 횡보장 신규 진입 차단");
+                        gateBlockReason = "RANGE 레짐 — 추세 추종 전략 횡보장 신규 진입 차단";
                     }
                 } catch (Exception ignored) {}
             }
 
             // BLACK_SWAN_GUARD: 코인별 서킷 브레이커 — 1시간 내 -5% 급락 또는 거래량 5배 급증 시
             // 신규 진입 차단 (2026-04-30 로드맵 ⭐⭐⭐, 2026-07-02 구현).
-            if (signal.getAction() == StrategySignal.Action.BUY) {
+            if (gateBlockReason == null && signal.getAction() == StrategySignal.Action.BUY) {
                 BlackSwanGuard.Result guard = BlackSwanGuard.check(evalCandles);
                 if (guard.triggered()) {
                     blackSwanBlocked++;
                     log.warn("[Dynamic] BLACK_SWAN_GUARD 발동 — BUY 차단: {} (id={}): {}",
                             coinPair, sid, guard.reason());
-                    signal = StrategySignal.hold("BLACK_SWAN_GUARD 발동 — " + guard.reason());
+                    gateBlockReason = "BLACK_SWAN_GUARD 발동 — " + guard.reason();
                 }
             }
 
             // BTC_MARKET_GUARD: BTC 1시간 -1.5% 급락 시 코인 무관 전체 신규 진입 차단.
-            if (signal.getAction() == StrategySignal.Action.BUY && btcMarketGuard.triggered()) {
+            if (gateBlockReason == null && signal.getAction() == StrategySignal.Action.BUY
+                    && btcMarketGuard.triggered()) {
                 btcMarketGuardBlocked++;
                 log.warn("[Dynamic] BTC_MARKET_GUARD 발동 — BUY 차단: {} (id={}): {}",
                         coinPair, sid, btcMarketGuard.reason());
-                signal = StrategySignal.hold("BTC_MARKET_GUARD 발동 — " + btcMarketGuard.reason());
+                gateBlockReason = "BTC_MARKET_GUARD 발동 — " + btcMarketGuard.reason();
+            }
+
+            // 손실 청산 쿨다운: 이 세션에서 직전에 손실로 청산한 코인은 쿨다운 동안 재진입 차단.
+            if (gateBlockReason == null && signal.getAction() == StrategySignal.Action.BUY
+                    && isInLossCooldown(sid, coinPair, lossCooldownMinutes)) {
+                lossCooldownBlocked++;
+                log.info("[Dynamic] 손실 쿨다운 BUY 차단: {} (id={}, 쿨다운 {}분)",
+                        coinPair, sid, lossCooldownMinutes);
+                gateBlockReason = String.format(
+                        "손실 청산 쿨다운 — 직전 손실 청산 후 %d분 내 동일 코인 재진입 차단", lossCooldownMinutes);
             }
 
             // 코인별 평가 결과 로그 (BUY/SELL은 INFO, HOLD는 DEBUG) — 전략로그 페이지 노출용으로 DB에도 저장
             if (signal.getAction() != StrategySignal.Action.HOLD) {
-                log.info("[Dynamic] 평가결과: {} → {} ({})", coinPair, signal.getAction(), signal.getReason());
+                log.info("[Dynamic] 평가결과: {} → {}{} ({})", coinPair, signal.getAction(),
+                        gateBlockReason != null ? "(차단)" : "", signal.getReason());
             } else {
                 holdCount++;
                 log.debug("[Dynamic] 평가결과: {} → HOLD ({})", coinPair, signal.getReason());
@@ -507,15 +567,24 @@ public class DynamicTradingService {
             StrategyLogEntity signalLog = saveStrategyLog(sid, session.getStrategyType(), coinPair, signal, evalPrice);
 
             if (signal.getAction() == StrategySignal.Action.BUY) {
-                buyCandidates.add(new BuyCandidate(coinPair, evalCandles, signal, signalLog));
+                if (gateBlockReason != null) {
+                    // 게이트 차단 — 실행 후보에서 제외하되 신호품질 기록은 남긴다
+                    updateSignalQuality(signalLog, false, gateBlockReason);
+                } else {
+                    buyCandidates.add(new BuyCandidate(coinPair, evalCandles, signal, signalLog));
+                }
+            } else if (signal.getAction() == StrategySignal.Action.SELL) {
+                // SCANNING 중 SELL은 실행 대상이 아님(보유 포지션 없음) — blockedReason 없이 쌓이면
+                // 신호품질 통계가 "실행 안 된 SELL"로 오염된다 (2026-07-15 운영 DB 분석: 3,391건).
+                updateSignalQuality(signalLog, false, "SCANNING — 보유 포지션 없음(청산 대상 아님)");
             }
         }
 
         if (buyCandidates.isEmpty()) {
             log.info("[Dynamic] SCANNING 완료: 진입 조건 없음 (id={}, 감시 {}개) — "
-                            + "HOLD={} SELL={} EMA200차단={} RANGE차단={} 블랙스완차단={} BTC급락차단={} 캔들부족={} 캔들미갱신={}",
+                            + "HOLD={} SELL={} EMA200차단={} RANGE차단={} 블랙스완차단={} BTC급락차단={} 손실쿨다운차단={} 캔들부족={} 캔들미갱신={}",
                     sid, watchlist.size(), holdCount, sellCount, ema200Blocked, rangeBlocked,
-                    blackSwanBlocked, btcMarketGuardBlocked, insufficientCandles, staleCandle);
+                    blackSwanBlocked, btcMarketGuardBlocked, lossCooldownBlocked, insufficientCandles, staleCandle);
             return;
         }
 
@@ -754,6 +823,24 @@ public class DynamicTradingService {
         // KRW 복원은 reconcile 에서 처리 — 여기서는 상태만 전환
         transitionToScanning(sid);
         log.info("[Dynamic] 매도 주문: id={} {} size={}", sid, pos.getCoinPair(), pos.getSize());
+    }
+
+    // ── 내부: 손실 청산 쿨다운 ────────────────────────────────────
+
+    /**
+     * 이 세션에서 해당 코인의 가장 최근 청산이 손실이고, 청산 후 {@code cooldownMinutes}가
+     * 지나지 않았으면 true — SCANNING 재진입을 차단한다 (라이브 191 반복 손절 패턴 방지).
+     */
+    private boolean isInLossCooldown(Long sessionId, String coinPair, int cooldownMinutes) {
+        if (cooldownMinutes <= 0) return false;
+        return positionRepository
+                .findTopBySessionKindAndSessionIdAndCoinPairAndStatusOrderByClosedAtDesc(
+                        SESSION_KIND, sessionId, coinPair, "CLOSED")
+                .filter(p -> p.getRealizedPnl() != null
+                        && p.getRealizedPnl().compareTo(BigDecimal.ZERO) < 0)
+                .filter(p -> p.getClosedAt() != null
+                        && Duration.between(p.getClosedAt(), Instant.now()).toMinutes() < cooldownMinutes)
+                .isPresent();
     }
 
     // ── 내부: 워치리스트 관리 ─────────────────────────────────────

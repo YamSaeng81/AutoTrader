@@ -104,6 +104,14 @@ public class DynamicSessionEntity {
     @Column(name = "mdd_peak_capital", precision = 20, scale = 2)
     private BigDecimal mddPeakCapital;
 
+    /** 서킷 브레이커 발동 시각 (MDD 초과 / 연속 손실 한도 초과) */
+    @Column(name = "circuit_breaker_triggered_at")
+    private Instant circuitBreakerTriggeredAt;
+
+    /** 서킷 브레이커 발동 사유 */
+    @Column(name = "circuit_breaker_reason", length = 500)
+    private String circuitBreakerReason;
+
     @Column(name = "started_at")
     private Instant startedAt;
 
@@ -190,6 +198,12 @@ public class DynamicSessionEntity {
 
     public BigDecimal getMddPeakCapital() { return mddPeakCapital; }
     public void setMddPeakCapital(BigDecimal v) { this.mddPeakCapital = v; }
+
+    public Instant getCircuitBreakerTriggeredAt() { return circuitBreakerTriggeredAt; }
+    public void setCircuitBreakerTriggeredAt(Instant v) { this.circuitBreakerTriggeredAt = v; }
+
+    public String getCircuitBreakerReason() { return circuitBreakerReason; }
+    public void setCircuitBreakerReason(String v) { this.circuitBreakerReason = v; }
 
     public Instant getStartedAt() { return startedAt; }
     public void setStartedAt(Instant v) { this.startedAt = v; }

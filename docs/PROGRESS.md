@@ -25,7 +25,29 @@
   - `SCAN_WEAK_THRESHOLD` 0.25→0.20 (strong 0.40 유지). `EMA200_BUY_MARGIN_PCT` 1.0→3.0.
   - **ADX 필터는 의도적으로 유지** — adxThreshold 완화(15.0)가 횡보장 손실 확대로 2026-06-30 제거된 전력 존중.
   - `:web-api:compileJava` ✅, selector 테스트 + `DynamicScanSelectionTest`/`SessionKindIsolationTest` ✅.
+  - [x] **07-15 배포 완료** — 재기동 후 운영 DB 로그로 적용 확인 (감쇠 로그 "BUY 0.30→0.21", score 0.21~0.50 BUY 후보 생성 시작). 새 병목: 전략 내부 Ichimoku TK/Chikou 확인 게이트·RSIVeto가 후보 차단 중(STRONG_BUY 0.50도 차단) — 전략 정체성이라 미완화, 관찰.
   - [ ] 배포 후 관찰: 진입 발생 여부 + 진입 품질. 완화로 189/191/193 손실 패턴(하락장 역추세 진입 반복 손절) 재현 시 감쇠 0.7→0.5 또는 EMA200 마진 3%→2% 롤백 검토.
+- [x] **동적 세션 서킷 브레이커 + 손실 쿨다운 (2026-07-15)** — 진입 완화의 안전장치 세트. **미커밋 / 운영 미배포.**
+  - **공백 발견**: 연속 손실 서킷 브레이커(`RiskManagementService.checkCircuitBreaker`)가 라이브 전용이었음 — 동적 세션은 완화 후 무제한 반복 손실 가능했다. 손실 후 재진입 쿨다운도 없었음 (risk_config.cooldown_minutes는 존재하나 어디서도 미사용).
+  - `RiskManagementService.checkCircuitBreaker(DynamicSessionEntity)` 오버로드 — MDD·연속손실 공통 로직 추출. 동적은 **이번 가동(startedAt) 이후 청산분만** 연속 손실 집계(재시작 시 과거 이력으로 즉시 재발동 방지).
+  - **LIVE 잠복 버그 수정**: 기존 연속 손실 집계가 sessionId만으로 조회해 LIVE/DYNAMIC id 충돌 시 교차 오염 가능 → kind-aware 쿼리(`findBySessionKindAndSessionIdAndStatusOrderByClosedAtDesc`)로 교체.
+  - `DynamicTradingService.processTick`: CB 발동 시 `circuit_breaker_triggered_at/reason` 기록(V55 + entity) + `emergencyStop` + 텔레그램 🚨 알림.
+  - `processScanningTick`: **손실 청산 쿨다운** — 직전 청산이 손실이면 `cooldown_minutes`(기본 60분) 동안 동일 코인 재진입 차단 (191 반복 손절 패턴 방지). 진단 카운터 `손실쿨다운차단` 추가.
+  - 테스트: `DynamicCircuitBreakerTest` 4건 신규 (5연속 손실 발동 / 재시작 리셋 / LIVE-DYNAMIC kind 격리 / MDD 발동). `:web-api:test` 전체 통과.
+  - [ ] 배포 필요 (V55 자동 적용). 배포 후 서킷 브레이커/쿨다운 로그 관찰.
+- [x] **신호품질 사후수익률 측정 공백 수리 + SCANNING SELL 로그 정리 (2026-07-15, P1-2/P1-3)** — **미커밋 / 운영 미배포.**
+  - **진단 (운영 DB)**: 백필 스케줄러(`SignalQualityService`) 자체는 정상 가동 중(미평가 잔량 11건, 전부 최신). "거의 null"의 실체는 ① PAPER 경로가 signal_price를 아예 저장 안 함(24,820건 전량 NULL — 평가 쿼리에서 영구 제외), ② 4/10 이전 LIVE 10,597건 NULL(과거분), ③ **게이트 차단 BUY가 HOLD로 덮여 저장**되어 BUY/SELL만 평가하는 백필 대상에서 원천 제외 — 차단의 방어/기회비용을 측정할 수 없던 구조.
+  - `PaperTradingService`: 전략 로그에 signalPrice(평가 캔들 종가) 저장 추가.
+  - `DynamicTradingService` SCANNING: 게이트(EMA200/RANGE/블랙스완/BTC가드/손실쿨다운) 차단 시 signal을 HOLD로 덮지 않고 **BUY 그대로 저장 + wasExecuted=false + blockedReason=게이트 사유** — 이후 4h/24h 사후수익률이 자동 평가되어 "차단된 BUY가 실제로 올랐나(기회비용) 떨어졌나(방어)"를 신호품질 통계로 판정 가능. 실행 후보 선정 로직은 불변(차단 BUY는 후보 제외). ※ 전략로그 화면에서 차단 BUY가 이제 HOLD가 아닌 BUY(미실행+사유)로 보임 — 리포트/신호통계의 BUY 집계도 이에 맞게 증가.
+  - SCANNING 중 SELL 신호(보유 없음, 3,391건 오염 원인)에 blockedReason="SCANNING — 보유 포지션 없음" 명시 (P1-3).
+  - `SignalQualityService.evaluateLoop`: 실패 행(상장폐지 코인 등)이 정렬 헤드에 쌓이면 같은 배치를 무한 재조회하고 뒤의 정상 행이 영영 평가 안 되던 잠복 버그 → 실패 존재 시 페이지 전진으로 수정.
+  - `:web-api:test` 전체 통과. 라이브(`LiveTradingService`) 경로의 게이트 차단 BUY도 같은 방식(HOLD 덮어쓰기)이나, 실돈 매수 실행 분기와 얽혀 있어 이번 범위에서 제외 — 후속 검토.
+  - [ ] (선택) 과거 NULL signal_price 1회성 백필 — LIVE 4/10 이전 1.1만 건은 신호 시각 캔들 종가로 보정 가능하나 분석 가치 낮아 보류.
+- [x] **P2 일괄 처리 (2026-07-15)** — **미커밋 / 운영 미배포.**
+  - **DOGE EMA200 게이트 면제 제거** (`Ema200RegimeGate`) — 면제 근거("EMA200 아래 수익 패턴" PoC)가 실전 반증됨: 세션 189(DOGE)가 하락장에서 유일하게 면제 덕에 계속 진입, 5연속 손절 -591원(-5.9%) 후 07-14 비상 정지. 라이브·백테스트·동적 모든 경로에 적용(단일 진실 소스). `Ema200RegimeGateTest` 계약 반전.
+  - **SCANNING 진입 완화 파라미터 설정화** (V56) — `risk_config`에 scan_weak_threshold / scan_strong_threshold / scan_ema_dampen_factor / scan_ema200_buy_margin_pct 추가. NULL이면 코드 기본값(0.20/0.40/0.70/3.0%) 폴백. `PUT /api/v1/trading/risk/config` 또는 SQL로 재빌드 없이 조정. 손실 쿨다운(cooldown_minutes)도 같은 조회로 일원화.
+  - PROGRESS 잔무: 포지션 1232 SL 원복 항목 폐기(이미 CLOSED 확인).
+  - [x] **라이브 188/190(XRP, 7일 거래 0) 처리 결정** — 사용자 결정(07-15): **유지(관망)**. 비용 0, 상승 전환 시 자연 진입 기대. 라이브 경로 완화는 미적용.
 - [ ] **DOGE EMA200 게이트 면제 재검토** — 189 -591원(-5.9%)의 직접 원인. 면제 근거였던 "EMA200 아래 수익 패턴"이 이번 하락장에서 반증됨.
 - [ ] **SCANNING SELL 로그 정리** — 포지션 없는 SELL은 blocked_reason="SCANNING — 포지션 없음" 표기 또는 저장 스킵 (신호품질 통계 오염 방지).
 
@@ -88,7 +110,7 @@
 - [ ] **S-1 후속 — 더 긴 기간·더 많은 코인으로 재검증 권장** — 아래 결과 참조. 100일 4코인 표본에서 WEAK 0.3/0.4가 완전 동일 결과를 냈으나, 거래수가 코인당 2~11건으로 극히 적어 경계값 통과 사례 자체가 없었을 가능성. 3년 전체기간 다코인으로 재실행하면 다른 결론이 나올 수 있음.
 - [ ] **BLACK_SWAN_GUARD 오탐 수정 배포 + 잔여 확인** — 07-08 오탐 2건(세션 186/187 조기 손절, 거래량 5배 단독 발동 → SL 0.3% 조임)의 수정 완료: 거래량 조건 AND화(-2% 하락 동반 필수) + SL 강화 폭 ATR[1.2%, 5%] 클램프 + 텔레그램 알림. **같은 배포에 DriftAlert 오탐 수정 포함** — SELL drift 기준가 버그(매수 평균단가 사용 → slippage가 포지션 손익률로 기록, 매시간 반복 알림) 수정 + V54(order.signal_price 신설, 잘못 측정된 SELL drift 레코드 삭제) + 알림 쿨다운 24h + BUY drift 기록 신설. 상세 근거·정량 측정은 [`CHANGELOG.md`](CHANGELOG.md) 2026-07-08 항목 2건. **미커밋 / 운영 미배포.**
   - [ ] 배포 후 `[BlackSwanGuard] SL 강화` 텔레그램 알림 빈도 관찰 (AND 조건으로 대폭 감소 예상 — 잦으면 -2% 임계 재조정).
-  - [ ] **포지션 1232(BTC, 세션 186) SL 원복 여부 결정** — 오탐으로 SL이 94,709,018(-0.68%)로 조여진 채 DB에 남아 있음. 코드 배포로는 원복 안 됨. 원복 시(진입가 -5% 기준): `UPDATE position SET stop_loss_price = 90588200.00 WHERE id = 1232 AND stop_loss_price = 94709018.00;` (95,356,000×0.95, 조건절로 이미 손절된 경우 무해).
+  - [x] ~~포지션 1232(BTC, 세션 186) SL 원복 여부 결정~~ — **폐기 (2026-07-15)**: 운영 DB 확인 결과 1232는 07-08 세션 186 정지 시 이미 CLOSED(-22.6원). 원복 대상 없음.
 - [ ] **BLACK_SWAN_GUARD 백테스트 미반영** — 이번 구현은 라이브/동적 세션에만 적용. `BacktestEngine`에는 넣지 않았다(L-2처럼 기존 전략 검증 수치 전체를 다시 흔들 수 있어 범위 확대를 보류). 필요 시 별도 A/B로 영향 측정 후 반영 검토.
 - [ ] **BLACK_SWAN_GUARD 시스템 전체 차단 버전 (설계 보류)** — 현재는 코인별 게이트만 구현(사용자 확인). "임의의 한 코인 급락 시 전 세션 진입 차단" 버전은 기준자산 선정·세션 간 상태 공유 등 더 큰 설계가 필요해 이번 범위에서 제외.
 

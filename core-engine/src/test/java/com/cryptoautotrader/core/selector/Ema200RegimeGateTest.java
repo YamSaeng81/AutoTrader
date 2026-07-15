@@ -62,10 +62,10 @@ class Ema200RegimeGateTest {
     }
 
     @Test
-    @DisplayName("DOGE는 EMA200 아래여도 BUY 허용 (예외)")
-    void doge_예외는_항상_허용() {
+    @DisplayName("DOGE도 예외 없이 EMA200 아래면 BUY 차단 (2026-07-15 면제 제거 — 세션 189 5연속 손절 반증)")
+    void doge_예외_제거_후_동일하게_차단() {
         List<Candle> candles = withLastClose(flatCandles(200, "100"), "50");
-        assertThat(Ema200RegimeGate.allowsBuy(candles, "KRW-DOGE")).isTrue();
+        assertThat(Ema200RegimeGate.allowsBuy(candles, "KRW-DOGE")).isFalse();
     }
 
     @Test

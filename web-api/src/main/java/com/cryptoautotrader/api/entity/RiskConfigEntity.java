@@ -95,6 +95,25 @@ public class RiskConfigEntity {
     @Column(name = "invest_ratio_pct", precision = 5, scale = 2)
     private BigDecimal investRatioPct;
 
+    // ── 동적 세션 SCANNING 진입 완화 파라미터 (2026-07-15 설정화) ──────────
+    // NULL이면 DynamicTradingService 코드 기본값 사용. 재빌드 없이 SQL/API로 조정 가능.
+
+    /** 동적 SCANNING: CompositeStrategy weak 임계 override (기본 0.20) */
+    @Column(name = "scan_weak_threshold", precision = 4, scale = 2)
+    private BigDecimal scanWeakThreshold;
+
+    /** 동적 SCANNING: CompositeStrategy strong 임계 override (기본 0.40) */
+    @Column(name = "scan_strong_threshold", precision = 4, scale = 2)
+    private BigDecimal scanStrongThreshold;
+
+    /** 동적 SCANNING: EMA20/50 역추세 BUY 점수 감쇠 계수 0.0~1.0 (기본 0.70, 0.0=완전 소멸) */
+    @Column(name = "scan_ema_dampen_factor", precision = 4, scale = 2)
+    private BigDecimal scanEmaDampenFactor;
+
+    /** 동적 SCANNING: EMA200 게이트 허용 하회폭 % (기본 3.0) */
+    @Column(name = "scan_ema200_buy_margin_pct", precision = 5, scale = 2)
+    private BigDecimal scanEma200BuyMarginPct;
+
     @PrePersist
     void prePersist() {
         if (updatedAt == null) updatedAt = Instant.now();
@@ -178,4 +197,16 @@ public class RiskConfigEntity {
 
     public BigDecimal getInvestRatioPct() { return investRatioPct; }
     public void setInvestRatioPct(BigDecimal investRatioPct) { this.investRatioPct = investRatioPct; }
+
+    public BigDecimal getScanWeakThreshold() { return scanWeakThreshold; }
+    public void setScanWeakThreshold(BigDecimal scanWeakThreshold) { this.scanWeakThreshold = scanWeakThreshold; }
+
+    public BigDecimal getScanStrongThreshold() { return scanStrongThreshold; }
+    public void setScanStrongThreshold(BigDecimal scanStrongThreshold) { this.scanStrongThreshold = scanStrongThreshold; }
+
+    public BigDecimal getScanEmaDampenFactor() { return scanEmaDampenFactor; }
+    public void setScanEmaDampenFactor(BigDecimal scanEmaDampenFactor) { this.scanEmaDampenFactor = scanEmaDampenFactor; }
+
+    public BigDecimal getScanEma200BuyMarginPct() { return scanEma200BuyMarginPct; }
+    public void setScanEma200BuyMarginPct(BigDecimal scanEma200BuyMarginPct) { this.scanEma200BuyMarginPct = scanEma200BuyMarginPct; }
 }

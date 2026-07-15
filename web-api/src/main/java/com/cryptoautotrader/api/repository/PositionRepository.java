@@ -66,6 +66,14 @@ public interface PositionRepository extends JpaRepository<PositionEntity, Long> 
     /** 서킷 브레이커용: 세션의 체결 완료 포지션을 closedAt 역순으로 조회 (연속 손실 계산) */
     List<PositionEntity> findBySessionIdAndStatusOrderByClosedAtDesc(Long sessionId, String status);
 
+    /** 서킷 브레이커용 (D-2 sessionId 충돌 방지): 세션 종류까지 필터한 closedAt 역순 조회 */
+    List<PositionEntity> findBySessionKindAndSessionIdAndStatusOrderByClosedAtDesc(
+            String sessionKind, Long sessionId, String status);
+
+    /** 손실 청산 쿨다운용: 세션+코인의 가장 최근 청산 포지션 1건 */
+    Optional<PositionEntity> findTopBySessionKindAndSessionIdAndCoinPairAndStatusOrderByClosedAtDesc(
+            String sessionKind, Long sessionId, String coinPair, String status);
+
     /** N+1 방지: 여러 세션의 포지션을 한 번에 일괄 조회 */
     @Query("SELECT p FROM PositionEntity p WHERE p.sessionId IN :sessionIds")
     List<PositionEntity> findBySessionIdIn(@Param("sessionIds") List<Long> sessionIds);

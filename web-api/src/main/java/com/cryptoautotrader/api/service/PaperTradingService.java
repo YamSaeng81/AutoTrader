@@ -535,6 +535,9 @@ public class PaperTradingService {
                     .marketRegime(null)
                     .sessionType("PAPER")
                     .sessionId(session.getId())
+                    // signalPrice 누락 시 SignalQualityService 사후 평가(4h/24h)에서 영구 제외된다
+                    // — 2026-07-15 운영 DB 분석: PAPER 로그 24,820건 전량 signal_price NULL의 원인.
+                    .signalPrice(candles.get(candles.size() - 1).getClose())
                     .confidenceScore(conf)
                     .build();
             strategyLogRepo.save(logEntity);

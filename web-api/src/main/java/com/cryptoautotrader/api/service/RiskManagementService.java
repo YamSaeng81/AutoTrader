@@ -71,6 +71,11 @@ public class RiskManagementService {
                 .trailingSlMarginPct(newConfig.getTrailingSlMarginPct())
                 .investRatioPct(newConfig.getInvestRatioPct())
                 .maxCapitalUtilizationPct(newConfig.getMaxCapitalUtilizationPct())
+                // 동적 세션 SCANNING 진입 완화 파라미터
+                .scanWeakThreshold(newConfig.getScanWeakThreshold())
+                .scanStrongThreshold(newConfig.getScanStrongThreshold())
+                .scanEmaDampenFactor(newConfig.getScanEmaDampenFactor())
+                .scanEma200BuyMarginPct(newConfig.getScanEma200BuyMarginPct())
                 .build();
         entity = riskConfigRepository.save(entity);
         log.info("리스크 설정 업데이트: 일일={}%, 주간={}%, 월간={}%, 자본사용률한도={}%, SL={}%, TP={}×, 투자비율={}%",
@@ -151,13 +156,37 @@ public class RiskManagementService {
     }
 
     /**
-     * 세션 단위 서킷 브레이커 체크.
+     * 세션 단위 서킷 브레이커 체크 (라이브 세션).
      * ① 세션 MDD가 임계값 초과 → 트리거
      * ② 연속 손실 횟수가 한도 초과 → 트리거
      * 둘 다 미초과이면 pass 반환.
      */
     @Transactional(readOnly = true)
     public CircuitBreakerResult checkCircuitBreaker(LiveTradingSessionEntity session) {
+        // sessionKind 필터 필수 — 동적 세션 id와 라이브 세션 id는 독립 시퀀스라 겹칠 수 있고,
+        // kind 없이 sessionId만으로 조회하면 상대 세션의 손익이 연속 손실 집계에 섞인다.
+        return checkCircuitBreaker("LIVE", session.getId(),
+                session.getMddPeakCapital(), session.getInitialCapital(), session.getTotalAssetKrw(),
+                null);
+    }
+
+    /**
+     * 세션 단위 서킷 브레이커 체크 (동적 멀티코인 세션).
+     *
+     * <p>연속 손실은 이번 가동(startedAt) 이후 청산분만 집계한다 — 발동 후 사용자가 의도적으로
+     * 재시작했을 때 과거 손실 이력만으로 즉시 재발동하는 것을 막는다.</p>
+     */
+    @Transactional(readOnly = true)
+    public CircuitBreakerResult checkCircuitBreaker(
+            com.cryptoautotrader.api.entity.DynamicSessionEntity session) {
+        return checkCircuitBreaker("DYNAMIC", session.getId(),
+                session.getMddPeakCapital(), session.getInitialCapital(), session.getTotalAssetKrw(),
+                session.getStartedAt());
+    }
+
+    private CircuitBreakerResult checkCircuitBreaker(String sessionKind, Long sessionId,
+                                                     BigDecimal mddPeak, BigDecimal initialCapital,
+                                                     BigDecimal totalAssetKrw, Instant countLossesAfter) {
         RiskConfigEntity config = getRiskConfig();
 
         if (!Boolean.TRUE.equals(config.getCircuitBreakerEnabled())) {
@@ -170,27 +199,30 @@ public class RiskManagementService {
                 ? config.getConsecutiveLossLimit() : 5;
 
         // ── MDD 체크 ──────────────────────────────────────────
-        BigDecimal peak = session.getMddPeakCapital();
+        BigDecimal peak = mddPeak;
         if (peak == null || peak.compareTo(BigDecimal.ZERO) <= 0) {
-            peak = session.getInitialCapital();
+            peak = initialCapital;
         }
-        BigDecimal current = session.getTotalAssetKrw();
-        if (peak.compareTo(BigDecimal.ZERO) > 0 && current.compareTo(peak) < 0) {
-            BigDecimal drawdownPct = peak.subtract(current)
+        if (peak.compareTo(BigDecimal.ZERO) > 0 && totalAssetKrw.compareTo(peak) < 0) {
+            BigDecimal drawdownPct = peak.subtract(totalAssetKrw)
                     .divide(peak, 4, RoundingMode.HALF_UP)
                     .multiply(new BigDecimal("100"));
             if (drawdownPct.compareTo(mddThreshold) >= 0) {
                 return CircuitBreakerResult.triggered(
                         String.format("MDD %.2f%% 초과 (한도: %.2f%%, 피크: %s → 현재: %s)",
-                                drawdownPct, mddThreshold, peak.toPlainString(), current.toPlainString()));
+                                drawdownPct, mddThreshold, peak.toPlainString(), totalAssetKrw.toPlainString()));
             }
         }
 
         // ── 연속 손실 체크 ────────────────────────────────────
         List<PositionEntity> closedPositions = positionRepository
-                .findBySessionIdAndStatusOrderByClosedAtDesc(session.getId(), "CLOSED");
+                .findBySessionKindAndSessionIdAndStatusOrderByClosedAtDesc(sessionKind, sessionId, "CLOSED");
         int consecutiveLosses = 0;
         for (PositionEntity pos : closedPositions) {
+            if (countLossesAfter != null
+                    && (pos.getClosedAt() == null || !pos.getClosedAt().isAfter(countLossesAfter))) {
+                break; // 이번 가동 이전 청산분 — 집계 중단
+            }
             if (pos.getRealizedPnl() != null
                     && pos.getRealizedPnl().compareTo(BigDecimal.ZERO) < 0) {
                 consecutiveLosses++;

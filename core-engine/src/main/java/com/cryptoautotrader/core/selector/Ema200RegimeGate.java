@@ -19,9 +19,12 @@ import java.util.List;
  * <ul>
  *   <li>현재 종가 &gt; EMA200 → BUY 허용 (상승 레짐)</li>
  *   <li>캔들 200개 미만 → EMA200 산출 불가 → 보수적으로 허용(true), 차단하지 않음</li>
- *   <li><b>DOGE 예외</b>: EMA200 아래에서도 수익 패턴이 확인되어 게이트를 면제(항상 허용).
- *       근거: PROGRESS.md EMA200 PoC — "DOGE는 EMA200 아래에서도 수익 패턴 존재".</li>
  * </ul>
+ *
+ * <p><b>DOGE 예외 제거 (2026-07-15)</b>: "EMA200 아래에서도 수익 패턴 존재"(PoC) 근거로
+ * DOGE만 게이트를 면제했으나, 2026-07 실전에서 반증됨 — 라이브 세션 189(DOGE, CMI_V2)가
+ * 하락장에서 유일하게 면제 덕에 계속 진입해 5연속 손절(-591원, -5.9%) 후 비상 정지.
+ * 게이트가 지켜준 타 코인 세션들과 달리 면제가 곧 손실 경로였다.</p>
  *
  * <p>SELL 신호에는 적용하지 않는다(롱 청산은 추세와 무관하게 항상 가능해야 함).</p>
  */
@@ -35,7 +38,8 @@ public final class Ema200RegimeGate {
      * 해당 코인·캔들에서 BUY를 허용할지 판정한다.
      *
      * @param candles  시간 오름차순 캔들 (마지막 원소가 현재 캔들)
-     * @param coinPair "KRW-DOGE" 등. null 허용(예외 미적용).
+     * @param coinPair "KRW-BTC" 등. null 허용. (DOGE 예외 제거 후 판정에 미사용 —
+     *                 호출부 호환성을 위해 시그니처 유지)
      * @return BUY 허용이면 true
      */
     public static boolean allowsBuy(List<Candle> candles, String coinPair) {
@@ -53,10 +57,6 @@ public final class Ema200RegimeGate {
      * @param marginPct EMA200 대비 허용 하회폭 % (예: 1.0 → EMA200의 -1%까지 허용)
      */
     public static boolean allowsBuy(List<Candle> candles, String coinPair, BigDecimal marginPct) {
-        // DOGE 예외: EMA200 아래에서도 수익 패턴 존재 → 게이트 면제
-        if (coinPair != null && coinPair.contains("DOGE")) {
-            return true;
-        }
         if (candles.size() < EMA_PERIOD) {
             return true; // EMA200 산출 불가 — 보수적으로 허용
         }
