@@ -55,6 +55,19 @@ class StrategyControllerIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
+    @DisplayName("전략 목록 — COMPOSITE_MEANREV_BB가 AVAILABLE·isActive로 포함 (동적 세션 콤보박스 노출 조건)")
+    void 전략_목록_MEANREV_AVAILABLE_포함() throws Exception {
+        // 프론트 동적 세션 콤보박스는 status==='AVAILABLE' && isActive만 노출 —
+        // isStrategyImplemented 하드코딩 목록 누락 시 SKELETON으로 빠져 보이지 않는 회귀 방지
+        mockMvc.perform(get("/api/v1/strategies")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[?(@.name == 'COMPOSITE_MEANREV_BB')].status", hasItem("AVAILABLE")))
+                .andExpect(jsonPath("$.data[?(@.name == 'COMPOSITE_MEANREV_BB')].isActive", hasItem(true)))
+                .andExpect(jsonPath("$.data[?(@.name == 'COMPOSITE_MEANREV_BB')].isComposite", hasItem(true)));
+    }
+
+    @Test
     @DisplayName("전략 목록 — EMA_CROSS 전략이 포함")
     void 전략_목록_EMA_CROSS_포함() throws Exception {
         mockMvc.perform(get("/api/v1/strategies")

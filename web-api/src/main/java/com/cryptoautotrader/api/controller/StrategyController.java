@@ -230,7 +230,7 @@ public class StrategyController {
                  "COMPOSITE_MOMENTUM_ICHIMOKU", "COMPOSITE_MOMENTUM_ICHIMOKU_V2", "COMPOSITE_BREAKOUT_ICHIMOKU",
                  "COMPOSITE_REGIME_ROUTER",
                  "COMPOSITE_MTF_CONFIRMED", "COMPOSITE_MTF_BTC", "COMPOSITE_MTF_MOMENTUM",
-                 "COMPOSITE_MTF_BTC_STRICT", "COMPOSITE_PULLBACK_MTF",
+                 "COMPOSITE_MTF_BTC_STRICT", "COMPOSITE_PULLBACK_MTF", "COMPOSITE_MEANREV_BB",
                  "MACD_STOCH_BB" -> true;
             default -> false;
         };
@@ -252,7 +252,7 @@ public class StrategyController {
                  "COMPOSITE_MOMENTUM_ICHIMOKU", "COMPOSITE_MOMENTUM_ICHIMOKU_V2", "COMPOSITE_BREAKOUT_ICHIMOKU",
                  "COMPOSITE_REGIME_ROUTER",
                  "COMPOSITE_MTF_CONFIRMED", "COMPOSITE_MTF_BTC", "COMPOSITE_MTF_MOMENTUM",
-                 "COMPOSITE_MTF_BTC_STRICT", "COMPOSITE_PULLBACK_MTF" -> true;
+                 "COMPOSITE_MTF_BTC_STRICT", "COMPOSITE_PULLBACK_MTF", "COMPOSITE_MEANREV_BB" -> true;
             // 복합 추세 전략
             case "MACD_STOCH_BB" -> true;
             default -> false;
@@ -274,6 +274,7 @@ public class StrategyController {
             case "COMPOSITE_MOMENTUM"            -> Arrays.asList("ETH", "SOL");
             case "COMPOSITE_ETH"                 -> Arrays.asList("ETH");
             case "COMPOSITE_PULLBACK_MTF"        -> Arrays.asList("ETH", "SOL");  // EXPERIMENTAL
+            case "COMPOSITE_MEANREV_BB"          -> Arrays.asList("BTC", "ETH", "XRP");  // 거래량 상위 — 밴드/VWAP 신뢰도 높은 대형 코인
             default                              -> List.of();
         };
     }
@@ -361,6 +362,13 @@ public class StrategyController {
                     "진입: H4 Supertrend 상승 + H1 종가>EMA200 + RSI 40~55(눌림) + EMA20/VWAP 눌림 후 회복 + ADX≥18. " +
                     "청산: H4 Supertrend 하락 전환 또는 H1 EMA20 이탈. " +
                     "최소 200캔들 필요. 실전 근거 충분히 쌓일 때까지 EXPERIMENTAL(관찰 전용) 유지. ETH·SOL 관찰 대상.";
+            case "COMPOSITE_MEANREV_BB" ->
+                    "[평균회귀 — 하락·횡보장 특화] BOLLINGER×0.55 + RSI×0.30 + VWAP×0.15 | " +
+                    "%B 하단 이탈 + RSI 과매도 + VWAP 할인 합의 시 매수, 밴드 상단 복귀 시 청산. " +
+                    "추세추종 일색 구성의 직교 보완 (2026-07-20 운영 분석: 하락장 11일 매수 0건). " +
+                    "BOLLINGER 자체 ADX 상한 필터(추세장 억제)·Squeeze 대기 내장, VWAP 단독으로는 임계 미달(합의 강제). " +
+                    "EMA 방향 필터 OFF + EMA200 게이트 면제(역추세 매수가 전제) — BLACK_SWAN·BTC 급락 가드·SL/TP는 유지. " +
+                    "거래량 많은 대형 코인 권장 (밴드/VWAP 신뢰도).";
             default -> "설명 없음";
         };
     }

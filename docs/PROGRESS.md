@@ -16,7 +16,8 @@
   - **VWAP 가중 0.15는 의도된 설계** — 단독 만점(100)으로 weak 임계(0.19~0.20) 미달, BOLLINGER/RSI와 합의해야 진입 (추세추종 프리셋의 "VWAP(100) 단독 BUY 0.21~0.30" 남발 패턴 차단).
   - EMA 방향 필터 OFF(역추세 매수가 전제) / Composite ADX '하한' 필터 OFF(BOLLINGER 상한 필터와 정반대).
 - **게이트 계약**: [`Ema200RegimeGate`](../core-engine/src/main/java/com/cryptoautotrader/core/selector/Ema200RegimeGate.java)에 `isExempt()` + `EXEMPT_STRATEGIES={COMPOSITE_MEANREV_BB}` 신설 — EMA200 아래 과매도 진입이 전제인 평균회귀와 게이트가 논리 상충. 동적([`DynamicTradingService`](../web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java))·라이브([`LiveTradingService`](../web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java)) 양쪽 호출부에 면제 반영. RangeRegimeGate는 비차단(횡보장이 주 무대). **BLACK_SWAN·BTC_MARKET_GUARD·손실쿨다운·SL/TP는 그대로 적용** — 나이프 캐칭 방어 유지.
-- **테스트**: Ema200RegimeGateTest(면제 계약) + CompositeStrategyTest(가중 불변식 2건: VWAP 단독 미달 / BOLLINGER+RSI 합의 진입) + CompositeMeanRevPresetTest(등록·게이트·스모크 3건). `:strategy-lib:test`+`:core-engine:test`+`:web-api:test` 전체 통과 ✅. **코드는 미커밋/미배포.**
+- **전략 목록 API 노출 수정**: [`StrategyController`](../web-api/src/main/java/com/cryptoautotrader/api/controller/StrategyController.java)의 `isStrategyImplemented` 하드코딩 목록에 없는 전략은 `SKELETON` 상태 → 프론트 동적 세션 콤보박스(`AVAILABLE && isActive` 필터)에서 안 보임. 4개 스위치(`isStrategyImplemented`/`isCompositeStrategy`/`getDescription`/`getRecommendedCoins`)에 MEANREV 추가. **신규 프리셋 추가 시 이 4곳 누락 주의** — 통합 테스트로 회귀 방지 추가.
+- **테스트**: Ema200RegimeGateTest(면제 계약) + CompositeStrategyTest(가중 불변식 2건: VWAP 단독 미달 / BOLLINGER+RSI 합의 진입) + CompositeMeanRevPresetTest(등록·게이트·스모크 3건) + StrategyControllerIntegrationTest(AVAILABLE 노출 회귀 1건). `:strategy-lib:test`+`:core-engine:test`+`:web-api:test` 전체 통과 ✅. **코드는 미커밋/미배포.**
 - [ ] 배포 후 동적 세션에 COMPOSITE_MEANREV_BB 1개 생성(M15, 10,000원)해 추세추종 6개와 병행 관찰.
 - [ ] 2주 후 신호품질(was_executed·4h/24h 사후수익률)로 평균회귀 게이트 면제가 옳았는지 재평가 — 나이프 캐칭 손실 패턴 보이면 EMA200 면제 회수 검토.
 
