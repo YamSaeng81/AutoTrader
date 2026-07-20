@@ -6,6 +6,7 @@ import com.cryptoautotrader.strategy.IndicatorUtils;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.Set;
 
 /**
  * EMA200 레짐 게이트 — BUY 신호를 장기 추세(EMA200) 위에서만 허용하는 단일 진실 소스.
@@ -32,7 +33,28 @@ public final class Ema200RegimeGate {
 
     private static final int EMA_PERIOD = 200;
 
+    /**
+     * EMA200 게이트 면제 전략 — 평균회귀 계열.
+     *
+     * <p>평균회귀 전략은 "EMA200 아래 과매도 구간에서 하단 이탈을 매수"하는 것이 전제라
+     * 이 게이트와 논리적으로 상충한다 (게이트 적용 시 전략이 사실상 무력화됨 —
+     * 2026-07-20 운영 DB 분석: 동적 세션 EMA200 차단 15건 전부 추세추종 전략의 역추세 신호였고,
+     * 추세추종 계열엔 게이트가 옳았다. 면제는 평균회귀 계열에만 한정한다).</p>
+     *
+     * <p>면제되어도 BLACK_SWAN_GUARD(코인별 급락)·BTC_MARKET_GUARD(시장 전체 급락)·
+     * 손실 쿨다운·SL/TP는 그대로 적용된다 — 나이프 캐칭은 별도 경로가 방어한다.</p>
+     */
+    private static final Set<String> EXEMPT_STRATEGIES = Set.of("COMPOSITE_MEANREV_BB");
+
     private Ema200RegimeGate() {}
+
+    /**
+     * 해당 전략이 EMA200 게이트 면제 대상(평균회귀 계열)인지 반환한다.
+     * 호출부는 면제 전략에 대해 {@link #allowsBuy} 판정을 건너뛴다.
+     */
+    public static boolean isExempt(String strategyType) {
+        return strategyType != null && EXEMPT_STRATEGIES.contains(strategyType);
+    }
 
     /**
      * 해당 코인·캔들에서 BUY를 허용할지 판정한다.

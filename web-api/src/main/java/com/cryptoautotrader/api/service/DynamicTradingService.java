@@ -505,6 +505,7 @@ public class DynamicTradingService {
             String gateBlockReason = null;
 
             if (signal.getAction() == StrategySignal.Action.BUY
+                    && !Ema200RegimeGate.isExempt(session.getStrategyType())
                     && !Ema200RegimeGate.allowsBuy(evalCandles, coinPair, ema200BuyMarginPct)) {
                 ema200Blocked++;
                 log.info("[Dynamic] EMA200 BUY 차단: {} (id={})", coinPair, sid);

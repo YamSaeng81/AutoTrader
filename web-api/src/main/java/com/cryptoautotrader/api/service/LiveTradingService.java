@@ -913,7 +913,9 @@ public class LiveTradingService {
 
             // EMA200 레짐 필터: BUY 신호를 EMA200 위에서만 허용 (DOGE 예외는 2026-07-15 제거 — 세션 189 반증).
             // 백테스트(BacktestEngine)와 동일 로직을 Ema200RegimeGate 단일 진실 소스로 통합 (P1-B).
-            boolean ema200Pass = Ema200RegimeGate.allowsBuy(evalCandles, coinPair);
+            // 평균회귀 계열(isExempt)은 EMA200 아래 과매도 진입이 전제라 게이트를 건너뛴다.
+            boolean ema200Pass = Ema200RegimeGate.isExempt(strategyType)
+                    || Ema200RegimeGate.allowsBuy(evalCandles, coinPair);
             if (signal.getAction() == StrategySignal.Action.BUY && !ema200Pass) {
                 log.debug("EMA200 레짐 필터 — BUY 차단 (sessionId={}, {})", sessionId, coinPair);
                 signal = StrategySignal.hold("EMA200 레짐 필터 — 현재가 EMA200 이하");

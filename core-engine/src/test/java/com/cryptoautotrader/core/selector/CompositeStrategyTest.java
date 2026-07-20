@@ -189,4 +189,32 @@ class CompositeStrategyTest {
         assertThat(mid.getConfidence().doubleValue()).isEqualTo(0.5);
         assertThat(hold.getConfidence().doubleValue()).isEqualTo(0.0);
     }
+
+    // ── COMPOSITE_MEANREV_BB 가중 구성 불변식 (0.55/0.30/0.15) ────────────
+    // 프리셋(CompositePresetRegistrar)과 동일한 가중치로, 동적 세션 weak 임계(0.19~0.20)에서
+    // "VWAP 단독으로는 진입 불가, BOLLINGER/RSI와 합의해야 진입"이 유지되는지 고정한다.
+
+    @Test
+    @DisplayName("MEANREV 가중: VWAP(0.15) 단독 만점 BUY로는 weak 임계(0.19) 미달 → HOLD")
+    void meanrev_vwap_단독_만점은_미달() {
+        CompositeStrategy cs = new CompositeStrategy("MEANREV_TEST", List.of(
+                new WeightedStrategy(stub("BOLLINGER", StrategySignal.Action.HOLD, 0),   0.55),
+                new WeightedStrategy(stub("RSI",       StrategySignal.Action.HOLD, 0),   0.30),
+                new WeightedStrategy(stub("VWAP",      StrategySignal.Action.BUY,  100), 0.15)
+        ));
+        StrategySignal result = cs.evaluate(oneCandle(), Map.of("weakThreshold", 0.19));
+        assertThat(result.getAction()).isEqualTo(StrategySignal.Action.HOLD);
+    }
+
+    @Test
+    @DisplayName("MEANREV 가중: BOLLINGER(40)+RSI(30) 합의 → 0.31로 weak 임계 통과 BUY")
+    void meanrev_볼린저_rsi_합의시_매수() {
+        CompositeStrategy cs = new CompositeStrategy("MEANREV_TEST", List.of(
+                new WeightedStrategy(stub("BOLLINGER", StrategySignal.Action.BUY,  40), 0.55),
+                new WeightedStrategy(stub("RSI",       StrategySignal.Action.BUY,  30), 0.30),
+                new WeightedStrategy(stub("VWAP",      StrategySignal.Action.HOLD, 0),  0.15)
+        ));
+        StrategySignal result = cs.evaluate(oneCandle(), Map.of("weakThreshold", 0.19));
+        assertThat(result.getAction()).isEqualTo(StrategySignal.Action.BUY);
+    }
 }

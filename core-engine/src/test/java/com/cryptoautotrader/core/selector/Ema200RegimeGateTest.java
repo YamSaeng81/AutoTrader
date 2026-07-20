@@ -97,4 +97,13 @@ class Ema200RegimeGateTest {
         List<Candle> candles = withLastClose(flatCandles(200, "100"), "95");
         assertThat(Ema200RegimeGate.allowsBuy(candles, "KRW-BTC", new BigDecimal("1.0"))).isFalse();
     }
+
+    @Test
+    @DisplayName("평균회귀 전략(COMPOSITE_MEANREV_BB)은 게이트 면제, 추세추종·null은 비면제")
+    void 평균회귀_전략만_면제() {
+        assertThat(Ema200RegimeGate.isExempt("COMPOSITE_MEANREV_BB")).isTrue();
+        assertThat(Ema200RegimeGate.isExempt("COMPOSITE_MTF_BTC")).isFalse();
+        assertThat(Ema200RegimeGate.isExempt("COMPOSITE_MOMENTUM_ICHIMOKU")).isFalse();
+        assertThat(Ema200RegimeGate.isExempt(null)).isFalse();
+    }
 }

@@ -10,6 +10,7 @@ import com.cryptoautotrader.core.selector.RsiVetoStrategy;
 import com.cryptoautotrader.core.selector.WeightedStrategy;
 import com.cryptoautotrader.strategy.StrategyRegistry;
 import com.cryptoautotrader.strategy.atrbreakout.AtrBreakoutStrategy;
+import com.cryptoautotrader.strategy.bollinger.BollingerStrategy;
 import com.cryptoautotrader.strategy.ema.EmaCrossStrategy;
 import com.cryptoautotrader.strategy.grid.GridStrategy;
 import com.cryptoautotrader.strategy.macd.MacdStrategy;
@@ -208,5 +209,30 @@ public class CompositePresetRegistrar {
         //   청산: H4 Supertrend 하락 전환 또는 H1 EMA20 이탈 (SL/TP는 LiveTradingService 처리)
         // 상태 없음(stateless) → 일반 register. 충분한 실전 근거 전까지 EXPERIMENTAL(관찰 전용).
         StrategyRegistry.register(new CompositePullbackMtfStrategy());
+
+        // ── COMPOSITE_MEANREV_BB (신규, 평균회귀 계열) ────────────────────────────
+        // 배경(2026-07-20 운영 DB 분석): 동적 세션 6개가 전부 추세추종 계열이라 하락·횡보장에서
+        // 동시 침묵 — 07-09~19 11일간 매수 체결 0건. 하락·횡보장에서도 신호가 나오는 직교
+        // (평균회귀) 전략을 추가해 전략 구성의 빈틈을 메운다.
+        //
+        // 구성: BOLLINGER(0.55) + RSI(0.30) + VWAP(0.15)
+        //   - BOLLINGER: %B 하단 이탈 매수 — 자체 ADX '상한' 필터(추세장 평균회귀 억제)와
+        //                Squeeze HOLD(밴드 압축 시 브레이크아웃 대기)를 내장
+        //   - RSI:       과매도(<30) 반등 + 피봇 강세 다이버전스
+        //   - VWAP:      할인 매수(역추세 성분). 가중 0.15라 단독 만점(100)으로는 동적 세션
+        //                weak 임계(0.19~0.20)에 못 미침 — 반드시 BOLLINGER/RSI와 합의해야
+        //                진입한다 (추세추종 프리셋에서 관찰된 VWAP 단독 BUY 남발 방지)
+        //
+        // 필터: EMA 방향 필터 OFF — 하락추세에서 사는 것이 전략의 전제라 감쇠 시 무력화.
+        //       Composite ADX '하한' 필터 OFF — BOLLINGER의 ADX '상한' 필터와 정반대 방향.
+        // 게이트: Ema200RegimeGate.EXEMPT_STRATEGIES에 면제 등록(하락 레짐 진입이 전제).
+        //         RangeRegimeGate 비차단(횡보장이 주 무대). BLACK_SWAN_GUARD·BTC_MARKET_GUARD·
+        //         손실 쿨다운·SL/TP는 그대로 적용 — 급락 나이프 캐칭은 별도 경로가 방어.
+        // 구성 전략 모두 stateless → 일반 register.
+        StrategyRegistry.register(new CompositeStrategy("COMPOSITE_MEANREV_BB", List.of(
+                new WeightedStrategy(new BollingerStrategy(), 0.55),
+                new WeightedStrategy(new RsiStrategy(),       0.30),
+                new WeightedStrategy(new VwapStrategy(),      0.15)
+        )));
     }
 }

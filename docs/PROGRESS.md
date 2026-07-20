@@ -3,9 +3,36 @@
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝나면 완료 내용을 [`docs/CHANGELOG.md`](CHANGELOG.md)에 추가하고, 이 파일의 해당 항목은 삭제한다.
 > **변경 이력**: [`docs/CHANGELOG.md`](CHANGELOG.md)
-> **마지막 갱신**: 2026-07-16 (24h 운영 로그 분석 — 07-15 배포분 전 항목 작동 확인, 실전 +257원 익절 2건)
+> **마지막 갱신**: 2026-07-20 (COMPOSITE_MEANREV_BB 평균회귀 프리셋 추가 — 추세추종 일색 구성 보완, 미커밋/미배포)
 
 ---
+
+## 🆕 2026-07-20 COMPOSITE_MEANREV_BB 평균회귀 프리셋 추가 (하락·횡보장 표본 확보용)
+
+> 같은 날 운영 DB 분석(아래 섹션)의 후속 조치: 동적 세션 6개가 전부 추세추종 계열이라 하락·횡보장에서 동시 침묵(11일 매수 0건). 게이트 완화 대신(사후평가상 차단이 옳았음) **직교(평균회귀) 전략 1종 추가**로 구성 빈틈을 메운다.
+
+- **프리셋**: [`CompositePresetRegistrar`](../web-api/src/main/java/com/cryptoautotrader/api/config/CompositePresetRegistrar.java) — `COMPOSITE_MEANREV_BB` = BOLLINGER(0.55) + RSI(0.30) + VWAP(0.15), stateless.
+  - BOLLINGER: %B 하단 이탈 매수 (자체 ADX '상한' 필터 + Squeeze HOLD 내장), RSI: 과매도+피봇 다이버전스, VWAP: 할인 매수.
+  - **VWAP 가중 0.15는 의도된 설계** — 단독 만점(100)으로 weak 임계(0.19~0.20) 미달, BOLLINGER/RSI와 합의해야 진입 (추세추종 프리셋의 "VWAP(100) 단독 BUY 0.21~0.30" 남발 패턴 차단).
+  - EMA 방향 필터 OFF(역추세 매수가 전제) / Composite ADX '하한' 필터 OFF(BOLLINGER 상한 필터와 정반대).
+- **게이트 계약**: [`Ema200RegimeGate`](../core-engine/src/main/java/com/cryptoautotrader/core/selector/Ema200RegimeGate.java)에 `isExempt()` + `EXEMPT_STRATEGIES={COMPOSITE_MEANREV_BB}` 신설 — EMA200 아래 과매도 진입이 전제인 평균회귀와 게이트가 논리 상충. 동적([`DynamicTradingService`](../web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java))·라이브([`LiveTradingService`](../web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java)) 양쪽 호출부에 면제 반영. RangeRegimeGate는 비차단(횡보장이 주 무대). **BLACK_SWAN·BTC_MARKET_GUARD·손실쿨다운·SL/TP는 그대로 적용** — 나이프 캐칭 방어 유지.
+- **테스트**: Ema200RegimeGateTest(면제 계약) + CompositeStrategyTest(가중 불변식 2건: VWAP 단독 미달 / BOLLINGER+RSI 합의 진입) + CompositeMeanRevPresetTest(등록·게이트·스모크 3건). `:strategy-lib:test`+`:core-engine:test`+`:web-api:test` 전체 통과 ✅. **코드는 미커밋/미배포.**
+- [ ] 배포 후 동적 세션에 COMPOSITE_MEANREV_BB 1개 생성(M15, 10,000원)해 추세추종 6개와 병행 관찰.
+- [ ] 2주 후 신호품질(was_executed·4h/24h 사후수익률)로 평균회귀 게이트 면제가 옳았는지 재평가 — 나이프 캐칭 손실 패턴 보이면 EMA200 면제 회수 검토.
+
+## 🆕 2026-07-20 운영 DB 멀티코인(동적) 로그 분석 — 신호 생성 회복, 실행은 게이트가 전량 차단(정당)
+
+> 동적 세션 6개(32~37, M15) 07-09부터 RUNNING, **11일째 매수 체결 0건**, 자본 6×10,000원 그대로. 전 세션 SCANNING, 워치리스트 갱신 정상(30분 주기).
+
+- **BUY 신호 생성은 07-15 완화 + 07-16 ①② 수정 이후 뚜렷이 회복**: 07-15 1건 → 16 4 → 17 7 → 18 12 → **19 30건**. 07-09~14는 6일 연속 0건이었음.
+- **그러나 54건 전량 진입 게이트 차단 → 실행 0건**: BLACK_SWAN_GUARD 39건 + EMA200 레짐 필터 15건. (RANGE/BTC급락/쿨다운/KRW부족 차단은 0건.)
+- **사후 수익률 기준 차단은 정당 (24h 방어 판정)**: 블랙스완 차단분 avg 4h **-3.96% / 24h -6.79%**, EMA200 차단분 4h +1.00% / **24h -4.22%**. 하락장에서 게이트가 자본 보호 — 완화 롤백/게이트 완화 불필요, 시장 전환 대기 유지.
+- 신호 구조는 여전히 얕음: BUY 대부분 VWAP(100) 단독 0.30(EMA 감쇠 시 0.21), MACD/GRID 무투표. 07-19 30건 중 20건이 세션 34(ICHIMOKU)의 KRW-BIRB 반복(EMA200 차단 반복).
+- HOLD 주 사유 변함없이 "점수 미달 buy=0.00 sell=0.00" — 3일간 HOLD 1.4만+건.
+- ⚠️ **risk_config.scan_weak_threshold 현재 NULL** (updated_at 07-16 08:33 KST) — 07-16 스탑갭 0.19가 남아있지 않고 코드 기본 0.20 폴백 중. ①② 수정(`>=` 비교)은 커밋됨 — **운영 배포 여부 확인 필요** (BUY 급증 추세로 보아 반영됐을 가능성 높으나 서버에서 미확인).
+- 참고: 고정코인 LIVE 세션은 정상 거래 중 (drift log: 192 BTC / 193 ADA, 슬리피지 -0.03~+0.42%).
+- [ ] 서버에서 07-16 코드(①② 수정) 배포 여부 확인 — 미배포면 재빌드·재시작.
+- [ ] 시장 전환(상승 추세 복귀) 후 게이트 차단률·진입 재개 여부 재점검.
 
 ## 🆕 2026-07-16 24h 운영 로그 분석 — 07-15 배포분 검증 완료
 
@@ -28,7 +55,7 @@
   - 완화 이후 임계(0.20) 도달 13건의 사망 경로: **① 경계값 버그 8건** — [`CompositeStrategy.finalSignal`](../core-engine/src/main/java/com/cryptoautotrader/core/selector/CompositeStrategy.java)이 `buyScore > weakThreshold` **strict 비교**라 MACD 단독 BUY(100)의 정확히 0.20이 전부 "점수 미달" 처리 (ETH/HBAR/B3 반복). **② 상충 신호 규칙의 완화 역효과 4건** — weak 0.25→0.20 인하로 감쇠된 SELL 0.21이 상충 판정 범위에 들어와 **buy=0.50 STRONG_BUY 2건(B3/VIRTUAL)을 HOLD로 사살** (완화 전 기준이면 sell 0.21<0.25로 상충 아님 → STRONG_BUY 통과였음). ③ 나머지 1건(VANA)만 BUY → 블랙스완 차단(사후 -1.73%, 정당).
   - 구조 관찰: 세션 33(PULLBACK_MTF)은 buy점수>0이 **0건**(하락장에서 완전 침묵), 37(ICHIMOKU_V2)은 348건 있으나 max 0.17로 구조적 임계 미달. 6전략 전부 추세추종 계열이라 하락장 관망 자체는 정상 — 문제는 위 ①②로 "정상적으로 나온 후보"까지 죽는 것.
   - [x] **①② 수정 완료 (07-16, 상세: [`CHANGELOG.md`](CHANGELOG.md) 2026-07-16)** — `CompositeStrategy.finalSignal` 임계 비교 `>`→`>=` + 상충 판정에 강도 등급 비교 추가(한쪽만 strong이면 그쪽 우세). 테스트 2건 신규, `:core-engine:test`+`:web-api:test` 전체 통과. **코드는 미커밋/미배포.** 운영엔 스탑갭으로 `scan_weak_threshold=0.19` SQL 적용됨(07-16 08:27 KST, 무재시작 즉시 효력).
-  - [ ] **배포 후 `scan_weak_threshold` NULL 원복** — `UPDATE risk_config SET scan_weak_threshold = NULL WHERE id = 1;` (`>=` 코드와 0.19 스탑갭이 겹치면 이중 완화).
+  - [x] ~~배포 후 `scan_weak_threshold` NULL 원복~~ — **완료 (07-16 08:34 KST)**: 배포 재기동 확인(08:30~08:34 DYNAMIC 전 코인 일괄 재평가 버스트 = 캐시 리셋) 후 NULL 원복, SELECT로 확인. 이제 `>=` 코드 + 기본값 0.20이 유효.
   - [ ] 관찰: ①② 효과로 일 ~10건 후보가 게이트(블랙스완/EMA200/쿨다운)에 도달할 전망 — 진입 발생 여부와 품질(사후수익률) 확인.
   - [ ] (c) 하락/횡보장용 평균회귀 전략 편입은 별도 검토 (33/37은 이 장세에서 구조적 침묵).
 - ⚠️ **신규 관찰: "SL 미점검 3분 초과" 경고 증가 추세** — 07-13 4건 → 07-15 8건 → 07-16 오전에만 17건 (192/193, 특히 07-16 02:17~05:29 ADA 보유 중 연속 발생). WS 티커 수신 불안정 의심. 포지션 청산엔 지장 없었으나 SL 실시간 감시 공백이므로 WS 재연결 로직/헬스체크 점검 필요.
