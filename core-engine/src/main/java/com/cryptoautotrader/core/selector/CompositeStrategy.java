@@ -1,5 +1,7 @@
 package com.cryptoautotrader.core.selector;
 
+import com.cryptoautotrader.core.regime.MarketRegime;
+import com.cryptoautotrader.core.regime.MarketRegimeDetector;
 import com.cryptoautotrader.strategy.Candle;
 import com.cryptoautotrader.strategy.IndicatorUtils;
 import com.cryptoautotrader.strategy.Strategy;
@@ -183,6 +185,42 @@ public class CompositeStrategy implements Strategy {
         double normalizer = Math.max(totalWeight, 1.0);
         buyScore  /= normalizer;
         sellScore /= normalizer;
+
+        // ── 야간(KST 20~23시) 신호 감쇠 ──────────────────────────────────────
+        // 근거: SignalQualityDampenGate 참조 (2026-07-20 30일 신호품질 분석).
+        // EMA 필터와 달리 방향 무관 양쪽 스코어를 감쇠 — 야간엔 BUY/SELL 모두 승률이 낮았다.
+        if (buyScore > 0 || sellScore > 0) {
+            double nightFactorParam = params != null
+                    ? StrategyParamUtils.getDouble(params, "nightDampenFactor",
+                            SignalQualityDampenGate.DEFAULT_NIGHT_DAMPEN_FACTOR)
+                    : SignalQualityDampenGate.DEFAULT_NIGHT_DAMPEN_FACTOR;
+            double nightFactor = SignalQualityDampenGate.nightFactor(candles, nightFactorParam);
+            if (nightFactor < 1.0) {
+                double rawBuy = buyScore, rawSell = sellScore;
+                buyScore  *= nightFactor;
+                sellScore *= nightFactor;
+                detail += String.format(" [야간감쇠(KST %02d시): buy %.2f→%.2f sell %.2f→%.2f]",
+                        SignalQualityDampenGate.hourKst(candles), rawBuy, buyScore, rawSell, sellScore);
+            }
+        }
+
+        // ── TRANSITIONAL 레짐 신호 감쇠 ──────────────────────────────────────
+        // 레짐 감지는 RangeRegimeGate와 동일하게 MarketRegimeDetector.detectRaw(stateless)를 사용.
+        if ((buyScore > 0 || sellScore > 0) && candles.size() >= MarketRegimeDetector.MIN_CANDLE_COUNT) {
+            double transitionalFactorParam = params != null
+                    ? StrategyParamUtils.getDouble(params, "transitionalDampenFactor",
+                            SignalQualityDampenGate.DEFAULT_TRANSITIONAL_DAMPEN_FACTOR)
+                    : SignalQualityDampenGate.DEFAULT_TRANSITIONAL_DAMPEN_FACTOR;
+            MarketRegime regime = new MarketRegimeDetector().detectRaw(candles);
+            double transitionalFactor = SignalQualityDampenGate.transitionalFactor(regime, transitionalFactorParam);
+            if (transitionalFactor < 1.0) {
+                double rawBuy = buyScore, rawSell = sellScore;
+                buyScore  *= transitionalFactor;
+                sellScore *= transitionalFactor;
+                detail += String.format(" [TRANSITIONAL감쇠: buy %.2f→%.2f sell %.2f→%.2f]",
+                        rawBuy, buyScore, rawSell, sellScore);
+            }
+        }
 
         // EMA 방향 필터: 역추세 스코어를 threshold 비교 전에 감쇠시킨다.
         // dampenFactor 기본값(0.0)은 역추세 스코어를 0으로 만들어 기존의 "완전 차단" 동작과

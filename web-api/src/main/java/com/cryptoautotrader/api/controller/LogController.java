@@ -1,6 +1,7 @@
 package com.cryptoautotrader.api.controller;
 
 import com.cryptoautotrader.api.dto.ApiResponse;
+import com.cryptoautotrader.api.report.BlockedReasonNormalizer;
 import com.cryptoautotrader.api.report.FilterTagClassifier;
 import com.cryptoautotrader.api.entity.RegimeChangeLogEntity;
 import com.cryptoautotrader.api.entity.StrategyLogEntity;
@@ -286,10 +287,12 @@ public class LogController {
         List<StrategyLogEntity> blocked  = signals.stream()
                 .filter(l -> !l.isWasExecuted() && l.getBlockedReason() != null).toList();
 
-        // 차단 사유별 집계 (콜론 앞 키만 사용 — "리스크 한도 초과: ..." → "리스크 한도 초과")
+        // 차단 사유별 집계 — BlockedReasonNormalizer로 정규화 (콜론 앞 키 + 괄호/수치 제거).
+        // "BLACK_SWAN_GUARD 발동 — 1시간 내 급락 -6.80%(현재 6.72)"처럼 가변 수치가 본문에
+        // 섞인 사유를 정규화 없이 그대로 그룹핑하면 매 건이 별도 그룹으로 쪼개진다 (2026-07-20 발견).
         Map<String, List<StrategyLogEntity>> byReason = blocked.stream()
                 .collect(Collectors.groupingBy(
-                        l -> l.getBlockedReason().split(":")[0].trim()
+                        l -> BlockedReasonNormalizer.normalize(l.getBlockedReason())
                 ));
 
         double execWinRate4h = winRate(

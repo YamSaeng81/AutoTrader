@@ -3,7 +3,22 @@
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝나면 완료 내용을 [`docs/CHANGELOG.md`](CHANGELOG.md)에 추가하고, 이 파일의 해당 항목은 삭제한다.
 > **변경 이력**: [`docs/CHANGELOG.md`](CHANGELOG.md)
-> **마지막 갱신**: 2026-07-20 (COMPOSITE_MEANREV_BB 평균회귀 프리셋 추가 — 추세추종 일색 구성 보완, 미커밋/미배포)
+> **마지막 갱신**: 2026-07-20 (신호품질 분석 후속 3건 — 야간·TRANSITIONAL 신호 감쇠, 차단사유 그룹핑 버그 수정, 미커밋/미배포)
+
+---
+
+## 🆕 2026-07-20 신호품질 분석 후속 — 야간/TRANSITIONAL 감쇠 + 차단사유 그룹핑 버그 수정
+
+> 신호품질 페이지(30일·전 세션) 직접 DB 분석 결과 3건 반영. **표본의 88%(9,070/10,295)가 동적 세션의 "SCANNING — 청산 대상 아님" SELL 로깅 노이즈**라 완전한 실전 인과 검증은 아직 아님 — 그래서 하드 차단이 아닌 EMA필터와 동일한 점수 감쇠 방식으로 반영(사용자 확인 후 결정).
+
+- **차단사유 그룹핑 버그 수정** — [`BlockedReasonNormalizer`](../web-api/src/main/java/com/cryptoautotrader/api/report/BlockedReasonNormalizer.java)(신규) + [`LogController.buildBlockedVsExecuted`](../web-api/src/main/java/com/cryptoautotrader/api/controller/LogController.java). `BLACK_SWAN_GUARD 발동 — 1시간 내 급락 -6.80%(현재 6.72)`처럼 급락률·현재가가 본문에 그대로 박힌 사유는 콜론이 없어 기존 `split(":")[0]` 그룹핑이 전혀 안 먹혀, 화면의 "차단 사유별" 표가 거의 전부 1건짜리 행으로 수십 줄 늘어졌던 원인. 괄호 제거 + %/배 수치 제거로 정규화.
+- **야간(KST 20~23시) + TRANSITIONAL 레짐 신호 감쇠** — [`SignalQualityDampenGate`](../core-engine/src/main/java/com/cryptoautotrader/core/selector/SignalQualityDampenGate.java)(신규) + [`CompositeStrategy.evaluate`](../core-engine/src/main/java/com/cryptoautotrader/core/selector/CompositeStrategy.java) 통합.
+  - 근거(30일): KST 20~23시 4h 승률 31~38%·평균 -0.25~-0.59% (06~09시는 승률 56~62%·평균 +0.36~+0.58%). TRANSITIONAL 레짐 24h 승률 17.4%·평균 -1.21% (TREND +1.05%·RANGE +0.05% 대비 최악).
+  - 기존 EMA 방향 필터(`emaFilterDampenFactor`)와 동일한 패턴 — buy/sellScore를 threshold 비교 **전에** 비례 감쇠(기본 야간 0.6배·TRANSITIONAL 0.5배)시켜 강신호는 통과 여지를 남김. `nightDampenFactor`/`transitionalDampenFactor` params로 override 가능(1.0=무감쇠). 모든 `CompositeStrategy` 기반 프리셋(동적·라이브 공용)에 자동 적용 — 별도 옵트인 불필요.
+  - TRANSITIONAL 감지는 `RangeRegimeGate`와 동일하게 `MarketRegimeDetector.detectRaw`(stateless) 재사용, 캔들 50개 미만이면 스킵(무감쇠).
+- **테스트**: `SignalQualityDampenGateTest`(6, 시간 경계·레짐 분기) + `BlockedReasonNormalizerTest`(6, 그룹핑 키 정규화) + `CompositeStrategyTest`(야간 감쇠 통합 3건 추가). `:core-engine:test`+`:web-api:test` 전체 통과 ✅. **코드는 미커밋/미배포.**
+- [ ] 배포 후 2~4주 뒤 신호품질 재분석 — 동적 세션 SCANNING 노이즈를 제외한 표본으로 야간/TRANSITIONAL 패턴이 재현되는지, 감쇠 계수(0.6/0.5)가 적정한지 재검증.
+- [ ] 필요 시 계수를 risk_config로 이관해 재배포 없이 튜닝 가능하게 (현재는 코드 상수 + params override만 지원).
 
 ---
 
@@ -18,7 +33,7 @@
 - **게이트 계약**: [`Ema200RegimeGate`](../core-engine/src/main/java/com/cryptoautotrader/core/selector/Ema200RegimeGate.java)에 `isExempt()` + `EXEMPT_STRATEGIES={COMPOSITE_MEANREV_BB}` 신설 — EMA200 아래 과매도 진입이 전제인 평균회귀와 게이트가 논리 상충. 동적([`DynamicTradingService`](../web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java))·라이브([`LiveTradingService`](../web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java)) 양쪽 호출부에 면제 반영. RangeRegimeGate는 비차단(횡보장이 주 무대). **BLACK_SWAN·BTC_MARKET_GUARD·손실쿨다운·SL/TP는 그대로 적용** — 나이프 캐칭 방어 유지.
 - **전략 목록 API 노출 수정**: [`StrategyController`](../web-api/src/main/java/com/cryptoautotrader/api/controller/StrategyController.java)의 `isStrategyImplemented` 하드코딩 목록에 없는 전략은 `SKELETON` 상태 → 프론트 동적 세션 콤보박스(`AVAILABLE && isActive` 필터)에서 안 보임. 4개 스위치(`isStrategyImplemented`/`isCompositeStrategy`/`getDescription`/`getRecommendedCoins`)에 MEANREV 추가. **신규 프리셋 추가 시 이 4곳 누락 주의** — 통합 테스트로 회귀 방지 추가.
 - **테스트**: Ema200RegimeGateTest(면제 계약) + CompositeStrategyTest(가중 불변식 2건: VWAP 단독 미달 / BOLLINGER+RSI 합의 진입) + CompositeMeanRevPresetTest(등록·게이트·스모크 3건) + StrategyControllerIntegrationTest(AVAILABLE 노출 회귀 1건). `:strategy-lib:test`+`:core-engine:test`+`:web-api:test` 전체 통과 ✅. **코드는 미커밋/미배포.**
-- [ ] 배포 후 동적 세션에 COMPOSITE_MEANREV_BB 1개 생성(M15, 10,000원)해 추세추종 6개와 병행 관찰.
+- [x] 배포 후 동적 세션에 COMPOSITE_MEANREV_BB 1개 생성(M15, 10,000원)해 추세추종 6개와 병행 관찰 — **07-20 09:49 KST 세션 38 가동 확인.** 첫 스캔부터 서브전략 3종 개별 투표 정상(BOLLINGER:BUY(8)/SELL(33) 등, 점수 미달 HOLD). 워치리스트 4코인(XRP/ETH/SOL/NEO)만 통과 — 시장 필터 결과로 정상이나 표본 적으면 min_atr_pct 완화 검토.
 - [ ] 2주 후 신호품질(was_executed·4h/24h 사후수익률)로 평균회귀 게이트 면제가 옳았는지 재평가 — 나이프 캐칭 손실 패턴 보이면 EMA200 면제 회수 검토.
 
 ## 🆕 2026-07-20 운영 DB 멀티코인(동적) 로그 분석 — 신호 생성 회복, 실행은 게이트가 전량 차단(정당)

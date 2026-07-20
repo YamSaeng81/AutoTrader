@@ -42,6 +42,16 @@ class CompositeStrategyTest {
                 .build());
     }
 
+    /** 마지막 캔들 시각을 지정한 단일 캔들 (야간 감쇠 테스트용 — 50개 미만이라 TRANSITIONAL 감쇠는 자동 스킵) */
+    private static List<Candle> oneCandleAt(Instant time) {
+        return List.of(Candle.builder()
+                .time(time)
+                .open(BigDecimal.valueOf(100)).high(BigDecimal.valueOf(105))
+                .low(BigDecimal.valueOf(95)).close(BigDecimal.valueOf(102))
+                .volume(BigDecimal.TEN)
+                .build());
+    }
+
     // ── BUY ───────────────────────────────────────────────────────────────
 
     @Test
@@ -215,6 +225,42 @@ class CompositeStrategyTest {
                 new WeightedStrategy(stub("VWAP",      StrategySignal.Action.HOLD, 0),  0.15)
         ));
         StrategySignal result = cs.evaluate(oneCandle(), Map.of("weakThreshold", 0.19));
+        assertThat(result.getAction()).isEqualTo(StrategySignal.Action.BUY);
+    }
+
+    // ── 야간(KST 20~23시) 신호 감쇠 (SignalQualityDampenGate, 2026-07-20) ───
+
+    @Test
+    @DisplayName("KST 22시(야간): weak 임계 근접 BUY가 감쇠로 HOLD 전환")
+    void 야간_감쇠로_weak_buy가_hold전환() {
+        // buyScore = 0.5*0.62 = 0.31 (weak 0.3 통과) → 야간 감쇠(0.6) 적용 시 0.186로 미달
+        CompositeStrategy cs = new CompositeStrategy(List.of(
+                new WeightedStrategy(stub("A", StrategySignal.Action.BUY, 62), 0.5)
+        ));
+        Instant night22Kst = Instant.parse("2026-01-01T13:00:00Z"); // KST 22:00
+        StrategySignal result = cs.evaluate(oneCandleAt(night22Kst), Map.of());
+        assertThat(result.getAction()).isEqualTo(StrategySignal.Action.HOLD);
+    }
+
+    @Test
+    @DisplayName("KST 10시(주간): 동일 입력이면 감쇠 없이 BUY 유지")
+    void 주간에는_감쇠없이_buy_유지() {
+        CompositeStrategy cs = new CompositeStrategy(List.of(
+                new WeightedStrategy(stub("A", StrategySignal.Action.BUY, 62), 0.5)
+        ));
+        Instant day10Kst = Instant.parse("2026-01-01T01:00:00Z"); // KST 10:00
+        StrategySignal result = cs.evaluate(oneCandleAt(day10Kst), Map.of());
+        assertThat(result.getAction()).isEqualTo(StrategySignal.Action.BUY);
+    }
+
+    @Test
+    @DisplayName("야간 감쇠 계수는 nightDampenFactor params로 override 가능 (1.0 = 무감쇠)")
+    void 야간감쇠_계수_override() {
+        CompositeStrategy cs = new CompositeStrategy(List.of(
+                new WeightedStrategy(stub("A", StrategySignal.Action.BUY, 62), 0.5)
+        ));
+        Instant night22Kst = Instant.parse("2026-01-01T13:00:00Z");
+        StrategySignal result = cs.evaluate(oneCandleAt(night22Kst), Map.of("nightDampenFactor", 1.0));
         assertThat(result.getAction()).isEqualTo(StrategySignal.Action.BUY);
     }
 }
