@@ -399,7 +399,8 @@ public class DynamicTradingService {
      */
     // package-private (private 아님) — DynamicScanSelectionTest에서 선택 로직 단위 테스트를 위해 필요
     record BuyCandidate(String coinPair, List<Candle> evalCandles,
-                         StrategySignal signal, StrategyLogEntity signalLog) {}
+                         StrategySignal signal, StrategyLogEntity signalLog,
+                         BigDecimal sizeMultiplier) {}
 
     /**
      * BUY 후보 중 신호 강도(strength)가 가장 높은 것을 선택한다. 동률이면 먼저 평가된(워치리스트
@@ -503,13 +504,22 @@ public class DynamicTradingService {
             // 저장하고 blockedReason에 게이트 사유를 남겨 "차단이 방어였는지(하락) 기회비용
             // 이었는지(상승)"를 4h/24h 수익률로 측정 가능하게 한다 (2026-07-15).
             String gateBlockReason = null;
+            // EMA200 게이트 사이즈 배수 — 1.0(정상)/0.5(감액)/0.0(차단). 하드 차단 대신
+            // 근접 하회 구간을 감액 진입으로 살린다 (2026-07-21, "너무 보수적이지 않은 거래").
+            BigDecimal ema200SizeMultiplier = BigDecimal.ONE;
 
             if (signal.getAction() == StrategySignal.Action.BUY
-                    && !Ema200RegimeGate.isExempt(session.getStrategyType())
-                    && !Ema200RegimeGate.allowsBuy(evalCandles, coinPair, ema200BuyMarginPct)) {
-                ema200Blocked++;
-                log.info("[Dynamic] EMA200 BUY 차단: {} (id={})", coinPair, sid);
-                gateBlockReason = String.format("EMA200 레짐 필터 — 현재가 EMA200(-%s%%) 이하", ema200BuyMarginPct);
+                    && !Ema200RegimeGate.isExempt(session.getStrategyType())) {
+                ema200SizeMultiplier = Ema200RegimeGate.buySizeMultiplier(evalCandles, ema200BuyMarginPct);
+                if (ema200SizeMultiplier.signum() == 0) {
+                    ema200Blocked++;
+                    log.info("[Dynamic] EMA200 BUY 차단(딥 하회): {} (id={})", coinPair, sid);
+                    gateBlockReason = String.format(
+                            "EMA200 레짐 필터 — 현재가 EMA200(-%s%%×2) 이하 딥 하락", ema200BuyMarginPct);
+                } else if (ema200SizeMultiplier.compareTo(BigDecimal.ONE) < 0) {
+                    log.info("[Dynamic] EMA200 근접 하회 — 감액 진입({}배): {} (id={})",
+                            ema200SizeMultiplier, coinPair, sid);
+                }
             }
 
             if (gateBlockReason == null && signal.getAction() == StrategySignal.Action.BUY
@@ -572,7 +582,7 @@ public class DynamicTradingService {
                     // 게이트 차단 — 실행 후보에서 제외하되 신호품질 기록은 남긴다
                     updateSignalQuality(signalLog, false, gateBlockReason);
                 } else {
-                    buyCandidates.add(new BuyCandidate(coinPair, evalCandles, signal, signalLog));
+                    buyCandidates.add(new BuyCandidate(coinPair, evalCandles, signal, signalLog, ema200SizeMultiplier));
                 }
             } else if (signal.getAction() == StrategySignal.Action.SELL) {
                 // SCANNING 중 SELL은 실행 대상이 아님(보유 포지션 없음) — blockedReason 없이 쌓이면
@@ -594,7 +604,7 @@ public class DynamicTradingService {
 
         log.info("[Dynamic] BUY 신호 진입: {} {} strength={} (id={}, 후보 {}개 중 최고)",
                 best.coinPair(), best.signal().getReason(), best.signal().getStrength(), sid, buyCandidates.size());
-        String blockedReason = executeBuy(session, best.coinPair(), best.evalCandles(), best.signal());
+        String blockedReason = executeBuy(session, best.coinPair(), best.evalCandles(), best.signal(), best.sizeMultiplier());
         updateSignalQuality(best.signalLog(), blockedReason == null, blockedReason);
 
         for (BuyCandidate other : buyCandidates) {
@@ -718,12 +728,24 @@ public class DynamicTradingService {
     /** @return {@code null}이면 매수 주문 제출 성공, 아니면 차단 사유 (신호품질 로그용) */
     @Transactional
     public String executeBuy(DynamicSessionEntity session, String coinPair,
-                            List<Candle> evalCandles, StrategySignal signal) {
+                            List<Candle> evalCandles, StrategySignal signal, BigDecimal sizeMultiplier) {
         Long sid = session.getId();
         BigDecimal currentPrice = evalCandles.get(evalCandles.size() - 1).getClose();
 
-        BigDecimal investAmount = session.getAvailableKrw().multiply(session.getInvestRatio());
-        if (investAmount.compareTo(BigDecimal.valueOf(5000)) < 0) {
+        // EMA200 게이트 사이즈 배수 적용 — 정상 1.0, 근접 하회 감액 0.5. null은 방어적으로 1.0 취급.
+        BigDecimal effectiveRatio = session.getInvestRatio()
+                .multiply(sizeMultiplier != null ? sizeMultiplier : BigDecimal.ONE);
+        BigDecimal investAmount = session.getAvailableKrw().multiply(effectiveRatio);
+        BigDecimal minOrder = BigDecimal.valueOf(5000);
+        // 감액 진입이 최소주문(5,000원) 미만이면, 정상 사이즈로는 최소주문을 넘는 한 최소주문액으로
+        // 올려 진입을 살린다 — 소액 세션(자본 1만원)에서 절반 사이즈(4,000원)가 최소주문에 걸려
+        // "가용 KRW 부족"으로 헛차단되는 것을 막는다 (2026-07-21).
+        if (investAmount.compareTo(minOrder) < 0
+                && session.getAvailableKrw().multiply(session.getInvestRatio()).compareTo(minOrder) >= 0
+                && session.getAvailableKrw().compareTo(minOrder) >= 0) {
+            investAmount = minOrder;
+        }
+        if (investAmount.compareTo(minOrder) < 0) {
             log.warn("[Dynamic] 매수 불가: 가용 KRW 부족 (id={})", sid);
             return String.format("가용 KRW 부족: 투자가능 %s원 < 최소 5,000원", investAmount.setScale(0, RoundingMode.DOWN));
         }
@@ -774,8 +796,9 @@ public class DynamicTradingService {
         orderExecutionEngine.submitOrder(order);
 
         // KRW 차감 및 상태 전환 — 낙관적 락 + 재시도 (reconcile 스케줄러와의 동시 쓰기 race 차단)
+        final BigDecimal deductAmount = investAmount;   // 람다 캡처용 (최소주문 보정으로 재할당됐을 수 있음)
         balanceUpdater.apply(sid, s -> {
-            s.setAvailableKrw(s.getAvailableKrw().subtract(investAmount));
+            s.setAvailableKrw(s.getAvailableKrw().subtract(deductAmount));
             s.setScanState("POSITION_MONITORING");
             s.setCurrentCoinPair(coinPair);
             s.setCurrentPositionId(posId);

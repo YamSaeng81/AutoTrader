@@ -21,7 +21,7 @@ class DynamicScanSelectionTest {
 
     private DynamicTradingService.BuyCandidate candidate(String coinPair, double strength) {
         StrategySignal signal = StrategySignal.buy(BigDecimal.valueOf(strength), "테스트 신호 " + coinPair);
-        return new DynamicTradingService.BuyCandidate(coinPair, List.of(), signal, null);
+        return new DynamicTradingService.BuyCandidate(coinPair, List.of(), signal, null, BigDecimal.ONE);
     }
 
     @Test

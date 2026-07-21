@@ -3,7 +3,22 @@
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝나면 완료 내용을 [`docs/CHANGELOG.md`](CHANGELOG.md)에 추가하고, 이 파일의 해당 항목은 삭제한다.
 > **변경 이력**: [`docs/CHANGELOG.md`](CHANGELOG.md)
-> **마지막 갱신**: 2026-07-20 (신호품질 분석 후속 3건 — 야간·TRANSITIONAL 신호 감쇠, 차단사유 그룹핑 버그 수정, 미커밋/미배포)
+> **마지막 갱신**: 2026-07-21 (EMA200 게이트 차단→감액 진입 전환 — 동적 세션, 미커밋/미배포)
+
+---
+
+## 🆕 2026-07-21 EMA200 게이트: 하드 차단 → 사이즈 감액 진입 (동적 세션, "너무 보수적이지 않은 거래")
+
+> 운영 DB 재분석(07-21): 동적 세션 7개 12일간 실체결 0건 — BUY 신호는 나오나 EMA200 게이트(마진 3%)가 전량 하드 차단. 07-20 결정("게이트 완화 대신 직교 전략 추가")과 달리, 사용자가 명시적으로 "덜 보수적인 거래 + 소액 데이터 확보"를 요청. **전량 제거가 아니라 리스크를 사이즈로 통제하는 감액 진입**으로 절충 — 트레이더 원칙 "나쁜 레짐에선 끊지 말고 줄여라".
+
+- **게이트 3단계화**: [`Ema200RegimeGate.buySizeMultiplier`](../core-engine/src/main/java/com/cryptoautotrader/core/selector/Ema200RegimeGate.java)(신규) — 기존 마진 하나(`scan_ema200_buy_margin_pct`)로 밴드 파생. 종가 > EMA200×(1-margin%) → **1.0(정상)**, EMA200×(1-margin%)~(1-2·margin%) → **0.5(감액)**, 그 아래 딥 하락 → **0.0(차단, 나이프 캐칭 방어)**. 기존 `allowsBuy`(하드 차단) 대비 **단조 완화** — margin~2·margin 구간만 차단→감액으로 바뀜.
+- **적용 범위 = 동적 스캐닝만**: [`DynamicTradingService`](../web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java) 게이트→`BuyCandidate`→`executeBuy` 경로에 `sizeMultiplier` 전달, `investAmount = availableKrw × investRatio × multiplier`. **라이브([`LiveTradingService`](../web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java):918)·백테스트([`BacktestEngine`](../core-engine/src/main/java/com/cryptoautotrader/core/backtest/BacktestEngine.java):227)는 기존 `allowsBuy` 유지 — 실돈 블래스트 반경 최소화.** MEANREV_BB는 여전히 게이트 면제(변화 없음).
+- **최소주문 보정**: 자본 1만원·investRatio 0.8 세션은 감액(0.5) 시 4,000원 < 업비트 최소주문 5,000원이라 "가용 KRW 부족"으로 헛차단됨. 정상 사이즈가 최소주문을 넘는 한 감액분을 **5,000원으로 올려** 진입을 살림.
+- **테스트**: `Ema200RegimeGateTest`(사이즈 티어 4건: 정상/감액/딥차단/캔들부족 추가) + `DynamicScanSelectionTest`(레코드 시그니처 갱신). `:core-engine:test`+`:web-api:test` 컴파일·통과 ✅. **코드는 미커밋/미배포.**
+- **[ ] 배포 필요** — 미배포 상태에선 구 하드 차단 로직이 계속 작동. 배포 후에야 감액 진입 발생.
+- **[ ] 선택적 설정 다이얼**: 더 공격적으로 원하면 `risk_config.scan_ema200_buy_margin_pct`(현재 NULL=기본 3.0)를 4.0~5.0으로 상향 → 감액 밴드 확대. `PUT /api/v1/trading/risk/config` 또는 SQL로 재배포 없이 조정, 되돌리기도 1줄.
+- **[ ] 2~4주 후 재평가** — 감액 진입분의 4h/24h 사후수익률로 EV 확인. 감액 진입이 순손실이면 밴드 축소 또는 회수. (07-20 note의 "차단이 사후평가상 옳았다"와 상충 가능 — 실측으로 판정.)
+- **[ ] 미해결(이번 범위 밖, 별도 판단 필요)**: ① 세션 33(COMPOSITE_PULLBACK_MTF)이 보유 포지션 없이 SELL 543건 남발(전량 정상 차단이나 로직 스멜) ② 라이브 세션 188·190(KRW-XRP)이 13일 신호 0건 — 좀비 세션 정리 검토.
 
 ---
 

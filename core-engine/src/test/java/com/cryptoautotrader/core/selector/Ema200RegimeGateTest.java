@@ -106,4 +106,41 @@ class Ema200RegimeGateTest {
         assertThat(Ema200RegimeGate.isExempt("COMPOSITE_MOMENTUM_ICHIMOKU")).isFalse();
         assertThat(Ema200RegimeGate.isExempt(null)).isFalse();
     }
+
+    // ── 사이즈 티어 판정 (2026-07-21 차단→감액) ────────────────────────
+
+    @Test
+    @DisplayName("EMA200 위(마진 이내)면 정상 사이즈(1.0)")
+    void 사이즈티어_정상() {
+        // EMA200≈100, 종가 99.5, 마진 1% → full 임계 99 초과 → 1.0
+        List<Candle> candles = withLastClose(flatCandles(200, "100"), "99.5");
+        assertThat(Ema200RegimeGate.buySizeMultiplier(candles, new BigDecimal("1.0")))
+                .isEqualByComparingTo(BigDecimal.ONE);
+    }
+
+    @Test
+    @DisplayName("EMA200 근접 하회(마진~2·마진)면 감액 사이즈(0.5)")
+    void 사이즈티어_감액() {
+        // 종가 98.5: full 임계(≈99) 미만이지만 reduced 임계(≈98) 초과 → 0.5
+        List<Candle> candles = withLastClose(flatCandles(200, "100"), "98.5");
+        assertThat(Ema200RegimeGate.buySizeMultiplier(candles, new BigDecimal("1.0")))
+                .isEqualByComparingTo(Ema200RegimeGate.REDUCED_SIZE_MULTIPLIER);
+    }
+
+    @Test
+    @DisplayName("EMA200 딥 하회(2·마진 초과)면 차단(0.0)")
+    void 사이즈티어_딥하회_차단() {
+        // 종가 97: reduced 임계(≈98)마저 하회 → 0.0
+        List<Candle> candles = withLastClose(flatCandles(200, "100"), "97");
+        assertThat(Ema200RegimeGate.buySizeMultiplier(candles, new BigDecimal("1.0")))
+                .isEqualByComparingTo(BigDecimal.ZERO);
+    }
+
+    @Test
+    @DisplayName("캔들 200개 미만이면 산출 불가 → 정상 사이즈(1.0)")
+    void 사이즈티어_캔들부족_정상() {
+        List<Candle> candles = withLastClose(flatCandles(199, "100"), "50");
+        assertThat(Ema200RegimeGate.buySizeMultiplier(candles, new BigDecimal("1.0")))
+                .isEqualByComparingTo(BigDecimal.ONE);
+    }
 }

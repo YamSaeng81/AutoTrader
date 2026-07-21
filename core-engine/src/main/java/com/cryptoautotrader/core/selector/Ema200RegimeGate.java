@@ -90,4 +90,50 @@ public final class Ema200RegimeGate {
                 BigDecimal.ONE.subtract(marginPct.divide(BigDecimal.valueOf(100), 8, RoundingMode.HALF_UP)));
         return candles.get(candles.size() - 1).getClose().compareTo(threshold) > 0;
     }
+
+    /** EMA200 아래 근접 구간(감액 진입 밴드)에 적용하는 포지션 사이즈 배수. */
+    public static final BigDecimal REDUCED_SIZE_MULTIPLIER = new BigDecimal("0.5");
+
+    /**
+     * BUY를 "허용/감액/차단" 3단계로 판정해 포지션 사이즈 배수를 반환한다 —
+     * 하드 차단(0/1) 대신 EMA200 아래 근접 구간을 감액 진입으로 살려, 관망만 하던
+     * 하락·횡보 국면에서도 리스크를 사이즈로 통제하며 거래·데이터를 확보한다
+     * (2026-07-21 사용자 결정 — "너무 보수적이지 않은 거래" + 소액 데이터 수집).
+     *
+     * <p>밴드는 기존 {@code marginPct} 하나로 파생돼 별도 설정 없이 튜닝된다:</p>
+     * <ul>
+     *   <li>종가 &gt; EMA200 × (1 - margin%) → {@code 1.0} (정상 사이즈, 기존 허용 구간)</li>
+     *   <li>EMA200 × (1 - 2·margin%) &lt; 종가 ≤ EMA200 × (1 - margin%) →
+     *       {@code REDUCED_SIZE_MULTIPLIER} (감액 진입, 신규)</li>
+     *   <li>종가 ≤ EMA200 × (1 - 2·margin%) → {@code 0.0} (딥 하락 — 나이프 캐칭 차단)</li>
+     * </ul>
+     *
+     * <p>기존 {@link #allowsBuy}(하드 차단) 대비 <b>단조 완화</b>다 — margin~2·margin 구간이
+     * 차단에서 감액 허용으로 바뀔 뿐, 정상 허용 구간과 딥 차단 구간은 그대로다. 라이브·백테스트
+     * 경로는 {@code allowsBuy}를 계속 쓰므로 영향받지 않는다. 되돌리려면 호출부에서 다시
+     * {@code allowsBuy}로 교체하거나 marginPct를 0으로 두면 된다.</p>
+     *
+     * @return 1.0(정상) / REDUCED_SIZE_MULTIPLIER(감액) / 0.0(차단)
+     */
+    public static BigDecimal buySizeMultiplier(List<Candle> candles, BigDecimal marginPct) {
+        if (candles.size() < EMA_PERIOD) {
+            return BigDecimal.ONE; // EMA200 산출 불가 — 보수적으로 정상 허용
+        }
+        List<BigDecimal> closes = candles.stream()
+                .map(Candle::getClose)
+                .toList();
+        BigDecimal ema200 = IndicatorUtils.ema(closes, EMA_PERIOD);
+        BigDecimal close = candles.get(candles.size() - 1).getClose();
+        BigDecimal marginFrac = marginPct.divide(BigDecimal.valueOf(100), 8, RoundingMode.HALF_UP);
+        BigDecimal fullThreshold = ema200.multiply(BigDecimal.ONE.subtract(marginFrac));
+        if (close.compareTo(fullThreshold) > 0) {
+            return BigDecimal.ONE;
+        }
+        BigDecimal reducedThreshold = ema200.multiply(
+                BigDecimal.ONE.subtract(marginFrac.multiply(BigDecimal.valueOf(2))));
+        if (close.compareTo(reducedThreshold) > 0) {
+            return REDUCED_SIZE_MULTIPLIER;
+        }
+        return BigDecimal.ZERO;
+    }
 }
