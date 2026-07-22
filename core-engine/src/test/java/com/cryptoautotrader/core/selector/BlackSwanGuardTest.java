@@ -169,6 +169,78 @@ class BlackSwanGuardTest {
                 .isEqualByComparingTo(new BigDecimal("0.012"));
     }
 
+    // ── 진입 게이트 3단계 (2026-07-22 완화: -5~-8% 감액 진입) ──
+
+    @Test
+    @DisplayName("진입 게이트 — 평탄한 시장은 정상 사이즈(1.0)")
+    void 진입게이트_평온한_시장은_정상() {
+        BlackSwanGuard.EntryGate gate = BlackSwanGuard.entryGate(flatH1(30, "100", "10"));
+        assertThat(gate.blocked()).isFalse();
+        assertThat(gate.reduced()).isFalse();
+        assertThat(gate.sizeMultiplier()).isEqualByComparingTo(BigDecimal.ONE);
+        assertThat(gate.reason()).isNull();
+    }
+
+    @Test
+    @DisplayName("진입 게이트 — 완충 구간(-5%~-8%)은 감액 진입 0.5배")
+    void 진입게이트_완충구간은_감액() {
+        List<Candle> candles = flatH1(25, "100", "10");
+        appendCandle(candles, 1800, "106", "106", "10");
+        appendCandle(candles, 1800, "100", "100", "10"); // (100-106)/106 ≈ -5.66%
+
+        BlackSwanGuard.EntryGate gate = BlackSwanGuard.entryGate(candles);
+        assertThat(gate.blocked()).isFalse();
+        assertThat(gate.reduced()).isTrue();
+        assertThat(gate.sizeMultiplier())
+                .isEqualByComparingTo(BlackSwanGuard.REDUCED_SIZE_MULTIPLIER);
+        assertThat(gate.reason()).contains("완충 구간");
+        // 기존 2단계 check는 같은 캔들에서 발동(차단) — 게이트가 단조 완화임을 함께 고정
+        assertThat(BlackSwanGuard.check(candles).triggered()).isTrue();
+    }
+
+    @Test
+    @DisplayName("진입 게이트 — 딥 급락(-8% 이하)은 하드 차단 유지")
+    void 진입게이트_딥급락은_차단() {
+        List<Candle> candles = flatH1(25, "100", "10");
+        appendCandle(candles, 1800, "110", "110", "10");
+        appendCandle(candles, 1800, "100", "100", "10"); // (100-110)/110 ≈ -9.09%
+
+        BlackSwanGuard.EntryGate gate = BlackSwanGuard.entryGate(candles);
+        assertThat(gate.blocked()).isTrue();
+        assertThat(gate.reason()).contains("딥 급락");
+    }
+
+    @Test
+    @DisplayName("진입 게이트 — 거래량 급증 조기경보는 낙폭 무관 하드 차단 유지")
+    void 진입게이트_거래량급증은_차단() {
+        List<Candle> candles = flatH1(25, "100", "10"); // 평균 거래량 10
+        appendCandle(candles, 1800, "97.5", "97.5", "55"); // -2.5% + 5.5배 (급락 -5% 미달)
+
+        BlackSwanGuard.EntryGate gate = BlackSwanGuard.entryGate(candles);
+        assertThat(gate.blocked()).isTrue();
+        assertThat(gate.reason()).contains("거래량");
+    }
+
+    @Test
+    @DisplayName("진입 게이트 — -5% 미만 하락은 정상 사이즈")
+    void 진입게이트_경미한_하락은_정상() {
+        List<Candle> candles = flatH1(25, "100", "10");
+        appendCandle(candles, 1800, "103", "103", "10");
+        appendCandle(candles, 1800, "100", "100", "10"); // ≈ -2.9%
+
+        BlackSwanGuard.EntryGate gate = BlackSwanGuard.entryGate(candles);
+        assertThat(gate.sizeMultiplier()).isEqualByComparingTo(BigDecimal.ONE);
+    }
+
+    @Test
+    @DisplayName("진입 게이트 — 빈/null 캔들은 정상 사이즈 (보수적 허용)")
+    void 진입게이트_빈캔들은_정상() {
+        assertThat(BlackSwanGuard.entryGate(List.of()).sizeMultiplier())
+                .isEqualByComparingTo(BigDecimal.ONE);
+        assertThat(BlackSwanGuard.entryGate(null).sizeMultiplier())
+                .isEqualByComparingTo(BigDecimal.ONE);
+    }
+
     @Test
     @DisplayName("캔들이 비어있으면 미발동 (보수적)")
     void 빈_캔들은_미발동() {

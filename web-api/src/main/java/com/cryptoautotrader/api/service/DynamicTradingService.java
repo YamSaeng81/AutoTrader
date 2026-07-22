@@ -534,15 +534,21 @@ public class DynamicTradingService {
                 } catch (Exception ignored) {}
             }
 
-            // BLACK_SWAN_GUARD: 코인별 서킷 브레이커 — 1시간 내 -5% 급락 또는 거래량 5배 급증 시
-            // 신규 진입 차단 (2026-04-30 로드맵 ⭐⭐⭐, 2026-07-02 구현).
+            // BLACK_SWAN_GUARD: 코인별 서킷 브레이커 — 3단계 진입 게이트 (2026-07-22 완화).
+            // 1시간 낙폭 -5%~-8%는 감액 진입, -8% 이하·거래량 급증 조기경보는 하드 차단 유지.
+            // 이전 하드 차단(check)은 BUY 63건 중 46건을 전량 차단해 13일간 실거래 0건의 주 원인이었다.
+            BigDecimal blackSwanSizeMultiplier = BigDecimal.ONE;
             if (gateBlockReason == null && signal.getAction() == StrategySignal.Action.BUY) {
-                BlackSwanGuard.Result guard = BlackSwanGuard.check(evalCandles);
-                if (guard.triggered()) {
+                BlackSwanGuard.EntryGate guard = BlackSwanGuard.entryGate(evalCandles);
+                if (guard.blocked()) {
                     blackSwanBlocked++;
                     log.warn("[Dynamic] BLACK_SWAN_GUARD 발동 — BUY 차단: {} (id={}): {}",
                             coinPair, sid, guard.reason());
                     gateBlockReason = "BLACK_SWAN_GUARD 발동 — " + guard.reason();
+                } else if (guard.reduced()) {
+                    blackSwanSizeMultiplier = guard.sizeMultiplier();
+                    log.info("[Dynamic] BLACK_SWAN 완충 구간 — 감액 진입({}배): {} (id={}): {}",
+                            blackSwanSizeMultiplier, coinPair, sid, guard.reason());
                 }
             }
 
@@ -582,7 +588,10 @@ public class DynamicTradingService {
                     // 게이트 차단 — 실행 후보에서 제외하되 신호품질 기록은 남긴다
                     updateSignalQuality(signalLog, false, gateBlockReason);
                 } else {
-                    buyCandidates.add(new BuyCandidate(coinPair, evalCandles, signal, signalLog, ema200SizeMultiplier));
+                    // EMA200·블랙스완 감액이 겹치면 곱으로 중첩 적용 (0.5×0.5=0.25) — 최소주문
+                    // 미달 시 executeBuy의 최소주문액 보정이 진입을 살린다.
+                    BigDecimal sizeMultiplier = ema200SizeMultiplier.multiply(blackSwanSizeMultiplier);
+                    buyCandidates.add(new BuyCandidate(coinPair, evalCandles, signal, signalLog, sizeMultiplier));
                 }
             } else if (signal.getAction() == StrategySignal.Action.SELL) {
                 // SCANNING 중 SELL은 실행 대상이 아님(보유 포지션 없음) — blockedReason 없이 쌓이면

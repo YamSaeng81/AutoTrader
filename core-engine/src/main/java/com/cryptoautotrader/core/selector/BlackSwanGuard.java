@@ -41,6 +41,8 @@ public final class BlackSwanGuard {
 
     private static final long LOOKBACK_MINUTES = 60;
     private static final BigDecimal DROP_THRESHOLD_PCT = new BigDecimal("-5.0");
+    /** 진입 게이트 3단계의 딥 급락 임계 — 이 아래는 감액도 없이 하드 차단 (나이프 캐칭 방지) */
+    private static final BigDecimal SEVERE_DROP_THRESHOLD_PCT = new BigDecimal("-8.0");
     private static final int VOLUME_BASELINE_CANDLES = 20;
     private static final BigDecimal VOLUME_SPIKE_MULTIPLIER = new BigDecimal("5.0");
     /** 거래량 급증 발동에 요구하는 동반 하락폭 (1시간 고가 대비 %) — 방향성 없는 버스트 오탐 차단 */
@@ -66,6 +68,74 @@ public final class BlackSwanGuard {
         public static Result triggered(String reason) {
             return new Result(true, reason);
         }
+    }
+
+    /** 완충 구간(급락 -5% ~ -8%)에 적용하는 포지션 사이즈 배수 — {@link Ema200RegimeGate}와 동일 값 */
+    public static final BigDecimal REDUCED_SIZE_MULTIPLIER = new BigDecimal("0.5");
+
+    /**
+     * 진입 게이트 판정 — 사이즈 배수 1.0(정상) / {@link #REDUCED_SIZE_MULTIPLIER}(감액) / 0.0(차단).
+     * 감액·차단 시 {@code reason}에 사유가 담긴다 (정상이면 null).
+     */
+    public record EntryGate(BigDecimal sizeMultiplier, String reason) {
+        private static final EntryGate NORMAL = new EntryGate(BigDecimal.ONE, null);
+
+        public boolean blocked() {
+            return sizeMultiplier.signum() == 0;
+        }
+
+        public boolean reduced() {
+            return !blocked() && sizeMultiplier.compareTo(BigDecimal.ONE) < 0;
+        }
+    }
+
+    /**
+     * 신규 진입(BUY) 전용 3단계 게이트 — 하드 차단({@link #check}) 대신 완충 구간을 감액 진입으로 살린다.
+     *
+     * <p>2026-07-22 운영 DB 분석: 동적 세션 BUY 63건 전부 게이트 차단(블랙스완 46), 13일간 실거래 0건.
+     * 차단분의 24h 사후수익률 평균 -5.6%로 가드 자체는 유효했으나, 전략 특성상 통과 가능한 BUY가
+     * 대부분 "급락 후 VWAP 이격" 패턴이라 신호 발생 조건과 차단 조건이 겹치는 구조적 상쇄가 있었고,
+     * 완충 구간의 반등 기회손실(7/21 KRW-LA 8건, 4h +3.9~+6.6%)도 확인됐다. 낙폭 구간별 3단계로 완화:</p>
+     * <ul>
+     *   <li>1시간 낙폭 &gt; -5% → {@code 1.0} (정상, 기존 허용 구간)</li>
+     *   <li>-8% &lt; 낙폭 ≤ -5% → {@code REDUCED_SIZE_MULTIPLIER} (완충 구간 감액 진입, 신규)</li>
+     *   <li>낙폭 ≤ -8% → {@code 0.0} (딥 급락 — 나이프 캐칭 차단, LUNA/FTX류 방어 유지)</li>
+     *   <li>거래량 급증(5배 + -2% 하락 동반) 조기경보는 낙폭 무관 하드 차단 유지 —
+     *       크래시 초입 판별이 목적이라 감액으로 노출을 남기지 않는다</li>
+     * </ul>
+     *
+     * <p>기존 {@link #check}(발동/미발동 2단계) 대비 -5~-8% 구간만 차단→감액으로 바뀌는 단조 완화다.
+     * 보유 포지션 SL 강화 등 안전장치 경로는 {@code check}를 계속 사용하므로 영향받지 않는다.</p>
+     *
+     * @param candles 시간 오름차순 캔들 (마지막 원소가 현재/최신 캔들)
+     */
+    public static EntryGate entryGate(List<Candle> candles) {
+        if (candles == null || candles.isEmpty()) {
+            return EntryGate.NORMAL;
+        }
+
+        Candle current = candles.get(candles.size() - 1);
+        BigDecimal currentClose = current.getClose();
+        BigDecimal dropPct = dropFromWindowHighPct(candles, current, currentClose);
+
+        if (dropPct.compareTo(SEVERE_DROP_THRESHOLD_PCT) <= 0) {
+            return new EntryGate(BigDecimal.ZERO, String.format(
+                    "1시간 내 딥 급락 %.2f%% ≤ %s%% (현재 %s)",
+                    dropPct, SEVERE_DROP_THRESHOLD_PCT, currentClose));
+        }
+
+        Result volumeSpike = checkVolumeSpike(candles, current, dropPct);
+        if (volumeSpike.triggered()) {
+            return new EntryGate(BigDecimal.ZERO, volumeSpike.reason());
+        }
+
+        if (dropPct.compareTo(DROP_THRESHOLD_PCT) <= 0) {
+            return new EntryGate(REDUCED_SIZE_MULTIPLIER, String.format(
+                    "1시간 내 급락 %.2f%% — 완충 구간(%s%%~%s%%) 감액 진입",
+                    dropPct, DROP_THRESHOLD_PCT, SEVERE_DROP_THRESHOLD_PCT));
+        }
+
+        return EntryGate.NORMAL;
     }
 
     /**
