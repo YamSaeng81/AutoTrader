@@ -48,11 +48,23 @@ public class VolumeDeltaStrategy implements Strategy {
         return "VOLUME_DELTA";
     }
 
+    /**
+     * strength(confidence) 정규화 포화점 — 누적Delta비율이 이 값에 도달하면 강도 100.
+     *
+     * <p>기존에는 비율이 1.0(=20캔들 순매수 불균형 100%, 사실상 불가능)일 때 100이 되도록
+     * 정규화해, 실제 발화 구간(비율 0.15~0.25)의 강도가 5~17에 그쳤다. 그 결과 가중 0.3짜리
+     * VOLUME_DELTA는 발화해도 스코어 기여가 0.05 수준이라 복합 전략 합의에 사실상 무의미한
+     * 표였다(2026-07-23 운영 로그 분석: 신호율 24%인데 평균 conf 15.2). 도달 가능한 포화점
+     * (기본 0.40)을 기준으로 재정규화해 중간 강도 신호가 유효 표가 되도록 한다.</p>
+     */
+    private static final double DEFAULT_STRENGTH_SATURATION_RATIO = 0.40;
+
     @Override
     public StrategySignal evaluate(List<Candle> candles, Map<String, Object> params) {
         int lookback        = getInt(params,    "lookback",        20);
         double threshold    = getDouble(params, "signalThreshold", 0.10);
         boolean divMode     = getBool(params,   "divergenceMode",  true);
+        double saturation   = getDouble(params, "strengthSaturationRatio", DEFAULT_STRENGTH_SATURATION_RATIO);
 
         if (candles.size() < lookback) {
             return StrategySignal.hold("데이터 부족: " + candles.size() + " < " + lookback);
@@ -114,6 +126,13 @@ public class VolumeDeltaStrategy implements Strategy {
         BigDecimal thresholdBd = BigDecimal.valueOf(threshold);
         BigDecimal negThreshold = thresholdBd.negate();
 
+        // 강도 정규화 분모 = 포화점 − 임계값. 포화점이 임계값 이하로 잘못 설정되면
+        // 구 동작(비율 1.0 기준 정규화)으로 안전 폴백한다.
+        BigDecimal strengthDenom = BigDecimal.valueOf(saturation).subtract(thresholdBd);
+        if (strengthDenom.signum() <= 0) {
+            strengthDenom = BigDecimal.ONE.subtract(thresholdBd);
+        }
+
         // BUY 신호 평가
         if (cumDeltaRatio.compareTo(thresholdBd) >= 0) {
             // 추세 확인: 매수 압력이 강화되는 추세여야 함
@@ -129,7 +148,7 @@ public class VolumeDeltaStrategy implements Strategy {
                         cumDeltaRatio, lookback));
             }
             BigDecimal strength = cumDeltaRatio.subtract(thresholdBd)
-                    .divide(BigDecimal.ONE.subtract(thresholdBd), SCALE, RoundingMode.HALF_UP)
+                    .divide(strengthDenom, SCALE, RoundingMode.HALF_UP)
                     .multiply(BigDecimal.valueOf(100))
                     .min(BigDecimal.valueOf(100));
             return StrategySignal.buy(strength, String.format(
@@ -152,7 +171,7 @@ public class VolumeDeltaStrategy implements Strategy {
                         cumDeltaRatio, lookback));
             }
             BigDecimal strength = negThreshold.subtract(cumDeltaRatio)
-                    .divide(BigDecimal.ONE.subtract(thresholdBd), SCALE, RoundingMode.HALF_UP)
+                    .divide(strengthDenom, SCALE, RoundingMode.HALF_UP)
                     .multiply(BigDecimal.valueOf(100))
                     .min(BigDecimal.valueOf(100));
             return StrategySignal.sell(strength, String.format(

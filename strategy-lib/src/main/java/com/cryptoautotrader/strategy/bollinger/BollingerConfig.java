@@ -17,6 +17,8 @@ public class BollingerConfig extends StrategyConfig {
 
     private int period = 20;
     private double multiplier = 2.0;
+    /** 강도 정규화 깊이 — 트리거 임계에서 %B가 이만큼 더 이탈하면 강도 100 (기본 0.35) */
+    private double strengthSaturationDepth = 0.35;
 
     @Override
     public String getStrategyType() {
@@ -27,7 +29,8 @@ public class BollingerConfig extends StrategyConfig {
     public Map<String, Object> toParamMap() {
         return Map.of(
                 "period", period,
-                "multiplier", multiplier
+                "multiplier", multiplier,
+                "strengthSaturationDepth", strengthSaturationDepth
         );
     }
 
@@ -47,6 +50,10 @@ public class BollingerConfig extends StrategyConfig {
         Object multiplierVal = params.get("multiplier");
         if (multiplierVal instanceof Number) {
             config.setMultiplier(((Number) multiplierVal).doubleValue());
+        }
+        Object satVal = params.get("strengthSaturationDepth");
+        if (satVal instanceof Number) {
+            config.setStrengthSaturationDepth(((Number) satVal).doubleValue());
         }
         return config;
     }

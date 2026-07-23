@@ -19,6 +19,8 @@ public class VolumeDeltaConfig extends StrategyConfig {
     private int lookback = 20;
     private double signalThreshold = 0.10;
     private boolean divergenceMode = true;
+    /** 강도 정규화 포화점 — 누적Delta비율이 이 값이면 강도 100 (기본 0.40) */
+    private double strengthSaturationRatio = 0.40;
 
     @Override
     public String getStrategyType() {
@@ -30,7 +32,8 @@ public class VolumeDeltaConfig extends StrategyConfig {
         return Map.of(
                 "lookback",        lookback,
                 "signalThreshold", signalThreshold,
-                "divergenceMode",  divergenceMode
+                "divergenceMode",  divergenceMode,
+                "strengthSaturationRatio", strengthSaturationRatio
         );
     }
 
@@ -46,6 +49,9 @@ public class VolumeDeltaConfig extends StrategyConfig {
 
         Object divVal = params.get("divergenceMode");
         if (divVal instanceof Boolean) config.setDivergenceMode((Boolean) divVal);
+
+        Object satVal = params.get("strengthSaturationRatio");
+        if (satVal instanceof Number) config.setStrengthSaturationRatio(((Number) satVal).doubleValue());
 
         return config;
     }

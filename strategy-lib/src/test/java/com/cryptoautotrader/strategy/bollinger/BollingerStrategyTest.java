@@ -64,4 +64,35 @@ class BollingerStrategyTest {
         var signal = strategy.evaluate(candles, Map.of());
         assertThat(signal.getAction()).isEqualTo(StrategySignal.Action.BUY);
     }
+
+    @Test
+    void 포화깊이_얕을수록_강도_높음_재스케일_검증() {
+        // 동일 밴드 이탈에 대해 strengthSaturationDepth가 얕을수록 강도가 커야 한다.
+        // 기존 공식(깊이=1.0 상당)에서는 밴드 근접 신호의 강도가 구조적으로 낮았다 —
+        // 재스케일이 살아있고 파라미터로 제어됨을 고정한다.
+        List<Candle> candles = new ArrayList<>();
+        Instant base = Instant.parse("2024-01-01T00:00:00Z");
+        BigDecimal price = new BigDecimal("50000000");
+        for (int i = 0; i < 20; i++) {
+            candles.add(Candle.builder()
+                    .time(base.plus(i, ChronoUnit.HOURS))
+                    .open(price).high(price.add(BigDecimal.valueOf(50000)))
+                    .low(price.subtract(BigDecimal.valueOf(50000)))
+                    .close(price).volume(BigDecimal.valueOf(100))
+                    .build());
+        }
+        // 소폭 하락 — 하단 밴드 근접(밴드를 극단적으로 뚫지는 않는 중간 이탈)
+        BigDecimal dipPrice = price.subtract(new BigDecimal("120000"));
+        candles.add(Candle.builder()
+                .time(base.plus(20, ChronoUnit.HOURS))
+                .open(price).high(price).low(dipPrice).close(dipPrice)
+                .volume(BigDecimal.valueOf(200))
+                .build());
+
+        var shallow = strategy.evaluate(candles, Map.of("strengthSaturationDepth", 0.35));
+        var deep    = strategy.evaluate(candles, Map.of("strengthSaturationDepth", 5.0));
+
+        assertThat(shallow.getAction()).isEqualTo(StrategySignal.Action.BUY);
+        assertThat(shallow.getStrength()).isGreaterThan(deep.getStrength());
+    }
 }

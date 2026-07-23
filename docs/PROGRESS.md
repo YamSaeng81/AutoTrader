@@ -3,7 +3,23 @@
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝나면 완료 내용을 [`docs/CHANGELOG.md`](CHANGELOG.md)에 추가하고, 이 파일의 해당 항목은 삭제한다.
 > **변경 이력**: [`docs/CHANGELOG.md`](CHANGELOG.md)
-> **마지막 갱신**: 2026-07-21 (EMA200 게이트 차단→감액 진입 전환 — 동적 세션, 미커밋/미배포)
+> **마지막 갱신**: 2026-07-23 (VOLUME_DELTA·BOLLINGER confidence 재스케일 — 동적 세션 무거래 근본원인, 미커밋/미배포)
+
+---
+
+## 🆕 2026-07-23 VOLUME_DELTA·BOLLINGER confidence 재스케일 (동적 세션 무거래 근본원인 수정)
+
+> 운영 DB 재분석(07-23): 동적 세션 7개가 여전히 실체결 0건. 퍼널 정량화 결과 **HOLD의 79.6%가 "점수 미달 buy/sell=0"** — 게이트가 아니라 **스코어가 임계(0.20)를 못 넘는 것**이 병목. 서브전략 신호율 집계로 원인 특정: ① 가중 0.5 앵커 **MACD 신호율 0.6%**(크로스 순간만 투표하는 이벤트형 → 연속형 스코어 모델과 불일치), ② **VOLUME_DELTA(conf 15.2)·BOLLINGER(conf 14.5)** 의 strength 정규화가 도달 불가능한 극값(비율 1.0 / %B −0.8) 기준이라 발화해도 스코어 기여 0.05~0.08의 "무의미 표". MEANREV_BB는 BOLLINGER+RSI 동시 발화해도 0.08+0.09=0.17 < 0.20이라 수학적으로 진입 불가였음.
+
+- **이번 범위 = ②만 수정 (가장 레버리지 크고 되돌리기 쉬운 것). ①(MACD 로직 변경)은 휩쏘 위험 커 보류.**
+- **VOLUME_DELTA** [`VolumeDeltaStrategy`](../strategy-lib/src/main/java/com/cryptoautotrader/strategy/volumedelta/VolumeDeltaStrategy.java): strength를 도달 가능한 포화점 `strengthSaturationRatio`(기본 **0.40**) 기준으로 재정규화. `(ratio−threshold)/(saturation−threshold)×100`. 포화점≤임계 시 구 동작(1.0 기준)으로 안전 폴백. 비율 0.25 → conf 5.5 → **50**으로 상승.
+- **BOLLINGER** [`BollingerStrategy`](../strategy-lib/src/main/java/com/cryptoautotrader/strategy/bollinger/BollingerStrategy.java): `strengthSaturationDepth`(기본 **0.35**) 도입. `(buyThreshold−%B)/depth×100`. 하단 밴드 터치(%B≈0)가 conf 20 → **약 57**로 상승. SELL 대칭.
+- 두 파라미터는 [`VolumeDeltaConfig`](../strategy-lib/src/main/java/com/cryptoautotrader/strategy/volumedelta/VolumeDeltaConfig.java)·[`BollingerConfig`](../strategy-lib/src/main/java/com/cryptoautotrader/strategy/bollinger/BollingerConfig.java)에 노출(params override 가능).
+- **효과 예측**: MEANREV_BB의 BOLLINGER+RSI 합의가 0.20 돌파(진입 가능화), 추세추종 프리셋의 VD 확인표도 유효화. **scan_weak_threshold(0.20)는 그대로 — 재스케일만으로 2전략 합의가 임계를 넘어 임계 완화 불필요.**
+- **테스트**: `VolumeDeltaStrategyTest`·`BollingerStrategyTest`에 포화점 단조성 락 테스트 각 1건 추가. `:strategy-lib:test`+`:core-engine:test` 통과, `:web-api` 컴파일 통과 ✅. **코드는 미커밋/미배포.**
+- **[ ] 배포 필요** — 미배포 시 구 저conf 로직 유지. 배포 후에야 동적 세션 진입 발생.
+- **[ ] 소액 실전 관찰** — 배포 후 일일 BUY 실집행수 / 진입 코인 / 4h·24h 사후수익률 추적. 진입이 과하거나(노이즈) 순손실이면 포화점 상향(0.40→0.55 / 0.35→0.50)으로 보수화, 되돌리기는 params 1줄.
+- **[ ] 잔여 근본원인 ①(MACD 앵커 0.6%)** — 미해결. 추세 지속 투표 모드 or 내부 adxThreshold 25→20은 별도 작업(휩쏘 검증 필요).
 
 ---
 

@@ -316,4 +316,24 @@ class VolumeDeltaStrategyTest {
                 "lookback", 20, "signalThreshold", 0.05, "divergenceMode", false));
         assertThat(signal.getStrength()).isBetween(BigDecimal.ZERO, BigDecimal.valueOf(100));
     }
+
+    @Test
+    void 포화점_낮을수록_강도_높음_재스케일_검증() {
+        // 동일 신호에 대해 strengthSaturationRatio가 작을수록(도달 가능한 포화점) 강도가 커야 한다.
+        // 기존 버그(포화점=1.0 고정)에서는 강도가 구조적으로 낮았다 — 재스케일이 살아있음을 고정.
+        List<Candle> candles = TestDataHelper.createUpTrendCandles(25, new BigDecimal("50000000"));
+        Map<String, Object> base = Map.of("lookback", 20, "signalThreshold", 0.05, "divergenceMode", false);
+
+        StrategySignal rescaled = strategy.evaluate(candles, mergeSaturation(base, "strengthSaturationRatio", 0.40));
+        StrategySignal oldLike  = strategy.evaluate(candles, mergeSaturation(base, "strengthSaturationRatio", 5.0));
+
+        assertThat(rescaled.getAction()).isEqualTo(StrategySignal.Action.BUY);
+        assertThat(rescaled.getStrength()).isGreaterThan(oldLike.getStrength());
+    }
+
+    private static Map<String, Object> mergeSaturation(Map<String, Object> base, String key, double val) {
+        java.util.Map<String, Object> m = new java.util.HashMap<>(base);
+        m.put(key, val);
+        return m;
+    }
 }

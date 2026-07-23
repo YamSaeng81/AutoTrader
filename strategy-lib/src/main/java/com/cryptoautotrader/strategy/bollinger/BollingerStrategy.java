@@ -23,6 +23,18 @@ public class BollingerStrategy implements Strategy {
 
     private static final int SCALE = 8;
 
+    /**
+     * strength(confidence) 정규화 깊이 — 트리거 임계에서 %B가 이만큼 더 이탈하면 강도 100.
+     *
+     * <p>기존 공식 {@code (buyThreshold − %B) × 100}은 강도 100에 %B ≤ −0.8(하단 밴드를 밴드폭의
+     * 80% 뚫는 극단 이탈)을 요구해, 실제 발화 구간(%B 0.05~0.15)의 강도가 5~15에 그쳤다.
+     * 가중 0.55짜리 BOLLINGER조차 발화 시 스코어 기여가 0.08 수준이라, RSI와 동시 발화해도
+     * 합의 스코어가 임계(0.20)에 못 미쳐 MEANREV_BB가 13일간 거래 0건이었다(2026-07-23 분석).
+     * 트리거 지점에서 {@value #DEFAULT_STRENGTH_SATURATION_DEPTH}만큼 더 이탈하면 100이 되도록
+     * 재정규화한다 — 기본값 0.35에서 하단 밴드 터치(%B≈0)는 강도 약 57이 된다.</p>
+     */
+    private static final double DEFAULT_STRENGTH_SATURATION_DEPTH = 0.35;
+
     @Override
     public String getName() {
         return "BOLLINGER";
@@ -38,6 +50,7 @@ public class BollingerStrategy implements Strategy {
         double  adxMaxThreshold = getDouble(params, "adxMaxThreshold", 25.0);
         double  buyThreshold   = getDouble(params,  "buyThreshold",    0.2);
         double  sellThreshold  = getDouble(params,  "sellThreshold",   0.8);
+        double  saturationDepth = getDouble(params, "strengthSaturationDepth", DEFAULT_STRENGTH_SATURATION_DEPTH);
 
         if (candles.size() < period) {
             return StrategySignal.hold("데이터 부족");
@@ -86,14 +99,24 @@ public class BollingerStrategy implements Strategy {
         BigDecimal buyBD  = BigDecimal.valueOf(buyThreshold);
         BigDecimal sellBD = BigDecimal.valueOf(sellThreshold);
 
+        // 강도 정규화 분모 = 포화 깊이. 잘못 설정(0 이하)되면 구 동작(깊이 1.0)으로 안전 폴백.
+        BigDecimal strengthDenom = BigDecimal.valueOf(saturationDepth);
+        if (strengthDenom.signum() <= 0) {
+            strengthDenom = BigDecimal.ONE;
+        }
+
         BigDecimal strength;
         if (percentB.compareTo(buyBD) < 0) {
-            strength = buyBD.subtract(percentB).multiply(BigDecimal.valueOf(100)).min(BigDecimal.valueOf(100));
+            strength = buyBD.subtract(percentB)
+                    .divide(strengthDenom, SCALE, RoundingMode.HALF_UP)
+                    .multiply(BigDecimal.valueOf(100)).min(BigDecimal.valueOf(100));
             return StrategySignal.buy(strength,
                     String.format("하단 밴드 근접: %%B=%.4f < %.2f, 가격=%.2f, 하단=%.2f", percentB, buyThreshold, currentPrice, lowerBand));
         }
         if (percentB.compareTo(sellBD) > 0) {
-            strength = percentB.subtract(sellBD).multiply(BigDecimal.valueOf(100)).min(BigDecimal.valueOf(100));
+            strength = percentB.subtract(sellBD)
+                    .divide(strengthDenom, SCALE, RoundingMode.HALF_UP)
+                    .multiply(BigDecimal.valueOf(100)).min(BigDecimal.valueOf(100));
             return StrategySignal.sell(strength,
                     String.format("상단 밴드 근접: %%B=%.4f > %.2f, 가격=%.2f, 상단=%.2f", percentB, sellThreshold, currentPrice, upperBand));
         }
