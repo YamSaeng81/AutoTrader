@@ -131,6 +131,10 @@ CREATE TABLE IF NOT EXISTS risk_config (
     scan_strong_threshold       DECIMAL(4, 2),
     scan_ema_dampen_factor      DECIMAL(4, 2),
     scan_ema200_buy_margin_pct  DECIMAL(5, 2),
+    scan_min_trade_value_krw    DECIMAL(20, 2),
+    scan_max_atr_pct            DECIMAL(6, 4),
+    scan_require_uptrend        BOOLEAN,
+    scan_exclude_crashing       BOOLEAN,
     updated_at                  TIMESTAMP       DEFAULT CURRENT_TIMESTAMP
 );
 

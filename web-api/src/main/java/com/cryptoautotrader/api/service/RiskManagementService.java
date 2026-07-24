@@ -76,6 +76,11 @@ public class RiskManagementService {
                 .scanStrongThreshold(newConfig.getScanStrongThreshold())
                 .scanEmaDampenFactor(newConfig.getScanEmaDampenFactor())
                 .scanEma200BuyMarginPct(newConfig.getScanEma200BuyMarginPct())
+                // 동적 워치리스트 품질 큐레이션 파라미터
+                .scanMinTradeValueKrw(newConfig.getScanMinTradeValueKrw())
+                .scanMaxAtrPct(newConfig.getScanMaxAtrPct())
+                .scanRequireUptrend(newConfig.getScanRequireUptrend())
+                .scanExcludeCrashing(newConfig.getScanExcludeCrashing())
                 .build();
         entity = riskConfigRepository.save(entity);
         log.info("리스크 설정 업데이트: 일일={}%, 주간={}%, 월간={}%, 자본사용률한도={}%, SL={}%, TP={}×, 투자비율={}%",

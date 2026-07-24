@@ -3,7 +3,23 @@
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝나면 완료 내용을 [`docs/CHANGELOG.md`](CHANGELOG.md)에 추가하고, 이 파일의 해당 항목은 삭제한다.
 > **변경 이력**: [`docs/CHANGELOG.md`](CHANGELOG.md)
-> **마지막 갱신**: 2026-07-23 (VOLUME_DELTA·BOLLINGER confidence 재스케일 — 동적 세션 무거래 근본원인, 미커밋/미배포)
+> **마지막 갱신**: 2026-07-24 (동적 워치리스트 품질 큐레이션 — 유니버스 근본원인, 미커밋/미배포)
+
+---
+
+## 🆕 2026-07-24 동적 워치리스트 품질 큐레이션 (무거래 근본원인 — 유니버스 측)
+
+> 운영 DB 재분석(07-24): 동적 세션 여전히 실체결 0건. BUY 신호 86건 전량 진입 게이트 차단 — **BLACK_SWAN_GUARD 79%·EMA200 게이트 17%**. 원인 분해: ① 대형주(BTC/ETH/XRP/SOL)는 BUY 신호를 **한 번도** 안 냄(HOLD/SELL만) ② BUY 신호는 전부 급락 중인 소형·신규상장 잡코인(NEO/BIRB/SOPH/ZKC/BONK…)에서 발생 → "거래대금 상위" 원시 유니버스가 펌프-덤프 잡코인으로 채워져 **신호 발생 조건(급락 후 이격)과 급락 가드가 구조적으로 상쇄**. 이전 세션들이 손댄 스코어 모델(07-23 conf 재스케일)·게이트 티어링(07-21)과 **직교하는 유니버스 측 수정**.
+
+- **처방 #1(진입 방향)+#2(유니버스 큐레이션)을 워치리스트 앞단 큐레이션으로 통합 구현.** 진입 게이트(사후 차단)가 아니라 유니버스 자체를 걸러 상쇄 구조를 해소.
+- **신규 순수 게이트** [`WatchlistQualityGate`](../core-engine/src/main/java/com/cryptoautotrader/core/selector/WatchlistQualityGate.java): 4기준 AND — ① 유동성(24h 거래대금 ≥ 하한) ② 변동성 상한(ATR% ≤ 상한) ③ 상승추세(종가 > EMA200, `Ema200RegimeGate` 재사용) ④ 비급락(`BlackSwanGuard.check` 미발동). BlackSwanGuard/Ema200RegimeGate와 동일한 순수 정적 클래스, 단위 테스트 7건.
+- **워치리스트 통합** [`WatchlistFilterService`](../web-api/src/main/java/com/cryptoautotrader/api/service/WatchlistFilterService.java): 기존 파이프라인(거래대금상위→스프레드→ATR하한) 뒤에 품질 게이트 추가. 캔들 1회 조회(EMA200용 210개)로 ATR·EMA200·급락 공용. 기존 시그니처는 `QualityCriteria.disabled()`로 위임(하위호환).
+- **설정화** [`risk_config`](../web-api/src/main/resources/db/migration/V57__add_watchlist_quality_to_risk_config.sql) V57: `scan_min_trade_value_krw`(기본 50억)·`scan_max_atr_pct`(기본 4.0)·`scan_require_uptrend`(기본 true)·`scan_exclude_crashing`(기본 true). NULL이면 `DynamicTradingService` 코드 기본값. 재빌드 없이 SQL/API로 조정 가능(V56 패턴).
+- **효과 예측**: 유니버스가 상승추세·정상변동성 대형/중형주로 좁혀져 dip 전략은 "상승추세 눌림목", 모멘텀 전략은 트렌드 코인을 잡음 → 급락 가드와의 상쇄 급감 → 진입 발생. 유니버스가 비면 기존 "워치리스트 empty → 틱 스킵"이 처리.
+- **테스트**: `WatchlistQualityGateTest` 7건 + `:web-api:test` 전체 통과, `:core-engine`·`:web-api` 컴파일 통과 ✅. **코드는 미커밋/미배포.**
+- **[ ] 배포 필요** — 미배포 시 구 유니버스(잡코인 포함) 유지. 배포 후에야 큐레이션 발효.
+- **[ ] 소액 실전 관찰** — 배포 후 워치리스트 구성 코인 변화 / 일일 BUY 실집행수 / 진입 코인 / 4h·24h 사후수익률 추적. 유니버스가 과도하게 비면 `scan_min_trade_value_krw` 하향 또는 `scan_max_atr_pct` 상향(SQL 1줄). 여전히 무거래면 `scan_require_uptrend=false`로 완화 실험.
+- **[ ] 배포 검증 병행** — 07-23 conf 재스케일·07-21 게이트 티어링도 미배포 상태. 운영 로그의 게이트 사유 wording으로 실제 배포 버전 확인 필요(entryGate 3단계 vs 구 check 2단계).
 
 ---
 

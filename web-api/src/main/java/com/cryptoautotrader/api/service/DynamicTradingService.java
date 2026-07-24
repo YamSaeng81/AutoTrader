@@ -111,6 +111,17 @@ public class DynamicTradingService {
     private static final double SCAN_STRONG_THRESHOLD = 0.40;  // CompositeStrategy 기본 0.5
     private static final double SCAN_EMA_DAMPEN_FACTOR = 0.7;  // CompositeStrategy 기본 0.0(완전 소멸)
 
+    /**
+     * 워치리스트 품질 큐레이션 기본값 (2026-07-24) — risk_config의 scan_min_trade_value_krw /
+     * scan_max_atr_pct / scan_require_uptrend / scan_exclude_crashing가 NOT NULL이면 그 값이
+     * 우선한다(V57). "거래대금 상위" 원시 유니버스가 펌프-덤프 잡코인으로 채워져 진입 게이트와
+     * 신호가 상쇄되던(2주 실거래 0건) 문제 대응. {@link WatchlistQualityGate} 참조.
+     */
+    private static final BigDecimal SCAN_MIN_TRADE_VALUE_KRW = new BigDecimal("5000000000"); // 50억
+    private static final BigDecimal SCAN_MAX_ATR_PCT = new BigDecimal("4.0");  // H1 기준 ATR% 상한
+    private static final boolean SCAN_REQUIRE_UPTREND = true;
+    private static final boolean SCAN_EXCLUDE_CRASHING = true;
+
     private final DynamicSessionRepository dynamicSessionRepo;
     private final PositionRepository positionRepository;
     private final OrderRepository orderRepository;
@@ -889,12 +900,29 @@ public class DynamicTradingService {
         }
 
         log.info("[Dynamic] 워치리스트 갱신 (id={})", session.getId());
+
+        // 품질 큐레이션 기준 — risk_config override 우선, NULL이면 코드 기본값. 원시 유니버스
+        // (거래대금 상위)를 유동성·변동성 상한·상승추세·비급락으로 걸러 진입 게이트와 상쇄되는
+        // 잡코인을 앞단에서 배제한다 (2026-07-24). WatchlistQualityGate 참조.
+        com.cryptoautotrader.api.entity.RiskConfigEntity riskConfig = riskManagementService.getRiskConfig();
+        BigDecimal minTradeValueKrw = riskConfig.getScanMinTradeValueKrw() != null
+                ? riskConfig.getScanMinTradeValueKrw() : SCAN_MIN_TRADE_VALUE_KRW;
+        BigDecimal maxAtrPct = riskConfig.getScanMaxAtrPct() != null
+                ? riskConfig.getScanMaxAtrPct() : SCAN_MAX_ATR_PCT;
+        boolean requireUptrend = riskConfig.getScanRequireUptrend() != null
+                ? riskConfig.getScanRequireUptrend() : SCAN_REQUIRE_UPTREND;
+        boolean excludeCrashing = riskConfig.getScanExcludeCrashing() != null
+                ? riskConfig.getScanExcludeCrashing() : SCAN_EXCLUDE_CRASHING;
+        WatchlistFilterService.QualityCriteria criteria = new WatchlistFilterService.QualityCriteria(
+                minTradeValueKrw, maxAtrPct, requireUptrend, excludeCrashing);
+
         List<String> fresh = watchlistFilterService.buildWatchlist(
                 session.getMaxCandidateSize(),
                 session.getTargetWatchSize(),
                 session.getMinAtrPct(),
                 session.getMaxSpreadPct(),
-                session.getTimeframe());
+                session.getTimeframe(),
+                criteria);
 
         try {
             DynamicSessionEntity toUpdate = getOrThrow(session.getId());

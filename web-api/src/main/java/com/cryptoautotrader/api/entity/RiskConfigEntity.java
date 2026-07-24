@@ -114,6 +114,27 @@ public class RiskConfigEntity {
     @Column(name = "scan_ema200_buy_margin_pct", precision = 5, scale = 2)
     private BigDecimal scanEma200BuyMarginPct;
 
+    // ── 동적 워치리스트 품질 큐레이션 파라미터 (2026-07-24) ─────────────────
+    // 원시 유니버스("거래대금 상위")가 펌프-덤프 잡코인으로 채워져 진입 게이트와 신호가
+    // 상쇄되던 문제(2주간 실거래 0건) 대응. NULL이면 DynamicTradingService 코드 기본값 사용.
+    // 재빌드 없이 SQL/API로 조정 가능. WatchlistQualityGate 참조.
+
+    /** 동적 워치리스트: 24h 누적 거래대금 유동성 하한 KRW (기본 50억). NULL·0이면 검사 생략 */
+    @Column(name = "scan_min_trade_value_krw", precision = 20, scale = 2)
+    private BigDecimal scanMinTradeValueKrw;
+
+    /** 동적 워치리스트: ATR(14)/현재가 변동성 상한 % (H1 정규화 기준, 기본 4.0). NULL·0이면 생략 */
+    @Column(name = "scan_max_atr_pct", precision = 6, scale = 4)
+    private BigDecimal scanMaxAtrPct;
+
+    /** 동적 워치리스트: 상승추세(종가>EMA200) 코인만 포함 여부 (기본 true) */
+    @Column(name = "scan_require_uptrend")
+    private Boolean scanRequireUptrend;
+
+    /** 동적 워치리스트: 1시간 내 급락 중인 코인 제외 여부 (기본 true) */
+    @Column(name = "scan_exclude_crashing")
+    private Boolean scanExcludeCrashing;
+
     @PrePersist
     void prePersist() {
         if (updatedAt == null) updatedAt = Instant.now();
@@ -209,4 +230,16 @@ public class RiskConfigEntity {
 
     public BigDecimal getScanEma200BuyMarginPct() { return scanEma200BuyMarginPct; }
     public void setScanEma200BuyMarginPct(BigDecimal scanEma200BuyMarginPct) { this.scanEma200BuyMarginPct = scanEma200BuyMarginPct; }
+
+    public BigDecimal getScanMinTradeValueKrw() { return scanMinTradeValueKrw; }
+    public void setScanMinTradeValueKrw(BigDecimal scanMinTradeValueKrw) { this.scanMinTradeValueKrw = scanMinTradeValueKrw; }
+
+    public BigDecimal getScanMaxAtrPct() { return scanMaxAtrPct; }
+    public void setScanMaxAtrPct(BigDecimal scanMaxAtrPct) { this.scanMaxAtrPct = scanMaxAtrPct; }
+
+    public Boolean getScanRequireUptrend() { return scanRequireUptrend; }
+    public void setScanRequireUptrend(Boolean scanRequireUptrend) { this.scanRequireUptrend = scanRequireUptrend; }
+
+    public Boolean getScanExcludeCrashing() { return scanExcludeCrashing; }
+    public void setScanExcludeCrashing(Boolean scanExcludeCrashing) { this.scanExcludeCrashing = scanExcludeCrashing; }
 }
