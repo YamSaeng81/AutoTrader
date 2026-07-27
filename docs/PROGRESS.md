@@ -3,7 +3,7 @@
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝나면 완료 내용을 [`docs/CHANGELOG.md`](CHANGELOG.md)에 추가하고, 이 파일의 해당 항목은 삭제한다.
 > **변경 이력**: [`docs/CHANGELOG.md`](CHANGELOG.md)
-> **마지막 갱신**: 2026-07-27 (모닝 브리핑 — Phase1 LLM Claude 전환(.env, 검증완료·크레딧대기) + Phase2 텔레그램 05:00 48h 추세 브리핑 코드 완료·테스트 통과, 배포 대기)
+> **마지막 갱신**: 2026-07-27 (모닝 브리핑 완료 — Phase1 LLM Claude(sonnet-5) 복구 운영검증 + Phase2 텔레그램 05:00 48h 추세 브리핑 배포·검증 완료. 남은 것: 변경분 git 커밋)
 
 ---
 
@@ -22,13 +22,19 @@
 - **[x] temperature deprecated 오류 수정 (ClaudeProvider)** — 크레딧 충전 후 sonnet-5 호출 시 `HTTP 400: temperature is deprecated for this model`. Claude 5 계열은 temperature 파라미터를 거부. 선택 파라미터이므로 **요청 body에서 완전히 제거**(생략 시 모델 기본값, 요약용도엔 충분). `:web-api:compileJava` 통과. 오류가 "credit too low"→"temperature"로 바뀐 것은 **크레딧 충전 완료** 신호.
 - **[x] 빈-모델 버그 수정 (ClaudeProvider)** — 라우터가 `llm_task_config.model`을 요청에 싣는데, 값이 빈 문자열("")이면 `getModel()!=null`이 true라 빈 모델명이 Anthropic에 전송돼 400 발생 가능(테스트 경로는 model 미지정→default라 통과했으나 실제 브리핑 경로는 실패할 뻔). `getModel()`이 blank면 `default_model`로 폴백하도록 수정. V58이 model을 명시 세팅하므로 이제 sonnet-5 사용.
 - **[x] Phase 1 배포·파이프라인 검증 완료 (07-27)** — 운영 재빌드 후 `test/provider`로 CLAUDE 호출 성공. 응답: 바깥 `success:true`(인증·라우팅·env키 배선 전부 정상, Anthropic 결제 단계까지 도달), 안쪽만 `HTTP 400 credit balance too low`. **키 유효(401 아님)·V58 라우팅 정상 확인.** 인증은 컨테이너 내부 `$API_AUTH_TOKEN`으로 해결(호스트 셸 추출 시 CR/따옴표 섞임 주의).
-- **[ ] Phase 1 최종 — Anthropic 크레딧 충전만 남음 (사용자, 재배포 불필요)**: console.anthropic.com/settings/billing에서 크레딧 충전($5~) → 키 이미 로드돼 있으므로 재배포 없이 동일 curl 재실행 시 안쪽 `success:true` → 다음 07:00 브리핑부터 실제 AI 요약 발송. (OpenAI와 동일하게 잔액 소진이 유일 원인이었음.)
+- **[x] Phase 1 완전 종료 — 운영 검증 완료 (07-27 13:25 KST)**: 크레딧 충전 후 `llm_call_log`에 REPORT_NARRATION·NEWS_SUMMARY `success=true`, model=`claude-sonnet-5`, 토큰 소모 기록(779/887 등). Discord 07:00 브리핑에 실제 AI 시황·뉴스 요약 정상 표시 확인(사용자 + Claude 플랫폼 토큰 확인). 오류 진행: 429(OpenAI쿼터)→400(temperature)→success. **LLM 두뇌 완전 복구.**
 - **[x] Phase 2 코드 완료 — 텔레그램 05:00 아침 브리핑 (Discord 07:00 유지, 텔레그램 신규 추가)**: 4개 신규 클래스, `:web-api:compileJava` + 테스트 2건 통과.
   - [MarketTrendScanner](../web-api/src/main/java/com/cryptoautotrader/api/report/MarketTrendScanner.java) — **대형/중형 추세 스캔 신규**. Upbit 24h 거래대금 상위 N(기본 8)개의 48h/24h 변화율·중기추세(시간봉 EMA200 대비)·변동성(ATR%) 산출. 읽기 전용, 매매 무관. 테스트 [MarketTrendScannerTest](../web-api/src/test/java/com/cryptoautotrader/api/report/MarketTrendScannerTest.java) 2건(계산 검증·데이터부족 제외).
   - [TelegramBriefingComposer](../web-api/src/main/java/com/cryptoautotrader/api/report/TelegramBriefingComposer.java) — `LogAnalyzerService.analyze`를 **48h 윈도우**로 호출(엔진은 원래 윈도우 파라미터화됨, `btcPriceChange12h` 필드명만 레거시) + 추세스캔 + 뉴스 요약을 텔레그램 메시지 3건(①AI시황+추세 ②시스템 자기진단 ③뉴스 이슈)으로 조립. `TelegramNotificationService.sendMarkdown` 사용. LLM 실패 시 수치 리포트는 정상 발송, AI 서술만 폴백 문구.
   - [TelegramBriefingScheduler](../web-api/src/main/java/com/cryptoautotrader/api/report/TelegramBriefingScheduler.java) — `@Scheduled(cron "0 0 5 * * *", Asia/Seoul)`.
   - [BriefingController](../web-api/src/main/java/com/cryptoautotrader/api/controller/BriefingController.java) — `POST /api/v1/admin/briefing/telegram/trigger` 수동 트리거(배포 후 즉시 테스트용).
-- **[ ] Phase 2 배포·검증 (사용자, Phase 1 크레딧 후 함께)**: `docker compose -f docker-compose.prod.yml up -d --build backend` → `POST /api/v1/admin/briefing/telegram/trigger`(인증 Bearer 필요)로 텔레그램 3건 수신 확인. AI 서술·뉴스 요약은 Anthropic 크레딧 충전 후 실내용 표시(그 전엔 수치+추세는 정상, AI 부분만 폴백). 매일 05:00 자동 발송.
+- **[x] Phase 2 배포·검증 완료 (07-27)**: 재빌드 후 `POST /api/v1/admin/briefing/telegram/trigger`로 **텔레그램 3건 수신 확인**(①AI 시황+대형/중형 추세 ②시스템 자기진단 ③뉴스 이슈). AI 서술·뉴스 요약 sonnet-5로 실내용 표시. 매일 05:00 KST 자동 발송 활성. Discord 07:00은 그대로 병행. **컨테이너에 curl 없어(슬림 JRE) 트리거는 호스트 curl로 실행.**
+- **[x] Phase 3 브리핑 보완 — 코드 완료·컴파일·테스트 통과 (사용자 요청: 셋 다 + 전문가 시선)**:
+  - **뉴스 확대** [V60](../web-api/src/main/resources/db/migration/V60__expand_news_sources.sql): ① **버그 발견·수정** — cryptopanic·coingecko가 `source_type='API'`로 잘못 설정돼 레지스트리(CRYPTOPANIC/COINGECKO) 매칭 실패 → 여태 수집 불가였음. 타입 교정+활성화. ② 한국 크립토 RSS 2종(토큰포스트·블록미디어) 추가. ③ **업비트 공지 소스 신규** [UpbitNoticeSource](../web-api/src/main/java/com/cryptoautotrader/api/news/source/UpbitNoticeSource.java)(상장/유의/거래중단 — 업비트 트레이더 최대 이슈원). ※RSS URL·업비트 API는 실패 시 graceful 0건, 운영 검증 후 조정.
+  - **무거래 퍼널 자가진단** [LogAnalyzerService.buildNoTradeFunnel](../web-api/src/main/java/com/cryptoautotrader/api/report/LogAnalyzerService.java): DYNAMIC "왜 거래 없나"를 HOLD(점수미달 vs 기타) / 매수신호→게이트차단→체결로 분해. 우리가 매번 psycopg2로 깠던 그 퍼널을 브리핑이 자동으로. buy=0이면 "병목은 스코어" 자동 판정.
+  - **추세 강화** [MarketTrendScanner](../web-api/src/main/java/com/cryptoautotrader/api/report/MarketTrendScanner.java): 거래량 급증률(최근24h vs 직전24h)·EMA 이격률(추세강도)·시장폭(breadth 상승개수·평균)·BTC대비 상대강도 추가.
+  - **전문가 지표**: 공포·탐욕 지수(alternative.me) 추가 — AI 서술 프롬프트에도 반영.
+  - `:web-api:compileJava` + MarketTrendScannerTest 통과. **배포 시 V60 자동 적용.**
 
 ---
 

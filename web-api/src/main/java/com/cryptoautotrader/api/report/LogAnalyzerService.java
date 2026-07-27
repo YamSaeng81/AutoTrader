@@ -135,6 +135,57 @@ public class LogAnalyzerService {
                 .build();
     }
 
+    // ── 무거래 퍼널 진단 (동적 세션) ───────────────────────────────────────────
+
+    /**
+     * 동적(DYNAMIC) 세션의 "왜 거래가 없었나" 퍼널을 계산한다.
+     * 이 시스템의 핵심 질문 — HOLD(점수 미달) vs BUY 신호 게이트 차단 vs 실행을 분해한다.
+     * blocked_reason은 발화한 신호가 게이트에 막힌 경우만 잡히므로, 점수 미달로 HOLD된
+     * 다수 케이스(진짜 병목)를 별도로 집계한다.
+     */
+    public NoTradeFunnel buildNoTradeFunnel(Instant from, Instant to) {
+        List<StrategyLogEntity> logs = strategyLogRepo.findByPeriodAndSessionType("DYNAMIC", from, to);
+        int total = logs.size();
+        int hold = 0, holdLowScore = 0, buy = 0, sell = 0, executed = 0, buyBlocked = 0;
+        Map<String, Integer> buyBlockReasons = new HashMap<>();
+
+        for (StrategyLogEntity l : logs) {
+            String sig = l.getSignal() != null ? l.getSignal() : "";
+            if ("HOLD".equals(sig)) {
+                hold++;
+                String reason = l.getReason();
+                if (reason != null && (reason.contains("점수 미달")
+                        || (reason.contains("buy=0") && reason.contains("sell=0")))) {
+                    holdLowScore++;
+                }
+            } else if ("BUY".equals(sig) || "STRONG_BUY".equals(sig)) {
+                buy++;
+                if (l.isWasExecuted()) {
+                    executed++;
+                } else if (l.getBlockedReason() != null) {
+                    buyBlocked++;
+                    String key = l.getBlockedReason().split(":")[0].trim();
+                    if (!key.isBlank()) buyBlockReasons.merge(key, 1, Integer::sum);
+                }
+            } else if ("SELL".equals(sig) || "STRONG_SELL".equals(sig)) {
+                sell++;
+            }
+        }
+        return new NoTradeFunnel(total, hold, holdLowScore, buy, buyBlocked, executed, sell, buyBlockReasons);
+    }
+
+    /**
+     * 동적 세션 무거래 퍼널 결과.
+     *
+     * @param holdLowScore HOLD 중 "점수 미달"(서브전략 무투표) 건수 — 진짜 병목 지표
+     * @param buyBlocked   BUY 신호가 진입 게이트에 차단된 건수
+     * @param buyExecuted  BUY 신호가 실제 체결된 건수
+     */
+    public record NoTradeFunnel(
+            int total, int hold, int holdLowScore,
+            int buySignals, int buyBlocked, int buyExecuted, int sell,
+            Map<String, Integer> buyBlockReasons) {}
+
     // ── 신호 통계 ─────────────────────────────────────────────────────────────
 
     private SignalStats buildSignalStats(List<StrategyLogEntity> logs) {

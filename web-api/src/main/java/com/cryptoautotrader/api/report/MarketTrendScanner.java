@@ -19,11 +19,15 @@ import java.util.Map;
 /**
  * 대형/중형 코인 48시간 추세 스캐너.
  *
- * <p>Upbit 24h 거래대금 상위 N개(대형·중형 프록시)에 대해 48h/24h 가격 변화율,
- * 중기 추세(시간봉 EMA200 대비 위치), 변동성(ATR%)을 계산해 아침 브리핑에 제공한다.
+ * <p>Upbit 24h 거래대금 상위 N개(대형·중형 프록시)에 대해 다음을 계산해 아침 브리핑에 제공한다:
+ * <ul>
+ *   <li>48h / 24h 가격 변화율</li>
+ *   <li>중기 추세: 시간봉 EMA200 대비 위치(상/하) + 이격률(추세 강도)</li>
+ *   <li>변동성: ATR%</li>
+ *   <li>거래량 급증: 최근 24h 시간봉 평균 거래량 vs 직전 24h (관심 급증 신호)</li>
+ * </ul>
  *
- * <p>읽기 전용(REST 조회만) — 매매 로직과 무관. 하루 1회(05:00) 호출 기준
- * 상위 N개 × 시간봉 200개 조회이므로 rate limit 여유 범위.
+ * <p>읽기 전용(REST 조회만) — 매매 로직과 무관.
  */
 @Service
 @RequiredArgsConstructor
@@ -97,12 +101,16 @@ public class MarketTrendScanner {
             BigDecimal ago48 = c.get(48).getTradePrice();
             if (now == null) return null;
 
-            BigDecimal ch24  = pctChange(now, ago24);
-            BigDecimal ch48  = pctChange(now, ago48);
-            BigDecimal atrPct = atrPct(c);
-            Boolean uptrend  = isAboveEma(c, now);
+            BigDecimal ch24    = pctChange(now, ago24);
+            BigDecimal ch48    = pctChange(now, ago48);
+            BigDecimal atrPct  = atrPct(c);
+            BigDecimal volSurge = volSurgePct(c);
+            Double ema         = computeEma(c);
+            Boolean uptrend    = ema == null ? null : now.doubleValue() > ema;
+            BigDecimal emaGap  = ema == null || ema == 0.0 ? null
+                    : BigDecimal.valueOf((now.doubleValue() - ema) / ema * 100).setScale(2, RoundingMode.HALF_UP);
 
-            return new CoinTrend(market, name, ch48, ch24, atrPct, uptrend, tradeValue24h);
+            return new CoinTrend(market, name, ch48, ch24, atrPct, uptrend, emaGap, volSurge, tradeValue24h);
         } catch (Exception e) {
             log.debug("[TrendScanner] {} 추세 계산 실패: {}", market, e.getMessage());
             return null;
@@ -125,7 +133,6 @@ public class MarketTrendScanner {
         if (current == null || current.compareTo(BigDecimal.ZERO) == 0) return null;
 
         BigDecimal trSum = BigDecimal.ZERO;
-        // newest-first: i번째 봉의 이전 종가는 i+1
         for (int i = 0; i < ATR_PERIOD; i++) {
             UpbitCandleResponse cur = candles.get(i);
             BigDecimal prevClose = candles.get(i + 1).getTradePrice();
@@ -144,22 +151,39 @@ public class MarketTrendScanner {
     }
 
     /**
-     * 현재가가 시간봉 EMA(EMA_PERIOD, 부족 시 가용 개수) 위인지 → 중기 상승추세 여부.
-     * 계산 불가 시 null.
+     * 거래량 급증률 — 최근 24h 시간봉 평균 거래량 대비 직전 24h 평균의 변화율(%).
+     * +면 관심 급증, 데이터 부족·직전 0이면 null.
      */
-    private static Boolean isAboveEma(List<UpbitCandleResponse> candles, BigDecimal now) {
+    private static BigDecimal volSurgePct(List<UpbitCandleResponse> candles) {
+        if (candles.size() < 48) return null;
+        double recent = 0, prior = 0;
+        for (int i = 0; i < 24; i++) {
+            BigDecimal v = candles.get(i).getCandleAccTradeVolume();
+            if (v != null) recent += v.doubleValue();
+        }
+        for (int i = 24; i < 48; i++) {
+            BigDecimal v = candles.get(i).getCandleAccTradeVolume();
+            if (v != null) prior += v.doubleValue();
+        }
+        if (prior <= 0) return null;
+        return BigDecimal.valueOf((recent - prior) / prior * 100).setScale(0, RoundingMode.HALF_UP);
+    }
+
+    /**
+     * 시간봉 EMA(EMA_PERIOD, 부족 시 가용 개수) 값. 계산 불가 시 null.
+     */
+    private static Double computeEma(List<UpbitCandleResponse> candles) {
         int n = candles.size();
-        if (n < 20 || now == null) return null;
+        if (n < 20) return null;
         int period = Math.min(EMA_PERIOD, n);
         double k = 2.0 / (period + 1);
-        // oldest-first로 순회 (newest-first 리스트를 뒤에서 앞으로)
-        double ema = candles.get(n - 1).getTradePrice().doubleValue();
+        double ema = candles.get(n - 1).getTradePrice().doubleValue(); // oldest
         for (int i = n - 2; i >= 0; i--) {
             BigDecimal close = candles.get(i).getTradePrice();
             if (close == null) continue;
             ema = close.doubleValue() * k + ema * (1 - k);
         }
-        return now.doubleValue() > ema;
+        return ema;
     }
 
     private static double toDouble(Object o) {
@@ -178,8 +202,9 @@ public class MarketTrendScanner {
     /**
      * 코인 48h 추세 스냅샷.
      *
-     * @param uptrend 시간봉 EMA 대비 현재가 위(상승추세)면 true, 아래면 false, 판정불가면 null
-     * @param atrPct  변동성(ATR%), 계산불가면 null
+     * @param uptrend  시간봉 EMA 대비 현재가 위(상승추세)면 true, 아래면 false, 판정불가면 null
+     * @param emaGapPct EMA 이격률(%) — 추세 강도. +면 EMA 위로 강함, 계산불가면 null
+     * @param volSurgePct 거래량 급증률(%) — 최근24h vs 직전24h 평균 거래량, 계산불가면 null
      */
     public record CoinTrend(
             String market,
@@ -188,5 +213,7 @@ public class MarketTrendScanner {
             BigDecimal change24hPct,
             BigDecimal atrPct,
             Boolean uptrend,
+            BigDecimal emaGapPct,
+            BigDecimal volSurgePct,
             BigDecimal tradeValue24h) {}
 }
