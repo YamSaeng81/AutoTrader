@@ -7,6 +7,18 @@
 
 ---
 
+## 🆕 2026-07-27 (오후) SL 미점검 워치독 경고 — WS "조용한 정지" 사각지대 수정
+
+> 사용자 관찰: 텔레그램에 `⚠️ SL 미점검 3분 초과: 세션 192(KRW-BTC)/193(KRW-ADA). WS 상태를 확인하세요.` 반복. 원인 규명 + 근본 수정.
+
+- **경고 정체 = [§9 워치독](../web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java) `warnStaleSlCheck`** — OPEN 포지션 있는 RUNNING 세션이 3분 넘게 SL 점검(=실시간 가격 이벤트)을 못 받으면 경고.
+- **근본 원인 = WS "조용한 정지" 감지 사각지대** — SL 점검은 `RealtimePriceEvent`(WS 틱) 수신 시 실행되고, REST 폴백은 `isWsDownLongerThan`(=`webSocketConnected` 플래그)로만 발동. **WS가 "연결됨"인데 틱만 멎으면**(구독 사망/무데이터) 플래그는 true라 폴백이 안 켜지고 SL 감시가 굶음. KRW-BTC는 초유동성이라 "시장이 조용해서"가 아니라 **파이프라인 정지**(정황상 오늘 반복 재시작 후 재구독 실패 유력).
+- **[a] 노출도 확인(07-27)** — 둘 다 소액(~8천원)·안전: BTC +0.97%(SL까지 +5.9%), ADA -1.23%(SL까지 +3.8%). 당장 위험 없음.
+- **[x] 근본 수정 — 틱 신선도 기반 감지**: [ExchangeHealthMonitor](../web-api/src/main/java/com/cryptoautotrader/api/service/ExchangeHealthMonitor.java)에 `lastWsTickAt` + `markWsTick()`(WS 리스너에서만 호출) + `isWsStale(sec)`(연결됨인데 틱 끊김) + `isWsUnhealthy=다운 OR 정지` 추가. 연결 시 틱시각 리셋(재연결 오탐 방지). [LiveTradingService](../web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java): WS 틱 리스너에 `markWsTick()` 훅, `pollRestTickerFallback` 발동조건을 `isWsUnhealthy`로 → **조용한 정지에도 REST 폴백이 켜져 SL 감시 유지**. [WsFallbackTest](../web-api/src/test/java/com/cryptoautotrader/api/service/WsFallbackTest.java) 2건 추가·통과, `:web-api:compileJava` 통과.
+- **[ ] 배포 필요** — 재빌드 시 반영. 배포 후 경고가 멎는지 + `[§9] ... REST ticker fallback 활성화` 로그 확인.
+
+---
+
 ## 🆕 2026-07-27 (오후) 모닝 브리핑 시스템 진단 — "AI 요약"이 며칠째 죽어 있었음 + 텔레그램/48h 확장 계획
 
 > 사용자 요청: "매일 아침 5시 대형/중형 코인 이슈·추세(48h) 간단 리포트". 조사 결과 **해당 파이프라인이 이미 80% 구현·운영 중**이었으나 핵심 AI 부분이 조용히 고장나 있었음을 발견.

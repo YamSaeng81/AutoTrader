@@ -62,4 +62,34 @@ class WsFallbackTest {
         monitor.setWebSocketConnected(false);
         assertThat(monitor.isWsDownLongerThan(0)).isTrue();
     }
+
+    @Test
+    @DisplayName("§9 조용한 정지: 연결됨이지만 틱 끊기면 isWsStale/isWsUnhealthy 감지, markWsTick으로 회복")
+    void wsSilentStall_detectedByTickFreshness() throws Exception {
+        ExchangeHealthMonitor monitor = new ExchangeHealthMonitor(event -> {});
+
+        monitor.setWebSocketConnected(true);            // 연결 시 lastWsTickAt = now
+        assertThat(monitor.isWsStale(1)).isFalse();     // 방금 연결 → 신선
+
+        Thread.sleep(1100);                              // 틱 없이 1.1초 경과
+        assertThat(monitor.isWsStale(1)).isTrue();       // 조용한 정지 감지
+        assertThat(monitor.isWsUnhealthy(1)).isTrue();
+        assertThat(monitor.isWsDownLongerThan(1)).isFalse(); // 명시적 다운은 아님
+
+        monitor.markWsTick();                            // 실제 틱 재개
+        assertThat(monitor.isWsStale(1)).isFalse();      // 신선도 회복
+        assertThat(monitor.isWsUnhealthy(1)).isFalse();
+    }
+
+    @Test
+    @DisplayName("§9 미연결 상태에선 isWsStale=false(다운은 isWsDownLongerThan 담당), isWsUnhealthy는 true")
+    void wsStale_falseWhenDisconnected() {
+        ExchangeHealthMonitor monitor = new ExchangeHealthMonitor(event -> {});
+
+        assertThat(monitor.isWsStale(0)).isFalse();      // 미연결
+        monitor.setWebSocketConnected(true);
+        monitor.setWebSocketConnected(false);
+        assertThat(monitor.isWsStale(0)).isFalse();      // 연결 아님 → stale 아님
+        assertThat(monitor.isWsUnhealthy(0)).isTrue();   // 대신 명시적 다운으로 unhealthy
+    }
 }

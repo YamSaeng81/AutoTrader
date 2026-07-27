@@ -1781,9 +1781,12 @@ public class LiveTradingService {
     /** WebSocket 리스너 등록 및 구독 연결 — reconcileOnStartup의 finally에서 항상 호출 */
     private void initWebSocket() {
         if (wsClient != null) {
-            wsClient.addTickerListener(ticker ->
+            wsClient.addTickerListener(ticker -> {
+                // 실제 WS 틱 수신 기록 — "연결됨이지만 조용히 멎은" 상태 감지에 사용
+                exchangeHealthMonitor.markWsTick();
                 eventPublisher.publishEvent(
-                    new RealtimePriceEvent(ticker.getCode(), ticker.getTradePrice())));
+                    new RealtimePriceEvent(ticker.getCode(), ticker.getTradePrice()));
+            });
             wsClient.setConnectionStateListener(exchangeHealthMonitor::setWebSocketConnected);
             log.info("WebSocket 실시간 시세 리스너 등록 완료");
         }
@@ -1808,9 +1811,10 @@ public class LiveTradingService {
      */
     @Scheduled(fixedDelay = 5_000)
     public void pollRestTickerFallback() {
-        if (!exchangeHealthMonitor.isWsDownLongerThan(WS_FALLBACK_THRESHOLD_SEC)) {
+        // 명시적 다운뿐 아니라 "연결됨이지만 틱이 멎은" 조용한 정지도 폴백 발동 대상
+        if (!exchangeHealthMonitor.isWsUnhealthy(WS_FALLBACK_THRESHOLD_SEC)) {
             if (restFallbackActive) {
-                log.info("[§9] WS 복구 감지 — REST ticker fallback 비활성화");
+                log.info("[§9] WS 정상화 감지(틱 재개) — REST ticker fallback 비활성화");
                 restFallbackActive = false;
             }
             return;
@@ -1821,7 +1825,7 @@ public class LiveTradingService {
         if (sessions.isEmpty()) return;
 
         if (!restFallbackActive) {
-            log.warn("[§9] WS 끊김 >{}초 지속 — REST ticker fallback 활성화 (RUNNING 세션 {}개)",
+            log.warn("[§9] WS 이상(끊김/틱정지) >{}초 지속 — REST ticker fallback 활성화 (RUNNING 세션 {}개)",
                     WS_FALLBACK_THRESHOLD_SEC, sessions.size());
             restFallbackActive = true;
         }

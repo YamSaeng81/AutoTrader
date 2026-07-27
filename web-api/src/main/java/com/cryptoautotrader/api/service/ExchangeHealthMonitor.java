@@ -46,6 +46,8 @@ public class ExchangeHealthMonitor {
     private volatile boolean webSocketConnected = false;
     private volatile Instant wsDisconnectedSince;
     private volatile int consecutiveFailCount = 0;
+    /** 마지막으로 실제 WS 틱(체결)을 받은 시각 — "연결됨이지만 조용히 멎은" 상태 감지용 */
+    private volatile Instant lastWsTickAt;
 
     /** §16 — Micrometer 메트릭 */
     @Autowired(required = false)
@@ -159,17 +161,45 @@ public class ExchangeHealthMonitor {
                 }
             }
             wsDisconnectedSince = null;
+            // 연결 성립 시점을 틱 기준시각으로 리셋 — 재연결 직후 오탐(즉시 stale) 방지
+            lastWsTickAt = Instant.now();
         }
     }
 
     /**
-     * §9 — WS 끊김이 지정 시간 이상 지속되었는지 판단.
+     * §9 — 실제 WS 틱(체결 메시지) 수신 시각 기록.
+     * WS 리스너에서만 호출(REST 폴백 이벤트는 제외)해야 "조용히 멎은 WS"를 구분할 수 있다.
+     */
+    public void markWsTick() {
+        this.lastWsTickAt = Instant.now();
+    }
+
+    /**
+     * §9 — WS 끊김이 지정 시간 이상 지속되었는지 판단(명시적 연결해제 기준).
      * @param thresholdSeconds 임계 초 (예: 30)
      */
     public boolean isWsDownLongerThan(long thresholdSeconds) {
         Instant since = wsDisconnectedSince;
         if (since == null || webSocketConnected) return false;
         return Duration.between(since, Instant.now()).getSeconds() >= thresholdSeconds;
+    }
+
+    /**
+     * §9 — "연결됨"이지만 지정 시간 이상 틱이 끊긴 조용한 정지(silent stall) 감지.
+     * 소켓은 살아있는데 데이터만 안 오는 경우 — 손절 감시가 굶는 사각지대를 잡는다.
+     */
+    public boolean isWsStale(long thresholdSeconds) {
+        if (!webSocketConnected) return false; // 명시적 다운은 isWsDownLongerThan이 담당
+        Instant t = lastWsTickAt;
+        if (t == null) return false;           // 연결 시 항상 세팅되므로 사실상 null 아님
+        return Duration.between(t, Instant.now()).getSeconds() >= thresholdSeconds;
+    }
+
+    /**
+     * §9 — WS가 실질적으로 불건전한 상태(명시적 다운 OR 조용한 정지). REST 폴백 발동 기준.
+     */
+    public boolean isWsUnhealthy(long thresholdSeconds) {
+        return isWsDownLongerThan(thresholdSeconds) || isWsStale(thresholdSeconds);
     }
 
     // ── 내부 메서드 ───────────────────────────────────────────
