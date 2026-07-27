@@ -68,13 +68,13 @@ public class ClaudeProvider implements LlmProvider {
         try {
             String model = (request.getModel() != null && !request.getModel().isBlank())
                     ? request.getModel() : config.getDefaultModel();
-            double temperature = request.getTemperature() != null ? request.getTemperature() : 0.3;
             int maxTokens = request.getMaxTokens() != null ? request.getMaxTokens() : 2000;
 
             ObjectNode body = objectMapper.createObjectNode();
             body.put("model", model);
             body.put("max_tokens", maxTokens);
-            body.put("temperature", temperature);
+            // temperature는 전송하지 않는다 — Claude 5 계열(sonnet-5 등)에서 deprecated(400 유발)이며
+            // 선택 파라미터라 생략 시 모델 기본값 사용. 요약·분석 용도엔 기본값으로 충분.
 
             if (request.getSystemPrompt() != null) {
                 body.put("system", request.getSystemPrompt());
