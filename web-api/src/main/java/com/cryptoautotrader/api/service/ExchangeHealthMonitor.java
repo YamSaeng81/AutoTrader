@@ -58,6 +58,9 @@ public class ExchangeHealthMonitor {
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(10))
                 .build();
+        // 부팅 시각을 틱 기준으로 초기화 — WS가 한 번도 연결되지 않아도(never-connected)
+        // 임계 시간 후 stale로 판정돼 REST 폴백이 켜지도록.
+        this.lastWsTickAt = Instant.now();
     }
 
     /**
@@ -185,13 +188,15 @@ public class ExchangeHealthMonitor {
     }
 
     /**
-     * §9 — "연결됨"이지만 지정 시간 이상 틱이 끊긴 조용한 정지(silent stall) 감지.
-     * 소켓은 살아있는데 데이터만 안 오는 경우 — 손절 감시가 굶는 사각지대를 잡는다.
+     * §9 — 실시간 틱 신선도 기반 정지 감지(연결 플래그 무관).
+     * 소켓이 "연결됨"인데 데이터만 안 오는 조용한 정지(silent stall)뿐 아니라,
+     * WS가 한 번도 연결되지 않은(never-connected) 경우까지 포괄한다 — 어느 쪽이든
+     * 실시간 가격이 안 들어오면 손절 감시가 굶으므로 REST 폴백이 필요하다.
+     * 부팅 시 lastWsTickAt이 초기화되고, 실제 WS 틱마다 markWsTick()으로 갱신된다.
      */
     public boolean isWsStale(long thresholdSeconds) {
-        if (!webSocketConnected) return false; // 명시적 다운은 isWsDownLongerThan이 담당
         Instant t = lastWsTickAt;
-        if (t == null) return false;           // 연결 시 항상 세팅되므로 사실상 null 아님
+        if (t == null) return false;
         return Duration.between(t, Instant.now()).getSeconds() >= thresholdSeconds;
     }
 

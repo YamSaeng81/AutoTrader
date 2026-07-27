@@ -82,14 +82,16 @@ class WsFallbackTest {
     }
 
     @Test
-    @DisplayName("§9 미연결 상태에선 isWsStale=false(다운은 isWsDownLongerThan 담당), isWsUnhealthy는 true")
-    void wsStale_falseWhenDisconnected() {
+    @DisplayName("§9 never-connected: WS가 한 번도 연결 안 돼도 틱 정지로 폴백 발동(연결 플래그 무관)")
+    void wsNeverConnected_staleTriggersFallback() throws Exception {
         ExchangeHealthMonitor monitor = new ExchangeHealthMonitor(event -> {});
 
-        assertThat(monitor.isWsStale(0)).isFalse();      // 미연결
-        monitor.setWebSocketConnected(true);
-        monitor.setWebSocketConnected(false);
-        assertThat(monitor.isWsStale(0)).isFalse();      // 연결 아님 → stale 아님
-        assertThat(monitor.isWsUnhealthy(0)).isTrue();   // 대신 명시적 다운으로 unhealthy
+        // 부팅 직후: tick 기준시각(부팅시각) 신선 → 아직 stale 아님
+        assertThat(monitor.isWsStale(2)).isFalse();
+
+        // WS를 한 번도 연결하지 않은 채 시간 경과 → 연결 플래그와 무관하게 stale
+        Thread.sleep(1100);
+        assertThat(monitor.isWsStale(1)).isTrue();
+        assertThat(monitor.isWsUnhealthy(1)).isTrue();   // REST 폴백 발동 대상
     }
 }
