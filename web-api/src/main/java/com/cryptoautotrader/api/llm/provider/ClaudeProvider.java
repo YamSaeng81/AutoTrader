@@ -66,7 +66,8 @@ public class ClaudeProvider implements LlmProvider {
         }
 
         try {
-            String model = request.getModel() != null ? request.getModel() : config.getDefaultModel();
+            String model = (request.getModel() != null && !request.getModel().isBlank())
+                    ? request.getModel() : config.getDefaultModel();
             double temperature = request.getTemperature() != null ? request.getTemperature() : 0.3;
             int maxTokens = request.getMaxTokens() != null ? request.getMaxTokens() : 2000;
 

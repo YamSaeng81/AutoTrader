@@ -3,7 +3,7 @@
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝나면 완료 내용을 [`docs/CHANGELOG.md`](CHANGELOG.md)에 추가하고, 이 파일의 해당 항목은 삭제한다.
 > **변경 이력**: [`docs/CHANGELOG.md`](CHANGELOG.md)
-> **마지막 갱신**: 2026-07-27 (모닝 브리핑 진단 — AI 두뇌 LLM 며칠째 전량 실패(OpenAI 쿼터 소진), Claude 전환 + 텔레그램 05:00 확장 착수)
+> **마지막 갱신**: 2026-07-27 (모닝 브리핑 — Phase1 LLM Claude 전환(.env, 검증완료·크레딧대기) + Phase2 텔레그램 05:00 48h 추세 브리핑 코드 완료·테스트 통과, 배포 대기)
 
 ---
 
@@ -17,9 +17,16 @@
 - **[결정] Claude로 전환 + 키는 .env로 관리** (사용자 결정) — 시크릿 관리 방식 확인 결과 인프라/거래소 키는 `.env`(docker-compose env 주입), **LLM 키만 예외적으로 DB 평문 저장**이었음. 일관성·보안 위해 Anthropic 키를 `.env`로 이관하기로 결정.
 - **[정정] Discord 토큰 "git 커밋" 경고는 오류였음** — `application-local.yml`은 `.gitignore:20`에 등록된 **로컬 전용·미추적** 파일(히스토리 0건). 운영은 `${DISCORD_BOT_TOKEN}` env로 정상. 실제 유출 없음. (확인 없이 단정한 오류를 정정)
 - **[부수] 뉴스 소스 4개 중 2개만 활성** (CoinDesk·Bloomberg RSS ON, CryptoPanic·CoinGecko 트렌딩 OFF) — 코인 이슈 커버리지 얇음. 활성화 검토.
-- **[x] Phase 1 코드 완료 — LLM 복구 (.env 방식, 재빌드 필요)**: ① [docker-compose.prod.yml](../docker-compose.prod.yml) backend에 `ANTHROPIC_API_KEY` 주입, ② [application.yml](../web-api/src/main/resources/application.yml) `anthropic.api-key: ${ANTHROPIC_API_KEY:}`, ③ [ClaudeProvider](../web-api/src/main/java/com/cryptoautotrader/api/llm/provider/ClaudeProvider.java) `@Value` env 키 우선·DB 폴백(`resolveApiKey`)+`isAvailable` 갱신, ④ [V58 마이그레이션](../web-api/src/main/resources/db/migration/V58__switch_llm_to_claude.sql) CLAUDE enable + 4 task 라우팅 전환. `:web-api:compileJava` 통과. `.env.example`도 갱신.
-- **[ ] Phase 1 배포 — 사용자 실행 대기**: 운영 `.env`에 `ANTHROPIC_API_KEY=sk-ant-...` 존재 확인 → `docker compose -f docker-compose.prod.yml up -d --build backend` → 기동 시 V58 자동 적용 → `POST /api/v1/admin/llm/test/provider {"providerName":"CLAUDE"}` 로 검증 → 다음 07:00 브리핑에서 실제 AI 요약 확인.
-- **[ ] Phase 2 (재빌드·배포): 텔레그램 05:00 확장** (사용자 결정: Discord 유지 + 텔레그램 추가) — 기존 컴포저 로직 재사용해 ① 텔레그램 05:00 KST 발송(`TelegramNotificationService.sendMarkdown` 활용), ② 분석 윈도우 12h→48h, ③ **대형/중형 시총 상위 N개 48h 추세 스캔 신규**(현재 BTC/ETH만 → 상위코인 48h 수익률·EMA200 대비·ATR).
+- **[x] Phase 1 코드 완료 — LLM 복구 (.env 방식, 재빌드 필요)**: ① [docker-compose.prod.yml](../docker-compose.prod.yml) backend에 `ANTHROPIC_API_KEY` 주입, ② [application.yml](../web-api/src/main/resources/application.yml) `anthropic.api-key: ${ANTHROPIC_API_KEY:}`, ③ [ClaudeProvider](../web-api/src/main/java/com/cryptoautotrader/api/llm/provider/ClaudeProvider.java) `@Value` env 키 우선·DB 폴백(`resolveApiKey`)+`isAvailable` 갱신, ④ [V58 마이그레이션](../web-api/src/main/resources/db/migration/V58__switch_llm_to_claude.sql) CLAUDE enable + 4 task 라우팅 전환 **+ model=claude-sonnet-5**(사용자 결정: 전부 Sonnet, 요약·분석 품질 상향·비용 미미, Opus는 일일 브리핑에 과잉이라 미채택). `:web-api:compileJava` 통과. `.env.example`도 갱신.
+- **[x] 빈-모델 버그 수정 (ClaudeProvider)** — 라우터가 `llm_task_config.model`을 요청에 싣는데, 값이 빈 문자열("")이면 `getModel()!=null`이 true라 빈 모델명이 Anthropic에 전송돼 400 발생 가능(테스트 경로는 model 미지정→default라 통과했으나 실제 브리핑 경로는 실패할 뻔). `getModel()`이 blank면 `default_model`로 폴백하도록 수정. V58이 model을 명시 세팅하므로 이제 sonnet-5 사용.
+- **[x] Phase 1 배포·파이프라인 검증 완료 (07-27)** — 운영 재빌드 후 `test/provider`로 CLAUDE 호출 성공. 응답: 바깥 `success:true`(인증·라우팅·env키 배선 전부 정상, Anthropic 결제 단계까지 도달), 안쪽만 `HTTP 400 credit balance too low`. **키 유효(401 아님)·V58 라우팅 정상 확인.** 인증은 컨테이너 내부 `$API_AUTH_TOKEN`으로 해결(호스트 셸 추출 시 CR/따옴표 섞임 주의).
+- **[ ] Phase 1 최종 — Anthropic 크레딧 충전만 남음 (사용자, 재배포 불필요)**: console.anthropic.com/settings/billing에서 크레딧 충전($5~) → 키 이미 로드돼 있으므로 재배포 없이 동일 curl 재실행 시 안쪽 `success:true` → 다음 07:00 브리핑부터 실제 AI 요약 발송. (OpenAI와 동일하게 잔액 소진이 유일 원인이었음.)
+- **[x] Phase 2 코드 완료 — 텔레그램 05:00 아침 브리핑 (Discord 07:00 유지, 텔레그램 신규 추가)**: 4개 신규 클래스, `:web-api:compileJava` + 테스트 2건 통과.
+  - [MarketTrendScanner](../web-api/src/main/java/com/cryptoautotrader/api/report/MarketTrendScanner.java) — **대형/중형 추세 스캔 신규**. Upbit 24h 거래대금 상위 N(기본 8)개의 48h/24h 변화율·중기추세(시간봉 EMA200 대비)·변동성(ATR%) 산출. 읽기 전용, 매매 무관. 테스트 [MarketTrendScannerTest](../web-api/src/test/java/com/cryptoautotrader/api/report/MarketTrendScannerTest.java) 2건(계산 검증·데이터부족 제외).
+  - [TelegramBriefingComposer](../web-api/src/main/java/com/cryptoautotrader/api/report/TelegramBriefingComposer.java) — `LogAnalyzerService.analyze`를 **48h 윈도우**로 호출(엔진은 원래 윈도우 파라미터화됨, `btcPriceChange12h` 필드명만 레거시) + 추세스캔 + 뉴스 요약을 텔레그램 메시지 3건(①AI시황+추세 ②시스템 자기진단 ③뉴스 이슈)으로 조립. `TelegramNotificationService.sendMarkdown` 사용. LLM 실패 시 수치 리포트는 정상 발송, AI 서술만 폴백 문구.
+  - [TelegramBriefingScheduler](../web-api/src/main/java/com/cryptoautotrader/api/report/TelegramBriefingScheduler.java) — `@Scheduled(cron "0 0 5 * * *", Asia/Seoul)`.
+  - [BriefingController](../web-api/src/main/java/com/cryptoautotrader/api/controller/BriefingController.java) — `POST /api/v1/admin/briefing/telegram/trigger` 수동 트리거(배포 후 즉시 테스트용).
+- **[ ] Phase 2 배포·검증 (사용자, Phase 1 크레딧 후 함께)**: `docker compose -f docker-compose.prod.yml up -d --build backend` → `POST /api/v1/admin/briefing/telegram/trigger`(인증 Bearer 필요)로 텔레그램 3건 수신 확인. AI 서술·뉴스 요약은 Anthropic 크레딧 충전 후 실내용 표시(그 전엔 수치+추세는 정상, AI 부분만 폴백). 매일 05:00 자동 발송.
 
 ---
 
