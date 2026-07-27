@@ -48,6 +48,11 @@ upbit:
   access-key: ${UPBIT_ACCESS_KEY:}
   secret-key: ${UPBIT_SECRET_KEY:}
 
+# LLM 시크릿은 .env(ANTHROPIC_API_KEY)로 관리 — DB(llm_provider_config.api_key)보다 우선.
+# 비어 있으면 ClaudeProvider가 DB의 api_key로 폴백한다.
+anthropic:
+  api-key: ${ANTHROPIC_API_KEY:}
+
 api:
   auth:
     token: ${API_AUTH_TOKEN}

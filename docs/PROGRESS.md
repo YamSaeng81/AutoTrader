@@ -3,7 +3,43 @@
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝나면 완료 내용을 [`docs/CHANGELOG.md`](CHANGELOG.md)에 추가하고, 이 파일의 해당 항목은 삭제한다.
 > **변경 이력**: [`docs/CHANGELOG.md`](CHANGELOG.md)
-> **마지막 갱신**: 2026-07-24 (동적 워치리스트 품질 큐레이션 — 유니버스 근본원인, 미커밋/미배포)
+> **마지막 갱신**: 2026-07-27 (모닝 브리핑 진단 — AI 두뇌 LLM 며칠째 전량 실패(OpenAI 쿼터 소진), Claude 전환 + 텔레그램 05:00 확장 착수)
+
+---
+
+## 🆕 2026-07-27 (오후) 모닝 브리핑 시스템 진단 — "AI 요약"이 며칠째 죽어 있었음 + 텔레그램/48h 확장 계획
+
+> 사용자 요청: "매일 아침 5시 대형/중형 코인 이슈·추세(48h) 간단 리포트". 조사 결과 **해당 파이프라인이 이미 80% 구현·운영 중**이었으나 핵심 AI 부분이 조용히 고장나 있었음을 발견.
+
+- **[발견] 모닝 브리핑은 이미 매일 07:00 KST Discord로 발송 중** — `MorningBriefingScheduler`(cron 07:00) → `MorningBriefingComposer` 4채널(TRADING_REPORT·CRYPTO_NEWS·ECONOMY_NEWS·ALERT). `discord_send_log` 07-24~27 전부 SUCCESS. 시장 레짐·BTC/ETH 흐름·전략성과·차단사유 + LLM 서술 포함.
+- **[🔴 핵심 버그] 모든 LLM 호출이 며칠째 실패** — `llm_call_log` 전건 `success=false`, 원인 `HTTP 429 insufficient_quota` (**OpenAI 크레딧 소진**). 결과: 브리핑의 "AI 시황 분석"·"뉴스 이슈 요약"이 전부 오류 폴백 문자열로 발송됨. 즉 사용자가 원한 "이슈+추세 분석"의 핵심이 빈 껍데기였음.
+- **[구조 확인] LLM은 100% DB 설정 구동, 런타임 즉시 반영** — `LlmTaskRouter`가 `llm_task_config`(task→provider) + `llm_provider_config`(key/enabled/model) 조회. `ClaudeProvider` 코드 이미 구현·완성. 관리 API `LlmConfigController`(`PUT /api/v1/admin/llm/providers/CLAUDE`, `/tasks/{...}`, `POST /test/provider`) 존재. → **재빌드·재시작 0, 설정만으로 복구 가능.**
+- **[결정] Claude로 전환 + 키는 .env로 관리** (사용자 결정) — 시크릿 관리 방식 확인 결과 인프라/거래소 키는 `.env`(docker-compose env 주입), **LLM 키만 예외적으로 DB 평문 저장**이었음. 일관성·보안 위해 Anthropic 키를 `.env`로 이관하기로 결정.
+- **[정정] Discord 토큰 "git 커밋" 경고는 오류였음** — `application-local.yml`은 `.gitignore:20`에 등록된 **로컬 전용·미추적** 파일(히스토리 0건). 운영은 `${DISCORD_BOT_TOKEN}` env로 정상. 실제 유출 없음. (확인 없이 단정한 오류를 정정)
+- **[부수] 뉴스 소스 4개 중 2개만 활성** (CoinDesk·Bloomberg RSS ON, CryptoPanic·CoinGecko 트렌딩 OFF) — 코인 이슈 커버리지 얇음. 활성화 검토.
+- **[x] Phase 1 코드 완료 — LLM 복구 (.env 방식, 재빌드 필요)**: ① [docker-compose.prod.yml](../docker-compose.prod.yml) backend에 `ANTHROPIC_API_KEY` 주입, ② [application.yml](../web-api/src/main/resources/application.yml) `anthropic.api-key: ${ANTHROPIC_API_KEY:}`, ③ [ClaudeProvider](../web-api/src/main/java/com/cryptoautotrader/api/llm/provider/ClaudeProvider.java) `@Value` env 키 우선·DB 폴백(`resolveApiKey`)+`isAvailable` 갱신, ④ [V58 마이그레이션](../web-api/src/main/resources/db/migration/V58__switch_llm_to_claude.sql) CLAUDE enable + 4 task 라우팅 전환. `:web-api:compileJava` 통과. `.env.example`도 갱신.
+- **[ ] Phase 1 배포 — 사용자 실행 대기**: 운영 `.env`에 `ANTHROPIC_API_KEY=sk-ant-...` 존재 확인 → `docker compose -f docker-compose.prod.yml up -d --build backend` → 기동 시 V58 자동 적용 → `POST /api/v1/admin/llm/test/provider {"providerName":"CLAUDE"}` 로 검증 → 다음 07:00 브리핑에서 실제 AI 요약 확인.
+- **[ ] Phase 2 (재빌드·배포): 텔레그램 05:00 확장** (사용자 결정: Discord 유지 + 텔레그램 추가) — 기존 컴포저 로직 재사용해 ① 텔레그램 05:00 KST 발송(`TelegramNotificationService.sendMarkdown` 활용), ② 분석 윈도우 12h→48h, ③ **대형/중형 시총 상위 N개 48h 추세 스캔 신규**(현재 BTC/ETH만 → 상위코인 48h 수익률·EMA200 대비·ATR).
+
+---
+
+## 🆕 2026-07-27 주말 운영 체크 — V57 큐레이션 유니버스 정화 성공, 병목이 "신호 생성"으로 이동
+
+> 운영 DB 분석(07-27 08:00 KST): 07-24 V57 배포 후 주말 내내 동적 세션 7개(32~38) 전부 RUNNING·SCANNING, **실체결 0건**(position DYNAMIC 전무, was_executed 로그 0). 자본 7×10,000원 그대로, 손실 0·CB 발동 0.
+
+- **V57 큐레이션은 유니버스 측에서 정확히 의도대로 작동** — BUY 신호가 급락 잡코인에서 대량 발생하던 구조가 소멸. 일별 BUY: 07-20~23 **9~13건/일** → 07-24(배포) **1** → 07-25 **1** → 07-26~27 **0**.
+- **워치리스트가 대형/중형 상승추세주로 좁혀짐** — 현재 구성 `BTC·ETH·XRP·SOL·SHIB·LPT·BLEND·MORPHO·PENGU·PIEVERSE·VVV`. 07-24 노트의 펌프-덤프 잡코인(NEO/BIRB/SOPH/ZKC/BONK) **전량 배제**. 세션당 6~10개 확보 — "과도하게 비어 무거래 회귀"는 s38(MEANREV_BB) 2개(ETH/MORPHO)뿐, 나머지는 건강.
+- **주말 BUY 2건(07-24 KRW-O, 07-25 KRW-UP2)마저 잡코인** → BLACK_SWAN·RANGE 게이트가 차단, 사후수익률 4h **-7.47% / -3.82%**로 **차단 정당**(방어 성공). SELL 789건은 전량 `SCANNING 보유없음` 노이즈.
+- **무거래의 진짜 원인 = 신호 생성(스코어) 측으로 이동** — HOLD 지배 사유 여전히 **"점수 미달 buy=0.00 sell=0.00"**(서브전략 무투표). 유니버스를 정화하니 남은 대형주에서 이 추세·모멘텀 프리셋들이 신호를 못 만듦(PROGRESS 예측대로 대형주는 HOLD/SELL만). **잔여 근본원인 ①(MACD 앵커 신호율 0.6%)이 이제 단독 병목.**
+- **[판단] 유니버스 완화(scan_* 다이얼)는 권장하지 않음** — 07-24 노트의 "무거래 지속 시 `scan_require_uptrend=false` 등 완화"는 이번 데이터상 **역효과**. 완화하면 걸러낸 급락 잡코인이 유니버스로 재유입 → 잡코인 BUY 재발 → BLACK_SWAN 재차단(사후 -7%대로 차단이 옳음 입증)일 뿐. 병목이 유니버스가 아니라 스코어 모델이므로 완화는 정화 성과만 되돌림.
+- **[정정] 07-23 재스케일은 이미 배포됨 (07-27 확인)** — PROGRESS 구 메모의 "미배포"는 오류. 재빌드(07-24 커밋 `6200773`)에 포함, 운영 런타임에 재스케일 강도 실측(BOLLINGER 100·VWAP 57·VD 100). 배포로 풀 문제 아님 — 현 장세에서 서브전략이 SELL만 내서 buy=0.00. **시장 상승 전환 대기.**
+- **[ ] 잔여 근본원인 ①(MACD 앵커 0.6%)** — 재스케일·유니버스 정화 후에도 남는 유일한 코드 레버리지. 추세 지속 투표 모드 or adxThreshold 25→20(휩쏘 검증 필요) 별도 파기. 단 지금은 장세가 BUY 셋업을 안 주는 국면이라 이걸 만져도 즉효는 제한적일 수 있음 — 상승 전환 후 재평가가 합리적.
+- **[x] 동적 BUY 체결 경로 검증 완료 (07-27) — 구조적 버그 없음, "18일 0건"은 100% 게이트 차단**:
+  - **로그(결정적)**: 전 기간 동적 BUY 신호 **87건 전부 게이트에서 사망**(BLACK_SWAN 69·EMA200 15·RANGE 3), `executeBuy` 도달 **0건**(후보/최소주문/중복/체결 사유 전무). 레짐 애매함이 아니라 전량 급락/추세이탈 차단이며 사후수익률(-3~-7%)로 정당성 입증.
+  - **체결 엔진 정상**: 동적이 쓰는 `orderExecutionEngine.submitOrder`는 라이브가 지금도 쓰는 동일 엔진(라이브 BUY 268·SELL 6,904건, 최근 07-26 체결). 엔진 자체는 살아있음.
+  - **코드 경로 정독**: `executeBuy`(최소주문검증→포지션 저장 size=0/positionId→submitOrder→KRW 차감→MONITORING 전환) → 체결 콜백 [`OrderExecutionEngine`](../web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java):447(positionId 직접 조회→setSize/평균단가, 부분체결 KRW 복원 **DYNAMIC 전용 분기 존재**) → `reconcileDynamicOrphanBuyPositions`(CANCELLED/FAILED 안전망). 전 구간 sessionKind 인지, 완결.
+  - **유일한 한계**: `executeBuy`+체결콜백 DYNAMIC 분기는 프로덕션 실행 이력 0 — 코드리뷰+공용엔진 논리로 검증했을 뿐 실체결 미검증. 완전히 닫으려면 **소액 1건 강제 체결**뿐(현 하락장엔 불필요, 상승 전환 시 자연 체결로 검증됨).
+- risk_config `scan_*` 전부 NULL → 코드 기본값(유동성 50억·ATR 4.0·상승추세 ON·급락제외 ON) 정상 작동 중.
 
 ---
 
@@ -16,10 +52,11 @@
 - **워치리스트 통합** [`WatchlistFilterService`](../web-api/src/main/java/com/cryptoautotrader/api/service/WatchlistFilterService.java): 기존 파이프라인(거래대금상위→스프레드→ATR하한) 뒤에 품질 게이트 추가. 캔들 1회 조회(EMA200용 210개)로 ATR·EMA200·급락 공용. 기존 시그니처는 `QualityCriteria.disabled()`로 위임(하위호환).
 - **설정화** [`risk_config`](../web-api/src/main/resources/db/migration/V57__add_watchlist_quality_to_risk_config.sql) V57: `scan_min_trade_value_krw`(기본 50억)·`scan_max_atr_pct`(기본 4.0)·`scan_require_uptrend`(기본 true)·`scan_exclude_crashing`(기본 true). NULL이면 `DynamicTradingService` 코드 기본값. 재빌드 없이 SQL/API로 조정 가능(V56 패턴).
 - **효과 예측**: 유니버스가 상승추세·정상변동성 대형/중형주로 좁혀져 dip 전략은 "상승추세 눌림목", 모멘텀 전략은 트렌드 코인을 잡음 → 급락 가드와의 상쇄 급감 → 진입 발생. 유니버스가 비면 기존 "워치리스트 empty → 틱 스킵"이 처리.
-- **테스트**: `WatchlistQualityGateTest` 7건 + `:web-api:test` 전체 통과, `:core-engine`·`:web-api` 컴파일 통과 ✅. **코드는 미커밋/미배포.**
-- **[ ] 배포 필요** — 미배포 시 구 유니버스(잡코인 포함) 유지. 배포 후에야 큐레이션 발효.
-- **[ ] 소액 실전 관찰** — 배포 후 워치리스트 구성 코인 변화 / 일일 BUY 실집행수 / 진입 코인 / 4h·24h 사후수익률 추적. 유니버스가 과도하게 비면 `scan_min_trade_value_krw` 하향 또는 `scan_max_atr_pct` 상향(SQL 1줄). 여전히 무거래면 `scan_require_uptrend=false`로 완화 실험.
-- **[ ] 배포 검증 병행** — 07-23 conf 재스케일·07-21 게이트 티어링도 미배포 상태. 운영 로그의 게이트 사유 wording으로 실제 배포 버전 확인 필요(entryGate 3단계 vs 구 check 2단계).
+- **테스트**: `WatchlistQualityGateTest` 7건 + `:web-api:test` 전체 통과, `:core-engine`·`:web-api` 컴파일 통과 ✅.
+- **[x] 커밋·배포 완료** — 커밋 `6200773`. 운영 DB Flyway **V57 적용 완료(2026-07-24 04:28 UTC)**, `scan_*` 4컬럼 생성 확인. web-api 새 바이너리로 재기동됨(Docker 멀티스테이지 bootJar). `risk_config.scan_*`는 전부 NULL → **코드 기본값 사용**(유동성 50억·ATR상한 4.0·상승추세 ON·급락제외 ON).
+- **[x] 큐레이션 동작 확인(초기)** — 배포 직후 세션 38 워치리스트가 재계산되며 ETH/SOL/NEAR → `KRW-KAITO` 1개로 축소(상승추세 필터로 하락 코인 배제). 게이트가 유니버스를 실제로 좁히는 것 확인. (나머지 세션은 1시간 갱신 주기라 순차 반영)
+- **[x] 주말 운영 → 월요일(2026-07-27) 오전 체크 완료** — 위 07-27 섹션 참조. 실체결 0건, 워치리스트는 대형/중형 상승추세주로 정상 축소(과도한 empty 아님), 병목이 유니버스→신호생성으로 이동. **완화 다이얼(scan_require_uptrend=false 등)은 역효과로 판단해 미적용** — 다음 순서는 07-23 재스케일 배포(신호 측).
+- **[ ] 배포 버전 병행 검증** — 07-23 conf 재스케일·07-21 게이트 티어링이 이번 재배포에 함께 포함됐는지 운영 로그 게이트 사유 wording(entryGate 3단계 vs 구 check 2단계)으로 확인.
 
 ---
 
@@ -32,9 +69,9 @@
 - **BOLLINGER** [`BollingerStrategy`](../strategy-lib/src/main/java/com/cryptoautotrader/strategy/bollinger/BollingerStrategy.java): `strengthSaturationDepth`(기본 **0.35**) 도입. `(buyThreshold−%B)/depth×100`. 하단 밴드 터치(%B≈0)가 conf 20 → **약 57**로 상승. SELL 대칭.
 - 두 파라미터는 [`VolumeDeltaConfig`](../strategy-lib/src/main/java/com/cryptoautotrader/strategy/volumedelta/VolumeDeltaConfig.java)·[`BollingerConfig`](../strategy-lib/src/main/java/com/cryptoautotrader/strategy/bollinger/BollingerConfig.java)에 노출(params override 가능).
 - **효과 예측**: MEANREV_BB의 BOLLINGER+RSI 합의가 0.20 돌파(진입 가능화), 추세추종 프리셋의 VD 확인표도 유효화. **scan_weak_threshold(0.20)는 그대로 — 재스케일만으로 2전략 합의가 임계를 넘어 임계 완화 불필요.**
-- **테스트**: `VolumeDeltaStrategyTest`·`BollingerStrategyTest`에 포화점 단조성 락 테스트 각 1건 추가. `:strategy-lib:test`+`:core-engine:test` 통과, `:web-api` 컴파일 통과 ✅. **코드는 미커밋/미배포.**
-- **[ ] 배포 필요** — 미배포 시 구 저conf 로직 유지. 배포 후에야 동적 세션 진입 발생.
-- **[ ] 소액 실전 관찰** — 배포 후 일일 BUY 실집행수 / 진입 코인 / 4h·24h 사후수익률 추적. 진입이 과하거나(노이즈) 순손실이면 포화점 상향(0.40→0.55 / 0.35→0.50)으로 보수화, 되돌리기는 params 1줄.
+- **테스트**: `VolumeDeltaStrategyTest`·`BollingerStrategyTest`에 포화점 단조성 락 테스트 각 1건 추가. `:strategy-lib:test`+`:core-engine:test` 통과, `:web-api` 컴파일 통과 ✅.
+- **[x] 커밋·배포 완료 (07-24 재빌드에 함께 반영, 07-27 확인)** — ~~미커밋/미배포~~ 표기는 07-23 당시 메모였고 갱신 누락. 실제로는 재스케일이 커밋 `af49342`에 들어가 **배포 커밋 `6200773`(V57, 07-24 배포)에 포함**(`strengthSaturationRatio=0.40`·`strengthSaturationDepth=0.35`). **운영 런타임 확인**: 주말 로그에 재스케일 강도 실측 — `BOLLINGER:SELL(100)`·`VWAP:SELL(57)`·`VOLUME_DELTA` 최대 100(구 로직이면 동일 입력에서 도달 불가). → 배포 갭 없음.
+- **[관찰 07-27] 진입 미발생은 배포 문제 아님 — 레짐 이슈** — 재스케일은 발화 시 confidence를 키울 뿐 발화 여부는 불변. 주말 대형주 장세에서 서브전략 강신호가 **전부 SELL**(`buy=0.00`), 형성된 sell 0.74도 SCANNING(보유없음) + TRANSITIONAL 감쇠(0.5×)로 0.37. BUY 셋업 자체가 없어 진입 0. **시장 전환(상승 레짐) 대기 국면.**
 - **[ ] 잔여 근본원인 ①(MACD 앵커 0.6%)** — 미해결. 추세 지속 투표 모드 or 내부 adxThreshold 25→20은 별도 작업(휩쏘 검증 필요).
 
 ---

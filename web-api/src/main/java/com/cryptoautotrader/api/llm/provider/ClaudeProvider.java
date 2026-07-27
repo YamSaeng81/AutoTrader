@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
@@ -36,6 +37,13 @@ public class ClaudeProvider implements LlmProvider {
     private final ObjectMapper objectMapper;
     private final HttpClient httpClient;
 
+    /**
+     * .env(ANTHROPIC_API_KEY) → application.yml(anthropic.api-key)로 주입되는 API 키.
+     * 값이 있으면 DB(llm_provider_config.api_key)보다 우선한다. 비어 있으면 DB로 폴백.
+     */
+    @Value("${anthropic.api-key:}")
+    private String envApiKey;
+
     public ClaudeProvider(LlmProviderConfigRepository configRepo, ObjectMapper objectMapper) {
         this.configRepo   = configRepo;
         this.objectMapper = objectMapper;
@@ -51,9 +59,10 @@ public class ClaudeProvider implements LlmProvider {
             return LlmResponse.error(PROVIDER_NAME, "Claude 프로바이더가 비활성화 상태입니다.");
         }
 
-        String apiKey = config.getApiKey();
+        String apiKey = resolveApiKey(config);
         if (apiKey == null || apiKey.isBlank()) {
-            return LlmResponse.error(PROVIDER_NAME, "Anthropic API 키가 설정되지 않았습니다.");
+            return LlmResponse.error(PROVIDER_NAME,
+                    "Anthropic API 키가 설정되지 않았습니다. (.env ANTHROPIC_API_KEY 또는 DB api_key)");
         }
 
         try {
@@ -121,8 +130,18 @@ public class ClaudeProvider implements LlmProvider {
     @Override
     public boolean isAvailable() {
         LlmProviderConfigEntity config = loadConfig();
-        return config != null && config.isEnabled()
-                && config.getApiKey() != null && !config.getApiKey().isBlank();
+        if (config == null || !config.isEnabled()) return false;
+        String key = resolveApiKey(config);
+        return key != null && !key.isBlank();
+    }
+
+    /**
+     * API 키 해석 — .env(ANTHROPIC_API_KEY) 우선, 없으면 DB(api_key) 폴백.
+     * 시크릿은 .env로 관리하는 것이 표준이며, DB 값은 하위호환/비상용.
+     */
+    private String resolveApiKey(LlmProviderConfigEntity config) {
+        if (envApiKey != null && !envApiKey.isBlank()) return envApiKey.trim();
+        return config != null ? config.getApiKey() : null;
     }
 
     private LlmProviderConfigEntity loadConfig() {
