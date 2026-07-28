@@ -58,6 +58,9 @@ class SessionKindIsolationTest extends IntegrationTestBase {
     @Autowired
     private DynamicTradingService dynamicTradingService;
 
+    @Autowired
+    private DbResetService dbResetService;
+
     @MockBean
     private TradeLogRepository tradeLogRepository;
 
@@ -135,6 +138,39 @@ class SessionKindIsolationTest extends IntegrationTestBase {
         assertThat(positionRepository
                 .findBySessionKindAndSessionIdAndCoinPairAndStatus("LIVE", sharedSessionId, "KRW-BTC", "OPEN"))
                 .isPresent();
+    }
+
+    @Test
+    @DisplayName("실전매매 초기화는 DYNAMIC 포지션/주문을 지우지 않는다")
+    void resetLiveTrading_preservesDynamicPositionsAndOrders() {
+        // 같은 sessionId를 공유하는 LIVE / DYNAMIC 포지션을 각각 생성한다.
+        // session_id 만으로 지우면(수정 전 동작) 동적 세션 데이터까지 함께 삭제된다.
+        Long sharedSessionId = 888L;
+
+        positionRepository.save(PositionEntity.builder()
+                .coinPair("KRW-BTC").side("BUY")
+                .entryPrice(new BigDecimal("100000000")).avgPrice(new BigDecimal("100000000"))
+                .size(new BigDecimal("0.001")).investedKrw(new BigDecimal("100000"))
+                .status("OPEN").sessionId(sharedSessionId).sessionKind("LIVE")
+                .build());
+        positionRepository.save(PositionEntity.builder()
+                .coinPair("KRW-ETH").side("BUY")
+                .entryPrice(new BigDecimal("5000000")).avgPrice(new BigDecimal("5000000"))
+                .size(new BigDecimal("0.02")).investedKrw(new BigDecimal("100000"))
+                .status("OPEN").sessionId(sharedSessionId).sessionKind("DYNAMIC")
+                .build());
+
+        dbResetService.resetLiveTrading();
+
+        assertThat(positionRepository
+                .findBySessionKindAndSessionIdAndStatus("LIVE", sharedSessionId, "OPEN"))
+                .as("LIVE 포지션은 초기화된다")
+                .isEmpty();
+        assertThat(positionRepository
+                .findBySessionKindAndSessionIdAndStatus("DYNAMIC", sharedSessionId, "OPEN"))
+                .as("DYNAMIC 포지션은 보존된다")
+                .extracting(PositionEntity::getCoinPair)
+                .containsExactly("KRW-ETH");
     }
 
     @Test

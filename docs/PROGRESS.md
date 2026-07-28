@@ -3,7 +3,34 @@
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝나면 완료 내용을 [`docs/CHANGELOG.md`](CHANGELOG.md)에 추가하고, 이 파일의 해당 항목은 삭제한다.
 > **변경 이력**: [`docs/CHANGELOG.md`](CHANGELOG.md)
-> **마지막 갱신**: 2026-07-27 (모닝 브리핑 완료 — Phase1 LLM Claude(sonnet-5) 복구 운영검증 + Phase2 텔레그램 05:00 48h 추세 브리핑 배포·검증 완료. 남은 것: 변경분 git 커밋)
+> **마지막 갱신**: 2026-07-28 (동적 세션 FK 위반 수정 — V61로 다형 참조 FK 제거, DbResetService session_kind 격리. 남은 것: 운영 배포·검증 + 변경분 git 커밋)
+
+---
+
+## 🆕 2026-07-28 동적 세션 매수 전면 실패 — `position_session_id_fkey` FK 위반 수정
+
+> 사용자 관찰: 운영 로그에 `[Dynamic] 세션 tick 오류 (id=36/33)` + `violates foreign key constraint "position_session_id_fkey"` 반복. 원인 규명 요청.
+
+- **근본 원인 = V12의 FK가 다형 참조로 바뀐 뒤에도 남아 있었음** — [V12](../web-api/src/main/resources/db/migration/V12__create_live_trading_session.sql#L21)가 `position.session_id`/`"order".session_id`에 `REFERENCES live_trading_session(id)` FK를 걸었는데, V50(dynamic_session) 도입 후 이 컬럼은 **두 세션 테이블 공용**이 되고 구분자로 `session_kind`만 추가됐다(V51/V52). **FK는 끝내 DROP되지 않음**(전체 마이그레이션에 `DROP CONSTRAINT` 0건). → DYNAMIC 포지션 INSERT 시 DB가 `dynamic_session.id`(33/36)를 `live_trading_session`에서 찾다 실패.
+- **왜 지금 터졌나** — 동적 세션은 진입 게이트(EMA200/BLACK_SWAN/BTC guard)에 전량 막혀 **실거래 0건**이라 FK가 잠복해 있었다. 2026-07-15~07-24 진입 완화로 실제 매수가 시작되며 매 tick 실패로 표면화. 즉 **동적 매매가 단 한 건도 성사되지 못하는 상태**였음.
+- **왜 테스트가 못 잡았나** — `schema-h2.sql`의 `session_id` 6곳에 **FK가 애초에 없음**. 운영 DB만 테스트와 다른 상태였다.
+- **[x] 수정 ① [V61](../web-api/src/main/resources/db/migration/V61__drop_polymorphic_session_id_fk.sql)** — `position_session_id_fkey` / `order_session_id_fkey` DROP. 다형 참조의 실제 키는 `(session_kind, session_id)` 쌍이라 SQL FK로 표현 불가 → 애초에 **틀린 제약**. 무결성은 `findBySessionKindAnd...` 계열이 보장하고, 세션 삭제는 양쪽 모두 soft-delete(`status='DELETED'`)라 부모 행이 사라지는 경로도 없음.
+- **[x] 수정 ② [DbResetService](../web-api/src/main/java/com/cryptoautotrader/api/service/DbResetService.java)** — 조사 중 발견한 **별개 버그**: `resetLiveTrading()`의 `DELETE FROM position/"order" WHERE session_id IS NOT NULL`에 `session_kind` 필터가 없어 **"실전매매 초기화"가 동적 세션 데이터까지 삭제**. FK 때문에 동적 포지션이 존재한 적이 없어 잠복해 있던 것 — ①을 고치면 실제 피해가 된다. reset·stats 쿼리 전부 `AND session_kind = 'LIVE'` 추가.
+- **[x] 회귀 테스트** — [SessionKindIsolationTest](../web-api/src/test/java/com/cryptoautotrader/api/service/SessionKindIsolationTest.java)에 "실전매매 초기화는 DYNAMIC 포지션/주문을 지우지 않는다" 추가. **수정 되돌리면 실패함을 확인**(테스트에 실효성 있음) 후 복원. `:web-api:test` 전체 통과.
+- **데이터 오염 없음** — 예외가 `processTick`의 `@Transactional` 안에서 발생해 전부 롤백됐다. 잔고 오차감 없음.
+- **[ ] 남은 것** — 운영 배포(V61 Flyway 적용) 후 동적 세션 매수가 실제로 체결되는지 확인. ⚠️V58 사고 교훈대로 **V61은 적용 후 절대 수정 금지**.
+
+---
+
+## 🆕 2026-07-27 (오후) 숏(선물) 도입 설계 스케치 — [docs/DESIGN-short-futures.md](DESIGN-short-futures.md)
+
+> 사용자: 롱 전용 현물이라 하락장 수익 불가 → 숏 검토(선물 필요). 실제 구축 전 설계 스케치 요청.
+
+- **핵심 발견**: `ExchangeAdapter`는 **시세만** 추상화, **주문은 업비트 하드코딩**(`OrderExecutionEngine`→`UpbitOrderClient` 직접). 포지션 롱 전용. → 숏은 "기능 추가"가 아니라 **주문 추상화 신설 + 신규 거래소 + 파생 리스크** 3워크스트림.
+- **거래소 추천 = Bybit**(v5 API·테스트넷 우수). ⚠️한국 접근성(KYC) 사용자 확인이 Phase 0 관문. ⚠️견적통화 KRW→USDT 불일치 회계 고려.
+- **설계 완료(문서)**: `OrderGateway` 인터페이스 초안(intent+reduceOnly로 숏 표현), Bybit v5 엔드포인트 매핑, 데이터모델 확장(exchange/market_type/leverage/liquidation_price), 숏 SL/TP·청산 역산, Phase 1 실행순서(테스트넷 무자본 검증 우선).
+- **재사용**: 전략 신호(SELL→숏진입 매핑)·세션·레짐·리포팅. **де-리스킹**: OrderGateway 추상화부터(숏 무관 이득)→Bybit 테스트넷.
+- **[ ] 미착수** — 스케치 단계. 진행 시 Phase 0(접근성 확인)부터.
 
 ---
 
@@ -15,10 +42,10 @@
 - **근본 원인 = WS "조용한 정지" 감지 사각지대** — SL 점검은 `RealtimePriceEvent`(WS 틱) 수신 시 실행되고, REST 폴백은 `isWsDownLongerThan`(=`webSocketConnected` 플래그)로만 발동. **WS가 "연결됨"인데 틱만 멎으면**(구독 사망/무데이터) 플래그는 true라 폴백이 안 켜지고 SL 감시가 굶음. KRW-BTC는 초유동성이라 "시장이 조용해서"가 아니라 **파이프라인 정지**(정황상 오늘 반복 재시작 후 재구독 실패 유력).
 - **[a] 노출도 확인(07-27)** — 둘 다 소액(~8천원)·안전: BTC +0.97%(SL까지 +5.9%), ADA -1.23%(SL까지 +3.8%). 당장 위험 없음.
 - **[x] 근본 수정 — 틱 신선도 기반 감지**: [ExchangeHealthMonitor](../web-api/src/main/java/com/cryptoautotrader/api/service/ExchangeHealthMonitor.java)에 `lastWsTickAt` + `markWsTick()`(WS 리스너에서만 호출) + `isWsStale(sec)`(연결됨인데 틱 끊김) + `isWsUnhealthy=다운 OR 정지` 추가. 연결 시 틱시각 리셋(재연결 오탐 방지). [LiveTradingService](../web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java): WS 틱 리스너에 `markWsTick()` 훅, `pollRestTickerFallback` 발동조건을 `isWsUnhealthy`로 → **조용한 정지에도 REST 폴백이 켜져 SL 감시 유지**. [WsFallbackTest](../web-api/src/test/java/com/cryptoautotrader/api/service/WsFallbackTest.java) 2건 추가·통과, `:web-api:compileJava` 통과.
-- **[x] 배포 후 로그 확인 → 진짜 원인은 "never-connected"** (07-27 14:20 KST): 재빌드 기동 로그에 **WebSocket 관련 로그가 전무**(REST 캔들수집·DYNAMIC 스캐닝만) → WS가 한 번도 연결 안 됨. `webSocketConnected=false`·`wsDisconnectedSince=null`이라 1차 수정(`isWsStale` 연결-게이트)도 폴백을 못 켬.
-- **[x] 근본 수정 보강 — 틱 신선도 기반(연결 플래그 무관)**: `ExchangeHealthMonitor` 생성자에서 `lastWsTickAt=now`로 초기화(never-connected도 부팅 후 임계시간 경과 시 stale), `isWsStale`에서 `webSocketConnected` 게이트 제거 → **연결 여부와 무관하게 "실시간 틱이 안 오면" `isWsUnhealthy`=true → REST 폴백 발동**. REST 캔들수집이 정상 작동 중이므로 폴백은 확실히 가격 이벤트를 공급함. `WsFallbackTest` never-connected 케이스로 갱신, 컴파일·테스트 통과.
-- **[ ] 재빌드 후 검증**: 기동 ~1분 뒤 `[§9] WS 이상(끊김/틱정지) … REST ticker fallback 활성화` 로그 + SL 미점검 경고 중단 확인.
-- **[ ] 별개 근본원인 — WS가 왜 연결이 안 되나** (안전망과 별개로 조사 필요): Upbit WS 도달성(방화벽/DDNS)·WS 클라이언트 초기화·구독 실패 여부. REST 폴백이 SL 감시는 지켜주지만, 실시간 주 경로가 죽은 것이므로 체결 지연 등 성능 영향 있음.
+- **[정정] "never-connected" 진단은 오류였음** — 앞선 로그 조각(05:20 런)에 startup이 안 잡혀 WS 미연결로 오판했으나, 재시작 startup 로그(05:27) 확인 결과 **WS 정상 연결·구독됨**: `Upbit WebSocket 연결 성공` + `구독 메시지 전송 coins=[KRW-ADA,KRW-BTC,KRW-XRP]`. 확인 없이 단정한 오류 정정.
+- **[x] 실제 원인 = 이전 컨테이너의 WS 조용한 정지(연결 후 드롭/틱정지, 재연결·재구독 실패)** — 이번 재시작에선 WS가 깨끗이 붙어 복구. **SL 경고가 startup 과도기(14:27:31, "기록없음") 이후 1.7분+ 신규 0건**으로 멎음 = 틱 흐름·`recordSlCheck` 재개 확인.
+- **[x] 틱 신선도 기반 폴백 수정 — "안전망"으로 유효**: `ExchangeHealthMonitor` 생성자 `lastWsTickAt=now` 초기화 + `isWsStale` 연결게이트 제거(연결 여부 무관, 틱 안 오면 stale) → WS가 또 조용히 멎어도 REST 폴백이 SL 감시 유지. `WsFallbackTest` 갱신, 컴파일·테스트 통과. (이번엔 WS 자체가 살아나 안전망까지 안 감)
+- **[ ] 후속 관찰** — WS가 재차 조용히 멎는지(간헐 드롭 재발 여부) 모니터링. 재발 시 `[§9] … REST ticker fallback 활성화` 로그로 안전망 작동 확인. 반복되면 WS 재연결/재구독 로직(하트비트·핑퐁) 보강 검토.
 
 ---
 

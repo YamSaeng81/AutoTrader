@@ -49,10 +49,10 @@ public class DbResetService {
         // 실전매매
         Map<String, Long> live = new LinkedHashMap<>();
         live.put("live_trading_session", count("SELECT COUNT(*) FROM live_trading_session"));
-        live.put("position",             count("SELECT COUNT(*) FROM position WHERE session_id IS NOT NULL"));
-        live.put("order",                count("SELECT COUNT(*) FROM \"order\" WHERE session_id IS NOT NULL"));
+        live.put("position",             count("SELECT COUNT(*) FROM position WHERE session_id IS NOT NULL AND session_kind = 'LIVE'"));
+        live.put("order",                count("SELECT COUNT(*) FROM \"order\" WHERE session_id IS NOT NULL AND session_kind = 'LIVE'"));
         live.put("strategy_log",         count("SELECT COUNT(*) FROM strategy_log WHERE session_type = 'LIVE'"));
-        live.put("trade_log",            count("SELECT COUNT(*) FROM trade_log WHERE order_id IN (SELECT id FROM \"order\" WHERE session_id IS NOT NULL)"));
+        live.put("trade_log",            count("SELECT COUNT(*) FROM trade_log WHERE order_id IN (SELECT id FROM \"order\" WHERE session_id IS NOT NULL AND session_kind = 'LIVE')"));
         stats.put("liveTrading", live);
 
         return stats;
@@ -84,7 +84,13 @@ public class DbResetService {
         return result;
     }
 
-    /** 실전매매 데이터 초기화 */
+    /**
+     * 실전매매 데이터 초기화.
+     *
+     * <p>position/"order" 의 session_id 는 라이브·동적 세션이 공유하는 다형 참조라
+     * {@code session_kind = 'LIVE'} 로 반드시 좁혀야 한다. 이 조건이 없으면 "실전매매 초기화"가
+     * 동적 세션의 포지션·주문까지 함께 지운다 (V51/V52 참조).</p>
+     */
     @Transactional
     public Map<String, Integer> resetLiveTrading() {
         log.warn("실전매매 데이터 초기화 시작");
@@ -92,11 +98,11 @@ public class DbResetService {
         result.put("strategy_log",
                 jdbc.update("DELETE FROM strategy_log WHERE session_type = 'LIVE'"));
         result.put("trade_log",
-                jdbc.update("DELETE FROM trade_log WHERE order_id IN (SELECT id FROM \"order\" WHERE session_id IS NOT NULL)"));
+                jdbc.update("DELETE FROM trade_log WHERE order_id IN (SELECT id FROM \"order\" WHERE session_id IS NOT NULL AND session_kind = 'LIVE')"));
         result.put("order",
-                jdbc.update("DELETE FROM \"order\" WHERE session_id IS NOT NULL"));
+                jdbc.update("DELETE FROM \"order\" WHERE session_id IS NOT NULL AND session_kind = 'LIVE'"));
         result.put("position",
-                jdbc.update("DELETE FROM position WHERE session_id IS NOT NULL"));
+                jdbc.update("DELETE FROM position WHERE session_id IS NOT NULL AND session_kind = 'LIVE'"));
         result.put("live_trading_session",
                 jdbc.update("DELETE FROM live_trading_session"));
         log.warn("실전매매 데이터 초기화 완료: {}", result);

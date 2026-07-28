@@ -1,0 +1,22 @@
+-- position/"order" 의 session_id 는 V50(dynamic_session) 도입 이후 live_trading_session 과
+-- dynamic_session 을 함께 가리키는 다형 참조(polymorphic reference)가 되었다. 실제 키는
+-- (session_kind, session_id) 쌍이며(V51/V52), 이는 SQL FK 로 표현할 수 없다.
+--
+-- 그런데 V12 에서 만든 "session_id -> live_trading_session(id)" FK 가 그대로 남아 있어,
+-- DYNAMIC 포지션/주문을 INSERT 하는 순간 DB 가 dynamic_session 의 id 를 live_trading_session
+-- 에서 찾다가 실패했다:
+--
+--   ERROR: insert or update on table "position" violates foreign key constraint
+--          "position_session_id_fkey"
+--   Detail: Key (session_id)=(36) is not present in table "live_trading_session".
+--
+-- 동적 세션은 진입 게이트에 전량 막혀 실거래 0건이었던 탓에 이 제약이 오랫동안 드러나지 않다가,
+-- 2026-07-15~07-24 진입 완화로 실제 매수가 시작되면서 매 tick 실패로 표면화됐다
+-- (DynamicTradingService.executeBuy). 테스트 스키마(schema-h2.sql)에는 애초에 이 FK 가 없어
+-- 회귀 테스트로도 잡히지 않았다.
+--
+-- 잘못된 제약이므로 제거한다. 무결성은 session_kind 기반 애플리케이션 로직이 보장한다
+-- (PositionRepository/OrderRepository 의 findBySessionKindAnd... 계열 메서드).
+-- 세션 삭제는 양쪽 모두 soft-delete(status='DELETED') 라 부모 행이 사라지는 경로는 없다.
+ALTER TABLE position DROP CONSTRAINT IF EXISTS position_session_id_fkey;
+ALTER TABLE "order"  DROP CONSTRAINT IF EXISTS order_session_id_fkey;
