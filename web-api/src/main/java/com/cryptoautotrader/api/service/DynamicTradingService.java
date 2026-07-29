@@ -813,7 +813,10 @@ public class DynamicTradingService {
         order.setSessionId(sid);
         order.setSessionKind(SESSION_KIND);
         order.setPositionId(posId);
-        orderExecutionEngine.submitOrder(order);
+        // ⚠️ 커밋 이후 제출 — 위 pos 는 아직 미커밋이라 @Async 주문 스레드에서 보이지 않는다.
+        //    즉시 제출하면 order_position_id_fkey 대기 → 타임아웃/데드락으로 주문 INSERT가
+        //    통째로 롤백된다 (2026-07-29 P0: 동적 주문 0건의 원인).
+        orderExecutionEngine.submitOrderAfterCommit(order);
 
         // KRW 차감 및 상태 전환 — 낙관적 락 + 재시도 (reconcile 스케줄러와의 동시 쓰기 race 차단)
         final BigDecimal deductAmount = investAmount;   // 람다 캡처용 (최소주문 보정으로 재할당됐을 수 있음)

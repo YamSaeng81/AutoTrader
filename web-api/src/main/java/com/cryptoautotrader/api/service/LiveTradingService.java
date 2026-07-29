@@ -1227,7 +1227,10 @@ public class LiveTradingService {
         order.setSessionId(session.getId());
         order.setSessionKind("LIVE");
         order.setPositionId(pos.getId());
-        orderExecutionEngine.submitOrder(order);
+        // ⚠️ 커밋 이후 제출 — 동적 세션과 동일 구조의 잠재 위험. LIVE 는 트랜잭션 구간이 짧아
+        //    여태 타이밍상 통과해왔을 뿐, 미커밋 position 을 @Async 스레드가 참조하는 것은 같다.
+        //    (2026-07-29 P0 — OrderExecutionEngine.submitOrderAfterCommit Javadoc 참조)
+        orderExecutionEngine.submitOrderAfterCommit(order);
 
         // 세션 잔고 차감 — 낙관적 락 + 재시도 (§7 race 차단)
         balanceUpdater.apply(session.getId(),

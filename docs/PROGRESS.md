@@ -3,7 +3,40 @@
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝나면 완료 내용을 [`docs/CHANGELOG.md`](CHANGELOG.md)에 추가하고, 이 파일의 해당 항목은 삭제한다.
 > **변경 이력**: [`docs/CHANGELOG.md`](CHANGELOG.md)
-> **마지막 갱신**: 2026-07-28 (동적 세션 FK 위반 수정 — V61로 다형 참조 FK 제거, DbResetService session_kind 격리. 남은 것: 운영 배포·검증 + 변경분 git 커밋)
+> **마지막 갱신**: 2026-07-29 (07-28 완화 검증 완료 — 워치리스트·BUY·V61 FK 전부 회복 확정. **신규 🔴 P0: DYNAMIC 주문 INSERT 전량 롤백으로 실체결 여전히 0건** + 세션 35 잔고 8,000원 누수)
+
+---
+
+## 🆕 2026-07-29 검증 결과 — 완화·V61 전부 성공, 그러나 **주문 INSERT 롤백**이라는 다음 벽 발견
+
+> 07-28 16:54 `scan_*` 완화 적용 후 예정된 5단계 검증을 운영 DB 직접 조회로 수행(07-29 10:00 KST). **3개는 성공 확정, 대신 그 뒤에 숨어 있던 P0 버그가 드러남.**
+
+- **[x] ① 워치리스트 회복 — 성공** — RUNNING 7세션 전부 재구축됨(07-29 00:33~00:56 UTC). `[]`×2 / 1~3개 → **4~10개**. 전 세션이 **KRW-BTC·ETH·XRP·SOL 메이저 포함**(s38만 4개). 완화(`scan_require_uptrend=false`·`scan_exclude_crashing=false`)가 의도대로 하락장 메이저를 되살렸다. 유동성 50억·ATR 4%는 NULL 유지 = 코드 기본값으로 잡코인 배제 계속 작동.
+- **[x] ② BUY 신호 재개 — 성공** — 07-26~28 0건 → 완화 직후 **07-28 20:00부터 BUY 10건**(07-28 7 + 07-29 3). 차단사유가 **EMA200/BLACK_SWAN 게이트에서 완전히 사라짐**. 남은 미선택 사유는 `다른 코인 신호가 더 강함`(3건, 정상 경쟁) + `가용 KRW 부족`(1건, 아래 ④). 세션별로도 33·34·35·36·37이 고루 BUY 생성.
+- **[x] ③ 🎯 V61 FK 수정 최종 검증 — 성공 확정** — **DYNAMIC position 6건 실제 생성**(id 2359·2360·2362·2363·2364·2365, 세션 33/34/36/37). FK가 살아 있었다면 INSERT 자체가 불가능했던 지점을 통과. `pg_constraint` 재확인 — position/"order"에 session_id FK 없음(남은 건 `position_strategy_config_id_fkey`·`order_position_id_fkey`). **`executeBuy` 경로가 처음으로 실행됨.**
+- **[x] ⑤ LIVE 회귀 없음** — 세션 192 KRW-BTC가 07-28 21:05 정상 매수 체결(order 8587 FILLED, position 2361 OPEN, size 0.00008423). LIVE 주문 흐름 무손상.
+
+### 🔴 [신규 P0] DYNAMIC 주문이 DB에 단 한 건도 남지 않는다 — 실체결 여전히 0건
+
+- **증상** — DYNAMIC position 6건이 전부 `size=0`·`invested_krw=8000`으로 생성됐다가 **정확히 5분 뒤 CLOSED**. `"order"` 테이블의 DYNAMIC 행은 **0건**(`session_kind` 분포: LIVE만 FILLED 462·FAILED 6,705·CANCELLED 8). 즉 매수 주문이 거래소로 나가기는커녕 **DB 행조차 남지 않았다.**
+- **[결정적 증거] 시퀀스 갭 = INSERT 실행 후 롤백** — `order_id_seq.last_value=8591` vs `MAX(id)=8587`. **4개 이상의 id가 소비됐으나 행이 없다.** LIVE 구간(8510~8587)은 갭이 **전혀 없음**(연속 +1) → 롤백은 DYNAMIC 주문에서만 발생. 반면 `trade_log_id_seq=MAX=14849`(미소비) → `recordTradeLog` 이전, 즉 **`orderRepository.save(order)` 그 자체가 실패**한 것으로 좁혀진다.
+- **[유력 원인] `@Async` 주문 제출이 부모 트랜잭션의 미커밋 `position_id`를 참조** — [`executeBuy`](../web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java#L750)(`@Transactional`, 호출자 [`processTick`](../web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java#L377)도 `@Transactional`)가 `positionRepository.save(pos)` → **커밋 전에** [`submitOrder`](../web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java#L120)(`@Async`+`@Transactional`, **별도 스레드·별도 트랜잭션**)를 호출하고 `positionId`를 넘긴다. 별도 트랜잭션에서는 미커밋 position 행이 보이지 않아 `order_position_id_fkey` 검사가 부모 커밋까지 락 대기 → 타임아웃/데드락으로 async 측이 희생 → order INSERT 롤백. LIVE([`executeSessionBuy`](../web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java#L1148))는 **구조는 동일하나** 트랜잭션 구간이 짧아 여태 타이밍상 통과해온 것으로 보인다(= LIVE도 잠재 위험).
+- **[안전망은 정상 작동]** — [`reconcileDynamicOrphanBuyPositions`](../web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java#L1274)의 "주문 엔티티가 아예 없는 경우(async 스레드 DB 오류 등)" 분기(5분 경과 조건)가 정확히 발동해 포지션 CLOSED + KRW 복원. 세션 33·34·36·37 잔고 **10,000원으로 온전히 복구 확인**. 손실 0.
+- **[x] 수정 완료 (코드) — 커밋 이후 발행으로 전환** — [`OrderExecutionEngine.submitOrderAfterCommit`](../web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java) 신설: 트랜잭션 활성 시 `TransactionSynchronizationManager.registerSynchronization`의 `afterCommit`에 제출을 등록하고, 트랜잭션 밖이면 즉시 제출로 폴백. **자기 프록시(`@Lazy self`) 경유** — `this.submitOrder(..)`로 부르면 `@Async`/`@Transactional`이 통째로 무시되므로 필수.
+  - 적용 = **매수 2곳만** (신규 포지션을 참조하는 경로): [DynamicTradingService](../web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java#L816), [LiveTradingService](../web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java#L1230). **매도 경로는 의도적으로 미변경** — SELL의 `positionId`는 이미 커밋된 기존 포지션이라 FK 대기가 없고, 손절 경로의 블래스트 반경을 넓히지 않기 위함.
+  - 부수 효과: 트랜잭션이 롤백되면 주문이 아예 나가지 않는다 → **포지션 없이 주문만 거래소로 나가는 사고도 함께 차단**된다.
+- **[x] 회귀 테스트** — [OrderSubmitAfterCommitTest](../web-api/src/test/java/com/cryptoautotrader/api/service/OrderSubmitAfterCommitTest.java) 3건(커밋 전 미발행 / 롤백 시 미발행 / 트랜잭션 밖 폴백). **수정을 무력화하면 3건 중 2건이 실패함을 확인**한 뒤 복원 — 실효성 있음. ⚠️ 첫 시도에서 "커밋 전 미발행" 단언이 무력화 상태에서도 통과했다(async가 아직 시작 전이라 0). 트랜잭션 안에서 **1.5초 대기 후 카운트**하도록 고쳐 실효화. `:web-api:test` 전체 통과.
+  - H2 스키마엔 운영과 달리 해당 FK가 없어 **락 경합 자체는 재현 불가** — 테스트가 잠그는 것은 근본 원인인 **호출 시점**이다.
+- **[ ] 배포 필요** — 미배포 상태에선 구 동작(즉시 제출)이 계속되어 **동적 실체결은 계속 0건**. 재빌드·재기동 후 `SELECT * FROM "order" WHERE session_kind='DYNAMIC'`에 행이 남는지, position의 `size`가 0에서 실제 수량으로 갱신되는지 확인. **마이그레이션 없음(코드 변경만)** — Flyway 무관.
+- **[ ] 확증 남음 (사용자 결정으로 로그 확인 생략하고 선수정)** — 위 원인은 DB 증거(시퀀스 갭·trade_log 미소비·LIVE 대조)로 좁힌 **추론**이며, 애플리케이션 로그의 실제 예외 메시지는 미확인이다. 배포 후에도 주문이 안 남으면 `docker logs`에서 `거래소 주문 제출 실패` / `order_position_id_fkey` / deadlock·lock timeout 을 확인할 것. (수정 자체는 원인이 무엇이든 해로울 게 없는 방향이라 선적용.)
+
+### 🔴 [신규] 세션 35 잔고 8,000원 누수 — 사실상 매수 불능
+
+- `dynamic_session` id=35(COMPOSITE_MTF_CONFIRMED) `available_krw=**2,000**`(타 세션 전부 10,000). `total_asset_krw`는 10,000 그대로라 **UI상 정상으로 보인다.**
+- **position 이력 0건**(`WHERE session_id=35` 전 기간·전 kind 무결과)인데 KRW만 8,000 차감 → `balanceUpdater`가 `REQUIRES_NEW`([DynamicSessionBalanceUpdater](../web-api/src/main/java/com/cryptoautotrader/api/service/DynamicSessionBalanceUpdater.java#L46))라 **부모 트랜잭션 롤백과 무관하게 커밋**된 것이 유력. 07-28 07:45(V61 적용) 이전 FK 위반 시대의 잔재로 추정.
+- ⚠️ **PROGRESS 07-28 기재 "잔고 오차감 없음"은 이 건에 한해 오류** — 롤백이 전부를 되돌린다는 전제가 `REQUIRES_NEW` 잔고 갱신에는 성립하지 않았다.
+- **결과**: 2,000 × investRatio 0.8 = 1,600원 < 업비트 최소주문 5,000원 → 07-29 00:30 KRW-O BUY가 `가용 KRW 부족`으로 차단. **이 세션은 영구 매수 불능 상태.**
+- **[x] 복구 완료 (07-29, 운영 DB 1행 UPDATE 커밋)** — `available_krw` 2,000 → **10,000**. 가드로 `AND available_krw=2000`을 걸어 rowcount=1 확인 후에만 커밋. **RUNNING 7세션 전부 10,000원 균일 확인.** `total_asset_krw`는 원래 10,000이라 변경 불필요.
 
 ---
 
@@ -18,7 +51,25 @@
 - **[x] 수정 ② [DbResetService](../web-api/src/main/java/com/cryptoautotrader/api/service/DbResetService.java)** — 조사 중 발견한 **별개 버그**: `resetLiveTrading()`의 `DELETE FROM position/"order" WHERE session_id IS NOT NULL`에 `session_kind` 필터가 없어 **"실전매매 초기화"가 동적 세션 데이터까지 삭제**. FK 때문에 동적 포지션이 존재한 적이 없어 잠복해 있던 것 — ①을 고치면 실제 피해가 된다. reset·stats 쿼리 전부 `AND session_kind = 'LIVE'` 추가.
 - **[x] 회귀 테스트** — [SessionKindIsolationTest](../web-api/src/test/java/com/cryptoautotrader/api/service/SessionKindIsolationTest.java)에 "실전매매 초기화는 DYNAMIC 포지션/주문을 지우지 않는다" 추가. **수정 되돌리면 실패함을 확인**(테스트에 실효성 있음) 후 복원. `:web-api:test` 전체 통과.
 - **데이터 오염 없음** — 예외가 `processTick`의 `@Transactional` 안에서 발생해 전부 롤백됐다. 잔고 오차감 없음.
-- **[ ] 남은 것** — 운영 배포(V61 Flyway 적용) 후 동적 세션 매수가 실제로 체결되는지 확인. ⚠️V58 사고 교훈대로 **V61은 적용 후 절대 수정 금지**.
+- **[x] 운영 배포·검증 (07-28 16:50, 운영 DB 직접 조회)** — ① `flyway_schema_history`: **V61 success=t, 2026-07-28 07:45:26 적용**. ② `pg_constraint`: **public.position / public."order" 에 session_id FK 없음**(남은 건 `position_strategy_config_id_fkey`·`order_position_id_fkey`, 그리고 `paper_trading` 스키마의 virtual_balance FK — 전부 정상·다형 아님). ③ 배포 후 9시간 동안 DYNAMIC 전략로그 367건(HOLD 329/SELL 38, 마지막 16:48) — **틱 정상 순환, FK 오류 재발 없음**. ⚠️V58 사고 교훈대로 **V61은 적용 후 절대 수정 금지**.
+- **[x] FK 수정 경로 검증 완료 (07-29)** — DYNAMIC position 6건 실제 INSERT 성공. **V61 성공 확정.** 단 그 다음 단계인 주문 INSERT가 별도 원인으로 롤백됨 → 위 07-29 섹션 참조.
+- **🔴 [신규 발견] 워치리스트 고갈 — BUY 신호가 7/24부터 죽었다** (FK와 별개, 더 근본적):
+  - 일별 DYNAMIC BUY: 7/20~23 **10·9·9·13건** → 7/24 **1건** → 7/25 **1건** → **7/26~28 0건**. HOLD 평가수도 5,500~6,100/일 → **1,283/일**로 급감.
+  - 현재 워치리스트(RUNNING 7세션): `[]`(2개), `[ZAMA]`, `[STORJ]`, `[ZAMA,STORJ]`, `[ZAMA,KAITO,STORJ]` — **목표 10개 대비 0~3개**, 두 세션은 완전히 빈 상태.
+  - 시점이 **V57 워치리스트 품질 큐레이션(7/24)과 정확히 일치**. `risk_config`의 `scan_*` 컬럼은 **전부 NULL** → 코드 기본값(거래대금 50억·ATR 4%·상승추세 필수·급락 제외)이 그대로 적용 중.
+  - **역설**: 잡코인 배제가 목적이었는데, `requireUptrend`가 하락장의 메이저(BTC/ETH)를 전부 탈락시켜 **살아남는 게 오히려 펌핑 중인 소형 알트(ZAMA·STORJ·KAITO)뿐**. 의도와 정반대 결과.
+  - **[진단 확정] V57이 7/21~22 완화를 조용히 되돌렸다** — SCANNING 진입 경로는 EMA200을 `buySizeMultiplier`(3단계 1.0/0.5/0.0, 마진 3%), 급락을 `BlackSwanGuard.entryGate`(3단계 통과/감액/차단)로 **완화 적용**한다. 그런데 [WatchlistQualityGate](../core-engine/src/main/java/com/cryptoautotrader/core/selector/WatchlistQualityGate.java)는 **같은 두 검사를 하드 버전으로 앞단에서** 수행한다(`allowsBuy(candles, null)` — 마진 null / `BlackSwanGuard.check` — 3단계 아님). 앞단 하드 차단이라 코인이 **평가 자체를 못 받고**, 뒤의 완화 로직이 무용지물이 됐다.
+  - **[x] 완화 적용 (07-28 16:54, 운영 DB `risk_config` id=1 UPDATE, 1행 커밋)** — `scan_require_uptrend=false`, `scan_exclude_crashing=false`. **유동성(50억)·ATR(4%)은 NULL 유지=코드 기본값** — 잡코인 배제를 실제로 담당하는 건 이 둘이고 진입 게이트가 대체할 수 없는 앞단 고유 기준이라 그대로 둔다. 다른 설정(서킷브레이커 on·MDD 20%) 무영향 확인. `getRiskConfig()`는 캐시 없이 매 틱 최신 행을 읽으므로 **재빌드·재시작 불필요**.
+  - **[x] 검증 완료 (07-29) — 완화 성공, 워치리스트·BUY 모두 회복.** 결과는 위 07-29 섹션 참조. 아래는 당시 세운 확인 순서(기록 보존):
+    1. **워치리스트 회복** — `SELECT id, watchlist_refreshed_at, watchlist_json FROM dynamic_session WHERE status='RUNNING'`. 07-28 16:50 기준 `[]`×2 / 1~3개였음. 목표 10개에 근접하고 메이저(BTC/ETH) 포함되는지.
+    2. **BUY 신호 재개** — `SELECT DATE(created_at), signal, COUNT(*) FROM strategy_log WHERE session_type='DYNAMIC' AND created_at >= DATE '2026-07-28' GROUP BY 1,2`. 07-26~28 BUY 0건 → 07-29에 나오는지 (7/20~23 수준은 9~13건/일).
+    3. **🎯 FK 수정 최종 검증** — `SELECT * FROM position WHERE session_kind='DYNAMIC'`. **1건이라도 생기면 V61 성공 확정** (현재까지 0건 = `executeBuy` 미실행이라 미검증 상태). 동시에 `"order"` 의 DYNAMIC 주문도 함께 확인.
+    4. **차단사유 분해** — BUY가 여전히 0이면 `SELECT blocked_reason, COUNT(*) ... WHERE blocked_reason IS NOT NULL GROUP BY 1`. 이번엔 워치리스트가 아니라 진입 게이트(EMA200/블랙스완/BTC가드/손실쿨다운) 중 어디서 막히는지 나온다.
+    5. **회귀 없음 확인** — LIVE 세션 포지션·주문이 정상인지, FK 오류가 다른 형태로 재발하지 않는지.
+    - ⚠️ **판정 주의**: BUY strategy_log 건수는 과거 데이터에선 과소집계다(아래 참고 항목). 07-28 16:54 완화 적용 **이후** 구간만 유효한 비교 대상.
+    - 접속: 운영 DB `yhpapa.iptime.org:8432 / crypto_auto_trader / trader` (비밀번호는 사용자에게 요청). psql 없으므로 JDBC 드라이버 직접 사용: `~/.gradle/caches/.../postgresql-42.6.2.jar`.
+  - **[참고] 설정 보존 확인** — `updateRiskConfig()`가 `scan_*` 9개 필드를 모두 복사하므로, 이후 UI/API로 리스크 설정을 바꿔도 이 값은 유지된다.
+- **[참고] 과거 BUY 건수는 과소집계** — FK 예외가 `processTick` 트랜잭션 전체를 롤백시켜, **게이트를 통과해 executeBuy까지 간 BUY의 strategy_log 행도 함께 사라졌다.** 즉 7/20~23의 "BUY 9~13건"은 게이트에 차단된 것만 남은 수치.
 
 ---
 

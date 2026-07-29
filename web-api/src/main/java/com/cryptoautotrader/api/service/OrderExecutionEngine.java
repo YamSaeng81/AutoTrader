@@ -20,10 +20,13 @@ import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -99,6 +102,15 @@ public class OrderExecutionEngine {
     @Autowired(required = false)
     private ExecutionDriftTracker executionDriftTracker;
 
+    /**
+     * 자기 자신의 프록시 — {@link #submitOrderAfterCommit}에서 {@link #submitOrder}를 호출할 때
+     * {@code this.submitOrder(..)}로 부르면 Spring 프록시를 우회해 {@code @Async}/{@code @Transactional}이
+     * 통째로 무시된다(동기 실행 + 트랜잭션 없음). 반드시 프록시를 경유해야 한다.
+     */
+    @Autowired
+    @Lazy
+    private OrderExecutionEngine self;
+
     public OrderExecutionEngine(OrderRepository orderRepository,
                                  PositionRepository positionRepository,
                                  TradeLogRepository tradeLogRepository,
@@ -112,8 +124,43 @@ public class OrderExecutionEngine {
     }
 
     /**
+     * 주문 제출을 <b>호출자 트랜잭션 커밋 이후</b>로 지연시킨다 — 신규 포지션을 만든 직후의 매수 주문 전용.
+     *
+     * <p><b>왜 필요한가 (2026-07-29 P0)</b>: {@code executeBuy} 계열은 {@code @Transactional} 안에서
+     * {@code positionRepository.save(pos)}로 포지션을 만든 뒤, <b>커밋 전에</b> {@link #submitOrder}에
+     * 그 {@code positionId}를 넘겼다. {@code submitOrder}는 {@code @Async}라 <b>별도 스레드·별도 트랜잭션</b>이고,
+     * 거기서는 아직 커밋되지 않은 position 행이 보이지 않는다. 그래서 order INSERT의
+     * {@code order_position_id_fkey} 검사가 부모 커밋까지 락 대기에 걸리고, 타임아웃/데드락으로
+     * async 측이 희생되면서 <b>주문 행이 통째로 롤백</b>됐다.</p>
+     *
+     * <p>운영 증거(2026-07-29): 동적 세션 포지션 6건이 생성됐는데 {@code "order"}의 DYNAMIC 행은 0건.
+     * {@code order_id_seq}는 8591까지 소비됐으나 {@code MAX(id)}는 8587 — INSERT 후 롤백된 흔적이며,
+     * {@code trade_log_id_seq}는 미소비라 {@code orderRepository.save()} 자체에서 실패했음이 확정된다.
+     * 결과적으로 동적 매매는 실체결이 한 건도 성립하지 못했다.</p>
+     *
+     * <p>커밋 이후로 미루면 async 스레드가 이미 커밋된 position을 보게 되어 FK 대기가 사라진다.
+     * 트랜잭션이 <b>롤백되면 주문은 아예 발행되지 않는다</b> — 포지션 없이 주문만 나가는 사고를 막는
+     * 올바른 동작이다. 트랜잭션 밖에서 호출되면 즉시 제출로 폴백한다.</p>
+     */
+    public void submitOrderAfterCommit(OrderRequest request) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            self.submitOrder(request);
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                self.submitOrder(request);
+            }
+        });
+    }
+
+    /**
      * 주문 제출 — PENDING 상태로 생성 후 리스크 체크 및 거래소 주문
      * @Async 는 void 또는 Future<T> 반환만 지원 (Spring Boot 3.x)
+     *
+     * <p>⚠️ 신규 생성한 포지션을 참조하는 매수 주문이라면 이 메서드를 직접 부르지 말고
+     * {@link #submitOrderAfterCommit}을 사용할 것 — 이유는 그 Javadoc 참조.</p>
      */
     @Transactional
     @Async("orderExecutor")
