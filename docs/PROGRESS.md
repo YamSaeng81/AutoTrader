@@ -3,7 +3,7 @@
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝나면 완료 내용을 [`docs/CHANGELOG.md`](CHANGELOG.md)에 추가하고, 이 파일의 해당 항목은 삭제한다.
 > **변경 이력**: [`docs/CHANGELOG.md`](CHANGELOG.md)
-> **마지막 갱신**: 2026-07-31 (**세션 격리 누수 3건 수정** + **운영 DB 3일치 분석**(매도 경로·시퀀스 갭·LIVE 회귀 전부 성공 = 배관 완성, 그러나 **청산 6건 전부 SL 강제청산**) + **청산 규칙 전면 개편**(ATR 기반 SL·블랙스완 조임 제거·time stop V62). 세션 33 잔고 복구 완료. **전부 미배포 — 재빌드 필요.** 남은 것: 미실현 손익 미배선)
+> **마지막 갱신**: 2026-07-31 (세션 격리 누수 수정 + 청산 규칙 개편 **배포 완료**. 세션 M15 7개 → **H1 7개(39~45) 재구성**. 🔴 **미해결 P0: 매도 후처리 트랜잭션 롤백** — 유령 포지션 발생, 로그 필요, time stop 전 세션 비활성 중. ⚠️**정정: ATR SL은 하한 5%에 묻혀 무효**였고 실효는 블랙스완 조임 제거뿐)
 
 ---
 
@@ -81,7 +81,56 @@
 - **[x] 회귀 테스트** — [DynamicStopLossWidthTest](../web-api/src/test/java/com/cryptoautotrader/api/service/DynamicStopLossWidthTest.java) 5건(변동성 비례 확대 / 하한 보장 / 상한 클램프 / ATR 계산 불가 폴백 4종 / ATR 2배 불변식). **개편 전 동작(고정 SL)으로 되돌리면 2건 실패함을 확인** 후 복원. `:web-api:test` 전체 **145건 통과**, 프론트 `tsc` 신규 에러 없음.
   - ⚠️ **정직한 한계**: 블랙스완 조임 제거(②)는 `processMonitoringTick` 내부라 **단위 테스트가 잠그지 못한다**. 테스트가 잠그는 것은 ①의 진입 시점 SL 계산뿐이다. ②는 코드 삭제로만 보장된다.
 - **[x] UI 반영** — 동적 세션 상세: 손절/익절 표시를 **세션 설정값이 아니라 포지션에 박힌 실제 가격에서 역산**(설정값은 이제 하한일 뿐이라 그대로 쓰면 틀린 값이 나온다). 청산 조건 목록에 time stop 추가, 세션 설정에 "최대 보유" 행 추가.
-- **[ ] 미배포** — **V62 마이그레이션 포함**이라 재빌드·배포 필요. ⚠️V58 사고 교훈: **적용 후 V62는 절대 수정 금지, 변경이 필요하면 V63 추가.**
+- **[x] 배포 완료 (07-31 09:21 KST)** — V62 success=t 확인. ⚠️V58 사고 교훈: **적용 후 V62는 절대 수정 금지, 변경이 필요하면 V63 추가.**
+
+---
+
+## 🔴 2026-07-31 [P0 미해결] time stop 배포 직후 매도 후처리 롤백 — 유령 포지션 + 실패주문 루프
+
+> 배포 1분 만에 time stop이 세션 38 KRW-RLUSD를 정확히 잡았으나(주문 8610 FILLED), **후처리가 롤백**돼 코인은 팔렸는데 DB는 보유 중인 상태가 됐다.
+
+- **증상** — 매도주문 8610 `FILLED`(전량 5.60224089 @ 1417), 그런데 pos 2367은 `status=OPEN` / `closing_at=NULL`, 세션 38은 `POSITION_MONITORING` 유지. 다음 틱마다 time stop이 재발동 → 8611·8612·8613이 **69초 간격 FAILED**(업비트 HTTP 400 — 이미 판 코인). 약 4분간 반복.
+- **[원인 분석 — 소거법으로 롤백 확정, 지점은 미규명]**
+  - `executeSell`은 `markClosingIfOpen`(CLOSING+`closing_at` 기록) → `submitOrder`(@Async, 별도 tx) → `transitionToScanning`(REQUIRES_NEW) 순서다. 주문만 살아남고 앞뒤가 전부 없다 = **`processMonitoringTick` 트랜잭션 롤백**.
+  - `reconcileDynamicClosingPositions`가 되돌렸을 가능성은 **배제** — 롤백 분기는 매도주문 FAILED/CANCELLED 또는 8분 타임아웃뿐인데, 8610은 5초 만에 FILLED였고 그 사이 reconcile은 PENDING을 보고 무동작할 시점이었다.
+  - **07-29 P0의 정확한 거울상** — 그때는 async가 롤백되고 부모가 살았고, 이번엔 부모가 롤백되고 async가 살았다.
+  - 예외 지점은 `submitOrder` 직후~`transitionToScanning` 구간으로 좁혀지나(후자의 `balanceUpdater`가 낙관적 락 12회 재시도 후 throw하는 경로가 유력), **DB 증거만으로는 특정 불가. 서버 로그 필요.**
+- **[x] 긴급 조치** — 전 세션 `max_hold_hours=0`(time stop 비활성)으로 루프 차단. 세션 34(NEAR)·37(ETH)이 11:00·11:15에 24h 도달 예정이라 동일 루프 확산이 임박했었다.
+- **[x] 유령 포지션 정리 (07-31 10:53, 운영 DB 2행 UPDATE 커밋)** — `finalizeDynamicSell`과 **동일 계산식**을 손으로 적용: proceeds=5.60224089×1417=7,938.375, fee=×0.0005=3.97, realizedPnl=net−(수량×평단1428)=**−65.59383746**. pos 2367 `CLOSED`, 세션 38 `available=total=9,934.41`(−0.66%) + `SCANNING` 복귀. 가드(`status='OPEN'`·`size` 일치·`current_position_id=2367`) rowcount=1 확인 후 커밋.
+  - ⚠️ reconcile에 맡기지 못한 이유: 실패주문 8611~8613이 8610보다 최신이라 `latestSell`이 FAILED로 잡혀 **OPEN 롤백 분기**를 타게 된다.
+- **[ ] 🔴 근본 원인 미해결** — 로그 확보 후 수정 필요. **이게 안 잡히면 time stop뿐 아니라 모든 매도 경로가 같은 위험을 안는다**(SL/TP/전략 SELL 포함). time stop은 그때까지 전 세션 비활성 유지.
+  - 확인 명령: `docker compose -f docker-compose.prod.yml logs backend --since 3h | grep -iE "2367|시간 초과|SCANNING 복귀|Exception|ERROR|낙관적|Concurrency"`
+
+---
+
+## ⚠️ 2026-07-31 [정정] ATR 기반 SL은 현재 구성에서 **무효(no-op)** 였다
+
+> 위 "청산 규칙 전면 개편 ①"의 효과 주장을 실측으로 정정한다.
+
+- **실측 (candle_data 2026-03, BTC/ETH/XRP/DOGE)**: M15 ATR **0.568%**(2×=1.14%), H1 ATR **1.000%**(2×=2.00%). 둘 다 **하한 5%에 완전히 묻힌다.**
+- ⇒ `resolveStopLossPct = max(2×ATR, stopLossPct)` 는 당시 전 세션(M15)에서 **항상 5.0을 반환**했다. "변동성 비례로 SL이 넓어진다"는 개편 의도는 **실현되지 않았다.**
+- **실제로 효과를 낸 것은 ② 블랙스완 조임 제거뿐** — SL이 2.96~4.61%대에서 기준 5%로 복귀하는 효과. 07-31 세션 32 분석에서 청산 4건의 SL이 전부 조임값(−3.54/−4.61/−2.96/−3.60)이고 **설정값 5%가 한 번도 적용되지 않았음**이 확인됐다.
+- **개념 오류** — 평균 보유 7.6시간인데 **15분 캔들 ATR**로 손절폭을 쟀다. 보유 기간에 대응하는 변동성(H1/H4)으로 재야 한다.
+- **H1 전환 후에도 절반만 유효** — 메이저(H1 ATR 1%)는 여전히 하한 5% 적용. 워치리스트 알트(H1 ATR 2~4%, `SCAN_MAX_ATR_PCT` 상한 4%)에서만 2×ATR=4~8%로 하한을 넘어 실제로 물린다.
+- **[ ] 수정 후보** — ①ATR 산출 타임프레임을 세션 타임프레임과 분리(H4 고정) ②배수 2.0 → 3.0 ③보유기간 스케일링(√t). **표본이 쌓이면 실제 `stop_loss_price` 분포로 판정할 것** — 전부 −5.00이면 여전히 무효.
+
+---
+
+## 🆕 2026-07-31 세션 전면 재구성 — M15 7개 → H1 7개 (사용자 실행)
+
+- **구세션 32~38 전부 `EMERGENCY_STOPPED`**, 최종 성적: 32 **−11.57%** / 36 −6.86 / 35 −4.41 / 34 −2.54 / 37 −0.89 / 38 −0.66 / 33 0.00. **합계 약 −2,700원 / 7만원**.
+  - 전 세션 잔고 정합성 **0.00원** 확인(유령 포지션 정리 후). 열린 DYNAMIC 포지션 **0건**.
+- **신규 세션 39~45 (H1, 각 10,000원, RUNNING·SCANNING)** — MOMENTUM_ICHIMOKU_V2 / MEANREV_BB / MTF_BTC_STRICT / MTF_CONFIRMED / MTF_BTC / PULLBACK_MTF / MOMENTUM_ICHIMOKU.
+  - ⚠️ 신규 생성은 `max_hold_hours` **기본값 24**가 붙어 time stop이 자동 활성화됐다 → 위 P0 미해결이라 **7세션 전부 0으로 재설정 완료**(07-31 10:5x). **코드 기본값도 0으로 변경**(아래).
+- **[x] 코드 기본값 0으로 변경 — DB를 매번 손으로 고치는 운영 제거**:
+  - [`DynamicSessionEntity.DEFAULT_MAX_HOLD_HOURS`](../web-api/src/main/java/com/cryptoautotrader/api/entity/DynamicSessionEntity.java) 상수 신설(**= 0**). 엔티티 `@Builder.Default`와 `createSession` 폴백이 모두 이 상수를 참조 — **한 곳만 고치면 되돌아온다.** 되돌리는 절차를 상수 javadoc에 명시.
+  - [V63](../web-api/src/main/resources/db/migration/V63__default_max_hold_hours_off.sql) — DB 컬럼 기본값 24 → 0. **V62는 적용 완료라 수정하지 않고 새 버전으로 추가**(V58 체크섬 사고 교훈). **기존 행 값은 건드리지 않는다** — 사용자가 의도적으로 넣은 설정을 마이그레이션이 덮으면 안 되기 때문.
+  - 요청에 `maxHoldHours`를 **명시하면 그 값이 그대로 적용**된다 — 기능 자체는 살아 있고 기본값만 꺼둔 것.
+  - 회귀 테스트: [SessionKindIsolationTest](../web-api/src/test/java/com/cryptoautotrader/api/service/SessionKindIsolationTest.java) "신규 동적 세션은 time stop이 꺼진 상태로 생성된다" — 기본값 0 + 명시값 12 존중 2가지를 잠금. **상수를 24로 되돌리면 실패함을 확인** 후 복원. `:web-api:test` 전체 통과.
+  - **[ ] 롤백 P0 수정 후 되돌릴 것** — 상수 24 + 신규 마이그레이션 `ALTER COLUMN max_hold_hours SET DEFAULT 24`. 저변동 종목 고착 방어는 여전히 필요한 기능이다.
+  - **[ ] 미배포** — V63 포함이라 재빌드 필요.
+- **[판단 근거] M15 → H1 전환은 타당** — 구세션 손실이 **거래 횟수에 거의 정비례**했다(32: 4거래 −11.57% vs 36 STRICT: 2거래 −6.86%, 33: 0거래 0%). 건당 −3~4%가 고정적으로 나오는 구조에서 빈도를 줄이는 것이 직접적 대응이다. 단 **진입 기준 자체(ATR_BREAKOUT 주도, MACD는 HOLD)** 는 그대로이므로, H1이 빈도만 줄일 뿐 승률을 올린다는 보장은 없다.
+- **[ ] 관찰 포인트** — ①신규 진입의 `stop_loss_price` 분포(전부 −5.00이면 ATR 무효 지속) ②강제청산 비율(구세션 100%) ③거래 빈도가 실제로 줄었는지 ④매도 후처리 롤백 재발 여부(**time stop 없이도 SL/TP 경로에서 발생할 수 있음 — 최우선 감시**).
 - **[ ] 배포 후 관찰** — ①SL이 실제로 종목별로 다르게 잡히는지(`SELECT coin_pair, avg_price, stop_loss_price, (stop_loss_price/avg_price-1)*100 FROM position WHERE session_kind='DYNAMIC' AND opened_at > 배포시각`) ②강제청산 비율이 떨어지는지(개편 전 6/6=100%) ③time stop 청산이 실제 발동하는지(세션 38 RLUSD가 첫 대상 — 이미 42h 초과라 배포 즉시 청산될 것) ④SL이 넓어진 만큼 건당 손실은 커지므로 **손실 합계가 아니라 승률·기대값**으로 판정할 것.
 - **[x] 잔여 근본원인 ①(MACD 앵커) 재평가** — HOLD 사유는 **여전히 "점수 미달 buy=0.00" 지배적**(최근 2일: ATR_BREAKOUT 1,656 / MACD 599 / TREND 581건). 실체결이 도는 지금도 병목은 스코어 모델 그대로.
 

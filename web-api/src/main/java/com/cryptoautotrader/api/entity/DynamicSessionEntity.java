@@ -29,6 +29,20 @@ import java.time.Instant;
 @Builder
 public class DynamicSessionEntity {
 
+    /**
+     * {@code maxHoldHours} 기본값 — 세션 생성 시 요청에 값이 없으면 이 값이 적용된다.
+     *
+     * <p>⚠️ <b>2026-07-31 현재 0(time stop 비활성)</b>. 원래 의도한 기본값은 24시간이지만,
+     * 매도 후처리 트랜잭션 롤백 P0(주문은 체결됐는데 포지션이 OPEN으로 남아 매 틱마다
+     * 매도를 재시도하는 루프)가 미해결이라 임시로 꺼둔다. time stop 은 이 버그를 처음
+     * 표면화시킨 경로였다.</p>
+     *
+     * <p><b>롤백 버그 수정 후 24 로 되돌릴 것</b> — 저변동 종목 고착(세션 38 KRW-RLUSD
+     * 42시간) 방어는 여전히 필요하다. 되돌릴 때 DB 컬럼 기본값도 함께
+     * (신규 마이그레이션으로 {@code ALTER COLUMN ... SET DEFAULT 24}).</p>
+     */
+    public static final int DEFAULT_MAX_HOLD_HOURS = 0;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -91,15 +105,16 @@ public class DynamicSessionEntity {
     private Integer watchlistRefreshMin;
 
     /**
-     * 최대 보유시간 (시, 기본 24) — 초과 시 손익과 무관하게 시장가 청산(time stop).
+     * 최대 보유시간 (시) — 초과 시 손익과 무관하게 시장가 청산(time stop). 0 이하면 비활성.
      *
      * <p>SL/TP 는 가격 기반이라 저변동 종목(스테이블코인 등)에서는 영원히 도달하지 않는다.
-     * 2026-07-31 세션 38 KRW-RLUSD 가 42시간 고착돼 자본이 잠긴 사례에서 도입.
-     * 0 이하면 비활성.</p>
+     * 2026-07-31 세션 38 KRW-RLUSD 가 42시간 고착돼 자본이 잠긴 사례에서 도입.</p>
+     *
+     * <p>기본값은 {@link #DEFAULT_MAX_HOLD_HOURS} 참조 — <b>현재 0(비활성)</b>.</p>
      */
     @Builder.Default
     @Column(name = "max_hold_hours", nullable = false)
-    private Integer maxHoldHours = 24;
+    private Integer maxHoldHours = DEFAULT_MAX_HOLD_HOURS;
 
     /** 캐시된 워치리스트 JSON (예: ["KRW-BTC","KRW-ETH",...]) */
     @Column(name = "watchlist_json", columnDefinition = "TEXT")

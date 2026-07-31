@@ -182,7 +182,7 @@ CREATE TABLE IF NOT EXISTS dynamic_session (
     min_atr_pct                 DECIMAL(6, 4)   NOT NULL DEFAULT 0.5000,
     max_spread_pct              DECIMAL(6, 4)   NOT NULL DEFAULT 0.1000,
     watchlist_refresh_min       INT             NOT NULL DEFAULT 60,
-    max_hold_hours              INT             NOT NULL DEFAULT 24,
+    max_hold_hours              INT             NOT NULL DEFAULT 0,
     watchlist_json              CLOB,
     watchlist_refreshed_at      TIMESTAMP,
     version                     BIGINT          NOT NULL DEFAULT 0,

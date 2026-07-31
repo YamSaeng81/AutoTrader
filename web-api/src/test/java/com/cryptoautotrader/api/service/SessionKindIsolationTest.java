@@ -257,6 +257,34 @@ class SessionKindIsolationTest extends IntegrationTestBase {
     }
 
     @Test
+    @DisplayName("신규 동적 세션은 time stop이 꺼진 상태(maxHoldHours=0)로 생성된다")
+    void createSession_defaultsTimeStopOff() {
+        // 2026-07-31: V62 time stop 배포 직후 매도 후처리 롤백 P0(주문은 FILLED인데 포지션이
+        // OPEN으로 남아 매 틱 매도 재시도)가 드러났다. 원인 규명 전까지 신규 세션이 자동으로
+        // 그 경로에 노출되면 안 된다. DB를 매번 손으로 고치는 운영을 막기 위한 잠금.
+        DynamicSessionRequest req = new DynamicSessionRequest();
+        req.setStrategyType("COMPOSITE_MTF_BTC");
+        req.setTimeframe("H1");
+        req.setInitialCapital(new BigDecimal("10000"));
+
+        var session = dynamicTradingService.createSession(req);
+
+        assertThat(session.getMaxHoldHours())
+                .as("기본값은 0(비활성) — 롤백 P0 수정 후 24로 되돌릴 것")
+                .isZero();
+
+        // 명시적으로 지정하면 그 값이 그대로 쓰인다 (기능 자체는 살아 있음)
+        DynamicSessionRequest explicit = new DynamicSessionRequest();
+        explicit.setStrategyType("COMPOSITE_MTF_BTC");
+        explicit.setTimeframe("H1");
+        explicit.setInitialCapital(new BigDecimal("10000"));
+        explicit.setMaxHoldHours(12);
+
+        assertThat(dynamicTradingService.createSession(explicit).getMaxHoldHours())
+                .isEqualTo(12);
+    }
+
+    @Test
     @DisplayName("N-2: BLOCKED 전략은 동적 멀티코인 세션 생성도 거부된다")
     void createSession_rejectsBlockedStrategyForDynamic() {
         DynamicSessionRequest req = new DynamicSessionRequest();

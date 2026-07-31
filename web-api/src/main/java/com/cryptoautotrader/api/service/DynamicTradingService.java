@@ -253,7 +253,9 @@ public class DynamicTradingService {
                 .minAtrPct(req.getMinAtrPct() != null ? req.getMinAtrPct() : new BigDecimal("0.5"))
                 .maxSpreadPct(req.getMaxSpreadPct() != null ? req.getMaxSpreadPct() : new BigDecimal("0.1"))
                 .watchlistRefreshMin(req.getWatchlistRefreshMin() != null ? req.getWatchlistRefreshMin() : 60)
-                .maxHoldHours(req.getMaxHoldHours() != null ? req.getMaxHoldHours() : 24)
+                .maxHoldHours(req.getMaxHoldHours() != null
+                        ? req.getMaxHoldHours()
+                        : DynamicSessionEntity.DEFAULT_MAX_HOLD_HOURS)
                 .build();
 
         session = dynamicSessionRepo.save(session);
