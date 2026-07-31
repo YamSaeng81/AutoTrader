@@ -468,6 +468,36 @@ public class OrderExecutionEngine {
         }
     }
 
+    /**
+     * 체결 콜백이 반영할 포지션 조회.
+     *
+     * <p>{@code positionId} 가 있으면 그것이 유일한 정답이다. 없는 경우(구주문·수동주문)에만
+     * 코인으로 역추적하는데, 이때 <b>같은 코인을 여러 세션이 동시에 보유</b>할 수 있으므로
+     * 반드시 {@code (session_kind, session_id)} 로 범위를 좁힌다. 좁히지 않으면 다른 세션의
+     * 포지션에 체결 수량이 얹혀 그 세션의 평균단가·손익이 오염된다.
+     * 세션 정보조차 없는 전역 주문은 마지막 수단으로 코인 단건 매칭하되, 후보가 여러 개면
+     * 어느 것도 고르지 않는다(오염보다 미반영이 안전 — 고아 정리 안전망이 처리한다).</p>
+     */
+    private Optional<PositionEntity> findPositionForOrder(OrderEntity order) {
+        if (order.getPositionId() != null) {
+            return positionRepository.findById(order.getPositionId());
+        }
+
+        if (order.getSessionId() != null && order.getSessionKind() != null) {
+            return positionRepository.findBySessionKindAndSessionIdAndCoinPairAndStatus(
+                    order.getSessionKind(), order.getSessionId(), order.getCoinPair(), "OPEN");
+        }
+
+        List<PositionEntity> candidates =
+                positionRepository.findAllByCoinPairAndStatus(order.getCoinPair(), "OPEN");
+        if (candidates.size() > 1) {
+            log.warn("포지션 역추적 모호 — {} OPEN 포지션 {}건, positionId 없는 주문이라 매칭 포기 (orderId={})",
+                    order.getCoinPair(), candidates.size(), order.getId());
+            return Optional.empty();
+        }
+        return candidates.stream().findFirst();
+    }
+
     private void handleBuyFill(OrderEntity order) {
         BigDecimal filledQty = order.getFilledQuantity();
         if (filledQty == null || filledQty.compareTo(BigDecimal.ZERO) <= 0) {
@@ -491,9 +521,7 @@ public class OrderExecutionEngine {
         }
 
         // positionId가 있으면 해당 포지션을 직접 조회 (세션 데이터 혼재 방지)
-        Optional<PositionEntity> existingPos = order.getPositionId() != null
-                ? positionRepository.findById(order.getPositionId())
-                : positionRepository.findByCoinPairAndStatus(order.getCoinPair(), "OPEN");
+        Optional<PositionEntity> existingPos = findPositionForOrder(order);
 
         if (existingPos.isPresent()) {
             // 기존 포지션에 체결가/수량 반영 (평균 단가 갱신)
@@ -583,9 +611,7 @@ public class OrderExecutionEngine {
         }
 
         // positionId가 있으면 해당 포지션을 직접 조회 (세션 데이터 혼재 방지)
-        Optional<PositionEntity> openPos = order.getPositionId() != null
-                ? positionRepository.findById(order.getPositionId())
-                : positionRepository.findByCoinPairAndStatus(order.getCoinPair(), "OPEN");
+        Optional<PositionEntity> openPos = findPositionForOrder(order);
 
         if (openPos.isEmpty()) {
             log.warn("매도 체결이지만 열린 포지션 없음: {} (orderId={})", order.getCoinPair(), order.getId());

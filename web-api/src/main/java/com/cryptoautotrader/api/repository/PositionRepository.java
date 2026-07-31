@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,8 +22,19 @@ public interface PositionRepository extends JpaRepository<PositionEntity, Long> 
     /** 특정 세션 종류(LIVE/DYNAMIC) + 상태의 포지션 조회 — reconcile 로직의 세션 테이블 혼선 방지용 */
     List<PositionEntity> findBySessionKindAndStatus(String sessionKind, String status);
 
-    /** 특정 코인+상태의 포지션 조회 */
+    /**
+     * 특정 코인+상태의 포지션 조회.
+     *
+     * <p>⚠️ 여러 세션(실전 N개 + 동적 N개)이 <b>같은 코인을 동시에 보유</b>할 수 있으므로 이 조회는
+     * 다건을 반환할 수 있다. Optional 시그니처는 그 경우 {@code NonUniqueResultException} 을 던지거나
+     * (LIMIT 적용 시) 다른 세션의 포지션을 잘못 채택한다. 신규 코드는
+     * {@link #findAllByCoinPairAndStatus} 또는 sessionKind/sessionId 를 포함한 조회를 사용할 것.
+     */
+    @Deprecated
     Optional<PositionEntity> findByCoinPairAndStatus(String coinPair, String status);
+
+    /** 특정 코인+상태의 포지션 전체 조회 — 세션 간 동일 코인 동시 보유를 정상 처리 */
+    List<PositionEntity> findAllByCoinPairAndStatus(String coinPair, String status);
 
     /** 전체 포지션 최신순 조회 */
     List<PositionEntity> findAllByOrderByOpenedAtDesc();
@@ -39,6 +51,24 @@ public interface PositionRepository extends JpaRepository<PositionEntity, Long> 
 
     /** 실전매매 세션에 연결된 포지션 수 카운트 (session_id가 있는 것만) */
     long countBySessionIdIsNotNullAndStatus(String status);
+
+    /**
+     * 세션 종류별 포지션 수 카운트 — 실전매매(LIVE) 요약에 동적 세션(DYNAMIC) 포지션이
+     * 섞여 집계되는 것을 막는다. session_id가 없는 수동/전역 포지션은 제외.
+     */
+    long countBySessionKindAndSessionIdIsNotNullAndStatus(String sessionKind, String status);
+
+    /** 세션 종류 + ID의 전체 포지션 최신순 조회 — 동적 세션 보유 이력 화면용 */
+    List<PositionEntity> findBySessionKindAndSessionIdOrderByOpenedAtDesc(String sessionKind, Long sessionId);
+
+    /**
+     * 세션 종류별 실현+미실현 손익 합계 — 손익 요약이 세션 종류를 넘나들지 않도록 DB에서 집계.
+     * 실현손익은 전 기간 누적, 미실현은 OPEN 포지션만 반영한다.
+     */
+    @Query("SELECT COALESCE(SUM(p.realizedPnl), 0) + " +
+           "       COALESCE(SUM(CASE WHEN p.status = 'OPEN' THEN p.unrealizedPnl ELSE 0 END), 0) " +
+           "FROM PositionEntity p WHERE p.sessionKind = :sessionKind")
+    BigDecimal sumTotalPnlBySessionKind(@Param("sessionKind") String sessionKind);
 
     /** 특정 세션의 특정 상태 포지션 조회 */
     List<PositionEntity> findBySessionIdAndStatus(Long sessionId, String status);

@@ -714,7 +714,7 @@ public class LiveTradingService {
     @Transactional(readOnly = true)
     public Page<OrderEntity> getSessionOrders(Long sessionId, Pageable pageable) {
         getSessionOrThrow(sessionId); // 존재 확인
-        return orderRepository.findBySessionIdOrderByCreatedAtDesc(sessionId, pageable);
+        return orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc("LIVE", sessionId, pageable);
     }
 
     // -- 전체 상태 요약 -------------------------------------------
@@ -725,9 +725,13 @@ public class LiveTradingService {
     public TradingStatusResponse getGlobalStatus() {
         long runningCount = sessionRepository.countByStatus("RUNNING");
         long totalCount = sessionRepository.count();
-        int openPositionCount = (int) positionRepository.countBySessionIdIsNotNullAndStatus("OPEN");
-        int activeOrderCount = (int) orderRepository.countBySessionIdIsNotNullAndStateIn(ACTIVE_ORDER_STATES);
-        BigDecimal totalPnl = positionService.getTotalPnl();
+        // position/"order" 는 실전매매와 동적 멀티코인이 공용으로 쓰는 테이블이라 session_kind 로
+        // 한정하지 않으면 실전매매 요약에 동적 세션의 보유/주문/손익이 섞여 집계된다.
+        int openPositionCount = (int) positionRepository
+                .countBySessionKindAndSessionIdIsNotNullAndStatus("LIVE", "OPEN");
+        int activeOrderCount = (int) orderRepository
+                .countBySessionKindAndSessionIdIsNotNullAndStateIn("LIVE", ACTIVE_ORDER_STATES);
+        BigDecimal totalPnl = positionService.getTotalPnl("LIVE");
         String exchangeHealth = exchangeHealthMonitor != null
                 ? exchangeHealthMonitor.getStatus() : "UNKNOWN";
 
@@ -1403,7 +1407,7 @@ public class LiveTradingService {
     @Transactional(readOnly = true)
     public List<OrderEntity> getAllSessionOrders(Long sessionId) {
         getSessionOrThrow(sessionId);
-        return orderRepository.findBySessionIdOrderByCreatedAtDesc(sessionId, Pageable.unpaged()).getContent();
+        return orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc("LIVE", sessionId);
     }
 
     // -- 성과 요약 -----------------------------------------------

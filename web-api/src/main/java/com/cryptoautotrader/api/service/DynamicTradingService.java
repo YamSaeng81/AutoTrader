@@ -20,6 +20,7 @@ import com.cryptoautotrader.core.selector.RangeRegimeGate;
 import com.cryptoautotrader.exchange.upbit.UpbitCandleCollector;
 import com.cryptoautotrader.exchange.upbit.UpbitRestClient;
 import com.cryptoautotrader.strategy.Candle;
+import com.cryptoautotrader.strategy.IndicatorUtils;
 import com.cryptoautotrader.strategy.Strategy;
 import com.cryptoautotrader.strategy.StrategyRegistry;
 import com.cryptoautotrader.strategy.StrategySignal;
@@ -72,6 +73,27 @@ public class DynamicTradingService {
     private static final int CANDLE_LOOKBACK = 500;
     private static final List<String> ACTIVE_ORDER_STATES = List.of("PENDING", "SUBMITTED", "PARTIAL_FILLED");
     private static final long MIN_HOLD_MINUTES = 180;
+
+    // ── 손절폭 (2026-07-31 전면 개편) ──────────────────────────────────────────
+    //
+    // 개편 전: 세션 고정 stopLossPct(5%) 또는 전략 제안값을 그대로 사용 + 블랙스완 발동 시
+    //   현재가 기준 1×ATR로 **조임**. 07-29~31 실측 결과 **청산 6건이 전부 SL 강제청산**
+    //   (전략 SELL 청산 0건)이었고, 실현률이 SL 폭보다 정확히 수수료(0.07~0.24%p)만큼만
+    //   나빴다. 즉 손실은 전략 판단이 아니라 **청산 규칙**이 만들었다.
+    //
+    // 결정적 증거: 같은 신호들의 사후 4h 수익률은 평균 -0.17%(KAITO는 +1.23%)로 거의 중립.
+    //   손절만 안 했으면 본전권이었다 = 교과서적 휩쏘. 워치리스트는 ATR 하한을 통과한
+    //   고변동 알트인데 SL 3~5%는 1 ATR 에도 못 미쳐 정상 등락에 확실히 걸린다.
+    //
+    // 개편 후: SL 폭 = clamp(ATR(14)/가격 × SL_ATR_MULTIPLIER, 세션 stopLossPct, MAX).
+    //   변동성이 큰 종목일수록 SL이 **넓어진다**. 세션 설정값은 이제 상한이 아니라 **하한**이다.
+    private static final int SL_ATR_PERIOD = 14;
+    /** ATR 배수 — 2 ATR 밖에 SL을 두어 정상 등락(1 ATR 내외)에 털리지 않게 한다. */
+    private static final BigDecimal SL_ATR_MULTIPLIER = new BigDecimal("2.0");
+    /** SL 폭 상한 % — 초저유동 종목의 비정상 ATR로 손실이 무한정 커지는 것을 막는 안전판. */
+    private static final BigDecimal SL_PCT_MAX = new BigDecimal("12.0");
+    /** 익절 = 손절폭 × 이 배수 (손익비 2:1 유지) */
+    private static final BigDecimal TP_RR_MULTIPLIER = new BigDecimal("2.0");
     private static final BigDecimal MIN_PNL_PCT_FOR_SELL = new BigDecimal("0.30");
     private static final BigDecimal LOSS_ESCAPE_THRESHOLD = new BigDecimal("-1.00");
     private static final BigDecimal FEE_RATE = new BigDecimal("0.0005");
@@ -231,6 +253,7 @@ public class DynamicTradingService {
                 .minAtrPct(req.getMinAtrPct() != null ? req.getMinAtrPct() : new BigDecimal("0.5"))
                 .maxSpreadPct(req.getMaxSpreadPct() != null ? req.getMaxSpreadPct() : new BigDecimal("0.1"))
                 .watchlistRefreshMin(req.getWatchlistRefreshMin() != null ? req.getWatchlistRefreshMin() : 60)
+                .maxHoldHours(req.getMaxHoldHours() != null ? req.getMaxHoldHours() : 24)
                 .build();
 
         session = dynamicSessionRepo.save(session);
@@ -669,23 +692,21 @@ public class DynamicTradingService {
                 .divide(pos.getAvgPrice(), 6, RoundingMode.HALF_UP)
                 .multiply(BigDecimal.valueOf(100));
 
-        // BLACK_SWAN_GUARD 발동 시 보유 포지션 SL 강화 — 단방향 ratchet(더 타이트한 방향으로만
-        // 조임). 신규 진입 차단(SCANNING)만으로는 이미 보유 중인 포지션을 방어하지 못하므로 함께 적용.
+        // BLACK_SWAN_GUARD — 발동 시 알림만 보내고 **SL은 건드리지 않는다**.
+        //
+        // 2026-07-31 개편: 이전에는 발동 시 현재가 기준 1×ATR로 SL을 단방향 조임(ratchet)했다.
+        // 이는 방향이 정반대인 구조적 오류였다 — 변동성이 폭증할 때 SL을 **좁히면** 정상 등락에
+        // 확실히 걸린다. 실측으로 확인된 피해: pos 2368(KAITO, 조임 후 SL -3.54%)과
+        // 2375(EDGE, -2.96%)가 둘 다 강제청산됐고, KAITO는 4시간 뒤 **+1.23%**로 회복했다.
+        // 즉 조임이 없었다면 이익이었을 포지션을 조임이 손실로 확정시켰다.
+        //
+        // 블랙스완 방어는 신규 진입 차단(SCANNING 게이트)이 담당하며 그쪽은 실제로 유효하다
+        // (차단된 신호의 사후 24h -7.04% — 차단이 옳았음). 보유 포지션의 변동성 방어는
+        // 이제 진입 시점의 ATR 기반 SL(2 ATR)이 담당한다.
         BlackSwanGuard.Result blackSwanGuard = BlackSwanGuard.check(candles);
         if (blackSwanGuard.triggered()) {
-            BigDecimal tightenedSl = currentPrice.multiply(
-                    BigDecimal.ONE.subtract(BlackSwanGuard.tightenedSlMargin(candles)))
-                    .setScale(8, RoundingMode.HALF_DOWN);
-            BigDecimal existingSl = pos.getStopLossPrice();
-            if (existingSl == null || tightenedSl.compareTo(existingSl) > 0) {
-                pos.setStopLossPrice(tightenedSl);
-                positionRepository.save(pos);
-                log.warn("[Dynamic] BLACK_SWAN_GUARD SL 강화 (id={}, {}): SL {} → {} ({})",
-                        sid, coinPair, existingSl, tightenedSl, blackSwanGuard.reason());
-                telegramService.sendCustomNotification(String.format(
-                        "[BlackSwanGuard] SL 강화 — 동적세션#%d %s: SL %s → %s (%s)",
-                        sid, coinPair, existingSl, tightenedSl, blackSwanGuard.reason()));
-            }
+            log.warn("[Dynamic] BLACK_SWAN_GUARD 발동 (id={}, {}): {} — SL 유지 {} (조임 없음)",
+                    sid, coinPair, blackSwanGuard.reason(), pos.getStopLossPrice());
         }
 
         // 익절
@@ -707,6 +728,23 @@ public class DynamicTradingService {
             telegramService.notifyStopLoss(coinPair, pnlPct.doubleValue(), sid);
             executeSell(session, pos, currentPrice, "손절 — pnl " + pnlPct + "%");
             return;
+        }
+
+        // 시간 초과 청산 (time stop) — SL/TP 는 가격 기반이라 저변동 종목에서는 영원히 도달하지
+        // 않는다. 2026-07-31 세션 38 KRW-RLUSD(스테이블코인)가 42시간 고착돼 자본이 잠긴 사례.
+        // 전략 SELL 경로도 "수익 0.3% 이상" 조건 때문에 구제책이 되지 못한다.
+        // 손익과 무관하게 청산하며, 자본 회전을 되찾는 것이 목적이다.
+        Integer maxHoldHours = session.getMaxHoldHours();
+        if (maxHoldHours != null && maxHoldHours > 0 && pos.getOpenedAt() != null) {
+            long heldHours = Duration.between(pos.getOpenedAt(), Instant.now()).toHours();
+            if (heldHours >= maxHoldHours) {
+                log.warn("[Dynamic] 시간 초과 청산: {} 보유 {}h ≥ {}h pnl={}% (id={})",
+                        coinPair, heldHours, maxHoldHours, pnlPct, sid);
+                executeSell(session, pos, currentPrice, String.format(
+                        "시간 초과 청산 — 보유 %d시간 ≥ %d시간 (pnl %s%%)",
+                        heldHours, maxHoldHours, pnlPct.setScale(2, RoundingMode.HALF_UP)));
+                return;
+            }
         }
 
         // 닫힌 캔들 게이팅 후 전략 SELL 평가
@@ -745,6 +783,36 @@ public class DynamicTradingService {
 
     // ── 내부: 매수 실행 ────────────────────────────────────────────
 
+    /**
+     * 손절폭(%) 결정 — {@code clamp(ATR(14)/가격 × 배수, 세션 stopLossPct, SL_PCT_MAX)}.
+     *
+     * <p>세션의 {@code stopLossPct} 는 이제 <b>하한</b>이다. 변동성이 큰 종목일수록 SL이 넓어져,
+     * 정상 등락(1 ATR 내외)에 강제청산되는 휩쏘를 막는다. ATR 계산이 불가능하면(캔들 부족 등)
+     * 기존 동작 그대로 세션 설정값으로 폴백한다.</p>
+     */
+    static BigDecimal resolveStopLossPct(BigDecimal floorPct,
+                                         List<Candle> candles, BigDecimal currentPrice) {
+        if (floorPct == null) {
+            floorPct = BigDecimal.ZERO;
+        }
+        if (candles == null || currentPrice == null
+                || currentPrice.compareTo(BigDecimal.ZERO) <= 0) {
+            return floorPct;
+        }
+        try {
+            BigDecimal atr = IndicatorUtils.atr(candles, SL_ATR_PERIOD);
+            if (atr == null || atr.compareTo(BigDecimal.ZERO) <= 0) {
+                return floorPct;
+            }
+            BigDecimal atrPct = atr.divide(currentPrice, 8, RoundingMode.HALF_UP)
+                    .multiply(BigDecimal.valueOf(100));
+            return atrPct.multiply(SL_ATR_MULTIPLIER).max(floorPct).min(SL_PCT_MAX);
+        } catch (Exception e) {
+            // ATR 계산 데이터 부족 등 — 진입을 막을 사유는 아니므로 세션 설정값으로 진행
+            return floorPct;
+        }
+    }
+
     /** @return {@code null}이면 매수 주문 제출 성공, 아니면 차단 사유 (신호품질 로그용) */
     @Transactional
     public String executeBuy(DynamicSessionEntity session, String coinPair,
@@ -774,18 +842,30 @@ public class DynamicTradingService {
                 SESSION_KIND, sid, coinPair, "BUY", ACTIVE_ORDER_STATES);
         if (hasPendingBuy) return "미체결 BUY 주문 존재 — 중복 매수 차단";
 
-        // SL / TP 계산 (전략 제안값 우선, 없으면 stopLossPct × 2배 기본)
-        BigDecimal slPct = session.getStopLossPct();
-        BigDecimal stopLossPrice = signal.getSuggestedStopLoss() != null
-                ? signal.getSuggestedStopLoss()
-                : currentPrice.multiply(BigDecimal.ONE.subtract(
+        // SL / TP 계산 — ATR 기반 (2026-07-31 개편, 상단 상수 주석 참조)
+        BigDecimal slPct = resolveStopLossPct(session.getStopLossPct(), evalCandles, currentPrice);
+        BigDecimal atrStopLossPrice = currentPrice.multiply(BigDecimal.ONE.subtract(
                         slPct.divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP)))
-                        .setScale(8, RoundingMode.HALF_DOWN);
+                .setScale(8, RoundingMode.HALF_DOWN);
+
+        // 전략 제안 SL은 존중하되 **더 넓은 쪽을 채택**한다. 제안값이 ATR 기준보다 타이트하면
+        // 그대로 휩쏘로 이어지므로(개편 전 실패 패턴), 전략의 의도는 방향에만 반영한다.
+        BigDecimal stopLossPrice = signal.getSuggestedStopLoss() != null
+                ? signal.getSuggestedStopLoss().min(atrStopLossPrice)
+                : atrStopLossPrice;
+
+        // TP는 실제 채택된 SL 폭 기준으로 재산출해 손익비 2:1을 유지한다.
+        // (SL만 넓히고 TP를 그대로 두면 손익비가 무너진다)
+        BigDecimal effectiveSlPct = BigDecimal.ONE
+                .subtract(stopLossPrice.divide(currentPrice, 8, RoundingMode.HALF_UP))
+                .multiply(BigDecimal.valueOf(100));
+        BigDecimal atrTakeProfitPrice = currentPrice.multiply(BigDecimal.ONE.add(
+                        effectiveSlPct.multiply(TP_RR_MULTIPLIER)
+                                .divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP)))
+                .setScale(8, RoundingMode.HALF_UP);
         BigDecimal takeProfitPrice = signal.getSuggestedTakeProfit() != null
-                ? signal.getSuggestedTakeProfit()
-                : currentPrice.multiply(BigDecimal.ONE.add(
-                        slPct.multiply(new BigDecimal("2")).divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP)))
-                        .setScale(8, RoundingMode.HALF_UP);
+                ? signal.getSuggestedTakeProfit().max(atrTakeProfitPrice)
+                : atrTakeProfitPrice;
 
         PositionEntity pos = PositionEntity.builder()
                 .coinPair(coinPair)

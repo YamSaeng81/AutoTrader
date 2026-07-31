@@ -45,6 +45,13 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
     /** 특정 세션의 주문 내역 (최신순, 페이징) */
     Page<OrderEntity> findBySessionIdOrderByCreatedAtDesc(Long sessionId, Pageable pageable);
 
+    /** 세션 종류 + ID의 주문 내역 (최신순, 페이징) — D-2 sessionId 충돌 방지 */
+    Page<OrderEntity> findBySessionKindAndSessionIdOrderByCreatedAtDesc(
+            String sessionKind, Long sessionId, Pageable pageable);
+
+    /** 세션 종류 + ID의 전체 주문 내역 (최신순) — D-2 sessionId 충돌 방지 */
+    List<OrderEntity> findBySessionKindAndSessionIdOrderByCreatedAtDesc(String sessionKind, Long sessionId);
+
     /** 날짜 범위 주문 조회 (최신순, 페이징) */
     Page<OrderEntity> findByCreatedAtBetweenOrderByCreatedAtDesc(Instant from, Instant to, Pageable pageable);
 
@@ -79,4 +86,10 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
 
     /** 실전매매 세션에 연결된 활성 주문 수 카운트 (session_id가 있는 것만) */
     long countBySessionIdIsNotNullAndStateIn(List<String> states);
+
+    /**
+     * 세션 종류별 활성 주문 수 카운트 — 실전매매(LIVE) 요약에 동적 세션(DYNAMIC) 주문이
+     * 섞여 집계되는 것을 막는다. session_id가 없는 수동/전역 주문은 제외.
+     */
+    long countBySessionKindAndSessionIdIsNotNullAndStateIn(String sessionKind, List<String> states);
 }

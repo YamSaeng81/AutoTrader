@@ -25,11 +25,25 @@ public class PositionService {
     private final OrderExecutionEngine orderExecutionEngine;
 
     /**
-     * 열린 포지션 목록 조회
+     * 열린 포지션 목록 조회 (세션 종류 무관 — 전역).
+     *
+     * <p>실전매매/동적 세션 화면처럼 한쪽 종류만 보여야 하는 곳에서는
+     * {@link #getOpenPositions(String)} 을 사용할 것.</p>
      */
     @Transactional(readOnly = true)
     public List<PositionEntity> getOpenPositions() {
         return positionRepository.findByStatus("OPEN");
+    }
+
+    /**
+     * 세션 종류(LIVE/DYNAMIC)별 열린 포지션 목록 조회.
+     *
+     * <p>position 테이블은 실전매매와 동적 멀티코인이 공용으로 쓰고 {@code session_kind} 로만
+     * 구분되므로, 필터 없이 조회하면 실전매매 화면에 동적 세션 포지션이 섞여 보인다.</p>
+     */
+    @Transactional(readOnly = true)
+    public List<PositionEntity> getOpenPositions(String sessionKind) {
+        return positionRepository.findBySessionKindAndStatus(sessionKind, "OPEN");
     }
 
     /**
@@ -55,12 +69,14 @@ public class PositionService {
      */
     @Transactional
     public void updateUnrealizedPnl(String coinPair, BigDecimal currentPrice) {
-        positionRepository.findByCoinPairAndStatus(coinPair, "OPEN").ifPresent(pos -> {
+        // 여러 세션이 같은 코인을 동시에 보유할 수 있으므로 전건을 각자 갱신한다.
+        // (단건 조회로 두면 다른 세션 포지션 하나만 갱신되거나 NonUniqueResult로 터진다)
+        for (PositionEntity pos : positionRepository.findAllByCoinPairAndStatus(coinPair, "OPEN")) {
             BigDecimal unrealized = currentPrice.subtract(pos.getAvgPrice()).multiply(pos.getSize());
             pos.setUnrealizedPnl(unrealized);
             positionRepository.save(pos);
-            log.debug("미실현 손익 업데이트: {} unrealizedPnl={}", coinPair, unrealized);
-        });
+            log.debug("미실현 손익 업데이트: {} posId={} unrealizedPnl={}", coinPair, pos.getId(), unrealized);
+        }
     }
 
     /**
@@ -86,7 +102,19 @@ public class PositionService {
     }
 
     /**
-     * 열린 포지션의 전체 실현+미실현 손익 합산
+     * 세션 종류(LIVE/DYNAMIC)별 실현+미실현 손익 합산.
+     *
+     * <p>{@link #getTotalPnl()} 은 두 종류를 합산하므로 실전매매 요약에 동적 세션 손익이
+     * 섞여 들어간다. 종류별 화면은 반드시 이 메서드를 쓸 것.</p>
+     */
+    @Transactional(readOnly = true)
+    public BigDecimal getTotalPnl(String sessionKind) {
+        BigDecimal sum = positionRepository.sumTotalPnlBySessionKind(sessionKind);
+        return sum != null ? sum : BigDecimal.ZERO;
+    }
+
+    /**
+     * 열린 포지션의 전체 실현+미실현 손익 합산 (세션 종류 무관 — 전역)
      */
     @Transactional(readOnly = true)
     public BigDecimal getTotalPnl() {

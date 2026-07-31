@@ -61,6 +61,9 @@ class SessionKindIsolationTest extends IntegrationTestBase {
     @Autowired
     private DbResetService dbResetService;
 
+    @Autowired
+    private PositionService positionService;
+
     @MockBean
     private TradeLogRepository tradeLogRepository;
 
@@ -171,6 +174,72 @@ class SessionKindIsolationTest extends IntegrationTestBase {
                 .as("DYNAMIC 포지션은 보존된다")
                 .extracting(PositionEntity::getCoinPair)
                 .containsExactly("KRW-ETH");
+    }
+
+    @Test
+    @DisplayName("실전매매 전역 요약은 DYNAMIC 포지션/주문/손익을 집계하지 않는다")
+    void globalStatus_excludesDynamicSessionData() {
+        // 실전매매 세션은 코인 보유 0, 동적 세션만 포지션을 들고 있는 상황.
+        // 필터가 없으면 실전매매 화면의 "열린 포지션"에 동적 세션 보유가 새어 들어온다.
+        positionRepository.save(PositionEntity.builder()
+                .coinPair("KRW-RLUSD").side("BUY")
+                .entryPrice(new BigDecimal("1428")).avgPrice(new BigDecimal("1428"))
+                .size(new BigDecimal("5.60224089")).investedKrw(new BigDecimal("8000"))
+                .unrealizedPnl(new BigDecimal("500"))
+                .status("OPEN").sessionId(38L).sessionKind("DYNAMIC")
+                .build());
+
+        assertThat(positionRepository
+                .countBySessionKindAndSessionIdIsNotNullAndStatus("LIVE", "OPEN"))
+                .as("실전매매 보유 0건")
+                .isZero();
+        assertThat(positionRepository
+                .countBySessionKindAndSessionIdIsNotNullAndStatus("DYNAMIC", "OPEN"))
+                .as("동적 세션 보유 1건")
+                .isEqualTo(1);
+
+        // 필터 없는 구 카운트는 여전히 섞여 나온다 = 이 테스트가 잠그는 대상
+        assertThat(positionRepository.countBySessionIdIsNotNullAndStatus("OPEN")).isEqualTo(1);
+
+        assertThat(liveTradingService.getGlobalStatus().getOpenPositions())
+                .as("실전매매 요약에 동적 세션 포지션이 섞이면 안 된다")
+                .isZero();
+        assertThat(liveTradingService.getGlobalStatus().getTotalPnl())
+                .as("실전매매 손익에 동적 세션 미실현 손익이 섞이면 안 된다")
+                .isEqualByComparingTo(BigDecimal.ZERO);
+    }
+
+    @Test
+    @DisplayName("여러 세션이 같은 코인을 보유해도 미실현 손익은 각자 갱신된다")
+    void updateUnrealizedPnl_handlesSameCoinAcrossSessions() {
+        // 실전 세션과 동적 세션이 동시에 KRW-BTC를 보유. 단건(Optional) 조회로는
+        // NonUniqueResult 이거나 한쪽만 갱신돼 손익이 섞여 보인다.
+        PositionEntity live = positionRepository.save(PositionEntity.builder()
+                .coinPair("KRW-BTC").side("BUY")
+                .entryPrice(new BigDecimal("100000000")).avgPrice(new BigDecimal("100000000"))
+                .size(new BigDecimal("0.001")).investedKrw(new BigDecimal("100000"))
+                .status("OPEN").sessionId(192L).sessionKind("LIVE")
+                .build());
+        PositionEntity dyn = positionRepository.save(PositionEntity.builder()
+                .coinPair("KRW-BTC").side("BUY")
+                .entryPrice(new BigDecimal("90000000")).avgPrice(new BigDecimal("90000000"))
+                .size(new BigDecimal("0.002")).investedKrw(new BigDecimal("180000"))
+                .status("OPEN").sessionId(33L).sessionKind("DYNAMIC")
+                .build());
+
+        assertThat(positionRepository.findAllByCoinPairAndStatus("KRW-BTC", "OPEN")).hasSize(2);
+
+        positionService.updateUnrealizedPnl("KRW-BTC", new BigDecimal("110000000"));
+
+        // 각 포지션이 자기 평균단가 기준으로 갱신된다 (서로의 값을 덮어쓰지 않음)
+        assertThat(positionRepository.findById(live.getId()).orElseThrow().getUnrealizedPnl())
+                .isEqualByComparingTo(new BigDecimal("10000"));   // (1.1억-1.0억) × 0.001
+        assertThat(positionRepository.findById(dyn.getId()).orElseThrow().getUnrealizedPnl())
+                .isEqualByComparingTo(new BigDecimal("40000"));   // (1.1억-0.9억) × 0.002
+
+        // 종류별 손익 합계도 서로 섞이지 않는다
+        assertThat(positionService.getTotalPnl("LIVE")).isEqualByComparingTo(new BigDecimal("10000"));
+        assertThat(positionService.getTotalPnl("DYNAMIC")).isEqualByComparingTo(new BigDecimal("40000"));
     }
 
     @Test

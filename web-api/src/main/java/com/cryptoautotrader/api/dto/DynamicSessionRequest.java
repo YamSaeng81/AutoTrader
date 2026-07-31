@@ -49,4 +49,7 @@ public class DynamicSessionRequest {
 
     /** 워치리스트 재필터링 주기 (분, 기본 60) */
     private Integer watchlistRefreshMin;
+
+    /** 최대 보유시간 (시, 기본 24) — 초과 시 손익 무관 시장가 청산. 0 이하면 비활성 */
+    private Integer maxHoldHours;
 }

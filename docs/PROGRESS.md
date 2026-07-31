@@ -3,7 +3,114 @@
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝나면 완료 내용을 [`docs/CHANGELOG.md`](CHANGELOG.md)에 추가하고, 이 파일의 해당 항목은 삭제한다.
 > **변경 이력**: [`docs/CHANGELOG.md`](CHANGELOG.md)
-> **마지막 갱신**: 2026-07-29 (07-28 완화 검증 완료 — 워치리스트·BUY·V61 FK 전부 회복 확정. **신규 🔴 P0: DYNAMIC 주문 INSERT 전량 롤백으로 실체결 여전히 0건** + 세션 35 잔고 8,000원 누수)
+> **마지막 갱신**: 2026-07-31 (**세션 격리 누수 3건 수정** + **운영 DB 3일치 분석**(매도 경로·시퀀스 갭·LIVE 회귀 전부 성공 = 배관 완성, 그러나 **청산 6건 전부 SL 강제청산**) + **청산 규칙 전면 개편**(ATR 기반 SL·블랙스완 조임 제거·time stop V62). 세션 33 잔고 복구 완료. **전부 미배포 — 재빌드 필요.** 남은 것: 미실현 손익 미배선)
+
+---
+
+## 🆕 2026-07-31 세션 종류(LIVE/DYNAMIC) 격리 누수 수정 + 동적 세션 상세 보강
+
+> 사용자 관찰: ①실전매매 세션 3개 전부 코인 보유 0인데 화면엔 포지션 보유가 뜬다 ②동적 멀티코인 수익률이 다른 세션 것과 섞여 보인다 ③동적 세션 상세에 보유 이력이 없다.
+
+- **[근본 원인 = `position`/`"order"` 공용 테이블에 `session_kind` 필터 누락]** — 두 테이블은 실전매매와 동적 멀티코인이 공용으로 쓰고 `session_kind` 로만 구분되는데(V50~V52), 실전매매 전용 조회 경로 여러 곳이 필터 없이 집계하고 있었다. V61에서 FK를 걷어낸 뒤 DYNAMIC 행이 실제로 쌓이기 시작하면서(07-29 첫 실체결) 표면화됐다 — **07-29 이전에는 DYNAMIC 포지션이 0건이라 잠복**.
+- **[x] ① 실전매매 화면 혼입 수정** — [`getGlobalStatus`](../web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java#L725) 의 `openPositions`·`activeOrders`·`totalPnl` 3개 지표가 전부 kind 무필터였다. `countBySessionKindAndSessionIdIsNotNullAndStatus("LIVE", …)` 등으로 교체. 함께 고친 곳: [`GET /api/v1/trading/positions`](../web-api/src/main/java/com/cryptoautotrader/api/controller/TradingController.java#L190)(기본 LIVE, `?sessionKind=ALL` 로 전체 조회 가능 — 메인 대시보드가 이걸 쓴다), `getSessionOrders`·`getAllSessionOrders`(세션 주문 조회도 kind 무필터였음).
+- **[x] ② 동일 코인 다세션 보유 시 손익 오염 수정** — `findByCoinPairAndStatus` 가 **`Optional` 반환**이라, 두 세션이 같은 코인을 동시에 들면 `NonUniqueResultException` 이 터지거나 남의 포지션을 채택했다. `findAllByCoinPairAndStatus`(List) 신설 후:
+  - [`PositionService.updateUnrealizedPnl`](../web-api/src/main/java/com/cryptoautotrader/api/service/PositionService.java#L70) — 전건을 각자 평균단가 기준으로 갱신.
+  - [`OrderExecutionEngine.findPositionForOrder`](../web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java) 신설 — 체결 콜백의 포지션 역추적을 `positionId` → `(session_kind, session_id, coin)` → 코인 단건 순으로 좁힌다. **후보가 2건 이상이면 매칭 포기**(오염보다 미반영이 안전 — 고아 정리 안전망이 처리). 기존 코드는 매수/매도 콜백 양쪽에서 무필터 코인 매칭으로 폴백하고 있었다.
+  - `findByCoinPairAndStatus` 는 `@Deprecated` 로 표시해 신규 사용을 막았다.
+  - **세션별 `returnPct` 자체는 섞이지 않는다**(각 세션 자기 컬럼 기반). 다만 `total_asset_krw` 는 매수 시 취득원가로만 갱신되고 **보유 중 시세 변동을 반영하지 않아**, 포지션을 들고 있는 동안 미실현손익만큼 어긋난다 → ③에서 분해 표시로 해소.
+- **[x] ③ 동적 세션 상세 보강** — 신규 API [`GET /api/v1/dynamic-sessions/{id}/positions`](../web-api/src/main/java/com/cryptoautotrader/api/controller/DynamicSessionController.java): 세션이 거쳐온 **전 포지션을 최신순**으로, 각 건에 **매수/매도 사유**(주문 `signal_reason` — 체결건 우선), 실현/미실현 손익, 수익률, 보유시간, 레짐을 실어 반환(주문은 `findByPositionIdIn` 으로 일괄 조회, N+1 없음). 세션 상세(`GET /{id}`)에는 **손익 분해**(실현/미실현/합계/청산건수/승률)를 추가 — 위 `returnPct` 와 대조할 근거.
+  - UI [동적 세션 상세](../crypto-trader-frontend/src/app/trading/dynamic/[id]/page.tsx): `PnlBreakdownPanel`(손익 분해, 표본 10건 미만이면 "통계적 의미 없음" 경고) + `PositionHistoryPanel`(코인별 카드에 매수🟢/매도🔴 사유 2줄) 신설. **`size=0` 인 CLOSED 는 "미체결 정리"로 별도 표기** — 고아 포지션을 성과로 오독하지 않게.
+- **[x] 회귀 테스트** — [SessionKindIsolationTest](../web-api/src/test/java/com/cryptoautotrader/api/service/SessionKindIsolationTest.java) 2건 추가: "실전매매 전역 요약은 DYNAMIC을 집계하지 않는다"(LIVE 보유 0 + DYNAMIC 1건 상황 재현), "여러 세션이 같은 코인을 보유해도 미실현 손익은 각자 갱신된다". **수정을 되돌리면 2건 모두 실패함을 확인**했고, 두 번째는 `NonUniqueResultException` 으로 터져 ②의 원인이 추론이 아니라 실측으로 확증됐다. `:web-api:test` 전체 통과, 프론트 `tsc` 신규 에러 없음.
+- **[ ] 미배포** — 코드 변경만(마이그레이션 없음). 재빌드·배포 필요.
+
+---
+
+## 🆕 2026-07-31 운영 DB 로그 상세 분석 (07-29~31, 3일치) — 배관은 전부 살았고, **이제 전략이 문제**
+
+> 07-29 PROGRESS가 예정한 7단계 확인을 운영 DB 직접 조회로 수행(07-31 08:21 KST). **미검증 구간 3개 전부 성공 확정**, 대신 **승률 0%** 라는 새 국면이 드러남.
+
+### ✅ 성공 확정 (예정 확인 항목)
+
+- **[x] ① 🎯 매도 경로 — 검증 완료 (유일한 미검증 구간이었음)** — DYNAMIC `SELL` **6건 전부 FILLED**(8598·8599·8600·8601·8605·8607). 제출~체결 **0.6~1.1초**. 대응 포지션 전부 `status=CLOSED` + `realized_pnl` 확정 + `closed_at` 일관. **매도 경로를 의도적으로 미변경한 판단이 옳았음이 실측으로 확인됐다.**
+- **[x] ② KRW 복원 정상** — RUNNING 7세션 중 6세션의 잔고 정합성(`available + 보유원가 − total`)이 **±0.004원**(반올림 오차). 2026-07-01 사고 패턴(복원 실패 → 5,000원 미만 영구 정지)은 재발하지 않았다. 예외는 세션 33 1건(아래 🔴).
+- **[x] ③ 시퀀스 갭 0 유지** — `order_id_seq.last_value=8609` = `MAX(id)=8609`, **갭 0**. 중간의 8594는 **LIVE 주문**(세션192 KRW-BTC SELL)이라 내부 갭이 아님. 롤백 소멸이 3일간 유지됨.
+- **[x] ④ LIVE 회귀 없음** — 07-28~30 LIVE 주문 3건 **전부 FILLED**, **FAILED 0건**. (07-28 이전 누적 FAILED 6,705건과 대조 — 오히려 개선)
+- **[x] ⑤ 진입 분포 — 쏠림 없음** — 7세션 중 **6세션이 실제 진입**(32:4건 34:4 36:3 37:3 33:1 35:1 38:1). 특정 세션 독점 없음. 워치리스트도 3~10개로 회복 유지.
+
+### 🔴 [신규 P1] 승률 0% — 청산 6건 **전부 손절**
+
+- 청산 6건 / **승 0건** / 합계 **−2,181.31원** / 건당 평균 **−4.60%** / 평균 보유 **7.6시간**. 손절 사유는 `실시간 손절(WS)` 3건 + `손절` 3건 — **SL 로직 자체는 정확히 작동**했다(−3.0~−5.5%에서 잡음). 문제는 진입이다.
+- **[판정] 07-28 완화(`scan_require_uptrend=false`·`scan_exclude_crashing=false`)는 실패** — 완화 이후 BUY 신호의 사후수익률: **체결 17건 → 4h −0.17% / 24h −3.81%**, 미체결(차단) 28건 → 4h −0.95% / 24h −7.04%.
+  - 읽는 법: 차단된 쪽이 더 나쁘므로 **진입 게이트는 여전히 유효**(방어는 옳게 작동). 그러나 **통과한 것마저 24h −3.81%** = 완화로 유입된 종목군 자체가 하락 종목이다. 07-24~27 노트의 "차단이 옳았다"가 **재확인**됐고, 완화는 손실 매매만 늘렸다.
+
+- **🎯 [원인 재판정] 진짜 범인은 완화가 아니라 SL 폭이다 — 6건 전부 SL 강제청산, 전략 SELL 청산 0건**
+  - 청산 6건의 `stop_loss_price` vs `avg_price` 대비 실현률:
+    | pos | 코인 | SL 폭 | 실현 | 보유 |
+    |---|---|---|---|---|
+    | 2368 | KAITO | **−3.54%** | −3.61% | 15.2h |
+    | 2369/2370 | O | −5.27% | −5.51% | 8.5h |
+    | 2371 | KAITO | −5.05% | −5.14% | 6.6h |
+    | 2374 | RE | −4.61% | −4.71% | 0.8h |
+    | 2375 | EDGE | **−2.96%** | −3.12% | 5.9h |
+  - **실현률이 SL 폭보다 정확히 0.07~0.24%p 나쁠 뿐**(= 수수료). 즉 전략이 손실을 판단해 나간 게 아니라 **전량이 SL 터치로 강제청산**됐다. 전략 신호 SELL 청산은 **0건**.
+  - **[결정적] 사후 4h 수익률은 ~0%** — 전체 평균 −0.17%, **KAITO는 +1.23%**(그런데 세션 32·36 둘 다 손절당함), NEAR +0.78, XRP +1.04, RLUSD +0.35. **손절만 안 했으면 최소 본전권**이었다는 뜻 = 교과서적 **휩쏘(whipsaw)**.
+  - **[구조적 오류] 블랙스완 SL 조임이 방향이 반대다** — KAITO 2368(−3.54%)·EDGE 2375(−2.96%)는 기본 5%가 아니라 **조임이 걸린 값**이다. 변동성이 커질 때 SL을 **좁히면** 정상 등락에 확실히 걸린다(변동성↑ → SL은 **넓혀야** 함). 워치리스트가 ATR 기준을 통과한 고변동 알트인데 SL 3%는 **1 ATR 미만**이다.
+  - **[체결품질 무관]** `execution_drift_log` 슬리피지 평균 **−0.008%** — 무시 가능. 손실은 체결이 아니라 청산 규칙에서 나왔다.
+  - **[결론] 완화 원복은 잘못된 처방** — 원복하면 표본이 07-26~28의 BUY 0건 상태로 되돌아가 아무것도 못 배우고, 진짜 원인인 SL은 손도 못 댄다. 차단된 쪽이 24h −7.04%로 더 나쁘므로 **게이트는 이미 제 일을 하고 있다.** 표본 6건은 승률을 논하기엔 부족하지만, **"6/6 전부 SL 강제청산"은 승률이 아니라 메커니즘의 문제**라 표본이 적어도 판정 가능하다.
+  - **[x] 개편 완료 (07-31) — 아래 "청산 규칙 전면 개편" 섹션 참조.** `scan_*` 완화 다이얼은 **손대지 않았다.**
+
+---
+
+## 🆕 2026-07-31 청산 규칙 전면 개편 — ATR 기반 SL + 블랙스완 조임 제거 + time stop
+
+> 위 분석의 결론("손실을 만든 것은 전략이 아니라 청산 규칙")에 따른 조치. 사용자 승인: "보수적이지 않은 수준으로 진행".
+
+- **[x] ① 손절폭을 ATR 기반으로 전환** — [`DynamicTradingService.resolveStopLossPct`](../web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java) 신설: SL 폭 = `clamp(ATR(14)/가격 × 2.0, 세션 stopLossPct, 12%)`.
+  - **세션 `stopLossPct`(5%)의 의미가 상한 → 하한으로 바뀌었다.** 변동성이 큰 종목일수록 SL이 넓어진다(ATR 4% 종목 → SL 8%). 상한 12%는 초저유동 종목의 비정상 ATR로 손실이 무한정 커지는 것을 막는 안전판.
+  - **TP도 실제 채택된 SL 폭 기준으로 재산출**해 손익비 2:1 유지 — SL만 넓히고 TP를 고정하면 손익비가 무너진다.
+  - 전략 제안 SL/TP(`getSuggestedStopLoss/TakeProfit`)는 **더 넓은 쪽을 채택**한다. 제안값이 ATR 기준보다 타이트하면 그대로 휩쏘로 이어지므로, 전략의 의도는 방향에만 반영.
+  - ATR 계산 불가(캔들 부족 등) 시 세션 설정값으로 폴백 — **진입을 막지 않는다.**
+- **[x] ② 블랙스완 SL 조임 제거 (구조적 오류 교정)** — `processMonitoringTick`의 단방향 ratchet(`tightenedSlMargin` 기반 조임)을 **삭제**하고 경고 로그만 남겼다.
+  - **변동성이 폭증할 때 SL을 좁히는 것은 방향이 정반대다.** 실측 피해: pos 2368(KAITO, 조임 후 SL −3.54%)·2375(EDGE, −2.96%)가 강제청산됐고 **KAITO는 4시간 뒤 +1.23%로 회복**했다. 조임이 없었다면 이익이었을 포지션을 조임이 손실로 확정시켰다.
+  - 블랙스완 방어는 **신규 진입 차단(SCANNING 게이트)이 계속 담당**하며 그쪽은 유효하다(차단 신호 사후 24h −7.04%). 보유 포지션의 변동성 방어는 이제 진입 시점 ATR 기반 SL(2 ATR)이 맡는다.
+  - ⚠️ `BlackSwanGuard.tightenedSlMargin` 자체는 **삭제하지 않았다** — LiveTradingService 등 다른 호출자 영향 범위를 넓히지 않기 위함. 동적 세션에서만 호출을 끊었다.
+- **[x] ③ time stop 도입** — [V62](../web-api/src/main/resources/db/migration/V62__add_max_hold_hours.sql) `dynamic_session.max_hold_hours` (기본 **24시간**). 초과 시 손익과 무관하게 시장가 청산.
+  - 세션 38 KRW-RLUSD 42시간 고착의 해법. SL/TP가 가격 기반이라 저변동 종목에서는 영원히 도달하지 않고, 전략 SELL도 "수익 0.3% 이상" 조건 때문에 구제책이 되지 못한다.
+  - 24시간 근거: 실측 평균 보유 **7.6시간** — 정상 매매는 24시간에 한참 못 미치므로 정상 거래를 자르지 않는다. 하루가 지나도 방향이 안 나오면 자본 회전 기회비용이 더 크다.
+  - 엔티티에 `@Builder.Default = 24` 적용 — `maxHoldHours` 없이 생성하는 경로가 NOT NULL 위반으로 깨지지 않게(테스트 4건이 실제로 이 문제로 실패해 발견).
+- **[x] 회귀 테스트** — [DynamicStopLossWidthTest](../web-api/src/test/java/com/cryptoautotrader/api/service/DynamicStopLossWidthTest.java) 5건(변동성 비례 확대 / 하한 보장 / 상한 클램프 / ATR 계산 불가 폴백 4종 / ATR 2배 불변식). **개편 전 동작(고정 SL)으로 되돌리면 2건 실패함을 확인** 후 복원. `:web-api:test` 전체 **145건 통과**, 프론트 `tsc` 신규 에러 없음.
+  - ⚠️ **정직한 한계**: 블랙스완 조임 제거(②)는 `processMonitoringTick` 내부라 **단위 테스트가 잠그지 못한다**. 테스트가 잠그는 것은 ①의 진입 시점 SL 계산뿐이다. ②는 코드 삭제로만 보장된다.
+- **[x] UI 반영** — 동적 세션 상세: 손절/익절 표시를 **세션 설정값이 아니라 포지션에 박힌 실제 가격에서 역산**(설정값은 이제 하한일 뿐이라 그대로 쓰면 틀린 값이 나온다). 청산 조건 목록에 time stop 추가, 세션 설정에 "최대 보유" 행 추가.
+- **[ ] 미배포** — **V62 마이그레이션 포함**이라 재빌드·배포 필요. ⚠️V58 사고 교훈: **적용 후 V62는 절대 수정 금지, 변경이 필요하면 V63 추가.**
+- **[ ] 배포 후 관찰** — ①SL이 실제로 종목별로 다르게 잡히는지(`SELECT coin_pair, avg_price, stop_loss_price, (stop_loss_price/avg_price-1)*100 FROM position WHERE session_kind='DYNAMIC' AND opened_at > 배포시각`) ②강제청산 비율이 떨어지는지(개편 전 6/6=100%) ③time stop 청산이 실제 발동하는지(세션 38 RLUSD가 첫 대상 — 이미 42h 초과라 배포 즉시 청산될 것) ④SL이 넓어진 만큼 건당 손실은 커지므로 **손실 합계가 아니라 승률·기대값**으로 판정할 것.
+- **[x] 잔여 근본원인 ①(MACD 앵커) 재평가** — HOLD 사유는 **여전히 "점수 미달 buy=0.00" 지배적**(최근 2일: ATR_BREAKOUT 1,656 / MACD 599 / TREND 581건). 실체결이 도는 지금도 병목은 스코어 모델 그대로.
+
+### 🔴 [신규 P1] 세션 33 잔고 8,000원 누수 — 영구 매수 불능 (07-29 세션 35와 동일 패턴 재발)
+
+- 세션 33 `available_krw=**2,000**` / `total_asset_krw=10,000` / **보유 포지션 0건** → 정합성 **−8,000원**.
+- 원인 잔재: 포지션 2363(KRW-ZAMA, `size=0` 고아, 07-29 07:15 진입 → 07:20 CLOSED), **대응 주문 0건** = 07-29에 규명한 "주문 INSERT 롤백" 시대의 마지막 피해. `REQUIRES_NEW` 잔고 갱신이 부모 롤백과 무관하게 커밋된 그 경로.
+- **07-29 PROGRESS의 "RUNNING 7세션 전부 10,000원 균일 확인"은 세션 33에 한해 사실이 아니었다** — 당시 복구 UPDATE는 세션 35만 대상이었다.
+- **결과**: 2,000 × investRatio 0.8 = 1,600원 < 업비트 최소주문 5,000원. **07-29 07:15 이후 세션 33 매수 0건**으로 확증(진입 분포 표에서 33만 `filled=0`).
+- **[x] 복구 완료 (07-31, 운영 DB 1행 UPDATE 커밋)** — `available_krw` 2,000 → **10,000**. 가드로 `AND available_krw=2000 AND status='RUNNING' AND current_position_id IS NULL` 를 걸어 rowcount=1 확인 후에만 커밋. **낙관적 락 `version` 도 +1** 해서 진행 중이던 tick 의 stale 쓰기가 조용히 덮어쓰지 못하게 했다(07-29 복구에는 없던 조치). 복구 후 **RUNNING 7세션 전 정합성 ±0.004원** 확인.
+
+### 🔴 [신규 P1] 세션 38 KRW-RLUSD 42시간 고착 — 스테이블코인에 시간 기반 청산 부재
+
+- 포지션 2367이 07-29 14:16 진입 후 **42.1시간째 OPEN**. `avg_price=1,428` / `SL=1,356.6`(−5%) / `TP=1,570.8`(+10%).
+- **RLUSD는 리플의 USD 스테이블코인** — KRW 환산이라 사실상 원/달러 환율만 따라간다. ±5% 도달에 수개월이 걸리므로 **SL·TP 어느 쪽도 영원히 안 걸린다**. 청산 조건이 가격 기반뿐이고 **최대 보유시간(time stop)이 없어 영구 고착**.
+- **세션 38은 사실상 정지 상태**(진입 1건이 그대로 묶여 자본 8,000원이 잠김). 워치리스트도 3개로 최소.
+- **[ ] 대응 후보** — ①최대 보유시간 초과 시 청산(time stop) 도입 ②워치리스트 구성 시 스테이블코인 계열 배제(ATR 하한이 이미 있으나 `min_atr_pct` 가 세션 설정에 있으니 값 점검 필요).
+
+### 🔴 [확증] 동일 코인 다세션 동시 보유가 운영에서 상시 발생
+
+- 실제 이력: **KRW-KAITO**(세션 32·36), **KRW-O**(34·35 — 07-30 01:45:46 / 01:45:49, **3초 차 동시 진입**), **KRW-UP2**(32·36 — **07-31 07:30 현재 진행 중**).
+- 즉 위 07-31 수정 ②(`findByCoinPairAndStatus` Optional → NonUniqueResult)가 **가정이 아니라 상시 성립하는 조건**이었다. 회귀 테스트에서 되돌렸을 때 실제로 `NonUniqueResultException` 이 재현된 것과 일치.
+
+### 🔴 [신규] 미실현 손익이 **한 번도 갱신되지 않는다** — 화면 수익률이 보유 중 무의미
+
+- OPEN/CLOSING 포지션 **5건 전부 `unrealized_pnl=0`**(전 기간 최댓값도 0).
+- 원인: [`PositionService.updateUnrealizedPnl`](../web-api/src/main/java/com/cryptoautotrader/api/service/PositionService.java#L70) 은 **호출자가 없는 죽은 코드**다(PaperTradingService는 자체 private 구현을 따로 갖고 있음). LIVE·DYNAMIC 어느 쪽도 미실현을 쓰지 않는다.
+- **영향**: `total_asset_krw` 는 실현손익만 반영하므로(세션 32·34·35·36 전부 실현손익과 1원 단위까지 일치 확인) **`returnPct` 는 "확정 손익 기준"으로는 정확**하다. 그러나 보유 중 평가손익이 0이라, 07-31 신설한 손익 분해 패널의 "미실현 손익"도 현재는 항상 0으로 나온다.
+- **[ ] 후속** — 미실현 갱신 스케줄러(또는 WS 틱 훅)에서 `updateUnrealizedPnl` 을 실제로 호출하도록 배선 필요. 배선 전까지 UI의 미실현 값은 "미집계"로 읽어야 한다.
 
 ---
 
@@ -27,8 +134,23 @@
   - 부수 효과: 트랜잭션이 롤백되면 주문이 아예 나가지 않는다 → **포지션 없이 주문만 거래소로 나가는 사고도 함께 차단**된다.
 - **[x] 회귀 테스트** — [OrderSubmitAfterCommitTest](../web-api/src/test/java/com/cryptoautotrader/api/service/OrderSubmitAfterCommitTest.java) 3건(커밋 전 미발행 / 롤백 시 미발행 / 트랜잭션 밖 폴백). **수정을 무력화하면 3건 중 2건이 실패함을 확인**한 뒤 복원 — 실효성 있음. ⚠️ 첫 시도에서 "커밋 전 미발행" 단언이 무력화 상태에서도 통과했다(async가 아직 시작 전이라 0). 트랜잭션 안에서 **1.5초 대기 후 카운트**하도록 고쳐 실효화. `:web-api:test` 전체 통과.
   - H2 스키마엔 운영과 달리 해당 FK가 없어 **락 경합 자체는 재현 불가** — 테스트가 잠그는 것은 근본 원인인 **호출 시점**이다.
-- **[ ] 배포 필요** — 미배포 상태에선 구 동작(즉시 제출)이 계속되어 **동적 실체결은 계속 0건**. 재빌드·재기동 후 `SELECT * FROM "order" WHERE session_kind='DYNAMIC'`에 행이 남는지, position의 `size`가 0에서 실제 수량으로 갱신되는지 확인. **마이그레이션 없음(코드 변경만)** — Flyway 무관.
-- **[ ] 확증 남음 (사용자 결정으로 로그 확인 생략하고 선수정)** — 위 원인은 DB 증거(시퀀스 갭·trade_log 미소비·LIVE 대조)로 좁힌 **추론**이며, 애플리케이션 로그의 실제 예외 메시지는 미확인이다. 배포 후에도 주문이 안 남으면 `docker logs`에서 `거래소 주문 제출 실패` / `order_position_id_fkey` / deadlock·lock timeout 을 확인할 것. (수정 자체는 원인이 무엇이든 해로울 게 없는 방향이라 선적용.)
+- **[x] 커밋·배포 완료** — 커밋 `26425ee`(5파일). 마이그레이션 없음(코드 변경만) — Flyway 무관.
+- **[x] 🎉 운영 검증 완료 — 동적 세션 사상 첫 실체결 성공 (07-29 14:16 KST)**: 배포 후 약 4시간 감시(60초 폴링) 끝에 첫 매수가 통과.
+  - **주문 8592** — 세션 38(COMPOSITE_MEANREV_BB) `KRW-RLUSD` BUY **FILLED**. `PENDING → SUBMITTED → FILLED` 3단계 전이가 `trade_log`(14850~14852)에 온전히 기록. 체결수량 5.60224089, 체결금액 7,999.99999092원. 제출~체결 **2.4초**.
+  - **포지션 2367** — `size`가 **0 → 5.60224089로 갱신**(체결 콜백 정상 동작), `status=OPEN` 유지(고아 정리 대상 아님), avg_price 1,428, SL 1,356.6 / TP 1,570.8 세팅됨.
+  - **세션 38** — `scan_state=POSITION_MONITORING`, `current_coin_pair=KRW-RLUSD`, `current_position_id=2367`, `available_krw` 10,000 → **2,000**(8,000 정상 차감). 상태 전이 완결.
+  - **🎯 시퀀스 갭 4 → 0** (seq=8592, max=8592) — **롤백이 완전히 사라졌다.** 수정 전 "INSERT 후 롤백" 패턴의 소멸을 수치로 확인.
+  - 이로써 07-27 노트의 미검증 항목("`executeBuy`+체결콜백 DYNAMIC 분기는 프로덕션 실행 이력 0")도 **함께 해소**. 코드리뷰가 아니라 실체결로 검증됨.
+- **[x] 원인 진단 사실상 확증** — 로그 없이 DB 증거만으로 좁힌 추론이었으나, **수정 후 갭이 0이 되고 주문이 정상 발행**된 것으로 인과가 확인됐다. `docker logs` 확인은 불필요해짐.
+- **[ ] 후속 관찰 — 📅 2026-07-31(금) 오후 로그 분석 예정 (사용자 합의)**. 07-29~31 3일치 실매매 데이터를 쌓은 뒤 판단한다. 지금은 표본 1건이라 손익·승률을 논할 단계가 아님. **확인 순서**:
+  1. **🎯 매도 경로 (최우선 — 유일한 미검증 구간)** — SELL은 이번 수정에서 **의도적으로 미변경**(기존 커밋된 포지션 참조라 FK 대기 없음)이라 실제 청산이 정상인지 확인이 필요하다. `SELECT * FROM "order" WHERE session_kind='DYNAMIC' AND side='SELL'` → 주문 발행·FILLED 도달 여부. 대응 포지션의 `status=CLOSED`·`realized_pnl` 확정·`closing_at/closed_at` 일관성. 세션 `available_krw`가 **매도 대금만큼 복원**되는지(`ReconcileClosingPositions` 5초 스케줄러 담당 — 복원 실패 시 몇 차례 매매 후 5,000원 미만으로 영구 정지하는 것이 2026-07-01 기록된 과거 사고 패턴).
+  2. **시퀀스 갭 0 유지** — `SELECT last_value, (SELECT MAX(id) FROM "order"), last_value - (SELECT MAX(id) FROM "order") FROM order_id_seq`. **갭이 다시 벌어지면 롤백 재발** = 이번 수정으로 안 잡힌 다른 경로가 있다는 뜻(매도 경로 유력).
+  3. **진입 분포** — 7세션 중 몇 개가 실제 진입했는지, 특정 세션/코인에 쏠리는지. `SELECT session_id, coin_pair, COUNT(*) FROM position WHERE session_kind='DYNAMIC' GROUP BY 1,2`.
+  4. **손익·체결품질** — 청산된 포지션의 `realized_pnl` 합계와 승률(표본 적으면 수치보다 **부호와 이유**를 볼 것). `execution_drift_log`에 DYNAMIC 행이 쌓이는지 + 슬리피지(LIVE BTC는 0.1% 수준 — 소형 알트는 더 클 것이므로 과도하면 최소주문/유동성 기준 재검토).
+  5. **완화 조치 사후평가** — 07-28 완화(`scan_require_uptrend=false`·`scan_exclude_crashing=false`)로 들어온 종목의 4h/24h 사후수익률. 07-24~27에는 "차단이 옳았다"(사후 -3~-7%)가 결론이었으므로, **이번엔 완화가 옳았는지 실측으로 재판정**한다. 나쁘면 되돌리는 게 아니라 유동성/ATR 기준을 조이는 방향 우선(진입 게이트가 이미 3단계 감액으로 리스크를 통제하므로).
+  6. **LIVE 회귀 없음** — LIVE 주문이 계속 정상 FILLED 되는지(매수 경로를 함께 바꿨으므로 반드시 확인).
+  7. **잔여 근본원인 ①(MACD 앵커 신호율 0.6%)** — 실체결이 돌기 시작했으니 이제야 **의미 있는 재평가가 가능**하다. HOLD 사유가 여전히 "점수 미달 buy=0.00" 지배적인지 재집계.
+  - 접속: 운영 DB `yhpapa.iptime.org:8432 / crypto_auto_trader / trader` (비밀번호는 사용자에게 요청). psql 없음 → psycopg2 사용 가능 확인됨(스크립트는 스크래치패드에).
 
 ### 🔴 [신규] 세션 35 잔고 8,000원 누수 — 사실상 매수 불능
 

@@ -72,6 +72,7 @@ export {
 export {
   useDynamicSessions,
   useDynamicSession,
+  useDynamicSessionPositions,
   useCreateDynamicSession,
   useStartDynamicSession,
   useStopDynamicSession,

@@ -5,6 +5,7 @@ export const dynamicKeys = {
   all: ['dynamic'] as const,
   sessions: () => [...dynamicKeys.all, 'sessions'] as const,
   session: (id: number) => [...dynamicKeys.all, 'session', id] as const,
+  sessionPositions: (id: number) => [...dynamicKeys.all, 'session', id, 'positions'] as const,
 };
 
 export function useDynamicSessions() {
@@ -23,6 +24,17 @@ export function useDynamicSession(id: number) {
     enabled: id > 0,
     refetchInterval: 5000,
     select: (res) => (res?.data as Record<string, unknown> | null) ?? null,
+  });
+}
+
+/** 세션이 거쳐온 보유 코인 이력 (매수/매도 사유·실현손익 포함) */
+export function useDynamicSessionPositions(id: number) {
+  return useQuery({
+    queryKey: dynamicKeys.sessionPositions(id),
+    queryFn: () => dynamicSessionApi.positions(id),
+    enabled: id > 0,
+    refetchInterval: 10000,
+    select: (res) => (res?.data as Record<string, unknown>[] | null) ?? [],
   });
 }
 

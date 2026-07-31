@@ -334,6 +334,9 @@ export const dynamicSessionApi = {
         api.get<ApiResponse<Record<string, unknown>[]>>('/api/v1/dynamic-sessions').then(r => r.data),
     get: (id: number) =>
         api.get<ApiResponse<Record<string, unknown>>>(`/api/v1/dynamic-sessions/${id}`).then(r => r.data),
+    /** 보유 코인 이력 (매수/매도 사유·손익 포함, 최신순) */
+    positions: (id: number) =>
+        api.get<ApiResponse<Record<string, unknown>[]>>(`/api/v1/dynamic-sessions/${id}/positions`).then(r => r.data),
     create: (req: {
         strategyType: string; timeframe: string; initialCapital: number;
         stopLossPct?: number; investRatio?: number;

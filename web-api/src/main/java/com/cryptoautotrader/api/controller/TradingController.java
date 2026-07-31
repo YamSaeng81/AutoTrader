@@ -187,10 +187,19 @@ public class TradingController {
 
     // -- 포지션 관리 (전체) ----------------------------------------
 
-    /** 현재 열린 포지션 목록 */
+    /**
+     * 현재 열린 포지션 목록.
+     *
+     * <p>기본은 실전매매(LIVE)만 반환한다 — 이 컨트롤러는 실전매매 화면 전용이고,
+     * 필터가 없으면 동적 멀티코인 세션 포지션이 섞여 보인다.
+     * {@code ?sessionKind=ALL} 로 전체 조회 가능.</p>
+     */
     @GetMapping("/positions")
-    public ApiResponse<List<PositionEntity>> getPositions() {
-        return ApiResponse.ok(positionService.getOpenPositions());
+    public ApiResponse<List<PositionEntity>> getPositions(
+            @RequestParam(defaultValue = "LIVE") String sessionKind) {
+        return ApiResponse.ok("ALL".equalsIgnoreCase(sessionKind)
+                ? positionService.getOpenPositions()
+                : positionService.getOpenPositions(sessionKind.toUpperCase()));
     }
 
     /** 포지션 상세 조회 */

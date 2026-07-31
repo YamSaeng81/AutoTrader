@@ -90,6 +90,17 @@ public class DynamicSessionEntity {
     @Column(name = "watchlist_refresh_min", nullable = false)
     private Integer watchlistRefreshMin;
 
+    /**
+     * 최대 보유시간 (시, 기본 24) — 초과 시 손익과 무관하게 시장가 청산(time stop).
+     *
+     * <p>SL/TP 는 가격 기반이라 저변동 종목(스테이블코인 등)에서는 영원히 도달하지 않는다.
+     * 2026-07-31 세션 38 KRW-RLUSD 가 42시간 고착돼 자본이 잠긴 사례에서 도입.
+     * 0 이하면 비활성.</p>
+     */
+    @Builder.Default
+    @Column(name = "max_hold_hours", nullable = false)
+    private Integer maxHoldHours = 24;
+
     /** 캐시된 워치리스트 JSON (예: ["KRW-BTC","KRW-ETH",...]) */
     @Column(name = "watchlist_json", columnDefinition = "TEXT")
     private String watchlistJson;
@@ -186,6 +197,9 @@ public class DynamicSessionEntity {
 
     public Integer getWatchlistRefreshMin() { return watchlistRefreshMin; }
     public void setWatchlistRefreshMin(Integer v) { this.watchlistRefreshMin = v; }
+
+    public Integer getMaxHoldHours() { return maxHoldHours; }
+    public void setMaxHoldHours(Integer v) { this.maxHoldHours = v; }
 
     public String getWatchlistJson() { return watchlistJson; }
     public void setWatchlistJson(String v) { this.watchlistJson = v; }
