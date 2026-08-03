@@ -83,6 +83,26 @@ public class DynamicTradingService {
      */
     private static final long BALANCE_RECONCILE_GRACE_MIN = 3;
 
+    /**
+     * {@link #reconcileDynamicGhostPositions} 유예 시간(분) — 매도 체결 후 정상 후처리가
+     * 끝날 시간을 준다. 정상 경로는 CLOSING reconcile(5초 주기)이 즉시 처리하므로,
+     * 2분이 지나도 OPEN이면 후처리가 롤백된 것으로 본다.
+     */
+    private static final long SELL_FINALIZE_GRACE_MIN = 2;
+
+    /**
+     * BLACK_SWAN_GUARD 차단 후 해당 코인의 신규 진입을 계속 막는 시간(분).
+     *
+     * <p><b>근거 (2026-08-03 실측)</b>: KRW-ELSA가 01:00·01:14·01:42·01:45 <b>4회 차단</b>
+     * (거래량 11.2배 급증 + 1시간 −2.13%)됐는데, <b>02:00에 가드가 풀리자마자</b> 세션 43이
+     * 매수해 2.6시간 만에 <b>−8.33%</b>로 손절됐다. 가드의 판단은 정확했고 유지 시간만 짧았다.
+     * 급등락 종목은 가드 해제 직후가 가장 위험한 구간이다.</p>
+     *
+     * <p>4시간 근거: 손실 확정까지 2.6시간이 걸렸고, 실측 평균 보유가 7.6시간이므로
+     * 4시간이면 급등락 여진 구간을 덮으면서 정상 종목의 기회를 과하게 빼앗지 않는다.</p>
+     */
+    private static final long BLACK_SWAN_COOLDOWN_MIN = 240;
+
     // ── 손절폭 (2026-07-31 전면 개편) ──────────────────────────────────────────
     //
     // 개편 전: 세션 고정 stopLossPct(5%) 또는 전략 제안값을 그대로 사용 + 블랙스완 발동 시
@@ -188,6 +208,16 @@ public class DynamicTradingService {
 
     /** 세션+코인 조합별 마지막으로 평가한 닫힌 캔들 시각 */
     private final Map<String, Instant> lastEvaluatedCandle = new ConcurrentHashMap<>();
+
+    /**
+     * BLACK_SWAN_GUARD가 진입을 차단한 코인의 마지막 차단 시각 — 코인 단위(세션 무관).
+     * 급등락은 종목의 성질이지 세션의 성질이 아니므로 전 세션이 쿨다운을 공유한다.
+     *
+     * <p>⚠️ 인메모리라 재기동 시 초기화된다({@link #lastEvaluatedCandle}와 동일 방침).
+     * 재기동 직후에는 쿨다운이 비어 있으므로, 가드 본체(매 평가 시 캔들로 판정)가 1차 방어를
+     * 그대로 담당한다 — 쿨다운은 어디까지나 해제 직후 구간을 덧대는 2차 방어다.</p>
+     */
+    private final Map<String, Instant> blackSwanBlockedAt = new ConcurrentHashMap<>();
 
     public DynamicTradingService(DynamicSessionRepository dynamicSessionRepo,
                                   PositionRepository positionRepository,
@@ -582,11 +612,31 @@ public class DynamicTradingService {
             // BLACK_SWAN_GUARD: 코인별 서킷 브레이커 — 3단계 진입 게이트 (2026-07-22 완화).
             // 1시간 낙폭 -5%~-8%는 감액 진입, -8% 이하·거래량 급증 조기경보는 하드 차단 유지.
             // 이전 하드 차단(check)은 BUY 63건 중 46건을 전량 차단해 13일간 실거래 0건의 주 원인이었다.
+            // 쿨다운 — 가드가 한 번 차단한 코인은 해제 직후가 가장 위험하다 (2026-08-03 실측).
+            // 가드는 판단이 옳았고 **유지 시간이 짧았을 뿐**이므로, 해제 후에도 일정 시간 막는다.
+            if (gateBlockReason == null && signal.getAction() == StrategySignal.Action.BUY) {
+                Instant blockedAt = blackSwanBlockedAt.get(coinPair);
+                if (blockedAt != null) {
+                    long elapsedMin = Duration.between(blockedAt, Instant.now()).toMinutes();
+                    if (elapsedMin < BLACK_SWAN_COOLDOWN_MIN) {
+                        blackSwanBlocked++;
+                        gateBlockReason = String.format(
+                                "BLACK_SWAN 쿨다운 — %d분 전 차단된 종목 (해제까지 %d분)",
+                                elapsedMin, BLACK_SWAN_COOLDOWN_MIN - elapsedMin);
+                        log.warn("[Dynamic] BLACK_SWAN 쿨다운 — BUY 차단: {} (id={}, 경과 {}분)",
+                                coinPair, sid, elapsedMin);
+                    } else {
+                        blackSwanBlockedAt.remove(coinPair);
+                    }
+                }
+            }
+
             BigDecimal blackSwanSizeMultiplier = BigDecimal.ONE;
             if (gateBlockReason == null && signal.getAction() == StrategySignal.Action.BUY) {
                 BlackSwanGuard.EntryGate guard = BlackSwanGuard.entryGate(evalCandles);
                 if (guard.blocked()) {
                     blackSwanBlocked++;
+                    blackSwanBlockedAt.put(coinPair, Instant.now());   // 쿨다운 시작
                     log.warn("[Dynamic] BLACK_SWAN_GUARD 발동 — BUY 차단: {} (id={}): {}",
                             coinPair, sid, guard.reason());
                     gateBlockReason = "BLACK_SWAN_GUARD 발동 — " + guard.reason();
@@ -714,6 +764,16 @@ public class DynamicTradingService {
                 .divide(pos.getAvgPrice(), 6, RoundingMode.HALF_UP)
                 .multiply(BigDecimal.valueOf(100));
 
+        // 미실현손익 갱신 — 2026-08-03: 동적 포지션의 unrealized_pnl 이 전 이력 0이었다.
+        // PositionService.updateUnrealizedPnl 은 호출부가 없는 죽은 코드였고, 비-0 값을 쓰는 곳은
+        // LiveTradingService 하나뿐(LIVE 전용)이라 동적 세션 화면은 보유 중 항상 0을 표시했다.
+        // SL/TP 판정은 아래에서 currentPrice 로 직접 하므로 매매 안전성과는 무관한 표시용 값이다.
+        BigDecimal unrealized = currentPrice.subtract(pos.getAvgPrice()).multiply(pos.getSize());
+        if (pos.getUnrealizedPnl() == null || pos.getUnrealizedPnl().compareTo(unrealized) != 0) {
+            pos.setUnrealizedPnl(unrealized);
+            positionRepository.save(pos);
+        }
+
         // BLACK_SWAN_GUARD — 발동 시 알림만 보내고 **SL은 건드리지 않는다**.
         //
         // 2026-07-31 개편: 이전에는 발동 시 현재가 기준 1×ATR로 SL을 단방향 조임(ratchet)했다.
@@ -746,6 +806,19 @@ public class DynamicTradingService {
                 ? currentPrice.compareTo(pos.getStopLossPrice()) <= 0
                 : pnlPct.compareTo(slNeg) <= 0;
         if (slTriggered) {
+            // SL 이탈폭 계측 — 2026-08-03 ELSA 건에서 SL −5.82%인데 −7.911%에 잡혔다(2.1%p 초과).
+            // 07-29~31 청산 6건은 초과폭이 수수료 수준(0.07~0.24%p)이었으므로 양상이 다르다.
+            // 갭(60초 안에 뚫림)인지 감시 지연(WS 미구독 등)인지는 표본이 쌓여야 판정할 수 있어,
+            // 여기서는 **고치지 않고 재기만 한다**. 초과폭이 반복적으로 크면 감시 경로를 손봐야 한다.
+            if (pos.getStopLossPrice() != null && pos.getStopLossPrice().compareTo(BigDecimal.ZERO) > 0) {
+                BigDecimal overshootPct = pos.getStopLossPrice().subtract(currentPrice)
+                        .divide(pos.getStopLossPrice(), 6, RoundingMode.HALF_UP)
+                        .multiply(BigDecimal.valueOf(100));
+                log.warn("[Dynamic] SL 이탈폭: {} SL={} 감지가={} 초과={}%p (id={}, posId={}) "
+                                + "— 0에 가까우면 정상, 1%p 이상 반복되면 감시 지연 의심",
+                        coinPair, pos.getStopLossPrice(), currentPrice,
+                        overshootPct.setScale(3, RoundingMode.HALF_UP), sid, pos.getId());
+            }
             log.warn("[Dynamic] 손절: {} @ {} pnl={}% (id={})", coinPair, currentPrice, pnlPct, sid);
             telegramService.notifyStopLoss(coinPair, pnlPct.doubleValue(), sid);
             executeSell(session, pos, currentPrice, "손절 — pnl " + pnlPct + "%");
@@ -1272,6 +1345,25 @@ public class DynamicTradingService {
                 continue;
             }
 
+            // ⚠️ 2026-08-03: 최신 주문이 아니라 **FILLED 주문을 먼저 본다**.
+            //    07-31 P0에서 매도 8610이 FILLED된 뒤 후처리가 롤백돼 8611~8613이 연속 FAILED로
+            //    쌓였는데, `sellOrders.get(0)`(최신순)이 FAILED를 집어 **OPEN 롤백 분기**를 탔다.
+            //    코인은 이미 팔렸으므로 이 롤백은 유령 포지션을 만들고 매도 재시도 루프를 낳는다.
+            //    체결은 되돌릴 수 없는 사실이므로, FILLED가 하나라도 있으면 그것이 진실이다.
+            OrderEntity filledSell = sellOrders.stream()
+                    .filter(o -> "FILLED".equals(o.getState()))
+                    .findFirst()   // sellOrders는 createdAt DESC — 가장 최근 체결분
+                    .orElse(null);
+            if (filledSell != null) {
+                if (sellOrders.indexOf(filledSell) > 0) {
+                    log.warn("[Dynamic] 매도 주문 다건 — FAILED 재시도 뒤의 FILLED를 채택 "
+                                    + "(posId={}, 채택 orderId={}, 후속 주문 {}건)",
+                            pos.getId(), filledSell.getId(), sellOrders.indexOf(filledSell));
+                }
+                finalizeDynamicSell(pos, filledSell);
+                continue;
+            }
+
             OrderEntity latestSell = sellOrders.get(0);
             switch (latestSell.getState()) {
                 case "FILLED" -> finalizeDynamicSell(pos, latestSell);
@@ -1294,6 +1386,81 @@ public class DynamicTradingService {
                         positionRepository.save(pos);
                         reattachRolledBackPosition(pos);
                     }
+                }
+            }
+        }
+    }
+
+    /**
+     * <b>유령 포지션 안전망</b> — 매도가 FILLED인데 포지션이 여전히 {@code OPEN}인 상태를 정리한다.
+     *
+     * <p><b>왜 필요한가 (2026-07-31 P0)</b>: {@code executeSell}은
+     * {@code markClosingIfOpen}(CLOSING 전환) → {@code submitOrder}(@Async, 별도 tx) →
+     * {@code transitionToScanning} 순서다. 부모 tx가 롤백되면 <b>주문만 살아남고</b>
+     * CLOSING 전환이 사라져 포지션이 OPEN으로 되돌아간다. 코인은 이미 팔렸는데 DB는 보유 중이다.</p>
+     *
+     * <p>운영 피해(07-31): 세션 38 KRW-RLUSD가 이 상태에 빠져 매 틱 time stop이 재발동,
+     * 주문 8611·8612·8613이 <b>69초 간격으로 FAILED</b>(업비트 HTTP 400 — 이미 판 코인)를
+     * 4분간 반복했다. 결국 손으로 2행을 UPDATE해 정리해야 했다.</p>
+     *
+     * <p>{@link #reconcileDynamicClosingPositions}가 못 잡는 이유: 그쪽은 <b>CLOSING</b> 상태만
+     * 순회한다. 롤백으로 OPEN이 되어버린 포지션은 그 그물에 애초에 걸리지 않는다.</p>
+     *
+     * <p><b>부분 체결과의 구분</b>: 부분 체결분을 정산하면 포지션은 {@code OPEN}으로 남고
+     * FILLED 주문도 그대로 남는다 — 이를 다시 정산하면 KRW가 이중 복원된다. 그래서
+     * ①{@code realizedPnl == 0}(한 번도 정산된 적 없음) ②{@code filledQuantity == size}(전량 체결)
+     * 두 조건을 모두 요구한다. 부분 정산 후에는 두 조건이 <b>동시에</b> 깨지므로 재진입이 불가능하다.</p>
+     */
+    @Scheduled(fixedDelay = 30_000)
+    @Transactional
+    public void reconcileDynamicGhostPositions() {
+        for (PositionEntity pos : positionRepository.findBySessionKindAndStatus(SESSION_KIND, "OPEN")) {
+            if (pos.getSize() == null || pos.getSize().compareTo(BigDecimal.ZERO) <= 0) {
+                continue;   // 매수 고아 — reconcileDynamicOrphanBuyPositions 담당
+            }
+            BigDecimal realized = pos.getRealizedPnl();
+            if (realized != null && realized.compareTo(BigDecimal.ZERO) != 0) {
+                continue;   // 이미 한 번 정산됨(부분 체결) — 이중 복원 방지
+            }
+
+            OrderEntity filledSell = orderRepository
+                    .findByPositionIdOrderByCreatedAtDesc(pos.getId())
+                    .stream()
+                    .filter(o -> "SELL".equalsIgnoreCase(o.getSide()) && "FILLED".equals(o.getState()))
+                    .findFirst()
+                    .orElse(null);
+            if (filledSell == null) continue;   // 정상 보유 중
+
+            if (filledSell.getFilledQuantity() == null
+                    || filledSell.getFilledQuantity().compareTo(pos.getSize()) != 0) {
+                continue;   // 전량 체결이 아님 — 부분 체결 경로가 처리
+            }
+            if (filledSell.getFilledAt() == null
+                    || Duration.between(filledSell.getFilledAt(), Instant.now()).toMinutes()
+                       < SELL_FINALIZE_GRACE_MIN) {
+                continue;   // 정상 매도 진행 중일 수 있는 구간 — 건드리지 않는다
+            }
+
+            log.error("[Dynamic] 🔴 유령 포지션 감지: 매도 FILLED인데 포지션 OPEN — 자동 정산 "
+                            + "(posId={}, sessionId={}, {}, orderId={}). 매도 후처리 tx 롤백 의심.",
+                    pos.getId(), pos.getSessionId(), pos.getCoinPair(), filledSell.getId());
+
+            finalizeDynamicSell(pos, filledSell);
+
+            // 롤백으로 세션이 POSITION_MONITORING에 고착됐을 수 있다 — executeSell의
+            // transitionToScanning도 같은 tx에서 함께 사라졌기 때문. 이 포지션을 보고 있으면 풀어준다.
+            Long sessionId = pos.getSessionId();
+            if (sessionId != null) {
+                DynamicSessionEntity session = dynamicSessionRepo.findById(sessionId).orElse(null);
+                boolean watchingThisPosition = session != null
+                        && pos.getId().equals(session.getCurrentPositionId());
+                // currentPositionId 까지 유실된 경우(롤백 범위가 더 넓었던 경우)에도 풀어준다.
+                // 단 코인만 같고 positionId 가 **다른** 값이면 그 사이 재매수한 것이므로 건드리지 않는다.
+                boolean watchingThisCoinOrphaned = session != null
+                        && session.getCurrentPositionId() == null
+                        && pos.getCoinPair().equals(session.getCurrentCoinPair());
+                if (watchingThisPosition || watchingThisCoinOrphaned) {
+                    transitionToScanning(sessionId);
                 }
             }
         }
