@@ -3,7 +3,59 @@
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝나면 완료 내용을 [`docs/CHANGELOG.md`](CHANGELOG.md)에 추가하고, 이 파일의 해당 항목은 삭제한다.
 > **변경 이력**: [`docs/CHANGELOG.md`](CHANGELOG.md)
-> **마지막 갱신**: 2026-07-31 (세션 격리 누수 수정 + 청산 규칙 개편 **배포 완료**. 세션 M15 7개 → **H1 7개(39~45) 재구성**. 🔴 **미해결 P0: 매도 후처리 트랜잭션 롤백** — 유령 포지션 발생, 로그 필요, time stop 전 세션 비활성 중. ⚠️**정정: ATR SL은 하한 5%에 묻혀 무효**였고 실효는 블랙스완 조임 제거뿐)
+> **마지막 갱신**: 2026-08-03 (멀티코인 H1 세션 39~45 3일 운영 분석 + 조치. **신규 P0(매수 tx 롤백 → 세션 39·40·44 각 8,000원 증발, 3/7 매수 불능) 원인 규명·DB 복원·코드 수정·테스트 완료**, 🔴 **배포만 대기**. 스캔 파라미터 원복(0.3/0.15)으로 워치리스트 붕괴 대응. 🔴 기존 미해결 P0: 매도 후처리 롤백 — 같은 원인 계열)
+
+---
+
+## 🔴 2026-08-03 멀티코인(동적) H1 세션 39~45 3일 운영 분석 — **거래 0건 + 세션 3개 자본 증발**
+
+> 운영 DB 직접 조회(08-03 09:0x KST). 07-31 01:50 재구성 이후 **정확히 3일**치. 결론: 배관도 전략도 아니고, **롤백 P0가 세션 절반을 조용히 못 쓰게 만들었다.**
+
+### 🔴 [신규 P0] 세션 39·40·44 — 포지션·주문 없이 KRW 8,000원씩 증발 (**총 24,000원 / 70,000원의 34%**)
+
+| 세션 | 전략 | available | total_asset | 오픈 포지션 | 주문 이력 | version |
+|---|---|---|---|---|---|---|
+| **39** | MOMENTUM_ICHIMOKU_V2 | **2,000** | 10,000 | 0건 | **0건** | 74 |
+| **40** | MEANREV_BB | **2,000** | 10,000 | 0건 | **0건** | 74 |
+| **44** | PULLBACK_MTF | **2,000** | 10,000 | 0건 | **0건** | 74 |
+| 41·42·43·45 | (나머지 4개) | 10,000 | 10,000 | 0건 | 0건 | 72 |
+
+- **정합성 진단**: `available + 보유원가 − total` = **−8,000.00원** (3세션 동일). 나머지 4세션은 0.00원. `position` 테이블에 세션 39~45 행은 **CLOSED 포함 단 1건도 없고**, `order` 테이블도 세션 32~38까지만 존재(마지막 DYNAMIC 주문 8618, 07-31 01:48 = 구세션 비상청산).
+- **[원인 = 매수 트랜잭션 롤백 — 07-29·07-31 P0의 세 번째 발현, 이번엔 매수 경로]**
+  - [`executeBuy`](../web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java#L872-L910) 순서: `position` INSERT → `submitOrderAfterCommit`(afterCommit 훅) → `balanceUpdater.apply`(KRW 차감).
+  - `balanceUpdater.apply`는 [REQUIRES_NEW 별도 트랜잭션](../web-api/src/main/java/com/cryptoautotrader/api/service/DynamicSessionBalanceUpdater.java)이라 **즉시 커밋**된다. 이후 부모 tx(`processScanningTick`)가 롤백되면:
+    포지션 INSERT 소멸 → afterCommit 미발화로 주문 INSERT **아예 없음** → **KRW 차감만 살아남는다.** 관측된 상태와 정확히 일치.
+  - **`strategy_log`에 BUY 신호 자체가 없는 것이 결정적 증거** — 신호 로그도 같은 부모 tx에 있어 함께 사라졌다. (세션 39~45 `was_executed=true` **0건**)
+  - **차감이 남긴 `POSITION_MONITORING`은 다음 틱이 되돌렸다** — [`processMonitoringTick`:682](../web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java#L682-L686)가 "포지션 없음 → SCANNING 복귀"만 하고 **KRW를 복원하지 않는다.** `version=74`(=차감 1 + 복귀 1, 나머지 세션 72)가 이 2단계를 그대로 증언한다.
+  - **고아 정리 안전망이 닿지 않는다** — [`reconcileDynamicOrphanBuyPositions`](../web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java#L1359)는 **`position` 행을 기준으로 순회**한다. 이번엔 포지션 자체가 롤백돼 없으므로 **영원히 발견되지 않는다.** 07-31에 만든 안전망이 못 잡는 사각지대.
+- **[결과 = 영구 매수 불능]** invest = `available × 0.8` = 2,000 × 0.8 = **1,600원 < 업비트 최소주문 5,000원**. 실제로 07-31 12:00 세션 44가 유일한 BUY 신호(KRW-UNI)를 냈으나 `blocked_reason = "가용 KRW 부족: 투자가능 1600원 < 최소 5,000원"`으로 차단됐다. **세 세션은 손으로 KRW를 복원하기 전까지 다시는 거래할 수 없다.**
+### ✅ 조치 완료 (2026-08-03)
+
+- **[x] ① 운영 DB 복원 (08-03 09:5x, 2건 UPDATE 커밋)** — 세션 39·40·44 `available_krw = total_asset_krw = 10,000`. 실제 코인 보유가 0이므로 **손실 보전이 아니라 회계 누수 원복**이다. 가드 `status='RUNNING' AND current_position_id IS NULL AND available_krw=2000 AND total_asset_krw=10000 AND 열린 포지션 0 AND 활성 주문 0` **rowcount=3 확인 후 커밋**. `version`도 +1 해 앱의 낙관적 락이 stale 엔티티를 덮지 않게 했다. 사후 7세션 전부 정합성 **0.00원**, 투자가능액 **8,000원** 회복.
+- **[x] ② 롤백 보상 도입 (근본 수정)** — [`registerBuyDeductionCompensation`](../web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java) 신설. `executeBuy`의 KRW 차감 직후 `afterCompletion(STATUS_ROLLED_BACK)` 동기화를 등록해, 부모 tx가 롤백되면 차감을 되돌리고 `SCANNING`으로 복귀시킨다.
+  - **차감을 afterCommit으로 미루지 않은 이유**: 그러면 커밋 후 차감 실패 시 포지션·주문은 살아있는데 KRW가 안 줄어 **이중 매수**가 가능해진다. 미차감(과투자)보다 과차감(보상 가능)이 안전하다는 판단. 낙관적 락 재시도를 위한 `REQUIRES_NEW` 구조는 그대로 유지된다.
+- **[x] ③ 세션 기준 안전망 신설** — [`reconcileDynamicSessionBalance`](../web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java) (60초 주기). 불변식 **"포지션 없는 동적 세션은 `available == total`"** 위반을 세션 단위로 잡는다. 오탐 방지로 `updated_at` 3분 유예(`BALANCE_RECONCILE_GRACE_MIN`), 열린 포지션·활성 주문 있으면 스킵, **복원은 증액 방향만**(감액은 실제 코인 보유를 놓친 경우일 수 있어 경고만).
+- **[x] ④ 무증상 분기에 흔적 추가** — `processMonitoringTick`의 "포지션 없음" 분기가 `available < total`이면 `ERROR` 로그를 남긴다. 이 분기가 조용히 지나가면서 3일간 누수를 가렸다.
+- **[x] ⑤ 회귀 테스트** — [DynamicBalanceLeakTest](../web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBalanceLeakTest.java) 4건: 롤백 보상 / reconcile 복원 / 보유 중 세션 스킵 / 유예 시간 스킵. **두 수정을 무력화하면 복원 검증 2건이 실패함을 확인** 후 복원. `:web-api:test` 전체 **150건 통과**.
+  - ⚠️ **정직한 한계**: 테스트는 보상 헬퍼와 reconcile을 **직접 호출**해 잠근다. `executeBuy`가 그 헬퍼를 **호출한다는 사실 자체**는 잠그지 못한다(시세·전략 목킹 없이 매수 경로 진입 불가). 호출 한 줄이 지워지면 테스트는 통과한다.
+- **[ ] 🔴 배포 대기** — 코드 변경만(마이그레이션 없음). 운영 백엔드는 원격 호스트(yhpapa)라 **이 작업 환경에서 배포 불가**. 재빌드·재기동 필요: `docker compose -f docker-compose.prod.yml up -d --build backend`. **배포 전까지 ②③④는 효력이 없고 ①의 복원만 적용된 상태**다.
+
+### 🟡 [P1] 나머지 4세션도 3일간 매수 0건 — BUY 신호가 전 세션 통틀어 **1건**
+
+- 3일간 `strategy_log` **946행**(세션당 130~145) 중 신호 분포: **HOLD 794 / SELL 121 / BUY 1**. 체결 0건.
+- **차단 사유는 게이트가 아니라 점수 미달** — `blocked_reason`이 비어있는 794건이 전부 HOLD(진입 조건 자체 미달)다. 실제 차단은 "SCANNING—보유 포지션 없음"(SELL 신호 무시, 정상) 121건과 위 KRW 부족 1건뿐. **07-24~30처럼 스캔 게이트가 막은 게 아니다.**
+- **하락장에서 감쇠·EMA 필터가 겹쳐 점수가 0으로 눌린다** — 반복 관측: `[TRANSITIONAL감쇠: buy 0.30→0.15] [EMA필터: 하락추세(EMA20<EMA50) BUY 0.15→0.11]`. 감쇠 후 임계에 못 미쳐 HOLD로 떨어지는 패턴이 지배적.
+- **워치리스트가 10개 → 1~3개로 붕괴** — `target_watch_size=10`인데 08-02 23:3x 갱신 결과가 세션별 `["KRW-ETH"]` ~ `["KRW-EUL","KRW-ETH","KRW-SOL"]`. 신규 세션 스캔 파라미터가 구세션보다 **훨씬 빡빡하다**: `min_atr_pct` 0.3→**0.5**, `max_spread_pct` 0.15→**0.1**, `max_candidate_size` 50→**30**. 3일 누적 평가 코인도 13종뿐(SOL 295·ETH 228·EUL 160에 집중).
+- **[판단]** 후보군이 메이저 2~3개로 줄면 "알트 변동성을 잡는다"는 동적 세션의 전제 자체가 무너진다. **표본 0인 상태로는 07-31 청산 규칙 개편(ATR SL·time stop)의 효과를 영원히 검증할 수 없다.**
+- **[x] 조치 (08-03 09:5x, 운영 DB 커밋)** — 세션 39~45 **7개 전부** `min_atr_pct` 0.5→**0.3**, `max_spread_pct` 0.1→**0.15**(구세션 값)으로 원복. `watchlist_refreshed_at=NULL`로 비워 다음 틱에 즉시 재필터링되게 했다. rowcount=7 확인 후 커밋.
+  - `max_candidate_size`는 **30 그대로 뒀다**(구세션 50). 워치리스트 회복이 ATR/스프레드 완화만으로 되는지 먼저 보고, 부족하면 그때 올릴 것 — 한 번에 두 다이얼을 돌리면 어느 쪽이 효과였는지 알 수 없다.
+- **[ ] 관찰 과제** — 다음 워치리스트 갱신 후 종목 수가 10개에 근접하는지, BUY 신호가 생기는지 확인. 여전히 1~3개면 원인은 유동성 필터(`scan_min_trade_value_krw` 코드 기본 50억) 쪽이다.
+
+### ⚪ 참고 — 확인된 정상 항목
+
+- **주문 시퀀스 갭 0 유지** — `MAX(id)=8619`(LIVE 세션 194 BUY, 07-31 08:00). 07-31 이후 DYNAMIC 주문 자체가 없어 롤백 소멸 재발 여부는 **판정 불가**(표본 0).
+- **구세션 잔여 정리 완료** — 세션 32~38 전부 `EMERGENCY_STOPPED`, 열린 DYNAMIC 포지션 0건.
+- **ATR 기반 SL 유효성** — 신규 포지션 0건이라 `stop_loss_price` 분포 판정 **여전히 불가**(07-31 정정 노트의 미결 항목 그대로).
 
 ---
 

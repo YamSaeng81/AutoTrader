@@ -35,6 +35,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -73,6 +75,13 @@ public class DynamicTradingService {
     private static final int CANDLE_LOOKBACK = 500;
     private static final List<String> ACTIVE_ORDER_STATES = List.of("PENDING", "SUBMITTED", "PARTIAL_FILLED");
     private static final long MIN_HOLD_MINUTES = 180;
+
+    /**
+     * {@link #reconcileDynamicSessionBalance} 유예 시간(분) — 매수 KRW 차감(선커밋)과
+     * 포지션 커밋 사이의 정상 구간을 오탐하지 않기 위한 최소 경과 시간.
+     * 매수 1회는 초 단위로 끝나므로 3분이면 정상 매매를 절대 건드리지 않는다.
+     */
+    private static final long BALANCE_RECONCILE_GRACE_MIN = 3;
 
     // ── 손절폭 (2026-07-31 전면 개편) ──────────────────────────────────────────
     //
@@ -680,7 +689,18 @@ public class DynamicTradingService {
                 .findBySessionKindAndSessionIdAndCoinPairAndStatus(SESSION_KIND, sid, coinPair, "OPEN");
 
         if (posOpt.isEmpty()) {
-            log.info("[Dynamic] 포지션 없음 — SCANNING 복귀 (id={}, {})", sid, coinPair);
+            // ⚠️ 2026-08-03 P0: 이 분기가 무증상으로 지나가면서 세션 39·40·44의 KRW 누수를
+            //    3일간 가렸다. 매수 tx가 롤백되면 포지션은 사라지고 KRW 차감만 남는데,
+            //    여기서 상태만 SCANNING으로 되돌리고 잔고는 손대지 않기 때문이다.
+            //    복원은 reconcileDynamicSessionBalance 가 맡고, 여기서는 흔적을 남긴다.
+            if (session.getAvailableKrw() != null && session.getTotalAssetKrw() != null
+                    && session.getAvailableKrw().compareTo(session.getTotalAssetKrw()) < 0) {
+                log.error("[Dynamic] 🔴 포지션 없음인데 KRW가 묶여 있음 — 매수 tx 롤백 의심 "
+                                + "(id={}, {}, available={}, total={}). reconcile 대기.",
+                        sid, coinPair, session.getAvailableKrw(), session.getTotalAssetKrw());
+            } else {
+                log.info("[Dynamic] 포지션 없음 — SCANNING 복귀 (id={}, {})", sid, coinPair);
+            }
             transitionToScanning(sid);
             return;
         }
@@ -908,6 +928,7 @@ public class DynamicTradingService {
             s.setCurrentCoinPair(coinPair);
             s.setCurrentPositionId(posId);
         });
+        registerBuyDeductionCompensation(sid, deductAmount);
 
         log.info("[Dynamic] 매수: id={} {} amount={} SL={} TP={}",
                 sid, coinPair, investAmount, stopLossPrice, takeProfitPrice);
@@ -915,6 +936,61 @@ public class DynamicTradingService {
         // 실시간(WS) 손절/익절 감시 대상에 즉시 반영 — 폴링(60초) 대기 없이 다음 tick 전에도 방어
         refreshWsSubscription();
         return null;
+    }
+
+    /**
+     * 매수 KRW 차감의 <b>롤백 보상</b>을 등록한다 — 부모 트랜잭션이 롤백되면 차감을 되돌린다.
+     *
+     * <p><b>왜 필요한가 (2026-08-03 P0)</b>: {@link #executeBuy}의 KRW 차감은
+     * {@link DynamicSessionBalanceUpdater#apply}를 통하는데, 이는 낙관적 락 재시도를 위해
+     * {@code REQUIRES_NEW} 별도 트랜잭션이라 <b>부모보다 먼저 커밋</b>된다. 이후 부모 tx
+     * ({@code processScanningTick})가 롤백되면:</p>
+     * <ul>
+     *   <li>position INSERT 소멸 → 포지션 없음</li>
+     *   <li>{@code submitOrderAfterCommit}는 afterCommit 훅이라 미발화 → 주문 행조차 없음</li>
+     *   <li>{@code strategy_log} 신호 로그도 같은 tx라 함께 소멸 → <b>흔적이 전혀 남지 않는다</b></li>
+     *   <li>그런데 <b>KRW 차감만 살아남는다</b></li>
+     * </ul>
+     *
+     * <p>운영 증거(2026-08-03): 동적 세션 39·40·44가 포지션·주문·신호로그 0건인 채
+     * {@code available_krw}만 10,000 → 2,000으로 줄어 있었다(각 8,000원, 합 24,000원).
+     * 투자가능액이 {@code 2,000 × 0.8 = 1,600원}이 되어 최소주문 5,000원에 걸려
+     * <b>세 세션이 영구 매수 불능</b>이 됐다(세션 44는 07-31 12:00 유일한 BUY 신호를
+     * "가용 KRW 부족"으로 차단당함).</p>
+     *
+     * <p>{@link #reconcileDynamicOrphanBuyPositions}가 못 잡는 이유: 그 안전망은
+     * {@code position} 행을 기준으로 순회하는데, 이 경우 포지션 자체가 롤백돼 없다.
+     * 세션 기준 안전망은 {@link #reconcileDynamicSessionBalance}가 담당한다(2차 방어).</p>
+     *
+     * <p>차감을 afterCommit으로 미루지 <b>않은</b> 이유: 그러면 커밋 후 차감이 실패했을 때
+     * 포지션·주문은 살아있는데 KRW가 안 줄어 <b>이중 매수</b>가 가능해진다. 미차감(과투자)보다
+     * 과차감(보상 가능)이 안전하므로, 선차감 + 롤백 보상 구조를 택했다.</p>
+     */
+    // 테스트에서 롤백 시나리오를 직접 구동하기 위해 package-private (resolveStopLossPct와 동일 방침)
+    void registerBuyDeductionCompensation(Long sessionId, BigDecimal deductAmount) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            return;   // 트랜잭션 밖 호출 — 롤백될 부모가 없으므로 보상 대상도 없다
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCompletion(int status) {
+                if (status != STATUS_ROLLED_BACK) return;
+                try {
+                    balanceUpdater.apply(sessionId, s -> {
+                        s.setAvailableKrw(s.getAvailableKrw().add(deductAmount));
+                        s.setScanState("SCANNING");
+                        s.setCurrentCoinPair(null);
+                        s.setCurrentPositionId(null);
+                    });
+                    log.error("[Dynamic] 매수 tx 롤백 — KRW 차감 보상 완료 (id={}, 복원금액={})",
+                            sessionId, deductAmount);
+                } catch (Exception e) {
+                    // 보상까지 실패하면 reconcileDynamicSessionBalance 가 다음 주기에 잡는다
+                    log.error("[Dynamic] 🔴 매수 tx 롤백 보상 실패 — 세션 잔고 누수 (id={}, 금액={})",
+                            sessionId, deductAmount, e);
+                }
+            }
+        });
     }
 
     // ── 내부: 매도 실행 ────────────────────────────────────────────
@@ -1422,6 +1498,78 @@ public class DynamicTradingService {
                     transitionToScanning(sessionId);
                 }
             }
+        }
+    }
+
+    /**
+     * <b>세션 기준</b> 잔고 정합성 안전망 — 포지션이 없는데 KRW가 묶여 있는 세션을 복원한다.
+     *
+     * <p><b>왜 별도로 필요한가 (2026-08-03 P0)</b>: {@link #reconcileDynamicOrphanBuyPositions}는
+     * {@code position} 행을 기준으로 순회하므로, <b>포지션 자체가 롤백돼 사라진</b> 누수를
+     * 구조적으로 발견할 수 없다. 실제로 세션 39·40·44가 3일간 이 사각지대에 방치돼
+     * 각 8,000원(합 24,000원)이 묶인 채 영구 매수 불능 상태였다.</p>
+     *
+     * <p><b>불변식</b>: 보유 포지션이 없는 동적 세션은 {@code available_krw == total_asset_krw}.
+     * (매도 완료 시 {@code finalizeDynamicSell}이 둘을 같이 맞춘다) 이 등식이 깨졌는데
+     * 열린 포지션도 활성 주문도 없다면 그 차액은 <b>어디에도 대응물이 없는 묶인 돈</b>이다.</p>
+     *
+     * <p><b>오탐 방지</b>: 매수 경로는 KRW 차감(REQUIRES_NEW, 선커밋) → 부모 커밋 순서라,
+     * 그 사이 짧은 구간에는 "차감됐지만 포지션이 아직 안 보이는" 정상 상태가 존재한다.
+     * {@code updated_at}이 {@link #BALANCE_RECONCILE_GRACE_MIN}분 이상 지난 세션만 손대
+     * 이 구간을 건드리지 않는다(차감이 {@code updated_at}을 갱신하므로 유효한 가드).</p>
+     *
+     * <p>복원 방향은 <b>항상 available를 total에 맞추는 쪽</b>(증액)뿐이다. 반대 방향(감액)은
+     * 실제 코인 보유를 DB가 놓친 경우일 수 있어 자동 처리하지 않고 경고만 남긴다.</p>
+     */
+    @Scheduled(fixedDelay = 60_000)
+    @Transactional
+    public void reconcileDynamicSessionBalance() {
+        for (DynamicSessionEntity session : dynamicSessionRepo.findByStatus("RUNNING")) {
+            Long sid = session.getId();
+            BigDecimal available = session.getAvailableKrw();
+            BigDecimal total = session.getTotalAssetKrw();
+            if (available == null || total == null) continue;
+
+            int cmp = available.compareTo(total);
+            if (cmp == 0) continue;
+
+            if (session.getUpdatedAt() == null
+                    || Duration.between(session.getUpdatedAt(), Instant.now()).toMinutes()
+                       < BALANCE_RECONCILE_GRACE_MIN) {
+                continue;   // 매수 진행 중일 수 있는 구간 — 건드리지 않는다
+            }
+
+            boolean hasOpenPosition = !positionRepository
+                    .findBySessionKindAndSessionId(SESSION_KIND, sid).stream()
+                    .allMatch(p -> "CLOSED".equals(p.getStatus()));
+            if (hasOpenPosition) continue;   // 정상 보유 중 — 차이는 미실현손익
+
+            boolean hasActiveOrder = orderRepository
+                    .findBySessionKindAndSessionIdOrderByCreatedAtDesc(
+                            SESSION_KIND, sid, org.springframework.data.domain.PageRequest.of(0, 20))
+                    .stream()
+                    .anyMatch(o -> ACTIVE_ORDER_STATES.contains(o.getState()));
+            if (hasActiveOrder) continue;    // 체결 대기 중 — 아직 결론 낼 수 없다
+
+            if (cmp > 0) {
+                // available > total: 코인을 들고 있는데 DB가 놓쳤을 수 있어 자동 조정하지 않는다
+                log.warn("[Dynamic] 잔고 정합성 이상(available>total) — 수동 확인 필요 "
+                                + "(id={}, available={}, total={})", sid, available, total);
+                continue;
+            }
+
+            final BigDecimal restoreAmount = total.subtract(available);
+            balanceUpdater.apply(sid, s -> {
+                // 재확인 — 스케줄러 중복 실행/동시 매수와의 race에서 이중 복원 방지
+                if (s.getAvailableKrw().compareTo(s.getTotalAssetKrw()) >= 0) return;
+                if (s.getCurrentPositionId() != null) return;
+                s.setAvailableKrw(s.getTotalAssetKrw());
+                s.setScanState("SCANNING");
+                s.setCurrentCoinPair(null);
+            });
+            log.error("[Dynamic] 🔴 고아 잔고 복원: 포지션·활성주문 없이 KRW가 묶여 있었음 "
+                            + "(id={}, {}원 복원 → available={}). 매수 tx 롤백 의심 — 서버 로그 확인 필요.",
+                    sid, restoreAmount, total);
         }
     }
 
