@@ -873,6 +873,17 @@ public class DynamicTradingService {
             executeSell(session, pos, currentPrice,
                     String.format("전략 SELL — %s (pnl=%s%%)", signal.getReason(), pnlPct));
             updateSignalQuality(signalLog, true, null);
+        } else if (signal.getAction() == StrategySignal.Action.BUY) {
+            // 보유 중 BUY는 실행 대상이 아니다(추가 매수 미지원) — 그런데 여기서 기록을 남기지
+            // 않으면 `was_executed=false, blocked_reason=null` 로 저장돼, "차단된 신호"인지
+            // "그냥 평가만 된 신호"인지 DB만으로 구분할 수 없다.
+            //
+            // 2026-08-04 운영 확인: 세션 44가 KRW-SHIB 보유 중이던 08-04 01:00에 BUY 신호
+            // (strategy_log 2038997)를 냈는데 사유가 비어 있어, 분석 시 "보유 중엔 신호가
+            // 산출되지 않는다"는 잘못된 결론으로 이어졌다. 실제로는 산출됐고 조용히 버려졌다.
+            // SCANNING 쪽 SELL 처리("SCANNING — 보유 포지션 없음")와 대칭을 맞춘다.
+            updateSignalQuality(signalLog, false,
+                    "POSITION_MONITORING — 이미 보유 중(신규 진입 대상 아님)");
         }
     }
 
