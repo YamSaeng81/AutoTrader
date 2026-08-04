@@ -3,13 +3,35 @@
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 작업이 끝나면 완료 내용을 [`docs/CHANGELOG.md`](CHANGELOG.md)에 추가하고, 이 파일의 해당 항목은 삭제한다.
 > **변경 이력**: [`docs/CHANGELOG.md`](CHANGELOG.md)
-> **마지막 갱신**: 2026-08-04 (멀티코인 24h 운영 분석 + 코드 검증. **08-03 수정분 배포 확인** — 블랙스완 쿨다운·미실현손익 실동작 증거 확보. P0 3종(잔고 누수·유령 포지션·시퀀스 갭) **재발 0**. ⚠️ 오전 분석의 P1 2건은 코드 확인 결과 **오판 — 정정 완료**. 실제 결함은 보유 중 BUY 신호의 `blocked_reason` 누락 1건뿐이며 **수정 완료, 🔴 배포 대기**. 사용자 결정 대기: time stop 재활성화 여부)
+> **마지막 갱신**: 2026-08-04 (멀티코인 24h 운영 분석 + 코드 검증. **08-03 수정분 배포 확인** — 블랙스완 쿨다운·미실현손익 실동작 증거 확보. P0 3종(잔고 누수·유령 포지션·시퀀스 갭) **재발 0**. ⚠️ 오전 분석의 P1 2건은 코드 확인 결과 **오판 — 정정 완료**. `blocked_reason` 누락 수정은 **배포 완료·실동작 확인**. 그 재기동에서 **BLACK_SWAN 쿨다운 소실이 실제로 발생** → `strategy_log` 복원으로 수정, **🔴 2차 배포 대기**. 사용자 결정 대기: time stop 재활성화 여부)
 
 ---
 
 ## ✅ 2026-08-04 멀티코인(동적) 세션 39~45 24시간 운영 분석 — **배포 확인 + P0 전부 재발 없음**, 청산 규칙에 새 결함
 
 > 운영 DB 직접 조회(08-04 09:3x~13:0x KST, 읽기전용). 대상: DYNAMIC RUNNING 7세션(39~45) + LIVE 194·195 참고.
+
+### ✅ 08-04 13:0x 배포 완료 — 수정분 실동작 확인(before/after 대조)
+
+- 사용자 배포·재기동. `blocked_reason` 수정이 **같은 세션·같은 코인·13분 간격**으로 깔끔하게 대조됐다.
+
+| 시각 | 세션/코인 | 신호 | `blocked_reason` |
+|---|---|---|---|
+| 13:01:12 | 44 / KRW-SHIB | BUY | *(공란)* ← 배포 전 |
+| **13:14:11** | 44 / KRW-SHIB | BUY | **`POSITION_MONITORING — 이미 보유 중(신규 진입 대상 아님)`** ← 배포 후 |
+
+- **재기동 안전성 이상 없음** — 7세션 전부 RUNNING / 잔고 정합성 전부 **0.00원** / 보유 포지션 2건 무사(XRP −46.66, SHIB **+206.60**) / 주문 시퀀스 갭 **0** / 로그 정상 재개.
+
+### 🔴 [재기동으로 실제 발생] BLACK_SWAN 쿨다운 소실 → **`strategy_log` 복원으로 수정 완료**
+
+- **관측**: 08-04 10:00 KRW-META2가 가드로 차단돼(`거래량 급증 47.9배 + 1시간 내 하락 −2.15%`) 쿨다운이 **약 40분 남아 있었는데**, 13:0x 재기동으로 인메모리 맵이 비면서 **잔여분이 통째로 소실**됐다. 재기동 후 META2는 다시 평가되고 있다(현재 HOLD라 실피해는 없었다).
+- **기존 판단이 틀렸다** — 08-03 노트는 "인메모리라 초기화되지만 가드 본체가 1차 방어를 하니 쿨다운은 2차 방어"라고 적었다. 그러나 **재기동 직후는 급락이 이미 지나가 가드 본체는 안 걸리고 쿨다운만 필요한 구간**이다. 즉 1차 방어가 없는 상태이고, **08-03 ELSA 사고(가드 4회 차단 → 해제 직후 진입 → −8.33%)의 창이 재기동마다 다시 열린다.**
+- **[x] 수정 — 마이그레이션 없이 `strategy_log`에서 복원** — 차단 사실 자체는 이미 DB에 남으므로 별도 저장소가 필요 없다. [`restoreBlackSwanCooldown`](../web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java)(`ApplicationReadyEvent`)가 쿨다운 구간(240분) 내 차단 이력을 코인별 **최신 시각**으로 복원한다. 신규 쿼리 [`StrategyLogRepository.findRecentBlockedCoins`](../web-api/src/main/java/com/cryptoautotrader/api/repository/StrategyLogRepository.java).
+  - **핵심 불변식 — 자기 연장 금지**: 복원 대상을 `BLACK_SWAN_GUARD 발동` 접두어로 **한정**한다. 쿨다운이 남긴 차단 로그(`BLACK_SWAN 쿨다운 …`)까지 포함하면 쿨다운이 스스로를 갱신해 **영구 차단으로 굳는다.**
+  - 세션 종류(`DYNAMIC`) 필터로 LIVE 로그와 격리. 복원 실패는 기동을 막지 않는다(가드 본체는 독립).
+- **[x] 회귀 테스트** — [DynamicBlackSwanCooldownRestoreTest](../web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBlackSwanCooldownRestoreTest.java) **5건**(복원 / 최신 시각 채택 / **자기 연장 차단** / 240분 만료 제외 / 세션 종류 격리). **무력화 검증 완료** — 접두어를 `BLACK_SWAN`으로 넓히면 자기 연장 테스트 1건이, 복원을 no-op으로 만들면 2건이 각각 실패함을 확인 후 복원. `:web-api:test` 전체 **159건 통과**.
+  - 주입 빈은 CGLIB 프록시라 필드가 비어 있어 `AopTestUtils.getUltimateTargetObject`로 타깃을 꺼내 검증한다.
+- **[ ] 🔴 배포 필요(2차)** — 마이그레이션 없음, 재빌드·재기동만. 다음 재기동부터 효력.
 
 ### ✅ 08-03 코드 수정분 배포 확인 (전날 "🔴 배포 대기" 해소)
 
@@ -89,7 +111,9 @@
 
 ### 후속 과제
 
-- [ ] **🔴 배포 필요** — 위 `blocked_reason` 수정 1건. 마이그레이션 없음, 재빌드·재기동만. 운영 백엔드는 원격(yhpapa)이라 이 환경에서 배포 불가: `docker compose -f docker-compose.prod.yml up -d --build backend`.
+- [x] ~~`blocked_reason` 수정 배포~~ — 08-04 13:0x 완료, 실동작 확인.
+- [ ] **🔴 배포 필요(2차)** — BLACK_SWAN 쿨다운 복원 1건. 마이그레이션 없음, 재빌드·재기동만: `docker compose -f docker-compose.prod.yml up -d --build backend`.
+- [ ] 배포 후 기동 로그에서 `BLACK_SWAN 쿨다운 복원: N종 [...]` 확인(복원 대상이 없으면 로그도 안 남는 것이 정상).
 - [ ] **time stop 값 결정**(사용자) — 켤지, 켠다면 몇 시간인지.
 - [ ] 다음 손절 1~2건의 **SL 이탈폭 계측 로그** 확인 → 60초 내 급락 vs WS 미수신 판별.
 - [ ] ①②(유령 포지션 자동 정산) 실발화 대기 — 표본 0.

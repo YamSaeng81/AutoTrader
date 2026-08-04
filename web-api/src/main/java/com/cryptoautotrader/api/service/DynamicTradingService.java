@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -213,11 +214,48 @@ public class DynamicTradingService {
      * BLACK_SWAN_GUARD가 진입을 차단한 코인의 마지막 차단 시각 — 코인 단위(세션 무관).
      * 급등락은 종목의 성질이지 세션의 성질이 아니므로 전 세션이 쿨다운을 공유한다.
      *
-     * <p>⚠️ 인메모리라 재기동 시 초기화된다({@link #lastEvaluatedCandle}와 동일 방침).
-     * 재기동 직후에는 쿨다운이 비어 있으므로, 가드 본체(매 평가 시 캔들로 판정)가 1차 방어를
-     * 그대로 담당한다 — 쿨다운은 어디까지나 해제 직후 구간을 덧대는 2차 방어다.</p>
+     * <p>인메모리지만 재기동 시 {@link #restoreBlackSwanCooldown()}이 {@code strategy_log}에서
+     * 복원한다 — 차단 사실 자체는 DB에 남으므로 별도 저장소가 필요 없다.</p>
      */
-    private final Map<String, Instant> blackSwanBlockedAt = new ConcurrentHashMap<>();
+    // 복원 결과를 검증하기 위해 package-private (resolveStopLossPct·pickBestBuyCandidate와 동일 방침)
+    final Map<String, Instant> blackSwanBlockedAt = new ConcurrentHashMap<>();
+
+    /** 쿨다운 복원 대상을 가려내는 blocked_reason 접두어 (가드 발동분만 — 아래 주석 참조) */
+    private static final String BLACK_SWAN_BLOCK_PREFIX = "BLACK_SWAN_GUARD 발동";
+
+    /**
+     * 재기동 시 BLACK_SWAN 쿨다운을 {@code strategy_log}에서 복원한다.
+     *
+     * <p><b>왜 필요한가 (2026-08-04 실측)</b>: 쿨다운 맵은 인메모리라 재기동으로 사라진다.
+     * 08-04 13:0x 배포 재기동 때 KRW-META2가 10:00에 가드로 차단돼 쿨다운이 약 40분 남아
+     * 있었는데, 그 잔여분이 통째로 소실됐다. 하필 재기동 직후는 급락이 이미 지나가
+     * <b>가드 본체는 안 걸리고 쿨다운만 필요한 구간</b>이라, 1차 방어가 있으니 괜찮다는
+     * 기존 판단(위 필드 주석)이 실제로는 성립하지 않는다. 08-03 ELSA 사고(가드 4회 차단 →
+     * 해제 직후 진입 → −8.33%)와 같은 창이 재기동마다 다시 열린다.</p>
+     *
+     * <p>복원 대상을 {@code BLACK_SWAN_GUARD 발동}으로 한정하는 것이 핵심이다. 쿨다운이
+     * 남긴 차단 로그({@code BLACK_SWAN 쿨다운 …})까지 포함하면 쿨다운이 스스로를 갱신해
+     * <b>영구 차단으로 굳는다</b>.</p>
+     *
+     * <p>실패해도 기동을 막지 않는다 — 복원은 2차 방어의 연장이고, 가드 본체는 독립적으로 돈다.</p>
+     */
+    @EventListener(ApplicationReadyEvent.class)
+    public void restoreBlackSwanCooldown() {
+        try {
+            Instant from = Instant.now().minus(BLACK_SWAN_COOLDOWN_MIN, ChronoUnit.MINUTES);
+            List<Object[]> rows = strategyLogRepository.findRecentBlockedCoins(
+                    SESSION_KIND, from, BLACK_SWAN_BLOCK_PREFIX);
+            for (Object[] row : rows) {
+                if (row[0] == null || row[1] == null) continue;
+                blackSwanBlockedAt.put((String) row[0], (Instant) row[1]);
+            }
+            if (!rows.isEmpty()) {
+                log.info("[Dynamic] BLACK_SWAN 쿨다운 복원: {}종 {}", rows.size(), blackSwanBlockedAt.keySet());
+            }
+        } catch (Exception e) {
+            log.warn("[Dynamic] BLACK_SWAN 쿨다운 복원 실패 — 가드 본체로 진행: {}", e.getMessage());
+        }
+    }
 
     public DynamicTradingService(DynamicSessionRepository dynamicSessionRepo,
                                   PositionRepository positionRepository,

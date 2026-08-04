@@ -26,6 +26,28 @@ public interface StrategyLogRepository extends JpaRepository<StrategyLogEntity, 
            "FROM StrategyLogEntity l WHERE l.sessionId IS NOT NULL")
     List<Object[]> findDistinctSessionRefs();
 
+    /**
+     * 재기동 후 BLACK_SWAN 쿨다운 복원용 — 쿨다운 구간 내에 <b>가드가 실제로 차단한</b> 코인과
+     * 마지막 차단 시각을 조회한다.
+     *
+     * <p>쿨다운 맵({@code blackSwanBlockedAt})은 인메모리라 재기동 시 사라진다. 2026-08-04
+     * 배포 재기동 때 KRW-META2의 잔여 쿨다운(약 40분)이 실제로 소실됐다. 차단 사실 자체는
+     * 이 테이블에 남으므로 별도 저장소(마이그레이션) 없이 복원할 수 있다.</p>
+     *
+     * <p>대상을 {@code BLACK_SWAN_GUARD 발동}으로 한정하는 것이 중요하다 — 쿨다운이 만든
+     * 차단 로그({@code BLACK_SWAN 쿨다운 …})까지 포함하면 쿨다운이 스스로를 연장해
+     * 영구 차단으로 굳는다.</p>
+     *
+     * @return {@code [coinPair, 마지막 차단 시각]} 배열 목록
+     */
+    @Query("SELECT l.coinPair, MAX(l.createdAt) FROM StrategyLogEntity l " +
+           "WHERE l.sessionType = :sessionType AND l.createdAt >= :from " +
+           "AND l.blockedReason LIKE CONCAT(:reasonPrefix, '%') " +
+           "GROUP BY l.coinPair")
+    List<Object[]> findRecentBlockedCoins(@Param("sessionType") String sessionType,
+                                          @Param("from") Instant from,
+                                          @Param("reasonPrefix") String reasonPrefix);
+
     /** 분석 구간 로그 조회 (LogAnalyzerService용 — DB에서 기간 필터) */
     @Query("SELECT l FROM StrategyLogEntity l WHERE l.createdAt >= :from AND l.createdAt <= :to ORDER BY l.createdAt DESC")
     List<StrategyLogEntity> findByPeriod(@Param("from") Instant from, @Param("to") Instant to);
