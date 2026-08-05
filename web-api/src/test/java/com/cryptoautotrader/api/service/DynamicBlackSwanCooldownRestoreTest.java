@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.AopTestUtils;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
@@ -50,9 +51,15 @@ class DynamicBlackSwanCooldownRestoreTest extends IntegrationTestBase {
         dynamicTradingService = AopTestUtils.getUltimateTargetObject(injectedService);
         strategyLogRepository.deleteAll();
         dynamicTradingService.blackSwanBlockedAt.clear();
+        dynamicTradingService.blackSwanBlockedPrice.clear();
     }
 
     private void log(String coinPair, String sessionType, String blockedReason, long minutesAgo) {
+        log(coinPair, sessionType, blockedReason, minutesAgo, null);
+    }
+
+    private void log(String coinPair, String sessionType, String blockedReason,
+                     long minutesAgo, BigDecimal signalPrice) {
         strategyLogRepository.saveAndFlush(StrategyLogEntity.builder()
                 .strategyName("COMPOSITE_MTF_BTC")
                 .coinPair(coinPair)
@@ -61,6 +68,7 @@ class DynamicBlackSwanCooldownRestoreTest extends IntegrationTestBase {
                 .sessionType(sessionType)
                 .sessionId(43L)
                 .blockedReason(blockedReason)
+                .signalPrice(signalPrice)
                 .createdAt(Instant.now().minus(minutesAgo, ChronoUnit.MINUTES))
                 .build());
     }
@@ -100,13 +108,40 @@ class DynamicBlackSwanCooldownRestoreTest extends IntegrationTestBase {
     }
 
     @Test
-    @DisplayName("쿨다운 시간(240분)이 지난 차단은 복원하지 않는다")
+    @DisplayName("진입가 가드 기간(24시간)이 지난 차단은 복원하지 않는다")
     void 만료된_차단_제외() {
-        log("KRW-DOGE", "DYNAMIC", GUARD_BLOCK, 300);
+        log("KRW-DOGE", "DYNAMIC", GUARD_BLOCK, 1500);
 
         dynamicTradingService.restoreBlackSwanCooldown();
 
         assertThat(dynamicTradingService.blackSwanBlockedAt).doesNotContainKey("KRW-DOGE");
+    }
+
+    @Test
+    @DisplayName("쿨다운(240분)은 지났지만 24시간 내면 진입가 가드용으로 계속 복원한다")
+    void 쿨다운_만료분도_진입가_가드용으로_복원() {
+        // 2026-08-05 진입가 가드 도입 전에는 이 구간을 복원하지 않았다. 그 결과 재기동만 하면
+        // "차단가보다 비싸게 재진입"을 막을 기준가가 사라졌다 (META2 −7.05% 패턴).
+        log("KRW-META2", "DYNAMIC", GUARD_BLOCK, 300, new BigDecimal("8630"));
+
+        dynamicTradingService.restoreBlackSwanCooldown();
+
+        assertThat(dynamicTradingService.blackSwanBlockedAt).containsKey("KRW-META2");
+        // DB numeric은 scale이 붙어 돌아오므로(8630.00000000) 값으로만 비교한다.
+        assertThat(dynamicTradingService.blackSwanBlockedPrice.get("KRW-META2"))
+                .as("차단 시점가가 있어야 진입가 가드가 작동한다")
+                .isEqualByComparingTo(new BigDecimal("8630"));
+    }
+
+    @Test
+    @DisplayName("차단 시점가가 없는 구 로그도 복원은 되지만 기준가는 남기지 않는다")
+    void 기준가_없는_구로그() {
+        log("KRW-XRP", "DYNAMIC", GUARD_BLOCK, 30, null);
+
+        dynamicTradingService.restoreBlackSwanCooldown();
+
+        assertThat(dynamicTradingService.blackSwanBlockedAt).containsKey("KRW-XRP");
+        assertThat(dynamicTradingService.blackSwanBlockedPrice).doesNotContainKey("KRW-XRP");
     }
 
     @Test

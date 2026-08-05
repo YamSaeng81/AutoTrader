@@ -38,12 +38,17 @@ public interface StrategyLogRepository extends JpaRepository<StrategyLogEntity, 
      * 차단 로그({@code BLACK_SWAN 쿨다운 …})까지 포함하면 쿨다운이 스스로를 연장해
      * 영구 차단으로 굳는다.</p>
      *
-     * @return {@code [coinPair, 마지막 차단 시각]} 배열 목록
+     * <p>차단 <b>시각</b>뿐 아니라 차단 시점의 {@code signalPrice}도 함께 돌려준다 — 진입가
+     * 가드(차단가보다 비싸면 재진입 금지)가 재기동 후에도 유지되어야 하기 때문이다.
+     * 그룹 집계 대신 오래된 순으로 정렬해 돌려주므로, 호출부에서 맵에 순서대로 넣으면
+     * 코인별 <b>가장 최근</b> 차단이 자연스럽게 남는다.</p>
+     *
+     * @return {@code [coinPair, 차단 시각, 차단 시점가]} 배열 목록 (오래된 순)
      */
-    @Query("SELECT l.coinPair, MAX(l.createdAt) FROM StrategyLogEntity l " +
+    @Query("SELECT l.coinPair, l.createdAt, l.signalPrice FROM StrategyLogEntity l " +
            "WHERE l.sessionType = :sessionType AND l.createdAt >= :from " +
            "AND l.blockedReason LIKE CONCAT(:reasonPrefix, '%') " +
-           "GROUP BY l.coinPair")
+           "ORDER BY l.createdAt ASC")
     List<Object[]> findRecentBlockedCoins(@Param("sessionType") String sessionType,
                                           @Param("from") Instant from,
                                           @Param("reasonPrefix") String reasonPrefix);

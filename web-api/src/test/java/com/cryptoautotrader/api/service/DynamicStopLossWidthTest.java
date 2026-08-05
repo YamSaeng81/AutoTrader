@@ -21,9 +21,14 @@ import static org.assertj.core.api.Assertions.assertThat;
  * 나빴다 — 손실을 만든 것은 전략이 아니라 청산 규칙이었다. 같은 신호들의 사후 4h 수익률은
  * 평균 −0.17%(KAITO는 +1.23%)로 거의 중립이었다 = 휩쏘.</p>
  *
- * <p>개편 후: SL 폭 = {@code clamp(ATR(14)/가격 × 2, 세션 stopLossPct, 12%)}.
+ * <p>개편 후: SL 폭 = {@code clamp(ATR(14)/가격 × 배수, 세션 stopLossPct, 상한)}.
  * 세션 설정값은 상한이 아니라 <b>하한</b>이다. 이 테스트는 "고변동 종목일수록 SL이 넓어진다"는
  * 핵심 성질을 잠근다.</p>
+ *
+ * <p><b>2026-08-05 재조정</b>: 배수 2.0 → <b>1.5</b>, 상한 12% → <b>8%</b>. 개편 방향은 옳았으나
+ * 폭이 과했다 — 07-31~08-05 동적 세션 청산 3건이 전부 손절이고 평균 −7.4%였는데, KRW-META2
+ * (−7.05%)는 초과분이 체결 오버슛 0.22% + 수수료 0.09%뿐이라 <b>손실의 거의 전부가 SL 폭
+ * 자체</b>였다. 사용자가 설정한 5%의 1.4~1.7배가 실제로 나갔다.</p>
  */
 class DynamicStopLossWidthTest {
 
@@ -54,13 +59,13 @@ class DynamicStopLossWidthTest {
         BigDecimal price = new BigDecimal("1000");
         BigDecimal floor = new BigDecimal("5.0");   // 세션 stopLossPct
 
-        // 캔들 진폭 6% → ATR ≈ 6% → SL = 2 × 6% = 12% (상한에 걸림)
+        // 캔들 진폭 6% → ATR ≈ 6% → SL = 1.5 × 6% = 9% → 상한 8%에 걸림
         BigDecimal wide = DynamicTradingService.resolveStopLossPct(
                 floor, candlesWithRange(price, 6.0, 40), price);
-        // 캔들 진폭 3% → ATR ≈ 3% → SL = 2 × 3% = 6%
+        // 캔들 진폭 4% → ATR ≈ 4% → SL = 1.5 × 4% = 6%
         BigDecimal mid = DynamicTradingService.resolveStopLossPct(
-                floor, candlesWithRange(price, 3.0, 40), price);
-        // 캔들 진폭 0.5% → ATR ≈ 0.5% → 2 × 0.5% = 1% < 하한 5% → 5%
+                floor, candlesWithRange(price, 4.0, 40), price);
+        // 캔들 진폭 0.5% → ATR ≈ 0.5% → 1.5 × 0.5% = 0.75% < 하한 5% → 5%
         BigDecimal narrow = DynamicTradingService.resolveStopLossPct(
                 floor, candlesWithRange(price, 0.5, 40), price);
 
@@ -94,11 +99,30 @@ class DynamicStopLossWidthTest {
     void clampedByUpperBound() {
         BigDecimal price = new BigDecimal("1000");
 
-        // 진폭 50%짜리 비정상 캔들 → 2×ATR = 100% 지만 상한 12%로 잘린다
+        // 진폭 50%짜리 비정상 캔들 → 1.5×ATR = 75% 지만 상한 8%로 잘린다
         BigDecimal sl = DynamicTradingService.resolveStopLossPct(
                 new BigDecimal("5.0"), candlesWithRange(price, 50.0, 40), price);
 
-        assertThat(sl).isEqualByComparingTo(new BigDecimal("12.0"));
+        assertThat(sl).isEqualByComparingTo(new BigDecimal("8.0"));
+    }
+
+    @Test
+    @DisplayName("실측 사고 재현 — META2 ATR 3.48%는 이제 SL 5.2%대로 잡힌다 (구 설정 6.96%)")
+    void meta2Regression_narrowerThanBefore() {
+        // 2026-08-04 pos 2386/2387 KRW-META2: 진입가 9,150, ATR 3.48% → 구 설정(2.0배)에서
+        // SL 폭 6.96% → 실현 −7.05%. 손실의 거의 전부가 SL 폭 자체였다.
+        BigDecimal price = new BigDecimal("9150");
+        BigDecimal floor = new BigDecimal("5.0");
+
+        BigDecimal sl = DynamicTradingService.resolveStopLossPct(
+                floor, candlesWithRange(price, 3.48, 40), price);
+
+        // 1.5 × 3.48% ≈ 5.2% (허용오차는 ATR 워밍업 근사)
+        assertThat(sl.doubleValue()).isCloseTo(5.2, org.assertj.core.data.Offset.offset(0.5));
+        assertThat(sl).as("구 설정의 6.96%보다 확실히 좁아야 한다")
+                .isLessThan(new BigDecimal("6.5"));
+        assertThat(sl).as("그래도 세션 하한 아래로는 내려가지 않는다")
+                .isGreaterThanOrEqualTo(floor);
     }
 
     @Test
@@ -124,18 +148,18 @@ class DynamicStopLossWidthTest {
     }
 
     @Test
-    @DisplayName("하한을 넘는 구간에서 SL 폭은 정확히 ATR의 2배다")
-    void slWidthEqualsTwoAtr_aboveFloor() {
-        // 핵심 불변식: ATR 2배가 하한보다 크면 그 값이 그대로 SL 폭이 된다.
-        // 진폭이 일정한 캔들에서는 ATR ≈ 진폭이므로 SL ≈ 진폭 × 2 가 된다.
+    @DisplayName("하한을 넘는 구간에서 SL 폭은 정확히 ATR의 1.5배다")
+    void slWidthEqualsOnePointFiveAtr_aboveFloor() {
+        // 핵심 불변식: ATR 1.5배가 하한보다 크면 그 값이 그대로 SL 폭이 된다.
+        // 진폭이 일정한 캔들에서는 ATR ≈ 진폭이므로 SL ≈ 진폭 × 1.5 가 된다.
         BigDecimal price = new BigDecimal("1823");   // 2026-07-30 KAITO 실제 진입가
         BigDecimal floor = new BigDecimal("5.0");
 
         BigDecimal sl = DynamicTradingService.resolveStopLossPct(
                 floor, candlesWithRange(price, 4.0, 40), price);
 
-        // ATR 4% → SL 8% (허용오차는 ATR 워밍업으로 인한 근사 때문)
-        assertThat(sl.doubleValue()).isCloseTo(8.0, org.assertj.core.data.Offset.offset(0.5));
+        // ATR 4% → SL 6% (허용오차는 ATR 워밍업으로 인한 근사 때문)
+        assertThat(sl.doubleValue()).isCloseTo(6.0, org.assertj.core.data.Offset.offset(0.5));
 
         // 개편 전이라면 이 종목도 고정 5%였고, 블랙스완 조임이 걸리면 3%대까지 좁아졌다
         // (pos 2368 KAITO SL -3.54% / pos 2375 EDGE -2.96% — 둘 다 강제청산).

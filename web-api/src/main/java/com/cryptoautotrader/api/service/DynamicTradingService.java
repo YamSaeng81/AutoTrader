@@ -104,6 +104,24 @@ public class DynamicTradingService {
      */
     private static final long BLACK_SWAN_COOLDOWN_MIN = 240;
 
+    /**
+     * BLACK_SWAN_GUARD 차단가 초과 진입을 막는 기간(분) — 쿨다운이 끝난 뒤에도 유지된다.
+     *
+     * <p><b>왜 필요한가 (2026-08-05 실측, 동일 패턴 2건)</b>: 쿨다운은 진입을 <b>지연</b>시킬 뿐
+     * 가격을 보지 않는다. 그 결과 "차단 가격에 안 사고 기다렸다가 더 비싸게 사서 차단 가격
+     * 아래로 손절"이 그대로 재현됐다.</p>
+     * <ul>
+     *   <li>KRW-META2: 08-04 01:06 가드 차단 시점가 <b>8,630</b> → 06:00 <b>9,150</b>(+6.0%)
+     *       진입 → 18:32 <b>8,495</b> 손절. 차단가보다 낮은 값에 팔았다.</li>
+     *   <li>KRW-ELSA: 08-03 01:00~01:45 4회 차단 → 02:00 80.90 진입 → 04:33 74.20 손절.</li>
+     * </ul>
+     * <p>가드가 "이 가격은 위험하다"고 판단했다면 <b>그보다 비싼 가격은 더 위험하다</b>.
+     * 쿨다운 해제 후에도 차단 시점가 이하로 내려온 경우에만 재진입을 허용한다.
+     * 24시간이 지나면 가드 판단의 유효기간이 끝난 것으로 보고 기준가를 폐기한다 —
+     * 그렇지 않으면 상승 추세로 전환된 종목이 영구 차단된다.</p>
+     */
+    private static final long BLACK_SWAN_PRICE_GUARD_MIN = 1440;
+
     // ── 손절폭 (2026-07-31 전면 개편) ──────────────────────────────────────────
     //
     // 개편 전: 세션 고정 stopLossPct(5%) 또는 전략 제안값을 그대로 사용 + 블랙스완 발동 시
@@ -117,13 +135,31 @@ public class DynamicTradingService {
     //
     // 개편 후: SL 폭 = clamp(ATR(14)/가격 × SL_ATR_MULTIPLIER, 세션 stopLossPct, MAX).
     //   변동성이 큰 종목일수록 SL이 **넓어진다**. 세션 설정값은 이제 상한이 아니라 **하한**이다.
+    //
+    // 재조정 (2026-08-05): 개편 자체는 옳았으나 **폭이 과했다**. 07-31~08-05 운영 실측에서
+    //   동적 세션 청산 3건이 전부 손절이고 평균 −7.4%였다. 세부 분해:
+    //   - pos 2386/2387 KRW-META2: ATR 3.48% → SL 폭 **6.96%**, 실현 −7.05%/−7.08%.
+    //     초과분은 체결 오버슛 0.22% + 수수료 0.09%뿐 = **손실의 거의 전부가 SL 폭 자체**.
+    //   - pos 2383 KRW-ELSA: ATR 2.85% → SL 폭 5.70%, 실현 −8.33% (나머지는 아래 감시 지연).
+    //   사용자가 설정한 5%의 1.4~1.7배가 실제로 나갔다. 배수 2.0 → 1.5, 상한 12% → 8%로
+    //   조인다. 하한(세션 stopLossPct)은 그대로라 저변동 종목의 동작은 바뀌지 않는다.
     private static final int SL_ATR_PERIOD = 14;
-    /** ATR 배수 — 2 ATR 밖에 SL을 두어 정상 등락(1 ATR 내외)에 털리지 않게 한다. */
-    private static final BigDecimal SL_ATR_MULTIPLIER = new BigDecimal("2.0");
+    /** ATR 배수 — 1.5 ATR 밖에 SL을 두어 정상 등락(1 ATR 내외)에 털리지 않게 한다. */
+    private static final BigDecimal SL_ATR_MULTIPLIER = new BigDecimal("1.5");
     /** SL 폭 상한 % — 초저유동 종목의 비정상 ATR로 손실이 무한정 커지는 것을 막는 안전판. */
-    private static final BigDecimal SL_PCT_MAX = new BigDecimal("12.0");
+    private static final BigDecimal SL_PCT_MAX = new BigDecimal("8.0");
     /** 익절 = 손절폭 × 이 배수 (손익비 2:1 유지) */
     private static final BigDecimal TP_RR_MULTIPLIER = new BigDecimal("2.0");
+    /**
+     * TP 폭 상한 % — <b>손익비보다 도달 가능성이 우선</b>이다.
+     *
+     * <p><b>근거 (2026-08-05 실측)</b>: TP를 SL 폭의 2배로 따라 키우다 보니 KRW-META2는
+     * TP가 <b>+14.10%</b>로 잡혔다. 넓은 SL은 반드시 맞고 넓은 TP는 사실상 안 맞는다 —
+     * 07-31 개편 이후 5일간 <b>익절 0건 / 손절 3건</b>이 그 결과다. SL 상한(8%)과 짝을 맞춰
+     * TP도 8%로 자른다. 이 구간에서는 손익비가 2:1 아래로 내려가지만, 도달하지 않는 TP의
+     * 명목 손익비보다 실현되는 TP가 낫다.</p>
+     */
+    private static final BigDecimal TP_PCT_MAX = new BigDecimal("8.0");
     private static final BigDecimal MIN_PNL_PCT_FOR_SELL = new BigDecimal("0.30");
     private static final BigDecimal LOSS_ESCAPE_THRESHOLD = new BigDecimal("-1.00");
     private static final BigDecimal FEE_RATE = new BigDecimal("0.0005");
@@ -220,6 +256,12 @@ public class DynamicTradingService {
     // 복원 결과를 검증하기 위해 package-private (resolveStopLossPct·pickBestBuyCandidate와 동일 방침)
     final Map<String, Instant> blackSwanBlockedAt = new ConcurrentHashMap<>();
 
+    /**
+     * BLACK_SWAN_GUARD가 차단한 시점의 가격 — {@link #BLACK_SWAN_PRICE_GUARD_MIN} 진입가 가드 기준.
+     * {@link #blackSwanBlockedAt}와 같은 생애주기로 넣고 지운다.
+     */
+    final Map<String, BigDecimal> blackSwanBlockedPrice = new ConcurrentHashMap<>();
+
     /** 쿨다운 복원 대상을 가려내는 blocked_reason 접두어 (가드 발동분만 — 아래 주석 참조) */
     private static final String BLACK_SWAN_BLOCK_PREFIX = "BLACK_SWAN_GUARD 발동";
 
@@ -242,15 +284,28 @@ public class DynamicTradingService {
     @EventListener(ApplicationReadyEvent.class)
     public void restoreBlackSwanCooldown() {
         try {
-            Instant from = Instant.now().minus(BLACK_SWAN_COOLDOWN_MIN, ChronoUnit.MINUTES);
+            // 진입가 가드(24시간)가 쿨다운(4시간)보다 길므로 더 긴 쪽을 조회 구간으로 잡는다.
+            Instant from = Instant.now().minus(
+                    Math.max(BLACK_SWAN_COOLDOWN_MIN, BLACK_SWAN_PRICE_GUARD_MIN), ChronoUnit.MINUTES);
             List<Object[]> rows = strategyLogRepository.findRecentBlockedCoins(
                     SESSION_KIND, from, BLACK_SWAN_BLOCK_PREFIX);
+            // 오래된 순으로 오므로 순서대로 덮어쓰면 코인별 가장 최근 차단이 남는다.
             for (Object[] row : rows) {
                 if (row[0] == null || row[1] == null) continue;
-                blackSwanBlockedAt.put((String) row[0], (Instant) row[1]);
+                String coinPair = (String) row[0];
+                blackSwanBlockedAt.put(coinPair, (Instant) row[1]);
+                // signalPrice는 과거 로그에 없을 수 있다 — 그 경우 쿨다운만 복원하고
+                // 진입가 가드는 기준가가 없으므로 자동으로 비활성이 된다.
+                if (row[2] != null) {
+                    blackSwanBlockedPrice.put(coinPair, (BigDecimal) row[2]);
+                } else {
+                    blackSwanBlockedPrice.remove(coinPair);
+                }
             }
             if (!rows.isEmpty()) {
-                log.info("[Dynamic] BLACK_SWAN 쿨다운 복원: {}종 {}", rows.size(), blackSwanBlockedAt.keySet());
+                log.info("[Dynamic] BLACK_SWAN 쿨다운 복원: {}종 {} (진입가 가드 기준가 {}종)",
+                        blackSwanBlockedAt.size(), blackSwanBlockedAt.keySet(),
+                        blackSwanBlockedPrice.size());
             }
         } catch (Exception e) {
             log.warn("[Dynamic] BLACK_SWAN 쿨다운 복원 실패 — 가드 본체로 진행: {}", e.getMessage());
@@ -653,19 +708,16 @@ public class DynamicTradingService {
             // 쿨다운 — 가드가 한 번 차단한 코인은 해제 직후가 가장 위험하다 (2026-08-03 실측).
             // 가드는 판단이 옳았고 **유지 시간이 짧았을 뿐**이므로, 해제 후에도 일정 시간 막는다.
             if (gateBlockReason == null && signal.getAction() == StrategySignal.Action.BUY) {
-                Instant blockedAt = blackSwanBlockedAt.get(coinPair);
-                if (blockedAt != null) {
-                    long elapsedMin = Duration.between(blockedAt, Instant.now()).toMinutes();
-                    if (elapsedMin < BLACK_SWAN_COOLDOWN_MIN) {
-                        blackSwanBlocked++;
-                        gateBlockReason = String.format(
-                                "BLACK_SWAN 쿨다운 — %d분 전 차단된 종목 (해제까지 %d분)",
-                                elapsedMin, BLACK_SWAN_COOLDOWN_MIN - elapsedMin);
-                        log.warn("[Dynamic] BLACK_SWAN 쿨다운 — BUY 차단: {} (id={}, 경과 {}분)",
-                                coinPair, sid, elapsedMin);
-                    } else {
-                        blackSwanBlockedAt.remove(coinPair);
-                    }
+                BlackSwanGateDecision decision = evaluateBlackSwanGate(
+                        blackSwanBlockedAt.get(coinPair), blackSwanBlockedPrice.get(coinPair),
+                        evalPrice, Instant.now());
+                if (decision.blockReason() != null) {
+                    blackSwanBlocked++;
+                    gateBlockReason = decision.blockReason();
+                    log.warn("[Dynamic] BUY 차단: {} (id={}) — {}", coinPair, sid, gateBlockReason);
+                } else if (decision.expired()) {
+                    blackSwanBlockedAt.remove(coinPair);
+                    blackSwanBlockedPrice.remove(coinPair);
                 }
             }
 
@@ -675,6 +727,7 @@ public class DynamicTradingService {
                 if (guard.blocked()) {
                     blackSwanBlocked++;
                     blackSwanBlockedAt.put(coinPair, Instant.now());   // 쿨다운 시작
+                    blackSwanBlockedPrice.put(coinPair, evalPrice);    // 진입가 가드 기준가
                     log.warn("[Dynamic] BLACK_SWAN_GUARD 발동 — BUY 차단: {} (id={}): {}",
                             coinPair, sid, guard.reason());
                     gateBlockReason = "BLACK_SWAN_GUARD 발동 — " + guard.reason();
@@ -957,6 +1010,85 @@ public class DynamicTradingService {
         }
     }
 
+    /**
+     * 익절가 결정 — {@code min(진입가 × (1 + SL폭 × 2), 진입가 × (1 + TP_PCT_MAX))}.
+     *
+     * <p>기본은 실제 채택된 SL 폭의 {@link #TP_RR_MULTIPLIER}배(손익비 2:1)지만,
+     * {@link #TP_PCT_MAX}로 자른다. SL만 넓히고 TP를 그대로 두면 손익비가 무너지고,
+     * TP까지 따라 키우면 <b>영영 도달하지 않는다</b> — 07-31~08-05 익절 0건 / 손절 3건이 그 결과다.</p>
+     *
+     * <p>전략 제안 TP가 더 멀면 그 의도를 존중하되, 상한을 넘지는 못한다.</p>
+     */
+    static BigDecimal resolveTakeProfitPrice(BigDecimal currentPrice, BigDecimal stopLossPrice,
+                                             BigDecimal suggestedTakeProfit) {
+        BigDecimal effectiveSlPct = BigDecimal.ONE
+                .subtract(stopLossPrice.divide(currentPrice, 8, RoundingMode.HALF_UP))
+                .multiply(BigDecimal.valueOf(100));
+        BigDecimal targetTpPct = effectiveSlPct.multiply(TP_RR_MULTIPLIER).min(TP_PCT_MAX);
+        BigDecimal atrTakeProfitPrice = currentPrice.multiply(BigDecimal.ONE.add(
+                        targetTpPct.divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP)))
+                .setScale(8, RoundingMode.HALF_UP);
+        if (suggestedTakeProfit == null) {
+            return atrTakeProfitPrice;
+        }
+        BigDecimal tpCeilingPrice = currentPrice.multiply(BigDecimal.ONE.add(
+                        TP_PCT_MAX.divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP)))
+                .setScale(8, RoundingMode.HALF_UP);
+        return suggestedTakeProfit.max(atrTakeProfitPrice).min(tpCeilingPrice);
+    }
+
+    /**
+     * BLACK_SWAN 재진입 게이트 판정 결과.
+     *
+     * @param blockReason 차단 사유 — {@code null}이면 통과
+     * @param expired     가드 이력의 유효기간이 끝나 기록을 폐기해도 되는지
+     */
+    record BlackSwanGateDecision(String blockReason, boolean expired) {}
+
+    private static final BlackSwanGateDecision GATE_PASS = new BlackSwanGateDecision(null, false);
+    private static final BlackSwanGateDecision GATE_EXPIRED = new BlackSwanGateDecision(null, true);
+
+    /**
+     * BLACK_SWAN_GUARD 차단 이력이 있는 코인의 재진입 가부를 판정한다 — 2단 게이트.
+     *
+     * <ol>
+     *   <li><b>쿨다운</b>({@link #BLACK_SWAN_COOLDOWN_MIN}): 차단 직후는 무조건 막는다.
+     *       가드 해제 직후가 가장 위험하다는 08-03 ELSA 실측 근거.</li>
+     *   <li><b>진입가 가드</b>({@link #BLACK_SWAN_PRICE_GUARD_MIN}): 쿨다운이 끝나도
+     *       <b>차단 시점가보다 비싸면</b> 계속 막는다. 가드가 위험하다고 본 가격보다 높은
+     *       가격은 더 위험하다. 08-04 META2(차단가 8,630 → 9,150 진입 → 8,495 손절) 재발 방지.</li>
+     * </ol>
+     *
+     * <p>기준가가 없으면(구 로그 복원 등) 진입가 가드는 자동으로 비활성이며 쿨다운만 작동한다.
+     * 두 기간이 모두 지나면 {@code expired=true}로 알려 호출부가 이력을 지우게 한다 — 그래야
+     * 상승 추세로 돌아선 종목이 영구 차단되지 않는다.</p>
+     */
+    static BlackSwanGateDecision evaluateBlackSwanGate(Instant blockedAt, BigDecimal blockedPrice,
+                                                       BigDecimal currentPrice, Instant now) {
+        if (blockedAt == null) return GATE_PASS;
+
+        long elapsedMin = Duration.between(blockedAt, now).toMinutes();
+        if (elapsedMin < BLACK_SWAN_COOLDOWN_MIN) {
+            return new BlackSwanGateDecision(String.format(
+                    "BLACK_SWAN 쿨다운 — %d분 전 차단된 종목 (해제까지 %d분)",
+                    elapsedMin, BLACK_SWAN_COOLDOWN_MIN - elapsedMin), false);
+        }
+        if (elapsedMin >= BLACK_SWAN_PRICE_GUARD_MIN) {
+            return GATE_EXPIRED;   // 가드 판단의 유효기간 종료 — 이력 폐기
+        }
+        boolean priceGuardActive = blockedPrice != null
+                && blockedPrice.compareTo(BigDecimal.ZERO) > 0
+                && currentPrice != null
+                && currentPrice.compareTo(blockedPrice) > 0;
+        if (priceGuardActive) {
+            return new BlackSwanGateDecision(String.format(
+                    "BLACK_SWAN 진입가 가드 — 차단 시점가 %s 초과 (현재 %s, 경과 %d분)",
+                    blockedPrice.toPlainString(), currentPrice.toPlainString(), elapsedMin), false);
+        }
+        // 쿨다운은 끝났고 가격도 차단가 이하로 내려왔다 — 진입 허용하고 이력도 폐기한다.
+        return GATE_EXPIRED;
+    }
+
     /** @return {@code null}이면 매수 주문 제출 성공, 아니면 차단 사유 (신호품질 로그용) */
     @Transactional
     public String executeBuy(DynamicSessionEntity session, String coinPair,
@@ -998,18 +1130,8 @@ public class DynamicTradingService {
                 ? signal.getSuggestedStopLoss().min(atrStopLossPrice)
                 : atrStopLossPrice;
 
-        // TP는 실제 채택된 SL 폭 기준으로 재산출해 손익비 2:1을 유지한다.
-        // (SL만 넓히고 TP를 그대로 두면 손익비가 무너진다)
-        BigDecimal effectiveSlPct = BigDecimal.ONE
-                .subtract(stopLossPrice.divide(currentPrice, 8, RoundingMode.HALF_UP))
-                .multiply(BigDecimal.valueOf(100));
-        BigDecimal atrTakeProfitPrice = currentPrice.multiply(BigDecimal.ONE.add(
-                        effectiveSlPct.multiply(TP_RR_MULTIPLIER)
-                                .divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP)))
-                .setScale(8, RoundingMode.HALF_UP);
-        BigDecimal takeProfitPrice = signal.getSuggestedTakeProfit() != null
-                ? signal.getSuggestedTakeProfit().max(atrTakeProfitPrice)
-                : atrTakeProfitPrice;
+        BigDecimal takeProfitPrice = resolveTakeProfitPrice(
+                currentPrice, stopLossPrice, signal.getSuggestedTakeProfit());
 
         PositionEntity pos = PositionEntity.builder()
                 .coinPair(coinPair)

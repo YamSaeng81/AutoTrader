@@ -1815,6 +1815,20 @@ public class LiveTradingService {
      * §9 — WS 끊김 >30초 지속 시 REST ticker 로 실시간 가격 대체 폴링.
      * WS 가 복구되면 자동으로 비활성화된다.
      * 5초 주기 — 평상시 WS 가 살아있으면 첫 조건문에서 즉시 리턴하므로 부하 거의 없음.
+     *
+     * <p><b>폴백 대상 = WS 구독 목록 전체 (2026-08-05 수정)</b>. 이전에는 대상 코인을
+     * {@code live_trading_session}에서만 뽑아, <b>동적(멀티코인) 세션이 보유한 코인은 폴백에서
+     * 통째로 빠졌다</b>. 그 결과 WS가 멎으면 동적 세션의 SL 감시는 60초 폴링만 남는다.</p>
+     *
+     * <p>실측 피해 — 2026-08-03 pos 2383 KRW-ELSA: SL 76.19를 뚫었는데 <b>74.50에서야</b>
+     * 60초 폴링이 잡아(2.21%p 초과) 최종 −8.33%로 청산됐다. 청산 사유가
+     * {@code 손절}(폴링)이고 하루 뒤 KRW-META2는 {@code 실시간 손절(WS)}로 정상 동작한 것이
+     * 이 경로 누락의 증거다. 이제 {@link WsSubscriptionManager#getSubscribedCoins()}를 쓰므로
+     * LIVE·DYNAMIC 어느 쪽이 늘어도 폴백이 자동으로 따라간다.</p>
+     *
+     * <p><b>남는 한계</b>: {@code isWsUnhealthy}는 전역 틱 신선도만 본다. LIVE 코인(BTC 등)이
+     * 계속 틱을 주는 동안 특정 코인의 구독만 조용히 끊기면 폴백이 발동하지 않는다.
+     * 코인별 틱 신선도 추적은 별도 과제.</p>
      */
     @Scheduled(fixedDelay = 5_000)
     public void pollRestTickerFallback() {
@@ -1828,20 +1842,17 @@ public class LiveTradingService {
         }
         if (upbitRestClient == null) return;
 
-        List<LiveTradingSessionEntity> sessions = sessionRepository.findByStatus("RUNNING");
-        if (sessions.isEmpty()) return;
+        // 감시 중인 전 코인 = WS 구독 합집합 (LIVE + DYNAMIC). 세션 테이블을 직접 훑지 않는다.
+        List<String> coins = wsSubscriptionManager.getSubscribedCoins();
+        if (coins.isEmpty()) return;
 
         if (!restFallbackActive) {
-            log.warn("[§9] WS 이상(끊김/틱정지) >{}초 지속 — REST ticker fallback 활성화 (RUNNING 세션 {}개)",
-                    WS_FALLBACK_THRESHOLD_SEC, sessions.size());
+            log.warn("[§9] WS 이상(끊김/틱정지) >{}초 지속 — REST ticker fallback 활성화 (감시 코인 {}개 {})",
+                    WS_FALLBACK_THRESHOLD_SEC, coins.size(), coins);
             restFallbackActive = true;
         }
 
-        // RUNNING 세션의 고유 코인 목록
-        String markets = sessions.stream()
-                .map(LiveTradingSessionEntity::getCoinPair)
-                .distinct()
-                .collect(Collectors.joining(","));
+        String markets = String.join(",", coins);
 
         try {
             List<Map<String, Object>> tickers = upbitRestClient.getTicker(markets);

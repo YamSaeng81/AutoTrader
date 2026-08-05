@@ -41,9 +41,20 @@ public class WsSubscriptionManager {
         recompute();
     }
 
-    private void recompute() {
-        if (wsClient == null) return;
+    /**
+     * 현재 구독 중인 전체 코인(모든 소스의 합집합).
+     *
+     * <p>WS가 끊겼을 때의 REST 폴백은 <b>반드시 이 목록</b>을 대상으로 해야 한다. 소스별
+     * 세션 테이블(LIVE만, DYNAMIC만)을 따로 훑으면 한쪽이 통째로 누락된다 —
+     * 실제로 2026-08-03 KRW-ELSA 건이 그렇게 빠졌다 ({@code pollRestTickerFallback} 주석 참조).</p>
+     */
+    public List<String> getSubscribedCoins() {
+        return lastSubscribed;
+    }
 
+    private void recompute() {
+        // 합집합 계산은 wsClient 유무와 무관하게 항상 수행한다 — getSubscribedCoins()가
+        // REST 폴백의 기준 목록이므로, 클라이언트 빈이 없다고 이 상태가 비어 있으면 안 된다.
         List<String> union = coinsBySource.values().stream()
                 .flatMap(List::stream)
                 .distinct()
@@ -54,6 +65,8 @@ public class WsSubscriptionManager {
             return; // 변경 없음 — 불필요한 재연결 방지
         }
         lastSubscribed = union;
+
+        if (wsClient == null) return;   // 구독 부수효과만 스킵
 
         if (union.isEmpty()) {
             wsClient.disconnect();
