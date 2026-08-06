@@ -13,6 +13,12 @@ import com.cryptoautotrader.api.repository.paper.PaperOrderRepository;
 import com.cryptoautotrader.api.repository.paper.PaperPositionRepository;
 import com.cryptoautotrader.api.repository.paper.VirtualBalanceRepository;
 import com.cryptoautotrader.api.util.TimeframeUtils;
+import com.cryptoautotrader.core.regime.MarketRegime;
+import com.cryptoautotrader.core.regime.MarketRegimeDetector;
+import com.cryptoautotrader.core.selector.BlackSwanGuard;
+import com.cryptoautotrader.core.selector.BtcMarketGuard;
+import com.cryptoautotrader.core.selector.Ema200RegimeGate;
+import com.cryptoautotrader.core.selector.RangeRegimeGate;
 import com.cryptoautotrader.exchange.upbit.UpbitCandleCollector;
 import com.cryptoautotrader.exchange.upbit.UpbitRestClient;
 import com.cryptoautotrader.strategy.Candle;
@@ -31,6 +37,7 @@ import com.cryptoautotrader.api.dto.MultiStrategyPaperRequest;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -45,14 +52,56 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class PaperTradingService {
 
-    private static final int MAX_CONCURRENT_SESSIONS = 20;
+    /**
+     * 동시 실행 가능한 모의투자 세션 수.
+     *
+     * <p>2026-08-06 20 → 120으로 상향. 목적은 <b>코인 N개 × 전략 M개 격자 실험</b>이다
+     * (예: 10코인 × 10전략 = 100세션). 실자본 매매가 시장 대비 알파 음수인 상태에서,
+     * 실전 진입 빈도(6일 8거래)로는 통계적 유의성에 영원히 도달하지 못한다는 판단에 따른 것.</p>
+     *
+     * <p>세션 수가 늘어도 캔들 조회는 {@code (coinPair, timeframe)} 조합 수만큼만 발생한다
+     * (아래 틱 단위 캐시). 100세션이 10코인을 쓰면 조회는 11회(코인 10 + BTC 가드 1)다.</p>
+     */
+    private static final int MAX_CONCURRENT_SESSIONS = 120;
     private static final BigDecimal FEE_RATE = new BigDecimal("0.0005");
     // 백테스트(BacktestEngine.MAX_LOOKBACK)·실거래(LiveTradingService.CANDLE_LOOKBACK)와 동일하게
     // 맞춰야 페이퍼 승격 판단이 실거래 신호와 같은 조건에서 검증된다.
     private static final int CANDLE_LOOKBACK = 500;
 
+    // ── LIVE 정렬 상수 (2026-08-06) ───────────────────────────────────────────
+    // 아래 3개는 LiveTradingService의 동일 이름 상수와 값이 반드시 같아야 한다.
+    // 하나라도 어긋나면 "페이퍼에서 검증하고 실전에 올린다"는 절차가 다시 성립하지 않는다.
+
+    /** 전략 SELL 최소 보유시간(분) — 진입 직후 동가 청산 패턴 차단. SL/TP는 이 게이트와 무관하게 항상 동작. */
+    private static final long MIN_HOLD_MINUTES_FOR_SIGNAL_EXIT = 180;
+    /** 본전 청산 차단 하한(%) — 이 미만 수익에서의 전략 SELL은 무시한다. */
+    private static final BigDecimal MIN_PNL_PCT_FOR_SIGNAL_EXIT = new BigDecimal("0.30");
+    /** 손실 탈출 임계(%) — 이보다 더 잃고 있으면 본전 청산 차단을 풀어 전략 SELL을 허용한다. */
+    private static final BigDecimal LOSS_ESCAPE_THRESHOLD = new BigDecimal("-1.00");
+
+    /** 업비트 최소 주문금액(KRW) — 실거래에서 못 넣는 주문을 페이퍼가 체결하면 모집단이 어긋난다. */
+    private static final BigDecimal MIN_ORDER_KRW = new BigDecimal("5000");
+
+    /**
+     * 체결 슬리피지(0.001 = 0.1%) — 매수는 불리하게 높게, 매도는 불리하게 낮게 체결시킨다.
+     *
+     * <p>기존 페이퍼는 캔들 종가에 <b>정확히</b> 체결시켜 실거래에 없는 이점을 누렸다.
+     * 백테스트(`BacktestEngine`)가 쓰는 0.1%와 같은 값으로 맞춰 세 엔진(백테스트·페이퍼·실전)의
+     * 체결 가정을 통일한다. 실측 슬리피지는 LIVE BTC 기준 0.1% 수준이었다.</p>
+     */
+    private static final BigDecimal SLIPPAGE_PCT = new BigDecimal("0.001");
+
     /** Stateful 전략 세션별 인스턴스 (COMPOSITE, COMPOSITE_MOMENTUM 등 상태 보유 전략) */
     private final Map<Long, com.cryptoautotrader.strategy.Strategy> sessionStatefulStrategies = new ConcurrentHashMap<>();
+
+    /**
+     * 세션별 마지막으로 평가한 <b>닫힌</b> 캔들 시각 — LIVE의 {@code lastEvaluatedClosedCandle}와 동일 목적.
+     *
+     * <p>이게 없으면 60초 스케줄이 같은 미완성 캔들을 반복 평가한다. 실전은 캔들이 닫힐 때
+     * 1회만 평가하는데 페이퍼가 같은 캔들을 60번 다시 보면서 그때그때 변하는 종가로 판단하면,
+     * 실전에 존재하지 않는 미세한 정보 이점이 생겨 성과가 부풀려진다.</p>
+     */
+    private final Map<Long, Instant> lastEvaluatedClosedCandle = new ConcurrentHashMap<>();
 
     private final VirtualBalanceRepository balanceRepo;
     private final PaperPositionRepository positionRepo;
@@ -121,6 +170,10 @@ public class PaperTradingService {
                 .status("RUNNING")
                 .startedAt(Instant.now())
                 .telegramEnabled(req.isEnableTelegram())
+                // LIVE 세션과 동일 조건으로 돌리기 위한 설정 (V66) — 미지정이면 risk_config 기본값으로 폴백
+                .stopLossPct(req.getStopLossPct())
+                .investRatio(req.getInvestRatio())
+                .maxHoldHours(req.getMaxHoldHours())
                 .build();
 
         log.info("모의투자 세션 시작: {} {} {} 초기자본={}",
@@ -491,69 +544,162 @@ public class PaperTradingService {
     @Scheduled(fixedDelay = 60_000, initialDelay = 35_000)
     public void runStrategy() {
         List<VirtualBalanceEntity> runningSessions = balanceRepo.findByStatusOrderByStartedAtAsc("RUNNING");
+        if (runningSessions.isEmpty()) return;
+
+        // 이번 틱 동안만 유효한 캔들 캐시 — 격자 실험(코인 N × 전략 M)에서 같은 (코인,타임프레임)을
+        // 세션마다 다시 조회하는 낭비를 없앤다. 100세션이 10코인을 쓰면 500행 쿼리가 200회 → 11회
+        // (코인 10 + BTC 가드 1)로 줄어든다. 틱마다 새로 만들므로 stale 데이터 위험은 없다.
+        Map<String, List<Candle>> tickCandleCache = new java.util.HashMap<>();
+
         for (VirtualBalanceEntity session : runningSessions) {
             try {
-                runSessionStrategy(session);
+                runSessionStrategy(session, tickCandleCache);
             } catch (Exception e) {
                 log.error("모의투자 전략 실행 오류 (sessionId={}): {}", session.getId(), e.getMessage(), e);
             }
         }
     }
 
+    /** 틱 캐시를 경유한 캔들 조회 — 같은 (코인, 타임프레임)은 틱당 1회만 DB를 친다. */
+    private List<Candle> candlesFor(String coinPair, String timeframe,
+                                     Map<String, List<Candle>> tickCandleCache) {
+        return tickCandleCache.computeIfAbsent(
+                coinPair + ":" + timeframe, k -> fetchRecentCandles(coinPair, timeframe));
+    }
+
     // ── 내부 메서드 ───────────────────────────────────────────
 
-    private void runSessionStrategy(VirtualBalanceEntity session) {
+    /**
+     * 세션 1회 평가 — <b>{@code LiveTradingService.processSessionTick}과 동일한 순서·게이트</b>로 구성한다.
+     *
+     * <p><b>2026-08-06 LIVE 정렬</b>: 이전 구현은 게이트가 하나도 없이 신호가 나오는 대로 매매했다.
+     * 실전 로그에서 "BUY 신호 86건 전량 진입 게이트 차단"처럼 대부분의 BUY가 걸러지는데도
+     * 페이퍼는 그걸 전부 체결해, 두 엔진의 <b>거래 모집단 자체가 달랐다</b>. 그 상태의 페이퍼 성적은
+     * 실전 예측에 쓸 수 없다. 아래 순서·상수는 LIVE와 1:1로 맞춰야 하며, 한쪽만 바꾸면 안 된다.</p>
+     *
+     * <p><b>의도적으로 적용하지 않는 LIVE 로직</b>(자본 배정 게이트라 페이퍼의 목적과 상충):
+     * {@code StrategyLiveStatusRegistry.isBlocked}, {@code WalkForwardValidationGate},
+     * {@code §8 cross-session 잔고 가드}. 페이퍼는 <b>미검증 전략을 검증하기 위한</b> 도구이므로
+     * "검증되지 않아 차단" 규칙을 적용하면 존재 이유가 사라진다.</p>
+     */
+    private void runSessionStrategy(VirtualBalanceEntity session,
+                                     Map<String, List<Candle>> tickCandleCache) {
+        Long sessionId = session.getId();
         String coinPair = session.getCoinPair();
         String timeframe = session.getTimeframe();
         String strategyName = session.getStrategyName();
 
-        List<Candle> candles = fetchRecentCandles(coinPair, timeframe);
+        List<Candle> candles = candlesFor(coinPair, timeframe, tickCandleCache);
         if (candles.size() < 10) {
-            log.warn("모의투자 캔들 부족: {} {}건 (sessionId={})", coinPair, candles.size(), session.getId());
+            log.warn("모의투자 캔들 부족: {} {}건 (sessionId={})", coinPair, candles.size(), sessionId);
             return;
         }
 
-        com.cryptoautotrader.strategy.Strategy strategyInstance =
-                StrategyRegistry.isStateful(strategyName)
-                        ? sessionStatefulStrategies.computeIfAbsent(session.getId(),
-                                id -> StrategyRegistry.createNew(strategyName))
-                        : StrategyRegistry.get(strategyName);
-        StrategySignal signal = strategyInstance.evaluate(candles, Collections.emptyMap());
-        log.info("모의투자 신호 (sessionId={}): {} {} → {} ({})",
-                session.getId(), strategyName, coinPair, signal.getAction(), signal.getReason());
+        BigDecimal currentPrice = candles.get(candles.size() - 1).getClose();
 
-        // 전략 로그 DB 저장
-        try {
-            BigDecimal conf = (signal.getAction() != com.cryptoautotrader.strategy.StrategySignal.Action.HOLD)
-                    ? signal.getStrength().divide(java.math.BigDecimal.valueOf(100), 4, java.math.RoundingMode.HALF_UP)
-                    : null;
-            StrategyLogEntity logEntity = StrategyLogEntity.builder()
-                    .strategyName(strategyName)
-                    .coinPair(coinPair)
-                    .signal(signal.getAction().name())
-                    .reason(signal.getReason())
-                    .marketRegime(null)
-                    .sessionType("PAPER")
-                    .sessionId(session.getId())
-                    // signalPrice 누락 시 SignalQualityService 사후 평가(4h/24h)에서 영구 제외된다
-                    // — 2026-07-15 운영 DB 분석: PAPER 로그 24,820건 전량 signal_price NULL의 원인.
-                    .signalPrice(candles.get(candles.size() - 1).getClose())
-                    .confidenceScore(conf)
-                    .build();
-            strategyLogRepo.save(logEntity);
-        } catch (Exception e) {
-            log.warn("전략 로그 저장 실패: {}", e.getMessage());
+        // 전략 평가 전 시장 레짐 선감지 — RANGE 게이트 판정에 사용.
+        // detectRaw() 사용 이유는 LIVE와 동일(매번 새 detector라 hysteresis가 항상 RANGE로 오판됨).
+        MarketRegime preEvalRegime = null;
+        if (candles.size() >= MarketRegimeDetector.MIN_CANDLE_COUNT) {
+            try {
+                preEvalRegime = new MarketRegimeDetector().detectRaw(candles);
+            } catch (Exception e) {
+                log.warn("레짐 선감지 실패 (sessionId={}): {}", sessionId, e.getMessage());
+            }
         }
 
-        BigDecimal currentPrice = candles.get(candles.size() - 1).getClose();
-        Optional<PaperPositionEntity> openPos = positionRepo
-                .findBySessionIdAndCoinPairAndStatus(session.getId(), coinPair, "OPEN");
+        // 안전장치 2종은 닫힌 캔들 게이팅과 무관하게 매 tick 최신 캔들로 평가한다 (LIVE 동일).
+        BlackSwanGuard.Result blackSwanGuard = BlackSwanGuard.check(candles);
+        List<Candle> btcCandles = "KRW-BTC".equals(coinPair)
+                ? candles : candlesFor("KRW-BTC", timeframe, tickCandleCache);
+        BtcMarketGuard.Result btcMarketGuard = BtcMarketGuard.check(btcCandles);
 
-        // ── 손절/익절 체크 (전략 신호보다 우선 — ExitRuleChecker 공통 로직) ──
+        // ── 닫힌 캔들 게이팅 ──────────────────────────────────────────────────
+        long periodMin = TimeframeUtils.toMinutes(timeframe);
+        Instant lastCandleTime = candles.get(candles.size() - 1).getTime();
+        boolean lastCandleClosed = !lastCandleTime.plus(periodMin, ChronoUnit.MINUTES).isAfter(Instant.now());
+        List<Candle> evalCandles = (lastCandleClosed || candles.size() < 2)
+                ? candles : candles.subList(0, candles.size() - 1);
+        Instant closedCandleTime = evalCandles.get(evalCandles.size() - 1).getTime();
+        Instant prevEvaluated = lastEvaluatedClosedCandle.get(sessionId);
+        boolean newClosedCandle = prevEvaluated == null || closedCandleTime.isAfter(prevEvaluated);
+
+        StrategySignal signal;
+        StrategyLogEntity savedSignalLog = null;
+        if (!newClosedCandle) {
+            // 이미 평가한 닫힌 캔들 — 전략 평가 스킵. 손절/익절/타임스톱 감시는 아래에서 계속된다.
+            signal = StrategySignal.hold("닫힌 캔들 미갱신 — 전략 평가 스킵");
+        } else {
+            lastEvaluatedClosedCandle.put(sessionId, closedCandleTime);
+
+            com.cryptoautotrader.strategy.Strategy strategyInstance =
+                    StrategyRegistry.isStateful(strategyName)
+                            ? sessionStatefulStrategies.computeIfAbsent(sessionId,
+                                    id -> StrategyRegistry.createNew(strategyName))
+                            : StrategyRegistry.get(strategyName);
+
+            Map<String, Object> params = new java.util.HashMap<>();
+            params.put("coinPair", coinPair);
+            if (session.getStartedAt() != null) {
+                params.put("sessionStartedAt", session.getStartedAt().toEpochMilli());
+            }
+            signal = strategyInstance.evaluate(evalCandles, params);
+            log.info("모의투자 신호 (sessionId={}): {} {} → {} ({})",
+                    sessionId, strategyName, coinPair, signal.getAction(), signal.getReason());
+
+            // ── 진입 게이트 4종 (LIVE와 동일 순서) ──────────────────────────
+            boolean ema200Pass = Ema200RegimeGate.isExempt(strategyName)
+                    || Ema200RegimeGate.allowsBuy(evalCandles, coinPair);
+            if (signal.getAction() == StrategySignal.Action.BUY && !ema200Pass) {
+                signal = StrategySignal.hold("EMA200 레짐 필터 — 현재가 EMA200 이하");
+            }
+
+            if (preEvalRegime == MarketRegime.RANGE
+                    && signal.getAction() == StrategySignal.Action.BUY
+                    && RangeRegimeGate.isBlocked(strategyName)) {
+                signal = StrategySignal.hold("RANGE 레짐 — 추세 추종 전략 횡보장 신규 진입 차단");
+            }
+
+            if (signal.getAction() == StrategySignal.Action.BUY && blackSwanGuard.triggered()) {
+                signal = StrategySignal.hold("BLACK_SWAN_GUARD 발동 — " + blackSwanGuard.reason());
+            }
+
+            if (signal.getAction() == StrategySignal.Action.BUY && btcMarketGuard.triggered()) {
+                signal = StrategySignal.hold("BTC_MARKET_GUARD 발동 — " + btcMarketGuard.reason());
+            }
+
+            // 전략 로그 DB 저장
+            try {
+                BigDecimal conf = (signal.getAction() != StrategySignal.Action.HOLD)
+                        ? signal.getStrength().divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP)
+                        : null;
+                StrategyLogEntity logEntity = StrategyLogEntity.builder()
+                        .strategyName(strategyName)
+                        .coinPair(coinPair)
+                        .signal(signal.getAction().name())
+                        .reason(signal.getReason())
+                        .marketRegime(preEvalRegime != null ? preEvalRegime.name() : null)
+                        .sessionType("PAPER")
+                        .sessionId(sessionId)
+                        // signalPrice 누락 시 SignalQualityService 사후 평가(4h/24h)에서 영구 제외된다
+                        // — 2026-07-15 운영 DB 분석: PAPER 로그 24,820건 전량 signal_price NULL의 원인.
+                        .signalPrice(currentPrice)
+                        .confidenceScore(conf)
+                        .build();
+                savedSignalLog = strategyLogRepo.save(logEntity);
+            } catch (Exception e) {
+                log.warn("전략 로그 저장 실패: {}", e.getMessage());
+            }
+        }
+
+        Optional<PaperPositionEntity> openPos = positionRepo
+                .findBySessionIdAndCoinPairAndStatus(sessionId, coinPair, "OPEN");
+
+        // ── 손절/익절/타임스톱 (전략 신호보다 우선) ──────────────────────────
         if (openPos.isPresent()) {
             PaperPositionEntity pos = openPos.get();
 
-            // 트레일링 스탑 갱신
+            // 트레일링 스탑 갱신 (ExitRuleChecker 공통 로직)
             if (pos.getStopLossPrice() != null && pos.getTakeProfitPrice() != null && pos.getEntryPrice() != null) {
                 var updatedLevels = exitChecker().updateTrailingStops(
                         currentPrice, currentPrice, pos.getEntryPrice(),
@@ -570,8 +716,19 @@ public class PaperTradingService {
                     currentPrice, pos.getStopLossPrice(), pos.getTakeProfitPrice());
             if (exitCheck.isShouldExit()) {
                 log.warn("모의투자 {} (sessionId={}): {} 현재가={}",
-                        exitCheck.getReason(), session.getId(), coinPair, currentPrice);
+                        exitCheck.getReason(), sessionId, coinPair, currentPrice);
                 closePosition(pos, currentPrice, session, exitCheck.getReason());
+                return;
+            }
+
+            // time stop — LIVE와 동일하게 ExitRuleCalculator로 판정. 기본 비활성(0)이라
+            // 명시적으로 켠 세션에만 영향을 준다.
+            if (ExitRuleCalculator.shouldTimeStop(session.getMaxHoldHours(), pos.getOpenedAt(), Instant.now())) {
+                long heldHours = Duration.between(pos.getOpenedAt(), Instant.now()).toHours();
+                log.warn("모의투자 시간 초과 청산 (sessionId={}): {} 보유 {}h ≥ {}h",
+                        sessionId, coinPair, heldHours, session.getMaxHoldHours());
+                closePosition(pos, currentPrice, session, String.format(
+                        "시간 초과 청산 — 보유 %d시간 ≥ %d시간", heldHours, session.getMaxHoldHours()));
                 return;
             }
         }
@@ -580,36 +737,119 @@ public class PaperTradingService {
         switch (signal.getAction()) {
             case BUY -> {
                 if (openPos.isEmpty()) {
-                    executeBuy(session.getId(), coinPair, currentPrice, session, finalSignal);
+                    boolean bought = executeBuy(sessionId, coinPair, currentPrice, session, finalSignal, evalCandles);
+                    saveSignalQuality(savedSignalLog, bought, bought ? null : "매수 실행 실패(최소주문/잔고 미달)");
+                } else {
+                    saveSignalQuality(savedSignalLog, false, "이미 포지션 보유 중");
                 }
             }
-            case SELL -> openPos.ifPresent(pos -> closePosition(pos, currentPrice, session, finalSignal.getReason()));
-            default -> { /* HOLD */ }
+            case SELL -> {
+                if (openPos.isPresent()) {
+                    PaperPositionEntity pos = openPos.get();
+                    long heldMinutes = pos.getOpenedAt() != null
+                            ? Duration.between(pos.getOpenedAt(), Instant.now()).toMinutes()
+                            : Long.MAX_VALUE;
+                    BigDecimal heldPnlPct = (pos.getAvgPrice() != null
+                            && pos.getAvgPrice().compareTo(BigDecimal.ZERO) > 0)
+                            ? currentPrice.subtract(pos.getAvgPrice())
+                                    .divide(pos.getAvgPrice(), 6, RoundingMode.HALF_UP)
+                                    .multiply(BigDecimal.valueOf(100))
+                                    .setScale(3, RoundingMode.HALF_UP)
+                            : BigDecimal.ZERO;
+
+                    if (heldMinutes < MIN_HOLD_MINUTES_FOR_SIGNAL_EXIT) {
+                        String blockReason = String.format(
+                                "최소 보유시간 미달: %d분 < %d분 (pnl=%s%%, 전략 SELL 차단, SL/TP는 유효)",
+                                heldMinutes, MIN_HOLD_MINUTES_FOR_SIGNAL_EXIT, heldPnlPct.toPlainString());
+                        log.info("모의투자 SELL 차단 (sessionId={}): {} {}", sessionId, coinPair, blockReason);
+                        saveSignalQuality(savedSignalLog, false, blockReason);
+                    } else if (heldPnlPct.compareTo(MIN_PNL_PCT_FOR_SIGNAL_EXIT) < 0
+                            && heldPnlPct.compareTo(LOSS_ESCAPE_THRESHOLD) >= 0) {
+                        String blockReason = String.format(
+                                "본전 청산 차단: pnl=%s%% < +%s%% (전략 SELL 무시, SL/TP/트레일링은 유효)",
+                                heldPnlPct.toPlainString(), MIN_PNL_PCT_FOR_SIGNAL_EXIT.toPlainString());
+                        log.info("모의투자 SELL 차단 (sessionId={}): {} {}", sessionId, coinPair, blockReason);
+                        saveSignalQuality(savedSignalLog, false, blockReason);
+                    } else {
+                        closePosition(pos, currentPrice, session, String.format(
+                                "전략 신호: %s -- %s (pnl=%s%%)",
+                                strategyName, finalSignal.getReason(), heldPnlPct.toPlainString()));
+                        saveSignalQuality(savedSignalLog, true, null);
+                    }
+                } else {
+                    saveSignalQuality(savedSignalLog, false, "청산할 포지션 없음");
+                }
+            }
+            default -> { /* HOLD — 신호 품질 추적 불필요 */ }
         }
 
-        updateUnrealizedPnl(session.getId(), coinPair, currentPrice, session);
+        updateUnrealizedPnl(sessionId, coinPair, currentPrice, session);
     }
 
-    private void executeBuy(Long sessionId, String coinPair, BigDecimal price,
-                             VirtualBalanceEntity session, StrategySignal signal) {
-        BigDecimal investAmount = exitChecker().calculateInvestAmount(session.getAvailableKrw());
-        if (investAmount.compareTo(BigDecimal.ZERO) == 0) {
-            log.warn("모의투자 매수 불가: 가용 자금 부족 ({}) sessionId={}", session.getAvailableKrw(), sessionId);
-            return;
+    /** 신호 품질(실행 여부/차단 사유) 기록 — LIVE의 동명 메서드와 동일 목적. */
+    private void saveSignalQuality(StrategyLogEntity logEntity, boolean wasExecuted, String blockedReason) {
+        if (logEntity == null) return;
+        try {
+            logEntity.setWasExecuted(wasExecuted);
+            logEntity.setBlockedReason(blockedReason);
+            strategyLogRepo.save(logEntity);
+        } catch (Exception e) {
+            log.warn("신호 품질 로그 업데이트 실패: {}", e.getMessage());
         }
+    }
+
+    /**
+     * 모의 매수 — LIVE {@code executeSessionBuy}와 동일한 투자금 산정·SL/TP 공식·최소주문 제약을 쓴다.
+     *
+     * @param evalCandles ATR 기반 손절폭 산정용 (닫힌 캔들 기준 — LIVE와 동일)
+     * @return 실제로 체결됐으면 true (신호 품질 로그의 wasExecuted에 그대로 반영)
+     */
+    private boolean executeBuy(Long sessionId, String coinPair, BigDecimal signalPrice,
+                                VirtualBalanceEntity session, StrategySignal signal,
+                                List<Candle> evalCandles) {
+        // 투자금: LIVE와 동일하게 availableKrw × investRatio (세션값 우선, 없으면 risk_config 기본값)
+        BigDecimal ratio = session.getInvestRatio() != null
+                ? session.getInvestRatio() : exitChecker().getConfig().getInvestRatio();
+        BigDecimal investAmount = session.getAvailableKrw().multiply(ratio)
+                .setScale(2, RoundingMode.DOWN);
+
+        // 업비트 최소 주문금액 — 실거래에서 못 넣는 주문은 페이퍼도 넣지 않는다.
+        if (investAmount.compareTo(MIN_ORDER_KRW) < 0) {
+            log.warn("모의투자 매수 불가: 최소주문 미달 (투자가능 {}원 < {}원) sessionId={}",
+                    investAmount, MIN_ORDER_KRW, sessionId);
+            return false;
+        }
+
+        // 체결 슬리피지 — 매수는 신호가보다 불리하게(높게) 체결된다.
+        BigDecimal price = signalPrice.multiply(BigDecimal.ONE.add(SLIPPAGE_PCT))
+                .setScale(8, RoundingMode.HALF_UP);
 
         BigDecimal fee = investAmount.multiply(FEE_RATE);
         BigDecimal netAmount = investAmount.subtract(fee);
         BigDecimal quantity = netAmount.divide(price, 8, RoundingMode.DOWN);
+        if (quantity.compareTo(BigDecimal.ZERO) <= 0) {
+            return false;
+        }
 
         // avgPrice = 수수료 포함 실제 취득단가 (investAmount / quantity)
         // 이렇게 해야 closePosition 에서 costBasis = investAmount 가 되어 정확한 실현손익 계산
         BigDecimal avgPriceWithFee = investAmount.divide(quantity, 8, RoundingMode.HALF_UP);
 
-        // 손절/익절가 계산: ExitRuleChecker 공통 로직 (전략 제안값 우선, 없으면 실전매매 기본값)
-        var stopLevels = exitChecker().calculateStopLevels(price, signal);
-        BigDecimal stopLossPrice = stopLevels.getStopLossPrice();
-        BigDecimal takeProfitPrice = stopLevels.getTakeProfitPrice();
+        // ── SL/TP: ATR 기반 (LIVE·DYNAMIC과 ExitRuleCalculator 공유) ──────────
+        // 기존에는 ExitRuleChecker의 고정 % 공식을 써서 실전과 손절폭이 달랐다.
+        BigDecimal slPct = ExitRuleCalculator.resolveStopLossPct(
+                session.getStopLossPct(), evalCandles, price);
+        BigDecimal atrStopLossPrice = price.multiply(BigDecimal.ONE.subtract(
+                        slPct.divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP)))
+                .setScale(8, RoundingMode.HALF_DOWN);
+
+        // 전략 제안 SL은 존중하되 더 넓은 쪽을 채택 (타이트한 제안은 휩쏘로 이어진다 — LIVE 동일)
+        BigDecimal stopLossPrice = (signal != null && signal.getSuggestedStopLoss() != null)
+                ? signal.getSuggestedStopLoss().min(atrStopLossPrice)
+                : atrStopLossPrice;
+
+        BigDecimal takeProfitPrice = ExitRuleCalculator.resolveTakeProfitPrice(
+                price, stopLossPrice, signal != null ? signal.getSuggestedTakeProfit() : null);
 
         PaperPositionEntity pos = PaperPositionEntity.builder()
                 .sessionId(sessionId)
@@ -653,10 +893,15 @@ public class PaperTradingService {
                     "[모의투자] 세션#" + sessionId, coinPair, "BUY",
                     price, quantity, fee, null, signal.getReason());
         }
+        return true;
     }
 
-    private void closePosition(PaperPositionEntity pos, BigDecimal currentPrice,
+    private void closePosition(PaperPositionEntity pos, BigDecimal signalPrice,
                                VirtualBalanceEntity session, String reason) {
+        // 체결 슬리피지 — 매도는 신호가보다 불리하게(낮게) 체결된다 (매수 반대 방향).
+        BigDecimal currentPrice = signalPrice.multiply(BigDecimal.ONE.subtract(SLIPPAGE_PCT))
+                .setScale(8, RoundingMode.HALF_DOWN);
+
         BigDecimal proceeds = pos.getSize().multiply(currentPrice);
         BigDecimal fee = proceeds.multiply(FEE_RATE);
         BigDecimal netProceeds = proceeds.subtract(fee);

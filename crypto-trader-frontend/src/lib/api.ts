@@ -349,6 +349,7 @@ export const dynamicSessionApi = {
         stopLossPct?: number; investRatio?: number;
         maxCandidateSize?: number; targetWatchSize?: number;
         minAtrPct?: number; maxSpreadPct?: number; watchlistRefreshMin?: number;
+        tradingMode?: 'REAL' | 'PAPER';
     }) =>
         api.post<ApiResponse<Record<string, unknown>>>('/api/v1/dynamic-sessions', req).then(r => r.data),
     start: (id: number) =>

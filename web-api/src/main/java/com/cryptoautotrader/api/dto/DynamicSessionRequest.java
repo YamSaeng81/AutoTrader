@@ -56,4 +56,10 @@ public class DynamicSessionRequest {
      * (현재 0 = 비활성, 매도 후처리 롤백 P0 해결 전까지의 임시값).
      */
     private Integer maxHoldHours;
+
+    /**
+     * REAL(실거래, 기본값) | PAPER(모의) — (2026-08-06).
+     * PAPER는 전략/게이트/SL·TP/time stop을 REAL과 동일하게 적용하되 체결만 시뮬레이션한다.
+     */
+    private String tradingMode;
 }

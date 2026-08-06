@@ -300,6 +300,7 @@ public class DynamicSessionController {
         m.put("strategyType",      s.getStrategyType());
         m.put("timeframe",         s.getTimeframe());
         m.put("status",            s.getStatus());
+        m.put("tradingMode",       s.getTradingMode());
         m.put("scanState",         s.getScanState());
         m.put("currentCoinPair",   s.getCurrentCoinPair());
         m.put("initialCapital",    s.getInitialCapital());

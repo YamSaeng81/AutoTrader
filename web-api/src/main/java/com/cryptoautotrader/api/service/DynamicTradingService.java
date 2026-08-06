@@ -154,6 +154,23 @@ public class DynamicTradingService {
     private static final String SESSION_KIND = "DYNAMIC";
 
     /**
+     * PAPER(모의) 동적 세션의 session_kind (2026-08-06, V67).
+     *
+     * <p>{@code position}/{@code "order"}.session_kind 컬럼이 VARCHAR(10)이라 "DYNAMIC_PAPER"(13자)는
+     * 들어가지 않는다 — 이 값으로 실거래("DYNAMIC")와 완전히 분리해, 실거래 reconcile 스케줄러 4종
+     * ({@link #reconcileDynamicClosingPositions}·{@link #reconcileDynamicGhostPositions}·
+     * {@link #reconcileDynamicOrphanBuyPositions}·{@link #reconcileDynamicSessionBalance})이
+     * PAPER 데이터를 절대 건드리지 않게 한다(전부 {@code SESSION_KIND} 상수로 하드필터돼 있음).</p>
+     */
+    private static final String SESSION_KIND_PAPER = "DYN_PAPER";
+
+    /**
+     * PAPER 체결 슬리피지(0.1%) — {@code PaperTradingService}와 동일 값으로 세 엔진
+     * (백테스트·페이퍼·실전)의 체결 가정을 통일한다. 매수는 불리하게 높게, 매도는 낮게 체결시킨다.
+     */
+    private static final BigDecimal PAPER_SLIPPAGE_PCT = new BigDecimal("0.001");
+
+    /**
      * 진입(SCANNING) 완화 파라미터 — SCANNING(신규 진입) 경로에만 적용하고,
      * POSITION_MONITORING(청산) 경로는 기본 임계값을 유지한다.
      *
@@ -344,6 +361,8 @@ public class DynamicTradingService {
     public DynamicSessionEntity createSession(DynamicSessionRequest req) {
         StrategyRegistry.get(req.getStrategyType()); // 유효성 검증
 
+        boolean isPaper = "PAPER".equals(req.getTradingMode());
+
         // 비활성 전략 차단 — strategy_type_enabled에서 꺼진 전략은 세션 생성 거부.
         // (UI 드롭다운 필터만으로는 select 표시/상태 불일치 등으로 우회될 수 있어 서버에서 강제)
         boolean typeEnabled = strategyTypeEnabledRepository.findById(req.getStrategyType())
@@ -355,19 +374,24 @@ public class DynamicTradingService {
                     req.getStrategyType()));
         }
 
-        // 전략 거버넌스 검증 — BLOCKED/DEPRECATED 전략은 동적 세션 생성도 차단한다.
-        // 기존에는 이 검사가 라이브 세션에도 동적 세션에도 강제되지 않아, 두 경로 모두
-        // StrategyLiveStatusRegistry 라벨을 우회해 BLOCKED 전략으로 실돈 세션 생성이 가능했다.
-        if (strategyLiveStatusRegistry.isBlocked(req.getStrategyType())) {
-            StrategyLiveStatusRegistry.StatusEntry status = strategyLiveStatusRegistry.getStatus(req.getStrategyType());
-            throw new IllegalArgumentException(String.format(
-                    "전략 '%s'은(는) 동적 세션 생성이 차단되었습니다 (%s): %s",
-                    req.getStrategyType(), status.readiness(), status.reason()));
-        }
+        // 자본 배정 게이트 2종은 PAPER에 적용하지 않는다 — 이 두 게이트는 "실자본을 쓸 자격이
+        // 있는가"를 묻는 것이고, 페이퍼는 정확히 그 자격을 얻기 전에 검증하는 도구다.
+        // (2026-08-06, PaperTradingService LIVE 정렬 때와 동일한 판단)
+        if (!isPaper) {
+            // 전략 거버넌스 검증 — BLOCKED/DEPRECATED 전략은 동적 세션 생성도 차단한다.
+            // 기존에는 이 검사가 라이브 세션에도 동적 세션에도 강제되지 않아, 두 경로 모두
+            // StrategyLiveStatusRegistry 라벨을 우회해 BLOCKED 전략으로 실돈 세션 생성이 가능했다.
+            if (strategyLiveStatusRegistry.isBlocked(req.getStrategyType())) {
+                StrategyLiveStatusRegistry.StatusEntry status = strategyLiveStatusRegistry.getStatus(req.getStrategyType());
+                throw new IllegalArgumentException(String.format(
+                        "전략 '%s'은(는) 동적 세션 생성이 차단되었습니다 (%s): %s",
+                        req.getStrategyType(), status.readiness(), status.reason()));
+            }
 
-        // 신호 기대값 검증 게이트 — Walk Forward로 out-of-sample 기대값>0이 증명된 전략만 통과.
-        // 기본은 비활성(플래그 off)이라 당장은 강제하지 않는다.
-        walkForwardValidationGate.throwIfBlocked(req.getStrategyType());
+            // 신호 기대값 검증 게이트 — Walk Forward로 out-of-sample 기대값>0이 증명된 전략만 통과.
+            // 기본은 비활성(플래그 off)이라 당장은 강제하지 않는다.
+            walkForwardValidationGate.throwIfBlocked(req.getStrategyType());
+        }
 
         BigDecimal investRatio = normalizeRatio(req.getInvestRatio(), new BigDecimal("0.80"));
         BigDecimal stopLoss    = req.getStopLossPct() != null ? req.getStopLossPct() : new BigDecimal("5.0");
@@ -382,6 +406,7 @@ public class DynamicTradingService {
                 .stopLossPct(stopLoss)
                 .status("CREATED")
                 .scanState("SCANNING")
+                .tradingMode(isPaper ? "PAPER" : DynamicSessionEntity.DEFAULT_TRADING_MODE)
                 .maxCandidateSize(req.getMaxCandidateSize() != null ? req.getMaxCandidateSize() : 30)
                 .targetWatchSize(req.getTargetWatchSize() != null ? req.getTargetWatchSize() : 10)
                 .minAtrPct(req.getMinAtrPct() != null ? req.getMinAtrPct() : new BigDecimal("0.5"))
@@ -393,8 +418,9 @@ public class DynamicTradingService {
                 .build();
 
         session = dynamicSessionRepo.save(session);
-        log.info("[Dynamic] 세션 생성: id={} strategy={} timeframe={} capital={}",
-                session.getId(), session.getStrategyType(), session.getTimeframe(), session.getInitialCapital());
+        log.info("[Dynamic] 세션 생성: id={} strategy={} timeframe={} capital={} mode={}",
+                session.getId(), session.getStrategyType(), session.getTimeframe(),
+                session.getInitialCapital(), session.getTradingMode());
         return session;
     }
 
@@ -461,7 +487,7 @@ public class DynamicTradingService {
 
         // 정지 시 청산이 누락된 orphan OPEN 포지션 정리 (LiveTradingService.deleteSession과 동일 정책)
         List<PositionEntity> openPositions =
-                positionRepository.findBySessionKindAndSessionIdAndStatus(SESSION_KIND, sessionId, "OPEN");
+                positionRepository.findBySessionKindAndSessionIdAndStatus(sessionKind(session), sessionId, "OPEN");
         for (PositionEntity pos : openPositions) {
             pos.setStatus("CLOSED");
             pos.setClosedAt(Instant.now());
@@ -507,7 +533,7 @@ public class DynamicTradingService {
                     m.put("strategyType", s.getStrategyType());
                     m.put("coinPair", s.getCurrentCoinPair() != null ? s.getCurrentCoinPair() : "멀티코인");
                     m.put("status", s.getStatus());
-                    m.put("sessionType", SESSION_KIND);
+                    m.put("sessionType", sessionKind(s));
                     return m;
                 })
                 .toList();
@@ -752,7 +778,7 @@ public class DynamicTradingService {
 
             // 손실 청산 쿨다운: 이 세션에서 직전에 손실로 청산한 코인은 쿨다운 동안 재진입 차단.
             if (gateBlockReason == null && signal.getAction() == StrategySignal.Action.BUY
-                    && isInLossCooldown(sid, coinPair, lossCooldownMinutes)) {
+                    && isInLossCooldown(sessionKind(session), sid, coinPair, lossCooldownMinutes)) {
                 lossCooldownBlocked++;
                 log.info("[Dynamic] 손실 쿨다운 BUY 차단: {} (id={}, 쿨다운 {}분)",
                         coinPair, sid, lossCooldownMinutes);
@@ -764,7 +790,7 @@ public class DynamicTradingService {
             if (gateBlockReason == null && signal.getAction() == StrategySignal.Action.BUY) {
                 long heldElsewhere = positionRepository
                         .countBySessionKindAndCoinPairAndStatusAndSessionIdNot(
-                                SESSION_KIND, coinPair, "OPEN", sid);
+                                sessionKind(session), coinPair, "OPEN", sid);
                 String crossReason = crossSessionExposureBlockReason(heldElsewhere);
                 if (crossReason != null) {
                     crossSessionBlocked++;
@@ -784,7 +810,7 @@ public class DynamicTradingService {
             }
             if (signal.getAction() == StrategySignal.Action.SELL) sellCount++;
 
-            StrategyLogEntity signalLog = saveStrategyLog(sid, session.getStrategyType(), coinPair, signal, evalPrice);
+            StrategyLogEntity signalLog = saveStrategyLog(session, session.getStrategyType(), coinPair, signal, evalPrice);
 
             if (signal.getAction() == StrategySignal.Action.BUY) {
                 if (gateBlockReason != null) {
@@ -845,7 +871,7 @@ public class DynamicTradingService {
         BigDecimal currentPrice = candles.get(candles.size() - 1).getClose();
 
         Optional<PositionEntity> posOpt = positionRepository
-                .findBySessionKindAndSessionIdAndCoinPairAndStatus(SESSION_KIND, sid, coinPair, "OPEN");
+                .findBySessionKindAndSessionIdAndCoinPairAndStatus(sessionKind(session), sid, coinPair, "OPEN");
 
         if (posOpt.isEmpty()) {
             // ⚠️ 2026-08-03 P0: 이 분기가 무증상으로 지나가면서 세션 39·40·44의 KRW 누수를
@@ -980,7 +1006,7 @@ public class DynamicTradingService {
 
         Strategy strategy = resolveStrategy(sid, coinPair, session.getStrategyType());
         StrategySignal signal = strategy.evaluate(evalCandles, Map.of("coinPair", coinPair));
-        StrategyLogEntity signalLog = saveStrategyLog(sid, session.getStrategyType(), coinPair, signal, currentPrice);
+        StrategyLogEntity signalLog = saveStrategyLog(session, session.getStrategyType(), coinPair, signal, currentPrice);
 
         if (signal.getAction() == StrategySignal.Action.SELL) {
             long heldMin = pos.getOpenedAt() != null
@@ -1081,11 +1107,14 @@ public class DynamicTradingService {
         return GATE_EXPIRED;
     }
 
-    /** @return {@code null}이면 매수 주문 제출 성공, 아니면 차단 사유 (신호품질 로그용) */
+    /**
+     * @return {@code null}이면 매수 성공(REAL은 주문 제출, PAPER는 즉시 체결), 아니면 차단 사유(신호품질 로그용)
+     */
     @Transactional
     public String executeBuy(DynamicSessionEntity session, String coinPair,
                             List<Candle> evalCandles, StrategySignal signal, BigDecimal sizeMultiplier) {
         Long sid = session.getId();
+        String kind = sessionKind(session);
         BigDecimal currentPrice = evalCandles.get(evalCandles.size() - 1).getClose();
 
         // EMA200 게이트 사이즈 배수 적용 — 정상 1.0, 근접 하회 감액 0.5. null은 방어적으로 1.0 취급.
@@ -1107,10 +1136,10 @@ public class DynamicTradingService {
         }
 
         boolean hasPendingBuy = orderRepository.existsBySessionKindAndSessionIdAndCoinPairAndSideAndStateIn(
-                SESSION_KIND, sid, coinPair, "BUY", ACTIVE_ORDER_STATES);
+                kind, sid, coinPair, "BUY", ACTIVE_ORDER_STATES);
         if (hasPendingBuy) return "미체결 BUY 주문 존재 — 중복 매수 차단";
 
-        // SL / TP 계산 — ATR 기반 (2026-07-31 개편, 상단 상수 주석 참조)
+        // SL / TP 계산 — ATR 기반 (2026-07-31 개편, 상단 상수 주석 참조). REAL/PAPER 100% 공유.
         BigDecimal slPct = ExitRuleCalculator.resolveStopLossPct(session.getStopLossPct(), evalCandles, currentPrice);
         BigDecimal atrStopLossPrice = currentPrice.multiply(BigDecimal.ONE.subtract(
                         slPct.divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP)))
@@ -1125,7 +1154,7 @@ public class DynamicTradingService {
         BigDecimal takeProfitPrice = ExitRuleCalculator.resolveTakeProfitPrice(
                 currentPrice, stopLossPrice, signal.getSuggestedTakeProfit());
 
-        PositionEntity pos = PositionEntity.builder()
+        PositionEntity posTemplate = PositionEntity.builder()
                 .coinPair(coinPair)
                 .side("BUY")
                 .entryPrice(currentPrice)
@@ -1134,11 +1163,16 @@ public class DynamicTradingService {
                 .investedKrw(investAmount)
                 .status("OPEN")
                 .sessionId(sid)
-                .sessionKind(SESSION_KIND)
+                .sessionKind(kind)
                 .stopLossPrice(stopLossPrice)
                 .takeProfitPrice(takeProfitPrice)
                 .build();
-        pos = positionRepository.save(pos);
+
+        if (session.isPaper()) {
+            return executePaperBuy(session, posTemplate, investAmount, coinPair, signal, kind);
+        }
+
+        PositionEntity pos = positionRepository.save(posTemplate);
         Long posId = pos.getId();
 
         OrderRequest order = new OrderRequest();
@@ -1149,7 +1183,7 @@ public class DynamicTradingService {
         order.setReason("동적 세션 BUY — " + signal.getReason());
         order.setSignalPrice(currentPrice);  // §14 drift 측정 기준가 보존
         order.setSessionId(sid);
-        order.setSessionKind(SESSION_KIND);
+        order.setSessionKind(kind);
         order.setPositionId(posId);
         // ⚠️ 커밋 이후 제출 — 위 pos 는 아직 미커밋이라 @Async 주문 스레드에서 보이지 않는다.
         //    즉시 제출하면 order_position_id_fkey 대기 → 타임아웃/데드락으로 주문 INSERT가
@@ -1171,6 +1205,73 @@ public class DynamicTradingService {
 
         // 실시간(WS) 손절/익절 감시 대상에 즉시 반영 — 폴링(60초) 대기 없이 다음 tick 전에도 방어
         refreshWsSubscription();
+        return null;
+    }
+
+    /**
+     * PAPER 매수 — 실거래소(OrderExecutionEngine)를 전혀 거치지 않고, 슬리피지·수수료를 반영해
+     * 같은 트랜잭션 안에서 동기적으로 체결을 시뮬레이션한다.
+     *
+     * <p>REAL 경로가 async 제출 + 별도 콜백(체결 시 size/avgPrice 갱신) + REQUIRES_NEW 잔고
+     * 차감 + 롤백 보상을 쓰는 이유는 전부 "실거래소 응답을 기다려야 한다"는 제약 때문이다.
+     * PAPER는 그 제약이 없으므로 이 비동기 기계장치 전체를 우회한다 — REAL의 회귀 위험을
+     * 조금도 늘리지 않으면서, 07-29/07-31/08-03 P0(주문 롤백·유령 포지션·잔고 누수)가 났던
+     * 바로 그 경로 자체를 PAPER가 절대 타지 않게 하는 설계다.</p>
+     */
+    private String executePaperBuy(DynamicSessionEntity session, PositionEntity posTemplate,
+                                    BigDecimal investAmount, String coinPair,
+                                    StrategySignal signal, String kind) {
+        Long sid = session.getId();
+        BigDecimal signalPrice = posTemplate.getEntryPrice();
+
+        // 슬리피지 — 매수는 신호가보다 불리하게(높게) 체결된다 (PaperTradingService와 동일 값).
+        BigDecimal fillPrice = signalPrice.multiply(BigDecimal.ONE.add(PAPER_SLIPPAGE_PCT))
+                .setScale(8, RoundingMode.HALF_UP);
+        BigDecimal fee = investAmount.multiply(FEE_RATE);
+        BigDecimal netAmount = investAmount.subtract(fee);
+        BigDecimal quantity = netAmount.divide(fillPrice, 8, RoundingMode.DOWN);
+        if (quantity.compareTo(BigDecimal.ZERO) <= 0) {
+            return "체결 수량 0 — 투자금 대비 가격 과다";
+        }
+        // avgPrice = 수수료 포함 실제 취득단가 (investAmount / quantity) — costBasis = investAmount가
+        // 되어 청산 시(finalizeDynamicSell) 실현손익이 정확히 계산된다. LIVE 정렬 PaperTradingService와 동일 공식.
+        BigDecimal avgPriceWithFee = investAmount.divide(quantity, 8, RoundingMode.HALF_UP);
+
+        posTemplate.setEntryPrice(fillPrice);
+        posTemplate.setAvgPrice(avgPriceWithFee);
+        posTemplate.setSize(quantity);
+        posTemplate.setPositionFee(fee);
+        PositionEntity pos = positionRepository.save(posTemplate);
+
+        OrderEntity order = OrderEntity.builder()
+                .positionId(pos.getId())
+                .coinPair(coinPair)
+                .side("BUY")
+                .orderType("MARKET")
+                .price(fillPrice)
+                .quantity(investAmount)
+                .filledQuantity(quantity)
+                .state("FILLED")
+                .exchangeOrderId("PAPER-DYNAMIC-" + pos.getId())
+                .signalReason("동적 세션 BUY(PAPER) — " + signal.getReason())
+                .signalPrice(signalPrice)
+                .sessionId(sid)
+                .sessionKind(kind)
+                .filledAt(Instant.now())
+                .build();
+        orderRepository.save(order);
+
+        // 비동기 갭이 없으므로 REQUIRES_NEW·롤백 보상 없이 세션을 직접 갱신한다 — 트랜잭션이
+        // 롤백되면 position/order/session 변경 전부가 함께 롤백되어 REAL이 겪던 "차감만
+        // 살아남는" 부분 롤백 자체가 구조적으로 발생할 수 없다.
+        session.setAvailableKrw(session.getAvailableKrw().subtract(investAmount));
+        session.setScanState("POSITION_MONITORING");
+        session.setCurrentCoinPair(coinPair);
+        session.setCurrentPositionId(pos.getId());
+        dynamicSessionRepo.save(session);
+
+        log.info("[Dynamic][PAPER] 매수 체결: id={} {} {}개 @ {} SL={} TP={} (수수료={})",
+                sid, coinPair, quantity, fillPrice, pos.getStopLossPrice(), pos.getTakeProfitPrice(), fee);
         return null;
     }
 
@@ -1249,6 +1350,11 @@ public class DynamicTradingService {
             return;
         }
 
+        if (session.isPaper()) {
+            executePaperSell(session, pos, currentPrice, reason);
+            return;
+        }
+
         OrderRequest order = new OrderRequest();
         order.setCoinPair(pos.getCoinPair());
         order.setSide("SELL");
@@ -1257,7 +1363,7 @@ public class DynamicTradingService {
         order.setReason(reason);
         order.setSignalPrice(currentPrice);  // §14 drift 측정 기준가 보존
         order.setSessionId(sid);
-        order.setSessionKind(SESSION_KIND);
+        order.setSessionKind(sessionKind(session));
         order.setPositionId(pos.getId());
         orderExecutionEngine.submitOrder(order);
 
@@ -1266,17 +1372,55 @@ public class DynamicTradingService {
         log.info("[Dynamic] 매도 주문: id={} {} size={}", sid, pos.getCoinPair(), pos.getSize());
     }
 
+    /**
+     * PAPER 매도 — {@code markClosingIfOpen}까지는 REAL과 동일하게 거친 뒤, 실거래소 제출 대신
+     * 슬리피지를 반영한 체결 주문을 즉시 만들어 {@link #finalizeDynamicSell}에 넘긴다.
+     *
+     * <p>{@code finalizeDynamicSell}을 그대로 재사용하는 것이 핵심이다 — 손익·수수료·부분체결·
+     * 세션 노출(hasRemainingExposure) 계산 로직을 중복 구현하지 않고, REAL과 <b>완전히 같은
+     * 코드로</b> 검증한다(이번 정렬 작업의 목적 그 자체).</p>
+     */
+    private void executePaperSell(DynamicSessionEntity session, PositionEntity pos,
+                                   BigDecimal signalPrice, String reason) {
+        // 슬리피지 — 매도는 신호가보다 불리하게(낮게) 체결된다.
+        BigDecimal fillPrice = signalPrice.multiply(BigDecimal.ONE.subtract(PAPER_SLIPPAGE_PCT))
+                .setScale(8, RoundingMode.HALF_DOWN);
+
+        OrderEntity order = OrderEntity.builder()
+                .positionId(pos.getId())
+                .coinPair(pos.getCoinPair())
+                .side("SELL")
+                .orderType("MARKET")
+                .price(fillPrice)
+                .quantity(pos.getSize())
+                .filledQuantity(pos.getSize())
+                .state("FILLED")
+                .exchangeOrderId("PAPER-DYNAMIC-SELL-" + pos.getId())
+                .signalReason(reason)
+                .signalPrice(signalPrice)
+                .sessionId(session.getId())
+                .sessionKind(sessionKind(session))
+                .filledAt(Instant.now())
+                .build();
+        order = orderRepository.save(order);
+
+        finalizeDynamicSell(pos, order);
+        transitionToScanning(session.getId());
+        log.info("[Dynamic][PAPER] 매도 체결: id={} {} size={} @ {}",
+                session.getId(), pos.getCoinPair(), pos.getSize(), fillPrice);
+    }
+
     // ── 내부: 손실 청산 쿨다운 ────────────────────────────────────
 
     /**
      * 이 세션에서 해당 코인의 가장 최근 청산이 손실이고, 청산 후 {@code cooldownMinutes}가
      * 지나지 않았으면 true — SCANNING 재진입을 차단한다 (라이브 191 반복 손절 패턴 방지).
      */
-    private boolean isInLossCooldown(Long sessionId, String coinPair, int cooldownMinutes) {
+    private boolean isInLossCooldown(String kind, Long sessionId, String coinPair, int cooldownMinutes) {
         if (cooldownMinutes <= 0) return false;
         return positionRepository
                 .findTopBySessionKindAndSessionIdAndCoinPairAndStatusOrderByClosedAtDesc(
-                        SESSION_KIND, sessionId, coinPair, "CLOSED")
+                        kind, sessionId, coinPair, "CLOSED")
                 .filter(p -> p.getRealizedPnl() != null
                         && p.getRealizedPnl().compareTo(BigDecimal.ZERO) < 0)
                 .filter(p -> p.getClosedAt() != null
@@ -1359,7 +1503,7 @@ public class DynamicTradingService {
      * 전략로그 화면과 신호 품질 통계(/api/v1/logs/signal-stats)에서 동적 세션도 보인다.
      * 이전까지는 application log 에만 남고 DB에는 전혀 기록되지 않아 전략로그 화면이 비어 있었다.
      */
-    private StrategyLogEntity saveStrategyLog(Long sessionId, String strategyName, String coinPair,
+    private StrategyLogEntity saveStrategyLog(DynamicSessionEntity session, String strategyName, String coinPair,
                                                StrategySignal signal, BigDecimal signalPrice) {
         try {
             BigDecimal conf = (signal.getAction() != StrategySignal.Action.HOLD && signal.getStrength() != null)
@@ -1370,8 +1514,8 @@ public class DynamicTradingService {
                     .coinPair(coinPair)
                     .signal(signal.getAction().name())
                     .reason(signal.getReason())
-                    .sessionType(SESSION_KIND)
-                    .sessionId(sessionId)
+                    .sessionType(sessionKind(session))
+                    .sessionId(session.getId())
                     .signalPrice(signalPrice)
                     .confidenceScore(conf)
                     .build();
@@ -1447,7 +1591,7 @@ public class DynamicTradingService {
 
     private void closeOpenPositions(DynamicSessionEntity session, String reason) {
         List<PositionEntity> opens = positionRepository
-                .findBySessionKindAndSessionIdAndStatus(SESSION_KIND, session.getId(), "OPEN");
+                .findBySessionKindAndSessionIdAndStatus(sessionKind(session), session.getId(), "OPEN");
         for (PositionEntity pos : opens) {
             if (pos.getSize() == null || pos.getSize().compareTo(BigDecimal.ZERO) <= 0) {
                 pos.setStatus("CLOSED");
@@ -1460,6 +1604,13 @@ public class DynamicTradingService {
                 continue;
             }
 
+            if (session.isPaper()) {
+                // 현재가 정보가 없는 강제 정지 경로 — 진입가를 신호가로 대체(슬리피지만 반영).
+                // 정지/비상정지는 드문 경로이고, 정확한 청산가보다 "확실히 닫힌다"가 중요하다.
+                executePaperSell(session, pos, pos.getAvgPrice(), reason);
+                continue;
+            }
+
             OrderRequest order = new OrderRequest();
             order.setCoinPair(pos.getCoinPair());
             order.setSide("SELL");
@@ -1467,7 +1618,7 @@ public class DynamicTradingService {
             order.setQuantity(pos.getSize());
             order.setReason(reason);
             order.setSessionId(session.getId());
-            order.setSessionKind(SESSION_KIND);
+            order.setSessionKind(sessionKind(session));
             order.setPositionId(pos.getId());
             orderExecutionEngine.submitOrder(order);
         }
@@ -1725,7 +1876,7 @@ public class DynamicTradingService {
             // 평가액이 총자산에서 통째로 사라진다.
             final Long finalizedPosId = pos.getId();
             boolean hasRemainingExposure = isPartial || positionRepository
-                    .findBySessionKindAndSessionId(SESSION_KIND, sessionId).stream()
+                    .findBySessionKindAndSessionId(pos.getSessionKind(), sessionId).stream()
                     .anyMatch(p -> !p.getId().equals(finalizedPosId)
                             && ("OPEN".equals(p.getStatus()) || "CLOSING".equals(p.getStatus())));
 
@@ -1855,6 +2006,12 @@ public class DynamicTradingService {
     @Transactional
     public void reconcileDynamicSessionBalance() {
         for (DynamicSessionEntity session : dynamicSessionRepo.findByStatus("RUNNING")) {
+            // ⚠️ PAPER는 이 안전망의 대상이 아니다 — 이 메서드는 세션을 먼저 순회한 뒤 포지션/주문을
+            // SESSION_KIND(REAL)로만 조회하므로, 필터링 없이 두면 PAPER 세션은 "자기 포지션이
+            // 하나도 안 보이는" 것으로 오판되어(실제로는 DYN_PAPER로 있을 뿐인데) 정상적인
+            // 보유 중 잔고 차이가 고아 잔고로 오인되어 강제로 되돌아갈 뻔했다(2026-08-07 발견).
+            // PAPER는 REQUIRES_NEW·비동기 갭이 없어 이런 사후 안전망 자체가 필요하지 않다.
+            if (session.isPaper()) continue;
             Long sid = session.getId();
             BigDecimal available = session.getAvailableKrw();
             BigDecimal total = session.getTotalAssetKrw();
@@ -1914,7 +2071,10 @@ public class DynamicTradingService {
      * 기다리면 그사이 실시간 손절/익절 보호가 비는 구간이 생긴다.</p>
      */
     private void refreshWsSubscription() {
+        // PAPER 세션은 WS 실시간 감시 대상이 아니다 — 60초 폴링(processMonitoringTick)만으로
+        // SL/TP를 감시한다. 실거래에 없는 새 구독 경로를 열지 않기 위한 의도적 제외.
         List<String> coins = dynamicSessionRepo.findByStatus("RUNNING").stream()
+                .filter(s -> !s.isPaper())
                 .filter(s -> "POSITION_MONITORING".equals(s.getScanState()))
                 .map(DynamicSessionEntity::getCurrentCoinPair)
                 .filter(Objects::nonNull)
@@ -1951,6 +2111,7 @@ public class DynamicTradingService {
 
         List<DynamicSessionEntity> sessions = dynamicSessionRepo.findByStatus("RUNNING");
         for (DynamicSessionEntity session : sessions) {
+            if (session.isPaper()) continue; // PAPER는 WS 실시간 감시 대상이 아니다(60초 폴링만)
             if (!coinCode.equals(session.getCurrentCoinPair())) continue;
 
             Optional<PositionEntity> openPos = positionRepository
@@ -2061,6 +2222,15 @@ public class DynamicTradingService {
     private DynamicSessionEntity getOrThrow(Long sessionId) {
         return dynamicSessionRepo.findById(sessionId)
                 .orElseThrow(() -> new IllegalArgumentException("동적 세션 없음: id=" + sessionId));
+    }
+
+    /**
+     * 세션의 실제 session_kind — REAL이면 {@code "DYNAMIC"}, PAPER면 {@code "DYN_PAPER"}.
+     * position/order 저장·조회는 전부 이 값을 써야 REAL/PAPER 데이터가 섞이지 않는다.
+     */
+    // 테스트에서 직접 검증하기 위해 package-private (resolveStopLossPct와 동일 방침)
+    static String sessionKind(DynamicSessionEntity session) {
+        return session.isPaper() ? SESSION_KIND_PAPER : SESSION_KIND;
     }
 
     private static BigDecimal normalizeRatio(BigDecimal raw, BigDecimal defaultVal) {

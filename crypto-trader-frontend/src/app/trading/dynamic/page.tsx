@@ -55,6 +55,7 @@ interface CreateForm {
   minAtrPct: number;
   maxSpreadPct: number;
   watchlistRefreshMin: number;
+  tradingMode: 'REAL' | 'PAPER';
 }
 
 const WATCHLIST_REFRESH_DEFAULTS: Record<string, number> = {
@@ -76,6 +77,7 @@ const defaultForm: CreateForm = {
   minAtrPct: 0.5,
   maxSpreadPct: 0.1,
   watchlistRefreshMin: 60,
+  tradingMode: 'REAL',
 };
 
 export default function DynamicTradingPage() {
@@ -126,6 +128,7 @@ export default function DynamicTradingPage() {
         minAtrPct:           form.minAtrPct,
         maxSpreadPct:        form.maxSpreadPct,
         watchlistRefreshMin: form.watchlistRefreshMin,
+        tradingMode:         form.tradingMode,
       },
       {
         onSuccess: () => { setShowForm(false); setForm({ ...defaultForm }); },
@@ -254,6 +257,40 @@ export default function DynamicTradingPage() {
             <h2 className="text-xl font-bold text-white mb-6">동적 멀티코인 세션 생성</h2>
 
             <div className="space-y-4">
+              {/* 매매 모드 */}
+              <div>
+                <label className="block text-sm text-slate-400 mb-1">매매 모드</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setForm({ ...form, tradingMode: 'REAL' })}
+                    className={`px-3 py-2 rounded-lg border text-sm font-medium transition-colors ${
+                      form.tradingMode === 'REAL'
+                        ? 'bg-red-600/20 border-red-500 text-red-300'
+                        : 'bg-slate-700 border-slate-600 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    실전 (REAL)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setForm({ ...form, tradingMode: 'PAPER' })}
+                    className={`px-3 py-2 rounded-lg border text-sm font-medium transition-colors ${
+                      form.tradingMode === 'PAPER'
+                        ? 'bg-blue-600/20 border-blue-500 text-blue-300'
+                        : 'bg-slate-700 border-slate-600 text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    모의 (PAPER)
+                  </button>
+                </div>
+                <p className="text-xs text-slate-500 mt-1">
+                  {form.tradingMode === 'REAL'
+                    ? '실제 자본으로 거래소에 주문을 제출합니다.'
+                    : '동일한 전략·게이트·SL/TP 로직으로 체결만 시뮬레이션합니다. 실제 자본은 사용되지 않습니다.'}
+                </p>
+              </div>
+
               {/* 전략 */}
               <div>
                 <label className="block text-sm text-slate-400 mb-1">전략</label>
@@ -458,6 +495,11 @@ function DynamicSessionCard({
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
+              {String(session['tradingMode'] ?? 'REAL') === 'PAPER' && (
+                <span className="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/40 font-bold">
+                  모의
+                </span>
+              )}
               <span className="font-bold text-white break-all">{String(session['strategyType'] ?? '')}</span>
               <span className="text-xs px-2 py-0.5 rounded bg-slate-700 text-slate-300">{String(session['timeframe'] ?? '')}</span>
               {status === 'RUNNING' && (

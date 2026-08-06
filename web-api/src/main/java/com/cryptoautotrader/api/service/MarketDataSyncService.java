@@ -34,8 +34,20 @@ import java.util.stream.Collectors;
 @Slf4j
 public class MarketDataSyncService {
 
-    /** 전략 계산에 필요한 캔들 수보다 넉넉하게 확보 */
-    private static final int SYNC_CANDLE_COUNT = 120;
+    /**
+     * pair당 동기화할 캔들 개수.
+     *
+     * <p><b>반드시 소비 측 lookback 이상이어야 한다</b> — {@code PaperTradingService.CANDLE_LOOKBACK}과
+     * {@code LiveTradingService.CANDLE_LOOKBACK}이 500이고, EMA200 계열 전략은 닫힌 캔들 201개
+     * 이상을 요구한다. 2026-08-06 이전 값 120은 이 둘 모두에 미달이라, <b>이력이 없는 신규 코인으로
+     * 세션을 만들면 캔들이 120개만 쌓여 EMA200 전략이 구조적으로 신호를 낼 수 없었다</b>
+     * (운영 실측: market_data_cache H1에 BTC·ETH만 2,305건이고 나머지는 수백 건에 stale).</p>
+     *
+     * <p>소비 측은 항상 "최근 500개 구간"만 조회하므로, 이 값이 500 이상이면 과거 데이터에 갭이
+     * 있어도 평가 구간은 연속으로 채워진다. UpbitCandleCollector가 200개 단위로 페이지네이션하므로
+     * pair당 3회 호출이 된다(10코인 = 30회/분, 업비트 공개 API 한도에 여유).</p>
+     */
+    private static final int SYNC_CANDLE_COUNT = 520;
 
     private final VirtualBalanceRepository balanceRepo;
     private final MarketDataCacheRepository marketDataCacheRepo;

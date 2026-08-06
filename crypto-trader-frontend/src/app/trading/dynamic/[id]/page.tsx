@@ -126,6 +126,11 @@ export default function DynamicSessionDetailPage({
           </Link>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
+              {s(session['tradingMode'] || 'REAL') === 'PAPER' && (
+                <span className="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/40 font-bold">
+                  모의
+                </span>
+              )}
               <h1 className="text-xl font-bold text-white">{s(session['strategyType'])}</h1>
               <span className="text-xs px-2 py-0.5 rounded bg-slate-700 text-slate-300">
                 {s(session['timeframe'])}
@@ -646,6 +651,7 @@ function SessionSettingsPanel({ session }: { session: Record<string, unknown> })
         세션 설정
       </h2>
       <div className="space-y-2 text-xs text-slate-400">
+        <Row label="매매 모드"  value={s(session['tradingMode'] || 'REAL') === 'PAPER' ? '모의 (PAPER)' : '실전 (REAL)'} />
         <Row label="전략"       value={s(session['strategyType'])} />
         <Row label="타임프레임" value={s(session['timeframe'])} />
         <Row label="투자 비율"  value={`${investRatioPct}%`} hint="가용 KRW 대비" />

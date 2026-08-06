@@ -174,6 +174,7 @@ CREATE TABLE IF NOT EXISTS dynamic_session (
     total_asset_krw             DECIMAL(20, 2)  NOT NULL,
     invest_ratio                DECIMAL(5, 4)   NOT NULL DEFAULT 0.8000,
     stop_loss_pct                NUMERIC(5, 2)   NOT NULL DEFAULT 5.00,
+    trading_mode                VARCHAR(10)     NOT NULL DEFAULT 'REAL',
     status                      VARCHAR(20)     NOT NULL DEFAULT 'CREATED',
     scan_state                  VARCHAR(25)     NOT NULL DEFAULT 'SCANNING',
     current_coin_pair           VARCHAR(20),
@@ -460,6 +461,10 @@ CREATE TABLE IF NOT EXISTS paper_trading.virtual_balance (
     realized_pnl     DECIMAL(20, 2)  NOT NULL DEFAULT 0,
     total_fee        DECIMAL(20, 2)  NOT NULL DEFAULT 0,
     version          BIGINT          NOT NULL DEFAULT 0,
+    -- LIVE 정렬용 세션 설정 (V66) — NULL이면 risk_config 기본값 폴백
+    stop_loss_pct    DECIMAL(5, 2),
+    invest_ratio     DECIMAL(5, 4),
+    max_hold_hours   INT,
     started_at       TIMESTAMP,
     stopped_at       TIMESTAMP,
     updated_at       TIMESTAMP

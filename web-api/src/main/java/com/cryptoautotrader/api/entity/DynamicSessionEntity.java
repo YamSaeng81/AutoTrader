@@ -43,6 +43,9 @@ public class DynamicSessionEntity {
      */
     public static final int DEFAULT_MAX_HOLD_HOURS = 0;
 
+    /** {@link #tradingMode} 기본값 — 미지정 시 실거래. */
+    public static final String DEFAULT_TRADING_MODE = "REAL";
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -55,6 +58,18 @@ public class DynamicSessionEntity {
 
     @Column(name = "initial_capital", nullable = false, precision = 20, scale = 2)
     private BigDecimal initialCapital;
+
+    /**
+     * REAL(실거래) | PAPER(모의) — (V67, 2026-08-06).
+     *
+     * <p>PAPER는 전략 평가·진입 게이트 5종·SL/TP·time stop·워치리스트 스캔을 REAL과 100% 공유하되,
+     * 체결만 실거래소 대신 슬리피지·수수료 시뮬레이션으로 처리한다({@link #isPaper()} 참조).
+     * {@code position}/{@code "order"}의 {@code session_kind}가 REAL="DYNAMIC", PAPER="DYN_PAPER"로
+     * 분리되어, 실거래 reconcile 스케줄러 4종이 PAPER 데이터를 절대 건드리지 않는다.</p>
+     */
+    @Builder.Default
+    @Column(name = "trading_mode", nullable = false, length = 10)
+    private String tradingMode = DEFAULT_TRADING_MODE;
 
     @Column(name = "available_krw", nullable = false, precision = 20, scale = 2)
     private BigDecimal availableKrw;
@@ -154,6 +169,7 @@ public class DynamicSessionEntity {
     void prePersist() {
         if (status == null)    status    = "CREATED";
         if (scanState == null) scanState = "SCANNING";
+        if (tradingMode == null) tradingMode = DEFAULT_TRADING_MODE;
         if (createdAt == null) createdAt = Instant.now();
         if (updatedAt == null) updatedAt = Instant.now();
     }
@@ -173,6 +189,12 @@ public class DynamicSessionEntity {
 
     public BigDecimal getInitialCapital() { return initialCapital; }
     public void setInitialCapital(BigDecimal v) { this.initialCapital = v; }
+
+    public String getTradingMode() { return tradingMode; }
+    public void setTradingMode(String v) { this.tradingMode = v; }
+
+    /** true면 모의(PAPER) 세션 — 체결이 실거래소를 거치지 않고 시뮬레이션된다. */
+    public boolean isPaper() { return "PAPER".equals(tradingMode); }
 
     public BigDecimal getAvailableKrw() { return availableKrw; }
     public void setAvailableKrw(BigDecimal v) { this.availableKrw = v; }

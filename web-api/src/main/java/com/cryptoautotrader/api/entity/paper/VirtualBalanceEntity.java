@@ -50,6 +50,21 @@ public class VirtualBalanceEntity {
     @Builder.Default
     private Boolean telegramEnabled = false;
 
+    /**
+     * 손절률(%) — NULL이면 {@code risk_config} 기본값(5.0)으로 폴백.
+     * LIVE와 마찬가지로 ATR 기반 손절폭 산정({@code ExitRuleCalculator})의 <b>하한</b>으로 쓰인다. (V66)
+     */
+    @Column(name = "stop_loss_pct")
+    private BigDecimal stopLossPct;
+
+    /** 투자 비율(0.1~1.0) — NULL이면 {@code risk_config} 기본값(0.80). (V66) */
+    @Column(name = "invest_ratio")
+    private BigDecimal investRatio;
+
+    /** 최대 보유시간(시) — time stop. NULL·0 이하면 비활성(LIVE 기본값과 동일). (V66) */
+    @Column(name = "max_hold_hours")
+    private Integer maxHoldHours;
+
     /** 세션 누적 실현 손익 (매도 체결 시마다 합산) */
     @Column(name = "realized_pnl", nullable = false)
     @Builder.Default
