@@ -418,6 +418,12 @@ public class SettingsController {
         String password = body.get("password");
         String target   = body.get("target");
 
+        // 미설정 상태를 "비밀번호 틀림"으로 뭉뚱그리면 원인 파악이 어렵다 — 따로 알린다.
+        if (!dbResetService.isEnabled()) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                    "DB 초기화 기능이 비활성화되어 있습니다. 서버에 DB_RESET_PASSWORD 환경변수를 설정하세요.");
+        }
+
         if (!dbResetService.checkPassword(password)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "비밀번호가 올바르지 않습니다.");
         }

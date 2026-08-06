@@ -114,12 +114,12 @@ export default function LogsPage() {
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
             {/* 헤더 */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-3">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">전략 로그</h1>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">전략 분석 신호 및 판단 이유를 확인합니다.</p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-wrap">
                     {/* 세션 콤보박스 (삭제·모의 세션 포함) */}
                     <select
                         value={sessionSel}
@@ -142,7 +142,7 @@ export default function LogsPage() {
                         {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                         CSV
                     </button>
-                    <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
+                    <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
                         {SESSION_FILTERS.map(f => (
                             <button
                                 key={f.value}

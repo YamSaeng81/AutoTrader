@@ -134,7 +134,7 @@ export default function DataCollectionPage() {
     };
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500 max-w-3xl mx-auto py-6">
+        <div className="space-y-8 animate-in fade-in duration-500 max-w-3xl mx-auto">
             <div className="text-center">
                 <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">데이터 수집 관리</h1>
                 <p className="text-slate-500 dark:text-slate-400 mt-3 font-medium">백테스트에 필요한 과거 가격 데이터를 수집합니다.</p>

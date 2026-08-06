@@ -164,7 +164,7 @@ export default function DiscordPage() {
     };
 
     return (
-        <div className="p-6 space-y-6 text-slate-100">
+        <div className="space-y-6 text-slate-100">
             <div className="flex items-center gap-3">
                 <MessagesSquare className="w-6 h-6 text-indigo-400" />
                 <h1 className="text-2xl font-bold">Discord 설정</h1>

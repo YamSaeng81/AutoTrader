@@ -65,9 +65,9 @@ export default function TelegramHistoryPage() {
         : logs.filter(l => l.type === typeFilter);
 
     return (
-        <div className="p-6 space-y-6">
+        <div className="space-y-6">
             {/* 헤더 */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-3">
                 <div className="flex items-center gap-3">
                     <MessageSquare className="w-6 h-6 text-indigo-400" />
                     <div>
@@ -129,7 +129,9 @@ export default function TelegramHistoryPage() {
                         전송 이력이 없습니다
                     </div>
                 ) : (
-                    <table className="w-full text-sm">
+                    // 고정폭 컬럼 합이 모바일 폭을 넘으므로 표 자체를 가로 스크롤시킨다
+                    <div className="overflow-x-auto">
+                    <table className="w-full text-sm min-w-[720px]">
                         <thead>
                             <tr className="border-b border-slate-700 bg-slate-800/80">
                                 <th className="text-left px-4 py-3 text-slate-400 font-medium w-40">전송 시각</th>
@@ -183,6 +185,7 @@ export default function TelegramHistoryPage() {
                             })}
                         </tbody>
                     </table>
+                    </div>
                 )}
             </div>
 

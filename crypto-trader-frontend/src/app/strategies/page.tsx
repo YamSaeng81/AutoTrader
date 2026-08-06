@@ -37,7 +37,7 @@ export default function StrategiesPage() {
     };
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500 max-w-6xl mx-auto py-6 px-4">
+        <div className="space-y-6 animate-in fade-in duration-500 max-w-6xl mx-auto">
             <div>
                 <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">전략 관리</h1>
                 <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">

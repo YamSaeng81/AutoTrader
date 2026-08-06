@@ -43,7 +43,7 @@ export default function BacktestDetailPage({ params }: { params: Promise<{ id: s
     return (
         <div className="space-y-8 animate-in fade-in duration-500 pb-12">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-3">
                 <div className="flex items-center gap-4">
                     <Link href="/backtest" className="p-2.5 -ml-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:shadow-sm rounded-xl transition-all">
                         <ArrowLeft className="w-6 h-6" />

@@ -1,11 +1,13 @@
 package com.cryptoautotrader.api.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -14,16 +16,44 @@ import java.util.Map;
  * 비밀번호 인증 후 사용 가능
  */
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class DbResetService {
 
-    private static final String RESET_PASSWORD = "!Iloveyhde1";
+    /**
+     * 초기화 확인 비밀번호. {@code DB_RESET_PASSWORD} 환경변수로만 주입한다.
+     *
+     * <p>미설정(빈 문자열)이면 {@link #checkPassword}가 항상 false를 반환해
+     * <b>모든 초기화를 거부</b>한다 — 설정 누락이 "누구나 초기화 가능"으로
+     * 이어지지 않도록 fail-closed로 둔다.</p>
+     */
+    private final String resetPassword;
 
     private final JdbcTemplate jdbc;
 
+    public DbResetService(JdbcTemplate jdbc,
+                          @Value("${db-reset.password:}") String resetPassword) {
+        this.jdbc = jdbc;
+        this.resetPassword = resetPassword == null ? "" : resetPassword;
+        if (this.resetPassword.isBlank()) {
+            log.warn("DB_RESET_PASSWORD 미설정 — DB 초기화 기능이 비활성화됩니다(모든 요청 거부).");
+        }
+    }
+
+    /** DB_RESET_PASSWORD가 주입됐는지 — false면 초기화 기능 자체가 꺼진 상태다. */
+    public boolean isEnabled() {
+        return !resetPassword.isBlank();
+    }
+
     public boolean checkPassword(String password) {
-        return RESET_PASSWORD.equals(password);
+        if (resetPassword.isBlank()) {
+            log.warn("DB 초기화 시도 거부 — DB_RESET_PASSWORD가 설정되지 않았습니다.");
+            return false;
+        }
+        if (password == null) return false;
+        // 타이밍 공격 방지를 위해 상수 시간 비교
+        return MessageDigest.isEqual(
+                password.getBytes(StandardCharsets.UTF_8),
+                resetPassword.getBytes(StandardCharsets.UTF_8));
     }
 
     /** 카테고리별 레코드 수 조회 (초기화 전 미리보기) */

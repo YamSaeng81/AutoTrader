@@ -81,9 +81,9 @@ export default function ServerLogsPage() {
         : '';
 
     return (
-        <div className="p-6 space-y-4 h-full flex flex-col">
+        <div className="space-y-4 h-full flex flex-col">
             {/* 헤더 */}
-            <div className="flex items-start justify-between gap-4 shrink-0">
+            <div className="flex items-start justify-between gap-4 shrink-0 flex-wrap">
                 <div>
                     <div className="flex items-center gap-2">
                         <Terminal className="w-5 h-5 text-indigo-400" />
@@ -224,7 +224,8 @@ export default function ServerLogsPage() {
             </div>
 
             {/* 로그 출력 영역 */}
-            <div className="flex-1 overflow-y-auto rounded-lg border border-slate-700/60 bg-slate-950 font-mono text-xs min-h-0">
+            {/* 긴 로그 한 줄이 잘리지 않도록 가로 스크롤도 허용한다 */}
+            <div className="flex-1 overflow-auto rounded-lg border border-slate-700/60 bg-slate-950 font-mono text-xs min-h-0">
                 {isLoading ? (
                     <div className="flex items-center justify-center h-32 text-slate-500">
                         로그를 불러오는 중...

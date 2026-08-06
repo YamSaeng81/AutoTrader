@@ -170,7 +170,7 @@ export default function UpbitLogsPage() {
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
             {/* 헤더 */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-3">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">Upbit 주문 로그</h1>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">

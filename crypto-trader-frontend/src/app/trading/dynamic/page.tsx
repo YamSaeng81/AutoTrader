@@ -144,7 +144,7 @@ export default function DynamicTradingPage() {
   return (
     <div className="space-y-6">
       {/* 헤더 */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold text-white">동적 멀티코인</h1>
           <p className="text-sm text-slate-400 mt-1">

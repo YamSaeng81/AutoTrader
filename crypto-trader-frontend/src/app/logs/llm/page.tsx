@@ -167,8 +167,9 @@ export default function LlmLogPage() {
         setPage(0);
     };
 
+    // 배경·최소높이·여백은 body와 MainContent가 담당한다
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-4 sm:p-6">
+        <>
             <div className="max-w-6xl mx-auto space-y-6">
 
                 {/* 헤더 */}
@@ -208,7 +209,7 @@ export default function LlmLogPage() {
 
                 {/* 필터 */}
                 <div className="flex flex-wrap gap-3">
-                    <div className="flex items-center gap-1 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-1">
+                    <div className="flex flex-wrap items-center gap-1 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-1">
                         {TASK_OPTIONS.map(t => (
                             <button
                                 key={t}
@@ -222,7 +223,7 @@ export default function LlmLogPage() {
                             >{t}</button>
                         ))}
                     </div>
-                    <div className="flex items-center gap-1 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-1">
+                    <div className="flex flex-wrap items-center gap-1 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-1">
                         {PROVIDER_OPTIONS.map(p => (
                             <button
                                 key={p}
@@ -341,6 +342,6 @@ export default function LlmLogPage() {
 
             {/* 상세 모달 */}
             {selectedLog && <DetailModal log={selectedLog} onClose={() => setSelectedLog(null)} />}
-        </div>
+        </>
     );
 }

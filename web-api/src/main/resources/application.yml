@@ -57,6 +57,10 @@ api:
   auth:
     token: ${API_AUTH_TOKEN}
 
+# DB 초기화 확인 비밀번호. 미설정 시 초기화 기능이 완전히 비활성화된다(fail-closed).
+db-reset:
+  password: ${DB_RESET_PASSWORD:}
+
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
 

@@ -23,4 +23,12 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  /* 모바일에서 넓은 표/차트가 페이지 전체를 가로로 밀지 않도록 */
+  overflow-x: hidden;
+}
+
+/* 모바일 하단 시트 등장 */
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
 }

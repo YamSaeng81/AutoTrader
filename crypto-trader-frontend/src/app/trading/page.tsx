@@ -137,7 +137,7 @@ export default function TradingPage() {
   return (
     <div className="space-y-6">
       {/* 헤더 */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold text-white">실전 매매</h1>
           <p className="text-sm text-slate-400 mt-1">다중 세션 자동매매 운영 및 모니터링</p>

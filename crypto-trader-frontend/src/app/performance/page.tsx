@@ -342,8 +342,8 @@ export default function PerformancePage() {
         : [];
 
     return (
-        <div className="p-6 space-y-6 max-w-screen-xl">
-            <div className="flex items-center justify-between">
+        <div className="space-y-6 max-w-screen-xl">
+            <div className="flex items-center justify-between flex-wrap gap-3">
                 <div>
                     <h1 className="text-2xl font-bold text-white">손익 대시보드</h1>
                     <p className="text-sm text-slate-400 mt-1">전체 매매 성과 통계</p>

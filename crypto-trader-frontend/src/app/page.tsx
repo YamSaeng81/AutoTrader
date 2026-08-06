@@ -182,7 +182,7 @@ export default function DashboardPage() {
         <div className="space-y-8 animate-in fade-in duration-500 max-w-[1600px]">
 
             {/* ━━━ 페이지 헤더 ━━━ */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-3">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-100 tracking-tight">대시보드</h1>
                     <p className="text-sm text-slate-500 mt-0.5">실시간 운용 현황 · 자동 갱신</p>

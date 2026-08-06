@@ -113,7 +113,7 @@ export default function BacktestListPage() {
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-3">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">백테스트 이력</h1>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">과거 시뮬레이션 결과 목록입니다.</p>

@@ -528,9 +528,9 @@ export default function SignalQualityPage() {
                         BUY/SELL 신호 발생 후 4h·24h 실제 수익률 기반 적중률 집계
                     </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                     {/* 세션 필터 */}
-                    <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
+                    <div className="flex flex-wrap items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
                         {SESSION_FILTERS.map(f => (
                             <button
                                 key={f.value}

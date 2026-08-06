@@ -117,7 +117,7 @@ export default function PaperTradingPage() {
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-3">
                 <div>
                     <div className="flex items-center gap-2">
                         <Activity className="w-6 h-6 text-indigo-500" />

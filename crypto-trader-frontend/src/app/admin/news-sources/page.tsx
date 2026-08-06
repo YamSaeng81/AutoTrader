@@ -162,8 +162,8 @@ export default function NewsSourcesPage() {
     };
 
     return (
-        <div className="p-6 space-y-6 text-slate-100">
-            <div className="flex items-center justify-between">
+        <div className="space-y-6 text-slate-100">
+            <div className="flex items-center justify-between flex-wrap gap-3">
                 <div className="flex items-center gap-3">
                     <Newspaper className="w-6 h-6 text-indigo-400" />
                     <h1 className="text-2xl font-bold">뉴스 소스 관리</h1>

@@ -163,9 +163,9 @@ export default function UpbitStatusPage() {
     const labelCls  = "text-xs text-slate-500 uppercase tracking-wide font-semibold";
 
     return (
-        <div className="p-6 max-w-4xl space-y-6">
+        <div className="max-w-4xl space-y-6">
             {/* 헤더 */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-3">
                 <div>
                     <h1 className="text-2xl font-bold text-white">Upbit 연동 상태</h1>
                     <p className="text-sm text-slate-400 mt-1">API 키, 잔고, WebSocket, 캔들 캐시 상태를 확인합니다.</p>

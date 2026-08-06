@@ -153,7 +153,7 @@ export default function WalkForwardPage() {
     const VerdictIcon = verdictCfg?.icon ?? CheckCircle;
 
     return (
-        <div className="max-w-4xl mx-auto py-4 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* 탭 */}
             <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-fit">
                 <button onClick={() => { setTab('run'); setSelectedHistory(null); }}

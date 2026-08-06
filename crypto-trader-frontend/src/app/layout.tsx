@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Sidebar } from '@/components/layout/Sidebar';
+import { MobileNav } from '@/components/layout/MobileNav';
 import { ThemeProvider } from '@/components/layout/ThemeProvider';
 import { MainContent } from '@/components/layout/MainContent';
 import './globals.css';
@@ -41,6 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             isLoginPage ? children : (
               <div className="flex min-h-screen">
                 <Sidebar />
+                <MobileNav />
                 <MainContent>{children}</MainContent>
               </div>
             )

@@ -392,13 +392,13 @@ export default function SchedulerPage() {
     const singleStrategies    = PRESET_STRATEGIES.filter(s => s.group === '단일');
     const customCoins = config.coinPairs.filter(c => !PRESET_COINS.some(p => p.id === c));
 
-    if (loading) return <div className="p-6 text-slate-400">로딩 중...</div>;
+    if (loading) return <div className="text-slate-400">로딩 중...</div>;
 
     return (
-        <div className="p-6 space-y-6 max-w-3xl">
+        <div className="space-y-6 max-w-3xl">
 
             {/* 헤더 */}
-            <div className="flex items-start justify-between">
+            <div className="flex items-start justify-between flex-wrap gap-3">
                 <div>
                     <h1 className="text-2xl font-bold text-white">자동 백테스트 스케줄</h1>
                     <p className="text-sm text-slate-400 mt-1">

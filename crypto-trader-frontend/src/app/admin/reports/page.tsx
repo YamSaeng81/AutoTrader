@@ -125,7 +125,7 @@ export default function ReportsPage() {
     };
 
     return (
-        <div className="p-6 space-y-6 text-slate-100">
+        <div className="space-y-6 text-slate-100">
             <div className="flex items-center gap-3">
                 <BookOpen className="w-6 h-6 text-indigo-400" />
                 <h1 className="text-2xl font-bold">Notion 보고서</h1>

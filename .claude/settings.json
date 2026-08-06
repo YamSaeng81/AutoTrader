@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find \"d:/Claude Code/projects/crypto-auto-trader/crypto-trader-frontend\" -name \"desktop-home.png\" -newermt \"-5 minutes\" 2>/dev/null; ls -la \"d:/Claude Code/projects/crypto-auto-trader/crypto-trader-frontend/desktop-home.png\" 2>/dev/null || find / -name \"desktop-home.png\" -newermt \"-5 minutes\" 2>/dev/null | head)",
+      "Read(//d//**)",
+      "mcp__plugin_playwright_playwright__browser_click",
+      "Bash(npx playwright *)",
+      "Bash(python -c ' *)",
+      "Bash(./gradlew :web-api:test --tests \"*DbResetPasswordTest*\")",
+      "Bash(./gradlew :web-api:compileJava :web-api:test --tests \"*DbResetPasswordTest*\")",
+      "Bash(python \"C:/Users/SANGJO~1/AppData/Local/Temp/claude/d--Claude-Code-projects-crypto-auto-trader/190d95c7-1838-4a94-952f-f798daeaafd8/scratchpad/strip_padding.py\")",
+      "Bash(python \"C:/Users/SANGJO~1/AppData/Local/Temp/claude/d--Claude-Code-projects-crypto-auto-trader/190d95c7-1838-4a94-952f-f798daeaafd8/scratchpad/wrap_headers.py\")",
+      "mcp__plugin_playwright_playwright__browser_run_code_unsafe",
+      "Bash(npx eslint *)",
+      "Bash(grep -n \"^\\\\.env\\\\|^\\\\*\\\\.env\\\\|\\\\.env$\" .gitignore)"
+    ]
+  }
+}
