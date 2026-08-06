@@ -988,23 +988,20 @@ public class LiveTradingService {
             BigDecimal rawStopLoss = session.getStopLossPct() != null
                     ? session.getStopLossPct() : exitConfig().getStopLossPct();
 
-            // BLACK_SWAN_GUARD 발동 시 보유 포지션 SL 강화 — 단방향 ratchet(더 타이트한 방향으로만
-            // 조임, 완화 안 됨). 신규 진입 차단만으로는 이미 보유 중인 포지션을 방어하지 못하므로
-            // 함께 적용한다. 청산 자체는 아래 손절 체크가 그대로 수행한다.
+            // BLACK_SWAN_GUARD — 발동 시 알림만 보내고 **SL은 건드리지 않는다**.
+            //
+            // 2026-08-06 개편(동적 세션 2026-07-31 개편을 LIVE에도 이식): 이전에는 발동 시
+            // 현재가 기준 1×ATR로 SL을 단방향 조임(ratchet)했다. 이는 방향이 정반대인 구조적
+            // 오류다 — 변동성이 폭증할 때 SL을 **좁히면** 정상 등락에 확실히 걸린다. 동적 세션
+            // 실측 피해: pos 2368(KAITO, 조임 후 SL -3.54%)과 2375(EDGE, -2.96%)가 둘 다
+            // 강제청산됐고 KAITO는 4시간 뒤 **+1.23%**로 회복했다 — 조임이 없었다면 이익이었을
+            // 포지션을 조임이 손실로 확정시켰다. 실계좌인 LIVE에 이 경로가 더 오래 남아 있었다.
+            //
+            // 블랙스완 방어는 신규 진입 차단(위 BUY 게이트)이 담당하며 그쪽은 실제로 유효하다.
+            // 보유 포지션의 방어는 진입 시점에 확정된 SL이 그대로 담당한다.
             if (blackSwanGuard.triggered()) {
-                BigDecimal tightenedSl = currentPrice.multiply(
-                        BigDecimal.ONE.subtract(BlackSwanGuard.tightenedSlMargin(candles)))
-                        .setScale(8, RoundingMode.HALF_DOWN);
-                BigDecimal existingSl = pos.getStopLossPrice();
-                if (existingSl == null || tightenedSl.compareTo(existingSl) > 0) {
-                    pos.setStopLossPrice(tightenedSl);
-                    positionRepository.save(pos);
-                    log.warn("BLACK_SWAN_GUARD SL 강화 (sessionId={}, {}): SL {} → {} ({})",
-                            sessionId, coinPair, existingSl, tightenedSl, blackSwanGuard.reason());
-                    telegramService.sendCustomNotification(String.format(
-                            "[BlackSwanGuard] SL 강화 — 세션#%d %s: SL %s → %s (%s)",
-                            sessionId, coinPair, existingSl, tightenedSl, blackSwanGuard.reason()));
-                }
+                log.warn("BLACK_SWAN_GUARD 발동 (sessionId={}, {}): {} — SL 유지 {} (조임 없음)",
+                        sessionId, coinPair, blackSwanGuard.reason(), pos.getStopLossPrice());
             }
 
             // 익절 체크: 저장된 takeProfitPrice 도달 시 청산
@@ -2492,17 +2489,18 @@ public class LiveTradingService {
                 continue;
             }
 
-            // 급락 처리 — 손실 중인 포지션 SL 조임 (단방향 ratchet, 한번 조이면 완화 안 됨)
+            // 급락 처리 — 2026-08-06 제거. SL을 좁히지 않는다.
+            //
+            // 이전에는 급락 + 손실 중이면 현재가 기준 trailingSlMargin(0.3%)으로 SL을 단방향
+            // 조였다. 위 BLACK_SWAN ratchet과 동일한 구조적 오류이며, 마진이 0.3%로 훨씬 좁아
+            // 실질적으로 **급락을 감지한 순간 다음 틱에 강제청산**을 예약하는 동작이었다.
+            // 급락 중 반등으로 회복될 포지션까지 바닥에서 확정 손실로 만든다.
+            //
+            // 하락 방어는 진입 시점에 확정된 SL이 담당한다(위 손절 체크가 매 틱 평가). 급등 시
+            // TP 트레일링은 이익을 잠그는 반대 방향이라 그대로 유지한다.
             if (spikeDown && pnlPct.compareTo(BigDecimal.ZERO) < 0) {
-                BigDecimal newSl = price.multiply(BigDecimal.ONE.subtract(exitConfig().getTrailingSlMargin()))
-                        .setScale(8, RoundingMode.HALF_DOWN);
-                BigDecimal currentSl = pos.getStopLossPrice();
-                if (currentSl == null || newSl.compareTo(currentSl) > 0) {
-                    pos.setStopLossPrice(newSl);
-                    positionRepository.save(pos);
-                    log.info("급락 SL 조임: sessionId={}, {} SL {} → {}",
-                            session.getId(), coinCode, currentSl, newSl);
-                }
+                log.warn("급락 감지 (sessionId={}, {}): 손익={}% — SL 유지 {} (조임 없음)",
+                        session.getId(), coinCode, pnlPct, pos.getStopLossPrice());
             }
 
             // 급등 처리 — 수익 중인 포지션 TP 트레일링 (단방향 ratchet, 고점 추적)

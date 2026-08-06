@@ -571,19 +571,80 @@ public class TelegramNotificationService {
         return minutes + "분 " + (remaining > 0 ? remaining + "초" : "");
     }
 
+    /**
+     * 전송 실패 시 재시도하는 알림 유형 — 유실되면 사람이 개입할 기회 자체가 사라지는 것들.
+     *
+     * <p><b>왜 필요한가 (2026-08-06 운영 DB 실측)</b>: 08-04 18:32 세션 41의 {@code STOP_LOSS}
+     * 알림이 {@code success=false}로 유실됐다. 같은 급락으로 세션 43도 동시에 손절됐고 그쪽
+     * 알림은 <b>1초 뒤 성공</b>했다 — 두 건이 1초 안에 몰려 텔레그램 레이트리밋에 걸린 것으로
+     * 보인다. 동적 세션 7개가 워치리스트를 공유해 같은 코인을 동시에 들고 있으므로(같은 날
+     * 39·45가 DOGE 동시 진입) <b>손절이 여러 건 동시에 터지는 것은 예외가 아니라 기본 패턴</b>
+     * 이고, 그때마다 뒤쪽 알림이 조용히 사라진다.</p>
+     *
+     * <p>요약(TRADE_SUMMARY) 같은 정기 알림은 다음 주기에 다시 오므로 재시도하지 않는다.</p>
+     */
+    private static final Set<String> RETRY_TYPES = Set.of("STOP_LOSS", "SESSION_STOP");
+
+    /** 재시도 총 횟수(최초 시도 포함) */
+    private static final int RETRY_MAX_ATTEMPTS = 3;
+
+    /** 재시도 간 대기(ms) — 레이트리밋이 풀릴 시간을 준다. 최대 추가 지연 7초. */
+    private static final long[] RETRY_BACKOFF_MS = {2000L, 5000L};
+
+    /** 테스트에서만 0으로 낮춘다 — 재시도 횟수 검증에 실제 대기가 필요하지 않다. */
+    long backoffMs(int attemptIndex) {
+        return RETRY_BACKOFF_MS[Math.min(attemptIndex, RETRY_BACKOFF_MS.length - 1)];
+    }
+
     private void sendMarkdownAndLog(String text, String type, String sessionLabel) {
         telegramExecutor.execute(() -> doSendMarkdownAndLog(text, type, sessionLabel));
     }
 
     /** 동기 전송 — sendTestMessage()에서만 사용 */
     private boolean doSendMarkdownAndLog(String text, String type, String sessionLabel) {
-        boolean success = sendMarkdown(text);
+        boolean success = sendWithRetry(text, type);
         try {
             logRepository.save(new TelegramNotificationLogEntity(type, sessionLabel, text, success));
         } catch (Exception e) {
             log.warn("[Telegram] 이력 저장 실패: {}", e.getMessage());
         }
         return success;
+    }
+
+    /**
+     * {@link #RETRY_TYPES}에 해당하면 실패 시 재시도하고, 그 외 유형은 1회만 시도한다.
+     *
+     * <p>이 메서드는 {@code telegramExecutor}(코어 1) 위에서 돈다 — 대기 중 다른 알림은
+     * 큐(50)에 쌓일 뿐 유실되지 않으며, 중요 알림이 먼저 나가는 편이 낫다.</p>
+     */
+    // 테스트에서 백오프를 0으로 낮춰 재시도 로직만 검증할 수 있게 package-private
+    boolean sendWithRetry(String text, String type) {
+        boolean retryable = type != null && RETRY_TYPES.contains(type);
+        int attempts = retryable ? RETRY_MAX_ATTEMPTS : 1;
+
+        for (int i = 0; i < attempts; i++) {
+            if (sendMarkdown(text)) {
+                if (i > 0) {
+                    log.info("[Telegram] {} 재전송 성공 ({}번째 시도)", type, i + 1);
+                }
+                return true;
+            }
+            if (i < attempts - 1) {
+                long backoff = backoffMs(i);
+                log.warn("[Telegram] {} 전송 실패 — {}ms 후 재시도 ({}/{})",
+                        type, backoff, i + 1, attempts);
+                try {
+                    Thread.sleep(backoff);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    return false;
+                }
+            }
+        }
+        if (retryable) {
+            log.error("[Telegram] 🔴 {} 알림 {}회 전송 실패 — 유실됨", type, attempts);
+        }
+        return false;
     }
 
     /**

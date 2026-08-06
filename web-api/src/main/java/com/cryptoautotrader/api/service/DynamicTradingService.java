@@ -122,6 +122,21 @@ public class DynamicTradingService {
      */
     private static final long BLACK_SWAN_PRICE_GUARD_MIN = 1440;
 
+    /**
+     * 한 코인을 동시에 보유할 수 있는 동적 세션 수의 상한.
+     *
+     * <p><b>왜 필요한가 (2026-08-06 운영 DB 실측)</b>: 세션 39와 45가 <b>4초 간격</b>으로
+     * 같은 가격(101)·같은 수량의 KRW-DOGE를 매수해 단일 코인에 16,000원 — <b>동적 자본의
+     * 23%</b> — 가 몰렸다. 두 세션은 전략이 다른데도(ICHIMOKU_V2 / ICHIMOKU) 워치리스트가
+     * 겹치면 같은 tick·같은 신호에 동시에 반응한다. 24시간 평가 기준 DOGE는 6세션, XRP는
+     * 5세션이 동시에 보고 있어 수렴은 예외가 아니라 상시 조건이다.</p>
+     *
+     * <p>7세션을 분산 운용하는 목적 자체가 전략·종목 분산인데, 노출 상한이 없으면 분산된
+     * 것은 세션 수뿐이고 리스크는 한 종목에 합쳐진다. 1로 두면 "한 코인은 한 세션만"이라
+     * 세션 수만큼의 종목 분산이 실제로 보장된다.</p>
+     */
+    private static final long MAX_SESSIONS_PER_COIN = 1;
+
     // ── 손절폭 (2026-07-31 전면 개편) ──────────────────────────────────────────
     //
     // 개편 전: 세션 고정 stopLossPct(5%) 또는 전략 제안값을 그대로 사용 + 블랙스완 발동 시
@@ -615,6 +630,7 @@ public class DynamicTradingService {
         int blackSwanBlocked = 0;
         int btcMarketGuardBlocked = 0;
         int lossCooldownBlocked = 0;
+        int crossSessionBlocked = 0;
         List<BuyCandidate> buyCandidates = new java.util.ArrayList<>();
 
         // SCANNING 진입 파라미터 — risk_config에서 읽고, NULL이면 코드 기본값(상수) 사용.
@@ -757,6 +773,20 @@ public class DynamicTradingService {
                         "손실 청산 쿨다운 — 직전 손실 청산 후 %d분 내 동일 코인 재진입 차단", lossCooldownMinutes);
             }
 
+            // 세션 간 동일코인 노출 상한: 다른 동적 세션이 이미 같은 코인을 들고 있으면 차단.
+            if (gateBlockReason == null && signal.getAction() == StrategySignal.Action.BUY) {
+                long heldElsewhere = positionRepository
+                        .countBySessionKindAndCoinPairAndStatusAndSessionIdNot(
+                                SESSION_KIND, coinPair, "OPEN", sid);
+                String crossReason = crossSessionExposureBlockReason(heldElsewhere);
+                if (crossReason != null) {
+                    crossSessionBlocked++;
+                    log.info("[Dynamic] 동일코인 노출 상한 BUY 차단: {} (id={}, 타 세션 보유 {}건)",
+                            coinPair, sid, heldElsewhere);
+                    gateBlockReason = crossReason;
+                }
+            }
+
             // 코인별 평가 결과 로그 (BUY/SELL은 INFO, HOLD는 DEBUG) — 전략로그 페이지 노출용으로 DB에도 저장
             if (signal.getAction() != StrategySignal.Action.HOLD) {
                 log.info("[Dynamic] 평가결과: {} → {}{} ({})", coinPair, signal.getAction(),
@@ -788,9 +818,10 @@ public class DynamicTradingService {
 
         if (buyCandidates.isEmpty()) {
             log.info("[Dynamic] SCANNING 완료: 진입 조건 없음 (id={}, 감시 {}개) — "
-                            + "HOLD={} SELL={} EMA200차단={} RANGE차단={} 블랙스완차단={} BTC급락차단={} 손실쿨다운차단={} 캔들부족={} 캔들미갱신={}",
+                            + "HOLD={} SELL={} EMA200차단={} RANGE차단={} 블랙스완차단={} BTC급락차단={} 손실쿨다운차단={} 동일코인차단={} 캔들부족={} 캔들미갱신={}",
                     sid, watchlist.size(), holdCount, sellCount, ema200Blocked, rangeBlocked,
-                    blackSwanBlocked, btcMarketGuardBlocked, lossCooldownBlocked, insufficientCandles, staleCandle);
+                    blackSwanBlocked, btcMarketGuardBlocked, lossCooldownBlocked, crossSessionBlocked,
+                    insufficientCandles, staleCandle);
             return;
         }
 
@@ -848,9 +879,6 @@ public class DynamicTradingService {
 
         PositionEntity pos = posOpt.get();
 
-        // MDD 피크 갱신
-        updateMddPeak(session);
-
         BigDecimal pnlPct = currentPrice.subtract(pos.getAvgPrice())
                 .divide(pos.getAvgPrice(), 6, RoundingMode.HALF_UP)
                 .multiply(BigDecimal.valueOf(100));
@@ -864,6 +892,29 @@ public class DynamicTradingService {
             pos.setUnrealizedPnl(unrealized);
             positionRepository.save(pos);
         }
+
+        // 세션 총자산 시가 평가 — 2026-08-06 신설 (LiveTradingService.updateSessionUnrealizedPnl 이식).
+        //
+        // <b>왜 필요한가 (2026-08-06 운영 DB 실측)</b>: 동적 세션의 totalAssetKrw 는 매도 시에만
+        // 갱신돼 보유 중에는 <b>취득원가</b>에 고정돼 있었다. 세션 39·40·45가 각각 −1.3~−2.3%
+        // 평가손 상태인데 셋 다 정확히 10,000.00 으로 기록됐다. 그 결과 {@link #updateMddPeak}가
+        // 읽는 값도 원가라 <b>mddPeakCapital 이 절대 내려가지 않고</b>, risk_config 의
+        // mdd_threshold_pct(20%)·max_portfolio_drawdown_pct(15%) 서킷 브레이커가
+        // <b>포지션을 들고 있는 동안에는 원리상 발동할 수 없었다</b> — 손실이 실현되는 순간에만
+        // 인식된다. 대시보드 총자산도 같은 이유로 실제보다 낙관적으로 표시됐다.
+        //
+        // size=0(매수 미체결)일 때 건드리지 않는 것은 LIVE와 동일하다 — 아직 코인이 없는데
+        // 평가액을 더하면 KRW가 이중 계상된다.
+        if (pos.getSize() != null && pos.getSize().compareTo(BigDecimal.ZERO) > 0) {
+            final BigDecimal posValue = pos.getSize().multiply(currentPrice);
+            // 넘어온 엔티티를 직접 save() 하지 않는다 — reconcile(5초)과의 @Version 충돌 회피.
+            balanceUpdater.apply(sid, s -> s.setTotalAssetKrw(s.getAvailableKrw().add(posValue)));
+            // 갱신된 총자산을 다시 읽어 MDD 피크가 시가 기준으로 움직이게 한다.
+            session = dynamicSessionRepo.findById(sid).orElse(session);
+        }
+
+        // MDD 피크 갱신 — 위 시가 평가 이후에 호출해야 의미가 있다.
+        updateMddPeak(session);
 
         // BLACK_SWAN_GUARD — 발동 시 알림만 보내고 **SL은 건드리지 않는다**.
         //
@@ -1043,6 +1094,18 @@ public class DynamicTradingService {
      * @param blockReason 차단 사유 — {@code null}이면 통과
      * @param expired     가드 이력의 유효기간이 끝나 기록을 폐기해도 되는지
      */
+    /**
+     * 세션 간 동일코인 노출 상한 판정 — {@link #MAX_SESSIONS_PER_COIN} 초과 시 차단 사유를 준다.
+     *
+     * @param heldElsewhere 같은 코인을 들고 있는 <b>다른</b> 동적 세션 수
+     * @return 차단 사유, 통과면 {@code null}
+     */
+    static String crossSessionExposureBlockReason(long heldElsewhere) {
+        if (heldElsewhere < MAX_SESSIONS_PER_COIN) return null;
+        return String.format("동일코인 노출 상한 — 다른 동적 세션이 이미 %d건 보유(상한 %d)",
+                heldElsewhere, MAX_SESSIONS_PER_COIN);
+    }
+
     record BlackSwanGateDecision(String blockReason, boolean expired) {}
 
     private static final BlackSwanGateDecision GATE_PASS = new BlackSwanGateDecision(null, false);

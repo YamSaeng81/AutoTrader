@@ -104,6 +104,16 @@ public interface PositionRepository extends JpaRepository<PositionEntity, Long> 
     Optional<PositionEntity> findTopBySessionKindAndSessionIdAndCoinPairAndStatusOrderByClosedAtDesc(
             String sessionKind, Long sessionId, String coinPair, String status);
 
+    /**
+     * 세션 간 동일코인 노출 상한용: 같은 종류의 <b>다른</b> 세션이 이 코인을 이미 들고 있는 수.
+     *
+     * <p>2026-08-06 실측: 세션 39와 45가 4초 간격으로 같은 가격(101)·같은 수량의 KRW-DOGE를
+     * 동시 매수해 단일 코인에 16,000원(동적 자본의 23%)이 몰렸다. 세션은 각자 독립적으로
+     * 판단하므로 워치리스트가 겹치면 같은 신호에 같은 tick 에서 동시에 반응한다.</p>
+     */
+    long countBySessionKindAndCoinPairAndStatusAndSessionIdNot(
+            String sessionKind, String coinPair, String status, Long sessionId);
+
     /** N+1 방지: 여러 세션의 포지션을 한 번에 일괄 조회 */
     @Query("SELECT p FROM PositionEntity p WHERE p.sessionId IN :sessionIds")
     List<PositionEntity> findBySessionIdIn(@Param("sessionIds") List<Long> sessionIds);
