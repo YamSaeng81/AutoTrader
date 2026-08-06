@@ -358,15 +358,15 @@ export default function PerformancePage() {
             </div>
 
             {tab === 'live' && (
-                <div className="flex items-center gap-2 text-xs text-slate-400 bg-slate-800/60 border border-slate-700/50 rounded-lg px-3 py-2 w-fit">
-                    <span>청산일 기준</span>
+                <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400 bg-slate-800/60 border border-slate-700/50 rounded-lg px-3 py-2 w-fit max-w-full">
+                    <span className="whitespace-nowrap">청산일 기준</span>
                     <input
                         type="date"
                         value={closedSince}
                         onChange={e => setClosedSince(e.target.value)}
                         className="bg-slate-700 text-slate-200 rounded px-2 py-1 text-xs border border-slate-600"
                     />
-                    <span>이후만 집계</span>
+                    <span className="whitespace-nowrap">이후만 집계</span>
                     {closedSince && (
                         <button
                             onClick={() => setClosedSince('')}

@@ -210,3 +210,56 @@ export const paperTradingMock = {
         number: 0,
     },
 };
+
+// ─── 세션 목록 픽스처 ─────────────────────────────────────────────────────────
+// 운영 DB의 실제 세션 구성을 본떴다. 전략명이 길고(COMPOSITE_*) 세션 수가 많아야
+// 카드 레이아웃이 좁은 화면에서 깨지는지 확인할 수 있다 — 빈 배열이면 검증이 무의미하다.
+const DYNAMIC_STRATEGIES = [
+    'COMPOSITE_MOMENTUM_ICHIMOKU_V2',
+    'COMPOSITE_MEANREV_BB',
+    'COMPOSITE_MTF_BTC_STRICT',
+    'COMPOSITE_MTF_CONFIRMED',
+    'COMPOSITE_MTF_BTC',
+    'COMPOSITE_PULLBACK_MTF',
+    'COMPOSITE_MOMENTUM_ICHIMOKU',
+];
+
+export const dynamicSessionsMock = DYNAMIC_STRATEGIES.map((strategyType, i) => ({
+    id: 39 + i,
+    strategyType,
+    timeframe: 'H1',
+    status: 'RUNNING',
+    scanState: i === 0 || i === 6 ? 'POSITION_MONITORING' : 'SCANNING',
+    currentCoinPair: i === 0 || i === 6 ? 'KRW-DOGE' : null,
+    currentPositionId: i === 0 || i === 6 ? 2400 + i : null,
+    initialCapital: 10000,
+    availableKrw: [2000, 9813.4, 9436.1, 10000, 8805.5, 10087.78, 2000][i],
+    totalAssetKrw: [9817.82, 9813.4, 9436.1, 10000, 8805.5, 10087.78, 9873.2][i],
+    returnPct: [-1.82, -1.87, -5.64, 0, -11.95, 0.88, -1.27][i],
+    maxCandidateSize: 30,
+    targetWatchSize: 10,
+    maxHoldHours: i === 1 ? 36 : 0,
+    watchlistJson: JSON.stringify([
+        'KRW-BTC', 'KRW-XRP', 'KRW-ETH', 'KRW-META2', 'KRW-EUL', 'KRW-SOL', 'KRW-DOGE', 'KRW-AKT',
+    ]),
+    createdAt: '2026-07-31T01:45:00Z',
+    startedAt: '2026-07-31T01:49:52Z',
+    stoppedAt: null,
+}));
+
+export const liveSessionsMock = [
+    {
+        id: 194, coinPair: 'KRW-BTC', strategyType: 'COMPOSITE_MEANREV_BB', timeframe: 'M15',
+        status: 'RUNNING', initialCapital: 10000, availableKrw: 2000, totalAssetKrw: 10052.3,
+        stopLossPct: 5, investRatio: 0.8, strategyParams: null,
+        createdAt: '2026-07-31T07:55:00Z', startedAt: '2026-07-31T08:00:00Z', stoppedAt: null,
+        updatedAt: '2026-08-06T01:00:00Z',
+    },
+    {
+        id: 195, coinPair: 'KRW-ETH', strategyType: 'COMPOSITE_MOMENTUM_ICHIMOKU_V2', timeframe: 'M15',
+        status: 'RUNNING', initialCapital: 10000, availableKrw: 10000, totalAssetKrw: 10000,
+        stopLossPct: 5, investRatio: 0.8, strategyParams: null,
+        createdAt: '2026-07-31T07:55:00Z', startedAt: '2026-07-31T08:00:00Z', stoppedAt: null,
+        updatedAt: '2026-08-06T01:00:00Z',
+    },
+];

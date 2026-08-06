@@ -165,28 +165,28 @@ export default function DynamicTradingPage() {
       </div>
 
       {/* 요약 카드 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
+        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-3 sm:p-5">
           <div className="text-xs text-slate-400 mb-2">전체 세션</div>
-          <div className="text-2xl font-bold text-white">
+          <div className="text-xl sm:text-2xl font-bold text-white">
             {(sessions ?? []).length}
             <span className="text-sm font-normal text-slate-400 ml-1">개</span>
           </div>
         </div>
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
+        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-3 sm:p-5">
           <div className="text-xs text-slate-400 mb-2">운영 중</div>
-          <div className="text-2xl font-bold text-green-400">{runningSessions.length}</div>
+          <div className="text-xl sm:text-2xl font-bold text-green-400">{runningSessions.length}</div>
         </div>
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
+        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-3 sm:p-5">
           <div className="text-xs text-slate-400 mb-2">포지션 보유</div>
-          <div className="text-2xl font-bold text-yellow-400">
+          <div className="text-xl sm:text-2xl font-bold text-yellow-400">
             {runningSessions.filter(s => s['scanState'] === 'POSITION_MONITORING').length}
           </div>
         </div>
       </div>
 
       {/* 세션 목록 */}
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
+      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-3 sm:p-5">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-white">동적 세션 목록</h2>
           <div className="flex rounded-lg overflow-hidden border border-slate-600/50 text-xs">
@@ -447,16 +447,18 @@ function DynamicSessionCard({
 
   return (
     <div className="bg-slate-900/50 border border-slate-700/30 rounded-lg p-4 hover:border-slate-600/50 transition-colors">
-      <div className="flex items-center justify-between">
+      {/* 모바일은 세로 스택, lg 이상에서 한 줄. 한 줄 고정이면 좁은 화면에서
+          텍스트가 글자 단위로 접히고 버튼이 화면 밖으로 밀린다. */}
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         {/* 왼쪽: 세션 정보 */}
-        <div className="flex items-center gap-4 flex-1 min-w-0">
-          <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-start gap-3 sm:gap-4 min-w-0 lg:flex-1">
+          <div className="flex items-center gap-2 shrink-0 pt-0.5">
             <div className={`w-2.5 h-2.5 rounded-full ${statusColor[status] ?? 'bg-gray-500'} ${status === 'RUNNING' ? 'animate-pulse' : ''}`} />
             <span className="text-xs text-slate-400 w-16">{statusLabel[status] ?? status}</span>
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-bold text-white">{String(session['strategyType'] ?? '')}</span>
+              <span className="font-bold text-white break-all">{String(session['strategyType'] ?? '')}</span>
               <span className="text-xs px-2 py-0.5 rounded bg-slate-700 text-slate-300">{String(session['timeframe'] ?? '')}</span>
               {status === 'RUNNING' && (
                 <span className={`text-xs px-2 py-0.5 rounded border ${scanStateBadge[scanState] ?? 'bg-slate-700 text-slate-300 border-slate-600'}`}>
@@ -476,24 +478,24 @@ function DynamicSessionCard({
           </div>
         </div>
 
-        {/* 중앙: 자산 */}
-        <div className="flex items-center gap-6 mx-4">
-          <div className="text-right">
+        {/* 중앙: 자산 — 모바일에선 왼쪽 정렬 가로 배치 */}
+        <div className="flex items-center gap-6 shrink-0 lg:mx-4">
+          <div className="lg:text-right">
             <div className="text-xs text-slate-500">총 자산</div>
-            <div className="text-sm font-medium text-white">
+            <div className="text-sm font-medium text-white whitespace-nowrap">
               {Number(session['totalAssetKrw'] ?? 0).toLocaleString()} KRW
             </div>
           </div>
-          <div className="text-right">
+          <div className="lg:text-right">
             <div className="text-xs text-slate-500">수익률</div>
-            <div className={`text-sm font-bold ${returnPct >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+            <div className={`text-sm font-bold whitespace-nowrap ${returnPct >= 0 ? 'text-green-400' : 'text-red-400'}`}>
               {returnPct >= 0 ? '+' : ''}{returnPct.toFixed(2)}%
             </div>
           </div>
         </div>
 
         {/* 오른쪽: 버튼 */}
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 flex-wrap shrink-0">
           <Link
             href={`/trading/dynamic/${String(session['id'])}`}
             className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white text-xs rounded-lg transition-colors"

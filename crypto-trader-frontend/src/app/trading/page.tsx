@@ -142,7 +142,7 @@ export default function TradingPage() {
           <h1 className="text-2xl font-bold text-white">실전 매매</h1>
           <p className="text-sm text-slate-400 mt-1">다중 세션 자동매매 운영 및 모니터링</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-2 sm:gap-3 flex-wrap">
           <button
             onClick={() => { setForm({ ...TEST_TIMED_FORM }); setSelectedStrategies(['TEST_TIMED']); setShowCreateForm(true); }}
             className="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg transition-colors"
@@ -408,18 +408,18 @@ export default function TradingPage() {
       )}
 
       {/* 상태 카드 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
         {/* 운영 세션 */}
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
+        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-3 sm:p-5">
           <div className="text-xs text-slate-400 mb-2">운영 세션</div>
-          <div className="text-2xl font-bold text-white">
+          <div className="text-xl sm:text-2xl font-bold text-white">
             {status?.runningSessions ?? 0}
             <span className="text-sm font-normal text-slate-400 ml-1">/ {status?.totalSessions ?? 0}</span>
           </div>
         </div>
 
         {/* 거래소 상태 */}
-        <div className={`border rounded-xl p-5 ${healthBg[health?.status ?? 'DOWN']}`}>
+        <div className={`border rounded-xl p-3 sm:p-5 ${healthBg[health?.status ?? 'DOWN']}`}>
           <div className="text-xs text-slate-400 mb-2">거래소 상태</div>
           <div className="flex items-center gap-2 mb-1">
             <span className={`text-lg font-bold ${healthColor[health?.status ?? 'DOWN']}`}>
@@ -435,22 +435,22 @@ export default function TradingPage() {
         </div>
 
         {/* 열린 포지션 */}
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
+        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-3 sm:p-5">
           <div className="text-xs text-slate-400 mb-2">열린 포지션</div>
-          <div className="text-2xl font-bold text-white">{status?.openPositions ?? 0}</div>
+          <div className="text-xl sm:text-2xl font-bold text-white">{status?.openPositions ?? 0}</div>
         </div>
 
         {/* 총 손익 */}
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
+        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-3 sm:p-5">
           <div className="text-xs text-slate-400 mb-2">총 손익</div>
-          <div className={`text-2xl font-bold ${(status?.totalPnl ?? 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+          <div className={`text-xl sm:text-2xl font-bold break-all ${(status?.totalPnl ?? 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
             {(status?.totalPnl ?? 0) >= 0 ? '+' : ''}{(status?.totalPnl ?? 0).toLocaleString()} KRW
           </div>
         </div>
       </div>
 
       {/* 세션 목록 */}
-      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
+      <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-3 sm:p-5">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <h2 className="text-lg font-semibold text-white">매매 세션</h2>
@@ -530,20 +530,22 @@ function SessionCard({
 
   return (
     <div className="bg-slate-900/50 border border-slate-700/30 rounded-lg p-4 hover:border-slate-600/50 transition-colors">
-      <div className="flex items-center justify-between">
+      {/* 모바일은 세로 스택, lg 이상에서 한 줄. 한 줄 고정이면 좁은 화면에서
+          텍스트가 글자 단위로 접히고 버튼이 화면 밖으로 밀린다. */}
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         {/* 왼쪽: 세션 정보 */}
-        <div className="flex items-center gap-4 flex-1 min-w-0">
+        <div className="flex items-start gap-3 sm:gap-4 min-w-0 lg:flex-1">
           {/* 상태 표시 */}
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 shrink-0 pt-0.5">
             <div className={`w-2.5 h-2.5 rounded-full ${sessionStatusColor[session.status]} ${session.status === 'RUNNING' ? 'animate-pulse' : ''}`} />
             <span className="text-xs text-slate-400 w-16">{sessionStatusLabel[session.status]}</span>
           </div>
 
           {/* 코인 + 전략 */}
           <div className="min-w-0">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="font-bold text-white">{session.coinPair}</span>
-              <span className="text-xs px-2 py-0.5 rounded bg-slate-700 text-slate-300">{session.strategyType}</span>
+              <span className="text-xs px-2 py-0.5 rounded bg-slate-700 text-slate-300 break-all">{session.strategyType}</span>
               <span className="text-xs text-slate-500">{session.timeframe}</span>
             </div>
             <div className="text-xs text-slate-500 mt-0.5">
@@ -554,22 +556,22 @@ function SessionCard({
           </div>
         </div>
 
-        {/* 중앙: 자산 정보 */}
-        <div className="flex items-center gap-6 mx-4">
-          <div className="text-right">
+        {/* 중앙: 자산 정보 — 모바일에선 왼쪽 정렬 가로 배치 */}
+        <div className="flex items-center gap-6 shrink-0 lg:mx-4">
+          <div className="lg:text-right">
             <div className="text-xs text-slate-500">총 자산</div>
-            <div className="text-sm font-medium text-white">{session.totalAssetKrw.toLocaleString()} KRW</div>
+            <div className="text-sm font-medium text-white whitespace-nowrap">{session.totalAssetKrw.toLocaleString()} KRW</div>
           </div>
-          <div className="text-right">
+          <div className="lg:text-right">
             <div className="text-xs text-slate-500">수익률</div>
-            <div className={`text-sm font-bold ${returnPct >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+            <div className={`text-sm font-bold whitespace-nowrap ${returnPct >= 0 ? 'text-green-400' : 'text-red-400'}`}>
               {returnPct >= 0 ? '+' : ''}{returnPct.toFixed(2)}%
             </div>
           </div>
         </div>
 
         {/* 오른쪽: 버튼 */}
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 flex-wrap shrink-0">
           <Link
             href={`/trading/${session.id}`}
             className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs rounded-lg transition-colors"
