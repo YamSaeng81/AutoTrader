@@ -40,6 +40,12 @@ public class LiveTradingStartRequest {
     private BigDecimal investRatio;
 
     /**
+     * 최대 보유시간(시) — time stop. 초과 시 손익과 무관하게 시장가 청산.
+     * 미지정·0 이하면 비활성(기본값). dynamic_session의 동일 필드와 짝을 맞춘다.
+     */
+    private Integer maxHoldHours;
+
+    /**
      * EXPERIMENTAL(실험) 전략의 실전 세션 생성을 명시적으로 허용하는 안전 스위치.
      * 기본 false → ENABLED 전략만 실전 허용. 관찰 전용으로 실험 전략을 돌릴 때만 true.
      */

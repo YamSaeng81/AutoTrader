@@ -3,7 +3,7 @@ import {
     Shield, GitCompare, FileText, History,
     FlaskConical, Wallet, Settings, Clock,
     BarChart2, MessageSquare, Activity, Trash2, Terminal, PieChart,
-    Bot, Newspaper, BookOpen, MessagesSquare, SlidersHorizontal,
+    Bot, Newspaper, BookOpen, MessagesSquare, SlidersHorizontal, HeartPulse,
 } from 'lucide-react';
 
 export interface NavItem {
@@ -86,6 +86,7 @@ export const navGroups: NavGroup[] = [
             { href: '/settings/upbit-logs',   label: 'Upbit 주문 로그', icon: Activity },
             { href: '/settings/telegram',     label: '텔레그램 이력',   icon: MessageSquare },
             { href: '/admin/discord',         label: 'Discord 설정',    icon: MessagesSquare },
+            { href: '/admin/health-check',    label: '헬스체크 이력',   icon: HeartPulse },
             { href: '/settings/server-logs',  label: '서버 로그',       icon: Terminal },
             { href: '/settings/db-reset',     label: 'DB 초기화',       icon: Trash2 },
         ],

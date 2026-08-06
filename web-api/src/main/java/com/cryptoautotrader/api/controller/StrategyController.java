@@ -8,6 +8,7 @@ import com.cryptoautotrader.api.entity.StrategyTypeEnabledEntity;
 import com.cryptoautotrader.api.repository.StrategyConfigRepository;
 import com.cryptoautotrader.api.repository.StrategyTypeEnabledRepository;
 import com.cryptoautotrader.api.service.StrategyLiveStatusRegistry;
+import com.cryptoautotrader.api.service.WalkForwardValidationGate;
 import com.cryptoautotrader.strategy.Strategy;
 import com.cryptoautotrader.strategy.StrategyRegistry;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ public class StrategyController {
     private final StrategyConfigRepository configRepo;
     private final StrategyTypeEnabledRepository enabledRepo;
     private final StrategyLiveStatusRegistry liveStatusRegistry;
+    private final WalkForwardValidationGate walkForwardValidationGate;
 
     /**
      * 전략 목록 + 상태 조회
@@ -201,6 +203,32 @@ public class StrategyController {
                 })
                 .toList();
         return ApiResponse.ok(matrix);
+    }
+
+    /**
+     * 신호 기대값 검증 게이트 미리보기 — GET /api/v1/strategies/walk-forward-gate-status
+     *
+     * <p>{@code strategy-validation.require-walk-forward-gate}를 켜기 전에, 현재 등록된
+     * 전략 중 어떤 것이 통과/차단될지 실제로 강제하지 않고 확인할 수 있다.</p>
+     */
+    @GetMapping("/walk-forward-gate-status")
+    public ApiResponse<Map<String, Object>> getWalkForwardGateStatus() {
+        List<Map<String, Object>> perStrategy = StrategyRegistry.getAll().keySet().stream()
+                .sorted()
+                .map(name -> {
+                    WalkForwardValidationGate.GateDecision d = walkForwardValidationGate.evaluate(name);
+                    Map<String, Object> m = new HashMap<>();
+                    m.put("name", name);
+                    m.put("passed", d.passed());
+                    m.put("reason", d.reason());
+                    m.put("lastValidatedAt", d.lastValidatedAt());
+                    return m;
+                })
+                .toList();
+        Map<String, Object> result = new HashMap<>();
+        result.put("gateEnabled", walkForwardValidationGate.isEnabled());
+        result.put("strategies", perStrategy);
+        return ApiResponse.ok(result);
     }
 
     private Map<String, Object> buildStrategyInfo(String name, Strategy strategy, boolean isActive) {

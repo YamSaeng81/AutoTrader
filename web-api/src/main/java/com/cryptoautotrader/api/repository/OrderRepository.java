@@ -4,6 +4,7 @@ import com.cryptoautotrader.api.entity.OrderEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
@@ -92,4 +93,16 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
      * 섞여 집계되는 것을 막는다. session_id가 없는 수동/전역 주문은 제외.
      */
     long countBySessionKindAndSessionIdIsNotNullAndStateIn(String sessionKind, List<String> states);
+
+    /**
+     * 운영 건전성 점검용 — {@code order_id_seq.last_value}와 실제 {@code MAX(id)}의 차이.
+     * 정상은 0. 양수면 INSERT 후 트랜잭션 롤백으로 id만 소비되고 행이 사라진 경우
+     * (2026-07-29·2026-07-31 P0가 이 패턴이었다) — 매도/매수 후처리가 조용히 실패했다는 신호다.
+     *
+     * <p>⚠️ Postgres 전용(named sequence 의존) — H2 테스트 환경에서는 예외가 발생하므로
+     * 호출부({@code OperationalHealthCheckService})가 try-catch로 감싸 "확인 불가"로 처리한다.</p>
+     */
+    @Query(value = "SELECT (SELECT last_value FROM order_id_seq) - COALESCE((SELECT MAX(id) FROM \"order\"), 0)",
+            nativeQuery = true)
+    Long findOrderSequenceGap();
 }

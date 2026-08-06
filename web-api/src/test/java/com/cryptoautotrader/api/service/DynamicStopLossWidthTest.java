@@ -60,13 +60,13 @@ class DynamicStopLossWidthTest {
         BigDecimal floor = new BigDecimal("5.0");   // 세션 stopLossPct
 
         // 캔들 진폭 6% → ATR ≈ 6% → SL = 1.5 × 6% = 9% → 상한 8%에 걸림
-        BigDecimal wide = DynamicTradingService.resolveStopLossPct(
+        BigDecimal wide = ExitRuleCalculator.resolveStopLossPct(
                 floor, candlesWithRange(price, 6.0, 40), price);
         // 캔들 진폭 4% → ATR ≈ 4% → SL = 1.5 × 4% = 6%
-        BigDecimal mid = DynamicTradingService.resolveStopLossPct(
+        BigDecimal mid = ExitRuleCalculator.resolveStopLossPct(
                 floor, candlesWithRange(price, 4.0, 40), price);
         // 캔들 진폭 0.5% → ATR ≈ 0.5% → 1.5 × 0.5% = 0.75% < 하한 5% → 5%
-        BigDecimal narrow = DynamicTradingService.resolveStopLossPct(
+        BigDecimal narrow = ExitRuleCalculator.resolveStopLossPct(
                 floor, candlesWithRange(price, 0.5, 40), price);
 
         assertThat(wide).as("고변동 종목의 SL이 가장 넓다")
@@ -88,7 +88,7 @@ class DynamicStopLossWidthTest {
         BigDecimal floor = new BigDecimal("5.0");
 
         // 변동성이 거의 없는 종목(스테이블코인 등)도 하한 미만으로 좁아지면 안 된다
-        BigDecimal sl = DynamicTradingService.resolveStopLossPct(
+        BigDecimal sl = ExitRuleCalculator.resolveStopLossPct(
                 floor, candlesWithRange(price, 0.05, 40), price);
 
         assertThat(sl).isGreaterThanOrEqualTo(floor);
@@ -100,7 +100,7 @@ class DynamicStopLossWidthTest {
         BigDecimal price = new BigDecimal("1000");
 
         // 진폭 50%짜리 비정상 캔들 → 1.5×ATR = 75% 지만 상한 8%로 잘린다
-        BigDecimal sl = DynamicTradingService.resolveStopLossPct(
+        BigDecimal sl = ExitRuleCalculator.resolveStopLossPct(
                 new BigDecimal("5.0"), candlesWithRange(price, 50.0, 40), price);
 
         assertThat(sl).isEqualByComparingTo(new BigDecimal("8.0"));
@@ -114,7 +114,7 @@ class DynamicStopLossWidthTest {
         BigDecimal price = new BigDecimal("9150");
         BigDecimal floor = new BigDecimal("5.0");
 
-        BigDecimal sl = DynamicTradingService.resolveStopLossPct(
+        BigDecimal sl = ExitRuleCalculator.resolveStopLossPct(
                 floor, candlesWithRange(price, 3.48, 40), price);
 
         // 1.5 × 3.48% ≈ 5.2% (허용오차는 ATR 워밍업 근사)
@@ -131,17 +131,17 @@ class DynamicStopLossWidthTest {
         BigDecimal price = new BigDecimal("1000");
         BigDecimal floor = new BigDecimal("5.0");
 
-        assertThat(DynamicTradingService.resolveStopLossPct(floor, List.of(), price))
+        assertThat(ExitRuleCalculator.resolveStopLossPct(floor, List.of(), price))
                 .as("빈 캔들")
                 .isEqualByComparingTo(floor);
-        assertThat(DynamicTradingService.resolveStopLossPct(
+        assertThat(ExitRuleCalculator.resolveStopLossPct(
                 floor, candlesWithRange(price, 3.0, 5), price))
                 .as("ATR(14) 계산에 부족한 5개")
                 .isEqualByComparingTo(floor);
-        assertThat(DynamicTradingService.resolveStopLossPct(floor, null, price))
+        assertThat(ExitRuleCalculator.resolveStopLossPct(floor, null, price))
                 .as("캔들 null")
                 .isEqualByComparingTo(floor);
-        assertThat(DynamicTradingService.resolveStopLossPct(
+        assertThat(ExitRuleCalculator.resolveStopLossPct(
                 floor, candlesWithRange(price, 3.0, 40), BigDecimal.ZERO))
                 .as("현재가 0 — 0으로 나누기 방지")
                 .isEqualByComparingTo(floor);
@@ -155,7 +155,7 @@ class DynamicStopLossWidthTest {
         BigDecimal price = new BigDecimal("1823");   // 2026-07-30 KAITO 실제 진입가
         BigDecimal floor = new BigDecimal("5.0");
 
-        BigDecimal sl = DynamicTradingService.resolveStopLossPct(
+        BigDecimal sl = ExitRuleCalculator.resolveStopLossPct(
                 floor, candlesWithRange(price, 4.0, 40), price);
 
         // ATR 4% → SL 6% (허용오차는 ATR 워밍업으로 인한 근사 때문)

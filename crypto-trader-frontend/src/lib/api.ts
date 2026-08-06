@@ -281,6 +281,13 @@ export const adminDiscordApi = {
         api.get<ApiResponse<Record<string, unknown>[]>>(`/api/v1/admin/discord/logs?size=${size}`).then(r => r.data),
 };
 
+export const adminHealthCheckApi = {
+    history: (limit = 20) =>
+        api.get<ApiResponse<Record<string, unknown>[]>>('/api/v1/admin/health-check/history', { params: { limit } }).then(r => r.data),
+    trigger: () =>
+        api.post<ApiResponse<{ triggered: boolean }>>('/api/v1/admin/health-check/trigger').then(r => r.data),
+};
+
 export const settingsApi = {
     systemMetrics: () =>
         api.get<ApiResponse<import('./types').SystemMetrics>>('/api/v1/settings/system-metrics').then(r => r.data),

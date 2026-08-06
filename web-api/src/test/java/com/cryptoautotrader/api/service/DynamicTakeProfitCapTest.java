@@ -23,7 +23,7 @@ class DynamicTakeProfitCapTest {
     private double tpPctFor(String price, double slPct, BigDecimal suggested) {
         BigDecimal entry = new BigDecimal(price);
         BigDecimal sl = entry.multiply(BigDecimal.valueOf(1 - slPct / 100.0));
-        BigDecimal tp = DynamicTradingService.resolveTakeProfitPrice(entry, sl, suggested);
+        BigDecimal tp = ExitRuleCalculator.resolveTakeProfitPrice(entry, sl, suggested);
         return tp.divide(entry, 8, java.math.RoundingMode.HALF_UP)
                 .subtract(BigDecimal.ONE)
                 .multiply(BigDecimal.valueOf(100))
@@ -79,7 +79,7 @@ class DynamicTakeProfitCapTest {
         BigDecimal entry = new BigDecimal("101");
         for (double slPct : new double[]{0.5, 3.0, 5.0, 8.0}) {
             BigDecimal sl = entry.multiply(BigDecimal.valueOf(1 - slPct / 100.0));
-            assertThat(DynamicTradingService.resolveTakeProfitPrice(entry, sl, null))
+            assertThat(ExitRuleCalculator.resolveTakeProfitPrice(entry, sl, null))
                     .as("SL %s%% 일 때", slPct)
                     .isGreaterThan(entry);
         }

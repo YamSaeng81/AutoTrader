@@ -164,6 +164,7 @@ public class LiveTradingService {
     private final SessionBalanceUpdater balanceUpdater;
     private final com.cryptoautotrader.core.portfolio.PortfolioManager portfolioManager;
     private final StrategyLiveStatusRegistry strategyLiveStatusRegistry;
+    private final WalkForwardValidationGate walkForwardValidationGate;
     private final ExecutionDriftTracker executionDriftTracker;
     private final WsSubscriptionManager wsSubscriptionManager;
 
@@ -316,6 +317,14 @@ public class LiveTradingService {
                     req.getStrategyType(), status.readiness(), status.reason()));
         }
 
+        // 신호 기대값 검증 게이트 — Walk Forward로 out-of-sample 기대값>0이 증명된 전략만 통과.
+        // 기본은 비활성(플래그 off)이라 당장은 강제하지 않는다.
+        try {
+            walkForwardValidationGate.throwIfBlocked(req.getStrategyType());
+        } catch (IllegalArgumentException e) {
+            throw new SessionStateException(e.getMessage());
+        }
+
         // TEST_TIMED: 코인/타임프레임/원금 강제 고정
         if ("TEST_TIMED".equals(req.getStrategyType())) {
             req.setCoinPair("KRW-ETH");
@@ -346,6 +355,7 @@ public class LiveTradingService {
                 .strategyParams(req.getStrategyParams() != null
                         ? req.getStrategyParams() : Collections.emptyMap())
                 .stopLossPct(stopLoss)
+                .maxHoldHours(req.getMaxHoldHours() != null ? req.getMaxHoldHours() : 0)
                 .build();
 
         session = sessionRepository.save(session);
@@ -1014,6 +1024,19 @@ public class LiveTradingService {
                 return;
             }
 
+            // 시간 초과 청산 (time stop, 2026-08-06 DYNAMIC과 통합) — SL/TP는 가격 기반이라
+            // 저변동 종목에서는 영원히 도달하지 않는다. 세션 194 BTC 136시간 고착이 이 갭의
+            // 실측 사례다. 기본값 0(비활성)이라 명시적으로 켠 세션에만 영향을 준다.
+            if (ExitRuleCalculator.shouldTimeStop(session.getMaxHoldHours(), pos.getOpenedAt(), Instant.now())) {
+                long heldHours = Duration.between(pos.getOpenedAt(), Instant.now()).toHours();
+                log.warn("시간 초과 청산 (sessionId={}): {} 보유 {}h ≥ {}h pnl={}%",
+                        sessionId, coinPair, heldHours, session.getMaxHoldHours(), pnlPct);
+                executeSessionSell(session, pos, currentPrice, String.format(
+                        "시간 초과 청산 — 보유 %d시간 ≥ %d시간 (pnl %s%%)",
+                        heldHours, session.getMaxHoldHours(), pnlPct.setScale(2, RoundingMode.HALF_UP)));
+                return;
+            }
+
             // 낙폭 경고: 손절 한도의 50% 이상 손실이고 아직 손절 미도달 시 (30분 쿨다운)
             BigDecimal stopLossNeg = rawStopLoss.negate();
             BigDecimal warningThreshold = stopLossNeg.multiply(new BigDecimal("0.5"));
@@ -1060,7 +1083,7 @@ public class LiveTradingService {
                     }
                     executeSessionBuy(session, coinPair, currentPrice,
                             String.format("전략 신호: %s -- %s", strategyType, finalSignal.getReason()),
-                            finalSignal, regimeName);
+                            finalSignal, regimeName, evalCandles);
                     saveSignalQuality(signalLogRef, true, null);
                 } else {
                     String reason;
@@ -1148,7 +1171,8 @@ public class LiveTradingService {
 
     private void executeSessionBuy(LiveTradingSessionEntity session,
                                     String coinPair, BigDecimal price, String reason,
-                                    StrategySignal signal, String marketRegime) {
+                                    StrategySignal signal, String marketRegime,
+                                    List<Candle> evalCandles) {
         // 사전 검증: 이미 이 세션에 활성 BUY 주문이 있으면 스킵 (orphan 포지션 방지)
         boolean hasPendingBuy = orderRepository.existsBySessionIdAndCoinPairAndSideAndStateIn(
                 session.getId(), coinPair, "BUY", ACTIVE_ORDER_STATES);
@@ -1184,19 +1208,24 @@ public class LiveTradingService {
             }
         }
 
-        // SL/TP 계산: 전략 제시값 우선, 없으면 세션 stopLossPct 기반 기본값 적용
-        com.cryptoautotrader.core.risk.ExitRuleConfig cfg = exitConfig();
-        BigDecimal slPct = (session.getStopLossPct() != null)
-                ? session.getStopLossPct()
-                : cfg.getStopLossPct();
+        // SL/TP 계산 — ATR 기반 (2026-08-06, DYNAMIC과 ExitRuleCalculator 공유로 통합).
+        // 이전에는 세션 stopLossPct 고정값만 썼다 — 07-31 DYNAMIC 개편이 LIVE엔 반쪽만
+        // 적용된 상태였고, 세션 194 BTC가 136시간 물려 있던 원인 중 하나였다(SL 폭 자체는
+        // 원인이 아니지만, 이제 두 서비스가 같은 함수를 쓰므로 앞으로의 개편은 자동으로
+        // 양쪽에 적용된다).
+        BigDecimal slPct = ExitRuleCalculator.resolveStopLossPct(session.getStopLossPct(), evalCandles, price);
+        BigDecimal atrStopLossPrice = price.multiply(BigDecimal.ONE.subtract(
+                        slPct.divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP)))
+                .setScale(8, RoundingMode.HALF_DOWN);
+
+        // 전략 제안 SL은 존중하되 더 넓은 쪽을 채택한다 — 제안값이 ATR 기준보다 타이트하면
+        // 휩쏘로 이어진다(DYNAMIC 07-31 개편과 동일한 근거).
         BigDecimal stopLossPrice = (signal != null && signal.getSuggestedStopLoss() != null)
-                ? signal.getSuggestedStopLoss()
-                : price.multiply(BigDecimal.ONE.subtract(slPct.divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP)))
-                        .setScale(8, RoundingMode.HALF_DOWN);
-        BigDecimal takeProfitPrice = (signal != null && signal.getSuggestedTakeProfit() != null)
-                ? signal.getSuggestedTakeProfit()
-                : price.multiply(BigDecimal.ONE.add(slPct.multiply(cfg.getTakeProfitMultiplier()).divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP)))
-                        .setScale(8, RoundingMode.HALF_UP);
+                ? signal.getSuggestedStopLoss().min(atrStopLossPrice)
+                : atrStopLossPrice;
+
+        BigDecimal takeProfitPrice = ExitRuleCalculator.resolveTakeProfitPrice(
+                price, stopLossPrice, signal != null ? signal.getSuggestedTakeProfit() : null);
 
         // 포지션 생성 (세션 연결)
         // size=0 으로 초기화: 주문 체결(FILLED) 후 handleBuyFill()에서 실제 체결 수량으로 갱신됨
@@ -1873,7 +1902,20 @@ public class LiveTradingService {
     }
 
     /**
-     * §9 — SL 미점검 세션 감시. 3분 이상 SL 체크를 받지 못한 RUNNING 세션이 있으면 경고.
+     * §9 — SL 미점검 세션 감시. 3분 이상 SL 체크를 받지 못한 RUNNING 세션이 있으면
+     * 경고와 함께 <b>그 코인 하나만 REST로 즉시 강제 갱신</b>을 시도한다 (2026-08-06 추가).
+     *
+     * <p><b>왜 알림만으로는 부족한가</b>: {@link #pollRestTickerFallback}은 이미 WS 전역 폴백을
+     * 두고 있지만, {@code isWsUnhealthy}는 <b>전역 틱 신선도</b>만 본다. 다른 코인(BTC 등)이
+     * 계속 틱을 주는 동안 <b>이 세션의 코인만</b> 구독이 조용히 끊기면 전역 판정은 "정상"이라
+     * 폴백이 발동하지 않는다(2026-08-05 {@link #pollRestTickerFallback} 문서의 "남는 한계").
+     * 그동안은 이 워치독이 경보만 보내고 사람이 직접 조치할 때까지 SL 감시가 비어 있었다.</p>
+     *
+     * <p><b>복구 방법</b>: {@link #forceRefreshPrice}로 이 코인만 REST 시세를 가져와
+     * {@link RealtimePriceEvent}를 발행한다 — 정상 WS 틱과 완전히 동일한 경로(SL/TP 판정,
+     * throttle)를 타므로 새로운 매매 로직을 추가하는 게 아니라 "끊긴 틱 하나를 대신 채워주는"
+     * 것에 지나지 않는다. 이 강제 갱신 자체가 실패하면(거래소 API 오류 등) 알림 문구로
+     * 구분해 사람이 개입해야 함을 명확히 한다.</p>
      */
     @Scheduled(fixedDelay = 60_000)
     public void warnStaleSlCheck() {
@@ -1891,10 +1933,41 @@ public class LiveTradingService {
                 log.warn("[§9] SL 미점검 경고: sessionId={} coin={} 마지막체크={} ({}분 초과)",
                         s.getId(), s.getCoinPair(),
                         last != null ? last : "기록없음", SL_STALE_WARN_MINUTES);
-                telegramService.sendCustomNotification(
-                        String.format("⚠️ SL 미점검 %d분 초과: 세션 %d (%s). WS 상태를 확인하세요.",
-                                SL_STALE_WARN_MINUTES, s.getId(), s.getCoinPair()));
+
+                boolean recovered = forceRefreshPrice(s.getCoinPair());
+                telegramService.sendCustomNotification(String.format(
+                        "⚠️ SL 미점검 %d분 초과: 세션 %d (%s). %s",
+                        SL_STALE_WARN_MINUTES, s.getId(), s.getCoinPair(),
+                        recovered
+                                ? "REST로 해당 코인 시세를 즉시 강제 갱신해 SL 감시를 재개했습니다."
+                                : "자동 복구도 실패 — WS/거래소 상태를 직접 확인하세요."));
             }
+        }
+    }
+
+    /**
+     * 특정 코인 하나만 REST로 즉시 시세를 가져와 {@link RealtimePriceEvent}를 발행한다.
+     * {@link #warnStaleSlCheck}가 개별 코인의 SL 미점검(전역 WS는 정상인데 이 코인만 조용히
+     * 끊긴 경우)을 발견했을 때, 사람 개입 없이 그 자리에서 즉시 한 번 복구를 시도하는 용도.
+     * 실패해도 다음 60초 주기에 다시 시도되며, 그사이엔 알림 문구로 자동 복구 실패를 알린다.
+     */
+    boolean forceRefreshPrice(String coinPair) {
+        if (upbitRestClient == null) return false;
+        try {
+            List<Map<String, Object>> tickers = upbitRestClient.getTicker(coinPair);
+            boolean published = false;
+            for (Map<String, Object> ticker : tickers) {
+                String market = (String) ticker.get("market");
+                Object tradePriceObj = ticker.get("trade_price");
+                if (market == null || tradePriceObj == null) continue;
+                BigDecimal tradePrice = new BigDecimal(tradePriceObj.toString());
+                eventPublisher.publishEvent(new RealtimePriceEvent(market, tradePrice));
+                published = true;
+            }
+            return published;
+        } catch (Exception e) {
+            log.error("[§9] SL 미점검 세션 강제 복구 실패 (coin={}): {}", coinPair, e.getMessage());
+            return false;
         }
     }
 

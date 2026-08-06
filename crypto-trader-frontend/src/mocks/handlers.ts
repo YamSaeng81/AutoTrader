@@ -214,4 +214,32 @@ export const handlers = [
       }, error: null,
     });
   }),
+  // 운영 건전성 점검 이력 (2026-08-06 신규)
+  http.get('/api/proxy/api/v1/admin/health-check/history', () => {
+    const now = Date.now();
+    return HttpResponse.json({
+      success: true,
+      data: [
+        {
+          id: 3, checkedAt: new Date(now).toISOString(),
+          balanceMismatchCount: 0, balanceMismatchDetail: [],
+          orderSequenceGap: 0, sequenceGapChecked: true,
+          ghostPositionCount: 0, ghostPositionDetail: [],
+          stuckPositionCount: 1,
+          stuckPositionDetail: [{ sessionKind: 'LIVE', positionId: 2378, sessionId: 194, coinPair: 'KRW-BTC', heldHours: 136 }],
+        },
+        {
+          id: 2, checkedAt: new Date(now - 86400000).toISOString(),
+          balanceMismatchCount: 0, balanceMismatchDetail: [],
+          orderSequenceGap: 0, sequenceGapChecked: true,
+          ghostPositionCount: 0, ghostPositionDetail: [],
+          stuckPositionCount: 0, stuckPositionDetail: [],
+        },
+      ],
+      error: null,
+    });
+  }),
+  http.post('/api/proxy/api/v1/admin/health-check/trigger', () => {
+    return HttpResponse.json({ success: true, data: { triggered: true }, error: null });
+  }),
 ];
