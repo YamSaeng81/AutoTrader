@@ -51,6 +51,7 @@ public class TradingController {
     private final ExchangeHealthMonitor exchangeHealthMonitor;
     private final TelegramNotificationService telegramNotificationService;
     private final PositionRepository positionRepository;
+    private final BenchmarkAlphaService benchmarkAlphaService;
 
     @Autowired(required = false)
     private UpbitOrderClient upbitOrderClient;
@@ -325,6 +326,17 @@ public class TradingController {
             @RequestParam(required = false) String closedSince) {
         Instant since = parseClosedSince(closedSince);
         return ApiResponse.ok(liveTradingService.getPerformanceSummary(since));
+    }
+
+    /**
+     * 벤치마크(매수 후 보유) 대비 알파 — 2026-08-07 신설.
+     *
+     * <p>운영 중인 실자본 세션의 수익률을 같은 기간 BTC·알트를 그냥 보유했을 때와 비교한다.
+     * 이 비교가 없어서 수개월간 "잘하고 있는지" 판정 자체가 불가능했다.
+     */
+    @GetMapping("/benchmark-alpha")
+    public ApiResponse<Map<String, Object>> getBenchmarkAlpha() {
+        return ApiResponse.ok(benchmarkAlphaService.getAlphaSummary());
     }
 
     private Instant parseClosedSince(String raw) {

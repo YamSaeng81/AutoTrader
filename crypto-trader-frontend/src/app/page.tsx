@@ -6,6 +6,7 @@ import {
     usePositions, useOrders, useStrategies, usePaperSessions,
 } from '@/hooks';
 import { accountApi, tradingApi, paperTradingApi, settingsApi } from '@/lib/api';
+import type { BenchmarkAlpha } from '@/lib/api';
 import type { SystemMetrics, PerformanceSummary, AccountSummary } from '@/lib/types';
 import {
     Activity, AlertTriangle, CheckCircle, Cpu, Database,
@@ -46,6 +47,96 @@ function SummaryCard({
             </div>
             <p className={`text-2xl font-bold tracking-tight ${colorClass}`}>{value}</p>
             {sub && <p className="text-xs text-slate-500">{sub}</p>}
+        </div>
+    );
+}
+
+// ─── 벤치마크 대비 알파 ───────────────────────────────────────────────────────
+// 절대 수익률만 보면 "잘하고 있는지" 판정이 불가능하다 — 시장이 −10%일 때의 −3%는
+// 좋은 성적이고, 시장이 +10%일 때의 −3%는 나쁜 성적이다. 이 비교가 없어서 수개월간
+// 판정 자체를 못 했으므로 대시보드 상단에 고정 노출한다. (2026-08-07 신설)
+function BenchmarkAlphaPanel({ alpha }: { alpha: BenchmarkAlpha | null }) {
+    if (!alpha) return null;
+
+    if (!alpha.available) {
+        return (
+            <div className="bg-slate-800 border border-slate-700 rounded-xl p-5">
+                <div className="flex items-center gap-2 mb-2">
+                    <TrendingUp className="w-4 h-4 text-indigo-400" />
+                    <h2 className="text-sm font-semibold text-slate-200">벤치마크 대비 알파</h2>
+                </div>
+                <p className="text-sm text-slate-500">{alpha.reason ?? '측정할 수 없습니다.'}</p>
+            </div>
+        );
+    }
+
+    const sys = alpha.system;
+    const a = alpha.alpha;
+    const vsAlt = a?.vsAltAvgPct ?? null;
+    const beating = vsAlt !== null && vsAlt > 0;
+    const pctStr = (v: number | null | undefined) =>
+        v === null || v === undefined ? '—' : `${v >= 0 ? '+' : ''}${v.toFixed(2)}%`;
+
+    return (
+        <div className={`bg-slate-800 border rounded-xl p-5 ${beating ? 'border-emerald-600/50' : 'border-red-600/50'}`}>
+            <div className="flex items-center gap-2 mb-4 flex-wrap">
+                <TrendingUp className="w-4 h-4 text-indigo-400" />
+                <h2 className="text-sm font-semibold text-slate-200">벤치마크 대비 알파</h2>
+                <span className="text-xs text-slate-500">
+                    같은 기간 그냥 사서 들고 있었을 때와 비교
+                </span>
+                {alpha.periodStart && (
+                    <span className="ml-auto text-xs text-slate-500">
+                        기준: {new Date(alpha.periodStart).toLocaleString('ko-KR')}부터
+                    </span>
+                )}
+            </div>
+
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                <div>
+                    <p className="text-xs text-slate-400 mb-1">시스템 전체</p>
+                    <p className={`text-2xl font-bold ${(sys?.totalReturnPct ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                        {pctStr(sys?.totalReturnPct)}
+                    </p>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                        실전 {sys?.liveSessions ?? 0} · 동적 {sys?.dynamicSessions ?? 0} 세션
+                    </p>
+                </div>
+                <div>
+                    <p className="text-xs text-slate-400 mb-1">알트 평균 보유</p>
+                    <p className="text-2xl font-bold text-slate-300">{pctStr(a?.altAvgReturnPct)}</p>
+                </div>
+                <div>
+                    <p className="text-xs text-slate-400 mb-1">BTC 보유</p>
+                    <p className="text-2xl font-bold text-slate-300">{pctStr(a?.btcReturnPct)}</p>
+                </div>
+                <div>
+                    <p className="text-xs text-slate-400 mb-1">알파 (vs 알트평균)</p>
+                    <p className={`text-2xl font-bold ${beating ? 'text-emerald-400' : 'text-red-400'}`}>
+                        {pctStr(vsAlt)}
+                    </p>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                        {vsAlt === null ? '판정 불가' : beating ? '시장을 이기는 중' : '시장보다 못함'}
+                    </p>
+                </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2 pt-3 border-t border-slate-700">
+                {(alpha.benchmark ?? []).map(b => (
+                    <span
+                        key={b.coinPair}
+                        className="text-xs px-2 py-1 rounded bg-slate-900/60 border border-slate-700 text-slate-400"
+                    >
+                        {b.coinPair.replace('KRW-', '')}{' '}
+                        <span className={
+                            b.returnPct === null ? 'text-slate-600'
+                                : b.returnPct >= 0 ? 'text-emerald-400' : 'text-red-400'
+                        }>
+                            {b.returnPct === null ? '데이터 없음' : pctStr(b.returnPct)}
+                        </span>
+                    </span>
+                ))}
+            </div>
         </div>
     );
 }
@@ -133,6 +224,15 @@ export default function DashboardPage() {
             return (res.success && res.data) ? res.data : null;
         },
         refetchInterval: 10000,
+    });
+
+    const { data: alpha = null } = useQuery<BenchmarkAlpha | null>({
+        queryKey: ['benchmark-alpha'],
+        queryFn: async () => {
+            const res = await tradingApi.getBenchmarkAlpha();
+            return (res.success && res.data) ? res.data : null;
+        },
+        refetchInterval: 60000,
     });
 
     const { data: metrics = null } = useQuery<SystemMetrics | null>({
@@ -241,6 +341,9 @@ export default function DashboardPage() {
                     }
                 />
             </div>
+
+            {/* ━━━ 벤치마크 대비 알파 ━━━ */}
+            <BenchmarkAlphaPanel alpha={alpha} />
 
             {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
                 ② 중앙: 성과 시각화 (차트)

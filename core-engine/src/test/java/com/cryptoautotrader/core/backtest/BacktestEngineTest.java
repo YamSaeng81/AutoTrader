@@ -96,6 +96,62 @@ class BacktestEngineTest {
                 .isEqualByComparingTo(r2.getMetrics().getTotalReturnPct());
     }
 
+    /**
+     * 신호 반전(invertSignals) — 2026-08-07 신설.
+     *
+     * <p>실전 신호 기대값이 체계적으로 음수라(BUY 후 24h −4.81%) "신호가 방향만 반대인가"를
+     * 판정하기 위한 연구용 플래그. 기본값이 false여야 하고(실수로 켜지면 실거래 백테스트가
+     * 통째로 오염된다), 켰을 때 실제로 다른 매매가 나와야 의미가 있다.
+     */
+    @Test
+    void invertSignals_기본값은_false다() {
+        BacktestConfig config = BacktestConfig.builder()
+                .strategyName("EMA_CROSS")
+                .coinPair("KRW-BTC")
+                .timeframe("H1")
+                .strategyParams(Map.of())
+                .build();
+
+        assertThat(config.isInvertSignals()).isFalse();
+    }
+
+    @Test
+    void invertSignals_켜면_정방향과_다른_매매가_나온다() {
+        List<Candle> candles = createSimpleCandles(120);
+        Map<String, Object> params = Map.of("fastPeriod", 5, "slowPeriod", 15);
+
+        BacktestResult normal = engine.run(invertConfig(candles, params, false), candles);
+        BacktestResult inverted = engine.run(invertConfig(candles, params, true), candles);
+
+        // 정방향이 거래를 냈는데 반전이 완전히 동일하다면 플래그가 배선되지 않은 것이다.
+        assertThat(normal.getTrades()).isNotEmpty();
+        assertThat(inverted.getTrades())
+                .as("반전 시 매매 결과가 정방향과 달라야 한다")
+                .isNotEqualTo(normal.getTrades());
+
+        // 반전된 진입은 사유에 [반전] 접두어가 붙어 로그에서 식별 가능해야 한다.
+        boolean hasInvertedReason = inverted.getTrades().stream()
+                .anyMatch(t -> t.getSignalReason() != null && t.getSignalReason().contains("[반전]"));
+        assertThat(hasInvertedReason)
+                .as("반전 실험임을 거래 로그에서 식별할 수 있어야 한다")
+                .isTrue();
+    }
+
+    private BacktestConfig invertConfig(List<Candle> candles, Map<String, Object> params, boolean invert) {
+        return BacktestConfig.builder()
+                .strategyName("EMA_CROSS")
+                .coinPair("KRW-BTC")
+                .timeframe("H1")
+                .startDate(candles.get(0).getTime())
+                .endDate(candles.get(candles.size() - 1).getTime())
+                .initialCapital(new BigDecimal("10000000"))
+                .slippagePct(new BigDecimal("0.1"))
+                .feePct(new BigDecimal("0.05"))
+                .strategyParams(params)
+                .invertSignals(invert)
+                .build();
+    }
+
     private List<Candle> createSimpleCandles(int count) {
         List<Candle> candles = new ArrayList<>();
         Instant base = Instant.parse("2024-01-01T00:00:00Z");

@@ -47,6 +47,20 @@ public class BacktestConfig {
      */
     private final List<Candle> btcCandles;
 
+    /**
+     * 진입/청산 신호를 반전시킨다 (BUY↔SELL). 연구 전용 — 2026-08-07.
+     *
+     * <p>실전 신호 기대값이 체계적으로 음수(BUY 후 24h −4.81%, SELL 후 +1.06%)로 관측되어,
+     * "신호가 방향만 반대일 뿐 예측력은 있는가"를 판정하기 위한 가설 검증용 플래그다.
+     * 반전 후에도 수수료·슬리피지는 그대로 부과되므로, 결과가 양수라면 마찰비용을 넘는
+     * 실제 예측력이 반대 방향에 존재한다는 뜻이고, 여전히 음수라면 신호는 무작위 + 마찰비용이다.
+     *
+     * <p><b>주의</b>: 반전은 전략이 낸 신호에만 적용되며 손절·익절·time stop 등 리스크 규칙은
+     * 그대로 유지된다(그쪽까지 뒤집으면 손절이 익절이 되어 실험 자체가 무의미해진다).
+     */
+    @Builder.Default
+    private final boolean invertSignals = false;
+
     public ExitRuleConfig getExitRuleConfig() {
         return exitRuleConfig != null ? exitRuleConfig : ExitRuleConfig.defaults();
     }

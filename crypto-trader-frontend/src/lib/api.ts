@@ -173,7 +173,35 @@ export const tradingApi = {
         api.get<ApiResponse<PerformanceSummary>>('/api/v1/trading/performance', {
             params: closedSince ? { closedSince } : undefined,
         }).then(r => r.data),
+
+    /** 벤치마크(매수 후 보유) 대비 알파 — 시장 대비 실제로 잘하고 있는지 판정용 */
+    getBenchmarkAlpha: () =>
+        api.get<ApiResponse<BenchmarkAlpha>>('/api/v1/trading/benchmark-alpha').then(r => r.data),
 };
+
+/** GET /api/v1/trading/benchmark-alpha 응답 */
+export interface BenchmarkAlpha {
+    available: boolean;
+    reason?: string;
+    periodStart?: string;
+    measuredAt?: string;
+    system?: {
+        liveSessions: number;
+        liveReturnPct: number;
+        dynamicSessions: number;
+        dynamicReturnPct: number;
+        totalInitialCapital: number;
+        totalAssetKrw: number;
+        totalReturnPct: number;
+    };
+    benchmark?: { coinPair: string; returnPct: number | null; available: boolean }[];
+    alpha?: {
+        altAvgReturnPct: number | null;
+        btcReturnPct: number | null;
+        vsAltAvgPct: number | null;
+        vsBtcPct: number | null;
+    };
+}
 
 export const paperTradingApi = {
     sessions: () =>

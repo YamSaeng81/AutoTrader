@@ -200,6 +200,9 @@ public class BacktestEngine {
                 evalParams.put("coinPair", config.getCoinPair());
             }
             StrategySignal signal = strategy.evaluate(window, evalParams);
+            if (config.isInvertSignals()) {
+                signal = invert(signal);
+            }
             MarketRegime regime = regimeDetector.detect(window);
 
             // BTC_MARKET_GUARD — nextCandle 시점까지의 BTC 캔들 윈도우로 판정한다(look-ahead 방지,
@@ -364,6 +367,27 @@ public class BacktestEngine {
                 .unrealizedPnl(unrealizedPnl)
                 .openPositionValue(openPositionValue)
                 .finalEquity(finalEquity)
+                .build();
+    }
+
+    /**
+     * 전략 신호의 방향만 뒤집는다 (BUY↔SELL, HOLD는 유지) — {@link BacktestConfig#isInvertSignals()} 전용.
+     *
+     * <p>reason에 접두어를 붙여 거래 로그에서 반전 실험임을 식별할 수 있게 한다.
+     * confidence 등 나머지 필드는 그대로 보존한다.
+     */
+    private StrategySignal invert(StrategySignal signal) {
+        StrategySignal.Action inverted = switch (signal.getAction()) {
+            case BUY -> StrategySignal.Action.SELL;
+            case SELL -> StrategySignal.Action.BUY;
+            default -> signal.getAction();
+        };
+        if (inverted == signal.getAction()) {
+            return signal;
+        }
+        return signal.toBuilder()
+                .action(inverted)
+                .reason("[반전] " + signal.getReason())
                 .build();
     }
 
