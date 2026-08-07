@@ -17,7 +17,7 @@ const TIMEFRAMES = [
     { value: 'D1', label: '일봉' },
 ];
 
-const MAX_SESSIONS = 10;
+const MAX_SESSIONS = 120;
 
 const ALL_STRATEGIES = [
     'COMPOSITE', 'EMA_CROSS', 'BOLLINGER', 'RSI', 'MACD',
@@ -126,7 +126,7 @@ export default function PaperTradingPage() {
                             실행 중 {runningSessions.length}/{MAX_SESSIONS}
                         </span>
                     </div>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">최대 10개 세션을 동시에 운영할 수 있습니다.</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">최대 {MAX_SESSIONS}개 세션을 동시에 운영할 수 있습니다.</p>
                 </div>
                 <div className="flex gap-2">
                     <Link
