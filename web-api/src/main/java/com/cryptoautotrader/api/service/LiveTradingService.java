@@ -171,6 +171,7 @@ public class LiveTradingService {
     private final com.cryptoautotrader.core.portfolio.PortfolioManager portfolioManager;
     private final StrategyLiveStatusRegistry strategyLiveStatusRegistry;
     private final WalkForwardValidationGate walkForwardValidationGate;
+    private final StrategyEnablementGate strategyEnablementGate;
     private final ExecutionDriftTracker executionDriftTracker;
     private final WsSubscriptionManager wsSubscriptionManager;
 
@@ -278,6 +279,11 @@ public class LiveTradingService {
      */
     @Transactional
     public synchronized LiveTradingSessionEntity createSession(LiveTradingStartRequest req) {
+        // 비활성 전략 차단 — DYNAMIC에만 있던 검사를 2026-08-18에 이 경로에도 건다.
+        // kill criteria가 폐기 시 전략을 비활성화하는 목적(같은 전략으로 새 세션을 만들어
+        // 재개하는 것을 막는 것)이 세 진입점 중 하나만 막혀 있으면 달성되지 않는다.
+        strategyEnablementGate.assertEnabled(req.getStrategyType());
+
         long runningCount = sessionRepository.countByStatus("RUNNING");
         if (runningCount >= MAX_CONCURRENT_SESSIONS) {
             throw new SessionStateException(
@@ -831,6 +837,9 @@ public class LiveTradingService {
             log.error("서킷 브레이커 발동 (sessionId={}): {}", sessionId, cbResult.getReason());
             session.setCircuitBreakerTriggeredAt(Instant.now());
             session.setCircuitBreakerReason(cbResult.getReason());
+            // 누적 횟수 — 발동 시각은 덮어써지므로 반복 여부는 이 카운터로만 남는다
+            // (kill criteria CB_REPEAT 판정, docs/KILL_CRITERIA.md §4.A)
+            session.setCircuitBreakerTripCount(session.getCircuitBreakerTripCount() + 1);
             sessionRepository.save(session);
             emergencyStopSession(sessionId);
             return;
@@ -1039,6 +1048,8 @@ public class LiveTradingService {
                 long heldHours = Duration.between(pos.getOpenedAt(), Instant.now()).toHours();
                 log.warn("시간 초과 청산 (sessionId={}): {} 보유 {}h ≥ {}h pnl={}%",
                         sessionId, coinPair, heldHours, session.getMaxHoldHours(), pnlPct);
+                telegramService.notifyTimeStop(coinPair, heldHours, session.getMaxHoldHours(),
+                        pnlPct.doubleValue(), sessionId);
                 executeSessionSell(session, pos, currentPrice, String.format(
                         "시간 초과 청산 — 보유 %d시간 ≥ %d시간 (pnl %s%%)",
                         heldHours, session.getMaxHoldHours(), pnlPct.setScale(2, RoundingMode.HALF_UP)));

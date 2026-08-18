@@ -159,6 +159,13 @@ public class DynamicSessionEntity {
     @Column(name = "circuit_breaker_reason", length = 500)
     private String circuitBreakerReason;
 
+    /**
+     * 서킷 브레이커 누적 발동 횟수 (V69) — kill criteria {@code CB_REPEAT} 판정용.
+     * 사유는 {@link LiveTradingSessionEntity#getCircuitBreakerTripCount()} 주석 참조.
+     */
+    @Column(name = "circuit_breaker_trip_count", nullable = false)
+    private Integer circuitBreakerTripCount;
+
     @Column(name = "started_at")
     private Instant startedAt;
 
@@ -176,6 +183,7 @@ public class DynamicSessionEntity {
         if (status == null)    status    = "CREATED";
         if (scanState == null) scanState = "SCANNING";
         if (tradingMode == null) tradingMode = DEFAULT_TRADING_MODE;
+        if (circuitBreakerTripCount == null) circuitBreakerTripCount = 0;
         if (createdAt == null) createdAt = Instant.now();
         if (updatedAt == null) updatedAt = Instant.now();
     }
@@ -261,6 +269,12 @@ public class DynamicSessionEntity {
 
     public String getCircuitBreakerReason() { return circuitBreakerReason; }
     public void setCircuitBreakerReason(String v) { this.circuitBreakerReason = v; }
+
+    /** V69 이전에 만들어진 행은 null 일 수 있으므로 0 으로 읽는다. */
+    public int getCircuitBreakerTripCount() {
+        return circuitBreakerTripCount == null ? 0 : circuitBreakerTripCount;
+    }
+    public void setCircuitBreakerTripCount(Integer v) { this.circuitBreakerTripCount = v; }
 
     public Instant getStartedAt() { return startedAt; }
     public void setStartedAt(Instant v) { this.startedAt = v; }

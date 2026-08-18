@@ -89,6 +89,17 @@ public class LiveTradingSessionEntity {
     @Column(name = "circuit_breaker_reason", length = 255)
     private String circuitBreakerReason;
 
+    /**
+     * 서킷 브레이커 누적 발동 횟수 (V69) — kill criteria {@code CB_REPEAT} 판정용.
+     *
+     * <p>{@link #circuitBreakerTriggeredAt}은 발동할 때마다 덮어써지므로 "몇 번 걸렸는지"를
+     * 남기지 못한다. 서킷 브레이커는 발동 즉시 세션을 EMERGENCY_STOPPED 로 내리고 재시작은
+     * 수동이므로, 이 횟수가 곧 "구조적 결함이 반복된 횟수"다. 자세한 기준은
+     * {@code docs/KILL_CRITERIA.md} §4.A 참조.</p>
+     */
+    @Column(name = "circuit_breaker_trip_count", nullable = false)
+    private Integer circuitBreakerTripCount;
+
     @Column(name = "started_at")
     private Instant startedAt;
 
@@ -123,6 +134,7 @@ public class LiveTradingSessionEntity {
         if (stopLossPct == null) stopLossPct = new BigDecimal("5.0");
         if (investRatio == null) investRatio = new BigDecimal("0.2500");
         if (maxHoldHours == null) maxHoldHours = DEFAULT_MAX_HOLD_HOURS;
+        if (circuitBreakerTripCount == null) circuitBreakerTripCount = 0;
     }
 
     @PreUpdate
@@ -194,4 +206,10 @@ public class LiveTradingSessionEntity {
 
     public String getCircuitBreakerReason() { return circuitBreakerReason; }
     public void setCircuitBreakerReason(String circuitBreakerReason) { this.circuitBreakerReason = circuitBreakerReason; }
+
+    /** V69 이전에 만들어진 행은 null 일 수 있으므로 0 으로 읽는다. */
+    public int getCircuitBreakerTripCount() {
+        return circuitBreakerTripCount == null ? 0 : circuitBreakerTripCount;
+    }
+    public void setCircuitBreakerTripCount(Integer circuitBreakerTripCount) { this.circuitBreakerTripCount = circuitBreakerTripCount; }
 }

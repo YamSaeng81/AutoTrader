@@ -14,7 +14,7 @@
 > 2. **자본 증액 금지** — 기대값이 음수인 상태에서 금액을 늘리면 손실 속도만 빨라진다. 증액 조건은 "벤치마크 대비 알파가 양수임이 통계적으로 증명될 때" 하나뿐.
 > 3. ~~**벤치마크 비교를 시스템에 내장**~~ ✅ **2026-08-07 완료** — `BenchmarkAlphaService` + 대시보드 상단 고정 노출(위 별도 섹션).
 > 4. ~~**신호 반전 가설 검증**~~ ✅ **2026-08-07 기각** — 반전이 오히려 더 나쁘다(평균 −4.85% → −6.01%). 신호는 거꾸로인 게 아니라 **방향성이 없다**. 손실의 정체는 무작위 진입 + 마찰비용(위 별도 섹션).
-> 5. **중단 기준(kill criteria)을 미리 문서화** — "N거래 후 벤치마크 대비 알파가 음수면 이 전략은 폐기" 를 사전에 정해두지 않아, 나쁜 전략을 계속 고쳐 쓰는 루프에 빠져 있다. 현재 22개 전략 중 실전 검증 통과한 것은 **0개**. ← **반전 가설이 기각된 지금 이게 최우선이다.**
+> 5. ~~**중단 기준(kill criteria)을 미리 문서화**~~ ✅ **2026-08-18 완료** — [`docs/KILL_CRITERIA.md`](KILL_CRITERIA.md) 제정 + `StrategyKillCriteriaService`로 집행(매일 09:00 KST). 자본 보호 3종은 표본 무관 즉시 발동, 엣지 2종은 n≥20. 아래 08-18 섹션 참조. ⚠️ **자동 정지는 아직 꺼져 있다**(`kill-criteria.auto-stop=false`) — 판정이 며칠간 옳게 나오는지 관찰 후 켤 것.
 > 6. **LIVE 세션을 H1로 재생성 필요** — 실전(M5)과 페이퍼(H1)의 타임프레임이 달라 A/B 비교가 성립하지 않는다. 세션 생성 후 타임프레임 변경 API가 없으므로 **정지 후 H1로 재생성**해야 한다(현재 포지션 0건이라 안전). 동적 멀티코인은 REAL/PAPER 쌍이 이미 H1로 맞춰져 있어 문제없다.
 
 > 아래는 코드가 준비돼 있고 실행 여부·시점만 운영 판단이 필요한 것들.
@@ -22,7 +22,7 @@
 - **Walk Forward 게이트 활성화** (`REQUIRE_WALK_FORWARD_GATE`) — `WalkForwardValidationGate` 구현 완료, 기본값 비활성. 대부분 전략이 Walk Forward 이력이 없어 켜는 즉시 신규 세션 생성이 전면 중단된다. 켜기 전에 `GET /api/v1/strategies/walk-forward-gate-status`로 어떤 전략이 막히는지 먼저 확인하고, 운영 중인 전략들(COMPOSITE_MOMENTUM_ICHIMOKU_V2 등)에 Walk Forward부터 돌려 통과시킬지 판단할 것.
 - ~~**LIVE time stop 활성화** (`maxHoldHours`)~~ ✅ **2026-08-18 완료** — 기본값 0 → 24 (V68, LIVE·DYNAMIC·PAPER 3종 동시). 운영 RUNNING 10세션에도 소급 적용. 아래 08-18 섹션 참조. ⚠️ 켜자마자 LIVE 경로에서 중복 SELL 1건이 재현됐다(같은 섹션 "새로 드러난 것" 참조) — 미해결.
 - **신호 기대값 자체가 음수인 문제** — 최근 7일 동적 세션 BUY 신호 사후수익률 4h −2.17%/24h −4.47%(n=50). Walk Forward 게이트는 "검증 안 된 전략을 막는" 것이지 "전략 자체를 고치는" 게 아니라서, 게이트를 켜도 이 문제는 해결되지 않는다. 전략/신호 모델 자체를 봐야 하는 별도 과제.
-- **시간 초과 청산(time stop) 텔레그램 알림 부재** — `STOP_LOSS` 알림 유형에 안 잡혀 자본 회수 이벤트가 사용자에게 통지되지 않는다. LIVE time stop을 켤 때 함께 처리하는 게 자연스러움.
+- ~~**시간 초과 청산(time stop) 텔레그램 알림 부재**~~ ✅ **2026-08-18 완료** — `notifyTimeStop` 신설, LIVE·DYNAMIC 배선. 08-18 오전 XRP 4건 청산에 알림이 안 간 것이 실측 사례였다.
 - **LIVE 유령 포지션 자동 정산** — 헬스체크(`OperationalHealthCheckService`)는 감지·알림까지만 하고 자동 정산은 안 한다. DYNAMIC의 `reconcileDynamicGhostPositions`에 대응하는 LIVE용 자동 정산을 추가할지는 실거래 자금에 직접 손대는 범위라 별도 검토 필요.
 - **e2e 스위트(`@playwright/test`) 미설치** — `navigation.spec.ts`·`global-setup.ts`·`auth-fixtures.ts`는 작성돼 있으나 의존성이 없어 실행 불가. `npm i -D @playwright/test && npx playwright install chromium` 필요.
 - **StrategyDegradationWatchdog을 DYNAMIC까지 확장할지** — 현재 LIVE(`sessionType=REAL`)만 감시. 저하 발견 시 Discord 알림에 그치지 않고 Walk Forward 게이트와 연동해 자동 재차단할지도 별건.
@@ -208,6 +208,201 @@ n=4로 표본은 작지만 방향이 4/4이고 기전이 결정론적이라, 재
 기존 [`SignalExitGateAbBacktestRunner`](../core-engine/src/test/java/com/cryptoautotrader/core/backtest/SignalExitGateAbBacktestRunner.java)는
 **게이트 검증에 쓸 수 없다** — ON/OFF 결과가 8개 조합 전부 동일하다(전략 SELL 경로를 안 타고 전부 SL/TP 청산).
 07-02 L-2의 "영향 없음" 판정이 이 러너 근거였다면 재검토 대상이다.
+
+### 배포 확인 (2026-08-18 10:15)
+
+두 작업 모두 반영됐다. 작업 1은 V68이 09:19:55 KST에 적용됐고(`column_default=24` × 3테이블,
+RUNNING 10세션 소급 완료), 작업 2는 마이그레이션이 없어 Flyway로 확인되지 않지만 **10:09 재기동**으로 들어갔다.
+
+재기동 판정 근거 — 시간당 `strategy_log` 건수가 평소 ~49건인데 두 시간대만 두 배다:
+
+| 시간대 | 로그 | 사유 |
+|---|---|---|
+| 03~08시 | 48~54 | 정상 (H1 캔들당 1스윕) |
+| **09시** | **97** | 09:19:55 재기동 + 정기 스윕 |
+| **10시** | **98** | 10:00 캔들 스윕 + **10:09 추가 스윕** |
+
+10:09 스윕은 10:00에 이미 평가한 47개 세션 전부를 **같은 H1 캔들로** 재평가했다(세션 50 KRW-PROM이
+`signal_price=2710`으로 두 번 동일 기록). 같은 닫힌 캔들을 다시 평가하는 건 인메모리 `lastEvaluatedCandle`
+맵이 비었을 때뿐 — JVM 재기동 신호이고, 09:19:55 재기동과 같은 패턴이다. 커밋 89b5a4c(10:07:32) 이후다.
+
+⚠️ **두 변경 모두 아직 실제 경로를 타지 않았다** — 전 세션 SCANNING, OPEN 포지션 0건이라
+멱등성 가드와 −0.30 게이트는 다음 진입이 있어야 검증된다. 확인 지점: ① SELL 1건당 주문 1건
+② 본전 차단이 −0.30% 위에서만 발생.
+
+---
+
+## 🟢 2026-08-18 전략 폐기 기준(kill criteria) 제정 — [`docs/KILL_CRITERIA.md`](KILL_CRITERIA.md)
+
+> 보류 항목 최우선 5번("중단 기준을 미리 문서화") 해소. **문서가 본체이고 코드는 집행부다.**
+
+### 왜 지금인가
+
+08-18 오전까지의 작업(time stop, 멱등성, 청산 게이트)은 전부 **"잘 지는 시스템을 더 안전하게"** 만드는
+것이었다. 정작 실전 검증 통과 전략은 22개 중 0개, 11일 승률 0/7, 알파 음수인데 **폐기 조건이 없어서**
+나쁜 전략을 무한히 고쳐 쓰는 루프에 있었다. 기준이 없으면 손실은 항상 "표본이 부족해서"로 설명되고,
+표본은 영원히 부족하다.
+
+### 핵심 구분 — 두 종류를 섞지 않는다
+
+| | A. 자본 보호 | B. 엣지 검증 |
+|---|---|---|
+| 묻는 것 | "더 잃어도 되는가?" | "우위가 있는가?" |
+| 통계적 유의성 | **불필요** | 필요 |
+| 오판 비용 | 좋은 전략 조기 종료(회복 가능) | 나쁜 전략에 계속 자본 투입(회복 불가) |
+
+"n이 적으니 판단 불가"는 B의 올바른 태도인데 이걸 A에 적용하면 **표본을 모으는 동안 자본이 소진된다** —
+지금이 정확히 그 상태였다.
+
+### 정직한 인정
+
+현재 속도는 10세션 11일에 실현 거래 7건(세션당 연 23건). EV 부호를 신뢰할 표본은 실전에서 수년이 걸린다.
+→ **실자본 운영으로는 엣지를 통계적으로 검증할 수 없다.** 엣지 검증은 Walk Forward가 맡고, 실전 kill
+criteria는 자본 보호가 주력이며 B 기준은 "백테스트를 명백히 배신했을 때 잡는 안전망"으로만 쓴다.
+
+### 발동 기준 (판정 단위 = 세션, PAPER 포함)
+
+| 코드 | 조건 | 표본 |
+|---|---|---|
+| `CAPITAL_LOSS` | 초기자본 대비 ≤ −15% | 무관 |
+| `MAX_DRAWDOWN` | **고점** 대비 ≤ −20% | 무관 |
+| `CB_REPEAT` | 서킷브레이커 누적 ≥ 3회 | 무관 |
+| `NEGATIVE_EV` | 누적 실현손익 ≤ 0 | n ≥ 20 |
+| `NEGATIVE_ALPHA` | 세션 수익률 − 동일기간 알트 보유 < 0 | n ≥ 20 |
+| `NO_SIGNAL` | 30일 운영 & 종료거래 < 5 → **경보만** | — |
+
+승률 단독 폐기 기준은 두지 않는다 — 추세추종은 승률 30%대가 정상이라 승률로 죽이면 옳은 전략이 먼저 죽는다.
+
+### 발동 시
+
+세션 정지(정상 매도 경로 청산) → **전략 타입 비활성화** → Discord 경보. 두 번째가 핵심이다 — 세션만
+정지하면 같은 전략으로 새 세션을 만들어 그대로 재개할 수 있다. 부활은 Walk Forward 재검증 → PAPER
+재투입 → n≥20 누적을 거쳐야 한다. "파라미터를 고쳤으니 다시 켜자"는 부활이 아니라 **새 전략**이다.
+
+**자동 정지는 기본 꺼져 있다** (`kill-criteria.auto-stop=false`) — 판정·경보는 항상 동작.
+`WalkForwardValidationGate`와 같은 방식으로, 판정이 며칠간 옳게 나오는지 본 뒤 켤 것.
+
+### 구현
+
+- [`KillCriteriaConfig`](../core-engine/src/main/java/com/cryptoautotrader/core/risk/KillCriteriaConfig.java) — 임계값 단일 출처
+- [`StrategyKillCriteriaService`](../web-api/src/main/java/com/cryptoautotrader/api/service/StrategyKillCriteriaService.java) — 매일 09:00 KST, 순수 판정 함수 `decide()` 분리
+- [`BenchmarkAlphaService.altAvgHoldReturnPct`](../web-api/src/main/java/com/cryptoautotrader/api/service/BenchmarkAlphaService.java) — 세션 **자기 기간**의 벤치마크(기존 `getAlphaSummary()`는 전체 세션 중 가장 이른 시작일 하나로 집계해 개별 세션 알파를 못 낸다)
+- `PositionRepository.aggregateClosedTradesPerSession()` — 판정 1회당 쿼리 1회
+- **V69** `circuit_breaker_trip_count` — 기존엔 `circuit_breaker_triggered_at` 한 칸뿐이라 발동할 때마다 덮어써져 반복 횟수가 남지 않았다
+- [`StrategyKillCriteriaDecisionTest`](../web-api/src/test/java/com/cryptoautotrader/api/service/StrategyKillCriteriaDecisionTest.java) 15종 — 경계값을 못박아 **임계값이 조용히 완화되는 것을 막는다**(문서 §7 강제)
+
+`StrategyDegradationWatchdog`와의 차이: 워치독은 신호 품질(사후 4h 수익률)을 6시간마다 보고 경보만 —
+조기 경보. 이쪽은 실현 손익·자본을 하루 한 번 보고 정지까지 — 최종 판정.
+
+### 같이 처리 — time stop 텔레그램 알림 (보류 항목 해소)
+
+time stop은 손절도 익절도 아니라 `STOP_LOSS` 유형에 안 잡혔고, **자본 회수 이벤트가 통지되지 않았다.**
+08-18 오전 259시간 고착 XRP 4건 청산에 알림이 한 건도 안 간 것이 실측 사례다.
+`notifyTimeStop` 신설 → LIVE·DYNAMIC 두 경로에 배선.
+
+### 검증
+
+`:web-api:test` **277건 그린**(실패 0, 스킵 3 — 이전 262건에서 +15).
+
+### 다음 단계 — 실자본 전면 중단 + 페이퍼 9세션 재구성 (사용자 실행 대기)
+
+실행 스크립트: [`scripts/rebuild_paper_fleet.sh`](../scripts/rebuild_paper_fleet.sh)
+
+10:47 KST 운영 DB 확인 결과 **OPEN/CLOSING 포지션 0건** — 청산 없이 안전하게 정지 가능한 창이다.
+RUNNING 10세션(DYN 46~53, LIVE 198·199)을 전부 정지하고 DYN_PAPER 9세션으로 재구성한다.
+
+**⚠️ 백엔드 API가 외부에 열려 있지 않다** — 8080은 공유기 관리페이지(`Server: Httpd/1.0`, 2017년 파일),
+8081·3000·80·8443·9090·8090·8888 전부 닫힘. DB 8432만 포워딩돼 있어 **서버에서 직접 실행**해야 한다.
+
+**DB 직접 UPDATE로 status를 바꾸지 않는다.** 포지션이 0건이라 08-18 오전 `max_hold_hours` 소급 적용처럼
+보이지만 위험이 다르다 — 틱이 도는 중에 status를 STOPPED로 내리면 그 틱이 방금 연 실포지션이
+**SL/TP 평가를 받지 못하는 고아 상태**로 남는다(틱 루프는 RUNNING만 순회하고 reconciler 4종은
+CLOSING/유령만 다룬다). `stopSession`은 활성 주문 취소 → 포지션 청산 → 상태 전환을 한 트랜잭션에서 처리한다.
+
+#### 세션 수의 실제 상한 — API 예산 (2026-08-18 측정)
+
+세션을 늘려 표본 생성을 가속하려 했으나, **rate limit이 전략 수보다 먼저 걸린다.**
+
+`DynamicTradingService.fetchCandles`는 **캐시를 쓰지 않고 Upbit REST를 직접 호출**한다. 세션마다 독립적으로:
+
+```
+CANDLE_LOOKBACK=500, MAX_CANDLES_PER_REQUEST=200      → 코인당 3 요청
+SCANNING 세션 1개 = (targetWatchSize 10 + BTC가드 1) × 3 = 33 요청 / 60초 틱
+UpbitApiRateLimiter.PERMITS_PER_SECOND = 7             → 420 요청/분
+```
+
+| 세션 | 요청/분 | 한도 대비 | 60초 틱 중 소요 |
+|---|---|---|---|
+| 8 (08-18 현재) | 264 | 63% | 38초 |
+| **9 (목표)** | **297** | **71%** | 42초 |
+| 12 | 396 | 94% | 57초 — 틱 초과 직전 |
+| 14 | 462 | 초과 | ❌ |
+
+**PAPER도 이 예산을 동일하게 쓴다** — DYN_PAPER가 REAL과 코드 경로를 100% 공유하는 것의 대가다.
+"페이퍼는 공짜"는 자본 얘기지 rate limit 얘기가 아니다.
+
+> **더 늘리려면**: `CANDLE_LOOKBACK` 500→400(요청 2회)이면 22 요청/세션 → 13세션까지 가능. 다만 MTF 계열이
+> H1을 상위 타임프레임으로 리샘플링하므로(500 H1 → 125 H4) 400으로 충분한지 **검증 필요 — 미확인**.
+> 근본 해결은 `market_data_cache` 기반 공유 캔들 캐시다(코인×타임프레임당 1회 조회로 O(세션) → O(코인)).
+
+#### 세션 구성 (9종, 전부 DYN_PAPER · 초기자본 10,000 · maxHoldHours 24)
+
+최근 60일 가동 이력이 있는 전략 11종 중, `strategy_type_enabled`에서 07-07에 일괄 비활성화된 4종
+(BREAKOUT / MTF_MOMENTUM / REGIME_ROUTER / HEIKIN_ASHI_STOCH)을 제외한 **7종**:
+
+| TF | 전략 |
+|---|---|
+| H1 (7) | MEANREV_BB · MOMENTUM_ICHIMOKU · MOMENTUM_ICHIMOKU_V2 · MTF_BTC · MTF_BTC_STRICT · MTF_CONFIRMED · PULLBACK_MTF |
+| M15 (2) | PULLBACK_MTF · MTF_CONFIRMED (이력상 세션 생성 최다 = 신호 빈도 높음) |
+
+- 비활성 4종은 그대로 둔다 — 새 정책상 부활 경로는 Walk Forward 재검증뿐이다(KILL_CRITERIA §6).
+- **LIVE 198/199 단일코인 페이퍼 쌍은 만들지 않는다.** MEANREV_BB@H1·MTF_BTC_STRICT@H1이 위 목록에
+  포함되고, `PaperTradingService` 경로는 07-01 이후 운영 가동 이력이 없어 9세션을 한꺼번에 올리기엔
+  검증이 부족하다.
+- **기존 페이퍼 4종(47/49/51/53)도 재시작**한다. 실현 거래 4건을 잃는 대신 9세션 시작일이 통일되어
+  `BenchmarkAlphaService` 알파 비교가 깨끗해진다.
+
+> ⚠️ **재시작은 kill criteria 시계를 0으로 되돌린다**(n, `mddPeak`, `startedAt`, NO_SIGNAL 30일 카운터).
+> 지금은 n이 0~4라 실손해가 없지만, "성적이 나빠지면 재시작"이 습관이 되면 폐기 기준은 영구히 무력화된다.
+> **이번이 마지막 리셋**이라는 전제로 실행한다.
+
+---
+
+## 🟢 2026-08-18 kill criteria 후속 — 폐기 우회 경로 차단 + 비활성화 범위 교정
+
+> 위 세션 계획(7전략 × 2타임프레임)을 짜다 드러난 결함 두 가지. 단일 타임프레임에서는 노출되지 않는다.
+
+### 1. 폐기 판정 우회 경로 2개 — `StrategyEnablementGate` 신설
+
+`strategy_type_enabled` 검사가 `DynamicTradingService.createSession`에만 인라인으로 있었고
+**LIVE와 `PaperTradingService`는 무검사**였다. kill criteria가 폐기 시 전략을 비활성화하는 목적은
+"세션만 정지하면 같은 전략으로 새 세션을 만들어 재개할 수 있다"를 막는 것인데, 세 진입점 중 하나만
+막혀 있으면 달성되지 않는다 — 우회로가 둘 열려 있었다.
+
+→ [`StrategyEnablementGate`](../web-api/src/main/java/com/cryptoautotrader/api/service/StrategyEnablementGate.java)로
+규칙을 추출해 LIVE·DYNAMIC·PAPER 세 경로에 동일 적용. "행이 없으면 허용"(차단 목록) 규칙은 유지.
+
+운영 DB 실측: `strategy_type_enabled` 21행이 **전부 `is_active=false`**인데, 가동 중인 composite 전략
+대부분은 아예 등재돼 있지 않다. 즉 이 테이블은 차단 목록으로 동작 중이며 기본값을 false로 바꾸면
+미등재 전략 전부가 즉시 막힌다.
+
+### 2. 비활성화 범위 과잉 — "전부 죽었을 때만" 으로 교정
+
+판정 단위는 세션(= 전략 × 타임프레임)인데 `strategy_type_enabled`는 **전략명만** 키로 쓴다.
+비활성화가 판정보다 한 단계 거칠어서, MEANREV_BB@M15 하나가 죽으면 **멀쩡한 MEANREV_BB@H1까지 막혔다.**
+
+→ `applyKill`을 `stopKilledSession`(세션 정지) + `disableFullyKilledStrategies`(전략 비활성화)로 분리하고,
+후자는 **그 전략의 운영 세션이 전부 KILL일 때만** 실행한다. 살아 있는 변형이 하나라도 있으면
+세션 정지에서 멈춘다. WARN(NO_SIGNAL)도 "살아 있음"으로 친다 — 경보는 폐기가 아니다.
+
+### 검증
+
+`:web-api:test` **285건 그린**(실패 0, 스킵 3). 신규
+[`StrategyEnablementGateTest`](../web-api/src/test/java/com/cryptoautotrader/api/service/StrategyEnablementGateTest.java) 4종 ·
+[`KillCriteriaStrategyDisableTest`](../web-api/src/test/java/com/cryptoautotrader/api/service/KillCriteriaStrategyDisableTest.java) 4종.
+
+> `RateLimiterEmergencyStopTest`의 동시 acquire 테스트가 1회 실패했다(7 기대 → 8 획득). 리필 데몬 타이밍에
+> 민감한 기존 테스트로, 재실행 시 통과하며 이번 변경과 무관하다. 간헐 실패가 반복되면 별도 처리 대상.
 
 ---
 

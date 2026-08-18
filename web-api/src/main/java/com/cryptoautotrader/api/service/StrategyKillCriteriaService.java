@@ -1,0 +1,401 @@
+package com.cryptoautotrader.api.service;
+
+import com.cryptoautotrader.api.discord.DiscordWebhookClient;
+import com.cryptoautotrader.api.entity.DynamicSessionEntity;
+import com.cryptoautotrader.api.entity.LiveTradingSessionEntity;
+import com.cryptoautotrader.api.entity.StrategyTypeEnabledEntity;
+import com.cryptoautotrader.api.repository.DynamicSessionRepository;
+import com.cryptoautotrader.api.repository.LiveTradingSessionRepository;
+import com.cryptoautotrader.api.repository.PositionRepository;
+import com.cryptoautotrader.api.repository.StrategyTypeEnabledRepository;
+import com.cryptoautotrader.core.risk.KillCriteriaConfig;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * 전략 폐기 기준(kill criteria) 판정 — 2026-08-18 신설.
+ *
+ * <p><b>정책 문서가 본체다: {@code docs/KILL_CRITERIA.md}.</b> 이 클래스는 그 문서를 집행할 뿐이므로,
+ * 임계값이나 판정 순서를 바꾸려면 문서(특히 §7 변경 절차)를 먼저 갱신할 것.
+ *
+ * <h3>왜 필요한가</h3>
+ * <p>2026-08-06 벤치마크 측정에서 실전 검증 통과 전략 0/22, 알파 음수, 11일 승률 0/7 이 드러났다.
+ * 문제는 성적이 아니라 <b>폐기 조건이 없어 나쁜 전략을 무한히 고쳐 쓰는 루프</b>였다. 기준이 없으면
+ * 손실은 항상 "표본이 부족해서"로 설명되고, 표본은 영원히 부족하다.
+ *
+ * <h3>{@link StrategyDegradationWatchdog}와의 차이</h3>
+ * <p>워치독은 <b>신호 품질</b>(사후 4h 수익률)을 6시간마다 보고 경보만 낸다 — 조기 경보.
+ * 이쪽은 <b>실현 손익과 자본</b>을 하루 한 번 보고 정지까지 간다 — 최종 판정.
+ *
+ * <h3>자동 정지는 기본 꺼져 있다</h3>
+ * <p>{@code kill-criteria.auto-stop=true} 로 명시적으로 켜기 전엔 판정과 경보만 하고 세션을
+ * 건드리지 않는다({@link WalkForwardValidationGate}와 같은 방식). 실자본에 손대는 자동화는
+ * 판정이 며칠간 옳게 나오는지 관찰한 뒤 켜는 것을 전제로 한다.
+ */
+@Service
+@Slf4j
+public class StrategyKillCriteriaService {
+
+    private static final String CHANNEL_TYPE = "TRADING_REPORT";
+    private static final String MESSAGE_TYPE = "KILL_CRITERIA";
+    private static final int SCALE = 2;
+
+    private final LiveTradingSessionRepository liveSessionRepo;
+    private final DynamicSessionRepository dynamicSessionRepo;
+    private final PositionRepository positionRepository;
+    private final StrategyTypeEnabledRepository strategyTypeEnabledRepo;
+    private final BenchmarkAlphaService benchmarkAlphaService;
+    private final LiveTradingService liveTradingService;
+    private final DynamicTradingService dynamicTradingService;
+    private final DiscordWebhookClient discordClient;
+    private final KillCriteriaConfig config = KillCriteriaConfig.defaults();
+    private final boolean autoStopEnabled;
+
+    public StrategyKillCriteriaService(
+            LiveTradingSessionRepository liveSessionRepo,
+            DynamicSessionRepository dynamicSessionRepo,
+            PositionRepository positionRepository,
+            StrategyTypeEnabledRepository strategyTypeEnabledRepo,
+            BenchmarkAlphaService benchmarkAlphaService,
+            LiveTradingService liveTradingService,
+            DynamicTradingService dynamicTradingService,
+            DiscordWebhookClient discordClient,
+            @Value("${kill-criteria.auto-stop:false}") boolean autoStopEnabled) {
+        this.liveSessionRepo = liveSessionRepo;
+        this.dynamicSessionRepo = dynamicSessionRepo;
+        this.positionRepository = positionRepository;
+        this.strategyTypeEnabledRepo = strategyTypeEnabledRepo;
+        this.benchmarkAlphaService = benchmarkAlphaService;
+        this.liveTradingService = liveTradingService;
+        this.dynamicTradingService = dynamicTradingService;
+        this.discordClient = discordClient;
+        this.autoStopEnabled = autoStopEnabled;
+        if (autoStopEnabled) {
+            log.warn("[KillCriteria] 자동 정지 활성화 — 기준 위반 세션이 자동으로 정지되고 전략이 비활성화됩니다.");
+        }
+    }
+
+    /** 자동 정지가 실제로 세션을 건드리는 상태인지. false면 판정·경보만 한다. */
+    public boolean isAutoStopEnabled() {
+        return autoStopEnabled;
+    }
+
+    // ── 스케줄 ────────────────────────────────────────────────────────────────
+
+    /** 매일 09:00 KST — 08:30 헬스 스냅샷 직후라 그날 상태가 이미 기록된 시점이다. */
+    @Scheduled(cron = "0 0 9 * * *", zone = "Asia/Seoul")
+    public void check() {
+        log.info("[KillCriteria] 폐기 기준 판정 시작 (자동정지={})", autoStopEnabled ? "ON" : "OFF");
+        try {
+            List<Judgment> judgments = evaluateAll();
+            List<Judgment> actionable = judgments.stream()
+                    .filter(j -> j.verdict() != Verdict.KEEP)
+                    .toList();
+            if (actionable.isEmpty()) {
+                log.info("[KillCriteria] 이상 없음 — 평가 {}건 전부 KEEP", judgments.size());
+                return;
+            }
+            List<Judgment> kills = actionable.stream()
+                    .filter(j -> j.verdict() == Verdict.KILL)
+                    .toList();
+            for (Judgment j : kills) {
+                stopKilledSession(j);
+            }
+            disableFullyKilledStrategies(judgments, kills);
+            sendAlert(actionable);
+        } catch (Exception e) {
+            log.error("[KillCriteria] 판정 중 오류", e);
+        }
+    }
+
+    // ── 판정 ──────────────────────────────────────────────────────────────────
+
+    /** 운영 중(RUNNING) 세션 전체를 판정한다. LIVE·DYNAMIC·PAPER 모두 대상. */
+    @Transactional(readOnly = true)
+    public List<Judgment> evaluateAll() {
+        Map<String, long[]> counts = new HashMap<>();          // kind:id → [n, wins]
+        Map<String, BigDecimal> pnlSums = new HashMap<>();     // kind:id → sumRealizedPnl
+
+        for (Object[] row : positionRepository.aggregateClosedTradesPerSession()) {
+            String key = row[0] + ":" + row[1];
+            counts.put(key, new long[]{ toLong(row[2]), toLong(row[5]) });
+            pnlSums.put(key, toBigDecimal(row[3]));
+        }
+
+        Instant now = Instant.now();
+        List<Judgment> out = new ArrayList<>();
+
+        for (LiveTradingSessionEntity s : liveSessionRepo.findByStatus("RUNNING")) {
+            String kind = "LIVE";
+            out.add(decide(statsOf(kind, s.getId(), s.getStrategyType(),
+                    kind + "#" + s.getId() + " " + s.getStrategyType() + " " + s.getCoinPair(),
+                    s.getInitialCapital(), s.getTotalAssetKrw(), s.getMddPeakCapital(),
+                    s.getCircuitBreakerTripCount(), s.getStartedAt(), now, counts, pnlSums), config));
+        }
+
+        for (DynamicSessionEntity s : dynamicSessionRepo.findByStatus("RUNNING")) {
+            // 포지션의 session_kind 는 REAL="DYNAMIC", PAPER="DYN_PAPER" 로 갈린다 (V67)
+            String kind = s.isPaper() ? "DYN_PAPER" : "DYNAMIC";
+            out.add(decide(statsOf(kind, s.getId(), s.getStrategyType(),
+                    kind + "#" + s.getId() + " " + s.getStrategyType(),
+                    s.getInitialCapital(), s.getTotalAssetKrw(), s.getMddPeakCapital(),
+                    s.getCircuitBreakerTripCount(), s.getStartedAt(), now, counts, pnlSums), config));
+        }
+
+        return out;
+    }
+
+    private SessionStats statsOf(String kind, Long id, String strategyType, String label,
+                                 BigDecimal initialCapital, BigDecimal totalAsset, BigDecimal mddPeak,
+                                 int cbTripCount, Instant startedAt, Instant now,
+                                 Map<String, long[]> counts, Map<String, BigDecimal> pnlSums) {
+        String key = kind + ":" + id;
+        long[] c = counts.getOrDefault(key, new long[]{0L, 0L});
+        int tradeCount = (int) c[0];
+
+        // 벤치마크는 표본이 충분할 때만 조회한다 — 캔들 조회가 세션 수만큼 도는 것을 피한다
+        BigDecimal benchmark = tradeCount >= config.getMinTradesForEdgeTest()
+                ? benchmarkAlphaService.altAvgHoldReturnPct(startedAt, now)
+                : null;
+
+        long runningDays = startedAt == null ? 0 : Duration.between(startedAt, now).toDays();
+
+        return new SessionStats(kind, id, strategyType, label,
+                initialCapital, totalAsset, mddPeak, cbTripCount,
+                tradeCount, (int) c[1], pnlSums.getOrDefault(key, BigDecimal.ZERO),
+                benchmark, runningDays);
+    }
+
+    /**
+     * 순수 판정 함수 — DB 접근 없이 테스트 가능.
+     *
+     * <p>검사 순서는 <b>확실한 것부터</b>다. A(자본 보호)는 표본이 필요 없으므로 먼저 보고,
+     * B(엣지 안전망)는 표본이 찼을 때만 본다. 이 순서를 뒤집으면 "표본이 부족하다"가
+     * 자본 한도 초과를 가리게 된다 — 문서 §2 참조.</p>
+     */
+    public static Judgment decide(SessionStats st, KillCriteriaConfig cfg) {
+        // ── A. 자본 보호 (표본 무관) ──────────────────────────────
+        BigDecimal returnPct = pct(st.initialCapital(), st.totalAsset());
+        if (returnPct != null && returnPct.compareTo(cfg.getCapitalLossPct()) <= 0) {
+            return kill(st, "CAPITAL_LOSS", String.format(
+                    "누적 손실 %s%% (한도 %s%%) — 초기자본 %s → 총자산 %s",
+                    returnPct.toPlainString(), cfg.getCapitalLossPct().toPlainString(),
+                    plain(st.initialCapital()), plain(st.totalAsset())));
+        }
+
+        BigDecimal ddPct = pct(st.mddPeakCapital(), st.totalAsset());
+        if (ddPct != null && ddPct.compareTo(cfg.getMaxDrawdownPct()) <= 0) {
+            return kill(st, "MAX_DRAWDOWN", String.format(
+                    "고점 대비 낙폭 %s%% (한도 %s%%) — 최고 %s → 현재 %s",
+                    ddPct.toPlainString(), cfg.getMaxDrawdownPct().toPlainString(),
+                    plain(st.mddPeakCapital()), plain(st.totalAsset())));
+        }
+
+        if (st.circuitBreakerTripCount() >= cfg.getCircuitBreakerRepeatLimit()) {
+            return kill(st, "CB_REPEAT", String.format(
+                    "서킷브레이커 누적 %d회 발동 (한도 %d회) — 되살릴 때마다 다시 죽는 구조적 결함",
+                    st.circuitBreakerTripCount(), cfg.getCircuitBreakerRepeatLimit()));
+        }
+
+        // ── B. 엣지 안전망 (표본 필요) ────────────────────────────
+        if (st.tradeCount() >= cfg.getMinTradesForEdgeTest()) {
+            if (st.sumRealizedPnl().signum() <= 0) {
+                BigDecimal avg = st.sumRealizedPnl()
+                        .divide(BigDecimal.valueOf(st.tradeCount()), SCALE, RoundingMode.HALF_UP);
+                return kill(st, "NEGATIVE_EV", String.format(
+                        "실현 기대값 음수 — %d거래 누적 %s원, 평균 %s원 (승 %d)",
+                        st.tradeCount(), plain(st.sumRealizedPnl()), plain(avg), st.winCount()));
+            }
+            if (st.benchmarkReturnPct() != null && returnPct != null) {
+                BigDecimal alpha = returnPct.subtract(st.benchmarkReturnPct());
+                if (alpha.signum() < 0) {
+                    return kill(st, "NEGATIVE_ALPHA", String.format(
+                            "알파 음수 %s%%p — 세션 %s%% vs 알트 보유 %s%% (%d거래)",
+                            alpha.toPlainString(), returnPct.toPlainString(),
+                            st.benchmarkReturnPct().toPlainString(), st.tradeCount()));
+                }
+            }
+        }
+
+        // ── C. 판정 불가 (경보만) ─────────────────────────────────
+        if (st.runningDays() >= cfg.getNoSignalDays() && st.tradeCount() < cfg.getNoSignalMinTrades()) {
+            return new Judgment(st, Verdict.WARN, "NO_SIGNAL", String.format(
+                    "%d일 운영에 종료 거래 %d건 — 검증 자체가 불가능하고 자본이 놀고 있다 (회수 후보)",
+                    st.runningDays(), st.tradeCount()));
+        }
+
+        return new Judgment(st, Verdict.KEEP, "OK", String.format(
+                "수익률 %s%%, %d거래", returnPct == null ? "N/A" : returnPct.toPlainString(), st.tradeCount()));
+    }
+
+    // ── 집행 ──────────────────────────────────────────────────────────────────
+
+    /** 폐기 판정 세션 정지 — 보유 포지션은 {@code stopSession}의 정상 매도 경로로 청산된다. */
+    void stopKilledSession(Judgment j) {
+        if (!autoStopEnabled) {
+            log.warn("[KillCriteria] {} → KILL({}) — 자동정지 OFF 라 경보만 합니다: {}",
+                    j.label(), j.code(), j.reason());
+            return;
+        }
+        try {
+            if ("LIVE".equals(j.sessionKind())) {
+                liveTradingService.stopSession(j.sessionId());
+            } else {
+                dynamicTradingService.stopSession(j.sessionId());
+            }
+            log.warn("[KillCriteria] 세션 정지: {} ({})", j.label(), j.code());
+        } catch (Exception e) {
+            log.error("[KillCriteria] 세션 정지 실패: {} — {}", j.label(), e.getMessage());
+        }
+    }
+
+    /**
+     * 전략 타입 비활성화 — <b>해당 전략의 운영 세션이 전부 폐기 판정일 때만</b>.
+     *
+     * <p>비활성화 자체는 필수다. 세션만 정지하면 같은 전략으로 새 세션을 만들어 그대로 재개할 수
+     * 있고, 그러면 아무것도 바뀌지 않는다(문서 §5). 부활은 Walk Forward 재검증뿐이다(§6).</p>
+     *
+     * <p><b>그런데 "전부일 때만"인 이유</b>: 판정 단위는 세션(= 전략 × 타임프레임)인데
+     * {@code strategy_type_enabled}는 전략명만 키로 쓴다 — 비활성화가 판정보다 한 단계 거칠다.
+     * 그래서 MEANREV_BB@M15 하나가 죽었다고 바로 끄면 <b>멀쩡한 MEANREV_BB@H1까지 막힌다</b>.
+     * 한 변형의 실패는 그 전략 전체의 실패가 아니므로, 살아 있는 변형이 하나라도 있으면
+     * 세션 정지에서 멈추고 전략은 남겨 둔다.</p>
+     */
+    void disableFullyKilledStrategies(List<Judgment> all, List<Judgment> kills) {
+        if (!autoStopEnabled) return;
+
+        Map<String, Boolean> allKilledByStrategy = new HashMap<>();
+        for (Judgment j : all) {
+            String s = j.strategyType();
+            if (s == null || s.isBlank()) continue;
+            boolean killed = j.verdict() == Verdict.KILL;
+            allKilledByStrategy.merge(s, killed, Boolean::logicalAnd);
+        }
+
+        kills.stream()
+                .map(Judgment::strategyType)
+                .filter(s -> s != null && !s.isBlank())
+                .distinct()
+                .forEach(strategy -> {
+                    if (!Boolean.TRUE.equals(allKilledByStrategy.get(strategy))) {
+                        log.warn("[KillCriteria] 전략 유지: {} — 살아 있는 변형(다른 타임프레임)이 있어 "
+                                + "세션 정지까지만 적용", strategy);
+                        return;
+                    }
+                    try {
+                        StrategyTypeEnabledEntity row = strategyTypeEnabledRepo.findById(strategy)
+                                .orElseGet(() -> StrategyTypeEnabledEntity.builder()
+                                        .strategyName(strategy).build());
+                        row.setIsActive(false);
+                        strategyTypeEnabledRepo.save(row);
+                        log.warn("[KillCriteria] 전략 비활성화: {} — 운영 세션 전부 폐기. "
+                                + "부활은 Walk Forward 재검증 필요", strategy);
+                    } catch (Exception e) {
+                        log.error("[KillCriteria] 전략 비활성화 실패: {} — {}", strategy, e.getMessage());
+                    }
+                });
+    }
+
+    // ── 알림 ──────────────────────────────────────────────────────────────────
+
+    private void sendAlert(List<Judgment> judgments) {
+        long kills = judgments.stream().filter(j -> j.verdict() == Verdict.KILL).count();
+
+        StringBuilder desc = new StringBuilder();
+        if (kills > 0 && !autoStopEnabled) {
+            desc.append("⚠️ 자동 정지가 꺼져 있어 **실제로 정지되지 않았습니다** ")
+                .append("(`kill-criteria.auto-stop=false`)\n\n");
+        }
+        for (Judgment j : judgments) {
+            desc.append(j.verdict() == Verdict.KILL ? "🔴 " : "🟠 ")
+                .append("**").append(j.label()).append("** — `").append(j.code()).append("`\n")
+                .append(j.reason()).append("\n\n");
+        }
+        if (kills > 0) {
+            desc.append("폐기된 전략은 `/backtest/walk-forward` 재검증 → PAPER 재투입 → n≥20 누적을 ")
+                .append("거쳐야 실자본에 돌아옵니다 (docs/KILL_CRITERIA.md §6).");
+        }
+
+        ObjectNode embed = discordClient.embed(
+                String.format("🛑 전략 폐기 기준 판정 — 폐기 %d건 / 경보 %d건", kills, judgments.size() - kills),
+                desc.toString().trim(),
+                kills > 0 ? DiscordWebhookClient.COLOR_RED : DiscordWebhookClient.COLOR_YELLOW);
+
+        boolean sent = discordClient.sendEmbed(CHANNEL_TYPE, embed, MESSAGE_TYPE);
+        log.info("[KillCriteria] 판정 {}건 전송 {}", judgments.size(), sent ? "성공" : "실패(채널 미설정 또는 오류)");
+    }
+
+    // ── 헬퍼 ──────────────────────────────────────────────────────────────────
+
+    /** {@code (current / base - 1) × 100}. base가 0 이하거나 null이면 판정 불가로 null. */
+    private static BigDecimal pct(BigDecimal base, BigDecimal current) {
+        if (base == null || current == null || base.compareTo(BigDecimal.ZERO) <= 0) {
+            return null;
+        }
+        return current.subtract(base)
+                .divide(base, 6, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(100))
+                .setScale(SCALE, RoundingMode.HALF_UP);
+    }
+
+    private static String plain(BigDecimal v) {
+        return v == null ? "N/A" : v.toPlainString();
+    }
+
+    private static Judgment kill(SessionStats st, String code, String reason) {
+        return new Judgment(st, Verdict.KILL, code, reason);
+    }
+
+    private static long toLong(Object o) {
+        return o instanceof Number n ? n.longValue() : 0L;
+    }
+
+    private static BigDecimal toBigDecimal(Object o) {
+        if (o instanceof BigDecimal bd) return bd;
+        if (o instanceof Number n) return BigDecimal.valueOf(n.doubleValue());
+        return BigDecimal.ZERO;
+    }
+
+    // ── 타입 ──────────────────────────────────────────────────────────────────
+
+    public enum Verdict {
+        /** 기준 위반 없음. */
+        KEEP,
+        /** 경보만 — 성과가 나쁜 게 아니라 판정이 불가능한 상태(NO_SIGNAL). */
+        WARN,
+        /** 폐기 — 세션 정지 + 전략 비활성화. */
+        KILL
+    }
+
+    /**
+     * 판정 입력 — 세션 하나의 상태 스냅샷.
+     *
+     * @param benchmarkReturnPct 세션 자기 기간의 알트 바스켓 보유 수익률(%). 표본 미달이거나
+     *                           캔들이 부족하면 null 이고, 그 경우 알파 판정은 생략된다.
+     */
+    public record SessionStats(String sessionKind, Long sessionId, String strategyType, String label,
+                               BigDecimal initialCapital, BigDecimal totalAsset, BigDecimal mddPeakCapital,
+                               int circuitBreakerTripCount, int tradeCount, int winCount,
+                               BigDecimal sumRealizedPnl, BigDecimal benchmarkReturnPct, long runningDays) {}
+
+    /** 판정 결과. {@code code}는 문서 §4의 기준 코드(CAPITAL_LOSS·NEGATIVE_EV·…)와 1:1 대응한다. */
+    public record Judgment(SessionStats stats, Verdict verdict, String code, String reason) {
+        public String label() { return stats.label(); }
+        public String sessionKind() { return stats.sessionKind(); }
+        public Long sessionId() { return stats.sessionId(); }
+        public String strategyType() { return stats.strategyType(); }
+    }
+}

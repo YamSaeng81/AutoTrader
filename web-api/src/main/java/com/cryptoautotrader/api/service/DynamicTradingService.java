@@ -226,7 +226,7 @@ public class DynamicTradingService {
     private final StrategyLogRepository strategyLogRepository;
     private final WsSubscriptionManager wsSubscriptionManager;
     private final StrategyLiveStatusRegistry strategyLiveStatusRegistry;
-    private final StrategyTypeEnabledRepository strategyTypeEnabledRepository;
+    private final StrategyEnablementGate strategyEnablementGate;
     private final RiskManagementService riskManagementService;
     private final WalkForwardValidationGate walkForwardValidationGate;
     private final ApplicationEventPublisher eventPublisher;
@@ -340,7 +340,7 @@ public class DynamicTradingService {
                                   StrategyLogRepository strategyLogRepository,
                                   WsSubscriptionManager wsSubscriptionManager,
                                   StrategyLiveStatusRegistry strategyLiveStatusRegistry,
-                                  StrategyTypeEnabledRepository strategyTypeEnabledRepository,
+                                  StrategyEnablementGate strategyEnablementGate,
                                   RiskManagementService riskManagementService,
                                   WalkForwardValidationGate walkForwardValidationGate,
                                   ApplicationEventPublisher eventPublisher) {
@@ -355,7 +355,7 @@ public class DynamicTradingService {
         this.strategyLogRepository = strategyLogRepository;
         this.wsSubscriptionManager = wsSubscriptionManager;
         this.strategyLiveStatusRegistry = strategyLiveStatusRegistry;
-        this.strategyTypeEnabledRepository = strategyTypeEnabledRepository;
+        this.strategyEnablementGate = strategyEnablementGate;
         this.riskManagementService = riskManagementService;
         this.walkForwardValidationGate = walkForwardValidationGate;
         this.eventPublisher = eventPublisher;
@@ -371,14 +371,8 @@ public class DynamicTradingService {
 
         // 비활성 전략 차단 — strategy_type_enabled에서 꺼진 전략은 세션 생성 거부.
         // (UI 드롭다운 필터만으로는 select 표시/상태 불일치 등으로 우회될 수 있어 서버에서 강제)
-        boolean typeEnabled = strategyTypeEnabledRepository.findById(req.getStrategyType())
-                .map(e -> Boolean.TRUE.equals(e.getIsActive()))
-                .orElse(true);   // 테이블에 없으면 기본 활성 (StrategyController와 동일 규칙)
-        if (!typeEnabled) {
-            throw new IllegalArgumentException(String.format(
-                    "전략 '%s'은(는) 비활성화되어 세션을 생성할 수 없습니다. 전략 관리에서 활성화 후 사용하세요.",
-                    req.getStrategyType()));
-        }
+        // 2026-08-18: 규칙을 StrategyEnablementGate로 추출 — LIVE·PAPER 경로도 같은 검사를 받는다.
+        strategyEnablementGate.assertEnabled(req.getStrategyType());
 
         // 자본 배정 게이트 2종은 PAPER에 적용하지 않는다 — 이 두 게이트는 "실자본을 쓸 자격이
         // 있는가"를 묻는 것이고, 페이퍼는 정확히 그 자격을 얻기 전에 검증하는 도구다.
@@ -581,6 +575,8 @@ public class DynamicTradingService {
             log.error("[Dynamic] 서킷 브레이커 발동 (id={}): {}", sid, cbResult.getReason());
             fresh.setCircuitBreakerTriggeredAt(Instant.now());
             fresh.setCircuitBreakerReason(cbResult.getReason());
+            // 누적 횟수 — LiveTradingService 와 동일 (kill criteria CB_REPEAT 판정)
+            fresh.setCircuitBreakerTripCount(fresh.getCircuitBreakerTripCount() + 1);
             dynamicSessionRepo.save(fresh);
             emergencyStop(sid);
             telegramService.sendCustomNotification(String.format(
@@ -996,6 +992,7 @@ public class DynamicTradingService {
             long heldHours = Duration.between(pos.getOpenedAt(), Instant.now()).toHours();
             log.warn("[Dynamic] 시간 초과 청산: {} 보유 {}h ≥ {}h pnl={}% (id={})",
                     coinPair, heldHours, maxHoldHours, pnlPct, sid);
+            telegramService.notifyTimeStop(coinPair, heldHours, maxHoldHours, pnlPct.doubleValue(), sid);
             executeSell(session, pos, currentPrice, String.format(
                     "시간 초과 청산 — 보유 %d시간 ≥ %d시간 (pnl %s%%)",
                     heldHours, maxHoldHours, pnlPct.setScale(2, RoundingMode.HALF_UP)));

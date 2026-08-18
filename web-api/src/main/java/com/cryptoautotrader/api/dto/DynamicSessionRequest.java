@@ -53,7 +53,7 @@ public class DynamicSessionRequest {
     /**
      * 최대 보유시간 (시) — 초과 시 손익 무관 시장가 청산. 0 이하면 비활성.
      * 미지정 시 {@link com.cryptoautotrader.api.entity.DynamicSessionEntity#DEFAULT_MAX_HOLD_HOURS}
-     * (현재 0 = 비활성, 매도 후처리 롤백 P0 해결 전까지의 임시값).
+     * (2026-08-18 기준 24 — 그 전까지는 매도 후처리 롤백 P0 때문에 0=비활성이었다).
      */
     private Integer maxHoldHours;
 

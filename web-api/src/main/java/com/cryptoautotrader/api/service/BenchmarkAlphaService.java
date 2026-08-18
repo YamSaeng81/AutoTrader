@@ -139,6 +139,36 @@ public class BenchmarkAlphaService {
     }
 
     /**
+     * 지정 구간의 알트 바스켓 평균 보유 수익률(%) — 세션별 알파 계산용.
+     *
+     * <p>{@link #getAlphaSummary()}는 <b>전체 세션 중 가장 이른 시작 시각</b> 하나를 기준으로
+     * 집계하므로, 세션마다 시작일이 다르면 그 값으로 개별 세션의 알파를 낼 수 없다.
+     * kill criteria(docs/KILL_CRITERIA.md §4.B {@code NEGATIVE_ALPHA})는 세션 자기 기간의
+     * 벤치마크가 필요하므로 이 메서드를 쓴다.</p>
+     *
+     * <p>{@link #MARKET_PROXY}(BTC)는 시장 대표라 알트 평균에서 제외한다 —
+     * {@code getAlphaSummary()}의 {@code altAvgReturnPct}와 같은 정의를 유지한다.</p>
+     *
+     * @return 캔들이 모자라 한 코인도 계산되지 않으면 {@code null}(판정 불가)
+     */
+    @Transactional(readOnly = true)
+    public BigDecimal altAvgHoldReturnPct(Instant from, Instant to) {
+        if (from == null || to == null || !from.isBefore(to)) {
+            return null;
+        }
+        BigDecimal sum = BigDecimal.ZERO;
+        int count = 0;
+        for (String coin : BENCHMARK_COINS) {
+            if (MARKET_PROXY.equals(coin)) continue;
+            BigDecimal r = holdReturnPct(coin, from, to);
+            if (r == null) continue;
+            sum = sum.add(r);
+            count++;
+        }
+        return count == 0 ? null : sum.divide(BigDecimal.valueOf(count), SCALE, RoundingMode.HALF_UP);
+    }
+
+    /**
      * 해당 코인을 periodStart에 사서 지금까지 들고 있었을 때의 수익률(%).
      * 구간에 캔들이 2개 미만이면 판정 불가로 null.
      */

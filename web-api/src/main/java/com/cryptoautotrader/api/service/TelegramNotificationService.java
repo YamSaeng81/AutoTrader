@@ -122,6 +122,25 @@ public class TelegramNotificationService {
         sendMarkdownAndLog(msg, "STOP_LOSS", "세션#" + sessionId);
     }
 
+    /**
+     * 시간 초과 청산(time stop) 알림 — 2026-08-18 신설.
+     *
+     * <p>time stop 은 손절도 익절도 아니라 {@code STOP_LOSS} 알림 유형에 잡히지 않았고,
+     * 그래서 <b>자본 회수 이벤트가 사용자에게 통지되지 않았다</b>. 08-18 LIVE time stop 을
+     * 처음 켰을 때 259시간 고착 XRP 4건이 청산됐는데 알림이 한 건도 가지 않은 것이 실측 사례다.
+     * 손익 부호와 무관하게 발생하므로 손실률이 아니라 손익률을 그대로 표기한다.</p>
+     */
+    public void notifyTimeStop(String coinPair, long heldHours, int maxHoldHours,
+                               double pnlPct, long sessionId) {
+        String msg = String.format(
+                "⏱️ *시간 초과 청산*\n\n" +
+                "• 세션 ID: `%d`\n• 코인: `%s`\n• 보유: `%d시간` (한도 `%d시간`)\n" +
+                "• 손익률: `%+.2f%%`\n• 시각: `%s`",
+                sessionId, coinPair, heldHours, maxHoldHours, pnlPct,
+                KST_FMT.format(Instant.now()));
+        sendMarkdownAndLog(msg, "TIME_STOP", "세션#" + sessionId);
+    }
+
     /** 거래소 DOWN 알림 */
     public void notifyExchangeDown(String reason) {
         String msg = String.format(

@@ -116,6 +116,7 @@ public class PaperTradingService {
     private final TelegramNotificationService telegramService;
     private final StrategyLogRepository strategyLogRepo;
     private final RiskManagementService riskManagementService;
+    private final StrategyEnablementGate strategyEnablementGate;
 
     /** DB에서 ExitRuleChecker를 동적 로드하는 헬퍼 */
     private com.cryptoautotrader.core.risk.ExitRuleChecker exitChecker() {
@@ -166,6 +167,10 @@ public class PaperTradingService {
     }
 
     private VirtualBalanceEntity createSession(PaperTradingStartRequest req) {
+        // 비활성 전략 차단 (2026-08-18) — start/startMulti 양쪽이 여기를 거치므로 한 곳에서 막는다.
+        // 페이퍼에도 거는 이유: 페이퍼에서 죽은 전략을 페이퍼로 다시 돌릴 이유가 없다.
+        strategyEnablementGate.assertEnabled(req.getStrategyType());
+
         VirtualBalanceEntity session = VirtualBalanceEntity.builder()
                 .totalKrw(req.getInitialCapital())
                 .availableKrw(req.getInitialCapital())

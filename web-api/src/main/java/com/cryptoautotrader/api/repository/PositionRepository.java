@@ -241,4 +241,26 @@ public interface PositionRepository extends JpaRepository<PositionEntity, Long> 
             "GROUP BY s.strategy_type, p.market_regime, p.coin_pair",
             nativeQuery = true)
     List<Object[]> aggregateRealizedReturnsByCoinStrategyAndRegime(@Param("since") java.time.Instant since);
+
+    /**
+     * 세션별 실현 거래 집계 — kill criteria 판정용 (docs/KILL_CRITERIA.md §4.B).
+     *
+     * <p>세션 하나당 한 행. LIVE·DYNAMIC 세션 테이블이 각각 별도 BIGSERIAL 이라
+     * {@code sessionId} 만으로는 구분되지 않으므로 {@code sessionKind} 까지 묶는다(D-2).
+     * 전체 세션을 한 번에 집계하므로 판정 1회당 쿼리 1회로 끝난다.</p>
+     *
+     * <p>{@code investedKrw > 0} 필터는 체결되지 않은 고아 포지션을 표본에서 제외한다 —
+     * 이게 없으면 최소 표본 {@code minTradesForEdgeTest} 가 빈 포지션으로 채워진다.</p>
+     *
+     * <p>각 행: [sessionKind(String), sessionId(Long), tradeCount(Long),
+     * sumRealizedPnl(BigDecimal), sumInvestedKrw(BigDecimal), winCount(Long)]</p>
+     */
+    @Query("SELECT p.sessionKind, p.sessionId, COUNT(p), " +
+           "       COALESCE(SUM(p.realizedPnl), 0), " +
+           "       COALESCE(SUM(p.investedKrw), 0), " +
+           "       SUM(CASE WHEN p.realizedPnl > 0 THEN 1L ELSE 0L END) " +
+           "FROM PositionEntity p " +
+           "WHERE p.status = 'CLOSED' AND p.investedKrw > 0 AND p.sessionId IS NOT NULL " +
+           "GROUP BY p.sessionKind, p.sessionId")
+    List<Object[]> aggregateClosedTradesPerSession();
 }
