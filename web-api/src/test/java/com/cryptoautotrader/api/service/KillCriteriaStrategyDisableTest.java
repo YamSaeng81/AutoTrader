@@ -40,9 +40,9 @@ class KillCriteriaStrategyDisableTest extends IntegrationTestBase {
     }
 
     private Judgment judgment(String strategy, String label, Verdict verdict) {
-        SessionStats st = new SessionStats("DYN_PAPER", 1L, strategy, label,
+        SessionStats st = new SessionStats("DYN_PAPER", 1L, strategy, "H1", label,
                 new BigDecimal("10000"), new BigDecimal("10000"), new BigDecimal("10000"),
-                0, 0, 0, BigDecimal.ZERO, null, 11);
+                0, 0, 0, BigDecimal.ZERO, java.time.Instant.now(), 11);
         return new Judgment(st, verdict, verdict == Verdict.KILL ? "CAPITAL_LOSS" : "OK", "테스트");
     }
 

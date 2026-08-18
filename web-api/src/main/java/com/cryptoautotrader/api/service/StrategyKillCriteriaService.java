@@ -22,6 +22,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -123,7 +124,20 @@ public class StrategyKillCriteriaService {
 
     // ── 판정 ──────────────────────────────────────────────────────────────────
 
-    /** 운영 중(RUNNING) 세션 전체를 판정한다. LIVE·DYNAMIC·PAPER 모두 대상. */
+    /**
+     * 운영 중(RUNNING) 세션 전체를 판정한다. LIVE·DYNAMIC·PAPER 모두 대상.
+     *
+     * <p><b>판정 단위가 둘로 나뉜다</b> — 문서 §2의 A/B 구분이 집계 수준에도 그대로 적용된다.</p>
+     * <ul>
+     *   <li>A 자본 보호 → <b>세션</b> 단위. 자본이 세션마다 따로 잡히므로 다른 수준이 있을 수 없다.</li>
+     *   <li>B 엣지 → <b>전략 × 타임프레임</b> 단위로 코인을 가로질러 합산.</li>
+     * </ul>
+     *
+     * <p>B를 세션 단위로 두면 <b>기준이 영원히 발동하지 않는다</b>. 2026-08-18 실측으로
+     * 세션당 0.07거래/일 — {@code minTradesForEdgeTest}(20)까지 280일이 걸린다. 같은 전략을
+     * 코인 8종 × 타임프레임 2종으로 돌리면 그룹당 16세션이라 같은 표본이 약 18일에 모인다.
+     * 코인이 달라도 전략이 같으면 검증 대상인 "그 전략의 우위"는 하나이므로 합산이 통계적으로도 옳다.</p>
+     */
     @Transactional(readOnly = true)
     public List<Judgment> evaluateAll() {
         Map<String, long[]> counts = new HashMap<>();          // kind:id → [n, wins]
@@ -136,55 +150,144 @@ public class StrategyKillCriteriaService {
         }
 
         Instant now = Instant.now();
-        List<Judgment> out = new ArrayList<>();
+        List<SessionStats> all = new ArrayList<>();
 
         for (LiveTradingSessionEntity s : liveSessionRepo.findByStatus("RUNNING")) {
-            String kind = "LIVE";
-            out.add(decide(statsOf(kind, s.getId(), s.getStrategyType(),
-                    kind + "#" + s.getId() + " " + s.getStrategyType() + " " + s.getCoinPair(),
+            all.add(statsOf("LIVE", s.getId(), s.getStrategyType(), s.getTimeframe(),
+                    "LIVE#" + s.getId() + " " + s.getStrategyType() + " " + s.getCoinPair()
+                            + "@" + s.getTimeframe(),
                     s.getInitialCapital(), s.getTotalAssetKrw(), s.getMddPeakCapital(),
-                    s.getCircuitBreakerTripCount(), s.getStartedAt(), now, counts, pnlSums), config));
+                    s.getCircuitBreakerTripCount(), s.getStartedAt(), now, counts, pnlSums));
         }
 
         for (DynamicSessionEntity s : dynamicSessionRepo.findByStatus("RUNNING")) {
             // 포지션의 session_kind 는 REAL="DYNAMIC", PAPER="DYN_PAPER" 로 갈린다 (V67)
             String kind = s.isPaper() ? "DYN_PAPER" : "DYNAMIC";
-            out.add(decide(statsOf(kind, s.getId(), s.getStrategyType(),
-                    kind + "#" + s.getId() + " " + s.getStrategyType(),
+            all.add(statsOf(kind, s.getId(), s.getStrategyType(), s.getTimeframe(),
+                    kind + "#" + s.getId() + " " + s.getStrategyType() + "@" + s.getTimeframe(),
                     s.getInitialCapital(), s.getTotalAssetKrw(), s.getMddPeakCapital(),
-                    s.getCircuitBreakerTripCount(), s.getStartedAt(), now, counts, pnlSums), config));
+                    s.getCircuitBreakerTripCount(), s.getStartedAt(), now, counts, pnlSums));
         }
 
+        // ── A: 세션별 자본 보호 판정 ──────────────────────────────
+        List<Judgment> judgments = new ArrayList<>();
+        for (SessionStats st : all) {
+            judgments.add(decide(st, config));
+        }
+
+        // ── B: 전략×타임프레임 그룹별 엣지 판정 ────────────────────
+        Map<String, EdgeVerdict> edgeByGroup = new LinkedHashMap<>();
+        for (Map.Entry<String, List<SessionStats>> e : groupByStrategyTimeframe(all).entrySet()) {
+            EdgeVerdict v = decideEdge(aggregate(e.getValue(), now), config);
+            if (v != null) edgeByGroup.put(e.getKey(), v);
+        }
+        if (edgeByGroup.isEmpty()) return judgments;
+
+        // 그룹이 죽으면 그 그룹의 세션을 전부 폐기한다. 자본 기준으로 이미 KILL 인 세션은
+        // 그쪽 사유가 더 구체적이므로 덮어쓰지 않는다.
+        List<Judgment> merged = new ArrayList<>(judgments.size());
+        for (Judgment j : judgments) {
+            EdgeVerdict v = edgeByGroup.get(groupKey(j.stats()));
+            merged.add(v == null || j.verdict() == Verdict.KILL
+                    ? j
+                    : new Judgment(j.stats(), Verdict.KILL, v.code(), v.reason()));
+        }
+        return merged;
+    }
+
+    private static String groupKey(SessionStats st) {
+        return st.strategyType() + "@" + (st.timeframe() == null ? "?" : st.timeframe());
+    }
+
+    private static Map<String, List<SessionStats>> groupByStrategyTimeframe(List<SessionStats> all) {
+        Map<String, List<SessionStats>> out = new LinkedHashMap<>();
+        for (SessionStats st : all) {
+            if (st.strategyType() == null || st.strategyType().isBlank()) continue;
+            out.computeIfAbsent(groupKey(st), k -> new ArrayList<>()).add(st);
+        }
         return out;
     }
 
-    private SessionStats statsOf(String kind, Long id, String strategyType, String label,
+    /** 그룹 합산 — 수익률은 자본 가중(초기자본 합 대비 총자산 합)이라 세션 크기가 달라도 왜곡되지 않는다. */
+    private EdgeStats aggregate(List<SessionStats> group, Instant now) {
+        int trades = 0, wins = 0;
+        BigDecimal pnl = BigDecimal.ZERO, init = BigDecimal.ZERO, asset = BigDecimal.ZERO;
+        Instant earliest = null;
+        for (SessionStats st : group) {
+            trades += st.tradeCount();
+            wins += st.winCount();
+            pnl = pnl.add(st.sumRealizedPnl());
+            init = init.add(nz(st.initialCapital()));
+            asset = asset.add(nz(st.totalAsset()));
+            if (st.startedAt() != null && (earliest == null || st.startedAt().isBefore(earliest))) {
+                earliest = st.startedAt();
+            }
+        }
+        SessionStats first = group.get(0);
+        // 벤치마크는 표본이 찼을 때만 조회한다 — 그룹당 1회라 캔들 조회가 세션 수에 비례하지 않는다
+        BigDecimal benchmark = trades >= config.getMinTradesForEdgeTest()
+                ? benchmarkAlphaService.altAvgHoldReturnPct(earliest, now)
+                : null;
+        return new EdgeStats(first.strategyType(), first.timeframe(), group.size(),
+                trades, wins, pnl, init, asset, benchmark);
+    }
+
+    /**
+     * 그룹 단위 엣지 판정 — 폐기 사유가 있으면 반환, 없으면 {@code null}.
+     *
+     * <p>승률이 아니라 <b>기대값</b>으로 본다. 승률 30%라도 손익비 3:1이면 정상이므로
+     * 승률 단독 폐기 기준은 두지 않는다(문서 §4.B).</p>
+     */
+    public static EdgeVerdict decideEdge(EdgeStats st, KillCriteriaConfig cfg) {
+        if (st.tradeCount() < cfg.getMinTradesForEdgeTest()) {
+            return null;   // 표본 미달 — 부호를 신뢰하지 않는다
+        }
+        String scope = String.format("%s@%s (%d세션 %d거래)",
+                st.strategyType(), st.timeframe(), st.sessions(), st.tradeCount());
+
+        if (st.sumRealizedPnl().signum() <= 0) {
+            BigDecimal avg = st.sumRealizedPnl()
+                    .divide(BigDecimal.valueOf(st.tradeCount()), SCALE, RoundingMode.HALF_UP);
+            return new EdgeVerdict("NEGATIVE_EV", String.format(
+                    "실현 기대값 음수 — %s 누적 %s원, 평균 %s원 (승 %d)",
+                    scope, plain(st.sumRealizedPnl()), plain(avg), st.winCount()));
+        }
+
+        BigDecimal returnPct = pct(st.sumInitialCapital(), st.sumTotalAsset());
+        if (st.benchmarkReturnPct() != null && returnPct != null) {
+            BigDecimal alpha = returnPct.subtract(st.benchmarkReturnPct());
+            if (alpha.signum() < 0) {
+                return new EdgeVerdict("NEGATIVE_ALPHA", String.format(
+                        "알파 음수 %s%%p — %s 수익률 %s%% vs 알트 보유 %s%%",
+                        alpha.toPlainString(), scope, returnPct.toPlainString(),
+                        st.benchmarkReturnPct().toPlainString()));
+            }
+        }
+        return null;
+    }
+
+    private SessionStats statsOf(String kind, Long id, String strategyType, String timeframe, String label,
                                  BigDecimal initialCapital, BigDecimal totalAsset, BigDecimal mddPeak,
                                  int cbTripCount, Instant startedAt, Instant now,
                                  Map<String, long[]> counts, Map<String, BigDecimal> pnlSums) {
         String key = kind + ":" + id;
         long[] c = counts.getOrDefault(key, new long[]{0L, 0L});
-        int tradeCount = (int) c[0];
-
-        // 벤치마크는 표본이 충분할 때만 조회한다 — 캔들 조회가 세션 수만큼 도는 것을 피한다
-        BigDecimal benchmark = tradeCount >= config.getMinTradesForEdgeTest()
-                ? benchmarkAlphaService.altAvgHoldReturnPct(startedAt, now)
-                : null;
-
         long runningDays = startedAt == null ? 0 : Duration.between(startedAt, now).toDays();
 
-        return new SessionStats(kind, id, strategyType, label,
+        return new SessionStats(kind, id, strategyType, timeframe, label,
                 initialCapital, totalAsset, mddPeak, cbTripCount,
-                tradeCount, (int) c[1], pnlSums.getOrDefault(key, BigDecimal.ZERO),
-                benchmark, runningDays);
+                (int) c[0], (int) c[1], pnlSums.getOrDefault(key, BigDecimal.ZERO),
+                startedAt, runningDays);
     }
 
     /**
      * 순수 판정 함수 — DB 접근 없이 테스트 가능.
      *
-     * <p>검사 순서는 <b>확실한 것부터</b>다. A(자본 보호)는 표본이 필요 없으므로 먼저 보고,
-     * B(엣지 안전망)는 표본이 찼을 때만 본다. 이 순서를 뒤집으면 "표본이 부족하다"가
-     * 자본 한도 초과를 가리게 된다 — 문서 §2 참조.</p>
+     * <p><b>A(자본 보호)와 C(NO_SIGNAL)만 본다.</b> B(엣지)는 세션이 아니라 전략×타임프레임
+     * 그룹 단위라 {@link #decideEdge}가 맡는다.</p>
+     *
+     * <p>A를 먼저 보는 이유 — A는 표본이 필요 없다. 순서를 뒤집으면 "표본이 부족하다"가
+     * 자본 한도 초과를 가리게 된다(문서 §2).</p>
      */
     public static Judgment decide(SessionStats st, KillCriteriaConfig cfg) {
         // ── A. 자본 보호 (표본 무관) ──────────────────────────────
@@ -210,25 +313,9 @@ public class StrategyKillCriteriaService {
                     st.circuitBreakerTripCount(), cfg.getCircuitBreakerRepeatLimit()));
         }
 
-        // ── B. 엣지 안전망 (표본 필요) ────────────────────────────
-        if (st.tradeCount() >= cfg.getMinTradesForEdgeTest()) {
-            if (st.sumRealizedPnl().signum() <= 0) {
-                BigDecimal avg = st.sumRealizedPnl()
-                        .divide(BigDecimal.valueOf(st.tradeCount()), SCALE, RoundingMode.HALF_UP);
-                return kill(st, "NEGATIVE_EV", String.format(
-                        "실현 기대값 음수 — %d거래 누적 %s원, 평균 %s원 (승 %d)",
-                        st.tradeCount(), plain(st.sumRealizedPnl()), plain(avg), st.winCount()));
-            }
-            if (st.benchmarkReturnPct() != null && returnPct != null) {
-                BigDecimal alpha = returnPct.subtract(st.benchmarkReturnPct());
-                if (alpha.signum() < 0) {
-                    return kill(st, "NEGATIVE_ALPHA", String.format(
-                            "알파 음수 %s%%p — 세션 %s%% vs 알트 보유 %s%% (%d거래)",
-                            alpha.toPlainString(), returnPct.toPlainString(),
-                            st.benchmarkReturnPct().toPlainString(), st.tradeCount()));
-                }
-            }
-        }
+        // ── B. 엣지는 여기서 보지 않는다 ──────────────────────────
+        // 전략×타임프레임 그룹 단위로 evaluateAll() 이 별도 판정한다 — 세션당 표본으로는
+        // minTradesForEdgeTest 에 280일이 걸려 기준이 발동하지 않는다(decideEdge 주석 참조).
 
         // ── C. 판정 불가 (경보만) ─────────────────────────────────
         if (st.runningDays() >= cfg.getNoSignalDays() && st.tradeCount() < cfg.getNoSignalMinTrades()) {
@@ -351,6 +438,10 @@ public class StrategyKillCriteriaService {
                 .setScale(SCALE, RoundingMode.HALF_UP);
     }
 
+    private static BigDecimal nz(BigDecimal v) {
+        return v == null ? BigDecimal.ZERO : v;
+    }
+
     private static String plain(BigDecimal v) {
         return v == null ? "N/A" : v.toPlainString();
     }
@@ -380,16 +471,26 @@ public class StrategyKillCriteriaService {
         KILL
     }
 
-    /**
-     * 판정 입력 — 세션 하나의 상태 스냅샷.
-     *
-     * @param benchmarkReturnPct 세션 자기 기간의 알트 바스켓 보유 수익률(%). 표본 미달이거나
-     *                           캔들이 부족하면 null 이고, 그 경우 알파 판정은 생략된다.
-     */
-    public record SessionStats(String sessionKind, Long sessionId, String strategyType, String label,
+    /** 판정 입력 — 세션 하나의 상태 스냅샷. */
+    public record SessionStats(String sessionKind, Long sessionId, String strategyType, String timeframe,
+                               String label,
                                BigDecimal initialCapital, BigDecimal totalAsset, BigDecimal mddPeakCapital,
                                int circuitBreakerTripCount, int tradeCount, int winCount,
-                               BigDecimal sumRealizedPnl, BigDecimal benchmarkReturnPct, long runningDays) {}
+                               BigDecimal sumRealizedPnl, Instant startedAt, long runningDays) {}
+
+    /**
+     * 엣지 판정 입력 — 같은 전략×타임프레임 세션들을 코인을 가로질러 합산한 것.
+     *
+     * @param benchmarkReturnPct 그룹에서 가장 이른 시작 시각 기준 알트 바스켓 보유 수익률(%).
+     *                           표본 미달이거나 캔들이 부족하면 null 이고, 그 경우 알파 판정은 생략된다.
+     */
+    public record EdgeStats(String strategyType, String timeframe, int sessions,
+                            int tradeCount, int winCount, BigDecimal sumRealizedPnl,
+                            BigDecimal sumInitialCapital, BigDecimal sumTotalAsset,
+                            BigDecimal benchmarkReturnPct) {}
+
+    /** 그룹 엣지 판정 결과. 폐기 사유가 없으면 {@code decideEdge} 가 null 을 돌려준다. */
+    public record EdgeVerdict(String code, String reason) {}
 
     /** 판정 결과. {@code code}는 문서 §4의 기준 코드(CAPITAL_LOSS·NEGATIVE_EV·…)와 1:1 대응한다. */
     public record Judgment(SessionStats stats, Verdict verdict, String code, String reason) {
