@@ -32,16 +32,22 @@ public class DynamicSessionEntity {
     /**
      * {@code maxHoldHours} 기본값 — 세션 생성 시 요청에 값이 없으면 이 값이 적용된다.
      *
-     * <p>⚠️ <b>2026-07-31 현재 0(time stop 비활성)</b>. 원래 의도한 기본값은 24시간이지만,
-     * 매도 후처리 트랜잭션 롤백 P0(주문은 체결됐는데 포지션이 OPEN으로 남아 매 틱마다
-     * 매도를 재시도하는 루프)가 미해결이라 임시로 꺼둔다. time stop 은 이 버그를 처음
-     * 표면화시킨 경로였다.</p>
+     * <p><b>2026-08-18: 0(비활성) → 24 로 복원</b>. 07-31에 임시로 꺼둔 사유였던
+     * 매도 후처리 롤백 P0(주문은 체결됐는데 포지션이 OPEN으로 남아 매 틱마다 매도를
+     * 재시도하는 루프)는 08-03에 해소됐고, 이후 {@code reattachRolledBackPosition()}
+     * ·CLOSING 타임아웃 8분 분리(D-5)·부분체결 SELL 승격(D-3)까지 보강됐다.
+     * 운영 DB {@code daily_health_snapshot} 기준 {@code ghost_position_count}가
+     * 08-07~08-18 11일 연속 0 이라 재발 징후도 없다.</p>
      *
-     * <p><b>롤백 버그 수정 후 24 로 되돌릴 것</b> — 저변동 종목 고착(세션 38 KRW-RLUSD
-     * 42시간) 방어는 여전히 필요하다. 되돌릴 때 DB 컬럼 기본값도 함께
-     * (신규 마이그레이션으로 {@code ALTER COLUMN ... SET DEFAULT 24}).</p>
+     * <p>끄고 있는 동안 정확히 V62가 예고한 고착이 재발했다 — LIVE 198 / DYNAMIC 48 /
+     * DYN_PAPER 49 가 같은 KRW-XRP 를 <b>259시간(10.8일)</b> 물고 있었고, SL(−5%)·TP(+10%)
+     * 어느 쪽도 닿지 않아 세션당 자본의 80%가 잠겼다(2026-08-18 운영 DB 분석).</p>
+     *
+     * <p>24시간인 이유: 동적 세션은 워치리스트를 순회하며 기회를 찾는 구조라, 하루가 지나도
+     * 방향이 나오지 않은 포지션은 자본 회전을 막는 기회비용이 손실보다 크다. 08-07~08-18
+     * 실측 청산 8건의 보유시간 중앙값은 16시간으로, 정상 매매는 24시간에 걸리지 않는다.</p>
      */
-    public static final int DEFAULT_MAX_HOLD_HOURS = 0;
+    public static final int DEFAULT_MAX_HOLD_HOURS = 24;
 
     /** {@link #tradingMode} 기본값 — 미지정 시 실거래. */
     public static final String DEFAULT_TRADING_MODE = "REAL";

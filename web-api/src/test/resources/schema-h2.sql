@@ -161,7 +161,7 @@ CREATE TABLE IF NOT EXISTS live_trading_session (
     created_at                    TIMESTAMP       DEFAULT CURRENT_TIMESTAMP,
     updated_at                    TIMESTAMP       DEFAULT CURRENT_TIMESTAMP,
     version                       BIGINT          NOT NULL DEFAULT 0,
-    max_hold_hours                INT             NOT NULL DEFAULT 0
+    max_hold_hours                INT             NOT NULL DEFAULT 24
 );
 
 -- 동적 멀티코인 세션 (V50)
@@ -184,7 +184,7 @@ CREATE TABLE IF NOT EXISTS dynamic_session (
     min_atr_pct                 DECIMAL(6, 4)   NOT NULL DEFAULT 0.5000,
     max_spread_pct              DECIMAL(6, 4)   NOT NULL DEFAULT 0.1000,
     watchlist_refresh_min       INT             NOT NULL DEFAULT 60,
-    max_hold_hours              INT             NOT NULL DEFAULT 0,
+    max_hold_hours              INT             NOT NULL DEFAULT 24,
     watchlist_json              CLOB,
     watchlist_refreshed_at      TIMESTAMP,
     version                     BIGINT          NOT NULL DEFAULT 0,
@@ -464,7 +464,7 @@ CREATE TABLE IF NOT EXISTS paper_trading.virtual_balance (
     -- LIVE 정렬용 세션 설정 (V66) — NULL이면 risk_config 기본값 폴백
     stop_loss_pct    DECIMAL(5, 2),
     invest_ratio     DECIMAL(5, 4),
-    max_hold_hours   INT,
+    max_hold_hours   INT             DEFAULT 24,
     started_at       TIMESTAMP,
     stopped_at       TIMESTAMP,
     updated_at       TIMESTAMP

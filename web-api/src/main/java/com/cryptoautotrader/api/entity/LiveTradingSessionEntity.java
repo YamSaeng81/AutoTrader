@@ -65,10 +65,17 @@ public class LiveTradingSessionEntity {
 
     /**
      * 최대 보유시간(시) — time stop. 초과 시 손익과 무관하게 시장가 청산.
-     * 0 이하면 비활성(기본값). V64 — dynamic_session의 동일 컬럼(V62/V63)과 짝을 맞춘다.
+     * 0 이하면 비활성. V64 — dynamic_session의 동일 컬럼(V62/V63)과 짝을 맞춘다.
+     *
+     * <p>기본값은 {@link #DEFAULT_MAX_HOLD_HOURS} — 2026-08-18 에 0(비활성)에서 24로 복원했다.
+     * 사유·근거는 {@link DynamicSessionEntity#DEFAULT_MAX_HOLD_HOURS} 주석 참조(두 값은 항상
+     * 같이 움직인다). LIVE 세션 194 BTC 136시간, 198 XRP 259시간 고착이 이 갭의 실측 사례다.</p>
      */
     @Column(name = "max_hold_hours", nullable = false)
     private Integer maxHoldHours;
+
+    /** {@code maxHoldHours} 기본값 — {@link DynamicSessionEntity#DEFAULT_MAX_HOLD_HOURS}와 동일하게 유지한다. */
+    public static final int DEFAULT_MAX_HOLD_HOURS = DynamicSessionEntity.DEFAULT_MAX_HOLD_HOURS;
 
     /** MDD 계산용 최고 자산 피크 (세션 시작 이후 기록된 최대 totalAssetKrw) */
     @Column(name = "mdd_peak_capital", precision = 20, scale = 2)
@@ -115,7 +122,7 @@ public class LiveTradingSessionEntity {
         if (updatedAt == null) updatedAt = Instant.now();
         if (stopLossPct == null) stopLossPct = new BigDecimal("5.0");
         if (investRatio == null) investRatio = new BigDecimal("0.2500");
-        if (maxHoldHours == null) maxHoldHours = 0;
+        if (maxHoldHours == null) maxHoldHours = DEFAULT_MAX_HOLD_HOURS;
     }
 
     @PreUpdate

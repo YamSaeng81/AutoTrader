@@ -50,8 +50,11 @@ class LiveTradingMaxHoldHoursTest extends IntegrationTestBase {
     }
 
     @Test
-    @DisplayName("maxHoldHours를 지정하지 않으면 0(비활성)으로 저장된다 — 기존 세션과 동일 동작")
-    void 미지정시_비활성으로_저장() {
+    @DisplayName("maxHoldHours를 지정하지 않으면 기본값 24로 저장된다 — time stop 기본 활성(V68)")
+    void 미지정시_기본값으로_저장() {
+        // 2026-08-18(V68): 기본값을 0(비활성) → 24 로 되돌렸다. 07-31에 껐던 사유인 매도 후처리
+        // 롤백 P0는 08-03에 해소됐고, 끄고 있는 동안 LIVE 198 / DYNAMIC 48 이 같은 KRW-XRP를
+        // 259시간 물고 있는 고착이 재발했다. 근거 상세는 V68 마이그레이션 주석 참조.
         LiveTradingStartRequest req = new LiveTradingStartRequest();
         req.setStrategyType("COMPOSITE_BREAKOUT");
         req.setCoinPair("KRW-BTC");
@@ -60,10 +63,27 @@ class LiveTradingMaxHoldHoursTest extends IntegrationTestBase {
 
         LiveTradingSessionEntity session = liveTradingService.createSession(req);
 
-        assertThat(session.getMaxHoldHours()).isZero();
+        assertThat(session.getMaxHoldHours())
+                .isEqualTo(LiveTradingSessionEntity.DEFAULT_MAX_HOLD_HOURS)
+                .isEqualTo(24);
 
         LiveTradingSessionEntity reloaded = sessionRepository.findById(session.getId()).orElseThrow();
-        assertThat(reloaded.getMaxHoldHours()).isZero();
+        assertThat(reloaded.getMaxHoldHours()).isEqualTo(24);
+    }
+
+    @Test
+    @DisplayName("maxHoldHours=0을 명시하면 time stop을 끌 수 있다 — 기본값이 켜져도 옵트아웃 경로는 유지")
+    void 명시적_0이면_비활성() {
+        LiveTradingStartRequest req = new LiveTradingStartRequest();
+        req.setStrategyType("COMPOSITE_BREAKOUT");
+        req.setCoinPair("KRW-BTC");
+        req.setTimeframe("H1");
+        req.setInitialCapital(new BigDecimal("10000"));
+        req.setMaxHoldHours(0);
+
+        LiveTradingSessionEntity session = liveTradingService.createSession(req);
+
+        assertThat(session.getMaxHoldHours()).isZero();
     }
 
     @Test

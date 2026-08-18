@@ -2,6 +2,7 @@ package com.cryptoautotrader.api.service;
 
 import com.cryptoautotrader.api.dto.PaperTradingStartRequest;
 import com.cryptoautotrader.api.dto.PerformanceSummaryResponse;
+import com.cryptoautotrader.api.entity.LiveTradingSessionEntity;
 import com.cryptoautotrader.api.entity.MarketDataCacheEntity;
 import com.cryptoautotrader.api.entity.paper.PaperOrderEntity;
 import com.cryptoautotrader.api.entity.paper.PaperPositionEntity;
@@ -173,7 +174,9 @@ public class PaperTradingService {
                 // LIVE 세션과 동일 조건으로 돌리기 위한 설정 (V66) — 미지정이면 risk_config 기본값으로 폴백
                 .stopLossPct(req.getStopLossPct())
                 .investRatio(req.getInvestRatio())
-                .maxHoldHours(req.getMaxHoldHours())
+                .maxHoldHours(req.getMaxHoldHours() != null
+                        ? req.getMaxHoldHours()
+                        : LiveTradingSessionEntity.DEFAULT_MAX_HOLD_HOURS)
                 .build();
 
         log.info("모의투자 세션 시작: {} {} {} 초기자본={}",

@@ -20,13 +20,141 @@
 > 아래는 코드가 준비돼 있고 실행 여부·시점만 운영 판단이 필요한 것들.
 
 - **Walk Forward 게이트 활성화** (`REQUIRE_WALK_FORWARD_GATE`) — `WalkForwardValidationGate` 구현 완료, 기본값 비활성. 대부분 전략이 Walk Forward 이력이 없어 켜는 즉시 신규 세션 생성이 전면 중단된다. 켜기 전에 `GET /api/v1/strategies/walk-forward-gate-status`로 어떤 전략이 막히는지 먼저 확인하고, 운영 중인 전략들(COMPOSITE_MOMENTUM_ICHIMOKU_V2 등)에 Walk Forward부터 돌려 통과시킬지 판단할 것.
-- **LIVE time stop 활성화** (`maxHoldHours`) — 컬럼·로직(V64) 완료, 기본값 0(비활성). DYNAMIC도 처음엔 세션 하나만 테스트 삼아 켰던 전례를 따를 것. LIVE는 유령 포지션 자동 정산이 아직 없어(헬스체크는 감지·알림만) DYNAMIC보다 보수적으로 접근해야 한다. 필요한 세션에 개별로 켜는 것은 기존 API로 이미 가능.
+- ~~**LIVE time stop 활성화** (`maxHoldHours`)~~ ✅ **2026-08-18 완료** — 기본값 0 → 24 (V68, LIVE·DYNAMIC·PAPER 3종 동시). 운영 RUNNING 10세션에도 소급 적용. 아래 08-18 섹션 참조. ⚠️ 켜자마자 LIVE 경로에서 중복 SELL 1건이 재현됐다(같은 섹션 "새로 드러난 것" 참조) — 미해결.
 - **신호 기대값 자체가 음수인 문제** — 최근 7일 동적 세션 BUY 신호 사후수익률 4h −2.17%/24h −4.47%(n=50). Walk Forward 게이트는 "검증 안 된 전략을 막는" 것이지 "전략 자체를 고치는" 게 아니라서, 게이트를 켜도 이 문제는 해결되지 않는다. 전략/신호 모델 자체를 봐야 하는 별도 과제.
 - **시간 초과 청산(time stop) 텔레그램 알림 부재** — `STOP_LOSS` 알림 유형에 안 잡혀 자본 회수 이벤트가 사용자에게 통지되지 않는다. LIVE time stop을 켤 때 함께 처리하는 게 자연스러움.
 - **LIVE 유령 포지션 자동 정산** — 헬스체크(`OperationalHealthCheckService`)는 감지·알림까지만 하고 자동 정산은 안 한다. DYNAMIC의 `reconcileDynamicGhostPositions`에 대응하는 LIVE용 자동 정산을 추가할지는 실거래 자금에 직접 손대는 범위라 별도 검토 필요.
 - **e2e 스위트(`@playwright/test`) 미설치** — `navigation.spec.ts`·`global-setup.ts`·`auth-fixtures.ts`는 작성돼 있으나 의존성이 없어 실행 불가. `npm i -D @playwright/test && npx playwright install chromium` 필요.
 - **StrategyDegradationWatchdog을 DYNAMIC까지 확장할지** — 현재 LIVE(`sessionType=REAL`)만 감시. 저하 발견 시 Discord 알림에 그치지 않고 Walk Forward 게이트와 연동해 자동 재차단할지도 별건.
 - **Walk Forward 미리보기 API를 `/strategies` 페이지에 노출** — 현재 API만 있고 프런트 표시 없음.
+
+---
+
+## 🔴 2026-08-18 운영 DB 세션 분석 (08-07 재기동 후 11일차)
+
+> 운영 DB(`yhpapa.iptime.org:8432`) 직접 조회. 기준시각 2026-08-18 08:30 KST.
+> 대상: LIVE 2세션(198·199) + 동적 8세션(46~53, REAL/PAPER 4쌍). 전부 H1, 세션당 초기자본 10,000원.
+
+### 성적 요약 (11일)
+
+| 세션 | 전략 | 모드 | 총자산 | 손익 | 거래 | 승 |
+|---|---|---|---|---|---|---|
+| 46 / 47 | MTF_CONFIRMED | REAL / PAPER | 10,000 / 10,000 | 0.00% / 0.00% | 0 / 0 | — |
+| 48 / 49 | MEANREV_BB | REAL / PAPER | 9,850 / 9,844 | −1.50% / −1.56% | 0(보유1) | — |
+| 50 / 51 | CMI_V2 | REAL / PAPER | 10,000 / 9,906 | 0.00% / −0.94% | 0 / 0(보유1) | — |
+| 52 / 53 | PULLBACK_MTF | REAL / PAPER | 9,623 / 9,709 | −3.77% / −2.91% | 4 / 3 | **0 / 0** |
+| 198 | MEANREV_BB (XRP) | LIVE | 9,850 | −1.50% | 0(보유1) | — |
+| 199 | MTF_BTC_STRICT (BTC) | LIVE | 10,000 | 0.00% | 0 | — |
+
+동적 REAL 합계 39,467.73원(−1.33%), 동적 PAPER 합계 39,452.60원(−1.37%).
+**11일간 청산된 8거래 전부 손실**(−1.07 ~ −1.47%). 큰 손실은 없고 −1% 내외 손실만 반복 — 마찰비용형 출혈.
+
+### 발견 (심각도순)
+
+1. **XRP 3중 포지션 259시간(10.8일) 고착** — 2026-08-07 13:00 같은 분에 LIVE 198(pos 2396)·DYNAMIC 48(pos 2395)·DYN_PAPER 49(pos 2394)가 각각 8,000원씩 KRW-XRP 매수. 실자금만 16,000원. SL 1,368.95 / TP 1,556.28 어느 쪽도 미도달, 현재 −1.87~−2.02%. 세 세션 모두 `max_hold_hours=0`(비활성)이라 **V62가 막으려던 저변동 고착이 그대로 재현**. 헬스체크는 08-09부터 매일 `stuck_position_count=2`로 감지만 하고 조치 없음. 세션당 가용 KRW가 10,000 → 2,000으로 11일째 묶여 있다.
+2. **동일코인 노출 상한이 LIVE↔DYNAMIC 사이에 적용되지 않음** — 상한 1건이라는 차단 로그가 존재하는데도 LIVE 198과 DYNAMIC 48이 같은 코인을 같은 시각에 잡았다. 실자금 기준 XRP 편중 16,000원 = 두 실거래 세션 합산 자본의 80%.
+3. **BLACK_SWAN_GUARD 오차단** — 세션 46의 11일간 유일한 BUY(KRW-PIEVERSE, 08-08 20:00, confidence 0.44)가 "1시간 내 −11.17%" 가드로 차단. 사후수익률 **4h +4.81% / 24h +2.13%** — 11일 중 유일하게 돈이 됐을 신호였다. 이후 진입가 가드가 720분 추가 차단. 저유동 신규코인에 −8%/1h 임계가 과도한지 재검토 필요.
+4. **"본전 근처" SELL 차단이 손실을 확정시킨다** — 52/53에 `본전 근처 pnl=−0.09~−0.93%` 차단이 40건+ 누적. 그 상태로 버티다 최종 −1.07~−1.47%에 청산. 청산된 8거래 전부 이 밴드에 있었다. 수수료 왕복 + 슬리피지를 감안하면 이 게이트가 순손실 요인일 가능성이 높다 — A/B 검증 대상.
+5. **자본 절반이 11일간 유휴** — 46·47·50·199는 거래 0건(199는 263회 평가에 BUY/SELL 신호 0). 배치된 59,850원 중 40,000원이 아무 일도 하지 않았다.
+6. **REAL/PAPER 정렬은 대체로 성공, 단 50↔51 이탈** — 52↔53(−3.77% vs −2.91%), 48↔49(−1.50% vs −1.56%)는 근접. 반면 50(REAL)은 BUY 0건인데 51(PAPER)은 08-16 02:00 LINK 진입. 신호 자체가 갈렸다 — 워치리스트/평가시점 차이 의심, 로그 확인 필요.
+7. **신호 기대값 여전히 음수** — 52/53 신호 161·152건, 평균 confidence 0.658인데 사후수익률 4h −0.18% / 24h −0.40%. confidence가 높다고 수익이 나지 않는다(가장 좋았던 신호는 confidence 0.44).
+8. **`order_sequence_gap` 증가** — 08-16 0 → 08-17 12 → 08-18 16. 잔고 불일치·유령 포지션은 0이라 즉시 위험은 아니지만 원인 확인 필요.
+
+### 정상 확인된 것
+
+`balance_mismatch_count=0`, `ghost_position_count=0` 11일 연속. 서킷브레이커 46~53 전부 미발동. LIVE 세션은 H1로 재생성 완료(보류 항목 6번 해소).
+
+---
+
+## 🟢 2026-08-18 조치 — time stop 기본 활성(V68) + 고착 4건 청산 + 본전 게이트 판정
+
+### 1. `max_hold_hours` 기본값 0 → 24 (V63 되돌리기 완료)
+
+V63이 문서로 남겨둔 되돌리기 절차를 그대로 수행했다. 껐던 사유(매도 후처리 롤백 P0)는 08-03에
+해소됐고, `ghost_position_count`가 11일 연속 0으로 재발 징후도 없었다.
+
+| 파일 | 변경 |
+|---|---|
+| [`DynamicSessionEntity`](../web-api/src/main/java/com/cryptoautotrader/api/entity/DynamicSessionEntity.java) | `DEFAULT_MAX_HOLD_HOURS` 0 → **24**, 스테일 주석(07-31) 현행화 |
+| [`LiveTradingSessionEntity`](../web-api/src/main/java/com/cryptoautotrader/api/entity/LiveTradingSessionEntity.java) | `DEFAULT_MAX_HOLD_HOURS` 신설(동적 값 참조) + `prePersist` 폴백 |
+| [`LiveTradingService`](../web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java) | `createSession` 하드코딩 0 → 상수 |
+| [`PaperTradingService`](../web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java) / [`VirtualBalanceEntity`](../web-api/src/main/java/com/cryptoautotrader/api/entity/paper/VirtualBalanceEntity.java) | NULL 폴백 제거 — 페이퍼만 time stop 없이 도는 비대칭 차단 |
+| [`V68`](../web-api/src/main/resources/db/migration/V68__default_max_hold_hours_on.sql) | 3개 테이블 `ALTER COLUMN ... SET DEFAULT 24` + COMMENT. **기존 행은 건드리지 않음**(V63 정책 준수) |
+| `schema-h2.sql` | 동일 기본값 동기화 |
+| 테스트 3종 | "기본값 0" 을 못박던 assertion 갱신 + `maxHoldHours=0` 명시 옵트아웃 경로 테스트 신설. `:web-api:test` 255건 그린 |
+
+**24시간 근거**: 08-07~08-18 실측 청산 8건의 보유시간 중앙값 16시간(초과 2건은 66h/70h, 둘 다 손실 마감).
+V62가 처음 의도했던 값과도 같다.
+
+### 2. 운영 RUNNING 10세션 소급 적용 → 고착 4건 자동 청산
+
+마이그레이션은 기존 행을 건드리지 않으므로 운영자 UPDATE로 별도 적용(46~53, 198, 199 = `max_hold_hours` 0 → 24).
+`tick()`이 매 60초 세션을 DB에서 다시 읽으므로 재배포 없이 다음 틱에 발동했고, **정규 매도 경로**로
+청산됐다(DB에서 포지션을 직접 CLOSED로 바꾸는 방식은 거래소와 어긋나므로 쓰지 않았다).
+
+| 포지션 | 세션 | 코인 | 보유 | 실현손익 | 청산시각(KST) |
+|---|---|---|---|---|---|
+| 2396 | LIVE 198 | XRP | 259.9h | −154원 (−1.92%) | 08:56:54 |
+| 2395 | DYNAMIC 48 | XRP | 259.9h | −154원 (−1.92%) | 08:55:29 |
+| 2394 | DYN_PAPER 49 | XRP | 259.9h | −168원 (−2.10%) | 08:55:20 |
+| 2425 | DYN_PAPER 51 | LINK | 54.9h | −106원 (−1.33%) | 08:55:20 |
+
+11일간 잠겨 있던 자본이 풀렸다 — 세션 48·198의 가용 KRW가 각각 2,000 → 9,846원. 전체 OPEN 포지션 0건.
+
+### 3. 🔴 새로 드러난 것 — LIVE 중복 SELL (미해결)
+
+LIVE 198이 **같은 포지션에 SELL을 두 번 제출**했다. 두 번째(주문 8725)는 거래소가
+`insufficient_funds_ask`로 거절했다.
+
+```
+08:55:54  주문 8724 생성·제출  → 08:55:59 FILLED
+08:56:54  주문 8725 생성(정확히 다음 틱) → HTTP 400 거절
+08:56:54  position 2396 closing_at 기록 → CLOSED
+```
+
+[`executeSessionSell`](../web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java#L1316)은
+주문 제출 **전에** 포지션을 CLOSING으로 표시하는데, `closing_at`이 첫 시도(08:55:54)가 아니라
+두 번째 시도 시각으로 찍혔다 — **첫 틱의 CLOSING 쓰기가 커밋되지 않았다**는 뜻이다. 주문은 이미
+비동기로 나간 뒤라 포지션만 OPEN으로 남았고, 60초 뒤 같은 time stop이 다시 발동했다.
+07-31 세션 38 RLUSD 사고(V63이 기본값을 0으로 내린 바로 그 사유)와 동일한 시그니처다.
+
+**다만 그때만큼 나쁘지는 않다** — 07-31은 86분간 4회 실패 루프였고, 오늘은 1회 중복 후
+`reconcileClosingPositions`가 정상 종료시켰다. 08-03 수정이 "폭주 루프 → 1틱 중복"까지는 줄인 셈이다.
+DYNAMIC 48·PAPER 2종은 재현되지 않았다(LIVE 경로 한정).
+
+**결과 자체는 정합** — 포지션 CLOSED, 실현손익 정확, KRW 복원 정상, `ghost_position_count=0`, OPEN 0건.
+
+**⚠️ 남은 위험**: LIVE 198과 DYNAMIC 48이 같은 업비트 계정에서 동시에 XRP를 들고 있었다. 오늘은
+둘 다 이미 팔린 뒤라 거절됐지만, 타이밍이 어긋났다면 **LIVE의 중복 매도가 DYNAMIC 포지션의 코인을
+팔았을 수 있다.** LIVE 매도의 틱 간 멱등성 확보가 필요하다(다음 우선 과제).
+
+### 4. 본전 청산 게이트 — 운영 데이터로 판정: **손해**
+
+[`SignalExitGateAbBacktestRunner`](../core-engine/src/test/java/com/cryptoautotrader/core/backtest/SignalExitGateAbBacktestRunner.java)를
+BTC/ETH/SOL/XRP H1로 돌렸으나 **게이트 ON/OFF가 8개 조합 전부 완전히 동일**했다 — 이 하네스에서는
+전략 SELL 경로가 아예 안 타고 전부 SL/TP로 청산된다. 즉 07-02 L-2가 "영향 없음"으로 판정했던 근거는
+게이트가 무해해서가 아니라 **측정되지 않았기 때문**이다. 이 러너는 게이트 검증에 쓸 수 없다.
+
+대신 운영 데이터로 반사실 비교를 했다 — 청산된 포지션마다 "게이트가 막은 첫 SELL 신호 시점의 pnl"과
+"실제 청산 pnl"을 대조:
+
+| 포지션 | 코인 | 게이트가 막은 첫 SELL | 실제 청산 | 게이트 비용 |
+|---|---|---|---|---|
+| 2404 | SOL | −0.428% | −1.225% | 0.797%p |
+| 2405 | SOL | −0.371% | −1.070% | 0.699%p |
+| 2412 | SOL | −0.430% | −1.230% | 0.800%p |
+| 2413 | SOL | −0.280% | −1.170% | 0.890%p |
+| **평균** | | **−0.377%** | **−1.174%** | **0.797%p** |
+
+**4건 전부 게이트가 손해였다.** 기전도 구조적으로 설명된다 — `allowsSignalExit`는
+`minPnlPctForSignalExit=+0.30%` 미만이면 SELL을 막고, `lossEscapeThresholdPct=−1.00%` 아래로
+떨어져야 다시 풀어준다. 즉 **−1.00% ~ +0.30% 구간에 갇힌 포지션은 −1%를 뚫어야만 나갈 수 있다** —
+게이트가 작은 손실을 1% 이상 손실로 확정시키는 구조다. 실제로 11일간 청산된 8건 전부가 이 밴드였다.
+
+n=4로 표본은 작지만 방향이 4/4이고 기전이 결정론적이라, 재현이 아니라 설계 문제로 본다.
+
+**미조치** — `minPnlPctForSignalExit`/`lossEscapeThresholdPct` 변경은 실자금 전략 파라미터라 별도 판단 필요.
+후보: 손실 구간 본전가드 해제(pnl<0이면 신호대로 청산) 또는 `lossEscapeThresholdPct`를 −0.3%로 상향.
 
 ---
 

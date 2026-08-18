@@ -355,7 +355,9 @@ public class LiveTradingService {
                 .strategyParams(req.getStrategyParams() != null
                         ? req.getStrategyParams() : Collections.emptyMap())
                 .stopLossPct(stopLoss)
-                .maxHoldHours(req.getMaxHoldHours() != null ? req.getMaxHoldHours() : 0)
+                .maxHoldHours(req.getMaxHoldHours() != null
+                        ? req.getMaxHoldHours()
+                        : LiveTradingSessionEntity.DEFAULT_MAX_HOLD_HOURS)
                 .build();
 
         session = sessionRepository.save(session);

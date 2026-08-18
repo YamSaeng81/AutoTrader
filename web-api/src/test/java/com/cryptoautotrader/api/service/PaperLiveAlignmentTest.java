@@ -1,6 +1,7 @@
 package com.cryptoautotrader.api.service;
 
 import com.cryptoautotrader.api.dto.PaperTradingStartRequest;
+import com.cryptoautotrader.api.entity.LiveTradingSessionEntity;
 import com.cryptoautotrader.api.entity.paper.VirtualBalanceEntity;
 import com.cryptoautotrader.api.repository.paper.VirtualBalanceRepository;
 import com.cryptoautotrader.api.support.IntegrationTestBase;
@@ -151,15 +152,26 @@ class PaperLiveAlignmentTest extends IntegrationTestBase {
     }
 
     @Test
-    @DisplayName("설정을 생략하면 NULL로 저장된다 — risk_config 기본값 폴백(LIVE와 동일 경로)")
+    @DisplayName("손절률·투자비율을 생략하면 NULL로 저장된다 — risk_config 기본값 폴백(LIVE와 동일 경로)")
     void sessionConfig_nullFallsBackToRiskConfig() {
         VirtualBalanceEntity session = paperTradingService.start(baseRequest());
 
         VirtualBalanceEntity reloaded = balanceRepository.findById(session.getId()).orElseThrow();
         assertThat(reloaded.getStopLossPct()).isNull();
         assertThat(reloaded.getInvestRatio()).isNull();
+    }
+
+    @Test
+    @DisplayName("time stop을 생략하면 LIVE 기본값(24)이 그대로 들어간다 — 페이퍼만 time stop 없이 도는 일 방지")
+    void sessionConfig_maxHoldHoursDefaultsToLive() {
+        // 손절률·투자비율과 달리 maxHoldHours 는 NULL 폴백을 두지 않는다. NULL이면
+        // ExitRuleCalculator.shouldTimeStop 이 곧바로 false 라, 페이퍼만 time stop 없이 도는
+        // 비대칭이 생긴다 — 그러면 페이퍼 성적을 LIVE 예측에 쓸 수 없다(2026-08-18, V68).
+        VirtualBalanceEntity session = paperTradingService.start(baseRequest());
+
+        VirtualBalanceEntity reloaded = balanceRepository.findById(session.getId()).orElseThrow();
         assertThat(reloaded.getMaxHoldHours())
-                .as("NULL이면 time stop 비활성 — LIVE 기본값 0과 동일한 효과")
-                .isNull();
+                .isEqualTo(LiveTradingSessionEntity.DEFAULT_MAX_HOLD_HOURS)
+                .isEqualTo(24);
     }
 }

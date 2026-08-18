@@ -257,11 +257,13 @@ class SessionKindIsolationTest extends IntegrationTestBase {
     }
 
     @Test
-    @DisplayName("신규 동적 세션은 time stop이 꺼진 상태(maxHoldHours=0)로 생성된다")
-    void createSession_defaultsTimeStopOff() {
-        // 2026-07-31: V62 time stop 배포 직후 매도 후처리 롤백 P0(주문은 FILLED인데 포지션이
-        // OPEN으로 남아 매 틱 매도 재시도)가 드러났다. 원인 규명 전까지 신규 세션이 자동으로
-        // 그 경로에 노출되면 안 된다. DB를 매번 손으로 고치는 운영을 막기 위한 잠금.
+    @DisplayName("신규 동적 세션은 time stop이 켜진 상태(maxHoldHours=24)로 생성된다")
+    void createSession_defaultsTimeStopOn() {
+        // 2026-07-31에 V62 time stop 배포 직후 드러난 매도 후처리 롤백 P0(주문은 FILLED인데
+        // 포지션이 OPEN으로 남아 매 틱 매도 재시도) 때문에 기본값을 0으로 내렸었다.
+        // 그 P0는 08-03에 해소됐고, 끄고 있는 동안 정확히 V62가 막으려던 고착이 재발했다
+        // (LIVE 198 / DYNAMIC 48 / DYN_PAPER 49 가 같은 KRW-XRP 를 259시간 보유).
+        // → 2026-08-18(V68) 기본값 24 복원. 근거 상세는 V68 마이그레이션 주석 참조.
         DynamicSessionRequest req = new DynamicSessionRequest();
         req.setStrategyType("COMPOSITE_MTF_BTC");
         req.setTimeframe("H1");
@@ -270,8 +272,8 @@ class SessionKindIsolationTest extends IntegrationTestBase {
         var session = dynamicTradingService.createSession(req);
 
         assertThat(session.getMaxHoldHours())
-                .as("기본값은 0(비활성) — 롤백 P0 수정 후 24로 되돌릴 것")
-                .isZero();
+                .as("기본값은 24(활성) — DynamicSessionEntity.DEFAULT_MAX_HOLD_HOURS")
+                .isEqualTo(24);
 
         // 명시적으로 지정하면 그 값이 그대로 쓰인다 (기능 자체는 살아 있음)
         DynamicSessionRequest explicit = new DynamicSessionRequest();

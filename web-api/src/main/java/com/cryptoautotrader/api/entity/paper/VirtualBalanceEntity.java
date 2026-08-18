@@ -61,7 +61,12 @@ public class VirtualBalanceEntity {
     @Column(name = "invest_ratio")
     private BigDecimal investRatio;
 
-    /** 최대 보유시간(시) — time stop. NULL·0 이하면 비활성(LIVE 기본값과 동일). (V66) */
+    /**
+     * 최대 보유시간(시) — time stop. 0 이하면 비활성. (V66)
+     *
+     * <p>미지정 시 {@link com.cryptoautotrader.api.entity.LiveTradingSessionEntity#DEFAULT_MAX_HOLD_HOURS}
+     * 로 폴백한다 — 페이퍼가 LIVE 예측에 쓰이려면 time stop 유무가 갈리면 안 된다(2026-08-18).</p>
+     */
     @Column(name = "max_hold_hours")
     private Integer maxHoldHours;
 
