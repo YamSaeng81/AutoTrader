@@ -1,107 +1,86 @@
 #!/usr/bin/env bash
 #
-# 실자본 전면 중단 + 페이퍼 9세션 재구성 (2026-08-18)
+# 실자본 매매 전면 중단 (2026-08-18)
 # ─────────────────────────────────────────────────────────────────────────────
-# 운영 서버에서 실행할 것. 백엔드 API는 외부 미개방이라 localhost:8080 으로만 접근된다.
+# 운영 서버에서 실행. 백엔드 API는 외부 미개방이라 localhost:8080 으로만 접근된다.
 #
-# ■ 무엇을 하나
-#   1) 현재 RUNNING 10세션 전부 정지 (DYN 46~53, LIVE 198/199)
-#   2) DYN_PAPER 9세션 신규 생성 — 사용 가능한 전략 7종 전부 × H1, + 활동 최다 2종 × M15
+# ■ 인증
+#   ApiTokenAuthFilter — 로그인 없이 API_AUTH_TOKEN 환경변수와 일치하는 고정 Bearer 토큰.
+#   docker-compose.prod.yml 이 ${API_AUTH_TOKEN} 을 읽으므로 같은 디렉터리의 .env 에 있다.
+#   (첫 실행 시 이 헤더가 없어 전 요청이 UNAUTHORIZED 로 실패했다.)
 #
-# ■ 왜 9개인가 (rate limit 계산)
-#   fetchCandles 는 캐시 없이 Upbit REST 를 직접 호출한다. 세션마다 독립적으로.
-#     CANDLE_LOOKBACK=500, 요청당 최대 200개        → 코인당 3 요청
-#     SCANNING 세션 1개 = (워치리스트 10 + BTC가드 1) × 3 = 33 요청 / 60초 틱
-#     UpbitApiRateLimiter.PERMITS_PER_SECOND = 7    → 420 요청/분
-#   9세션 = 297/분 (71%, 60초 틱 중 42초). 12세션이면 94%로 틱을 넘길 위험이 있다.
-#   ※ PAPER 도 이 예산을 똑같이 쓴다 — REAL 과 코드 경로를 100% 공유하기 때문.
+# ■ 무엇을 하나 / 안 하나
+#   [O] 실자본 6세션 정지 — DYN 46·48·50·52(REAL) + LIVE 198·199
+#   [X] DYN_PAPER 신규 생성 — 하지 않는다.
+#       paper_trading.virtual_balance 에 이미 42세션(7전략 × 6코인, H1)이 08-07 부터
+#       가동 중이다. 애초 계획했던 9세션은 이것과 완전히 중복이며 표본도 더 좁다.
+#   [X] DYN_PAPER 47·49·51·53 정지 — 하지 않는다.
+#       DYNAMIC 엔진(워치리스트 스캔) 경로의 유일한 페이퍼 관측이라 남긴다.
+#       42세션은 단일코인 고정이라 스캔 로직을 검증하지 못한다.
 #
-# ■ 전략 선정
-#   최근 60일 내 실제 가동 이력이 있는 11종 중, strategy_type_enabled 에서
-#   비활성(07-07 일괄) 4종(BREAKOUT / MTF_MOMENTUM / REGIME_ROUTER / HEIKIN_ASHI_STOCH)을
-#   제외한 7종. 비활성 4종은 그대로 둔다 — 부활 경로는 Walk Forward 재검증뿐이다
-#   (docs/KILL_CRITERIA.md §6).
-#
-# ■ LIVE 198/199 대응
-#   MEANREV_BB@H1 와 MTF_BTC_STRICT@H1 이 아래 목록에 포함되므로 별도 단일코인
-#   PaperTradingService 세션을 만들지 않는다 — 그 경로는 07-01 이후 운영 가동 이력이
-#   없어 9세션을 한꺼번에 올리기엔 검증이 부족하다.
+# ■ 정지 후 API 부하
+#   DYNAMIC 은 세션마다 워치리스트를 각자 조회한다(공유 캐시 없음) — 33 요청/분/세션.
+#   REAL 4종을 내리면 297 → 약 165 요청/분(한도 420의 39%)으로 떨어진다.
 
 set -uo pipefail
 API="http://localhost:8080/api/v1"
-CAPITAL=10000
-MAX_HOLD=24
 
-RUNNING_DYN="46 47 48 49 50 51 52 53"
-RUNNING_LIVE="198 199"
+# ── 토큰 ─────────────────────────────────────────────────────────────────────
+if [ -z "${API_AUTH_TOKEN:-}" ] && [ -f .env ]; then
+  # .env 의 API_AUTH_TOKEN 만 뽑아 온다 (set -a 로 전체를 먹이면 다른 변수까지 덮어쓴다)
+  API_AUTH_TOKEN=$(grep -E '^API_AUTH_TOKEN=' .env | head -1 | cut -d= -f2- | tr -d '"'"'"'')
+fi
+if [ -z "${API_AUTH_TOKEN:-}" ]; then
+  echo "✗ API_AUTH_TOKEN 을 찾을 수 없습니다."
+  echo "  export API_AUTH_TOKEN=... 후 다시 실행하거나, .env 가 있는 디렉터리에서 실행하세요."
+  exit 1
+fi
+AUTH="Authorization: Bearer $API_AUTH_TOKEN"
+
+api() { curl -s -H "$AUTH" "$@"; }
+
+# 인증 선확인 — 실패하면 아무것도 건드리지 않고 멈춘다
+probe=$(api "$API/dynamic-sessions")
+case "$probe" in
+  *UNAUTHORIZED*) echo "✗ 토큰이 거부됐습니다: $(echo "$probe" | head -c 200)"; exit 1 ;;
+esac
+echo "✓ 인증 확인"
+
+STOP_DYN="46 48 50 52"      # REAL 만. PAPER 47·49·51·53 은 유지
+STOP_LIVE="198 199"
 
 # ── 0. PRECHECK ──────────────────────────────────────────────────────────────
+echo
 echo "=== PRECHECK: 열린 포지션 (있으면 정지 시 시장가 청산됨) ==="
-for id in $RUNNING_DYN; do
-  echo -n "  DYN $id : "; curl -s "$API/dynamic-sessions/$id/positions" | head -c 160; echo
+for id in $STOP_DYN; do
+  echo "  DYN $id : $(api "$API/dynamic-sessions/$id/positions" | head -c 200)"
 done
-for id in $RUNNING_LIVE; do
-  echo -n "  LIVE $id: "; curl -s "$API/trading/sessions/$id/positions" | head -c 160; echo
+for id in $STOP_LIVE; do
+  echo "  LIVE $id: $(api "$API/trading/sessions/$id/positions" | head -c 200)"
 done
 echo
-read -p "포지션이 없으면 Enter, 있으면 Ctrl-C 후 알릴 것: "
+if [ "${ASSUME_YES:-0}" != "1" ]; then
+  read -p "위 목록이 비어 있으면 Enter, 포지션이 있으면 Ctrl-C: "
+fi
 
-# ── 1. 전량 정지 ─────────────────────────────────────────────────────────────
+# ── 1. 실자본 정지 ───────────────────────────────────────────────────────────
 echo
-echo "=== 1. 동적 세션 8종 정지 ==="
-for id in $RUNNING_DYN; do
-  echo -n "  stop DYN $id  -> "; curl -s -X POST "$API/dynamic-sessions/$id/stop" | head -c 200; echo
+echo "=== 1. 동적 세션 REAL 4종 정지 ==="
+for id in $STOP_DYN; do
+  echo "  stop DYN $id  -> $(api -X POST "$API/dynamic-sessions/$id/stop" | head -c 250)"
 done
 
 echo
 echo "=== 2. LIVE 실자본 2종 정지 ==="
-for id in $RUNNING_LIVE; do
-  echo -n "  stop LIVE $id -> "; curl -s -X POST "$API/trading/sessions/$id/stop" | head -c 200; echo
+for id in $STOP_LIVE; do
+  echo "  stop LIVE $id -> $(api -X POST "$API/trading/sessions/$id/stop" | head -c 250)"
 done
 
-# ── 2. 페이퍼 9세션 생성 + 시작 ──────────────────────────────────────────────
-create_and_start() {
-  local strategy="$1" tf="$2"
-  local body resp id
-  body=$(printf '{"strategyType":"%s","timeframe":"%s","initialCapital":%s,"maxHoldHours":%s,"tradingMode":"PAPER"}' \
-         "$strategy" "$tf" "$CAPITAL" "$MAX_HOLD")
-
-  resp=$(curl -s -X POST "$API/dynamic-sessions" -H 'Content-Type: application/json' -d "$body")
-  id=$(echo "$resp" | grep -o '"id"[[:space:]]*:[[:space:]]*[0-9]*' | head -1 | grep -o '[0-9]*$')
-
-  if [ -z "$id" ]; then
-    echo "  ✗ $strategy@$tf 생성 실패: $(echo "$resp" | head -c 300)"
-    return 1
-  fi
-  curl -s -X POST "$API/dynamic-sessions/$id/start" >/dev/null
-  echo "  ✓ $strategy@$tf  -> id=$id"
-}
-
+# ── 2. 확인 ──────────────────────────────────────────────────────────────────
 echo
-echo "=== 3. DYN_PAPER 9세션 생성 (7전략 × H1 + 2종 × M15) ==="
-for s in COMPOSITE_MEANREV_BB \
-         COMPOSITE_MOMENTUM_ICHIMOKU \
-         COMPOSITE_MOMENTUM_ICHIMOKU_V2 \
-         COMPOSITE_MTF_BTC \
-         COMPOSITE_MTF_BTC_STRICT \
-         COMPOSITE_MTF_CONFIRMED \
-         COMPOSITE_PULLBACK_MTF ; do
-  create_and_start "$s" H1
-done
-
-# 이력상 세션 생성이 가장 많았던 2종 — 신호 빈도가 높아 표본이 빨리 쌓인다
-create_and_start COMPOSITE_PULLBACK_MTF  M15
-create_and_start COMPOSITE_MTF_CONFIRMED M15
-
-# ── 3. 확인 ──────────────────────────────────────────────────────────────────
-echo
-echo "=== 4. 결과 ==="
-curl -s "$API/dynamic-sessions" | head -c 4000; echo
+echo "=== 3. 결과 ==="
+api "$API/dynamic-sessions" | head -c 4000; echo
 echo
 echo "기대 상태:"
-echo "  RUNNING = 신규 DYN_PAPER 9종 (전부 tradingMode=PAPER)"
-echo "  STOPPED = DYN 46~53, LIVE 198/199"
-echo "  실자본 노출 = 0"
-echo
-echo "주의: 신규 9세션이 전부 SCANNING 이면 297 요청/분(한도 420의 71%)이다."
-echo "      세션을 더 늘리기 전에 CANDLE_LOOKBACK 축소 또는 공유 캔들 캐시가 필요하다."
+echo "  STOPPED = DYN 46·48·50·52, LIVE 198·199   → 실자본 노출 0"
+echo "  RUNNING = DYN_PAPER 47·49·51·53 + virtual_balance 42세션 (전부 모의)"

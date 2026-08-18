@@ -304,67 +304,79 @@ time stop은 손절도 익절도 아니라 `STOP_LOSS` 유형에 안 잡혔고, 
 
 `:web-api:test` **277건 그린**(실패 0, 스킵 3 — 이전 262건에서 +15).
 
-### 다음 단계 — 실자본 전면 중단 + 페이퍼 9세션 재구성 (사용자 실행 대기)
+### 실자본 중단 + 페이퍼 현황 재파악 (2026-08-18 11:30)
 
 실행 스크립트: [`scripts/rebuild_paper_fleet.sh`](../scripts/rebuild_paper_fleet.sh)
 
-10:47 KST 운영 DB 확인 결과 **OPEN/CLOSING 포지션 0건** — 청산 없이 안전하게 정지 가능한 창이다.
-RUNNING 10세션(DYN 46~53, LIVE 198·199)을 전부 정지하고 DYN_PAPER 9세션으로 재구성한다.
+> **1차 시도는 전 요청이 `UNAUTHORIZED` 로 실패했다.** `ApiTokenAuthFilter` 가 로그인 없이
+> `API_AUTH_TOKEN` 환경변수와 일치하는 고정 Bearer 토큰을 요구하는데 스크립트에 헤더가 없었다.
+> (`docker-compose.prod.yml` 이 `${API_AUTH_TOKEN}` 를 읽으므로 같은 디렉터리 `.env` 에 있다.)
+> 스크립트에 토큰 로딩 + 사전 인증 확인을 추가했다 — 토큰이 거부되면 아무것도 건드리지 않고 멈춘다.
 
-**⚠️ 백엔드 API가 외부에 열려 있지 않다** — 8080은 공유기 관리페이지(`Server: Httpd/1.0`, 2017년 파일),
-8081·3000·80·8443·9090·8090·8888 전부 닫힘. DB 8432만 포워딩돼 있어 **서버에서 직접 실행**해야 한다.
+#### 정정 1 — PaperTradingService 는 가동 중이었다 (문서가 틀렸다)
 
-**DB 직접 UPDATE로 status를 바꾸지 않는다.** 포지션이 0건이라 08-18 오전 `max_hold_hours` 소급 적용처럼
-보이지만 위험이 다르다 — 틱이 도는 중에 status를 STOPPED로 내리면 그 틱이 방금 연 실포지션이
-**SL/TP 평가를 받지 못하는 고아 상태**로 남는다(틱 루프는 RUNNING만 순회하고 reconciler 4종은
-CLOSING/유령만 다룬다). `stopSession`은 활성 주문 취소 → 포지션 청산 → 상태 전환을 한 트랜잭션에서 처리한다.
+기존 서술 "07-01 이후 미가동" 은 **사실이 아니다.** `paper_trading.virtual_balance` 에
+**42세션이 08-07 09:00 부터 가동 중**이다.
 
-#### 세션 수의 실제 상한 — API 예산 (2026-08-18 측정)
-
-세션을 늘려 표본 생성을 가속하려 했으나, **rate limit이 전략 수보다 먼저 걸린다.**
-
-`DynamicTradingService.fetchCandles`는 **캐시를 쓰지 않고 Upbit REST를 직접 호출**한다. 세션마다 독립적으로:
-
-```
-CANDLE_LOOKBACK=500, MAX_CANDLES_PER_REQUEST=200      → 코인당 3 요청
-SCANNING 세션 1개 = (targetWatchSize 10 + BTC가드 1) × 3 = 33 요청 / 60초 틱
-UpbitApiRateLimiter.PERMITS_PER_SECOND = 7             → 420 요청/분
-```
-
-| 세션 | 요청/분 | 한도 대비 | 60초 틱 중 소요 |
-|---|---|---|---|
-| 8 (08-18 현재) | 264 | 63% | 38초 |
-| **9 (목표)** | **297** | **71%** | 42초 |
-| 12 | 396 | 94% | 57초 — 틱 초과 직전 |
-| 14 | 462 | 초과 | ❌ |
-
-**PAPER도 이 예산을 동일하게 쓴다** — DYN_PAPER가 REAL과 코드 경로를 100% 공유하는 것의 대가다.
-"페이퍼는 공짜"는 자본 얘기지 rate limit 얘기가 아니다.
-
-> **더 늘리려면**: `CANDLE_LOOKBACK` 500→400(요청 2회)이면 22 요청/세션 → 13세션까지 가능. 다만 MTF 계열이
-> H1을 상위 타임프레임으로 리샘플링하므로(500 H1 → 125 H4) 400으로 충분한지 **검증 필요 — 미확인**.
-> 근본 해결은 `market_data_cache` 기반 공유 캔들 캐시다(코인×타임프레임당 1회 조회로 O(세션) → O(코인)).
-
-#### 세션 구성 (9종, 전부 DYN_PAPER · 초기자본 10,000 · maxHoldHours 24)
-
-최근 60일 가동 이력이 있는 전략 11종 중, `strategy_type_enabled`에서 07-07에 일괄 비활성화된 4종
-(BREAKOUT / MTF_MOMENTUM / REGIME_ROUTER / HEIKIN_ASHI_STOCH)을 제외한 **7종**:
-
-| TF | 전략 |
+| | |
 |---|---|
-| H1 (7) | MEANREV_BB · MOMENTUM_ICHIMOKU · MOMENTUM_ICHIMOKU_V2 · MTF_BTC · MTF_BTC_STRICT · MTF_CONFIRMED · PULLBACK_MTF |
-| M15 (2) | PULLBACK_MTF · MTF_CONFIRMED (이력상 세션 생성 최다 = 신호 빈도 높음) |
+| 구성 | 7전략 × 6코인(BTC·ETH·XRP·SOL·DOGE·USDT), 전부 H1 |
+| 자본 | 세션당 1,000만원, 총 4.2억 |
+| 11일 실현 거래 | **34건** (동적·LIVE 합계 7건의 5배) |
 
-- 비활성 4종은 그대로 둔다 — 새 정책상 부활 경로는 Walk Forward 재검증뿐이다(KILL_CRITERIA §6).
-- **LIVE 198/199 단일코인 페이퍼 쌍은 만들지 않는다.** MEANREV_BB@H1·MTF_BTC_STRICT@H1이 위 목록에
-  포함되고, `PaperTradingService` 경로는 07-01 이후 운영 가동 이력이 없어 9세션을 한꺼번에 올리기엔
-  검증이 부족하다.
-- **기존 페이퍼 4종(47/49/51/53)도 재시작**한다. 실현 거래 4건을 잃는 대신 9세션 시작일이 통일되어
-  `BenchmarkAlphaService` 알파 비교가 깨끗해진다.
+전략 목록이 08-18 에 고른 7종과 정확히 일치한다 — **계획했던 DYN_PAPER 9세션은 이것과 완전히
+중복이고 표본도 더 좁다. 생성을 취소한다.** 08-18 오전 "47세션 재평가 스윕" 으로 재기동을 판정했을 때
+그 47은 42 PAPER + 3 dynamic + 2 LIVE 였다.
 
-> ⚠️ **재시작은 kill criteria 시계를 0으로 되돌린다**(n, `mddPeak`, `startedAt`, NO_SIGNAL 30일 카운터).
-> 지금은 n이 0~4라 실손해가 없지만, "성적이 나빠지면 재시작"이 습관이 되면 폐기 기준은 영구히 무력화된다.
-> **이번이 마지막 리셋**이라는 전제로 실행한다.
+전략별 11일 수익률 — **7종 전부 음수, 양수 0개**:
+MEANREV_BB / MTF_BTC / MTF_BTC_STRICT −0.05% · MOMENTUM_ICHIMOKU / _V2 / MTF_CONFIRMED −0.19% ·
+PULLBACK_MTF −1.62%
+
+#### 정정 2 — 공유 캔들 캐시는 이미 있다 (페이퍼에만)
+
+앞 절의 API 예산 계산은 42세션을 빠뜨렸다. 다만 결론은 반대 방향이었다 —
+`PaperTradingService.runStrategy` 에는 **틱당 공유 캔들 캐시(`tickCandleCache`)가 이미 구현돼 있다.**
+
+| 구성 | 세션 | 요청/분 | 비고 |
+|---|---|---|---|
+| DYNAMIC | 8 | **264** | 캐시 없음 — 세션마다 워치리스트 10코인 각자 조회 |
+| PAPER (virtual_balance) | 42 | ~21 | 공유 캐시 → 6코인+BTC 만 |
+| LIVE | 2 | ~12 | |
+| 합계 | 52 | ~297 (한도 420의 71%) | |
+
+**세션의 15%인 DYNAMIC 이 요청의 89%를 쓴다.** "만들어야 한다" 고 적었던 공유 캐시는 이미
+코드베이스에 있고 `DynamicTradingService` 에만 없다 — 이식하면 264 → 약 45로 떨어진다.
+세션 확장을 원하면 이게 첫 번째 레버다(`CANDLE_LOOKBACK` 축소보다 우선).
+
+#### 조치 — 42 페이퍼 세션 time stop 복구 (완료)
+
+`max_hold_hours` 가 42행 전부 **NULL** 이었다. V68 은 컬럼 DEFAULT 만 24로 바꾸고 기존 행은
+건드리지 않는데(V63 정책), 이 세션들은 08-07 생성이라 해당됐다. 결과적으로
+**페이퍼가 실전과 다르게 동작 중**이었고 08-06 정렬 작업의 목적이 깨져 있었다.
+
+→ OPEN 포지션 0건을 확인하고 `UPDATE ... SET max_hold_hours = 24 WHERE status='RUNNING' AND
+max_hold_hours IS NULL` 적용, 42/42 확인. 청산 유발 없음(24시간 초과 보유 0건).
+포지션 상태가 아니라 **config 컬럼**이고 틱마다 새로 읽으므로 08-18 오전 V68 소급 적용과 같은 부류다.
+
+#### 남은 것 — 실자본 6세션 정지 (사용자 실행 대기)
+
+| 조치 | 대상 | 사유 |
+|---|---|---|
+| **정지** | DYN 46·48·50·52 (REAL) + LIVE 198·199 | 실자본 노출 제거 |
+| 유지 | DYN_PAPER 47·49·51·53 | DYNAMIC 엔진(워치리스트 스캔) 경로의 **유일한** 페이퍼 관측. 42세션은 단일코인 고정이라 스캔 로직을 검증하지 못한다 |
+| 유지 | virtual_balance 42세션 | 위 참조 |
+| 취소 | DYN_PAPER 9세션 신규 생성 | 42세션과 중복 |
+
+정지 후 API 부하는 297 → 약 165 요청/분(39%)으로 떨어진다.
+
+**DB 직접 UPDATE 로 세션 status 를 바꾸지 않는다.** 포지션이 0건이라 위 `max_hold_hours` 수정처럼
+보이지만 위험이 다르다 — 틱이 도는 중에 status 를 STOPPED 로 내리면 그 틱이 방금 연 실포지션이
+**SL/TP 평가를 받지 못하는 고아 상태**로 남는다(틱 루프는 RUNNING 만 순회하고 reconciler 4종은
+CLOSING/유령만 다룬다). `stopSession` 은 활성 주문 취소 → 포지션 청산 → 상태 전환을 한 트랜잭션에서
+처리한다.
+
+> ⚠️ 재시작은 kill criteria 시계를 0으로 되돌린다(n, `mddPeak`, `startedAt`, NO_SIGNAL 30일 카운터).
+> "성적이 나빠지면 재시작" 이 습관이 되면 폐기 기준은 영구히 무력화된다.
 
 ---
 
