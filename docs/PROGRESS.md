@@ -153,8 +153,61 @@ BTC/ETH/SOL/XRP H1로 돌렸으나 **게이트 ON/OFF가 8개 조합 전부 완�
 
 n=4로 표본은 작지만 방향이 4/4이고 기전이 결정론적이라, 재현이 아니라 설계 문제로 본다.
 
-**미조치** — `minPnlPctForSignalExit`/`lossEscapeThresholdPct` 변경은 실자금 전략 파라미터라 별도 판단 필요.
-후보: 손실 구간 본전가드 해제(pnl<0이면 신호대로 청산) 또는 `lossEscapeThresholdPct`를 −0.3%로 상향.
+→ **2026-08-18 조치 완료**. 아래 섹션 참조.
+
+---
+
+## 🟢 2026-08-18 후속 조치 — LIVE 매도 멱등성 + 본전 게이트 대칭화
+
+> ⚠️ **둘 다 코드 변경이라 배포해야 반영된다.** 오늘 오전의 time stop 소급 적용(DB UPDATE)과 달리
+> 운영에 자동으로 적용되지 않는다.
+
+### 1. LIVE 중복 SELL — DYNAMIC 방어 2종 이식
+
+원인을 DYNAMIC과 대조해 특정했다. DYNAMIC이 07-31/08-03 P0에서 받은 방어가 **LIVE에는 이식되지 않은
+상태**였다.
+
+| 방어 | DYNAMIC | LIVE (수정 전) |
+|---|---|---|
+| 원자적 CLOSING 전환 | `markClosingIfOpen` (07-02 감사 #2) | `setStatus + save` — 중복 감지 불가 |
+| CLOSING reconcile 주문 선택 | **FILLED 우선** (08-03) | `sellOrders.get(0)` 최신순 — FAILED에 가려 OPEN 롤백 |
+| 롤백된 OPEN 포지션 정산 | `reconcileDynamicGhostPositions` | 없음(거래소 대조형 `reconcilePhantomPositions`만) |
+
+- [`executeSessionSell`](../web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java) / `closeSessionPositions` → `markClosingIfOpen` 사용, 0이면 주문 제출 스킵.
+- [`reconcileClosingPositions`](../web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java) → FILLED 우선 선택 이식. 체결은 되돌릴 수 없는 사실이므로 FILLED가 있으면 그것이 진실이다.
+- 신규 [`LiveSellIdempotencyTest`](../web-api/src/test/java/com/cryptoautotrader/api/service/LiveSellIdempotencyTest.java) 3종 — 원자적 가드 / FILLED 우선 / 체결 없을 때는 기존대로 OPEN 롤백.
+
+**남은 갭(미조치)**: 부모 tx가 롤백돼 포지션이 OPEN으로 되돌아간 경우는 위 두 수정으로도 안 잡힌다
+(CLOSING만 순회하므로). LIVE는 `reconcilePhantomPositions`(거래소 실잔고 대조, 3회 연속 ≈3분, API 키 필요)가
+느리게 잡아준다. DYNAMIC처럼 주문 기반 즉시 정산(`reconcileLiveGhostPositions`)을 추가할지는 실거래 자금에
+직접 손대는 범위라 여전히 별도 판단 — 기존 보류 항목 그대로다.
+
+**정확한 트리거 분기는 미확정** — 운영 서버 로그가 있어야 `sellOrders.isEmpty()` 롤백(@Async 주문 INSERT
+경합)인지 부모 tx 롤백인지 갈린다. 로컬 `logs/`는 3월치라 쓸 수 없었다. 다만 위 수정은 두 경로 모두에
+유효하다.
+
+### 2. 본전 게이트 대칭화 — `lossEscapeThresholdPct` −1.00 → −0.30
+
+데드밴드가 **−1.00% ~ +0.30%** 로 비대칭이라, 전략이 SELL을 내도 손실이 1%를 넘기 전에는 못 나갔다.
+−0.30 은 `minPnlPctForSignalExit`(+0.30%)와 대칭이고 왕복 수수료(0.1%)+슬리피지를 덮는다 — churn 방지라는
+원래 목적은 유지하면서 손실 구간에 갇히는 비대칭만 제거한다.
+
+**부수 발견 — 이 상수가 네 군데에 복제돼 있었다.** `LiveTradingService`·`PaperTradingService`·
+`DynamicTradingService`·`ExitRuleConfig` 각각 `new BigDecimal("-1.00")`. `PaperLiveAlignmentTest`가
+리플렉션으로 LIVE↔PAPER만 비교하고 있어 **DYNAMIC과 백테스트는 감시망 밖**이었다.
+→ 세 서비스가 [`ExitRuleConfig`](../core-engine/src/main/java/com/cryptoautotrader/core/risk/ExitRuleConfig.java)를
+단일 출처로 참조하도록 통합하고, 정합성 테스트를 DYNAMIC·백테스트까지 확장했다.
+
+신규 테스트: 데드밴드 대칭성, 운영에서 막혔던 실제 pnl 값(−0.371/−0.428/−1.174)이 이제 빠져나오는지,
+본전 근처(±0.10%) churn 차단은 유지되는지, 최소 보유시간 미달은 여전히 무시되는지.
+
+### 검증
+
+`:web-api:test` **262건 그린**(실패 0, 스킵 3), `:core-engine:test` 그린.
+
+기존 [`SignalExitGateAbBacktestRunner`](../core-engine/src/test/java/com/cryptoautotrader/core/backtest/SignalExitGateAbBacktestRunner.java)는
+**게이트 검증에 쓸 수 없다** — ON/OFF 결과가 8개 조합 전부 동일하다(전략 SELL 경로를 안 타고 전부 SL/TP 청산).
+07-02 L-2의 "영향 없음" 판정이 이 러너 근거였다면 재검토 대상이다.
 
 ---
 

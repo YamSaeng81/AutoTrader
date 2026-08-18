@@ -12,6 +12,7 @@ import com.cryptoautotrader.api.repository.StrategyLogRepository;
 import com.cryptoautotrader.api.repository.StrategyTypeEnabledRepository;
 import com.cryptoautotrader.api.util.TimeframeUtils;
 import com.cryptoautotrader.core.regime.MarketRegime;
+import com.cryptoautotrader.core.risk.ExitRuleConfig;
 import com.cryptoautotrader.core.regime.MarketRegimeDetector;
 import com.cryptoautotrader.core.selector.BlackSwanGuard;
 import com.cryptoautotrader.core.selector.BtcMarketGuard;
@@ -143,7 +144,12 @@ public class DynamicTradingService {
     // stopLossPct를 쓰고 있어 07-31 개편이 반쪽만 적용된 상태였다(LIVE 세션 194 BTC
     // 136시간 고착의 원인).
     private static final BigDecimal MIN_PNL_PCT_FOR_SELL = new BigDecimal("0.30");
-    private static final BigDecimal LOSS_ESCAPE_THRESHOLD = new BigDecimal("-1.00");
+    /**
+     * 손실 탈출 임계(%) — 2026-08-18 −1.00 → −0.30. 단일 출처는 {@link ExitRuleConfig}
+     * (근거는 그 필드 javadoc — 운영 실측 4/4 게이트 손해, 평균 0.797%p).
+     */
+    private static final BigDecimal LOSS_ESCAPE_THRESHOLD =
+            ExitRuleConfig.defaults().getLossEscapeThresholdPct();
     private static final BigDecimal FEE_RATE = new BigDecimal("0.0005");
     /**
      * CLOSING 상태 진입 시각 — 이 시간 초과 시 reconcileClosingPositions()에서 OPEN 롤백.

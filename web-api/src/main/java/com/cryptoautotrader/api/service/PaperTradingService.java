@@ -3,6 +3,7 @@ package com.cryptoautotrader.api.service;
 import com.cryptoautotrader.api.dto.PaperTradingStartRequest;
 import com.cryptoautotrader.api.dto.PerformanceSummaryResponse;
 import com.cryptoautotrader.api.entity.LiveTradingSessionEntity;
+import com.cryptoautotrader.core.risk.ExitRuleConfig;
 import com.cryptoautotrader.api.entity.MarketDataCacheEntity;
 import com.cryptoautotrader.api.entity.paper.PaperOrderEntity;
 import com.cryptoautotrader.api.entity.paper.PaperPositionEntity;
@@ -77,8 +78,12 @@ public class PaperTradingService {
     private static final long MIN_HOLD_MINUTES_FOR_SIGNAL_EXIT = 180;
     /** 본전 청산 차단 하한(%) — 이 미만 수익에서의 전략 SELL은 무시한다. */
     private static final BigDecimal MIN_PNL_PCT_FOR_SIGNAL_EXIT = new BigDecimal("0.30");
-    /** 손실 탈출 임계(%) — 이보다 더 잃고 있으면 본전 청산 차단을 풀어 전략 SELL을 허용한다. */
-    private static final BigDecimal LOSS_ESCAPE_THRESHOLD = new BigDecimal("-1.00");
+    /**
+     * 손실 탈출 임계(%) — 이보다 더 잃고 있으면 본전 청산 차단을 풀어 전략 SELL을 허용한다.
+     * 2026-08-18: −1.00 → −0.30. 단일 출처는 {@link ExitRuleConfig} (근거는 그 필드 javadoc).
+     */
+    private static final BigDecimal LOSS_ESCAPE_THRESHOLD =
+            ExitRuleConfig.defaults().getLossEscapeThresholdPct();
 
     /** 업비트 최소 주문금액(KRW) — 실거래에서 못 넣는 주문을 페이퍼가 체결하면 모집단이 어긋난다. */
     private static final BigDecimal MIN_ORDER_KRW = new BigDecimal("5000");

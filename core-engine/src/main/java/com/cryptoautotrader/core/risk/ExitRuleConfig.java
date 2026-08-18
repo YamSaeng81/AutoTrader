@@ -94,9 +94,26 @@ public class ExitRuleConfig {
     @Builder.Default
     private final BigDecimal minPnlPctForSignalExit = new BigDecimal("0.30");
 
-    /** 손실 탈출 허용 하한 (%) — pnl이 이 미만이면 본전가드를 무시하고 SELL 허용(손실 방치 방지) */
+    /**
+     * 손실 탈출 허용 하한 (%) — pnl이 이 미만이면 본전가드를 무시하고 SELL 허용(손실 방치 방지).
+     *
+     * <p><b>2026-08-18: −1.00 → −0.30 으로 상향.</b> 기존 값은 데드밴드를 −1.00% ~ +0.30% 로
+     * 비대칭하게 만들었다 — 전략이 SELL을 내도 손실이 1%를 넘기 전에는 나갈 수 없고, 결국
+     * <b>본전가드가 작은 손실을 1% 이상 손실로 확정시키는</b> 구조였다.</p>
+     *
+     * <p>운영 실측(08-07~08-18, 동적 52/53) — 게이트가 막은 첫 SELL 신호 시점 pnl 과 실제 청산 pnl:</p>
+     * <pre>
+     *   pos 2404  −0.428% → −1.225%     pos 2412  −0.430% → −1.230%
+     *   pos 2405  −0.371% → −1.070%     pos 2413  −0.280% → −1.170%
+     *   평균      −0.377% → −1.174%  (게이트 비용 0.797%p, 4건 전부 손해)
+     * </pre>
+     *
+     * <p>−0.30 은 {@link #minPnlPctForSignalExit}(+0.30%)와 대칭이며, 왕복 수수료(0.1%)와
+     * 슬리피지를 덮는 폭이다. 즉 "본전 근처 churn 방지"라는 원래 목적은 유지하면서
+     * 손실 구간에 갇히는 비대칭만 제거한다.</p>
+     */
     @Builder.Default
-    private final BigDecimal lossEscapeThresholdPct = new BigDecimal("-1.00");
+    private final BigDecimal lossEscapeThresholdPct = new BigDecimal("-0.30");
 
     // ── 팩토리 ────────────────────────────────────────────────
     /** 실전매매 기본 설정 (모든 경로의 기본값) */

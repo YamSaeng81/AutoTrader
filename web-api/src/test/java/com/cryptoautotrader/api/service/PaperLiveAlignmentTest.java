@@ -3,6 +3,8 @@ package com.cryptoautotrader.api.service;
 import com.cryptoautotrader.api.dto.PaperTradingStartRequest;
 import com.cryptoautotrader.api.entity.LiveTradingSessionEntity;
 import com.cryptoautotrader.api.entity.paper.VirtualBalanceEntity;
+import com.cryptoautotrader.core.risk.ExitRuleChecker;
+import com.cryptoautotrader.core.risk.ExitRuleConfig;
 import com.cryptoautotrader.api.repository.paper.VirtualBalanceRepository;
 import com.cryptoautotrader.api.support.IntegrationTestBase;
 import org.junit.jupiter.api.AfterEach;
@@ -70,12 +72,49 @@ class PaperLiveAlignmentTest extends IntegrationTestBase {
     }
 
     @Test
-    @DisplayName("손실 탈출 임계가 LIVE와 동일하다")
+    @DisplayName("손실 탈출 임계가 LIVE·DYNAMIC·백테스트와 모두 동일하다")
     void lossEscapeThreshold_matchesLive() throws Exception {
         BigDecimal live = (BigDecimal) readStatic(LiveTradingService.class, "LOSS_ESCAPE_THRESHOLD");
         BigDecimal paper = (BigDecimal) readStatic(PaperTradingService.class, "LOSS_ESCAPE_THRESHOLD");
+        BigDecimal dynamic = (BigDecimal) readStatic(DynamicTradingService.class, "LOSS_ESCAPE_THRESHOLD");
 
         assertThat(paper).isEqualByComparingTo(live);
+        assertThat(dynamic)
+                .as("DYNAMIC이 빠져 있어 08-18 이전까지 이 상수는 네 군데에 복제돼 있었다")
+                .isEqualByComparingTo(live);
+        assertThat(live)
+                .as("백테스트(ExitRuleConfig)와 갈리면 백테스트 수치가 실전 거동을 반영하지 못한다")
+                .isEqualByComparingTo(ExitRuleConfig.defaults().getLossEscapeThresholdPct());
+    }
+
+    @Test
+    @DisplayName("본전 데드밴드가 대칭이다 — 손실 쪽만 넓으면 게이트가 작은 손실을 큰 손실로 확정시킨다")
+    void breakEvenDeadBand_isSymmetric() {
+        // 2026-08-18: 기존 −1.00% ~ +0.30% 비대칭이 실측으로 손해였다(4/4, 평균 0.797%p).
+        // 전략이 SELL을 내도 −1%를 넘기 전에는 못 나가서, 작은 손실이 전부 1% 이상 손실로 끝났다.
+        ExitRuleConfig cfg = ExitRuleConfig.defaults();
+
+        assertThat(cfg.getLossEscapeThresholdPct().abs())
+                .isEqualByComparingTo(cfg.getMinPnlPctForSignalExit().abs());
+    }
+
+    @Test
+    @DisplayName("손실 구간 전략 SELL이 −0.3% 밑에서 허용된다 — 게이트에 갇히지 않는다")
+    void allowsSignalExit_escapesSmallLoss() {
+        ExitRuleChecker checker = new ExitRuleChecker(ExitRuleConfig.defaults());
+        long held = 200; // 최소 보유시간(180분) 통과
+
+        // 운영에서 게이트가 막았던 실제 값들 — 이제는 빠져나올 수 있어야 한다
+        assertThat(checker.allowsSignalExit(held, new BigDecimal("-0.371"))).isTrue();
+        assertThat(checker.allowsSignalExit(held, new BigDecimal("-0.428"))).isTrue();
+        assertThat(checker.allowsSignalExit(held, new BigDecimal("-1.174"))).isTrue();
+
+        // 본전 근처 churn 방지는 유지 — 좁은 노이즈 구간은 여전히 차단
+        assertThat(checker.allowsSignalExit(held, new BigDecimal("-0.10"))).isFalse();
+        assertThat(checker.allowsSignalExit(held, new BigDecimal("0.10"))).isFalse();
+
+        // 최소 보유시간 미달이면 손실이 커도 전략 SELL은 여전히 무시(SL/TP는 별도 경로)
+        assertThat(checker.allowsSignalExit(10, new BigDecimal("-5.0"))).isFalse();
     }
 
     @Test

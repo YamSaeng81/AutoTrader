@@ -42,6 +42,7 @@ import com.cryptoautotrader.core.model.OrderSide;
 import com.cryptoautotrader.core.model.TradeRecord;
 import com.cryptoautotrader.core.regime.MarketRegime;
 import com.cryptoautotrader.core.regime.MarketRegimeDetector;
+import com.cryptoautotrader.core.risk.ExitRuleConfig;
 import com.cryptoautotrader.core.risk.RiskCheckResult;
 import com.cryptoautotrader.core.selector.BlackSwanGuard;
 import com.cryptoautotrader.core.selector.BtcMarketGuard;
@@ -129,8 +130,13 @@ public class LiveTradingService {
      * 노이즈 차단(본전 근처)은 유지하되, 손실이 누적되는 동안 전략의 조기 탈출 신호까지
      * 막아 SL까지 손실이 확대되는 구조를 방지한다.
      * (근거: 30일 분석 2026-06-30 — -1.8% 손실 중 STRONG_SELL 차단 → SL 대기로 손실 확대)
+     *
+     * <p>2026-08-18: 값을 −1.00 에서 −0.30 으로 상향하면서, 네 군데에 흩어져 있던 상수를
+     * {@link ExitRuleConfig}(백테스트·모의·실전 공통 기본값) 하나로 모았다. 값이 갈리면
+     * 백테스트 수치가 실전 거동을 반영하지 못한다 — 상향 근거는 그 필드 javadoc 참조.</p>
      */
-    private static final BigDecimal LOSS_ESCAPE_THRESHOLD = new BigDecimal("-1.00");
+    private static final BigDecimal LOSS_ESCAPE_THRESHOLD =
+            ExitRuleConfig.defaults().getLossEscapeThresholdPct();
 
     /** 거래소 DOWN으로 비상 정지된 세션 ID 목록 — 복구 시 자동 재시작 대상 */
     private final Set<Long> exchangeStoppedSessionIds = ConcurrentHashMap.newKeySet();
@@ -1313,10 +1319,22 @@ public class LiveTradingService {
             return;
         }
 
-        // 포지션 CLOSING 표시 — 중복 매도 신호 및 새 매수 진입 차단
-        pos.setStatus("CLOSING");
-        pos.setClosingAt(Instant.now());
-        positionRepository.save(pos);
+        // 원자적 CLOSING 전환 — status='OPEN'일 때만 전환하고, 아니면 매도 주문을 제출하지 않는다.
+        //
+        // 2026-08-18: 기존에는 setStatus("CLOSING") + save() 였다. 이 방식은 "이미 다른 경로가
+        // 매도 중"인 상태를 감지하지 못해 같은 포지션에 시장가 매도를 두 번 낼 수 있다. 실제로
+        // time stop 최초 발동 시 LIVE 198이 60초 간격으로 SELL 8724(FILLED)·8725(HTTP 400
+        // insufficient_funds_ask)를 연달아 제출했다.
+        //
+        // DYNAMIC은 2026-07-02 감사(#2 시장가 이중 매도 race)에서 이미 markClosingIfOpen으로
+        // 전환했는데 LIVE에는 이식되지 않았다 — 같은 계정을 공유하므로 LIVE의 중복 매도가
+        // 다른 세션 포지션의 코인을 팔 수 있어 위험은 오히려 LIVE 쪽이 크다.
+        int marked = positionRepository.markClosingIfOpen(pos.getId(), Instant.now());
+        if (marked == 0) {
+            log.debug("매도 건너뜀: 이미 CLOSING/CLOSED (posId={}, sessionId={})",
+                    pos.getId(), session.getId());
+            return;
+        }
 
         // 주문 제출 — sessionId/positionId를 request에 미리 설정 (@Async 리턴값 의존 회피)
         OrderRequest order = new OrderRequest();
@@ -1384,9 +1402,13 @@ public class LiveTradingService {
                     positionRepository.save(pos);
                     continue;
                 }
-                pos.setStatus("CLOSING");
-                pos.setClosingAt(Instant.now());
-                positionRepository.save(pos);
+                // 원자적 CLOSING 전환 — executeSessionSell과 동일 이유(중복 매도 방지, 2026-08-18).
+                // 정지/비상정지 경로가 tick의 매도와 겹칠 수 있다.
+                if (positionRepository.markClosingIfOpen(pos.getId(), Instant.now()) == 0) {
+                    log.debug("세션 청산 건너뜀: 이미 CLOSING/CLOSED (posId={}, sessionId={})",
+                            pos.getId(), session.getId());
+                    continue;
+                }
 
                 OrderRequest sellOrder = new OrderRequest();
                 sellOrder.setCoinPair(pos.getCoinPair());
@@ -2030,6 +2052,27 @@ public class LiveTradingService {
                 pos.setStatus("OPEN");
                 pos.setClosingAt(null);
                 positionRepository.save(pos);
+                continue;
+            }
+
+            // ⚠️ 2026-08-18: 최신 주문이 아니라 **FILLED 주문을 먼저 본다** — DYNAMIC이 08-03에
+            //    받은 수정(reconcileDynamicClosingPositions)을 LIVE에 이식한 것이다.
+            //    매도가 FILLED된 뒤 후처리가 롤백되면 다음 틱이 재매도를 시도해 FAILED가 쌓이는데,
+            //    `sellOrders.get(0)`(최신순)이 그 FAILED를 집으면 **OPEN 롤백 분기**를 탄다.
+            //    코인은 이미 팔렸으므로 이 롤백은 유령 포지션과 매도 재시도 루프를 낳는다
+            //    (07-31 DYNAMIC 세션 38 RLUSD, 08-18 LIVE 198 XRP 가 같은 시그니처).
+            //    체결은 되돌릴 수 없는 사실이므로, FILLED가 하나라도 있으면 그것이 진실이다.
+            OrderEntity filledSell = sellOrders.stream()
+                    .filter(o -> "FILLED".equals(o.getState()))
+                    .findFirst()   // sellOrders는 createdAt DESC — 가장 최근 체결분
+                    .orElse(null);
+            if (filledSell != null) {
+                if (sellOrders.indexOf(filledSell) > 0) {
+                    log.warn("매도 주문 다건 — FAILED 재시도 뒤의 FILLED를 채택 "
+                                    + "(posId={}, 채택 orderId={}, 후속 주문 {}건)",
+                            pos.getId(), filledSell.getId(), sellOrders.indexOf(filledSell));
+                }
+                finalizeSellPosition(pos, filledSell);
                 continue;
             }
 
