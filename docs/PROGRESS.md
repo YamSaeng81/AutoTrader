@@ -462,6 +462,91 @@ CLOSING/유령만 다룬다). `stopSession` 은 활성 주문 취소 → 포지�
 
 **검증**: `:web-api:test` **288건 그린**(실패 0, 스킵 3).
 
+### 실행 결과 — ✅ 완료 (2026-08-18 15:08, 검증 15:10)
+
+| 확인 | 결과 |
+|---|---|
+| 페이퍼 세션 | **RUNNING 112 / STOPPED 21** |
+| 격자 완전성 | 코인 8종 × (H1 7 + M15 7) = 14 — **8종 전부 일치** |
+| | 전략 7종 × (H1 8 + M15 8) = 16 — **7종 전부 일치** |
+| | 세션 수가 7이 아닌 (코인, TF) 조합 **0건** — 누락·중복 없음 |
+| `max_hold_hours=24` | 112/112 |
+| 정지 대상 | ETH 7 · XRP 7 · USDT 7 = 21 |
+| 이력 보존 | 최초 시작 08-07 09:00 (SOL·BTC·DOGE @H1 21세션 유지됨) |
+| API 조합 | 16 (8코인 × 2TF) → 48 요청/분, 한도의 11% |
+| 실자본 | DYN REAL 0 · LIVE 0 · 실포지션 0 · 최근 1시간 실주문 0 |
+
+**정지 경합 1건 관찰(무해).** 정지된 21세션 중 11개가 정지 직후 1초에 로그를 1건씩 남겼다
+(15:08:52 정지 → 15:08:53 로그). `runStrategy()`가 틱 시작 시 RUNNING 목록을 한 번 읽고
+순회하므로, 순회 도중 정지된 세션은 그 패스를 마저 처리한다. 신호는 전부 HOLD·SELL 이었고
+**BUY 는 없어 고아 포지션이 생기지 않았다**(정지 세션의 OPEN 포지션 0건 확인).
+
+> ⚠️ 다만 구조적으로는 **정지 직후 1틱 동안 신규 진입이 가능하다.** 페이퍼라 무해했지만
+> LIVE·DYNAMIC 도 같은 패턴이므로, 실자본 재개 시에는 틱 진입부에서 세션 상태를 재확인하는
+> 가드가 필요하다. 지금은 실자본이 0이라 후순위.
+
+현재 OPEN 포지션 1건은 세션 122(PULLBACK_MTF · KRW-BTC · H1)가 14:00:09 에 연 것으로,
+격자 재구성 이전부터 있던 정상 포지션이다.
+
+---
+
+## 🔴 2026-08-19 kill criteria 가 페이퍼 112세션을 못 보고 있었다 — 수정
+
+> 08-19 07:46 KST, 첫 판정(09:00) 전 점검에서 발견. **판정기와 데이터가 분리돼 있었다.**
+
+### 무엇이 문제였나
+
+전날 실자본을 전면 중단하고 데이터 생성을 페이퍼 112세션으로 옮겼는데, kill criteria 는
+그 112세션을 **하나도 보지 못하는** 상태였다. 원인은 스키마 분리다:
+
+| | 실전·동적 | 모의투자 |
+|---|---|---|
+| 세션 | `live_trading_session` · `dynamic_session` | **`paper_trading.virtual_balance`** |
+| 포지션 | `public.position` | **`paper_trading.position`** |
+
+`evaluateAll()` 은 앞의 두 세션 테이블만 순회하고, 거래 집계
+(`PositionRepository.aggregateClosedTradesPerSession`)도 `public.position` 만 읽는다.
+결과적으로 **평가 대상은 DYN_PAPER 4세션뿐**이었고, 표본이 아무리 쌓여도 기준이 발동할 수 없었다.
+
+발견 당시 실측 — 이미 폐기 조건을 충족했는데 판정에 잡히지 않던 그룹:
+
+| 그룹 | 세션 | 거래 | 승 | 누적 손익 |
+|---|---|---|---|---|
+| **`COMPOSITE_PULLBACK_MTF@H1`** | 8 | **23** | **0** | **−1,054,645원** |
+| `COMPOSITE_PULLBACK_MTF@M15` | 8 | 7 | 2 | −75,289 |
+| 나머지 12그룹 | 8씩 | 0~1 | — | — |
+
+`n≥20` · 합계 ≤ 0 → `NEGATIVE_EV` 발동 조건이다.
+
+### 수정
+
+- `PaperPositionRepository.aggregateClosedTradesPerSession()` 신설 —
+  `paper_trading.position` 집계. `size > 0` 으로 고아 포지션 제외
+  (`public.position` 의 `invested_krw > 0` 에 대응. 페이퍼 테이블에는 그 컬럼이 없다).
+- `evaluateAll()` 이 `virtualBalanceRepo.findByStatusOrderByStartedAtAsc("RUNNING")` 까지
+  순회하도록 확장. `sessionKind = "PAPER"`.
+- 정지 경로에 `paperTradingService.stop()` 분기 추가.
+- **페이퍼는 `MAX_DRAWDOWN` 판정을 생략한다** — `virtual_balance` 에 고점 컬럼이 없다.
+  `mddPeakCapital=null` 을 넘겨 낙폭 판정만 빠지고 `CAPITAL_LOSS` 는 정상 동작한다.
+  고점 정보가 없는데 낙폭을 판정하면 근거 없는 폐기가 된다.
+
+신규 [`KillCriteriaPaperVisibilityTest`](../web-api/src/test/java/com/cryptoautotrader/api/service/KillCriteriaPaperVisibilityTest.java) 5종 —
+페이퍼 세션 포함 여부 / 코인 가로지른 합산(세션당 4거래 × 5세션 = 20 으로 발동) /
+H1·M15 분리 판정 / 페이퍼 자본 보호 / 낙폭 생략.
+
+**검증**: `:web-api:test` **293건 그린**(실패 0, 스킵 3).
+
+### 배포 후 예상 판정
+
+`COMPOSITE_PULLBACK_MTF@H1` → **`NEGATIVE_EV` KILL** (8세션 정지).
+같은 전략의 `@M15` 는 표본 7건이라 살아남으므로 **전략 자체는 비활성화되지 않는다** —
+08-18 에 넣은 "운영 세션이 전부 폐기일 때만 끈다" 규칙이 실제로 적용되는 첫 사례다.
+
+⚠️ `kill-criteria.auto-stop=false` 라 실제 정지는 일어나지 않고 Discord 경보만 나간다.
+경보 내용이 위 예상과 맞는지 확인한 뒤 자동정지를 켤 것.
+
+---
+
 ### 미해결 — 동적 워치리스트 붕괴
 
 `targetWatchSize=10` 인데 실제 워치리스트는 **0~1개**다. 8세션 중 5개가 동시에 `["KRW-EUL"]`,

@@ -4,10 +4,13 @@ import com.cryptoautotrader.api.discord.DiscordWebhookClient;
 import com.cryptoautotrader.api.entity.DynamicSessionEntity;
 import com.cryptoautotrader.api.entity.LiveTradingSessionEntity;
 import com.cryptoautotrader.api.entity.StrategyTypeEnabledEntity;
+import com.cryptoautotrader.api.entity.paper.VirtualBalanceEntity;
 import com.cryptoautotrader.api.repository.DynamicSessionRepository;
 import com.cryptoautotrader.api.repository.LiveTradingSessionRepository;
 import com.cryptoautotrader.api.repository.PositionRepository;
 import com.cryptoautotrader.api.repository.StrategyTypeEnabledRepository;
+import com.cryptoautotrader.api.repository.paper.PaperPositionRepository;
+import com.cryptoautotrader.api.repository.paper.VirtualBalanceRepository;
 import com.cryptoautotrader.core.risk.KillCriteriaConfig;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
@@ -57,10 +60,13 @@ public class StrategyKillCriteriaService {
     private final LiveTradingSessionRepository liveSessionRepo;
     private final DynamicSessionRepository dynamicSessionRepo;
     private final PositionRepository positionRepository;
+    private final VirtualBalanceRepository virtualBalanceRepo;
+    private final PaperPositionRepository paperPositionRepo;
     private final StrategyTypeEnabledRepository strategyTypeEnabledRepo;
     private final BenchmarkAlphaService benchmarkAlphaService;
     private final LiveTradingService liveTradingService;
     private final DynamicTradingService dynamicTradingService;
+    private final PaperTradingService paperTradingService;
     private final DiscordWebhookClient discordClient;
     private final KillCriteriaConfig config = KillCriteriaConfig.defaults();
     private final boolean autoStopEnabled;
@@ -69,19 +75,25 @@ public class StrategyKillCriteriaService {
             LiveTradingSessionRepository liveSessionRepo,
             DynamicSessionRepository dynamicSessionRepo,
             PositionRepository positionRepository,
+            VirtualBalanceRepository virtualBalanceRepo,
+            PaperPositionRepository paperPositionRepo,
             StrategyTypeEnabledRepository strategyTypeEnabledRepo,
             BenchmarkAlphaService benchmarkAlphaService,
             LiveTradingService liveTradingService,
             DynamicTradingService dynamicTradingService,
+            PaperTradingService paperTradingService,
             DiscordWebhookClient discordClient,
             @Value("${kill-criteria.auto-stop:false}") boolean autoStopEnabled) {
         this.liveSessionRepo = liveSessionRepo;
         this.dynamicSessionRepo = dynamicSessionRepo;
         this.positionRepository = positionRepository;
+        this.virtualBalanceRepo = virtualBalanceRepo;
+        this.paperPositionRepo = paperPositionRepo;
         this.strategyTypeEnabledRepo = strategyTypeEnabledRepo;
         this.benchmarkAlphaService = benchmarkAlphaService;
         this.liveTradingService = liveTradingService;
         this.dynamicTradingService = dynamicTradingService;
+        this.paperTradingService = paperTradingService;
         this.discordClient = discordClient;
         this.autoStopEnabled = autoStopEnabled;
         if (autoStopEnabled) {
@@ -167,6 +179,30 @@ public class StrategyKillCriteriaService {
                     kind + "#" + s.getId() + " " + s.getStrategyType() + "@" + s.getTimeframe(),
                     s.getInitialCapital(), s.getTotalAssetKrw(), s.getMddPeakCapital(),
                     s.getCircuitBreakerTripCount(), s.getStartedAt(), now, counts, pnlSums));
+        }
+
+        // 모의투자(PaperTradingService)는 paper_trading 스키마를 따로 쓴다 — 세션도 포지션도
+        // 위 두 루프에 걸리지 않는다. 2026-08-19 에 이게 빠져 있어 페이퍼 112세션 전체가
+        // 판정 대상 밖이었다(데이터를 만드는 곳과 판정하는 곳이 분리돼 있었다).
+        Map<Long, long[]> paperCounts = new HashMap<>();       // sessionId → [n, wins]
+        Map<Long, BigDecimal> paperPnl = new HashMap<>();
+        for (Object[] row : paperPositionRepo.aggregateClosedTradesPerSession()) {
+            Long sid = ((Number) row[0]).longValue();
+            paperCounts.put(sid, new long[]{ toLong(row[1]), toLong(row[3]) });
+            paperPnl.put(sid, toBigDecimal(row[2]));
+        }
+        for (VirtualBalanceEntity s : virtualBalanceRepo.findByStatusOrderByStartedAtAsc("RUNNING")) {
+            long[] c = paperCounts.getOrDefault(s.getId(), new long[]{0L, 0L});
+            long days = s.getStartedAt() == null ? 0
+                    : Duration.between(s.getStartedAt(), now).toDays();
+            // mddPeakCapital 은 virtual_balance 에 없다 → null 을 넘겨 MAX_DRAWDOWN 판정만 생략된다.
+            // 서킷브레이커도 페이퍼에는 없으므로 0.
+            all.add(new SessionStats("PAPER", s.getId(), s.getStrategyName(), s.getTimeframe(),
+                    "PAPER#" + s.getId() + " " + s.getStrategyName() + " " + s.getCoinPair()
+                            + "@" + s.getTimeframe(),
+                    s.getInitialCapital(), s.getTotalKrw(), null, 0,
+                    (int) c[0], (int) c[1], paperPnl.getOrDefault(s.getId(), BigDecimal.ZERO),
+                    s.getStartedAt(), days));
         }
 
         // ── A: 세션별 자본 보호 판정 ──────────────────────────────
@@ -338,10 +374,10 @@ public class StrategyKillCriteriaService {
             return;
         }
         try {
-            if ("LIVE".equals(j.sessionKind())) {
-                liveTradingService.stopSession(j.sessionId());
-            } else {
-                dynamicTradingService.stopSession(j.sessionId());
+            switch (j.sessionKind()) {
+                case "LIVE"  -> liveTradingService.stopSession(j.sessionId());
+                case "PAPER" -> paperTradingService.stop(j.sessionId());
+                default      -> dynamicTradingService.stopSession(j.sessionId());
             }
             log.warn("[KillCriteria] 세션 정지: {} ({})", j.label(), j.code());
         } catch (Exception e) {
