@@ -68,6 +68,16 @@ public class KillCriteriaJudgmentEntity {
     @Column(name = "auto_stop_applied", nullable = false)
     private Boolean autoStopApplied;
 
+    /**
+     * 판정 대상 규칙 지문 (V73, 2026-08-19).
+     *
+     * <p>판정은 {@code engine/strategy@timeframe#rulesetHash} 그룹 단위로 내리는데 기록에는
+     * 지문이 없어 나중에 "어느 규칙이 폐기됐나" 를 역참조할 수 없었다. 원문은
+     * {@code ruleset_snapshot} 에서 찾는다. NULL 은 지문 미상(V71 이전 표본)이다.</p>
+     */
+    @Column(name = "ruleset_hash", length = 16)
+    private String rulesetHash;
+
     @PrePersist
     void prePersist() {
         if (evaluatedAt == null) evaluatedAt = Instant.now();

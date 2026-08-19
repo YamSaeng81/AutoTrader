@@ -9,6 +9,7 @@ import com.cryptoautotrader.api.dto.OrderRequest;
 import com.cryptoautotrader.api.dto.TradingStatusResponse;
 import com.cryptoautotrader.api.entity.LiveTradingSessionEntity;
 import com.cryptoautotrader.api.entity.OrderEntity;
+import com.cryptoautotrader.api.entity.ExitReason;
 import com.cryptoautotrader.api.entity.PositionEntity;
 import com.cryptoautotrader.api.entity.StrategyLogEntity;
 import com.cryptoautotrader.api.repository.LiveTradingSessionRepository;
@@ -1040,7 +1041,8 @@ public class LiveTradingService {
                 log.info("익절 발동 (sessionId={}): {} 현재가={} 익절가={} 손익률={}%",
                         sessionId, coinPair, currentPrice, pos.getTakeProfitPrice(), pnlPct);
                 executeSessionSell(session, pos, currentPrice,
-                        "익절 발동 — 현재가 " + currentPrice + " ≥ 익절가 " + pos.getTakeProfitPrice());
+                        "익절 발동 — 현재가 " + currentPrice + " ≥ 익절가 " + pos.getTakeProfitPrice(),
+                        ExitReason.TAKE_PROFIT);
                 return;
             }
 
@@ -1055,7 +1057,8 @@ public class LiveTradingService {
                         pnlPct.doubleValue(), sessionId);
                 executeSessionSell(session, pos, currentPrice, String.format(
                         "시간 초과 청산 — 보유 %d시간 ≥ %d시간 (pnl %s%%)",
-                        heldHours, session.getMaxHoldHours(), pnlPct.setScale(2, RoundingMode.HALF_UP)));
+                        heldHours, session.getMaxHoldHours(), pnlPct.setScale(2, RoundingMode.HALF_UP)),
+                        ExitReason.TIME_STOP);
                 return;
             }
 
@@ -1084,7 +1087,7 @@ public class LiveTradingService {
                         rawStopLoss);
                 telegramService.notifyStopLoss(coinPair, pnlPct.doubleValue(), sessionId);
                 executeSessionSell(session, pos, currentPrice,
-                        "손절 발동 -- 손익률 " + pnlPct + "%");
+                        "손절 발동 -- 손익률 " + pnlPct + "%", ExitReason.STOP_LOSS);
                 return;
             }
         }
@@ -1166,7 +1169,8 @@ public class LiveTradingService {
                     } else {
                         executeSessionSell(session, pos, currentPrice,
                                 String.format("전략 신호: %s -- %s (pnl=%s%%)",
-                                        strategyType, finalSignal.getReason(), heldPnlPctSell.toPlainString()));
+                                        strategyType, finalSignal.getReason(), heldPnlPctSell.toPlainString()),
+                                ExitReason.STRATEGY_SIGNAL);
                         saveSignalQuality(signalLogRef, true, null);
                     }
                 } else {
@@ -1294,9 +1298,13 @@ public class LiveTradingService {
                 session.getId(), coinPair, quantity, price, reason);
     }
 
+    /**
+     * @param exitReason 집계용 청산 사유 (V73). CLOSING 전환과 같은 UPDATE 로 기록되므로
+     *                   비동기 매도가 확정되는 reconcile 시점까지 보존된다.
+     */
     private void executeSessionSell(LiveTradingSessionEntity session,
                                      PositionEntity pos, BigDecimal currentPrice,
-                                     String reason) {
+                                     String reason, ExitReason exitReason) {
         // 매도 수량 검증 — position.size=null or 0 이면 매수 체결 미감지 상태
         if (pos.getSize() == null || pos.getSize().compareTo(BigDecimal.ZERO) <= 0) {
             // 매수 주문이 취소/실패됐는지 확인
@@ -1345,7 +1353,8 @@ public class LiveTradingService {
         // DYNAMIC은 2026-07-02 감사(#2 시장가 이중 매도 race)에서 이미 markClosingIfOpen으로
         // 전환했는데 LIVE에는 이식되지 않았다 — 같은 계정을 공유하므로 LIVE의 중복 매도가
         // 다른 세션 포지션의 코인을 팔 수 있어 위험은 오히려 LIVE 쪽이 크다.
-        int marked = positionRepository.markClosingIfOpen(pos.getId(), Instant.now());
+        int marked = positionRepository.markClosingIfOpen(pos.getId(), Instant.now(),
+                exitReason != null ? exitReason : ExitReason.UNKNOWN);
         if (marked == 0) {
             log.debug("매도 건너뜀: 이미 CLOSING/CLOSED (posId={}, sessionId={})",
                     pos.getId(), session.getId());
@@ -1420,7 +1429,9 @@ public class LiveTradingService {
                 }
                 // 원자적 CLOSING 전환 — executeSessionSell과 동일 이유(중복 매도 방지, 2026-08-18).
                 // 정지/비상정지 경로가 tick의 매도와 겹칠 수 있다.
-                if (positionRepository.markClosingIfOpen(pos.getId(), Instant.now()) == 0) {
+                // 운영자 개입 청산 — 청산가가 시장이 아니라 정지 시각으로 정해진다.
+                if (positionRepository.markClosingIfOpen(pos.getId(), Instant.now(),
+                        ExitReason.FORCED_STOP) == 0) {
                     log.debug("세션 청산 건너뜀: 이미 CLOSING/CLOSED (posId={}, sessionId={})",
                             pos.getId(), session.getId());
                     continue;
@@ -2536,7 +2547,7 @@ public class LiveTradingService {
             // signalPrice 미보존 주문(V54 이전 생성분)은 record()가 생략 처리한다.
             sessionRepository.findById(sessionId).ifPresent(s ->
                 executionDriftTracker.record(
-                        sessionId, pos.getCoinPair(), s.getStrategyType(),
+                        sessionId, pos.getSessionKind(), pos.getCoinPair(), s.getStrategyType(),
                         "SELL", filledOrder.getSignalPrice(), fillPrice, Instant.now()));
         }
     }
@@ -2619,7 +2630,8 @@ public class LiveTradingService {
                 log.warn("실시간 손절 발동 (WS): sessionId={}, {}, 손익={}%",
                         session.getId(), coinCode, pnlPct);
                 telegramService.notifyStopLoss(coinCode, pnlPct.doubleValue(), session.getId());
-                executeSessionSell(session, pos, price, "실시간 손절(WS) — 손익률 " + pnlPct + "%");
+                executeSessionSell(session, pos, price, "실시간 손절(WS) — 손익률 " + pnlPct + "%",
+                        ExitReason.STOP_LOSS);
                 continue;
             }
 

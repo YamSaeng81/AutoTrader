@@ -162,6 +162,22 @@ public interface PositionRepository extends JpaRepository<PositionEntity, Long> 
     int markClosingIfOpen(@Param("id") Long id, @Param("now") java.time.Instant now);
 
     /**
+     * CLOSING 전환과 <b>청산 사유 기록을 한 UPDATE 로</b> 처리한다 (V73).
+     *
+     * <p>사유를 엔티티에 세팅해 {@code save()} 하면 위 네이티브 UPDATE 가 이미 바꾼
+     * {@code status} 를 낡은 값(OPEN)으로 덮어써 CLOSING 가드가 무력해진다. 그래서 한 문장에 담는다.</p>
+     *
+     * <p>실거래 경로는 매도 주문이 비동기라 사유를 아는 시점(여기)과 포지션이 CLOSED 로
+     * 확정되는 시점(reconcile)이 다르다. 여기서 미리 남겨두면 reconcile 이 DB 에서 새로 읽어도
+     * 사유가 보존된다.</p>
+     */
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE PositionEntity p SET p.status = 'CLOSING', p.closingAt = :now, p.exitReason = :reason "
+            + "WHERE p.id = :id AND p.status = 'OPEN'")
+    int markClosingIfOpen(@Param("id") Long id, @Param("now") java.time.Instant now,
+                          @Param("reason") com.cryptoautotrader.api.entity.ExitReason reason);
+
+    /**
      * StrategyWeightOptimizer §6 — 종료 포지션의 실현 수익률을 (전략, 레짐) 기준으로 집계.
      *
      * <p>각 행: [strategyType(String), marketRegime(String), sumRealizedPnl(BigDecimal),

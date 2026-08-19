@@ -581,7 +581,8 @@ public class OrderExecutionEngine {
                     && !"DYNAMIC".equals(order.getSessionKind()) && sessionRepository != null) {
                 sessionRepository.findById(order.getSessionId()).ifPresent(s ->
                         executionDriftTracker.record(
-                                order.getSessionId(), order.getCoinPair(), s.getStrategyType(),
+                                order.getSessionId(), order.getSessionKind(), order.getCoinPair(),
+                                s.getStrategyType(),
                                 "BUY", order.getSignalPrice(), avgFillPrice, Instant.now()));
             }
         } else {

@@ -3,6 +3,7 @@ package com.cryptoautotrader.api.service;
 import com.cryptoautotrader.api.dto.DynamicSessionRequest;
 import com.cryptoautotrader.api.dto.OrderRequest;
 import com.cryptoautotrader.api.entity.DynamicSellSettlementEntity;
+import com.cryptoautotrader.api.entity.ExitReason;
 import com.cryptoautotrader.api.entity.DynamicSessionEntity;
 import com.cryptoautotrader.api.entity.PositionEntity;
 import com.cryptoautotrader.api.entity.StrategyLogEntity;
@@ -976,7 +977,8 @@ public class DynamicTradingService {
                 && currentPrice.compareTo(pos.getTakeProfitPrice()) >= 0) {
             log.info("[Dynamic] 익절: {} @ {} pnl={}% (id={})", coinPair, currentPrice, pnlPct, sid);
             executeSell(session, pos, currentPrice,
-                    "익절 — 현재가 " + currentPrice + " ≥ " + pos.getTakeProfitPrice());
+                    "익절 — 현재가 " + currentPrice + " ≥ " + pos.getTakeProfitPrice(),
+                    ExitReason.TAKE_PROFIT);
             return;
         }
 
@@ -1001,7 +1003,7 @@ public class DynamicTradingService {
             }
             log.warn("[Dynamic] 손절: {} @ {} pnl={}% (id={})", coinPair, currentPrice, pnlPct, sid);
             telegramService.notifyStopLoss(coinPair, pnlPct.doubleValue(), sid);
-            executeSell(session, pos, currentPrice, "손절 — pnl " + pnlPct + "%");
+            executeSell(session, pos, currentPrice, "손절 — pnl " + pnlPct + "%", ExitReason.STOP_LOSS);
             return;
         }
 
@@ -1018,7 +1020,8 @@ public class DynamicTradingService {
             telegramService.notifyTimeStop(coinPair, heldHours, maxHoldHours, pnlPct.doubleValue(), sid);
             executeSell(session, pos, currentPrice, String.format(
                     "시간 초과 청산 — 보유 %d시간 ≥ %d시간 (pnl %s%%)",
-                    heldHours, maxHoldHours, pnlPct.setScale(2, RoundingMode.HALF_UP)));
+                    heldHours, maxHoldHours, pnlPct.setScale(2, RoundingMode.HALF_UP)),
+                    ExitReason.TIME_STOP);
             return;
         }
 
@@ -1051,7 +1054,8 @@ public class DynamicTradingService {
                 return;
             }
             executeSell(session, pos, currentPrice,
-                    String.format("전략 SELL — %s (pnl=%s%%)", signal.getReason(), pnlPct));
+                    String.format("전략 SELL — %s (pnl=%s%%)", signal.getReason(), pnlPct),
+                    ExitReason.STRATEGY_SIGNAL);
             updateSignalQuality(signalLog, true, null);
         } else if (signal.getAction() == StrategySignal.Action.BUY) {
             // 보유 중 BUY는 실행 대상이 아니다(추가 매수 미지원) — 그런데 여기서 기록을 남기지
@@ -1181,8 +1185,18 @@ public class DynamicTradingService {
                 currentPrice, stopLossPrice, signal.getSuggestedTakeProfit());
 
         String rulesetHash = rulesetRegistry.hashFor(session);
+        // V73: 진입 시점 레짐 — 이게 없으면 "이 전략은 횡보장에서만 되는가" 를 물을 수 없다.
+        // 그동안 동적 세션 포지션은 레짐이 전부 NULL 이었다(0/36). 실패해도 진입은 막지 않는다.
+        String entryRegime = null;
+        try {
+            MarketRegime detected = new MarketRegimeDetector().detectRaw(evalCandles);
+            entryRegime = detected != null ? detected.name() : null;
+        } catch (Exception e) {
+            log.debug("[Dynamic] 레짐 판정 실패 — 레짐 없이 진입 (coin={}): {}", coinPair, e.toString());
+        }
         PositionEntity posTemplate = PositionEntity.builder()
                 .rulesetHash(rulesetHash)
+                .marketRegime(entryRegime)
                 .coinPair(coinPair)
                 .side("BUY")
                 .entryPrice(currentPrice)
@@ -1361,8 +1375,12 @@ public class DynamicTradingService {
     // ── 내부: 매도 실행 ────────────────────────────────────────────
 
     @Transactional
+    /**
+     * @param exitReason 집계용 청산 사유 (V73). CLOSING 전환과 같은 UPDATE 로 기록되므로
+     *                   실거래의 비동기 매도에서도 reconcile 시점까지 보존된다.
+     */
     public void executeSell(DynamicSessionEntity session, PositionEntity pos,
-                             BigDecimal currentPrice, String reason) {
+                             BigDecimal currentPrice, String reason, ExitReason exitReason) {
         Long sid = session.getId();
 
         if (pos.getSize() == null || pos.getSize().compareTo(BigDecimal.ZERO) <= 0) {
@@ -1372,14 +1390,15 @@ public class DynamicTradingService {
 
         // 원자적 CLOSING 전환 — WS 실시간 SL/TP와 60초 tick이 동시에 같은 포지션을 팔려는
         // race에서 한쪽만 매도 주문을 제출하도록 보장 (시장가 이중 매도 방지)
-        int marked = positionRepository.markClosingIfOpen(pos.getId(), Instant.now());
+        int marked = positionRepository.markClosingIfOpen(pos.getId(), Instant.now(),
+                exitReason != null ? exitReason : ExitReason.UNKNOWN);
         if (marked == 0) {
             log.debug("[Dynamic] 매도 건너뜀: 이미 CLOSING/CLOSED (posId={}, id={})", pos.getId(), sid);
             return;
         }
 
         if (session.isPaper()) {
-            executePaperSell(session, pos, currentPrice, reason);
+            executePaperSell(session, pos, currentPrice, reason, exitReason);
             return;
         }
 
@@ -1409,7 +1428,7 @@ public class DynamicTradingService {
      * 코드로</b> 검증한다(이번 정렬 작업의 목적 그 자체).</p>
      */
     private void executePaperSell(DynamicSessionEntity session, PositionEntity pos,
-                                   BigDecimal signalPrice, String reason) {
+                                   BigDecimal signalPrice, String reason, ExitReason exitReason) {
         // 슬리피지 — 매도는 신호가보다 불리하게(낮게) 체결된다.
         BigDecimal fillPrice = signalPrice.multiply(BigDecimal.ONE.subtract(PAPER_SLIPPAGE_PCT))
                 .setScale(8, RoundingMode.HALF_DOWN);
@@ -1432,6 +1451,7 @@ public class DynamicTradingService {
                 .build();
         order = orderRepository.save(order);
 
+        pos.setExitReason(exitReason != null ? exitReason : ExitReason.UNKNOWN);
         finalizeDynamicSell(pos, order);
         transitionToScanning(session.getId());
         log.info("[Dynamic][PAPER] 매도 체결: id={} {} size={} @ {}",
@@ -1629,14 +1649,16 @@ public class DynamicTradingService {
                 continue;
             }
             // WS 실시간 SL/TP 매도와의 race 방지 — 이미 CLOSING이면 매도 주문 중복 제출 스킵
-            if (positionRepository.markClosingIfOpen(pos.getId(), Instant.now()) == 0) {
+            // 운영자 개입 청산 — 청산가가 시장이 아니라 정지 시각으로 정해지므로 전략 성과와 섞으면 안 된다.
+            if (positionRepository.markClosingIfOpen(pos.getId(), Instant.now(),
+                    ExitReason.FORCED_STOP) == 0) {
                 continue;
             }
 
             if (session.isPaper()) {
                 // 현재가 정보가 없는 강제 정지 경로 — 진입가를 신호가로 대체(슬리피지만 반영).
                 // 정지/비상정지는 드문 경로이고, 정확한 청산가보다 "확실히 닫힌다"가 중요하다.
-                executePaperSell(session, pos, pos.getAvgPrice(), reason);
+                executePaperSell(session, pos, pos.getAvgPrice(), reason, ExitReason.FORCED_STOP);
                 continue;
             }
 
@@ -2203,7 +2225,8 @@ public class DynamicTradingService {
                 log.info("[Dynamic] 실시간 익절(WS): {} @ {} pnl={}% (id={})",
                         coinCode, price, pnlPct, session.getId());
                 executeSell(session, pos, price,
-                        "실시간 익절(WS) — 현재가 " + price + " ≥ " + pos.getTakeProfitPrice());
+                        "실시간 익절(WS) — 현재가 " + price + " ≥ " + pos.getTakeProfitPrice(),
+                        ExitReason.TAKE_PROFIT);
                 continue;
             }
 
@@ -2216,7 +2239,7 @@ public class DynamicTradingService {
                 log.warn("[Dynamic] 실시간 손절(WS): {} @ {} pnl={}% (id={})",
                         coinCode, price, pnlPct, session.getId());
                 telegramService.notifyStopLoss(coinCode, pnlPct.doubleValue(), session.getId());
-                executeSell(session, pos, price, "실시간 손절(WS) — pnl " + pnlPct + "%");
+                executeSell(session, pos, price, "실시간 손절(WS) — pnl " + pnlPct + "%", ExitReason.STOP_LOSS);
             }
         }
     }

@@ -111,4 +111,17 @@ public class PositionEntity {
 
     public String getRulesetHash() { return rulesetHash; }
     public void setRulesetHash(String rulesetHash) { this.rulesetHash = rulesetHash; }
+
+    /**
+     * 이 포지션이 <b>왜</b> 청산됐는가 (V73, 2026-08-19). {@link ExitReason} 참조.
+     *
+     * <p>{@code order.signal_reason} 자유 텍스트는 사람이 읽을 정보(구체적 가격·지표값)를,
+     * 이 컬럼은 집계 가능한 축을 담당한다. NULL 은 V73 이전 데이터이거나 아직 미청산이다.</p>
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "exit_reason", length = 20)
+    private ExitReason exitReason;
+
+    public ExitReason getExitReason() { return exitReason; }
+    public void setExitReason(ExitReason exitReason) { this.exitReason = exitReason; }
 }

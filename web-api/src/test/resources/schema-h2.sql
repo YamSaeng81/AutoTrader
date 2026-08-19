@@ -593,3 +593,12 @@ CREATE TABLE IF NOT EXISTS dynamic_sell_settlement (
     realized_pnl  DECIMAL(20,8) NOT NULL,
     settled_at    TIMESTAMP     NOT NULL
 );
+
+-- 분석 파이프라인 보강 (V73)
+ALTER TABLE position               ADD COLUMN IF NOT EXISTS exit_reason VARCHAR(20);
+ALTER TABLE paper_trading.position ADD COLUMN IF NOT EXISTS exit_reason VARCHAR(20);
+ALTER TABLE paper_trading.position ADD COLUMN IF NOT EXISTS market_regime VARCHAR(20);
+ALTER TABLE paper_trading.position ADD COLUMN IF NOT EXISTS invested_krw  DECIMAL(20,8);
+ALTER TABLE paper_trading.position ADD COLUMN IF NOT EXISTS session_kind  VARCHAR(20);
+ALTER TABLE kill_criteria_judgment ADD COLUMN IF NOT EXISTS ruleset_hash VARCHAR(16);
+ALTER TABLE execution_drift_log    ADD COLUMN IF NOT EXISTS session_kind VARCHAR(20);

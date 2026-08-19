@@ -30,6 +30,172 @@
 
 ---
 
+## 🟢 2026-08-19 V73 — 분석 파이프라인 보강 구현 (검토 8건 중 6건 조치, 2건 오진)
+
+세션을 새로 시작하기 **전에** 스키마를 확정했다. 데이터가 쌓인 뒤 넣으면 그 기간이 분석에서 빠진다.
+
+### 조치한 것
+
+| 항목 | 내용 |
+|---|---|
+| **P1** | `ExitReason` enum 신설 + `position`·`paper_trading.position` 에 `exit_reason` 컬럼. 세 엔진(LIVE·DYNAMIC·PAPER)의 **모든 청산 경로**에 사유를 실었다 |
+| **P2** | `DynamicTradingService.executeBuy` 에서 진입 레짐 판정 → 포지션에 기록 (그동안 0/36) |
+| **P3** | `paper_trading.position` 에 `market_regime`·`invested_krw`·`session_kind` 추가 후 매수 경로에서 채운다 |
+| **P5** | `kill_criteria_judgment.ruleset_hash` + `persist()` 에서 기록 |
+| **P7** | 고아 테이블 2개 DROP (`paper_trading.strategy_log`, `paper_trading.trade_log` — 매핑 엔티티 없음, 0행) |
+| **P8** | `execution_drift_log.session_kind` + 호출부 2곳 |
+
+### 설계 판단 두 가지
+
+**`ExitType` 은 이미 있었다.** `ExitRuleChecker.ExitType` 이 SL/TP 를 구분하고 있었는데
+호출부가 `getReason()` 만 쓰고 **타입을 버리고 있었다.** 새로 만든 게 아니라 흐르던 정보를
+보존한 것이다. `ExitReason.from(ExitType)` 이 그 다리다.
+
+**사유는 CLOSING 전환과 같은 UPDATE 에 담았다.** 실거래는 매도가 비동기라 사유를 아는 시점
+(`executeSell`)과 CLOSED 확정 시점(`reconcile`)이 다르다. 엔티티에 세팅해 `save()` 하면
+네이티브 UPDATE 가 이미 바꾼 `status` 를 낡은 값(OPEN)으로 덮어써 **이중 매도 가드가 무력해진다.**
+그래서 `markClosingIfOpen(id, now, reason)` 한 문장에 담았다.
+
+**`closing_at` 은 페이퍼에 넣지 않았다** — `PaperTradingService.closePosition` 은 동기라
+CLOSING 중간 상태가 없다. 넣어봐야 항상 NULL 인 컬럼이 된다.
+
+### 가드 검증 (뮤테이션)
+
+처음 시도한 뮤테이션이 **안 잡혔다.** PAPER 경로에서 덮어써지는 인자를 골랐기 때문인데,
+그게 곧 **REAL 경로(비동기 매도)가 테스트에 안 걸려 있다**는 뜻이었다. 두 테스트를 추가해 메웠다.
+
+| 뮤테이션 | 결과 |
+|---|---|
+| PAPER `FORCED_STOP` → `UNKNOWN` | 1건 실패 ✅ |
+| CLOSING 전환에서 사유 기록 제거 (REAL 경로) | 1건 실패 ✅ |
+
+- 신규 `ExitReasonRecordingTest` 9건 (SL/TP/TIME_STOP/FORCED_STOP, ExitType 매핑, 성과 집계 제외,
+  레짐 저장, **REAL 경로 사유 보존**, **경합 시 먼저 발동한 사유 유지**)
+- `:web-api:test` **354건 통과** (실패 0, 스킵 3). 338 → 341 → 345 → 354.
+
+### 배포 필요
+
+V72(매도 정산 멱등화) + V73 이 함께 올라가야 한다. `exit_reason` 은 배포 이후 청산부터
+채워지므로 **세션 재시작보다 배포가 먼저**다.
+
+---
+
+## 🟡 2026-08-19 데이터 수집·분석 파이프라인 전면 검토 — 결함 8건
+
+> **맥락**: 세션을 전부 지우고 새로 기록을 시작하기 직전. 데이터가 쌓인 뒤 결함을 발견하면
+> **그 기간 데이터를 못 쓰게 되므로** 지금 스키마를 확정해야 한다.
+
+### 잘 되고 있는 것 (건드리지 말 것)
+
+| 항목 | 근거 |
+|---|---|
+| 신호품질 백필 | 미처리 4h **16건**, 24h **0건**. 적격 신호 7,693건 중 7,522건(97.8%) 평가 완료 |
+| 진입 차단 사유 | BUY 미체결 60건 중 57건(95%)에 `blocked_reason` 기록 — 게이트별 집계 가능 |
+| 일일 헬스 스냅샷 | 매일 08:30, 14행 정상 |
+| 규칙 지문 스탬핑 | V71 이후 미스탬핑 0건 |
+
+> `price_after_4h` 가 전체 로그의 8.8% 인 것은 결함이 아니다 — HOLD 는 평가 대상이 아니고,
+> 분모를 BUY/SELL 로 잡으면 97.8% 다.
+
+### P1 🔴 청산 사유가 구조화돼 있지 않다 — 가장 큰 구멍
+
+`position` 에 `exit_reason` 컬럼이 없다. 사유는 `order.signal_reason` 자유 텍스트에만 있고,
+**손익률이 문자열 안에 박혀 있어** 값이 전부 유일하다:
+
+```
+시간 초과 청산 — 보유 259시간 ≥ 24시간 (pnl -1.87%)
+시간 초과 청산 — 보유 259시간 ≥ 24시간 (pnl -1.95%)
+```
+
+`GROUP BY` 가 불가능하다. 대시 문자도 `—` 와 `--` 두 종류가 섞여 있어 정규식도 취약하다.
+**"손절 대 익절 대 시간초과 비율" 이라는 가장 기본적인 질문에 답할 수 없다.**
+
+### P1-b 🔴 익절이 사실상 작동하지 않는다 (P1 로 문자열 분류해 보니 드러남)
+
+전체 SELL 주문 **6,944건**을 사유로 분류한 결과:
+
+| 분류 | 건수 |
+|---|---|
+| STOP_LOSS | **6,702** |
+| 전략 신호 청산 | 186 |
+| FORCED_STOP (정지/비상정지) | 45 |
+| TIME_STOP | 10 |
+| **TAKE_PROFIT** | **1** |
+
+`take_profit_price` 는 종료 포지션 313건 중 260건에 **설정돼 있는데 발동은 1건**이다.
+청산이 완전히 비대칭이다 — 손절은 계속 걸리고 목표가는 닿지 않는다.
+60일 실적도 부합한다: **24승 85패(22%), 평균 −153.91원.**
+
+> 주의: 이 수치는 지문 도입 이전이라 여러 규칙 세대가 섞여 있다. **방향성 근거이지 결론이 아니다.**
+> 다만 "TP 1건" 은 규칙 세대와 무관한 구조적 신호다. `TP_RR_MULTIPLIER=2.0` 이
+> 이 변동성에서 너무 먼 것인지 확인이 필요하다.
+
+### P2 🔴 `position.market_regime` 이 LIVE 에서만 채워진다
+
+`.marketRegime(...)` 을 포지션에 세팅하는 곳은 `LiveTradingService:1268` 하나뿐이다.
+`DynamicTradingService` 는 세팅하지 않고, `PaperPositionEntity` 에는 **컬럼 자체가 없다.**
+
+| session_kind | 종료 포지션 | 레짐 기록 |
+|---|---|---|
+| LIVE | 277 | 174 |
+| DYNAMIC | 30 | **0** |
+| DYN_PAPER | 6 | **0** |
+
+**지금 돌리는 엔진에는 레짐 귀속이 전혀 없다.** "이 전략은 횡보장에서만 잘 되는가" 를 물을 수 없다.
+
+### P3 🟠 `paper_trading.position` 이 `public.position` 보다 4컬럼 부족
+
+`market_regime`, `invested_krw`, `session_kind`, `closing_at` 이 없다.
+페이퍼 함대와 동적 세션 성과를 **같은 쿼리로 볼 수 없다.**
+`closing_at` 부재는 분석이 아니라 정합성 문제다 — 페이퍼에는 매도 중복 제출을 막는
+CLOSING 가드가 없다 (`PaperTradingService` 에 `"CLOSING"` 문자열이 없음).
+
+### P4 ~~🟠 `trade_log` 가 실주문 경로에서만 쓰인다~~ → **오진, 조치 불필요**
+
+`trade_log` 는 체결 기록이 아니라 **주문 상태전이 감사 로그**다
+(`order_id`, `event_type`, `old_state` → `new_state`). 페이퍼 엔진은 주문을 처음부터
+`FILLED` 로 만들고 거래소 왕복이 없어 전이 자체가 존재하지 않는다 — 기록할 것이 없다.
+합성 행을 넣으면 데이터가 아니라 잡음이 된다.
+
+모의 체결 데이터는 이미 `paper_trading.order` / `public.order` 에 `state='FILLED'` 로
+전부 남아 있다. **분석 기반이 없다는 진단은 틀렸다.**
+
+### P5 🟠 `kill_criteria_judgment` 에 `ruleset_hash` 가 없다
+
+판정은 `engine/strategy@timeframe#rulesetHash` 그룹 단위로 내리는데 기록에는 지문이 없다.
+나중에 "어느 규칙이 폐기됐나" 를 역참조할 수 없다.
+**아직 0행이라 지금 추가하면 비용이 0이다.**
+
+### P6 ~~🟡 SELL 신호에 차단 사유가 없다~~ → **오진, 조치 불필요**
+
+처음에 "`blocked_reason` 이 없다" 고 썼는데, 그건 `blocked_reason` 을 **BUY 에 대해서만
+조회하고 SELL 은 확인하지 않은 채** 내린 판단이었다. 실제로는 **2,489/2,491 = 99.9%** 기록돼 있다:
+`청산할 포지션 없음`(1,850), `SCANNING — 보유 포지션 없음`(569).
+
+남는 것은 데이터 결함이 아니라 **집계 규약** 문제다. 14일간 미체결 SELL 2,486건이 의미 있는
+BUY 의사결정 60건의 41배라, BUY 124건과 SELL 2,336건을 한 테이블에서 단순 평균하면 오독한다.
+데이터에 판별자가 이미 있으므로 **쿼리에서 나누면 된다 — 코드 변경 대상이 아니다.**
+
+### P7 🟡 죽은 테이블 3개
+
+`paper_trading.strategy_log`(0행), `paper_trading.trade_log`(0행), `regime_change_log`(0행).
+페이퍼 함대는 로그를 `public.strategy_log` 에 `session_type='PAPER'` 로 쓰고 포지션만
+`paper_trading` 에 쓴다 — **스키마가 갈라져 있다.** 빈 테이블은 나중에 오해를 부른다.
+
+### P8 🟡 `execution_drift_log` 에 `session_kind` 가 없다
+
+`dynamic_session` 과 `live_trading_session` 은 별도 시퀀스라 `session_id` 만으로는 모호하다.
+현재 55행, LIVE 만.
+
+### 이미 데이터가 말하는 것 (파이프라인 없이도 보이는 것)
+
+- **BUY 신호 4h 평균 +0.076%, 24h 평균 −0.499%, 적중 51/124(41%).**
+  4시간까지는 미세하게 맞고 24시간에는 잃는다. `max_hold_hours=24` 는 **감쇠 구간을 통과해
+  보유하도록** 설정돼 있다. 보유시간 상한을 4~8시간으로 낮춘 A/B 가 유력한 첫 실험이다.
+- **LIVE 는 14일간 BUY 신호 1건.** 사실상 정지 상태다.
+
+---
+
 ## 🔴 2026-08-19 P0 — 동적 세션 정지 실패 루프로 매도대금 21회 중복 지급
 
 > 세션 재시작 중 "세션 49 가 정지도 삭제도 안 된다" 는 신고에서 출발했다.

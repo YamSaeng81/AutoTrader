@@ -53,6 +53,7 @@ public class ExecutionDriftTracker {
      * 체결 완료 시 drift 기록.
      *
      * @param sessionId    세션 ID
+     * @param sessionKind  세션 출처 (LIVE | DYNAMIC | DYN_PAPER | PAPER) — 별도 시퀀스라 ID만으로는 모호하다
      * @param coinPair     코인 페어 (예: KRW-BTC)
      * @param strategyType 전략명
      * @param side         BUY | SELL
@@ -61,7 +62,7 @@ public class ExecutionDriftTracker {
      * @param executedAt   체결 시각
      */
     @Transactional
-    public void record(Long sessionId, String coinPair, String strategyType,
+    public void record(Long sessionId, String sessionKind, String coinPair, String strategyType,
                        String side, BigDecimal signalPrice, BigDecimal fillPrice,
                        Instant executedAt) {
         if (signalPrice == null || signalPrice.compareTo(BigDecimal.ZERO) == 0
@@ -74,6 +75,7 @@ public class ExecutionDriftTracker {
 
         ExecutionDriftLogEntity record = ExecutionDriftLogEntity.builder()
                 .sessionId(sessionId)
+                .sessionKind(sessionKind)
                 .coinPair(coinPair)
                 .strategyType(strategyType)
                 .side(side)

@@ -26,6 +26,13 @@ public class ExecutionDriftLogEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /**
+     * 세션 출처 (V73, 2026-08-19). {@code dynamic_session} 과 {@code live_trading_session} 은
+     * 별도 시퀀스라 {@code session_id} 만으로는 어느 엔진의 세션인지 알 수 없다.
+     */
+    @Column(name = "session_kind", length = 20)
+    private String sessionKind;
+
     @Column(name = "session_id", nullable = false)
     private Long sessionId;
 

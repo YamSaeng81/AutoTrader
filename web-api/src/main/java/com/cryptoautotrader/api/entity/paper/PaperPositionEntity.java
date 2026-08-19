@@ -89,4 +89,34 @@ public class PaperPositionEntity {
 
     public String getRulesetHash() { return rulesetHash; }
     public void setRulesetHash(String rulesetHash) { this.rulesetHash = rulesetHash; }
+
+    // ── V73 (2026-08-19): public.position 과 컬럼을 맞춘다 ─────────────────────
+    // 페이퍼 함대와 동적 세션 성과를 같은 쿼리로 볼 수 없던 비대칭을 없앤다.
+    // closing_at 은 넣지 않는다 — closePosition 이 동기라 CLOSING 중간 상태가 없다.
+
+    /** 청산 사유. {@link com.cryptoautotrader.api.entity.ExitReason} 참조. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "exit_reason", length = 20)
+    private com.cryptoautotrader.api.entity.ExitReason exitReason;
+
+    /** 진입 시점 시장 레짐 — 이게 없으면 "이 전략은 횡보장에서만 되는가" 를 물을 수 없다. */
+    @Column(name = "market_regime", length = 20)
+    private String marketRegime;
+
+    /** 진입에 실제로 투입한 원화. size × entryPrice 로 재계산하지 않아도 되게 남긴다. */
+    @Column(name = "invested_krw", precision = 20, scale = 8)
+    private BigDecimal investedKrw;
+
+    /** 이 포지션을 만든 엔진 — public.position.session_kind 와 같은 어휘를 쓴다. */
+    @Column(name = "session_kind", length = 20)
+    private String sessionKind;
+
+    public com.cryptoautotrader.api.entity.ExitReason getExitReason() { return exitReason; }
+    public void setExitReason(com.cryptoautotrader.api.entity.ExitReason v) { this.exitReason = v; }
+    public String getMarketRegime() { return marketRegime; }
+    public void setMarketRegime(String v) { this.marketRegime = v; }
+    public BigDecimal getInvestedKrw() { return investedKrw; }
+    public void setInvestedKrw(BigDecimal v) { this.investedKrw = v; }
+    public String getSessionKind() { return sessionKind; }
+    public void setSessionKind(String v) { this.sessionKind = v; }
 }

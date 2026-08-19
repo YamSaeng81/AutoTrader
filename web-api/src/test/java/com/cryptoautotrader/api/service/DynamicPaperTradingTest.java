@@ -213,7 +213,8 @@ class DynamicPaperTradingTest extends IntegrationTestBase {
                 .stopLossPrice(new BigDecimal("85000000")).takeProfitPrice(new BigDecimal("95000000"))
                 .build());
 
-        dynamicTradingService.executeSell(session, pos, new BigDecimal("91000000"), "테스트 익절");
+        dynamicTradingService.executeSell(session, pos, new BigDecimal("91000000"), "테스트 익절",
+                com.cryptoautotrader.api.entity.ExitReason.TAKE_PROFIT);
 
         verify(orderExecutionEngine, never()).submitOrder(any());
 

@@ -496,6 +496,7 @@ public class StrategyKillCriteriaService {
                         .sessionId(st.sessionId())
                         .strategyType(st.strategyType())
                         .timeframe(st.timeframe())
+                        .rulesetHash(st.rulesetHash())
                         .verdict(j.verdict().name())
                         .code(j.code())
                         .reason(j.reason())

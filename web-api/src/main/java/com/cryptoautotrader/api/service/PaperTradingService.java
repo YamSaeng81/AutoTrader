@@ -6,6 +6,7 @@ import com.cryptoautotrader.api.entity.LiveTradingSessionEntity;
 import com.cryptoautotrader.core.risk.ExitRuleConfig;
 import com.cryptoautotrader.api.entity.MarketDataCacheEntity;
 import com.cryptoautotrader.api.entity.paper.PaperOrderEntity;
+import com.cryptoautotrader.api.entity.ExitReason;
 import com.cryptoautotrader.api.entity.paper.PaperPositionEntity;
 import com.cryptoautotrader.api.entity.paper.VirtualBalanceEntity;
 import com.cryptoautotrader.api.entity.StrategyLogEntity;
@@ -213,7 +214,7 @@ public class PaperTradingService {
         List<PaperPositionEntity> openPositions = positionRepo.findBySessionIdAndStatus(sessionId, "OPEN");
         openPositions.forEach(pos -> {
             BigDecimal currentPrice = fetchCurrentPrice(pos.getCoinPair());
-            closePosition(pos, currentPrice, session, "모의투자 중단 - 강제 청산");
+            closePosition(pos, currentPrice, session, "모의투자 중단 - 강제 청산", ExitReason.FORCED_STOP);
         });
 
         session.setStatus("STOPPED");
@@ -733,7 +734,9 @@ public class PaperTradingService {
             if (exitCheck.isShouldExit()) {
                 log.warn("모의투자 {} (sessionId={}): {} 현재가={}",
                         exitCheck.getReason(), sessionId, coinPair, currentPrice);
-                closePosition(pos, currentPrice, session, exitCheck.getReason());
+                // ExitType 은 SL/TP 를 이미 구분하고 있었는데 여기서 버려지고 있었다 (V73)
+                closePosition(pos, currentPrice, session, exitCheck.getReason(),
+                        ExitReason.from(exitCheck.getType()));
                 return;
             }
 
@@ -744,7 +747,8 @@ public class PaperTradingService {
                 log.warn("모의투자 시간 초과 청산 (sessionId={}): {} 보유 {}h ≥ {}h",
                         sessionId, coinPair, heldHours, session.getMaxHoldHours());
                 closePosition(pos, currentPrice, session, String.format(
-                        "시간 초과 청산 — 보유 %d시간 ≥ %d시간", heldHours, session.getMaxHoldHours()));
+                        "시간 초과 청산 — 보유 %d시간 ≥ %d시간", heldHours, session.getMaxHoldHours()),
+                        ExitReason.TIME_STOP);
                 return;
             }
         }
@@ -753,7 +757,8 @@ public class PaperTradingService {
         switch (signal.getAction()) {
             case BUY -> {
                 if (openPos.isEmpty()) {
-                    boolean bought = executeBuy(sessionId, coinPair, currentPrice, session, finalSignal, evalCandles);
+                    boolean bought = executeBuy(sessionId, coinPair, currentPrice, session, finalSignal, evalCandles,
+                            preEvalRegime != null ? preEvalRegime.name() : null);
                     saveSignalQuality(savedSignalLog, bought, bought ? null : "매수 실행 실패(최소주문/잔고 미달)");
                 } else {
                     saveSignalQuality(savedSignalLog, false, "이미 포지션 보유 중");
@@ -789,7 +794,8 @@ public class PaperTradingService {
                     } else {
                         closePosition(pos, currentPrice, session, String.format(
                                 "전략 신호: %s -- %s (pnl=%s%%)",
-                                strategyName, finalSignal.getReason(), heldPnlPct.toPlainString()));
+                                strategyName, finalSignal.getReason(), heldPnlPct.toPlainString()),
+                                ExitReason.STRATEGY_SIGNAL);
                         saveSignalQuality(savedSignalLog, true, null);
                     }
                 } else {
@@ -820,9 +826,13 @@ public class PaperTradingService {
      * @param evalCandles ATR 기반 손절폭 산정용 (닫힌 캔들 기준 — LIVE와 동일)
      * @return 실제로 체결됐으면 true (신호 품질 로그의 wasExecuted에 그대로 반영)
      */
+    /**
+     * @param marketRegime 진입 시점 시장 레짐 (V73). 틱에서 이미 계산한 값을 넘긴다 —
+     *                     여기서 다시 구하면 같은 틱 안에서 값이 갈릴 수 있다.
+     */
     private boolean executeBuy(Long sessionId, String coinPair, BigDecimal signalPrice,
                                 VirtualBalanceEntity session, StrategySignal signal,
-                                List<Candle> evalCandles) {
+                                List<Candle> evalCandles, String marketRegime) {
         // 투자금: LIVE와 동일하게 availableKrw × investRatio (세션값 우선, 없으면 risk_config 기본값)
         BigDecimal ratio = session.getInvestRatio() != null
                 ? session.getInvestRatio() : exitChecker().getConfig().getInvestRatio();
@@ -870,6 +880,10 @@ public class PaperTradingService {
         String rulesetHash = rulesetRegistry.hashFor(session);
         PaperPositionEntity pos = PaperPositionEntity.builder()
                 .rulesetHash(rulesetHash)
+                // V73: public.position 과 컬럼을 맞춘다 — 페이퍼와 동적 세션을 한 쿼리로 보기 위함.
+                .sessionKind("PAPER")
+                .marketRegime(marketRegime)
+                .investedKrw(investAmount)
                 .sessionId(sessionId)
                 .coinPair(coinPair)
                 .side("BUY")
@@ -914,8 +928,13 @@ public class PaperTradingService {
         return true;
     }
 
+    /**
+     * @param exitReason 집계용 청산 사유 (V73). {@code reason} 자유 텍스트는 사람이 읽을
+     *                   정보를, 이 값은 GROUP BY 가능한 축을 담당한다 — 둘 다 필요하다.
+     */
     private void closePosition(PaperPositionEntity pos, BigDecimal signalPrice,
-                               VirtualBalanceEntity session, String reason) {
+                               VirtualBalanceEntity session, String reason,
+                               ExitReason exitReason) {
         // 체결 슬리피지 — 매도는 신호가보다 불리하게(낮게) 체결된다 (매수 반대 방향).
         BigDecimal currentPrice = signalPrice.multiply(BigDecimal.ONE.subtract(SLIPPAGE_PCT))
                 .setScale(8, RoundingMode.HALF_DOWN);
@@ -933,6 +952,7 @@ public class PaperTradingService {
                 ? pos.getPositionFee().add(fee) : fee);
         pos.setStatus("CLOSED");
         pos.setClosedAt(Instant.now());
+        pos.setExitReason(exitReason != null ? exitReason : ExitReason.UNKNOWN);
         positionRepo.save(pos);
 
         PaperOrderEntity order = PaperOrderEntity.builder()

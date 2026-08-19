@@ -37,7 +37,7 @@ class ExecutionDriftTrackerTest extends IntegrationTestBase {
         BigDecimal signalPrice = new BigDecimal("50000000");
         BigDecimal fillPrice   = new BigDecimal("50100000"); // +0.2% slippage
 
-        tracker.record(1L, "KRW-BTC", "COMPOSITE_BREAKOUT", "SELL",
+        tracker.record(1L, "LIVE", "KRW-BTC", "COMPOSITE_BREAKOUT", "SELL",
                 signalPrice, fillPrice, Instant.now());
 
         List<ExecutionDriftLogEntity> all = driftRepo.findAll();
@@ -57,7 +57,7 @@ class ExecutionDriftTrackerTest extends IntegrationTestBase {
         BigDecimal signalPrice = new BigDecimal("50000000");
         BigDecimal fillPrice   = new BigDecimal("49900000"); // -0.2% slippage
 
-        tracker.record(2L, "KRW-ETH", "COMPOSITE_MOMENTUM", "SELL",
+        tracker.record(2L, "LIVE", "KRW-ETH", "COMPOSITE_MOMENTUM", "SELL",
                 signalPrice, fillPrice, Instant.now());
 
         BigDecimal slippage = driftRepo.findAll().get(0).getSlippagePct();
@@ -67,7 +67,7 @@ class ExecutionDriftTrackerTest extends IntegrationTestBase {
     @Test
     @DisplayName("§14 record() — signalPrice 0이면 저장 생략")
     void record_skipsWhenSignalPriceIsZero() {
-        tracker.record(3L, "KRW-BTC", "COMPOSITE_BREAKOUT", "SELL",
+        tracker.record(3L, "LIVE", "KRW-BTC", "COMPOSITE_BREAKOUT", "SELL",
                 BigDecimal.ZERO, new BigDecimal("50000000"), Instant.now());
 
         assertThat(driftRepo.findAll()).isEmpty();
@@ -77,11 +77,11 @@ class ExecutionDriftTrackerTest extends IntegrationTestBase {
     @DisplayName("§14 getRecentBySession() — 세션별 최근 기록 조회")
     void getRecentBySession_returnsSessionRecords() {
         Instant now = Instant.now();
-        tracker.record(10L, "KRW-BTC", "COMPOSITE_BREAKOUT", "SELL",
+        tracker.record(10L, "LIVE", "KRW-BTC", "COMPOSITE_BREAKOUT", "SELL",
                 new BigDecimal("50000000"), new BigDecimal("50050000"), now);
-        tracker.record(10L, "KRW-BTC", "COMPOSITE_BREAKOUT", "SELL",
+        tracker.record(10L, "LIVE", "KRW-BTC", "COMPOSITE_BREAKOUT", "SELL",
                 new BigDecimal("50000000"), new BigDecimal("49950000"), now.plusSeconds(1));
-        tracker.record(99L, "KRW-ETH", "COMPOSITE_MOMENTUM", "SELL",
+        tracker.record(99L, "LIVE", "KRW-ETH", "COMPOSITE_MOMENTUM", "SELL",
                 new BigDecimal("3000000"), new BigDecimal("3001000"), now.plusSeconds(2));
 
         List<ExecutionDriftLogEntity> session10 = tracker.getRecentBySession(10L);
@@ -93,9 +93,9 @@ class ExecutionDriftTrackerTest extends IntegrationTestBase {
     @DisplayName("§14 getWeeklyAvgSlippage() — 7일 평균 slippage 계산")
     void getWeeklyAvgSlippage_computesCorrectly() {
         // +0.2%, -0.1% → 평균 +0.05%
-        tracker.record(1L, "KRW-BTC", "COMPOSITE_BREAKOUT", "SELL",
+        tracker.record(1L, "LIVE", "KRW-BTC", "COMPOSITE_BREAKOUT", "SELL",
                 new BigDecimal("100000000"), new BigDecimal("100200000"), Instant.now());
-        tracker.record(1L, "KRW-BTC", "COMPOSITE_BREAKOUT", "SELL",
+        tracker.record(1L, "LIVE", "KRW-BTC", "COMPOSITE_BREAKOUT", "SELL",
                 new BigDecimal("100000000"), new BigDecimal("99900000"), Instant.now().plusSeconds(1));
 
         BigDecimal avg = tracker.getWeeklyAvgSlippage("COMPOSITE_BREAKOUT");
