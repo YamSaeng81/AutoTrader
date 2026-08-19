@@ -602,3 +602,7 @@ ALTER TABLE paper_trading.position ADD COLUMN IF NOT EXISTS invested_krw  DECIMA
 ALTER TABLE paper_trading.position ADD COLUMN IF NOT EXISTS session_kind  VARCHAR(20);
 ALTER TABLE kill_criteria_judgment ADD COLUMN IF NOT EXISTS ruleset_hash VARCHAR(16);
 ALTER TABLE execution_drift_log    ADD COLUMN IF NOT EXISTS session_kind VARCHAR(20);
+
+-- 세션별 전략 파라미터 (V74)
+ALTER TABLE dynamic_session ADD COLUMN IF NOT EXISTS strategy_params VARCHAR(4000);
+ALTER TABLE paper_trading.virtual_balance ADD COLUMN IF NOT EXISTS strategy_params VARCHAR(4000);

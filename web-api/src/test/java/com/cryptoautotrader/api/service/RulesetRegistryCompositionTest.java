@@ -61,6 +61,8 @@ class RulesetRegistryCompositionTest extends IntegrationTestBase {
             "gate.scanEma200BuyMarginPct=",
             "gate.scanWeakThreshold=",
             "gate.scanStrongThreshold=",
+            // 틱마다 읽어 전략에 넘기는 값 — V71 에서 빠져 있었다 (2026-08-19)
+            "gate.scanEmaDampenFactor=",
             "gate.consecutiveLossLimit=",
             "gate.maxPortfolioDrawdownPct=",
             "gate.cooldownMinutes=",
@@ -149,6 +151,35 @@ class RulesetRegistryCompositionTest extends IntegrationTestBase {
         paper.setTradingMode("PAPER");
 
         assertThat(registry.hashFor(real)).isNotEqualTo(registry.hashFor(paper));
+    }
+
+    @Test
+    @DisplayName("A/B: 세션 전략 파라미터가 다르면 지문이 갈린다 — 감쇠값 실험의 전제 조건")
+    void sessionStrategyParamsSplitFingerprint() {
+        DynamicSessionEntity control = dynamicSession();          // 파라미터 없음 = 대조군
+        DynamicSessionEntity variant = dynamicSession();
+        variant.setStrategyParams(java.util.Map.of("emaFilterDampenFactor", 0.5));
+
+        String a = registry.hashFor(control);
+        String b = registry.hashFor(variant);
+
+        assertThat(a)
+                .as("지문이 같으면 두 팔의 거래가 한 표본에 섞여 A/B 가 데이터를 망친다")
+                .isNotEqualTo(b);
+        assertThat(paramsOf(b)).contains("emaFilterDampenFactor");
+    }
+
+    @Test
+    @DisplayName("A/B: 같은 파라미터는 같은 지문 — 표기 차이로 팔이 쪼개지면 안 된다")
+    void sameSessionParamsKeepOneFingerprint() {
+        DynamicSessionEntity x = dynamicSession();
+        x.setStrategyParams(java.util.Map.of("emaFilterDampenFactor", 0.5));
+        DynamicSessionEntity y = dynamicSession();
+        y.setStrategyParams(java.util.Map.of("emaFilterDampenFactor", new java.math.BigDecimal("0.50")));
+
+        assertThat(registry.hashFor(x))
+                .as("0.5 와 0.50 이 다른 팔이 되면 표본이 반으로 쪼개진다")
+                .isEqualTo(registry.hashFor(y));
     }
 
     // ── helpers ───────────────────────────────────────────────────────────────

@@ -58,6 +58,16 @@ public class DynamicSessionRequest {
     private Integer maxHoldHours;
 
     /**
+     * 전략 파라미터 오버라이드 (V74, 2026-08-19) — A/B 실험용. 미지정이면 기존 동작
+     * (risk_config 전역값 → 코드 기본값)과 같다.
+     *
+     * <p>예: {@code {"emaFilterDampenFactor": 0.5}} — 역추세 BUY 를 전량 차단(0.0) 대신
+     * 절반만 감쇠한다. 이 값은 <b>규칙 지문에 실리므로</b> 같은 전략의 다른 파라미터는
+     * 별도 표본으로 집계된다.</p>
+     */
+    private java.util.Map<String, Object> strategyParams;
+
+    /**
      * REAL(실거래, 기본값) | PAPER(모의) — (2026-08-06).
      * PAPER는 전략/게이트/SL·TP/time stop을 REAL과 동일하게 적용하되 체결만 시뮬레이션한다.
      */

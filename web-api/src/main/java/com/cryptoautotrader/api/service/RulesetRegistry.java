@@ -127,9 +127,11 @@ public class RulesetRegistry {
     }
 
     public String hashFor(DynamicSessionEntity session) {
-        // DYNAMIC·PAPER 세션에는 strategy_params 컬럼이 없다 — 전략 파라미터가 세션별로
-        // 달라질 수 없으므로 지문에 담을 것도 없다. LIVE 만 세션별 오버라이드를 갖는다.
+        // V74 부터 동적 세션도 strategy_params 를 갖는다 (A/B 실험용). 이 값이 지문에
+        // 실려야 서로 다른 파라미터의 거래가 다른 표본으로 갈린다 — 안 실으면 A/B 가
+        // 오히려 데이터를 망친다.
         return register(base(session.isPaper() ? "DYN_PAPER" : "DYNAMIC")
+                .put("strategy.params", canonicalParams(session.getStrategyParams()))
                 .put("session.timeframe", session.getTimeframe())
                 .put("session.maxHoldHours", session.getMaxHoldHours())
                 .put("session.stopLossPct", session.getStopLossPct())
@@ -145,6 +147,7 @@ public class RulesetRegistry {
 
     public String hashFor(VirtualBalanceEntity session) {
         return register(base("PAPER")
+                .put("strategy.params", canonicalParams(session.getStrategyParams()))
                 .put("session.timeframe", session.getTimeframe())
                 .put("session.maxHoldHours", session.getMaxHoldHours())
                 .put("session.stopLossPct", session.getStopLossPct())
@@ -188,6 +191,9 @@ public class RulesetRegistry {
              .put("gate.scanEma200BuyMarginPct", rc.getScanEma200BuyMarginPct())
              .put("gate.scanWeakThreshold", rc.getScanWeakThreshold())
              .put("gate.scanStrongThreshold", rc.getScanStrongThreshold())
+             // 틱마다 읽어 전략에 넘기는 값인데 V71 에서 빠져 있었다 (2026-08-19 발견).
+             // 0.0 = 역추세 BUY 전량 차단, 1.0 = 무필터 — 신호 수를 통째로 바꾼다.
+             .put("gate.scanEmaDampenFactor", rc.getScanEmaDampenFactor())
              .put("gate.consecutiveLossLimit", rc.getConsecutiveLossLimit())
              .put("gate.maxPortfolioDrawdownPct", rc.getMaxPortfolioDrawdownPct())
              .put("gate.cooldownMinutes", rc.getCooldownMinutes());

@@ -1,6 +1,8 @@
 package com.cryptoautotrader.api.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -284,4 +286,22 @@ public class DynamicSessionEntity {
 
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
+
+    /**
+     * 세션별 전략 파라미터 오버라이드 (V74, 2026-08-19) — A/B 실험용.
+     *
+     * <p>{@code emaFilterDampenFactor}, {@code emaFilterDeadbandPct},
+     * {@code weakThreshold}, {@code strongThreshold} 등을 세션마다 다르게 줄 수 있다.
+     * 이 값들은 원래 {@code risk_config} 전역값이라 바꾸면 모든 세션이 함께 움직여
+     * 대조군을 만들 수 없었다.</p>
+     *
+     * <p>NULL 이면 기존 동작 그대로(전역값 → 코드 기본값)다. <b>지문에 실리므로</b>
+     * 서로 다른 파라미터의 거래는 다른 표본으로 갈린다 — 그게 A/B 의 전제다.</p>
+     */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "strategy_params", columnDefinition = "jsonb")
+    private java.util.Map<String, Object> strategyParams;
+
+    public java.util.Map<String, Object> getStrategyParams() { return strategyParams; }
+    public void setStrategyParams(java.util.Map<String, Object> v) { this.strategyParams = v; }
 }

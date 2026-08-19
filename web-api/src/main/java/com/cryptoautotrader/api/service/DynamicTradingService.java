@@ -4,6 +4,7 @@ import com.cryptoautotrader.api.dto.DynamicSessionRequest;
 import com.cryptoautotrader.api.dto.OrderRequest;
 import com.cryptoautotrader.api.entity.DynamicSellSettlementEntity;
 import com.cryptoautotrader.api.entity.ExitReason;
+import com.cryptoautotrader.api.util.IndicatorSnapshot;
 import com.cryptoautotrader.api.entity.DynamicSessionEntity;
 import com.cryptoautotrader.api.entity.PositionEntity;
 import com.cryptoautotrader.api.entity.StrategyLogEntity;
@@ -48,6 +49,7 @@ import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -410,6 +412,7 @@ public class DynamicTradingService {
                 .totalAssetKrw(req.getInitialCapital())
                 .investRatio(investRatio)
                 .stopLossPct(stopLoss)
+                .strategyParams(req.getStrategyParams())
                 .status("CREATED")
                 .scanState("SCANNING")
                 .tradingMode(isPaper ? "PAPER" : DynamicSessionEntity.DEFAULT_TRADING_MODE)
@@ -714,11 +717,17 @@ public class DynamicTradingService {
             lastEvaluatedCandle.put(candleKey, closedTime);
 
             Strategy strategy = resolveStrategy(sid, coinPair, session.getStrategyType());
-            StrategySignal signal = strategy.evaluate(evalCandles, Map.of(
-                    "coinPair", coinPair,
-                    "weakThreshold", scanWeakThreshold,
-                    "strongThreshold", scanStrongThreshold,
-                    "emaFilterDampenFactor", scanEmaDampenFactor));
+            // 전역 risk_config 값을 깔고, 세션 오버라이드(V74)가 있으면 덮는다.
+            // 세션값이 지문에 실리므로 같은 시간대에 두 파라미터를 나란히 돌려 비교할 수 있다.
+            Map<String, Object> evalParams = new HashMap<>();
+            evalParams.put("coinPair", coinPair);
+            evalParams.put("weakThreshold", scanWeakThreshold);
+            evalParams.put("strongThreshold", scanStrongThreshold);
+            evalParams.put("emaFilterDampenFactor", scanEmaDampenFactor);
+            if (session.getStrategyParams() != null) {
+                evalParams.putAll(session.getStrategyParams());
+            }
+            StrategySignal signal = strategy.evaluate(evalCandles, evalParams);
             BigDecimal evalPrice = evalCandles.get(evalCandles.size() - 1).getClose();
 
             // ── 진입 게이트 — BUY 실행만 차단하고 신호는 BUY로 보존한다 ─────────
@@ -836,7 +845,7 @@ public class DynamicTradingService {
             }
             if (signal.getAction() == StrategySignal.Action.SELL) sellCount++;
 
-            StrategyLogEntity signalLog = saveStrategyLog(session, session.getStrategyType(), coinPair, signal, evalPrice);
+            StrategyLogEntity signalLog = saveStrategyLog(session, session.getStrategyType(), coinPair, signal, evalPrice, evalCandles);
 
             if (signal.getAction() == StrategySignal.Action.BUY) {
                 if (gateBlockReason != null) {
@@ -1035,7 +1044,7 @@ public class DynamicTradingService {
 
         Strategy strategy = resolveStrategy(sid, coinPair, session.getStrategyType());
         StrategySignal signal = strategy.evaluate(evalCandles, Map.of("coinPair", coinPair));
-        StrategyLogEntity signalLog = saveStrategyLog(session, session.getStrategyType(), coinPair, signal, currentPrice);
+        StrategyLogEntity signalLog = saveStrategyLog(session, session.getStrategyType(), coinPair, signal, currentPrice, evalCandles);
 
         if (signal.getAction() == StrategySignal.Action.SELL) {
             long heldMin = pos.getOpenedAt() != null
@@ -1552,7 +1561,8 @@ public class DynamicTradingService {
      * 이전까지는 application log 에만 남고 DB에는 전혀 기록되지 않아 전략로그 화면이 비어 있었다.
      */
     private StrategyLogEntity saveStrategyLog(DynamicSessionEntity session, String strategyName, String coinPair,
-                                               StrategySignal signal, BigDecimal signalPrice) {
+                                               StrategySignal signal, BigDecimal signalPrice,
+                                               List<Candle> evalCandles) {
         try {
             BigDecimal conf = (signal.getAction() != StrategySignal.Action.HOLD && signal.getStrength() != null)
                     ? signal.getStrength().divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP)
@@ -1567,6 +1577,13 @@ public class DynamicTradingService {
                     .sessionId(session.getId())
                     .signalPrice(signalPrice)
                     .confidenceScore(conf)
+                    // 2026-08-19: DYNAMIC 은 레짐도 지표 스냅샷도 안 남기고 있었다.
+                    // 사후 분석이 reason 문자열 파싱에 의존하던 원인이다.
+                    .marketRegime(detectRegimeQuietly(evalCandles))
+                    .indicatorsJson(IndicatorSnapshot.of(evalCandles, true,
+                            evalCandles != null && !evalCandles.isEmpty()
+                                    ? evalCandles.get(evalCandles.size() - 1).getTime() : null,
+                            null))
                     .build();
             return strategyLogRepository.save(entity);
         } catch (Exception e) {
@@ -1894,6 +1911,17 @@ public class DynamicTradingService {
      * (페이퍼 경로에서 폴백하면 주문 행이 롤백에 휩쓸려 사라진 뒤 재시도마다 새 시퀀스 값이
      * 나오므로 멱등성이 깨진다. 그래서 페이퍼는 항상 exchangeOrderId 를 채운다.)</p>
      */
+    /** 로그용 레짐 판정 — 실패해도 매매를 막지 않는다. */
+    private String detectRegimeQuietly(List<Candle> candles) {
+        if (candles == null || candles.isEmpty()) return null;
+        try {
+            MarketRegime r = new MarketRegimeDetector().detectRaw(candles);
+            return r != null ? r.name() : null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     private static String settlementRef(PositionEntity pos, OrderEntity filledOrder) {
         String exchangeRef = filledOrder.getExchangeOrderId();
         if (exchangeRef != null && !exchangeRef.isBlank()) return exchangeRef;

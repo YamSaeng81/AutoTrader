@@ -659,6 +659,10 @@ public class PaperTradingService {
             if (session.getStartedAt() != null) {
                 params.put("sessionStartedAt", session.getStartedAt().toEpochMilli());
             }
+            // 세션 오버라이드(V74) — 지문에 실리므로 A/B 두 팔이 다른 표본으로 갈린다.
+            if (session.getStrategyParams() != null) {
+                params.putAll(session.getStrategyParams());
+            }
             signal = strategyInstance.evaluate(evalCandles, params);
             log.info("모의투자 신호 (sessionId={}): {} {} → {} ({})",
                     sessionId, strategyName, coinPair, signal.getAction(), signal.getReason());
@@ -696,6 +700,9 @@ public class PaperTradingService {
                         .signal(signal.getAction().name())
                         .reason(signal.getReason())
                         .marketRegime(preEvalRegime != null ? preEvalRegime.name() : null)
+                        // 2026-08-19: PAPER 로그 7,238건이 전부 indicators_json NULL 이었다.
+                        .indicatorsJson(com.cryptoautotrader.api.util.IndicatorSnapshot.of(
+                                evalCandles, lastCandleClosed, closedCandleTime, null))
                         .sessionType("PAPER")
                         .sessionId(sessionId)
                         // signalPrice 누락 시 SignalQualityService 사후 평가(4h/24h)에서 영구 제외된다

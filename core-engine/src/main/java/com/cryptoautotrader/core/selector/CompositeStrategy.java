@@ -44,6 +44,16 @@ public class CompositeStrategy implements Strategy {
      */
     private static final double DEFAULT_EMA_DAMPEN_FACTOR = 0.0;
 
+    /**
+     * EMA 추세 판정 데드밴드 (%) — 두 EMA 격차가 이 비율 이하이면 방향 없음으로 보고
+     * 어느 쪽 점수도 감쇠하지 않는다 (2026-08-19).
+     *
+     * <p>기본 0.05% 는 운영 로그 기반이다: 하락추세로 판정돼 BUY 가 0이 된 424건 중
+     * 격차 0.1% 미만이 192건이었고, 그중 임계값(0.3)을 넘겼을 점수는 6건이었다.
+     * 밴드를 0으로 주면 기존 동작(단순 대소 비교)과 같다.</p>
+     */
+    private static final double DEFAULT_EMA_DEADBAND_PCT = 0.05;
+
     /** ADX 횡보장 필터 기본 파라미터 */
     private static final int    DEFAULT_ADX_PERIOD    = 14;
     private static final double DEFAULT_ADX_THRESHOLD = 20.0;
@@ -230,6 +240,22 @@ public class CompositeStrategy implements Strategy {
             List<BigDecimal> closes = candles.stream().map(Candle::getClose).toList();
             BigDecimal emaShort = IndicatorUtils.ema(closes, DEFAULT_EMA_SHORT);
             BigDecimal emaLong  = IndicatorUtils.ema(closes, DEFAULT_EMA_LONG);
+            // 데드밴드 (2026-08-19): 단순 대소 비교는 EMA 격차가 0에 가까워도 추세로 판정한다.
+            // 운영 로그에서 0으로 죽은 BUY 424건 중 192건(45%)이 격차 0.1% 미만이었고
+            // 91건은 로그 정밀도에서 아예 동일했다 (EMA20=244 < EMA50=244). 사실상 횡보인데
+            // "하락추세" 로 분류돼 매수 점수가 통째로 사라진 것이다.
+            // 격차가 밴드 안이면 방향 없음으로 보고 어느 쪽도 감쇠하지 않는다.
+            double band = params != null
+                    ? StrategyParamUtils.getDouble(params, "emaFilterDeadbandPct", DEFAULT_EMA_DEADBAND_PCT)
+                    : DEFAULT_EMA_DEADBAND_PCT;
+            band = Math.max(0.0, band);
+
+            // band == 0 이면 flat 이 절대 성립하지 않아 수정 전 동작(단순 대소 비교)과 정확히 같다.
+            // A/B 의 대조군을 파라미터만으로 재현할 수 있어야 하므로 이 성질이 중요하다.
+            BigDecimal gap = emaShort.subtract(emaLong).abs();
+            BigDecimal ref = emaLong.abs();
+            boolean flat = band > 0.0 && (ref.signum() == 0 || gap.compareTo(
+                    ref.multiply(BigDecimal.valueOf(band / 100.0))) < 0);
             boolean uptrend = emaShort.compareTo(emaLong) > 0;
 
             double dampenFactor = params != null
@@ -237,7 +263,10 @@ public class CompositeStrategy implements Strategy {
                     : DEFAULT_EMA_DAMPEN_FACTOR;
             dampenFactor = Math.max(0.0, Math.min(1.0, dampenFactor));
 
-            if (uptrend && sellScore > 0) {
+            if (flat) {
+                detail += String.format(" [EMA필터: 방향없음(EMA%d≈EMA%d, 격차<%.2f%%) 감쇠 없음]",
+                        DEFAULT_EMA_SHORT, DEFAULT_EMA_LONG, band);
+            } else if (uptrend && sellScore > 0) {
                 double raw = sellScore;
                 sellScore *= dampenFactor;
                 detail += String.format(" [EMA필터: 상승추세(EMA%d=%.0f>EMA%d=%.0f) SELL %.2f→%.2f]",
