@@ -4,6 +4,7 @@ import com.cryptoautotrader.api.entity.DynamicSessionEntity;
 import com.cryptoautotrader.api.entity.LiveTradingSessionEntity;
 import com.cryptoautotrader.api.entity.RiskConfigEntity;
 import com.cryptoautotrader.api.entity.RulesetSnapshotEntity;
+import com.cryptoautotrader.core.selector.CompositeStrategy;
 import com.cryptoautotrader.api.entity.paper.VirtualBalanceEntity;
 import com.cryptoautotrader.api.repository.RulesetSnapshotRepository;
 import com.cryptoautotrader.api.util.TradingConstants;
@@ -174,6 +175,11 @@ public class RulesetRegistry {
         // 세 엔진이 SL/TP 를 **실제로** 계산하는 상수. exit.* (DB 설정) 과 별개다 —
         // DYNAMIC 은 ExitRuleConfig 를 참조조차 하지 않고 이 값들만 쓴다.
         ExitRuleCalculator.behaviorParams().forEach((k, v) -> b.put("exitcalc." + k, v));
+
+        // 복합 전략의 점수 임계·EMA 필터·ADX 필터 상수 (2026-08-19).
+        // gate.scanWeakThreshold 등이 지문에 있지만 운영에서 risk_config 값이 NULL 이라
+        // 실제로 쓰이는 건 이 코드 상수다 — 지문에는 null 만 적히고 있었다.
+        CompositeStrategy.behaviorParams().forEach((k, v) -> b.put("composite." + k, v));
 
         try {
             // 설정 엔티티를 **한 번만** 읽는다. getExitRuleConfig() 를 따로 부르면 내부에서

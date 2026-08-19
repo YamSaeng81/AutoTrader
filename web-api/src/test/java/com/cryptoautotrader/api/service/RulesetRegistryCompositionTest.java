@@ -49,6 +49,12 @@ class RulesetRegistryCompositionTest extends IntegrationTestBase {
             "exitcalc.slPctMax=",
             "exitcalc.tpRrMultiplier=",
             "exitcalc.tpPctMax=",
+            // 복합 전략 점수 임계·EMA 필터·ADX 필터 상수 (risk_config 가 NULL 이면 실제로 쓰이는 값)
+            "composite.weakThreshold=",
+            "composite.strongThreshold=",
+            "composite.defaultEmaDampenFactor=",
+            "composite.defaultEmaDeadbandPct=",
+            "composite.defaultAdxThreshold=",
             // 청산 설정 (ExitRuleConfig) — 대표 키
             "exit.stopLossPct=",
             "exit.trailingEnabled=",

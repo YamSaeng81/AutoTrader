@@ -9,6 +9,7 @@ import com.cryptoautotrader.strategy.StrategyParamUtils;
 import com.cryptoautotrader.strategy.StrategySignal;
 
 import java.math.BigDecimal;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -62,6 +63,34 @@ public class CompositeStrategy implements Strategy {
     private static final double ADX_DYNAMIC_PERCENTILE  = 0.30; // 30th percentile
     private static final double ADX_DYNAMIC_MIN         = 15.0; // 동적 임계 하한 (핫픽스 수준)
     private static final double ADX_DYNAMIC_MAX         = 25.0; // 동적 임계 상한
+
+    /**
+     * 매매 동작을 바꾸는 상수 전체 — 규칙 지문에 실린다 (2026-08-19).
+     *
+     * <p><b>왜 필요한가</b>: 이 값들은 코드 상수라 바꿔도 DB 설정이 그대로다. 지문에 없으면
+     * 값을 바꾼 전후 거래가 <b>같은 표본으로 합산</b>되어 성과 비교가 조용히 망가진다.
+     * {@code risk_config.scan_weak_threshold} 등이 지문에 있긴 하지만 운영에서 NULL 이라
+     * 실제로 쓰이는 값은 여기 상수다 — 지문에는 {@code null} 이 적히고 있었다.</p>
+     *
+     * <p>{@code ExitRuleCalculator.behaviorParams()} 와 같은 역할이다. 상수를 추가하면
+     * 리플렉션 가드 테스트가 깨져 여기 등록하도록 강제한다.</p>
+     */
+    public static Map<String, String> behaviorParams() {
+        Map<String, String> m = new LinkedHashMap<>();
+        m.put("strongThreshold",      Double.toString(STRONG_THRESHOLD));
+        m.put("weakThreshold",        Double.toString(WEAK_THRESHOLD));
+        m.put("defaultEmaShort",      Integer.toString(DEFAULT_EMA_SHORT));
+        m.put("defaultEmaLong",       Integer.toString(DEFAULT_EMA_LONG));
+        m.put("defaultEmaDampenFactor", Double.toString(DEFAULT_EMA_DAMPEN_FACTOR));
+        m.put("defaultEmaDeadbandPct",  Double.toString(DEFAULT_EMA_DEADBAND_PCT));
+        m.put("defaultAdxPeriod",     Integer.toString(DEFAULT_ADX_PERIOD));
+        m.put("defaultAdxThreshold",  Double.toString(DEFAULT_ADX_THRESHOLD));
+        m.put("adxDynamicWindow",     Integer.toString(ADX_DYNAMIC_WINDOW));
+        m.put("adxDynamicPercentile", Double.toString(ADX_DYNAMIC_PERCENTILE));
+        m.put("adxDynamicMin",        Double.toString(ADX_DYNAMIC_MIN));
+        m.put("adxDynamicMax",        Double.toString(ADX_DYNAMIC_MAX));
+        return m;
+    }
 
     private final String name;
     private final List<WeightedStrategy> strategies;

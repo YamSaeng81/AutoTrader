@@ -78,6 +78,27 @@ class CompositeStrategyEmaDeadbandTest {
                 .doesNotContain("방향없음");
     }
 
+    @Test
+    @DisplayName("가드: CompositeStrategy 의 모든 동작 상수가 지문에 실린다 (리플렉션)")
+    void everyBehaviourConstantIsFingerprinted() {
+        java.util.Map<String, String> exposed = CompositeStrategy.behaviorParams();
+
+        for (Field f : CompositeStrategy.class.getDeclaredFields()) {
+            int m = f.getModifiers();
+            if (!Modifier.isStatic(m) || !Modifier.isFinal(m) || f.isSynthetic()) continue;
+            Class<?> t = f.getType();
+            // 동작을 바꾸는 건 수치 상수뿐이다. 로거·이름 문자열 등은 대상이 아니다.
+            if (!(t == int.class || t == double.class || t == long.class || t == float.class)) continue;
+
+            assertThat(exposed)
+                    .as("CompositeStrategy.%s 가 지문에 없다 — 이 값을 바꾸면 해시가 그대로라 "
+                            + "변경 전후 거래가 한 표본에 합산된다. behaviorParams() 에 추가할 것.",
+                            f.getName())
+                    .containsKey(lowerCamel(f.getName()));
+        }
+        assertThat(exposed).isNotEmpty();
+    }
+
     // ── helpers ───────────────────────────────────────────────────────────────
 
     private String buySignalOn(List<Candle> candles) {
@@ -105,6 +126,16 @@ class CompositeStrategyEmaDeadbandTest {
                 return StrategySignal.buy(BigDecimal.valueOf(100), name + "-BUY");
             }
         };
+    }
+
+    /** {@code DEFAULT_EMA_DEADBAND_PCT} → {@code defaultEmaDeadbandPct} */
+    private static String lowerCamel(String screamingSnake) {
+        String[] parts = screamingSnake.toLowerCase(java.util.Locale.ROOT).split("_");
+        StringBuilder sb = new StringBuilder(parts[0]);
+        for (int i = 1; i < parts.length; i++) {
+            sb.append(Character.toUpperCase(parts[i].charAt(0))).append(parts[i].substring(1));
+        }
+        return sb.toString();
     }
 
     private static List<Candle> series(int n, IntToDoubleFunction priceAt) {

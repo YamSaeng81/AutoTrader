@@ -30,6 +30,38 @@
 
 ---
 
+## 🟢 2026-08-19 지문 구멍 마감 — `CompositeStrategy` 상수 12개 (`composite.*`)
+
+V74 배포 확인 중 **내가 방금 만든 구멍**을 발견했다. `DEFAULT_EMA_DEADBAND_PCT = 0.05` 를
+추가하면서 지문에 넣지 않았다 — 지문 체계를 만든 이유가 정확히 그건데 같은 실수를 했다.
+
+### 이론이 아니라 실제 구멍이었다
+
+같은 클래스에 동종 상수가 **12개** 있고 전부 지문 밖이었다. 그리고 이건 가정이 아니다:
+
+- 지문에는 `gate.scanWeakThreshold` 가 있지만 운영 `risk_config` 값이 **NULL** 이다
+- 즉 지문에 적히는 값은 `null` 이고, **실제로 쓰이는 건 코드 상수 `WEAK_THRESHOLD = 0.3`**
+- 이 상수를 바꾸면 해시가 그대로라 변경 전후 거래가 한 표본에 합산된다
+
+V71 검토 때 `ExitRuleCalculator` 에서 똑같은 걸 찾아 `exitcalc.*` 로 해결했는데
+이 클래스는 놓쳤다. 같은 패턴을 그대로 적용했다.
+
+### 조치
+
+- `CompositeStrategy.behaviorParams()` — 상수 12개 노출
+  (임계 2 + EMA 4 + ADX 6). `RulesetRegistry.base()` 에서 `composite.*` 로 싣는다.
+- 리플렉션 가드 — `static final` 수치 상수가 `behaviorParams()` 에 없으면 테스트가 깨진다.
+  **뮤테이션 검증**: 더미 상수 `MUTATION_PROBE_FACTOR` 를 추가하니 정확히 그 이름으로 실패했다.
+- `RulesetRegistryCompositionTest` 필수 키에 `composite.*` 5종 추가.
+- `:web-api:test` **356건**, `:core-engine:test` **209건** 전부 통과.
+
+### 배포 전까지 감쇠 상수를 건드리지 말 것
+
+지금 코드는 배포 전이라 운영 지문에 `composite.*` 가 없다. 이 상태에서 상수를 바꾸면
+해시가 안 변해 오늘 쌓이는 데이터가 조용히 섞인다. 배포 후에는 안전하다.
+
+---
+
 ## 🟢 2026-08-19 V74 — 감쇠 A/B 기반 + EMA 데드밴드 + 지문 구멍 1건
 
 원인 분해에서 나온 조치를 전부 반영했다. **감쇠값 자체는 바꾸지 않았다** — 이유는 아래.
