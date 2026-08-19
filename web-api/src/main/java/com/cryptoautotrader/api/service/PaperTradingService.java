@@ -27,6 +27,7 @@ import com.cryptoautotrader.strategy.Candle;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.cryptoautotrader.strategy.StrategyRegistry;
 import com.cryptoautotrader.strategy.StrategySignal;
+import com.cryptoautotrader.api.util.TradingConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -68,7 +69,7 @@ public class PaperTradingService {
     private static final BigDecimal FEE_RATE = new BigDecimal("0.0005");
     // 백테스트(BacktestEngine.MAX_LOOKBACK)·실거래(LiveTradingService.CANDLE_LOOKBACK)와 동일하게
     // 맞춰야 페이퍼 승격 판단이 실거래 신호와 같은 조건에서 검증된다.
-    private static final int CANDLE_LOOKBACK = 500;
+    private static final int CANDLE_LOOKBACK = TradingConstants.CANDLE_LOOKBACK;
 
     // ── LIVE 정렬 상수 (2026-08-06) ───────────────────────────────────────────
     // 아래 3개는 LiveTradingService의 동일 이름 상수와 값이 반드시 같아야 한다.
@@ -95,7 +96,7 @@ public class PaperTradingService {
      * 백테스트(`BacktestEngine`)가 쓰는 0.1%와 같은 값으로 맞춰 세 엔진(백테스트·페이퍼·실전)의
      * 체결 가정을 통일한다. 실측 슬리피지는 LIVE BTC 기준 0.1% 수준이었다.</p>
      */
-    private static final BigDecimal SLIPPAGE_PCT = new BigDecimal("0.001");
+    private static final BigDecimal SLIPPAGE_PCT = TradingConstants.PAPER_SLIPPAGE_PCT;
 
     /** Stateful 전략 세션별 인스턴스 (COMPOSITE, COMPOSITE_MOMENTUM 등 상태 보유 전략) */
     private final Map<Long, com.cryptoautotrader.strategy.Strategy> sessionStatefulStrategies = new ConcurrentHashMap<>();
@@ -114,6 +115,7 @@ public class PaperTradingService {
     private final PaperOrderRepository orderRepo;
     private final MarketDataCacheRepository marketDataCacheRepo;
     private final TelegramNotificationService telegramService;
+    private final RulesetRegistry rulesetRegistry;
     private final StrategyLogRepository strategyLogRepo;
     private final RiskManagementService riskManagementService;
     private final StrategyEnablementGate strategyEnablementGate;
@@ -687,6 +689,7 @@ public class PaperTradingService {
                         ? signal.getStrength().divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP)
                         : null;
                 StrategyLogEntity logEntity = StrategyLogEntity.builder()
+                        .rulesetHash(rulesetRegistry.hashFor(session))
                         .strategyName(strategyName)
                         .coinPair(coinPair)
                         .signal(signal.getAction().name())
@@ -864,7 +867,9 @@ public class PaperTradingService {
         BigDecimal takeProfitPrice = ExitRuleCalculator.resolveTakeProfitPrice(
                 price, stopLossPrice, signal != null ? signal.getSuggestedTakeProfit() : null);
 
+        String rulesetHash = rulesetRegistry.hashFor(session);
         PaperPositionEntity pos = PaperPositionEntity.builder()
+                .rulesetHash(rulesetHash)
                 .sessionId(sessionId)
                 .coinPair(coinPair)
                 .side("BUY")
@@ -1029,4 +1034,6 @@ public class PaperTradingService {
         }
         return BigDecimal.ZERO;
     }
+
+
 }

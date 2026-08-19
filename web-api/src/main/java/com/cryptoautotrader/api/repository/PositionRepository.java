@@ -252,15 +252,21 @@ public interface PositionRepository extends JpaRepository<PositionEntity, Long> 
      * <p>{@code investedKrw > 0} 필터는 체결되지 않은 고아 포지션을 표본에서 제외한다 —
      * 이게 없으면 최소 표본 {@code minTradesForEdgeTest} 가 빈 포지션으로 채워진다.</p>
      *
+     * <p><b>규칙 지문별로 나눠 집계한다</b>(V71). 규칙이 바뀌면 그 이전 거래는 다른 조건의
+     * 관측이므로 같은 표본에 합산하면 안 된다 — 이 분리가 없으면 규칙을 바꿀 때마다
+     * 과거 데이터를 버려야 한다.</p>
+     *
      * <p>각 행: [sessionKind(String), sessionId(Long), tradeCount(Long),
-     * sumRealizedPnl(BigDecimal), sumInvestedKrw(BigDecimal), winCount(Long)]</p>
+     * sumRealizedPnl(BigDecimal), sumInvestedKrw(BigDecimal), winCount(Long),
+     * rulesetHash(String, V71 이전 데이터는 null)]</p>
      */
     @Query("SELECT p.sessionKind, p.sessionId, COUNT(p), " +
            "       COALESCE(SUM(p.realizedPnl), 0), " +
            "       COALESCE(SUM(p.investedKrw), 0), " +
-           "       SUM(CASE WHEN p.realizedPnl > 0 THEN 1L ELSE 0L END) " +
+           "       SUM(CASE WHEN p.realizedPnl > 0 THEN 1L ELSE 0L END), " +
+           "       p.rulesetHash " +
            "FROM PositionEntity p " +
            "WHERE p.status = 'CLOSED' AND p.investedKrw > 0 AND p.sessionId IS NOT NULL " +
-           "GROUP BY p.sessionKind, p.sessionId")
+           "GROUP BY p.sessionKind, p.sessionId, p.rulesetHash")
     List<Object[]> aggregateClosedTradesPerSession();
 }

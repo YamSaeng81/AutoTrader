@@ -30,6 +30,114 @@
 
 ---
 
+## 🟢 2026-08-19 V71 배포 전 전면 검토 — 지문 체계의 결함 6건 수정
+
+> **맥락**: 규칙 지문(V71) 구현을 "다 됐다" 고 두 번 보고했다가 두 번 다 빠진 게 나왔다.
+> 세 번째로 같은 실수를 하지 않으려고 배포 전에 코드를 다시 훑었고, **6건이 더 나왔다.**
+> 그중 하나는 배포 블로커, 둘은 "동작하는 것처럼 보이지만 드리프트를 못 잡는" 유형이었다.
+
+### 1. 🔴 `@Transactional(REQUIRES_NEW)` 가 애초에 걸리지 않고 있었다 (배포 블로커)
+
+`RulesetRegistry.register()` 의 유일한 호출자가 같은 인스턴스의 `hashFor()` 였다.
+**자기호출은 Spring 프록시를 타지 않아 애노테이션이 조용히 무시된다.** 주석이 약속한 두 가지가
+정확히 반대로 동작하고 있었다:
+
+| 주석의 약속 | 실제 |
+|---|---|
+| 호출부가 롤백돼도 스냅샷은 남는다 | 같이 롤백된다. 그런데 `known` 은 메모리라 롤백되지 않아 재기동 전까지 재시도하지 않는다 → **원문 없는 지문**이 남는다 (이 클래스가 막으려던 바로 그 상태) |
+| 등록 실패가 매매를 막지 않는다 | 반대. PostgreSQL 은 트랜잭션 내 INSERT 실패 시 트랜잭션을 abort 로 만든다. `catch` 로 삼켜도 **바깥 매수 트랜잭션이 커밋에서 터진다** |
+
+→ `TransactionTemplate(PROPAGATION_REQUIRES_NEW)` 로 교체. 프록시를 거치지 않으므로 자기호출에서도
+확실히 분리된다. 실패한 지문은 `known` 에 넣지 **않아** 다음 거래에서 재시도한다.
+
+### 2. 🟠 지문이 엔진이 **실제로 쓰는** 청산 규칙을 담고 있지 않았다
+
+`exit.*` 16키는 `ExitRuleConfig`(DB 설정)에서 나오는데:
+
+- `getExitRuleConfig()` 가 DB에서 채우는 필드는 **6개뿐**, 나머지 10개는 코드 기본값
+- 세 엔진이 SL/TP 를 실제로 계산하는 곳은 **`ExitRuleCalculator` 의 static 상수 5개**
+  (`SL_ATR_PERIOD` 14 / `SL_ATR_MULTIPLIER` 1.5 / `SL_PCT_MAX` 8.0 / `TP_RR_MULTIPLIER` 2.0 / `TP_PCT_MAX` 8.0)
+- **`DynamicTradingService` 는 `ExitRuleConfig` 를 참조조차 하지 않는다** — 이 상수들만 쓴다
+
+즉 `SL_ATR_MULTIPLIER` 를 1.5 → 2.0 으로 바꿔 손절폭이 33% 넓어져도 지문이 그대로였다.
+08-07 워치리스트 회귀와 정확히 같은 유형이다.
+
+→ `ExitRuleCalculator.behaviorParams()` 신설, 지문에 `exitcalc.*` 5키 추가.
+
+### 3. 🟠 가드가 프로덕션 지문을 지키지 않았다
+
+앞서 "눈 대조를 그만뒀다" 며 추가한 `requiredKeysArePresent` 는 **테스트가 직접 만든 빌더**를
+검사하고 있었다. `RulesetRegistry.base()` 를 부르지 않으므로 거기서 `gate.*` 블록 10줄을 통째로
+지워도 깨지지 않았다. 가드를 만든 목적 자체를 달성하지 못하고 있었다.
+
+→ `RulesetRegistryCompositionTest` 신설 — 진짜 `RulesetRegistry` 빈이 남긴
+`ruleset_snapshot.params_text` 를 읽어 필수 키 26종을 검증한다. 값을 바꿨을 때 해시가 실제로
+갈리는지도 확인한다(`gate.cooldownMinutes`, `strategy.params`, 엔진).
+
+**변이 테스트로 가드가 진짜 깨지는지 확인했다** — `gate.cooldownMinutes` 한 줄과
+`behaviorParams()` 의 `slAtrMultiplier` 한 줄을 지우니 4개 테스트가 실패했다. 되돌린 뒤 전부 그린.
+
+### 4. 🟡 배포 직후 NO_SIGNAL 오경보 (코드로 차단)
+
+기존 거래는 전부 `ruleset_hash = NULL`, 세션은 새 해시를 받으므로 집계 키가 전부 미스 →
+**지문별 거래 수가 0으로 떨어진다.** 이건 의도된 동작("규칙 미상은 표본에서 제외")이지만,
+`NO_SIGNAL`(30일+거래 5건 미만)이 이 값을 보면 **멀쩡히 거래 중인 세션을 "자본이 놀고 있다"**
+고 경보한다.
+
+→ `SessionStats.tradeCountAllRulesets` 추가. **"우위가 있는가" 는 같은 규칙끼리만 물어야 하지만,
+"거래를 하기는 하는가" 는 규칙과 무관한 질문**이라 판정 입력을 나눴다.
+회귀 테스트 2건(`rulesetSplitDoesNotFakeNoSignal`, `genuinelyIdleSessionStillWarns`).
+
+### 5. 🟡 `strategy.params` 만 수치 정규화가 빠져 있었다
+
+빌더의 `put(String, BigDecimal)` 은 `stripTrailingZeros()` 로 `0.30 == 0.3` 을 보장하는데,
+전략 파라미터는 `TreeMap.toString()` 원본이라 **`14` 와 `14.0` 이 다른 지문**이 됐다.
+JSONB 역직렬화가 Integer/Double 중 무엇을 주느냐에 따라 규칙이 안 바뀌었는데 표본이 쪼개진다.
+
+→ `normalize()` 재귀 함수로 수치·중첩 맵·컬렉션 정규화. 리스트는 순서가 의미를 가지므로 정렬하지 않는다.
+
+### 6. 🟡 전략 로그 1건당 `risk_config` SELECT 2회
+
+`hashFor()` → `base()` 에서 `getExitRiskConfig()` 와 `getRiskConfig()` 를 각각 불러 같은 행을 두 번 읽었다.
+`known` 캐시는 해시 계산이 **끝난 뒤에** 확인하므로 SELECT 를 막지 못한다.
+전략 로그는 틱마다 코인마다 쓰이므로 페이퍼 112세션 기준 틱당 224회였다.
+
+→ `RiskManagementService.toExitRuleConfig(RiskConfigEntity)` 오버로드 분리, 설정을 1회만 읽는다.
+`known` 캐시 확인도 트랜잭션을 열기 **전으로** 옮겼다.
+
+### 정정
+
+앞선 보고에서 "`gate.*` 11키" 라고 했으나 **10개**다.
+
+### 지문 최종 구성 (38키)
+
+| 그룹 | 키 수 | 출처 |
+|---|---|---|
+| `engine` + `engine.*` | 3 | 엔진명 · `CANDLE_LOOKBACK` · `WATCHLIST_ALLOWED_SPREAD_TICKS` |
+| `exitcalc.*` | 5 | **`ExitRuleCalculator` 상수 — 실제 SL/TP 계산** (신규) |
+| `exit.*` | 16 | `ExitRuleConfig` (DB 6 + 코드 기본값 10) |
+| `gate.*` | 10 | `risk_config` 진입 게이트 |
+| `session.*` | 4 | 타임프레임 · 보유시간 · 손절 · 투자비율 |
+| `scan.*` | 4 | 워치리스트 필터 (DYNAMIC) |
+| `strategy.params` | 1 | 전략 튜닝값 (LIVE) |
+| `paper.slippagePct` | 1 | 체결 가정 (PAPER) |
+
+### 검증
+
+`:web-api:test` **338건 그린**(실패 0, 스킵 3 — 330 → +8), `:core-engine:test` 그린.
+
+### 배포 후 확인할 것
+
+1. `ruleset_snapshot` 에 행이 생기는가 (첫 거래·첫 전략로그 시점)
+2. 신규 `position.ruleset_hash` / `paper_trading.position.ruleset_hash` / `strategy_log.ruleset_hash` 가 채워지는가
+3. `[Ruleset] 지문 원문 저장 실패` WARN 이 로그에 없는가
+4. 09:00 판정에서 NO_SIGNAL 오경보가 없는가
+
+⚠️ **`kill-criteria.auto-stop` 은 계속 `false` 로 둔다.** 지문별 표본이 다시 쌓이기 전까지
+엣지 판정(B)은 표본 미달로 발동하지 않는 것이 정상이다.
+
+---
+
 ## 🔴 2026-08-18 운영 DB 세션 분석 (08-07 재기동 후 11일차)
 
 > 운영 DB(`yhpapa.iptime.org:8432`) 직접 조회. 기준시각 2026-08-18 08:30 KST.
@@ -597,6 +705,132 @@ H1·M15 분리 판정 / 페이퍼 자본 보호 / 낙폭 생략.
 | 닫힌 캔들 게이트 이름 불일치 | 순수 리네이밍. 우선순위 낮음 |
 
 **검증**: `:web-api:test` **309건 그린**(실패 0, 스킵 3 — 293 → +16).
+
+---
+
+## 🔴 2026-08-19 데이터 신뢰성 — 규칙 지문(ruleset fingerprint) 도입
+
+> 사용자 지적: "수개월 프로젝트인데 계속 수정할 게 나오고, 데이터를 쌓아도 폐기하고 다시 만들고
+> 폐기하고를 반복한다." **맞았고, 원인은 새 버그가 아니라 기록의 부재였다.**
+
+### 진단 — 같은 문제를 반복해서 다시 발견하고 있었다
+
+동적 세션 필터 파라미터를 세션 생성일별로 보면:
+
+| 생성일 | `min_atr_pct` | `max_spread_pct` | 후보 | 세션 |
+|---|---|---|---|---|
+| 07-09 | **0.30** | **0.15** | **50** | 32~37 |
+| 07-31 | **0.30** | **0.15** | 30 | 39~45 |
+| **08-07** | **0.50** | **0.10** | 30 | 46~53 |
+
+**7월에 이미 이 문제를 발견하고 필터를 완화했었다.** 그런데 08-07 "PAPER↔LIVE 정렬" 작업에서
+세션을 재생성하면서 **코드 하드코딩 기본값으로 조용히 되돌아갔다.** 감시 코인이 주당
+62종 → 10종으로 붕괴했지만 알림도 기록도 없었다.
+
+**실패 모드: 수정이 세션 행(row)에 저장돼 있어서, 세션을 다시 만들면 사라진다.**
+
+### 왜 데이터를 계속 버리게 되는가
+
+`position` 314행 전부 `strategy_config_id = NULL`. `strategy_log` 에는 설정 컬럼이 아예 없었다.
+→ **어떤 규칙 아래 만들어진 데이터인지 기록이 없다.** 규칙 변경을 나중에 알면 어디까지가
+옛 규칙인지 구분할 수 없어 전부 버리는 수밖에 없었다.
+
+데이터가 틀린 게 아니라 **라벨이 없었다.** 그런데 라벨이 없으면 틀린 것과 구분되지 않는다.
+
+### 조치 (V71)
+
+| # | 항목 | 내용 |
+|---|---|---|
+| 1 | [`RulesetFingerprint`](../core-engine/src/main/java/com/cryptoautotrader/core/risk/RulesetFingerprint.java) | 거동에 영향 주는 파라미터 → 12자 해시. 청산 규칙 16개 + 진입 게이트 11개 + 세션 설정 + 워치리스트 필터 |
+| 2 | 데이터 스탬프 | `position` · `paper_trading.position` · `strategy_log` 에 `ruleset_hash`. 3엔진 6개 생성 지점 전부 배선 |
+| 3 | [`ruleset_snapshot`](../web-api/src/main/resources/db/migration/V71__add_ruleset_fingerprint.sql) | 지문 → 파라미터 원문 역참조. 지문당 1행 |
+| 4 | kill criteria | 집계 키에 지문 추가. **세션의 현재 규칙과 같은 지문의 거래만** 표본에 넣는다 |
+| 5 | `risk_config` 승격 | `scan_min_atr_pct` · `scan_max_spread_pct` · `scan_max_candidate_size`. 요청 > risk_config > 코드 기본값 |
+
+**5번이 08-07 회귀를 직접 막는다** — 튜닝이 전역 설정에 있으면 세션 재생성에도 살아남는다.
+
+지문 계산은 [`RulesetRegistry`](../web-api/src/main/java/com/cryptoautotrader/api/service/RulesetRegistry.java)
+**한 곳에만** 둔다. 처음엔 세 엔진에 각각 넣었다가 되돌렸다 — 그러면 한 엔진에만 파라미터를
+추가하는 순간 서로 다른 규칙이 같은 지문을 갖게 되고, 지문 체계 자체가 거짓말이 된다.
+kill criteria 도 같은 메서드를 쓴다.
+
+### 무엇이 달라지는가
+
+```
+V71 이전:  규칙 변경 → 어디까지가 옛 규칙인지 모름 → 전부 폐기
+V71 이후:  규칙 변경 → 지문이 갈림 → 표본 분할, 데이터는 남음
+```
+
+| 검증 (테스트로 고정) | |
+|---|---|
+| 08-07 회귀 재현 | ATR 0.30/스프레드 0.15 ≠ 0.50/0.10 → 다른 지문 |
+| 08-18 청산 게이트 변경 | −1.00 ≠ −0.30 → 다른 지문 |
+| 엔진 구분 | 파라미터가 같아도 LIVE ≠ PAPER (체결 가정이 다르다) |
+| 스케일 무시 | 0.30 == 0.3 (무의미한 표본 분할 방지) |
+| 옛 규칙 손실 20건 | 현재 판정에 **불참** → KEEP. 데이터 20건은 그대로 남음 |
+| 지문 없는 거래 | "규칙 미상" → 표본 제외. **소급 추정하지 않는다** |
+
+### 한계 — 정직하게
+
+- **08-19 이전 데이터는 `ruleset_hash = NULL` 로 남는다.** 소급 추정하지 않는다 — 근거가 없고,
+  "미상" 을 "특정 규칙" 으로 위장하는 것이 더 나쁘다. 즉 **어제까지의 34거래는 실질적으로 못 쓴다.**
+  다만 그건 오늘 만든 것 때문이 아니라 원래 그랬던 것이고, 이제 그 사실을 알 수 있다는 게 차이다.
+- 지문에 담기지 않은 파라미터를 바꾸면 지문이 그대로라 서로 다른 규칙이 한 표본에 섞인다.
+  **새 파라미터를 도입하면 `RulesetRegistry.base()` 에 반드시 추가할 것.**
+
+### 1차 적용 후 재점검에서 나온 누락 (사용자 확인 요청으로 발견)
+
+"1~5 다 했나" 확인 요청에 대조해 보니 **2·3·4만 완성이고 1·5는 절반이었다.**
+같은 착오가 이번 대화에서 두 번 반복됐다 — 사람이 체크리스트를 눈으로 대조하는 방식이 실패하고 있다.
+
+| 누락 | 영향 |
+|---|---|
+| 진입 게이트 11개 파라미터 | 08-07 회귀가 정확히 이 유형인데 지문에 안 잡혔다 |
+| `strategy_params` (LIVE 세션별 전략 튜닝) | **같은 전략을 다르게 튜닝해도 같은 지문** — 지문 체계의 목적이 반쯤 무너진다 |
+| `CANDLE_LOOKBACK` · `ALLOWED_SPREAD_TICKS` | 지표 계산 구간과 감시 종목 선정을 바꾸는데 미포함 |
+| `risk_config` 승격 (5번) | 컬럼만 만들고 **읽는 코드가 없어 효과 0** — 회귀 방지가 작동하지 않았다 |
+| `strategy_log` 스탬프 | 컬럼만 있고 아무도 안 씀 |
+
+### 그리고 이번 작업이 만든 새 중복
+
+```
+PaperTradingService.SLIPPAGE_PCT         = 0.001
+DynamicTradingService.PAPER_SLIPPAGE_PCT = 0.001
+RulesetRegistry.PAPER_SLIPPAGE_PCT       = 0.001   ← 지문을 만들면서 새로 추가
+```
+
+**하루 종일 고친 게 이 패턴인데 하나를 더 만들었다.** 한 곳만 바뀌면 지문이 실제 체결 가정과
+어긋나고, 그건 지문이 거짓말을 하는 것이라 가장 나쁜 종류다.
+`CANDLE_LOOKBACK` 도 4곳(LIVE·DYNAMIC·PAPER·BacktestEngine)에 500 으로 복제돼 있었고
+PAPER 주석에는 "동일하게 맞춰야 한다" 는 **수동 동기화 지시**만 있었다.
+
+→ [`TradingConstants`](../web-api/src/main/java/com/cryptoautotrader/api/util/TradingConstants.java) 로
+`CANDLE_LOOKBACK` · `PAPER_SLIPPAGE_PCT` · `WATCHLIST_ALLOWED_SPREAD_TICKS` 단일 출처화.
+`BacktestConfig.slippagePct` 는 같은 0.1% 를 <b>퍼센트 단위</b>(0.1)로 써서 그대로 합치면
+100배 오차가 난다 — 통합하지 않고 양쪽 javadoc 에 경고를 남겼다.
+
+### 기계 가드 — 눈 대조를 그만둔다
+
+같은 누락이 세 번째 나지 않도록 검증을 자동화했다:
+
+| 가드 | 무엇을 잡나 |
+|---|---|
+| `RulesetFingerprintTest.everyExitRuleFieldIsFingerprinted` | **리플렉션**으로 `ExitRuleConfig` 전 필드가 지문에 있는지 검사. 새 필드를 추가하고 지문에 안 넣으면 빌드가 깨진다 |
+| `RulesetFingerprintTest.requiredKeysArePresent` | 리플렉션으로 못 잡는 키(engine·scan·candleLookback 등)를 명시 목록으로 고정 |
+| `EngineParityTest.sharedConstantsAreNotRehardcoded` | 세 엔진 소스에 상수 리터럴이 다시 박히면 실패 |
+| `EngineParityTest.candleLookbackIsIdenticalAcrossEngines` | 공통 상수 참조 여부 + 백테스트와 값 일치 |
+
+### 지문에 담지 않기로 한 것 (사유 고정)
+
+- **비세션 포지션** (`OrderExecutionEngine` 의 `positionId` 없는 수동/전역 주문) —
+  세션이 없으므로 "적용된 매매 규칙" 이라는 것이 존재하지 않는다. `sessionId` 가 null 이라
+  kill criteria 집계에서도 제외된다. 소스에 주석으로 못박아 다음 감사에서 오탐이 되지 않게 했다.
+- **DYNAMIC·PAPER 의 `strategy_params`** — 그 두 세션 테이블에는 해당 컬럼이 없다.
+  전략 파라미터가 세션별로 달라질 수 없으므로 담을 것이 없다. LIVE 만 오버라이드를 갖는다.
+
+**검증**: `:web-api:test` **330건 그린**(실패 0, 스킵 3 — 316 → +14).
+신규 [`RulesetFingerprintTest`](../web-api/src/test/java/com/cryptoautotrader/api/service/RulesetFingerprintTest.java) 9종 +
+`KillCriteriaPaperVisibilityTest` 표본 분할 2종 + `EngineParityTest` 상수 가드 2종.
 
 ---
 

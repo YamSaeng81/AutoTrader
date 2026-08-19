@@ -95,7 +95,17 @@ public class RiskManagementService {
      */
     @Transactional(readOnly = true)
     public ExitRuleConfig getExitRuleConfig() {
-        RiskConfigEntity cfg = getRiskConfig();
+        return toExitRuleConfig(getRiskConfig());
+    }
+
+    /**
+     * 이미 읽어둔 설정 엔티티로 {@link ExitRuleConfig} 를 만든다.
+     *
+     * <p>{@link #getExitRuleConfig()} 는 내부에서 {@link #getRiskConfig()} 를 한 번 더 읽는다.
+     * 같은 호출부에서 설정 엔티티와 청산 규칙이 <b>둘 다</b> 필요하면(예: 규칙 지문 계산)
+     * SELECT 가 2회 나가므로, 그런 곳은 이 오버로드를 써서 1회로 줄인다.</p>
+     */
+    public ExitRuleConfig toExitRuleConfig(RiskConfigEntity cfg) {
         BigDecimal pct100 = BigDecimal.valueOf(100);
         return ExitRuleConfig.builder()
                 .stopLossPct(cfg.getStopLossPct() != null ? cfg.getStopLossPct() : new BigDecimal("5.0"))

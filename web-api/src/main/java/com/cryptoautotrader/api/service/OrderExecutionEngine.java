@@ -585,7 +585,12 @@ public class OrderExecutionEngine {
                                 "BUY", order.getSignalPrice(), avgFillPrice, Instant.now()));
             }
         } else {
-            // positionId 없는 비세션 주문만 새 포지션 생성
+            // positionId 없는 비세션 주문만 새 포지션 생성.
+            //
+            // ruleset_hash(V71)를 찍지 않는다 — 세션이 없으므로 적용된 매매 규칙이라는 것이
+            // 존재하지 않는다. sessionId 가 null 이라 kill criteria 집계
+            // (aggregateClosedTradesPerSession 의 sessionId IS NOT NULL 조건)에서도 제외된다.
+            // 지문 없는 행을 만든다고 착각하지 말 것 — 표본에 들어가지 않는 수동/전역 포지션이다.
             PositionEntity pos = PositionEntity.builder()
                     .coinPair(order.getCoinPair())
                     .side("LONG")

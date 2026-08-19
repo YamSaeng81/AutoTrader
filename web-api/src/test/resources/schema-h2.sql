@@ -567,3 +567,17 @@ CREATE TABLE IF NOT EXISTS kill_criteria_judgment (
     return_pct        DECIMAL(10,2),
     auto_stop_applied BOOLEAN       NOT NULL DEFAULT FALSE
 );
+
+-- 규칙 지문 (V71)
+CREATE TABLE IF NOT EXISTS ruleset_snapshot (
+    ruleset_hash  VARCHAR(16)  PRIMARY KEY,
+    engine        VARCHAR(20)  NOT NULL,
+    params_text   CLOB         NOT NULL,
+    first_seen_at TIMESTAMP    NOT NULL
+);
+ALTER TABLE position               ADD COLUMN IF NOT EXISTS ruleset_hash VARCHAR(16);
+ALTER TABLE paper_trading.position ADD COLUMN IF NOT EXISTS ruleset_hash VARCHAR(16);
+ALTER TABLE strategy_log           ADD COLUMN IF NOT EXISTS ruleset_hash VARCHAR(16);
+ALTER TABLE risk_config ADD COLUMN IF NOT EXISTS scan_min_atr_pct        DECIMAL(6,4);
+ALTER TABLE risk_config ADD COLUMN IF NOT EXISTS scan_max_spread_pct     DECIMAL(6,4);
+ALTER TABLE risk_config ADD COLUMN IF NOT EXISTS scan_max_candidate_size INT;

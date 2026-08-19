@@ -7,7 +7,9 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * LIVE·DYNAMIC 두 트레이딩 서비스가 공유하는 청산 규칙 계산 — 신호 기대값 검증 게이트에
@@ -72,6 +74,36 @@ final class ExitRuleCalculator {
      * 명목 손익비보다 실현되는 TP가 낫다.</p>
      */
     private static final BigDecimal TP_PCT_MAX = new BigDecimal("8.0");
+
+    /**
+     * 이 클래스가 매매 거동에 쓰는 상수 전체 — 규칙 지문({@code RulesetRegistry})에 담긴다.
+     *
+     * <h3>왜 별도로 노출하는가</h3>
+     * <p>지문의 {@code exit.*} 키는 {@code ExitRuleConfig}(DB 설정)에서 나오는데,
+     * <b>세 엔진이 SL/TP 를 실제로 계산하는 곳은 여기다.</b> LIVE·DYNAMIC·PAPER 모두
+     * {@link #resolveStopLossPct}/{@link #resolveTakeProfitPrice} 를 호출하고,
+     * DYNAMIC 은 {@code ExitRuleConfig} 를 아예 참조하지 않는다.</p>
+     *
+     * <p>따라서 이 상수들이 지문 밖에 있으면 {@code SL_ATR_MULTIPLIER} 를 1.5 → 2.0 으로
+     * 바꿔 손절폭이 33% 넓어져도 지문이 그대로다 — <b>서로 다른 규칙의 거래가 한 표본에
+     * 섞인다.</b> 08-07 워치리스트 회귀와 정확히 같은 유형의 사고다.</p>
+     *
+     * <p>새 상수를 추가하면 여기에도 넣을 것. 빠뜨리면
+     * {@code RulesetFingerprintTest.everyExitCalculatorConstantIsFingerprinted} 가 깨진다.</p>
+     */
+    static Map<String, String> behaviorParams() {
+        Map<String, String> m = new LinkedHashMap<>();
+        m.put("slAtrPeriod", Integer.toString(SL_ATR_PERIOD));
+        m.put("slAtrMultiplier", plain(SL_ATR_MULTIPLIER));
+        m.put("slPctMax", plain(SL_PCT_MAX));
+        m.put("tpRrMultiplier", plain(TP_RR_MULTIPLIER));
+        m.put("tpPctMax", plain(TP_PCT_MAX));
+        return m;
+    }
+
+    private static String plain(BigDecimal v) {
+        return v.stripTrailingZeros().toPlainString();
+    }
 
     /**
      * 손절폭(%) 결정 — {@code clamp(ATR(14)/가격 × 배수, floorPct, SL_PCT_MAX)}.

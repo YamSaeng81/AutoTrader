@@ -36,13 +36,17 @@ public interface PaperPositionRepository extends JpaRepository<PaperPositionEnti
      * (public.position 의 {@code invested_krw > 0} 필터에 대응 — 페이퍼 테이블에는
      * invested_krw 컬럼이 없다).</p>
      *
-     * <p>각 행: [sessionId(Long), tradeCount(Long), sumRealizedPnl(BigDecimal), winCount(Long)]</p>
+     * <p>규칙 지문별로 나눠 집계한다(V71) — 규칙이 다르면 다른 표본이다.</p>
+     *
+     * <p>각 행: [sessionId(Long), tradeCount(Long), sumRealizedPnl(BigDecimal), winCount(Long),
+     * rulesetHash(String, V71 이전 데이터는 null)]</p>
      */
     @Query("SELECT p.sessionId, COUNT(p), " +
            "       COALESCE(SUM(p.realizedPnl), 0), " +
-           "       SUM(CASE WHEN p.realizedPnl > 0 THEN 1L ELSE 0L END) " +
+           "       SUM(CASE WHEN p.realizedPnl > 0 THEN 1L ELSE 0L END), " +
+           "       p.rulesetHash " +
            "FROM PaperPositionEntity p " +
            "WHERE p.status = 'CLOSED' AND p.size > 0 AND p.sessionId IS NOT NULL " +
-           "GROUP BY p.sessionId")
+           "GROUP BY p.sessionId, p.rulesetHash")
     List<Object[]> aggregateClosedTradesPerSession();
 }

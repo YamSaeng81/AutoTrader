@@ -39,6 +39,7 @@ class KillCriteriaPaperVisibilityTest extends IntegrationTestBase {
     @Autowired private StrategyKillCriteriaService killCriteriaService;
     @Autowired private VirtualBalanceRepository balanceRepo;
     @Autowired private PaperPositionRepository paperPositionRepo;
+    @Autowired private RulesetRegistry rulesetRegistry;
 
     @BeforeEach
     @AfterEach
@@ -60,10 +61,16 @@ class KillCriteriaPaperVisibilityTest extends IntegrationTestBase {
                 .build());
     }
 
-    /** size > 0 이라야 표본에 잡힌다 — 체결되지 않은 고아 포지션 제외 규칙. */
-    private void closedTrade(Long sessionId, String coinPair, String realizedPnl) {
+    /**
+     * size &gt; 0 이라야 표본에 잡힌다 — 체결되지 않은 고아 포지션 제외 규칙.
+     *
+     * <p>규칙 지문(V71)도 함께 찍는다. 지문이 없으면 "규칙 미상" 으로 표본에서 제외되는 것이
+     * 정상 동작이라, 스탬프 없이 만들면 거래가 세어지지 않는다.</p>
+     */
+    private void closedTrade(VirtualBalanceEntity session, String coinPair, String realizedPnl) {
         paperPositionRepo.saveAndFlush(PaperPositionEntity.builder()
-                .sessionId(sessionId)
+                .sessionId(session.getId())
+                .rulesetHash(rulesetRegistry.hashFor(session))
                 .coinPair(coinPair)
                 .side("BUY")
                 .entryPrice(new BigDecimal("1000"))
@@ -100,7 +107,7 @@ class KillCriteriaPaperVisibilityTest extends IntegrationTestBase {
         for (String coin : coins) {
             VirtualBalanceEntity s = paperSession(coin, "H1", "9900000");
             for (int i = 0; i < 4; i++) {
-                closedTrade(s.getId(), coin, "-50000");
+                closedTrade(s, coin, "-50000");
             }
         }
 
@@ -119,12 +126,12 @@ class KillCriteriaPaperVisibilityTest extends IntegrationTestBase {
     void h1AndM15AreJudgedSeparately() {
         for (String coin : new String[]{"KRW-SOL", "KRW-BTC", "KRW-DOGE", "KRW-LINK", "KRW-ADA"}) {
             VirtualBalanceEntity h1 = paperSession(coin, "H1", "9900000");
-            for (int i = 0; i < 4; i++) closedTrade(h1.getId(), coin, "-50000");
+            for (int i = 0; i < 4; i++) closedTrade(h1, coin, "-50000");
         }
         // M15 는 표본 미달(세션당 1거래 × 5 = 5) — 판정 대상이 아니다
         for (String coin : new String[]{"KRW-SOL", "KRW-BTC", "KRW-DOGE", "KRW-LINK", "KRW-ADA"}) {
             VirtualBalanceEntity m15 = paperSession(coin, "M15", "10050000");
-            closedTrade(m15.getId(), coin, "10000");
+            closedTrade(m15, coin, "10000");
         }
 
         List<Judgment> judgments = killCriteriaService.evaluateAll();
@@ -163,5 +170,66 @@ class KillCriteriaPaperVisibilityTest extends IntegrationTestBase {
         assertThat(j.verdict())
                 .as("고점 정보가 없는데 낙폭을 판정하면 근거 없는 폐기가 된다")
                 .isEqualTo(Verdict.KEEP);
+    }
+
+    @Test
+    @DisplayName("규칙 지문이 없는 거래는 표본에서 제외된다 — V71 이전 데이터")
+    void unstampedTradesAreExcluded() {
+        // 규칙이 바뀌면 옛 거래는 "다른 조건의 관측" 이다. 지문이 없으면 어느 조건인지
+        // 알 수 없으므로 합산하지 않는다 — 이 배제가 없으면 규칙 변경 때마다 데이터를
+        // 통째로 버려야 했던 과거 문제로 되돌아간다.
+        String[] coins = {"KRW-SOL", "KRW-BTC", "KRW-DOGE", "KRW-LINK", "KRW-ADA"};
+        for (String coin : coins) {
+            VirtualBalanceEntity s = paperSession(coin, "H1", "9900000");
+            for (int i = 0; i < 4; i++) {
+                paperPositionRepo.saveAndFlush(PaperPositionEntity.builder()
+                        .sessionId(s.getId())
+                        .rulesetHash(null)           // 지문 없음
+                        .coinPair(coin).side("BUY")
+                        .entryPrice(new BigDecimal("1000")).avgPrice(new BigDecimal("1000"))
+                        .size(new BigDecimal("1.5")).realizedPnl(new BigDecimal("-50000"))
+                        .status("CLOSED")
+                        .openedAt(Instant.now().minus(2, ChronoUnit.DAYS))
+                        .closedAt(Instant.now().minus(1, ChronoUnit.DAYS))
+                        .build());
+            }
+        }
+
+        List<Judgment> judgments = killCriteriaService.evaluateAll();
+
+        assertThat(judgments).hasSize(5);
+        assertThat(judgments).allSatisfy(j -> assertThat(j.verdict())
+                .as("지문 없는 20거래가 세어졌다면 규칙이 섞인 표본으로 폐기 판정한 것이다")
+                .isEqualTo(Verdict.KEEP));
+    }
+
+    @Test
+    @DisplayName("규칙이 바뀌면 표본이 분할된다 — 폐기가 아니라 재출발")
+    void rulesetChangePartitionsSampleInsteadOfDiscarding() {
+        // 옛 규칙에서 20거래를 쌓아 폐기 조건을 채운 뒤, 규칙이 바뀌면(지문이 갈리면)
+        // 그 거래들은 현재 표본에서 빠진다. 데이터는 남아 있고 판정만 리셋된다.
+        String[] coins = {"KRW-SOL", "KRW-BTC", "KRW-DOGE", "KRW-LINK", "KRW-ADA"};
+        for (String coin : coins) {
+            VirtualBalanceEntity s = paperSession(coin, "H1", "9900000");
+            for (int i = 0; i < 4; i++) {
+                paperPositionRepo.saveAndFlush(PaperPositionEntity.builder()
+                        .sessionId(s.getId())
+                        .rulesetHash("oldrule0001")   // 지금과 다른 규칙
+                        .coinPair(coin).side("BUY")
+                        .entryPrice(new BigDecimal("1000")).avgPrice(new BigDecimal("1000"))
+                        .size(new BigDecimal("1.5")).realizedPnl(new BigDecimal("-50000"))
+                        .status("CLOSED")
+                        .openedAt(Instant.now().minus(2, ChronoUnit.DAYS))
+                        .closedAt(Instant.now().minus(1, ChronoUnit.DAYS))
+                        .build());
+            }
+        }
+
+        assertThat(killCriteriaService.evaluateAll()).allSatisfy(j -> assertThat(j.verdict())
+                .as("옛 규칙의 손실 20건으로 현재 규칙을 폐기하면 안 된다")
+                .isEqualTo(Verdict.KEEP));
+
+        // 데이터 자체는 남아 있다 — 버려진 게 아니라 분리된 것이다
+        assertThat(paperPositionRepo.count()).isEqualTo(20);
     }
 }

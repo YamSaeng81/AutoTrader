@@ -180,4 +180,43 @@ class EngineParityTest {
                 .as("DYNAMIC 에 공유 캐시가 생겼다면 결함 해소 — 이 테스트를 갱신할 것")
                 .isFalse();
     }
+
+    // ── 상수 단일 출처 가드 ────────────────────────────────────────────────────
+
+    /**
+     * 세 엔진이 같은 값을 써야 하는 상수를 <b>각자 하드코딩하지 못하게</b> 막는다.
+     *
+     * <p>{@code CANDLE_LOOKBACK} 은 LIVE·DYNAMIC·PAPER·BacktestEngine 네 곳에 각각 500 으로
+     * 박혀 있었고, PAPER 주석에는 "백테스트·실거래와 동일하게 맞춰야 한다" 는 <b>수동 동기화
+     * 지시</b>만 있었다. {@code SLIPPAGE_PCT} 도 세 곳에 0.001 로 복제돼 있었다 —
+     * 그중 하나는 2026-08-19 에 규칙 지문을 만들면서 내가 새로 추가한 것이었다.</p>
+     *
+     * <p>지문이 실제 거동과 어긋나면 지문이 거짓말을 하는 것이라 가장 나쁜 종류의 결함이 된다.</p>
+     */
+    @ParameterizedTest(name = "[{0}] 리터럴 하드코딩 금지 — TradingConstants 참조")
+    @CsvSource({
+            "캔들 조회 개수,   CANDLE_LOOKBACK = 500",
+            "모의 슬리피지,    SLIPPAGE_PCT = new BigDecimal(\"0.001\")",
+    })
+    @DisplayName("공통 상수는 TradingConstants 단일 출처를 쓴다")
+    void sharedConstantsAreNotRehardcoded(String label, String literal) {
+        for (String engine : new String[]{"Live", "Dynamic", "Paper"}) {
+            assertThat(source(engine))
+                    .as("%s — %s 에 리터럴이 다시 박혔다. TradingConstants 를 참조할 것", label, engine)
+                    .doesNotContain(literal);
+        }
+    }
+
+    @Test
+    @DisplayName("세 엔진의 CANDLE_LOOKBACK 이 실제로 같은 값이다")
+    void candleLookbackIsIdenticalAcrossEngines() {
+        assertThat(com.cryptoautotrader.api.util.TradingConstants.CANDLE_LOOKBACK)
+                .as("백테스트 BacktestEngine.MAX_LOOKBACK 과도 같아야 한다 — 다르면 같은 전략이 "
+                        + "백테스트와 실거래에서 다른 지표값을 본다")
+                .isEqualTo(500);
+        for (String engine : new String[]{"Live", "Dynamic", "Paper"}) {
+            assertThat(has(engine, "TradingConstants.CANDLE_LOOKBACK"))
+                    .as("%s 가 공통 상수를 참조하지 않는다", engine).isTrue();
+        }
+    }
 }

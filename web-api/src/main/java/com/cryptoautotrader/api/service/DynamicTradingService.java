@@ -27,6 +27,7 @@ import com.cryptoautotrader.strategy.StrategySignal;
 import com.cryptoautotrader.api.entity.OrderEntity;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.cryptoautotrader.api.util.TradingConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -74,7 +75,7 @@ public class DynamicTradingService {
     // 낼 수 없었다(2026-07-01 실전 로그 분석 — 해당 전략 세션 100% "데이터 부족"). 라이브 매매
     // (LiveTradingService.CANDLE_LOOKBACK)·백테스트(BacktestEngine.MAX_LOOKBACK)와 동일하게
     // 500으로 맞춰 백테스트·실거래 신호 괴리를 줄인다.
-    private static final int CANDLE_LOOKBACK = 500;
+    private static final int CANDLE_LOOKBACK = TradingConstants.CANDLE_LOOKBACK;
     private static final List<String> ACTIVE_ORDER_STATES = List.of("PENDING", "SUBMITTED", "PARTIAL_FILLED");
     private static final long MIN_HOLD_MINUTES = 180;
 
@@ -174,7 +175,7 @@ public class DynamicTradingService {
      * PAPER 체결 슬리피지(0.1%) — {@code PaperTradingService}와 동일 값으로 세 엔진
      * (백테스트·페이퍼·실전)의 체결 가정을 통일한다. 매수는 불리하게 높게, 매도는 낮게 체결시킨다.
      */
-    private static final BigDecimal PAPER_SLIPPAGE_PCT = new BigDecimal("0.001");
+    private static final BigDecimal PAPER_SLIPPAGE_PCT = TradingConstants.PAPER_SLIPPAGE_PCT;
 
     /**
      * 진입(SCANNING) 완화 파라미터 — SCANNING(신규 진입) 경로에만 적용하고,
@@ -221,6 +222,7 @@ public class DynamicTradingService {
     private final WatchlistFilterService watchlistFilterService;
     private final OrderExecutionEngine orderExecutionEngine;
     private final TelegramNotificationService telegramService;
+    private final RulesetRegistry rulesetRegistry;
     private final ObjectMapper objectMapper;
     private final DynamicSessionBalanceUpdater balanceUpdater;
     private final StrategyLogRepository strategyLogRepository;
@@ -335,6 +337,7 @@ public class DynamicTradingService {
                                   WatchlistFilterService watchlistFilterService,
                                   OrderExecutionEngine orderExecutionEngine,
                                   TelegramNotificationService telegramService,
+                                  RulesetRegistry rulesetRegistry,
                                   ObjectMapper objectMapper,
                                   DynamicSessionBalanceUpdater balanceUpdater,
                                   StrategyLogRepository strategyLogRepository,
@@ -350,6 +353,7 @@ public class DynamicTradingService {
         this.watchlistFilterService = watchlistFilterService;
         this.orderExecutionEngine = orderExecutionEngine;
         this.telegramService      = telegramService;
+        this.rulesetRegistry      = rulesetRegistry;
         this.objectMapper         = objectMapper;
         this.balanceUpdater       = balanceUpdater;
         this.strategyLogRepository = strategyLogRepository;
@@ -407,10 +411,17 @@ public class DynamicTradingService {
                 .status("CREATED")
                 .scanState("SCANNING")
                 .tradingMode(isPaper ? "PAPER" : DynamicSessionEntity.DEFAULT_TRADING_MODE)
-                .maxCandidateSize(req.getMaxCandidateSize() != null ? req.getMaxCandidateSize() : 30)
+                                .maxCandidateSize(firstNonNull(req.getMaxCandidateSize(),
+                        scanDefaults().getScanMaxCandidateSize(), 30))
                 .targetWatchSize(req.getTargetWatchSize() != null ? req.getTargetWatchSize() : 10)
-                .minAtrPct(req.getMinAtrPct() != null ? req.getMinAtrPct() : new BigDecimal("0.5"))
-                .maxSpreadPct(req.getMaxSpreadPct() != null ? req.getMaxSpreadPct() : new BigDecimal("0.1"))
+                // 워치리스트 필터 기본값: 요청 > risk_config > 코드 하드코딩 (V71).
+                // risk_config 를 중간에 둔 이유 — 08-07 세션 재생성 때 7월의 튜닝
+                // (ATR 0.30 / 스프레드 0.15)이 코드 기본값으로 조용히 되돌아가 감시 코인이
+                // 주당 62종 → 10종으로 붕괴했다. 전역 설정은 재생성에도 살아남는다.
+                .minAtrPct(firstNonNull(req.getMinAtrPct(),
+                        scanDefaults().getScanMinAtrPct(), new BigDecimal("0.5")))
+                .maxSpreadPct(firstNonNull(req.getMaxSpreadPct(),
+                        scanDefaults().getScanMaxSpreadPct(), new BigDecimal("0.1")))
                 .watchlistRefreshMin(req.getWatchlistRefreshMin() != null ? req.getWatchlistRefreshMin() : 60)
                 .maxHoldHours(req.getMaxHoldHours() != null
                         ? req.getMaxHoldHours()
@@ -1157,7 +1168,9 @@ public class DynamicTradingService {
         BigDecimal takeProfitPrice = ExitRuleCalculator.resolveTakeProfitPrice(
                 currentPrice, stopLossPrice, signal.getSuggestedTakeProfit());
 
+        String rulesetHash = rulesetRegistry.hashFor(session);
         PositionEntity posTemplate = PositionEntity.builder()
+                .rulesetHash(rulesetHash)
                 .coinPair(coinPair)
                 .side("BUY")
                 .entryPrice(currentPrice)
@@ -1513,6 +1526,7 @@ public class DynamicTradingService {
                     ? signal.getStrength().divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP)
                     : null;
             StrategyLogEntity entity = StrategyLogEntity.builder()
+                    .rulesetHash(rulesetRegistry.hashFor(session))
                     .strategyName(strategyName)
                     .coinPair(coinPair)
                     .signal(signal.getAction().name())
@@ -2243,4 +2257,21 @@ public class DynamicTradingService {
         }
         return raw.max(new BigDecimal("0.01")).min(BigDecimal.ONE);
     }
+
+    /** 워치리스트 기본값 조회용 — risk_config 가 없으면 빈 엔티티(전부 null)를 돌려준다. */
+    private com.cryptoautotrader.api.entity.RiskConfigEntity scanDefaults() {
+        try {
+            return riskManagementService.getRiskConfig();
+        } catch (Exception e) {
+            log.debug("[Dynamic] risk_config 조회 실패, 코드 기본값 사용: {}", e.getMessage());
+            return new com.cryptoautotrader.api.entity.RiskConfigEntity();
+        }
+    }
+
+    @SafeVarargs
+    private static <T> T firstNonNull(T... values) {
+        for (T v : values) if (v != null) return v;
+        return null;
+    }
+
 }

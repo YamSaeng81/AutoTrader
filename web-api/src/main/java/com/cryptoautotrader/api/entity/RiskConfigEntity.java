@@ -135,6 +135,25 @@ public class RiskConfigEntity {
     @Column(name = "scan_exclude_crashing")
     private Boolean scanExcludeCrashing;
 
+    /**
+     * 신규 동적 세션의 {@code min_atr_pct} 기본값 (V71). NULL 이면 코드 기본값.
+     *
+     * <p><b>왜 여기 있나</b>: 08-07 회귀의 직접 원인은 이 값이 <b>세션 행에만</b> 살았다는 것이다.
+     * 07-09·07-31 세션은 완화된 값(0.30)으로 만들어졌는데, 08-07 세션 재생성 때 코드
+     * 하드코딩 기본값(0.50)으로 조용히 돌아갔고 감시 코인이 주당 62종 → 10종으로 붕괴했다.
+     * 전역 설정에 두면 세션을 다시 만들어도 살아남는다.</p>
+     */
+    @Column(name = "scan_min_atr_pct", precision = 6, scale = 4)
+    private BigDecimal scanMinAtrPct;
+
+    /** 신규 동적 세션의 {@code max_spread_pct} 기본값 (V71). NULL 이면 코드 기본값. */
+    @Column(name = "scan_max_spread_pct", precision = 6, scale = 4)
+    private BigDecimal scanMaxSpreadPct;
+
+    /** 신규 동적 세션의 {@code max_candidate_size} 기본값 (V71). NULL 이면 코드 기본값. */
+    @Column(name = "scan_max_candidate_size")
+    private Integer scanMaxCandidateSize;
+
     @PrePersist
     void prePersist() {
         if (updatedAt == null) updatedAt = Instant.now();
@@ -236,6 +255,15 @@ public class RiskConfigEntity {
 
     public BigDecimal getScanMaxAtrPct() { return scanMaxAtrPct; }
     public void setScanMaxAtrPct(BigDecimal scanMaxAtrPct) { this.scanMaxAtrPct = scanMaxAtrPct; }
+
+    public BigDecimal getScanMinAtrPct() { return scanMinAtrPct; }
+    public void setScanMinAtrPct(BigDecimal v) { this.scanMinAtrPct = v; }
+
+    public BigDecimal getScanMaxSpreadPct() { return scanMaxSpreadPct; }
+    public void setScanMaxSpreadPct(BigDecimal v) { this.scanMaxSpreadPct = v; }
+
+    public Integer getScanMaxCandidateSize() { return scanMaxCandidateSize; }
+    public void setScanMaxCandidateSize(Integer v) { this.scanMaxCandidateSize = v; }
 
     public Boolean getScanRequireUptrend() { return scanRequireUptrend; }
     public void setScanRequireUptrend(Boolean scanRequireUptrend) { this.scanRequireUptrend = scanRequireUptrend; }

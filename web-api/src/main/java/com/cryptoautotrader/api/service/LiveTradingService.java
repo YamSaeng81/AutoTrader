@@ -23,6 +23,7 @@ import com.cryptoautotrader.strategy.Candle;
 import com.cryptoautotrader.strategy.IndicatorUtils;
 import com.cryptoautotrader.strategy.StrategyRegistry;
 import com.cryptoautotrader.strategy.StrategySignal;
+import com.cryptoautotrader.api.util.TradingConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -89,7 +90,7 @@ public class LiveTradingService {
 
     private static final int MAX_CONCURRENT_SESSIONS = 10;
     // 백테스트(BacktestEngine.MAX_LOOKBACK=500)와 동일하게 맞춰 백테스트·실거래 신호 괴리를 줄인다.
-    private static final int CANDLE_LOOKBACK = 500;
+    private static final int CANDLE_LOOKBACK = TradingConstants.CANDLE_LOOKBACK;
     private static final BigDecimal FEE_RATE = new BigDecimal("0.0005");
 
     // ExitRuleConfig는 DB에서 동적 로드 — exitConfig() 메서드 사용
@@ -164,6 +165,7 @@ public class LiveTradingService {
     private final PositionService positionService;
     private final ExchangeHealthMonitor exchangeHealthMonitor;
     private final TelegramNotificationService telegramService;
+    private final RulesetRegistry rulesetRegistry;
     private final StrategyLogRepository strategyLogRepository;
     private final RiskManagementService riskManagementService;
     private final ApplicationEventPublisher eventPublisher;
@@ -986,6 +988,7 @@ public class LiveTradingService {
                         ? signal.getStrength().divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP)
                         : null;
                 StrategyLogEntity logEntity = StrategyLogEntity.builder()
+                        .rulesetHash(rulesetRegistry.hashFor(session))
                         .strategyName(strategyType)
                         .coinPair(coinPair)
                         .signal(signal.getAction().name())
@@ -1249,7 +1252,9 @@ public class LiveTradingService {
         // 포지션 생성 (세션 연결)
         // size=0 으로 초기화: 주문 체결(FILLED) 후 handleBuyFill()에서 실제 체결 수량으로 갱신됨
         // 체결 전 size=0 이므로 updateSessionUnrealizedPnl()에서 totalAssetKrw가 가격에 따라 변동하지 않음
+        String rulesetHash = rulesetRegistry.hashFor(session);
         PositionEntity pos = PositionEntity.builder()
+                .rulesetHash(rulesetHash)
                 .coinPair(coinPair)
                 .side("BUY")
                 .entryPrice(price)
@@ -2783,5 +2788,6 @@ public class LiveTradingService {
             log.warn("Discord 복구 알림 전송 실패: {}", e.getMessage());
         }
     }
+
 
 }

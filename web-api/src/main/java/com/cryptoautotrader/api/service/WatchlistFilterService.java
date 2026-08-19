@@ -5,6 +5,7 @@ import com.cryptoautotrader.exchange.upbit.UpbitCandleCollector;
 import com.cryptoautotrader.exchange.upbit.UpbitRestClient;
 import com.cryptoautotrader.strategy.Candle;
 import com.cryptoautotrader.strategy.IndicatorUtils;
+import com.cryptoautotrader.api.util.TradingConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -213,7 +214,7 @@ public class WatchlistFilterService {
      * 최소 호가 단위(틱)의 몇 배까지 허용할지. {@code maxSpreadPct} 로는 도달할 수 없는
      * 저가 코인을 구제하는 하한선이다 — 2틱이면 "호가가 거의 붙어 있다" 로 본다.
      */
-    private static final BigDecimal ALLOWED_SPREAD_TICKS = new BigDecimal("2");
+    private static final BigDecimal ALLOWED_SPREAD_TICKS = TradingConstants.WATCHLIST_ALLOWED_SPREAD_TICKS;
 
     /**
      * 호가 스프레드 필터 — <b>퍼센트 임계와 틱 상대 임계 중 느슨한 쪽</b>을 적용한다.

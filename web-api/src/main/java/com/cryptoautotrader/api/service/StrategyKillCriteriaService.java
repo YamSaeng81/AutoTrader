@@ -67,6 +67,7 @@ public class StrategyKillCriteriaService {
     private final StrategyTypeEnabledRepository strategyTypeEnabledRepo;
     private final KillCriteriaJudgmentRepository judgmentRepo;
     private final BenchmarkAlphaService benchmarkAlphaService;
+    private final RulesetRegistry rulesetRegistry;
     private final LiveTradingService liveTradingService;
     private final DynamicTradingService dynamicTradingService;
     private final PaperTradingService paperTradingService;
@@ -83,6 +84,7 @@ public class StrategyKillCriteriaService {
             StrategyTypeEnabledRepository strategyTypeEnabledRepo,
             KillCriteriaJudgmentRepository judgmentRepo,
             BenchmarkAlphaService benchmarkAlphaService,
+            RulesetRegistry rulesetRegistry,
             LiveTradingService liveTradingService,
             DynamicTradingService dynamicTradingService,
             PaperTradingService paperTradingService,
@@ -96,6 +98,7 @@ public class StrategyKillCriteriaService {
         this.strategyTypeEnabledRepo = strategyTypeEnabledRepo;
         this.judgmentRepo = judgmentRepo;
         this.benchmarkAlphaService = benchmarkAlphaService;
+        this.rulesetRegistry = rulesetRegistry;
         this.liveTradingService = liveTradingService;
         this.dynamicTradingService = dynamicTradingService;
         this.paperTradingService = paperTradingService;
@@ -158,13 +161,19 @@ public class StrategyKillCriteriaService {
      */
     @Transactional(readOnly = true)
     public List<Judgment> evaluateAll() {
-        Map<String, long[]> counts = new HashMap<>();          // kind:id → [n, wins]
-        Map<String, BigDecimal> pnlSums = new HashMap<>();     // kind:id → sumRealizedPnl
+        // 키에 규칙 지문을 포함한다 (V71). 세션의 <b>현재</b> 규칙과 같은 지문의 거래만 센다 —
+        // 규칙이 바뀐 뒤에도 옛 거래를 합산하면 "다른 조건의 관측" 으로 판정하는 셈이 된다.
+        // 지문이 NULL 인 V71 이전 거래는 규칙 미상이므로 자연히 제외된다.
+        Map<String, long[]> counts = new HashMap<>();          // kind:id:hash → [n, wins]
+        Map<String, BigDecimal> pnlSums = new HashMap<>();     // kind:id:hash → sumRealizedPnl
+        // NO_SIGNAL 전용 — 지문을 가로질러 합산한다. "거래를 하기는 하는가" 는 규칙과 무관하다.
+        Map<String, Long> totals = new HashMap<>();            // kind:id → n
 
         for (Object[] row : positionRepository.aggregateClosedTradesPerSession()) {
-            String key = row[0] + ":" + row[1];
+            String key = row[0] + ":" + row[1] + ":" + row[6];
             counts.put(key, new long[]{ toLong(row[2]), toLong(row[5]) });
             pnlSums.put(key, toBigDecimal(row[3]));
+            totals.merge(row[0] + ":" + row[1], toLong(row[2]), Long::sum);
         }
 
         Instant now = Instant.now();
@@ -172,43 +181,51 @@ public class StrategyKillCriteriaService {
 
         for (LiveTradingSessionEntity s : liveSessionRepo.findByStatus("RUNNING")) {
             all.add(statsOf("LIVE", s.getId(), s.getStrategyType(), s.getTimeframe(),
+                    rulesetRegistry.hashFor(s),
                     "LIVE#" + s.getId() + " " + s.getStrategyType() + " " + s.getCoinPair()
                             + "@" + s.getTimeframe(),
                     s.getInitialCapital(), s.getTotalAssetKrw(), s.getMddPeakCapital(),
-                    s.getCircuitBreakerTripCount(), s.getStartedAt(), now, counts, pnlSums));
+                    s.getCircuitBreakerTripCount(), s.getStartedAt(), now, counts, pnlSums, totals));
         }
 
         for (DynamicSessionEntity s : dynamicSessionRepo.findByStatus("RUNNING")) {
             // 포지션의 session_kind 는 REAL="DYNAMIC", PAPER="DYN_PAPER" 로 갈린다 (V67)
             String kind = s.isPaper() ? "DYN_PAPER" : "DYNAMIC";
             all.add(statsOf(kind, s.getId(), s.getStrategyType(), s.getTimeframe(),
+                    rulesetRegistry.hashFor(s),
                     kind + "#" + s.getId() + " " + s.getStrategyType() + "@" + s.getTimeframe(),
                     s.getInitialCapital(), s.getTotalAssetKrw(), s.getMddPeakCapital(),
-                    s.getCircuitBreakerTripCount(), s.getStartedAt(), now, counts, pnlSums));
+                    s.getCircuitBreakerTripCount(), s.getStartedAt(), now, counts, pnlSums, totals));
         }
 
         // 모의투자(PaperTradingService)는 paper_trading 스키마를 따로 쓴다 — 세션도 포지션도
         // 위 두 루프에 걸리지 않는다. 2026-08-19 에 이게 빠져 있어 페이퍼 112세션 전체가
         // 판정 대상 밖이었다(데이터를 만드는 곳과 판정하는 곳이 분리돼 있었다).
-        Map<Long, long[]> paperCounts = new HashMap<>();       // sessionId → [n, wins]
-        Map<Long, BigDecimal> paperPnl = new HashMap<>();
+        Map<String, long[]> paperCounts = new HashMap<>();     // PAPER:id:hash → [n, wins]
+        Map<String, BigDecimal> paperPnl = new HashMap<>();
+        Map<String, Long> paperTotals = new HashMap<>();       // PAPER:id → n (지문 무관)
         for (Object[] row : paperPositionRepo.aggregateClosedTradesPerSession()) {
-            Long sid = ((Number) row[0]).longValue();
-            paperCounts.put(sid, new long[]{ toLong(row[1]), toLong(row[3]) });
-            paperPnl.put(sid, toBigDecimal(row[2]));
+            long sid = ((Number) row[0]).longValue();
+            String key = "PAPER:" + sid + ":" + row[4];
+            paperCounts.put(key, new long[]{ toLong(row[1]), toLong(row[3]) });
+            paperPnl.put(key, toBigDecimal(row[2]));
+            paperTotals.merge("PAPER:" + sid, toLong(row[1]), Long::sum);
         }
         for (VirtualBalanceEntity s : virtualBalanceRepo.findByStatusOrderByStartedAtAsc("RUNNING")) {
-            long[] c = paperCounts.getOrDefault(s.getId(), new long[]{0L, 0L});
+            String hash = rulesetRegistry.hashFor(s);
+            long[] c = paperCounts.getOrDefault("PAPER:" + s.getId() + ":" + hash, new long[]{0L, 0L});
             long days = s.getStartedAt() == null ? 0
                     : Duration.between(s.getStartedAt(), now).toDays();
             // mddPeakCapital 은 virtual_balance 에 없다 → null 을 넘겨 MAX_DRAWDOWN 판정만 생략된다.
             // 서킷브레이커도 페이퍼에는 없으므로 0.
-            all.add(new SessionStats("PAPER", s.getId(), s.getStrategyName(), s.getTimeframe(),
+            all.add(new SessionStats("PAPER", s.getId(), s.getStrategyName(), s.getTimeframe(), hash,
                     "PAPER#" + s.getId() + " " + s.getStrategyName() + " " + s.getCoinPair()
                             + "@" + s.getTimeframe(),
                     s.getInitialCapital(), s.getTotalKrw(), null, 0,
-                    (int) c[0], (int) c[1], paperPnl.getOrDefault(s.getId(), BigDecimal.ZERO),
-                    s.getStartedAt(), days));
+                    (int) c[0], (int) c[1],
+                    paperPnl.getOrDefault("PAPER:" + s.getId() + ":" + hash, BigDecimal.ZERO),
+                    s.getStartedAt(), days,
+                    paperTotals.getOrDefault("PAPER:" + s.getId(), 0L).intValue()));
         }
 
         // ── A: 세션별 자본 보호 판정 ──────────────────────────────
@@ -249,7 +266,8 @@ public class StrategyKillCriteriaService {
      */
     private static String groupKey(SessionStats st) {
         return st.sessionKind() + "/" + st.strategyType()
-                + "@" + (st.timeframe() == null ? "?" : st.timeframe());
+                + "@" + (st.timeframe() == null ? "?" : st.timeframe())
+                + "#" + (st.rulesetHash() == null ? "?" : st.rulesetHash());
     }
 
     private static Map<String, List<SessionStats>> groupByStrategyTimeframe(List<SessionStats> all) {
@@ -319,18 +337,21 @@ public class StrategyKillCriteriaService {
         return null;
     }
 
-    private SessionStats statsOf(String kind, Long id, String strategyType, String timeframe, String label,
+    private SessionStats statsOf(String kind, Long id, String strategyType, String timeframe,
+                                 String rulesetHash, String label,
                                  BigDecimal initialCapital, BigDecimal totalAsset, BigDecimal mddPeak,
                                  int cbTripCount, Instant startedAt, Instant now,
-                                 Map<String, long[]> counts, Map<String, BigDecimal> pnlSums) {
-        String key = kind + ":" + id;
+                                 Map<String, long[]> counts, Map<String, BigDecimal> pnlSums,
+                                 Map<String, Long> totals) {
+        String key = kind + ":" + id + ":" + rulesetHash;
         long[] c = counts.getOrDefault(key, new long[]{0L, 0L});
         long runningDays = startedAt == null ? 0 : Duration.between(startedAt, now).toDays();
 
-        return new SessionStats(kind, id, strategyType, timeframe, label,
+        return new SessionStats(kind, id, strategyType, timeframe, rulesetHash, label,
                 initialCapital, totalAsset, mddPeak, cbTripCount,
                 (int) c[0], (int) c[1], pnlSums.getOrDefault(key, BigDecimal.ZERO),
-                startedAt, runningDays);
+                startedAt, runningDays,
+                totals.getOrDefault(kind + ":" + id, 0L).intValue());
     }
 
     /**
@@ -371,10 +392,13 @@ public class StrategyKillCriteriaService {
         // minTradesForEdgeTest 에 280일이 걸려 기준이 발동하지 않는다(decideEdge 주석 참조).
 
         // ── C. 판정 불가 (경보만) ─────────────────────────────────
-        if (st.runningDays() >= cfg.getNoSignalDays() && st.tradeCount() < cfg.getNoSignalMinTrades()) {
+        // 지문 무관 거래 수를 본다 — "거래를 하기는 하는가" 는 규칙과 무관한 질문이고,
+        // 규칙이 바뀐 직후 지문별 표본이 0이 되는 것을 "거래가 없다" 로 오독하면 안 된다.
+        if (st.runningDays() >= cfg.getNoSignalDays()
+                && st.tradeCountAllRulesets() < cfg.getNoSignalMinTrades()) {
             return new Judgment(st, Verdict.WARN, "NO_SIGNAL", String.format(
                     "%d일 운영에 종료 거래 %d건 — 검증 자체가 불가능하고 자본이 놀고 있다 (회수 후보)",
-                    st.runningDays(), st.tradeCount()));
+                    st.runningDays(), st.tradeCountAllRulesets()));
         }
 
         return new Judgment(st, Verdict.KEEP, "OK", String.format(
@@ -560,12 +584,40 @@ public class StrategyKillCriteriaService {
         KILL
     }
 
-    /** 판정 입력 — 세션 하나의 상태 스냅샷. */
+    /**
+     * 판정 입력 — 세션 하나의 상태 스냅샷.
+     *
+     * @param rulesetHash 이 세션의 <b>현재</b> 매매 규칙 지문(V71). 이 지문과 같은 거래만
+     *                    표본에 들어간다 — 규칙이 바뀌면 옛 거래는 다른 조건의 관측이다.
+     */
+    /**
+     * @param tradeCount            <b>현재 규칙 지문의</b> 종료 거래 수. 엣지·성과 판정용.
+     * @param tradeCountAllRulesets 지문과 무관한 이 세션의 전체 종료 거래 수. NO_SIGNAL 전용.
+     *                              <p>둘을 나눈 이유: "우위가 있는가" 는 같은 규칙끼리만 물어야 하지만,
+     *                              "이 세션이 거래를 하기는 하는가" 는 규칙과 무관한 질문이다.
+     *                              V71 배포 직후에는 과거 거래의 {@code ruleset_hash} 가 전부 NULL 이라
+     *                              {@code tradeCount} 가 0으로 떨어지는데, 이때 NO_SIGNAL 이
+     *                              {@code tradeCount} 를 보면 <b>멀쩡히 거래 중인 세션을 "자본이 놀고 있다"
+     *                              고 경보한다</b> — 규칙이 바뀐 것을 거래가 없는 것으로 오독하는 셈이다.</p>
+     */
     public record SessionStats(String sessionKind, Long sessionId, String strategyType, String timeframe,
-                               String label,
+                               String rulesetHash, String label,
                                BigDecimal initialCapital, BigDecimal totalAsset, BigDecimal mddPeakCapital,
                                int circuitBreakerTripCount, int tradeCount, int winCount,
-                               BigDecimal sumRealizedPnl, Instant startedAt, long runningDays) {}
+                               BigDecimal sumRealizedPnl, Instant startedAt, long runningDays,
+                               int tradeCountAllRulesets) {
+
+        /** 지문 무관 거래 수를 따로 주지 않으면 지문별 거래 수와 같다고 본다. */
+        public SessionStats(String sessionKind, Long sessionId, String strategyType, String timeframe,
+                            String rulesetHash, String label,
+                            BigDecimal initialCapital, BigDecimal totalAsset, BigDecimal mddPeakCapital,
+                            int circuitBreakerTripCount, int tradeCount, int winCount,
+                            BigDecimal sumRealizedPnl, Instant startedAt, long runningDays) {
+            this(sessionKind, sessionId, strategyType, timeframe, rulesetHash, label,
+                    initialCapital, totalAsset, mddPeakCapital, circuitBreakerTripCount,
+                    tradeCount, winCount, sumRealizedPnl, startedAt, runningDays, tradeCount);
+        }
+    }
 
     /**
      * 엣지 판정 입력 — 같은 전략×타임프레임 세션들을 코인을 가로질러 합산한 것.

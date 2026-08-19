@@ -33,7 +33,7 @@ class StrategyKillCriteriaDecisionTest {
 
     /** 기준을 하나도 건드리지 않는 건강한 세션 — 각 테스트는 여기서 한 항목만 바꾼다. */
     private static SessionStats healthy() {
-        return new SessionStats("DYNAMIC", 48L, "COMPOSITE_MEANREV_BB", "H1", "DYNAMIC#48 MEANREV_BB@H1",
+        return new SessionStats("DYNAMIC", 48L, "COMPOSITE_MEANREV_BB", "H1", "rs-test", "DYNAMIC#48 MEANREV_BB@H1",
                 new BigDecimal("10000"),   // initialCapital
                 new BigDecimal("10200"),   // totalAsset  (+2.00%)
                 new BigDecimal("10300"),   // mddPeak      (−0.97% 낙폭)
@@ -45,9 +45,38 @@ class StrategyKillCriteriaDecisionTest {
     }
 
     private static SessionStats withAsset(SessionStats s, BigDecimal totalAsset) {
-        return new SessionStats(s.sessionKind(), s.sessionId(), s.strategyType(), s.timeframe(), s.label(),
+        return new SessionStats(s.sessionKind(), s.sessionId(), s.strategyType(), s.timeframe(),
+                s.rulesetHash(), s.label(),
                 s.initialCapital(), totalAsset, s.mddPeakCapital(), s.circuitBreakerTripCount(),
                 s.tradeCount(), s.winCount(), s.sumRealizedPnl(), s.startedAt(), s.runningDays());
+    }
+
+    /**
+     * V71 배포 직후 회귀 — 규칙 지문이 새로 생기면 <b>지문별</b> 거래 수가 0으로 떨어지지만
+     * 세션은 멀쩡히 거래 중이다. NO_SIGNAL 이 지문별 거래 수를 보면 이 세션들을 전부
+     * "자본이 놀고 있다" 고 경보한다 — 규칙 변경을 거래 없음으로 오독하는 것이다.
+     */
+    @Test
+    @DisplayName("지문이 갈려 표본이 0이어도, 실제로 거래 중이면 NO_SIGNAL 이 아니다")
+    void rulesetSplitDoesNotFakeNoSignal() {
+        SessionStats st = new SessionStats("PAPER", 7L, "COMPOSITE_PULLBACK_MTF", "H1", "new-hash",
+                "PAPER#7", new BigDecimal("10000"), new BigDecimal("10100"), null, 0,
+                0, 0,                       // 새 지문의 거래 = 0 (배포 직후)
+                BigDecimal.ZERO, Instant.now(),
+                40,                         // noSignalDays(30) 초과
+                31);                        // 지문 무관 누적 거래 31건 — 활발히 거래 중
+
+        assertThat(StrategyKillCriteriaService.decide(st, CFG).code()).isNotEqualTo("NO_SIGNAL");
+    }
+
+    @Test
+    @DisplayName("지문과 무관하게 정말로 거래가 없으면 NO_SIGNAL")
+    void genuinelyIdleSessionStillWarns() {
+        SessionStats st = new SessionStats("PAPER", 8L, "COMPOSITE_PULLBACK_MTF", "H1", "new-hash",
+                "PAPER#8", new BigDecimal("10000"), new BigDecimal("10000"), null, 0,
+                0, 0, BigDecimal.ZERO, Instant.now(), 40, 0);
+
+        assertThat(StrategyKillCriteriaService.decide(st, CFG).code()).isEqualTo("NO_SIGNAL");
     }
 
     @Test
@@ -96,7 +125,7 @@ class StrategyKillCriteriaDecisionTest {
         @DisplayName("MAX_DRAWDOWN: 고점 기준이라 초기자본 대비 이익 중이어도 발동한다")
         void drawdownIsMeasuredFromPeakNotInitial() {
             // 초기 10,000 → 고점 15,000 → 현재 11,000 : 초기 대비 +10% 지만 고점 대비 −26.67%
-            SessionStats s = new SessionStats("LIVE", 198L, "MTF", "H1", "LIVE#198",
+            SessionStats s = new SessionStats("LIVE", 198L, "MTF", "H1", "rs-test", "LIVE#198",
                     new BigDecimal("10000"), new BigDecimal("11000"), new BigDecimal("15000"),
                     0, 0, 0, BigDecimal.ZERO, Instant.now(), 11);
 
@@ -108,12 +137,12 @@ class StrategyKillCriteriaDecisionTest {
         @Test
         @DisplayName("CB_REPEAT: 누적 3회에서 폐기, 2회는 유지")
         void circuitBreakerRepeatBoundary() {
-            SessionStats twice = new SessionStats("LIVE", 199L, "MTF", "H1", "LIVE#199",
+            SessionStats twice = new SessionStats("LIVE", 199L, "MTF", "H1", "rs-test", "LIVE#199",
                     new BigDecimal("10000"), new BigDecimal("10000"), new BigDecimal("10000"),
                     2, 0, 0, BigDecimal.ZERO, Instant.now(), 11);
             assertThat(StrategyKillCriteriaService.decide(twice, CFG).verdict()).isEqualTo(Verdict.KEEP);
 
-            SessionStats thrice = new SessionStats("LIVE", 199L, "MTF", "H1", "LIVE#199",
+            SessionStats thrice = new SessionStats("LIVE", 199L, "MTF", "H1", "rs-test", "LIVE#199",
                     new BigDecimal("10000"), new BigDecimal("10000"), new BigDecimal("10000"),
                     3, 0, 0, BigDecimal.ZERO, Instant.now(), 11);
             Judgment j = StrategyKillCriteriaService.decide(thrice, CFG);
@@ -124,7 +153,7 @@ class StrategyKillCriteriaDecisionTest {
         @Test
         @DisplayName("세션 판정은 엣지를 보지 않는다 — 손실 20거래여도 자본이 멀쩡하면 KEEP")
         void sessionLevelIgnoresEdge() {
-            SessionStats s = new SessionStats("DYN_PAPER", 60L, "COMPOSITE_MTF_BTC", "H1", "DYN_PAPER#60",
+            SessionStats s = new SessionStats("DYN_PAPER", 60L, "COMPOSITE_MTF_BTC", "H1", "rs-test", "DYN_PAPER#60",
                     new BigDecimal("10000"), new BigDecimal("9900"), new BigDecimal("10000"),
                     0, 20, 2, new BigDecimal("-100"), Instant.now(), 11);
 
@@ -232,7 +261,7 @@ class StrategyKillCriteriaDecisionTest {
     @Test
     @DisplayName("NO_SIGNAL: 30일 0거래는 경보만 — 성과가 나쁜 게 아니므로 정지하지 않는다")
     void noSignalWarnsButDoesNotKill() {
-        SessionStats s = new SessionStats("DYNAMIC", 46L, "COMPOSITE_MTF_CONFIRMED", "H1", "DYNAMIC#46",
+        SessionStats s = new SessionStats("DYNAMIC", 46L, "COMPOSITE_MTF_CONFIRMED", "H1", "rs-test", "DYNAMIC#46",
                 new BigDecimal("10000"), new BigDecimal("10000"), new BigDecimal("10000"),
                 0, 0, 0, BigDecimal.ZERO, Instant.now(), 30);
 
@@ -244,7 +273,7 @@ class StrategyKillCriteriaDecisionTest {
     @Test
     @DisplayName("29일차에는 NO_SIGNAL 경보를 내지 않는다")
     void noSignalRespectsDayThreshold() {
-        SessionStats s = new SessionStats("DYNAMIC", 46L, "COMPOSITE_MTF_CONFIRMED", "H1", "DYNAMIC#46",
+        SessionStats s = new SessionStats("DYNAMIC", 46L, "COMPOSITE_MTF_CONFIRMED", "H1", "rs-test", "DYNAMIC#46",
                 new BigDecimal("10000"), new BigDecimal("10000"), new BigDecimal("10000"),
                 0, 0, 0, BigDecimal.ZERO, Instant.now(), 29);
 
@@ -257,7 +286,7 @@ class StrategyKillCriteriaDecisionTest {
     @DisplayName("자본 한도 초과가 NO_SIGNAL 경보보다 우선한다 (문서 §2)")
     void capitalProtectionOutranksNoSignal() {
         // −20% 손실 + 40일 운영 + 거래 3건 → NO_SIGNAL 조건도 동시 충족
-        SessionStats s = new SessionStats("LIVE", 198L, "MEANREV_BB", "H1", "LIVE#198",
+        SessionStats s = new SessionStats("LIVE", 198L, "MEANREV_BB", "H1", "rs-test", "LIVE#198",
                 new BigDecimal("10000"), new BigDecimal("8000"), new BigDecimal("10000"),
                 0, 3, 0, new BigDecimal("-2000"), Instant.now(), 40);
 

@@ -93,4 +93,17 @@ public class StrategyLogEntity {
     void prePersist() {
         if (createdAt == null) createdAt = Instant.now();
     }
+
+    /**
+     * 이 행을 만든 매매 규칙 지문 (V71, 2026-08-19).
+     *
+     * <p>규칙이 바뀌어도 과거 데이터를 버리지 않기 위한 라벨이다 — 같은 지문끼리만 합산하면
+     * 표본이 오염되지 않는다. NULL 은 V71 이전 데이터로 <b>규칙 미상</b>을 뜻하며,
+     * 소급 추정하지 않는다(근거가 없다). 원문은 {@code ruleset_snapshot} 에서 역참조한다.</p>
+     */
+    @Column(name = "ruleset_hash", length = 16)
+    private String rulesetHash;
+
+    public String getRulesetHash() { return rulesetHash; }
+    public void setRulesetHash(String rulesetHash) { this.rulesetHash = rulesetHash; }
 }
