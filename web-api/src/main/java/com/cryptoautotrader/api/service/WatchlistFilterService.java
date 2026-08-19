@@ -209,6 +209,40 @@ public class WatchlistFilterService {
         }
     }
 
+    /**
+     * 최소 호가 단위(틱)의 몇 배까지 허용할지. {@code maxSpreadPct} 로는 도달할 수 없는
+     * 저가 코인을 구제하는 하한선이다 — 2틱이면 "호가가 거의 붙어 있다" 로 본다.
+     */
+    private static final BigDecimal ALLOWED_SPREAD_TICKS = new BigDecimal("2");
+
+    /**
+     * 호가 스프레드 필터 — <b>퍼센트 임계와 틱 상대 임계 중 느슨한 쪽</b>을 적용한다.
+     *
+     * <h3>왜 퍼센트만으로는 안 되는가 (2026-08-19 실측)</h3>
+     * <p>기존에는 {@code (ask−bid)/ask} 가 {@code maxSpreadPct}(0.1%) 이하인지만 봤다.
+     * 그 결과 거래대금 상위 30개 중 <b>23~24개가 스프레드에서 탈락</b>해 동적 세션의
+     * 감시 목록이 목표 10개 대비 1~2개로 붕괴했다. 원인은 유동성이 아니라
+     * <b>업비트 호가 단위(tick)의 입자도</b>였다:</p>
+     * <pre>
+     *   KRW-BTC   90,361,000원  호가폭 6틱   0.0066%  → 통과   (실제로는 6틱이나 벌어짐)
+     *   KRW-RED          129원  호가폭 1.4틱 0.7752%  → 탈락   (물리적으로 가장 좁은 호가)
+     *   KRW-XLM          217원  호가폭 10틱  0.4608%  → 탈락   (진짜로 넓은 호가)
+     * </pre>
+     * <p>저가 코인은 <b>1틱만으로 이미 0.1% 를 넘는다.</b> 즉 이 필터는 유동성이 아니라
+     * 가격대를 재고 있었고, 호가가 붙어 있는 DOGE·RED·XLM 같은 상위 유동성 종목을
+     * 구조적으로 배제했다.</p>
+     *
+     * <h3>새 규칙</h3>
+     * <p>{@code 통과 = spread% ≤ max(maxSpreadPct, ALLOWED_SPREAD_TICKS × 1틱%)}</p>
+     * <p>퍼센트 기준은 고가 코인에 그대로 유효하고(BTC 6틱은 0.0066% 라 여전히 통과),
+     * 저가 코인은 입자도 때문에 불이익을 받지 않는다. 반대로 호가가 <b>진짜로</b> 넓으면
+     * (XLM 10틱) 가격대와 무관하게 탈락한다 — 단순히 임계값을 0.5% 로 올렸다면
+     * RED 를 버리고 XLM 을 받는 정반대 판정이 됐다.</p>
+     *
+     * <p>틱은 <b>호가창에서 직접 추론</b>한다(인접 호가 간 최소 양수 간격).
+     * 업비트 틱 테이블을 하드코딩하면 거래소가 규칙을 바꿀 때 조용히 틀리기 때문이다 —
+     * 실측에서도 EUL(1,643원)의 틱이 1원, DOGE(98원)가 0.04원으로 공개 표와 달랐다.</p>
+     */
     private boolean passesSpreadFilter(String market, BigDecimal tradePrice, BigDecimal maxSpreadPct) {
         try {
             List<Map<String, Object>> orderbooks = upbitRestClient.getOrderbook(market);
@@ -227,16 +261,55 @@ public class WatchlistFilterService {
                     .divide(ask, 8, RoundingMode.HALF_UP)
                     .multiply(BigDecimal.valueOf(100));
 
-            boolean pass = spreadPct.compareTo(maxSpreadPct) <= 0;
+            BigDecimal effectiveMax = maxSpreadPct;
+            BigDecimal tick = inferTickSize(units);
+            if (tick != null && tick.compareTo(BigDecimal.ZERO) > 0) {
+                BigDecimal tickPct = tick.divide(ask, 8, RoundingMode.HALF_UP)
+                        .multiply(BigDecimal.valueOf(100));
+                BigDecimal tickFloor = tickPct.multiply(ALLOWED_SPREAD_TICKS);
+                if (tickFloor.compareTo(effectiveMax) > 0) effectiveMax = tickFloor;
+            }
+
+            boolean pass = spreadPct.compareTo(effectiveMax) <= 0;
             if (!pass) {
-                log.debug("[Watchlist] 스프레드 필터 탈락: {} spread={}% > {}%",
-                        market, spreadPct.toPlainString(), maxSpreadPct.toPlainString());
+                log.debug("[Watchlist] 스프레드 필터 탈락: {} spread={}% > 허용 {}% (틱={})",
+                        market, spreadPct.toPlainString(), effectiveMax.toPlainString(),
+                        tick == null ? "미상" : tick.toPlainString());
             }
             return pass;
         } catch (Exception e) {
             log.debug("[Watchlist] 호가창 조회 실패 ({}): {}", market, e.getMessage());
             return false;
         }
+    }
+
+    /**
+     * 호가창에서 최소 호가 단위를 추론한다 — 인접 호가 사이 간격 중 가장 작은 양수.
+     *
+     * <p>매도·매수 양쪽 호가열을 모두 본다. 호가 단계가 2개 미만이면 추론할 수 없어
+     * {@code null} 을 돌려주고, 호출부는 퍼센트 기준만 적용한다.</p>
+     */
+    static BigDecimal inferTickSize(List<?> units) {
+        List<BigDecimal> asks = new ArrayList<>();
+        List<BigDecimal> bids = new ArrayList<>();
+        for (Object o : units) {
+            if (!(o instanceof Map<?, ?> u)) continue;
+            BigDecimal a = toBigDecimal(u.get("ask_price"));
+            BigDecimal b = toBigDecimal(u.get("bid_price"));
+            if (a != null && a.compareTo(BigDecimal.ZERO) > 0) asks.add(a);
+            if (b != null && b.compareTo(BigDecimal.ZERO) > 0) bids.add(b);
+        }
+        BigDecimal min = null;
+        for (List<BigDecimal> side : List.of(asks, bids)) {
+            List<BigDecimal> sorted = new ArrayList<>(side);
+            sorted.sort(Comparator.naturalOrder());
+            for (int i = 1; i < sorted.size(); i++) {
+                BigDecimal gap = sorted.get(i).subtract(sorted.get(i - 1));
+                if (gap.compareTo(BigDecimal.ZERO) <= 0) continue;
+                if (min == null || gap.compareTo(min) < 0) min = gap;
+            }
+        }
+        return min;
     }
 
     /**
