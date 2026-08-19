@@ -55,6 +55,10 @@ class RulesetRegistryCompositionTest extends IntegrationTestBase {
             "composite.defaultEmaDampenFactor=",
             "composite.defaultEmaDeadbandPct=",
             "composite.defaultAdxThreshold=",
+            // 야간·TRANSITIONAL 신호 감쇠 — 진입 신호 수를 직접 바꾸는 값
+            "dampen.defaultNightDampenFactor=",
+            "dampen.defaultTransitionalDampenFactor=",
+            "dampen.nightDampenStartHourKst=",
             // 청산 설정 (ExitRuleConfig) — 대표 키
             "exit.stopLossPct=",
             "exit.trailingEnabled=",

@@ -4,6 +4,8 @@ import com.cryptoautotrader.core.regime.MarketRegime;
 import com.cryptoautotrader.strategy.Candle;
 
 import java.time.ZoneId;
+import java.util.Map;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 /**
@@ -34,6 +36,24 @@ public final class SignalQualityDampenGate {
     /** 감쇠 계수 기본값 — params로 override 가능(백테스트/튜닝용), 1.0이면 무감쇠 */
     public static final double DEFAULT_NIGHT_DAMPEN_FACTOR        = 0.6;
     public static final double DEFAULT_TRANSITIONAL_DAMPEN_FACTOR = 0.5;
+
+    /**
+     * 매매 동작을 바꾸는 상수 전체 — 규칙 지문에 실린다 (2026-08-19).
+     *
+     * <p>이 감쇠는 <b>진입 신호 수를 직접 바꾼다.</b> 2일치 운영 로그에서 TRANSITIONAL 감쇠가
+     * 임계값을 넘겼을 매수 점수 45건을 죽였는데, 같은 기간 실제 통과한 BUY 신호가 51건이었다 —
+     * 통과분과 맞먹는 양이다. 지문에 없으면 이 값을 바꾼 전후 거래가 한 표본에 합산된다.</p>
+     *
+     * <p>{@code CompositeStrategy.behaviorParams()} / {@code ExitRuleCalculator.behaviorParams()}
+     * 와 같은 역할이다. 상수를 추가하면 리플렉션 가드 테스트가 깨져 여기 등록하도록 강제한다.</p>
+     */
+    public static Map<String, String> behaviorParams() {
+        Map<String, String> m = new LinkedHashMap<>();
+        m.put("nightDampenStartHourKst",        Integer.toString(NIGHT_DAMPEN_START_HOUR_KST));
+        m.put("defaultNightDampenFactor",       Double.toString(DEFAULT_NIGHT_DAMPEN_FACTOR));
+        m.put("defaultTransitionalDampenFactor", Double.toString(DEFAULT_TRANSITIONAL_DAMPEN_FACTOR));
+        return m;
+    }
 
     private SignalQualityDampenGate() {}
 

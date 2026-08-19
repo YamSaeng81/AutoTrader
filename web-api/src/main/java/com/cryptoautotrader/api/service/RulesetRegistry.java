@@ -5,6 +5,7 @@ import com.cryptoautotrader.api.entity.LiveTradingSessionEntity;
 import com.cryptoautotrader.api.entity.RiskConfigEntity;
 import com.cryptoautotrader.api.entity.RulesetSnapshotEntity;
 import com.cryptoautotrader.core.selector.CompositeStrategy;
+import com.cryptoautotrader.core.selector.SignalQualityDampenGate;
 import com.cryptoautotrader.api.entity.paper.VirtualBalanceEntity;
 import com.cryptoautotrader.api.repository.RulesetSnapshotRepository;
 import com.cryptoautotrader.api.util.TradingConstants;
@@ -180,6 +181,10 @@ public class RulesetRegistry {
         // gate.scanWeakThreshold 등이 지문에 있지만 운영에서 risk_config 값이 NULL 이라
         // 실제로 쓰이는 건 이 코드 상수다 — 지문에는 null 만 적히고 있었다.
         CompositeStrategy.behaviorParams().forEach((k, v) -> b.put("composite." + k, v));
+
+        // 야간·TRANSITIONAL 신호 감쇠 (2026-08-19). 진입 신호 수를 직접 바꾸는 값이라
+        // 지문 밖에 두면 감쇠를 조정한 전후 거래가 한 표본에 섞인다.
+        SignalQualityDampenGate.behaviorParams().forEach((k, v) -> b.put("dampen." + k, v));
 
         try {
             // 설정 엔티티를 **한 번만** 읽는다. getExitRuleConfig() 를 따로 부르면 내부에서
