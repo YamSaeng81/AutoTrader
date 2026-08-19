@@ -142,7 +142,7 @@ class StrategyKillCriteriaDecisionTest {
 
         private EdgeStats group(int sessions, int trades, int wins, String sumPnl,
                                 String init, String asset, String benchmarkPct) {
-            return new EdgeStats("COMPOSITE_PULLBACK_MTF", "H1", sessions, trades, wins,
+            return new EdgeStats("PAPER", "COMPOSITE_PULLBACK_MTF", "H1", sessions, trades, wins,
                     new BigDecimal(sumPnl), new BigDecimal(init), new BigDecimal(asset),
                     benchmarkPct == null ? null : new BigDecimal(benchmarkPct));
         }

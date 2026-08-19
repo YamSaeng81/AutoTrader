@@ -121,32 +121,50 @@ public class WatchlistFilterService {
                     topCandidates.size(), krwMarkets.size());
 
             // 3단계: 스프레드 + ATR 하한 + 품질 큐레이션 게이트
+            //
+            // 게이트별 탈락 수를 센다 (2026-08-19). 탈락 사유가 DEBUG 로만 찍혀 있어
+            // "왜 30개 중 1개만 통과하나" 를 운영에서 확인할 방법이 없었다 — 동적 세션
+            // 8개가 전부 워치리스트 0~1개로 붕괴해 사실상 단일코인 매매가 되고 있었는데도
+            // 어느 게이트가 막는지 몰라 파라미터를 추측으로 못 건드렸다.
             List<String> passed = new ArrayList<>();
+            int rejSpread = 0, rejCandles = 0, rejAtrLow = 0, rejQuality = 0, rejPrice = 0;
+            String qualitySample = null;
             for (Map<String, Object> ticker : topCandidates) {
                 if (passed.size() >= targetSize) break;
 
                 String market = (String) ticker.get("market");
                 BigDecimal tradePrice = toBigDecimal(ticker.get("trade_price"));
-                if (market == null || tradePrice == null || tradePrice.compareTo(BigDecimal.ZERO) <= 0) continue;
+                if (market == null || tradePrice == null || tradePrice.compareTo(BigDecimal.ZERO) <= 0) {
+                    rejPrice++;
+                    continue;
+                }
 
                 // 스프레드 필터 (호가창)
-                if (!passesSpreadFilter(market, tradePrice, maxSpreadPct)) continue;
+                if (!passesSpreadFilter(market, tradePrice, maxSpreadPct)) {
+                    rejSpread++;
+                    continue;
+                }
 
                 // 캔들 1회 조회 → ATR 하한 + EMA200 + 급락 판정에 공용 사용
                 List<Candle> candles = fetchFilterCandles(market, timeframe);
                 if (candles.size() < ATR_MIN_CANDLES) {
                     log.debug("[Watchlist] ATR 캔들 부족 ({}): {}개", market, candles.size());
+                    rejCandles++;
                     continue;
                 }
 
                 BigDecimal atrPct = computeAtrPct(candles, tradePrice);
-                if (atrPct == null) continue;
+                if (atrPct == null) {
+                    rejCandles++;
+                    continue;
+                }
 
                 // ATR 변동성 하한 (기존) — 너무 잔잔한 코인 배제
                 BigDecimal effectiveMinAtrPct = normalizeAtrPct(minAtrPct, timeframe);
                 if (atrPct.compareTo(effectiveMinAtrPct) < 0) {
                     log.debug("[Watchlist] ATR 하한 탈락: {} atrPct={}% < {}%",
                             market, atrPct.toPlainString(), effectiveMinAtrPct.toPlainString());
+                    rejAtrLow++;
                     continue;
                 }
 
@@ -160,13 +178,29 @@ public class WatchlistFilterService {
                         criteria.requireUptrend(), criteria.excludeCrashing());
                 if (!decision.accepted()) {
                     log.debug("[Watchlist] 품질 게이트 탈락: {} — {}", market, decision.reason());
+                    rejQuality++;
+                    if (qualitySample == null) qualitySample = market + ":" + decision.reason();
                     continue;
                 }
 
                 passed.add(market);
             }
 
-            log.info("[Watchlist] 최종 감시 목록 {}개: {}", passed.size(), passed);
+            // 깔때기 한 줄 요약 — 어느 게이트가 후보를 잡아먹는지 INFO 로 항상 남긴다.
+            // 목표치에 못 미치면 원인을 바로 읽을 수 있어야 파라미터를 근거 있게 조정할 수 있다.
+            log.info("[Watchlist] 깔때기: 후보 {} → 스프레드탈락 {} · 캔들부족 {} · ATR하한탈락 {} "
+                            + "· 품질탈락 {} · 가격이상 {} → 통과 {}/{} {}{}",
+                    topCandidates.size(), rejSpread, rejCandles, rejAtrLow, rejQuality, rejPrice,
+                    passed.size(), targetSize, passed,
+                    qualitySample == null ? "" : " (품질탈락 예시 " + qualitySample + ")");
+
+            if (passed.size() < targetSize) {
+                log.warn("[Watchlist] 감시 목록이 목표({})에 미달 — {}개. "
+                                + "동적 세션이 사실상 단일코인으로 동작한다면 위 깔때기에서 "
+                                + "가장 큰 탈락 항목의 임계값을 검토할 것 "
+                                + "(min_atr_pct / max_spread_pct / risk_config 품질 기준).",
+                        targetSize, passed.size());
+            }
             return passed;
 
         } catch (Exception e) {

@@ -2,10 +2,12 @@ package com.cryptoautotrader.api.service;
 
 import com.cryptoautotrader.api.discord.DiscordWebhookClient;
 import com.cryptoautotrader.api.entity.DynamicSessionEntity;
+import com.cryptoautotrader.api.entity.KillCriteriaJudgmentEntity;
 import com.cryptoautotrader.api.entity.LiveTradingSessionEntity;
 import com.cryptoautotrader.api.entity.StrategyTypeEnabledEntity;
 import com.cryptoautotrader.api.entity.paper.VirtualBalanceEntity;
 import com.cryptoautotrader.api.repository.DynamicSessionRepository;
+import com.cryptoautotrader.api.repository.KillCriteriaJudgmentRepository;
 import com.cryptoautotrader.api.repository.LiveTradingSessionRepository;
 import com.cryptoautotrader.api.repository.PositionRepository;
 import com.cryptoautotrader.api.repository.StrategyTypeEnabledRepository;
@@ -63,6 +65,7 @@ public class StrategyKillCriteriaService {
     private final VirtualBalanceRepository virtualBalanceRepo;
     private final PaperPositionRepository paperPositionRepo;
     private final StrategyTypeEnabledRepository strategyTypeEnabledRepo;
+    private final KillCriteriaJudgmentRepository judgmentRepo;
     private final BenchmarkAlphaService benchmarkAlphaService;
     private final LiveTradingService liveTradingService;
     private final DynamicTradingService dynamicTradingService;
@@ -78,6 +81,7 @@ public class StrategyKillCriteriaService {
             VirtualBalanceRepository virtualBalanceRepo,
             PaperPositionRepository paperPositionRepo,
             StrategyTypeEnabledRepository strategyTypeEnabledRepo,
+            KillCriteriaJudgmentRepository judgmentRepo,
             BenchmarkAlphaService benchmarkAlphaService,
             LiveTradingService liveTradingService,
             DynamicTradingService dynamicTradingService,
@@ -90,6 +94,7 @@ public class StrategyKillCriteriaService {
         this.virtualBalanceRepo = virtualBalanceRepo;
         this.paperPositionRepo = paperPositionRepo;
         this.strategyTypeEnabledRepo = strategyTypeEnabledRepo;
+        this.judgmentRepo = judgmentRepo;
         this.benchmarkAlphaService = benchmarkAlphaService;
         this.liveTradingService = liveTradingService;
         this.dynamicTradingService = dynamicTradingService;
@@ -128,6 +133,7 @@ public class StrategyKillCriteriaService {
                 stopKilledSession(j);
             }
             disableFullyKilledStrategies(judgments, kills);
+            persist(actionable);
             sendAlert(actionable);
         } catch (Exception e) {
             log.error("[KillCriteria] 판정 중 오류", e);
@@ -231,8 +237,19 @@ public class StrategyKillCriteriaService {
         return merged;
     }
 
+    /**
+     * 엣지 판정 그룹 키 — {@code 엔진/전략@타임프레임}.
+     *
+     * <p><b>엔진을 키에 넣는 이유</b>: 같은 전략·타임프레임이라도 PAPER(코인 고정)와
+     * DYN_PAPER(워치리스트 스캔)는 진입 종목을 고르는 방식이 다르고, 세션 자본도 1,000배
+     * 차이난다(1,000만 vs 1만). 08-19 첫 판정에서 두 엔진이 한 그룹으로 묶여 DYN_PAPER 세션이
+     * 단일코인 결과에 끌려 함께 폐기 대상이 됐다 — 스캔 로직의 우위는 별도로 판정해야 한다.</p>
+     *
+     * <p>단 LIVE 와 DYNAMIC 은 같은 엔진 계열로 보지 않는다. 각각 고유 키를 갖는다.</p>
+     */
     private static String groupKey(SessionStats st) {
-        return st.strategyType() + "@" + (st.timeframe() == null ? "?" : st.timeframe());
+        return st.sessionKind() + "/" + st.strategyType()
+                + "@" + (st.timeframe() == null ? "?" : st.timeframe());
     }
 
     private static Map<String, List<SessionStats>> groupByStrategyTimeframe(List<SessionStats> all) {
@@ -264,8 +281,8 @@ public class StrategyKillCriteriaService {
         BigDecimal benchmark = trades >= config.getMinTradesForEdgeTest()
                 ? benchmarkAlphaService.altAvgHoldReturnPct(earliest, now)
                 : null;
-        return new EdgeStats(first.strategyType(), first.timeframe(), group.size(),
-                trades, wins, pnl, init, asset, benchmark);
+        return new EdgeStats(first.sessionKind(), first.strategyType(), first.timeframe(),
+                group.size(), trades, wins, pnl, init, asset, benchmark);
     }
 
     /**
@@ -278,8 +295,8 @@ public class StrategyKillCriteriaService {
         if (st.tradeCount() < cfg.getMinTradesForEdgeTest()) {
             return null;   // 표본 미달 — 부호를 신뢰하지 않는다
         }
-        String scope = String.format("%s@%s (%d세션 %d거래)",
-                st.strategyType(), st.timeframe(), st.sessions(), st.tradeCount());
+        String scope = String.format("%s %s@%s (%d세션 %d거래)",
+                st.sessionKind(), st.strategyType(), st.timeframe(), st.sessions(), st.tradeCount());
 
         if (st.sumRealizedPnl().signum() <= 0) {
             BigDecimal avg = st.sumRealizedPnl()
@@ -432,6 +449,42 @@ public class StrategyKillCriteriaService {
                 });
     }
 
+    // ── 이력 ──────────────────────────────────────────────────────────────────
+
+    /**
+     * 조치가 필요한 판정(KILL/WARN)을 DB에 남긴다.
+     *
+     * <p>Discord 메시지만으로는 근거가 보존되지 않는다 — {@code discord_send_log.message_preview}
+     * 가 102자에서 잘린다. 폐기는 부활 경로가 Walk Forward 재검증뿐인 되돌리기 어려운 결정이라
+     * "언제 어떤 수치로 걸렸는가" 가 조회 가능해야 한다(문서 §5).</p>
+     *
+     * <p>KEEP 은 저장하지 않는다 — 매일 100행 이상이 쌓여 신호 대 잡음비만 떨어진다.
+     * 기록 실패가 판정·경보를 막지 않도록 예외를 삼킨다.</p>
+     */
+    void persist(List<Judgment> actionable) {
+        Instant now = Instant.now();
+        for (Judgment j : actionable) {
+            try {
+                SessionStats st = j.stats();
+                judgmentRepo.save(KillCriteriaJudgmentEntity.builder()
+                        .evaluatedAt(now)
+                        .sessionKind(st.sessionKind())
+                        .sessionId(st.sessionId())
+                        .strategyType(st.strategyType())
+                        .timeframe(st.timeframe())
+                        .verdict(j.verdict().name())
+                        .code(j.code())
+                        .reason(j.reason())
+                        .tradeCount(st.tradeCount())
+                        .returnPct(pct(st.initialCapital(), st.totalAsset()))
+                        .autoStopApplied(autoStopEnabled && j.verdict() == Verdict.KILL)
+                        .build());
+            } catch (Exception e) {
+                log.error("[KillCriteria] 판정 이력 기록 실패: {} — {}", j.label(), e.getMessage());
+            }
+        }
+    }
+
     // ── 알림 ──────────────────────────────────────────────────────────────────
 
     private void sendAlert(List<Judgment> judgments) {
@@ -520,7 +573,7 @@ public class StrategyKillCriteriaService {
      * @param benchmarkReturnPct 그룹에서 가장 이른 시작 시각 기준 알트 바스켓 보유 수익률(%).
      *                           표본 미달이거나 캔들이 부족하면 null 이고, 그 경우 알파 판정은 생략된다.
      */
-    public record EdgeStats(String strategyType, String timeframe, int sessions,
+    public record EdgeStats(String sessionKind, String strategyType, String timeframe, int sessions,
                             int tradeCount, int winCount, BigDecimal sumRealizedPnl,
                             BigDecimal sumInitialCapital, BigDecimal sumTotalAsset,
                             BigDecimal benchmarkReturnPct) {}

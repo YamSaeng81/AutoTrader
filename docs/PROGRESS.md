@@ -547,6 +547,59 @@ H1·M15 분리 판정 / 페이퍼 자본 보호 / 낙폭 생략.
 
 ---
 
+---
+
+## 🟢 2026-08-19 3엔진 정합성 감사 — [`docs/ENGINE_PARITY.md`](ENGINE_PARITY.md)
+
+> 사용자 지적("확인할 때마다 계속 수정할 게 나온다")에서 출발. **맞았고, 원인은 하나였다.**
+
+### 진단
+
+사흘간 나온 결함이 거의 전부 같은 모양이었다 — **한 엔진에 규칙을 적용하고 나머지를 잊는다.**
+구조적 원인은 매매 엔진이 셋(LIVE 2,787줄 · DYNAMIC 2,246줄 · PAPER 1,032줄)인데
+각자 세션·포지션 테이블과 틱 루프를 따로 갖고, **정합성을 강제하는 장치가 없었던 것**이다.
+
+### 산출물
+
+- **[`docs/ENGINE_PARITY.md`](ENGINE_PARITY.md)** — 교차 규칙 × 3엔진 매트릭스.
+  각 칸을 `적용 / 의도적 제외(사유) / 누락(결함)` 으로 판정.
+- **[`EngineParityTest`](../web-api/src/test/java/com/cryptoautotrader/api/service/EngineParityTest.java)** —
+  그 매트릭스의 기계 검증본. 새 규칙을 한 엔진에만 넣으면 빌드가 깨진다.
+  기존 `PaperLiveAlignmentTest`(파라미터 **값** 일치)와 보완 관계 — 이쪽은 규칙의 **존재** 여부를 본다.
+
+> 테스트를 처음 돌리자마자 자기 몫을 했다: 닫힌 캔들 게이트가 LIVE·PAPER 는
+> `lastEvaluatedClosedCandle`, DYNAMIC 만 `lastEvaluatedCandle` 이라는 이름 불일치를 잡았다.
+> 기능 차이는 아니지만 **grep 기반 감사를 두 번이나 오답으로 이끈** 원인이다.
+
+### 이번에 함께 처리한 것
+
+| # | 항목 | 조치 |
+|---|---|---|
+| 1 | **판정 이력이 어디에도 없음** | `kill_criteria_judgment` 테이블 신설(**V70**). `discord_send_log.message_preview` 가 102자 컷이라 첫 폐기 판정의 근거가 Discord 에만 남아 있었다. KILL/WARN 만 저장 |
+| 2 | **kill criteria 그룹 키가 엔진 미구분** | 그룹 키를 `엔진/전략@타임프레임` 으로. PAPER(코인 고정)와 DYN_PAPER(워치리스트 스캔)는 종목 선정 방식도 자본 규모(1,000만 vs 1만)도 달라 한 그룹으로 묶으면 안 된다 — 08-19 첫 판정에서 실제로 섞였다 |
+| 3 | **페이퍼 거래 리포트 전무** | 112세션 전부 `telegram_enabled=false` → `true`. 일일 다이제스트(12:00·24:00 KST)로 나간다 |
+| 4 | **타임스탬프 규약 혼재** | 문서화 + 신규 테이블 `TIMESTAMPTZ` 강제. `timestamptz` 56컬럼 vs **naive UTC 18컬럼(10테이블)** |
+
+### 정정 — 어제 진단이 틀렸다
+
+"페이퍼 time stop 이 무음" 의 원인을 `notifyTimeStop` 누락으로 짚었는데 **틀렸다.**
+페이퍼는 애초에 다른 메커니즘(`bufferTradeEvent` → 일일 다이제스트)을 쓰고 청산 사유도 거기 실린다.
+진짜 원인은 `telegram_enabled=false` 였다. 결과(알림 없음)는 같지만 고칠 대상이 달랐다 —
+`notifyTimeStop` 을 페이퍼에 붙였다면 112세션 알림 폭탄이 됐을 것이다.
+이 판정을 `EngineParityTest.realOnlyRules` 에 사유와 함께 고정했다.
+
+### 미해소 (테스트가 현 상태로 고정 중)
+
+| 결함 | 왜 지금 안 고치는가 |
+|---|---|
+| DYNAMIC 에 트레일링 없음 (LIVE·PAPER 는 있음) | **매매 거동 변경.** 백테스트 검증 없이 이식하면 "고치다 새 문제" 를 반복한다 |
+| `tickCandleCache` 가 PAPER 에만 | 현재 API 부하 11% 라 시급하지 않음. 세션 확장 시 1순위 |
+| 닫힌 캔들 게이트 이름 불일치 | 순수 리네이밍. 우선순위 낮음 |
+
+**검증**: `:web-api:test` **309건 그린**(실패 0, 스킵 3 — 293 → +16).
+
+---
+
 ### 미해결 — 동적 워치리스트 붕괴
 
 `targetWatchSize=10` 인데 실제 워치리스트는 **0~1개**다. 8세션 중 5개가 동시에 `["KRW-EUL"]`,
