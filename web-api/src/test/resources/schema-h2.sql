@@ -581,3 +581,15 @@ ALTER TABLE strategy_log           ADD COLUMN IF NOT EXISTS ruleset_hash VARCHAR
 ALTER TABLE risk_config ADD COLUMN IF NOT EXISTS scan_min_atr_pct        DECIMAL(6,4);
 ALTER TABLE risk_config ADD COLUMN IF NOT EXISTS scan_max_spread_pct     DECIMAL(6,4);
 ALTER TABLE risk_config ADD COLUMN IF NOT EXISTS scan_max_candidate_size INT;
+
+-- 동적 세션 매도 정산 멱등 표식 (V72)
+CREATE TABLE IF NOT EXISTS dynamic_sell_settlement (
+    order_ref     VARCHAR(120)  PRIMARY KEY,
+    position_id   BIGINT        NOT NULL,
+    session_id    BIGINT        NOT NULL,
+    session_kind  VARCHAR(20)   NOT NULL,
+    sold_qty      DECIMAL(30,8) NOT NULL,
+    net_proceeds  DECIMAL(20,8) NOT NULL,
+    realized_pnl  DECIMAL(20,8) NOT NULL,
+    settled_at    TIMESTAMP     NOT NULL
+);

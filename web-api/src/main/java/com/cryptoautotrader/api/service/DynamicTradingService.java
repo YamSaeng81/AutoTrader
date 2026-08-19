@@ -2,6 +2,7 @@ package com.cryptoautotrader.api.service;
 
 import com.cryptoautotrader.api.dto.DynamicSessionRequest;
 import com.cryptoautotrader.api.dto.OrderRequest;
+import com.cryptoautotrader.api.entity.DynamicSellSettlementEntity;
 import com.cryptoautotrader.api.entity.DynamicSessionEntity;
 import com.cryptoautotrader.api.entity.PositionEntity;
 import com.cryptoautotrader.api.entity.StrategyLogEntity;
@@ -463,10 +464,19 @@ public class DynamicTradingService {
             throw new IllegalStateException("실행 중이 아닙니다: id=" + sessionId);
         }
         closeOpenPositions(session, "세션 정지 — 포지션 청산");
-        session.setStatus("STOPPED");
-        session.setStoppedAt(Instant.now());
         clearSessionState(sessionId);
-        session = dynamicSessionRepo.save(session);
+        // ⚠️ 2026-08-19 P0: closeOpenPositions() 안에서 balanceUpdater(REQUIRES_NEW)가 세션을
+        //    이미 두 번 커밋했다 — 매도대금 반영(finalizeDynamicSell)과 SCANNING 복귀
+        //    (transitionToScanning). 여기서 위에서 읽은 **낡은 엔티티**를 save() 하면 @Version 이
+        //    어긋나 OptimisticLockingFailure 가 나고 **바깥 트랜잭션만** 롤백된다. 별도 트랜잭션으로
+        //    커밋된 매도대금은 롤백되지 않으므로, 정지를 누를 때마다 대금이 중복 지급되고
+        //    포지션은 OPEN 으로 되돌아온다 → 정지가 영구히 실패하는 무한 증식 루프.
+        //    (세션 49: 21회 시도로 available_krw 10,000 → 174,752, 포지션 2458 은 OPEN 잔존)
+        //    반드시 재조회+낙관적 락 재시도 경로(balanceUpdater)로 상태를 바꾼다.
+        session = balanceUpdater.apply(sessionId, s -> {
+            s.setStatus("STOPPED");
+            s.setStoppedAt(Instant.now());
+        });
         log.info("[Dynamic] 세션 정지: id={}", sessionId);
         refreshWsSubscription();
         return session;
@@ -478,10 +488,12 @@ public class DynamicTradingService {
     public DynamicSessionEntity emergencyStop(Long sessionId) {
         DynamicSessionEntity session = getOrThrow(sessionId);
         closeOpenPositions(session, "비상 정지 — 강제 청산");
-        session.setStatus("EMERGENCY_STOPPED");
-        session.setStoppedAt(Instant.now());
         clearSessionState(sessionId);
-        session = dynamicSessionRepo.save(session);
+        // stopSession() 과 동일한 이유로 재조회 경로를 쓴다 — 위 stopSession() 주석 참조.
+        session = balanceUpdater.apply(sessionId, s -> {
+            s.setStatus("EMERGENCY_STOPPED");
+            s.setStoppedAt(Instant.now());
+        });
         log.error("[Dynamic] 세션 비상 정지 완료: id={}", sessionId);
         refreshWsSubscription();
         return session;
@@ -1848,6 +1860,24 @@ public class DynamicTradingService {
      * 매도 체결 확정 — 실제 체결가 기반 손익/수수료 계산 + 동적 세션 KRW 복원.
      * 멱등성 보장: 이미 CLOSED인 포지션은 중복 처리하지 않음.
      */
+    /**
+     * 매도 정산 멱등 키. <b>롤백 후 재시도해도 같은 값이어야</b> 중복 지급을 막을 수 있다.
+     *
+     * <p>거래소 주문 ID 를 쓴다. 페이퍼는 {@code executePaperSell} 이
+     * {@code "PAPER-DYNAMIC-SELL-{positionId}"} 로 포지션에서 결정해 붙이므로 재시도에도 동일하다.
+     * 실거래는 거래소가 준 ID 라 부분체결 건마다 달라 각각 한 번씩 정산된다.</p>
+     *
+     * <p>{@code order.id} 로 폴백하는 경우는 실거래 경로뿐이다 — 거기서는 주문이
+     * {@code OrderExecutionEngine} 의 별도 트랜잭션에서 이미 커밋된 뒤라 ID 가 안정적이다.
+     * (페이퍼 경로에서 폴백하면 주문 행이 롤백에 휩쓸려 사라진 뒤 재시도마다 새 시퀀스 값이
+     * 나오므로 멱등성이 깨진다. 그래서 페이퍼는 항상 exchangeOrderId 를 채운다.)</p>
+     */
+    private static String settlementRef(PositionEntity pos, OrderEntity filledOrder) {
+        String exchangeRef = filledOrder.getExchangeOrderId();
+        if (exchangeRef != null && !exchangeRef.isBlank()) return exchangeRef;
+        return "ORD-" + filledOrder.getId() + "-POS-" + pos.getId();
+    }
+
     private void finalizeDynamicSell(PositionEntity pos, OrderEntity filledOrder) {
         if ("CLOSED".equals(pos.getStatus())) {
             log.debug("[Dynamic] finalizeDynamicSell 스킵: 이미 CLOSED (posId={})", pos.getId());
@@ -1897,7 +1927,22 @@ public class DynamicTradingService {
                     .anyMatch(p -> !p.getId().equals(finalizedPosId)
                             && ("OPEN".equals(p.getStatus()) || "CLOSING".equals(p.getStatus())));
 
-            balanceUpdater.apply(sessionId, s -> {
+            // ⚠️ 2026-08-19 P0: 이 잔고 반영은 REQUIRES_NEW 라 **바깥 트랜잭션이 롤백돼도
+            //    살아남는다**. 반면 위의 포지션 CLOSED 저장은 바깥 트랜잭션에 있어 롤백과 함께
+            //    사라진다. 그 비대칭 때문에 "대금은 남고 포지션은 OPEN 으로 복귀" 하는 상태가
+            //    만들어지고, 다음 시도가 대금을 또 지급한다 (세션 49: 21회, 10,000 → 174,752).
+            //    → 정산 표식을 대금과 **같은 트랜잭션**에 써서 포지션당 한 번만 반영한다.
+            DynamicSellSettlementEntity settlement = DynamicSellSettlementEntity.builder()
+                    .orderRef(settlementRef(pos, filledOrder))
+                    .positionId(pos.getId())
+                    .sessionId(sessionId)
+                    .sessionKind(pos.getSessionKind())
+                    .soldQty(soldQty)
+                    .netProceeds(netProceeds)
+                    .realizedPnl(realizedPnl)
+                    .build();
+
+            boolean credited = balanceUpdater.applySettlementOnce(settlement, s -> {
                 BigDecimal newAvailableKrw = s.getAvailableKrw().add(netProceeds);
                 s.setAvailableKrw(newAvailableKrw);
                 if (!hasRemainingExposure) {
@@ -1906,6 +1951,13 @@ public class DynamicTradingService {
                     s.setTotalAssetKrw(s.getTotalAssetKrw().subtract(fee));
                 }
             });
+            if (!credited) {
+                // 대금은 이전 시도에서 이미 반영됐다. 포지션 CLOSED 확정은 그 시도에서 롤백됐을
+                // 수 있으므로 위의 저장은 그대로 진행한다 — 돈은 한 번, 청산은 성공할 때까지.
+                log.warn("[Dynamic] 매도대금 중복 지급 차단 (sessionId={}, posId={}) — "
+                                + "이전 시도의 잔고 반영이 이미 커밋돼 있다. 포지션 청산만 확정한다.",
+                        sessionId, pos.getId());
+            }
             if (isPartial) {
                 // executeSell()이 매도 제출과 동시에 세션을 이미 SCANNING으로 돌려놓았으므로,
                 // 팔리지 않은 잔여분을 계속 감시하도록 재결속한다 (전체 롤백과 동일 원칙).
@@ -1913,9 +1965,11 @@ public class DynamicTradingService {
             }
             log.info("[Dynamic] 매도 체결 확정 (sessionId={}, posId={}, partial={}): {} {}개 @ {} 손익={} 수수료={}",
                     sessionId, pos.getId(), isPartial, pos.getCoinPair(), soldQty, fillPrice, realizedPnl, fee);
-            telegramService.bufferTradeEvent(
-                    "동적#" + sessionId, pos.getCoinPair(), "SELL",
-                    fillPrice, soldQty, fee, realizedPnl, "동적 세션 매도");
+            if (credited) {
+                telegramService.bufferTradeEvent(
+                        "동적#" + sessionId, pos.getCoinPair(), "SELL",
+                        fillPrice, soldQty, fee, realizedPnl, "동적 세션 매도");
+            }
         }
     }
 
