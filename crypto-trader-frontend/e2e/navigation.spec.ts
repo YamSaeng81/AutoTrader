@@ -3,6 +3,23 @@ import { test, expect } from '@playwright/test';
 const DESKTOP = { width: 1440, height: 900 };
 const MOBILE = { width: 390, height: 844 };
 
+/**
+ * Next dev 서버의 개발자 오버레이(<nextjs-portal>)가 좌하단에 고정으로 떠서
+ * 접힌 사이드바(w-16)의 하단 버튼을 덮어 클릭을 가로챈다. 운영 빌드에는 없는
+ * 개발 전용 요소이므로 e2e에서만 숨긴다.
+ */
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    const hide = () => {
+      const style = document.createElement('style');
+      style.textContent = 'nextjs-portal { display: none !important; }';
+      document.head.appendChild(style);
+    };
+    if (document.head) hide();
+    else document.addEventListener('DOMContentLoaded', hide);
+  });
+});
+
 test.describe('데스크톱 네비게이션', () => {
   test.use({ viewport: DESKTOP });
 
@@ -52,7 +69,8 @@ test.describe('데스크톱 네비게이션', () => {
     await page.goto('/');
     await page.getByRole('link', { name: '전략 비교' }).click();
     await expect(page).toHaveURL('/backtest/compare');
-    await expect(page.getByText('전략 비교 분석')).toBeVisible();
+    // Next의 라우트 어나운서(#__next-route-announcer__)에도 같은 문구가 들어가므로 h1으로 좁힌다
+    await expect(page.getByRole('heading', { name: '전략 비교 분석' })).toBeVisible();
   });
 
   test('데이터 수집 메뉴 클릭 → /data 이동', async ({ page }) => {

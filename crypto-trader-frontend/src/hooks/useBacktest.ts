@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { backtestApi } from '@/lib/api';
-import type { BacktestRequest, BacktestResult, WalkForwardRequest, WalkForwardResult, TradeRecord, PageResponse } from '@/lib/types';
+import type { BacktestRequest, BacktestResult, TradeRecord, PageResponse } from '@/lib/types';
 
 // ─── Query Keys ──────────────────────────────────────────────────────────────
 export const backtestKeys = {
@@ -49,18 +49,6 @@ export function useRunBacktest() {
       // 비동기 실행 — 완료 시 텔레그램 알림으로 결과 수신
       queryClient.invalidateQueries({ queryKey: backtestKeys.lists() });
     },
-  });
-}
-
-// ─── Walk Forward 실행 mutation ───────────────────────────────────────────────
-export function useWalkForward() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (req: WalkForwardRequest) => backtestApi.walkForward(req),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: backtestKeys.lists() });
-    },
-    select: (res: { data: WalkForwardResult | null }) => res?.data ?? null,
   });
 }
 

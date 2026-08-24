@@ -466,15 +466,16 @@ export default function UpbitStatusPage() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {(account.holdings as Record<string, unknown>[]).map((h) => {
-                                            const pnlPct = Number(h['unrealizedPnlPct']);
+                                        {/* holdings 는 이미 UpbitHolding[] 이다 — Record 로 캐스팅하면 필드명 오타가 안 걸린다 */}
+                                        {account.holdings.map((h) => {
+                                            const pnlPct = Number(h.unrealizedPnlPct);
                                             return (
-                                                <tr key={String(h['currency'])} className="border-b border-slate-700/50">
-                                                    <td className="py-2 font-semibold text-slate-200">{String(h['currency'])}</td>
-                                                    <td className="py-2 text-right font-mono text-slate-300">{Number(h['totalQuantity']).toFixed(6)}</td>
-                                                    <td className="py-2 text-right font-mono text-slate-400">{Number(h['avgBuyPrice']).toLocaleString()}</td>
-                                                    <td className="py-2 text-right font-mono text-slate-300">{Number(h['currentPrice']).toLocaleString()}</td>
-                                                    <td className="py-2 text-right font-mono text-slate-200">{Number(h['evalValue']).toLocaleString()}</td>
+                                                <tr key={h.currency} className="border-b border-slate-700/50">
+                                                    <td className="py-2 font-semibold text-slate-200">{h.currency}</td>
+                                                    <td className="py-2 text-right font-mono text-slate-300">{Number(h.totalQuantity).toFixed(6)}</td>
+                                                    <td className="py-2 text-right font-mono text-slate-400">{Number(h.avgBuyPrice).toLocaleString()}</td>
+                                                    <td className="py-2 text-right font-mono text-slate-300">{Number(h.currentPrice).toLocaleString()}</td>
+                                                    <td className="py-2 text-right font-mono text-slate-200">{Number(h.evalValue).toLocaleString()}</td>
                                                     <td className={`py-2 text-right font-mono font-semibold ${pnlPct > 0 ? 'text-green-400' : pnlPct < 0 ? 'text-red-400' : 'text-slate-400'}`}>
                                                         {pnlPct > 0 ? '+' : ''}{pnlPct}%
                                                     </td>

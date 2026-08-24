@@ -7,7 +7,7 @@ import type { LiveTradingSession, Position, LiveOrder } from '@/lib/types';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
-import { parseUtc, fmtKstLocale } from '@/lib/utils';
+import { parseUtc, fmtKstLocale, fmtOrderQuantity } from '@/lib/utils';
 import {
   ComposedChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from 'recharts';
@@ -438,7 +438,7 @@ export default function LiveSessionDetailPage({ params }: { params: Promise<{ se
                 <div className={`mt-2 pt-2 border-t border-slate-700 space-y-1 ${isBuy ? 'text-green-400' : 'text-red-400'}`}>
                   <div className="font-bold">{isBuy ? '▲ 매수 체결' : '▼ 매도 체결'}</div>
                   <div>가격: <span className="font-semibold">{Number(order.price).toLocaleString()} KRW</span></div>
-                  <div>수량: <span className="font-semibold">{Number(order.quantity).toFixed(6)}</span></div>
+                  <div>수량: <span className="font-semibold">{fmtOrderQuantity(order)}</span></div>
                   {order.signalReason && (
                     <div className="text-slate-400 pt-1 border-t border-slate-700 leading-relaxed">{order.signalReason}</div>
                   )}
@@ -635,7 +635,7 @@ export default function LiveSessionDetailPage({ params }: { params: Promise<{ se
                     {order.price ? Number(order.price).toLocaleString() : '-'} KRW
                   </div>
                   <div className="text-xs text-slate-400">
-                    수량: {order.quantity} · 체결: {order.filledQuantity}
+                    수량: {fmtOrderQuantity(order)} · 체결: {order.filledQuantity}
                   </div>
                   {order.exchangeOrderId && (
                     <div className="text-xs text-slate-600 font-mono">{order.exchangeOrderId}</div>

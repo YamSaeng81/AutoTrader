@@ -36,6 +36,14 @@ public class OrderEntity {
     @Column(precision = 20, scale = 8)
     private BigDecimal price;
 
+    /**
+     * ⚠️ <b>단위가 두 가지다.</b> 시장가 매수(MARKET+BUY)는 Upbit {@code price} 타입 주문이라
+     * 이 컬럼에 <b>KRW 총액</b>이 들어가고, 그 외(시장가 매도·지정가)는 <b>코인 수량</b>이 들어간다.
+     *
+     * <p>따라서 {@code price × quantity} 로 체결금액을 계산하면 시장가 매수 행에서 값이 폭주한다.
+     * 읽을 때는 {@link com.cryptoautotrader.api.util.OrderAmounts} 를 쓸 것 —
+     * 코인 수량은 {@code coinQuantity()}, KRW 금액은 {@code krwAmount()}.</p>
+     */
     @Column(nullable = false, precision = 20, scale = 8)
     private BigDecimal quantity;
 

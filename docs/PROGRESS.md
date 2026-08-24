@@ -3,7 +3,130 @@
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 이 파일은 **최신 작업 이력(최근 세션 몇 개) + 보류/결정 대기 항목 + 프로젝트 참조 정보**만 담는다. 오래된 상세 이력은 [`docs/old_progress.md`](old_progress.md)(2026-08-06 이전 전체 백업)와 [`docs/CHANGELOG.md`](CHANGELOG.md)를 참조.
 > **2026-08-06 / 2026-08-19**: 파일이 비대해질 때마다 날짜별 상세 이력을 `old_progress.md` 로 이관하고 이 파일에는 요약만 남긴다. 상세 근거·재현 과정이 필요하면 `old_progress.md` 에서 날짜로 검색할 것.
-> **마지막 갱신**: 2026-08-19 — V71~V74 배포 완료(규칙 지문 · 매도 정산 멱등화 · 청산 사유 구조화 · 세션별 A/B 파라미터).
+> **마지막 갱신**: 2026-08-24 — 운영DB DYN_PAPER/PAPER 로그 분석(아래 섹션). 직전: 2026-08-20 — 오전 점검(kill criteria KEEP · exit_reason 100% · A/B 1단계 진행) + 프런트 정비(e2e 44통과 · 타입가드 복구 · 죽은 코드 제거 · 테마 페인트).
+
+---
+
+## 🟠 2026-08-24 운영DB 로그 분석 — DYN_PAPER(동적 페이퍼) / PAPER(고정코인 페이퍼)
+
+> 대상: 운영 `yhpapa.iptime.org:8432`, 읽기전용. 기간 2026-08-19 재기동 ~ 08-23 24:00 UTC (5일).
+> **주의**: 페이퍼 데이터는 두 곳에 나뉘어 있다 — 동적 세션은 `public`(`dynamic_session`/`position.session_kind='DYN_PAPER'`),
+> 고정코인 세션은 **`paper_trading` 스키마**(`virtual_balance`/`position`/`order`). `public` 만 보면 PAPER는 로그만 있고
+> 세션·포지션이 없는 것처럼 보인다(초판 분석의 오독 원인).
+>
+> 가동 현황: 동적 18세션(id 54~71, 전부 PAPER, 각 10,000원) + 고정코인 133세션(`virtual_balance` RUNNING, 각 1,000만원).
+> REAL 동적/LIVE 세션은 08-18 05:13 전량 중지.
+
+### 1. 핵심 결론 — `COMPOSITE_PULLBACK_MTF` 하나가 전체 손실을 만든다
+
+PAPER 청산 354건(08-19~23) 기준:
+
+| 그룹 | 청산 | 승률 | 평균이익 | 평균손실 | 누적손익 | 손절/익절 |
+|---|---|---|---|---|---|---|
+| **COMPOSITE_PULLBACK_MTF** | 163 | **11.7%** | +214,155 | -61,828 | **-4,834,211** | 135 / 18 |
+| 나머지 6전략 | 191 | 25.7% | +229,163 | -73,307 | **+819,443** | 135 / 49 |
+
+R:R 3.46 이면 손익분기 승률이 22.4%인데 PULLBACK은 11.7%다. **이 전략만 빼면 나머지 시스템은 흑자**이며,
+전체 -401만원은 사실상 PULLBACK 단독 -483만원이다. n=163으로 표본도 충분하고 M15(-349만, 12.8%)·H1(-135만, 6.7%)
+양쪽 타임프레임에서 동일하게 무너진다.
+
+### 2. 타임프레임 — M15 > H1 (백테스트 결론과 반대)
+
+| 소스 | M15 | H1 |
+|---|---|---|
+| DYN_PAPER (n=87) | +7,611 / 승률 58.5% | **-4,600** / 승률 17.6% |
+| PAPER (n=354) | -1,375,998 / 승률 21.9% | **-1,859,122** / 승률 8.6% |
+
+PAPER는 양쪽 다 적자지만(PULLBACK 포함) 전략별로 보면 7개 중 5개가 M15에서 더 낫고, H1에서 승률 0%인 전략이
+3개(MOMENTUM_ICHIMOKU, ICHIMOKU_V2, MTF_CONFIRMED)다. **방향성은 두 소스에서 일치한다.**
+→ 「🚨 배포 금지 — 전 코인 × M15(오버트레이딩 -99%)」 항목과 실측이 정면 충돌. 재검토 필요.
+
+### 3. 청산 사유
+
+| exit_reason | PAPER 건수 | 승률 | 누적 | DYN_PAPER 건수 | 누적 |
+|---|---|---|---|---|---|
+| STOP_LOSS | 262 | 0% | -17,544,562 | 19 | -9,595 |
+| TAKE_PROFIT | 67 | 100% | +15,269,620 | 23 | +15,379 |
+| STRATEGY_SIGNAL | 1 | 100% | +28,330 | 28 | **-2,661** |
+| TIME_STOP | 0 | — | — | 10 | +717 |
+
+손절이 익절의 3.9배(262:67). DYN_PAPER의 STRATEGY_SIGNAL 청산 28건은 승률 32%로 순손실 — 지표 기반 조기 청산이
+익절 도달 전에 이익을 깎는 정황. 다만 n=28이라 단독 근거로는 약하다(PAPER에는 이 경로가 1건뿐).
+
+### 4. 필터 효과 검증 (DYN_PAPER BUY 신호의 24시간 후 수익률)
+
+| 분류 | 건수 | 평균 24h 수익률 | 상승비율 |
+|---|---|---|---|
+| 실행됨 | 73 | **-0.23%** | 49.3% |
+| 동일코인 노출상한 차단 | 233 | **+5.75%** | 70.8% |
+| 기타 차단 | 94 | +2.31% | 60.6% |
+| BTC_MARKET_GUARD 차단 | 18 | -1.73% | 27.8% |
+| BLACK_SWAN 쿨다운 차단 | 15 | **-9.57%** | 6.7% |
+
+- **BTC_MARKET_GUARD / BLACK_SWAN 은 확실히 작동한다** — 차단 신호의 사후 수익률이 크게 음수.
+- 동일코인 노출상한(`MAX_SESSIONS_PER_COIN=1`) 차단분의 사후 수익률이 +5.75%로 높지만, **이미 상승 중인 코인이
+  반복 BUY를 내는 생존편향**이 섞여 있다. 게다가 이 상한은 수익 최적화가 아니라 2026-08-06 단일코인 23% 집중
+  사고를 막으려 넣은 리스크 장치다(`DynamicTradingService` javadoc). 성급히 완화하면 안 된다 — A/B 전용 항목.
+- 실행된 신호가 차단된 신호보다 나쁘다는 점 자체는 **진입 선별 로직의 역선택** 신호로 남는다.
+
+### 5. 🐛 `order.quantity` 이중 단위 — 조치 완료
+
+`public."order"` 의 **시장가 매수** 행은 `quantity` 에 코인 수량이 아니라 **투입 KRW 금액**이 들어간다.
+Upbit `price` 타입 주문 파라미터가 KRW 총액이라서 생긴 <b>의도된</b> 오버로드지만
+(`OrderExecutionEngine#submitToExchange`), 읽는 쪽이 이를 모르면 `price × quantity` 가 최대 10^8 배로 튄다.
+
+실측: BUY 행의 `quantity = position.invested_krw` 일치율 DYN_PAPER 98/98, DYNAMIC 24/24, LIVE 195/271.
+`quantity = position.size` 는 0건. 예) order 9609 KRW-TRAC — `quantity=10334.152`(투입금), 실제 `size=20.114`,
+`price × quantity = 5,306,721`(실제의 513배).
+
+**과거 데이터 보정은 불필요하다** — `filled_quantity` 가 전 구간에서 실제 코인 수량을 정확히 갖고 있다
+(`filled_quantity = position.size` 일치: DYN_PAPER 98/98, DYNAMIC 24/24, LIVE 264/271). 읽는 쪽만 고치면 된다.
+참고로 `paper_trading."order"` 는 이 문제가 없다(BUY/SELL 모두 코인 수량, 404/404).
+
+조치:
+- `web-api/util/OrderAmounts` 신설 — `coinQuantity()` / `krwAmount()` 로 단위 판정을 한 곳에 모음 (+단위 테스트 6건)
+- `OrderEntity.quantity` 에 이중 단위 경고 javadoc
+- `TradingController.toOrderMap` — 수수료를 `price × quantity` → `krwAmount × feeRate` 로 교정, `quantity` 는
+  코인 수량으로 내보내고 `krwAmount` 필드 추가 (차트 툴팁이 시장가 매수에서 KRW를 "수량"으로 표시하던 버그)
+- 프런트 `lib/utils.fmtOrderQuantity()` 신설 후 대시보드·세션 상세·업비트 로그 3곳 통일
+  (업비트 로그 페이지에만 있던 임시 분기를 공용 헬퍼로 흡수)
+- CSV 내보내기 헤더 `주문수량` → `주문수량(시장가매수=KRW)`
+
+### 6. 세션 49 잔고 오염 — 이미 조치된 건 (재발 없음 확인)
+
+세션 49는 청산 2건의 실현손익 합계가 -168원인데 `available_krw` 가 221,876원(+2,118%)이다.
+원인은 **2026-08-19 P0로 이미 규명·수정된 매도대금 중복 지급**이다 — 매도대금 반영이 `REQUIRES_NEW` 라
+바깥 트랜잭션이 롤백돼도 살아남는데 포지션 CLOSED 저장은 함께 롤백돼, "대금은 남고 포지션은 OPEN 복귀"가
+반복되며 21회 중복 지급됐다(`DynamicTradingService#finalizeDynamicSell` 주석).
+수정: `dynamic_sell_settlement` 정산 표식을 대금과 **같은 트랜잭션**에 기록해 포지션당 1회만 반영
+(Flyway V72, 운영 적용 2026-08-19 06:02 — 신규 세션 54~71 기동 5분 전).
+
+재발 없음 확인 — RUNNING 18세션 전부 `available_krw + 미청산 invested_krw = 10,000 + 누적 실현손익` 이
+**정확히** 일치한다(오차 0원). §5 의 `quantity` 단위 문제와는 무관한 건이었다(초판 분석의 추정은 틀렸다).
+
+### 7. 오독 정정 (초판 분석에서 잘못 보고한 것)
+
+- ❌ ~~「PAPER 로그 고아 — 세션·포지션 0건」~~ → **사실 아님**. `paper_trading` 스키마를 조회하지 않아서 생긴 오독.
+  `virtual_balance` 에 세션 133건, `position`/`order` 정상 기록 중.
+- ❌ ~~「exit_reason NULL 7건 — 08-20 점검의 100%와 불일치」~~ → **이미 해결된 건**. NULL 행의 `closed_at` 최댓값이
+  DYN_PAPER 2026-08-19 05:51, paper_trading 2026-08-19 05:57로 **전부 08-19 06:00 재기동 이전**이다.
+  재기동 이후 NULL은 0건 — 08-20 점검 결과가 맞았다.
+- ❌ ~~「세션 49 오염은 quantity KRW 단위를 코인 수량으로 오인한 강제청산 탓」~~ → **원인 오추정**.
+  실제 원인은 매도대금 중복 지급이며 V72로 이미 수정됨(§6). 강제청산 경로는 `pos.getSize()` 를 쓰고 있어 정상이다.
+- ❌ ~~「MEANREV_BB 중단 1순위」~~ → **표본 부족으로 철회**. DYN_PAPER n=9(-1,858)였으나 PAPER n=18에서는 +136,077.
+  두 소스가 반대다. 진짜 중단 후보는 §1 의 PULLBACK_MTF(n=163).
+
+### 다음 액션
+
+1. 🔜 **`COMPOSITE_PULLBACK_MTF` 세션 중지 — 사용자 승인 완료, 실행 대기**
+   대상 22세션: 고정코인 PAPER 16건(id 122·143·150·165·172·179·186·193·200·207·214·221·228·235·242·249)
+   + 동적 6건(id 56·63·68·69·70·71 — 71 외 5건은 미청산 포지션 보유 중이라 stop 시 청산된다).
+   실행 스크립트는 스크래치패드 `stop_pullback.sh` (`BASE=http://<운영API> bash stop_pullback.sh`).
+   **막힌 지점**: 운영 web-api 의 외부 접속 주소를 모른다. `yhpapa.iptime.org:8080` 은 다른 서버(404),
+   DB만 8432로 포워딩돼 있다. DB 직접 UPDATE는 stop 시 청산 로직을 건너뛰므로 쓰면 안 된다.
+2. **H1 타임프레임 축소** — 보류. H1 표본 58건 중 30건이 PULLBACK이라, 1번 실행 후 잔여 H1 성적을 다시 보고 판단.
+3. 동일코인 노출상한 1 → 2 A/B — 리스크 장치를 건드리는 일이라 보류 권장(§4).
+4. DYN_PAPER STRATEGY_SIGNAL 조기청산 — n=28, 표본 쌓일 때까지 관찰
 
 ---
 
@@ -25,7 +148,7 @@
 - **신호 기대값 자체가 음수인 문제** — 최근 7일 동적 세션 BUY 신호 사후수익률 4h −2.17%/24h −4.47%(n=50). Walk Forward 게이트는 "검증 안 된 전략을 막는" 것이지 "전략 자체를 고치는" 게 아니라서, 게이트를 켜도 이 문제는 해결되지 않는다. 전략/신호 모델 자체를 봐야 하는 별도 과제.
 - ~~**시간 초과 청산(time stop) 텔레그램 알림 부재**~~ ✅ **2026-08-18 완료** — `notifyTimeStop` 신설, LIVE·DYNAMIC 배선. 08-18 오전 XRP 4건 청산에 알림이 안 간 것이 실측 사례였다.
 - **LIVE 유령 포지션 자동 정산** — 헬스체크(`OperationalHealthCheckService`)는 감지·알림까지만 하고 자동 정산은 안 한다. DYNAMIC의 `reconcileDynamicGhostPositions`에 대응하는 LIVE용 자동 정산을 추가할지는 실거래 자금에 직접 손대는 범위라 별도 검토 필요.
-- **e2e 스위트(`@playwright/test`) 미설치** — `navigation.spec.ts`·`global-setup.ts`·`auth-fixtures.ts`는 작성돼 있으나 의존성이 없어 실행 불가. `npm i -D @playwright/test && npx playwright install chromium` 필요.
+- ~~**e2e 스위트(`@playwright/test`) 미설치**~~ ✅ **2026-08-20 완료** — 설치·수정 후 **42통과/0실패/1스킵**. 아래 08-20 섹션 참조. `Header.tsx` 등 죽은 코드는 08-20 정비에서 삭제 — 현재 **44통과/0실패/0스킵**.
 - **StrategyDegradationWatchdog을 DYNAMIC까지 확장할지** — 현재 LIVE(`sessionType=REAL`)만 감시. 저하 발견 시 Discord 알림에 그치지 않고 Walk Forward 게이트와 연동해 자동 재차단할지도 별건.
 - **Walk Forward 미리보기 API를 `/strategies` 페이지에 노출** — 현재 API만 있고 프런트 표시 없음.
 
@@ -65,105 +188,224 @@ A/B 세션을 먼저 만들면 실험 도중에 표본이 쪼개진다:
 
 ---
 
-## 📌 내일 오전(2026-08-20) 할 일
+## 🟢 2026-08-20 프런트엔드 정비 — 타입 가드 복구 · 죽은 코드 제거 · 테마 페인트
 
-> 어제(08-19) 배포가 네 번 있었고 지문이 그때마다 갈렸다. **깨끗한 데이터 구간은 08-19 15:41부터**다.
+> 배포 무관(프런트 전용). 백엔드를 안 건드리므로 감쇠 A/B 표본에 영향 없음.
 
-### 1. 🔴 09:00 kill criteria 첫 판정 — **이번 한 번뿐인 검증 기회**
+### 1. 🔴 `ignoreBuildErrors: true` 를 껐다 — 타입 오류 8건이 그대로 배포되고 있었다
 
-지문 도입으로 지문별 표본(`tradeCount`)이 전 세션 0으로 리셋됐다. `tradeCountAllRulesets`
-수정이 없었다면 오늘 아침 다수 세션이 `NO_SIGNAL` WARN 으로 떴을 것이다.
+`next.config.ts` 가 타입 검사를 통째로 무시하고 있었다. 그 그늘에서 자란 것들:
 
-- [ ] **안 뜨면 수정이 검증된 것, 뜨면 수정이 안 먹은 것.** 다음 리셋이 없으니 놓치면 재현 불가.
-- [ ] 예상: 전부 KEEP → `kill_criteria_judgment` **0행 유지**. `persist()` 는 KEEP 이 아닌 것만
-      저장하므로 **빈 테이블을 실패로 오독하지 말 것.**
-- [ ] `noSignalDays = 30` 이고 H1 함대는 08-07 시작(13일차)이라 유휴 93세션도 아직 안 걸린다.
+| 위치 | 내용 | 처리 |
+|---|---|---|
+| `components/ui/Badge.tsx` | `BadgeVariant` **26종 중 13종만** `variantClasses` 에 존재. `PENDING`·`FILLED`·`UP`·`LONG`·`MARKET` 등은 `undefined` → 색 없는 배지 | 파일 자체가 미사용이라 **삭제** |
+| `hooks/useBacktest.ts` | `useMutation` 에 **존재하지 않는 `select` 옵션** 을 넘김 → 조용히 무시됨 | 훅 미사용이라 **삭제** |
+| `admin/news-sources` | `ApiResponse` 에 없는 `.message` 접근 → 항상 `undefined` | `res.data?.['message']` 로 수정 |
+| `account`·`backtest/walk-forward` | Recharts `formatter` 파라미터가 `number | undefined` | 시그니처 수정 |
+| `admin/llm-config` | `unknown && JSX` → ReactNode 아님 | `Boolean(...)` 로 감쌈 |
+| `settings/upbit-status` | `UpbitHolding[]` 을 `Record<string, unknown>[]` 로 캐스팅 | 캐스팅 제거, 타입 필드 직접 접근 |
 
-```sql
-SELECT * FROM kill_criteria_judgment ORDER BY evaluated_at DESC LIMIT 20;
+**결과: 타입 오류 8 → 0.** `npm run build` 가 타입 검사를 켠 채로 통과한다(35 페이지).
+
+### 2. 죽은 코드 제거
+
+```
+src/components/ui/{Badge,Button,Card,Spinner,index}   ← 디렉터리 통째로 참조 0
+src/components/layout/Header.tsx                       ← 참조 0
+hooks: useWalkForward · useToggleStrategy · useStrategyDetail
+       · useCreateStrategy · useUpdateStrategy         ← 전부 참조 0
 ```
 
-### 2. ~~DYN_PAPER 지문 갱신 확인~~ ✅ 08-19 15:42 완료
+`ui/` 는 공용 디자인 시스템으로 만들어졌으나 **34개 페이지가 전부 각자 스타일을 손으로 짜고 있었다.**
+`upbit-status` 는 같은 이름의 로컬 `Badge` 를 따로 정의해 쓴다. `useWalkForward` 도
+해당 페이지가 `backtestApi.walkForward` 를 직접 호출하고 있어 잉여였다.
 
-PAPER 53키(`ad42b3c26851`/`b0747bc1f7b1`), DYN_PAPER **56키**
-(`dd5e0639a9c8`/`f5e7e4bf4f50`) 로 재등록 확인. `composite.*` 12키 포함.
-아래 쿼리는 다음 배포 때 재사용.
+> 되살릴 일이 생기면 git 이력에서 꺼내면 된다. 지금 남겨두면 "있는 줄 알고 쓰다가
+> 스타일 없는 배지를 만나는" 함정으로 남는다.
 
-```sql
-SELECT ruleset_hash, engine, first_seen_at,
-       (SELECT count(*) FROM regexp_split_to_table(params_text, E'\n') k WHERE k <> '') AS keys,
-       params_text LIKE '%composite.%' AS has_composite
-FROM ruleset_snapshot ORDER BY first_seen_at DESC LIMIT 6;
+### 3. 테마 첫 페인트 — 다크 사용자가 보던 흰 깜빡임
+
+SSR HTML 의 `<html>` 에는 `dark` 클래스가 없다. `body` 는 `bg-slate-50 dark:bg-slate-950` 이라
+**React 가 마운트되기 전까지 흰 배경이 칠해진다.** 기본 테마가 dark 이므로 대부분의 사용자가 겪는다.
+
+- `app/layout.tsx` 에 **블로킹 인라인 스크립트** 추가 — 파싱 중에 `localStorage` 를 읽어
+  `<html>` 클래스를 확정한다.
+- `ThemeProvider` 는 `useState` 초기화 함수에서 값을 읽도록 변경(렌더 1회 절약 +
+  `react-hooks/set-state-in-effect` 해소).
+
+**e2e 2건 신규 + 뮤테이션 검증:**
+
+| 테스트 | 뮤테이션 | 결과 |
+|---|---|---|
+| 다크는 하이드레이션 **전에** 적용돼 있다 | 블로킹 스크립트 제거 | ✅ **실패함**(회귀를 잡는다) |
+| 라이트 재방문 시 dark 가 한 순간도 안 보인다 | ThemeProvider 를 옛 effect 방식으로 되돌림 | ⚠️ **통과함**(아래) |
+
+> ⚠️ **정정**: 처음에는 "라이트 사용자가 다크 플래시를 본다" 고 진단했으나 **React 19 에서는
+> 재현되지 않는다.** effect 안 `setTheme` 이 뒤 effect 의 클래스 적용보다 먼저 반영된다.
+> `ThemeProvider` 변경의 근거는 깜빡임이 아니라 **불필요한 렌더 1회 + lint 규칙** 이다.
+> 실재하는 깜빡임은 **다크 사용자의 흰 화면** 쪽이고, 그건 블로킹 스크립트가 고쳤다.
+
+### 검증
+
+- e2e **44 통과 / 0 실패 / 0 스킵** (Header 삭제로 스킵 1건도 소멸)
+- `tsc --noEmit` **0 오류**, `npm run build` 타입 검사 켠 채 통과
+- lint 109 → **108**(선행 문제, `no-explicit-any` 86건이 대부분 — 별건)
+
+### 검토에서 나온 미처리 항목
+
+- 🟡 **MSW GET 목 14/61** — 누락 46개(`admin` 11 · `settings` 9 · `backtest` 7 ·
+  `paper-trading` 6 · `logs` 4 …). mock 모드에서 해당 화면이 빈 상태라 **e2e 확장의 천장**이다.
+  `/strategies` 와 같은 상태의 화면이 아직 많다.
+- 🟡 **e2e 라우트 6/34**, 프런트 단위 테스트 **0건**.
+- 🟢 lint `no-explicit-any` 86건 — 범위가 넓고 회귀 위험이 있어 별도 작업.
+
+---
+
+## 🟢 2026-08-20 e2e 스위트 가동 (`@playwright/test`) — 보류 항목 해소
+
+> **배포 무관**: devDependency + 로컬 실행. 백엔드를 안 건드리므로 지문이 안 갈리고
+> A/B 표본에도 영향이 없다. 감쇠 A/B 관찰 기간 중에 안전하게 할 수 있는 작업이라 먼저 처리.
+
+`@playwright/test ^1.62.1` 설치 + chromium 다운로드. `playwright.config.ts`·`e2e/*` 는
+이미 작성돼 있었고 **실행기만 없어 한 번도 안 돌아본 상태**였다.
+
+```
+npm run test:e2e      # 42 tests
 ```
 
-### 3. `exit_reason` 이 쌓이기 시작했는지
+### 결과
 
-V73 의 핵심 산출물. 며칠 뒤 **익절 미작동(P1-b)** 판단의 근거가 된다.
-
-- [ ] 청산 건에 `exit_reason` 이 100% 붙는지 (NULL 이면 어느 경로가 빠졌는지)
-- [ ] `UNKNOWN` 이 늘면 사유를 안 넘기는 경로가 있다는 뜻
-
-```sql
-SELECT session_kind, exit_reason, count(*) FROM position
-WHERE closed_at > TIMESTAMPTZ '2026-08-19 15:02:00+09' GROUP BY 1,2 ORDER BY 1,2;
-```
-
-### 4. ⚠️ 감쇠 A/B — 실험군 세션 4개 생성 (미실행)
-
-`strategy_params` 가 설정된 세션이 **0개**다. 기다린다고 A/B 데이터는 쌓이지 않는다.
-스크립트: [`scripts/create_ab_dampen_sessions.sh`](../scripts/create_ab_dampen_sessions.sh)
-— 저장소에 커밋돼 있으므로 배포하면 서버에서 바로 실행할 수 있다. 인증 토큰(`API_AUTH_TOKEN`)과
-부하 사전점검이 들어 있다.
-
-대조군은 이미 돌고 있다 — **세션 56(H1) / 63(M15)**, `strategy_params = NULL`.
-
-| 팔 | 전략 | TF | strategyParams | 대조군 기본값 |
+| | 통과 | 실패 | 스킵 | 소요 |
 |---|---|---|---|---|
-| A1 | PULLBACK_MTF | H1 | `{"emaFilterDampenFactor":1.0}` | 0.0 (역추세 BUY 전량 차단) |
-| A2 | PULLBACK_MTF | M15 | `{"emaFilterDampenFactor":1.0}` | 0.0 |
-| B1 | PULLBACK_MTF | H1 | `{"transitionalDampenFactor":1.0}` | 0.5 (절반 감쇠) |
-| B2 | PULLBACK_MTF | M15 | `{"transitionalDampenFactor":1.0}` | 0.5 |
+| 최초 실행 | 32 | **7** | 3 | 1.1분 |
+| 수정 후 | **38** | **0** | 4 | 16.5초 |
 
-- [ ] **선행: `dampen.*` 지문 수정 배포** — 이 배포가 해시를 마지막으로 가른다. 세션보다 먼저.
-- [ ] **선행: API 부하 확인** — 백엔드 로그에 rate limit(429) 오류가 없는지. 아래 참조.
-- [ ] 4개 생성 후 지문이 **대조군과 다르게** 찍히는지 확인 (같으면 A/B 가 성립하지 않는다)
-- [ ] 설정은 대조군과 완전히 동일해야 한다 — **M15 는 `watchlistRefreshMin=30`**(H1 은 60)
+### 실패 7건의 정체 — **제품 버그는 0건**
 
-> **⚠️ API 부하가 제약일 수 있다.** 두 엔진의 비용 구조가 다르다:
->
-> | 엔진 | 비용 | 근거 |
-> |---|---|---|
-> | PAPER 함대 | (코인×TF)×3 = **48/분**, 세션 수 무관 | `tickCandleCache` 공유 |
-> | DYNAMIC | **33/분/세션** | 워치리스트를 세션마다 각자 조회 (공유 캐시 없음) |
->
-> 문서 수치대로면 현재 동적 14세션 ≈ **462/분**으로 한도 420 을 이미 넘는 계산이다.
-> 4개를 더하면 594. 다만 워치리스트 갱신은 정상 주기로 돌고 있어(H1 60분·M15 30분 준수)
-> 심한 스로틀링 징후는 없다 — **DB 로는 확인이 안 되므로 백엔드 로그를 봐야 한다.**
->
-> 여유가 없으면 대안:
-> - 신호가 안 나오는 동적 전략 세션을 줄여 예산 확보. 단 동적은 코인을 고정하지 않으므로
->   **함대에서 조용하던 전략이 여기서도 조용하리라 단정할 수 없다** — 며칠 관측 후 판단.
-> - PAPER 함대에서 A/B — API 비용이 세션 수와 무관해 사실상 공짜. 단
->   `MAX_CONCURRENT_SESSIONS=120` 이고 현재 112 라 슬롯이 8개뿐이다.
+한 번도 실행된 적 없는 테스트라 애초에 통과 불가능한 셀렉터가 섞여 있었다.
 
-> **왜 TRANSITIONAL 도 넣었나**: 2일치 로그에서 임계값(0.3)을 넘겼을 매수 점수를 죽인 건수가
-> TRANSITIONAL **45건** / EMA **21건**이다. EMA 만 실험하면 더 큰 레버를 놓친다.
->
-> **왜 전량 off(1.0)인가**: 동적 세션 거래 빈도가 12일 7건으로 표본이 귀하다. 대비를 최대로 줘야
-> 적은 표본에서도 차이가 보인다. 효과가 확인되면 그때 중간값을 찾는다.
->
-> **왜 PULLBACK_MTF 만**: 유일하게 신호가 나오는 전략이다(BUY 비율 3.14%, 나머지 6개는 0.05~0.26%).
-
-**판정은 2단계다 — 기간을 혼동하지 말 것:**
-
-| 단계 | 질문 | 지표 | 걸리는 시간 |
+| # | 테스트 | 원인 | 조치 |
 |---|---|---|---|
-| 1 | 감쇠를 끄면 **진입이 실제로 늘어나는가** | BUY 신호 수 / 진입 수 (n = 수천 틱) | **1~2일** |
-| 2 | 그 추가 진입이 **돈이 되는가** | 실현손익 · `exit_reason` 분포 (n = 수 건) | **수 주** |
+| 1 | `/backtest` 타이틀 | `getByText('백테스트 이력')` 이 **4개** 매칭(사이드바 링크·모바일 앱바·라우트 어나운서·h1) → strict mode 위반 | `getByRole('heading')` 로 축소 |
+| 2 | 새 백테스트 버튼 | 같은 이름 링크가 사이드바·본문 **2개** | `getByRole('main')` 으로 스코프 |
+| 3 | 타임프레임 select | `locator('select').nth(2)` — `BacktestForm` 의 `<select>` 는 **1개뿐**(코인·전략은 커스텀 컴포넌트) | `option[value="H1"]` 보유 select 로 특정 |
+| 4 | `/backtest/compare` 타이틀 | Next 의 `#__next-route-announcer__` 에도 같은 문구가 들어가 **2개** 매칭 | `getByRole('heading')` |
+| 5 | `/strategies` 타이틀 | 1번과 동일(**4개** 매칭) | `getByRole('heading')` |
+| 6 | Sidebar 펼치기 | **`<nextjs-portal>`(Next dev 오버레이)가 좌하단 고정으로 떠서 접힌 사이드바(w-16) 하단 버튼의 클릭을 가로챔.** 운영 빌드엔 없는 개발 전용 요소 | `addInitScript` 로 e2e 에서만 `display:none` |
+| 7 | Header 테마 토글 | **`src/components/layout/Header.tsx` 가 어디에서도 import 되지 않는 미사용 컴포넌트** — 존재하지 않는 UI를 검증하던 테스트 | `test.skip()` + 사유 주석 |
 
-1단계가 "차이 없음"으로 나오면 실험을 접으면 된다. 1단계가 양수여도 **2단계 전에는 기본값을
-바꾸지 말 것** — 지금 아는 것은 감쇠가 죽이는 신호의 양이지 그 신호의 질이 아니다.
-함대 승률이 22% 인 걸 보면 감쇠가 손실을 막고 있었을 가능성도 충분하다.
+### 새로 드러난 것
+
+- 🟡 **`Header.tsx` 는 죽은 코드다.** `grep -rn "layout/Header\|<Header" src` 결과 0건.
+  붙일지 지울지 결정 필요 — 지우면 `theme.spec.ts` 의 skip 도 함께 삭제.
+- ✅ **`GET /api/v1/strategies` 목 부재 → 같은 날 해소**(아래 후속 섹션).
+- 🟡 ~~**`GET /api/v1/strategies` 목이 없다.**~~ `src/mocks/handlers.ts` 에는 POST/PUT/PATCH 가
+  "실서버 직접 연결" 이라는 주석만 있고 목록 조회 핸들러가 없다. 그래서 mock 모드에서
+  전략 카드가 0개 → `strategies.spec.ts` 의 **3건이 조용히 self-skip**, 1건은
+  "빈 상태 메시지" 로 **공허하게 통과**한다.
+  > **08-06 MSW 사고와 같은 실패 양식이다** — 화면이 비어도 검증이 통과한다.
+  > 목 핸들러를 추가해야 이 4건이 실제로 뭔가를 검증하게 된다.
+- `.gitignore` 에 `test-results/`·`playwright-report/` 추가(`e2e/.auth/` 는 이미 있었음).
+
+### 후속 — MSW 전략 목록 목 추가 + self-skip 제거
+
+| | 통과 | 실패 | 스킵 |
+|---|---|---|---|
+| 앞 단계 | 38 | 0 | 4 |
+| **후속 후** | **42** | **0** | **1** |
+
+- **원인**: `strategyInfosMock` 은 `src/mocks/data.ts` 에 **있었는데** ① 핸들러가 없어 아무도
+  안 쓰고 ② `isActive`·`isComposite` 가 타입에 추가된 뒤로 목만 낡아 있었다.
+- `handlers.ts` 에 `GET /strategies`, `GET /strategies/:name`,
+  `PATCH /strategies/:name/active` 3종 추가. 목록을 뺄 때 GET 까지 같이 빠졌던 경위를
+  주석으로 박아 재발을 막았다.
+- `strategyInfosMock` 에 `: StrategyInfo[]` 타입 명시 — **백엔드 스키마가 바뀌면 목이
+  조용히 낡는 대신 컴파일에서 걸린다.** 복합 전략 3종도 추가해 "복합 전략" 탭을 채웠다.
+- `strategies.spec.ts` 의 `if (cardCount > 0) ... else test.skip()` **3곳 제거** →
+  `expect(...).not.toHaveCount(0)` 로 전환. "빈 상태 메시지도 통과" 였던 1건도 하드 단언으로
+  바꿨다. 탭 전환 테스트 1건 신규 추가.
+  > **목이 죽으면 초록불이 아니라 빨간불이 떠야 한다.** 08-06 사고의 교훈을 테스트에 박은 것.
+- `npx tsc --noEmit`: `src/mocks` 오류 **0건**(저장소 전체 선행 오류 8건은 무관).
+
+> 남은 스킵 1건은 `Header.tsx` 죽은 코드 건 — 붙일지 지울지 **결정 대기**.
+
+### 참고 — 도커 빌드 영향 없음
+
+`crypto-trader-frontend/Dockerfile` 이 `rm -f playwright.config.ts && npm run build` 로
+이미 대비돼 있고, 런타임 스테이지는 `.next/standalone` 만 복사하므로 **운영 이미지에
+playwright 가 안 들어간다.** chromium 바이너리도 `npx playwright install` 로 따로 받는 것이라
+도커 빌드에는 포함되지 않는다.
+
+> `npm run lint` 는 기존 문제 109건(89 에러)이 있으나 **e2e 디렉터리 기여분은 0건**이며
+> 이번 작업과 무관한 선행 상태다.
+
+---
+
+## ✅ 2026-08-20 오전 점검 결과 (09:05 KST 실측)
+
+> 운영 DB(`yhpapa.iptime.org:8432`) 직접 조회. 어제 계획한 4개 항목 전부 확인.
+
+### 1. 09:00 kill criteria 첫 판정 — 🟢 예상대로 전부 KEEP
+
+`kill_criteria_judgment` **0행**(09:02 조회). `persist()` 는 KEEP 이 아닌 것만 저장하므로
+**빈 테이블 = 전 세션 KEEP** 이다. 지문 도입으로 `tradeCount` 가 전 세션 0 으로 리셋됐는데도
+`NO_SIGNAL` WARN 이 하나도 안 떴다 → **`tradeCountAllRulesets` 수정이 의도대로 먹었다.**
+
+- 스케줄러 생존 근거: `daily_health_snapshot` id **15** 가 오늘 08:30 에 정상 기록됨.
+- ⚠️ **한계**: 0행만으로는 "전부 KEEP" 과 "09:00 잡이 아예 안 돎" 을 구별할 수 없다.
+  확정하려면 백엔드 로그의 `[KillCriteria] 폐기 기준 판정 시작` 한 줄을 봐야 하는데,
+  운영은 DB 포트만 외부 개방돼 있어 **이 작업 환경에서는 확인 불가**. 08:30 잡이 돈 것이
+  간접 증거일 뿐이다. 서버 접속 기회가 있으면 로그로 한 번 확정할 것.
+
+### 2. 지문 갱신 — 🟢 정상
+
+DYN_PAPER **59키** / PAPER **56키**, `dampen.*`·`composite.*` 전부 포함. 6개 팔 해시가
+08-19 16:04~16:12 에 서로 다르게 등록된 상태 그대로 유지.
+
+### 3. `exit_reason` — 🟢 100% 기록, 그리고 **익절이 돌기 시작했다**
+
+08-19 15:02 이후 청산 **13건 중 NULL 0 · UNKNOWN 0**. 사유를 안 넘기는 경로는 없다.
+
+| session_kind | exit_reason | 건수 |
+|---|---|---|
+| DYN_PAPER | STOP_LOSS | 5 |
+| DYN_PAPER | STRATEGY_SIGNAL | 5 |
+| DYN_PAPER | **TAKE_PROFIT** | **3** |
+
+> 🔄 **P1-b 재검토 필요**: 전체 이력 SELL 6,944건 중 `TAKE_PROFIT` 이 **1건**이었는데,
+> 어제 오후 이후로는 13건 중 3건(23%)이 익절이다. "익절이 사실상 작동하지 않는다" 는
+> 진단이 흔들린다 — 옛 수치가 **자유 텍스트 파싱 기반이라 익절을 놓치고 있었을** 가능성.
+> 단 n=13 이라 결론은 이르다. **`TP_RR_MULTIPLIER` 는 건드리지 말고 며칠 더 볼 것.**
+
+### 4. 감쇠 A/B — 1단계 진행 중 (16시간 경과, 판정 불가)
+
+6개 팔 전부 RUNNING, `strategy_params` 의도대로 적재. 동적 세션 18 RUNNING / 53 DELETED.
+
+| 세션 | TF | 팔 | 진입 | 청산 | 실현손익 |
+|---|---|---|---|---|---|
+| 56 | H1 | 대조군 | 0 | 0 | 0 |
+| 68 | H1 | EMA off | 1 | 1 | −252 |
+| 70 | H1 | TRANS off | 0 | 0 | 0 |
+| 63 | M15 | 대조군 | 2 | 2 | +371 |
+| 69 | M15 | EMA off | **3** | 2 | −466 |
+| 71 | M15 | TRANS off | 2 | 2 | +695 |
+
+- **H1 은 표본이 사실상 없다**(3팔 합쳐 1건). H1 결론은 훨씬 오래 걸린다.
+- M15 에서 EMA off 가 진입을 늘리는 방향(3 vs 2)이 보이나 **n=3, 노이즈와 구분 불가**.
+- ⛔ **손익 열은 아직 보지 말 것.** 2단계는 수 주짜리다. 지금 숫자로 판단하면 오독한다.
+- 세션 69 `available_krw` 1,907원 — 포지션 보유 중이라 자본이 코인에 묶인 것(정상).
+
+### 부수 관찰
+
+- `daily_health_snapshot`: 잔고 불일치 0 · 유령 포지션 0 · 고착 포지션 0.
+  `order_sequence_gap` 은 **16(08-17) → 7(08-18) → 1(08-19)** 로 감소 중.
+
+### 다음 확인 시점
+
+- [ ] **08-21~22**: A/B 1단계 판정 (진입 수 차이). M15 우선, H1 은 표본 부족으로 보류.
+- [ ] **매일 09:00**: `kill_criteria_judgment` 신규 행 — 지금부터는 행이 생기면 그게 신호다.
+- [ ] **수 주 뒤**: A/B 2단계(실현손익·`exit_reason` 분포). 그 전에는 감쇠 기본값 변경 금지.
+- [ ] 백엔드 로그에 rate limit 이 뜨는지 (동적 18세션 ≈ 594/분 추정, 한도 420).
 
 ---
 

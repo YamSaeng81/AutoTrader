@@ -139,7 +139,7 @@ export default function NewsSourcesPage() {
         setFetchResults(prev => ({ ...prev, [sourceId]: { ok: false, msg: '수집 중...' } }));
         try {
             const res = await adminNewsApi.fetchNow(sourceId);
-            setFetchResults(prev => ({ ...prev, [sourceId]: { ok: true, msg: res.message || '수집 완료' } }));
+            setFetchResults(prev => ({ ...prev, [sourceId]: { ok: true, msg: String(res.data?.['message'] ?? '수집 완료') } }));
             load();
         } catch (e: any) {
             setFetchResults(prev => ({ ...prev, [sourceId]: { ok: false, msg: e.message || '수집 실패' } }));

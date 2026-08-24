@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw';
-import { dynamicSessionsMock, liveSessionsMock } from './data';
+import { dynamicSessionsMock, liveSessionsMock, strategyInfosMock } from './data';
 
 // ⚠️ 경로에 반드시 `/api/proxy` 접두사를 붙일 것.
 // 클라이언트는 axios baseURL='/api/proxy'(lib/api.ts)를 거쳐 호출한다.
@@ -9,6 +9,9 @@ import { dynamicSessionsMock, liveSessionsMock } from './data';
 // POST /api/v1/strategies        → 실서버 직접 연결 (strategyApi.create)
 // PUT /api/v1/strategies/:id     → 실서버 직접 연결 (strategyApi.update)
 // PATCH /api/v1/strategies/:id/toggle → 실서버 직접 연결 (strategyApi.toggle)
+//
+// ⚠️ 위 3개를 뺄 때 GET 목록/단건까지 같이 빠져 mock 모드의 /strategies 가
+//    장기간 빈 화면이었다. 조회(GET)는 화면 검증의 전제이므로 남겨둘 것.
 
 // 삭제 API 핸들러 (개발 환경 모킹용)
 export const handlers = [
@@ -241,5 +244,34 @@ export const handlers = [
   }),
   http.post('/api/proxy/api/v1/admin/health-check/trigger', () => {
     return HttpResponse.json({ success: true, data: { triggered: true }, error: null });
+  }),
+
+  // ── 전략 관리 (2026-08-20 신규) ──────────────────────────────────────────
+  // 목록 조회 목이 없어서 mock 모드의 /strategies 가 항상 빈 목록이었다.
+  // 그 결과 e2e 3건이 self-skip, 1건이 "빈 상태 메시지" 로 공허하게 통과했다.
+  http.get('/api/proxy/api/v1/strategies', () => {
+    return HttpResponse.json({ success: true, data: strategyInfosMock, error: null });
+  }),
+  http.get('/api/proxy/api/v1/strategies/:name', ({ params }) => {
+    const found = strategyInfosMock.find((s) => s.name === params.name);
+    if (!found) {
+      return HttpResponse.json(
+        { success: false, data: null, error: { code: 'NOT_FOUND', message: '전략을 찾을 수 없습니다.' } },
+        { status: 404 }
+      );
+    }
+    return HttpResponse.json({ success: true, data: found, error: null });
+  }),
+  // 활성/비활성 토글 — 목 배열을 그 자리에서 뒤집어 낙관적 갱신 후 재조회까지 이어지게 한다
+  http.patch('/api/proxy/api/v1/strategies/:name/active', ({ params }) => {
+    const found = strategyInfosMock.find((s) => s.name === params.name);
+    if (!found) {
+      return HttpResponse.json(
+        { success: false, data: null, error: { code: 'NOT_FOUND', message: '전략을 찾을 수 없습니다.' } },
+        { status: 404 }
+      );
+    }
+    found.isActive = !found.isActive;
+    return HttpResponse.json({ success: true, data: found, error: null });
   }),
 ];

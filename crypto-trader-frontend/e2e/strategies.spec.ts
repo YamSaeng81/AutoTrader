@@ -1,9 +1,19 @@
 import { test, expect } from '@playwright/test';
 
+/** 전략 카드 셀렉터 — 목록 카드에만 붙는 클래스 조합 */
+const CARD = '.cursor-pointer';
+
+/** /strategies 로 이동 후 로딩 스피너가 사라질 때까지 대기 */
+async function gotoStrategies(page: import('@playwright/test').Page) {
+  await page.goto('/strategies');
+  await page.waitForFunction(() => !document.querySelector('.animate-spin'), { timeout: 10000 });
+}
+
 test.describe('전략 관리 페이지', () => {
   test('/strategies 접속 → 페이지 타이틀 렌더링 확인', async ({ page }) => {
     await page.goto('/strategies');
-    await expect(page.getByText('전략 관리')).toBeVisible();
+    // 같은 문구가 사이드바 링크·모바일 앱바·라우트 어나운서에도 있으므로 h1으로 좁힌다
+    await expect(page.getByRole('heading', { name: '전략 관리' })).toBeVisible();
     await expect(page.getByText('사용 가능한 트레이딩 전략을 조회하고 파라미터를 설정합니다.')).toBeVisible();
   });
 
@@ -31,85 +41,43 @@ test.describe('전략 관리 페이지', () => {
     expect(hasHint || hasCards).toBe(true);
   });
 
-  test('/strategies → 전략 목록 렌더링 후 최소 1개 전략 카드 존재 (서버 응답 시)', async ({ page }) => {
-    await page.goto('/strategies');
+  test('/strategies → 전략 목록 렌더링 후 최소 1개 전략 카드 존재', async ({ page }) => {
+    await gotoStrategies(page);
 
-    // 로딩 완료 대기
-    await page.waitForFunction(() => {
-      const spinner = document.querySelector('.animate-spin');
-      return !spinner;
-    }, { timeout: 10000 });
-
-    // 전략 카드 또는 빈 상태 메시지 확인 (API 응답에 따라 다름)
-    const cardCount = await page.locator('.cursor-pointer').count();
-    const hasEmptyMsg = await page.getByText('사용 가능한 전략이 없습니다.').isVisible().catch(() => false);
-
-    expect(cardCount > 0 || hasEmptyMsg).toBe(true);
+    // e2e 는 항상 mock 모드(NEXT_PUBLIC_USE_MOCK=true)로 돌고 MSW 가 목록을 채워주므로
+    // 카드가 0개면 그건 정상 상태가 아니라 회귀다. "빈 상태 메시지도 통과" 로 두면
+    // 목이 죽어도 초록불이 뜬다 — 08-06 MSW 사고가 그렇게 넘어갔다.
+    await expect(page.locator(CARD)).not.toHaveCount(0);
   });
 
   test('/strategies → 전략 카드 클릭 시 선택 강조 스타일 적용', async ({ page }) => {
-    await page.goto('/strategies');
+    await gotoStrategies(page);
 
-    // 로딩 완료 대기
-    await page.waitForFunction(() => {
-      const spinner = document.querySelector('.animate-spin');
-      return !spinner;
-    }, { timeout: 10000 });
+    const firstCard = page.locator(CARD).first();
+    await firstCard.click();
 
-    const cards = page.locator('.cursor-pointer');
-    const cardCount = await cards.count();
-
-    if (cardCount > 0) {
-      const firstCard = cards.first();
-      await firstCard.click();
-
-      // 선택 시 border-indigo-500 클래스가 적용되어야 함
-      await expect(firstCard).toHaveClass(/border-indigo-500/);
-    } else {
-      // 카드 없으면 스킵
-      test.skip();
-    }
+    // 선택 시 border-indigo-500 클래스가 적용되어야 함
+    await expect(firstCard).toHaveClass(/border-indigo-500/);
   });
 
   test('/strategies → 전략 카드에 상태 배지(사용 가능/구현 예정) 존재', async ({ page }) => {
-    await page.goto('/strategies');
+    await gotoStrategies(page);
 
-    // 로딩 완료 대기
-    await page.waitForFunction(() => {
-      const spinner = document.querySelector('.animate-spin');
-      return !spinner;
-    }, { timeout: 10000 });
-
-    const cards = page.locator('.cursor-pointer');
-    const cardCount = await cards.count();
-
-    if (cardCount > 0) {
-      // 첫 번째 카드에 상태 배지가 있어야 함
-      const firstCard = cards.first();
-      const badge = firstCard.locator('span').filter({ hasText: /사용 가능|구현 예정/ });
-      await expect(badge).toBeVisible();
-    } else {
-      test.skip();
-    }
+    const badge = page.locator(CARD).first().locator('span').filter({ hasText: /사용 가능|구현 예정/ });
+    await expect(badge).toBeVisible();
   });
 
   test('/strategies → 전략 카드에 "설정 및 백테스트 지원" 텍스트 존재', async ({ page }) => {
-    await page.goto('/strategies');
+    await gotoStrategies(page);
 
-    // 로딩 완료 대기
-    await page.waitForFunction(() => {
-      const spinner = document.querySelector('.animate-spin');
-      return !spinner;
-    }, { timeout: 10000 });
+    await expect(page.locator(CARD).first().getByText('설정 및 백테스트 지원')).toBeVisible();
+  });
 
-    const cards = page.locator('.cursor-pointer');
-    const cardCount = await cards.count();
+  test('/strategies → "복합 전략" 탭 전환 시 복합 전략 카드가 나온다', async ({ page }) => {
+    await gotoStrategies(page);
 
-    if (cardCount > 0) {
-      const firstCard = cards.first();
-      await expect(firstCard.getByText('설정 및 백테스트 지원')).toBeVisible();
-    } else {
-      test.skip();
-    }
+    await page.getByRole('button', { name: '복합 전략' }).click();
+    await expect(page.locator(CARD)).not.toHaveCount(0);
+    await expect(page.getByRole('heading', { name: 'COMPOSITE_BREAKOUT', exact: true })).toBeVisible();
   });
 });

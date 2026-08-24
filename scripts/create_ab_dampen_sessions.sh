@@ -123,7 +123,8 @@ api "$API/dynamic-sessions" | python3 -c '
 import json,sys
 for s in json.load(sys.stdin)["data"]:
     if s["status"]=="RUNNING" and s["strategyType"]=="COMPOSITE_PULLBACK_MTF":
-        print(f"  {s[\"id\"]:>3}  {s[\"timeframe\"]:<4} {s.get(\"strategyParams\") or \"(대조군)\"}")
+        arm = s.get("strategyParams") or "(대조군)"
+        print("  %3s  %-4s %s" % (s["id"], s["timeframe"], arm))
 '
 
 cat <<'NOTE'

@@ -237,7 +237,7 @@ export default function AccountPage() {
                                     ))}
                                 </Pie>
                                 <Tooltip
-                                    formatter={(v: number) => [`${fmt(v)} KRW`, '']}
+                                    formatter={(v: number | undefined) => [`${fmt(Number(v ?? 0))} KRW`, '']}
                                     contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8, fontSize: 12 }}
                                     labelStyle={{ color: '#94a3b8' }}
                                 />

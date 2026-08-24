@@ -448,7 +448,7 @@ export default function WalkForwardPage() {
                                     <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                                     <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#94a3b8' }} />
                                     <YAxis tickFormatter={v => `${v}%`} tick={{ fontSize: 12, fill: '#94a3b8' }} />
-                                    <Tooltip formatter={(v: number) => [`${Number(v ?? 0).toFixed(2)}%`]} />
+                                    <Tooltip formatter={(v: number | undefined) => [`${Number(v ?? 0).toFixed(2)}%`]} />
                                     <Legend />
                                     <Bar dataKey="inSample" name="In-Sample (학습)" fill="#6366f1" radius={[4, 4, 0, 0]} />
                                     <Bar dataKey="outSample" name="Out-Sample (검증)" fill="#10b981" radius={[4, 4, 0, 0]} />

@@ -8,6 +8,7 @@ import {
 import { accountApi, tradingApi, paperTradingApi, settingsApi } from '@/lib/api';
 import type { BenchmarkAlpha } from '@/lib/api';
 import type { SystemMetrics, PerformanceSummary, AccountSummary } from '@/lib/types';
+import { fmtOrderQuantity } from '@/lib/utils';
 import {
     Activity, AlertTriangle, CheckCircle, Cpu, Database,
     DollarSign, HardDrive, MemoryStick, Server, TrendingDown,
@@ -500,7 +501,7 @@ export default function DashboardPage() {
                                         </div>
                                         <div className="text-right">
                                             <p className="text-xs font-semibold text-slate-200">{fmt(order.price)} KRW</p>
-                                            <p className="text-[11px] text-slate-500">{order.quantity.toFixed(6)}</p>
+                                            <p className="text-[11px] text-slate-500">{fmtOrderQuantity(order)}</p>
                                         </div>
                                     </div>
                                 );

@@ -394,7 +394,9 @@ public class CsvExportService {
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append("주문ID,세션ID,포지션ID,코인페어,방향,주문유형,상태,주문가격,주문수량,체결수량,사용KRW,");
+        // ⚠️ "주문수량"은 시장가 매수 행에서 코인 수량이 아니라 KRW 총액이다 (OrderAmounts 참조).
+        //    원본 컬럼을 그대로 내보내는 덤프이므로 값은 두되 헤더에 단위를 명시한다.
+        sb.append("주문ID,세션ID,포지션ID,코인페어,방향,주문유형,상태,주문가격,주문수량(시장가매수=KRW),체결수량,사용KRW,");
         sb.append("거래소주문ID,신호사유,실패사유,생성일시,제출일시,체결일시,취소일시\n");
 
         for (OrderEntity o : orders) {

@@ -9,7 +9,7 @@ import {
     ChevronsLeft, ChevronsRight,
     ChevronDown, ChevronRight as ChevronRightIcon, RefreshCw, Download,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, fmtOrderQuantity } from '@/lib/utils';
 import { format, subDays, startOfDay } from 'date-fns';
 
 const STATE_STYLE: Record<string, { label: string; cls: string }> = {
@@ -404,10 +404,7 @@ export default function UpbitLogsPage() {
 
                                             {/* 수량 */}
                                             <span className="flex-1 text-xs font-mono text-slate-500 dark:text-slate-400 truncate">
-                                                {order.orderType === 'MARKET' && order.side === 'BUY'
-                                                    ? `${Number(order.quantity).toLocaleString()} KRW`
-                                                    : `${Number(order.quantity).toFixed(6)}`
-                                                }
+                                                {fmtOrderQuantity(order)}
                                                 {order.filledQuantity > 0 && (
                                                     <span className="ml-2 text-emerald-500 dark:text-emerald-400">
                                                         → 체결 {Number(order.filledQuantity).toFixed(6)}

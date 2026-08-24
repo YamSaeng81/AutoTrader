@@ -8,6 +8,24 @@ import { ThemeProvider } from '@/components/layout/ThemeProvider';
 import { MainContent } from '@/components/layout/MainContent';
 import './globals.css';
 
+/**
+ * 첫 페인트 전에 <html> 의 dark 클래스를 확정하는 블로킹 스크립트.
+ * React 가 마운트된 뒤에 테마를 적용하면 라이트 모드 사용자에게 다크 화면이
+ * 한 프레임 보인다. 파싱을 막는 인라인 스크립트라야 그 깜빡임이 사라진다.
+ * 기본값은 ThemeProvider 와 동일하게 dark 다.
+ */
+const THEME_INIT_SCRIPT = `
+(function () {
+  try {
+    var t = localStorage.getItem('theme');
+    if (t !== 'light' && t !== 'dark') t = 'dark';
+    document.documentElement.classList.toggle('dark', t === 'dark');
+  } catch (e) {
+    document.documentElement.classList.add('dark');
+  }
+})();
+`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isLoginPage = pathname === '/login';
@@ -36,6 +54,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ko" suppressHydrationWarning>
       <body className="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans antialiased transition-colors">
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <ThemeProvider>
         <QueryClientProvider client={queryClient}>
           {mockReady ? (

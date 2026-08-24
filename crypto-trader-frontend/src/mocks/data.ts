@@ -1,4 +1,4 @@
-import { BacktestResult, TradeRecord, PageResponse } from '../lib/types';
+import { BacktestResult, TradeRecord, PageResponse, StrategyInfo } from '../lib/types';
 
 export const backtestResultMock: BacktestResult = {
     id: '550e8400-e29b-41d4-a716-446655440000',
@@ -91,16 +91,24 @@ export const strategyTypesMock = [
     },
 ];
 
-export const strategyInfosMock = [
-    { name: 'VWAP', minimumCandleCount: 20, status: 'AVAILABLE', description: '거래량 가중 평균 가격 기반 역추세 매매' },
-    { name: 'EMA_CROSS', minimumCandleCount: 21, status: 'AVAILABLE', description: '단기/장기 EMA 골든·데드크로스 추세 추종' },
-    { name: 'BOLLINGER', minimumCandleCount: 20, status: 'AVAILABLE', description: '볼린저 밴드 %B 기반 평균 회귀 매매' },
-    { name: 'GRID', minimumCandleCount: 1, status: 'AVAILABLE', description: '가격 그리드 레벨 근접 시 매매' },
-    { name: 'RSI', minimumCandleCount: 15, status: 'SKELETON', description: 'RSI 과매수/과매도 기반 역추세 매매 (구현 예정)' },
-    { name: 'MACD', minimumCandleCount: 35, status: 'SKELETON', description: 'MACD/Signal 크로스 기반 추세 추종 (구현 예정)' },
-    { name: 'SUPERTREND', minimumCandleCount: 11, status: 'SKELETON', description: 'ATR 기반 동적 지지/저항 추세 추종 (구현 예정)' },
-    { name: 'ATR_BREAKOUT', minimumCandleCount: 15, status: 'SKELETON', description: 'ATR 변동성 돌파 모멘텀 매매 (구현 예정)' },
-    { name: 'ORDERBOOK_IMBALANCE', minimumCandleCount: 5, status: 'SKELETON', description: '호가 불균형 기반 단기 방향성 매매 (WebSocket 연동 후 구현 예정)' },
+// GET /api/v1/strategies 응답. `StrategyInfo` 로 타입을 박아두면 백엔드 스키마가
+// 바뀔 때(예전에 isActive·isComposite 가 추가됐을 때처럼) 목이 조용히 낡지 않고
+// 컴파일 단계에서 걸린다.
+export const strategyInfosMock: StrategyInfo[] = [
+    // 단일 전략
+    { name: 'VWAP', minimumCandleCount: 20, status: 'AVAILABLE', description: '거래량 가중 평균 가격 기반 역추세 매매', isActive: true, isComposite: false },
+    { name: 'EMA_CROSS', minimumCandleCount: 21, status: 'AVAILABLE', description: '단기/장기 EMA 골든·데드크로스 추세 추종', isActive: true, isComposite: false },
+    { name: 'BOLLINGER', minimumCandleCount: 20, status: 'AVAILABLE', description: '볼린저 밴드 %B 기반 평균 회귀 매매', isActive: false, isComposite: false },
+    { name: 'GRID', minimumCandleCount: 1, status: 'AVAILABLE', description: '가격 그리드 레벨 근접 시 매매', isActive: false, isComposite: false },
+    { name: 'RSI', minimumCandleCount: 15, status: 'SKELETON', description: 'RSI 과매수/과매도 기반 역추세 매매 (구현 예정)', isActive: false, isComposite: false },
+    { name: 'MACD', minimumCandleCount: 35, status: 'SKELETON', description: 'MACD/Signal 크로스 기반 추세 추종 (구현 예정)', isActive: false, isComposite: false },
+    { name: 'SUPERTREND', minimumCandleCount: 11, status: 'SKELETON', description: 'ATR 기반 동적 지지/저항 추세 추종 (구현 예정)', isActive: false, isComposite: false },
+    { name: 'ATR_BREAKOUT', minimumCandleCount: 15, status: 'SKELETON', description: 'ATR 변동성 돌파 모멘텀 매매 (구현 예정)', isActive: false, isComposite: false },
+    { name: 'ORDERBOOK_IMBALANCE', minimumCandleCount: 5, status: 'SKELETON', description: '호가 불균형 기반 단기 방향성 매매 (WebSocket 연동 후 구현 예정)', isActive: false, isComposite: false },
+    // 복합 전략 — 목록 화면의 "복합 전략" 탭이 비지 않도록 최소 구성을 채운다
+    { name: 'COMPOSITE_BREAKOUT', minimumCandleCount: 35, status: 'AVAILABLE', description: 'ATR×0.5 + VolumeDelta×0.3 + MACD×0.2, EMA·ADX·RSI Veto 필터', isActive: true, isComposite: true, recommendedCoins: ['KRW-BTC', 'KRW-ADA'] },
+    { name: 'COMPOSITE_MOMENTUM_ICHIMOKU_V2', minimumCandleCount: 52, status: 'AVAILABLE', description: 'MACD×0.5 + Supertrend×0.3 + Grid×0.2, Ichimoku 필터', isActive: true, isComposite: true, recommendedCoins: ['KRW-DOGE'] },
+    { name: 'COMPOSITE_REGIME_ROUTER', minimumCandleCount: 52, status: 'AVAILABLE', description: 'ADX/ATR 레짐 판정 후 CB·V1·V2 로 자동 위임', isActive: false, isComposite: true, recommendedCoins: ['KRW-SOL', 'KRW-ETH'] },
 ];
 
 export interface StrategyParam {

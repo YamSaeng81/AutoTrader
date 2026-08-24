@@ -8,6 +8,7 @@ import com.cryptoautotrader.api.entity.PositionEntity;
 import com.cryptoautotrader.api.entity.RiskConfigEntity;
 import com.cryptoautotrader.api.repository.PositionRepository;
 import com.cryptoautotrader.api.service.*;
+import com.cryptoautotrader.api.util.OrderAmounts;
 import com.cryptoautotrader.exchange.upbit.UpbitOrderClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -281,15 +282,21 @@ public class TradingController {
 
     private Map<String, Object> toOrderMap(OrderEntity o, BigDecimal feeRate) {
         BigDecimal price = o.getPrice() != null ? o.getPrice() : BigDecimal.ZERO;
-        BigDecimal qty = o.getQuantity() != null ? o.getQuantity() : BigDecimal.ZERO;
-        BigDecimal fee = price.multiply(qty).multiply(feeRate).setScale(0, RoundingMode.HALF_UP);
+        // ⚠️ o.getQuantity()를 그대로 쓰면 안 된다 — 시장가 매수 행은 KRW 금액이 들어 있어서
+        //    price × quantity 수수료가 10^8 배로 튄다. 단위 판정은 OrderAmounts 가 담당.
+        BigDecimal coinQty = OrderAmounts.coinQuantity(o);
+        BigDecimal krwAmount = OrderAmounts.krwAmount(o);
+        BigDecimal fee = krwAmount != null
+                ? krwAmount.multiply(feeRate).setScale(0, RoundingMode.HALF_UP)
+                : BigDecimal.ZERO;
 
         Map<String, Object> map = new HashMap<>();
         map.put("id", o.getId());
         map.put("coinPair", o.getCoinPair());
         map.put("side", o.getSide());
         map.put("price", price);
-        map.put("quantity", qty);
+        map.put("quantity", coinQty != null ? coinQty : BigDecimal.ZERO);
+        map.put("krwAmount", krwAmount != null ? krwAmount : BigDecimal.ZERO);
         map.put("fee", fee);
         map.put("state", o.getState());
         map.put("signalReason", o.getSignalReason() != null ? o.getSignalReason() : "");
@@ -301,7 +308,8 @@ public class TradingController {
             positionRepository.findById(o.getPositionId()).ifPresent(pos -> {
                 BigDecimal buyPrice = pos.getAvgPrice();
                 BigDecimal realizedPnl = pos.getRealizedPnl() != null ? pos.getRealizedPnl() : BigDecimal.ZERO;
-                BigDecimal costBasis = buyPrice.multiply(qty);
+                // SELL 행이므로 coinQty 는 quantity 그대로 = 코인 수량이다 (OrderAmounts 참조)
+                BigDecimal costBasis = coinQty != null ? buyPrice.multiply(coinQty) : BigDecimal.ZERO;
                 BigDecimal pnlPct = costBasis.compareTo(BigDecimal.ZERO) > 0
                         ? realizedPnl.divide(costBasis, 4, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100))
                         : BigDecimal.ZERO;

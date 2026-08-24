@@ -109,7 +109,7 @@ export default function LlmConfigPage() {
                                     <div className="flex items-center gap-3">
                                         <span className="font-semibold text-white">{PROVIDER_LABELS[name] ?? name}</span>
                                         <StatusBadge ok={p.enabled as boolean} />
-                                        {p.available && <StatusBadge ok={true} label="연결됨" />}
+                                        {Boolean(p.available) && <StatusBadge ok={true} label="연결됨" />}
                                         {!p.available && (p.enabled as boolean) && <StatusBadge ok={false} label="미연결" />}
                                     </div>
                                     <div className="flex gap-2">
@@ -133,7 +133,7 @@ export default function LlmConfigPage() {
 
                                 <div className="text-xs text-slate-500 space-y-0.5">
                                     <div>모델: <span className="text-slate-300">{p.defaultModel as string}</span></div>
-                                    {p.baseUrl && <div>URL: <span className="text-slate-300">{p.baseUrl as string}</span></div>}
+                                    {Boolean(p.baseUrl) && <div>URL: <span className="text-slate-300">{p.baseUrl as string}</span></div>}
                                     <div>API 키: <span className={p.apiKeyConfigured ? 'text-green-400' : 'text-slate-500'}>{p.apiKeyConfigured ? '설정됨' : '미설정'}</span></div>
                                 </div>
 

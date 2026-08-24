@@ -34,3 +34,39 @@ export function fmtKstLocale(dt: string | null | undefined): string {
     if (!d || isNaN(d.getTime())) return '-';
     return d.toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
 }
+
+/**
+ * 주문 한 건의 "수량" 표기 — `order.quantity` 는 단위가 두 가지라 그대로 찍으면 안 된다.
+ *
+ * 시장가 매수(MARKET+BUY)는 Upbit `price` 타입 주문이라 quantity 컬럼에 **KRW 총액**이,
+ * 그 외(시장가 매도·지정가)에는 **코인 수량**이 들어간다. 백엔드
+ * `OrderAmounts`(web-api/util) 와 같은 판정 규칙이다.
+ *
+ * 시장가 매수는 체결 전이면 코인 수량을 알 수 없으므로 `filledQuantity` 가 채워지기 전까지
+ * "N KRW" 로 표기한다.
+ */
+export function fmtOrderQuantity(order: {
+    orderType?: string | null;
+    side?: string | null;
+    quantity?: number | null;
+    filledQuantity?: number | null;
+}): string {
+    const qty = Number(order.quantity ?? 0);
+    if (order.orderType === 'MARKET' && order.side === 'BUY') {
+        const filled = Number(order.filledQuantity ?? 0);
+        return filled > 0 ? filled.toFixed(6) : `${qty.toLocaleString()} KRW`;
+    }
+    return qty.toFixed(6);
+}
+
+/** 주문 한 건에 투입된 KRW 금액. 시장가 매수는 quantity 자체가 KRW다. */
+export function orderKrwAmount(order: {
+    orderType?: string | null;
+    side?: string | null;
+    price?: number | null;
+    quantity?: number | null;
+}): number {
+    const qty = Number(order.quantity ?? 0);
+    if (order.orderType === 'MARKET' && order.side === 'BUY') return qty;
+    return Number(order.price ?? 0) * qty;
+}

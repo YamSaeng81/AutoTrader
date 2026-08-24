@@ -59,16 +59,57 @@ test.describe('다크모드 테마 토글', () => {
     await expect(page.locator('html')).not.toHaveClass(/dark/);
   });
 
-  test('Header의 테마 토글 버튼도 동일하게 동작한다', async ({ page }) => {
+  // 미사용 컴포넌트였던 Header.tsx 는 2026-08-20 삭제 — 해당 테스트도 함께 제거했다.
+
+  test('라이트 모드로 재방문해도 다크 화면이 한 순간도 보이지 않는다', async ({ page }) => {
+    // 로드가 끝난 뒤의 상태만 보면 이 회귀는 안 잡힌다 — 옛 구현도 최종적으로는
+    // 라이트로 수렴했고, 문제는 그 사이에 dark 가 한 프레임 보이는 것이었다.
+    // 그래서 <html> 의 class 변화를 처음부터 감시해 dark 가 "한 번이라도" 붙었는지 본다.
+    await page.addInitScript(() => {
+      localStorage.setItem('theme', 'light');
+      const w = window as unknown as { __darkSeen?: boolean };
+      w.__darkSeen = false;
+      const check = () => {
+        if (document.documentElement.classList.contains('dark')) w.__darkSeen = true;
+      };
+      new MutationObserver(check).observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class'],
+      });
+      check();
+    });
+
     await page.goto('/');
-
-    // dark 초기 상태 확인
-    await expect(page.locator('html')).toHaveClass(/dark/);
-
-    // Header의 테마 토글 버튼 (aria-label로 선택)
-    const headerToggle = page.getByRole('button', { name: '라이트 모드로 전환' });
-    await headerToggle.click();
-
     await expect(page.locator('html')).not.toHaveClass(/dark/);
+
+    const darkSeen = await page.evaluate(
+      () => (window as unknown as { __darkSeen?: boolean }).__darkSeen
+    );
+    expect(darkSeen).toBe(false);
+  });
+
+  test('다크 모드는 React 하이드레이션 전에 이미 적용돼 있다', async ({ page }) => {
+    // 기본값이 dark 인데 SSR HTML 에는 dark 클래스가 없다. React 가 마운트된 뒤에
+    // 클래스를 붙이면 그 사이에 흰 배경(bg-slate-50)이 먼저 칠해진다.
+    // app/layout.tsx 의 블로킹 인라인 스크립트가 그걸 막는다 —
+    // 스크립트가 빠지면 DOMContentLoaded 시점에 dark 가 없어 이 테스트가 깨진다.
+    await page.addInitScript(() => {
+      localStorage.setItem('theme', 'dark');
+      const w = window as unknown as { __darkAtDcl?: boolean };
+      document.addEventListener('DOMContentLoaded', () => {
+        w.__darkAtDcl = document.documentElement.classList.contains('dark');
+      });
+    });
+
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+
+    // dev 서버가 진입 직후 한 번 더 내비게이션할 수 있으므로 값이 기록될 때까지 기다린 뒤 읽는다
+    await page.waitForFunction(
+      () => (window as unknown as { __darkAtDcl?: boolean }).__darkAtDcl !== undefined
+    );
+    const darkAtDcl = await page.evaluate(
+      () => (window as unknown as { __darkAtDcl?: boolean }).__darkAtDcl
+    );
+    expect(darkAtDcl).toBe(true);
   });
 });

@@ -3,13 +3,15 @@ import { test, expect } from '@playwright/test';
 test.describe('백테스트 워크플로우', () => {
   test('/backtest 페이지 접속 → 페이지 타이틀 렌더링 확인', async ({ page }) => {
     await page.goto('/backtest');
-    await expect(page.getByText('백테스트 이력')).toBeVisible();
+    // 같은 문구가 사이드바 링크·모바일 앱바·라우트 어나운서에도 있으므로 h1으로 좁힌다
+    await expect(page.getByRole('heading', { name: '백테스트 이력' })).toBeVisible();
     await expect(page.getByText('과거 시뮬레이션 결과 목록입니다.')).toBeVisible();
   });
 
   test('/backtest 페이지 → 새 백테스트 버튼 존재 확인', async ({ page }) => {
     await page.goto('/backtest');
-    const newBtn = page.getByRole('link', { name: '새 백테스트' });
+    // 사이드바에도 같은 이름의 링크가 있으므로 본문(main)으로 좁힌다
+    const newBtn = page.getByRole('main').getByRole('link', { name: '새 백테스트' });
     await expect(newBtn).toBeVisible();
     await expect(newBtn).toHaveAttribute('href', '/backtest/new');
   });
@@ -51,8 +53,10 @@ test.describe('백테스트 워크플로우', () => {
   test('/backtest/new → 타임프레임 셀렉트 옵션 확인', async ({ page }) => {
     await page.goto('/backtest/new');
 
-    // 타임프레임 select (3번째 select)
-    const timeframeSelect = page.locator('select').nth(2);
+    // BacktestForm의 유일한 <select>가 타임프레임이다 (코인·전략은 커스텀 컴포넌트)
+    const timeframeSelect = page.locator('select').filter({
+      has: page.locator('option[value="H1"]'),
+    });
     await expect(timeframeSelect).toBeVisible();
 
     // 옵션 확인
