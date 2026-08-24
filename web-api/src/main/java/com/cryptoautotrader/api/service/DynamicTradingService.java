@@ -2289,11 +2289,17 @@ public class DynamicTradingService {
      * 조용히 멈춰도 아무도 알아채지 못한 채 60초 폴링만 남는 상태가 될 수 있었다 — 2026-08-03
      * ELSA가 SL을 2.1%p 지나쳐서야 체결된 사고가 이 사각지대와 무관하지 않다. 보유 중(POSITION_MONITORING)
      * 세션만 대상이며, 미점검 발견 시 그 코인 하나만 REST로 즉시 강제 갱신을 시도한다.</p>
+     *
+     * <p><b>PAPER 세션은 대상에서 제외한다(2026-08-24)</b> — {@link #doOnRealtimePriceEvent}가
+     * {@code session.isPaper()} 인 세션에는 {@link #recordSlCheck}를 애초에 호출하지 않는다
+     * (PAPER는 WS 감시 대상이 아니라 60초 폴링만 쓰도록 설계됨). 이 필터 없이는 PAPER 세션의
+     * {@code lastSlCheckAt}이 영원히 채워지지 않아 매 실행(60초)마다 오탐 알림이 무한 반복된다
+     * — 실제 감시 공백이 아니라 워치독이 대상 범위를 잘못 잡은 것.</p>
      */
     @Scheduled(fixedDelay = 60_000)
     public void warnStaleSlCheck() {
         List<DynamicSessionEntity> sessions = dynamicSessionRepo.findByStatus("RUNNING").stream()
-                .filter(s -> "POSITION_MONITORING".equals(s.getScanState()) && s.getCurrentCoinPair() != null)
+                .filter(s -> !s.isPaper() && "POSITION_MONITORING".equals(s.getScanState()) && s.getCurrentCoinPair() != null)
                 .toList();
         if (sessions.isEmpty()) return;
 
