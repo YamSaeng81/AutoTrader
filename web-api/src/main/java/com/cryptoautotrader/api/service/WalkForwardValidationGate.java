@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -66,23 +67,71 @@ public class WalkForwardValidationGate {
         return gateEnabled;
     }
 
-    /** 전략에 대한 최신 Walk Forward 실행 결과 기반 판정. */
+    /**
+     * 전략×코인 조합의 최신 Walk Forward 실행 결과 기반 판정 — 코인이 정해진 세션(LIVE)용.
+     *
+     * <p>같은 전략도 코인마다 성적이 크게 갈린다(Tier1/Tier2 표 참조). 코인을 아는 상황에서
+     * 코인 무관 판정을 쓰면, 엉뚱한 코인의 결과가 섞여 실제로는 좋은 조합을 차단하거나
+     * 나쁜 조합을 통과시킬 수 있다(2026-08-24 실측: 5전략을 ADA 기준으로만 판정했더니
+     * BTC에서는 통과할 만한 조합 3개가 전부 가려짐).</p>
+     */
+    public GateDecision evaluate(String strategyName, String coinPair) {
+        if (coinPair == null) {
+            return evaluate(strategyName);
+        }
+        List<BacktestRunEntity> runs = backtestRunRepository
+                .findByStrategyNameAndCoinPairAndIsWalkForwardTrueOrderByCreatedAtDesc(strategyName, coinPair);
+        String label = strategyName + "/" + coinPair;
+        if (runs.isEmpty()) {
+            return decide(label, null, null, null, null);
+        }
+        return decideFromRun(label, runs.get(0));
+    }
+
+    /**
+     * 전략에 대한 판정 — 코인을 아직 모르는 상황(DYNAMIC 세션 생성, 실제 매수 코인은 감시목록
+     * 스캔 후 정해짐)에서만 쓴다. "이 전략이 검증을 통과한 코인이 하나라도 있는가"로 판단한다 —
+     * 코인별 최신 실행 중 하나라도 PASS 면 전략 전체를 PASS 로 본다.
+     *
+     * <p>완벽한 판정은 아니다(통과 코인이 아닌 다른 코인을 매수할 수도 있다) — 하지만 예전처럼
+     * "가장 최근에 실행된 아무 코인 하나"로 전략 전체를 판정하는 것보다는 낫다. 그쪽은 실행 순서에
+     * 따라 결과가 좌우되는 우연에 가까웠다.</p>
+     */
     public GateDecision evaluate(String strategyName) {
         List<BacktestRunEntity> runs =
                 backtestRunRepository.findByStrategyNameAndIsWalkForwardTrueOrderByCreatedAtDesc(strategyName);
         if (runs.isEmpty()) {
             return decide(strategyName, null, null, null, null);
         }
-        BacktestRunEntity latest = runs.get(0);
-        Map<String, Object> wf = latest.getWfResultJson();
-        String verdict = wf != null ? asString(wf.get("verdict")) : null;
 
+        // 코인별 최신 실행만 남긴다 (runs는 이미 createdAt desc 이므로 첫 등장이 최신).
+        Map<String, BacktestRunEntity> latestPerCoin = new LinkedHashMap<>();
+        for (BacktestRunEntity run : runs) {
+            latestPerCoin.putIfAbsent(run.getCoinPair(), run);
+        }
+
+        GateDecision best = null;
+        for (BacktestRunEntity run : latestPerCoin.values()) {
+            GateDecision d = decideFromRun(strategyName + "/" + run.getCoinPair(), run);
+            if (d.passed()) {
+                return GateDecision.pass(strategyName,
+                        String.format("%s 기준 PASS (%s)", run.getCoinPair(), d.reason()), d.lastValidatedAt());
+            }
+            if (best == null) best = d; // 전부 FAIL이면 가장 최근 것의 사유를 대표로 보여준다
+        }
+        return new GateDecision(strategyName, false,
+                String.format("검증된 %d개 코인 전부 FAIL — 예: %s", latestPerCoin.size(), best.reason()),
+                null);
+    }
+
+    private GateDecision decideFromRun(String label, BacktestRunEntity run) {
+        Map<String, Object> wf = run.getWfResultJson();
+        String verdict = wf != null ? asString(wf.get("verdict")) : null;
         Map<String, Object> aggregated = wf != null ? asMap(wf.get("aggregatedOutSample")) : null;
         BigDecimal expectancyPct = aggregated != null ? asBigDecimal(aggregated.get("expectancyPct")) : null;
         Integer totalTrades = aggregated != null ? asInteger(aggregated.get("totalTrades")) : null;
-
-        return decide(strategyName, verdict, expectancyPct, totalTrades, latest.getCreatedAt() != null
-                ? latest.getCreatedAt().toString() : null);
+        return decide(label, verdict, expectancyPct, totalTrades,
+                run.getCreatedAt() != null ? run.getCreatedAt().toString() : null);
     }
 
     /**
@@ -90,7 +139,12 @@ public class WalkForwardValidationGate {
      * (판정 자체는 항상 계산해 호출부 로그에 남길 수 있게 한다).
      */
     public void throwIfBlocked(String strategyName) {
-        GateDecision decision = evaluate(strategyName);
+        throwIfBlocked(strategyName, null);
+    }
+
+    /** 코인을 아는 세션(LIVE)은 이쪽을 쓴다 — {@link #evaluate(String, String)} 참조. */
+    public void throwIfBlocked(String strategyName, String coinPair) {
+        GateDecision decision = evaluate(strategyName, coinPair);
         if (!decision.passed()) {
             log.info("[WalkForwardGate] 판정: {} → {} ({}) — 게이트 {}",
                     strategyName, decision.passed() ? "PASS" : "FAIL", decision.reason(),
