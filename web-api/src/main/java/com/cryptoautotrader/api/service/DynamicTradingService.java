@@ -1189,7 +1189,9 @@ public class DynamicTradingService {
 
         // 전략 제안 SL은 존중하되 **더 넓은 쪽을 채택**한다. 제안값이 ATR 기준보다 타이트하면
         // 그대로 휩쏘로 이어지므로(개편 전 실패 패턴), 전략의 의도는 방향에만 반영한다.
-        BigDecimal stopLossPrice = signal.getSuggestedStopLoss() != null
+        // exitOverrides 가 걸린 세션(손절폭 A/B)은 예외 — suggestedStopLoss 가 세션 오버라이드를
+        // 모른 채 arm 과 무관하게 동일해서, min() 을 타면 오버라이드가 조용히 무효화된다(2026-08-24).
+        BigDecimal stopLossPrice = (!exitOverrides.isPresent() && signal.getSuggestedStopLoss() != null)
                 ? signal.getSuggestedStopLoss().min(atrStopLossPrice)
                 : atrStopLossPrice;
 

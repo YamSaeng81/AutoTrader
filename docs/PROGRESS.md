@@ -392,12 +392,45 @@ API 는 200 을 돌려줬고 세션도 정상 생성됐다.
 §12(strictHtf 무효)·§16(BREAKOUT_ICHIMOKU) 과 같은 계열의 문제다 —
 설정한 것이 실제로 거동을 바꿨는지 세지 않으면 없는 실험을 했다고 믿게 된다.
 
+### 23. ✅ 손절폭 A/B 재구성 완료 (2026-08-24) — 관측 시작
+
+| 구분 | 세션 ID | 건수 | strategy_params |
+|---|---|---|---|
+| 1차 오염분 | 250~289 | 40 | — (전부 **STOPPED**, 정리 완료) |
+| **대조군** | 08-18 생성분 | **40** | NULL |
+| **실험군** | **290~329** | **40** | `{"slAtrMultiplier":2.5,"tpRrMultiplier":1.2}` |
+
+5전략 × 8코인이 대조군·실험군 **8:8 로 정확히 짝지어져** 있다(MEANREV_BB · MOMENTUM_ICHIMOKU ·
+ICHIMOKU_V2 · MTF_BTC · MTF_CONFIRMED). 같은 코인·같은 기간을 보므로 시장 국면 차이가 상쇄된다.
+
+**아직 검증되지 않은 것 — 오버라이드가 실제로 SL/TP 를 바꾸는가**
+
+`strategy_params` 가 DB 에 저장된 것까지는 확인했지만(§22 의 유실 재발 없음), 그 값이 런타임에서
+실제로 손절폭을 바꾸는지는 **실험군이 첫 포지션을 열어야** 알 수 있다. 생성 직후라 아직 0건이다.
+
+첫 진입이 생기면 아래로 확인할 것 — 기대값은 **실험군 SL 거리가 대조군의 약 1.67배**(1.5→2.5 ATR),
+**TP 거리는 거의 동일**(2.5×1.2 = 3.0 ≒ 1.5×2.0). 대조군 실측 SL 거리가 0.426% 였으니 실험군은 ~0.71% 여야 한다.
+
+```sql
+SELECT CASE WHEN v.strategy_params IS NULL THEN '대조군' ELSE '실험군' END AS arm,
+       count(*) AS n,
+       round(avg(100.0*(1 - p.stop_loss_price/nullif(p.entry_price,0))),3) AS sl_dist_pct,
+       round(avg(100.0*(p.take_profit_price/nullif(p.entry_price,0) - 1)),3) AS tp_dist_pct
+FROM paper_trading.position p
+JOIN paper_trading.virtual_balance v ON v.id = p.session_id
+WHERE v.timeframe='M15' AND p.opened_at >= '2026-08-24 02:00'
+GROUP BY 1;
+```
+
+**SL 거리가 두 arm 에서 같게 나오면 오버라이드가 안 먹은 것이다** — 그 경우 즉시 실험을 멈춘다.
+파라미터 저장(§22)과 파라미터 적용은 별개 문제이고, 지금 확인된 건 저장까지다.
+
 ### 다음 액션
 
 1. ✅ ~~PULLBACK_MTF 고정코인 세션 중지~~ — 완료 (§8)
-2. 🔴 **손절폭 A/B 재시도** — §19·§22. 순서: ① `cleanup_failed_ab_sessions.sh` 로 오염 40세션 정지
-   → ② `strategyParams` 수정본 **재배포** → ③ `create_ab_stoploss_sessions.sh`.
-   ③ 은 이제 저장 여부를 스스로 검증하므로 유실되면 실패로 끝난다. 판정은 그로부터 1주 후.
+2. 🔜 **손절폭 A/B 관측 중** — §23. 대조군 40 / 실험군 40(id 290~329) 가동.
+   ① **첫 진입 시 SL 거리 확인**(오버라이드가 실제로 먹는지 — 아직 미검증)
+   ② 1주 후 승률·보유시간·기대수익률 판정.
 3. ✅ ~~MTF_BTC_STRICT 비활성화~~ — 완료 (2026-08-24 00:58, `is_active=false` · RUNNING 세션 0건 확인).
 4. ✅ ~~H1 승률 0% 3전략 중지~~ — 완료 (§21, RUNNING 0건 확인).
 5. 동일코인 노출상한 1 → 2 A/B — 리스크 장치라 보류(§4).

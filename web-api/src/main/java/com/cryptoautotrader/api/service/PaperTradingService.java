@@ -884,7 +884,9 @@ public class PaperTradingService {
                 .setScale(8, RoundingMode.HALF_DOWN);
 
         // 전략 제안 SL은 존중하되 더 넓은 쪽을 채택 (타이트한 제안은 휩쏘로 이어진다 — LIVE 동일)
-        BigDecimal stopLossPrice = (signal != null && signal.getSuggestedStopLoss() != null)
+        // exitOverrides 가 걸린 세션(손절폭 A/B)은 예외 — suggestedStopLoss 가 세션 오버라이드를
+        // 모른 채 arm 과 무관하게 동일해서, min() 을 타면 오버라이드가 조용히 무효화된다(2026-08-24).
+        BigDecimal stopLossPrice = (!exitOverrides.isPresent() && signal != null && signal.getSuggestedStopLoss() != null)
                 ? signal.getSuggestedStopLoss().min(atrStopLossPrice)
                 : atrStopLossPrice;
 
