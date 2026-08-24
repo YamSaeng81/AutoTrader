@@ -187,6 +187,16 @@ public class CompositePresetRegistrar {
                         new SupertrendStrategy(),      // H4 추세 확인 (별도 인스턴스)
                         4));
 
+        // ⚠️ DEPRECATED (2026-08-24) — strictHtf 가 구조적으로 무효라 COMPOSITE_MTF_BTC 와 동일하다.
+        //    HTF 확인자인 SupertrendStrategy 는 데이터만 있으면 절대 HOLD 를 내지 않고
+        //    (추세선 위=BUY / 아래=SELL 이분법), getMinimumCandleCount()=max(ltf, 4×12) 이라
+        //    호출 시점에 HTF 캔들 12개가 보장된다. → strictHtf 가 갈리는 두 분기
+        //    (HTF 데이터부족 / HTF HOLD) 모두 도달 불가.
+        //    운영 실측: 두 전략의 청산 43건이 코인·진입시각·손익까지 전부 동일(진입 차 30ms).
+        //    증명: core-engine SupertrendStrictHtfNoOpTest
+        //    → strategy_type_enabled 에서 is_active=false 처리(scripts/disable_duplicate_strategies.sh).
+        //    등록 자체는 남긴다 — 과거 세션 조회와 재활성화 경로를 깨지 않기 위해서다.
+        //    되살리려면 HTF 확인자를 HOLD 를 낼 수 있는 전략으로 교체할 것.
         // COMPOSITE_MTF_BTC_STRICT: COMPOSITE_MTF_BTC의 strictHtf=true A/B 변형 (EXPERIMENTAL)
         //   기존 MTF는 H4 HOLD·데이터부족 시 LTF 신호를 통과시킨다(보수적 허용). strict 변형은
         //   H4가 명시적으로 방향(BUY/SELL)을 확인할 때만 진입 → 운영 초반 과공격/추세 미확인 진입 차단.
