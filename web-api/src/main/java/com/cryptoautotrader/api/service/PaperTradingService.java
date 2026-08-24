@@ -870,8 +870,10 @@ public class PaperTradingService {
 
         // ── SL/TP: ATR 기반 (LIVE·DYNAMIC과 ExitRuleCalculator 공유) ──────────
         // 기존에는 ExitRuleChecker의 고정 % 공식을 써서 실전과 손절폭이 달랐다.
+        // 세션 strategy_params 의 slAtrMultiplier/tpRrMultiplier 오버라이드를 적용한다(손절폭 A/B).
+        ExitRuleOverrides exitOverrides = ExitRuleOverrides.from(session.getStrategyParams());
         BigDecimal slPct = ExitRuleCalculator.resolveStopLossPct(
-                session.getStopLossPct(), evalCandles, price);
+                session.getStopLossPct(), evalCandles, price, exitOverrides);
         BigDecimal atrStopLossPrice = price.multiply(BigDecimal.ONE.subtract(
                         slPct.divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP)))
                 .setScale(8, RoundingMode.HALF_DOWN);
@@ -882,7 +884,8 @@ public class PaperTradingService {
                 : atrStopLossPrice;
 
         BigDecimal takeProfitPrice = ExitRuleCalculator.resolveTakeProfitPrice(
-                price, stopLossPrice, signal != null ? signal.getSuggestedTakeProfit() : null);
+                price, stopLossPrice, signal != null ? signal.getSuggestedTakeProfit() : null,
+                exitOverrides);
 
         String rulesetHash = rulesetRegistry.hashFor(session);
         PaperPositionEntity pos = PaperPositionEntity.builder()

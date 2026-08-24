@@ -113,6 +113,18 @@ final class ExitRuleCalculator {
      * floorPct 그대로 폴백한다.</p>
      */
     static BigDecimal resolveStopLossPct(BigDecimal floorPct, List<Candle> candles, BigDecimal currentPrice) {
+        return resolveStopLossPct(floorPct, candles, currentPrice, ExitRuleOverrides.NONE);
+    }
+
+    /**
+     * 세션별 오버라이드를 적용한 손절폭(%) 결정 — 손절폭 A/B 용 (2026-08-24).
+     *
+     * <p>{@code overrides} 가 {@link ExitRuleOverrides#NONE} 이면 위 기본 동작과 완전히 같다.
+     * 오버라이드 값은 {@code strategy_params} 로 들어오고 {@code RulesetRegistry} 가
+     * {@code strategy.params} 키로 지문에 담으므로, arm 별 거래가 자동으로 다른 표본이 된다.</p>
+     */
+    static BigDecimal resolveStopLossPct(BigDecimal floorPct, List<Candle> candles,
+                                          BigDecimal currentPrice, ExitRuleOverrides overrides) {
         if (floorPct == null) {
             floorPct = BigDecimal.ZERO;
         }
@@ -127,7 +139,8 @@ final class ExitRuleCalculator {
             }
             BigDecimal atrPct = atr.divide(currentPrice, 8, RoundingMode.HALF_UP)
                     .multiply(BigDecimal.valueOf(100));
-            return atrPct.multiply(SL_ATR_MULTIPLIER).max(floorPct).min(SL_PCT_MAX);
+            return atrPct.multiply(overrides.slAtrMultiplierOr(SL_ATR_MULTIPLIER))
+                    .max(floorPct).min(SL_PCT_MAX);
         } catch (Exception e) {
             // ATR 계산 데이터 부족 등 — 진입을 막을 사유는 아니므로 floorPct로 진행
             return floorPct;
@@ -143,10 +156,25 @@ final class ExitRuleCalculator {
      */
     static BigDecimal resolveTakeProfitPrice(BigDecimal currentPrice, BigDecimal stopLossPrice,
                                               BigDecimal suggestedTakeProfit) {
+        return resolveTakeProfitPrice(currentPrice, stopLossPrice, suggestedTakeProfit,
+                ExitRuleOverrides.NONE);
+    }
+
+    /**
+     * 세션별 오버라이드를 적용한 익절가 결정 — 손절폭 A/B 용 (2026-08-24).
+     *
+     * <p><b>SL 을 넓히는 실험군은 반드시 {@code tpRrMultiplier} 를 함께 낮춰야 한다.</b>
+     * TP 가 SL 에 연동돼 있어 SL 만 넓히면 TP 도 멀어져 도달 불가가 된다 — 07-31 개편이
+     * 그렇게 실패했다({@link #TP_PCT_MAX} javadoc 참조).</p>
+     */
+    static BigDecimal resolveTakeProfitPrice(BigDecimal currentPrice, BigDecimal stopLossPrice,
+                                              BigDecimal suggestedTakeProfit,
+                                              ExitRuleOverrides overrides) {
         BigDecimal effectiveSlPct = BigDecimal.ONE
                 .subtract(stopLossPrice.divide(currentPrice, 8, RoundingMode.HALF_UP))
                 .multiply(BigDecimal.valueOf(100));
-        BigDecimal targetTpPct = effectiveSlPct.multiply(TP_RR_MULTIPLIER).min(TP_PCT_MAX);
+        BigDecimal targetTpPct = effectiveSlPct
+                .multiply(overrides.tpRrMultiplierOr(TP_RR_MULTIPLIER)).min(TP_PCT_MAX);
         BigDecimal atrTakeProfitPrice = currentPrice.multiply(BigDecimal.ONE.add(
                         targetTpPct.divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP)))
                 .setScale(8, RoundingMode.HALF_UP);

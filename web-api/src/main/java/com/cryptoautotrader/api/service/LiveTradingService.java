@@ -1239,7 +1239,10 @@ public class LiveTradingService {
         // 적용된 상태였고, 세션 194 BTC가 136시간 물려 있던 원인 중 하나였다(SL 폭 자체는
         // 원인이 아니지만, 이제 두 서비스가 같은 함수를 쓰므로 앞으로의 개편은 자동으로
         // 양쪽에 적용된다).
-        BigDecimal slPct = ExitRuleCalculator.resolveStopLossPct(session.getStopLossPct(), evalCandles, price);
+        // 세션 strategy_params 의 slAtrMultiplier/tpRrMultiplier 오버라이드를 적용한다(손절폭 A/B).
+        ExitRuleOverrides exitOverrides = ExitRuleOverrides.from(session.getStrategyParams());
+        BigDecimal slPct = ExitRuleCalculator.resolveStopLossPct(
+                session.getStopLossPct(), evalCandles, price, exitOverrides);
         BigDecimal atrStopLossPrice = price.multiply(BigDecimal.ONE.subtract(
                         slPct.divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP)))
                 .setScale(8, RoundingMode.HALF_DOWN);
@@ -1251,7 +1254,8 @@ public class LiveTradingService {
                 : atrStopLossPrice;
 
         BigDecimal takeProfitPrice = ExitRuleCalculator.resolveTakeProfitPrice(
-                price, stopLossPrice, signal != null ? signal.getSuggestedTakeProfit() : null);
+                price, stopLossPrice, signal != null ? signal.getSuggestedTakeProfit() : null,
+                exitOverrides);
 
         // 포지션 생성 (세션 연결)
         // size=0 으로 초기화: 주문 체결(FILLED) 후 handleBuyFill()에서 실제 체결 수량으로 갱신됨

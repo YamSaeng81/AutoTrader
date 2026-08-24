@@ -1179,7 +1179,10 @@ public class DynamicTradingService {
         if (hasPendingBuy) return "미체결 BUY 주문 존재 — 중복 매수 차단";
 
         // SL / TP 계산 — ATR 기반 (2026-07-31 개편, 상단 상수 주석 참조). REAL/PAPER 100% 공유.
-        BigDecimal slPct = ExitRuleCalculator.resolveStopLossPct(session.getStopLossPct(), evalCandles, currentPrice);
+        // 세션 strategy_params 의 slAtrMultiplier/tpRrMultiplier 오버라이드를 적용한다(손절폭 A/B).
+        ExitRuleOverrides exitOverrides = ExitRuleOverrides.from(session.getStrategyParams());
+        BigDecimal slPct = ExitRuleCalculator.resolveStopLossPct(
+                session.getStopLossPct(), evalCandles, currentPrice, exitOverrides);
         BigDecimal atrStopLossPrice = currentPrice.multiply(BigDecimal.ONE.subtract(
                         slPct.divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP)))
                 .setScale(8, RoundingMode.HALF_DOWN);
@@ -1191,7 +1194,7 @@ public class DynamicTradingService {
                 : atrStopLossPrice;
 
         BigDecimal takeProfitPrice = ExitRuleCalculator.resolveTakeProfitPrice(
-                currentPrice, stopLossPrice, signal.getSuggestedTakeProfit());
+                currentPrice, stopLossPrice, signal.getSuggestedTakeProfit(), exitOverrides);
 
         String rulesetHash = rulesetRegistry.hashFor(session);
         // V73: 진입 시점 레짐 — 이게 없으면 "이 전략은 횡보장에서만 되는가" 를 물을 수 없다.

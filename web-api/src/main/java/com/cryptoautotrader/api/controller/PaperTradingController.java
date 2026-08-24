@@ -197,6 +197,9 @@ public class PaperTradingController {
         map.put("totalFee", s.getTotalFee() != null ? s.getTotalFee() : BigDecimal.ZERO);
         map.put("startedAt", s.getStartedAt() != null ? s.getStartedAt().toString() : null);
         map.put("stoppedAt", s.getStoppedAt() != null ? s.getStoppedAt().toString() : null);
+        // A/B arm 식별자 — 이게 없으면 어느 세션이 실험군인지 API 로 구분할 수 없다.
+        // (2026-08-24 손절폭 A/B: 대조군만 골라 복제하려면 필수)
+        map.put("strategyParams", s.getStrategyParams());
         return map;
     }
 
