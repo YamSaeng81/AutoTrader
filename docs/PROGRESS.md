@@ -357,13 +357,49 @@ H1 전면 중지는 n=31로 근거가 얇아 하지 않는다.
 **전략 자체는 비활성화하지 않는다** — 같은 전략의 M15 세션은 흑자다.
 `strategy_type_enabled` 를 끄면 M15 신규 세션까지 막힌다.
 
+### 21. ✅ H1 승률 0% 3전략 중지 완료 (2026-08-24)
+
+DB 확인 — 대상 3전략의 H1 RUNNING 세션이 전부 0건이 됐다.
+
+| H1 전략 | RUNNING |
+|---|---|
+| MOMENTUM_ICHIMOKU / ICHIMOKU_V2 / MTF_CONFIRMED | **0** (중지 완료) |
+| MEANREV_BB / MTF_BTC | 8 / 8 (유지 — 의도대로) |
+
+### 22. 🔴 손절폭 A/B 1차 시도 실패 — `strategyParams` 조용한 유실
+
+**증상**: 실험군 40세션(id 250~289)이 생성됐는데 `strategy_params` 가 전부 NULL.
+API 는 200 을 돌려줬고 세션도 정상 생성됐다.
+
+**원인**: `PaperTradingService.createSession` 의 빌더에서 `strategyParams` 가 **빠져 있었다.**
+`LiveTradingService:370` 과 `DynamicTradingService:415` 는 처음부터 넘기고 있었는데 **PAPER 만 누락**이었다.
+감쇠 A/B 가 동적 세션이라 정상 동작했고, 이 경로는 아무도 쓴 적이 없어 드러나지 않았다.
+
+**왜 위험한가**: 실패가 조용하다. 파라미터만 사라지고 세션은 멀쩡히 돈다 —
+실험군 40개가 대조군과 **완전히 같은 규칙**으로 돌았고, 지문(`strategy.params`)까지 같아져
+사후에 "이건 오염된 표본"이라고 구분할 방법조차 없었다. A/B 가 실패하는 게 아니라
+**틀린 결론을 준다.**
+
+**조치**
+- `PaperTradingService.createSession` 에 `.strategyParams(req.getStrategyParams())` 추가
+- 회귀 가드 `PaperSessionStrategyParamsTest` — 빌더 호출 존재 확인 + 세 엔진 엔티티 필드 계약
+- `create_ab_stoploss_sessions.sh` 에 **생성 직후 사후 검증** 추가.
+  저장된 개수가 생성 개수와 다르면 즉시 실패하고 원인을 안내한다. 이제 조용히 지나갈 수 없다.
+- `cleanup_failed_ab_sessions.sh` — 오염된 40세션 정지 (ID 하드코딩 없이
+  "01:00 이후 생성 + params 없음 + M15 + RUNNING" 조건으로 선별, 원래 대조군은 제외)
+
+**교훈**: A/B 스크립트는 "만들었다"가 아니라 **"의도한 파라미터로 돌고 있다"까지 확인**해야 한다.
+§12(strictHtf 무효)·§16(BREAKOUT_ICHIMOKU) 과 같은 계열의 문제다 —
+설정한 것이 실제로 거동을 바꿨는지 세지 않으면 없는 실험을 했다고 믿게 된다.
+
 ### 다음 액션
 
 1. ✅ ~~PULLBACK_MTF 고정코인 세션 중지~~ — 완료 (§8)
-2. 🔜 **재배포 → 손절폭 A/B 실행** — §19. 구현·테스트 완료, `scripts/create_ab_stoploss_sessions.sh`.
-   ⚠️ 반드시 **배포 후** 실행(미배포 상태로 만들면 표본이 오염된다). 판정은 1주 후.
+2. 🔴 **손절폭 A/B 재시도** — §19·§22. 순서: ① `cleanup_failed_ab_sessions.sh` 로 오염 40세션 정지
+   → ② `strategyParams` 수정본 **재배포** → ③ `create_ab_stoploss_sessions.sh`.
+   ③ 은 이제 저장 여부를 스스로 검증하므로 유실되면 실패로 끝난다. 판정은 그로부터 1주 후.
 3. ✅ ~~MTF_BTC_STRICT 비활성화~~ — 완료 (2026-08-24 00:58, `is_active=false` · RUNNING 세션 0건 확인).
-4. 🔜 **H1 승률 0% 3전략 중지 실행** — §20. `scripts/stop_h1_zero_winrate.sh` (배포와 무관하게 지금 실행 가능).
+4. ✅ ~~H1 승률 0% 3전략 중지~~ — 완료 (§21, RUNNING 0건 확인).
 5. 동일코인 노출상한 1 → 2 A/B — 리스크 장치라 보류(§4).
 6. 감쇠 A/B(동적 56·63·68·69·70·71) — 성적과 무관하게 실험 종료까지 유지.
 

@@ -129,6 +129,30 @@ EOF
 
 printf '\n\033[1m▶ 결과: 성공 %s / 실패 %s\033[0m\n' "$ok" "$fail"
 
+# ── 사후 검증: 파라미터가 실제로 저장됐는가 ──────────────────────────────────
+# 2026-08-24 사고: PaperTradingService.createSession 빌더에서 strategyParams 가 빠져 있어
+# API 는 200 을 돌려주는데 파라미터만 조용히 사라졌다. 실험군 40세션이 대조군과 똑같이
+# 돌았고 지문까지 같아 사후 구분조차 불가능했다. 같은 일이 반복되지 않게 여기서 확인한다.
+echo
+echo "▶ 사후 검증 — 저장된 strategy_params"
+verified=$(api "$API/paper-trading/sessions" | python3 -c '
+import json,sys
+d = json.load(sys.stdin)["data"]
+rows = d["content"] if isinstance(d, dict) and "content" in d else d
+print(len([s for s in rows if s.get("status")=="RUNNING" and s.get("strategyParams")]))
+')
+echo "  strategy_params 가 실린 RUNNING 세션: ${verified}건 (기대: $ok건)"
+if [ "$verified" != "$ok" ]; then
+  echo
+  echo "  🔴 파라미터가 저장되지 않았습니다 — 실험군이 대조군과 동일하게 돕니다."
+  echo "     방금 만든 세션을 전부 정지하고, 배포본에 PaperTradingService.createSession 의"
+  echo "     .strategyParams(req.getStrategyParams()) 가 있는지 확인하세요."
+  echo "     (회귀 가드: PaperSessionStrategyParamsTest)"
+  exit 1
+fi
+echo "  ✓ 실험군이 대조군과 다른 규칙으로 돕니다."
+
+
 cat <<'NOTE'
 
 ▶ 판정 쿼리 (1주 후 — arm 당 100건 넘으면 결론 가능)

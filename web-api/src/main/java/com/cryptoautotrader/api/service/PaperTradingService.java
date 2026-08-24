@@ -190,6 +190,11 @@ public class PaperTradingService {
                 .maxHoldHours(req.getMaxHoldHours() != null
                         ? req.getMaxHoldHours()
                         : LiveTradingSessionEntity.DEFAULT_MAX_HOLD_HOURS)
+                // A/B 파라미터 (2026-08-24 누락 발견) — LIVE·DYNAMIC 은 처음부터 넘기고 있었는데
+                // PAPER 만 빌더에서 빠져 있었다. 그 결과 strategyParams 를 실어 만든 세션이
+                // 조용히 기본 규칙으로 돌고 **대조군과 구별 불가능한 중복 표본**이 됐다
+                // (손절폭 A/B 1차 시도에서 40세션이 그렇게 만들어졌다).
+                .strategyParams(req.getStrategyParams())
                 .build();
 
         log.info("모의투자 세션 시작: {} {} {} 초기자본={}",
