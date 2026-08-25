@@ -95,6 +95,7 @@ public class UpbitOrderClient {
                     .uri(URI.create(BASE_URL + "/orders"))
                     .header("Authorization", "Bearer " + token)
                     .header("Content-Type", "application/json")
+                    .timeout(Duration.ofSeconds(15))
                     .POST(HttpRequest.BodyPublishers.ofString(requestBody))
                     .build();
 
@@ -131,6 +132,7 @@ public class UpbitOrderClient {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(BASE_URL + "/order?" + queryString))
                     .header("Authorization", "Bearer " + token)
+                    .timeout(Duration.ofSeconds(15))
                     .GET()
                     .build();
 
@@ -165,6 +167,7 @@ public class UpbitOrderClient {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(BASE_URL + "/orders?" + queryString))
                     .header("Authorization", "Bearer " + token)
+                    .timeout(Duration.ofSeconds(15))
                     .GET()
                     .build();
 
@@ -196,6 +199,7 @@ public class UpbitOrderClient {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(BASE_URL + "/order?" + queryString))
                     .header("Authorization", "Bearer " + token)
+                    .timeout(Duration.ofSeconds(15))
                     .method("DELETE", HttpRequest.BodyPublishers.noBody())
                     .build();
 
@@ -225,6 +229,7 @@ public class UpbitOrderClient {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(BASE_URL + "/accounts"))
                     .header("Authorization", "Bearer " + token)
+                    .timeout(Duration.ofSeconds(15))
                     .GET()
                     .build();
 
@@ -250,6 +255,7 @@ public class UpbitOrderClient {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(BASE_URL + "/orders/chance?" + queryString))
                 .header("Authorization", "Bearer " + token)
+                .timeout(Duration.ofSeconds(15))
                 .GET()
                 .build();
 
@@ -281,6 +287,7 @@ public class UpbitOrderClient {
                 .uri(URI.create(BASE_URL + "/orders/test"))
                 .header("Authorization", "Bearer " + token)
                 .header("Content-Type", "application/json")
+                .timeout(Duration.ofSeconds(15))
                 .POST(HttpRequest.BodyPublishers.ofString(requestBody))
                 .build();
 
@@ -306,6 +313,7 @@ public class UpbitOrderClient {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(BASE_URL + "/orders?" + queryString))
                 .header("Authorization", "Bearer " + token)
+                .timeout(Duration.ofSeconds(15))
                 .GET()
                 .build();
 

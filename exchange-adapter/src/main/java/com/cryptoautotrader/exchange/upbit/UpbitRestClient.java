@@ -159,11 +159,20 @@ public class UpbitRestClient {
         return objectMapper.readValue(response.body(), new TypeReference<>() {});
     }
 
-    /** HTTP GET 요청 빌드 헬퍼 */
+    /**
+     * HTTP GET 요청 빌드 헬퍼.
+     *
+     * <p><b>요청 타임아웃 필수</b>(2026-08-25) — {@link HttpClient#connectTimeout}은 TCP 연결
+     * 수립까지만 보장하고, 연결된 뒤 응답이 안 오면(서버/네트워크 정체) 영원히 블로킹된다.
+     * DynamicTradingService.tick()이 이 경로(emergencyStop → closeOpenPositions)에서 멈춰
+     * 29시간 넘게 전체 동적 세션이 무응답 상태였던 사고의 원인 — {@code fixedDelay} 스케줄은
+     * 현재 실행이 끝나야 다음이 잡히므로, 이 호출 하나가 안 끝나면 스케줄 자체가 죽는다.</p>
+     */
     private HttpRequest buildGetRequest(String url) {
         return HttpRequest.newBuilder()
                 .uri(URI.create(url))
                 .header("Accept", "application/json")
+                .timeout(Duration.ofSeconds(15))
                 .GET()
                 .build();
     }
