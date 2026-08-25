@@ -54,6 +54,7 @@ services:
       AES_KEY: ${AES_KEY}
       API_AUTH_TOKEN: ${API_AUTH_TOKEN}
       DB_RESET_PASSWORD: ${DB_RESET_PASSWORD}
+      REQUIRE_WALK_FORWARD_GATE: ${REQUIRE_WALK_FORWARD_GATE:-false}
       # 16GB 서버: Java 6GB / 32GB 업그레이드 후 -Xmx12g 로 변경
       JAVA_OPTS: "-XX:-OmitStackTraceInFastThrow -Xms1g -Xmx6g -XX:+UseG1GC -XX:MaxGCPauseMillis=200"
     ports:
