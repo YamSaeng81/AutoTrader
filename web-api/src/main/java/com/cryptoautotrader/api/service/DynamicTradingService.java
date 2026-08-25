@@ -55,6 +55,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 /**
  * 동적 멀티코인 세션 서비스.
@@ -490,11 +491,30 @@ public class DynamicTradingService {
 
     @Transactional
     public DynamicSessionEntity emergencyStop(Long sessionId) {
+        return emergencyStop(sessionId, s -> {});
+    }
+
+    /**
+     * 비상 정지 — 서킷 브레이커 필드처럼 상태 전환과 <b>같은 행에 같이 써야 하는</b> 추가
+     * 필드가 있을 때 쓴다.
+     *
+     * <p><b>2026-08-25 P0 — 자기 자신과의 데드락</b>: 서킷 브레이커 발동 시 {@code processTick()}이
+     * 바깥 트랜잭션에서 {@code dynamicSessionRepo.save(fresh)}로 이 세션 행을 먼저 UPDATE하고
+     * (커밋 전), 곧바로 이 메서드를 호출해 {@code balanceUpdater}(REQUIRES_NEW)가 <b>같은 행</b>을
+     * 다시 UPDATE하려 했다. REQUIRES_NEW는 새 커넥션을 쓰지만 같은 스레드에서 동기 호출이라,
+     * 바깥 트랜잭션(커밋 대기 중)이 쥔 행 잠금을 안쪽 트랜잭션이 기다리고, 바깥은 안쪽 호출이
+     * 끝나야 다음으로 진행해 커밋하는 순환 대기 — 타임아웃 없는 Postgres에서 영원히 멈춘다
+     * (동적 세션 16개 전부 29시간 무응답 사고의 원인). 바깥 트랜잭션은 이 행을 <b>절대 직접
+     * 쓰지 않고</b>, 모든 필드 변경을 이 REQUIRES_NEW 갱신 하나로 모아야 한다.</p>
+     */
+    @Transactional
+    public DynamicSessionEntity emergencyStop(Long sessionId, Consumer<DynamicSessionEntity> extraMutations) {
         DynamicSessionEntity session = getOrThrow(sessionId);
         closeOpenPositions(session, "비상 정지 — 강제 청산");
         clearSessionState(sessionId);
         // stopSession() 과 동일한 이유로 재조회 경로를 쓴다 — 위 stopSession() 주석 참조.
         session = balanceUpdater.apply(sessionId, s -> {
+            extraMutations.accept(s);
             s.setStatus("EMERGENCY_STOPPED");
             s.setStoppedAt(Instant.now());
         });
@@ -600,12 +620,17 @@ public class DynamicTradingService {
         CircuitBreakerResult cbResult = riskManagementService.checkCircuitBreaker(fresh);
         if (cbResult.isTriggered()) {
             log.error("[Dynamic] 서킷 브레이커 발동 (id={}): {}", sid, cbResult.getReason());
-            fresh.setCircuitBreakerTriggeredAt(Instant.now());
-            fresh.setCircuitBreakerReason(cbResult.getReason());
-            // 누적 횟수 — LiveTradingService 와 동일 (kill criteria CB_REPEAT 판정)
-            fresh.setCircuitBreakerTripCount(fresh.getCircuitBreakerTripCount() + 1);
-            dynamicSessionRepo.save(fresh);
-            emergencyStop(sid);
+            // ⚠️ 2026-08-25 P0: 여기서 dynamicSessionRepo.save(fresh)로 이 행을 먼저 커밋 전에
+            // 써두고 emergencyStop()을 부르면, emergencyStop 내부 REQUIRES_NEW 갱신이 같은 행의
+            // 잠금을 기다리며 자기 자신과 데드락한다(emergencyStop 문서 참조). 서킷 브레이커
+            // 필드는 emergencyStop의 단일 REQUIRES_NEW 갱신에 실어 보낸다 — 이 트랜잭션은
+            // 세션 행을 절대 직접 쓰지 않는다.
+            int tripCount = fresh.getCircuitBreakerTripCount() + 1;
+            emergencyStop(sid, s -> {
+                s.setCircuitBreakerTriggeredAt(Instant.now());
+                s.setCircuitBreakerReason(cbResult.getReason());
+                s.setCircuitBreakerTripCount(tripCount);
+            });
             telegramService.sendCustomNotification(String.format(
                     "🚨 [동적#%d] 서킷 브레이커 발동 — 비상 정지: %s", sid, cbResult.getReason()));
             return;
