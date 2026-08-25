@@ -673,6 +673,7 @@ public class DynamicTradingService {
         int btcMarketGuardBlocked = 0;
         int lossCooldownBlocked = 0;
         int crossSessionBlocked = 0;
+        int walkForwardBlocked = 0;
         List<BuyCandidate> buyCandidates = new java.util.ArrayList<>();
 
         // SCANNING 진입 파라미터 — risk_config에서 읽고, NULL이면 코드 기본값(상수) 사용.
@@ -740,7 +741,24 @@ public class DynamicTradingService {
             // 근접 하회 구간을 감액 진입으로 살린다 (2026-07-21, "너무 보수적이지 않은 거래").
             BigDecimal ema200SizeMultiplier = BigDecimal.ONE;
 
-            if (signal.getAction() == StrategySignal.Action.BUY
+            // Walk Forward 게이트 — 이 (전략, 코인) 조합이 OOS 검증을 통과했는지 (2026-08-25).
+            // 세션 생성 시점(createSession)의 게이트는 코인을 몰라서 "검증된 코인이 하나라도
+            // 있으면 PASS"로만 판정했다 — 실제로 어떤 코인을 살지는 여기, 워치리스트 스캔에서
+            // 정해진다. 전략은 코인마다 성적이 크게 갈리므로(Tier1/Tier2 표), 여기서 코인별로
+            // 다시 걸러야 "검증된 전략이니 아무 코인이나 사도 된다"는 착시를 막을 수 있다.
+            // 세션 생성 게이트와 마찬가지로 gateEnabled=false 면 차단하지 않는다.
+            if (walkForwardValidationGate.isEnabled()
+                    && signal.getAction() == StrategySignal.Action.BUY) {
+                WalkForwardValidationGate.GateDecision wfDecision =
+                        walkForwardValidationGate.evaluate(session.getStrategyType(), coinPair);
+                if (!wfDecision.passed()) {
+                    walkForwardBlocked++;
+                    log.info("[Dynamic] WF 미검증 BUY 차단: {} (id={}): {}", coinPair, sid, wfDecision.reason());
+                    gateBlockReason = "Walk Forward 미검증 — " + wfDecision.reason();
+                }
+            }
+
+            if (gateBlockReason == null && signal.getAction() == StrategySignal.Action.BUY
                     && !Ema200RegimeGate.isExempt(session.getStrategyType())) {
                 ema200SizeMultiplier = Ema200RegimeGate.buySizeMultiplier(evalCandles, ema200BuyMarginPct);
                 if (ema200SizeMultiplier.signum() == 0) {
@@ -866,10 +884,10 @@ public class DynamicTradingService {
 
         if (buyCandidates.isEmpty()) {
             log.info("[Dynamic] SCANNING 완료: 진입 조건 없음 (id={}, 감시 {}개) — "
-                            + "HOLD={} SELL={} EMA200차단={} RANGE차단={} 블랙스완차단={} BTC급락차단={} 손실쿨다운차단={} 동일코인차단={} 캔들부족={} 캔들미갱신={}",
+                            + "HOLD={} SELL={} EMA200차단={} RANGE차단={} 블랙스완차단={} BTC급락차단={} 손실쿨다운차단={} 동일코인차단={} WF미검증차단={} 캔들부족={} 캔들미갱신={}",
                     sid, watchlist.size(), holdCount, sellCount, ema200Blocked, rangeBlocked,
                     blackSwanBlocked, btcMarketGuardBlocked, lossCooldownBlocked, crossSessionBlocked,
-                    insufficientCandles, staleCandle);
+                    walkForwardBlocked, insufficientCandles, staleCandle);
             return;
         }
 
