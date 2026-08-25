@@ -746,8 +746,12 @@ public class DynamicTradingService {
             // 있으면 PASS"로만 판정했다 — 실제로 어떤 코인을 살지는 여기, 워치리스트 스캔에서
             // 정해진다. 전략은 코인마다 성적이 크게 갈리므로(Tier1/Tier2 표), 여기서 코인별로
             // 다시 걸러야 "검증된 전략이니 아무 코인이나 사도 된다"는 착시를 막을 수 있다.
-            // 세션 생성 게이트와 마찬가지로 gateEnabled=false 면 차단하지 않는다.
-            if (walkForwardValidationGate.isEnabled()
+            // 세션 생성 게이트와 마찬가지로 gateEnabled=false 면 차단하지 않는다. PAPER 세션도
+            // 제외한다 — createSession의 두 자본 배정 게이트와 동일한 이유: 페이퍼는 "검증된
+            // 코인만 사는" 도구가 아니라 "아직 검증 안 된 코인을 안전하게 테스트해 새 조합을
+            // 찾아내는" 도구다. 여기서 PAPER까지 막으면 이미 아는 조합 밖으로 다시는 못
+            // 나간다 — 탐색 기능 자체가 죽는다.
+            if (!session.isPaper() && walkForwardValidationGate.isEnabled()
                     && signal.getAction() == StrategySignal.Action.BUY) {
                 WalkForwardValidationGate.GateDecision wfDecision =
                         walkForwardValidationGate.evaluate(session.getStrategyType(), coinPair);
