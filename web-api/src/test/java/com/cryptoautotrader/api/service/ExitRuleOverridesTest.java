@@ -174,4 +174,106 @@ class ExitRuleOverridesTest {
         assertThat(ExitRuleOverrides.from(params(3, null)).slAtrMultiplierOr(BigDecimal.ONE))
                 .isEqualByComparingTo("3");
     }
+
+    // ── 계약 5: 전략 SELL 청산 게이트 오버라이드 (2026-08-26 A/B) ─────────────
+    //
+    // 운영 실측: PULLBACK_MTF 의 STRATEGY_SIGNAL 청산 39건이 승률 23.1%·합계 −4,594원으로
+    // 이 전략 최대 손실원이었다(익절 10건 +6,830원을 거의 다 상쇄). 39건 중 21건이 −1.0%
+    // 아래에서 청산돼, 손절선에 닿기 전에 전략이 먼저 항복하는 패턴이었다.
+
+    private static final BigDecimal MIN_PNL_DEFAULT = new BigDecimal("0.30");
+    private static final BigDecimal LOSS_ESCAPE_DEFAULT = new BigDecimal("-0.30");
+
+    /** 운영 게이트와 같은 판정 — pnl 이 데드밴드 안이면 전략 SELL 이 막힌다. */
+    private static boolean blocked(ExitRuleOverrides o, String pnlPct) {
+        BigDecimal pnl = new BigDecimal(pnlPct);
+        return pnl.compareTo(o.minPnlPctForSignalExitOr(MIN_PNL_DEFAULT)) < 0
+                && pnl.compareTo(o.lossEscapeThresholdPctOr(LOSS_ESCAPE_DEFAULT)) >= 0;
+    }
+
+    @Test
+    @DisplayName("청산 게이트 키가 없으면 기본 데드밴드(−0.30 ~ +0.30)가 그대로다")
+    void signalExitGate_defaultsUnchanged() {
+        ExitRuleOverrides none = ExitRuleOverrides.NONE;
+        assertThat(blocked(none, "0.10")).as("본전 근처는 막힌다").isTrue();
+        assertThat(blocked(none, "-0.10")).as("작은 손실도 막힌다").isTrue();
+        assertThat(blocked(none, "0.50")).as("+0.30 이상은 나간다").isFalse();
+        assertThat(blocked(none, "-1.00")).as("−0.30 아래는 손실 탈출로 나간다").isFalse();
+    }
+
+    @Test
+    @DisplayName("🔴 lossEscapeThresholdPct=−100 이면 손실 구간에서 전략 SELL 이 전부 막힌다 (실험군)")
+    void lossEscapeDisabled_blocksAllLosingSignalExits() {
+        Map<String, Object> m = new HashMap<>();
+        m.put("lossEscapeThresholdPct", -100.0);
+        ExitRuleOverrides arm = ExitRuleOverrides.from(m);
+
+        // 운영에서 실제로 나갔던 손실 구간이 이제 전부 막힌다 — SL/TP/time stop 만 청산한다
+        assertThat(blocked(arm, "-0.50")).isTrue();
+        assertThat(blocked(arm, "-1.00")).isTrue();
+        assertThat(blocked(arm, "-5.00")).isTrue();
+
+        // 수익 구간은 그대로 나간다 — 익절을 막으면 안 된다
+        assertThat(blocked(arm, "0.50")).isFalse();
+    }
+
+    @Test
+    @DisplayName("minPnlPctForSignalExit 로 익절 쪽 문턱도 따로 움직일 수 있다")
+    void minPnlOverrideMovesProfitSideThreshold() {
+        Map<String, Object> m = new HashMap<>();
+        m.put("minPnlPctForSignalExit", 1.0);
+        ExitRuleOverrides arm = ExitRuleOverrides.from(m);
+
+        assertThat(blocked(arm, "0.50")).as("+0.5% 는 이제 문턱 미달이라 막힌다").isTrue();
+        assertThat(blocked(arm, "1.50")).as("+1.5% 는 나간다").isFalse();
+    }
+
+    @Test
+    @DisplayName("청산 게이트 오버라이드는 isPresent() 를 켜지 않는다 — 대조군 SL 이 이유 없이 달라지면 안 된다")
+    void signalExitOverrideDoesNotAffectStopLossPath() {
+        Map<String, Object> m = new HashMap<>();
+        m.put("lossEscapeThresholdPct", -100.0);
+        ExitRuleOverrides arm = ExitRuleOverrides.from(m);
+
+        assertThat(arm.hasSignalExitOverride()).isTrue();
+        assertThat(arm.isPresent())
+                .as("isPresent() 는 SL/TP 계산 경로 판정용 — 여기 섞이면 suggestedStopLoss min() 경로가 바뀐다")
+                .isFalse();
+
+        // SL 폭이 오버라이드 없을 때와 정확히 같아야 한다
+        List<Candle> cs = candles(40, 2_000);
+        assertThat(ExitRuleCalculator.resolveStopLossPct(FLOOR, cs, PRICE, arm))
+                .isEqualByComparingTo(ExitRuleCalculator.resolveStopLossPct(FLOOR, cs, PRICE,
+                        ExitRuleOverrides.NONE));
+    }
+
+    @Test
+    @DisplayName("범위를 벗어난 청산 게이트 값은 무시하고 기본값을 쓴다")
+    void signalExitGate_invalidValuesIgnored() {
+        Map<String, Object> tooLow = new HashMap<>();
+        tooLow.put("lossEscapeThresholdPct", -200.0);      // < −100
+        assertThat(ExitRuleOverrides.from(tooLow).hasSignalExitOverride()).isFalse();
+
+        Map<String, Object> positive = new HashMap<>();
+        positive.put("lossEscapeThresholdPct", 1.0);        // 손실 하한이 양수일 수 없다
+        assertThat(ExitRuleOverrides.from(positive).hasSignalExitOverride()).isFalse();
+
+        Map<String, Object> tooHigh = new HashMap<>();
+        tooHigh.put("minPnlPctForSignalExit", 9.0);         // > 5.0
+        assertThat(ExitRuleOverrides.from(tooHigh).hasSignalExitOverride()).isFalse();
+    }
+
+    @Test
+    @DisplayName("SL/TP 오버라이드와 청산 게이트 오버라이드를 한 세션에 같이 걸 수 있다")
+    void signalExitAndStopLossOverridesCoexist() {
+        Map<String, Object> m = new HashMap<>();
+        m.put("slAtrMultiplier", 2.5);
+        m.put("lossEscapeThresholdPct", -100.0);
+        ExitRuleOverrides both = ExitRuleOverrides.from(m);
+
+        assertThat(both.isPresent()).isTrue();
+        assertThat(both.hasSignalExitOverride()).isTrue();
+        assertThat(both.slAtrMultiplierOr(new BigDecimal("1.5"))).isEqualByComparingTo("2.5");
+        assertThat(blocked(both, "-1.00")).isTrue();
+    }
 }

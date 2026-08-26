@@ -1123,8 +1123,13 @@ public class DynamicTradingService {
                 updateSignalQuality(signalLog, false, blockReason);
                 return;
             }
-            if (pnlPct.compareTo(MIN_PNL_PCT_FOR_SELL) < 0
-                    && pnlPct.compareTo(LOSS_ESCAPE_THRESHOLD) >= 0) {
+            // 세션 strategy_params 오버라이드 적용 — 전략 SELL 청산 A/B (2026-08-26).
+            // 기본값은 코드 상수 그대로라 오버라이드가 없는 세션의 동작은 바뀌지 않는다.
+            ExitRuleOverrides sellGateOverrides = ExitRuleOverrides.from(session.getStrategyParams());
+            BigDecimal minPnlForSell = sellGateOverrides.minPnlPctForSignalExitOr(MIN_PNL_PCT_FOR_SELL);
+            BigDecimal lossEscape = sellGateOverrides.lossEscapeThresholdPctOr(LOSS_ESCAPE_THRESHOLD);
+            if (pnlPct.compareTo(minPnlForSell) < 0
+                    && pnlPct.compareTo(lossEscape) >= 0) {
                 String blockReason = String.format("본전 근처 pnl=%s%%", pnlPct);
                 log.debug("[Dynamic] SELL 차단: {} ({})", blockReason, coinPair);
                 updateSignalQuality(signalLog, false, blockReason);

@@ -33,10 +33,12 @@ import java.util.Map;
 public final class ExitRuleOverrides {
 
     /** 오버라이드 없음 — 코드 기본값을 그대로 쓴다. */
-    public static final ExitRuleOverrides NONE = new ExitRuleOverrides(null, null);
+    public static final ExitRuleOverrides NONE = new ExitRuleOverrides(null, null, null, null);
 
     static final String KEY_SL_ATR_MULTIPLIER = "slAtrMultiplier";
     static final String KEY_TP_RR_MULTIPLIER  = "tpRrMultiplier";
+    static final String KEY_MIN_PNL_PCT_FOR_SIGNAL_EXIT = "minPnlPctForSignalExit";
+    static final String KEY_LOSS_ESCAPE_THRESHOLD_PCT   = "lossEscapeThresholdPct";
 
     // 상한/하한 — 오타나 잘못된 실험 설정이 청산 규칙을 망가뜨리지 않게 막는다.
     // SL 0.5 ATR 미만은 사실상 즉시 손절, 6 ATR 초과는 SL_PCT_MAX(8%)에 항상 걸려 무의미하다.
@@ -46,12 +48,25 @@ public final class ExitRuleOverrides {
     private static final BigDecimal TP_RR_MIN = BigDecimal.ONE;
     private static final BigDecimal TP_RR_MAX = new BigDecimal("5.0");
 
+    // 전략 SELL 게이트 — 본전 차단 상한은 0%(차단 없음) ~ 5%.
+    private static final BigDecimal MIN_PNL_MIN = BigDecimal.ZERO;
+    private static final BigDecimal MIN_PNL_MAX = new BigDecimal("5.0");
+    // 손실 탈출 하한은 음수만 유효. −100 이면 사실상 "손실 구간에서는 전략 SELL 금지"가 된다
+    // (원화 포지션은 −100% 아래로 못 내려가므로 조건이 절대 참이 되지 않는다).
+    private static final BigDecimal LOSS_ESCAPE_MIN = new BigDecimal("-100.0");
+    private static final BigDecimal LOSS_ESCAPE_MAX = BigDecimal.ZERO;
+
     private final BigDecimal slAtrMultiplier;   // null = 기본값 사용
     private final BigDecimal tpRrMultiplier;    // null = 기본값 사용
+    private final BigDecimal minPnlPctForSignalExit;  // null = 기본값 사용
+    private final BigDecimal lossEscapeThresholdPct;  // null = 기본값 사용
 
-    private ExitRuleOverrides(BigDecimal slAtrMultiplier, BigDecimal tpRrMultiplier) {
+    private ExitRuleOverrides(BigDecimal slAtrMultiplier, BigDecimal tpRrMultiplier,
+                              BigDecimal minPnlPctForSignalExit, BigDecimal lossEscapeThresholdPct) {
         this.slAtrMultiplier = slAtrMultiplier;
         this.tpRrMultiplier  = tpRrMultiplier;
+        this.minPnlPctForSignalExit = minPnlPctForSignalExit;
+        this.lossEscapeThresholdPct = lossEscapeThresholdPct;
     }
 
     /**
@@ -65,7 +80,12 @@ public final class ExitRuleOverrides {
         if (strategyParams == null || strategyParams.isEmpty()) return NONE;
         BigDecimal sl = read(strategyParams, KEY_SL_ATR_MULTIPLIER, SL_MULT_MIN, SL_MULT_MAX);
         BigDecimal tp = read(strategyParams, KEY_TP_RR_MULTIPLIER,  TP_RR_MIN,   TP_RR_MAX);
-        return (sl == null && tp == null) ? NONE : new ExitRuleOverrides(sl, tp);
+        BigDecimal minPnl = read(strategyParams, KEY_MIN_PNL_PCT_FOR_SIGNAL_EXIT,
+                MIN_PNL_MIN, MIN_PNL_MAX);
+        BigDecimal lossEscape = read(strategyParams, KEY_LOSS_ESCAPE_THRESHOLD_PCT,
+                LOSS_ESCAPE_MIN, LOSS_ESCAPE_MAX);
+        return (sl == null && tp == null && minPnl == null && lossEscape == null)
+                ? NONE : new ExitRuleOverrides(sl, tp, minPnl, lossEscape);
     }
 
     private static BigDecimal read(Map<String, Object> params, String key,
@@ -97,16 +117,41 @@ public final class ExitRuleOverrides {
         return tpRrMultiplier != null ? tpRrMultiplier : fallback;
     }
 
-    /** 하나라도 오버라이드가 걸려 있는가 — 로깅·검증용. */
+    /** 본전 청산 차단 상한(%) — 오버라이드가 있으면 그 값, 없으면 {@code fallback}. */
+    public BigDecimal minPnlPctForSignalExitOr(BigDecimal fallback) {
+        return minPnlPctForSignalExit != null ? minPnlPctForSignalExit : fallback;
+    }
+
+    /** 손실 탈출 하한(%) — 오버라이드가 있으면 그 값, 없으면 {@code fallback}. */
+    public BigDecimal lossEscapeThresholdPctOr(BigDecimal fallback) {
+        return lossEscapeThresholdPct != null ? lossEscapeThresholdPct : fallback;
+    }
+
+    /**
+     * SL/TP 계산에 영향을 주는 오버라이드가 걸려 있는가.
+     *
+     * <p>전략 SELL 게이트 키({@link #KEY_MIN_PNL_PCT_FOR_SIGNAL_EXIT} /
+     * {@link #KEY_LOSS_ESCAPE_THRESHOLD_PCT})는 <b>일부러 제외</b>한다 — 이 플래그는
+     * "suggestedStopLoss 와 min() 을 타면 오버라이드가 무효화되는가"를 판정하는 데 쓰이는데,
+     * 청산 게이트 키는 SL 가격 계산에 관여하지 않으므로 여기에 섞이면 A/B 대조군의 SL 이
+     * 이유 없이 달라진다.</p>
+     */
     public boolean isPresent() {
         return slAtrMultiplier != null || tpRrMultiplier != null;
     }
 
+    /** 전략 SELL 게이트 오버라이드가 걸려 있는가 — 로깅·검증용. */
+    public boolean hasSignalExitOverride() {
+        return minPnlPctForSignalExit != null || lossEscapeThresholdPct != null;
+    }
+
     @Override
     public String toString() {
-        if (!isPresent()) return "ExitRuleOverrides(기본값)";
-        return String.format("ExitRuleOverrides(sl=%s, tpRr=%s)",
+        if (!isPresent() && !hasSignalExitOverride()) return "ExitRuleOverrides(기본값)";
+        return String.format("ExitRuleOverrides(sl=%s, tpRr=%s, minPnl=%s, lossEscape=%s)",
                 slAtrMultiplier != null ? slAtrMultiplier.toPlainString() : "기본",
-                tpRrMultiplier  != null ? tpRrMultiplier.toPlainString()  : "기본");
+                tpRrMultiplier  != null ? tpRrMultiplier.toPlainString()  : "기본",
+                minPnlPctForSignalExit != null ? minPnlPctForSignalExit.toPlainString() : "기본",
+                lossEscapeThresholdPct != null ? lossEscapeThresholdPct.toPlainString() : "기본");
     }
 }

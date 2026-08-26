@@ -85,7 +85,27 @@
 라는 것과 나란히 놓으면 **청산이 예측이 아니라 후행**한다는 쪽에 무게가 실린다.
 
 08-18 본전 게이트 완화(−1.00 → −0.30)의 기여는 제한적 — −1.0~−0.3% 구간 청산은 9건,
-평균 −59원에 그친다. 손실의 본체는 더 깊은 구간이다. → **임계 강화 또는 비활성 A/B 필요**.
+평균 −59원에 그친다. 손실의 본체는 더 깊은 구간이다.
+
+**→ 조치: 전략 SELL 청산 A/B 착수.** `ExitRuleOverrides` 에 청산 게이트 키 2종
+(`minPnlPctForSignalExit` / `lossEscapeThresholdPct`)을 추가하고 DYNAMIC 게이트에 배선했다.
+
+- 실험군 파라미터 `{"lossEscapeThresholdPct": -100}` — "손실 구간에서는 전략 SELL 금지"
+  (원화 포지션이 −100% 아래로 못 가므로 손실 탈출 조건이 절대 참이 되지 않는다). 수익 구간
+  청산은 그대로 살아 있다. 실험군의 손실 포지션은 SL / TP / time stop(24h) 으로만 청산된다.
+- 묻는 것: **작은 손실에서 전략 말을 듣고 나가는 게 나은가, 손절선까지 버티는 게 나은가.**
+- `isPresent()` 는 **일부러 안 켠다** — 이 플래그는 `suggestedStopLoss` 와 `min()` 을 타는
+  SL 계산 경로 판정용이라, 청산 게이트 키가 섞이면 대조군 대비 실험군의 **SL 이 이유 없이
+  달라진다**. 대신 `hasSignalExitOverride()` 를 분리했다.
+- 지문: `RulesetRegistry` 가 `strategy.params` 를 통째로 싣고 있어 arm 이 자동으로 갈린다.
+- 스크립트: [`scripts/create_ab_signal_exit_sessions.sh`](../scripts/create_ab_signal_exit_sessions.sh)
+  — 대조군은 기존 세션 56(H1)/63(M15), 실험군 신규 2세션. 1단계(2~3일) 배선 검증 쿼리와
+  2단계(3~4주) 판정 쿼리를 스크립트에 포함.
+- ⚠️ **노출 상한 PAPER 면제가 이 실험의 전제다** — 면제 전에는 두 arm 이 같은 코인을 동시에
+  못 들어서 서로 다른 종목을 보게 되어 비교가 성립하지 않았다.
+- 검증: [`ExitRuleOverridesTest`](../web-api/src/test/java/com/cryptoautotrader/api/service/ExitRuleOverridesTest.java)
+  **8건 → 14건**. **뮤테이션 검증**: `lossEscapeThresholdPctOr` 가 항상 fallback 을 반환하게
+  되돌리면 **2건이 실패함을 확인** 후 복원. `:web-api:test` 66개 클래스 그린. **미배포**.
 
 ### 5. 이상 없음을 확인한 항목
 
