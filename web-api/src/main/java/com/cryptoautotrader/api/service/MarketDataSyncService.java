@@ -88,6 +88,12 @@ public class MarketDataSyncService {
         }
     }
 
+    /**
+     * 갱신 갭 조회 시 안전하게 겹쳐서 다시 받는 캔들 수 — 거래소 쪽 늦은 정정(체결 재계산 등)을
+     * 놓치지 않기 위한 여유분. upsert(PK: time+coinPair+timeframe)라 겹쳐도 중복이 안 생긴다.
+     */
+    private static final int GAP_SYNC_OVERLAP_CANDLES = 5;
+
     private void syncPair(String coinPair, String timeframe) {
         if (upbitRestClient == null) {
             log.warn("UpbitRestClient Bean 미등록 — 시장 데이터 동기화 건너뜀: {} {}", coinPair, timeframe);
@@ -95,7 +101,25 @@ public class MarketDataSyncService {
         }
 
         Instant to = Instant.now();
-        Instant from = to.minus(SYNC_CANDLE_COUNT * TimeframeUtils.toMinutes(timeframe), ChronoUnit.MINUTES);
+        Instant fullFrom = to.minus(SYNC_CANDLE_COUNT * TimeframeUtils.toMinutes(timeframe), ChronoUnit.MINUTES);
+
+        // ── 2026-08-25: 매 실행마다 520개 전량 재수집하던 것을 "마지막 저장 이후 갭만" 으로 축소.
+        // 이 서비스가 60초마다 도는데, H1은 1시간에 1개, M15는 15분에 1개만 늘어난다 — 그런데도
+        // 매번 코인당 최대 3페이지(520/200)를 REST로 재요청했다. 앱 전체가 Upbit 호출을
+        // 하나의 공유 스로틀(초당 ~9회)로 직렬화하는 구조라(UpbitRestClient.throttle), 이 낭비가
+        // DynamicTradingService.tick() 등 다른 소비자의 API 호출을 대기열 뒤로 밀어내
+        // 사이클이 수 분씩 지연되는 원인이었다. 이미 데이터가 있으면 마지막 저장 시각에서
+        // 살짝(GAP_SYNC_OVERLAP_CANDLES) 겹쳐서만 받는다 — 데이터가 없거나(첫 동기화) 공백이
+        // SYNC_CANDLE_COUNT 범위를 넘겨 벌어졌으면(장기 다운타임 등) 기존처럼 전체를 받는다.
+        Instant lastStored = marketDataCacheRepo.findMaxTime(coinPair, timeframe);
+        Instant from = fullFrom;
+        if (lastStored != null) {
+            Instant gapFrom = lastStored.minus(
+                    GAP_SYNC_OVERLAP_CANDLES * TimeframeUtils.toMinutes(timeframe), ChronoUnit.MINUTES);
+            if (gapFrom.isAfter(fullFrom)) {
+                from = gapFrom;
+            }
+        }
 
         UpbitCandleCollector collector = new UpbitCandleCollector(upbitRestClient);
         List<Candle> candles = collector.fetchCandles(coinPair, timeframe, from, to);
