@@ -141,6 +141,21 @@ public class DynamicTradingService {
      * <p>7세션을 분산 운용하는 목적 자체가 전략·종목 분산인데, 노출 상한이 없으면 분산된
      * 것은 세션 수뿐이고 리스크는 한 종목에 합쳐진다. 1로 두면 "한 코인은 한 세션만"이라
      * 세션 수만큼의 종목 분산이 실제로 보장된다.</p>
+     *
+     * <p><b>PAPER는 이 상한을 적용받지 않는다 (2026-08-25 결정, 실측 근거)</b>: 위 근거는
+     * 전부 <b>실자본</b> 집중 리스크다. 페이퍼 세션은 각자 독립된 가상자본을 쓰므로 공유
+     * 자본이 없고, 따라서 이 상한이 페이퍼끼리 걸릴 때 방어하는 리스크가 존재하지 않는다.
+     * 반면 비용은 실측으로 확인됐다 — 최근 14일 이 게이트가 막은 BUY <b>303건</b>의 24시간
+     * 사후수익률이 <b>+4.51%·승률 69.3%</b>였다. 여러 전략이 동시에 동의한 신호일수록 잘
+     * 맞는데, 먼저 스캔한 한 세션만 먹고 나머지가 전부 막히고 있었다. 그 결과 실행된 BUY의
+     * 24h 수익률(−0.96%, n=95)이 차단된 BUY(+2.77%, n=474)보다 <b>나빴다</b> — 게이트가
+     * 역선택을 하고 있었다는 뜻이다.</p>
+     *
+     * <p>페이퍼 함대가 존재하는 목적은 전략 비교인데, 이 상한이 걸리면 <b>어떤 전략이 기회를
+     * 얻는지가 실력이 아니라 스캔 순서로 결정</b>돼 비교 자체가 오염된다. "페이퍼는 실전과
+     * 동일 로직이어야 예측력이 있다"는 원칙과 충돌하지만, 상한이 걸리는 빈도는 세션 수에
+     * 비례하므로 <b>페이퍼(15세션)는 애초에 실전(1~3세션 예정)을 충실히 모사하지 못한다</b> —
+     * 왜곡 강도가 실전보다 5배 크다. 실전 경로는 상한을 그대로 유지한다.</p>
      */
     private static final long MAX_SESSIONS_PER_COIN = 1;
 
@@ -872,11 +887,14 @@ public class DynamicTradingService {
             }
 
             // 세션 간 동일코인 노출 상한: 다른 동적 세션이 이미 같은 코인을 들고 있으면 차단.
-            if (gateBlockReason == null && signal.getAction() == StrategySignal.Action.BUY) {
+            // PAPER는 면제 — 공유 자본이 없어 방어할 리스크가 없고, 전략 비교만 오염시킨다
+            // (근거는 MAX_SESSIONS_PER_COIN javadoc).
+            if (gateBlockReason == null && !session.isPaper()
+                    && signal.getAction() == StrategySignal.Action.BUY) {
                 long heldElsewhere = positionRepository
                         .countBySessionKindAndCoinPairAndStatusAndSessionIdNot(
                                 sessionKind(session), coinPair, "OPEN", sid);
-                String crossReason = crossSessionExposureBlockReason(heldElsewhere);
+                String crossReason = crossSessionExposureBlockReason(session.isPaper(), heldElsewhere);
                 if (crossReason != null) {
                     crossSessionBlocked++;
                     log.info("[Dynamic] 동일코인 노출 상한 BUY 차단: {} (id={}, 타 세션 보유 {}건)",
@@ -1141,10 +1159,16 @@ public class DynamicTradingService {
     /**
      * 세션 간 동일코인 노출 상한 판정 — {@link #MAX_SESSIONS_PER_COIN} 초과 시 차단 사유를 준다.
      *
+     * <p>PAPER는 항상 통과한다 — 공유 자본이 없어 방어할 집중 리스크가 없고, 상한이 걸리면
+     * 어떤 전략이 기회를 얻는지가 스캔 순서로 결정돼 전략 비교가 오염된다. 근거와 실측은
+     * {@link #MAX_SESSIONS_PER_COIN} javadoc 참조.</p>
+     *
+     * @param isPaper       페이퍼 세션 여부 — {@code true}면 상한을 적용하지 않는다
      * @param heldElsewhere 같은 코인을 들고 있는 <b>다른</b> 동적 세션 수
      * @return 차단 사유, 통과면 {@code null}
      */
-    static String crossSessionExposureBlockReason(long heldElsewhere) {
+    static String crossSessionExposureBlockReason(boolean isPaper, long heldElsewhere) {
+        if (isPaper) return null;
         if (heldElsewhere < MAX_SESSIONS_PER_COIN) return null;
         return String.format("동일코인 노출 상한 — 다른 동적 세션이 이미 %d건 보유(상한 %d)",
                 heldElsewhere, MAX_SESSIONS_PER_COIN);

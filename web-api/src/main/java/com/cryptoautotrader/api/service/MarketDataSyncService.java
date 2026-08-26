@@ -148,14 +148,23 @@ public class MarketDataSyncService {
     public List<Candle> fetchWithCache(String coinPair, String timeframe, int lookbackCandles) {
         if (upbitRestClient == null) return List.of();
 
+        long tfMinutes = TimeframeUtils.toMinutes(timeframe);
         Instant to = Instant.now();
-        Instant fullFrom = to.minus((long) lookbackCandles * TimeframeUtils.toMinutes(timeframe), ChronoUnit.MINUTES);
+        Instant fullFrom = to.minus((long) lookbackCandles * tfMinutes, ChronoUnit.MINUTES);
 
         Instant lastStored = marketDataCacheRepo.findMaxTime(coinPair, timeframe);
+        Instant earliestStored = marketDataCacheRepo.findMinTime(coinPair, timeframe);
+
+        String key = coinPair + ":" + timeframe;
+        boolean fetchFullRange = shouldFetchFullRange(
+                earliestStored, fullFrom, tfMinutes, lastFullBackfillAt.get(key), to);
+        if (fetchFullRange) {
+            lastFullBackfillAt.put(key, to);
+        }
+
         Instant from = fullFrom;
-        if (lastStored != null) {
-            Instant gapFrom = lastStored.minus(
-                    GAP_SYNC_OVERLAP_CANDLES * TimeframeUtils.toMinutes(timeframe), ChronoUnit.MINUTES);
+        if (!fetchFullRange && lastStored != null) {
+            Instant gapFrom = lastStored.minus(GAP_SYNC_OVERLAP_CANDLES * tfMinutes, ChronoUnit.MINUTES);
             if (gapFrom.isAfter(fullFrom)) {
                 from = gapFrom;
             }
@@ -167,8 +176,7 @@ public class MarketDataSyncService {
             marketDataCacheRepo.saveAll(toEntities(fetched, coinPair, timeframe));
         }
 
-        // 캐시가 아예 없었거나 갭이 lookback 범위를 넘어 전체를 재수집한 경우, 방금 받은 것이
-        // 곧 전체 구간이다 — 캐시를 다시 읽을 필요 없다.
+        // 전체 구간을 방금 받아왔으면 그것이 곧 답이다 — 캐시를 다시 읽을 필요 없다.
         if (from.equals(fullFrom)) {
             return fetched;
         }
@@ -180,6 +188,45 @@ public class MarketDataSyncService {
                         .build())
                 .toList();
     }
+
+    /** 캐시가 lookback 창을 못 덮을 때 전량 재수집을 재시도하는 최소 간격(분). */
+    static final long FULL_BACKFILL_RETRY_MINUTES = 30;
+
+    /**
+     * 갭만 받아도 되는지, 전체 lookback 구간을 다시 받아야 하는지 판정한다.
+     *
+     * <p><b>왜 필요한가 (2026-08-26 운영 실측)</b>: `fetchWithCache` 도입 직후 DYNAMIC이
+     * 캐시를 읽게 되면서, 캐시가 lookback 창을 못 덮는 코인은 전략에 500개가 아니라 캐시에
+     * 있는 만큼만 들어갔다 — KRW-LIT M15 <b>180개</b>, KRW-PROM H1 <b>334개</b>. EMA200 계열은
+     * 닫힌 캔들 201개 미만이면 <b>구조적으로 신호를 못 낸다</b>. 전환 전에는 매 틱 REST로 500개를
+     * 새로 받았기 때문에 드러나지 않던 문제다.</p>
+     *
+     * <p>단순히 "안 덮으면 전량 재수집"으로 두면 상장 직후 코인처럼 거래소에 애초에 이력이
+     * 없는 경우 조건이 영원히 거짓이라 매 틱 전량 재수집으로 되돌아간다(= 최적화 무효화).
+     * 그래서 전량 수집을 <b>시도</b>한 pair는 {@link #FULL_BACKFILL_RETRY_MINUTES} 동안 다시
+     * 시도하지 않는다 — 최악의 경우에도 시간당 2회이고, 전환 전(코인당 매 틱)보다 훨씬 적다.</p>
+     *
+     * @param earliestStored 캐시에 있는 가장 오래된 캔들 시각 ({@code null}이면 캐시 없음)
+     * @param fullFrom       lookback 창의 시작 시각
+     * @param tfMinutes      캔들 1개의 분 단위 길이
+     * @param lastAttempt    이 pair의 마지막 전량 재수집 시도 시각 ({@code null}이면 없음)
+     * @param now            현재 시각
+     */
+    static boolean shouldFetchFullRange(Instant earliestStored, Instant fullFrom,
+                                        long tfMinutes, Instant lastAttempt, Instant now) {
+        // 캔들 2개분의 여유 — 거래소 쪽 정상적인 결측이 전량 재수집을 유발하지 않도록.
+        boolean cacheCoversWindow = earliestStored != null
+                && !earliestStored.isAfter(fullFrom.plus(2 * tfMinutes, ChronoUnit.MINUTES));
+        if (cacheCoversWindow) return false;
+
+        boolean coolingDown = lastAttempt != null
+                && lastAttempt.isAfter(now.minus(FULL_BACKFILL_RETRY_MINUTES, ChronoUnit.MINUTES));
+        return !coolingDown;
+    }
+
+    /** (coinPair:timeframe) → 마지막 전량 재수집 시도 시각. */
+    private final java.util.concurrent.ConcurrentHashMap<String, Instant> lastFullBackfillAt =
+            new java.util.concurrent.ConcurrentHashMap<>();
 
     private List<MarketDataCacheEntity> toEntities(List<Candle> candles, String coinPair, String timeframe) {
         return candles.stream()

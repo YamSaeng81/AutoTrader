@@ -24,4 +24,7 @@ public interface MarketDataCacheRepository extends JpaRepository<MarketDataCache
 
     @Query("SELECT MAX(c.time) FROM MarketDataCacheEntity c WHERE c.coinPair = :coinPair AND c.timeframe = :timeframe")
     Instant findMaxTime(@Param("coinPair") String coinPair, @Param("timeframe") String timeframe);
+
+    @Query("SELECT MIN(c.time) FROM MarketDataCacheEntity c WHERE c.coinPair = :coinPair AND c.timeframe = :timeframe")
+    Instant findMinTime(@Param("coinPair") String coinPair, @Param("timeframe") String timeframe);
 }
