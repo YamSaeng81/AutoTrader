@@ -129,7 +129,60 @@ public class MarketDataSyncService {
             return;
         }
 
-        List<MarketDataCacheEntity> entities = candles.stream()
+        // JPA merge: 동일 PK(time+coinPair+timeframe) 존재 시 UPDATE, 없으면 INSERT
+        marketDataCacheRepo.saveAll(toEntities(candles, coinPair, timeframe));
+        log.debug("시장 데이터 동기화 완료: {} {} {}건", coinPair, timeframe, candles.size());
+    }
+
+    /**
+     * DYNAMIC 스캔 루프 전용 — {@code lookbackCandles}개 구간을 캐시 우선으로 채워 반환한다.
+     *
+     * <p>2026-08-26: {@code DynamicTradingService.fetchCandles}가 워치리스트 코인마다 매 틱
+     * {@link UpbitCandleCollector#fetchCandles}를 직접 호출해 항상 500개 전량을 Upbit REST로
+     * 받아오고 있었다 — {@link #syncPair}가 갭만 받도록 최적화된 것과 별개로, DYNAMIC은 애초에
+     * market_data_cache를 전혀 참조하지 않는 경로였다. 스로틀 경합의 실제 대부분은 여기였다.
+     * {@link #syncPair}와 같은 갭 조회 로직으로 캐시를 채우고, 캐시에 이미 있는 구간은 REST를
+     * 다시 부르지 않는다.</p>
+     */
+    @Transactional
+    public List<Candle> fetchWithCache(String coinPair, String timeframe, int lookbackCandles) {
+        if (upbitRestClient == null) return List.of();
+
+        Instant to = Instant.now();
+        Instant fullFrom = to.minus((long) lookbackCandles * TimeframeUtils.toMinutes(timeframe), ChronoUnit.MINUTES);
+
+        Instant lastStored = marketDataCacheRepo.findMaxTime(coinPair, timeframe);
+        Instant from = fullFrom;
+        if (lastStored != null) {
+            Instant gapFrom = lastStored.minus(
+                    GAP_SYNC_OVERLAP_CANDLES * TimeframeUtils.toMinutes(timeframe), ChronoUnit.MINUTES);
+            if (gapFrom.isAfter(fullFrom)) {
+                from = gapFrom;
+            }
+        }
+
+        UpbitCandleCollector collector = new UpbitCandleCollector(upbitRestClient);
+        List<Candle> fetched = collector.fetchCandles(coinPair, timeframe, from, to);
+        if (!fetched.isEmpty()) {
+            marketDataCacheRepo.saveAll(toEntities(fetched, coinPair, timeframe));
+        }
+
+        // 캐시가 아예 없었거나 갭이 lookback 범위를 넘어 전체를 재수집한 경우, 방금 받은 것이
+        // 곧 전체 구간이다 — 캐시를 다시 읽을 필요 없다.
+        if (from.equals(fullFrom)) {
+            return fetched;
+        }
+
+        return marketDataCacheRepo.findCandles(coinPair, timeframe, fullFrom, to).stream()
+                .map(e -> Candle.builder()
+                        .time(e.getTime()).open(e.getOpen()).high(e.getHigh())
+                        .low(e.getLow()).close(e.getClose()).volume(e.getVolume())
+                        .build())
+                .toList();
+    }
+
+    private List<MarketDataCacheEntity> toEntities(List<Candle> candles, String coinPair, String timeframe) {
+        return candles.stream()
                 .map(c -> MarketDataCacheEntity.builder()
                         .time(c.getTime())
                         .coinPair(coinPair)
@@ -141,10 +194,6 @@ public class MarketDataSyncService {
                         .volume(c.getVolume())
                         .build())
                 .toList();
-
-        // JPA merge: 동일 PK(time+coinPair+timeframe) 존재 시 UPDATE, 없으면 INSERT
-        marketDataCacheRepo.saveAll(entities);
-        log.debug("시장 데이터 동기화 완료: {} {} {}건", coinPair, timeframe, entities.size());
     }
 
 }

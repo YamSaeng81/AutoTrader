@@ -237,6 +237,7 @@ public class DynamicTradingService {
     private final RiskManagementService riskManagementService;
     private final WalkForwardValidationGate walkForwardValidationGate;
     private final ApplicationEventPublisher eventPublisher;
+    private final MarketDataSyncService marketDataSyncService;
 
     @Autowired(required = false)
     private UpbitRestClient upbitRestClient;
@@ -351,7 +352,8 @@ public class DynamicTradingService {
                                   StrategyEnablementGate strategyEnablementGate,
                                   RiskManagementService riskManagementService,
                                   WalkForwardValidationGate walkForwardValidationGate,
-                                  ApplicationEventPublisher eventPublisher) {
+                                  ApplicationEventPublisher eventPublisher,
+                                  MarketDataSyncService marketDataSyncService) {
         this.dynamicSessionRepo   = dynamicSessionRepo;
         this.positionRepository   = positionRepository;
         this.orderRepository      = orderRepository;
@@ -368,6 +370,7 @@ public class DynamicTradingService {
         this.riskManagementService = riskManagementService;
         this.walkForwardValidationGate = walkForwardValidationGate;
         this.eventPublisher = eventPublisher;
+        this.marketDataSyncService = marketDataSyncService;
     }
 
     // ── 세션 생성 ──────────────────────────────────────────────────
@@ -1661,9 +1664,9 @@ public class DynamicTradingService {
     private List<Candle> fetchCandles(String coinPair, String timeframe) {
         if (upbitRestClient == null) return List.of();
         try {
-            Instant to = Instant.now();
-            Instant from = to.minus(CANDLE_LOOKBACK * TimeframeUtils.toMinutes(timeframe), ChronoUnit.MINUTES);
-            return new UpbitCandleCollector(upbitRestClient).fetchCandles(coinPair, timeframe, from, to);
+            // 2026-08-26: 매 틱(코인 수만큼)마다 Upbit REST로 500개 전량을 직접 재요청하던 것을
+            // market_data_cache 경유(갭만 REST)로 축소 — MarketDataSyncService.fetchWithCache 참조.
+            return marketDataSyncService.fetchWithCache(coinPair, timeframe, CANDLE_LOOKBACK);
         } catch (Exception e) {
             log.warn("[Dynamic] 캔들 조회 실패 ({} {}): {}", coinPair, timeframe, e.getMessage());
             return List.of();

@@ -3,7 +3,37 @@
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 이 파일은 **최신 작업 이력(최근 세션 몇 개) + 보류/결정 대기 항목 + 프로젝트 참조 정보**만 담는다. 오래된 상세 이력은 [`docs/old_progress.md`](old_progress.md)(2026-08-06 이전 전체 백업)와 [`docs/CHANGELOG.md`](CHANGELOG.md)를 참조.
 > **2026-08-06 / 2026-08-19**: 파일이 비대해질 때마다 날짜별 상세 이력을 `old_progress.md` 로 이관하고 이 파일에는 요약만 남긴다. 상세 근거·재현 과정이 필요하면 `old_progress.md` 에서 날짜로 검색할 것.
-> **마지막 갱신**: 2026-08-25 — DYNAMIC 운영 가능성 점검 중 P0 데드락 발견·수정(아래 섹션). 직전: 2026-08-24 — 운영DB DYN_PAPER/PAPER 로그 분석.
+> **마지막 갱신**: 2026-08-26 — DYNAMIC 스캔 루프가 매 틱 Upbit REST 500건 풀스캔하던 진짜 스로틀 병목 발견·수정(아래 섹션). 직전: 2026-08-25 — DYNAMIC 운영 가능성 점검 중 P0 데드락 발견·수정.
+
+---
+
+## 🟢 2026-08-26 DYNAMIC 스캔 루프 캔들 조회를 캐시 경유로 전환 — 진짜 스로틀 병목 발견
+
+08-25 `MarketDataSyncService.syncPair` 갭 최적화를 배포하고 운영 로그로 효과를 확인하던 중,
+같은 시각 `scheduler-4` 스레드가 BTC·ETH·XRP·SOL·TRUMP·STX·ONDO·XLM·ZRO·SLX 등 다수 코인에
+M15·H1 각 **500건씩 연속으로** REST 재요청하고 있는 것을 발견했다. 원인은
+[`DynamicTradingService.fetchCandles`](../web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java#L1661)
+— `MarketDataSyncService`와 무관하게 **DYNAMIC 스캔/모니터링 틱마다 워치리스트 코인 수만큼**
+`UpbitCandleCollector.fetchCandles`를 직접 호출해 매번 500개 전량을 재수집하고 있었다.
+08-25 수정은 PAPER/LIVE 전용 `syncPair` 경로만 손봤을 뿐, 실제 스로틀 경합의 대부분을 차지하는
+DYNAMIC 경로는 건드리지 못한 것이었다.
+
+**수정**: [`MarketDataSyncService.fetchWithCache`](../web-api/src/main/java/com/cryptoautotrader/api/service/MarketDataSyncService.java)
+신설 — `syncPair`와 같은 "마지막 저장 시각 이후 갭만 REST, 나머지는 캐시에서" 로직을 재사용하되,
+persist만 하고 끝나는 `syncPair`와 달리 lookback 전체 구간을 캐시와 병합해 `List<Candle>`로 반환한다.
+`DynamicTradingService.fetchCandles`가 `UpbitCandleCollector`를 직접 쓰던 것을 이 메서드 호출로 교체
+(생성자에 `MarketDataSyncService` 주입 추가). 이제 DYNAMIC도 PAPER/LIVE와 같은 `market_data_cache`를
+공유해서 읽고, 코인당 REST 호출은 갭(보통 1~수 건)만 남는다.
+
+**⚠️ 트랜잭션 범위 참고**: `fetchWithCache`는 `@Transactional`(기본 REQUIRED)이라 `processScanningTick`/
+`processMonitoringTick`(둘 다 `@Transactional`)의 외부 트랜잭션에 합류한다. REST 호출(최대 15초 타임아웃)이
+DB 커넥션을 물고 있는 시간 자체는 수정 전에도 이미 있었던 패턴(기존에도 같은 트랜잭션 안에서 REST를
+불렀음)이라 새로운 위험 범주는 아니지만, 여기에 DB read/write가 추가돼 트랜잭션 점유 시간이 늘었다.
+운영 관찰 필요 — HikariCP 풀 고갈이나 사이클 지연이 오히려 늘면 `fetchWithCache`를 트랜잭션 밖으로
+빼내는 리팩터링을 검토할 것.
+
+**검증**: `:web-api:compileJava`/`compileTestJava` ✅, `:web-api:test` 65개 테스트 클래스 전부 실패 0.
+**미배포** — 재빌드 필요.
 
 ---
 
