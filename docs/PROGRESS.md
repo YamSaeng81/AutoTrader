@@ -57,11 +57,45 @@ null이어도 동작/3건 이상. **뮤테이션 검증**: 중복 분기를 제�
 "죽지 않고 하나를 감시"할 뿐 중복을 정리하지 않는다. **운영 판단 필요** — 어느 쪽을 청산할지,
 아니면 세션을 정지하고 재생성할지.
 
-### 미해결 — ①의 최초 발생 경로
+### ✅ 배포 검증 + 근본 원인 실시간 포착 (2026-08-27 00:58~01:00)
 
-`scan_state`가 언제·왜 어긋났는지는 특정하지 못했다. `transitionToScanning` 호출부가 9곳이고
-해당 시점(08-23~25) 서버 로그가 남아 있지 않다. 자가복구 가드가 결과를 막으므로 급하진 않지만,
-**같은 원인이 잔고 회계도 함께 어긋뜨렸다**는 점에서 근본 경로는 여전히 조사 대상이다.
+배포 직후 **세션 60이 22시간 만에 부활했고, 그 과정에서 ①의 발생 경로를 실시간으로 잡았다.**
+
+```
+00:58:42  포지션 2997 STOP_LOSS 청산 (−438원)   ← pickMonitoredPosition 이 골라 감시 재개
+          ↳ executeSell → transitionToScanning → SCANNING
+          ↳ 그런데 포지션 2852 는 OPEN 그대로 = 불일치가 생기는 바로 그 순간
+00:59:47  자가복구 가드 발동 → 2852 정리 (FORCED_STOP, 보유 83.2시간, −11원)
+```
+
+22시간 만에 감시가 재개되자마자 손절이 나간 것이 **그동안 SL 이 무효였다는 직접 증거**다.
+검증 결과: 중복 포지션 **0**, 상태 불일치 **0**, 좀비 **0**, 세션 60 정상 SCANNING 복귀.
+
+### 🔴 근본 수정 — `transitionToScanning` 이 포지션을 두고 떠났다
+
+호출부가 **9곳**(청산 완료·고아 정리·reconcile 등)인데 전부 "이 세션은 이제 빈손"이라고
+가정하고 **무조건** SCANNING 으로 보냈다. 세션에 포지션이 하나뿐이라는 전제가 깨지는 순간
+남은 포지션이 **모든 청산 장치에서 빠진다** — SL·TP·time stop 이 전부 monitoring tick 에서만
+돌기 때문이다.
+
+- 남은 OPEN 포지션이 있으면 SCANNING 대신 그 포지션으로 **POSITION_MONITORING 유지**.
+  세션의 실제 `session_kind`(REAL/PAPER)로 조회해 D-2 sessionId 충돌을 피한다.
+- `CLOSING` 은 대상이 아니다 — `executeSell` 이 CLOSING 전환 후 이 메서드를 부르므로,
+  포함시키면 매도 진행 중 세션이 고착된다.
+
+**검증**: 신규 [`DynamicScanTransitionGuardTest`](../web-api/src/test/java/com/cryptoautotrader/api/service/DynamicScanTransitionGuardTest.java)
+**7건**(통합 테스트, 실 DB) — 포지션 없으면 SCANNING / OPEN 잔존 시 감시 유지(PAPER·REAL) /
+세션 60 시나리오 재현 / CLOSING 만 남으면 SCANNING / 타 세션 격리 / session_kind 격리.
+**뮤테이션 검증**: 가드를 끄면 **3건이 실패하고 격리 4건은 통과함을 확인** 후 복원.
+`:web-api:test` **68개 클래스 전부 그린**. **미배포**.
+
+### 남은 조사 — 잔고 회계
+
+세션 60은 포지션 2852(7,108원)를 든 채 `available_krw == total_asset_krw` 로 **포지션이 없는
+것처럼** 계산돼 있었고, 그래서 그 돈으로 같은 코인을 재매수할 수 있었다. 상태 불일치는 위
+수정으로 막지만 **회계가 어긋나는 경로는 아직 못 찾았다**. PAPER 는
+`reconcileDynamicSessionBalance`(REAL 전용)의 대상이 아니라 이를 감지할 안전망도 없다
+— 다음 작업.
 
 ---
 

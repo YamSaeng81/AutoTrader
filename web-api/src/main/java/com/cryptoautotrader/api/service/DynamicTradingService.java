@@ -1772,6 +1772,37 @@ public class DynamicTradingService {
     // ── 내부: 상태 전환 ────────────────────────────────────────────
 
     public void transitionToScanning(Long sessionId) {
+        // ⚠️ 2026-08-27: 남은 OPEN 포지션이 있으면 SCANNING 으로 보내지 않는다.
+        //
+        // 이 메서드는 호출부가 9곳(청산 완료·고아 정리·reconcile 등)인데 전부 "이 세션은 이제
+        // 빈손"이라고 가정하고 무조건 SCANNING 으로 보냈다. 세션에 포지션이 하나만 있다는 전제가
+        // 깨지는 순간(중복 진입·정리 누락) **남은 포지션이 감시에서 통째로 빠진다** — SL·TP·
+        // time stop 이 전부 monitoring tick 에서만 돌기 때문이다.
+        //
+        // 운영 실측(2026-08-27 00:58~00:59, 세션 60): 포지션 2997 을 손절 청산하면서 이 메서드가
+        // SCANNING 으로 보냈고, 같은 세션의 포지션 2852 가 그 순간 고아가 됐다. 08-23 에 처음
+        // 불일치가 생긴 것도 같은 경로로 추정된다 — 그때 2852 는 **83시간** 방치됐고
+        // (maxHoldHours=24 인데도) 그사이 세션이 같은 코인을 재매수해 중복까지 만들었다.
+        //
+        // processTick 의 자가복구 가드가 다음 틱에 되돌리지만, 애초에 어긋나지 않는 편이 낫다.
+        DynamicSessionEntity owner = dynamicSessionRepo.findById(sessionId).orElse(null);
+        List<PositionEntity> remaining = owner == null ? List.of()
+                : positionRepository.findBySessionKindAndSessionIdAndStatus(
+                        sessionKind(owner), sessionId, "OPEN");
+        if (!remaining.isEmpty()) {
+            PositionEntity keep = remaining.get(0);
+            log.warn("[Dynamic] SCANNING 복귀 보류 — OPEN 포지션 {}건 잔존, 감시 유지 "
+                            + "(id={}, {} posId={})",
+                    remaining.size(), sessionId, keep.getCoinPair(), keep.getId());
+            balanceUpdater.apply(sessionId, s -> {
+                s.setScanState("POSITION_MONITORING");
+                s.setCurrentCoinPair(keep.getCoinPair());
+                s.setCurrentPositionId(keep.getId());
+            });
+            refreshWsSubscription();
+            return;
+        }
+
         balanceUpdater.apply(sessionId, s -> {
             s.setScanState("SCANNING");
             s.setCurrentCoinPair(null);
