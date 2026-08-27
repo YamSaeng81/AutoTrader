@@ -249,11 +249,20 @@ class DynamicPaperTradingTest extends IntegrationTestBase {
                 .isEqualTo("OPEN");
     }
 
+    /**
+     * ⚠️ <b>2026-08-27 판정 반전</b>: 이 테스트는 원래 "PAPER 는 이 안전망의 대상이 아니다"를
+     * 잠그고 있었다(08-07). 그 근거는 "PAPER 는 REQUIRES_NEW·비동기 갭이 없어 잔고가 어긋날 수
+     * 없다"였는데, <b>세션 60이 그 전제를 깼다</b> — 포지션 2852(7,108원)를 든 채
+     * {@code available == total} 이 되어 같은 돈으로 재매수했고, 중복 포지션이 세션을 21시간
+     * 정지시켰다. 이제 PAPER 도 대상이며, 포지션이 없는데 묶인 돈은 복원된다.
+     *
+     * <p>08-07 이 실제로 두려워한 것은 <b>오탐</b>이었다 — 포지션을 {@code SESSION_KIND}(REAL)로만
+     * 조회해 PAPER 세션이 "포지션 없음"으로 오판되는 것. 그 원인은 세션의 실제
+     * {@code session_kind} 로 조회하도록 고쳐 해소했고, 아래 두 번째 테스트가 그것을 잠근다.</p>
+     */
     @Test
-    @DisplayName("PAPER의 잔고 불일치(유예시간 경과)는 reconcileDynamicSessionBalance가 건드리지 않는다")
-    void balanceReconcile_ignoresPaperSessions() {
-        // 그레이스 기간(3분) 안에서는 이 안전망 자체가 아무 세션도 건드리지 않으므로, 유예를
-        // 지나야 "PAPER라서 스킵"과 "그냥 최근이라 스킵"을 구분해 검증할 수 있다.
+    @DisplayName("PAPER도 포지션 없이 묶인 잔고는 복원된다 — 08-07 제외를 08-27에 되돌림")
+    void balanceReconcile_restoresPaperOrphanCapital() {
         DynamicSessionEntity session = newSession("PAPER");
         session.setAvailableKrw(new BigDecimal("2000.00"));
         session.setTotalAssetKrw(new BigDecimal("10000.00"));
@@ -264,7 +273,32 @@ class DynamicPaperTradingTest extends IntegrationTestBase {
 
         DynamicSessionEntity reloaded = dynamicSessionRepository.findById(session.getId()).orElseThrow();
         assertThat(reloaded.getAvailableKrw())
-                .as("REAL 전용 안전망 — PAPER 세션의 잔고는 자동 복원 대상이 아니다")
+                .as("포지션도 활성 주문도 없이 8,000원이 묶여 있었다 — 대응물 없는 돈이다")
+                .isEqualByComparingTo("10000.00");
+    }
+
+    @Test
+    @DisplayName("🔴 보유 중인 PAPER 세션의 잔고는 건드리지 않는다 — 08-07이 막으려던 오탐")
+    void balanceReconcile_doesNotTouchPaperSessionHoldingPosition() {
+        DynamicSessionEntity session = newSession("PAPER");
+        session.setAvailableKrw(new BigDecimal("2000.00"));
+        session.setTotalAssetKrw(new BigDecimal("10000.00"));
+        dynamicSessionRepository.saveAndFlush(session);
+        backdateUpdatedAt(session.getId(), 10);
+
+        // DYN_PAPER 포지션 보유 — 예전 코드는 이걸 REAL kind 로 조회해 못 보고 "고아 잔고"로 오판했다
+        positionRepository.saveAndFlush(PositionEntity.builder()
+                .coinPair("KRW-BTC").side("BUY")
+                .entryPrice(new BigDecimal("90000000")).avgPrice(new BigDecimal("90000000"))
+                .size(new BigDecimal("0.00008889")).investedKrw(new BigDecimal("8000"))
+                .status("OPEN").sessionId(session.getId()).sessionKind("DYN_PAPER")
+                .build());
+
+        dynamicTradingService.reconcileDynamicSessionBalance();
+
+        DynamicSessionEntity reloaded = dynamicSessionRepository.findById(session.getId()).orElseThrow();
+        assertThat(reloaded.getAvailableKrw())
+                .as("정상 보유 중이다 — 차이는 묶인 원금이지 고아 잔고가 아니다")
                 .isEqualByComparingTo("2000.00");
     }
 

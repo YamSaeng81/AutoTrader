@@ -89,13 +89,55 @@ null이어도 동작/3건 이상. **뮤테이션 검증**: 중복 분기를 제�
 **뮤테이션 검증**: 가드를 끄면 **3건이 실패하고 격리 4건은 통과함을 확인** 후 복원.
 `:web-api:test` **68개 클래스 전부 그린**. **미배포**.
 
-### 남은 조사 — 잔고 회계
+### 🔴 잔고 안전망 — 불변식이 반쪽이었다
 
 세션 60은 포지션 2852(7,108원)를 든 채 `available_krw == total_asset_krw` 로 **포지션이 없는
-것처럼** 계산돼 있었고, 그래서 그 돈으로 같은 코인을 재매수할 수 있었다. 상태 불일치는 위
-수정으로 막지만 **회계가 어긋나는 경로는 아직 못 찾았다**. PAPER 는
-`reconcileDynamicSessionBalance`(REAL 전용)의 대상이 아니라 이를 감지할 안전망도 없다
-— 다음 작업.
+것처럼** 계산돼 있었고, 그래서 그 돈으로 같은 코인을 재매수할 수 있었다.
+
+**왜 기존 안전망이 못 잡았나** — `reconcileDynamicSessionBalance` 가 이렇게 시작한다:
+
+```java
+int cmp = available.compareTo(total);
+if (cmp == 0) continue;          // ← available == total 을 항상 정상으로 취급
+```
+
+세션 60의 사고 상태가 **정확히 `available == total`** 이었다. 즉 PAPER 제외가 없었더라도
+이 안전망은 세션 60을 못 잡았다. 불변식이 한쪽만 구현돼 있었기 때문이다:
+
+| | 불변식 | 상태 |
+|---|---|---|
+| ① | 포지션이 **없으면** `available == total` | 기존에 있었음 |
+| ② | 포지션이 **있으면** `available < total` | **없었음** ← 세션 60이 여기로 빠져나갔다 |
+
+**수정**:
+
+- **불변식 ② 신설** — 포지션 보유 중 `available >= total` 이면 감지. **자동 교정은 하지 않는다**:
+  이 방향의 교정은 available 을 *깎는* 것이라 판단이 틀리면 멀쩡한 세션의 매수 여력을 없앤다
+  (기존 `available>total` 분기가 감액을 피한 것과 같은 이유). 지금 없던 것은 교정이 아니라
+  **감지**다 — 세션 60은 나흘간 아무 경고 없이 지나갔고 A/B 점검 중 우연히 발견됐다.
+  ERROR 로그 + **텔레그램 알림**, 세션당 1회(정상 복귀 시 리셋)로 스케줄러 스팸 방지.
+- **PAPER 제외 해제** — 08-07 의 `if (session.isPaper()) continue;` 를 제거했다. 당시 근거는
+  "PAPER 는 REQUIRES_NEW·비동기 갭이 없어 이런 안전망이 필요 없다"였는데 세션 60이 그 전제를
+  깼다. 08-07 이 실제로 두려워한 것은 **오탐**(포지션을 `SESSION_KIND`(REAL)로만 조회해 PAPER
+  세션이 "포지션 없음"으로 오판)이었고, 그 원인은 **세션의 실제 `session_kind` 로 조회**하도록
+  고쳐 해소했다. 주문 조회도 같이 고쳤다.
+
+**검증**: 신규 [`DynamicUnlockedCapitalTest`](../web-api/src/test/java/com/cryptoautotrader/api/service/DynamicUnlockedCapitalTest.java)
+**7건** — 세션 60 재현(PAPER)/`available>total`/REAL 동일 적용/정상 보유는 침묵/포지션 없으면
+대상 아님/반복 실행 시 1회만 알림/PAPER 가 REAL 포지션을 자기 것으로 세지 않음.
+**뮤테이션 검증**: 불변식 ② 를 끄면 **감지 4건이 실패하고 오탐방지 3건은 통과함을 확인** 후 복원.
+
+⚠️ **기존 테스트 1건을 의도적으로 뒤집었다** — `DynamicPaperTradingTest.balanceReconcile_ignoresPaperSessions`
+가 08-07 의 PAPER 제외를 잠그고 있었다. 판정이 반전됐으므로
+`balanceReconcile_restoresPaperOrphanCapital` 로 갱신하고, 08-07 이 진짜 막으려던 오탐
+(보유 중인 PAPER 세션의 잔고를 건드리지 않는다)을 **별도 테스트로 신설**해 남겼다.
+
+`:web-api:test` **69개 클래스 전부 그린**. **미배포**.
+
+### 남은 조사
+
+회계가 **처음에 어긋난 경로**는 여전히 못 찾았다. 이제 불변식 ② 가 감지·알림하므로 다음에
+발생하면 즉시 알 수 있다 — 그때 로그로 경로를 특정한다.
 
 ---
 

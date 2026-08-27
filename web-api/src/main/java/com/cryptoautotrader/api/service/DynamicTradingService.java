@@ -2301,19 +2301,17 @@ public class DynamicTradingService {
     @Transactional
     public void reconcileDynamicSessionBalance() {
         for (DynamicSessionEntity session : dynamicSessionRepo.findByStatus("RUNNING")) {
-            // ⚠️ PAPER는 이 안전망의 대상이 아니다 — 이 메서드는 세션을 먼저 순회한 뒤 포지션/주문을
-            // SESSION_KIND(REAL)로만 조회하므로, 필터링 없이 두면 PAPER 세션은 "자기 포지션이
-            // 하나도 안 보이는" 것으로 오판되어(실제로는 DYN_PAPER로 있을 뿐인데) 정상적인
-            // 보유 중 잔고 차이가 고아 잔고로 오인되어 강제로 되돌아갈 뻔했다(2026-08-07 발견).
-            // PAPER는 REQUIRES_NEW·비동기 갭이 없어 이런 사후 안전망 자체가 필요하지 않다.
-            if (session.isPaper()) continue;
+            // ⚠️ 2026-08-27: PAPER 제외를 풀었다. 2026-08-07 당시 "PAPER는 REQUIRES_NEW·비동기
+            // 갭이 없어 이런 사후 안전망 자체가 필요하지 않다"고 판단해 제외했으나, 세션 60이
+            // 그 전제를 깼다 — 포지션 2852(7,108원)를 든 채 available == total 로 계산돼 있었고,
+            // 그 돈으로 같은 코인을 재매수해 중복 포지션 → 세션 21시간 정지까지 갔다.
+            // 08-07 의 오판 사유(포지션을 SESSION_KIND(REAL)로만 조회)는 아래에서 세션의 실제
+            // session_kind 를 쓰도록 고쳐 해소했다.
             Long sid = session.getId();
+            String kind = sessionKind(session);
             BigDecimal available = session.getAvailableKrw();
             BigDecimal total = session.getTotalAssetKrw();
             if (available == null || total == null) continue;
-
-            int cmp = available.compareTo(total);
-            if (cmp == 0) continue;
 
             if (session.getUpdatedAt() == null
                     || Duration.between(session.getUpdatedAt(), Instant.now()).toMinutes()
@@ -2321,14 +2319,38 @@ public class DynamicTradingService {
                 continue;   // 매수 진행 중일 수 있는 구간 — 건드리지 않는다
             }
 
-            boolean hasOpenPosition = !positionRepository
-                    .findBySessionKindAndSessionId(SESSION_KIND, sid).stream()
-                    .allMatch(p -> "CLOSED".equals(p.getStatus()));
-            if (hasOpenPosition) continue;   // 정상 보유 중 — 차이는 미실현손익
+            // ── 불변식 ②(2026-08-27 신설): 포지션이 있으면 원금만큼은 묶여 있어야 한다 ──
+            //
+            // 기존 코드는 `if (cmp == 0) continue;` 로 시작해 **available == total 을 항상 정상으로
+            // 취급**했다. 그런데 세션 60의 실제 사고 상태가 정확히 그것이었다(8,875 == 8,875 인데
+            // 포지션 보유). 즉 PAPER 제외가 없었더라도 이 안전망은 세션 60을 못 잡았다 —
+            // 불변식이 "포지션 없으면 available == total" 한쪽만 검사하고 있었기 때문이다.
+            //
+            // 자동 복원은 하지 않는다. 이 방향의 교정은 available 을 **깎는** 것이라, 판단이 틀리면
+            // 멀쩡한 세션의 매수 여력을 없앤다(기존 available>total 분기가 감액을 피한 것과 같은 이유).
+            // 지금 없는 것은 교정이 아니라 **감지**다 — 세션 60은 아무 경고도 없이 나흘을 갔다.
+            List<PositionEntity> openPositions = positionRepository
+                    .findBySessionKindAndSessionIdAndStatus(kind, sid, "OPEN");
+            if (!openPositions.isEmpty()) {
+                if (available.compareTo(total) >= 0) {
+                    BigDecimal invested = openPositions.stream()
+                            .map(PositionEntity::getInvestedKrw)
+                            .filter(Objects::nonNull)
+                            .reduce(BigDecimal.ZERO, BigDecimal::add);
+                    warnUnlockedPositionCapital(sid, kind, available, total, openPositions, invested);
+                } else {
+                    unlockedCapitalWarned.remove(sid);   // 정상 복귀 — 다음 이상 때 다시 알린다
+                }
+                continue;   // 보유 중 — 아래 고아 잔고 복원은 대상이 아니다
+            }
+            unlockedCapitalWarned.remove(sid);
+
+            int cmp = available.compareTo(total);
+            if (cmp == 0) continue;
 
             boolean hasActiveOrder = orderRepository
                     .findBySessionKindAndSessionIdOrderByCreatedAtDesc(
-                            SESSION_KIND, sid, org.springframework.data.domain.PageRequest.of(0, 20))
+                            kind, sid, org.springframework.data.domain.PageRequest.of(0, 20))
                     .stream()
                     .anyMatch(o -> ACTIVE_ORDER_STATES.contains(o.getState()));
             if (hasActiveOrder) continue;    // 체결 대기 중 — 아직 결론 낼 수 없다
@@ -2352,6 +2374,48 @@ public class DynamicTradingService {
             log.error("[Dynamic] 🔴 고아 잔고 복원: 포지션·활성주문 없이 KRW가 묶여 있었음 "
                             + "(id={}, {}원 복원 → available={}). 매수 tx 롤백 의심 — 서버 로그 확인 필요.",
                     sid, restoreAmount, total);
+        }
+    }
+
+    /**
+     * 이미 경고를 보낸 세션 — 60초마다 도는 스케줄러가 같은 이상을 반복 알림하지 않도록 한다.
+     * 정상으로 돌아오면 제거해, 재발 시 다시 알린다.
+     */
+    private final java.util.Set<Long> unlockedCapitalWarned = ConcurrentHashMap.newKeySet();
+
+    /**
+     * <b>불변식 ② 위반</b> — 포지션을 보유 중인데 그 원금이 가용 잔고에서 빠져 있지 않다.
+     *
+     * <p>이 상태는 <b>같은 돈을 두 번 쓰게 만든다</b>. 세션 60이 실제로 그랬다 — 포지션
+     * 2852(7,108원)를 든 채 available == total 이라, 그 7,108원으로 같은 코인을 다시 사서
+     * 중복 포지션을 만들었고 그것이 세션을 21시간 정지시켰다.</p>
+     *
+     * <p>자동 교정은 하지 않는다 — 이 방향은 available 을 깎는 것이라 판단이 틀리면 멀쩡한
+     * 세션의 매수 여력을 없앤다. 대신 <b>반드시 사람이 보게</b> 한다: 세션 60은 나흘간
+     * 아무 경고 없이 지나갔고, A/B 점검을 하다 우연히 발견됐다.</p>
+     */
+    private void warnUnlockedPositionCapital(Long sid, String kind,
+                                             BigDecimal available, BigDecimal total,
+                                             List<PositionEntity> openPositions, BigDecimal invested) {
+        if (!unlockedCapitalWarned.add(sid)) return;   // 이미 알림 — 정상 복귀 전까지 침묵
+
+        String coins = openPositions.stream()
+                .map(p -> p.getCoinPair() + "#" + p.getId())
+                .collect(java.util.stream.Collectors.joining(", "));
+        log.error("[Dynamic] 🔴 잔고 정합성 이상 — 포지션 보유 중인데 원금이 안 묶여 있음 "
+                        + "(id={}, kind={}, available={}, total={}, 포지션 {}건 원금={} [{}]). "
+                        + "같은 돈으로 재매수 가능 상태 — 중복 포지션 위험. 자동 교정 안 함, 수동 확인 필요.",
+                sid, kind, available, total, openPositions.size(), invested, coins);
+
+        try {
+            telegramService.sendCustomNotification(String.format(
+                    "🔴 [동적#%d] 잔고 정합성 이상\n"
+                            + "포지션 %d건(%s)을 들고 있는데 원금 %s원이 가용 잔고에 그대로 있습니다.\n"
+                            + "가용 %s / 평가 %s — 같은 돈으로 재매수될 수 있어 중복 포지션 위험이 있습니다.\n"
+                            + "자동 교정은 하지 않았습니다. 수동 확인이 필요합니다.",
+                    sid, openPositions.size(), coins, invested, available, total));
+        } catch (Exception e) {
+            log.warn("[Dynamic] 잔고 정합성 이상 알림 실패 (id={}): {}", sid, e.getMessage());
         }
     }
 
