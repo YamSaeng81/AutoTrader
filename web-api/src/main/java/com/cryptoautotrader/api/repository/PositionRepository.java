@@ -93,6 +93,22 @@ public interface PositionRepository extends JpaRepository<PositionEntity, Long> 
     Optional<PositionEntity> findBySessionKindAndSessionIdAndCoinPairAndStatus(
             String sessionKind, Long sessionId, String coinPair, String status);
 
+    /**
+     * 위와 같은 조건의 <b>List</b> 버전 — 중복이 있어도 예외를 던지지 않는다.
+     *
+     * <p><b>왜 필요한가 (2026-08-27 P0)</b>: {@code Optional} 버전은 결과가 2건이면
+     * {@code IncorrectResultSizeDataAccessException} 을 던진다. 동적 세션 tick 루프는 세션별로
+     * 예외를 삼키므로 앱은 살아 있지만 <b>해당 세션만 매 틱 실패해 영구 정지</b>한다 — 세션 60이
+     * (DYN_PAPER, KRW-STX, OPEN) 2건 때문에 21시간 멈춰 있었고 그동안 SL/TP/time stop 이 전부
+     * 무효였다. 감시 루프처럼 "죽으면 안 되는" 경로는 이 메서드를 쓴다.</p>
+     */
+    @Query("SELECT p FROM PositionEntity p WHERE p.sessionKind = :sessionKind "
+            + "AND p.sessionId = :sessionId AND p.coinPair = :coinPair AND p.status = :status "
+            + "ORDER BY p.openedAt ASC")
+    List<PositionEntity> findBySessionKindAndSessionIdAndCoinPairAndStatusList(
+            @Param("sessionKind") String sessionKind, @Param("sessionId") Long sessionId,
+            @Param("coinPair") String coinPair, @Param("status") String status);
+
     /** 서킷 브레이커용: 세션의 체결 완료 포지션을 closedAt 역순으로 조회 (연속 손실 계산) */
     List<PositionEntity> findBySessionIdAndStatusOrderByClosedAtDesc(Long sessionId, String status);
 

@@ -655,6 +655,32 @@ public class DynamicTradingService {
         }
 
         if ("SCANNING".equals(fresh.getScanState())) {
+            // ⚠️ 2026-08-27 P0: SCANNING 인데 이미 OPEN 포지션이 있으면 스캔하지 않고 감시로 돌린다.
+            // 운영 실측(세션 60) — 포지션 2852(KRW-STX, 08-23 진입)를 든 채 scanState 가 SCANNING
+            // 으로 어긋나 있었고, 그 결과 ① 그 포지션이 SL/TP/time stop 감시에서 통째로 빠져
+            // 59시간+ 방치됐으며(maxHoldHours=24 인데도), ② 08-26 03:00 같은 코인을 **또** 매수해
+            // (60, KRW-STX, OPEN) 이 2건이 됐고, ③ processMonitoringTick 의 Optional 조회가
+            // IncorrectResultSizeDataAccessException 으로 터지면서 **세션이 21시간 영구 정지**했다.
+            //
+            // 불일치가 어느 경로에서 생기든(여러 reconcile 이 transitionToScanning 을 부른다) 다음
+            // 틱에 스스로 복구시키는 것이 목적이다. PAPER 는 reconcileDynamicSessionBalance /
+            // reconcileDynamicOrphanBuyPositions 가 둘 다 REAL 만 보므로 이 불일치를 잡는 안전망이
+            // 아예 없었다 — 그래서 이 가드는 PAPER·REAL 공통이다.
+            List<PositionEntity> openPositions = positionRepository
+                    .findBySessionKindAndSessionIdAndStatus(sessionKind(fresh), sid, "OPEN");
+            if (!openPositions.isEmpty()) {
+                PositionEntity resume = openPositions.get(0);
+                log.error("[Dynamic] 🔴 상태 불일치 자가복구: SCANNING 인데 OPEN 포지션 {}건 존재 "
+                                + "— POSITION_MONITORING 복귀 (id={}, {} posId={})",
+                        openPositions.size(), sid, resume.getCoinPair(), resume.getId());
+                balanceUpdater.apply(sid, s -> {
+                    s.setScanState("POSITION_MONITORING");
+                    s.setCurrentCoinPair(resume.getCoinPair());
+                    s.setCurrentPositionId(resume.getId());
+                });
+                refreshWsSubscription();
+                return;
+            }
             processScanningTick(fresh);
         } else {
             processMonitoringTick(fresh);
@@ -957,6 +983,31 @@ public class DynamicTradingService {
         }
     }
 
+    /**
+     * 감시 대상 포지션 하나를 고른다 — 중복이 있어도 <b>예외 없이</b> 진행시키기 위한 선택 규칙.
+     *
+     * <p>세션이 가리키는 {@code currentPositionId} 를 최우선으로 채택한다(세션의 회계·상태가 그
+     * 포지션 기준으로 맞춰져 있기 때문). 그것이 목록에 없으면 <b>가장 오래된</b> 포지션을 쓴다 —
+     * 오래된 쪽이 time stop·손절 관점에서 더 급하고, 방치되면 위험이 커지는 쪽이다.</p>
+     *
+     * <p>중복 자체는 정상이 아니므로 ERROR 로 남긴다. 자동 병합·청산은 하지 않는다 — 어느 쪽이
+     * 진짜인지는 주문 이력을 봐야 알 수 있고, 잘못 청산하면 되돌릴 수 없다.</p>
+     */
+    static Optional<PositionEntity> pickMonitoredPosition(Long sessionId, Long currentPositionId,
+                                                          List<PositionEntity> openPositions) {
+        if (openPositions.isEmpty()) return Optional.empty();
+        if (openPositions.size() == 1) return Optional.of(openPositions.get(0));
+
+        log.error("[Dynamic] 🔴 중복 OPEN 포지션 {}건 — 감시는 계속하되 수동 확인 필요 (id={}, posIds={})",
+                openPositions.size(), sessionId,
+                openPositions.stream().map(PositionEntity::getId).toList());
+
+        return openPositions.stream()
+                .filter(p -> currentPositionId != null && currentPositionId.equals(p.getId()))
+                .findFirst()
+                .or(() -> Optional.of(openPositions.get(0)));   // 목록은 openedAt ASC
+    }
+
     /** POSITION_MONITORING: 보유 코인만 평가 → SL/TP/SELL 처리 */
     @Transactional
     public void processMonitoringTick(DynamicSessionEntity session) {
@@ -973,8 +1024,16 @@ public class DynamicTradingService {
 
         BigDecimal currentPrice = candles.get(candles.size() - 1).getClose();
 
-        Optional<PositionEntity> posOpt = positionRepository
-                .findBySessionKindAndSessionIdAndCoinPairAndStatus(sessionKind(session), sid, coinPair, "OPEN");
+        // ⚠️ 2026-08-27 P0: Optional 조회는 같은 (세션, 코인) 에 OPEN 포지션이 2건이면
+        // IncorrectResultSizeDataAccessException 을 던진다. tick() 이 세션별로 예외를 삼키므로
+        // 앱은 살아 있지만 **그 세션만 매 틱 실패해 영구 정지**한다 — 세션 60이 21시간 그렇게
+        // 멈춰 있었고, 그동안 SL/TP/time stop 이 전부 무효였다. 중복은 위 자가복구 가드가 새로
+        // 생기는 것을 막지만, 이미 생긴 중복에서도 세션이 죽지 않아야 한다.
+        List<PositionEntity> openPositions = positionRepository
+                .findBySessionKindAndSessionIdAndCoinPairAndStatusList(
+                        sessionKind(session), sid, coinPair, "OPEN");
+        Optional<PositionEntity> posOpt = pickMonitoredPosition(
+                sid, session.getCurrentPositionId(), openPositions);
 
         if (posOpt.isEmpty()) {
             // ⚠️ 2026-08-03 P0: 이 분기가 무증상으로 지나가면서 세션 39·40·44의 KRW 누수를
