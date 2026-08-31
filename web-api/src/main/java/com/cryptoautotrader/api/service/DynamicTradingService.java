@@ -142,22 +142,37 @@ public class DynamicTradingService {
      * 것은 세션 수뿐이고 리스크는 한 종목에 합쳐진다. 1로 두면 "한 코인은 한 세션만"이라
      * 세션 수만큼의 종목 분산이 실제로 보장된다.</p>
      *
-     * <p><b>PAPER는 이 상한을 적용받지 않는다 (2026-08-25 결정, 실측 근거)</b>: 위 근거는
-     * 전부 <b>실자본</b> 집중 리스크다. 페이퍼 세션은 각자 독립된 가상자본을 쓰므로 공유
-     * 자본이 없고, 따라서 이 상한이 페이퍼끼리 걸릴 때 방어하는 리스크가 존재하지 않는다.
-     * 반면 비용은 실측으로 확인됐다 — 최근 14일 이 게이트가 막은 BUY <b>303건</b>의 24시간
-     * 사후수익률이 <b>+4.51%·승률 69.3%</b>였다. 여러 전략이 동시에 동의한 신호일수록 잘
-     * 맞는데, 먼저 스캔한 한 세션만 먹고 나머지가 전부 막히고 있었다. 그 결과 실행된 BUY의
-     * 24h 수익률(−0.96%, n=95)이 차단된 BUY(+2.77%, n=474)보다 <b>나빴다</b> — 게이트가
-     * 역선택을 하고 있었다는 뜻이다.</p>
+     * <h3>2026-08-25 → 08-30: 면제했다가 실현손익으로 되돌렸다</h3>
      *
-     * <p>페이퍼 함대가 존재하는 목적은 전략 비교인데, 이 상한이 걸리면 <b>어떤 전략이 기회를
-     * 얻는지가 실력이 아니라 스캔 순서로 결정</b>돼 비교 자체가 오염된다. "페이퍼는 실전과
-     * 동일 로직이어야 예측력이 있다"는 원칙과 충돌하지만, 상한이 걸리는 빈도는 세션 수에
-     * 비례하므로 <b>페이퍼(15세션)는 애초에 실전(1~3세션 예정)을 충실히 모사하지 못한다</b> —
-     * 왜곡 강도가 실전보다 5배 크다. 실전 경로는 상한을 그대로 유지한다.</p>
+     * <p>08-25 에 <b>PAPER 를 이 상한에서 면제</b>했다. 근거는 차단된 BUY 의 24시간
+     * <b>사후수익률</b>이었다 — 막힌 303건이 +4.51%·승률 69.3%였고, 실행된 BUY(−0.96%)보다
+     * 나아서 "게이트가 역선택을 한다"고 판단했다.</p>
+     *
+     * <p><b>그 판단은 틀렸다.</b> 면제 후 실제 실현손익을 세션 동시진입 수로 갈라보니
+     * 정반대였다(08-30, DYN_PAPER 전체):</p>
+     * <pre>
+     *   단독 진입      61건  승률 37.7%   −0.35%/건
+     *   2세션 동시     21건  승률 47.6%   <b>+1.75%</b>/건   ← 여기까지는 오히려 좋다
+     *   3세션 동시     30건  승률 20.0%   <b>−1.33%</b>/건
+     *   4세션 동시     16건  승률  6.3%   <b>−2.13%</b>/건
+     * </pre>
+     *
+     * <p><b>왜 사후수익률과 실현손익이 반대로 나왔나</b>: 사후수익률은 "24시간 뒤 가격"일 뿐
+     * 그사이 경로를 무시한다. 여러 세션이 한 코인에 몰리는 시점은 변동성이 큰 구간이라
+     * <b>24시간 뒤엔 올라 있어도 그 전에 SL 을 맞는다</b>. 실현손익에는 그 손절이 그대로
+     * 찍히지만 사후수익률에는 안 찍힌다. 신호 품질 지표로 진입 규칙을 정하면 이런 괴리가 난다.</p>
+     *
+     * <p>그래서 <b>면제를 되돌리고 상한을 1 → 2 로 올린다</b>. 데이터가 가리키는 값이 2다 —
+     * 1은 과하고(2세션 구간이 +1.75%로 가장 좋다), 3 이상은 명확히 해롭다. PAPER·REAL 모두
+     * 같은 값을 쓴다. 2세션까지 허용하면 08-25 에 지적한 "스캔 순서가 기회를 정한다"는 문제도
+     * 절반은 완화된다.</p>
+     *
+     * <p><b>지문 등재</b>: 이 상수는 08-25 면제 당시 지문에 실려 있지 않아, 면제 전후 거래가
+     * 같은 해시로 섞였다(사후 분리가 진입 시각으로만 가능했다). "동작을 바꾸는 코드 상수는
+     * 지문에 싣는다"는 이 코드베이스의 규칙을 어긴 것이라, 이번에 {@code scan.maxSessionsPerCoin}
+     * 으로 등재한다. 모든 해시가 다시 갈린다.</p>
      */
-    private static final long MAX_SESSIONS_PER_COIN = 1;
+    static final long MAX_SESSIONS_PER_COIN = 2;
 
     // ── 손절폭/익절가 — 2026-08-06, ExitRuleCalculator로 이전 ───────────────────
     // 2026-07-31 ATR 기반 개편 + 2026-08-05 재조정 이력은 그 클래스 javadoc 참조.
@@ -912,15 +927,14 @@ public class DynamicTradingService {
                         "손실 청산 쿨다운 — 직전 손실 청산 후 %d분 내 동일 코인 재진입 차단", lossCooldownMinutes);
             }
 
-            // 세션 간 동일코인 노출 상한: 다른 동적 세션이 이미 같은 코인을 들고 있으면 차단.
-            // PAPER는 면제 — 공유 자본이 없어 방어할 리스크가 없고, 전략 비교만 오염시킨다
-            // (근거는 MAX_SESSIONS_PER_COIN javadoc).
-            if (gateBlockReason == null && !session.isPaper()
-                    && signal.getAction() == StrategySignal.Action.BUY) {
+            // 세션 간 동일코인 노출 상한: 다른 동적 세션이 이미 상한만큼 들고 있으면 차단.
+            // 2026-08-30: PAPER 면제를 되돌리고 상한을 2로 올렸다 — 실현손익 실측 근거는
+            // MAX_SESSIONS_PER_COIN javadoc 참조(3세션 이상 집중이 −1.33~−2.13%).
+            if (gateBlockReason == null && signal.getAction() == StrategySignal.Action.BUY) {
                 long heldElsewhere = positionRepository
                         .countBySessionKindAndCoinPairAndStatusAndSessionIdNot(
                                 sessionKind(session), coinPair, "OPEN", sid);
-                String crossReason = crossSessionExposureBlockReason(session.isPaper(), heldElsewhere);
+                String crossReason = crossSessionExposureBlockReason(heldElsewhere);
                 if (crossReason != null) {
                     crossSessionBlocked++;
                     log.info("[Dynamic] 동일코인 노출 상한 BUY 차단: {} (id={}, 타 세션 보유 {}건)",
@@ -1221,18 +1235,15 @@ public class DynamicTradingService {
      * @param expired     가드 이력의 유효기간이 끝나 기록을 폐기해도 되는지
      */
     /**
-     * 세션 간 동일코인 노출 상한 판정 — {@link #MAX_SESSIONS_PER_COIN} 초과 시 차단 사유를 준다.
+     * 세션 간 동일코인 노출 상한 판정 — {@link #MAX_SESSIONS_PER_COIN} 이상이면 차단 사유를 준다.
      *
-     * <p>PAPER는 항상 통과한다 — 공유 자본이 없어 방어할 집중 리스크가 없고, 상한이 걸리면
-     * 어떤 전략이 기회를 얻는지가 스캔 순서로 결정돼 전략 비교가 오염된다. 근거와 실측은
-     * {@link #MAX_SESSIONS_PER_COIN} javadoc 참조.</p>
+     * <p>PAPER·REAL 모두 같은 상한을 쓴다. 08-25 에 PAPER 를 면제했다가 08-30 실현손익
+     * 실측으로 되돌렸다 — 근거는 {@link #MAX_SESSIONS_PER_COIN} javadoc 참조.</p>
      *
-     * @param isPaper       페이퍼 세션 여부 — {@code true}면 상한을 적용하지 않는다
      * @param heldElsewhere 같은 코인을 들고 있는 <b>다른</b> 동적 세션 수
      * @return 차단 사유, 통과면 {@code null}
      */
-    static String crossSessionExposureBlockReason(boolean isPaper, long heldElsewhere) {
-        if (isPaper) return null;
+    static String crossSessionExposureBlockReason(long heldElsewhere) {
         if (heldElsewhere < MAX_SESSIONS_PER_COIN) return null;
         return String.format("동일코인 노출 상한 — 다른 동적 세션이 이미 %d건 보유(상한 %d)",
                 heldElsewhere, MAX_SESSIONS_PER_COIN);

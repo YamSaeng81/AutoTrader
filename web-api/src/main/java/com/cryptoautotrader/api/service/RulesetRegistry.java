@@ -144,6 +144,10 @@ public class RulesetRegistry {
                 .put("scan.maxSpreadPct", session.getMaxSpreadPct())
                 .put("scan.maxCandidateSize", session.getMaxCandidateSize())
                 .put("scan.targetWatchSize", session.getTargetWatchSize())
+                // 2026-08-30: 세션 간 동일코인 노출 상한. 08-25 에 PAPER 를 면제했을 때 이 값이
+                // 지문에 없어 면제 전후 거래가 같은 해시로 섞였고, 사후 분리를 진입 시각으로만
+                // 할 수 있었다 — 진입 규칙을 바꾸는 상수는 반드시 여기 실려야 한다.
+                .put("scan.maxSessionsPerCoin", DynamicTradingService.MAX_SESSIONS_PER_COIN)
                 .build());
     }
 

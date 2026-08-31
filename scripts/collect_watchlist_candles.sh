@@ -29,8 +29,11 @@
 #   사이클이 지연될 수 있다. 거래가 한산한 시간대에 돌리는 것을 권한다.
 #
 # 사용법: 운영 서버에서 (리포 루트에서) 실행
-#   bash scripts/collect_watchlist_candles.sh
-#   nohup bash scripts/collect_watchlist_candles.sh > /tmp/collect.log 2>&1 &   # 백그라운드
+#   bash scripts/collect_watchlist_candles.sh                                    # 대화형(확인 있음)
+#   nohup bash scripts/collect_watchlist_candles.sh > /tmp/collect.log 2>&1 &    # 백그라운드
+#   bash scripts/collect_watchlist_candles.sh --yes                              # 확인 생략
+#
+#   백그라운드로 돌리면 stdin 이 없으므로 확인 절차를 자동으로 건너뛴다.
 
 set -uo pipefail
 
@@ -61,9 +64,16 @@ echo "  기간: $START_DATE ~ $END_DATE ($TIMEFRAME)"
 
 echo
 echo "⚠️  이 작업은 1~2시간 이상 걸릴 수 있고 그동안 DYNAMIC 시세 조회가 지연될 수 있습니다."
-printf '    계속하려면 yes 입력: '
-read -r go
-[ "$go" = "yes" ] || { echo "중단."; exit 1; }
+
+# nohup/백그라운드로 돌리면 stdin 이 없다 — TTY 일 때만 묻고, 아니면 그대로 진행한다.
+# (--yes 를 주면 대화형에서도 묻지 않는다)
+if [ "${1:-}" = "--yes" ] || [ ! -t 0 ]; then
+  echo "    (비대화형 실행 — 확인 없이 진행합니다)"
+else
+  printf '    계속하려면 yes 입력: '
+  read -r go
+  [ "$go" = "yes" ] || { echo "중단."; exit 1; }
+fi
 
 collect() {
   local coin="$1" label="$2"

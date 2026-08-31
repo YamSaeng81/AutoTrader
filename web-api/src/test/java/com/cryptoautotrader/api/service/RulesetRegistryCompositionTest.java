@@ -93,7 +93,11 @@ class RulesetRegistryCompositionTest extends IntegrationTestBase {
         }
         for (String key : new String[]{
                 "scan.minAtrPct=", "scan.maxSpreadPct=",
-                "scan.maxCandidateSize=", "scan.targetWatchSize="}) {
+                "scan.maxCandidateSize=", "scan.targetWatchSize=",
+                // 2026-08-30 추가 — 세션 간 동일코인 노출 상한. 08-25 에 PAPER 면제를 넣을 때
+                // 이 키가 없어 면제 전후 거래가 같은 해시로 섞였고, 사후 분리를 진입 시각으로만
+                // 할 수 있었다. 진입 규칙을 바꾸는 상수는 반드시 지문에 실려야 한다.
+                "scan.maxSessionsPerCoin="}) {
             assertThat(params).as("워치리스트 필터 키 누락: %s", key).contains(key);
         }
         // risk_config 를 못 읽었다면 gate.* 가 통째로 빠지고 이 표식이 붙는다

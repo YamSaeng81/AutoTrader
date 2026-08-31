@@ -80,9 +80,18 @@ if bad:
 precheck=$?
 if [ $precheck -ne 0 ]; then
   echo
-  printf '  그래도 강행하시겠습니까? (권장하지 않음) yes 입력: '
-  read -r force
-  [ "$force" = "yes" ] || { echo "중단. collect_watchlist_candles.sh 를 먼저 실행하세요."; exit 1; }
+  # 비대화형(nohup 등)에서는 강행하지 않고 중단한다 — 얇은 표본으로 돌린 WF 가 "통과"로
+  # 나오면 검증됐다고 착각하게 만들어 오히려 위험하다. 강행하려면 --force 를 명시할 것.
+  if [ "${1:-}" = "--force" ]; then
+    echo "  ⚠️  --force — 데이터 부족 상태로 강행합니다(권장하지 않음)."
+  elif [ ! -t 0 ]; then
+    echo "  ✗ 중단 — 데이터가 부족합니다. collect_watchlist_candles.sh 를 먼저 실행하세요."
+    exit 1
+  else
+    printf '  그래도 강행하시겠습니까? (권장하지 않음) yes 입력: '
+    read -r force
+    [ "$force" = "yes" ] || { echo "중단. collect_watchlist_candles.sh 를 먼저 실행하세요."; exit 1; }
+  fi
 fi
 
 # ── 실행 ─────────────────────────────────────────────────────────────────────

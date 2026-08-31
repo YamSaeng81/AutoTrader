@@ -14,65 +14,63 @@ import static org.assertj.core.api.Assertions.assertThat;
  * 같은 신호를 보고 동시에 반응한다. 결과적으로 단일 코인에 16,000원 — 동적 자본 70,000원의
  * <b>23%</b> — 가 몰렸고, 그 뒤 둘 다 −1.58%로 같이 물렸다.</p>
  *
- * <p>7세션 분산 운용의 목적은 전략·종목 분산인데, 노출 상한이 없으면 분산되는 것은
- * 세션 수뿐이고 리스크는 한 종목에 합쳐진다. 이 테스트가 잠그는 불변식이 그것이다.</p>
+ * <h3>2026-08-25 → 08-30: 면제했다가 실현손익으로 되돌렸다</h3>
  *
- * <p><b>2026-08-26 확장 — PAPER 면제</b>: 위 사고는 전부 <b>실자본</b> 집중이다. 페이퍼는
- * 세션마다 독립된 가상자본을 쓰므로 방어할 공유 리스크가 없는데, 실측에서는 이 게이트가
- * 페이퍼 함대의 최대 손실원이었다 — 14일간 막은 BUY 303건의 24h 사후수익률이 +4.51%·승률
- * 69.3%. 실전 경로의 불변식은 그대로 유지하면서 페이퍼만 면제한다.</p>
+ * <p>08-25 에 PAPER 를 면제했다(근거: 차단된 BUY 의 24h <b>사후수익률</b> +4.51%·승률 69.3%).
+ * 그 판단은 틀렸다 — 면제 후 <b>실현손익</b>을 동시진입 세션 수로 갈라보니 정반대였다:</p>
+ * <pre>
+ *   단독      61건  승률 37.7%   −0.35%/건
+ *   2세션     21건  승률 47.6%   <b>+1.75%</b>/건
+ *   3세션     30건  승률 20.0%   <b>−1.33%</b>/건
+ *   4세션     16건  승률  6.3%   <b>−2.13%</b>/건
+ * </pre>
+ *
+ * <p>사후수익률은 24시간 뒤 가격일 뿐 경로를 무시한다 — 여러 세션이 몰리는 시점은 변동성이
+ * 커서 <b>24시간 뒤엔 올라 있어도 그 전에 SL 을 맞는다</b>. 그래서 상한을 <b>2</b>로 되돌렸다:
+ * 1은 과하고(2세션 구간이 가장 좋다), 3 이상은 명확히 해롭다. PAPER·REAL 공통이다.</p>
  */
 class CrossSessionExposureTest {
-
-    private static final boolean REAL = false;
-    private static final boolean PAPER = true;
-
-    // ── 실전(REAL) — 기존 불변식은 그대로 ────────────────────────────
 
     @Test
     @DisplayName("아무 세션도 안 들고 있으면 통과한다 — 정상 진입에 부작용 없음")
     void 미보유_통과() {
-        assertThat(DynamicTradingService.crossSessionExposureBlockReason(REAL, 0)).isNull();
+        assertThat(DynamicTradingService.crossSessionExposureBlockReason(0)).isNull();
     }
 
     @Test
-    @DisplayName("다른 세션이 1건 보유 중이면 차단한다 — 39·45 DOGE 동시 진입 재발 방지")
-    void 타세션_보유시_차단() {
-        String reason = DynamicTradingService.crossSessionExposureBlockReason(REAL, 1);
+    @DisplayName("✅ 다른 세션이 1건 보유 중이면 통과한다 — 2세션 구간이 실측 최고(+1.75%)")
+    void 한세션_보유시_통과() {
+        assertThat(DynamicTradingService.crossSessionExposureBlockReason(1))
+                .as("상한 1 시절엔 여기서 막혔다 — 실측상 가장 좋은 구간을 버리고 있었다")
+                .isNull();
+    }
+
+    @Test
+    @DisplayName("🔴 다른 세션이 2건 보유 중이면 차단한다 — 3세션 집중은 −1.33%")
+    void 두세션_보유시_차단() {
+        String reason = DynamicTradingService.crossSessionExposureBlockReason(2);
         assertThat(reason).isNotNull();
         assertThat(reason).contains("동일코인 노출 상한");
     }
 
     @Test
-    @DisplayName("이미 여러 세션이 물려 있어도 계속 차단한다 — 상한이 뚫린 뒤에도 추가 진입 금지")
+    @DisplayName("이미 여러 세션이 물려 있어도 계속 차단한다 — 4세션 집중은 −2.13%")
     void 다수_보유시도_차단() {
-        assertThat(DynamicTradingService.crossSessionExposureBlockReason(REAL, 3)).isNotNull();
+        assertThat(DynamicTradingService.crossSessionExposureBlockReason(3)).isNotNull();
+        assertThat(DynamicTradingService.crossSessionExposureBlockReason(8)).isNotNull();
     }
 
     @Test
     @DisplayName("차단 사유에 보유 건수가 남아 blocked_reason 으로 원인 추적이 된다")
     void 차단사유에_건수_포함() {
-        assertThat(DynamicTradingService.crossSessionExposureBlockReason(REAL, 2)).contains("2건");
-    }
-
-    // ── 페이퍼(PAPER) — 탐색 도구이므로 면제 ──────────────────────────
-
-    @Test
-    @DisplayName("PAPER는 타 세션이 보유 중이어도 통과한다 — 공유 자본이 없어 방어할 리스크가 없다")
-    void 페이퍼_타세션_보유시_통과() {
-        assertThat(DynamicTradingService.crossSessionExposureBlockReason(PAPER, 1)).isNull();
+        assertThat(DynamicTradingService.crossSessionExposureBlockReason(3)).contains("3건");
     }
 
     @Test
-    @DisplayName("PAPER는 여러 세션이 같은 코인을 들고 있어도 통과한다 — 15세션 함대 전체가 같은 신호를 평가할 수 있어야 비교가 성립한다")
-    void 페이퍼_다수_보유시도_통과() {
-        assertThat(DynamicTradingService.crossSessionExposureBlockReason(PAPER, 14)).isNull();
-    }
-
-    @Test
-    @DisplayName("PAPER 면제가 실전 차단까지 풀어버리지 않는다 — 같은 보유 건수에서 REAL만 막힌다")
-    void 면제는_페이퍼에만_적용된다() {
-        assertThat(DynamicTradingService.crossSessionExposureBlockReason(PAPER, 1)).isNull();
-        assertThat(DynamicTradingService.crossSessionExposureBlockReason(REAL, 1)).isNotNull();
+    @DisplayName("상한값이 2다 — 39·45 DOGE 사고(단일 코인 자본 23% 집중)는 여전히 막힌다")
+    void 상한값_고정() {
+        assertThat(DynamicTradingService.MAX_SESSIONS_PER_COIN)
+                .as("이 값을 바꾸면 지문(scan.maxSessionsPerCoin)이 갈려 표본이 분리된다")
+                .isEqualTo(2L);
     }
 }
