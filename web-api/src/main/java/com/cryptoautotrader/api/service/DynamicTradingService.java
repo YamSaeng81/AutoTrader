@@ -849,12 +849,24 @@ public class DynamicTradingService {
             // 있으면 PASS"로만 판정했다 — 실제로 어떤 코인을 살지는 여기, 워치리스트 스캔에서
             // 정해진다. 전략은 코인마다 성적이 크게 갈리므로(Tier1/Tier2 표), 여기서 코인별로
             // 다시 걸러야 "검증된 전략이니 아무 코인이나 사도 된다"는 착시를 막을 수 있다.
-            // 세션 생성 게이트와 마찬가지로 gateEnabled=false 면 차단하지 않는다. PAPER 세션도
-            // 제외한다 — createSession의 두 자본 배정 게이트와 동일한 이유: 페이퍼는 "검증된
-            // 코인만 사는" 도구가 아니라 "아직 검증 안 된 코인을 안전하게 테스트해 새 조합을
-            // 찾아내는" 도구다. 여기서 PAPER까지 막으면 이미 아는 조합 밖으로 다시는 못
-            // 나간다 — 탐색 기능 자체가 죽는다.
-            if (!session.isPaper() && walkForwardValidationGate.isEnabled()
+            // 세션 생성 게이트와 마찬가지로 gateEnabled=false 면 차단하지 않는다.
+            //
+            // ⚠️ 2026-08-31: PAPER 면제를 **철회**했다. PAPER·REAL 모두 동일하게 적용된다.
+            //
+            // 08-25 에 "페이퍼는 검증된 코인만 사는 도구가 아니라 아직 검증 안 된 코인을 안전하게
+            // 테스트해 새 조합을 찾아내는 탐색 도구"라는 이유로 면제했다. 그 전제가 두 방향에서
+            // 무너졌다:
+            //
+            //   ① 실측 — 미검증 코인은 탐색이 아니라 그냥 손실이었다(08-30 실현손익:
+            //      KRW-RE −5.85% · KRW-ONT −5.74% · KRW-BEAM −5.48%).
+            //   ② 역할 혼동 — **탐색은 Walk Forward 가 하는 일이다.** 페이퍼는 실전 리허설이지
+            //      탐색 도구가 아니다. 페이퍼를 돌리는 이유는 "실전에서 어떨지 비용 없이 미리
+            //      보는 것"인데, 매매 규칙이 하나라도 다르면 그 예측력이 사라진다.
+            //
+            // 이 원칙은 이 코드베이스에 이미 있다 — PaperLiveAlignmentTest 가 LIVE↔PAPER 규칙
+            // 일치를 강제하고, 2026-08-06 에 "페이퍼를 LIVE 와 동일 로직으로 정렬 완료 — 이제
+            // 페이퍼 결과가 실전 예측에 유효하다"고 기록했다. 08-25 면제가 그 원칙을 깼던 것이다.
+            if (walkForwardValidationGate.isEnabled()
                     && signal.getAction() == StrategySignal.Action.BUY) {
                 WalkForwardValidationGate.GateDecision wfDecision =
                         walkForwardValidationGate.evaluate(session.getStrategyType(), coinPair);
@@ -2460,10 +2472,16 @@ public class DynamicTradingService {
      * 기다리면 그사이 실시간 손절/익절 보호가 비는 구간이 생긴다.</p>
      */
     private void refreshWsSubscription() {
-        // PAPER 세션은 WS 실시간 감시 대상이 아니다 — 60초 폴링(processMonitoringTick)만으로
-        // SL/TP를 감시한다. 실거래에 없는 새 구독 경로를 열지 않기 위한 의도적 제외.
+        // ⚠️ 2026-08-31: PAPER 제외를 철회했다. 이전에는 "실거래에 없는 새 구독 경로를 열지
+        // 않기 위한 의도적 제외"로 PAPER 를 빼고 60초 폴링(processMonitoringTick)만 썼는데,
+        // 그러면 **LIVE 는 5초마다 SL/TP 를 보고 PAPER 는 최대 60초 늦게 본다** — 급락장에서
+        // 손절 체결가가 갈린다(페이퍼가 더 나쁘게 나오는 보수적 방향이지만, 어쨌든 규칙이
+        // 다르다). 페이퍼를 돌리는 이유가 "실전에서 어떨지 비용 없이 미리 보는 것"인데
+        // 매매 규칙이 다르면 그 예측력이 사라진다.
+        //
+        // 페이퍼 매도는 executePaperSell(시뮬레이션)로 가므로 실주문 위험은 없다. 구독 코인은
+        // distinct() 로 합쳐지고 WsSubscriptionManager 가 LIVE 와 공유하므로 부하도 제한적이다.
         List<String> coins = dynamicSessionRepo.findByStatus("RUNNING").stream()
-                .filter(s -> !s.isPaper())
                 .filter(s -> "POSITION_MONITORING".equals(s.getScanState()))
                 .map(DynamicSessionEntity::getCurrentCoinPair)
                 .filter(Objects::nonNull)
@@ -2500,11 +2518,17 @@ public class DynamicTradingService {
 
         List<DynamicSessionEntity> sessions = dynamicSessionRepo.findByStatus("RUNNING");
         for (DynamicSessionEntity session : sessions) {
-            if (session.isPaper()) continue; // PAPER는 WS 실시간 감시 대상이 아니다(60초 폴링만)
+            // 2026-08-31: PAPER 도 여기 들어온다 — LIVE 와 같은 5초 주기로 SL/TP 를 본다.
+            // 매도는 executeSell 이 세션 종류에 따라 갈라 페이퍼는 시뮬레이션으로 처리된다.
             if (!coinCode.equals(session.getCurrentCoinPair())) continue;
 
-            Optional<PositionEntity> openPos = positionRepository
-                    .findBySessionKindAndSessionIdAndCoinPairAndStatus(SESSION_KIND, session.getId(), coinCode, "OPEN");
+            // 세션의 실제 kind 로 조회해야 REAL/PAPER 포지션이 섞이지 않는다.
+            // List 변형을 쓰는 이유는 processMonitoringTick 과 같다 — 중복 OPEN 이 있어도
+            // 예외로 죽지 않아야 한다(여기는 @Async 라 세션을 멈추진 않지만 감시가 건너뛰어진다).
+            Optional<PositionEntity> openPos = pickMonitoredPosition(
+                    session.getId(), session.getCurrentPositionId(),
+                    positionRepository.findBySessionKindAndSessionIdAndCoinPairAndStatusList(
+                            sessionKind(session), session.getId(), coinCode, "OPEN"));
             if (openPos.isEmpty()) continue;
 
             PositionEntity pos = openPos.get();
@@ -2553,16 +2577,19 @@ public class DynamicTradingService {
      * ELSA가 SL을 2.1%p 지나쳐서야 체결된 사고가 이 사각지대와 무관하지 않다. 보유 중(POSITION_MONITORING)
      * 세션만 대상이며, 미점검 발견 시 그 코인 하나만 REST로 즉시 강제 갱신을 시도한다.</p>
      *
-     * <p><b>PAPER 세션은 대상에서 제외한다(2026-08-24)</b> — {@link #doOnRealtimePriceEvent}가
-     * {@code session.isPaper()} 인 세션에는 {@link #recordSlCheck}를 애초에 호출하지 않는다
-     * (PAPER는 WS 감시 대상이 아니라 60초 폴링만 쓰도록 설계됨). 이 필터 없이는 PAPER 세션의
-     * {@code lastSlCheckAt}이 영원히 채워지지 않아 매 실행(60초)마다 오탐 알림이 무한 반복된다
-     * — 실제 감시 공백이 아니라 워치독이 대상 범위를 잘못 잡은 것.</p>
+     * <p><b>2026-08-31: PAPER 제외를 철회했다.</b> 08-24 에 제외한 이유는
+     * {@link #doOnRealtimePriceEvent}가 PAPER 에는 {@link #recordSlCheck}를 아예 호출하지 않아
+     * {@code lastSlCheckAt}이 영원히 비고, 그래서 매 실행마다 오탐 알림이 무한 반복됐기
+     * 때문이다 — 실제 감시 공백이 아니라 워치독이 대상 범위를 잘못 잡은 것이었다.
+     *
+     * <p>이제 PAPER 도 WS 실시간 감시를 받으므로 {@code lastSlCheckAt}이 정상적으로 채워진다.
+     * 따라서 제외할 이유가 사라졌고, 오히려 <b>포함해야 한다</b> — 페이퍼의 SL 감시가 멈추면
+     * 그 성과는 실전을 예측하지 못하게 되는데, 제외해두면 그 사실조차 알 수 없다.</p>
      */
     @Scheduled(fixedDelay = 60_000)
     public void warnStaleSlCheck() {
         List<DynamicSessionEntity> sessions = dynamicSessionRepo.findByStatus("RUNNING").stream()
-                .filter(s -> !s.isPaper() && "POSITION_MONITORING".equals(s.getScanState()) && s.getCurrentCoinPair() != null)
+                .filter(s -> "POSITION_MONITORING".equals(s.getScanState()) && s.getCurrentCoinPair() != null)
                 .toList();
         if (sessions.isEmpty()) return;
 
