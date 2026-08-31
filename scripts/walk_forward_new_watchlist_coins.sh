@@ -15,11 +15,21 @@
 #   KRW-FOLD·KRW-TRAC·KRW-WLFI·KRW-PUMP 는 지금 거의 안 잡힌다.
 #   **워치리스트는 계속 도므로 이 작업은 주기적으로 반복해야 한다.**
 #
-# ■ 대상 — 최근 3일 평가 60회 이상이면서 WF 미검증
-#     KRW-SLX(332) KRW-ONT(314) KRW-PROM(167) KRW-META2(125) KRW-LIT(108)
-#     KRW-ZRO(107) KRW-LSK(104) KRW-MLK(103) KRW-NCT(88) KRW-GAS(65) KRW-BEAM(64)
+# ■ 대상 — 08-31 수집 완료 후 확정된 7개
 #
-#   6전략 × 11코인 = 66조합. 기존 검증분(22코인)과 합쳐 33코인이 된다.
+#   후보 11개 중 이력이 충분한 것만 남겼다(2,000행 = WF in/out-of-sample 구간 최소치):
+#
+#     ✅ KRW-GAS  40,786행(2021-12~)   ✅ KRW-ONT  40,747행(2021-12~)
+#     ✅ KRW-MLK  40,735행(2021-12~)   ✅ KRW-LSK  40,703행(2021-12~)
+#     ✅ KRW-BEAM 19,549행(2024-05~)   ✅ KRW-ZRO  19,176행(2024-06~)
+#     ✅ KRW-SLX   2,166행(2026-06~)
+#
+#     ❌ KRW-META2 770행 · KRW-PROM 276행 · KRW-LIT 155행 · KRW-NCT 99행
+#        → 전부 최근 상장이라 거래소에 이력 자체가 없다. 억지로 돌리면 얇은 표본이
+#          "통과"로 나와 검증됐다고 착각하게 만든다 — 그게 더 위험하다.
+#          이 코인들은 워치리스트에 있어도 WF 로는 검증할 수 없다는 사실 자체를 기록해 둔다.
+#
+#   6전략 × 7코인 = 42조합. 기존 검증분(22코인)과 합쳐 29코인이 된다.
 #
 # 사용법: 운영 서버에서 (리포 루트에서) 실행
 #   bash scripts/walk_forward_new_watchlist_coins.sh
@@ -29,8 +39,7 @@ set -uo pipefail
 API="http://localhost:8080/api/v1"
 TODAY=$(date -u +%Y-%m-%d)
 
-NEW_COINS='["KRW-SLX","KRW-ONT","KRW-PROM","KRW-META2","KRW-LIT","KRW-ZRO",
-"KRW-LSK","KRW-MLK","KRW-NCT","KRW-GAS","KRW-BEAM"]'
+NEW_COINS='["KRW-GAS","KRW-ONT","KRW-MLK","KRW-LSK","KRW-BEAM","KRW-ZRO","KRW-SLX"]'
 
 STRATEGIES='["COMPOSITE_MEANREV_BB","COMPOSITE_MOMENTUM_ICHIMOKU","COMPOSITE_MOMENTUM_ICHIMOKU_V2",
 "COMPOSITE_MTF_BTC","COMPOSITE_MTF_CONFIRMED","COMPOSITE_PULLBACK_MTF"]'
@@ -55,8 +64,7 @@ echo "✓ 인증 확인"
 printf '\n\033[1m▶ PRECHECK — 대상 코인의 candle_data 확인\033[0m\n'
 api "$API/data/summary" | python3 -c '
 import json,sys
-targets = ["KRW-SLX","KRW-ONT","KRW-PROM","KRW-META2","KRW-LIT","KRW-ZRO",
-           "KRW-LSK","KRW-MLK","KRW-NCT","KRW-GAS","KRW-BEAM"]
+targets = ["KRW-GAS","KRW-ONT","KRW-MLK","KRW-LSK","KRW-BEAM","KRW-ZRO","KRW-SLX"]
 have = {}
 for r in json.load(sys.stdin)["data"]:
     if r.get("timeframe") != "H1": continue
@@ -95,7 +103,7 @@ if [ $precheck -ne 0 ]; then
 fi
 
 # ── 실행 ─────────────────────────────────────────────────────────────────────
-printf '\n\033[1m▶ 6전략 × 11코인 = 66조합 WF (2022-01-01 ~ %s, H1)\033[0m\n' "$TODAY"
+printf '\n\033[1m▶ 6전략 × 7코인 = 42조합 WF (2022-01-01 ~ %s, H1)\033[0m\n' "$TODAY"
 resp=$(api -X POST "$API/backtest/walk-forward-batch-async" \
   -H 'Content-Type: application/json' \
   -d "{
