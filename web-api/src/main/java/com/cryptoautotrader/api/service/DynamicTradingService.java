@@ -783,10 +783,30 @@ public class DynamicTradingService {
                 closedCandleSlice(btcCandles, session.getTimeframe()));
 
         for (String coinPair : watchlist) {
+            Strategy strategy = resolveStrategy(sid, coinPair, session.getStrategyType());
             List<Candle> candles = fetchCandles(coinPair, session.getTimeframe());
-            if (candles.size() < 15) {
+
+            // ⚠️ 2026-08-31: 하드코딩된 15 를 **전략이 선언한 최소 캔들 수**로 교체.
+            //
+            // 15 는 어떤 전략의 요구량도 아니었다. COMPOSITE_PULLBACK_MTF 는
+            // getMinimumCandleCount()=200 (EMA200 산출에 H1 200개 필요)인데, 15개만 있어도
+            // 평가에 들어갔다. 그러면 전략 내부의 자체 가드가 "데이터 부족"으로 HOLD 를
+            // 돌려주므로 잘못된 신호가 나오진 않지만, **장기 지표가 조용히 비활성된 채로
+            // 도는 것을 아무도 모른다** — 백테스트(BacktestEngine)는 진작부터 같은 값을
+            // 쓰고 있었으니 실거래 경로만 기준이 달랐던 셈이다.
+            //
+            // 운영 실측(08-31 캔들 수집): 워치리스트에 이력이 아예 없는 신규 상장 코인이
+            // 계속 들어온다 — KRW-META2 770개 · KRW-PROM 276개 · KRW-LIT 155개 · KRW-NCT 99개.
+            // 이들은 WF 로 검증할 수도 없다(2,000행 미만). 그리고 08-30 손익 분석에서
+            // 손실 상위가 정확히 이 부류였다 — KRW-RE −5.85% · KRW-ONT −5.74% · KRW-BEAM −5.48%.
+            //
+            // 즉 "지표를 못 채우는 코인"과 "돈을 잃는 코인"이 같은 집합이었다. 평가 자체를
+            // 건너뛰어 워치리스트에서 자연히 빠지게 한다.
+            int minCandles = strategy.getMinimumCandleCount();
+            if (candles.size() < minCandles) {
                 insufficientCandles++;
-                log.debug("[Dynamic] 캔들 부족 스킵: {} ({}개)", coinPair, candles.size());
+                log.debug("[Dynamic] 캔들 부족 스킵: {} ({}개 < 전략 요구 {}개)",
+                        coinPair, candles.size(), minCandles);
                 continue;
             }
 
@@ -801,7 +821,6 @@ public class DynamicTradingService {
             }
             lastEvaluatedCandle.put(candleKey, closedTime);
 
-            Strategy strategy = resolveStrategy(sid, coinPair, session.getStrategyType());
             // 전역 risk_config 값을 깔고, 세션 오버라이드(V74)가 있으면 덮는다.
             // 세션값이 지문에 실리므로 같은 시간대에 두 파라미터를 나란히 돌려 비교할 수 있다.
             Map<String, Object> evalParams = new HashMap<>();
