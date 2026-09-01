@@ -318,7 +318,15 @@ public class SessionLlmAnalysisService {
 
     // ── 전송 ──────────────────────────────────────────────────────────────────
 
-    /** 텔레그램은 메시지당 4096자 한도라 길면 나눠 보낸다 — 잘려서 결론이 사라지면 안 된다. */
+    /**
+     * 텔레그램은 메시지당 4096자 한도라 길면 나눠 보낸다 — 잘려서 결론이 사라지면 안 된다.
+     *
+     * <p>서식은 MarkdownV2 를 그대로 쓴다 — 모델이 돌려주는 {@code **제목**} 서식이
+     * 읽기 훨씬 편하기 때문이다(2026-09-01 실측으로 정상 렌더링 확인).
+     * 다만 응답 내용은 우리가 통제하지 않으므로 별표 짝이 안 맞는 응답이 오면 파싱이 깨질 수
+     * 있다. 그때를 위해 {@code TelegramNotificationService} 가 <b>API 거부(non-200) 시
+     * 평문으로 한 번 다시 보낸다</b> — 서식을 잃을지언정 내용을 잃지는 않는다.</p>
+     */
     private void sendChunked(String text) {
         if (text.length() <= TELEGRAM_CHUNK) {
             telegramService.sendCustomNotification(text);

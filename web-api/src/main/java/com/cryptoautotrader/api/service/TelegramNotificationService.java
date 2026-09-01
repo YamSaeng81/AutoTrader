@@ -42,7 +42,21 @@ public class TelegramNotificationService {
 
     private static final Logger log = LoggerFactory.getLogger(TelegramNotificationService.class);
 
-    private static final String TELEGRAM_API = "https://api.telegram.org/bot";
+    /**
+     * 텔레그램 API 베이스 URL.
+     *
+     * <p>{@code static final} 상수가 아니라 필드다 — 상수면 컴파일 시간에 기계어로
+     * 인라이닝돼 테스트에서 스텀 서버로 돌릴 방법이 없다. 전송 실패·폴백 경로는
+     * 실제 HTTP 응답에 따라 갈리므로 모의 서버 없이는 검증할 수 없다.</p>
+     */
+    private String telegramApi = "https://api.telegram.org/bot";
+
+    /**
+     * sendMessage 응답 대기 시간. 필드인 이유는 {@link #telegramApi} 와 같다 —
+     * "응답을 못 받은" 경우의 동작(폴백하지 않는다)을 검증하려면 테스트에서
+     * 짧게 줄일 수 있어야 한다. 10초를 실제로 기다리는 테스트는 아무도 안 돌린다.
+     */
+    private Duration requestTimeout = Duration.ofSeconds(10);
     private static final DateTimeFormatter KST_FMT = DateTimeFormatter
             .ofPattern("yyyy-MM-dd HH:mm:ss")
             .withZone(ZoneId.of("Asia/Seoul"));
@@ -668,6 +682,19 @@ public class TelegramNotificationService {
 
     /**
      * Markdown 형식 메시지 전송.
+     *
+     * <p><b>API 가 거부하면 서식 없이 한 번 다시 보낸다 (2026-09-01)</b>.
+     * {@link #escapeMarkdownV2} 는 {@code *} {@code [} {@code ]} <code>`</code> 를 일부러
+     * 이스케이프하지 않는다 — 알림 템플릿이 그 문자로 굵게·코드 서식을 쓰기 때문이다.
+     * 템플릿은 짝을 맞춰 쓰니 안전하지만, <b>밖에서 온 텍스트</b>(LLM 응답, 외부 오류 문구)는
+     * 짝이 안 맞을 수 있고 그러면 텔레그램이 400 을 돌려 <b>메시지가 통째로 사라진다</b>.
+     * 서식을 잃는 편이 내용을 잃는 것보다 낫다.</p>
+     *
+     * <p><b>전송 계층 오류(타임아웃 등)에는 폴백하지 않는다</b> — 응답을 못 받았을 뿐
+     * 메시지는 이미 도착했을 수 있고, 그 상태에서 재전송하면 중복 알림이 된다.
+     * 실제로 2026-09-01 10:12 세션 LLM 분석은 {@code success=false} 로 기록됐지만
+     * 메시지는 정상 도착했다 — 응답 수신에만 실패한 경우다.</p>
+     *
      * @return 전송 성공 여부
      */
     public boolean sendMarkdown(String text) {
@@ -675,29 +702,53 @@ public class TelegramNotificationService {
             log.debug("[Telegram] 알림 비활성화 상태. 메시지 스킵: {}", text.substring(0, Math.min(50, text.length())));
             return true;
         }
+        int status = post(escapeMarkdownV2(text), "MarkdownV2");
+        if (status == 200) {
+            log.info("[Telegram] 메시지 전송 성공");
+            return true;
+        }
+        if (status > 0) {
+            log.warn("[Telegram] MarkdownV2 거부(HTTP {}) — 서식 없이 재전송한다", status);
+            return sendPlain(text);
+        }
+        return false;   // 응답 미수신 — 이미 도착했을 수 있어 재전송하지 않는다
+    }
+
+    /**
+     * 서식 없이 그대로 전송한다. {@code parse_mode} 를 붙이지 않으므로 어떤 문자가
+     * 들어있든 파싱 오류가 나지 않는다.
+     */
+    boolean sendPlain(String text) {
+        if (!enabled) return true;
+        return post(text, null) == 200;
+    }
+
+    /**
+     * sendMessage 호출 — HTTP 상태코드를 그대로 돌려준다.
+     *
+     * <p><b>응답을 받지 못한 경우에만 {@code -1}</b> 이다. "거부당함"과 "모름"을 구별해야
+     * 폴백 여부를 정할 수 있다 — 둘을 같은 {@code false} 로 뭉개면 중복 발송을 막을 수 없다.</p>
+     */
+    private int post(String text, String parseMode) {
         try {
-            String escapedBody = objectMapper.writeValueAsString(
-                    new SendMessageRequest(chatId, escapeMarkdownV2(text), "MarkdownV2"));
+            String body = objectMapper.writeValueAsString(
+                    new SendMessageRequest(chatId, text, parseMode));
 
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(TELEGRAM_API + botToken + "/sendMessage"))
+                    .uri(URI.create(telegramApi + botToken + "/sendMessage"))
                     .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(escapedBody))
-                    .timeout(Duration.ofSeconds(10))
+                    .POST(HttpRequest.BodyPublishers.ofString(body))
+                    .timeout(requestTimeout)
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-            if (response.statusCode() == 200) {
-                log.info("[Telegram] 메시지 전송 성공");
-                return true;
-            } else {
-                log.warn("[Telegram] 메시지 전송 실패: HTTP {} / {}", response.statusCode(), response.body());
-                return false;
+            if (response.statusCode() != 200) {
+                log.warn("[Telegram] 메시지 전송 거부: HTTP {} / {}", response.statusCode(), response.body());
             }
+            return response.statusCode();
         } catch (Exception e) {
-            log.error("[Telegram] 메시지 전송 중 오류: {}", e.getMessage());
-            return false;
+            log.error("[Telegram] 메시지 전송 중 오류(응답 미수신): {}", e.getMessage());
+            return -1;
         }
     }
 
@@ -720,6 +771,10 @@ public class TelegramNotificationService {
                 .replace("~", "\\~");
     }
 
+    // parse_mode 가 null 이면 필드 자체를 빼고 보낸다 — 평문 전송은 서식을
+    // 지정하지 않는 것이지 "null 이라는 서식"을 지정하는 게 아니다.
+    @com.fasterxml.jackson.annotation.JsonInclude(
+            com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     record SendMessageRequest(String chat_id, String text, String parse_mode) {}
 
     record TradeEvent(
