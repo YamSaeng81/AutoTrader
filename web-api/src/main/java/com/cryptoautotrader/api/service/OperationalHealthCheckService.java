@@ -159,7 +159,9 @@ public class OperationalHealthCheckService {
 
     List<GhostPosition> checkGhostPositions() {
         List<GhostPosition> results = new ArrayList<>();
-        for (String kind : List.of("LIVE", "DYNAMIC")) {
+        // 2026-09-01: DYN_PAPER 추가. 페이퍼 포지션은 session_kind='DYN_PAPER' 로 저장되어
+        // 유령 포지션 점검에서 통째로 빠져 있었다 — 페이퍼가 실전 예측용이려면 감시도 같아야 한다.
+        for (String kind : List.of("LIVE", "DYNAMIC", "DYN_PAPER")) {
             for (PositionEntity pos : positionRepository.findBySessionKindAndStatus(kind, "OPEN")) {
                 if (pos.getSize() == null || pos.getSize().compareTo(BigDecimal.ZERO) <= 0) continue;
 
@@ -203,8 +205,12 @@ public class OperationalHealthCheckService {
         for (PositionEntity pos : positionRepository.findBySessionKindAndStatus("LIVE", "OPEN")) {
             checkStuck(results, "LIVE", pos, liveMaxHold, threshold);
         }
-        for (PositionEntity pos : positionRepository.findBySessionKindAndStatus("DYNAMIC", "OPEN")) {
-            checkStuck(results, "DYNAMIC", pos, dynMaxHold, threshold);
+        // dynMaxHold 는 dynamic_session 테이블 기준이라 REAL/PAPER 가 같은 맵을 쓴다
+        // (둘 다 같은 테이블의 행이고 id 가 유일하다). 포지션 쪽만 session_kind 로 갈린다.
+        for (String kind : List.of("DYNAMIC", "DYN_PAPER")) {
+            for (PositionEntity pos : positionRepository.findBySessionKindAndStatus(kind, "OPEN")) {
+                checkStuck(results, kind, pos, dynMaxHold, threshold);
+            }
         }
         return results;
     }

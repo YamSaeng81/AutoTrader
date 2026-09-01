@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { logApi, tradingApi, csvExportApi } from '@/lib/api';
 import type { SessionIndexEntry } from '@/lib/types';
-import { Loader2, FileText, ChevronLeft, ChevronRight, ChevronDown, ChevronRight as ChevronRightIcon, Download } from 'lucide-react';
+import { Loader2, FileText, ChevronLeft, ChevronRight, ChevronDown, ChevronRight as ChevronRightIcon, Download, Brain } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
@@ -12,7 +12,10 @@ const SESSION_FILTERS = [
     { value: 'ALL', label: '전체' },
     { value: 'PAPER', label: '모의투자' },
     { value: 'LIVE', label: '실전매매' },
-    { value: 'DYNAMIC', label: '동적멀티코인' },
+    { value: 'DYNAMIC', label: '동적(실전)' },
+    // 모의 동적 세션은 session_type='DYN_PAPER' 로 저장된다. 이 항목이 없어서
+    // 페이퍼 함대 9개의 로그를 탭으로 걸러볼 방법이 없었다 (2026-09-01).
+    { value: 'DYN_PAPER', label: '동적(모의)' },
 ];
 
 const SESSION_STATUS_LABEL: Record<string, string> = {
@@ -29,11 +32,12 @@ const SIGNAL_STYLE: Record<string, string> = {
 const SESSION_TYPE_STYLE: Record<string, string> = {
     PAPER:   'bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400',
     LIVE:    'bg-orange-50 text-orange-600 dark:bg-orange-500/15 dark:text-orange-400',
-    DYNAMIC: 'bg-purple-50 text-purple-600 dark:bg-purple-500/15 dark:text-purple-400',
+    DYNAMIC:   'bg-purple-50 text-purple-600 dark:bg-purple-500/15 dark:text-purple-400',
+    DYN_PAPER: 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-400',
 };
 
 const SESSION_TYPE_LABEL: Record<string, string> = {
-    PAPER: '모의', LIVE: '실전', DYNAMIC: '동적',
+    PAPER: '모의', LIVE: '실전', DYNAMIC: '동적', DYN_PAPER: '동적모의',
 };
 
 export default function LogsPage() {
@@ -44,6 +48,10 @@ export default function LogsPage() {
     const [sessionSel, setSessionSel] = useState('');   // '' = 전체
     const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
     const [exporting, setExporting] = useState(false);
+    const [analyzing, setAnalyzing] = useState(false);
+    // 분석은 비동기라 결과가 텔레그램으로 간다. 화면에는 접수 결과만 남긴다.
+    const [analyzeMsg, setAnalyzeMsg] = useState<{ ok: boolean; text: string } | null>(null);
+    const [analyzeHours, setAnalyzeHours] = useState(24);
 
     // 세션 인덱스 (삭제·모의·동적 세션 포함)
     const { data: sessionIdxRes } = useQuery({
@@ -91,6 +99,28 @@ export default function LogsPage() {
         }
     };
 
+    /**
+     * 선택한 세션 하나를 LLM 에 보내 전략 분석을 요청한다.
+     *
+     * 세션을 고르지 않으면 동작하지 않는다 — 여러 세션을 섞어 분석하면 서로 다른 전략·규칙의
+     * 표본이 합쳐져 결론이 무의미해진다. sessionType 은 반드시 선택된 세션의 실제 구분을 보낸다.
+     */
+    const handleAnalyze = async () => {
+        if (!selectedSession) return;
+        setAnalyzing(true);
+        setAnalyzeMsg(null);
+        try {
+            const res = await logApi.llmAnalysis(
+                selectedSession.sessionType, selectedSession.sessionId, analyzeHours);
+            const d = res?.data as { accepted: boolean; message: string } | undefined;
+            setAnalyzeMsg({ ok: !!d?.accepted, text: d?.message ?? '응답을 해석하지 못했습니다.' });
+        } catch {
+            setAnalyzeMsg({ ok: false, text: 'LLM 분석 요청에 실패했습니다.' });
+        } finally {
+            setAnalyzing(false);
+        }
+    };
+
     // 구분 + 세션ID 기준 그룹화
     const groups: { key: string; sessionType: string; sessionId: any; logs: any[] }[] = [];
     const groupMap: Record<string, number> = {};
@@ -133,6 +163,32 @@ export default function LogsPage() {
                             </option>
                         ))}
                     </select>
+                    {/* LLM 분석 — 세션을 하나 골랐을 때만 활성화된다 */}
+                    <div className="flex items-center gap-1.5">
+                        <select
+                            value={analyzeHours}
+                            onChange={e => setAnalyzeHours(Number(e.target.value))}
+                            disabled={!selectedSession}
+                            title="로그 집계 구간 (포지션은 세션 전체 기간을 봅니다)"
+                            className="px-2 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-700 dark:text-slate-300 disabled:opacity-40"
+                        >
+                            <option value={6}>6시간</option>
+                            <option value={24}>24시간</option>
+                            <option value={72}>3일</option>
+                            <option value={168}>7일</option>
+                        </select>
+                        <button
+                            onClick={handleAnalyze}
+                            disabled={!selectedSession || analyzing}
+                            title={selectedSession
+                                ? '이 세션의 누적 로그를 LLM 에 보내 전략 분석을 받습니다. 결과는 텔레그램으로 전송됩니다.'
+                                : '먼저 분석할 세션을 하나 선택하세요'}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-violet-200 dark:border-violet-700/50 bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-500/20 text-xs transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                            {analyzing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Brain className="w-4 h-4" />}
+                            LLM 분석
+                        </button>
+                    </div>
                     <button
                         onClick={handleExport}
                         disabled={exporting}
@@ -160,6 +216,20 @@ export default function LogsPage() {
                     </div>
                 </div>
             </div>
+
+            {/* LLM 분석 접수 결과 — 분석 내용 자체는 텔레그램과 /logs/llm 에서 볼 수 있다 */}
+            {analyzeMsg && (
+                <div className={cn(
+                    'flex items-start gap-2 px-4 py-3 rounded-xl border text-sm',
+                    analyzeMsg.ok
+                        ? 'border-violet-200 dark:border-violet-700/50 bg-violet-50 dark:bg-violet-500/10 text-violet-700 dark:text-violet-300'
+                        : 'border-amber-200 dark:border-amber-700/50 bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300'
+                )}>
+                    <Brain className="w-4 h-4 mt-0.5 shrink-0" />
+                    <span className="flex-1">{analyzeMsg.text}</span>
+                    <button onClick={() => setAnalyzeMsg(null)} className="text-xs opacity-60 hover:opacity-100">✕</button>
+                </div>
+            )}
 
             {/* 본문 */}
             <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">

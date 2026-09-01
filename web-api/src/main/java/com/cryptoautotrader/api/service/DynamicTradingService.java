@@ -186,7 +186,8 @@ public class DynamicTradingService {
      */
     private static final BigDecimal LOSS_ESCAPE_THRESHOLD =
             ExitRuleConfig.defaults().getLossEscapeThresholdPct();
-    private static final BigDecimal FEE_RATE = new BigDecimal("0.0005");
+    /** 거래소 수수료율. 조회 API(DynamicSessionController)도 수수료 환산에 이 값을 쓴다. */
+    public static final BigDecimal FEE_RATE = new BigDecimal("0.0005");
     /**
      * CLOSING 상태 진입 시각 — 이 시간 초과 시 reconcileClosingPositions()에서 OPEN 롤백.
      * OrderExecutionEngine.ORDER_TIMEOUT(5분)보다 반드시 길어야 한다 — LiveTradingService와
@@ -2481,9 +2482,16 @@ public class DynamicTradingService {
         //
         // 페이퍼 매도는 executePaperSell(시뮬레이션)로 가므로 실주문 위험은 없다. 구독 코인은
         // distinct() 로 합쳐지고 WsSubscriptionManager 가 LIVE 와 공유하므로 부하도 제한적이다.
+        //
+        // 2026-09-01: 기준을 {@code scanState} 에서 <b>실제 OPEN 포지션</b>으로 바꿈.
+        // scanState 는 세션 필드라 실제 보유와 어긋날 수 있고(08-25 세션 60), 그때
+        // 들고 있는 코인이 구독에서 통째로 빠져 실시간 SL 감시가 조용히 사라졌다.
+        // SL 워치독({@link #warnStaleSlCheck})도 같은 기준을 쓴다 — 둘이 달라지면
+        // "구독도 안 됐는데 워치독은 감시 중이라고 믿는" 사각지대가 생긴다.
         List<String> coins = dynamicSessionRepo.findByStatus("RUNNING").stream()
-                .filter(s -> "POSITION_MONITORING".equals(s.getScanState()))
-                .map(DynamicSessionEntity::getCurrentCoinPair)
+                .flatMap(s -> positionRepository
+                        .findBySessionKindAndSessionIdAndStatus(sessionKind(s), s.getId(), "OPEN").stream())
+                .map(PositionEntity::getCoinPair)
                 .filter(Objects::nonNull)
                 .distinct()
                 .toList();
@@ -2570,45 +2578,114 @@ public class DynamicTradingService {
     }
 
     /**
+     * 연속으로 SL 미점검이 관측된 횟수 (세션별). 정상 점검이 한 번이라도 기록되면 지워진다.
+     *
+     * <p><b>왜 필요한가 (2026-09-01)</b>: 이 워치독은 미점검을 발견하면 {@link #forceRefreshPrice}로
+     * 그 코인 시세를 REST로 한 번 끌어와 이벤트를 발행한다 — 즉 <b>대부분의 경우 스스로 복구된다</b>.
+     * 그런데 복구 여부와 무관하게 매번 텔레그램을 보내고 있었다. 거래가 뜸한 알트코인은
+     * WS ticker 틱이 3분 넘게 안 오는 일이 흔하므로, 그때마다
+     * "미점검 3분 초과 → 복구했습니다"가 무한 반복됐다. 알림이 상시 울리면 진짜 고장이 왔을 때
+     * 아무도 그것을 구별하지 못한다.</p>
+     *
+     * <p>이제 알림은 <b>자가복구가 실제로 실패했을 때만</b> 나간다 — 아래 세 경우다:
+     * ① REST 강제 갱신 자체가 실패(거래소 API 오류), ② 그 코인이 WS 구독 목록에 아예 없음
+     * (구독 배선이 깨진 것 — 이건 진짜 버그다), ③ 강제 갱신을 계속 했는데도
+     * {@value #SL_STALE_NOTIFY_STREAK}회 연속으로 점검이 기록되지 않음(이벤트 경로가 죽어 있다).</p>
+     */
+    private final Map<Long, Integer> slStaleStreak = new ConcurrentHashMap<>();
+
+    /** 자가복구가 계속 실패할 때 알림을 보내기 시작하는 연속 관측 횟수 (1회 = 60초). */
+    private static final int SL_STALE_NOTIFY_STREAK = 5;
+
+    /**
      * §9 — SL 미점검 세션 감시 (2026-08-06 신규, LIVE {@code warnStaleSlCheck}와 동일 패턴).
      *
      * <p>DYNAMIC은 이제껏 이런 워치독 자체가 없었다. WS 실시간 SL/TP 판정({@link #doOnRealtimePriceEvent})이
      * 조용히 멈춰도 아무도 알아채지 못한 채 60초 폴링만 남는 상태가 될 수 있었다 — 2026-08-03
-     * ELSA가 SL을 2.1%p 지나쳐서야 체결된 사고가 이 사각지대와 무관하지 않다. 보유 중(POSITION_MONITORING)
-     * 세션만 대상이며, 미점검 발견 시 그 코인 하나만 REST로 즉시 강제 갱신을 시도한다.</p>
+     * ELSA가 SL을 2.1%p 지나쳐서야 체결된 사고가 이 사각지대와 무관하지 않다. 미점검 발견 시
+     * 그 코인 하나만 REST로 즉시 강제 갱신을 시도한다.</p>
      *
      * <p><b>2026-08-31: PAPER 제외를 철회했다.</b> 08-24 에 제외한 이유는
      * {@link #doOnRealtimePriceEvent}가 PAPER 에는 {@link #recordSlCheck}를 아예 호출하지 않아
      * {@code lastSlCheckAt}이 영원히 비고, 그래서 매 실행마다 오탐 알림이 무한 반복됐기
      * 때문이다 — 실제 감시 공백이 아니라 워치독이 대상 범위를 잘못 잡은 것이었다.
+     * 이제 PAPER 도 WS 실시간 감시를 받으므로 {@code lastSlCheckAt}이 정상적으로 채워진다.</p>
      *
-     * <p>이제 PAPER 도 WS 실시간 감시를 받으므로 {@code lastSlCheckAt}이 정상적으로 채워진다.
-     * 따라서 제외할 이유가 사라졌고, 오히려 <b>포함해야 한다</b> — 페이퍼의 SL 감시가 멈추면
-     * 그 성과는 실전을 예측하지 못하게 되는데, 제외해두면 그 사실조차 알 수 없다.</p>
+     * <h3>2026-09-01 — 오탐 알림이 다시 쏟아져 두 가지를 고쳤다</h3>
+     * <ol>
+     *   <li><b>대상 선정이 LIVE와 달랐다.</b> LIVE는 "OPEN 포지션이 실제로 있는 세션"만 보는데
+     *       DYNAMIC은 {@code scanState == POSITION_MONITORING} 이라는 <b>세션 필드</b>만 봤다.
+     *       상태 필드와 실제 포지션이 어긋나면(08-25 세션 60이 그랬다) — 감시할 포지션이 없으니
+     *       {@link #doOnRealtimePriceEvent}는 {@code recordSlCheck}에 도달하지 못하고,
+     *       워치독은 그걸 "미점검"으로 읽어 <b>60초마다 영원히</b> 경고를 보낸다. 게다가
+     *       {@code forceRefreshPrice}는 시세를 가져오는 데 성공하므로 알림은 매번
+     *       "감시를 재개했습니다"라고 <b>사실이 아닌 말</b>을 한다. 이제 실제 OPEN 포지션에서
+     *       코인을 얻으므로 세션 필드가 어긋나 있어도 오탐이 나지 않는다(상태 불일치 자체는
+     *       {@code processTick}의 자가복구 가드가 다음 틱에 되돌린다).</li>
+     *   <li><b>"체결이 없는 것"과 "감시가 고장난 것"을 구별하지 않았다.</b> 자세한 내용은
+     *       {@link #slStaleStreak} 참조 — 자가복구가 실패했을 때만 알린다.</li>
+     * </ol>
      */
     @Scheduled(fixedDelay = 60_000)
     public void warnStaleSlCheck() {
-        List<DynamicSessionEntity> sessions = dynamicSessionRepo.findByStatus("RUNNING").stream()
-                .filter(s -> "POSITION_MONITORING".equals(s.getScanState()) && s.getCurrentCoinPair() != null)
-                .toList();
-        if (sessions.isEmpty()) return;
+        List<DynamicSessionEntity> sessions = dynamicSessionRepo.findByStatus("RUNNING");
+        if (sessions.isEmpty()) {
+            slStaleStreak.clear();
+            return;
+        }
 
         Instant threshold = Instant.now().minus(SL_STALE_WARN_MINUTES, ChronoUnit.MINUTES);
         for (DynamicSessionEntity s : sessions) {
-            String coin = s.getCurrentCoinPair();
-            Instant last = lastSlCheckAt.get(s.getId());
-            if (last == null || last.isBefore(threshold)) {
-                log.warn("[Dynamic][§9] SL 미점검 경고: sessionId={} coin={} 마지막체크={} ({}분 초과)",
-                        s.getId(), coin, last != null ? last : "기록없음", SL_STALE_WARN_MINUTES);
-
-                boolean recovered = forceRefreshPrice(coin);
-                telegramService.sendCustomNotification(String.format(
-                        "⚠️ [동적#%d] SL 미점검 %d분 초과: %s. %s",
-                        s.getId(), SL_STALE_WARN_MINUTES, coin,
-                        recovered
-                                ? "REST로 해당 코인 시세를 즉시 강제 갱신해 SL 감시를 재개했습니다."
-                                : "자동 복구도 실패 — WS/거래소 상태를 직접 확인하세요."));
+            // LIVE와 동일하게 "실제 OPEN 포지션"을 기준으로 삼는다 — 세션 상태 필드가 아니라.
+            Optional<PositionEntity> open = pickMonitoredPosition(
+                    s.getId(), s.getCurrentPositionId(),
+                    positionRepository.findBySessionKindAndSessionIdAndStatus(
+                            sessionKind(s), s.getId(), "OPEN"));
+            if (open.isEmpty()) {
+                slStaleStreak.remove(s.getId());
+                continue;   // 감시할 포지션이 없다 — SL 점검 대상이 아니다
             }
+
+            Instant last = lastSlCheckAt.get(s.getId());
+            if (last != null && !last.isBefore(threshold)) {
+                slStaleStreak.remove(s.getId());
+                continue;   // 정상 점검 중
+            }
+
+            String coin = open.get().getCoinPair();
+            int streak = slStaleStreak.merge(s.getId(), 1, Integer::sum);
+
+            // 구독 목록에 없으면 먼저 구독을 다시 산정해 스스로 고쳐본다 — 사람을 부르기 전에
+            // 할 수 있는 일을 먼저 한다. 그래도 안 들어오면 배선이 진짜로 깨진 것이다.
+            if (!wsSubscriptionManager.getSubscribedCoins().contains(coin)) {
+                refreshWsSubscription();
+            }
+            boolean subscribed = wsSubscriptionManager.getSubscribedCoins().contains(coin);
+            boolean recovered = forceRefreshPrice(coin);
+
+            log.warn("[Dynamic][§9] SL 미점검: sessionId={} coin={} 마지막체크={} ({}분 초과, "
+                            + "연속 {}회, WS구독={}, REST강제갱신={})",
+                    s.getId(), coin, last != null ? last : "기록없음", SL_STALE_WARN_MINUTES,
+                    streak, subscribed ? "있음" : "없음", recovered ? "성공" : "실패");
+
+            // 자가복구가 먹히는 동안은 알리지 않는다 — 거래가 뜸한 코인의 정상적인 틱 공백이다.
+            boolean needsHuman = !recovered || !subscribed || streak >= SL_STALE_NOTIFY_STREAK;
+            if (!needsHuman) continue;
+
+            String cause = !subscribed
+                    ? "이 코인이 WS 구독 목록에 없습니다 — 구독 배선 확인 필요."
+                    : !recovered
+                    ? "REST 강제 갱신도 실패 — 거래소 API 상태를 확인하세요."
+                    : String.format("REST 강제 갱신을 %d분 연속 시도했는데도 점검이 기록되지 않습니다 "
+                            + "— 실시간 이벤트 경로가 죽었을 수 있습니다.", streak);
+
+            telegramService.sendCustomNotification(String.format(
+                    "⚠️ [동적#%d] SL 실시간 감시 이상: %s (%d분 이상 미점검). %s "
+                            + "60초 폴링은 계속 돌고 있으므로 손절 자체가 멈춘 것은 아닙니다.",
+                    s.getId(), coin, SL_STALE_WARN_MINUTES, cause));
+
+            // 알림을 한 번 보냈으면 streak 을 다시 쌓게 해 같은 이상으로 매분 울리지 않도록 한다.
+            slStaleStreak.put(s.getId(), 0);
         }
     }
 
@@ -2651,8 +2728,9 @@ public class DynamicTradingService {
      * 세션의 실제 session_kind — REAL이면 {@code "DYNAMIC"}, PAPER면 {@code "DYN_PAPER"}.
      * position/order 저장·조회는 전부 이 값을 써야 REAL/PAPER 데이터가 섞이지 않는다.
      */
-    // 테스트에서 직접 검증하기 위해 package-private (resolveStopLossPct와 동일 방침)
-    static String sessionKind(DynamicSessionEntity session) {
+    // 테스트와 조회 API(DynamicSessionController)가 같은 값을 써야 하므로 public —
+    // 이 메서드를 안 거치고 "DYNAMIC" 을 직접 쓰면 PAPER 세션의 데이터가 통째로 안 보인다.
+    public static String sessionKind(DynamicSessionEntity session) {
         return session.isPaper() ? SESSION_KIND_PAPER : SESSION_KIND;
     }
 

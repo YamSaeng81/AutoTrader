@@ -190,11 +190,19 @@ public class RiskManagementService {
      *
      * <p>연속 손실은 이번 가동(startedAt) 이후 청산분만 집계한다 — 발동 후 사용자가 의도적으로
      * 재시작했을 때 과거 손실 이력만으로 즉시 재발동하는 것을 막는다.</p>
+     *
+     * <p><b>2026-09-01 P0 수정</b>: session_kind 가 {@code "DYNAMIC"} 으로 하드코딩돼 있었다.
+     * PAPER 세션의 포지션은 {@code "DYN_PAPER"} 로 저장되므로 조회 결과가 항상 비었고,
+     * 그래서 <b>페이퍼 세션은 연속 손실 차단이 통째로 안 걸렸다</b> — 야구마다 수백 번 지어도
+     * 그 안전망이 없었다는 뜻이다. MDD 책은 세션 필드만 보므로 정상 작동했고,
+     * 실제로 08-29~30 발동 5건이 전부 MDD 였던 것이 이 부분 결함의 증거다.
+     * 페이퍼는 실전의 리허설이므로 안전망도 같아야 한다
+     * ({@code DynamicPaperLiveRuleParityTest} 참조).</p>
      */
     @Transactional(readOnly = true)
     public CircuitBreakerResult checkCircuitBreaker(
             com.cryptoautotrader.api.entity.DynamicSessionEntity session) {
-        return checkCircuitBreaker("DYNAMIC", session.getId(),
+        return checkCircuitBreaker(DynamicTradingService.sessionKind(session), session.getId(),
                 session.getMddPeakCapital(), session.getInitialCapital(), session.getTotalAssetKrw(),
                 session.getStartedAt());
     }

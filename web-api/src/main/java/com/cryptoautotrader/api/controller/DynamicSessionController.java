@@ -41,6 +41,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class DynamicSessionController {
 
+    /** 거래소 수수료율 — 체결 경로와 단일 출처를 쓴다(값이 갈라지면 화면 수수료가 틀린다). */
+    private static final BigDecimal FEE_RATE = DynamicTradingService.FEE_RATE;
+
     private final DynamicTradingService dynamicTradingService;
     private final PositionRepository positionRepository;
     private final OrderRepository orderRepository;
@@ -128,7 +131,9 @@ public class DynamicSessionController {
                     posMap.put("stopLossPrice",    pos.getStopLossPrice());
                     posMap.put("takeProfitPrice",  pos.getTakeProfitPrice());
                     posMap.put("unrealizedPnl",    pos.getUnrealizedPnl());
+                    posMap.put("entryFee",         entryFeeOf(pos));
                     posMap.put("status",           pos.getStatus());
+                    posMap.put("rulesetHash",      pos.getRulesetHash());
                     posMap.put("marketRegime",     pos.getMarketRegime());
                     posMap.put("openedAt",         pos.getOpenedAt() != null ? pos.getOpenedAt().toString() : null);
                     m.put("currentPosition", posMap);
@@ -160,16 +165,12 @@ public class DynamicSessionController {
         }
 
         List<PositionEntity> positions =
-                positionRepository.findBySessionKindAndSessionIdOrderByOpenedAtDesc("DYNAMIC", id);
+                positionRepository.findBySessionKindAndSessionIdOrderByOpenedAtDesc(kindOf(id), id);
         if (positions.isEmpty()) {
             return ApiResponse.ok(List.of());
         }
 
-        // N+1 방지: 전 포지션의 주문을 한 번에 읽어 매수/매도 사유를 붙인다.
-        Map<Long, List<OrderEntity>> ordersByPosition = orderRepository
-                .findByPositionIdIn(positions.stream().map(PositionEntity::getId).toList())
-                .stream()
-                .collect(Collectors.groupingBy(OrderEntity::getPositionId));
+        Map<Long, List<OrderEntity>> ordersByPosition = ordersOf(positions);
 
         List<Map<String, Object>> result = positions.stream()
                 .map(pos -> toHistoryMap(pos, ordersByPosition.getOrDefault(pos.getId(), List.of())))
@@ -178,37 +179,90 @@ public class DynamicSessionController {
     }
 
     /**
+     * 이 세션의 포지션이 저장된 {@code session_kind}.
+     *
+     * <p><b>2026-09-01 P0</b>: 여기가 {@code "DYNAMIC"} 으로 하드코딩돼 있었다. 그런데 PAPER
+     * 세션의 포지션은 {@code session_kind='DYN_PAPER'} 로 저장된다({@code V67}). 그래서
+     * <b>모의 세션 상세 화면은 손익 분해가 전부 0, 보유 코인 이력이 통째로 비어 있었다</b> —
+     * 실제로는 거래가 있었는데도. 현재 포지션 패널만 {@code currentPositionId} 로 직접 조회해
+     * 정상 표시되니, 화면 안에서 서로 모순되는 숫자가 나왔다.</p>
+     *
+     * <p>{@link DynamicTradingService#sessionKind}를 그대로 쓴다 — 문자열을 다시 적으면
+     * 같은 실수가 반복된다.</p>
+     */
+    private String kindOf(Long sessionId) {
+        return DynamicTradingService.sessionKind(dynamicTradingService.getSession(sessionId));
+    }
+
+    /**
      * 세션 손익 내역 분해 — {@code returnPct}(=total_asset_krw 기반)가 맞는지 대조하기 위한 근거.
      *
      * <p>{@code total_asset_krw} 는 매수 시점 취득원가로만 갱신되고 보유 중 시세 변동을 반영하지
      * 않으므로, 포지션을 들고 있는 동안 {@code returnPct} 는 미실현손익만큼 어긋난다. 여기서
-     * <b>이 세션의 포지션만</b>({@code session_kind='DYNAMIC'} + {@code session_id}) 집계해
-     * 실현/미실현을 분리해 내려보내면 화면에서 실제 손익을 정확히 표시할 수 있다.</p>
+     * <b>이 세션의 포지션만</b> 집계해 실현/미실현을 분리해 내려보내면 화면에서 실제 손익을
+     * 정확히 표시할 수 있다.</p>
+     *
+     * <p><b>수수료에 대해</b>: {@code realizedPnl} 은 이미 <b>매수·매도 수수료를 모두 뺀 순손익</b>이다
+     * — 매수 시 {@code avgPrice} 를 수수료 포함 취득단가로 잡고({@code investedKrw / quantity}),
+     * 청산 시 순수취액에서 그 원가를 빼기 때문이다. 화면에서 "손익 − 수수료" 를 또 빼면
+     * 이중 차감이 된다. 그래서 여기서는 수수료를 <b>따로 합산해 참고용으로</b> 내려보내고,
+     * 수수료를 더한 {@code grossPnl}(= 수수료가 없었다면 얼마였을까)을 함께 준다.</p>
      */
     private Map<String, Object> buildPnlBreakdown(Long sessionId) {
         List<PositionEntity> positions =
-                positionRepository.findBySessionKindAndSessionIdOrderByOpenedAtDesc("DYNAMIC", sessionId);
+                positionRepository.findBySessionKindAndSessionIdOrderByOpenedAtDesc(kindOf(sessionId), sessionId);
+
+        Map<Long, List<OrderEntity>> ordersByPosition = ordersOf(positions);
 
         BigDecimal realized = BigDecimal.ZERO;
         BigDecimal unrealized = BigDecimal.ZERO;
+        BigDecimal totalFee = BigDecimal.ZERO;
+        BigDecimal bestPnl = null;
+        BigDecimal worstPnl = null;
+        String bestCoin = null;
+        String worstCoin = null;
+        long holdMinutesSum = 0;
         int closedCount = 0;
         int winCount = 0;
+        int openCount = 0;
+
+        // 청산 사유별 건수 — "손절 대 익절 대 시간초과" 를 화면에서 바로 읽기 위한 축.
+        Map<String, Integer> exitReasonCounts = new LinkedHashMap<>();
 
         for (PositionEntity pos : positions) {
+            totalFee = totalFee.add(totalFeeOf(pos, ordersByPosition.getOrDefault(pos.getId(), List.of())));
+
             if (pos.getRealizedPnl() != null) {
                 realized = realized.add(pos.getRealizedPnl());
             }
             if ("CLOSED".equals(pos.getStatus())) {
+                String reason = pos.getExitReason() != null ? pos.getExitReason().name() : "UNKNOWN";
+                exitReasonCounts.merge(reason, 1, Integer::sum);
+
                 // 고아(미체결) 포지션은 size=0·손익 null 이라 승률 통계에서 제외
                 if (pos.getSize() != null && pos.getSize().compareTo(BigDecimal.ZERO) > 0
                         && pos.getRealizedPnl() != null) {
                     closedCount++;
-                    if (pos.getRealizedPnl().compareTo(BigDecimal.ZERO) > 0) {
+                    BigDecimal pnl = pos.getRealizedPnl();
+                    if (pnl.compareTo(BigDecimal.ZERO) > 0) {
                         winCount++;
                     }
+                    if (bestPnl == null || pnl.compareTo(bestPnl) > 0) {
+                        bestPnl = pnl;
+                        bestCoin = pos.getCoinPair();
+                    }
+                    if (worstPnl == null || pnl.compareTo(worstPnl) < 0) {
+                        worstPnl = pnl;
+                        worstCoin = pos.getCoinPair();
+                    }
+                    Long held = calcHoldMinutes(pos);
+                    if (held != null) holdMinutesSum += held;
                 }
-            } else if (pos.getUnrealizedPnl() != null) {
-                unrealized = unrealized.add(pos.getUnrealizedPnl());
+            } else {
+                openCount++;
+                if (pos.getUnrealizedPnl() != null) {
+                    unrealized = unrealized.add(pos.getUnrealizedPnl());
+                }
             }
         }
 
@@ -216,7 +270,13 @@ public class DynamicSessionController {
         m.put("realizedPnl",      realized);
         m.put("unrealizedPnl",    unrealized);
         m.put("totalPnl",         realized.add(unrealized));
+        // 수수료는 이미 realizedPnl 에서 빠져 있다. grossPnl 은 "수수료가 없었다면" 의 가정값이라
+        // 마찰비용이 성과를 얼마나 갉아먹는지 보여주는 용도지, 실제 손익이 아니다.
+        m.put("totalFee",         totalFee);
+        m.put("grossPnl",         realized.add(unrealized).add(totalFee));
+        m.put("feeNote",          "실현손익은 매수·매도 수수료를 모두 뺀 순손익입니다");
         m.put("positionCount",    positions.size());
+        m.put("openPositionCount", openCount);
         m.put("closedTradeCount", closedCount);
         m.put("winCount",         winCount);
         m.put("winRatePct", closedCount > 0
@@ -225,38 +285,105 @@ public class DynamicSessionController {
                         .multiply(BigDecimal.valueOf(100))
                         .setScale(1, RoundingMode.HALF_UP)
                 : null);
+        m.put("avgPnl", closedCount > 0
+                ? realized.divide(BigDecimal.valueOf(closedCount), 0, RoundingMode.HALF_UP) : null);
+        m.put("avgHoldMinutes", closedCount > 0 ? holdMinutesSum / closedCount : null);
+        m.put("bestPnl",   bestPnl);
+        m.put("bestCoin",  bestCoin);
+        m.put("worstPnl",  worstPnl);
+        m.put("worstCoin", worstCoin);
+        m.put("exitReasonCounts", exitReasonCounts);
         return m;
     }
 
+    /** N+1 방지 — 전 포지션의 주문을 한 번에 읽어 포지션별로 묶는다. */
+    private Map<Long, List<OrderEntity>> ordersOf(List<PositionEntity> positions) {
+        if (positions.isEmpty()) return Map.of();
+        return orderRepository
+                .findByPositionIdIn(positions.stream().map(PositionEntity::getId).toList())
+                .stream()
+                .collect(Collectors.groupingBy(OrderEntity::getPositionId));
+    }
+
     private Map<String, Object> toHistoryMap(PositionEntity pos, List<OrderEntity> orders) {
+        OrderEntity buy  = pickOrder(orders, "BUY");
+        OrderEntity sell = pickOrder(orders, "SELL");
+        BigDecimal exitPrice = sell != null ? sell.getPrice() : null;
+        BigDecimal entryFee = entryFeeOf(pos);
+        BigDecimal exitFee  = exitFeeOf(pos, exitPrice);
+
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("id",               pos.getId());
         m.put("coinPair",         pos.getCoinPair());
         m.put("status",           pos.getStatus());
         m.put("entryPrice",       pos.getEntryPrice());
         m.put("avgPrice",         pos.getAvgPrice());
+        m.put("exitPrice",        exitPrice);
         m.put("size",             pos.getSize());
         m.put("investedKrw",      pos.getInvestedKrw());
         m.put("stopLossPrice",    pos.getStopLossPrice());
         m.put("takeProfitPrice",  pos.getTakeProfitPrice());
         m.put("realizedPnl",      pos.getRealizedPnl());
         m.put("unrealizedPnl",    pos.getUnrealizedPnl());
-        m.put("positionFee",      pos.getPositionFee());
+
+        // 수수료 3종 — positionFee 컬럼은 청산 시 매도 수수료로 덮어써지므로(총합이 아니다)
+        // 화면에 그대로 내보내면 매수 수수료가 사라진 것처럼 보인다. 여기서 양쪽을 각각 환산한다.
+        m.put("entryFee",         entryFee);
+        m.put("exitFee",          exitFee);
+        m.put("totalFee",         entryFee.add(exitFee));
+        m.put("positionFee",      pos.getPositionFee());   // 원본 컬럼값 (참고용)
+        // 수수료가 없었다면 얼마였을까 — realizedPnl 은 이미 순손익이므로 되더한 값이다.
+        m.put("grossPnl", pos.getRealizedPnl() != null
+                ? pos.getRealizedPnl().add(entryFee).add(exitFee) : null);
+
+        m.put("exitReason",       pos.getExitReason() != null ? pos.getExitReason().name() : null);
+        m.put("countsTowardPerformance",
+                pos.getExitReason() != null && pos.getExitReason().countsTowardStrategyPerformance());
         m.put("marketRegime",     pos.getMarketRegime());
+        m.put("rulesetHash",      pos.getRulesetHash());
         m.put("openedAt",         pos.getOpenedAt() != null ? pos.getOpenedAt().toString() : null);
         m.put("closedAt",         pos.getClosedAt() != null ? pos.getClosedAt().toString() : null);
         m.put("returnPct",        calcPositionReturnPct(pos));
         m.put("holdMinutes",      calcHoldMinutes(pos));
 
         // 매수/매도 사유 — 체결(FILLED) 주문을 우선 채택, 없으면 가장 최근 주문
-        m.put("buyReason",  pickReason(orders, "BUY"));
-        m.put("sellReason", pickReason(orders, "SELL"));
+        m.put("buyReason",  buy  != null ? buy.getSignalReason()  : null);
+        m.put("sellReason", sell != null ? sell.getSignalReason() : null);
+        m.put("buyAt",      buy  != null && buy.getFilledAt()  != null ? buy.getFilledAt().toString()  : null);
+        m.put("sellAt",     sell != null && sell.getFilledAt() != null ? sell.getFilledAt().toString() : null);
+        m.put("buySignalPrice",  buy  != null ? buy.getSignalPrice()  : null);
+        m.put("sellSignalPrice", sell != null ? sell.getSignalPrice() : null);
         m.put("orderCount", orders.size());
         return m;
     }
 
-    /** 해당 방향 주문 중 체결건의 사유를 우선 반환 (체결 없으면 최근 주문 사유) */
-    private String pickReason(List<OrderEntity> orders, String side) {
+    /**
+     * 매수 수수료 — 체결 시 {@code investedKrw × FEE_RATE} 로 계산되어 {@code avgPrice} 에 녹아 있다.
+     * ({@code avgPrice = investedKrw / quantity} 이므로 취득원가 = investedKrw.)
+     */
+    private BigDecimal entryFeeOf(PositionEntity pos) {
+        BigDecimal invested = pos.getInvestedKrw();
+        if (invested == null) return BigDecimal.ZERO;
+        return invested.multiply(FEE_RATE).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    /** 매도 수수료 — 청산가를 알아야 계산된다(= 매도 총액 × FEE_RATE). 미청산이면 0. */
+    private BigDecimal exitFeeOf(PositionEntity pos, BigDecimal exitPrice) {
+        if (!"CLOSED".equals(pos.getStatus())) return BigDecimal.ZERO;
+        if (exitPrice == null || pos.getSize() == null) {
+            // 매도 주문을 못 찾은 경우 — positionFee 컬럼이 청산 시 매도 수수료로 덮어써지므로 그것을 쓴다.
+            return pos.getPositionFee() != null ? pos.getPositionFee() : BigDecimal.ZERO;
+        }
+        return pos.getSize().multiply(exitPrice).multiply(FEE_RATE).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private BigDecimal totalFeeOf(PositionEntity pos, List<OrderEntity> orders) {
+        OrderEntity sell = pickOrder(orders, "SELL");
+        return entryFeeOf(pos).add(exitFeeOf(pos, sell != null ? sell.getPrice() : null));
+    }
+
+    /** 해당 방향 주문 중 체결건을 우선 반환 (체결 없으면 최근 주문) */
+    private OrderEntity pickOrder(List<OrderEntity> orders, String side) {
         List<OrderEntity> sideOrders = orders.stream()
                 .filter(o -> side.equalsIgnoreCase(o.getSide()))
                 .sorted(Comparator.comparing(OrderEntity::getCreatedAt,
@@ -266,7 +393,6 @@ public class DynamicSessionController {
                 .filter(o -> "FILLED".equalsIgnoreCase(o.getState()))
                 .findFirst()
                 .or(() -> sideOrders.stream().findFirst())
-                .map(OrderEntity::getSignalReason)
                 .orElse(null);
     }
 

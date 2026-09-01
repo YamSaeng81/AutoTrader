@@ -99,6 +99,17 @@ export const logApi = {
             }
         }).then(r => r.data),
 
+    /**
+     * 세션 하나의 누적 로그를 LLM 에 보내 전략 분석을 요청한다.
+     * 응답은 즉시 돌아오고(접수 여부만), 분석 결과는 텔레그램으로 온다.
+     * sessionType 은 반드시 세션의 실제 구분을 넘길 것 — 모의 동적 세션은 'DYN_PAPER' 이다.
+     */
+    llmAnalysis: (sessionType: string, sessionId: number, hours = 24) =>
+        api.post<ApiResponse<{ accepted: boolean; message: string; logCount: number; positionCount: number }>>(
+            '/api/v1/logs/llm-analysis', null,
+            { params: { sessionType, sessionId, hours } },
+        ).then(r => r.data),
+
     signalStats: (days = 30, sessionType = 'ALL') =>
         api.get<ApiResponse<SignalStatsResponse>>('/api/v1/logs/signal-stats', {
             params: {

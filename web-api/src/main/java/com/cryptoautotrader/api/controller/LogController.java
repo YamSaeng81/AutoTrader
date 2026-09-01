@@ -29,6 +29,7 @@ public class LogController {
     private final StrategyLogRepository strategyLogRepo;
     private final RegimeChangeLogRepository regimeChangeLogRepo;
     private final StrategyWeightOptimizer strategyWeightOptimizer;
+    private final com.cryptoautotrader.api.service.SessionLlmAnalysisService sessionLlmAnalysisService;
 
     @GetMapping("/strategy")
     public ApiResponse<Map<String, Object>> getStrategyLogs(
@@ -85,6 +86,36 @@ public class LogController {
      * @param days        최근 N일 데이터 (기본 30)
      * @param sessionType LIVE / PAPER / ALL (기본 ALL)
      */
+    /**
+     * 세션 하나의 누적 로그를 LLM 에 보내 전략 분석을 받고, 결과를 텔레그램으로 보낸다
+     * (2026-09-01 신규).
+     *
+     * <p>응답은 <b>즉시</b> 돌아온다 — LLM 호출은 뒤에서 돌고 결과는 텔레그램으로 간다.
+     * 분석 원문과 응답은 {@code llm_call_log} 에도 남으므로 {@code /logs/llm} 에서 다시 볼 수 있다.</p>
+     *
+     * @param sessionType LIVE / PAPER / DYNAMIC / DYN_PAPER — {@code strategy_log.session_type} 과
+     *                    {@code position.session_kind} 가 공유하는 어휘다.
+     *                    모의 동적 세션은 {@code DYN_PAPER} 이다 — {@code DYNAMIC} 으로 보내면 빈 통계가 나온다.
+     * @param hours       집계할 구간 (기본 24시간). 포지션은 세션 전체 기간을 본다.
+     */
+    @PostMapping("/llm-analysis")
+    public ApiResponse<Map<String, Object>> requestLlmAnalysis(
+            @RequestParam String sessionType,
+            @RequestParam Long sessionId,
+            @RequestParam(defaultValue = "24") int hours) {
+        if (sessionType.isBlank() || "ALL".equalsIgnoreCase(sessionType)) {
+            return ApiResponse.error("INVALID_REQUEST", "분석할 세션을 하나 선택하세요.");
+        }
+        int window = Math.max(1, Math.min(hours, 24 * 30));   // 1시간 ~ 30일
+        var accepted = sessionLlmAnalysisService.request(sessionType.toUpperCase(), sessionId, window);
+        Map<String, Object> body = new HashMap<>();
+        body.put("accepted",      accepted.accepted());
+        body.put("message",       accepted.message());
+        body.put("logCount",      accepted.logCount());
+        body.put("positionCount", accepted.positionCount());
+        return ApiResponse.ok(body);
+    }
+
     @GetMapping("/signal-stats")
     public ApiResponse<Map<String, Object>> getSignalStats(
             @RequestParam(defaultValue = "30") int days,

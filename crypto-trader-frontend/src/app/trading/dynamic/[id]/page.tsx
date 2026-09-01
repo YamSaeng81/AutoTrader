@@ -274,44 +274,172 @@ function PerfCard({
   );
 }
 
+// ── 청산 사유 어휘 ────────────────────────────────────────────────────────────
+//
+// ExitReason enum (V73)과 1:1. 자유 텍스트 사유와 달리 집계 가능한 축이라, 이걸 보면
+// "손절에 몰려 있는가 / 시간초과로 끌려나가는가"를 한눈에 읽을 수 있다.
+
+const exitReasonLabel: Record<string, string> = {
+  STOP_LOSS:       '손절',
+  TAKE_PROFIT:     '익절',
+  TRAILING_STOP:   '트레일링',
+  TIME_STOP:       '시간초과',
+  STRATEGY_SIGNAL: '전략신호',
+  BLACK_SWAN:      '급락가드',
+  FORCED_STOP:     '강제정지',
+  UNKNOWN:         '미분류',
+};
+
+const exitReasonStyle: Record<string, string> = {
+  STOP_LOSS:       'bg-red-500/20 text-red-300 border-red-500/30',
+  TAKE_PROFIT:     'bg-green-500/20 text-green-300 border-green-500/30',
+  TRAILING_STOP:   'bg-green-500/15 text-green-400 border-green-500/25',
+  TIME_STOP:       'bg-amber-500/20 text-amber-300 border-amber-500/30',
+  STRATEGY_SIGNAL: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+  BLACK_SWAN:      'bg-orange-500/20 text-orange-300 border-orange-500/30',
+  FORCED_STOP:     'bg-slate-600/40 text-slate-300 border-slate-500/30',
+  UNKNOWN:         'bg-slate-700/50 text-slate-400 border-slate-600/30',
+};
+
+function holdLabel(minutes: unknown): string {
+  const m = Number(minutes ?? 0);
+  if (m < 60) return `${m}분`;
+  return `${Math.floor(m / 60)}시간 ${m % 60}분`;
+}
+
 // ── PnlBreakdownPanel ─────────────────────────────────────────────────────────
 //
 // `수익률`(위 카드)은 total_asset_krw 기준이라 보유 중 시세 변동을 반영하지 않는다.
 // 여기서는 이 세션의 포지션만 집계한 실현/미실현을 분리해 보여줘서, 위 수치와
 // 어긋날 때 원인(미실현 반영 안 됨)을 바로 읽을 수 있게 한다.
+//
+// ⚠️ 2026-09-01 이전에는 이 패널이 모의(PAPER) 세션에서 **항상 0**이었다. 백엔드가
+// session_kind 를 'DYNAMIC' 으로 하드코딩해 'DYN_PAPER' 로 저장된 페이퍼 포지션을 한
+// 건도 못 찾았기 때문이다. 아래 '보유 코인 이력'도 같은 이유로 통째로 비어 있었다.
 
 function PnlBreakdownPanel({ session }: { session: Record<string, unknown> }) {
   const realized   = n(session['realizedPnl']);
   const unrealized = n(session['unrealizedPnl']);
   const total      = n(session['totalPnl']);
+  const totalFee   = n(session['totalFee']);
+  const grossPnl   = n(session['grossPnl']);
   const closed     = n(session['closedTradeCount']);
+  const openCount  = n(session['openPositionCount']);
   const wins       = n(session['winCount']);
   const winRate    = session['winRatePct'];
+  const avgPnl     = session['avgPnl'];
+  const avgHold    = session['avgHoldMinutes'];
+  const exitCounts = (session['exitReasonCounts'] ?? {}) as Record<string, number>;
+  const exitTotal  = Object.values(exitCounts).reduce((a, b) => a + Number(b ?? 0), 0);
 
   return (
-    <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">
-      <div className="flex items-center gap-2 mb-4">
+    <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5 space-y-4">
+      <div className="flex items-center gap-2">
         <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">손익 분해</h2>
         <span className="text-xs text-slate-600">이 세션의 포지션만 집계</span>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-        <MiniStat label="실현 손익"   value={`${realized >= 0 ? '+' : ''}${fmt(realized)}`} unit="KRW" color={pnlColor(realized)} />
-        <MiniStat label="미실현 손익" value={`${unrealized >= 0 ? '+' : ''}${fmt(unrealized)}`} unit="KRW" color={pnlColor(unrealized)} />
-        <MiniStat label="합계"        value={`${total >= 0 ? '+' : ''}${fmt(total)}`} unit="KRW" color={pnlColor(total)} />
-        <MiniStat label="청산 거래"   value={String(closed)} unit="건" />
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <MiniStat label="실현 손익"   value={signed(realized)}   unit="KRW · 수수료 차감 후" color={pnlColor(realized)} />
+        <MiniStat label="미실현 손익" value={signed(unrealized)} unit={openCount > 0 ? `보유 ${openCount}건` : 'KRW'} color={pnlColor(unrealized)} />
+        <MiniStat label="합계"        value={signed(total)}      unit="KRW" color={pnlColor(total)} />
+        <MiniStat
+          label="지불 수수료"
+          value={`-${fmt(totalFee)}`}
+          unit={grossPnl !== 0 ? `수수료 전 ${signed(grossPnl)}` : 'KRW'}
+          color="text-slate-400"
+        />
+      </div>
+
+      {/* 실현손익은 이미 순손익이다 — 화면에서 또 빼면 이중 차감이 된다. */}
+      <p className="text-xs text-slate-600">
+        실현 손익은 매수·매도 수수료(0.05% × 2회)를 <b className="text-slate-500">이미 뺀 순손익</b>입니다.
+        &lsquo;수수료 전&rsquo;은 마찰비용이 성과를 얼마나 갉아먹었는지 보기 위한 가정값입니다.
+      </p>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <MiniStat label="청산 거래" value={String(closed)} unit="건" />
         <MiniStat
           label="승률"
           value={winRate === null || winRate === undefined ? '—' : `${n(winRate).toFixed(1)}%`}
           unit={closed > 0 ? `${wins}승 ${closed - wins}패` : '표본 없음'}
         />
+        <MiniStat
+          label="건당 평균"
+          value={avgPnl === null || avgPnl === undefined ? '—' : signed(avgPnl)}
+          unit="KRW"
+          color={avgPnl === null || avgPnl === undefined ? undefined : pnlColor(avgPnl)}
+        />
+        <MiniStat
+          label="평균 보유"
+          value={avgHold === null || avgHold === undefined ? '—' : holdLabel(avgHold)}
+          unit="청산 기준"
+        />
       </div>
+
+      {/* 최고/최저 — 손익이 한두 건에 쏠려 있는지 확인용 */}
+      {(!!session['bestCoin'] || !!session['worstCoin']) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+          {!!session['bestCoin'] && (
+            <div className="bg-slate-900/40 rounded-lg p-3 flex items-center justify-between">
+              <span className="text-slate-500">최고 수익</span>
+              <span className="text-slate-200">
+                {s(session['bestCoin']).replace('KRW-', '')}
+                <span className={`ml-2 font-bold ${pnlColor(session['bestPnl'])}`}>{signed(session['bestPnl'])} KRW</span>
+              </span>
+            </div>
+          )}
+          {!!session['worstCoin'] && (
+            <div className="bg-slate-900/40 rounded-lg p-3 flex items-center justify-between">
+              <span className="text-slate-500">최대 손실</span>
+              <span className="text-slate-200">
+                {s(session['worstCoin']).replace('KRW-', '')}
+                <span className={`ml-2 font-bold ${pnlColor(session['worstPnl'])}`}>{signed(session['worstPnl'])} KRW</span>
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 청산 사유 분포 — "왜 나왔는가"가 성과보다 먼저 읽혀야 한다 */}
+      {exitTotal > 0 && (
+        <div className="bg-slate-900/40 rounded-lg p-3">
+          <div className="text-xs text-slate-500 mb-2">청산 사유 분포</div>
+          <div className="flex flex-wrap gap-1.5">
+            {Object.entries(exitCounts)
+              .sort((a, b) => Number(b[1]) - Number(a[1]))
+              .map(([reason, count]) => (
+                <span
+                  key={reason}
+                  className={`text-xs px-2 py-1 rounded border ${exitReasonStyle[reason] ?? exitReasonStyle.UNKNOWN}`}
+                >
+                  {exitReasonLabel[reason] ?? reason} {String(count)}건
+                  <span className="opacity-60 ml-1">
+                    ({Math.round((Number(count) / exitTotal) * 100)}%)
+                  </span>
+                </span>
+              ))}
+          </div>
+          {Number(exitCounts['FORCED_STOP'] ?? 0) > 0 && (
+            <p className="text-xs text-slate-600 mt-2">
+              강제정지 건은 청산가가 시장이 아니라 개입 시각으로 정해집니다 — 전략 성과로 읽지 마세요.
+            </p>
+          )}
+        </div>
+      )}
+
       {closed > 0 && closed < 10 && (
-        <p className="text-xs text-slate-600 mt-3">
+        <p className="text-xs text-slate-600">
           표본 {closed}건 — 승률·수익률은 아직 통계적 의미가 없습니다. 부호와 사유를 보세요.
         </p>
       )}
     </div>
   );
+}
+
+function signed(v: unknown): string {
+  const num = Number(v ?? 0);
+  return (num >= 0 ? '+' : '') + fmt(num);
 }
 
 function MiniStat({
@@ -339,6 +467,7 @@ function PositionHistoryPanel({ history }: { history: Record<string, unknown>[] 
       <div className="flex items-center gap-2 mb-4">
         <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">보유 코인 이력</h2>
         <span className="text-xs px-2 py-0.5 rounded bg-slate-700 text-slate-300">{history.length}건</span>
+        <span className="text-xs text-slate-600 ml-auto">최신순 · 매수/매도 사유와 수수료 포함</span>
       </div>
 
       {history.length === 0 ? (
@@ -357,8 +486,12 @@ function HistoryRow({ h }: { h: Record<string, unknown> }) {
   const isClosed   = status === 'CLOSED';
   const pnl        = n(isClosed ? h['realizedPnl'] : h['unrealizedPnl']);
   const returnPct  = h['returnPct'];
-  const holdMin    = n(h['holdMinutes']);
   const size       = n(h['size']);
+  const entryPrice = n(h['avgPrice'] ?? h['entryPrice']);
+  const exitPrice  = n(h['exitPrice']);
+  const totalFee   = n(h['totalFee']);
+  const grossPnl   = h['grossPnl'];
+  const exitReason = s(h['exitReason']);
   const buyReason  = s(h['buyReason']);
   const sellReason = s(h['sellReason']);
 
@@ -378,6 +511,11 @@ function HistoryRow({ h }: { h: Record<string, unknown> }) {
         }`}>
           {isOrphan ? '미체결 정리' : isClosed ? '청산됨' : status === 'CLOSING' ? '청산 중' : '보유 중'}
         </span>
+        {!!exitReason && (
+          <span className={`text-xs px-2 py-0.5 rounded border ${exitReasonStyle[exitReason] ?? exitReasonStyle.UNKNOWN}`}>
+            {exitReasonLabel[exitReason] ?? exitReason}
+          </span>
+        )}
         {!!h['marketRegime'] && (
           <span className="text-xs px-2 py-0.5 rounded bg-slate-700/60 text-slate-400">
             {regimeLabel[s(h['marketRegime'])] ?? s(h['marketRegime'])}
@@ -385,7 +523,7 @@ function HistoryRow({ h }: { h: Record<string, unknown> }) {
         )}
         {!isOrphan && (
           <span className={`ml-auto font-bold ${pnlColor(pnl)}`}>
-            {pnl >= 0 ? '+' : ''}{fmt(pnl)} KRW
+            {signed(pnl)} KRW
             {returnPct !== null && returnPct !== undefined && (
               <span className="ml-1.5 text-xs">({fmtPct(returnPct)})</span>
             )}
@@ -393,22 +531,58 @@ function HistoryRow({ h }: { h: Record<string, unknown> }) {
         )}
       </div>
 
-      {/* 수치 줄 */}
+      {/* 가격·수량 줄 */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-slate-400">
-        <div><span className="text-slate-600">진입가</span> {fmt(h['avgPrice'] ?? h['entryPrice'])}</div>
+        <div><span className="text-slate-600">진입가</span> {entryPrice > 0 ? fmt(entryPrice) : '—'}</div>
+        <div>
+          <span className="text-slate-600">청산가</span>{' '}
+          {exitPrice > 0 ? fmt(exitPrice) : isClosed ? '기록 없음' : '—'}
+        </div>
         <div><span className="text-slate-600">투자금</span> {fmt(h['investedKrw'])} KRW</div>
         <div><span className="text-slate-600">수량</span> {size > 0 ? size.toFixed(8) : '—'}</div>
-        <div>
-          <span className="text-slate-600">보유</span>{' '}
-          {holdMin >= 60 ? `${Math.floor(holdMin / 60)}시간 ${holdMin % 60}분` : `${holdMin}분`}
-        </div>
       </div>
+
+      {/* 손익·수수료 줄 — 실현손익은 순손익이므로 수수료는 '이미 빠진 금액'으로 표기한다 */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-slate-400">
+        <div>
+          <span className="text-slate-600">보유</span> {holdLabel(h['holdMinutes'])}
+        </div>
+        <div>
+          <span className="text-slate-600">수수료</span>{' '}
+          <span className="text-slate-300">-{fmt(totalFee)}</span>
+          <span className="text-slate-600"> (매수 {fmt(h['entryFee'])} + 매도 {fmt(h['exitFee'])})</span>
+        </div>
+        {grossPnl !== null && grossPnl !== undefined && (
+          <div>
+            <span className="text-slate-600">수수료 전</span>{' '}
+            <span className={pnlColor(grossPnl)}>{signed(grossPnl)}</span>
+          </div>
+        )}
+        {!!h['rulesetHash'] && (
+          <div title="이 포지션을 만든 매매 규칙 지문 — 지문이 다르면 다른 규칙의 결과라 합산하면 안 됩니다">
+            <span className="text-slate-600">규칙</span>{' '}
+            <span className="font-mono text-slate-500">{s(h['rulesetHash'])}</span>
+          </div>
+        )}
+      </div>
+
+      {/* 손절/익절 설정값 — 실제 청산가와 비교해 "얼마나 지나쳐서 체결됐는지" 읽는다 */}
+      {(n(h['stopLossPrice']) > 0 || n(h['takeProfitPrice']) > 0) && (
+        <div className="grid grid-cols-2 gap-2 text-xs text-slate-500">
+          {n(h['stopLossPrice']) > 0 && (
+            <div><span className="text-slate-600">손절가</span> {fmt(h['stopLossPrice'])}</div>
+          )}
+          {n(h['takeProfitPrice']) > 0 && (
+            <div><span className="text-slate-600">익절가</span> {fmt(h['takeProfitPrice'])}</div>
+          )}
+        </div>
+      )}
 
       {/* 사유 줄 */}
       <div className="space-y-1 text-xs border-t border-slate-700/40 pt-2">
-        <ReasonLine icon="🟢" label="매수" reason={buyReason} at={h['openedAt']} />
+        <ReasonLine icon="🟢" label="매수" reason={buyReason} at={h['buyAt'] ?? h['openedAt']} />
         {(isClosed || status === 'CLOSING') && (
-          <ReasonLine icon="🔴" label="매도" reason={sellReason} at={h['closedAt']} />
+          <ReasonLine icon="🔴" label="매도" reason={sellReason} at={h['sellAt'] ?? h['closedAt']} />
         )}
       </div>
     </div>

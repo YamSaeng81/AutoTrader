@@ -119,9 +119,18 @@ class DynamicTradingSlWatchdogRecoveryTest extends IntegrationTestBase {
 
     // ── warnStaleSlCheck 통합 ──────────────────────────────────
 
+    /**
+     * <b>2026-09-01 기대 동작을 바꿈.</b> 이전에는 미점검을 발견하면 자가복구 성공 여부와
+     * 무관하게 매번 텔레그램을 보냈다. 거래가 뜿한 알트코인은 WS 틱이 3분 넘게 안 오는 게
+     * 정상이라, 그때마다 "이상 → 복구했음" 이 반복돼 <b>알림이 상시 울렸다</b>.
+     * 상시 울리는 알림은 진짜 고장을 가린다 — 그게 이 알림의 존재 이유였는데도.
+     *
+     * <p>이제 <b>복구 시도는 그대로 하되 알리지는 않는다</b>. 알림은 복구가 실패했을 때만
+     * 나간다 ({@link DynamicSlWatchdogNoiseTest} 가 전체 규칙을 고정한다).</p>
+     */
     @Test
-    @DisplayName("warnStaleSlCheck: SL 미점검 감지 시 강제 복구를 시도하고 성공 문구를 보낸다")
-    void warnStaleSlCheck_attemptsRecovery_andReportsSuccess() throws Exception {
+    @DisplayName("warnStaleSlCheck: 복구가 성공하면 시도만 하고 알리지 않는다 (2026-09-01 변경)")
+    void warnStaleSlCheck_attemptsRecovery_butStaysQuietOnSuccess() throws Exception {
         DynamicSessionEntity session = newMonitoringSession("KRW-XRP");
         openPosition(session.getId(), "KRW-XRP");
         lastSlCheckAt().put(session.getId(), Instant.now().minus(10, ChronoUnit.MINUTES));
@@ -131,8 +140,10 @@ class DynamicTradingSlWatchdogRecoveryTest extends IntegrationTestBase {
 
         dynamicTradingService.warnStaleSlCheck();
 
-        verify(telegramService).sendCustomNotification(
-                argThat(msg -> msg.contains("강제 갱신") && msg.contains("동적#" + session.getId())));
+        // 복구는 실제로 시도된다 — 이걸 안 하면 감시가 빈 채 남는다.
+        verify(upbitRestClient).getTicker("KRW-XRP");
+        // 그러나 사람을 부르지는 않는다.
+        verify(telegramService, never()).sendCustomNotification(any());
     }
 
     @Test
@@ -146,8 +157,9 @@ class DynamicTradingSlWatchdogRecoveryTest extends IntegrationTestBase {
 
         dynamicTradingService.warnStaleSlCheck();
 
+        // 거래소 장애는 기다릴 일이 아니라 첫 주기에 바로 알린다.
         verify(telegramService).sendCustomNotification(
-                argThat(msg -> msg.contains("자동 복구도 실패")));
+                argThat(msg -> msg.contains("REST 강제 갱신도 실패")));
     }
 
     @Test
