@@ -8,27 +8,39 @@
 #   **ONT 하나만** 남아 있다. 워치리스트는 거래량 상위로 계속 돌기 때문에
 #   이 작업은 주기적으로 다시 해야 한다.
 #
-# ■ 09-02 실측 — 워치리스트 20코인 중 WF 가능(H1 2,000행 이상)은 3개뿐
+# ■ 🔴 09-02 최초 진단은 틀렸다 — 테이블을 잘못 봤다
 #
-#     ✅ KRW-BTC 3,180 · KRW-ETH 3,180 · KRW-XRP 2,843
-#     ❌ 나머지 17개는 0~667행
+#   처음에 "워치리스트 20코인 중 WF 가능(H1 2,000행)은 3개뿐"이라고 판단했는데,
+#   그건 **market_data_cache**(실거래 시세 캐시)를 본 것이었다. 백테스트·WF 가 읽는 것은
+#   **candle_data** 다. 두 테이블은 규모가 완전히 다르다:
 #
-#   그 결과 **함대가 실제로 산 12조합 중 10조합이 WF 이력 0건**이다.
-#   FLOCK +617 · DOS −437 · TREE −436/−450 — 전부 미검증 코인에서 나온 손익이다.
-#   09-14 에 "게이트를 켤까"를 판단하려면 이 공백부터 메워야 한다.
+#       candle_data        H1  903,030행 / 52코인   ← WF 가 읽는 백필 저장소
+#       market_data_cache  H1   44,314행 / 65코인   ← 실거래 틱용 캐시(최근 몇 주치)
 #
-# ■ 🔴 중요 — 이 17개는 두 종류가 섞여 있다
+#   candle_data 기준 실제 커버리지는 **19코인 중 12개 WF 가능**이다:
 #
-#   (A) 오래된 코인인데 그냥 수집을 안 한 것 — 수집하면 수년치가 들어온다
-#       KRW-ICX(2018 상장, 현재 H1 0행!) · KRW-CRV(H1 0행) · KRW-UNI(557행)
-#       KRW-ARB · KRW-ONT · KRW-ENA · KRW-ONDO · KRW-TRUMP · KRW-PROM · KRW-SOL
+#     ✅ BTC 40,803 · ETH 40,802 · SOL 40,801 · XRP 40,800 · ONT 40,747 · ICX 40,687
+#        ARB 29,937 · ONDO 19,334 · UNI 16,246 · TRUMP 13,491 · AXL 10,647 · ENA 9,948
 #
-#   (B) 진짜 신규 상장 — 수집해도 거래소에 이력이 없다
-#       KRW-FLOCK · KRW-LA · KRW-ZKC · KRW-MIRA · KRW-0G · KRW-DOS · KRW-AXL · KRW-TREE
+#   → **수집 없이도 60조합(12코인 × 5전략) WF 를 바로 돌릴 수 있다.**
+#      진짜 공백은 캔들이 아니라 WF 실행 이력이다 — ICX·ARB·UNI·AXL 은 캔들이 4만~1만행인데
+#      WF 를 한 번도 안 돌렸다. 데이터가 없어서가 아니라 그냥 안 한 것이다.
 #
-#   (B) 는 수집 후에도 2,000행에 못 미칠 것이다. **그건 실패가 아니라 결론이다** —
-#   "게이트를 켜면 신규 상장 코인은 영구히 못 산다"는 사실이 09-14 결정의 입력값이 된다.
+# ■ 그래서 이 스크립트의 대상은 7코인으로 줄었다
+#
+#   (A) 오래된 코인인데 candle_data 가 비어 있는 것 — 수집하면 채워진다
+#         KRW-CRV   242행 (2026-08-21~)    KRW-PROM  276행 (2026-08-12~)
+#
+#   (B) candle_data 0행 — 신규 상장이라 거래소에 이력이 없을 가능성이 높다
+#         KRW-ZKC · KRW-DOS · KRW-LA · KRW-MIRA · KRW-0G
+#
+#   (B) 가 수집 후에도 2,000행에 못 미치면 **그건 실패가 아니라 결론이다** —
+#   "게이트 ON = 신규 상장 코인 영구 배제"라는 교환을 받아들일지가 09-14 결정의 일부가 된다.
 #   억지로 WF 를 돌리면 얇은 표본이 "통과"로 나와 검증됐다고 착각하게 만든다(08-28 교훈).
+#
+# ■ 곁가지 — M15 는 WF 를 못 돌린다
+#   candle_data 의 M15 는 18코인 / 최신 캔들 03-30 에 멈춰 있다. 그래서 WF 는 H1 로만 돈다.
+#   **M15 세션(81~84 등)은 WF 검증 자체가 불가능**하다는 뜻이고, 이것도 09-14 결정의 입력값이다.
 #
 # ■ 소요 시간
 #   Upbit 공개 API 는 앱 전체가 공유 스로틀(초당 ~9회)로 직렬화된다. H1 4년치면
@@ -49,10 +61,9 @@ TIMEFRAME="H1"
 START_DATE="2022-01-01"          # 거래소에 없으면 상장일부터만 온다
 END_DATE=$(date -u +%Y-%m-%d)
 
-# 09-02 워치리스트 20코인 중 H1 2,000행 미만인 17개
-# (BTC·ETH·XRP 는 이미 충분해서 제외 — 갭 채우기 단계에서 따로 다룬다)
-TARGET_COINS="KRW-ICX KRW-CRV KRW-UNI KRW-ARB KRW-ONT KRW-ENA KRW-ONDO KRW-TRUMP \
-KRW-PROM KRW-SOL KRW-FLOCK KRW-LA KRW-ZKC KRW-MIRA KRW-0G KRW-DOS KRW-AXL"
+# candle_data 기준 2,000행 미만인 7개만. 나머지 12코인은 이미 충분하다.
+# (처음엔 17개였는데, 그건 market_data_cache 를 보고 세운 목록이라 틀렸다 — 위 주석 참조)
+TARGET_COINS="KRW-CRV KRW-PROM KRW-ZKC KRW-DOS KRW-LA KRW-MIRA KRW-0G"
 
 if [ -z "${API_AUTH_TOKEN:-}" ] && [ -f .env ]; then
   API_AUTH_TOKEN=$(grep -E '^API_AUTH_TOKEN=' .env | head -1 | cut -d= -f2- | tr -d '"'"'"'')
@@ -70,6 +81,7 @@ case "$probe" in
 esac
 echo "✓ 인증 확인"
 echo "  기간: $START_DATE ~ $END_DATE ($TIMEFRAME) · 대상 $(echo $TARGET_COINS | wc -w)개"
+echo "  (나머지 12코인은 candle_data 에 이미 충분 — WF 를 먼저 돌려도 된다)"
 
 printf '\n\033[1m▶ 수집 전 현황\033[0m\n'
 echo "$probe" | python3 -c '
@@ -129,18 +141,18 @@ cat <<'NOTE'
   docker compose -f docker-compose.prod.yml logs --since 5m backend | grep -i "collect\|batch" | tail
 
   # 최종 확인 (DB)
+  -- ⚠️ candle_data 를 볼 것. market_data_cache 는 실거래 캐시라 규모가 다르다.
   SELECT coin_pair, count(*) AS h1_rows,
          to_char(min(time),'YYYY-MM-DD') AS first_candle
-  FROM market_data_cache WHERE timeframe='H1'
-    AND coin_pair IN ('KRW-ICX','KRW-CRV','KRW-UNI','KRW-ARB','KRW-ONT','KRW-ENA',
-                      'KRW-ONDO','KRW-TRUMP','KRW-PROM','KRW-SOL','KRW-FLOCK','KRW-LA',
-                      'KRW-ZKC','KRW-MIRA','KRW-0G','KRW-DOS','KRW-AXL')
+  FROM candle_data WHERE timeframe='H1'
+    AND coin_pair IN ('KRW-CRV','KRW-PROM','KRW-ZKC','KRW-DOS','KRW-LA','KRW-MIRA','KRW-0G')
   GROUP BY 1 ORDER BY 2 DESC;
 
-▶ 다음 단계
-  2,000행을 넘긴 코인만 골라 WF 를 돌린다:
+▶ 다음 단계 — 사실 이 수집을 기다릴 필요가 없다
+  candle_data 에 이미 12코인이 준비돼 있으므로 WF 배치는 **지금 바로** 돌려도 된다:
       bash scripts/walk_forward_watchlist_0902.sh
-  그 스크립트가 PRECHECK 에서 자동으로 걸러내므로, 먼저 돌려보고 목록을 확인해도 된다.
+  PRECHECK 가 /data/summary(=candle_data)를 보고 자격 코인을 자동으로 고른다.
+  이 수집이 끝나면 CRV·PROM 이 추가로 합류할 수 있으니 그때 한 번 더 돌리면 된다.
 
 ▶ 2,000행에 못 미치는 코인이 남는다면
   그건 실패가 아니라 **결론**이다 — 거래소에 이력 자체가 없다는 뜻이고,
