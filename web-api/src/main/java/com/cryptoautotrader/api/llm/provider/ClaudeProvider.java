@@ -101,12 +101,26 @@ public class ClaudeProvider implements LlmProvider {
             }
 
             JsonNode json = objectMapper.readTree(response.body());
-            String content = json.at("/content/0/text").asText("");
+            String content = extractText(json);
             int inputTokens = json.at("/usage/input_tokens").asInt(0);
             int outputTokens = json.at("/usage/output_tokens").asInt(0);
+            String stopReason = json.at("/stop_reason").asText("");
 
-            log.debug("[ClaudeProvider] 완료 — model={} inputTokens={} outputTokens={}",
-                    model, inputTokens, outputTokens);
+            // 모델이 토큰을 썼는데 본문이 비었다면 응답을 제대로 못 읽은 것이다.
+            // 이걸 success=true 로 넣어보내면 호출부는 "분석 결과가 없다"를 정상으로 받아들여
+            // 빈 리포트를 발송한다 — 실제로 2026-09-01 이전까지 SIGNAL_ANALYSIS 27건 중 24건이
+            // 그렇게 조용히 비어서 나갔다. 오류로 드러내야 사람이 알아차린다.
+            if (content.isBlank() && outputTokens > 0) {
+                log.error("[ClaudeProvider] 토큰은 생성됐는데 본문을 추출하지 못했다 — "
+                                + "model={} outputTokens={} stopReason={} blockTypes={}",
+                        model, outputTokens, stopReason, blockTypes(json));
+                return LlmResponse.error(PROVIDER_NAME, String.format(
+                        "응답 본문을 추출하지 못했습니다 (outputTokens=%d, stopReason=%s, blocks=%s)",
+                        outputTokens, stopReason, blockTypes(json)));
+            }
+
+            log.debug("[ClaudeProvider] 완료 — model={} inputTokens={} outputTokens={} stopReason={}",
+                    model, inputTokens, outputTokens, stopReason);
 
             return LlmResponse.builder()
                     .success(true)
@@ -121,6 +135,48 @@ public class ClaudeProvider implements LlmProvider {
             log.error("[ClaudeProvider] 요청 실패", e);
             return LlmResponse.error(PROVIDER_NAME, e.getMessage());
         }
+    }
+
+    /**
+     * Messages API 응답에서 본문을 꺼낸다.
+     *
+     * <p><b>2026-09-01 수정</b> — 이전에는 {@code /content/0/text} 를 썼다. 그런데
+     * {@code content} 는 <b>블록 배열</b>이고 첫 블록이 항상 텍스트가 아니다 —
+     * 모델이 생각하면 {@code thinking} 블록이 앞에 붙고, 그러면 {@code /content/0/text} 는
+     * 존재하지 않아 <b>빈 문자열</b>이 된다.</p>
+     *
+     * <p>실측 피해(2026-09-01 운영 DB): 출력이 길수록 빈 응답이 많았다 —
+     * LOG_SUMMARY(평균 315토큰) 28건 중 0건, REPORT_NARRATION(724) 20건 중 11건,
+     * <b>SIGNAL_ANALYSIS(977) 27건 중 24건</b>이 본문 없이 저장됐다. 12시간 리포트의
+     * AI 분석 섹션이 몇 주간 조용히 비어 있었다.</p>
+     *
+     * <p>이제 <b>모든 {@code type=="text"} 블록을 순서대로 이어 붙인다</b>.
+     * 텍스트가 여러 블록으로 쪼개져 오는 경우까지 함께 처리된다.</p>
+     */
+    static String extractText(JsonNode json) {
+        JsonNode content = json.path("content");
+        if (!content.isArray()) return "";
+        StringBuilder sb = new StringBuilder();
+        for (JsonNode block : content) {
+            if (!"text".equals(block.path("type").asText())) continue;   // thinking/tool_use 등은 건너뛴다
+            String text = block.path("text").asText("");
+            if (text.isEmpty()) continue;
+            if (sb.length() > 0) sb.append("\n");
+            sb.append(text);
+        }
+        return sb.toString().trim();
+    }
+
+    /** 본문 추출 실패 진단용 — 응답에 어떤 블록이 들어 있었는지 남긴다. */
+    private static String blockTypes(JsonNode json) {
+        JsonNode content = json.path("content");
+        if (!content.isArray()) return "(content 배열 아님)";
+        StringBuilder sb = new StringBuilder();
+        for (JsonNode block : content) {
+            if (sb.length() > 0) sb.append(',');
+            sb.append(block.path("type").asText("?"));
+        }
+        return sb.length() == 0 ? "(빈 배열)" : sb.toString();
     }
 
     @Override
