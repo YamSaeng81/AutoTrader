@@ -2,24 +2,29 @@
 #
 # WF 커버리지 확장 — 09-02 워치리스트 기준 (2026-09-02)
 # ─────────────────────────────────────────────────────────────────────────────
-# ■ 선행 조건 — 반드시 먼저 확인할 것
+# ■ 선행 조건 — 사실 없다 (2026-09-02 정정)
 #
-#   bash scripts/collect_watchlist_candles_0902.sh   가 끝나 있어야 한다.
-#   WF 는 market_data_cache 를 읽는데, 09-02 실측에서 워치리스트 20코인 중
-#   H1 2,000행 이상은 **BTC·ETH·XRP 3개뿐**이었다. 수집 없이 돌리면 조합이 통째로
-#   실패하거나, 더 나쁘게는 **얇은 표본이 "통과"로 나온다**(08-28 교훈).
+#   처음엔 "collect_watchlist_candles_0902.sh 가 끝나 있어야 한다"고 적었는데,
+#   그건 **market_data_cache**(실거래 시세 캐시)를 보고 세운 판단이었다.
+#   WF 가 읽는 것은 **candle_data** 이고, 거기엔 이미 12코인이 준비돼 있었다.
 #
-# ■ 왜 지금 해야 하나 — 09-14 결정의 유일한 입력값이다
+#       candle_data        H1  903,030행 / 52코인   ← WF 가 읽는다
+#       market_data_cache  H1   44,314행 / 65코인   ← 실거래 틱용, 최근 몇 주치
 #
-#   09-14 에 "WF 게이트를 켤까"를 판단해야 한다. 그런데 09-02 현재:
+#   PRECHECK 는 /data/summary(=candle_data)를 보므로 처음부터 옳았다.
+#   **수집을 기다리지 말고 그냥 돌리면 된다** — 자격 코인은 알아서 골라진다.
 #
-#     워치리스트 20코인 중 WF 이력 0건 : 11개
-#     이력은 있으나 통과 0             :  6개 (ONT·TRUMP·XRP·PROM·ETH·SOL)
-#     통과 있음                        :  3개 (BTC 7 · ENA 2 · ONDO 2)
+# ■ 왜 해야 하나 — 09-14 결정의 유일한 입력값이다
 #
-#   이대로 게이트를 켜면 **20코인 중 3개만 거래**하게 된다. 08-31 에 켰다가
-#   함대가 얼어붙은 상황이 그대로 재현된다. 지금 커버리지를 넓히지 않으면
-#   09-14 에 "데이터가 없어서 결정 못 함"이 된다.
+#   09-14 에 "WF 게이트를 켤까"를 판단해야 한다. 09-02 현재 진짜 공백은
+#   캔들이 아니라 **WF 실행 이력**이다:
+#
+#     ICX  40,687행 · ARB 29,937 · UNI 16,246 · AXL 10,647
+#       → 캔들이 충분한데 WF 를 한 번도 안 돌렸다. 데이터가 없어서가 아니라 안 한 것이다.
+#
+#     워치리스트 중 통과가 있는 코인은 BTC·ENA·ONDO 3개뿐이고,
+#     **함대가 실제로 산 12조합 중 10조합이 WF 이력 0건**이다.
+#     이대로 게이트를 켜면 08-31 에 함대가 얼어붙은 상황이 재현된다.
 #
 # ■ 이 배치의 목적은 "통과시키기"가 아니다
 #   FAIL 이 많이 나와도 그 자체가 결과다. 지금 함대는 **실제로 산 12조합 중 10조합이
@@ -33,6 +38,7 @@
 # 사용법: 운영 서버에서 (리포 루트에서) 실행
 #   bash scripts/walk_forward_watchlist_0902.sh
 #   bash scripts/walk_forward_watchlist_0902.sh --force   # 데이터 부족해도 강행(비권장)
+#   bash scripts/walk_forward_watchlist_0902.sh KRW-ZKC KRW-LA KRW-0G KRW-MIRA   # 일부만
 
 set -uo pipefail
 
@@ -41,9 +47,33 @@ TODAY=$(date -u +%Y-%m-%d)
 MIN_ROWS=2000
 
 # 09-02 워치리스트 전체(20). PRECHECK 가 2,000행 미만을 자동으로 걸러낸다.
-CANDIDATES="KRW-BTC KRW-ETH KRW-XRP KRW-SOL KRW-ICX KRW-CRV KRW-UNI KRW-ARB KRW-ONT \
+#
+# 일부만 돌리려면 인자로 코인을 넘긴다 — 이미 끝난 조합을 다시 돌리지 않아도 된다:
+#   bash scripts/walk_forward_watchlist_0902.sh KRW-ZKC KRW-LA KRW-0G KRW-MIRA
+#
+# (09-02 캔들 수집으로 저 4코인이 새로 자격을 얻었다 — 8,000행대, 2025-09 상장.
+#  "신규 상장이라 이력이 없다"던 최초 예상이 틀렸다. market_data_cache 에 500행뿐이었던
+#  것은 그 테이블이 최근 몇 주만 들고 있기 때문이지 거래소에 이력이 없어서가 아니었다.)
+DEFAULT_CANDIDATES="KRW-BTC KRW-ETH KRW-XRP KRW-SOL KRW-ICX KRW-CRV KRW-UNI KRW-ARB KRW-ONT \
 KRW-ENA KRW-ONDO KRW-TRUMP KRW-PROM KRW-FLOCK KRW-LA KRW-ZKC KRW-MIRA KRW-0G \
 KRW-DOS KRW-AXL"
+
+# --force 는 플래그라 코인 목록에서 분리한다.
+ARGS=""
+FORCE=""
+for a in "$@"; do
+  case "$a" in
+    --force) FORCE="--force" ;;
+    KRW-*)   ARGS="$ARGS $a" ;;
+    *)       echo "⚠️  무시된 인자: $a" ;;
+  esac
+done
+if [ -n "$ARGS" ]; then
+  CANDIDATES="$ARGS"
+  echo "▶ 지정된 코인만 대상으로 삼습니다:$CANDIDATES"
+else
+  CANDIDATES="$DEFAULT_CANDIDATES"
+fi
 
 STRATEGIES='["COMPOSITE_MEANREV_BB","COMPOSITE_MOMENTUM_ICHIMOKU","COMPOSITE_MOMENTUM_ICHIMOKU_V2",
 "COMPOSITE_MTF_BTC","COMPOSITE_MTF_CONFIRMED"]'
@@ -101,7 +131,7 @@ if [ -z "$ELIGIBLE" ]; then
 fi
 
 ELIGIBLE_COUNT=$(echo $ELIGIBLE | wc -w)
-if [ "$ELIGIBLE_COUNT" -lt 6 ] && [ "${1:-}" != "--force" ]; then
+if [ "$ELIGIBLE_COUNT" -lt 6 ] && [ -z "$FORCE" ] && [ -z "$ARGS" ]; then
   echo
   echo "  ⚠️  대상이 $ELIGIBLE_COUNT 코인뿐입니다. 캔들 수집이 아직 안 끝났을 수 있습니다."
   if [ ! -t 0 ]; then
@@ -161,7 +191,9 @@ cat <<'NOTE'
 
 ▶ 09-14 에 이 결과로 답해야 할 질문
   · 통과 조합이 워치리스트를 몇 % 덮는가 — 게이트를 켰을 때 거래가 유지되는가
-  · 신규 상장 코인(FLOCK·LA·ZKC·MIRA·0G·DOS·AXL·TREE)은 검증 자체가 불가능한가
-    → 그렇다면 "게이트 ON = 신규 상장 영구 배제"이고, 그 교환을 받아들일지가 결정이다
+  · 정말 검증 불가능한 코인은 어디까지인가 — 09-02 수집 결과 ZKC·LA·0G·MIRA 는
+    8,000행대로 자격을 얻었고, 남은 것은 DOS(512) · PROM(492) · CRV(266) 뿐이다.
+    전부 2026-08 상장이라 이력이 정말 없다.
+    → "게이트 ON = 최근 3주 내 상장 코인 배제"이고, 그 교환을 받아들일지가 결정이다
   · 함대가 실제로 산 조합이 통과 목록에 있는가 — 없다면 지금 쌓는 표본의 성격이 달라진다
 NOTE
