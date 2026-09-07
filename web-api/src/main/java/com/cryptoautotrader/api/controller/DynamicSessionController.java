@@ -326,8 +326,9 @@ public class DynamicSessionController {
         m.put("realizedPnl",      pos.getRealizedPnl());
         m.put("unrealizedPnl",    pos.getUnrealizedPnl());
 
-        // 수수료 3종 — positionFee 컬럼은 청산 시 매도 수수료로 덮어써지므로(총합이 아니다)
-        // 화면에 그대로 내보내면 매수 수수료가 사라진 것처럼 보인다. 여기서 양쪽을 각각 환산한다.
+        // 수수료 3종 — entryFee/exitFee 는 컬럼에 기대지 않고 각각 재환산한다.
+        // (2026-09-07 이전 청산 행은 positionFee 가 매도분만 담고 있어 컬럼을 그대로 쓰면
+        //  매수 수수료가 사라진 것처럼 보인다. 이후 행은 왕복 총액이다.)
         m.put("entryFee",         entryFee);
         m.put("exitFee",          exitFee);
         m.put("totalFee",         entryFee.add(exitFee));
@@ -371,8 +372,11 @@ public class DynamicSessionController {
     private BigDecimal exitFeeOf(PositionEntity pos, BigDecimal exitPrice) {
         if (!"CLOSED".equals(pos.getStatus())) return BigDecimal.ZERO;
         if (exitPrice == null || pos.getSize() == null) {
-            // 매도 주문을 못 찾은 경우 — positionFee 컬럼이 청산 시 매도 수수료로 덮어써지므로 그것을 쓴다.
-            return pos.getPositionFee() != null ? pos.getPositionFee() : BigDecimal.ZERO;
+            // 매도 주문을 못 찾은 드문 경우만 컬럼으로 폴백한다.
+            // 2026-09-07부터 positionFee 는 매수+매도 왕복 총액이라 매수분을 빼야 매도분이 된다.
+            // 그 이전 행은 매도분만 담고 있어 이 뺄셈이 과소평가지만, 0으로 바닥을 깔아 음수는 막는다.
+            BigDecimal recorded = pos.getPositionFee() != null ? pos.getPositionFee() : BigDecimal.ZERO;
+            return recorded.subtract(entryFeeOf(pos)).max(BigDecimal.ZERO);
         }
         return pos.getSize().multiply(exitPrice).multiply(FEE_RATE).setScale(2, RoundingMode.HALF_UP);
     }

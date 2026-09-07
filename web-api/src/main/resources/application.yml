@@ -69,6 +69,24 @@ db-reset:
 strategy-validation:
   require-walk-forward-gate: ${REQUIRE_WALK_FORWARD_GATE:false}
 
+# ── 통제된 전략 비교를 위한 설정 (2026-09-07) ────────────────────────────────
+# 운영 DB 실측: 세션마다 워치리스트를 각자의 시계로 만들고 있어 같은 전략끼리도 서로 다른
+# 코인을 봤다. 코인·시각을 통제하니 전략 순위가 무너졌다 —
+# MTF_CONFIRMED 24h 사후수익 -1.25% → -0.16%, MTF_BTC -0.48% → +1.21%(부호 반전).
+# 근거 상세는 SharedUniverseService 및 docs/PROGRESS.md 2026-09-07 항목 참조.
+trading:
+  shared-universe:
+    # 전 세션이 같은 종목 유니버스를 본다. false 면 세션별 워치리스트(이전 동작)로 복귀.
+    enabled: ${SHARED_UNIVERSE_ENABLED:true}
+    # 유니버스 구성 타임프레임을 강제한다. 비우면 타임프레임별로 1개씩(H1/M15) 생겨
+    # 타임프레임 간 비교는 여전히 교란된다. 값을 주면 함대 전체가 단일 유니버스가 된다.
+    force-timeframe: ${SHARED_UNIVERSE_TIMEFRAME:H1}
+  strategy-signal-exit:
+    # 전략 SELL 청산. 기본 off — DYN_PAPER 청산 335건 중 이 경로 110건이 -10,298원으로
+    # 적자 전액을 차지했고, 빼면 나머지 합이 +2,609원이다. TP/SL/TIME_STOP 만 사용한다.
+    # 신호 자체는 계속 기록되므로(blocked_reason) 반사실 측정은 유지된다.
+    enabled: ${STRATEGY_SIGNAL_EXIT_ENABLED:false}
+
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
 

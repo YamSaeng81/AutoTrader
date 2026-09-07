@@ -85,7 +85,60 @@ public interface StrategyLogRepository extends JpaRepository<StrategyLogEntity, 
     List<StrategyLogEntity> findEvaluatedSignalsBySessionType(
             @Param("sessionType") String sessionType, @Param("from") Instant from);
 
-    // ── 필터 차단(HOLD) 집계용 — forward return 없음(반사실), 건수만 사용 ──────────
+    // ── HOLD 기준선(대조군) 백필용 ────────────────────────────────────────────
+    //
+    // 2026-09-07: 사후수익 백필이 BUY/SELL 에만 돌아 HOLD 74,462건(DYN_PAPER)이 전부 미평가였다.
+    // 대조군이 없으면 "BUY 신호 사후 -1.25%" 가 신호가 나쁜 건지 그 시기 그 코인이 빠진 건지
+    // 구분할 수 없다 — 코인·시각을 통제하니 실제로 -1.25% → -0.16% 로 바뀌었고 전략 순위가
+    // 통째로 뒤집혔다(MTF_BTC -0.48% → +1.21%). 그 통제군을 상시 확보하기 위한 경로다.
+    //
+    // <b>(코인, 정시) 당 1건만 평가한다</b>: 같은 코인·같은 1시간의 HOLD 는 signal_price 가
+    // 사실상 같아 사후수익이 동일하다. 전량(74,462건)을 부르면 Upbit 호출만 10배 낭비된다
+    // (distinct coin-hour = 7,658건). NOT EXISTS 로 <b>이미 평가된 시간대를 통째로 제외</b>하는
+    // 것이 핵심이다 — 이게 없으면 대표 1건이 평가되는 순간 같은 시간대의 다음 행이 새 대표가
+    // 되어 결국 74,462건을 전부 부른다.
+    @Query(value = """
+            SELECT DISTINCT ON (l.coin_pair, date_trunc('hour', l.created_at)) l.*
+            FROM strategy_log l
+            WHERE l.signal = 'HOLD'
+              AND l.created_at < :cutoff
+              AND l.signal_price IS NOT NULL
+              AND l.price_after_4h IS NULL
+              AND NOT EXISTS (
+                    SELECT 1 FROM strategy_log e
+                    WHERE e.signal = 'HOLD'
+                      AND e.coin_pair = l.coin_pair
+                      AND e.created_at >= date_trunc('hour', l.created_at)
+                      AND e.created_at <  date_trunc('hour', l.created_at) + interval '1 hour'
+                      AND e.price_after_4h IS NOT NULL)
+            ORDER BY l.coin_pair, date_trunc('hour', l.created_at), l.created_at
+            LIMIT :limit
+            """, nativeQuery = true)
+    List<StrategyLogEntity> findPendingHoldFor4hEval(@Param("cutoff") Instant cutoff,
+                                                     @Param("limit") int limit);
+
+    /** 24h 판. 4h 판과 동일 규칙 — price_after_24h 기준. */
+    @Query(value = """
+            SELECT DISTINCT ON (l.coin_pair, date_trunc('hour', l.created_at)) l.*
+            FROM strategy_log l
+            WHERE l.signal = 'HOLD'
+              AND l.created_at < :cutoff
+              AND l.signal_price IS NOT NULL
+              AND l.price_after_24h IS NULL
+              AND NOT EXISTS (
+                    SELECT 1 FROM strategy_log e
+                    WHERE e.signal = 'HOLD'
+                      AND e.coin_pair = l.coin_pair
+                      AND e.created_at >= date_trunc('hour', l.created_at)
+                      AND e.created_at <  date_trunc('hour', l.created_at) + interval '1 hour'
+                      AND e.price_after_24h IS NOT NULL)
+            ORDER BY l.coin_pair, date_trunc('hour', l.created_at), l.created_at
+            LIMIT :limit
+            """, nativeQuery = true)
+    List<StrategyLogEntity> findPendingHoldFor24hEval(@Param("cutoff") Instant cutoff,
+                                                      @Param("limit") int limit);
+
+    // ── 필터 차단(HOLD) 집계용 — 건수만 사용 ────────────────────────────────────
     @Query("SELECT l FROM StrategyLogEntity l WHERE l.signal = 'HOLD' AND l.createdAt >= :from")
     List<StrategyLogEntity> findHoldLogsSince(@Param("from") Instant from);
 

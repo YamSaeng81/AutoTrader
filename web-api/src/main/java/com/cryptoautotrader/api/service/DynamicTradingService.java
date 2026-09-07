@@ -256,6 +256,14 @@ public class DynamicTradingService {
     private final PositionRepository positionRepository;
     private final OrderRepository orderRepository;
     private final WatchlistFilterService watchlistFilterService;
+    private final SharedUniverseService sharedUniverseService;
+
+    /**
+     * 전략 SELL 청산 사용 여부. 기본 false — 근거는 processMonitoringTick 의 차단 지점 주석 참조.
+     * {@code trading.strategy-signal-exit.enabled: true} 한 줄로 되돌린다.
+     */
+    @org.springframework.beans.factory.annotation.Value("${trading.strategy-signal-exit.enabled:false}")
+    private boolean strategySignalExitEnabled;
     private final OrderExecutionEngine orderExecutionEngine;
     private final TelegramNotificationService telegramService;
     private final RulesetRegistry rulesetRegistry;
@@ -372,6 +380,7 @@ public class DynamicTradingService {
                                   PositionRepository positionRepository,
                                   OrderRepository orderRepository,
                                   WatchlistFilterService watchlistFilterService,
+                                  SharedUniverseService sharedUniverseService,
                                   OrderExecutionEngine orderExecutionEngine,
                                   TelegramNotificationService telegramService,
                                   RulesetRegistry rulesetRegistry,
@@ -389,6 +398,7 @@ public class DynamicTradingService {
         this.positionRepository   = positionRepository;
         this.orderRepository      = orderRepository;
         this.watchlistFilterService = watchlistFilterService;
+        this.sharedUniverseService = sharedUniverseService;
         this.orderExecutionEngine = orderExecutionEngine;
         this.telegramService      = telegramService;
         this.rulesetRegistry      = rulesetRegistry;
@@ -1220,6 +1230,23 @@ public class DynamicTradingService {
         StrategyLogEntity signalLog = saveStrategyLog(session, session.getStrategyType(), coinPair, signal, currentPrice, evalCandles);
 
         if (signal.getAction() == StrategySignal.Action.SELL) {
+            // 전략 SELL 청산 차단 — 2026-09-07 운영 DB 실측 기반 기본 OFF.
+            //
+            // DYN_PAPER 청산 335건을 사유별로 가르면 TP(+39,924)와 SL(−38,973)이 거의 상쇄되고,
+            // <b>적자 전액이 STRATEGY_SIGNAL 청산 110건(−10,298, 평균 −1.15%)</b>에서 나온다.
+            // 같은 거래 모집단 안에서 청산 방식만 다른 비교라 코인 선정 편차가 양쪽에 똑같이
+            // 걸린다 — 유니버스 교란과 무관하게 성립하는 몇 안 되는 비교다. 그냥 24시간 기다린
+            // TIME_STOP 66건은 +0.28% 였고, 이 경로를 빼면 나머지 합이 +2,609원이 된다.
+            //
+            // <b>기록은 계속 남긴다</b>: 신호 자체는 saveStrategyLog 로 이미 저장됐고 여기서
+            // blocked_reason 만 붙인다. 차단하지 않았다면 어떻게 됐을지(반사실)를 사후수익으로
+            // 계속 측정할 수 있어야 이 결정을 나중에 뒤집을 근거가 생긴다.
+            if (!strategySignalExitEnabled) {
+                updateSignalQuality(signalLog, false,
+                        String.format("전략 SELL 청산 비활성화 (pnl=%s%%) — TP/SL/TIME_STOP 만 사용", pnlPct));
+                return;
+            }
+
             long heldMin = pos.getOpenedAt() != null
                     ? Duration.between(pos.getOpenedAt(), Instant.now()).toMinutes() : Long.MAX_VALUE;
             if (heldMin < MIN_HOLD_MINUTES) {
@@ -1488,6 +1515,12 @@ public class DynamicTradingService {
                 .price(fillPrice)
                 .quantity(investAmount)
                 .filledQuantity(quantity)
+                // executedFunds 를 명시한다 — 2026-09-07.
+                // quantity 는 시장가 매수에서만 KRW 총액이고 그 외엔 코인 수량이라(Upbit price
+                // 타입 제약) 읽는 쪽이 side/orderType 을 보고 단위를 되짚어야 했다. 페이퍼 주문은
+                // 거래소 응답이 없어 이 컬럼이 전 행 NULL 이었고, OrderAmounts.krwAmount() 가
+                // 매번 폴백 분기를 타야 했다. 실체결 KRW 를 있는 그대로 남긴다.
+                .executedFunds(investAmount)
                 .state("FILLED")
                 .exchangeOrderId("PAPER-DYNAMIC-" + pos.getId())
                 .signalReason("동적 세션 BUY(PAPER) — " + signal.getReason())
@@ -1636,6 +1669,8 @@ public class DynamicTradingService {
                 .price(fillPrice)
                 .quantity(pos.getSize())
                 .filledQuantity(pos.getSize())
+                // 매도 대금(수수료 차감 전) — 매수 쪽과 같은 이유로 명시한다.
+                .executedFunds(pos.getSize().multiply(fillPrice))
                 .state("FILLED")
                 .exchangeOrderId("PAPER-DYNAMIC-SELL-" + pos.getId())
                 .signalReason(reason)
@@ -1675,6 +1710,14 @@ public class DynamicTradingService {
 
     @Transactional
     public List<String> resolveWatchlist(DynamicSessionEntity session) {
+        // 공용 유니버스가 켜져 있으면 세션별 갱신 시계를 타지 않는다 — 세션마다 다른 시각에
+        // 갱신하면 같은 전략끼리도 서로 다른 코인을 보게 되어 성적 비교가 성립하지 않는다.
+        // 캐싱은 SharedUniverseService 의 벽시계 버킷이 담당한다. 세션의 watchlistJson 은
+        // 화면·감사용으로 계속 기록한다. 자세한 근거는 SharedUniverseService 참조.
+        if (sharedUniverseService.isEnabled()) {
+            return resolveSharedWatchlist(session);
+        }
+
         boolean needsRefresh = session.getWatchlistRefreshedAt() == null
                 || Duration.between(session.getWatchlistRefreshedAt(), Instant.now()).toMinutes()
                         >= session.getWatchlistRefreshMin();
@@ -1688,17 +1731,7 @@ public class DynamicTradingService {
         // 품질 큐레이션 기준 — risk_config override 우선, NULL이면 코드 기본값. 원시 유니버스
         // (거래대금 상위)를 유동성·변동성 상한·상승추세·비급락으로 걸러 진입 게이트와 상쇄되는
         // 잡코인을 앞단에서 배제한다 (2026-07-24). WatchlistQualityGate 참조.
-        com.cryptoautotrader.api.entity.RiskConfigEntity riskConfig = riskManagementService.getRiskConfig();
-        BigDecimal minTradeValueKrw = riskConfig.getScanMinTradeValueKrw() != null
-                ? riskConfig.getScanMinTradeValueKrw() : SCAN_MIN_TRADE_VALUE_KRW;
-        BigDecimal maxAtrPct = riskConfig.getScanMaxAtrPct() != null
-                ? riskConfig.getScanMaxAtrPct() : SCAN_MAX_ATR_PCT;
-        boolean requireUptrend = riskConfig.getScanRequireUptrend() != null
-                ? riskConfig.getScanRequireUptrend() : SCAN_REQUIRE_UPTREND;
-        boolean excludeCrashing = riskConfig.getScanExcludeCrashing() != null
-                ? riskConfig.getScanExcludeCrashing() : SCAN_EXCLUDE_CRASHING;
-        WatchlistFilterService.QualityCriteria criteria = new WatchlistFilterService.QualityCriteria(
-                minTradeValueKrw, maxAtrPct, requireUptrend, excludeCrashing);
+        WatchlistFilterService.QualityCriteria criteria = buildQualityCriteria();
 
         List<String> fresh = watchlistFilterService.buildWatchlist(
                 session.getMaxCandidateSize(),
@@ -1718,6 +1751,64 @@ public class DynamicTradingService {
         }
 
         return fresh;
+    }
+
+    /** 공용 유니버스 경로 — 유니버스는 SharedUniverseService 가, 세션 기록은 여기가 맡는다. */
+    private List<String> resolveSharedWatchlist(DynamicSessionEntity session) {
+        List<String> fresh = sharedUniverseService.resolve(
+                session.getMaxCandidateSize(),
+                session.getTargetWatchSize(),
+                session.getMinAtrPct(),
+                session.getMaxSpreadPct(),
+                session.getTimeframe(),
+                session.getWatchlistRefreshMin(),
+                buildQualityCriteria());
+
+        if (fresh.isEmpty()) {
+            // 구성 실패(Upbit 일시 장애 등) — 직전에 쓰던 목록으로 버틴다. 빈 목록을 그대로
+            // 돌려주면 그 tick 의 스캔이 통째로 비어 진입 기회를 놓친다.
+            List<String> cached = session.getWatchlistJson() != null
+                    ? parseWatchlistJson(session.getWatchlistJson()) : List.of();
+            if (!cached.isEmpty()) {
+                log.warn("[Dynamic] 공용 유니버스 비어 있음 — 직전 목록 유지 (id={}, {}종목)",
+                        session.getId(), cached.size());
+            }
+            return cached;
+        }
+
+        // 내용이 그대로면 쓰지 않는다 — 세션 14개가 매 tick 같은 값을 다시 쓰면 @Version 충돌만 는다.
+        String freshJson;
+        try {
+            freshJson = objectMapper.writeValueAsString(fresh);
+        } catch (Exception e) {
+            return fresh;
+        }
+        if (!freshJson.equals(session.getWatchlistJson())) {
+            try {
+                DynamicSessionEntity toUpdate = getOrThrow(session.getId());
+                toUpdate.setWatchlistJson(freshJson);
+                toUpdate.setWatchlistRefreshedAt(Instant.now());
+                dynamicSessionRepo.save(toUpdate);
+            } catch (Exception e) {
+                log.warn("[Dynamic] 워치리스트 저장 실패: {}", e.getMessage());
+            }
+        }
+        return fresh;
+    }
+
+    /** risk_config override 우선, NULL 이면 코드 기본값. 세션별 경로·공용 경로가 함께 쓴다. */
+    private WatchlistFilterService.QualityCriteria buildQualityCriteria() {
+        com.cryptoautotrader.api.entity.RiskConfigEntity riskConfig = riskManagementService.getRiskConfig();
+        BigDecimal minTradeValueKrw = riskConfig.getScanMinTradeValueKrw() != null
+                ? riskConfig.getScanMinTradeValueKrw() : SCAN_MIN_TRADE_VALUE_KRW;
+        BigDecimal maxAtrPct = riskConfig.getScanMaxAtrPct() != null
+                ? riskConfig.getScanMaxAtrPct() : SCAN_MAX_ATR_PCT;
+        boolean requireUptrend = riskConfig.getScanRequireUptrend() != null
+                ? riskConfig.getScanRequireUptrend() : SCAN_REQUIRE_UPTREND;
+        boolean excludeCrashing = riskConfig.getScanExcludeCrashing() != null
+                ? riskConfig.getScanExcludeCrashing() : SCAN_EXCLUDE_CRASHING;
+        return new WatchlistFilterService.QualityCriteria(
+                minTradeValueKrw, maxAtrPct, requireUptrend, excludeCrashing);
     }
 
     private List<String> parseWatchlistJson(String json) {
@@ -2176,7 +2267,11 @@ public class DynamicTradingService {
             pos.setClosingAt(null);
         } else {
             pos.setRealizedPnl(realizedPnl);
-            pos.setPositionFee(fee);
+            // 2026-09-07: set → add. 여기서 덮어쓰면 매수 시 기록한 수수료가 사라져
+            // position_fee 가 <b>매도분만</b> 담게 된다(운영 DB 실측: DYN_PAPER 청산 335건의
+            // position_fee 가 전부 매도대금×0.05% 였다). 실현손익은 매수 수수료가 avgPrice 에
+            // 녹아 있어 정확했지만, 컬럼을 왕복 총액으로 읽는 쪽은 전부 절반으로 봤다.
+            pos.setPositionFee(pos.getPositionFee().add(fee));
             pos.setUnrealizedPnl(BigDecimal.ZERO);
             pos.setStatus("CLOSED");
             pos.setClosedAt(Instant.now());

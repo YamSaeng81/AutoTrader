@@ -41,6 +41,12 @@ public class SignalQualityService {
     private static final int BATCH_SIZE    = 100;
     /** 스케줄러 1회 실행 당 최대 처리 건수 (Upbit API 부하 방지) */
     private static final int MAX_PER_RUN   = 500;
+    /**
+     * HOLD 기준선 1회 실행 예산 — BUY/SELL 예산과 <b>분리</b>한다.
+     * 미평가 HOLD 가 7,658건(coin-hour) 쌓여 있어 같은 예산을 쓰면 신호 평가가 굶는다.
+     * 신호 평가가 항상 우선이고 기준선은 남는 호출로 천천히 따라잡는다.
+     */
+    private static final int MAX_HOLD_PER_RUN = 200;
 
     private final StrategyLogRepository strategyLogRepository;
     private final UpbitRestClient upbitRestClient;
@@ -58,6 +64,12 @@ public class SignalQualityService {
         if (processed4h > 0 || processed24h > 0) {
             log.info("[SignalQuality] 정기 평가 완료 — 4h: {}건, 24h: {}건", processed4h, processed24h);
         }
+        // 신호 평가 이후에 돌린다 — 기준선이 신호 평가를 밀어내면 안 된다.
+        int hold4h  = evaluateHoldBaselineLoop(true,  MAX_HOLD_PER_RUN);
+        int hold24h = evaluateHoldBaselineLoop(false, MAX_HOLD_PER_RUN);
+        if (hold4h > 0 || hold24h > 0) {
+            log.info("[SignalQuality] HOLD 기준선 평가 — 4h: {}건, 24h: {}건", hold4h, hold24h);
+        }
     }
 
     // ── 시작 Catchup ──────────────────────────────────────────────────────────
@@ -72,7 +84,13 @@ public class SignalQualityService {
         log.info("[SignalQuality] 시작 Catchup 시작");
         int total4h  = evaluateLoop(true,  Integer.MAX_VALUE);
         int total24h = evaluateLoop(false, Integer.MAX_VALUE);
-        log.info("[SignalQuality] 시작 Catchup 완료 — 4h: {}건, 24h: {}건", total4h, total24h);
+        // HOLD 기준선은 catchup 에서도 예산을 건다 — 백로그가 7,658 coin-hour 라
+        // Integer.MAX_VALUE 로 열면 재시작 때마다 Upbit 로 수천 콜이 한 번에 나간다.
+        // 30분 주기로 200건씩 따라잡으면 약 2일이면 소진된다.
+        int hold4h  = evaluateHoldBaselineLoop(true,  MAX_HOLD_PER_RUN);
+        int hold24h = evaluateHoldBaselineLoop(false, MAX_HOLD_PER_RUN);
+        log.info("[SignalQuality] 시작 Catchup 완료 — 4h: {}건, 24h: {}건 (HOLD 기준선 {}/{}건)",
+                total4h, total24h, hold4h, hold24h);
     }
 
     // ── 공통 평가 루프 ────────────────────────────────────────────────────────
@@ -162,13 +180,70 @@ public class SignalQualityService {
     }
 
     /**
+     * HOLD 기준선 평가 루프 — (코인, 정시) 당 1건만 평가해 대조군을 만든다.
+     *
+     * <p>신호 평가 루프({@link #evaluateLoop})와 분리한 이유: 저쪽은 "평가 안 된 행"을 페이지로
+     * 훑지만, HOLD 는 같은 시간대에 수십 행이 중복되므로 그 방식이면 같은 값을 수십 번 조회한다.
+     * 이쪽은 리포지토리가 DISTINCT ON + NOT EXISTS 로 시간대 단위 중복을 걷어낸 뒤 넘겨준다.</p>
+     */
+    @Transactional
+    public int evaluateHoldBaselineLoop(boolean is4h, int maxTotal) {
+        long hours = is4h ? 4 : 24;
+        Instant cutoff = Instant.now().minus(hours, ChronoUnit.HOURS);
+        int processed = 0;
+
+        while (processed < maxTotal) {
+            int remaining = Math.min(BATCH_SIZE, maxTotal - processed);
+            List<StrategyLogEntity> pending = is4h
+                    ? strategyLogRepository.findPendingHoldFor4hEval(cutoff,  remaining)
+                    : strategyLogRepository.findPendingHoldFor24hEval(cutoff, remaining);
+            if (pending.isEmpty()) break;
+
+            List<StrategyLogEntity> toSave = new ArrayList<>();
+            for (StrategyLogEntity entry : pending) {
+                try {
+                    Instant targetTime = entry.getCreatedAt().plus(hours, ChronoUnit.HOURS);
+                    BigDecimal price = fetchClosePrice(entry.getCoinPair(), targetTime);
+                    if (price == null) continue;
+                    BigDecimal ret = calcReturn(entry.getSignal(), entry.getSignalPrice(), price);
+                    if (is4h) {
+                        entry.setPriceAfter4h(price);
+                        entry.setReturn4hPct(ret);
+                    } else {
+                        entry.setPriceAfter24h(price);
+                        entry.setReturn24hPct(ret);
+                    }
+                    toSave.add(entry);
+                    processed++;
+                } catch (Exception e) {
+                    log.warn("[SignalQuality] HOLD {}h 기준선 평가 실패 (id={}): {}",
+                            hours, entry.getId(), e.getMessage());
+                }
+            }
+            if (!toSave.isEmpty()) strategyLogRepository.saveAll(toSave);
+
+            // 전량 실패(상장폐지 코인 등)면 다음 조회도 같은 행을 돌려주므로 무한 루프가 된다.
+            // 진전이 없으면 이번 실행은 접고 다음 주기에 다시 시도한다.
+            if (toSave.isEmpty()) break;
+
+            try { Thread.sleep(100); } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+        return processed;
+    }
+
+    /**
      * 신호 방향 기준 수익률 계산 (%)
      * BUY:  (afterPrice - signalPrice) / signalPrice × 100  → 상승이 양수
      * SELL: (signalPrice - afterPrice) / signalPrice × 100  → 하락이 양수
+     * HOLD: BUY 와 <b>같은 롱 방향</b> — 기준선이므로 BUY 와 직접 뺄셈이 되어야 한다.
+     *       (SELL 방향으로 계산하면 부호가 뒤집혀 대조군 구실을 못 한다.)
      */
     private BigDecimal calcReturn(String signal, BigDecimal signalPrice, BigDecimal afterPrice) {
         if (signalPrice == null || signalPrice.compareTo(BigDecimal.ZERO) == 0) return null;
-        BigDecimal delta = "BUY".equals(signal)
+        BigDecimal delta = ("BUY".equals(signal) || "HOLD".equals(signal))
                 ? afterPrice.subtract(signalPrice)
                 : signalPrice.subtract(afterPrice);
         return delta.divide(signalPrice, 6, RoundingMode.HALF_UP)
