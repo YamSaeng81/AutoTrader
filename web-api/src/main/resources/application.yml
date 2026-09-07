@@ -81,6 +81,10 @@ trading:
     # 유니버스 구성 타임프레임을 강제한다. 비우면 타임프레임별로 1개씩(H1/M15) 생겨
     # 타임프레임 간 비교는 여전히 교란된다. 값을 주면 함대 전체가 단일 유니버스가 된다.
     force-timeframe: ${SHARED_UNIVERSE_TIMEFRAME:H1}
+    # 함대 공통 갱신 주기(분). 세션별 watchlist_refresh_min 은 쓰지 않는다 — 운영 함대가
+    # 30분/60분 두 그룹으로 갈려 있어 세션 값으로 버킷을 끊으면 같은 순간에도 유니버스가
+    # 둘로 쪼개진다(2026-09-07 실측). 공유하려면 버킷이 함대 전체에 하나여야 한다.
+    refresh-minutes: ${SHARED_UNIVERSE_REFRESH_MIN:30}
   strategy-signal-exit:
     # 전략 SELL 청산. 기본 off — DYN_PAPER 청산 335건 중 이 경로 110건이 -10,298원으로
     # 적자 전액을 차지했고, 빼면 나머지 합이 +2,609원이다. TP/SL/TIME_STOP 만 사용한다.

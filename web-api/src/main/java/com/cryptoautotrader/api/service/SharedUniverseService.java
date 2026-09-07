@@ -59,6 +59,18 @@ public class SharedUniverseService {
     @Value("${trading.shared-universe.force-timeframe:}")
     private String forceTimeframe;
 
+    /**
+     * 버킷 폭(분) — 함대 <b>공통</b> 갱신 주기. 세션의 {@code watchlist_refresh_min} 은 쓰지 않는다.
+     *
+     * <p><b>왜 세션 값을 안 쓰나 (2026-09-07 운영 확인)</b>: 처음엔 버킷 폭을 세션의 갱신 주기로
+     * 잡았는데, 운영 함대가 30분(8세션)/60분(6세션) 두 그룹으로 갈려 있어 <b>같은 순간에도 서로
+     * 다른 버킷 번호</b>가 나왔다. 그 결과 유니버스가 둘로 쪼개져 통제가 절반만 됐다
+     * (실측: 30분 그룹 86·81 은 같은 목록, 60분 그룹 89 는 다른 목록).
+     * 공유의 목적이 "전 세션이 같은 코인을 본다"인 이상 버킷은 함대 전체에 하나여야 한다.</p>
+     */
+    @Value("${trading.shared-universe.refresh-minutes:30}")
+    private int refreshMinutes;
+
     /** 버킷 + 필터 기준이 같으면 같은 유니버스. */
     private record UniverseKey(
             long bucket, int maxCandidates, int targetSize,
@@ -80,15 +92,16 @@ public class SharedUniverseService {
      * 이번 버킷의 공용 유니버스를 반환한다. 같은 버킷·같은 기준의 첫 호출만 실제로 구성하고,
      * 나머지 세션은 그 결과를 그대로 받는다.
      *
-     * @param refreshMin 갱신 주기(분) — 버킷 폭. 0 이하이면 60분으로 본다.
+     * <p>버킷 폭은 {@code trading.shared-universe.refresh-minutes} 하나로 정해진다 —
+     * 세션별 {@code watchlist_refresh_min} 은 의도적으로 무시한다. 이유는 해당 필드 주석 참조.</p>
      */
     public List<String> resolve(int maxCandidates, int targetSize,
                                 BigDecimal minAtrPct, BigDecimal maxSpreadPct,
-                                String sessionTimeframe, int refreshMin,
+                                String sessionTimeframe,
                                 WatchlistFilterService.QualityCriteria criteria) {
 
         String timeframe = effectiveTimeframe(sessionTimeframe);
-        long bucketWidthSec = (refreshMin > 0 ? refreshMin : 60) * 60L;
+        long bucketWidthSec = (refreshMinutes > 0 ? refreshMinutes : 30) * 60L;
         long bucket = Instant.now().getEpochSecond() / bucketWidthSec;
 
         UniverseKey key = new UniverseKey(

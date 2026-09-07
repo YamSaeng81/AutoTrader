@@ -36,6 +36,8 @@
 #   DRY_RUN=0 bash scripts/fix_data_integrity_0907.sh      # 실제 반영
 #
 # 환경변수: PGHOST PGPORT PGDATABASE PGUSER PGPASSWORD (미설정 시 아래 기본값)
+#           COMPOSE_FILE  compose 파일 경로 (기본 docker-compose.prod.yml)
+#           DB_SERVICE    compose 의 DB 서비스명 (기본 db)
 
 set -euo pipefail
 
@@ -44,11 +46,32 @@ export PGPORT="${PGPORT:-5432}"
 export PGDATABASE="${PGDATABASE:-crypto_auto_trader}"
 export PGUSER="${PGUSER:-trader}"
 DRY_RUN="${DRY_RUN:-1}"
+COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.prod.yml}"
+DB_SERVICE="${DB_SERVICE:-db}"
 
 if [ -z "${PGPASSWORD:-}" ]; then
   read -r -s -p "DB 비밀번호: " PGPASSWORD
   echo
   export PGPASSWORD
+fi
+
+# psql 경로 결정 — 운영 호스트에는 psql 이 깔려 있지 않고 DB 가 컨테이너 안에서만 돈다.
+# 호스트에 psql 이 있으면 그대로 쓰고, 없으면 compose 의 DB 컨테이너를 경유한다.
+# (`exec -T` 로 TTY 를 끄지 않으면 heredoc 이 stdin 으로 전달되지 않는다.)
+if command -v psql >/dev/null 2>&1; then
+  echo "▶ psql: 호스트 (${PGHOST}:${PGPORT})"
+  run_psql() { psql "$@"; }
+elif docker compose -f "$COMPOSE_FILE" ps "$DB_SERVICE" >/dev/null 2>&1; then
+  echo "▶ psql: ${COMPOSE_FILE} 의 '${DB_SERVICE}' 컨테이너 경유"
+  run_psql() {
+    docker compose -f "$COMPOSE_FILE" exec -T \
+      -e PGPASSWORD="$PGPASSWORD" \
+      "$DB_SERVICE" psql -U "$PGUSER" -d "$PGDATABASE" "$@"
+  }
+else
+  echo "❌ psql 을 찾을 수 없고 '${DB_SERVICE}' 컨테이너도 없다." >&2
+  echo "   리포 루트에서 실행 중인지, COMPOSE_FILE / DB_SERVICE 가 맞는지 확인할 것." >&2
+  exit 1
 fi
 
 if [ "$DRY_RUN" = "0" ]; then
@@ -59,7 +82,7 @@ else
   echo "▶ 미리보기 모드 (DRY_RUN=1) — 변경사항은 롤백된다. 반영하려면 DRY_RUN=0"
 fi
 
-psql -v ON_ERROR_STOP=1 <<SQL
+run_psql -v ON_ERROR_STOP=1 <<SQL
 \timing off
 BEGIN;
 

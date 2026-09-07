@@ -1761,7 +1761,6 @@ public class DynamicTradingService {
                 session.getMinAtrPct(),
                 session.getMaxSpreadPct(),
                 session.getTimeframe(),
-                session.getWatchlistRefreshMin(),
                 buildQualityCriteria());
 
         if (fresh.isEmpty()) {
