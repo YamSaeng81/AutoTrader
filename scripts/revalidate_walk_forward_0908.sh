@@ -246,7 +246,24 @@ NOTE
     ;;
   2)
     printf '\n\033[1m▶ Step 2: WF 재검증 (5전략 × 8코인 × 2타임프레임 = 80조합)\033[0m\n'
-    echo "  기존 350건은 0.3% 손절 기준이라 폐기 대상입니다. 새 결과로 판정을 다시 냅니다."
+    echo "  기존 결과는 전부 폐기 대상입니다. 새 결과로 판정을 다시 냅니다."
+    echo
+    echo "  ■ 2026-09-09 갱신 — 09-08 에 돌린 것도 다시 돌려야 합니다"
+    echo "    09-08 재검증(H1 26 / M15 6)은 **청산 규칙 통일 이전 빌드**로 돈 것입니다."
+    echo "    백테스트만 SL 5% 고정 · TP 10% · time stop 없음으로 계산됐고, 운영 청산의"
+    echo "    47%(83건 중 39건)를 차지하는 TIME_STOP 경로가 아예 없어 거래 모집단이 달랐습니다."
+    echo "    그 결과는 exit_rules_version 이 NULL 이라 게이트가 **근거로 인정하지 않습니다**."
+    echo
+    echo "  ■ 먼저 확인 — 배포된 빌드가 맞는지 (아니면 또 버려야 합니다)"
+    echo "    1) 마이그레이션 V78~V80 이 적용됐는가:"
+    echo "         SELECT version, description FROM flyway_schema_history"
+    echo "         ORDER BY installed_rank DESC LIMIT 6;"
+    echo "       → 78(exit_rules_version) · 79(weight_optimizer timeframe) · 80(strategy_timeframe_enabled)"
+    echo "    2) 배치를 조금 돌린 뒤, 새 행에 버전이 찍히는가:"
+    echo "         SELECT exit_rules_version, count(*) FROM backtest_run"
+    echo "         WHERE is_walk_forward AND created_at >= now() - interval '1 hour'"
+    echo "         GROUP BY 1;"
+    echo "       → 2 가 나와야 합니다. NULL 이면 구버전 빌드이므로 **즉시 중단**하세요."
     printf '\n계속하려면 Enter, 중단하려면 Ctrl-C: '
     read -r _
 
@@ -272,13 +289,22 @@ NOTE
   완료 후 STEP=3 으로 판정을 확인하세요.
 
   ⚠️ 누락 점검 — 2026-08-24 에 25조합이 조용히 빠진 적이 있습니다. 80건이 다 돌았는지
-     반드시 세어 볼 것:
+     반드시 세어 볼 것. 기대값: H1 40 / M15 40, strats 5, coins 8.
+
+     ※ 날짜가 아니라 **규칙 버전**으로 거릅니다. 09-08 에 구버전 빌드로 돈 32건
+       (H1 26 / M15 6)이 같은 날짜 범위에 있어, created_at 으로 세면 그것까지 합산돼
+       "다 돌았다"는 잘못된 답이 나옵니다.
 
     SELECT timeframe, count(*) AS n, count(DISTINCT strategy_name) AS strats,
            count(DISTINCT coin_pair) AS coins
     FROM backtest_run
-    WHERE is_walk_forward AND created_at >= '2026-09-08'
+    WHERE is_walk_forward AND exit_rules_version = 2
     GROUP BY 1;
+
+     구버전 잔여분을 따로 보려면(게이트는 이미 무시하므로 지울 필요는 없습니다):
+
+    SELECT coalesce(exit_rules_version::text,'NULL(구버전)') AS ver, count(*)
+    FROM backtest_run WHERE is_walk_forward GROUP BY 1 ORDER BY 2 DESC;
 NOTE
     ;;
 
@@ -289,8 +315,14 @@ NOTE
 
 
 ▶ 해석 시 주의
-  1) 이번 판정은 **0.3% 손절이 아닌 정상 손절** 기준의 첫 판정입니다.
-     이전 판정과 뒤집히는 조합이 나오는 것이 정상이며, 그것이 재검증의 목적입니다.
+  1) 이번 판정은 **네 경로가 같은 청산 규칙을 쓰는** 첫 판정입니다 (2026-09-09).
+     정상 손절(0.3% 아님) + ATR 기반 SL 5~8% + TP ≤8% + time stop 24h 기준이며,
+     이전 판정과 뒤집히는 조합이 나오는 것이 정상입니다 — 그것이 재검증의 목적입니다.
+
+  1-b) "검증 이력 없음" 이 아니라 **"청산 규칙이 바뀐 뒤 재검증되지 않았습니다"** 로 뜨는
+     조합은 그 조합의 WF 가 아직 새 규칙으로 안 돌았다는 뜻입니다. Step 2 를 다시 돌리세요.
+     게이트는 조합별 최신 실행 하나만 보므로, 재실행되지 않은 조합은 이 표시가 없으면
+     구버전 판정을 영구히 유지하게 됩니다.
 
   2) H1 과 M15 를 나눠서 볼 것. 운영 함대는 고정코인 40세션이 전부 M15,
      동적 12세션이 H1 6 / M15 6 입니다. H1 판정으로 M15 함대를 판단할 수 없습니다.
