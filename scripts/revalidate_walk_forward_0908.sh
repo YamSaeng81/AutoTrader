@@ -94,80 +94,156 @@ echo "    WHERE opened_at >= timestamptz '2026-09-08 00:20+00' ORDER BY opened_a
 
 case "$STEP" in
   1)
-    printf '\n\033[1m▶ Step 1: 캔들 백필\033[0m\n'
-    echo "  M15 는 4코인이 0건, 4코인이 5개월 낡았습니다. 전 코인 전 구간을 다시 받습니다."
+    printf '\n\033[1m▶ Step 1: 캔들 백필 (갭만 채운다)\033[0m\n'
+    echo "  GET /data/summary 로 코인별 보유 구간을 읽어, **없는 구간만** 요청합니다."
     echo "  (saveAll 이 PK(time,coin_pair,timeframe) upsert 라 겹쳐 받아도 안전합니다.)"
+
+    # ── 왜 전 구간을 다시 받지 않는가 (2026-09-08 1차 실패에서 배운 것) ──────
+    #
+    # 1차 시도(8코인 × 2022~2026 단일 호출)에서 M15 는 6/8 실패, H1 은 8/8 성공했다.
+    # 경계는 타임프레임이 아니라 **코인당 요청 사슬 길이**였다:
+    #
+    #   H1  2022~2026   206회 → 8/8 성공
+    #   M15 KRW-PROM     13회 → 성공 (2026-08-12 상장이라 구간이 짧다)
+    #   M15 KRW-EUL      21회 → 성공 (2026-07-26 상장)
+    #   M15 2022~2026   822회 → 6/6 실패
+    #
+    # UpbitCandleCollector.fetchCandles 의 수집 루프는 all-or-nothing 이다 — 822회 중
+    # 1회만 실패해도 RuntimeException 이 터지며 그때까지 모은 캔들을 전부 버린다
+    # (UpbitCandleCollector:81). 운영 함대 52세션이 같은 Upbit 초당 10회 예산을 나눠 쓰고
+    # 있어(동적 8세션만으로 264 req/분 ≈ 4.4 req/s) 90초짜리 연속 호출은 버티지 못한다.
+    #
+    # M15 가 안 되는 것이 아니다 — 09-08 시점에 AVAX·EUL·PROM 은 M15 가 2026-09-07 까지
+    # 정상으로 들어와 있다. 요청을 짧게 끊으면 된다.
+    #
+    # 그래서 이 스텝은 (a) 보유 구간을 먼저 조회해 **갭만** 요청하고,
+    # (b) 남은 갭도 연 단위로 쪼개 호출당 ~206회(=성공이 확인된 H1 과 동일 규모)를 넘지 않게 한다.
+    # 이미 받은 구간을 다시 요청하면 822회짜리 호출이 되살아나 또 실패한다.
+
+    printf '\n\033[1m▶ 현재 보유 현황\033[0m\n'
+    PLAN=$(api "$API/data/summary" | COINS="$OPS_COINS" TODAY="$TODAY" python3 -c 'import json, os, sys
+from datetime import date
+
+coins = json.loads(os.environ["COINS"])
+today = date.fromisoformat(os.environ["TODAY"])
+START = date(2022, 1, 1)
+PER_DAY = {"M15": 96, "H1": 24}
+FRESH_TOLERANCE_DAYS = 2   # 최근 N일 이내면 최신으로 본다 (매 실행마다 1일짜리 꼬리 호출 방지)
+HEAD_TOLERANCE_DAYS = 30   # 앞구간이 이만큼 넘게 비어야 요청한다
+
+rows = json.load(sys.stdin)["data"]
+have = {}
+for r in rows:
+    if r.get("coinPair") in coins:
+        have[(r["coinPair"], r["timeframe"])] = (
+            date.fromisoformat(str(r["from"])[:10]),
+            date.fromisoformat(str(r["to"])[:10]),
+        )
+
+# 상장일 추정 — 어떤 타임프레임이든 가장 이른 캔들이 그 코인의 하한이다.
+# 이게 없으면 EUL(2026-07-26 상장)·PROM(2026-08-12)에 2022 구간을 매번 요청하게 되고,
+# 빈 응답이라 영영 채워지지 않아 스크립트가 멱등해지지 않는다.
+floor = {}
+for (coin, _tf), (mn, _mx) in have.items():
+    floor[coin] = min(floor.get(coin, mn), mn)
+
+def emit(tf, coin, a, b):
+    """[a, b) 를 연 단위로 쪼개 PLAN 줄로 낸다 — 호출당 요청 수를 상한 아래로 유지."""
+    y = a.year
+    while a < b:
+        end = min(b, date(y + 1, 1, 1))
+        days = (end - a).days
+        if days > 0:
+            print("PLAN=%s|%s|%s|%s|%d" % (tf, coin, a, end, (days * PER_DAY[tf] + 199) // 200))
+        a = end
+        y += 1
+
+for tf in ("M15", "H1"):
+    for coin in coins:
+        base = floor.get(coin, START)
+        rng = have.get((coin, tf))
+        if rng is None:
+            print("ROW=  %-4s %-10s 보유 없음  → %s ~ 오늘" % (tf, coin, base), file=sys.stderr)
+            emit(tf, coin, base, today)
+            continue
+        mn, mx = rng
+        gaps = []
+        if (mn - base).days > HEAD_TOLERANCE_DAYS:
+            gaps.append((base, mn))
+        if (today - mx).days > FRESH_TOLERANCE_DAYS:
+            gaps.append((mx, today))
+        if not gaps:
+            note = "완결" if base >= mn else "완결 (상장 %s)" % base
+            print("ROW=  %-4s %-10s %s ~ %s  %s" % (tf, coin, mn, mx, note), file=sys.stderr)
+            continue
+        desc = " + ".join("%s~%s" % (a, b) for a, b in gaps)
+        print("ROW=  %-4s %-10s %s ~ %s  갭: %s" % (tf, coin, mn, mx, desc), file=sys.stderr)
+        for a, b in gaps:
+            emit(tf, coin, a, b)
+')
+    echo "$PLAN" | sed -n 's/^ROW=//p'
+
+    PLAN_LINES=$(echo "$PLAN" | sed -n 's/^PLAN=//p')
+    if [ -z "$PLAN_LINES" ]; then
+      echo
+      echo "▶ 채울 갭이 없습니다. Step 2 로 진행하세요."
+      exit 0
+    fi
+
+    printf '\n\033[1m▶ 수집 계획 (연 단위 분할)\033[0m\n'
+    echo "$PLAN_LINES" | awk -F'|' '{printf "  %-4s %-10s %s ~ %s  (%s회)\n", $1,$2,$3,$4,$5}'
+    total=$(echo "$PLAN_LINES" | awk -F'|' '{s+=$5} END {print s}')
+    calls=$(echo "$PLAN_LINES" | wc -l)
+    printf '\n  총 %s개 호출 / 누적 %s회 요청 — 호출당 상한 ~206회(성공 확인된 H1 과 동일 규모)\n' "$calls" "$total"
+
     printf '\n계속하려면 Enter, 중단하려면 Ctrl-C: '
     read -r _
 
-    # ── M15 는 반드시 연 단위로 쪼갠다 (2026-09-08 실패 원인) ────────────────
-    #
-    # 첫 시도에서 M15 8코인 중 6개가 실패하고 H1 은 8개 전부 성공했다. 경계는
-    # 타임프레임이 아니라 **코인당 요청 사슬 길이**였다:
-    #
-    #   H1  2022~2026   206회 요청 → 8/8 성공
-    #   M15 KRW-PROM     13회 요청 → 성공 (07-26 상장이라 구간이 짧다)
-    #   M15 KRW-EUL      21회 요청 → 성공 (08-12 상장)
-    #   M15 2022~2026   822회 요청 → 6/6 실패
-    #
-    # UpbitCandleCollector.fetchCandles 의 수집 루프는 all-or-nothing 이다 —
-    # 822회 중 1회만 실패해도 RuntimeException 이 터지며 그때까지 모은 캔들을 전부 버린다.
-    # 게다가 운영 함대 52세션이 같은 Upbit 초당 10회 예산을 나눠 쓰고 있어
-    # (동적 8세션만으로 264 req/분 ≈ 4.4 req/s) 90초짜리 연속 호출은 버티지 못한다.
-    #
-    # M15 가 원리적으로 안 되는 것은 아니다 — ADA·BTC·DOGE·SOL 에는 이미 M15 가
-    # 148,000행씩 들어 있다(과거에 742회 요청이 성공한 적 있다는 뜻).
-    #
-    # 연 단위로 쪼개면 호출당 약 206회로, 이미 성공이 확인된 H1 과 같은 크기가 된다.
-    # 실패해도 그 해만 다시 받으면 되고, upsert 라 겹쳐 받아도 안전하다.
-    echo
-    echo "▶ M15 8코인 — 연 단위 분할 수집 (호출당 ~206회, H1 과 동일 규모)"
-    for yr in 2022 2023 2024 2025 2026; do
-      if [ "$yr" = "2026" ]; then y_end="$TODAY"; else y_end="$yr-12-31"; fi
-      echo
-      echo "  ── $yr-01-01 ~ $y_end ──"
-      api -X POST "$API/data/collect/batch" -H 'Content-Type: application/json'         -d "{\"coinPairs\": $OPS_COINS, \"timeframe\": \"M15\", \"startDate\": \"$yr-01-01\", \"endDate\": \"$y_end\"}"
-      echo
-      # 다음 해로 넘어가기 전 레이트리밋 여유 — 운영 함대와 예산을 나눠 쓴다.
-      sleep 30
-    done
+    ok=0; fail=0
+    while IFS='|' read -r tf coin from to reqs; do
+      [ -z "$tf" ] && continue
+      printf '  %-4s %-10s %s ~ %s (%s회) … ' "$tf" "$coin" "$from" "$to" "$reqs"
+      resp=$(api -X POST "$API/data/collect/batch" -H 'Content-Type: application/json' \
+        -d "{\"coinPairs\": [\"$coin\"], \"timeframe\": \"$tf\", \"startDate\": \"$from\", \"endDate\": \"$to\"}")
+      case "$resp" in
+        *'"success":true'*) echo "요청 접수"; ok=$((ok+1)) ;;
+        *)                  echo "거부: $(echo "$resp" | head -c 120)"; fail=$((fail+1)) ;;
+      esac
+      # 수집은 비동기라 접수는 즉시 끝난다. 운영 함대와 레이트리밋 예산을 나눠 쓰므로
+      # 호출 사이를 벌려 동시 수집이 겹치지 않게 한다.
+      sleep 45
+    done <<EOF
+$PLAN_LINES
+EOF
 
-    echo
-    echo "▶ H1 8코인 갭 채우기 × 2026-08-25 ~ $TODAY"
-    api -X POST "$API/data/collect/batch" -H 'Content-Type: application/json'       -d "{\"coinPairs\": $OPS_COINS, \"timeframe\": \"H1\", \"startDate\": \"2026-08-25\", \"endDate\": \"$TODAY\"}"
+    printf '\n\033[1m▶ 접수: 성공 %s / 거부 %s\033[0m\n' "$ok" "$fail"
 
     cat <<'NOTE'
 
-▶ 백그라운드 수집 중입니다. 코인마다 텔레그램 알림이 옵니다.
-  완료 여부를 DB 로 확인한 뒤 Step 2 를 돌리세요 — 8코인 전부 M15 가 최근 날짜여야 합니다.
+▶ 수집은 백그라운드입니다. 코인마다 텔레그램 알림이 옵니다.
+  이 스크립트는 **다시 돌려도 안전**합니다 — 매번 보유 구간을 다시 읽어 남은 갭만 요청합니다.
+  실패한 구간이 있으면 그대로 재실행하세요. 계획이 비면 "채울 갭이 없습니다" 로 끝납니다.
 
-    SELECT coin_pair, timeframe, count(*) AS n, max(time)::date AS last_candle
+  DB 로 직접 확인하려면:
+
+    SELECT coin_pair, timeframe, count(*) AS n,
+           min(time)::date AS mn, max(time)::date AS mx
     FROM candle_data
     WHERE coin_pair IN ('KRW-ADA','KRW-AVAX','KRW-BTC','KRW-DOGE',
                         'KRW-EUL','KRW-LINK','KRW-PROM','KRW-SOL')
     GROUP BY 1,2 ORDER BY 2,1;
 
-  연도별로 구멍이 없는지도 확인하세요. 실패한 해가 있으면 그 해만 다시 받으면 됩니다
-  (upsert 라 겹쳐 받아도 안전):
+  ※ KRW-EUL(2026-07-26 상장)·KRW-PROM(2026-08-12 상장)은 그 이전 구간이 애초에 없습니다.
+    계획에서 앞구간이 잡히더라도 빈 응답이라 무해하며, 한 번 돌면 이후로는 제외됩니다.
 
-    SELECT coin_pair, extract(year FROM time) AS yr, count(*) AS n
-    FROM candle_data WHERE timeframe='M15'
-      AND coin_pair IN ('KRW-ADA','KRW-AVAX','KRW-BTC','KRW-DOGE',
-                        'KRW-EUL','KRW-LINK','KRW-PROM','KRW-SOL')
-    GROUP BY 1,2 ORDER BY 1,2;
+  ※ 반복 실패 시 실제 예외 확인 (텔레그램의 "캔들 데이터 수집 실패" 는 래핑 메시지):
 
-  ※ KRW-EUL(2026-07-26~)·KRW-PROM(2026-08-12~)은 상장이 최근이라 이력이 짧습니다.
-    2026년 외에는 0건이 정상이며, WF 윈도 5개를 못 채우면 해당 조합만 빠질 수 있습니다.
-
-  ※ 그래도 실패가 반복되면 서버 로그에서 실제 예외를 확인하세요 — 텔레그램의
-    "캔들 데이터 수집 실패" 는 UpbitCandleCollector:81 의 래핑 메시지라 원인이 가려집니다:
-
-    docker compose -f docker-compose.prod.yml logs --tail=500 backend | grep -A3 "캔들 수집 실패"
+    docker compose -f docker-compose.prod.yml logs --since 3h backend \
+      | grep -E "캔들 수집 실패|\[Batch\].*실패" -A5
 
   다음: STEP=2 bash scripts/revalidate_walk_forward_0908.sh
 NOTE
     ;;
-
   2)
     printf '\n\033[1m▶ Step 2: WF 재검증 (5전략 × 8코인 × 2타임프레임 = 80조합)\033[0m\n'
     echo "  기존 350건은 0.3% 손절 기준이라 폐기 대상입니다. 새 결과로 판정을 다시 냅니다."
