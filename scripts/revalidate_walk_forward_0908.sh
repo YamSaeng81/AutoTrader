@@ -100,15 +100,41 @@ case "$STEP" in
     printf '\n계속하려면 Enter, 중단하려면 Ctrl-C: '
     read -r _
 
+    # ── M15 는 반드시 연 단위로 쪼갠다 (2026-09-08 실패 원인) ────────────────
+    #
+    # 첫 시도에서 M15 8코인 중 6개가 실패하고 H1 은 8개 전부 성공했다. 경계는
+    # 타임프레임이 아니라 **코인당 요청 사슬 길이**였다:
+    #
+    #   H1  2022~2026   206회 요청 → 8/8 성공
+    #   M15 KRW-PROM     13회 요청 → 성공 (07-26 상장이라 구간이 짧다)
+    #   M15 KRW-EUL      21회 요청 → 성공 (08-12 상장)
+    #   M15 2022~2026   822회 요청 → 6/6 실패
+    #
+    # UpbitCandleCollector.fetchCandles 의 수집 루프는 all-or-nothing 이다 —
+    # 822회 중 1회만 실패해도 RuntimeException 이 터지며 그때까지 모은 캔들을 전부 버린다.
+    # 게다가 운영 함대 52세션이 같은 Upbit 초당 10회 예산을 나눠 쓰고 있어
+    # (동적 8세션만으로 264 req/분 ≈ 4.4 req/s) 90초짜리 연속 호출은 버티지 못한다.
+    #
+    # M15 가 원리적으로 안 되는 것은 아니다 — ADA·BTC·DOGE·SOL 에는 이미 M15 가
+    # 148,000행씩 들어 있다(과거에 742회 요청이 성공한 적 있다는 뜻).
+    #
+    # 연 단위로 쪼개면 호출당 약 206회로, 이미 성공이 확인된 H1 과 같은 크기가 된다.
+    # 실패해도 그 해만 다시 받으면 되고, upsert 라 겹쳐 받아도 안전하다.
     echo
-    echo "▶ M15 8코인 × 2022-01-01 ~ $TODAY (H1 의 4배 분량 — 오래 걸립니다)"
-    api -X POST "$API/data/collect/batch" -H 'Content-Type: application/json' \
-      -d "{\"coinPairs\": $OPS_COINS, \"timeframe\": \"M15\", \"startDate\": \"2022-01-01\", \"endDate\": \"$TODAY\"}"
+    echo "▶ M15 8코인 — 연 단위 분할 수집 (호출당 ~206회, H1 과 동일 규모)"
+    for yr in 2022 2023 2024 2025 2026; do
+      if [ "$yr" = "2026" ]; then y_end="$TODAY"; else y_end="$yr-12-31"; fi
+      echo
+      echo "  ── $yr-01-01 ~ $y_end ──"
+      api -X POST "$API/data/collect/batch" -H 'Content-Type: application/json'         -d "{\"coinPairs\": $OPS_COINS, \"timeframe\": \"M15\", \"startDate\": \"$yr-01-01\", \"endDate\": \"$y_end\"}"
+      echo
+      # 다음 해로 넘어가기 전 레이트리밋 여유 — 운영 함대와 예산을 나눠 쓴다.
+      sleep 30
+    done
 
     echo
     echo "▶ H1 8코인 갭 채우기 × 2026-08-25 ~ $TODAY"
-    api -X POST "$API/data/collect/batch" -H 'Content-Type: application/json' \
-      -d "{\"coinPairs\": $OPS_COINS, \"timeframe\": \"H1\", \"startDate\": \"2026-08-25\", \"endDate\": \"$TODAY\"}"
+    api -X POST "$API/data/collect/batch" -H 'Content-Type: application/json'       -d "{\"coinPairs\": $OPS_COINS, \"timeframe\": \"H1\", \"startDate\": \"2026-08-25\", \"endDate\": \"$TODAY\"}"
 
     cat <<'NOTE'
 
@@ -121,8 +147,22 @@ case "$STEP" in
                         'KRW-EUL','KRW-LINK','KRW-PROM','KRW-SOL')
     GROUP BY 1,2 ORDER BY 2,1;
 
+  연도별로 구멍이 없는지도 확인하세요. 실패한 해가 있으면 그 해만 다시 받으면 됩니다
+  (upsert 라 겹쳐 받아도 안전):
+
+    SELECT coin_pair, extract(year FROM time) AS yr, count(*) AS n
+    FROM candle_data WHERE timeframe='M15'
+      AND coin_pair IN ('KRW-ADA','KRW-AVAX','KRW-BTC','KRW-DOGE',
+                        'KRW-EUL','KRW-LINK','KRW-PROM','KRW-SOL')
+    GROUP BY 1,2 ORDER BY 1,2;
+
   ※ KRW-EUL(2026-07-26~)·KRW-PROM(2026-08-12~)은 상장이 최근이라 이력이 짧습니다.
-    WF 윈도 5개를 못 채우면 해당 조합만 빠질 수 있습니다 — Step 2 결과에서 확인하세요.
+    2026년 외에는 0건이 정상이며, WF 윈도 5개를 못 채우면 해당 조합만 빠질 수 있습니다.
+
+  ※ 그래도 실패가 반복되면 서버 로그에서 실제 예외를 확인하세요 — 텔레그램의
+    "캔들 데이터 수집 실패" 는 UpbitCandleCollector:81 의 래핑 메시지라 원인이 가려집니다:
+
+    docker compose -f docker-compose.prod.yml logs --tail=500 backend | grep -A3 "캔들 수집 실패"
 
   다음: STEP=2 bash scripts/revalidate_walk_forward_0908.sh
 NOTE
