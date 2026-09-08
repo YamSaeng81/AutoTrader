@@ -49,7 +49,10 @@ public class RegimeAdaptiveStrategy implements Strategy {
         MarketRegime regime = detector.detect(candles);
         // coinPair가 params에 있으면 코인별 특화 가중치를 사용한다 (LiveTradingService가 주입)
         String coinPair = (params != null) ? (String) params.get("coinPair") : null;
-        List<WeightedStrategy> weighted = StrategySelector.select(regime, coinPair);
+        // timeframe 도 같은 방식으로 주입된다 (2026-09-08, 세 엔진 전부).
+        // 없으면 null → WeightOverrideStore 가 타임프레임 무관 키로 폴백하므로 종전 동작과 같다.
+        String timeframe = (params != null) ? (String) params.get("timeframe") : null;
+        List<WeightedStrategy> weighted = StrategySelector.select(regime, regime, coinPair, timeframe);
         StrategySignal signal = new CompositeStrategy(weighted).evaluate(candles, params);
 
         // TRANSITIONAL 국면: 신규 진입 금지 — 기존 포지션 유지(SELL)만 허용

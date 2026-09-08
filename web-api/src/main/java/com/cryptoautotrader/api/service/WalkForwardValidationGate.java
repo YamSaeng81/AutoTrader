@@ -2,6 +2,7 @@ package com.cryptoautotrader.api.service;
 
 import com.cryptoautotrader.api.entity.BacktestRunEntity;
 import com.cryptoautotrader.api.repository.BacktestRunRepository;
+import com.cryptoautotrader.core.risk.ExitRuleFormula;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -153,7 +154,32 @@ public class WalkForwardValidationGate {
                 null);
     }
 
+    /**
+     * 실행이 <b>현재 청산 규칙</b>으로 돌았는지 — 아니면 근거로 인정하지 않는다 (2026-09-08).
+     *
+     * <h3>왜 필요한가</h3>
+     * <p>이 게이트는 조합별 <b>가장 최근 실행 하나</b>만 본다. 그래서 재실행된 조합은 옛 결과가
+     * 자연히 밀려나지만, <b>재실행되지 않은 조합은 수정 전 판정을 영원히 유지한다.</b>
+     * 조용히 낡은 근거로 실자본이 승인된다 — 아무도 에러를 보지 못한다.</p>
+     *
+     * <p>09-08 에 백테스트 청산 규칙이 실제로 바뀌었다(SL 5% 고정 → ATR 기반 5~8%,
+     * TP 10% → ≤8%, time stop 없음 → 24h, 손실 구간 SL 조임 제거). v1 결과는 실전 거동의
+     * 근거가 되지 못하므로 "검증 이력 없음"과 같게 취급한다.</p>
+     */
+    private static boolean isCurrentRuleset(BacktestRunEntity run) {
+        Integer v = run.getExitRulesVersion();
+        return v != null && v >= ExitRuleFormula.EXIT_RULES_VERSION;
+    }
+
     private GateDecision decideFromRun(String label, BacktestRunEntity run) {
+        if (!isCurrentRuleset(run)) {
+            return GateDecision.fail(label, String.format(
+                    "청산 규칙이 바뀐 뒤 재검증되지 않았습니다 (실행 규칙 v%s < 현재 v%d) — "
+                            + "이 결과는 SL 5%% 고정·TP 10%%·time stop 없음 기준이라 실전 거동을 반영하지 "
+                            + "못합니다. /backtest/walk-forward 에서 재실행하세요.",
+                    run.getExitRulesVersion() == null ? "미상" : run.getExitRulesVersion(),
+                    ExitRuleFormula.EXIT_RULES_VERSION));
+        }
         Map<String, Object> wf = run.getWfResultJson();
         String verdict = wf != null ? asString(wf.get("verdict")) : null;
         Map<String, Object> aggregated = wf != null ? asMap(wf.get("aggregatedOutSample")) : null;

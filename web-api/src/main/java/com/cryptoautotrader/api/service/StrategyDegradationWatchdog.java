@@ -95,17 +95,18 @@ public class StrategyDegradationWatchdog {
             double avgRet7 = calcAvgReturn(logs7);
             double drop   = rate30 - rate7;
 
-            String[] parts = key.split(":", 2);
+            String[] parts = key.split(":", 3);
             String strategy = parts[0];
             String coin     = parts.length > 1 ? parts[1] : "?";
+            String timeframe = parts.length > 2 ? parts[2] : "?";
 
             if (drop >= CRIT_DROP_PCT) {
-                alerts.add(new Alert(AlertLevel.CRIT, strategy, coin, rate30, rate7, drop, avgRet7, logs7.size()));
+                alerts.add(new Alert(AlertLevel.CRIT, strategy, coin, timeframe, rate30, rate7, drop, avgRet7, logs7.size()));
             } else if (drop >= WARN_DROP_PCT) {
-                alerts.add(new Alert(AlertLevel.WARN, strategy, coin, rate30, rate7, drop, avgRet7, logs7.size()));
+                alerts.add(new Alert(AlertLevel.WARN, strategy, coin, timeframe, rate30, rate7, drop, avgRet7, logs7.size()));
             } else if (avgRet7 < -TradingConstants.FEE_THRESHOLD.doubleValue()) {
                 // 적중률 하락은 없어도 기댓값이 음수면 경고
-                alerts.add(new Alert(AlertLevel.NEG_EV, strategy, coin, rate30, rate7, drop, avgRet7, logs7.size()));
+                alerts.add(new Alert(AlertLevel.NEG_EV, strategy, coin, timeframe, rate30, rate7, drop, avgRet7, logs7.size()));
             }
         }
 
@@ -142,10 +143,23 @@ public class StrategyDegradationWatchdog {
 
     // ── 헬퍼 ──────────────────────────────────────────────────────────────────
 
+    /**
+     * 그룹 키 = 전략 : 코인 : <b>타임프레임</b> (2026-09-08 타임프레임 추가).
+     *
+     * <p>그전까지 (전략, 코인) 으로만 묶어 H1 과 M15 신호를 한 통계로 합쳤다. 운영은 두
+     * 타임프레임을 동시에 돌리고 M15 가 3~5배 많아, 사실상 M15 통계에 H1 이 잡음으로 섞였다.
+     * 실제로 방향이 반대인 경우가 있다 — {@code COMPOSITE_MTF_BTC} 의 BUY 사후 4h 수익률은
+     * H1 −1.428% / M15 +0.046% 다. 합치면 한쪽의 저하가 다른 쪽에 가려져 경보가 늦거나
+     * 반대로 멀쩡한 쪽까지 끌고 들어간다.</p>
+     *
+     * <p>{@code timeframe} 이 NULL 인 행은 V76 이전 로그다 — "?" 로 묶여 별도 그룹이 되며,
+     * {@code MIN_SAMPLE} 미달로 자연히 걸러진다.</p>
+     */
     private Map<String, List<StrategyLogEntity>> groupByKey(List<StrategyLogEntity> logs) {
         return logs.stream().collect(Collectors.groupingBy(
                 l -> (l.getStrategyName() != null ? l.getStrategyName() : "?")
-                     + ":" + (l.getCoinPair() != null ? l.getCoinPair() : "?")));
+                     + ":" + (l.getCoinPair() != null ? l.getCoinPair() : "?")
+                     + ":" + (l.getTimeframe() != null ? l.getTimeframe() : "?")));
     }
 
     private double calcWinRate(List<StrategyLogEntity> logs) {
@@ -183,7 +197,8 @@ public class StrategyDegradationWatchdog {
         }
     }
 
-    record Alert(AlertLevel level, String strategy, String coin,
+    /** {@code timeframe} 은 2026-09-08 추가 — 없으면 H1/M15 중 어느 쪽이 저하됐는지 알 수 없다. */
+    record Alert(AlertLevel level, String strategy, String coin, String timeframe,
                  double rate30, double rate7, double drop,
                  double avgRet7, int sample) {}
 }

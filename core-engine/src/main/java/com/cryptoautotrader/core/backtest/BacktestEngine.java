@@ -11,8 +11,8 @@ import com.cryptoautotrader.core.selector.RangeRegimeGate;
 import com.cryptoautotrader.core.risk.ExitRuleChecker;
 import com.cryptoautotrader.core.risk.ExitRuleChecker.ExitCheck;
 import com.cryptoautotrader.core.risk.ExitRuleChecker.StopLevels;
+import com.cryptoautotrader.core.risk.ExitRuleFormula;
 import com.cryptoautotrader.strategy.Candle;
-import com.cryptoautotrader.strategy.IndicatorUtils;
 import com.cryptoautotrader.strategy.Strategy;
 import com.cryptoautotrader.strategy.StrategyRegistry;
 import com.cryptoautotrader.strategy.StrategySignal;
@@ -194,6 +194,56 @@ public class BacktestEngine {
                     pendingSide = null;
                     continue; // SL/TP 청산 후 이번 캔들에서 재진입하지 않음
                 }
+
+                // ── 시간 초과 청산 (time stop) — 2026-09-08 추가 ──────────────
+                //
+                // 검사 순서는 실전과 같다: SL/TP → time stop → 전략 SELL
+                // (DynamicTradingService.evaluatePosition · LiveTradingService 와 동일).
+                // 가격 기반 SL/TP 만 있으면 저변동 종목은 어느 쪽에도 도달하지 않아 자본이
+                // 무기한 묶인다. 운영 동적 세션 청산 83건 중 TIME_STOP 이 39건(47%)인데
+                // 백테스트에는 이 경로가 아예 없어 거래 모집단 자체가 달랐다.
+                if (ExitRuleFormula.shouldTimeStop(config.getMaxHoldHours(), entryTime, nextCandle.getTime())) {
+                    long heldHours = Duration.between(entryTime, nextCandle.getTime()).toHours();
+
+                    BigDecimal additionalSlippage = BigDecimal.ZERO;
+                    if (fillSimulator != null) {
+                        additionalSlippage = fillSimulator.calculateMarketImpact(position, nextCandle.getVolume());
+                    }
+                    BigDecimal totalSlippage = config.getSlippagePct().add(additionalSlippage);
+                    BigDecimal executionPrice = applySlippage(nextCandle.getOpen(), OrderSide.SELL, totalSlippage);
+
+                    BigDecimal fee = executionPrice.multiply(position)
+                            .multiply(config.getFeePct())
+                            .divide(BigDecimal.valueOf(100), SCALE, RoundingMode.HALF_UP);
+                    BigDecimal pnl = executionPrice.subtract(entryPrice)
+                            .multiply(position).subtract(fee).subtract(entryFee);
+                    cumulativePnl = cumulativePnl.add(pnl);
+                    capital = capital.add(executionPrice.multiply(position)).subtract(fee);
+
+                    trades.add(TradeRecord.builder()
+                            .side(OrderSide.SELL)
+                            .price(executionPrice)
+                            .quantity(position)
+                            .fee(fee)
+                            .slippage(totalSlippage)
+                            .pnl(pnl)
+                            .cumulativePnl(cumulativePnl)
+                            .signalReason(String.format("시간 초과 청산 — 보유 %d시간 ≥ %d시간",
+                                    heldHours, config.getMaxHoldHours()))
+                            .marketRegime(regimeDetector.detect(window).name())
+                            .executedAt(nextCandle.getTime())
+                            .build());
+
+                    position = BigDecimal.ZERO;
+                    entryPrice = BigDecimal.ZERO;
+                    entryTime = null;
+                    entryFee = BigDecimal.ZERO;
+                    stopLossPrice = BigDecimal.ZERO;
+                    takeProfitPrice = BigDecimal.ZERO;
+                    pendingQuantity = BigDecimal.ZERO;
+                    pendingSide = null;
+                    continue;
+                }
             }
 
             // 전략 신호 생성 (현재 캔들) — coinPair를 params에 주입해 코인별 전략 기본값 적용
@@ -233,22 +283,21 @@ public class BacktestEngine {
                     && rangeGatePass
                     && btcGatePass) {
 
-                // ATR(14) — atrStopLossEnabled/riskBasedSizingEnabled 둘 다 비활성이면 계산해도 쓰이지
-                // 않지만(exitChecker 내부에서 무시), window 크기 부족 시 예외를 피하려 가드한다.
-                BigDecimal atr = null;
-                if (window.size() > 14) {
-                    try {
-                        atr = IndicatorUtils.atr(window, 14);
-                    } catch (Exception ignored) {
-                        // 데이터 이상 시 ATR 기반 손절/사이징을 건너뛰고 고정 %로 폴백
-                    }
-                }
+                // 손절폭(%) — 실전 세 엔진과 **같은 공식**을 쓴다(ExitRuleFormula, 2026-09-08).
+                //
+                // 그 전에는 여기서 ExitRuleChecker.resolveStopLossPct 를 썼는데, 이름만 비슷할 뿐
+                // 다른 함수였다: atrStopLossEnabled 가 ExitRuleConfig 기본값 false 이고
+                // RiskManagementService.toExitRuleConfig() 가 그 필드를 설정하지 않아 DB 로 켤 수단도
+                // 없었다 — 그래서 백테스트는 ATR 을 넘겨받고도 쓰지 않고 **항상 5% 고정**으로 떨어졌다.
+                // 실전은 clamp(ATR/가격 × 1.5, floor, 8%) 라 워치리스트 같은 고변동 알트에서 8% 까지
+                // 넓어진다. 즉 **백테스트가 실전보다 훨씬 자주 손절**됐다.
+                //
+                // window 는 현재 캔들 i 까지만 담으므로 look-ahead 가 아니다(체결은 i+1 open).
+                BigDecimal estimatedEntry = nextCandle.getOpen();
+                BigDecimal slDistancePct = ExitRuleFormula.resolveStopLossPct(
+                        config.getExitRuleConfig().getStopLossPct(), window, estimatedEntry, null);
 
                 // 포지션 사이징: 가용 자금 × 투자 비율(기본) 또는 손절 거리 기반 리스크 사이징(옵트인)
-                // — 실전매매(LiveTradingService/DynamicTradingService)와 동일한 ExitRuleChecker 사용.
-                BigDecimal estimatedEntry = nextCandle.getOpen();
-                BigDecimal slDistancePct = exitChecker.resolveStopLossPct(estimatedEntry, atr)
-                        .multiply(BigDecimal.valueOf(100));
                 BigDecimal investAmount = exitChecker.calculateInvestAmount(capital, capital, slDistancePct);
                 if (investAmount.compareTo(BigDecimal.ZERO) == 0) {
                     continue; // 최소 투자 금액 미달
@@ -277,10 +326,23 @@ public class BacktestEngine {
                 entryFee = fee;
                 capital = capital.subtract(executionPrice.multiply(orderQuantity)).subtract(fee);
 
-                // SL/TP 초기값 설정 (전략 제안값 우선, 없으면 고정% 또는 ATR 기반 기본값)
-                StopLevels levels = exitChecker.calculateStopLevels(executionPrice, signal, atr);
-                stopLossPrice = levels.getStopLossPrice();
-                takeProfitPrice = levels.getTakeProfitPrice();
+                // SL/TP 초기값 — 실전 세 엔진과 동일한 규칙 (2026-09-08)
+                //
+                // 이전에는 ExitRuleChecker.calculateStopLevels 가 (1) SL 을 5% 고정으로 잡고
+                // (2) TP 를 SL × 2 = 10% 로 **상한 없이** 키웠으며 (3) 전략 제안값을 그대로 채택했다.
+                // TP 10% 는 실전이 결코 설정하지 않는 값이다 — ExitRuleFormula.TP_PCT_MAX 주석 그대로
+                // "넓은 SL 은 반드시 맞고 넓은 TP 는 사실상 안 맞는다"(07-31 개편 후 5일 익절 0건/손절 3건).
+                //
+                // 전략 제안 SL 은 존중하되 **더 넓은 쪽**을 채택한다 — 제안값이 ATR 기준보다 타이트하면
+                // 휩쏘로 이어진다. LiveTradingService 의 진입 블록과 같은 규칙이다.
+                BigDecimal atrStopLossPrice = executionPrice.multiply(BigDecimal.ONE.subtract(
+                                slDistancePct.divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP)))
+                        .setScale(SCALE, RoundingMode.HALF_DOWN);
+                stopLossPrice = (signal != null && signal.getSuggestedStopLoss() != null)
+                        ? signal.getSuggestedStopLoss().min(atrStopLossPrice)
+                        : atrStopLossPrice;
+                takeProfitPrice = ExitRuleFormula.resolveTakeProfitPrice(executionPrice, stopLossPrice,
+                        signal != null ? signal.getSuggestedTakeProfit() : null, null);
 
                 trades.add(TradeRecord.builder()
                         .side(OrderSide.BUY)

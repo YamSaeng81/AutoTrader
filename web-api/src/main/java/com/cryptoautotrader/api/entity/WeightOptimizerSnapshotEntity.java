@@ -35,6 +35,16 @@ public class WeightOptimizerSnapshotEntity {
     @Column(name = "coin_pair", length = 30)
     private String coinPair;
 
+    /**
+     * 가중치를 산출한 세션의 타임프레임 (V79, 2026-09-08).
+     *
+     * <p>NULL = 타임프레임 무관 가중치. 같은 전략·코인·레짐이라도 H1 과 M15 성적은 부호가
+     * 반대인 경우가 있어({@code COMPOSITE_MTF_BTC} H1 −1.428% / M15 +0.046%), 합치면 서로
+     * 상쇄된다. {@code WeightOverrideStore} 가 세분화 → 무관 순으로 폴백한다.</p>
+     */
+    @Column(name = "timeframe", length = 10)
+    private String timeframe;
+
     /** 전략명: COMPOSITE_BREAKOUT / COMPOSITE_MOMENTUM 등 */
     @Column(name = "strategy_name", nullable = false, length = 100)
     private String strategyName;

@@ -57,6 +57,17 @@ public class BacktestRunEntity {
     @Column(name = "is_walk_forward")
     private Boolean isWalkForward;
 
+    /**
+     * 이 실행이 어떤 청산 규칙으로 돌았는지 — {@code ExitRuleFormula.EXIT_RULES_VERSION} (V78, 2026-09-08).
+     *
+     * <p><b>NULL = 09-08 이전</b>(백테스트 SL 5% 고정 · TP 10% · time stop 없음 · 손실 구간 SL 조임).
+     * {@code WalkForwardValidationGate} 는 현재 버전 미만을 <b>근거로 인정하지 않는다</b> —
+     * 게이트가 조합별 최신 실행만 보기 때문에, 이 표시가 없으면 재실행되지 않은 조합이
+     * 수정 전 판정으로 실자본을 계속 승인한다.</p>
+     */
+    @Column(name = "exit_rules_version")
+    private Integer exitRulesVersion;
+
     @Column(name = "wf_in_sample")
     private Instant wfInSample;
 

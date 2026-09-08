@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import com.cryptoautotrader.core.risk.ExitRuleFormula;
 
 /**
  * 매매 규칙 지문 검증 — 2026-08-19.
@@ -145,30 +146,46 @@ class RulesetFingerprintTest {
     }
 
     /**
-     * 가드: {@link ExitRuleCalculator} 의 상수가 하나도 빠짐없이 지문에 실린다.
+     * 가드: {@link ExitRuleFormula} 의 상수가 하나도 빠짐없이 지문에 실린다.
      *
-     * <p><b>왜 이게 중요한가</b>: 세 엔진이 SL/TP 를 실제로 계산하는 곳은 {@code ExitRuleConfig}
+     * <p><b>왜 이게 중요한가</b>: 네 경로가 SL/TP 를 실제로 계산하는 곳은 {@code ExitRuleConfig}
      * (DB 설정) 가 아니라 이 클래스의 static 상수다. DYNAMIC 은 {@code ExitRuleConfig} 를
      * 참조조차 하지 않는다. 배포 전 검토(08-19) 시점에 이 5개 상수가 지문에 <b>전혀 없어서</b>,
      * {@code SL_ATR_MULTIPLIER} 를 1.5 → 2.0 으로 바꿔 손절폭이 33% 넓어져도 지문이 그대로였다.</p>
+     *
+     * <p><b>2026-09-08: 검사 대상을 {@code ExitRuleCalculator} → {@link ExitRuleFormula} 로 옮겼다.</b>
+     * 상수가 core-engine 으로 이동하면서 {@code ExitRuleCalculator} 에는 static final 필드가
+     * 하나도 남지 않았다 — 그대로 뒀다면 이 루프가 <b>0회 돌면서 통과</b>했을 것이다.
+     * 새 상수를 어디에 추가해도 아무도 못 잡는 상태가 된다. 가드가 수정의 사각을 그대로
+     * 물려받는, 이 저장소의 반복 결함과 똑같은 모양이다.</p>
      *
      * <p>리플렉션으로 검사하므로 새 상수를 추가하고 {@code behaviorParams()} 에 넣지 않으면
      * 빌드가 깨진다 — 사람이 목록을 대조할 필요가 없다.</p>
      */
     @Test
-    @DisplayName("가드: ExitRuleCalculator 의 모든 상수가 지문에 실린다 (리플렉션)")
+    @DisplayName("가드: ExitRuleFormula 의 모든 상수가 지문에 실린다 (리플렉션)")
     void everyExitCalculatorConstantIsFingerprinted() {
         Map<String, String> exposed = ExitRuleCalculator.behaviorParams();
 
-        for (Field f : ExitRuleCalculator.class.getDeclaredFields()) {
+        int checked = 0;
+        for (Field f : ExitRuleFormula.class.getDeclaredFields()) {
             if (!Modifier.isStatic(f.getModifiers()) || !Modifier.isFinal(f.getModifiers())) continue;
             if (f.isSynthetic()) continue;
+            // 규칙 버전은 매매 거동 파라미터가 아니라 "이 결과가 어떤 규칙으로 나왔나" 표시다.
+            // backtest_run 에 기록돼 WF 게이트가 구버전을 거르는 용도이고, 지문에 넣으면
+            // 값이 바뀔 때마다 실전 표본까지 갈라진다.
+            if (f.getName().equals("EXIT_RULES_VERSION")) continue;
             String key = lowerCamel(f.getName());
             assertThat(exposed)
-                    .as("ExitRuleCalculator.%s 가 지문에 없다 — 이 값을 바꿔도 지문이 그대로다", f.getName())
+                    .as("ExitRuleFormula.%s 가 지문에 없다 — 이 값을 바꿔도 지문이 그대로다", f.getName())
                     .containsKey(key);
+            checked++;
         }
         assertThat(exposed).as("상수가 하나도 노출되지 않았다").isNotEmpty();
+        assertThat(checked)
+                .as("리플렉션이 상수를 하나도 훑지 못했다 — 상수가 또 다른 클래스로 옮겨갔는지 확인할 것. "
+                        + "이 단언이 없으면 루프가 0회 돌면서 조용히 통과한다(2026-09-08 실제로 그럴 뻔했다).")
+                .isEqualTo(exposed.size());
     }
 
     /** {@code SL_ATR_MULTIPLIER} → {@code slAtrMultiplier} */

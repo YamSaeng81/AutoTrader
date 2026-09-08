@@ -3,7 +3,11 @@
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 이 파일은 **최신 작업 이력(최근 세션 몇 개) + 보류/결정 대기 항목 + 프로젝트 참조 정보**만 담는다. 오래된 상세 이력은 [`docs/old_progress.md`](old_progress.md)(2026-08-06 이전 전체 백업)와 [`docs/CHANGELOG.md`](CHANGELOG.md)를 참조.
 > **2026-08-06 / 2026-08-19**: 파일이 비대해질 때마다 날짜별 상세 이력을 `old_progress.md` 로 이관하고 이 파일에는 요약만 남긴다. 상세 근거·재현 과정이 필요하면 `old_progress.md` 에서 날짜로 검색할 것.
-> **마지막 갱신**: 2026-09-08 (2차) — 🟢 **3엔진 TP 트레일링 통합** (LIVE 급등게이트 / PAPER 매틱 / DYNAMIC 없음 → 공용 함수). 🔴 **BacktestEngine 도 같은 함수라 WF 350건 전부 0.3% 손절 기준 — 무효**. 🔴 WF 가 M15 를 검증한 적 없는데 운영 함대 40/52 세션이 M15 · M15 캔들은 4코인 0건+4코인 5개월 낡음. 🟢 flaky 테스트 제거. ⚠️ 배포 필요(매매 거동 변경).
+> **마지막 갱신**: 2026-09-08 (6차) — 🟢 **정합성 감사 1~4단계 완료**. 닫힌 캔들 이름 통일 · naive UTC 17컬럼 → TIMESTAMPTZ(V77) · 규약을 테스트로 이전. **가드를 뮤테이션으로 전수 검증 — 7건 중 2건이 "통과하지만 안 잡는" 상태였다**(기존 PaperLiveAlignmentTest 포함). 가드 76건 체계 완성. 남은 미해소: BACKTEST 청산 규칙 · weight_optimizer 타임프레임.
+> 이전 갱신: 2026-09-08 (5차) — 🔴 **신호 분석이 H1/M15 를 통째로 섞고 있었다**. `strategy_log` 에 timeframe 이 없어 집계가 구조적으로 (전략,코인) 으로만 묶였다 — MTF_BTC 사후 4h 가 H1 −1.428 / M15 +0.046 로 **방향이 반대인데 합산 −0.319 하나로 판정**돼 왔다. 09-04·09-07 전략 순위 분석은 코인·시각만 통제했지 타임프레임은 통제한 적이 없다. 🟢 V76 컬럼 추가 + 소비자 2곳 수정 + 테스트 6건. 🔴 `weight_optimizer_snapshot` 은 미해소.
+> 이전 갱신: 2026-09-08 (4차) — 🔴 **백테스트가 실전과 다른 청산 규칙으로 돌고 있다**. BACKTEST SL 항상 5% 고정(ATR 무시)·TP 10% vs 실전 SL 5~8%·TP ≤8%, **time stop 없음**(운영 청산의 47%가 TIME_STOP). 09-08 손절 수정 후에도 WF 결과는 실전 거동을 반영하지 못한다. 🟢 `ENGINE_PARITY.md` 4엔진 매트릭스 확장 + `EngineParityTest` BACKTEST 축 4건으로 고정. 해소는 WF 재검증 완료 후 별건.
+> 이전 갱신: 2026-09-08 (3차) — 🟢 **정합성 감사 1단계**. 결함들이 무작위가 아니라 하나의 패턴이었다 — **부분 수정 + 그 수정과 같은 범위의 가드**. `EngineConstantParityTest` 신설(리플렉션으로 중복 상수를 스스로 찾는다) · 공유 상수 9개 중 8개를 `TradingConstants`/`ExitRuleConfig` 로 위임해 **드리프트를 불가능하게** 함. 뮤테이션으로 기존 가드의 구멍 실증(FEE_RATE 드리프트를 기존 테스트는 놓쳤다). 거동 변화 없음.
+> 이전 갱신: 2026-09-08 (2차) — 🟢 **3엔진 TP 트레일링 통합** (LIVE 급등게이트 / PAPER 매틱 / DYNAMIC 없음 → 공용 함수). 🔴 **BacktestEngine 도 같은 함수라 WF 350건 전부 0.3% 손절 기준 — 무효**. 🔴 WF 가 M15 를 검증한 적 없는데 운영 함대 40/52 세션이 M15 · M15 캔들은 4코인 0건+4코인 5개월 낡음. 🟢 flaky 테스트 제거. ⚠️ 배포 필요(매매 거동 변경).
 > 이전 갱신: 2026-09-08 — 🔴 **고정코인 PAPER 손절가 버그** (설정 5% 손절이 실제 −0.43% 로 걸려 청산 534건 중 85.4% 가 휩쏘 손절, 누적 −1,270만원). LIVE 가 08-06 에 고친 것과 동일한 오류가 PAPER 전용 경로에 남아 있었다. 🟢 수정 배포 확인(position 3577 이 −5.000%) · PAPER 세션 96→40 정리 · 동적 83·91 정지. ⚠️ auto-stop 은 새 표본 n≥20 까지 계속 OFF.
 > 이전 갱신: 2026-09-07 10:40 — 🟢 **통제 4종 전량 적용** (공용 유니버스 고정 · 전략 SELL 청산 OFF · HOLD 기준선 백필 · executed_funds 명시). 테스트 465건 통과. 운영 DB 보정은 스크립트로 분리(`fix_data_integrity_0907.sh`, DRY_RUN 기본).
 > 이전 갱신: 2026-09-07 09:50 — 🔴 **전략 순위가 통제하면 무너진다** (사후수익 백필이 BUY/SELL 에만 돌아 **대조군이 없었다** — HOLD 74,462건 전량 미평가) · 코인·시각 통제 시 MTF_CONFIRMED −1.25%→−0.16%, MTF_BTC −0.48%→**+1.21%** · 🟢 HOLD 기준선 백필 신설 · 세션 49 총자산 손상(+212,043) 발견.
@@ -17,6 +21,355 @@
 > 이전 갱신: 2026-08-31 — 🔴 **COMPOSITE_PULLBACK_MTF 정지 결정** — 실거래(143거래 −3,135원)와 Walk Forward(928거래 7코인 전부 음수)가 독립적으로 같은 결론. WF 42조합 중 6개만 게이트 통과.
 
 ---
+
+### 🟢 2026-09-09 미해소 결함 1~5 전량 해소
+
+09-08 감사가 남긴 미해소 5건을 순차로 처리했다. **전부 "축이 하나 빠져 있다" 또는
+"규칙이 한 경로에만 적용됐다" 한 가지 모양**이다.
+
+| # | 결함 | 조치 | 마이그레이션 |
+|---|---|---|---|
+| 1 | BACKTEST 청산 규칙이 실전과 다름 | 공식을 `core-engine`(`ExitRuleFormula`)로 올려 4경로 공유 + 규칙 버전 게이트 | V78 |
+| 2 | `weight_optimizer_snapshot` 타임프레임 없음 | 2층 누적 + 4단 폴백, 세 엔진이 `timeframe` 주입 | V79 |
+| 3 | 전략 SELL 게이트 네 벌 중복 | `SignalExitGate` 단일 판정 | — |
+| 4 | `tickCandleCache` PAPER 전용 | `TickCandleCache`(ThreadLocal 스코프) 세 엔진 공용 | — |
+| 5 | 폐기 판정이 재생성을 못 막음 | `strategy_timeframe_enabled` 신설 + 게이트 연결 | V80 |
+
+### 1번 — 원인은 "잊었다"가 아니라 패키지 배치였다
+
+`BacktestEngine`(core-engine)이 실전 공식(`ExitRuleCalculator`, web-api)을 **모듈 의존
+방향상 호출할 수 없었다.** 그래서 백테스트만 SL 5% 고정 · TP 10% · time stop 없음으로 돌았고,
+운영 청산의 **47%(83건 중 39건)를 차지하는 TIME_STOP 경로가 아예 없어 거래 모집단이 달랐다.**
+
+검사를 추가해도 못 고치는 종류다 — 배치를 바꿔야 사라진다. 공식을 `ExitRuleFormula`로 올리고
+`ExitRuleCalculator`는 세션 오버라이드만 해석하는 위임층으로 남겼다.
+**실전 세 엔진의 계산 결과는 바뀌지 않는다**(상수·로직 그대로 이동). 백테스트만 달라진다.
+
+**부수 발견 — 게이트에 영구 구멍이 있었다.** WF 게이트는 조합별 *최신* 실행 하나만 보므로,
+재실행되지 않은 조합은 수정 전 판정을 **영원히** 유지한다. `EXIT_RULES_VERSION`(현재 2)을
+`backtest_run`에 기록하고 그보다 낮은 실행을 근거로 인정하지 않도록 했다. 09-08 이전 실행은
+전부 NULL이라 자동으로 걸러진다.
+
+### 2번 — 미룬 사유가 사실과 달랐다
+
+*"`position`에 timeframe이 없어 session_id 조인이 필요하다"*로 미뤄 왔는데,
+**가중치 쿼리 두 개가 이미 `live_trading_session`을 조인하고 있었다.** 컬럼 하나만 더 고르면
+되는 일이었다. 추정 비용이 실제보다 크게 잡혀 있었던 셈이다.
+
+같은 거래를 `regime`과 `regime@tf` 양쪽에 누적하고
+`regime:coin@tf → regime:coin → regime@tf → regime → 기본값` 순으로 폴백한다.
+표본이 부족한 동안에는 종전 동작이 유지되므로, 이 변경이 가중치를 **개선하는 대신 지워 버리는**
+일이 없다.
+
+### 5번 — "의도된 한계"는 맞았지만 그 결과가 구멍이었다
+
+`strategy_type_enabled`가 전략명만 키로 쓰는 것, 그래서 "모든 변형이 죽었을 때만" 끄는 것은
+**옳은 판단이다**(멀쩡한 `@H1`을 `@M15` 때문에 막을 수 없다). 그런데 그 우회의 결과로:
+
+```
+MEANREV_BB@M15 KILL  →  세션 정지                          O
+                     →  MEANREV_BB@M15 새 세션 생성 차단?   X
+```
+
+`KILL_CRITERIA.md` §5가 전략 비활성화를 두는 이유가 정확히 *"세션만 정지하면 같은 전략으로
+새 세션을 만들어 재개할 수 있다"*인데, 타임프레임 단위 폐기에서는 그 목적이 달성되지 않았다.
+`kill-criteria.auto-stop`이 OFF라 아직 실제 동작은 아니었다 — **켜는 순간 구멍이 된다.**
+켜기 전에 `strategy_timeframe_enabled`(V80)로 막았다.
+
+### 뮤테이션 검증 — 8/8
+
+새 가드가 같은 병(= 수정의 사각을 물려받음)에 걸리지 않았는지 일부러 깨뜨려 확인했다.
+
+| 뮤테이션 | 결과 |
+|---|---|
+| WF 게이트가 구버전 실행을 통과시킴 | ✅ 잡음 |
+| 틱 캐시 스코프를 닫지 않음 | ✅ 잡음 |
+| SELL 게이트 손실 탈출 조건 뒤집기 | ✅ 잡음 |
+| 백테스트 time stop 비활성화 | ✅ 잡음 |
+| 백테스트 SL을 고정 5%로 되돌림 | ✅ 잡음 |
+| 가중치 키에서 타임프레임 제거 | ✅ 잡음 |
+| 타임프레임 차단 무시 | ✅ 잡음 |
+| DYNAMIC에서 공용 SELL 게이트 제거 | ✅ 잡음 |
+
+**작업 중 실제로 걸린 오탐 1건**: `EngineParityTest`가 `contains("calculateStopLevels")`로
+검사했는데, 호출을 없앤 뒤에도 **그 사실을 적은 주석** 때문에 통과했다. 08-06
+`getTrailingSlMargin` 오탐과 같은 유형이라 `stripComments()`를 도입해 주석을 제외했다.
+
+**빈 루프가 될 뻔한 가드 1건**: `RulesetFingerprintTest`가 `ExitRuleCalculator`의 필드를
+리플렉션으로 훑는데, 상수를 `ExitRuleFormula`로 옮기면 **0회 돌면서 통과**한다.
+검사 대상을 옮기고 `checked == exposed.size()` 단언을 추가했다.
+
+### 테스트
+
+**503개 전량 통과.** 신규: `BacktestExitRuleParityTest`(7) ·
+`WeightOverrideTimeframeTest`(5) · `TickCandleCacheTest`(6) ·
+`KillCriteriaTimeframeDisableTest`(6). 갱신: `EngineParityTest`(알려진 결함 3건 → 해소 가드로
+전환) · `WalkForwardGateTimeframeTest`(+3) · `RulesetFingerprintTest` ·
+`StrategyWeightOptimizerTest`(컬럼 순서).
+
+> `RateLimiterEmergencyStopTest`가 전체 실행에서 간헐 실패한다(동시성 타이밍). 단독 3회 연속
+> 통과했고 이번 변경과 무관한 파일이다 — 별건으로 볼 것.
+
+### 배포 시 주의
+
+- **Flyway 4건이 함께 돈다**: V76·V77(09-08 미배포) + V78·V79·V80.
+  V77은 `ALTER COLUMN TYPE`이라 테이블 락이 걸리지만 대상이 전부 설정·로그·뉴스 캐시다.
+- **백테스트 결과가 달라진다.** 배포 후 WF를 다시 돌려야 게이트가 통과시킨다
+  (구버전 실행은 전부 거부된다). STEP 2/3를 새 빌드로 재실행할 것.
+- `kill-criteria.auto-stop`은 **계속 OFF**. 새 지문 표본이 n≥20에 이를 때까지 유지한다.
+
+---
+
+## 🟢 2026-09-08 (6차) 감사 4단계 + 1~4 종합 점검
+
+#### 4단계 — 나머지 미해소 결함 3종
+
+**결함 #3 닫힌 캔들 게이트 이름 불일치 → 해소.** DYNAMIC 만 `lastEvaluatedCandle` 이던 것을
+LIVE·PAPER 와 같은 `lastEvaluatedClosedCandle` 로 통일(6개 지점).
+
+문서가 *"순수 리네이밍이라 우선순위 낮음"* 으로 미뤄 온 항목인데, **우선순위 판단이 틀렸다.**
+이 저장소의 반복 결함은 "규칙이 한 엔진에만 적용됐는지" 를 사람이 확인하다 놓치는 것이고,
+`ENGINE_PARITY.md` 는 그 확인을 grep 으로 한다 — 이름이 갈리면 **감사 도구가 오탐을 내
+감사 자체가 헛돈다**(그 문서를 쓰는 중 실제로 두 번 틀렸다고 기록돼 있다).
+`EngineParityTest.closedCandleGateNamingIsConsistent` 로 고정.
+
+**naive UTC 10테이블 → 해소 (V77).** 9개 테이블 17개 컬럼을 `TIMESTAMPTZ` 로 변환.
+
+미뤄 온 사유가 *"운영 조회 코드를 동시에 고쳐야 해서"* 였는데 확인해 보니 그렇지 않았다 —
+해당 엔티티가 **전부 `Instant`** 를 쓴다(`LocalDateTime` 이었다면 값이 이동했겠지만
+`Instant` 는 절대시각이라 `timestamptz` 가 오히려 자연스러운 매핑). 저장값이 UTC 임도
+운영 DB 로 확인했다: `now()` 06:13:37+00 vs `news_item_cache.fetched_at` 최댓값 06:08:41
+— 5분 전, UTC 로 일치. 따라서 `AT TIME ZONE 'UTC'` 변환이 무손실이다.
+덤으로 `hibernate.jdbc.time_zone` 미설정 탓에 naive 컬럼 해석이 **JVM 타임존에 의존**하던 것도 사라진다.
+
+규칙 자체를 문장에서 **테스트로 옮겼다** — `TimestampConventionTest` 가 V78 이후
+마이그레이션에 naive `TIMESTAMP` 가 들어오면 깨진다.
+
+**결함 #2 `tickCandleCache` → 보류 유지 (근거 갱신).** 착수 조건이 "세션을 늘릴 때" 인데
+함대가 오히려 줄었다(PAPER 96→40, DYNAMIC 14→12, LIVE 0). 다만 09-08 M15 백필이
+레이트리밋으로 6/8 실패한 것은 **같은 API 예산을 다투는 문제**다 — 함대를 다시 늘리기 전에
+이 항목을 먼저 볼 것.
+
+#### 1~4 종합 — 가드가 실제로 잡는지 뮤테이션으로 전수 확인
+
+이번 감사의 전제가 *"가드가 수정 범위를 물려받아 맹점이 생긴다"* 였으므로,
+**새로 만든 가드가 그 병에 걸리지 않았는지**를 깨뜨려 보는 방식으로 확인했다.
+실제로 두 번 구멍이 나왔고 둘 다 이 방식으로만 발견됐다:
+
+| 뮤테이션 | 결과 |
+|---|---|
+| PAPER `FEE_RATE` 0.0005 → 0.0004 | 새 `EngineConstantParityTest` ✓ 잡음 / 기존 `PaperLiveAlignmentTest` ✗ **놓침**(감시 목록에 없던 상수) |
+| `ExitRuleChecker` 손실구간 SL 조임 복원 | ✓ 잡음. 단 `slNeverTightensOnLoss` 는 SL 값이 느슨하지 않아 **통과해 버렸다** → 테스트 데이터 수정 |
+| WF 게이트 키를 코인만으로 되돌림 | ✓ 잡음 |
+| `BacktestEngine` 경로에 프로브 삽입 | ✓ 파일을 실제로 읽고 있음 확인 |
+| V77 에서 `regime_change_log` 변환 제거 | **✗ 놓침** → 원인: 주석까지 매칭. `stripComments` 적용 후 ✓ |
+| `LogController` 그룹키에서 타임프레임 제거 | ✓ 잡음 |
+| DYNAMIC 이름을 `lastEvaluatedCandle` 로 되돌림 | ✓ 잡음 |
+
+**교훈: 테스트를 추가하는 것과 그 테스트가 잡는지 확인하는 것은 다른 일이다.**
+7건 중 2건이 "통과하지만 아무것도 안 잡는" 상태였다.
+
+#### 최종 가드 현황
+
+| 테스트 | 건수 | 축 |
+|---|---|---|
+| `ExitRuleCheckerTest` | 37 | 청산 규칙 거동(값 검증) |
+| `PaperLiveAlignmentTest` | 12 | PAPER↔LIVE 상수·배선 (기존) |
+| `EngineParityTest` | 11 | 4엔진 규칙 적용 여부 + BACKTEST 축 |
+| `StrategyLogTimeframeTest` | 6 | 신호 집계 타임프레임 |
+| `WalkForwardGateTimeframeTest` | 5 | WF 게이트 타임프레임 |
+| `EngineConstantParityTest` | 3 | **상수 중복 자동 발견** |
+| `TimestampConventionTest` | 2 | 타임스탬프 규약 |
+
+#### 남은 미해소 (우선순위 순)
+
+1. 🔴 **BACKTEST 청산 규칙이 실전과 다르다** — SL 5% 고정(ATR 무시)·TP 10%·time stop 없음.
+   WF 재검증 완료 후 착수(도는 중에 바꾸면 그 결과도 버려야 함)
+2. 🔴 **`weight_optimizer_snapshot` 타임프레임 없음** — `regime:coin` 키. 마이그레이션 2건 필요
+3. 🟡 전략 SELL 게이트 판정 로직이 네 벌(상수는 통일, 로직은 복제)
+4. 🟡 `tickCandleCache` PAPER 전용 — 함대 확장 시 착수
+5. 🟡 `strategy_type_enabled` 전략명만 키 — 의도된 한계(사유 코드에 있음)
+
+### 🔴 2026-09-08 (5차) 감사 3단계 — **신호 분석이 H1/M15 를 통째로 섞고 있었다**
+
+타임프레임 축을 전수 점검했다(전략 컬럼이 있는 테이블 11개 → `timeframe` 없는 것 → 그 집계 코드).
+
+#### 근본 원인 — `strategy_log` 에 `timeframe` 컬럼이 없었다
+
+컬럼이 없으니 이 테이블을 집계하는 경로가 **구조적으로** (전략, 코인) 으로만 묶인다.
+그런데 운영은 두 타임프레임을 동시에 돌리고 M15 가 3~5배 많다 — 사실상 M15 통계에
+H1 이 잡음으로 섞이는 구조였다(08-01 이후, 세션 조인으로 갈라 본 값):
+
+| 전략 | H1 | M15 |
+|---|---|---|
+| COMPOSITE_MTF_CONFIRMED | 7,833 | 41,826 |
+| COMPOSITE_MTF_BTC | 10,259 | 39,849 |
+| COMPOSITE_MOMENTUM_ICHIMOKU | 7,182 | 39,114 |
+
+#### 섞으면 결론이 뒤집힌다 (BUY 신호 사후 4h 수익률)
+
+| 전략 | H1 | M15 | 합산(수정 전) |
+|---|---|---|---|
+| **COMPOSITE_MTF_BTC** | **−1.428** | **+0.046** | −0.319 |
+| COMPOSITE_MTF_BTC_STRICT | −0.509 | +0.518 | +0.266 |
+| COMPOSITE_MOMENTUM_ICHIMOKU_V2 | −0.367 | +0.142 | +0.052 |
+
+MTF_BTC 는 H1 과 M15 의 **방향이 반대**인데 합산 −0.319% 하나로 판정돼 왔다.
+세 전략 모두 합산은 양수/중립인데 H1 만 보면 음수다.
+
+**⚠️ 09-04 "전략 검토" · 09-07 "전략 순위가 통제하면 무너진다" 분석은 코인·시각은 통제했지만
+타임프레임은 통제한 적이 없다.** 두 분석의 전략 순위는 이 축에서 다시 봐야 한다.
+(09-07 에 "코인·시각을 통제하니 MTF_BTC 가 −0.478 → +1.210 으로 부호 반전" 이라 적은 것도
+타임프레임이 빠진 상태의 수치다.)
+
+#### 조치
+
+- **V76 마이그레이션** — `strategy_log.timeframe` 컬럼 + `(전략, 코인, TF, 시각)` 인덱스.
+  소급 백필은 하지 않는다(세션 3종을 `session_type` 따라 갈라 조인해야 하고 삭제 세션은 복원 불가).
+  NULL = V76 이전 행이며 집계 시 `"?"` 로 **별도 그룹**이 된다 — 아무 그룹에나 합쳐지지 않는다.
+- 세 매매 엔진 로그 기록부에 `.timeframe(session.getTimeframe())` 추가
+- 소비자 2곳 그룹 키에 타임프레임 추가 — `LogController.buildByStrategy`(신호 품질 화면),
+  `StrategyDegradationWatchdog.groupByKey`(성능 저하 경보). 경보 `Alert` 에도 타임프레임을 실어
+  운영자가 H1/M15 를 구분할 수 있게 했다
+- `StrategyLogTimeframeTest` 6건 신설 — 그룹 분리·과거행 격리·세 엔진 기록·마이그레이션 존재
+- H2 테스트 스키마에도 컬럼 추가(마이그레이션과 별도 관리라 함께 고쳐야 통합 테스트가 산다)
+
+#### 점검 결과 요약
+
+| 테이블 | 상태 |
+|---|---|
+| `backtest_run` (WF 게이트) | ✅ 09-08 수정 |
+| `kill_criteria_judgment` | ✅ 원래 `groupByStrategyTimeframe` 로 올발랐음 |
+| **`strategy_log`** | ✅ **이번 수정 (V76)** |
+| `strategy_type_enabled` | ⚠️ 의도된 한계 — 전략명만 키. 그래서 "모든 변형이 폐기일 때만" 비활성화 |
+| **`weight_optimizer_snapshot`** | 🔴 **미해소** — `regime:coin` 키에 TF 없음 |
+
+`StrategyWeightOptimizer` 는 청산 포지션을 `regime:coin` 으로 묶어 전략 가중치를 낸다.
+두 타임프레임의 부호가 반대인 경우가 있으므로 **가중치가 상쇄될 수 있다.**
+집계 원천 `position` 에도 `timeframe` 이 없어(=`session_id` 조인 필요) 마이그레이션 2건 +
+소비자 변경이 필요하다 — `strategy_log` 수정 효과를 관측한 뒤 착수.
+
+### 🔴 2026-09-08 (4차) 감사 2단계 — **백테스트가 실전과 다른 청산 규칙으로 돌고 있다**
+
+`ENGINE_PARITY.md` 를 4엔진 매트릭스로 확장하면서 `BacktestEngine` 을 규칙별로 대조한 결과.
+
+문서는 08-19 작성 이래 *"매매 엔진이 셋"* 으로 시작했다. 그런데 `BacktestEngine` 도 같은
+`ExitRuleChecker` 를 쓰고 **그 결과가 WF 게이트를 통해 실자본 배정을 결정한다.**
+매매를 실행하지 않는다고 축에서 빼면, **그 엔진이 만든 근거로 매매를 허가하는 경로**가
+감시 밖에 남는다 — 09-08 에 WF 350건이 통째로 무효가 된 원인이 정확히 이 누락이다.
+
+#### 대조 결과
+
+| 규칙 | LIVE | DYN | PAPER | BACKTEST |
+|---|---|---|---|---|
+| `ExitRuleCalculator` (SL/TP) | O | O | O | **✗ 다른 공식** |
+| `shouldTimeStop` | O | O | O | **✗ 없음** |
+| `BtcMarketGuard` · `MarketRegimeDetector` · TP 래칫 | O | O | O | O |
+| 전략 SELL 게이트 | 인라인 복제 | 인라인 복제 | 인라인 복제 | `allowsSignalExit` |
+
+#### 핵심 — SL/TP 공식이 다르다
+
+`BacktestEngine` 은 `ExitRuleChecker.calculateStopLevels`, 세 매매 엔진은
+`ExitRuleCalculator.resolveStopLossPct` 를 쓴다. **이름이 비슷한 다른 함수다.**
+
+| | BACKTEST | LIVE · DYNAMIC · PAPER |
+|---|---|---|
+| SL 폭 | **항상 5.0% 고정** | `clamp(ATR(14)/가격 × 1.5, 5%, 8%)` → 5~8% |
+| ATR 반영 | **안 함** | 함 |
+| TP 폭 | **SL × 2 = 항상 10%** | `min(SL × 2, 8%)` → ≤8% |
+| 전략 제안 SL | 그대로 채택 | `.min()` — 더 넓은 쪽 |
+| 시간 초과 청산 | **없음** | `maxHoldHours` (운영 24h) |
+
+원인: `ExitRuleConfig.atrStopLossEnabled` 기본값이 `false` 인데
+`RiskManagementService.toExitRuleConfig()` 가 이 필드를 **설정하지 않는다** — DB 로 켤 수단도 없다.
+그래서 백테스트는 ATR 을 인자로 넘겨받고도 쓰지 않고 고정 5% 로 떨어진다.
+
+#### 영향 — 판정이 양방향으로 왜곡된다
+
+- 워치리스트는 ATR 하한을 통과한 **고변동 알트**다. 실전 SL 은 8% 까지 넓어지는데 백테스트는
+  5% 고정 → **백테스트가 실전보다 훨씬 자주 손절된다.**
+- 백테스트 TP 10% 는 실전이 결코 설정하지 않는 값이다. `ExitRuleCalculator.TP_PCT_MAX` javadoc 이
+  적어 둔 그대로 — *"넓은 SL 은 반드시 맞고 넓은 TP 는 사실상 안 맞는다"*(07-31 개편 후 5일간
+  익절 0건/손절 3건). 실전이 8% 로 자른 근거가 백테스트엔 없다.
+- 운영 동적 세션 청산 83건 중 **TIME_STOP 39건(47%)** 인데 백테스트엔 그 경로가 아예 없다 —
+  거래 모집단 자체가 다르다.
+
+**⚠️ 즉 09-08 손절 버그를 고친 뒤에도 WF 결과는 실전 거동을 반영하지 못한다.**
+지금 도는 재검증 결과도 이 한계 안에서 읽어야 한다.
+
+#### 조치 — 지금은 고정, 해소는 별건
+
+- `ENGINE_PARITY.md` 4엔진 매트릭스로 확장 + 격차를 미해소 결함으로 명시
+- `EngineParityTest` 에 BACKTEST 축 4건 추가 — 해소되면 테스트가 깨지도록 고정.
+  경로가 실제로 파일을 읽는지 **프로브를 심어 확인**했다(조용히 통과하는 가드를 만들지 않기 위해)
+
+**지금 고치지 않는 이유**: 백테스트 청산 규칙을 바꾸면 과거 모든 백테스트와 비교 불가가 되고,
+`BacktestConfig` 에 `maxHoldHours` 필드가 없어 신규 필드·마이그레이션이 필요하다.
+**WF 재검증이 도는 중에 바꾸면 그 결과도 버려야 한다** — 재검증 완료 후 착수할 것.
+
+#### 부수 발견 — 전략 SELL 게이트가 네 벌
+
+`BACKTEST` 만 `ExitRuleChecker.allowsSignalExit` 을 호출하고, 세 매매 엔진은 같은 판정을
+자체 상수로 **인라인 구현**한다. 상수는 1단계에서 `ExitRuleConfig` 위임으로 통일했지만
+**판정 로직 자체는 여전히 네 벌**이다. 조건식 한쪽만 바뀌면 아무도 모른다.
+
+### 🟢 2026-09-08 (3차) 정합성 감사 1단계 — 상수 드리프트 가드
+
+### 왜 감사를 시작했나
+
+09-08 하루에 나온 결함이 전부 같은 모양이었다 — **부분 수정 + 그 수정과 같은 범위의 가드**.
+가드가 수정의 맹점을 물려받으니 남은 축은 다음 사고까지 살아남는다.
+
+| 시점 | 고친 것 | 놓친 것 | 발견 |
+|---|---|---|---|
+| 08-06 | LIVE 급락 SL 조임 제거 | PAPER 경로(`ExitRuleChecker`) | 09-08, −1,270만원 |
+| 08-06 | `PaperLiveAlignmentTest` 신설 | DYNAMIC 축 (문서가 이미 인정) | 미해결 |
+| 08-19 | `EngineParityTest` 신설 | 문자열 검사라 다른 구현을 같다고 봄 | 09-08 (TP 3원 분기) |
+| 08-24 | WF 게이트 전략→전략×코인 | 타임프레임 축 | 09-08 |
+
+전면 코드 리뷰(3서비스만 6,779줄)가 아니라 **축 기반 감사**로 간다. 결함은 여러 축에
+걸쳐 성립해야 하는 규칙에만 산다.
+
+### 1단계 결과 — `EngineConstantParityTest` 신설
+
+기존 두 가드의 구멍:
+- `PaperLiveAlignmentTest` — **이름을 손으로 나열**한다. 나열 안 한 상수는 갈려도 모른다.
+- `EngineParityTest` — **소스 문자열 검사**라 "호출된다"까지만 본다.
+
+새 테스트는 세 엔진의 `static final` 필드를 **리플렉션으로 열거해 이름이 겹치는 것을 스스로 찾고**
+값이 같은지 본다. 새 상수를 두 엔진에 복제하는 순간 아무도 이 파일을 건드리지 않아도 감시 대상이
+된다 — 가드가 수정 범위를 물려받는 고리를 끊는 지점이다. 의도된 차이는 사유와 함께 면제 등록하고,
+**면제 목록이 낡는 것도 검사**한다.
+
+**뮤테이션 테스트로 구멍을 실증했다**: PAPER 의 `FEE_RATE` 를 0.0005 → 0.0004 로 바꾸니
+새 테스트는 잡았고 **기존 `PaperLiveAlignmentTest` 는 통과했다**(감시 목록에 없던 상수).
+
+### 검사보다 구조 — 중복 8/9 제거
+
+값이 같은지 **검사**하는 것보다 한 곳에만 둬서 드리프트가 **불가능**하게 하는 쪽이 낫다.
+발견된 공유 상수 9개 중 8개를 위임으로 바꿨다(`CANDLE_LOOKBACK` 이 이미 쓰던 패턴).
+
+| 상수 | 있던 곳 | 이동 |
+|---|---|---|
+| `FEE_RATE` | LIVE·DYNAMIC·PAPER + `DynamicSessionController` (4곳) | `TradingConstants` |
+| `ACTIVE_ORDER_STATES` | LIVE·DYNAMIC | `TradingConstants` |
+| `CLOSING_TIMEOUT_MINUTES` | LIVE·DYNAMIC | `TradingConstants` |
+| `SL_STALE_WARN_MINUTES` | LIVE·DYNAMIC | `TradingConstants` |
+| `MIN_HOLD_MINUTES_FOR_SIGNAL_EXIT` | LIVE·PAPER | `ExitRuleConfig.defaults()` |
+| `MIN_PNL_PCT_FOR_SIGNAL_EXIT` | LIVE·PAPER | `ExitRuleConfig.defaults()` |
+
+`FEE_RATE` 가 특히 위험했다 — 모든 실현손익에 곱해지므로 한 곳만 갈리면 그 엔진 성적 전체가
+조용히 어긋난다. 값은 전부 일치한 상태였으므로 **거동 변화 없음**(배포해도 매매가 달라지지 않는다).
+
+남은 1개 `MAX_CONCURRENT_SESSIONS`(LIVE 10 / PAPER 120)는 의도된 차이라 사유와 함께 면제 등록.
+
+### 다음 단계
+
+2. `ENGINE_PARITY.md` 매트릭스에 **BacktestEngine 축 추가** — 문서는 "매매 엔진이 셋"으로
+   시작하는데, 실제로는 넷이다. `BacktestEngine` 이 `ExitRuleChecker` 를 공유하고 그 결과가
+   WF 게이트를 통해 실자본 배정을 결정한다. 09-08 에 WF 350건이 무효가 된 원인이 이 누락이다.
+3. 타임프레임 축 전수 점검 (WF 외에 또 있는지)
+4. 나머지 미해소 결함 (#2 캐시, #3 이름 불일치, naive UTC 10테이블)
 
 ### 🟢 2026-09-08 후속 — 3엔진 트레일링 통합 · WF 전면 재검증 필요 판명
 

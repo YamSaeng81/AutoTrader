@@ -2,6 +2,7 @@ package com.cryptoautotrader.api.service;
 
 import com.cryptoautotrader.api.dto.DynamicSessionRequest;
 import com.cryptoautotrader.api.entity.BacktestRunEntity;
+import com.cryptoautotrader.core.risk.ExitRuleFormula;
 import com.cryptoautotrader.api.repository.BacktestRunRepository;
 import com.cryptoautotrader.api.repository.DynamicSessionRepository;
 import com.cryptoautotrader.api.repository.OrderRepository;
@@ -143,6 +144,10 @@ class WalkForwardGateEnabledSessionCreationTest extends IntegrationTestBase {
                 .initialCapital(new BigDecimal("10000"))
                 .configJson(Map.of())
                 .isWalkForward(true)
+                // 현재 청산 규칙으로 돈 실행으로 표시한다 — 이 표시가 없으면 게이트가
+                // '구버전이라 재검증 필요' 로 먼저 걸러서, 여기서 보려는 판정(기대값·OVERFITTING)에
+                // 도달하지 못한다 (2026-09-08 V78).
+                .exitRulesVersion(ExitRuleFormula.EXIT_RULES_VERSION)
                 .wfResultJson(result)
                 .build();
     }

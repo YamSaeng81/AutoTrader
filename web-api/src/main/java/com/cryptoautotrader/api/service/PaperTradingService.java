@@ -50,6 +50,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import com.cryptoautotrader.core.risk.SignalExitGate;
+import com.cryptoautotrader.api.util.TickCandleCache;
 
 @Service
 @RequiredArgsConstructor
@@ -67,7 +69,7 @@ public class PaperTradingService {
      * (아래 틱 단위 캐시). 100세션이 10코인을 쓰면 조회는 11회(코인 10 + BTC 가드 1)다.</p>
      */
     private static final int MAX_CONCURRENT_SESSIONS = 120;
-    private static final BigDecimal FEE_RATE = new BigDecimal("0.0005");
+    private static final BigDecimal FEE_RATE = TradingConstants.FEE_RATE;
     // 백테스트(BacktestEngine.MAX_LOOKBACK)·실거래(LiveTradingService.CANDLE_LOOKBACK)와 동일하게
     // 맞춰야 페이퍼 승격 판단이 실거래 신호와 같은 조건에서 검증된다.
     private static final int CANDLE_LOOKBACK = TradingConstants.CANDLE_LOOKBACK;
@@ -77,9 +79,11 @@ public class PaperTradingService {
     // 하나라도 어긋나면 "페이퍼에서 검증하고 실전에 올린다"는 절차가 다시 성립하지 않는다.
 
     /** 전략 SELL 최소 보유시간(분) — 진입 직후 동가 청산 패턴 차단. SL/TP는 이 게이트와 무관하게 항상 동작. */
-    private static final long MIN_HOLD_MINUTES_FOR_SIGNAL_EXIT = 180;
+    private static final long MIN_HOLD_MINUTES_FOR_SIGNAL_EXIT =
+            ExitRuleConfig.defaults().getMinHoldMinutesForSignalExit();
     /** 본전 청산 차단 하한(%) — 이 미만 수익에서의 전략 SELL은 무시한다. */
-    private static final BigDecimal MIN_PNL_PCT_FOR_SIGNAL_EXIT = new BigDecimal("0.30");
+    private static final BigDecimal MIN_PNL_PCT_FOR_SIGNAL_EXIT =
+            ExitRuleConfig.defaults().getMinPnlPctForSignalExit();
     /**
      * 손실 탈출 임계(%) — 이보다 더 잃고 있으면 본전 청산 차단을 풀어 전략 SELL을 허용한다.
      * 2026-08-18: −1.00 → −0.30. 단일 출처는 {@link ExitRuleConfig} (근거는 그 필드 javadoc).
@@ -172,7 +176,8 @@ public class PaperTradingService {
     private VirtualBalanceEntity createSession(PaperTradingStartRequest req) {
         // 비활성 전략 차단 (2026-08-18) — start/startMulti 양쪽이 여기를 거치므로 한 곳에서 막는다.
         // 페이퍼에도 거는 이유: 페이퍼에서 죽은 전략을 페이퍼로 다시 돌릴 이유가 없다.
-        strategyEnablementGate.assertEnabled(req.getStrategyType());
+        // 타임프레임까지 확인한다 (2026-09-08 V80) — 폐기된 (전략, 타임프레임) 재생성 차단.
+        strategyEnablementGate.assertEnabled(req.getStrategyType(), req.getTimeframe());
 
         VirtualBalanceEntity session = VirtualBalanceEntity.builder()
                 .totalKrw(req.getInitialCapital())
@@ -570,22 +575,26 @@ public class PaperTradingService {
         // 이번 틱 동안만 유효한 캔들 캐시 — 격자 실험(코인 N × 전략 M)에서 같은 (코인,타임프레임)을
         // 세션마다 다시 조회하는 낭비를 없앤다. 100세션이 10코인을 쓰면 500행 쿼리가 200회 → 11회
         // (코인 10 + BTC 가드 1)로 줄어든다. 틱마다 새로 만들므로 stale 데이터 위험은 없다.
-        Map<String, List<Candle>> tickCandleCache = new java.util.HashMap<>();
-
-        for (VirtualBalanceEntity session : runningSessions) {
-            try {
-                runSessionStrategy(session, tickCandleCache);
-            } catch (Exception e) {
-                log.error("모의투자 전략 실행 오류 (sessionId={}): {}", session.getId(), e.getMessage(), e);
+        //
+        // 2026-09-08: 여기 있던 로컬 Map 을 TickCandleCache 로 옮겼다 — LIVE·DYNAMIC 에는 이 캐시가
+        // 없어 08-19 감사가 "PAPER 에만 있는 것" 으로 기록했던 항목이다. 이제 셋이 같은 구현을 쓴다.
+        TickCandleCache.begin();
+        try {
+            for (VirtualBalanceEntity session : runningSessions) {
+                try {
+                    runSessionStrategy(session);
+                } catch (Exception e) {
+                    log.error("모의투자 전략 실행 오류 (sessionId={}): {}", session.getId(), e.getMessage(), e);
+                }
             }
+        } finally {
+            TickCandleCache.end();
         }
     }
 
     /** 틱 캐시를 경유한 캔들 조회 — 같은 (코인, 타임프레임)은 틱당 1회만 DB를 친다. */
-    private List<Candle> candlesFor(String coinPair, String timeframe,
-                                     Map<String, List<Candle>> tickCandleCache) {
-        return tickCandleCache.computeIfAbsent(
-                coinPair + ":" + timeframe, k -> fetchRecentCandles(coinPair, timeframe));
+    private List<Candle> candlesFor(String coinPair, String timeframe) {
+        return TickCandleCache.get(coinPair, timeframe, () -> fetchRecentCandles(coinPair, timeframe));
     }
 
     // ── 내부 메서드 ───────────────────────────────────────────
@@ -603,14 +612,13 @@ public class PaperTradingService {
      * {@code §8 cross-session 잔고 가드}. 페이퍼는 <b>미검증 전략을 검증하기 위한</b> 도구이므로
      * "검증되지 않아 차단" 규칙을 적용하면 존재 이유가 사라진다.</p>
      */
-    private void runSessionStrategy(VirtualBalanceEntity session,
-                                     Map<String, List<Candle>> tickCandleCache) {
+    private void runSessionStrategy(VirtualBalanceEntity session) {
         Long sessionId = session.getId();
         String coinPair = session.getCoinPair();
         String timeframe = session.getTimeframe();
         String strategyName = session.getStrategyName();
 
-        List<Candle> candles = candlesFor(coinPair, timeframe, tickCandleCache);
+        List<Candle> candles = candlesFor(coinPair, timeframe);
         if (candles.size() < 10) {
             log.warn("모의투자 캔들 부족: {} {}건 (sessionId={})", coinPair, candles.size(), sessionId);
             return;
@@ -632,7 +640,7 @@ public class PaperTradingService {
         // 안전장치 2종은 닫힌 캔들 게이팅과 무관하게 매 tick 최신 캔들로 평가한다 (LIVE 동일).
         BlackSwanGuard.Result blackSwanGuard = BlackSwanGuard.check(candles);
         List<Candle> btcCandles = "KRW-BTC".equals(coinPair)
-                ? candles : candlesFor("KRW-BTC", timeframe, tickCandleCache);
+                ? candles : candlesFor("KRW-BTC", timeframe);
         BtcMarketGuard.Result btcMarketGuard = BtcMarketGuard.check(btcCandles);
 
         // ── 닫힌 캔들 게이팅 ──────────────────────────────────────────────────
@@ -661,6 +669,10 @@ public class PaperTradingService {
 
             Map<String, Object> params = new java.util.HashMap<>();
             params.put("coinPair", coinPair);
+            // 타임프레임도 전략에 알린다 (2026-09-08) — COMPOSITE 계열이 레짐별 가중치를
+            // 조회할 때 이 값으로 키를 좁힌다. 같은 전략·코인·레짐이라도 H1/M15 성적은
+            // 부호가 반대인 경우가 있어, 합치면 가중치가 서로 상쇄된다.
+            params.put("timeframe", session.getTimeframe());
             if (session.getStartedAt() != null) {
                 params.put("sessionStartedAt", session.getStartedAt().toEpochMilli());
             }
@@ -702,6 +714,7 @@ public class PaperTradingService {
                         .rulesetHash(rulesetRegistry.hashFor(session))
                         .strategyName(strategyName)
                         .coinPair(coinPair)
+                        .timeframe(session.getTimeframe())
                         .signal(signal.getAction().name())
                         .reason(signal.getReason())
                         .marketRegime(preEvalRegime != null ? preEvalRegime.name() : null)
@@ -790,19 +803,14 @@ public class PaperTradingService {
                                     .setScale(3, RoundingMode.HALF_UP)
                             : BigDecimal.ZERO;
 
-                    if (heldMinutes < MIN_HOLD_MINUTES_FOR_SIGNAL_EXIT) {
-                        String blockReason = String.format(
-                                "최소 보유시간 미달: %d분 < %d분 (pnl=%s%%, 전략 SELL 차단, SL/TP는 유효)",
-                                heldMinutes, MIN_HOLD_MINUTES_FOR_SIGNAL_EXIT, heldPnlPct.toPlainString());
-                        log.info("모의투자 SELL 차단 (sessionId={}): {} {}", sessionId, coinPair, blockReason);
-                        saveSignalQuality(savedSignalLog, false, blockReason);
-                    } else if (heldPnlPct.compareTo(MIN_PNL_PCT_FOR_SIGNAL_EXIT) < 0
-                            && heldPnlPct.compareTo(LOSS_ESCAPE_THRESHOLD) >= 0) {
-                        String blockReason = String.format(
-                                "본전 청산 차단: pnl=%s%% < +%s%% (전략 SELL 무시, SL/TP/트레일링은 유효)",
-                                heldPnlPct.toPlainString(), MIN_PNL_PCT_FOR_SIGNAL_EXIT.toPlainString());
-                        log.info("모의투자 SELL 차단 (sessionId={}): {} {}", sessionId, coinPair, blockReason);
-                        saveSignalQuality(savedSignalLog, false, blockReason);
+                    // 판정은 SignalExitGate 공용 (2026-09-08) — LIVE·DYNAMIC 과 같은 함수다.
+                    SignalExitGate.Decision sellGate = SignalExitGate.decide(
+                            heldMinutes, heldPnlPct,
+                            MIN_HOLD_MINUTES_FOR_SIGNAL_EXIT, MIN_PNL_PCT_FOR_SIGNAL_EXIT,
+                            LOSS_ESCAPE_THRESHOLD);
+                    if (!sellGate.allowed()) {
+                        log.info("모의투자 SELL 차단 (sessionId={}): {} {}", sessionId, coinPair, sellGate.reason());
+                        saveSignalQuality(savedSignalLog, false, sellGate.reason());
                     } else {
                         closePosition(pos, currentPrice, session, String.format(
                                 "전략 신호: %s -- %s (pnl=%s%%)",

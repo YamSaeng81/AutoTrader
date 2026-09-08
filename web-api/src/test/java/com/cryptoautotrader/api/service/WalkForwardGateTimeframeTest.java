@@ -2,6 +2,7 @@ package com.cryptoautotrader.api.service;
 
 import com.cryptoautotrader.api.entity.BacktestRunEntity;
 import com.cryptoautotrader.api.repository.BacktestRunRepository;
+import com.cryptoautotrader.core.risk.ExitRuleFormula;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -48,10 +49,20 @@ class WalkForwardGateTimeframeTest {
         gate = new WalkForwardValidationGate(repo, false);
     }
 
-    /** OOS 기대값 · 거래수를 담은 WF 실행 1건. */
+    /** OOS 기대값 · 거래수를 담은 WF 실행 1건 — 현재 청산 규칙으로 돈 것으로 표시한다. */
     private static BacktestRunEntity run(String coin, String tf, String verdict,
                                          double expectancyPct, int trades, Instant createdAt) {
+        BacktestRunEntity e = runWithRuleset(coin, tf, verdict, expectancyPct, trades, createdAt,
+                ExitRuleFormula.EXIT_RULES_VERSION);
+        return e;
+    }
+
+    /** 규칙 버전을 명시하는 형태 — 구버전 거부를 검증할 때 쓴다. */
+    private static BacktestRunEntity runWithRuleset(String coin, String tf, String verdict,
+                                                     double expectancyPct, int trades,
+                                                     Instant createdAt, Integer exitRulesVersion) {
         BacktestRunEntity e = new BacktestRunEntity();
+        e.setExitRulesVersion(exitRulesVersion);
         e.setStrategyName("COMPOSITE_MTF_BTC");
         e.setCoinPair(coin);
         e.setTimeframe(tf);
@@ -137,5 +148,50 @@ class WalkForwardGateTimeframeTest {
                         Instant.parse("2026-09-02T00:00:00Z"))));
 
         assertThat(gate.evaluate("COMPOSITE_MTF_BTC", "KRW-BTC").passed()).isTrue();
+    }
+
+    // ── 청산 규칙 버전 (2026-09-08) ────────────────────────────────
+
+    @Test
+    @DisplayName("구버전 규칙으로 돈 실행은 근거로 인정하지 않는다 — 성적이 아무리 좋아도")
+    void 구버전_규칙_실행은_거부된다() {
+        // 기대값 +3.5%, 거래 40건 — 성적만 보면 통과할 실행이다.
+        when(repo.findByStrategyNameAndCoinPairAndTimeframeAndIsWalkForwardTrueOrderByCreatedAtDesc(
+                anyString(), anyString(), any()))
+                .thenReturn(List.of(runWithRuleset("KRW-BTC", "H1", "ACCEPTABLE", 3.5, 40,
+                        Instant.parse("2026-09-02T00:00:00Z"),
+                        ExitRuleFormula.EXIT_RULES_VERSION - 1)));
+
+        var d = gate.evaluate("COMPOSITE_MTF_BTC", "KRW-BTC", "H1");
+
+        assertThat(d.passed())
+                .as("SL 5%% 고정 · TP 10%% · time stop 없음으로 나온 성적이다 — 실전 거동을 반영하지 못한다")
+                .isFalse();
+        assertThat(d.reason()).contains("청산 규칙");
+    }
+
+    @Test
+    @DisplayName("버전 미상(NULL)도 거부한다 — 09-08 이전 350건이 전부 여기 해당한다")
+    void 버전_미상은_거부된다() {
+        when(repo.findByStrategyNameAndCoinPairAndTimeframeAndIsWalkForwardTrueOrderByCreatedAtDesc(
+                anyString(), anyString(), any()))
+                .thenReturn(List.of(runWithRuleset("KRW-BTC", "H1", "ACCEPTABLE", 3.5, 40,
+                        Instant.parse("2026-09-02T00:00:00Z"), null)));
+
+        assertThat(gate.evaluate("COMPOSITE_MTF_BTC", "KRW-BTC", "H1").passed())
+                .as("어떤 규칙으로 돌았는지 모르는 결과를 통과시키면, 안전한 기본값이 '통과'가 된다")
+                .isFalse();
+    }
+
+    @Test
+    @DisplayName("전략 단위 판정도 구버전을 걸러낸다 — 한쪽만 고치면 DYNAMIC 경로로 샌다")
+    void 전략_단위_판정도_버전을_본다() {
+        // 코인을 모르는 DYNAMIC 세션 생성 경로. 구버전 실행만 있으면 통과해선 안 된다.
+        when(repo.findByStrategyNameAndIsWalkForwardTrueOrderByCreatedAtDesc(anyString()))
+                .thenReturn(List.of(runWithRuleset("KRW-BTC", "H1", "ACCEPTABLE", 3.5, 40,
+                        Instant.parse("2026-09-02T00:00:00Z"),
+                        ExitRuleFormula.EXIT_RULES_VERSION - 1)));
+
+        assertThat(gate.evaluateStrategy("COMPOSITE_MTF_BTC", "H1").passed()).isFalse();
     }
 }

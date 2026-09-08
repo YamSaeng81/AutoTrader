@@ -367,11 +367,12 @@ public class ExitRuleChecker {
      * @return true면 SELL 체결 허용, false면 무시(HOLD 취급)
      */
     public boolean allowsSignalExit(long heldMinutes, BigDecimal pnlPct) {
-        if (heldMinutes < config.getMinHoldMinutesForSignalExit()) {
-            return false;
-        }
-        return pnlPct.compareTo(config.getMinPnlPctForSignalExit()) >= 0
-                || pnlPct.compareTo(config.getLossEscapeThresholdPct()) < 0;
+        // 2026-09-08: 판정을 SignalExitGate 로 위임했다. 그 전에는 같은 조건식이 네 벌
+        // (백테스트 + 세 매매 엔진) 이었고, 한쪽 부등호만 바뀌어도 아무도 모르는 상태였다.
+        return SignalExitGate.decide(heldMinutes, pnlPct,
+                config.getMinHoldMinutesForSignalExit(),
+                config.getMinPnlPctForSignalExit(),
+                config.getLossEscapeThresholdPct()).allowed();
     }
 
     // ── 포지션 사이징 ─────────────────────────────────────────

@@ -1,6 +1,7 @@
 package com.cryptoautotrader.api.util;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * 매매 관련 공통 상수 — <b>세 엔진이 반드시 같은 값을 써야 하는 것들.</b>
@@ -50,4 +51,42 @@ public final class TradingConstants {
      * 자세한 근거는 {@code WatchlistFilterService.passesSpreadFilter} javadoc 참조.</p>
      */
     public static final BigDecimal WATCHLIST_ALLOWED_SPREAD_TICKS = new BigDecimal("2");
+
+    // ── 2026-09-08 통합: 세 엔진에 복제돼 있던 것들 ──────────────────────────
+    //
+    // EngineConstantParityTest 가 "두 엔진 이상에 같은 이름의 상수가 있으면 값이 같아야 한다"를
+    // 리플렉션으로 감사하다 드러난 중복이다. 값은 전부 일치했지만, 검사로 드리프트를 **잡는** 것보다
+    // 한 곳에만 둬서 드리프트가 **불가능하게** 하는 쪽이 낫다.
+
+    /**
+     * 거래소(Upbit) 편도 수수료율 — 0.05%.
+     *
+     * <p>LIVE·DYNAMIC·PAPER 세 서비스와 {@code DynamicSessionController} 까지 네 곳에
+     * 복제돼 있었다. 수수료는 모든 실현손익에 곱해지므로, 한 곳만 갈리면 그 엔진의 성적 전체가
+     * 조용히 어긋난다 — 페이퍼로 실전을 예측한다는 전제가 깨지는 가장 직접적인 경로다.</p>
+     *
+     * <p>왕복 기준 임계는 위 {@link #FEE_THRESHOLD}(0.10%)를 쓴다.</p>
+     */
+    public static final BigDecimal FEE_RATE = new BigDecimal("0.0005");
+
+    /**
+     * 아직 체결이 끝나지 않아 정리 대상으로 봐야 하는 주문 상태.
+     *
+     * <p>여기서 상태 하나가 빠지면 그 주문은 미체결인 채로 조회에서 사라져 유령 포지션이 된다.
+     * LIVE·DYNAMIC 이 각자 목록을 들고 있었다.</p>
+     */
+    public static final List<String> ACTIVE_ORDER_STATES =
+            List.of("PENDING", "SUBMITTED", "PARTIAL_FILLED");
+
+    /**
+     * CLOSING 상태 체류 한도(분) — 초과하면 reconciler 가 OPEN 으로 롤백한다.
+     *
+     * <p>{@code OrderExecutionEngine.ORDER_TIMEOUT}(5분)보다 <b>반드시 길어야 한다</b> —
+     * 짧으면 아직 살아 있는 매도 주문을 두고 포지션을 OPEN 으로 되돌려 중복 매도가 난다
+     * (2026-07-02 감사 D-5).</p>
+     */
+    public static final long CLOSING_TIMEOUT_MINUTES = 8;
+
+    /** SL 점검이 이 시간(분) 이상 끊기면 경보 — 감시 경로가 죽은 것을 조용히 넘기지 않는다. */
+    public static final long SL_STALE_WARN_MINUTES = 3;
 }

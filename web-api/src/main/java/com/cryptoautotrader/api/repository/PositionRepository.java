@@ -223,9 +223,13 @@ public interface PositionRepository extends JpaRepository<PositionEntity, Long> 
      * 지수 가중 최적화용 — 개별 CLOSED 포지션을 전략·레짐·closed_at 과 함께 반환.
      * StrategyWeightOptimizer 가 exp(-days/halfLife) 가중치를 Java 에서 적용한다.
      *
-     * <p>각 행: [strategyType, marketRegime, realizedPnl, investedKrw, closedAt]</p>
+     * <p>각 행: [strategyType, marketRegime, timeframe, realizedPnl, investedKrw, closedAt]</p>
+     *
+     * <p><b>2026-09-08: timeframe 추가.</b> 없으면 같은 전략·레짐의 H1 과 M15 성적이 한 가중치로
+     * 합쳐져 서로 상쇄된다(둘의 부호가 반대인 경우가 실제로 있다). 세션 조인이 이미 있어
+     * 컬럼 하나만 더 고르면 된다.</p>
      */
-    @Query(value = "SELECT s.strategy_type, p.market_regime, p.realized_pnl, p.invested_krw, p.closed_at " +
+    @Query(value = "SELECT s.strategy_type, p.market_regime, s.timeframe, p.realized_pnl, p.invested_krw, p.closed_at " +
             "FROM position p " +
             "JOIN live_trading_session s ON p.session_id = s.id " +
             "WHERE p.status = 'CLOSED' " +
@@ -239,9 +243,9 @@ public interface PositionRepository extends JpaRepository<PositionEntity, Long> 
     /**
      * 지수 가중 최적화용 (코인별) — coin_pair 컬럼 포함.
      *
-     * <p>각 행: [strategyType, marketRegime, coinPair, realizedPnl, investedKrw, closedAt]</p>
+     * <p>각 행: [strategyType, marketRegime, coinPair, timeframe, realizedPnl, investedKrw, closedAt]</p>
      */
-    @Query(value = "SELECT s.strategy_type, p.market_regime, p.coin_pair, p.realized_pnl, p.invested_krw, p.closed_at " +
+    @Query(value = "SELECT s.strategy_type, p.market_regime, p.coin_pair, s.timeframe, p.realized_pnl, p.invested_krw, p.closed_at " +
             "FROM position p " +
             "JOIN live_trading_session s ON p.session_id = s.id " +
             "WHERE p.status = 'CLOSED' " +

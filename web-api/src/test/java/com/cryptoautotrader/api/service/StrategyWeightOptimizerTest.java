@@ -154,7 +154,14 @@ class StrategyWeightOptimizerTest {
 
     /**
      * findClosedPositionsForWeighting 의 개별 청산 포지션 행 N개를 생성한다.
-     * 컬럼: [strategy, regime, pnl, invested, closedAt]. closedAt=now → 지수가중치 ≈ 1.
+     *
+     * <p>컬럼: {@code [strategy, regime, timeframe, pnl, invested, closedAt]}.
+     * closedAt=now → 지수가중치 ≈ 1.</p>
+     *
+     * <p><b>2026-09-08 (V79): timeframe 컬럼 추가.</b> 여기서는 {@code null} 을 넣어
+     * <b>타임프레임 무관 층</b>만 채운다 — 이 테스트가 검증하는 것은 레짐 레벨 가중치이고,
+     * 타임프레임 세분화는 {@code WeightOverrideTimeframeTest} 가 따로 본다.
+     * (null 이면 세분화 키가 생기지 않으므로 종전과 정확히 같은 동작이다.)</p>
      */
     private List<Object[]> positions(String strategy, String regime,
                                      String pnl, String invested, int count) {
@@ -162,7 +169,7 @@ class StrategyWeightOptimizerTest {
         Instant now = Instant.now();
         for (int i = 0; i < count; i++) {
             rows.add(new Object[]{
-                    strategy, regime, new BigDecimal(pnl), new BigDecimal(invested), now
+                    strategy, regime, null, new BigDecimal(pnl), new BigDecimal(invested), now
             });
         }
         return rows;

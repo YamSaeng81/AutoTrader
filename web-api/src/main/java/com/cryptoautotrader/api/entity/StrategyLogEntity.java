@@ -40,6 +40,20 @@ public class StrategyLogEntity {
     @Column(name = "market_regime", length = 10)
     private String marketRegime;
 
+    /**
+     * 신호를 낸 세션의 타임프레임 (H1 / M15 등) — 2026-09-08 추가.
+     *
+     * <p>이 컬럼이 없던 동안 신호 분석이 전부 (전략, 코인) 으로만 그룹핑돼
+     * <b>H1 과 M15 를 통째로 섞었다.</b> 운영은 두 타임프레임을 동시에 돌리고 M15 가 3~5배 많아,
+     * 사실상 M15 통계에 H1 이 잡음으로 섞이는 구조였다. 실제로 결론이 뒤집힌다 —
+     * {@code COMPOSITE_MTF_BTC} 의 BUY 사후 4h 수익률은 H1 −1.428% / M15 +0.046% 로 방향이
+     * 반대인데 합산 −0.319% 하나로 판정돼 왔다(V76 마이그레이션 주석 참조).</p>
+     *
+     * <p>NULL 은 "2026-09-08 이전 행" 을 뜻한다 — 집계 시 한 그룹으로 묶지 말 것.</p>
+     */
+    @Column(name = "timeframe", length = 10)
+    private String timeframe;
+
     /** PAPER / LIVE */
     @Column(name = "session_type", length = 10)
     private String sessionType;

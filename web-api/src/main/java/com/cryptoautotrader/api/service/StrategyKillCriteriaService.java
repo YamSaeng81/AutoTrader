@@ -30,6 +30,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import com.cryptoautotrader.api.entity.StrategyTimeframeEnabledEntity;
+import com.cryptoautotrader.api.repository.StrategyTimeframeEnabledRepository;
 
 /**
  * 전략 폐기 기준(kill criteria) 판정 — 2026-08-18 신설.
@@ -65,6 +67,7 @@ public class StrategyKillCriteriaService {
     private final VirtualBalanceRepository virtualBalanceRepo;
     private final PaperPositionRepository paperPositionRepo;
     private final StrategyTypeEnabledRepository strategyTypeEnabledRepo;
+    private final StrategyTimeframeEnabledRepository strategyTimeframeEnabledRepo;
     private final KillCriteriaJudgmentRepository judgmentRepo;
     private final BenchmarkAlphaService benchmarkAlphaService;
     private final RulesetRegistry rulesetRegistry;
@@ -82,6 +85,7 @@ public class StrategyKillCriteriaService {
             VirtualBalanceRepository virtualBalanceRepo,
             PaperPositionRepository paperPositionRepo,
             StrategyTypeEnabledRepository strategyTypeEnabledRepo,
+            StrategyTimeframeEnabledRepository strategyTimeframeEnabledRepo,
             KillCriteriaJudgmentRepository judgmentRepo,
             BenchmarkAlphaService benchmarkAlphaService,
             RulesetRegistry rulesetRegistry,
@@ -96,6 +100,7 @@ public class StrategyKillCriteriaService {
         this.virtualBalanceRepo = virtualBalanceRepo;
         this.paperPositionRepo = paperPositionRepo;
         this.strategyTypeEnabledRepo = strategyTypeEnabledRepo;
+        this.strategyTimeframeEnabledRepo = strategyTimeframeEnabledRepo;
         this.judgmentRepo = judgmentRepo;
         this.benchmarkAlphaService = benchmarkAlphaService;
         this.rulesetRegistry = rulesetRegistry;
@@ -135,6 +140,7 @@ public class StrategyKillCriteriaService {
             for (Judgment j : kills) {
                 stopKilledSession(j);
             }
+            disableKilledTimeframes(kills);
             disableFullyKilledStrategies(judgments, kills);
             persist(actionable);
             sendAlert(actionable);
@@ -427,6 +433,60 @@ public class StrategyKillCriteriaService {
     }
 
     /**
+     * 폐기된 <b>(전략 × 타임프레임)</b> 조합을 차단한다 — V80 (2026-09-08).
+     *
+     * <h3>왜 필요한가 — 세션 정지만으로는 재개를 막지 못한다</h3>
+     * <p>{@code KILL_CRITERIA.md} §5 가 전략 비활성화를 두는 이유는 <b>"세션만 정지하면 같은
+     * 전략으로 새 세션을 만들어 그대로 재개할 수 있다"</b> 를 막기 위해서다. 그런데
+     * {@code strategy_type_enabled} 는 전략명만 키로 쓰므로, 아래
+     * {@link #disableFullyKilledStrategies} 는 "모든 변형이 죽었을 때만" 끈다 — 멀쩡한
+     * {@code MEANREV_BB@H1} 을 {@code @M15} 때문에 막을 수는 없기 때문이다.</p>
+     *
+     * <p>그 우회는 옳지만, <b>결과적으로 타임프레임 단위 폐기가 아무것도 막지 못했다</b>:</p>
+     * <pre>
+     *   MEANREV_BB@M15 KILL  →  세션 정지                          O
+     *                        →  MEANREV_BB@M15 새 세션 생성 차단?   X
+     * </pre>
+     *
+     * <p>이 메서드가 그 층을 채운다. 판정 단위(세션 = 전략 × 타임프레임)와 차단 단위가 처음으로
+     * 일치한다. 다른 타임프레임은 영향받지 않으므로 위 우회의 취지도 그대로 지켜진다.</p>
+     */
+    void disableKilledTimeframes(List<Judgment> kills) {
+        if (!autoStopEnabled) return;
+
+        kills.stream()
+                // 호출자가 이미 KILL 만 넘기지만 여기서도 확인한다 — 이 메서드는 "차단" 이라는
+                // 되돌리기 어려운 조치를 하므로, 잘못된 목록이 넘어오면 멀쩡한 조합이 막힌다.
+                .filter(j -> j.verdict() == Verdict.KILL)
+                .filter(j -> j.strategyType() != null && !j.strategyType().isBlank())
+                .filter(j -> j.timeframe() != null && !j.timeframe().isBlank())
+                .collect(java.util.stream.Collectors.toMap(
+                        j -> j.strategyType() + "@" + j.timeframe(), j -> j, (a, b) -> a))
+                .values()
+                .forEach(j -> {
+                    try {
+                        var key = new StrategyTimeframeEnabledEntity.Key(
+                                j.strategyType(), j.timeframe());
+                        StrategyTimeframeEnabledEntity row = strategyTimeframeEnabledRepo.findById(key)
+                                .orElseGet(() -> StrategyTimeframeEnabledEntity.builder()
+                                        .strategyName(j.strategyType())
+                                        .timeframe(j.timeframe())
+                                        .build());
+                        row.setIsActive(false);
+                        row.setDisabledReason(j.code() + " — " + j.reason());
+                        row.setDisabledAt(Instant.now());
+                        strategyTimeframeEnabledRepo.save(row);
+                        log.warn("[KillCriteria] 타임프레임 비활성화: {}@{} — {}. "
+                                        + "다른 타임프레임은 유지. 부활은 Walk Forward 재검증 필요",
+                                j.strategyType(), j.timeframe(), j.code());
+                    } catch (Exception e) {
+                        log.error("[KillCriteria] 타임프레임 비활성화 실패: {}@{} — {}",
+                                j.strategyType(), j.timeframe(), e.getMessage());
+                    }
+                });
+    }
+
+    /**
      * 전략 타입 비활성화 — <b>해당 전략의 운영 세션이 전부 폐기 판정일 때만</b>.
      *
      * <p>비활성화 자체는 필수다. 세션만 정지하면 같은 전략으로 새 세션을 만들어 그대로 재개할 수
@@ -640,5 +700,7 @@ public class StrategyKillCriteriaService {
         public String sessionKind() { return stats.sessionKind(); }
         public Long sessionId() { return stats.sessionId(); }
         public String strategyType() { return stats.strategyType(); }
+        /** 판정 단위가 세션(= 전략 × 타임프레임)이므로 차단도 이 축까지 내려간다 (V80). */
+        public String timeframe() { return stats.timeframe(); }
     }
 }

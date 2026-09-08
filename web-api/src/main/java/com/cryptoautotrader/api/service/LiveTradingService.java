@@ -77,6 +77,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import com.cryptoautotrader.core.risk.SignalExitGate;
+import com.cryptoautotrader.api.util.TickCandleCache;
 
 /**
  * 실전 매매 서비스 -- 다중 세션 지원
@@ -92,13 +94,12 @@ public class LiveTradingService {
     private static final int MAX_CONCURRENT_SESSIONS = 10;
     // 백테스트(BacktestEngine.MAX_LOOKBACK=500)와 동일하게 맞춰 백테스트·실거래 신호 괴리를 줄인다.
     private static final int CANDLE_LOOKBACK = TradingConstants.CANDLE_LOOKBACK;
-    private static final BigDecimal FEE_RATE = new BigDecimal("0.0005");
+    private static final BigDecimal FEE_RATE = TradingConstants.FEE_RATE;
 
     // ExitRuleConfig는 DB에서 동적 로드 — exitConfig() 메서드 사용
 
     // §11: BLOCKED 전략 목록은 StrategyLiveStatusRegistry 로 이전 — 필드 제거
-    private static final List<String> ACTIVE_ORDER_STATES =
-            List.of("PENDING", "SUBMITTED", "PARTIAL_FILLED");
+    private static final List<String> ACTIVE_ORDER_STATES = TradingConstants.ACTIVE_ORDER_STATES;
 
     /** StatefulStrategy(COMPOSITE/Grid 등) 세션별 독립 인스턴스 — 다중 세션 간 상태 오염 방지 */
     private final Map<Long, com.cryptoautotrader.strategy.Strategy> sessionStatefulStrategies = new ConcurrentHashMap<>();
@@ -124,9 +125,11 @@ public class LiveTradingService {
      * 진입 직후 SELL 신호(예: histDecreasing)로 동가 청산 → 수수료만 손실되는 패턴 방지.
      * SL/TP 도달은 이 가드와 무관하게 항상 작동한다.
      */
-    private static final long MIN_HOLD_MINUTES_FOR_SIGNAL_EXIT = 180;
+    private static final long MIN_HOLD_MINUTES_FOR_SIGNAL_EXIT =
+            ExitRuleConfig.defaults().getMinHoldMinutesForSignalExit();
     /** 전략 SELL 신호 최소 수익률 가드: 이 미만이면 SELL 무시 (수수료+노이즈 본전 청산 방지). SL/TP/트레일링은 항상 동작. */
-    private static final BigDecimal MIN_PNL_PCT_FOR_SIGNAL_EXIT = new BigDecimal("0.30");
+    private static final BigDecimal MIN_PNL_PCT_FOR_SIGNAL_EXIT =
+            ExitRuleConfig.defaults().getMinPnlPctForSignalExit();
     /**
      * 손실 탈출 임계: PnL이 이 값보다 낮으면(더 큰 손실) 본전 청산 가드를 우회해 전략 SELL 허용.
      * 노이즈 차단(본전 근처)은 유지하되, 손실이 누적되는 동안 전략의 조기 탈출 신호까지
@@ -285,7 +288,8 @@ public class LiveTradingService {
         // 비활성 전략 차단 — DYNAMIC에만 있던 검사를 2026-08-18에 이 경로에도 건다.
         // kill criteria가 폐기 시 전략을 비활성화하는 목적(같은 전략으로 새 세션을 만들어
         // 재개하는 것을 막는 것)이 세 진입점 중 하나만 막혀 있으면 달성되지 않는다.
-        strategyEnablementGate.assertEnabled(req.getStrategyType());
+        // 타임프레임까지 확인한다 (2026-09-08 V80) — 폐기된 (전략, 타임프레임) 재생성 차단.
+        strategyEnablementGate.assertEnabled(req.getStrategyType(), req.getTimeframe());
 
         long runningCount = sessionRepository.countByStatus("RUNNING");
         if (runningCount >= MAX_CONCURRENT_SESSIONS) {
@@ -796,13 +800,20 @@ public class LiveTradingService {
             return;
         }
 
-        for (LiveTradingSessionEntity session : runningSessions) {
-            try {
-                evaluateAndExecuteSession(session);
-            } catch (Exception e) {
-                log.error("세션 전략 실행 오류 (sessionId={}, {}): {}",
-                        session.getId(), session.getStrategyType(), e.getMessage(), e);
+        // 틱 캔들 캐시 (2026-09-08) — 여러 세션이 같은 (코인, 타임프레임) 을 볼 때 조회를 한 번으로
+        // 줄인다. PAPER 에만 있던 것을 세 엔진 공용으로 올렸다(TickCandleCache javadoc 참조).
+        TickCandleCache.begin();
+        try {
+            for (LiveTradingSessionEntity session : runningSessions) {
+                try {
+                    evaluateAndExecuteSession(session);
+                } catch (Exception e) {
+                    log.error("세션 전략 실행 오류 (sessionId={}, {}): {}",
+                            session.getId(), session.getStrategyType(), e.getMessage(), e);
+                }
             }
+        } finally {
+            TickCandleCache.end();
         }
     }
 
@@ -882,6 +893,10 @@ public class LiveTradingService {
         Map<String, Object> params = new java.util.HashMap<>(
                 session.getStrategyParams() != null ? session.getStrategyParams() : Collections.emptyMap());
         params.put("coinPair", coinPair);
+        // 타임프레임도 전략에 알린다 (2026-09-08) — COMPOSITE 계열이 레짐별 가중치를
+        // 조회할 때 이 값으로 키를 좁힌다. 같은 전략·코인·레짐이라도 H1/M15 성적은
+        // 부호가 반대인 경우가 있어, 합치면 가중치가 서로 상쇄된다.
+        params.put("timeframe", session.getTimeframe());
         if (session.getStartedAt() != null) {
             params.put("sessionStartedAt", session.getStartedAt().toEpochMilli());
         }
@@ -993,6 +1008,7 @@ public class LiveTradingService {
                         .rulesetHash(rulesetRegistry.hashFor(session))
                         .strategyName(strategyType)
                         .coinPair(coinPair)
+                        .timeframe(session.getTimeframe())
                         .signal(signal.getAction().name())
                         .reason(signal.getReason())
                         .marketRegime(regimeName)
@@ -1150,23 +1166,15 @@ public class LiveTradingService {
                                     .multiply(BigDecimal.valueOf(100))
                                     .setScale(3, RoundingMode.HALF_UP)
                             : BigDecimal.ZERO;
-                    if (heldMinutes < MIN_HOLD_MINUTES_FOR_SIGNAL_EXIT) {
-                        // 진입 직후 SELL 신호로 동가 청산되는 패턴 차단 — SL/TP는 별도로 항상 동작
-                        String blockReason = String.format(
-                                "최소 보유시간 미달: %d분 < %d분 (pnl=%s%%, 전략 SELL 차단, SL/TP는 유효)",
-                                heldMinutes, MIN_HOLD_MINUTES_FOR_SIGNAL_EXIT, heldPnlPctSell.toPlainString());
-                        log.info("SELL 신호 차단 (sessionId={}): {} {}", sessionId, coinPair, blockReason);
-                        saveSignalQuality(signalLogRef, false, blockReason);
-                    } else if (heldPnlPctSell.compareTo(MIN_PNL_PCT_FOR_SIGNAL_EXIT) < 0
-                            && heldPnlPctSell.compareTo(LOSS_ESCAPE_THRESHOLD) >= 0) {
-                        // 본전 청산 차단: 노이즈 구간(LOSS_ESCAPE_THRESHOLD ~ MIN_PNL_PCT_FOR_SIGNAL_EXIT)에서만 차단.
-                        // PnL < LOSS_ESCAPE_THRESHOLD(-1.0%)이면 손실 탈출로 허용 — SL까지 손실 방치 방지.
-                        // SL/TP/트레일링은 별도 경로로 항상 동작.
-                        String blockReason = String.format(
-                                "본전 청산 차단: pnl=%s%% < +%s%% (전략 SELL 무시, SL/TP/트레일링은 유효)",
-                                heldPnlPctSell.toPlainString(), MIN_PNL_PCT_FOR_SIGNAL_EXIT.toPlainString());
-                        log.info("SELL 신호 차단 (sessionId={}): {} {}", sessionId, coinPair, blockReason);
-                        saveSignalQuality(signalLogRef, false, blockReason);
+                    // 판정은 SignalExitGate 공용 (2026-09-08) — 그 전에는 같은 조건식이 네 벌이었다.
+                    // 로그·기록 방식은 엔진마다 다르므로 그 부분만 여기 남긴다.
+                    SignalExitGate.Decision sellGate = SignalExitGate.decide(
+                            heldMinutes, heldPnlPctSell,
+                            MIN_HOLD_MINUTES_FOR_SIGNAL_EXIT, MIN_PNL_PCT_FOR_SIGNAL_EXIT,
+                            LOSS_ESCAPE_THRESHOLD);
+                    if (!sellGate.allowed()) {
+                        log.info("SELL 신호 차단 (sessionId={}): {} {}", sessionId, coinPair, sellGate.reason());
+                        saveSignalQuality(signalLogRef, false, sellGate.reason());
                     } else {
                         executeSessionSell(session, pos, currentPrice,
                                 String.format("전략 신호: %s -- %s (pnl=%s%%)",
@@ -1893,7 +1901,7 @@ public class LiveTradingService {
     /** 세션별 마지막 SL 점검 시각 — 미점검 경고용 */
     private final Map<Long, Instant> lastSlCheckAt = new ConcurrentHashMap<>();
     /** SL 미점검 경고 임계값 */
-    private static final long SL_STALE_WARN_MINUTES = 3;
+    private static final long SL_STALE_WARN_MINUTES = TradingConstants.SL_STALE_WARN_MINUTES;
 
     /**
      * §9 — WS 끊김 >30초 지속 시 REST ticker 로 실시간 가격 대체 폴링.
@@ -2036,7 +2044,7 @@ public class LiveTradingService {
      * CLOSING 상태만 스캔하므로 그 체결을 놓치고, 팬텀 감지(최소 10분)까지 방치되는 race가
      * 있었다 (2026-07-02 감사 D-5).
      */
-    private static final long CLOSING_TIMEOUT_MINUTES = 8;
+    private static final long CLOSING_TIMEOUT_MINUTES = TradingConstants.CLOSING_TIMEOUT_MINUTES;
 
     // ── §15 팬텀 포지션 대조 (DB OPEN vs 거래소 실잔고) ───────────────
     /** 거래소 보유량이 DB 기대량의 이 비율 미만이면 '코인 소멸'로 간주 (5%) */
@@ -2736,6 +2744,12 @@ public class LiveTradingService {
     }
 
     private List<Candle> fetchRecentCandles(String coinPair, String timeframe) {
+        // 틱 스코프가 열려 있으면 같은 (코인, 타임프레임) 은 틱당 1회만 DB를 친다.
+        // 스코프 밖(웹소켓 콜백 등)에서는 종전대로 매번 조회한다 — 동작은 같다.
+        return TickCandleCache.get(coinPair, timeframe, () -> loadRecentCandles(coinPair, timeframe));
+    }
+
+    private List<Candle> loadRecentCandles(String coinPair, String timeframe) {
         Instant to = Instant.now();
         Instant from = to.minus(CANDLE_LOOKBACK * TimeframeUtils.toMinutes(timeframe), ChronoUnit.MINUTES);
 

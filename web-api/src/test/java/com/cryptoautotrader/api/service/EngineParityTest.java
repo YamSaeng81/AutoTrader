@@ -56,6 +56,43 @@ class EngineParityTest {
         });
     }
 
+    /**
+     * BACKTEST 축 (2026-09-08 추가) — `BacktestEngine` 은 core-engine 모듈에 있어 위 SERVICE_DIR
+     * 규칙에 맞지 않으므로 경로를 따로 둔다. 매매를 실행하지 않지만 그 결과가 WF 게이트를 통해
+     * 실자본 배정을 결정하므로 정합성 축에 포함한다.
+     */
+    private static final Path BACKTEST_ENGINE = Path.of(
+            "../core-engine/src/main/java/com/cryptoautotrader/core/backtest/BacktestEngine.java");
+
+    private static String backtestSource() {
+        try {
+            return Files.readString(BACKTEST_ENGINE);
+        } catch (IOException ex) {
+            throw new IllegalStateException("BacktestEngine 소스를 읽을 수 없습니다: " + BACKTEST_ENGINE, ex);
+        }
+    }
+
+    /**
+     * 주석(블록 {@code /* *}/ · 라인 {@code //})을 지운다 — <b>설명문이 가드를 통과시키는 것을 막는다.</b>
+     *
+     * <p>이 저장소에서 두 번 실제로 일어났다: 08-06 SL 조임 제거를 <b>설명한 주석</b>에
+     * {@code getTrailingSlMargin} 이 걸려 LIVE 가 조임을 유지하는 것처럼 판정됐고,
+     * 09-08 에는 {@code calculateStopLevels} 호출을 없앴는데 그 사실을 적은 주석 때문에
+     * {@code contains("calculateStopLevels")} 가 그대로 통과했다.</p>
+     *
+     * <p>문자열 리터럴 안의 {@code //} 까지 구분하지는 않는다 — 이 테스트가 찾는 토큰은
+     * 전부 코드 식별자라 그 정도로 충분하다.</p>
+     */
+    private static String stripComments(String source) {
+        String noBlocks = source.replaceAll("(?s)/\\*.*?\\*/", " ");
+        return noBlocks.lines()
+                .map(l -> {
+                    int i = l.indexOf("//");
+                    return i >= 0 ? l.substring(0, i) : l;
+                })
+                .collect(java.util.stream.Collectors.joining("\n"));
+    }
+
     /** 세미콜론으로 구분된 대안 이름 중 하나라도 있으면 true (엔진마다 이름이 다른 경우 대응). */
     private static boolean has(String engine, String tokens) {
         for (String t : tokens.split(";")) {
@@ -139,17 +176,21 @@ class EngineParityTest {
     // ── 알려진 결함 — 해소되면 이 테스트가 깨져서 알려준다 ──────────────────────
 
     @Test
-    @DisplayName("알려진 결함: 같은 개념을 엔진마다 다르게 부른다 (닫힌 캔들 게이트)")
-    void knownGap_inconsistentNaming() {
-        // LIVE·PAPER 는 lastEvaluatedClosedCandle, DYNAMIC 만 lastEvaluatedCandle 이다.
-        // 기능은 같지만 이름이 달라 grep 기반 감사가 오탐을 낸다 — 이 테스트를 처음 돌렸을 때
-        // 실제로 "LIVE 에 없다" 는 오탐이 났고, 고친 뒤에는 "PAPER 에 없다" 로 또 틀렸다.
-        // 이름이 통일되면 세 번째 단언이 깨지므로 그때 이 테스트를 제거할 것.
-        assertThat(has("Live", "lastEvaluatedClosedCandle")).isTrue();
-        assertThat(has("Paper", "lastEvaluatedClosedCandle")).isTrue();
-        assertThat(has("Dynamic", "lastEvaluatedClosedCandle"))
-                .as("DYNAMIC 이 표준 이름으로 통일됐다면 이 테스트를 제거할 것")
-                .isFalse();
+    @DisplayName("닫힌 캔들 게이트를 세 엔진이 같은 이름으로 부른다 (2026-09-08 결함 #3 해소)")
+    void closedCandleGateNamingIsConsistent() {
+        // 해소 전: LIVE·PAPER 는 lastEvaluatedClosedCandle, DYNAMIC 만 lastEvaluatedCandle.
+        // 기능은 같았지만 이름이 달라 **grep 기반 감사가 오탐을 냈다** — 이 테스트를 처음 쓸 때
+        // "LIVE 에 없다" 로 한 번, 고친 뒤 "PAPER 에 없다" 로 또 한 번 틀렸다.
+        //
+        // 순수 리네이밍이라 우선순위가 낮아 보였지만, 이 저장소의 반복 결함이 "규칙이 한 엔진에만
+        // 적용됐는지" 를 사람이 확인하다 놓치는 것이라는 점에서 우선순위가 낮지 않다 —
+        // 감사 도구가 못 믿을 이름을 남겨 두면 감사 자체가 헛돈다.
+        for (String engine : new String[] {"Live", "Dynamic", "Paper"}) {
+            assertThat(has(engine, "lastEvaluatedClosedCandle"))
+                    .as("%s 가 닫힌 캔들 게이트를 다른 이름으로 부른다 — 이름이 갈리면 감사가 오탐을 낸다",
+                            engine)
+                    .isTrue();
+        }
     }
 
     @Test
@@ -196,16 +237,31 @@ class EngineParityTest {
         }
     }
 
+    /**
+     * 틱 캔들 캐시를 세 엔진이 공유한다 — 2026-09-08 해소.
+     *
+     * <p>PAPER 만 틱당 {@code (코인, 타임프레임)} 캔들을 한 번 조회해 세션 수와 무관하게 비용이
+     * 고정됐고, LIVE·DYNAMIC 은 세션마다 독립 조회였다. 08-19 감사가 "한 엔진에만 적용하고
+     * 나머지를 잊는다" 목록에 올려 둔 마지막 항목이다.</p>
+     *
+     * <p>당시 근거였던 "DYNAMIC 이 전체 API 요청의 89%" 는 08-26 에 {@code fetchWithCache}
+     * (market_data_cache 경유, 갭만 REST)가 들어가면서 이미 낡은 수치다. 남아 있던 낭비는
+     * <b>틱 안에서 같은 조합을 세션 수만큼 다시 조회</b>하는 쪽이었고, 동적 세션은 워치리스트를
+     * 세션마다 통째로 훑으므로 그 배수가 컸다.</p>
+     *
+     * <p>구현은 {@code TickCandleCache} 하나다 — 동작은 {@code TickCandleCacheTest} 가 검증한다.</p>
+     */
     @Test
-    @DisplayName("알려진 결함: 틱 캔들 공유 캐시가 PAPER 에만 있다")
-    void knownGap_onlyPaperSharesCandleCache() {
-        // PAPER 는 틱당 (코인,타임프레임) 캔들을 한 번만 조회해 세션 수와 무관하게 비용이 고정된다.
-        // LIVE·DYNAMIC 은 세션마다 독립 조회라, 2026-08-18 실측에서 DYNAMIC 8세션이
-        // 전체 API 요청의 89%(264/297 req/분)를 썼다. 세션 확장의 1순위 병목이다.
-        assertThat(has("Paper", "tickCandleCache")).isTrue();
-        assertThat(has("Dynamic", "tickCandleCache"))
-                .as("DYNAMIC 에 공유 캐시가 생겼다면 결함 해소 — 이 테스트를 갱신할 것")
-                .isFalse();
+    @DisplayName("틱 캔들 캐시를 세 엔진이 공유한다 (2026-09-08 해소)")
+    void tickCandleCacheIsShared() {
+        for (String engine : new String[] {"Live", "Dynamic", "Paper"}) {
+            assertThat(stripComments(source(engine)))
+                    .as("%s 가 틱 스코프를 열지 않는다 — 그 엔진만 세션 수만큼 중복 조회한다", engine)
+                    .contains("TickCandleCache.begin()");
+            assertThat(stripComments(source(engine)))
+                    .as("%s 가 틱 스코프를 닫지 않는다 — 다음 틱이 옛 캔들로 매매한다", engine)
+                    .contains("TickCandleCache.end()");
+        }
     }
 
     // ── 상수 단일 출처 가드 ────────────────────────────────────────────────────
@@ -244,6 +300,99 @@ class EngineParityTest {
         for (String engine : new String[]{"Live", "Dynamic", "Paper"}) {
             assertThat(has(engine, "TradingConstants.CANDLE_LOOKBACK"))
                     .as("%s 가 공통 상수를 참조하지 않는다", engine).isTrue();
+        }
+    }
+
+    // ── BACKTEST 축 (2026-09-08 추가) ───────────────────────────────────────
+
+    @Test
+    @DisplayName("BACKTEST 도 매매 엔진과 같은 청산 규칙 모듈을 쓴다")
+    void backtestSharesExitRuleModule() {
+        // BacktestEngine 은 매매를 실행하지 않지만, 그 결과가 WalkForwardValidationGate 를 통해
+        // **실자본 배정을 결정한다**. 축에서 빼면 "그 엔진이 만든 근거로 매매를 허가하는 경로"가
+        // 감시 밖에 남는다 — 09-08 에 WF 350건이 통째로 무효가 된 원인이 이 누락이었다.
+        assertThat(backtestSource()).contains("ExitRuleChecker");
+    }
+
+    /**
+     * 네 경로가 <b>같은 SL/TP 공식</b>을 쓴다 — 2026-09-08 해소.
+     *
+     * <p>그전까지 백테스트만 {@code ExitRuleChecker.calculateStopLevels}(SL 5% 고정 · TP 10%)를,
+     * 세 매매 엔진은 {@code ExitRuleCalculator.resolveStopLossPct}(ATR 기반 5~8% · TP ≤8%)를 썼다.
+     * 원인은 <b>패키지 배치</b>였다: 공식이 web-api 에 있고 백테스트는 core-engine 이라
+     * 모듈 의존 방향상 호출 자체가 불가능했다. 공식을 core-engine 의 {@code ExitRuleFormula} 로
+     * 올려 해소했다.</p>
+     *
+     * <p><b>주석이 아니라 호출을 본다.</b> 이전 버전은 {@code contains("calculateStopLevels")} 로
+     * 검사했는데, 수정 뒤 그 단어가 <b>설명 주석에만</b> 남았는데도 통과했다 — 08-06 제거 이력을
+     * 적어 둔 주석에 {@code getTrailingSlMargin} 이 걸렸던 것과 같은 오탐이다.</p>
+     */
+    @Test
+    @DisplayName("BACKTEST 가 세 엔진과 같은 SL/TP 공식을 쓴다 (주석 제외, 실제 호출 검사)")
+    void backtestUsesSharedExitFormula() {
+        String code = stripComments(backtestSource());
+
+        assertThat(code)
+                .as("백테스트가 공용 공식을 호출하지 않는다 — ExitRuleChecker.calculateStopLevels 는 "
+                        + "이름만 비슷한 다른 함수이고 atrStopLossEnabled 기본값 false 때문에 항상 5%% 고정이다")
+                .contains("ExitRuleFormula.resolveStopLossPct")
+                .contains("ExitRuleFormula.resolveTakeProfitPrice");
+        assertThat(code)
+                .as("자체 SL/TP 산정으로 되돌아갔다 — 되돌리려면 ENGINE_PARITY.md 매트릭스도 함께 고칠 것")
+                .doesNotContain("calculateStopLevels");
+    }
+
+    @Test
+    @DisplayName("BACKTEST 에 시간 초과 청산이 있다 — 운영 청산의 47%를 차지하는 경로")
+    void backtestHasTimeStop() {
+        // 운영 동적 세션 청산 83건 중 TIME_STOP 이 39건(47%)이다. 백테스트에 그 경로가 없으면
+        // 거래 모집단 자체가 달라져, "백테스트로 검증하고 실전에 올린다"는 절차가 성립하지 않는다.
+        // 2026-09-08 해소 — BacktestConfig.maxHoldHours 신설(BacktestExitRuleParityTest 가 동작 검증).
+        assertThat(stripComments(backtestSource()))
+                .as("BACKTEST 의 time stop 이 사라졌다 — 실전 거래의 절반 가까이가 재현되지 않는다")
+                .contains("ExitRuleFormula.shouldTimeStop");
+    }
+
+    /**
+     * 전략 SELL 게이트가 <b>네 경로 모두 한 함수</b>다 — 2026-09-08 해소.
+     *
+     * <p>그전까지 BACKTEST 만 {@code ExitRuleChecker.allowsSignalExit} 을 쓰고 세 매매 엔진은
+     * 같은 판정을 인라인으로 복제했다. 상수는 09-08 에 {@code ExitRuleConfig} 위임으로 통일했지만
+     * ({@code EngineConstantParityTest}) <b>조건식 자체는 여전히 네 벌</b>이었다 —
+     * 한쪽 부등호만 바뀌어도 아무도 모르는 상태였다.</p>
+     *
+     * <p>이제 넷 다 {@code SignalExitGate} 를 호출한다. 세 엔진은 임계값을 직접 넘기므로
+     * DYNAMIC 의 세션별 A/B 오버라이드({@code ExitRuleOverrides})도 그대로 살아 있다.</p>
+     */
+    @Test
+    @DisplayName("전략 SELL 게이트를 네 경로가 공유한다 (주석 제외, 실제 호출 검사)")
+    void signalExitGateIsShared() {
+        assertThat(stripComments(backtestSource()))
+                .as("BACKTEST 가 공용 게이트를 쓰지 않는다")
+                .contains("allowsSignalExit");
+
+        for (String engine : new String[] {"Live", "Dynamic", "Paper"}) {
+            assertThat(stripComments(source(engine)))
+                    .as("%s 가 SELL 게이트를 다시 인라인으로 구현했다 — 조건식이 갈리면 "
+                            + "같은 전략이 엔진마다 다르게 청산된다", engine)
+                    .contains("SignalExitGate.decide");
+        }
+    }
+
+    /**
+     * 판정 <b>구현</b>이 한 곳뿐이다 — 호출만 공유하고 조건식을 남겨 두면 의미가 없다.
+     *
+     * <p>{@code SignalExitGate} 로 옮긴 뒤 각 엔진에 남아 있던 인라인 비교
+     * ({@code compareTo(LOSS_ESCAPE_THRESHOLD) >= 0} 형태)가 지워졌는지 본다. 남아 있으면
+     * 두 판정이 공존하게 되고, 나중에 한쪽만 고쳐지는 원래 상태로 돌아간다.</p>
+     */
+    @Test
+    @DisplayName("SELL 판정 조건식이 엔진에 남아 있지 않다")
+    void signalExitConditionIsNotDuplicated() {
+        for (String engine : new String[] {"Live", "Dynamic", "Paper"}) {
+            assertThat(stripComments(source(engine)))
+                    .as("%s 에 본전가드 조건식이 남아 있다 — SignalExitGate 와 두 벌이 된다", engine)
+                    .doesNotContain("compareTo(LOSS_ESCAPE_THRESHOLD) >= 0");
         }
     }
 }

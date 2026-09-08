@@ -56,6 +56,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import com.cryptoautotrader.core.risk.SignalExitGate;
+import com.cryptoautotrader.api.util.TickCandleCache;
 
 /**
  * 동적 멀티코인 세션 서비스.
@@ -81,7 +83,7 @@ public class DynamicTradingService {
     // (LiveTradingService.CANDLE_LOOKBACK)·백테스트(BacktestEngine.MAX_LOOKBACK)와 동일하게
     // 500으로 맞춰 백테스트·실거래 신호 괴리를 줄인다.
     private static final int CANDLE_LOOKBACK = TradingConstants.CANDLE_LOOKBACK;
-    private static final List<String> ACTIVE_ORDER_STATES = List.of("PENDING", "SUBMITTED", "PARTIAL_FILLED");
+    private static final List<String> ACTIVE_ORDER_STATES = TradingConstants.ACTIVE_ORDER_STATES;
     private static final long MIN_HOLD_MINUTES = 180;
 
     /**
@@ -187,13 +189,13 @@ public class DynamicTradingService {
     private static final BigDecimal LOSS_ESCAPE_THRESHOLD =
             ExitRuleConfig.defaults().getLossEscapeThresholdPct();
     /** 거래소 수수료율. 조회 API(DynamicSessionController)도 수수료 환산에 이 값을 쓴다. */
-    public static final BigDecimal FEE_RATE = new BigDecimal("0.0005");
+    public static final BigDecimal FEE_RATE = TradingConstants.FEE_RATE;
     /**
      * CLOSING 상태 진입 시각 — 이 시간 초과 시 reconcileClosingPositions()에서 OPEN 롤백.
      * OrderExecutionEngine.ORDER_TIMEOUT(5분)보다 반드시 길어야 한다 — LiveTradingService와
      * 동일한 race 방지 이유 (2026-07-02 감사 D-5).
      */
-    private static final long CLOSING_TIMEOUT_MINUTES = 8;
+    private static final long CLOSING_TIMEOUT_MINUTES = TradingConstants.CLOSING_TIMEOUT_MINUTES;
     private static final String SESSION_KIND = "DYNAMIC";
 
     /**
@@ -298,7 +300,7 @@ public class DynamicTradingService {
      * 폴링(processMonitoringTick)은 항상 돌므로 이 워치독의 관심사가 아니다.
      */
     private final Map<Long, Instant> lastSlCheckAt = new ConcurrentHashMap<>();
-    private static final long SL_STALE_WARN_MINUTES = 3;
+    private static final long SL_STALE_WARN_MINUTES = TradingConstants.SL_STALE_WARN_MINUTES;
 
     /**
      * self-invocation 문제 해결용 — tick()이 @Scheduled(비-프록시 경유)로 직접 호출되면
@@ -312,8 +314,16 @@ public class DynamicTradingService {
     /** 세션+코인 조합별 stateful 전략 인스턴스 (MarketRegimeDetector 상태 격리) */
     private final Map<String, Strategy> strategyInstances = new ConcurrentHashMap<>();
 
-    /** 세션+코인 조합별 마지막으로 평가한 닫힌 캔들 시각 */
-    private final Map<String, Instant> lastEvaluatedCandle = new ConcurrentHashMap<>();
+    /**
+     * 세션+코인 조합별 마지막으로 평가한 <b>닫힌</b> 캔들 시각 — LIVE·PAPER 와 같은 이름을 쓴다.
+     *
+     * <p>2026-09-08 이름 통일. 그전까지 DYNAMIC 만 {@code lastEvaluatedCandle} 이라
+     * "닫힌" 이 빠져 있었다. 순수 리네이밍이지만 방치하면 <b>grep 기반 감사가 오탐을 낸다</b> —
+     * {@code ENGINE_PARITY.md} 를 쓰는 중에 실제로 두 번 틀렸고, 그 문서가 잡으려던 결함이
+     * 바로 "규칙이 한 엔진에만 적용됐는지" 를 사람이 확인하는 일이다. 감사 도구가 못 믿을
+     * 이름을 남겨 두면 감사 자체가 헛돈다.</p>
+     */
+    private final Map<String, Instant> lastEvaluatedClosedCandle = new ConcurrentHashMap<>();
 
     /**
      * BLACK_SWAN_GUARD가 진입을 차단한 코인의 마지막 차단 시각 — 코인 단위(세션 무관).
@@ -430,7 +440,9 @@ public class DynamicTradingService {
         // 비활성 전략 차단 — strategy_type_enabled에서 꺼진 전략은 세션 생성 거부.
         // (UI 드롭다운 필터만으로는 select 표시/상태 불일치 등으로 우회될 수 있어 서버에서 강제)
         // 2026-08-18: 규칙을 StrategyEnablementGate로 추출 — LIVE·PAPER 경로도 같은 검사를 받는다.
-        strategyEnablementGate.assertEnabled(req.getStrategyType());
+        // 타임프레임까지 확인한다 (2026-09-08 V80) — 그전에는 MEANREV_BB@M15 가 폐기돼도
+        // 같은 조합으로 새 세션을 만드는 것을 아무도 막지 않았다.
+        strategyEnablementGate.assertEnabled(req.getStrategyType(), req.getTimeframe());
 
         // 자본 배정 게이트 2종은 PAPER에 적용하지 않는다 — 이 두 게이트는 "실자본을 쓸 자격이
         // 있는가"를 묻는 것이고, 페이퍼는 정확히 그 자격을 얻기 전에 검증하는 도구다.
@@ -644,13 +656,22 @@ public class DynamicTradingService {
         List<DynamicSessionEntity> running = dynamicSessionRepo.findByStatus("RUNNING");
         if (running.isEmpty()) return;
 
-        for (DynamicSessionEntity session : running) {
-            try {
-                // self 프록시를 경유해야 @Transactional이 실제로 적용된다 (self-invocation 우회 방지)
-                self.processTick(session);
-            } catch (Exception e) {
-                log.error("[Dynamic] 세션 tick 오류 (id={}): {}", session.getId(), e.getMessage(), e);
+        // 틱 캔들 캐시 (2026-09-08) — 동적 세션은 워치리스트를 세션마다 통째로 훑으므로
+        // 같은 (코인, 타임프레임) 조회가 세션 수만큼 반복됐다. PAPER 에만 있던 캐시를 공용으로
+        // 올려 틱당 1회로 줄인다. processTick 이 @Transactional 프록시 경유라 인자로 넘길 수 없어
+        // 스레드 스코프를 쓴다(TickCandleCache javadoc 참조).
+        TickCandleCache.begin();
+        try {
+            for (DynamicSessionEntity session : running) {
+                try {
+                    // self 프록시를 경유해야 @Transactional이 실제로 적용된다 (self-invocation 우회 방지)
+                    self.processTick(session);
+                } catch (Exception e) {
+                    log.error("[Dynamic] 세션 tick 오류 (id={}): {}", session.getId(), e.getMessage(), e);
+                }
             }
+        } finally {
+            TickCandleCache.end();
         }
     }
 
@@ -831,18 +852,22 @@ public class DynamicTradingService {
             List<Candle> evalCandles = closedCandleSlice(candles, session.getTimeframe());
             String candleKey = sid + ":" + coinPair;
             Instant closedTime = evalCandles.get(evalCandles.size() - 1).getTime();
-            Instant prevEval = lastEvaluatedCandle.get(candleKey);
+            Instant prevEval = lastEvaluatedClosedCandle.get(candleKey);
             if (prevEval != null && !closedTime.isAfter(prevEval)) {
                 staleCandle++;
                 log.debug("[Dynamic] 닫힌 캔들 미갱신 스킵: {}", coinPair);
                 continue;
             }
-            lastEvaluatedCandle.put(candleKey, closedTime);
+            lastEvaluatedClosedCandle.put(candleKey, closedTime);
 
             // 전역 risk_config 값을 깔고, 세션 오버라이드(V74)가 있으면 덮는다.
             // 세션값이 지문에 실리므로 같은 시간대에 두 파라미터를 나란히 돌려 비교할 수 있다.
             Map<String, Object> evalParams = new HashMap<>();
             evalParams.put("coinPair", coinPair);
+            // 타임프레임도 전략에 알린다 (2026-09-08) — COMPOSITE 계열이 레짐별 가중치를
+            // 조회할 때 이 값으로 키를 좁힌다. 같은 전략·코인·레짐이라도 H1/M15 성적은
+            // 부호가 반대인 경우가 있어, 합치면 가중치가 서로 상쇄된다.
+            evalParams.put("timeframe", session.getTimeframe());
             evalParams.put("weakThreshold", scanWeakThreshold);
             evalParams.put("strongThreshold", scanStrongThreshold);
             evalParams.put("emaFilterDampenFactor", scanEmaDampenFactor);
@@ -1250,12 +1275,13 @@ public class DynamicTradingService {
         List<Candle> evalCandles = closedCandleSlice(candles, session.getTimeframe());
         String candleKey = sid + ":" + coinPair;
         Instant closedTime = evalCandles.get(evalCandles.size() - 1).getTime();
-        Instant prevEval = lastEvaluatedCandle.get(candleKey);
+        Instant prevEval = lastEvaluatedClosedCandle.get(candleKey);
         if (prevEval != null && !closedTime.isAfter(prevEval)) return;
-        lastEvaluatedCandle.put(candleKey, closedTime);
+        lastEvaluatedClosedCandle.put(candleKey, closedTime);
 
         Strategy strategy = resolveStrategy(sid, coinPair, session.getStrategyType());
-        StrategySignal signal = strategy.evaluate(evalCandles, Map.of("coinPair", coinPair));
+        StrategySignal signal = strategy.evaluate(evalCandles,
+                buildEvalParams(coinPair, session.getTimeframe()));
         StrategyLogEntity signalLog = saveStrategyLog(session, session.getStrategyType(), coinPair, signal, currentPrice, evalCandles);
 
         if (signal.getAction() == StrategySignal.Action.SELL) {
@@ -1278,22 +1304,21 @@ public class DynamicTradingService {
 
             long heldMin = pos.getOpenedAt() != null
                     ? Duration.between(pos.getOpenedAt(), Instant.now()).toMinutes() : Long.MAX_VALUE;
-            if (heldMin < MIN_HOLD_MINUTES) {
-                String blockReason = String.format("보유시간 미달: %d분 < %d분", heldMin, MIN_HOLD_MINUTES);
-                log.debug("[Dynamic] SELL 차단: {} ({})", blockReason, coinPair);
-                updateSignalQuality(signalLog, false, blockReason);
-                return;
-            }
             // 세션 strategy_params 오버라이드 적용 — 전략 SELL 청산 A/B (2026-08-26).
             // 기본값은 코드 상수 그대로라 오버라이드가 없는 세션의 동작은 바뀌지 않는다.
             ExitRuleOverrides sellGateOverrides = ExitRuleOverrides.from(session.getStrategyParams());
             BigDecimal minPnlForSell = sellGateOverrides.minPnlPctForSignalExitOr(MIN_PNL_PCT_FOR_SELL);
             BigDecimal lossEscape = sellGateOverrides.lossEscapeThresholdPctOr(LOSS_ESCAPE_THRESHOLD);
-            if (pnlPct.compareTo(minPnlForSell) < 0
-                    && pnlPct.compareTo(lossEscape) >= 0) {
-                String blockReason = String.format("본전 근처 pnl=%s%%", pnlPct);
-                log.debug("[Dynamic] SELL 차단: {} ({})", blockReason, coinPair);
-                updateSignalQuality(signalLog, false, blockReason);
+
+            // 판정은 SignalExitGate 공용 (2026-09-08) — LIVE·PAPER·BACKTEST 와 같은 함수다.
+            // 그 전에는 같은 조건식이 네 벌이었고, 한쪽 부등호만 바뀌어도 아무도 몰랐다.
+            // 차단 사유 문구도 이때 통일했다 — 종전 DYNAMIC 문구("본전 근처 pnl=...")는 임계값을
+            // 담지 않아, 나중에 로그만 보고 어느 설정에서 막혔는지 복원할 수 없었다.
+            SignalExitGate.Decision sellGate = SignalExitGate.decide(
+                    heldMin, pnlPct, MIN_HOLD_MINUTES, minPnlForSell, lossEscape);
+            if (!sellGate.allowed()) {
+                log.debug("[Dynamic] SELL 차단: {} ({})", sellGate.reason(), coinPair);
+                updateSignalQuality(signalLog, false, sellGate.reason());
                 return;
             }
             executeSell(session, pos, currentPrice,
@@ -1876,6 +1901,7 @@ public class DynamicTradingService {
                     .rulesetHash(rulesetRegistry.hashFor(session))
                     .strategyName(strategyName)
                     .coinPair(coinPair)
+                    .timeframe(session.getTimeframe())
                     .signal(signal.getAction().name())
                     .reason(signal.getReason())
                     .sessionType(sessionKind(session))
@@ -1912,6 +1938,11 @@ public class DynamicTradingService {
     // ── 내부: 캔들 조회 ────────────────────────────────────────────
 
     private List<Candle> fetchCandles(String coinPair, String timeframe) {
+        // 틱 스코프가 열려 있으면 같은 (코인, 타임프레임) 은 틱당 1회만 실제 조회한다.
+        return TickCandleCache.get(coinPair, timeframe, () -> loadCandles(coinPair, timeframe));
+    }
+
+    private List<Candle> loadCandles(String coinPair, String timeframe) {
         if (upbitRestClient == null) return List.of();
         try {
             // 2026-08-26: 매 틱(코인 수만큼)마다 Upbit REST로 500개 전량을 직접 재요청하던 것을
@@ -2839,7 +2870,7 @@ public class DynamicTradingService {
 
     private void clearSessionState(Long sessionId) {
         strategyInstances.entrySet().removeIf(e -> e.getKey().startsWith(sessionId + ":"));
-        lastEvaluatedCandle.entrySet().removeIf(e -> e.getKey().startsWith(sessionId + ":"));
+        lastEvaluatedClosedCandle.entrySet().removeIf(e -> e.getKey().startsWith(sessionId + ":"));
     }
 
     private DynamicSessionEntity getOrThrow(Long sessionId) {
@@ -2881,4 +2912,19 @@ public class DynamicTradingService {
         return null;
     }
 
+
+    /**
+     * 전략 평가 파라미터 — 코인과 타임프레임을 함께 넘긴다 (2026-09-08).
+     *
+     * <p>COMPOSITE 계열({@code RegimeAdaptiveStrategy})이 레짐별 가중치를 조회할 때 이 두 값으로
+     * 키를 좁힌다. 타임프레임이 빠지면 같은 전략·코인·레짐의 H1 과 M15 성적이 한 가중치로
+     * 합쳐지는데, 둘의 부호가 반대인 경우가 실제로 있어 서로 상쇄된다
+     * ({@code COMPOSITE_MTF_BTC} H1 −1.428% / M15 +0.046%).</p>
+     */
+    private static Map<String, Object> buildEvalParams(String coinPair, String timeframe) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("coinPair", coinPair);
+        params.put("timeframe", timeframe);
+        return params;
+    }
 }

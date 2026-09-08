@@ -217,22 +217,33 @@ public class LogController {
         );
     }
 
+    /**
+     * 전략 × 코인 × <b>타임프레임</b> 으로 그룹핑한다 (2026-09-08 타임프레임 추가).
+     *
+     * <p>그전까지 (전략, 코인) 으로만 묶어 H1 과 M15 를 한 통계로 합쳤다. 운영은 두 타임프레임을
+     * 동시에 돌리고 M15 가 3~5배 많아 사실상 M15 통계였다. 합치면 결론이 뒤집힌다 —
+     * {@code COMPOSITE_MTF_BTC} 의 BUY 사후 4h 수익률은 H1 −1.428% / M15 +0.046% 로 방향이
+     * 반대인데 합산은 −0.319% 하나로 보였다(V76 마이그레이션 주석 참조).</p>
+     *
+     * <p>{@code timeframe} 이 NULL 인 행은 V76 이전 로그다 — "?" 로 묶여 별도 행으로 표시된다.</p>
+     */
     private List<Map<String, Object>> buildByStrategy(List<StrategyLogEntity> signals) {
-        // 전략명 + 코인페어 조합으로 그룹핑
         Map<String, List<StrategyLogEntity>> grouped = signals.stream()
                 .collect(Collectors.groupingBy(
                         l -> l.getStrategyName() + "|" + l.getCoinPair()
+                                + "|" + (l.getTimeframe() != null ? l.getTimeframe() : "?")
                 ));
 
         return grouped.entrySet().stream()
                 .map(e -> {
-                    String[] parts = e.getKey().split("\\|", 2);
+                    String[] parts = e.getKey().split("\\|", 3);
                     List<StrategyLogEntity> group = e.getValue();
                     List<StrategyLogEntity> eval4h  = group.stream().filter(l -> l.getReturn4hPct()  != null).toList();
                     List<StrategyLogEntity> eval24h = group.stream().filter(l -> l.getReturn24hPct() != null).toList();
                     Map<String, Object> m = new LinkedHashMap<>();
                     m.put("strategyName",  parts[0]);
                     m.put("coinPair",      parts.length > 1 ? parts[1] : "");
+                    m.put("timeframe",     parts.length > 2 ? parts[2] : "?");
                     m.put("totalSignals",  group.size());
                     m.put("evaluated4h",   eval4h.size());
                     m.put("winRate4h",     winRate(eval4h, true));

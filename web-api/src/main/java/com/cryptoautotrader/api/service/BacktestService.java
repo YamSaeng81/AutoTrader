@@ -44,6 +44,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import com.cryptoautotrader.core.risk.ExitRuleFormula;
+import com.cryptoautotrader.api.entity.DynamicSessionEntity;
 
 @Service
 @RequiredArgsConstructor
@@ -63,6 +65,18 @@ public class BacktestService {
     private static final BigDecimal DEFAULT_CAPITAL  = new BigDecimal("10000000");
     private static final BigDecimal DEFAULT_SLIPPAGE = new BigDecimal("0.1");
     private static final BigDecimal DEFAULT_FEE      = new BigDecimal("0.05");
+
+    /**
+     * 백테스트의 time stop 기준 — 운영 세션 기본값을 그대로 따른다 (2026-09-08).
+     *
+     * <p>백테스트에는 time stop 경로가 아예 없었다. 그런데 운영 동적 세션 청산 83건 중
+     * <b>TIME_STOP 이 39건(47%)</b> 이다 — 실전 거래의 절반 가까이가 백테스트에서는 발생할 수
+     * 없는 경로로 끝났고, <b>거래 모집단 자체가 달랐다.</b></p>
+     *
+     * <p>{@link DynamicSessionEntity#DEFAULT_MAX_HOLD_HOURS} 를 참조하므로, 세션 기본값을
+     * 바꾸면 백테스트도 자동으로 따라간다 — 상수를 복제하면 그 순간 다시 갈린다.</p>
+     */
+    private static final int BACKTEST_MAX_HOLD_HOURS = DynamicSessionEntity.DEFAULT_MAX_HOLD_HOURS;
 
     private static final Comparator<Map<String, Object>> BY_TOTAL_RETURN = (a, b) -> {
         BigDecimal ra = (BigDecimal) a.getOrDefault("totalReturn", null);
@@ -105,6 +119,7 @@ public class BacktestService {
                 .impactFactor(impactFactor != null ? impactFactor : new BigDecimal("0.1"))
                 .fillRatio(fillRatio != null ? fillRatio : new BigDecimal("0.3"))
                 .exitRuleConfig(riskManagementService.getExitRuleConfig())
+                .maxHoldHours(BACKTEST_MAX_HOLD_HOURS)
                 .btcCandles(fetchBtcCandles(coinPair, timeframe, start, end, candles))
                 .build();
 
@@ -146,6 +161,7 @@ public class BacktestService {
                 .feePct(feePct != null ? feePct : DEFAULT_FEE)
                 .strategyParams(strategyParams != null ? strategyParams : Map.of())
                 .exitRuleConfig(riskManagementService.getExitRuleConfig())
+                .maxHoldHours(BACKTEST_MAX_HOLD_HOURS)
                 .build();
 
         WalkForwardTestRunner.WalkForwardResult wfResult = walkForwardRunner.run(config, candles, inSampleRatio, windowCount);
@@ -344,6 +360,7 @@ public class BacktestService {
                         .feePct(fee)
                         .strategyParams(Map.of())
                         .exitRuleConfig(riskManagementService.getExitRuleConfig())
+                .maxHoldHours(BACKTEST_MAX_HOLD_HOURS)
                         .build();
 
                 BacktestResult result = runStrategy(config, candles, strategyName);
@@ -433,6 +450,7 @@ public class BacktestService {
                             .feePct(fee)
                             .strategyParams(Map.of())
                             .exitRuleConfig(riskManagementService.getExitRuleConfig())
+                .maxHoldHours(BACKTEST_MAX_HOLD_HOURS)
                             .build();
 
                     BacktestResult result = runStrategy(config, candles, strategyName);
@@ -518,6 +536,7 @@ public class BacktestService {
                             .feePct(fee)
                             .strategyParams(Map.of())
                             .exitRuleConfig(riskManagementService.getExitRuleConfig())
+                .maxHoldHours(BACKTEST_MAX_HOLD_HOURS)
                             .build();
 
                     BacktestResult result = runStrategy(config, candles, strategyName);
@@ -769,6 +788,9 @@ public class BacktestService {
                 .feePct(config.getFeePct())
                 .configJson(config.getStrategyParams())
                 .isWalkForward(isWalkForward)
+                // 어떤 청산 규칙으로 돌았는지 기록한다 — 게이트가 구버전 근거를 걸러낼 수 있는 유일한 단서.
+                // 코드에서 읽으므로 규칙을 바꾸고 상수만 올리면 자동으로 새 값이 남는다.
+                .exitRulesVersion(ExitRuleFormula.EXIT_RULES_VERSION)
                 .build();
         return backtestRunRepository.save(entity);
     }
