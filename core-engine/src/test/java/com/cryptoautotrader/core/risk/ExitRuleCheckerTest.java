@@ -308,7 +308,6 @@ class ExitRuleCheckerTest {
             // 고가 120_000_000 → trailed TP = 120_000_000 × 0.995 = 119_400_000
             ExitRuleChecker.StopLevels updated = checker.updateTrailingStops(
                     new BigDecimal("120000000"),
-                    new BigDecimal("105000000"),
                     entry, sl, tp);
 
             assertThat(updated.getTakeProfitPrice())
@@ -325,7 +324,6 @@ class ExitRuleCheckerTest {
             // 고가 115_000_000 → trailed = 114_425_000 < 기존 119_000_000 → 불변
             ExitRuleChecker.StopLevels updated = checker.updateTrailingStops(
                     new BigDecimal("115000000"),
-                    new BigDecimal("102000000"),
                     entry, sl, tp);
 
             assertThat(updated.getTakeProfitPrice()).isEqualByComparingTo(tp);
@@ -334,16 +332,21 @@ class ExitRuleCheckerTest {
         @Test
         @DisplayName("손실 구간 — SL을 조이지 않는다 (2026-09-08 회귀 방지)")
         void slNeverTightensOnLoss() {
+            // 시그니처에서 candleLow 가 빠진 뒤로는 손실 구간 조임을 **표현할 수조차 없다**
+            // (2026-09-08). 그래도 이 테스트를 남기는 이유는, 누가 파라미터를 되살리며
+            // 조임 로직을 함께 가져올 때 걸리는 자리가 필요하기 때문이다.
+            //
+            // SL 은 래칫이 물릴 만큼 느슨하게 잡는다 — 5% SL(95_000_000)로 두면
+            // trailedSl(89_730_000) < currentSl 이라 버그를 되살려도 통과해 버린다
+            // (2026-09-08 뮤테이션 테스트로 확인한 실제 함정).
             BigDecimal entry = new BigDecimal("100000000");
-            BigDecimal sl    = new BigDecimal("95000000");   // 진입 시 확정된 5% SL
+            BigDecimal sl    = new BigDecimal("80000000");   // 느슨한 SL — 래칫이 물리는 구간
             BigDecimal tp    = new BigDecimal("110000000");
 
-            // 저가 90_000_000 (< entry). 예전 동작이라면 90_000_000 × 0.997 = 89_730_000 으로
-            // 조여졌겠지만, 이제는 진입 시 확정된 SL이 그대로 유지돼야 한다.
+            // 가격이 진입가 아래(95_000_000). 예전 동작이라면 SL 이 상향됐겠지만
+            // 이제는 진입 시 확정된 SL 이 그대로 유지돼야 한다.
             ExitRuleChecker.StopLevels updated = checker.updateTrailingStops(
-                    new BigDecimal("95000000"),
-                    new BigDecimal("90000000"),
-                    entry, sl, tp);
+                    new BigDecimal("95000000"), entry, sl, tp);
 
             assertThat(updated.getStopLossPrice()).isEqualByComparingTo(sl);
         }
@@ -351,14 +354,14 @@ class ExitRuleCheckerTest {
         @Test
         @DisplayName("진입가 바로 아래 1틱 — 0.3% 손절로 바뀌지 않는다 (운영 −1,270만원 사고 재현)")
         void slSurvivesOneTickBelowEntry() {
-            // PaperTradingService 는 현재가를 high/low 양쪽에 넣는다 — 그 호출 형태를 그대로 재현.
+            // 세 엔진 모두 현재가 하나를 넘긴다 — 그 호출 형태를 그대로 재현한다.
             BigDecimal entry   = new BigDecimal("100000000");
             BigDecimal sl      = new BigDecimal("95000000");  // 5% SL
             BigDecimal tp      = new BigDecimal("110000000");
             BigDecimal oneTick = new BigDecimal("99999000");  // 진입가 −0.001%
 
             ExitRuleChecker.StopLevels updated = checker.updateTrailingStops(
-                    oneTick, oneTick, entry, sl, tp);
+                    oneTick, entry, sl, tp);
 
             assertThat(updated.getStopLossPrice()).isEqualByComparingTo(sl);
         }
@@ -375,7 +378,6 @@ class ExitRuleCheckerTest {
             BigDecimal tp = new BigDecimal("110000000");
             ExitRuleChecker.StopLevels updated = noTrail.updateTrailingStops(
                     new BigDecimal("130000000"),
-                    new BigDecimal("88000000"),
                     new BigDecimal("100000000"), sl, tp);
 
             assertThat(updated.getStopLossPrice()).isEqualByComparingTo(sl);

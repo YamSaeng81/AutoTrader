@@ -274,6 +274,11 @@ public class DynamicTradingService {
     private final StrategyLiveStatusRegistry strategyLiveStatusRegistry;
     private final StrategyEnablementGate strategyEnablementGate;
     private final RiskManagementService riskManagementService;
+
+    /** DB에서 ExitRuleChecker를 동적 로드하는 헬퍼 — LIVE·PAPER 와 동일 방식 (2026-09-08) */
+    private com.cryptoautotrader.core.risk.ExitRuleChecker exitChecker() {
+        return riskManagementService.getExitRuleChecker();
+    }
     private final WalkForwardValidationGate walkForwardValidationGate;
     private final ApplicationEventPublisher eventPublisher;
     private final MarketDataSyncService marketDataSyncService;
@@ -1162,6 +1167,27 @@ public class DynamicTradingService {
         if (blackSwanGuard.triggered()) {
             log.warn("[Dynamic] BLACK_SWAN_GUARD 발동 (id={}, {}): {} — SL 유지 {} (조임 없음)",
                     sid, coinPair, blackSwanGuard.reason(), pos.getStopLossPrice());
+        }
+
+        // TP 트레일링 (단방향 ratchet, 고점 추적) — 2026-09-08 신설.
+        //
+        // 그 전까지 DYNAMIC 만 트레일링이 아예 없어 진입 시 TP 를 한 번 정하고 끝이었다
+        // (ENGINE_PARITY.md 미해소 결함 #1). LIVE·PAPER 와 같은 전략이라도 이익 구간에서
+        // 동적 세션만 다르게 행동했다. 이제 셋 다 ExitRuleChecker.updateTrailingStops 를 쓴다.
+        //
+        // 익절 판정보다 **먼저** 갱신해야 같은 틱에 새 TP 가 반영된다(PAPER 와 동일한 순서).
+        // SL 은 이 함수가 손대지 않는다 — 하락 방어는 진입 시 확정된 ATR 기반 SL 이 담당한다.
+        if (pos.getEntryPrice() != null && pos.getTakeProfitPrice() != null) {
+            var updatedLevels = exitChecker().updateTrailingStops(
+                    currentPrice, pos.getEntryPrice(),
+                    pos.getStopLossPrice(), pos.getTakeProfitPrice());
+            if (updatedLevels.getTakeProfitPrice().compareTo(pos.getTakeProfitPrice()) != 0) {
+                log.info("[Dynamic] TP 트레일링: {} TP {} → {} (id={})",
+                        coinPair, pos.getTakeProfitPrice(),
+                        updatedLevels.getTakeProfitPrice(), sid);
+                pos.setTakeProfitPrice(updatedLevels.getTakeProfitPrice());
+                pos = positionRepository.save(pos);
+            }
         }
 
         // 익절

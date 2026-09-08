@@ -731,7 +731,7 @@ public class PaperTradingService {
             // 트레일링 스탑 갱신 (ExitRuleChecker 공통 로직)
             if (pos.getStopLossPrice() != null && pos.getTakeProfitPrice() != null && pos.getEntryPrice() != null) {
                 var updatedLevels = exitChecker().updateTrailingStops(
-                        currentPrice, currentPrice, pos.getEntryPrice(),
+                        currentPrice, pos.getEntryPrice(),
                         pos.getStopLossPrice(), pos.getTakeProfitPrice());
                 if (updatedLevels.getStopLossPrice().compareTo(pos.getStopLossPrice()) != 0
                         || updatedLevels.getTakeProfitPrice().compareTo(pos.getTakeProfitPrice()) != 0) {

@@ -318,15 +318,22 @@ public class ExitRuleChecker {
      * ({@code RulesetFingerprint})에는 그대로 남겨 둔다 — 제거 전후 표본이 섞이지 않도록
      * 지문이 달라져야 하기 때문이다.</p>
      *
+     * <h3>세 엔진 공용 (2026-09-08)</h3>
+     * <p>LIVE·DYNAMIC·PAPER 가 모두 이 메서드를 호출한다. 그 전에는 LIVE 가 급등 감지
+     * (30초 +2.0%)에 걸린 틱에서만 자체 공식으로 TP 를 올렸고, DYNAMIC 은 트레일링이
+     * 아예 없었으며, PAPER 만 매 틱 갱신했다 — <b>같은 전략이 엔진마다 다르게 청산됐다.</b>
+     * {@code ExitRuleCalculator} 와 같은 이유로 한 함수로 모은다.</p>
+     *
+     * <p>{@code candleLow} 파라미터는 손실 구간 SL 조임과 함께 제거했다. 남겨 두면 세 호출부가
+     * 의미 없는 인자를 넘기게 되고, 그 자리가 조임 로직이 되살아나는 자리가 된다.</p>
+     *
      * @param candleHigh  현재 캔들 고가 (또는 현재가)
-     * @param candleLow   현재 캔들 저가 (또는 현재가) — 더 이상 SL 계산에 쓰이지 않는다
      * @param entryPrice  진입가
      * @param currentSl   현재 손절가 — 그대로 반환된다
      * @param currentTp   현재 익절가
      * @return 갱신된 SL/TP (변화 없으면 입력값 그대로)
      */
-    public StopLevels updateTrailingStops(BigDecimal candleHigh, BigDecimal candleLow,
-                                           BigDecimal entryPrice,
+    public StopLevels updateTrailingStops(BigDecimal candleHigh, BigDecimal entryPrice,
                                            BigDecimal currentSl, BigDecimal currentTp) {
         if (!config.isTrailingEnabled()) {
             return new StopLevels(currentSl, currentTp);

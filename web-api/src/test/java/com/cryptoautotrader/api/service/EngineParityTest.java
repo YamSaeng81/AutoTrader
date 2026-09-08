@@ -153,20 +153,47 @@ class EngineParityTest {
     }
 
     @Test
-    @DisplayName("알려진 결함: DYNAMIC 에 트레일링이 없다")
-    void knownGap_dynamicHasNoTrailing() {
-        // ExitRuleConfig.trailingEnabled 기본값은 true 이고 LIVE(WS 기반 TP 래칫)와
-        // PAPER(exitChecker().updateTrailingStops)는 구현돼 있는데 DYNAMIC 만 없다.
-        // 진입 시 takeProfitPrice 를 한 번 정하고 끝이라, 같은 전략이라도 이익 구간에서
-        // 동적 세션만 다르게 행동한다.
+    @DisplayName("TP 트레일링은 세 엔진이 같은 함수를 쓴다 (2026-09-08 결함 #1 해소)")
+    void trailingUsesSharedCalculatorInAllEngines() {
+        // 해소 전 상태 — 세 엔진이 세 가지로 달랐다:
+        //   LIVE     spikeUp(30초 +2.0%) 에 걸린 틱에서만 자체 공식으로 TP 상향
+        //   PAPER    수익이면 매 틱 ExitRuleChecker.updateTrailingStops
+        //   DYNAMIC  없음 — 진입 시 TP 를 한 번 정하고 끝
+        // 완만하게 오르는 포지션은 LIVE 에서만 TP 가 고정됐고, DYNAMIC 은 아예 안 움직였다.
+        // 같은 전략이 엔진마다 다르게 청산된다는 뜻이라 "페이퍼로 실전을 예측한다"는
+        // 전제가 깨진다. 이제 셋 다 같은 함수를 호출한다.
         //
-        // 즉시 이식하지 않는 이유: 매매 거동 변경이라 백테스트 검증 없이 넣으면
-        // "고치다 새 문제" 패턴을 반복한다. 검증 후 이식하고 이 테스트를 뒤집을 것.
-        assertThat(has("Live", "Trailing;trailing")).isTrue();
-        assertThat(has("Paper", "Trailing;trailing")).isTrue();
-        assertThat(has("Dynamic", "updateTrailingStops"))
-                .as("DYNAMIC 에 트레일링이 생겼다면 결함 해소 — ruleAppliedToAllEngines 로 옮길 것")
-                .isFalse();
+        // ⚠️ 이 함수는 TP 만 올린다. 손실 구간 SL 조임은 되살리지 말 것 —
+        //    아래 noEngineTightensStopLossOnLoss 와 ExitRuleChecker javadoc 참조.
+        for (String engine : new String[] {"Live", "Dynamic", "Paper"}) {
+            assertThat(has(engine, "updateTrailingStops"))
+                    .as("%s 가 공용 TP 트레일링을 쓰지 않는다 — 엔진별 자체 공식이 되살아났는지 확인", engine)
+                    .isTrue();
+        }
+    }
+
+    @Test
+    @DisplayName("어느 엔진도 손실 구간에서 SL 을 조이지 않는다 (2026-09-08 회귀 방지)")
+    void noEngineTightensStopLossOnLoss() {
+        // 손실 중 SL 을 현재가/저점 쪽으로 끌어올리는 것은 "다음 틱에 강제청산을 예약"하는
+        // 동작이다. 하락 방어는 진입 시점에 확정된 ATR 기반 SL 이 담당한다.
+        //
+        // 같은 결함이 두 번 나왔다:
+        //   2026-08-06  LIVE   급락 감지 시 trailingSlMargin(0.3%) 로 SL 조임 → 제거
+        //   2026-09-08  PAPER  ExitRuleChecker.updateTrailingStops 손실 분기 → 제거
+        // 08-06 에 LIVE·DYNAMIC 만 고치고 PAPER 전용 경로를 빠뜨린 것이 한 달간 살아남아
+        // 운영 손실 −1,270만원을 만들었다. 세 번째가 없도록 여기서 고정한다.
+        //
+        // 검사 대상은 엔진이 조임 마진을 **실제로 읽는지**(getter 호출)다. LIVE 소스에는
+        // 제거를 기록한 주석에 `trailingSlMargin(0.3%)` 이라는 문구가 남아 있어, 느슨한
+        // 토큰으로 검사하면 그 주석이 오탐을 낸다 — 접근자 이름만 본다.
+        // ExitRuleChecker 자체의 거동은 ExitRuleCheckerTest §15 가 값으로 검증한다
+        // (문자열 검사보다 강하다).
+        for (String engine : new String[] {"Live", "Dynamic", "Paper"}) {
+            assertThat(has(engine, "getTrailingSlMargin"))
+                    .as("%s 가 손실 구간 SL 조임을 되살렸다 — 위 주석의 두 사고를 다시 읽을 것", engine)
+                    .isFalse();
+        }
     }
 
     @Test

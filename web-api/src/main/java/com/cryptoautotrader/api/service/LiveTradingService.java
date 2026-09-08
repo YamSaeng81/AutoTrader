@@ -2655,16 +2655,23 @@ public class LiveTradingService {
                         session.getId(), coinCode, pnlPct, pos.getStopLossPrice());
             }
 
-            // 급등 처리 — 수익 중인 포지션 TP 트레일링 (단방향 ratchet, 고점 추적)
-            if (spikeUp && pnlPct.compareTo(BigDecimal.ZERO) > 0) {
-                BigDecimal newTp = price.multiply(BigDecimal.ONE.subtract(exitConfig().getTrailingTpMargin()))
-                        .setScale(8, RoundingMode.HALF_UP);
-                BigDecimal currentTp = pos.getTakeProfitPrice();
-                if (currentTp == null || newTp.compareTo(currentTp) > 0) {
-                    pos.setTakeProfitPrice(newTp);
+            // TP 트레일링 (단방향 ratchet, 고점 추적) — 2026-09-08 부터 세 엔진 공용
+            // ExitRuleChecker.updateTrailingStops 를 쓴다.
+            //
+            // 그 전에는 여기서 `spikeUp`(30초 +2.0%) 에 걸린 틱에서만 자체 공식으로 TP 를
+            // 올렸다. PAPER 는 수익이면 매 틱 올렸으므로, 완만하게 오르는 포지션은
+            // LIVE 에서만 TP 가 고정된 채로 남았다 — 같은 전략이 엔진마다 다르게 청산됐다.
+            // 급등 판정은 위 throttle(급등락 1초 / 평상시 5초)에만 계속 쓰인다.
+            if (pos.getEntryPrice() != null && pos.getTakeProfitPrice() != null) {
+                var updatedLevels = riskManagementService.getExitRuleChecker().updateTrailingStops(
+                        price, pos.getEntryPrice(),
+                        pos.getStopLossPrice(), pos.getTakeProfitPrice());
+                if (updatedLevels.getTakeProfitPrice().compareTo(pos.getTakeProfitPrice()) != 0) {
+                    log.info("TP 트레일링: sessionId={}, {} TP {} → {}",
+                            session.getId(), coinCode,
+                            pos.getTakeProfitPrice(), updatedLevels.getTakeProfitPrice());
+                    pos.setTakeProfitPrice(updatedLevels.getTakeProfitPrice());
                     positionRepository.save(pos);
-                    log.info("급등 TP 트레일링: sessionId={}, {} TP {} → {}",
-                            session.getId(), coinCode, currentTp, newTp);
                 }
             }
         }

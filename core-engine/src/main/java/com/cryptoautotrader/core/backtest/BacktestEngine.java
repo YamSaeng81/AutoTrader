@@ -121,10 +121,12 @@ public class BacktestEngine {
 
             // ── 포지션 보유 중: SL/TP 체크 (전략 신호보다 우선) ──────
             if (position.compareTo(BigDecimal.ZERO) > 0) {
-                // 트레일링 스탑 갱신 (다음 캔들 open 기준)
+                // 트레일링 스탑 갱신 (다음 캔들 기준) — TP 만 래칫 상향한다.
+                // 2026-09-08 이전에는 저가가 진입가 아래일 때 SL 도 조여졌다. 백테스트가
+                // 운영 엔진과 같은 함수를 쓰는 덕에 그 결함도 그대로 재현하고 있었다 —
+                // 즉 **이 날짜 이전의 백테스트·Walk Forward 결과는 0.3% 손절 기준이다.**
                 StopLevels updatedLevels = exitChecker.updateTrailingStops(
-                        nextCandle.getHigh(), nextCandle.getLow(),
-                        entryPrice, stopLossPrice, takeProfitPrice);
+                        nextCandle.getHigh(), entryPrice, stopLossPrice, takeProfitPrice);
                 stopLossPrice = updatedLevels.getStopLossPrice();
                 takeProfitPrice = updatedLevels.getTakeProfitPrice();
 
