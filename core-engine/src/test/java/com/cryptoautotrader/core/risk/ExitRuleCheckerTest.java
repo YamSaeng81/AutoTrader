@@ -332,19 +332,35 @@ class ExitRuleCheckerTest {
         }
 
         @Test
-        @DisplayName("손실 구간 — 저점 갱신 시 SL 조임(상향)")
-        void slTightensOnLoss() {
+        @DisplayName("손실 구간 — SL을 조이지 않는다 (2026-09-08 회귀 방지)")
+        void slNeverTightensOnLoss() {
             BigDecimal entry = new BigDecimal("100000000");
-            BigDecimal sl    = new BigDecimal("80000000");  // 느슨한 SL
+            BigDecimal sl    = new BigDecimal("95000000");   // 진입 시 확정된 5% SL
             BigDecimal tp    = new BigDecimal("110000000");
 
-            // 저가 90_000_000 (< entry) → trailed SL = 90_000_000 × 0.997 = 89_730_000 > 80_000_000
+            // 저가 90_000_000 (< entry). 예전 동작이라면 90_000_000 × 0.997 = 89_730_000 으로
+            // 조여졌겠지만, 이제는 진입 시 확정된 SL이 그대로 유지돼야 한다.
             ExitRuleChecker.StopLevels updated = checker.updateTrailingStops(
                     new BigDecimal("95000000"),
                     new BigDecimal("90000000"),
                     entry, sl, tp);
 
-            assertThat(updated.getStopLossPrice()).isGreaterThan(sl);
+            assertThat(updated.getStopLossPrice()).isEqualByComparingTo(sl);
+        }
+
+        @Test
+        @DisplayName("진입가 바로 아래 1틱 — 0.3% 손절로 바뀌지 않는다 (운영 −1,270만원 사고 재현)")
+        void slSurvivesOneTickBelowEntry() {
+            // PaperTradingService 는 현재가를 high/low 양쪽에 넣는다 — 그 호출 형태를 그대로 재현.
+            BigDecimal entry   = new BigDecimal("100000000");
+            BigDecimal sl      = new BigDecimal("95000000");  // 5% SL
+            BigDecimal tp      = new BigDecimal("110000000");
+            BigDecimal oneTick = new BigDecimal("99999000");  // 진입가 −0.001%
+
+            ExitRuleChecker.StopLevels updated = checker.updateTrailingStops(
+                    oneTick, oneTick, entry, sl, tp);
+
+            assertThat(updated.getStopLossPrice()).isEqualByComparingTo(sl);
         }
 
         @Test

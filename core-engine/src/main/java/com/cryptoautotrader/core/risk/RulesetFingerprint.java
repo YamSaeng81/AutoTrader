@@ -140,6 +140,9 @@ public final class RulesetFingerprint {
             put("exit.trailingEnabled", c.isTrailingEnabled());
             put("exit.trailingTpMargin", c.getTrailingTpMargin());
             put("exit.trailingSlMargin", c.getTrailingSlMargin());
+            // 2026-09-08: 손실 구간 SL 조임 제거 (ExitRuleChecker.updateTrailingStops javadoc).
+            // 설정값은 그대로라 이 키가 없으면 제거 전후 거래가 같은 지문으로 한 표본에 섞인다.
+            put("exit.slTightenOnLoss", false);
             put("exit.investRatio", c.getInvestRatio());
             put("exit.minInvestAmount", c.getMinInvestAmount());
             put("exit.riskBasedSizingEnabled", c.isRiskBasedSizingEnabled());

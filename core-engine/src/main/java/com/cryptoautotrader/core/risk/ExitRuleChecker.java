@@ -291,16 +291,37 @@ public class ExitRuleChecker {
     // ── 트레일링 스탑 갱신 ────────────────────────────────────
 
     /**
-     * 트레일링 스탑 레벨을 갱신한다.
-     * - 수익 중 + 고가 갱신 → TP를 고점 × (1 − trailingTpMargin)으로 래칫
-     * - 손실 중 + 저가 갱신 → SL을 저점 × (1 − trailingSlMargin)으로 래칫
+     * 트레일링 스탑 레벨을 갱신한다 — <b>TP만 래칫 상향한다. SL은 절대 조이지 않는다.</b>
      *
-     * 모든 래칫은 단방향 — TP는 올라가기만, SL은 올라가기만(조여지기만) 한다.
+     * <ul>
+     *   <li>수익 중 + 고가 갱신 → TP를 고점 × (1 − trailingTpMargin)으로 래칫(단방향 상향)</li>
+     *   <li>SL은 입력값 그대로 반환 — 하락 방어는 진입 시점에 확정된 ATR 기반 SL이 담당한다</li>
+     * </ul>
+     *
+     * <h3>손실 구간 SL 조임 제거 (2026-09-08)</h3>
+     * <p>이전에는 저가가 진입가 아래면 SL을 {@code 저점 × (1 − trailingSlMargin)}으로 상향했다.
+     * 이는 <b>LIVE에서 2026-08-06에 이미 제거한 것과 동일한 구조적 오류</b>다
+     * ({@code LiveTradingService} 급락 처리 주석 참조). 그때 LIVE·DYNAMIC만 고쳤고
+     * 이 메서드는 PAPER 전용 경로라 누락돼 한 달 넘게 살아 있었다.</p>
+     *
+     * <p><b>운영 실측 (2026-09-07 기준, RUNNING 페이퍼 세션 96개)</b>:
+     * {@code virtual_balance.stop_loss_pct = 5.00}, ATR 기반 진입 SL 폭도 정상이었는데
+     * {@code position.stop_loss_price}는 진입가 대비 <b>평균 −0.43%</b>로 찍혀 있었다.
+     * 호출부가 현재가를 candleHigh/candleLow 양쪽에 넣으므로, 가격이 진입가를 <b>단 1틱</b>만
+     * 밑돌아도 SL이 즉시 {@code 현재가 × 0.997}로 끌어올려진다 — 5% 손절이 0.3% 손절로
+     * 바뀌는 것이다. 결과: 청산 534건 중 <b>STOP_LOSS 456건(85.4%)</b>, 손절 평균 보유시간
+     * <b>0.9시간</b>, 승률 13%, 누적 −1,270만원. 정상 등락에 전량 휩쏘로 털린 것이다.</p>
+     *
+     * <p>익절 트레일링(TP 상향)은 이익을 잠그는 <b>반대 방향</b>이라 그대로 유지한다.</p>
+     *
+     * <p>{@code trailingSlMargin} 설정값은 더 이상 이 계산에 쓰이지 않는다. 규칙 지문
+     * ({@code RulesetFingerprint})에는 그대로 남겨 둔다 — 제거 전후 표본이 섞이지 않도록
+     * 지문이 달라져야 하기 때문이다.</p>
      *
      * @param candleHigh  현재 캔들 고가 (또는 현재가)
-     * @param candleLow   현재 캔들 저가 (또는 현재가)
+     * @param candleLow   현재 캔들 저가 (또는 현재가) — 더 이상 SL 계산에 쓰이지 않는다
      * @param entryPrice  진입가
-     * @param currentSl   현재 손절가
+     * @param currentSl   현재 손절가 — 그대로 반환된다
      * @param currentTp   현재 익절가
      * @return 갱신된 SL/TP (변화 없으면 입력값 그대로)
      */
@@ -312,9 +333,8 @@ public class ExitRuleChecker {
         }
 
         BigDecimal newTp = currentTp;
-        BigDecimal newSl = currentSl;
 
-        // 수익 구간: 고가가 현재 TP 이상이면 TP 래칫 상향
+        // 수익 구간: 고가가 진입가를 넘으면 TP 래칫 상향 (단방향)
         if (candleHigh.compareTo(entryPrice) > 0) {
             BigDecimal trailedTp = candleHigh.multiply(
                     BigDecimal.ONE.subtract(config.getTrailingTpMargin()))
@@ -324,18 +344,8 @@ public class ExitRuleChecker {
             }
         }
 
-        // 손실 구간: 현재가가 진입가 아래이고 저점 갱신 → SL 조임
-        if (candleLow.compareTo(entryPrice) < 0) {
-            BigDecimal trailedSl = candleLow.multiply(
-                    BigDecimal.ONE.subtract(config.getTrailingSlMargin()))
-                    .setScale(SCALE, RoundingMode.HALF_DOWN);
-            // SL은 올라가기만 해야 함 (조여지기만)
-            if (currentSl != null && trailedSl.compareTo(currentSl) > 0) {
-                newSl = trailedSl;
-            }
-        }
-
-        return new StopLevels(newSl, newTp);
+        // 손실 구간 SL 조임 — 2026-09-08 제거 (위 javadoc 참조). SL은 손대지 않는다.
+        return new StopLevels(currentSl, newTp);
     }
 
     // ── 전략 SELL 신호 게이트 ─────────────────────────────────
