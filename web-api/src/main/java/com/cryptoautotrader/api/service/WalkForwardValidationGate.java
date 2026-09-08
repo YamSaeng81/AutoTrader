@@ -67,60 +67,89 @@ public class WalkForwardValidationGate {
         return gateEnabled;
     }
 
+    /** 전략 단위 판정, 타임프레임 무관 — {@link #evaluateStrategy(String, String)} 참조. */
+    public GateDecision evaluate(String strategyName) {
+        return evaluateStrategy(strategyName, null);
+    }
+
     /**
-     * 전략×코인 조합의 최신 Walk Forward 실행 결과 기반 판정 — 코인이 정해진 세션(LIVE)용.
+     * 전략×코인×타임프레임 조합의 최신 Walk Forward 실행 결과 기반 판정 — 코인이 정해진 세션(LIVE)용.
      *
      * <p>같은 전략도 코인마다 성적이 크게 갈린다(Tier1/Tier2 표 참조). 코인을 아는 상황에서
      * 코인 무관 판정을 쓰면, 엉뚱한 코인의 결과가 섞여 실제로는 좋은 조합을 차단하거나
      * 나쁜 조합을 통과시킬 수 있다(2026-08-24 실측: 5전략을 ADA 기준으로만 판정했더니
      * BTC에서는 통과할 만한 조합 3개가 전부 가려짐).</p>
+     *
+     * <p><b>타임프레임도 같은 이유로 구분한다 (2026-09-08 추가).</b> 08-24 에 코인 축만 분리하고
+     * 타임프레임은 놓쳤다 — 같은 (전략, 코인) 의 H1 과 M15 가 한 키를 다투면서
+     * <b>나중에 실행된 쪽이 다른 쪽 판정을 덮어썼다.</b> 실행 순서가 판정을 좌우한다는 점에서
+     * 아래 {@link #evaluate(String, String, String)} javadoc 이 "우연에 가까웠다"고 적은 것과
+     * 정확히 같은 결함이다. {@code timeframe} 이 null 이면 종전대로 타임프레임 무관 판정을 한다.</p>
      */
-    public GateDecision evaluate(String strategyName, String coinPair) {
+    public GateDecision evaluate(String strategyName, String coinPair, String timeframe) {
         if (coinPair == null) {
-            return evaluate(strategyName);
+            return evaluateStrategy(strategyName, timeframe);
         }
-        List<BacktestRunEntity> runs = backtestRunRepository
-                .findByStrategyNameAndCoinPairAndIsWalkForwardTrueOrderByCreatedAtDesc(strategyName, coinPair);
-        String label = strategyName + "/" + coinPair;
+        List<BacktestRunEntity> runs = (timeframe == null)
+                ? backtestRunRepository
+                    .findByStrategyNameAndCoinPairAndIsWalkForwardTrueOrderByCreatedAtDesc(strategyName, coinPair)
+                : backtestRunRepository
+                    .findByStrategyNameAndCoinPairAndTimeframeAndIsWalkForwardTrueOrderByCreatedAtDesc(
+                            strategyName, coinPair, timeframe);
+        String label = strategyName + "/" + coinPair + (timeframe != null ? "@" + timeframe : "");
         if (runs.isEmpty()) {
             return decide(label, null, null, null, null);
         }
         return decideFromRun(label, runs.get(0));
     }
 
+    /** 타임프레임을 모를 때 — {@link #evaluate(String, String, String)} 참조. */
+    public GateDecision evaluate(String strategyName, String coinPair) {
+        return evaluate(strategyName, coinPair, null);
+    }
+
     /**
      * 전략에 대한 판정 — 코인을 아직 모르는 상황(DYNAMIC 세션 생성, 실제 매수 코인은 감시목록
-     * 스캔 후 정해짐)에서만 쓴다. "이 전략이 검증을 통과한 코인이 하나라도 있는가"로 판단한다 —
-     * 코인별 최신 실행 중 하나라도 PASS 면 전략 전체를 PASS 로 본다.
+     * 스캔 후 정해짐)에서만 쓴다. "이 전략이 검증을 통과한 조합이 하나라도 있는가"로 판단한다 —
+     * 조합별 최신 실행 중 하나라도 PASS 면 전략 전체를 PASS 로 본다.
      *
      * <p>완벽한 판정은 아니다(통과 코인이 아닌 다른 코인을 매수할 수도 있다) — 하지만 예전처럼
      * "가장 최근에 실행된 아무 코인 하나"로 전략 전체를 판정하는 것보다는 낫다. 그쪽은 실행 순서에
      * 따라 결과가 좌우되는 우연에 가까웠다.</p>
+     *
+     * <p>{@code timeframe} 을 주면 그 타임프레임의 실행만 본다. 동적 세션은 코인은 몰라도
+     * 타임프레임은 생성 시점에 정해져 있으므로 넘길 수 있다 — 2026-09-08 이전 WF 350건이
+     * 전부 H1 인데 운영 동적 세션 절반이 M15 였다는 점에서, 이 구분이 없으면 M15 세션이
+     * H1 근거로 통과한다.</p>
      */
-    public GateDecision evaluate(String strategyName) {
+    public GateDecision evaluateStrategy(String strategyName, String timeframe) {
         List<BacktestRunEntity> runs =
                 backtestRunRepository.findByStrategyNameAndIsWalkForwardTrueOrderByCreatedAtDesc(strategyName);
+        if (timeframe != null) {
+            runs = runs.stream().filter(r -> timeframe.equals(r.getTimeframe())).toList();
+        }
         if (runs.isEmpty()) {
             return decide(strategyName, null, null, null, null);
         }
 
-        // 코인별 최신 실행만 남긴다 (runs는 이미 createdAt desc 이므로 첫 등장이 최신).
-        Map<String, BacktestRunEntity> latestPerCoin = new LinkedHashMap<>();
+        // 조합(코인 × 타임프레임)별 최신 실행만 남긴다 — runs 는 이미 createdAt desc 이므로 첫 등장이 최신.
+        // 2026-09-08 이전에는 키가 코인뿐이라 같은 코인의 H1/M15 가 서로를 덮어썼다.
+        Map<String, BacktestRunEntity> latestPerCombo = new LinkedHashMap<>();
         for (BacktestRunEntity run : runs) {
-            latestPerCoin.putIfAbsent(run.getCoinPair(), run);
+            latestPerCombo.putIfAbsent(run.getCoinPair() + "@" + run.getTimeframe(), run);
         }
 
         GateDecision best = null;
-        for (BacktestRunEntity run : latestPerCoin.values()) {
-            GateDecision d = decideFromRun(strategyName + "/" + run.getCoinPair(), run);
+        for (Map.Entry<String, BacktestRunEntity> e : latestPerCombo.entrySet()) {
+            GateDecision d = decideFromRun(strategyName + "/" + e.getKey(), e.getValue());
             if (d.passed()) {
                 return GateDecision.pass(strategyName,
-                        String.format("%s 기준 PASS (%s)", run.getCoinPair(), d.reason()), d.lastValidatedAt());
+                        String.format("%s 기준 PASS (%s)", e.getKey(), d.reason()), d.lastValidatedAt());
             }
             if (best == null) best = d; // 전부 FAIL이면 가장 최근 것의 사유를 대표로 보여준다
         }
         return new GateDecision(strategyName, false,
-                String.format("검증된 %d개 코인 전부 FAIL — 예: %s", latestPerCoin.size(), best.reason()),
+                String.format("검증된 %d개 조합 전부 FAIL — 예: %s", latestPerCombo.size(), best.reason()),
                 null);
     }
 
@@ -139,12 +168,22 @@ public class WalkForwardValidationGate {
      * (판정 자체는 항상 계산해 호출부 로그에 남길 수 있게 한다).
      */
     public void throwIfBlocked(String strategyName) {
-        throwIfBlocked(strategyName, null);
+        throwIfBlocked(strategyName, null, null);
     }
 
-    /** 코인을 아는 세션(LIVE)은 이쪽을 쓴다 — {@link #evaluate(String, String)} 참조. */
-    public void throwIfBlocked(String strategyName, String coinPair) {
-        GateDecision decision = evaluate(strategyName, coinPair);
+    /**
+     * 코인은 모르지만 타임프레임은 아는 세션(DYNAMIC 생성)용 — 2026-09-08 추가.
+     * 그전까지 M15 동적 세션이 H1 근거로 통과했다(당시 WF 350건이 전부 H1).
+     */
+    public void throwIfBlockedByTimeframe(String strategyName, String timeframe) {
+        throwIfBlocked(strategyName, null, timeframe);
+    }
+
+    /** 코인을 아는 세션(LIVE)은 이쪽을 쓴다 — {@link #evaluate(String, String, String)} 참조. */
+    public void throwIfBlocked(String strategyName, String coinPair, String timeframe) {
+        GateDecision decision = (coinPair == null)
+                ? evaluateStrategy(strategyName, timeframe)
+                : evaluate(strategyName, coinPair, timeframe);
         if (!decision.passed()) {
             log.info("[WalkForwardGate] 판정: {} → {} ({}) — 게이트 {}",
                     strategyName, decision.passed() ? "PASS" : "FAIL", decision.reason(),

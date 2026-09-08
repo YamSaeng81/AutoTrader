@@ -448,7 +448,9 @@ public class DynamicTradingService {
 
             // 신호 기대값 검증 게이트 — Walk Forward로 out-of-sample 기대값>0이 증명된 전략만 통과.
             // 기본은 비활성(플래그 off)이라 당장은 강제하지 않는다.
-            walkForwardValidationGate.throwIfBlocked(req.getStrategyType());
+            // 코인은 스캔 후 정해지지만 타임프레임은 생성 시점에 확정이다 (2026-09-08).
+            walkForwardValidationGate.throwIfBlockedByTimeframe(
+                    req.getStrategyType(), req.getTimeframe());
         }
 
         BigDecimal investRatio = normalizeRatio(req.getInvestRatio(), new BigDecimal("0.80"));
@@ -885,7 +887,8 @@ public class DynamicTradingService {
             if (walkForwardValidationGate.isEnabled()
                     && signal.getAction() == StrategySignal.Action.BUY) {
                 WalkForwardValidationGate.GateDecision wfDecision =
-                        walkForwardValidationGate.evaluate(session.getStrategyType(), coinPair);
+                        walkForwardValidationGate.evaluate(
+                                session.getStrategyType(), coinPair, session.getTimeframe());
                 if (!wfDecision.passed()) {
                     walkForwardBlocked++;
                     log.info("[Dynamic] WF 미검증 BUY 차단: {} (id={}): {}", coinPair, sid, wfDecision.reason());

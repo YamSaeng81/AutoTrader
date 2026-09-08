@@ -21,7 +21,21 @@ public interface BacktestRunRepository extends JpaRepository<BacktestRunEntity, 
      */
     List<BacktestRunEntity> findByStrategyNameAndIsWalkForwardTrueOrderByCreatedAtDesc(String strategyName);
 
-    /** 전략×코인 조합의 Walk Forward 실행 이력 — 최신순. 코인이 정해진 세션(LIVE) 판정용. */
+    /** 전략×코인 조합의 Walk Forward 실행 이력 — 최신순. 타임프레임을 모를 때만 쓴다. */
     List<BacktestRunEntity> findByStrategyNameAndCoinPairAndIsWalkForwardTrueOrderByCreatedAtDesc(
             String strategyName, String coinPair);
+
+    /**
+     * 전략×코인×타임프레임 조합의 Walk Forward 실행 이력 — 최신순.
+     *
+     * <p>2026-09-08 신설. 그전까지 게이트는 타임프레임을 <b>전혀 보지 않았다</b>. 08-24 에
+     * 코인 축을 분리하면서 같은 문제가 타임프레임 축에 그대로 남아 있었던 것이다.</p>
+     *
+     * <p>같은 (전략, 코인) 이라도 H1 과 M15 는 다른 실행이므로, 타임프레임을 무시하면
+     * <b>나중에 실행된 쪽이 다른 쪽 판정을 덮어쓴다</b> — 실행 순서가 판정을 좌우한다.
+     * 운영 실태가 이 구분을 요구한다: 고정코인 PAPER 40세션은 전부 M15, 동적 12세션은
+     * H1 6 / M15 6 이고, 2026-09-08 이전 WF 350건은 전부 H1 이었다.</p>
+     */
+    List<BacktestRunEntity> findByStrategyNameAndCoinPairAndTimeframeAndIsWalkForwardTrueOrderByCreatedAtDesc(
+            String strategyName, String coinPair, String timeframe);
 }

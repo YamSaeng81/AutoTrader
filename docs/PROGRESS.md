@@ -133,6 +133,33 @@ M15 가 원리적으로 안 되는 것은 아니다 — ADA·BTC·DOGE·SOL 에 
 **남은 구조적 결함**(별도 판단): `fetchCandles` 가 부분 저장·재시도 없이 전부 버리는 것.
 긴 백필은 원리적으로 실패하게 돼 있다. 청크 단위 저장 + 요청 단위 재시도가 근본 해법이며,
 `backtest_job` 에 이미 `total_chunks`/`completed_chunks` 가 있으니 같은 방식을 쓸 수 있다.
+#### 🔴 WF 게이트가 타임프레임을 전혀 보지 않았다
+
+STEP=2 전에 "옛 WF 350건을 지워야 하나" 를 확인하다 발견. 결론은 **지울 필요 없음** —
+`WalkForwardValidationGate` 는 이미 조합별 **최신 1건**만 보므로 새 실행이 들어오면
+옛 것은 자동으로 판정에서 빠진다(`latestPerCoin` + createdAt desc + `putIfAbsent`).
+오히려 옛 판정은 "이 버그가 전략 판단을 얼마나 왜곡했나" 를 재는 **유일한 대조군**이라 남긴다.
+
+그런데 그 코드를 읽다 진짜 결함이 나왔다 — **게이트에 `timeframe` 참조가 0건이었다.**
+08-24 에 전략 단위 → 전략×코인 단위로 좁히면서 같은 이유가 적용되는 타임프레임 축을 놓쳤다.
+`latestPerCoin` 키가 코인뿐이라 같은 (전략, 코인) 의 H1 과 M15 가 한 자리를 다투고,
+**나중에 실행된 쪽이 다른 쪽 판정을 덮어쓴다** — `evaluate(String)` javadoc 이
+"실행 순서에 따라 결과가 좌우되는 우연" 이라고 적어 둔 것과 정확히 같은 결함이다.
+
+운영 실태가 이 구분을 요구한다: 고정코인 PAPER 40세션 전부 M15, 동적 12세션 H1 6 / M15 6 인데
+WF 350건은 전부 H1 이었다 — **M15 세션이 H1 근거로 통과하고 있었다.**
+STEP=2 는 H1 → M15 순으로 던지므로, 고치지 않았다면 M15 가 H1 판정을 전부 덮었을 것이다
+(지금 운영이 M15 위주라 우연히 덜 틀릴 뿐, 근거가 우연인 것은 그대로다).
+
+**조치**:
+- `BacktestRunRepository` — `...AndTimeframeAnd...` 조회 추가
+- `WalkForwardValidationGate` — `evaluate(전략, 코인, TF)` / `evaluateStrategy(전략, TF)` 로 확장,
+  `latestPerCombo` 키를 `coinPair + "@" + timeframe` 으로 변경. `timeframe=null` 이면 종전 동작(하위 호환)
+- 호출부 3곳에 타임프레임 전달 — LIVE 생성(코인·TF 앎), DYNAMIC 생성(`throwIfBlockedByTimeframe`,
+  코인은 스캔 후지만 TF 는 생성 시점 확정), DYNAMIC 매수 직전(둘 다 앎)
+- `WalkForwardGateTimeframeTest` 신설(5건). **뮤테이션 테스트로 검증** — 키를 예전(코인만)으로
+  되돌리니 "같은 코인의 H1/M15 가 서로를 덮지 않는다" 가 정확히 실패했다.
+
 #### 배포 필요
 
 이번 변경은 **실제 매매 거동을 바꾼다**(LIVE TP 갱신 빈도 증가, DYNAMIC 트레일링 신설).

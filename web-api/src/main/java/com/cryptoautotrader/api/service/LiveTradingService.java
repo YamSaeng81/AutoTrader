@@ -335,7 +335,8 @@ public class LiveTradingService {
         // 신호 기대값 검증 게이트 — Walk Forward로 out-of-sample 기대값>0이 증명된 전략만 통과.
         // 기본은 비활성(플래그 off)이라 당장은 강제하지 않는다.
         try {
-            walkForwardValidationGate.throwIfBlocked(req.getStrategyType(), req.getCoinPair());
+            walkForwardValidationGate.throwIfBlocked(
+                    req.getStrategyType(), req.getCoinPair(), req.getTimeframe());
         } catch (IllegalArgumentException e) {
             throw new SessionStateException(e.getMessage());
         }
