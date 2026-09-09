@@ -1,5 +1,8 @@
 # CryptoAutoTrader — PROGRESS.md
 
+> **▶ 지금 뭘 해야 하는지 모르겠다면 → [`docs/NEXT.md`](NEXT.md) 를 먼저 볼 것.**
+> 2026-09-09 기준: 할 일 없음, 데이터 대기 중. 다음 확인 2026-09-14(월) `bash scripts/status.sh`
+
 > **목적**: `/clear` 후 새 세션에서 이 파일을 먼저 읽어 현재 상태를 파악한다.
 > **갱신 규칙**: 이 파일은 **최신 작업 이력(최근 세션 몇 개) + 보류/결정 대기 항목 + 프로젝트 참조 정보**만 담는다. 오래된 상세 이력은 [`docs/old_progress.md`](old_progress.md)(2026-08-06 이전 전체 백업)와 [`docs/CHANGELOG.md`](CHANGELOG.md)를 참조.
 > **2026-08-06 / 2026-08-19**: 파일이 비대해질 때마다 날짜별 상세 이력을 `old_progress.md` 로 이관하고 이 파일에는 요약만 남긴다. 상세 근거·재현 과정이 필요하면 `old_progress.md` 에서 날짜로 검색할 것.
