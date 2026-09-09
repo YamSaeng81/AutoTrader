@@ -3,6 +3,7 @@ package com.cryptoautotrader.api.service;
 import com.cryptoautotrader.api.entity.BacktestRunEntity;
 import com.cryptoautotrader.api.repository.BacktestRunRepository;
 import com.cryptoautotrader.core.risk.ExitRuleFormula;
+import com.cryptoautotrader.core.backtest.WalkForwardTestRunner;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -193,5 +194,26 @@ class WalkForwardGateTimeframeTest {
                         ExitRuleFormula.EXIT_RULES_VERSION - 1)));
 
         assertThat(gate.evaluateStrategy("COMPOSITE_MTF_BTC", "H1").passed()).isFalse();
+    }
+
+    // ── 판정 불가(표본 부족) 차단 (2026-09-09) ────────────────────────
+
+    @Test
+    @DisplayName("INSUFFICIENT_DATA 는 검증 이력 없음과 같게 차단한다 — 과적합과 다른 상태다")
+    void 판정불가는_차단된다() {
+        // 표본이 없어 판정 자체가 불가능한 실행. 기대값·거래수는 게이트의 자체 하한으로도
+        // 걸리지만, 두 하한이 갈라져도 새지 않도록 verdict 단계에서 먼저 막는지 본다.
+        when(repo.findByStrategyNameAndCoinPairAndTimeframeAndIsWalkForwardTrueOrderByCreatedAtDesc(
+                anyString(), anyString(), any()))
+                .thenReturn(List.of(run("KRW-EUL", "M15",
+                        WalkForwardTestRunner.VERDICT_INSUFFICIENT_DATA, 3.5, 40,
+                        Instant.parse("2026-09-09T00:00:00Z"))));
+
+        var d = gate.evaluate("COMPOSITE_MTF_BTC", "KRW-EUL", "M15");
+
+        assertThat(d.passed())
+                .as("성적이 좋아 보여도 표본이 없으면 아무 말도 할 수 없는 상태다")
+                .isFalse();
+        assertThat(d.reason()).contains("판정 불가");
     }
 }

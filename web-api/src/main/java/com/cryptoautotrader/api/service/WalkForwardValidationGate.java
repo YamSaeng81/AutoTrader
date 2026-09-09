@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import com.cryptoautotrader.core.backtest.WalkForwardTestRunner;
 
 /**
  * 신호 기대값 검증 게이트 — "Walk Forward 로 out-of-sample 기대값 &gt; 0 이 확인된 전략만
@@ -232,6 +233,15 @@ public class WalkForwardValidationGate {
         if (verdict == null) {
             return GateDecision.fail(strategyName,
                     "Walk Forward 검증 이력 없음 — 아직 out-of-sample 기대값이 증명되지 않았습니다.");
+        }
+        if (WalkForwardTestRunner.VERDICT_INSUFFICIENT_DATA.equals(verdict)) {
+            // 2026-09-09: "과적합이 아니다" 와 구분한다. 표본이 없어 **판정 자체가 불가능**한
+            // 상태이므로 검증 이력이 없는 것과 같게 취급한다. 아래 표본 검사로도 대부분 걸리지만,
+            // 두 하한이 갈라져도 판정이 새지 않도록 여기서 먼저 막는다.
+            return GateDecision.fail(strategyName, String.format(
+                    "Walk Forward 판정 불가 — Out-of-Sample 거래가 %d건 미만이라 과적합 여부를 "
+                            + "잴 수 없습니다. 상장이 최근이거나 신호가 거의 없는 조합입니다.",
+                    WalkForwardTestRunner.MIN_OOS_TRADES_FOR_VERDICT));
         }
         if ("OVERFITTING".equals(verdict)) {
             return GateDecision.fail(strategyName,

@@ -350,7 +350,11 @@ public class TelegramNotificationService {
             long failCnt    = results.stream().filter(r -> r.containsKey("error")).count();
             long acceptable = results.stream().filter(r -> "ACCEPTABLE".equals(r.get("verdict"))).count();
             long caution    = results.stream().filter(r -> "CAUTION".equals(r.get("verdict"))).count();
-            long overfit    = total - failCnt - acceptable - caution;
+            // 2026-09-09: 표본 부족(판정 불가)을 따로 센다. 이전에는 나머지로 흘러들어
+            // **과적합으로 집계**됐다 — 둘은 전혀 다른 상태다.
+            long insufficient = results.stream()
+                    .filter(r -> "INSUFFICIENT_DATA".equals(r.get("verdict"))).count();
+            long overfit    = total - failCnt - acceptable - caution - insufficient;
 
             StringBuilder detail = new StringBuilder();
             for (var r : results) {
@@ -365,7 +369,10 @@ public class TelegramNotificationService {
                     detail.append(String.format("  ❌ %s/%s — 오류\n", coin, strategy));
                 } else {
                     String verdict = String.valueOf(r.getOrDefault("verdict", "?"));
-                    String icon    = "ACCEPTABLE".equals(verdict) ? "✅" : "CAUTION".equals(verdict) ? "⚠️" : "🔴";
+                    String icon    = "ACCEPTABLE".equals(verdict) ? "✅"
+                            : "CAUTION".equals(verdict) ? "⚠️"
+                            : "INSUFFICIENT_DATA".equals(verdict) ? "➖"   // 판정 불가 — 과적합과 구분
+                            : "🔴";
 
                     // OOS 수익률 합산: windows[].outSample.totalReturn (BigDecimal, 소수 형태 e.g. 0.1254)
                     double oosSum = 0.0;
@@ -402,12 +409,13 @@ public class TelegramNotificationService {
                     "• ✅ ACCEPTABLE: `%d`개\n" +
                     "• ⚠️ CAUTION: `%d`개\n" +
                     "• 🔴 OVERFITTING: `%d`개\n" +
+                    "• ➖ 판정불가(표본부족): `%d`개\n" +
                     "• ❌ 오류: `%d`개\n\n" +
                     "📋 *코인×전략 결과*\n%s\n" +
                     "• 완료 시각: `%s`",
                     jobId, total,
                     escapeMarkdownV2(period),
-                    acceptable, caution, overfit, failCnt,
+                    acceptable, caution, overfit, insufficient, failCnt,
                     detail.toString(),
                     KST_FMT.format(java.time.Instant.now()));
 

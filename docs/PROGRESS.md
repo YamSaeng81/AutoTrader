@@ -22,7 +22,171 @@
 
 ---
 
-### 🟢 2026-09-09 미해소 결함 1~5 전량 해소
+### 🟢 2026-09-09 (2차) WF 판정 표본 하한 — "잴 것이 없다"를 "양호"로 읽던 문제
+
+09-09 재검증 결과를 읽다 발견한 결함 2건을 고쳤다. 둘 다 **판정을 관대한 쪽으로 틀리게**
+만드는 종류다.
+
+### ① `verdict` 가 표본 크기를 보지 않았다
+
+과적합 점수(`avgDropRate`)는 **인샘플 수익률이 양수인 윈도우**에서만 계산된다. 거래가 거의
+없으면 그런 윈도우가 하나도 없고, 그러면 `dropRateSamples == 0` 이라 점수가 0 으로 남아
+**가장 좋은 판정인 `ACCEPTABLE`** 이 나왔다 — "하락이 없다" 가 아니라 "잴 것이 없다" 인데도.
+
+운영 실측 (09-09 재검증 80조합):
+
+```
+MTF_BTC   / KRW-EUL  / M15  →  ACCEPTABLE,  기대값 −4.160%,  n=2
+ICHIMOKU  / KRW-PROM / H1   →  ACCEPTABLE,  기대값  0.000%,  n=0
+```
+
+`WalkForwardTestRunner.empty()` 도 같은 모양이었다 — **캔들이 부족해 윈도우를 하나도 만들지
+못한 경우에도 `ACCEPTABLE`** 을 돌려줬다.
+
+게이트는 자체 하한(`MIN_TRADES=5`)으로 걸러 실피해는 없었다. 하지만 **화면·텔레그램·리포트는
+verdict 만 본다** — 거기서는 "양호"로 읽혔다. 판정을 내는 쪽에서 막는 것이 옳다.
+
+**조치**: `INSUFFICIENT_DATA` 판정 신설(`MIN_OOS_TRADES_FOR_VERDICT = 5`).
+"과적합이 아니다"와 "아무 말도 할 수 없다"를 값으로 구분한다. 게이트는 검증 이력이 없는 것과
+동일하게 차단하고, 텔레그램은 `➖` 로 별도 집계한다.
+
+### ② 배치 요약이 존재하지 않는 판정값을 세고 있었다
+
+`BacktestJobService.buildWalkForwardSummary` 가 `"ROBUST"` 를 세는데, **어떤 코드도 그 값을
+만들지 않는다**(러너가 내는 값은 `ACCEPTABLE`/`CAUTION`/`OVERFITTING`). `robustCount` 는 항상 0
+이었고, `overfittingCount` 를 뺄셈으로 구하는 탓에 **양호 판정이 전부 과적합으로 집계**됐다.
+
+**조치**: `ACCEPTABLE` 을 세도록 수정하고 `insufficientCount` 를 추가. 기존 화면 호환을 위해
+`robustCount` 키에도 같은 값을 싣는다.
+
+### 검증
+
+전체 스위트 통과. 신규 `WalkForwardVerdictSampleFloorTest`(4) + 게이트 테스트 1건 추가.
+뮤테이션 3/3 잡음 — 표본 하한 제거 · `empty()` 를 ACCEPTABLE 로 되돌림 · 게이트가
+`INSUFFICIENT_DATA` 를 통과시킴.
+
+### 재실행이 필요한가
+
+**아니다.** 이 수정은 판정 문자열만 바꾸며 백테스트 계산 자체는 건드리지 않으므로
+`EXIT_RULES_VERSION` 은 2 그대로다. 다만 09-09 재검증 결과의 `verdict` 컬럼에는 옛 값이
+남아 있으므로, 화면에서 EUL/PROM 조합이 여전히 `ACCEPTABLE` 로 보인다 — 다음 WF 실행부터
+`INSUFFICIENT_DATA` 로 바뀐다. 게이트 판정은 이미 표본 하한으로 막고 있어 영향 없다.
+
+---
+
+## 🟢 2026-09-09 WF 전면 재검증 결과 — 80조합 중 10개만 살아남았다
+
+청산 규칙을 네 경로에 통일한 뒤(V78, `exit_rules_version=2`) 5전략 × 8코인 × {H1, M15}
+= 80조합을 다시 돌렸다. **누락 없이 80건 전부 완료**(H1 40 / M15 40).
+
+### 결과 — OVERFITTING 61/80 (76%)
+
+| | 조합 | OVERFITTING | 게이트 통과 |
+|---|---|---|---|
+| **H1** | 40 | **34 (85%)** | **2** |
+| **M15** | 40 | 27 (68%) | 8 |
+
+`OVERFITTING` 은 "기대값이 음수"가 아니라 **인샘플 성적이 아웃오브샘플에서 유지되지 않는다**는
+뜻이다. H1 은 사실상 전멸했고, 남은 2개 중 하나(`MEANREV_BB/AVAX` **+0.023%**, n=11)는
+왕복 수수료에도 못 미치는 노이즈다. H1 에서 실질적 근거를 가진 것은
+`MTF_BTC/KRW-SOL`(+0.319%, n=45) 하나뿐이다.
+
+### 통과한 10조합
+
+| TF | 전략 | 코인 | verdict | exp | n |
+|---|---|---|---|---|---|
+| M15 | `MEANREV_BB` | SOL | ACCEPTABLE | +1.991% | 16 |
+| M15 | `MEANREV_BB` | LINK | ACCEPTABLE | +1.216% | 20 |
+| M15 | `MTF_BTC` | AVAX | ACCEPTABLE | +0.756% | 77 |
+| M15 | `MTF_CONFIRMED` | LINK | CAUTION | +0.256% | 53 |
+| M15 | `MTF_CONFIRMED` | DOGE | ACCEPTABLE | +0.204% | 75 |
+| M15 | `MTF_BTC` | DOGE | CAUTION | +0.199% | 110 |
+| M15 | `ICHIMOKU` | DOGE | ACCEPTABLE | +0.144% | 107 |
+| M15 | `ICHIMOKU_V2` | DOGE | ACCEPTABLE | +0.114% | 149 |
+| H1 | `MTF_BTC` | SOL | CAUTION | +0.319% | 45 |
+| H1 | `MEANREV_BB` | AVAX | ACCEPTABLE | +0.023% | 11 |
+
+**DOGE 편중** — 10개 중 4개가 DOGE 다. BTC · ADA · EUL · PROM 은 어떤 전략으로도 통과하지
+못했다. 전략의 우위인지 코인 특성인지 아직 갈리지 않았다는 뜻이며, 특히 M15 4전략 중
+3개가 **오직 DOGE 로만** 통과한다.
+
+표본이 큰 쪽(n≥75)은 기대값이 전부 +0.1~0.2%대로 얇고, 두꺼운 쪽(+1.2~2.0%)은 n=16~20 으로
+표본이 작다. **둘 다 아직 확정적이지 않다.**
+
+### 함대 대조 — 페이퍼 40세션이 WF 격자와 1:1
+
+```
+                                 ADA  AVAX   BTC  DOGE   EUL  LINK  PROM   SOL
+COMPOSITE_MEANREV_BB               O     E     E     O     O     P     N     P
+COMPOSITE_MOMENTUM_ICHIMOKU        O     O     O     P     N     O     N     O
+COMPOSITE_MOMENTUM_ICHIMOKU_V2     E     O     O     P     N     O     N     O
+COMPOSITE_MTF_BTC                  O     P     E     P     N     O     N     O
+COMPOSITE_MTF_CONFIRMED            O     O     O     P     N     P     N     O
+```
+`P` 근거 있음 8 · `O` OVERFITTING 19 · `N` 표본부족 9 · `E` 기대값≤0 4
+
+**32세션에 근거가 없는 것은 결함이 아니다.** WF 게이트를 PAPER 에 걸지 않는 것은 08-06 의
+의도된 설계다 — *"페이퍼는 그 자격을 얻기 전에 검증하는 도구"*. 이 표의 값어치는 차단 목록이
+아니라 **승격 후보가 8개로 좁혀졌다**는 것이다.
+
+### 실자본 노출 0 — 조치할 것 없음
+
+| 구분 | 세션 | 모드 |
+|---|---|---|
+| 고정코인 | 40 | PAPER (전부 M15) |
+| 동적 | 12 | **전부 PAPER** (H1 6 / M15 6) |
+| LIVE | 0 | — |
+
+`gateEnabled=false` 이고, `DynamicTradingService.createSession` 의 WF 게이트 호출은
+`if (!isPaper)` 안에 있어 페이퍼 동적 세션은 애초에 게이트를 타지 않는다(설계대로).
+따라서 이번 판정으로 막히거나 위험해진 것은 없다.
+
+다만 **게이트를 켜게 되면** 동적 H1 6세션 중 4개(`ICHIMOKU`×2 · `ICHIMOKU_V2` · `MTF_CONFIRMED`)는
+통과 조합이 하나도 없어 실자본 전환이 불가능하다는 점은 기록해 둔다.
+
+### V78 가드가 운영에서 실제로 동작했다
+
+게이트 판정에서 구버전 근거를 가진 전략들이 정확히 거부됐다:
+
+```
+COMPOSITE_PULLBACK_MTF   25개 조합 전부 FAIL — 실행 규칙 v미상 < 현재 v2
+COMPOSITE_BREAKOUT        5개 조합 전부 FAIL
+COMPOSITE_MOMENTUM        5개 조합 전부 FAIL
+HEIKIN_ASHI_STOCH         1개 조합 FAIL
+```
+
+이 36조합은 어제까지 "PASS" 근거로 남아 있었다. 재실행되지 않았으니 V78 이 없었다면
+**SL 5% 고정 · TP 10% · time stop 없음으로 나온 성적으로 계속 통과**했을 것이다.
+
+### 데이터에서 드러난 결함 2건 (신규, 미해소)
+
+**① `verdict` 가 표본 크기를 보지 않는다.**
+
+```
+MTF_BTC / KRW-EUL / M15   → ACCEPTABLE, exp −4.160%, n=2
+ICHIMOKU / KRW-PROM / H1  → ACCEPTABLE, exp  0.000%, n=0
+```
+
+거래가 0~2건인데 ACCEPTABLE 이 나온다. 인샘플·아웃샘플이 둘 다 비면 "성과 하락 없음"으로
+계산되기 때문이다. 게이트는 `MIN_TRADES=5` 로 막지만 **verdict 자체는 표본이 작을 때
+무의미**하다 — 화면·리포트에서 verdict 만 보면 오판한다. 판정에 표본 하한을 넣어야 한다.
+
+**② EUL · PROM 은 검증이 구조적으로 불가능한데 워치리스트에 있다.**
+
+상장이 2026-07-26 / 08-12 라 19조합이 n≤4 다. 고정 격자에서 10세션(5전략 × 2코인)을
+쓰는데 어느 것도 판정을 낼 수 없다. 08-31 에 기록한 *"지표를 못 채우는 코인과 돈을 잃는
+코인이 같은 집합"* 과 같은 대상이다.
+
+### 이번 작업이 처음으로 가능하게 만든 것
+
+09-08 이전에는 백테스트와 페이퍼가 **다른 청산 규칙**으로 돌아서 둘을 비교할 수 없었다.
+이제 같은 규칙이므로, 위 8개 `P` 조합의 **실제 페이퍼 성적 vs WF 기대값**을 직접 대조할 수 있다.
+두 값이 어긋나면 백테스트가 여전히 현실을 모사하지 못한다는 뜻이고, 맞으면 그때 승격을
+논할 근거가 생긴다. **`kill-criteria.auto-stop` 은 그 대조 전까지 계속 OFF.**
+
+---
+
+## 🟢 2026-09-09 미해소 결함 1~5 전량 해소
 
 09-08 감사가 남긴 미해소 5건을 순차로 처리했다. **전부 "축이 하나 빠져 있다" 또는
 "규칙이 한 경로에만 적용됐다" 한 가지 모양**이다.

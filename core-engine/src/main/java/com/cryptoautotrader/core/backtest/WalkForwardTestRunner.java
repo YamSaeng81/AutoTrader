@@ -133,17 +133,11 @@ public class WalkForwardTestRunner {
         BigDecimal avgDropRate = dropRateSamples == 0 ? BigDecimal.ZERO
                 : totalDropRate.divide(BigDecimal.valueOf(dropRateSamples), 4, RoundingMode.HALF_UP);
 
-        String verdict;
-        if (avgDropRate.compareTo(BigDecimal.valueOf(0.5)) > 0) {
-            verdict = "OVERFITTING";
-        } else if (avgDropRate.compareTo(BigDecimal.valueOf(0.3)) > 0) {
-            verdict = "CAUTION";
-        } else {
-            verdict = "ACCEPTABLE";
-        }
-
         // ── 모든 OOS 거래를 시간순으로 병합해 단일 성과 지표 계산 ──
+        // 판정보다 **먼저** 계산한다 — 표본 수를 봐야 판정이 의미를 갖는지 알 수 있다.
         PerformanceReport aggregated = buildAggregatedOosMetrics(config, candles, inSampleRatio, windowCount, mode);
+
+        String verdict = resolveVerdict(avgDropRate, dropRateSamples, aggregated);
 
         return WalkForwardResult.builder()
                 .mode(mode)
@@ -152,6 +146,53 @@ public class WalkForwardTestRunner {
                 .verdict(verdict)
                 .aggregatedOutSampleMetrics(aggregated)
                 .build();
+    }
+
+    // ── 판정 ──────────────────────────────────────────────────
+
+    /** 판정을 신뢰할 수 있는 최소 OOS 거래 수. 이 미만이면 {@link #VERDICT_INSUFFICIENT_DATA}. */
+    public static final int MIN_OOS_TRADES_FOR_VERDICT = 5;
+
+    /**
+     * 표본이 부족해 <b>판정 자체가 불가능</b>함을 뜻한다 — 2026-09-09 신설.
+     *
+     * <p>"과적합이 아니다"와 구분해야 한다. 이 값은 <b>아무 말도 할 수 없다</b>는 뜻이며,
+     * {@code WalkForwardValidationGate} 는 검증 이력이 없는 것과 동일하게 차단한다.</p>
+     */
+    public static final String VERDICT_INSUFFICIENT_DATA = "INSUFFICIENT_DATA";
+
+    /**
+     * IS→OOS 하락률과 표본 수로 판정을 낸다.
+     *
+     * <h3>왜 표본 하한이 필요한가 (2026-09-09 운영 실측에서 발견)</h3>
+     * <p>하락률은 <b>IS 수익률이 양수인 윈도우</b>에서만 계산된다. 거래가 거의 없으면 그런
+     * 윈도우가 하나도 없고, 그러면 {@code avgDropRate} 가 0 으로 남아 <b>가장 좋은 판정인
+     * ACCEPTABLE</b> 이 나왔다 — "하락이 없다" 가 아니라 "잴 것이 없다" 인데도.</p>
+     *
+     * <p>2026-09-09 WF 재검증 80조합 실측에서 실제로 이렇게 나왔다:</p>
+     * <pre>
+     *   MTF_BTC   / KRW-EUL  / M15  →  ACCEPTABLE,  기대값 −4.160%,  n=2
+     *   ICHIMOKU  / KRW-PROM / H1   →  ACCEPTABLE,  기대값  0.000%,  n=0
+     * </pre>
+     *
+     * <p>상장이 최근인 코인(EUL 2026-07-26 · PROM 2026-08-12)이 전부 이 상태였다.
+     * 게이트는 자체 표본 하한으로 걸러 실피해는 없었지만, <b>화면·텔레그램·리포트는 verdict 만
+     * 보므로 "양호"로 읽혔다.</b> 판정을 내는 쪽에서 막는 것이 옳다.</p>
+     */
+    private static String resolveVerdict(BigDecimal avgDropRate, int dropRateSamples,
+                                          PerformanceReport aggregated) {
+        int oosTrades = aggregated != null ? aggregated.getTotalTrades() : 0;
+        if (oosTrades < MIN_OOS_TRADES_FOR_VERDICT) {
+            return VERDICT_INSUFFICIENT_DATA;
+        }
+        // IS 수익률이 양수인 윈도우가 하나도 없으면 하락률을 잰 적이 없다는 뜻이다.
+        // 이때 avgDropRate 는 0 이지만 그것은 "하락 없음" 이 아니라 "미측정" 이다.
+        if (dropRateSamples == 0) {
+            return VERDICT_INSUFFICIENT_DATA;
+        }
+        if (avgDropRate.compareTo(BigDecimal.valueOf(0.5)) > 0) return "OVERFITTING";
+        if (avgDropRate.compareTo(BigDecimal.valueOf(0.3)) > 0) return "CAUTION";
+        return "ACCEPTABLE";
     }
 
     // ── ROLLING: 고정 크기, contiguous non-overlapping ─────────
@@ -359,7 +400,9 @@ public class WalkForwardTestRunner {
                 .mode(mode)
                 .windows(List.of())
                 .overfittingScore(BigDecimal.ZERO)
-                .verdict("ACCEPTABLE")
+                // 캔들이 부족해 윈도우를 하나도 만들지 못한 경우다. 2026-09-09 이전에는 여기서
+                // "ACCEPTABLE" 을 돌려줬다 — **데이터가 아예 없는데 양호 판정**이었다.
+                .verdict(VERDICT_INSUFFICIENT_DATA)
                 .aggregatedOutSampleMetrics(MetricsCalculator.calculate(List.of(), BigDecimal.ONE, "OOS_AGGREGATED"))
                 .build();
     }

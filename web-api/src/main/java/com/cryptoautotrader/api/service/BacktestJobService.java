@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import com.cryptoautotrader.core.backtest.WalkForwardTestRunner;
 
 /**
  * 백테스트 비동기 작업 제출 및 실행 서비스.
@@ -543,20 +544,32 @@ public class BacktestJobService {
         }
     }
 
+    private static long countVerdict(List<Map<String, Object>> results, String verdict) {
+        return results.stream()
+                .filter(r -> !r.containsKey("error") && verdict.equals(r.get("verdict")))
+                .count();
+    }
+
     private Map<String, Object> buildWalkForwardSummary(List<Map<String, Object>> results) {
         Map<String, Object> summary = new HashMap<>();
         summary.put("totalCount", results.size());
         summary.put("failCount", results.stream().filter(r -> r.containsKey("error")).count());
-        long robustCount = results.stream()
-                .filter(r -> !r.containsKey("error") && "ROBUST".equals(r.get("verdict")))
-                .count();
-        long cautionCount = results.stream()
-                .filter(r -> !r.containsKey("error") && "CAUTION".equals(r.get("verdict")))
-                .count();
-        summary.put("robustCount", robustCount);
+        // ⚠️ 2026-09-09 수정: 여기서 세던 "ROBUST" 는 **어떤 코드도 만들지 않는 값**이었다.
+        // WalkForwardTestRunner 가 내는 값은 ACCEPTABLE / CAUTION / OVERFITTING (+ INSUFFICIENT_DATA) 라
+        // robustCount 는 항상 0 이었고, overfittingCount 를 뺄셈으로 구하는 탓에
+        // **양호 판정이 전부 과적합으로 집계**됐다. 09-09 재검증에서 실제로 확인됐다.
+        long acceptableCount = countVerdict(results, "ACCEPTABLE");
+        long cautionCount    = countVerdict(results, "CAUTION");
+        long insufficient    = countVerdict(results, WalkForwardTestRunner.VERDICT_INSUFFICIENT_DATA);
+        long errorCount      = results.stream().filter(r -> r.containsKey("error")).count();
+
+        summary.put("acceptableCount", acceptableCount);
+        // 기존 소비자 호환 — robustCount 키를 읽는 화면이 있어 같은 값을 함께 싣는다.
+        summary.put("robustCount", acceptableCount);
         summary.put("cautionCount", cautionCount);
-        summary.put("overfittingCount", results.size() - robustCount - cautionCount
-                - results.stream().filter(r -> r.containsKey("error")).count());
+        summary.put("insufficientCount", insufficient);
+        summary.put("overfittingCount",
+                results.size() - acceptableCount - cautionCount - insufficient - errorCount);
         return summary;
     }
 
