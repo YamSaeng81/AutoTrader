@@ -136,7 +136,11 @@ LEFT JOIN wf_pass w
       AND w.coin_pair     = v.coin_pair
       AND w.timeframe     = v.timeframe
 WHERE p.status = 'CLOSED'
-  AND p.closed_at >= timestamptz :'fix_at';
+  AND p.closed_at >= timestamptz :'fix_at'
+  -- 세션을 정지하면 열린 포지션이 FORCED_STOP 으로 강제 청산된다. 그건 전략의 판단이 아니라
+  -- 운영 조치이고, 청산 시각도 임의다 — 성적에 섞으면 표본이 오염된다. (2026-09-14 코인 교체 시
+  -- 10세션을 정지하면서 실제로 이 문제가 생긴다.) 건수는 아래에서 따로 보여준다.
+  AND coalesce(p.exit_reason, '') <> 'FORCED_STOP';
 
 \echo ''
 \echo '━━━ 0. 배포 확인 — 이게 틀리면 아래 숫자가 전부 무의미하다 ━━━'
@@ -155,6 +159,14 @@ SELECT round(avg((stop_loss_price/entry_price - 1) * 100), 3) AS sl_gap_pct_avg,
 FROM paper_trading.position
 WHERE opened_at >= timestamptz :'fix_at'
   AND entry_price > 0 AND stop_loss_price IS NOT NULL;
+
+\echo ''
+\echo '━━━ 0c. 제외된 강제 청산 (FORCED_STOP) — 세션 정지로 닫힌 것, 성적에서 뺐다 ━━━'
+SELECT p.closed_at::date AS d, count(*) AS forced
+FROM paper_trading.position p
+WHERE p.status = 'CLOSED' AND p.closed_at >= timestamptz :'fix_at'
+  AND p.exit_reason = 'FORCED_STOP'
+GROUP BY 1 ORDER BY 1;
 
 \echo ''
 \echo '━━━ 1. 청산 속도 — 수정 배포 이후만 (그 전은 휩쏘라 참고 불가) ━━━'
