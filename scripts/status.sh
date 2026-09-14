@@ -102,11 +102,33 @@ FROM wf_latest
 WHERE verdict NOT IN ('OVERFITTING', 'INSUFFICIENT_DATA')
   AND wf_n >= 5 AND exp_pct > 0;
 
--- 수정 배포 이후 청산된 페이퍼 포지션 + 그 세션이 WF 통과 조합인지
+-- 수정 배포 이후 청산된 페이퍼 포지션 + WF 통과 여부 + **같은 구간의 시장 수익률**
+--
+-- ■ 왜 시장 수익률이 필요한가 (2026-09-14 추가)
+--
+--   09-14 첫 점검에서 원수익률만 보고 "WF PASS 가 FAIL 보다 나쁘다" 로 읽을 뻔했다.
+--   실제로는 PASS 청산 10건 중 7건이 DOGE 였고 그 주 DOGE 가 −7.26% 빠진 것이었다.
+--   **두 그룹이 본 시장이 달랐다** — 전략 우열이 아니라 어느 코인이 더 빠졌나를 재고 있었다.
+--
+--   그래서 포지션마다 **그 포지션의 보유 구간 동안 그 코인이 얼마나 움직였는지**를 붙이고,
+--   alpha = 실현수익률 − 시장수익률 로 비교한다. 같은 구간·같은 코인과 견주므로
+--   시장 방향이 섞여 들어가지 않는다.
+--
+--   시세는 market_data_cache 를 쓴다 — candle_data 는 배치 수집 때만 채워져 낡을 수 있다.
 CREATE TEMP VIEW closes AS
-SELECT p.closed_at, p.realized_pnl, p.invested_krw, p.ruleset_hash, p.exit_reason,
+SELECT p.closed_at, p.opened_at, p.realized_pnl, p.invested_krw,
+       p.ruleset_hash, p.exit_reason,
        v.strategy_name, v.coin_pair, v.timeframe,
-       (w.strategy_name IS NOT NULL) AS wf_passed
+       (w.strategy_name IS NOT NULL) AS wf_passed,
+       100.0 * p.realized_pnl / nullif(p.invested_krw, 0) AS ret_pct,
+       100.0 * (
+         (SELECT m.close FROM market_data_cache m
+           WHERE m.coin_pair = v.coin_pair AND m.timeframe = 'M15' AND m.time <= p.closed_at
+           ORDER BY m.time DESC LIMIT 1)
+         / nullif((SELECT m.close FROM market_data_cache m
+                    WHERE m.coin_pair = v.coin_pair AND m.timeframe = 'M15' AND m.time <= p.opened_at
+                    ORDER BY m.time DESC LIMIT 1), 0) - 1
+       ) AS mkt_pct
 FROM paper_trading.position p
 JOIN paper_trading.virtual_balance v ON v.id = p.session_id
 LEFT JOIN wf_pass w
@@ -163,24 +185,50 @@ FROM closes
 GROUP BY 1 ORDER BY 2 DESC;
 
 \echo ''
-\echo '━━━ 3. 질문 ② WF 예측력 — PASS 세션 묶음 vs FAIL 세션 묶음 ━━━'
-\echo '    이게 핵심이다. WF 가 통과시킨 조합이 실제로 더 나은가?'
-\echo '    양쪽 다 n≥20 이 돼야 비교할 수 있다.'
+\echo '━━━ 3. 함대 vs 시장 — 지난 구간 시장이 어땠는지부터 본다 ━━━'
+\echo '    시장이 크게 빠진 주에는 손실이 나도 이긴 것일 수 있다.'
+\echo '    09-08~09-12 실측: 단순 보유 평균 −4.26%, 함대 −1.21% (+3%p 우위).'
+SELECT round(avg(ret_pct), 3)              AS 함대_평균수익률,
+       round(avg(mkt_pct), 3)              AS 시장_평균수익률,
+       round(avg(ret_pct - mkt_pct), 3)    AS 알파,
+       count(*)                            AS n,
+       count(*) FILTER (WHERE mkt_pct IS NULL) AS 시세없음
+FROM closes;
+
+\echo ''
+\echo '    코인별 (알파 기준 — 시장 방향을 걷어낸 성적):'
+SELECT coin_pair, count(*) AS n,
+       round(avg(ret_pct), 2) AS 함대,
+       round(avg(mkt_pct), 2) AS 시장,
+       round(avg(ret_pct - mkt_pct), 2) AS 알파
+FROM closes GROUP BY 1 ORDER BY 5 DESC;
+
+\echo ''
+\echo '━━━ 4. 질문 ② WF 예측력 — PASS vs FAIL (알파 기준) ━━━'
+\echo '    ⚠️ 원수익률로 비교하면 안 된다. 두 그룹이 다른 코인을 갖고 있어'
+\echo '       어느 코인이 더 빠졌는지를 재게 된다 (09-14 에 실제로 그럴 뻔했다:'
+\echo '       PASS 청산 10건 중 7건이 DOGE 였고 그 주 DOGE 가 −7.26% 빠졌다).'
+\echo '    알파(= 실현 − 같은 구간 시장)로 봐야 전략 우열이 드러난다.'
 SELECT CASE WHEN wf_passed THEN 'WF PASS' ELSE 'WF FAIL' END AS grp,
        count(*) AS n,
-       round(100.0 * count(*) FILTER (WHERE realized_pnl > 0) / count(*), 1) AS winrate,
-       round(sum(realized_pnl))                       AS sum_pnl,
-       round(100.0 * sum(realized_pnl)
-             / nullif(sum(invested_krw), 0), 3)       AS return_pct
+       round(100.0 * count(*) FILTER (WHERE ret_pct > mkt_pct) / count(*), 1) AS 시장이긴비율,
+       round(avg(ret_pct), 3)           AS 평균수익률,
+       round(avg(mkt_pct), 3)           AS 평균시장,
+       round(avg(ret_pct - mkt_pct), 3) AS 평균알파,
+       round(stddev_samp(ret_pct - mkt_pct), 3) AS 알파표준편차
 FROM closes
 GROUP BY 1 ORDER BY 1;
 
 \echo ''
-\echo '    ※ 아직 한쪽이라도 n<20 이면 방향만 보고 결론 내지 말 것.'
-\echo '      승률·수익률이 반대로 나와도 표본이 작으면 우연일 수 있다.'
+\echo '    판정 기준 — 아래를 모두 만족해야 "WF 에 예측력이 있다" 고 말할 수 있다:'
+\echo '      · 양쪽 다 n ≥ 30'
+\echo '      · PASS 평균알파 > 0'
+\echo '      · PASS 평균알파 − FAIL 평균알파 > 알파표준편차 / sqrt(n)  (대략적인 신호 대 잡음)'
+\echo '      · 서로 다른 시장 국면(상승·하락·횡보)이 표본에 섞여 있을 것'
+\echo '    하나라도 못 채우면 아직 답이 아니다. 한 주의 장을 여러 각도로 본 것일 뿐이다.'
 
 \echo ''
-\echo '━━━ 4. 청산 사유 분포 — 손절 버그 재발 감시 ━━━'
+\echo '━━━ 5. 청산 사유 분포 — 손절 버그 재발 감시 ━━━'
 \echo '    STOP_LOSS 가 다시 80%대로 치솟거나 평균 보유가 1시간 밑으로 내려가면'
 \echo '    09-08 과 같은 일이 재발한 것이다. 즉시 확인할 것.'
 SELECT coalesce(exit_reason, '(없음)') AS exit_reason,
@@ -189,7 +237,7 @@ SELECT coalesce(exit_reason, '(없음)') AS exit_reason,
 FROM closes GROUP BY 1 ORDER BY 2 DESC;
 
 \echo ''
-\echo '━━━ 5. WF 통과 조합 (참고) ━━━'
+\echo '━━━ 6. WF 통과 조합 (참고) ━━━'
 SELECT timeframe, strategy_name, coin_pair, verdict,
        round(exp_pct, 3) AS exp_pct, wf_n
 FROM wf_latest
@@ -218,9 +266,14 @@ cat <<'NEXT'
       승률과 sum_pnl 을 본다. 09-08 이전은 승률 13% / 누적 −1,270만원이었다.
       그보다 나으면 수정이 실제로 먹혔다는 뜻이다.
 
-  [3] 질문 ②  양쪽 다 n≥20 이 되면 — **여기가 이 프로젝트의 갈림길이다**
+  [3] 함대 vs 시장
+      손실이 나 있어도 알파가 양수면 시장보다 잘 막은 것이다.
+      09-08~09-12 첫 주가 정확히 그랬다 — 함대 −1.21%, 시장 −4.26%, 8코인 중 7개가 시장을 이겼다.
+      알파가 음수로 돌아서면 그때가 진짜 나쁜 신호다.
 
-      PASS 묶음이 FAIL 묶음보다 뚜렷이 낫다
+  [4] 질문 ②  **여기가 이 프로젝트의 갈림길이다** — 화면의 판정 기준 4개를 모두 채워야 한다
+
+      PASS 평균알파가 FAIL 보다 뚜렷이 높다
         → 백테스트에 예측력이 있다. 그때 처음으로 실자본 배정을 논할 근거가 생긴다.
           (REQUIRE_WALK_FORWARD_GATE 를 켜고, LIVE 세션을 통과 조합으로 시작)
 
@@ -229,7 +282,7 @@ cat <<'NEXT'
           의미가 없고, **무엇이 빠졌는지**를 찾는 쪽이 맞다.
           어느 쪽이든 답이 나온다는 점이 중요하다.
 
-  [4] 손절 사유 분포
+  [5] 손절 사유 분포
       STOP_LOSS 비중이 80%대로 튀면 09-08 재발. 그 외에는 신경 쓸 것 없다.
 
 ▶ 지금 코드 쪽에 남은 일
