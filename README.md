@@ -92,6 +92,23 @@ Grafana는 `127.0.0.1:3001`, Prometheus는 `127.0.0.1:9091`(호스트 9090은 Co
 대시보드는 `monitoring/grafana/provisioning/dashboards/`의 JSON이 **원본**이며 프로비저닝된다.
 UI에서 고친 내용은 컨테이너 볼륨에만 남고 재기동 시 덮어써지므로, 유지할 변경은 JSON에 반영할 것.
 
+> ⚠️ **`monitoring/` 아래를 고쳤다면 Grafana를 따로 재시작해야 한다.**
+>
+> ```bash
+> docker compose -f docker-compose.prod.yml restart grafana
+> ```
+>
+> `up -d --build` 는 이미지를 빌드하는 서비스(backend·frontend)만 새 컨테이너로 교체하고,
+> `grafana` 는 이미지가 그대로라 기존 컨테이너를 유지한다. 바인드 마운트라 파일은 컨테이너
+> 안에서 보이지만 **Grafana 는 프로비저닝을 기동 시점에만 읽는다** — 파일은 있는데 대시보드는
+> 없는 상태가 된다(2026-09-15 실제로 겪음). 등록 여부는 이렇게 확인한다:
+>
+> ```bash
+> source .env && curl -s -u "admin:${GRAFANA_PASSWORD}" >   "http://127.0.0.1:3001/api/search?query=Crypto"
+> ```
+>
+> 빈 배열 `[]` 이면 미등록이다.
+
 ---
 
 ## 문서
