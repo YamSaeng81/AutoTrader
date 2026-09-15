@@ -38,8 +38,15 @@ public class SchedulerConfig {
      *   큐에서 대기한다 — 즉 아래 경고가 이미 현실적인 시나리오다.
      *   풀 부족 시 손절/reconcile 지연으로 실손 발생 가능.
      *
-     *   조치 전 실측할 것: Grafana "운영 개요" 대시보드 최상단 행
-     *   (executor_queued_tasks{name="taskScheduler"} 가 지속적으로 1 이상이면 확정).
+     *   조치 전 실측할 것: Grafana "운영 개요" 대시보드 최상단 행의
+     *   <b>스레드 포화</b> 패널 — executor_active_threads{name="taskScheduler"} 가
+     *   풀 크기 8 에 지속적으로 붙어 있으면 확정이다.
+     *
+     *   ⚠️ executor_queued_tasks 를 적체로 읽으면 안 된다(2026-09-15 실측 중 오독).
+     *   ThreadPoolTaskScheduler 는 ScheduledThreadPoolExecutor 기반이라 그 DelayedWorkQueue 에
+     *   <b>아직 실행 시각이 안 된 예약 작업이 전부</b> 들어앉는다 — 운영 실측값 33 은
+     *   @Scheduled 34개 중 1개 실행 중, 33개 대기라는 뜻으로 정상이다.
+     *
      *   근본 해법은 풀 상향보다 5초 크리티컬 작업의 전용 스케줄러 분리다.
      * - 스레드 이름 prefix: "scheduler-"
      * - 작업이 완료되지 않아도 JVM 종료를 기다리도록 setWaitForTasksToCompleteOnShutdown(true)

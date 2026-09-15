@@ -70,8 +70,13 @@ public class UpbitRestClient {
         HttpResponse<String> response = httpClient.send(buildGetRequest(url), HttpResponse.BodyHandlers.ofString());
 
         if (response.statusCode() != 200) {
-            log.error("Upbit API 오류: status={}, body={}", response.statusCode(), response.body());
-            throw new RuntimeException("Upbit API 호출 실패: " + response.statusCode());
+            // 2026-09-15: url 을 함께 찍는다. 이전에는 status/body 만 남겨서 운영 로그에
+            // `status=404, body={"error":{"name":404,"message":"Code not found"}}` 만 보였고
+            // **어느 코인이 문제인지 알 수 없었다**(상장폐지 코드인지 오타인지 구분 불가).
+            // 캔들 URL 은 market=KRW-XXX 를 쿼리로 갖고 인증은 헤더로 나가므로 로그에 안전하다.
+            log.error("Upbit API 오류: status={}, url={}, body={}",
+                    response.statusCode(), url, response.body());
+            throw new RuntimeException("Upbit API 호출 실패: " + response.statusCode() + " (" + url + ")");
         }
 
         return objectMapper.readValue(response.body(), new TypeReference<>() {});

@@ -43,7 +43,7 @@
     },
     {
       "type": "timeseries",
-      "title": "스케줄러 큐 적체 (executor_queued_tasks)",
+      "title": "스케줄러 등록 작업 수 (참고)",
       "datasource": {
         "type": "prometheus",
         "uid": "${DS_PROM}"
@@ -61,10 +61,7 @@
             "lineWidth": 2,
             "fillOpacity": 8,
             "showPoints": "never",
-            "spanNulls": true,
-            "thresholdsStyle": {
-              "mode": "dashed"
-            }
+            "spanNulls": true
           },
           "color": {
             "mode": "palette-classic"
@@ -73,16 +70,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "blue",
                 "value": null
-              },
-              {
-                "color": "orange",
-                "value": 1
-              },
-              {
-                "color": "red",
-                "value": 5
               }
             ]
           }
@@ -107,15 +96,15 @@
             "uid": "${DS_PROM}"
           },
           "expr": "executor_queued_tasks{name=\"taskScheduler\"}",
-          "legendFormat": "대기 중인 작업",
+          "legendFormat": "예약 대기 중인 작업",
           "refId": "A"
         }
       ],
-      "description": "0 이 정상이다. 지속적으로 1 이상이면 5초 주기 작업(손절 reconcile·주문 폴링)이 60초 tick 뒤에서 굶고 있다는 뜻이다. SchedulerConfig 의 풀 크기 8 은 @Scheduled 가 6개이던 시절 산정치이며 현재는 34개다."
+      "description": "⚠️ 이 값은 '밀린 작업'이 아니다. ThreadPoolTaskScheduler 는 내부적으로 ScheduledThreadPoolExecutor 를 쓰고, 그 DelayedWorkQueue 에는 **아직 실행 시각이 안 된 예약 작업이 전부** 들어앉는다. 따라서 정상 상태에서 @Scheduled 개수(34)에 가깝게 유지되는 것이 맞다 — 실행 중인 것만큼 빠진다.\n\n값이 34 아래로 뚝 떨어져 유지되면 오히려 스케줄이 죽은 것이니 그때 조사한다. 포화 판정은 오른쪽 '스레드 사용률' 패널로 한다."
     },
     {
       "type": "timeseries",
-      "title": "스케줄러 스레드 사용률 (active / pool)",
+      "title": "스케줄러 스레드 포화 — 손절/reconcile 지연 지표 ★",
       "datasource": {
         "type": "prometheus",
         "uid": "${DS_PROM}"
@@ -181,11 +170,11 @@
           "refId": "B"
         }
       ],
-      "description": "실행 중이 풀 크기에 붙어 있는 구간이 길수록 큐 적체가 발생한다."
+      "description": "★ P1 판정은 이 패널로 한다. 실행 중(active)이 풀 크기(8)에 붙어 있는 구간이 길수록, 5초 주기 손절 reconcile·주문 폴링이 60초 tick 뒤에서 대기한다.\n\n정상: active 가 0~2 를 오간다. 경고: active 가 8 에 지속적으로 붙어 있다."
     },
     {
       "type": "stat",
-      "title": "최근 6시간 최대 큐 적체",
+      "title": "스케줄러 최대 동시 실행 (6h)",
       "datasource": {
         "type": "prometheus",
         "uid": "${DS_PROM}"
@@ -210,11 +199,11 @@
               },
               {
                 "color": "orange",
-                "value": 1
+                "value": 7
               },
               {
                 "color": "red",
-                "value": 5
+                "value": 8
               }
             ]
           }
@@ -240,11 +229,11 @@
             "type": "prometheus",
             "uid": "${DS_PROM}"
           },
-          "expr": "max_over_time(executor_queued_tasks{name=\"taskScheduler\"}[6h])",
+          "expr": "max_over_time(executor_active_threads{name=\"taskScheduler\"}[6h])",
           "refId": "A"
         }
       ],
-      "description": "1 이상이면 스케줄러 풀 부족이 실제로 발생했다는 증거다."
+      "description": "6시간 내 최대 동시 실행 스레드 수. 풀 크기는 8 이다.\n8 에 도달했다면 그 순간 5초 작업이 대기했다는 뜻이므로 조사 대상이다.\n(이전 버전은 executor_queued_tasks 를 적체로 오해해 항상 빨간불이었다 — 2026-09-15 정정)"
     },
     {
       "type": "stat",
@@ -277,7 +266,7 @@
               },
               {
                 "color": "red",
-                "value": 1
+                "value": 0.95
               }
             ]
           },
@@ -502,7 +491,7 @@
           "refId": "A"
         }
       ],
-      "description": "OrderExecutionEngine 의 주문 lifecycle. 특정 전이가 멈추면 reconcile 정체를 의심한다."
+      "description": "OrderExecutionEngine 의 주문 lifecycle. 특정 전이가 멈추면 reconcile 정체를 의심한다.\n\n※ Micrometer 카운터는 최초 증가 시점에 등록된다. 해당 사건이 한 번도 없으면 메트릭 자체가 없어 'No data' 로 보이는데, 그것이 정상이다."
     },
     {
       "type": "timeseries",
@@ -572,7 +561,7 @@
           "refId": "B"
         }
       ],
-      "description": "ExchangeHealthMonitor 가 올리는 값. 재연결이 잦으면 tick 지연과 동반해서 본다."
+      "description": "ExchangeHealthMonitor 가 올리는 값. 재연결이 잦으면 tick 지연과 동반해서 본다.\n\n※ Micrometer 카운터는 최초 증가 시점에 등록된다. 해당 사건이 한 번도 없으면 메트릭 자체가 없어 'No data' 로 보이는데, 그것이 정상이다."
     },
     {
       "type": "timeseries",
@@ -642,7 +631,7 @@
           "refId": "B"
         }
       ],
-      "description": "SessionBalanceUpdater / DynamicSessionBalanceUpdater 의 낙관적 락 재시도. 치솟으면 동시 청산이 같은 세션 잔고를 두고 부딪히고 있다는 신호다."
+      "description": "SessionBalanceUpdater / DynamicSessionBalanceUpdater 의 낙관적 락 재시도. 치솟으면 동시 청산이 같은 세션 잔고를 두고 부딪히고 있다는 신호다.\n\n※ Micrometer 카운터는 최초 증가 시점에 등록된다. 해당 사건이 한 번도 없으면 메트릭 자체가 없어 'No data' 로 보이는데, 그것이 정상이다."
     },
     {
       "type": "timeseries",
@@ -710,7 +699,7 @@
           "refId": "A"
         }
       ],
-      "description": "0 이 정상. 0 이 아니면 중복 매도 방어가 실제로 작동한 것이므로 원인을 추적할 것."
+      "description": "0 이 정상. 0 이 아니면 중복 매도 방어가 실제로 작동한 것이므로 원인을 추적할 것.\n\n※ Micrometer 카운터는 최초 증가 시점에 등록된다. 해당 사건이 한 번도 없으면 메트릭 자체가 없어 'No data' 로 보이는데, 그것이 정상이다."
     },
     {
       "type": "row",
