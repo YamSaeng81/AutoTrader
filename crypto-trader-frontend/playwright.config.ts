@@ -4,6 +4,12 @@ import { AUTH_PASSWORD, AUTH_SECRET, STORAGE_STATE } from './e2e/auth-fixtures';
 export default defineConfig({
   testDir: './e2e',
   globalSetup: './e2e/global-setup.ts',
+  // CI에서만 재시도한다. 로컬에서는 실패를 그대로 봐야 원인을 찾는다.
+  retries: process.env.CI ? 2 : 0,
+  // CI 러너는 코어가 적다 — 병렬도를 낮춰 webServer 기동과 경합하지 않게 한다.
+  workers: process.env.CI ? 1 : undefined,
+  forbidOnly: !!process.env.CI,
+  reporter: process.env.CI ? [['html', { open: 'never' }], ['list']] : 'list',
   use: {
     baseURL: 'http://localhost:3000',
     headless: true,

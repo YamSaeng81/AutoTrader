@@ -103,11 +103,48 @@ jobs:
           AUTH_PASSWORD: ci-test-password
           AUTH_SECRET: ci-test-secret-minimum-32-characters
 
+  # ─── E2E (Playwright) ──────────────────────────────────
+  # 스펙은 NEXT_PUBLIC_USE_MOCK=true 로 목 API 를 쓰고 playwright.config.ts 의
+  # webServer 가 next dev 를 직접 띄우므로, 백엔드·DB 없이 단독으로 돈다.
+  e2e:
+    name: E2E (Playwright)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: crypto-trader-frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: crypto-trader-frontend
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+        working-directory: crypto-trader-frontend
+
+      - name: Run E2E
+        run: npm run test:e2e
+        working-directory: crypto-trader-frontend
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: crypto-trader-frontend/playwright-report
+          retention-days: 7
+
   # ─── Docker 이미지 빌드 (main 브랜치 push 시만) ─────────
   docker:
     name: Docker Build
     runs-on: ubuntu-latest
-    needs: [ backend, frontend ]
+    needs: [ backend, frontend, e2e ]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
