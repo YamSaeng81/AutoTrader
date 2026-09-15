@@ -55,8 +55,10 @@ async function proxyRequest(request: NextRequest, pathSegments: string[]): Promi
             duplex: 'half',
             dispatcher: isLongTimeout ? longTimeoutAgent : undefined,
         });
-    } catch (err: any) {
-        const isConnRefused = err?.cause?.code === 'ECONNREFUSED' || err?.message?.includes('ECONNREFUSED');
+    } catch (err) {
+        const cause = (err as { cause?: { code?: string } } | null)?.cause;
+        const message = (err as { message?: string } | null)?.message;
+        const isConnRefused = cause?.code === 'ECONNREFUSED' || !!message?.includes('ECONNREFUSED');
         return NextResponse.json(
             { success: false, errorCode: 'BACKEND_UNAVAILABLE', message: '백엔드 서버에 연결할 수 없습니다. 서버가 실행 중인지 확인하세요.' },
             { status: 503 }

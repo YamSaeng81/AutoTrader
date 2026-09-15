@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { getErrorMessage } from '@/lib/utils';
 import { adminDiscordApi } from '@/lib/api';
 import {
     MessagesSquare, Save, RefreshCw, CheckCircle, XCircle, Play,
@@ -51,7 +52,7 @@ export default function DiscordPage() {
     const loadChannels = useCallback(async () => {
         try {
             const res = await adminDiscordApi.getChannels();
-            const data: DiscordChannel[] = (res as any).data ?? [];
+            const data = (res.data ?? []) as unknown as DiscordChannel[];
             setChannels(data);
             const forms: typeof editForms = {};
             data.forEach((ch: DiscordChannel) => {
@@ -71,7 +72,7 @@ export default function DiscordPage() {
         setLogsLoading(true);
         try {
             const res = await adminDiscordApi.getLogs(30);
-            setLogs((res as any).data ?? []);
+            setLogs((res.data ?? []) as unknown as SendLog[]);
         } catch (e) {
             console.error(e);
         } finally {
@@ -97,8 +98,8 @@ export default function DiscordPage() {
             });
             setDirtyChannels(prev => { const s = new Set(prev); s.delete(channelType); return s; });
             loadChannels();
-        } catch (e: any) {
-            alert('저장 실패: ' + e.message);
+        } catch (e) {
+            alert('저장 실패: ' + getErrorMessage(e));
         } finally {
             setSavingChannel(null);
         }
@@ -111,8 +112,8 @@ export default function DiscordPage() {
             await adminDiscordApi.testChannel(channelType);
             setTestResults(prev => ({ ...prev, [channelType]: { ok: true, msg: '테스트 메시지 전송 완료' } }));
             loadLogs();
-        } catch (e: any) {
-            setTestResults(prev => ({ ...prev, [channelType]: { ok: false, msg: e.message || '전송 실패' } }));
+        } catch (e) {
+            setTestResults(prev => ({ ...prev, [channelType]: { ok: false, msg: getErrorMessage(e, '전송 실패') } }));
         } finally {
             setTestingChannel(null);
         }
@@ -137,8 +138,8 @@ export default function DiscordPage() {
             await adminDiscordApi.sendBriefing([...selectedChannels]);
             setBriefingResult(`전송 완료: ${[...selectedChannels].join(', ')}`);
             loadLogs();
-        } catch (e: any) {
-            setBriefingResult('오류: ' + (e.message || '전송 실패'));
+        } catch (e) {
+            setBriefingResult('오류: ' + getErrorMessage(e, '전송 실패'));
         } finally {
             setTriggeringBriefing(false);
         }

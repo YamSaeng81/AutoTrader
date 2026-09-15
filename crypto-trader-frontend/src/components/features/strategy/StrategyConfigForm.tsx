@@ -1,29 +1,42 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useMemo, useState } from 'react';
 import { strategyParamsMock, StrategyParam } from '@/mocks/data';
 import { strategyApi } from '@/lib/api';
 import { Loader2, Save, CheckCircle2 } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 
 export default function StrategyConfigForm({ strategyName }: { strategyName: string }) {
-    const [paramsMeta, setParamsMeta] = useState<StrategyParam[]>([]);
-    const [formData, setFormData] = useState<Record<string, number>>({});
-    const [saved, setSaved] = useState(false);
+    // 백엔드가 개발될 때까지 MSW 데이터를 직접 활용하여 동적 랜더링 (개발 환경 한정)
+    // 실제로는 별도의 API (e.g. GET /api/v1/strategies/params) 를 통해 메타데이터를 받아와야 함.
+    //
+    // 2026-09-15: 이 세 값은 전부 strategyName 에서 파생된다. 이전에는 useEffect 안에서
+    // setState 로 채웠는데, 그러면 첫 렌더가 빈 폼으로 한 번 그려진 뒤 두 번째 렌더에서
+    // 채워진다(react-hooks/set-state-in-effect). 파생값은 렌더 중에 계산하고,
+    // "prop 이 바뀌면 리셋" 은 React 가 문서화한 렌더 중 상태 조정 패턴으로 처리한다.
+    const paramsMeta: StrategyParam[] = useMemo(
+        () => strategyParamsMock[strategyName] || [],
+        [strategyName],
+    );
 
-    useEffect(() => {
-        // 백엔드가 개발될 때까지 MSW 데이터를 직접 활용하여 동적 랜더링 (개발 환경 한정)
-        // 실제로는 별도의 API (e.g. GET /api/v1/strategies/params) 를 통해 메타데이터를 받아와야 함.
-        const meta = strategyParamsMock[strategyName] || [];
-        setParamsMeta(meta);
-
+    const buildInitialData = (meta: StrategyParam[]): Record<string, number> => {
         const initialData: Record<string, number> = {};
         meta.forEach(p => {
             initialData[p.name] = p.default;
         });
-        setFormData(initialData);
+        return initialData;
+    };
+
+    const [formData, setFormData] = useState<Record<string, number>>(() => buildInitialData(paramsMeta));
+    const [saved, setSaved] = useState(false);
+
+    // strategyName 이 바뀌면 폼을 그 전략의 기본값으로 되돌린다.
+    const [prevStrategyName, setPrevStrategyName] = useState(strategyName);
+    if (prevStrategyName !== strategyName) {
+        setPrevStrategyName(strategyName);
+        setFormData(buildInitialData(paramsMeta));
         setSaved(false);
-    }, [strategyName]);
+    }
 
     const saveMutation = useMutation({
         mutationFn: () => strategyApi.create({ strategy: strategyName, parameters: formData }),

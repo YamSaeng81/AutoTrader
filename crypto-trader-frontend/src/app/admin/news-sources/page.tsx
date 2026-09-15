@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { getErrorMessage } from '@/lib/utils';
 import { adminNewsApi } from '@/lib/api';
 import {
     Newspaper, Plus, RefreshCw, Trash2, Edit2, Save, X, Eye,
@@ -57,7 +58,21 @@ export default function NewsSourcesPage() {
     const [showAddForm, setShowAddForm] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [form, setForm] = useState({ ...defaultForm });
-    const [editForm, setEditForm] = useState<Record<string, any>>({});
+    // 편집 폼은 NewsSource 의 일부 필드 + apiKey(신규 입력)로 구조가 고정돼 있다.
+    interface EditForm {
+        sourceType: string;
+        category: string;
+        url: string;
+        apiKey: string;
+        enabled: boolean;
+        fetchIntervalMin: number;
+        configJson: string;
+    }
+    const EMPTY_EDIT_FORM: EditForm = {
+        sourceType: '', category: '', url: '', apiKey: '',
+        enabled: false, fetchIntervalMin: 0, configJson: '',
+    };
+    const [editForm, setEditForm] = useState<EditForm>(EMPTY_EDIT_FORM);
     const [showCache, setShowCache] = useState(false);
     const [cacheCategory, setCacheCategory] = useState('');
     const [cacheLoading, setCacheLoading] = useState(false);
@@ -67,7 +82,7 @@ export default function NewsSourcesPage() {
         setLoading(true);
         try {
             const res = await adminNewsApi.getSources();
-            setSources((res as any).data ?? []);
+            setSources((res.data ?? []) as unknown as NewsSource[]);
         } catch (e) {
             console.error(e);
         } finally {
@@ -79,7 +94,7 @@ export default function NewsSourcesPage() {
         setCacheLoading(true);
         try {
             const res = await adminNewsApi.getCache({ size: 50, category: cacheCategory || undefined });
-            setCacheItems((res as any).data ?? []);
+            setCacheItems((res.data ?? []) as unknown as NewsItem[]);
         } catch (e) {
             console.error(e);
         } finally {
@@ -96,8 +111,8 @@ export default function NewsSourcesPage() {
             setShowAddForm(false);
             setForm({ ...defaultForm });
             load();
-        } catch (e: any) {
-            alert('생성 실패: ' + e.message);
+        } catch (e) {
+            alert('생성 실패: ' + getErrorMessage(e));
         }
     };
 
@@ -116,11 +131,11 @@ export default function NewsSourcesPage() {
 
     const handleUpdate = async (sourceId: string) => {
         try {
-            await adminNewsApi.updateSource(sourceId, editForm);
+            await adminNewsApi.updateSource(sourceId, { ...editForm });
             setEditingId(null);
             load();
-        } catch (e: any) {
-            alert('수정 실패: ' + e.message);
+        } catch (e) {
+            alert('수정 실패: ' + getErrorMessage(e));
         }
     };
 
@@ -129,8 +144,8 @@ export default function NewsSourcesPage() {
         try {
             await adminNewsApi.deleteSource(sourceId);
             load();
-        } catch (e: any) {
-            alert('삭제 실패: ' + e.message);
+        } catch (e) {
+            alert('삭제 실패: ' + getErrorMessage(e));
         }
     };
 
@@ -141,8 +156,8 @@ export default function NewsSourcesPage() {
             const res = await adminNewsApi.fetchNow(sourceId);
             setFetchResults(prev => ({ ...prev, [sourceId]: { ok: true, msg: String(res.data?.['message'] ?? '수집 완료') } }));
             load();
-        } catch (e: any) {
-            setFetchResults(prev => ({ ...prev, [sourceId]: { ok: false, msg: e.message || '수집 실패' } }));
+        } catch (e) {
+            setFetchResults(prev => ({ ...prev, [sourceId]: { ok: false, msg: getErrorMessage(e, '수집 실패') } }));
         } finally {
             setFetchingId(null);
         }

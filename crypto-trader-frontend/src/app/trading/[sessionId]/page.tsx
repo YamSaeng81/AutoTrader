@@ -3,7 +3,11 @@
 import { use, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { tradingApi, logApi, accountApi } from '@/lib/api';
-import type { LiveTradingSession, Position, LiveOrder } from '@/lib/types';
+import type {
+  LiveTradingSession, Position, LiveOrder, PageResponse,
+  StrategyLogEntry, SessionChartOrder, SessionChartPoint, SessionChartResponse,
+  ChartTooltipProps, ChartDotProps,
+} from '@/lib/types';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
@@ -33,7 +37,7 @@ const SIGNAL_STYLE: Record<string, string> = {
   HOLD: 'bg-slate-700 text-slate-400',
 };
 
-function StrategyLogAccordion({ logs }: { logs: any[] | undefined }) {
+function StrategyLogAccordion({ logs }: { logs: StrategyLogEntry[] | undefined }) {
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
 
   if (!logs || logs.length === 0) {
@@ -47,7 +51,7 @@ function StrategyLogAccordion({ logs }: { logs: any[] | undefined }) {
     );
   }
 
-  const groups: Record<string, any[]> = {};
+  const groups: Record<string, StrategyLogEntry[]> = {};
   for (const log of logs) {
     const key = log.strategyName ?? '알 수 없음';
     if (!groups[key]) groups[key] = [];
@@ -72,8 +76,9 @@ function StrategyLogAccordion({ logs }: { logs: any[] | undefined }) {
         {Object.entries(groups).map(([strategyName, groupLogs]) => {
           const isOpen = openGroups.has(strategyName);
           const latest = groupLogs[0];
-          const signalCounts = groupLogs.reduce((acc: Record<string, number>, l: any) => {
-            acc[l.signal] = (acc[l.signal] ?? 0) + 1;
+          const signalCounts = groupLogs.reduce((acc: Record<string, number>, l: StrategyLogEntry) => {
+            const key = l.signal ?? 'UNKNOWN';
+      acc[key] = (acc[key] ?? 0) + 1;
             return acc;
           }, {});
 
@@ -116,18 +121,18 @@ function StrategyLogAccordion({ logs }: { logs: any[] | undefined }) {
                       </tr>
                     </thead>
                     <tbody>
-                      {groupLogs.map((log: any) => (
+                      {groupLogs.map((log: StrategyLogEntry) => (
                         <tr key={log.id} className="border-b border-slate-700/30 hover:bg-slate-700/20 transition-colors">
                           <td className="py-2.5 px-5 text-slate-400 whitespace-nowrap">
                             {fmtKstLocale(log.createdAt)}
                           </td>
                           <td className="py-2.5 px-5">
-                            <span className={`px-2 py-0.5 rounded font-bold ${SIGNAL_STYLE[log.signal] ?? 'bg-slate-700 text-slate-400'}`}>
+                            <span className={`px-2 py-0.5 rounded font-bold ${SIGNAL_STYLE[log.signal ?? ''] ?? 'bg-slate-700 text-slate-400'}`}>
                               {log.signal}
                             </span>
                           </td>
                           <td className="py-2.5 px-5 text-slate-400">{log.marketRegime ?? '-'}</td>
-                          <td className="py-2.5 px-5 text-slate-400 max-w-sm truncate" title={log.reason}>
+                          <td className="py-2.5 px-5 text-slate-400 max-w-sm truncate" title={log.reason ?? undefined}>
                             {log.reason ?? '-'}
                           </td>
                         </tr>
@@ -218,16 +223,18 @@ export default function LiveSessionDetailPage({ params }: { params: Promise<{ se
   const openPositions = positions.filter(p => p.status === 'OPEN' && Number(p.size) > 0);
   const closedPositions = positions.filter(p => p.status === 'CLOSED');
 
-  const chartCandles = (chartRes?.data as any)?.candles as any[] | undefined;
-  const chartOrders = (chartRes?.data as any)?.orders as any[] | undefined;
+  const chart = chartRes?.data as unknown as SessionChartResponse | undefined;
+  const chartCandles = chart?.candles;
+  const chartOrders = chart?.orders;
 
-  const toMs = (t: any) => t ? (typeof t === 'number' ? t : parseUtc(t)!.getTime()) : null;
+  const toMs = (t: string | number | null | undefined) =>
+    t ? (typeof t === 'number' ? t : parseUtc(t)!.getTime()) : null;
   const chartData = (() => {
-    const candles = chartCandles?.map((c: any) => ({
+    const candles: SessionChartPoint[] = chartCandles?.map(c => ({
       time: c.time,
       close: Number(c.close),
-      buyOrder: null as any,
-      sellOrder: null as any,
+      buyOrder: null as SessionChartOrder | null,
+      sellOrder: null as SessionChartOrder | null,
     })) ?? [];
     if (!chartOrders || candles.length === 0) return candles;
     for (const o of chartOrders) {
@@ -425,7 +432,7 @@ export default function LiveSessionDetailPage({ params }: { params: Promise<{ se
           ? Math.min(MAX_WIDTH, Math.max(800, chartData.length * PX_PER_POINT))
           : undefined;
 
-        const ChartTooltipContent = ({ active, payload, label }: any) => {
+        const ChartTooltipContent = ({ active, payload, label }: ChartTooltipProps) => {
           if (!active || !payload?.length) return null;
           const d = payload[0]?.payload;
           const order = d?.buyOrder || d?.sellOrder;
@@ -463,8 +470,9 @@ export default function LiveSessionDetailPage({ params }: { params: Promise<{ se
             <Tooltip content={<ChartTooltipContent />} />
             <Line
               type="monotone" dataKey="close" stroke="#6366f1" strokeWidth={1.5}
-              dot={(props: any) => {
+              dot={(props: ChartDotProps) => {
                 const { cx, cy, payload } = props;
+                if (!payload) return <g key={`e-${cx}`} />;
                 if (payload.buyOrder) return <circle key={`b-${cx}`} cx={cx} cy={cy} r={7} fill="#22c55e" stroke="#fff" strokeWidth={2} />;
                 if (payload.sellOrder) return <circle key={`s-${cx}`} cx={cx} cy={cy} r={7} fill="#ef4444" stroke="#fff" strokeWidth={2} />;
                 return <g key={`e-${cx}`} />;
@@ -488,7 +496,7 @@ export default function LiveSessionDetailPage({ params }: { params: Promise<{ se
                 </div>
               ) : (
                 <div style={{ height: CHART_HEIGHT }}>
-                  <ResponsiveContainer width="100%" height="100%">{chartInner() as any}</ResponsiveContainer>
+                  <ResponsiveContainer width="100%" height="100%">{chartInner()}</ResponsiveContainer>
                 </div>
               )}
             </div>
@@ -648,7 +656,9 @@ export default function LiveSessionDetailPage({ params }: { params: Promise<{ se
       </div>
 
       {/* 전략 분석 로그 */}
-      <StrategyLogAccordion logs={(strategyLogsRes?.data as any)?.content} />
+      <StrategyLogAccordion
+        logs={(strategyLogsRes?.data as unknown as PageResponse<StrategyLogEntry> | undefined)?.content}
+      />
 
       {/* 세션 정보 */}
       <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5">

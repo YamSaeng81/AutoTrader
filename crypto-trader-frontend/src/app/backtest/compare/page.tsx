@@ -126,7 +126,7 @@ export default function ComparePage() {
                                             <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                                             <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#94a3b8' }} />
                                             <YAxis tickFormatter={v => `${v}%`} tick={{ fontSize: 11, fill: '#94a3b8' }} />
-                                            <Tooltip formatter={(v: any) => [`${Number(v).toFixed(2)}%`]} />
+                                            <Tooltip formatter={(v: number | string | undefined) => [`${Number(v ?? 0).toFixed(2)}%`]} />
                                             <Bar dataKey="totalReturn" name="수익률" radius={[6, 6, 0, 0]}>
                                                 {chartData.map((d, i) => (
                                                     <Cell key={i} fill={d.color} />
@@ -168,7 +168,7 @@ export default function ComparePage() {
                                                 <tr key={row.key} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
                                                     <td className="px-5 py-3 font-medium text-slate-600 dark:text-slate-300">{row.label}</td>
                                                     {compared.map(r => {
-                                                        const val = (r.metrics as any)?.[row.key] ?? 0;
+                                                        const val = (r.metrics as unknown as Record<string, number> | undefined)?.[row.key] ?? 0;
                                                         return (
                                                             <td key={r.id} className="px-5 py-3 text-right font-mono text-slate-700 dark:text-slate-200">
                                                                 {row.fmt(val)}

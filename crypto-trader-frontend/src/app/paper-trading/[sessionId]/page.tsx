@@ -3,7 +3,11 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { paperTradingApi, logApi } from '@/lib/api';
-import { PaperPosition, PaperTradingBalance } from '@/lib/types';
+import {
+    PaperOrder, PaperPosition, PaperTradingBalance, PageResponse,
+    StrategyLogEntry, SessionChartOrder, SessionChartPoint, SessionChartResponse,
+    ChartTooltipProps, ChartDotProps,
+} from '@/lib/types';
 import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { Loader2, Square, TrendingUp, TrendingDown, Clock, Briefcase, ArrowLeft, Activity, ShoppingCart, DollarSign, Receipt, Trophy, ChevronDown, ChevronRight } from 'lucide-react';
@@ -13,7 +17,7 @@ import {
     ComposedChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from 'recharts';
 
-function ChartTooltip({ active, payload, label }: any) {
+function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
     if (!active || !payload?.length) return null;
     const d = payload[0]?.payload;
     const order = d?.buyOrder || d?.sellOrder;
@@ -43,7 +47,7 @@ const SIGNAL_STYLE: Record<string, string> = {
     HOLD: 'bg-slate-100 text-slate-500',
 };
 
-function StrategyLogAccordion({ logs }: { logs: any[] | undefined }) {
+function StrategyLogAccordion({ logs }: { logs: StrategyLogEntry[] | undefined }) {
     const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
 
     if (!logs || logs.length === 0) {
@@ -58,7 +62,7 @@ function StrategyLogAccordion({ logs }: { logs: any[] | undefined }) {
     }
 
     // 전략명 기준으로 그룹화 (순서 유지)
-    const groups: Record<string, any[]> = {};
+    const groups: Record<string, StrategyLogEntry[]> = {};
     for (const log of logs) {
         const key = log.strategyName ?? '알 수 없음';
         if (!groups[key]) groups[key] = [];
@@ -83,8 +87,9 @@ function StrategyLogAccordion({ logs }: { logs: any[] | undefined }) {
                 {Object.entries(groups).map(([strategyName, groupLogs]) => {
                     const isOpen = openGroups.has(strategyName);
                     const latest = groupLogs[0];
-                    const signalCounts = groupLogs.reduce((acc: Record<string, number>, l: any) => {
-                        acc[l.signal] = (acc[l.signal] ?? 0) + 1;
+                    const signalCounts = groupLogs.reduce((acc: Record<string, number>, l: StrategyLogEntry) => {
+                        const key = l.signal ?? 'UNKNOWN';
+                        acc[key] = (acc[key] ?? 0) + 1;
                         return acc;
                     }, {});
 
@@ -129,18 +134,18 @@ function StrategyLogAccordion({ logs }: { logs: any[] | undefined }) {
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
-                                            {groupLogs.map((log: any) => (
+                                            {groupLogs.map((log: StrategyLogEntry) => (
                                                 <tr key={log.id} className="hover:bg-slate-100/50 dark:hover:bg-slate-700/30 transition-colors">
                                                     <td className="px-6 py-2.5 whitespace-nowrap text-slate-400">
                                                         {log.createdAt ? new Date(log.createdAt).toLocaleString('ko-KR') : '-'}
                                                     </td>
                                                     <td className="px-6 py-2.5">
-                                                        <span className={cn('px-2 py-0.5 rounded-full font-bold', SIGNAL_STYLE[log.signal] ?? 'bg-slate-100 text-slate-500')}>
+                                                        <span className={cn('px-2 py-0.5 rounded-full font-bold', SIGNAL_STYLE[log.signal ?? ''] ?? 'bg-slate-100 text-slate-500')}>
                                                             {log.signal}
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-2.5 text-slate-500 dark:text-slate-400">{log.marketRegime ?? '-'}</td>
-                                                    <td className="px-6 py-2.5 text-slate-500 dark:text-slate-400 max-w-sm truncate" title={log.reason}>
+                                                    <td className="px-6 py-2.5 text-slate-500 dark:text-slate-400 max-w-sm truncate" title={log.reason ?? undefined}>
                                                         {log.reason ?? '-'}
                                                     </td>
                                                 </tr>
@@ -204,32 +209,34 @@ export default function SessionDetailPage() {
     const allPositions = (positionsRes?.data as unknown as (PaperPosition & { status?: string; realizedPnl?: number; closedAt?: string; entryPrice?: number })[]) || [];
     const positions = allPositions.filter(p => !p.status || p.status === 'OPEN');
     const closedPositions = allPositions.filter(p => p.status === 'CLOSED');
-    const orders = (ordersRes?.data as any);
+    const orders = ordersRes?.data as unknown as PageResponse<PaperOrder> | undefined;
     const isRunning = balance?.status === 'RUNNING';
 
-    const chartCandles = (chartRes?.data as any)?.candles as any[] | undefined;
-    const chartOrders = (chartRes?.data as any)?.orders as any[] | undefined;
+    const chart = chartRes?.data as unknown as SessionChartResponse | undefined;
+    const chartCandles = chart?.candles;
+    const chartOrders = chart?.orders;
 
     // 매매 요약 통계 (chartOrders = 전체 체결 내역)
     const tradeSummary = (() => {
         if (!chartOrders || chartOrders.length === 0) return null;
-        const buys = chartOrders.filter((o: any) => o.side === 'BUY');
-        const sells = chartOrders.filter((o: any) => o.side === 'SELL');
-        const totalFee = chartOrders.reduce((sum: number, o: any) => sum + Number(o.fee ?? 0), 0);
-        const totalRealizedPnl = sells.reduce((sum: number, o: any) => sum + Number(o.realizedPnl ?? 0), 0);
-        const winCount = sells.filter((o: any) => Number(o.realizedPnl ?? 0) > 0).length;
+        const buys = chartOrders.filter(o => o.side === 'BUY');
+        const sells = chartOrders.filter(o => o.side === 'SELL');
+        const totalFee = chartOrders.reduce((sum: number, o) => sum + Number(o.fee ?? 0), 0);
+        const totalRealizedPnl = sells.reduce((sum: number, o) => sum + Number(o.realizedPnl ?? 0), 0);
+        const winCount = sells.filter(o => Number(o.realizedPnl ?? 0) > 0).length;
         const winRate = sells.length > 0 ? (winCount / sells.length) * 100 : 0;
         return { buyCount: buys.length, sellCount: sells.length, totalFee, totalRealizedPnl, winCount, winRate };
     })();
 
     // Build chart data: merge order info into nearest candle point
-    const toMs = (t: any) => t ? (typeof t === 'number' ? t : new Date(t).getTime()) : null;
+    const toMs = (t: string | number | null | undefined) =>
+        t ? (typeof t === 'number' ? t : new Date(t).getTime()) : null;
     const chartData = (() => {
-        const candles = chartCandles?.map((c: any) => ({
+        const candles: SessionChartPoint[] = chartCandles?.map(c => ({
             time: c.time,
             close: Number(c.close),
-            buyOrder: null as any,
-            sellOrder: null as any,
+            buyOrder: null as SessionChartOrder | null,
+            sellOrder: null as SessionChartOrder | null,
         })) ?? [];
         if (!chartOrders || candles.length === 0) return candles;
         for (const o of chartOrders) {
@@ -297,7 +304,7 @@ export default function SessionDetailPage() {
                             </span>
                         </div>
                         <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5 ml-7">
-                            세션 #{sessionId} · {(balance as any).timeframe || '-'} ·{' '}
+                            세션 #{sessionId} · {balance.timeframe || '-'} ·{' '}
                             {balance.startedAt ? format(new Date(balance.startedAt), 'yyyy.MM.dd HH:mm') + ' 시작' : ''}
                         </p>
                     </div>
@@ -543,8 +550,9 @@ export default function SessionDetailPage() {
                             dataKey="close"
                             stroke="#6366f1"
                             strokeWidth={1.5}
-                            dot={(props: any) => {
+                            dot={(props: ChartDotProps) => {
                                 const { cx, cy, payload } = props;
+                                if (!payload) return <g key={`no-dot-${cx}`} />;
                                 if (payload.buyOrder) {
                                     return <circle key={`buy-dot-${cx}`} cx={cx} cy={cy} r={7} fill="#10b981" stroke="#fff" strokeWidth={2} />;
                                 }
@@ -579,7 +587,7 @@ export default function SessionDetailPage() {
                                 // 데이터가 적으면 컨테이너에 맞게 반응형
                                 <div style={{ height: CHART_HEIGHT }}>
                                     <ResponsiveContainer width="100%" height="100%">
-                                        {chartInner() as any}
+                                        {chartInner()}
                                     </ResponsiveContainer>
                                 </div>
                             )}
@@ -678,7 +686,7 @@ export default function SessionDetailPage() {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 text-xs text-slate-400">{pos.openedAt ? new Date(pos.openedAt).toLocaleString() : '-'}</td>
-                                            <td className="px-6 py-4 text-xs text-slate-400">{(pos as any).closedAt ? new Date((pos as any).closedAt).toLocaleString() : '-'}</td>
+                                            <td className="px-6 py-4 text-xs text-slate-400">{pos.closedAt ? new Date(pos.closedAt).toLocaleString() : '-'}</td>
                                         </tr>
                                     );
                                 })}
@@ -694,9 +702,9 @@ export default function SessionDetailPage() {
                     <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">체결 내역</h2>
                 </div>
                 <div className="p-6">
-                    {orders?.content?.length > 0 ? (
+                    {(orders?.content?.length ?? 0) > 0 ? (
                         <ul className="divide-y divide-slate-100 dark:divide-slate-800 border border-slate-100 dark:border-slate-800 rounded-xl">
-                            {orders.content.map((ord: any) => (
+                            {orders!.content.map((ord: PaperOrder) => (
                                 <li key={ord.id} className="p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                                     <div className="flex items-center gap-4 min-w-0">
                                         <span className={cn(
@@ -756,7 +764,9 @@ export default function SessionDetailPage() {
             </div>
 
             {/* Strategy Logs */}
-            <StrategyLogAccordion logs={(strategyLogsRes?.data as any)?.content} />
+            <StrategyLogAccordion
+                logs={(strategyLogsRes?.data as unknown as PageResponse<StrategyLogEntry> | undefined)?.content}
+            />
         </div>
     );
 }
