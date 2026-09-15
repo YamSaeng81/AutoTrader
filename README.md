@@ -88,7 +88,23 @@ docker compose -f docker-compose.prod.yml up -d
 
 ### 모니터링
 
-Grafana는 `127.0.0.1:3001`, Prometheus는 `127.0.0.1:9091`(호스트 9090은 Cockpit이 점유).
+Prometheus는 `127.0.0.1:9091`(호스트 9090은 Cockpit이 점유) — 외부에 열지 않는다.
+
+Grafana 접속 방식은 `.env` 로 고른다(기본값은 외부 노출 없음).
+
+| 방식 | 설정 | 비고 |
+|---|---|---|
+| **SSH 터널** (기본) | 아무것도 안 넣음 | `ssh -L 3001:127.0.0.1:3001 <user>@<host>` → `http://localhost:3001` |
+| **Cloudflare Tunnel** (권장) | `GRAFANA_ROOT_URL`·`GRAFANA_DOMAIN`·`GRAFANA_COOKIE_SECURE` | 서버 포트를 열지 않는다. `cloudflared` 가 내부 `127.0.0.1:3001` 로 붙는다 |
+| **Cloudflare DNS 프록시** | 위 + `GRAFANA_BIND=0.0.0.0:3001` | 포트를 연다. **방화벽에서 Cloudflare IP 대역만 허용 필수** |
+
+각 항목의 상세와 주의사항은 `.env.example` 의 Grafana 절에 있다.
+
+> ⚠️ **`/actuator/prometheus` 와 `/actuator/health` 는 인증 없이 열려 있다**
+> ([`SecurityConfig`](web-api/src/main/java/com/cryptoautotrader/api/config/SecurityConfig.java) 의 `permitAll`).
+> Prometheus 가 긁어야 해서 그렇다. 그런데 backend 는 `8080:8080` 으로 전체 인터페이스에
+> 바인딩돼 있으므로, **공유기에서 8080 을 포워딩했다면 외부에서 인증 없이 메트릭을 읽을 수 있다.**
+> `bash scripts/security-check.sh` 로 점검할 것.
 대시보드는 `monitoring/grafana/provisioning/dashboards/`의 JSON이 **원본**이며 프로비저닝된다.
 UI에서 고친 내용은 컨테이너 볼륨에만 남고 재기동 시 덮어써지므로, 유지할 변경은 JSON에 반영할 것.
 

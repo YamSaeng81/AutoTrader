@@ -111,6 +111,9 @@ services:
       - backend
 
   grafana:
+    # ⚠️ latest 태그는 이미 받아둔 이미지를 자동 갱신하지 않는다. 외부 노출 상태라면
+    #    `docker compose pull grafana` 로 주기적으로 당겨 보안 패치를 받을 것.
+    #    (운영이 안정되면 특정 버전으로 고정하는 편이 재현성 면에서 낫다)
     image: grafana/grafana:latest
     restart: always
     volumes:
@@ -118,10 +121,43 @@ services:
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
     environment:
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
+
+      # ── 외부 도메인 (Cloudflare 경유) ──────────────────────────────────
+      # ROOT_URL 이 실제 접속 주소와 다르면 로그인 리다이렉트가 깨진다.
+      # 이전 값 http://localhost:3001 은 서버 자기 자신에서만 맞는 주소였다.
+      GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:-http://localhost:3001}
+      GF_SERVER_DOMAIN: ${GRAFANA_DOMAIN:-localhost}
+
+      # ── 인증 ─────────────────────────────────────────────────────────
       GF_USERS_ALLOW_SIGN_UP: "false"
-      GF_SERVER_ROOT_URL: http://localhost:3001
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_AUTH_BASIC_ENABLED: "true"
+      # 무차별 대입 방어는 기본 ON — 명시해 실수로 꺼지지 않게 한다.
+      GF_SECURITY_DISABLE_BRUTE_FORCE_LOGIN_PROTECTION: "false"
+
+      # ── 브라우저 보안 헤더 (Cloudflare 가 HTTPS 를 종단하므로 secure 쿠키 가능) ──
+      GF_SECURITY_COOKIE_SECURE: ${GRAFANA_COOKIE_SECURE:-false}
+      GF_SECURITY_COOKIE_SAMESITE: "lax"
+      GF_SECURITY_STRICT_TRANSPORT_SECURITY: ${GRAFANA_COOKIE_SECURE:-false}
+      GF_SECURITY_X_CONTENT_TYPE_OPTIONS: "true"
+      GF_SECURITY_X_XSS_PROTECTION: "true"
+      GF_SECURITY_CONTENT_SECURITY_POLICY: "true"
+
+      # ── 정보 유출 차단 ────────────────────────────────────────────────
+      # 외부 스냅샷은 대시보드를 snapshots.raintank.io 로 올린다 — 매매 지표가 나간다.
+      GF_SNAPSHOTS_EXTERNAL_ENABLED: "false"
+      GF_SECURITY_DISABLE_GRAVATAR: "true"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
     ports:
-      - "127.0.0.1:3001:3000"
+      # 기본값은 localhost 전용(SSH 터널 전제). Cloudflare Tunnel 을 쓰면 이대로 두면 된다 —
+      # cloudflared 가 서버 안에서 127.0.0.1:3001 로 붙으므로 포트를 열 필요가 없다.
+      #
+      # Cloudflare DNS 프록시(오렌지 구름)로 원본 IP:포트를 직접 가리키는 구성이라면
+      # .env 에 GRAFANA_BIND=0.0.0.0:3001 을 넣어 전체 개방으로 바꾼다.
+      # 이때는 반드시 공유기/방화벽에서 Cloudflare IP 대역만 허용할 것 —
+      # 그러지 않으면 도메인을 우회해 IP:3001 로 직접 들어올 수 있다.
+      - "${GRAFANA_BIND:-127.0.0.1:3001}:3000"
     depends_on:
       - prometheus
 
