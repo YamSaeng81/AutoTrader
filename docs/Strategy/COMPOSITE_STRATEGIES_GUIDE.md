@@ -1,3 +1,20 @@
+> ## 📌 이 문서의 현재 지위
+>
+> **초판 2026-04-30 · 2026-09-15 보강.** `CompositePresetRegistrar` 에 등록되는
+> 복합 전략 프리셋 **14종을 전부** 다룹니다(6~13번을 2026-09-15 에 추가).
+>
+> 보강 전에는 6종만 다뤄, `COMPOSITE_MTF_BTC`·`COMPOSITE_MTF_CONFIRMED`·`COMPOSITE_PULLBACK_MTF`
+> 등 **당시 실제로 운영되던 전략이 전부 빠져 있었습니다.**
+>
+> 최종 근거는 언제나 [`CompositePresetRegistrar.java`](../../web-api/src/main/java/com/cryptoautotrader/api/config/CompositePresetRegistrar.java)
+> 입니다. 등록 이름·가중치·필터가 이 문서와 다르면 코드가 맞습니다.
+>
+> **주의**: 개별 파일 [`COMPOSITE_BREAKOUT.md`](COMPOSITE_BREAKOUT.md) 에 나오는
+> `COMPOSITE_BREAKOUT_VD` 는 **코드에 존재하지 않는 전략**입니다(출현 0회). 해당 문서 안에
+> 경고를 달아 두었습니다.
+
+---
+
 # 복합 전략 사용자 가이드
 
 > 복합 전략이란 여러 개의 기술적 분석 지표/전략을 조합하여 신호를 내는 전략입니다.
@@ -12,7 +29,15 @@
 3. [COMPOSITE_MOMENTUM — BTC 최적화 복합 전략](#3-composite_btc--btc-최적화-복합-전략)
 4. [COMPOSITE_ETH — ETH 최적화 복합 전략](#4-composite_eth--eth-최적화-복합-전략)
 5. [MACD_STOCH_BB — 추세 확인형 복합 전략](#5-macd_stoch_bb--추세-확인형-복합-전략)
-6. [전략 선택 가이드](#6-전략-선택-가이드)
+6. [COMPOSITE_BREAKOUT — 변동성 돌파 + RSI Veto](#6-composite_breakout--변동성-돌파--rsi-veto)
+7. [Ichimoku 필터 계열 — _ICHIMOKU / _V2](#7-ichimoku-필터-계열--_ichimoku--_v2)
+8. [COMPOSITE_REGIME_ROUTER — 레짐별 위임 메타 전략](#8-composite_regime_router--레짐별-위임-메타-전략)
+9. [MTF 계열 — H4 추세 확인 전략 3종](#9-mtf-계열--h4-추세-확인-전략-3종)
+10. [COMPOSITE_MTF_BTC_STRICT — ⚠️ DEPRECATED](#10-composite_mtf_btc_strict--️-deprecated)
+11. [COMPOSITE_PULLBACK_MTF — 눌림목 회복 진입](#11-composite_pullback_mtf--눌림목-회복-진입)
+12. [COMPOSITE_MEANREV_BB — 평균회귀 (직교 전략)](#12-composite_meanrev_bb--평균회귀-직교-전략)
+13. [래퍼 계층 — 이름 뒤에 붙는 _BASE / _CB 는 무엇인가](#13-래퍼-계층--이름-뒤에-붙는-_base--_cb-는-무엇인가)
+14. [전략 선택 가이드](#14-전략-선택-가이드)
 
 ---
 
@@ -60,7 +85,7 @@ EMA(20) < EMA(50) → 하락 추세 → BUY  신호 억제 (HOLD로 변환)
 
 ## 2. COMPOSITE — 시장 국면 자동 감지 복합 전략
 
-> 자세한 내용: [CompositeStrategy.md](./CompositeStrategy.md)
+> 자세한 내용: [CompositeStrategy.md](../old/CompositeStrategy.md)
 
 ### 한줄 요약
 
@@ -464,7 +489,216 @@ SELL 강도 = (%K - 80) / 20 × 100   ← %K가 100에 가까울수록 강함
 
 ---
 
-## 6. 전략 선택 가이드
+
+---
+
+## 6. COMPOSITE_BREAKOUT — 변동성 돌파 + RSI Veto
+
+**구성**: `ATR_BREAKOUT(0.5) + VOLUME_DELTA(0.3) + MACD(0.2)`
+**필터**: EMA 방향 ON · ADX 횡보장 ON · **RSI Veto(>75) ON**
+**등록**: `register` (stateless, 공유 인스턴스)
+
+### 변경 이력이 곧 설계 근거다
+
+| 단계 | 변경 | 이유 |
+|------|------|------|
+| P1-1 | `EMA_CROSS(0.1)` → `MACD(0.2)` | EMA_CROSS 는 외부 EMA 방향 필터(EMA20/50)와 **같은 지표를 이중 카운팅**했다. MACD 는 독립적인 모멘텀 신호원 |
+| P1-2 | `RSI(0.2)` 제거 → **RsiVetoStrategy 래퍼** | 가중치 0.2 로는 **수학적으로 단독 BUY 차단이 불가능**했다(confidence > 2.0 필요). 과매수 차단은 가중 투표가 아니라 거부권으로 구현해야 한다 |
+
+이 두 번째 교훈은 일반화할 수 있다 — **"어떤 조건에서도 막아야 하는 것"은 가중치로 넣으면
+안 된다.** 가중 합산에서는 다른 성분이 충분히 강하면 언제든 뒤집힌다.
+
+### 적합 / 부적합
+
+- **적합**: BTC·ETH·SOL 등 추세가 뚜렷한 코인
+- **부적합**: XRP (백테스트 MDD -30.8%), 소형 알트
+
+---
+
+## 7. Ichimoku 필터 계열 — `_ICHIMOKU` / `_V2`
+
+`IchimokuFilteredStrategy` 는 기존 복합 전략을 **감싸는 래퍼**다. 원본 전략은 건드리지 않고
+구름(9/26/52) 필터를 한 겹 더 씌운다 — 구름 아래 BUY / 구름 위 SELL 억제.
+
+| 전략 | 내부 구성 | 비고 |
+|------|----------|------|
+| `COMPOSITE_MOMENTUM_ICHIMOKU` (V1) | MACD(0.5) + VWAP(0.3) + GRID(0.2) | `COMPOSITE_MOMENTUM` + 구름 필터 |
+| `COMPOSITE_MOMENTUM_ICHIMOKU_V2` | MACD(0.5) + **SUPERTREND**(0.3) + GRID(0.2) | VWAP → Supertrend 교체 |
+| `COMPOSITE_BREAKOUT_ICHIMOKU` | ATR(0.5) + VD(0.3) + MACD(0.2) | ⚠️ 아래 참고 |
+
+### V1 → V2 교체 이유: 성분끼리 싸우고 있었다
+
+V1 은 `MACD`(추세추종)와 `VWAP`(역추세)를 함께 넣었다. ADX 25~35 구간에서
+**MACD BUY + VWAP SELL 이 동시에** 나오고, `buyScore`·`sellScore` 가 둘 다 0.4 를 넘어
+**HOLD 가 남발**됐다.
+
+V2 는 세 성분(MACD·Supertrend·Grid)이 모두 추세 방향에서 같은 의견을 내도록 바꿨다.
+**적합**: XRP·ETH. V1 과 동일 코인에 병행 운영해 비교한다.
+
+### ⚠️ `COMPOSITE_BREAKOUT_ICHIMOKU` 는 구름 필터가 무의미하다
+
+백테스트 결과가 `COMPOSITE_BREAKOUT` 과 **동일**하다. ADX 필터(ADX<20 → HOLD)가 횡보장을
+이미 전부 차단해서, Ichimoku 가 추가로 막을 신호가 남지 않기 때문이다.
+**필터를 겹칠 때는 앞 필터가 이미 잡아낸 구간인지 먼저 확인해야 한다**는 사례다.
+
+---
+
+## 8. COMPOSITE_REGIME_ROUTER — 레짐별 위임 메타 전략
+
+자체 신호를 만들지 않고, **시장 국면을 판별해 적합한 전략에 위임**하는 메타 전략이다.
+90일 실전 분석(2026-06-30) 기반으로 위임표를 개편했다.
+
+| 레짐 | 위임 대상 | 근거 |
+|------|----------|------|
+| `VOLATILITY` | `COMPOSITE_BREAKOUT` | ATR spike 구간은 돌파가 유리 |
+| `TREND` | `CMI_V1` (MACD+VWAP+GRID+Ichimoku) | V2 대비 우수 |
+| `TRANSITIONAL` | `CMI_V1` | ADX 임계 완화를 BTC/SOL 에 적용 |
+| `RANGE` | `CMI_V1` | VWAP 역추세 성분이 횡보 친화, HOLD 제거 |
+
+개편의 핵심은 **CMI_V1 이 전 레짐에서 압도**한다는 실측이었다. 레짐별로 다른 전략을 쓰는
+설계였지만, 실제 데이터는 한 전략이 대부분의 구간에서 이긴다고 말했다.
+
+`GRID`(stateful) + `RegimeDetector`(stateful) → 반드시 `registerStateful`.
+
+---
+
+## 9. MTF 계열 — H4 추세 확인 전략 3종
+
+**Multi-Timeframe**: H1 신호가 나와도 **H4 추세 방향과 일치할 때만** 진입한다.
+`CandleDownsampler` 로 H1→H4 다운샘플(`htfFactor=4`)하고, H4 확인자는 `SupertrendStrategy` 다.
+
+기대 효과는 역추세 진입 차단으로 **승률 개선(14% → 25%+)**, 대가는 진입 빈도 감소다.
+
+| 전략 | H1(LTF) | 특화 코인 | 근거 |
+|------|---------|----------|------|
+| `COMPOSITE_MTF_CONFIRMED` | `CompositeRegimeRouter` | 범용 (ETH·SOL) | CRR 이 ETH/SOL 에서 1위 |
+| `COMPOSITE_MTF_BTC` | `RsiVeto(ATR .5 + VD .3 + MACD .2)` | BTC | CB 가 BTC 백테스트 +106.71% |
+| `COMPOSITE_MTF_MOMENTUM` | `Ichimoku(MACD .5 + Supertrend .3 + GRID .2)` | DOGE·ETH | CMI_V2 가 DOGE 에서 +124.77% |
+
+### H4 가 HOLD 이거나 데이터가 부족하면?
+
+기본 동작은 **보수적 허용** — LTF 신호를 그대로 통과시킨다. 이 동작을 바꾸는
+`strictHtf` 옵션이 있지만, 아래 10번에서 보듯 **현재 구조에서는 무효**다.
+
+---
+
+## 10. COMPOSITE_MTF_BTC_STRICT — ⚠️ DEPRECATED
+
+`COMPOSITE_MTF_BTC` 의 `strictHtf=true` A/B 변형으로 만들었으나,
+**2026-08-24 에 구조적으로 무효임이 증명되어 비활성화**됐다.
+
+### 왜 무효인가
+
+`strictHtf` 는 "H4 가 명시적으로 방향을 확인할 때만 진입"하도록 두 분기를 가른다 —
+(1) HTF 데이터 부족, (2) HTF HOLD. **그런데 두 분기 모두 도달 불가능하다.**
+
+```
+(1) getMinimumCandleCount() = max(ltf, 4×12)  → 호출 시점에 HTF 캔들 12개가 보장된다
+(2) SupertrendStrategy 는 데이터만 있으면 절대 HOLD 를 내지 않는다
+    (추세선 위=BUY / 아래=SELL 이분법)
+```
+
+**운영 실측**: 두 전략의 청산 43건이 코인·진입시각·손익까지 전부 동일했다(진입 차 30ms).
+**증명 테스트**: `core-engine` 의 `SupertrendStrictHtfNoOpTest`.
+
+### 현재 상태
+
+`strategy_type_enabled` 에서 `is_active=false`
+(`scripts/disable_duplicate_strategies.sh`). **등록 자체는 남겨** 과거 세션 조회와 재활성화
+경로를 깨지 않는다.
+
+되살리려면 **HTF 확인자를 HOLD 를 낼 수 있는 전략으로 교체**해야 한다.
+
+---
+
+## 11. COMPOSITE_PULLBACK_MTF — 눌림목 회복 진입
+
+**상태**: EXPERIMENTAL (관찰 전용) · stateless → 일반 `register`
+
+기존 라이브 전략이 돌파/모멘텀(`COMPOSITE_BREAKOUT`·`CMI_V2`)에 쏠려 있어,
+**성격이 직교하는** "강한 추세 중 눌림목 회복" 진입을 별도 검증하려고 만들었다.
+
+```
+진입: H4 Supertrend 상승
+      AND H1 종가 > EMA200
+      AND RSI 40~55
+      AND EMA20/VWAP 눌림 후 회복
+      AND ADX ≥ 18
+
+청산: H4 Supertrend 하락 전환  OR  H1 EMA20 이탈
+      (SL/TP 는 LiveTradingService 가 처리)
+```
+
+가중 투표가 아니라 **조건 AND 방식**이라는 점이 다른 복합 전략과 구별된다.
+
+---
+
+## 12. COMPOSITE_MEANREV_BB — 평균회귀 (직교 전략)
+
+**구성**: `BOLLINGER(0.55) + RSI(0.30) + VWAP(0.15)` · stateless → 일반 `register`
+
+### 왜 만들었나 — 전략 구성의 빈틈
+
+2026-07-20 운영 DB 분석에서 드러났다. **동적 세션 6개가 전부 추세추종 계열**이라
+하락·횡보장에서 **동시에 침묵**했다 — 07-09~19 **11일간 매수 체결 0건**.
+
+전략을 더 잘 고르는 문제가 아니라, **포트폴리오에 직교 성분이 없는** 문제였다.
+
+### 성분별 역할
+
+| 성분 | 가중 | 역할 |
+|------|------|------|
+| `BOLLINGER` | 0.55 | %B 하단 이탈 매수. 자체 ADX **상한** 필터(추세장 평균회귀 억제)와 Squeeze HOLD 내장 |
+| `RSI` | 0.30 | 과매도(<30) 반등 + 피봇 강세 다이버전스 |
+| `VWAP` | 0.15 | 할인 매수(역추세). **단독으로는 진입 불가** |
+
+VWAP 가중을 0.15 로 낮게 둔 것은 의도적이다. 단독 만점(100)으로도 동적 세션의 weak
+임계(0.19~0.20)에 못 미쳐 **반드시 BOLLINGER/RSI 와 합의해야** 진입한다.
+추세추종 프리셋에서 관찰된 **VWAP 단독 BUY 남발**을 막는 장치다.
+
+### 필터가 다른 전략과 정반대다
+
+| 필터 | 설정 | 이유 |
+|------|------|------|
+| EMA 방향 필터 | **OFF** | 하락추세에서 사는 것이 전략의 전제 — 감쇠하면 무력화된다 |
+| Composite ADX **하한** 필터 | **OFF** | BOLLINGER 의 ADX **상한** 필터와 정반대 방향 |
+| `Ema200RegimeGate` | **면제 등록** | 하락 레짐 진입이 전제 |
+| `RangeRegimeGate` | 비차단 | 횡보장이 주 무대 |
+
+`BLACK_SWAN_GUARD`·`BTC_MARKET_GUARD`·손실 쿨다운·SL/TP 는 **그대로 적용**된다 —
+급락 나이프 캐칭은 별도 경로가 방어한다.
+
+---
+
+## 13. 래퍼 계층 — 이름 뒤에 붙는 `_BASE` / `_CB` 는 무엇인가
+
+코드를 `grep` 하면 `COMPOSITE_MTF_BTC_BASE`, `COMPOSITE_MTF_BTC_CB` 같은 이름이 나오는데,
+**이들은 등록된 전략이 아니다.** 래퍼로 감쌀 때 안쪽 인스턴스에 붙인 **내부 조립 이름**이다.
+
+```
+COMPOSITE_MTF_BTC                          ← 등록되는 이름
+└ MtfConfirmedStrategy (H4 확인)
+  └ COMPOSITE_MTF_BTC_CB                   ← 내부 이름 (RsiVeto 계층)
+    └ RsiVetoStrategy (RSI>75 거부권)
+      └ COMPOSITE_MTF_BTC_BASE             ← 내부 이름 (가중 투표 계층)
+        └ CompositeStrategy(ATR .5 + VD .3 + MACD .2, emaFilter=ON, adxFilter=ON)
+```
+
+**세션 생성이나 설정에서 쓸 수 있는 이름은 `StrategyRegistry` 에 등록된 것뿐이다.**
+전략 개수를 셀 때 내부 이름을 포함하면 실제보다 훨씬 많게 나온다 — 2026-09-15 구조 리뷰에서
+실제로 그 오류가 있었다(19종으로 셌으나 등록 프리셋은 14종).
+
+| 래퍼 | 역할 |
+|------|------|
+| `MtfConfirmedStrategy` | H4 추세 확인 게이트 |
+| `RsiVetoStrategy` | RSI 과매수 시 BUY 강제 차단(거부권) |
+| `IchimokuFilteredStrategy` | 구름 기반 역추세 억제 |
+| `CompositeStrategy` | 가중 투표 엔진 (+ emaFilter / adxFilter) |
+
+
+---
+
+## 14. 전략 선택 가이드
 
 | 전략 | 적합한 시장 | 특징 | 리스크 |
 |------|------------|------|--------|
@@ -472,6 +706,11 @@ SELL 강도 = (%K - 80) / 20 × 100   ← %K가 100에 가까울수록 강함
 | **COMPOSITE_MOMENTUM** | 횡보장 (레인지 마켓) | 그리드 분할 매수 + 밴드 이탈 역추세 + EMA 필터 | 강한 상승/하락 추세에서 손실 위험 |
 | **COMPOSITE_ETH** | 추세장 + 변동성 장세 | ATR 돌파 + 호가 분석 + EMA 추세 | 횡보장에서 가짜 돌파 신호 위험 |
 | **MACD_STOCH_BB** | 1시간봉 상승 추세 내 눌림목 | 6가지 조건 AND → 매우 보수적 | 신호 빈도 낮음, 기회 놓칠 수 있음 |
+| **COMPOSITE_BREAKOUT** | 추세 뚜렷한 대형 코인 | ATR 돌파 + RSI 거부권 | XRP·소형 알트 부적합 (MDD -30.8%) |
+| **COMPOSITE_REGIME_ROUTER** | 모든 시장 (레짐 위임) | 국면별로 다른 전략에 자동 위임 | 국면 판별 오류가 그대로 전파 |
+| **COMPOSITE_MTF_*** | 추세장 (H4 확인) | 역추세 진입 차단 → 승률 개선 | 진입 빈도 감소 |
+| **COMPOSITE_PULLBACK_MTF** | 강한 추세 중 조정 | 조건 AND 방식, 돌파 계열과 직교 | EXPERIMENTAL — 관찰 전용 |
+| **COMPOSITE_MEANREV_BB** | **하락·횡보장** | 유일한 평균회귀 계열 — 추세추종 침묵 구간 대비 | 하락장에서 매수하는 전략 (전제 이해 필수) |
 
 ### 주요 차이점
 
@@ -497,14 +736,14 @@ COMPOSITE       : 자동 국면 판별               →  시장 상황에 맞�
 
 | 전략 | 파일 |
 |------|------|
-| 가중 투표 엔진 | [CompositeStrategy.java](../core-engine/src/main/java/com/cryptoautotrader/core/selector/CompositeStrategy.java) |
-| COMPOSITE 국면 감지 | [RegimeAdaptiveStrategy.java](../core-engine/src/main/java/com/cryptoautotrader/core/selector/RegimeAdaptiveStrategy.java) |
-| COMPOSITE_MOMENTUM/ETH 등록 | [CompositePresetRegistrar.java](../web-api/src/main/java/com/cryptoautotrader/api/config/CompositePresetRegistrar.java) |
-| GRID 전략 | [GridStrategy.java](../strategy-lib/src/main/java/com/cryptoautotrader/strategy/grid/GridStrategy.java) |
-| BOLLINGER 전략 | [BollingerStrategy.java](../strategy-lib/src/main/java/com/cryptoautotrader/strategy/bollinger/BollingerStrategy.java) |
-| ATR_BREAKOUT 전략 | [AtrBreakoutStrategy.java](../strategy-lib/src/main/java/com/cryptoautotrader/strategy/atrbreakout/AtrBreakoutStrategy.java) |
-| ORDERBOOK_IMBALANCE 전략 | [OrderbookImbalanceStrategy.java](../strategy-lib/src/main/java/com/cryptoautotrader/strategy/orderbook/OrderbookImbalanceStrategy.java) |
-| EMA_CROSS 전략 | [EmaCrossStrategy.java](../strategy-lib/src/main/java/com/cryptoautotrader/strategy/ema/EmaCrossStrategy.java) |
-| MACD_STOCH_BB 전략 | [MacdStochBbStrategy.java](../strategy-lib/src/main/java/com/cryptoautotrader/strategy/macdstochbb/MacdStochBbStrategy.java) |
-| 전략 레지스트리 | [StrategyRegistry.java](../strategy-lib/src/main/java/com/cryptoautotrader/strategy/StrategyRegistry.java) |
-| COMPOSITE 상세 문서 | [CompositeStrategy.md](./CompositeStrategy.md) |
+| 가중 투표 엔진 | [CompositeStrategy.java](../../core-engine/src/main/java/com/cryptoautotrader/core/selector/CompositeStrategy.java) |
+| COMPOSITE 국면 감지 | [RegimeAdaptiveStrategy.java](../../core-engine/src/main/java/com/cryptoautotrader/core/selector/RegimeAdaptiveStrategy.java) |
+| COMPOSITE_MOMENTUM/ETH 등록 | [CompositePresetRegistrar.java](../../web-api/src/main/java/com/cryptoautotrader/api/config/CompositePresetRegistrar.java) |
+| GRID 전략 | [GridStrategy.java](../../strategy-lib/src/main/java/com/cryptoautotrader/strategy/grid/GridStrategy.java) |
+| BOLLINGER 전략 | [BollingerStrategy.java](../../strategy-lib/src/main/java/com/cryptoautotrader/strategy/bollinger/BollingerStrategy.java) |
+| ATR_BREAKOUT 전략 | [AtrBreakoutStrategy.java](../../strategy-lib/src/main/java/com/cryptoautotrader/strategy/atrbreakout/AtrBreakoutStrategy.java) |
+| ORDERBOOK_IMBALANCE 전략 | [OrderbookImbalanceStrategy.java](../../strategy-lib/src/main/java/com/cryptoautotrader/strategy/orderbook/OrderbookImbalanceStrategy.java) |
+| EMA_CROSS 전략 | [EmaCrossStrategy.java](../../strategy-lib/src/main/java/com/cryptoautotrader/strategy/ema/EmaCrossStrategy.java) |
+| MACD_STOCH_BB 전략 | [MacdStochBbStrategy.java](../../strategy-lib/src/main/java/com/cryptoautotrader/strategy/macdstochbb/MacdStochBbStrategy.java) |
+| 전략 레지스트리 | [StrategyRegistry.java](../../strategy-lib/src/main/java/com/cryptoautotrader/strategy/StrategyRegistry.java) |
+| COMPOSITE 상세 문서 | [CompositeStrategy.md](../old/CompositeStrategy.md) |

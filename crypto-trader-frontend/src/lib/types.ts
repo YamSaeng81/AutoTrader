@@ -221,6 +221,13 @@ export interface PaperOrder {
   signalReason: string;
   createdAt: string;
   filledAt: string | null;
+  // 2026-09-15: 아래 넷은 백엔드가 실제로 내려주는데 선언이 빠져 있었다.
+  // 화면이 `as any` 로 우회해 쓰고 있었으므로 누락이 드러나지 않았다.
+  fee?: number | null;
+  /** 매도 행에만 있다 — 대응 매수 체결가 */
+  buyPrice?: number | null;
+  realizedPnl?: number | null;
+  realizedPnlPct?: number | null;
 }
 
 export interface PaperTradingStartRequest {
@@ -621,4 +628,147 @@ export interface AccountSummary {
   totalUnrealizedPnlPct?: number;
   holdings?: UpbitHolding[];
   fetchedAt?: string;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 전략 로그 · 세션 차트 (2026-09-15)
+//
+// 이전에는 이 응답들을 `as any` 로 받아 쓰고 있었다. 백엔드가 실제로 내려주는 필드
+// 중 **화면이 읽는 것만** 선언한다 — 없는 필드를 상상해 넣지 않는다.
+// 새 필드를 쓰게 되면 그때 여기에 추가할 것.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** `strategy_log` 한 행. 화면은 판단 근거 표시에만 쓴다. */
+export interface StrategyLogEntry {
+  id: number;
+  strategyName: string | null;
+  coinPair: string | null;
+  signal: string | null;
+  reason: string | null;
+  marketRegime: string | null;
+  timeframe: string | null;
+  sessionType: string | null;
+  sessionId: number | null;
+  createdAt: string | null;
+  /** 실제로 주문이 나갔는지. false 면 `blockedReason` 에 차단 사유가 있다. */
+  wasExecuted?: boolean | null;
+  blockedReason?: string | null;
+  /** 사후수익 백필 결과 (2026-09-07 이후) */
+  return4hPct?: number | null;
+  return24hPct?: number | null;
+  /** 신호 발생 시점의 가격 */
+  signalPrice?: number | null;
+}
+
+/** 세션 차트용 캔들. 종가만 그리므로 최소 필드다. */
+export interface SessionChartCandle {
+  time: number;
+  close: number | string;
+}
+
+/**
+ * 세션 차트에 겹쳐 그리는 체결.
+ *
+ * `fmtOrderQuantity`(lib/utils)가 시장가 매수의 KRW/수량 구분을 위해 `orderType`·
+ * `filledQuantity`를 읽으므로 함께 선언한다.
+ */
+export interface SessionChartOrder {
+  side: OrderSide;
+  orderType?: string | null;
+  price?: number | null;
+  quantity?: number | null;
+  filledQuantity?: number | null;
+  fee?: number | null;
+  realizedPnl?: number | null;
+  signalReason?: string | null;
+  filledAt?: string | number | null;
+}
+
+/** `GET .../chart` 응답 */
+export interface SessionChartResponse {
+  candles?: SessionChartCandle[];
+  orders?: SessionChartOrder[];
+}
+
+/** 차트에 주입하는 한 점 — 캔들에 해당 시각 체결을 붙인 형태. */
+export interface SessionChartPoint {
+  time: number;
+  close: number;
+  buyOrder: SessionChartOrder | null;
+  sellOrder: SessionChartOrder | null;
+}
+
+/**
+ * Recharts Tooltip 커스텀 컴포넌트 props.
+ *
+ * recharts 가 내보내는 `TooltipProps` 는 제네릭 제약이 버전마다 달라 화면 코드에서
+ * 그대로 쓰기 번거롭다. 여기서는 **우리가 실제로 읽는 세 가지**만 선언한다.
+ */
+export interface ChartTooltipProps<T = SessionChartPoint> {
+  active?: boolean;
+  payload?: Array<{ payload?: T }>;
+  label?: string | number;
+}
+
+/** Recharts 커스텀 dot 렌더러가 받는 props 중 우리가 쓰는 부분. */
+export interface ChartDotProps<T = SessionChartPoint> {
+  cx?: number;
+  cy?: number;
+  payload?: T;
+  index?: number;
+}
+
+// ─── LLM 호출 로그 (2026-09-15) ──────────────────────────────────────────────
+
+/** `llm_call_log` 목록 행. */
+export interface LlmCallLogItem {
+  id: number;
+  taskName: string | null;
+  providerName: string | null;
+  modelUsed: string | null;
+  promptTokens: number | null;
+  completionTokens: number | null;
+  totalTokens: number | null;
+  durationMs: number | null;
+  success: boolean | null;
+  errorMessage: string | null;
+  responsePreview: string | null;
+  calledAt: string | null;
+}
+
+/** 상세 조회 — 목록 행에 프롬프트·응답 전문이 더해진다. */
+export interface LlmCallLogDetail extends LlmCallLogItem {
+  systemPrompt: string | null;
+  userPrompt: string | null;
+  responseContent: string | null;
+}
+
+/**
+ * 토큰 사용량 집계 한 줄.
+ *
+ * 집계 축에 따라 `task` 또는 `provider` 중 하나가 채워진다 — 화면은 `keyLabel` 로
+ * 어느 쪽을 읽을지 고른다. (목록 행의 `taskName`/`providerName` 과 키 이름이 다르다.)
+ */
+export interface LlmTokenBreakdownRow {
+  task?: string | null;
+  provider?: string | null;
+  promptTokens?: number | null;
+  completionTokens?: number | null;
+}
+
+/** LLM 사용량 통계 응답. */
+export interface LlmUsageStats {
+  todayCallCount?: number;
+  todayTotalTokens?: number;
+  weekCallCount?: number;
+  weekTotalTokens?: number;
+  totalCallCount?: number;
+  byTask?: LlmTokenBreakdownRow[];
+  byProvider?: LlmTokenBreakdownRow[];
+}
+
+/** LLM 로그 목록 응답 (Spring Page 가 아니라 items/totalPages 형태다). */
+export interface LlmCallLogPage {
+  items?: LlmCallLogItem[];
+  totalPages?: number;
 }

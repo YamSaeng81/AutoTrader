@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { getErrorMessage } from '@/lib/utils';
 import { adminReportApi } from '@/lib/api';
 import {
     BookOpen, Save, RefreshCw, ExternalLink, CheckCircle, XCircle,
@@ -51,7 +52,7 @@ export default function ReportsPage() {
     const loadConfig = useCallback(async () => {
         try {
             const res = await adminReportApi.getConfig();
-            const raw = (res as any).data ?? res;
+            const raw = (res.data ?? res) as unknown as Record<string, string>;
             const configData: ReportConfig = {
                 notion_token: raw.notion_token ?? '',
                 database_id: raw.database_id ?? '',
@@ -75,7 +76,7 @@ export default function ReportsPage() {
         setLogsLoading(true);
         try {
             const res = await adminReportApi.getHistory(20);
-            setLogs((res as any).data ?? []);
+            setLogs((res.data ?? []) as unknown as ReportLog[]);
         } catch (e) {
             console.error(e);
         } finally {
@@ -96,8 +97,8 @@ export default function ReportsPage() {
             await adminReportApi.updateConfig(editConfig);
             setConfig(editConfig);
             setConfigDirty(false);
-        } catch (e: any) {
-            alert('저장 실패: ' + e.message);
+        } catch (e) {
+            alert('저장 실패: ' + getErrorMessage(e));
         } finally {
             setSavingConfig(false);
         }
@@ -108,11 +109,11 @@ export default function ReportsPage() {
         setTriggerResult(null);
         try {
             const res = await adminReportApi.trigger(triggerHours);
-            const d = (res as any).data ?? res;
+            const d = (res.data ?? res) as { notionPageUrl?: string; message?: string };
             setTriggerResult('보고서 생성 성공: ' + (d.notionPageUrl || d.message || '완료'));
             loadLogs();
-        } catch (e: any) {
-            setTriggerResult('오류: ' + (e.message || '보고서 생성 실패'));
+        } catch (e) {
+            setTriggerResult('오류: ' + getErrorMessage(e, '보고서 생성 실패'));
         } finally {
             setTriggering(false);
         }

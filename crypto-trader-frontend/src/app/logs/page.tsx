@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { logApi, tradingApi, csvExportApi } from '@/lib/api';
-import type { SessionIndexEntry } from '@/lib/types';
+import type { PageResponse, SessionIndexEntry, StrategyLogEntry } from '@/lib/types';
 import { Loader2, FileText, ChevronLeft, ChevronRight, ChevronDown, ChevronRight as ChevronRightIcon, Download, Brain } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -59,7 +59,7 @@ export default function LogsPage() {
         queryFn: () => tradingApi.sessionIndex(),
         staleTime: 60_000,
     });
-    const sessionIndex: SessionIndexEntry[] = (sessionIdxRes?.data as any) ?? [];
+    const sessionIndex: SessionIndexEntry[] = (sessionIdxRes?.data as unknown as SessionIndexEntry[]) ?? [];
     const sessionOptions = sessionType === 'ALL'
         ? sessionIndex
         : sessionIndex.filter(s => s.sessionType === sessionType);
@@ -77,8 +77,8 @@ export default function LogsPage() {
         queryFn: () => logApi.strategyLogs(page, 50, effectiveSessionType, sessionId),
     });
 
-    const logs = (logsRes?.data as any);
-    const content: any[] = logs?.content ?? [];
+    const logs = logsRes?.data as unknown as PageResponse<StrategyLogEntry> | undefined;
+    const content: StrategyLogEntry[] = logs?.content ?? [];
     const totalPages = logs?.totalPages ?? 0;
 
     const handleFilterChange = (value: string) => {
@@ -122,13 +122,13 @@ export default function LogsPage() {
     };
 
     // 구분 + 세션ID 기준 그룹화
-    const groups: { key: string; sessionType: string; sessionId: any; logs: any[] }[] = [];
+    const groups: { key: string; sessionType: string; sessionId: number | null; logs: StrategyLogEntry[] }[] = [];
     const groupMap: Record<string, number> = {};
     for (const log of content) {
         const key = `${log.sessionType ?? 'UNKNOWN'}-${log.sessionId ?? 'none'}`;
         if (groupMap[key] === undefined) {
             groupMap[key] = groups.length;
-            groups.push({ key, sessionType: log.sessionType, sessionId: log.sessionId, logs: [] });
+            groups.push({ key, sessionType: log.sessionType ?? 'UNKNOWN', sessionId: log.sessionId, logs: [] });
         }
         groups[groupMap[key]].logs.push(log);
     }
@@ -249,12 +249,12 @@ export default function LogsPage() {
                             {groups.map(group => {
                                 const isOpen = openGroups.has(group.key);
                                 const latest = group.logs[0];
-                                const strategies = [...new Set(group.logs.map((l: any) => l.strategyName).filter(Boolean))];
-                                const signalCounts = group.logs.reduce((acc: Record<string, number>, l: any) => {
+                                const strategies = [...new Set(group.logs.map(l => l.strategyName).filter(Boolean))];
+                                const signalCounts = group.logs.reduce((acc: Record<string, number>, l: StrategyLogEntry) => {
                                     if (l.signal) acc[l.signal] = (acc[l.signal] ?? 0) + 1;
                                     return acc;
                                 }, {});
-                                const coinPairs = [...new Set(group.logs.map((l: any) => l.coinPair).filter(Boolean))];
+                                const coinPairs = [...new Set(group.logs.map(l => l.coinPair).filter(Boolean))];
 
                                 return (
                                     <div key={group.key}>
@@ -332,7 +332,7 @@ export default function LogsPage() {
                                                         </tr>
                                                     </thead>
                                                     <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
-                                                        {group.logs.map((log: any) => {
+                                                        {group.logs.map((log: StrategyLogEntry) => {
                                                             const isBuySell = log.signal === 'BUY' || log.signal === 'SELL';
                                                             const ret4h: number | null = log.return4hPct ?? null;
                                                             const ret24h: number | null = log.return24hPct ?? null;
@@ -347,7 +347,7 @@ export default function LogsPage() {
                                                                     {log.strategyName ?? '-'}
                                                                 </td>
                                                                 <td className="px-4 py-2.5">
-                                                                    <span className={cn('px-2 py-0.5 rounded-full font-bold text-xs', SIGNAL_STYLE[log.signal] ?? 'bg-slate-100 text-slate-500')}>
+                                                                    <span className={cn('px-2 py-0.5 rounded-full font-bold text-xs', SIGNAL_STYLE[log.signal ?? ''] ?? 'bg-slate-100 text-slate-500')}>
                                                                         {log.signal || '-'}
                                                                     </span>
                                                                 </td>
@@ -374,7 +374,7 @@ export default function LogsPage() {
                                                                     {ret24h != null ? `${ret24h > 0 ? '+' : ''}${ret24h.toFixed(2)}%` : '-'}
                                                                 </td>
                                                                 <td className="px-4 py-2.5 text-slate-500 dark:text-slate-400 text-xs max-w-xs truncate"
-                                                                    title={log.blockedReason || log.reason}>
+                                                                    title={log.blockedReason || log.reason || undefined}>
                                                                     {log.blockedReason
                                                                         ? <span className="text-rose-400">{log.blockedReason}</span>
                                                                         : log.reason ?? '-'}

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { tradingApi, csvExportApi } from '@/lib/api';
-import { LiveOrder, SessionIndexEntry } from '@/lib/types';
+import { LiveOrder, PageResponse, SessionIndexEntry } from '@/lib/types';
 import {
     Loader2, Activity, ChevronLeft, ChevronRight,
     ChevronsLeft, ChevronsRight,
@@ -86,7 +86,7 @@ export default function UpbitLogsPage() {
         queryFn: () => tradingApi.sessionIndex(),
         staleTime: 60_000,
     });
-    const sessions: SessionIndexEntry[] = ((sessionsRes?.data as any) ?? [])
+    const sessions: SessionIndexEntry[] = ((sessionsRes?.data as unknown as SessionIndexEntry[]) ?? [])
         .filter((s: SessionIndexEntry) => s.sessionType !== 'PAPER');
 
     const { dateFrom, dateTo } = getDateRange(datePreset, { from: customFrom, to: customTo });
@@ -99,9 +99,10 @@ export default function UpbitLogsPage() {
         refetchInterval: 10_000,
     });
 
-    const raw: LiveOrder[] = (res?.data as any)?.content ?? [];
-    const totalPages: number = (res?.data as any)?.totalPages ?? 0;
-    const totalElements: number = (res?.data as any)?.totalElements ?? 0;
+    const orderPage = res?.data as unknown as PageResponse<LiveOrder> | undefined;
+    const raw: LiveOrder[] = orderPage?.content ?? [];
+    const totalPages: number = orderPage?.totalPages ?? 0;
+    const totalElements: number = orderPage?.totalElements ?? 0;
 
     const filtered = raw.filter(o => {
         const stateOk = stateFilter === 'ALL'

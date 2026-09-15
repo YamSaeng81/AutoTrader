@@ -164,4 +164,4 @@ GRID·VWAP 등 역추세 성격의 하위 전략이 포함되어 있으므로,
 | MACD 전략 | [MacdStrategy.java](../../strategy-lib/src/main/java/com/cryptoautotrader/strategy/macd/MacdStrategy.java) |
 | VWAP 전략 | [VwapStrategy.java](../../strategy-lib/src/main/java/com/cryptoautotrader/strategy/vwap/VwapStrategy.java) |
 | GRID 전략 | [GridStrategy.java](../../strategy-lib/src/main/java/com/cryptoautotrader/strategy/grid/GridStrategy.java) |
-| 복합 전략 가이드 | [COMPOSITE_STRATEGIES_GUIDE.md](../COMPOSITE_STRATEGIES_GUIDE.md) |
+| 복합 전략 가이드 | [COMPOSITE_STRATEGIES_GUIDE.md](./COMPOSITE_STRATEGIES_GUIDE.md) |

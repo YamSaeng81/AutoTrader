@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRiskConfig, useUpdateRiskConfig } from '@/hooks';
 
 type FormState = {
@@ -48,27 +48,30 @@ export default function RiskConfigPage() {
   const [form, setForm] = useState<FormState>(DEFAULTS);
   const [saved, setSaved] = useState(false);
 
-  useEffect(() => {
-    if (config) {
-      setForm({
-        maxDailyLossPct: config.maxDailyLossPct ?? DEFAULTS.maxDailyLossPct,
-        maxWeeklyLossPct: config.maxWeeklyLossPct ?? DEFAULTS.maxWeeklyLossPct,
-        maxMonthlyLossPct: config.maxMonthlyLossPct ?? DEFAULTS.maxMonthlyLossPct,
-        maxPositions: config.maxPositions ?? DEFAULTS.maxPositions,
-        cooldownMinutes: config.cooldownMinutes ?? DEFAULTS.cooldownMinutes,
-        portfolioLimitKrw: config.portfolioLimitKrw ?? DEFAULTS.portfolioLimitKrw,
-        circuitBreakerEnabled: config.circuitBreakerEnabled ?? DEFAULTS.circuitBreakerEnabled,
-        mddThresholdPct: config.mddThresholdPct ?? DEFAULTS.mddThresholdPct,
-        consecutiveLossLimit: config.consecutiveLossLimit ?? DEFAULTS.consecutiveLossLimit,
-        stopLossPct: config.stopLossPct ?? DEFAULTS.stopLossPct,
-        takeProfitMultiplier: config.takeProfitMultiplier ?? DEFAULTS.takeProfitMultiplier,
-        trailingEnabled: config.trailingEnabled ?? DEFAULTS.trailingEnabled,
-        trailingTpMarginPct: config.trailingTpMarginPct ?? DEFAULTS.trailingTpMarginPct,
-        trailingSlMarginPct: config.trailingSlMarginPct ?? DEFAULTS.trailingSlMarginPct,
-        investRatioPct: config.investRatioPct ?? DEFAULTS.investRatioPct,
-      });
-    }
-  }, [config]);
+  // config 는 서버에서 온 값이다. 이전에는 useEffect 안에서 setForm 을 호출했는데,
+  // 그러면 값이 도착한 뒤 한 번 더 렌더가 돌면서 폼이 뒤늦게 채워진다
+  // (react-hooks/set-state-in-effect). React 가 문서화한 "렌더 중 상태 조정" 패턴으로 바꾼다.
+  const [syncedConfig, setSyncedConfig] = useState(config);
+  if (config && syncedConfig !== config) {
+    setSyncedConfig(config);
+    setForm({
+      maxDailyLossPct: config.maxDailyLossPct ?? DEFAULTS.maxDailyLossPct,
+      maxWeeklyLossPct: config.maxWeeklyLossPct ?? DEFAULTS.maxWeeklyLossPct,
+      maxMonthlyLossPct: config.maxMonthlyLossPct ?? DEFAULTS.maxMonthlyLossPct,
+      maxPositions: config.maxPositions ?? DEFAULTS.maxPositions,
+      cooldownMinutes: config.cooldownMinutes ?? DEFAULTS.cooldownMinutes,
+      portfolioLimitKrw: config.portfolioLimitKrw ?? DEFAULTS.portfolioLimitKrw,
+      circuitBreakerEnabled: config.circuitBreakerEnabled ?? DEFAULTS.circuitBreakerEnabled,
+      mddThresholdPct: config.mddThresholdPct ?? DEFAULTS.mddThresholdPct,
+      consecutiveLossLimit: config.consecutiveLossLimit ?? DEFAULTS.consecutiveLossLimit,
+      stopLossPct: config.stopLossPct ?? DEFAULTS.stopLossPct,
+      takeProfitMultiplier: config.takeProfitMultiplier ?? DEFAULTS.takeProfitMultiplier,
+      trailingEnabled: config.trailingEnabled ?? DEFAULTS.trailingEnabled,
+      trailingTpMarginPct: config.trailingTpMarginPct ?? DEFAULTS.trailingTpMarginPct,
+      trailingSlMarginPct: config.trailingSlMarginPct ?? DEFAULTS.trailingSlMarginPct,
+      investRatioPct: config.investRatioPct ?? DEFAULTS.investRatioPct,
+    });
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

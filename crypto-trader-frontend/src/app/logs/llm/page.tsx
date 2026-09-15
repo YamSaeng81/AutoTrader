@@ -6,6 +6,10 @@ import { adminLlmApi } from '@/lib/api';
 import { Loader2, ChevronLeft, ChevronRight, Bot, BarChart2, Clock, Coins } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import type {
+    LlmCallLogDetail, LlmCallLogItem, LlmCallLogPage,
+    LlmTokenBreakdownRow, LlmUsageStats,
+} from '@/lib/types';
 
 const TASK_OPTIONS = ['전체', 'LOG_SUMMARY', 'SIGNAL_ANALYSIS', 'NEWS_SUMMARY', 'REPORT_NARRATION'];
 const PROVIDER_OPTIONS = ['전체', 'CLAUDE', 'OPENAI', 'OLLAMA', 'MOCK'];
@@ -34,11 +38,11 @@ function StatCard({ label, value, sub }: { label: string; value: string | number
     );
 }
 
-function TokenBreakdown({ rows, keyLabel }: { rows: any[]; keyLabel: string }) {
+function TokenBreakdown({ rows, keyLabel }: { rows: LlmTokenBreakdownRow[] | undefined; keyLabel: 'task' | 'provider' }) {
     if (!rows?.length) return <span className="text-slate-400 text-xs">데이터 없음</span>;
     return (
         <div className="space-y-1">
-            {rows.map((r: any, i: number) => (
+            {rows.map((r, i: number) => (
                 <div key={i} className="flex items-center gap-3 text-xs">
                     <span className="w-32 font-mono truncate text-slate-600 dark:text-slate-300">{r[keyLabel]}</span>
                     <span className="text-slate-400">입력 {(r.promptTokens ?? 0).toLocaleString()}</span>
@@ -52,12 +56,12 @@ function TokenBreakdown({ rows, keyLabel }: { rows: any[]; keyLabel: string }) {
     );
 }
 
-function DetailModal({ log, onClose }: { log: any; onClose: () => void }) {
+function DetailModal({ log, onClose }: { log: LlmCallLogItem; onClose: () => void }) {
     const { data, isLoading } = useQuery({
         queryKey: ['llm-log-detail', log.id],
         queryFn: () => adminLlmApi.getLogDetail(log.id),
     });
-    const detail = data?.data as any;
+    const detail = data?.data as unknown as LlmCallLogDetail | undefined;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={onClose}>
@@ -140,7 +144,7 @@ export default function LlmLogPage() {
     const [page, setPage] = useState(0);
     const [taskFilter, setTaskFilter] = useState('전체');
     const [providerFilter, setProviderFilter] = useState('전체');
-    const [selectedLog, setSelectedLog] = useState<any>(null);
+    const [selectedLog, setSelectedLog] = useState<LlmCallLogItem | null>(null);
 
     const taskParam = taskFilter === '전체' ? undefined : taskFilter;
     const providerParam = providerFilter === '전체' ? undefined : providerFilter;
@@ -156,10 +160,10 @@ export default function LlmLogPage() {
         refetchInterval: 60000,
     });
 
-    const logsData = logsRes?.data as any;
-    const items: any[] = logsData?.items ?? [];
+    const logsData = logsRes?.data as unknown as LlmCallLogPage | undefined;
+    const items: LlmCallLogItem[] = logsData?.items ?? [];
     const totalPages: number = logsData?.totalPages ?? 0;
-    const stats = statsRes?.data as any;
+    const stats = statsRes?.data as unknown as LlmUsageStats | undefined;
 
     const handleFilterChange = (type: 'task' | 'provider', value: string) => {
         if (type === 'task') setTaskFilter(value);
@@ -266,7 +270,7 @@ export default function LlmLogPage() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-50 dark:divide-slate-700/50">
-                                    {items.map((item: any) => (
+                                    {items.map((item: LlmCallLogItem) => (
                                         <tr
                                             key={item.id}
                                             onClick={() => setSelectedLog(item)}
@@ -274,12 +278,12 @@ export default function LlmLogPage() {
                                         >
                                             <td className="px-4 py-3 text-slate-400 font-mono text-xs">{item.id}</td>
                                             <td className="px-4 py-3">
-                                                <span className={cn('px-2 py-0.5 rounded-md text-xs font-medium', TASK_STYLE[item.taskName] ?? 'bg-slate-100 text-slate-500')}>
+                                                <span className={cn('px-2 py-0.5 rounded-md text-xs font-medium', TASK_STYLE[item.taskName ?? ''] ?? 'bg-slate-100 text-slate-500')}>
                                                     {item.taskName}
                                                 </span>
                                             </td>
                                             <td className="px-4 py-3">
-                                                <span className={cn('px-2 py-0.5 rounded-md text-xs font-medium', PROVIDER_STYLE[item.providerName] ?? 'bg-slate-100 text-slate-500')}>
+                                                <span className={cn('px-2 py-0.5 rounded-md text-xs font-medium', PROVIDER_STYLE[item.providerName ?? ''] ?? 'bg-slate-100 text-slate-500')}>
                                                     {item.providerName}
                                                 </span>
                                             </td>

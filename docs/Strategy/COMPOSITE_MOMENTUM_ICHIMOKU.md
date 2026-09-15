@@ -202,4 +202,4 @@ Ichimoku 필터: 가격(87,500,000) in [구름하단(86,800,000), 구름상단(8
 | VWAP 전략 | [VwapStrategy.java](../../strategy-lib/src/main/java/com/cryptoautotrader/strategy/vwap/VwapStrategy.java) |
 | GRID 전략 | [GridStrategy.java](../../strategy-lib/src/main/java/com/cryptoautotrader/strategy/grid/GridStrategy.java) |
 | Ichimoku 유틸 | [IndicatorUtils.java](../../strategy-lib/src/main/java/com/cryptoautotrader/strategy/IndicatorUtils.java) |
-| 복합 전략 가이드 | [COMPOSITE_STRATEGIES_GUIDE.md](../COMPOSITE_STRATEGIES_GUIDE.md) |
+| 복합 전략 가이드 | [COMPOSITE_STRATEGIES_GUIDE.md](./COMPOSITE_STRATEGIES_GUIDE.md) |

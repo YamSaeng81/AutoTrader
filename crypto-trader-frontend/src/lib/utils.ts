@@ -70,3 +70,31 @@ export function orderKrwAmount(order: {
     if (order.orderType === 'MARKET' && order.side === 'BUY') return qty;
     return Number(order.price ?? 0) * qty;
 }
+
+/**
+ * 잡은 예외에서 사람이 읽을 메시지를 뽑는다.
+ *
+ * TypeScript 4.4+ 에서 `catch` 변수는 `unknown` 이라 `e.message` 를 바로 못 읽는다.
+ * 그동안 화면들이 `catch (e: any)` 로 타입 검사를 꺼서 우회하고 있었다 —
+ * 실제로 던져지는 값이 Error 가 아닐 수 있다는 사실이 가려진다.
+ *
+ * axios 는 서버 응답 본문을 `e.response.data.message` 에 담으므로 그쪽을 먼저 본다.
+ */
+export function getErrorMessage(e: unknown, fallback = '알 수 없는 오류'): string {
+    if (typeof e === 'string') return e || fallback;
+
+    if (e && typeof e === 'object') {
+        const res = (e as { response?: { data?: unknown } }).response;
+        const data = res?.data;
+        if (typeof data === 'string' && data) return data;
+        if (data && typeof data === 'object') {
+            const msg = (data as { message?: unknown }).message;
+            if (typeof msg === 'string' && msg) return msg;
+        }
+
+        const msg = (e as { message?: unknown }).message;
+        if (typeof msg === 'string' && msg) return msg;
+    }
+
+    return fallback;
+}

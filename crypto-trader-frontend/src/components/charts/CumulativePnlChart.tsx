@@ -62,7 +62,7 @@ export function CumulativePnlChart({ data }: CumulativePnlChartProps) {
             />
             <Tooltip
                 labelFormatter={(val) => format(val as number, 'yyyy.MM.dd HH:mm:ss')}
-                formatter={(val: any) => [`${Number(val).toLocaleString()}원`, '누적 수익']}
+                formatter={(val: number | string | undefined) => [`${Number(val ?? 0).toLocaleString()}원`, '누적 수익']}
                 contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontSize: '12px' }}
             />
             <Line
@@ -93,7 +93,7 @@ export function CumulativePnlChart({ data }: CumulativePnlChartProps) {
             ) : (
                 <div style={{ height: CHART_HEIGHT }}>
                     <ResponsiveContainer width="100%" height="100%">
-                        {chartInner() as any}
+                        {chartInner()}
                     </ResponsiveContainer>
                 </div>
             )}
