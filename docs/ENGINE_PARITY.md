@@ -21,12 +21,18 @@
 
 구조적 원인은 하나다 — **청산 규칙을 쓰는 곳이 넷인데 정합성을 강제하는 장치가 없었다.**
 
-| 엔진 | 줄 수 | 세션 테이블 | 포지션 테이블 |
-|---|---|---|---|
-| `LiveTradingService` | 2,819 | `live_trading_session` | `public.position` |
-| `DynamicTradingService` | 2,884 | `dynamic_session` | `public.position` |
-| `PaperTradingService` | 1,076 | `paper_trading.virtual_balance` | `paper_trading.position` |
-| **`BacktestEngine`** | 426 | — (`backtest_run`) | — |
+| 엔진 | 세션 테이블 | 포지션 테이블 |
+|---|---|---|
+| `LiveTradingService` | `live_trading_session` | `public.position` |
+| `DynamicTradingService` | `dynamic_session` | `public.position` |
+| `PaperTradingService` | `paper_trading.virtual_balance` | `paper_trading.position` |
+| **`BacktestEngine`** | — (`backtest_run`) | — |
+
+> 줄 수 열은 2026-09-15 에 삭제했다. 원래 2,819 / 2,884 / 1,076 / 426 이 적혀 있었는데
+> 갱신되지 않은 채 남아, 구조 리뷰에서 서로 다른 숫자를 근거로 논쟁이 벌어졌다.
+> (참고로 같은 시점 `EngineParityTest` Javadoc 에는 또 다른 값 2,787 / 2,246 / 1,032 가 있었다.)
+> 규모가 필요하면 `wc -l` 로 그때 세되, **어느 기준으로 셌는지 함께 밝힐 것** — 전체 줄과
+> 공백 제외 집계는 이 파일들에서 300줄 가까이 차이가 난다.
 
 > **2026-09-08: `BacktestEngine` 을 축에 추가했다.** 이 문서는 08-19 작성 이래 "매매 엔진이 셋"
 > 으로 시작했는데, `BacktestEngine` 도 같은 `ExitRuleChecker` 를 쓰고 **그 결과가 WF 게이트를

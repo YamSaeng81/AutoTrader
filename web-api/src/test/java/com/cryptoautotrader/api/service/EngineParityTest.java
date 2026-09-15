@@ -14,12 +14,13 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * 3엔진 정합성 감사 — 2026-08-19 신설.
+ * 4엔진 정합성 감사 — 2026-08-19 신설, 2026-09-08 BACKTEST 축 추가.
  *
  * <h3>왜 이 테스트가 존재하는가</h3>
- * <p>매매 엔진이 셋이다: {@link LiveTradingService}(2,787줄) · {@link DynamicTradingService}(2,246줄) ·
- * {@link PaperTradingService}(1,032줄). 각자 세션 테이블·포지션 테이블·틱 루프·reconciler 를
- * 따로 갖고, <b>교차 규칙을 세 곳에 적용했는지 강제하는 장치가 없었다.</b>
+ * <p>청산·리스크 규칙을 구현한 곳이 넷이다: {@link LiveTradingService} · {@link DynamicTradingService} ·
+ * {@link PaperTradingService} · {@code BacktestEngine}(core-engine 모듈). 앞의 셋은 각자 세션 테이블·
+ * 포지션 테이블·틱 루프·reconciler 를 따로 갖고, <b>교차 규칙을 모든 곳에 적용했는지 강제하는
+ * 장치가 없었다.</b>
  * 그 결과 08-17~08-19 사흘간 나온 결함이 거의 전부 같은 모양이었다 —
  * "한 엔진에 적용하고 나머지를 잊는다":</p>
  * <ul>
@@ -30,12 +31,19 @@ import static org.assertj.core.api.Assertions.assertThat;
  *   <li>kill criteria 가 {@code paper_trading} 스키마를 몰라 페이퍼 112세션이 판정 대상 밖</li>
  * </ul>
  *
+ * <p>※ 엔진별 줄 수는 여기 적지 않는다. 과거 이 자리에 박아둔 수치(2,787 · 2,246 · 1,032)는
+ * 갱신되지 않은 채 남았고, 2026-09-15 구조 리뷰에서 서로 다른 숫자를 근거로 논쟁이 벌어졌다.
+ * 규모가 필요하면 그때 세고, 주석에 고정하지 말 것.</p>
+ *
  * <h3>이 테스트가 하는 일</h3>
  * <p>교차 규칙별로 <b>어느 엔진에 있어야 하는가</b>를 선언하고 소스에서 검증한다.
+ * BACKTEST 축은 {@code ../core-engine/...} 상대 경로로 읽으므로 web-api 모듈 밖의 파일도 대상이다.
  * 의도적으로 없는 칸은 사유와 함께 고정한다 — 나중에 "왜 없지?" 를 다시 조사하지 않도록.
  * 새 규칙을 한 엔진에만 넣으면 여기서 깨진다.</p>
  *
  * <p><b>한계</b>: 소스 문자열 검사라 "호출된다"까지만 보고 "올바르게 호출된다"는 못 본다.
+ * 즉 <b>네 엔진의 동작 결과가 같다는 것을 증명하지 않는다</b> — 규칙이 한 엔진에만 들어가는
+ * 회귀를 잡는 정적 감사다.
  * 파라미터 값의 동등성은 {@link PaperLiveAlignmentTest} 가 따로 담당한다.
  * 둘은 보완 관계이며 어느 쪽도 다른 쪽을 대체하지 않는다.</p>
  */
