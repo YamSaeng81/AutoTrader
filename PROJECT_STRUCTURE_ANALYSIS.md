@@ -411,7 +411,17 @@ README 링크 7개·`scripts/README.md` 링크 31개 실존 확인, 대시보드
 현재 부하에서 풀 8칸은 충분하다.
 
 **재검토 조건**: 실거래를 재개하거나, 동적 세션·워치리스트를 크게 늘릴 때.
-그때는 Grafana `executor_queued_tasks{name="taskScheduler"}` 로 먼저 확인할 것.
+그때는 Grafana 대시보드의 **스레드 포화** 패널로 먼저 확인할 것(아래 주의).
+> ⚠️ **`executor_queued_tasks` 를 적체로 읽지 말 것.** 2026-09-15 운영 실측에서 이 값이 **33**
+> 으로 나와 잠시 P1 발생으로 오독했다. `ThreadPoolTaskScheduler` 는
+> `ScheduledThreadPoolExecutor` 기반이고 그 `DelayedWorkQueue` 에는 **아직 실행 시각이 안 된
+> 예약 작업이 전부** 들어앉는다. `@Scheduled` 34개 중 1개 실행 중 + 33개 대기 = 33 이므로
+> 오히려 모든 스케줄이 정상 등록됐다는 증거다. 일반 `ThreadPoolTaskExecutor` 에서는
+> 큐 = 밀린 작업이라 의미가 정반대다 — 같은 메트릭 이름을 혼동하지 말 것.
+>
+> **판정 지표는 `executor_active_threads{name="taskScheduler"}` 가 풀 크기 8 에 지속적으로
+> 붙어 있는지**다.
+
 
 #### 조사 중 기각한 가설 — "H1 캔들 지연"
 
@@ -435,7 +445,17 @@ H1 평가가 캔들 닫힘 후 평균 6.4분·p95 31분 뒤에 이뤄지는 것�
 **조치 전 실측할 것.** P3에서 추가한 대시보드가 이 판정을 그대로 해준다. 스케줄러 풀은
 `TaskExecutorMetricsAutoConfiguration`이 이미 계측하고 있어(Spring Boot 3.2의
 `safeGetThreadPoolExecutor(ThreadPoolTaskScheduler)`) 별도 코드 없이
-`executor_queued_tasks{name="taskScheduler"}`를 볼 수 있다. 지속적으로 1 이상이면 확정이다.
+**스레드 포화**(`executor_active_threads`)로 판정한다.
+> ⚠️ **`executor_queued_tasks` 를 적체로 읽지 말 것.** 2026-09-15 운영 실측에서 이 값이 **33**
+> 으로 나와 잠시 P1 발생으로 오독했다. `ThreadPoolTaskScheduler` 는
+> `ScheduledThreadPoolExecutor` 기반이고 그 `DelayedWorkQueue` 에는 **아직 실행 시각이 안 된
+> 예약 작업이 전부** 들어앉는다. `@Scheduled` 34개 중 1개 실행 중 + 33개 대기 = 33 이므로
+> 오히려 모든 스케줄이 정상 등록됐다는 증거다. 일반 `ThreadPoolTaskExecutor` 에서는
+> 큐 = 밀린 작업이라 의미가 정반대다 — 같은 메트릭 이름을 혼동하지 말 것.
+>
+> **판정 지표는 `executor_active_threads{name="taskScheduler"}` 가 풀 크기 8 에 지속적으로
+> 붙어 있는지**다.
+
 
 유력한 해법은 풀 크기 상향이 아니라 **5초 크리티컬 작업(손절 reconcile 2종, 주문 폴링,
 티커 폴백)의 전용 스케줄러 분리**다. tick이 아무리 길어져도 손절이 굶지 않는다.
