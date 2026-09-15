@@ -1,3 +1,12 @@
+> ## 📌 이 문서의 현재 지위
+>
+> **초판 2026-03-24 · 2026-09-15 보강.** `strategy-lib/` 의 전략 구현 **14종을 전부** 다룹니다
+> (13~15번 `FAIR_VALUE_GAP`, `HEIKIN_ASHI_STOCH`, `MACD_STOCH_BB` 를 2026-09-15 에 추가).
+> 전략의 최종 근거는 언제나 구현과 테스트입니다 — 파라미터 기본값이 바뀌었는데 이 문서가
+> 따라오지 않았다면 코드가 맞습니다.
+
+---
+
 # 단일 전략 사용자 가이드
 
 > 단일 전략은 하나의 기술적 지표를 기반으로 독립적으로 동작하는 전략입니다.
@@ -19,6 +28,9 @@
 10. [VOLUME_DELTA — 누적 볼륨 델타](#10-volume_delta--누적-볼륨-델타)
 11. [STOCHASTIC_RSI — 스토캐스틱 RSI 크로스](#11-stochastic_rsi--스토캐스틱-rsi-크로스)
 12. [GRID — 격자 기반 분할 매매 (Stateful)](#12-grid--격자-기반-분할-매매-stateful)
+13. [FAIR_VALUE_GAP — 유동성 공백 모멘텀](#13-fair_value_gap--유동성-공백-모멘텀)
+14. [HEIKIN_ASHI_STOCH — 하이키나시 + 200EMA + StochRSI](#14-heikin_ashi_stoch--하이키나시--200ema--stochrsi)
+15. [MACD_STOCH_BB — MACD 추세 + StochRSI 눌림목 (Stateful)](#15-macd_stoch_bb--macd-추세--stochrsi-눌림목-stateful)
 
 ---
 
@@ -37,6 +49,9 @@
 | **VOLUME_DELTA** | 볼륨 분석 | 모든 시장 | 없음 | 아니오 |
 | **STOCHASTIC_RSI** | 오실레이터 | 횡보 / 변동성 | ADX < 30 | 아니오 |
 | **GRID** | 격자 매매 | 횡보 | 없음 | **예** |
+| **FAIR_VALUE_GAP** | 패턴 모멘텀 | 급등락 직후 | 없음 (EMA 필터) | 아니오 |
+| **HEIKIN_ASHI_STOCH** | 추세 추종 | 추세장 | 없음 (200EMA 필터) | 아니오 |
+| **MACD_STOCH_BB** | 추세 + 눌림목 | 추세장 (H1 최적화) | 없음 (MACD 횡보 차단) | **예** |
 
 > **ADX(14) 기준**: < 20 횡보, 20~25 전환, > 25 추세, > 35 강한 추세
 
@@ -726,6 +741,201 @@ SELL 강도: 위치비율 × 100          (상단에 가까울수록 강함)
 
 ---
 
+
+---
+
+## 13. FAIR_VALUE_GAP — 유동성 공백 모멘텀
+
+**패턴 전략 — 3캔들 사이에 생긴 가격 공백 방향으로 모멘텀 진입**
+
+### 동작 원리
+
+급격한 임펄스 캔들이 지나가면 앞뒤 캔들의 가격 범위가 서로 겹치지 않는 구간이 생긴다.
+이 "체결되지 않고 건너뛴 가격대"가 Fair Value Gap(FVG)이다. 이 전략은 공백이 **메워질 것**에
+베팅하지 않고, 공백을 만든 **추세가 이어질 것**에 베팅한다(모멘텀 방식).
+
+최근 3캔들을 `c0`(n-2) · `c1`(n-1, 임펄스) · `c2`(n, 현재)로 보고 판정한다.
+
+```
+상승 FVG (BUY)  : c0.high < c2.low    ← 위로 건너뛴 공백
+하락 FVG (SELL) : c0.low  > c2.high   ← 아래로 건너뛴 공백
+둘 다 아니면 HOLD
+```
+
+### 두 단계 필터
+
+| 필터 | 조건 | 목적 |
+|------|------|------|
+| **최소 공백 크기** | 공백 / 기준가 × 100 ≥ `minGapPct` | 미세 노이즈 FVG 제거 |
+| **EMA 추세** | BUY는 종가 > EMA, SELL은 종가 < EMA | 역추세 FVG 차단 |
+
+기준가는 상승 FVG면 `c0.high`, 하락 FVG면 `c0.low`.
+EMA 필터는 `emaFilterEnabled=false` 로 끄면 순수 FVG 패턴만 쓴다.
+
+### 신호 강도
+
+```
+몸통 = |c1.close - c1.open|          (임펄스 캔들 몸통)
+몸통 = 0 (도지)  → 강도 60 고정
+그 외           → 강도 = 50 + (공백 / 몸통) × 50,  50~100 로 클램프
+```
+
+작은 몸통으로 큰 공백을 만들수록 강한 불균형으로 본다.
+
+### 파라미터
+
+| 파라미터 | 기본값 | 설명 |
+|---------|--------|------|
+| `emaPeriod` | `20` | EMA 추세 필터 기간 |
+| `emaFilterEnabled` | `true` | `false` 시 순수 FVG 패턴만 사용 |
+| `minGapPct` | `0.1` | 유효 공백 최소 크기 (기준가 대비 %) |
+
+**최소 캔들 수**: 23 (EMA 필터 시 `emaPeriod + 3`, 비활성 시 3)
+
+---
+
+## 14. HEIKIN_ASHI_STOCH — 하이키나시 + 200EMA + StochRSI
+
+**추세 추종 전략 — 장기 추세 · 지표 교차 · 캔들 모양 · 거래량을 동시에 요구**
+
+### 동작 원리
+
+세 겹으로 조건을 쌓아 진입 빈도를 줄인 대신 신뢰도를 올린 전략이다.
+**200 EMA** 로 장기 방향을 고정하고, **StochRSI K/D 크로스**로 타이밍을 잡고,
+**하이키나시 캔들 모양**으로 최종 확인한다.
+
+> EMA 와 StochRSI 는 **원본 캔들 종가**로 계산하고, 캔들 모양 확인만 하이키나시로 한다.
+> 이 구분이 중요하다 — 하이키나시는 평활된 캔들이라 지표에 쓰면 신호가 늦는다.
+
+### 매수(BUY) — 네 조건 동시 충족
+
+```
+1. 장기 추세 : 종가 > 200 EMA
+2. 지표 교차 : StochRSI 골든크로스 (이전 K ≤ 이전 D  AND  현재 K > 현재 D)
+3. 캔들 확인 : 양봉 하이키나시 + 아래꼬리 ≤ 몸통 × maxWickRatio
+4. 거래량   : 현재 거래량 ≥ 직전 volumeAvgPeriod 캔들 평균 × volumeFilterRatio
+```
+
+### 매도(SELL) — 대칭, 단 거래량 필터 제외
+
+```
+1. 종가 < 200 EMA
+2. StochRSI 데드크로스 (이전 K ≥ 이전 D  AND  현재 K < 현재 D)
+3. 음봉 하이키나시 + 위꼬리 ≤ 몸통 × maxWickRatio
+```
+
+거래량 필터를 매도에 걸지 않는 이유는 **빠져나갈 길을 막지 않기 위해서**다.
+
+### 손절/익절을 신호가 직접 제안한다
+
+이 전략은 다른 단일 전략과 달리 BUY/SELL 신호에 `suggestedStopLoss` / `suggestedTakeProfit`
+을 함께 실어 보낸다. 기본값은 손절 1.5% / 익절 3.0% = **손익비 1:2**.
+
+### 원작 룰 대비 완화 항목
+
+원작(유튜브) 룰이 신호가 지나치게 희소해 세 가지를 파라미터로 열어 두었다.
+
+| 항목 | 원작 | 현재 기본값 | 비고 |
+|------|------|-----------|------|
+| 꼬리 허용 | 0.0 (꼬리 전혀 없음) | `maxWickRatio=0.25` | 완화 |
+| 몸통 증가 | 진입 필수 | `requireBodyGrowth=true` | **원작 유지** — 완화안은 백테스트 4코인 전부 악화로 기각 |
+| 거래량 | 조건 없음 | `volumeFilterRatio=0.8` | 완화로 늘어난 잡신호의 1차 거름 |
+
+### 파라미터
+
+| 파라미터 | 기본값 | 설명 |
+|---------|--------|------|
+| `emaPeriod` | `200` | 장기 추세 기준선 |
+| `rsiPeriod` | `14` | RSI 기간 |
+| `stochPeriod` | `14` | Stochastic 기간 (RSI 최고/최저 탐색 범위) |
+| `signalPeriod` | `3` | %D(Signal) 이동평균 기간 |
+| `maxWickRatio` | `0.25` | 꼬리 허용 비율 (꼬리/몸통). `0.0` = 원작 |
+| `stopLossPct` | `1.5` | 고정 손절 % |
+| `takeProfitPct` | `3.0` | 고정 익절 % |
+| `requireBodyGrowth` | `true` | 몸통 증가를 필수로 둘지 |
+| `bodyGrowthBonus` | `10` | 몸통이 길어진 캔들의 강도 가산점 |
+| `volumeFilterRatio` | `0.8` | `0` 이면 거래량 필터 비활성 |
+| `volumeAvgPeriod` | `20` | 거래량 평균 산출 캔들 수 |
+
+**최소 캔들 수**: 205 (EMA 200 안정화 여유 포함)
+
+---
+
+## 15. MACD_STOCH_BB — MACD 추세 + StochRSI 눌림목 (Stateful)
+
+**1시간봉 최적화 전략 — 상승 추세 안에서 과매도 눌림목을 잡는다**
+
+> **Stateful 전략**입니다. 마지막 BUY 시점을 내부에 기억해 쿨다운을 적용하므로,
+> 인스턴스를 세션별로 분리해서 써야 합니다.
+
+### 동작 원리
+
+추세와 타이밍을 분리해 본다. **MACD 로 추세가 살아 있는지** 확인하고,
+**StochRSI 과매도로 눌림목 타이밍**을 잡는다. 둘 다 맞을 때만 들어간다.
+
+```
+추세   : MACD > 0  AND  히스토그램 확대
+타이밍 : StochRSI %K < 20  AND  %K > %D (골든크로스)
+필터   : 거래량 ≥ 평균 거래량
+횡보   : |MACD| < sidewaysThreshold → HOLD (추세 없음)
+쿨다운 : BUY 후 cooldownCandles 캔들 동안 재진입 금지
+```
+
+### 매수 조건 — 다섯 개 전부 충족
+
+```
+1. MACD > 0                       (상승 추세)
+2. MACD 히스토그램 증가            (상승 힘이 붙는 중)
+3. StochRSI %K < oversoldLevel    (과매도 = 눌림목)
+4. %K > %D                         (반등 시작)
+5. 거래량 ≥ 평균 거래량
+```
+
+### 매도 조건 — 하나라도 충족
+
+```
+1. MACD 히스토그램 감소
+2. OR StochRSI %K > overboughtLevel
+```
+
+### ⚠️ 이름에 BB 가 있지만 볼린저밴드 조건은 없습니다
+
+v2 개선에서 **볼린저밴드 %B 조건(`%B ≤ 0.35`)을 제거**했다. 이유는 그 조건이
+`MACD > 0`(상승 추세)과 **구조적으로 충돌**하기 때문이다 — 상승 추세인데 동시에 밴드 하단에
+붙어 있기를 요구하니 신호가 거의 나오지 않았다(3년 H1 백테스트에서 BTC 5건).
+
+StochRSI 과매도가 이미 눌림목 타이밍을 포착하므로 %B 는 중복·과필터였다.
+**전략 이름은 하위 호환을 위해 그대로 두었다.** `BB_PERIOD` 등 관련 상수도 Config 에 남아
+있지만 판정에 쓰이지 않는다.
+
+### 리스크 관리
+
+BUY 신호에 손절 -2% / 익절 +4% 를 함께 제안한다.
+
+### 파라미터
+
+| 파라미터 | 기본값 | 설명 |
+|---------|--------|------|
+| `fastPeriod` | `12` | MACD 단기 EMA |
+| `slowPeriod` | `26` | MACD 장기 EMA |
+| `signalPeriod` | `9` | MACD 시그널선 |
+| `rsiPeriod` | `14` | RSI 기간 |
+| `stochPeriod` | `14` | Stochastic 기간 |
+| `stochSignalPeriod` | `3` | %D 기간 |
+| `oversoldLevel` | `20.0` | 매수 과매도 기준 |
+| `overboughtLevel` | `80.0` | 매도 과매수 기준 |
+| `volumePeriod` | `20` | 거래량 평균 기간 |
+| `cooldownCandles` | `3` | BUY 후 재진입 금지 캔들 수 |
+| `sidewaysThreshold` | `0.0005` | 이보다 \|MACD\| 가 작으면 횡보로 보고 HOLD |
+| `stopLossPct` | `0.02` | 손절 (소수 표기, -2%) |
+| `takeProfitPct` | `0.04` | 익절 (소수 표기, +4%) |
+
+> **주의**: 이 전략의 `stopLossPct`/`takeProfitPct` 는 **소수**(`0.02` = 2%)다.
+> `HEIKIN_ASHI_STOCH` 는 **퍼센트**(`1.5` = 1.5%)를 쓴다. 두 전략의 표기가 다르다.
+
+**최소 캔들 수**: `slowPeriod + signalPeriod + rsiPeriod + stochPeriod + stochSignalPeriod + 1`
+(기본값 기준 67)
+
 ## 구현 파일 위치
 
 | 전략 | 파일 |
@@ -741,5 +951,8 @@ SELL 강도: 위치비율 × 100          (상단에 가까울수록 강함)
 | VOLUME_DELTA | [VolumeDeltaStrategy.java](../strategy-lib/src/main/java/com/cryptoautotrader/strategy/volumedelta/VolumeDeltaStrategy.java) |
 | STOCHASTIC_RSI | [StochasticRsiStrategy.java](../strategy-lib/src/main/java/com/cryptoautotrader/strategy/stochasticrsi/StochasticRsiStrategy.java) |
 | GRID | [GridStrategy.java](../strategy-lib/src/main/java/com/cryptoautotrader/strategy/grid/GridStrategy.java) |
+| FAIR_VALUE_GAP | [FairValueGapStrategy.java](../strategy-lib/src/main/java/com/cryptoautotrader/strategy/fvg/FairValueGapStrategy.java) |
+| HEIKIN_ASHI_STOCH | [HeikinAshiStochStrategy.java](../strategy-lib/src/main/java/com/cryptoautotrader/strategy/heikinashi/HeikinAshiStochStrategy.java) |
+| MACD_STOCH_BB | [MacdStochBbStrategy.java](../strategy-lib/src/main/java/com/cryptoautotrader/strategy/macdstochbb/MacdStochBbStrategy.java) |
 | 전략 레지스트리 | [StrategyRegistry.java](../strategy-lib/src/main/java/com/cryptoautotrader/strategy/StrategyRegistry.java) |
 | 공통 지표 유틸 | [IndicatorUtils.java](../strategy-lib/src/main/java/com/cryptoautotrader/strategy/IndicatorUtils.java) |

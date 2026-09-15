@@ -1,3 +1,16 @@
+> ## ⚠️ `COMPOSITE_BREAKOUT_VD` 는 존재하지 않는 전략입니다
+>
+> 이 문서는 아래에서 `COMPOSITE_BREAKOUT` 과 `COMPOSITE_BREAKOUT_VD` 를 비교하지만,
+> **`COMPOSITE_BREAKOUT_VD` 는 코드 어디에도 등록되어 있지 않습니다**(2026-09-15 대조, 출현 0회).
+> 검토 단계에서 문서에만 남은 이름으로 보입니다. 비교표를 실제 선택지로 읽지 마십시오.
+>
+> 현재 `COMPOSITE_BREAKOUT` 의 실제 구성은 `ATR_BREAKOUT(0.5) + VOLUME_DELTA(0.3) + MACD(0.2)`
+> 이며 `RsiVetoStrategy(RSI>75)` 로 감싸여 있습니다 —
+> [`COMPOSITE_STRATEGIES_GUIDE.md` §6](COMPOSITE_STRATEGIES_GUIDE.md#6-composite_breakout--변동성-돌파--rsi-veto) 참조.
+> 최종 근거는 [`CompositePresetRegistrar.java`](../../web-api/src/main/java/com/cryptoautotrader/api/config/CompositePresetRegistrar.java).
+
+---
+
 # COMPOSITE_BREAKOUT 전략 가이드
 
 > 변동성 돌파 + 볼륨 압력 + RSI 브레이크 + EMA 추세 필터로 구성된 **추세장 특화 전략**.
@@ -429,10 +442,10 @@ ETH 전용으로 설계되었으나, ATR 기반 동적 기준선 덕분에 **변
 
 | 항목 | 파일 |
 |------|------|
-| 전략 등록 | [CompositePresetRegistrar.java](../web-api/src/main/java/com/cryptoautotrader/api/config/CompositePresetRegistrar.java) |
-| 가중 투표 엔진 + EMA 필터 | [CompositeStrategy.java](../core-engine/src/main/java/com/cryptoautotrader/core/selector/CompositeStrategy.java) |
-| ATR_BREAKOUT 전략 | [AtrBreakoutStrategy.java](../strategy-lib/src/main/java/com/cryptoautotrader/strategy/atrbreakout/AtrBreakoutStrategy.java) |
-| VOLUME_DELTA 전략 | [VolumeDeltaStrategy.java](../strategy-lib/src/main/java/com/cryptoautotrader/strategy/volumedelta/VolumeDeltaStrategy.java) |
-| RSI 전략 | [RsiStrategy.java](../strategy-lib/src/main/java/com/cryptoautotrader/strategy/rsi/RsiStrategy.java) |
-| EMA_CROSS 전략 | [EmaCrossStrategy.java](../strategy-lib/src/main/java/com/cryptoautotrader/strategy/ema/EmaCrossStrategy.java) |
+| 전략 등록 | [CompositePresetRegistrar.java](../../web-api/src/main/java/com/cryptoautotrader/api/config/CompositePresetRegistrar.java) |
+| 가중 투표 엔진 + EMA 필터 | [CompositeStrategy.java](../../core-engine/src/main/java/com/cryptoautotrader/core/selector/CompositeStrategy.java) |
+| ATR_BREAKOUT 전략 | [AtrBreakoutStrategy.java](../../strategy-lib/src/main/java/com/cryptoautotrader/strategy/atrbreakout/AtrBreakoutStrategy.java) |
+| VOLUME_DELTA 전략 | [VolumeDeltaStrategy.java](../../strategy-lib/src/main/java/com/cryptoautotrader/strategy/volumedelta/VolumeDeltaStrategy.java) |
+| RSI 전략 | [RsiStrategy.java](../../strategy-lib/src/main/java/com/cryptoautotrader/strategy/rsi/RsiStrategy.java) |
+| EMA_CROSS 전략 | [EmaCrossStrategy.java](../../strategy-lib/src/main/java/com/cryptoautotrader/strategy/ema/EmaCrossStrategy.java) |
 | 복합 전략 전체 가이드 | [COMPOSITE_STRATEGIES_GUIDE.md](./COMPOSITE_STRATEGIES_GUIDE.md) |

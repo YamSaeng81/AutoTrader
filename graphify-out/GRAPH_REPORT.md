@@ -1,12 +1,29 @@
+> ## âš ï¸ 2026-04-21 ìŠ¤ëƒ…ìƒ·ì…ë‹ˆë‹¤
+>
+> ì´ ì§€ì‹ê·¸ë˜í”„ëŠ” **2026-04-21 ì‹œì ì˜ ì½”ë“œ**ë¥¼ ë¶„ì„í•œ ê²°ê³¼ì…ë‹ˆë‹¤. ì´í›„ 5ê°œì›”ê°„
+> êµ¬ì¡°Â·ì „ëµÂ·ìŠ¤í‚¤ë§ˆê°€ í¬ê²Œ ë°”ë€Œì—ˆìœ¼ë¯€ë¡œ **í˜„ì¬ êµ¬ì¡°ì˜ ê·¼ê±°ë¡œ ì“°ì§€ ë§ˆì‹­ì‹œì˜¤.**
+>
+> í˜„ì¬ êµ¬ì¡°ëŠ” [`PROJECT_STRUCTURE_ANALYSIS.md`](../PROJECT_STRUCTURE_ANALYSIS.md) ì—
+> ì½”ë“œ ì‹¤ì¸¡ ê¸°ì¤€ìœ¼ë¡œ ì •ë¦¬ë˜ì–´ ìˆìŠµë‹ˆë‹¤.
+>
+> ì´ í´ë”ì˜ ë‚˜ë¨¸ì§€ ì‚°ì¶œë¬¼(`obsidian/`, `cache/`, `graph.json`, `manifest.json`)ì€
+> 2026-09-15 ì— git ì¶”ì ì—ì„œ ì œì™¸í–ˆìŠµë‹ˆë‹¤ â€” ìƒì„±ë¬¼ì´ê³  `/graphify` ì¬ì‹¤í–‰ìœ¼ë¡œ ë‹¤ì‹œ ë§Œë“¤ ìˆ˜
+> ìˆê¸° ë•Œë¬¸ì…ë‹ˆë‹¤. ì‚¬ëŒì´ ì—¬ëŠ” ì´ íŒŒì¼ê³¼ `graph.html` ë§Œ ì¶”ì í•©ë‹ˆë‹¤.
+>
+> ë˜í•œ ì´ íŒŒì¼ì€ ì›ë˜ **cp949 ë¡œ ì €ì¥ë˜ì–´** UTF-8 ë„êµ¬ì—ì„œ ê¹¨ì ¸ ì½í˜”ìŠµë‹ˆë‹¤.
+> ê°™ì€ ì •ë¦¬ì—ì„œ UTF-8 ë¡œ ë³€í™˜í–ˆìŠµë‹ˆë‹¤.
+
+---
+
 # Graph Report - D:/Claude Code/projects/crypto-auto-trader  (2026-04-21)
 
 ## Corpus Check
-- Large corpus: 414 files ¡¤ ~283,501 words. Semantic extraction will be expensive (many Claude tokens). Consider running on a subfolder, or use --no-semantic to run AST-only.
+- Large corpus: 414 files Â· ~283,501 words. Semantic extraction will be expensive (many Claude tokens). Consider running on a subfolder, or use --no-semantic to run AST-only.
 
 ## Summary
-- 2518 nodes ¡¤ 5700 edges ¡¤ 228 communities detected
-- Extraction: 50% EXTRACTED ¡¤ 50% INFERRED ¡¤ 0% AMBIGUOUS ¡¤ INFERRED: 2873 edges (avg confidence: 0.8)
-- Token cost: 0 input ¡¤ 0 output
+- 2518 nodes Â· 5700 edges Â· 228 communities detected
+- Extraction: 50% EXTRACTED Â· 50% INFERRED Â· 0% AMBIGUOUS Â· INFERRED: 2873 edges (avg confidence: 0.8)
+- Token cost: 0 input Â· 0 output
 
 ## Community Hubs (Navigation)
 - [[_COMMUNITY_Backtest Runner & Orchestration|Backtest Runner & Orchestration]]
@@ -252,15 +269,15 @@
 
 ## Surprising Connections (you probably didn't know these)
 - `CompositeStrategy` --implements--> `Weighted Voting Engine`  [EXTRACTED]
-  D:\Claude Code\projects\crypto-auto-trader\core-engine\src\main\java\com\cryptoautotrader\core\selector\CompositeStrategy.java ¡æ docs/old/CompositeStrategy.md
+  D:\Claude Code\projects\crypto-auto-trader\core-engine\src\main\java\com\cryptoautotrader\core\selector\CompositeStrategy.java â†’ docs/old/CompositeStrategy.md
 - `CompositeStrategy` --calls--> `StrategySelector`  [EXTRACTED]
-  D:\Claude Code\projects\crypto-auto-trader\core-engine\src\main\java\com\cryptoautotrader\core\selector\CompositeStrategy.java ¡æ docs/old/CompositeStrategy.md
+  D:\Claude Code\projects\crypto-auto-trader\core-engine\src\main\java\com\cryptoautotrader\core\selector\CompositeStrategy.java â†’ docs/old/CompositeStrategy.md
 - `Next.js Wordmark Logo SVG` --conceptually_related_to--> `Next.js 14 (App Router)`  [INFERRED]
-  crypto-trader-frontend/public/next.svg ¡æ docs/old/PHASE_PROCESS/FRONTEND_GUIDE.md
+  crypto-trader-frontend/public/next.svg â†’ docs/old/PHASE_PROCESS/FRONTEND_GUIDE.md
 - `BacktestEngineTest` --calls--> `of()`  [INFERRED]
-  D:\Claude Code\projects\crypto-auto-trader\core-engine\src\test\java\com\cryptoautotrader\core\backtest\BacktestEngineTest.java ¡æ D:\Claude Code\projects\crypto-auto-trader\core-engine\src\main\java\com\cryptoautotrader\core\model\CoinPair.java
+  D:\Claude Code\projects\crypto-auto-trader\core-engine\src\test\java\com\cryptoautotrader\core\backtest\BacktestEngineTest.java â†’ D:\Claude Code\projects\crypto-auto-trader\core-engine\src\main\java\com\cryptoautotrader\core\model\CoinPair.java
 - `PortfolioManagerTest` --calls--> `of()`  [INFERRED]
-  D:\Claude Code\projects\crypto-auto-trader\core-engine\src\test\java\com\cryptoautotrader\core\portfolio\PortfolioManagerTest.java ¡æ D:\Claude Code\projects\crypto-auto-trader\core-engine\src\main\java\com\cryptoautotrader\core\model\CoinPair.java
+  D:\Claude Code\projects\crypto-auto-trader\core-engine\src\test\java\com\cryptoautotrader\core\portfolio\PortfolioManagerTest.java â†’ D:\Claude Code\projects\crypto-auto-trader\core-engine\src\main\java\com\cryptoautotrader\core\model\CoinPair.java
 
 ## Communities
 
@@ -438,7 +455,7 @@ Nodes (1): TestRedisConfig
 
 ### Community 43 - "Module Group 43"
 Cohesion: 0.4
-Nodes (5): Circuit Breaker (¼¼¼Çº° ÀÚµ¿ ºñ»óÁ¤Áö), ½ÇÀü/¹éÅ×½ºÆ® Ã¼°á°¡ Drift Æ®·¡Ä¿, ¸ğÀÇ¡æ½ÇÀü ÀÚµ¿ ½Â°İ ÆÄÀÌÇÁ¶óÀÎ, UpbitApiRateLimiter (Semaphore ±â¹İ), PROGRESS.md (ÇöÀç ÀÛ¾÷ »óÅÂ)
+Nodes (5): Circuit Breaker (ì„¸ì…˜ë³„ ìë™ ë¹„ìƒì •ì§€), ì‹¤ì „/ë°±í…ŒìŠ¤íŠ¸ ì²´ê²°ê°€ Drift íŠ¸ë˜ì»¤, ëª¨ì˜â†’ì‹¤ì „ ìë™ ìŠ¹ê²© íŒŒì´í”„ë¼ì¸, UpbitApiRateLimiter (Semaphore ê¸°ë°˜), PROGRESS.md (í˜„ì¬ ì‘ì—… ìƒíƒœ)
 
 ### Community 44 - "Module Group 44"
 Cohesion: 0.4
@@ -790,7 +807,7 @@ Nodes (1): StrategyTypeEnabledRepository
 
 ### Community 131 - "Module Group 131"
 Cohesion: 1.0
-Nodes (2): RegimeAdaptiveStrategy.java, ½ÃÀå ±¹¸é (Market Regime) °¨Áö
+Nodes (2): RegimeAdaptiveStrategy.java, ì‹œì¥ êµ­ë©´ (Market Regime) ê°ì§€
 
 ### Community 132 - "Module Group 132"
 Cohesion: 1.0
@@ -938,51 +955,51 @@ Nodes (0):
 
 ### Community 168 - "Module Group 168"
 Cohesion: 1.0
-Nodes (1): °ËÁõ °á°ú º¸°í¼­ v6.0 (CHECK_RESULT.md)
+Nodes (1): ê²€ì¦ ê²°ê³¼ ë³´ê³ ì„œ v6.0 (CHECK_RESULT.md)
 
 ### Community 169 - "Module Group 169"
 Cohesion: 1.0
-Nodes (1): º¹ÇÕ Àü·« »ç¿ëÀÚ °¡ÀÌµå
+Nodes (1): ë³µí•© ì „ëµ ì‚¬ìš©ì ê°€ì´ë“œ
 
 ### Community 170 - "Module Group 170"
 Cohesion: 1.0
-Nodes (1): Ubuntu ¿î¿µ¼­¹ö ¹èÆ÷ °¡ÀÌµå
+Nodes (1): Ubuntu ìš´ì˜ì„œë²„ ë°°í¬ ê°€ì´ë“œ
 
 ### Community 171 - "Module Group 171"
 Cohesion: 1.0
-Nodes (1): °³¹ß »óÅÂ °ËÁõ DEV_STATUS_REVIEW_v3.md
+Nodes (1): ê°œë°œ ìƒíƒœ ê²€ì¦ DEV_STATUS_REVIEW_v3.md
 
 ### Community 172 - "Module Group 172"
 Cohesion: 1.0
-Nodes (1): PROGRESS_A.md (¿î¿µ ÀÌ½´ ·Î±×)
+Nodes (1): PROGRESS_A.md (ìš´ì˜ ì´ìŠˆ ë¡œê·¸)
 
 ### Community 173 - "Module Group 173"
 Cohesion: 1.0
-Nodes (1): °æ¿µÁø º¸°í¼­ v3.0
+Nodes (1): ê²½ì˜ì§„ ë³´ê³ ì„œ v3.0
 
 ### Community 174 - "Module Group 174"
 Cohesion: 1.0
-Nodes (1): ±â¼ú »ó¼¼ º¸°í¼­ v3.0
+Nodes (1): ê¸°ìˆ  ìƒì„¸ ë³´ê³ ì„œ v3.0
 
 ### Community 175 - "Module Group 175"
 Cohesion: 1.0
-Nodes (1): ´ÜÀÏ Àü·« »ç¿ëÀÚ °¡ÀÌµå
+Nodes (1): ë‹¨ì¼ ì „ëµ ì‚¬ìš©ì ê°€ì´ë“œ
 
 ### Community 176 - "Module Group 176"
 Cohesion: 1.0
-Nodes (1): ¾ÏÈ£È­Æó ÀÚµ¿¸Å¸Å Àü·« ºĞ¼® & °³¼± ·Îµå¸Ê v4
+Nodes (1): ì•”í˜¸í™”í ìë™ë§¤ë§¤ ì „ëµ ë¶„ì„ & ê°œì„  ë¡œë“œë§µ v4
 
 ### Community 177 - "Module Group 177"
 Cohesion: 1.0
-Nodes (1): ¹éÅ×½ºÆ® °á°ú ±â·Ï (old)
+Nodes (1): ë°±í…ŒìŠ¤íŠ¸ ê²°ê³¼ ê¸°ë¡ (old)
 
 ### Community 178 - "Module Group 178"
 Cohesion: 1.0
-Nodes (1): °ËÁõ °á°ú º¸°í¼­ v4.1 (old)
+Nodes (1): ê²€ì¦ ê²°ê³¼ ë³´ê³ ì„œ v4.1 (old)
 
 ### Community 179 - "Module Group 179"
 Cohesion: 1.0
-Nodes (1): CryptoAutoTrader ½Ã½ºÅÛ
+Nodes (1): CryptoAutoTrader ì‹œìŠ¤í…œ
 
 ### Community 180 - "Module Group 180"
 Cohesion: 1.0
@@ -1038,35 +1055,35 @@ Nodes (1): IndicatorUtils.java
 
 ### Community 193 - "Module Group 193"
 Cohesion: 1.0
-Nodes (1): COMPOSITE_MOMENTUM Àü·«
+Nodes (1): COMPOSITE_MOMENTUM ì „ëµ
 
 ### Community 194 - "Module Group 194"
 Cohesion: 1.0
-Nodes (1): COMPOSITE_ETH Àü·«
+Nodes (1): COMPOSITE_ETH ì „ëµ
 
 ### Community 195 - "Module Group 195"
 Cohesion: 1.0
-Nodes (1): COMPOSITE Àü·« (½ÃÀå ±¹¸é ÀÚµ¿ °¨Áö)
+Nodes (1): COMPOSITE ì „ëµ (ì‹œì¥ êµ­ë©´ ìë™ ê°ì§€)
 
 ### Community 196 - "Module Group 196"
 Cohesion: 1.0
-Nodes (1): MACD_STOCH_BB Àü·«
+Nodes (1): MACD_STOCH_BB ì „ëµ
 
 ### Community 197 - "Module Group 197"
 Cohesion: 1.0
-Nodes (1): EMA ¹æÇâ ÇÊÅÍ
+Nodes (1): EMA ë°©í–¥ í•„í„°
 
 ### Community 198 - "Module Group 198"
 Cohesion: 1.0
-Nodes (1): Partial Fill ÀÌ¿ù ·ÎÁ÷ ¸ğ¼ø
+Nodes (1): Partial Fill ì´ì›” ë¡œì§ ëª¨ìˆœ
 
 ### Community 199 - "Module Group 199"
 Cohesion: 1.0
-Nodes (1): ¸®½ºÅ© Ã¼Å© ½ÇÁ¦ ÀÚº» ¿À·ù
+Nodes (1): ë¦¬ìŠ¤í¬ ì²´í¬ ì‹¤ì œ ìë³¸ ì˜¤ë¥˜
 
 ### Community 200 - "Module Group 200"
 Cohesion: 1.0
-Nodes (1): 4h ½ÅÈ£ ÀûÁß·ü ±â¹İ °¡ÁßÄ¡ ¿À·ù
+Nodes (1): 4h ì‹ í˜¸ ì ì¤‘ë¥  ê¸°ë°˜ ê°€ì¤‘ì¹˜ ì˜¤ë¥˜
 
 ### Community 201 - "Module Group 201"
 Cohesion: 1.0
@@ -1074,43 +1091,43 @@ Nodes (1): GitHub Actions CI/CD
 
 ### Community 202 - "Module Group 202"
 Cohesion: 1.0
-Nodes (1): Prometheus + Grafana ¸ğ´ÏÅÍ¸µ
+Nodes (1): Prometheus + Grafana ëª¨ë‹ˆí„°ë§
 
 ### Community 203 - "Module Group 203"
 Cohesion: 1.0
-Nodes (1): ADX ÇÊÅÍ (È¾º¸Àå ½ÅÈ£ ¾ïÁ¦)
+Nodes (1): ADX í•„í„° (íš¡ë³´ì¥ ì‹ í˜¸ ì–µì œ)
 
 ### Community 204 - "Module Group 204"
 Cohesion: 1.0
-Nodes (1): ATR º¯µ¿¼º µ¹ÆÄ ·ÎÁ÷
+Nodes (1): ATR ë³€ë™ì„± ëŒíŒŒ ë¡œì§
 
 ### Community 205 - "Module Group 205"
 Cohesion: 1.0
-Nodes (1): ´©Àû º¼·ı µ¨Å¸ ·ÎÁ÷
+Nodes (1): ëˆ„ì  ë³¼ë¥¨ ë¸íƒ€ ë¡œì§
 
 ### Community 206 - "Module Group 206"
 Cohesion: 1.0
-Nodes (1): ÀÏº° Equity Curve ±â¹İ Sharpe Àç°è»ê
+Nodes (1): ì¼ë³„ Equity Curve ê¸°ë°˜ Sharpe ì¬ê³„ì‚°
 
 ### Community 207 - "Module Group 207"
 Cohesion: 1.0
-Nodes (1): OOS µ¶¸³¼º (Walk-Forward)
+Nodes (1): OOS ë…ë¦½ì„± (Walk-Forward)
 
 ### Community 208 - "Module Group 208"
 Cohesion: 1.0
-Nodes (1): Àü·« ¿î¿µ °¡´É ¿©ºÎ ¸ÅÆ®¸¯½º
+Nodes (1): ì „ëµ ìš´ì˜ ê°€ëŠ¥ ì—¬ë¶€ ë§¤íŠ¸ë¦­ìŠ¤
 
 ### Community 209 - "Module Group 209"
 Cohesion: 1.0
-Nodes (1): SessionBalanceUpdater (³«°üÀû ¶ô ÇïÆÛ)
+Nodes (1): SessionBalanceUpdater (ë‚™ê´€ì  ë½ í—¬í¼)
 
 ### Community 210 - "Module Group 210"
 Cohesion: 1.0
-Nodes (1): KRW-BTC 2025 ¹éÅ×½ºÆ® °á°ú
+Nodes (1): KRW-BTC 2025 ë°±í…ŒìŠ¤íŠ¸ ê²°ê³¼
 
 ### Community 211 - "Module Group 211"
 Cohesion: 1.0
-Nodes (1): KRW-ETH 2025 ¹éÅ×½ºÆ® °á°ú
+Nodes (1): KRW-ETH 2025 ë°±í…ŒìŠ¤íŠ¸ ê²°ê³¼
 
 ### Community 212 - "Module Group 212"
 Cohesion: 1.0
@@ -1126,7 +1143,7 @@ Nodes (1): Stop-Loss / Take-Profit (Missing)
 
 ### Community 215 - "Module Group 215"
 Cohesion: 1.0
-Nodes (1): Agent Pipeline (SparkAI¡æPLAN¡æDesign¡æDo¡æCheck¡æReport)
+Nodes (1): Agent Pipeline (SparkAIâ†’PLANâ†’Designâ†’Doâ†’Checkâ†’Report)
 
 ### Community 216 - "Module Group 216"
 Cohesion: 1.0
@@ -1178,7 +1195,7 @@ Nodes (1): TimescaleDB (PostgreSQL Extension)
 
 ## Knowledge Gaps
 - **168 isolated node(s):** `BacktestResult`, `WalkForwardResult`, `WindowResult`, `PerformanceReport`, `TradeRecord` (+163 more)
-  These have ¡Â1 connection - possible missing edges or undocumented components.
+  These have â‰¤1 connection - possible missing edges or undocumented components.
 - **Thin community `Module Group 86`** (2 nodes): `BacktestResult`, `BacktestResult.java`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Module Group 87`** (2 nodes): `PerformanceReport.java`, `PerformanceReport`
@@ -1269,7 +1286,7 @@ Nodes (1): TimescaleDB (PostgreSQL Extension)
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Module Group 130`** (2 nodes): `StrategyTypeEnabledRepository.java`, `StrategyTypeEnabledRepository`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Module Group 131`** (2 nodes): `RegimeAdaptiveStrategy.java`, `½ÃÀå ±¹¸é (Market Regime) °¨Áö`
+- **Thin community `Module Group 131`** (2 nodes): `RegimeAdaptiveStrategy.java`, `ì‹œì¥ êµ­ë©´ (Market Regime) ê°ì§€`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Module Group 132`** (2 nodes): `RiskEngine (Hardcoded Correlations)`, `Risk Engine Absence - Critical Gap (v2 analysis)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
@@ -1343,29 +1360,29 @@ Nodes (1): TimescaleDB (PostgreSQL Extension)
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Module Group 167`** (1 nodes): `CHANGELOG.md`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Module Group 168`** (1 nodes): `°ËÁõ °á°ú º¸°í¼­ v6.0 (CHECK_RESULT.md)`
+- **Thin community `Module Group 168`** (1 nodes): `ê²€ì¦ ê²°ê³¼ ë³´ê³ ì„œ v6.0 (CHECK_RESULT.md)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Module Group 169`** (1 nodes): `º¹ÇÕ Àü·« »ç¿ëÀÚ °¡ÀÌµå`
+- **Thin community `Module Group 169`** (1 nodes): `ë³µí•© ì „ëµ ì‚¬ìš©ì ê°€ì´ë“œ`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Module Group 170`** (1 nodes): `Ubuntu ¿î¿µ¼­¹ö ¹èÆ÷ °¡ÀÌµå`
+- **Thin community `Module Group 170`** (1 nodes): `Ubuntu ìš´ì˜ì„œë²„ ë°°í¬ ê°€ì´ë“œ`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Module Group 171`** (1 nodes): `°³¹ß »óÅÂ °ËÁõ DEV_STATUS_REVIEW_v3.md`
+- **Thin community `Module Group 171`** (1 nodes): `ê°œë°œ ìƒíƒœ ê²€ì¦ DEV_STATUS_REVIEW_v3.md`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Module Group 172`** (1 nodes): `PROGRESS_A.md (¿î¿µ ÀÌ½´ ·Î±×)`
+- **Thin community `Module Group 172`** (1 nodes): `PROGRESS_A.md (ìš´ì˜ ì´ìŠˆ ë¡œê·¸)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Module Group 173`** (1 nodes): `°æ¿µÁø º¸°í¼­ v3.0`
+- **Thin community `Module Group 173`** (1 nodes): `ê²½ì˜ì§„ ë³´ê³ ì„œ v3.0`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Module Group 174`** (1 nodes): `±â¼ú »ó¼¼ º¸°í¼­ v3.0`
+- **Thin community `Module Group 174`** (1 nodes): `ê¸°ìˆ  ìƒì„¸ ë³´ê³ ì„œ v3.0`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Module Group 175`** (1 nodes): `´ÜÀÏ Àü·« »ç¿ëÀÚ °¡ÀÌµå`
+- **Thin community `Module Group 175`** (1 nodes): `ë‹¨ì¼ ì „ëµ ì‚¬ìš©ì ê°€ì´ë“œ`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Module Group 176`** (1 nodes): `¾ÏÈ£È­Æó ÀÚµ¿¸Å¸Å Àü·« ºĞ¼® & °³¼± ·Îµå¸Ê v4`
+- **Thin community `Module Group 176`** (1 nodes): `ì•”í˜¸í™”í ìë™ë§¤ë§¤ ì „ëµ ë¶„ì„ & ê°œì„  ë¡œë“œë§µ v4`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Module Group 177`** (1 nodes): `¹éÅ×½ºÆ® °á°ú ±â·Ï (old)`
+- **Thin community `Module Group 177`** (1 nodes): `ë°±í…ŒìŠ¤íŠ¸ ê²°ê³¼ ê¸°ë¡ (old)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Module Group 178`** (1 nodes): `°ËÁõ °á°ú º¸°í¼­ v4.1 (old)`
+- **Thin community `Module Group 178`** (1 nodes): `ê²€ì¦ ê²°ê³¼ ë³´ê³ ì„œ v4.1 (old)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Module Group 179`** (1 nodes): `CryptoAutoTrader ½Ã½ºÅÛ`
+- **Thin community `Module Group 179`** (1 nodes): `CryptoAutoTrader ì‹œìŠ¤í…œ`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Module Group 180`** (1 nodes): `StrategyWeightOptimizer.java`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
@@ -1393,43 +1410,43 @@ Nodes (1): TimescaleDB (PostgreSQL Extension)
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Module Group 192`** (1 nodes): `IndicatorUtils.java`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Module Group 193`** (1 nodes): `COMPOSITE_MOMENTUM Àü·«`
+- **Thin community `Module Group 193`** (1 nodes): `COMPOSITE_MOMENTUM ì „ëµ`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Module Group 194`** (1 nodes): `COMPOSITE_ETH Àü·«`
+- **Thin community `Module Group 194`** (1 nodes): `COMPOSITE_ETH ì „ëµ`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Module Group 195`** (1 nodes): `COMPOSITE Àü·« (½ÃÀå ±¹¸é ÀÚµ¿ °¨Áö)`
+- **Thin community `Module Group 195`** (1 nodes): `COMPOSITE ì „ëµ (ì‹œì¥ êµ­ë©´ ìë™ ê°ì§€)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Module Group 196`** (1 nodes): `MACD_STOCH_BB Àü·«`
+- **Thin community `Module Group 196`** (1 nodes): `MACD_STOCH_BB ì „ëµ`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Module Group 197`** (1 nodes): `EMA ¹æÇâ ÇÊÅÍ`
+- **Thin community `Module Group 197`** (1 nodes): `EMA ë°©í–¥ í•„í„°`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Module Group 198`** (1 nodes): `Partial Fill ÀÌ¿ù ·ÎÁ÷ ¸ğ¼ø`
+- **Thin community `Module Group 198`** (1 nodes): `Partial Fill ì´ì›” ë¡œì§ ëª¨ìˆœ`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Module Group 199`** (1 nodes): `¸®½ºÅ© Ã¼Å© ½ÇÁ¦ ÀÚº» ¿À·ù`
+- **Thin community `Module Group 199`** (1 nodes): `ë¦¬ìŠ¤í¬ ì²´í¬ ì‹¤ì œ ìë³¸ ì˜¤ë¥˜`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Module Group 200`** (1 nodes): `4h ½ÅÈ£ ÀûÁß·ü ±â¹İ °¡ÁßÄ¡ ¿À·ù`
+- **Thin community `Module Group 200`** (1 nodes): `4h ì‹ í˜¸ ì ì¤‘ë¥  ê¸°ë°˜ ê°€ì¤‘ì¹˜ ì˜¤ë¥˜`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Module Group 201`** (1 nodes): `GitHub Actions CI/CD`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Module Group 202`** (1 nodes): `Prometheus + Grafana ¸ğ´ÏÅÍ¸µ`
+- **Thin community `Module Group 202`** (1 nodes): `Prometheus + Grafana ëª¨ë‹ˆí„°ë§`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Module Group 203`** (1 nodes): `ADX ÇÊÅÍ (È¾º¸Àå ½ÅÈ£ ¾ïÁ¦)`
+- **Thin community `Module Group 203`** (1 nodes): `ADX í•„í„° (íš¡ë³´ì¥ ì‹ í˜¸ ì–µì œ)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Module Group 204`** (1 nodes): `ATR º¯µ¿¼º µ¹ÆÄ ·ÎÁ÷`
+- **Thin community `Module Group 204`** (1 nodes): `ATR ë³€ë™ì„± ëŒíŒŒ ë¡œì§`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Module Group 205`** (1 nodes): `´©Àû º¼·ı µ¨Å¸ ·ÎÁ÷`
+- **Thin community `Module Group 205`** (1 nodes): `ëˆ„ì  ë³¼ë¥¨ ë¸íƒ€ ë¡œì§`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Module Group 206`** (1 nodes): `ÀÏº° Equity Curve ±â¹İ Sharpe Àç°è»ê`
+- **Thin community `Module Group 206`** (1 nodes): `ì¼ë³„ Equity Curve ê¸°ë°˜ Sharpe ì¬ê³„ì‚°`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Module Group 207`** (1 nodes): `OOS µ¶¸³¼º (Walk-Forward)`
+- **Thin community `Module Group 207`** (1 nodes): `OOS ë…ë¦½ì„± (Walk-Forward)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Module Group 208`** (1 nodes): `Àü·« ¿î¿µ °¡´É ¿©ºÎ ¸ÅÆ®¸¯½º`
+- **Thin community `Module Group 208`** (1 nodes): `ì „ëµ ìš´ì˜ ê°€ëŠ¥ ì—¬ë¶€ ë§¤íŠ¸ë¦­ìŠ¤`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Module Group 209`** (1 nodes): `SessionBalanceUpdater (³«°üÀû ¶ô ÇïÆÛ)`
+- **Thin community `Module Group 209`** (1 nodes): `SessionBalanceUpdater (ë‚™ê´€ì  ë½ í—¬í¼)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Module Group 210`** (1 nodes): `KRW-BTC 2025 ¹éÅ×½ºÆ® °á°ú`
+- **Thin community `Module Group 210`** (1 nodes): `KRW-BTC 2025 ë°±í…ŒìŠ¤íŠ¸ ê²°ê³¼`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Module Group 211`** (1 nodes): `KRW-ETH 2025 ¹éÅ×½ºÆ® °á°ú`
+- **Thin community `Module Group 211`** (1 nodes): `KRW-ETH 2025 ë°±í…ŒìŠ¤íŠ¸ ê²°ê³¼`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Module Group 212`** (1 nodes): `MarketRegime Enum (TREND/RANGE/VOLATILITY/TRANSITIONAL)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
@@ -1437,7 +1454,7 @@ Nodes (1): TimescaleDB (PostgreSQL Extension)
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Module Group 214`** (1 nodes): `Stop-Loss / Take-Profit (Missing)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Module Group 215`** (1 nodes): `Agent Pipeline (SparkAI¡æPLAN¡æDesign¡æDo¡æCheck¡æReport)`
+- **Thin community `Module Group 215`** (1 nodes): `Agent Pipeline (SparkAIâ†’PLANâ†’Designâ†’Doâ†’Checkâ†’Report)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Module Group 216`** (1 nodes): `CryptoAutoTrader Project Idea`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.

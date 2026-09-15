@@ -417,7 +417,7 @@ CryptoAutoTrader 프로젝트는 Phase 1(백테스팅 엔진)부터 Phase 3.5(Pa
 
 - [IDEA.md](./IDEA.md) -- 아이디어 문서 (프로젝트 배경, 핵심 기능, 차별화)
 - [PLAN.md](./PLAN.md) -- 프로젝트 계획서 (범위, 마일스톤, 리스크)
-- [DESIGN.md](./DESIGN.md) -- 기술 설계서 v1.2 (아키텍처, API, DB, UI)
+- [DESIGN.md](../DESIGN.md) -- 기술 설계서 v1.2 (아키텍처, API, DB, UI)
 - [CHECK_RESULT.md](./CHECK_RESULT.md) -- 검증 결과 보고서
 - [DEV_STATUS_REVIEW_v2.md](./DEV_STATUS_REVIEW_v2.md) -- 개발 상태 검증 v2.0
 

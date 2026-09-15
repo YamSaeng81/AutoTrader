@@ -212,4 +212,4 @@ ATR 돌파 전략이 ETH의 빈번한 가짜 돌파(whipsaw)에 취약한 것으
 | VOLUME_DELTA 전략 | [VolumeDeltaStrategy.java](../../strategy-lib/src/main/java/com/cryptoautotrader/strategy/volumedelta/VolumeDeltaStrategy.java) |
 | RSI 전략 | [RsiStrategy.java](../../strategy-lib/src/main/java/com/cryptoautotrader/strategy/rsi/RsiStrategy.java) |
 | EMA_CROSS 전략 | [EmaCrossStrategy.java](../../strategy-lib/src/main/java/com/cryptoautotrader/strategy/ema/EmaCrossStrategy.java) |
-| 상세 전략 가이드 | [COMPOSITE_BREAKOUT.md](../COMPOSITE_BREAKOUT.md) |
+| 상세 전략 가이드 | [COMPOSITE_BREAKOUT.md](./COMPOSITE_BREAKOUT.md) |

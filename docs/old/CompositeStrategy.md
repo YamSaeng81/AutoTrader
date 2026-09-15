@@ -156,8 +156,8 @@ sellScore = 0
 
 | 역할 | 파일 |
 |------|------|
-| Regime 감지 | [MarketRegimeDetector.java](../core-engine/src/main/java/com/cryptoautotrader/core/regime/MarketRegimeDetector.java) |
-| Regime 열거형 | [MarketRegime.java](../core-engine/src/main/java/com/cryptoautotrader/core/regime/MarketRegime.java) |
-| 전략 선택 | [StrategySelector.java](../core-engine/src/main/java/com/cryptoautotrader/core/selector/StrategySelector.java) |
-| 가중 전략 래퍼 | [WeightedStrategy.java](../core-engine/src/main/java/com/cryptoautotrader/core/selector/WeightedStrategy.java) |
-| 복합 신호 결합 | [CompositeStrategy.java](../core-engine/src/main/java/com/cryptoautotrader/core/selector/CompositeStrategy.java) |
+| Regime 감지 | [MarketRegimeDetector.java](../../core-engine/src/main/java/com/cryptoautotrader/core/regime/MarketRegimeDetector.java) |
+| Regime 열거형 | [MarketRegime.java](../../core-engine/src/main/java/com/cryptoautotrader/core/regime/MarketRegime.java) |
+| 전략 선택 | [StrategySelector.java](../../core-engine/src/main/java/com/cryptoautotrader/core/selector/StrategySelector.java) |
+| 가중 전략 래퍼 | [WeightedStrategy.java](../../core-engine/src/main/java/com/cryptoautotrader/core/selector/WeightedStrategy.java) |
+| 복합 신호 결합 | [CompositeStrategy.java](../../core-engine/src/main/java/com/cryptoautotrader/core/selector/CompositeStrategy.java) |
