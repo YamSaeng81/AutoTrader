@@ -85,6 +85,23 @@ public interface StrategyLogRepository extends JpaRepository<StrategyLogEntity, 
     List<StrategyLogEntity> findEvaluatedSignalsBySessionType(
             @Param("sessionType") String sessionType, @Param("from") Instant from);
 
+    /**
+     * 최근 실제로 <b>평가된</b> 코인 목록 — 캔들 자동 갱신 대상 산출용 (2026-09-18).
+     *
+     * <p>워치리스트는 매 사이클 메모리에서 계산되고 테이블에 남지 않는다. 그래서 "지금 무엇을
+     * 감시하는가"의 유일한 영속 기록이 이 로그다. {@code CandleDataFreshnessScheduler} 가
+     * 갱신 대상을 하드코딩 8종으로 들고 있다가 <b>동적 워치리스트 코인을 통째로 빠뜨린</b>
+     * 것을 고치기 위해 추가했다 — NEAR 는 60일간 3,885회 평가됐는데 캔들이 0건이었다.</p>
+     *
+     * @param from 이 시각 이후의 평가만 본다
+     * @param minEvals 잡음 제외용 하한 — 한두 번 스쳐 간 코인까지 매일 수집하지 않는다
+     * @return coinPair 목록 (평가 횟수 내림차순)
+     */
+    @Query("SELECT l.coinPair FROM StrategyLogEntity l WHERE l.createdAt >= :from " +
+           "GROUP BY l.coinPair HAVING COUNT(l) >= :minEvals ORDER BY COUNT(l) DESC")
+    List<String> findRecentlyWatchedCoins(@Param("from") Instant from,
+                                          @Param("minEvals") long minEvals);
+
     // ── HOLD 기준선(대조군) 백필용 ────────────────────────────────────────────
     //
     // 2026-09-07: 사후수익 백필이 BUY/SELL 에만 돌아 HOLD 74,462건(DYN_PAPER)이 전부 미평가였다.
