@@ -22,6 +22,7 @@
 
 | 날짜 | 스크립트 | 무엇을 했나 |
 |---|---|---|
+| 2026-09-18 | [`rebaseline_wf_0918.sh`](rebaseline_wf_0918.sh) | 규칙 v3 재검증 기준선 — 운영 5조합 WF 재실행 (`--verify` 로 v3 저장 확인) |
 | 2026-09-14 | [`replace_eul_prom_0914.sh`](replace_eul_prom_0914.sh) | 고정 격자에서 EUL·PROM 을 ETH·XRP 로 교체 |
 | 2026-09-08 | [`revalidate_walk_forward_0908.sh`](revalidate_walk_forward_0908.sh) | Walk Forward 전면 재검증 — 손절 로직 수정 반영 |
 | 2026-09-08 | [`stop_duplicate_paper_sessions.sh`](stop_duplicate_paper_sessions.sh) | 고정코인 PAPER 세션 중복분 정리 |
