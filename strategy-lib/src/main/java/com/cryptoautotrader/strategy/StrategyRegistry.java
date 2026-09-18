@@ -71,16 +71,24 @@ public final class StrategyRegistry {
         return strategy;
     }
 
-    /** 세션별 전략 인스턴스가 필요한지 여부 (StatefulStrategy 구현체인 경우 true) */
-    public static boolean isStateful(String name) {
+    /**
+     * 이 이름으로 <b>새 인스턴스를 뽑을 수 있는지</b> 여부.
+     *
+     * <p>이전 이름은 {@code isStateful} 이었다. 팩토리 등록 여부와 "전략이 상태를 가지는가"는
+     * 같은 질문이 아니다 — 겉보기 stateless 인 복합 전략도 내부에 GRID 나 레짐 감지기를 품으면
+     * 상태를 가지며, 성분을 하나 갈아끼우는 것만으로 그 사실이 조용히 바뀐다.
+     * 그래서 복합 프리셋은 상태 유무와 무관하게 전부 팩토리로 등록하고, 호출자는
+     * "상태가 있는가"가 아니라 "새로 만들 수 있는가"만 묻는다.
+     */
+    public static boolean hasFactory(String name) {
         return FACTORIES.containsKey(name);
     }
 
-    /** StatefulStrategy의 새 인스턴스를 반환 (세션별 상태 격리용) */
+    /** 새 인스턴스를 반환 (실행·세션 단위 상태 격리용). 전체 전략 트리가 새로 만들어진다. */
     public static Strategy createNew(String name) {
         Supplier<Strategy> factory = FACTORIES.get(name);
         if (factory == null) {
-            throw new IllegalArgumentException("StatefulStrategy가 아닌 전략: " + name);
+            throw new IllegalArgumentException("팩토리가 등록되지 않은 전략: " + name);
         }
         return factory.get();
     }

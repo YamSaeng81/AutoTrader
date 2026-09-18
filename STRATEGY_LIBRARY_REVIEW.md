@@ -1,6 +1,6 @@
 # 전략 라이브러리 상세 분석 및 개선 검토
 
-> 최초 작성·재검토: 2026-09-15  
+> 최초 작성: 2026-09-15 / 추가 재검토: 2026-09-18
 > 범위: strategy-lib의 시장 전략 14개, 공통 지표, 복합 전략, 전략 생성·상태 관리, 백테스트·실거래 연결  
 > 이 문서는 코드 검토와 별도 경계 입력 재현 결과를 기록한다. 애플리케이션 코드는 변경하지 않았다.  
 > 코드 근거와 테스트 결과는 검토 당시 작업 트리 기준이다. 운영 DB·실제 배포 버전·시장 데이터 성과를 이번 검토에서 재검증하지 않았다.
@@ -16,7 +16,11 @@
 3. **GRID의 매도 후 레벨 해제, MACD_STOCH_BB의 cooldown, 백테스트의 상태 격리에 문제가 있다.**
 4. **ATR=0에서 예외가 발생하고, 완전 무변동 가격에서 RSI·Volume Delta가 SELL을 낼 수 있다.**
 5. **MTF 상위봉 집계가 실제 시각 경계가 아닌 배열 시작점에 의존한다.**
-6. 기존 전략 테스트 82개는 재실행하여 모두 통과했다. 그러나 별도 입력으로 위 경계 문제 일부를 재현했다. 테스트 성공은 이러한 결함이 없다는 증거가 아니다.
+6. **Walk-Forward의 IS 상태가 OOS로 누출될 수 있고, 별도 Hold-out 성과가 최종 집계·판정에 반영되지 않는다.** 독립 검증이라는 전제가 깨질 수 있다.
+7. **BTC Market Guard가 다음 체결봉의 완성 OHLC를 참조할 수 있으며, 실행 API에 따라 Guard 적용 여부도 다르다.** 백테스트에 미래 참조와 경로별 비동등성이 함께 존재한다.
+8. **성과 지표가 마지막 미청산 포지션의 평가손익을 제외한다.** 표시되는 finalEquity와 전략 순위·Walk-Forward 판정에 쓰는 수익률이 서로 다른 손익 범위를 측정한다.
+9. **백테스트 평가 파라미터에 timeframe이 없어 시간봉별 동적 가중치가 적용되지 않는다.** 운영과 백테스트의 RegimeAdaptive 동작이 달라진다.
+10. 2026-09-18 기준 strategy-lib 82개와 core-engine 231개, 합계 313개 테스트는 모두 통과했다. 그러나 위 경로를 직접 검증하는 회귀 테스트가 없어 테스트 성공은 결함이 없다는 증거가 아니다.
 
 기존의 “검증된 COMPOSITE 전략”, “HEIKIN_ASHI가 구조적으로 가장 완성도 높다”는 표현은 철회한다. 운영상 허용된 전략이라는 사실과 현재 구현의 동등성·수익성이 입증되었다는 판단을 구분해야 한다.
 
@@ -147,6 +151,73 @@ BacktestService의 compositeEthBt()에는 OHLCV 근사의 불확실성을 이유
 또한 RegimeAdaptiveStrategy가 사용하는 [StrategySelector.java](core-engine/src/main/java/com/cryptoautotrader/core/selector/StrategySelector.java)의 ws()도 하위 전략을 공유 레지스트리에서 가져온다. 바깥 세션 인스턴스만 새로 만들어도 내부 상태가 공유될 수 있다.
 
 **개선:** 실행·세션 단위로 전체 전략 트리를 새로 생성한다. 공유 객체에 resetState()만 호출하는 방식은 병렬 실행 격리를 해결하지 못한다.
+
+### 3.5 Walk-Forward의 IS 상태가 OOS로 누출됨
+
+**판정: 코드 확인 / 최우선**
+
+[WalkForwardTestRunner.java](core-engine/src/main/java/com/cryptoautotrader/core/backtest/WalkForwardTestRunner.java)의 evaluateWindow()는 같은 BacktestEngine에 같은 config를 전달하여 IS 백테스트 직후 OOS 백테스트를 실행한다. 이름 기반 run()이 공유 StrategyRegistry 인스턴스를 가져오는 3.4의 구조와 결합하면, IS에서 변경된 GRID·MACD_STOCH_BB·중첩 국면 전략의 상태가 OOS 시작점에 남을 수 있다.
+
+이는 단순한 반복 실행 재현성 문제를 넘어 OOS 독립성을 훼손한다. OOS가 IS에서 학습한 명시적 최적 파라미터만 전달받는 것이 아니라, 문서화되지 않은 런타임 상태까지 전달받을 수 있기 때문이다.
+
+**개선:** 각 IS와 OOS 실행에 새 전체 전략 트리를 생성한다. 특히 IS 종료 후 OOS 인스턴스를 반드시 재생성하고, 동일 윈도우 단독 실행과 IS 직후 실행의 OOS 결과가 같은지 검증한다.
+
+### 3.6 Hold-out 결과가 최종 Walk-Forward 판정에서 제외됨
+
+**판정: 코드 확인 / 최우선**
+
+runWithHoldOut()은 Hold-out 백테스트를 실행하고 마지막 WindowResult로 추가한다. 그러나 반환값의 aggregatedOutSampleMetrics, overfittingScore, verdict에는 base Walk-Forward 값을 그대로 사용한다. allOosTrades도 생성하여 Hold-out 거래만 추가한 뒤 실제 집계에 사용하지 않는다.
+
+따라서 화면이나 응답에는 Hold-out 창이 존재하지만, Hold-out이 큰 손실이어도 전체 verdict가 바뀌지 않을 수 있다. 현재 Hold-out은 독립 최종 게이트가 아니라 표시용 창에 가깝다.
+
+**개선 방향**
+
+- 일반 OOS와 Hold-out 지표를 의미상 분리한다.
+- Hold-out을 합산 지표에 포함하거나, 별도의 holdOutPassed를 최종 필수 게이트로 둔다.
+- Hold-out 손실을 주입했을 때 최종 verdict 또는 승격 가능 상태가 실패로 바뀌는 테스트를 추가한다.
+- 기존 테스트의 “Hold-out 창이 추가되었는가” 검증을 “최종 의사결정에 반영되는가”까지 확장한다.
+
+### 3.7 백테스트에서 timeframe별 동적 가중치가 무시됨
+
+**판정: 코드 확인 / 높음**
+
+[BacktestEngine.java](core-engine/src/main/java/com/cryptoautotrader/core/backtest/BacktestEngine.java)는 전략 평가용 params에 coinPair만 추가하고 config의 timeframe은 추가하지 않는다. 반면 LIVE/DYNAMIC/PAPER 경로는 timeframe을 전달한다.
+
+RegimeAdaptiveStrategy → StrategySelector → WeightOverrideStore 경로는 coin·regime·timeframe 조합으로 동적 가중치를 조회한다. 따라서 백테스트에서는 H1/M15별 override가 무시되고 더 넓은 coin/regime/default 값으로 폴백할 수 있다. 시간봉별 성과를 학습해 저장해도 해당 백테스트가 같은 가중치를 재현하지 못한다.
+
+**개선:** 모든 엔진이 동일한 평가 컨텍스트를 구성하도록 타입화된 StrategyEvaluationContext 또는 공통 빌더를 사용한다. 최소한 coinPair, timeframe, regime, 데이터 출처와 파라미터 버전을 동등성 테스트 대상으로 삼는다.
+
+### 3.8 BTC Market Guard의 미래 참조와 실행 경로 불일치
+
+**판정: 코드 확인 / 최우선**
+
+BacktestEngine은 현재 창으로 신호를 계산하고 nextCandle.open에서 체결한다. 그러나 BTC 포인터는 nextCandle.time 이하까지 전진한 뒤 BtcMarketGuard에 전달되며, Guard는 마지막 BTC 캔들의 close와 최근 high를 사용한다.
+
+수집된 Candle.time이 캔들 시작 시각이라면 nextCandle.open 시점에 같은 BTC 캔들의 종가·고가는 아직 확정되지 않았다. 그 봉 후반의 BTC 급락이나 고가를 진입 시점에 미리 아는 look-ahead bias가 된다.
+
+또한 [BacktestService.java](web-api/src/main/java/com/cryptoautotrader/api/service/BacktestService.java)의 단일 백테스트 config에는 btcCandles가 주입되지만, 검토 당시 Walk-Forward·일부 다중/일괄 BacktestConfig 생성 경로에는 같은 주입이 없다. 같은 전략·기간이라도 호출 API에 따라 Guard 적용 여부가 달라질 수 있다.
+
+**개선 방향**
+
+- 신호 판단 시점에 완전히 종료된 BTC 캔들만 Guard에 전달한다.
+- 캔들의 시작 시각과 종료 시각 계약을 명시하고 시간봉이 다른 경우도 정렬한다.
+- 모든 백테스트 진입점에서 Guard 적용 정책과 BTC 데이터 주입을 통일한다.
+- 다음 BTC 캔들 내부의 급락·고가를 바꿔도 그 캔들 시가에서의 진입 판정은 변하지 않는지 검증한다.
+
+### 3.9 성과 지표에서 마지막 미청산 포지션이 제외됨
+
+**판정: 코드 확인 / 최우선**
+
+BacktestEngine은 거래 목록으로 MetricsCalculator.calculate()를 먼저 호출한 뒤, 열린 포지션의 unrealizedPnl·openPositionValue·finalEquity를 별도로 계산한다. MetricsCalculator는 청산된 SELL 거래를 중심으로 totalReturn, Profit Factor, MDD, Sharpe 등을 산출한다.
+
+그 결과 마지막 미청산 손실은 finalEquity에는 나타나지만 result.metrics와 이를 저장·정렬·게이트에 사용하는 경로에는 반영되지 않는다. 예를 들어 totalReturn이 0 또는 양수인데 finalEquity는 초기자본보다 낮을 수 있다. 각 창마다 자본을 초기화하는 Walk-Forward는 종료 시점의 미청산 위험을 반복해서 버릴 수 있어 장기 보유 전략에 편향될 가능성이 더 크다.
+
+**개선 방향**
+
+- 기간 종료 시 강제청산할지, mark-to-market equity curve를 사용할지 정책을 명시한다.
+- 실현 손익 전용 지표와 전체 자산 기준 지표를 분리하되, 전략 선택·순위·Walk-Forward 게이트는 전체 자산 기준을 사용한다.
+- 미청산 손실·이익 각각에 대해 metrics.totalReturn과 finalEquity의 계약을 검증한다.
+- 강제청산을 선택하면 수수료·슬리피지와 종료 시각 체결가까지 동일하게 적용한다.
 
 ## 4. 공통 지표와 데이터 경계의 결함
 
@@ -609,14 +680,26 @@ getMinimumCandleCount()는 기본값 기준의 고정 수다. 변경 파라미�
 - MACD_STOCH_BB의 minRequired에는 volumePeriod가 포함되지 않아 큰 volumePeriod에서 sma() 예외가 가능하다.
 - 백테스트 최대 창 500을 넘는 기간 설정은 단순히 시작점만 늦춰 해결되지 않는다.
 - ADX 이력 부족 시 필터가 생략되는 전략은 “필터 활성 설정”과 실제 적용 상태가 다를 수 있다.
+- Walk-Forward는 OOS 구간만 잘라 BacktestEngine에 전달하므로 OOS 이전의 워밍업 이력이 없다. EMA200·MTF처럼 긴 이력이 필요한 전략은 각 창의 앞부분을 반복해서 사용하지 못하거나 거래가 사라질 수 있다.
+- BacktestEngine의 평가 루프는 i=minCandles부터 시작한다. 전략이 정확히 N개 봉을 요구한다면 최초 평가 가능한 인덱스는 보통 N-1이므로 한 번의 유효 신호 기회를 건너뛴다. 영향은 작지만 최소 데이터 계약과 함께 바로잡아야 한다.
 
-requiredCandleCount(params), 안정화를 위한 warmup, 상위봉 필요 데이터, 엔진 조회 상한을 함께 설계한다.
+requiredCandleCount(params), 안정화를 위한 warmup, 상위봉 필요 데이터, 엔진 조회 상한을 함께 설계한다. Walk-Forward에서는 OOS 앞의 과거 봉을 지표 워밍업에만 제공하고, OOS 시작 이후의 거래만 성과에 포함해야 한다.
 
 ### 8.4 복합 파라미터의 이름 공간
 
 WeightedStrategy는 같은 params를 하위 전략에 전달한다. adxPeriod, fastPeriod, multiplier 등의 같은 키가 여러 성분에 동시에 영향을 줄 수 있다.
 
 전체 공통 설정과 성분별 설정을 구분하고, 최종 해석된 파라미터를 결과에 저장한다. 파라미터 하나의 변경이 어떤 성분에 적용되었는지 설명 가능해야 한다.
+
+### 8.5 전략 Config와 timeframe 표현의 이중화
+
+**판정: 코드 확인 / 보강**
+
+여러 전략에 Config 클래스가 있지만 실제 evaluate()는 Map<String, Object>를 다시 직접 파싱한다. Config의 기본값·단위·설명과 실행 코드의 기본값·검증이 서로 다른 진실 원천이므로 시간이 지나면서 드리프트할 수 있다. 8.2의 stopLossPct 단위 차이도 이런 구조에서 발견하기 어렵다.
+
+[TimeframePreset.java](core-engine/src/main/java/com/cryptoautotrader/core/selector/TimeframePreset.java)는 전략별 시간봉 프리셋을 제공하지만 검토 당시 운영 실행 경로의 참조가 확인되지 않았다. 클래스가 존재해도 전략 파라미터가 시간봉에 따라 자동 적용된다고 볼 수 없다. 또한 H1을 "1h"로 표현하지만 프로젝트의 주요 TimeFrame/TimeframeUtils 경로는 "H1"을 사용한다. 향후 연결 시 정규화 없이 비교하면 매칭 실패나 별도 가중치 키 생성이 가능하다.
+
+**개선:** 전략별 파라미터 스키마를 단일 원천으로 만들고 파싱·기본값·범위·단위·requiredCandleCount·API 메타데이터를 여기서 파생한다. timeframe은 입력 경계에서 canonical 값으로 변환하고 알 수 없는 값은 조용한 60분 폴백보다 명시적으로 거부한다.
 
 ## 9. 시장 국면과 운영 정책
 
@@ -662,6 +745,14 @@ FVG·HA·Volume Delta 등의 미분류 전략이 기존 활성 상태를 유지�
 초기 검토의 UP-TO-DATE 확인과 달리 이번에는 재컴파일·재실행했다. 이 문서 편집 단계에서 같은 테스트를 또 실행한 것은 아니다.
 
 검토 당시 전용 테스트 파일이 없었던 시장 전략은 FVG, GRID, STOCHASTIC_RSI, MACD_STOCH_BB다. 전용 파일의 부재와 다른 모듈에서 간접 검증되는지 여부는 구분한다.
+
+2026-09-18 추가 재검토에서 실행:
+
+```powershell
+.\gradlew.bat :strategy-lib:test :core-engine:test --rerun-tasks --console=plain
+```
+
+결과: BUILD SUCCESSFUL. 테스트 XML 기준 strategy-lib 82개, core-engine 231개, 합계 313개 테스트가 실행되었고 실패·오류는 0개였다. 이 통과 결과는 기존 회귀 범위가 유지됨을 뜻하지만, Hold-out의 최종 판정 반영, BTC 미래 참조, 미청산 평가손익 기반 지표, timeframe override 동등성을 직접 보장하지 않는다.
 
 ### 10.2 별도 입력 재현 결과
 
@@ -722,7 +813,7 @@ System.out.println(new VolumeDeltaStrategy().evaluate(zeroRange, Map.of()).getAc
 ### 10.3 이번에 수행하지 않은 검증
 
 - 실제 시장 데이터의 신규 성과 백테스트·walk-forward.
-- 전체 백엔드 통합 테스트와 엔진 전체 동작 재실행.
+- web-api를 포함한 전체 백엔드 통합 테스트와 실제 HTTP 실행 경로 재현.
 - 실계좌·PAPER 운영 상태 확인.
 - 상태 오염의 병렬 실행 재현 및 실제 손실 규모 측정.
 - 수정안 구현과 그 성과 비교.
@@ -737,18 +828,29 @@ System.out.println(new VolumeDeltaStrategy().evaluate(zeroRange, Map.of()).getAc
 |---|---|---|
 | 1 | 백테스트·운영 전략 생성 통합 | 같은 전략명·설정으로 동일 성분·가중치·필터 및 신호 |
 | 2 | 실행별 전체 전략 트리 상태 격리 | A→A 반복, A→B→A, 병렬 실행에서 동일 입력 결과 일치 |
-| 3 | ADX 정의·시계열·개수 수정 | 기준값·전환 구간·창 길이 테스트 통과 |
-| 4 | GRID 해제·cooldown·ATR=0 처리 | 왕복 후 재진입, 고정 창 cooldown 만료, 무변동 HOLD |
-| 5 | MTF 시각 정렬·완성봉 정책 | 조회 시작점·결측·시간 경계에 대한 일관된 집계 |
-| 6 | RSI/delta 경계·파라미터·단위 | 무방향 입력 정책 준수, 잘못된 설정의 명시적 거부 |
-| 7 | 강도 보정·필터 기여도 | 후보→투표→체결 전 과정과 A/B 영향 설명 가능 |
-| 8 | 새 버전의 성과 검증 | 기간 외 검증·거래 수·비용·PAPER 실행 검증 충족 |
+| 3 | Walk-Forward 독립성·Hold-out 게이트 수정 | IS 상태 없는 OOS, Hold-out 악화가 최종 판정에 반영 |
+| 4 | BTC Guard 시간 정렬·전 경로 적용 통일 | 종료된 BTC 봉만 참조하고 모든 실행 API 결과 일치 |
+| 5 | 전체 자산 기준 성과 지표 정립 | 미청산 평가손익이 순위·MDD·WF 판정에 일관되게 반영 |
+| 6 | 평가 컨텍스트와 timeframe 통일 | LIVE/DYNAMIC/PAPER/BT의 coin·timeframe·동적 가중치 일치 |
+| 7 | ADX 정의·시계열·개수 수정 | 기준값·전환 구간·창 길이 테스트 통과 |
+| 8 | GRID 해제·cooldown·ATR=0 처리 | 왕복 후 재진입, 고정 창 cooldown 만료, 무변동 HOLD |
+| 9 | MTF 시각 정렬·완성봉·WF 워밍업 정책 | 조회 시작점·결측·시간 경계·OOS 시작에 일관된 집계 |
+| 10 | RSI/delta 경계·파라미터 스키마·단위 | 무방향 정책 준수, 잘못된 설정 거부, 단일 기본값 원천 |
+| 11 | 강도 보정·필터 기여도 | 후보→투표→체결 전 과정과 A/B 영향 설명 가능 |
+| 12 | 새 버전의 성과 검증 | 기간 외 검증·거래 수·비용·PAPER 실행 검증 충족 |
 
 ### 11.2 우선 추가할 회귀 테스트
 
 - COMPOSITE_BREAKOUT의 서비스 경로별 실제 구성·Veto 일치.
 - COMPOSITE의 시점별 국면 전환과 신규 BUY 차단 재현.
 - 같은 백테스트 반복·순서 변경·동시 실행의 재현성.
+- Walk-Forward OOS 단독 실행과 IS 직후 실행의 결과 일치.
+- Hold-out 대규모 손실이 최종 verdict·승격 게이트에 반영되는지 확인.
+- 다음 BTC 봉 내부 OHLC 변경이 그 봉 시가의 진입 판정에 영향을 주지 않는지 확인.
+- 단일·다중·Walk-Forward 백테스트의 BTC Guard 적용 여부와 결과 일치.
+- 종료 시 미청산 손익이 totalReturn·finalEquity·MDD·순위에 일관되게 반영되는지 확인.
+- H1/M15별 WeightOverride가 백테스트와 운영 평가에서 동일하게 선택되는지 확인.
+- OOS 이전 봉은 워밍업에만 사용되고 OOS 이전 거래는 성과에서 제외되는지 확인.
 - ADX의 추세→횡보, 횡보→추세 전환과 기준 구현 비교.
 - GRID 매수→매도→동일 가격대 재매수 및 거부·미체결 처리.
 - MACD_STOCH_BB의 고정 길이 500봉 창과 결측봉·재시작.
@@ -790,5 +892,8 @@ System.out.println(new VolumeDeltaStrategy().evaluate(zeroRange, Map.of()).getAc
 | 파라미터 검증·전용 테스트 부재를 모두 P0 | 성과 전제와 공통 계산·상태 결함부터 수정하도록 우선순위 변경 |
 | 전략 테스트 UP-TO-DATE 성공 | 2026-09-15 --rerun-tasks로 82개 실제 재실행 성공, 경계 문제는 별도 재현 |
 | 최소 캔들 수 부족은 대체로 HOLD | 일부 파라미터는 예외·필터 생략·조회 상한 문제까지 있으므로 경로별 구분 |
+| Hold-out 창이 있으면 독립 검증에 반영됨 | 창은 추가되지만 검토 당시 최종 집계·overfittingScore·verdict는 base 값을 유지 |
+| finalEquity와 성과 지표가 같은 손익 범위를 표현 | 미청산 손익은 finalEquity에만 반영되고 주요 metrics·WF 집계에서는 제외 |
+| 시간봉별 동적 가중치를 백테스트도 재현 | BacktestEngine 평가 params에 timeframe이 없어 더 넓은 기본값으로 폴백 가능 |
 
-**최종 판단:** 전략 아이디어는 다양하지만, 지금은 전략을 추가하거나 가중치를 미세 조정하기 전에 백테스트·운영 구성, 공통 지표, 상태 격리, 시간봉 집계의 신뢰성을 확보해야 한다. 이 전제가 충족되어야 기존 성과표와 전략 간 비교가 개발 의사결정의 근거가 될 수 있다.
+**최종 판단:** 전략 아이디어는 다양하지만, 지금은 전략을 추가하거나 가중치를 미세 조정하기 전에 백테스트·운영 구성, Walk-Forward 독립성, 미래 참조 방지, 전체 자산 기준 지표, 공통 지표, 상태 격리와 시간봉 집계의 신뢰성을 확보해야 한다. 이 전제가 충족되어야 기존 성과표와 전략 간 비교가 개발 의사결정의 근거가 될 수 있다.

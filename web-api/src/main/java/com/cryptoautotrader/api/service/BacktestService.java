@@ -14,18 +14,9 @@ import com.cryptoautotrader.core.backtest.BacktestResult;
 import com.cryptoautotrader.core.backtest.WalkForwardTestRunner;
 import com.cryptoautotrader.core.metrics.PerformanceReport;
 import com.cryptoautotrader.core.model.TradeRecord;
-import com.cryptoautotrader.core.regime.MarketRegimeDetector;
-import com.cryptoautotrader.core.selector.CompositeStrategy;
-import com.cryptoautotrader.core.selector.StrategySelector;
-import com.cryptoautotrader.core.selector.WeightedStrategy;
 import com.cryptoautotrader.strategy.Candle;
 import com.cryptoautotrader.strategy.Strategy;
 import com.cryptoautotrader.strategy.StrategyRegistry;
-import com.cryptoautotrader.strategy.atrbreakout.AtrBreakoutStrategy;
-import com.cryptoautotrader.strategy.ema.EmaCrossStrategy;
-import com.cryptoautotrader.strategy.orderbook.OrderbookImbalanceStrategy;
-import com.cryptoautotrader.strategy.rsi.RsiStrategy;
-import com.cryptoautotrader.strategy.volumedelta.VolumeDeltaStrategy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -104,6 +95,7 @@ public class BacktestService {
         }
 
         List<Candle> candles = toCandles(entities);
+        List<Candle> btcCandles = fetchBtcCandles(coinPair, timeframe, start, end, candles);
 
         BacktestConfig config = BacktestConfig.builder()
                 .strategyName(strategyType)
@@ -120,10 +112,10 @@ public class BacktestService {
                 .fillRatio(fillRatio != null ? fillRatio : new BigDecimal("0.3"))
                 .exitRuleConfig(riskManagementService.getExitRuleConfig())
                 .maxHoldHours(BACKTEST_MAX_HOLD_HOURS)
-                .btcCandles(fetchBtcCandles(coinPair, timeframe, start, end, candles))
+                .btcCandles(btcCandles)
                 .build();
 
-        BacktestResult result = runStrategy(config, candles, strategyType);
+        BacktestResult result = runStrategy(config, candles);
 
         // DB 저장
         BacktestRunEntity runEntity = saveRun(config, false);
@@ -149,6 +141,7 @@ public class BacktestService {
         }
 
         List<Candle> candles = toCandles(entities);
+        List<Candle> btcCandles = fetchBtcCandles(coinPair, timeframe, start, end, candles);
 
         BacktestConfig config = BacktestConfig.builder()
                 .strategyName(strategyType)
@@ -162,6 +155,7 @@ public class BacktestService {
                 .strategyParams(strategyParams != null ? strategyParams : Map.of())
                 .exitRuleConfig(riskManagementService.getExitRuleConfig())
                 .maxHoldHours(BACKTEST_MAX_HOLD_HOURS)
+                .btcCandles(btcCandles)
                 .build();
 
         WalkForwardTestRunner.WalkForwardResult wfResult = walkForwardRunner.run(config, candles, inSampleRatio, windowCount);
@@ -343,6 +337,7 @@ public class BacktestService {
         }
 
         List<Candle> candles = toCandles(entities);
+        List<Candle> btcCandles = fetchBtcCandles(coinPair, timeframe, start, end, candles);
 
         TransactionTemplate tx = new TransactionTemplate(transactionManager);
         List<Map<String, Object>> results = new java.util.ArrayList<>();
@@ -361,9 +356,10 @@ public class BacktestService {
                         .strategyParams(Map.of())
                         .exitRuleConfig(riskManagementService.getExitRuleConfig())
                 .maxHoldHours(BACKTEST_MAX_HOLD_HOURS)
+                        .btcCandles(btcCandles)
                         .build();
 
-                BacktestResult result = runStrategy(config, candles, strategyName);
+                BacktestResult result = runStrategy(config, candles);
                 PerformanceReport metrics = result.getMetrics();
 
                 // 전략별 독립 트랜잭션 — 저장 실패가 다른 전략 결과를 오염시키지 않음
@@ -436,6 +432,7 @@ public class BacktestService {
             }
 
             List<Candle> candles = toCandles(entities);
+            List<Candle> btcCandles = fetchBtcCandles(coin, timeframe, start, end, candles);
 
             for (String strategyName : strategyNames) {
                 try {
@@ -451,9 +448,10 @@ public class BacktestService {
                             .strategyParams(Map.of())
                             .exitRuleConfig(riskManagementService.getExitRuleConfig())
                 .maxHoldHours(BACKTEST_MAX_HOLD_HOURS)
+                            .btcCandles(btcCandles)
                             .build();
 
-                    BacktestResult result = runStrategy(config, candles, strategyName);
+                    BacktestResult result = runStrategy(config, candles);
                     PerformanceReport metrics = result.getMetrics();
 
                     BacktestRunEntity runEntity = saveRun(config, false);
@@ -522,6 +520,7 @@ public class BacktestService {
             }
 
             List<Candle> candles = toCandles(entities);
+            List<Candle> btcCandles = fetchBtcCandles(coinPair, timeframe, start, end, candles);
 
             for (String strategyName : strategyTypes) {
                 try {
@@ -537,9 +536,10 @@ public class BacktestService {
                             .strategyParams(Map.of())
                             .exitRuleConfig(riskManagementService.getExitRuleConfig())
                 .maxHoldHours(BACKTEST_MAX_HOLD_HOURS)
+                            .btcCandles(btcCandles)
                             .build();
 
-                    BacktestResult result = runStrategy(config, candles, strategyName);
+                    BacktestResult result = runStrategy(config, candles);
                     PerformanceReport metrics = result.getMetrics();
 
                     final BacktestResult finalResult = result;
@@ -749,33 +749,6 @@ public class BacktestService {
         return results;
     }
 
-    /**
-     * 백테스트 전용 COMPOSITE_ETH 인스턴스.
-     * ORDERBOOK_IMBALANCE는 실시간 호가창이 없어 캔들 근사값을 사용하므로 가중치를 축소한다.
-     * Live: ATR(0.5) + OB(0.3) + EMA(0.2)  →  BT: ATR(0.7) + OB(0.1) + EMA(0.2)
-     */
-    private CompositeStrategy compositeEthBt() {
-        return new CompositeStrategy("COMPOSITE_ETH", List.of(
-                new WeightedStrategy(new AtrBreakoutStrategy(),        0.7),
-                new WeightedStrategy(new OrderbookImbalanceStrategy(), 0.1),
-                new WeightedStrategy(new EmaCrossStrategy(),           0.2)
-        ));
-    }
-
-    /**
-     * 백테스트 전용 COMPOSITE_BREAKOUT 인스턴스.
-     * Live/BT 동일 구성: ATR(0.4) + VD(0.3) + RSI(0.2) + EMA(0.1)
-     * RSI는 캔들 데이터만으로 계산되므로 BT/Live 간 보정 불필요.
-     */
-    private CompositeStrategy compositeBreakoutBt() {
-        return new CompositeStrategy("COMPOSITE_BREAKOUT", List.of(
-                new WeightedStrategy(new AtrBreakoutStrategy(), 0.4),
-                new WeightedStrategy(new VolumeDeltaStrategy(),  0.3),
-                new WeightedStrategy(new RsiStrategy(),          0.2),
-                new WeightedStrategy(new EmaCrossStrategy(),     0.1)
-        ), true, true);
-    }
-
     private BacktestRunEntity saveRun(BacktestConfig config, boolean isWalkForward) {
         BacktestRunEntity entity = BacktestRunEntity.builder()
                 .strategyName(config.getStrategyName())
@@ -894,18 +867,20 @@ public class BacktestService {
                 .toList();
     }
 
-    private BacktestResult runStrategy(BacktestConfig config, List<Candle> candles, String strategyName) {
-        if ("COMPOSITE".equals(strategyName)) {
-            MarketRegimeDetector detector = new MarketRegimeDetector();
-            List<WeightedStrategy> weighted = StrategySelector.select(detector.detect(candles));
-            return backtestEngine.run(config, candles, new CompositeStrategy(weighted));
-        } else if ("COMPOSITE_ETH".equals(strategyName)) {
-            return backtestEngine.run(config, candles, compositeEthBt());
-        } else if ("COMPOSITE_BREAKOUT".equals(strategyName)) {
-            return backtestEngine.run(config, candles, compositeBreakoutBt());
-        } else {
-            return backtestEngine.run(config, candles);
-        }
+    /**
+     * 백테스트 1회 실행.
+     *
+     * <p>전략 인스턴스는 이름으로만 지정하고 생성은 {@link BacktestEngine}에 맡긴다. 엔진이
+     * {@code StrategyRegistry}의 팩토리로 매 실행마다 새 트리를 뽑으므로, 운영과 같은 구성이
+     * 나오면서 실행 간 상태도 격리된다.
+     *
+     * <p>이전에는 COMPOSITE_ETH·COMPOSITE_BREAKOUT을 여기서 백테스트 전용 구성으로 직접 만들었고,
+     * COMPOSITE는 전체 캔들로 레짐을 한 번 감지해 고정 조합으로 굳혔다. 전자는 운영과 다른 전략을
+     * 측정하게 했고, 후자는 전체 기간 정보를 초기 전략 선택에 쓰는 미래 참조였다.
+     * COMPOSITE의 적응형 재현(시점별 레짐 갱신)은 RegimeAdaptiveStrategy가 담당한다.
+     */
+    private BacktestResult runStrategy(BacktestConfig config, List<Candle> candles) {
+        return backtestEngine.run(config, candles);
     }
 
     private Map<String, Object> entityToMetricsMap(BacktestMetricsEntity m) {

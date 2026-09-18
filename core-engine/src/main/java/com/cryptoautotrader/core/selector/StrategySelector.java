@@ -1,6 +1,7 @@
 package com.cryptoautotrader.core.selector;
 
 import com.cryptoautotrader.core.regime.MarketRegime;
+import com.cryptoautotrader.strategy.Strategy;
 import com.cryptoautotrader.strategy.StrategyRegistry;
 
 import java.util.List;
@@ -26,25 +27,13 @@ import java.util.stream.Collectors;
 public final class StrategySelector {
 
     static {
-        // Spring 컨텍스트가 없는 환경(단위 테스트 등)을 위한 폴백 등록.
-        // 실제 애플리케이션에서는 CompositePresetRegistrar(@PostConstruct)가
-        // EMA·ADX 필터가 활성화된 버전으로 덮어쓴다.
-        if (!StrategyRegistry.getAll().containsKey("COMPOSITE_BREAKOUT")) {
-            // COMPOSITE_BREAKOUT: ATR(0.4)+VD(0.3)+RSI(0.2)+EMA(0.1) — EMA+ADX 필터 ON
-            StrategyRegistry.register(new CompositeStrategy("COMPOSITE_BREAKOUT", List.of(
-                    new WeightedStrategy(StrategyRegistry.get("ATR_BREAKOUT"),   0.4),
-                    new WeightedStrategy(StrategyRegistry.get("VOLUME_DELTA"),   0.3),
-                    new WeightedStrategy(StrategyRegistry.get("RSI"),            0.2),
-                    new WeightedStrategy(StrategyRegistry.get("EMA_CROSS"),      0.1)
-            ), true, true));  // emaFilter=true, adxFilter=true
-
-            // COMPOSITE_MOMENTUM: MACD(0.5)+VWAP(0.3)+GRID(0.2) — EMA 필터 ON
-            StrategyRegistry.register(new CompositeStrategy("COMPOSITE_MOMENTUM", List.of(
-                    new WeightedStrategy(StrategyRegistry.get("MACD"),  0.5),
-                    new WeightedStrategy(StrategyRegistry.get("VWAP"),  0.3),
-                    new WeightedStrategy(StrategyRegistry.get("GRID"),  0.2)
-            ), true));  // emaFilter=true
-        }
+        // Spring 컨텍스트가 없는 환경(단위 테스트 등)에서도 프리셋이 있어야 select()가 동작한다.
+        //
+        // 이전에는 여기서 COMPOSITE_BREAKOUT을 ATR(0.4)+VD(0.3)+RSI(0.2)+EMA(0.1)로 직접 등록했다.
+        // 운영이 P1-1·P1-2로 ATR(0.5)+VD(0.3)+MACD(0.2)+RsiVeto로 바뀐 뒤에도 이 폴백은 갱신되지
+        // 않아, core-engine 단위 테스트 전체가 운영과 다른 구성을 검증하고 있었다.
+        // 이제 CompositePresets 하나만 보므로 경로에 따라 구성이 갈릴 수 없다.
+        CompositePresets.ensureRegistered();
     }
 
     private StrategySelector() {}
@@ -143,6 +132,20 @@ public final class StrategySelector {
         double weight = (coinPair != null)
                 ? WeightOverrideStore.getForCoin(regime, coinPair, timeframe, name, defaultWeight)
                 : WeightOverrideStore.get(regime, timeframe, name, defaultWeight);
-        return new WeightedStrategy(StrategyRegistry.get(name), weight);
+        // 공유 인스턴스를 물면 바깥 세션 전략만 새로 만들어도 내부 GRID·레짐 감지기 상태가
+        // 세션·백테스트 실행 사이에 공유된다. 매번 새 트리를 뽑아 격리한다.
+        return new WeightedStrategy(newInstance(name), weight);
+    }
+
+    /**
+     * 팩토리가 등록돼 있으면 새 인스턴스를, 아니면 공유 인스턴스를 반환한다.
+     *
+     * <p>복합 프리셋은 전부 {@link CompositePresets}가 팩토리로 등록하므로 새 트리가 나온다.
+     * 팩토리가 없는 전략은 stateless 단일 전략이라 공유해도 안전하다.
+     */
+    private static Strategy newInstance(String name) {
+        return StrategyRegistry.hasFactory(name)
+                ? StrategyRegistry.createNew(name)
+                : StrategyRegistry.get(name);
     }
 }

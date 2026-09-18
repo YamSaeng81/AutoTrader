@@ -98,8 +98,19 @@ class BacktestExitRuleParityTest {
                 .strategyParams(Map.of());
     }
 
+    /**
+     * 청산 <b>규칙</b>이 발동해 생긴 SELL 만 고른다.
+     *
+     * <p>기간 종료 강제청산(2026-09-18 신설)은 규칙 발동이 아니라 회계 처리다 — 미청산
+     * 포지션의 평가손익을 성과 지표에 반영하려고 마지막 종가로 mark-to-market 하는 것이다.
+     * 이 테스트들이 묻는 것은 "time stop·SL·TP 가 의도대로 발동/미발동하는가"이므로
+     * 강제청산은 제외해야 원래 의도가 유지된다.
+     */
     private static List<TradeRecord> sells(BacktestResult r) {
-        return r.getTrades().stream().filter(t -> t.getSide() == OrderSide.SELL).toList();
+        return r.getTrades().stream()
+                .filter(t -> t.getSide() == OrderSide.SELL)
+                .filter(t -> t.getSignalReason() == null || !t.getSignalReason().contains("기간 종료 강제청산"))
+                .toList();
     }
 
     @Test

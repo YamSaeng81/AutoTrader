@@ -1875,7 +1875,7 @@ public class DynamicTradingService {
     // ── 내부: 전략 인스턴스 ────────────────────────────────────────
 
     private Strategy resolveStrategy(Long sessionId, String coinPair, String strategyType) {
-        if (!StrategyRegistry.isStateful(strategyType)) {
+        if (!StrategyRegistry.hasFactory(strategyType)) {
             return StrategyRegistry.get(strategyType);
         }
         String key = sessionId + ":" + coinPair;

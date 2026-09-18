@@ -9,6 +9,7 @@ import com.cryptoautotrader.strategy.StrategySignal;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -52,8 +53,15 @@ public class MacdStochBbStrategy implements StatefulStrategy {
     private static final BigDecimal HUNDRED = BigDecimal.valueOf(100);
 
 
-    /** 마지막 BUY 신호 발생 시점의 candles.size() (-1 = 없음) */
-    private int lastBuyCandleCount = -1;
+    /**
+     * 마지막 BUY 신호를 낸 캔들의 시각 (null = 없음).
+     *
+     * <p>이전에는 candles.size()를 기록했으나, BacktestEngine처럼 창 길이가 최대 500으로
+     * 고정된 경로에서는 매 평가마다 size가 같아 경과 봉 수가 항상 0이 되어 쿨다운이
+     * 영구히 만료되지 않았다. 봉 시각을 기준으로 삼으면 창이 슬라이딩해도 경과를
+     * 올바르게 센다.
+     */
+    private Instant lastBuyCandleTime = null;
 
     @Override
     public String getName() {
@@ -62,7 +70,7 @@ public class MacdStochBbStrategy implements StatefulStrategy {
 
     @Override
     public void resetState() {
-        lastBuyCandleCount = -1;
+        lastBuyCandleTime = null;
     }
 
     @Override
@@ -140,15 +148,17 @@ public class MacdStochBbStrategy implements StatefulStrategy {
         boolean kAboveD         = currentK.compareTo(currentD) > 0;
 
         if (macdPositive && histIncreasing && stochOversold && kAboveD && volumeOk) {
-            // 쿨다운 체크
-            if (lastBuyCandleCount >= 0 && (candles.size() - lastBuyCandleCount) < cooldown) {
-                int remaining = cooldown - (candles.size() - lastBuyCandleCount);
-                return StrategySignal.hold(String.format(
-                        "BUY 쿨다운: %d캔들 후 재진입 가능 (마지막 진입 후 %d캔들 경과)",
-                        remaining, candles.size() - lastBuyCandleCount));
+            // 쿨다운 체크 — 마지막 BUY 봉 이후 관측된 봉 수로 경과를 센다
+            if (lastBuyCandleTime != null) {
+                int elapsed = candlesAfter(candles, lastBuyCandleTime);
+                if (elapsed < cooldown) {
+                    return StrategySignal.hold(String.format(
+                            "BUY 쿨다운: %d캔들 후 재진입 가능 (마지막 진입 후 %d캔들 경과)",
+                            cooldown - elapsed, elapsed));
+                }
             }
 
-            lastBuyCandleCount = candles.size();
+            lastBuyCandleTime = candles.get(candles.size() - 1).getTime();
 
             BigDecimal stopLoss   = currentPrice.multiply(BigDecimal.valueOf(1 - stopLossPct),   MC).setScale(SCALE, RoundingMode.HALF_UP);
             BigDecimal takeProfit = currentPrice.multiply(BigDecimal.valueOf(1 + takeProfitPct), MC).setScale(SCALE, RoundingMode.HALF_UP);
@@ -203,6 +213,22 @@ public class MacdStochBbStrategy implements StatefulStrategy {
      * 단일 패스로 직전·현재 MACD 값을 계산한다.
      * [0] = prev, [1] = current
      */
+    /**
+     * since 이후 시각을 가진 캔들 수를 센다.
+     *
+     * <p>캔들이 시각 오름차순이라는 전제로 뒤에서부터 센다. 기준 봉이 창 밖으로
+     * 밀려난 경우 전체 개수가 반환되어 쿨다운이 자연히 만료된다.
+     * 결측봉이 있으면 시간 구간이 아니라 관측 봉 수를 기준으로 삼는다.
+     */
+    private int candlesAfter(List<Candle> candles, Instant since) {
+        int count = 0;
+        for (int i = candles.size() - 1; i >= 0; i--) {
+            if (!candles.get(i).getTime().isAfter(since)) break;
+            count++;
+        }
+        return count;
+    }
+
     private MacdResult[] calcMacdPair(List<BigDecimal> closes, int fast, int slow, int signal) {
         BigDecimal fastMult = BigDecimal.valueOf(2.0 / (fast + 1));
         BigDecimal slowMult = BigDecimal.valueOf(2.0 / (slow + 1));

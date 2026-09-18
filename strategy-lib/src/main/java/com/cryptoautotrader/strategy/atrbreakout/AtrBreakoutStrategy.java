@@ -67,6 +67,17 @@ public class AtrBreakoutStrategy implements Strategy {
         BigDecimal buyThreshold = currentOpen.add(atrMultiplied);
         BigDecimal sellThreshold = currentOpen.subtract(atrMultiplied);
 
+        // 변동성이 0이면 돌파를 정의할 수 없다.
+        // 무변동 구간(OHLC 전부 동일)이나 가격 정밀도 반올림으로 atrMultiplied가 0이 되면
+        // 두 기준선이 같아져 아래의 atr·기준선 폭 나눗셈이 모두 0으로 나누기가 된다.
+        // 잘못된 파라미터가 없어도 기본 설정에서 발생하므로 사유를 남기고 HOLD로 빠진다.
+        BigDecimal thresholdWidth = buyThreshold.subtract(sellThreshold);
+        if (atr.compareTo(BigDecimal.ZERO) <= 0 || thresholdWidth.compareTo(BigDecimal.ZERO) <= 0) {
+            return StrategySignal.hold(String.format(
+                    "변동성 없음: ATR=%.8f, 기준선 폭=%.8f (시가=%.2f) — 돌파 판정 불가",
+                    atr, thresholdWidth, currentOpen));
+        }
+
         // 현재가가 매수/매도 기준선을 돌파했는지 확인
         if (currentClose.compareTo(buyThreshold) > 0) {
             // S4-5 거래량 필터 — 상방 돌파(신규 진입)에만 적용.

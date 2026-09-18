@@ -953,7 +953,7 @@ public class LiveTradingService {
         } else {
             lastEvaluatedClosedCandle.put(sessionId, closedCandleTime);
             com.cryptoautotrader.strategy.Strategy strategyInstance =
-                    StrategyRegistry.isStateful(strategyType)
+                    StrategyRegistry.hasFactory(strategyType)
                             ? sessionStatefulStrategies.computeIfAbsent(sessionId,
                                     id -> StrategyRegistry.createNew(strategyType))
                             : StrategyRegistry.get(strategyType);

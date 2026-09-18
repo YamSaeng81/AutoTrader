@@ -30,11 +30,18 @@ class CompositeMeanRevPresetTest {
     }
 
     @Test
-    @DisplayName("레지스트리에 등록되고 stateless로 취급된다")
-    void 등록_및_stateless() {
+    @DisplayName("레지스트리에 등록되고 실행마다 새 인스턴스를 뽑을 수 있다")
+    void 등록_및_팩토리() {
         Strategy strategy = StrategyRegistry.get("COMPOSITE_MEANREV_BB");
         assertThat(strategy.getName()).isEqualTo("COMPOSITE_MEANREV_BB");
-        assertThat(StrategyRegistry.isStateful("COMPOSITE_MEANREV_BB")).isFalse();
+
+        // 이전에는 isStateful()==false 를 단정했다. 성분(BOLLINGER·RSI·VWAP)이 전부
+        // stateless 라는 사실을 등록 방식으로 표현한 것이었는데, 그러면 성분을 하나
+        // 갈아끼우는 것만으로 공유 인스턴스가 조용히 되살아난다. 이제 복합 프리셋은
+        // 상태 유무와 무관하게 전부 팩토리로 등록해 실행·세션 단위 격리를 보장한다.
+        assertThat(StrategyRegistry.hasFactory("COMPOSITE_MEANREV_BB")).isTrue();
+        assertThat(StrategyRegistry.createNew("COMPOSITE_MEANREV_BB"))
+                .isNotSameAs(StrategyRegistry.createNew("COMPOSITE_MEANREV_BB"));
     }
 
     @Test

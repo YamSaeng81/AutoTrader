@@ -662,7 +662,7 @@ public class PaperTradingService {
             lastEvaluatedClosedCandle.put(sessionId, closedCandleTime);
 
             com.cryptoautotrader.strategy.Strategy strategyInstance =
-                    StrategyRegistry.isStateful(strategyName)
+                    StrategyRegistry.hasFactory(strategyName)
                             ? sessionStatefulStrategies.computeIfAbsent(sessionId,
                                     id -> StrategyRegistry.createNew(strategyName))
                             : StrategyRegistry.get(strategyName);

@@ -34,6 +34,18 @@ class WalkForwardValidationGateTest {
     }
 
     @Test
+    @DisplayName("verdict=HOLD_OUT_FAILED 이면 튜닝 OOS 성적이 좋아도 차단")
+    void 홀드아웃_실패_차단() {
+        // 홀드아웃은 파라미터 선택 과정을 보지 못한 독립 표본이다. 튜닝 구간 기대값이
+        // 양수이고 표본이 충분해도, 여기서 실패하면 승격 근거가 되지 못한다.
+        var d = WalkForwardValidationGate.decide("FOO",
+                com.cryptoautotrader.core.backtest.WalkForwardTestRunner.VERDICT_HOLD_OUT_FAILED,
+                new BigDecimal("2.5"), 20, null);
+        assertThat(d.passed()).isFalse();
+        assertThat(d.reason()).contains("홀드아웃");
+    }
+
+    @Test
     @DisplayName("OOS 거래 표본이 최소 기준 미만이면 차단")
     void 표본부족_차단() {
         var d = WalkForwardValidationGate.decide("FOO", "ACCEPTABLE", new BigDecimal("1.0"), 3, null);

@@ -12,6 +12,7 @@ import com.cryptoautotrader.core.risk.ExitRuleChecker;
 import com.cryptoautotrader.core.risk.ExitRuleChecker.ExitCheck;
 import com.cryptoautotrader.core.risk.ExitRuleChecker.StopLevels;
 import com.cryptoautotrader.core.risk.ExitRuleFormula;
+import com.cryptoautotrader.core.selector.CompositePresets;
 import com.cryptoautotrader.strategy.Candle;
 import com.cryptoautotrader.strategy.Strategy;
 import com.cryptoautotrader.strategy.StrategyRegistry;
@@ -45,8 +46,25 @@ public class BacktestEngine {
         return runWithStrategy(config, candles, strategy);
     }
 
+    /**
+     * 이름으로 전략을 지정하는 표준 경로.
+     *
+     * <p>팩토리가 등록된 전략은 <b>실행마다 전체 트리를 새로 생성</b>한다. 이전에는
+     * {@code StrategyRegistry.get()}으로 공유 인스턴스를 가져왔고 초기화도 하지 않아,
+     * GRID의 activeLevels·MACD_STOCH_BB의 쿨다운·복합 전략 내부 레짐 감지기 상태가
+     * 실행 사이에 남았다. 실행 순서에 따라 결과가 달라지고 병렬 백테스트가 서로 간섭했으며,
+     * Walk-Forward에서는 IS에서 만들어진 상태가 OOS 시작점으로 넘어가 독립성을 훼손했다.
+     *
+     * <p>공유 객체에 resetState()만 부르는 방식으로는 병렬 실행 격리가 되지 않으므로
+     * 새 인스턴스를 뽑는다.
+     */
     public BacktestResult run(BacktestConfig config, List<Candle> candles) {
-        Strategy strategy = StrategyRegistry.get(config.getStrategyName());
+        // 이름으로 찾기 전에 복합 프리셋 등록을 보장한다 — 클래스 로딩 순서에 의존하지 않는다.
+        CompositePresets.ensureRegistered();
+        String name = config.getStrategyName();
+        Strategy strategy = StrategyRegistry.hasFactory(name)
+                ? StrategyRegistry.createNew(name)
+                : StrategyRegistry.get(name);
         return runWithStrategy(config, candles, strategy);
     }
 
@@ -251,19 +269,35 @@ public class BacktestEngine {
             if (config.getCoinPair() != null) {
                 evalParams.put("coinPair", config.getCoinPair());
             }
+            // timeframe도 LIVE/DYNAMIC/PAPER와 동일하게 주입한다 (Wave0-F).
+            // 없으면 COMPOSITE 계열이 WeightOverrideStore를 coin/regime 수준으로만 조회해
+            // H1/M15별 가중치 override가 백테스트에서만 무시된다 — 같은 전략·기간이라도
+            // 운영과 다른 가중치로 평가되어 성과 비교의 전제가 깨진다.
+            if (config.getTimeframe() != null) {
+                evalParams.put("timeframe", config.getTimeframe());
+            }
             StrategySignal signal = strategy.evaluate(window, evalParams);
             if (config.isInvertSignals()) {
                 signal = invert(signal);
             }
             MarketRegime regime = regimeDetector.detect(window);
 
-            // BTC_MARKET_GUARD — nextCandle 시점까지의 BTC 캔들 윈도우로 판정한다(look-ahead 방지,
-            // 실전매매와 동일하게 "이 시점에 알 수 있었던" BTC 데이터만 사용). 최근 200개로 윈도우를
-            // 고정해 매 캔들마다 전체 구간을 재필터링하지 않는다.
+            // BTC_MARKET_GUARD — 체결 시점(nextCandle.open)에 **이미 종료된** BTC 캔들만 본다.
+            //
+            // 이전에는 시각이 nextCandle.time 이하인 BTC 캔들까지 포함했다. Candle.time 은 캔들
+            // **시작** 시각이므로, nextCandle.time 에 시작하는 BTC 캔들이 들어갔다 — 그 봉의 종가·고가는
+            // 체결 순간에 아직 정해지지 않았는데 Guard 는 그것으로 판정했다. 그 봉 후반의 BTC 급락을
+            // 미리 알고 진입을 피하는 look-ahead bias 다.
+            //
+            // 종료 시각 = 시작 시각 + 캔들 간격. 간격은 대상 코인 캔들에서 직접 재므로(BTC 캔들은
+            // 같은 timeframe 으로 조회된다) 별도 파싱이 필요 없고, 결측봉이 있으면 간격이 커져
+            // 더 보수적으로(=미확정 데이터를 더 배제하는 쪽으로) 동작한다.
             boolean btcGatePass = true;
             if (btcCandles != null && !btcCandles.isEmpty()) {
+                Duration candleInterval = Duration.between(currentCandle.getTime(), nextCandle.getTime());
+                Instant lastClosedStart = nextCandle.getTime().minus(candleInterval);
                 while (btcPtr + 1 < btcCandles.size()
-                        && !btcCandles.get(btcPtr + 1).getTime().isAfter(nextCandle.getTime())) {
+                        && !btcCandles.get(btcPtr + 1).getTime().isAfter(lastClosedStart)) {
                     btcPtr++;
                 }
                 if (btcPtr >= 0) {
@@ -409,20 +443,38 @@ public class BacktestEngine {
             }
         }
 
-        PerformanceReport metrics = MetricsCalculator.calculate(trades, config.getInitialCapital());
-
-        // 미청산 포지션 mark-to-market — 마지막 종가로 평가한다(강제청산하지 않음).
-        // 실현 성과(metrics)는 청산된 거래만 반영하므로, 종료 시점에 열려 있던 포지션은
-        // 별도 필드로 노출해 "청산 성과"와 "미청산 유지 성과"를 모두 볼 수 있게 한다.
+        // ── 기간 종료 시 미청산 포지션 강제청산 ──────────────────────────────
+        //
+        // 이전에는 청산된 SELL 거래만으로 metrics 를 계산하고, 열린 포지션은 unrealizedPnl /
+        // finalEquity 에만 반영했다. 그 결과 **표시되는 finalEquity 와 전략 순위·Walk-Forward
+        // 판정에 쓰는 totalReturn 이 서로 다른 손익 범위를 재고 있었다** — totalReturn 이 0 이나
+        // 양수인데 finalEquity 는 초기자본보다 낮은 상태가 가능했다. 창마다 자본을 초기화하는
+        // Walk-Forward 는 종료 시점의 미청산 손실을 매 창 버려, 오래 들고 버티는 전략에 유리하게
+        // 편향된다.
+        //
+        // 마지막 종가로 청산하되 수수료·슬리피지를 실제 청산과 동일하게 적용한다. 청산을
+        // '없던 일'로 하면 비용 없이 탈출하는 셈이 되어 또 다른 편향이 생긴다.
         BigDecimal unrealizedPnl = BigDecimal.ZERO;
-        BigDecimal openPositionValue = BigDecimal.ZERO;
         if (position.compareTo(BigDecimal.ZERO) > 0 && !candles.isEmpty()) {
-            BigDecimal lastClose = candles.get(candles.size() - 1).getClose();
-            openPositionValue = position.multiply(lastClose).setScale(SCALE, RoundingMode.HALF_UP);
-            unrealizedPnl = lastClose.subtract(entryPrice).multiply(position)
-                    .subtract(entryFee).setScale(SCALE, RoundingMode.HALF_UP);
+            Candle lastCandle = candles.get(candles.size() - 1);
+            BigDecimal exitPrice = applySlippage(lastCandle.getClose(), OrderSide.SELL, config.getSlippagePct());
+
+            TradeRecord forcedExit = executeTrade(OrderSide.SELL, exitPrice, position,
+                    config.getFeePct(), config.getSlippagePct(),
+                    "기간 종료 강제청산 (mark-to-market)", null, lastCandle, cumulativePnl, entryPrice);
+
+            trades.add(forcedExit);
+            cumulativePnl = forcedExit.getCumulativePnl();
+            capital = capital.add(exitPrice.multiply(position)).subtract(forcedExit.getFee());
+            // 진입 수수료까지 반영한 순손익 — 보고용으로 남긴다.
+            unrealizedPnl = forcedExit.getPnl().subtract(entryFee).setScale(SCALE, RoundingMode.HALF_UP);
+            position = BigDecimal.ZERO;
         }
-        BigDecimal finalEquity = capital.add(openPositionValue).setScale(SCALE, RoundingMode.HALF_UP);
+
+        // 강제청산 이후이므로 열린 포지션은 없다. 두 값이 같은 손익 범위를 재도록 맞춘다.
+        PerformanceReport metrics = MetricsCalculator.calculate(trades, config.getInitialCapital());
+        BigDecimal openPositionValue = BigDecimal.ZERO;
+        BigDecimal finalEquity = capital.setScale(SCALE, RoundingMode.HALF_UP);
 
         return BacktestResult.builder()
                 .config(config)

@@ -254,4 +254,30 @@ class AtrBreakoutStrategyTest {
         StrategySignal signal = strategy.evaluate(candles, Map.of("atrPeriod", 14, "multiplier", 1.5));
         assertThat(signal.getStrength()).isBetween(BigDecimal.ZERO, BigDecimal.valueOf(100));
     }
+
+    /**
+     * 무변동 구간에서 ATR=0이 되면 매수·매도 기준선이 같아진다.
+     * 이전 구현은 비돌파 HOLD 분기에서 (현재가-매도기준)/(매수기준-매도기준)을 계산해
+     * ArithmeticException: / by zero 로 죽었다 — 잘못된 파라미터 없이 기본값에서 발생했다.
+     */
+    @Test
+    void ATR이_0이면_예외_대신_HOLD() {
+        List<Candle> flat = new ArrayList<>();
+        Instant base = Instant.parse("2024-01-01T00:00:00Z");
+        BigDecimal price = new BigDecimal("100");
+
+        // OHLC가 모두 동일한 캔들 100개 → true range 전부 0 → ATR=0
+        for (int i = 0; i < 100; i++) {
+            flat.add(Candle.builder()
+                    .time(base.plus(i, ChronoUnit.HOURS))
+                    .open(price).high(price).low(price).close(price)
+                    .volume(BigDecimal.valueOf(100))
+                    .build());
+        }
+
+        StrategySignal signal = strategy.evaluate(flat, Map.of());
+
+        assertThat(signal.getAction()).isEqualTo(StrategySignal.Action.HOLD);
+        assertThat(signal.getReason()).contains("변동성 없음");
+    }
 }

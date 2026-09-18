@@ -248,6 +248,13 @@ public class WalkForwardValidationGate {
                     "최근 Walk Forward 판정이 OVERFITTING — In-Sample 대비 Out-of-Sample 성과 하락폭이 커서 "
                             + "기대값을 신뢰할 수 없습니다.");
         }
+        if (WalkForwardTestRunner.VERDICT_HOLD_OUT_FAILED.equals(verdict)) {
+            // 홀드아웃은 파라미터 선택 과정을 보지 못한 독립 표본이다. 여기서 실패하면
+            // 튜닝 구간 OOS 성적이 아무리 좋아도 승격 근거가 되지 못한다.
+            return GateDecision.fail(strategyName,
+                    "홀드아웃 구간 검증 실패 — 파라미터 선택에 쓰이지 않은 독립 기간에서 "
+                            + "기대값이 양수가 아니거나 표본이 부족합니다.");
+        }
         if (totalTrades == null || totalTrades < MIN_TRADES) {
             return GateDecision.fail(strategyName, String.format(
                     "Out-of-Sample 거래 표본 부족(n=%s < %d).", totalTrades == null ? "0" : totalTrades, MIN_TRADES));

@@ -47,9 +47,26 @@ public class WalkForwardTestRunner {
         private final Mode mode;
         private final List<WindowResult> windows;
         private final BigDecimal overfittingScore;
-        private final String verdict; // ACCEPTABLE, CAUTION, OVERFITTING
-        /** 모든 OOS 윈도우 거래를 병합해 계산한 단일 성과 지표. */
+        /** ACCEPTABLE, CAUTION, OVERFITTING, INSUFFICIENT_DATA, HOLD_OUT_FAILED */
+        private final String verdict;
+        /**
+         * <b>튜닝 구간</b>의 모든 OOS 윈도우 거래를 병합해 계산한 단일 성과 지표.
+         *
+         * <p>홀드아웃 거래는 여기에 섞지 않는다. 튜닝 구간 OOS 는 파라미터 선택에 쓰인 기간의
+         * 밖이라는 뜻일 뿐이고, 홀드아웃은 그 선택 과정 전체를 보지 못한 독립 표본이다.
+         * 둘을 합치면 독립 표본이 다수의 튜닝 표본에 묻혀 최종 판정에서 사라진다.
+         */
         private final PerformanceReport aggregatedOutSampleMetrics;
+        /** 홀드아웃 구간 단독 성과. holdOutCutoff 를 주지 않았으면 null. */
+        private final PerformanceReport holdOutMetrics;
+        /**
+         * 홀드아웃이 최종 게이트를 통과했는지. holdOutCutoff 를 주지 않았으면 null.
+         *
+         * <p>false 면 {@link #verdict} 도 {@link #VERDICT_HOLD_OUT_FAILED} 가 된다 —
+         * 화면·리포트·승격 게이트가 verdict 만 보는 경로가 있어서, 여기서만 실패로 남기면
+         * 아무도 보지 않는다.
+         */
+        private final Boolean holdOutPassed;
     }
 
     @Getter
@@ -160,6 +177,20 @@ public class WalkForwardTestRunner {
      * {@code WalkForwardValidationGate} 는 검증 이력이 없는 것과 동일하게 차단한다.</p>
      */
     public static final String VERDICT_INSUFFICIENT_DATA = "INSUFFICIENT_DATA";
+
+    /**
+     * 홀드아웃 구간이 최종 게이트를 통과하지 못했음을 뜻한다 — 2026-09-18 신설.
+     *
+     * <p>이전에는 홀드아웃 백테스트를 돌려 마지막 윈도우로 <b>표시</b>만 하고, 반환값의
+     * {@code overfittingScore}·{@code verdict}·{@code aggregatedOutSampleMetrics} 에는
+     * 튜닝 구간 값을 그대로 썼다. 홀드아웃 거래를 모으는 코드도 있었으나 실제 집계에
+     * 쓰이지 않았다. <b>홀드아웃이 큰 손실이어도 최종 판정이 바뀌지 않는다</b>는 뜻이고,
+     * 그렇다면 그것은 독립 최종 게이트가 아니라 표시용 창이다.
+     *
+     * <p>홀드아웃의 존재 이유는 "파라미터 선택 과정을 보지 못한 표본에서도 성립하는가"이므로,
+     * 여기서 실패하면 튜닝 구간 성적이 아무리 좋아도 승격 근거가 될 수 없다.
+     */
+    public static final String VERDICT_HOLD_OUT_FAILED = "HOLD_OUT_FAILED";
 
     /**
      * IS→OOS 하락률과 표본 수로 판정을 낸다.
@@ -378,21 +409,39 @@ public class WalkForwardTestRunner {
         List<WindowResult> allWindows = new ArrayList<>(base.getWindows());
         allWindows.add(holdOutWindow);
 
-        // 홀드아웃 포함 최종 aggregated OOS
-        List<TradeRecord> allOosTrades = new ArrayList<>();
-        for (WindowResult w : base.getWindows()) {
-            // OOS 거래는 aggregated 재계산 불필요 — base 에서 이미 처리됨
-        }
-        allOosTrades.addAll(holdOutResult.getTrades());
-        PerformanceReport finalAggregated = base.getAggregatedOutSampleMetrics();
+        // 홀드아웃을 최종 필수 게이트로 적용한다.
+        // 튜닝 구간 OOS 지표(aggregatedOutSampleMetrics)에는 홀드아웃 거래를 섞지 않는다 —
+        // 합치면 독립 표본 하나가 다수의 튜닝 표본에 묻혀 판정에서 사라진다.
+        boolean holdOutPassed = isHoldOutPassed(holdOutMetrics);
+        String verdict = holdOutPassed ? base.getVerdict() : VERDICT_HOLD_OUT_FAILED;
 
         return WalkForwardResult.builder()
                 .mode(mode)
                 .windows(allWindows)
                 .overfittingScore(base.getOverfittingScore())
-                .verdict(base.getVerdict())
-                .aggregatedOutSampleMetrics(finalAggregated)
+                .verdict(verdict)
+                .aggregatedOutSampleMetrics(base.getAggregatedOutSampleMetrics())
+                .holdOutMetrics(holdOutMetrics)
+                .holdOutPassed(holdOutPassed)
                 .build();
+    }
+
+    /**
+     * 홀드아웃 통과 여부.
+     *
+     * <p>기준은 {@code WalkForwardValidationGate} 가 튜닝 OOS 에 쓰는 것과 같게 맞춘다 —
+     * 표본이 {@value #MIN_OOS_TRADES_FOR_VERDICT} 건 이상이고 기대값이 양수여야 한다.
+     * 기준이 갈라지면 "홀드아웃은 통과인데 게이트는 차단" 같은 설명 불가능한 상태가 생긴다.
+     *
+     * <p>거래가 부족한 경우도 통과가 아니다. 홀드아웃의 존재 이유가 독립 표본에서의 확인인데,
+     * 확인할 표본이 없으면 확인되지 않은 것이다 — "손실이 없었다"와 "잴 것이 없었다"를
+     * 구분하지 않으면 INSUFFICIENT_DATA 를 신설했던 이유가 사라진다.
+     */
+    private static boolean isHoldOutPassed(PerformanceReport holdOutMetrics) {
+        if (holdOutMetrics == null) return false;
+        if (holdOutMetrics.getTotalTrades() < MIN_OOS_TRADES_FOR_VERDICT) return false;
+        BigDecimal expectancy = holdOutMetrics.getExpectancyPct();
+        return expectancy != null && expectancy.signum() > 0;
     }
 
     private WalkForwardResult empty(Mode mode) {
