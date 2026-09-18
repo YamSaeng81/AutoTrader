@@ -156,30 +156,32 @@ public class WalkForwardValidationGate {
     }
 
     /**
-     * 실행이 <b>현재 청산 규칙</b>으로 돌았는지 — 아니면 근거로 인정하지 않는다 (2026-09-08).
+     * 실행이 <b>현재 코드의 거동</b>으로 돌았는지 — 아니면 근거로 인정하지 않는다 (2026-09-08).
      *
      * <h3>왜 필요한가</h3>
      * <p>이 게이트는 조합별 <b>가장 최근 실행 하나</b>만 본다. 그래서 재실행된 조합은 옛 결과가
      * 자연히 밀려나지만, <b>재실행되지 않은 조합은 수정 전 판정을 영원히 유지한다.</b>
      * 조용히 낡은 근거로 실자본이 승인된다 — 아무도 에러를 보지 못한다.</p>
      *
-     * <p>09-08 에 백테스트 청산 규칙이 실제로 바뀌었다(SL 5% 고정 → ATR 기반 5~8%,
-     * TP 10% → ≤8%, time stop 없음 → 24h, 손실 구간 SL 조임 제거). v1 결과는 실전 거동의
-     * 근거가 되지 못하므로 "검증 이력 없음"과 같게 취급한다.</p>
+     * <p>09-08(v2)은 청산 규칙이 바뀐 경우였고, 09-18(v3)은 <b>청산 규칙은 그대로인데 백테스트가
+     * 재는 대상이 바뀐</b> 경우다 — COMPOSITE 구성 통일, BTC Guard look-ahead 제거, 미청산 포지션
+     * 강제청산, 진입 수수료 차감. 어느 쪽이든 낡은 결과는 실전 거동의 근거가 되지 못하므로
+     * "검증 이력 없음"과 같게 취급한다. 무엇이 어느 버전에서 바뀌었는지는
+     * {@code ExitRuleFormula.BACKTEST_RULESET_VERSION} 의 이력을 볼 것.</p>
      */
     private static boolean isCurrentRuleset(BacktestRunEntity run) {
         Integer v = run.getExitRulesVersion();
-        return v != null && v >= ExitRuleFormula.EXIT_RULES_VERSION;
+        return v != null && v >= ExitRuleFormula.BACKTEST_RULESET_VERSION;
     }
 
     private GateDecision decideFromRun(String label, BacktestRunEntity run) {
         if (!isCurrentRuleset(run)) {
             return GateDecision.fail(label, String.format(
-                    "청산 규칙이 바뀐 뒤 재검증되지 않았습니다 (실행 규칙 v%s < 현재 v%d) — "
-                            + "이 결과는 SL 5%% 고정·TP 10%%·time stop 없음 기준이라 실전 거동을 반영하지 "
+                    "백테스트 규칙이 바뀐 뒤 재검증되지 않았습니다 (실행 규칙 v%s < 현재 v%d) — "
+                            + "이 결과는 지금과 다른 전략 구성·손익 정의로 산출돼 실전 거동을 반영하지 "
                             + "못합니다. /backtest/walk-forward 에서 재실행하세요.",
                     run.getExitRulesVersion() == null ? "미상" : run.getExitRulesVersion(),
-                    ExitRuleFormula.EXIT_RULES_VERSION));
+                    ExitRuleFormula.BACKTEST_RULESET_VERSION));
         }
         Map<String, Object> wf = run.getWfResultJson();
         String verdict = wf != null ? asString(wf.get("verdict")) : null;

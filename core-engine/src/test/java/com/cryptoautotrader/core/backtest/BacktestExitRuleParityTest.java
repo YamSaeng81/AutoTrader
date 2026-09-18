@@ -214,12 +214,12 @@ class BacktestExitRuleParityTest {
     }
 
     @Test
-    @DisplayName("가드: 규칙을 바꾸면 EXIT_RULES_VERSION 을 올려야 한다")
+    @DisplayName("가드: 규칙을 바꾸면 BACKTEST_RULESET_VERSION 을 올려야 한다")
     void 규칙버전이_기록된다() {
-        assertThat(ExitRuleFormula.EXIT_RULES_VERSION)
+        assertThat(ExitRuleFormula.BACKTEST_RULESET_VERSION)
                 .as("이 값은 backtest_run.exit_rules_version 에 기록되고 WalkForwardValidationGate 가 "
                         + "이보다 낮은 실행을 근거로 인정하지 않는다. 게이트는 조합별 '최신' 실행만 보므로, "
                         + "이 장치가 없으면 재실행되지 않은 조합이 수정 전 판정으로 실자본을 계속 승인한다.")
-                .isGreaterThanOrEqualTo(2);
+                .isGreaterThanOrEqualTo(3);
     }
 }

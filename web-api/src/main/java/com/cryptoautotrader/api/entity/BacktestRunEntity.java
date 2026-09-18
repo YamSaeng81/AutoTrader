@@ -58,7 +58,11 @@ public class BacktestRunEntity {
     private Boolean isWalkForward;
 
     /**
-     * 이 실행이 어떤 청산 규칙으로 돌았는지 — {@code ExitRuleFormula.EXIT_RULES_VERSION} (V78, 2026-09-08).
+     * 이 실행이 <b>어떤 코드 거동</b>으로 돌았는지 — {@code ExitRuleFormula.BACKTEST_RULESET_VERSION} (V78, 2026-09-08).
+     *
+     * <p>컬럼 이름은 09-08 의 흔적이라 청산 규칙만 가리키는 것처럼 보이지만, 실제 의미는
+     * "이 결과가 현재 코드를 대표하는가" 다 — 09-18(v3)은 청산 규칙이 아니라 전략 구성·손익
+     * 정의가 바뀌어 올린 경우다. 상세 이력은 상수의 javadoc 에 있다.</p>
      *
      * <p><b>NULL = 09-08 이전</b>(백테스트 SL 5% 고정 · TP 10% · time stop 없음 · 손실 구간 SL 조임).
      * {@code WalkForwardValidationGate} 는 현재 버전 미만을 <b>근거로 인정하지 않는다</b> —

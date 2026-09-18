@@ -112,9 +112,17 @@ public class BacktestEngine {
                 BigDecimal impact = fillSimulator.calculateMarketImpact(fillQty, nextCandle.getVolume());
                 BigDecimal executionPrice = applySlippage(nextCandle.getOpen(), pendingSide, config.getSlippagePct().add(impact));
 
+                // 부분 청산이면 진입 수수료도 청산 비율만큼만 인식한다. 전액을 빼면 남은
+                // 포지션이 나중에 청산될 때 같은 수수료를 다시 빼게 된다.
+                BigDecimal consumedEntryFee = BigDecimal.ZERO;
+                if (pendingSide == OrderSide.SELL && position.compareTo(BigDecimal.ZERO) > 0) {
+                    consumedEntryFee = entryFee.multiply(fillQty)
+                            .divide(position, SCALE, RoundingMode.HALF_UP);
+                }
+
                 TradeRecord trade = executeTrade(pendingSide, executionPrice, fillQty,
                         config.getFeePct(), config.getSlippagePct().add(impact),
-                        "Partial Fill 이월", null, nextCandle, cumulativePnl, entryPrice);
+                        "Partial Fill 이월", null, nextCandle, cumulativePnl, entryPrice, consumedEntryFee);
 
                 trades.add(trade);
                 pendingQuantity = pendingQuantity.subtract(fillQty);
@@ -132,6 +140,7 @@ public class BacktestEngine {
                     capital = capital.subtract(executionPrice.multiply(fillQty)).subtract(trade.getFee());
                 } else {
                     position = position.subtract(fillQty);
+                    entryFee = entryFee.subtract(consumedEntryFee);
                     capital = capital.add(executionPrice.multiply(fillQty)).subtract(trade.getFee());
                 }
                 cumulativePnl = trade.getCumulativePnl();
@@ -461,13 +470,14 @@ public class BacktestEngine {
 
             TradeRecord forcedExit = executeTrade(OrderSide.SELL, exitPrice, position,
                     config.getFeePct(), config.getSlippagePct(),
-                    "기간 종료 강제청산 (mark-to-market)", null, lastCandle, cumulativePnl, entryPrice);
+                    "기간 종료 강제청산 (mark-to-market)", null, lastCandle, cumulativePnl, entryPrice, entryFee);
 
             trades.add(forcedExit);
             cumulativePnl = forcedExit.getCumulativePnl();
             capital = capital.add(exitPrice.multiply(position)).subtract(forcedExit.getFee());
-            // 진입 수수료까지 반영한 순손익 — 보고용으로 남긴다.
-            unrealizedPnl = forcedExit.getPnl().subtract(entryFee).setScale(SCALE, RoundingMode.HALF_UP);
+            // 진입 수수료는 이미 forcedExit.pnl 에 반영돼 있다. 여기서 또 빼면 이중 차감이다.
+            unrealizedPnl = forcedExit.getPnl().setScale(SCALE, RoundingMode.HALF_UP);
+            entryFee = BigDecimal.ZERO;
             position = BigDecimal.ZERO;
         }
 
@@ -519,10 +529,13 @@ public class BacktestEngine {
     private TradeRecord executeTrade(OrderSide side, BigDecimal price, BigDecimal quantity,
                                      BigDecimal feePct, BigDecimal slippage, String reason,
                                      String regime, Candle candle, BigDecimal cumulativePnl,
-                                     BigDecimal entryPrice) {
+                                     BigDecimal entryPrice, BigDecimal entryFee) {
         BigDecimal fee = price.multiply(quantity).multiply(feePct).divide(BigDecimal.valueOf(100), SCALE, RoundingMode.HALF_UP);
+        // SELL 의 순손익은 **진입·청산 수수료를 모두 뺀** 값이다 — 운영(DYNAMIC/PAPER)의
+        // realizedPnl 이 그 정의이므로 백테스트도 같아야 한다. 진입 수수료를 빼지 않으면
+        // 거래가 잦은 전략일수록 실전보다 유리하게 평가된다.
         BigDecimal pnl = side == OrderSide.SELL
-                ? price.subtract(entryPrice).multiply(quantity).subtract(fee)
+                ? price.subtract(entryPrice).multiply(quantity).subtract(fee).subtract(entryFee)
                 : BigDecimal.ZERO;
         return TradeRecord.builder()
                 .side(side)

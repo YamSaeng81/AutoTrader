@@ -74,17 +74,18 @@ class UnrealizedPnlInMetricsTest {
                 .as("미청산 손실이 지표에 반영되지 않으면 순위·게이트가 화면과 반대 방향을 가리킨다")
                 .isNegative();
 
-        // ⚠️ 두 값이 완전히 같지는 않다. executeTrade 의 SELL pnl 이 **진입 수수료를 빼지 않아**
-        //    metrics 가 자산 기준보다 진입 수수료만큼 높게 나온다(이 조합에서 −0.20% vs −0.24%).
-        //    미청산 손익 누락과는 별개의 결함이므로 여기서는 고치지 않고 드러내 둔다.
-        //    실제 수치가 바뀌면 이 단정이 깨져 재검토를 강제한다.
+        // 두 값은 반올림 오차 밖에서 달라지지 않아야 한다.
+        //
+        // 2026-09-18 이전에는 executeTrade 의 SELL pnl 이 **진입 수수료를 빼지 않아** metrics 가
+        // 자산 기준보다 높게 나왔다(이 조합에서 −0.20% vs −0.24%). 운영(DYNAMIC/PAPER)의
+        // realizedPnl 은 진입·청산 수수료를 모두 뺀 순손익이므로, 그 차이는 백테스트만 실전보다
+        // 유리하게 계산하는 것이었고 **회전율이 높은 전략일수록 커지는 체계적 편향**이었다.
         BigDecimal equityReturnPct = result.getFinalEquity().subtract(initial)
                 .divide(initial, 6, java.math.RoundingMode.HALF_UP)
                 .multiply(BigDecimal.valueOf(100));
         assertThat(result.getMetrics().getTotalReturnPct().doubleValue())
-                .as("진입 수수료 누락분만큼의 차이 — 좁혀지면 그때 이 단정을 조이면 된다")
-                .isGreaterThan(equityReturnPct.doubleValue())
-                .isCloseTo(equityReturnPct.doubleValue(), org.assertj.core.data.Offset.offset(0.1));
+                .as("성과 지표와 자산이 같은 손익을 재야 한다 — 벌어지면 수수료 누락이 되돌아온 것이다")
+                .isCloseTo(equityReturnPct.doubleValue(), org.assertj.core.data.Offset.offset(0.01));
     }
 
     @Test

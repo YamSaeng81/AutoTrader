@@ -48,7 +48,7 @@ import java.util.Map;
  *       세션 오버라이드({@code ExitRuleOverrides}) 해석만 담당한다.</li>
  * </ul>
  *
- * <p>상태가 없다. 상수를 바꾸면 {@link #EXIT_RULES_VERSION} 을 함께 올릴 것 —
+ * <p>상태가 없다. 상수를 바꾸면 {@link #BACKTEST_RULESET_VERSION} 을 함께 올릴 것 —
  * 올리지 않으면 <b>다른 규칙의 백테스트가 한 표본에 섞이고</b>, 수정 전 Walk Forward 결과가
  * 그대로 실자본 승인 근거로 쓰인다.</p>
  */
@@ -57,21 +57,35 @@ public final class ExitRuleFormula {
     private ExitRuleFormula() {}
 
     /**
-     * 청산 규칙 버전 — <b>이 클래스의 공식이나 상수를 바꾸면 반드시 올린다.</b>
+     * 백테스트 규칙 버전 — <b>저장된 백테스트 결과가 현재 코드의 거동을 대표하는가</b>를 가르는 값.
      *
      * <p>{@code backtest_run.exit_rules_version} 에 기록되고 {@code WalkForwardValidationGate} 가
      * 이 값보다 낮은 실행을 <b>근거로 인정하지 않는다.</b> 게이트는 조합별 <b>최신</b> 실행만 보므로,
      * 이 장치가 없으면 <b>재실행되지 않은 조합은 수정 전 판정을 영구히 유지한다</b> —
      * 조용히 낡은 근거로 실자본이 승인된다.</p>
      *
+     * <h3>언제 올리는가</h3>
+     * <p>이름과 DB 컬럼명은 09-08 의 흔적이라 청산 규칙만 가리키는 것처럼 보이지만, 실제 기준은
+     * 그보다 넓다: <b>같은 입력에 대해 백테스트가 다른 결과를 내게 만드는 변경이면 전부</b> 올린다.
+     * 청산 공식뿐 아니라 전략 구성·신호 평가 입력·손익 회계·look-ahead 수정이 모두 해당한다.
+     * 09-18 에 실제로 그 함정을 밟았다 — 청산 규칙이 아니라는 이유로 올리지 않을 뻔했고,
+     * 그랬다면 다른 전략 구성으로 돌린 v2 결과가 계속 실자본을 승인했을 것이다.</p>
+     *
      * <p>이력:</p>
      * <ul>
      *   <li>1 — 2026-09-08 이전. 백테스트가 SL 5% 고정 · TP 10% · time stop 없음으로 돌던 시기.
      *       그리고 {@code updateTrailingStops} 의 손실 구간 SL 조임(= 실질 0.3% 손절)이 살아 있던 시기.</li>
      *   <li>2 — 2026-09-08. 네 경로가 이 공식을 공유. 백테스트에 ATR 기반 SL·TP 상한·time stop 적용.</li>
+     *   <li>3 — 2026-09-18. 청산 규칙은 그대로지만 <b>백테스트가 재는 대상이 달라졌다</b>:
+     *       COMPOSITE 계열이 운영과 같은 구성으로 통일(이전엔 정의가 셋이었다) ·
+     *       COMPOSITE 가 국면 적응형으로 전환 · 평가 입력에 timeframe 주입 ·
+     *       BTC_MARKET_GUARD 가 종료된 봉만 참조(look-ahead 제거) ·
+     *       기간 종료 미청산 포지션을 강제청산해 성과 지표에 반영 ·
+     *       SELL 순손익에서 진입 수수료 차감(운영 realizedPnl 과 정의 일치).
+     *       v2 결과는 <b>다른 전략을, 미래를 보면서, 다른 손익 정의로</b> 잰 값이다.</li>
      * </ul>
      */
-    public static final int EXIT_RULES_VERSION = 2;
+    public static final int BACKTEST_RULESET_VERSION = 3;
 
     // ── 손절폭 (2026-07-31 전면 개편 → 08-05 재조정, 원래 DynamicTradingService 소재) ──────
     //

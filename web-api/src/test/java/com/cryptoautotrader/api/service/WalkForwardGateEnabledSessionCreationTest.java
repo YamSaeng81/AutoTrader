@@ -147,7 +147,7 @@ class WalkForwardGateEnabledSessionCreationTest extends IntegrationTestBase {
                 // 현재 청산 규칙으로 돈 실행으로 표시한다 — 이 표시가 없으면 게이트가
                 // '구버전이라 재검증 필요' 로 먼저 걸러서, 여기서 보려는 판정(기대값·OVERFITTING)에
                 // 도달하지 못한다 (2026-09-08 V78).
-                .exitRulesVersion(ExitRuleFormula.EXIT_RULES_VERSION)
+                .exitRulesVersion(ExitRuleFormula.BACKTEST_RULESET_VERSION)
                 .wfResultJson(result)
                 .build();
     }

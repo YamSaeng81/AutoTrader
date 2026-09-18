@@ -763,7 +763,7 @@ public class BacktestService {
                 .isWalkForward(isWalkForward)
                 // 어떤 청산 규칙으로 돌았는지 기록한다 — 게이트가 구버전 근거를 걸러낼 수 있는 유일한 단서.
                 // 코드에서 읽으므로 규칙을 바꾸고 상수만 올리면 자동으로 새 값이 남는다.
-                .exitRulesVersion(ExitRuleFormula.EXIT_RULES_VERSION)
+                .exitRulesVersion(ExitRuleFormula.BACKTEST_RULESET_VERSION)
                 .build();
         return backtestRunRepository.save(entity);
     }

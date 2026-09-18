@@ -54,7 +54,7 @@ class WalkForwardGateTimeframeTest {
     private static BacktestRunEntity run(String coin, String tf, String verdict,
                                          double expectancyPct, int trades, Instant createdAt) {
         BacktestRunEntity e = runWithRuleset(coin, tf, verdict, expectancyPct, trades, createdAt,
-                ExitRuleFormula.EXIT_RULES_VERSION);
+                ExitRuleFormula.BACKTEST_RULESET_VERSION);
         return e;
     }
 
@@ -161,14 +161,17 @@ class WalkForwardGateTimeframeTest {
                 anyString(), anyString(), any()))
                 .thenReturn(List.of(runWithRuleset("KRW-BTC", "H1", "ACCEPTABLE", 3.5, 40,
                         Instant.parse("2026-09-02T00:00:00Z"),
-                        ExitRuleFormula.EXIT_RULES_VERSION - 1)));
+                        ExitRuleFormula.BACKTEST_RULESET_VERSION - 1)));
 
         var d = gate.evaluate("COMPOSITE_MTF_BTC", "KRW-BTC", "H1");
 
         assertThat(d.passed())
-                .as("SL 5%% 고정 · TP 10%% · time stop 없음으로 나온 성적이다 — 실전 거동을 반영하지 못한다")
+                .as("지금과 다른 규칙으로 나온 성적이다 — 실전 거동을 반영하지 못한다")
                 .isFalse();
-        assertThat(d.reason()).contains("청산 규칙");
+        assertThat(d.reason())
+                .as("거부 사유에 버전 불일치가 드러나야 한다 — 왜 막혔는지 모르면 재실행할 생각을 못 한다")
+                .contains("규칙이 바뀐 뒤 재검증되지 않았습니다")
+                .contains("재실행");
     }
 
     @Test
@@ -191,7 +194,7 @@ class WalkForwardGateTimeframeTest {
         when(repo.findByStrategyNameAndIsWalkForwardTrueOrderByCreatedAtDesc(anyString()))
                 .thenReturn(List.of(runWithRuleset("KRW-BTC", "H1", "ACCEPTABLE", 3.5, 40,
                         Instant.parse("2026-09-02T00:00:00Z"),
-                        ExitRuleFormula.EXIT_RULES_VERSION - 1)));
+                        ExitRuleFormula.BACKTEST_RULESET_VERSION - 1)));
 
         assertThat(gate.evaluateStrategy("COMPOSITE_MTF_BTC", "H1").passed()).isFalse();
     }

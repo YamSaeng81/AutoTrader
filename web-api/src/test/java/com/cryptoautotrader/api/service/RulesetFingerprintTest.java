@@ -174,7 +174,7 @@ class RulesetFingerprintTest {
             // 규칙 버전은 매매 거동 파라미터가 아니라 "이 결과가 어떤 규칙으로 나왔나" 표시다.
             // backtest_run 에 기록돼 WF 게이트가 구버전을 거르는 용도이고, 지문에 넣으면
             // 값이 바뀔 때마다 실전 표본까지 갈라진다.
-            if (f.getName().equals("EXIT_RULES_VERSION")) continue;
+            if (f.getName().equals("BACKTEST_RULESET_VERSION")) continue;
             String key = lowerCamel(f.getName());
             assertThat(exposed)
                     .as("ExitRuleFormula.%s 가 지문에 없다 — 이 값을 바꿔도 지문이 그대로다", f.getName())
