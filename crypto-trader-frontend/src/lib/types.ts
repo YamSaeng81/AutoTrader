@@ -176,7 +176,13 @@ export interface WalkForwardResult {
   id?: number;
   windows: WalkForwardWindow[];
   overfittingScore: number;
-  verdict: 'ACCEPTABLE' | 'CAUTION' | 'OVERFITTING';
+  /**
+   * 백엔드 `WalkForwardTestRunner` 의 판정값. **5종 전부 적어야 한다** —
+   * 2026-09-18 에 이 타입이 3종만 선언하고 있어서 `INSUFFICIENT_DATA`(09-09 신설) 행 하나가
+   * WF 이력 화면 전체를 흰 화면으로 만들었다. 타입이 좁으면 컴파일러가 누락을 잡아 주지 못한다.
+   * 판정값을 추가하면 여기와 화면의 VERDICT_CONFIG 를 함께 갱신할 것.
+   */
+  verdict: 'ACCEPTABLE' | 'CAUTION' | 'OVERFITTING' | 'INSUFFICIENT_DATA' | 'HOLD_OUT_FAILED';
   strategyType?: string;
   coinPair?: string;
   timeframe?: string;

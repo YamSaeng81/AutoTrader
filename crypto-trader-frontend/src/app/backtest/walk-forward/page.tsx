@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { strategyApi, backtestApi, systemApi, csvExportApi } from '@/lib/api';
 import { StrategyInfo, Timeframe, WalkForwardResult } from '@/lib/types';
-import { Play, Loader2, AlertTriangle, CheckCircle, History, Trash2, ChevronUp, ChevronDown, ChevronsUpDown, Download } from 'lucide-react';
+import { Play, Loader2, AlertTriangle, CheckCircle, History, Trash2, ChevronUp, ChevronDown, ChevronsUpDown, Download, HelpCircle, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import {
@@ -23,11 +23,34 @@ function SortIcon({ col, sortKey, sortDir }: { col: WFSortKey; sortKey: WFSortKe
         : <ChevronDown className="w-3 h-3 inline ml-0.5" />;
 }
 
-const VERDICT_CONFIG = {
+type VerdictStyle = { label: string; color: string; bg: string; icon: typeof CheckCircle };
+
+/**
+ * 판정값별 표시 설정 — **백엔드 판정 5종 전부** 있어야 한다.
+ *
+ * 2026-09-18: 여기에 ACCEPTABLE·CAUTION·OVERFITTING 만 있어서, INSUFFICIENT_DATA 판정이
+ * 하나라도 섞이면 `VERDICT_CONFIG[h.verdict]` 가 undefined 가 되고 바로 다음 줄
+ * `cfg.icon` 에서 터져 **이력 화면 전체가 흰 화면**이 됐다. 행 하나가 페이지를 죽인 것이다.
+ * 모르는 판정값이 와도 화면은 살아 있어야 하므로 아래 UNKNOWN_VERDICT 로 폴백한다.
+ */
+const VERDICT_CONFIG: Record<string, VerdictStyle> = {
     ACCEPTABLE: { label: '통과', color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/30 border-emerald-200 dark:border-emerald-700', icon: CheckCircle },
     CAUTION: { label: '주의', color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-700', icon: AlertTriangle },
     OVERFITTING: { label: '과적합 경고', color: 'text-rose-600 dark:text-rose-400', bg: 'bg-rose-50 dark:bg-rose-900/30 border-rose-200 dark:border-rose-700', icon: AlertTriangle },
+    // 표본이 판정 하한(OOS 5거래)에 못 미치거나, IS 수익이 양수인 윈도우가 하나도 없어
+    // 하락률을 잴 대상 자체가 없었던 경우. "나쁘다"가 아니라 "잴 수 없다"이다.
+    INSUFFICIENT_DATA: { label: '표본 부족', color: 'text-slate-500 dark:text-slate-400', bg: 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700', icon: HelpCircle },
+    // 튜닝 구간 판정과 무관하게, 손대지 않은 홀드아웃 구간에서 떨어진 경우.
+    HOLD_OUT_FAILED: { label: '홀드아웃 실패', color: 'text-rose-700 dark:text-rose-300', bg: 'bg-rose-100 dark:bg-rose-900/40 border-rose-300 dark:border-rose-700', icon: XCircle },
 };
+
+const UNKNOWN_VERDICT: VerdictStyle = {
+    label: '알 수 없음', color: 'text-slate-500 dark:text-slate-400',
+    bg: 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700', icon: HelpCircle,
+};
+
+const verdictStyle = (v: string | undefined): VerdictStyle =>
+    (v && VERDICT_CONFIG[v]) || UNKNOWN_VERDICT;
 
 export default function WalkForwardPage() {
     const [tab, setTab] = useState<'run' | 'history'>('run');
@@ -149,7 +172,7 @@ export default function WalkForwardPage() {
         })) ?? [];
 
     const chartData = buildChartData(displayResult);
-    const verdictCfg = displayResult ? VERDICT_CONFIG[displayResult.verdict] : null;
+    const verdictCfg = displayResult ? verdictStyle(displayResult.verdict) : null;
     const VerdictIcon = verdictCfg?.icon ?? CheckCircle;
 
     return (
@@ -259,7 +282,7 @@ export default function WalkForwardPage() {
                                     {filteredHistory.length === 0 ? (
                                         <tr><td colSpan={8} className="px-5 py-10 text-center text-slate-400 dark:text-slate-500 text-sm">필터 조건에 맞는 이력이 없습니다.</td></tr>
                                     ) : filteredHistory.map((h, i) => {
-                                        const cfg = VERDICT_CONFIG[h.verdict];
+                                        const cfg = verdictStyle(h.verdict);
                                         const Icon = cfg.icon;
                                         return (
                                             <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
