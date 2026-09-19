@@ -14,6 +14,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -140,40 +141,53 @@ public class CandleDataFreshnessScheduler {
         int requested = 0;
         boolean hitRequestCap = false;
 
-        outer:
+        // ── 1단계: 전 조합을 훑어 분류한다. 요청 상한과 무관하게 **끝까지** 본다. ──
+        //
+        // 상한을 루프 안에서 끊으면 목록 뒷부분은 매 실행마다 도달하지 못한다(2026-09-20 실측:
+        // H1 에서 상한에 걸려 M15 는 평가조차 되지 않았고, 그래서 "이력 없음" 알림이 아예
+        // 오지 않았다). 분류는 맵 조회뿐이라 비용이 없으므로 먼저 전부 끝낸다.
+        List<StaleTarget> stale = new ArrayList<>();
         for (String tf : timeframes) {
             for (String coin : coins) {
                 Instant last = lastSeen.get(coin + "|" + tf);
                 if (last == null) {
                     // 이력이 아예 없는 조합은 하루치만 당겨서는 의미가 없다 — 백필 스크립트 몫이다.
-                    // 감시는 하는데 캔들이 0건인 코인이 여기 걸린다(09-18 실측: NEAR·KAITO·SHIB 등).
                     needsBackfill.add(coin + " " + tf + " (이력 없음)");
                     continue;
                 }
                 long gapDays = Duration.between(last, Instant.now()).toDays();
-                if (gapDays <= FRESH_TOLERANCE_DAYS) {
-                    continue; // 최신
+                if (gapDays > FRESH_TOLERANCE_DAYS) {
+                    stale.add(new StaleTarget(coin, tf, last, gapDays));
                 }
+            }
+        }
 
-                // 긴 갭은 잘라서 여러 번 요청한다. 종전에는 여기서 건너뛰었는데, 갭은 매일
-                // 커지기만 하므로 한 번 한계를 넘으면 영원히 돌아오지 못했다.
-                LocalDate cursor = last.atZone(ZoneId.of("Asia/Seoul")).toLocalDate();
-                while (cursor.isBefore(today)) {
-                    if (requested >= MAX_REQUESTS_PER_RUN) {
-                        hitRequestCap = true;
-                        break outer;
-                    }
-                    LocalDate chunkEnd = cursor.plusDays(MAX_GAP_CHUNK_DAYS);
-                    if (chunkEnd.isAfter(today)) chunkEnd = today;
+        // ── 2단계: **가장 많이 밀린 것부터** 채운다. ──
+        //
+        // 고정 순서로 돌면서 상한에 걸리면 뒤쪽은 영원히 굶는다. 밀린 순으로 처리하면
+        // 한 번 채워진 조합은 다음 실행에서 뒤로 가므로 **스스로 균형이 맞는다.**
+        stale.sort(Comparator.comparingLong(StaleTarget::gapDays).reversed());
 
-                    log.info("[CandleFreshness] 갭 수집: {} {} {} ~ {} (남은 갭 {}일)",
-                            coin, tf, cursor, chunkEnd, gapDays);
-                    dataCollectionService.collectCandles(coin, tf, cursor, chunkEnd);
-                    requested++;
-
-                    cursor = chunkEnd;
-                    sleepBetweenRequests();
+        outer:
+        for (StaleTarget target : stale) {
+            // 긴 갭은 잘라서 여러 번 요청한다. 종전에는 여기서 건너뛰었는데, 갭은 매일
+            // 커지기만 하므로 한 번 한계를 넘으면 영원히 돌아오지 못했다.
+            LocalDate cursor = target.last().atZone(ZoneId.of("Asia/Seoul")).toLocalDate();
+            while (cursor.isBefore(today)) {
+                if (requested >= MAX_REQUESTS_PER_RUN) {
+                    hitRequestCap = true;
+                    break outer;
                 }
+                LocalDate chunkEnd = cursor.plusDays(MAX_GAP_CHUNK_DAYS);
+                if (chunkEnd.isAfter(today)) chunkEnd = today;
+
+                log.info("[CandleFreshness] 갭 수집: {} {} {} ~ {} (남은 갭 {}일)",
+                        target.coin(), target.timeframe(), cursor, chunkEnd, target.gapDays());
+                dataCollectionService.collectCandles(target.coin(), target.timeframe(), cursor, chunkEnd);
+                requested++;
+
+                cursor = chunkEnd;
+                sleepBetweenRequests();
             }
         }
 
@@ -195,6 +209,7 @@ public class CandleDataFreshnessScheduler {
         if (hitRequestCap) {
             notify(String.format(
                     "⚠️ 캔들 갱신이 한 실행 요청 상한(%d건)에 걸렸습니다. 밀린 구간이 많다는 뜻입니다 — "
+                            + "밀린 순으로 처리하므로 실행을 거듭하면 따라잡습니다. "
                             + "며칠 연속 이 알림이 오면 수동 백필을 고려하세요.", MAX_REQUESTS_PER_RUN));
         }
     }
@@ -216,6 +231,9 @@ public class CandleDataFreshnessScheduler {
         }
         return List.copyOf(coins);
     }
+
+    /** 갱신이 필요한 (코인, 타임프레임) 하나. {@code gapDays} 가 클수록 먼저 처리한다. */
+    private record StaleTarget(String coin, String timeframe, Instant last, long gapDays) {}
 
     private void notify(String message) {
         try {

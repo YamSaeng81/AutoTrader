@@ -157,6 +157,63 @@ class CandleDataFreshnessSchedulerTest {
     }
 
     @Test
+    @DisplayName("요청 상한에 걸려도 '이력 없음' 은 전부 감지해 알린다 — 2026-09-20 실측 결함")
+    void 상한에_걸려도_이력없음은_빠짐없이_알린다() {
+        // 09-20 운영 실측: H1 에서 상한에 걸려 break 하는 바람에 **M15 는 평가조차 되지 않았다.**
+        // 그래서 "이력 없음" 알림이 아예 오지 않고 상한 알림만 왔다. 분류는 맵 조회뿐이라
+        // 비용이 없으므로 요청 상한과 무관하게 끝까지 훑어야 한다.
+        ReflectionTestUtils.setField(scheduler, "timeframesCsv", "H1,M15");
+        ReflectionTestUtils.setField(scheduler, "spacingSeconds", NO_SLEEP);
+        when(candleRepo.findDataSummary()).thenReturn(new ArrayList<>());
+
+        // H1 은 밀린 코인을 잔뜩 둬서 상한(40)을 확실히 넘긴다.
+        List<String> many = new ArrayList<>();
+        for (int i = 0; i < 60; i++) {
+            String coin = "KRW-C" + i;
+            many.add(coin);
+            lastCandle(coin, "H1", Instant.now().minus(Duration.ofDays(30)));
+        }
+        // M15 는 어느 코인도 이력이 없다 — 전부 '이력 없음' 으로 잡혀야 한다.
+        when(logRepo.findRecentlyWatchedCoins(any(), anyLong())).thenReturn(many);
+
+        scheduler.refreshNow();
+
+        ArgumentCaptor<String> msg = ArgumentCaptor.forClass(String.class);
+        verify(telegram, atLeastOnce()).sendCustomNotification(msg.capture());
+        assertThat(msg.getAllValues())
+                .as("상한에 걸렸다고 뒤쪽 조합을 아예 훑지 않으면, 캔들이 없는 조합이 "
+                        + "**영원히 보고되지 않는다** — 조용히 실패하는 바로 그 형태다")
+                .anyMatch(m -> m.contains("M15"));
+    }
+
+    @Test
+    @DisplayName("상한이 있을 때 가장 많이 밀린 조합부터 채운다 — 뒤쪽이 굶으면 안 된다")
+    void 가장_많이_밀린_것부터_처리한다() {
+        ReflectionTestUtils.setField(scheduler, "spacingSeconds", NO_SLEEP);
+        when(candleRepo.findDataSummary()).thenReturn(new ArrayList<>());
+
+        // 목록 '앞쪽' 에 살짝 밀린 코인을 잔뜩, '뒤쪽' 에 크게 밀린 코인 하나를 둔다.
+        List<String> order = new ArrayList<>();
+        for (int i = 0; i < 50; i++) {
+            String coin = "KRW-M" + i;
+            order.add(coin);
+            lastCandle(coin, "H1", Instant.now().minus(Duration.ofDays(3)));
+        }
+        order.add("KRW-STARVED");
+        lastCandle("KRW-STARVED", "H1", Instant.now().minus(Duration.ofDays(60)));
+        when(logRepo.findRecentlyWatchedCoins(any(), anyLong())).thenReturn(order);
+
+        scheduler.refreshNow();
+
+        ArgumentCaptor<String> coin = ArgumentCaptor.forClass(String.class);
+        verify(collector, atLeastOnce()).collectCandles(coin.capture(), any(), any(), any());
+        assertThat(coin.getAllValues())
+                .as("고정 순서로 돌면서 상한에 걸리면 목록 뒤쪽은 **매 실행마다** 도달하지 못해 "
+                        + "영원히 굶는다. 밀린 순으로 처리해야 스스로 균형이 맞는다")
+                .contains("KRW-STARVED");
+    }
+
+    @Test
     @DisplayName("최신이면 아무 요청도 하지 않는다 — 매일 1일짜리 꼬리 요청이 반복되면 안 된다")
     void 최신이면_요청하지_않는다() {
         when(candleRepo.findDataSummary()).thenReturn(new ArrayList<>());
