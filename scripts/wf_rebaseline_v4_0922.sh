@@ -136,7 +136,8 @@ if [ "${1:-}" = "--verify" ]; then
   echo "▶ v3 → v4 대조 — 전략·코인·타임프레임·기간이 모두 같은 칸만"
   echo "  (v4 열이 비어 있으면 그 칸은 아직 재실행되지 않은 것)"
   psql_q "SELECT v3.timeframe, v3.strategy_name, v3.coin_pair,
-                 v3.start_date::date || '~' || v3.end_date::date AS 기간,
+                 (v3.start_date AT TIME ZONE 'Asia/Seoul')::date || '~'
+                 || (v3.end_date AT TIME ZONE 'Asia/Seoul')::date AS 기간,
                  v3.verdict AS v3, COALESCE(v4.verdict,'-') AS v4,
                  CASE WHEN v4.verdict IS NULL THEN ''
                       WHEN v3.verdict = v4.verdict THEN '='
@@ -205,9 +206,16 @@ echo "✓ 인증 확인"
 
 # ── v3 실행에서 (타임프레임, 기간, 코인묶음) 복제 계획을 읽는다 ──────────────
 #    출력 한 줄 = 하나의 배치. 형식: tf|start|end|["KRW-A","KRW-B",...]|코인수
+#
+#    🔴 날짜를 KST 로 되돌려 읽는다. 백엔드는 요청의 LocalDate 를
+#       atStartOfDay(Asia/Seoul).toInstant() 로 변환해 TIMESTAMPTZ 에 넣는다
+#       (BacktestJobService:117). 그래서 2023-01-01 요청은 2022-12-31T15:00Z 로
+#       저장되고, psql 세션이 UTC 면 start_date::date 가 2022-12-31 로 나온다.
+#       그 값을 그대로 다시 제출하면 **하루가 더 밀려** v3 와 다른 기간이 되고,
+#       --verify 의 기간 JOIN 이 한 칸도 맞지 않는다.
 PLAN=$(psql_q "SELECT timeframe,
-                      start_date::date,
-                      end_date::date,
+                      (start_date AT TIME ZONE 'Asia/Seoul')::date,
+                      (end_date   AT TIME ZONE 'Asia/Seoul')::date,
                       '[\"' || string_agg(DISTINCT coin_pair, '\",\"' ORDER BY coin_pair) || '\"]',
                       count(DISTINCT coin_pair)
                  FROM backtest_run
@@ -236,7 +244,8 @@ while IFS='|' read -r tf sd ed coins n; do
 done <<< "$PLAN"
 
 # Job 2 의 기간 — BTC 가 속한 H1 묶음을 따라간다
-J2_PERIOD=$(psql_q "SELECT start_date::date || '|' || end_date::date
+J2_PERIOD=$(psql_q "SELECT (start_date AT TIME ZONE 'Asia/Seoul')::date || '|'
+                        || (end_date   AT TIME ZONE 'Asia/Seoul')::date
                       FROM backtest_run
                      WHERE is_walk_forward AND exit_rules_version = 3
                        AND timeframe = 'H1' AND coin_pair = 'KRW-BTC'
