@@ -7,7 +7,7 @@
 #
 #   Wave 3 의 L·I·H 를 고치면서 BACKTEST_RULESET_VERSION 을 3 → 4 로 올렸다.
 #   세 수정 모두 **같은 입력에 대해 백테스트가 다른 결과를 내게 만든다.** 따라서
-#   09-18 에 만든 v3 기준선은 전부 무효다.
+#   09-18 에 만든 v3 결과 82건은 전부 무효다.
 #
 #     L  CandleDownsampler — MTF 상위봉 경계가 조회 시점마다 흔들렸다.
 #        500봉 슬라이딩 윈도우가 1칸 밀릴 때마다 H4 봉의 위상이 바뀌어,
@@ -48,43 +48,47 @@
 #   COMPOSITE_MTF_BTC_STRICT 는 제외한다 — DEPRECATED 이고 MTF_BTC 와 결과가 동일하다
 #   (SupertrendStrictHtfNoOpTest 로 증명됨). 돌려 봐야 같은 숫자가 두 벌 쌓인다.
 #
-# ■ 세 묶음으로 나눈 이유
+# ■ 🔴 기간과 코인을 v3 실행에서 **그대로 복제한다** — 이 스크립트의 핵심
 #
-#   Job 1 은 09-18 v3 기준선과 **정확히 같은 조합**이다. v3 → v4 를 1:1 로 비교할 수
-#   있는 유일한 묶음이므로 분리했다. Job 2 는 "이번 수정으로 새로 무효가 된" 나머지
-#   프리셋이다. 둘을 섞으면 비교 가능한 15조합이 60조합 속에 묻힌다.
+#   초판(09-22 오전)은 코인을 메이저 5종으로 고정하고 종료일을 "캔들 보유 기준
+#   자동 계산"했다. **둘 다 틀렸다.**
 #
-# ■ 코인 — 메이저 5종으로 유지한다
+#   · 종료일 자동 계산이 위험했다 — v3 는 2026-09-07 로 끊겨 있는데 백필로 캔들이
+#     늘어난 지금 자동 계산하면 더 늦은 날짜가 잡힌다. 그러면 v3↔v4 차이에
+#     **"규칙이 바꾼 것"과 "기간이 13일 늘어난 것"이 섞인다.** 비교가 목적인
+#     스크립트에서 기간을 움직이면 그 비교가 무의미해진다.
 #
-#   09-22 백필 이후 H1 보유가 99종까지 올라왔지만, 여기서 코인을 늘리지 않는다.
-#   이 스크립트의 목적은 **규칙 버전 간 비교**이고, 그러려면 v3 기준선과 같은 코인을
-#   써야 한다. 코인을 동시에 바꾸면 "규칙이 바꾼 것"과 "코인이 바꾼 것"이 섞인다.
+#   · 코인 5종 고정이 손해였다 — v3 결과는 이미 **19코인**에 대해 존재한다
+#     (rebaseline 25건 + wf_watchlist 57건 = 82건). 그리고 워치리스트가 쓴 3전략이
+#     Job 1 의 3전략과 정확히 같다. 5종으로 줄이면 비교 가능한 칸을 57 → 15 로
+#     스스로 버리는 셈이다.
 #
-#   알트 커버리지 확장은 별건이다 — v4 기준선이 선 다음에
-#   wf_watchlist_0918.sh 방식으로 따로 돌릴 것.
+#   그래서 Job 1·3 은 **하드코딩하지 않는다.** DB 에서 v3 실행의
+#   (기간, 코인) 조합을 읽어 같은 기간·같은 코인으로 다시 제출한다.
+#   기간이 여러 묶음이면(워치리스트는 상장 시점 때문에 A/B 두 구간을 썼다)
+#   묶음별로 따로 제출한다 — 이력 길이가 다른 코인을 한 배치에 섞으면 서로 다른
+#   시장 국면을 비교하게 된다.
 #
-#   ⚠️ 이 기준선도 **메이저 5종만** 덮는다. 동적 세션은 실제로는 소형 알트를 산다.
+#   ⚠️ 따라서 이 스크립트는 **v3 결과가 DB 에 있어야 동작한다.** 없으면 중단한다.
+#
+# ■ Job 2 만 코인을 고정한다
+#
+#   Job 2 는 v3 대응짝이 없는 프리셋들이라 "복제할 원본"이 없다. 비교가 아니라
+#   **v4 출발점을 만드는 것**이 목적이므로 메이저 5종으로 제한한다. 9전략 × 19코인
+#   (171조합)을 돌리면 시간이 크게 늘어나는데, 비교 대상도 없는 숫자에 그만큼
+#   쓸 이유가 없다. 기간은 Job 1 에서 BTC 가 속한 묶음을 따라간다.
+#
+# ■ 알트 확장은 별건이다
+#
+#   ⚠️ 이 기준선은 v3 가 덮은 범위만 덮는다. 동적 세션은 그 밖의 코인도 산다.
 #      메이저 통과가 실매매 적합성을 뜻하지 않는다 (09-04 분석 참조).
-#
-# ■ 종료일은 자동으로 계산한다
-#
-#   09-18 에는 09-07 로 끊었다. 코인마다 캔들 끝날짜가 달라 **전 코인 공통의 마지막
-#   날짜**로 맞춰야 하기 때문이다. 백필로 그 날짜가 올라갔을 것이므로 하드코딩하지
-#   않고 DB 에서 5종의 min(max(time)) 을 구해 쓴다.
-#   DB 조회가 안 되면 중단한다 — 틀린 날짜로 도는 것보다 낫다.
-#   수동 지정: END_DATE=2026-09-20 bash scripts/wf_rebaseline_v4_0922.sh
-#
-# ■ M15 는 여전히 얇다
-#
-#   09-22 실측: M15 캔들 0건 61종 / 보유 39종. 메이저 5종이 보유에 들어 있어야
-#   Job 3 이 성립한다 — 사전 점검에서 확인한다. 알트를 M15 로 확장하려 하면
-#   INSUFFICIENT_DATA 만 쌓인다.
+#      🔴 WLD·ONDO·MIRA·WLFI 로 재배치 금지 (09-18 결론).
 #
 # ■ 사용법 — 운영 서버에서, 리포 루트에서
 #
-#     bash scripts/wf_rebaseline_v4_0922.sh --precheck  # 제출 전 환경 확인만
-#     bash scripts/wf_rebaseline_v4_0922.sh             # 제출
-#     bash scripts/wf_rebaseline_v4_0922.sh --verify    # 결과가 v4 로 저장됐는지 확인
+#     bash scripts/wf_rebaseline_v4_0922.sh --plan     # 무엇을 제출할지만 출력
+#     bash scripts/wf_rebaseline_v4_0922.sh            # 제출
+#     bash scripts/wf_rebaseline_v4_0922.sh --verify   # 결과가 v4 로 저장됐는지 확인
 #
 #   제출은 즉시 끝나고 실행은 백그라운드다. 완료 시 텔레그램 알림이 온다.
 #   ⚠️ 완료 후 반드시 --verify 를 돌릴 것 — 컨테이너가 옛 이미지로 떠 있으면 결과가
@@ -99,49 +103,83 @@ set -uo pipefail
 
 API="http://localhost:8080/api/v1"
 
-COINS='["KRW-BTC","KRW-ETH","KRW-SOL","KRW-DOGE","KRW-XRP"]'
-COINS_SQL="'KRW-BTC','KRW-ETH','KRW-SOL','KRW-DOGE','KRW-XRP'"
-START_DATE="2023-01-01"
 IN_SAMPLE_RATIO=0.7
 WINDOW_COUNT=5
 
-# Job 1 — v3 기준선과 동일한 조합. v3↔v4 를 1:1 로 비교할 수 있는 유일한 묶음.
-J1_H1='["COMPOSITE_MEANREV_BB","COMPOSITE_MOMENTUM_ICHIMOKU_V2","COMPOSITE_MTF_CONFIRMED"]'
+# Job 1·3 — v3 실행을 복제할 대상 전략 (SQL IN 절 / JSON 배열 두 형태)
+BASE_SQL="'COMPOSITE_MEANREV_BB','COMPOSITE_MOMENTUM_ICHIMOKU_V2','COMPOSITE_MTF_CONFIRMED'"
+BASE_JSON='["COMPOSITE_MEANREV_BB","COMPOSITE_MOMENTUM_ICHIMOKU_V2","COMPOSITE_MTF_CONFIRMED"]'
 
-# Job 2 — 이번 v4 로 새로 무효가 된 나머지 프리셋 (COMPOSITE_ETH·MTF_BTC_STRICT 제외)
-J2_H1='["COMPOSITE","COMPOSITE_REGIME_ROUTER","COMPOSITE_MOMENTUM","COMPOSITE_MOMENTUM_ICHIMOKU","COMPOSITE_BREAKOUT","COMPOSITE_BREAKOUT_ICHIMOKU","COMPOSITE_MTF_BTC","COMPOSITE_MTF_MOMENTUM","COMPOSITE_PULLBACK_MTF"]'
-
-# Job 3 — M15. v3 기준선과 동일.
-J3_M15='["COMPOSITE_MEANREV_BB","COMPOSITE_MTF_CONFIRMED"]'
+# Job 2 — v4 로 새로 무효가 된 나머지 프리셋 (COMPOSITE_ETH·MTF_BTC_STRICT 제외)
+J2_JSON='["COMPOSITE","COMPOSITE_REGIME_ROUTER","COMPOSITE_MOMENTUM","COMPOSITE_MOMENTUM_ICHIMOKU","COMPOSITE_BREAKOUT","COMPOSITE_BREAKOUT_ICHIMOKU","COMPOSITE_MTF_BTC","COMPOSITE_MTF_MOMENTUM","COMPOSITE_PULLBACK_MTF"]'
+J2_COINS='["KRW-BTC","KRW-ETH","KRW-SOL","KRW-DOGE","KRW-XRP"]'
 
 psql_q() {
   docker compose -f docker-compose.prod.yml exec -T db \
-    psql -U trader -d crypto_auto_trader -At -F' | ' -c "$1"
+    psql -U trader -d crypto_auto_trader -At -F'|' -c "$1"
 }
 
 # ── --verify: 결과가 v4 로 저장됐는지 확인 ───────────────────────────────────
+#    대조는 (전략·코인·타임프레임·기간) 네 가지가 모두 같은 칸끼리만 한다.
+#    초판은 기간을 빼고 맞춰서 wf_watchlist 결과까지 섞여 나왔다.
 if [ "${1:-}" = "--verify" ]; then
   echo "▶ WF 실행의 규칙 버전 분포 (NULL = 09-08 이전)"
   psql_q "SELECT COALESCE(exit_rules_version::text,'NULL') AS v, count(*), max(created_at)::date
             FROM backtest_run WHERE is_walk_forward GROUP BY 1 ORDER BY 1;"
   echo
-  echo "▶ 오늘 저장된 실행 (여기가 전부 4 여야 한다)"
-  psql_q "SELECT strategy_name, coin_pair, timeframe,
-                 COALESCE(exit_rules_version::text,'NULL') AS v,
-                 wf_result_json->>'verdict' AS verdict
+  echo "▶ 오늘 저장된 실행의 버전 (여기가 전부 4 여야 한다)"
+  psql_q "SELECT COALESCE(exit_rules_version::text,'NULL') AS v, timeframe, count(*)
             FROM backtest_run
            WHERE is_walk_forward AND created_at::date = CURRENT_DATE
-           ORDER BY timeframe, strategy_name, coin_pair;"
-  echo
-  echo "▶ v3 → v4 대조 (Job 1 조합만 — 같은 코인·같은 전략·같은 타임프레임)"
-  psql_q "SELECT strategy_name, coin_pair,
-                 max(CASE WHEN exit_rules_version=3 THEN wf_result_json->>'verdict' END) AS v3,
-                 max(CASE WHEN exit_rules_version=4 THEN wf_result_json->>'verdict' END) AS v4
-            FROM backtest_run
-           WHERE is_walk_forward AND timeframe='H1'
-             AND exit_rules_version IN (3,4)
-             AND strategy_name IN ('COMPOSITE_MEANREV_BB','COMPOSITE_MOMENTUM_ICHIMOKU_V2','COMPOSITE_MTF_CONFIRMED')
            GROUP BY 1,2 ORDER BY 1,2;"
+  echo
+  echo "▶ v3 → v4 대조 — 전략·코인·타임프레임·기간이 모두 같은 칸만"
+  echo "  (v4 열이 비어 있으면 그 칸은 아직 재실행되지 않은 것)"
+  psql_q "SELECT v3.timeframe, v3.strategy_name, v3.coin_pair,
+                 v3.start_date::date || '~' || v3.end_date::date AS 기간,
+                 v3.verdict AS v3, COALESCE(v4.verdict,'-') AS v4,
+                 CASE WHEN v4.verdict IS NULL THEN ''
+                      WHEN v3.verdict = v4.verdict THEN '='
+                      ELSE '변동' END AS diff
+            FROM (SELECT DISTINCT ON (strategy_name, coin_pair, timeframe, start_date, end_date)
+                         strategy_name, coin_pair, timeframe, start_date, end_date,
+                         wf_result_json->>'verdict' AS verdict
+                    FROM backtest_run
+                   WHERE is_walk_forward AND exit_rules_version = 3
+                   ORDER BY strategy_name, coin_pair, timeframe, start_date, end_date,
+                            created_at DESC) v3
+            LEFT JOIN (SELECT DISTINCT ON (strategy_name, coin_pair, timeframe, start_date, end_date)
+                         strategy_name, coin_pair, timeframe, start_date, end_date,
+                         wf_result_json->>'verdict' AS verdict
+                    FROM backtest_run
+                   WHERE is_walk_forward AND exit_rules_version = 4
+                   ORDER BY strategy_name, coin_pair, timeframe, start_date, end_date,
+                            created_at DESC) v4
+              ON  v3.strategy_name = v4.strategy_name
+              AND v3.coin_pair     = v4.coin_pair
+              AND v3.timeframe     = v4.timeframe
+              AND v3.start_date    = v4.start_date
+              AND v3.end_date      = v4.end_date
+           ORDER BY 1,2,3;"
+  echo
+  echo "▶ 판정 변동 요약"
+  psql_q "SELECT v3.verdict AS v3, COALESCE(v4.verdict,'(미실행)') AS v4, count(*)
+            FROM (SELECT DISTINCT ON (strategy_name, coin_pair, timeframe, start_date, end_date)
+                         strategy_name, coin_pair, timeframe, start_date, end_date,
+                         wf_result_json->>'verdict' AS verdict
+                    FROM backtest_run WHERE is_walk_forward AND exit_rules_version = 3
+                   ORDER BY strategy_name, coin_pair, timeframe, start_date, end_date,
+                            created_at DESC) v3
+            LEFT JOIN (SELECT DISTINCT ON (strategy_name, coin_pair, timeframe, start_date, end_date)
+                         strategy_name, coin_pair, timeframe, start_date, end_date,
+                         wf_result_json->>'verdict' AS verdict
+                    FROM backtest_run WHERE is_walk_forward AND exit_rules_version = 4
+                   ORDER BY strategy_name, coin_pair, timeframe, start_date, end_date,
+                            created_at DESC) v4
+              ON  v3.strategy_name = v4.strategy_name AND v3.coin_pair = v4.coin_pair
+              AND v3.timeframe = v4.timeframe
+              AND v3.start_date = v4.start_date AND v3.end_date = v4.end_date
+           GROUP BY 1,2 ORDER BY 3 DESC;"
   echo
   echo "  v 가 3 이나 NULL 이면 컨테이너가 옛 이미지입니다 — 재빌드 후 다시 제출하세요."
   exit 0
@@ -158,7 +196,6 @@ fi
 AUTH="Authorization: Bearer $API_AUTH_TOKEN"
 api() { curl -s -H "$AUTH" "$@"; }
 
-# ── 사전 점검 1: 백엔드가 응답하는가 ─────────────────────────────────────────
 resp=$(api "$API/backtest/walk-forward/history")
 case "$resp" in
   *UNAUTHORIZED*) echo "✗ 토큰이 거부됐습니다"; exit 1 ;;
@@ -166,33 +203,56 @@ case "$resp" in
 esac
 echo "✓ 인증 확인"
 
-# ── 사전 점검 2: 종료일 — 5종 공통의 마지막 캔들 날짜 ────────────────────────
-if [ -z "${END_DATE:-}" ]; then
-  echo
-  echo "▶ 코인별 H1 캔들 끝날짜 (가장 이른 날짜로 맞춘다)"
-  psql_q "SELECT coin_pair, max(time)::date, count(*)
-            FROM candle_data WHERE timeframe='H1' AND coin_pair IN ($COINS_SQL)
-           GROUP BY 1 ORDER BY 2;"
-  END_DATE=$(psql_q "SELECT min(d)::date FROM (
-                       SELECT max(time)::date AS d FROM candle_data
-                        WHERE timeframe='H1' AND coin_pair IN ($COINS_SQL)
-                        GROUP BY coin_pair) t;" | tr -d ' \r')
-fi
-case "$END_DATE" in
-  20[0-9][0-9]-[0-1][0-9]-[0-3][0-9]) ;;
-  *) echo "✗ 종료일을 구하지 못했습니다 (받은 값: '${END_DATE}')."
-     echo "  DB 조회가 실패했거나 5종 중 캔들이 없는 코인이 있습니다."
-     echo "  수동 지정: END_DATE=2026-09-20 bash scripts/wf_rebaseline_v4_0922.sh"
-     exit 1 ;;
-esac
-echo "✓ 종료일 $END_DATE (5종 공통)"
+# ── v3 실행에서 (타임프레임, 기간, 코인묶음) 복제 계획을 읽는다 ──────────────
+#    출력 한 줄 = 하나의 배치. 형식: tf|start|end|["KRW-A","KRW-B",...]|코인수
+PLAN=$(psql_q "SELECT timeframe,
+                      start_date::date,
+                      end_date::date,
+                      '[\"' || string_agg(DISTINCT coin_pair, '\",\"' ORDER BY coin_pair) || '\"]',
+                      count(DISTINCT coin_pair)
+                 FROM backtest_run
+                WHERE is_walk_forward
+                  AND exit_rules_version = 3
+                  AND strategy_name IN ($BASE_SQL)
+                GROUP BY 1,2,3
+                ORDER BY 1,2,3;")
 
-# ── 사전 점검 3: M15 보유 확인 — Job 3 이 성립하는가 ─────────────────────────
+if [ -z "$PLAN" ]; then
+  echo "✗ v3 실행을 찾지 못했습니다 — 복제할 원본이 없습니다."
+  echo "  exit_rules_version=3 인 WF 실행이 DB 에 있어야 합니다."
+  echo "  확인: bash scripts/wf_rebaseline_v4_0922.sh --verify"
+  exit 1
+fi
+
 echo
-echo "▶ 메이저 5종 M15 보유 (여기 5줄이 다 나와야 Job 3 이 의미가 있다)"
-psql_q "SELECT coin_pair, max(time)::date, count(*)
-          FROM candle_data WHERE timeframe='M15' AND coin_pair IN ($COINS_SQL)
-         GROUP BY 1 ORDER BY 1;"
+echo "▶ v3 에서 복제할 배치 (기간·코인을 그대로 따라간다)"
+echo "─────────────────────────────────────────────────────────────────────────"
+TOTAL=0
+while IFS='|' read -r tf sd ed coins n; do
+  [ -z "$tf" ] && continue
+  combos=$(( n * 3 ))
+  TOTAL=$(( TOTAL + combos ))
+  printf "  %-4s %s ~ %s   코인 %2s종 × 3전략 = %3s 조합\n" "$tf" "$sd" "$ed" "$n" "$combos"
+done <<< "$PLAN"
+
+# Job 2 의 기간 — BTC 가 속한 H1 묶음을 따라간다
+J2_PERIOD=$(psql_q "SELECT start_date::date || '|' || end_date::date
+                      FROM backtest_run
+                     WHERE is_walk_forward AND exit_rules_version = 3
+                       AND timeframe = 'H1' AND coin_pair = 'KRW-BTC'
+                       AND strategy_name IN ($BASE_SQL)
+                     ORDER BY created_at DESC LIMIT 1;")
+J2_START="${J2_PERIOD%%|*}"
+J2_END="${J2_PERIOD##*|}"
+case "$J2_START" in
+  20[0-9][0-9]-[0-1][0-9]-[0-3][0-9]) ;;
+  *) echo "✗ Job 2 기간을 정하지 못했습니다 (KRW-BTC 의 v3 H1 실행이 없습니다)."; exit 1 ;;
+esac
+printf "  %-4s %s ~ %s   코인  5종 × 9전략 =  45 조합   ← Job 2 (v3 대응짝 없음)\n" \
+       "H1" "$J2_START" "$J2_END"
+TOTAL=$(( TOTAL + 45 ))
+echo "─────────────────────────────────────────────────────────────────────────"
+echo "  합계 $TOTAL 조합 · IS 비율 $IN_SAMPLE_RATIO · 윈도우 $WINDOW_COUNT"
 
 echo
 echo "▶ 지금 운영 중인 조합"
@@ -203,47 +263,39 @@ psql_q "SELECT 'DYNAMIC', strategy_type, timeframe, count(*)
           FROM live_trading_session WHERE status='RUNNING' GROUP BY 1,2,3
         ORDER BY 1,2,3;"
 
-echo
-echo "  제출 예정:"
-echo "    기간      $START_DATE ~ $END_DATE  (IS 비율 $IN_SAMPLE_RATIO · 윈도우 $WINDOW_COUNT)"
-echo "    코인      $COINS"
-echo "    Job 1 H1  3전략 × 5코인 = 15 조합   ← v3 와 직접 비교되는 묶음"
-echo "    Job 2 H1  9전략 × 5코인 = 45 조합   ← v4 로 새로 무효가 된 프리셋"
-echo "    Job 3 M15 2전략 × 5코인 = 10 조합"
-echo "                                 합계 70 조합"
-
-if [ "${1:-}" = "--precheck" ]; then
+if [ "${1:-}" = "--plan" ]; then
   echo
-  echo "── --precheck 이므로 제출하지 않고 종료합니다."
+  echo "── --plan 이므로 제출하지 않고 종료합니다."
   exit 0
 fi
 
 submit() {
-  local tf="$1" strategies="$2"
+  local tf="$1" coins="$2" sd="$3" ed="$4" strategies="$5"
   api -X POST "$API/backtest/walk-forward-batch-async" \
     -H 'Content-Type: application/json' \
     -d "{
-      \"coinPairs\": $COINS,
+      \"coinPairs\": $coins,
       \"strategyTypes\": $strategies,
       \"timeframe\": \"$tf\",
-      \"startDate\": \"$START_DATE\",
-      \"endDate\": \"$END_DATE\",
+      \"startDate\": \"$sd\",
+      \"endDate\": \"$ed\",
       \"inSampleRatio\": $IN_SAMPLE_RATIO,
       \"windowCount\": $WINDOW_COUNT
     }"
 }
 
 echo
-echo "▶ Job 1: H1 기준선 승계 — 3전략 × 5코인 = 15 조합"
-submit "H1" "$J1_H1"
-echo
+echo "▶ Job 1·3: v3 배치 복제 — 기준선 승계"
+while IFS='|' read -r tf sd ed coins n; do
+  [ -z "$tf" ] && continue
+  echo "  · $tf $sd ~ $ed ($n종)"
+  submit "$tf" "$coins" "$sd" "$ed" "$BASE_JSON"
+  echo
+done <<< "$PLAN"
 
+echo
 echo "▶ Job 2: H1 영향 범위 — 9전략 × 5코인 = 45 조합"
-submit "H1" "$J2_H1"
-echo
-
-echo "▶ Job 3: M15 — 2전략 × 5코인 = 10 조합"
-submit "M15" "$J3_M15"
+submit "H1" "$J2_COINS" "$J2_START" "$J2_END" "$J2_JSON"
 echo
 
 echo
@@ -255,3 +307,4 @@ echo "  완료 후     bash scripts/wf_rebaseline_v4_0922.sh --verify    ← 반
 echo
 echo "⚠️ --verify 에서 exit_rules_version 이 4 가 아니면 그 결과는 기준선이 아닙니다."
 echo "⚠️ Job 2 는 v3 대응짝이 없습니다. '나빠졌다/좋아졌다'로 읽지 말고 v4 의 출발점으로만 쓸 것."
+echo "⚠️ 기간이 다른 배치끼리는 비교하지 말 것 — 서로 다른 시장 국면입니다."

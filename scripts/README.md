@@ -22,7 +22,7 @@
 
 | 날짜 | 스크립트 | 무엇을 했나 |
 |---|---|---|
-| 2026-09-22 | [`wf_rebaseline_v4_0922.sh`](wf_rebaseline_v4_0922.sh) | 규칙 v4 재검증 기준선 — Wave 3 L·I·H 반영, 70조합 (`--precheck` 사전확인 / `--verify` v4 저장 확인) |
+| 2026-09-22 | [`wf_rebaseline_v4_0922.sh`](wf_rebaseline_v4_0922.sh) | 규칙 v4 재검증 기준선 — Wave 3 L·I·H 반영. v3 실행의 **기간·코인을 DB 에서 읽어 복제** (`--plan` 제출계획 확인 / `--verify` v3↔v4 대조) |
 | 2026-09-20 | [`backfill_candles_0920.sh`](backfill_candles_0920.sh) | 캔들 백필 2차 — H1 실패 18종 재시도 + M15 확장 (코인별·기간별 슬라이스) |
 | 2026-09-18 | [`backfill_candles_0918.sh`](backfill_candles_0918.sh) | 캔들 백필 — 감시 104종 중 56종 0건 · 48종 최대 19일 밀림 (`--status`로 커버리지 확인) |
 | 2026-09-18 | [`wf_watchlist_0918.sh`](wf_watchlist_0918.sh) | 감시 범위 WF 확장 19코인 57조합 — "전략 문제 vs 배치 문제" 판별 |
