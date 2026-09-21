@@ -200,6 +200,16 @@ public final class IndicatorUtils {
 
     public static BigDecimal rsiFromAvg(BigDecimal avgGain, BigDecimal avgLoss) {
         BigDecimal hundred = BigDecimal.valueOf(100);
+        // ⚠️ 2026-09-21 (Wave 3-H) — 상승분도 하락분도 0 이면 **방향이 없는 것**이지
+        // 최고 과매수가 아니다. 이전에는 avgLoss==0 가지에 걸려 100 을 돌려줬고, 완전 횡보
+        // 구간에서 RSI 전략이 과매수로 읽어 매도했다. 저유동 신규 상장이 계속 들어오는
+        // 워치리스트에서 무변동 봉은 드문 일이 아니다.
+        //
+        // 같은 파일의 stochasticKSeries 는 range==0 을 이미 50(중립)으로 처리한다 —
+        // 코드베이스가 이미 이 규칙에 합의해 놓고 여기만 빠져 있었다.
+        if (avgGain.signum() == 0 && avgLoss.signum() == 0) {
+            return BigDecimal.valueOf(50);
+        }
         if (avgLoss.compareTo(BigDecimal.ZERO) == 0) return hundred;
         BigDecimal rs = avgGain.divide(avgLoss, SCALE, RoundingMode.HALF_UP);
         return hundred.subtract(hundred.divide(BigDecimal.ONE.add(rs), SCALE, RoundingMode.HALF_UP))

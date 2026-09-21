@@ -112,7 +112,21 @@ public class GridStrategy implements StatefulStrategy {
         if (positionRatio.compareTo(BigDecimal.valueOf(0.7)) >= 0
                 && distanceFromLevel.compareTo(triggerThreshold) <= 0) {
 
-            activeLevels.remove(levelIndex);
+            // ⚠️ 2026-09-21 (Wave 3-I) — remove(levelIndex) 는 **아무것도 지우지 못했다.**
+            //
+            // 매수는 positionRatio <= 0.3, 즉 레벨 0~3 에서만 일어난다. 그런데 해제는
+            // positionRatio >= 0.7, 즉 레벨 7~10 에서만 시도됐다. **두 집합이 구조적으로
+            // 겹치지 않는다** — gridCount 가 3 보다 크면 언제나 그렇다.
+            //
+            // 결과: 한 번 잡은 레벨은 범위가 1% 넘게 변해 activeLevels 가 통째로 비워질
+            // 때까지 영원히 잠긴다. GRID 는 레벨 0~3 에 각각 한 번씩, 평생 최대 4번 BUY 를
+            // 내고 그 뒤로는 "이미 진입됨" HOLD 만 반복했다. COMPOSITE 계열에서 0.2 가중
+            // 성분으로 쓰이므로, 그 지분이 조용히 사라진 채 돌고 있었다.
+            //
+            // 올바른 그리드 의미: 가격이 위로 올라가 청산했으면 **그 아래 레벨은 전부**
+            // 다시 살 수 있어야 한다. 현재 레벨보다 위에 잡아둔 것은 아직 청산 대상이
+            // 아니므로 남긴다.
+            activeLevels.removeIf(level -> level <= levelIndex);
             BigDecimal strength = positionRatio.multiply(BigDecimal.valueOf(100));
             return StrategySignal.sell(strength,
                     String.format("그리드 상단: 레벨 %.1f/%d, 가격=%.2f", gridPosition, gridCount, currentPrice));

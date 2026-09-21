@@ -37,6 +37,22 @@ class WalkForwardHoldOutGateTest {
     private static final int SPLIT  = 1200;   // 튜닝 1200 / 홀드아웃 400
     private static final int WINDOWS = 3;
 
+    /**
+     * 튜닝 구간 진동 주기(봉)와 GRID 트리거 폭.
+     *
+     * <p><b>2026-09-21 재조율 (Wave 3-I).</b> 원래는 주기 40 · triggerPct 기본값(5) 이었다.
+     * GRID 레벨 해제 결함을 고치자 GRID 가 사이클마다 회전하게 되어 거래 모집단이 통째로
+     * 바뀌었고, "튜닝만 보면 통과" 라는 <b>전제 자체가 깨졌다</b>(ACCEPTABLE → OVERFITTING).
+     *
+     * <p>이 테스트가 재는 것은 GRID 가 아니라 <b>홀드아웃 게이트</b>다. 그래서 전제가 다시
+     * 성립하도록 데이터를 맞췄다. 동시에 표본을 두껍게 잡았다 — 이전 조합은 튜닝 OOS 6건 ·
+     * 홀드아웃 15건으로 판정 최소치({@link WalkForwardTestRunner#MIN_OOS_TRADES_FOR_VERDICT}=5)
+     * 바로 위에 걸쳐 있어, 거래 한두 건만 움직여도 INSUFFICIENT_DATA 로 미끄러졌다.
+     * 지금 조합은 튜닝 9건 · 홀드아웃 34건이다.
+     */
+    private static final double TUNING_PERIOD = 80;
+    private static final double TRIGGER_PCT   = 15.0;
+
     @Test
     void 홀드아웃_손실이_최종_verdict를_뒤집는다() {
         // 홀드아웃에서 15건 거래에 기대값 −1.67% — 튜닝 구간만 보면 통과할 조합이다.
@@ -124,7 +140,7 @@ class WalkForwardHoldOutGateTest {
                 .initialCapital(new BigDecimal("10000000"))
                 .slippagePct(new BigDecimal("0.1"))
                 .feePct(new BigDecimal("0.05"))
-                .strategyParams(Map.of())
+                .strategyParams(Map.of("triggerPct", TRIGGER_PCT))
                 .build();
     }
 
@@ -142,7 +158,7 @@ class WalkForwardHoldOutGateTest {
         for (int i = 0; i < TOTAL; i++) {
             double price, high, low;
             if (i < SPLIT) {
-                price = 105 + 5 * Math.sin(i * 2 * Math.PI / 40);
+                price = 105 + 5 * Math.sin(i * 2 * Math.PI / TUNING_PERIOD);
                 high = 110;
                 low = 100;
             } else {

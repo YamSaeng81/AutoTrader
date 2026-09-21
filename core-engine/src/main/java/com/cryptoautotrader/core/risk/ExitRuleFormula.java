@@ -83,9 +83,19 @@ public final class ExitRuleFormula {
      *       기간 종료 미청산 포지션을 강제청산해 성과 지표에 반영 ·
      *       SELL 순손익에서 진입 수수료 차감(운영 realizedPnl 과 정의 일치).
      *       v2 결과는 <b>다른 전략을, 미래를 보면서, 다른 손익 정의로</b> 잰 값이다.</li>
+     *   <li>4 — 2026-09-21. <b>MTF 상위봉 경계가 바뀌었다</b>(Wave 3-L). {@code CandleDownsampler}
+     *       가 리스트 0번 인덱스부터 묶어, 창이 매 캔들 1칸씩 미끄러지는 탓에 상위봉 구성이
+     *       <b>조회 시점마다 달라졌다</b>(창이 500 에 차기 전까지는 고정이라 워밍업 구간과 본
+     *       구간의 거동까지 달랐다). 이제 캔들 시각을 epoch 기준으로 정렬해 묶고 선두의 잘린
+     *       봉을 버린다. MTF_CONFIRMED · COMPOSITE_PULLBACK_MTF 의 HTF 판정이 전부 달라지므로
+     *       v3 이하 결과는 이 두 계열에 대해 근거가 되지 못한다.
+     *       <br>같은 날 <b>GRID 레벨 해제</b>도 함께 고쳤다(Wave 3-I) — 매수는 하위 30%,
+     *       해제는 상위 30% 에서만 시도돼 두 집합이 구조적으로 겹치지 않았고, 한 번 잡은
+     *       레벨이 사실상 영구히 잠겼다. GRID 는 COMPOSITE 계열의 0.2 가중 성분이므로
+     *       COMPOSITE 결과도 달라진다.</li>
      * </ul>
      */
-    public static final int BACKTEST_RULESET_VERSION = 3;
+    public static final int BACKTEST_RULESET_VERSION = 4;
 
     // ── 손절폭 (2026-07-31 전면 개편 → 08-05 재조정, 원래 DynamicTradingService 소재) ──────
     //

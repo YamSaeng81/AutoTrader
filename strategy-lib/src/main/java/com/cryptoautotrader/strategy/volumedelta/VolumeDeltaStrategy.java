@@ -80,11 +80,22 @@ public class VolumeDeltaStrategy implements Strategy {
 
         for (int i = 0; i < lookback; i++) {
             Candle c  = window.get(i);
-            BigDecimal hl = c.getHigh().subtract(c.getLow()).abs().add(EPSILON);
-            BigDecimal buyRatio = c.getClose().subtract(c.getLow())
-                    .divide(hl, SCALE, RoundingMode.HALF_UP)
-                    .max(BigDecimal.ZERO)
-                    .min(BigDecimal.ONE);
+            // ⚠️ 2026-09-21 (Wave 3-H) — high==low 인 봉은 **방향이 없다.**
+            // 이전에는 hl 이 EPSILON(1e-10) 으로 떨어지고 close-low 가 0 이라
+            // buyRatio=0 → 그 봉의 거래량 **전부가 매도**로 계산됐다. 움직이지 않은 봉이
+            // 최대 매도 압력이 되는 셈이다. 완전 횡보 구간에서는 비율이 -1.0000 까지 갔다
+            // (추세 필터가 우연히 SELL 을 막아 증상이 가려져 있었을 뿐이다).
+            // 거래가 멎은 것은 팔린 것이 아니므로 중립(0.5)으로 센다.
+            BigDecimal hlRaw = c.getHigh().subtract(c.getLow()).abs();
+            BigDecimal buyRatio;
+            if (hlRaw.signum() == 0) {
+                buyRatio = new BigDecimal("0.5");
+            } else {
+                buyRatio = c.getClose().subtract(c.getLow())
+                        .divide(hlRaw.add(EPSILON), SCALE, RoundingMode.HALF_UP)
+                        .max(BigDecimal.ZERO)
+                        .min(BigDecimal.ONE);
+            }
             BigDecimal buyVol  = c.getVolume().multiply(buyRatio);
             BigDecimal sellVol = c.getVolume().multiply(BigDecimal.ONE.subtract(buyRatio));
             deltas[i]   = buyVol.subtract(sellVol);
