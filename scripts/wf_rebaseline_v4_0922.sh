@@ -114,7 +114,7 @@ set -uo pipefail
 #    조용히 제출로 이어지면 안 된다.
 case "${1:-}" in
   "") ;;  # 인자 없음 = 제출
-  --plan|--verify|--detail|--jobs2) ;;
+  --plan|--verify|--detail|--jobs2|--screen) ;;
   *)
     echo "✗ 알 수 없는 인자: '$1'"
     echo
@@ -124,6 +124,7 @@ case "${1:-}" in
     echo "    --verify   결과가 v4 로 저장됐는지 확인 + v3↔v4 판정 대조"
     echo "    --detail   verdict 가 아니라 수치(거래수·기대값·과적합점수) 대조"
     echo "    --jobs2    v3 대응짝 없는 프리셋 결과"
+    echo "    --screen   엣지가 있는 칸이 하나라도 있는가 (마찰비용 기준 선별)"
     echo
     echo "  이 플래그가 있어야 하는데 안 먹는다면 서버 쪽 스크립트가 옛 버전입니다 —"
     echo "  git pull 후 다시 실행하세요. (제출은 하지 않았습니다.)"
@@ -278,6 +279,140 @@ if [ "${1:-}" = "--detail" ]; then
   echo
   echo "  🔴 'verdict 동일 · 수치 동일' 이 대다수면 v4 수정이 이 조합들에 닿지 않았다는 뜻입니다."
   echo "     그 경우 무엇이 막고 있는지(필터가 먼저 HOLD 를 내는지 등) 따로 봐야 합니다."
+  exit 0
+fi
+
+# ── --screen: 엣지가 있는 칸이 하나라도 있는가 ──────────────────────────────
+#
+#    🔴 왜 이 모드가 있나 — 질문이 바뀌었다 (2026-09-22)
+#
+#    Wave 0~3 에서 실제 버그 10여 건을 고쳤다(미래 참조·손익 회계·전략 정의 3중화·
+#    MTF 경계·GRID 침묵·무변동 경계). 전부 뮤테이션으로 검증한 진짜 결함이었다.
+#    그런데 **기대값은 0.1%p 움직였다.** L 수정으로 과적합점수가 4.49→1.42 로
+#    내려간 ETH 조차 기대값은 −1.245 → −1.063 이다.
+#
+#    즉 "지표를 정확하게 만들어 WF 를 통과시킨다"는 경로는 실측으로 부정됐다.
+#    Wave 3-K(ADX Wilder 평활)는 같은 종류의 변경이므로 착수하지 않는다.
+#
+#    대신 물어야 할 것: **엣지가 있는 칸이 하나라도 있는가.**
+#    이건 코드 작업이 아니라 선별 작업이다.
+#
+#    ■ 마찰비용 = 자본 대비 왕복 0.24%
+#
+#      수수료 0.05% × 2 + 슬리피지 0.1% × 2 = 포지션 대비 0.30%
+#      investRatio = 0.80 (ExitRuleConfig, 리스크 사이징 기본 비활성)
+#      → 자본 대비 0.30% × 0.80 = 0.24%
+#
+#      expectancyPct 는 `totalReturnPct / totalTrades` 로 **초기자본 대비**이고
+#      수수료·슬리피지가 이미 차감된 순액이다(BacktestEngine:189).
+#      그래서 **총기대값 ≈ 순기대값 + 0.24** 로 환산된다.
+#
+#      실측 검증: COMPOSITE_PULLBACK_MTF / KRW-BTC 는 95거래에 순기대값 −0.241 이다.
+#      환산하면 총기대값 −0.001 — **소수점 셋째 자리까지 0.** 지는 전략이 아니라
+#      **방향성이 없는 신호가 통행료만 내고 있는 것**이다.
+#
+#    ■ 선별 기준 세 가지
+#
+#      1. 표본     OOS 거래 ≥ MIN_TRADES (기본 20). 게이트 하한 5 는 너무 낮다 —
+#                  09-18 에 "표본 5~14 인 통과 6건이 전부 덫"이었다.
+#      2. 순수익   순기대값 > 0. 마찰을 넘었다는 뜻이다(순액이므로 부등호만 보면 된다).
+#      3. 일관성   같은 (전략·코인·타임프레임)이 여러 기간에서 부호가 유지되는가.
+#                  한 기간에서만 양수면 그 기간을 뽑은 것일 수 있다.
+#
+#    ■ 읽는 법
+#
+#      ⚠️ 여기 올라온 칸도 WF 판정은 대부분 OVERFITTING 이다. 그건 "수익이 없다"가
+#         아니라 **"학습 구간 성과가 검증 구간으로 이어지지 않는다"**는 뜻이다.
+#         OOS 에서 표본 있게 양수라면 그 자체가 정보다.
+#      ⚠️ 그래도 **채택 근거는 아니다.** 여기서 나온 후보는 "다음에 볼 곳"이지
+#         "실자본을 넣을 곳"이 아니다. 🔴 WLD·ONDO·MIRA·WLFI 재배치 금지(09-18).
+#      ⚠️ 후보가 0 건이면 결론은 명확하다 — **이 프리셋 조합에는 엣지가 없다.**
+#         지표를 더 손봐도 소용없다.
+if [ "${1:-}" = "--screen" ]; then
+  MIN_TRADES="${MIN_TRADES:-20}"
+  FRICTION="0.24"
+
+  echo "▶ 선별 기준"
+  echo "    마찰비용   자본 대비 왕복 ${FRICTION}%  (수수료 0.05×2 + 슬리피지 0.1×2, investRatio 0.80)"
+  echo "    표본 하한  OOS 거래 ≥ ${MIN_TRADES}      (게이트 하한 5 는 너무 낮다)"
+  echo "    총기대값   순기대값 + ${FRICTION}"
+  echo "    (하한 변경: MIN_TRADES=30 bash scripts/wf_rebaseline_v4_0922.sh --screen)"
+  echo
+
+  SCREEN_CTE="WITH x AS (
+        SELECT DISTINCT ON (strategy_name, coin_pair, timeframe, start_date, end_date)
+               strategy_name AS s, coin_pair AS c, timeframe AS tf,
+               (start_date AT TIME ZONE 'Asia/Seoul')::date AS sd,
+               (end_date   AT TIME ZONE 'Asia/Seoul')::date AS ed,
+               wf_result_json->>'verdict' AS verdict,
+               (wf_result_json->'aggregatedOutSample'->>'totalTrades')::int AS n,
+               (wf_result_json->'aggregatedOutSample'->>'expectancyPct')::numeric AS exp
+          FROM backtest_run
+         WHERE is_walk_forward AND exit_rules_version = 4
+         ORDER BY strategy_name, coin_pair, timeframe, start_date, end_date, created_at DESC)"
+
+  echo "▶ 1. 깔때기 — 몇 칸이 남는가"
+  psql_q "$SCREEN_CTE
+          SELECT '전체 v4 칸'                         AS 단계, count(*) FROM x
+          UNION ALL SELECT '① 표본 ≥ ${MIN_TRADES}',   count(*) FROM x WHERE n >= ${MIN_TRADES}
+          UNION ALL SELECT '② + 순기대값 > 0',          count(*) FROM x WHERE n >= ${MIN_TRADES} AND exp > 0
+          UNION ALL SELECT '③ + 판정이 OVERFITTING 아님', count(*) FROM x
+                     WHERE n >= ${MIN_TRADES} AND exp > 0 AND verdict <> 'OVERFITTING';"
+  echo
+
+  echo "▶ 2. 후보 — 표본 ≥ ${MIN_TRADES} 이고 순기대값 > 0"
+  echo "  (총기대값 = 마찰을 되돌린 값. 신호 자체의 방향성 크기)"
+  psql_q "$SCREEN_CTE
+          SELECT s AS 전략, c AS 코인, tf, sd || '~' || ed AS 기간,
+                 n AS 거래, round(exp,3) AS 순기대값,
+                 round(exp + ${FRICTION}, 3) AS 총기대값,
+                 round(exp * n, 2) AS 기여합계,
+                 verdict
+            FROM x
+           WHERE n >= ${MIN_TRADES} AND exp > 0
+           ORDER BY exp DESC;"
+  echo
+
+  echo "▶ 3. 기간 교차 일관성 — 같은 (전략·코인·tf)가 여러 기간에 걸쳐 있는 경우"
+  echo "  부호가 갈리면 '기간을 뽑은 것'이다. 일관되게 양수여야 후보로 볼 값이 있다."
+  psql_q "$SCREEN_CTE
+          SELECT s AS 전략, c AS 코인, tf,
+                 count(*) AS 기간수,
+                 sum(CASE WHEN exp > 0 THEN 1 ELSE 0 END) AS 양수,
+                 min(n) || '~' || max(n) AS 거래범위,
+                 round(min(exp),3) || ' ~ ' || round(max(exp),3) AS 기대값범위,
+                 CASE WHEN min(exp) > 0 THEN '일관 양수'
+                      WHEN max(exp) < 0 THEN '일관 음수'
+                      ELSE '🔴 부호 갈림' END AS 판정
+            FROM x
+           GROUP BY 1,2,3 HAVING count(*) > 1
+           ORDER BY CASE WHEN min(exp) > 0 THEN 0 ELSE 1 END, min(exp) DESC;"
+  echo
+
+  echo "▶ 4. '엣지 0' 구간 — 총기대값이 ±0.05 안, 표본 ≥ 30"
+  echo "  🔴 여기 걸린 칸은 방향성이 없는 신호가 통행료만 내고 있는 것이다."
+  echo "     지표를 정밀하게 만들어도 0 은 0 이다."
+  psql_q "$SCREEN_CTE
+          SELECT s AS 전략, c AS 코인, tf, n AS 거래,
+                 round(exp,3) AS 순기대값,
+                 round(exp + ${FRICTION},3) AS 총기대값
+            FROM x
+           WHERE n >= 30 AND abs(exp + ${FRICTION}) < 0.05
+           ORDER BY n DESC;"
+  echo
+
+  echo "▶ 5. 전략별 요약 — 어느 전략이 표본을 만드는가"
+  psql_q "$SCREEN_CTE
+          SELECT s AS 전략, count(*) AS 칸,
+                 sum(n) AS 총OOS거래, round(avg(n),1) AS 평균거래,
+                 round(avg(exp),3) AS 평균순기대값,
+                 sum(CASE WHEN exp > 0 THEN 1 ELSE 0 END) AS 양수칸
+            FROM x GROUP BY 1 ORDER BY 5 DESC;"
+  echo
+  echo "⚠️ 2번 표에 올라온 칸도 대부분 판정은 OVERFITTING 이다 — 그건 '수익이 없다'가"
+  echo "   아니라 '학습 성과가 검증으로 이어지지 않는다'는 뜻이다."
+  echo "⚠️ 후보는 '다음에 볼 곳'이지 '실자본을 넣을 곳'이 아니다."
+  echo "🔴 WLD·ONDO·MIRA·WLFI 재배치 금지 (09-18 결론)."
   exit 0
 fi
 
