@@ -1,6 +1,7 @@
 package com.cryptoautotrader.strategy.rsi;
 
 import com.cryptoautotrader.strategy.Candle;
+import com.cryptoautotrader.strategy.IndicatorUtils;
 import com.cryptoautotrader.strategy.Strategy;
 import com.cryptoautotrader.strategy.StrategySignal;
 
@@ -127,66 +128,29 @@ public class RsiStrategy implements Strategy {
      * evaluate()에서 인덱스 룩업으로 재사용해 중복 계산을 방지한다.
      */
     private List<BigDecimal> calculateRsiSeries(List<BigDecimal> closes, int period) {
-        int n = closes.size();
-        List<BigDecimal> result = new ArrayList<>(java.util.Collections.nCopies(n, BigDecimal.valueOf(50)));
-
-        List<BigDecimal> gains = new ArrayList<>(n - 1);
-        List<BigDecimal> losses = new ArrayList<>(n - 1);
-        for (int i = 1; i < n; i++) {
-            BigDecimal change = closes.get(i).subtract(closes.get(i - 1));
-            if (change.compareTo(BigDecimal.ZERO) > 0) {
-                gains.add(change);
-                losses.add(BigDecimal.ZERO);
-            } else {
-                gains.add(BigDecimal.ZERO);
-                losses.add(change.abs());
-            }
-        }
-
-        if (gains.size() < period) return result;
-
-        // 초기 단순 평균 (첫 period개)
-        BigDecimal avgGain = BigDecimal.ZERO;
-        BigDecimal avgLoss = BigDecimal.ZERO;
-        for (int i = 0; i < period; i++) {
-            avgGain = avgGain.add(gains.get(i));
-            avgLoss = avgLoss.add(losses.get(i));
-        }
-        BigDecimal periodBD = BigDecimal.valueOf(period);
-        avgGain = avgGain.divide(periodBD, SCALE, RoundingMode.HALF_UP);
-        avgLoss = avgLoss.divide(periodBD, SCALE, RoundingMode.HALF_UP);
-        result.set(period, rsiFromAvgs(avgGain, avgLoss));
-
-        // Wilder's Smoothing — gains[i]는 closes[i+1]에 대응
-        for (int i = period; i < gains.size(); i++) {
-            avgGain = avgGain.multiply(periodBD.subtract(BigDecimal.ONE))
-                    .add(gains.get(i))
-                    .divide(periodBD, SCALE, RoundingMode.HALF_UP);
-            avgLoss = avgLoss.multiply(periodBD.subtract(BigDecimal.ONE))
-                    .add(losses.get(i))
-                    .divide(periodBD, SCALE, RoundingMode.HALF_UP);
-            result.set(i + 1, rsiFromAvgs(avgGain, avgLoss));
-        }
-        return result;
-    }
-
-    private BigDecimal rsiFromAvgs(BigDecimal avgGain, BigDecimal avgLoss) {
-        // ⚠️ 2026-09-21 (Wave 3-H) — 상승분도 하락분도 0 이면 **방향이 없는 것**이지
-        // 최고 과매수가 아니다. 이전에는 avgLoss==0 가지에 걸려 100 을 돌려줬고, 완전 횡보
-        // 구간에서 RSI 전략이 과매수로 읽어 매도했다. 저유동 신규 상장이 계속 들어오는
-        // 워치리스트에서 무변동 봉은 드문 일이 아니다.
+        // 🔴 2026-09-22 (Wave 4) — RSI 계산을 IndicatorUtils 단일 출처로 모았다.
         //
-        // IndicatorUtils.stochasticKSeries 는 range==0 을 이미 50(중립)으로 처리한다 —
-        // 같은 결함이 IndicatorUtils.rsiFromAvg 에도 복제돼 있어 함께 고쳤다.
-        if (avgGain.signum() == 0 && avgLoss.signum() == 0) {
-            return BigDecimal.valueOf(50);
+        // 이전에는 이 클래스가 Wilder 평활과 rsiFromAvgs 를 **자체 구현**으로 들고 있었고,
+        // IndicatorUtils.rsiSeries 와 수학이 완전히 같았다(SCALE=8, 최종 setScale(2)).
+        // 그 복제의 대가가 Wave 3-H 에서 드러났다 — "무변동 구간에서 RSI 가 100(과매수)"
+        // 이라는 **하나의 결함을 두 곳에 각각** 고쳐야 했다. 한쪽만 고쳤다면 전략에 따라
+        // 같은 입력이 다른 RSI 를 보는 상태가 남았을 것이고, 그건 아무 신호도 주지 않는다.
+        //
+        // 정렬만 다르다: IndicatorUtils 는 첫 유효값부터 시작하는 compact 리스트를 주고,
+        // 여기서는 closes 와 인덱스가 맞는 리스트가 필요하다(evaluate 가 인덱스 룩업을 한다).
+        // 그 변환만 남긴다.
+        int n = closes.size();
+        List<BigDecimal> aligned =
+                new ArrayList<>(java.util.Collections.nCopies(n, BigDecimal.valueOf(50)));
+
+        // compact[k] 는 closes[period + k] 의 RSI 다.
+        // 크기 검증: compact.size() = n - period, 채우는 인덱스는 period..n-1 로 정확히 일치한다.
+        // closes.size() <= period 이면 compact 가 비어 있어 전부 50 으로 남는다 — 구 구현과 같다.
+        List<BigDecimal> compact = IndicatorUtils.rsiSeries(closes, period);
+        for (int k = 0; k < compact.size(); k++) {
+            aligned.set(period + k, compact.get(k));
         }
-        if (avgLoss.compareTo(BigDecimal.ZERO) == 0) return BigDecimal.valueOf(100);
-        BigDecimal rs = avgGain.divide(avgLoss, SCALE, RoundingMode.HALF_UP);
-        return BigDecimal.valueOf(100)
-                .subtract(BigDecimal.valueOf(100)
-                        .divide(BigDecimal.ONE.add(rs), SCALE, RoundingMode.HALF_UP))
-                .setScale(2, RoundingMode.HALF_UP);
+        return aligned;
     }
 
     /**
