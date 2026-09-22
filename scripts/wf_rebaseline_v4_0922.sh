@@ -89,6 +89,8 @@
 #     bash scripts/wf_rebaseline_v4_0922.sh --plan     # 무엇을 제출할지만 출력
 #     bash scripts/wf_rebaseline_v4_0922.sh            # 제출
 #     bash scripts/wf_rebaseline_v4_0922.sh --verify   # 결과가 v4 로 저장됐는지 확인
+#     bash scripts/wf_rebaseline_v4_0922.sh --detail   # 🔴 verdict 가 아니라 수치를 대조
+#     bash scripts/wf_rebaseline_v4_0922.sh --jobs2    # v3 대응짝 없는 프리셋 결과
 #
 #   제출은 즉시 끝나고 실행은 백그라운드다. 완료 시 텔레그램 알림이 온다.
 #   ⚠️ 완료 후 반드시 --verify 를 돌릴 것 — 컨테이너가 옛 이미지로 떠 있으면 결과가
@@ -183,6 +185,95 @@ if [ "${1:-}" = "--verify" ]; then
            GROUP BY 1,2 ORDER BY 3 DESC;"
   echo
   echo "  v 가 3 이나 NULL 이면 컨테이너가 옛 이미지입니다 — 재빌드 후 다시 제출하세요."
+  echo "  🔴 verdict 가 같아도 수치는 바뀌었을 수 있습니다 — --detail 로 확인하세요."
+  exit 0
+fi
+
+# ── --detail: verdict 가 아니라 **수치**를 대조한다 ─────────────────────────
+#    🔴 이게 필요한 이유: verdict 는 이산값이라 OVERFITTING 안에서 기대값이
+#       −5% → −1% 로 움직여도 똑같이 OVERFITTING 으로 나온다. verdict 만 보면
+#       "v4 가 아무것도 바꾸지 않았다"고 오독한다. v4 수정(특히 GRID 침묵 해제)이
+#       실제로 작동했는지는 **OOS 거래 수**와 **기대값**에서 드러난다.
+if [ "${1:-}" = "--detail" ]; then
+  echo "▶ v3 → v4 수치 대조 — OOS 거래수 · 기대값(%) · 과적합점수"
+  echo "  거래수가 늘었으면 GRID 침묵 해제(I) 또는 RSI/VD 중립화(H)가 신호를 늘린 것"
+  echo
+  psql_q "WITH x AS (
+            SELECT DISTINCT ON (exit_rules_version, strategy_name, coin_pair, timeframe,
+                                start_date, end_date)
+                   exit_rules_version AS v, strategy_name, coin_pair, timeframe,
+                   start_date, end_date,
+                   wf_result_json->>'verdict' AS verdict,
+                   (wf_result_json->'aggregatedOutSampleMetrics'->>'totalTrades')::int AS trades,
+                   round((wf_result_json->'aggregatedOutSampleMetrics'->>'expectancyPct')::numeric, 3) AS exp,
+                   round((wf_result_json->>'overfittingScore')::numeric, 2) AS ofs
+              FROM backtest_run
+             WHERE is_walk_forward AND exit_rules_version IN (3,4)
+             ORDER BY exit_rules_version, strategy_name, coin_pair, timeframe,
+                      start_date, end_date, created_at DESC)
+          SELECT a.timeframe, a.strategy_name, a.coin_pair,
+                 (a.start_date AT TIME ZONE 'Asia/Seoul')::date AS 시작,
+                 a.trades || '→' || b.trades       AS 거래수,
+                 a.exp    || '→' || b.exp          AS 기대값,
+                 a.ofs    || '→' || b.ofs          AS 과적합,
+                 CASE WHEN a.trades IS DISTINCT FROM b.trades
+                       OR a.exp    IS DISTINCT FROM b.exp  THEN '●' ELSE '' END AS 변화
+            FROM x a JOIN x b
+              ON a.v=3 AND b.v=4
+             AND a.strategy_name=b.strategy_name AND a.coin_pair=b.coin_pair
+             AND a.timeframe=b.timeframe
+             AND a.start_date=b.start_date AND a.end_date=b.end_date
+           ORDER BY 1,2,3,4;"
+  echo
+  echo "▶ 수치가 실제로 움직인 칸이 몇 개인가 (verdict 동일 여부와 무관)"
+  psql_q "WITH x AS (
+            SELECT DISTINCT ON (exit_rules_version, strategy_name, coin_pair, timeframe,
+                                start_date, end_date)
+                   exit_rules_version AS v, strategy_name, coin_pair, timeframe,
+                   start_date, end_date,
+                   wf_result_json->>'verdict' AS verdict,
+                   (wf_result_json->'aggregatedOutSampleMetrics'->>'totalTrades')::int AS trades,
+                   (wf_result_json->'aggregatedOutSampleMetrics'->>'expectancyPct')::numeric AS exp
+              FROM backtest_run
+             WHERE is_walk_forward AND exit_rules_version IN (3,4)
+             ORDER BY exit_rules_version, strategy_name, coin_pair, timeframe,
+                      start_date, end_date, created_at DESC)
+          SELECT CASE WHEN a.verdict = b.verdict THEN 'verdict 동일' ELSE 'verdict 변동' END AS v,
+                 CASE WHEN a.trades IS DISTINCT FROM b.trades
+                       OR a.exp IS DISTINCT FROM b.exp THEN '수치 변동' ELSE '수치 동일' END AS m,
+                 count(*)
+            FROM x a JOIN x b
+              ON a.v=3 AND b.v=4
+             AND a.strategy_name=b.strategy_name AND a.coin_pair=b.coin_pair
+             AND a.timeframe=b.timeframe
+             AND a.start_date=b.start_date AND a.end_date=b.end_date
+           GROUP BY 1,2 ORDER BY 3 DESC;"
+  echo
+  echo "  🔴 'verdict 동일 · 수치 동일' 이 대다수면 v4 수정이 이 조합들에 닿지 않았다는 뜻입니다."
+  echo "     그 경우 무엇이 막고 있는지(필터가 먼저 HOLD 를 내는지 등) 따로 봐야 합니다."
+  exit 0
+fi
+
+# ── --jobs2: v3 대응짝이 없는 Job 2 결과만 따로 본다 ────────────────────────
+if [ "${1:-}" = "--jobs2" ]; then
+  echo "▶ Job 2 프리셋의 v4 판정 (v3 대응짝이 없어 --verify 대조표에 안 나온다)"
+  psql_q "SELECT strategy_name, coin_pair,
+                 wf_result_json->>'verdict' AS verdict,
+                 (wf_result_json->'aggregatedOutSampleMetrics'->>'totalTrades')::int AS oos거래,
+                 round((wf_result_json->'aggregatedOutSampleMetrics'->>'expectancyPct')::numeric,3) AS 기대값
+            FROM backtest_run
+           WHERE is_walk_forward AND exit_rules_version = 4
+             AND strategy_name NOT IN ($BASE_SQL)
+           ORDER BY 3, 1, 2;"
+  echo
+  echo "▶ 판정 분포"
+  psql_q "SELECT wf_result_json->>'verdict' AS verdict, count(*)
+            FROM backtest_run
+           WHERE is_walk_forward AND exit_rules_version = 4
+             AND strategy_name NOT IN ($BASE_SQL)
+           GROUP BY 1 ORDER BY 2 DESC;"
+  echo
+  echo "⚠️ v3 대응짝이 없습니다. '좋아졌다/나빠졌다'로 읽지 말고 v4 출발점으로만 쓸 것."
   exit 0
 fi
 
