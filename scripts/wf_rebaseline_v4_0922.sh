@@ -231,8 +231,8 @@ if [ "${1:-}" = "--detail" ]; then
                    exit_rules_version AS v, strategy_name, coin_pair, timeframe,
                    start_date, end_date,
                    wf_result_json->>'verdict' AS verdict,
-                   (wf_result_json->'aggregatedOutSampleMetrics'->>'totalTrades')::int AS trades,
-                   round((wf_result_json->'aggregatedOutSampleMetrics'->>'expectancyPct')::numeric, 3) AS exp,
+                   (wf_result_json->'aggregatedOutSample'->>'totalTrades')::int AS trades,
+                   round((wf_result_json->'aggregatedOutSample'->>'expectancyPct')::numeric, 3) AS exp,
                    round((wf_result_json->>'overfittingScore')::numeric, 2) AS ofs
               FROM backtest_run
              WHERE is_walk_forward AND exit_rules_version IN (3,4)
@@ -259,8 +259,8 @@ if [ "${1:-}" = "--detail" ]; then
                    exit_rules_version AS v, strategy_name, coin_pair, timeframe,
                    start_date, end_date,
                    wf_result_json->>'verdict' AS verdict,
-                   (wf_result_json->'aggregatedOutSampleMetrics'->>'totalTrades')::int AS trades,
-                   (wf_result_json->'aggregatedOutSampleMetrics'->>'expectancyPct')::numeric AS exp
+                   (wf_result_json->'aggregatedOutSample'->>'totalTrades')::int AS trades,
+                   (wf_result_json->'aggregatedOutSample'->>'expectancyPct')::numeric AS exp
               FROM backtest_run
              WHERE is_walk_forward AND exit_rules_version IN (3,4)
              ORDER BY exit_rules_version, strategy_name, coin_pair, timeframe,
@@ -286,8 +286,8 @@ if [ "${1:-}" = "--jobs2" ]; then
   echo "▶ Job 2 프리셋의 v4 판정 (v3 대응짝이 없어 --verify 대조표에 안 나온다)"
   psql_q "SELECT strategy_name, coin_pair,
                  wf_result_json->>'verdict' AS verdict,
-                 (wf_result_json->'aggregatedOutSampleMetrics'->>'totalTrades')::int AS oos거래,
-                 round((wf_result_json->'aggregatedOutSampleMetrics'->>'expectancyPct')::numeric,3) AS 기대값
+                 (wf_result_json->'aggregatedOutSample'->>'totalTrades')::int AS oos거래,
+                 round((wf_result_json->'aggregatedOutSample'->>'expectancyPct')::numeric,3) AS 기대값
             FROM backtest_run
            WHERE is_walk_forward AND exit_rules_version = 4
              AND strategy_name NOT IN ($BASE_SQL)
