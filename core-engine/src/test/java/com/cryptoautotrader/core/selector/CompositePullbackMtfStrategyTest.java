@@ -42,7 +42,11 @@ class CompositePullbackMtfStrategyTest {
     @DisplayName("기본 식별자 — 이름/최소 캔들 수")
     void identity() {
         assertThat(strategy.getName()).isEqualTo("COMPOSITE_PULLBACK_MTF");
-        assertThat(strategy.getMinimumCandleCount()).isEqualTo(200);
+        // 2026-09-22 (Wave 4-N): 200 → 201.
+        // 내부 가드가 Math.max(ema200Period + 1, rsiPeriod + 2) = 201 을 요구하는데
+        // 선언값이 200 이라 **정확히 200개일 때 호출자는 통과시키고 전략은 거부**했다.
+        // 이 단정은 옛 값(= 결함)을 고정하고 있었다.
+        assertThat(strategy.getMinimumCandleCount()).isEqualTo(201);
     }
 
     @Test

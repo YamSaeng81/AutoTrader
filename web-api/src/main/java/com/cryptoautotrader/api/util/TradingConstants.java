@@ -33,6 +33,56 @@ public final class TradingConstants {
     public static final int CANDLE_LOOKBACK = 500;
 
     /**
+     * 레지스트리에서 전략을 못 찾았을 때 쓰는 최소 캔들 수 (Wave 4-N, 2026-09-22).
+     *
+     * <p>등록된 전략 중 요구량이 가장 큰 것이 {@code HEIKIN_ASHI_STOCH}(205)다.
+     * 정체를 모르는 전략을 데이터 없이 돌리느니 막는 쪽이 낫다.
+     */
+    public static final int FALLBACK_MIN_CANDLES = 205;
+
+    /**
+     * 전략이 선언한 최소 캔들 수 — <b>세 엔진이 같은 값을 물어야 한다.</b>
+     *
+     * <p>⚠️ 2026-09-22 (Wave 4-N) 이전에는 엔진마다 기준이 달랐다:
+     * <ul>
+     *   <li>{@code BacktestEngine:92} — {@code strategy.getMinimumCandleCount()} ✓</li>
+     *   <li>{@code DynamicTradingService:844} — 같음 ✓ (2026-08-31 에 하드코딩 15 를 걷어냄)</li>
+     *   <li>{@code LiveTradingService} — <b>하드코딩 10</b> ✗</li>
+     *   <li>{@code PaperTradingService} — <b>하드코딩 10</b> ✗</li>
+     * </ul>
+     * 10 은 어떤 전략의 요구량도 아니다 — {@code HEIKIN_ASHI_STOCH} 205,
+     * {@code COMPOSITE_PULLBACK_MTF} 201, {@code GRID} 100. 미달이어도 평가에 들어가
+     * 전략 내부 가드가 "데이터 부족" HOLD 를 돌려주므로 잘못된 신호는 안 나오지만,
+     * <b>장기 지표가 조용히 비활성된 채로 도는 것을 아무도 모른다.</b>
+     * PAPER 는 함대 표본을 만드는 엔진이라 특히 문제였다 — 그렇게 쌓인 표본은
+     * 그 전략의 성과가 아니다.
+     *
+     * <p>🔴 <b>미달이라고 사이클을 건너뛰면 안 된다.</b> LIVE·PAPER 는 이 판정 뒤에서
+     * 손절·익절·타임스톱을 처리하므로, 막아 버리면 <b>열린 포지션이 방치된다.</b>
+     * 미달일 때는 <b>전략 평가만</b> 건너뛴다 — 닫힌 캔들 게이트와 같은 층위다.
+     * DYNAMIC 은 진입 후보를 훑는 루프라 그 구간에 포지션이 없어 {@code continue} 로 막아도 됐다.
+     * <b>같은 수정을 그대로 옮기면 안 되는 이유다.</b>
+     *
+     * <p>레지스트리 <b>원형</b>에서 읽는다 — {@code getMinimumCandleCount()} 는 상수를 돌려주므로
+     * 공유 인스턴스를 만져도 상태가 오염되지 않는다. 세션별 stateful 인스턴스는 종전대로
+     * 평가 직전에 만든다(Wave 1 의 실행 단위 격리를 깨지 않는다).
+     *
+     * @return 선언값. 알 수 없는 이름이면 {@link #FALLBACK_MIN_CANDLES}
+     */
+    public static int minimumCandlesFor(String strategyName) {
+        try {
+            com.cryptoautotrader.strategy.Strategy prototype =
+                    com.cryptoautotrader.strategy.StrategyRegistry.get(strategyName);
+            if (prototype != null) {
+                return prototype.getMinimumCandleCount();
+            }
+        } catch (RuntimeException e) {
+            // 알 수 없는 전략 — 레지스트리가 IllegalArgumentException 을 던진다.
+        }
+        return FALLBACK_MIN_CANDLES;
+    }
+
+    /**
      * 모의 체결 슬리피지 (<b>비율</b>, 0.001 = 0.1%) — 매수는 불리하게 높게, 매도는 낮게.
      *
      * <p>페이퍼가 캔들 종가에 정확히 체결되면 실거래에 없는 이점을 누려 성과가 부풀려진다.

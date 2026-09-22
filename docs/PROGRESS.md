@@ -1355,25 +1355,108 @@ BigDecimal 판은 구 `pct()` 와 스케일·반올림(SCALE=8, HALF_UP)이 동�
 억지로 맞춘 시나리오는 조건이 조금만 바뀌어도 조용히 무력화되므로 두지 않았다.
 대신 HeikinAshi 도 같은 헬퍼를 거치게 만들고 그 변환 자체를 테스트로 덮었다.
 
-### 🔴 운영 DB 확인이 남았다
+### 🟢 운영 DB 확인 완료 — **이 결함은 한 번도 발현된 적이 없다**
 
-코드는 안전해졌지만, **이미 저장된 세션의 `strategy_params` 에 `stopLossPct` 가 들어 있다면**
-그 세션은 지금까지 잘못된 손절로 돌았을 수 있다. 확인 쿼리:
+배포 **전에** 확인했다(읽기 전용 쿼리라 배포와 무관하고, 결과에 따라 배포 전 보정이
+필요할 수 있었다 — 세션에 `0.02` 가 저장돼 있었다면 수정 후 0.02% 로 읽혀
+손절이 200배 타이트해진다).
 
-```sql
-SELECT id, strategy_type, status, strategy_params
-  FROM dynamic_session
- WHERE strategy_params::text LIKE '%stopLossPct%'
-    OR strategy_params::text LIKE '%takeProfitPct%'
-UNION ALL
-SELECT id, strategy_type, status, strategy_params
-  FROM live_trading_session
- WHERE strategy_params::text LIKE '%stopLossPct%'
-    OR strategy_params::text LIKE '%takeProfitPct%';
-```
+**① 세션의 `strategy_params` 에 `stopLossPct`/`takeProfitPct` 가 있는가 → 0행**
 
-나오는 게 있고 그 전략이 `MACD_STOCH_BB` 라면 값의 의미가 이번 수정으로 바뀐다
-(0.02 를 넣어 뒀다면 이제 0.02% 로 읽힌다). 그 경우 값을 퍼센트로 고쳐야 한다.
+전·현 세션 어디에도 저장된 적이 없다. `LiveTradingService` 의 params 시드 경로가
+이 키를 나른 적이 없다는 뜻이다.
+
+**② `MACD_STOCH_BB` / `HEIKIN_ASHI_STOCH` 세션이 존재하는가**
+
+| 종류 | 전략 | 상태 | 수 |
+|---|---|---|---|
+| DYNAMIC | HEIKIN_ASHI_STOCH | DELETED | 3 |
+| FIXED | HEIKIN_ASHI_STOCH | DELETED | 7 |
+| FIXED | HEIKIN_ASHI_STOCH | STOPPED | 1 |
+| FIXED | HEIKIN_ASHI_STOCH | EMERGENCY_STOPPED | 2 |
+
+🔴 **`MACD_STOCH_BB` 세션은 0건이다** — 단위가 틀렸던 그 전략이 운영에서
+한 번도 돌지 않았다. `HEIKIN_ASHI_STOCH` 는 13세션이 있었지만 **원래 올바른 퍼센트 규약**
+쪽이었고, ① 에 따라 params 가 저장된 적도 없으므로 기본값(1.5%)으로만 돌았다.
+그리고 13세션 전부 종료 상태다.
+
+→ **보정할 데이터가 없다. 그대로 배포해도 된다.**
+이번 수정은 피해 복구가 아니라 **미래 지뢰 제거**다.
+
+📌 뒤집어 보면 이 결함이 안 터진 이유는 설계가 막아서가 아니라
+**그 전략을 아무도 안 썼기 때문**이다. 누군가 `MACD_STOCH_BB` 세션을 만들고
+손절을 조정하려 `stopLossPct: 5.0` 을 넣는 순간 손절이 500% 로 사라졌을 것이다.
+
+### 🟢 Wave 4-N 완료 — 워밍업 계약, 엔진마다 기준이 달랐다 (2026-09-22)
+
+**결함 ① — 최소 캔들 기준이 엔진마다 달랐다**
+
+| 엔진 | 기준 | |
+|---|---|---|
+| `BacktestEngine:92` | `strategy.getMinimumCandleCount()` | ✓ |
+| `DynamicTradingService:844` | 같음 | ✓ (2026-08-31 에 하드코딩 15 제거) |
+| `LiveTradingService` | **하드코딩 10** | ✗ |
+| `PaperTradingService` | **하드코딩 10** | ✗ |
+
+10 은 어떤 전략의 요구량도 아니다 — `HEIKIN_ASHI_STOCH` 205 · `COMPOSITE_PULLBACK_MTF` 201 ·
+`GRID` 100. 미달이어도 평가에 들어가면 전략 내부 가드가 "데이터 부족" HOLD 를 돌려주므로
+잘못된 신호는 안 나온다. 그런데 **장기 지표가 조용히 비활성된 채로 도는 것을 아무도 모른다** —
+세션은 정상 RUNNING 으로 보이고 남는 건 HOLD 사유뿐이다.
+08-31 에 동적 경로를 고칠 때 적은 근거가 정확히 이것인데, **고정코인 LIVE·PAPER 는 그대로였다.**
+
+🔴 **PAPER 가 특히 문제다** — 함대 표본을 만드는 엔진이다.
+장기 지표가 꺼진 채 쌓인 표본은 그 전략의 성과가 아니다.
+
+**결함 ② — `COMPOSITE_PULLBACK_MTF` 의 선언값이 실제 요구보다 1 작았다**
+
+선언 200, 내부 가드 `Math.max(ema200Period + 1, rsiPeriod + 2)` = **201**.
+호출자는 정확히 200개일 때 통과시키고 전략은 거부한다 — 사이 구간이 조용한 사각지대였다.
+기존 단정 `isEqualTo(200)` 이 **그 결함을 고정하고 있었다.**
+
+### 🔴 같은 수정을 그대로 옮기면 안 됐다
+
+동적 경로처럼 미달 시 `continue`(= LIVE·PAPER 에선 `return`) 하면 **더 나빠진다.**
+LIVE·PAPER 는 이 판정 **뒤에서** 손절·익절·타임스톱을 처리한다
+(`LiveTradingService` 1079행 부근). 문턱만 10 → 205 로 올리면
+**지금까지 정상 처리되던 10~204 구간에서 열린 포지션이 방치된다.**
+DYNAMIC 은 진입 후보를 훑는 루프라 그 구간에 포지션이 거의 없어 문제가 없었다.
+
+→ 미달이면 **전략 평가만** 건너뛴다. 닫힌 캔들 게이트가 이미 쓰던 패턴과 같은 층위다
+("손절/익절·서킷브레이커 감시는 이 게이트와 무관하게 매 tick 수행된다" — 기존 주석).
+절대 하한 10 은 남긴다 — 현재가조차 못 잡으면 청산 판정도 불가하다.
+
+### 고친 것
+
+- `TradingConstants.minimumCandlesFor(name)` 신설 — **세 엔진 공용 단일 출처.**
+  두 서비스에 헬퍼를 복제하면 그게 바로 이 결함을 만든 드리프트다.
+  레지스트리 원형에서 읽는다(상수 반환이라 상태 오염 없음). 미등록이면 보수값 205.
+- `LiveTradingService` · `PaperTradingService` — 평가만 건너뛰도록 연결
+- `CompositePullbackMtfStrategy.getMinimumCandleCount()` 200 → **201**
+
+### 검증
+
+**신규 `MinimumCandleContractTest`** (core-engine) — 등록된 **28개 전략 전부**에 대해
+"선언한 최소 캔들 수를 주면 데이터 부족으로 HOLD 하지 않는다"를 강제한다.
+이 테스트가 결함 ②를 찾아냈다.
+
+**`EngineParityTest` 에 2건 추가** — (1) 세 엔진이 선언값을 묻는가,
+(2) LIVE·PAPER 가 미달을 **신호 분기에서 HOLD 로** 처리하는가(= return 이 아닌가).
+
+뮤테이션:
+
+| 뮤테이션 | 결과 |
+|---|---|
+| `PULLBACK_MTF` 선언값 201 → 200 | 1건 실패 ✓ |
+| PAPER 를 하드코딩 10 으로 원복 | 1건 실패 ✓ |
+| LIVE 신호 분기의 미달 처리 제거 | **1판 통과 🔴 → 보강 후 실패 ✓** |
+
+🔴 **세 번째 뮤테이션이 처음엔 통과했다.** 단순 `contains` 로는 플래그가 가드에만 남고
+신호 분기에서 빠져도 소스에 문자열이 있어 통과한다. 공백을 정규화한 뒤
+`if (candlesShortOfStrategy) { signal = StrategySignal.hold(` 로 **연결 자체**를 보도록 고쳤다.
+
+📌 그 과정에서 또 하나 — `code.replaceAll("\s+", " ")` 로 썼는데 Java 15+ 에서 `\s` 는
+**공백 한 칸 이스케이프**라 정규식이 아니라 문자열 `" +"` 가 된다. 컴파일은 되고 줄바꿈만
+안 뭉개져 단정이 항상 실패했다. 역슬래시를 하나 더 넣어 `"\\s+"` 로 고쳤고 주석에 남겼다.
 
 ### 미결
 
@@ -1408,7 +1491,7 @@ ADX 를 먼저 건드리면 v3 기준선과 섞여 무엇이 무엇을 바꿨는
 | 항목 | 내용 | 판단 |
 |---|---|---|
 | ~~**M. 파라미터 스키마 단일화**~~ ✅ **2026-09-22 완료** | 같은 이름의 파라미터가 곳에 따라 단위가 다르다 — `stopLossPct` 가 **1.5(%) vs 0.02(비율)** 로 공존했다 | 퍼센트로 통일 + 변환을 `StrategyParamUtils.getPercentAsRatio` 한 곳으로. 규칙 버전 불변(기본값 거동 동일). 위 절 참조 |
-| **N. 워밍업/최소 캔들 계약** | 전략마다 요구 캔들 수 정의가 제각각이고 강제되지 않는다 | 중 |
+| ~~**N. 워밍업/최소 캔들 계약**~~ ✅ **2026-09-22 완료** | 전략마다 요구 캔들 수 정의가 제각각이고 강제되지 않았다 | LIVE·PAPER 가 하드코딩 10 을 쓰고 있었다(엔진 패리티 위반) + `PULLBACK_MTF` 선언값이 실제보다 1 작았다. `TradingConstants.minimumCandlesFor` 단일 출처 + `MinimumCandleContractTest`(28전략) + `EngineParityTest` 2건. 위 절 참조 |
 | **O. 신호 intent 분리** | BUY/SELL/HOLD 에 "진입/청산/관망"이 뒤섞여 있다 | 🔴 **지금 하지 말 것.** 전 전략·전 엔진을 건드린다. 기준선이 안정되기 전엔 착수 불가 |
 
 ### Wave 2 의 남은 꼬리 (미해소)

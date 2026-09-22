@@ -619,9 +619,29 @@ public class PaperTradingService {
         String strategyName = session.getStrategyName();
 
         List<Candle> candles = candlesFor(coinPair, timeframe);
+
+        // 🔴 절대 하한 — 현재가조차 못 잡으면 청산 판정도 불가하므로 사이클을 건너뛴다.
         if (candles.size() < 10) {
             log.warn("모의투자 캔들 부족: {} {}건 (sessionId={})", coinPair, candles.size(), sessionId);
             return;
+        }
+
+        // ⚠️ 2026-09-22 (Wave 4-N): 전략이 선언한 최소 캔들 수를 읽어만 두고,
+        //    미달이면 아래에서 **전략 평가만** 건너뛴다. 사이클을 return 하지 않는다 —
+        //    이 메서드는 뒤에서 손절·익절·타임스톱을 처리하므로 return 하면
+        //    **열린 포지션이 방치된다.** (닫힌 캔들 게이트와 같은 층위의 처리다.)
+        //
+        // 🔴 엔진 패리티: BacktestEngine:92 · DynamicTradingService:844 는 진작부터
+        //    getMinimumCandleCount() 를 쓴다. LIVE·PAPER 만 하드코딩 10 이었다.
+        //    10 은 어떤 전략의 요구량도 아니다 — HEIKIN_ASHI_STOCH 205 · PULLBACK_MTF 201 · GRID 100.
+        //    **PAPER 는 함대 표본을 만드는 엔진이라 특히 문제였다** — 장기 지표가 조용히
+        //    비활성된 채로 쌓인 표본은 그 전략의 성과가 아니다.
+        int minCandles = TradingConstants.minimumCandlesFor(strategyName);
+        boolean candlesShortOfStrategy = candles.size() < minCandles;
+        if (candlesShortOfStrategy) {
+            log.warn("모의투자 전략 요구 캔들 미달 — 신호 평가만 건너뜀 (청산은 계속): "
+                            + "{} {}건 < {}건 필요 ({}, sessionId={})",
+                    coinPair, candles.size(), minCandles, strategyName, sessionId);
         }
 
         BigDecimal currentPrice = candles.get(candles.size() - 1).getClose();
@@ -655,7 +675,12 @@ public class PaperTradingService {
 
         StrategySignal signal;
         StrategyLogEntity savedSignalLog = null;
-        if (!newClosedCandle) {
+        if (candlesShortOfStrategy) {
+            // 전략 요구 캔들 미달 (Wave 4-N) — 신호 평가만 건너뛴다.
+            // 손절/익절/타임스톱은 아래에서 그대로 돌아간다.
+            signal = StrategySignal.hold(String.format(
+                    "전략 요구 캔들 미달: %d < %d (%s)", candles.size(), minCandles, strategyName));
+        } else if (!newClosedCandle) {
             // 이미 평가한 닫힌 캔들 — 전략 평가 스킵. 손절/익절/타임스톱 감시는 아래에서 계속된다.
             signal = StrategySignal.hold("닫힌 캔들 미갱신 — 전략 평가 스킵");
         } else {

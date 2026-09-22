@@ -49,8 +49,19 @@ public class CompositePullbackMtfStrategy implements Strategy {
 
     @Override
     public int getMinimumCandleCount() {
-        // EMA200 산출에 H1 캔들 200개 필요 (가장 큰 요구량).
-        return 200;
+        // EMA200 산출에 H1 캔들 200개 + 직전 봉 비교용 1개 = 201.
+        //
+        // ⚠️ 2026-09-22 (Wave 4-N) — 200 이었다. 그런데 내부 가드는
+        //    Math.max(ema200Period + 1, rsiPeriod + 2) = 201 을 요구한다.
+        //    **선언값이 실제 요구보다 1 작았다.**
+        //
+        //    호출자(BacktestEngine:92 · DynamicTradingService:844)는 이 값으로
+        //    "평가에 들여보낼지"를 정한다. 정확히 200개일 때 통과시켜 평가에 들어가지만
+        //    전략은 "데이터 부족" HOLD 를 돌려준다 — **세션이 조용히 아무것도 하지 않고,
+        //    남는 건 log.debug 한 줄뿐이다.** 캔들이 넉넉한 평소에는 드러나지 않는다.
+        //
+        //    `MinimumCandleContractTest` 가 이 어긋남을 잡는다.
+        return 201;
     }
 
     @Override

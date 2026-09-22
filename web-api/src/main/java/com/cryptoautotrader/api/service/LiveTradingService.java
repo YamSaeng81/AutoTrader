@@ -94,6 +94,7 @@ public class LiveTradingService {
     private static final int MAX_CONCURRENT_SESSIONS = 10;
     // 백테스트(BacktestEngine.MAX_LOOKBACK=500)와 동일하게 맞춰 백테스트·실거래 신호 괴리를 줄인다.
     private static final int CANDLE_LOOKBACK = TradingConstants.CANDLE_LOOKBACK;
+
     private static final BigDecimal FEE_RATE = TradingConstants.FEE_RATE;
 
     // ExitRuleConfig는 DB에서 동적 로드 — exitConfig() 메서드 사용
@@ -865,10 +866,40 @@ public class LiveTradingService {
         String strategyType = session.getStrategyType();
 
         List<Candle> candles = fetchRecentCandles(coinPair, timeframe);
+
+        // 🔴 절대 하한 — 현재가조차 못 잡으면 청산 판정도 불가하므로 사이클을 통째로 건너뛴다.
+        //    이 아래의 "전략 요구량 미달"과는 **다른 층위**다. 아래를 참조할 것.
         if (candles.size() < 10) {
             log.warn("캔들 부족: {} {} {}건 (sessionId={})",
                     coinPair, timeframe, candles.size(), sessionId);
             return;
+        }
+
+        // ⚠️ 2026-09-22 (Wave 4-N): 전략이 선언한 최소 캔들 수를 여기서 **읽어만 두고**,
+        //    미달이면 아래에서 **전략 평가만** 건너뛴다. 사이클을 return 하지 않는다.
+        //
+        // 종전에는 기준이 하드코딩 10 뿐이었다. 10 은 어떤 전략의 요구량도 아니다 —
+        // HEIKIN_ASHI_STOCH 205 · COMPOSITE_PULLBACK_MTF 201 · GRID 100.
+        // 그래서 10~204 구간에서는 평가에 들어가고 전략 내부 가드가 "데이터 부족" HOLD 를
+        // 돌려줬다. 신호는 틀리지 않지만 **장기 지표가 조용히 비활성된 채로 도는 것을
+        // 아무도 모른다** — 세션은 정상 RUNNING 으로 보이고 남는 건 HOLD 사유뿐이다.
+        //
+        // 🔴 엔진 패리티 위반이었다. BacktestEngine:92 와 DynamicTradingService:844 는
+        //    진작부터 getMinimumCandleCount() 를 쓴다(동적 경로는 2026-08-31 에 같은
+        //    하드코딩 15 를 걷어냈다). **고정코인 LIVE/PAPER 경로만 기준이 달랐다.**
+        //
+        // 🔴 그런데 동적 경로처럼 `continue`(= 여기선 return) 로 막으면 안 된다.
+        //    이 메서드는 캔들 가드 **뒤에서** 보유 포지션의 손절·익절·시간청산을 처리한다.
+        //    문턱만 205 로 올리면 캔들이 모자란 동안 **열린 포지션이 방치된다** —
+        //    지금까지 정상 처리되던 10~204 구간이 통째로 사각지대가 된다.
+        //    동적 세션은 진입 후보를 훑는 루프라 그 구간에 포지션이 거의 없어 문제가 없었다.
+        //    **같은 수정을 그대로 옮기면 안 되는 이유다.**
+        int minCandles = TradingConstants.minimumCandlesFor(strategyType);
+        boolean candlesShortOfStrategy = candles.size() < minCandles;
+        if (candlesShortOfStrategy) {
+            log.warn("전략 요구 캔들 미달 — 신호 평가만 건너뜀 (청산 로직은 계속): "
+                            + "{} {} {}건 < {}건 필요 ({}, sessionId={})",
+                    coinPair, timeframe, candles.size(), minCandles, strategyType, sessionId);
         }
 
         // 전략 평가 전 시장 레짐 선감지 — params 주입에 사용
@@ -945,7 +976,15 @@ public class LiveTradingService {
 
         StrategySignal signal;
         StrategyLogEntity savedSignalLog = null;
-        if (!newClosedCandle) {
+        if (candlesShortOfStrategy) {
+            // 전략 요구 캔들 미달 (Wave 4-N) — 신호 평가만 건너뛴다.
+            // 🔴 사이클을 return 하지 않는 것이 요점이다. 아래의 손절·익절·시간청산이
+            //    그대로 돌아야 한다 — 캔들이 모자라다고 열린 포지션을 방치할 수는 없다.
+            // 종전에는 이 구간에서 평가에 들어간 뒤 전략 내부 가드가 HOLD 를 돌려줬다.
+            // 결과는 같지만 **이유가 밖에서 보이지 않았다** — 이제 사유가 신호에 남는다.
+            signal = StrategySignal.hold(String.format(
+                    "전략 요구 캔들 미달: %d < %d (%s)", candles.size(), minCandles, strategyType));
+        } else if (!newClosedCandle) {
             // 이미 평가한 닫힌 캔들 — 전략 신호 평가 스킵 (손절/익절 감시는 아래에서 계속).
             log.debug("닫힌 캔들 미갱신 — 전략 평가 스킵 (sessionId={}, closedCandle={})",
                     sessionId, closedCandleTime);

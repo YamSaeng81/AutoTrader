@@ -403,4 +403,81 @@ class EngineParityTest {
                     .doesNotContain("compareTo(LOSS_ESCAPE_THRESHOLD) >= 0");
         }
     }
+
+    /**
+     * 워밍업 계약 (Wave 4-N, 2026-09-22).
+     *
+     * <p>해소 전 상태 — 엔진마다 기준이 달랐다:
+     * <ul>
+     *   <li>{@code BacktestEngine} — {@code strategy.getMinimumCandleCount()} ✓</li>
+     *   <li>{@code DynamicTradingService} — 같음 ✓ (2026-08-31 에 하드코딩 15 제거)</li>
+     *   <li>{@code LiveTradingService} — <b>하드코딩 10</b> ✗</li>
+     *   <li>{@code PaperTradingService} — <b>하드코딩 10</b> ✗</li>
+     * </ul>
+     * 10 은 어떤 전략의 요구량도 아니다 — HEIKIN_ASHI_STOCH 205 ·
+     * COMPOSITE_PULLBACK_MTF 201 · GRID 100. 미달이어도 평가에 들어가
+     * 전략 내부 가드가 HOLD 를 돌려주므로 잘못된 신호는 안 나오지만,
+     * <b>장기 지표가 조용히 비활성된 채로 도는 것을 아무도 모른다.</b>
+     * PAPER 는 함대 표본을 만드는 엔진이라 특히 문제였다.
+     */
+    @Test
+    @DisplayName("세 엔진이 전략 선언 최소 캔들 수를 같은 출처로 묻는다 (Wave 4-N)")
+    void minimumCandleContractIsAskedByAllEngines() {
+        for (String engine : new String[] {"Live", "Dynamic", "Paper"}) {
+            assertThat(stripComments(source(engine)))
+                    .as("%s 가 전략 선언 최소 캔들 수를 묻지 않는다 — "
+                            + "하드코딩 문턴은 어느 전략의 요구량도 아니다", engine)
+                    .satisfiesAnyOf(
+                            src -> assertThat(src).contains("getMinimumCandleCount"),
+                            src -> assertThat(src).contains("minimumCandlesFor"));
+        }
+        assertThat(stripComments(backtestSource()))
+                .as("BACKTEST 가 전략 선언 최소 캔들 수를 묻지 않는다")
+                .contains("getMinimumCandleCount");
+    }
+
+    /**
+     * 캔들 미달이라고 <b>사이클을 통째로 건너뛰면 안 된다</b> (Wave 4-N).
+     *
+     * <p>LIVE·PAPER 는 캔들 판정 <b>뒤에서</b> 손절·익절·타임스톱을 처리한다.
+     * 문턴만 올리고 {@code return} 하면 캔들이 모자란 동안
+     * <b>열린 포지션이 방치된다</b> — 지금까지 정상 처리되던 구간이
+     * 통째로 사각지대가 된다. 그래서 <b>평가만</b> 건너뛴다.
+     *
+     * <p>DYNAMIC 은 진입 후보를 훑는 루프라 그 구간에 포지션이 없어
+     * {@code continue} 로 막아도 된다. <b>같은 수정을 그대로 옮기면 안 되는 이유다.</b>
+     */
+    @Test
+    @DisplayName("LIVE·PAPER 는 캔들 미달 시 평가만 건너뛰고 청산은 계속한다 (Wave 4-N)")
+    void shortCandlesSkipEvaluationNotTheWholeCycle() {
+        for (String engine : new String[] {"Live", "Paper"}) {
+            String code = stripComments(source(engine));
+            assertThat(code)
+                    .as("%s 에 캔들 미달 플래그가 없다", engine)
+                    .contains("candlesShortOfStrategy");
+            // 공백을 뭉개고 본다 — 포매팅이 바뀌어도, 플래그가 **HOLD 대입으로 이어지는지**만 본다.
+            // (단순 contains 로는 플래그가 가드에만 있고 신호 분기에서 빠져도 통과한다 —
+            //  실제로 이 테스트의 첫 판이 그 뮤테이션을 놓쳤다.)
+            // ⚠️ "\\s+" 여야 한다. Java 15+ 에서 "\s" 는 **공백 한 칸 이스케이프**라
+            //    "\s+" 는 정규식 \s+ 가 아니라 문자열 " +" 가 된다 — 컴파일은 되는데
+            //    줄바꿈이 안 뭉개져 아래 단정이 항상 실패한다. 실제로 한 번 그렇게 썼다.
+            String flat = code.replaceAll("\\s+", " ");
+            // 플래그가 신호 분기에서 쓰여야 한다 — 그래야 평가만 건너뛰고
+            // 아래 청산 로직이 그대로 돌아간다.
+            assertThat(code)
+                    .as("%s 가 캔들 미달을 신호 분기에서 다루지 않는다 — "
+                            + "return 으로 막으면 열린 포지션의 손절·익절이 멈춘다", engine)
+                    .contains("if (candlesShortOfStrategy) {");
+            assertThat(flat)
+                    .as("%s 가 캔들 미달을 **신호 분기**에서 HOLD 로 처리하지 않는다 — "
+                            + "가드에만 두고 끝내면 아무 효과가 없고, return 으로 막으면 "
+                            + "열린 포지션의 손절·익절이 멈춘다", engine)
+                    .contains("if (candlesShortOfStrategy) { signal = StrategySignal.hold(");
+            // 플래그가 **HOLD 신호**로 이어져야 한다. return 이면 청산 로직까지 끊긴다.
+            assertThat(code)
+                    .as("%s 가 캔들 미달을 HOLD 신호로 처리하지 않는다 — "
+                            + "return 으로 막으면 열린 포지션의 손절·익절이 멈춘다", engine)
+                    .contains("전략 요구 캔들 미달");
+        }
+    }
 }
