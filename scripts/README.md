@@ -22,6 +22,7 @@
 
 | 날짜 | 스크립트 | 무엇을 했나 |
 |---|---|---|
+| 2026-09-22 | [`atr_stability_0922.sh`](atr_stability_0922.sh) | ATR_BREAKOUT 기간 안정성 — **겹치지 않는** 4구간으로 부호 일관성 판별 (SUPERTREND·MACD 대조군 포함) |
 | 2026-09-22 | [`wf_singles_0922.sh`](wf_singles_0922.sh) | 단일 전략 vs 복합 프리셋 — "필터를 벗기면 나아지는가" 판별 (`--plan` 제출계획 / `--screen` 맞대결) |
 | 2026-09-22 | [`wf_rebaseline_v4_0922.sh`](wf_rebaseline_v4_0922.sh) | 규칙 v4 재검증 기준선 — Wave 3 L·I·H 반영. v3 실행의 **기간·코인을 DB 에서 읽어 복제** (`--plan` 제출계획 확인 / `--verify` v3↔v4 대조) |
 | 2026-09-20 | [`backfill_candles_0920.sh`](backfill_candles_0920.sh) | 캔들 백필 2차 — H1 실패 18종 재시도 + M15 확장 (코인별·기간별 슬라이스) |
