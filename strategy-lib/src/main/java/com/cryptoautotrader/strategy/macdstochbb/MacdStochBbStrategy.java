@@ -92,8 +92,15 @@ public class MacdStochBbStrategy implements StatefulStrategy {
         int    volumePeriod    = StrategyParamUtils.getInt(params,    "volumePeriod",      20);
         int    cooldown        = StrategyParamUtils.getInt(params,    "cooldownCandles",   3);
         double sidewaysThr     = StrategyParamUtils.getDouble(params, "sidewaysThreshold", 0.0005);
-        double stopLossPct     = StrategyParamUtils.getDouble(params, "stopLossPct",       0.02);
-        double takeProfitPct   = StrategyParamUtils.getDouble(params, "takeProfitPct",     0.04);
+        // 🔴 2026-09-22 (Wave 4-M) — 퍼센트로 읽어 비율로 변환한다.
+        //    이전에는 getDouble(..., 0.02) 로 **비율**을 직접 읽었는데, 같은 이름
+        //    stopLossPct 를 HeikinAshiStochStrategy 는 퍼센트(1.5)로 읽고 있었다.
+        //    같은 params 맵이 두 전략에 100배 다른 뜻으로 읽힌 것이다.
+        //    기본값 2.0%/4.0% 는 이전 0.02/0.04 비율과 **수치가 동일**하므로 거동 불변.
+        double stopLossRatio   = StrategyParamUtils.getPercentAsRatio(
+                params, "stopLossPct",   MacdStochBbConfig.STOP_LOSS_PCT);
+        double takeProfitRatio = StrategyParamUtils.getPercentAsRatio(
+                params, "takeProfitPct", MacdStochBbConfig.TAKE_PROFIT_PCT);
 
         int minRequired = slowPeriod + signalPeriod + rsiPeriod + stochPeriod + stochSignal + 1;
         if (candles.size() < minRequired) {
@@ -160,8 +167,8 @@ public class MacdStochBbStrategy implements StatefulStrategy {
 
             lastBuyCandleTime = candles.get(candles.size() - 1).getTime();
 
-            BigDecimal stopLoss   = currentPrice.multiply(BigDecimal.valueOf(1 - stopLossPct),   MC).setScale(SCALE, RoundingMode.HALF_UP);
-            BigDecimal takeProfit = currentPrice.multiply(BigDecimal.valueOf(1 + takeProfitPct), MC).setScale(SCALE, RoundingMode.HALF_UP);
+            BigDecimal stopLoss   = currentPrice.multiply(BigDecimal.valueOf(1 - stopLossRatio),   MC).setScale(SCALE, RoundingMode.HALF_UP);
+            BigDecimal takeProfit = currentPrice.multiply(BigDecimal.valueOf(1 + takeProfitRatio), MC).setScale(SCALE, RoundingMode.HALF_UP);
 
             BigDecimal strength = BigDecimal.valueOf(oversoldLevel)
                     .subtract(currentK)

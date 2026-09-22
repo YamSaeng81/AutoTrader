@@ -63,8 +63,16 @@ public class HeikinAshiStochStrategy implements Strategy {
         int    stochPeriod   = StrategyParamUtils.getInt(params,    "stochPeriod",   14);
         int    signalPeriod  = StrategyParamUtils.getInt(params,    "signalPeriod",  3);
         double maxWickRatio  = StrategyParamUtils.getDouble(params, "maxWickRatio",  0.25);
-        double stopLossPct   = StrategyParamUtils.getDouble(params, "stopLossPct",   1.5);
-        double takeProfitPct = StrategyParamUtils.getDouble(params, "takeProfitPct", 3.0);
+        // 🔴 2026-09-22 (Wave 4-M) — 단위 변환을 StrategyParamUtils 한 곳으로 모았다.
+        //    이전에는 여기서 getDouble 로 읽고 아래 pct() 로 나눴는데, MacdStochBbStrategy 는
+        //    같은 이름 stopLossPct 를 **비율(0.02)** 로 읽어 나누지 않았다.
+        //    이름이 같으므로 같은 params 맵이 두 전략에 100배 다른 뜻으로 읽혔다.
+        //    나눗셈이 호출자에 흩어져 있던 것이 그 결함의 발생 경로다 — 이제 한 곳에서만 한다.
+        //    스케일·반올림은 기존 pct() 와 동일(SCALE=8, HALF_UP)이라 거동은 불변이다.
+        BigDecimal stopLossRatio   = StrategyParamUtils.getPercentAsRatio(
+                params, "stopLossPct",   1.5, SCALE);
+        BigDecimal takeProfitRatio = StrategyParamUtils.getPercentAsRatio(
+                params, "takeProfitPct", 3.0, SCALE);
         // 신호 최소 강도 임계 (0이면 게이트 해제). 2026-06-30 실전 분석(24h 승률 0%)을 근거로
         // 70을 기본값으로 뒀으나, 그 통계는 동적 세션 캔들 부족(2026-07-01 수정)으로 평가가 왜곡되던
         // 시기와 겹친다. 2026-07-02 A/B 백테스트(100일 H1, BTC/ETH/SOL/XRP)에서 게이트 해제(0)가
@@ -150,9 +158,9 @@ public class HeikinAshiStochStrategy implements Strategy {
         // ── 신호 판정 ──
         if (aboveEma && goldenCross && longCandle && volumeOk) {
             BigDecimal entry = lastClose;
-            BigDecimal sl = entry.multiply(BigDecimal.ONE.subtract(pct(stopLossPct)))
+            BigDecimal sl = entry.multiply(BigDecimal.ONE.subtract(stopLossRatio))
                     .setScale(SCALE, RoundingMode.HALF_UP);
-            BigDecimal tp = entry.multiply(BigDecimal.ONE.add(pct(takeProfitPct)))
+            BigDecimal tp = entry.multiply(BigDecimal.ONE.add(takeProfitRatio))
                     .setScale(SCALE, RoundingMode.HALF_UP);
             BigDecimal strength = withBodyBonus(crossStrength(currentK, currentD), bodyGrew, bodyGrowthBonus);
             if (minStrengthPct > 0 && strength.compareTo(BigDecimal.valueOf(minStrengthPct)) < 0) {
@@ -169,9 +177,9 @@ public class HeikinAshiStochStrategy implements Strategy {
 
         if (belowEma && deadCross && shortCandle) {
             BigDecimal entry = lastClose;
-            BigDecimal sl = entry.multiply(BigDecimal.ONE.add(pct(stopLossPct)))
+            BigDecimal sl = entry.multiply(BigDecimal.ONE.add(stopLossRatio))
                     .setScale(SCALE, RoundingMode.HALF_UP);
-            BigDecimal tp = entry.multiply(BigDecimal.ONE.subtract(pct(takeProfitPct)))
+            BigDecimal tp = entry.multiply(BigDecimal.ONE.subtract(takeProfitRatio))
                     .setScale(SCALE, RoundingMode.HALF_UP);
             BigDecimal strength = withBodyBonus(crossStrength(currentK, currentD), bodyGrew, bodyGrowthBonus);
             if (minStrengthPct > 0 && strength.compareTo(BigDecimal.valueOf(minStrengthPct)) < 0) {
@@ -189,11 +197,6 @@ public class HeikinAshiStochStrategy implements Strategy {
         return StrategySignal.hold(String.format(
                 "신호 없음: EMA위=%b/아래=%b, 골든=%b/데드=%b, 롱캔들=%b/숏캔들=%b, 거래량OK=%b (K=%.2f, D=%.2f)",
                 aboveEma, belowEma, goldenCross, deadCross, longCandle, shortCandle, volumeOk, currentK, currentD));
-    }
-
-    /** 퍼센트 → 소수 (예: 1.5 → 0.015) */
-    private static BigDecimal pct(double percent) {
-        return BigDecimal.valueOf(percent).divide(HUNDRED, SCALE, RoundingMode.HALF_UP);
     }
 
     /** K/D 이격을 0~100 강도로 환산 (50 기준 + 이격 가산) */

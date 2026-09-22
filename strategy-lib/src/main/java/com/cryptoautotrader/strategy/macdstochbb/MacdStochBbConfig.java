@@ -51,8 +51,21 @@ public final class MacdStochBbConfig {
     public static final int    COOLDOWN_CANDLES    = 3;
     public static final double SIDEWAYS_THRESHOLD  = 0.0005;
     public static final double SUPPORT_PERCENT_B   = 0.35;  // %B ≤ 0.35 → 지지선 근처
-    public static final double STOP_LOSS_PCT       = 0.02;  // -2%
-    public static final double TAKE_PROFIT_PCT     = 0.04;  // +4%
+    // ⚠️ 2026-09-22 (Wave 4-M) — 단위를 **비율 → 퍼센트**로 통일했다.
+    //
+    //    이전: STOP_LOSS_PCT = 0.02 (비율). 그런데 같은 이름 stopLossPct 를
+    //          HeikinAshiStochStrategy 는 1.5(퍼센트)로 읽고 /100 해서 썼다.
+    //          **같은 params 맵이 두 전략에 100배 다른 뜻으로 읽혔다.**
+    //          세션 strategy_params 가 전략 params 를 그대로 시드하므로
+    //          stopLossPct: 5.0 (5% 의도)을 저장하면 여기서는 500% 가 됐다 —
+    //          손절이 사실상 사라지는데 예외도 경고도 나지 않는다.
+    //
+    //    지금: 프로젝트 규약(ExitRuleConfig 5.0, 전 DTO·엔티티)과 같은 퍼센트다.
+    //          사용처에서 StrategyParamUtils.getPercentAsRatio 로 읽어 /100 하므로
+    //          **기본값 거동은 이전과 완전히 같다**(0.02 비율 ≡ 2.0 퍼센트).
+    //          바뀌는 것은 호출자가 값을 명시로 넘길 때의 해석뿐이다.
+    public static final double STOP_LOSS_PCT       = 2.0;   // -2%
+    public static final double TAKE_PROFIT_PCT     = 4.0;   // +4%
 
     private MacdStochBbConfig() {}
 }
