@@ -46,5 +46,30 @@ subprojects {
             systemProperty 'review.backtest.dir', System.getProperty('review.backtest.dir')
             testLogging.showStandardStreams = true
         }
+        // Supertrend 확인 필터 게이트 측정: -Dstfilter.dir=<H1 CSV 디렉터리>
+        // docs/SUPERTREND_FILTER_PREREG.md v2 §4.5
+        if (System.getProperty('stfilter.dir')) {
+            systemProperty 'stfilter.dir', System.getProperty('stfilter.dir')
+            if (System.getProperty('stfilter.csv')) {
+                systemProperty 'stfilter.csv', System.getProperty('stfilter.csv')
+            }
+            testLogging.showStandardStreams = true
+            maxHeapSize = '2g'
+        }
+        // Supertrend 22코인 일반화 검사: -Dstval.dir=<H1 CSV> [-Dstval.out=] [-Dstval.verify=<coin>]
+        if (System.getProperty('stval.dir')) {
+            systemProperty 'stval.dir', System.getProperty('stval.dir')
+            ['stval.out', 'stval.verify'].each { k ->
+                if (System.getProperty(k)) { systemProperty k, System.getProperty(k) }
+            }
+            testLogging.showStandardStreams = true
+            maxHeapSize = '2g'
+        }
+        // Supertrend Q2 (ON/OFF 운용 비교): -Dstfilter.q2.dir=<H1 CSV 디렉터리>
+        if (System.getProperty('stfilter.q2.dir')) {
+            systemProperty 'stfilter.q2.dir', System.getProperty('stfilter.q2.dir')
+            testLogging.showStandardStreams = true
+            maxHeapSize = '2g'
+        }
     }
 }

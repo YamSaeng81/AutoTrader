@@ -37,3 +37,7 @@ crypto-trader-frontend/test-results/
 graphify-out/*
 !graphify-out/GRAPH_REPORT.md
 !graphify-out/graph.html
+
+# 연구 스크립트 캐시 (원본은 운영 DB / 업비트 공개 API 에서 재수집 가능)
+scripts/*_study/cache/*.gz
+scripts/*_study/__pycache__/
