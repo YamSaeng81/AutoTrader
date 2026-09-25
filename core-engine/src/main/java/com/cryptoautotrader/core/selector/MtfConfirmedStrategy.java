@@ -45,6 +45,13 @@ public class MtfConfirmedStrategy implements Strategy {
     private final Strategy htfStrategy;  // HTF 추세 확인 전략 (다운샘플 캔들에 적용)
     private final int      htfFactor;    // 다운샘플 배율 (H1→H4 = 4)
     private final boolean  strictHtf;    // true: HTF 미확인(HOLD/데이터부족) 시 진입 차단
+    /**
+     * true 면 <b>완결된 상위봉만</b> 쓴다 ({@link CandleDownsampler#downsampleClosedOnly}).
+     *
+     * <p>2026-09-25 추가 — 전향 검증의 <b>팔 A</b> 전용. 기본값 false 는 운영 배포본과 동일하게
+     * 말미의 형성 중 상위봉을 포함한다(미래 정보가 아니다). 🔴 <b>기존 프리셋의 동작은 바뀌지 않는다.</b>
+     */
+    private final boolean  htfClosedOnly;
 
     /** 기본 생성자 — 보수적 허용 모드(strictHtf=false). */
     public MtfConfirmedStrategy(String name, Strategy ltfDelegate,
@@ -54,12 +61,20 @@ public class MtfConfirmedStrategy implements Strategy {
 
     public MtfConfirmedStrategy(String name, Strategy ltfDelegate,
                                 Strategy htfStrategy, int htfFactor, boolean strictHtf) {
+        this(name, ltfDelegate, htfStrategy, htfFactor, strictHtf, false);
+    }
+
+    /** @param htfClosedOnly true 면 완결된 상위봉만 사용한다 (전향 검증 팔 A). */
+    public MtfConfirmedStrategy(String name, Strategy ltfDelegate,
+                                Strategy htfStrategy, int htfFactor, boolean strictHtf,
+                                boolean htfClosedOnly) {
         if (htfFactor < 2) throw new IllegalArgumentException("htfFactor must be >= 2: " + htfFactor);
-        this.name        = name;
-        this.ltfDelegate = ltfDelegate;
-        this.htfStrategy = htfStrategy;
-        this.htfFactor   = htfFactor;
-        this.strictHtf   = strictHtf;
+        this.name          = name;
+        this.ltfDelegate   = ltfDelegate;
+        this.htfStrategy   = htfStrategy;
+        this.htfFactor     = htfFactor;
+        this.strictHtf     = strictHtf;
+        this.htfClosedOnly = htfClosedOnly;
     }
 
     @Override
@@ -84,7 +99,9 @@ public class MtfConfirmedStrategy implements Strategy {
         }
 
         // 2. H1 → HTF 다운샘플
-        List<Candle> htfCandles = CandleDownsampler.downsample(candles, htfFactor);
+        List<Candle> htfCandles = htfClosedOnly
+                ? CandleDownsampler.downsampleClosedOnly(candles, htfFactor)
+                : CandleDownsampler.downsample(candles, htfFactor);
 
         // 3. HTF 캔들 부족 — strict면 차단, 아니면 LTF 신호 통과 (보수적 허용)
         if (htfCandles.size() < htfStrategy.getMinimumCandleCount()) {

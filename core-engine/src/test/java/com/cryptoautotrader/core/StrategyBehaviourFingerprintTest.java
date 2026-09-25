@@ -103,6 +103,10 @@ class StrategyBehaviourFingerprintTest {
             Map.entry("COMPOSITE_MTF_BTC_STRICT", "b116e94ce262c8ab"),
             Map.entry("COMPOSITE_MTF_CONFIRMED", "6123e8904316362f"),
             Map.entry("COMPOSITE_MTF_MOMENTUM", "243001c860725068"),
+            // 2026-09-25 추가 — 전향 검증 팔 A. 이 합성 트레이스에서는 Supertrend 필터가
+            // 한 번도 발화하지 않아 MTF_MOMENTUM·MOMENTUM_ICHIMOKU_V2 와 **같은 해시**가 나온다.
+            // 🔴 이 코드가 실제로 무엇을 하는지는 CandleDownsamplerClosedOnlyTest 가 검증한다.
+            Map.entry("COMPOSITE_MTF_MOMENTUM_CLOSED", "243001c860725068"),
             Map.entry("COMPOSITE_PULLBACK_MTF", "aafccdc608b5d427"),
             Map.entry("COMPOSITE_REGIME_ROUTER", "6123e8904316362f"),
             Map.entry("EMA_CROSS", "aa4802dd98e6b240"),
@@ -188,7 +192,7 @@ class StrategyBehaviourFingerprintTest {
 
         java.util.SortedSet<String> known = new java.util.TreeSet<>(List.of(
                 "COMPOSITE_BREAKOUT == COMPOSITE_BREAKOUT_ICHIMOKU == COMPOSITE_MTF_BTC == COMPOSITE_MTF_BTC_STRICT",
-                "COMPOSITE_MOMENTUM_ICHIMOKU_V2 == COMPOSITE_MTF_MOMENTUM",
+                "COMPOSITE_MOMENTUM_ICHIMOKU_V2 == COMPOSITE_MTF_MOMENTUM == COMPOSITE_MTF_MOMENTUM_CLOSED",
                 "COMPOSITE_MTF_CONFIRMED == COMPOSITE_REGIME_ROUTER"
         ));
 

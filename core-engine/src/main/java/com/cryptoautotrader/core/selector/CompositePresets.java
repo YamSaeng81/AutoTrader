@@ -181,6 +181,17 @@ public final class CompositePresets {
                         new SupertrendStrategy(),
                         4));
 
+        // COMPOSITE_MTF_MOMENTUM_CLOSED: MTF_MOMENTUM 과 같되 **완결된 H4 봉만** 사용한다.
+        // 2026-09-25 추가 — docs/SUPERTREND_VALIDATION_PREREG.md 전향 검증의 **팔 A**.
+        // 🔴 역사적 22코인 검사에서 B 대비 우위가 재현되지 않아 **채택 보류** 상태다.
+        //    운영 기본값이 아니며, 전향 검증 관측용으로만 가동한다.
+        m.put("COMPOSITE_MTF_MOMENTUM_CLOSED", () ->
+                new MtfConfirmedStrategy("COMPOSITE_MTF_MOMENTUM_CLOSED",
+                        new IchimokuFilteredStrategy("COMPOSITE_MTF_MOMENTUM_CLOSED_BASE",
+                                momentumV2Core("COMPOSITE_MTF_MOMENTUM_CLOSED_CORE")),
+                        new SupertrendStrategy(),
+                        4, false, true));   // strictHtf=false, htfClosedOnly=true
+
         // ⚠️ DEPRECATED (2026-08-24) — strictHtf가 구조적으로 무효라 COMPOSITE_MTF_BTC와 동일하다.
         //    HTF 확인자 SupertrendStrategy는 데이터만 있으면 절대 HOLD를 내지 않고(추세선 위=BUY /
         //    아래=SELL 이분법), getMinimumCandleCount()=max(ltf, 4×12)라 호출 시점에 HTF 캔들 12개가

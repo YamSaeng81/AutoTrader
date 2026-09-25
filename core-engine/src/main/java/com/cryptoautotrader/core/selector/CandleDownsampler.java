@@ -117,6 +117,35 @@ public class CandleDownsampler {
         return result;
     }
 
+    /**
+     * {@link #downsample} 과 같지만 <b>말미의 형성 중(미완결) 상위봉을 버린다.</b>
+     *
+     * <p>2026-09-25 추가 — 전향 검증의 팔 A 전용이다.
+     * {@link #downsample} 은 말미의 부분 그룹을 <b>남긴다</b>(형성 중인 봉 = 실거래에서
+     * 트레이더가 보는 것). 그것은 미래 정보가 아니므로 잘못된 동작이 아니다.
+     * 이 메서드는 <b>대안</b>으로, 완결된 상위봉만 쓰는 변경안을 검증하기 위한 것이다.
+     *
+     * <p>🔴 {@link #downsample} 의 동작은 바꾸지 않는다 — 기존 전략은 전부 그대로다.
+     *
+     * <p>완결 판정: 마지막 LTF 캔들의 시각이 그 상위봉 구간의 <b>마지막 슬롯</b>
+     * (경계 + (factor−1) × ltfInterval) 이어야 한다. 결측이 있으면 완결로 보지 않는다.
+     */
+    public static List<Candle> downsampleClosedOnly(List<Candle> ltfCandles, int factor) {
+        List<Candle> all = downsample(ltfCandles, factor);
+        if (all.isEmpty() || ltfCandles.size() < 2 || factor <= 1) {
+            return all;
+        }
+        long ltfSeconds = inferIntervalSeconds(ltfCandles);
+        if (ltfSeconds <= 0) {
+            return all;                      // 간격을 못 믿으면 downsample 과 동일하게 둔다
+        }
+        long bucketSeconds = ltfSeconds * factor;
+        long lastLtf = ltfCandles.get(ltfCandles.size() - 1).getTime().getEpochSecond();
+        long boundary = Math.floorDiv(lastLtf, bucketSeconds) * bucketSeconds;
+        boolean complete = (lastLtf - boundary) == ltfSeconds * (factor - 1);
+        return complete ? all : all.subList(0, all.size() - 1);
+    }
+
     /** 캔들이 속한 상위봉의 시작 시각(epoch 초). */
     private static long bucketOf(Candle c, long bucketSeconds) {
         return Math.floorDiv(c.getTime().getEpochSecond(), bucketSeconds) * bucketSeconds;
