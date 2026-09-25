@@ -8,7 +8,7 @@
    엔진에는 "준비됐지만 거래하지 않는" 상태가 없다 (PaperTradingService:189 → RUNNING 즉시,
    :570 runStrategy fixedDelay=60s 가 그 시점의 RUNNING 전량을 평가).
 
-사용 (API_BASE · API_TOKEN 환경변수 필요)
+사용 (API_BASE 기본값 http://localhost:8080 · 토큰은 .env 의 API_AUTH_TOKEN 폴백)
     python start_66.py check                     배포·정원 확인 (부작용 없음)
     python start_66.py probe                     틱 위상 측정 (22코인 밖 프로브, 끝나면 삭제)
     python start_66.py create --after <epoch초>   다음 틱 직후에 66개 일괄 생성
@@ -26,11 +26,27 @@ from datetime import datetime, timezone
 
 try:
     sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")   # sys.exit 문구도 cp949 로 깨지지 않게
 except Exception:
     pass
 
-BASE = os.environ.get("API_BASE", "").rstrip("/")
-TOKEN = os.environ.get("API_TOKEN", "")
+def from_dotenv(key):
+    """저장소 루트 .env 에서 값을 읽는다 — 기존 운영 스크립트와 같은 방식
+    (scripts/backfill_candles_0920.sh:77 등). 🔴 값을 출력하거나 기록하지 않는다."""
+    root = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
+    path = os.path.join(root, ".env")
+    if not os.path.exists(path):
+        return ""
+    for line in open(path, encoding="utf-8", errors="replace"):
+        if line.strip().startswith(key + "="):
+            return line.split("=", 1)[1].strip().strip('"').strip("'")
+    return ""
+
+
+BASE = (os.environ.get("API_BASE") or from_dotenv("API_BASE")
+        or "http://localhost:8080").rstrip("/")
+TOKEN = (os.environ.get("API_TOKEN") or os.environ.get("API_AUTH_TOKEN")
+         or from_dotenv("API_AUTH_TOKEN") or from_dotenv("API_TOKEN"))
 
 COINS = ["IOTA", "WAVES", "CRO", "ONG", "SC", "POLYX", "NEAR", "WAXP", "BCH", "CVC",
          "POWR", "T", "ANKR", "DKA", "GLM", "HIVE", "PUNDIX", "ELF", "BLAST", "JUP",
@@ -65,8 +81,11 @@ def call(method, path, body=None):
 
 
 def need_env():
-    if not BASE or not TOKEN:
-        sys.exit("API_BASE / API_TOKEN 환경변수가 필요하다.")
+    if not TOKEN:
+        sys.exit("API 토큰이 없다 — 환경변수 API_TOKEN/API_AUTH_TOKEN 또는 .env 의 API_AUTH_TOKEN.")
+    st, _ = call("GET", "/api/v1/health")
+    if st != 200:
+        sys.exit("%s 에 닿지 않는다 (HTTP %s). API_BASE 를 확인한다." % (BASE, st))
 
 
 def sid_of(d):
