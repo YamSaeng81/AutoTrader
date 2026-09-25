@@ -223,6 +223,41 @@ ANKR DKA GLM HIVE PUNDIX ELF BLAST JUP G INJ
 | 22코인 H1 캔들이 워밍업 최소봉을 넘는가 | 부족하면 그 팔은 **조용히 아무것도 안 한다** — 0거래를 성과로 오해하게 된다 | 운영 DB 조회 |
 | 현재 RUNNING 세션 수 + 66 ≤ 120 | `MAX_CONCURRENT_SESSIONS = 120` | API 조회 |
 
+### 🔴 착수 전 발견한 결함 — RANGE 게이트에서 팔 A 만 빠져 있었다 (2026-09-25)
+
+`RangeRegimeGate.RANGE_BLOCKED` 은 **전략명 문자열 집합**이고 **부재 = 허용**이다.
+팔 A 프리셋을 추가할 때(`3cb4d87`) 이 목록에 넣지 않았다.
+
+| 팔 | 전략명 | 고치기 전 RANGE BUY |
+|---|---|---|
+| OFF | `COMPOSITE_MOMENTUM_ICHIMOKU_V2` | 차단 |
+| B | `COMPOSITE_MTF_MOMENTUM` | 차단 |
+| **A** | `COMPOSITE_MTF_MOMENTUM_CLOSED` | **허용** 🔴 |
+
+그대로 시작했다면 `A−B` 는 **"완결 H4 봉만 쓰는 변경"이 아니라 그 변경 + RANGE 진입 허용**
+두 가지를 섞어 잰 값이 된다. §2 의 "확인 필터만 변경한다"를 위반한다.
+게이트는 LIVE(`:1017`) · DYNAMIC(`:939`) · PAPER(`:721`) · `BacktestEngine:321` 이
+모두 전략명으로 호출한다 — 한 군데만 맞추면 되는 문제가 아니었다.
+
+**조치**: A 를 목록에 추가하고, 세 팔의 처우가 같은지 단정하는 테스트를 붙였다
+(`RangeRegimeGateArmParityTest`, 변이 검증 완료 — 항목을 지우면 실패한다).
+🔴 **이 수정은 재빌드·재배포가 필요하다.** T0 는 수정된 이미지가 돌기 시작한 뒤에 잡는다.
+
+`BACKTEST_RULESET_VERSION` 은 **올리지 않는다** — 거동이 달라지는 것은 같은 날 추가돼
+기록된 백테스트 실행이 없는 프리셋 하나뿐이고, v4 로 기록된 결과 중 의미가 바뀌는 것은 없다
+(팔 A 추가 `3cb4d87` 과 같은 판단이다). ⚠️ 단, 이 수정 전에 `COMPOSITE_MTF_MOMENTUM_CLOSED`
+이름으로 실행한 백테스트가 `backtest_run` 에 있다면 그 행은 **낡은 것으로 표시해야 한다.**
+
+#### 역사적 22코인 검사와의 차이 — 기록해 둔다
+
+그 검사는 팔 이름을 `COMPOSITE_MOMENTUM_ICHIMOKU_V2_OFF/_B/_A` 로 붙여 돌렸다
+(`SupertrendValidationRunner:205`). 셋 다 `RANGE_BLOCKED` 에 없으므로
+**세 팔 모두 RANGE 에서 진입이 허용된 조건**이었다 — 팔 사이는 대칭이었으나
+**운영 조건(OFF·B 차단)과는 다르다.**
+
+🔴 따라서 전향 검증은 역사적 검사와 **같은 게이트 조건이 아니다.** 두 결과의 차이를
+"새 자료에서 재현되지 않았다"로만 읽을 수 없다 — 게이트 조건도 함께 달라졌다.
+
 ### 전향 검증 설정 — 착수 전 확정 (2026-09-25)
 
 | 항목 | 결정 |

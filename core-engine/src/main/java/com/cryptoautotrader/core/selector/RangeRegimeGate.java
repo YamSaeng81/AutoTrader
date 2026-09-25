@@ -36,6 +36,10 @@ public final class RangeRegimeGate {
             // 멀티타임프레임
             "COMPOSITE_MTF_BTC", "COMPOSITE_MTF_BTC_STRICT",
             "COMPOSITE_MTF_MOMENTUM", "COMPOSITE_MTF_CONFIRMED",
+            // COMPOSITE_MTF_MOMENTUM_CLOSED 는 MTF_MOMENTUM 과 **HTF 완결 여부만** 다른
+            // 전향 검증 팔 A 다(2026-09-25). 여기서 빠지면 A 만 RANGE 에서 BUY 가 허용돼
+            // A−B 비교가 "확인 필터 변경" 하나를 재지 못한다 — 같은 목록에 둔다.
+            "COMPOSITE_MTF_MOMENTUM_CLOSED",
             "COMPOSITE_PULLBACK_MTF",
             // 헤이킨아시 추세 전략
             "HEIKIN_ASHI_STOCH"
