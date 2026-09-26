@@ -950,6 +950,66 @@ psql 트랜잭션을 닫으면 원복된다
 ```
 
 
+##### ✅ test A 결과 — 그 순서에서 경합이 **생긴다** (H2 실측, 2026-09-26)
+
+`DynamicSessionRowLockContentionTest` — 바깥 트랜잭션이 `dynamic_session` 행을 UPDATE 하고
+**명시적 flush 로 잠금을 획득한 뒤**, 실제 `DynamicSessionBalanceUpdater`(REQUIRES_NEW,
+별도 커넥션)로 같은 행을 갱신한다.
+
+| 관측 | 값 |
+|---|---|
+| 예외 | `org.springframework.orm.jpa.JpaSystemException` — "Unable to rollback against JDBC Connection" |
+| 최종 `availableKrw` | **10,000.00 (차감 남지 않음)** |
+
+🔴 **예외 종류로 단정하지 않는다.** 깔끔한 잠금 타임아웃이 아니고, 엔진마다 다르게 표면화되며
+Postgres 는 제한이 없으면 **애초에 예외 없이 무한히 기다린다**. 단정한 것은 둘 —
+**(1) 그대로 성공하지 못했다 (2) 차감이 남지 않았다.**
+
+📌 `balanceUpdater` 는 어노테이션이 아니라 `TransactionTemplate(PROPAGATION_REQUIRES_NEW)` 를
+직접 쓴다(`:42-51`). 그래서 self-invocation 으로 무시될 여지가 없고 **실제로 새 커넥션**을 쓴다 —
+test A 는 손으로 만든 대역이 아니라 이 빈을 그대로 부른다.
+
+##### 🔴 변이 검증이 더 중요한 것을 드러냈다 — 실패 양상이 **둘**이다
+
+`em.flush()` 를 지우고 돌리면 테스트가 실패한다(= flush 가 경합의 필수 조건이라는 증거).
+그런데 **어떻게** 실패하는지가 핵심이다.
+
+```
+ObjectOptimisticLockingFailureException:
+  Row was updated or deleted by another transaction … DynamicSessionEntity#1
+```
+
+즉 flush 가 없으면 **안쪽 REQUIRES_NEW 가 성공해 커밋되고**, 바깥은 커밋 시점에 `@Version`
+충돌로 **롤백**된다.
+
+| 바깥 UPDATE 가 | 결과 | 성격 |
+|---|---|---|
+| **flush 돼 잠금 보유** | 행 잠금 경합 — Postgres 에서는 **영구 정지** | 이번 사고의 모양 |
+| **지연돼 미실행** | 바깥 커밋에서 낙관적 락 충돌 → **바깥만 롤백** | 🔴 안쪽의 차감은 **이미 커밋돼 살아남는다** |
+
+🔴 **두 번째는 이 저장소가 이미 겪은 사고다** — `registerBuyDeductionCompensation`(`:1631`)
+javadoc 의 2026-08-03 P0: "포지션·주문·신호로그 0건인데 `available_krw` 만 10,000 → 2,000 으로
+줄어 세 세션이 영구 매수 불능". 보상 훅이 그래서 존재한다.
+
+📌 **따라서 "바깥이 세션 행을 쓴 뒤 REQUIRES_NEW 로 같은 행을 건드린다"는 순서는 어느 쪽으로도
+안전하지 않다.** flush 여부에 따라 정지냐 부분 커밋이냐가 갈릴 뿐이다. ② 경계 수정의 목표는
+"어느 실패를 고른다"가 아니라 **그 순서를 없애는 것**이다.
+
+##### test B — 아직 하지 않았다. 무엇을 봐야 하는가
+
+A 는 **경합이 가능하다**까지만 말한다. 생산 경로가 실제로 그 순서를 만드는지는 B 가 본다.
+
+🔴 **B 에는 운영에 없는 flush 를 넣지 않는다.** 대신 **바깥 UPDATE 가 안쪽 트랜잭션 진입 전에
+실제로 실행됐는지**를 관측한다(예: `org.hibernate.SQL` 문장 순서 포착).
+
+⚠️ 그리고 위 변이가 보여준 함정을 명시한다 — **`position` INSERT 가 즉시 실행됐다는 사실만으로
+앞서 변경한 `dynamic_session` UPDATE 까지 실행됐다고 간주하면 안 된다.** Hibernate 의 flush 는
+INSERT 를 UPDATE 보다 먼저 실행하고, id 확보만으로는 UPDATE 가 나가지 않을 수 있다.
+그 둘을 **따로** 확인해야 한다.
+
+외부 주문 호출은 테스트 대역으로 바꾸되 **내부 서비스와 트랜잭션 프록시는 실제 구성을 유지한다.**
+
+
 ##### 수정 범위 — 세 갈래로 나눈다 (원인·구조·안전장치)
 
 | 갈래 | 내용 | 성격 |
