@@ -14,6 +14,8 @@
     python start_66.py create --after <epoch초>   다음 틱 직후에 66개 일괄 생성
     python start_66.py verify                     T0 일치·T0 이전 주문 0건 검증
     python start_66.py abort                      생성된 세션 전량 정지·삭제 (부분 보정 금지 규칙의 집행)
+    python start_66.py arm-gate enable        팔 B 를 검증 기간 한정 재활성화 (토글 주의 — 먼저 읽은 뒤에 바꾼다)
+    python start_66.py arm-gate restore       검증 종료 후 원래 상태로 되돌린다
 """
 from __future__ import annotations
 
@@ -213,6 +215,74 @@ def cmd_probe():
     return 0 if t_first else 1
 
 
+ARM_GATE = os.path.join(_HERE, "arm_gate_changes.json")
+
+
+def _arm_active(name):
+    st, body = call("GET", "/api/v1/strategies/%s" % name)
+    if st != 200:
+        return None
+    return (body or {}).get("data", {}).get("isActive")
+
+
+def cmd_arm_gate(target):
+    """팔 B 의 `strategy_type_enabled` 상태를 검증 기간 동안만 바꾼다.
+
+    🔴 `PATCH /strategies/{name}/active` 는 **set 이 아니라 toggle** 이다
+    (StrategyController:73-89). 반드시 먼저 읽고, 이미 원하는 상태면 건드리지 않는다 —
+    무조건 PATCH 하면 두 번 실행했을 때 되돌아간다.
+
+    🔴 되돌리기 위해 바꾼 내역을 `arm_gate_changes.json` 에 남긴다. 검증 종료 후
+    `arm-gate restore` 가 그 파일을 보고 원래 상태로 되돌린다 — 기본값은 복귀다.
+    """
+    need_env()
+    name = ARMS["B"]
+    before = _arm_active(name)
+    if before is None:
+        print("✗ %s 조회 실패 — 이름과 등재 여부를 확인한다." % name)
+        return 1
+    print("현재 %s isActive=%s" % (name, before))
+
+    if target == "restore":
+        if not os.path.exists(ARM_GATE):
+            print("변경 기록(%s)이 없다 — 되돌릴 것이 없다." % os.path.basename(ARM_GATE))
+            return 0
+        rec = json.load(open(ARM_GATE, encoding="utf-8"))
+        want = rec.get("before")
+        print("기록된 원래 상태 isActive=%s (%s 에 변경)" % (want, rec.get("at")))
+    else:
+        want = True
+
+    if before == want:
+        print("이미 isActive=%s — 토글하지 않는다." % want)
+        if target == "restore":
+            os.remove(ARM_GATE)
+        return 0
+
+    # 모든 프록시가 Content-Length 없는 PATCH 를 받지는 않는다 — 빈 본문을 붙인다.
+    st, body = call("PATCH", "/api/v1/strategies/%s/active" % name, {})
+    after = (body or {}).get("data", {}).get("isActive") if st == 200 else None
+    if after != want:
+        print("✗ 토글 실패 — HTTP %s, isActive=%s. 응답: %s" % (st, after, str(body)[:200]))
+        return 1
+    print("✔ %s isActive %s → %s" % (name, before, after))
+
+    if target == "restore":
+        os.remove(ARM_GATE)
+        print("변경 기록 삭제 — 원래 상태로 돌아갔다.")
+    else:
+        with open(ARM_GATE, "w", encoding="utf-8") as fh:
+            json.dump({"strategy": name, "before": before, "after": after,
+                       "at": datetime.now(timezone.utc).isoformat(),
+                       "why": "전향 검증 기간 한정 재활성화 — 사전 등록 문서 §5 참조. "
+                              "종료 후 `arm-gate restore` 로 되돌린다."},
+                      fh, ensure_ascii=False, indent=1)
+        print("변경 기록 저장: %s" % ARM_GATE)
+        print("🔴 이 시각을 사전 등록 문서의 '재활성화 시각' 칸에 옮겨 적는다.")
+        print("🔴 검증 종료 후: python start_66.py arm-gate restore")
+    return 0
+
+
 def cmd_abort():
     """생성된 세션을 전량 정지·삭제한다 — §5 "부분 보정하지 않는다"의 집행.
 
@@ -356,6 +426,12 @@ def main():
         return cmd_verify()
     if c == "abort":
         return cmd_abort()
+    if c == "arm-gate":
+        t = sys.argv[2] if len(sys.argv) > 2 else "enable"
+        if t not in ("enable", "restore"):
+            print("arm-gate enable | arm-gate restore")
+            return 2
+        return cmd_arm_gate(t)
     print(__doc__)
     return 2
 

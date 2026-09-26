@@ -303,8 +303,11 @@ ANKR DKA GLM HIVE PUNDIX ELF BLAST JUP G INJ
 | 항목 | 값 |
 |---|---|
 | 재활성화 시각 (UTC) | *(기록 대기)* |
-| 수단 | `PATCH /api/v1/strategies/COMPOSITE_MTF_MOMENTUM/active` — **set 이 아니라 toggle 이다**, 먼저 읽는다 |
-| 검증 종료 후 처리 | 기본값 = 비활성으로 복귀 |
+| 수단 | `python start_66.py arm-gate enable` — `PATCH /api/v1/strategies/{name}/active` 는 **set 이 아니라 toggle 이다**(`StrategyController:73-89`), 그래서 먼저 읽고 이미 원하는 상태면 건드리지 않는다 |
+| 변경 기록 | `scripts/prospective/arm_gate_changes.json` (원래 상태·시각·사유) |
+| 검증 종료 후 처리 | `python start_66.py arm-gate restore` — 기본값 = 비활성으로 복귀 |
+
+🔴 **사용자 확인 받음 (2026-09-26): 검증 기간 한정 재활성화로 진행한다.**
 
 #### 🔴 첫 시도의 표본은 전량 폐기했다
 
