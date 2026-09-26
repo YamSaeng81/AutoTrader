@@ -103,8 +103,20 @@ def sid_of(d):
     return d.get("sessionId") or d.get("id")
 
 
-MIN_CANDLES = 78    # 세 팔 공통 — OFF max(core, 52+26)=78 / B·A max(78, 4×12)=78
 LOOKBACK = 500      # TradingConstants.CANDLE_LOOKBACK — 엔진이 보는 창의 길이(봉)
+
+# 🔴 요구 봉 수를 **유도하지 않고 엔진에서 읽는다** (2026-09-26).
+#    나는 `max(core, SENKOU_B 52 + CHIKOU 26) = 78` 로 계산했는데 **틀렸다** — 운영 로그는
+#    세 팔 모두 "< 100건 필요"였다. 100 은 momentumV2Core 안의 GRID 가 요구하는 값이고
+#    (`GridStrategy:154-156`), 그게 Ichimoku 의 78 을 덮는다. 유도는 이렇게 조용히 틀리므로
+#    `GET /strategies/{name}` 의 minimumCandleCount 를 그대로 쓴다.
+def arm_min_candles():
+    """팔별 요구 봉 수 — 엔진이 보고하는 값. 세 팔이 다르면 그것 자체가 문제다."""
+    out = {}
+    for arm, name in ARMS.items():
+        st, body = call("GET", "/api/v1/strategies/%s" % name)
+        out[arm] = (body or {}).get("data", {}).get("minimumCandleCount") if st == 200 else None
+    return out
 
 # 엔진이 남기는 세 가지 흔적. 평가 시점에 **실제로 조회된 봉 수**가 여기 찍힌다.
 RE_TOO_FEW = re.compile(r"모의투자 캔들 부족: (\S+) (\d+)건 \(sessionId=(\d+)\)")
@@ -172,8 +184,28 @@ def cmd_diagnose():
         if m and m.group(2) == TIMEFRAME:
             sync_fail[m.group(1)] = (m.group(3)[:60], e.get("timestamp"))
 
+    # ── 요구 봉 수는 엔진에서 읽는다 ─────────────────────────────────────
+    mins = arm_min_candles()
+    vals = {v for v in mins.values() if v}
+    MIN_CANDLES = max(vals) if vals else 100
+    print("팔별 요구 봉 수 (엔진 보고): %s" % "  ".join(
+        "%s=%s" % (a, mins[a]) for a in ("OFF", "B", "A")))
+    if len(vals) != 1:
+        print("🔴 세 팔의 요구 봉 수가 다르다 — 캔들 부족이 **팔 비대칭**을 만든다. 착수 불가.")
+
+    # 0봉 코인은 종목이 아직 거래되는지부터 확인한다 — 동기화 문제와 상장·거래 문제는 다르다.
+    zero = [c for c in COINS
+            if (seen.get("KRW-" + c, (None,))[0] == 0
+                or int((cache.get(("KRW-" + c, TIMEFRAME)) or {}).get("count", 0) or 0) == 0)]
+    ticker_ok = {}
+    if zero:
+        st, body = call("GET", "/api/v1/settings/upbit/ticker?markets=%s"
+                        % ",".join("KRW-" + c for c in zero))
+        for t in ((body or {}).get("data") or []) if st == 200 else []:
+            ticker_ok[t.get("market")] = t.get("trade_price")
+
     window_h = LOOKBACK   # H1 이므로 500봉 = 500시간
-    print("엔진이 보는 창 = 최근 %d봉 (H1 이면 %d시간). 최소 요구 %d봉.\n"
+    print("\n엔진이 보는 창 = 최근 %d봉 (H1 이면 %d시간). 최소 요구 %d봉.\n"
           % (LOOKBACK, window_h, MIN_CANDLES))
     print("%-11s %8s %-17s %8s %s" % ("코인", "캐시건수", "캐시 최종(to)", "엔진관측", "판정"))
 
@@ -193,6 +225,14 @@ def cmd_diagnose():
             # 🔴 미달 경고가 없다는 것은 **평가됐다는 증거가 아니다.** 로그가 버퍼에서
             #    밀려났을 수도 있다. 평가 여부는 verify 의 strategy_log 로만 말한다.
             v = "? 미달 경고 없음 — 평가 여부는 verify 로 확인한다"
+        elif obs == 0:
+            # 0봉은 "적다"와 질이 다르다 — 창 안에 아무것도 없다.
+            # 종목이 아직 거래되는지부터 가른다: 시세가 오면 종목은 살아 있고 적재가 안 된
+            # 것이며, 시세도 안 오면 상장·거래 자체를 확인해야 한다(동기화 문제가 아니다).
+            px = ticker_ok.get(pair)
+            v = ("🔴 창 안 0봉 — 시세는 %s 로 조회됨(종목 생존). 적재가 안 되고 있다" % px
+                 if px is not None else
+                 "🔴 창 안 0봉 + 시세 조회 실패 — 상장·거래 여부를 먼저 확인한다")
         elif n_cache >= MIN_CANDLES and obs < MIN_CANDLES:
             # 🔴 이 어긋남이 말해주는 것은 "전체 건수로는 준비 여부를 판단할 수 없었다"는
             #    것뿐이다. **최근 구간 적재 부족도 여전히 후보다** — 전체가 많아도 창 안이
@@ -514,10 +554,13 @@ def cmd_verify(wait_sec=300):
       ① 아직 첫 틱이 오지 않았다            → 기다리면 된다 (이 함수가 한다)
       ② 전략 요구 캔들 미달                  → 그 세션은 **조용히 아무것도 하지 않는다**.
          `PaperTradingService:679-682` 가 평가와 로그를 함께 건너뛴다.
-         📌 세 팔의 최소 캔들 요구는 **같다** — OFF 는 `IchimokuFiltered` 로 max(core, 52+26)=78,
-         B·A 는 `MtfConfirmed` 로 max(78, 4×12=48)=78. 즉 캔들이 부족하면 **세 팔이 함께**
-         빠지므로 팔 편향이 아니라 **그 코인이 표본에서 빠지는 것**이다. 그래도 0거래를
-         성과로 읽으면 안 된다 — 아래에서 코인 단위로 묶어 보여준다.
+         📌 세 팔의 최소 캔들 요구는 **같다 — 100봉이다.** 운영 로그가 세 팔 모두
+         "< 100건 필요"로 찍었다(2026-09-26). 🔴 내가 앞서 유도한 78 은 틀렸다 —
+         momentumV2Core 안의 GRID 가 100 을 요구해(`GridStrategy:154-156`) Ichimoku 의 78 을
+         덮는다. 그래서 이 값은 유도하지 않고 `GET /strategies/{name}` 에서 읽는다.
+         캔들이 부족하면 세 팔이 함께 빠지므로 **팔 사이 비대칭은 아니지만**, 준비된
+         코인만 남으면 **코인 구성에 따른 선택 편향**이 생긴다 — 아래에서 코인 단위로 묶어
+         보여준다. 0거래를 성과로 읽으면 안 된다.
       ③ 로그 저장 자체가 실패했다            → 서버 로그의 "전략 로그 저장 실패" 를 본다
     """
     need_env()
@@ -557,7 +600,7 @@ def cmd_verify(wait_sec=300):
         part = {c: a for c, a in by_coin.items() if len(a) < 3}
         print("   🔴 로그 없는 세션 %d개" % len(missing))
         if whole:
-            print("   · 세 팔 전부 빠진 코인 %d종 — 요구 캔들 수는 세 팔이 같다(78봉)."
+            print("   · 세 팔 전부 빠진 코인 %d종 — 요구 캔들 수는 세 팔이 같다(100봉)."
                   % len(whole))
             print("     %s" % " ".join(sorted(whole)))
             print("     🔴 이것은 '팔 사이 비대칭이 없다'는 뜻일 뿐 **편향이 없다는 뜻이 아니다.**")
