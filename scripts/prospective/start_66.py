@@ -9,10 +9,11 @@
    :570 runStrategy fixedDelay=60s 가 그 시점의 RUNNING 전량을 평가).
 
 사용 (생성은 단건 66회 · 코인마다 팔 순서를 한 칸씩 돌린다 / API_BASE 기본값 http://localhost:8080 · 토큰은 .env 의 API_AUTH_TOKEN 폴백)
-    python start_66.py check                     배포·정원 확인 (부작용 없음)
-    python start_66.py probe                     틱 위상 측정 (22코인 밖 프로브, 끝나면 삭제)
+    python start_66.py check                     배포·정원·세 팔 활성 여부 확인 (부작용 없음)
+    python start_66.py probe                     세 팔 생성 가능 여부 + 틱 위상 (22코인 밖, 끝나면 삭제)
     python start_66.py create --after <epoch초>   다음 틱 직후에 66개 일괄 생성
     python start_66.py verify                     T0 일치·T0 이전 주문 0건 검증
+    python start_66.py abort                      생성된 세션 전량 정지·삭제 (부분 보정 금지 규칙의 집행)
 """
 from __future__ import annotations
 
@@ -54,7 +55,10 @@ COINS = ["IOTA", "WAVES", "CRO", "ONG", "SC", "POLYX", "NEAR", "WAXP", "BCH", "C
 
 ARMS = {
     "OFF": "COMPOSITE_MOMENTUM_ICHIMOKU_V2",     # 확인 필터 없음
-    "B":   "COMPOSITE_MTF_MOMENTUM",             # 운영 기본값 (형성 중 H4 봉 포함)
+    # 🔴 "운영 기본값"이 아니다 — 배포된 것은 **형성 중 H4 봉을 포함하는 다운샘플러 경로**이고,
+    #    이 프리셋 자신은 `strategy_type_enabled` 에서 is_active=false 여서 생성이 막힌 상태였다
+    #    (2026-09-26 첫 create 에서 22건 400). 상세는 사전 등록 문서 §5 참조.
+    "B":   "COMPOSITE_MTF_MOMENTUM",             # 형성 중 H4 봉 포함 (= 배포된 다운샘플러 거동)
     "A":   "COMPOSITE_MTF_MOMENTUM_CLOSED",      # 변경안 (완결 H4 봉만)
 }
 TIMEFRAME = "H1"
@@ -110,6 +114,23 @@ def cmd_check():
     if not ok:
         print("   🔴 구 이미지다. 팔 A 는 평가 시점에 예외로 죽는다 — 재배포 후 다시 확인한다.")
 
+    # 🔴 2026-09-26 추가 — 등재됐다고 만들 수 있는 것이 아니다.
+    #    `strategy_type_enabled` 은 **차단 목록**이고(부재=활성) 세 생성 경로 전부가
+    #    StrategyEnablementGate 를 지난다. 첫 create 는 팔 B(COMPOSITE_MTF_MOMENTUM)가
+    #    이 표에서 is_active=false 여서 22건 전부 400 으로 떨어졌다 — 프리셋 존재 확인만으로는
+    #    잡히지 않는 실패였다. 여기서 먼저 센다.
+    print("\n②' 활성 여부 — 세션을 만들 수 있는 상태인가 (strategy_type_enabled)")
+    for arm, name in ARMS.items():
+        st, body2 = call("GET", "/api/v1/strategies/%s" % name)
+        active = (body2 or {}).get("data", {}).get("isActive") if st == 200 else None
+        if active is True:
+            print("   ✔ %-3s %s" % (arm, name))
+        else:
+            ok = False
+            print("   ✗ %-3s %s  isActive=%s" % (arm, name, active))
+            print("      🔴 이 팔은 생성이 거부된다. 사전 등록한 세 팔 중 하나가 빠지면")
+            print("         주 비교(A−B)가 성립하지 않는다 — 임의로 팔을 줄이지 않는다.")
+
     st, body = call("GET", "/api/v1/paper-trading/sessions")
     running = [s for s in body["data"] if s.get("status") == "RUNNING"]
     print("\n② 정원 — 현재 RUNNING %d + 66 = %d / %d   %s"
@@ -143,17 +164,34 @@ def first_log_time(session_id):
 
 
 def cmd_probe():
-    """틱 위상 측정 — 프로브 세션 하나의 첫 평가 시각을 읽는다. 끝나면 정지·삭제."""
+    """세 팔 생성 가능 여부 + 틱 위상 — 22코인 밖 프로브. 끝나면 전부 정지·삭제.
+
+    🔴 왜 세 팔 모두 만들어 보는가 (2026-09-26): (전략 × 타임프레임) 폐기 표
+    `strategy_timeframe_enabled` 에는 **조회 엔드포인트가 없다** — 유효한 유일한 사전 검사는
+    같은 (전략, 타임프레임) 조합으로 실제 생성을 한 번 시도하는 것이다. 첫 create 가
+    22건 실패한 뒤 넣었다. 프로브는 22코인 밖이라 검증 기록을 오염시키지 않는다.
+    """
     need_env()
-    st, body = call("POST", "/api/v1/paper-trading/sessions", {
-        "strategyType": ARMS["A"], "coinPair": PROBE_COIN,
-        "timeframe": TIMEFRAME, "initialCapital": CAPITAL})
-    if st != 200:
-        print("✗ 프로브 생성 실패 %s: %s" % (st, body))
+    probes = {}
+    for arm in ("OFF", "B", "A"):
+        st, body = call("POST", "/api/v1/paper-trading/sessions", {
+            "strategyType": ARMS[arm], "coinPair": PROBE_COIN,
+            "timeframe": TIMEFRAME, "initialCapital": CAPITAL})
+        if st != 200:
+            print("✗ 팔 %s 프로브 생성 거부 %s: %s" % (arm, st, body))
+        else:
+            probes[arm] = sid_of(body["data"])
+            print("✔ 팔 %-3s 생성 가능 — 프로브 세션 %s" % (arm, probes[arm]))
+    if len(probes) != 3:
+        for sid in probes.values():
+            call("POST", "/api/v1/paper-trading/sessions/%s/stop" % sid)
+            call("DELETE", "/api/v1/paper-trading/history/%s" % sid)
+        print("\n🔴 세 팔이 모두 만들어지지 않는다 — create 로 넘어가지 않는다.")
+        print("   프로브는 정리했다. 막힌 팔을 먼저 해결한다 (사전 등록 문서에 기록할 일이다).")
         return 1
-    sid = sid_of(body["data"])
-    print("프로브 세션 %s (%s, 팔 A) — 첫 평가를 기다린다 (최대 %d초)"
-          % (sid, PROBE_COIN, TICK + 20))
+    sid = probes["A"]
+    print("\n틱 위상 측정 — 팔 A 프로브 %s 의 첫 평가를 기다린다 (최대 %d초)"
+          % (sid, TICK + 20))
     t_first = None
     for _ in range((TICK + 20) // 2):
         time.sleep(2)
@@ -168,10 +206,47 @@ def cmd_probe():
         print("  🔴 팔 A 가 평가됐다 = 새 이미지가 돌고 있다는 실행 증거다.")
     else:
         print("\n✗ 첫 평가 로그가 안 보인다 — 구 이미지에서 팔 A 가 예외로 죽었을 수 있다.")
-    call("POST", "/api/v1/paper-trading/sessions/%s/stop" % sid)
-    st, _ = call("DELETE", "/api/v1/paper-trading/history/%s" % sid)
-    print("프로브 정리: stop + delete (HTTP %s)" % st)
+    for arm, pid in probes.items():
+        call("POST", "/api/v1/paper-trading/sessions/%s/stop" % pid)
+        st, _ = call("DELETE", "/api/v1/paper-trading/history/%s" % pid)
+        print("프로브 정리 팔 %-3s %s: stop + delete (HTTP %s)" % (arm, pid, st))
     return 0 if t_first else 1
+
+
+def cmd_abort():
+    """생성된 세션을 전량 정지·삭제한다 — §5 "부분 보정하지 않는다"의 집행.
+
+    🔴 `preexisting_excluded.json` 의 기존 세션은 건드리지 않는다. 남의 표본이다.
+    """
+    need_env()
+    if not os.path.exists(STATE):
+        print("%s 가 없다 — 지울 세션 목록이 없다." % STATE)
+        return 0
+    state = json.load(open(STATE, encoding="utf-8"))
+    sessions = state.get("sessions", [])
+    keep = {str(x.get("id")) for x in
+            (json.load(open(BASELINE, encoding="utf-8")) if os.path.exists(BASELINE) else [])}
+    print("정지·삭제 대상 %d개 (기존 세션 %d개는 제외)" % (len(sessions), len(keep)))
+    ok = bad = 0
+    for s in sessions:
+        sid = str(s.get("id"))
+        if sid in keep:
+            print("   · %s 기존 세션 — 건드리지 않는다" % sid)
+            continue
+        call("POST", "/api/v1/paper-trading/sessions/%s/stop" % sid)
+        st, body = call("DELETE", "/api/v1/paper-trading/history/%s" % sid)
+        if st == 200:
+            ok += 1
+        else:
+            bad += 1
+            print("   ✗ %s 삭제 실패 %s: %s" % (sid, st, body))
+    print("\n삭제 %d개 · 실패 %d개" % (ok, bad))
+    if bad == 0:
+        os.remove(STATE)
+        print("%s 삭제 — probe 부터 다시 시작한다." % os.path.basename(STATE))
+    else:
+        print("🔴 남은 세션이 있다. 목록 파일을 지우지 않았다 — 해결 후 abort 를 다시 돌린다.")
+    return 0 if bad == 0 else 1
 
 
 def creation_order():
@@ -279,6 +354,8 @@ def main():
         return cmd_create(int(sys.argv[sys.argv.index("--after") + 1]))
     if c == "verify":
         return cmd_verify()
+    if c == "abort":
+        return cmd_abort()
     print(__doc__)
     return 2
 

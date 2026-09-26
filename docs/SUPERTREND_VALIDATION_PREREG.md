@@ -258,6 +258,63 @@ ANKR DKA GLM HIVE PUNDIX ELF BLAST JUP G INJ
 섞이는 것은 **집계**뿐이므로, ID 를 `preexisting_excluded.json` 에 기록해 제외한다.
 🔴 남의 표본을 지우지 않고, 내 집계에서 빼는 쪽이 맞다.
 
+#### 🔴 첫 create 실패 — 팔 B 가 운영 DB 에서 비활성이었다 (2026-09-26)
+
+첫 `create` 는 **44개만 생성되고 22개가 400 으로 거부**됐다. 거부된 22개는 전부 팔 B 다.
+
+```
+전략 'COMPOSITE_MTF_MOMENTUM'은(는) 비활성화되어 세션을 생성할 수 없습니다.
+폐기 기준으로 중단된 전략이라면 /backtest/walk-forward 재검증이 필요합니다.
+```
+
+`strategy_type_enabled` 은 **차단 목록**이고(부재 = 활성, `StrategyEnablementGate:35-40`),
+`COMPOSITE_MTF_MOMENTUM` 은 그 표에서 `is_active=false` 인 21행 중 하나다 —
+`docs/old_progress.md:4613-4623` 에 2026-08-24 시점 이미 비활성으로 기록돼 있다.
+세 생성 경로(LIVE·DYNAMIC·PAPER)가 전부 이 게이트를 지나므로 페이퍼도 예외가 아니다.
+
+**내 `check` 가 이것을 잡지 못한 것이 결함이다.** `GET /api/v1/strategies/types` 는
+*레지스트리에 등재됐는가*만 답한다 — *세션을 만들 수 있는가*는 다른 질문이다.
+두 검사를 추가했다:
+
+| 검사 | 무엇을 보는가 | 왜 둘이 필요한가 |
+|---|---|---|
+| `check` ②' | `GET /api/v1/strategies/{name}` 의 `isActive` | 전략 레벨 차단을 **create 전에** 잡는다 |
+| `probe` | 세 팔을 22코인 밖(`KRW-BTC`)에 **실제로 한 번 만들어 본다** | (전략 × 타임프레임) 표 `strategy_timeframe_enabled` 에는 **조회 엔드포인트가 없다** — 실제 생성 시도가 유일한 사전 검사다 |
+
+#### 📌 이것은 운영 설정 문제만이 아니다 — 팔 B 의 위상을 정정한다
+
+`start_66.py` 는 팔 B 를 "운영 기본값"이라고 적었다. **그 표현은 부정확하다 — 정정한다.**
+
+- **코드 수준에서는 맞다**: 형성 중 H4 봉을 포함하는 `CandleDownsampler` 경로가 배포된 것이고,
+  `COMPOSITE_MTF_CONFIRMED`·`COMPOSITE_MTF_BTC` 를 통해 실제로 운영에서 돈다.
+- **프리셋 수준에서는 틀렸다**: `COMPOSITE_MTF_MOMENTUM` **그 자체로는 신규 세션을 만들 수 없는
+  상태**였다. 비활성 사유는 이 계열에서 반복된 판정이다 — `StrategyBehaviourFingerprintTest` 의
+  실효 중복 그룹에서 `COMPOSITE_MOMENTUM_ICHIMOKU_V2 == COMPOSITE_MTF_MOMENTUM` 이었다
+  (`docs/SUPERTREND_FILTER_PREREG.md:20-26`). 즉 **B 는 OFF 와 구별되지 않아 꺼졌다.**
+
+🔴 그래서 팔 B 를 되살리는 것은 단순한 설정 토글이 아니라 **"합성 자료에서 중복이라 껐던 것을
+실제 자료로 다시 재본다"는 이 검증의 취지 그 자체**다. 그러나 그 재활성화는 운영 상태 변경이라
+**내가 임의로 하지 않는다** — 사용자 확인을 받고, 아래에 시각과 사유를 기록한 뒤 진행한다.
+
+⚠️ 함께 기록할 것: B 를 재활성화하면 `COMPOSITE_MTF_MOMENTUM` 으로 **누구나 세션을 만들 수 있게
+된다.** 검증 종료 후 원래 상태(비활성)로 되돌릴지는 검증 결과로 판단한다 — 되돌리는 것이
+기본값이고, 결과가 B 의 독립적 가치를 보이면 그때 유지를 논한다.
+
+| 항목 | 값 |
+|---|---|
+| 재활성화 시각 (UTC) | *(기록 대기)* |
+| 수단 | `PATCH /api/v1/strategies/COMPOSITE_MTF_MOMENTUM/active` — **set 이 아니라 toggle 이다**, 먼저 읽는다 |
+| 검증 종료 후 처리 | 기본값 = 비활성으로 복귀 |
+
+#### 🔴 첫 시도의 표본은 전량 폐기했다
+
+`verify` 는 생성된 44개에 대해 ② 첫 평가 시각 폭 0.4초 ✔ · ③ T0 이전 주문 0건 ✔ 을 냈지만
+① 첫 평가 로그가 **30/44** 였고, 무엇보다 **66개가 아니다.** §5 의 "부분 보정하지 않는다"에
+따라 44개를 전량 정지·삭제했다(`start_66.py abort` — 이번에 추가했다).
+
+📌 ① 의 로그 없는 14개는 따로 볼 일이다 — 캔들이 부족한 코인에서 그 팔은 **조용히 아무것도
+하지 않는다.** 그 0거래를 "성과"로 읽으면 안 된다. 재시도 후 다시 확인한다.
+
 ### 🔴 착수 전 발견한 결함 — RANGE 게이트에서 팔 A 만 빠져 있었다 (2026-09-25)
 
 `RangeRegimeGate.RANGE_BLOCKED` 은 **전략명 문자열 집합**이고 **부재 = 허용**이다.
