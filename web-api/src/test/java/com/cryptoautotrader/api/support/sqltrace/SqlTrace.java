@@ -27,7 +27,10 @@ import java.util.concurrent.atomic.AtomicLong;
  *   <li><b>관측은 개입하지 않는다.</b> 이 장치는 추가 flush·commit·연결 종료를 하지 않는다.
  *       🔴 A 의 {@code Connection is closed} 원인이 미확정이므로 <b>연결 수명에 영향을 주지
  *       않는 것</b>이 특히 중요하다 — 그래서 {@code pg_backend_pid()} 조회조차 기본으로 끈다
- *       (추가 질의는 그 자체로 개입이다).</li>
+ *       (추가 질의는 그 자체로 개입이다).
+ *       ⚠️ {@code SqlTraceSelfTest} 가 "켜고/끄고 결과가 같다"를 확인하지만, 그것은
+ *       <b>자기 시험한 그 경로</b>에 한한 근거다 — 🔴 <b>모든 상황의 비개입성을 보장하지
+ *       않는다.</b> 관측 결과는 이 한계 아래에서 읽는다.</li>
  * </ol>
  */
 public final class SqlTrace {
