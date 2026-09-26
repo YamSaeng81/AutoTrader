@@ -28,7 +28,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 try:
     sys.stdout.reconfigure(encoding="utf-8")
@@ -122,6 +122,10 @@ def arm_min_candles():
 RE_TOO_FEW = re.compile(r"모의투자 캔들 부족: (\S+) (\d+)건 \(sessionId=(\d+)\)")
 RE_SHORT = re.compile(r"요구 캔들 미달[^:]*: (\S+) (\d+)건 < (\d+)건 필요 \(([^,]+), sessionId=(\d+)\)")
 RE_SYNC_FAIL = re.compile(r"시장 데이터 동기화 실패: (\S+) (\S+) - (.*)")
+# 🔴 2026-09-26 — 나는 동기화 실패 채널을 **하나만** 보고 있었다. `syncPair` 는 수집 결과가
+#    비면 예외 없이 "캔들 수신 없음" 만 남기고 돌아간다(MarketDataSyncService). 그 경고를
+#    안 보면 "실패 기록이 없다"는 오독이 나온다 — 두 채널을 모두 센다.
+RE_NO_CANDLE = re.compile(r"캔들 수신 없음: (\S+) (\S+)")
 
 
 def server_logs(keyword, lines=2000):
@@ -139,11 +143,11 @@ def cmd_diagnose():
     **그건 이르다.** 캐시에 봉이 있어도 조회 키·시간 범위·봉 유효성·워밍업 조건 때문에
     평가에서 빠질 수 있다. 특히 `fetchRecentCandles` 는 `[now − 500×봉주기, now]` **창**만
     조회하므로(`PaperTradingService:1072-1083`), **전체 건수가 많아도 창 안이 비어 있으면
-    0봉**이다. 그러니 "총 건수 ≥ 78" 같은 검사는 원인을 가리지 못한다.
+    0봉**이다. 그러니 "총 건수 ≥ 요구량" 같은 검사는 원인을 가리지 못한다.
 
       ① 캐시     `market_data_cache` 의 코인별 건수·최초·최종 시각
                  (`GET /settings/upbit/status` — 🔴 이 건수는 **창 안이 아니라 전체**다)
-      ② 동기화    "시장 데이터 동기화 실패" 경고 — 포착한 시도가 무엇에 실패했는가
+      ② 동기화    "시장 데이터 동기화 실패"(예외) **와 "캔들 수신 없음"(빈 결과) 두 채널**
                  🔴 경고가 없는 것은 동기화 시도나 성공의 증거가 아니다. 이 채널은
                  **실패만** 보여준다
       ③ 평가      "모의투자 캔들 부족 N건" / "요구 캔들 미달 N건 < M건 필요"
@@ -177,12 +181,21 @@ def cmd_diagnose():
         if m:
             short[m.group(1)] = (int(m.group(2)), int(m.group(3)), e.get("timestamp"))
 
-    # ── ② 동기화 실패 ────────────────────────────────────────────────────
+    # ── ② 동기화 — 실패 채널이 둘이다 ────────────────────────────────────
     sync_fail = {}
     for e in server_logs("시장 데이터 동기화 실패") or []:
         m = RE_SYNC_FAIL.search(e.get("message", ""))
         if m and m.group(2) == TIMEFRAME:
             sync_fail[m.group(1)] = (m.group(3)[:60], e.get("timestamp"))
+    no_candle = {}
+    for e in server_logs("캔들 수신 없음") or []:
+        m = RE_NO_CANDLE.search(e.get("message", ""))
+        if m and m.group(2) == TIMEFRAME:
+            no_candle[m.group(1)] = e.get("timestamp")
+    for e in server_logs("UpbitRestClient Bean 미등록") or []:
+        print("🔴 UpbitRestClient Bean 미등록 — 동기화가 아예 돌지 않는다: %s"
+              % e.get("timestamp"))
+        break
 
     # ── 요구 봉 수는 엔진에서 읽는다 ─────────────────────────────────────
     mins = arm_min_candles()
@@ -207,9 +220,17 @@ def cmd_diagnose():
     window_h = LOOKBACK   # H1 이므로 500봉 = 500시간
     print("\n엔진이 보는 창 = 최근 %d봉 (H1 이면 %d시간). 최소 요구 %d봉.\n"
           % (LOOKBACK, window_h, MIN_CANDLES))
-    print("%-11s %8s %-17s %8s %s" % ("코인", "캐시건수", "캐시 최종(to)", "엔진관측", "판정"))
+    # 🔴 창 안 봉 수 추정 — `to` 가 창 시작보다 앞서면 창 안은 비어 있다. 캐시가 멈춘 코인은
+    #    창이 흐르면서 **봉 수가 시간당 1개씩 줄어들어 결국 요구량 아래로 떨어진다.**
+    #    (추정이다. 창 시작~to 사이가 시간당 연속이라고 가정한다 — 엔진 실측이 있으면 그게 우선.)
+    period_min = 60          # H1
+    now_utc = datetime.now(timezone.utc)
+    win_start = now_utc - timedelta(minutes=LOOKBACK * period_min)
 
-    verdicts = {}
+    print("%-11s %8s %-17s %7s %7s %7s %s"
+          % ("코인", "캐시건수", "캐시 최종(to)", "엔진관측", "창안추정", "잔여일", "판정"))
+
+    verdicts, doomed = {}, []
     for coin in COINS:
         pair = "KRW-" + coin
         r = cache.get((pair, TIMEFRAME))
@@ -218,6 +239,18 @@ def cmd_diagnose():
         obs = seen.get(pair, (None, None))[0]
         if obs is None and pair in short:
             obs = short[pair][0]
+
+        est, left = None, None
+        if to != "-":
+            try:
+                t_last = datetime.fromisoformat(to.replace("Z", "")).replace(tzinfo=timezone.utc)
+                est = max(0, min(LOOKBACK,
+                                 int((t_last - win_start).total_seconds() // (period_min * 60))))
+                left = (est - MIN_CANDLES) * period_min / 60.0 / 24.0
+                if est >= MIN_CANDLES and left < 180:
+                    doomed.append((pair, est, left))
+            except ValueError:
+                pass
 
         if pair in sync_fail:
             v = "🔴 동기화 실패: " + sync_fail[pair][0]
@@ -230,8 +263,9 @@ def cmd_diagnose():
             # 종목이 아직 거래되는지부터 가른다: 시세가 오면 종목은 살아 있고 적재가 안 된
             # 것이며, 시세도 안 오면 상장·거래 자체를 확인해야 한다(동기화 문제가 아니다).
             px = ticker_ok.get(pair)
+            nc = " · 수집 시도가 빈 결과였다(캔들 수신 없음)" if pair in no_candle else ""
             v = ("🔴 창 안 0봉 — 시세는 %s 로 조회됨(종목 생존). 적재가 안 되고 있다" % px
-                 if px is not None else
+                 + nc if px is not None else
                  "🔴 창 안 0봉 + 시세 조회 실패 — 상장·거래 여부를 먼저 확인한다")
         elif n_cache >= MIN_CANDLES and obs < MIN_CANDLES:
             # 🔴 이 어긋남이 말해주는 것은 "전체 건수로는 준비 여부를 판단할 수 없었다"는
@@ -244,12 +278,21 @@ def cmd_diagnose():
         else:
             v = "· 엔진 %d봉" % obs
         verdicts[pair] = v
-        print("%-11s %8d %-17s %8s %s"
-              % (pair, n_cache, to[:16], "-" if obs is None else obs, v))
+        print("%-11s %8d %-17s %7s %7s %7s %s"
+              % (pair, n_cache, to[:16], "-" if obs is None else obs,
+                 "-" if est is None else est,
+                 "-" if left is None else ("미달" if left < 0 else "%.1f" % left), v))
 
     bad = [p for p, v in verdicts.items() if v.startswith("🔴")]
     unknown = [p for p, v in verdicts.items() if v.startswith("?")]
     print("문제 %d종 · 판정 불가 %d종 / 22" % (len(bad), len(unknown)))
+    if doomed:
+        print("\n🔴 캐시가 멈춘 채로는 지금 통과하는 코인도 차례로 탈락한다 —")
+        print("   창이 흐르면 창 안 봉 수가 시간당 1개씩 줄어든다. 잔여일이 짧은 순:")
+        for pair, est, left in sorted(doomed, key=lambda x: x[2])[:8]:
+            print("     %-11s 창 안 %3d봉 → %.1f일 뒤 %d봉 미달" % (pair, est, left, MIN_CANDLES))
+        print("   🔴 §5 의 종료 조건은 **최대 6개월**이다. 적재가 계속되지 않으면 검증 자체가")
+        print("      성립하지 않는다 — 8코인을 고치는 문제가 아니다.")
     if unknown:
         print("   ? 는 미달 경고가 없는 코인이다 — 정상 평가일 수도, 로그가 버퍼에서 밀려난")
         print("     것일 수도 있다. **경고 부재는 평가의 증거가 아니다.**")
