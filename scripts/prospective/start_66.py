@@ -10,6 +10,7 @@
 
 사용 (생성은 단건 66회 · 코인마다 팔 순서를 한 칸씩 돌린다 / API_BASE 기본값 http://localhost:8080 · 토큰은 .env 의 API_AUTH_TOKEN 폴백)
     python start_66.py check                     배포·정원·세 팔 활성 여부 확인 (부작용 없음)
+    python start_66.py candles                   22코인 H1 캔들 현황 (왜 조용한 세션이 있는가)
     python start_66.py probe                     세 팔 생성 가능 여부 + 틱 위상 (22코인 밖, 끝나면 삭제)
     python start_66.py create --after <epoch초>   다음 틱 직후에 66개 일괄 생성
     python start_66.py verify [--wait 초]         T0 일치·T0 이전 주문 0건 검증 (기본 300초까지 기다린다)
@@ -98,6 +99,55 @@ def need_env():
 
 def sid_of(d):
     return d.get("sessionId") or d.get("id")
+
+
+MIN_CANDLES = 78    # 세 팔 공통 — OFF max(core, 52+26)=78 / B·A max(78, 4×12)=78
+
+
+def cmd_candles():
+    """22코인의 H1 캔들 현황 — 왜 어떤 세션이 조용히 아무것도 안 하는지 본다.
+
+    🔴 페이퍼는 **`market_data_cache` 의 최근 500봉 창**만 읽는다
+    (`PaperTradingService:1072-1083`, `CANDLE_LOOKBACK=500`). 이것은 백테스트가 쓰는
+    전체 이력과 **다른 저장소**다 — §1 에서 "H1 15,000봉 이상"으로 22코인을 뽑은 근거는
+    후자이므로, 전자가 비어 있으면 세션은 만들어져도 평가되지 않는다.
+
+    캐시를 채우는 `MarketDataSyncService.syncMarketData` 는 **RUNNING 세션의 코인만**
+    60초마다 동기화한다(`:64-90`, 520봉). 즉 세션을 만든 뒤에는 채워지는 것이 정상이고,
+    한참 뒤에도 비어 있으면 동기화가 실패하는 코인이다 — 그건 backfill 대상이다.
+    """
+    need_env()
+    st, body = call("GET", "/api/v1/settings/upbit/status")
+    if st != 200:
+        print("✗ 조회 실패 %s: %s" % (st, str(body)[:200]))
+        return 1
+    data = (body or {}).get("data", {})
+    if not data.get("candleQueryOk"):
+        print("✗ 캔들 현황 조회 실패: %s" % data.get("candleError"))
+        return 1
+    rows = {(r["coinPair"], r["timeframe"]): r for r in data.get("candleSummary", [])}
+
+    print("22코인 H1 캔들 현황 — 최소 요구 %d봉 (세 팔 공통)" % MIN_CANDLES)
+    print("%-12s %7s  %-20s %-20s" % ("코인", "건수", "from", "to"))
+    short = []
+    for coin in COINS:
+        pair = "KRW-" + coin
+        r = rows.get((pair, TIMEFRAME))
+        n = int(r["count"]) if r else 0
+        mark = " " if n >= MIN_CANDLES else "\U0001f534"
+        if n < MIN_CANDLES:
+            short.append((pair, n))
+        print("%s %-11s %7d  %-20s %-20s"
+              % (mark, pair, n, (r or {}).get("from") or "-", (r or {}).get("to") or "-"))
+
+    print("\n요구 미달 %d종 / 22" % len(short))
+    if short:
+        print("🔴 이 코인들은 세 팔 모두 평가되지 않는다 — 표본에서 빠진다.")
+        print("   `to` 가 오래됐으면 동기화가 멈춘 것이고(backfill 대상),")
+        print("   `to` 가 최근인데 건수가 적으면 아직 채워지는 중이다 — 더 기다린다.")
+        print("   🔴 어느 쪽이든 22코인을 15코인으로 줄이는 것은 사전 등록 위반이다.")
+        print("      §4 (가) 의 '개선 코인 ≥ 15/22' 는 22 를 분모로 고정한 값이다.")
+    return 0 if not short else 1
 
 
 def cmd_check():
@@ -473,6 +523,8 @@ def main():
     if c == "verify":
         w = int(sys.argv[sys.argv.index("--wait") + 1]) if "--wait" in sys.argv else 300
         return cmd_verify(w)
+    if c == "candles":
+        return cmd_candles()
     if c == "abort":
         return cmd_abort()
     if c == "arm-gate":
