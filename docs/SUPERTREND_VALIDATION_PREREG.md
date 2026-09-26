@@ -717,6 +717,56 @@ REST 호출과 110ms 스로틀 `sleep` 이 일어나므로, **`market_data_cache
 컨테이너 안에서 조회하면 **비밀번호를 다루지 않고** 확인할 수 있다.
 
 
+##### 🔴 blocker 확정 — `idle in transaction` 이 2시간 동안 잠금을 붙잡고 있다 (2026-09-26)
+
+```
+pid 323739  idle in transaction  ClientRead  xact_age 1:56:27
+            마지막 문장: insert into position (...)
+            blocked_by: {}          ← DB 를 기다리는 게 아니다. **앱이 다음 문장을 안 보낸다**
+
+pid 323733  active  Lock/transactionid  blocked_by {323739}
+            update market_data_cache set close=$1,…        ← 🔴 우리 동기화
+pid 323730  active  Lock/transactionid  blocked_by {323739}
+            update dynamic_session set available_krw=$1,…  ← 🔴 동적 매매 엔진
+```
+
+`pg_locks` 에도 두 건이 `transactionid ShareLock · granted=false` 로 남아 있다.
+
+**읽는 법**: `update market_data_cache` 가 `transactionid` 를 기다린다는 것은, 323739 의
+트랜잭션이 **그 행을 이미 수정했다**는 뜻이다. 즉 323739 는 한 트랜잭션 안에서
+`market_data_cache` → `dynamic_session` → `position` 을 차례로 쓴 뒤 **커밋하지 않고 멈췄다.**
+그 조합은 `DynamicTradingService.processTick` 의 범위와 일치한다 — `@Transactional` 이고
+(`:680`), 캔들을 `marketDataSyncService.fetchWithCache` 로 가져오며(`:1950`) 주문까지 같은
+트랜잭션 안에서 처리한다. ⚠️ **일치는 정황이다. 소유 스레드를 덤프에서 확인해야 확정된다.**
+
+🔴 **이것은 전향 검증만의 문제가 아니다.** `dynamic_session` 갱신도 같은 잠금에 막혀 있으므로
+**동적 매매 엔진이 2시간째 멈춰 있다.** 검증 표본 문제보다 우선순위가 높다.
+
+📌 곁가지로 드러난 것: `strategy_log` 에 대한
+`SELECT DISTINCT ON (coin_pair, date_trunc('hour', created_at)) …` 가 병렬 워커 4개를 물고
+**2분 40초** 동안 돌고 있다(`IPC/MessageQueueSend`). blocker 는 아니지만 무거운 질의다.
+
+##### ⚠️ 개입 전에 짚어둘 위험 — 되돌리면 기록이 사라진다
+
+`pg_terminate_backend(323739)` 로 풀 수 있고 그러면 막힌 둘이 즉시 진행된다. 그러나
+**그 트랜잭션이 롤백되므로 `position` insert 가 사라진다.**
+
+🔴 **거래소에 실제 주문이 나갔는데 DB 기록만 롤백되면 장부와 실제가 어긋난다.**
+그 세션이 실자본인지, 그 insert 에 대응하는 체결이 거래소에 있는지 확인하기 전에는
+종료시키지 않는다. 백엔드 컨테이너 재시작도 같은 롤백을 일으키고 증거까지 없앤다.
+
+##### 수정 범위 — 세 갈래로 나눈다 (원인·구조·안전장치)
+
+| 갈래 | 내용 | 성격 |
+|---|---|---|
+| ① 직접 원인 | 소유 스레드가 트랜잭션을 열어둔 채 무엇을 기다리는지 — 그 대기를 없앤다 | 이번 사고의 원인 |
+| ② 트랜잭션 경계 | `processTick`·`syncMarketData` 가 **네트워크 I/O 를 포함한 구간 전체를 한 트랜잭션**으로 묶는다. 행 잠금을 그만큼 오래 붙잡는다 | 구조적 위험 |
+| ③ 무한 대기 | JDBC 에 `socketTimeout`·`statement_timeout`·`lock_timeout` 이 없다. 그래서 조용히 영구 정지한다 | 안전장치 — 원인이 아니라 **재발 시 드러나게 만드는 장치** |
+
+③ 이 없으면 같은 정지가 또 조용히 일어난다. 이번에 우리가 알아챈 경로는 "22코인 캔들이
+멈춘 것"이었고, 그건 **우연히 검증 준비 중이어서** 보였다.
+
+
 ##### 🔴 이번 시작은 준비 실패로 기록한다 — 뒤늦은 합류로 복구할 수 없다
 
 15코인이 이미 T0 을 지나 거래를 시작했으므로, 7코인을 나중에 붙여도 **공통 T0 조건은
