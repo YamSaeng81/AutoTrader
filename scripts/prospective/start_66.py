@@ -404,9 +404,9 @@ def cmd_diagnose():
         r = cache.get((pair, TIMEFRAME))
         n_cache = int(r["count"]) if r else 0
         to = (r or {}).get("to") or "-"
-        obs = seen.get(pair, (None, None))[0]
+        obs, obs_at = seen.get(pair, (None, None))
         if obs is None and pair in short:
-            obs = short[pair][0]
+            obs, obs_at = short[pair][0], short[pair][2]
 
         est, left = None, None
         if to != "-":
@@ -426,6 +426,13 @@ def cmd_diagnose():
             # 🔴 미달 경고가 없다는 것은 **평가됐다는 증거가 아니다.** 로그가 버퍼에서
             #    밀려났을 수도 있다. 평가 여부는 verify 의 strategy_log 로만 말한다.
             v = "? 미달 경고 없음 — 평가 여부는 verify 로 확인한다"
+        elif est is not None and est >= MIN_CANDLES and obs is not None and obs < MIN_CANDLES:
+            # 🔴 내 도구의 결함을 고친 부분이다 (2026-09-26). ③ 은 인메모리 버퍼에 남은
+            #    **지나간 경고**도 그대로 읽는다. 적재가 뒤늦게 채워진 뒤에도 옛 경고가 남아
+            #    허위 신호를 냈다 — 실제로 22코인이 다 채워진 뒤에도 8종이 🔴 로 나왔다.
+            #    추정이 요구를 넘으면 관측 시각을 함께 보여주고 판정은 verify 로 넘긴다.
+            v = ("⚠️ 엔진 관측 %d봉(%s)은 적재 이전의 옛 경고일 수 있다 — verify 로 확인한다"
+                 % (obs, obs_at or "?"))
         elif obs == 0:
             # 0봉은 "적다"와 질이 다르다 — 창 안에 아무것도 없다.
             # 종목이 아직 거래되는지부터 가른다: 시세가 오면 종목은 살아 있고 적재가 안 된
