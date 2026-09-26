@@ -7,6 +7,14 @@ spring:
     driver-class-name: org.h2.Driver
     username: sa
     password:
+    hikari:
+      # 🔴 운영의 `SET lock_timeout = '10s'`(2026-09-26 추가)를 여기서 지운다.
+      #    H2 는 `SET LOCK_TIMEOUT <밀리초>` 형태만 받아 그 구문에서 커넥션 초기화가 실패한다.
+      #    ⚠️ 따라서 **lock_timeout 의 실제 동작은 이 테스트 기반으로 검증되지 않는다.**
+      #    Testcontainers 가 없어 H2(PostgreSQL 모드)로 도는데, 잠금 제한은 서버 설정이다.
+      #    검증은 운영에서 의도적인 잠금 대기를 만들어 확인한다(사전 등록 문서 참조).
+      connection-init-sql:
+      leak-detection-threshold: 0
 
   jpa:
     hibernate:

@@ -13,6 +13,26 @@ spring:
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000
+      # ── 2026-09-26: 잠금 대기가 영구 정지로 번지는 것을 끊는다 ──────────────
+      # 사고: 미종료 트랜잭션이 보유한 행 잠금을 다른 트랜잭션이 기다렸고, Postgres 는
+      # 잠금 대기에 기본 제한이 없어 **2시간 동안 아무 경고 없이** 멈춰 있었다.
+      # MarketDataSyncService 는 fixedDelay 라 그 한 번이 끝나지 않으면 다음 회차가
+      # 영구히 없다 → 22코인 캔들 적재가 조용히 중단됐다.
+      #
+      # 🔴 lock_timeout 이 이 실패에 정확히 대응한다 — 잠금 대기만 끊고 정상 질의는
+      #    건드리지 않는다. 초과 시 예외 → 트랜잭션 롤백 → 커넥션 반환 → 다음 회차 진행.
+      #    (`connection-timeout` 은 커넥션 **획득** 대기라 이 실패를 막지 못한다.)
+      #
+      # ⚠️ statement_timeout·socketTimeout 은 **지금 넣지 않는다.** 운영에 2분 40초짜리
+      #    무거운 질의가 실재하고(strategy_log 시간별 DISTINCT ON, 병렬 워커 4개),
+      #    그 둘은 잠금 대기가 아닌 정상 질의까지 끊는다. 그 질의를 먼저 손본 뒤 별도로
+      #    판단한다 — 안전장치를 넣다가 동작하는 기능을 깨지 않는다.
+      connection-init-sql: SET lock_timeout = '${DB_LOCK_TIMEOUT:10s}'
+      # 누수 감지는 **진단용**이다. 대여 시간이 이 값을 넘으면 Hikari 가 경고와 함께
+      # **대여한 스레드의 스택**을 남긴다 — "어느 스레드가 트랜잭션을 쥐고 있었는가"를
+      # 사후에 잇는 유일한 수단이다(이번 사고에서 그걸 잇지 못해 추정에 머물렀다).
+      # 🔴 대여를 취소하지 않으므로 이것만으로는 정지가 풀리지 않는다. 끊는 것은 lock_timeout 이다.
+      leak-detection-threshold: ${DB_LEAK_DETECTION_MS:60000}
 
   jpa:
     hibernate:
