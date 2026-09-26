@@ -8,7 +8,7 @@
    엔진에는 "준비됐지만 거래하지 않는" 상태가 없다 (PaperTradingService:189 → RUNNING 즉시,
    :570 runStrategy fixedDelay=60s 가 그 시점의 RUNNING 전량을 평가).
 
-사용 (API_BASE 기본값 http://localhost:8080 · 토큰은 .env 의 API_AUTH_TOKEN 폴백)
+사용 (생성은 단건 66회 · 코인마다 팔 순서를 한 칸씩 돌린다 / API_BASE 기본값 http://localhost:8080 · 토큰은 .env 의 API_AUTH_TOKEN 폴백)
     python start_66.py check                     배포·정원 확인 (부작용 없음)
     python start_66.py probe                     틱 위상 측정 (22코인 밖 프로브, 끝나면 삭제)
     python start_66.py create --after <epoch초>   다음 틱 직후에 66개 일괄 생성
@@ -62,7 +62,9 @@ CAPITAL = 1_000_000
 PROBE_COIN = "KRW-BTC"          # 22코인 밖 — 검증 기록을 오염시키지 않는다
 TICK = 60                       # PaperTradingService:570 fixedDelay
 SESSION_CAP = 120               # MAX_CONCURRENT_SESSIONS
-STATE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sessions_66.json")
+_HERE = os.path.dirname(os.path.abspath(__file__))
+STATE = os.path.join(_HERE, "sessions_66.json")
+BASELINE = os.path.join(_HERE, "preexisting_excluded.json")
 
 
 def call(method, path, body=None):
@@ -115,7 +117,21 @@ def cmd_check():
              "✔" if len(running) + 66 <= SESSION_CAP else "✗"))
     dup = [s for s in running if s.get("strategyName") in ARMS.values()]
     if dup:
-        print("   ⚠️ 세 팔 전략으로 이미 도는 세션 %d개 — 표본이 섞인다. 먼저 정리한다." % len(dup))
+        # 🔴 정정: 이 세션들을 정지할 필요는 없다. 페이퍼는 세션별로 자본·전략 인스턴스가
+        #    독립이고, LIVE 의 cross-session 잔고 가드를 **의도적으로 적용하지 않는다**
+        #    (PaperTradingService:611-613). 섞이는 것은 집계뿐이므로 ID 를 기록해 제외한다.
+        print("\n③ 세 팔과 같은 전략으로 이미 도는 기존 세션 %d개 — **정지하지 않는다**" % len(dup))
+        print("   페이퍼는 세션별 자본·전략 인스턴스가 독립이고 cross-session 잔고 가드가 없다.")
+        print("   집계에서만 제외하면 된다 (verify 가 세션 ID 목록으로 집계하므로 자동 제외).")
+        with open(BASELINE, "w", encoding="utf-8") as fh:
+            json.dump([{"id": sid_of(s), "coin": s.get("coinPair"),
+                        "strategy": s.get("strategyName"), "timeframe": s.get("timeframe"),
+                        "startedAt": s.get("startedAt")} for s in dup],
+                      fh, ensure_ascii=False, indent=1)
+        print("   제외 목록 저장: %s" % BASELINE)
+        for s in dup:
+            print("     - %s  %-10s %-32s %s" % (sid_of(s), s.get("coinPair"),
+                                                 s.get("strategyName"), s.get("timeframe")))
     return 0 if ok else 1
 
 
@@ -158,6 +174,22 @@ def cmd_probe():
     return 0 if t_first else 1
 
 
+def creation_order():
+    """(코인, 팔) 생성 순서 — **코인마다 팔 순서를 한 칸씩 돌린다.**
+
+    🔴 왜: 엔진은 `findByStatusOrderByStartedAtAsc` 로 돌므로 **생성 순서가 평가 순서로
+    고정된다**. 매 코인 OFF→B→A 로 만들면 A 는 항상 마지막에 평가된다. 한 틱의 캔들은
+    `TickCandleCache` 로 공유되므로 같은 자료를 보지만, 닫힌 캔들 판정은
+    `Instant.now()` 를 쓴다(`PaperTradingService:667`) — 루프가 캔들 경계를 가로지르면
+    먼저·나중 평가된 세션의 `lastCandleClosed` 가 갈릴 수 있다. 팔 순서를 돌려
+    그 영향이 특정 팔에 쏠리지 않게 한다.
+    """
+    names = ["OFF", "B", "A"]
+    for i, coin in enumerate(COINS):
+        for j in range(3):
+            yield coin, names[(i + j) % 3]
+
+
 def cmd_create(after):
     """관측된 틱(after) 기준 **다음 틱 직후**에 22회 호출을 쉬지 않고 실행한다."""
     need_env()
@@ -174,17 +206,15 @@ def cmd_create(after):
 
     t_start = time.time()
     created, failed = [], []
-    for coin in COINS:
-        st, body = call("POST", "/api/v1/paper-trading/sessions/multi", {
-            "strategyTypes": [ARMS["OFF"], ARMS["B"], ARMS["A"]],
-            "coinPair": "KRW-" + coin, "timeframe": TIMEFRAME,
-            "initialCapital": CAPITAL})
+    for coin, arm in creation_order():
+        st, body = call("POST", "/api/v1/paper-trading/sessions", {
+            "strategyType": ARMS[arm], "coinPair": "KRW-" + coin,
+            "timeframe": TIMEFRAME, "initialCapital": CAPITAL})
         if st != 200:
-            failed.append((coin, st, body))
+            failed.append((coin + "/" + arm, st, body))
             continue
-        for s in body["data"]:
-            created.append({"coin": "KRW-" + coin,
-                            "strategy": s.get("strategyName"), "id": sid_of(s)})
+        created.append({"coin": "KRW-" + coin, "arm": arm,
+                        "strategy": ARMS[arm], "id": sid_of(body["data"])})
     elapsed = time.time() - t_start
 
     print("\n생성 %d개 · 실패 %d개 · 소요 %.2f초 (한 틱 %d초 안 %s)"
