@@ -180,7 +180,11 @@ def cmd_scheduler():
             for k, v in found:
                 vals[k] = float(v)
                 print("   %-28s %s" % (k, v))
-            act, pool = vals.get("executor_active_threads"), vals.get("executor_pool_size")
+            # 🔴 실제 지표 이름은 `executor_pool_size_threads` 다 (2026-09-26 실측).
+            #    `executor_pool_size` 로 찾다가 조용히 비교를 건너뛰었다.
+            #    `executor_pool_max_threads` 는 Integer.MAX_VALUE 라 포화 기준이 아니다.
+            act = vals.get("executor_active_threads")
+            pool = vals.get("executor_pool_size_threads") or vals.get("executor_pool_core_threads")
             if act is not None and pool:
                 print("   → 활성 %g / 풀 %g  %s"
                       % (act, pool, "🔴 포화" if act >= pool else "여유 있음"))
@@ -192,6 +196,37 @@ def cmd_scheduler():
     else:
         print("⚠️ /actuator/prometheus 응답을 읽지 못했다 (HTTP %s)." % st)
 
+    # -- 실행 빈도 — 포화가 아니어도 "돌고 있는가"는 별개 질문이다 --------
+    #    executor_completed_tasks_total 을 60초 간격으로 두 번 재면 분당 완료 수가 나온다.
+    #    @Scheduled 34개 중 5초 주기 4개만 해도 분당 48회가 기대치다.
+    #    🔴 기대치는 주기 분포에서 나온 계산값이고 작업마다 실행 시간이 다르므로
+    #       미달 자체가 곧 결함은 아니다 — 크게 어긋나면 어느 작업이 긴지 본다.
+    def _completed():
+        st2, b2 = call("GET", "/actuator/prometheus")
+        if st2 != 200 or not isinstance(b2, str):
+            return None
+        for k, v in RE_METRIC.findall(b2):
+            if k == "executor_completed_tasks_total":
+                return float(v)
+        return None
+
+    if st == 200 and isinstance(body, str):
+        m = re.search(r"^process_uptime_seconds\s+([0-9.eE+-]+)", body, re.MULTILINE)
+        up = float(m.group(1)) if m else None
+        if up:
+            print("")
+            print("프로세스 가동 %.1f시간" % (up / 3600))
+        c0 = _completed()
+        if c0 is not None:
+            if up:
+                print("   누적 완료 %g → 평균 분당 %.1f회" % (c0, c0 / (up / 60)))
+            print("   60초 뒤 다시 재서 현재 분당 완료 수를 본다...")
+            time.sleep(60)
+            c1 = _completed()
+            if c1 is not None:
+                print("   이번 60초 완료 %g회  (5초 주기 4개만으로도 기대 48회)" % (c1 - c0))
+                if c1 - c0 < 20:
+                    print("   🔴 기대보다 크게 낮다 — 어느 작업이 스레드를 오래 잡는지 본다.")
     print("\n스케줄러 작업 오류 기록:")
     rows = server_logs("스케줄러 작업 오류") or []
     if not rows:
