@@ -11,6 +11,7 @@
 사용 (생성은 단건 66회 · 코인마다 팔 순서를 한 칸씩 돌린다 / API_BASE 기본값 http://localhost:8080 · 토큰은 .env 의 API_AUTH_TOKEN 폴백)
     python start_66.py check                     배포·정원·세 팔 활성 여부 확인 (부작용 없음)
     python start_66.py diagnose                  코인별 원인 진단 — 캐시·동기화·평가 세 층을 이어 본다
+    python start_66.py scheduler                 스케줄러 포화·작업 오류 확인 (①의 절반)
     python start_66.py probe                     세 팔 생성 가능 여부 + 틱 위상 (22코인 밖, 끝나면 삭제)
     python start_66.py create --after <epoch초>   다음 틱 직후에 66개 일괄 생성
     python start_66.py verify [--wait 초]         T0 일치·T0 이전 주문 0건 검증 (기본 300초까지 기다린다)
@@ -86,7 +87,13 @@ def call(method, path, body=None):
     try:
         with urllib.request.urlopen(req, data, timeout=30) as r:
             raw = r.read()
-            return r.status, (json.loads(raw) if raw else None)
+            if not raw:
+                return r.status, None
+            try:
+                return r.status, json.loads(raw)
+            except ValueError:
+                # /actuator/prometheus 처럼 JSON 이 아닌 응답도 있다 — 본문을 그대로 준다.
+                return r.status, raw.decode("utf-8", errors="replace")
     except urllib.error.HTTPError as e:
         return e.code, e.read().decode(errors="replace")
 
@@ -136,6 +143,63 @@ def server_logs(keyword, lines=2000):
     if st != 200:
         return None
     return (body or {}).get("data", {}).get("entries", [])
+
+
+RE_METRIC = re.compile(r'^(executor_\w+)\{[^}]*name="taskScheduler"[^}]*\}\s+([0-9.eE+-]+)',
+                       re.MULTILINE)
+
+
+def cmd_scheduler():
+    """①층의 절반 — 스케줄러가 돌 수 있는 상태인가 (2026-09-26).
+
+    `diagnose` 의 ②층이 21코인 전부 흔적 없음이고, 컨테이너 로그 60분에 `캔들 수집 완료` 가
+    한 줄도 없었다. 그래서 다음 확인 대상은 **스케줄러 자체**다.
+
+    🔴 두 가지를 읽는다. 추정하지 않는다.
+      · 풀 포화   `executor_active_threads{name="taskScheduler"}` 가 풀 크기에 붙어 있는가.
+                  풀 크기는 8 인데 `@Scheduled` 는 34개다 — `SchedulerConfig` javadoc 자신이
+                  "60초 tick 9개가 겹치면 스레드 8개를 모두 점유한다"고 경고해 두었고,
+                  이번에 페이퍼 세션이 40 → 106 으로 늘어 `runStrategy` 가 길어졌다.
+      · 작업 오류  `setErrorHandler` 가 남기는 `스케줄러 작업 오류` — 예외로 죽었는가.
+
+    ⚠️ `executor_queued_tasks` 를 적체로 읽지 않는다. `ScheduledThreadPoolExecutor` 의
+       DelayedWorkQueue 에는 **실행 시각이 아직 안 된 예약 작업이 전부** 들어앉는다
+       (`SchedulerConfig` javadoc 의 2026-09-15 오독 기록).
+
+    🔴 포화가 확인돼도 그것이 곧 "적재 정지의 원인"은 아니다. 스케줄러가 밀리는 것과
+       특정 코인이 동기화 대상 목록에 들어갔는지는 **다른 질문**이다 — 후자는
+       `시장 데이터 동기화 시작: N 종목`(DEBUG)을 켜야 보인다.
+    """
+    need_env()
+    st, body = call("GET", "/actuator/prometheus")
+    if st == 200 and isinstance(body, str):
+        found = RE_METRIC.findall(body)
+        if found:
+            print("taskScheduler 지표")
+            vals = {}
+            for k, v in found:
+                vals[k] = float(v)
+                print("   %-28s %s" % (k, v))
+            act, pool = vals.get("executor_active_threads"), vals.get("executor_pool_size")
+            if act is not None and pool:
+                print("   → 활성 %g / 풀 %g  %s"
+                      % (act, pool, "🔴 포화" if act >= pool else "여유 있음"))
+                if act >= pool:
+                    print("     이 시점 스냅샷 하나다. 지속 포화인지는 몇 번 더 재야 한다.")
+        else:
+            print("⚠️ taskScheduler 지표를 찾지 못했다 — 지표 이름이 다를 수 있다.")
+            print("   서버에서: curl -s %s/actuator/prometheus | grep executor_" % BASE)
+    else:
+        print("⚠️ /actuator/prometheus 응답을 읽지 못했다 (HTTP %s)." % st)
+
+    print("\n스케줄러 작업 오류 기록:")
+    rows = server_logs("스케줄러 작업 오류") or []
+    if not rows:
+        print("   (버퍼에 없음) 🔴 경고 부재는 '오류가 없었다'의 증거가 아니다 —")
+        print("      컨테이너 로그로 같은 문구를 확인한다.")
+    for e in rows[-10:]:
+        print("   %s  %s" % (e.get("timestamp"), e.get("message", "")[:160]))
+    return 0
 
 
 def report_call_path(cache, no_candle, sync_fail):
@@ -760,6 +824,8 @@ def main():
         return cmd_verify(w)
     if c == "diagnose":
         return cmd_diagnose()
+    if c == "scheduler":
+        return cmd_scheduler()
     if c == "abort":
         return cmd_abort()
     if c == "arm-gate":
