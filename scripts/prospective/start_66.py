@@ -126,6 +126,8 @@ RE_SYNC_FAIL = re.compile(r"시장 데이터 동기화 실패: (\S+) (\S+) - (.*
 #    비면 예외 없이 "캔들 수신 없음" 만 남기고 돌아간다(MarketDataSyncService). 그 경고를
 #    안 보면 "실패 기록이 없다"는 오독이 나온다 — 두 채널을 모두 센다.
 RE_NO_CANDLE = re.compile(r"캔들 수신 없음: (\S+) (\S+)")
+# UpbitCandleCollector 의 INFO 로그 — 코인별 응답 건수(②층)
+RE_COLLECT = re.compile(r"캔들 수집 완료: (\S+) (\S+) (\d+) 건")
 
 
 def server_logs(keyword, lines=2000):
@@ -134,6 +136,73 @@ def server_logs(keyword, lines=2000):
     if st != 200:
         return None
     return (body or {}).get("data", {}).get("entries", [])
+
+
+def report_call_path(cache, no_candle, sync_fail):
+    """호출 경로 3단계 — 호출 누락 · 수집 문제 · 저장 문제를 가른다 (2026-09-26).
+
+    🔴 빈 응답은 아직 가설이다. 추정하지 않고 경로를 따라간다.
+
+      ① 스케줄러 실행 + 대상 목록에 22코인이 들어갔는가
+         `MarketDataSyncService` 의 "시장 데이터 동기화 시작: N 종목" 은 **DEBUG** 라
+         현재 로그 레벨에서는 안 보인다. ②의 흔적으로 간접 확인하고, 그래도
+         안 갈리면 그 클래스만 DEBUG 로 올린다(별도 작업).
+      ② 코인별 요청 범위와 응답 건수
+         `UpbitCandleCollector` 의 "캔들 수집 완료: {코인} {봉} {N} 건" 은 **INFO** 다 —
+         🔴 이것이 지금 바로 읽을 수 있는 유일한 직접 증거다.
+      ③ 응답이 있었다면 변환·저장 후 캐시 최종 시각이 전진했는가
+         "시장 데이터 동기화 완료" 는 DEBUG 지만, 전진 여부는 `upbit/status` 의
+         `to` 로 직접 본다.
+
+    세 가지를 이으면 분류가 나온다:
+
+      ②의 흔적 없음            → **호출 누락** (스케줄러 미실행 또는 대상 목록 누락)
+      ② N=0                    → **수집 문제** (요청 범위·API 응답)
+      ② N>0 인데 ③ to 정체     → **저장 문제** (변환·upsert)
+    """
+    collect = {}
+    for e in server_logs("캔들 수집 완료") or []:
+        m = RE_COLLECT.search(e.get("message", ""))
+        if m and m.group(2) == TIMEFRAME:
+            # 같은 코인의 여러 줄 중 가장 최근 것을 쓴다 (버퍼는 시간순)
+            collect[m.group(1)] = (int(m.group(3)), e.get("timestamp"))
+
+    print("\n── 호출 경로 3단계 — 호출 누락 / 수집 문제 / 저장 문제 ──")
+    if not collect:
+        print("②의 흔적이 **하나도** 없다. 두 가지가 남는다:")
+        print("  · 스케줄러가 이 창(로그 버퍼) 안에서 돌지 않았다")
+        print("  · 로그가 버퍼에서 밀려났다")
+        print("🔴 컨테이너 로그로 `캔들 수집 완료` 를 직접 확인한다 — 버퍼보다 길게 남는다.")
+        print("   그래도 없으면 ①을 보려고 MarketDataSyncService 를 DEBUG 로 올린다.")
+    print("%-11s %9s %-17s %s" % ("코인", "②응답건수", "③캐시 to", "분류"))
+    counts = {"호출 누락": 0, "수집 문제": 0, "저장 문제": 0, "정상 전진": 0, "판정 불가": 0}
+    for coin in COINS:
+        pair = "KRW-" + coin
+        to = (cache.get((pair, TIMEFRAME)) or {}).get("to") or "-"
+        got = collect.get(pair)
+        if got is None:
+            k = "판정 불가" if not collect else "호출 누락"
+            note = "②흔적 없음" + ("" if collect else " (버퍼 자체가 비었다)")
+        elif got[0] == 0:
+            k, note = "수집 문제", "응답 0건 — 요청 범위·API 응답을 본다"
+        else:
+            # 응답이 있었는데 to 가 최근이 아니면 저장 쪽을 본다.
+            stale = to == "-" or to[:10] < got[1][:10]
+            k = "저장 문제" if stale else "정상 전진"
+            note = ("응답 %d건인데 to 가 전진하지 않았다" % got[0]) if stale \
+                else "응답 %d건 · to 전진" % got[0]
+        counts[k] += 1
+        extra = []
+        if pair in no_candle:
+            extra.append("캔들 수신 없음")
+        if pair in sync_fail:
+            extra.append("동기화 실패")
+        print("%-11s %9s %-17s %s%s"
+              % (pair, "-" if got is None else got[0], to[:16],
+                 note, (" · " + "·".join(extra)) if extra else ""))
+    print("\n분류 집계: " + " · ".join("%s %d" % (k, v) for k, v in counts.items() if v))
+    print("🔴 이 표는 원인을 **가르기만** 한다. 어느 칸이든 다음 확인 대상이 정해질 뿐이고,")
+    print("   빈 응답·저장 실패 중 무엇이라고 지금 단정하지 않는다.")
 
 
 def cmd_diagnose():
@@ -304,6 +373,7 @@ def cmd_diagnose():
     print("   이 표의 ① 은 전체 건수이고 ②·③ 은 경고가 남았을 때만 보인다 —")
     print("   준비 확인은 **엔진과 같은 조회·워밍업 조건으로** 통과시켜야 한다.")
     print("   (재시작 전 그 확인 절차를 먼저 정하고, 그 다음에 create 한다.)")
+    report_call_path(cache, no_candle, sync_fail)
     return 0 if not bad else 1
 
 
