@@ -10,7 +10,7 @@
 
 사용 (생성은 단건 66회 · 코인마다 팔 순서를 한 칸씩 돌린다 / API_BASE 기본값 http://localhost:8080 · 토큰은 .env 의 API_AUTH_TOKEN 폴백)
     python start_66.py check                     배포·정원·세 팔 활성 여부 확인 (부작용 없음)
-    python start_66.py candles                   22코인 H1 캔들 현황 (왜 조용한 세션이 있는가)
+    python start_66.py diagnose                  코인별 원인 진단 — 캐시·동기화·평가 세 층을 이어 본다
     python start_66.py probe                     세 팔 생성 가능 여부 + 틱 위상 (22코인 밖, 끝나면 삭제)
     python start_66.py create --after <epoch초>   다음 틱 직후에 66개 일괄 생성
     python start_66.py verify [--wait 초]         T0 일치·T0 이전 주문 0건 검증 (기본 300초까지 기다린다)
@@ -22,9 +22,11 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
 
@@ -102,52 +104,109 @@ def sid_of(d):
 
 
 MIN_CANDLES = 78    # 세 팔 공통 — OFF max(core, 52+26)=78 / B·A max(78, 4×12)=78
+LOOKBACK = 500      # TradingConstants.CANDLE_LOOKBACK — 엔진이 보는 창의 길이(봉)
+
+# 엔진이 남기는 세 가지 흔적. 평가 시점에 **실제로 조회된 봉 수**가 여기 찍힌다.
+RE_TOO_FEW = re.compile(r"모의투자 캔들 부족: (\S+) (\d+)건 \(sessionId=(\d+)\)")
+RE_SHORT = re.compile(r"요구 캔들 미달[^:]*: (\S+) (\d+)건 < (\d+)건 필요 \(([^,]+), sessionId=(\d+)\)")
+RE_SYNC_FAIL = re.compile(r"시장 데이터 동기화 실패: (\S+) (\S+) - (.*)")
 
 
-def cmd_candles():
-    """22코인의 H1 캔들 현황 — 왜 어떤 세션이 조용히 아무것도 안 하는지 본다.
+def server_logs(keyword, lines=2000):
+    st, body = call("GET", "/api/v1/settings/server-logs?level=ALL&lines=%d&keyword=%s"
+                    % (lines, urllib.parse.quote(keyword)))
+    if st != 200:
+        return None
+    return (body or {}).get("data", {}).get("entries", [])
 
-    🔴 페이퍼는 **`market_data_cache` 의 최근 500봉 창**만 읽는다
-    (`PaperTradingService:1072-1083`, `CANDLE_LOOKBACK=500`). 이것은 백테스트가 쓰는
-    전체 이력과 **다른 저장소**다 — §1 에서 "H1 15,000봉 이상"으로 22코인을 뽑은 근거는
-    후자이므로, 전자가 비어 있으면 세션은 만들어져도 평가되지 않는다.
 
-    캐시를 채우는 `MarketDataSyncService.syncMarketData` 는 **RUNNING 세션의 코인만**
-    60초마다 동기화한다(`:64-90`, 520봉). 즉 세션을 만든 뒤에는 채워지는 것이 정상이고,
-    한참 뒤에도 비어 있으면 동기화가 실패하는 코인이다 — 그건 backfill 대상이다.
+def cmd_diagnose():
+    """7코인이 평가되지 않는 원인을 **세 층을 이어서** 가른다 (2026-09-26).
+
+    🔴 왜 세 층인가: 앞서 나는 원인을 "적재 지연 아니면 동기화 실패" 둘로 좁혔는데
+    **그건 이르다.** 캐시에 봉이 있어도 조회 키·시간 범위·봉 유효성·워밍업 조건 때문에
+    평가에서 빠질 수 있다. 특히 `fetchRecentCandles` 는 `[now − 500×봉주기, now]` **창**만
+    조회하므로(`PaperTradingService:1072-1083`), **전체 건수가 많아도 창 안이 비어 있으면
+    0봉**이다. 그러니 "총 건수 ≥ 78" 같은 검사는 원인을 가리지 못한다.
+
+      ① 캐시     `market_data_cache` 의 코인별 건수·최초·최종 시각
+                 (`GET /settings/upbit/status` — 🔴 이 건수는 **창 안이 아니라 전체**다)
+      ② 동기화    "시장 데이터 동기화 실패" 경고 — 시도가 있었는지, 무엇이 실패했는지
+      ③ 평가      "모의투자 캔들 부족 N건" / "요구 캔들 미달 N건 < M건 필요"
+                 🔴 **엔진이 평가 시점에 실제로 조회한 봉 수가 여기 찍힌다** — ①과 ③이
+                 어긋나면 원인은 적재량이 아니라 창·키·유효성이다
+
+    ①과 ③을 나란히 놓는 것이 이 명령의 요점이다. 어긋남 자체가 증거다.
     """
     need_env()
     st, body = call("GET", "/api/v1/settings/upbit/status")
-    if st != 200:
-        print("✗ 조회 실패 %s: %s" % (st, str(body)[:200]))
-        return 1
-    data = (body or {}).get("data", {})
+    data = (body or {}).get("data", {}) if st == 200 else {}
     if not data.get("candleQueryOk"):
-        print("✗ 캔들 현황 조회 실패: %s" % data.get("candleError"))
+        print("✗ 캐시 현황 조회 실패 (HTTP %s): %s" % (st, data.get("candleError")))
         return 1
-    rows = {(r["coinPair"], r["timeframe"]): r for r in data.get("candleSummary", [])}
+    cache = {(r["coinPair"], r["timeframe"]): r for r in data.get("candleSummary", [])}
 
-    print("22코인 H1 캔들 현황 — 최소 요구 %d봉 (세 팔 공통)" % MIN_CANDLES)
-    print("%-12s %7s  %-20s %-20s" % ("코인", "건수", "from", "to"))
-    short = []
+    # ── ③ 평가 시점 관측치 ───────────────────────────────────────────────
+    seen, short = {}, {}
+    rows = server_logs("모의투자 캔들 부족")
+    if rows is None:
+        print("⚠️ 서버 로그를 읽을 수 없다 — ③층을 못 본다. 컨테이너 로그로 대체한다.")
+        rows = []
+    for e in rows:
+        m = RE_TOO_FEW.search(e.get("message", ""))
+        if m:
+            seen[m.group(1)] = (int(m.group(2)), e.get("timestamp"))
+    for e in server_logs("요구 캔들 미달") or []:
+        m = RE_SHORT.search(e.get("message", ""))
+        if m:
+            short[m.group(1)] = (int(m.group(2)), int(m.group(3)), e.get("timestamp"))
+
+    # ── ② 동기화 실패 ────────────────────────────────────────────────────
+    sync_fail = {}
+    for e in server_logs("시장 데이터 동기화 실패") or []:
+        m = RE_SYNC_FAIL.search(e.get("message", ""))
+        if m and m.group(2) == TIMEFRAME:
+            sync_fail[m.group(1)] = (m.group(3)[:60], e.get("timestamp"))
+
+    window_h = LOOKBACK   # H1 이므로 500봉 = 500시간
+    print("엔진이 보는 창 = 최근 %d봉 (H1 이면 %d시간). 최소 요구 %d봉.\n"
+          % (LOOKBACK, window_h, MIN_CANDLES))
+    print("%-11s %8s %-17s %8s %s" % ("코인", "캐시건수", "캐시 최종(to)", "엔진관측", "판정"))
+
+    verdicts = {}
     for coin in COINS:
         pair = "KRW-" + coin
-        r = rows.get((pair, TIMEFRAME))
-        n = int(r["count"]) if r else 0
-        mark = " " if n >= MIN_CANDLES else "\U0001f534"
-        if n < MIN_CANDLES:
-            short.append((pair, n))
-        print("%s %-11s %7d  %-20s %-20s"
-              % (mark, pair, n, (r or {}).get("from") or "-", (r or {}).get("to") or "-"))
+        r = cache.get((pair, TIMEFRAME))
+        n_cache = int(r["count"]) if r else 0
+        to = (r or {}).get("to") or "-"
+        obs = seen.get(pair, (None, None))[0]
+        if obs is None and pair in short:
+            obs = short[pair][0]
 
-    print("\n요구 미달 %d종 / 22" % len(short))
-    if short:
-        print("🔴 이 코인들은 세 팔 모두 평가되지 않는다 — 표본에서 빠진다.")
-        print("   `to` 가 오래됐으면 동기화가 멈춘 것이고(backfill 대상),")
-        print("   `to` 가 최근인데 건수가 적으면 아직 채워지는 중이다 — 더 기다린다.")
-        print("   🔴 어느 쪽이든 22코인을 15코인으로 줄이는 것은 사전 등록 위반이다.")
-        print("      §4 (가) 의 '개선 코인 ≥ 15/22' 는 22 를 분모로 고정한 값이다.")
-    return 0 if not short else 1
+        if pair in sync_fail:
+            v = "🔴 동기화 실패: " + sync_fail[pair][0]
+        elif obs is None:
+            v = "· 평가됨 (미달 경고 없음)" if n_cache >= MIN_CANDLES else "? 흔적 없음 — 로그 창 밖일 수 있다"
+        elif n_cache >= MIN_CANDLES and obs < MIN_CANDLES:
+            v = "🔴 캐시엔 있는데 엔진은 %d봉 — 창·키·유효성 문제" % obs
+        elif obs < MIN_CANDLES:
+            v = "🔴 적재 부족 — 엔진 %d봉" % obs
+        else:
+            v = "· 엔진 %d봉" % obs
+        verdicts[pair] = v
+        print("%-11s %8d %-17s %8s %s"
+              % (pair, n_cache, to[:16], "-" if obs is None else obs, v))
+
+    bad = [p for p, v in verdicts.items() if v.startswith("🔴")]
+    unknown = [p for p, v in verdicts.items() if v.startswith("?")]
+    print("문제 %d종 · 판정 불가 %d종 / 22" % (len(bad), len(unknown)))
+    if unknown:
+        print("   ? 는 인메모리 로그 버퍼에서 밀려난 경우다 — `verify` 로 실제 평가 여부를 본다.")
+    if bad:
+        print("🔴 22코인을 15코인으로 줄이지 않는다 — §4 (가) 의 분모는 22 로 고정돼 있고,")
+        print("   준비된 코인만 남기면 **코인 구성에 따른 선택 편향**이 생긴다(팔 대칭과 별개다).")
+        print("   원인을 고친 뒤 22코인 전부가 준비됐음을 확인하고 **새 T0 로** 다시 시작한다.")
+    return 0 if not bad else 1
 
 
 def cmd_check():
@@ -483,10 +542,15 @@ def cmd_verify(wait_sec=300):
         part = {c: a for c, a in by_coin.items() if len(a) < 3}
         print("   🔴 로그 없는 세션 %d개" % len(missing))
         if whole:
-            print("   · 세 팔 전부 빠진 코인 %d종 — 캔들 부족으로 보인다(요구량은 세 팔이 같다)."
+            print("   · 세 팔 전부 빠진 코인 %d종 — 요구 캔들 수는 세 팔이 같다(78봉)."
                   % len(whole))
             print("     %s" % " ".join(sorted(whole)))
-            print("     🔴 이 코인들은 표본에서 빠진다. 0거래를 성과로 읽지 않는다.")
+            print("     🔴 이것은 '팔 사이 비대칭이 없다'는 뜻일 뿐 **편향이 없다는 뜻이 아니다.**")
+            print("        준비된 코인만 남으면 **코인 구성에 따른 선택 편향**이 생긴다 —")
+            print("        자료가 준비되는 조건(상장 시기·유동성·수집 대상 여부)이 성과와")
+            print("        무관하다고 볼 근거가 없다. 표본을 줄여 진행하지 않는다.")
+            print("     🔴 원인은 `diagnose` 로 가른다 — 적재량·동기화 말고도 조회 창·키·")
+            print("        봉 유효성·워밍업 조건이 모두 후보다.")
         if part:
             print("   · 일부 팔만 빠진 코인 %d종 — **팔 사이 비대칭이다. 원인을 밝히기 전에**"
                   % len(part))
@@ -523,8 +587,8 @@ def main():
     if c == "verify":
         w = int(sys.argv[sys.argv.index("--wait") + 1]) if "--wait" in sys.argv else 300
         return cmd_verify(w)
-    if c == "candles":
-        return cmd_candles()
+    if c == "diagnose":
+        return cmd_diagnose()
     if c == "abort":
         return cmd_abort()
     if c == "arm-gate":
