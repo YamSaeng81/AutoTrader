@@ -12,7 +12,7 @@
     python start_66.py check                     배포·정원·세 팔 활성 여부 확인 (부작용 없음)
     python start_66.py probe                     세 팔 생성 가능 여부 + 틱 위상 (22코인 밖, 끝나면 삭제)
     python start_66.py create --after <epoch초>   다음 틱 직후에 66개 일괄 생성
-    python start_66.py verify                     T0 일치·T0 이전 주문 0건 검증
+    python start_66.py verify [--wait 초]         T0 일치·T0 이전 주문 0건 검증 (기본 300초까지 기다린다)
     python start_66.py abort                      생성된 세션 전량 정지·삭제 (부분 보정 금지 규칙의 집행)
     python start_66.py arm-gate enable        팔 B 를 검증 기간 한정 재활성화 (토글 주의 — 먼저 읽은 뒤에 바꾼다)
     python start_66.py arm-gate restore       검증 종료 후 원래 상태로 되돌린다
@@ -377,24 +377,72 @@ def cmd_create(after):
     return 0
 
 
-def cmd_verify():
-    """T0 일치 — 66개의 첫 평가가 같은 틱인가, T0 이전 주문이 0건인가."""
+def cmd_verify(wait_sec=300):
+    """T0 일치 — 66개의 첫 평가가 같은 틱인가, T0 이전 주문이 0건인가.
+
+    🔴 기다린다 (2026-09-26 추가). `strategy_log` 는 **새 닫힌 캔들을 평가할 때만** 기록된다
+    (`PaperTradingService:734-757` — 로그 저장이 그 `else` 분기 안에 있다). 그래서 생성 직후
+    돌리면 전량 "로그 없음"이 나온다 — 첫 create 를 그렇게 읽어 0/66 을 봤다.
+    스케줄러는 initialDelay 35초 · fixedDelay 60초이고 106세션 루프 자체가 1분 가까이 걸린 적이
+    있다(2026-09-15 p95 57~71초). 전부 모일 때까지 폴링한다.
+
+    🔴 "로그 없음"의 원인은 셋이고, 셋이 서로 다른 처분을 요구한다:
+      ① 아직 첫 틱이 오지 않았다            → 기다리면 된다 (이 함수가 한다)
+      ② 전략 요구 캔들 미달                  → 그 세션은 **조용히 아무것도 하지 않는다**.
+         `PaperTradingService:679-682` 가 평가와 로그를 함께 건너뛴다.
+         📌 세 팔의 최소 캔들 요구는 **같다** — OFF 는 `IchimokuFiltered` 로 max(core, 52+26)=78,
+         B·A 는 `MtfConfirmed` 로 max(78, 4×12=48)=78. 즉 캔들이 부족하면 **세 팔이 함께**
+         빠지므로 팔 편향이 아니라 **그 코인이 표본에서 빠지는 것**이다. 그래도 0거래를
+         성과로 읽으면 안 된다 — 아래에서 코인 단위로 묶어 보여준다.
+      ③ 로그 저장 자체가 실패했다            → 서버 로그의 "전략 로그 저장 실패" 를 본다
+    """
     need_env()
     state = json.load(open(STATE, encoding="utf-8"))
+    sessions = state["sessions"]
+
+    deadline = time.time() + max(0, wait_sec)
+    times = {}
+    while True:
+        for s in sessions:
+            if s["id"] not in times:
+                t = first_log_time(s["id"])
+                if t:
+                    times[s["id"]] = t
+        left = len(sessions) - len(times)
+        if left == 0 or time.time() >= deadline:
+            break
+        print("   첫 평가 대기 — %d/%d (남은 시간 %.0f초)"
+              % (len(times), len(sessions), deadline - time.time()))
+        time.sleep(10)
+
     rows = []
-    for s in state["sessions"]:
-        t = first_log_time(s["id"])
+    for s in sessions:
         st, body = call("GET", "/api/v1/paper-trading/sessions/%s/orders" % s["id"])
         orders = (body or {}).get("data", {}).get("orders", []) if st == 200 else []
-        rows.append((s, t, orders))
+        rows.append((s, times.get(s["id"]), orders))
 
-    missing = [s["id"] for s, t, _ in rows if not t]
+    missing = [s for s, t, _ in rows if not t]
     stamps = sorted({datetime.fromisoformat(t.replace("Z", "+00:00")).timestamp()
                      for _, t, _ in rows if t})
-    print("① 첫 평가 로그 — %d/%d" % (len(rows) - len(missing), len(rows)))
+    print("\n① 첫 평가 로그 — %d/%d" % (len(rows) - len(missing), len(rows)))
     if missing:
-        print("   🔴 로그 없는 세션 %d개: %s" % (len(missing), missing[:10]))
-        print("      캔들 부족이면 그 팔은 조용히 아무것도 하지 않는다 — 0거래를 성과로 읽으면 안 된다.")
+        by_coin = {}
+        for s in missing:
+            by_coin.setdefault(s["coin"], []).append(s["arm"])
+        whole = {c: a for c, a in by_coin.items() if len(a) == 3}
+        part = {c: a for c, a in by_coin.items() if len(a) < 3}
+        print("   🔴 로그 없는 세션 %d개" % len(missing))
+        if whole:
+            print("   · 세 팔 전부 빠진 코인 %d종 — 캔들 부족으로 보인다(요구량은 세 팔이 같다)."
+                  % len(whole))
+            print("     %s" % " ".join(sorted(whole)))
+            print("     🔴 이 코인들은 표본에서 빠진다. 0거래를 성과로 읽지 않는다.")
+        if part:
+            print("   · 일부 팔만 빠진 코인 %d종 — **팔 사이 비대칭이다. 원인을 밝히기 전에**"
+                  % len(part))
+            print("     **집계하지 않는다.**")
+            for c in sorted(part):
+                print("     %-10s %s" % (c, " ".join(sorted(part[c]))))
     ok = False
     if stamps:
         spread = stamps[-1] - stamps[0]
@@ -407,7 +455,7 @@ def cmd_verify():
         print("③ T0 이전 주문 %d건  %s" % (len(early), "✔" if not early else "🔴 표본 폐기 대상"))
         ok = not missing and spread < TICK and not early
     print("\n%s" % ("✔ 공통 T0 성립 — 이 T0 을 사전 등록 문서에 기록한다."
-                   if ok else "🔴 성립하지 않는다 — 전량 폐기 후 재시도."))
+                   if ok else "🔴 성립하지 않는다 — 원인을 위에서 확인한다."))
     return 0 if ok else 1
 
 
@@ -423,7 +471,8 @@ def main():
             return 2
         return cmd_create(int(sys.argv[sys.argv.index("--after") + 1]))
     if c == "verify":
-        return cmd_verify()
+        w = int(sys.argv[sys.argv.index("--wait") + 1]) if "--wait" in sys.argv else 300
+        return cmd_verify(w)
     if c == "abort":
         return cmd_abort()
     if c == "arm-gate":
