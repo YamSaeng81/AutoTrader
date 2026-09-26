@@ -674,6 +674,49 @@ javadoc 에 **같은 실패 양상의 사고 기록**이 있다 — "연결된 �
 22코인을 채우는 것은 세션 기반인 후자다.**
 
 
+##### 🔴 멈춘 곳은 Upbit 호출이 아니라 **Postgres 쓰기**다 (2026-09-26)
+
+스택을 읽었다. 두 스레드가 **모두 PG 소켓 읽기에 파킹**돼 있다.
+
+| 스레드 | 어디 | 최상단 |
+|---|---|---|
+| `syncMarketData` 를 실행 중인 스레드 | `JpaTransactionManager.doCommit` → flush → `EntityUpdateAction` → `executeUpdate` | `sun.nio.ch.Net.poll` (postgresql `PGStream.receiveChar`) |
+| `scheduler-7` | `SimpleJpaRepository.saveAndFlush` → flush → `EntityUpdateAction` → `executeUpdate` | 같음 |
+
+🔴 **내가 멈춘 위치를 틀리게 짚었다 — 정정한다.** 나는 "15초 요청 타임아웃이 있으니 ⓑ(영구
+블로킹)는 약하다"고 적었는데, 그 타임아웃은 **HTTP** 에만 걸린다. 실제 블로킹은 **JDBC** 이고
+그쪽에는 `socketTimeout`·`statement_timeout`·`lock_timeout` 이 **하나도 설정돼 있지 않다**
+(`application.yml` 에는 Hikari `connection-timeout: 30000` 뿐 — 이것은 커넥션 **획득** 대기이지
+쿼리 대기가 아니다). 그래서 **무한히 기다린다.**
+
+메커니즘에 대한 판단은 유지된다 — `fixedDelay` 는 현재 실행이 끝나야 다음을 잡으므로,
+이 UPDATE 가 응답을 못 받는 동안 **동기화는 영구히 다음 회차가 없다.**
+
+##### 시간선 정정 — "딱 한 번"이 아니었다
+
+앞서 "재시작 후 딱 한 번 시작했다"고 적었는데 **정확하지 않다.** 수집 로그는 00:28:46 ~
+**00:31:50** 에 걸쳐 있고, 최소 00:29 · 00:30 · 00:31 세 회차가 돌았다.
+마지막 성공은 `00:31:50 KRW-BTC H1 6건` 이고, **정지는 그 직후 회차에서 시작됐다.**
+
+📌 그래서 22코인이 빠진 이유가 더 분명해진다 — 66세션 생성은 00:35 · 00:55 였고,
+동기화는 **그 전에 이미 멈춰** 대상 목록을 다시 읽지 못했다.
+
+📌 그리고 이것은 DB 전면 장애가 아니다 — 00:55 에 45세션이 `strategy_log` 를 정상 기록했다.
+**특정 대상에 대한 쓰기만** 응답을 못 받는다.
+
+##### ⚠️ 관찰해 둘 설계 문제 (원인으로 단정하지 않는다)
+
+`syncMarketData` 는 **루프 전체가 하나의 `@Transactional`** 이다. 그 안에서 코인마다
+REST 호출과 110ms 스로틀 `sleep` 이 일어나므로, **`market_data_cache` 의 행 잠금을
+네트워크 I/O 를 포함한 전 구간 동안 붙잡는다.** 잠금 경쟁을 만들기 쉬운 구조다.
+또 이 스택에 `db` 서비스는 `timescale/timescaledb:latest-pg15` 이고, TimescaleDB 의
+백그라운드 작업(압축·보존)도 같은 대상에 잠금을 잡는다.
+
+🔴 **어느 쪽이 실제 blocker 인지는 DB 에서 확인한다.** `pg_stat_activity` 와 `pg_locks` 가
+답을 준다 — 앱 쪽에서는 더 볼 것이 없다. DB 는 같은 compose 스택의 `db` 서비스이므로
+컨테이너 안에서 조회하면 **비밀번호를 다루지 않고** 확인할 수 있다.
+
+
 ##### 🔴 이번 시작은 준비 실패로 기록한다 — 뒤늦은 합류로 복구할 수 없다
 
 15코인이 이미 T0 을 지나 거래를 시작했으므로, 7코인을 나중에 붙여도 **공통 T0 조건은
