@@ -37,8 +37,19 @@ import static org.assertj.core.api.Assertions.assertThat;
  * self-invocation 으로 무시될 여지가 없고 <b>실제로 새 커넥션</b>을 쓴다 — 손으로 만든 대역이 아니라
  * 이 빈을 그대로 불러야 생산과 같은 경계가 재현된다.
  *
- * <p><b>H2 로 잡히는지는 가정하지 않는다.</b> 이 테스트의 결과 자체가 그 답이다. H2 는 잠금 제한이
- * 있어 예외로 끝나고 Postgres 는 제한이 없어 무한히 기다린다 — 같은 경합의 다른 표현이다.
+ * <p>🔴 <b>2026-09-26 실측 결과 — 이 테스트는 "행 잠금 경합"을 입증하지 못한다. 범위를 좁힌다.</b>
+ * 원인 사슬을 끝까지 펼쳐 보니
+ * {@code JpaSystemException <- TransactionException <- SQLException: Connection is closed
+ * (state=null code=0)} 였다. H2 의 잠금 타임아웃(50200)도 데드락(40001)도 아니다.
+ * {@code LOCK_TIMEOUT=250} 을 강제해도 같았다. 즉 <b>무엇이 실패했는지는 확인했으나
+ * 왜 실패했는지는 확인하지 못했다</b> — 이 실패는 H2 특유의 것일 수 있다.
+ *
+ * <p>따라서 이 테스트가 말하는 것은 하나로 줄인다:
+ * <b>"바깥이 세션 행을 쓴 뒤 REQUIRES_NEW 로 같은 행을 갱신하는 순서는 정상 완료되지 않는다."</b>
+ * 잠금 대기라는 <b>메커니즘</b>은 H2 로 단정하지 않고 PostgreSQL 에서 따로 확인한다 —
+ * 운영에서는 {@code pg_locks} 의 {@code transactionid ShareLock granted=false} 와
+ * {@code pg_blocking_pids} 로 잠금 대기 자체를 <b>직접 관측했다</b>. 아직 확정되지 않은 것은
+ * 그 blocker 가 <b>같은 스레드의 중첩 트랜잭션이었는지</b>다.
  */
 class DynamicSessionRowLockContentionTest extends IntegrationTestBase {
 
@@ -69,7 +80,7 @@ class DynamicSessionRowLockContentionTest extends IntegrationTestBase {
     }
 
     @Test
-    @DisplayName("🔴 바깥이 세션 행을 쓴 뒤 REQUIRES_NEW 가 같은 행을 갱신하면 경합한다")
+    @DisplayName("🔴 바깥이 세션 행을 쓴 뒤 REQUIRES_NEW 로 같은 행을 갱신하는 순서는 정상 완료되지 않는다")
     void requiresNewOnRowLockedByOuterTransaction() {
         Long id = newRunningRealSession();
 
@@ -84,9 +95,22 @@ class DynamicSessionRowLockContentionTest extends IntegrationTestBase {
             try {
                 balanceUpdater.apply(id, x ->
                         x.setAvailableKrw(x.getAvailableKrw().subtract(new BigDecimal("5000.00"))));
-                return new Outcome(null, null);
+                return new Outcome(null, null, "");
             } catch (Throwable t) {
-                return new Outcome(t.getClass().getName(), String.valueOf(t.getMessage()));
+                // 🔴 겉 예외만 보면 원인을 알 수 없다. 사슬을 끝까지 펼친다 —
+                //    "잠금 대기였다"는 주장은 이 안에 그 근거가 있어야 성립한다.
+                StringBuilder chain = new StringBuilder();
+                for (Throwable c = t; c != null && chain.length() < 1200; c = c.getCause()) {
+                    if (c instanceof java.sql.SQLException se) {
+                        chain.append("[state=").append(se.getSQLState())
+                             .append(" code=").append(se.getErrorCode()).append("] ");
+                    }
+                    chain.append(c.getClass().getName()).append(": ")
+                         .append(String.valueOf(c.getMessage()).replace('\n', ' ')).append(" <- ");
+                    if (c.getCause() == c) break;
+                }
+                return new Outcome(t.getClass().getName(), String.valueOf(t.getMessage()),
+                        chain.toString());
             }
         });
 
@@ -101,6 +125,7 @@ class DynamicSessionRowLockContentionTest extends IntegrationTestBase {
         //    종류로 단정하지 않는다(엔진마다 다르게 표면화되고, Postgres 는 제한이 없으면
         //    애초에 예외 없이 무한히 기다린다).
         //    단정하는 것은 두 가지다: (1) 무언가 실패했다 (2) 차감이 남지 않았다.
+        System.out.println("[test A] cause-chain= " + outcome.causeChain());
         assertThat(outcome.type())
                 .as("바깥이 쥔 행을 REQUIRES_NEW 가 갱신하려 하면 그대로 성공하지 못한다 "
                         + "— 성공했다면 이 순서에 경합이 없다는 뜻이므로 이 테스트의 전제가 무너진다 "
@@ -113,5 +138,5 @@ class DynamicSessionRowLockContentionTest extends IntegrationTestBase {
                 .isEqualByComparingTo(new BigDecimal("10000.00"));
     }
 
-    private record Outcome(String type, String message) {}
+    private record Outcome(String type, String message, String causeChain) {}
 }

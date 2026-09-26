@@ -1010,6 +1010,70 @@ INSERT 를 UPDATE 보다 먼저 실행하고, id 확보만으로는 UPDATE 가 �
 외부 주문 호출은 테스트 대역으로 바꾸되 **내부 서비스와 트랜잭션 프록시는 실제 구성을 유지한다.**
 
 
+##### 🔴 정정 — test A 는 "행 잠금 경합"을 입증하지 못한다 (2026-09-26)
+
+원인 사슬을 끝까지 펼쳐 보니 이랬다.
+
+```
+JpaSystemException: Unable to rollback against JDBC Connection
+  <- org.hibernate.TransactionException: 같은 문구
+  <- java.sql.SQLException: Connection is closed   [state=null code=0]
+```
+
+H2 의 잠금 타임아웃(50200)도 데드락(40001)도 아니다. `LOCK_TIMEOUT=250` 을 강제해도 같았다.
+🔴 **무엇이 실패했는지는 확인했지만 왜 실패했는지는 확인하지 못했다.** 그러므로 A 로
+"PostgreSQL 영구 정지 = 이번 사고"를 잇는 것은 성립하지 않는다 — 앞서 그렇게 쓴 것을 철회한다.
+
+A 가 말하는 것을 하나로 줄인다.
+
+> **바깥이 세션 행을 쓴 뒤 REQUIRES_NEW 로 같은 행을 갱신하는 순서는 정상 완료되지 않는다.**
+> (차감도 남지 않는다.) 그 실패의 **메커니즘은 이 테스트로 단정하지 않는다.**
+
+##### 📊 증거 대장 — 무엇이 어디까지 확정됐는가
+
+| 사실 | 근거 | 강도 |
+|---|---|---|
+| 잠금 대기가 실제로 있었다 | 운영 `pg_locks` 에 `transactionid ShareLock granted=false` 2건, `pg_blocking_pids` 가 323739 를 지목 | 🟢 **직접 관측** |
+| 미종료 트랜잭션이 2시간 잠금을 보유했다 | `pg_stat_activity` — `idle in transaction`, `xact_age 1:56:27` | 🟢 직접 관측 |
+| 동기화가 그 대기 때문에 다음 회차를 잃었다 | 종료 직후 즉시 재개, 22코인 적재 복구 | 🟢 개입-반응 |
+| blocker 가 **같은 스레드의 중첩 트랜잭션**이었다 | — | 🔴 **미확정** (핵심 공백) |
+| 생산 경로에 그 중첩 순서가 있다 | 코드 순서: `:774` → `:1766~1848` 세션 UPDATE → `:786` → `:1513` REQUIRES_NEW | 🟡 코드 근거, 실행 미확인 |
+| 그 순서는 정상 완료되지 않는다 | test A | 🟡 결과는 확정, **메커니즘 미확정** |
+| flush 가 없으면 부분 커밋 위험이 있다 | test A 변이 — 안쪽 커밋 후 바깥 `@Version` 충돌 | 🟡 아래 단서 참조 |
+
+⚠️ **부분 커밋 위험의 범위를 좁힌다.** 변이 테스트는 `balanceUpdater` 를 **직접** 부르므로
+`registerBuyDeductionCompensation`(`:1631`)이 등록되지 않는다. 즉 관측된 것은 **보상 훅이 없는
+경로에서** 안쪽 차감이 살아남는다는 것이고, **생산의 보상이 실패한다는 증거가 아니다.**
+2026-08-03 사고 기록도 과거 사실이며 현재 보상의 실패를 보이지 않는다.
+🔴 보상 포함 상태 일관성은 **test B 와 수정 후 검증에서** 확인한다.
+
+##### test B 설계 정정 — SQL 순서만으로는 안 된다
+
+`org.hibernate.SQL` 출력만 보면 같은 `update dynamic_session` 이 **바깥에서 나온 것인지 안쪽에서
+나온 것인지 구분할 수 없다**(정적 UPDATE라 SQL 도 동일하다). 따라서 문장마다 **연결·트랜잭션
+식별자**를 붙여 기록한다.
+
+| 붙일 것 | 방법 |
+|---|---|
+| 커넥션 식별 | 테스트 컨텍스트에서 `DataSource` 를 감싸 문장마다 `identityHashCode(Connection)` 을 함께 기록 |
+| 트랜잭션 식별 | 기록 시점의 `TransactionSynchronizationManager.getCurrentTransactionName()` / 활성 여부 |
+
+그래야 "바깥 UPDATE 가 **안쪽 진입 전에** 실행됐는가"를 말할 수 있다.
+⚠️ `insert into position` 이 나갔다는 사실은 `update dynamic_session` 이 나갔다는 증거가 **아니다** —
+Hibernate flush 는 INSERT 를 UPDATE 보다 먼저 실행하므로 둘을 **따로** 확인한다.
+
+##### 최종 확인 대상 — 예외 없음보다 상태 일관성
+
+B 가 "예외 없이 끝난다"는 것으로는 부족하다. 수정 전후로 **같은 시나리오에서** 아래가 일관되는지를 본다.
+
+| 확인 | 왜 |
+|---|---|
+| `available_krw` | 차감이 **한 번만** 반영됐는가, 실패 시 남지 않았는가 |
+| `position` | 진입이 남았는가 / 실패 시 사라졌는가 |
+| `order` | 주문 행이 포지션과 짝을 이루는가 (afterCommit 훅이라 특히 갈리기 쉽다) |
+| 보상 결과 | `registerBuyDeductionCompensation` 이 실제로 되돌렸는가 |
+
+
 ##### 수정 범위 — 세 갈래로 나눈다 (원인·구조·안전장치)
 
 | 갈래 | 내용 | 성격 |
