@@ -123,28 +123,27 @@ class DynamicBuyOuterWriteOrderingTest extends IntegrationTestBase {
         StrategySignal buy = StrategySignal.buy(new BigDecimal("80"), "test B");
 
         SqlTrace.start();
-        String[] failure = new String[]{null};
-        new TransactionTemplate(txManager).execute(status -> {
-            DynamicSessionEntity s = sessionRepo.findById(id).orElseThrow();
-            // ── 바깥 트랜잭션의 세션 행 UPDATE — refreshWatchlist 와 같은 문장 ──
-            //    🔴 flush 를 넣지 않는다. 실제로 언제 실행되는지가 이 시험의 대상이다.
-            s.setWatchlistJson("[\"KRW-BTC\"]");
-            s.setWatchlistRefreshedAt(Instant.now());
-            sessionRepo.save(s);
-
-            try {
-                dynamicTradingService.executeBuy(s, "KRW-BTC", candles(), buy, BigDecimal.ONE);
-            } catch (Throwable t) {
-                StringBuilder chain = new StringBuilder();
-                for (Throwable c = t; c != null && chain.length() < 900; c = c.getCause()) {
-                    chain.append(c.getClass().getSimpleName()).append(": ")
-                         .append(String.valueOf(c.getMessage()).replace('\n', ' ')).append(" <- ");
-                    if (c.getCause() == c) break;
+        String[] innerFailure = new String[]{null};
+        String outerFailure = null;
+        try {
+            new TransactionTemplate(txManager).execute(status -> {
+                DynamicSessionEntity s = sessionRepo.findById(id).orElseThrow();
+                // 바깥 트랜잭션의 세션 행 UPDATE — refreshWatchlist 와 같은 문장.
+                // flush 를 넣지 않는다. 실제로 언제 실행되는지가 이 시험의 대상이다.
+                s.setWatchlistJson("[\"KRW-BTC\"]");
+                s.setWatchlistRefreshedAt(Instant.now());
+                sessionRepo.save(s);
+                try {
+                    dynamicTradingService.executeBuy(s, "KRW-BTC", candles(), buy, BigDecimal.ONE);
+                } catch (Throwable t) {
+                    innerFailure[0] = chain(t);
                 }
-                failure[0] = chain.toString();
-            }
-            return null;
-        });
+                return null;
+            });
+        } catch (Throwable t) {
+            // 바깥 커밋 단계의 실패도 관측 대상이다 — 여기서 잡지 않으면 기록을 못 남긴다.
+            outerFailure = chain(t);
+        }
         SqlTrace.stop();
 
         List<SqlTrace.Row> rows = SqlTrace.rows();
@@ -160,11 +159,21 @@ class DynamicBuyOuterWriteOrderingTest extends IntegrationTestBase {
 
         System.out.println("=== test B 관측 ===");
         System.out.println("바깥 연결 tag=" + outerConn
-                + " / 바깥 dynamic_session UPDATE END idx=" + outerUpdateEnd
-                + " / position INSERT END idx=" + positionInsertEnd
+                + " / dynamic_session UPDATE END(첫) idx=" + outerUpdateEnd
+                + " / position INSERT END(첫) idx=" + positionInsertEnd
                 + " / 다른 연결 첫 START idx=" + firstOtherConnStart);
-        System.out.println("예외 사슬=" + failure[0]);
-        System.out.println(SqlTrace.dump());
+        System.out.println("안쪽 예외 사슬=" + innerFailure[0]);
+        System.out.println("바깥 커밋 예외 사슬=" + outerFailure);
+        // 🔴 연결을 구분하지 않으면 같은 SQL 의 출처를 가릴 수 없다 — 관심 테이블만 연결과 함께 본다.
+        System.out.println("--- dynamic_session / position 문장만, 연결과 함께 ---");
+        for (SqlTrace.Row r : rows) {
+            if (r.isUpdateOf("dynamic_session") || r.isInsertInto("position")
+                    || r.isUpdateOf("position")) {
+                System.out.printf("#%d %-5s conn=%d %s params=%s%n", r.seq(), r.phase(),
+                        r.connTag(),
+                        r.sql().substring(0, Math.min(60, r.sql().length())), r.params());
+            }
+        }
 
         // ③ 종료 후 실제 상태 — 예외 유무보다 이쪽이 중요하다
         DynamicSessionEntity after = sessionRepo.findById(id).orElseThrow();
@@ -176,11 +185,58 @@ class DynamicBuyOuterWriteOrderingTest extends IntegrationTestBase {
                 + " / watchlistJson=" + after.getWatchlistJson()
                 + " / position=" + positions + " / order=" + orders);
 
-        // 🔴 이 단계의 목적은 가설 지지 여부 **관측**이다. 순서가 관측되지 않아도 그 결과를
-        //    그대로 남긴다 — 재현을 맞추려고 flush 를 넣지 않는다.
-        assertThat(rows)
-                .as("기록이 비면 관측 자체가 실패한 것이다")
-                .isNotEmpty();
+        // ── 관측된 사실을 단정으로 고정한다 (2026-09-26) ─────────────────────
+        // 🔴 가설은 지지되지 않았다. 바깥의 dynamic_session UPDATE 는 **커밋 시점까지 지연**돼
+        //    안쪽 REQUIRES_NEW 보다 **나중에** 실행됐다. 즉 안쪽이 돌 때 바깥은 그 행의 잠금을
+        //    쥐고 있지 않았고, 잠금 대기는 일어나지 않았다.
+        // 🔴 "다른 연결의 첫 문장"을 안쪽 진입으로 쓰면 틀린다 — 관측 결과 그것은
+        //    balanceUpdater 가 아니라 **더 앞선 별도 연결 작업**(risk_config 쪽)이었다.
+        //    관심 문장을 정확히 지목한다: **바깥이 아닌 연결의 dynamic_session UPDATE**.
+        OptionalInt innerSessionUpdate = firstIndex(rows,
+                r -> r.isUpdateOf("dynamic_session") && r.phase() == SqlTrace.Phase.START
+                        && r.connTag() != outerConn);
+        assertThat(innerSessionUpdate)
+                .as("balanceUpdater(REQUIRES_NEW)의 세션 UPDATE 가 별도 연결에서 관측돼야 한다")
+                .isPresent();
+        int innerAt = innerSessionUpdate.getAsInt();
+
+        assertThat(positionInsertEnd).as("position INSERT 는 실행돼야 관측이 성립한다").isPresent();
+        assertThat(positionInsertEnd.getAsInt())
+                .as("🔴 position INSERT 는 안쪽 진입 **전에** 실행된다 — 그러나 이것은 "
+                        + "dynamic_session UPDATE 가 실행됐다는 증거가 아니다(따로 확인한다)")
+                .isLessThan(innerAt);
+
+        OptionalInt outerSessionUpdate = firstIndex(rows,
+                r -> r.isUpdateOf("dynamic_session") && r.phase() == SqlTrace.Phase.END
+                        && r.connTag() == outerConn);
+        assertThat(outerSessionUpdate).as("바깥 연결의 세션 UPDATE 도 언젠가는 실행된다").isPresent();
+        assertThat(outerSessionUpdate.getAsInt())
+                .as("🔴 이 단정이 깨지면 **위험한 순서가 생겼다는 신호**다 — 바깥 세션 UPDATE 가 "
+                        + "안쪽 REQUIRES_NEW 진입 전에 실행되면 안쪽이 그 잠금을 기다린다. "
+                        + "현재는 커밋 시점까지 지연돼 그 순서가 만들어지지 않는다")
+                .isGreaterThan(innerAt);
+
+        // ③ 최종 상태 — 예외 없음보다 이쪽이 중요하다. 보상까지 돌아 일관된다.
+        assertThat(after.getAvailableKrw())
+                .as("안쪽 차감(8,000)이 커밋됐지만 바깥이 롤백됐다 — 보상이 되돌려 초기값이어야 한다")
+                .isEqualByComparingTo(new BigDecimal("10000.00"));
+        assertThat(after.getScanState()).isEqualTo("SCANNING");
+        assertThat(after.getCurrentPositionId()).isNull();
+        assertThat(positions).as("바깥 롤백이므로 포지션이 남지 않는다").isZero();
+        assertThat(orders).as("주문은 afterCommit 훅이라 커밋되지 않았으면 남지 않는다").isZero();
+        assertThat(after.getWatchlistJson())
+                .as("바깥의 워치리스트 쓰기도 함께 롤백된다")
+                .isNull();
+    }
+
+    private static String chain(Throwable t) {
+        StringBuilder sb = new StringBuilder();
+        for (Throwable c = t; c != null && sb.length() < 900; c = c.getCause()) {
+            sb.append(c.getClass().getSimpleName()).append(": ")
+              .append(String.valueOf(c.getMessage()).replace('\n', ' ')).append(" <- ");
+            if (c.getCause() == c) break;
+        }
+        return sb.toString();
     }
 
     private static OptionalInt firstIndex(List<SqlTrace.Row> rows,

@@ -55,14 +55,17 @@ public final class SqlTrace {
                       int connTag, Integer backendPid, String thread,
                       String txName, boolean txActive, String error) {
 
+        // 🔴 테이블 이름이 **다른 테이블의 컬럼명**에 들어 있는 경우를 걸러야 한다.
+        //    처음 구현은 contains 만 써서 `insert into risk_config (… max_position …)` 이
+        //    "insert into position" 으로 잡혔다 — 관측이 아니라 오독을 만들었다.
         public boolean isUpdateOf(String table) {
-            String s = sql.toLowerCase();
-            return s.startsWith("update ") && s.contains(table.toLowerCase());
+            return sql.toLowerCase().startsWith("update " + table.toLowerCase() + " ");
         }
 
         public boolean isInsertInto(String table) {
             String s = sql.toLowerCase();
-            return s.startsWith("insert into ") && s.contains(table.toLowerCase());
+            return s.startsWith("insert into " + table.toLowerCase() + " ")
+                    || s.startsWith("insert into " + table.toLowerCase() + "(");
         }
     }
 

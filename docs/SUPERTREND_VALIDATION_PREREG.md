@@ -1137,6 +1137,79 @@ B 가 "예외 없이 끝난다"는 것으로는 부족하다. 수정 전후로 *
 확인하는 것**이다.
 
 
+##### 🔴 test B 결과 — **가설은 지지되지 않았다** (2026-09-26)
+
+`DynamicBuyOuterWriteOrderingTest` 통과. 관측된 순서가 예상과 달랐다. 그대로 남긴다.
+
+**① 같은 세션 행의 SQL 실행 순서와 연결 구분**
+(연결 태그: 바깥 `1297148417` · 안쪽#1 `871464251` · 안쪽#2 `1418561615`)
+
+| seq | 연결 | 문장 | 핵심 파라미터 |
+|---|---|---|---|
+| #15·16 | **바깥** | `insert into position` | OPEN, invested 8,000 |
+| #19·20 | **안쪽#1** | `update dynamic_session` | `available_krw=2000`, `POSITION_MONITORING` → **성공** (= `balanceUpdater`) |
+| #21·22 | **바깥** | `update dynamic_session` | `available_krw=10000`, `SCANNING`, `watchlist=["KRW-BTC"]`, `version=0` → **0행** |
+| #25·26 | 안쪽#2 | `update dynamic_session` | `available_krw=10000`, `version=1` → **성공** (= 보상) |
+
+🔴 **바깥의 세션 UPDATE 는 커밋 시점까지 지연돼 안쪽보다 나중에 실행됐다.**
+따라서 안쪽이 돌 때 바깥은 그 행의 잠금을 쥐고 있지 않았고, **잠금 대기 순서가 만들어지지 않았다.**
+
+📌 **사용자가 경고한 함정이 직접 확인됐다** — `insert into position` 은 실행됐지만(#15)
+`update dynamic_session` 은 그 시점에 실행되지 않았다. **두 사실을 묶어 읽으면 틀린다.**
+
+**② 대기·실패가 발생한 정확한 지점과 원인**
+
+- **잠금 대기는 없었다.** `FAIL` 로 기록된 문장도 없다.
+- 실패 지점은 **바깥 커밋의 flush** 다. `update … where version=0` 이 **0행**을 갱신했고
+  (안쪽이 이미 version 1 로 올려놨다) → `StaleObjectStateException` →
+  `ObjectOptimisticLockingFailureException` → 바깥은 rollback-only →
+  `UnexpectedRollbackException`.
+- **안쪽은 성공했다** (차감 커밋).
+
+**③ 종료 후 실제 상태**
+
+| 항목 | 값 |
+|---|---|
+| `available_krw` | **10,000.00** — 🟢 **보상이 되돌렸다** |
+| `scan_state` | `SCANNING` |
+| `current_position_id` | `null` |
+| `watchlist_json` | `null` (바깥 롤백과 함께 사라졌다) |
+| `position` | **0건** |
+| `order` | **0건** (afterCommit 훅이라 커밋 안 되면 남지 않는다) |
+
+🟢 **"차감만 살아남는다"는 일어나지 않았다.** `registerBuyDeductionCompensation` 이 실제로
+작동했다 — 앞서 test A 변이로 본 부분 커밋 위험은 **보상 훅이 없는 경로**의 이야기였고,
+생산 경로에는 보상이 붙어 있다. 그 구분이 이제 관측으로 확인됐다.
+
+##### 🔴 그래서 ② 의 근거가 달라진다
+
+| 앞서 세운 것 | B 이후 |
+|---|---|
+| "생산 경로가 잠금 대기 순서를 만든다" | 🔴 **이 관측으로는 지지되지 않는다** |
+| "그래서 경계를 고쳐야 한다" | 근거가 약해졌다 — 관측된 실패는 잠금 대기가 아니라 낙관적 락 충돌이고, **보상이 수습한다** |
+
+잠금 대기가 생기려면 **바깥 UPDATE 가 안쪽 진입 전에 flush 돼야** 한다. 그 조건을 만드는 것은
+`dynamic_session` 을 건드리는 질의(auto-flush 유발)인데, 이 경로에서는 그런 질의가 없었다.
+즉 **위험한 순서는 잠재적이며, 지금은 만들어지지 않는다.**
+
+그래서 B 의 단정을 **감시 장치**로 남겼다 —
+> 바깥 연결의 세션 UPDATE 가 안쪽보다 **먼저** 실행되면 이 테스트가 **실패**한다.
+> 그때가 위험한 순서가 생긴 시점이다.
+
+🔴 **그리고 운영 사고의 blocker 가 이 경로였는지는 여전히 미확정이다.** B 는 그 가설을
+지지하지 않았고, 증거 대장의 그 칸은 🔴 로 남는다.
+
+##### ⚠️ 내 관측 로직의 오류 2건 — 기록해 둔다
+
+1. `isInsertInto("position")` 을 `contains` 로 구현해 `insert into risk_config (… max_position …)`
+   이 걸렸다. 테이블 이름이 **다른 테이블의 컬럼명**에 들어 있는 경우를 못 걸렀다 → 접두사 일치로 고쳤다.
+2. "다른 연결의 첫 문장"을 안쪽 진입으로 썼는데, 실제로 그것은 `balanceUpdater` 가 아니라
+   **더 앞선 별도 연결 작업**(risk_config 쪽)이었다 → **바깥이 아닌 연결의
+   `dynamic_session` UPDATE** 로 정확히 지목하도록 고쳤다.
+
+두 오류 모두 **처음 판정을 반대로 낼 수 있었다.** 관측 장치도 관측 대상만큼 검증이 필요하다.
+
+
 ##### 수정 범위 — 세 갈래로 나눈다 (원인·구조·안전장치)
 
 | 갈래 | 내용 | 성격 |
