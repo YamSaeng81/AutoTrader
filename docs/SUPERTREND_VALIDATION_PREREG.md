@@ -755,6 +755,47 @@ pid 323730  active  Lock/transactionid  blocked_by {323739}
 그 세션이 실자본인지, 그 insert 에 대응하는 체결이 거래소에 있는지 확인하기 전에는
 종료시키지 않는다. 백엔드 컨테이너 재시작도 같은 롤백을 일으키고 증거까지 없앤다.
 
+##### 🔴 소유 스레드가 없을 가능성 — 커넥션에 트랜잭션이 남은 것 (2026-09-26)
+
+덤프를 다시 떴다. 앱 프레임을 가진 스레드 중 **`scheduler-4`·`-6`·`-7` 세 개가 모두 PG 소켓
+읽기에 파킹**돼 있다(RUNNABLE, `Net.poll`). 나머지는 `upbit-rate-refill`(정상 수면)이다.
+
+🔴 **그런데 이 셋은 blocker 가 아니다.** 323739 는 `idle in transaction / ClientRead` —
+**DB 가 앱의 다음 문장을 기다리는** 상태다. DB 호출 중인 스레드라면 백엔드 상태가 `active` 여야
+하므로, **이 세 스레드 중 어느 것도 323739 의 주인이 아니다.**
+
+그러면 주인은 누구인가. 후보가 둘로 갈린다.
+
+| 후보 | 예측 | 확인 |
+|---|---|---|
+| ⓐ 어떤 스레드가 트랜잭션을 열어둔 채 DB 밖에서 대기 중 | 덤프에 그 스레드가 앱 프레임과 함께 보인다 | 덤프 전체 목록 |
+| ⓑ **커넥션이 풀로 반납됐는데 트랜잭션이 안 닫혔다** (소유 스레드 없음) | Hikari 는 그 커넥션을 **idle** 로 보고, DB 는 **idle in transaction** 으로 본다 | Hikari 지표 vs `pg_stat_activity` |
+
+⚠️ ⓑ 를 잡아낼 장치가 없다 — `application.yml` 의 Hikari 설정은 `maximum-pool-size: 20`,
+`minimum-idle: 5`, `connection-timeout: 30000` 뿐이고 **`leak-detection-threshold` 가 없다.**
+그래서 반납된 커넥션이 트랜잭션을 쥔 채 영구히 남아도 아무 경고가 없다.
+
+##### 🟢 개입 위험이 낮아졌다 — OPEN 포지션이 없다
+
+`position` 을 집계했다.
+
+| `session_kind` | status | 건수 | 마지막 진입 |
+|---|---|---|---|
+| `DYNAMIC` (REAL 동적) | CLOSED | 30 | 2026-08-16 |
+| `DYN_PAPER` (PAPER 동적) | CLOSED | 446 | 2026-09-25 |
+| `LIVE` | CLOSED | 277 | 2026-08-07 |
+
+🔴 **OPEN 행이 하나도 없다.** 막힌 insert 는 커밋되지 않아 보이지 않지만, 되돌려도
+**"열려 있다고 DB 가 믿는 포지션"이 사라지는 일은 없다** — 애초에 없다.
+남은 위험은 하나뿐이다: 그 insert 가 **REAL**(`DYNAMIC`) 이고 거래소에 실제 체결이 나갔다면,
+롤백 후 거래소에만 포지션이 남는다. REAL 동적 진입은 **2026-08-16 이 마지막**이고 최근 활동은
+전부 `DYN_PAPER` 이지만, **그것만으로 단정하지 않는다** — RUNNING 세션의 `trading_mode` 를 본다.
+
+📌 컬럼 이름을 정정한다: `dynamic_session` 에는 `session_kind` 가 없고 **`trading_mode`**
+(REAL/PAPER) 다. `session_kind` 는 `position`·`order` 쪽 컬럼이며 REAL 동적은 `DYNAMIC`,
+PAPER 동적은 `DYN_PAPER` 로 갈린다(컬럼 주석).
+
+
 ##### 수정 범위 — 세 갈래로 나눈다 (원인·구조·안전장치)
 
 | 갈래 | 내용 | 성격 |
