@@ -150,12 +150,25 @@ class DynamicBuyCompletesConsistentlyTest extends IntegrationTestBase {
                         + "(관측된 결함: 안쪽 차감 커밋 → 바깥 @Version 충돌 → 매수 기록 롤백)")
                 .isNull();
 
-        // ② 잔액은 한 번만 차감되고, 정상 경로에서는 보상이 필요하지 않다.
+        // ② 잔액은 **정확히 한 번** 차감된다 — 범위 단정으로는 "한 번"을 증명하지 못한다.
+        //    🔴 앞서 `0 < 잔액 < 초기값` 으로만 확인했는데 그것은 두 번 차감과 보상 후 재차감도
+        //    통과시킨다. 예상 차감액을 계산해 **정확히** 비교한다.
+        BigDecimal expectedInvest = CAPITAL.multiply(new BigDecimal("0.8000"));
         assertThat(after.getAvailableKrw())
-                .as("잔액은 투자금만큼 **한 번** 줄어야 한다 — 초기값이면 보상이 되돌린 것이고, "
-                        + "두 번 줄었으면 중복 차감이다")
-                .isLessThan(CAPITAL)
-                .isGreaterThan(BigDecimal.ZERO);
+                .as("초기자본 %s − 투자금 %s 이어야 한다 (초기값이면 보상이 되돌린 것, "
+                        + "그보다 작으면 중복 차감)", CAPITAL, expectedInvest)
+                .isEqualByComparingTo(CAPITAL.subtract(expectedInvest));
+
+        // 🔴 "정상 경로에서 보상이 필요하지 않다"를 **호출 횟수**로 확인한다.
+        //    보상은 세션 행을 한 번 더 UPDATE 한다. 정상 경로의 세션 UPDATE 는 두 번이어야 한다 —
+        //    persistWatchlist 1회 + 매수 차감 1회. 세 번째가 있으면 보상이 돈 것이다.
+        List<SqlTrace.Row> sessionUpdates = SqlTrace.rows().stream()
+                .filter(r -> r.isUpdateOf("dynamic_session") && r.phase() == SqlTrace.Phase.END)
+                .toList();
+        assertThat(sessionUpdates)
+                .as("세션 UPDATE 는 워치리스트 1 + 차감 1 = 2회여야 한다. 3회 이상이면 보상이 돈 것이다."
+                        + "%n%s", SqlTrace.dump())
+                .hasSize(2);
 
         // ③ 포지션·세션 상태가 잔액과 함께 일관된다.
         assertThat(positions).as("진입 포지션이 남아야 한다").hasSize(1);
