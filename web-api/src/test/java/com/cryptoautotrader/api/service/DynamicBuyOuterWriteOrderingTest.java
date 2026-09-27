@@ -29,7 +29,14 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * <b>test B — 생산 경로가 위험한 순서를 실제로 만드는가</b> (2026-09-26).
+ * <b>test B — 위험 메커니즘 기록 + 실패 경로의 보상 확인</b> (2026-09-26 신설, 2026-09-28 재분류).
+ *
+ * <p>🔴 <b>2026-09-28 재분류</b>: 처음에 이것을 "생산 경로가 위험한 순서를 만드는가" 로
+ * 이름 붙였는다. 이제는 아니다 — 워치리스트 기록을 {@code persistWatchlist}(REQUIRES_NEW)로
+ * 이전해 <b>생산에서는 밖이 세션 행을 쓰지 않는다.</b> 이 테스트는 테스트가 직접 그 쓰기를
+ * 만들어 <b>그 순서가 어떤 결과를 내는가</b>를 남긴다 — 즉 위험 기록이자,
+ * <b>실패 경로에서 보상과 중복 방지가 유지되는지</b>의 확인이다.
+ * 생산 동작의 주 회귀 기준은 {@code DynamicBuyCompletesConsistentlyTest} 가 맡는다.
  *
  * <h3>가설</h3>
  * `processScanningTick`(`@Transactional`) 안에서
@@ -177,8 +184,11 @@ class DynamicBuyOuterWriteOrderingTest extends IntegrationTestBase {
 
         // ③ 종료 후 실제 상태 — 예외 유무보다 이쪽이 중요하다
         DynamicSessionEntity after = sessionRepo.findById(id).orElseThrow();
-        long positions = positionRepository.count();
-        long orders = orderRepository.count();
+        // 🔴 세션 단위로 좁힌다 — 전역 count 는 같은 컨텍스트를 쓰는 다른 테스트에 오염된다.
+        long positions = positionRepository
+                .findBySessionKindAndSessionIdAndStatus("DYNAMIC", id, "OPEN").size();
+        long orders = orderRepository
+                .findBySessionKindAndSessionIdOrderByCreatedAtDesc("DYNAMIC", id).size();
         System.out.println("최종 availableKrw=" + after.getAvailableKrw()
                 + " / scanState=" + after.getScanState()
                 + " / currentPositionId=" + after.getCurrentPositionId()

@@ -1745,6 +1745,44 @@ public class DynamicTradingService {
     // ── 내부: 손실 청산 쿨다운 ────────────────────────────────────
 
     /**
+    /**
+     * 워치리스트 기록을 <b>호출자 트랜잭션과 분리해</b> 저장한다 (2026-09-28 신설).
+     *
+     * <p><b>왜 필요한가 — 관측된 결함</b>: 종전에는 두 곳에서
+     * {@code getOrThrow(id)} 로 <b>바깥 트랜잭션의 관리 엔티티</b>를 꺼내 필드를 바꿨다.
+     * 그러면 {@code save()} 호출 여부와 무관하게 그 엔티티가 dirty 가 되고, 같은 틱에서
+     * {@link #executeBuy} 가 {@code balanceUpdater}(REQUIRES_NEW, 별도 커넥션·별도 컨텍스트)로
+     * <b>같은 행</b>의 버전을 올려 커밋한 뒤, 바깥이 커밋 시점에 {@code where version=?} 로
+     * 자기 사본을 쓰려다 <b>0행</b>을 맞아 {@code StaleObjectStateException} 이 났다.
+     * 결과는 <b>매수 기록(포지션·주문·워치리스트) 전부 롤백 + 보상으로 차감 복원</b> —
+     * 잔액은 맞았지만 <b>진입 신호가 있었는데 매수가 완료되지 않았다.</b>
+     * (`DynamicBuyOuterWriteOrderingTest` 가 SQL 순서로 관측, 2026-09-26.)
+     *
+     * <p><b>무엇이 달라지는가</b>: 이 메서드는 {@code balanceUpdater.apply} 를 쓰므로 변경이
+     * <b>새 트랜잭션의 자체 컨텍스트에서 재조회한 엔티티</b>에 적용된다 — 바깥의 관리 엔티티를
+     * 건드리지 않아 <b>바깥은 이 행을 쓰지 않는다</b>. 낙관적 락 재시도도 그대로 얻는다.
+     *
+     * <p>⚠️ <b>의미 변화를 적어 둔다</b>: 워치리스트 기록은 이제 호출자 트랜잭션과 <b>독립적으로
+     * 커밋</b>된다. 따라서 그 틱이 나중에 실패해도 갱신된 워치리스트는 남는다. 이 필드는
+     * 화면·감사용 기록이므로(원래 주석) 남는 편이 무해하다고 판단했다 — 매매 판단에 쓰이는
+     * 잔액·포지션과 성격이 다르다.
+     *
+     * <p>🔴 <b>이 수정은 운영에서 관측한 장기 잠금 사고의 원인을 해결하지 않는다.</b>
+     * 잠금 대기 가설은 test B 에서 지지되지 않았고, 그 추적은 따로 남아 있다.
+     * 여기서 고치는 것은 <b>재현된 버전 충돌로 정상 매수가 유실되는 것</b>뿐이다.
+     */
+    public void persistWatchlist(Long sessionId, String watchlistJson) {
+        try {
+            balanceUpdater.apply(sessionId, s -> {
+                s.setWatchlistJson(watchlistJson);
+                s.setWatchlistRefreshedAt(Instant.now());
+            });
+        } catch (Exception e) {
+            log.warn("[Dynamic] 워치리스트 저장 실패 (sessionId={}): {}", sessionId, e.getMessage());
+        }
+    }
+
+    /**
      * 이 세션에서 해당 코인의 가장 최근 청산이 손실이고, 청산 후 {@code cooldownMinutes}가
      * 지나지 않았으면 true — SCANNING 재진입을 차단한다 (라이브 191 반복 손절 패턴 방지).
      */
@@ -1796,12 +1834,9 @@ public class DynamicTradingService {
                 criteria);
 
         try {
-            DynamicSessionEntity toUpdate = getOrThrow(session.getId());
-            toUpdate.setWatchlistJson(objectMapper.writeValueAsString(fresh));
-            toUpdate.setWatchlistRefreshedAt(Instant.now());
-            dynamicSessionRepo.save(toUpdate);
+            persistWatchlist(session.getId(), objectMapper.writeValueAsString(fresh));
         } catch (Exception e) {
-            log.warn("[Dynamic] 워치리스트 저장 실패: {}", e.getMessage());
+            log.warn("[Dynamic] 워치리스트 지롌화 실패: {}", e.getMessage());
         }
 
         return fresh;
@@ -1837,14 +1872,7 @@ public class DynamicTradingService {
             return fresh;
         }
         if (!freshJson.equals(session.getWatchlistJson())) {
-            try {
-                DynamicSessionEntity toUpdate = getOrThrow(session.getId());
-                toUpdate.setWatchlistJson(freshJson);
-                toUpdate.setWatchlistRefreshedAt(Instant.now());
-                dynamicSessionRepo.save(toUpdate);
-            } catch (Exception e) {
-                log.warn("[Dynamic] 워치리스트 저장 실패: {}", e.getMessage());
-            }
+            persistWatchlist(session.getId(), freshJson);
         }
         return fresh;
     }
