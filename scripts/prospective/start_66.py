@@ -806,19 +806,40 @@ def cmd_lockprobe(action):
                    "why": "lock_timeout 시험용 통제 경로. 실거래·22코인과 겹치지 않는 코인."},
                   fh, ensure_ascii=False, indent=1)
     print("세션 %s 생성 — 이 코인이 동기화 대상에 들어간다" % sid)
-    print("\n동기화가 이 코인의 H1 행을 만들 때까지 기다린다 (최대 5분)")
-    for _ in range(30):
+    # 🔴 "행이 있다"로는 부족하다 — 2026-09-28 실측: count>0 이 **이미 있던 낡은 행**
+    #    (to=2026-09-15)으로 충족됐다. 그 행은 동기화가 갱신하는 대상이 아닐 수 있다.
+    #    syncPair 는 lastStored − GAP_SYNC_OVERLAP_CANDLES(5) 부터 다시 받아 upsert 하므로
+    #    **최근 5봉이 매 회차 갱신된다.** 따라서 잠글 행은 동기화가 따라잡은 뒤의 최신 행이어야
+    #    한다. 두 조건을 모두 본다: ① 이 코인의 수집 로그가 보이는가 ② 캐시 to 가 최근인가.
+    print("")
+    print("동기화가 이 코인을 **따라잡을 때까지** 기다린다 (최대 8분)")
+    print("   조건 ① 이 코인의 `캔들 수집 완료` 로그  ② 캐시 to 가 최근")
+    for _ in range(48):
         time.sleep(10)
+        collected = False
+        for e in (server_logs("캔들 수집 완료") or []):
+            m = RE_COLLECT.search(e.get("message", ""))
+            if m and m.group(1) == pick and m.group(2) == TIMEFRAME:
+                collected = True
+                break
         st, body = call("GET", "/api/v1/settings/upbit/status")
         rows = {(r["coinPair"], r["timeframe"]): r
                 for r in ((body or {}).get("data", {}) or {}).get("candleSummary", [])}
         r = rows.get((pick, TIMEFRAME))
-        if r and int(r["count"]) > 0:
-            print("✔ %s %s %s건 (to=%s)" % (pick, TIMEFRAME, r["count"], r.get("to")))
+        to_recent = False
+        if r and r.get("to"):
+            try:
+                t_last = datetime.fromisoformat(r["to"].replace("Z", "")).replace(tzinfo=timezone.utc)
+                to_recent = (datetime.now(timezone.utc) - t_last).total_seconds() / 60 <= 150
+            except ValueError:
+                pass
+        print("   수집로그=%s / to=%s / 최근=%s" % (collected, (r or {}).get("to"), to_recent))
+        if collected and to_recent:
+            print("✔ 따라잡았다 — %s %s %s건 (to=%s)" % (pick, TIMEFRAME, r["count"], r["to"]))
             break
-        print("   대기 중...")
     else:
-        print("🔴 5분 안에 적재되지 않았다 — 시험 전에 원인을 본다.")
+        print("🔴 8분 안에 따라잡지 못했다. 이 상태로 잠그면 **동기화가 그 행을 갱신하지 않을 수")
+        print("   있어** 시험이 성립하지 않는다. 원인을 먼저 본다.")
         return 1
 
     print("\n" + "=" * 70)
@@ -834,6 +855,10 @@ UPDATE market_data_cache SET close = close
     print("그리고 백엔드 로그에서:")
     print("  docker compose -f docker-compose.prod.yml logs -f --since 2m backend \\")
     print("    | grep -E '시장 데이터 동기화 실패|lock timeout|canceling statement|캔들 수집 완료'")
+    print("")
+    print("🔴 이 행이 시험 대상인 이유: syncPair 는 lastStored 에서 5봉 겹쳐 다시")
+    print("   받아 upsert 하므로 **최신 행이 매 회차 갱신된다.** 낡은 행을 잠그면")
+    print("   동기화가 그 행을 건드리지 않아 시험이 성립하지 않는다.")
     print("\n판정: ~10초 뒤 잠금 제한 실패가 나오고, ROLLBACK 뒤 다음 회차가 이 코인을")
     print("      정상 수집하면 통과다. 🔴 통과해도 '모든 종류의 장기 정지를 막았다'는 뜻은 아니다.")
     print("치우기: python start_66.py lockprobe stop")
