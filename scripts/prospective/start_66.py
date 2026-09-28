@@ -17,6 +17,8 @@
     python start_66.py verify [--wait 초]         T0 일치·T0 이전 주문 0건 검증 (기본 300초까지 기다린다)
     python start_66.py abort                     66세션 **정지만** 한다 (🔴 삭제하지 않는다 — DB 기록 보존)
     python start_66.py lockprobe start|stop      잠금 제한 시험용 통제 경로 (실거래·22코인 미사용 코인)
+    python start_66.py prep start|stop           준비 점검용 세션으로 22코인 동기화 유지 (🔴 검증 집계 제외)
+    python start_66.py freshness [--save]        코인별 최신 봉·지연·전진 확인 (적재 정지 조기 탐지)
     python start_66.py arm-gate enable        팔 B 를 검증 기간 한정 재활성화 (토글 주의 — 먼저 읽은 뒤에 바꾼다)
     python start_66.py arm-gate restore       검증 종료 후 원래 상태로 되돌린다
 """
@@ -865,6 +867,206 @@ UPDATE market_data_cache SET close = close
     return 0
 
 
+PREP = os.path.join(_HERE, "prep_sessions.json")
+FRESH = os.path.join(_HERE, "freshness_snap.json")
+
+
+def cmd_prep(action):
+    """준비 점검용 세션 — **22코인을 동기화 대상으로 유지**한다 (2026-09-28).
+
+    🔴 왜 필요한가: 동기화 대상은 **RUNNING 세션의 코인**으로 정해진다
+    (`MarketDataSyncService.syncMarketData`). 66세션을 정지한 지금 22코인은 수집되지 않는다.
+    따라서 "세션 없이 적재 지속성만 며칠 관찰"하는 것은 불가능하다.
+
+    🔴 이 세션은 검증 대상이 아니다. 사전 기준(§4 가)의 분모는 66이며 여기서 만드는
+    세션은 거기에 들어가지 않는다. 지켜야 할 것은 **그 성과를 보고 코인·전략·기준을
+    조정하지 않는 것**이다 — 세션 ID 를 파일에 남겨 검증 집계에서 제외한다.
+
+    ⚠️ 팔은 OFF 하나만 쓴다. 세 팔을 다 돌리면 준비 점검이 검증의 예비 실행처럼 되어
+       '결과를 먼저 본 뒤 기준을 고치는' 경로가 열린다. 적재 관찰에는 코인당 한 세션이면 된다.
+    """
+    need_env()
+
+    if action == "stop":
+        if not os.path.exists(PREP):
+            print("%s 가 없다 — 치울 것이 없다." % os.path.basename(PREP))
+            return 0
+        d = json.load(open(PREP, encoding="utf-8"))
+        ids = d["sessionIds"]
+        print("준비 점검용 세션 %d개를 정지한다 — 🔴 삭제하지 않는다(기록 보존)" % len(ids))
+        print("   %s" % " ".join(str(i) for i in ids))
+        ok = fail = 0
+        for sid in ids:
+            st, _ = call("POST", "/api/v1/paper-trading/sessions/%s/stop" % sid)
+            if st == 200:
+                ok += 1
+            else:
+                fail += 1
+                print("   x %s HTTP %s" % (sid, st))
+        d["stoppedAt"] = datetime.now(timezone.utc).isoformat()
+        with open(PREP, "w", encoding="utf-8") as fh:
+            json.dump(d, fh, ensure_ascii=False, indent=1)
+        print("정지 %d / 실패 %d" % (ok, fail))
+        print("🔴 이 시점부터 22코인은 다시 동기화 대상이 아니다 — 새 T0 는 곧바로 이어서 잡는다.")
+        return 0 if fail == 0 else 1
+
+    if os.path.exists(PREP):
+        d = json.load(open(PREP, encoding="utf-8"))
+        if not d.get("stoppedAt"):
+            print("🔴 이미 준비 점검용 세션이 있다 (%d개). 먼저 `prep stop` 을 돌린다."
+                  % len(d["sessionIds"]))
+            return 1
+
+    made, failed = [], []
+    for c in COINS:
+        pair = "KRW-" + c
+        st, body = call("POST", "/api/v1/paper-trading/sessions", {
+            "strategyType": ARMS["OFF"], "coinPair": pair,
+            "timeframe": TIMEFRAME, "initialCapital": CAPITAL})
+        if st == 200:
+            made.append({"sessionId": sid_of(body["data"]), "coinPair": pair})
+        else:
+            failed.append((pair, st, str(body)[:120]))
+    with open(PREP, "w", encoding="utf-8") as fh:
+        json.dump({"sessionIds": [m["sessionId"] for m in made], "sessions": made,
+                   "createdAt": datetime.now(timezone.utc).isoformat(),
+                   "why": "22코인 적재 지속성 확인용. 🔴 전향 검증 집계에서 제외한다 "
+                          "(§4 가 의 분모 66 에 들어가지 않는다)."},
+                  fh, ensure_ascii=False, indent=1)
+    print("준비 점검용 세션 %d/%d 생성 — 기록: %s" % (len(made), len(COINS), os.path.basename(PREP)))
+    for pair, st, msg in failed:
+        print("   x %s HTTP %s %s" % (pair, st, msg))
+    if failed:
+        print("🔴 일부 코인이 생성되지 않았다 — 그 코인은 수집되지 않으므로 적재 관찰에서도 빠진다.")
+    print("")
+    print("다음: `freshness --save` 로 기준 스냅샷을 찍고, 한 시간 이상 뒤 `freshness` 로 전진을 본다.")
+    return 0 if not failed else 1
+
+
+def _expected_bar(now):
+    """H1 에서 캐시 최신 행이 가리켜야 할 봉 — **형성 중인 현재 봉**의 시작 시각.
+
+    syncPair 는 lastStored 에서 5봉 겹쳐 다시 받으므로 형성 중 봉도 매 회차 upsert 된다
+    (2026-09-28 실측: 02:11 UTC 에 to=02:00 UTC). 따라서 정상 상태의 `to` 는 현재 시각을
+    시 단위로 내린 값이다.
+    """
+    return now.replace(minute=0, second=0, microsecond=0)
+
+
+def cmd_freshness(save=False):
+    """코인별 **적재 신선도와 전진**을 본다 (2026-09-28 신설).
+
+    🔴 왜 `verify` 의 캔들 부족 집계로는 부족한가: 이미 499봉이 있으면 **갱신이 멈춰도**
+    한동안 워밍업 기준(100봉)을 통과한다. 즉 부족 집계는 정지를 조기에 보여주지 않는다.
+    그래서 세 가지를 따로 본다.
+      ① 최신 행이 가리키는 봉 시각 (`to`)
+      ② 현재 시각과의 지연 — 형성 중 봉을 받고 있으면 60분 미만이다
+      ③ 지난 스냅샷 대비 **전진** — 경과 시간만큼 봉이 늘었는가
+
+    ⚠️ ③ 이 이 도구의 핵심이다. ①② 만으로는 **같은 시간 안에서는 정지를 구별할 수 없다**
+       (H1 은 한 시간에 한 봉이므로 정상인 코인도 같은 봉 안에서는 `to` 가 그대로다).
+    🔴 `to` 전진은 **DB 에 커밋됐다는 증거**다 — `캔들 수집 완료` 는 REST 응답 로그일 뿐이며,
+       2026-09-28 잠금 시험에서 그 로그가 찍힌 회차의 쓰기가 전부 롤백된 것을 관측했다.
+    """
+    need_env()
+    st, body = call("GET", "/api/v1/settings/upbit/status")
+    if st != 200:
+        print("x 캔들 현황을 읽지 못했다 (HTTP %s)." % st)
+        return 1
+    data = (body or {}).get("data", {}) or {}
+    rows = {}
+    for r in data.get("candleSummary", []):
+        if r.get("timeframe") == TIMEFRAME:
+            rows[r["coinPair"]] = r
+
+    now = datetime.now(timezone.utc)
+    exp = _expected_bar(now)
+    old = None
+    elapsed_h = None
+    if os.path.exists(FRESH):
+        old = json.load(open(FRESH, encoding="utf-8"))
+        t_old = datetime.fromisoformat(old["at"])
+        elapsed_h = (now - t_old).total_seconds() / 3600.0
+        print("기준 스냅샷 %s (%.1f시간 전) 과 비교한다" % (old["at"], elapsed_h))
+    else:
+        print("기준 스냅샷이 없다 — 이번 실행은 ①② 만 판정한다. (`--save` 로 기준을 남긴다)")
+    print("기대 최신 봉(형성 중): %s\n" % exp.isoformat())
+
+    def parse(s):
+        if not s:
+            return None
+        try:
+            return datetime.fromisoformat(s.replace("Z", "+00:00"))
+        except ValueError:
+            return None
+
+    print("%-12s %-22s %7s %6s %s" % ("코인", "최신 봉(to)", "지연분", "봉수", "판정"))
+    print("-" * 76)
+    stalled, lagging, ok, missing, undetermined = [], [], [], [], []
+    snap = {}
+    for c in COINS:
+        pair = "KRW-" + c
+        r = rows.get(pair)
+        if not r:
+            print("%-12s %-22s %7s %6s %s" % (pair, "-", "-", "-", "🔴 캐시에 없다"))
+            missing.append(pair)
+            continue
+        t_to = parse(r.get("to"))
+        cnt = r.get("count")
+        snap[pair] = {"to": r.get("to"), "count": cnt}
+        lag = (now - t_to).total_seconds() / 60.0 if t_to else None
+        verdict = "🟢"
+        if t_to is None:
+            verdict = "🔴 to 없음"
+            missing.append(pair)
+        elif lag > 150:
+            verdict = "🔴 정지 의심 (지연 %.0f분)" % lag
+            stalled.append(pair)
+        elif lag > 90:
+            verdict = "🟡 지연"
+            lagging.append(pair)
+        # ③ 전진 — 기준 스냅샷이 있고 한 시간 이상 지났을 때만 판정한다.
+        if old and pair in old.get("rows", {}):
+            t_prev = parse(old["rows"][pair].get("to"))
+            if elapsed_h < 1.0:
+                verdict += " / 전진 판정불가(경과 %.1fh)" % elapsed_h
+                undetermined.append(pair)
+            elif t_prev and t_to:
+                gained = (t_to - t_prev).total_seconds() / 3600.0
+                want = int(elapsed_h)          # 경과 시간(시) 만큼은 늘어야 한다
+                if gained + 0.01 < want:
+                    verdict = "🔴 전진 부족 %.0f봉 < %d봉" % (gained, want)
+                    if pair not in stalled:
+                        stalled.append(pair)
+                else:
+                    verdict += " / 전진 %.0f봉" % gained
+        if verdict.startswith("🟢"):
+            ok.append(pair)
+        print("%-12s %-22s %7s %6s %s"
+              % (pair, r.get("to") or "-",
+                 "%.0f" % lag if lag is not None else "-", cnt, verdict))
+
+    print("-" * 76)
+    print("🟢 정상 %d / 🟡 지연 %d / 🔴 정지·결측 %d"
+          % (len(ok), len(lagging), len(set(stalled)) + len(missing)))
+    if stalled or missing:
+        print("\n🔴 적재가 멈춘 코인이 있다 — 이 상태로 새 T0 를 잡으면 안 된다.")
+        print("   원인 갈래는 `diagnose` 로 본다(수집 실패 / 수신 없음 / 커밋 실패).")
+    if undetermined:
+        print("\n⚠️ 전진 판정불가 %d종 — 경과가 한 시간 미만이다. H1 은 한 시간에 한 봉이므로"
+              % len(undetermined))
+        print("   같은 봉 안에서는 정상인 코인도 `to` 가 그대로다. 한 시간 뒤 다시 본다.")
+    print("\n🔴 이 도구가 말하지 않는 것: `to` 전진은 **그 코인이 커밋됐다**는 증거지만,")
+    print("   봉 안의 값 갱신(형성 중 봉의 close·volume)까지 보지는 않는다. 값 수준 확인은")
+    print("   DB 를 직접 조회해야 한다(2026-09-28 잠금 시험 절차).")
+
+    if save:
+        with open(FRESH, "w", encoding="utf-8") as fh:
+            json.dump({"at": now.isoformat(), "rows": snap}, fh, ensure_ascii=False, indent=1)
+        print("\n기준 스냅샷 저장: %s (%d종)" % (os.path.basename(FRESH), len(snap)))
+    return 0 if not (stalled or missing) else 1
+
+
 def creation_order():
     """(코인, 팔) 생성 순서 — **코인마다 팔 순서를 한 칸씩 돌린다.**
 
@@ -1039,6 +1241,14 @@ def main():
             print("lockprobe start | lockprobe stop")
             return 2
         return cmd_lockprobe(a)
+    if c == "prep":
+        a = sys.argv[2] if len(sys.argv) > 2 else "start"
+        if a not in ("start", "stop"):
+            print("prep start | prep stop")
+            return 2
+        return cmd_prep(a)
+    if c == "freshness":
+        return cmd_freshness("--save" in sys.argv)
     if c == "arm-gate":
         t = sys.argv[2] if len(sys.argv) > 2 else "enable"
         if t not in ("enable", "restore"):
