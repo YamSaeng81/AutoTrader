@@ -18,7 +18,8 @@
     python start_66.py abort                     66세션 **정지만** 한다 (🔴 삭제하지 않는다 — DB 기록 보존)
     python start_66.py lockprobe start|stop      잠금 제한 시험용 통제 경로 (실거래·22코인 미사용 코인)
     python start_66.py prep start|stop           준비 점검용 세션으로 22코인 동기화 유지 (🔴 검증 집계 제외)
-    python start_66.py freshness [--save]        코인별 최신 봉·지연·전진 확인 (적재 정지 조기 탐지)
+    python start_66.py freshness [--save]        코인별 최신 봉·지연·이동 확인 + 72시간 연속 관찰 누적
+                                                 🔴 매시간 실행한다 — 시작·종료만 보면 중간 정지를 놓친다
     python start_66.py arm-gate enable        팔 B 를 검증 기간 한정 재활성화 (토글 주의 — 먼저 읽은 뒤에 바꾼다)
     python start_66.py arm-gate restore       검증 종료 후 원래 상태로 되돌린다
 """
@@ -953,25 +954,43 @@ def _expected_bar(now):
     return now.replace(minute=0, second=0, microsecond=0)
 
 
+FRESH_LOG = os.path.join(_HERE, "freshness_log.jsonl")
+STREAK = os.path.join(_HERE, "freshness_streak.json")
+REQUIRED_HOURS = 72          # 운영 준비 점검 기준 — 무중단 보장 기준이 아니다
+MAX_GAP_MIN = 90             # 이보다 벌어지면 그 구간은 **관측 누락**이다
+
+
 def cmd_freshness(save=False):
-    """코인별 **적재 신선도와 전진**을 본다 (2026-09-28 신설).
+    """코인별 **적재 신선도와 전진**을 보고, 72시간 연속 관찰을 누적한다 (2026-09-28).
 
     🔴 왜 `verify` 의 캔들 부족 집계로는 부족한가: 이미 499봉이 있으면 **갱신이 멈춰도**
     한동안 워밍업 기준(100봉)을 통과한다. 즉 부족 집계는 정지를 조기에 보여주지 않는다.
     그래서 세 가지를 따로 본다.
       ① 최신 행이 가리키는 봉 시각 (`to`)
       ② 현재 시각과의 지연 — 형성 중 봉을 받고 있으면 60분 미만이다
-      ③ 지난 스냅샷 대비 **전진** — 경과 시간만큼 봉이 늘었는가
+      ③ 지난 스냅샷 대비 **최신 봉 시각의 이동** — 경과한 시간만큼 앞으로 갔는가
 
-    ⚠️ ③ 이 이 도구의 핵심이다. ①② 만으로는 **같은 시간 안에서는 정지를 구별할 수 없다**
-       (H1 은 한 시간에 한 봉이므로 정상인 코인도 같은 봉 안에서는 `to` 가 그대로다).
-    🔴 `to` 전진은 **DB 에 커밋됐다는 증거**다 — `캔들 수집 완료` 는 REST 응답 로그일 뿐이며,
+    ⚠️ ③ 은 **전체 봉수 증가가 아니다.** 봉수는 과거 구간 백필로도 늘 수 있고, 반대로
+       보존 정책에 따라 줄 수도 있다. 적재가 살아 있는지는 **최신 봉이 앞으로 가는가**로
+       판단한다. 또 ①② 만으로는 같은 시간 안에서 정지를 구별할 수 없다 — H1 은 한 시간에
+       한 봉이므로 정상인 코인도 같은 봉 안에서는 `to` 가 그대로다.
+    🔴 `to` 이동은 **DB 에 커밋됐다는 증거**다 — `캔들 수집 완료` 는 REST 응답 로그일 뿐이며,
        2026-09-28 잠금 시험에서 그 로그가 찍힌 회차의 쓰기가 전부 롤백된 것을 관측했다.
+
+    연속 관찰 기준 (사전 고정):
+    기준은 "시작과 끝이 🟢" 이 아니라 **72시간 연속 관측에서 🔴 0건**이다. 그래서
+      · 매 실행 결과를 `freshness_log.jsonl` 에 **append 로 보존**한다
+        (기준 스냅샷 갱신과 별개다 — 스냅샷은 덮어써도 관측 기록은 남는다)
+      · 🔴 이 나오면 연속 구간을 **초기화**한다 (원인 확인·복구 후 다시 시작)
+      · 직전 실행과 90분(MAX_GAP_MIN) 넘게 벌어지면 그 구간은 **관측 누락**이고, 역시 초기화한다
+        — 보지 않은 시간을 통과로 셀 수 없다
     """
     need_env()
     st, body = call("GET", "/api/v1/settings/upbit/status")
     if st != 200:
         print("x 캔들 현황을 읽지 못했다 (HTTP %s)." % st)
+        # 🔴 읽지 못한 것도 관측 누락이다 — 연속 구간을 끊는다.
+        _streak_reset("캔들 현황 조회 실패 HTTP %s" % st)
         return 1
     data = (body or {}).get("data", {}) or {}
     rows = {}
@@ -985,8 +1004,7 @@ def cmd_freshness(save=False):
     elapsed_h = None
     if os.path.exists(FRESH):
         old = json.load(open(FRESH, encoding="utf-8"))
-        t_old = datetime.fromisoformat(old["at"])
-        elapsed_h = (now - t_old).total_seconds() / 3600.0
+        elapsed_h = (now - datetime.fromisoformat(old["at"])).total_seconds() / 3600.0
         print("기준 스냅샷 %s (%.1f시간 전) 과 비교한다" % (old["at"], elapsed_h))
     else:
         print("기준 스냅샷이 없다 — 이번 실행은 ①② 만 판정한다. (`--save` 로 기준을 남긴다)")
@@ -1002,14 +1020,14 @@ def cmd_freshness(save=False):
 
     print("%-12s %-22s %7s %6s %s" % ("코인", "최신 봉(to)", "지연분", "봉수", "판정"))
     print("-" * 76)
-    stalled, lagging, ok, missing, undetermined = [], [], [], [], []
+    red, lagging, ok, undetermined = [], [], [], []
     snap = {}
     for c in COINS:
         pair = "KRW-" + c
         r = rows.get(pair)
         if not r:
             print("%-12s %-22s %7s %6s %s" % (pair, "-", "-", "-", "🔴 캐시에 없다"))
-            missing.append(pair)
+            red.append(pair)
             continue
         t_to = parse(r.get("to"))
         cnt = r.get("count")
@@ -1018,28 +1036,28 @@ def cmd_freshness(save=False):
         verdict = "🟢"
         if t_to is None:
             verdict = "🔴 to 없음"
-            missing.append(pair)
+            red.append(pair)
         elif lag > 150:
             verdict = "🔴 정지 의심 (지연 %.0f분)" % lag
-            stalled.append(pair)
+            red.append(pair)
         elif lag > 90:
             verdict = "🟡 지연"
             lagging.append(pair)
-        # ③ 전진 — 기준 스냅샷이 있고 한 시간 이상 지났을 때만 판정한다.
+        # ③ 최신 봉 시각의 이동 — 경과가 한 시간 이상일 때만 판정한다.
         if old and pair in old.get("rows", {}):
             t_prev = parse(old["rows"][pair].get("to"))
             if elapsed_h < 1.0:
-                verdict += " / 전진 판정불가(경과 %.1fh)" % elapsed_h
+                verdict += " / 이동 판정불가(경과 %.1fh)" % elapsed_h
                 undetermined.append(pair)
             elif t_prev and t_to:
-                gained = (t_to - t_prev).total_seconds() / 3600.0
-                want = int(elapsed_h)          # 경과 시간(시) 만큼은 늘어야 한다
-                if gained + 0.01 < want:
-                    verdict = "🔴 전진 부족 %.0f봉 < %d봉" % (gained, want)
-                    if pair not in stalled:
-                        stalled.append(pair)
+                moved_h = (t_to - t_prev).total_seconds() / 3600.0
+                want = int(elapsed_h)
+                if moved_h + 0.01 < want:
+                    verdict = "🔴 최신 봉이 %.0f시간만 이동 (기대 %d시간)" % (moved_h, want)
+                    if pair not in red:
+                        red.append(pair)
                 else:
-                    verdict += " / 전진 %.0f봉" % gained
+                    verdict += " / 최신 봉 %+.0f시간 이동" % moved_h
         if verdict.startswith("🟢"):
             ok.append(pair)
         print("%-12s %-22s %7s %6s %s"
@@ -1047,25 +1065,84 @@ def cmd_freshness(save=False):
                  "%.0f" % lag if lag is not None else "-", cnt, verdict))
 
     print("-" * 76)
-    print("🟢 정상 %d / 🟡 지연 %d / 🔴 정지·결측 %d"
-          % (len(ok), len(lagging), len(set(stalled)) + len(missing)))
-    if stalled or missing:
-        print("\n🔴 적재가 멈춘 코인이 있다 — 이 상태로 새 T0 를 잡으면 안 된다.")
-        print("   원인 갈래는 `diagnose` 로 본다(수집 실패 / 수신 없음 / 커밋 실패).")
+    print("🟢 정상 %d / 🟡 지연 %d / 🔴 %d" % (len(ok), len(lagging), len(red)))
     if undetermined:
-        print("\n⚠️ 전진 판정불가 %d종 — 경과가 한 시간 미만이다. H1 은 한 시간에 한 봉이므로"
+        print("⚠️ 이동 판정불가 %d종 — 경과가 한 시간 미만이다 (H1 은 한 시간에 한 봉)."
               % len(undetermined))
-        print("   같은 봉 안에서는 정상인 코인도 `to` 가 그대로다. 한 시간 뒤 다시 본다.")
-    print("\n🔴 이 도구가 말하지 않는 것: `to` 전진은 **그 코인이 커밋됐다**는 증거지만,")
+
+    # ── 관측 기록 보존 + 연속 구간 판정 ──────────────────────────────────
+    entry = {"at": now.isoformat(), "green": len(ok), "yellow": len(lagging),
+             "red": len(red), "redCoins": red, "yellowCoins": lagging,
+             "undetermined": len(undetermined), "elapsedSinceBaselineH": elapsed_h}
+    with open(FRESH_LOG, "a", encoding="utf-8") as fh:
+        fh.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    _streak_update(now, red)
+
+    print("\n🔴 이 도구가 말하지 않는 것: `to` 이동은 **그 코인이 커밋됐다**는 증거지만,")
     print("   봉 안의 값 갱신(형성 중 봉의 close·volume)까지 보지는 않는다. 값 수준 확인은")
     print("   DB 를 직접 조회해야 한다(2026-09-28 잠금 시험 절차).")
+    print("🔴 72시간은 **운영 준비 점검 기준**이다 — 향후 무중단을 보장하는 기준이 아니다.")
 
     if save:
         with open(FRESH, "w", encoding="utf-8") as fh:
             json.dump({"at": now.isoformat(), "rows": snap}, fh, ensure_ascii=False, indent=1)
-        print("\n기준 스냅샷 저장: %s (%d종)" % (os.path.basename(FRESH), len(snap)))
-    return 0 if not (stalled or missing) else 1
+        print("\n기준 스냅샷 갱신: %s (%d종) — 관측 기록은 %s 에 누적된다"
+              % (os.path.basename(FRESH), len(snap), os.path.basename(FRESH_LOG)))
+    return 0 if not red else 1
 
+
+def _streak_reset(why):
+    """연속 구간을 끊는다 — 🔴 발생과 **관측 누락** 모두 여기로 온다."""
+    with open(STREAK, "w", encoding="utf-8") as fh:
+        json.dump({"startedAt": None, "lastAt": None, "brokenAt":
+                   datetime.now(timezone.utc).isoformat(), "reason": why},
+                  fh, ensure_ascii=False, indent=1)
+    print("\n🔴 연속 관찰 구간을 초기화했다 — %s" % why)
+    print("   원인 확인·복구 후 %d시간을 **처음부터** 다시 센다." % REQUIRED_HOURS)
+
+
+def _streak_update(now, red):
+    s = json.load(open(STREAK, encoding="utf-8")) if os.path.exists(STREAK) else {}
+    prev = s.get("lastAt")
+    # 🔴 연속 구간의 시작은 **22코인이 모두 준비된 첫 스냅샷**이다 (사용자 고정 기준).
+    #    연속 기록이 아직 없으면 그 스냅샷 시각을 시작점으로 쓰고, 그 시각과 이번 관측 사이의
+    #    간격도 누락 판정에 넣는다 — 시작점만 빌려오고 그 사이를 안 보면 같은 구멍이 남는다.
+    # 🔴 단, **초기화된 직후에는 시작점을 빌려오지 않는다.** 빌려오면 낡은 스냅샷 시각과의
+    #    간격이 늘 90분을 넘어 매 회차 다시 초기화되고, 연속 구간이 영원히 시작되지 않는다.
+    #    복구 후 첫 정상 관측이 새 시작점이다.
+    seed = None
+    if not prev and not s.get("brokenAt") and os.path.exists(FRESH):
+        try:
+            seed = json.load(open(FRESH, encoding="utf-8")).get("at")
+        except ValueError:
+            seed = None
+    if red:
+        _streak_reset("🔴 %d종: %s" % (len(red), " ".join(red[:6])))
+        return
+    ref = prev or seed
+    if ref:
+        gap = (now - datetime.fromisoformat(ref)).total_seconds() / 60.0
+        if gap > MAX_GAP_MIN:
+            # 🔴 보지 않은 시간을 통과로 셀 수 없다. 그 구간에 정지가 있었는지 알 수 없다.
+            _streak_reset("관측 누락 %.0f분 (허용 %d분) — 직전 관측 %s"
+                          % (gap, MAX_GAP_MIN, ref))
+            return
+    started = s.get("startedAt") or seed or now.isoformat()
+    with open(STREAK, "w", encoding="utf-8") as fh:
+        json.dump({"startedAt": started, "lastAt": now.isoformat()},
+                  fh, ensure_ascii=False, indent=1)
+    held = (now - datetime.fromisoformat(started)).total_seconds() / 3600.0
+    n = sum(1 for _ in open(FRESH_LOG, encoding="utf-8")) if os.path.exists(FRESH_LOG) else 0
+    bar = int(min(held / REQUIRED_HOURS, 1.0) * 30)
+    print("\n연속 관찰 %5.1fh / %dh  [%s%s]  관측 %d회 (시작 %s)"
+          % (held, REQUIRED_HOURS, "#" * bar, "." * (30 - bar), n, started))
+    if held >= REQUIRED_HOURS:
+        print("🟢 **72시간 연속 관측에서 🔴 0건** — 준비 점검 기준을 충족했다.")
+        print("   다음: `prep stop` → 새 T0 직전 `probe` 로 실제 조회 조건·최신성을 다시 확인 →")
+        print("   `create --after <epoch>` → `verify`")
+    else:
+        print("   남은 시간 %.1fh. 매시간 실행해야 한다 — 시작·종료만 보면 중간 정지를 놓친다."
+              % (REQUIRED_HOURS - held))
 
 def creation_order():
     """(코인, 팔) 생성 순서 — **코인마다 팔 순서를 한 칸씩 돌린다.**
