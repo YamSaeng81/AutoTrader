@@ -15,7 +15,8 @@
     python start_66.py probe                     세 팔 생성 가능 여부 + 틱 위상 (22코인 밖, 끝나면 삭제)
     python start_66.py create --after <epoch초>   다음 틱 직후에 66개 일괄 생성
     python start_66.py verify [--wait 초]         T0 일치·T0 이전 주문 0건 검증 (기본 300초까지 기다린다)
-    python start_66.py abort                      생성된 세션 전량 정지·삭제 (부분 보정 금지 규칙의 집행)
+    python start_66.py abort                     66세션 **정지만** 한다 (🔴 삭제하지 않는다 — DB 기록 보존)
+    python start_66.py lockprobe start|stop      잠금 제한 시험용 통제 경로 (실거래·22코인 미사용 코인)
     python start_66.py arm-gate enable        팔 B 를 검증 기간 한정 재활성화 (토글 주의 — 먼저 읽은 뒤에 바꾼다)
     python start_66.py arm-gate restore       검증 종료 후 원래 상태로 되돌린다
 """
@@ -667,39 +668,176 @@ def cmd_arm_gate(target):
 
 
 def cmd_abort():
-    """생성된 세션을 전량 정지·삭제한다 — §5 "부분 보정하지 않는다"의 집행.
+    """실패한 66세션을 **정지만** 한다 — 🔴 삭제하지 않는다 (2026-09-28 정정).
 
-    🔴 `preexisting_excluded.json` 의 기존 세션은 건드리지 않는다. 남의 표본이다.
+    ⚠️ **처음 구현은 stop 뒤에 `DELETE /history/{id}` 까지 했다. 그건 잘못이다 — 제거했다.**
+    준비 실패로 판정한 세션이라도 **실행 이력은 자료다.** `paper_order` · 포지션 ·
+    `strategy_log` 를 지우면 "그때 무엇이 일어났는지"를 다시 볼 수 없다.
+    `sessions_66.json` 과 사전 등록 문서는 **세션 ID 목록과 판단 근거**일 뿐이며
+    실행 이력 전체를 대신하지 못한다.
+
+    🔴 `preexisting_excluded.json` 의 기존 세션은 건드리지 않는다 — 남의 표본이다.
+    🔴 실거래·동적 세션은 이 명령이 아예 다루지 않는다(페이퍼 세션 엔드포인트만 쓴다).
+
+    정지 결과는 `stopped_66.json` 에 남긴다 — 무엇을 언제 멈췄는지의 기록이다.
     """
     need_env()
     if not os.path.exists(STATE):
-        print("%s 가 없다 — 지울 세션 목록이 없다." % STATE)
+        print("%s 가 없다 — 정지할 세션 목록이 없다." % STATE)
         return 0
     state = json.load(open(STATE, encoding="utf-8"))
     sessions = state.get("sessions", [])
     keep = {str(x.get("id")) for x in
             (json.load(open(BASELINE, encoding="utf-8")) if os.path.exists(BASELINE) else [])}
-    print("정지·삭제 대상 %d개 (기존 세션 %d개는 제외)" % (len(sessions), len(keep)))
-    ok = bad = 0
+
+    # 🔴 지정한 ID 만 건드린다는 것을 실행 전에 보여준다.
+    ids = [str(s.get("id")) for s in sessions if str(s.get("id")) not in keep]
+    print("정지 대상 %d개 (기존 세션 %d개 제외) — 🔴 삭제하지 않는다" % (len(ids), len(keep)))
+    print("   대상 ID: %s" % (" ".join(ids) if ids else "(없음)"))
+
+    stopped, failed, already = [], [], []
     for s in sessions:
         sid = str(s.get("id"))
         if sid in keep:
             print("   · %s 기존 세션 — 건드리지 않는다" % sid)
             continue
-        call("POST", "/api/v1/paper-trading/sessions/%s/stop" % sid)
-        st, body = call("DELETE", "/api/v1/paper-trading/history/%s" % sid)
+        st, body = call("POST", "/api/v1/paper-trading/sessions/%s/stop" % sid)
         if st == 200:
-            ok += 1
+            stopped.append(s)
         else:
-            bad += 1
-            print("   ✗ %s 삭제 실패 %s: %s" % (sid, st, body))
-    print("\n삭제 %d개 · 실패 %d개" % (ok, bad))
-    if bad == 0:
-        os.remove(STATE)
-        print("%s 삭제 — probe 부터 다시 시작한다." % os.path.basename(STATE))
+            txt = str(body)
+            # 이미 정지된 세션은 실패가 아니다 — 구분해서 보고한다.
+            if "RUNNING" in txt or "이미" in txt or st == 400:
+                already.append(sid)
+            else:
+                failed.append((sid, st, txt[:120]))
+
+    print("\n정지 %d개 · 이미 정지 %d개 · 실패 %d개" % (len(stopped), len(already), len(failed)))
+    for f in failed:
+        print("   ✗ %s: %s %s" % f)
+
+    rec = os.path.join(_HERE, "stopped_66.json")
+    with open(rec, "w", encoding="utf-8") as fh:
+        json.dump({"stoppedAt": datetime.now(timezone.utc).isoformat(),
+                   "why": "준비 실패로 판정한 66세션 — 정지만 한다. DB 기록(주문·포지션·"
+                          "strategy_log)은 보존한다. 사전 등록 문서 참조.",
+                   "stopped": [{"id": s.get("id"), "coin": s.get("coin"), "arm": s.get("arm")}
+                               for s in stopped],
+                   "alreadyStopped": already,
+                   "failed": [f[0] for f in failed]},
+                  fh, ensure_ascii=False, indent=1)
+    print("정지 기록 저장: %s" % rec)
+    print("🔴 `sessions_66.json` 을 지우지 않는다 — 어느 세션이 그 실행이었는지 남겨야 한다.")
+    print("   집계에서 제외하는 근거는 문서이고, 제외 대상 식별은 이 파일이다.")
+    return 0 if not failed else 1
+
+
+def cmd_lockprobe(action):
+    """잠금 제한 시험용 **통제된 실행 경로**를 만든다/치운다 (2026-09-28).
+
+    🔴 왜 별도 경로가 필요한가: 동기화 대상은 **RUNNING 세션의 코인**으로 정해진다
+    (`MarketDataSyncService.syncMarketData`). 66세션을 정지하면 22코인은 더 이상 수집되지
+    않으므로, 잠금 시험을 하려면 **그 시험만을 위한 세션**이 있어야 한다.
+
+    🔴 대상 코인 선정 기준 — 공유 테이블을 건드리는 시험이므로 영향을 좁힌다.
+      · 실거래·동적·기존 페이퍼 세션이 쓰는 코인을 **피한다** (그 행을 잠그면 실제 매매가 막힌다)
+      · 전향 검증 22코인도 **피한다** (그 기록을 오염시키지 않는다)
+      · 시세가 조회되는 살아 있는 종목이어야 한다
+    ⚠️ "ROLLBACK 하면 되돌려진다"는 이유만으로 영향이 없는 것이 아니다 — 잠금이 걸린 동안
+       그 행을 쓰는 작업은 **실제로 대기한다.**
+    """
+    need_env()
+    rec = os.path.join(_HERE, "lockprobe.json")
+
+    if action == "stop":
+        if not os.path.exists(rec):
+            print("%s 가 없다 — 치울 것이 없다." % os.path.basename(rec))
+            return 0
+        d = json.load(open(rec, encoding="utf-8"))
+        st, _ = call("POST", "/api/v1/paper-trading/sessions/%s/stop" % d["sessionId"])
+        print("잠금 시험 세션 %s 정지 (HTTP %s) — 🔴 삭제하지 않는다(기록 보존)" % (d["sessionId"], st))
+        return 0
+
+    # ── 사용 중인 코인 수집 ───────────────────────────────────────────────
+    used = set()
+    st, body = call("GET", "/api/v1/paper-trading/sessions")
+    for s in (body or {}).get("data", []) if st == 200 else []:
+        if s.get("status") == "RUNNING" and s.get("coinPair"):
+            used.add(s["coinPair"])
+    st, body = call("GET", "/api/v1/dynamic-sessions")
+    for s in (body or {}).get("data", []) if st == 200 else []:
+        if s.get("status") == "RUNNING" and s.get("currentCoinPair"):
+            used.add(s["currentCoinPair"])
+    used |= {"KRW-" + c for c in COINS}
+    # 동적 세션은 워치리스트로 코인을 옮겨 다니므로, 관측된 수집 대상도 함께 뺀다.
+    for e in server_logs("캔들 수집 완료") or []:
+        m = RE_COLLECT.search(e.get("message", ""))
+        if m:
+            used.add(m.group(1))
+    print("피할 코인 %d종 (RUNNING 세션·22코인·최근 수집 대상)" % len(used))
+
+    # ── 후보 선정 — 시세가 조회되는 살아 있는 종목 ────────────────────────
+    CANDIDATES = ["KRW-STORJ", "KRW-CVC", "KRW-MTL", "KRW-ARDR", "KRW-STEEM",
+                  "KRW-QTUM", "KRW-ZRX", "KRW-OMG", "KRW-SNT", "KRW-LSK"]
+    pick = None
+    for c in CANDIDATES:
+        if c in used:
+            continue
+        st, body = call("GET", "/api/v1/settings/upbit/ticker?markets=%s" % c)
+        rows = (body or {}).get("data") or [] if st == 200 else []
+        if rows and rows[0].get("trade_price"):
+            pick = c
+            break
+    if not pick:
+        print("🔴 쓸 수 있는 코인을 찾지 못했다. 후보 목록을 넓히거나 직접 지정한다.")
+        return 1
+    print("선정: %s — 실거래·동적·22코인과 겹치지 않는다" % pick)
+
+    st, body = call("POST", "/api/v1/paper-trading/sessions", {
+        "strategyType": ARMS["OFF"], "coinPair": pick,
+        "timeframe": TIMEFRAME, "initialCapital": CAPITAL})
+    if st != 200:
+        print("✗ 세션 생성 실패 %s: %s" % (st, body))
+        return 1
+    sid = sid_of(body["data"])
+    with open(rec, "w", encoding="utf-8") as fh:
+        json.dump({"sessionId": sid, "coinPair": pick,
+                   "createdAt": datetime.now(timezone.utc).isoformat(),
+                   "why": "lock_timeout 시험용 통제 경로. 실거래·22코인과 겹치지 않는 코인."},
+                  fh, ensure_ascii=False, indent=1)
+    print("세션 %s 생성 — 이 코인이 동기화 대상에 들어간다" % sid)
+    print("\n동기화가 이 코인의 H1 행을 만들 때까지 기다린다 (최대 5분)")
+    for _ in range(30):
+        time.sleep(10)
+        st, body = call("GET", "/api/v1/settings/upbit/status")
+        rows = {(r["coinPair"], r["timeframe"]): r
+                for r in ((body or {}).get("data", {}) or {}).get("candleSummary", [])}
+        r = rows.get((pick, TIMEFRAME))
+        if r and int(r["count"]) > 0:
+            print("✔ %s %s %s건 (to=%s)" % (pick, TIMEFRAME, r["count"], r.get("to")))
+            break
+        print("   대기 중...")
     else:
-        print("🔴 남은 세션이 있다. 목록 파일을 지우지 않았다 — 해결 후 abort 를 다시 돌린다.")
-    return 0 if bad == 0 else 1
+        print("🔴 5분 안에 적재되지 않았다 — 시험 전에 원인을 본다.")
+        return 1
+
+    print("\n" + "=" * 70)
+    print("다음: psql 에서 아래를 실행해 **그 코인의 최신 행**을 잠근다 (커밋하지 않는다)")
+    print("=" * 70)
+    print("""BEGIN;
+UPDATE market_data_cache SET close = close
+ WHERE coin_pair='%s' AND timeframe='%s'
+   AND time = (SELECT max(time) FROM market_data_cache
+                WHERE coin_pair='%s' AND timeframe='%s');
+-- 그대로 둔다. 확인이 끝나면 ROLLBACK;""" % (pick, TIMEFRAME, pick, TIMEFRAME))
+    print("=" * 70)
+    print("그리고 백엔드 로그에서:")
+    print("  docker compose -f docker-compose.prod.yml logs -f --since 2m backend \\")
+    print("    | grep -E '시장 데이터 동기화 실패|lock timeout|canceling statement|캔들 수집 완료'")
+    print("\n판정: ~10초 뒤 잠금 제한 실패가 나오고, ROLLBACK 뒤 다음 회차가 이 코인을")
+    print("      정상 수집하면 통과다. 🔴 통과해도 '모든 종류의 장기 정지를 막았다'는 뜻은 아니다.")
+    print("치우기: python start_66.py lockprobe stop")
+    return 0
 
 
 def creation_order():
@@ -870,6 +1008,12 @@ def main():
         return cmd_scheduler()
     if c == "abort":
         return cmd_abort()
+    if c == "lockprobe":
+        a = sys.argv[2] if len(sys.argv) > 2 else "start"
+        if a not in ("start", "stop"):
+            print("lockprobe start | lockprobe stop")
+            return 2
+        return cmd_lockprobe(a)
     if c == "arm-gate":
         t = sys.argv[2] if len(sys.argv) > 2 else "enable"
         if t not in ("enable", "restore"):
