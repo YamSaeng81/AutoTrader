@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -27,6 +28,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -87,6 +90,14 @@ class DynamicBuyCompletesConsistentlyTest extends IntegrationTestBase {
     /** 🔴 외부 주문 실행만 대역. 내부 서비스·트랜잭션 프록시는 실제 구성을 유지한다. */
     @MockBean
     private OrderExecutionEngine orderExecutionEngine;
+
+    /**
+     * 🔴 보상 <b>진입</b>을 계측하기 위한 스파이 — 대역이 아니라 실제 동작을 그대로 수행한다.
+     * 보상은 {@code afterCompletion(ROLLED_BACK)} 에서 {@code balanceUpdater.apply} 를 부르므로,
+     * 그 호출을 세면 <b>UPDATE 를 내기 전에 종료·실패한 경우도</b> 잡힌다.
+     */
+    @SpyBean
+    private DynamicSessionBalanceUpdater balanceUpdaterSpy;
 
     private Long newRealRunningSession() {
         return sessionRepo.saveAndFlush(DynamicSessionEntity.builder()
@@ -159,15 +170,20 @@ class DynamicBuyCompletesConsistentlyTest extends IntegrationTestBase {
                         + "그보다 작으면 중복 차감)", CAPITAL, expectedInvest)
                 .isEqualByComparingTo(CAPITAL.subtract(expectedInvest));
 
-        // 🔴 "정상 경로에서 보상이 필요하지 않다"를 **호출 횟수**로 확인한다.
-        //    보상은 세션 행을 한 번 더 UPDATE 한다. 정상 경로의 세션 UPDATE 는 두 번이어야 한다 —
-        //    persistWatchlist 1회 + 매수 차감 1회. 세 번째가 있으면 보상이 돈 것이다.
+        // 🔴 보상 **실행 경로를 직접 계측**한다. UPDATE 횟수는 직접 증거가 아니다 —
+        //    보상이 호출돼도 UPDATE 를 내기 전에 종료·실패할 수 있다.
+        //    보상은 afterCompletion(ROLLED_BACK) 에서 balanceUpdater.apply 를 부른다
+        //    (`registerBuyDeductionCompensation`). 그 **진입**을 세면 UPDATE 전에 실패해도 잡힌다.
+        //    정상 경로의 apply 는 두 번이어야 한다 — persistWatchlist 1 + 매수 차감 1.
+        //    ⚠️ 세션 ID 로 좁힌다. 이 컨텍스트에서는 스케줄러도 돌아 다른 세션의 apply 가 섞인다.
+        verify(balanceUpdaterSpy, times(2)).apply(eq(id), any());
+
+        // (보조 진단) 세션 UPDATE SQL 횟수 — 직접 증거는 위 계측이다.
         List<SqlTrace.Row> sessionUpdates = SqlTrace.rows().stream()
                 .filter(r -> r.isUpdateOf("dynamic_session") && r.phase() == SqlTrace.Phase.END)
                 .toList();
         assertThat(sessionUpdates)
-                .as("세션 UPDATE 는 워치리스트 1 + 차감 1 = 2회여야 한다. 3회 이상이면 보상이 돈 것이다."
-                        + "%n%s", SqlTrace.dump())
+                .as("(보조) 세션 UPDATE 는 워치리스트 1 + 차감 1 = 2회로 보인다.%n%s", SqlTrace.dump())
                 .hasSize(2);
 
         // ③ 포지션·세션 상태가 잔액과 함께 일관된다.
