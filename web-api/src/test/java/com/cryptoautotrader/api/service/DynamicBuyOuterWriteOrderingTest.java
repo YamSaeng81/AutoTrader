@@ -153,7 +153,8 @@ class DynamicBuyOuterWriteOrderingTest extends IntegrationTestBase {
         }
         SqlTrace.stop();
 
-        List<SqlTrace.Row> rows = SqlTrace.rows();
+        // 🔴 스레드로 좁힌다 — 전역 기록에는 스케줄러 문장이 섞여 인덱스가 밀린다.
+        List<SqlTrace.Row> rows = SqlTrace.rowsOfCurrentThread();
 
         // ① 같은 세션 행의 SQL 실행 순서 + 바깥·안쪽 연결 구분
         OptionalInt outerUpdateEnd = firstIndex(rows,

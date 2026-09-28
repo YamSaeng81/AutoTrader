@@ -87,6 +87,20 @@ public final class SqlTrace {
         return List.copyOf(ROWS);
     }
 
+    /**
+     * <b>현재 스레드가 낸 문장만</b> 돌려준다 — 🔴 2026-09-28 추가.
+     *
+     * <p><b>왜 필요한가</b>: 이 기록부는 전역이고 테스트 컨텍스트에는 스케줄러가 함께 돈다.
+     * 전체 회귀로 돌리면 다른 스레드(`scheduler-*`)의 문장이 섞여 <b>순서 인덱스가 밀린다</b> —
+     * 단독 실행에서는 통과하고 전체 실행에서는 실패하는 일이 실제로 있었다.
+     * 관심 경계(바깥 트랜잭션과 REQUIRES_NEW 안쪽)는 <b>같은 스레드에서 동기적으로</b>
+     * 실행되므로, 스레드로 좁히면 잡음을 제거하면서 관측 대상은 온전히 남는다.
+     */
+    public static List<Row> rowsOfCurrentThread() {
+        String me = Thread.currentThread().getName();
+        return ROWS.stream().filter(r -> me.equals(r.thread())).toList();
+    }
+
     static long record(Phase phase, String sql, List<String> params, int connTag,
                        Integer backendPid, String error) {
         if (!ON.get()) return -1;

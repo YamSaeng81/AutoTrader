@@ -9,7 +9,9 @@ import com.cryptoautotrader.strategy.StrategySignal;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -22,7 +24,9 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.timeout;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 /**
@@ -57,6 +61,15 @@ class DynamicBuyExternalSubmissionBoundaryTest extends IntegrationTestBase {
     @MockBean
     private UpbitOrderClient upbitOrderClient;
 
+    /**
+     * {@code submitOrder} 는 {@code @Async("orderExecutor")} 이고 이 실행기는 <b>코어 2 스레드</b>다.
+     * 🔴 병렬이므로 "정상분 호출이 도착했다"가 "롤백분 작업도 끝났다"를 뜻하지 않는다 —
+     * 이 실행기가 <b>비었음을 확인</b>한 뒤에 검사해야 한다.
+     */
+    @Autowired
+    @Qualifier("orderExecutor")
+    private ThreadPoolTaskExecutor orderExecutor;
+
     private Long newRealRunningSession() {
         return sessionRepo.saveAndFlush(DynamicSessionEntity.builder()
                 .strategyType("COMPOSITE_MOMENTUM_ICHIMOKU_V2").timeframe("H1")
@@ -84,13 +97,13 @@ class DynamicBuyExternalSubmissionBoundaryTest extends IntegrationTestBase {
     }
 
     /** @param rollback true 면 매수 뒤 트랜잭션을 롤백시킨다(틱 후반 실패를 대신한다). */
-    private Throwable runBuy(Long id, boolean rollback) {
+    private Throwable runBuy(Long id, String coinPair, boolean rollback) {
         StrategySignal buy = StrategySignal.buy(new BigDecimal("80"), "외부 경계 시험");
         try {
             new TransactionTemplate(txManager).execute(status -> {
                 DynamicSessionEntity s = sessionRepo.findById(id).orElseThrow();
-                dynamicTradingService.persistWatchlist(id, "[\"KRW-BTC\"]");
-                dynamicTradingService.executeBuy(s, "KRW-BTC", candles(), buy, BigDecimal.ONE);
+                dynamicTradingService.persistWatchlist(id, "[\"" + coinPair + "\"]");
+                dynamicTradingService.executeBuy(s, coinPair, candles(), buy, BigDecimal.ONE);
                 if (rollback) {
                     throw new IllegalStateException("틱 후반 실패를 대신한다");
                 }
@@ -103,29 +116,57 @@ class DynamicBuyExternalSubmissionBoundaryTest extends IntegrationTestBase {
     }
 
     @Test
-    @DisplayName("🔴 롤백 후 외부 제출 0회 · 커밋 후 1회 — 비동기 완료를 기다려 확인한다")
+    @DisplayName("🔴 롤백분 0회 · 정상분 1회 — 비동기 실행기가 빈 것을 확인한 뒤 식별자로 구분해 검사한다")
     void rollbackSubmitsNothingAndCommitSubmitsOnce() {
-        // ── 1) 롤백 시나리오 — 외부 제출이 있어서는 안 된다 ──
+        // 🔴 두 시나리오를 **다른 코인**으로 돌려 요청 식별자를 만든다.
+        //    같은 코인이면 호출을 구분할 수 없어 "총 1회"라는 약한 단정밖에 못 한다.
         Long rolledBack = newRealRunningSession();
-        Throwable failure = runBuy(rolledBack, true);
-        assertThat(failure)
+        assertThat(runBuy(rolledBack, "KRW-ETH", true))
                 .as("이 시나리오는 롤백돼야 한다 — 롤백되지 않으면 0회 검사의 전제가 무너진다")
                 .isNotNull();
 
-        // ── 2) 정상 시나리오 — 이 외부 호출을 기다린다(비동기 진행의 증거) ──
         Long committed = newRealRunningSession();
-        assertThat(runBuy(committed, false))
+        assertThat(runBuy(committed, "KRW-BTC", false))
                 .as("정상 시나리오는 커밋돼야 한다")
                 .isNull();
 
-        // 🔴 총 호출이 1회 — 기다려서 확인한다. 정상분이 도착했는데 총 1회라면 롤백분은 0회다.
-        verify(upbitOrderClient, timeout(10_000).times(1))
-                .createOrder(anyString(), anyString(), any(), any(), anyString());
+        // 🔴 제출된 비동기 작업이 **모두 끝났음**을 확인한다. 고정 대기를 늘리는 대신
+        //    실행기가 비었는지를 본다 — 활성 0 + 큐 비어 있음이 연속으로 관측될 때까지.
+        awaitOrderExecutorDrained();
 
-        // 롤백된 세션은 잔액이 복원되고 포지션도 남지 않는다(기존 보상 경로).
+        // 이제 식별자로 구분해 검사한다.
+        verify(upbitOrderClient, never())
+                .createOrder(eq("KRW-ETH"), anyString(), any(), any(), anyString());
+        verify(upbitOrderClient, times(1))
+                .createOrder(eq("KRW-BTC"), anyString(), any(), any(), anyString());
+
         DynamicSessionEntity rb = sessionRepo.findById(rolledBack).orElseThrow();
         assertThat(rb.getAvailableKrw())
                 .as("롤백 시나리오는 보상으로 초기 잔액이 복원된다")
                 .isEqualByComparingTo(CAPITAL);
+    }
+
+    /**
+     * {@code orderExecutor} 가 빌 때까지 기다린다 — 활성 0 · 큐 비어 있음이 <b>연속 3회</b>
+     * 관측되면 제출된 작업이 모두 끝난 것으로 본다(제출 자체가 이 테스트 안에서만 일어난다).
+     * ⚠️ 이 컨텍스트에는 스케줄러도 있으므로 다른 작업이 섞일 수 있다 — 그래서 위 검사는
+     * <b>코인으로 구분</b>한다.
+     */
+    private void awaitOrderExecutorDrained() {
+        long deadline = System.currentTimeMillis() + 20_000;
+        int quiet = 0;
+        while (System.currentTimeMillis() < deadline) {
+            boolean idle = orderExecutor.getActiveCount() == 0
+                    && orderExecutor.getThreadPoolExecutor().getQueue().isEmpty();
+            quiet = idle ? quiet + 1 : 0;
+            if (quiet >= 3) return;
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+        }
+        throw new AssertionError("orderExecutor 가 20초 안에 비지 않았다 — 0회 검사를 신뢰할 수 없다");
     }
 }

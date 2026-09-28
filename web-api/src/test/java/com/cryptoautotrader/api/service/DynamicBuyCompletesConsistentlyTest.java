@@ -176,10 +176,14 @@ class DynamicBuyCompletesConsistentlyTest extends IntegrationTestBase {
         //    (`registerBuyDeductionCompensation`). 그 **진입**을 세면 UPDATE 전에 실패해도 잡힌다.
         //    정상 경로의 apply 는 두 번이어야 한다 — persistWatchlist 1 + 매수 차감 1.
         //    ⚠️ 세션 ID 로 좁힌다. 이 컨텍스트에서는 스케줄러도 돌아 다른 세션의 apply 가 섞인다.
+        // 🔴 직접 관측한 사실은 "이 세션의 updater 진입 총 2회" 다.
+        //    그것을 "워치리스트 1 + 차감 1" 로 읽는 것은 두 호출이 각각 일어난다는
+        //    전제 아래에서만 유효하다(워치리스트는 아래 ④ 가, 차감은 위 ② 가 각각 단정한다).
+        //    어느 호출이 진입했는지를 이 숫자 하나로 구분하지 않는다.
         verify(balanceUpdaterSpy, times(2)).apply(eq(id), any());
 
         // (보조 진단) 세션 UPDATE SQL 횟수 — 직접 증거는 위 계측이다.
-        List<SqlTrace.Row> sessionUpdates = SqlTrace.rows().stream()
+        List<SqlTrace.Row> sessionUpdates = SqlTrace.rowsOfCurrentThread().stream()
                 .filter(r -> r.isUpdateOf("dynamic_session") && r.phase() == SqlTrace.Phase.END)
                 .toList();
         assertThat(sessionUpdates)
@@ -214,7 +218,8 @@ class DynamicBuyCompletesConsistentlyTest extends IntegrationTestBase {
 
         // ⑥ 생산 불변식 — 바깥 트랜잭션은 세션 행을 쓰지 않는다.
         //    🔴 이것이 깨지면 버전 충돌 경로가 되살아난다 (그 결과는 test B 가 기록해 둔다).
-        List<SqlTrace.Row> rows = SqlTrace.rows();
+        // 🔴 스레드로 좁힌다 — 전역 기록에는 스케줄러 문장이 섞여 인덱스가 밀린다.
+        List<SqlTrace.Row> rows = SqlTrace.rowsOfCurrentThread();
         int outerConn = rows.isEmpty() ? -1 : rows.get(0).connTag();
         assertThat(rows.stream()
                 .filter(r -> r.isUpdateOf("dynamic_session") && r.connTag() == outerConn)
