@@ -50,6 +50,7 @@ public class MarketDataSyncService {
     private static final int SYNC_CANDLE_COUNT = 520;
 
     private final VirtualBalanceRepository balanceRepo;
+    private final MarketDataUpsertService upsertService;
     private final MarketDataCacheRepository marketDataCacheRepo;
     private final LiveTradingSessionRepository liveTradingSessionRepository;
 
@@ -61,8 +62,20 @@ public class MarketDataSyncService {
      * 60초마다 실행. PaperTradingService.runStrategy() 보다
      * initialDelay 만큼 먼저 실행되어 데이터를 준비한다.
      */
+    /**
+     * 🔴 2026-09-28: {@code @Transactional} 을 **떼어냈다.**
+     *
+     * <p>종전에는 이 메서드 하나가 트랜잭션이라 (1) REST 호출과 rate-limit sleep 이 트랜잭션
+     * 안에서 일어나 그 구간 내내 행 잠금·커넥션을 붙잡았고, (2) UPDATE 가 커밋 시점 flush 에
+     * 몰려 한 행의 잠금 대기가 아래 per-pair try/catch 를 지나쳐 **그 회차의 모든 코인 쓰기를
+     * 함께 롤백**시켰다(2026-09-28 잠금 시험에서 관측 — 실패가 syncPair 의 catch 가 아니라
+     * SchedulerConfig errorHandler 에 잡혔다).
+     *
+     * <p>이제 저장만 {@link MarketDataUpsertService#upsert} 가 **코인별 짧은 트랜잭션**으로
+     * 처리하므로, 커밋 실패도 코인 단위로 잡히고 다음 코인으로 진행한다.
+     * 세션 목록 조회는 읽기뿐이라 트랜잭션이 필요하지 않다.
+     */
     @Scheduled(fixedDelay = 60_000)
-    @Transactional
     public void syncMarketData() {
         // RUNNING 세션에서 고유 (coinPair:timeframe) 추출 — 모의투자 + 실전매매 모두 포함
         List<String[]> rawPairs = new ArrayList<>();
@@ -121,6 +134,9 @@ public class MarketDataSyncService {
             }
         }
 
+        // ── 수집: 트랜잭션 밖 ────────────────────────────────────────────────
+        //    REST 호출과 rate-limit sleep 이 트랜잭션 안에 있으면 그 구간 내내 잠금·커넥션을
+        //    붙잡는다. 이 메서드는 이제 트랜잭션이 아니다.
         UpbitCandleCollector collector = new UpbitCandleCollector(upbitRestClient);
         List<Candle> candles = collector.fetchCandles(coinPair, timeframe, from, to);
 
@@ -129,8 +145,11 @@ public class MarketDataSyncService {
             return;
         }
 
-        // JPA merge: 동일 PK(time+coinPair+timeframe) 존재 시 UPDATE, 없으면 INSERT
-        marketDataCacheRepo.saveAll(toEntities(candles, coinPair, timeframe));
+        // ── 저장: 이 코인만의 짧은 트랜잭션 ─────────────────────────────────
+        //    별도 빈(프록시)을 거치므로 커밋이 이 호출에서 끝난다 → 커밋 실패도 호출자의
+        //    per-pair catch 가 포착하고 다음 코인으로 진행한다.
+        //    JPA merge: 동일 PK(time+coinPair+timeframe) 존재 시 UPDATE, 없으면 INSERT.
+        upsertService.upsert(coinPair, timeframe, toEntities(candles, coinPair, timeframe));
         log.debug("시장 데이터 동기화 완료: {} {} {}건", coinPair, timeframe, candles.size());
     }
 
