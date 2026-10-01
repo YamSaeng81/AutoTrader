@@ -19,6 +19,8 @@
     python start_66.py lockprobe start|stop      잠금 제한 시험용 통제 경로 (실거래·22코인 미사용 코인)
     python start_66.py prep start|stop           준비 점검용 세션으로 22코인 동기화 유지 (🔴 검증 집계 제외)
     python start_66.py freshness [--save]        코인별 최신 봉·지연·이동 확인 + 72시간 연속 관찰 누적
+    python start_66.py alerts [--days N|--since ISO] [--no-mark]
+                                                 🔴 **지난 확인 이후 전체**의 경보·실행 누락 (일일 감시용 — tail 로는 중간 🔴 이 가려진다)
                                                  🔴 매시간 실행한다 — 시작·종료만 보면 중간 정지를 놓친다
     python start_66.py arm-gate enable        팔 B 를 검증 기간 한정 재활성화 (토글 주의 — 먼저 읽은 뒤에 바꾼다)
     python start_66.py arm-gate restore       검증 종료 후 원래 상태로 되돌린다
@@ -1180,6 +1182,111 @@ def cmd_freshness(save=False):
     return 0 if not (red or unknown) else 1
 
 
+ALERTS_MARK = os.path.join(_HERE, "alerts_last_check.json")
+
+
+def cmd_alerts(since=None, days=None, mark=True):
+    """**지난 확인 이후의 모든 경보와 실행 누락**을 훑는다 (2026-10-01 신설).
+
+    🔴 왜 `tail` 로는 안 되는가: 마지막 줄 몇 개는 **현재 상태**만 보여준다. 중간에 난 🔴 이
+    뒤의 정상 출력에 가려져 하루치 감시가 되지 않는다. 매시간 기록(`freshness_log.jsonl`)은
+    그대로 유지하고, 일일 확인은 **지난 확인 시점 이후 전 구간**을 대상으로 한다.
+
+    보는 것 셋:
+      ① 🔴 (적재가 거래소보다 뒤처짐) — 경보다. 확정이 아니다
+      ② ⚪ (거래소 조회 실패로 판정 불가) — 보지 못한 구간이다
+      ③ **실행 누락** — 매시간 돌아야 하는데 90분(MAX_GAP_MIN) 넘게 벌어진 구간
+
+    기준 시각은 `alerts_last_check.json` 에 남긴다(`--no-mark` 로 갱신하지 않는다).
+    `--days N` 이나 `--since <ISO>` 로 직접 지정할 수 있다.
+    """
+    if not os.path.exists(FRESH_LOG):
+        print("%s 가 없다 — 관측 기록이 없다." % os.path.basename(FRESH_LOG))
+        return 1
+
+    now = datetime.now(timezone.utc)
+    if since:
+        cutoff = datetime.fromisoformat(since.replace("Z", "+00:00"))
+        why = "지정 시각"
+    elif days:
+        cutoff = now - timedelta(days=days)
+        why = "최근 %d일" % days
+    elif os.path.exists(ALERTS_MARK):
+        try:
+            cutoff = datetime.fromisoformat(
+                json.load(open(ALERTS_MARK, encoding="utf-8"))["checkedAt"])
+            why = "지난 확인 이후"
+        except (ValueError, KeyError):
+            cutoff = now - timedelta(days=1)
+            why = "기준 파일 손상 — 최근 1일"
+    else:
+        cutoff = now - timedelta(days=1)
+        why = "기준 기록 없음 — 최근 1일"
+
+    rows = []
+    for line in open(FRESH_LOG, encoding="utf-8"):
+        try:
+            r = json.loads(line)
+            r["_at"] = datetime.fromisoformat(r["at"])
+        except (ValueError, KeyError):
+            continue
+        rows.append(r)
+    rows.sort(key=lambda r: r["_at"])
+    inwin = [r for r in rows if r["_at"] >= cutoff]
+
+    print("구간 %s ~ %s  (%s)" % (cutoff.isoformat(), now.isoformat(), why))
+    print("관측 %d회" % len(inwin))
+    print("")
+
+    red = [r for r in inwin if r.get("red")]
+    unknown = [r for r in inwin if r.get("unknown")]
+
+    # ③ 실행 누락 — 구간 **직전** 관측부터 이어 본다. 그러지 않으면 경계의 공백을 놓친다.
+    prev = [r for r in rows if r["_at"] < cutoff]
+    chain = ([prev[-1]] if prev else []) + inwin
+    gaps = []
+    for a, b in zip(chain, chain[1:]):
+        g = (b["_at"] - a["_at"]).total_seconds() / 60.0
+        if g > MAX_GAP_MIN:
+            gaps.append((a["at"], b["at"], g))
+    if chain:
+        tail_gap = (now - chain[-1]["_at"]).total_seconds() / 60.0
+        if tail_gap > MAX_GAP_MIN:
+            gaps.append((chain[-1]["at"], "(지금)", tail_gap))
+
+    if red:
+        print("🔴 적재 뒤처짐 %d회" % len(red))
+        for r in red:
+            print("   %s  %d종: %s" % (r["at"], r["red"], " ".join(r.get("redCoins") or [])))
+    if unknown:
+        print("⚪ 판정 불가 %d회" % len(unknown))
+        for r in unknown:
+            print("   %s  %d종: %s"
+                  % (r["at"], r["unknown"], " ".join(r.get("unknownCoins") or [])))
+    if gaps:
+        print("🔴 실행 누락 %d구간 (허용 %d분)" % (len(gaps), MAX_GAP_MIN))
+        for a, b, g in gaps:
+            print("   %s → %s  %.0f분" % (a, b, g))
+    if not (red or unknown or gaps):
+        print("🟢 경보 없음 · 실행 누락 없음")
+
+    if rows:
+        last = rows[-1]
+        print("")
+        print("현재 상태(마지막 관측 %s): 🟢 %s / ⚪ %s / 🔴 %s"
+              % (last["at"], last.get("green"), last.get("unknown"), last.get("red")))
+
+    print("")
+    print("🔴 🔴 은 경보이고 확정이 아니다 — 분봉·같은 시각 수집/저장 로그·같은 회차 다른")
+    print("   코인의 판정을 확인한 뒤 판단한다 (2026-09-28~30 의 🔴 16건은 전부 오판이었다).")
+
+    if mark:
+        with open(ALERTS_MARK, "w", encoding="utf-8") as fh:
+            json.dump({"checkedAt": now.isoformat()}, fh, ensure_ascii=False, indent=1)
+        print("확인 시점 기록: %s" % os.path.basename(ALERTS_MARK))
+    return 0 if not (red or unknown or gaps) else 1
+
+
 def _runs_since(started_iso):
     """연속 구간 **안의** 관측 회차만 센다 (2026-10-01).
 
@@ -1440,6 +1547,10 @@ def main():
         return cmd_prep(a)
     if c == "freshness":
         return cmd_freshness("--save" in sys.argv)
+    if c == "alerts":
+        sv = sys.argv[sys.argv.index("--since") + 1] if "--since" in sys.argv else None
+        dv = int(sys.argv[sys.argv.index("--days") + 1]) if "--days" in sys.argv else None
+        return cmd_alerts(sv, dv, "--no-mark" not in sys.argv)
     if c == "arm-gate":
         t = sys.argv[2] if len(sys.argv) > 2 else "enable"
         if t not in ("enable", "restore"):
