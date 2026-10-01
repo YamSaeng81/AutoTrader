@@ -1126,6 +1126,12 @@ def cmd_freshness(save=False):
     else:
         _streak_update(now, red)
 
+    if red:
+        print("")
+        print("🔴 **🔴 은 경보이고 확정이 아니다.** 거래소 조회 실패·시각 처리 오류로도 나올 수 있다.")
+        print("   확정 전에 확인한다: ① 그 코인의 1분봉으로 해당 봉이 거래소에 실제로 있었는가")
+        print("   ② logs/backend/system.log·trade.log 의 같은 시각 수집·저장 기록")
+        print("   ③ 같은 회차 다른 코인의 판정 — 2026-09-28~30 의 🔴 16건은 전부 오판이었다")
     print("\n🔴 이 도구가 말하지 않는 것: 최신 봉 시각이 같아도 **봉 안의 값 갱신**"
           "(형성 중 봉의 close·volume)까지 보지는 않는다.")
     print("🔴 72시간은 **운영 준비 점검 기준**이다 — 향후 무중단을 보장하는 기준이 아니다.")
