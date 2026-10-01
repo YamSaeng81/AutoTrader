@@ -19,6 +19,9 @@
     python start_66.py lockprobe start|stop      잠금 제한 시험용 통제 경로 (실거래·22코인 미사용 코인)
     python start_66.py prep start|stop           준비 점검용 세션으로 22코인 동기화 유지 (🔴 검증 집계 제외)
     python start_66.py freshness [--save]        코인별 최신 봉·지연·이동 확인 + 72시간 연속 관찰 누적
+    python start_66.py watch [--notify] [--only-alerts]
+                                                 하루 한 번 자동 감시 — 적재+세션+운영 로그를
+                                                 한 번에 보고. --notify 로 텔레그램 전송
     python start_66.py alerts [--days N|--since ISO] [--no-mark]
                                                  🔴 **지난 확인 이후 전체**의 경보·실행 누락 (일일 감시용 — tail 로는 중간 🔴 이 가려진다)
                                                  🔴 매시간 실행한다 — 시작·종료만 보면 중간 정지를 놓친다
@@ -1185,43 +1188,39 @@ def cmd_freshness(save=False):
 ALERTS_MARK = os.path.join(_HERE, "alerts_last_check.json")
 
 
-def cmd_alerts(since=None, days=None, mark=True):
-    """**지난 확인 이후의 모든 경보와 실행 누락**을 훑는다 (2026-10-01 신설).
+def _alerts_cutoff(now, since, days):
+    """감시 구간의 시작점 — 기본은 **지난 확인 시점**이다."""
+    if since:
+        return datetime.fromisoformat(since.replace("Z", "+00:00")), "지정 시각"
+    if days:
+        return now - timedelta(days=days), "최근 %d일" % days
+    if os.path.exists(ALERTS_MARK):
+        try:
+            return (datetime.fromisoformat(
+                json.load(open(ALERTS_MARK, encoding="utf-8"))["checkedAt"]),
+                "지난 확인 이후")
+        except (ValueError, KeyError):
+            return now - timedelta(days=1), "기준 파일 손상 — 최근 1일"
+    return now - timedelta(days=1), "기준 기록 없음 — 최근 1일"
+
+
+def _alerts_mark(now):
+    with open(ALERTS_MARK, "w", encoding="utf-8") as fh:
+        json.dump({"checkedAt": now.isoformat()}, fh, ensure_ascii=False, indent=1)
+
+
+def _alerts_report(cutoff, now, why):
+    """구간 안의 🔴·⚪·**실행 누락**을 줄 목록으로 돌려준다.
 
     🔴 왜 `tail` 로는 안 되는가: 마지막 줄 몇 개는 **현재 상태**만 보여준다. 중간에 난 🔴 이
-    뒤의 정상 출력에 가려져 하루치 감시가 되지 않는다. 매시간 기록(`freshness_log.jsonl`)은
-    그대로 유지하고, 일일 확인은 **지난 확인 시점 이후 전 구간**을 대상으로 한다.
+    뒤의 정상 출력에 가려져 하루치 감시가 되지 않는다.
+    ⚠️ 실행 누락은 구간 **직전** 관측부터 이어 계산한다 — 그러지 않으면 경계의 공백을 놓친다.
+    마지막 관측부터 지금까지의 공백도 본다(cron 이 멈춘 경우).
 
-    보는 것 셋:
-      ① 🔴 (적재가 거래소보다 뒤처짐) — 경보다. 확정이 아니다
-      ② ⚪ (거래소 조회 실패로 판정 불가) — 보지 못한 구간이다
-      ③ **실행 누락** — 매시간 돌아야 하는데 90분(MAX_GAP_MIN) 넘게 벌어진 구간
-
-    기준 시각은 `alerts_last_check.json` 에 남긴다(`--no-mark` 로 갱신하지 않는다).
-    `--days N` 이나 `--since <ISO>` 로 직접 지정할 수 있다.
+    @return (줄 목록, 이상 요약 목록) — 이상 요약이 비어 있으면 정상이다
     """
     if not os.path.exists(FRESH_LOG):
-        print("%s 가 없다 — 관측 기록이 없다." % os.path.basename(FRESH_LOG))
-        return 1
-
-    now = datetime.now(timezone.utc)
-    if since:
-        cutoff = datetime.fromisoformat(since.replace("Z", "+00:00"))
-        why = "지정 시각"
-    elif days:
-        cutoff = now - timedelta(days=days)
-        why = "최근 %d일" % days
-    elif os.path.exists(ALERTS_MARK):
-        try:
-            cutoff = datetime.fromisoformat(
-                json.load(open(ALERTS_MARK, encoding="utf-8"))["checkedAt"])
-            why = "지난 확인 이후"
-        except (ValueError, KeyError):
-            cutoff = now - timedelta(days=1)
-            why = "기준 파일 손상 — 최근 1일"
-    else:
-        cutoff = now - timedelta(days=1)
-        why = "기준 기록 없음 — 최근 1일"
+        return ["관측 기록이 없다 (%s)" % os.path.basename(FRESH_LOG)], ["기록 없음"]
 
     rows = []
     for line in open(FRESH_LOG, encoding="utf-8"):
@@ -1234,14 +1233,9 @@ def cmd_alerts(since=None, days=None, mark=True):
     rows.sort(key=lambda r: r["_at"])
     inwin = [r for r in rows if r["_at"] >= cutoff]
 
-    print("구간 %s ~ %s  (%s)" % (cutoff.isoformat(), now.isoformat(), why))
-    print("관측 %d회" % len(inwin))
-    print("")
-
     red = [r for r in inwin if r.get("red")]
     unknown = [r for r in inwin if r.get("unknown")]
 
-    # ③ 실행 누락 — 구간 **직전** 관측부터 이어 본다. 그러지 않으면 경계의 공백을 놓친다.
     prev = [r for r in rows if r["_at"] < cutoff]
     chain = ([prev[-1]] if prev else []) + inwin
     gaps = []
@@ -1250,41 +1244,218 @@ def cmd_alerts(since=None, days=None, mark=True):
         if g > MAX_GAP_MIN:
             gaps.append((a["at"], b["at"], g))
     if chain:
-        tail_gap = (now - chain[-1]["_at"]).total_seconds() / 60.0
-        if tail_gap > MAX_GAP_MIN:
-            gaps.append((chain[-1]["at"], "(지금)", tail_gap))
+        tail = (now - chain[-1]["_at"]).total_seconds() / 60.0
+        if tail > MAX_GAP_MIN:
+            gaps.append((chain[-1]["at"], "(지금)", tail))
 
+    def short(t):
+        return t[5:16].replace("T", " ") if len(t) > 16 else t
+
+    lines, bad = [], []
+    lines.append("관측 %d회 (구간 %s)" % (len(inwin), why))
     if red:
-        print("🔴 적재 뒤처짐 %d회" % len(red))
+        bad.append("적재 뒤처짐 %d회" % len(red))
         for r in red:
-            print("   %s  %d종: %s" % (r["at"], r["red"], " ".join(r.get("redCoins") or [])))
+            lines.append("🔴 %s  %d종: %s"
+                         % (short(r["at"]), r["red"], " ".join(r.get("redCoins") or [])))
     if unknown:
-        print("⚪ 판정 불가 %d회" % len(unknown))
+        bad.append("판정 불가 %d회" % len(unknown))
         for r in unknown:
-            print("   %s  %d종: %s"
-                  % (r["at"], r["unknown"], " ".join(r.get("unknownCoins") or [])))
+            lines.append("⚪ %s  %d종: %s"
+                         % (short(r["at"]), r["unknown"], " ".join(r.get("unknownCoins") or [])))
     if gaps:
-        print("🔴 실행 누락 %d구간 (허용 %d분)" % (len(gaps), MAX_GAP_MIN))
+        bad.append("실행 누락 %d구간" % len(gaps))
         for a, b, g in gaps:
-            print("   %s → %s  %.0f분" % (a, b, g))
-    if not (red or unknown or gaps):
-        print("🟢 경보 없음 · 실행 누락 없음")
-
+            lines.append("🔴 실행 누락 %s → %s  %.0f분" % (short(a), short(b), g))
     if rows:
         last = rows[-1]
-        print("")
-        print("현재 상태(마지막 관측 %s): 🟢 %s / ⚪ %s / 🔴 %s"
-              % (last["at"], last.get("green"), last.get("unknown"), last.get("red")))
+        lines.append("현재 %s: 🟢 %s / ⚪ %s / 🔴 %s"
+                     % (short(last["at"]), last.get("green"),
+                        last.get("unknown"), last.get("red")))
+    return lines, bad
 
+
+def _session_report():
+    """검증 66세션이 전부 RUNNING 인가 — 하나라도 빠지면 그 코인의 팔 하나가 사라진다."""
+    if not os.path.exists(STATE):
+        return "⚪ %s 가 없다 — 검증 세션 목록을 모른다" % os.path.basename(STATE), True
+    own = set(str(x.get("id")) for x in
+              json.load(open(STATE, encoding="utf-8")).get("sessions", []))
+    st, body = call("GET", "/api/v1/paper-trading/sessions")
+    if st != 200:
+        return "⚪ 세션 조회 실패 (HTTP %s)" % st, True
+    running = set(str(sid_of(s)) for s in (body.get("data") or [])
+                  if s.get("status") == "RUNNING")
+    mine = own & running
+    if len(mine) == len(own):
+        return "🟢 검증 %d/%d RUNNING (전체 RUNNING %d)" % (len(mine), len(own), len(running)), False
+    missing = sorted(own - running, key=int)
+    return ("🔴 검증 %d/%d RUNNING — 빠진 세션: %s"
+            % (len(mine), len(own), " ".join(missing))), True
+
+
+def cmd_alerts(since=None, days=None, mark=True):
+    """지난 확인 이후의 **모든 경보와 실행 누락**을 훑는다 — 적재 감시 전용."""
+    now = datetime.now(timezone.utc)
+    cutoff, why = _alerts_cutoff(now, since, days)
+    print("구간 %s ~ %s  (%s)" % (cutoff.isoformat(), now.isoformat(), why))
+    lines, bad = _alerts_report(cutoff, now, why)
+    for l in lines:
+        print(l)
+    print("")
+    print("🟢 경보 없음 · 실행 누락 없음" if not bad else "🔴 " + " / ".join(bad))
     print("")
     print("🔴 🔴 은 경보이고 확정이 아니다 — 분봉·같은 시각 수집/저장 로그·같은 회차 다른")
     print("   코인의 판정을 확인한 뒤 판단한다 (2026-09-28~30 의 🔴 16건은 전부 오판이었다).")
-
     if mark:
-        with open(ALERTS_MARK, "w", encoding="utf-8") as fh:
-            json.dump({"checkedAt": now.isoformat()}, fh, ensure_ascii=False, indent=1)
+        _alerts_mark(now)
         print("확인 시점 기록: %s" % os.path.basename(ALERTS_MARK))
-    return 0 if not (red or unknown or gaps) else 1
+    return 0 if not bad else 1
+
+
+NL = chr(10)
+LOG_DIR = os.path.abspath(os.path.join(_HERE, "..", "..", "logs", "backend"))
+
+
+def _telegram(text):
+    """감시 결과를 텔레그램으로 보낸다 (2026-10-01 신설).
+
+    🔴 왜 앱을 거치지 않는가: 앱에는 임의 문자열을 보내는 엔드포인트가 없다
+    (`/telegram/test` 는 고정 문구다). 추가하면 재배포가 필요하므로, 검증 중에는
+    스크립트가 Bot API 를 직접 호출한다 — 운영 컨테이너를 건드리지 않는다.
+
+    토큰은 `.env` 에서 읽고 **출력하지 않는다.**
+    """
+    tok = os.environ.get("TELEGRAM_BOT_TOKEN") or from_dotenv("TELEGRAM_BOT_TOKEN")
+    chat = os.environ.get("TELEGRAM_CHAT_ID") or from_dotenv("TELEGRAM_CHAT_ID")
+    if not tok or not chat:
+        print("x 텔레그램 설정이 없다 (.env 의 TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID).")
+        return False
+    body = urllib.parse.urlencode({
+        "chat_id": chat,
+        "text": text[:4000],          # Bot API 한도 4096 — 여유를 둔다
+        "disable_web_page_preview": "true",
+    }).encode("utf-8")
+    url = "https://api.telegram.org/bot%s/sendMessage" % tok
+    try:
+        req = urllib.request.Request(url, data=body, method="POST")
+        with urllib.request.urlopen(req, timeout=15) as r:
+            ok = json.loads(r.read().decode("utf-8")).get("ok") is True
+        print("텔레그램 전송 %s" % ("성공" if ok else "실패"))
+        return ok
+    except Exception as e:
+        # 🔴 토큰이 메시지에 섞일 수 있으므로 예외 문자열에서 가린다.
+        print("x 텔레그램 전송 실패: %s" % str(e).replace(tok, "<token>"))
+        return False
+
+
+def _log_scan(cutoff):
+    """호스트에 보존된 운영 로그에서 **그 시각 이후** 오류·경보를 센다.
+
+    🔴 적재 감시로는 이것을 볼 수 없다 — 적재가 정상이어도 주문이 실패하거나 세션이
+    죽으면 표본이 조용히 사라진다. 로그는 2026-10-01 볼륨 마운트 이후 호스트에 남는다.
+    ⚠️ 컨테이너 로그 시각은 UTC 다(`StartedAt` 과 일치하는 것을 확인했다).
+    """
+    pats = {
+        "lock timeout": "lock timeout",
+        "deadlock": "deadlock",
+        "동기화 실패": "시장 데이터 동기화 실패",
+        "커넥션 누수": "leak detection",
+        "KILL 경보": "→ KILL(",
+        "비상 정지": "EMERGENCY_STOPPED",
+        "주문 실패": "주문 실패",
+    }
+    hits = dict((k, 0) for k in pats)
+    files, missing = [], []
+    for name in ("system.log", "trade.log"):
+        f = os.path.join(LOG_DIR, name)
+        if os.path.exists(f):
+            files.append(f)
+        else:
+            missing.append(name)
+    for f in files:
+        try:
+            with open(f, encoding="utf-8", errors="replace") as fh:
+                for line in fh:
+                    if len(line) < 19:
+                        continue
+                    try:
+                        t = datetime.strptime(line[:19], "%Y-%m-%d %H:%M:%S").replace(
+                            tzinfo=timezone.utc)
+                    except ValueError:
+                        continue      # 스택 트레이스 등 시각이 없는 줄
+                    if t < cutoff:
+                        continue
+                    for k, p in pats.items():
+                        if p in line:
+                            hits[k] += 1
+        except OSError as e:
+            missing.append("%s (%s)" % (os.path.basename(f), e))
+    return hits, missing
+
+
+def cmd_watch(notify=False, only_alerts=False):
+    """**하루 한 번 자동 감시** — 적재 + 세션 + 운영 로그를 한 번에 보고한다 (2026-10-01 신설).
+
+    🔴 사람이 기억해서 돌리는 감시는 빠진다. cron 으로 돌리고 결과를 텔레그램으로 받는다.
+
+    🔴 **정상일 때도 보낸다(기본).** 경보만 보내면 "조용한 것"과 "감시가 죽은 것"을 구별할
+    수 없다 — 매일 오는 메시지가 곧 감시가 살아 있다는 증거다. `--only-alerts` 로 바꿀 수
+    있지만 권하지 않는다.
+
+    보는 것:
+      ① 적재 — 지난 확인 이후의 🔴·⚪·실행 누락 (`alerts` 와 같은 판정)
+      ② 세션 — 검증 66세션이 전부 RUNNING 인가
+      ③ 운영 로그 — 잠금·누수·동기화 실패·주문 실패·KILL 경보·비상 정지 건수
+
+    🔴 이 도구는 **중단하지 않는다.** 자동정지가 OFF 이므로 위험 경보가 떴을 때 실제 정지는
+    사람이 사전 규칙에 따라 수행하고 시점·사유를 기록한다.
+    """
+    out = []
+
+    def say(line=""):
+        out.append(line)
+        print(line)
+
+    now = datetime.now(timezone.utc)
+    cutoff, why = _alerts_cutoff(now, None, None)
+
+    # ① 적재
+    a_lines, a_bad = _alerts_report(cutoff, now, why)
+    say("[적재] " + ("🔴 " + " / ".join(a_bad) if a_bad else "🟢 경보 없음"))
+    for l in a_lines:
+        say("   " + l)
+
+    # ② 세션
+    s_line, s_bad = _session_report()
+    say("[세션] " + s_line)
+
+    # ③ 운영 로그
+    hits, missing = _log_scan(cutoff)
+    nonzero = [(k, v) for k, v in hits.items() if v]
+    # 🔴 system.log 를 못 읽으면 운영 오류를 **볼 수 없다** — 정상으로 세지 않는다.
+    blind = any(x.startswith("system.log") for x in missing)
+    if missing:
+        say("[로그] %s 읽지 못한 파일: %s"
+            % ("🔴" if blind else "⚪", " ".join(missing)))
+    say("[로그] " + ("🔴 " + " / ".join("%s %d" % kv for kv in nonzero)
+                    if nonzero else "🟢 오류·경보 없음"))
+
+    bad = bool(a_bad) or s_bad or bool(nonzero) or blind
+    say()
+    say("구간 %s ~ %s (%s)" % (cutoff.strftime("%m-%d %H:%MZ"),
+                               now.strftime("%m-%d %H:%MZ"), why))
+    if bad:
+        say("🔴 확인이 필요하다. 🔴 적재 경보는 **확정이 아니다** — 분봉·같은 시각 수집/저장")
+        say("   로그·같은 회차 다른 코인을 본 뒤 판단한다.")
+        say("🔴 KILL 경보가 있으면 자동정지가 OFF 이므로 **사람이 정지**시키고 시점·사유를 남긴다.")
+
+    _alerts_mark(now)
+
+    if notify and not (only_alerts and not bad):
+        head = ("🔴 운영 감시 — 확인 필요" if bad else "🟢 운영 감시 — 정상")
+        _telegram(head + NL + NL + NL.join(out))
+    return 1 if bad else 0
 
 
 def _runs_since(started_iso):
@@ -1547,6 +1718,8 @@ def main():
         return cmd_prep(a)
     if c == "freshness":
         return cmd_freshness("--save" in sys.argv)
+    if c == "watch":
+        return cmd_watch("--notify" in sys.argv, "--only-alerts" in sys.argv)
     if c == "alerts":
         sv = sys.argv[sys.argv.index("--since") + 1] if "--since" in sys.argv else None
         dv = int(sys.argv[sys.argv.index("--days") + 1]) if "--days" in sys.argv else None

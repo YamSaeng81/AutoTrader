@@ -336,6 +336,27 @@ python3 scripts/prospective/start_66.py alerts --days 7 --no-mark   # 되돌아�
 
 📌 위험 사유로 개입하면 §(동결 예외) 절차대로 **변경·중단 시점과 이유를 기록**한다.
 
+###### 감시는 자동으로 돌린다 — `watch` + 텔레그램 (2026-10-01)
+
+🔴 사람이 기억해서 돌리는 감시는 결국 빠진다. cron 이 돌리고 결과를 텔레그램으로 받는다.
+
+| | 고정 |
+|---|---|
+| 적재 기록 | **매시간** `freshness --save` (기존) |
+| 일일 감시 | **`watch --notify`** — 적재(🔴·⚪·실행 누락) + 세션 66/66 + 운영 로그(잠금·누수·동기화 실패·주문 실패·KILL 경보·비상 정지)를 **한 메시지**로 보낸다 |
+| 🔴 정상일 때도 보낸다 | 경보만 보내면 **"조용한 것"과 "감시가 죽은 것"을 구별할 수 없다.** 매일 오는 메시지가 곧 감시가 살아 있다는 증거다 |
+| 전송 경로 | 스크립트가 **텔레그램 Bot API 를 직접** 호출한다(`.env` 의 `TELEGRAM_BOT_TOKEN`·`TELEGRAM_CHAT_ID`). 앱에는 임의 문자열 전송 엔드포인트가 없고, 추가하면 **재배포**가 필요하다 |
+| 🔴 이 도구가 하지 않는 것 | **중단**이다. 자동정지가 OFF 이므로 위험 경보 시 정지는 **사람이** 사전 규칙대로 수행하고 시점·사유를 기록한다 |
+| `system.log` 를 못 읽으면 | 🔴 **정상으로 세지 않는다** — 운영 오류를 볼 수 없는 상태다 |
+
+```
+19 * * * * cd ~/crypto_trader/AutoTrader && /usr/bin/python3 scripts/prospective/start_66.py freshness --save >> scripts/prospective/freshness_runs.log 2>&1
+25 0 * * * cd ~/crypto_trader/AutoTrader && /usr/bin/python3 scripts/prospective/start_66.py watch --notify >> scripts/prospective/watch_runs.log 2>&1
+```
+
+일일 감시는 **00:25Z (09:25 KST)** — 그 직전 시각(:19)의 적재 기록이 들어간 뒤에 돈다.
+이상이 오면 그 메시지를 근거로 원인을 찾는다. 🔴 적재 경보는 **확정이 아니다**(위 항 참조).
+
 - 🔴 **적재 전제의 증거는 세 가지이고, 서로를 대신하지 못한다.**
 
   | 증거 | 무엇을 말하는가 | 무엇을 말하지 않는가 | 출처 |
