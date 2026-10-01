@@ -985,22 +985,36 @@ def _upbit_latest_h1(pair):
        사람이 봐야 하는 🔴 다. 통신 실패는 우리가 못 본 것이므로 ⚪ 판정 불가다 — 둘을 섞으면
        상장폐지를 조용히 넘기거나 일시적 네트워크 오류를 결함으로 세게 된다.
 
+    🔴 일시 실패에는 **물러서며 다시 시도한다** (2026-10-01 추가). 업비트 한도는 **IP 단위**이므로
+       같은 서버의 앱이 호출을 폭주시키면 이 스크립트까지 429 를 맞는다. 실제로 2026-10-01
+       06:20:17 에 그 일이 났다 — 앱이 KRW-G·KRW-INJ 수집에 실패한 바로 그 초에 이 도구는
+       KRW-BLAST·KRW-JUP 을 읽지 못해 ⚪ 가 되고 72시간 구간이 초기화됐다(같은 회차 red 0,
+       즉 적재는 멈추지 않았다). 한 번의 429 로 '판정 불가'를 선언하지 않는다.
+       ⚠️ 기준이 느슨해지는 것이 아니다 — 끝까지 못 읽으면 여전히 ⚪ 이고 구간은 끊긴다.
+
     @return (봉 시각, 오류종류) — 오류종류는 None · "404" · "net"
     """
     url = ("https://api.upbit.com/v1/candles/minutes/60?market=%s&count=1"
            % urllib.parse.quote(pair))
-    try:
-        req = urllib.request.Request(url, headers={"Accept": "application/json"})
-        with urllib.request.urlopen(req, timeout=10) as r:
-            arr = json.loads(r.read().decode("utf-8"))
-        if not arr:
-            return None, "404"
-        return datetime.fromisoformat(
-            arr[0]["candle_date_time_utc"]).replace(tzinfo=timezone.utc), None
-    except urllib.error.HTTPError as e:
-        return None, ("404" if e.code == 404 else "net")
-    except Exception:
-        return None, "net"
+    err = "net"
+    for attempt in range(3):
+        if attempt:
+            time.sleep(1.5 * attempt)      # 0 → 1.5s → 3.0s
+        try:
+            req = urllib.request.Request(url, headers={"Accept": "application/json"})
+            with urllib.request.urlopen(req, timeout=10) as r:
+                arr = json.loads(r.read().decode("utf-8"))
+            if not arr:
+                return None, "404"
+            return datetime.fromisoformat(
+                arr[0]["candle_date_time_utc"]).replace(tzinfo=timezone.utc), None
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                return None, "404"     # 🔴 영구 실패다 — 다시 시도하지 않는다
+            err = "net"
+        except Exception:
+            err = "net"
+    return None, err
 
 
 def _db_latest():
