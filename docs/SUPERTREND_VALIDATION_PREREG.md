@@ -241,13 +241,13 @@ ANKR DKA GLM HIVE PUNDIX ELF BLAST JUP G INJ
 |---|---|
 | 세션 ID | **522 ~ 587** (연속, 66개 · 중복 없음) |
 | 코인 | 22종 × 3팔 — 모든 코인이 OFF·B·A 를 정확히 하나씩 갖는다 |
-| 전략 | OFF= · B= · A= |
-| 타임프레임 |  (전 세션 동일) |
+| 전략 | OFF=`COMPOSITE_MOMENTUM_ICHIMOKU_V2` · B=`COMPOSITE_MTF_MOMENTUM` · A=`COMPOSITE_MTF_MOMENTUM_CLOSED` |
+| 타임프레임 | `H1` (전 세션 동일) |
 | 초기 자본 | **1,000,000 KRW** (세션별) |
-| 생성 기준 epoch |  (= T0 직전 틱 + 2초) · 소요 **0.5949초** |
+| 생성 기준 epoch | `1790835313` (= T0 직전 틱 + 2초) · 소요 **0.5949초** |
 | 생성 순서 | 코인별로 팔 순서를 돌렸다 — 첫 팔 분포 OFF 8 · B 7 · A 7. 🔴 한 팔이 항상 먼저 만들어져 **생성 지연의 이득·불이익이 특정 팔에 쏠리는 것**을 막기 위한 것이다 |
-| T0 이전 주문 | **0건** ✔ ( ③) |
-| 기록 파일 |  |
+| T0 이전 주문 | **0건** ✔ (`verify` ③) |
+| 기록 파일 | `scripts/prospective/sessions_66.json` |
 
 | 코인 | OFF | B | A |
 |---|---|---|---|
