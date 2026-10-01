@@ -1138,6 +1138,31 @@ def cmd_freshness(save=False):
     return 0 if not (red or unknown) else 1
 
 
+def _runs_since(started_iso):
+    """연속 구간 **안의** 관측 회차만 센다 (2026-10-01).
+
+    🔴 종전에는 `freshness_log.jsonl` 의 전체 줄 수를 셌다. 그 파일은 append 전용이라
+    정정 이전 기준으로 쌓인 회차까지 포함되므로, 72시간을 판정하는 자리에서 "관측 N회" 가
+    연속 구간의 증거가 되지 못했다(정정 직후 0.0h 인데 77회로 찍혔다).
+    """
+    if not os.path.exists(FRESH_LOG):
+        return 0
+    try:
+        t0 = datetime.fromisoformat(started_iso)
+    except (TypeError, ValueError):
+        return 0
+    n = 0
+    with open(FRESH_LOG, encoding="utf-8") as fh:
+        for line in fh:
+            try:
+                at = datetime.fromisoformat(json.loads(line)["at"])
+            except (ValueError, KeyError):
+                continue
+            if at >= t0:
+                n += 1
+    return n
+
+
 def _streak_reset(why):
     """연속 구간을 끊는다 — 🔴 발생과 **관측 누락** 모두 여기로 온다."""
     with open(STREAK, "w", encoding="utf-8") as fh:
@@ -1179,7 +1204,7 @@ def _streak_update(now, red):
         json.dump({"startedAt": started, "lastAt": now.isoformat()},
                   fh, ensure_ascii=False, indent=1)
     held = (now - datetime.fromisoformat(started)).total_seconds() / 3600.0
-    n = sum(1 for _ in open(FRESH_LOG, encoding="utf-8")) if os.path.exists(FRESH_LOG) else 0
+    n = _runs_since(started)
     bar = int(min(held / REQUIRED_HOURS, 1.0) * 30)
     print("\n연속 관찰 %5.1fh / %dh  [%s%s]  관측 %d회 (시작 %s)"
           % (held, REQUIRED_HOURS, "#" * bar, "." * (30 - bar), n, started))
