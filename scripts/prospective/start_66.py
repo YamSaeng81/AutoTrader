@@ -944,143 +944,184 @@ def cmd_prep(action):
     return 0 if not failed else 1
 
 
-def _expected_bar(now):
-    """H1 에서 캐시 최신 행이 가리켜야 할 봉 — **형성 중인 현재 봉**의 시작 시각.
+def _upbit_latest_h1(pair):
+    """그 순간 **거래소가 제공하는** 최신 H1 봉 시각 — 판정의 비교 대상이다 (2026-10-01).
 
-    syncPair 는 lastStored 에서 5봉 겹쳐 다시 받으므로 형성 중 봉도 매 회차 upsert 된다
-    (2026-09-28 실측: 02:11 UTC 에 to=02:00 UTC). 따라서 정상 상태의 `to` 는 현재 시각을
-    시 단위로 내린 값이다.
+    🔴 왜 벽시계가 아니라 이것인가: H1 봉은 그 시간의 **첫 체결이 일어나야 생긴다.**
+    09-28~09-30 관측에서 🔴 16건이 모두 이 때문이었다 — 매시 :19 점검에서 POWR·GLM 의
+    1분봉이 18:00~18:20 사이에 **0개**였고(HIVE 는 18:20 에 첫 체결), 즉 그 시간봉은
+    거래소에 **존재하지 않았다**. 없는 봉을 적재하지 않은 것은 결함이 아니다.
+    인증이 필요 없는 공개 API 다.
+
+    🔴 404 와 통신 실패를 **구분한다**: 404 는 그 마켓이 거래소에 없다는 뜻이고(상장폐지 등)
+       사람이 봐야 하는 🔴 다. 통신 실패는 우리가 못 본 것이므로 ⚪ 판정 불가다 — 둘을 섞으면
+       상장폐지를 조용히 넘기거나 일시적 네트워크 오류를 결함으로 세게 된다.
+
+    @return (봉 시각, 오류종류) — 오류종류는 None · "404" · "net"
     """
-    return now.replace(minute=0, second=0, microsecond=0)
+    url = ("https://api.upbit.com/v1/candles/minutes/60?market=%s&count=1"
+           % urllib.parse.quote(pair))
+    try:
+        req = urllib.request.Request(url, headers={"Accept": "application/json"})
+        with urllib.request.urlopen(req, timeout=10) as r:
+            arr = json.loads(r.read().decode("utf-8"))
+        if not arr:
+            return None, "404"
+        return datetime.fromisoformat(
+            arr[0]["candle_date_time_utc"]).replace(tzinfo=timezone.utc), None
+    except urllib.error.HTTPError as e:
+        return None, ("404" if e.code == 404 else "net")
+    except Exception:
+        return None, "net"
 
 
-FRESH_LOG = os.path.join(_HERE, "freshness_log.jsonl")
-STREAK = os.path.join(_HERE, "freshness_streak.json")
-REQUIRED_HOURS = 72          # 운영 준비 점검 기준 — 무중단 보장 기준이 아니다
-MAX_GAP_MIN = 90             # 이보다 벌어지면 그 구간은 **관측 누락**이다
+def _db_latest():
+    """코인별 DB 최신 봉(`to`)과 봉수 — 캐시 없이 매번 GROUP BY 로 읽는다
+    (`SettingsController` → `findDataSummary`)."""
+    st, body = call("GET", "/api/v1/settings/upbit/status")
+    if st != 200:
+        return None
+    data = (body or {}).get("data", {}) or {}
+    return {r["coinPair"]: r for r in data.get("candleSummary", [])
+            if r.get("timeframe") == TIMEFRAME}
+
+
+def _parse_iso(s):
+    if not s:
+        return None
+    try:
+        return datetime.fromisoformat(s.replace("Z", "+00:00"))
+    except ValueError:
+        return None
 
 
 def cmd_freshness(save=False):
-    """코인별 **적재 신선도와 전진**을 보고, 72시간 연속 관찰을 누적한다 (2026-09-28).
+    """적재가 **거래소를 따라가고 있는가**를 보고, 72시간 연속 관찰을 누적한다.
 
-    🔴 왜 `verify` 의 캔들 부족 집계로는 부족한가: 이미 499봉이 있으면 **갱신이 멈춰도**
-    한동안 워밍업 기준(100봉)을 통과한다. 즉 부족 집계는 정지를 조기에 보여주지 않는다.
-    그래서 세 가지를 따로 본다.
-      ① 최신 행이 가리키는 봉 시각 (`to`)
-      ② 현재 시각과의 지연 — 형성 중 봉을 받고 있으면 60분 미만이다
-      ③ 지난 스냅샷 대비 **최신 봉 시각의 이동** — 경과한 시간만큼 앞으로 갔는가
+    판정 기준 (2026-10-01 정정 — 사전 기준 §적재 지속성):
+      🔴  캐시에 없음 · `to` 없음 · **거래소 최신 봉보다 DB 가 뒤처짐**(70초 뒤 재확인에서도)
+      ⚪  거래소 조회 실패 — 판정 불가. 보지 못한 것을 통과로 셀 수 없으므로 연속 구간을 끊는다
+      🟢  DB 최신 봉 = 거래소 최신 봉
 
-    ⚠️ ③ 은 **전체 봉수 증가가 아니다.** 봉수는 과거 구간 백필로도 늘 수 있고, 반대로
-       보존 정책에 따라 줄 수도 있다. 적재가 살아 있는지는 **최신 봉이 앞으로 가는가**로
-       판단한다. 또 ①② 만으로는 같은 시간 안에서 정지를 구별할 수 없다 — H1 은 한 시간에
-       한 봉이므로 정상인 코인도 같은 봉 안에서는 `to` 가 그대로다.
-    🔴 `to` 이동은 **DB 에 커밋됐다는 증거**다 — `캔들 수집 완료` 는 REST 응답 로그일 뿐이며,
-       2026-09-28 잠금 시험에서 그 로그가 찍힌 회차의 쓰기가 전부 롤백된 것을 관측했다.
+    🔴 **벽시계 지연과 이동량은 판정에서 뺐다.** 종전 기준(경과 시간만큼 최신 봉이 이동해야
+       한다)은 거래가 없어 **봉이 생기지 않은 시간**을 적재 정지로 오판했다. 09-28~09-30 의
+       🔴 16건이 전부 그 오판이었고, 같은 구간의 운영 로그에는 수집·저장 실패가 한 건도 없었다.
+       지연·이동은 이제 참고 출력일 뿐이다.
 
-    연속 관찰 기준 (사전 고정):
-    기준은 "시작과 끝이 🟢" 이 아니라 **72시간 연속 관측에서 🔴 0건**이다. 그래서
-      · 매 실행 결과를 `freshness_log.jsonl` 에 **append 로 보존**한다
-        (기준 스냅샷 갱신과 별개다 — 스냅샷은 덮어써도 관측 기록은 남는다)
-      · 🔴 이 나오면 연속 구간을 **초기화**한다 (원인 확인·복구 후 다시 시작)
-      · 직전 실행과 90분(MAX_GAP_MIN) 넘게 벌어지면 그 구간은 **관측 누락**이고, 역시 초기화한다
-        — 보지 않은 시간을 통과로 셀 수 없다
+    ⚠️ 느슨해지는 방향의 변경이므로 범위를 명시한다: **거래소에 봉이 있는데 우리가 없는 경우**는
+       여전히 전부 잡는다. 빠지는 것은 거래소에도 없는 봉뿐이다.
+
+    📌 각 회차의 (DB `to`, 거래소 `to`) 쌍을 `freshness_log.jsonl` 에 함께 남긴다 — 종전 기록은
+       거래소 값이 없어 **사후 재판정이 불가능했다.** 같은 실수를 반복하지 않는다.
+
+    연속 관찰: 🔴/⚪ 이 나오거나 직전 관측과 90분(MAX_GAP_MIN) 넘게 벌어지면 처음부터 다시 센다.
     """
     need_env()
-    st, body = call("GET", "/api/v1/settings/upbit/status")
-    if st != 200:
-        print("x 캔들 현황을 읽지 못했다 (HTTP %s)." % st)
-        # 🔴 읽지 못한 것도 관측 누락이다 — 연속 구간을 끊는다.
-        _streak_reset("캔들 현황 조회 실패 HTTP %s" % st)
+    rows = _db_latest()
+    if rows is None:
+        print("x 캔들 현황을 읽지 못했다 — 관측 누락으로 처리한다.")
+        _streak_reset("캔들 현황 조회 실패")
         return 1
-    data = (body or {}).get("data", {}) or {}
-    rows = {}
-    for r in data.get("candleSummary", []):
-        if r.get("timeframe") == TIMEFRAME:
-            rows[r["coinPair"]] = r
 
     now = datetime.now(timezone.utc)
-    exp = _expected_bar(now)
-    old = None
-    elapsed_h = None
-    if os.path.exists(FRESH):
-        old = json.load(open(FRESH, encoding="utf-8"))
-        elapsed_h = (now - datetime.fromisoformat(old["at"])).total_seconds() / 3600.0
-        print("기준 스냅샷 %s (%.1f시간 전) 과 비교한다" % (old["at"], elapsed_h))
-    else:
-        print("기준 스냅샷이 없다 — 이번 실행은 ①② 만 판정한다. (`--save` 로 기준을 남긴다)")
-    print("기대 최신 봉(형성 중): %s\n" % exp.isoformat())
 
-    def parse(s):
-        if not s:
-            return None
-        try:
-            return datetime.fromisoformat(s.replace("Z", "+00:00"))
-        except ValueError:
-            return None
-
-    print("%-12s %-22s %7s %6s %s" % ("코인", "최신 봉(to)", "지연분", "봉수", "판정"))
-    print("-" * 76)
-    red, lagging, ok, undetermined = [], [], [], []
-    snap = {}
+    # ── 1차: DB 와 거래소를 코인별로 맞춘다 ────────────────────────────────
+    state = {}
     for c in COINS:
         pair = "KRW-" + c
         r = rows.get(pair)
-        if not r:
-            print("%-12s %-22s %7s %6s %s" % (pair, "-", "-", "-", "🔴 캐시에 없다"))
+        db_to = _parse_iso(r.get("to")) if r else None
+        ex_to, ex_err = _upbit_latest_h1(pair)
+        state[pair] = {"row": r, "dbTo": db_to, "cnt": (r or {}).get("count"),
+                       "exTo": ex_to, "exErr": ex_err}
+        time.sleep(0.12)          # 공개 API 한도(초당 10회) 여유
+
+    behind = [p for p, s in state.items()
+              if (s["dbTo"] and s["exTo"] and s["exTo"] > s["dbTo"])
+              or s["exErr"] == "net"]
+
+    # ── 2차: 뒤처진 코인만 70초 뒤 재확인 ──────────────────────────────────
+    #    동기화는 60초 주기다. 방금 생긴 봉이 아직 안 들어왔을 뿐이면 여기서 따라붙고,
+    #    **진짜 지연은 재확인에서도 살아남는다.**
+    rechecked = []
+    if behind:
+        print("· 거래소보다 뒤처진 %d종 — 70초 뒤 재확인한다: %s\n"
+              % (len(behind), " ".join(behind)))
+        time.sleep(70)
+        again = _db_latest()
+        for pair in behind:
+            r2 = (again or {}).get(pair)
+            if r2:
+                state[pair]["row"] = r2
+                state[pair]["cnt"] = r2.get("count")
+                state[pair]["dbTo"] = _parse_iso(r2.get("to"))
+            ex2, err2 = _upbit_latest_h1(pair)
+            state[pair]["exErr"] = err2
+            if ex2:
+                state[pair]["exTo"] = ex2
+            rechecked.append(pair)
+            time.sleep(0.12)
+        now = datetime.now(timezone.utc)
+
+    # ── 판정 ───────────────────────────────────────────────────────────────
+    print("%-12s %-22s %-22s %6s %s"
+          % ("코인", "DB 최신 봉", "거래소 최신 봉", "봉수", "판정"))
+    print("-" * 92)
+    red, unknown, ok = [], [], []
+    snap, logrows = {}, {}
+    for c in COINS:
+        pair = "KRW-" + c
+        s = state[pair]
+        db_to, ex_to = s["dbTo"], s["exTo"]
+        snap[pair] = {"to": s["row"].get("to") if s["row"] else None, "count": s["cnt"]}
+        logrows[pair] = {"dbTo": db_to.isoformat() if db_to else None,
+                         "exTo": ex_to.isoformat() if ex_to else None,
+                         "exErr": s["exErr"], "count": s["cnt"],
+                         "rechecked": pair in rechecked}
+        if s["row"] is None:
+            verdict = "🔴 캐시에 없다"
             red.append(pair)
-            continue
-        t_to = parse(r.get("to"))
-        cnt = r.get("count")
-        snap[pair] = {"to": r.get("to"), "count": cnt}
-        lag = (now - t_to).total_seconds() / 60.0 if t_to else None
-        verdict = "🟢"
-        if t_to is None:
+        elif db_to is None:
             verdict = "🔴 to 없음"
             red.append(pair)
-        elif lag > 150:
-            verdict = "🔴 정지 의심 (지연 %.0f분)" % lag
+        elif ex_to is None and s["exErr"] == "404":
+            verdict = "🔴 거래소에 마켓이 없다 (상장폐지 의심)"
             red.append(pair)
-        elif lag > 90:
-            verdict = "🟡 지연"
-            lagging.append(pair)
-        # ③ 최신 봉 시각의 이동 — 경과가 한 시간 이상일 때만 판정한다.
-        if old and pair in old.get("rows", {}):
-            t_prev = parse(old["rows"][pair].get("to"))
-            if elapsed_h < 1.0:
-                verdict += " / 이동 판정불가(경과 %.1fh)" % elapsed_h
-                undetermined.append(pair)
-            elif t_prev and t_to:
-                moved_h = (t_to - t_prev).total_seconds() / 3600.0
-                want = int(elapsed_h)
-                if moved_h + 0.01 < want:
-                    verdict = "🔴 최신 봉이 %.0f시간만 이동 (기대 %d시간)" % (moved_h, want)
-                    if pair not in red:
-                        red.append(pair)
-                else:
-                    verdict += " / 최신 봉 %+.0f시간 이동" % moved_h
-        if verdict.startswith("🟢"):
+        elif ex_to is None:
+            # 거래소를 못 읽었으면 뒤처졌는지 알 수 없다 — 🟢 로 세지 않는다.
+            verdict = "⚪ 거래소 조회 실패 — 판정 불가"
+            unknown.append(pair)
+        elif ex_to > db_to:
+            gap_h = (ex_to - db_to).total_seconds() / 3600.0
+            verdict = "🔴 거래소보다 %.0f봉 뒤처짐%s" % (
+                gap_h, " (재확인 후)" if pair in rechecked else "")
+            red.append(pair)
+        else:
+            lag = (now - db_to).total_seconds() / 60.0
+            verdict = "🟢 거래소와 일치 (벽시계 지연 %.0f분, 참고)" % lag
             ok.append(pair)
-        print("%-12s %-22s %7s %6s %s"
-              % (pair, r.get("to") or "-",
-                 "%.0f" % lag if lag is not None else "-", cnt, verdict))
+        print("%-12s %-22s %-22s %6s %s"
+              % (pair,
+                 db_to.strftime("%Y-%m-%dT%H:%M:%SZ") if db_to else "-",
+                 ex_to.strftime("%Y-%m-%dT%H:%M:%SZ") if ex_to else "-",
+                 s["cnt"] if s["cnt"] is not None else "-", verdict))
 
-    print("-" * 76)
-    print("🟢 정상 %d / 🟡 지연 %d / 🔴 %d" % (len(ok), len(lagging), len(red)))
-    if undetermined:
-        print("⚠️ 이동 판정불가 %d종 — 경과가 한 시간 미만이다 (H1 은 한 시간에 한 봉)."
-              % len(undetermined))
+    print("-" * 92)
+    print("🟢 일치 %d / ⚪ 판정불가 %d / 🔴 %d" % (len(ok), len(unknown), len(red)))
 
-    # ── 관측 기록 보존 + 연속 구간 판정 ──────────────────────────────────
-    entry = {"at": now.isoformat(), "green": len(ok), "yellow": len(lagging),
-             "red": len(red), "redCoins": red, "yellowCoins": lagging,
-             "undetermined": len(undetermined), "elapsedSinceBaselineH": elapsed_h}
+    entry = {"at": now.isoformat(), "green": len(ok), "unknown": len(unknown),
+             "red": len(red), "redCoins": red, "unknownCoins": unknown,
+             "rechecked": rechecked, "rows": logrows}
     with open(FRESH_LOG, "a", encoding="utf-8") as fh:
         fh.write(json.dumps(entry, ensure_ascii=False) + "\n")
-    _streak_update(now, red)
 
-    print("\n🔴 이 도구가 말하지 않는 것: `to` 이동은 **그 코인이 커밋됐다**는 증거지만,")
-    print("   봉 안의 값 갱신(형성 중 봉의 close·volume)까지 보지는 않는다. 값 수준 확인은")
-    print("   DB 를 직접 조회해야 한다(2026-09-28 잠금 시험 절차).")
+    if unknown and not red:
+        _streak_reset("⚪ 거래소 조회 실패 %d종: %s" % (len(unknown), " ".join(unknown[:6])))
+    else:
+        _streak_update(now, red)
+
+    print("\n🔴 이 도구가 말하지 않는 것: 최신 봉 시각이 같아도 **봉 안의 값 갱신**"
+          "(형성 중 봉의 close·volume)까지 보지는 않는다.")
     print("🔴 72시간은 **운영 준비 점검 기준**이다 — 향후 무중단을 보장하는 기준이 아니다.")
 
     if save:
@@ -1088,7 +1129,7 @@ def cmd_freshness(save=False):
             json.dump({"at": now.isoformat(), "rows": snap}, fh, ensure_ascii=False, indent=1)
         print("\n기준 스냅샷 갱신: %s (%d종) — 관측 기록은 %s 에 누적된다"
               % (os.path.basename(FRESH), len(snap), os.path.basename(FRESH_LOG)))
-    return 0 if not red else 1
+    return 0 if not (red or unknown) else 1
 
 
 def _streak_reset(why):
