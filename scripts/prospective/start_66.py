@@ -1217,10 +1217,10 @@ def _alerts_report(cutoff, now, why):
     ⚠️ 실행 누락은 구간 **직전** 관측부터 이어 계산한다 — 그러지 않으면 경계의 공백을 놓친다.
     마지막 관측부터 지금까지의 공백도 본다(cron 이 멈춘 경우).
 
-    @return (줄 목록, 이상 요약 목록) — 이상 요약이 비어 있으면 정상이다
+    @return (줄 목록, 이상 요약 목록, 구간 내 관측 수)
     """
     if not os.path.exists(FRESH_LOG):
-        return ["관측 기록이 없다 (%s)" % os.path.basename(FRESH_LOG)], ["기록 없음"]
+        return ["관측 기록이 없다 (%s)" % os.path.basename(FRESH_LOG)], ["기록 없음"], 0
 
     rows = []
     for line in open(FRESH_LOG, encoding="utf-8"):
@@ -1272,7 +1272,7 @@ def _alerts_report(cutoff, now, why):
         lines.append("현재 %s: 🟢 %s / ⚪ %s / 🔴 %s"
                      % (short(last["at"]), last.get("green"),
                         last.get("unknown"), last.get("red")))
-    return lines, bad
+    return lines, bad, len(inwin)
 
 
 def _session_report():
@@ -1299,9 +1299,11 @@ def cmd_alerts(since=None, days=None, mark=True):
     now = datetime.now(timezone.utc)
     cutoff, why = _alerts_cutoff(now, since, days)
     print("구간 %s ~ %s  (%s)" % (cutoff.isoformat(), now.isoformat(), why))
-    lines, bad = _alerts_report(cutoff, now, why)
+    lines, bad, n = _alerts_report(cutoff, now, why)
     for l in lines:
         print(l)
+    if n == 0:
+        print("⚪ 이 구간에 관측이 없다 — 적재를 **확인하지 않았다**")
     print("")
     print("🟢 경보 없음 · 실행 누락 없음" if not bad else "🔴 " + " / ".join(bad))
     print("")
@@ -1468,8 +1470,16 @@ def cmd_watch(notify=False, only_alerts=False):
     cutoff, why = _alerts_cutoff(now, None, None)
 
     # ① 적재
-    a_lines, a_bad = _alerts_report(cutoff, now, why)
-    say("[적재] " + ("🔴 " + " / ".join(a_bad) if a_bad else "🟢 경보 없음"))
+    a_lines, a_bad, a_n = _alerts_report(cutoff, now, why)
+    # 🔴 관측 0회를 "경보 없음" 으로 보고하면 **보지 않은 것을 통과로 세는 것**이다.
+    #    (구간이 짧으면 매시간 기록이 하나도 안 들어올 수 있다. 적재가 멈춘 경우는
+    #     '실행 누락' 이 따로 잡으므로, 여기서는 확인하지 않았다는 사실만 말한다.)
+    if a_bad:
+        say("[적재] 🔴 " + " / ".join(a_bad))
+    elif a_n == 0:
+        say("[적재] ⚪ 이 구간에 관측이 없다 — 확인하지 않았다 (실행 누락은 아래로 판정)")
+    else:
+        say("[적재] 🟢 경보 없음 (관측 %d회)" % a_n)
     for l in a_lines:
         say("   " + l)
 
