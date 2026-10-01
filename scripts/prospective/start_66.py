@@ -1349,49 +1349,96 @@ def _telegram(text):
         return False
 
 
+# 🔴 이미 아는 누수의 주체 — 2026-10-01 실측으로 확인됐다. 이것만으로는 장애가 아니다.
+KNOWN_LEAKERS = ("SignalQualityService",)
+
+
 def _log_scan(cutoff):
     """호스트에 보존된 운영 로그에서 **그 시각 이후** 오류·경보를 센다.
 
     🔴 적재 감시로는 이것을 볼 수 없다 — 적재가 정상이어도 주문이 실패하거나 세션이
     죽으면 표본이 조용히 사라진다. 로그는 2026-10-01 볼륨 마운트 이후 호스트에 남는다.
     ⚠️ 컨테이너 로그 시각은 UTC 다(`StartedAt` 과 일치하는 것을 확인했다).
+
+    🔴 **커넥션 누수는 주체로 분류한다.** 경보 뒤에 붙는 스택에서 대여 스레드를 읽어
+    `SignalQualityService` 면 **이미 아는 것**(📌 기록만)이고, 그 밖이면 **🔴 새로운 주체**다.
+    왜 이렇게 나누는가: 전자는 매 주기(30분)마다 반복되므로 그것으로 "확인 필요"를 띄우면
+    **매일 경보가 와서 신호가 죽는다**. 그리고 후자는 2026-09-26 장기 잠금(①)의 원인을
+    확인할 **유일하게 남은 경로**다 — 그때의 로그는 보존되지 않아 사라졌다.
+
+    @return (패턴별 건수, 읽지 못한 파일, 누수 분류)
     """
     pats = {
         "lock timeout": "lock timeout",
         "deadlock": "deadlock",
         "동기화 실패": "시장 데이터 동기화 실패",
-        "커넥션 누수": "leak detection",
         "KILL 경보": "→ KILL(",
         "비상 정지": "EMERGENCY_STOPPED",
         "주문 실패": "주문 실패",
     }
     hits = dict((k, 0) for k in pats)
+    leak = {"known": 0, "unknown": 0, "who": []}
     files, missing = [], []
     for name in ("system.log", "trade.log"):
         f = os.path.join(LOG_DIR, name)
-        if os.path.exists(f):
-            files.append(f)
-        else:
-            missing.append(name)
+        (files if os.path.exists(f) else missing).append(f if os.path.exists(f) else name)
+
     for f in files:
         try:
             with open(f, encoding="utf-8", errors="replace") as fh:
+                pending = None          # 창 안에서 누수 경보를 만났으면 스택을 모은다
                 for line in fh:
-                    if len(line) < 19:
+                    stamped = False
+                    t = None
+                    if len(line) >= 19:
+                        try:
+                            t = datetime.strptime(line[:19], "%Y-%m-%d %H:%M:%S").replace(
+                                tzinfo=timezone.utc)
+                            stamped = True
+                        except ValueError:
+                            pass
+                    # 🔴 스택은 **시각이 붙은 다음 줄**에서 끝난다. 예외 머리줄
+                    #    (java.lang.Exception: …) 은 공백으로 시작하지 않으므로 그것으로
+                    #    끊으면 스택을 한 줄도 못 모은다 — 실제로 그렇게 틀렸다.
+                    if pending is not None and stamped:
+                        _leak_close(pending, leak)
+                        pending = None
+                    if not stamped:
+                        if pending is not None and len(pending["stack"]) < 200:
+                            pending["stack"].append(line)
                         continue
-                    try:
-                        t = datetime.strptime(line[:19], "%Y-%m-%d %H:%M:%S").replace(
-                            tzinfo=timezone.utc)
-                    except ValueError:
-                        continue      # 스택 트레이스 등 시각이 없는 줄
                     if t < cutoff:
+                        continue
+                    if "leak detection" in line or "Apparent connection leak" in line:
+                        pending = {"stack": [line]}
                         continue
                     for k, p in pats.items():
                         if p in line:
                             hits[k] += 1
+                if pending is not None:
+                    _leak_close(pending, leak)
         except OSError as e:
             missing.append("%s (%s)" % (os.path.basename(f), e))
-    return hits, missing
+    return hits, [os.path.basename(x) for x in missing], leak
+
+
+def _leak_close(pending, leak):
+    """모아둔 누수 스택에서 **대여한 우리 코드**를 찾아 분류한다."""
+    blob = "".join(pending["stack"])
+    if any(k in blob for k in KNOWN_LEAKERS):
+        leak["known"] += 1
+        return
+    leak["unknown"] += 1
+    # 🔴 누가 쥐고 있었는지를 남긴다 — 프레임워크 프레임은 걷어내고 우리 코드만 본다.
+    for ln in pending["stack"]:
+        if "com.cryptoautotrader" in ln:
+            who = ln.strip()
+            if who not in leak["who"]:
+                leak["who"].append(who)
+            break
+    else:
+        if "스택 없음" not in leak["who"]:
+            leak["who"].append("스택 없음")
 
 
 def cmd_watch(notify=False, only_alerts=False):
@@ -1431,7 +1478,7 @@ def cmd_watch(notify=False, only_alerts=False):
     say("[세션] " + s_line)
 
     # ③ 운영 로그
-    hits, missing = _log_scan(cutoff)
+    hits, missing, leak = _log_scan(cutoff)
     nonzero = [(k, v) for k, v in hits.items() if v]
     # 🔴 system.log 를 못 읽으면 운영 오류를 **볼 수 없다** — 정상으로 세지 않는다.
     blind = any(x.startswith("system.log") for x in missing)
@@ -1440,8 +1487,15 @@ def cmd_watch(notify=False, only_alerts=False):
             % ("🔴" if blind else "⚪", " ".join(missing)))
     say("[로그] " + ("🔴 " + " / ".join("%s %d" % kv for kv in nonzero)
                     if nonzero else "🟢 오류·경보 없음"))
+    if leak["known"]:
+        say("[누수] 📌 %d건 — SignalQualityService (이미 파악된 것, 검증 후 과제)"
+            % leak["known"])
+    if leak["unknown"]:
+        say("[누수] 🔴 %d건 — **새로운 주체**: %s"
+            % (leak["unknown"], " | ".join(leak["who"][:3])))
+        say("       🔴 2026-09-26 장기 잠금(①)의 원인을 확인할 경로다. 그 시각 로그를 보존한다.")
 
-    bad = bool(a_bad) or s_bad or bool(nonzero) or blind
+    bad = bool(a_bad) or s_bad or bool(nonzero) or blind or bool(leak["unknown"])
     say()
     say("구간 %s ~ %s (%s)" % (cutoff.strftime("%m-%d %H:%MZ"),
                                now.strftime("%m-%d %H:%MZ"), why))

@@ -348,6 +348,14 @@ python3 scripts/prospective/start_66.py alerts --days 7 --no-mark   # 되돌아�
 | 전송 경로 | 스크립트가 **텔레그램 Bot API 를 직접** 호출한다(`.env` 의 `TELEGRAM_BOT_TOKEN`·`TELEGRAM_CHAT_ID`). 앱에는 임의 문자열 전송 엔드포인트가 없고, 추가하면 **재배포**가 필요하다 |
 | 🔴 이 도구가 하지 않는 것 | **중단**이다. 자동정지가 OFF 이므로 위험 경보 시 정지는 **사람이** 사전 규칙대로 수행하고 시점·사유를 기록한다 |
 | `system.log` 를 못 읽으면 | 🔴 **정상으로 세지 않는다** — 운영 오류를 볼 수 없는 상태다 |
+| 커넥션 누수의 분류 | 경보 뒤 스택에서 **대여한 우리 코드**를 읽는다. `SignalQualityService` 면 **📌 이미 파악된 것**(기록만, 정상 유지), 그 밖이면 **🔴 새로운 주체** |
+
+🔴 **왜 누수를 주체로 나누는가**: `SignalQualityService` 의 누수는 30분 주기마다 반복된다
+(트랜잭션 안에서 REST 를 부르는 구조 — 검증 후 과제). 그것으로 "확인 필요"를 띄우면
+**매일 경보가 와서 신호가 죽는다.** 반대로 **다른 주체가 나오면 그것이 2026-09-26 장기 잠금(①)의
+원인을 확인할 유일하게 남은 경로**다 — 그때의 로그는 보존되지 않아 사라졌고, 재발 시
+`leak-detection-threshold=60s` 가 남길 스택이 유일한 증거다. 그래서 **아는 것은 조용히,
+모르는 것은 즉시** 알린다.
 
 ```
 19 * * * * cd ~/crypto_trader/AutoTrader && /usr/bin/python3 scripts/prospective/start_66.py freshness --save >> scripts/prospective/freshness_runs.log 2>&1
