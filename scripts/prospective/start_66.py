@@ -944,6 +944,12 @@ def cmd_prep(action):
     return 0 if not failed else 1
 
 
+FRESH_LOG = os.path.join(_HERE, "freshness_log.jsonl")
+STREAK = os.path.join(_HERE, "freshness_streak.json")
+REQUIRED_HOURS = 72          # 운영 준비 점검 기준 — 무중단 보장 기준이 아니다
+MAX_GAP_MIN = 90             # 이보다 벌어지면 그 구간은 **관측 누락**이다
+
+
 def _upbit_latest_h1(pair):
     """그 순간 **거래소가 제공하는** 최신 H1 봉 시각 — 판정의 비교 대상이다 (2026-10-01).
 
