@@ -20,6 +20,8 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 신호 품질 사후 평가 서비스
@@ -166,15 +168,42 @@ public class SignalQualityService {
      * Upbit H1 캔들 1개를 targetTime 시점으로 조회해 종가 반환.
      * targetTime이 미래이면 null 반환.
      */
+    /**
+     * 🔴 거래소에 없는 마켓(404) — <b>영구 실패</b>다. 이 프로세스에서 다시 호출하지 않는다
+     * (2026-10-01 추가).
+     *
+     * <p><b>왜 필요한가</b>: 404 를 일시 실패처럼 다시 시도하고 있었다. {@code fetchClosePrice} 가
+     * null 이면 그 행은 저장되지 않아 다음 실행의 조회 대상에 그대로 남으므로, 상장폐지 코인 하나가
+     * <b>매 실행마다 수백 번</b> 호출된다. 2026-10-01 06시 운영 실측: KRW-BONK 520건 · KRW-STORJ
+     * 154건, 정기 실행 1회(scheduler)만으로 337건. 앱 전체가 업비트 호출을 하나의 공유 스로틀로
+     * 직렬화하므로 이 낭비가 <b>429 를 유발해 다른 소비자의 호출을 실패시킨다</b> —
+     * 06:20:17 에 KRW-G·KRW-INJ 의 캔들 수집이 429 로 실패해 그 회차 동기화가 누락됐다
+     * (전향 검증 22코인 중 둘이다).
+     *
+     * <p>⚠️ 이 집합은 프로세스 메모리다. 재시작하면 마켓당 1회는 다시 호출한다 — 상장폐지 여부가
+     * 바뀔 수 있으므로 영구 저장하지 않는 쪽을 택했다. 줄이는 것은 "같은 실행 안의 반복"이다.
+     *
+     * <p>📌 남는 문제(별도 사안): 그 행들은 <b>영구히 미평가로 남아</b> 조회 대상 자리를 계속
+     * 차지한다. 페이지 전진 가드가 무한 루프는 막지만 백로그 자체는 줄지 않는다.
+     */
+    private final Set<String> delistedMarkets = ConcurrentHashMap.newKeySet();
+
     private BigDecimal fetchClosePrice(String coinPair, Instant targetTime) {
         if (targetTime.isAfter(Instant.now())) return null;
+        if (delistedMarkets.contains(coinPair)) return null;
         try {
             List<UpbitCandleResponse> candles = upbitRestClient.getCandles(
                     coinPair, "minutes", 60, targetTime, 1);
             if (candles.isEmpty()) return null;
             return candles.get(0).getTradePrice();
         } catch (Exception e) {
-            log.debug("Upbit 캔들 조회 실패 ({}): {}", coinPair, e.getMessage());
+            String msg = String.valueOf(e.getMessage());
+            // 🔴 404 만 영구 실패로 본다. 429·5xx·타임아웃은 일시 실패이므로 계속 재시도해야 한다.
+            if (msg.contains("호출 실패: 404") && delistedMarkets.add(coinPair)) {
+                log.warn("[SignalQuality] {} 는 거래소에 없다(404) — 이 프로세스에서 더 조회하지 "
+                        + "않는다. 이 코인의 미평가 행은 남는다(별도 처리 필요).", coinPair);
+            }
+            log.debug("Upbit 캔들 조회 실패 ({}): {}", coinPair, msg);
             return null;
         }
     }
