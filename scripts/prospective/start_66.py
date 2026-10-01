@@ -522,6 +522,28 @@ def cmd_check():
 
     st, body = call("GET", "/api/v1/paper-trading/sessions")
     running = [s for s in body["data"] if s.get("status") == "RUNNING"]
+
+    # 🔴 생성 이후에 돌리면 이 명령의 전제가 깨진다 (2026-10-01).
+    #    `check` 는 **생성 전** 점검이다. 66세션이 이미 있으면 그것까지 "앞으로 만들 것"으로
+    #    세어 정원을 172/120 으로 틀리게 보고하고, 아래 ③ 이 제외 목록을 덮어쓰면서
+    #    **우리 66세션을 '남의 표본'으로 등록한다** — 그러면 `abort` 가 그 66개의 정지를 거부한다.
+    #    실제로 2026-10-01 T0 직후에 그렇게 덮어썼다. 그래서 생성 이후에는 읽기만 한다.
+    if os.path.exists(STATE):
+        print("")
+        print("🔴 `sessions_66.json` 이 이미 있다 — **생성 이후**다. 이 명령은 생성 전 점검용이므로")
+        print("   정원 계산(+66)과 제외 목록 갱신을 **건너뛴다**. 아래는 현황만이다.")
+        print("② 정원(현황) — RUNNING %d / %d   %s"
+              % (len(running), SESSION_CAP, "✔" if len(running) <= SESSION_CAP else "✗"))
+        own = {str(x.get("id")) for x in
+               json.load(open(STATE, encoding="utf-8")).get("sessions", [])}
+        live = {str(sid_of(s)) for s in running}
+        mine = own & live
+        print("   그중 검증 66세션 RUNNING %d / 66   %s"
+              % (len(mine), "✔" if len(mine) == 66 else "🔴 빠진 세션이 있다"))
+        if len(mine) != 66:
+            print("   🔴 RUNNING 아닌 검증 세션: %s"
+                  % " ".join(sorted(own - live, key=int)))
+        return 0 if ok and len(mine) == 66 else 1
     print("\n② 정원 — 현재 RUNNING %d + 66 = %d / %d   %s"
           % (len(running), len(running) + 66, SESSION_CAP,
              "✔" if len(running) + 66 <= SESSION_CAP else "✗"))
