@@ -32,6 +32,7 @@ from __future__ import annotations
 
 import json
 import os
+import gzip
 import re
 import sys
 import time
@@ -1081,7 +1082,12 @@ def cmd_freshness(save=False):
         ex_to, ex_err = _upbit_latest_h1(pair)
         state[pair] = {"row": r, "dbTo": db_to, "cnt": (r or {}).get("count"),
                        "exTo": ex_to, "exErr": ex_err}
-        time.sleep(0.12)          # 공개 API 한도(초당 10회) 여유
+        # 🔴 0.12s(≈초당 8회) 로는 앱과 충돌한다. 업비트 한도는 **IP 단위 초당 10회**이고
+        #    앱의 `syncMarketData` 는 fixedDelay=60s 로 **매분** 22코인을 호출한다 — 비는 분이
+        #    없으므로 cron 시각을 옮겨도 소용없다. 2026-10-01 10:19:03 에 앱이 검증 코인
+        #    POLYX·NEAR·BLAST 의 H1 수집에서 429 를 맞았고, 그 시각은 이 도구가 도는 :19 다.
+        #    감시가 관측 대상을 교란하면 그 관측은 쓸 수 없다. 매시 한 번이니 느려도 된다.
+        time.sleep(0.5)           # 초당 2회 — 22코인에 11초
 
     behind = [p for p, s in state.items()
               if (s["dbTo"] and s["exTo"] and s["exTo"] > s["dbTo"])
@@ -1107,7 +1113,7 @@ def cmd_freshness(save=False):
             if ex2:
                 state[pair]["exTo"] = ex2
             rechecked.append(pair)
-            time.sleep(0.12)
+            time.sleep(0.5)       # 위와 같은 이유 — 재확인도 같은 한도를 쓴다
         now = datetime.now(timezone.utc)
 
     # ── 판정 ───────────────────────────────────────────────────────────────
@@ -1355,6 +1361,54 @@ def _telegram(text):
 KNOWN_LEAKERS = ("SignalQualityService",)
 
 
+RE_ROTATED = re.compile(r"^(system|trade)\.(\d{4}-\d{2}-\d{2})\.log(\.gz)?$")
+
+
+def _log_files(cutoff):
+    """`cutoff` 구간을 덮는 로그 파일 **전부** — 회전된 파일을 포함한다.
+
+    🔴 2026-10-02 에 고쳤다. 종전에는 `system.log`·`trade.log` 두 개만 읽었다. 그런데
+    logback 은 자정에 그날 분을 `trade.2026-10-01.log` 로 떼어내므로, 매일 00:25Z 에 도는
+    `watch` 는 구간이 "어제 09:25 ~ 오늘 00:25" 인데도 **자정 이후에 쓰인 몇 분만** 보게 된다.
+    즉 어제 낮에 난 경보를 구조적으로 셀 수 없었다 — 실제로 2026-10-01 10:19 의 429 세 건
+    (POLYX·NEAR·BLAST, 검증 22코인·H1)이 이 공백에 들어갈 수 있었다.
+
+    회전 파일은 **이름의 날짜가 cutoff 날짜 이상**인 것만 읽는다. 그보다 오래된 파일에는
+    구간 안의 줄이 있을 수 없고, 하루치가 수 MB 라 전부 읽으면 매일 느려진다.
+    """
+    files, missing = [], []
+    cur = cutoff.date()
+    try:
+        names = os.listdir(LOG_DIR)
+    except OSError as e:
+        return [], ["%s (%s)" % (LOG_DIR, e)]
+    for name in ("system.log", "trade.log"):
+        f = os.path.join(LOG_DIR, name)
+        (files if os.path.exists(f) else missing).append(f if os.path.exists(f) else name)
+    rotated = []
+    for name in names:
+        m = RE_ROTATED.match(name)
+        if not m:
+            continue
+        try:
+            d = datetime.strptime(m.group(2), "%Y-%m-%d").date()
+        except ValueError:
+            continue
+        if d >= cur:
+            rotated.append((name, os.path.join(LOG_DIR, name)))
+    # 오래된 것부터 — 출력 순서를 날짜순으로 고정한다
+    for _, f in sorted(rotated):
+        files.append(f)
+    return files, missing
+
+
+def _open_log(path):
+    """회전 파일은 `.gz` 로 압축돼 있을 수 있다."""
+    if path.endswith(".gz"):
+        return gzip.open(path, "rt", encoding="utf-8", errors="replace")
+    return open(path, encoding="utf-8", errors="replace")
+
+
 def _log_scan(cutoff):
     """호스트에 보존된 운영 로그에서 **그 시각 이후** 오류·경보를 센다.
 
@@ -1380,14 +1434,11 @@ def _log_scan(cutoff):
     }
     hits = dict((k, 0) for k in pats)
     leak = {"known": 0, "unknown": 0, "who": []}
-    files, missing = [], []
-    for name in ("system.log", "trade.log"):
-        f = os.path.join(LOG_DIR, name)
-        (files if os.path.exists(f) else missing).append(f if os.path.exists(f) else name)
+    files, missing = _log_files(cutoff)
 
     for f in files:
         try:
-            with open(f, encoding="utf-8", errors="replace") as fh:
+            with _open_log(f) as fh:
                 pending = None          # 창 안에서 누수 경보를 만났으면 스택을 모은다
                 for line in fh:
                     stamped = False
