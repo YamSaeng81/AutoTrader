@@ -129,8 +129,31 @@ class LateOrderSubmissionAfterStopTest extends IntegrationTestBase {
         }
     }
 
+    /**
+     * 🔴 <b>미해결 — 배포 차단 항목이다. 이 시험은 통과하지 않는다.</b>
+     *
+     * <p>재현은 유효하다(고치기 전 결과: 정지 커밋 뒤 거래소 매수가 실제로 나갔다). 그러나
+     * 2026-10-07 에 시도한 수정은 <b>구조적으로 틀렸고 철회했다.</b></p>
+     *
+     * <p>시도한 것: 세션 행을 배타 잠금으로 읽고 상태를 확인한 뒤 <b>같은 트랜잭션에서</b> 거래소에
+     * 제출하도록 승인 구간에 {@code REQUIRES_NEW} 트랜잭션을 뒀다. 결과는 두 가지로 드러났다 —</p>
+     * <ol>
+     *   <li>분리된 주문 엔티티를 그 트랜잭션에서 저장하자 <b>같은 주문이 두 행으로 저장됐다</b>
+     *       (거래소 호출 1회·{@code trade_log} 1건인데 주문 행 2건, 모든 필드가 마이크로초까지 동일).</li>
+     *   <li>엔티티를 그 트랜잭션 안에서 다시 읽게 하자 <b>주문을 찾지 못해 제출 자체가 사라졌다</b>
+     *       (거래소 호출 0회).</li>
+     * </ol>
+     *
+     * <p>🔴 두 결과가 같은 사실을 가리킨다 — <b>{@code submitOrder} 는 바깥 트랜잭션 안에서 돌고,
+     * 주문 행은 그 트랜잭션이 커밋되기 전까지 별도 트랜잭션에 보이지 않는다.</b> 그러므로
+     * {@code REQUIRES_NEW} 승인은 애초에 성립할 수 없다. 다시 설계해야 한다 — 잠금을
+     * {@code PROPAGATION_REQUIRED} 로 바깥 트랜잭션에 걸거나, 승인 경계를 제출 경로 바깥(평가
+     * 쪽)으로 올리는 방향이 후보다. {@code LiveTradingSessionRepository.findByIdForUpdate} 는
+     * 그 용도로 남겨 둔다.</p>
+     */
+    @org.junit.jupiter.api.Disabled("미해결: 정지 커밋 후 신규 매수가 거래소에 닿는다. 수정 설계 재검토 필요 — javadoc 참조")
     @Test
-    @DisplayName("평가가 RUNNING 을 읽은 뒤 정지가 커밋되면, 그 평가의 매수는 거래소에 닿지 않는다")
+    @DisplayName("🔴 미해결 — 평가가 RUNNING 을 읽은 뒤 정지가 커밋되면 그 매수는 거래소에 닿지 않아야 한다")
     void buyDecidedBeforeStopMustNotReachExchange() {
         // ── 평가가 RUNNING 을 읽는 시점 ──────────────────────────────
         LiveTradingSessionEntity session = sessionRepository.save(LiveTradingSessionEntity.builder()

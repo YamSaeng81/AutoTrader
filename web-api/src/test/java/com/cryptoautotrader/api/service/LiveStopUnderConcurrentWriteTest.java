@@ -84,6 +84,9 @@ class LiveStopUnderConcurrentWriteTest extends IntegrationTestBase {
     private OrderRepository orderRepository;
 
     @Autowired
+    private com.cryptoautotrader.api.repository.TradeLogRepository tradeLogRepository;
+
+    @Autowired
     private PlatformTransactionManager txManager;
 
     /** 🔴 대역으로 두는 유일한 경계 — 실제 거래소 주문을 내지 않기 위해서다. */
@@ -286,7 +289,13 @@ class LiveStopUnderConcurrentWriteTest extends IntegrationTestBase {
     }
 
     /**
-     * 🔴 <b>미해결 — 배포 차단 항목으로 유지한다.</b>
+     * 🟢 <b>해소됨 (2026-10-07)</b> — 접수된 매도가 2건으로 보인 것은 <b>내가 넣은 승인 트랜잭션의
+     * 회귀</b>였다(같은 주문이 두 행으로 저장됐다). 그 수정을 철회한 뒤 1건으로 통과한다. 거래소
+     * 호출은 처음부터 1회였다.
+     *
+     * <p>아래는 옛 설명이다 — 참고로 남긴다.</p>
+     *
+     * <p>🔴 <b>옛 미해결 메모</b>
      *
      * <p>정지 한 번에 거래소 매도 호출은 {@code times(1)} 로 검증된다. 그런데 <b>거래소 주문 ID 가
      * 찍힌 매도 주문 행은 2건</b>으로 관측된다. 둘 중 하나가 사실이 아니거나, 호출 없이 주문 ID 를
@@ -296,7 +305,6 @@ class LiveStopUnderConcurrentWriteTest extends IntegrationTestBase {
      * <p><b>이것이 "대금 반영 중복 없음" 을 아직 말할 수 없는 이유다.</b> 통과하지 못하는 시험을
      * 지워서 전체 초록을 만들면 이 공백이 닫히지 않으므로, {@code @Disabled} 로 남겨 다음에 가린다.</p>
      */
-    @org.junit.jupiter.api.Disabled("미해결: 거래소 호출 1회인데 접수된 매도 행이 2건으로 관측된다 — 원인 미확정")
     @Test
     @DisplayName("🔴 미해결 — 거래소에 접수된 매도는 정확히 1건이어야 한다")
     void exactlyOneSellReachesExchange() {
@@ -313,8 +321,24 @@ class LiveStopUnderConcurrentWriteTest extends IntegrationTestBase {
                 .filter(o -> sessionId.equals(o.getSessionId()))
                 .filter(o -> o.getExchangeOrderId() != null)
                 .toList();
+        String detail = orderRepository.findAll().stream()
+                .filter(o -> sessionId.equals(o.getSessionId()))
+                .map(o -> String.format(
+                        "{id=%s side=%s state=%s exchId=%s posId=%s qty=%s filledQty=%s "
+                                + "created=%s submitted=%s reason=%s}",
+                        o.getId(), o.getSide(), o.getState(), o.getExchangeOrderId(),
+                        o.getPositionId(), o.getQuantity(), o.getFilledQuantity(),
+                        o.getCreatedAt(), o.getSubmittedAt(), o.getSignalReason()))
+                .reduce("", (x, y) -> x + " | " + y);
+        int exchangeCalls = (int) Mockito.mockingDetails(upbitOrderClient).getInvocations().stream()
+                .filter(i -> "createOrder".equals(i.getMethod().getName())).count();
+        String logs = tradeLogRepository.findAll().stream()
+                .map(t -> String.format("{logId=%s orderId=%s ev=%s %s->%s}", t.getId(), t.getOrderId(),
+                        t.getEventType(), t.getOldState(), t.getNewState()))
+                .reduce("", (x, y) -> x + " | " + y);
+        detail = detail + "  TRADE_LOG:" + logs;
         assertThat(submitted)
-                .as("2건 이상이면 이중 매도다 — 대금이 두 번 반영될 수 있다")
+                .as("거래소 호출 %d회 / 세션 %s 의 전체 주문 행:%s", exchangeCalls, sessionId, detail)
                 .hasSize(1);
     }
 
