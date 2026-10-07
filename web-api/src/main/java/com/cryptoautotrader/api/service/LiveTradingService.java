@@ -175,6 +175,8 @@ public class LiveTradingService {
     private final RiskManagementService riskManagementService;
     private final ApplicationEventPublisher eventPublisher;
     private final SessionBalanceUpdater balanceUpdater;
+    /** 전환+복원을 한 트랜잭션으로 묶고 충돌 시 재시도한다 (2026-10-07). */
+    private final OptimisticRetry optimisticRetry;
     /** 포지션 원자적 전환 — 트랜잭션 없는 스케줄러에서도 안전하다 (2026-10-07). */
     private final PositionStateTransition positionStateTransition;
     private final com.cryptoautotrader.core.portfolio.PortfolioManager portfolioManager;
@@ -1530,17 +1532,16 @@ public class LiveTradingService {
                         //    건너뛰는데, 이쪽이 전환을 늦게 하므로 둘 다 "내가 먼저" 로 본다.
                         //    `executeSessionSell` 의 매수 취소 분기와 reconcile 이 이미 쓰는 패턴을
                         //    여기에도 맞춘다: **전환에 성공한 쪽만 복원한다.**
-                        int closed = positionStateTransition.closeIfOpen(pos.getId(), Instant.now());
-                        if (closed == 0) {
-                            log.debug("세션 종료 시 KRW 복원 스킵 — 포지션이 이미 정리됐다 (posId={})",
-                                    pos.getId());
-                            continue;
-                        }
                         final BigDecimal restore = failedBuy.get(0).getQuantity();
-                        balanceUpdater.apply(session.getId(),
-                                s -> s.setAvailableKrw(s.getAvailableKrw().add(restore)));
-                        log.warn("세션 종료 시 미체결 매수 포지션 KRW 복원 (posId={}, sessionId={}, 복원={})",
-                                pos.getId(), session.getId(), restore);
+                        final Long posId = pos.getId();
+                        final Long sid = session.getId();
+                        boolean restored = restorePositionKrwAtomically(posId, sid, restore);
+                        if (restored) {
+                            log.warn("세션 종료 시 미체결 매수 포지션 KRW 복원 (posId={}, sessionId={}, 복원={})",
+                                    posId, sid, restore);
+                        } else {
+                            log.debug("세션 종료 시 KRW 복원 스킵 — 포지션이 이미 정리됐다 (posId={})", posId);
+                        }
                         continue;
                     }
                     // 복원할 매수 주문이 없는 size=0 포지션 — 상태만 정리한다
@@ -1577,6 +1578,41 @@ public class LiveTradingService {
                         session.getId(), pos.getId(), e.getMessage());
             }
         }
+    }
+
+    /**
+     * 미체결 매수 포지션의 KRW 복원 — <b>포지션 전환과 잔액 반영을 한 트랜잭션으로 묶는다</b>
+     * (2026-10-07).
+     *
+     * <p>🔴 왜 한 트랜잭션이어야 하는가. 종전에는 {@code closeIfOpen}(바깥 트랜잭션에 참여)으로
+     * 가드하고 복원은 {@code balanceUpdater}(REQUIRES_NEW)로 했다. 그러면 <b>복원만 독립 커밋되고
+     * 바깥 트랜잭션이 롤백</b>될 수 있다 → 포지션은 {@code OPEN} 으로 되돌아오고, 다음 시도가 다시
+     * 복원한다. <b>가드가 롤백에는 무력하다</b> — 같은 KRW 가 두 번 들어간다. DYNAMIC 세션 49 가
+     * 그 유형으로 {@code available_krw} 10,000 → 174,752 까지 불어난 전례가 있다.</p>
+     *
+     * <p>그래서 전환과 잔액 반영을 <b>하나의 REQUIRES_NEW 트랜잭션</b>에 넣는다. 둘은 함께 커밋되거나
+     * 함께 롤백되므로, 바깥이 롤백돼도 이 쌍은 깨지지 않고 재시도는 {@code closeIfOpen == 0} 으로
+     * 건너뛴다. 세션 엔티티도 <b>그 트랜잭션 안에서 다시 읽는다</b>(분리 엔티티 저장 금지).</p>
+     *
+     * <p>🔴 이것은 <b>중복 복원</b>을 막는 것이고 <b>복원의 정당성</b>은 보장하지 않는다. 응답 불명
+     * 경로에서 {@code FAILED} 는 "거래소가 거절했다" 는 뜻이 아니므로, 그 상태에서 복원하면 실제로는
+     * 쓰인 자금을 되돌린다 — 그 문제는 불명 주문 상태 설계로만 해결된다
+     * ({@code LIVE_RISK_IMPLEMENTATION_REVIEW.md}).</p>
+     *
+     * @return 이 호출이 전환에 성공해 복원을 수행했으면 {@code true}
+     */
+    private boolean restorePositionKrwAtomically(Long positionId, Long sessionId, BigDecimal restore) {
+        return optimisticRetry.inNewTransaction(
+                "미체결 매수 KRW 복원 pos#" + positionId, st -> {
+                    if (positionStateTransition.closeIfOpen(positionId, Instant.now()) == 0) {
+                        return Boolean.FALSE;
+                    }
+                    LiveTradingSessionEntity fresh = sessionRepository.findById(sessionId).orElseThrow(
+                            () -> new IllegalStateException("세션을 찾을 수 없습니다: id=" + sessionId));
+                    fresh.setAvailableKrw(fresh.getAvailableKrw().add(restore));
+                    sessionRepository.save(fresh);
+                    return Boolean.TRUE;
+                });
     }
 
     private void cancelSessionActiveOrders(Long sessionId) {
