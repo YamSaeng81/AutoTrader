@@ -14,7 +14,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -81,6 +83,11 @@ class LiveStopUnderConcurrentWriteTest extends IntegrationTestBase {
     @SpyBean
     private PositionStateTransition positionStateTransition;
 
+    /** {@code submitOrder} 가 쓰는 실행기 — 드레인해서 비동기 완료를 확인한다. */
+    @Autowired
+    @Qualifier("orderExecutor")
+    private ThreadPoolTaskExecutor orderExecutor;
+
     private final List<Long> createdSessions = new ArrayList<>();
 
     /**
@@ -142,20 +149,35 @@ class LiveStopUnderConcurrentWriteTest extends IntegrationTestBase {
         });
     }
 
-    /** {@code @Async} 주문 제출이 끝날 때까지 기다린다 — sleep 고정이 아니라 조건 폴링이다. */
-    private void awaitAsyncSettled() {
-        long deadline = System.currentTimeMillis() + 10_000;
+    /**
+     * {@code @Async("orderExecutor")} 주문 제출이 <b>실제로 끝날 때까지</b> 기다린다.
+     *
+     * <p>🔴 종전에는 "주문 행 수가 잠시 늘지 않으면 정착" 으로 봤다. <b>그것은 비동기 완료의
+     * 증거가 아니다</b> — 작업이 큐에서 대기 중이거나 정체돼 있어도 행 수는 그대로다. 그래서
+     * 실행기를 직접 드레인한다: <b>큐가 비고 활성 스레드가 0</b> 이 되어야 제출 작업이 끝난 것이다.</p>
+     */
+    private void awaitOrderExecutorDrained() {
+        var pool = orderExecutor.getThreadPoolExecutor();
+        long deadline = System.currentTimeMillis() + 15_000;
         while (System.currentTimeMillis() < deadline) {
-            // 주문 행이 생겼고 더 이상 늘지 않으면 정착된 것으로 본다
-            long before = orderRepository.count();
+            if (pool.getQueue().isEmpty() && pool.getActiveCount() == 0) {
+                // 한 번 더 확인 — 작업이 큐에서 꺼내진 직후일 수 있다
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
+                if (pool.getQueue().isEmpty() && pool.getActiveCount() == 0) return;
+            }
             try {
-                Thread.sleep(200);
+                Thread.sleep(50);
             } catch (InterruptedException ie) {
                 Thread.currentThread().interrupt();
                 return;
             }
-            if (orderRepository.count() == before && before > 0) return;
         }
+        throw new AssertionError("orderExecutor 가 15초 안에 비워지지 않았다 — 비동기 작업이 정체됐다");
     }
 
     @Test
@@ -176,7 +198,7 @@ class LiveStopUnderConcurrentWriteTest extends IntegrationTestBase {
                 Mockito.anyLong(), Mockito.any(), Mockito.any(ExitReason.class));
 
         liveTradingService.stopSession(sessionId);
-        awaitAsyncSettled();
+        awaitOrderExecutorDrained();
 
         assertThat(injected.get())
                 .as("충돌을 실제로 심었는지 — 0 이면 재현 실패이므로 테스트가 무의미하다")
@@ -193,6 +215,8 @@ class LiveStopUnderConcurrentWriteTest extends IntegrationTestBase {
 
         // ② 🔴 매도 제출은 **정확히 1회**. `atMost(1)` 로 두면 0회여도 통과해 아무것도 증명하지
         //    못한다 — 청산이 일어났다는 것과 두 번 나가지 않았다는 것을 함께 확인해야 한다.
+        //    🔴 다만 **호출 1회는 '제출' 을 입증할 뿐이고 체결·회계 완료는 별개다.** 거래소 응답을
+        //    대역으로 두었으므로 이 시험은 체결 정산과 KRW 반영의 정확성을 말하지 않는다.
         Mockito.verify(upbitOrderClient, Mockito.times(1)).createOrder(
                 Mockito.eq("KRW-DOGE"), Mockito.eq("ask"),
                 Mockito.any(), Mockito.any(), Mockito.any());
@@ -214,7 +238,7 @@ class LiveStopUnderConcurrentWriteTest extends IntegrationTestBase {
         Long sessionId = session.getId();
 
         liveTradingService.stopSession(sessionId);
-        awaitAsyncSettled();
+        awaitOrderExecutorDrained();
         int sellsAfterFirstStop = Mockito.mockingDetails(upbitOrderClient).getInvocations().size();
 
         org.assertj.core.api.Assertions
@@ -222,7 +246,7 @@ class LiveStopUnderConcurrentWriteTest extends IntegrationTestBase {
                 .as("RUNNING 이 아니면 거부돼야 한다")
                 .isInstanceOf(RuntimeException.class);
 
-        awaitAsyncSettled();
+        awaitOrderExecutorDrained();
         assertThat(Mockito.mockingDetails(upbitOrderClient).getInvocations().size())
                 .as("두 번째 정지 시도로 거래소 호출이 늘어나면 안 된다")
                 .isEqualTo(sellsAfterFirstStop);

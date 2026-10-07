@@ -320,44 +320,51 @@ public class OrderExecutionEngine {
                 cancelOnExchange(order.getExchangeOrderId());
             } catch (Exception e) {
                 log.error("거래소 주문 취소 실패 (orderId={}): {}", orderId, e.getMessage());
+
                 // (B) 취소 실패는 '이미 체결되어 취소 불가'일 수 있다 — 거래소 상태를 재확인해
                 //     실제 체결됐다면 CANCELLED 로 박지 말고 체결 처리한다 (체결을 취소로 오기록 방지).
+                //
+                // 🔴 2026-10-07: **조회와 그 뒤의 처리를 분리한다.** 종전에는 둘을 한
+                //    try/catch 로 묶어서, `syncOrderState` 안의 실패(체결가 정산 등)까지
+                //    "거래소 조회 실패" 로 취급해 **CANCELLED 로 흘려보냈다** — 체결된 주문이
+                //    취소로 기록되는 경로다. 조회 성공 이후의 실패는 **결과 불명이 아니다.**
+                OrderResponse latest;
                 try {
-                    OrderResponse latest = queryExchangeOrder(order.getExchangeOrderId());
-                    boolean executed = latest.getExecutedVolume() != null
-                            && latest.getExecutedVolume().compareTo(BigDecimal.ZERO) > 0;
-                    if ("FILLED".equals(mapExchangeState(latest.getState())) || executed) {
-                        log.warn("취소 실패 + 거래소 체결 확인 — CANCELLED 대신 체결 처리 (orderId={}, state={}, executed={})",
-                                orderId, latest.getState(), latest.getExecutedVolume());
-                        syncOrderState(order, latest);
-                        return order;
-                    }
-                    // 🔴 2026-10-07: 재조회가 성공했고 체결이 아니더라도, 거래소에서 **아직 활성**
-                    //    이면 그 주문은 살아 있다. 취소를 요청했다는 사실이 사라졌다는 증거가 아니다.
-                    String exchangeState = mapExchangeState(latest.getState());
-                    if (ACTIVE_STATES.contains(exchangeState)) {
-                        log.error("취소 실패 + 거래소에 주문이 아직 살아 있다 — CANCELLED 로 박지 않는다 "
-                                        + "(orderId={}, 거래소상태={}). pollActiveOrders() 가 결말을 낸다.",
-                                orderId, latest.getState());
-                        throw new IllegalStateException(
-                                "취소되지 않았고 거래소에 활성으로 남아 있다: orderId=" + orderId);
-                    }
-                } catch (IllegalStateException unresolved) {
-                    throw unresolved;
+                    latest = queryExchangeOrder(order.getExchangeOrderId());
                 } catch (Exception ex) {
-                    // 🔴 2026-10-07: 종전에는 여기서 그대로 빠져나가 CANCELLED 로 전이했다.
-                    //    취소 요청이 시간 초과로 끝나고 상태 재조회까지 실패하면 **주문이 거래소에
-                    //    살아 있는지 알 수 없다.** 그런데 CANCELLED 로 기록하면 pollActiveOrders()
-                    //    (5초 주기, 활성 주문만 동기화)의 추적 대상에서 빠져 **영구 미해결**이 된다.
-                    //    그 주문이 나중에 체결되면 관리 주체 없는 포지션과 어긋난 KRW 가 남는다.
-                    //    거짓 종결보다 미결이 낫다 — 미결은 폴러가 자동으로 해소한다.
+                    // 🔴 여기만이 진짜 '결과 불명' 이다. 취소 요청이 실패하고 상태 재조회까지
+                    //    실패하면 **주문이 거래소에 살아 있는지 알 수 없다.** 종전에는 그대로
+                    //    빠져나가 CANCELLED 로 전이했는데, 그러면 pollActiveOrders()(5초 주기,
+                    //    활성 주문만 동기화)의 추적 대상에서 빠진다. 그 주문이 나중에 체결되면
+                    //    관리 주체 없는 포지션과 어긋난 KRW 가 남는다.
+                    //    거짓 종결보다 미결이 낫다 — 미결은 **추적 대상에 남는다.**
                     log.error("취소 실패 후 상태 재조회도 실패 (orderId={}): {} — 상태를 바꾸지 않고 "
-                                    + "활성으로 남긴다. pollActiveOrders() 가 결말을 낸다.",
+                                    + "활성으로 남긴다. pollActiveOrders() 의 추적 대상에 남는다.",
                             orderId, ex.getMessage());
                     throw new IllegalStateException(
                             "취소 결과 불명 — 주문을 활성으로 남긴다: orderId=" + orderId, ex);
                 }
-                // 여기 도달 = 재조회 성공 + 거래소에서 체결도 활성도 아님(취소 확인) → CANCELLED 전이
+
+                // 조회 성공 — 이 아래의 실패는 '불명' 으로 둔갑시키지 않고 그대로 올린다.
+                boolean executed = latest.getExecutedVolume() != null
+                        && latest.getExecutedVolume().compareTo(BigDecimal.ZERO) > 0;
+                String exchangeState = mapExchangeState(latest.getState());
+                if ("FILLED".equals(exchangeState) || executed) {
+                    log.warn("취소 실패 + 거래소 체결 확인 — CANCELLED 대신 체결 처리 (orderId={}, state={}, executed={})",
+                            orderId, latest.getState(), latest.getExecutedVolume());
+                    syncOrderState(order, latest);
+                    return order;
+                }
+                // 🔴 체결이 아니더라도 거래소에서 **아직 활성**이면 그 주문은 살아 있다.
+                //    취소를 요청했다는 사실이 사라졌다는 증거가 아니다.
+                if (ACTIVE_STATES.contains(exchangeState)) {
+                    log.error("취소 실패 + 거래소에 주문이 아직 살아 있다 — CANCELLED 로 박지 않는다 "
+                                    + "(orderId={}, 거래소상태={}). pollActiveOrders() 의 추적 대상에 남는다.",
+                            orderId, latest.getState());
+                    throw new IllegalStateException(
+                            "취소되지 않았고 거래소에 활성으로 남아 있다: orderId=" + orderId);
+                }
+                // 여기 도달 = 조회 성공 + 체결도 활성도 아님(취소 확인) → 아래에서 CANCELLED 전이
             }
         }
 

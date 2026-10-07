@@ -188,4 +188,60 @@ class CancelOutcomeUnknownTest extends IntegrationTestBase {
                 .isNotEqualTo("CANCELLED");
         assertThat(after.getCancelledAt()).isNull();
     }
+    /**
+     * 🔴 <b>미해결 경로의 최소 재현을 보존한다.</b> 2026-10-07 에 한 번 실패했다 — 거래소가
+     * {@code state=done}·{@code executedVolume>0} 을 돌려줬는데도 주문이 {@code CANCELLED} 로
+     * 끝났다. {@code mapExchangeState("done")} 은 {@code FILLED} 이므로 조건은 성립해야 한다.
+     * <b>실패 테스트를 지워서 얻은 전체 통과는 공백을 닫지 못하므로 지우지 않는다.</b>
+     * 통과하면 당시 실패는 테스트 간 데이터 오염 때문이었다는 뜻이고(그때는 {@code @AfterEach}
+     * 정리가 없었다), 계속 실패하면 생산 분기의 결함이다.
+     */
+    @Test
+    @DisplayName("취소 실패인데 거래소에서 체결 확인되면 체결로 처리한다 (미해결 경로 최소 재현)")
+    void cancelFailedButActuallyFilled() throws Exception {
+        OrderEntity order = submittedOrder();
+
+        Mockito.doThrow(new RuntimeException("cannot cancel - already done"))
+                .when(upbitOrderClient).cancelOrder("exchange-uuid-1");
+
+        // 🔴 체결 응답에는 **체결가를 산출할 수 있는 값**이 있어야 한다. 처음에는 state·
+        //    executedVolume 만 넣었는데, `applyFillPrice` 가 평균 단가를 구하지 못해
+        //    `handleBuyFill` 에서 `avgFillPrice` NPE 가 났다 — 그것이 2026-10-07 에 이 시험이
+        //    실패한 진짜 이유이고, **생산 분기의 결함이 아니라 픽스처의 누락**이었다.
+        OrderResponse filled = new OrderResponse();
+        filled.setUuid("exchange-uuid-1");
+        filled.setSide("bid");
+        filled.setOrdType("limit");
+        filled.setState("done");
+        filled.setMarket("KRW-DOGE");
+        filled.setVolume(new BigDecimal("10.00000000"));
+        filled.setExecutedVolume(new BigDecimal("10.00000000"));
+        filled.setExecutedFunds(new BigDecimal("3000.00000000"));   // 평균 단가 300원
+        filled.setPrice(new BigDecimal("300.00000000"));
+        filled.setPaidFee(new BigDecimal("1.50000000"));
+        Mockito.doReturn(filled).when(upbitOrderClient).getOrder("exchange-uuid-1");
+
+        orderExecutionEngine.cancelOrder(order.getId());
+
+        OrderEntity after = orderRepository.findById(order.getId()).orElseThrow();
+        assertThat(after.getState())
+                .as("체결을 취소로 오기록하면 손익과 포지션이 어긋난다 (거래소 보고: done)")
+                .isNotEqualTo("CANCELLED");
+    }
+
+    @Test
+    @DisplayName("취소가 성공하면 CANCELLED 로 종결한다 (회귀 방지)")
+    void cancelSucceeds() throws Exception {
+        OrderEntity order = submittedOrder();
+
+        // 🔴 `UpbitOrderClient.cancelOrder` 는 void 가 아니므로 `doNothing()` 을 쓸 수 없다
+        //    (Mockito 가 "someVoidMethod() does nothing..." 으로 거부한다). 스텁을 두지 않으면
+        //    모의 객체가 기본값을 돌려주고 예외도 던지지 않는다 — 그것이 '취소 성공' 이다.
+
+        orderExecutionEngine.cancelOrder(order.getId());
+
+        OrderEntity after = orderRepository.findById(order.getId()).orElseThrow();
+        assertThat(after.getState()).isEqualTo("CANCELLED");
+        assertThat(after.getCancelledAt()).isNotNull();
+    }
 }
