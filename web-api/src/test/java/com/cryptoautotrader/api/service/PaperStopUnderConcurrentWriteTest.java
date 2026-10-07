@@ -49,6 +49,12 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * <p>🔴 이 테스트는 <b>고치기 전에는 실패해야 한다.</b> 실패하지 않으면 사고를 재현하지 못한
  * 것이므로 테스트가 잘못된 것이다.</p>
+ *
+ * <h3>🔴 이 테스트가 증명하지 않는 것</h3>
+ *
+ * <p>이것은 <b>주입한 충돌 한 지점에 대한 재현·회복 검증</b>이다. 실제 동시 실행 전체가
+ * 안전하다는 증명이 아니다 — 평가 루프·reconcile·웹소켓 경로가 각각 다른 시점에 다른 행을 쓰며,
+ * 그 조합을 전부 덮지 않았다. 충돌 지점이 하나 더 있으면 여기서는 드러나지 않는다.</p>
  */
 @DisplayName("동시 쓰기 중에도 모의투자 정지는 1회로 성공해야 한다 (선행 조건 5)")
 class PaperStopUnderConcurrentWriteTest extends IntegrationTestBase {
@@ -64,6 +70,10 @@ class PaperStopUnderConcurrentWriteTest extends IntegrationTestBase {
 
     @Autowired
     private PlatformTransactionManager txManager;
+
+    /** 🔴 알림이 **최종 커밋 뒤에만** 나가는지 센다 — 재시도가 있어도 한 번이어야 한다. */
+    @SpyBean
+    private TelegramNotificationService telegramService;
 
     /** 정지 트랜잭션 안에서 불리는 지점 — 여기에 충돌을 심는다. */
     @SpyBean
@@ -159,6 +169,34 @@ class PaperStopUnderConcurrentWriteTest extends IntegrationTestBase {
         assertThat(positionRepo.findBySessionIdAndStatus(sessionId, "OPEN"))
                 .as("정지 후 열린 포지션이 남아 있으면 자본이 묶인 채 STOPPED 가 된다")
                 .isEmpty();
+
+        // 🔴 알림은 트랜잭션 밖으로 옮기는 것만으로 충분하지 않다 — **최종 커밋이 성공한 뒤에
+        //    정확히 한 번** 나가야 한다. 롤백된 첫 시도에 대해 한 번 더 나가면 안 된다.
+        Mockito.verify(telegramService, Mockito.atMost(1)).notifyPaperSessionStopped(
+                Mockito.eq(sessionId), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyDouble());
+    }
+
+    @Test
+    @DisplayName("정지가 끝까지 실패하면 '중단됨' 알림이 나가지 않는다")
+    void noStoppedNotificationWhenStopUltimatelyFails() {
+        Long sessionId = createRunningSessionWithOpenPosition();
+        // 매 시도마다 충돌을 심어 재시도를 모두 소진시킨다
+        Mockito.doAnswer(inv -> {
+            bumpVersionInSeparateTransaction(sessionId);
+            return cannedCandle();
+        }).when(marketDataCacheRepo).findCandles(Mockito.anyString(), Mockito.anyString(),
+                Mockito.any(), Mockito.any());
+
+        org.assertj.core.api.Assertions
+                .assertThatThrownBy(() -> paperTradingService.stop(sessionId))
+                .isInstanceOf(org.springframework.dao.ConcurrencyFailureException.class);
+
+        // 🔴 실패했는데 "중단됨" 이 나가면 사람이 정지됐다고 오판한다 — 가장 위험한 경우다.
+        Mockito.verify(telegramService, Mockito.never()).notifyPaperSessionStopped(
+                Mockito.eq(sessionId), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.anyDouble());
+        assertThat(balanceRepo.findById(sessionId).orElseThrow().getStatus())
+                .as("실패했으면 RUNNING 으로 남아야 한다 — 상태가 섞이면 더 나쁘다")
+                .isEqualTo("RUNNING");
     }
 
     @Test
