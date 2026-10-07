@@ -151,9 +151,8 @@ class LateOrderSubmissionAfterStopTest extends IntegrationTestBase {
      * 쪽)으로 올리는 방향이 후보다. {@code LiveTradingSessionRepository.findByIdForUpdate} 는
      * 그 용도로 남겨 둔다.</p>
      */
-    @org.junit.jupiter.api.Disabled("미해결: 정지 커밋 후 신규 매수가 거래소에 닿는다. 수정 설계 재검토 필요 — javadoc 참조")
     @Test
-    @DisplayName("🔴 미해결 — 평가가 RUNNING 을 읽은 뒤 정지가 커밋되면 그 매수는 거래소에 닿지 않아야 한다")
+    @DisplayName("평가가 RUNNING 을 읽은 뒤 정지가 커밋되면, 그 평가의 매수는 거래소에 닿지 않는다")
     void buyDecidedBeforeStopMustNotReachExchange() {
         // ── 평가가 RUNNING 을 읽는 시점 ──────────────────────────────
         LiveTradingSessionEntity session = sessionRepository.save(LiveTradingSessionEntity.builder()

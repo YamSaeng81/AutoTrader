@@ -3,6 +3,7 @@ package com.cryptoautotrader.api.service;
 import com.cryptoautotrader.api.dto.OrderRequest;
 import com.cryptoautotrader.api.entity.OrderEntity;
 import com.cryptoautotrader.api.entity.PositionEntity;
+import com.cryptoautotrader.api.entity.LiveTradingSessionEntity;
 import com.cryptoautotrader.api.entity.TradeLogEntity;
 import com.cryptoautotrader.api.repository.LiveTradingSessionRepository;
 import com.cryptoautotrader.api.repository.OrderRepository;
@@ -240,7 +241,43 @@ public class OrderExecutionEngine {
             }
         }
 
-        // 4. 거래소 주문 제출
+        // 🔴 4. 정지와의 순서를 구조로 강제한다 (2026-10-07) — **신규 진입(BUY)만**.
+        //
+        //    평가 루프가 세션을 RUNNING 으로 읽고 매수를 결정한 뒤, 그 제출이 **정지 커밋 이후에**
+        //    거래소에 닿는 일이 실제로 일어났다(`LateOrderSubmissionAfterStopTest` 로 재현). 그러면
+        //    사람은 정지시켰다고 보는데 새 포지션이 생기고, 정지된 세션에는 평가 루프가 없으므로
+        //    **그 포지션을 청산할 주체가 없다.**
+        //
+        //    🔴 "제출 직전에 RUNNING 을 한 번 더 읽는" 것으로는 부족하다 — 재확인과 제출 사이에도
+        //    정지가 끼어들 수 있다. 그래서 **세션 행을 배타 잠금으로 읽는다.** 이 메서드는
+        //    `@Transactional` 이므로 잠금은 **이 트랜잭션이 끝날 때까지**, 즉 거래소 호출을 지나
+        //    유지된다. 정지 쪽의 세션 행 쓰기는 그동안 블록되고, 정지가 먼저 커밋됐다면 여기서
+        //    STOPPED 를 보게 된다. 둘 중 하나만 성립한다.
+        //
+        //    🔴 측정으로 확인한 전제 (2026-10-07 `SubmitOrderBoundaryProbeTest`):
+        //    이 메서드는 `order-exec-N` 스레드에서 **자기 트랜잭션**
+        //    (`OrderExecutionEngine.submitOrder`)으로 돈다 — 호출자(`stopSession`)의 트랜잭션이
+        //    아니다. 그래서 여기에 `REQUIRES_NEW` 를 쓰면 **주문 행을 만든 바로 이 트랜잭션이
+        //    정지돼** 그 행이 보이지 않고, 분리된 엔티티 저장이 INSERT 로 떨어져 **같은 주문이 두
+        //    행으로 저장됐다.** 템플릿을 쓰지 않고 이 트랜잭션에서 그대로 잠그는 것이 맞다.
+        //
+        //    🔴 **매도는 절대 막지 않는다.** 정지·손절의 청산이 막히면 손실이 확대되고, 정지된
+        //    세션의 포지션을 팔 수단이 사라진다. (리스크 체크도 같은 이유로 SELL 을 항상 허용한다.)
+        //    신규 진입 차단과 기존 주문·포지션 정리는 별개 상태이며 이 가드는 전자만 담당한다.
+        if ("BUY".equalsIgnoreCase(request.getSide()) && "LIVE".equals(sessionKind)
+                && request.getSessionId() != null && sessionRepository != null) {
+            LiveTradingSessionEntity locked =
+                    sessionRepository.findByIdForUpdate(request.getSessionId()).orElse(null);
+            if (locked == null || !"RUNNING".equals(locked.getStatus())) {
+                log.warn("세션이 실행 중이 아니어서 주문을 제출하지 않는다 (orderId={}, sessionId={}, status={})",
+                        order.getId(), request.getSessionId(),
+                        locked == null ? "없음" : locked.getStatus());
+                transitionState(order, "FAILED", "세션이 실행 중이 아니다 — 제출하지 않았다");
+                return;
+            }
+        }
+
+        // 5. 거래소 주문 제출
         if (upbitOrderClient == null) {
             log.warn("UpbitOrderClient 미등록 — 거래소 연동 불가 (orderId={})", order.getId());
             transitionState(order, "FAILED", "거래소 클라이언트 미등록");
