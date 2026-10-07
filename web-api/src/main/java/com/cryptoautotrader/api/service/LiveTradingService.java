@@ -498,12 +498,30 @@ public class LiveTradingService {
         // 해당 세션의 열린 포지션 청산
         closeSessionPositions(session, "세션 정지 -- 포지션 청산");
 
-        session.setStatus("STOPPED");
-        session.setStoppedAt(Instant.now());
         sessionStatefulStrategies.remove(sessionId);
         lastDrawdownWarning.remove(sessionId);
         lastEvaluatedClosedCandle.remove(sessionId);
-        session = sessionRepository.save(session);
+
+        // 🔴 2026-10-07: 종전에는 위에서 읽은 엔티티를 그대로 `sessionRepository.save(session)` 했다.
+        //    그 사이 60초 평가 루프가 같은 행에 쓰면 @Version 이 어긋나 커밋에서
+        //    ObjectOptimisticLockingFailureException 이 나고 **주문 취소·포지션 청산까지 전부
+        //    롤백**된다 — 모의투자에서 `PAPER#331` 로 실측된 사고다(개입 #3). 자동정지가 OFF 라
+        //    위험 경보 대응은 사람이 이 호출을 하므로 실패하면 "정지시켰다고 생각했는데 안 된"
+        //    상태가 된다.
+        //
+        //    🔴 그렇다고 **정지 전체를 재시도로 감싸서는 안 된다.** `executeSessionSell` 이 부르는
+        //    `orderExecutionEngine.submitOrder` 는 `@Async`(별도 스레드·별도 트랜잭션)라
+        //    **롤백을 벗어난다.** 첫 시도에서 이미 거래소로 나간 시장가 매도는 되돌아오지 않으므로
+        //    재시도는 **이중 매도**가 된다 — 2026-08-18 에 `markClosingIfOpen` 으로 막은 바로 그
+        //    사고(LIVE 198 의 SELL 8724·8725 연속 제출)를 되살리는 셈이다. DYNAMIC 에도 같은 계열의
+        //    실측 기록이 있다(세션 49: 21회 시도로 available_krw 10,000 → 174,752, 포지션 OPEN 잔존).
+        //
+        //    그래서 **상태 전환만** 재조회+낙관적 잠금 재시도 경로로 돌린다. 충돌 지점은 세션 행이고,
+        //    청산은 다시 실행하지 않는다. DYNAMIC `stopSession` 이 2026-08-19 에 택한 해법과 같다.
+        session = balanceUpdater.apply(sessionId, s -> {
+            s.setStatus("STOPPED");
+            s.setStoppedAt(Instant.now());
+        });
 
         log.info("실전매매 세션 정지: id={} 최종 자산: {} KRW",
                 sessionId, session.getTotalAssetKrw());

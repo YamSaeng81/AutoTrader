@@ -120,6 +120,8 @@ public class PaperTradingService {
     private final PaperOrderRepository orderRepo;
     private final MarketDataCacheRepository marketDataCacheRepo;
     private final TelegramNotificationService telegramService;
+    /** 정지 중 동시 쓰기와 충돌하면 트랜잭션 단위로 재시도한다 (2026-10-07). */
+    private final OptimisticRetry optimisticRetry;
     private final RulesetRegistry rulesetRegistry;
     private final StrategyLogRepository strategyLogRepo;
     private final RiskManagementService riskManagementService;
@@ -214,8 +216,62 @@ public class PaperTradingService {
         return saved;
     }
 
-    @Transactional
+    /**
+     * 모의투자 세션 정지 — 열린 포지션을 청산하고 {@code STOPPED} 로 전환한다.
+     *
+     * <p>🔴 <b>{@code @Transactional} 을 떼고 {@link OptimisticRetry} 로 감쌌다 (2026-10-07).</b>
+     * 종전에는 이 메서드 전체가 한 트랜잭션이어서, 트랜잭션이 열려 있는 동안 60초 평가 루프가
+     * 같은 세션 행에 쓰면 커밋에서 낙관적 잠금으로 터지고 <b>청산까지 전부 롤백</b>됐다 —
+     * 2026-10-02 01:53Z 의 {@code PAPER#331} 이 그 사례이며 사람이 재호출해서 풀었다(개입 #3).
+     * 자동정지가 OFF 라 위험 경보 대응은 사람이 이 호출을 하므로, <b>실패를 사람이 기억해서
+     * 재시도하는 설계는 신뢰할 수 없다.</b> 재시도는 호출 안에서 흡수한다.</p>
+     *
+     * <p>재시도가 안전하려면 <b>트랜잭션에 참여하지 않는 부수 효과가 성공 뒤로 빠져 있어야
+     * 한다.</b> 그래서 텔레그램 발송을 트랜잭션 밖으로 옮겼다 — 종전에는 커밋 전에 보냈기 때문에
+     * <b>롤백된 정지에 대해서도 "중단됨" 알림이 나갔다.</b></p>
+     *
+     * <p>🔴 <b>왜 모의투자는 전체 재시도가 안전하고 실전은 아닌가.</b> 여기서 청산은
+     * {@code positionRepo/orderRepo/balanceRepo.save()} 뿐이라 롤백이 전부 되돌린다. 반면
+     * {@code LiveTradingService.stopSession} 의 청산은 {@code orderExecutionEngine.submitOrder}
+     * ({@code @Async} — 별도 스레드·별도 트랜잭션)를 거치므로 <b>이미 거래소로 나간 시장가 매도가
+     * 롤백되지 않는다.</b> 거기서 전체를 재시도하면 <b>이중 매도</b>가 된다(2026-08-18 LIVE 198 의
+     * SELL 8724·8725, DYNAMIC 세션 49 의 대금 중복 지급이 실측 사례다). 그래서 실전·동적은
+     * <b>상태 전환만</b> 재시도 경로로 돌린다.</p>
+     *
+     * <p>⚠️ 모의투자에도 롤백되지 않는 부수 효과가 하나 있다 — {@code closePosition} 안의
+     * {@code telegramService.bufferTradeEvent}. 재시도가 일어나면 <b>거래 이벤트가 중복
+     * 버퍼링될 수 있다.</b> 돈이나 상태가 아니라 알림·기록의 중복이며, 정지 자체가 실패하는 것보다
+     * 낫다고 판단해 받아들인다. 여기 적어 두는 이유는 나중에 중복 알림을 보고 원인을 다시
+     * 추적하지 않게 하려는 것이다.</p>
+     */
     public VirtualBalanceEntity stop(Long sessionId) {
+        VirtualBalanceEntity stopped = optimisticRetry.inNewTransaction(
+                "모의투자 정지 #" + sessionId, st -> stopOnce(sessionId));
+
+        // 🔴 트랜잭션 밖 — 커밋이 끝난 뒤에만 알린다. 재시도가 있어도 한 번만 나간다.
+        if (Boolean.TRUE.equals(stopped.getTelegramEnabled())) {
+            BigDecimal initial = stopped.getInitialCapital() != null
+                    ? stopped.getInitialCapital() : stopped.getTotalKrw();
+            double returnPct = initial.compareTo(BigDecimal.ZERO) > 0
+                    ? stopped.getTotalKrw().subtract(initial)
+                              .divide(initial, 4, RoundingMode.HALF_UP)
+                              .multiply(BigDecimal.valueOf(100)).doubleValue()
+                    : 0;
+            telegramService.notifyPaperSessionStopped(
+                    sessionId, stopped.getStrategyName(), stopped.getCoinPair(),
+                    stopped.getTotalKrw(), returnPct);
+        }
+        return stopped;
+    }
+
+    /**
+     * 정지 1회 시도 — {@link OptimisticRetry} 가 제공한 트랜잭션 안에서 실행된다.
+     *
+     * <p>🔴 이미 {@code STOPPED} 면 {@code IllegalStateException} 을 던지므로 <b>재시도가 이중
+     * 청산으로 이어지지 않는다</b> — 롤백된 시도는 상태를 되돌려 놓으므로 다시 시도할 때
+     * {@code RUNNING} 이고, 커밋에 성공한 뒤에는 더 호출되지 않는다.</p>
+     */
+    private VirtualBalanceEntity stopOnce(Long sessionId) {
         VirtualBalanceEntity session = getSession(sessionId);
         if (!"RUNNING".equals(session.getStatus())) {
             throw new IllegalStateException("모의투자가 실행 중이 아닙니다.");
@@ -229,23 +285,13 @@ public class PaperTradingService {
 
         session.setStatus("STOPPED");
         session.setStoppedAt(Instant.now());
+        // ⚠️ 인메모리 상태 제거는 롤백되지 않는다. 재시도에는 안전하지만(멱등), 모든 시도가
+        //    실패하면 세션은 RUNNING 인데 전략 상태만 버려진 채 남는다 — 그 경우 다음 평가에서
+        //    새로 만들어진다.
         sessionStatefulStrategies.remove(sessionId);
 
         log.info("모의투자 세션 중단 (id={}). 최종 자산: {} KRW", sessionId, session.getTotalKrw());
-        VirtualBalanceEntity stopped = balanceRepo.save(session);
-
-        if (Boolean.TRUE.equals(session.getTelegramEnabled())) {
-            BigDecimal initial = session.getInitialCapital() != null ? session.getInitialCapital() : session.getTotalKrw();
-            double returnPct = initial.compareTo(BigDecimal.ZERO) > 0
-                    ? stopped.getTotalKrw().subtract(initial)
-                              .divide(initial, 4, RoundingMode.HALF_UP)
-                              .multiply(BigDecimal.valueOf(100)).doubleValue()
-                    : 0;
-            telegramService.notifyPaperSessionStopped(
-                    sessionId, session.getStrategyName(), session.getCoinPair(),
-                    stopped.getTotalKrw(), returnPct);
-        }
-        return stopped;
+        return balanceRepo.save(session);
     }
 
     @Transactional
