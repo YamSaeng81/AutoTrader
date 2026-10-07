@@ -175,6 +175,8 @@ public class LiveTradingService {
     private final RiskManagementService riskManagementService;
     private final ApplicationEventPublisher eventPublisher;
     private final SessionBalanceUpdater balanceUpdater;
+    /** 포지션 원자적 전환 — 트랜잭션 없는 스케줄러에서도 안전하다 (2026-10-07). */
+    private final PositionStateTransition positionStateTransition;
     private final com.cryptoautotrader.core.portfolio.PortfolioManager portfolioManager;
     private final StrategyLiveStatusRegistry strategyLiveStatusRegistry;
     private final WalkForwardValidationGate walkForwardValidationGate;
@@ -1109,12 +1111,15 @@ public class LiveTradingService {
                 long heldHours = Duration.between(pos.getOpenedAt(), Instant.now()).toHours();
                 log.warn("시간 초과 청산 (sessionId={}): {} 보유 {}h ≥ {}h pnl={}%",
                         sessionId, coinPair, heldHours, session.getMaxHoldHours(), pnlPct);
-                telegramService.notifyTimeStop(coinPair, heldHours, session.getMaxHoldHours(),
-                        pnlPct.doubleValue(), sessionId);
-                executeSessionSell(session, pos, currentPrice, String.format(
+                // 🔴 알림은 **청산에 성공한 뒤에만** 보낸다 (2026-10-07) — 순서를 뒤집으면 청산
+                //    실패 시 매 틱 알림만 나간다. LIVE 201 이 그 구조로 4일간 5,800건을 보냈다.
+                if (executeSessionSell(session, pos, currentPrice, String.format(
                         "시간 초과 청산 — 보유 %d시간 ≥ %d시간 (pnl %s%%)",
                         heldHours, session.getMaxHoldHours(), pnlPct.setScale(2, RoundingMode.HALF_UP)),
-                        ExitReason.TIME_STOP);
+                        ExitReason.TIME_STOP)) {
+                    telegramService.notifyTimeStop(coinPair, heldHours, session.getMaxHoldHours(),
+                            pnlPct.doubleValue(), sessionId);
+                }
                 return;
             }
 
@@ -1141,9 +1146,11 @@ public class LiveTradingService {
                         sessionId, coinPair, currentPrice, pnlPct,
                         pos.getStopLossPrice() != null ? pos.getStopLossPrice() : "pct",
                         rawStopLoss);
-                telegramService.notifyStopLoss(coinPair, pnlPct.doubleValue(), sessionId);
-                executeSessionSell(session, pos, currentPrice,
-                        "손절 발동 -- 손익률 " + pnlPct + "%", ExitReason.STOP_LOSS);
+                // 🔴 알림은 청산 성공 뒤에만 — 위 time stop 과 같은 이유다 (2026-10-07).
+                if (executeSessionSell(session, pos, currentPrice,
+                        "손절 발동 -- 손익률 " + pnlPct + "%", ExitReason.STOP_LOSS)) {
+                    telegramService.notifyStopLoss(coinPair, pnlPct.doubleValue(), sessionId);
+                }
                 return;
             }
         }
@@ -1356,7 +1363,20 @@ public class LiveTradingService {
      * @param exitReason 집계용 청산 사유 (V73). CLOSING 전환과 같은 UPDATE 로 기록되므로
      *                   비동기 매도가 확정되는 reconcile 시점까지 보존된다.
      */
-    private void executeSessionSell(LiveTradingSessionEntity session,
+    /**
+     * 세션 포지션 청산. <b>CLOSING 전환에 성공했을 때만 {@code true}</b> 를 돌려준다 (2026-10-07).
+     *
+     * <p>🔴 종전에는 {@code void} 였고 호출부가 <b>청산 시도 전에</b> 텔레그램 알림을 보냈다.
+     * 그래서 청산이 실패하면 <b>알림만 나가고 포지션은 남아</b> 다음 틱에 같은 분기를 다시 탔다 —
+     * LIVE 201 KRW-DOGE 가 이 구조로 하루 1,442건을 4일간 보냈다
+     * ({@link PositionStateTransition} 참조). 반환값을 보고 <b>실제로 청산된 경우에만</b> 알리도록
+     * 호출부를 바꿨다. 근본 원인(트랜잭션 없는 전환)은 따로 고쳤고, 이것은 <b>다음에 다른 이유로
+     * 청산이 실패해도 알림이 폭주하지 않게 하는 방어</b>다.</p>
+     *
+     * @return CLOSING 전환에 성공해 매도 주문을 제출했으면 {@code true}.
+     *         수량 미감지·이미 CLOSING·매수 취소 정리 등으로 주문을 내지 않았으면 {@code false}.
+     */
+    private boolean executeSessionSell(LiveTradingSessionEntity session,
                                      PositionEntity pos, BigDecimal currentPrice,
                                      String reason, ExitReason exitReason) {
         // 매도 수량 검증 — position.size=null or 0 이면 매수 체결 미감지 상태
@@ -1373,10 +1393,10 @@ public class LiveTradingService {
                 // 매수 취소 확정 — 포지션 종료 + 차감됐던 KRW 복원
                 // 원자적 CLOSE: reconcileOrphanBuyPositions()와 동시 실행 시 이중 KRW 복원 방지
                 OrderEntity buyOrder = cancelledBuy.get();
-                int closed = positionRepository.closeIfOpen(pos.getId(), Instant.now());
+                int closed = positionStateTransition.closeIfOpen(pos.getId(), Instant.now());
                 if (closed == 0) {
                     log.debug("executeSessionSell: size=0 포지션 이미 정리됨, KRW 복원 스킵 (posId={})", pos.getId());
-                    return;
+                    return false;
                 }
                 BigDecimal toRestore = buyOrder.getQuantity() != null
                         ? buyOrder.getQuantity()
@@ -1388,13 +1408,13 @@ public class LiveTradingService {
                     balanceUpdater.apply(session.getId(),
                             s -> s.setAvailableKrw(s.getAvailableKrw().add(restoreAmount)));
                 }
-                return;
+                return false;
             }
 
             // 아직 주문 체결 대기 중 — 다음 틱 재시도
             log.warn("매도 건너뜀: position.size={} (sessionId={}, posId={}). 매수 체결 미감지 — 다음 틱에 재시도됩니다.",
                     pos.getSize(), session.getId(), pos.getId());
-            return;
+            return false;
         }
 
         // 원자적 CLOSING 전환 — status='OPEN'일 때만 전환하고, 아니면 매도 주문을 제출하지 않는다.
@@ -1407,12 +1427,11 @@ public class LiveTradingService {
         // DYNAMIC은 2026-07-02 감사(#2 시장가 이중 매도 race)에서 이미 markClosingIfOpen으로
         // 전환했는데 LIVE에는 이식되지 않았다 — 같은 계정을 공유하므로 LIVE의 중복 매도가
         // 다른 세션 포지션의 코인을 팔 수 있어 위험은 오히려 LIVE 쪽이 크다.
-        int marked = positionRepository.markClosingIfOpen(pos.getId(), Instant.now(),
-                exitReason != null ? exitReason : ExitReason.UNKNOWN);
+        int marked = positionStateTransition.markClosingIfOpen(pos.getId(), Instant.now(), exitReason);
         if (marked == 0) {
             log.debug("매도 건너뜀: 이미 CLOSING/CLOSED (posId={}, sessionId={})",
                     pos.getId(), session.getId());
-            return;
+            return false;
         }
 
         // 주문 제출 — sessionId/positionId를 request에 미리 설정 (@Async 리턴값 의존 회피)
@@ -1431,6 +1450,7 @@ public class LiveTradingService {
         // KRW 복원·손익 확정은 reconcileClosingPositions()에서 실제 체결가 기반으로 처리
         log.info("실전 매도 주문 제출 (sessionId={}): {} {}개 (CLOSING 상태, 체결 대기)",
                 session.getId(), pos.getCoinPair(), pos.getSize());
+        return true;
     }
 
     private void updateSessionUnrealizedPnl(LiveTradingSessionEntity session,
@@ -1484,7 +1504,7 @@ public class LiveTradingService {
                 // 원자적 CLOSING 전환 — executeSessionSell과 동일 이유(중복 매도 방지, 2026-08-18).
                 // 정지/비상정지 경로가 tick의 매도와 겹칠 수 있다.
                 // 운영자 개입 청산 — 청산가가 시장이 아니라 정지 시각으로 정해진다.
-                if (positionRepository.markClosingIfOpen(pos.getId(), Instant.now(),
+                if (positionStateTransition.markClosingIfOpen(pos.getId(), Instant.now(),
                         ExitReason.FORCED_STOP) == 0) {
                     log.debug("세션 청산 건너뜀: 이미 CLOSING/CLOSED (posId={}, sessionId={})",
                             pos.getId(), session.getId());
@@ -2360,7 +2380,7 @@ public class LiveTradingService {
      */
     private void reconcilePhantomPosition(PositionEntity pos, BigDecimal exchangeHeld) {
         // 원자적 CLOSE — 동시 reconcile / executeSessionSell 과의 이중 처리 방지
-        int closed = positionRepository.closeIfOpen(pos.getId(), Instant.now());
+        int closed = positionStateTransition.closeIfOpen(pos.getId(), Instant.now());
         if (closed == 0) {
             log.debug("[§15] 팬텀 포지션 이미 정리됨 — 스킵 (posId={})", pos.getId());
             return;
@@ -2478,7 +2498,7 @@ public class LiveTradingService {
             if (hasCancelledBuy && !hasActiveBuy) {
                 // 정상 경로: FAILED/CANCELLED 주문에서 복원금액 확인
                 // 원자적 CLOSE — executeSessionSell()과 동시 실행 시 이중 KRW 복원 방지
-                int closed = positionRepository.closeIfOpen(pos.getId(), Instant.now());
+                int closed = positionStateTransition.closeIfOpen(pos.getId(), Instant.now());
                 if (closed == 0) {
                     log.debug("고아 포지션 이미 정리됨, KRW 복원 스킵 (posId={})", pos.getId());
                     continue;
@@ -2683,9 +2703,11 @@ public class LiveTradingService {
             if (slTriggered) {
                 log.warn("실시간 손절 발동 (WS): sessionId={}, {}, 손익={}%",
                         session.getId(), coinCode, pnlPct);
-                telegramService.notifyStopLoss(coinCode, pnlPct.doubleValue(), session.getId());
-                executeSessionSell(session, pos, price, "실시간 손절(WS) — 손익률 " + pnlPct + "%",
-                        ExitReason.STOP_LOSS);
+                // 🔴 알림은 청산 성공 뒤에만 (2026-10-07) — 폴링 경로와 같은 이유다.
+                if (executeSessionSell(session, pos, price, "실시간 손절(WS) — 손익률 " + pnlPct + "%",
+                        ExitReason.STOP_LOSS)) {
+                    telegramService.notifyStopLoss(coinCode, pnlPct.doubleValue(), session.getId());
+                }
                 continue;
             }
 

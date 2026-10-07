@@ -271,6 +271,8 @@ public class DynamicTradingService {
     private final RulesetRegistry rulesetRegistry;
     private final ObjectMapper objectMapper;
     private final DynamicSessionBalanceUpdater balanceUpdater;
+    /** 포지션 원자적 전환 — 트랜잭션 없는 tick() 에서도 안전하다 (2026-10-07). */
+    private final PositionStateTransition positionStateTransition;
     private final StrategyLogRepository strategyLogRepository;
     private final WsSubscriptionManager wsSubscriptionManager;
     private final StrategyLiveStatusRegistry strategyLiveStatusRegistry;
@@ -401,6 +403,7 @@ public class DynamicTradingService {
                                   RulesetRegistry rulesetRegistry,
                                   ObjectMapper objectMapper,
                                   DynamicSessionBalanceUpdater balanceUpdater,
+                                  PositionStateTransition positionStateTransition,
                                   StrategyLogRepository strategyLogRepository,
                                   WsSubscriptionManager wsSubscriptionManager,
                                   StrategyLiveStatusRegistry strategyLiveStatusRegistry,
@@ -419,6 +422,7 @@ public class DynamicTradingService {
         this.rulesetRegistry      = rulesetRegistry;
         this.objectMapper         = objectMapper;
         this.balanceUpdater       = balanceUpdater;
+        this.positionStateTransition = positionStateTransition;
         this.strategyLogRepository = strategyLogRepository;
         this.wsSubscriptionManager = wsSubscriptionManager;
         this.strategyLiveStatusRegistry = strategyLiveStatusRegistry;
@@ -1248,8 +1252,10 @@ public class DynamicTradingService {
                         overshootPct.setScale(3, RoundingMode.HALF_UP), sid, pos.getId());
             }
             log.warn("[Dynamic] 손절: {} @ {} pnl={}% (id={})", coinPair, currentPrice, pnlPct, sid);
-            telegramService.notifyStopLoss(coinPair, pnlPct.doubleValue(), sid);
-            executeSell(session, pos, currentPrice, "손절 — pnl " + pnlPct + "%", ExitReason.STOP_LOSS);
+            // 🔴 알림은 청산 성공 뒤에만 (2026-10-07) — 순서를 뒤집으면 청산 실패 시 매 틱 알림만 나간다.
+            if (executeSell(session, pos, currentPrice, "손절 — pnl " + pnlPct + "%", ExitReason.STOP_LOSS)) {
+                telegramService.notifyStopLoss(coinPair, pnlPct.doubleValue(), sid);
+            }
             return;
         }
 
@@ -1263,11 +1269,13 @@ public class DynamicTradingService {
             long heldHours = Duration.between(pos.getOpenedAt(), Instant.now()).toHours();
             log.warn("[Dynamic] 시간 초과 청산: {} 보유 {}h ≥ {}h pnl={}% (id={})",
                     coinPair, heldHours, maxHoldHours, pnlPct, sid);
-            telegramService.notifyTimeStop(coinPair, heldHours, maxHoldHours, pnlPct.doubleValue(), sid);
-            executeSell(session, pos, currentPrice, String.format(
+            // 🔴 알림은 청산 성공 뒤에만 (2026-10-07) — 위 손절과 같은 이유다.
+            if (executeSell(session, pos, currentPrice, String.format(
                     "시간 초과 청산 — 보유 %d시간 ≥ %d시간 (pnl %s%%)",
                     heldHours, maxHoldHours, pnlPct.setScale(2, RoundingMode.HALF_UP)),
-                    ExitReason.TIME_STOP);
+                    ExitReason.TIME_STOP)) {
+                telegramService.notifyTimeStop(coinPair, heldHours, maxHoldHours, pnlPct.doubleValue(), sid);
+            }
             return;
         }
 
@@ -1661,27 +1669,34 @@ public class DynamicTradingService {
      * @param exitReason 집계용 청산 사유 (V73). CLOSING 전환과 같은 UPDATE 로 기록되므로
      *                   실거래의 비동기 매도에서도 reconcile 시점까지 보존된다.
      */
-    public void executeSell(DynamicSessionEntity session, PositionEntity pos,
+    /**
+     * 동적 세션 포지션 청산. <b>CLOSING 전환에 성공했을 때만 {@code true}</b> (2026-10-07).
+     *
+     * <p>{@code tick()} 은 {@code @Transactional} 이 없어 {@code markClosingIfOpen}
+     * ({@code @Modifying(flushAutomatically=true)})을 직접 부르면 실패한다 —
+     * {@link PositionStateTransition} 에 사고 경위를 적었다. 전환을 그 헬퍼로 돌리고,
+     * 반환값으로 <b>알림을 청산 성공 뒤에만</b> 보내도록 호출부를 바꿨다.</p>
+     */
+    public boolean executeSell(DynamicSessionEntity session, PositionEntity pos,
                              BigDecimal currentPrice, String reason, ExitReason exitReason) {
         Long sid = session.getId();
 
         if (pos.getSize() == null || pos.getSize().compareTo(BigDecimal.ZERO) <= 0) {
             log.warn("[Dynamic] 매도 건너뜀: size=0 (posId={}, id={})", pos.getId(), sid);
-            return;
+            return false;
         }
 
         // 원자적 CLOSING 전환 — WS 실시간 SL/TP와 60초 tick이 동시에 같은 포지션을 팔려는
         // race에서 한쪽만 매도 주문을 제출하도록 보장 (시장가 이중 매도 방지)
-        int marked = positionRepository.markClosingIfOpen(pos.getId(), Instant.now(),
-                exitReason != null ? exitReason : ExitReason.UNKNOWN);
+        int marked = positionStateTransition.markClosingIfOpen(pos.getId(), Instant.now(), exitReason);
         if (marked == 0) {
             log.debug("[Dynamic] 매도 건너뜀: 이미 CLOSING/CLOSED (posId={}, id={})", pos.getId(), sid);
-            return;
+            return false;
         }
 
         if (session.isPaper()) {
             executePaperSell(session, pos, currentPrice, reason, exitReason);
-            return;
+            return true;
         }
 
         OrderRequest order = new OrderRequest();
@@ -1699,6 +1714,7 @@ public class DynamicTradingService {
         // KRW 복원은 reconcile 에서 처리 — 여기서는 상태만 전환
         transitionToScanning(sid);
         log.info("[Dynamic] 매도 주문: id={} {} size={}", sid, pos.getCoinPair(), pos.getSize());
+        return true;
     }
 
     /**
@@ -2073,7 +2089,7 @@ public class DynamicTradingService {
             }
             // WS 실시간 SL/TP 매도와의 race 방지 — 이미 CLOSING이면 매도 주문 중복 제출 스킵
             // 운영자 개입 청산 — 청산가가 시장이 아니라 정지 시각으로 정해지므로 전략 성과와 섞으면 안 된다.
-            if (positionRepository.markClosingIfOpen(pos.getId(), Instant.now(),
+            if (positionStateTransition.markClosingIfOpen(pos.getId(), Instant.now(),
                     ExitReason.FORCED_STOP) == 0) {
                 continue;
             }
@@ -2466,7 +2482,7 @@ public class DynamicTradingService {
 
             if (hasCancelledBuy && !hasActiveBuy) {
                 // 원자적 CLOSE — 동시 실행 시 이중 KRW 복원 방지
-                int closed = positionRepository.closeIfOpen(pos.getId(), Instant.now());
+                int closed = positionStateTransition.closeIfOpen(pos.getId(), Instant.now());
                 if (closed == 0) {
                     log.debug("[Dynamic] 고아 포지션 이미 정리됨, KRW 복원 스킵 (posId={})", pos.getId());
                     continue;
@@ -2495,7 +2511,7 @@ public class DynamicTradingService {
                 boolean isOldEnough = pos.getOpenedAt() != null
                         && Duration.between(pos.getOpenedAt(), Instant.now()).toMinutes() >= 5;
                 if (isOldEnough) {
-                    int closed = positionRepository.closeIfOpen(pos.getId(), Instant.now());
+                    int closed = positionStateTransition.closeIfOpen(pos.getId(), Instant.now());
                     if (closed == 0) continue;
 
                     Long sessionId = pos.getSessionId();

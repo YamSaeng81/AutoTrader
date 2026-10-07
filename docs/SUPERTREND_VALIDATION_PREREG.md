@@ -374,6 +374,33 @@ NEAR H1 의 20·21·22·23·00시 봉이 전부 확인됐다(22:00 봉 close 634
 있고, 쪼개지면 각 그룹이 따로 `n ≥ 20` 을 채워야 하므로 **판정이 늦어진다.** 🔴 이번 건의 결론에는
 영향이 없다(`strategy_params` 가 실제로 다르다). 검증 세션과도 무관하다. 고치지 않고 기록만 한다.
 
+###### 개입 기록 #5 — 2026-10-07 (실자금 청산 불능 수정, 동결 예외 · 코드 변경)
+
+🔴 **검증 66세션은 영향 없다.** 결함은 `public.position` 을 쓰는 **LIVE·DYNAMIC** 경로에만 있고,
+PAPER 청산은 `pos.setStatus("CLOSED") + positionRepo.save(pos)` 로 평범한 `save()` 경로다 —
+`save()` 는 스스로 트랜잭션을 열기 때문에 같은 실패가 일어나지 않는다. 검증 거래 건수(CRO 6건 등)도
+청산이 정상 동작한 결과다.
+
+| | |
+|---|---|
+| 발단 | 운영자가 **텔레그램 "시간 초과" 메시지가 하루 1,000건 넘게 온다**고 알렸다. 경보 전달 경로가 막히면 10-06 에 확정한 점검·집행 절차가 무력화되므로 즉시 추적했다 |
+| 실측 | `LiveTradingService` — `sessionId=201 KRW-DOGE 보유 126h ≥ 24h pnl=−2.3077%` 가 **매 60초** 반복. 같은 밀리초에 `InvalidDataAccessApiUsageException: No EntityManager with actual transaction available ... cannot reliably process 'flush' call`. 건수: 10-03 **1,443** · 10-04 **1,442** · 10-05 **1,442** · 10-06 **1,442** (4일 약 5,800건) |
+| 🔴 본질 | **알림 문제가 아니다.** 엔진이 **102시간 전에 청산하라고 판정했고 한 번도 성공하지 못했다.** 게다가 같은 예외로 평가 루프가 중단돼 **그 세션은 다른 신호도 처리하지 못하고 멈춰 있었다** |
+| 원인 ① | **2026-03-17 `31df1b8`("ㅠ")** 이 `executeStrategies()`(60초 스케줄러)에서 `@Transactional` 을 지웠다. 그때 청산은 `setStatus("CLOSING") + save()` 였고 `save()` 가 스스로 트랜잭션을 열어 **아무 문제도 드러나지 않았다** |
+| 원인 ② | **2026-08-18** 중복 시장가 매도(LIVE 198 이 60초 간격으로 SELL 8724·8725 연속 제출)를 막으려 그 자리를 `markClosingIfOpen` 으로 교체했다. 이것은 `@Modifying(clearAutomatically=true, **flushAutomatically=true**)` 이고 flush 는 **활성 트랜잭션을 요구한다** → 이 순간부터 **스케줄러가 부르는 모든 청산이 실패**한다(손절·익절·time stop·신호 매도 전부) |
+| 🔴 범위 | 작동하던 유일한 청산은 **웹소켓 실시간 손절**(`@Transactional` 이 붙은 경로)이다. `DynamicTradingService.tick()` 도 `@Transactional` 이 없고 DYNAMIC 은 `markClosingIfOpen` 을 2026-07-02 에 도입했으므로 **같은 결함을 갖고 있었다** |
+| 조치 | `PositionStateTransition` 신설 — 전환을 **`PROPAGATION_REQUIRED` 트랜잭션 안에서** 실행한다. LIVE·DYNAMIC 의 `markClosingIfOpen`·`closeIfOpen` **전부**를 이 헬퍼 경유로 바꿨다(직접 호출 0건 확인) |
+| 🔴 스케줄러에 `@Transactional` 을 다시 붙이지 않은 이유 | `executeStrategies()` 는 RUNNING 세션 **전체**를 한 메서드에서 순회한다. 트랜잭션을 걸면 ① 커넥션을 60초 주기 내내 잡고 ② **한 세션의 예외가 다른 세션의 처리까지 롤백**시킨다. 그래서 작업 단위를 **전환 그 자체로 좁혔다.** `REQUIRED` 를 쓴 것도 의도적이다 — 이미 트랜잭션 안인 호출부(reconcile·`stopSession`·WS 손절)는 **그 트랜잭션에 그대로 참여해 기존 동작이 바뀌지 않는다.** `REQUIRES_NEW` 면 바깥이 롤백돼도 전환만 커밋돼 포지션이 CLOSING 인데 후속 처리가 없는 상태가 생긴다 |
+| 조치 2 | **알림을 청산 성공 뒤로 옮겼다.** `executeSessionSell`·`executeSell` 이 `boolean` 을 돌려주고, 전환에 성공했을 때만 텔레그램을 보낸다. 종전에는 **청산 시도 전에** 보냈기 때문에 실패가 그대로 알림 폭주가 됐다. 근본 원인은 ①로 고쳤고 이것은 **다음에 다른 이유로 청산이 실패해도 폭주하지 않게 하는 방어**다 |
+| 시험 | `PositionStateTransitionNoAmbientTxTest` 4건 신설 — 🔴 **클래스에 `@Transactional` 을 붙이지 않았다**(붙이면 테스트가 트랜잭션을 제공해 재현 조건이 사라진다). 전환 성공 / 두 번째 호출이 0(이중 매도 방지 유지) / `closeIfOpen` / **리포지토리 직접 호출은 여전히 실패**를 검증한다. 마지막 건이 결함의 실재와 헬퍼의 필요를 고정한다. `web-api` **전체 테스트 통과** |
+| 남은 것 | 🔴 **재배포가 필요하다 — T0 이후 두 번째 컨테이너 교체**가 되며, 배포 시각을 이 기록에 추가한다. 배포 전까지 결함은 살아 있으므로 `#201` 은 `stopSession`(`@Transactional` 이라 영향 없음)으로 사람이 정지시킨다 |
+
+🔴 **위 결함은 `LIVE_ENTRY_PREREG.md` 선행 조건 5번의 실증 사례다.** 그 조항은 "사람이 수행하는
+정지가 실패한다" 를 다뤘는데, 이번 건은 **엔진 자신의 청산도 실패한다**는 것을 보여준다. 수정으로
+이 경로는 닫히지만 **선행 조건 5번 전체가 닫힌 것은 아니다** — 동시 평가 중 정지의 1회 성공,
+미체결 주문 처리, 정지 이후 신규 매수 차단은 여전히 시험 전이다
+(`LIVE_RISK_IMPLEMENTATION_REVIEW.md` §4).
+
 ###### 📌 팔 구분이 실제로 동작하는가 — 유효성 확인 (2026-10-06, 성과 판정과 무관)
 
 MDD 수동 대조(개입 기록 참조) 중에 **같은 코인에서 세 팔의 자산이 소수점까지 동일한 사례**가
