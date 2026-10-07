@@ -1523,15 +1523,30 @@ public class LiveTradingService {
                         //    DYNAMIC 은 2026-08-19 에 같은 사고를 겪고 "바깥 트랜잭션은 이 행을 절대
                         //    직접 쓰지 않고 모든 필드 변경을 REQUIRES_NEW 갱신 하나로 모은다" 로
                         //    정리했다. LIVE 의 이 경로에는 이식되지 않았다.
+                        // 🔴 2026-10-07: **원자적 전환을 가드로 쓴다.** 종전에는 가드 없이 복원하고
+                        //    그 뒤에 `setStatus("CLOSED") + save` 했다. 그러면
+                        //    `reconcileOrphanBuyPositions`(30초)가 같은 포지션을 동시에 처리할 때
+                        //    **같은 KRW 가 두 번 복원된다** — 그쪽은 `closeIfOpen` 이 0 이면 복원을
+                        //    건너뛰는데, 이쪽이 전환을 늦게 하므로 둘 다 "내가 먼저" 로 본다.
+                        //    `executeSessionSell` 의 매수 취소 분기와 reconcile 이 이미 쓰는 패턴을
+                        //    여기에도 맞춘다: **전환에 성공한 쪽만 복원한다.**
+                        int closed = positionStateTransition.closeIfOpen(pos.getId(), Instant.now());
+                        if (closed == 0) {
+                            log.debug("세션 종료 시 KRW 복원 스킵 — 포지션이 이미 정리됐다 (posId={})",
+                                    pos.getId());
+                            continue;
+                        }
                         final BigDecimal restore = failedBuy.get(0).getQuantity();
                         balanceUpdater.apply(session.getId(),
                                 s -> s.setAvailableKrw(s.getAvailableKrw().add(restore)));
                         log.warn("세션 종료 시 미체결 매수 포지션 KRW 복원 (posId={}, sessionId={}, 복원={})",
                                 pos.getId(), session.getId(), restore);
+                        continue;
                     }
-                    pos.setStatus("CLOSED");
-                    pos.setClosedAt(Instant.now());
-                    positionRepository.save(pos);
+                    // 복원할 매수 주문이 없는 size=0 포지션 — 상태만 정리한다
+                    if (positionStateTransition.closeIfOpen(pos.getId(), Instant.now()) == 0) {
+                        log.debug("size=0 포지션이 이미 정리됐다 (posId={})", pos.getId());
+                    }
                     continue;
                 }
                 // 원자적 CLOSING 전환 — executeSessionSell과 동일 이유(중복 매도 방지, 2026-08-18).
