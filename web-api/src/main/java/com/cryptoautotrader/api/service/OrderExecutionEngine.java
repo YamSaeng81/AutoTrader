@@ -3,6 +3,7 @@ package com.cryptoautotrader.api.service;
 import com.cryptoautotrader.api.dto.OrderRequest;
 import com.cryptoautotrader.api.entity.OrderEntity;
 import com.cryptoautotrader.api.entity.PositionEntity;
+import com.cryptoautotrader.api.entity.LiveTradingSessionEntity;
 import com.cryptoautotrader.api.entity.TradeLogEntity;
 import com.cryptoautotrader.api.repository.LiveTradingSessionRepository;
 import com.cryptoautotrader.api.repository.OrderRepository;
@@ -125,6 +126,9 @@ public class OrderExecutionEngine {
         this.syncTx = new org.springframework.transaction.support.TransactionTemplate(txManager);
         this.syncTx.setPropagationBehavior(
                 org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        this.approvalTx = new org.springframework.transaction.support.TransactionTemplate(txManager);
+        this.approvalTx.setPropagationBehavior(
+                org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     }
 
     /**
@@ -145,6 +149,16 @@ public class OrderExecutionEngine {
      * 읽는다</b> — 바깥 영속성 컨텍스트의 사본을 넘기면 롤백해도 바깥 커밋에서 다시 쓰인다.</p>
      */
     private final org.springframework.transaction.support.TransactionTemplate syncTx;
+
+    /**
+     * 주문 제출 <b>승인</b>을 세션 행 잠금과 함께 한 트랜잭션에 묶는 템플릿 (2026-10-07).
+     *
+     * <p>🔴 {@link #submitOrder} 는 {@code @Async} 이지만 {@code @Transactional} 이 <b>아니다.</b>
+     * 그래서 잠금을 걸어도 각 리포지토리 호출이 제 트랜잭션에서 끝나 <b>즉시 풀린다</b> — 순서를
+     * 강제할 수 없다. 승인과 거래소 호출을 같은 트랜잭션에 두어야 그 사이에 정지가 끼어들지 못한다.
+     * 사고 경위는 {@code LiveTradingSessionRepository.findByIdForUpdate} javadoc 에 있다.</p>
+     */
+    private final org.springframework.transaction.support.TransactionTemplate approvalTx;
 
     /**
      * 주문 제출을 <b>호출자 트랜잭션 커밋 이후</b>로 지연시킨다 — 신규 포지션을 만든 직후의 매수 주문 전용.
@@ -247,54 +261,98 @@ public class OrderExecutionEngine {
             return;
         }
 
-        try {
-            UpbitOrderClient.ExchangeResult exchangeResult = submitToExchange(order);
-            OrderResponse exchangeResponse = exchangeResult.response();
-            order.setExchangeOrderId(exchangeResponse.getUuid());
-            order.setSubmittedAt(Instant.now());
-            order.setResponseJson(exchangeResult.rawBody());
-            log.info("거래소 주문 제출 완료 (orderId={}, exchangeId={}, initialState={})",
-                    order.getId(), exchangeResponse.getUuid(), exchangeResponse.getState());
-
-            // 주문 생성 응답에서 이미 최종 상태인 경우 즉시 처리 (폴러 대기 불필요)
-            String initialState = mapExchangeState(exchangeResponse.getState());
-            if ("FILLED".equals(initialState)) {
-                if (exchangeResponse.getExecutedVolume() != null) {
-                    order.setFilledQuantity(exchangeResponse.getExecutedVolume());
-                }
-                // 체결가 확정 시도 — 시장가 매도는 executed_funds/executed_volume 로 평균 단가 산출
-                applyFillPrice(order, exchangeResponse);
-                // ⚠️ 시장가 매도가 즉시 done 으로 떠도 trades(executed_funds)가 미정산이면 체결가 null.
-                //    이대로 FILLED 확정하면 finalizeSellPosition 이 avgPrice 로 대체 → realizedPnl 이
-                //    항상 -매도수수료로 기록되는 "가짜 본전" 버그(2026-05-31 분석: 포지션 146건).
-                //    체결가 미확보 SELL 은 SUBMITTED 로 두어 5초 폴러가 정산 후 재조회하게 한다.
-                if ("SELL".equalsIgnoreCase(order.getSide()) && order.getPrice() == null) {
-                    log.warn("매도 즉시 체결이나 체결가 미정산 — SUBMITTED 유지, 폴러 재조회 (orderId={}, uuid={})",
-                            order.getId(), exchangeResponse.getUuid());
-                    transitionState(order, "SUBMITTED", null);
-                } else {
-                    order.setFilledAt(Instant.now());
-                    transitionState(order, "FILLED", null);
-                    processFilledOrder(order);
-                }
-            } else {
-                transitionState(order, "SUBMITTED", null);
-                // CANCELLED이지만 부분 체결된 경우도 즉시 처리
-                if ("CANCELLED".equals(initialState)
-                        && "BUY".equalsIgnoreCase(order.getSide())
-                        && exchangeResponse.getExecutedVolume() != null
-                        && exchangeResponse.getExecutedVolume().compareTo(BigDecimal.ZERO) > 0) {
-                    log.warn("주문 생성 응답에서 부분 체결 후 취소 감지 (orderId={}, executed_volume={})",
-                            order.getId(), exchangeResponse.getExecutedVolume());
-                    order.setFilledQuantity(exchangeResponse.getExecutedVolume());
-                    order.setFilledAt(Instant.now());
-                    transitionState(order, "FILLED", null);
-                    processFilledOrder(order);
+        // 🔴 5. 정지와의 순서를 구조로 강제한다 (2026-10-07).
+        //
+        //    평가 루프가 세션을 RUNNING 으로 읽고 매수를 결정한 뒤, 그 제출이 **정지 커밋 이후에**
+        //    거래소에 닿는 일이 실제로 일어났다(`LateOrderSubmissionAfterStopTest` 로 재현).
+        //    그러면 사람은 정지시켰다고 보는데 새 포지션이 생기고, 정지된 세션에는 평가 루프가
+        //    없으므로 **그 포지션을 청산할 주체가 없다.**
+        //
+        //    🔴 "제출 직전에 RUNNING 을 한 번 더 읽는" 것으로는 부족하다 — 재확인과 제출 사이에도
+        //    정지가 끼어들 수 있다. 그래서 **세션 행을 배타 잠금으로 읽고 상태를 확인한 뒤, 같은
+        //    트랜잭션 안에서 거래소에 제출한다.** 승인과 제출 사이에 정지가 들어올 수 없다.
+        //
+        //    ⚠️ 그 대가로 거래소 호출 동안 세션 한 행의 잠금을 쥔다. 막히는 것은 그 세션의
+        //    정지·잔고 갱신뿐이고, 업비트 호출에는 타임아웃이 있어 유한하다. 1단계는 동시 보유 ≤ 3
+        //    이라 경합 자체가 드물다.
+        //    🔴 **신규 진입(BUY)만 막는다. 매도는 절대 막지 않는다.** 정지·손절의 청산이 막히면
+        //       손실이 확대되고, 정지된 세션의 포지션을 팔 수단이 사라진다. 기존 주문·포지션 정리와
+        //       신규 진입 차단은 별개 상태다 — 이 가드는 후자만 담당한다. (리스크 체크도 같은 이유로
+        //       SELL 을 항상 허용한다.) 처음에 SELL 까지 막았다가 `LiveStopUnderConcurrentWriteTest`
+        //       에서 정지 중 청산 매도가 거부되는 것을 보고 바로잡았다.
+        final Long guardSessionId = request.getSessionId();
+        final boolean guarded = "LIVE".equals(sessionKind) && guardSessionId != null
+                && sessionRepository != null
+                && "BUY".equalsIgnoreCase(request.getSide());
+        final OrderEntity orderRef = order;
+        Boolean submitted = approvalTx.execute(st -> {
+            if (guarded) {
+                LiveTradingSessionEntity locked =
+                        sessionRepository.findByIdForUpdate(guardSessionId).orElse(null);
+                if (locked == null || !"RUNNING".equals(locked.getStatus())) {
+                    log.warn("세션이 실행 중이 아니어서 주문을 제출하지 않는다 "
+                                    + "(orderId={}, sessionId={}, status={})",
+                            orderRef.getId(), guardSessionId,
+                            locked == null ? "없음" : locked.getStatus());
+                    return Boolean.FALSE;
                 }
             }
-        } catch (Exception e) {
-            log.error("거래소 주문 제출 실패 (orderId={}): {}", order.getId(), e.getMessage(), e);
-            transitionState(order, "FAILED", "거래소 주문 실패: " + e.getMessage());
+            try {
+                UpbitOrderClient.ExchangeResult exchangeResult = submitToExchange(orderRef);
+                OrderResponse exchangeResponse = exchangeResult.response();
+                orderRef.setExchangeOrderId(exchangeResponse.getUuid());
+                orderRef.setSubmittedAt(Instant.now());
+                orderRef.setResponseJson(exchangeResult.rawBody());
+                log.info("거래소 주문 제출 완료 (orderId={}, exchangeId={}, initialState={})",
+                        orderRef.getId(), exchangeResponse.getUuid(), exchangeResponse.getState());
+
+                // 주문 생성 응답에서 이미 최종 상태인 경우 즉시 처리 (폴러 대기 불필요)
+                String initialState = mapExchangeState(exchangeResponse.getState());
+                if ("FILLED".equals(initialState)) {
+                    if (exchangeResponse.getExecutedVolume() != null) {
+                        orderRef.setFilledQuantity(exchangeResponse.getExecutedVolume());
+                    }
+                    // 체결가 확정 시도 — 시장가 매도는 executed_funds/executed_volume 로 평균 단가 산출
+                    applyFillPrice(orderRef, exchangeResponse);
+                    // ⚠️ 시장가 매도가 즉시 done 으로 떠도 trades(executed_funds)가 미정산이면 체결가 null.
+                    //    이대로 FILLED 확정하면 finalizeSellPosition 이 avgPrice 로 대체 → realizedPnl 이
+                    //    항상 -매도수수료로 기록되는 "가짜 본전" 버그(2026-05-31 분석: 포지션 146건).
+                    //    체결가 미확보 SELL 은 SUBMITTED 로 두어 5초 폴러가 정산 후 재조회하게 한다.
+                    if ("SELL".equalsIgnoreCase(orderRef.getSide()) && orderRef.getPrice() == null) {
+                        log.warn("매도 즉시 체결이나 체결가 미정산 — SUBMITTED 유지, 폴러 재조회 (orderId={}, uuid={})",
+                                orderRef.getId(), exchangeResponse.getUuid());
+                        transitionState(orderRef, "SUBMITTED", null);
+                    } else {
+                        orderRef.setFilledAt(Instant.now());
+                        transitionState(orderRef, "FILLED", null);
+                        processFilledOrder(orderRef);
+                    }
+                } else {
+                    transitionState(orderRef, "SUBMITTED", null);
+                    // CANCELLED이지만 부분 체결된 경우도 즉시 처리
+                    if ("CANCELLED".equals(initialState)
+                            && "BUY".equalsIgnoreCase(orderRef.getSide())
+                            && exchangeResponse.getExecutedVolume() != null
+                            && exchangeResponse.getExecutedVolume().compareTo(BigDecimal.ZERO) > 0) {
+                        log.warn("주문 생성 응답에서 부분 체결 후 취소 감지 (orderId={}, executed_volume={})",
+                                orderRef.getId(), exchangeResponse.getExecutedVolume());
+                        orderRef.setFilledQuantity(exchangeResponse.getExecutedVolume());
+                        orderRef.setFilledAt(Instant.now());
+                        transitionState(orderRef, "FILLED", null);
+                        processFilledOrder(orderRef);
+                    }
+                }
+            } catch (Exception e) {
+                log.error("거래소 주문 제출 실패 (orderId={}): {}", orderRef.getId(), e.getMessage(), e);
+                transitionState(orderRef, "FAILED", "거래소 주문 실패: " + e.getMessage());
+            }
+            return Boolean.TRUE;
+        });
+
+        if (!Boolean.TRUE.equals(submitted)) {
+            // 제출하지 않았다 — 활성으로 남기지 않는다. 임시 포지션은 기존 고아 정리 경로가 치운다
+            // (`LiveTradingService.reconcileOrphanBuyPositions` — FAILED 매수 주문을 보고 KRW 를 복원한다).
+            transitionState(order, "FAILED", "세션이 실행 중이 아니다 — 제출하지 않았다");
         }
     }
 
