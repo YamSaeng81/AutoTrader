@@ -4,6 +4,7 @@ import com.cryptoautotrader.api.entity.ExitReason;
 import com.cryptoautotrader.api.entity.PositionEntity;
 import com.cryptoautotrader.api.repository.PositionRepository;
 import com.cryptoautotrader.api.support.IntegrationTestBase;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,8 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -37,6 +40,19 @@ class PositionStateTransitionNoAmbientTxTest extends IntegrationTestBase {
     @Autowired
     private PositionRepository positionRepository;
 
+    private final List<Long> createdPositions = new ArrayList<>();
+
+    /**
+     * 🔴 생성한 행을 반드시 치운다. H2 는 테스트 간에 공유되므로, 남겨두면 전체 실행에서
+     * 세션·거래 수를 세는 다른 테스트(`KillCriteriaPaperVisibilityTest` 등)가 깨진다 —
+     * 단독으로는 통과하고 전체로는 깨지는 가장 찾기 어려운 실패다.
+     */
+    @AfterEach
+    void cleanUp() {
+        createdPositions.forEach(id -> positionRepository.deleteById(id));
+        createdPositions.clear();
+    }
+
     private Long newOpenPosition() {
         PositionEntity pos = PositionEntity.builder()
                 .coinPair("KRW-DOGE")
@@ -49,7 +65,9 @@ class PositionStateTransitionNoAmbientTxTest extends IntegrationTestBase {
                 .sessionId(201L)
                 .openedAt(Instant.now())
                 .build();
-        return positionRepository.save(pos).getId();
+        Long id = positionRepository.save(pos).getId();
+        createdPositions.add(id);
+        return id;
     }
 
     @Test

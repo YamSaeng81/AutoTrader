@@ -332,11 +332,32 @@ public class OrderExecutionEngine {
                         syncOrderState(order, latest);
                         return order;
                     }
+                    // 🔴 2026-10-07: 재조회가 성공했고 체결이 아니더라도, 거래소에서 **아직 활성**
+                    //    이면 그 주문은 살아 있다. 취소를 요청했다는 사실이 사라졌다는 증거가 아니다.
+                    String exchangeState = mapExchangeState(latest.getState());
+                    if (ACTIVE_STATES.contains(exchangeState)) {
+                        log.error("취소 실패 + 거래소에 주문이 아직 살아 있다 — CANCELLED 로 박지 않는다 "
+                                        + "(orderId={}, 거래소상태={}). pollActiveOrders() 가 결말을 낸다.",
+                                orderId, latest.getState());
+                        throw new IllegalStateException(
+                                "취소되지 않았고 거래소에 활성으로 남아 있다: orderId=" + orderId);
+                    }
+                } catch (IllegalStateException unresolved) {
+                    throw unresolved;
                 } catch (Exception ex) {
-                    log.warn("취소 실패 후 상태 재조회도 실패 (orderId={}): {} — CANCELLED 전이",
+                    // 🔴 2026-10-07: 종전에는 여기서 그대로 빠져나가 CANCELLED 로 전이했다.
+                    //    취소 요청이 시간 초과로 끝나고 상태 재조회까지 실패하면 **주문이 거래소에
+                    //    살아 있는지 알 수 없다.** 그런데 CANCELLED 로 기록하면 pollActiveOrders()
+                    //    (5초 주기, 활성 주문만 동기화)의 추적 대상에서 빠져 **영구 미해결**이 된다.
+                    //    그 주문이 나중에 체결되면 관리 주체 없는 포지션과 어긋난 KRW 가 남는다.
+                    //    거짓 종결보다 미결이 낫다 — 미결은 폴러가 자동으로 해소한다.
+                    log.error("취소 실패 후 상태 재조회도 실패 (orderId={}): {} — 상태를 바꾸지 않고 "
+                                    + "활성으로 남긴다. pollActiveOrders() 가 결말을 낸다.",
                             orderId, ex.getMessage());
+                    throw new IllegalStateException(
+                            "취소 결과 불명 — 주문을 활성으로 남긴다: orderId=" + orderId, ex);
                 }
-                // 그 외(미체결 확인 또는 재조회 실패): 로컬 상태는 CANCELLED 로 전이
+                // 여기 도달 = 재조회 성공 + 거래소에서 체결도 활성도 아님(취소 확인) → CANCELLED 전이
             }
         }
 

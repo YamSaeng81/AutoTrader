@@ -8,6 +8,7 @@ import com.cryptoautotrader.api.repository.OrderRepository;
 import com.cryptoautotrader.api.repository.PositionRepository;
 import com.cryptoautotrader.api.support.IntegrationTestBase;
 import com.cryptoautotrader.exchange.upbit.UpbitOrderClient;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -20,6 +21,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -79,6 +81,25 @@ class LiveStopUnderConcurrentWriteTest extends IntegrationTestBase {
     @SpyBean
     private PositionStateTransition positionStateTransition;
 
+    private final List<Long> createdSessions = new ArrayList<>();
+
+    /**
+     * 🔴 생성한 행을 반드시 치운다. H2 가 테스트 간에 공유되므로 남겨두면 전체 실행에서 세션·주문
+     * 수를 세는 다른 테스트가 깨진다 — 단독 통과·전체 실패라는 가장 찾기 어려운 실패가 된다.
+     */
+    @AfterEach
+    void cleanUp() {
+        createdSessions.forEach(id -> {
+            orderRepository.findBySessionIdAndStateIn(id,
+                    List.of("PENDING", "SUBMITTED", "PARTIAL_FILLED", "FILLED", "CANCELLED", "FAILED"))
+                    .forEach(orderRepository::delete);
+            positionRepository.findBySessionKindAndSessionId("LIVE", id)
+                    .forEach(positionRepository::delete);
+            sessionRepository.deleteById(id);
+        });
+        createdSessions.clear();
+    }
+
     private LiveTradingSessionEntity newRunningSessionWithOpenPosition() {
         LiveTradingSessionEntity session = sessionRepository.save(LiveTradingSessionEntity.builder()
                 .sessionType("REAL")
@@ -106,6 +127,7 @@ class LiveStopUnderConcurrentWriteTest extends IntegrationTestBase {
                 .openedAt(Instant.now())
                 .build());
 
+        createdSessions.add(session.getId());
         return session;
     }
 

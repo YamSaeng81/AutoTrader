@@ -8,6 +8,7 @@ import com.cryptoautotrader.api.repository.MarketDataCacheRepository;
 import com.cryptoautotrader.api.repository.paper.PaperPositionRepository;
 import com.cryptoautotrader.api.repository.paper.VirtualBalanceRepository;
 import com.cryptoautotrader.api.support.IntegrationTestBase;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -19,6 +20,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -79,6 +81,21 @@ class PaperStopUnderConcurrentWriteTest extends IntegrationTestBase {
     @SpyBean
     private MarketDataCacheRepository marketDataCacheRepo;
 
+    private final List<Long> createdSessions = new ArrayList<>();
+
+    /**
+     * 🔴 생성한 행을 반드시 치운다. H2 가 테스트 간에 공유되므로 남겨두면 전체 실행에서 세션·거래
+     * 수를 세는 다른 테스트가 깨진다 — 단독 통과·전체 실패라는 가장 찾기 어려운 실패가 된다.
+     */
+    @AfterEach
+    void cleanUp() {
+        createdSessions.forEach(id -> {
+            positionRepo.findBySessionId(id).forEach(positionRepo::delete);
+            balanceRepo.deleteById(id);
+        });
+        createdSessions.clear();
+    }
+
     private Long createRunningSessionWithOpenPosition() {
         VirtualBalanceEntity session = balanceRepo.save(VirtualBalanceEntity.builder()
                 .totalKrw(new BigDecimal("1000000.00"))
@@ -103,6 +120,7 @@ class PaperStopUnderConcurrentWriteTest extends IntegrationTestBase {
                 .openedAt(Instant.now())
                 .build());
 
+        createdSessions.add(session.getId());
         return session.getId();
     }
 
