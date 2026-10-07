@@ -248,7 +248,15 @@ CREATE TABLE IF NOT EXISTS "order" (
     submitted_at        TIMESTAMP,
     filled_at           TIMESTAMP,
     cancelled_at        TIMESTAMP,
-    failed_reason       TEXT
+    failed_reason       TEXT,
+    -- 정산: 거래소 보고 원본과 회계 반영값의 분리 (V81, 2026-10-07)
+    -- NULL 은 "모른다" 이며 0 원이 아니다. applied_* 를 0 으로 채우면 반영분을 다시 차감할 수 있다.
+    reported_executed_funds DECIMAL(20, 8),
+    reported_paid_fee       DECIMAL(20, 8),
+    applied_executed_funds  DECIMAL(20, 8),
+    applied_paid_fee        DECIMAL(20, 8),
+    fee_source              VARCHAR(10),
+    settlement_version      BIGINT          NOT NULL DEFAULT 0
 );
 
 -- 거래 로그 (V6)

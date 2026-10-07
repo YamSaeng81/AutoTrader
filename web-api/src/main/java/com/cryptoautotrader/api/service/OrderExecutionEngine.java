@@ -890,6 +890,25 @@ public class OrderExecutionEngine {
             return; // 변경 없음
         }
 
+        // 🔴 거래소 보고 원본을 **모든 응답에서** 보존한다 (2026-10-07, V81).
+        //
+        //    종전에는 `executed_funds` 를 "부분 체결 후 취소" 분기에서만 저장했고 수수료는 어디에도
+        //    저장하지 않았다. 그래서 정상 전량 체결에서 `executedFunds` 가 null 로 남고, 시장가 매수의
+        //    평균단가가 `quantity`(요청 KRW) 폴백을 타며, 미사용 KRW 복원 조건도 성립하지 않았다.
+        //    수수료는 포지션에 **우리가 계산한 추정값**만 쌓였다.
+        //
+        //    🔴 여기서는 **원본만 기록한다.** 회계(평균단가·잔액·포지션 수수료)에는 아직 연결하지
+        //    않는다 — 연결은 차분 정산 규칙과 함께 와야 하고, 그 전에 연결하면 기존 금액 경로가
+        //    조용히 바뀐다. `reported_*` 는 "거래소가 말한 값", `applied_*` 는 "회계에 반영한 값" 이다.
+        //    🔴 NULL 을 0 으로 바꾸지 않는다 — 미보고와 0원은 다르다.
+        BigDecimal reportedFunds = exchangeStatus.resolveExecutedFunds();
+        if (reportedFunds != null) {
+            order.setReportedExecutedFunds(reportedFunds);
+        }
+        if (exchangeStatus.getPaidFee() != null) {
+            order.setReportedPaidFee(exchangeStatus.getPaidFee());
+        }
+
         // 체결 수량 업데이트
         if (exchangeStatus.getExecutedVolume() != null) {
             order.setFilledQuantity(exchangeStatus.getExecutedVolume());

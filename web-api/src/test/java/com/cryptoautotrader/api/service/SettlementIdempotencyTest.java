@@ -133,11 +133,47 @@ class SettlementIdempotencyTest extends IntegrationTestBase {
         OrderEntity o = orderRepository.findById(f.orderId()).orElseThrow();
         PositionEntity p = positionRepository.findById(f.positionId()).orElseThrow();
         LiveTradingSessionEntity s = sessionRepository.findById(f.sessionId()).orElseThrow();
-        return String.format("order{state=%s filledQty=%s price=%s execFunds=%s} "
+        return String.format("order{state=%s filledQty=%s price=%s execFunds=%s "
+                        + "repFunds=%s repFee=%s appFunds=%s appFee=%s src=%s ver=%s} "
                         + "pos{status=%s size=%s avg=%s fee=%s} session{availableKrw=%s totalAsset=%s}",
                 o.getState(), o.getFilledQuantity(), o.getPrice(), o.getExecutedFunds(),
+                o.getReportedExecutedFunds(), o.getReportedPaidFee(),
+                o.getAppliedExecutedFunds(), o.getAppliedPaidFee(),
+                o.getFeeSource(), o.getSettlementVersion(),
                 p.getStatus(), p.getSize(), p.getAvgPrice(), p.getPositionFee(),
                 s.getAvailableKrw(), s.getTotalAssetKrw());
+    }
+
+    // ── 원본 보존 (V81 의 첫 단계) ────────────────────────────────────────
+
+    @Test
+    @DisplayName("원본 보존 — 정상 전량 체결에서도 거래소 보고 체결금액·수수료가 저장된다")
+    void reportedValuesArePersistedOnNormalFill() {
+        Fixture f = submittedBuy();
+        Mockito.doReturn(filled("2950.00000000", "1.47500000"))
+                .when(upbitOrderClient).getOrder("uuid-settle");
+
+        orderExecutionEngine.checkOrderStatus(f.orderId());
+
+        OrderEntity o = orderRepository.findById(f.orderId()).orElseThrow();
+        assertThat(o.getReportedExecutedFunds())
+                .as("거래소가 보고한 체결금액이 보존돼야 한다 — 종전에는 정상 체결에서 저장되지 않았다%n  %s",
+                        snapshot(f))
+                .isEqualByComparingTo(new BigDecimal("2950.00000000"));
+        assertThat(o.getReportedPaidFee())
+                .as("거래소가 보고한 수수료가 보존돼야 한다 — 종전에는 저장할 컬럼조차 없었다")
+                .isEqualByComparingTo(new BigDecimal("1.47500000"));
+
+        // 🔴 이 단계는 **원본만** 보존한다. 회계는 아직 바뀌지 않아야 한다.
+        assertThat(o.getAppliedPaidFee())
+                .as("회계 반영값은 아직 비어 있어야 한다 — 차분 정산 규칙과 함께 연결한다")
+                .isNull();
+        assertThat(o.getFeeSource())
+                .as("출처도 아직 정하지 않는다(전환 이전 데이터와 구분하기 위해 NULL 을 유지)")
+                .isNull();
+        assertThat(positionRepository.findById(f.positionId()).orElseThrow().getPositionFee())
+                .as("포지션 수수료는 여전히 자체 계산값(3000 × 0.0005 = 1.50)이어야 한다")
+                .isEqualByComparingTo(new BigDecimal("1.50"));
     }
 
     // ── 17 ────────────────────────────────────────────────────────────────

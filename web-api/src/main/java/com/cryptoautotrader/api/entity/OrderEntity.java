@@ -138,6 +138,57 @@ public class OrderEntity {
     public BigDecimal getFilledQuantity() { return filledQuantity; }
     public void setFilledQuantity(BigDecimal filledQuantity) { this.filledQuantity = filledQuantity; }
 
+    // ── 정산: 거래소 보고 원본과 회계 반영값의 분리 (2026-10-07, V81) ──────────
+    //
+    // 🔴 원본(reported_*)과 반영값(applied_*)을 섞지 않는다. 한 컬럼에 쓰면 같은 응답이 다시
+    //    와도 "이미 반영했는지" 를 구분할 수 없다. NULL 은 **0 원이 아니라 "모른다"** 다 —
+    //    수수료 미보고를 0 으로 처리하면 "수수료가 없었다" 가 되고, applied_* 를 0 으로 채우면
+    //    기존 주문의 반영분을 다시 차감할 수 있다.
+
+    @Column(name = "reported_executed_funds", precision = 20, scale = 8)
+    private BigDecimal reportedExecutedFunds;
+
+    @Column(name = "reported_paid_fee", precision = 20, scale = 8)
+    private BigDecimal reportedPaidFee;
+
+    @Column(name = "applied_executed_funds", precision = 20, scale = 8)
+    private BigDecimal appliedExecutedFunds;
+
+    @Column(name = "applied_paid_fee", precision = 20, scale = 8)
+    private BigDecimal appliedPaidFee;
+
+    /** {@code ESTIMATED}=자체 계산 추정값 / {@code REPORTED}=거래소 보고값. NULL=전환 이전 데이터. */
+    @Column(name = "fee_source", length = 10)
+    private String feeSource;
+
+    /**
+     * 정산 반영의 동시 쓰기 제어 카운터.
+     *
+     * <p>🔴 이것은 <b>동시 쓰기만</b> 막는다. 응답의 <b>최신성은 판단하지 못한다</b> — 오래된 응답이
+     * 최신 버전을 읽고 통과할 수 있으므로, 누적 단조성·종결 역행 금지를 코드에서 따로 건다.</p>
+     */
+    @Column(name = "settlement_version", nullable = false)
+    @Builder.Default
+    private Long settlementVersion = 0L;
+
+    public BigDecimal getReportedExecutedFunds() { return reportedExecutedFunds; }
+    public void setReportedExecutedFunds(BigDecimal v) { this.reportedExecutedFunds = v; }
+
+    public BigDecimal getReportedPaidFee() { return reportedPaidFee; }
+    public void setReportedPaidFee(BigDecimal v) { this.reportedPaidFee = v; }
+
+    public BigDecimal getAppliedExecutedFunds() { return appliedExecutedFunds; }
+    public void setAppliedExecutedFunds(BigDecimal v) { this.appliedExecutedFunds = v; }
+
+    public BigDecimal getAppliedPaidFee() { return appliedPaidFee; }
+    public void setAppliedPaidFee(BigDecimal v) { this.appliedPaidFee = v; }
+
+    public String getFeeSource() { return feeSource; }
+    public void setFeeSource(String v) { this.feeSource = v; }
+
+    public Long getSettlementVersion() { return settlementVersion; }
+    public void setSettlementVersion(Long v) { this.settlementVersion = v; }
+
     public BigDecimal getExecutedFunds() { return executedFunds; }
     public void setExecutedFunds(BigDecimal executedFunds) { this.executedFunds = executedFunds; }
 
