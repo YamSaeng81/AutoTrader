@@ -73,6 +73,15 @@ class SubmitResponseUnknownTest extends IntegrationTestBase {
     @MockBean
     private UpbitOrderClient upbitOrderClient;
 
+    /**
+     * 세션 행을 쓰는 **알려진 경로** — 클래스이므로 실제 메서드로 위임하며 호출 경로를 잡을 수 있다.
+     * (Spring Data 리포지토리는 인터페이스라 위임이 불가능해 이 방법을 쓸 수 없다.)
+     */
+    @org.springframework.boot.test.mock.mockito.SpyBean
+    private SessionBalanceUpdater balanceUpdater;
+
+    private final List<String> sessionWrites = new CopyOnWriteArrayList<>();
+
     private final List<Long> createdSessions = new ArrayList<>();
 
     /** 거래소가 "접수했다" 는 사실 — 응답이 오지 않아도 거래소에는 남는다. */
@@ -151,14 +160,40 @@ class SubmitResponseUnknownTest extends IntegrationTestBase {
                 Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
     }
 
+    /** 세션 행의 현재 버전·주요 필드를 한 줄로 만든다 — UPDATE 가 일어났는지 가리는 근거다. */
+    private String sessionSnapshot(Long id) {
+        LiveTradingSessionEntity e = sessionRepository.findById(id).orElseThrow();
+        return String.format("ver=%s status=%s availableKrw=%s totalAsset=%s stoppedAt=%s",
+                e.getVersion(), e.getStatus(), e.getAvailableKrw(), e.getTotalAssetKrw(),
+                e.getStoppedAt());
+    }
+
     @Test
-    @DisplayName("현재 동작을 측정한다 — 중복 제출·정지 회복·추적 단서")
+    @DisplayName("현재 동작을 측정한다 — 중복 제출·추적 단서·세션 행 UPDATE 경로")
     void measureCurrentBehaviourOnTimeout() {
         Fixture f = runningSessionWithPendingBuy();
         stubAcceptThenTimeout();
 
+        // 🔴 세션 행을 쓰는 알려진 경로의 호출 시점과 **호출 경로**를 잡는다. SELECT 나 잠금 취득만
+        //    보고 쓰기 주체를 추정하지 않기 위해, 실제 쓰기 헬퍼에 붙인다.
+        Mockito.doAnswer(inv -> {
+            StackTraceElement[] st = new Throwable().getStackTrace();
+            String path = java.util.Arrays.stream(st)
+                    .filter(e -> e.getClassName().startsWith("com.cryptoautotrader"))
+                    .limit(4)
+                    .map(e -> e.getClassName().substring(e.getClassName().lastIndexOf('.') + 1)
+                            + "." + e.getMethodName())
+                    .reduce("", (x, y) -> x.isEmpty() ? y : x + " <- " + y);
+            sessionWrites.add("thread=" + Thread.currentThread().getName() + " path=" + path);
+            return inv.callRealMethod();
+        }).when(balanceUpdater).apply(Mockito.anyLong(), Mockito.any());
+
+        String v0 = sessionSnapshot(f.sessionId());
+
         orderExecutionEngine.submitOrder(f.request());
         awaitDrained();
+
+        String v1 = sessionSnapshot(f.sessionId());
 
         // ② 중복 방지 — 결과를 확인하지 못했는데 같은 주문을 또 내지 않아야 한다
         assertThat(exchangeAccepted)
@@ -167,6 +202,15 @@ class SubmitResponseUnknownTest extends IntegrationTestBase {
 
         // ③ 작업 스레드 반환 — `awaitDrained()` 가 이미 확인했다(비워지지 않으면 거기서 실패한다).
         //    🔴 **정지 진행은 아직 확인되지 않는다** — 아래 `@Disabled` 시험에 요구사항을 적었다.
+
+        // 🔴 세션 행이 **실제로 UPDATE 됐는지**를 버전으로 가린다. 조회·잠금만으로는 버전이
+        //    오르지 않으므로, v0 != v1 이면 그 구간에 UPDATE 가 있었다는 뜻이다.
+        String writes = sessionWrites.isEmpty() ? "(balanceUpdater 경유 쓰기 없음)"
+                : String.join(" || ", sessionWrites);
+        assertThat(v1)
+                .as("제출 구간에 세션 행 UPDATE 가 있었는가 — v0=[%s] v1=[%s] / balanceUpdater: %s",
+                        v0, v1, writes)
+                .isEqualTo(v0);
 
         // ① 추적 — 현재 남는 단서를 그대로 기록한다
         List<OrderEntity> rows = orderRepository.findBySessionIdAndStateIn(f.sessionId(),
@@ -216,9 +260,8 @@ class SubmitResponseUnknownTest extends IntegrationTestBase {
      * 상태 쓰기를 `balanceUpdater`(재조회+재시도)로 돌린 것으로는 부족하다 — 정지 트랜잭션이 들고
      * 있는 <b>세션 스냅샷 자체</b>가 문제다.</p>
      */
-    @org.junit.jupiter.api.Disabled("미해결: 응답 불명 경로 뒤 정지가 낙관적 잠금으로 실패한다 — 원인 경로 미확정")
     @Test
-    @DisplayName("🔴 미해결 — 응답 불명 경로 뒤에도 정지가 진행돼야 한다")
+    @DisplayName("응답 불명 경로 뒤에도 정지가 진행된다")
     void stopMustProceedAfterUnknownResponse() {
         Fixture f = runningSessionWithPendingBuy();
         stubAcceptThenTimeout();

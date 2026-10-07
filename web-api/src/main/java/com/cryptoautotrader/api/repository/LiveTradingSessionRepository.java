@@ -45,12 +45,14 @@ public interface LiveTradingSessionRepository extends JpaRepository<LiveTradingS
      * 잠금을 쥐고 있는 동안 정지의 상태 쓰기는 블록되고, 정지가 먼저 커밋되면 승인 쪽이 잠금을 얻은
      * 시점에 {@code STOPPED} 를 보게 된다. 둘 중 하나만 성립한다.</p>
      *
-     * <p>🔴 <b>엔티티가 아니라 상태 문자열만 돌려주는 이유</b> (2026-10-07 실측). 처음에는
-     * {@code @Lock(PESSIMISTIC_WRITE)} 로 엔티티를 읽었다. 그러면 그 엔티티가 호출 트랜잭션의
-     * 영속성 컨텍스트에 들어가고 <b>세션 행의 버전이 올라가</b>, 뒤따르는 정지가
+     * <p><b>엔티티가 아니라 상태 문자열만 돌려주는 이유</b>. 처음에는
+     * {@code @Lock(PESSIMISTIC_WRITE)} 로 엔티티를 읽었고, 그 뒤 정지가
      * {@code ObjectOptimisticLockingFailureException} 으로 실패했다
-     * ({@code SubmitResponseUnknownTest} 에서 드러났다). 잠금은 필요하지만 <b>엔티티를 관리할
-     * 필요는 없다</b> — 네이티브 {@code FOR UPDATE} 로 행만 잠그고 상태만 읽는다.</p>
+     * ({@code SubmitResponseUnknownTest}). 🔴 <b>그때 "엔티티를 관리하면 버전이 올라간다" 고 적은
+     * 것은 성립하지 않는다</b> — 조회·관리 자체는 버전을 올리지 않는다. 실제로 UPDATE 를 일으킨
+     * 경로는 <b>아직 찾지 못했고</b>, 네이티브 잠금으로 바꾼 뒤에도 그 실패는 재현된다. 즉 이
+     * 형태는 <b>불필요한 엔티티 관리를 없앤다는 점에서만</b> 정당하고, 정지 실패의 원인을 고친
+     * 것이 아니다.</p>
      */
     @org.springframework.data.jpa.repository.Query(
             value = "SELECT status FROM live_trading_session WHERE id = :id FOR UPDATE",

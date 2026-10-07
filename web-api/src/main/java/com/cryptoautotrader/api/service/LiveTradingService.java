@@ -1508,11 +1508,26 @@ public class LiveTradingService {
                             .findFirst()
                             .stream().toList();
                     if (!failedBuy.isEmpty() && failedBuy.get(0).getQuantity() != null) {
-                        session.setAvailableKrw(
-                                session.getAvailableKrw().add(failedBuy.get(0).getQuantity()));
-                        sessionRepository.save(session);
+                        // 🔴 2026-10-07: 종전에는 **바깥 트랜잭션이 로드한 엔티티를 직접 수정하고
+                        //    `sessionRepository.save(session)` 했다.** 그런데 같은 정지 트랜잭션 안에서
+                        //    `balanceUpdater`(REQUIRES_NEW)가 세션 행을 이미 커밋했을 수 있으므로,
+                        //    여기서 들고 있는 스냅샷은 **버전이 한 발 뒤처진다** → UPDATE 의 버전
+                        //    조건이 맞지 않아 `ObjectOptimisticLockingFailureException` 이 나고
+                        //    **정지 전체가 실패한다.**
+                        //
+                        //    실측(`SubmitResponseUnknownTest`): 거래소 접수 후 응답 시간 초과로 매수가
+                        //    FAILED 가 된 상태에서 정지를 부르면 정확히 이 경로를 타고 정지가 깨졌다.
+                        //    제출 구간에는 세션 UPDATE 가 없었고(버전 불변 확인), 충돌은 정지 트랜잭션
+                        //    안에서 **스스로** 만든 것이다.
+                        //
+                        //    DYNAMIC 은 2026-08-19 에 같은 사고를 겪고 "바깥 트랜잭션은 이 행을 절대
+                        //    직접 쓰지 않고 모든 필드 변경을 REQUIRES_NEW 갱신 하나로 모은다" 로
+                        //    정리했다. LIVE 의 이 경로에는 이식되지 않았다.
+                        final BigDecimal restore = failedBuy.get(0).getQuantity();
+                        balanceUpdater.apply(session.getId(),
+                                s -> s.setAvailableKrw(s.getAvailableKrw().add(restore)));
                         log.warn("세션 종료 시 미체결 매수 포지션 KRW 복원 (posId={}, sessionId={}, 복원={})",
-                                pos.getId(), session.getId(), failedBuy.get(0).getQuantity());
+                                pos.getId(), session.getId(), restore);
                     }
                     pos.setStatus("CLOSED");
                     pos.setClosedAt(Instant.now());
