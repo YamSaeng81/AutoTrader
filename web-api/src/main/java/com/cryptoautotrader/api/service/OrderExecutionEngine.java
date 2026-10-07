@@ -115,13 +115,36 @@ public class OrderExecutionEngine {
                                  PositionRepository positionRepository,
                                  TradeLogRepository tradeLogRepository,
                                  RiskManagementService riskManagementService,
-                                 ObjectMapper objectMapper) {
+                                 ObjectMapper objectMapper,
+                                 org.springframework.transaction.PlatformTransactionManager txManager) {
         this.orderRepository = orderRepository;
         this.positionRepository = positionRepository;
         this.tradeLogRepository = tradeLogRepository;
         this.riskManagementService = riskManagementService;
         this.objectMapper = objectMapper;
+        this.syncTx = new org.springframework.transaction.support.TransactionTemplate(txManager);
+        this.syncTx.setPropagationBehavior(
+                org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     }
+
+    /**
+     * 주문 한 건의 거래소 상태 반영을 <b>자기 트랜잭션</b>에서 실행하기 위한 템플릿 (2026-10-07).
+     *
+     * <p>🔴 왜 필요한가 — <b>체결이 조용히 사라지는 경로가 있었다.</b> {@link #checkOrderStatus} 는
+     * 거래소 조회와 {@code syncOrderState} 를 한 {@code try/catch} 로 묶고 <b>예외를 삼켰다.</b>
+     * {@code syncOrderState} 는 주문 엔티티를 먼저 변형하므로(상태·체결수량), 처리 중간에
+     * 실패해도 <b>그 부분 변경이 그대로 커밋됐다.</b></p>
+     *
+     * <p>실측(2026-10-07 `FillProcessingFailureTest`): 거래소가 {@code done} 을 보고했으나 체결가
+     * 산출값이 없어 {@code handleBuyFill} 에서 NPE 가 났을 때, 주문은 <b>{@code FILLED} 로 기록되고
+     * 포지션 수량은 0 으로 남았다.</b> 주문이 더는 활성이 아니므로 {@link #pollActiveOrders} 가
+     * <b>다시 시도하지 않는다</b> — 체결된 돈이 어디에도 반영되지 않는다.</p>
+     *
+     * <p>그래서 반영을 <b>REQUIRES_NEW 로 분리</b>한다. 실패하면 그 트랜잭션만 롤백되어 주문은
+     * 활성으로 남고, 다음 폴링(5초)에서 다시 시도된다. 엔티티는 <b>그 트랜잭션 안에서 다시
+     * 읽는다</b> — 바깥 영속성 컨텍스트의 사본을 넘기면 롤백해도 바깥 커밋에서 다시 쓰인다.</p>
+     */
+    private final org.springframework.transaction.support.TransactionTemplate syncTx;
 
     /**
      * 주문 제출을 <b>호출자 트랜잭션 커밋 이후</b>로 지연시킨다 — 신규 포지션을 만든 직후의 매수 주문 전용.
@@ -291,11 +314,29 @@ public class OrderExecutionEngine {
             return;
         }
 
+        // 🔴 2026-10-07: 조회와 반영을 분리한다. 종전에는 둘을 한 try/catch 로 묶어 예외를 삼켰고,
+        //    그 결과 체결 처리가 실패해도 주문이 FILLED 로 기록돼 **폴러가 다시 시도하지 않았다**
+        //    (체결이 조용히 사라지는 경로 — `syncTx` javadoc 참조).
+        OrderResponse exchangeStatus;
         try {
-            OrderResponse exchangeStatus = queryExchangeOrder(order.getExchangeOrderId());
-            syncOrderState(order, exchangeStatus);
+            exchangeStatus = queryExchangeOrder(order.getExchangeOrderId());
         } catch (Exception e) {
+            // 조회 실패 — 아무것도 바꾸지 않았으므로 주문은 활성으로 남고 다음 폴링에서 재시도된다.
             log.error("주문 상태 조회 실패 (orderId={}): {}", orderId, e.getMessage());
+            return;
+        }
+
+        try {
+            // 반영은 자기 트랜잭션에서, 엔티티도 그 안에서 다시 읽는다 — 실패 시 부분 변경이 남지 않는다.
+            syncTx.executeWithoutResult(st -> {
+                OrderEntity fresh = orderRepository.findById(orderId).orElseThrow(
+                        () -> new IllegalArgumentException("주문을 찾을 수 없습니다: id=" + orderId));
+                syncOrderState(fresh, exchangeStatus);
+            });
+        } catch (Exception e) {
+            // 🔴 '조회 실패' 와 구분해서 적는다. 조회는 성공했고 **반영이 실패**한 것이다.
+            log.error("체결 반영 실패 — 변경을 롤백하고 주문을 활성으로 유지한다 (orderId={}): {}",
+                    orderId, e.getMessage(), e);
         }
     }
 

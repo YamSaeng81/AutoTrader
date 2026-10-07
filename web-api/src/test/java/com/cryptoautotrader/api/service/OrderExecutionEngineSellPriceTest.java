@@ -49,8 +49,16 @@ class OrderExecutionEngineSellPriceTest {
 
     @BeforeEach
     void setUp() {
+        // 2026-10-07: 체결 반영을 자기 트랜잭션에서 돌리도록 바뀌어 txManager 가 필요하다.
+        // 이 단위 시험은 트랜잭션 경계를 보지 않으므로 아무 동작도 하지 않는 관리자를 넣는다.
         engine = new OrderExecutionEngine(orderRepository, positionRepository,
-                tradeLogRepository, riskManagementService, new ObjectMapper());
+                tradeLogRepository, riskManagementService, new ObjectMapper(),
+                new org.springframework.transaction.support.AbstractPlatformTransactionManager() {
+                    @Override protected Object doGetTransaction() { return new Object(); }
+                    @Override protected void doBegin(Object tx, org.springframework.transaction.TransactionDefinition d) { }
+                    @Override protected void doCommit(org.springframework.transaction.support.DefaultTransactionStatus s) { }
+                    @Override protected void doRollback(org.springframework.transaction.support.DefaultTransactionStatus s) { }
+                });
         // @Autowired(required=false) 필드 주입
         ReflectionTestUtils.setField(engine, "upbitRestClient", upbitRestClient);
         ReflectionTestUtils.setField(engine, "upbitOrderClient", upbitOrderClient);
