@@ -33,7 +33,7 @@ public interface LiveTradingSessionRepository extends JpaRepository<LiveTradingS
     /** 모의→실전 승격 검사용 — 특정 타입·상태의 세션 조회 */
     List<LiveTradingSessionEntity> findBySessionTypeAndStatus(String sessionType, String status);
     /**
-     * 세션 행을 <b>배타 잠금</b>으로 읽는다 (2026-10-07 신설).
+     * 세션 행을 <b>배타 잠금</b>으로 걸고 <b>상태 문자열만</b> 읽는다 (2026-10-07 신설).
      *
      * <p>🔴 왜 필요한가 — <b>늦은 신규 제출</b>을 막는다. 평가 루프가 세션을 {@code RUNNING} 으로
      * 읽고 매수를 결정한 뒤, 그 제출이 <b>정지 커밋 이후에</b> 거래소에 닿는 일이 실제로 일어났다
@@ -44,10 +44,17 @@ public interface LiveTradingSessionRepository extends JpaRepository<LiveTradingS
      * 정지가 끼어들 수 있다. 그래서 DB 행 잠금으로 <b>순서를 실제로 강제한다</b>: 제출 승인이 이
      * 잠금을 쥐고 있는 동안 정지의 상태 쓰기는 블록되고, 정지가 먼저 커밋되면 승인 쪽이 잠금을 얻은
      * 시점에 {@code STOPPED} 를 보게 된다. 둘 중 하나만 성립한다.</p>
+     *
+     * <p>🔴 <b>엔티티가 아니라 상태 문자열만 돌려주는 이유</b> (2026-10-07 실측). 처음에는
+     * {@code @Lock(PESSIMISTIC_WRITE)} 로 엔티티를 읽었다. 그러면 그 엔티티가 호출 트랜잭션의
+     * 영속성 컨텍스트에 들어가고 <b>세션 행의 버전이 올라가</b>, 뒤따르는 정지가
+     * {@code ObjectOptimisticLockingFailureException} 으로 실패했다
+     * ({@code SubmitResponseUnknownTest} 에서 드러났다). 잠금은 필요하지만 <b>엔티티를 관리할
+     * 필요는 없다</b> — 네이티브 {@code FOR UPDATE} 로 행만 잠그고 상태만 읽는다.</p>
      */
-    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
     @org.springframework.data.jpa.repository.Query(
-            "SELECT s FROM LiveTradingSessionEntity s WHERE s.id = :id")
-    Optional<LiveTradingSessionEntity> findByIdForUpdate(
+            value = "SELECT status FROM live_trading_session WHERE id = :id FOR UPDATE",
+            nativeQuery = true)
+    Optional<String> lockAndReadStatus(
             @org.springframework.data.repository.query.Param("id") Long id);
 }

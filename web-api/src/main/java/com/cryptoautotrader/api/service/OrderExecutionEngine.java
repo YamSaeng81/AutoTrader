@@ -3,7 +3,6 @@ package com.cryptoautotrader.api.service;
 import com.cryptoautotrader.api.dto.OrderRequest;
 import com.cryptoautotrader.api.entity.OrderEntity;
 import com.cryptoautotrader.api.entity.PositionEntity;
-import com.cryptoautotrader.api.entity.LiveTradingSessionEntity;
 import com.cryptoautotrader.api.entity.TradeLogEntity;
 import com.cryptoautotrader.api.repository.LiveTradingSessionRepository;
 import com.cryptoautotrader.api.repository.OrderRepository;
@@ -266,12 +265,15 @@ public class OrderExecutionEngine {
         //    신규 진입 차단과 기존 주문·포지션 정리는 별개 상태이며 이 가드는 전자만 담당한다.
         if ("BUY".equalsIgnoreCase(request.getSide()) && "LIVE".equals(sessionKind)
                 && request.getSessionId() != null && sessionRepository != null) {
-            LiveTradingSessionEntity locked =
-                    sessionRepository.findByIdForUpdate(request.getSessionId()).orElse(null);
-            if (locked == null || !"RUNNING".equals(locked.getStatus())) {
+            // 🔴 엔티티가 아니라 **상태 문자열만** 받는다 — 엔티티를 이 트랜잭션의 영속성
+            //    컨텍스트에 넣으면 세션 행의 버전이 올라가 **뒤따르는 정지가 낙관적 잠금으로
+            //    실패한다**(2026-10-07 실측). 잠금은 필요하지만 엔티티 관리는 필요하지 않다.
+            String lockedStatus = sessionRepository.lockAndReadStatus(request.getSessionId())
+                    .orElse(null);
+            if (!"RUNNING".equals(lockedStatus)) {
                 log.warn("세션이 실행 중이 아니어서 주문을 제출하지 않는다 (orderId={}, sessionId={}, status={})",
                         order.getId(), request.getSessionId(),
-                        locked == null ? "없음" : locked.getStatus());
+                        lockedStatus == null ? "없음" : lockedStatus);
                 transitionState(order, "FAILED", "세션이 실행 중이 아니다 — 제출하지 않았다");
                 return;
             }
