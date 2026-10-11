@@ -171,6 +171,38 @@ public class OrderEntity {
     @Builder.Default
     private Long settlementVersion = 0L;
 
+    /**
+     * 정산 확정 여부. {@code false} 인 동안만 재조회 대상이다.
+     *
+     * <p>🔴 재조회 대상은 <b>"보고값 ≠ 반영값" 보다 넓다.</b> 보고값과 반영값이 같거나 둘 다
+     * {@code null} 이어도 나중에 체결금액·수수료가 도착할 수 있다(시장가 매도의 {@code trades} 가
+     * 뒤늦게 채워지는 사례). 그래서 대상 조건은 <b>"정산이 아직 확정되지 않았다"</b> 다.</p>
+     *
+     * <p>🔴 <b>조회 횟수 소진으로 이 값이 {@code true} 가 되지 않는다.</b> 확정은 거래소 응답으로
+     * 결말이 났을 때, 또는 사람이 판정해 불일치로 보존했을 때만 성립한다.</p>
+     */
+    @Column(name = "settlement_final", nullable = false)
+    @Builder.Default
+    private Boolean settlementFinal = Boolean.FALSE;
+
+    /** 다음 정산 조회 시각(백오프). NULL 이면 즉시 대상. */
+    @Column(name = "settlement_next_check_at")
+    private Instant settlementNextCheckAt;
+
+    /** 정산 조회 시도 횟수. 백오프 계산과 **사람 판정 상향** 기준이며 자동 종결 근거가 아니다. */
+    @Column(name = "settlement_attempts", nullable = false)
+    @Builder.Default
+    private Integer settlementAttempts = 0;
+
+    public Boolean getSettlementFinal() { return settlementFinal; }
+    public void setSettlementFinal(Boolean v) { this.settlementFinal = v; }
+
+    public Instant getSettlementNextCheckAt() { return settlementNextCheckAt; }
+    public void setSettlementNextCheckAt(Instant v) { this.settlementNextCheckAt = v; }
+
+    public Integer getSettlementAttempts() { return settlementAttempts; }
+    public void setSettlementAttempts(Integer v) { this.settlementAttempts = v; }
+
     public BigDecimal getReportedExecutedFunds() { return reportedExecutedFunds; }
     public void setReportedExecutedFunds(BigDecimal v) { this.reportedExecutedFunds = v; }
 

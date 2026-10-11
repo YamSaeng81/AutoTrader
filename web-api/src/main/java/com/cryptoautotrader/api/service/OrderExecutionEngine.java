@@ -61,6 +61,19 @@ public class OrderExecutionEngine {
 
     private static final Duration ORDER_TIMEOUT = Duration.ofMinutes(5);
     private static final List<String> ACTIVE_STATES = List.of("PENDING", "SUBMITTED", "PARTIAL_FILLED");
+
+    /**
+     * 정산 출처 — {@code order.fee_source} (V81·V82).
+     *
+     * <p>🔴 {@code null} 은 <b>전환 이전 데이터</b>다. 과거의 계산 수수료를 실제 수수료였던 것처럼
+     * 재해석하지 않으므로 <b>자동 재정산에서 제외</b>한다. 신규 주문은 생성 시
+     * {@link #FEE_SOURCE_PENDING} 을 박아 새 경로에 참여함을 명시한다.</p>
+     */
+    static final String FEE_SOURCE_PENDING = "PENDING";
+    /** 추정값을 임시 반영했다. 실제값이 오면 차액만 정산하고 {@link #FEE_SOURCE_REPORTED} 로 올린다. */
+    static final String FEE_SOURCE_ESTIMATED = "ESTIMATED";
+    /** 거래소 보고값을 반영했다. */
+    static final String FEE_SOURCE_REPORTED = "REPORTED";
     /** Upbit 매수 수수료율 — LiveTradingService/DynamicTradingService의 FEE_RATE와 동일 (0.05%) */
     private static final BigDecimal BUY_FEE_RATE = new BigDecimal("0.0005");
 
@@ -221,6 +234,19 @@ public class OrderExecutionEngine {
                 .sessionId(request.getSessionId())
                 .sessionKind(sessionKind)
                 .positionId(request.getPositionId())
+                // 🔴 새 회계 경로 참여를 **생성 시 명시한다** (2026-10-12, V82).
+                //
+                //    V81 의 정산 컬럼은 전부 NULL 로 시작한다. 전환 규칙이 "fee_source IS NULL 이면
+                //    손대지 않는다"(= 전환 이전 데이터) 이므로, **신규 주문도 NULL 로 두면 새 경로에서
+                //    영원히 빠진다.** 그래서 'PENDING'(참여하지만 아직 아무것도 반영하지 않았다)을
+                //    박고 정산 버전을 0 으로 명시한다.
+                //
+                //    🔴 기존 NULL 주문은 그대로 둔다 — 자동 재정산 대상이 아니다. 아직 미체결인
+                //    기존 주문의 전환은 **별도 작업**이며, 여기서 섞으면 과거 데이터를 재해석하게 된다.
+                .feeSource(FEE_SOURCE_PENDING)
+                .settlementVersion(0L)
+                .settlementFinal(Boolean.FALSE)
+                .settlementAttempts(0)
                 .build();
         order = orderRepository.save(order);
         recordTradeLog(order.getId(), "STATE_CHANGE", null, "PENDING", "주문 생성");
