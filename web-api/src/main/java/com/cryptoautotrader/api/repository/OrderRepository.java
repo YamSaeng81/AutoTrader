@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
@@ -105,4 +106,67 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
     @Query(value = "SELECT (SELECT last_value FROM order_id_seq) - COALESCE((SELECT MAX(id) FROM \"order\"), 0)",
             nativeQuery = true)
     Long findOrderSequenceGap();
+    /**
+     * 정산 반영 — <b>정산 버전이 일치할 때만</b> 한 UPDATE 로 누적값과 출처를 함께 갱신한다
+     * (V81·V82, 2026-10-12).
+     *
+     * <p>🔴 <b>동시 반영을 한쪽만 통과시키는 가드다.</b> 0 을 돌려받으면 그사이 다른 경로가 이미
+     * 반영한 것이므로 <b>호출부는 아무것도 하지 않아야 한다</b> — 그렇지 않으면 같은 차액이 두 번
+     * 잔액·포지션에 들어간다.</p>
+     *
+     * <p>🔴 이 가드는 <b>동시 쓰기만</b> 막는다. <b>응답의 최신성은 판단하지 못한다</b> — 오래된
+     * 응답이 최신 버전을 읽고 통과할 수 있으므로, 누적 단조성·종결 역행 금지를 호출부에서 먼저 건다.</p>
+     *
+     * @return 1 이면 이 호출이 반영 권한을 얻었다. 0 이면 얻지 못했다.
+     */
+    @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE OrderEntity o SET "
+            + "o.reportedExecutedFunds = :reportedFunds, "
+            + "o.reportedPaidFee = :reportedFee, "
+            + "o.appliedExecutedFunds = :appliedFunds, "
+            + "o.appliedPaidFee = :appliedFee, "
+            + "o.feeSource = :feeSource, "
+            + "o.settlementVersion = o.settlementVersion + 1, "
+            + "o.settlementAttempts = o.settlementAttempts + 1, "
+            + "o.settlementNextCheckAt = :nextCheckAt, "
+            + "o.settlementFinal = :settlementFinal "
+            + "WHERE o.id = :id AND o.settlementVersion = :expectedVersion")
+    int applySettlementIfVersionMatches(@Param("id") Long id,
+                                        @Param("expectedVersion") Long expectedVersion,
+                                        @Param("reportedFunds") java.math.BigDecimal reportedFunds,
+                                        @Param("reportedFee") java.math.BigDecimal reportedFee,
+                                        @Param("appliedFunds") java.math.BigDecimal appliedFunds,
+                                        @Param("appliedFee") java.math.BigDecimal appliedFee,
+                                        @Param("feeSource") String feeSource,
+                                        @Param("nextCheckAt") java.time.Instant nextCheckAt,
+                                        @Param("settlementFinal") Boolean settlementFinal);
+
+    /**
+     * 정산 <b>일정만</b> 갱신한다 — 반영할 차분이 없을 때 쓴다 (2026-10-12).
+     *
+     * <p>🔴 <b>정산 버전을 올리지 않는다.</b> 버전은 "반영이 일어났다" 는 가드이므로, 차분이 없는
+     * 회차에 올리면 동시에 들어온 <b>진짜 반영</b>이 이유 없이 경합에서 밀린다. 올리는 것은 조회
+     * 횟수와 다음 조회 시각, 그리고 확정 여부뿐이다.</p>
+     */
+    @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE OrderEntity o SET "
+            + "o.settlementAttempts = o.settlementAttempts + 1, "
+            + "o.settlementNextCheckAt = :nextCheckAt, "
+            + "o.settlementFinal = :settlementFinal "
+            + "WHERE o.id = :id AND o.settlementVersion = :expectedVersion")
+    int touchSettlementSchedule(@Param("id") Long id,
+                                 @Param("expectedVersion") Long expectedVersion,
+                                 @Param("nextCheckAt") java.time.Instant nextCheckAt,
+                                 @Param("settlementFinal") Boolean settlementFinal);
+
+    /**
+     * 정산 재조회 대상 — <b>"정산이 아직 확정되지 않았다"</b> 가 조건이다.
+     *
+     * <p>🔴 "보고값 ≠ 반영값" 으로 고르지 않는다. 둘이 같거나 둘 다 {@code null} 이어도 나중에
+     * 체결금액·수수료가 도착할 수 있다. {@code fee_source IS NULL}(전환 이전 데이터)은 제외한다.</p>
+     */
+    @Query("SELECT o FROM OrderEntity o WHERE o.settlementFinal = false AND o.feeSource IS NOT NULL "
+            + "AND (o.settlementNextCheckAt IS NULL OR o.settlementNextCheckAt <= :now) "
+            + "AND o.exchangeOrderId IS NOT NULL")
+    List<OrderEntity> findSettlementDue(@Param("now") java.time.Instant now);
 }

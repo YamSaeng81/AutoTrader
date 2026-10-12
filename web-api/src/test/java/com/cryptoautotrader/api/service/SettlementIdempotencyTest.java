@@ -108,6 +108,7 @@ class SettlementIdempotencyTest extends IntegrationTestBase {
                 .state("SUBMITTED")
                 .sessionKind("LIVE").sessionId(session.getId()).positionId(pos.getId())
                 .exchangeOrderId("uuid-settle")
+                .feeSource(OrderExecutionEngine.FEE_SOURCE_PENDING)
                 .createdAt(Instant.now()).submittedAt(Instant.now()).build());
 
         return new Fixture(session.getId(), pos.getId(), order.getId());
@@ -127,6 +128,19 @@ class SettlementIdempotencyTest extends IntegrationTestBase {
         r.setPrice(new BigDecimal("300.00000000"));
         r.setPaidFee(new BigDecimal(fee));
         return r;
+    }
+
+    /**
+     * 백오프 시간이 지난 것처럼 만든다.
+     *
+     * <p>🔴 정산은 반영할 때마다 {@code settlement_next_check_at} 을 미래로 미룬다(백오프) — 5초
+     * 폴러를 그대로 때리지 않기 위한 생산 동작이다. 이 시험은 <b>백오프 타이밍이 아니라 차분 반영</b>을
+     * 보므로, 시각을 되돌려 "시간이 지났다" 를 표현한다. 실제 시간을 기다리지 않는다.</p>
+     */
+    private void advancePastBackoff(Long orderId) {
+        OrderEntity o = orderRepository.findById(orderId).orElseThrow();
+        o.setSettlementNextCheckAt(Instant.now().minusSeconds(1));
+        orderRepository.save(o);
     }
 
     private String snapshot(Fixture f) {
@@ -164,15 +178,18 @@ class SettlementIdempotencyTest extends IntegrationTestBase {
                 .as("거래소가 보고한 수수료가 보존돼야 한다 — 종전에는 저장할 컬럼조차 없었다")
                 .isEqualByComparingTo(new BigDecimal("1.47500000"));
 
-        // 🔴 이 단계는 **원본만** 보존한다. 회계는 아직 바뀌지 않아야 한다.
+        // 🔴 2026-10-12: 회계가 연결됐으므로 반영값도 채워진다(이 시험은 1단계 기준으로 쓰였다).
         assertThat(o.getAppliedPaidFee())
-                .as("회계 반영값은 아직 비어 있어야 한다 — 차분 정산 규칙과 함께 연결한다")
-                .isNull();
+                .as("차분 정산이 연결된 뒤에는 반영값이 거래소 보고값으로 채워진다")
+                .isEqualByComparingTo(new BigDecimal("1.47500000"));
         assertThat(o.getFeeSource())
-                .as("출처도 아직 정하지 않는다(전환 이전 데이터와 구분하기 위해 NULL 을 유지)")
-                .isNull();
+                .as("보고값이 모두 있으면 출처가 REPORTED 로 올라간다")
+                .isEqualTo(OrderExecutionEngine.FEE_SOURCE_REPORTED);
+        assertThat(o.getSettlementFinal())
+                .as("🔴 반영한 회차에서는 확정하지 않는다 — done 이후에도 상세가 채워질 수 있다")
+                .isFalse();
         assertThat(positionRepository.findById(f.positionId()).orElseThrow().getPositionFee())
-                .as("포지션 수수료는 여전히 자체 계산값(3000 × 0.0005 = 1.50)이어야 한다")
+                .as("포지션 수수료는 아직 자체 계산값(3000 × 0.0005 = 1.50)이다 — 포지션 쪽 전환은 미착수")
                 .isEqualByComparingTo(new BigDecimal("1.50"));
     }
 
@@ -195,7 +212,9 @@ class SettlementIdempotencyTest extends IntegrationTestBase {
         orderExecutionEngine.checkOrderStatus(f.orderId());
         String afterFirst = snapshot(f);
 
+        advancePastBackoff(f.orderId());
         orderExecutionEngine.checkOrderStatus(f.orderId());
+        advancePastBackoff(f.orderId());
         orderExecutionEngine.checkOrderStatus(f.orderId());
         String afterRepeat = snapshot(f);
 
@@ -237,6 +256,9 @@ class SettlementIdempotencyTest extends IntegrationTestBase {
         stale.setExecutedVolume(BigDecimal.ZERO);
         Mockito.doReturn(stale).when(upbitOrderClient).getOrder("uuid-settle");
 
+        // 🔴 백오프를 지나게 한다 — 그러지 않으면 조회 자체가 일어나지 않아 "역행하지 않았다" 가
+        //    아무것도 증명하지 않는다.
+        advancePastBackoff(f.orderId());
         orderExecutionEngine.checkOrderStatus(f.orderId());
 
         OrderEntity o = orderRepository.findById(f.orderId()).orElseThrow();
@@ -277,9 +299,8 @@ class SettlementIdempotencyTest extends IntegrationTestBase {
      * 않는다.</b> 그러므로 정산 버전 가드만 추가해서는 이 시험이 통과하지 않는다 — <b>보존할 필드와
      * 거래소 보고값을 쓰는 경로가 함께 필요하다.</b></p>
      */
-    @org.junit.jupiter.api.Disabled("미해결: 체결금액·수수료 갱신이 반영되지 않는다(조기 반환 2겹 + 보존 필드 없음) — 설계안 §5.1 구현 필요")
     @Test
-    @DisplayName("🔴 19 — 수량은 같고 체결금액·수수료만 늘어난 응답이 정확히 한 번 반영된다")
+    @DisplayName("19 — 수량은 같고 체결금액·수수료만 늘어난 응답이 정확히 한 번 반영된다")
     void feeOnlyIncreaseAppliedExactlyOnce() {
         Fixture f = submittedBuy();
         // 1회차: trades 미정산 — 체결금액이 작게 보고된다
@@ -291,10 +312,12 @@ class SettlementIdempotencyTest extends IntegrationTestBase {
         // 2회차: 정산이 끝나 체결금액·수수료가 채워진다 (수량은 그대로)
         Mockito.doReturn(filled("3000.00000000", "1.50000000"))
                 .when(upbitOrderClient).getOrder("uuid-settle");
+        advancePastBackoff(f.orderId());
         orderExecutionEngine.checkOrderStatus(f.orderId());
         String afterFullSettle = snapshot(f);
 
         // 3회차: 같은 응답을 또 받아도 더 반영되지 않아야 한다
+        advancePastBackoff(f.orderId());
         orderExecutionEngine.checkOrderStatus(f.orderId());
         String afterRepeat = snapshot(f);
 

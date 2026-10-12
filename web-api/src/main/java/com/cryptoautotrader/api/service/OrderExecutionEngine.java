@@ -90,6 +90,10 @@ public class OrderExecutionEngine {
     @Autowired(required = false)
     private UpbitOrderClient upbitOrderClient;
 
+    /** 정산 차분 반영 — 순환 참조를 피하려고 세터 주입한다. */
+    @Autowired(required = false)
+    private OrderSettlementService orderSettlementService;
+
     @Autowired(required = false)
     private TelegramNotificationService telegramService;
 
@@ -372,8 +376,22 @@ public class OrderExecutionEngine {
         OrderEntity order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다: id=" + orderId));
 
-        if (!ACTIVE_STATES.contains(order.getState())) {
-            return; // 이미 최종 상태
+        // 🔴 종결 주문도 **정산이 미확정이면 다시 조회한다** (2026-10-12).
+        //
+        //    종전에는 `!ACTIVE_STATES` 면 바로 돌아갔다. 그 조기 반환이 "같은 응답 반복"·"종결 후
+        //    활성 응답" 을 막아주긴 했지만(시험 17·18), **유효한 정산 갱신까지 막았다**(시험 19) —
+        //    시장가 매도의 체결 상세가 done 이후에 채워지는 경우가 실재한다. 이제 중복은 조기
+        //    반환이 아니라 **최신성 규칙 + 정산 버전 가드**(OrderSettlementService)가 막는다.
+        //
+        //    🔴 재조회 대상은 "보고값 ≠ 반영값" 이 아니라 **"정산 미확정"** 이다 — 둘이 같거나 둘 다
+        //    null 이어도 나중에 도착할 수 있다. 백오프는 settlement_next_check_at 이 담당한다.
+        boolean needStateSync = ACTIVE_STATES.contains(order.getState());
+        boolean needSettlement = order.getFeeSource() != null
+                && !Boolean.TRUE.equals(order.getSettlementFinal())
+                && (order.getSettlementNextCheckAt() == null
+                    || !order.getSettlementNextCheckAt().isAfter(Instant.now()));
+        if (!needStateSync && !needSettlement) {
+            return;
         }
 
         if (upbitRestClient == null || order.getExchangeOrderId() == null) {
@@ -392,17 +410,31 @@ public class OrderExecutionEngine {
             return;
         }
 
-        try {
-            // 반영은 자기 트랜잭션에서, 엔티티도 그 안에서 다시 읽는다 — 실패 시 부분 변경이 남지 않는다.
-            syncTx.executeWithoutResult(st -> {
-                OrderEntity fresh = orderRepository.findById(orderId).orElseThrow(
-                        () -> new IllegalArgumentException("주문을 찾을 수 없습니다: id=" + orderId));
-                syncOrderState(fresh, exchangeStatus);
-            });
-        } catch (Exception e) {
-            // 🔴 '조회 실패' 와 구분해서 적는다. 조회는 성공했고 **반영이 실패**한 것이다.
-            log.error("체결 반영 실패 — 변경을 롤백하고 주문을 활성으로 유지한다 (orderId={}): {}",
-                    orderId, e.getMessage(), e);
+        if (needStateSync) {
+            try {
+                // 반영은 자기 트랜잭션에서, 엔티티도 그 안에서 다시 읽는다 — 실패 시 부분 변경이 남지 않는다.
+                syncTx.executeWithoutResult(st -> {
+                    OrderEntity fresh = orderRepository.findById(orderId).orElseThrow(
+                            () -> new IllegalArgumentException("주문을 찾을 수 없습니다: id=" + orderId));
+                    syncOrderState(fresh, exchangeStatus);
+                });
+            } catch (Exception e) {
+                // 🔴 '조회 실패' 와 구분해서 적는다. 조회는 성공했고 **반영이 실패**한 것이다.
+                log.error("체결 반영 실패 — 변경을 롤백하고 주문을 활성으로 유지한다 (orderId={}): {}",
+                        orderId, e.getMessage(), e);
+            }
+        }
+
+        // 🔴 정산은 상태 동기화와 **별개 트랜잭션**이다. 상태 전이가 없어도(이미 종결) 체결금액·
+        //    수수료가 늘어났으면 차분을 반영해야 한다. 실패하면 그 트랜잭션만 롤백되고 주문은
+        //    미확정으로 남아 다음 조회에서 다시 시도된다.
+        if (orderSettlementService != null) {
+            try {
+                orderSettlementService.settle(orderId, exchangeStatus);
+            } catch (Exception e) {
+                log.error("정산 반영 실패 — 롤백하고 미확정으로 남긴다 (orderId={}): {}",
+                        orderId, e.getMessage(), e);
+            }
         }
     }
 

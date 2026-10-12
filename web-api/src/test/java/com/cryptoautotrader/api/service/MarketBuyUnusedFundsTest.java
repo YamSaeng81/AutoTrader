@@ -149,8 +149,38 @@ class MarketBuyUnusedFundsTest extends IntegrationTestBase {
                 .as("요청액은 그대로 남는다")
                 .isEqualByComparingTo(new BigDecimal("3000.00000000"));
         assertThat(o.getFeeSource())
-                .as("신규 주문은 새 회계 경로 참여가 명시돼 있어야 한다 (전환 이전 데이터와 구분)")
-                .isEqualTo(OrderExecutionEngine.FEE_SOURCE_PENDING);
+                .as("새 회계 경로에 참여한 주문이므로 NULL(전환 이전 데이터)이 아니어야 한다. "
+                        + "생성 시 PENDING 이었고 정산 반영 후 REPORTED 로 올라간다")
+                .isEqualTo(OrderExecutionEngine.FEE_SOURCE_REPORTED);
+    }
+
+    @Test
+    @DisplayName("미사용 금액이 복원된다 — 원금 차이 60원이 아니라 58.53원이다")
+    void unusedFundsRestoredNetOfFee() {
+        Fixture f = marketBuyRequesting3000();
+        Mockito.doReturn(doneUsing2940()).when(upbitOrderClient).getOrder("uuid-unused");
+
+        orderExecutionEngine.checkOrderStatus(f.orderId());
+
+        // 🔴 요청 3,000 은 제출 시점에 이미 전액 차감됐다. 거래소가 그 안에서 수수료를 빼므로
+        //    미사용액은 **요청액 − 체결금액 − 수수료** = 3000 − 2940 − 1.47 = 58.53 이다.
+        //    원금 차이(3000 − 2940 = 60)를 복원하면 수수료 1.47 만큼 과다 복원된다.
+        BigDecimal afterFirst =
+                sessionRepository.findById(f.sessionId()).orElseThrow().getAvailableKrw();
+        assertThat(afterFirst)
+                .as("7000 + 58.53 = 7058.53 이어야 한다. 7060 이면 수수료를 복원해 버린 것이다")
+                .isEqualByComparingTo(new BigDecimal("7058.53"));
+
+        // 반복 응답 — 추가 복원이 없어야 한다
+        for (int i = 0; i < 3; i++) {
+            OrderEntity o = orderRepository.findById(f.orderId()).orElseThrow();
+            o.setSettlementNextCheckAt(Instant.now().minusSeconds(1));
+            orderRepository.save(o);
+            orderExecutionEngine.checkOrderStatus(f.orderId());
+        }
+        assertThat(sessionRepository.findById(f.sessionId()).orElseThrow().getAvailableKrw())
+                .as("반복 응답에 추가 복원이 일어나면 쓰이지 않은 돈이 생긴다")
+                .isEqualByComparingTo(afterFirst);
     }
 
     /**
