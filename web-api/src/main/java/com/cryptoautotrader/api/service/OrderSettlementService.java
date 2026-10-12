@@ -55,11 +55,15 @@ import java.time.Instant;
  * <p>실패 후 재처리에서도 차액은 <b>정확히 한 번</b>만 반영된다: 조건부 UPDATE 가 1을 돌려준
  * 호출만 금액을 움직이고, 롤백되면 버전도 되돌아가므로 다음 시도가 같은 차분을 다시 계산한다.</p>
  *
- * <h3>3. 수동 종결은 거래소 확정이 아니다</h3>
+ * <h3>3. 확정은 이 서비스가 하지 않는다</h3>
  *
- * <p>🔴 사람이 {@code settlement_final} 을 세우더라도 <b>거래소 정산이 확인됐다는 뜻이 아니다.</b>
- * 이 서비스는 <b>거래소 응답으로 결말이 난 경우에만</b> 확정으로 올린다. 수동 종결은 별도 경로에서
- * 확정 근거·잔여 위험·조정 기록과 함께 다룬다 — 이 클래스는 수동 종결을 수행하지 않는다.</p>
+ * <p>🔴 <b>자동 확정의 근거가 없다.</b> 업비트 응답에는 "정산이 끝났다" 는 신호가 없고,
+ * <b>같은 값이 한 번 더 왔다는 사실은 이후 변경이 없다는 증거가 아니다.</b> 그래서 이 서비스는
+ * {@code settlement_final} 을 세우지 않는다 — <b>백오프로 간격만 늘리고 재조회는 계속한다.</b></p>
+ *
+ * <p>확정은 사람이 <b>확정 근거 · 잔여 위험 · 회계 조정 기록</b>과 함께 판정할 때만 성립한다.
+ * 🔴 그 수동 경로는 <b>미구현</b>이며, 사람이 세운 확정도 "거래소 정산이 확인됐다" 는 뜻이
+ * 아니다 — 그 구분을 기록에 남겨야 한다.</p>
  *
  * <h2>미사용 금액의 정의</h2>
  *
@@ -172,17 +176,22 @@ public class OrderSettlementService {
         BigDecimal deltaFee = targetFee.subtract(appliedFee);
 
         boolean reportedComplete = reportedFunds != null && reportedFee != null;
-        // 🔴 **종결 상태 + 값이 다 있다는 것만으로 확정하지 않는다.** "done 이후에 체결 상세가 뒤늦게
-        //    채워진다" 는 사례가 실재하므로, 한 응답으로 확정하면 그 뒤에 오는 정정을 영원히 놓친다
-        //    (실측: 1회차에 확정해 버려 2회차의 수수료 증가가 반영되지 않았다).
-        //    확정은 **종결 상태이고 반영할 차분이 없음이 확인된 회차**에만 세운다 — 아래 no-delta 분기다.
-        boolean terminalAndComplete = reportedComplete && isTerminal(response.getState());
+
+        // 🔴 **이 서비스는 settlement_final 을 세우지 않는다** (2026-10-12 정정).
+        //
+        //    두 번 틀렸다. ① "종결 상태 + 값이 다 있음" 을 확정 근거로 삼아 1회차에 확정해 2회차의
+        //    수수료 증가를 놓쳤다. ② "종결 상태 + 차분 없음이 한 번 확인됨" 으로 옮겼는데 **그것도
+        //    근거가 아니다** — 같은 값이 한 번 더 왔다는 사실은 이후 변경이 없다는 증거가 아니고,
+        //    `첫 응답 → 동일 응답 → 늦은 수수료 증가` 에서 마지막 갱신을 놓친다.
+        //
+        //    업비트 응답에는 "정산이 끝났다" 는 신호가 없으므로 자동 확정의 근거가 없다.
+        //    🔴 **백오프와 확정은 별개다** — 비용은 백오프가 줄이고, 재조회를 영구히 멈추는 것은
+        //    확정이 한다. 차분이 없다는 이유로 멈추지 않는다.
 
         if (deltaFunds.signum() == 0 && deltaFee.signum() == 0) {
-            // 반영할 것이 없다. 🔴 여기서만 확정을 세운다 — **종결 상태이고 차분이 없음이 확인된**
-            //    회차다. 횟수 소진으로는 확정하지 않는다(그러면 "모르는데 끝났다" 가 된다).
-            touchBackoff(order, terminalAndComplete);
-            return terminalAndComplete ? Outcome.APPLIED : Outcome.NO_CHANGE;
+            // 반영할 것이 없다 — **간격만 늘린다.** 확정하지 않는다.
+            touchBackoff(order);
+            return Outcome.NO_CHANGE;
         }
 
         // ── 3. 원자적 반영 ─────────────────────────────────────────────────
@@ -196,7 +205,7 @@ public class OrderSettlementService {
                 reportedFunds, reportedFee,
                 targetFunds, targetFee,
                 nextSource,
-                // 🔴 반영한 회차는 확정하지 않는다 — 다음 조회를 예약해 정정이 오면 받는다.
+                // 🔴 확정하지 않는다 — 다음 조회를 예약해 정정이 오면 받는다.
                 nextCheckAt(order),
                 Boolean.FALSE);
         if (applied == 0) {
@@ -268,11 +277,11 @@ public class OrderSettlementService {
      * <p>🔴 정산 버전을 올리지 않는다 — 버전은 "반영이 일어났다" 는 가드다. 차분 없는 회차에 올리면
      * 동시에 들어온 진짜 반영이 이유 없이 경합에서 밀린다.</p>
      */
-    private void touchBackoff(OrderEntity order, boolean exchangeSettled) {
+    private void touchBackoff(OrderEntity order) {
         orderRepository.touchSettlementSchedule(
                 order.getId(), order.getSettlementVersion(),
-                exchangeSettled ? null : nextCheckAt(order),
-                exchangeSettled);
+                nextCheckAt(order),
+                Boolean.FALSE);
     }
 
     /** 지수 백오프 — 조회가 반복될수록 간격을 늘린다. */

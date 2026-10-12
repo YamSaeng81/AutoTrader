@@ -274,6 +274,56 @@ class SettlementIdempotencyTest extends IntegrationTestBase {
                 .isEqualByComparingTo(new BigDecimal("10.00000000"));
     }
 
+    // ── 확정 조건 회귀 ────────────────────────────────────────────────────
+
+    /**
+     * 🔴 회귀 — <b>첫 응답 → 동일 응답 → 늦은 수수료 증가</b>에서 마지막 갱신을 놓치지 않는다.
+     *
+     * <p>이 순서가 확정 조건을 두 번 틀리게 만든 자리다. ① "종결 상태 + 값이 다 있음" 으로 확정하면
+     * 1회차에서 끝나 2회차를 놓친다. ② "종결 상태 + 차분 없음이 한 번 확인됨" 으로 확정하면
+     * <b>2회차(동일 응답)에서 확정</b>되어 3회차의 수수료 증가를 놓친다 — <b>같은 값이 한 번 더
+     * 왔다는 사실은 이후 변경이 없다는 증거가 아니다.</b></p>
+     *
+     * <p>🔴 그래서 자동 확정을 두지 않는다. <b>백오프와 확정은 별개</b>이며, 차분이 없다는 이유로
+     * 재조회를 영구히 멈추지 않는다.</p>
+     */
+    @Test
+    @DisplayName("확정 회귀 — 동일 응답을 거쳐도 늦게 도착한 수수료 증가가 반영된다")
+    void lateFeeIncreaseAfterIdenticalResponseIsStillApplied() {
+        Fixture f = submittedBuy();
+
+        // 1회차: 체결 확인 (수수료 1.00)
+        Mockito.doReturn(filled("3000.00000000", "1.00000000"))
+                .when(upbitOrderClient).getOrder("uuid-settle");
+        orderExecutionEngine.checkOrderStatus(f.orderId());
+        OrderEntity afterFirst = orderRepository.findById(f.orderId()).orElseThrow();
+        assertThat(afterFirst.getAppliedPaidFee()).isEqualByComparingTo(new BigDecimal("1.00000000"));
+        assertThat(afterFirst.getSettlementFinal())
+                .as("🔴 반영한 회차에서 확정하면 뒤따르는 정정을 놓친다")
+                .isFalse();
+
+        // 2회차: **같은 응답** — 차분이 없다. 여기서 확정해 버리면 3회차를 놓친다.
+        advancePastBackoff(f.orderId());
+        orderExecutionEngine.checkOrderStatus(f.orderId());
+        assertThat(orderRepository.findById(f.orderId()).orElseThrow().getSettlementFinal())
+                .as("🔴 '같은 값이 한 번 더 왔다' 는 이후 변경이 없다는 증거가 아니다 — 확정하면 안 된다")
+                .isFalse();
+
+        // 3회차: 늦게 도착한 수수료 증가 (1.00 → 1.50)
+        Mockito.doReturn(filled("3000.00000000", "1.50000000"))
+                .when(upbitOrderClient).getOrder("uuid-settle");
+        advancePastBackoff(f.orderId());
+        orderExecutionEngine.checkOrderStatus(f.orderId());
+
+        OrderEntity afterLate = orderRepository.findById(f.orderId()).orElseThrow();
+        assertThat(afterLate.getAppliedPaidFee())
+                .as("동일 응답을 거쳐도 늦게 온 수수료 증가는 반영돼야 한다")
+                .isEqualByComparingTo(new BigDecimal("1.50000000"));
+        assertThat(afterLate.getSettlementVersion())
+                .as("반영이 일어난 회차만 버전이 오른다 — 1회차·3회차 두 번")
+                .isEqualTo(2L);
+    }
+
     // ── 19 ────────────────────────────────────────────────────────────────
 
     /**
