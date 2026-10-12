@@ -299,6 +299,26 @@ public class OrderExecutionEngine {
             // 않다. 🔴 단, 이것이 정지 실패의 원인을 고친 것은 아니다. 응답 불명 경로 뒤 정지가
             // 낙관적 잠금으로 실패하는 현상은 네이티브 잠금으로 바꾼 뒤에도 재현되며, 실제로
             // 세션 행을 UPDATE 하는 경로는 아직 찾지 못했다(`SubmitResponseUnknownTest`).
+            // 🔴 **회계 미반영 체결이 있으면 신규 매수를 막는다** (2026-10-12, V83).
+            //
+            //    ⓑ(로컬 회계를 한 트랜잭션으로) 를 택하면, 체결을 관측했지만 회계를 아직 반영하지
+            //    못한 구간이 생긴다. 그동안 포지션 수량은 0 이므로 **슬롯 점유로 보이지 않고**
+            //    평가 루프가 "포지션 없음" 으로 보고 재진입할 수 있다. 그것은 원자성의 단점이
+            //    아니라 **가드의 공백**이므로 여기서 막는다. 자금은 제출 시 이미 차감돼 점유가
+            //    유지된다.
+            //
+            //    🔴 **추적과 위험 축소는 막지 않는다** — 이 가드는 BUY 전용이고, 매도·청산·폴링은
+            //    그대로 돈다.
+            long pendingFills = orderRepository.countFillAccountingPending(
+                    "LIVE", request.getSessionId());
+            if (pendingFills > 0) {
+                log.warn("회계 미반영 체결이 있어 신규 매수를 제출하지 않는다 "
+                                + "(orderId={}, sessionId={}, 미반영={}건)",
+                        order.getId(), request.getSessionId(), pendingFills);
+                transitionState(order, "FAILED", "회계 미반영 체결이 있다 — 제출하지 않았다");
+                return;
+            }
+
             String lockedStatus = sessionRepository.lockAndReadStatus(request.getSessionId())
                     .orElse(null);
             if (!"RUNNING".equals(lockedStatus)) {
@@ -407,6 +427,29 @@ public class OrderExecutionEngine {
         } catch (Exception e) {
             // 조회 실패 — 아무것도 바꾸지 않았으므로 주문은 활성으로 남고 다음 폴링에서 재시도된다.
             log.error("주문 상태 조회 실패 (orderId={}): {}", orderId, e.getMessage());
+            return;
+        }
+
+        // 🔴 LIVE 시장가 매수의 체결 회계는 **새 원자 경로**가 맡는다 (2026-10-12, ⓑ 결정).
+        //    기존 경로는 체결 반영(포지션)을 먼저 커밋하고 정산을 따로 돌려 **중간 상태**를 만들었다.
+        //    새 경로는 관측을 먼저 보존하고 주문·잔액·포지션을 한 트랜잭션에서 반영한다.
+        //    🔴 지정가·매도·DYNAMIC 은 기존 경로가 그대로 처리한다 — 한꺼번에 옮기면 부분 체결·
+        //    취소 후 체결·매도 정산의 기존 보호 장치까지 다시 써야 한다.
+        boolean atomicBuyPath = orderSettlementService != null
+                && order.getFeeSource() != null
+                && "BUY".equalsIgnoreCase(order.getSide())
+                && "MARKET".equalsIgnoreCase(order.getOrderType())
+                && "LIVE".equals(order.getSessionKind())
+                && "FILLED".equals(mapExchangeState(exchangeStatus.getState()));
+
+        if (atomicBuyPath) {
+            try {
+                orderSettlementService.observeAndApplyBuyFill(orderId, exchangeStatus);
+            } catch (Exception e) {
+                // 🔴 관측과 대기 표시는 남는다 — 다음 조회에서 재처리된다.
+                log.error("체결 회계 반영 실패 — 관측과 예약을 유지하고 재처리한다 (orderId={}): {}",
+                        orderId, e.getMessage(), e);
+            }
             return;
         }
 

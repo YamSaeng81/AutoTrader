@@ -169,4 +169,58 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
             + "AND (o.settlementNextCheckAt IS NULL OR o.settlementNextCheckAt <= :now) "
             + "AND o.exchangeOrderId IS NOT NULL")
     List<OrderEntity> findSettlementDue(@Param("now") java.time.Instant now);
+    /**
+     * 체결 회계 반영 — 주문 쪽 갱신을 <b>한 UPDATE</b> 로, <b>정산 버전이 일치할 때만</b> 수행한다
+     * (V83, 2026-10-12).
+     *
+     * <p>상태·체결수량·체결가(평균단가)·보고값·반영값·출처를 함께 바꾼다. 🔴 0 을 돌려받으면 그사이
+     * 다른 경로가 반영한 것이므로 <b>호출부는 포지션·잔액을 건드리지 않아야 한다.</b></p>
+     */
+    @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE OrderEntity o SET "
+            + "o.state = 'FILLED', "
+            + "o.filledQuantity = :volume, "
+            + "o.price = :avgPrice, "
+            + "o.filledAt = CASE WHEN o.filledAt IS NULL THEN :now ELSE o.filledAt END, "
+            + "o.reportedExecutedFunds = :funds, "
+            + "o.reportedPaidFee = :fee, "
+            + "o.appliedExecutedFunds = :funds, "
+            + "o.appliedPaidFee = :fee, "
+            + "o.feeSource = :feeSource, "
+            + "o.settlementVersion = o.settlementVersion + 1, "
+            + "o.settlementAttempts = o.settlementAttempts + 1, "
+            + "o.settlementNextCheckAt = :nextCheckAt "
+            + "WHERE o.id = :id AND o.settlementVersion = :expectedVersion")
+    int applyBuyFillIfVersionMatchesInternal(@Param("id") Long id,
+                                             @Param("expectedVersion") Long expectedVersion,
+                                             @Param("funds") java.math.BigDecimal funds,
+                                             @Param("fee") java.math.BigDecimal fee,
+                                             @Param("volume") java.math.BigDecimal volume,
+                                             @Param("avgPrice") java.math.BigDecimal avgPrice,
+                                             @Param("feeSource") String feeSource,
+                                             @Param("nextCheckAt") Instant nextCheckAt,
+                                             @Param("now") Instant now);
+
+    default int applyBuyFillIfVersionMatches(Long id, Long expectedVersion,
+                                              java.math.BigDecimal funds, java.math.BigDecimal fee,
+                                              java.math.BigDecimal volume, java.math.BigDecimal avgPrice,
+                                              String feeSource, Instant nextCheckAt) {
+        return applyBuyFillIfVersionMatchesInternal(id, expectedVersion, funds, fee, volume,
+                avgPrice, feeSource, nextCheckAt, Instant.now());
+    }
+
+    /** 회계 반영 대기 해제. */
+    @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE OrderEntity o SET o.fillAccountingPending = false WHERE o.id = :id")
+    int clearFillAccountingPending(@Param("id") Long id);
+
+    /**
+     * 🔴 그 세션에 <b>회계 미반영 체결</b>이 있는가 — 있으면 신규 매수를 막는다 (V83).
+     *
+     * <p>포지션 수량이 아직 0 이라 슬롯 점유로 보이지 않으므로, 평가 루프가 "포지션 없음" 으로 보고
+     * 재진입하는 것을 이 조건으로 막는다. <b>추적과 위험 축소(청산·손절)는 막지 않는다.</b></p>
+     */
+    @Query("SELECT COUNT(o) FROM OrderEntity o WHERE o.sessionKind = :kind AND o.sessionId = :sessionId "
+            + "AND o.fillAccountingPending = true")
+    long countFillAccountingPending(@Param("kind") String kind, @Param("sessionId") Long sessionId);
 }

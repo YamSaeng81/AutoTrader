@@ -184,18 +184,16 @@ class MarketBuyUnusedFundsTest extends IntegrationTestBase {
     }
 
     /**
-     * 🔴 <b>미해결 — 배포 차단 항목. 이 시험은 통과하지 않는다.</b>
+     * 요청액보다 실제 사용액이 작은 매수에서 ① <b>평균단가가 실제 사용액 기준</b>이고
+     * ② <b>미사용 금액이 복원</b>되며 ③ <b>반복 응답에도 추가 복원이 없어야</b> 한다.
      *
-     * <p>요구사항: 요청액보다 실제 사용액이 작은 매수에서 ① <b>평균단가가 실제 사용액 기준</b>이고
-     * ② <b>미사용 금액이 복원</b>되며 ③ <b>반복 응답에도 추가 복원이 없어야</b> 한다.</p>
-     *
-     * <p>현재는 ①②가 성립하지 않는다 — {@code executedFunds} 가 정상 체결에서 저장되지 않으므로
-     * 평균단가는 {@code 3000 / 9.8 = 306.12}(과대)가 되고 미사용 60원은 복원되지 않는다.
-     * 🔴 그 수정은 <b>기존 금액 경로를 바꾸는 일</b>이므로 차분 정산 규칙과 함께 판단한다.</p>
+     * <p>🔴 <b>복원액은 원금 차이 60원이 아니다.</b> 요청액 3,000 에서 체결금액 2,940 과 수수료
+     * 1.47 이 모두 빠져나갔으므로 돌려받는 금액은 {@code 3000 − 2940 − 1.47 = 58.53} 이다.
+     * 시장가 매수는 수수료를 요청액 <b>안에서</b> 떼기 때문이다 — 60원으로 보면 1.47원을 두 번
+     * 세는 셈이다.</p>
      */
-    @org.junit.jupiter.api.Disabled("미해결: 정상 체결에서 executed_funds 가 저장되지 않아 평균단가 과대·미사용 금액 미복원 — 회계 연결 단계에서 함께 처리")
     @Test
-    @DisplayName("🔴 미해결 — 평균단가는 실제 사용액 기준이고 미사용 금액은 한 번만 복원된다")
+    @DisplayName("평균단가는 실제 사용액 기준이고 미사용 금액은 한 번만 복원된다")
     void avgPriceUsesActualFundsAndUnusedKrwRestoredOnce() {
         Fixture f = marketBuyRequesting3000();
         Mockito.doReturn(doneUsing2940()).when(upbitOrderClient).getOrder("uuid-unused");
@@ -210,8 +208,8 @@ class MarketBuyUnusedFundsTest extends IntegrationTestBase {
 
         BigDecimal afterFirst = sessionRepository.findById(f.sessionId()).orElseThrow().getAvailableKrw();
         assertThat(afterFirst)
-                .as("미사용 60원이 복원돼야 한다 (7000 + 60)")
-                .isEqualByComparingTo(new BigDecimal("7060.00"));
+                .as("미사용액은 수수료를 제외한 58.53원이다 (7000 + 3000 − 2940 − 1.47)")
+                .isEqualByComparingTo(new BigDecimal("7058.53"));
 
         // 반복 응답 — 추가 복원이 없어야 한다
         orderExecutionEngine.checkOrderStatus(f.orderId());

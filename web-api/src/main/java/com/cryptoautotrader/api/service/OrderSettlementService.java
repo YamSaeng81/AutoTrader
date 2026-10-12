@@ -1,8 +1,10 @@
 package com.cryptoautotrader.api.service;
 
 import com.cryptoautotrader.api.entity.OrderEntity;
+import com.cryptoautotrader.api.entity.PositionEntity;
 import com.cryptoautotrader.api.entity.OrderSettlementDiscrepancyEntity;
 import com.cryptoautotrader.api.repository.OrderRepository;
+import com.cryptoautotrader.api.repository.PositionRepository;
 import com.cryptoautotrader.api.repository.OrderSettlementDiscrepancyRepository;
 import com.cryptoautotrader.exchange.upbit.dto.OrderResponse;
 import jakarta.annotation.PostConstruct;
@@ -14,6 +16,7 @@ import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -83,6 +86,7 @@ public class OrderSettlementService {
     private static final Duration BACKOFF_MAX = Duration.ofMinutes(30);
 
     private final OrderRepository orderRepository;
+    private final PositionRepository positionRepository;
     private final OrderSettlementDiscrepancyRepository discrepancyRepository;
     private final SessionBalanceUpdater liveBalanceUpdater;
     private final PlatformTransactionManager txManager;
@@ -271,6 +275,161 @@ public class OrderSettlementService {
                 order.getId(), restoreDelta, requested, targetFunds, targetFee);
     }
 
+    /**
+     * 체결 관측을 보존하고, <b>주문·잔액·포지션을 한 트랜잭션에서 반영한다</b> (2026-10-12).
+     *
+     * <p>흐름:</p>
+     * <ol>
+     *   <li>거래소 응답을 저장하고 <b>회계 반영 대기</b>로 표시한다(작은 트랜잭션).</li>
+     *   <li>별도 트랜잭션에서 최신성·중복 검사 후 <b>주문·잔액·포지션을 함께</b> 반영한다.</li>
+     *   <li>성공하면 대기를 해제하고, <b>실패하면 예약을 유지한 채</b> 재처리한다.</li>
+     * </ol>
+     *
+     * <p>🔴 <b>거래소 체결과 DB 커밋을 원자적으로 만들 수는 없다.</b> 이 설계가 하는 일은 그 간극을
+     * 명시적으로 추적하면서 <b>로컬 회계의 부분 커밋을 없애는 것</b>이다.</p>
+     *
+     * <p>🔴 <b>적용 범위</b>: 이 경로는 <b>LIVE 시장가 매수</b>만 담당한다. 지정가·매도·DYNAMIC 은
+     * 기존 {@code syncOrderState} 경로가 그대로 처리한다 — 한꺼번에 옮기면 부분 체결·취소 후 체결·
+     * 매도 정산의 기존 보호 장치까지 다시 써야 한다.</p>
+     *
+     * @return 회계를 반영했으면 {@code true}
+     */
+    public boolean observeAndApplyBuyFill(Long orderId, OrderResponse response) {
+        // 관측 보존 + 대기 표시. 🔴 이것만 먼저 커밋한다 — 회계가 실패해도 재처리 근거가 남는다.
+        Boolean observed = settlementTx.execute(st -> {
+            OrderEntity o = orderRepository.findById(orderId).orElse(null);
+            if (o == null || o.getFeeSource() == null) return Boolean.FALSE;
+            o.setReportedExecutedVolume(response.getExecutedVolume());
+            o.setReportedExecutedFunds(response.resolveExecutedFunds());
+            o.setReportedPaidFee(response.getPaidFee());
+            o.setReportedState(response.getState());
+            o.setReportedObservedAt(Instant.now());
+            o.setFillAccountingPending(Boolean.TRUE);
+            orderRepository.save(o);
+            return Boolean.TRUE;
+        });
+        if (!Boolean.TRUE.equals(observed)) return false;
+
+        // 회계 반영 — 주문·잔액·포지션이 **한 트랜잭션**. 실패하면 전부 롤백되고 관측과 대기 표시는
+        // 남는다(앞의 트랜잭션에서 이미 커밋했다).
+        return Boolean.TRUE.equals(settlementTx.execute(st -> applyBuyFillAccounting(orderId)));
+    }
+
+    private Boolean applyBuyFillAccounting(Long orderId) {
+        OrderEntity order = orderRepository.findById(orderId).orElse(null);
+        if (order == null) return Boolean.FALSE;
+
+        BigDecimal volume = order.getReportedExecutedVolume();
+        BigDecimal funds = order.getReportedExecutedFunds();
+        BigDecimal fee = order.getReportedPaidFee();
+        if (volume == null || volume.signum() <= 0 || funds == null || funds.signum() <= 0) {
+            // 체결 수량·금액이 없으면 회계를 반영할 수 없다. 대기를 유지해 다음 조회에서 다시 본다.
+            return Boolean.FALSE;
+        }
+
+        BigDecimal appliedVolume = nz(order.getFilledQuantity());
+        BigDecimal appliedFunds = nz(order.getAppliedExecutedFunds());
+        BigDecimal appliedFee = nz(order.getAppliedPaidFee());
+
+        if (volume.compareTo(appliedVolume) < 0) {
+            recordDiscrepancy(order, OrderSettlementDiscrepancyEntity.KIND_VOLUME_DECREASE,
+                    appliedVolume, volume, null, null);
+            clearPending(order.getId());
+            return Boolean.FALSE;
+        }
+        if (funds.compareTo(appliedFunds) < 0) {
+            recordDiscrepancy(order, OrderSettlementDiscrepancyEntity.KIND_FUNDS_DECREASE,
+                    appliedFunds, funds, null, null);
+            clearPending(order.getId());
+            return Boolean.FALSE;
+        }
+        // 🔴 수수료 감소는 **실측값끼리**일 때만 불일치다 — 추정에서 실측으로 가는 전환에서는
+        //    감소가 정상이다.
+        boolean estimateToReported =
+                OrderExecutionEngine.FEE_SOURCE_ESTIMATED.equals(order.getFeeSource()) && fee != null;
+        if (!estimateToReported
+                && OrderExecutionEngine.FEE_SOURCE_REPORTED.equals(order.getFeeSource())
+                && fee != null && fee.compareTo(appliedFee) < 0) {
+            recordDiscrepancy(order, OrderSettlementDiscrepancyEntity.KIND_FEE_DECREASE,
+                    appliedFee, fee, null, null);
+            clearPending(order.getId());
+            return Boolean.FALSE;
+        }
+
+        BigDecimal targetFee = fee != null ? fee : appliedFee;
+        BigDecimal deltaVolume = volume.subtract(appliedVolume);
+        BigDecimal deltaFunds = funds.subtract(appliedFunds);
+        BigDecimal deltaFee = targetFee.subtract(appliedFee);
+
+        if (deltaVolume.signum() == 0 && deltaFunds.signum() == 0 && deltaFee.signum() == 0) {
+            clearPending(order.getId());
+            return Boolean.FALSE;
+        }
+
+        // 🔴 평균단가는 **실제 사용액 ÷ 체결수량**이다. 요청액 폴백을 쓰지 않는다.
+        BigDecimal avgPrice = funds.divide(volume, 8, RoundingMode.HALF_UP);
+
+        String nextSource = (fee != null)
+                ? OrderExecutionEngine.FEE_SOURCE_REPORTED
+                : OrderExecutionEngine.FEE_SOURCE_ESTIMATED;
+        int won = orderRepository.applyBuyFillIfVersionMatches(
+                order.getId(), order.getSettlementVersion(),
+                funds, fee, volume, avgPrice, nextSource, nextCheckAt(order));
+        if (won == 0) {
+            log.debug("체결 회계 반영 권한을 얻지 못했다 (orderId={}, ver={})",
+                    order.getId(), order.getSettlementVersion());
+            return Boolean.FALSE;
+        }
+
+        applyToPosition(order, deltaVolume, avgPrice, targetFee, fee != null);
+
+        boolean first = order.getAppliedExecutedFunds() == null && order.getAppliedPaidFee() == null;
+        applyFundsDeltaToSession(order, funds, targetFee, appliedFunds, appliedFee, first);
+
+        clearPending(order.getId());
+        log.info("체결 회계 반영 (orderId={}): 수량 Δ{} 체결금액 Δ{} 수수료 Δ{} 평균단가={} (출처={})",
+                order.getId(), deltaVolume, deltaFunds, deltaFee, avgPrice, nextSource);
+        return Boolean.TRUE;
+    }
+
+    /**
+     * 포지션 반영.
+     *
+     * <p>🔴 <b>이미 CLOSED 인 포지션은 재개방하지 않는다.</b> 늦게 도착한 정정은 손익·수수료만
+     * 조정한다 — 수량을 되살리면 청산된 포지션이 다시 열려 평가 루프가 그것을 매매하려 한다.</p>
+     *
+     * <p>🔴 <b>기존 손절·익절 가격은 건드리지 않는다.</b> 그 값은 진입 시점 신호가로 정해졌고
+     * 평균단가에서 오지 않는다. 평균단가가 정정됐다고 기준가를 움직이면 사람이 모르는 사이에 청산
+     * 조건이 달라진다 — 최초 설정과 늦은 정정은 별도 규칙이다.</p>
+     */
+    private void applyToPosition(OrderEntity order, BigDecimal deltaVolume,
+                                  BigDecimal avgPrice, BigDecimal fee, boolean feeReported) {
+        if (order.getPositionId() == null) return;
+        PositionEntity pos = positionRepository.findById(order.getPositionId()).orElse(null);
+        if (pos == null) return;
+
+        boolean closed = "CLOSED".equals(pos.getStatus());
+        if (deltaVolume.signum() != 0) {
+            if (closed) {
+                log.warn("🔴 CLOSED 포지션에 수량 정정이 도착했다 — 재개방하지 않고 수량을 바꾸지 "
+                        + "않는다 (posId={}, 수량차={})", pos.getId(), deltaVolume);
+            } else {
+                pos.setSize(nz(pos.getSize()).add(deltaVolume));
+                pos.setAvgPrice(avgPrice);
+            }
+        }
+        // 수수료는 OPEN·CLOSED 양쪽에서 조정한다 — 손익 기록이므로 재개방과 무관하다.
+        pos.setPositionFee(fee);
+        positionRepository.save(pos);
+        if (!feeReported) {
+            log.warn("수수료 보고값이 없어 **추정**으로 반영했다 — 확정값으로 취급하지 않는다 (posId={})",
+                    pos.getId());
+        }
+    }
+
+    private void clearPending(Long orderId) {
+        orderRepository.clearFillAccountingPending(orderId);
+    }
     /**
      * 반영할 차분이 없을 때 <b>일정만</b> 미룬다.
      *

@@ -194,6 +194,45 @@ public class OrderEntity {
     @Builder.Default
     private Integer settlementAttempts = 0;
 
+    // ── 체결 관측 (V83) — 회계 반영과 **독립적으로** 보존한다 ─────────────────
+
+    @Column(name = "reported_executed_volume", precision = 20, scale = 8)
+    private BigDecimal reportedExecutedVolume;
+
+    /** 거래소가 보고한 상태 원문(wait/done/cancel). 로컬 {@code state} 와 구분한다. */
+    @Column(name = "reported_state", length = 20)
+    private String reportedState;
+
+    @Column(name = "reported_observed_at")
+    private Instant reportedObservedAt;
+
+    /**
+     * 체결을 관측했으나 회계를 반영하지 못한 상태 (V83).
+     *
+     * <p>🔴 거래소 체결과 DB 커밋은 원자적으로 만들 수 없다. 그 간극을 없애는 대신 <b>명시적으로
+     * 추적</b>한다 — 관측을 먼저 저장하고 이 표시를 세운 뒤, 별도 트랜잭션에서 회계를 반영한다.
+     * 반영이 실패해도 <b>재처리할 근거가 남는다.</b></p>
+     *
+     * <p>🔴 이 표시가 있는 주문의 세션은 <b>신규 매수를 막는다</b> — 포지션 수량이 아직 0 이라
+     * 슬롯 점유로 보이지 않으므로, 평가 루프가 "포지션 없음" 으로 보고 재진입하는 것을 막아야 한다.
+     * <b>추적과 위험 축소(청산·손절)는 막지 않는다.</b></p>
+     */
+    @Column(name = "fill_accounting_pending", nullable = false)
+    @Builder.Default
+    private Boolean fillAccountingPending = Boolean.FALSE;
+
+    public BigDecimal getReportedExecutedVolume() { return reportedExecutedVolume; }
+    public void setReportedExecutedVolume(BigDecimal v) { this.reportedExecutedVolume = v; }
+
+    public String getReportedState() { return reportedState; }
+    public void setReportedState(String v) { this.reportedState = v; }
+
+    public Instant getReportedObservedAt() { return reportedObservedAt; }
+    public void setReportedObservedAt(Instant v) { this.reportedObservedAt = v; }
+
+    public Boolean getFillAccountingPending() { return fillAccountingPending; }
+    public void setFillAccountingPending(Boolean v) { this.fillAccountingPending = v; }
+
     public Boolean getSettlementFinal() { return settlementFinal; }
     public void setSettlementFinal(Boolean v) { this.settlementFinal = v; }
 

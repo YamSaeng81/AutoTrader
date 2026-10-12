@@ -260,7 +260,12 @@ CREATE TABLE IF NOT EXISTS "order" (
     -- 정산 추적 정책 (V82, 2026-10-12)
     settlement_final        BOOLEAN         NOT NULL DEFAULT FALSE,
     settlement_next_check_at TIMESTAMP,
-    settlement_attempts     INTEGER         NOT NULL DEFAULT 0
+    settlement_attempts     INTEGER         NOT NULL DEFAULT 0,
+    -- 체결 관측과 회계 반영 대기 (V83, 2026-10-12)
+    reported_executed_volume DECIMAL(20, 8),
+    reported_state          VARCHAR(20),
+    reported_observed_at    TIMESTAMP,
+    fill_accounting_pending BOOLEAN         NOT NULL DEFAULT FALSE
 );
 
 -- 정산 불일치 이력 (V82) — 덮어쓰기 전에 이전 값과 수신값을 함께 보존한다

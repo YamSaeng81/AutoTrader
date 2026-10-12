@@ -142,8 +142,8 @@ class RequestedFundsFallbackImpactTest extends IntegrationTestBase {
     }
 
     @Test
-    @DisplayName("현재 전달 결과를 고정한다 — 평균단가 306.12, 손익률 과소, 익절가는 영향 없음")
-    void currentPropagationIsPinned() {
+    @DisplayName("수정 후 — 평균단가 300, 손익률 0%, 손절 폴백이 올바른 평균단가로 판단한다")
+    void propagationAfterFix() {
         Fixture f = marketBuyWithoutStopLossPrice();
         Mockito.doReturn(done2940()).when(upbitOrderClient).getOrder("uuid-fallback");
 
@@ -151,8 +151,8 @@ class RequestedFundsFallbackImpactTest extends IntegrationTestBase {
 
         PositionEntity pos = positionRepository.findById(f.positionId()).orElseThrow();
         assertThat(pos.getAvgPrice())
-                .as("🔴 요청액 폴백 — 3000 / 9.8 = 306.12. 실제 사용액 기준이면 2940 / 9.8 = 300")
-                .isEqualByComparingTo(new BigDecimal("306.12244898"));
+                .as("🟢 실제 사용액 기준 — 2940 / 9.8 = 300. 종전에는 요청액 폴백으로 306.12 였다")
+                .isEqualByComparingTo(new BigDecimal("300.00000000"));
 
         // 손익률: 현재가 300 이면 실제로는 0% 인데, 과대 평균단가 때문에 손실로 보인다.
         BigDecimal currentPrice = new BigDecimal("300.00000000");
@@ -160,8 +160,9 @@ class RequestedFundsFallbackImpactTest extends IntegrationTestBase {
                 .divide(pos.getAvgPrice(), 6, RoundingMode.HALF_UP)
                 .multiply(BigDecimal.valueOf(100));
         assertThat(pnlPct)
-                .as("🔴 실제로는 0% 인데 −2% 로 보인다 — 손절 폴백 경로에서 조기 손절을 유발할 수 있다")
-                .isLessThan(BigDecimal.ZERO);
+                .as("🟢 현재가 300 에서 손익률이 0% 다 — 🔴 **손절 폴백은 수정된 평균단가로 판단한다.** "
+                        + "종전에는 −2% 로 보여 조기 손절을 유발할 수 있었다")
+                .isEqualByComparingTo(BigDecimal.ZERO.setScale(6));
 
         assertThat(pos.getTakeProfitPrice())
                 .as("🟢 익절가는 평균단가에서 오지 않는다 — 진입 시점 설정이며 이 경로의 영향을 받지 않는다")
@@ -182,9 +183,8 @@ class RequestedFundsFallbackImpactTest extends IntegrationTestBase {
      * 설정과, 늦은 회계 정정 시 기존 기준가 처리는 <b>별도 규칙</b>이다 — 평균단가가 바뀌었다고
      * 손절선을 움직이면 사람이 모르는 사이에 청산 조건이 달라진다.</p>
      */
-    @org.junit.jupiter.api.Disabled("미해결: 평균단가가 요청액 폴백으로 과대 계산되고 수수료가 자체 계산값이다 — 체결 회계 수정 필요")
     @Test
-    @DisplayName("🔴 미해결 — 평균단가 300, 수수료는 거래소 보고값 1.47")
+    @DisplayName("평균단가 300, 수수료는 거래소 보고값 1.47")
     void avgPriceAndFeeFromExchangeReport() {
         Fixture f = marketBuyWithoutStopLossPrice();
         Mockito.doReturn(done2940()).when(upbitOrderClient).getOrder("uuid-fallback");
