@@ -475,8 +475,14 @@ public class OrderExecutionEngine {
 
         int won = orderRepository.claimForSubmission(orderId, Instant.now());
         if (won != 1) {
-            // 🔴 다른 작업자가 이미 claim 했거나 상태가 바뀌었다. **제출하지 않는다.**
-            log.warn("claim 을 얻지 못했다 — 제출하지 않는다 (orderId={})", orderId);
+            // 🔴 **제출하지 않는다.** 밀린 이유를 호출자가 알 수 있게 구분해 적는다 — 철회에
+            //    졌으면 예약도 해제되므로 이 요청은 "없던 일" 이고, 다른 작업자가 claim 했으면
+            //    그 작업자가 책임을 가져갔다.
+            String nowState = orderRepository.findById(orderId)
+                    .map(OrderEntity::getState).orElse("없음");
+            log.warn("claim 을 얻지 못했다 — 제출하지 않는다 (orderId={}, 현재상태={}, 사유={})",
+                    orderId, nowState,
+                    "FAILED".equals(nowState) ? "철회가 먼저 성립했다" : "다른 작업자가 claim 했다");
             return Boolean.FALSE;
         }
         recordTradeLog(orderId, "STATE_CHANGE", "INTENT_READY", "SUBMITTING", "제출 권한 획득");
@@ -644,6 +650,42 @@ public class OrderExecutionEngine {
                 // 🔴 관측과 대기 표시는 남는다 — 다음 조회에서 재처리된다.
                 log.error("체결 회계 반영 실패 — 관측과 예약을 유지하고 재처리한다 (orderId={}): {}",
                         orderId, e.getMessage(), e);
+                return;
+            }
+            // 🔴 **주문을 종결한다** (2026-10-12 보완).
+            //
+            //    종전에는 회계만 반영하고 그대로 돌아갔다 — 그래서 주문이 `SUBMITTED` 로 남아
+            //    **자금·슬롯을 영구히 점유하고** 폴러가 영원히 다시 조회했다. 거래소는 종결
+            //    (`done`)을 보고했는데 우리 장부만 열려 있는 상태다. 종단 간 시험
+            //    (`IntentPrecommitAndOnceOnlyTest`)이 이 공백을 잡았다.
+            //
+            //    🔴 **`processFilledOrder` 를 부르지 않는다.** 포지션·잔액은 원자적 경로가 이미
+            //    반영했다 — 여기서 다시 부르면 같은 체결이 두 번 반영된다. 이 단계는 **상태 전이와
+            //    체결 시각만** 기록한다.
+            //
+            //    🔴 회계 대기가 남아 있으면 종결하지 않는다. 반영이 끝나지 않은 주문을 종결하면
+            //    폴러의 추적 대상에서 빠지고 재처리 기회가 사라진다.
+            try {
+                syncTx.executeWithoutResult(st -> {
+                    OrderEntity fresh = orderRepository.findById(orderId).orElse(null);
+                    if (fresh == null || "FILLED".equals(fresh.getState())) {
+                        return;
+                    }
+                    if (Boolean.TRUE.equals(fresh.getFillAccountingPending())) {
+                        log.warn("회계 반영이 끝나지 않아 주문을 종결하지 않는다 — 재처리 대상으로 "
+                                + "남긴다 (orderId={})", orderId);
+                        return;
+                    }
+                    if (fresh.getFilledAt() == null) {
+                        fresh.setFilledAt(Instant.now());
+                    }
+                    transitionState(fresh, "FILLED", null);
+                });
+            } catch (Exception e) {
+                // 종결 전이만 실패했다. 회계는 반영됐고 주문은 활성으로 남아 다음 조회에서
+                // 다시 시도된다 — 차분이 0 이므로 회계가 두 번 반영되지는 않는다.
+                log.error("체결 회계는 반영됐으나 종결 전이가 실패했다 — 활성으로 유지한다 "
+                        + "(orderId={}): {}", orderId, e.getMessage(), e);
             }
             return;
         }
@@ -894,8 +936,31 @@ public class OrderExecutionEngine {
         //    `@Transactional` 을 붙이지 않는 이유는 `pollActiveOrders` 가 **자기 호출**로 부르기
         //    때문이다 — 프록시를 우회해 조용히 무시된다. 템플릿은 REQUIRED 이므로 폴러의
         //    트랜잭션에 참여하고, 단독 호출에서는 새로 열린다.
-        return Boolean.TRUE.equals(submitTx.execute(st -> resolveUnresolvedSubmissionInTx(orderId)));
+        // 🔴 **조회를 커밋 뒤로 둔다** (2026-10-12 보완).
+        //
+        //    종전에는 이 트랜잭션 안에서 `SUBMITTED` 로 전이한 **직후** `checkOrderStatus` 를 불렀다.
+        //    그런데 그 경로의 정산은 `REQUIRES_NEW` 라 **이 트랜잭션을 정지시키고** 아직 커밋되지
+        //    않은 전이를 보지 못한다 — 자기 트랜잭션에서 `FILLED` 로 올려 커밋하고, 그 뒤 이
+        //    트랜잭션이 `SUBMITTED` 를 커밋해 **종결을 덮어썼다.** 종단 간 시험이 이것을 잡았다.
+        //
+        //    전이를 먼저 커밋하고, 조회는 그다음에 한다.
+        RESOLVED.set(Boolean.FALSE);
+        Boolean needsPoll = submitTx.execute(st -> resolveUnresolvedSubmissionInTx(orderId));
+        if (!Boolean.TRUE.equals(needsPoll)) {
+            return RESOLVED.get() == Boolean.TRUE;
+        }
+        checkOrderStatus(orderId);
+        return true;
     }
+
+    /**
+     * 전이만 커밋하고 조회는 바깥에서 한다는 신호를 담는다.
+     *
+     * <p>🔴 {@code resolveUnresolvedSubmissionInTx} 는 "해소됐다" 와 "거래소에서 찾았으니 이제
+     * 조회하라" 를 구분해야 한다. 반환값 하나로는 부족해 스레드 지역 변수를 쓴다 — 복구는 폴러
+     * 스레드에서 한 건씩 돌므로 공유되지 않는다.</p>
+     */
+    private static final ThreadLocal<Boolean> RESOLVED = ThreadLocal.withInitial(() -> Boolean.FALSE);
 
     private Boolean resolveUnresolvedSubmissionInTx(Long orderId) {
         OrderEntity order = orderRepository.findById(orderId).orElse(null);
@@ -919,10 +984,24 @@ public class OrderExecutionEngine {
                 log.debug("의도가 아직 작업 중일 수 있다 — 철회하지 않는다 (orderId={})", order.getId());
                 return Boolean.FALSE;
             }
-            log.warn("claim 전에 중단된 의도를 철회한다 — 외부에 나간 적이 없다 (orderId={}, 식별자={})",
+            // 🔴 **조건부 전환으로 claim 과 경쟁한다.** 무조건 쓰기로 철회하면 claim 과 철회가
+            //    **둘 다 성공**할 수 있다 — 제출은 나갔는데 주문은 철회된 상태가 된다. 두 전환이
+            //    모두 `WHERE state = 'INTENT_READY'` 를 걸므로 정확히 한쪽만 1행을 받는다.
+            //    🔴 **시간은 경합을 해결하지 않는다** — 유예는 불필요한 철회를 줄이는 예절이고,
+            //    중복을 막는 근거는 이 조건부 전환이다.
+            int withdrawn = orderRepository.withdrawIntentIfStillReady(
+                    order.getId(), "claim 전 중단 — 제출하지 않았다");
+            if (withdrawn != 1) {
+                log.info("철회 경쟁에서 밀렸다 — 다른 작업자가 claim 했다 (orderId={})", order.getId());
+                return Boolean.FALSE;
+            }
+            log.warn("claim 전에 중단된 의도를 철회했다 — 외부에 나간 적이 없다 (orderId={}, 식별자={}). "
+                            + "🔴 예약 해제는 고아 매수 정리가 담당한다(FAILED 매수 + size=0 포지션).",
                     order.getId(), order.getClientOrderId());
-            transitionState(order, "FAILED", "claim 전 중단 — 제출하지 않았다");
-            return Boolean.TRUE;
+            recordTradeLog(order.getId(), "STATE_CHANGE", "INTENT_READY", "FAILED",
+                    "claim 전 중단 — 제출하지 않았다");
+            RESOLVED.set(Boolean.TRUE);   // 철회로 해소됐다 — 조회는 필요 없다
+            return Boolean.FALSE;
         }
 
         if (!"SUBMITTING".equals(order.getState()) && !"UNKNOWN".equals(order.getState())) {
@@ -982,8 +1061,11 @@ public class OrderExecutionEngine {
         // 🔴 상태를 SUBMITTED 로 올려 **기존 폴링·정산 경로에 넘긴다.** 체결 반영은 이 메서드가
         //    직접 하지 않는다 — V81~V83 의 회계 경로(차분·버전 가드·원자적 반영)를 한 곳으로
         //    모아 두었으므로, 여기서 따로 반영하면 그 경로를 두 벌 갖게 된다.
+        //
+        //    🔴 조회는 **이 트랜잭션이 커밋된 뒤** 호출자가 한다 — 여기서 부르면 정산의
+        //    `REQUIRES_NEW` 가 이 트랜잭션을 정지시켜 전이를 보지 못하고, 뒤이은 이 커밋이
+        //    종결을 덮어쓴다.
         transitionState(order, "SUBMITTED", null);
-        checkOrderStatus(order.getId());
         return Boolean.TRUE;
     }
 

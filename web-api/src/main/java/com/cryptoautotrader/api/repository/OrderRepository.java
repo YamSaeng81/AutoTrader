@@ -257,6 +257,24 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
             + "AND o.state IN ('INTENT_READY', 'SUBMITTING', 'UNKNOWN')")
     long countUnresolvedSubmissions(@Param("kind") String kind, @Param("sessionId") Long sessionId);
 
+    /**
+     * 철회 — {@code INTENT_READY} → {@code FAILED} <b>조건부</b> 전환 (V84).
+     *
+     * <p>🔴 <b>claim 과 같은 행·같은 조건을 다툰다.</b> 철회를 무조건 쓰기로 하면 claim 과 철회가
+     * <b>둘 다 성공</b>할 수 있다 — 제출은 나갔는데 주문은 철회된 상태가 된다. 두 전환이 모두
+     * {@code WHERE state = 'INTENT_READY'} 를 걸므로 <b>정확히 한쪽만 1행을 돌려받는다.</b></p>
+     *
+     * <p>🔴 <b>시간은 경합을 해결하지 않는다.</b> 유예는 "작업 중일 가능성이 높은 의도를 건드리지
+     * 말자" 는 예절이고, 작업이 유예보다 오래 지연될 수 있다. 중복을 막는 근거는 <b>이 조건부
+     * 전환</b>이며, 유예는 불필요한 철회를 줄이는 것뿐이다.</p>
+     *
+     * @return 전환된 행 수 — {@code 1} 이면 이 호출이 철회에 성공했다(= claim 은 실패한다)
+     */
+    @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE OrderEntity o SET o.state = 'FAILED', o.failedReason = :reason "
+            + "WHERE o.id = :id AND o.state = 'INTENT_READY'")
+    int withdrawIntentIfStillReady(@Param("id") Long id, @Param("reason") String reason);
+
     /** 불명 조회 시도를 기록한다 — 🔴 상태는 바꾸지 않는다(자동 종결 금지). */
     @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE OrderEntity o SET o.unknownProbeCount = o.unknownProbeCount + 1, "
