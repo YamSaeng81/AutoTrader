@@ -224,6 +224,10 @@ public class LiveTradingService {
     @Autowired(required = false)
     private PortfolioSyncService portfolioSyncService;
 
+    /** 배정·예약의 직렬화 지점 — 세션 생성·재시작도 매수 예약과 같은 잠금을 지난다 (2026-10-12). */
+    @Autowired
+    private CapitalReservationService capitalReservationService;
+
     /** 호가창 조회용 (선택적 의존성 — exchange-adapter 빈이 없을 경우 null) */
     @Autowired(required = false)
     private UpbitRestClient upbitRestClient;
@@ -338,22 +342,20 @@ public class LiveTradingService {
         if (portfolioSyncService != null) {
             portfolioSyncService.syncBalance();
         }
-        BigDecimal accountCapital = portfolioManager.getTotalCapital();
-        if (accountCapital.compareTo(BigDecimal.ZERO) > 0 && req.getInitialCapital() != null) {
-            // §8 이중 차감 제거: 코인을 보유한 세션은 이미 KRW→코인 전환분이 계좌 KRW 잔고에서
-            // 빠져나갔으므로, 명목 initialCapital이 아니라 세션이 실제 보유한 KRW(availableKrw)
-            // 합산으로 비교한다. 코인 평가액은 양쪽 모두에서 제외되어 KRW끼리 일관 비교된다.
-            BigDecimal committedKrw = sessionRepository.sumAvailableKrwByStatusIn(ACTIVE_SESSION_STATUSES);
-            BigDecimal afterCreate = committedKrw.add(req.getInitialCapital());
-            if (afterCreate.compareTo(accountCapital) > 0) {
-                throw new SessionStateException(
-                        String.format("자본 초과 배정: 활성 세션 보유 KRW 합산 %s + 신규 %s = %s > 계좌 KRW 잔고 %s. "
-                                        + "기존 세션을 정지하거나 투자금을 줄이세요.",
-                                committedKrw.toPlainString(),
-                                req.getInitialCapital().toPlainString(),
-                                afterCreate.toPlainString(),
-                                accountCapital.toPlainString()));
-            }
+        // 🔴 배정 검사는 **매수 예약과 같은 잠금** 아래에서 한다 (2026-10-12).
+        //
+        //    종전 검사는 ① 계좌 잔고가 0 이면(= 동기화 전) **건너뛰었고** ② 세션 가용 KRW 합만
+        //    봤다. 가용 KRW 는 예약이 **이미 차감된** 값인데 그 돈은 체결 전까지 계좌에 남아 있으므로,
+        //    열린 주문의 돈을 다른 세션에 **다시 배정**할 수 있었다. ③ 등록한 단계 자본 상한은 보지
+        //    않았다 — 계좌에 다른 자금이 있으면 단계 상한을 넘는 배정도 통과했다.
+        if (req.getInitialCapital() == null) {
+            throw new SessionStateException("투자금(initialCapital)이 없다");
+        }
+        CapitalReservationService.Decision allocation = capitalReservationService.checkSessionAllocation(
+                "LIVE", null, req.getInitialCapital(), req.getInitialCapital());
+        if (!allocation.approved()) {
+            throw new SessionStateException("자본 초과 배정 (" + allocation.code() + "): "
+                    + allocation.message() + ". 기존 세션을 정지하거나 투자금을 줄이세요.");
         }
 
         // 전략 유효성 검증
@@ -480,20 +482,16 @@ public class LiveTradingService {
             throw new SessionStateException("거래소 연결이 DOWN 상태입니다. 연결 복구 후 시작하세요.");
         }
 
-        // §8 자본 초과 배정 방지 — STOPPED→RUNNING 전환 시에도 검증
-        // 이중 차감 제거: 명목 initialCapital이 아니라 세션 보유 KRW(availableKrw) 합산으로 비교
-        BigDecimal accountCapital = portfolioManager.getTotalCapital();
-        if (accountCapital.compareTo(BigDecimal.ZERO) > 0) {
-            BigDecimal committedKrw = sessionRepository.sumAvailableKrwByStatusIn(ACTIVE_SESSION_STATUSES);
-            // 이 세션이 이미 CREATED 상태라면 합산에 포함되어 있으므로 중복 차감 방지
-            boolean alreadyCounted = ACTIVE_SESSION_STATUSES.contains(session.getStatus());
-            BigDecimal afterStart = alreadyCounted ? committedKrw
-                    : committedKrw.add(session.getAvailableKrw());
-            if (afterStart.compareTo(accountCapital) > 0) {
-                throw new SessionStateException(
-                        String.format("자본 초과: 활성 세션 보유 KRW 합산 %s > 계좌 KRW 잔고 %s",
-                                afterStart.toPlainString(), accountCapital.toPlainString()));
-            }
+        // 🔴 재시작도 생성과 **같은 잠금·같은 규칙**이다 (2026-10-12). 이 세션 자신은 합에서 빼고
+        //    다시 더한다 — 이미 CREATED 로 세어진 경우의 중복을 구조로 없앤다.
+        //    스냅숏은 잠금 **밖에서** 갱신한다(외부 호출 중에 잠금을 쥐지 않는다).
+        if (portfolioSyncService != null) {
+            portfolioSyncService.syncBalance();
+        }
+        CapitalReservationService.Decision allocation = capitalReservationService.checkSessionAllocation(
+                "LIVE", sessionId, session.getInitialCapital(), session.getAvailableKrw());
+        if (!allocation.approved()) {
+            throw new SessionStateException("자본 초과 (" + allocation.code() + "): " + allocation.message());
         }
 
         session.setStatus("RUNNING");
@@ -1432,8 +1430,9 @@ public class LiveTradingService {
                 return orderExecutionEngine.reserveAndPrepareIntent(order);
             });
         } catch (OrderExecutionEngine.ReservationRejected rejected) {
-            log.warn("매수 예약이 거절돼 롤백했다 (sessionId={}, {}): {}",
-                    session.getId(), coinPair, rejected.getMessage());
+            // 🔴 거절은 슬롯·의도와 함께 **롤백**됐다 — 차감 없는 size=0 포지션이 남지 않는다.
+            log.warn("매수 예약이 거절돼 롤백했다 (sessionId={}, {}, 사유={}): {}",
+                    session.getId(), coinPair, rejected.getCode(), rejected.getMessage());
             return;
         }
         if (preparedOrderId == null) {
@@ -1442,7 +1441,17 @@ public class LiveTradingService {
             return;
         }
 
-        orderExecutionEngine.submitPreparedOrder(preparedOrderId, order);
+        try {
+            orderExecutionEngine.submitPreparedOrder(preparedOrderId, order);
+        } catch (RuntimeException dispatchFailed) {
+            // 🔴 실행기가 작업을 받지 못했다(큐 포화 등). 이 의도를 claim 할 작업은 생기지 않으므로
+            //    **지금 철회한다** — 시간이 지나기를 기다리지 않는다. 조건부라 경합이 있어도 안전하다.
+            log.error("매수 의도를 실행기에 넘기지 못했다 — 철회한다 (orderId={}, sessionId={}): {}",
+                    preparedOrderId, session.getId(), dispatchFailed.getMessage());
+            orderExecutionEngine.withdrawUndispatchedIntent(preparedOrderId,
+                    "실행기 디스패치 실패 — 제출하지 않았다: " + dispatchFailed.getClass().getSimpleName());
+            return;
+        }
 
         log.info("실전 매수 주문 (sessionId={}): {} {}개 @ {} 사유: {}",
                 session.getId(), coinPair, quantity, price, reason);

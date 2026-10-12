@@ -49,6 +49,30 @@ public interface PositionRepository extends JpaRepository<PositionEntity, Long> 
     @Query("SELECT COUNT(p) FROM PositionEntity p WHERE p.status = :status AND p.size > 0")
     long countRealPositionsByStatus(@Param("status") String status);
 
+    /**
+     * 공유 풀의 <b>점유 슬롯 수</b> — 실자금 포지션(LIVE·DYNAMIC) 중 열린 것 (2026-10-12).
+     *
+     * <p>🔴 {@code size > 0} 으로 거르지 <b>않는다.</b> 체결 전 포지션(size=0)이 바로 예약된 슬롯이다 —
+     * 걸러내면 미체결 매수가 슬롯을 차지하지 않아 동시 보유 상한을 넘는다(2026-10-06 검토 §1.5-②).
+     * 철회·실패한 매수의 size=0 포지션은 고아 정리가 닫을 때까지 점유로 센다 — 과소 승인 쪽이다.</p>
+     *
+     * <p>{@code excludeId} 는 같은 트랜잭션에서 방금 만든 자기 슬롯을 빼기 위해서다.</p>
+     */
+    @Query("SELECT COUNT(p) FROM PositionEntity p WHERE p.status IN ('OPEN', 'CLOSING') "
+            + "AND p.sessionKind IN ('LIVE', 'DYNAMIC') AND p.id <> :excludeId")
+    long countPoolSlots(@Param("excludeId") Long excludeId);
+
+    /**
+     * 공유 풀의 <b>노출</b> — 열린 실자금 포지션의 배정액({@code investedKrw}) 합 (2026-10-12).
+     *
+     * <p>🔴 평가액이 아니라 <b>배정액</b>이다. 가격이 움직여도 한도가 움직이지 않게 하고, 체결 전
+     * 예약분(size=0)과 보유분을 같은 기준으로 센다. 배정액이 없는 과거 포지션은 평균단가 × 수량으로
+     * 대신한다 — 빼먹으면 그 노출이 0 으로 보인다.</p>
+     */
+    @Query("SELECT COALESCE(SUM(COALESCE(p.investedKrw, p.avgPrice * p.size)), 0) FROM PositionEntity p WHERE p.status IN ('OPEN', 'CLOSING') "
+            + "AND p.sessionKind IN ('LIVE', 'DYNAMIC') AND p.id <> :excludeId")
+    BigDecimal sumPoolExposureKrw(@Param("excludeId") Long excludeId);
+
     /** 실전매매 세션에 연결된 포지션 수 카운트 (session_id가 있는 것만) */
     long countBySessionIdIsNotNullAndStatus(String status);
 

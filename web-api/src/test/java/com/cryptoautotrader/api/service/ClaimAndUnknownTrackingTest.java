@@ -401,49 +401,86 @@ class ClaimAndUnknownTrackingTest extends IntegrationTestBase {
     }
 
     @Test
-    @DisplayName("시험 21-b — claim 전에 중단된 의도는 철회되지만, 작업 중인 의도는 건드리지 않는다")
-    void intentBeforeClaimIsWithdrawn() {
+    @DisplayName("시험 21-b — 철회는 claim 할 작업이 없음이 확정될 때만 한다 (나이는 근거가 아니다)")
+    void intentBeforeClaimIsWithdrawnOnlyWhenOwnerIsGone() {
         Fixture f = runningSessionWithBuyRequest();
 
-        // ① 🔴 **방금 만든 의도는 철회하지 않는다.** A(의도 커밋)와 B(claim) 사이는 짧지만 0 이
-        //    아니고 폴러는 5초마다 돈다 — 그 사이에 들어와 철회하면 **진행 중인 제출을 가로채고**
-        //    claim 은 0행을 받아 주문이 조용히 사라진다. 전체 시험을 돌렸을 때 실제로 이 경합이
-        //    재현됐고(부하 아래에서 시험 1·2 가 실패했다) 그래서 유예를 뒀다.
-        OrderEntity fresh = orderRepository.save(OrderEntity.builder()
+        // ① 🔴 **살아 있는 작업이 맡은 의도는 10분이 지나도 철회하지 않는다** (V86).
+        //
+        //    V84 는 60초가 지나면 철회했다. 그러나 실행기 큐가 밀리면 정상 작업도 그보다 늦게
+        //    claim 한다 — 그 의도를 철회하는 것은 **시간 기반 철회**다. 조건부 전환이 경합을 가려
+        //    주더라도 철회 자체가 정당한 것은 아니다.
+        //
+        //    운영 경로(reserveAndPrepareIntent)로 의도를 만들고 **디스패치는 하지 않는다** — 작업이
+        //    큐에서 기다리는 상태와 같다. 그다음 의도를 10분 전으로 돌린다.
+        Long alive = inTx(() -> orderExecutionEngine.reserveAndPrepareIntent(f.request()));
+        OrderEntity aged = orderRepository.findById(alive).orElseThrow();
+        aged.setIntentCommittedAt(Instant.now().minusSeconds(600));
+        orderRepository.save(aged);
+        assertThat(OrderExecutionEngine.isDispatching(alive))
+                .as("소유 작업이 등록부에 살아 있다").isTrue();
+
+        orderExecutionEngine.resolveUnresolvedSubmission(alive);
+
+        OrderEntity stillReady = orderRepository.findById(alive).orElseThrow();
+        assertThat(stillReady.getState())
+                .as("🔴 나이는 철회의 근거가 아니다 — 작업이 살아 있으면 얼마나 오래됐든 그대로 둔다")
+                .isEqualTo("INTENT_READY");
+        assertThat(stillReady.getFailureCode()).isNull();
+
+        // 그 작업이 디스패치에 실패했다고 알려 오면 그때 철회한다 — 근거가 생겼다.
+        assertThat(orderExecutionEngine.withdrawUndispatchedIntent(alive, "시험 — 실행기 거절"))
+                .isTrue();
+        assertThat(orderRepository.findById(alive).orElseThrow().getFailureCode())
+                .isEqualTo(OrderExecutionEngine.WITHDRAWN_DISPATCH_LOST);
+
+        // ② 이전 기동이 만든 의도 — 그 작업 큐는 프로세스와 함께 사라졌다. **방금 만든 것이어도**
+        //    철회한다(나이를 보지 않는다).
+        OrderEntity orphaned = orderRepository.save(OrderEntity.builder()
+                .coinPair("KRW-DOGE").side("BUY").orderType("MARKET")
+                .quantity(new BigDecimal("3000.00000000"))
+                .state("INTENT_READY")
+                .clientOrderId("cat-claim-21b")
+                .intentCommittedAt(Instant.now())
+                .intentOwner("inst-previous-boot")
+                .feeSource(OrderExecutionEngine.FEE_SOURCE_PENDING)
+                .settlementVersion(0L)
+                .sessionKind("LIVE").sessionId(f.sessionId()).positionId(f.positionId())
+                .createdAt(Instant.now()).build());
+
+        orderExecutionEngine.resolveUnresolvedSubmission(orphaned.getId());
+
+        OrderEntity w2 = orderRepository.findById(orphaned.getId()).orElseThrow();
+        assertThat(w2.getState())
+                .as("🔴 claim 이 제출의 **유일한 관문**이고 그 전환이 커밋된 적이 없으므로 외부 호출은 "
+                        + "일어나지 않았다 — 철회가 **안전**하다. 그리고 claim 할 작업이 없으므로 **정당**하다")
+                .isEqualTo("FAILED");
+        assertThat(w2.getFailureCode()).isEqualTo(OrderExecutionEngine.WITHDRAWN_OWNER_LOST);
+
+        // ③ 이 프로세스가 만들었지만 맡은 작업이 없다(claim 전 예외 등으로 끝났다) — 방금 만든 것이어도 철회.
+        OrderEntity abandoned = orderRepository.save(OrderEntity.builder()
                 .coinPair("KRW-ADA").side("BUY").orderType("MARKET")
                 .quantity(new BigDecimal("1000.00000000"))
                 .state("INTENT_READY")
-                .clientOrderId("cat-claim-21b-fresh")
+                .clientOrderId("cat-claim-21b-abandoned")
                 .intentCommittedAt(Instant.now())
+                .intentOwner(OrderExecutionEngine.INSTANCE_ID)
                 .feeSource(OrderExecutionEngine.FEE_SOURCE_PENDING)
                 .settlementVersion(0L)
                 .sessionKind("LIVE").sessionId(f.sessionId())
                 .createdAt(Instant.now()).build());
 
-        orderExecutionEngine.resolveUnresolvedSubmission(fresh.getId());
+        orderExecutionEngine.resolveUnresolvedSubmission(abandoned.getId());
 
-        assertThat(orderRepository.findById(fresh.getId()).orElseThrow().getState())
-                .as("🔴 유예 안의 의도는 원래 작업자에게 맡긴다 — 가로채면 제출이 사라진다")
-                .isEqualTo("INTENT_READY");
+        OrderEntity w3 = orderRepository.findById(abandoned.getId()).orElseThrow();
+        assertThat(w3.getState()).isEqualTo("FAILED");
+        assertThat(w3.getFailureCode()).isEqualTo(OrderExecutionEngine.WITHDRAWN_DISPATCH_LOST);
 
-        // ② 충분히 오래된 의도는 철회한다 — 그 프로세스는 죽었다고 본다.
-        OrderEntity intent = orderRepository.save(OrderEntity.builder()
-                .coinPair("KRW-DOGE").side("BUY").orderType("MARKET")
-                .quantity(new BigDecimal("3000.00000000"))
-                .state("INTENT_READY")
-                .clientOrderId("cat-claim-21b")
-                .intentCommittedAt(Instant.now().minusSeconds(600))
-                .feeSource(OrderExecutionEngine.FEE_SOURCE_PENDING)
-                .settlementVersion(0L)
-                .sessionKind("LIVE").sessionId(f.sessionId()).positionId(f.positionId())
-                .createdAt(Instant.now().minusSeconds(600)).build());
-
-        orderExecutionEngine.resolveUnresolvedSubmission(intent.getId());
-
-        assertThat(orderRepository.findById(intent.getId()).orElseThrow().getState())
-                .as("🔴 claim 이 제출의 **유일한 관문**이고 그 전환이 커밋된 적이 없으므로 외부 호출은 "
-                        + "일어나지 않았다. 이 불변식만으로 철회가 안전하다 — 조회할 필요도 없다")
-                .isEqualTo("FAILED");
+        for (OrderEntity o : List.of(stillReady, w2, w3)) {
+            assertThat(orderRepository.findById(o.getId()).orElseThrow().getFailureCode())
+                    .as("🔴 우리의 철회는 거래소 거절로 기록되지 않는다")
+                    .isNotEqualTo(OrderExecutionEngine.EXCHANGE_REJECTED);
+        }
         Mockito.verify(upbitOrderClient, Mockito.never())
                 .getOrderByIdentifier(Mockito.anyString());
         Mockito.verify(upbitOrderClient, Mockito.never()).createOrder(

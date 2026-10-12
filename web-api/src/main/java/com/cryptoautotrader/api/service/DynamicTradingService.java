@@ -290,6 +290,17 @@ public class DynamicTradingService {
     @Autowired(required = false)
     private UpbitRestClient upbitRestClient;
 
+    /**
+     * 배정의 직렬화 지점 (2026-10-12). 🔴 실자금 동적 세션의 생성·재시작은 종전에 **자본 검사가
+     * 전혀 없었다** — LIVE 에만 있었다. 같은 계좌·같은 공유 풀을 쓰므로 같은 잠금·같은 규칙을 지난다.
+     * 🔴 동적 세션의 **매수**는 아직 이 잠금을 지나지 않는다(다음 작업).
+     */
+    @Autowired(required = false)
+    private CapitalReservationService capitalReservationService;
+
+    @Autowired(required = false)
+    private PortfolioSyncService portfolioSyncService;
+
     /** 코인별 마지막 실시간(WS) SL/TP 점검 시각 — 5초 throttle */
     private final Map<String, Long> rtCheckLastMs = new ConcurrentHashMap<>();
     private static final long RT_CHECK_INTERVAL_MS = 5_000;
@@ -501,11 +512,34 @@ public class DynamicTradingService {
                         : DynamicSessionEntity.DEFAULT_MAX_HOLD_HOURS)
                 .build();
 
+        if (!isPaper) {
+            requireAllocation(null, req.getInitialCapital(), req.getInitialCapital());
+        }
+
         session = dynamicSessionRepo.save(session);
         log.info("[Dynamic] 세션 생성: id={} strategy={} timeframe={} capital={} mode={}",
                 session.getId(), session.getStrategyType(), session.getTimeframe(),
                 session.getInitialCapital(), session.getTradingMode());
         return session;
+    }
+
+    /**
+     * 실자금 동적 세션의 배정 검사 — LIVE 와 같은 잠금·같은 규칙 (2026-10-12).
+     *
+     * <p>🔴 예약 서비스가 없으면 <b>거절한다</b>. 검사 없이 실자금 배정을 통과시키지 않는다.</p>
+     */
+    private void requireAllocation(Long sessionId, BigDecimal allocation, BigDecimal krwToHold) {
+        if (capitalReservationService == null) {
+            throw new IllegalStateException("배정 검사 서비스가 없다 — 실자금 동적 세션을 배정하지 않는다");
+        }
+        if (portfolioSyncService != null) {
+            portfolioSyncService.syncBalance();   // 🔴 잠금 밖에서 스냅숏을 갱신한다
+        }
+        CapitalReservationService.Decision d = capitalReservationService.checkSessionAllocation(
+                "DYNAMIC", sessionId, allocation, krwToHold);
+        if (!d.approved()) {
+            throw new IllegalStateException("자본 초과 배정 (" + d.code() + "): " + d.message());
+        }
     }
 
     // ── 세션 시작 ──────────────────────────────────────────────────
@@ -515,6 +549,9 @@ public class DynamicTradingService {
         DynamicSessionEntity session = getOrThrow(sessionId);
         if ("RUNNING".equals(session.getStatus())) {
             throw new IllegalStateException("이미 실행 중입니다: id=" + sessionId);
+        }
+        if (!session.isPaper()) {
+            requireAllocation(sessionId, session.getInitialCapital(), session.getAvailableKrw());
         }
         session.setStatus("RUNNING");
         session.setStartedAt(Instant.now());

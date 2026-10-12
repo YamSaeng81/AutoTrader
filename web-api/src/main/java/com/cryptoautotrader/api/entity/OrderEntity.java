@@ -300,6 +300,25 @@ public class OrderEntity {
     public BigDecimal getReservedKrw() { return reservedKrw; }
     public void setReservedKrw(BigDecimal v) { this.reservedKrw = v; }
 
+    /**
+     * {@code FAILED} 의 근거 (V86).
+     *
+     * <p>🔴 "거래소가 거절했다" 와 "우리가 내보내지 않고 철회했다" 는 둘 다 나간 돈이 없지만 근거가
+     * 다르다 — 앞의 것은 거래소의 진술, 뒤의 것은 우리의 불변식(claim 이 없었다)이다.</p>
+     */
+    @Column(name = "failure_code", length = 40)
+    private String failureCode;
+
+    public String getFailureCode() { return failureCode; }
+    public void setFailureCode(String v) { this.failureCode = v; }
+
+    /** 의도를 만든 프로세스 (V86). 복구는 소유자가 지금 프로세스가 아닐 때만 철회한다. */
+    @Column(name = "intent_owner", length = 64)
+    private String intentOwner;
+
+    public String getIntentOwner() { return intentOwner; }
+    public void setIntentOwner(String v) { this.intentOwner = v; }
+
     public Boolean getSettlementFinal() { return settlementFinal; }
     public void setSettlementFinal(Boolean v) { this.settlementFinal = v; }
 

@@ -60,6 +60,9 @@ class IntentPrecommitAndOnceOnlyTest extends IntegrationTestBase {
     private OrderExecutionEngine orderExecutionEngine;
 
     @Autowired
+    private LiveTradingService liveTradingService;
+
+    @Autowired
     private OrderRepository orderRepository;
 
     @Autowired
@@ -233,8 +236,9 @@ class IntentPrecommitAndOnceOnlyTest extends IntegrationTestBase {
                 .quantity(new BigDecimal("3000.00000000"))
                 .state("INTENT_READY")
                 .clientOrderId("cat-race-02")
-                // 🔴 **유예를 넘긴 의도다.** "작업이 60초 이상 지연될 수 있다" 는 지적이 바로 이 경우다 —
-                //    정상 작업자가 아직 claim 하려는 중인데 철회가 들어온다.
+                // 🔴 **오래된 의도다.** "작업이 60초 이상 지연될 수 있다" 는 지적이 바로 이 경우다 —
+                //    정상 작업자가 아직 claim 하려는 중인데 철회가 들어온다. 이 시험은 **경합**만 본다
+                //    (승자 하나). 철회가 **정당한지**는 V86 의 소유자 판정이 맡는다(시험 21-b).
                 .intentCommittedAt(Instant.now().minusSeconds(600))
                 .feeSource(OrderExecutionEngine.FEE_SOURCE_PENDING)
                 .settlementVersion(0L)
@@ -261,7 +265,8 @@ class IntentPrecommitAndOnceOnlyTest extends IntegrationTestBase {
                 go.await(5, TimeUnit.SECONDS);
                 TransactionTemplate tx = new TransactionTemplate(txManager);
                 int won = tx.execute(st -> orderRepository.withdrawIntentIfStillReady(
-                        intent.getId(), "claim 전 중단 — 제출하지 않았다"));
+                        intent.getId(), "소유 프로세스 소실 — 제출하지 않았다",
+                        OrderExecutionEngine.WITHDRAWN_OWNER_LOST));
                 if (won == 1) winners.add("withdraw");
             } catch (Throwable e) {
                 errors.add(e);
@@ -305,6 +310,9 @@ class IntentPrecommitAndOnceOnlyTest extends IntegrationTestBase {
                 .state("INTENT_READY")
                 .clientOrderId("cat-race-02b")
                 .intentCommittedAt(Instant.now().minusSeconds(600))
+                // 🔴 V86: 철회의 근거는 나이가 아니라 **소유자 소실**이다 — 이전 기동이 만든 의도다.
+                .intentOwner("inst-previous-boot")
+                .reservedKrw(new BigDecimal("3000.00000000"))
                 .feeSource(OrderExecutionEngine.FEE_SOURCE_PENDING)
                 .settlementVersion(0L)
                 .sessionKind("LIVE").sessionId(f.sessionId()).positionId(f.positionId())
@@ -331,6 +339,24 @@ class IntentPrecommitAndOnceOnlyTest extends IntegrationTestBase {
         assertThat(positionRepository.findById(f.positionId()).orElseThrow().getSize())
                 .as("체결이 없었으므로 슬롯 수량은 0 그대로다")
                 .isEqualByComparingTo(BigDecimal.ZERO);
+
+        OrderEntity withdrawn = orderRepository.findById(intent.getId()).orElseThrow();
+        assertThat(withdrawn.getFailureCode())
+                .as("🔴 V86: 철회의 근거가 남는다 — 거래소 거절(EXCHANGE_REJECTED)과 구분된다")
+                .isEqualTo(OrderExecutionEngine.WITHDRAWN_OWNER_LOST);
+
+        // 🔴 **예약 해제를 실제로 돌린다** — 종전 시험은 미해결 수만 봤다.
+        liveTradingService.reconcileOrphanBuyPositions();
+        assertThat(sessionRepository.findById(f.sessionId()).orElseThrow().getAvailableKrw())
+                .as("🔴 철회된 매수의 예약액(reserved_krw 3,000)만 정확히 돌아온다: 7,000 → 10,000")
+                .isEqualByComparingTo("10000.00");
+        assertThat(positionRepository.findById(f.positionId()).orElseThrow().getStatus())
+                .as("슬롯도 해제된다")
+                .isEqualTo("CLOSED");
+        // 두 번 돌려도 두 번 복원하지 않는다.
+        liveTradingService.reconcileOrphanBuyPositions();
+        assertThat(sessionRepository.findById(f.sessionId()).orElseThrow().getAvailableKrw())
+                .isEqualByComparingTo("10000.00");
     }
 
     // ── ③ 종단 간 : 정확히 한 번 ────────────────────────────────

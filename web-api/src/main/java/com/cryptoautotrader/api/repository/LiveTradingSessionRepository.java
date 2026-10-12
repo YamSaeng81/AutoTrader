@@ -26,6 +26,18 @@ public interface LiveTradingSessionRepository extends JpaRepository<LiveTradingS
     @Query("SELECT COALESCE(SUM(s.initialCapital), 0) FROM LiveTradingSessionEntity s WHERE s.status IN :statuses")
     BigDecimal sumInitialCapitalByStatusIn(@Param("statuses") List<String> statuses);
 
+    /** 공유 풀 배정 검사 (2026-10-12) — 지정 세션을 뺀 활성 세션의 initialCapital 합. */
+    @Query("SELECT COALESCE(SUM(s.initialCapital), 0) FROM LiveTradingSessionEntity s "
+            + "WHERE s.status IN :statuses AND s.id <> :excludeId")
+    BigDecimal sumInitialCapitalExcluding(@Param("statuses") List<String> statuses,
+                                          @Param("excludeId") Long excludeId);
+
+    /** 계좌 배정 검사 (2026-10-12) — 지정 세션을 뺀 활성 세션의 availableKrw 합. */
+    @Query("SELECT COALESCE(SUM(s.availableKrw), 0) FROM LiveTradingSessionEntity s "
+            + "WHERE s.status IN :statuses AND s.id <> :excludeId")
+    BigDecimal sumAvailableKrwExcluding(@Param("statuses") List<String> statuses,
+                                        @Param("excludeId") Long excludeId);
+
     /** 활성 세션들의 availableKrw 합산 (Tier 2 §8 — 거래소 잔고 drift 감지) */
     @Query("SELECT COALESCE(SUM(s.availableKrw), 0) FROM LiveTradingSessionEntity s WHERE s.status IN :statuses")
     BigDecimal sumAvailableKrwByStatusIn(@Param("statuses") List<String> statuses);

@@ -258,22 +258,23 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
     long countUnresolvedSubmissions(@Param("kind") String kind, @Param("sessionId") Long sessionId);
 
     /**
-     * 철회 — {@code INTENT_READY} → {@code FAILED} <b>조건부</b> 전환 (V84).
+     * 철회 — {@code INTENT_READY} → {@code FAILED} <b>조건부</b> 전환 (V84, V86).
      *
-     * <p>🔴 <b>claim 과 같은 행·같은 조건을 다툰다.</b> 철회를 무조건 쓰기로 하면 claim 과 철회가
-     * <b>둘 다 성공</b>할 수 있다 — 제출은 나갔는데 주문은 철회된 상태가 된다. 두 전환이 모두
-     * {@code WHERE state = 'INTENT_READY'} 를 걸므로 <b>정확히 한쪽만 1행을 돌려받는다.</b></p>
+     * <p>🔴 <b>claim 과 같은 행·같은 조건을 다툰다.</b> 두 전환이 모두
+     * {@code WHERE state = 'INTENT_READY'} 를 걸므로 <b>정확히 한쪽만 1행을 돌려받는다.</b>
+     * 이것은 <b>경합</b>을 해결할 뿐이다.</p>
      *
-     * <p>🔴 <b>시간은 경합을 해결하지 않는다.</b> 유예는 "작업 중일 가능성이 높은 의도를 건드리지
-     * 말자" 는 예절이고, 작업이 유예보다 오래 지연될 수 있다. 중복을 막는 근거는 <b>이 조건부
-     * 전환</b>이며, 유예는 불필요한 철회를 줄이는 것뿐이다.</p>
+     * <p>🔴 <b>철회의 정당성은 호출자가 확정해야 한다</b> (V86) — 이 질의는 "철회해도 되는가" 를
+     * 판단하지 않는다. 정당한 사유는 {@code code} 로 남긴다({@code WITHDRAWN_STOPPED} ·
+     * {@code WITHDRAWN_OWNER_LOST} · {@code WITHDRAWN_DISPATCH_LOST}). 경과 시간은 사유가 아니다.</p>
      *
      * @return 전환된 행 수 — {@code 1} 이면 이 호출이 철회에 성공했다(= claim 은 실패한다)
      */
     @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("UPDATE OrderEntity o SET o.state = 'FAILED', o.failedReason = :reason "
+    @Query("UPDATE OrderEntity o SET o.state = 'FAILED', o.failedReason = :reason, o.failureCode = :code "
             + "WHERE o.id = :id AND o.state = 'INTENT_READY'")
-    int withdrawIntentIfStillReady(@Param("id") Long id, @Param("reason") String reason);
+    int withdrawIntentIfStillReady(@Param("id") Long id, @Param("reason") String reason,
+                                   @Param("code") String code);
 
     /**
      * 예약 원장 — <b>아직 결말이 나지 않은 주문이 붙잡고 있는 KRW 합계</b> (V85).
@@ -288,6 +289,41 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
             + "WHERE o.reservedKrw IS NOT NULL AND o.state IN "
             + "('INTENT_READY', 'SUBMITTING', 'UNKNOWN', 'SUBMITTED', 'PARTIAL_FILLED')")
     java.math.BigDecimal sumOpenReservedKrw();
+
+    /**
+     * <b>계좌에 아직 남아 있으나 이미 주문에 묶인 KRW</b> — 열린 매수 주문의 약정액 합 (2026-10-12).
+     *
+     * <p>계좌 스냅숏은 <b>총잔고</b>(가용 + 주문 잠금)다. 열린 매수 주문의 돈은 아직 나가지 않았으므로
+     * 그 스냅숏 <b>안에</b> 있다 — 제출 전이면 가용에, 접수 후 미체결이면 잠금에. 그래서 여기서
+     * <b>한 번</b> 빼면 정확하고, 두 번 빠지는 일이 없다.</p>
+     *
+     * <p>🔴 {@code reserved_krw} 가 없는 주문(V85 이전, 아직 예약 경계를 지나지 않는 DYNAMIC)도 센다 —
+     * 빼먹으면 그 돈을 두 번 승인한다. 시장가 매수는 {@code quantity} 가 KRW 총액이고, 그 외는
+     * 가격 × 수량이다.</p>
+     *
+     * <p>🔴 거래소에서 이미 체결됐지만 로컬에 아직 반영되지 않은 주문은 스냅숏에서 빠졌는데 여기서도
+     * 빠진다 — <b>과소 승인</b> 쪽 오차이고 과대 승인은 만들지 않는다.</p>
+     */
+    @Query("SELECT COALESCE(SUM(COALESCE(o.reservedKrw, "
+            + "CASE WHEN o.orderType = 'MARKET' THEN o.quantity ELSE o.price * o.quantity END)), 0) "
+            + "FROM OrderEntity o WHERE o.side = 'BUY' AND o.sessionKind IN ('LIVE', 'DYNAMIC') "
+            + "AND o.state IN ('PENDING', 'INTENT_READY', 'SUBMITTING', 'UNKNOWN', 'SUBMITTED', 'PARTIAL_FILLED')")
+    java.math.BigDecimal sumOpenBuyCommitmentKrw();
+
+    /**
+     * 스냅숏 <b>이후에</b> 로컬에서 종결된 매수의 약정액 합 (2026-10-12).
+     *
+     * <p>🔴 스냅숏은 주기 동기화(5분)라 늦다. 스냅숏 뒤에 체결돼 로컬에서 {@code FILLED} 가 된 주문은
+     * 열린 주문 합에서 빠지지만, 그 돈은 <b>스냅숏에는 아직 들어 있다</b>(스냅숏이 체결 전 값이다).
+     * 그대로 두면 그만큼 <b>과대 승인</b>한다. 그래서 종결 시각이 스냅숏보다 늦은 매수는 여전히
+     * 스냅숏 안의 돈을 쓴 것으로 센다. 체결이 실제로 스냅숏 전에 일어났다면 두 번 빠지지만, 그것은
+     * 과소 승인 쪽이다.</p>
+     */
+    @Query("SELECT COALESCE(SUM(COALESCE(o.reservedKrw, "
+            + "CASE WHEN o.orderType = 'MARKET' THEN o.quantity ELSE o.price * o.quantity END)), 0) "
+            + "FROM OrderEntity o WHERE o.side = 'BUY' AND o.sessionKind IN ('LIVE', 'DYNAMIC') "
+            + "AND o.state IN ('FILLED', 'CANCELLED') AND o.filledAt IS NOT NULL AND o.filledAt > :since")
+    java.math.BigDecimal sumBuyCommitmentFilledSince(@Param("since") Instant since);
 
     /** 불명 조회 시도를 기록한다 — 🔴 상태는 바꾸지 않는다(자동 종결 금지). */
     @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true, flushAutomatically = true)

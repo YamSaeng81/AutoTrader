@@ -60,7 +60,13 @@ class DynamicPaperLiveRuleParityTest {
     private static final List<String> ALLOWED = List.of(
             "executePaperBuy",          // 체결 시뮬레이션 (매수)
             "executePaperSell",         // 체결 시뮬레이션 (매도) — 일반·강제정지 경로
-            "SESSION_KIND_PAPER");      // position/order 저장 분리 (sessionKind 헬퍼)
+            "SESSION_KIND_PAPER",       // position/order 저장 분리 (sessionKind 헬퍼)
+            // 실자금 배정 검사 (2026-10-12) — 세션 생성·재시작 시 **거래소 계좌 잔고와 등록 풀**에
+            // 배정이 들어가는지 본다. 페이퍼는 실계좌를 쓰지 않으므로 대상이 아니다(생성 경로의
+            // 기존 `!isPaper` 자본 게이트와 같은 판단). 🔴 실행 중 매수·매도 여부는 가르지 않는다.
+            // 🔴 다만 **매수 시점의 풀 한도**(동시 보유·포지션당)를 DYNAMIC 에 붙일 때는 이것과
+            //    별개로 판단해야 한다 — 그것은 매매 규칙이므로 페이퍼에도 같아야 하는지 물어야 한다.
+            "requireAllocation");
 
     private static String source() throws IOException {
         return Files.readString(SERVICE, StandardCharsets.UTF_8);

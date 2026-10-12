@@ -274,7 +274,10 @@ CREATE TABLE IF NOT EXISTS "order" (
     unknown_probed_at       TIMESTAMP,
     unknown_reason          VARCHAR(500),
     -- V85 — 실제로 차감한 KRW
-    reserved_krw            DECIMAL(20, 8)
+    reserved_krw            DECIMAL(20, 8),
+    -- V86 — FAILED 의 근거 / 의도를 만든 프로세스
+    failure_code            VARCHAR(40),
+    intent_owner            VARCHAR(64)
 );
 
 -- 정산 불일치 이력 (V82) — 덮어쓰기 전에 이전 값과 수신값을 함께 보존한다

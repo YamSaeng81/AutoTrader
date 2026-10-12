@@ -5,6 +5,7 @@ import lombok.Getter;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -18,6 +19,15 @@ public class PortfolioManager {
     @Getter
     private BigDecimal totalCapital;
     private BigDecimal allocatedCapital = BigDecimal.ZERO;
+
+    /**
+     * 마지막으로 거래소 잔고를 반영한 시각 (2026-10-12). {@code null} 이면 한 번도 반영하지 않았다.
+     *
+     * <p>🔴 {@code totalCapital} 의 초기값은 0 이고 동기화가 실패하면 이전 값이 남는다. 값만 보고는
+     * "계좌에 정말 그만큼 있다" 와 "아직 모른다" 를 구분할 수 없으므로, 그 값을 실자금 승인에 쓰는
+     * 쪽이 신선도를 확인할 수 있게 시각을 함께 둔다.</p>
+     */
+    private volatile Instant lastSyncedAt;
 
     // 코인별 현재 포지션 방향 (전략 간 충돌 방지)
     private final Map<String, PositionDirection> coinDirections = new ConcurrentHashMap<>();
@@ -80,6 +90,11 @@ public class PortfolioManager {
         }
     }
 
+    /** 마지막 거래소 잔고 반영 시각 — {@code null} 이면 미반영. */
+    public Instant getLastSyncedAt() {
+        return lastSyncedAt;
+    }
+
     public synchronized BigDecimal getAvailableCapital() {
         return totalCapital.subtract(allocatedCapital);
     }
@@ -97,6 +112,7 @@ public class PortfolioManager {
     public synchronized void syncTotalCapital(BigDecimal newCapital) {
         if (newCapital == null || newCapital.compareTo(BigDecimal.ZERO) < 0) return;
         this.totalCapital = newCapital;
+        this.lastSyncedAt = Instant.now();
         // allocatedCapital이 새 totalCapital을 초과하면 조정
         if (allocatedCapital.compareTo(newCapital) > 0) {
             allocatedCapital = newCapital;

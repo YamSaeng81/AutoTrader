@@ -42,6 +42,16 @@ spring:
     serialization:
       write-dates-as-timestamps: false
 
+# 🔴 공유 풀 한도 (2026-10-12) — 운영에는 기본값이 없고 등록하지 않으면 실자금 진입·배정을 거절한다.
+#    시험 기반은 "등록된 넉넉한 풀" 로 둔다. 한도 자체를 시험하는 클래스는 `CapitalPoolLimits` 를
+#    직접 바꾸고 끝나면 되돌린다.
+trading:
+  capital-pool:
+    stage: TEST
+    total-cap-krw: 1000000000000
+    per-position-cap-krw: 1000000000000
+    max-concurrent-positions: 100000
+
 api:
   auth:
     token: test-api-token  # 통합 테스트용 고정 토큰

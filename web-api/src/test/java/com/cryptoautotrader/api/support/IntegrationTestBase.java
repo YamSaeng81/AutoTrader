@@ -38,6 +38,24 @@ public abstract class IntegrationTestBase {
 
     protected final ObjectMapper objectMapper = buildObjectMapper();
 
+    @Autowired(required = false)
+    private com.cryptoautotrader.core.portfolio.PortfolioManager portfolioManager;
+
+    /**
+     * 🔴 계좌 스냅숏을 "충분하고 신선한 값" 으로 둔다 (2026-10-12).
+     *
+     * <p>실자금 배정·예약은 이제 스냅숏이 없거나 낡으면 거절한다(종전엔 0 이면 검사를 <b>건너뛰었다</b>).
+     * 계좌 한도와 무관한 시험이 그 거절에 걸리지 않게 여기서 채운다. 계좌 한도를 시험하는 클래스는
+     * 자기 {@code @BeforeEach} 에서 다시 정한다(부모의 것이 먼저 돈다). {@code @MockBean} 으로 바꾼
+     * 클래스에서는 이 호출이 아무 일도 하지 않는다.</p>
+     */
+    @BeforeEach
+    void seedAccountSnapshot() {
+        if (portfolioManager != null) {
+            portfolioManager.syncTotalCapital(new java.math.BigDecimal("1000000000000"));
+        }
+    }
+
     @BeforeEach
     void setupMockMvc() {
         // 모든 요청에 API 토큰 헤더를 자동으로 추가한다

@@ -74,13 +74,46 @@ public class OrderExecutionEngine {
             "PENDING", "INTENT_READY", "SUBMITTING", "UNKNOWN", "SUBMITTED", "PARTIAL_FILLED");
 
     /**
-     * 의도 철회 유예 (V84).
+     * 이 프로세스의 식별자 — 기동마다 새로 만든다 (V86).
      *
-     * <p>🔴 {@code INTENT_READY} 는 "나간 적이 없다" 를 뜻하므로 철회가 안전하지만, <b>지금 claim
-     * 하려는 의도</b>를 복구가 가로채면 진행 중인 제출이 조용히 사라진다. 그 경합을 전체 시험에서
-     * 실제로 재현했다. 유예가 지나지 않은 의도는 원래 작업자에게 맡긴다.</p>
+     * <p>🔴 <b>철회의 정당성은 시간이 아니라 소유자의 생존으로 정한다.</b> V84 는 60초가 지난
+     * {@code INTENT_READY} 를 철회했는데, 그것은 "오래 걸렸을 뿐 살아 있는 작업" 도 철회한다 —
+     * 시간 기반 철회다. 조건부 전환은 경합을 해결할 뿐 철회가 옳은지는 정하지 않는다.</p>
+     *
+     * <p>의도를 claim 할 수 있는 것은 그 의도를 만든 프로세스의 작업뿐이다. 그 작업이 존재하지
+     * 않음이 <b>확정될 때만</b> 철회한다:</p>
+     * <ul>
+     *   <li>{@link #WITHDRAWN_OWNER_LOST} — 소유자가 지금 프로세스가 아니다. 작업 큐는 프로세스와 함께
+     *       사라졌다. 🔴 <b>단일 인스턴스 전제</b> — 여러 인스턴스면 생존 신호가 필요하다.</li>
+     *   <li>{@link #WITHDRAWN_DISPATCH_LOST} — 소유자는 지금 프로세스지만 그 의도를 맡은 작업이
+     *       {@link #DISPATCHING} 에 없다(디스패치 거절·claim 전 예외로 끝났다).</li>
+     *   <li>{@link #WITHDRAWN_STOPPED} — 작업 자신이 claim 직전 세션 잠금 안에서 정지를 봤다.</li>
+     * </ul>
+     *
+     * <p>🔴 <b>경과 시간은 경보에만 쓴다</b>({@link #STALE_INTENT_ALERT}). 살아 있는 작업이 맡은 의도는
+     * 얼마나 오래됐든 철회하지 않는다.</p>
      */
-    private static final Duration INTENT_GRACE = Duration.ofSeconds(60);
+    static final String INSTANCE_ID = "inst-" + java.util.UUID.randomUUID();
+
+    /**
+     * claim 을 시도할 작업이 <b>살아 있는</b> 의도 — 이 프로세스 안의 소유권 등록부 (V86).
+     *
+     * <p>의도가 커밋되기 <b>전에</b> 넣고(복구가 보기 전에 등록돼 있어야 한다), claim 시도가 끝난 뒤
+     * 뺀다. 트랜잭션이 롤백되면 뺀다.</p>
+     */
+    private static final java.util.Set<Long> DISPATCHING = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+    /** 살아 있는 작업이 맡은 의도가 이만큼 claim 되지 않으면 사람에게 알린다 — 철회하지 않는다. */
+    private static final Duration STALE_INTENT_ALERT = Duration.ofSeconds(60);
+
+    /** {@code FAILED} 의 근거 (V86) — 거래소 거절과 우리 철회를 섞지 않는다. */
+    public static final String WITHDRAWN_STOPPED = "WITHDRAWN_STOPPED";
+    public static final String WITHDRAWN_OWNER_LOST = "WITHDRAWN_OWNER_LOST";
+    public static final String WITHDRAWN_DISPATCH_LOST = "WITHDRAWN_DISPATCH_LOST";
+    public static final String RISK_REJECTED = "RISK_REJECTED";
+    public static final String CLIENT_UNAVAILABLE = "CLIENT_UNAVAILABLE";
+    /** 거래소의 명시적 거절. 🔴 현재 제출 경로는 이것을 기록하지 않는다 — 제출 중 예외는 전부 {@code UNKNOWN}. */
+    public static final String EXCHANGE_REJECTED = "EXCHANGE_REJECTED";
 
     /**
      * 정산 출처 — {@code order.fee_source} (V81·V82).
@@ -287,13 +320,71 @@ public class OrderExecutionEngine {
         }
 
         // B — claim. 🔴 1행을 돌려받고 **이 트랜잭션이 커밋에 성공한** 경우에만 C 로 간다.
-        Boolean claimed = submitTx.execute(st -> claimForSubmission(orderId, request));
-        if (!Boolean.TRUE.equals(claimed)) {
+        if (!claimOwned(orderId, request)) {
             return;
         }
 
         // C·D — 외부 호출은 **트랜잭션 밖**이고, 결과 기록만 트랜잭션이다.
         callExchangeAndRecord(orderId);
+    }
+
+    /**
+     * B 를 소유자로서 시도하고, 시도가 끝나면 소유권을 내려놓는다 (V86).
+     *
+     * <p>🔴 claim 자체가 예외로 끝나면 이 의도를 claim 할 작업이 사라진다 — 같은 프로세스 안에서는
+     * 복구가 소유자 생존으로 판단하므로, 여기서 <b>스스로 철회를 시도한다</b>(조건부라 claim 이
+     * 실제로 커밋됐다면 0행이다). 철회마저 실패하면 등록부에서 빠졌으므로 복구가 이어받는다.</p>
+     */
+    private boolean claimOwned(Long orderId, OrderRequest request) {
+        try {
+            Boolean claimed = submitTx.execute(st -> claimForSubmission(orderId, request));
+            return Boolean.TRUE.equals(claimed);
+        } catch (RuntimeException e) {
+            log.error("claim 시도가 예외로 끝났다 — 철회를 시도한다 (orderId={}): {}", orderId, e.getMessage(), e);
+            try {
+                submitTx.execute(st -> withdrawIntent(orderId, WITHDRAWN_DISPATCH_LOST,
+                        "claim 시도 중 예외 — 제출하지 않았다"));
+            } catch (RuntimeException again) {
+                log.error("철회도 실패했다 — 복구가 이어받는다 (orderId={}): {}", orderId, again.getMessage());
+            }
+            return false;
+        } finally {
+            DISPATCHING.remove(orderId);
+        }
+    }
+
+    /**
+     * 디스패치되지 못한 의도를 철회한다 (V86) — 호출자가 {@link #submitPreparedOrder} 를 넘기지 못했을 때.
+     *
+     * <p>🔴 예: 주문 실행기 큐가 가득 차 작업이 거절됐다. 그 의도를 claim 할 작업은 생기지 않는다.
+     * 조건부 전환이므로 이미 claim 됐다면 0행이고 아무것도 바꾸지 않는다.</p>
+     *
+     * @return 이 호출이 철회에 성공했으면 {@code true}
+     */
+    public boolean withdrawUndispatchedIntent(Long orderId, String why) {
+        try {
+            return Boolean.TRUE.equals(submitTx.execute(st ->
+                    withdrawIntent(orderId, WITHDRAWN_DISPATCH_LOST, why)));
+        } finally {
+            DISPATCHING.remove(orderId);
+        }
+    }
+
+    /**
+     * 철회 — 조건부 전환. 🔴 정당성은 호출자가 확정한다 — 여기서는 사유 코드를 남기고 경합만 가린다.
+     *
+     * @return 이 호출이 철회에 성공했으면 {@code true} (claim 은 실패한다)
+     */
+    private boolean withdrawIntent(Long orderId, String code, String reason) {
+        int withdrawn = orderRepository.withdrawIntentIfStillReady(orderId, reason, code);
+        if (withdrawn != 1) {
+            log.info("철회가 성립하지 않았다 — 이미 claim 됐거나 종결됐다 (orderId={}, 사유={})", orderId, code);
+            return false;
+        }
+        recordTradeLog(orderId, "STATE_CHANGE", "INTENT_READY", "FAILED", code + ": " + reason);
+        log.warn("의도를 철회했다 — 외부에 나간 적이 없다 (orderId={}, 사유={}: {}). "
+                + "🔴 예약 해제는 고아 매수 정리가 담당한다(FAILED 매수 + size=0 포지션).", orderId, code, reason);
+        return true;
     }
 
     /**
@@ -323,19 +414,29 @@ public class OrderExecutionEngine {
 
         // 🔴 **잠금을 먼저 잡고 한도를 본다.** 중복·정지 확인은 그다음이다 — 순서를 바꾸면
         //    확인과 예약 사이가 다시 벌어진다.
-        if ("BUY".equalsIgnoreCase(request.getSide()) && "LIVE".equals(sessionKind)
-                && request.getSessionId() != null && capitalReservationService != null) {
-            if (!capitalReservationService.reserveWithinCurrentTransaction(
-                    request.getSessionId(), request.getQuantity())) {
-                return null;
-            }
+        if (!"BUY".equalsIgnoreCase(request.getSide()) || !"LIVE".equals(sessionKind)
+                || request.getSessionId() == null) {
+            // 🔴 이 진입점은 LIVE 세션 매수 전용이다. 다른 것을 넣으면 예약 없이 통과하므로 막는다.
+            throw new IllegalArgumentException("reserveAndPrepareIntent 는 LIVE 세션 매수 전용이다: "
+                    + request.getSide() + "/" + sessionKind);
+        }
+        if (capitalReservationService == null) {
+            throw new IllegalStateException("예약 서비스가 없다 — 한도 확인 없이 승인하지 않는다");
+        }
+        CapitalReservationService.Decision decision = capitalReservationService.reserveForLiveBuy(
+                request.getSessionId(), request.getQuantity(), request.getPositionId());
+        if (!decision.approved()) {
+            // 🔴 **거절도 롤백한다.** 종전에는 null 을 돌려줘 호출자 트랜잭션이 그대로 커밋됐고,
+            //    같은 트랜잭션에서 만든 슬롯(size=0 포지션)이 **차감 없이** 남았다. 그 포지션을
+            //    고아 정리가 배정액으로 복원하면 **없던 돈이 생긴다.**
+            throw new ReservationRejected(decision.code(), decision.message());
         }
 
         Long orderId = prepareIntent(request);
         if (orderId == null) {
             // 🔴 의도가 거절되면 **예약도 되돌려야 한다.** 호출자의 트랜잭션을 롤백시키는 것이
             //    가장 확실하다 — 같은 트랜잭션이므로 자금·슬롯·의도가 함께 사라진다.
-            throw new ReservationRejected("주문 의도가 거절됐다 — 예약을 롤백한다");
+            throw new ReservationRejected("INTENT_REJECTED", "주문 의도가 거절됐다 — 예약을 롤백한다");
         }
         orderRepository.findById(orderId).ifPresent(o -> {
             o.setReservedKrw(request.getQuantity());
@@ -351,8 +452,16 @@ public class OrderExecutionEngine {
      * 그대로 올라가게 한다.</p>
      */
     public static class ReservationRejected extends RuntimeException {
-        public ReservationRejected(String message) {
+        private final String code;
+
+        public ReservationRejected(String code, String message) {
             super(message);
+            this.code = code;
+        }
+
+        /** 거절 사유 코드 — {@link CapitalReservationService} 의 상수 또는 {@code INTENT_REJECTED}. */
+        public String getCode() {
+            return code;
         }
     }
 
@@ -364,8 +473,7 @@ public class OrderExecutionEngine {
      */
     @Async("orderExecutor")
     public void submitPreparedOrder(Long orderId, OrderRequest request) {
-        Boolean claimed = submitTx.execute(st -> claimForSubmission(orderId, request));
-        if (!Boolean.TRUE.equals(claimed)) {
+        if (!claimOwned(orderId, request)) {
             return;
         }
         callExchangeAndRecord(orderId);
@@ -429,6 +537,7 @@ public class OrderExecutionEngine {
                 .positionId(request.getPositionId())
                 .clientOrderId(newClientOrderId())
                 .intentCommittedAt(Instant.now())
+                .intentOwner(INSTANCE_ID)
                 // 🔴 새 회계 경로 참여를 **생성 시 명시한다** (2026-10-12, V82).
                 //
                 //    V81 의 정산 컬럼은 전부 NULL 로 시작한다. 전환 규칙이 "fee_source IS NULL 이면
@@ -443,6 +552,7 @@ public class OrderExecutionEngine {
                 .settlementAttempts(0)
                 .build();
         order = orderRepository.save(order);
+        registerDispatching(order.getId());
         recordTradeLog(order.getId(), "STATE_CHANGE", null, "INTENT_READY",
                 "주문 의도 생성 (식별자=" + order.getClientOrderId() + ")");
 
@@ -456,18 +566,47 @@ public class OrderExecutionEngine {
             RiskCheckResult riskResult = riskManagementService.checkRisk();
             if (!riskResult.isApproved()) {
                 log.warn("리스크 체크 거부 (orderId={}): {}", order.getId(), riskResult.getReason());
+                order.setFailureCode(RISK_REJECTED);
                 transitionState(order, "FAILED", riskResult.getReason());
+                DISPATCHING.remove(order.getId());
                 return null;
             }
         }
 
         if (upbitOrderClient == null) {
             log.warn("UpbitOrderClient 미등록 — 거래소 연동 불가 (orderId={})", order.getId());
+            order.setFailureCode(CLIENT_UNAVAILABLE);
             transitionState(order, "FAILED", "거래소 클라이언트 미등록");
+            DISPATCHING.remove(order.getId());
             return null;
         }
 
         return order.getId();
+    }
+
+    /**
+     * 소유권 등록 — 의도가 <b>커밋되기 전에</b> 넣는다 (V86).
+     *
+     * <p>🔴 복구가 이 의도를 볼 수 있게 되는 시점(커밋)보다 먼저 등록돼 있어야 "작업 없음" 으로
+     * 오판하지 않는다. 트랜잭션이 롤백되면 의도도 없으므로 뺀다.</p>
+     */
+    private void registerDispatching(Long orderId) {
+        DISPATCHING.add(orderId);
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCompletion(int status) {
+                    if (status != STATUS_COMMITTED) {
+                        DISPATCHING.remove(orderId);
+                    }
+                }
+            });
+        }
+    }
+
+    /** 이 프로세스에서 claim 을 시도할 작업이 살아 있는가 — 시험에서 상태를 확인하는 데 쓴다. */
+    static boolean isDispatching(Long orderId) {
+        return DISPATCHING.contains(orderId);
     }
 
     /**
@@ -546,8 +685,8 @@ public class OrderExecutionEngine {
                 log.warn("의도 커밋과 claim 사이에 정지가 들어왔다 — 철회한다 "
                         + "(orderId={}, sessionId={}, status={})", orderId, request.getSessionId(),
                         lockedStatus == null ? "없음" : lockedStatus);
-                orderRepository.findById(orderId).ifPresent(o ->
-                        transitionState(o, "FAILED", "정지로 철회 — 제출하지 않았다"));
+                // 🔴 조건부 전환이다 — 종전 무조건 쓰기는 다른 경로의 전이를 덮어쓸 수 있었다.
+                withdrawIntent(orderId, WITHDRAWN_STOPPED, "claim 직전 정지 확인 — 제출하지 않았다");
                 return Boolean.FALSE;
             }
         }
@@ -1048,38 +1187,34 @@ public class OrderExecutionEngine {
         }
 
         // 🔴 INTENT_READY 는 **나간 적이 없다.** claim 이 제출의 유일한 관문이고 그 전환이 커밋된
-        //    적이 없으므로, 외부 호출은 일어나지 않았다. 이 불변식만으로 철회가 안전하다.
+        //    적이 없으므로, 외부 호출은 일어나지 않았다. 그래서 철회가 **안전**하다.
         //
-        //    🔴 **다만 지금 작업 중인 의도를 철회해서는 안 된다.** A(의도 커밋)와 B(claim) 사이는
-        //    짧지만 0 이 아니고, 폴러는 5초마다 돈다 — 그 사이에 들어오면 **진행 중인 제출을
-        //    가로채 철회**하고 claim 은 0행을 받아 주문이 조용히 사라진다. 전체 시험을 돌렸을 때
-        //    실제로 이 경합이 재현됐다(`ClaimAndUnknownTrackingTest` 가 부하 아래에서 실패).
+        //    🔴 그러나 안전하다는 것과 **정당하다**는 것은 다르다 (V86). 종전에는 60초가 지나면
+        //    철회했고, 조건부 전환이 claim 과의 경합을 가려 주었다. 그것은 경합의 해결이지 철회의
+        //    근거가 아니다 — 오래 걸렸을 뿐 살아 있는 작업의 의도도 철회됐다.
         //
-        //    그래서 **충분히 오래된 의도만** 철회한다. 유예가 지나지 않은 의도는 그대로 둔다 —
-        //    원래 작업자가 claim 하거나, 그 프로세스가 죽었다면 다음 회차에 철회된다.
+        //    이제 **claim 할 작업이 존재하지 않음이 확정될 때만** 철회한다. 시간은 경보에만 쓴다.
         if ("INTENT_READY".equals(order.getState())) {
-            Instant committed = order.getIntentCommittedAt();
-            if (committed != null && Duration.between(committed, Instant.now()).compareTo(INTENT_GRACE) < 0) {
-                log.debug("의도가 아직 작업 중일 수 있다 — 철회하지 않는다 (orderId={})", order.getId());
+            boolean ownedHere = INSTANCE_ID.equals(order.getIntentOwner());
+            if (ownedHere && DISPATCHING.contains(order.getId())) {
+                // 살아 있는 작업이 맡고 있다. 얼마나 오래됐든 **철회하지 않는다.**
+                Instant committed = order.getIntentCommittedAt();
+                if (committed != null && Duration.between(committed, Instant.now()).compareTo(STALE_INTENT_ALERT) > 0) {
+                    log.warn("의도가 {}초째 claim 되지 않았다 — 작업이 살아 있으므로 철회하지 않는다 "
+                                    + "(orderId={}). 실행기 적체 여부를 사람이 확인해야 한다.",
+                            Duration.between(committed, Instant.now()).toSeconds(), order.getId());
+                }
                 return Boolean.FALSE;
             }
-            // 🔴 **조건부 전환으로 claim 과 경쟁한다.** 무조건 쓰기로 철회하면 claim 과 철회가
-            //    **둘 다 성공**할 수 있다 — 제출은 나갔는데 주문은 철회된 상태가 된다. 두 전환이
-            //    모두 `WHERE state = 'INTENT_READY'` 를 걸므로 정확히 한쪽만 1행을 받는다.
-            //    🔴 **시간은 경합을 해결하지 않는다** — 유예는 불필요한 철회를 줄이는 예절이고,
-            //    중복을 막는 근거는 이 조건부 전환이다.
-            int withdrawn = orderRepository.withdrawIntentIfStillReady(
-                    order.getId(), "claim 전 중단 — 제출하지 않았다");
-            if (withdrawn != 1) {
-                log.info("철회 경쟁에서 밀렸다 — 다른 작업자가 claim 했다 (orderId={})", order.getId());
-                return Boolean.FALSE;
+            // 🔴 정당한 사유: 소유 프로세스가 사라졌거나(재기동), 같은 프로세스에서 작업이 끝났다.
+            String code = ownedHere ? WITHDRAWN_DISPATCH_LOST : WITHDRAWN_OWNER_LOST;
+            String why = ownedHere
+                    ? "claim 할 작업이 이 프로세스에 없다 — 제출하지 않았다"
+                    : "의도를 만든 프로세스(" + order.getIntentOwner() + ")가 지금 프로세스가 아니다 — 제출하지 않았다";
+            // 🔴 **조건부 전환으로 claim 과 경쟁한다.** 정확히 한쪽만 1행을 받는다.
+            if (withdrawIntent(order.getId(), code, why)) {
+                RESOLVED.set(Boolean.TRUE);   // 철회로 해소됐다 — 조회는 필요 없다
             }
-            log.warn("claim 전에 중단된 의도를 철회했다 — 외부에 나간 적이 없다 (orderId={}, 식별자={}). "
-                            + "🔴 예약 해제는 고아 매수 정리가 담당한다(FAILED 매수 + size=0 포지션).",
-                    order.getId(), order.getClientOrderId());
-            recordTradeLog(order.getId(), "STATE_CHANGE", "INTENT_READY", "FAILED",
-                    "claim 전 중단 — 제출하지 않았다");
-            RESOLVED.set(Boolean.TRUE);   // 철회로 해소됐다 — 조회는 필요 없다
             return Boolean.FALSE;
         }
 
