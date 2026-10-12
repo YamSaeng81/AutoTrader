@@ -298,6 +298,9 @@ public class DynamicTradingService {
     @Autowired(required = false)
     private CapitalReservationService capitalReservationService;
 
+    @jakarta.persistence.PersistenceContext
+    private jakarta.persistence.EntityManager entityManager;
+
     @Autowired(required = false)
     private PortfolioSyncService portfolioSyncService;
 
@@ -1535,6 +1538,18 @@ public class DynamicTradingService {
             return executePaperBuy(session, posTemplate, investAmount, coinPair, signal, kind);
         }
 
+        // 🔴 **실자금 공유 풀 — LIVE 와 같은 예약 경계를 지난다** (2026-10-12).
+        //
+        //    종전에는 포지션을 만들고 `submitOrderAfterCommit` 로 제출을 걸고, 차감은 별도 트랜잭션
+        //    (REQUIRES_NEW)으로 먼저 커밋한 뒤 롤백 보상을 등록했다. 한도 확인도 잠금도 없어서 **세션
+        //    생성·재시작만 검사하고 실제 매수는 공유 풀 한도를 우회했다** — 전체 한도가 강제되지 않았다.
+        //
+        //    이제 이 틱 트랜잭션 안에서 계좌 잠금을 쥐고 **등록 풀(포지션당·동시 보유·총 자본) → 계좌
+        //    여력 → 세션 자금 → 슬롯 → 주문 의도**를 함께 쓴다. 틱이 롤백되면 전부 함께 사라지고 제출은
+        //    0회다(종전 계약 유지). 차감이 같은 트랜잭션이므로 롤백 보상이 필요 없다.
+        //
+        //    🔴 자본 모델이 공유 풀인 실자금 세션만 여기로 온다. 현재 페이퍼(검증 66세션)는 독립 자본으로
+        //    사전 등록됐으므로 위에서 `executePaperBuy` 로 갈라졌다 — 공유 풀 규칙을 소급하지 않는다.
         PositionEntity pos = positionRepository.save(posTemplate);
         Long posId = pos.getId();
 
@@ -1548,20 +1563,37 @@ public class DynamicTradingService {
         order.setSessionId(sid);
         order.setSessionKind(kind);
         order.setPositionId(posId);
-        // ⚠️ 커밋 이후 제출 — 위 pos 는 아직 미커밋이라 @Async 주문 스레드에서 보이지 않는다.
-        //    즉시 제출하면 order_position_id_fkey 대기 → 타임아웃/데드락으로 주문 INSERT가
-        //    통째로 롤백된다 (2026-07-29 P0: 동적 주문 0건의 원인).
-        orderExecutionEngine.submitOrderAfterCommit(order);
 
-        // KRW 차감 및 상태 전환 — 낙관적 락 + 재시도 (reconcile 스케줄러와의 동시 쓰기 race 차단)
-        final BigDecimal deductAmount = investAmount;   // 람다 캡처용 (최소주문 보정으로 재할당됐을 수 있음)
-        balanceUpdater.apply(sid, s -> {
-            s.setAvailableKrw(s.getAvailableKrw().subtract(deductAmount));
-            s.setScanState("POSITION_MONITORING");
-            s.setCurrentCoinPair(coinPair);
-            s.setCurrentPositionId(posId);
-        });
-        registerBuyDeductionCompensation(sid, deductAmount);
+        Long preparedOrderId;
+        try {
+            preparedOrderId = orderExecutionEngine.reserveAndPrepareIntent(order);
+        } catch (OrderExecutionEngine.ReservationRejected rejected) {
+            // 🔴 차감은 일어나지 않았거나 같은 트랜잭션 안에서 되돌려졌다. 슬롯도 닫는다 — 열린 size=0
+            //    포지션으로 남기면 슬롯을 점유하고, 고아 정리가 배정액을 "복원" 해 없던 돈을 만든다.
+            //    틱 트랜잭션은 롤백하지 않는다(신호 기록을 남긴다).
+            pos.setStatus("CLOSED");
+            pos.setClosedAt(Instant.now());
+            positionRepository.save(pos);
+            log.warn("[Dynamic] 매수 예약 거절 (id={}, {}, 사유={}): {}",
+                    sid, coinPair, rejected.getCode(), rejected.getMessage());
+            return "공유 풀 예약 거절(" + rejected.getCode() + "): " + rejected.getMessage();
+        }
+
+        // 상태 전환 — 예약과 **같은 트랜잭션**의 관리 엔티티에 쓴다. 🔴 REQUIRES_NEW 로 쓰면 이
+        // 트랜잭션이 방금 차감하며 잡은 세션 행 잠금을 기다려 스스로 막힌다
+        // (DynamicSessionRowLockContentionTest 가 고정한 순서다).
+        DynamicSessionEntity managed = dynamicSessionRepo.findById(sid).orElseThrow();
+        // 🔴 잠근 채 최신으로 다시 읽는다 — 같은 틱의 워치리스트 기록(별도 트랜잭션)이 @Version 을 올려
+        //    두었을 수 있다. 예약이 이미 같은 일을 했어도 여기서 다시 하는 것이 결합을 줄인다.
+        entityManager.flush();
+        entityManager.refresh(managed, jakarta.persistence.LockModeType.PESSIMISTIC_WRITE);
+        managed.setScanState("POSITION_MONITORING");
+        managed.setCurrentCoinPair(coinPair);
+        managed.setCurrentPositionId(posId);
+        dynamicSessionRepo.save(managed);
+
+        // ⚠️ 커밋 이후 제출 — 틱이 롤백되면 제출 0회. 실행기 거절이면 그 자리에서 철회한다.
+        orderExecutionEngine.submitPreparedOrderAfterCommit(preparedOrderId, order);
 
         log.info("[Dynamic] 매수: id={} {} amount={} SL={} TP={}",
                 sid, coinPair, investAmount, stopLossPrice, takeProfitPrice);
@@ -1672,6 +1704,9 @@ public class DynamicTradingService {
      * 포지션·주문은 살아있는데 KRW가 안 줄어 <b>이중 매수</b>가 가능해진다. 미차감(과투자)보다
      * 과차감(보상 가능)이 안전하므로, 선차감 + 롤백 보상 구조를 택했다.</p>
      */
+    // 🔴 2026-10-12: **매수 경로는 더 이상 이것을 쓰지 않는다.** 차감이 공유 풀 예약 경계 안에서 틱과
+    //    같은 트랜잭션으로 일어나므로 롤백이 차감을 함께 되돌린다 — 보상할 "살아남은 차감" 이 없다.
+    //    기록과 그 시험(DynamicBalanceLeakTest ①)은 남겨 둔다. 새 경로에 다시 쓰지 말 것.
     // 테스트에서 롤백 시나리오를 직접 구동하기 위해 package-private (resolveStopLossPct와 동일 방침)
     void registerBuyDeductionCompensation(Long sessionId, BigDecimal deductAmount) {
         if (!TransactionSynchronizationManager.isSynchronizationActive()) {

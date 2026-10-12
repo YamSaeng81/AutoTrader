@@ -60,13 +60,23 @@ class DynamicPaperLiveRuleParityTest {
     private static final List<String> ALLOWED = List.of(
             "executePaperBuy",          // 체결 시뮬레이션 (매수)
             "executePaperSell",         // 체결 시뮬레이션 (매도) — 일반·강제정지 경로
-            "SESSION_KIND_PAPER",       // position/order 저장 분리 (sessionKind 헬퍼)
-            // 실자금 배정 검사 (2026-10-12) — 세션 생성·재시작 시 **거래소 계좌 잔고와 등록 풀**에
-            // 배정이 들어가는지 본다. 페이퍼는 실계좌를 쓰지 않으므로 대상이 아니다(생성 경로의
-            // 기존 `!isPaper` 자본 게이트와 같은 판단). 🔴 실행 중 매수·매도 여부는 가르지 않는다.
-            // 🔴 다만 **매수 시점의 풀 한도**(동시 보유·포지션당)를 DYNAMIC 에 붙일 때는 이것과
-            //    별개로 판단해야 한다 — 그것은 매매 규칙이므로 페이퍼에도 같아야 하는지 물어야 한다.
-            "requireAllocation");
+            "SESSION_KIND_PAPER");      // position/order 저장 분리 (sessionKind 헬퍼)
+
+    /**
+     * 실계좌 배정 검사 예외 (2026-10-12) — <b>문맥이 아니라 형태로</b> 허용한다.
+     *
+     * <p>세션 생성·재시작 시 <b>거래소 계좌 잔고와 등록 풀</b>에 배정이 들어가는지 본다. 페이퍼는
+     * 실계좌를 쓰지 않으므로 대상이 아니다 — 전략 신호 규칙이 아니라 실행 조건이다.</p>
+     *
+     * <p>🔴 예외 범위는 <b>실계좌 조회·배정 검사</b>뿐이다. 그래서 {@code isPaper()} 바로 뒤가
+     * {@code requireAllocation(} 호출 하나인 분기만 허용하고(주변 250자 안에 그 단어가 있는 것으로는
+     * 부족하다), 그 메서드 본문이 계좌 동기화·배정 검사 외의 일을 하지 않는지 따로 고정한다.</p>
+     *
+     * <p>🔴 <b>매수 시점의 풀 한도는 여기에 해당하지 않는다.</b> 같은 자본 모델이면 페이퍼·실전에
+     * 같게 적용해야 한다 — 그 분기는 {@code isPaper()} 가 아니라 자본 모델로 가른다.</p>
+     */
+    private static final Pattern ALLOCATION_ONLY =
+            Pattern.compile("^\\)\\s*\\{\\s*requireAllocation\\([^;]*\\);\\s*\\}");
 
     private static String source() throws IOException {
         return Files.readString(SERVICE, StandardCharsets.UTF_8);
@@ -112,7 +122,9 @@ class DynamicPaperLiveRuleParityTest {
             // 분기 전후 문맥을 보고 허용 목록에 걸리는지 확인
             String ctx = src.substring(Math.max(0, m.start() - 250),
                     Math.min(src.length(), m.end() + 250));
-            boolean ok = ALLOWED.stream().anyMatch(ctx::contains)
+            boolean allocationOnly = ALLOCATION_ONLY.matcher(src.substring(m.end())).find();
+            boolean ok = allocationOnly
+                    || ALLOWED.stream().anyMatch(ctx::contains)
                     // 엔티티 정의·주석 참조는 대상이 아니다
                     || ctx.contains("sessionKind(DynamicSessionEntity")
                     || ctx.contains("* ");
@@ -169,5 +181,32 @@ class DynamicPaperLiveRuleParityTest {
         assertThat(body)
                 .as("페이퍼를 워치독에서 빼면 SL 감시가 멈춰도 아무도 모른다")
                 .doesNotContain("!s.isPaper()");
+    }
+
+    @Test
+    @DisplayName("실계좌 배정 예외는 계좌 동기화와 배정 검사만 한다 — 매매 규칙이 끼어들지 않는다")
+    void allocationExemptionStaysNarrow() throws IOException {
+        String src = source();
+        int start = src.indexOf("private void requireAllocation(");
+        assertThat(start).as("requireAllocation 을 찾지 못했다 — 시험을 갱신할 것").isPositive();
+        Matcher end = Pattern.compile("\\R    \\}\\R").matcher(src);
+        assertThat(end.find(start)).isTrue();
+        String body = src.substring(start, end.start());
+        assertThat(body)
+                .as("배정 예외 안에 신호·게이트·수량 결정이 들어오면 페이퍼와 실전의 매매 규칙이 갈린다")
+                .doesNotContain("signal")
+                .doesNotContain("Gate")
+                .doesNotContain("investRatio")
+                .doesNotContain("executeBuy")
+                .doesNotContain("isPaper()");
+
+        Matcher m = Pattern.compile("isPaper\\(\\)\\)\\s*\\{\\s*requireAllocation\\(").matcher(src);
+        int count = 0;
+        while (m.find()) {
+            count++;
+        }
+        assertThat(count)
+                .as("배정 예외는 세션 재시작 한 곳뿐이다 (생성 경로는 기존 isPaper 지역 변수 게이트)")
+                .isEqualTo(1);
     }
 }

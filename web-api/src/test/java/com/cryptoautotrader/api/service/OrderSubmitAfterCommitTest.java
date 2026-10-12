@@ -16,6 +16,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -86,17 +87,28 @@ class OrderSubmitAfterCommitTest extends IntegrationTestBase {
     @Test
     @DisplayName("P0 회귀 — 트랜잭션이 롤백되면 주문은 발행되지 않는다")
     void submitOrderAfterCommit_notPublishedOnRollback() {
+        AtomicLong rolledBackPositionId = new AtomicLong(-1);
         newTransaction().executeWithoutResult(status -> {
             PositionEntity pos = savePosition("KRW-ETH");
+            rolledBackPositionId.set(pos.getId());
             engine.submitOrderAfterCommit(buyRequest(pos.getId(), "KRW-ETH"));
             status.setRollbackOnly();
         });
 
         sleep(500);
 
-        assertThat(orderRepository.count())
-                .as("포지션 없이 주문만 거래소로 나가는 사고를 막아야 한다")
-                .isZero();
+        // 🔴 2026-10-12: 전역 count 를 **이 요청의 식별**로 좁혔다. 전체 실행에서 1건이 세어져 실패한 적이
+        //    있는데, 이 요청은 롤백돼 afterCommit 이 불리지 않으므로 그 행의 출처가 아니다 — 시험 기반의
+        //    H2 는 컨텍스트끼리 공유되고 캐시된 다른 컨텍스트의 스케줄러가 남은 세션으로 주문을 만들 수 있다.
+        //    지키려는 계약은 "롤백된 포지션을 참조하는 주문이 나가지 않는다" 이므로 그것을 단정하고,
+        //    전역 행은 진단으로 남긴다(다시 나타나면 출처를 볼 수 있게).
+        List<com.cryptoautotrader.api.entity.OrderEntity> all = orderRepository.findAll();
+        assertThat(all.stream().filter(o -> Long.valueOf(rolledBackPositionId.get()).equals(o.getPositionId())))
+                .as("포지션 없이 주문만 거래소로 나가는 사고를 막아야 한다. 전체 주문 행(진단): %s",
+                        all.stream().map(o -> String.format("[id=%d %s %s kind=%s sid=%s pos=%s state=%s reason=%s]",
+                                o.getId(), o.getCoinPair(), o.getSide(), o.getSessionKind(), o.getSessionId(),
+                                o.getPositionId(), o.getState(), o.getSignalReason())).toList())
+                .isEmpty();
     }
 
     @Test

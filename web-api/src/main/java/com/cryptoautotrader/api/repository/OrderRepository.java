@@ -318,11 +318,14 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
      * 그대로 두면 그만큼 <b>과대 승인</b>한다. 그래서 종결 시각이 스냅숏보다 늦은 매수는 여전히
      * 스냅숏 안의 돈을 쓴 것으로 센다. 체결이 실제로 스냅숏 전에 일어났다면 두 번 빠지지만, 그것은
      * 과소 승인 쪽이다.</p>
+     *
+     * <p>🔴 비교는 <b>포함(≥)</b>이다 — 기준 시각은 마이크로초로 내림돼 있고 DB 시각도 마이크로초다. 같은
+     * 마이크로초의 사건은 스냅숏 뒤일 수 있으므로 센다(과소 승인 쪽).</p>
      */
     @Query("SELECT COALESCE(SUM(COALESCE(o.reservedKrw, "
             + "CASE WHEN o.orderType = 'MARKET' THEN o.quantity ELSE o.price * o.quantity END)), 0) "
             + "FROM OrderEntity o WHERE o.side = 'BUY' AND o.sessionKind IN ('LIVE', 'DYNAMIC') "
-            + "AND o.state IN ('FILLED', 'CANCELLED') AND o.filledAt IS NOT NULL AND o.filledAt > :since")
+            + "AND o.state IN ('FILLED', 'CANCELLED') AND o.filledAt IS NOT NULL AND o.filledAt >= :since")
     java.math.BigDecimal sumBuyCommitmentFilledSince(@Param("since") Instant since);
 
     /** 불명 조회 시도를 기록한다 — 🔴 상태는 바꾸지 않는다(자동 종결 금지). */

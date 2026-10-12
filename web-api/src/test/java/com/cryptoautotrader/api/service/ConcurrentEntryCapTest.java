@@ -145,8 +145,12 @@ class ConcurrentEntryCapTest extends IntegrationTestBase {
     /** 거절 사유 — 어느 한도에 걸렸는지 확인한다. */
     private final List<String> rejectionCodes = new CopyOnWriteArrayList<>();
 
+    @Autowired private org.springframework.jdbc.core.JdbcTemplate quiesceJdbc;
+
     @org.junit.jupiter.api.BeforeEach
     void saveLimits() {
+        // 계좌 여력은 전역 약정 합을 쓴다 — 앞선 시험이 남긴 열린 매수가 시험 도중 움직이지 않게 닫는다.
+        com.cryptoautotrader.api.support.OpenBuyLedger.quiesce(quiesceJdbc);
         savedTotalCap = limits.getTotalCapKrw();
         savedPerPosition = limits.getPerPositionCapKrw();
         savedMaxPositions = limits.getMaxConcurrentPositions();
@@ -297,7 +301,8 @@ class ConcurrentEntryCapTest extends IntegrationTestBase {
     void concurrentEntriesAgainstRegisteredPoolCap() throws Exception {
         // 🔴 계좌에는 **충분한 돈이 있다**(1조). 거래소는 두 주문을 모두 받아 줄 것이다 — 그래서
         //    거래소 거절은 이 한도의 안전장치가 될 수 없다. 막는 것은 등록 한도뿐이다.
-        Mockito.doReturn(new BigDecimal("1000000000000")).when(portfolioManager).getTotalCapital();
+        Mockito.doReturn(new com.cryptoautotrader.core.portfolio.PortfolioManager.CapitalSnapshot(new BigDecimal("1000000000000"), Instant.now()))
+                .when(portfolioManager).getCapitalSnapshot();
 
         Long a = session("KRW-DOGE", new BigDecimal("3000.00"));
         Long b = session("KRW-ADA", new BigDecimal("3000.00"));
@@ -326,7 +331,8 @@ class ConcurrentEntryCapTest extends IntegrationTestBase {
     @Test
     @DisplayName("슬롯 한도 — 자금이 넉넉해도 동시 보유 상한을 넘는 동시 진입은 하나만 승인한다")
     void concurrentEntriesAgainstSlotLimit() throws Exception {
-        Mockito.doReturn(new BigDecimal("1000000000000")).when(portfolioManager).getTotalCapital();
+        Mockito.doReturn(new com.cryptoautotrader.core.portfolio.PortfolioManager.CapitalSnapshot(new BigDecimal("1000000000000"), Instant.now()))
+                .when(portfolioManager).getCapitalSnapshot();
 
         Long a = session("KRW-DOGE", new BigDecimal("3000.00"));
         Long b = session("KRW-ADA", new BigDecimal("3000.00"));
@@ -369,7 +375,8 @@ class ConcurrentEntryCapTest extends IntegrationTestBase {
 
         BigDecimal capBefore = new BigDecimal("5000.00");
         // 🔴 계좌 여력 = 총잔고 − 열린 매수 약정. 다른 시험이 남긴 약정 위에 5,000 을 남긴다.
-        Mockito.doReturn(openCommitmentBaseline().add(capBefore)).when(portfolioManager).getTotalCapital();
+        Mockito.doReturn(new com.cryptoautotrader.core.portfolio.PortfolioManager.CapitalSnapshot(openCommitmentBaseline().add(capBefore), Instant.now()))
+                .when(portfolioManager).getCapitalSnapshot();
 
         assertThat(sessionRepository.sumAvailableKrwByStatusIn(ACTIVE_SESSION_STATUSES))
                 .as("배정 합은 6,000 이고 계좌 잔고 5,000 을 넘는다 — 이것이 drift 다")

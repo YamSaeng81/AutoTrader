@@ -66,8 +66,12 @@ class CapitalPoolLimitTest extends IntegrationTestBase {
     private final List<Long> dynamicSessions = new ArrayList<>();
     private final List<Long> orders = new ArrayList<>();
 
+    @Autowired private org.springframework.jdbc.core.JdbcTemplate quiesceJdbc;
+
     @BeforeEach
     void save() {
+        // 계좌 여력은 전역 약정 합을 쓴다 — 앞선 시험이 남긴 열린 매수가 시험 도중 움직이지 않게 닫는다.
+        com.cryptoautotrader.api.support.OpenBuyLedger.quiesce(quiesceJdbc);
         savedTotal = limits.getTotalCapKrw();
         savedPer = limits.getPerPositionCapKrw();
         savedSlots = limits.getMaxConcurrentPositions();
@@ -200,13 +204,14 @@ class CapitalPoolLimitTest extends IntegrationTestBase {
         generousPool();
         Long a = liveSession("RUNNING", new BigDecimal("10000"), new BigDecimal("10000"));
 
-        ReflectionTestUtils.setField(portfolioManager, "lastSyncedAt", null);
+        ReflectionTestUtils.setField(portfolioManager, "snapshot", null);
         assertThat(reserve(a, "KRW-DOGE", new BigDecimal("3000")))
                 .isEqualTo(CapitalReservationService.ACCOUNT_SNAPSHOT_MISSING);
 
         portfolioManager.syncTotalCapital(new BigDecimal("1000000000000"));
-        ReflectionTestUtils.setField(portfolioManager, "lastSyncedAt",
-                Instant.now().minus(CapitalReservationService.MAX_SNAPSHOT_AGE).minus(Duration.ofMinutes(1)));
+        ReflectionTestUtils.setField(portfolioManager, "snapshot", new PortfolioManager.CapitalSnapshot(
+                new BigDecimal("1000000000000"),
+                Instant.now().minus(CapitalReservationService.MAX_SNAPSHOT_AGE).minus(Duration.ofMinutes(1))));
         assertThat(reserve(a, "KRW-DOGE", new BigDecimal("3000")))
                 .as("🔴 동기화가 멈추면 계좌에서 돈이 빠져도 모른다")
                 .isEqualTo(CapitalReservationService.ACCOUNT_SNAPSHOT_STALE);

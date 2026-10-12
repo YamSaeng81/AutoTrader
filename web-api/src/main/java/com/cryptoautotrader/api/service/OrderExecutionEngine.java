@@ -363,7 +363,9 @@ public class OrderExecutionEngine {
      */
     public boolean withdrawUndispatchedIntent(Long orderId, String why) {
         try {
-            return Boolean.TRUE.equals(submitTx.execute(st ->
+            // 🔴 REQUIRES_NEW 다 — 이 메서드는 커밋 후 훅(afterCommit)에서도 불린다. 그 시점에는 끝난
+            //    트랜잭션의 자원이 아직 묶여 있어 REQUIRED 로 열면 그 트랜잭션에 "참여" 하고 커밋되지 않는다.
+            return Boolean.TRUE.equals(syncTx.execute(st ->
                     withdrawIntent(orderId, WITHDRAWN_DISPATCH_LOST, why)));
         } finally {
             DISPATCHING.remove(orderId);
@@ -414,17 +416,19 @@ public class OrderExecutionEngine {
 
         // 🔴 **잠금을 먼저 잡고 한도를 본다.** 중복·정지 확인은 그다음이다 — 순서를 바꾸면
         //    확인과 예약 사이가 다시 벌어진다.
-        if (!"BUY".equalsIgnoreCase(request.getSide()) || !"LIVE".equals(sessionKind)
+        if (!"BUY".equalsIgnoreCase(request.getSide())
+                || !("LIVE".equals(sessionKind) || "DYNAMIC".equals(sessionKind))
                 || request.getSessionId() == null) {
-            // 🔴 이 진입점은 LIVE 세션 매수 전용이다. 다른 것을 넣으면 예약 없이 통과하므로 막는다.
-            throw new IllegalArgumentException("reserveAndPrepareIntent 는 LIVE 세션 매수 전용이다: "
+            // 🔴 이 진입점은 **실자금 공유 풀 세션의 매수** 전용이다(LIVE·DYNAMIC). 다른 것을 넣으면
+            //    예약 없이 통과하므로 막는다.
+            throw new IllegalArgumentException("reserveAndPrepareIntent 는 실자금 세션 매수 전용이다: "
                     + request.getSide() + "/" + sessionKind);
         }
         if (capitalReservationService == null) {
             throw new IllegalStateException("예약 서비스가 없다 — 한도 확인 없이 승인하지 않는다");
         }
-        CapitalReservationService.Decision decision = capitalReservationService.reserveForLiveBuy(
-                request.getSessionId(), request.getQuantity(), request.getPositionId());
+        CapitalReservationService.Decision decision = capitalReservationService.reserveForBuy(
+                sessionKind, request.getSessionId(), request.getQuantity(), request.getPositionId());
         if (!decision.approved()) {
             // 🔴 **거절도 롤백한다.** 종전에는 null 을 돌려줘 호출자 트랜잭션이 그대로 커밋됐고,
             //    같은 트랜잭션에서 만든 슬롯(size=0 포지션)이 **차감 없이** 남았다. 그 포지션을
@@ -434,15 +438,46 @@ public class OrderExecutionEngine {
 
         Long orderId = prepareIntent(request);
         if (orderId == null) {
-            // 🔴 의도가 거절되면 **예약도 되돌려야 한다.** 호출자의 트랜잭션을 롤백시키는 것이
-            //    가장 확실하다 — 같은 트랜잭션이므로 자금·슬롯·의도가 함께 사라진다.
-            throw new ReservationRejected("INTENT_REJECTED", "주문 의도가 거절됐다 — 예약을 롤백한다");
+            // 🔴 의도가 거절되면 **예약도 되돌려야 한다.** LIVE 는 호출자가 트랜잭션을 롤백하고,
+            //    DYNAMIC 은 틱 트랜잭션이라 롤백하면 신호 기록까지 사라지므로 차감을 같은 트랜잭션
+            //    안에서 정확히 되돌린다. 둘 다 해도 해롭지 않다(롤백되면 되돌림도 사라진다).
+            capitalReservationService.releaseWithinTransaction(
+                    sessionKind, request.getSessionId(), request.getQuantity());
+            throw new ReservationRejected("INTENT_REJECTED", "주문 의도가 거절됐다 — 예약을 되돌린다");
         }
         orderRepository.findById(orderId).ifPresent(o -> {
             o.setReservedKrw(request.getQuantity());
             orderRepository.save(o);
         });
         return orderId;
+    }
+
+    /**
+     * 예약·의도가 들어 있는 <b>호출자 트랜잭션이 커밋된 뒤에</b> 제출을 넘긴다 (2026-10-12, DYNAMIC).
+     *
+     * <p>🔴 틱 트랜잭션이 롤백되면 예약·슬롯·의도가 함께 사라지고 <b>제출은 0회</b>다 — 종전
+     * {@link #submitOrderAfterCommit} 의 계약(롤백분 0회·정상분 1회)을 그대로 지킨다.</p>
+     *
+     * <p>🔴 실행기가 작업을 받지 못하면 <b>그 자리에서 철회</b>한다 — 그 의도를 claim 할 작업은 생기지
+     * 않는다.</p>
+     */
+    public void submitPreparedOrderAfterCommit(Long orderId, OrderRequest request) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            throw new IllegalStateException("커밋 후 제출은 트랜잭션 안에서만 등록할 수 있다 (orderId=" + orderId + ")");
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                try {
+                    self.submitPreparedOrder(orderId, request);
+                } catch (RuntimeException dispatchFailed) {
+                    log.error("의도를 실행기에 넘기지 못했다 — 철회한다 (orderId={}): {}",
+                            orderId, dispatchFailed.getMessage());
+                    withdrawUndispatchedIntent(orderId,
+                            "실행기 디스패치 실패 — 제출하지 않았다: " + dispatchFailed.getClass().getSimpleName());
+                }
+            }
+        });
     }
 
     /**
@@ -759,8 +794,21 @@ public class OrderExecutionEngine {
         log.info("거래소 주문 제출 완료 (orderId={}, exchangeId={}, initialState={})",
                 order.getId(), exchangeResponse.getUuid(), exchangeResponse.getState());
 
-        // 주문 생성 응답에서 이미 최종 상태인 경우 즉시 처리 (폴러 대기 불필요)
+        // 🔴 LIVE 시장가 매수는 생성 응답이 이미 종결(done·체결 있는 cancel)이어도 **여기서 반영하지
+        //    않는다** (2026-10-12). 반영은 원자적 회계 경로 하나로 모은다 — 여기서 `processFilledOrder`
+        //    를 부르면 원금 차이 복원과 정산의 미사용 예약 복원이 **겹친다**(폴링 경로에서 실측 60원
+        //    과복원). SUBMITTED 로 두면 폴러가 같은 응답을 원자 경로로 반영한다.
         String initialState = mapExchangeState(exchangeResponse.getState());
+        boolean liveMarketBuy = order.getFeeSource() != null
+                && "BUY".equalsIgnoreCase(order.getSide())
+                && "MARKET".equalsIgnoreCase(order.getOrderType())
+                && "LIVE".equals(order.getSessionKind());
+        if (liveMarketBuy) {
+            transitionState(order, "SUBMITTED", null);
+            return;
+        }
+
+        // 주문 생성 응답에서 이미 최종 상태인 경우 즉시 처리 (폴러 대기 불필요)
         if ("FILLED".equals(initialState)) {
             if (exchangeResponse.getExecutedVolume() != null) {
                 order.setFilledQuantity(exchangeResponse.getExecutedVolume());
@@ -859,7 +907,15 @@ public class OrderExecutionEngine {
                 && "BUY".equalsIgnoreCase(order.getSide())
                 && "MARKET".equalsIgnoreCase(order.getOrderType())
                 && "LIVE".equals(order.getSessionKind())
-                && "FILLED".equals(mapExchangeState(exchangeStatus.getState()));
+                && ("FILLED".equals(mapExchangeState(exchangeStatus.getState()))
+                    // 🔴 **부분 체결 후 취소도 같은 경로다** (2026-10-12). 업비트 시장가 매수는 남은
+                    //    금액을 취소하며 `cancel` 로 끝나는 일이 흔하다. 종전에는 이 응답이 기존 경로로
+                    //    가서 `handleBuyFill` 이 원금 차이(60)를 복원하고, 정산이 미사용 예약(58.53)을
+                    //    **또** 복원했다 — 잔액 7,118.53, 없던 돈 60원(SnapshotBoundaryRaceTest ③).
+                    //    체결 없는 취소는 기존 경로(CANCELLED → 고아 정리가 예약 전액 복원)에 둔다.
+                    || ("CANCELLED".equals(mapExchangeState(exchangeStatus.getState()))
+                        && exchangeStatus.getExecutedVolume() != null
+                        && exchangeStatus.getExecutedVolume().signum() > 0));
 
         if (atomicBuyPath) {
             try {

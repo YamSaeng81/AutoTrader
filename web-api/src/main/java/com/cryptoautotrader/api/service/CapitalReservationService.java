@@ -1,5 +1,6 @@
 package com.cryptoautotrader.api.service;
 
+import com.cryptoautotrader.api.entity.DynamicSessionEntity;
 import com.cryptoautotrader.api.entity.LiveTradingSessionEntity;
 import com.cryptoautotrader.api.repository.DynamicSessionRepository;
 import com.cryptoautotrader.api.repository.LiveTradingSessionRepository;
@@ -41,6 +42,7 @@ import java.util.List;
  *
  * <pre>
  * 스냅숏      = 총잔고 = 가용(balance) + 주문 잠금(locked)        ← 주문 가능 잔고가 아니다
+ *               기준 시각 = 조회를 **시작한** 시각                  ← 응답 시각이 아니다
  * 묶인 돈     = 열린 매수 주문의 약정액 합                       ← 스냅숏 안에 있다 (가용 또는 잠금)
  *             + 스냅숏 이후 로컬에서 종결된 매수의 약정액 합      ← 스냅숏이 체결 전 값이므로 아직 안에 있다
  * 여력        = 스냅숏 − 묶인 돈
@@ -64,9 +66,7 @@ import java.util.List;
  * <p>🔴 이 서비스는 <b>호출자의 트랜잭션 안에서</b> 돈다. 잠금의 수명이 그 트랜잭션이어야 한다 —
  * 자기 트랜잭션을 열면 잠금이 먼저 풀려 한도 확인과 의도 저장 사이가 다시 벌어진다.</p>
  *
- * <p>🔴 <b>DYNAMIC 매수는 아직 이 잠금을 지나지 않는다.</b> 노출·슬롯·묶인 돈 계산에는 DYNAMIC 을
- * <b>센다</b>(LIVE 가 DYNAMIC 이 쓴 몫까지 승인하지 않도록) — 그러나 DYNAMIC 의 매수 자체는 경합
- * 없이 직렬화되지 않는다. 그 통합은 다음 작업이다.</p>
+ * <p>🟢 <b>LIVE·실자금 DYNAMIC 의 매수와 세션 생성·재시작이 모두 이 잠금을 지난다</b> (2026-10-12).</p>
  */
 @Slf4j
 @Service
@@ -145,9 +145,26 @@ public class CapitalReservationService {
      * @param selfPositionId 같은 트랜잭션에서 방금 만든 이 매수의 슬롯 — 슬롯·노출 합에서 뺀다
      */
     public Decision reserveForLiveBuy(Long sessionId, BigDecimal amount, Long selfPositionId) {
-        requireTransaction("자금 예약 (sessionId=" + sessionId + ")");
+        return reserveForBuy("LIVE", sessionId, amount, selfPositionId);
+    }
+
+    /**
+     * 실자금 매수 — LIVE·DYNAMIC 공통 (2026-10-12). <b>호출자의 트랜잭션 안에서</b> 불러야 한다.
+     *
+     * <p>🔴 <b>두 종류가 같은 잠금·같은 판정</b>을 지난다. 종류마다 다른 경로를 두면 서로의 예약을
+     * 보지 못해 공유 풀이 다시 갈라진다. 다른 것은 차감할 세션 테이블뿐이다.</p>
+     *
+     * <p>🔴 <b>자본 모델이 공유 풀인 세션만</b> 여기로 온다. 현재 페이퍼 세션(검증 66세션 포함)은
+     * 독립 자본으로 사전 등록됐으므로 대상이 아니다 — 공유 풀 페이퍼를 만들 때는 같은 판정을 쓰되
+     * 계좌 스냅숏의 공급원만 모의 계좌로 바꾼다(지금은 미구현이라 거절한다).</p>
+     */
+    public Decision reserveForBuy(String kind, Long sessionId, BigDecimal amount, Long selfPositionId) {
+        requireTransaction("자금 예약 (" + kind + ", sessionId=" + sessionId + ")");
         if (amount == null || amount.signum() <= 0 || sessionId == null) {
             return Decision.reject(INVALID_REQUEST, "금액·세션이 없다");
+        }
+        if (!"LIVE".equals(kind) && !"DYNAMIC".equals(kind)) {
+            throw new IllegalArgumentException("실자금 예약은 LIVE·DYNAMIC 만 받는다: " + kind);
         }
 
         // ① 공유 잠금 — 이 트랜잭션이 끝날 때까지 다른 예약·배정은 여기서 기다린다.
@@ -168,23 +185,81 @@ public class CapitalReservationService {
         }
 
         // ④ 세션 자금 — 세션 가용 KRW 는 **예약이 이미 차감된 값**이다. 여기서 차감한다.
-        LiveTradingSessionEntity session = sessionRepository.findById(sessionId).orElse(null);
-        if (session == null) {
-            return logged(sessionId, Decision.reject(INVALID_REQUEST, "세션을 찾을 수 없다"));
+        BigDecimal before;
+        BigDecimal after;
+        if ("LIVE".equals(kind)) {
+            LiveTradingSessionEntity session = sessionRepository.findById(sessionId).orElse(null);
+            if (session == null) {
+                return logged(sessionId, Decision.reject(INVALID_REQUEST, "세션을 찾을 수 없다"));
+            }
+            before = nz(session.getAvailableKrw());
+            if (before.compareTo(amount) < 0) {
+                return logged(sessionId, sessionFunds(before, amount));
+            }
+            after = before.subtract(amount);
+            session.setAvailableKrw(after);
+            sessionRepository.save(session);
+        } else {
+            DynamicSessionEntity session = dynamicSessionRepository == null ? null
+                    : dynamicSessionRepository.findById(sessionId).orElse(null);
+            if (session == null) {
+                return logged(sessionId, Decision.reject(INVALID_REQUEST, "동적 세션을 찾을 수 없다"));
+            }
+            if (session.isPaper()) {
+                // 🔴 독립 자본 페이퍼는 이 경로의 대상이 아니다. 잘못 들어오면 실계좌 스냅숏으로 모의 매수를
+                //    판정하게 되므로 조용히 통과시키지 않는다.
+                throw new IllegalArgumentException("독립 자본 페이퍼 세션은 공유 풀 예약 대상이 아니다: " + sessionId);
+            }
+            // 🔴 **최신 행을 잠근 채 다시 읽는다.** 틱 트랜잭션이 들고 있는 엔티티는 낡았을 수 있다 —
+            //    워치리스트 기록(`persistWatchlist`)·정산이 같은 행을 별도 트랜잭션으로 갱신해 @Version 이
+            //    올라간다. 낡은 엔티티로 쓰면 낙관적 잠금 충돌로 틱 전체가 실패한다(측정으로 확인).
+            //    먼저 flush 해 이 트랜잭션의 미반영 변경을 잃지 않게 한다(생산 틱은 세션 행을 메모리에서
+            //    바꾸지 않으므로 보통 아무것도 하지 않는다).
+            em.flush();
+            em.refresh(session, jakarta.persistence.LockModeType.PESSIMISTIC_WRITE);
+            before = nz(session.getAvailableKrw());
+            if (before.compareTo(amount) < 0) {
+                return logged(sessionId, sessionFunds(before, amount));
+            }
+            after = before.subtract(amount);
+            // 🔴 같은 트랜잭션의 **관리 엔티티**를 바꾼다. 별도 트랜잭션(REQUIRES_NEW)으로 쓰면 이
+            //    트랜잭션이 커밋 전 롤백될 때 차감만 살아남는다 — 종전 구조가 그것을 보상으로 메웠다.
+            session.setAvailableKrw(after);
+            dynamicSessionRepository.save(session);
         }
-        BigDecimal before = session.getAvailableKrw() != null ? session.getAvailableKrw() : BigDecimal.ZERO;
-        if (before.compareTo(amount) < 0) {
-            return logged(sessionId, Decision.reject(SESSION_FUNDS, String.format(
-                    "세션 가용 KRW(%s) < 매수금(%s)", before.toPlainString(), amount.toPlainString())));
-        }
-        session.setAvailableKrw(before.subtract(amount));
-        sessionRepository.save(session);
         em.flush();   // 🔴 잠금 안에서 반영을 확정한다 — 다음 예약이 읽을 합계에 들어가야 한다.
 
-        String msg = String.format("예약: 세션 %s → %s, %s | %s", before.toPlainString(),
-                session.getAvailableKrw().toPlainString(), pool.message(), account.message());
+        String msg = String.format("예약(%s): 세션 %s → %s, %s | %s", kind, before.toPlainString(),
+                after.toPlainString(), pool.message(), account.message());
         log.info("자금 예약 (sessionId={}): {}", sessionId, msg);
         return Decision.approve(msg);
+    }
+
+    /**
+     * 예약을 되돌린다 — <b>같은 트랜잭션 안에서</b> 예약 직후 의도가 거절됐을 때만 쓴다 (2026-10-12).
+     *
+     * <p>LIVE 는 예약 트랜잭션 전체를 롤백하므로 이것이 없어도 되지만, DYNAMIC 은 틱 트랜잭션 안에서
+     * 예약하므로 롤백하면 그 틱의 신호 기록까지 사라진다. 그래서 차감만 정확히 되돌린다.</p>
+     */
+    public void releaseWithinTransaction(String kind, Long sessionId, BigDecimal amount) {
+        requireTransaction("예약 해제 (" + kind + ", sessionId=" + sessionId + ")");
+        if ("LIVE".equals(kind)) {
+            sessionRepository.findById(sessionId).ifPresent(s -> {
+                s.setAvailableKrw(nz(s.getAvailableKrw()).add(amount));
+                sessionRepository.save(s);
+            });
+        } else if ("DYNAMIC".equals(kind) && dynamicSessionRepository != null) {
+            dynamicSessionRepository.findById(sessionId).ifPresent(s -> {
+                s.setAvailableKrw(nz(s.getAvailableKrw()).add(amount));
+                dynamicSessionRepository.save(s);
+            });
+        }
+        em.flush();
+    }
+
+    private static Decision sessionFunds(BigDecimal before, BigDecimal amount) {
+        return Decision.reject(SESSION_FUNDS, String.format(
+                "세션 가용 KRW(%s) < 매수금(%s)", before.toPlainString(), amount.toPlainString()));
     }
 
     /**
@@ -274,7 +349,9 @@ public class CapitalReservationService {
      * @param alsoClaimed 여력에서 함께 빼야 할, 다른 세션이 쓸 권리를 가진 돈 (배정 검사에서만 쓴다)
      */
     private Decision checkAccountHeadroom(BigDecimal amount, BigDecimal alsoClaimed) {
-        Instant syncedAt = portfolioManager.getLastSyncedAt();
+        // 🔴 잔고와 기준 시각을 **한 번에** 읽는다 — 따로 읽으면 교체 순간 다른 스냅숏의 짝이 섞인다.
+        PortfolioManager.CapitalSnapshot snap = portfolioManager.getCapitalSnapshot();
+        Instant syncedAt = snap != null ? snap.asOf() : null;
         if (syncedAt == null) {
             return Decision.reject(ACCOUNT_SNAPSHOT_MISSING,
                     "계좌 잔고 스냅숏이 없다 — 계좌에 얼마가 있는지 모르므로 승인하지 않는다");
@@ -285,7 +362,7 @@ public class CapitalReservationService {
                     "계좌 잔고 스냅숏이 %d분 전 값이다 (허용 %d분) — 동기화가 멈췄을 수 있다",
                     age.toMinutes(), MAX_SNAPSHOT_AGE.toMinutes()));
         }
-        BigDecimal snapshot = nz(portfolioManager.getTotalCapital());
+        BigDecimal snapshot = nz(snap.totalCapital());
         BigDecimal open = nz(orderRepository.sumOpenBuyCommitmentKrw());
         BigDecimal settledSince = nz(orderRepository.sumBuyCommitmentFilledSince(syncedAt));
         BigDecimal headroom = snapshot.subtract(open).subtract(settledSince).subtract(alsoClaimed);

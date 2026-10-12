@@ -86,9 +86,13 @@ class DynamicBuyOuterWriteOrderingTest extends IntegrationTestBase {
     @Autowired
     private PlatformTransactionManager txManager;
 
-    /** 🔴 외부 주문 실행만 대역으로 바꾼다. 내부 서비스·트랜잭션 프록시는 실제 구성을 유지한다. */
+    /**
+     * 🔴 거래소 경계만 대역으로 바꾼다 (2026-10-12 변경). 종전에는 {@code OrderExecutionEngine} 을
+     * 대역으로 뒀는데, 이제 <b>예약(차감)이 그 엔진 안에서</b> 일어나므로 엔진을 대역으로 두면 관측할
+     * 대상이 사라진다.
+     */
     @MockBean
-    private OrderExecutionEngine orderExecutionEngine;
+    private com.cryptoautotrader.exchange.upbit.UpbitOrderClient upbitOrderClient;
 
     @AfterEach
     void off() {
@@ -124,7 +128,7 @@ class DynamicBuyOuterWriteOrderingTest extends IntegrationTestBase {
     }
 
     @Test
-    @DisplayName("🔴 바깥 세션 UPDATE 가 안쪽 REQUIRES_NEW 진입 전에 실행되는가 — 생산 경로 관측")
+    @DisplayName("🔴 매수 경로에 별도 연결의 세션 행 갱신이 없다 — 차감이 예약과 같은 트랜잭션이다")
     void outerSessionUpdateOrderingAroundRequiresNew() {
         Long id = newRealRunningSession();
         StrategySignal buy = StrategySignal.buy(new BigDecimal("80"), "test B");
@@ -196,48 +200,33 @@ class DynamicBuyOuterWriteOrderingTest extends IntegrationTestBase {
                 + " / watchlistJson=" + after.getWatchlistJson()
                 + " / position=" + positions + " / order=" + orders);
 
-        // ── 관측된 사실을 단정으로 고정한다 (2026-09-26) ─────────────────────
-        // 🔴 가설은 지지되지 않았다. 바깥의 dynamic_session UPDATE 는 **커밋 시점까지 지연**돼
-        //    안쪽 REQUIRES_NEW 보다 **나중에** 실행됐다. 즉 안쪽이 돌 때 바깥은 그 행의 잠금을
-        //    쥐고 있지 않았고, 잠금 대기는 일어나지 않았다.
-        // 🔴 "다른 연결의 첫 문장"을 안쪽 진입으로 쓰면 틀린다 — 관측 결과 그것은
-        //    balanceUpdater 가 아니라 **더 앞선 별도 연결 작업**(risk_config 쪽)이었다.
-        //    관심 문장을 정확히 지목한다: **바깥이 아닌 연결의 dynamic_session UPDATE**.
+        // ── 2026-09-26 관측 (기록) ─────────────────────────────────────────
+        // 가설은 지지되지 않았다: 바깥의 dynamic_session UPDATE 는 커밋 시점까지 지연돼 안쪽
+        // REQUIRES_NEW(balanceUpdater 차감)보다 나중에 실행됐고 잠금 대기는 없었다.
+        //
+        // ── 2026-10-12 재고정 — 위험한 순서가 **구조적으로 사라졌다** ──────────────
+        // 매수가 공유 풀 예약 경계를 지나게 되면서 차감이 **같은 트랜잭션**으로 들어왔다. 별도 연결이
+        // 같은 세션 행을 갱신하는 단계가 매수 경로에 더는 없으므로, "바깥이 잠금을 쥔 채 안쪽이
+        // 기다린다" 는 순서가 만들어질 수 없다. 대신 예약이 그 행을 **잠근 채 다시 읽고** 차감한다.
         OptionalInt innerSessionUpdate = firstIndex(rows,
                 r -> r.isUpdateOf("dynamic_session") && r.phase() == SqlTrace.Phase.START
                         && r.connTag() != outerConn);
         assertThat(innerSessionUpdate)
-                .as("balanceUpdater(REQUIRES_NEW)의 세션 UPDATE 가 별도 연결에서 관측돼야 한다")
-                .isPresent();
-        int innerAt = innerSessionUpdate.getAsInt();
+                .as("🔴 매수 경로에서 별도 연결이 세션 행을 갱신하면 안 된다 — 그 순서가 자기 대기를 만든다")
+                .isEmpty();
 
-        assertThat(positionInsertEnd).as("position INSERT 는 실행돼야 관측이 성립한다").isPresent();
-        assertThat(positionInsertEnd.getAsInt())
-                .as("🔴 position INSERT 는 안쪽 진입 **전에** 실행된다 — 그러나 이것은 "
-                        + "dynamic_session UPDATE 가 실행됐다는 증거가 아니다(따로 확인한다)")
-                .isLessThan(innerAt);
-
-        OptionalInt outerSessionUpdate = firstIndex(rows,
-                r -> r.isUpdateOf("dynamic_session") && r.phase() == SqlTrace.Phase.END
-                        && r.connTag() == outerConn);
-        assertThat(outerSessionUpdate).as("바깥 연결의 세션 UPDATE 도 언젠가는 실행된다").isPresent();
-        assertThat(outerSessionUpdate.getAsInt())
-                .as("🔴 이 단정이 깨지면 **위험한 순서가 생겼다는 신호**다 — 바깥 세션 UPDATE 가 "
-                        + "안쪽 REQUIRES_NEW 진입 전에 실행되면 안쪽이 그 잠금을 기다린다. "
-                        + "현재는 커밋 시점까지 지연돼 그 순서가 만들어지지 않는다")
-                .isGreaterThan(innerAt);
-
-        // ③ 최종 상태 — 예외 없음보다 이쪽이 중요하다. 보상까지 돌아 일관된다.
+        assertThat(innerFailure[0]).as("매수가 예외 없이 끝난다").isNull();
+        assertThat(outerFailure).as("바깥 커밋이 성공한다 — 낡은 @Version 충돌이 없다").isNull();
         assertThat(after.getAvailableKrw())
-                .as("안쪽 차감(8,000)이 커밋됐지만 바깥이 롤백됐다 — 보상이 되돌려 초기값이어야 한다")
-                .isEqualByComparingTo(new BigDecimal("10000.00"));
-        assertThat(after.getScanState()).isEqualTo("SCANNING");
-        assertThat(after.getCurrentPositionId()).isNull();
-        assertThat(positions).as("바깥 롤백이므로 포지션이 남지 않는다").isZero();
-        assertThat(orders).as("주문은 afterCommit 훅이라 커밋되지 않았으면 남지 않는다").isZero();
+                .as("예약(8,000)이 같은 트랜잭션에서 차감돼 커밋됐다")
+                .isEqualByComparingTo(new BigDecimal("2000.00"));
+        assertThat(after.getScanState()).isEqualTo("POSITION_MONITORING");
+        assertThat(after.getCurrentPositionId()).isNotNull();
+        assertThat(positions).isEqualTo(1);
+        assertThat(orders).as("주문 의도가 예약과 함께 커밋됐다").isEqualTo(1);
         assertThat(after.getWatchlistJson())
-                .as("바깥의 워치리스트 쓰기도 함께 롤백된다")
-                .isNull();
+                .as("바깥의 워치리스트 쓰기도 잃지 않았다 — 다시 읽기 전에 flush 한다")
+                .isEqualTo("[\"KRW-BTC\"]");
     }
 
     private static String chain(Throwable t) {

@@ -161,6 +161,8 @@ class DynamicPaperTradingTest extends IntegrationTestBase {
         assertThat(blocked).isNull();
         verify(orderExecutionEngine, never()).submitOrderAfterCommit(any());
         verify(orderExecutionEngine, never()).submitOrder(any());
+        // 🔴 독립 자본 페이퍼(검증 66세션)에는 공유 풀 예약을 소급하지 않는다 — 사전 등록된 자본 모델이다.
+        verify(orderExecutionEngine, never()).reserveAndPrepareIntent(any());
 
         List<PositionEntity> positions = positionRepository.findBySessionKindAndStatus("DYN_PAPER", "OPEN");
         assertThat(positions).hasSize(1);
@@ -190,7 +192,11 @@ class DynamicPaperTradingTest extends IntegrationTestBase {
         String blocked = dynamicTradingService.executeBuy(session, "KRW-BTC", evalCandles, signal, BigDecimal.ONE);
 
         assertThat(blocked).isNull();
-        verify(orderExecutionEngine).submitOrderAfterCommit(any());
+        // 🔴 2026-10-12: REAL 은 이제 공유 풀 예약 경계를 지난다 — 예약·의도를 이 트랜잭션에 쓰고,
+        //    제출은 커밋 후로 넘긴다. 종전 `submitOrderAfterCommit` 경로는 예약을 우회했다.
+        verify(orderExecutionEngine).reserveAndPrepareIntent(any());
+        verify(orderExecutionEngine).submitPreparedOrderAfterCommit(any(), any());
+        verify(orderExecutionEngine, never()).submitOrderAfterCommit(any());
 
         List<PositionEntity> positions = positionRepository.findBySessionKindAndStatus("DYNAMIC", "OPEN");
         assertThat(positions).hasSize(1);

@@ -87,9 +87,12 @@ class DynamicBuyCompletesConsistentlyTest extends IntegrationTestBase {
     @Autowired
     private PlatformTransactionManager txManager;
 
-    /** 🔴 외부 주문 실행만 대역. 내부 서비스·트랜잭션 프록시는 실제 구성을 유지한다. */
+    /**
+     * 🔴 거래소 경계만 대역 (2026-10-12 변경). 종전에는 {@code OrderExecutionEngine} 을 대역으로 뒀지만
+     * 이제 <b>차감·슬롯·의도가 그 엔진의 예약 경계 안에서</b> 일어나므로 엔진은 실제 빈을 쓴다.
+     */
     @MockBean
-    private OrderExecutionEngine orderExecutionEngine;
+    private com.cryptoautotrader.exchange.upbit.UpbitOrderClient upbitOrderClient;
 
     /**
      * 🔴 보상 <b>진입</b>을 계측하기 위한 스파이 — 대역이 아니라 실제 동작을 그대로 수행한다.
@@ -170,25 +173,10 @@ class DynamicBuyCompletesConsistentlyTest extends IntegrationTestBase {
                         + "그보다 작으면 중복 차감)", CAPITAL, expectedInvest)
                 .isEqualByComparingTo(CAPITAL.subtract(expectedInvest));
 
-        // 🔴 보상 **실행 경로를 직접 계측**한다. UPDATE 횟수는 직접 증거가 아니다 —
-        //    보상이 호출돼도 UPDATE 를 내기 전에 종료·실패할 수 있다.
-        //    보상은 afterCompletion(ROLLED_BACK) 에서 balanceUpdater.apply 를 부른다
-        //    (`registerBuyDeductionCompensation`). 그 **진입**을 세면 UPDATE 전에 실패해도 잡힌다.
-        //    정상 경로의 apply 는 두 번이어야 한다 — persistWatchlist 1 + 매수 차감 1.
-        //    ⚠️ 세션 ID 로 좁힌다. 이 컨텍스트에서는 스케줄러도 돌아 다른 세션의 apply 가 섞인다.
-        // 🔴 직접 관측한 사실은 "이 세션의 updater 진입 총 2회" 다.
-        //    그것을 "워치리스트 1 + 차감 1" 로 읽는 것은 두 호출이 각각 일어난다는
-        //    전제 아래에서만 유효하다(워치리스트는 아래 ④ 가, 차감은 위 ② 가 각각 단정한다).
-        //    어느 호출이 진입했는지를 이 숫자 하나로 구분하지 않는다.
-        verify(balanceUpdaterSpy, times(2)).apply(eq(id), any());
-
-        // (보조 진단) 세션 UPDATE SQL 횟수 — 직접 증거는 위 계측이다.
-        List<SqlTrace.Row> sessionUpdates = SqlTrace.rowsOfCurrentThread().stream()
-                .filter(r -> r.isUpdateOf("dynamic_session") && r.phase() == SqlTrace.Phase.END)
-                .toList();
-        assertThat(sessionUpdates)
-                .as("(보조) 세션 UPDATE 는 워치리스트 1 + 차감 1 = 2회로 보인다.%n%s", SqlTrace.dump())
-                .hasSize(2);
+        // 🔴 2026-10-12: 차감은 더 이상 balanceUpdater(REQUIRES_NEW)가 아니라 **예약 경계 안에서 같은
+        //    트랜잭션**으로 일어난다. 그래서 이 세션의 updater 진입은 워치리스트 기록 1회뿐이다.
+        //    (종전 단정: 워치리스트 1 + 차감 1 = 2회. 롤백 보상도 같은 트랜잭션이 되어 필요 없어졌다.)
+        verify(balanceUpdaterSpy, times(1)).apply(eq(id), any());
 
         // ③ 포지션·세션 상태가 잔액과 함께 일관된다.
         assertThat(positions).as("진입 포지션이 남아야 한다").hasSize(1);
@@ -203,28 +191,42 @@ class DynamicBuyCompletesConsistentlyTest extends IntegrationTestBase {
                 .as("같은 틱의 워치리스트 갱신이 매수 때문에 사라지면 일관되지 않다")
                 .isEqualTo("[\"KRW-BTC\"]");
 
-        // ⑤ 🔴 외부 주문은 대역이므로 DB 만으로 판단하지 않는다 — 호출 자체를 확인한다.
-        ArgumentCaptor<OrderRequest> req = ArgumentCaptor.forClass(OrderRequest.class);
-        verify(orderExecutionEngine, times(1)).submitOrderAfterCommit(req.capture());
-        assertThat(req.getValue().getSide()).isEqualTo("BUY");
-        assertThat(req.getValue().getCoinPair()).isEqualTo("KRW-BTC");
-        assertThat(req.getValue().getPositionId())
-                .as("제출 요청이 실제로 저장된 포지션을 가리켜야 한다 — "
-                        + "여기가 어긋나면 거래소 주문과 DB 가 갈린다")
+        // ⑤ 주문 의도가 예약과 함께 커밋되고, 실제 저장된 포지션을 가리킨다.
+        List<com.cryptoautotrader.api.entity.OrderEntity> orders =
+                orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc("DYNAMIC", id);
+        assertThat(orders).as("의도 1건 — 예약과 같은 트랜잭션에서 커밋됐다").hasSize(1);
+        assertThat(orders.get(0).getPositionId())
+                .as("제출 요청이 실제로 저장된 포지션을 가리켜야 한다 — 여기가 어긋나면 거래소 주문과 DB 가 갈린다")
                 .isEqualTo(positions.get(0).getId());
-        assertThat(orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc("DYNAMIC", id))
-                .as("주문 행은 대역이 대신하므로 비어 있다 — 🔴 이 값으로 거래소 상태를 판단하지 않는다")
-                .isEmpty();
+        assertThat(orders.get(0).getReservedKrw())
+                .as("예약액이 주문에 기록된다 — 복원은 이 값만 되돌린다")
+                .isEqualByComparingTo(expectedInvest);
 
-        // ⑥ 생산 불변식 — 바깥 트랜잭션은 세션 행을 쓰지 않는다.
-        //    🔴 이것이 깨지면 버전 충돌 경로가 되살아난다 (그 결과는 test B 가 기록해 둔다).
-        // 🔴 스레드로 좁힌다 — 전역 기록에는 스케줄러 문장이 섞여 인덱스가 밀린다.
+        // ⑥ 🔴 생산 불변식 (2026-10-12 재정의).
+        //    종전: "바깥 연결은 dynamic_session 을 쓰지 않는다" — 차감을 REQUIRES_NEW 로 내보내고, 바깥이
+        //    그 행을 쓰면 버전 충돌·자기 대기가 생겼기 때문이다.
+        //    이제 바깥(틱 트랜잭션)이 예약에서 **그 행을 잠근 채 최신으로 다시 읽고** 쓴다. 버전 충돌은
+        //    다시 읽기로 사라지고, 남는 위험은 **바깥이 행을 잠근 뒤 같은 스레드의 별도 연결이 그 행을
+        //    쓰는 순서**(자기 대기)다. 그 순서가 없음을 고정한다.
         List<SqlTrace.Row> rows = SqlTrace.rowsOfCurrentThread();
         int outerConn = rows.isEmpty() ? -1 : rows.get(0).connTag();
-        assertThat(rows.stream()
-                .filter(r -> r.isUpdateOf("dynamic_session") && r.connTag() == outerConn)
+        int firstOuterSessionWrite = -1;
+        for (int i = 0; i < rows.size(); i++) {
+            SqlTrace.Row r = rows.get(i);
+            if (r.connTag() == outerConn && (r.isUpdateOf("dynamic_session")
+                    || r.sql().toLowerCase().contains("from dynamic_session") && r.sql().toLowerCase().contains("for update"))) {
+                firstOuterSessionWrite = i;
+                break;
+            }
+        }
+        assertThat(firstOuterSessionWrite).as("바깥이 세션 행을 잠그고 쓴다. 덤프:%n%s", SqlTrace.dump())
+                .isNotNegative();
+        final int lockedAt = firstOuterSessionWrite;
+        assertThat(java.util.stream.IntStream.range(lockedAt, rows.size())
+                .mapToObj(rows::get)
+                .filter(r -> r.isUpdateOf("dynamic_session") && r.connTag() != outerConn)
                 .toList())
-                .as("바깥 연결이 dynamic_session 을 쓰면 안 된다. 덤프:%n%s", SqlTrace.dump())
+                .as("🔴 바깥이 세션 행을 잠근 뒤 별도 연결이 같은 행을 쓰면 자기 대기다. 덤프:%n%s", SqlTrace.dump())
                 .isEmpty();
     }
 }

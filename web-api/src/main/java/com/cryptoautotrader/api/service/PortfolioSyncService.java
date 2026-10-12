@@ -13,6 +13,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -56,6 +57,12 @@ public class PortfolioSyncService {
             return;
         }
 
+        // 🔴 스냅숏의 기준 시각은 **조회를 시작한 시각**이다 (2026-10-12).
+        //    거래소가 잔고를 계산한 시점은 그 뒤 어딘가이고 알 수 없다. 응답 시각을 쓰면 조회 중에
+        //    체결돼 로컬에서도 종결된 매수가 "스냅숏 이전" 으로 분류돼 약정에서 빠지는데, 응답 잔고는
+        //    체결 전 값일 수 있다 → 이미 쓴 돈을 다시 승인한다(SnapshotBoundaryRaceTest ② 로 재현).
+        //    시작 시각을 쓰면 그 체결은 한 번 더 빠질 뿐이다(과소 승인).
+        Instant asOf = Instant.now();
         try {
             List<AccountResponse> accounts = upbitOrderClient.getAccounts();
             BigDecimal totalKrw = accounts.stream()
@@ -65,7 +72,10 @@ public class PortfolioSyncService {
                     .orElse(BigDecimal.ZERO);
 
             BigDecimal before = portfolioManager.getTotalCapital();
-            portfolioManager.syncTotalCapital(totalKrw);
+            if (!portfolioManager.syncTotalCapital(totalKrw, asOf)) {
+                log.info("더 최근 스냅숏이 이미 있어 이 응답을 버린다 (기준 시각 {})", asOf);
+                return;
+            }
             log.info("PortfolioManager totalCapital 동기화: {} → {} KRW", before, totalKrw);
 
             // §8 drift 감지: 활성 세션 initialCapital 합이 계좌 잔고를 초과하면 경고
