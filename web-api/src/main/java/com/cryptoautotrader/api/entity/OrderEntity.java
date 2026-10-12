@@ -287,6 +287,19 @@ public class OrderEntity {
     public String getUnknownReason() { return unknownReason; }
     public void setUnknownReason(String v) { this.unknownReason = v; }
 
+    /**
+     * 이 주문을 위해 <b>실제로 차감한</b> KRW (V85).
+     *
+     * <p>🔴 종전 복원 경로는 {@code quantity}(요청 KRW)를 복원액으로 썼다. 그런데 예약이 실제로
+     * 일어났는지는 그 값으로 알 수 없다 — 한도 거절로 차감된 적이 없는 주문을 복원하면
+     * <b>없던 돈이 생긴다.</b> {@code null} 이면 차감된 적이 없다는 뜻이다.</p>
+     */
+    @Column(name = "reserved_krw", precision = 20, scale = 8)
+    private BigDecimal reservedKrw;
+
+    public BigDecimal getReservedKrw() { return reservedKrw; }
+    public void setReservedKrw(BigDecimal v) { this.reservedKrw = v; }
+
     public Boolean getSettlementFinal() { return settlementFinal; }
     public void setSettlementFinal(Boolean v) { this.settlementFinal = v; }
 

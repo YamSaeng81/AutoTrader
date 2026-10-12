@@ -69,12 +69,27 @@ class RateLimiterEmergencyStopTest {
                 }
             });
         }
+        long startedAt = System.nanoTime();
         start.countDown();
         pool.shutdown();
         pool.awaitTermination(5, TimeUnit.SECONDS);
+        long elapsedMs = (System.nanoTime() - startedAt) / 1_000_000;
 
-        // 허용된 건수 ≤ PERMITS_PER_SECOND
-        assertThat(acquired.get()).isLessThanOrEqualTo(UpbitApiRateLimiter.PERMITS_PER_SECOND);
+        // 🔴 **단정의 전제를 바로잡았다** (2026-10-12).
+        //
+        //    종전에는 `acquired <= PERMITS_PER_SECOND` 였다. 그 단정은 **버스트가 리필 주기(1초)
+        //    안에 끝난다는 가정**에 의존한다. 부하가 걸린 전체 시험 실행에서는 스레드 10개를
+        //    출발시키는 데 1초가 넘게 걸려 그 사이에 리필이 한 번 돌고, 그러면 8건 허용은
+        //    **토큰 버킷의 정상 동작**이다. 실제로 단독 실행은 통과하고 전체 실행은 실패했다.
+        //
+        //    🔴 느슨하게 바꾼 것이 아니다. 고정해야 하는 불변식은 건수가 아니라 **발급률**이므로,
+        //    경과 시간만큼의 리필을 허용 상한에 넣는다. 리필이 없었다면 상한은 그대로 7 이다.
+        long windows = Math.max(1, (elapsedMs / 1000) + 1);
+        long allowed = UpbitApiRateLimiter.PERMITS_PER_SECOND * windows;
+        assertThat(acquired.get())
+                .as("경과 %dms (리필 창 %d개) 에 허용된 건수는 발급률 상한을 넘지 않아야 한다",
+                        elapsedMs, windows)
+                .isLessThanOrEqualTo((int) allowed);
     }
 
     @Test

@@ -6,7 +6,15 @@ import com.cryptoautotrader.api.support.IntegrationTestBase;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import com.cryptoautotrader.api.repository.OrderRepository;
+import com.cryptoautotrader.api.repository.PositionRepository;
+import com.cryptoautotrader.api.dto.OrderRequest;
+import com.cryptoautotrader.api.entity.PositionEntity;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -49,7 +57,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  *       <b>경계의 재현</b>이며 운영 경로의 발생 빈도를 말하지 않는다</td></tr>
  * </table>
  *
- * <h3>🔴 측정 결과 (2026-10-12) — 재현됐다. 미해결·배포 차단</h3>
+ * <h3>측정 이력</h3>
+ *
+ * <p>🔴 <b>2026-10-12 1차 — 재현됐다</b> (종전 구조):</p>
  *
  * <pre>
  * 승인 = 2건 (기대 1건)
@@ -57,13 +67,22 @@ import static org.assertj.core.api.Assertions.assertThat;
  * 잔여 합계 = −1,000
  * </pre>
  *
- * <p>두 작업자가 <b>같은 합계를 읽고 둘 다 통과</b>했다. 거래소에서는 한쪽이 잔고 부족으로 거절될
- * 텐데, 🔴 <b>그 거절은 응답 불명과 구분되지 않을 수 있다</b> — 선행 조건 3번과 5번이 맞물리는
- * 지점이다. V84 의 불명 추적은 "확인할 수 있게" 만들었지만 <b>초과 승인 자체를 막지는 않는다.</b></p>
+ * <p>두 작업자가 <b>같은 합계를 읽고 둘 다 통과</b>했다.</p>
  *
- * <p>🔴 <b>이 시험을 통과시키려고 단정을 느슨하게 하거나 지우지 않는다.</b> 요구사항이 맞고 구현이
- * 아직 그것을 만족하지 않는다 — 선행 조건 3번은 <b>미충족</b>이고 운영 배포는 보류다. 닫는 방법은
- * 예약 생성 경계를 직렬화하는 것(계좌 단위 잠금 또는 예약 원장)이며 별도 작업이다.</p>
+ * <p>🟢 <b>2026-10-12 2차 — V85 로 닫았다.</b> 계좌 단위 잠금 행 하나를 직렬화 지점으로 두고,
+ * 한도 확인·자금 예약·슬롯·주문 의도를 <b>한 트랜잭션</b>으로 묶었다. 잠금을 쥔 뒤에 합계를 읽고
+ * 차감까지 끝내므로 불변식 <b>{@code 활성 세션 가용 KRW 합 ≥ 0}</b> 이 유지된다.</p>
+ *
+ * <p>🔴 <b>왜 세션 행 잠금으로는 부족했는가</b>: 한도는 <b>세션 사이에 공유된 풀</b>이다. 각자 자기
+ * 세션 행만 잠그면 서로를 막지 못한다. 공유 자원에는 공유 잠금이 필요하다.</p>
+ *
+ * <p>🔴 <b>거래소의 잔고 부족 거절은 안전장치가 아니다.</b> 거래소 계좌에 여유 자금이 있으면 로컬
+ * 상한을 넘은 주문도 그대로 접수된다. 그리고 접수된 주문의 응답이 유실되면 그 초과분이 <b>불명
+ * 상태로 남는다</b> — 그래서 초과 승인은 로컬에서 막아야 한다.</p>
+ *
+ * <p>🔴 <b>이것이 선행 조건 3번 전체를 닫지는 않는다.</b> 닫은 것은 <b>LIVE 세션 매수의 예약
+ * 경계</b> 하나다. DYNAMIC 의 매수는 여전히 예약 없이 {@code submitOrder} 를 쓰고, 세션 생성·
+ * 재시작 시점의 자본 배정 검증(§8 의 다른 경로)은 이 잠금을 지나지 않는다.</p>
  */
 @DisplayName("시험 11 — 서로 다른 세션의 동시 진입과 예약 상한")
 class ConcurrentEntryCapTest extends IntegrationTestBase {
@@ -72,15 +91,47 @@ class ConcurrentEntryCapTest extends IntegrationTestBase {
     private LiveTradingSessionRepository sessionRepository;
 
     @Autowired
-    private SessionBalanceUpdater balanceUpdater;
+    private OrderExecutionEngine orderExecutionEngine;
+
+    @Autowired
+    private PositionRepository positionRepository;
+
+    @org.springframework.boot.test.mock.mockito.MockBean
+    private com.cryptoautotrader.exchange.upbit.UpbitOrderClient upbitOrderClient;
+
+    @org.springframework.boot.test.mock.mockito.MockBean
+    private com.cryptoautotrader.exchange.upbit.UpbitRestClient upbitRestClient;
+
+    @Autowired
+    private PlatformTransactionManager txManager;
+
+    @jakarta.persistence.PersistenceContext
+    private jakarta.persistence.EntityManager em;
 
     /** 운영 코드가 §8 에서 쓰는 것과 같은 상태 목록. */
     private static final List<String> ACTIVE_SESSION_STATUSES = List.of("RUNNING", "PAUSED");
+
+    @Autowired
+    private OrderRepository orderRepository;
+
+    /**
+     * 공유 풀의 상한 = <b>거래소 계좌 KRW 잔고</b>.
+     *
+     * <p>🔴 시험에서 고정해야 하는 값이다 — 실제 잔고에 의존하면 시험이 환경을 측정하게 된다.</p>
+     */
+    @org.springframework.boot.test.mock.mockito.MockBean
+    private com.cryptoautotrader.core.portfolio.PortfolioManager portfolioManager;
+
+    private final List<Long> createdOrders = new ArrayList<>();
 
     private final List<Long> createdSessions = new ArrayList<>();
 
     @AfterEach
     void cleanUp() {
+        createdOrders.forEach(id -> orderRepository.findById(id).ifPresent(orderRepository::delete));
+        createdOrders.clear();
+        createdSessions.forEach(id -> positionRepository.findBySessionKindAndSessionId("LIVE", id)
+                .forEach(positionRepository::delete));
         createdSessions.forEach(sessionRepository::deleteById);
         createdSessions.clear();
     }
@@ -99,84 +150,144 @@ class ConcurrentEntryCapTest extends IntegrationTestBase {
     }
 
     /**
-     * §8 의 검사와 예약을 <b>그 순서대로</b> 흉내낸다.
+     * 🟢 <b>운영이 쓰는 예약 경계를 그대로 부른다</b> (V85).
+     *
+     * <p>{@code CapitalReservationService.reserveWithinCurrentTransaction} 은
+     * {@code executeSessionBuy} 가 쓰는 바로 그 메서드다. 계좌 잠금을 쥔 채 한도 확인과 차감을
+     * 끝내므로, 읽기와 쓰기 사이에 다른 예약이 끼어들 수 없다.</p>
+     *
+     * <p>🔴 <b>간극을 일부러 벌려 둔다.</b> 잠금이 없다면 이 지연 때문에 두 쪽이 모두 통과한다 —
+     * 종전 구조에서 실제로 그렇게 재현됐다. 잠금이 있으면 한쪽이 여기서 <b>기다린다.</b></p>
      *
      * @return 진입을 승인하고 예약했으면 {@code true}
      */
-    private boolean checkThenReserve(Long sessionId, BigDecimal investAmount, CountDownLatch afterRead) {
-        BigDecimal totalAvailableKrw = sessionRepository.sumAvailableKrwByStatusIn(ACTIVE_SESSION_STATUSES);
-        if (totalAvailableKrw.subtract(investAmount).compareTo(BigDecimal.ZERO) < 0) {
-            return false;
-        }
-        // 🔴 읽기와 쓰기 사이의 간극 — 운영에서는 SL/TP 계산·포지션 저장·주문 제출이 여기 들어간다.
-        afterRead.countDown();
+    private boolean checkThenReserve(Long sessionId, String coinPair, BigDecimal investAmount,
+                                      CountDownLatch go) {
         try {
-            afterRead.await(5, TimeUnit.SECONDS);
+            go.await(5, TimeUnit.SECONDS);   // 두 쪽이 **동시에** 들어간다
         } catch (InterruptedException ie) {
             Thread.currentThread().interrupt();
             return false;
         }
-        balanceUpdater.apply(sessionId, s -> s.setAvailableKrw(s.getAvailableKrw().subtract(investAmount)));
-        return true;
+        TransactionTemplate tx = new TransactionTemplate(txManager);
+        tx.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        try {
+            Long orderId = tx.execute(st -> {
+                // 🔴 H2 의 잠금 대기 시간을 넉넉히 둔다. 기본값은 짧아서, 잠금이 **제대로 걸려도**
+                //    기다리는 쪽이 타임아웃으로 죽는다 — 1차 시도에서 실제로 그래서 승인 0건 +
+                //    "Unable to rollback" 이 났다. 직렬화 실패가 아니라 시험 환경의 제한이다.
+                em.createNativeQuery("SET LOCK_TIMEOUT 15000").executeUpdate();
+
+                // 🔴 슬롯(포지션)도 **같은 트랜잭션**에서 만든다 — 운영 경로와 같다.
+                PositionEntity pos = positionRepository.save(PositionEntity.builder()
+                        .coinPair(coinPair).side("BUY")
+                        .entryPrice(new BigDecimal("300.00000000"))
+                        .avgPrice(new BigDecimal("300.00000000"))
+                        .size(BigDecimal.ZERO)
+                        .investedKrw(investAmount)
+                        .status("OPEN").sessionKind("LIVE").sessionId(sessionId)
+                        .openedAt(Instant.now()).build());
+
+                OrderRequest req = new OrderRequest();
+                req.setCoinPair(coinPair);
+                req.setSide("BUY");
+                req.setOrderType("MARKET");
+                req.setQuantity(investAmount);
+                req.setReason("시험 11 — 동시 진입");
+                req.setSignalPrice(new BigDecimal("300.00000000"));
+                req.setSessionId(sessionId);
+                req.setSessionKind("LIVE");
+                req.setPositionId(pos.getId());
+
+                // 🟢 **운영이 쓰는 진입점을 그대로 부른다.** 계좌 잠금 아래에서 한도 확인·자금
+                //    예약·슬롯·주문 의도가 함께 커밋된다.
+                Long id = orderExecutionEngine.reserveAndPrepareIntent(req);
+                if (id == null) {
+                    st.setRollbackOnly();   // 한도 거절 — 슬롯도 되돌린다
+                    return null;
+                }
+                // 커밋 전에 짧은 간극을 둔다 — 잠금이 없으면 상대가 이 사이에 같은 원장을 읽는다.
+                try {
+                    Thread.sleep(300);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                }
+                return id;
+            });
+            if (orderId != null) {
+                createdOrders.add(orderId);
+                return true;
+            }
+            return false;
+        } catch (OrderExecutionEngine.ReservationRejected rejected) {
+            return false;
+        }
     }
 
-    @org.junit.jupiter.api.Disabled("🔴 미해결·배포 차단: §8 의 읽기-판단-쓰기 경계에 직렬화가 없어 "
-            + "초과 승인 2건·예약 합계 6,000 > 상한 5,000 으로 재현됐다. 최소 재현으로 보존한다 — "
-            + "선행 조건 3번을 닫을 때 해제한다")
     @Test
-    @DisplayName("🔴 미해결 — 두 세션이 동시에 진입하면 예약 합계가 상한을 넘는다")
+    @DisplayName("배정 합이 계좌 잔고를 넘은 상태에서 두 세션이 동시에 진입해도 초과 승인이 없다")
     void concurrentEntriesAgainstSharedCap() throws Exception {
-        // 두 세션의 가용 KRW 합계 = 5,000. 각자 3,000 을 쓰려 한다 → 합계 6,000 > 5,000.
-        Long a = session("KRW-DOGE", new BigDecimal("2500.00"));
-        Long b = session("KRW-ADA", new BigDecimal("2500.00"));
+        // 🔴 **실제 위험 시나리오.** 세션별 가용 KRW 검사는 각자 통과한다(각 3,000 보유, 3,000 매수).
+        //    그런데 **배정 합(6,000)이 거래소 계좌 잔고(5,000)를 넘은 상태**다 — drift 다. 이때
+        //    두 세션이 동시에 들어오면 계좌를 초과해 예약한다.
+        //
+        //    🔴 1차 시도에서 쓴 시나리오(각 2,500 보유, 3,000 매수)는 **실제 경로에서 재현되지
+        //    않는다.** `executeSessionBuy` 가 그 앞에서 "가용 자금 부족" 으로 막는다. 그 시나리오로
+        //    잡은 '승인 2건' 은 세션별 검사를 우회해 만든 것이었고, 공유 풀 초과의 증거가 아니다.
+        //    고쳐 적는다.
+        Long a = session("KRW-DOGE", new BigDecimal("3000.00"));
+        Long b = session("KRW-ADA", new BigDecimal("3000.00"));
         BigDecimal invest = new BigDecimal("3000.00");
 
-        BigDecimal capBefore = sessionRepository.sumAvailableKrwByStatusIn(ACTIVE_SESSION_STATUSES);
-        assertThat(capBefore)
-                .as("상한(전 세션 가용 KRW 합산)은 5,000 이다")
-                .isEqualByComparingTo(new BigDecimal("5000.00"));
+        BigDecimal capBefore = new BigDecimal("5000.00");
+        Mockito.doReturn(capBefore).when(portfolioManager).getTotalCapital();
 
-        CountDownLatch afterRead = new CountDownLatch(2);
+        assertThat(sessionRepository.sumAvailableKrwByStatusIn(ACTIVE_SESSION_STATUSES))
+                .as("배정 합은 6,000 이고 계좌 잔고 5,000 을 넘는다 — 이것이 drift 다")
+                .isEqualByComparingTo(new BigDecimal("6000.00"));
+
+        CountDownLatch go = new CountDownLatch(1);
         List<Boolean> approvals = new CopyOnWriteArrayList<>();
         List<Throwable> errors = new CopyOnWriteArrayList<>();
 
         Thread t1 = new Thread(() -> {
             try {
-                approvals.add(checkThenReserve(a, invest, afterRead));
+                approvals.add(checkThenReserve(a, "KRW-DOGE", invest, go));
             } catch (Throwable e) {
                 errors.add(e);
             }
         });
         Thread t2 = new Thread(() -> {
             try {
-                approvals.add(checkThenReserve(b, invest, afterRead));
+                approvals.add(checkThenReserve(b, "KRW-ADA", invest, go));
             } catch (Throwable e) {
                 errors.add(e);
             }
         });
         t1.start();
         t2.start();
-        t1.join(20_000);
-        t2.join(20_000);
+        go.countDown();
+        t1.join(40_000);
+        t2.join(40_000);
 
         long approved = approvals.stream().filter(Boolean::booleanValue).count();
-        BigDecimal capAfter = sessionRepository.sumAvailableKrwByStatusIn(ACTIVE_SESSION_STATUSES);
-        BigDecimal reserved = capBefore.subtract(capAfter);
+        BigDecimal reserved = invest.multiply(BigDecimal.valueOf(approved));
 
-        System.out.printf("[시험 11] 승인=%d건 예약합계=%s 상한=%s 잔여합계=%s 오류=%s%n",
-                approved, reserved, capBefore, capAfter, errors);
+        System.out.printf("[시험 11] 승인=%d건 예약합계=%s 상한=%s 오류=%s%n",
+                approved, reserved, capBefore, errors);
 
         assertThat(errors).as("예약 경로에서 예외가 나지 않아야 한다").isEmpty();
 
         // 🔴 **닫는 조건**: 예약 합계가 상한을 넘지 않고, 초과 승인이 0건이어야 한다.
         assertThat(reserved)
-                .as("🔴 예약 합계가 상한을 넘으면 거래소 잔고보다 많이 주문하는 것이다 — "
-                        + "실제로는 한쪽이 잔고 부족으로 거절되고, 그 거절은 **응답 불명과 구분되지 "
-                        + "않을 수 있다**(선행 조건 3·5 가 맞물리는 지점이다)")
+                .as("🔴 예약 합계가 계좌 잔고를 넘으면 거래소에 있는 돈보다 많이 주문하는 것이다. "
+                        + "🔴 한쪽이 잔고 부족으로 거절되기를 기대할 수 없다 — 계좌에 여유가 있으면 "
+                        + "초과 주문도 접수되고, 그 응답이 유실되면 초과분이 **불명으로 남는다**"
+                        + "(선행 조건 3·5 가 맞물리는 지점이다)")
                 .isLessThanOrEqualTo(capBefore);
         assertThat(approved)
-                .as("🔴 초과 승인 0건 — 합계 6,000 은 상한 5,000 을 넘으므로 **한쪽만** 승인돼야 한다. "
-                        + "두 쪽 모두 승인되면 §8 의 읽기-판단-쓰기 경계에 직렬화가 없다는 뜻이다")
+                .as("🔴 초과 승인 0건 — 6,000 은 계좌 잔고 5,000 을 넘으므로 **한쪽만** 승인돼야 한다. "
+                        + "두 쪽 모두 승인되면 예약 경계에 직렬화가 없다는 뜻이다")
                 .isEqualTo(1L);
     }
 }

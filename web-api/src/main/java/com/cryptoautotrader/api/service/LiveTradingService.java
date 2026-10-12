@@ -110,6 +110,29 @@ public class LiveTradingService {
     private static final List<String> NON_CANCELLABLE_STATES =
             List.of("INTENT_READY", "SUBMITTING", "UNKNOWN");
 
+    /**
+     * 매수 예약의 트랜잭션 경계 (V85).
+     *
+     * <p>🔴 평가 스케줄러는 {@code @Transactional} 없이 돈다(2026-03-17 에 한 세션의 예외가 다른
+     * 세션을 롤백시키지 않도록 떼어냈다). 그래서 예약 구간의 경계를 <b>여기서</b> 만든다 —
+     * {@code @Transactional} 메서드로 쪼개면 자기 호출이 프록시를 우회해 조용히 무시된다.</p>
+     *
+     * <p>{@code REQUIRES_NEW} 다. 이 구간은 평가의 다른 작업과 생사를 같이할 이유가 없고, 계좌
+     * 잠금을 <b>가능한 짧게</b> 쥐어야 다른 세션의 예약이 오래 기다리지 않는다.</p>
+     */
+    private org.springframework.transaction.support.TransactionTemplate reservationTx;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    private org.springframework.transaction.PlatformTransactionManager reservationTxManager;
+
+    @jakarta.annotation.PostConstruct
+    void initReservationTx() {
+        this.reservationTx = new org.springframework.transaction.support.TransactionTemplate(
+                reservationTxManager);
+        this.reservationTx.setPropagationBehavior(
+                org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+    }
+
     /** StatefulStrategy(COMPOSITE/Grid 등) 세션별 독립 인스턴스 — 다중 세션 간 상태 오염 방지 */
     private final Map<Long, com.cryptoautotrader.strategy.Strategy> sessionStatefulStrategies = new ConcurrentHashMap<>();
 
@@ -1327,16 +1350,15 @@ public class LiveTradingService {
             return;
         }
 
-        // §8 cross-session 초과 인출 방지: 전 세션 availableKrw 합 - 이번 매수 < 0 이면 거래소 잔고 부족 가능
-        BigDecimal accountCapital = portfolioManager.getTotalCapital();
-        if (accountCapital.compareTo(BigDecimal.ZERO) > 0) {
-            BigDecimal totalAvailableKrw = sessionRepository.sumAvailableKrwByStatusIn(ACTIVE_SESSION_STATUSES);
-            if (totalAvailableKrw.subtract(investAmount).compareTo(BigDecimal.ZERO) < 0) {
-                log.warn("[§8] 매수 차단: 전 세션 가용KRW 합산({}) - 매수금({}) < 0 → 거래소 잔고 부족 우려. sessionId={}",
-                        totalAvailableKrw, investAmount, session.getId());
-                return;
-            }
-        }
+        // 🔴 §8 한도 확인은 **예약 트랜잭션 안으로 옮겼다** (2026-10-12, V85).
+        //
+        //    종전에는 여기서 합계를 읽고 판단한 뒤, 포지션을 만들고 주문을 제출하고 **그다음에**
+        //    차감했다. 읽기와 쓰기 사이에 직렬화가 없어 두 세션이 같은 합계를 읽고 둘 다 통과했다
+        //    — 실측 **승인 2건 / 예약 합계 6,000 > 상한 5,000**(`ConcurrentEntryCapTest`).
+        //
+        //    🔴 거래소의 잔고 부족 거절을 안전장치로 쓸 수 없다. 계좌에 여유 자금이 있으면 로컬
+        //    상한을 넘은 주문도 접수되고, 그 응답이 유실되면 초과분이 불명으로 남는다.
+        //    그래서 한도 확인·자금 예약·슬롯·주문 의도를 계좌 잠금 아래 한 트랜잭션으로 묶는다.
 
         // SL/TP 계산 — ATR 기반 (2026-08-06, DYNAMIC과 ExitRuleCalculator 공유로 통합).
         // 이전에는 세션 stopLossPct 고정값만 썼다 — 07-31 DYNAMIC 개편이 LIVE엔 반쪽만
@@ -1381,9 +1403,6 @@ public class LiveTradingService {
                 .takeProfitPrice(takeProfitPrice)
                 .marketRegime(marketRegime)  // 진입 시점 시장 레짐
                 .build();
-        pos = positionRepository.save(pos);
-
-        // 주문 제출 — sessionId/positionId를 request에 미리 설정 (@Async 리턴값 의존 회피)
         // 시장가 매수는 Upbit price 타입: quantity 필드에 KRW 금액(investAmount)을 전달해야 함
         OrderRequest order = new OrderRequest();
         order.setCoinPair(coinPair);
@@ -1394,15 +1413,36 @@ public class LiveTradingService {
         order.setSignalPrice(price);  // §14 drift 측정 기준가 — 신호 평가 시점 현재가
         order.setSessionId(session.getId());
         order.setSessionKind("LIVE");
-        order.setPositionId(pos.getId());
-        // ⚠️ 커밋 이후 제출 — 동적 세션과 동일 구조의 잠재 위험. LIVE 는 트랜잭션 구간이 짧아
-        //    여태 타이밍상 통과해왔을 뿐, 미커밋 position 을 @Async 스레드가 참조하는 것은 같다.
-        //    (2026-07-29 P0 — OrderExecutionEngine.submitOrderAfterCommit Javadoc 참조)
-        orderExecutionEngine.submitOrderAfterCommit(order);
 
-        // 세션 잔고 차감 — 낙관적 락 + 재시도 (§7 race 차단)
-        balanceUpdater.apply(session.getId(),
-                s -> s.setAvailableKrw(s.getAvailableKrw().subtract(investAmount)));
+        // 🔴 **한도 확인 · 자금 예약 · 슬롯 · 주문 의도를 한 트랜잭션으로** (V85).
+        //
+        //    `reserveAndPrepareIntent` 가 계좌 잠금을 쥐고 한도를 보고 자금을 차감한다. 포지션은
+        //    같은 트랜잭션에서 만들어 그 id 를 넘기므로 네 가지가 함께 커밋되거나 함께 롤백된다.
+        //    거절은 `ReservationRejected` 로 올라와 트랜잭션을 되돌린다 — 오류가 아니므로 조용히
+        //    끝낸다.
+        //
+        //    🔴 제출은 **커밋 이후**다. 미커밋 포지션을 @Async 스레드가 참조하는 종전 구조의
+        //    위험이 사라진다 — 주문 의도도 이 트랜잭션에서 커밋되므로 참조할 것이 모두 확정이다.
+        final PositionEntity posToCreate = pos;
+        Long preparedOrderId;
+        try {
+            preparedOrderId = reservationTx.execute(st -> {
+                PositionEntity saved = positionRepository.save(posToCreate);
+                order.setPositionId(saved.getId());
+                return orderExecutionEngine.reserveAndPrepareIntent(order);
+            });
+        } catch (OrderExecutionEngine.ReservationRejected rejected) {
+            log.warn("매수 예약이 거절돼 롤백했다 (sessionId={}, {}): {}",
+                    session.getId(), coinPair, rejected.getMessage());
+            return;
+        }
+        if (preparedOrderId == null) {
+            log.warn("[§8] 매수 차단: 한도를 넘어 예약하지 않았다 (sessionId={}, 매수금={})",
+                    session.getId(), investAmount);
+            return;
+        }
+
+        orderExecutionEngine.submitPreparedOrder(preparedOrderId, order);
 
         log.info("실전 매수 주문 (sessionId={}): {} {}개 @ {} 사유: {}",
                 session.getId(), coinPair, quantity, price, reason);
@@ -1447,9 +1487,7 @@ public class LiveTradingService {
                     log.debug("executeSessionSell: size=0 포지션 이미 정리됨, KRW 복원 스킵 (posId={})", pos.getId());
                     return false;
                 }
-                BigDecimal toRestore = buyOrder.getQuantity() != null
-                        ? buyOrder.getQuantity()
-                        : pos.getInvestedKrw();
+                BigDecimal toRestore = restorableKrw(buyOrder, pos);
                 if (toRestore != null) {
                     log.warn("매수 취소/실패 확인 — KRW 복원 (posId={}, sessionId={}, 복원금액={})",
                             pos.getId(), session.getId(), toRestore);
@@ -1538,7 +1576,7 @@ public class LiveTradingService {
                             .filter(o -> "CANCELLED".equals(o.getState()) || "FAILED".equals(o.getState()))
                             .findFirst()
                             .stream().toList();
-                    if (!failedBuy.isEmpty() && failedBuy.get(0).getQuantity() != null) {
+                    if (!failedBuy.isEmpty() && restorableKrw(failedBuy.get(0), pos) != null) {
                         // 🔴 2026-10-07: 종전에는 **바깥 트랜잭션이 로드한 엔티티를 직접 수정하고
                         //    `sessionRepository.save(session)` 했다.** 그런데 같은 정지 트랜잭션 안에서
                         //    `balanceUpdater`(REQUIRES_NEW)가 세션 행을 이미 커밋했을 수 있으므로,
@@ -1561,7 +1599,7 @@ public class LiveTradingService {
                         //    건너뛰는데, 이쪽이 전환을 늦게 하므로 둘 다 "내가 먼저" 로 본다.
                         //    `executeSessionSell` 의 매수 취소 분기와 reconcile 이 이미 쓰는 패턴을
                         //    여기에도 맞춘다: **전환에 성공한 쪽만 복원한다.**
-                        final BigDecimal restore = failedBuy.get(0).getQuantity();
+                        final BigDecimal restore = restorableKrw(failedBuy.get(0), pos);
                         final Long posId = pos.getId();
                         final Long sid = session.getId();
                         boolean restored = restorePositionKrwAtomically(posId, sid, restore);
@@ -1659,6 +1697,36 @@ public class LiveTradingService {
      * <p>건너뛴 주문은 버려지지 않는다. 5초 폴러가 <b>식별자로 조회</b>해 해소하고, 그동안 세션은
      * 정리 미완료로 남는다.</p>
      */
+    /**
+     * 복원할 금액 — <b>실제로 차감한 값</b>만 되돌린다 (V85).
+     *
+     * <p>🔴 종전에는 {@code order.quantity}(요청 KRW)를 복원액으로 썼다. 그런데 그 값은 예약이
+     * <b>실제로 일어났는지</b>를 말하지 않는다 — 한도 거절로 차감된 적이 없는 주문을 복원하면
+     * <b>없던 돈이 생긴다.</b></p>
+     *
+     * <p>🔴 <b>과거 데이터를 재해석하지 않는다.</b> V84 이전 주문은 식별자가 없고 당시에는 제출
+     * 경로가 항상 차감했으므로, 그 주문만 {@code quantity} 폴백을 쓴다. V84 이후 주문인데 예약액이
+     * 비어 있으면 <b>차감된 적이 없다</b>는 뜻이므로 복원하지 않는다.</p>
+     *
+     * @return 복원할 금액, 복원해서는 안 되면 {@code null}
+     */
+    private BigDecimal restorableKrw(OrderEntity buyOrder, PositionEntity pos) {
+        if (buyOrder != null) {
+            if (buyOrder.getReservedKrw() != null) {
+                return buyOrder.getReservedKrw();
+            }
+            if (buyOrder.getClientOrderId() != null) {
+                log.warn("🔴 예약액이 없는 V84+ 주문이다 — 차감된 적이 없으므로 복원하지 않는다 "
+                        + "(orderId={})", buyOrder.getId());
+                return null;
+            }
+            if (buyOrder.getQuantity() != null) {
+                return buyOrder.getQuantity();
+            }
+        }
+        return pos != null ? pos.getInvestedKrw() : null;
+    }
+
     private void cancelSessionActiveOrders(Long sessionId) {
         List<OrderEntity> activeOrders = orderRepository
                 .findBySessionIdAndStateIn(sessionId, ACTIVE_ORDER_STATES);
@@ -2024,9 +2092,10 @@ public class LiveTradingService {
                                 .filter(o -> "CANCELLED".equals(o.getState()) || "FAILED".equals(o.getState()))
                                 .findFirst()
                                 .ifPresent(buyOrder -> {
-                                    if (buyOrder.getQuantity() != null) {
+                                    BigDecimal restore = restorableKrw(buyOrder, pos);
+                                    if (restore != null) {
                                         session.setAvailableKrw(
-                                                session.getAvailableKrw().add(buyOrder.getQuantity()));
+                                                session.getAvailableKrw().add(restore));
                                         sessionRepository.save(session);
                                     }
                                 });
@@ -2639,14 +2708,11 @@ public class LiveTradingService {
                 }
 
                 if (pos.getSessionId() != null) {
-                    BigDecimal toRestore = buyOrders.stream()
+                    OrderEntity closedBuy = buyOrders.stream()
                             .filter(o -> "CANCELLED".equals(o.getState()) || "FAILED".equals(o.getState()))
                             .findFirst()
-                            .map(o -> o.getQuantity())
                             .orElse(null);
-                    if (toRestore == null && pos.getInvestedKrw() != null) {
-                        toRestore = pos.getInvestedKrw();
-                    }
+                    BigDecimal toRestore = restorableKrw(closedBuy, pos);
                     if (toRestore != null) {
                         final BigDecimal restoreAmount = toRestore;
                         balanceUpdater.apply(pos.getSessionId(),

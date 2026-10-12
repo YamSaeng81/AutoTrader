@@ -275,6 +275,20 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
             + "WHERE o.id = :id AND o.state = 'INTENT_READY'")
     int withdrawIntentIfStillReady(@Param("id") Long id, @Param("reason") String reason);
 
+    /**
+     * 예약 원장 — <b>아직 결말이 나지 않은 주문이 붙잡고 있는 KRW 합계</b> (V85).
+     *
+     * <p>🔴 상한은 <b>거래소 계좌 잔고</b>이고, 이 합계가 그 상한을 넘지 않아야 한다. 세션별
+     * 가용 KRW 검사는 "한 세션이 자기 배정을 넘지 않는가" 만 보므로, <b>여러 세션의 배정 합이
+     * 계좌 잔고를 넘은 상태</b>(drift)에서는 각자 통과하고 계좌를 초과한다.</p>
+     *
+     * <p>🔴 <b>불명 주문도 센다.</b> 접수됐을 수 있으므로 그 돈은 묶인 것으로 본다.</p>
+     */
+    @Query("SELECT COALESCE(SUM(o.reservedKrw), 0) FROM OrderEntity o "
+            + "WHERE o.reservedKrw IS NOT NULL AND o.state IN "
+            + "('INTENT_READY', 'SUBMITTING', 'UNKNOWN', 'SUBMITTED', 'PARTIAL_FILLED')")
+    java.math.BigDecimal sumOpenReservedKrw();
+
     /** 불명 조회 시도를 기록한다 — 🔴 상태는 바꾸지 않는다(자동 종결 금지). */
     @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE OrderEntity o SET o.unknownProbeCount = o.unknownProbeCount + 1, "

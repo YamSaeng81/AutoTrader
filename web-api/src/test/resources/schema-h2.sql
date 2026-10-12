@@ -272,7 +272,9 @@ CREATE TABLE IF NOT EXISTS "order" (
     claimed_at              TIMESTAMP,
     unknown_probe_count     INTEGER         NOT NULL DEFAULT 0,
     unknown_probed_at       TIMESTAMP,
-    unknown_reason          VARCHAR(500)
+    unknown_reason          VARCHAR(500),
+    -- V85 — 실제로 차감한 KRW
+    reserved_krw            DECIMAL(20, 8)
 );
 
 -- 정산 불일치 이력 (V82) — 덮어쓰기 전에 이전 값과 수신값을 함께 보존한다
@@ -665,3 +667,12 @@ ALTER TABLE execution_drift_log    ADD COLUMN IF NOT EXISTS session_kind VARCHAR
 -- 세션별 전략 파라미터 (V74)
 ALTER TABLE dynamic_session ADD COLUMN IF NOT EXISTS strategy_params VARCHAR(4000);
 ALTER TABLE paper_trading.virtual_balance ADD COLUMN IF NOT EXISTS strategy_params VARCHAR(4000);
+
+-- V85 — 매수 예약의 직렬화 지점. 행 하나를 FOR UPDATE 로 잠근다.
+CREATE TABLE IF NOT EXISTS account_capital_lock (
+    id          SMALLINT     PRIMARY KEY,
+    purpose     VARCHAR(100) NOT NULL,
+    updated_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+MERGE INTO account_capital_lock (id, purpose)
+    VALUES (1, '매수 예약 직렬화 (한도 확인 + 자금·슬롯 예약 + 주문 의도)');

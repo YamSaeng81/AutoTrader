@@ -110,6 +110,10 @@ public class OrderExecutionEngine {
     @Autowired(required = false)
     private UpbitOrderClient upbitOrderClient;
 
+    /** 매수 예약의 직렬화 지점 (V85). 🔴 호출자의 트랜잭션 안에서 불러야 한다. */
+    @Autowired(required = false)
+    private CapitalReservationService capitalReservationService;
+
     /** 정산 차분 반영 — 순환 참조를 피하려고 세터 주입한다. */
     @Autowired(required = false)
     private OrderSettlementService orderSettlementService;
@@ -289,6 +293,81 @@ public class OrderExecutionEngine {
         }
 
         // C·D — 외부 호출은 **트랜잭션 밖**이고, 결과 기록만 트랜잭션이다.
+        callExchangeAndRecord(orderId);
+    }
+
+    /**
+     * 🔴 <b>예약과 의도를 한 트랜잭션으로 묶는다</b> (2026-10-12, V85) — 시험 11 의 수정.
+     *
+     * <p><b>호출자의 트랜잭션 안에서</b> 돌아, 계좌 잠금을 쥔 채 ① 한도 확인 ② 자금 예약
+     * ③ 슬롯(포지션) ④ 주문 의도 저장을 함께 커밋한다. 네 가지가 함께 커밋되거나 함께 롤백된다.</p>
+     *
+     * <p>🔴 종전에는 §8 한도 확인이 <b>읽고 → 판단하고 → 쓰는</b> 사이에 직렬화가 없었고 차감은
+     * 주문 제출 <b>뒤에</b> 일어났다. 실측으로 <b>승인 2건 / 예약 합계 6,000 &gt; 상한 5,000</b> 이
+     * 재현됐다. 🔴 <b>거래소의 잔고 부족 거절은 안전장치가 아니다</b> — 계좌에 여유 자금이 있으면
+     * 초과 주문도 접수되고, 그 응답이 유실되면 초과분이 불명으로 남는다.</p>
+     *
+     * <p>🔴 슬롯(포지션)은 <b>호출자가 같은 트랜잭션에서</b> 만들고 그 id 를 넘긴다. 여기서 만들지
+     * 않는 이유는 포지션의 진입가·손절·익절이 전략 평가의 결과이고 이 클래스가 알 수 없기
+     * 때문이다. 같은 트랜잭션이므로 원자성은 성립한다.</p>
+     *
+     * @return 생성된 주문 id, 한도·중복·정지로 거절되면 {@code null}
+     */
+    public Long reserveAndPrepareIntent(OrderRequest request) {
+        if (!TransactionSynchronizationManager.isActualTransactionActive()) {
+            throw new IllegalStateException(
+                    "예약·의도 저장은 호출자의 트랜잭션 안에서만 할 수 있다 — 잠금 수명이 짧으면 "
+                            + "한도 확인과 의도 저장 사이가 벌어진다");
+        }
+        String sessionKind = request.getSessionKind() != null ? request.getSessionKind() : "LIVE";
+
+        // 🔴 **잠금을 먼저 잡고 한도를 본다.** 중복·정지 확인은 그다음이다 — 순서를 바꾸면
+        //    확인과 예약 사이가 다시 벌어진다.
+        if ("BUY".equalsIgnoreCase(request.getSide()) && "LIVE".equals(sessionKind)
+                && request.getSessionId() != null && capitalReservationService != null) {
+            if (!capitalReservationService.reserveWithinCurrentTransaction(
+                    request.getSessionId(), request.getQuantity())) {
+                return null;
+            }
+        }
+
+        Long orderId = prepareIntent(request);
+        if (orderId == null) {
+            // 🔴 의도가 거절되면 **예약도 되돌려야 한다.** 호출자의 트랜잭션을 롤백시키는 것이
+            //    가장 확실하다 — 같은 트랜잭션이므로 자금·슬롯·의도가 함께 사라진다.
+            throw new ReservationRejected("주문 의도가 거절됐다 — 예약을 롤백한다");
+        }
+        orderRepository.findById(orderId).ifPresent(o -> {
+            o.setReservedKrw(request.getQuantity());
+            orderRepository.save(o);
+        });
+        return orderId;
+    }
+
+    /**
+     * 예약 트랜잭션을 되돌리기 위한 신호.
+     *
+     * <p>🔴 거절은 오류가 아니다. 그래서 호출자가 이것만 잡아 <b>조용히</b> 끝내고, 다른 예외는
+     * 그대로 올라가게 한다.</p>
+     */
+    public static class ReservationRejected extends RuntimeException {
+        public ReservationRejected(String message) {
+            super(message);
+        }
+    }
+
+    /**
+     * B·C·D — 이미 커밋된 의도를 claim 하고 제출한다 (V85).
+     *
+     * <p>🔴 A 는 호출자의 트랜잭션에서 이미 끝났다. 이 메서드는 <b>트랜잭션 없이</b> 시작해 B 와 D
+     * 만 각자 경계를 갖는다.</p>
+     */
+    @Async("orderExecutor")
+    public void submitPreparedOrder(Long orderId, OrderRequest request) {
+        Boolean claimed = submitTx.execute(st -> claimForSubmission(orderId, request));
+        if (!Boolean.TRUE.equals(claimed)) {
+            return;
+        }
         callExchangeAndRecord(orderId);
     }
 
