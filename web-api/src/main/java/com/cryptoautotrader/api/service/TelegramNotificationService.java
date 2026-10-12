@@ -164,6 +164,23 @@ public class TelegramNotificationService {
         sendMarkdownAndLog(msg, "EXCHANGE_DOWN", null);
     }
 
+    /**
+     * 정지했으나 <b>정리 미완료</b> — 미해결 제출이 남았다 (V84).
+     *
+     * <p>🔴 그 주문은 접수됐을 수 있으므로 자금·슬롯을 유지하고 추적을 계속한다. 자동으로 종결하지
+     * 않으므로 사람이 근거를 확인해야 한다.</p>
+     */
+    public void notifyCleanupIncomplete(Long sessionId, long unresolved) {
+        String msg = String.format(
+                "🔴 *세션 #%d 정지 — 정리 미완료*%n%n" +
+                "• 미해결 제출: `%d건` (제출 결과 불명)%n" +
+                "• 접수 가능성이 있어 자금·슬롯을 유지하고 식별자로 추적을 계속합니다.%n" +
+                "• 자동 종결하지 않으므로 확인이 필요합니다.%n" +
+                "• 시각: `%s`",
+                sessionId, unresolved, KST_FMT.format(Instant.now()));
+        sendMarkdownAndLog(msg, "CLEANUP_INCOMPLETE", String.valueOf(sessionId));
+    }
+
     /** 거래소 복구 후 세션 자동 재시작 알림 */
     public void notifyExchangeRecovered(List<String> restartedSessions, List<String> failedSessions) {
         if (!enabled) return;

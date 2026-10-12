@@ -60,7 +60,27 @@ import java.util.Optional;
 public class OrderExecutionEngine {
 
     private static final Duration ORDER_TIMEOUT = Duration.ofMinutes(5);
-    private static final List<String> ACTIVE_STATES = List.of("PENDING", "SUBMITTED", "PARTIAL_FILLED");
+    /**
+     * 활성 주문 상태 — <b>자금·슬롯을 점유한다</b>.
+     *
+     * <p>🔴 V84 에서 {@code INTENT_READY}·{@code SUBMITTING}·{@code UNKNOWN} 을 넣었다.
+     * 특히 {@code UNKNOWN} 은 <b>접수됐을 수 있으므로</b> 점유로 본다 — 종전에는 그 주문이
+     * {@code FAILED} 가 돼 자금·슬롯이 풀렸고, 실제로 체결됐다면 쓰인 돈을 되돌리는 셈이었다.</p>
+     *
+     * <p>{@code PENDING} 은 V84 이전 주문을 위해 남긴다 — 신규 주문은 {@code INTENT_READY} 로
+     * 시작한다.</p>
+     */
+    private static final List<String> ACTIVE_STATES = List.of(
+            "PENDING", "INTENT_READY", "SUBMITTING", "UNKNOWN", "SUBMITTED", "PARTIAL_FILLED");
+
+    /**
+     * 의도 철회 유예 (V84).
+     *
+     * <p>🔴 {@code INTENT_READY} 는 "나간 적이 없다" 를 뜻하므로 철회가 안전하지만, <b>지금 claim
+     * 하려는 의도</b>를 복구가 가로채면 진행 중인 제출이 조용히 사라진다. 그 경합을 전체 시험에서
+     * 실제로 재현했다. 유예가 지나지 않은 의도는 원래 작업자에게 맡긴다.</p>
+     */
+    private static final Duration INTENT_GRACE = Duration.ofSeconds(60);
 
     /**
      * 정산 출처 — {@code order.fee_source} (V81·V82).
@@ -128,6 +148,20 @@ public class OrderExecutionEngine {
     @Lazy
     private OrderExecutionEngine self;
 
+    /**
+     * 제출 단계의 트랜잭션 경계 (V84).
+     *
+     * <p>🔴 {@code submitOrder} 에서 {@code @Transactional} 을 뗐으므로 A·B·D 는 각자 경계를 가져야
+     * 한다. {@code @Transactional} 메서드로 쪼개면 <b>자기 호출이 프록시를 우회해 조용히 무시된다</b>
+     * — 그 결함을 2026-03-17 에 이미 한 번 겪었다({@code PositionStateTransition} 참조). 그래서
+     * 템플릿을 쓴다.</p>
+     *
+     * <p>{@code REQUIRED} 다. 이 메서드는 {@code @Async} 스레드에서 돌아 바깥 트랜잭션이 없으므로
+     * 새로 열리고, 혹시 호출자가 트랜잭션을 들고 있다면 <b>참여</b>한다 — {@code REQUIRES_NEW} 로
+     * 하면 주문 행을 만든 트랜잭션이 정지돼 같은 주문이 두 행으로 저장된다(2026-10-07 측정).</p>
+     */
+    private final org.springframework.transaction.support.TransactionTemplate submitTx;
+
     public OrderExecutionEngine(OrderRepository orderRepository,
                                  PositionRepository positionRepository,
                                  TradeLogRepository tradeLogRepository,
@@ -142,6 +176,9 @@ public class OrderExecutionEngine {
         this.syncTx = new org.springframework.transaction.support.TransactionTemplate(txManager);
         this.syncTx.setPropagationBehavior(
                 org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        this.submitTx = new org.springframework.transaction.support.TransactionTemplate(txManager);
+        this.submitTx.setPropagationBehavior(
+                org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRED);
     }
 
     /**
@@ -196,20 +233,71 @@ public class OrderExecutionEngine {
     }
 
     /**
-     * 주문 제출 — PENDING 상태로 생성 후 리스크 체크 및 거래소 주문
-     * @Async 는 void 또는 Future<T> 반환만 지원 (Spring Boot 3.x)
+     * 🔴 <b>{@code @Transactional} 을 떼고 A·B·C·D 로 나눴다</b> (2026-10-12, V84).
+     *
+     * <p>종전에는 이 메서드 전체가 한 트랜잭션이었고 거래소 호출이 그 <b>안에</b> 있었다. 그래서
+     * <b>외부에 나간 사실이 커밋된 적이 없다</b> — 호출이 시간 초과되면 트랜잭션은 롤백되거나
+     * {@code FAILED} 로 끝나고, UUID 는 응답에만 오므로 <b>그 주문을 물어볼 단서가 사라진다.</b>
+     * 접수됐는지 아닌지 확인할 방법이 없는데 자금과 슬롯은 풀렸다.</p>
+     *
+     * <table>
+     *   <tr><th>단계</th><th>경계</th><th>내용</th></tr>
+     *   <tr><td>A</td><td>트랜잭션 + 세션 행 잠금</td>
+     *       <td>중복·한도 확인 → 주문 생성({@code INTENT_READY}) + <b>식별자 커밋</b></td></tr>
+     *   <tr><td>B</td><td>트랜잭션 + 세션 행 잠금</td>
+     *       <td>{@code INTENT_READY} → {@code SUBMITTING} <b>조건부 전환(claim)</b>. 세션 상태 재확인</td></tr>
+     *   <tr><td>C</td><td><b>트랜잭션 밖</b></td>
+     *       <td>거래소 호출. B 가 <b>커밋된 뒤에만</b> 일어난다</td></tr>
+     *   <tr><td>D</td><td>트랜잭션</td>
+     *       <td>{@code SUBMITTED} / {@code UNKNOWN} / {@code FAILED} 기록</td></tr>
+     * </table>
+     *
+     * <h3>🔴 정지 보장의 범위가 좁아졌다</h3>
+     *
+     * <p>종전 가드는 거래소 호출을 트랜잭션 안에서 하며 세션 행 잠금을 쥐고 있었으므로
+     * <b>"정지 커밋 후 제출 0회"</b> 가 성립했다. 외부 호출이 밖으로 나가면 claim 커밋과 외부 호출
+     * 사이에 정지가 끼어들 수 있고, <b>이미 claim 된 주문이 나가는 것은 막을 방법이 없다</b> —
+     * 접수 가능성이 있기 때문이다. 보장은 이렇게 바뀐다:</p>
+     *
+     * <pre>
+     * 종전: 정지 커밋 후 **제출** 0회
+     * 이후: 정지 커밋 후 **신규 claim** 0회 + 이미 claim 된 주문의 추적·정리 지속
+     * </pre>
+     *
+     * <p>바꾼 이유는 <b>추적 불가가 더 큰 위험</b>이기 때문이다. 제출을 막지 못한 주문은 식별자로
+     * 추적되지만, 추적 단서가 없는 주문은 영구히 확인할 수 없다. 그 대가로 정지는 "신규 승인 차단"
+     * 까지만 보장하고, 미해결 주문이 남은 세션을 <b>정리 완료로 표시하지 않는다.</b></p>
      *
      * <p>⚠️ 신규 생성한 포지션을 참조하는 매수 주문이라면 이 메서드를 직접 부르지 말고
      * {@link #submitOrderAfterCommit}을 사용할 것 — 이유는 그 Javadoc 참조.</p>
      */
-    @Transactional
     @Async("orderExecutor")
     public void submitOrder(OrderRequest request) {
         log.info("주문 제출 요청: {} {} {} 수량={}", request.getCoinPair(), request.getSide(),
                 request.getOrderType(), request.getQuantity());
 
-        // 세션 종류 — live_trading_session/dynamic_session은 별도 BIGSERIAL 이라 sessionId만으로는
-        // 구분 불가. 호출자(LiveTradingService/DynamicTradingService)가 명시하지 않으면 LIVE로 간주.
+        // A — 의도·식별자를 **커밋한다**. 이 커밋 이후의 모든 실패는 "나갔을 수 있다" 로 다룬다.
+        Long orderId = submitTx.execute(st -> prepareIntent(request));
+        if (orderId == null) {
+            return;
+        }
+
+        // B — claim. 🔴 1행을 돌려받고 **이 트랜잭션이 커밋에 성공한** 경우에만 C 로 간다.
+        Boolean claimed = submitTx.execute(st -> claimForSubmission(orderId, request));
+        if (!Boolean.TRUE.equals(claimed)) {
+            return;
+        }
+
+        // C·D — 외부 호출은 **트랜잭션 밖**이고, 결과 기록만 트랜잭션이다.
+        callExchangeAndRecord(orderId);
+    }
+
+    /**
+     * A — 중복·리스크·정지 확인 후 {@code INTENT_READY} 로 <b>커밋</b>한다.
+     *
+     * @return 생성된 주문 id, 거절되면 {@code null}
+     */
+    private Long prepareIntent(OrderRequest request) {
         String sessionKind = request.getSessionKind() != null ? request.getSessionKind() : "LIVE";
 
         // 1. 중복 주문 방지 — 세션 주문은 세션종류+세션 단위로, 비세션 주문은 전역으로 체크
@@ -222,22 +310,46 @@ public class OrderExecutionEngine {
         if (duplicateExists) {
             log.warn("중복 주문 거부 (sessionKind={}, sessionId={}, {} {}): 이미 활성 주문이 있습니다",
                     sessionKind, request.getSessionId(), request.getCoinPair(), request.getSide());
-            return;
+            return null;
         }
 
-        // 2. 주문 엔티티 생성 (PENDING)
+        // 🔴 2. 정지와의 순서를 구조로 강제한다 (2026-10-07) — **신규 진입(BUY)만**.
+        //
+        //    평가 루프가 세션을 RUNNING 으로 읽고 매수를 결정한 뒤, 그 제출이 **정지 커밋 이후에**
+        //    거래소에 닿는 일이 실제로 일어났다(`LateOrderSubmissionAfterStopTest` 로 재현). 그러면
+        //    사람은 정지시켰다고 보는데 새 포지션이 생기고, 정지된 세션에는 평가 루프가 없으므로
+        //    **그 포지션을 청산할 주체가 없다.**
+        //
+        //    🔴 **매도는 절대 막지 않는다.** 정지·손절의 청산이 막히면 손실이 확대되고, 정지된
+        //    세션의 포지션을 팔 수단이 사라진다. 신규 진입 차단과 기존 주문·포지션 정리는 별개
+        //    상태이며 이 가드는 전자만 담당한다.
+        //
+        //    🔴 **의도를 만들기 전에 본다.** 거절될 주문의 식별자를 소비하지 않기 위해서다 —
+        //    업비트 식별자는 재사용할 수 없다.
+        if (!approveNewEntry(request, sessionKind)) {
+            return null;
+        }
+
+        // 3. 주문 엔티티 생성 — 🔴 PENDING 이 아니라 INTENT_READY 다.
+        //
+        //    PENDING 은 "제출 전" 과 "제출했는지 모름" 을 구분하지 못했다. 재시작 복구가
+        //    `PENDING` + `exchange_order_id IS NULL` 을 **미제출로 단정**해 FAILED 로 바꾸고 자금을
+        //    풀던 근거가 그 모호함이다. INTENT_READY 는 "아직 claim 되지 않았으므로 나간 적이 없다"
+        //    를 **상태로** 말한다.
         OrderEntity order = OrderEntity.builder()
                 .coinPair(request.getCoinPair())
                 .side(request.getSide())
                 .orderType(request.getOrderType())
                 .price(request.getPrice())
                 .quantity(request.getQuantity())
-                .state("PENDING")
+                .state("INTENT_READY")
                 .signalReason(request.getReason())
                 .signalPrice(request.getSignalPrice())
                 .sessionId(request.getSessionId())
                 .sessionKind(sessionKind)
                 .positionId(request.getPositionId())
+                .clientOrderId(newClientOrderId())
+                .intentCommittedAt(Instant.now())
                 // 🔴 새 회계 경로 참여를 **생성 시 명시한다** (2026-10-12, V82).
                 //
                 //    V81 의 정산 컬럼은 전부 NULL 로 시작한다. 전환 규칙이 "fee_source IS NULL 이면
@@ -245,17 +357,17 @@ public class OrderExecutionEngine {
                 //    영원히 빠진다.** 그래서 'PENDING'(참여하지만 아직 아무것도 반영하지 않았다)을
                 //    박고 정산 버전을 0 으로 명시한다.
                 //
-                //    🔴 기존 NULL 주문은 그대로 둔다 — 자동 재정산 대상이 아니다. 아직 미체결인
-                //    기존 주문의 전환은 **별도 작업**이며, 여기서 섞으면 과거 데이터를 재해석하게 된다.
+                //    🔴 기존 NULL 주문은 그대로 둔다 — 자동 재정산 대상이 아니다.
                 .feeSource(FEE_SOURCE_PENDING)
                 .settlementVersion(0L)
                 .settlementFinal(Boolean.FALSE)
                 .settlementAttempts(0)
                 .build();
         order = orderRepository.save(order);
-        recordTradeLog(order.getId(), "STATE_CHANGE", null, "PENDING", "주문 생성");
+        recordTradeLog(order.getId(), "STATE_CHANGE", null, "INTENT_READY",
+                "주문 의도 생성 (식별자=" + order.getClientOrderId() + ")");
 
-        // 3. 리스크 체크
+        // 4. 리스크 체크
         // - SELL: 손절 등 청산이 막히면 손실 확대 → 항상 허용
         // - 세션 BUY (positionId != null): LiveTradingService에서 이미 체크 + 포지션/KRW 처리 완료 → 재체크 생략
         // - 비세션 BUY (positionId == null): 리스크 체크 필요
@@ -266,126 +378,209 @@ public class OrderExecutionEngine {
             if (!riskResult.isApproved()) {
                 log.warn("리스크 체크 거부 (orderId={}): {}", order.getId(), riskResult.getReason());
                 transitionState(order, "FAILED", riskResult.getReason());
-                return;
+                return null;
             }
         }
 
-        // 🔴 4. 정지와의 순서를 구조로 강제한다 (2026-10-07) — **신규 진입(BUY)만**.
-        //
-        //    평가 루프가 세션을 RUNNING 으로 읽고 매수를 결정한 뒤, 그 제출이 **정지 커밋 이후에**
-        //    거래소에 닿는 일이 실제로 일어났다(`LateOrderSubmissionAfterStopTest` 로 재현). 그러면
-        //    사람은 정지시켰다고 보는데 새 포지션이 생기고, 정지된 세션에는 평가 루프가 없으므로
-        //    **그 포지션을 청산할 주체가 없다.**
-        //
-        //    🔴 "제출 직전에 RUNNING 을 한 번 더 읽는" 것으로는 부족하다 — 재확인과 제출 사이에도
-        //    정지가 끼어들 수 있다. 그래서 **세션 행을 배타 잠금으로 읽는다.** 이 메서드는
-        //    `@Transactional` 이므로 잠금은 **이 트랜잭션이 끝날 때까지**, 즉 거래소 호출을 지나
-        //    유지된다. 정지 쪽의 세션 행 쓰기는 그동안 블록되고, 정지가 먼저 커밋됐다면 여기서
-        //    STOPPED 를 보게 된다. 둘 중 하나만 성립한다.
-        //
-        //    🔴 측정으로 확인한 전제 (2026-10-07 `SubmitOrderBoundaryProbeTest`):
-        //    이 메서드는 `order-exec-N` 스레드에서 **자기 트랜잭션**
-        //    (`OrderExecutionEngine.submitOrder`)으로 돈다 — 호출자(`stopSession`)의 트랜잭션이
-        //    아니다. 그래서 여기에 `REQUIRES_NEW` 를 쓰면 **주문 행을 만든 바로 이 트랜잭션이
-        //    정지돼** 그 행이 보이지 않고, 분리된 엔티티 저장이 INSERT 로 떨어져 **같은 주문이 두
-        //    행으로 저장됐다.** 템플릿을 쓰지 않고 이 트랜잭션에서 그대로 잠그는 것이 맞다.
-        //
-        //    🔴 **매도는 절대 막지 않는다.** 정지·손절의 청산이 막히면 손실이 확대되고, 정지된
-        //    세션의 포지션을 팔 수단이 사라진다. (리스크 체크도 같은 이유로 SELL 을 항상 허용한다.)
-        //    신규 진입 차단과 기존 주문·포지션 정리는 별개 상태이며 이 가드는 전자만 담당한다.
-        if ("BUY".equalsIgnoreCase(request.getSide()) && "LIVE".equals(sessionKind)
-                && request.getSessionId() != null && sessionRepository != null) {
-            // 엔티티가 아니라 **상태 문자열만** 받는다 — 잠금은 필요하지만 엔티티 관리는 필요하지
-            // 않다. 🔴 단, 이것이 정지 실패의 원인을 고친 것은 아니다. 응답 불명 경로 뒤 정지가
-            // 낙관적 잠금으로 실패하는 현상은 네이티브 잠금으로 바꾼 뒤에도 재현되며, 실제로
-            // 세션 행을 UPDATE 하는 경로는 아직 찾지 못했다(`SubmitResponseUnknownTest`).
-            // 🔴 **회계 미반영 체결이 있으면 신규 매수를 막는다** (2026-10-12, V83).
-            //
-            //    ⓑ(로컬 회계를 한 트랜잭션으로) 를 택하면, 체결을 관측했지만 회계를 아직 반영하지
-            //    못한 구간이 생긴다. 그동안 포지션 수량은 0 이므로 **슬롯 점유로 보이지 않고**
-            //    평가 루프가 "포지션 없음" 으로 보고 재진입할 수 있다. 그것은 원자성의 단점이
-            //    아니라 **가드의 공백**이므로 여기서 막는다. 자금은 제출 시 이미 차감돼 점유가
-            //    유지된다.
-            //
-            //    🔴 **추적과 위험 축소는 막지 않는다** — 이 가드는 BUY 전용이고, 매도·청산·폴링은
-            //    그대로 돈다.
-            long pendingFills = orderRepository.countFillAccountingPending(
-                    "LIVE", request.getSessionId());
-            if (pendingFills > 0) {
-                log.warn("회계 미반영 체결이 있어 신규 매수를 제출하지 않는다 "
-                                + "(orderId={}, sessionId={}, 미반영={}건)",
-                        order.getId(), request.getSessionId(), pendingFills);
-                transitionState(order, "FAILED", "회계 미반영 체결이 있다 — 제출하지 않았다");
-                return;
-            }
-
-            String lockedStatus = sessionRepository.lockAndReadStatus(request.getSessionId())
-                    .orElse(null);
-            if (!"RUNNING".equals(lockedStatus)) {
-                log.warn("세션이 실행 중이 아니어서 주문을 제출하지 않는다 (orderId={}, sessionId={}, status={})",
-                        order.getId(), request.getSessionId(),
-                        lockedStatus == null ? "없음" : lockedStatus);
-                transitionState(order, "FAILED", "세션이 실행 중이 아니다 — 제출하지 않았다");
-                return;
-            }
-        }
-
-        // 5. 거래소 주문 제출
         if (upbitOrderClient == null) {
             log.warn("UpbitOrderClient 미등록 — 거래소 연동 불가 (orderId={})", order.getId());
             transitionState(order, "FAILED", "거래소 클라이언트 미등록");
+            return null;
+        }
+
+        return order.getId();
+    }
+
+    /**
+     * 신규 진입 승인 — 세션 행을 <b>배타 잠금</b>으로 읽고 {@code RUNNING} 을 확인한다.
+     *
+     * <p>🔴 "제출 직전에 RUNNING 을 한 번 더 읽는" 것으로는 부족하다 — 재확인과 쓰기 사이에도 정지가
+     * 끼어들 수 있다. 잠금은 이 트랜잭션이 끝날 때까지 유지되므로 정지 쪽의 세션 행 쓰기는 그동안
+     * 블록되고, 정지가 먼저 커밋됐다면 여기서 {@code STOPPED} 를 보게 된다.</p>
+     *
+     * <p>🔴 측정으로 확인한 전제 (2026-10-07 {@code SubmitOrderBoundaryProbeTest}): 이 호출은
+     * {@code order-exec-N} 스레드의 <b>자기 트랜잭션</b>에서 돈다 — 호출자({@code stopSession})의
+     * 트랜잭션이 아니다. 여기에 {@code REQUIRES_NEW} 를 쓰면 주문 행을 만든 트랜잭션이 정지돼 그 행이
+     * 보이지 않고, 분리 엔티티 저장이 INSERT 로 떨어져 <b>같은 주문이 두 행으로 저장됐다.</b></p>
+     */
+    private boolean approveNewEntry(OrderRequest request, String sessionKind) {
+        if (!"BUY".equalsIgnoreCase(request.getSide()) || !"LIVE".equals(sessionKind)
+                || request.getSessionId() == null || sessionRepository == null) {
+            return true;
+        }
+
+        // 🔴 **회계 미반영 체결이 있으면 신규 매수를 막는다** (2026-10-12, V83).
+        //
+        //    ⓑ(로컬 회계를 한 트랜잭션으로) 를 택하면, 체결을 관측했지만 회계를 아직 반영하지
+        //    못한 구간이 생긴다. 그동안 포지션 수량은 0 이므로 **슬롯 점유로 보이지 않고**
+        //    평가 루프가 "포지션 없음" 으로 보고 재진입할 수 있다. 그것은 원자성의 단점이
+        //    아니라 **가드의 공백**이므로 여기서 막는다.
+        //
+        //    🔴 **추적과 위험 축소는 막지 않는다** — 이 가드는 BUY 전용이고, 매도·청산·폴링은
+        //    그대로 돈다.
+        long pendingFills = orderRepository.countFillAccountingPending("LIVE", request.getSessionId());
+        if (pendingFills > 0) {
+            log.warn("회계 미반영 체결이 있어 신규 매수를 승인하지 않는다 (sessionId={}, 미반영={}건)",
+                    request.getSessionId(), pendingFills);
+            return false;
+        }
+
+        // 🔴 **응답 불명 주문이 있으면 신규 매수를 막는다** (2026-10-12, V84).
+        //
+        //    불명 주문은 접수됐을 수 있으므로 자금과 슬롯을 점유한 것으로 본다. 그 위에 새로
+        //    진입하면 한도를 초과한 노출이 되고, 나중에 체결이 확인되면 되돌릴 수 없다.
+        //    🔴 "아마 실패했을 것" 으로 가정해 진입을 허용하는 것이 바로 종전의 결함이다.
+        long unresolved = orderRepository.countUnresolvedSubmissions("LIVE", request.getSessionId());
+        if (unresolved > 0) {
+            log.warn("미해결 제출이 있어 신규 매수를 승인하지 않는다 (sessionId={}, 미해결={}건)",
+                    request.getSessionId(), unresolved);
+            return false;
+        }
+
+        // 엔티티가 아니라 **상태 문자열만** 받는다 — 잠금은 필요하지만 엔티티 관리는 필요하지 않다.
+        String lockedStatus = sessionRepository.lockAndReadStatus(request.getSessionId()).orElse(null);
+        if (!"RUNNING".equals(lockedStatus)) {
+            log.warn("세션이 실행 중이 아니어서 신규 매수를 승인하지 않는다 (sessionId={}, status={})",
+                    request.getSessionId(), lockedStatus == null ? "없음" : lockedStatus);
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * B — claim. {@code INTENT_READY} → {@code SUBMITTING} 조건부 전환.
+     *
+     * <p>🔴 <b>A 와 B 사이에 정지가 들어왔으면 여기서 멈추고 철회한다</b> — 아직 나간 적이 없으므로
+     * 철회가 안전하다. 그 판단의 근거는 세션 행 잠금 안에서 읽은 상태다.</p>
+     *
+     * @return 이 호출이 claim 을 얻었으면 {@code true}
+     */
+    private Boolean claimForSubmission(Long orderId, OrderRequest request) {
+        String sessionKind = request.getSessionKind() != null ? request.getSessionKind() : "LIVE";
+
+        // 🔴 세션 상태를 **다시** 확인한다. 미해결 제출 수는 보지 않는다 — 방금 만든 이 주문의
+        //    INTENT_READY 가 그 수에 포함되므로 자기 자신 때문에 영원히 막힌다.
+        if ("BUY".equalsIgnoreCase(request.getSide()) && "LIVE".equals(sessionKind)
+                && request.getSessionId() != null && sessionRepository != null) {
+            String lockedStatus = sessionRepository.lockAndReadStatus(request.getSessionId()).orElse(null);
+            if (!"RUNNING".equals(lockedStatus)) {
+                log.warn("의도 커밋과 claim 사이에 정지가 들어왔다 — 철회한다 "
+                        + "(orderId={}, sessionId={}, status={})", orderId, request.getSessionId(),
+                        lockedStatus == null ? "없음" : lockedStatus);
+                orderRepository.findById(orderId).ifPresent(o ->
+                        transitionState(o, "FAILED", "정지로 철회 — 제출하지 않았다"));
+                return Boolean.FALSE;
+            }
+        }
+
+        int won = orderRepository.claimForSubmission(orderId, Instant.now());
+        if (won != 1) {
+            // 🔴 다른 작업자가 이미 claim 했거나 상태가 바뀌었다. **제출하지 않는다.**
+            log.warn("claim 을 얻지 못했다 — 제출하지 않는다 (orderId={})", orderId);
+            return Boolean.FALSE;
+        }
+        recordTradeLog(orderId, "STATE_CHANGE", "INTENT_READY", "SUBMITTING", "제출 권한 획득");
+        return Boolean.TRUE;
+    }
+
+    /**
+     * C·D — 거래소 호출(트랜잭션 밖)과 결과 기록(트랜잭션).
+     *
+     * <p>🔴 <b>응답을 잃으면 {@code UNKNOWN} 이다.</b> {@code FAILED} 가 아니다 — 시간 초과는
+     * "거래소가 거절했다" 는 뜻이 아니고, 접수됐을 가능성을 배제하지 못한다. 그 상태에서 자금을
+     * 복원하면 실제로 쓰인 돈을 되돌리고, 장부에 없는 코인이 거래소에 남는다.</p>
+     */
+    private void callExchangeAndRecord(Long orderId) {
+        OrderEntity snapshot = submitTx.execute(st -> orderRepository.findById(orderId).orElse(null));
+        if (snapshot == null) {
             return;
         }
 
+        UpbitOrderClient.ExchangeResult exchangeResult;
         try {
-            UpbitOrderClient.ExchangeResult exchangeResult = submitToExchange(order);
-            OrderResponse exchangeResponse = exchangeResult.response();
-            order.setExchangeOrderId(exchangeResponse.getUuid());
-            order.setSubmittedAt(Instant.now());
-            order.setResponseJson(exchangeResult.rawBody());
-            log.info("거래소 주문 제출 완료 (orderId={}, exchangeId={}, initialState={})",
-                    order.getId(), exchangeResponse.getUuid(), exchangeResponse.getState());
-
-            // 주문 생성 응답에서 이미 최종 상태인 경우 즉시 처리 (폴러 대기 불필요)
-            String initialState = mapExchangeState(exchangeResponse.getState());
-            if ("FILLED".equals(initialState)) {
-                if (exchangeResponse.getExecutedVolume() != null) {
-                    order.setFilledQuantity(exchangeResponse.getExecutedVolume());
-                }
-                // 체결가 확정 시도 — 시장가 매도는 executed_funds/executed_volume 로 평균 단가 산출
-                applyFillPrice(order, exchangeResponse);
-                // ⚠️ 시장가 매도가 즉시 done 으로 떠도 trades(executed_funds)가 미정산이면 체결가 null.
-                //    이대로 FILLED 확정하면 finalizeSellPosition 이 avgPrice 로 대체 → realizedPnl 이
-                //    항상 -매도수수료로 기록되는 "가짜 본전" 버그(2026-05-31 분석: 포지션 146건).
-                //    체결가 미확보 SELL 은 SUBMITTED 로 두어 5초 폴러가 정산 후 재조회하게 한다.
-                if ("SELL".equalsIgnoreCase(order.getSide()) && order.getPrice() == null) {
-                    log.warn("매도 즉시 체결이나 체결가 미정산 — SUBMITTED 유지, 폴러 재조회 (orderId={}, uuid={})",
-                            order.getId(), exchangeResponse.getUuid());
-                    transitionState(order, "SUBMITTED", null);
-                } else {
-                    order.setFilledAt(Instant.now());
-                    transitionState(order, "FILLED", null);
-                    processFilledOrder(order);
-                }
-            } else {
-                transitionState(order, "SUBMITTED", null);
-                // CANCELLED이지만 부분 체결된 경우도 즉시 처리
-                if ("CANCELLED".equals(initialState)
-                        && "BUY".equalsIgnoreCase(order.getSide())
-                        && exchangeResponse.getExecutedVolume() != null
-                        && exchangeResponse.getExecutedVolume().compareTo(BigDecimal.ZERO) > 0) {
-                    log.warn("주문 생성 응답에서 부분 체결 후 취소 감지 (orderId={}, executed_volume={})",
-                            order.getId(), exchangeResponse.getExecutedVolume());
-                    order.setFilledQuantity(exchangeResponse.getExecutedVolume());
-                    order.setFilledAt(Instant.now());
-                    transitionState(order, "FILLED", null);
-                    processFilledOrder(order);
-                }
-            }
+            exchangeResult = submitToExchange(snapshot);
         } catch (Exception e) {
-            log.error("거래소 주문 제출 실패 (orderId={}): {}", order.getId(), e.getMessage(), e);
-            transitionState(order, "FAILED", "거래소 주문 실패: " + e.getMessage());
+            // 🔴 여기서 갈린다. 접수 **전** 실패와 접수 **후** 응답 유실을 우리는 구분할 수 없다.
+            //    구분할 수 없으므로 **더 위험한 쪽으로 가정한다** — 나갔을 수 있다고 본다.
+            log.error("거래소 주문 제출의 결과가 불명이다 (orderId={}, 식별자={}): {}",
+                    orderId, snapshot.getClientOrderId(), e.getMessage(), e);
+            submitTx.execute(st -> {
+                OrderEntity o = orderRepository.findById(orderId).orElse(null);
+                if (o != null) {
+                    transitionState(o, "UNKNOWN", null);
+                    o.setUnknownReason("제출 결과 불명: " + e.getMessage());
+                    orderRepository.save(o);
+                }
+                return null;
+            });
+            return;
         }
+
+        submitTx.execute(st -> {
+            recordSubmitOutcome(orderId, exchangeResult);
+            return null;
+        });
+    }
+
+    /** D — 접수 응답을 기록한다. */
+    private void recordSubmitOutcome(Long orderId, UpbitOrderClient.ExchangeResult exchangeResult) {
+        OrderEntity order = orderRepository.findById(orderId).orElse(null);
+        if (order == null) {
+            return;
+        }
+        OrderResponse exchangeResponse = exchangeResult.response();
+        order.setExchangeOrderId(exchangeResponse.getUuid());
+        order.setSubmittedAt(Instant.now());
+        order.setResponseJson(exchangeResult.rawBody());
+        log.info("거래소 주문 제출 완료 (orderId={}, exchangeId={}, initialState={})",
+                order.getId(), exchangeResponse.getUuid(), exchangeResponse.getState());
+
+        // 주문 생성 응답에서 이미 최종 상태인 경우 즉시 처리 (폴러 대기 불필요)
+        String initialState = mapExchangeState(exchangeResponse.getState());
+        if ("FILLED".equals(initialState)) {
+            if (exchangeResponse.getExecutedVolume() != null) {
+                order.setFilledQuantity(exchangeResponse.getExecutedVolume());
+            }
+            // 체결가 확정 시도 — 시장가 매도는 executed_funds/executed_volume 로 평균 단가 산출
+            applyFillPrice(order, exchangeResponse);
+            // ⚠️ 시장가 매도가 즉시 done 으로 떠도 trades(executed_funds)가 미정산이면 체결가 null.
+            //    이대로 FILLED 확정하면 finalizeSellPosition 이 avgPrice 로 대체 → realizedPnl 이
+            //    항상 -매도수수료로 기록되는 "가짜 본전" 버그(2026-05-31 분석: 포지션 146건).
+            //    체결가 미확보 SELL 은 SUBMITTED 로 두어 5초 폴러가 정산 후 재조회하게 한다.
+            if ("SELL".equalsIgnoreCase(order.getSide()) && order.getPrice() == null) {
+                log.warn("매도 즉시 체결이나 체결가 미정산 — SUBMITTED 유지, 폴러 재조회 (orderId={}, uuid={})",
+                        order.getId(), exchangeResponse.getUuid());
+                transitionState(order, "SUBMITTED", null);
+            } else {
+                order.setFilledAt(Instant.now());
+                transitionState(order, "FILLED", null);
+                processFilledOrder(order);
+            }
+        } else {
+            transitionState(order, "SUBMITTED", null);
+            // CANCELLED이지만 부분 체결된 경우도 즉시 처리
+            if ("CANCELLED".equals(initialState)
+                    && "BUY".equalsIgnoreCase(order.getSide())
+                    && exchangeResponse.getExecutedVolume() != null
+                    && exchangeResponse.getExecutedVolume().compareTo(BigDecimal.ZERO) > 0) {
+                log.warn("주문 생성 응답에서 부분 체결 후 취소 감지 (orderId={}, executed_volume={})",
+                        order.getId(), exchangeResponse.getExecutedVolume());
+                order.setFilledQuantity(exchangeResponse.getExecutedVolume());
+                order.setFilledAt(Instant.now());
+                transitionState(order, "FILLED", null);
+                processFilledOrder(order);
+            }
+        }
+    }
+
+    /**
+     * 클라이언트 식별자를 만든다.
+     *
+     * <p>업비트 제약: 최대 64자, 계정 전체 주문에서 고유, <b>재사용 불가</b>. UUID 로 충분하지만
+     * 사람이 로그에서 알아보게 접두사를 둔다.</p>
+     */
+    private String newClientOrderId() {
+        return "cat-" + java.util.UUID.randomUUID();
     }
 
     /**
@@ -623,6 +818,20 @@ public class OrderExecutionEngine {
         }
 
         for (OrderEntity order : activeOrders) {
+            // 🔴 미해결 제출은 **식별자로 조회**해 해소한다 (V84). 재제출하지 않는다.
+            //    UUID 가 없으므로 아래 `checkOrderStatus` 경로로는 아무것도 할 수 없다.
+            if ("INTENT_READY".equals(order.getState())
+                    || "SUBMITTING".equals(order.getState())
+                    || "UNKNOWN".equals(order.getState())) {
+                try {
+                    resolveUnresolvedSubmission(order.getId());
+                } catch (Exception e) {
+                    log.warn("미해결 제출 해소 실패 — 상태를 유지한다 (orderId={}): {}",
+                            order.getId(), e.getMessage());
+                }
+                continue;
+            }
+
             // 타임아웃 체크: SUBMITTED 상태에서 5분 경과 시 자동 취소
             if ("SUBMITTED".equals(order.getState()) && order.getSubmittedAt() != null) {
                 Duration elapsed = Duration.between(order.getSubmittedAt(), Instant.now());
@@ -659,6 +868,123 @@ public class OrderExecutionEngine {
             // 거래소 상태 동기화
             checkOrderStatus(order.getId());
         }
+    }
+
+    // ── 미해결 제출의 복구 — 🔴 조회만 한다 ───────────────────────
+
+    /**
+     * 미해결 제출을 <b>식별자로 조회</b>해 해소한다 (V84).
+     *
+     * <p>🔴 <b>재제출하지 않는다.</b> {@code SUBMITTING} 을 <b>읽은</b> 것과 그 전환에 <b>성공한</b>
+     * 것은 다르다 — 상태는 재기동 후에도 보이지만 전환 성공은 한 번만 일어난다. 복구 작업자가
+     * 그 상태를 보고 다시 제출하면 같은 의도가 두 번 나간다.</p>
+     *
+     * <p>🔴 <b>조회되지 않음을 "접수되지 않았다" 로 읽지 않는다.</b> 업비트 명세에 식별자 보존 기간이
+     * 없고, 조회 실패는 통신 장애일 수도 있다. 찾지 못하면 상태를 그대로 두고 시도 횟수만 올린다 —
+     * 자동으로 {@code FAILED} 로 바꾸지 않는다. 그 종결은 사람이 근거를 보고 한다.</p>
+     *
+     * @return 상태를 해소했으면 {@code true}
+     */
+    boolean resolveUnresolvedSubmission(Long orderId) {
+        // 🔴 경계를 **여기서** 만든다. `@Modifying(flushAutomatically = true)` 질의는 활성
+        //    트랜잭션을 요구하고, 트랜잭션 없이 부르면 `TransactionRequiredException` 이 난다 —
+        //    2026-03-17 에 `executeStrategies()` 에서 `@Transactional` 이 빠지며 모든 청산이
+        //    실패한 결함이 정확히 그 유형이다(`PositionStateTransition` 참조).
+        //
+        //    `@Transactional` 을 붙이지 않는 이유는 `pollActiveOrders` 가 **자기 호출**로 부르기
+        //    때문이다 — 프록시를 우회해 조용히 무시된다. 템플릿은 REQUIRED 이므로 폴러의
+        //    트랜잭션에 참여하고, 단독 호출에서는 새로 열린다.
+        return Boolean.TRUE.equals(submitTx.execute(st -> resolveUnresolvedSubmissionInTx(orderId)));
+    }
+
+    private Boolean resolveUnresolvedSubmissionInTx(Long orderId) {
+        OrderEntity order = orderRepository.findById(orderId).orElse(null);
+        if (order == null) {
+            return Boolean.FALSE;
+        }
+
+        // 🔴 INTENT_READY 는 **나간 적이 없다.** claim 이 제출의 유일한 관문이고 그 전환이 커밋된
+        //    적이 없으므로, 외부 호출은 일어나지 않았다. 이 불변식만으로 철회가 안전하다.
+        //
+        //    🔴 **다만 지금 작업 중인 의도를 철회해서는 안 된다.** A(의도 커밋)와 B(claim) 사이는
+        //    짧지만 0 이 아니고, 폴러는 5초마다 돈다 — 그 사이에 들어오면 **진행 중인 제출을
+        //    가로채 철회**하고 claim 은 0행을 받아 주문이 조용히 사라진다. 전체 시험을 돌렸을 때
+        //    실제로 이 경합이 재현됐다(`ClaimAndUnknownTrackingTest` 가 부하 아래에서 실패).
+        //
+        //    그래서 **충분히 오래된 의도만** 철회한다. 유예가 지나지 않은 의도는 그대로 둔다 —
+        //    원래 작업자가 claim 하거나, 그 프로세스가 죽었다면 다음 회차에 철회된다.
+        if ("INTENT_READY".equals(order.getState())) {
+            Instant committed = order.getIntentCommittedAt();
+            if (committed != null && Duration.between(committed, Instant.now()).compareTo(INTENT_GRACE) < 0) {
+                log.debug("의도가 아직 작업 중일 수 있다 — 철회하지 않는다 (orderId={})", order.getId());
+                return Boolean.FALSE;
+            }
+            log.warn("claim 전에 중단된 의도를 철회한다 — 외부에 나간 적이 없다 (orderId={}, 식별자={})",
+                    order.getId(), order.getClientOrderId());
+            transitionState(order, "FAILED", "claim 전 중단 — 제출하지 않았다");
+            return Boolean.TRUE;
+        }
+
+        if (!"SUBMITTING".equals(order.getState()) && !"UNKNOWN".equals(order.getState())) {
+            return Boolean.FALSE;
+        }
+        if (order.getClientOrderId() == null) {
+            // 🔴 V84 이전 주문이다. 식별자가 없으므로 **물어볼 수가 없다** — 그것이 고치려던 결함이고,
+            //    과거 데이터를 지금 재해석하지는 않는다. 사람이 보도록 남긴다.
+            log.warn("식별자가 없어 조회할 수 없다 — 사람이 종결해야 한다 (orderId={}, state={})",
+                    order.getId(), order.getState());
+            orderRepository.touchUnknownProbe(order.getId(), Instant.now());
+            return Boolean.FALSE;
+        }
+        if (upbitOrderClient == null) {
+            return Boolean.FALSE;
+        }
+
+        OrderResponse found;
+        try {
+            if (!rateLimiter.acquire()) {
+                return Boolean.FALSE;
+            }
+            found = upbitOrderClient.getOrderByIdentifier(order.getClientOrderId());
+        } catch (Exception e) {
+            // 묻지 못했다. 🔴 상태를 바꾸지 않는다 — 모른다는 사실이 바뀐 것이 없다.
+            log.warn("식별자 조회 실패 — 상태를 유지한다 (orderId={}, 식별자={}): {}",
+                    order.getId(), order.getClientOrderId(), e.getMessage());
+            orderRepository.touchUnknownProbe(order.getId(), Instant.now());
+            return Boolean.FALSE;
+        }
+
+        orderRepository.touchUnknownProbe(order.getId(), Instant.now());
+
+        if (found == null) {
+            // 거래소가 "없다" 고 답했다. 🔴 그래도 종결하지 않는다 — 보존 기간이 명세에 없으므로
+            //    "없다" 가 "접수된 적 없다" 와 같지 않다. 불명으로 올려 두고 사람이 판단한다.
+            if (!"UNKNOWN".equals(order.getState())) {
+                transitionState(order, "UNKNOWN", null);
+            }
+            OrderEntity fresh = orderRepository.findById(orderId).orElse(order);
+            fresh.setUnknownReason("식별자로 조회되지 않음 — 미접수로 단정하지 않는다 (시도 "
+                    + fresh.getUnknownProbeCount() + "회)");
+            orderRepository.save(fresh);
+            return Boolean.FALSE;
+        }
+
+        // 찾았다. UUID 를 확보해 기존 추적 경로에 연결한다.
+        order.setExchangeOrderId(found.getUuid());
+        if (order.getSubmittedAt() == null) {
+            order.setSubmittedAt(Instant.now());
+        }
+        order.setUnknownReason(null);
+        orderRepository.save(order);
+        log.info("불명 주문을 식별자로 확인했다 (orderId={}, 식별자={}, uuid={}, 거래소상태={})",
+                order.getId(), order.getClientOrderId(), found.getUuid(), found.getState());
+
+        // 🔴 상태를 SUBMITTED 로 올려 **기존 폴링·정산 경로에 넘긴다.** 체결 반영은 이 메서드가
+        //    직접 하지 않는다 — V81~V83 의 회계 경로(차분·버전 가드·원자적 반영)를 한 곳으로
+        //    모아 두었으므로, 여기서 따로 반영하면 그 경로를 두 벌 갖게 된다.
+        transitionState(order, "SUBMITTED", null);
+        checkOrderStatus(order.getId());
+        return Boolean.TRUE;
     }
 
     // ── 체결 처리 ──────────────────────────────────────────────
@@ -914,7 +1240,10 @@ public class OrderExecutionEngine {
         if (!rateLimiter.acquire()) {
             throw new RuntimeException("Upbit API rate limit 대기 타임아웃 — 주문 제출 재시도 필요");
         }
-        return upbitOrderClient.createOrder(order.getCoinPair(), upbitSide, volume, price, upbitOrderType);
+        // 🔴 **식별자를 함께 보낸다** (V84). 응답을 잃어도 이 값으로 조회할 수 있다 — UUID 는
+        //    응답에만 오므로 응답 유실과 함께 사라진다.
+        return upbitOrderClient.createOrder(order.getCoinPair(), upbitSide, volume, price,
+                upbitOrderType, order.getClientOrderId());
     }
 
     /**

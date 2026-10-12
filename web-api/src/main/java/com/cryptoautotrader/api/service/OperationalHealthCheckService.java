@@ -68,7 +68,8 @@ public class OperationalHealthCheckService {
     /** time stop이 꺼진 채 이만큼 보유 중이면 "무출구 고착"으로 본다 */
     private static final long STUCK_POSITION_THRESHOLD_HOURS = 24;
 
-    private static final List<String> ACTIVE_ORDER_STATES = List.of("PENDING", "SUBMITTED", "PARTIAL_FILLED");
+    private static final List<String> ACTIVE_ORDER_STATES =
+            com.cryptoautotrader.api.util.TradingConstants.ACTIVE_ORDER_STATES;
 
     private final LiveTradingSessionRepository liveSessionRepo;
     private final DynamicSessionRepository dynamicSessionRepo;

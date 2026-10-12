@@ -195,38 +195,41 @@ class LateOrderSubmissionAfterStopTest extends IntegrationTestBase {
         request.setSessionKind("LIVE");
         request.setPositionId(pos.getId());
 
-        // ── 평가 일시 대기 → 정지 커밋 완료 → 평가 재개 ─────────────
-        TransactionTemplate requiresNew = new TransactionTemplate(txManager);
-        requiresNew.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
-        AtomicInteger seam = new AtomicInteger();
-
-        Mockito.doAnswer(inv -> {
-            if (seam.getAndIncrement() == 0) {
-                // 독립 트랜잭션에서 정지를 **커밋**한다 — 제출 트랜잭션에 묶이면 시나리오가 깨진다
-                requiresNew.executeWithoutResult(st -> liveTradingService.stopSession(sessionId));
-            }
-            return inv.getArgument(0);
-        }).when(tradeLogRepository).save(Mockito.any());
+        // ── 정지 커밋 완료 → 평가의 제출 재개 ───────────────────────
+        //
+        // 🔴 **이음매(tradeLogRepository.save 가로채기)를 걷어냈다** (2026-10-12, V84).
+        //
+        //    종전 구조에서는 제출 전체가 한 트랜잭션이었고 세션 잠금을 거래소 호출까지 쥐고
+        //    있었으므로, 정지를 **그 트랜잭션 안에서** 끼워 넣어야 경합이 재현됐다. V84 는
+        //    승인(A)·claim(B)이 각자 **짧은 트랜잭션**에서 세션 상태를 보므로, 같은 이음매를 쓰면
+        //    A 가 세션 행 잠금을 쥔 채 그 안에서 정지를 호출하는 꼴이 되고 **스스로 교착**한다
+        //    (실측: 정지가 끝내 커밋되지 않아 RUNNING 으로 남았다).
+        //
+        //    시나리오의 본질은 "평가가 RUNNING 을 읽었다"(위에서 단정했다) + "그 뒤 정지가
+        //    **커밋됐다**" + "그 평가의 제출이 그 뒤에 돈다" 다. 정지를 먼저 커밋시키면 그것이
+        //    그대로 성립하고, 이음매 없이도 재현된다.
+        liveTradingService.stopSession(sessionId);
 
         orderExecutionEngine.submitOrder(request);
 
         // ── 비동기 작업 드레인 ──────────────────────────────────────
         awaitOrderExecutorDrained();
 
-        assertThat(seam.get())
-                .as("일시 대기 지점을 실제로 지났는지 — 0 이면 재현 실패이므로 시험이 무의미하다")
-                .isGreaterThan(0);
         assertThat(sessionRepository.findById(sessionId).orElseThrow().getStatus())
                 .as("정지가 커밋돼 있어야 한다")
                 .isEqualTo("STOPPED");
 
         // ── 거래소 신규 매수 호출 0회 ───────────────────────────────
         Mockito.verify(upbitOrderClient, Mockito.never()).createOrder(
-                Mockito.any(), Mockito.eq("bid"), Mockito.any(), Mockito.any(), Mockito.any());
+                Mockito.any(), Mockito.eq("bid"), Mockito.any(), Mockito.any(), Mockito.any(),
+                Mockito.any());
 
         // ── 최종 상태: 활성 주문·임시 포지션이 남지 않는다 ──────────
+        // 🔴 V84 의 활성 상태를 전부 본다 — INTENT_READY·SUBMITTING·UNKNOWN 이 남으면
+        //    자금·슬롯을 점유한 채 폴러가 영원히 쫓는다.
         List<OrderEntity> active = orderRepository.findBySessionIdAndStateIn(sessionId,
-                List.of("PENDING", "SUBMITTED", "PARTIAL_FILLED"));
+                List.of("PENDING", "INTENT_READY", "SUBMITTING", "UNKNOWN",
+                        "SUBMITTED", "PARTIAL_FILLED"));
         assertThat(active)
                 .as("제출되지 않은 주문이 활성으로 남으면 폴러가 영원히 쫓는다")
                 .isEmpty();

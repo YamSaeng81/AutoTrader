@@ -265,7 +265,14 @@ CREATE TABLE IF NOT EXISTS "order" (
     reported_executed_volume DECIMAL(20, 8),
     reported_state          VARCHAR(20),
     reported_observed_at    TIMESTAMP,
-    fill_accounting_pending BOOLEAN         NOT NULL DEFAULT FALSE
+    fill_accounting_pending BOOLEAN         NOT NULL DEFAULT FALSE,
+    -- V84 — 주문 의도·claim·응답 불명
+    client_order_id         VARCHAR(64),
+    intent_committed_at     TIMESTAMP,
+    claimed_at              TIMESTAMP,
+    unknown_probe_count     INTEGER         NOT NULL DEFAULT 0,
+    unknown_probed_at       TIMESTAMP,
+    unknown_reason          VARCHAR(500)
 );
 
 -- 정산 불일치 이력 (V82) — 덮어쓰기 전에 이전 값과 수신값을 함께 보존한다

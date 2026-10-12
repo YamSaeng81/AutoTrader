@@ -136,9 +136,9 @@ class DynamicBuyExternalSubmissionBoundaryTest extends IntegrationTestBase {
 
         // 이제 식별자로 구분해 검사한다.
         verify(upbitOrderClient, never())
-                .createOrder(eq("KRW-ETH"), anyString(), any(), any(), anyString());
+                .createOrder(eq("KRW-ETH"), anyString(), any(), any(), anyString(), any());
         verify(upbitOrderClient, times(1))
-                .createOrder(eq("KRW-BTC"), anyString(), any(), any(), anyString());
+                .createOrder(eq("KRW-BTC"), anyString(), any(), any(), anyString(), any());
 
         DynamicSessionEntity rb = sessionRepo.findById(rolledBack).orElseThrow();
         assertThat(rb.getAvailableKrw())

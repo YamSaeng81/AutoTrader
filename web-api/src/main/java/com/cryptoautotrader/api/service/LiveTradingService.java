@@ -102,6 +102,14 @@ public class LiveTradingService {
     // §11: BLOCKED 전략 목록은 StrategyLiveStatusRegistry 로 이전 — 필드 제거
     private static final List<String> ACTIVE_ORDER_STATES = TradingConstants.ACTIVE_ORDER_STATES;
 
+    /**
+     * 활성이지만 <b>취소할 수 없는</b> 상태 (V84) — 거래소 주문번호가 없다.
+     *
+     * <p>자금·슬롯은 점유한다(접수됐을 수 있으므로). 해소는 식별자 조회가 담당한다.</p>
+     */
+    private static final List<String> NON_CANCELLABLE_STATES =
+            List.of("INTENT_READY", "SUBMITTING", "UNKNOWN");
+
     /** StatefulStrategy(COMPOSITE/Grid 등) 세션별 독립 인스턴스 — 다중 세션 간 상태 오염 방지 */
     private final Map<Long, com.cryptoautotrader.strategy.Strategy> sessionStatefulStrategies = new ConcurrentHashMap<>();
 
@@ -527,6 +535,27 @@ public class LiveTradingService {
 
         log.info("실전매매 세션 정지: id={} 최종 자산: {} KRW",
                 sessionId, session.getTotalAssetKrw());
+
+        // 🔴 **정지는 "신규 승인 차단" 까지만 보장한다** (2026-10-12, V84).
+        //
+        //    거래소 호출이 트랜잭션 밖으로 나갔으므로, claim 커밋과 외부 호출 사이에 이 정지가
+        //    끼어들 수 있다. 이미 claim 된 주문이 나가는 것은 막을 방법이 없다 — 접수 가능성이
+        //    있기 때문이다. 그러므로 미해결 제출이 남은 세션을 **정리 완료로 보지 않는다.**
+        //
+        //    🔴 그 주문은 접수됐을 수 있고, 그렇다면 **장부에 없는 포지션이 거래소에 있다.**
+        //    자동으로 종결하거나 자금을 복원하면 그 사실을 지우는 셈이므로 하지 않는다 —
+        //    추적(5초 폴러의 식별자 조회)은 세션 상태와 무관하게 계속되고, 종결은 사람이 한다.
+        long unresolved = orderRepository.countUnresolvedSubmissions("LIVE", sessionId);
+        if (unresolved > 0) {
+            log.warn("🔴 정지했으나 **정리 미완료** — 미해결 제출 {}건이 남았다 (sessionId={}). "
+                    + "그 주문은 접수됐을 수 있으므로 자금·슬롯을 점유한 것으로 두고 추적을 계속한다. "
+                    + "종결은 근거를 확인한 사람이 한다.", unresolved, sessionId);
+            try {
+                telegramService.notifyCleanupIncomplete(sessionId, unresolved);
+            } catch (Exception e) {
+                log.warn("정리 미완료 알림 실패 (sessionId={}): {}", sessionId, e.getMessage());
+            }
+        }
 
         double returnPct = session.getTotalAssetKrw()
                 .subtract(session.getInitialCapital())
@@ -1615,10 +1644,31 @@ public class LiveTradingService {
                 });
     }
 
+    /**
+     * 🔴 <b>취소할 수 없는 상태는 건너뛴다</b> (2026-10-12, V84).
+     *
+     * <p>{@code INTENT_READY}·{@code SUBMITTING}·{@code UNKNOWN} 은 활성(자금·슬롯 점유)이지만
+     * <b>거래소 주문번호가 없다</b> — 취소 요청을 보낼 대상이 없으므로 취소가 불가능하다.</p>
+     *
+     * <p>🔴 걸러내지 않으면 {@code cancelOrder} 가 "취소 불가 상태" 로 예외를 던지고, 그 예외는
+     * {@code @Transactional} 안에서 났으므로 <b>정지 트랜잭션 전체가 rollback-only 로 표시된다.</b>
+     * 아래 {@code catch} 가 예외를 삼켜도 커밋 시점에
+     * {@code UnexpectedRollbackException} 이 나면서 <b>정지가 깨진다</b> — 시험
+     * {@code ClaimAndUnknownTrackingTest} 가 실제로 이 경로를 잡았다.</p>
+     *
+     * <p>건너뛴 주문은 버려지지 않는다. 5초 폴러가 <b>식별자로 조회</b>해 해소하고, 그동안 세션은
+     * 정리 미완료로 남는다.</p>
+     */
     private void cancelSessionActiveOrders(Long sessionId) {
         List<OrderEntity> activeOrders = orderRepository
                 .findBySessionIdAndStateIn(sessionId, ACTIVE_ORDER_STATES);
         for (OrderEntity order : activeOrders) {
+            if (NON_CANCELLABLE_STATES.contains(order.getState())) {
+                log.warn("🔴 취소 대상이 아니다 — 거래소 주문번호가 없다. 식별자 추적에 맡긴다 "
+                        + "(sessionId={}, orderId={}, state={})",
+                        sessionId, order.getId(), order.getState());
+                continue;
+            }
             try {
                 orderExecutionEngine.cancelOrder(order.getId());
                 log.info("세션 주문 취소: sessionId={} orderId={}", sessionId, order.getId());

@@ -214,6 +214,55 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
     @Query("UPDATE OrderEntity o SET o.fillAccountingPending = false WHERE o.id = :id")
     int clearFillAccountingPending(@Param("id") Long id);
 
+    // -- V84 : 주문 의도 · claim · 응답 불명 ---------------------------------
+
+    /**
+     * claim — {@code INTENT_READY} → {@code SUBMITTING} <b>조건부</b> 전환 (V84).
+     *
+     * <p>🔴 <b>1행을 돌려받은 작업자만 외부로 한 번 제출한다.</b> 상태를 <b>읽은</b> 것과 이 전환에
+     * <b>성공한</b> 것은 다르다 — 상태는 재기동 후에도 보이지만 전환 성공은 한 번만 일어난다.
+     * 복구 작업자가 {@code SUBMITTING} 을 보고 재제출하면 같은 의도가 두 번 나간다.</p>
+     *
+     * <p>🔴 <b>1행을 돌려받았다고 제출해도 되는 것은 아니다.</b> 이 UPDATE 를 담은 트랜잭션은 이후
+     * 단계 실패·커밋 실패로 롤백될 수 있고, 그때 제출하면 아무도 claim 하지 않은 주문이 나간다.
+     * 그래서 외부 호출은 <b>이 트랜잭션이 커밋된 뒤에</b> 한다.</p>
+     *
+     * @return 전환된 행 수 — {@code 1} 이면 이 호출이 claim 을 얻었다
+     */
+    @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE OrderEntity o SET o.state = 'SUBMITTING', o.claimedAt = :now "
+            + "WHERE o.id = :id AND o.state = 'INTENT_READY'")
+    int claimForSubmission(@Param("id") Long id, @Param("now") Instant now);
+
+    /** 식별자로 주문을 찾는다 — 응답 유실 주문의 추적 경로다. */
+    java.util.Optional<OrderEntity> findByClientOrderId(String clientOrderId);
+
+    /**
+     * 미해결 제출 — {@code INTENT_READY} · {@code SUBMITTING} · {@code UNKNOWN}.
+     *
+     * <p>🔴 <b>재제출 대상이 아니라 조회 대상이다.</b> 복구는 식별자로 묻기만 한다.</p>
+     */
+    @Query("SELECT o FROM OrderEntity o WHERE o.state IN ('INTENT_READY', 'SUBMITTING', 'UNKNOWN') "
+            + "AND (o.unknownProbedAt IS NULL OR o.unknownProbedAt <= :before) "
+            + "ORDER BY o.id")
+    List<OrderEntity> findUnresolvedSubmissions(@Param("before") Instant before);
+
+    /**
+     * 세션의 미해결 제출 건수 — 정지가 <b>정리 완료</b>를 표시할 수 있는지 판단한다.
+     *
+     * <p>🔴 하나라도 남아 있으면 정리 완료가 아니다. 그 주문은 접수됐을 수 있고, 그렇다면 장부에
+     * 없는 포지션이 거래소에 있다.</p>
+     */
+    @Query("SELECT COUNT(o) FROM OrderEntity o WHERE o.sessionKind = :kind AND o.sessionId = :sessionId "
+            + "AND o.state IN ('INTENT_READY', 'SUBMITTING', 'UNKNOWN')")
+    long countUnresolvedSubmissions(@Param("kind") String kind, @Param("sessionId") Long sessionId);
+
+    /** 불명 조회 시도를 기록한다 — 🔴 상태는 바꾸지 않는다(자동 종결 금지). */
+    @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE OrderEntity o SET o.unknownProbeCount = o.unknownProbeCount + 1, "
+            + "o.unknownProbedAt = :now WHERE o.id = :id")
+    int touchUnknownProbe(@Param("id") Long id, @Param("now") Instant now);
+
     /**
      * 🔴 그 세션에 <b>회계 미반영 체결</b>이 있는가 — 있으면 신규 매수를 막는다 (V83).
      *

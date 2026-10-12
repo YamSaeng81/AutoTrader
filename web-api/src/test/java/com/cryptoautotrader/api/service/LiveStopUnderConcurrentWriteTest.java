@@ -226,7 +226,8 @@ class LiveStopUnderConcurrentWriteTest extends IntegrationTestBase {
         Long sessionId = session.getId();
         AtomicInteger injected = new AtomicInteger();
         Mockito.doReturn(acceptedSell()).when(upbitOrderClient).createOrder(
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(),
+                Mockito.any());
 
         // 포지션을 CLOSING 으로 돌리는 순간 = 정지 트랜잭션이 열려 있는 순간.
         // 그 틈에 같은 세션 행을 수정해 버전을 올린다. 평가 루프가 끼어든 것과 같다.
@@ -272,7 +273,7 @@ class LiveStopUnderConcurrentWriteTest extends IntegrationTestBase {
         //    대역으로 두었으므로 이 시험은 체결 정산과 KRW 반영의 정확성을 말하지 않는다.
         Mockito.verify(upbitOrderClient, Mockito.times(1)).createOrder(
                 Mockito.eq("KRW-DOGE"), Mockito.eq("ask"),
-                Mockito.any(), Mockito.any(), Mockito.any());
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
 
         // ③ 🔴 불변식은 "행 수" 가 아니라 **실제로 거래소에 간 매도 수** 다.
         //    행은 정당하게 늘 수 있다 — `reconcileClosingPositions`(5초)가 청산을 재시도하면서
@@ -311,7 +312,8 @@ class LiveStopUnderConcurrentWriteTest extends IntegrationTestBase {
         LiveTradingSessionEntity session = newRunningSessionWithOpenPosition();
         Long sessionId = session.getId();
         Mockito.doReturn(acceptedSell()).when(upbitOrderClient).createOrder(
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(),
+                Mockito.any());
 
         liveTradingService.stopSession(sessionId);
         awaitOrderExecutorDrained();
@@ -348,7 +350,8 @@ class LiveStopUnderConcurrentWriteTest extends IntegrationTestBase {
         LiveTradingSessionEntity session = newRunningSessionWithOpenPosition();
         Long sessionId = session.getId();
         Mockito.doReturn(acceptedSell()).when(upbitOrderClient).createOrder(
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(),
+                Mockito.any());
 
         liveTradingService.stopSession(sessionId);
         awaitOrderExecutorDrained();

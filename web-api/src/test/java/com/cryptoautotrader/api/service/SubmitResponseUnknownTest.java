@@ -157,7 +157,8 @@ class SubmitResponseUnknownTest extends IntegrationTestBase {
             exchangeAccepted.add("accepted-" + exchangeAccepted.size());
             throw new RuntimeException(new java.net.http.HttpTimeoutException("request timed out"));
         }).when(upbitOrderClient).createOrder(
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(),
+                Mockito.any());
     }
 
     /** 세션 행의 현재 버전·주요 필드를 한 줄로 만든다 — UPDATE 가 일어났는지 가리는 근거다. */
@@ -214,27 +215,33 @@ class SubmitResponseUnknownTest extends IntegrationTestBase {
 
         // ① 추적 — 현재 남는 단서를 그대로 기록한다
         List<OrderEntity> rows = orderRepository.findBySessionIdAndStateIn(f.sessionId(),
-                List.of("PENDING", "SUBMITTED", "PARTIAL_FILLED", "FILLED", "CANCELLED", "FAILED"));
+                List.of("PENDING", "INTENT_READY", "SUBMITTING", "UNKNOWN", "SUBMITTED",
+                        "PARTIAL_FILLED", "FILLED", "CANCELLED", "FAILED"));
         assertThat(rows).as("주문 행은 남아야 한다 — 행조차 사라지면 추적 단서가 없다").hasSize(1);
         OrderEntity after = rows.get(0);
 
-        // 🔴 측정된 현재 동작: 시간 초과가 FAILED 로 종결되고 거래소 주문 ID 는 없다.
-        //    이것이 공백이다 — 아래 `@Disabled` 시험이 요구사항을 적어 둔다.
+        // 🟢 **측정값이 바뀌었다** (2026-10-12, V84). 종전에는 시간 초과가 `FAILED` 로 종결되고
+        //    `exchangeOrderId` 가 null 이라 **그 주문을 거래소에 물어볼 수가 없었다.** 이제 불명으로
+        //    남고 제출 전에 커밋한 식별자가 추적 단서가 된다.
         assertThat(after.getState())
-                .as("현재 동작 — 시간 초과를 종결 상태로 기록한다(상태=%s)", after.getState())
-                .isEqualTo("FAILED");
+                .as("시간 초과는 '거래소가 거절했다' 가 아니다 — 불명으로 남는다(상태=%s)", after.getState())
+                .isEqualTo("UNKNOWN");
         assertThat(after.getExchangeOrderId())
-                .as("🔴 거래소 주문 ID 가 없다 — 그 주문을 거래소에 조회할 단서가 없다")
+                .as("🔴 UUID 는 **응답에만 온다** — 응답을 잃었으므로 여전히 null 이다. "
+                        + "그래서 식별자가 필요한 것이다")
                 .isNull();
+        assertThat(after.getClientOrderId())
+                .as("🟢 제출 **전에** 커밋한 식별자가 남아야 한다 — 유일한 추적 경로다")
+                .isNotNull();
     }
 
     /**
-     * 🔴 <b>미해결 — 배포 차단 항목. 이 시험은 통과하지 않는다.</b>
-     *
-     * <p>요구사항: 거래소가 접수했을 가능성이 있는 주문은 <b>종결 상태로 기록하지 않고 추적 단서를
-     * 남겨야 한다.</b> 현재는 시간 초과를 {@code FAILED} 로 기록하고 {@code exchangeOrderId} 가
-     * {@code null} 이라, <b>그 주문이 거래소에 살아 있는지 확인할 방법이 없다.</b>
-     * {@code pollActiveOrders()} 는 활성 주문만 보므로 {@code FAILED} 는 추적 대상도 아니다.</p>
+     * <p>🟢 <b>2026-10-12 (V84) 에 닫혔다.</b> 요구사항: 거래소가 접수했을 가능성이 있는 주문은
+     * <b>종결 상태로 기록하지 않고 추적 단서를 남겨야 한다.</b> 종전에는 시간 초과를 {@code FAILED}
+     * 로 기록하고 {@code exchangeOrderId} 가 {@code null} 이라 <b>그 주문이 거래소에 살아 있는지
+     * 확인할 방법이 없었다</b> — {@code pollActiveOrders()} 는 활성 주문만 보므로 {@code FAILED} 는
+     * 추적 대상도 아니었다. 이제 {@code UNKNOWN} 은 활성이고, 제출 전에 커밋한
+     * {@code client_order_id} 로 조회한다.</p>
      *
      * <p>🔴 <b>이것이 "주문 의도 선커밋" 구조가 필요한 구체적 근거다</b> — 거래소에 보내기 <b>전에</b>
      * 의도(어느 세션·어느 코인·어느 수량·어느 멱등키)를 커밋해 두면, 응답이 없어도 그 키로 거래소를
@@ -280,9 +287,8 @@ class SubmitResponseUnknownTest extends IntegrationTestBase {
                 .isLessThan(10_000L);
     }
 
-    @org.junit.jupiter.api.Disabled("미해결: 접수 가능성이 있는 주문이 FAILED 로 종결되고 추적 단서가 없다 — 상태 설계 필요")
     @Test
-    @DisplayName("🔴 미해결 — 접수 가능성이 있는 주문은 종결하지 않고 추적 단서를 남겨야 한다")
+    @DisplayName("접수 가능성이 있는 주문은 종결하지 않고 추적 단서를 남긴다")
     void unknownOutcomeMustLeaveATrackingClue() {
         Fixture f = runningSessionWithPendingBuy();
         stubAcceptThenTimeout();
@@ -291,13 +297,20 @@ class SubmitResponseUnknownTest extends IntegrationTestBase {
         awaitDrained();
 
         OrderEntity after = orderRepository.findBySessionIdAndStateIn(f.sessionId(),
-                List.of("PENDING", "SUBMITTED", "PARTIAL_FILLED", "FILLED", "CANCELLED", "FAILED")).get(0);
+                List.of("PENDING", "INTENT_READY", "SUBMITTING", "UNKNOWN", "SUBMITTED",
+                        "PARTIAL_FILLED", "FILLED", "CANCELLED", "FAILED")).get(0);
 
         assertThat(after.getState())
                 .as("접수됐을 수 있는 주문을 FAILED 로 종결하면 아무도 더 쫓지 않는다")
                 .isNotEqualTo("FAILED");
-        assertThat(after.getExchangeOrderId())
-                .as("응답을 못 받았어도 거래소를 조회할 단서(멱등키 등)가 있어야 한다")
+        // 🔴 단서는 **UUID 가 아니라 식별자**다. UUID 는 응답에만 오므로 응답 유실과 함께
+        //    사라진다 — 제출 전에 우리가 정한 값만 남는다.
+        assertThat(after.getClientOrderId())
+                .as("응답을 못 받았어도 거래소를 조회할 단서가 있어야 한다")
                 .isNotNull();
+        // 🔴 그 주문은 **추적 대상에 남아야** 한다 — pollActiveOrders 는 활성 주문만 본다.
+        assertThat(orderRepository.countUnresolvedSubmissions("LIVE", f.sessionId()))
+                .as("미해결 제출로 집계돼 폴러의 추적 대상에 남아야 한다")
+                .isEqualTo(1L);
     }
 }

@@ -71,13 +71,34 @@ public class UpbitOrderClient {
      */
     public ExchangeResult createOrder(String market, String side, BigDecimal volume,
                                       BigDecimal price, String orderType) {
-        log.info("주문 생성 요청: market={}, side={}, volume={}, price={}, type={}",
-                market, side, volume, price, orderType);
+        return createOrder(market, side, volume, price, orderType, null);
+    }
+
+    /**
+     * 주문 생성 — <b>클라이언트 식별자를 함께 보낸다</b> (2026-10-12).
+     *
+     * <p>🔴 <b>{@code identifier} 는 멱등 키가 아니다.</b> 업비트 명세는 최대 64자, 계정 전체 주문에서
+     * 고유해야 하며 <b>사용한 값은 재사용할 수 없다</b>고만 정한다. 같은 값으로 재요청하면 기존 성공
+     * 응답을 돌려준다는 보장은 <b>없다</b> — 중복 제출을 막는 근거는 이 값이 아니라 claim 규칙이다.</p>
+     *
+     * <p>이 값이 하는 일은 하나다: <b>응답을 잃어도 그 주문을 조회할 단서가 남는다.</b> UUID 는 응답에만
+     * 오므로 응답이 유실되면 추적 단서가 사라진다 — 식별자는 제출 <b>전에</b> 우리가 정하므로 남는다.</p>
+     *
+     * <p>🔴 보존 기간은 명세에 없다. 식별자로 조회되지 않는 것이 "주문이 없다" 는 뜻은 아니므로,
+     * 조회 실패를 미접수로 해석하지 않는다.</p>
+     */
+    public ExchangeResult createOrder(String market, String side, BigDecimal volume,
+                                      BigDecimal price, String orderType, String identifier) {
+        log.info("주문 생성 요청: market={}, side={}, volume={}, price={}, type={}, identifier={}",
+                market, side, volume, price, orderType, identifier);
 
         Map<String, String> params = new LinkedHashMap<>();
         params.put("market", market);
         params.put("side", side);
         params.put("ord_type", orderType);
+        if (identifier != null && !identifier.isBlank()) {
+            params.put("identifier", identifier);
+        }
         if (volume != null) {
             params.put("volume", volume.toPlainString());
         }
@@ -143,6 +164,48 @@ public class UpbitOrderClient {
         } catch (Exception e) {
             log.error("주문 조회 실패: uuid={}, error={}", uuid, e.getMessage(), e);
             throw new RuntimeException("주문 조회 실패", e);
+        }
+    }
+
+    /**
+     * 주문 조회 — <b>클라이언트 식별자로</b> (2026-10-12).
+     *
+     * <p>응답을 잃은 주문의 유일한 추적 경로다. UUID 가 없으므로 식별자로 묻는다.</p>
+     *
+     * <p>🔴 <b>조회되지 않음을 "접수되지 않았다" 로 읽지 않는다.</b> 업비트 명세에 식별자 보존 기간이
+     * 없고, 조회 실패는 통신 장애일 수도 있다. 그래서 이 메서드는 <b>찾지 못한 것과 묻지 못한 것을
+     * 구분한다</b> — 찾지 못하면 {@code null}, 묻지 못하면 예외다.</p>
+     *
+     * @return 주문 정보, 또는 거래소가 <b>명시적으로 없다고 답한</b> 경우 {@code null}
+     */
+    public OrderResponse getOrderByIdentifier(String identifier) {
+        log.debug("주문 조회(식별자): identifier={}", identifier);
+
+        Map<String, String> params = Map.of("identifier", identifier);
+        String queryString = buildQueryString(params);
+
+        try {
+            String token = generateJwtWithQuery(queryString);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(BASE_URL + "/order?" + queryString))
+                    .header("Authorization", "Bearer " + token)
+                    .timeout(Duration.ofSeconds(15))
+                    .GET()
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            // 🔴 404 는 "그 식별자의 주문이 없다" 는 **거래소의 답**이다. 통신 실패와 구분한다.
+            if (response.statusCode() == 404) {
+                log.warn("식별자로 주문을 찾지 못했다 — 미접수로 단정하지 않는다 (identifier={})", identifier);
+                return null;
+            }
+            checkResponse(response, "주문 조회(식별자)");
+
+            return objectMapper.readValue(response.body(), OrderResponse.class);
+        } catch (Exception e) {
+            log.error("주문 조회(식별자) 실패: identifier={}, error={}", identifier, e.getMessage(), e);
+            throw new RuntimeException("주문 조회(식별자) 실패: " + identifier, e);
         }
     }
 

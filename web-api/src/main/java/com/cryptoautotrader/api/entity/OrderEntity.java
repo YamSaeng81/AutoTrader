@@ -233,6 +233,60 @@ public class OrderEntity {
     public Boolean getFillAccountingPending() { return fillAccountingPending; }
     public void setFillAccountingPending(Boolean v) { this.fillAccountingPending = v; }
 
+    /**
+     * 제출 전에 정하는 클라이언트 식별자 (V84).
+     *
+     * <p>🔴 <b>응답을 잃었을 때 유일한 추적 단서다.</b> UUID 는 응답에만 오므로 응답이 유실되면
+     * 사라진다 — 이 값은 우리가 제출 <b>전에</b> 정하고 커밋하므로 남는다.</p>
+     *
+     * <p>🔴 <b>멱등 키가 아니다.</b> 재사용할 수 없고, 같은 값으로 재요청하면 기존 응답을 돌려준다는
+     * 보장도 없다. 중복 제출을 막는 근거는 이 값이 아니라 claim 규칙이다.</p>
+     */
+    @Column(name = "client_order_id", length = 64)
+    private String clientOrderId;
+
+    /** 의도·식별자를 커밋한 시각. 이 값이 있으면 외부에 나갔을 가능성을 배제하지 못한다. */
+    @Column(name = "intent_committed_at")
+    private Instant intentCommittedAt;
+
+    /**
+     * claim 전환이 커밋된 시각.
+     *
+     * <p>🔴 <b>제출 성공을 뜻하지 않는다</b> — 제출 권한을 얻은 시각이다. 복구 작업자가 이 값을
+     * 보고 재제출해서는 안 된다.</p>
+     */
+    @Column(name = "claimed_at")
+    private Instant claimedAt;
+
+    @Column(name = "unknown_probe_count", nullable = false)
+    @Builder.Default
+    private Integer unknownProbeCount = 0;
+
+    @Column(name = "unknown_probed_at")
+    private Instant unknownProbedAt;
+
+    /** 불명 판정의 근거. 🔴 자동으로 종결하지 않으므로 사람이 이 값을 읽는다. */
+    @Column(name = "unknown_reason", length = 500)
+    private String unknownReason;
+
+    public String getClientOrderId() { return clientOrderId; }
+    public void setClientOrderId(String v) { this.clientOrderId = v; }
+
+    public Instant getIntentCommittedAt() { return intentCommittedAt; }
+    public void setIntentCommittedAt(Instant v) { this.intentCommittedAt = v; }
+
+    public Instant getClaimedAt() { return claimedAt; }
+    public void setClaimedAt(Instant v) { this.claimedAt = v; }
+
+    public Integer getUnknownProbeCount() { return unknownProbeCount; }
+    public void setUnknownProbeCount(Integer v) { this.unknownProbeCount = v; }
+
+    public Instant getUnknownProbedAt() { return unknownProbedAt; }
+    public void setUnknownProbedAt(Instant v) { this.unknownProbedAt = v; }
+
+    public String getUnknownReason() { return unknownReason; }
+    public void setUnknownReason(String v) { this.unknownReason = v; }
+
     public Boolean getSettlementFinal() { return settlementFinal; }
     public void setSettlementFinal(Boolean v) { this.settlementFinal = v; }
 

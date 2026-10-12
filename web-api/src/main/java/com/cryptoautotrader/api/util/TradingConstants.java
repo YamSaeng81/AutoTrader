@@ -126,7 +126,7 @@ public final class TradingConstants {
      * LIVE·DYNAMIC 이 각자 목록을 들고 있었다.</p>
      */
     public static final List<String> ACTIVE_ORDER_STATES =
-            List.of("PENDING", "SUBMITTED", "PARTIAL_FILLED");
+            List.of("PENDING", "INTENT_READY", "SUBMITTING", "UNKNOWN", "SUBMITTED", "PARTIAL_FILLED");
 
     /**
      * CLOSING 상태 체류 한도(분) — 초과하면 reconciler 가 OPEN 으로 롤백한다.

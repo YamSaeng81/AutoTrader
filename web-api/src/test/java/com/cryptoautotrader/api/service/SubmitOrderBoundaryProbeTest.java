@@ -161,7 +161,8 @@ class SubmitOrderBoundaryProbeTest extends IntegrationTestBase {
                 .openedAt(Instant.now()).build());
 
         Mockito.doReturn(acceptedSell()).when(upbitOrderClient).createOrder(
-                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(),
+                Mockito.any());
 
         // 청산 경로 안 (정지 트랜잭션)
         Mockito.doAnswer(inv -> {
@@ -174,8 +175,9 @@ class SubmitOrderBoundaryProbeTest extends IntegrationTestBase {
         Mockito.doAnswer(inv -> {
             probes.putIfAbsent("2-recordTradeLog", here());
             // 그 시점에 주문 행이 **다른 트랜잭션에서 보이는가** — 중복 INSERT 가설의 핵심
+            // 🔴 V84: 신규 주문은 PENDING 이 아니라 INTENT_READY 로 시작한다.
             long visible = orderRepository.findBySessionIdAndStateIn(sessionId,
-                    List.of("PENDING", "SUBMITTED")).size();
+                    List.of("PENDING", "INTENT_READY", "SUBMITTING", "SUBMITTED")).size();
             probes.putIfAbsent("3-visibleOrders", "같은 스레드 조회로 보이는 활성 주문 수=" + visible);
             return inv.getArgument(0);
         }).when(tradeLogRepository).save(Mockito.any());
@@ -203,12 +205,24 @@ class SubmitOrderBoundaryProbeTest extends IntegrationTestBase {
                 .contains("txActive=true")
                 .contains("LiveTradingService.stopSession");
 
+        // 🔴 **측정값이 바뀌었다** (2026-10-12, V84). 종전에는 트랜잭션 이름이
+        //    `OrderExecutionEngine.submitOrder` 였다 — `@Transactional @Async` 였기 때문이다.
+        //    V84 에서 `submitOrder` 의 `@Transactional` 을 떼고 A·B·D 를 `TransactionTemplate`
+        //    으로 나눴으므로, 이 지점의 트랜잭션은 **템플릿이 만든 이름 없는 트랜잭션**이다
+        //    (`txName=null`).
+        //
+        //    🔴 바뀐 쪽이 측정값이고, **고정하려던 사실은 그대로다**: 제출은 호출자 트랜잭션이
+        //    아니라 **자기 트랜잭션**에서 돈다. 그래서 여기서 REQUIRES_NEW 를 쓸 수 없고(주문 행을
+        //    만든 바로 그 트랜잭션이 정지된다) 이 트랜잭션에서 그대로 잠근다. 이름이 아니라 그
+        //    사실을 단정한다 — 이름을 단정하면 경계가 아니라 구현 세부를 고정하게 된다.
         assertThat(probes.get("2-recordTradeLog"))
                 .as("🔴 제출은 **다른 스레드**에서 **자기 트랜잭션**으로 돈다 — 호출자 트랜잭션이 "
-                        + "아니다. 그래서 여기서는 REQUIRES_NEW 를 쓸 수 없고(주문 행을 만든 바로 그 "
-                        + "트랜잭션이 정지된다) 이 트랜잭션에서 그대로 잠근다: %s", report)
-                .contains("txActive=true")
-                .contains("OrderExecutionEngine.submitOrder");
+                        + "아니다: %s", report)
+                .contains("txActive=true");
+        assertThat(probes.get("2-recordTradeLog"))
+                .as("🔴 호출자(정지)의 트랜잭션에 **합류하지 않았다** — 합류했다면 거기서 거는 잠금의 "
+                        + "수명이 달라져 ③-1 수정이 조용히 무너진다: %s", report)
+                .doesNotContain("LiveTradingService.stopSession");
 
         assertThat(probes.get("2-recordTradeLog"))
                 .as("제출 스레드는 정지 스레드와 달라야 한다 — 같다면 @Async 가 동작하지 않는 것이다")
