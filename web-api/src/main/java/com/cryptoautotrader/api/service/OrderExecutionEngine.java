@@ -468,6 +468,7 @@ public class OrderExecutionEngine {
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
+                com.cryptoautotrader.api.support.CrashPoint.hit("AFTER_INTENT_COMMIT");
                 try {
                     self.submitPreparedOrder(orderId, request);
                 } catch (RuntimeException dispatchFailed) {
@@ -511,6 +512,7 @@ public class OrderExecutionEngine {
         if (!claimOwned(orderId, request)) {
             return;
         }
+        com.cryptoautotrader.api.support.CrashPoint.hit("AFTER_CLAIM_COMMIT");
         callExchangeAndRecord(orderId);
     }
 
@@ -806,6 +808,7 @@ public class OrderExecutionEngine {
             return;
         }
 
+        com.cryptoautotrader.api.support.CrashPoint.hit("AFTER_EXCHANGE_ACCEPT");
         submitTx.execute(st -> {
             recordSubmitOutcome(orderId, exchangeResult);
             return null;
@@ -1462,6 +1465,12 @@ public class OrderExecutionEngine {
         int pending = 0;
 
         for (OrderEntity order : activeOrders) {
+            if (!"BUY".equalsIgnoreCase(order.getSide())) {
+                // 🔴 매도는 취소하지 않는다 (2026-10-13, 정지와 같은 규칙) — 위험 축소다. 실제 재시작 시험(S6)에서
+                //    정지된 세션의 진행 중 청산 매도를 이 일괄 취소가 끊었다(체결분 4.9 반영 후 남은 4.9 를 다시 팔아
+                //    초과 매도는 없었지만, 매도 중인 CLOSING 포지션이 취소 후 아무도 맡지 않는 공백이 생긴다).
+                continue;
+            }
             if (upbitOrderClient == null || (order.getExchangeOrderId() == null
                     && List.of("PENDING", "SUBMITTED", "PARTIAL_FILLED").contains(order.getState()))) {
                 // 거래소에 물을 수단이 없는 종전 경로 — `cancelOrder` 의 같은 분기와 같다(체결 없음 확인 아님).
@@ -1659,11 +1668,18 @@ public class OrderExecutionEngine {
         //
         //    전이를 먼저 커밋하고, 조회는 그다음에 한다.
         RESOLVED.set(Boolean.FALSE);
-        Boolean needsPoll = submitTx.execute(st -> resolveUnresolvedSubmissionInTx(orderId));
+        // 🔴 **REQUIRES_NEW 다** (2026-10-13, 실제 PostgreSQL 재시작 시험에서 발견). 종전 REQUIRED 는 폴러의 바깥
+        //    트랜잭션에 **참여**해 커밋되지 않았다 — 위의 "전이를 먼저 커밋" 이 폴러 안에서는 성립하지 않았다. 이어지는
+        //    체결 반영(REQUIRES_NEW)이 같은 주문 행을 고치려다 **자기 바깥 트랜잭션의 행 잠금**을 기다렸고, lock_timeout
+        //    10초에 실패해 다음 폴링으로 밀렸다(그동안 폴러 스레드 정지, 제한 시간이 없으면 영구 정지 — §8 의 같은 스레드
+        //    중첩 대기). H2 는 이것을 오래된 읽기로 보여 "다음 회차 반영" 으로 오인했다.
+        Boolean needsPoll = syncTx.execute(st -> resolveUnresolvedSubmissionInTx(orderId));
         if (!Boolean.TRUE.equals(needsPoll)) {
             return RESOLVED.get() == Boolean.TRUE;
         }
-        checkOrderStatus(orderId);
+        // 🔴 조회도 새 트랜잭션에서 한다 — 폴러의 영속성 컨텍스트에는 전이 전(주문번호 없음) 엔티티가 남아 있어,
+        //    그 안에서 부르면 옛 값을 읽고 그냥 돌아간다. 이 트랜잭션은 읽기만 하므로 안의 정산(REQUIRES_NEW)을 막지 않는다.
+        syncTx.executeWithoutResult(st -> checkOrderStatus(orderId));
         return true;
     }
 

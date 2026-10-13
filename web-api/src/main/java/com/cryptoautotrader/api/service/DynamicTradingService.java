@@ -2178,6 +2178,9 @@ public class DynamicTradingService {
     // ── 내부: 청산 / 정리 ──────────────────────────────────────────
 
     private void closeOpenPositions(DynamicSessionEntity session, String reason) {
+        // 🔴 매도가 진행 중인 CLOSING 포지션도 정리 대기로 등록한다 (2026-10-13, LIVE 와 같은 규칙).
+        positionRepository.findBySessionKindAndSessionIdAndStatus(sessionKind(session), session.getId(), "CLOSING")
+                .forEach(p -> registerStopCleanup(p, session.getId()));
         List<PositionEntity> opens = positionRepository
                 .findBySessionKindAndSessionIdAndStatus(sessionKind(session), session.getId(), "OPEN");
         for (PositionEntity pos : opens) {
@@ -2689,6 +2692,15 @@ public class DynamicTradingService {
                     pos.getId(), filledOrder.getId());
             return;
         }
+        // 🔴 **이 매도를 반영할 권한을 먼저 얻는다** (2026-10-13, 실제 재시작 시험 S7 에서 발견). 재기동 직후 기동 복구와
+        //    5초 청산 확정이 같은 CLOSING 포지션을 50ms 간격으로 각각 확정해 LIVE 대금이 두 번 들어갔다 — DYNAMIC 은 대금은 정산 표식이 막지만 포지션 확정이 두 번 일어날 수 있다
+        //    (잔액 12,935.59, 맞는 값 9,997.06). 조건부 표시(sell_applied_at IS NULL → now)를 먼저 쓰고 1행을 받은 쪽만
+        //    확정한다 — 상대는 이 행 잠금을 기다렸다가 0행을 받는다. 포지션·대금과 같은 트랜잭션이라 함께 롤백된다.
+        if (orderRepository.markSellApplied(filledOrder.getId(), Instant.now()) == 0) {
+            log.info("매도 확정 건너뜀 — 다른 경로가 이 매도를 이미 반영했다 (posId={}, orderId={})",
+                    pos.getId(), filledOrder.getId());
+            return;
+        }
         BigDecimal soldQty = filledOrder.getFilledQuantity() != null
                 ? filledOrder.getFilledQuantity() : pos.getSize();
 
@@ -2718,8 +2730,6 @@ public class DynamicTradingService {
             pos.setClosedAt(Instant.now());
         }
         positionRepository.save(pos);
-        // 이 매도는 반영됐다 — 같은 트랜잭션이므로 위 저장과 함께 커밋·롤백된다(LIVE 와 같은 규칙).
-        orderRepository.markSellApplied(filledOrder.getId(), Instant.now());
 
         if (pos.getSessionId() != null) {
             Long sessionId = pos.getSessionId();

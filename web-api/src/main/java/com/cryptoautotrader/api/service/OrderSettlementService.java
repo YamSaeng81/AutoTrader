@@ -328,6 +328,7 @@ public class OrderSettlementService {
                 orderId, response.getExecutedVolume(), response.resolveExecutedFunds(),
                 response.getPaidFee(), response.getState(), Instant.now()) == 1);
         if (!Boolean.TRUE.equals(observed)) return false;
+        com.cryptoautotrader.api.support.CrashPoint.hit("AFTER_FILL_OBSERVED");
 
         // 회계 반영 — 주문·잔액·포지션이 **한 트랜잭션**. 실패하면 전부 롤백되고 관측과 대기 표시는
         // 남는다(앞의 트랜잭션에서 이미 커밋했다).
@@ -411,6 +412,11 @@ public class OrderSettlementService {
         applyFundsDeltaToSession(order, funds, targetFee, appliedFunds, appliedFee, first);
 
         clearPending(order.getId());
+        // 트랜잭션 안 — 주문·잔액·포지션을 쓴 뒤 커밋 전. 여기서 멈추면 DB 가 전부 롤백해야 한다.
+        if (com.cryptoautotrader.api.support.CrashPoint.armed("IN_FILL_ACCOUNTING")) {
+            orderRepository.flush();   // 쓰기를 DB 에 보낸 뒤 커밋 전에 멈춘다
+            com.cryptoautotrader.api.support.CrashPoint.hit("IN_FILL_ACCOUNTING");
+        }
         log.info("체결 회계 반영 (orderId={}): 수량 Δ{} 체결금액 Δ{} 수수료 Δ{} 평균단가={} (출처={})",
                 order.getId(), deltaVolume, deltaFunds, deltaFee, avgPrice, nextSource);
         return Boolean.TRUE;

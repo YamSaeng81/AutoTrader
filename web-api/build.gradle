@@ -32,3 +32,23 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'com.h2database:h2'
 }
+
+// ── 실제 프로세스 재시작 시험 전용 진입점 (2026-10-13) ─────────────────────────────
+// 🔴 운영 jar(bootJar)에 들어가지 않는다 — 별도 소스 세트이고, 시험 구동기가 이 클래스패스로 앱을 직접 띄운다.
+//    `./gradlew :web-api:restartHarnessClasspath` 가 클래스패스를 build/restart-harness-classpath.txt 에 쓴다.
+sourceSets {
+    restartHarness {
+        java.srcDir 'src/restartHarness/java'
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+        runtimeClasspath += output + sourceSets.main.output + sourceSets.main.runtimeClasspath
+    }
+}
+
+tasks.register('restartHarnessClasspath') {
+    dependsOn 'classes', 'restartHarnessClasses'
+    def out = layout.buildDirectory.file('restart-harness-classpath.txt')
+    outputs.file out
+    doLast {
+        out.get().asFile.text = sourceSets.restartHarness.runtimeClasspath.asPath
+    }
+}

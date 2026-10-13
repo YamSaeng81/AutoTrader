@@ -30,7 +30,13 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Slf4j
 public class ExchangeHealthMonitor {
 
-    private static final String HEALTH_CHECK_URL = "https://api.upbit.com/v1/market/all";
+    /**
+     * 🔴 기본값은 업비트다. 실제 프로세스 재시작 시험만 JVM 시스템 속성 {@code upbit.health-check-url} 로 거래소 대역을
+     * 가리킨다 (2026-10-13) — 외부 인터넷을 막은 시험 환경에서 이 확인이 실패하면 "거래소 DOWN" → 전체 비상 정지가
+     * 일어나 시험과 무관한 경로가 끼어든다.
+     */
+    private static final String HEALTH_CHECK_URL =
+            System.getProperty("upbit.health-check-url", "https://api.upbit.com/v1/market/all");
     private static final long DEGRADED_THRESHOLD_MS = 3000;
     private static final int MAX_LATENCY_HISTORY = 10;
 

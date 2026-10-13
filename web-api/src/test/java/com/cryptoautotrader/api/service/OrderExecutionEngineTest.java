@@ -120,9 +120,10 @@ class OrderExecutionEngineTest extends IntegrationTestBase {
 
         int count = engine.cancelAllActiveOrders();
 
-        assertThat(count).isEqualTo(3);
+        // 🔴 2026-10-13: 일괄 취소는 **매수만** 한다 — 매도는 위험 축소라 진행을 끊지 않는다(실제 재시작 시험 S6).
+        assertThat(count).isEqualTo(2);
         assertThat(orderRepository.findByStateIn(java.util.List.of("PENDING", "SUBMITTED", "PARTIAL_FILLED")))
-                .isEmpty();
+                .extracting(OrderEntity::getSide).containsExactly("SELL");
     }
 
     // ── 중복 주문 방지 (submitOrder 내부 로직은 거래소 클라이언트 불필요 경로 없음)

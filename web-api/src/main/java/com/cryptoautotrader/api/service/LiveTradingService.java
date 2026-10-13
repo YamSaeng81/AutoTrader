@@ -1579,6 +1579,10 @@ public class LiveTradingService {
     // -- 내부: 세션 포지션 청산 ----------------------------------
 
     private void closeSessionPositions(LiveTradingSessionEntity session, String reason) {
+        // 🔴 매도가 이미 진행 중인 CLOSING 포지션도 정리 대기로 등록한다 (2026-10-13) — 그 매도가 실패·취소돼 OPEN 으로
+        //    되돌아가면 정지된 세션에서는 아무도 다시 팔지 않는다. 등록만 하고 매도는 내지 않는다(진행 중 매도 확인).
+        positionRepository.findBySessionKindAndSessionIdAndStatus("LIVE", session.getId(), "CLOSING")
+                .forEach(p -> registerStopCleanup(p, session.getId()));
         List<PositionEntity> openPositions =
                 positionRepository.findBySessionKindAndSessionIdAndStatus("LIVE", session.getId(), "OPEN");
 
@@ -2957,6 +2961,15 @@ public class LiveTradingService {
                     pos.getId(), filledOrder.getId());
             return;
         }
+        // 🔴 **이 매도를 반영할 권한을 먼저 얻는다** (2026-10-13, 실제 재시작 시험 S7 에서 발견). 재기동 직후 기동 복구와
+        //    5초 청산 확정이 같은 CLOSING 포지션을 50ms 간격으로 각각 확정해 LIVE 대금이 두 번 들어갔다
+        //    (잔액 12,935.59, 맞는 값 9,997.06). 조건부 표시(sell_applied_at IS NULL → now)를 먼저 쓰고 1행을 받은 쪽만
+        //    확정한다 — 상대는 이 행 잠금을 기다렸다가 0행을 받는다. 포지션·대금과 같은 트랜잭션이라 함께 롤백된다.
+        if (orderRepository.markSellApplied(filledOrder.getId(), Instant.now()) == 0) {
+            log.info("매도 확정 건너뜀 — 다른 경로가 이 매도를 이미 반영했다 (posId={}, orderId={})",
+                    pos.getId(), filledOrder.getId());
+            return;
+        }
         BigDecimal soldQty = filledOrder.getFilledQuantity() != null
                 ? filledOrder.getFilledQuantity() : pos.getSize();
 
@@ -2982,8 +2995,6 @@ public class LiveTradingService {
             pos.setClosedAt(Instant.now());
         }
         positionRepository.save(pos);
-        // 이 매도는 반영됐다 — 같은 트랜잭션이므로 위 저장과 함께 커밋·롤백된다.
-        orderRepository.markSellApplied(filledOrder.getId(), Instant.now());
 
         if (pos.getSessionId() != null) {
             final Long sessionId = pos.getSessionId();
@@ -2992,7 +3003,10 @@ public class LiveTradingService {
                     .findBySessionKindAndSessionIdAndCoinPairAndStatus("LIVE", sessionId, pos.getCoinPair(), "OPEN")
                     .isPresent();
 
-            balanceUpdater.apply(sessionId, s -> {
+            // 🔴 대금은 확정과 **같은 트랜잭션**에서 넣는다 (2026-10-13). 종전 REQUIRES_NEW 는 대금만 따로 커밋돼, 확정이
+            //    롤백되면(포지션·반영 표시가 되돌아감) 다음 시도가 대금을 또 넣었다. 바깥은 이 세션 행을 먼저 쓰지
+            //    않으므로 같은 트랜잭션 갱신이 안전하다(§8).
+            balanceUpdater.applyWithin(sessionId, s -> {
                 BigDecimal newAvailableKrw = s.getAvailableKrw().add(netProceeds);
                 s.setAvailableKrw(newAvailableKrw);
                 if (!hasOpenPosition) {

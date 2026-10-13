@@ -829,8 +829,8 @@ class CancelConfirmAndLateFillCleanupTest extends IntegrationTestBase {
         OrderEntity l = orderRepository.findById(lost.getId()).orElseThrow();
         l.setUnknownProbedAt(null);
         orderRepository.save(l);
-        // 식별자 해소의 SUBMITTED 전이는 폴러 트랜잭션과 함께 커밋되므로 체결 반영은 다음 회차다(종전 동작).
-        engine.pollActiveOrders();
+        // 식별자 해소는 자기 트랜잭션에서 커밋된 뒤 체결을 조회한다 — 한 회차에 반영된다(2026-10-13 수정 전에는 폴러
+        // 트랜잭션에 묶여 다음 회차였다. 실제 PostgreSQL 에서는 그것이 10초 잠금 대기였다).
         engine.pollActiveOrders();
         assertThat(orderRepository.findById(lost.getId()).orElseThrow().getState()).isEqualTo("FILLED");
 
@@ -922,5 +922,100 @@ class CancelConfirmAndLateFillCleanupTest extends IntegrationTestBase {
         System.out.println("[D6 " + kind + "] 불일치=" + found + " " + snap(f));
         assertThat(found).as("늘어난 체결량을 불일치로 보존").isGreaterThanOrEqualTo(1);
         assertThat(snap(f)).as("자동 반영하지 않는다 — 포지션·잔액 불변").isEqualTo(before);
+    }
+
+    // ── E. 정지·비상 정지가 진행 중 청산 매도를 끊지 않는다 (실제 재시작 시험 S6 에서 발견) ─────────
+
+    private OrderEntity activeSellFor(Fx f) {
+        PositionEntity p = position(f);
+        p.setSize(FILL);
+        p.setStatus("CLOSING");
+        p.setClosingAt(Instant.now());
+        positionRepository.save(p);
+        return orderRepository.save(OrderEntity.builder()
+                .coinPair("KRW-DOGE").side("SELL").orderType("MARKET").quantity(FILL).state("SUBMITTED")
+                .sessionKind(f.kind()).sessionId(f.sessionId()).positionId(f.positionId())
+                .clientOrderId("cat-sell-" + System.nanoTime()).exchangeOrderId("uuid-sell-e-" + System.nanoTime())
+                .feeSource(OrderExecutionEngine.FEE_SOURCE_PENDING)
+                .settlementVersion(0L).settlementFinal(Boolean.FALSE).settlementAttempts(0)
+                .createdAt(Instant.now()).submittedAt(Instant.now()).build());
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @ValueSource(strings = {"LIVE", "DYNAMIC"})
+    @DisplayName("E1 정지 — 매도 진행 중인 CLOSING 포지션을 정리 대기로 등록하고, 그 매도는 취소하지 않는다")
+    void stopRegistersClosingAndKeepsSell(String kind) {
+        Fx f = buy(kind, "RUNNING", "FILLED", true);
+        OrderEntity sell = activeSellFor(f);
+
+        stop(f);
+        System.out.println("[E1 " + kind + "] " + snap(f) + " 정리대기=" + cleanupRepository.findById(f.positionId()).isPresent());
+        Mockito.verify(upbitOrderClient, Mockito.never()).cancelOrder(sell.getExchangeOrderId());
+        assertThat(orderRepository.findById(sell.getId()).orElseThrow().getState()).isEqualTo("SUBMITTED");
+        assertThat(cleanupRepository.findById(f.positionId()))
+                .as("매도가 실패·취소돼 OPEN 으로 돌아가면 정리 작업이 맡는다").isPresent();
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @ValueSource(strings = {"LIVE", "DYNAMIC"})
+    @DisplayName("E2 전체 비상 정지의 일괄 취소 — 매수만 취소하고 진행 중 매도는 건드리지 않는다")
+    void emergencyCancelAllKeepsSells(String kind) {
+        Fx f = buy(kind, "STOPPED", "FILLED", true);
+        OrderEntity sell = activeSellFor(f);
+        Mockito.doReturn(exchange(sell.getExchangeOrderId(), "wait", BigDecimal.ZERO))
+                .when(upbitOrderClient).getOrder(sell.getExchangeOrderId());
+
+        engine.cancelAllActiveOrders();
+        Mockito.verify(upbitOrderClient, Mockito.never()).cancelOrder(sell.getExchangeOrderId());
+        assertThat(orderRepository.findById(sell.getId()).orElseThrow().getState()).isEqualTo("SUBMITTED");
+        assertThat(orderRepository.findById(sell.getId()).orElseThrow().getCancelRequestedAt()).isNull();
+    }
+
+    // ── F. 같은 매도의 동시 확정 (실제 재시작 시험 S7 에서 발견) ─────────────────────────────
+
+    @ParameterizedTest(name = "{0}")
+    @ValueSource(strings = {"LIVE", "DYNAMIC"})
+    @DisplayName("F1 청산 확정 둘이 같은 체결 매도를 동시에 확정 — 대금·포지션 반영은 한 번")
+    void concurrentSellFinalizeCreditsOnce(String kind) throws Exception {
+        Fx f = buy(kind, "STOPPED", "FILLED", true);
+        PositionEntity p = position(f);
+        p.setSize(FILL);
+        p.setStatus("CLOSING");
+        p.setClosingAt(Instant.now());
+        positionRepository.save(p);
+        orderRepository.save(OrderEntity.builder()
+                .coinPair("KRW-DOGE").side("SELL").orderType("MARKET").quantity(FILL).filledQuantity(FILL)
+                .price(new BigDecimal("300")).state("FILLED").filledAt(Instant.now())
+                .sessionKind(kind).sessionId(f.sessionId()).positionId(f.positionId())
+                .clientOrderId("cat-sell-f-" + System.nanoTime()).exchangeOrderId("uuid-sell-f-" + System.nanoTime())
+                .feeSource(OrderExecutionEngine.FEE_SOURCE_PENDING)
+                .settlementVersion(0L).settlementFinal(Boolean.FALSE).settlementAttempts(0)
+                .createdAt(Instant.now()).build());
+
+        for (int round = 0; round < 1; round++) {
+            CyclicBarrier barrier = new CyclicBarrier(2);
+            List<Throwable> errors = java.util.Collections.synchronizedList(new ArrayList<>());
+            Runnable r = () -> {
+                try {
+                    barrier.await();
+                    closingReconcile(kind);
+                } catch (Throwable t) {
+                    errors.add(t);
+                }
+            };
+            Thread a = new Thread(r);
+            Thread b = new Thread(r);
+            a.start();
+            b.start();
+            a.join();
+            b.join();
+            System.out.println("[F1 " + kind + "] 예외=" + errors.stream().map(t -> t.getClass().getSimpleName()).toList());
+        }
+        closingReconcile(kind);
+        closingReconcile(kind);
+        System.out.println("[F1 " + kind + "] " + snap(f));
+        // 7,000 + (2,940 − 1.47) = 9,938.53
+        assertThat(available(f)).as("🔴 대금 2,938.53 이 한 번 — 두 번이면 12,877.06").isEqualByComparingTo("9938.53");
+        assertThat(position(f).getStatus()).isEqualTo("CLOSED");
     }
 }
