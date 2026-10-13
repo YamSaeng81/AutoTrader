@@ -44,8 +44,20 @@ public class RiskManagementService {
      */
     @Transactional
     public RiskConfigEntity getRiskConfig() {
-        return riskConfigRepository.findTopByOrderByIdDesc()
-                .orElseGet(this::createDefaultConfig);
+        // 🔴 읽기 경로에서 행을 만들지 않는다 (2026-10-14). 종전에는 없으면 여기서 INSERT 했는데, 호출자 대부분이
+        //    읽기 전용 트랜잭션이라 PostgreSQL 에서 "cannot execute INSERT in a read-only transaction" 으로 실패했다
+        //    (실제 재시작 시험, 빈 DB — H2 는 읽기 전용을 강제하지 않아 보이지 않았다). 기본 행은 V88 이 넣는다.
+        //    없으면 코드 기본값(메모리)을 돌려 청산·서킷 브레이커 판단은 계속하고, **신규 진입은 막는다**(hasRiskConfig).
+        return riskConfigRepository.findTopByOrderByIdDesc().orElseGet(() -> {
+            log.error("🔴 risk_config 행이 없다 — V88 미적용 또는 삭제. 코드 기본값으로 판단하고 신규 진입은 막는다");
+            return RiskConfigEntity.codeDefaults();
+        });
+    }
+
+    /** 위험 설정 행이 있는가 — 없으면 신규 진입을 승인하지 않는다 (2026-10-14). */
+    @Transactional(readOnly = true)
+    public boolean hasRiskConfig() {
+        return riskConfigRepository.findTopByOrderByIdDesc().isPresent();
     }
 
     /**
@@ -137,6 +149,9 @@ public class RiskManagementService {
      */
     @Transactional(readOnly = true)
     public RiskCheckResult checkRisk() {
+        if (!hasRiskConfig()) {
+            return RiskCheckResult.reject("risk_config 행이 없다 — 신규 진입 차단(V88 기본 행 확인 필요)");
+        }
         RiskConfigEntity configEntity = getRiskConfig();
         RiskConfig coreConfig = toRiskConfig(configEntity);
         RiskEngine engine = new RiskEngine(coreConfig);
@@ -382,7 +397,4 @@ public class RiskManagementService {
                 .build();
     }
 
-    private RiskConfigEntity createDefaultConfig() {
-        return riskConfigRepository.save(RiskConfigEntity.builder().build());
-    }
 }

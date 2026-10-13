@@ -35,8 +35,8 @@ public class ExchangeHealthMonitor {
      * 가리킨다 (2026-10-13) — 외부 인터넷을 막은 시험 환경에서 이 확인이 실패하면 "거래소 DOWN" → 전체 비상 정지가
      * 일어나 시험과 무관한 경로가 끼어든다.
      */
-    private static final String HEALTH_CHECK_URL =
-            System.getProperty("upbit.health-check-url", "https://api.upbit.com/v1/market/all");
+    private static final String HEALTH_CHECK_URL = java.util.Objects.requireNonNullElse(
+            com.cryptoautotrader.exchange.TestHooks.require("upbit.health-check-url"), "https://api.upbit.com/v1/market/all");
     private static final long DEGRADED_THRESHOLD_MS = 3000;
     private static final int MAX_LATENCY_HISTORY = 10;
 

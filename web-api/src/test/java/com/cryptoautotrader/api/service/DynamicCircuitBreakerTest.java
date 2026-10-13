@@ -57,7 +57,9 @@ class DynamicCircuitBreakerTest extends IntegrationTestBase {
         when(tradeLogRepository.sumRealizedLossSince(any())).thenReturn(BigDecimal.ZERO);
         positionRepository.deleteAll();
         dynamicSessionRepository.deleteAll();
-        riskConfigRepository.deleteAll(); // getRiskConfig()가 기본값(CB on, 연속손실 5회) 재생성
+        riskConfigRepository.deleteAll();
+        // 🔴 읽기 경로는 더 이상 행을 만들지 않는다(2026-10-14) — 운영의 V88 처럼 기본 행을 명시적으로 둔다.
+        riskConfigRepository.save(com.cryptoautotrader.api.entity.RiskConfigEntity.builder().build());
     }
 
     @AfterEach
@@ -65,6 +67,8 @@ class DynamicCircuitBreakerTest extends IntegrationTestBase {
         positionRepository.deleteAll();
         dynamicSessionRepository.deleteAll();
         riskConfigRepository.deleteAll();
+        // 🔴 읽기 경로는 더 이상 행을 만들지 않는다(2026-10-14) — 운영의 V88 처럼 기본 행을 명시적으로 둔다.
+        riskConfigRepository.save(com.cryptoautotrader.api.entity.RiskConfigEntity.builder().build());
     }
 
     private DynamicSessionEntity saveSession(Instant startedAt) {

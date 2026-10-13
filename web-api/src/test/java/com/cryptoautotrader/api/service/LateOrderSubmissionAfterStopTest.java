@@ -98,8 +98,7 @@ class LateOrderSubmissionAfterStopTest extends IntegrationTestBase {
     @AfterEach
     void cleanUp() {
         createdSessions.forEach(id -> {
-            orderRepository.findBySessionIdAndStateIn(id,
-                    List.of("PENDING", "SUBMITTED", "PARTIAL_FILLED", "FILLED", "CANCELLED", "FAILED"))
+            orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc("LIVE", id)
                     .forEach(orderRepository::delete);
             positionRepository.findBySessionKindAndSessionId("LIVE", id)
                     .forEach(positionRepository::delete);
@@ -227,9 +226,8 @@ class LateOrderSubmissionAfterStopTest extends IntegrationTestBase {
         // ── 최종 상태: 활성 주문·임시 포지션이 남지 않는다 ──────────
         // 🔴 V84 의 활성 상태를 전부 본다 — INTENT_READY·SUBMITTING·UNKNOWN 이 남으면
         //    자금·슬롯을 점유한 채 폴러가 영원히 쫓는다.
-        List<OrderEntity> active = orderRepository.findBySessionIdAndStateIn(sessionId,
-                List.of("PENDING", "INTENT_READY", "SUBMITTING", "UNKNOWN",
-                        "SUBMITTED", "PARTIAL_FILLED"));
+        List<OrderEntity> active = orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc("LIVE", sessionId).stream().filter(o__ -> (List.of("PENDING", "INTENT_READY", "SUBMITTING", "UNKNOWN",
+                        "SUBMITTED", "PARTIAL_FILLED")).contains(o__.getState())).toList();
         assertThat(active)
                 .as("제출되지 않은 주문이 활성으로 남으면 폴러가 영원히 쫓는다")
                 .isEmpty();

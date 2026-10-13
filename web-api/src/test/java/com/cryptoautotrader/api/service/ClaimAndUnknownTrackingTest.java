@@ -105,7 +105,7 @@ class ClaimAndUnknownTrackingTest extends IntegrationTestBase {
     @AfterEach
     void cleanUp() {
         createdSessions.forEach(id -> {
-            orderRepository.findBySessionIdAndStateIn(id, ALL_STATES).forEach(orderRepository::delete);
+            orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc("LIVE", id).forEach(orderRepository::delete);
             positionRepository.findBySessionKindAndSessionId("LIVE", id)
                     .forEach(positionRepository::delete);
             sessionRepository.deleteById(id);
@@ -181,7 +181,7 @@ class ClaimAndUnknownTrackingTest extends IntegrationTestBase {
     }
 
     private OrderEntity theOrder(Fixture f) {
-        List<OrderEntity> orders = orderRepository.findBySessionIdAndStateIn(f.sessionId(), ALL_STATES);
+        List<OrderEntity> orders = orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc("LIVE", f.sessionId()).stream().filter(o__ -> (ALL_STATES).contains(o__.getState())).toList();
         assertThat(orders).as("주문은 **정확히 한 행**이어야 한다").hasSize(1);
         return orders.get(0);
     }

@@ -38,11 +38,16 @@ public class UpbitOrderClient {
 
     /**
      * 주문 API 주소. 🔴 기본값은 업비트다 — 바꾸는 방법은 JVM 시스템 속성 {@code upbit.api.base-url} 하나뿐이고,
-     * 실제 프로세스 재시작 시험(별도 프로세스 거래소 대역)에서만 쓴다 (2026-10-13). 운영 기동 스크립트는 이
-     * 속성을 주지 않는다. 바뀌어 있으면 기동 시 경고를 남긴다.
+     * 실제 프로세스 재시작 시험(별도 프로세스 거래소 대역)에서만 쓴다 (2026-10-13). 🔴 시험 빌드가 아닌데 이 속성이
+     * 있으면 이 클래스의 초기화가 실패해 <b>기동이 거부된다</b>({@link com.cryptoautotrader.exchange.TestHooks}, 2026-10-14).
      */
     private static final String DEFAULT_BASE_URL = "https://api.upbit.com/v1";
-    private static final String BASE_URL = System.getProperty("upbit.api.base-url", DEFAULT_BASE_URL);
+    private static final String BASE_URL;
+
+    static {
+        String override = com.cryptoautotrader.exchange.TestHooks.require("upbit.api.base-url");
+        BASE_URL = override != null ? override : DEFAULT_BASE_URL;
+    }
 
     static {
         if (!DEFAULT_BASE_URL.equals(BASE_URL)) {

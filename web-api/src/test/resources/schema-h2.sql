@@ -697,3 +697,11 @@ CREATE TABLE IF NOT EXISTS account_capital_lock (
 );
 MERGE INTO account_capital_lock (id, purpose)
     VALUES (1, '매수 예약 직렬화 (한도 확인 + 자금·슬롯 예약 + 주문 의도)');
+
+-- 위험 설정 기본 행 (V88 과 같은 값) — 읽기 경로는 더 이상 행을 만들지 않는다 (2026-10-14)
+INSERT INTO risk_config (max_daily_loss_pct, max_weekly_loss_pct, max_monthly_loss_pct, max_positions,
+                         max_capital_utilization_pct, cooldown_minutes, max_portfolio_drawdown_pct, mdd_threshold_pct,
+                         consecutive_loss_limit, circuit_breaker_enabled, stop_loss_pct, take_profit_multiplier,
+                         trailing_enabled, trailing_tp_margin_pct, trailing_sl_margin_pct, invest_ratio_pct, updated_at)
+SELECT 1.5, 4.0, 8.0, 8, 50.0, 60, 15.0, 10.0, 5, TRUE, 5.0, 2.0, TRUE, 0.5, 0.3, 25.0, CURRENT_TIMESTAMP
+WHERE NOT EXISTS (SELECT 1 FROM risk_config);

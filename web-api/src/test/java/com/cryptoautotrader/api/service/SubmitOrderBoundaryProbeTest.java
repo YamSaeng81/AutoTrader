@@ -88,8 +88,7 @@ class SubmitOrderBoundaryProbeTest extends IntegrationTestBase {
     @AfterEach
     void cleanUp() {
         createdSessions.forEach(id -> {
-            orderRepository.findBySessionIdAndStateIn(id,
-                    List.of("PENDING", "SUBMITTED", "PARTIAL_FILLED", "FILLED", "CANCELLED", "FAILED"))
+            orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc("LIVE", id)
                     .forEach(orderRepository::delete);
             positionRepository.findBySessionKindAndSessionId("LIVE", id)
                     .forEach(positionRepository::delete);
@@ -176,8 +175,7 @@ class SubmitOrderBoundaryProbeTest extends IntegrationTestBase {
             probes.putIfAbsent("2-recordTradeLog", here());
             // 그 시점에 주문 행이 **다른 트랜잭션에서 보이는가** — 중복 INSERT 가설의 핵심
             // 🔴 V84: 신규 주문은 PENDING 이 아니라 INTENT_READY 로 시작한다.
-            long visible = orderRepository.findBySessionIdAndStateIn(sessionId,
-                    List.of("PENDING", "INTENT_READY", "SUBMITTING", "SUBMITTED")).size();
+            long visible = orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc("LIVE", sessionId).stream().filter(o__ -> (List.of("PENDING", "INTENT_READY", "SUBMITTING", "SUBMITTED")).contains(o__.getState())).toList().size();
             probes.putIfAbsent("3-visibleOrders", "같은 스레드 조회로 보이는 활성 주문 수=" + visible);
             return inv.getArgument(0);
         }).when(tradeLogRepository).save(Mockito.any());
@@ -185,8 +183,7 @@ class SubmitOrderBoundaryProbeTest extends IntegrationTestBase {
         liveTradingService.stopSession(sessionId);
         awaitOrderExecutorDrained();
 
-        List<OrderEntity> rows = orderRepository.findBySessionIdAndStateIn(sessionId,
-                List.of("PENDING", "SUBMITTED", "PARTIAL_FILLED", "FILLED", "CANCELLED", "FAILED"));
+        List<OrderEntity> rows = orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc("LIVE", sessionId).stream().filter(o__ -> (List.of("PENDING", "SUBMITTED", "PARTIAL_FILLED", "FILLED", "CANCELLED", "FAILED")).contains(o__.getState())).toList();
         probes.put("4-finalRows", "주문 행 수=" + rows.size());
 
         String report = probes.entrySet().stream().sorted(Map.Entry.comparingByKey())

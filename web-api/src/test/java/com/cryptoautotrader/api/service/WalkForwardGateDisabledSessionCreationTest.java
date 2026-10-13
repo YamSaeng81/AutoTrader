@@ -56,6 +56,8 @@ class WalkForwardGateDisabledSessionCreationTest extends IntegrationTestBase {
         positionRepository.deleteAll();
         dynamicSessionRepository.deleteAll();
         riskConfigRepository.deleteAll();
+        // 🔴 읽기 경로는 더 이상 행을 만들지 않는다(2026-10-14) — 운영의 V88 처럼 기본 행을 명시적으로 둔다.
+        riskConfigRepository.save(com.cryptoautotrader.api.entity.RiskConfigEntity.builder().build());
     }
 
     @Test

@@ -695,6 +695,12 @@ public class OrderExecutionEngine {
             return false;
         }
 
+        // 🔴 위험 설정 행이 없으면 신규 매수를 막는다 (2026-10-14) — 한도 판단의 근거가 없다. 청산은 막지 않는다.
+        if (!riskManagementService.hasRiskConfig()) {
+            log.error("risk_config 행이 없어 신규 매수를 승인하지 않는다 (sessionId={})", request.getSessionId());
+            return false;
+        }
+
         // 엔티티가 아니라 **상태 문자열만** 받는다 — 잠금은 필요하지만 엔티티 관리는 필요하지 않다.
         String lockedStatus = lockAndReadSessionStatus(sessionKind, request.getSessionId());
         if (!"RUNNING".equals(lockedStatus)) {

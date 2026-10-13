@@ -154,6 +154,16 @@ public class RiskConfigEntity {
     @Column(name = "scan_max_candidate_size")
     private Integer scanMaxCandidateSize;
 
+    /**
+     * 코드 기본값을 채운 <b>저장하지 않은</b> 설정 (2026-10-14). 행이 없을 때 읽기 경로가 쓰는 메모리 값이며,
+     * V88 마이그레이션이 넣는 기본 행과 같은 값이다({@link #prePersist}).
+     */
+    public static RiskConfigEntity codeDefaults() {
+        RiskConfigEntity e = RiskConfigEntity.builder().build();
+        e.prePersist();
+        return e;
+    }
+
     @PrePersist
     void prePersist() {
         if (updatedAt == null) updatedAt = Instant.now();

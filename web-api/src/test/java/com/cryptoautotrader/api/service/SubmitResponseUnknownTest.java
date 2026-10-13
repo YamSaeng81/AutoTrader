@@ -90,8 +90,7 @@ class SubmitResponseUnknownTest extends IntegrationTestBase {
     @AfterEach
     void cleanUp() {
         createdSessions.forEach(id -> {
-            orderRepository.findBySessionIdAndStateIn(id,
-                    List.of("PENDING", "SUBMITTED", "PARTIAL_FILLED", "FILLED", "CANCELLED", "FAILED"))
+            orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc("LIVE", id)
                     .forEach(orderRepository::delete);
             positionRepository.findBySessionKindAndSessionId("LIVE", id)
                     .forEach(positionRepository::delete);
@@ -214,9 +213,8 @@ class SubmitResponseUnknownTest extends IntegrationTestBase {
                 .isEqualTo(v0);
 
         // ① 추적 — 현재 남는 단서를 그대로 기록한다
-        List<OrderEntity> rows = orderRepository.findBySessionIdAndStateIn(f.sessionId(),
-                List.of("PENDING", "INTENT_READY", "SUBMITTING", "UNKNOWN", "SUBMITTED",
-                        "PARTIAL_FILLED", "FILLED", "CANCELLED", "FAILED"));
+        List<OrderEntity> rows = orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc("LIVE", f.sessionId()).stream().filter(o__ -> (List.of("PENDING", "INTENT_READY", "SUBMITTING", "UNKNOWN", "SUBMITTED",
+                        "PARTIAL_FILLED", "FILLED", "CANCELLED", "FAILED")).contains(o__.getState())).toList();
         assertThat(rows).as("주문 행은 남아야 한다 — 행조차 사라지면 추적 단서가 없다").hasSize(1);
         OrderEntity after = rows.get(0);
 
@@ -296,9 +294,8 @@ class SubmitResponseUnknownTest extends IntegrationTestBase {
         orderExecutionEngine.submitOrder(f.request());
         awaitDrained();
 
-        OrderEntity after = orderRepository.findBySessionIdAndStateIn(f.sessionId(),
-                List.of("PENDING", "INTENT_READY", "SUBMITTING", "UNKNOWN", "SUBMITTED",
-                        "PARTIAL_FILLED", "FILLED", "CANCELLED", "FAILED")).get(0);
+        OrderEntity after = orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc("LIVE", f.sessionId()).stream().filter(o__ -> (List.of("PENDING", "INTENT_READY", "SUBMITTING", "UNKNOWN", "SUBMITTED",
+                        "PARTIAL_FILLED", "FILLED", "CANCELLED", "FAILED")).contains(o__.getState())).toList().get(0);
 
         assertThat(after.getState())
                 .as("접수됐을 수 있는 주문을 FAILED 로 종결하면 아무도 더 쫓지 않는다")

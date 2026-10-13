@@ -81,8 +81,7 @@ class CancelOutcomeUnknownTest extends IntegrationTestBase {
     @AfterEach
     void cleanUp() {
         createdSessions.forEach(id -> {
-            orderRepository.findBySessionIdAndStateIn(id,
-                    List.of("PENDING", "SUBMITTED", "PARTIAL_FILLED", "FILLED", "CANCELLED", "FAILED"))
+            orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc("LIVE", id)
                     .forEach(orderRepository::delete);
             positionRepository.findBySessionKindAndSessionId("LIVE", id)
                     .forEach(positionRepository::delete);

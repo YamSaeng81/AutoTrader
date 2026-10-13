@@ -228,7 +228,10 @@ class CancelConfirmAndLateFillCleanupTest extends IntegrationTestBase {
         var pool = orderExecutor.getThreadPoolExecutor();
         long deadline = System.currentTimeMillis() + 20_000;
         while (System.currentTimeMillis() < deadline) {
-            if (pool.getQueue().isEmpty() && pool.getActiveCount() == 0) return;
+            // 🔴 큐가 비고 실행 중 0 인 순간은 작업이 큐에서 실행으로 넘어가는 사이에도 생긴다(D5 간헐 실패, 2026-10-14) —
+            //    제출된 작업 수와 완료된 작업 수가 같아질 때까지 기다린다.
+            if (pool.getQueue().isEmpty() && pool.getActiveCount() == 0
+                    && pool.getTaskCount() == pool.getCompletedTaskCount()) return;
             try {
                 Thread.sleep(50);
             } catch (InterruptedException e) {
@@ -515,6 +518,7 @@ class CancelConfirmAndLateFillCleanupTest extends IntegrationTestBase {
                 .openedAt(Instant.now()).build());
         Mockito.doReturn(exchange(f.uuid(), "wait", BigDecimal.ZERO)).when(upbitOrderClient).getOrder(f.uuid());
         Mockito.doThrow(new RuntimeException("timeout")).when(upbitOrderClient).cancelOrder(f.uuid());
+        stubSellSubmissionsAccepted();   // 보유 포지션의 정지 청산 매도 — 목이 null 을 돌려주지 않게
 
         // 🔴 종전 LIVE 정지는 여기서 `cancelOrder` 가 던진 예외가 정지 트랜잭션을 롤백 전용으로 만들어
         //    UnexpectedRollbackException 으로 깨졌다(세션 상태만 별도 연결로 STOPPED 가 됐다 — 2026-10-13 실측).

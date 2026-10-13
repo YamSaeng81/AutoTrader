@@ -97,7 +97,7 @@ def port_in_use(port):
 
 def fresh_db():
     """DB 컨테이너를 새로 만든다 — 스키마는 다음 앱 기동에서 Flyway 가 V1~V87 을 적용한다."""
-    subprocess.run(['docker', 'rm', '-f', 'cat-rt-pg'], capture_output=True)
+    subprocess.run(['docker', 'rm', '-f', '-v', 'cat-rt-pg'], capture_output=True)   # 익명 볼륨까지
     subprocess.run(['docker', 'run', '-d', '--name', 'cat-rt-pg', '-e', 'POSTGRES_DB=crypto_auto_trader',
                     '-e', 'POSTGRES_USER=trader', '-e', 'POSTGRES_PASSWORD=rtpass', '-p', '127.0.0.1:15432:5432',
                     'timescale/timescaledb:latest-pg15'], check=True, capture_output=True)

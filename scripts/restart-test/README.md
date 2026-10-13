@@ -16,8 +16,11 @@ H2·모의 객체가 아니라 **실제 PostgreSQL + 실제 앱 프로세스 + �
 강제 종료 지점(`CrashPoint`, 속성이 없으면 아무 일도 하지 않는다): `AFTER_INTENT_COMMIT` · `AFTER_CLAIM_COMMIT` ·
 `AFTER_EXCHANGE_ACCEPT` · `AFTER_FILL_OBSERVED` · `IN_FILL_ACCOUNTING`(회계 쓰기를 DB 에 보낸 뒤 커밋 전).
 
+🔴 이 속성들은 **시험 빌드에서만** 허용된다 — 운영 jar(시험 진입점 클래스 없음)에 주면 `TestHooks` 가 기동을 거부한다
+(2026-10-14). 실행 증거는 저장소 밖 `D:\Claude Code\evidence\crypto-auto-trader\` 에 보관한다(이미지는 digest 로 기록).
+
 시험 환경 격리: JVM 프록시를 막힌 포트로 둬 외부 인터넷 호출을 차단하고, 주문 API·상태 확인 주소만 대역으로 돌린다
-(`-Dupbit.api.base-url`, `-Dupbit.health-check-url` — 운영 기동은 이 속성을 주지 않으며, 바뀌어 있으면 기동 시 경고).
+(`-Dupbit.api.base-url`, `-Dupbit.health-check-url` — 시험 빌드가 아니면 기동 거부).
 
 ## 실행
 

@@ -19,7 +19,9 @@ import java.util.stream.Collectors;
 public final class CrashPoint {
 
     private static final Logger log = LoggerFactory.getLogger(CrashPoint.class);
-    private static final Set<String> ARMED = Arrays.stream(System.getProperty("crashpoint", "").split(","))
+    // 🔴 시험 빌드가 아닌데 설정돼 있으면 초기화가 실패한다 — 기동 거부 (TestHooks, 2026-10-14)
+    private static final Set<String> ARMED = Arrays.stream(
+                    java.util.Objects.requireNonNullElse(com.cryptoautotrader.exchange.TestHooks.require("crashpoint"), "").split(","))
             .map(String::trim).filter(s -> !s.isEmpty()).collect(Collectors.toUnmodifiableSet());
 
     static {
