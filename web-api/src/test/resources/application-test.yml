@@ -3,7 +3,12 @@ spring:
     allow-bean-definition-overriding: true  # TestRedisConfig @Primary 빈이 RedisConfig를 덮어쓸 수 있도록
 
   datasource:
-    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    # 🔴 OPTIMIZE_REUSE_RESULTS=FALSE (2026-10-13) — H2 는 같은 질의를 반복하면 "테이블 변경 표시가 그대로면"
+    #    이전 결과를 다시 돌려준다. 그 표시는 UPDATE 시점에 바뀌고 COMMIT 시점에는 바뀌지 않아, 다른 연결의
+    #    UPDATE~COMMIT 사이에 한 번 읽은 연결은 **커밋된 값을 영영 못 본다**(다음 변경 전까지). 시험 10 에서
+    #    재현: 복구의 커밋 후에도 폴러 쪽 반복 조회 54만 회가 10초간 옛 행(UNKNOWN/null)을 받았다. PostgreSQL
+    #    에는 이런 결과 재사용이 없다 — 시험 기반만의 결함이므로 끈다.
+    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;OPTIMIZE_REUSE_RESULTS=FALSE
     driver-class-name: org.h2.Driver
     username: sa
     password:
@@ -51,6 +56,12 @@ trading:
     total-cap-krw: 1000000000000
     per-position-cap-krw: 1000000000000
     max-concurrent-positions: 100000
+
+# 🔴 일반 서비스 시험에서는 @Scheduled 작업을 끈다 (2026-10-13). 시험은 대상 메서드를 직접 부른다.
+#    스케줄러 동작을 보는 시험만 `@ActiveProfiles("scheduler")` 로 켠다(application-scheduler.yml).
+app:
+  scheduling:
+    enabled: false
 
 api:
   auth:

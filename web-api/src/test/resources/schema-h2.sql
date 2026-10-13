@@ -277,7 +277,25 @@ CREATE TABLE IF NOT EXISTS "order" (
     reserved_krw            DECIMAL(20, 8),
     -- V86 — FAILED 의 근거 / 의도를 만든 프로세스
     failure_code            VARCHAR(40),
-    intent_owner            VARCHAR(64)
+    intent_owner            VARCHAR(64),
+    -- V87 — 취소 요청·확인
+    cancel_requested_at     TIMESTAMP,
+    cancel_confirmed_at     TIMESTAMP,
+    cancel_checked_at       TIMESTAMP,
+    sell_applied_at         TIMESTAMP
+);
+
+-- 정지 후 정리 대기 (V87)
+CREATE TABLE IF NOT EXISTS position_cleanup (
+    position_id     BIGINT       PRIMARY KEY,
+    session_kind    VARCHAR(10)  NOT NULL,
+    session_id      BIGINT       NOT NULL,
+    reason          VARCHAR(40)  NOT NULL,
+    pending_at      TIMESTAMP    NOT NULL,
+    done_at         TIMESTAMP,
+    attempts        INTEGER      NOT NULL DEFAULT 0,
+    last_attempt_at TIMESTAMP,
+    last_note       VARCHAR(500)
 );
 
 -- 정산 불일치 이력 (V82) — 덮어쓰기 전에 이전 값과 수신값을 함께 보존한다

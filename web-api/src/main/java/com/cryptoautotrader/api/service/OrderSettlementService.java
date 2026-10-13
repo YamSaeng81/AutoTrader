@@ -6,6 +6,9 @@ import com.cryptoautotrader.api.entity.OrderSettlementDiscrepancyEntity;
 import com.cryptoautotrader.api.repository.OrderRepository;
 import com.cryptoautotrader.api.repository.PositionRepository;
 import com.cryptoautotrader.api.repository.OrderSettlementDiscrepancyRepository;
+import com.cryptoautotrader.api.repository.DynamicSessionRepository;
+import com.cryptoautotrader.api.repository.LiveTradingSessionRepository;
+import com.cryptoautotrader.api.entity.PositionCleanupEntity;
 import com.cryptoautotrader.exchange.upbit.dto.OrderResponse;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -92,6 +95,10 @@ public class OrderSettlementService {
     /** 🔴 DYNAMIC 도 같은 원자 경로를 지난다 (2026-10-12) — 잔액 테이블만 다르다. */
     private final DynamicSessionBalanceUpdater dynamicBalanceUpdater;
     private final PlatformTransactionManager txManager;
+    /** 정지 후 늦은 체결을 정리 대기로 등록한다 (V87). */
+    private final PositionCleanupRegistrar positionCleanupRegistrar;
+    private final LiveTradingSessionRepository liveSessionRepository;
+    private final DynamicSessionRepository dynamicSessionRepository;
 
     private TransactionTemplate settlementTx;
 
@@ -383,6 +390,11 @@ public class OrderSettlementService {
             return Boolean.FALSE;
         }
 
+        if (deltaVolume.signum() > 0) {
+            // 포지션 행을 쓰기 전에 등록한다 — 등록은 별도 트랜잭션이고, 그 행의 외래 키 확인이 이 트랜잭션의
+            // 포지션 갱신을 기다리지 않게 한다.
+            registerLateFillIfStopped(order);
+        }
         applyToPosition(order, deltaVolume, avgPrice, targetFee, fee != null);
 
         boolean first = order.getAppliedExecutedFunds() == null && order.getAppliedPaidFee() == null;
@@ -427,6 +439,33 @@ public class OrderSettlementService {
             log.warn("수수료 보고값이 없어 **추정**으로 반영했다 — 확정값으로 취급하지 않는다 (posId={})",
                     pos.getId());
         }
+    }
+
+    /**
+     * 정지된 세션의 포지션에 수량이 생겼으면 <b>정리 대기</b>로 등록한다 (V87, 2026-10-13).
+     *
+     * <p>🔴 정지는 그 시점에 열린 포지션만 청산한다. 그 뒤 진행 중이던 매수가 체결되면 수량이 생긴
+     * 포지션을 맡는 곳이 없었다 — 평가 루프는 정지된 세션을 보지 않는다. 등록은 회계 반영보다 <b>먼저,
+     * 따로</b> 커밋한다({@link PositionCleanupRegistrar}) — 회계가 롤백되면 등록만 남는데, 정리 작업은
+     * 수량 0·매수 확인 전 포지션을 기다리므로 무해하다. 반대(반영됐는데 등록이 빠짐)는 생기지 않는다.</p>
+     *
+     * <p>정지 쪽도 정지 시점에 열려 있던 포지션을 등록한다. 둘이 겹쳐도 한 행이다(존재하면 무시).</p>
+     */
+    private void registerLateFillIfStopped(OrderEntity order) {
+        if (order.getPositionId() == null || order.getSessionId() == null) return;
+        String kind = order.getSessionKind();
+        java.util.Optional<String> status = "DYNAMIC".equals(kind)
+                ? dynamicSessionRepository.findById(order.getSessionId()).map(s -> s.getStatus())
+                : "LIVE".equals(kind)
+                    ? liveSessionRepository.findById(order.getSessionId()).map(s -> s.getStatus())
+                    : java.util.Optional.empty();
+        if (status.isEmpty() || "RUNNING".equals(status.get())) return;
+        PositionEntity pos = positionRepository.findById(order.getPositionId()).orElse(null);
+        if (pos == null || "CLOSED".equals(pos.getStatus())) return;
+        boolean registered = positionCleanupRegistrar.register(pos.getId(), kind, order.getSessionId(),
+                PositionCleanupEntity.REASON_LATE_FILL);
+        log.warn("🔴 정지된 세션(status={})의 포지션에 늦은 체결이 반영된다 — 정리 대기로 {} (posId={}, orderId={})",
+                status.get(), registered ? "등록" : "이미 등록됨", pos.getId(), order.getId());
     }
 
     private void clearPending(Long orderId) {

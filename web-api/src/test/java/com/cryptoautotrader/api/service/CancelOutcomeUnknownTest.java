@@ -236,12 +236,25 @@ class CancelOutcomeUnknownTest extends IntegrationTestBase {
 
         // 🔴 `UpbitOrderClient.cancelOrder` 는 void 가 아니므로 `doNothing()` 을 쓸 수 없다
         //    (Mockito 가 "someVoidMethod() does nothing..." 으로 거부한다). 스텁을 두지 않으면
-        //    모의 객체가 기본값을 돌려주고 예외도 던지지 않는다 — 그것이 '취소 성공' 이다.
+        //    모의 객체가 기본값을 돌려주고 예외도 던지지 않는다 — 그것이 '취소 요청 성공' 이다.
+        //
+        // 🔴 2026-10-13 정정: 취소 **요청**의 성공만으로는 CANCELLED 가 아니다(V87). 거래소가 취소와 체결량 0 을
+        //    보고해야 종결한다 — 그 확인 응답을 둔다. 확인 없이 요청만 성공한 경우는
+        //    `CancelConfirmAndLateFillCleanupTest` A3(활성 유지)가 본다.
+        OrderResponse waiting = new OrderResponse();
+        waiting.setUuid(order.getExchangeOrderId());
+        waiting.setState("wait");
+        OrderResponse cancelledNoFill = new OrderResponse();
+        cancelledNoFill.setUuid(order.getExchangeOrderId());
+        cancelledNoFill.setState("cancel");
+        cancelledNoFill.setExecutedVolume(BigDecimal.ZERO);
+        Mockito.doReturn(waiting, cancelledNoFill).when(upbitOrderClient).getOrder(order.getExchangeOrderId());
 
         orderExecutionEngine.cancelOrder(order.getId());
 
         OrderEntity after = orderRepository.findById(order.getId()).orElseThrow();
         assertThat(after.getState()).isEqualTo("CANCELLED");
         assertThat(after.getCancelledAt()).isNotNull();
+        assertThat(after.getCancelConfirmedAt()).as("체결량 0 확인").isNotNull();
     }
 }

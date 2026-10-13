@@ -90,6 +90,14 @@ class AtomicPathBypassTest extends IntegrationTestBase {
 
     /** 10,000 에서 3,000 을 예약한 제출된 시장가 매수. {@code submittedAgo} 만큼 전에 제출됐다. */
     private Fixture submittedBuy(String kind, Duration submittedAgo) {
+        return submittedBuy(kind, submittedAgo, "STOPPED");
+    }
+
+    /**
+     * 🔴 세션 상태를 받는다 (2026-10-13). 정지된 세션의 매수는 폴러가 타임아웃 분기보다 먼저 취소를 요청하므로,
+     * 타임아웃 분기를 시험하려면 세션이 실행 중이어야 한다. 시험 기반의 스케줄러는 꺼져 있다.
+     */
+    private Fixture submittedBuy(String kind, Duration submittedAgo, String sessionStatus) {
         String uuid = "uuid-bypass-" + kind + "-" + System.nanoTime();
         Long sid;
         if ("DYNAMIC".equals(kind)) {
@@ -98,7 +106,7 @@ class AtomicPathBypassTest extends IntegrationTestBase {
                     .initialCapital(new BigDecimal("10000.00")).availableKrw(new BigDecimal("7000.00"))
                     .totalAssetKrw(new BigDecimal("10000.00"))
                     .investRatio(new BigDecimal("0.3000")).stopLossPct(new BigDecimal("5.00"))
-                    .status("STOPPED").scanState("POSITION_MONITORING").tradingMode("REAL")
+                    .status(sessionStatus).scanState("POSITION_MONITORING").tradingMode("REAL")
                     .maxCandidateSize(30).targetWatchSize(10)
                     .minAtrPct(new BigDecimal("0.5000")).maxSpreadPct(new BigDecimal("0.1000"))
                     .watchlistRefreshMin(60)
@@ -110,7 +118,7 @@ class AtomicPathBypassTest extends IntegrationTestBase {
                     .coinPair("KRW-DOGE").timeframe("M5")
                     .initialCapital(new BigDecimal("10000.00")).availableKrw(new BigDecimal("7000.00"))
                     .totalAssetKrw(new BigDecimal("10000.00"))
-                    .status("STOPPED").startedAt(Instant.now()).build()).getId();
+                    .status(sessionStatus).startedAt(Instant.now()).build()).getId();
             liveSessions.add(sid);
         }
         PositionEntity pos = positionRepository.save(PositionEntity.builder()
@@ -191,7 +199,7 @@ class AtomicPathBypassTest extends IntegrationTestBase {
     }
 
     private void timeoutPath(String kind, String exchangeState) {
-        Fixture f = submittedBuy(kind, Duration.ofMinutes(6));   // ORDER_TIMEOUT(5분) 경과
+        Fixture f = submittedBuy(kind, Duration.ofMinutes(6), "RUNNING");   // ORDER_TIMEOUT(5분) 경과
         Mockito.doReturn(filled(f.uuid(), exchangeState)).when(upbitOrderClient).getOrder(f.uuid());
 
         engine.pollActiveOrders();
@@ -202,11 +210,17 @@ class AtomicPathBypassTest extends IntegrationTestBase {
 
     private void cancelFailurePath(String kind) {
         Fixture f = submittedBuy(kind, Duration.ofSeconds(10));
-        Mockito.doReturn(filled(f.uuid(), "done")).when(upbitOrderClient).getOrder(f.uuid());
+        // 🔴 취소 전 조회는 "대기 중" 이어야 취소가 나간다 (2026-10-13 — 취소는 먼저 묻고, 이미 종결이면 보내지
+        //    않는다). 취소가 실패한 뒤의 확인 조회부터 체결이 보인다.
+        OrderResponse waiting = new OrderResponse();
+        waiting.setUuid(f.uuid());
+        waiting.setState("wait");
+        Mockito.doReturn(waiting, filled(f.uuid(), "done")).when(upbitOrderClient).getOrder(f.uuid());
         Mockito.doThrow(new RuntimeException("400 order_not_found — 이미 체결"))
                 .when(upbitOrderClient).cancelOrder(f.uuid());
 
         engine.cancelOrder(f.orderId());
+        Mockito.verify(upbitOrderClient).cancelOrder(f.uuid());
         assertThat(orderRepository.findById(f.orderId()).orElseThrow().getState())
                 .as("취소 실패 + 체결 확인 — 이 경로에서는 반영하지 않고 원자 경로에 맡긴다")
                 .isEqualTo("SUBMITTED");

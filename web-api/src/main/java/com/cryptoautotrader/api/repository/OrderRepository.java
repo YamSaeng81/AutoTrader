@@ -371,4 +371,78 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
     @Query("SELECT COUNT(o) FROM OrderEntity o WHERE o.sessionKind = :kind AND o.sessionId = :sessionId "
             + "AND o.fillAccountingPending = true")
     long countFillAccountingPending(@Param("kind") String kind, @Param("sessionId") Long sessionId);
+
+    // -- V87 : 취소 요청 · 확인 -------------------------------------------------
+    //
+    // 🔴 모두 열 단위 조건부 문장이다. 취소는 폴러·정지·복구가 같은 주문에 동시에 닿는 경로라, 엔티티
+    //    저장(전 열 쓰기)을 쓰면 원자 체결 회계가 쓴 관측·반영값을 이전 값으로 되돌릴 수 있다(시험 10).
+
+    /** 취소를 요청했다고 적는다. 🔴 상태는 바꾸지 않는다 — 요청은 확정이 아니다. */
+    @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE OrderEntity o SET o.cancelRequestedAt = :now WHERE o.id = :id "
+            + "AND o.state IN ('PENDING', 'SUBMITTING', 'UNKNOWN', 'SUBMITTED', 'PARTIAL_FILLED')")
+    int markCancelRequested(@Param("id") Long id, @Param("now") Instant now);
+
+    /**
+     * 식별자 취소·조회로 찾은 미해결 제출에 거래소 주문번호를 붙이고 {@code SUBMITTED} 로 올린다.
+     *
+     * <p>🔴 조건부다 — 제출 스레드가 같은 응답을 먼저 기록했으면 0 이다(같은 값이므로 무해하다).</p>
+     */
+    @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE OrderEntity o SET o.state = 'SUBMITTED', o.exchangeOrderId = :uuid, "
+            + "o.submittedAt = COALESCE(o.submittedAt, :now), o.unknownReason = NULL "
+            + "WHERE o.id = :id AND o.state IN ('SUBMITTING', 'UNKNOWN') AND o.exchangeOrderId IS NULL")
+    int attachFoundSubmission(@Param("id") Long id, @Param("uuid") String uuid, @Param("now") Instant now);
+
+    /**
+     * 체결 없는 취소를 확정한다 — 거래소가 {@code cancel} 과 <b>체결량 0</b> 을 보고했을 때만 부른다.
+     *
+     * <p>🔴 회계 대기가 있으면 0 이다 — 체결을 관측해 놓고 취소로 닫지 않는다.</p>
+     */
+    @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE OrderEntity o SET o.state = 'CANCELLED', o.cancelConfirmedAt = :now, "
+            + "o.cancelledAt = COALESCE(o.cancelledAt, :now), o.filledQuantity = 0 "
+            + "WHERE o.id = :id AND o.state IN ('PENDING', 'SUBMITTING', 'UNKNOWN', 'SUBMITTED', 'PARTIAL_FILLED') "
+            + "AND o.fillAccountingPending = false")
+    int confirmUnfilledCancel(@Param("id") Long id, @Param("now") Instant now);
+
+    /**
+     * 체결된 매도를 포지션·잔액에 반영했다고 적는다 (V87).
+     *
+     * <p>🔴 부분 체결 뒤 남은 수량을 다시 팔면 한 포지션에 FILLED 매도가 둘 이상 생긴다. 청산 확정은 "FILLED 매도를
+     * 먼저 본다" 는 규칙이라, 이 표시가 없으면 <b>이미 반영한 앞의 매도를 다시 집어</b> 대금을 두 번 넣거나 남은
+     * 수량이 팔리기 전에 포지션을 닫는다. 포지션 저장과 같은 트랜잭션에서 부른다 — 함께 롤백된다.</p>
+     *
+     * <p>영속성 컨텍스트를 비우지 않는다 — 호출자(청산 확정 반복문)가 들고 있는 포지션 엔티티를 떼어내지 않는다.</p>
+     */
+    @org.springframework.data.jpa.repository.Modifying(flushAutomatically = true)
+    @Query(value = "UPDATE \"order\" SET sell_applied_at = :now WHERE id = :id AND sell_applied_at IS NULL",
+            nativeQuery = true)
+    int markSellApplied(@Param("id") Long id, @Param("now") Instant now);
+
+    /** 이미 {@code CANCELLED} 인 주문의 체결 없음을 재조회로 확인했다. */
+    @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE OrderEntity o SET o.cancelConfirmedAt = :now, o.cancelCheckedAt = :now "
+            + "WHERE o.id = :id AND o.state = 'CANCELLED' AND o.cancelConfirmedAt IS NULL "
+            + "AND o.fillAccountingPending = false")
+    int confirmCancelledHadNoFill(@Param("id") Long id, @Param("now") Instant now);
+
+    @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE OrderEntity o SET o.cancelCheckedAt = :now WHERE o.id = :id")
+    int touchCancelCheck(@Param("id") Long id, @Param("now") Instant now);
+
+    /**
+     * 체결 여부가 확인되지 않은 {@code CANCELLED} 매수 — 포지션이 아직 열려 있는 것만.
+     *
+     * <p>🔴 V87 이전에는 취소 요청이 성공하면 체결량을 보지 않고 {@code CANCELLED} 로 기록했다. 그
+     * 주문은 체결됐을 수 있다. 포지션이 열려 있으면 아직 정리 전이므로 재조회로 확인한다. 이미 닫힌
+     * 포지션은 과거 기록이다 — 자동으로 재해석하지 않는다.</p>
+     *
+     * <p>정산 경로에 참여하지 않은 V82 이전 주문({@code feeSource IS NULL})은 대상이 아니다.</p>
+     */
+    @Query("SELECT o FROM OrderEntity o, PositionEntity p WHERE p.id = o.positionId AND p.status = 'OPEN' "
+            + "AND o.side = 'BUY' AND o.state = 'CANCELLED' AND o.feeSource IS NOT NULL "
+            + "AND o.cancelConfirmedAt IS NULL AND o.exchangeOrderId IS NOT NULL "
+            + "AND (o.cancelCheckedAt IS NULL OR o.cancelCheckedAt <= :before) ORDER BY o.id")
+    List<OrderEntity> findUnconfirmedCancelledBuys(@Param("before") Instant before);
 }

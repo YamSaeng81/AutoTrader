@@ -319,6 +319,40 @@ public class OrderEntity {
     public String getIntentOwner() { return intentOwner; }
     public void setIntentOwner(String v) { this.intentOwner = v; }
 
+    /** 취소를 요청한 시각 (V87). 🔴 요청은 확정이 아니다 — 상태는 거래소 확인 전까지 활성이다. */
+    @Column(name = "cancel_requested_at")
+    private Instant cancelRequestedAt;
+
+    /**
+     * 거래소가 <b>체결량 0</b> 으로 취소를 확인한 시각 (V87).
+     *
+     * <p>🔴 CANCELLED 매수의 예약 전액 복원은 이 값이 있을 때만 한다. 없으면 체결이 있었는지 모른다.</p>
+     */
+    @Column(name = "cancel_confirmed_at")
+    private Instant cancelConfirmedAt;
+
+    /** 확인되지 않은 CANCELLED 매수를 마지막으로 재조회한 시각 (V87). */
+    @Column(name = "cancel_checked_at")
+    private Instant cancelCheckedAt;
+
+    /**
+     * 체결된 매도를 포지션·잔액에 반영한 시각 (V87).
+     *
+     * <p>🔴 <b>읽기 전용 매핑이다</b> — 엔티티 저장(전 열 쓰기)이 이 값을 이전 값으로 되돌리지 않도록 열 단위
+     * 문장({@code OrderRepository.markSellApplied})으로만 쓴다.</p>
+     */
+    @Column(name = "sell_applied_at", insertable = false, updatable = false)
+    private Instant sellAppliedAt;
+
+    public Instant getSellAppliedAt() { return sellAppliedAt; }
+
+    public Instant getCancelRequestedAt() { return cancelRequestedAt; }
+    public void setCancelRequestedAt(Instant v) { this.cancelRequestedAt = v; }
+    public Instant getCancelConfirmedAt() { return cancelConfirmedAt; }
+    public void setCancelConfirmedAt(Instant v) { this.cancelConfirmedAt = v; }
+    public Instant getCancelCheckedAt() { return cancelCheckedAt; }
+    public void setCancelCheckedAt(Instant v) { this.cancelCheckedAt = v; }
+
     public Boolean getSettlementFinal() { return settlementFinal; }
     public void setSettlementFinal(Boolean v) { this.settlementFinal = v; }
 

@@ -1,0 +1,5 @@
+# 스케줄러 동작 시험 전용 — `@ActiveProfiles("scheduler")` 를 단 시험에서만 @Scheduled 작업을 켠다.
+# 이 프로필을 쓰는 시험은 별도 컨텍스트가 되며, 스케줄 작업이 시험 데이터를 바꿀 수 있음을 전제로 짠다.
+app:
+  scheduling:
+    enabled: true

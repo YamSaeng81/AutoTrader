@@ -1,5 +1,6 @@
 package com.cryptoautotrader.api.config;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -25,8 +26,21 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  * 소스에 등장하는 "@Scheduled" 문자열 37회 중 3회는 주석이다(이 파일 2 + DynamicTradingService 1).
  */
 @Configuration
-@EnableScheduling
 public class SchedulerConfig {
+
+    /**
+     * {@code @Scheduled} 작업의 활성화 — 운영 기본값은 켜짐이다.
+     *
+     * <p>🔴 시험 프로필은 이것을 끈다 (2026-10-13). 스프링 시험은 목·스파이 조합마다 컨텍스트를 따로
+     * 캐시하고, 컨텍스트마다 이 스케줄러가 30여 개 작업을 돌린다 — 주문 폴러·고아 정리·정리 작업이
+     * <b>시험이 만든 행을 시험 도중에 바꾼다.</b> 힙 고갈(2026-10-13, 512MB 에서 40분 정지)과 시험 간
+     * 간섭의 원인이었다. 스케줄러 동작 자체를 보는 시험만 {@code scheduler} 프로필로 켠다.</p>
+     */
+    @Configuration
+    @EnableScheduling
+    @ConditionalOnProperty(prefix = "app.scheduling", name = "enabled", havingValue = "true", matchIfMissing = true)
+    static class SchedulingEnabled {
+    }
 
     /**
      * 스케줄러 전용 스레드 풀.

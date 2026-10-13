@@ -279,6 +279,52 @@ public class UpbitOrderClient {
     }
 
     /**
+     * 주문 취소 — <b>클라이언트 식별자로</b> (2026-10-13).
+     *
+     * <p>응답을 잃은 주문({@code SUBMITTING}·{@code UNKNOWN})은 UUID 가 없어 UUID 취소를 쓸 수 없다.
+     * 업비트 주문 취소는 {@code uuid} 대신 {@code identifier} 를 받는다.</p>
+     *
+     * <p>🔴 <b>취소 요청의 성공은 취소 확정이 아니다.</b> 응답은 요청 시점의 주문 상태이고, 그사이
+     * 체결이 있었을 수 있다. 호출자는 이후 조회로 상태와 체결량을 확인해야 한다.</p>
+     *
+     * <p>🔴 {@code getOrderByIdentifier} 와 같이 <b>찾지 못한 것과 묻지 못한 것을 구분한다</b> —
+     * 404 는 {@code null}, 그 밖의 실패는 예외다. 404 를 "접수되지 않았다" 로 읽지 않는다.</p>
+     *
+     * @return 취소 요청 응답, 또는 거래소가 <b>명시적으로 없다고 답한</b> 경우 {@code null}
+     */
+    public OrderResponse cancelOrderByIdentifier(String identifier) {
+        log.info("주문 취소 요청(식별자): identifier={}", identifier);
+
+        Map<String, String> params = Map.of("identifier", identifier);
+        String queryString = buildQueryString(params);
+
+        try {
+            String token = generateJwtWithQuery(queryString);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(BASE_URL + "/order?" + queryString))
+                    .header("Authorization", "Bearer " + token)
+                    .timeout(Duration.ofSeconds(15))
+                    .method("DELETE", HttpRequest.BodyPublishers.noBody())
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() == 404) {
+                log.warn("식별자로 취소할 주문을 찾지 못했다 — 미접수로 단정하지 않는다 (identifier={})", identifier);
+                return null;
+            }
+            checkResponse(response, "주문 취소(식별자)");
+
+            OrderResponse result = objectMapper.readValue(response.body(), OrderResponse.class);
+            log.info("주문 취소 요청 접수(식별자): identifier={}, uuid={}", identifier, result.getUuid());
+            return result;
+        } catch (Exception e) {
+            log.error("주문 취소(식별자) 실패: identifier={}, error={}", identifier, e.getMessage(), e);
+            throw new RuntimeException("주문 취소(식별자) 실패: " + identifier, e);
+        }
+    }
+
+    /**
      * 전체 계좌 잔고 조회
      *
      * @return 보유 자산 목록

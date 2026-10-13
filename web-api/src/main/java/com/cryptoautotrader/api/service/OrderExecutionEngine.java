@@ -972,30 +972,7 @@ public class OrderExecutionEngine {
             //
             //    🔴 회계 대기가 남아 있으면 종결하지 않는다. 반영이 끝나지 않은 주문을 종결하면
             //    폴러의 추적 대상에서 빠지고 재처리 기회가 사라진다.
-            try {
-                syncTx.executeWithoutResult(st -> {
-                    // 🔴 잠금으로 읽는다 (2026-10-12, 시험 10) — 아래 저장은 전 열을 쓰므로, 잠금 없이
-                    //    읽으면 그사이 다른 작업자가 커밋한 관측·대기 표시를 이전 값으로 되돌린다.
-                    OrderEntity fresh = orderRepository.findByIdForUpdate(orderId).orElse(null);
-                    if (fresh == null || "FILLED".equals(fresh.getState())) {
-                        return;
-                    }
-                    if (Boolean.TRUE.equals(fresh.getFillAccountingPending())) {
-                        log.warn("회계 반영이 끝나지 않아 주문을 종결하지 않는다 — 재처리 대상으로 "
-                                + "남긴다 (orderId={})", orderId);
-                        return;
-                    }
-                    if (fresh.getFilledAt() == null) {
-                        fresh.setFilledAt(Instant.now());
-                    }
-                    transitionState(fresh, "FILLED", null);
-                });
-            } catch (Exception e) {
-                // 종결 전이만 실패했다. 회계는 반영됐고 주문은 활성으로 남아 다음 조회에서
-                // 다시 시도된다 — 차분이 0 이므로 회계가 두 번 반영되지는 않는다.
-                log.error("체결 회계는 반영됐으나 종결 전이가 실패했다 — 활성으로 유지한다 "
-                        + "(orderId={}): {}", orderId, e.getMessage(), e);
-            }
+            finalizeAtomicFill(orderId);
             return;
         }
 
@@ -1027,8 +1004,138 @@ public class OrderExecutionEngine {
         }
     }
 
+    /** 원자 회계가 반영된 시장가 매수를 {@code FILLED} 로 종결한다 — 상태 전이와 체결 시각만 기록한다. */
+    private void finalizeAtomicFill(Long orderId) {
+        try {
+            syncTx.executeWithoutResult(st -> {
+                // 🔴 잠금으로 읽는다 (2026-10-12, 시험 10) — 아래 저장은 전 열을 쓰므로, 잠금 없이
+                //    읽으면 그사이 다른 작업자가 커밋한 관측·대기 표시를 이전 값으로 되돌린다.
+                OrderEntity fresh = orderRepository.findByIdForUpdate(orderId).orElse(null);
+                if (fresh == null || "FILLED".equals(fresh.getState())) {
+                    return;
+                }
+                if (Boolean.TRUE.equals(fresh.getFillAccountingPending())) {
+                    log.warn("회계 반영이 끝나지 않아 주문을 종결하지 않는다 — 재처리 대상으로 "
+                            + "남긴다 (orderId={})", orderId);
+                    return;
+                }
+                if (fresh.getAppliedExecutedFunds() == null) {
+                    // 회계가 한 번도 반영되지 않았다(체결 수량·금액 미보고 등) — 종결하지 않는다.
+                    return;
+                }
+                if (fresh.getFilledAt() == null) {
+                    fresh.setFilledAt(Instant.now());
+                }
+                transitionState(fresh, "FILLED", null);
+            });
+        } catch (Exception e) {
+            // 종결 전이만 실패했다. 회계는 반영됐고 주문은 활성으로 남아 다음 조회에서
+            // 다시 시도된다 — 차분이 0 이므로 회계가 두 번 반영되지는 않는다.
+            log.error("체결 회계는 반영됐으나 종결 전이가 실패했다 — 활성으로 유지한다 "
+                    + "(orderId={}): {}", orderId, e.getMessage(), e);
+        }
+    }
+
     /**
-     * 주문 취소 요청
+     * 정지된(실행 중이 아닌) 세션의 미종결 매수인가 — 취소를 요청할 대상.
+     *
+     * <p>{@code INTENT_READY} 는 대상이 아니다 — 나간 적이 없고, claim 이 정지를 보고 스스로 철회한다.</p>
+     */
+    private boolean isBuyOfStoppedSession(OrderEntity order, Map<String, String> cache) {
+        if (!"BUY".equalsIgnoreCase(order.getSide()) || order.getSessionId() == null
+                || !guardedKind(order.getSessionKind())) {
+            return false;
+        }
+        String state = order.getState();
+        if (!"SUBMITTING".equals(state) && !"UNKNOWN".equals(state)
+                && !"SUBMITTED".equals(state) && !"PARTIAL_FILLED".equals(state)) {
+            return false;
+        }
+        String key = order.getSessionKind() + "#" + order.getSessionId();
+        String status = cache.computeIfAbsent(key, k -> {
+            Optional<String> s = "DYNAMIC".equals(order.getSessionKind())
+                    ? dynamicSessionRepository.findById(order.getSessionId()).map(d -> d.getStatus())
+                    : sessionRepository.findById(order.getSessionId()).map(l -> l.getStatus());
+            return s.orElse("MISSING");
+        });
+        return !"RUNNING".equals(status);
+    }
+
+    /**
+     * 체결 여부가 확인되지 않은 {@code CANCELLED} 매수를 다시 조회한다 (V87).
+     *
+     * <p>🔴 V87 이전에는 취소 요청이 성공하면 체결량을 보지 않고 {@code CANCELLED} 로 기록했다. 포지션이
+     * 아직 열려 있는 것만 본다 — 닫힌 포지션은 과거 기록이고 자동으로 재해석하지 않는다.</p>
+     */
+    void verifyUnconfirmedCancelledBuys() {
+        if (upbitOrderClient == null) {
+            return;
+        }
+        List<OrderEntity> due;
+        try {
+            due = syncTx.execute(st -> orderRepository.findUnconfirmedCancelledBuys(
+                    Instant.now().minus(CANCEL_RECHECK_INTERVAL)));
+        } catch (Exception e) {
+            log.warn("확인되지 않은 취소 조회 실패: {}", e.getMessage());
+            return;
+        }
+        if (due == null) {
+            return;
+        }
+        for (OrderEntity o : due.subList(0, Math.min(due.size(), 20))) {
+            try {
+                verifyCancelledBuy(o.getId());
+            } catch (Exception e) {
+                log.warn("확인되지 않은 취소 재조회 실패 — 다음 회차에 다시 본다 (orderId={}): {}",
+                        o.getId(), e.getMessage());
+            }
+        }
+    }
+
+    private void verifyCancelledBuy(Long orderId) {
+        OrderEntity order = syncTx.execute(st -> {
+            orderRepository.touchCancelCheck(orderId, Instant.now());
+            return orderRepository.findById(orderId).orElse(null);
+        });
+        if (order == null || order.getExchangeOrderId() == null) {
+            return;
+        }
+        OrderResponse latest;
+        try {
+            latest = queryExchangeOrder(order.getExchangeOrderId());
+        } catch (Exception e) {
+            log.warn("확인되지 않은 취소의 거래소 조회 실패 (orderId={}): {}", orderId, e.getMessage());
+            return;
+        }
+        BigDecimal volume = latest.getExecutedVolume();
+        if (volume != null && volume.signum() > 0) {
+            if (!isAtomicMarketBuy(order)) {
+                log.error("🔴 CANCELLED 로 기록된 매수에 체결이 있다 — 원자 회계 대상이 아니어서 자동 반영하지 "
+                        + "않는다. 사람이 확인해야 한다 (orderId={}, executed={})", orderId, volume);
+                return;
+            }
+            log.error("🔴 CANCELLED 로 기록된 매수에 체결이 있다 — 체결분을 회계에 반영하고 미사용 예약만 "
+                    + "푼다 (orderId={}, executed={})", orderId, volume);
+            orderSettlementService.observeAndApplyBuyFill(orderId, latest);
+            finalizeAtomicFill(orderId);
+            return;
+        }
+        if ("CANCELLED".equals(mapExchangeState(latest.getState())) && volume != null) {
+            syncTx.execute(st -> orderRepository.confirmCancelledHadNoFill(orderId, Instant.now()));
+            log.info("CANCELLED 매수의 체결 없음을 확인했다 (orderId={})", orderId);
+        }
+    }
+
+    /**
+     * 주문 취소 요청 — 사용자·API 진입점.
+     *
+     * <p>🔴 <b>반환된 주문이 {@code CANCELLED} 라는 보장은 없다</b> (2026-10-13). 거래소가 체결량 0 으로
+     * 취소를 확인했을 때만 {@code CANCELLED} 이고, 아직 확인되지 않았으면 활성으로 남아 폴러가
+     * 확인한다. 상세는 {@link #requestCancel}.</p>
+     *
+     * <p>🔴 내부 경로(정지·폴러·일괄 취소)는 이 메서드가 아니라 {@link #requestCancel} 을 쓴다 — 이
+     * 메서드는 결과 불명에서 예외를 던지고, {@code @Transactional} 프록시를 지나 던져진 예외는 호출자의
+     * 트랜잭션을 롤백 전용으로 만든다(정지 전체가 롤백된다).</p>
      */
     @Transactional
     public OrderEntity cancelOrder(Long orderId) {
@@ -1042,93 +1149,317 @@ public class OrderExecutionEngine {
                     String.format("취소 불가 상태: %s (orderId=%d)", currentState, orderId));
         }
 
-        // 거래소에 취소 요청
-        if (upbitOrderClient != null && order.getExchangeOrderId() != null) {
-            try {
-                cancelOnExchange(order.getExchangeOrderId());
-            } catch (Exception e) {
-                log.error("거래소 주문 취소 실패 (orderId={}): {}", orderId, e.getMessage());
-
-                // (B) 취소 실패는 '이미 체결되어 취소 불가'일 수 있다 — 거래소 상태를 재확인해
-                //     실제 체결됐다면 CANCELLED 로 박지 말고 체결 처리한다 (체결을 취소로 오기록 방지).
-                //
-                // 🔴 2026-10-07: **조회와 그 뒤의 처리를 분리한다.** 종전에는 둘을 한
-                //    try/catch 로 묶어서, `syncOrderState` 안의 실패(체결가 정산 등)까지
-                //    "거래소 조회 실패" 로 취급해 **CANCELLED 로 흘려보냈다** — 체결된 주문이
-                //    취소로 기록되는 경로다. 조회 성공 이후의 실패는 **결과 불명이 아니다.**
-                OrderResponse latest;
-                try {
-                    latest = queryExchangeOrder(order.getExchangeOrderId());
-                } catch (Exception ex) {
-                    // 🔴 여기만이 진짜 '결과 불명' 이다. 취소 요청이 실패하고 상태 재조회까지
-                    //    실패하면 **주문이 거래소에 살아 있는지 알 수 없다.** 종전에는 그대로
-                    //    빠져나가 CANCELLED 로 전이했는데, 그러면 pollActiveOrders()(5초 주기,
-                    //    활성 주문만 동기화)의 추적 대상에서 빠진다. 그 주문이 나중에 체결되면
-                    //    관리 주체 없는 포지션과 어긋난 KRW 가 남는다.
-                    //    거짓 종결보다 미결이 낫다 — 미결은 **추적 대상에 남는다.**
-                    log.error("취소 실패 후 상태 재조회도 실패 (orderId={}): {} — 상태를 바꾸지 않고 "
-                                    + "활성으로 남긴다. pollActiveOrders() 의 추적 대상에 남는다.",
-                            orderId, ex.getMessage());
-                    throw new IllegalStateException(
-                            "취소 결과 불명 — 주문을 활성으로 남긴다: orderId=" + orderId, ex);
-                }
-
-                // 조회 성공 — 이 아래의 실패는 '불명' 으로 둔갑시키지 않고 그대로 올린다.
-                boolean executed = latest.getExecutedVolume() != null
-                        && latest.getExecutedVolume().compareTo(BigDecimal.ZERO) > 0;
-                String exchangeState = mapExchangeState(latest.getState());
-                if (executed && isAtomicMarketBuy(order)) {
-                    // 🔴 원자 회계 대상은 여기서 반영하지 않는다 (2026-10-12) — `syncOrderState` 는 종전
-                    //    경로라 정산과 겹쳐 미사용액이 두 번 복원된다. 활성으로 남기면 폴러가 같은
-                    //    체결을 원자 경로로 반영한다.
-                    log.warn("취소 실패 + 거래소 체결 확인 — 활성으로 남겨 원자 회계 경로에 맡긴다 "
-                            + "(orderId={}, state={}, executed={})", orderId, latest.getState(), latest.getExecutedVolume());
-                    return order;
-                }
-                if ("FILLED".equals(exchangeState) || executed) {
-                    log.warn("취소 실패 + 거래소 체결 확인 — CANCELLED 대신 체결 처리 (orderId={}, state={}, executed={})",
-                            orderId, latest.getState(), latest.getExecutedVolume());
-                    syncOrderState(order, latest);
-                    return order;
-                }
-                // 🔴 체결이 아니더라도 거래소에서 **아직 활성**이면 그 주문은 살아 있다.
-                //    취소를 요청했다는 사실이 사라졌다는 증거가 아니다.
-                if (ACTIVE_STATES.contains(exchangeState)) {
-                    log.error("취소 실패 + 거래소에 주문이 아직 살아 있다 — CANCELLED 로 박지 않는다 "
-                                    + "(orderId={}, 거래소상태={}). pollActiveOrders() 의 추적 대상에 남는다.",
-                            orderId, latest.getState());
-                    throw new IllegalStateException(
-                            "취소되지 않았고 거래소에 활성으로 남아 있다: orderId=" + orderId);
-                }
-                // 여기 도달 = 조회 성공 + 체결도 활성도 아님(취소 확인) → 아래에서 CANCELLED 전이
-            }
+        // 거래소 주문번호가 없거나 거래소 클라이언트가 없다 — 거래소에 물을 수단이 없는 종전 경로.
+        // 🔴 체결 없음을 확인한 것이 아니므로 `cancel_confirmed_at` 을 쓰지 않는다.
+        if (upbitOrderClient == null || order.getExchangeOrderId() == null) {
+            order.setCancelledAt(Instant.now());
+            transitionState(order, "CANCELLED", "사용자 취소 요청");
+            log.info("주문 취소(거래소 미조회): orderId={}", orderId);
+            return order;
         }
 
-        order.setCancelledAt(Instant.now());
-        transitionState(order, "CANCELLED", "사용자 취소 요청");
-        log.info("주문 취소 완료: orderId={}", orderId);
-        return order;
+        CancelOutcome outcome = requestCancel(orderId, true);
+        if (outcome == CancelOutcome.UNKNOWN_RESULT) {
+            throw new IllegalStateException("취소 결과 불명 — 주문을 활성으로 남긴다: orderId=" + orderId);
+        }
+        log.info("주문 취소 요청 결과: orderId={} → {}", orderId, outcome);
+        return syncTx.execute(st -> orderRepository.findById(orderId).orElse(order));
+    }
+
+    /** 취소 요청의 결과 (2026-10-13). 🔴 요청과 확정을 구분한다. */
+    public enum CancelOutcome {
+        /** 거래소가 {@code cancel} 과 체결량 0 을 보고했다. {@code CANCELLED} 로 닫고 확인 시각을 남겼다. */
+        CONFIRMED_UNFILLED,
+        /** 체결이 확인됐다. 원자 회계 대상은 활성으로 두어 체결 반영 경로에 맡겼고, 그 밖은 종전 경로로 반영했다. */
+        FILL_DETECTED,
+        /** 요청은 보냈지만 취소가 아직 확인되지 않았다. 활성으로 남아 폴러가 확인한다. */
+        REQUESTED,
+        /** 거래소가 그 식별자의 주문이 없다고 답했다. 🔴 미접수로 단정하지 않는다 — 상태를 바꾸지 않았다. */
+        NOT_FOUND,
+        /** 요청과 확인 조회가 모두 실패했거나, 요청이 실패했는데 거래소에 주문이 살아 있다. 상태를 바꾸지 않았다. */
+        UNKNOWN_RESULT,
+        /** 취소 대상이 아니다(종결, 의도 단계, 물을 수단이 없음). */
+        NOT_CANCELLABLE,
+        /** 직전 요청이 아직 확인 대기 중이다. 다시 보내지 않았다. */
+        RECENTLY_REQUESTED
+    }
+
+    /** 확인되지 않은 취소를 다시 요청하기까지의 간격. */
+    static final Duration CANCEL_RETRY_INTERVAL = Duration.ofSeconds(30);
+    /** 확인되지 않은 {@code CANCELLED} 매수를 다시 조회하기까지의 간격. */
+    static final Duration CANCEL_RECHECK_INTERVAL = Duration.ofSeconds(30);
+
+    private static final List<String> CANCELLABLE_STATES = List.of(
+            "PENDING", "SUBMITTING", "UNKNOWN", "SUBMITTED", "PARTIAL_FILLED");
+
+    /** 정지 후 미해결 주문의 취소를 요청한다 — 기본 간격 규칙을 따른다. */
+    public CancelOutcome requestCancel(Long orderId) {
+        return requestCancel(orderId, false);
+    }
+
+    /**
+     * 취소를 <b>요청</b>하고, 거래소 조회로 <b>체결량과 함께 확인</b>한다 (2026-10-13).
+     *
+     * <p>🔴 <b>취소 요청의 성공은 취소 확정이 아니다.</b> 종전에는 요청이 예외 없이 돌아오면 체결량을
+     * 보지 않고 {@code CANCELLED} 로 기록했고, 고아 정리는 그 주문의 예약을 <b>전액 복원</b>했다.
+     * 시장가 매수가 그사이 체결됐다면 코인을 샀는데 돈도 돌아온다. 이제는:</p>
+     * <ul>
+     *   <li>체결량이 있으면 — 원자 회계 대상은 활성으로 두고 체결 반영 경로에 맡긴다(체결분은 회계에
+     *       반영되고 미사용 예약만 풀린다). 그 밖은 종전 {@code syncOrderState} 가 반영한다.</li>
+     *   <li>{@code cancel} 과 체결량 <b>0</b> 이 보고되면 — {@code CANCELLED} 로 닫고 확인 시각을 남긴다.
+     *       전액 복원은 이 확인이 있을 때만 한다({@link #isConfirmedUnfilledBuy}).</li>
+     *   <li>체결량이 보고되지 않았거나 아직 활성이면 — 활성으로 남긴다.</li>
+     * </ul>
+     *
+     * <p>🔴 <b>응답을 잃은 주문({@code SUBMITTING}·{@code UNKNOWN})은 식별자로 취소한다.</b> 거래소가
+     * 없다고 답하면(404) {@link CancelOutcome#NOT_FOUND} 이고 상태를 바꾸지 않는다 — 미접수의 증거가
+     * 아니다. 찾으면 주문번호를 붙여 {@code SUBMITTED} 로 올리고 같은 확인을 한다.</p>
+     *
+     * <p>🔴 <b>트랜잭션을 들고 거래소를 부르지 않는다.</b> 쓰기는 모두 짧은 {@code REQUIRES_NEW}
+     * 트랜잭션의 열 단위 조건부 문장이다 — 원자 체결 회계가 같은 행에 쓴 관측·반영값을 엔티티 저장으로
+     * 되돌리지 않는다(시험 10). 예외를 던지지 않는다 — 호출자(정지)의 트랜잭션을 롤백 전용으로 만들지
+     * 않는다.</p>
+     *
+     * @param force {@code true} 면 직전 요청 간격을 무시하고 보낸다(사용자 취소)
+     */
+    CancelOutcome requestCancel(Long orderId, boolean force) {
+        try {
+            return doRequestCancel(orderId, force);
+        } catch (Exception e) {
+            log.error("취소 요청 처리 중 예외 — 상태를 바꾸지 않는다 (orderId={}): {}", orderId, e.getMessage(), e);
+            return CancelOutcome.UNKNOWN_RESULT;
+        }
+    }
+
+    private CancelOutcome doRequestCancel(Long orderId, boolean force) {
+        OrderEntity order = syncTx.execute(st -> orderRepository.findById(orderId).orElse(null));
+        if (order == null || !CANCELLABLE_STATES.contains(order.getState()) || upbitOrderClient == null) {
+            return CancelOutcome.NOT_CANCELLABLE;
+        }
+        String uuid = order.getExchangeOrderId();
+        String identifier = order.getClientOrderId();
+        boolean byIdentifier = uuid == null && identifier != null
+                && ("SUBMITTING".equals(order.getState()) || "UNKNOWN".equals(order.getState()));
+        if (uuid == null && !byIdentifier) {
+            return CancelOutcome.NOT_CANCELLABLE;
+        }
+        if (!force && order.getCancelRequestedAt() != null
+                && Duration.between(order.getCancelRequestedAt(), Instant.now()).compareTo(CANCEL_RETRY_INTERVAL) < 0) {
+            return CancelOutcome.RECENTLY_REQUESTED;
+        }
+
+        // 먼저 묻는다 — 이미 종결(체결·취소)이면 취소를 보내지 않고 그 응답으로 확인한다. 이미 체결된 주문에
+        // 취소를 보내는 것은 무의미하고, 종전에는 그 취소의 "성공" 이 CANCELLED 기록으로 이어졌다.
+        OrderResponse before = null;
+        try {
+            if (uuid != null) {
+                before = queryExchangeOrder(uuid);
+            } else if (rateLimiter.acquire()) {
+                before = upbitOrderClient.getOrderByIdentifier(identifier);
+            }
+        } catch (Exception e) {
+            log.warn("취소 전 조회 실패 — 취소를 요청한다 (orderId={}): {}", orderId, e.getMessage());
+        }
+        if (before != null && before.getUuid() != null && uuid == null) {
+            OrderResponse found = before;
+            syncTx.execute(st -> orderRepository.attachFoundSubmission(orderId, found.getUuid(), Instant.now()));
+            uuid = found.getUuid();
+            log.info("식별자로 미해결 제출을 찾았다 — 주문번호로 취소한다 (orderId={}, 식별자={}, uuid={})",
+                    orderId, identifier, uuid);
+        }
+        if (before != null && isTerminalExchangeState(before.getState())) {
+            return confirmFromExchange(orderId, before);
+        }
+
+        // 요청을 먼저 적는다 — 요청 뒤에 프로세스가 죽어도 "취소를 요청했다" 가 남는다.
+        syncTx.execute(st -> orderRepository.markCancelRequested(orderId, Instant.now()));
+
+        boolean cancelByIdentifier = uuid == null;
+        boolean requestFailed = false;
+        OrderResponse cancelResponse = null;
+        try {
+            if (!rateLimiter.acquire()) {
+                log.warn("요청 제한 대기 시간 초과 — 취소를 보내지 못했다 (orderId={})", orderId);
+                return CancelOutcome.UNKNOWN_RESULT;
+            }
+            cancelResponse = cancelByIdentifier
+                    ? upbitOrderClient.cancelOrderByIdentifier(identifier)
+                    : upbitOrderClient.cancelOrder(uuid);
+        } catch (Exception e) {
+            // 이미 체결돼 취소할 수 없거나 통신 실패다. 어느 쪽인지는 아래 조회로 가른다.
+            requestFailed = true;
+            log.warn("취소 요청 실패 — 조회로 확인한다 (orderId={}, {}): {}",
+                    orderId, cancelByIdentifier ? "식별자=" + identifier : "uuid=" + uuid, e.getMessage());
+        }
+        if (cancelByIdentifier && !requestFailed && cancelResponse == null) {
+            log.warn("식별자로 취소할 주문이 거래소에 없다 — 미접수로 단정하지 않고 상태를 유지한다 "
+                    + "(orderId={}, 식별자={})", orderId, identifier);
+            return CancelOutcome.NOT_FOUND;
+        }
+
+        // 확인 조회 — 🔴 취소 응답 자체로 판정하지 않는다(요청 시점의 상태라 체결량이 바뀔 수 있다).
+        String knownUuid = uuid != null ? uuid
+                : (cancelResponse != null ? cancelResponse.getUuid() : null);
+        OrderResponse latest;
+        try {
+            if (knownUuid != null) {
+                latest = queryExchangeOrder(knownUuid);
+            } else {
+                if (!rateLimiter.acquire()) {
+                    return requestFailed ? CancelOutcome.UNKNOWN_RESULT : CancelOutcome.REQUESTED;
+                }
+                latest = upbitOrderClient.getOrderByIdentifier(identifier);
+            }
+        } catch (Exception e) {
+            log.warn("취소 확인 조회 실패 — 활성으로 남겨 폴러가 다시 확인한다 (orderId={}): {}",
+                    orderId, e.getMessage());
+            return requestFailed ? CancelOutcome.UNKNOWN_RESULT : CancelOutcome.REQUESTED;
+        }
+        if (latest == null) {
+            return requestFailed ? CancelOutcome.NOT_FOUND : CancelOutcome.REQUESTED;
+        }
+        if (cancelByIdentifier && latest.getUuid() != null) {
+            int attached = syncTx.execute(st -> orderRepository.attachFoundSubmission(
+                    orderId, latest.getUuid(), Instant.now()));
+            log.info("식별자 취소로 미해결 제출을 찾았다 (orderId={}, 식별자={}, uuid={}, 연결={})",
+                    orderId, identifier, latest.getUuid(), attached == 1);
+        }
+        CancelOutcome outcome = confirmFromExchange(orderId, latest);
+        if (outcome == CancelOutcome.REQUESTED && requestFailed) {
+            // 요청이 실패했는데 거래소에 주문이 살아 있다 — 취소되지 않았다.
+            log.error("취소 요청 실패 + 거래소에 주문이 살아 있다 — 활성으로 남긴다 (orderId={}, 거래소상태={})",
+                    orderId, latest.getState());
+            return CancelOutcome.UNKNOWN_RESULT;
+        }
+        return outcome;
+    }
+
+    private static boolean isTerminalExchangeState(String upbitState) {
+        return "done".equalsIgnoreCase(upbitState) || "cancel".equalsIgnoreCase(upbitState);
+    }
+
+    /**
+     * 거래소 응답 하나로 취소·체결을 <b>함께</b> 판정한다.
+     *
+     * <p>🔴 {@code cancel} 이라도 체결량이 있으면 체결이다. 체결량이 보고되지 않은 {@code cancel} 은
+     * 확인이 아니다 — 활성으로 남긴다.</p>
+     */
+    private CancelOutcome confirmFromExchange(Long orderId, OrderResponse latest) {
+        String exchangeState = mapExchangeState(latest.getState());
+        BigDecimal volume = latest.getExecutedVolume();
+        boolean executed = volume != null && volume.signum() > 0;
+
+        if (executed || "FILLED".equals(exchangeState)) {
+            OrderEntity current = syncTx.execute(st -> orderRepository.findById(orderId).orElse(null));
+            if (current == null) {
+                return CancelOutcome.NOT_CANCELLABLE;
+            }
+            if (isAtomicMarketBuy(current)) {
+                // 🔴 여기서 반영하지 않는다 — 체결 반영은 원자 경로 하나다. 활성으로 남기면 폴러
+                //    (또는 호출자)가 `checkOrderStatus` 로 같은 응답을 원자 경로에 넣는다.
+                log.warn("취소 확인 중 체결 감지 — 원자 회계 경로에 맡긴다 (orderId={}, state={}, executed={})",
+                        orderId, latest.getState(), volume);
+                return CancelOutcome.FILL_DETECTED;
+            }
+            // 지정가·매도 — 종전 경로. 🔴 잠금으로 읽고 반영한다(전 열 저장이 다른 작업자의 쓰기를 되돌리지 않게).
+            log.warn("취소 확인 중 체결 감지 — 종전 경로로 반영 (orderId={}, state={}, executed={})",
+                    orderId, latest.getState(), volume);
+            syncTx.executeWithoutResult(st -> {
+                OrderEntity fresh = orderRepository.findByIdForUpdate(orderId).orElse(null);
+                if (fresh != null && ACTIVE_STATES.contains(fresh.getState())) {
+                    syncOrderState(fresh, latest);
+                }
+            });
+            return CancelOutcome.FILL_DETECTED;
+        }
+
+        if ("CANCELLED".equals(exchangeState)) {
+            if (volume == null) {
+                log.warn("거래소가 취소를 보고했지만 체결량을 보고하지 않았다 — 확인으로 보지 않고 활성으로 "
+                        + "남긴다 (orderId={})", orderId);
+                return CancelOutcome.REQUESTED;
+            }
+            Integer closed = syncTx.execute(st -> {
+                OrderEntity before = orderRepository.findByIdForUpdate(orderId).orElse(null);
+                if (before == null) return 0;
+                int n = orderRepository.confirmUnfilledCancel(orderId, Instant.now());
+                if (n == 1) {
+                    recordTradeLog(orderId, "STATE_CHANGE", before.getState(), "CANCELLED",
+                            "취소 확인 — 거래소 체결량 0");
+                }
+                return n;
+            });
+            if (closed != null && closed == 1) {
+                log.info("취소 확인 — 체결 없음 (orderId={})", orderId);
+                return CancelOutcome.CONFIRMED_UNFILLED;
+            }
+            OrderEntity after = syncTx.execute(st -> orderRepository.findById(orderId).orElse(null));
+            return after != null && after.getCancelConfirmedAt() != null
+                    ? CancelOutcome.CONFIRMED_UNFILLED : CancelOutcome.REQUESTED;
+        }
+
+        // 거래소에 아직 활성 — 취소가 처리 중이다.
+        return CancelOutcome.REQUESTED;
+    }
+
+    /**
+     * 체결 없이 끝난 것이 <b>확인된</b> 매수인가 — 예약 <b>전액</b> 복원의 조건 (V87).
+     *
+     * <ul>
+     *   <li>{@code FAILED} — 나간 적이 없다(철회·의도 단계 거절). V84 이후 제출 중 예외는 {@code UNKNOWN} 이다.</li>
+     *   <li>{@code CANCELLED} — 거래소가 체결량 0 으로 확인한 취소({@code cancelConfirmedAt}).</li>
+     *   <li>정산 경로에 참여하지 않은 V82 이전 주문({@code feeSource} 없음)은 종전 규칙 — 과거를 재해석하지 않는다.</li>
+     * </ul>
+     *
+     * <p>🔴 확인되지 않은 {@code CANCELLED} 는 체결됐을 수 있다. 복원하지도 닫지도 않고 재조회
+     * ({@code verifyUnconfirmedCancelledBuys})에 맡긴다.</p>
+     */
+    public static boolean isConfirmedUnfilledBuy(OrderEntity o) {
+        if ("FAILED".equals(o.getState())) return true;
+        if (!"CANCELLED".equals(o.getState())) return false;
+        return o.getFeeSource() == null || o.getCancelConfirmedAt() != null;
+    }
+
+    /** 체결 여부가 확인되지 않은 {@code CANCELLED} 매수인가 (V87) — 열린 포지션을 닫지 않는 근거. */
+    public static boolean isUnconfirmedCancelledBuy(OrderEntity o) {
+        return "BUY".equalsIgnoreCase(o.getSide()) && "CANCELLED".equals(o.getState())
+                && o.getFeeSource() != null && o.getCancelConfirmedAt() == null;
     }
 
     /**
      * 모든 활성 주문 취소 (비상 정지용)
+     *
+     * <p>🔴 "취소됨" 이 아니라 "취소를 요청했고 그 결과" 를 센다 (2026-10-13). 확인되지 않은 주문은
+     * 활성으로 남아 폴러가 확인한다.</p>
      */
     @Transactional
     public int cancelAllActiveOrders() {
         List<OrderEntity> activeOrders = orderRepository.findByStateIn(ACTIVE_STATES);
-        int cancelledCount = 0;
+        int confirmed = 0;
+        int pending = 0;
 
         for (OrderEntity order : activeOrders) {
-            try {
-                cancelOrder(order.getId());
-                cancelledCount++;
-            } catch (Exception e) {
-                log.error("활성 주문 취소 실패 (orderId={}): {}", order.getId(), e.getMessage());
+            if (upbitOrderClient == null || (order.getExchangeOrderId() == null
+                    && List.of("PENDING", "SUBMITTED", "PARTIAL_FILLED").contains(order.getState()))) {
+                // 거래소에 물을 수단이 없는 종전 경로 — `cancelOrder` 의 같은 분기와 같다(체결 없음 확인 아님).
+                try {
+                    cancelOrder(order.getId());
+                    confirmed++;
+                } catch (Exception e) {
+                    log.error("활성 주문 취소 실패 (orderId={}): {}", order.getId(), e.getMessage());
+                }
+                continue;
+            }
+            CancelOutcome outcome = requestCancel(order.getId(), true);
+            switch (outcome) {
+                case CONFIRMED_UNFILLED -> confirmed++;
+                case NOT_CANCELLABLE -> { }
+                default -> pending++;
             }
         }
 
-        log.info("활성 주문 일괄 취소: {}건 취소됨", cancelledCount);
-        return cancelledCount;
+        log.info("활성 주문 일괄 취소 요청: 체결 없음 확인 {}건, 확인 대기·체결 감지 {}건", confirmed, pending);
+        return confirmed;
     }
 
     /**
@@ -1171,12 +1502,35 @@ public class OrderExecutionEngine {
     @Scheduled(fixedDelay = 5000)
     @Transactional
     public void pollActiveOrders() {
+        // 🔴 활성 주문이 없어도 돈다 — 확인되지 않은 CANCELLED 는 활성 주문이 아니다.
+        verifyUnconfirmedCancelledBuys();
+
         List<OrderEntity> activeOrders = orderRepository.findByStateIn(ACTIVE_STATES);
         if (activeOrders.isEmpty()) {
             return;
         }
 
+        Map<String, String> sessionStatusCache = new java.util.HashMap<>();
         for (OrderEntity order : activeOrders) {
+            // 🔴 **정지된 세션의 매수는 취소를 요청한다** (2026-10-13). 정지는 신규 claim 만 막는다 — 이미
+            //    나간 매수는 정지 후에도 체결될 수 있다. 응답을 잃은 주문은 UUID 가 없으므로 식별자로
+            //    취소한다. 요청은 확정이 아니므로 추적(아래 조회·해소)은 그대로 계속한다.
+            if (isBuyOfStoppedSession(order, sessionStatusCache)) {
+                CancelOutcome outcome = requestCancel(order.getId());
+                if (outcome != CancelOutcome.RECENTLY_REQUESTED) {
+                    log.info("정지된 세션의 매수 취소 요청 (orderId={}, state={}) → {}",
+                            order.getId(), order.getState(), outcome);
+                }
+                if (outcome == CancelOutcome.FILL_DETECTED) {
+                    checkOrderStatus(order.getId());
+                    continue;
+                }
+                if (outcome != CancelOutcome.RECENTLY_REQUESTED && outcome != CancelOutcome.NOT_CANCELLABLE) {
+                    // 이번 회차에 행을 썼다 — 이 루프가 들고 있는 엔티티는 낡았다. 다음 회차가 다시 읽는다.
+                    continue;
+                }
+            }
+
             // 🔴 미해결 제출은 **식별자로 조회**해 해소한다 (V84). 재제출하지 않는다.
             //    UUID 가 없으므로 아래 `checkOrderStatus` 경로로는 아무것도 할 수 없다.
             if ("INTENT_READY".equals(order.getState())
@@ -1224,13 +1578,21 @@ public class OrderExecutionEngine {
                                     order.getId(), e.getMessage());
                         }
                     }
-                    log.warn("주문 타임아웃 (orderId={}, {}분 경과)", order.getId(), elapsed.toMinutes());
-                    try {
-                        cancelOrder(order.getId());
-                        recordTradeLog(order.getId(), "TIMEOUT", "SUBMITTED", "CANCELLED",
-                                "제출 후 5분 경과 자동 취소");
-                    } catch (Exception e) {
-                        log.error("타임아웃 취소 실패 (orderId={}): {}", order.getId(), e.getMessage());
+                    // 🔴 취소는 **요청**이다 (2026-10-13). 종전에는 요청이 성공하면 CANCELLED 로 기록했다 —
+                    //    그사이 체결이 있었는지 보지 않았다. 확정은 체결량과 함께 `requestCancel` 이 한다.
+                    CancelOutcome outcome = requestCancel(order.getId());
+                    if (outcome == CancelOutcome.RECENTLY_REQUESTED) {
+                        // 직전 요청의 확인을 기다리는 중이다 — 다시 보내지 않고 조회만 한다.
+                        checkOrderStatus(order.getId());
+                        continue;
+                    }
+                    log.warn("주문 타임아웃 (orderId={}, {}분 경과) — 취소 요청 결과 {}",
+                            order.getId(), elapsed.toMinutes(), outcome);
+                    recordTradeLog(order.getId(), "TIMEOUT", "SUBMITTED",
+                            outcome == CancelOutcome.CONFIRMED_UNFILLED ? "CANCELLED" : "SUBMITTED",
+                            "제출 후 5분 경과 — 취소 요청: " + outcome);
+                    if (outcome == CancelOutcome.FILL_DETECTED && isAtomicMarketBuy(order)) {
+                        checkOrderStatus(order.getId());
                     }
                     continue;
                 }
@@ -1793,6 +2155,22 @@ public class OrderExecutionEngine {
             transitionState(order, "FILLED", null);
             processFilledOrder(order);
             return;
+        }
+
+        if ("CANCELLED".equals(newState)) {
+            // 🔴 체결량이 보고되지 않은 취소는 **확인이 아니다** (2026-10-13). CANCELLED 로 닫으면 고아
+            //    정리가 예약을 전액 복원할 수 있는데, 그사이 체결이 있었는지 모른다. 활성으로 남겨 다음
+            //    조회에서 체결량과 함께 확인한다.
+            if (exchangeStatus.getExecutedVolume() == null) {
+                log.warn("거래소가 취소를 보고했지만 체결량을 보고하지 않았다 — 활성으로 남긴다 (orderId={})",
+                        order.getId());
+                return;
+            }
+            // 여기 도달 = 체결량이 명시적으로 0 이다(양수는 위의 부분 체결 분기). 전액 복원의 근거를 남긴다.
+            order.setCancelConfirmedAt(Instant.now());
+            if (order.getCancelledAt() == null) {
+                order.setCancelledAt(Instant.now());
+            }
         }
 
         transitionState(order, newState, null);
