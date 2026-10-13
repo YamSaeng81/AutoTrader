@@ -31,4 +31,14 @@ public interface DynamicSessionRepository extends JpaRepository<DynamicSessionEn
             + "WHERE s.status IN :statuses AND s.tradingMode <> 'PAPER' AND s.id <> :excludeId")
     BigDecimal sumRealAvailableKrwExcluding(@Param("statuses") List<String> statuses,
                                             @Param("excludeId") Long excludeId);
+
+    /**
+     * 신규 진입 승인·claim 의 정지 판정 (2026-10-12) — {@code LiveTradingSessionRepository.lockAndReadStatus}
+     * 의 동적 세션판. 행을 배타 잠금으로 읽어 정지 쓰기와 직렬화한다.
+     *
+     * <p>엔티티가 아니라 상태 문자열만 돌려준다 — 틱 트랜잭션이 이미 같은 엔티티를 관리하고 있을 수
+     * 있고, 잠금만 필요하다.</p>
+     */
+    @Query(value = "SELECT status FROM dynamic_session WHERE id = :id FOR UPDATE", nativeQuery = true)
+    java.util.Optional<String> lockAndReadStatus(@Param("id") Long id);
 }

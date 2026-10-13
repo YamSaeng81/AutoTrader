@@ -50,6 +50,21 @@ public class DynamicSessionBalanceUpdater {
         this.requiresNewTx.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     }
 
+    /**
+     * <b>현재 트랜잭션 안에서</b> 잔고를 갱신한다 — {@code SessionBalanceUpdater.applyWithin} 의 동적판
+     * (2026-10-12, 체결 회계 통합).
+     *
+     * <p>🔴 체결 회계는 주문·잔액·포지션이 함께 커밋되거나 함께 롤백돼야 한다. {@link #apply} 는
+     * REQUIRES_NEW 라 잔액만 독립 커밋되어, 바깥이 롤백되면 재처리에서 같은 차액이 두 번 들어간다.
+     * 재시도하지 않는다 — 충돌하면 트랜잭션 전체가 롤백되고 호출부가 차분을 다시 계산한다.</p>
+     */
+    public DynamicSessionEntity applyWithin(Long sessionId, Consumer<DynamicSessionEntity> mutator) {
+        DynamicSessionEntity fresh = dynamicSessionRepository.findById(sessionId)
+                .orElseThrow(() -> new IllegalStateException("동적 세션을 찾을 수 없음 id=" + sessionId));
+        mutator.accept(fresh);
+        return dynamicSessionRepository.save(fresh);
+    }
+
     public DynamicSessionEntity apply(Long sessionId, Consumer<DynamicSessionEntity> mutator) {
         ConcurrencyFailureException last = null;
         for (int attempt = 0; attempt < MAX_RETRIES; attempt++) {

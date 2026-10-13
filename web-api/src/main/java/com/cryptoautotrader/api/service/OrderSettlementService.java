@@ -89,6 +89,8 @@ public class OrderSettlementService {
     private final PositionRepository positionRepository;
     private final OrderSettlementDiscrepancyRepository discrepancyRepository;
     private final SessionBalanceUpdater liveBalanceUpdater;
+    /** 🔴 DYNAMIC 도 같은 원자 경로를 지난다 (2026-10-12) — 잔액 테이블만 다르다. */
+    private final DynamicSessionBalanceUpdater dynamicBalanceUpdater;
     private final PlatformTransactionManager txManager;
 
     private TransactionTemplate settlementTx;
@@ -257,7 +259,7 @@ public class OrderSettlementService {
                                            BigDecimal appliedFee, boolean firstApplication) {
         if (order.getSessionId() == null) return;
         if (!"BUY".equalsIgnoreCase(order.getSide())) return;
-        if (!"LIVE".equals(order.getSessionKind())) return;
+        if (!isSharedPoolKind(order.getSessionKind())) return;
         if (!"MARKET".equalsIgnoreCase(order.getOrderType())) return;
         if (order.getQuantity() == null) return;
 
@@ -269,8 +271,14 @@ public class OrderSettlementService {
         BigDecimal restoreDelta = targetRestore.subtract(appliedRestore);
         if (restoreDelta.signum() == 0) return;
 
-        liveBalanceUpdater.applyWithin(order.getSessionId(),
-                s -> s.setAvailableKrw(s.getAvailableKrw().add(restoreDelta)));
+        // 🔴 같은 규칙, 다른 테이블 — 미사용액 공식과 트랜잭션 경계는 LIVE·DYNAMIC 이 같다.
+        if ("DYNAMIC".equals(order.getSessionKind())) {
+            dynamicBalanceUpdater.applyWithin(order.getSessionId(),
+                    s -> s.setAvailableKrw(s.getAvailableKrw().add(restoreDelta)));
+        } else {
+            liveBalanceUpdater.applyWithin(order.getSessionId(),
+                    s -> s.setAvailableKrw(s.getAvailableKrw().add(restoreDelta)));
+        }
         log.info("정산 잔액 조정 (orderId={}): 미사용 복원 Δ{} (요청={} 체결={} 수수료={})",
                 order.getId(), restoreDelta, requested, targetFunds, targetFee);
     }
@@ -288,26 +296,20 @@ public class OrderSettlementService {
      * <p>🔴 <b>거래소 체결과 DB 커밋을 원자적으로 만들 수는 없다.</b> 이 설계가 하는 일은 그 간극을
      * 명시적으로 추적하면서 <b>로컬 회계의 부분 커밋을 없애는 것</b>이다.</p>
      *
-     * <p>🔴 <b>적용 범위</b>: 이 경로는 <b>LIVE 시장가 매수</b>만 담당한다. 지정가·매도·DYNAMIC 은
-     * 기존 {@code syncOrderState} 경로가 그대로 처리한다 — 한꺼번에 옮기면 부분 체결·취소 후 체결·
+     * <p>🔴 <b>적용 범위</b>: 이 경로는 <b>LIVE·DYNAMIC 시장가 매수</b>를 담당한다(DYNAMIC 은
+     * 2026-10-12 편입 — 종전 경로는 수수료를 빼지 않고 원금 차이를 복원했다). 지정가·매도는 기존
+     * {@code syncOrderState} 경로가 그대로 처리한다 — 한꺼번에 옮기면 부분 체결·취소 후 체결·
      * 매도 정산의 기존 보호 장치까지 다시 써야 한다.</p>
      *
      * @return 회계를 반영했으면 {@code true}
      */
     public boolean observeAndApplyBuyFill(Long orderId, OrderResponse response) {
         // 관측 보존 + 대기 표시. 🔴 이것만 먼저 커밋한다 — 회계가 실패해도 재처리 근거가 남는다.
-        Boolean observed = settlementTx.execute(st -> {
-            OrderEntity o = orderRepository.findById(orderId).orElse(null);
-            if (o == null || o.getFeeSource() == null) return Boolean.FALSE;
-            o.setReportedExecutedVolume(response.getExecutedVolume());
-            o.setReportedExecutedFunds(response.resolveExecutedFunds());
-            o.setReportedPaidFee(response.getPaidFee());
-            o.setReportedState(response.getState());
-            o.setReportedObservedAt(Instant.now());
-            o.setFillAccountingPending(Boolean.TRUE);
-            orderRepository.save(o);
-            return Boolean.TRUE;
-        });
+        // 🔴 **관측 열만 쓴다** (2026-10-12, 시험 10). 엔티티 저장은 전 열을 써서, 동시에 반영 중인
+        //    다른 작업자의 정산 버전·반영값을 잠금 해제 직후 되돌렸다 → 같은 체결이 두 번 반영됐다.
+        Boolean observed = settlementTx.execute(st -> orderRepository.recordBuyFillObservation(
+                orderId, response.getExecutedVolume(), response.resolveExecutedFunds(),
+                response.getPaidFee(), response.getState(), Instant.now()) == 1);
         if (!Boolean.TRUE.equals(observed)) return false;
 
         // 회계 반영 — 주문·잔액·포지션이 **한 트랜잭션**. 실패하면 전부 롤백되고 관측과 대기 표시는
@@ -466,6 +468,11 @@ public class OrderSettlementService {
         log.error("🔴 정산 불일치 — 자동 반영하지 않고 보존한다 (orderId={}, kind={}, 이전={}, 수신={}). "
                         + "사람이 확인해야 한다.",
                 order.getId(), kind, previous, received);
+    }
+
+    /** 공유 풀 실자금 세션 — 원자 체결 회계의 대상. */
+    static boolean isSharedPoolKind(String sessionKind) {
+        return "LIVE".equals(sessionKind) || "DYNAMIC".equals(sessionKind);
     }
 
     private static boolean isTerminal(String exchangeState) {

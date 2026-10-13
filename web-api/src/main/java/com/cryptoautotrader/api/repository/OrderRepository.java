@@ -209,6 +209,34 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
                 avgPrice, feeSource, nextCheckAt, Instant.now());
     }
 
+    /**
+     * 체결 관측 보존 + 회계 대기 표시 — <b>관측 열만</b> 쓴다 (2026-10-12, 시험 10).
+     *
+     * <p>🔴 종전에는 엔티티를 읽어 관측값을 넣고 {@code save} 했다. 엔티티 저장은 <b>모든 열</b>을
+     * 쓰므로, 다른 작업자가 회계를 반영하는 동안 그 이전에 읽은 스냅숏이 잠금 해제 직후 덮어써
+     * <b>정산 버전·반영값을 되돌렸다</b> — 버전 가드가 같은 체결을 다시 통과시켜 미사용액·수량이
+     * 두 번 반영됐다(실측: 포지션 19.6, 잔액 7,117.06). 관측 단계는 반영 열을 건드리지 않는다.</p>
+     */
+    @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE OrderEntity o SET o.reportedExecutedVolume = :volume, o.reportedExecutedFunds = :funds, "
+            + "o.reportedPaidFee = :fee, o.reportedState = :state, o.reportedObservedAt = :observedAt, "
+            + "o.fillAccountingPending = true "
+            + "WHERE o.id = :id AND o.feeSource IS NOT NULL")
+    int recordBuyFillObservation(@Param("id") Long id,
+                                 @Param("volume") java.math.BigDecimal volume,
+                                 @Param("funds") java.math.BigDecimal funds,
+                                 @Param("fee") java.math.BigDecimal fee,
+                                 @Param("state") String state,
+                                 @Param("observedAt") Instant observedAt);
+
+    /**
+     * 행을 배타 잠금으로 읽는다 — 엔티티 저장(전 열 쓰기)이 다른 작업자의 조건부 UPDATE 와 겹쳐
+     * 그 결과를 되돌리지 않게 한다. 읽기부터 커밋까지 다른 쓰기가 기다린다.
+     */
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT o FROM OrderEntity o WHERE o.id = :id")
+    Optional<OrderEntity> findByIdForUpdate(@Param("id") Long id);
+
     /** 회계 반영 대기 해제. */
     @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE OrderEntity o SET o.fillAccountingPending = false WHERE o.id = :id")

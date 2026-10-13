@@ -71,6 +71,14 @@ class SettlementAtomicityTest extends IntegrationTestBase {
     @SpyBean
     private SessionBalanceUpdater balanceUpdater;
 
+    /**
+     * 🔴 이 시험은 쓰지 않는다 — {@code DynamicFillAccountingTest} 와 <b>같은 시험 컨텍스트</b>를 공유하려고 둔다
+     * (2026-10-13). 목·스파이 조합이 다르면 컨텍스트가 하나 더 생기고, 시험 JVM 힙(512MB)이 캐시된 컨텍스트로
+     * 가득 차 전체 실행이 멈췄다(실측: 힙 523/524MB, GC 로 CPU 18분).
+     */
+    @SpyBean
+    private DynamicSessionBalanceUpdater sharedContextDynamicUpdater;
+
     private final List<Long> createdSessions = new ArrayList<>();
 
     @AfterEach

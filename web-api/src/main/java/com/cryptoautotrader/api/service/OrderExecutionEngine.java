@@ -657,8 +657,11 @@ public class OrderExecutionEngine {
      * 보이지 않고, 분리 엔티티 저장이 INSERT 로 떨어져 <b>같은 주문이 두 행으로 저장됐다.</b></p>
      */
     private boolean approveNewEntry(OrderRequest request, String sessionKind) {
-        if (!"BUY".equalsIgnoreCase(request.getSide()) || !"LIVE".equals(sessionKind)
-                || request.getSessionId() == null || sessionRepository == null) {
+        // 🔴 LIVE·DYNAMIC 이 **같은 가드**를 지난다 (2026-10-12). 종전에는 LIVE 만 봤고 DYNAMIC 매수는
+        //    정지·회계 미반영·미해결 제출 어느 것에도 막히지 않았다 — 예약은 공통화됐는데 그 앞의
+        //    승인 조건이 갈려 있었다.
+        if (!"BUY".equalsIgnoreCase(request.getSide()) || !guardedKind(sessionKind)
+                || request.getSessionId() == null) {
             return true;
         }
 
@@ -671,7 +674,7 @@ public class OrderExecutionEngine {
         //
         //    🔴 **추적과 위험 축소는 막지 않는다** — 이 가드는 BUY 전용이고, 매도·청산·폴링은
         //    그대로 돈다.
-        long pendingFills = orderRepository.countFillAccountingPending("LIVE", request.getSessionId());
+        long pendingFills = orderRepository.countFillAccountingPending(sessionKind, request.getSessionId());
         if (pendingFills > 0) {
             log.warn("회계 미반영 체결이 있어 신규 매수를 승인하지 않는다 (sessionId={}, 미반영={}건)",
                     request.getSessionId(), pendingFills);
@@ -683,7 +686,7 @@ public class OrderExecutionEngine {
         //    불명 주문은 접수됐을 수 있으므로 자금과 슬롯을 점유한 것으로 본다. 그 위에 새로
         //    진입하면 한도를 초과한 노출이 되고, 나중에 체결이 확인되면 되돌릴 수 없다.
         //    🔴 "아마 실패했을 것" 으로 가정해 진입을 허용하는 것이 바로 종전의 결함이다.
-        long unresolved = orderRepository.countUnresolvedSubmissions("LIVE", request.getSessionId());
+        long unresolved = orderRepository.countUnresolvedSubmissions(sessionKind, request.getSessionId());
         if (unresolved > 0) {
             log.warn("미해결 제출이 있어 신규 매수를 승인하지 않는다 (sessionId={}, 미해결={}건)",
                     request.getSessionId(), unresolved);
@@ -691,13 +694,41 @@ public class OrderExecutionEngine {
         }
 
         // 엔티티가 아니라 **상태 문자열만** 받는다 — 잠금은 필요하지만 엔티티 관리는 필요하지 않다.
-        String lockedStatus = sessionRepository.lockAndReadStatus(request.getSessionId()).orElse(null);
+        String lockedStatus = lockAndReadSessionStatus(sessionKind, request.getSessionId());
         if (!"RUNNING".equals(lockedStatus)) {
             log.warn("세션이 실행 중이 아니어서 신규 매수를 승인하지 않는다 (sessionId={}, status={})",
                     request.getSessionId(), lockedStatus == null ? "없음" : lockedStatus);
             return false;
         }
         return true;
+    }
+
+    /** 체결 회계를 원자 경로({@code OrderSettlementService.observeAndApplyBuyFill})로만 반영하는 주문인가. */
+    private boolean isAtomicMarketBuy(OrderEntity order) {
+        return orderSettlementService != null
+                && order.getFeeSource() != null
+                && "BUY".equalsIgnoreCase(order.getSide())
+                && "MARKET".equalsIgnoreCase(order.getOrderType())
+                && OrderSettlementService.isSharedPoolKind(order.getSessionKind());
+    }
+
+    /** 정지·회계 미반영·미해결 제출 가드의 대상 — 공유 풀 실자금 세션이고 그 세션 저장소가 있다. */
+    private boolean guardedKind(String sessionKind) {
+        return ("LIVE".equals(sessionKind) && sessionRepository != null)
+                || ("DYNAMIC".equals(sessionKind) && dynamicSessionRepository != null);
+    }
+
+    /**
+     * 세션 행을 배타 잠금으로 읽어 상태만 돌려준다. 정지 쓰기와 이 판정이 같은 행에서 직렬화된다.
+     *
+     * <p>🔴 DYNAMIC 정지({@code DynamicTradingService.stopSession})는 상태를 별도 연결로 쓴다. 그 쓰기와
+     * 이 잠금은 같은 행이므로 순서가 정해진다 — 정지가 먼저 커밋됐으면 여기서 {@code STOPPED} 를 본다.</p>
+     */
+    private String lockAndReadSessionStatus(String sessionKind, Long sessionId) {
+        java.util.Optional<String> status = "DYNAMIC".equals(sessionKind)
+                ? dynamicSessionRepository.lockAndReadStatus(sessionId)
+                : sessionRepository.lockAndReadStatus(sessionId);
+        return status.orElse(null);
     }
 
     /**
@@ -713,9 +744,9 @@ public class OrderExecutionEngine {
 
         // 🔴 세션 상태를 **다시** 확인한다. 미해결 제출 수는 보지 않는다 — 방금 만든 이 주문의
         //    INTENT_READY 가 그 수에 포함되므로 자기 자신 때문에 영원히 막힌다.
-        if ("BUY".equalsIgnoreCase(request.getSide()) && "LIVE".equals(sessionKind)
-                && request.getSessionId() != null && sessionRepository != null) {
-            String lockedStatus = sessionRepository.lockAndReadStatus(request.getSessionId()).orElse(null);
+        if ("BUY".equalsIgnoreCase(request.getSide()) && guardedKind(sessionKind)
+                && request.getSessionId() != null) {
+            String lockedStatus = lockAndReadSessionStatus(sessionKind, request.getSessionId());
             if (!"RUNNING".equals(lockedStatus)) {
                 log.warn("의도 커밋과 claim 사이에 정지가 들어왔다 — 철회한다 "
                         + "(orderId={}, sessionId={}, status={})", orderId, request.getSessionId(),
@@ -794,16 +825,16 @@ public class OrderExecutionEngine {
         log.info("거래소 주문 제출 완료 (orderId={}, exchangeId={}, initialState={})",
                 order.getId(), exchangeResponse.getUuid(), exchangeResponse.getState());
 
-        // 🔴 LIVE 시장가 매수는 생성 응답이 이미 종결(done·체결 있는 cancel)이어도 **여기서 반영하지
+        // 🔴 LIVE·DYNAMIC 시장가 매수는 생성 응답이 이미 종결(done·체결 있는 cancel)이어도 **여기서 반영하지
         //    않는다** (2026-10-12). 반영은 원자적 회계 경로 하나로 모은다 — 여기서 `processFilledOrder`
         //    를 부르면 원금 차이 복원과 정산의 미사용 예약 복원이 **겹친다**(폴링 경로에서 실측 60원
         //    과복원). SUBMITTED 로 두면 폴러가 같은 응답을 원자 경로로 반영한다.
         String initialState = mapExchangeState(exchangeResponse.getState());
-        boolean liveMarketBuy = order.getFeeSource() != null
+        boolean atomicMarketBuy = order.getFeeSource() != null
                 && "BUY".equalsIgnoreCase(order.getSide())
                 && "MARKET".equalsIgnoreCase(order.getOrderType())
-                && "LIVE".equals(order.getSessionKind());
-        if (liveMarketBuy) {
+                && OrderSettlementService.isSharedPoolKind(order.getSessionKind());
+        if (atomicMarketBuy) {
             transitionState(order, "SUBMITTED", null);
             return;
         }
@@ -900,13 +931,15 @@ public class OrderExecutionEngine {
         // 🔴 LIVE 시장가 매수의 체결 회계는 **새 원자 경로**가 맡는다 (2026-10-12, ⓑ 결정).
         //    기존 경로는 체결 반영(포지션)을 먼저 커밋하고 정산을 따로 돌려 **중간 상태**를 만들었다.
         //    새 경로는 관측을 먼저 보존하고 주문·잔액·포지션을 한 트랜잭션에서 반영한다.
-        //    🔴 지정가·매도·DYNAMIC 은 기존 경로가 그대로 처리한다 — 한꺼번에 옮기면 부분 체결·
+        //    🔴 지정가·매도는 기존 경로가 그대로 처리한다 — 한꺼번에 옮기면 부분 체결·
         //    취소 후 체결·매도 정산의 기존 보호 장치까지 다시 써야 한다.
         boolean atomicBuyPath = orderSettlementService != null
                 && order.getFeeSource() != null
                 && "BUY".equalsIgnoreCase(order.getSide())
                 && "MARKET".equalsIgnoreCase(order.getOrderType())
-                && "LIVE".equals(order.getSessionKind())
+                // 🔴 DYNAMIC 도 같은 경로다 (2026-10-12). 종전 경로의 `handleBuyFill` 은 원금 차이만
+                //    복원하고(수수료 미반영) 포지션·잔액을 다른 트랜잭션에 썼다.
+                && OrderSettlementService.isSharedPoolKind(order.getSessionKind())
                 && ("FILLED".equals(mapExchangeState(exchangeStatus.getState()))
                     // 🔴 **부분 체결 후 취소도 같은 경로다** (2026-10-12). 업비트 시장가 매수는 남은
                     //    금액을 취소하며 `cancel` 로 끝나는 일이 흔하다. 종전에는 이 응답이 기존 경로로
@@ -941,7 +974,9 @@ public class OrderExecutionEngine {
             //    폴러의 추적 대상에서 빠지고 재처리 기회가 사라진다.
             try {
                 syncTx.executeWithoutResult(st -> {
-                    OrderEntity fresh = orderRepository.findById(orderId).orElse(null);
+                    // 🔴 잠금으로 읽는다 (2026-10-12, 시험 10) — 아래 저장은 전 열을 쓰므로, 잠금 없이
+                    //    읽으면 그사이 다른 작업자가 커밋한 관측·대기 표시를 이전 값으로 되돌린다.
+                    OrderEntity fresh = orderRepository.findByIdForUpdate(orderId).orElse(null);
                     if (fresh == null || "FILLED".equals(fresh.getState())) {
                         return;
                     }
@@ -1042,6 +1077,14 @@ public class OrderExecutionEngine {
                 boolean executed = latest.getExecutedVolume() != null
                         && latest.getExecutedVolume().compareTo(BigDecimal.ZERO) > 0;
                 String exchangeState = mapExchangeState(latest.getState());
+                if (executed && isAtomicMarketBuy(order)) {
+                    // 🔴 원자 회계 대상은 여기서 반영하지 않는다 (2026-10-12) — `syncOrderState` 는 종전
+                    //    경로라 정산과 겹쳐 미사용액이 두 번 복원된다. 활성으로 남기면 폴러가 같은
+                    //    체결을 원자 경로로 반영한다.
+                    log.warn("취소 실패 + 거래소 체결 확인 — 활성으로 남겨 원자 회계 경로에 맡긴다 "
+                            + "(orderId={}, state={}, executed={})", orderId, latest.getState(), latest.getExecutedVolume());
+                    return order;
+                }
                 if ("FILLED".equals(exchangeState) || executed) {
                     log.warn("취소 실패 + 거래소 체결 확인 — CANCELLED 대신 체결 처리 (orderId={}, state={}, executed={})",
                             orderId, latest.getState(), latest.getExecutedVolume());
@@ -1158,6 +1201,18 @@ public class OrderExecutionEngine {
                     if (order.getExchangeOrderId() != null) {
                         try {
                             OrderResponse latest = queryExchangeOrder(order.getExchangeOrderId());
+                            // 🔴 원자 회계 대상 시장가 매수는 **여기서 반영하지 않는다** (2026-10-12).
+                            //    아래 `syncOrderState` 는 종전 경로(원금 차이 복원)라, 원자 경로의 정산과
+                            //    겹치면 미사용액이 두 번 복원된다. 체결이 있으면 — 전량이든 체결 후
+                            //    취소든 — 같은 반영 경로 하나(`checkOrderStatus`)로 보낸다.
+                            boolean executed = latest.getExecutedVolume() != null
+                                    && latest.getExecutedVolume().signum() > 0;
+                            if (isAtomicMarketBuy(order) && executed) {
+                                log.warn("타임아웃 직전 체결 감지 — 원자 회계 경로로 반영 (orderId={}, state={}, executed={})",
+                                        order.getId(), latest.getState(), latest.getExecutedVolume());
+                                checkOrderStatus(order.getId());
+                                continue;
+                            }
                             if ("FILLED".equals(mapExchangeState(latest.getState()))) {
                                 log.warn("타임아웃 직전 체결 감지 — 취소 대신 체결 동기화 (orderId={}, state={}, executed={})",
                                         order.getId(), latest.getState(), latest.getExecutedVolume());

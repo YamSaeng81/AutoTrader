@@ -298,6 +298,10 @@ public class DynamicTradingService {
     @Autowired(required = false)
     private CapitalReservationService capitalReservationService;
 
+    /** 정지 시 미체결 매수의 닫기·복원을 한 트랜잭션으로 (2026-10-13). */
+    @Autowired
+    private OptimisticRetry optimisticRetry;
+
     @jakarta.persistence.PersistenceContext
     private jakarta.persistence.EntityManager entityManager;
 
@@ -590,6 +594,19 @@ public class DynamicTradingService {
             s.setStoppedAt(Instant.now());
         });
         log.info("[Dynamic] 세션 정지: id={}", sessionId);
+        // 🔴 정지는 신규 승인·claim 만 막는다 (2026-10-13, LIVE stopSession 과 같은 규칙). 이미 claim 된
+        //    주문은 접수됐을 수 있으므로 미해결 제출이 남은 세션을 **정리 완료로 보지 않는다.**
+        //    추적은 세션 상태와 무관하게 계속되고, 종결은 근거를 확인한 사람이 한다.
+        long unresolved = orderRepository.countUnresolvedSubmissions(SESSION_KIND, sessionId);
+        if (unresolved > 0) {
+            log.warn("[Dynamic] 🔴 정지했으나 **정리 미완료** — 미해결 제출 {}건이 남았다 (sessionId={}). "
+                    + "자금·슬롯을 점유한 것으로 두고 추적을 계속한다.", unresolved, sessionId);
+            try {
+                telegramService.notifyCleanupIncomplete(sessionId, unresolved);
+            } catch (Exception e) {
+                log.warn("[Dynamic] 정리 미완료 알림 실패 (sessionId={}): {}", sessionId, e.getMessage());
+            }
+        }
         refreshWsSubscription();
         return session;
     }
@@ -2154,9 +2171,39 @@ public class DynamicTradingService {
                 .findBySessionKindAndSessionIdAndStatus(sessionKind(session), session.getId(), "OPEN");
         for (PositionEntity pos : opens) {
             if (pos.getSize() == null || pos.getSize().compareTo(BigDecimal.ZERO) <= 0) {
-                pos.setStatus("CLOSED");
-                pos.setClosedAt(Instant.now());
-                positionRepository.save(pos);
+                // 🔴 **size=0 은 매수 주문의 상태로 가른다** (2026-10-13, LIVE `closeSessionPositions` 와 같은 규칙).
+                //
+                //    종전에는 무조건 CLOSED 로 바꿨다 — 진행 중 매수의 늦은 체결이 반영될 곳이 없어지고
+                //    (재개방 금지), 철회된 매수의 예약은 고아 정리가 열린 포지션만 보므로 **복원되지 않았다.**
+                //    직전 수정(전부 열어 둠)은 앞의 것만 고쳤다 — 확정된 미제출·취소까지 열어 두면 정리가
+                //    고아 정리의 주기에 기대게 된다.
+                List<OrderEntity> buys = orderRepository.findByPositionIdOrderByCreatedAtDesc(pos.getId())
+                        .stream().filter(o -> "BUY".equalsIgnoreCase(o.getSide())).toList();
+                boolean inFlight = buys.stream().anyMatch(o -> ACTIVE_ORDER_STATES.contains(o.getState()));
+                boolean filled = buys.stream().anyMatch(o -> "FILLED".equals(o.getState()));
+                if (inFlight || filled) {
+                    // ① 의도·claim·불명·제출 — 접수됐을 수 있다. 추적이 체결을 받거나 철회가 확정될 때까지
+                    //    자금·슬롯을 점유한 채 둔다. ② 체결됐는데 수량 0 — 회계 반영 대기다. 닫지 않는다.
+                    log.info("[Dynamic] 정지 — 매수가 진행 중이거나 회계 대기인 size=0 포지션은 열어 둔다 "
+                            + "(posId={}, sessionId={})", pos.getId(), session.getId());
+                    continue;
+                }
+                OrderEntity unfilled = buys.stream()
+                        .filter(o -> "FAILED".equals(o.getState()) || "CANCELLED".equals(o.getState()))
+                        .findFirst().orElse(null);
+                BigDecimal restore = unfilled == null ? null : restorableKrw(unfilled);
+                if (restore != null) {
+                    // 확정된 미제출 철회·체결 없는 취소 — 예약을 **한 번** 복원하고 닫는다. 닫기와 복원이 한
+                    // 트랜잭션이고, 닫기에 성공한 쪽만 복원한다(고아 정리와 겹쳐도 한 번).
+                    boolean restored = restoreUnfilledBuyAtomically(pos.getId(), session.getId(), restore);
+                    log.info("[Dynamic] 정지 — 미체결 매수 예약 {} (posId={}, 복원={})",
+                            restored ? "복원·종료" : "이미 정리됨", pos.getId(), restore);
+                    continue;
+                }
+                // 복원할 차감이 없다(매수 주문 없음·차감 없던 주문) — 상태만 정리한다.
+                if (positionStateTransition.closeIfOpen(pos.getId(), Instant.now()) == 0) {
+                    log.debug("[Dynamic] size=0 포지션이 이미 정리됐다 (posId={})", pos.getId());
+                }
                 continue;
             }
             // WS 실시간 SL/TP 매도와의 race 방지 — 이미 CLOSING이면 매도 주문 중복 제출 스킵
@@ -2184,6 +2231,34 @@ public class DynamicTradingService {
             order.setPositionId(pos.getId());
             orderExecutionEngine.submitOrder(order);
         }
+    }
+
+    /**
+     * 복원할 금액 — <b>실제로 차감한 값</b>만 (LIVE {@code restorableKrw} 와 같은 규칙, V85).
+     * V84 이후 주문인데 예약액이 없으면 차감된 적이 없으므로 복원하지 않는다.
+     */
+    private static BigDecimal restorableKrw(OrderEntity buyOrder) {
+        if (buyOrder.getReservedKrw() != null) return buyOrder.getReservedKrw();
+        if (buyOrder.getClientOrderId() != null) return null;
+        return buyOrder.getQuantity();
+    }
+
+    /**
+     * 닫기와 예약 복원을 <b>한 트랜잭션</b>에서 — 닫기({@code closeIfOpen})에 성공한 쪽만 복원한다.
+     *
+     * <p>🔴 별도 트랜잭션이다. 정지의 바깥 트랜잭션은 이 시점까지 세션 행·이 포지션 행을 쓰지 않는다
+     * (§8 중첩 잠금 규칙). 바깥이 그 행을 먼저 쓰도록 바뀌면 자기 대기가 된다.</p>
+     */
+    private boolean restoreUnfilledBuyAtomically(Long positionId, Long sessionId, BigDecimal restore) {
+        return Boolean.TRUE.equals(optimisticRetry.inNewTransaction(
+                "동적 미체결 매수 예약 복원 pos#" + positionId, st -> {
+                    if (positionStateTransition.closeIfOpen(positionId, Instant.now()) == 0) {
+                        return Boolean.FALSE;
+                    }
+                    balanceUpdater.applyWithin(sessionId,
+                            s -> s.setAvailableKrw(s.getAvailableKrw().add(restore)));
+                    return Boolean.TRUE;
+                }));
     }
 
     // ── 스케줄: CLOSING 포지션 정리 (5초 주기) ──────────────────────

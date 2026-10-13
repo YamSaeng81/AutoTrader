@@ -36,6 +36,11 @@ subprojects {
 
     test {
         useJUnitPlatform()
+        // 🔴 2026-10-13: 기본 512MB 에서 web-api 전체 실행이 **힙 고갈로 멈췄다**(523/524MB, GC 로 CPU 18분,
+        //    40분 무응답). 목·스파이 조합마다 캐시되는 스프링 컨텍스트(각자 Tomcat·스케줄러)가 20여 개다.
+        //    멈춤 대신 실패로 드러나도록 메모리 부족 시 즉시 종료한다. 아래 측정용 러너는 자기 값을 다시 정한다.
+        maxHeapSize = '1g'
+        jvmArgs '-XX:+ExitOnOutOfMemoryError'
         // 임시 백테스트 러너 활성화용: -Dha.backtest.csv 가 주어졌을 때만 테스트 JVM으로 전달
         if (System.getProperty('ha.backtest.csv')) {
             systemProperty 'ha.backtest.csv', System.getProperty('ha.backtest.csv')

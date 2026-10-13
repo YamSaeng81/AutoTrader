@@ -1620,6 +1620,19 @@ public class LiveTradingService {
                         }
                         continue;
                     }
+                    // 🔴 매수가 아직 진행 중이면 **닫지 않는다** (2026-10-12). 의도·claim·불명 주문은
+                    //    취소 대상이 아니라(거래소 주문번호가 없다) 위에서 그대로 남았다. 여기서 닫으면
+                    //    늦게 온 체결이 닫힌 포지션에 반영되지 못하고(재개방 금지) 장부 없는 코인이
+                    //    남는다 — 열어 두면 추적이 체결을 받고, 철회되면 고아 정리가 예약을 복원한다.
+                    boolean buyInFlight = orderRepository.findByPositionIdOrderByCreatedAtDesc(pos.getId())
+                            .stream()
+                            .anyMatch(o -> "BUY".equalsIgnoreCase(o.getSide())
+                                    && ACTIVE_ORDER_STATES.contains(o.getState()));
+                    if (buyInFlight) {
+                        log.warn("정지 — 매수가 진행 중인 size=0 포지션은 열어 둔다 (posId={}, sessionId={})",
+                                pos.getId(), session.getId());
+                        continue;
+                    }
                     // 복원할 매수 주문이 없는 size=0 포지션 — 상태만 정리한다
                     if (positionStateTransition.closeIfOpen(pos.getId(), Instant.now()) == 0) {
                         log.debug("size=0 포지션이 이미 정리됐다 (posId={})", pos.getId());
