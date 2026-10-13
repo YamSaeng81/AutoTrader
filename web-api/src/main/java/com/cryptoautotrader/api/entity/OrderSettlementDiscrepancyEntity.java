@@ -33,6 +33,8 @@ public class OrderSettlementDiscrepancyEntity {
     public static final String KIND_VOLUME_DECREASE = "VOLUME_DECREASE";
     /** 종결된 주문에 활성 상태 응답이 도착했다. */
     public static final String KIND_STATE_REGRESS = "STATE_REGRESS";
+    /** 포지션에 이미 반영한 매도의 누적 체결량이 늘었다 (2026-10-13) — 자동 반영하지 않는다. */
+    public static final String KIND_VOLUME_AFTER_APPLY = "VOLUME_AFTER_APPLY";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

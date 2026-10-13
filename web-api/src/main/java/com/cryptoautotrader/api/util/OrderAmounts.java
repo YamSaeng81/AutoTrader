@@ -56,13 +56,18 @@ public final class OrderAmounts {
     /**
      * 이 주문에 투입된 <b>KRW 금액</b>.
      *
-     * <p>우선순위: {@code executed_funds}(거래소가 알려준 실제 사용 KRW) →
+     * <p>우선순위: {@code applied_executed_funds}(원자 체결 회계가 반영한 값) → {@code executed_funds}(거래소가 알려준 실제 사용 KRW) →
      * 시장가 매수면 {@code quantity}(주문 시 요청한 KRW 총액) → 그 외 {@code price × quantity}.</p>
      *
      * @return KRW 금액. 계산 근거가 없으면 {@code null}
      */
     public static BigDecimal krwAmount(OrderEntity o) {
         if (o == null) return null;
+        // 🔴 원자 체결 회계(2026-10-12~)는 `applied_executed_funds` 에만 쓴다. 이것을 먼저 보지 않으면 시장가 매수
+        //    — 특히 부분 체결 후 잔량 취소로 FILLED 가 된 주문 — 가 요청액(quantity)으로 표시된다(2026-10-13).
+        if (o.getAppliedExecutedFunds() != null && o.getAppliedExecutedFunds().signum() > 0) {
+            return o.getAppliedExecutedFunds();
+        }
         if (o.getExecutedFunds() != null && o.getExecutedFunds().signum() > 0) {
             return o.getExecutedFunds();
         }

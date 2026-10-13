@@ -410,7 +410,9 @@ public class CsvExportService {
             sb.append(o.getPrice() != null ? o.getPrice() : "").append(',');
             sb.append(o.getQuantity() != null ? o.getQuantity() : "").append(',');
             sb.append(o.getFilledQuantity() != null ? o.getFilledQuantity() : "").append(',');
-            sb.append(o.getExecutedFunds() != null ? o.getExecutedFunds() : "").append(',');
+            // 원자 체결 회계는 applied_executed_funds 에만 쓴다 — 그 값을 먼저 쓴다 (2026-10-13)
+            BigDecimal funds = o.getAppliedExecutedFunds() != null ? o.getAppliedExecutedFunds() : o.getExecutedFunds();
+            sb.append(funds != null ? funds : "").append(',');
             sb.append(q(o.getExchangeOrderId())).append(',');
             sb.append(q(o.getSignalReason())).append(',');
             sb.append(q(o.getFailedReason())).append(',');

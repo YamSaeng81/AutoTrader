@@ -18,6 +18,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,6 +61,7 @@ class CancelConfirmAndLateFillCleanupTest extends IntegrationTestBase {
     @Autowired private PositionRepository positionRepository;
     @Autowired private PositionCleanupRepository cleanupRepository;
     @Autowired private PositionCleanupRegistrar cleanupRegistrar;
+    @Autowired private com.cryptoautotrader.api.repository.OrderSettlementDiscrepancyRepository discrepancyRepository;
     @Autowired private LiveTradingSessionRepository liveRepo;
     @Autowired private DynamicSessionRepository dynamicRepo;
     @Autowired @Qualifier("orderExecutor") private ThreadPoolTaskExecutor orderExecutor;
@@ -271,6 +273,38 @@ class CancelConfirmAndLateFillCleanupTest extends IntegrationTestBase {
         assertThat(order(f).getFillAccountingPending()).isFalse();
         assertThat(order(f).getCancelConfirmedAt()).as("체결 0 확인이 아니다").isNull();
         assertThat(engine.getActiveOrders()).extracting(OrderEntity::getId).doesNotContain(f.orderId());
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @ValueSource(strings = {"LIVE", "DYNAMIC"})
+    @DisplayName("A6 진짜 부분 체결(3,000 중 1,470) 후 잔량 취소 — 요청량·체결량·cancel 상태 보존, 금액 표시·투입금은 실제 사용액")
+    void partialFillThenCancelPreservesFacts(String kind) {
+        Fx f = buy(kind, "RUNNING", "SUBMITTED", true);
+        OrderResponse partial = exchange(f.uuid(), "cancel", new BigDecimal("4.90000000"));
+        partial.setExecutedFunds(new BigDecimal("1470.00000000"));
+        partial.setPaidFee(new BigDecimal("0.73500000"));
+        Mockito.doReturn(exchange(f.uuid(), "wait", BigDecimal.ZERO), partial).when(upbitOrderClient).getOrder(f.uuid());
+        Mockito.doReturn(exchange(f.uuid(), "wait", BigDecimal.ZERO)).when(upbitOrderClient).cancelOrder(f.uuid());
+
+        engine.cancelOrder(f.orderId());
+        engine.pollActiveOrders();
+        orphanReconcile(kind);
+        OrderEntity o = order(f);
+        PositionEntity p = position(f);
+        System.out.println("[A6 " + kind + "] " + snap(f) + " 요청=" + o.getQuantity() + " 체결=" + o.getFilledQuantity()
+                + " 사용=" + o.getAppliedExecutedFunds() + " 보고상태=" + o.getReportedState()
+                + " 표시금액=" + com.cryptoautotrader.api.util.OrderAmounts.krwAmount(o) + " 투입금=" + p.getInvestedKrw());
+        assertThat(o.getState()).isEqualTo("FILLED");
+        assertThat(o.getQuantity()).as("요청량 보존").isEqualByComparingTo("3000");
+        assertThat(o.getFilledQuantity()).as("실제 체결량").isEqualByComparingTo("4.9");
+        assertThat(o.getAppliedExecutedFunds()).as("실제 사용액").isEqualByComparingTo("1470");
+        assertThat(o.getReportedState()).as("거래소 cancel 상태 보존").isEqualTo("cancel");
+        assertThat(com.cryptoautotrader.api.util.OrderAmounts.krwAmount(o))
+                .as("🔴 화면·CSV 금액 — 종전에는 요청액 3,000 이 나왔다").isEqualByComparingTo("1470");
+        assertThat(p.getInvestedKrw()).as("🔴 투입금 = 체결금액 + 수수료 — 종전에는 요청액 3,000").isEqualByComparingTo("1470.735");
+        assertThat(p.getSize()).isEqualByComparingTo("4.9");
+        // 7,000 + (3,000 − 1,470 − 0.735) = 8,529.265 → 세션 잔액 열 2자리
+        assertThat(available(f)).isBetween(new BigDecimal("8529.26"), new BigDecimal("8529.27"));
     }
 
     @ParameterizedTest(name = "{0}")
@@ -588,10 +622,22 @@ class CancelConfirmAndLateFillCleanupTest extends IntegrationTestBase {
         assertThat(cleanupRepository.findById(f.positionId()).orElseThrow().getDoneAt()).isNotNull();
     }
 
-    @ParameterizedTest(name = "{0}")
-    @ValueSource(strings = {"LIVE", "DYNAMIC"})
-    @DisplayName("D2 청산 매도 실패 — OPEN 으로 되돌아오면 정리 작업이 다시 내고, 그동안 완료가 아니다")
-    void liquidationFailureIsRetried(String kind) {
+    /**
+     * D2 — 앞선 청산 매도가 종결됐을 때 다시 내는가는 <b>체결 없음의 근거</b>로 정한다 (2026-10-13).
+     *
+     * <ul>
+     *   <li>{@code EXCHANGE_REJECTED} — 거래소의 명시적 거절. 🔴 현재 제출 경로는 4xx 를 분류하지 않아 이 코드를 만들지
+     *       않는다(제출 중 예외는 전부 UNKNOWN). 여기서는 그 분류가 생겼을 때의 규칙을 확인한다.</li>
+     *   <li>근거 코드 없는 FAILED — 종전 데이터·수동 종결. 다시 내지 않는다.</li>
+     *   <li>확인 없는 CANCELLED — 체결됐을 수 있다. 다시 내지 않는다.</li>
+     * </ul>
+     * 실제 제출 경로에서 "외부로 나가지 않았음이 확정된" 실패(철회·의도 단계 거절)는 D3 이 본다.
+     */
+    @ParameterizedTest(name = "{0} {1}")
+    @CsvSource({"LIVE,EXCHANGE_REJECTED,2", "LIVE,FAILED_NO_CODE,1", "LIVE,CANCELLED_UNCONFIRMED,1",
+            "DYNAMIC,EXCHANGE_REJECTED,2", "DYNAMIC,FAILED_NO_CODE,1", "DYNAMIC,CANCELLED_UNCONFIRMED,1"})
+    @DisplayName("D2 청산 매도가 체결 없이 끝났다 — 근거가 있을 때만 다시 내고, 그동안 완료가 아니다")
+    void liquidationFailureIsRetried(String kind, String ending, int expectedSells) {
         Fx f = buy(kind, "RUNNING", "SUBMITTED", true);
         Mockito.doReturn(exchange(f.uuid(), "wait", BigDecimal.ZERO)).when(upbitOrderClient).getOrder(f.uuid());
         Mockito.doReturn(exchange(f.uuid(), "wait", BigDecimal.ZERO)).when(upbitOrderClient).cancelOrder(f.uuid());
@@ -606,23 +652,31 @@ class CancelConfirmAndLateFillCleanupTest extends IntegrationTestBase {
         cleanupWorker(kind);
         awaitDrained();
 
-        // 첫 매도가 실패했다(사람이 종결했거나 거래소가 거절한 것으로 둔다)
         OrderEntity firstSell = orderRepository.findByPositionIdOrderByCreatedAtDesc(f.positionId()).stream()
                 .filter(o -> "SELL".equalsIgnoreCase(o.getSide())).findFirst().orElseThrow();
-        firstSell.setState("FAILED");
+        switch (ending) {
+            case "EXCHANGE_REJECTED" -> {
+                firstSell.setState("FAILED");
+                firstSell.setFailureCode(OrderExecutionEngine.EXCHANGE_REJECTED);
+            }
+            case "FAILED_NO_CODE" -> firstSell.setState("FAILED");
+            default -> firstSell.setState("CANCELLED");   // 확인 시각 없음
+        }
         orderRepository.save(firstSell);
         closingReconcile(kind);
-        assertThat(position(f).getStatus()).as("실패한 매도 — OPEN 롤백").isEqualTo("OPEN");
-        assertThat(cleanupRepository.findById(f.positionId()).orElseThrow().getDoneAt()).isNull();
+        assertThat(position(f).getStatus()).as("종결된 매도 — OPEN 롤백").isEqualTo("OPEN");
 
-        cleanupWorker(kind);
-        awaitDrained();
+        for (int i = 0; i < 3; i++) {
+            cleanupWorker(kind);
+            awaitDrained();
+        }
         long sells = orderRepository.findByPositionIdOrderByCreatedAtDesc(f.positionId()).stream()
                 .filter(o -> "SELL".equalsIgnoreCase(o.getSide())).count();
-        System.out.println("[D2 " + kind + "] " + snap(f) + " 매도=" + sells);
-        assertThat(sells).as("실패 뒤 정리 작업이 다시 낸다 — 진행 중 매도가 없을 때만").isEqualTo(2);
-        assertThat(position(f).getStatus()).isEqualTo("CLOSING");
-        assertThat(cleanupRepository.findById(f.positionId()).orElseThrow().getDoneAt()).isNull();
+        PositionCleanupEntity c = cleanupRepository.findById(f.positionId()).orElseThrow();
+        System.out.println("[D2 " + kind + " " + ending + "] " + snap(f) + " 매도=" + sells + " 메모=" + c.getLastNote());
+        assertThat(sells).isEqualTo(expectedSells);
+        verifySellSubmits(expectedSells);
+        assertThat(c.getDoneAt()).isNull();
     }
 
     // ── D3~D5. 정리 작업의 "매도 한 번" — 재시작·응답 유실·부분 체결 ─────────────────
@@ -835,5 +889,38 @@ class CancelConfirmAndLateFillCleanupTest extends IntegrationTestBase {
         assertThat(available(f)).as("8,469.27 + 1,469.265 (2자리 반올림) — 대금이 매도마다 한 번")
                 .isBetween(new BigDecimal("9938.53"), new BigDecimal("9938.54"));
         assertThat(cleanupRepository.findById(f.positionId()).orElseThrow().getDoneAt()).isNotNull();
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @ValueSource(strings = {"LIVE", "DYNAMIC"})
+    @DisplayName("D6 반영된 매도의 누적 체결량이 뒤늦게 늘어난 응답 — 조용히 건너뛰지 않고 불일치로 보존")
+    void sellVolumeIncreaseAfterApplyIsPreserved(String kind) {
+        Fx f = lateFilledInStoppedSession(kind);
+        stubSellSubmissionsAccepted();
+        cleanupWorker(kind);
+        awaitDrained();
+        OrderEntity s1 = sells(f).get(0);
+        Mockito.doReturn(sellReport(s1.getExchangeOrderId(), "cancel", "4.9", "1470"))
+                .when(upbitOrderClient).getOrder(s1.getExchangeOrderId());
+        engine.pollActiveOrders();
+        closingReconcile(kind);
+        assertThat(orderRepository.findById(s1.getId()).orElseThrow().getSellAppliedAt()).isNotNull();
+        String before = snap(f);
+
+        // 같은 매도에 대해 체결량이 6.0 으로 늘어난 응답이 온다
+        Mockito.doReturn(sellReport(s1.getExchangeOrderId(), "cancel", "6.0", "1800"))
+                .when(upbitOrderClient).getOrder(s1.getExchangeOrderId());
+        OrderEntity applied = orderRepository.findById(s1.getId()).orElseThrow();
+        applied.setSettlementNextCheckAt(Instant.now().minusSeconds(1));
+        orderRepository.save(applied);
+        engine.checkOrderStatus(s1.getId());
+        closingReconcile(kind);
+
+        long found = discrepancyRepository.findByOrderIdOrderByDetectedAtDesc(s1.getId()).stream()
+                .filter(d -> com.cryptoautotrader.api.entity.OrderSettlementDiscrepancyEntity.KIND_VOLUME_AFTER_APPLY
+                        .equals(d.getKind())).count();
+        System.out.println("[D6 " + kind + "] 불일치=" + found + " " + snap(f));
+        assertThat(found).as("늘어난 체결량을 불일치로 보존").isGreaterThanOrEqualTo(1);
+        assertThat(snap(f)).as("자동 반영하지 않는다 — 포지션·잔액 불변").isEqualTo(before);
     }
 }

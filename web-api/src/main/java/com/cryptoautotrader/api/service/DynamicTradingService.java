@@ -2356,6 +2356,16 @@ public class DynamicTradingService {
             positionCleanupRepository.note(posId, "매도 진행 중 — 다시 내지 않는다");
             return;
         }
+        // 🔴 다시 내는 것은 앞선 매도가 **체결 없이 끝났다는 근거**가 있을 때만이다 (2026-10-13). 근거 없는 FAILED·
+        //    확인 없는 CANCELLED 는 나갔다가 체결됐을 수 있다 — 다시 팔면 이중 매도다. 사람이 확인할 때까지 대기한다.
+        OrderEntity unproven = orderRepository.findByPositionIdOrderByCreatedAtDesc(posId).stream()
+                .filter(o -> "SELL".equalsIgnoreCase(o.getSide()) && OrderExecutionEngine.isTerminalWithoutNoFillProof(o))
+                .findFirst().orElse(null);
+        if (unproven != null) {
+            positionCleanupRepository.note(posId, "앞선 매도(orderId=" + unproven.getId() + ", " + unproven.getState()
+                    + ")가 체결 없이 끝났다는 근거가 없다 — 다시 내지 않는다. 사람 확인 필요");
+            return;
+        }
         // 🔴 직전 제출이 아직 주문으로 나타나지 않았으면 기다린다. 제출은 커밋 뒤 비동기라, 실행기 적체 중에는
         //    청산 확정이 "매도 주문 없음" 으로 CLOSING 을 OPEN 으로 되돌린 뒤에야 의도가 생길 수 있다. 그 사이에
         //    다시 내면 매도가 두 번 나간다. 유예가 지나도 나타나지 않으면(재시작으로 제출 전에 사라짐) 다시 낸다.

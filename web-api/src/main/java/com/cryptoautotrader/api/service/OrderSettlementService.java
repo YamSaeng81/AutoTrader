@@ -159,6 +159,16 @@ public class OrderSettlementService {
                     order.getFilledQuantity(), reportedVolume, null, null);
             return Outcome.DISCREPANCY;
         }
+        // 🔴 이미 포지션에 반영한 매도의 누적 체결량이 늘어난 응답 (2026-10-13) — `sell_applied_at` 은 종결된 매도
+        //    한 건의 중복 반영을 막는 표시이지, 그 뒤의 체결분을 반영하는 장치가 아니다. 업비트에서 종결(done·cancel)
+        //    뒤 체결량이 느는 일은 없어야 하지만, 오면 **조용히 건너뛰지 않고** 불일치로 보존해 사람이 본다.
+        if ("SELL".equalsIgnoreCase(order.getSide()) && order.getSellAppliedAt() != null
+                && reportedVolume != null && order.getFilledQuantity() != null
+                && reportedVolume.compareTo(order.getFilledQuantity()) > 0) {
+            recordDiscrepancy(order, OrderSettlementDiscrepancyEntity.KIND_VOLUME_AFTER_APPLY,
+                    order.getFilledQuantity(), reportedVolume, order.getState(), response.getState());
+            return Outcome.DISCREPANCY;
+        }
         if (reportedFunds != null && reportedFunds.compareTo(appliedFunds) < 0) {
             recordDiscrepancy(order, OrderSettlementDiscrepancyEntity.KIND_FUNDS_DECREASE,
                     appliedFunds, reportedFunds, null, null);
@@ -395,7 +405,7 @@ public class OrderSettlementService {
             // 포지션 갱신을 기다리지 않게 한다.
             registerLateFillIfStopped(order);
         }
-        applyToPosition(order, deltaVolume, avgPrice, targetFee, fee != null);
+        applyToPosition(order, deltaVolume, avgPrice, targetFee, fee != null, funds);
 
         boolean first = order.getAppliedExecutedFunds() == null && order.getAppliedPaidFee() == null;
         applyFundsDeltaToSession(order, funds, targetFee, appliedFunds, appliedFee, first);
@@ -417,7 +427,7 @@ public class OrderSettlementService {
      * 조건이 달라진다 — 최초 설정과 늦은 정정은 별도 규칙이다.</p>
      */
     private void applyToPosition(OrderEntity order, BigDecimal deltaVolume,
-                                  BigDecimal avgPrice, BigDecimal fee, boolean feeReported) {
+                                  BigDecimal avgPrice, BigDecimal fee, boolean feeReported, BigDecimal funds) {
         if (order.getPositionId() == null) return;
         PositionEntity pos = positionRepository.findById(order.getPositionId()).orElse(null);
         if (pos == null) return;
@@ -430,6 +440,10 @@ public class OrderSettlementService {
             } else {
                 pos.setSize(nz(pos.getSize()).add(deltaVolume));
                 pos.setAvgPrice(avgPrice);
+                // 🔴 투입금은 **실제 사용액**(체결금액 + 수수료)이다 (2026-10-13). 종전에는 요청액(예약액)이 그대로
+                //    남아, 미사용분을 세션에 돌려준 뒤에도 포지션은 요청액을 썼다고 기록했다 — 부분 체결 후 잔량
+                //    취소에서 차이가 크다(수익률의 분모가 틀린다).
+                pos.setInvestedKrw(funds.add(fee != null ? fee : BigDecimal.ZERO));
             }
         }
         // 수수료는 OPEN·CLOSED 양쪽에서 조정한다 — 손익 기록이므로 재개방과 무관하다.

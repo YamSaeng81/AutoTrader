@@ -1420,6 +1420,29 @@ public class OrderExecutionEngine {
         return o.getFeeSource() == null || o.getCancelConfirmedAt() != null;
     }
 
+    /** 외부로 나가지 않았거나 거래소가 명시적으로 거절한 {@code FAILED} 의 근거 코드. */
+    private static final java.util.Set<String> NOT_EXECUTED_CODES = java.util.Set.of(
+            WITHDRAWN_STOPPED, WITHDRAWN_OWNER_LOST, WITHDRAWN_DISPATCH_LOST,
+            RISK_REJECTED, CLIENT_UNAVAILABLE, EXCHANGE_REJECTED);
+
+    /**
+     * 종결됐지만 <b>체결 없음의 근거가 없는</b> 주문인가 (2026-10-13) — 정리 작업이 다시 매도해도 되는지의 기준.
+     *
+     * <p>🔴 다시 낼 수 있는 것은 ① 외부로 나가지 않았음이 확정된 {@code FAILED}(철회·의도 단계 거절)
+     * ② 거래소의 명시적 거절({@code EXCHANGE_REJECTED} — 🔴 현재 제출 경로는 4xx 를 분류하지 않아 이 코드를 만들지
+     * 않는다) ③ 체결량 0 이 확인된 {@code CANCELLED} 뿐이다. 근거 코드 없는 {@code FAILED}(종전 데이터·수동 종결)와
+     * 확인 없는 {@code CANCELLED} 는 나갔다가 체결됐을 수 있으므로 다시 팔면 이중 매도가 될 수 있다.</p>
+     */
+    public static boolean isTerminalWithoutNoFillProof(OrderEntity o) {
+        if ("FAILED".equals(o.getState())) {
+            return o.getFailureCode() == null || !NOT_EXECUTED_CODES.contains(o.getFailureCode());
+        }
+        if ("CANCELLED".equals(o.getState())) {
+            return o.getCancelConfirmedAt() == null;
+        }
+        return false;
+    }
+
     /** 체결 여부가 확인되지 않은 {@code CANCELLED} 매수인가 (V87) — 열린 포지션을 닫지 않는 근거. */
     public static boolean isUnconfirmedCancelledBuy(OrderEntity o) {
         return "BUY".equalsIgnoreCase(o.getSide()) && "CANCELLED".equals(o.getState())
