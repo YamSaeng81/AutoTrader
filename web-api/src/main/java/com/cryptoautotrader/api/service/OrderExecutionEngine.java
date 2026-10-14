@@ -154,6 +154,10 @@ public class OrderExecutionEngine {
     @Autowired(required = false)
     private UpbitOrderClient upbitOrderClient;
 
+    /** 단일 인스턴스 잠금 — claim 직전 확인 (2026-10-14). */
+    @Autowired(required = false)
+    private com.cryptoautotrader.api.config.SingleInstanceGuard singleInstanceGuard;
+
     /** 매수 예약의 직렬화 지점 (V85). 🔴 호출자의 트랜잭션 안에서 불러야 한다. */
     @Autowired(required = false)
     private CapitalReservationService capitalReservationService;
@@ -788,6 +792,12 @@ public class OrderExecutionEngine {
             }
         }
 
+        // 🔴 단일 인스턴스 잠금을 claim 직전에 확인한다 (2026-10-14) — 감시 주기 사이에 잠금을 잃은 인스턴스가 주문을
+        //    내지 않게. 잃었으면 여기서 프로세스가 멈추고 의도는 INTENT_READY 로 남는다(다음 인스턴스가 철회).
+        com.cryptoautotrader.api.support.CrashPoint.pause("BEFORE_CLAIM_CHECK");
+        if (singleInstanceGuard != null) {
+            singleInstanceGuard.verifyBeforeSubmit();
+        }
         int won = orderRepository.claimForSubmission(orderId, Instant.now());
         if (won != 1) {
             // 🔴 **제출하지 않는다.** 밀린 이유를 호출자가 알 수 있게 구분해 적는다 — 철회에
@@ -947,6 +957,17 @@ public class OrderExecutionEngine {
                 && "MARKET".equalsIgnoreCase(order.getOrderType())
                 && OrderSettlementService.isSharedPoolKind(order.getSessionKind());
         if (atomicMarketBuy) {
+            transitionState(order, "SUBMITTED", null);
+            return;
+        }
+        // 🔴 실자금 세션(LIVE·DYNAMIC) 시장가 매도도 같다 (2026-10-14). 생성 응답이 이미 done 이면 아래 즉시 처리는
+        //    응답의 보고 체결금액·수수료를 기록하지 않고 확정해 **추정 수수료(ESTIMATED)로 끝났고**, FILLED 는 다시 조회하지
+        //    않으므로 보고값이 영영 반영되지 않았다(재시작 시험 S12: 9,997.06 — 보고 수수료면 9,997.35). SUBMITTED 로 두면
+        //    폴러가 정산 경로로 보고값을 기록하고 그 값으로 확정한다(S7 과 같은 경로).
+        boolean sharedPoolMarketSell = "SELL".equalsIgnoreCase(order.getSide())
+                && "MARKET".equalsIgnoreCase(order.getOrderType())
+                && OrderSettlementService.isSharedPoolKind(order.getSessionKind());
+        if (sharedPoolMarketSell) {
             transitionState(order, "SUBMITTED", null);
             return;
         }

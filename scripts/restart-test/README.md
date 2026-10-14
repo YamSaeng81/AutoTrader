@@ -31,7 +31,7 @@ python scenarios.py --fresh --both               # DB 컨테이너를 새로 만
 python scenarios.py S6                           # 시나리오 하나(기존 DB)
 ```
 
-로그: `build/restart-test/app-NN-<label>.log`, `double.log`, `exchange_state.json`.
+로그: `restart-test-work/app-NN-<label>.log`, `double.log`, `exchange_state.json`.
 
 ## 시나리오 (세션 10,000 에서 3,000 시장가 매수, 대역 기본 체결 2,940·9.8·수수료 1.47)
 

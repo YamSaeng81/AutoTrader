@@ -292,7 +292,7 @@ public class CapitalReservationService {
 
         if (!limits.isRegistered()) {
             return logged(sessionId, Decision.reject(POOL_NOT_REGISTERED,
-                    "등록된 공유 풀 한도가 없다 — 실자금 세션을 배정하지 않는다 (" + limits + ")"));
+                    "공유 풀 한도가 사전 등록과 맞지 않는다(" + limits.registrationProblem() + ") — 실자금 세션을 배정하지 않는다 (" + limits + ")"));
         }
         BigDecimal allocated = nz(sessionRepository.sumInitialCapitalExcluding(
                 LIVE_ALLOCATING_STATUSES, excludeLive))
@@ -320,7 +320,7 @@ public class CapitalReservationService {
         if (!limits.isRegistered()) {
             // 🔴 기본값이 없으므로 등록하지 않으면 여기서 멈춘다 — "한도가 걸려 있는 줄 아는" 상태를 막는다.
             return Decision.reject(POOL_NOT_REGISTERED,
-                    "등록된 공유 풀 한도가 없다 — 실자금 진입을 승인하지 않는다 (" + limits + ")");
+                    "공유 풀 한도가 사전 등록과 맞지 않는다(" + limits.registrationProblem() + ") — 실자금 진입을 승인하지 않는다 (" + limits + ")");
         }
         if (amount.compareTo(limits.getPerPositionCapKrw()) > 0) {
             return Decision.reject(PER_POSITION_CAP, String.format("매수금 %s > 포지션당 상한 %s",
@@ -413,6 +413,15 @@ public class CapitalReservationService {
      * 🔴 H2 는 {@code FOR UPDATE} 를 지원하지만 PostgreSQL 과 동작이 같지 않다. 직렬화의 근거는 운영
      * DB(PostgreSQL)의 행 잠금이고, 시험은 <b>초과 승인이 0 인가</b>로 확인한다.</p>
      */
+    /**
+     * 세션 시작 전에 <b>계좌 잠금부터</b> 잡는다 (2026-10-14). 잠금 순서는 매수 경로와 같이 계좌 → 세션이다 —
+     * 세션 행을 먼저 잠그고 계좌를 기다리면 매수(계좌 → 세션)와 교착한다. 같은 트랜잭션에서 다시 잡아도 된다.
+     */
+    public void lockAccountBeforeSession(String what) {
+        requireTransaction(what);
+        lockAccount();
+    }
+
     private void lockAccount() {
         em.createNativeQuery("SELECT id FROM account_capital_lock WHERE id = 1 FOR UPDATE")
                 .getSingleResult();

@@ -16,8 +16,10 @@ import org.springframework.stereotype.Service;
  * JDA를 초기화하고 CommandHandler를 이벤트 리스너로 등록한다.
  * DISCORD_BOT_TOKEN 환경변수가 없으면 봇 기능을 비활성화한다.
  */
+// 🔴 단일 인스턴스 잠금을 잡은 뒤에만 봇을 연결한다 (2026-10-14) — 거부될 두 번째 인스턴스가 명령을 받지 않게.
 @Service
 @RequiredArgsConstructor
+@org.springframework.context.annotation.DependsOn("singleInstanceGuard")
 public class DiscordBotService {
 
     private static final Logger log = LoggerFactory.getLogger(DiscordBotService.class);

@@ -471,6 +471,14 @@ public class LiveTradingService {
      */
     @Transactional
     public LiveTradingSessionEntity startSession(Long sessionId) {
+        // 🔴 잠금 순서 계좌 → 세션 (2026-10-14). 스냅숏은 잠금 밖에서 갱신하고, 세션은 **잠근 뒤에** 처음 읽는다 —
+        //    잠그기 전에 읽은 엔티티를 저장하면 그 사이 늦은 체결 반영(주문 → 포지션 → 세션)이 바꾼 행과 버전이 엇갈려
+        //    시작이 낙관적 잠금 실패로 끝난다. 잠근 뒤 읽으면 커밋까지 아무도 그 행을 바꾸지 못한다.
+        if (portfolioSyncService != null) {
+            portfolioSyncService.syncBalance();
+        }
+        capitalReservationService.lockAccountBeforeSession("LIVE 세션 시작 #" + sessionId);
+        sessionRepository.lockAndReadStatus(sessionId);
         LiveTradingSessionEntity session = getSessionOrThrow(sessionId);
 
         if ("RUNNING".equals(session.getStatus())) {
@@ -491,10 +499,7 @@ public class LiveTradingService {
 
         // 🔴 재시작도 생성과 **같은 잠금·같은 규칙**이다 (2026-10-12). 이 세션 자신은 합에서 빼고
         //    다시 더한다 — 이미 CREATED 로 세어진 경우의 중복을 구조로 없앤다.
-        //    스냅숏은 잠금 **밖에서** 갱신한다(외부 호출 중에 잠금을 쥐지 않는다).
-        if (portfolioSyncService != null) {
-            portfolioSyncService.syncBalance();
-        }
+        //    스냅숏은 잠금 **밖에서** 갱신했다(맨 앞 — 외부 호출 중에 잠금을 쥐지 않는다).
         CapitalReservationService.Decision allocation = capitalReservationService.checkSessionAllocation(
                 "LIVE", sessionId, session.getInitialCapital(), session.getAvailableKrw());
         if (!allocation.approved()) {
@@ -1884,7 +1889,7 @@ public class LiveTradingService {
                 .filter(o -> "SELL".equalsIgnoreCase(o.getSide()) && OrderExecutionEngine.isTerminalWithoutNoFillProof(o))
                 .findFirst().orElse(null);
         if (unproven != null) {
-            positionCleanupRepository.note(posId, "앞선 매도(orderId=" + unproven.getId() + ", " + unproven.getState()
+            needsHuman(c, "앞선 매도(orderId=" + unproven.getId() + ", " + unproven.getState()
                     + ")가 체결 없이 끝났다는 근거가 없다 — 다시 내지 않는다. 사람 확인 필요");
             return;
         }
@@ -1895,7 +1900,7 @@ public class LiveTradingService {
                         && OrderExecutionEngine.EXCHANGE_REJECTED.equals(o.getFailureCode()))
                 .count();
         if (rejected >= CLEANUP_MAX_REJECTED_SELLS) {
-            positionCleanupRepository.note(posId, "매도가 거래소에서 " + rejected + "회 거절됐다 — 다시 내지 않는다. 사람 확인 필요");
+            needsHuman(c, "매도가 거래소에서 " + rejected + "회 거절됐다 — 다시 내지 않는다. 사람 확인 필요");
             return;
         }
         // 🔴 직전 제출이 아직 주문으로 나타나지 않았으면 기다린다. 제출은 커밋 뒤 비동기라, 실행기 적체 중에는
@@ -1936,6 +1941,22 @@ public class LiveTradingService {
 
     /** 정리 작업의 직전 제출이 주문으로 나타나기를 기다리는 시간 (V87). */
     private static final Duration CLEANUP_SUBMIT_GRACE = Duration.ofMinutes(2);
+
+    /**
+     * 사람 확인이 필요한 상태로 둔다 — 메모를 남기고, 이 상태에 **처음 들어갈 때만** 경보를 보낸다(매 회차 보내지 않는다).
+     * 포지션과 정리 대기는 그대로 둔다(완료 아님).
+     */
+    private void needsHuman(com.cryptoautotrader.api.entity.PositionCleanupEntity c, String note) {
+        positionCleanupRepository.note(c.getPositionId(), note);
+        if (!note.equals(c.getLastNote())) {
+            log.error("🔴 정지 후 정리가 사람 확인을 기다린다 (posId={}, sessionId={}): {}", c.getPositionId(), c.getSessionId(), note);
+            try {
+                telegramService.notifyCleanupNeedsHuman("LIVE", c.getSessionId(), c.getPositionId(), note);
+            } catch (Exception e) {
+                log.warn("정리 중단 경보 실패 (posId={}): {}", c.getPositionId(), e.getMessage());
+            }
+        }
+    }
 
     private void completeCleanup(com.cryptoautotrader.api.entity.PositionCleanupEntity c, String note) {
         if (positionCleanupRepository.markDone(c.getPositionId(), Instant.now(), note) == 1) {

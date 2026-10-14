@@ -51,6 +51,8 @@ spring:
 #    시험 기반은 "등록된 넉넉한 풀" 로 둔다. 한도 자체를 시험하는 클래스는 `CapitalPoolLimits` 를
 #    직접 바꾸고 끝나면 되돌린다.
 trading:
+  single-instance:
+    enabled: false
   capital-pool:
     stage: TEST
     total-cap-krw: 1000000000000

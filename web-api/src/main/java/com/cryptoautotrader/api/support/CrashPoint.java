@@ -32,6 +32,23 @@ public final class CrashPoint {
 
     private CrashPoint() {}
 
+    /** {@code pausepoint=NAME:밀리초} — 그 지점에서 잠시 멈춘다(시험이 그 사이에 외부 상태를 바꾼다). 시험 빌드 전용. */
+    private static final String PAUSE = com.cryptoautotrader.exchange.TestHooks.require("pausepoint");
+
+    public static void pause(String name) {
+        if (PAUSE == null || !PAUSE.startsWith(name + ":")) {
+            return;
+        }
+        long ms = Long.parseLong(PAUSE.substring(name.length() + 1).trim());
+        System.err.println("PAUSEPOINT " + name + " — " + ms + "ms 멈춘다");
+        System.err.flush();
+        try {
+            Thread.sleep(ms);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
     public static boolean armed(String name) {
         return ARMED.contains(name);
     }

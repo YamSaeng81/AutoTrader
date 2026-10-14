@@ -556,6 +556,34 @@ public class DynamicTradingService {
         }
     }
 
+    /**
+     * 실자금 동적 세션 <b>시작</b>의 배정 검사 — LIVE 와 같은 잠금 순서 계좌 → 세션 (2026-10-14).
+     *
+     * <p>스냅숏(거래소 호출)은 잠금 <b>전에</b> 갱신하고, 계좌 → 세션 순으로 잠근 뒤 세션을 다시 읽는다. 잠그기 전에 읽은
+     * 사본을 저장하면 그 사이 늦은 체결 반영(주문 → 포지션 → 세션)이 바꾼 행과 버전이 엇갈려 시작이 실패한다. 같은 세션의
+     * 동시 시작은 잠근 뒤 다시 본 상태로 하나만 통과한다. 계좌 동기화·잠금·배정 검사 외의 일은 하지 않는다.</p>
+     */
+    private void requireAllocation(DynamicSessionEntity session) {
+        if (capitalReservationService == null) {
+            throw new IllegalStateException("배정 검사 서비스가 없다 — 실자금 동적 세션을 배정하지 않는다");
+        }
+        Long sessionId = session.getId();
+        if (portfolioSyncService != null) {
+            portfolioSyncService.syncBalance();   // 🔴 잠금 밖에서 스냅숏을 갱신한다
+        }
+        capitalReservationService.lockAccountBeforeSession("DYNAMIC 세션 시작 #" + sessionId);
+        dynamicSessionRepo.lockAndReadStatus(sessionId);
+        entityManager.refresh(session);
+        if ("RUNNING".equals(session.getStatus())) {
+            throw new IllegalStateException("이미 실행 중입니다: id=" + sessionId);
+        }
+        CapitalReservationService.Decision d = capitalReservationService.checkSessionAllocation(
+                "DYNAMIC", sessionId, session.getInitialCapital(), session.getAvailableKrw());
+        if (!d.approved()) {
+            throw new IllegalStateException("자본 초과 배정 (" + d.code() + "): " + d.message());
+        }
+    }
+
     // ── 세션 시작 ──────────────────────────────────────────────────
 
     @Transactional
@@ -565,7 +593,7 @@ public class DynamicTradingService {
             throw new IllegalStateException("이미 실행 중입니다: id=" + sessionId);
         }
         if (!session.isPaper()) {
-            requireAllocation(sessionId, session.getInitialCapital(), session.getAvailableKrw());
+            requireAllocation(session);
         }
         session.setStatus("RUNNING");
         session.setStartedAt(Instant.now());
@@ -2365,7 +2393,7 @@ public class DynamicTradingService {
                 .filter(o -> "SELL".equalsIgnoreCase(o.getSide()) && OrderExecutionEngine.isTerminalWithoutNoFillProof(o))
                 .findFirst().orElse(null);
         if (unproven != null) {
-            positionCleanupRepository.note(posId, "앞선 매도(orderId=" + unproven.getId() + ", " + unproven.getState()
+            needsHuman(c, "앞선 매도(orderId=" + unproven.getId() + ", " + unproven.getState()
                     + ")가 체결 없이 끝났다는 근거가 없다 — 다시 내지 않는다. 사람 확인 필요");
             return;
         }
@@ -2376,7 +2404,7 @@ public class DynamicTradingService {
                         && OrderExecutionEngine.EXCHANGE_REJECTED.equals(o.getFailureCode()))
                 .count();
         if (rejected >= CLEANUP_MAX_REJECTED_SELLS) {
-            positionCleanupRepository.note(posId, "매도가 거래소에서 " + rejected + "회 거절됐다 — 다시 내지 않는다. 사람 확인 필요");
+            needsHuman(c, "매도가 거래소에서 " + rejected + "회 거절됐다 — 다시 내지 않는다. 사람 확인 필요");
             return;
         }
         // 🔴 직전 제출이 아직 주문으로 나타나지 않았으면 기다린다. 제출은 커밋 뒤 비동기라, 실행기 적체 중에는
@@ -2417,6 +2445,22 @@ public class DynamicTradingService {
 
     /** 정리 작업의 직전 제출이 주문으로 나타나기를 기다리는 시간 (V87). */
     private static final Duration CLEANUP_SUBMIT_GRACE = Duration.ofMinutes(2);
+
+    /**
+     * 사람 확인이 필요한 상태로 둔다 — 메모를 남기고, 이 상태에 **처음 들어갈 때만** 경보를 보낸다(매 회차 보내지 않는다).
+     * 포지션과 정리 대기는 그대로 둔다(완료 아님).
+     */
+    private void needsHuman(com.cryptoautotrader.api.entity.PositionCleanupEntity c, String note) {
+        positionCleanupRepository.note(c.getPositionId(), note);
+        if (!note.equals(c.getLastNote())) {
+            log.error("🔴 정지 후 정리가 사람 확인을 기다린다 (posId={}, sessionId={}): {}", c.getPositionId(), c.getSessionId(), note);
+            try {
+                telegramService.notifyCleanupNeedsHuman(SESSION_KIND, c.getSessionId(), c.getPositionId(), note);
+            } catch (Exception e) {
+                log.warn("정리 중단 경보 실패 (posId={}): {}", c.getPositionId(), e.getMessage());
+            }
+        }
+    }
 
     private void completeCleanup(com.cryptoautotrader.api.entity.PositionCleanupEntity c, String note) {
         if (positionCleanupRepository.markDone(c.getPositionId(), Instant.now(), note) == 1) {

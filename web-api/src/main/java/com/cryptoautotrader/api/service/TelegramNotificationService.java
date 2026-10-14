@@ -181,6 +181,21 @@ public class TelegramNotificationService {
         sendMarkdownAndLog(msg, "CLEANUP_INCOMPLETE", String.valueOf(sessionId));
     }
 
+    /**
+     * 정지 후 정리가 <b>사람 확인을 기다린다</b> (2026-10-14) — 정리 작업이 자동으로 더 진행하지 않는 상태에 들어갈 때 한 번.
+     * 포지션은 열린 채이고 정리 대기는 완료되지 않았다.
+     */
+    public void notifyCleanupNeedsHuman(String sessionKind, Long sessionId, Long positionId, String reason) {
+        String msg = String.format(
+                "🔴 *%s 세션 #%d 정리 중단 — 확인 필요*%n%n" +
+                "• 포지션: `%d` (열린 채 유지)%n" +
+                "• 사유: %s%n" +
+                "• 정리 작업은 이 포지션에 매도를 더 내지 않습니다.%n" +
+                "• 시각: `%s`",
+                sessionKind, sessionId, positionId, reason, KST_FMT.format(Instant.now()));
+        sendMarkdownAndLog(msg, "CLEANUP_NEEDS_HUMAN", sessionKind + "#" + sessionId);
+    }
+
     /** 거래소 복구 후 세션 자동 재시작 알림 */
     public void notifyExchangeRecovered(List<String> restartedSessions, List<String> failedSessions) {
         if (!enabled) return;

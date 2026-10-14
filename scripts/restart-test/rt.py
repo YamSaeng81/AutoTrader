@@ -15,7 +15,8 @@ import urllib.request
 import urllib.error
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-WORK = os.environ.get('RT_WORK', os.path.join(ROOT, 'build', 'restart-test'))
+# 🔴 build/ 밖에 둔다 (2026-10-14) — `gradlew clean` 이 build/ 를 지워 실행 로그·덤프가 사라진 일이 있었다.
+WORK = os.environ.get('RT_WORK', os.path.join(ROOT, 'restart-test-work'))
 os.makedirs(WORK, exist_ok=True)
 APP_PORT = 18081
 DOUBLE_PORT = 18080
@@ -40,6 +41,17 @@ def psql(sql):
     if r.returncode != 0:
         raise RuntimeError(r.stderr)
     return [line.split('|') for line in r.stdout.strip().splitlines() if line]
+
+
+def psql_background(sql, label):
+    """별도 psql 연결로 SQL 을 백그라운드 실행한다(잠금을 쥐고 기다리는 용도). 프로세스를 돌려준다."""
+    out = open(os.path.join(WORK, f'psql-{label}.log'), 'w', encoding='utf-8')
+    return subprocess.Popen(['docker', 'exec', '-i', 'cat-rt-pg', 'psql', '-U', 'trader', '-d', 'crypto_auto_trader',
+                             '-v', 'ON_ERROR_STOP=1', '-At', '-c', sql], stdout=out, stderr=subprocess.STDOUT)
+
+
+def deadlocks():
+    return int(one("SELECT deadlocks FROM pg_stat_database WHERE datname = 'crypto_auto_trader'"))
 
 
 def one(sql):
@@ -95,8 +107,30 @@ def port_in_use(port):
         return sk.connect_ex(('127.0.0.1', port)) == 0
 
 
+def dump_db(label):
+    """🔴 삭제 전 덤프 (2026-10-14) — 컨테이너가 있으면 그 DB 를 `pg_dump -Fc` 로 떠 WORK/dumps 에 둔다.
+
+    덤프가 실패하면 예외 — 호출자(fresh_db)는 삭제하지 않는다. 증거가 덤프 없이 사라지는 일을 막는다.
+    """
+    r = subprocess.run(['docker', 'inspect', 'cat-rt-pg'], capture_output=True)
+    if r.returncode != 0:
+        return None
+    os.makedirs(os.path.join(WORK, 'dumps'), exist_ok=True)
+    name = f'{time.strftime("%Y%m%d-%H%M%S")}-{label}.dump'
+    subprocess.run(['docker', 'exec', 'cat-rt-pg', 'sh', '-c',
+                    f'pg_dump -U trader -d crypto_auto_trader -Fc -f /tmp/{name} 2>/dev/null'], check=True)
+    dest = os.path.join(WORK, 'dumps', name)
+    env = dict(os.environ, MSYS_NO_PATHCONV='1')
+    subprocess.run(['docker', 'cp', f'cat-rt-pg:/tmp/{name}', dest], check=True, env=env)
+    if os.path.getsize(dest) == 0:
+        raise RuntimeError('덤프가 비었다 — 삭제하지 않는다')
+    log(f'  DB 덤프: {dest} ({os.path.getsize(dest)} bytes)')
+    return dest
+
+
 def fresh_db():
-    """DB 컨테이너를 새로 만든다 — 스키마는 다음 앱 기동에서 Flyway 가 V1~V87 을 적용한다."""
+    """DB 컨테이너를 새로 만든다 — 스키마는 다음 앱 기동에서 Flyway 가 적용한다. 🔴 지우기 전에 덤프한다."""
+    dump_db('before-fresh')
     subprocess.run(['docker', 'rm', '-f', '-v', 'cat-rt-pg'], capture_output=True)   # 익명 볼륨까지
     subprocess.run(['docker', 'run', '-d', '--name', 'cat-rt-pg', '-e', 'POSTGRES_DB=crypto_auto_trader',
                     '-e', 'POSTGRES_USER=trader', '-e', 'POSTGRES_PASSWORD=rtpass', '-p', '127.0.0.1:15432:5432',
@@ -111,15 +145,42 @@ def fresh_db():
     raise RuntimeError('pg not ready')
 
 
-def start_app(crashpoint=None, label=''):
-    global _app, _app_seq
+POOL_DEFAULT = {
+    'trading.capital-pool.stage': 'RESTART_TEST',
+    'trading.capital-pool.total-cap-krw': '1000000',
+    'trading.capital-pool.per-position-cap-krw': '100000',
+    # 시나리오가 남긴 열린 포지션이 슬롯을 채워 엉뚱한 거절이 나지 않게 넉넉히 (슬롯 거절 자체는 S13·단위 시험이 본다)
+    'trading.capital-pool.max-concurrent-positions': '1000',
+}
+_others = []    # 두 번째 이후 인스턴스 (단일 인스턴스 시험)
+
+
+def start_app(crashpoint=None, label='', props=None):
+    """주 인스턴스(APP_PORT)를 띄운다. 준비되면 None, 기동 중 끝나면 종료 코드."""
+    global _app
     if port_in_use(APP_PORT):
         raise RuntimeError(f'포트 {APP_PORT} 를 다른 프로세스가 쓰고 있다 — 이전 앱이 살아 있다')
+    _app, rc = launch(APP_PORT, crashpoint=crashpoint, label=label, props=props)
+    return rc
+
+
+def start_other(port, label='', props=None, timeout=240):
+    """같은 DB 를 쓰는 다른 인스턴스 — (프로세스, 기동 결과: None=준비됨 / 종료 코드)."""
+    if port_in_use(port):
+        raise RuntimeError(f'포트 {port} 사용 중')
+    proc, rc = launch(port, label=label, props=props, timeout=timeout)
+    _others.append((proc, port))
+    return proc, rc
+
+
+def launch(port, crashpoint=None, label='', props=None, timeout=240):
+    """props: 덮어쓸 시스템 속성 {이름: 값}, 값이 None 이면 그 속성을 아예 주지 않는다."""
+    global _app_seq
     _app_seq += 1
     argfile = os.path.join(WORK, 'java-args.txt')
     with open(argfile, 'w', encoding='utf-8') as f:
         f.write('-cp\n"' + classpath().replace('\\', '/') + '"\n')
-    props = [
+    props_list = [
         '-Xmx768m', '-Dfile.encoding=UTF-8', '-Dstdout.encoding=UTF-8', '-Dstderr.encoding=UTF-8',
         f'-Dupbit.api.base-url=http://127.0.0.1:{DOUBLE_PORT}/v1',
         f'-Dupbit.health-check-url=http://127.0.0.1:{DOUBLE_PORT}/v1/market/all',
@@ -127,59 +188,79 @@ def start_app(crashpoint=None, label=''):
         '-Dhttps.proxyHost=127.0.0.1', '-Dhttps.proxyPort=9',
         '-Dhttp.proxyHost=127.0.0.1', '-Dhttp.proxyPort=9',
         '-Dhttp.nonProxyHosts=localhost|127.0.0.1',
-        f'-Dserver.port={APP_PORT}',
+        f'-Dserver.port={port}',
         '-Dspring.profiles.active=restart-harness',
-        '-Dtrading.capital-pool.stage=RESTART_TEST',
-        '-Dtrading.capital-pool.total-cap-krw=1000000',
-        '-Dtrading.capital-pool.per-position-cap-krw=100000',
-        '-Dtrading.capital-pool.max-concurrent-positions=10',
         '-Dtelegram.enabled=false',
     ]
+    merged = dict(POOL_DEFAULT)
+    merged.update(props or {})
+    props_list += [f'-D{k}={v}' for k, v in merged.items() if v is not None]
     if crashpoint:
-        props.append(f'-Dcrashpoint={crashpoint}')
+        props_list.append(f'-Dcrashpoint={crashpoint}')
     env = dict(os.environ,
                DB_URL='jdbc:postgresql://localhost:15432/crypto_auto_trader', DB_USERNAME='trader',
                DB_PASSWORD='rtpass', REDIS_HOST='localhost', REDIS_PORT='16379',
                UPBIT_ACCESS_KEY='rt-access-key', UPBIT_SECRET_KEY='rt-secret-key-0123456789abcdef0123456789abcdef',
                API_AUTH_TOKEN=TOKEN, TELEGRAM_ENABLED='false', TELEGRAM_BOT_TOKEN='', DISCORD_BOT_TOKEN='')
-    logf = open(os.path.join(WORK, f'app-{_app_seq:02d}{"-" + label if label else ""}.log'), 'w', encoding='utf-8')
-    _app = subprocess.Popen([JAVA] + props + ['@' + argfile, 'com.cryptoautotrader.api.CryptoAutoTraderApplication'],
+    logpath = os.path.join(WORK, f'app-{_app_seq:02d}{"-" + label if label else ""}.log')
+    logf = open(logpath, 'w', encoding='utf-8')
+    proc = subprocess.Popen([JAVA] + props_list + ['@' + argfile, 'com.cryptoautotrader.api.CryptoAutoTraderApplication'],
                             stdout=logf, stderr=subprocess.STDOUT, env=env)
+    proc.logpath = logpath
     t0 = time.time()
-    while time.time() - t0 < 240:
-        if _app.poll() is not None:
-            return _app.returncode
+    while time.time() - t0 < timeout:
+        if proc.poll() is not None:
+            log(f'app #{_app_seq} (:{port}) exited during startup rc={proc.returncode} ({time.time() - t0:.0f}s)')
+            return proc, proc.returncode
         try:
-            api('GET', '/actuator/health')
-            log(f'app #{_app_seq} ready ({time.time() - t0:.0f}s, crashpoint={crashpoint})')
-            return None
+            api('GET', '/actuator/health', port=port)
+            log(f'app #{_app_seq} (:{port}) ready ({time.time() - t0:.0f}s, crashpoint={crashpoint})')
+            return proc, None
         except Exception:
             time.sleep(1)
     raise RuntimeError('app did not become ready')
+
+
+def app_log(proc=None):
+    proc = proc or _app
+    with open(proc.logpath, encoding='utf-8', errors='replace') as f:
+        return f.read()
+
+
+def kill_proc(proc, port):
+    if proc is not None and proc.poll() is None:
+        subprocess.run(['taskkill', '/F', '/T', '/PID', str(proc.pid)], capture_output=True)
+        proc.wait()
+    for _ in range(50):
+        if not port_in_use(port):
+            return
+        time.sleep(0.2)
+
+
+def kill_all():
+    kill_app()
+    while _others:
+        proc, port = _others.pop()
+        kill_proc(proc, port)
 
 
 def app_alive():
     return _app is not None and _app.poll() is None
 
 
-def wait_app_exit(timeout=60):
+def wait_app_exit(timeout=60, proc=None):
+    proc = proc or _app
     t0 = time.time()
     while time.time() - t0 < timeout:
-        if _app.poll() is not None:
-            return _app.returncode
+        if proc.poll() is not None:
+            return proc.returncode
         time.sleep(0.2)
     return None
 
 
 def kill_app():
     """외부 강제 종료 — 종료 훅·커밋 없이 프로세스를 끝낸다."""
-    if app_alive():
-        subprocess.run(['taskkill', '/F', '/T', '/PID', str(_app.pid)], capture_output=True)
-        _app.wait()
-    for _ in range(50):
-        if not port_in_use(APP_PORT):
-            return
-        time.sleep(0.2)
+    kill_proc(_app, APP_PORT)
 
 
 def stop_app_gracefully():
@@ -187,8 +268,8 @@ def stop_app_gracefully():
     kill_app()
 
 
-def api(method, path, timeout=10):
-    req = urllib.request.Request(f'http://127.0.0.1:{APP_PORT}{path}', method=method,
+def api(method, path, timeout=10, port=APP_PORT):
+    req = urllib.request.Request(f'http://127.0.0.1:{port}{path}', method=method,
                                  headers={'Authorization': f'Bearer {TOKEN}'}, data=b'' if method == 'POST' else None)
     with urllib.request.urlopen(req, timeout=timeout) as r:
         raw = r.read()

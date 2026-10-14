@@ -354,8 +354,522 @@ def s9():
     check('S9 재기동해도 불변', ok)
 
 
+# ── 단일 인스턴스·잠금 순서·설정 (2026-10-14) ──────────────────────────────────
+
+OTHER_PORT = 18082
+LOCK_KEY = 0x43415431
+
+
+def lock_holders():
+    """단일 인스턴스 advisory lock 을 쥔 백엔드 pid 목록."""
+    return [r[0] for r in rt.psql(
+        "SELECT pid FROM pg_locks WHERE locktype = 'advisory' AND granted "
+        f"AND ((classid::bigint << 32) | objid::bigint) = {LOCK_KEY}")]
+
+
+def s10():
+    rt.log('S10 두 번째 인스턴스는 기동을 거부한다 — 먼저 뜬 쪽이 죽으면 그때 뜬다')
+    rt.start_app(label='s10-A')
+    check('S10 A 가 잠금을 쥐었다(보유자 1)', len(lock_holders()) == 1, str(lock_holders()))
+    creates_before = len(rt.exchange_orders()['creates'])
+    b, rc = rt.start_other(OTHER_PORT, label='s10-B')
+    blog = rt.app_log(b)
+    check('S10 B 기동 거부(비정상 종료)', rc is not None and rc != 0, f'rc={rc}')
+    check('S10 거부 사유가 단일 인스턴스 잠금', '다른 인스턴스가 이미 실행 중' in blog)
+    check('S10 B 는 기동 완료에 닿지 않았다(복구·폴러·API 미기동)',
+          'Started CryptoAutoTraderApplication' not in blog and 'Tomcat started' not in blog)
+    check('S10 B 가 거래소를 부르지 않았다', len(rt.exchange_orders()['creates']) == creates_before)
+    check('S10 A 는 계속 살아 있다', rt.app_alive() and rt.api('GET', '/actuator/health')['status'] == 'UP')
+    # A 가 매수를 끝까지 처리한다 — 실행 주체가 하나
+    sid = seed_live_session()
+    buy(sid)
+    rt.wait_until(lambda: state(sid)['orders'][0][2] == 'FILLED', 60, 1, 'S10 FILLED')
+    st = state(sid)
+    check('S10 A 단독으로 매수 1회 반영(7,058.53)', st['exchange_creates'] == 1 and float(avail(st)) == 7058.53,
+          f'{st["exchange_creates"]} {avail(st)}')
+    rt.kill_app()
+    rt.wait_until(lambda: len(lock_holders()) == 0, 30, 0.5, 'A 잠금 해제')
+    check('S10 A 강제 종료 → 잠금 해제', len(lock_holders()) == 0)
+    b2, rc2 = rt.start_other(OTHER_PORT, label='s10-B2')
+    check('S10 A 가 죽은 뒤 B 는 뜬다', rc2 is None, f'rc={rc2}')
+    rc3 = rt.start_app(label='s10-A2')
+    check('S10 이제는 A 가 거부된다', rc3 is not None and rc3 != 0
+          and '다른 인스턴스가 이미 실행 중' in rt.app_log(), f'rc={rc3}')
+    check('S10 보유자는 여전히 하나', len(lock_holders()) == 1)
+    st2 = state(sid)
+    check('S10 인스턴스 교대 후 값 불변', st2['exchange_creates'] == 1 and avail(st2) == avail(st))
+    rt.kill_all()
+
+
+def s11():
+    rt.log('S11 잠금 연결을 잃으면(관리자 종료) 즉시 멈추고, 그 뒤 다른 인스턴스가 뜬다')
+    rt.start_app(label='s11-A')
+    holders = lock_holders()
+    check('S11 보유자 1', len(holders) == 1, str(holders))
+    rt.psql(f"SELECT pg_terminate_backend({holders[0]})")
+    t0 = time.time()
+    code = rt.wait_app_exit(30)
+    took = time.time() - t0
+    check('S11 A 가 스스로 멈췄다(종료 코드 3)', code == 3, f'exit={code} {took:.1f}s')
+    check('S11 감시 주기(5초) 안팎에 멈췄다', took <= 12, f'{took:.1f}s')
+    check('S11 멈춘 이유가 기록됐다', 'SINGLE_INSTANCE_LOCK_LOST' in rt.app_log())
+    b, rc = rt.start_other(OTHER_PORT, label='s11-B')
+    check('S11 B 기동', rc is None, f'rc={rc}')
+    rt.kill_all()
+
+
+def hold(lock_sql, seconds, label):
+    """다른 연결이 행 잠금을 seconds 동안 쥔다."""
+    p = rt.psql_background(f"BEGIN; {lock_sql}; SELECT pg_sleep({seconds}); COMMIT;", label)
+    time.sleep(1.5)    # 잠금이 잡힐 시간
+    return p
+
+
+def timed_buy(sid):
+    t0 = time.time()
+    try:
+        r = rt.api('POST', f'/api/v1/restart-harness/buy?kind={KIND}&sessionId={sid}&krw=3000', timeout=40)
+        return ('ok', r, time.time() - t0)
+    except urllib.error.HTTPError as e:
+        return ('http', e.code, time.time() - t0)
+    except Exception as e:
+        return ('err', repr(e), time.time() - t0)
+
+
+def session_table():
+    return 'dynamic_session' if KIND == 'DYNAMIC' else 'live_trading_session'
+
+
+def s12():
+    rt.log('S12 잠금 경합 — 외부 연결이 계좌·세션 행을 쥔 동안 매수·체결 반영·정지, 제한 시간 뒤 회복')
+    dl0 = rt.deadlocks()
+    # 앞 시나리오가 남긴 열린 포지션이 슬롯 상한(10)을 채우지 않게 — S12 는 잠금만 본다(슬롯 거절은 S13·CapitalPoolLimitTest 몫)
+    rt.start_app(label='s12-run', props={'trading.capital-pool.max-concurrent-positions': '1000'})
+    table = session_table()
+
+    # ① 계좌·세션 잠금을 쥔 동안 매수 → 10초 뒤 실패, 흔적 없음 → 풀린 뒤 정상
+    for what in ('계좌', '세션'):
+        sid = seed_live_session()
+        sql = ('SELECT id FROM account_capital_lock WHERE id = 1 FOR UPDATE' if what == '계좌'
+               else f'SELECT id FROM {table} WHERE id = {sid} FOR UPDATE')
+        h = hold(sql, 15, f's12-{what}')
+        import threading
+        res = {}
+        th = threading.Thread(target=lambda: res.update(r=timed_buy(sid)))
+        th.start()
+        time.sleep(4)
+        during = pg_activity()
+        guard_held_during = len(lock_holders()) == 1
+        th.join()
+        kind_, detail, took = res['r']
+        after_timeout = pg_activity()
+        h.wait()
+        rt.log(f'  잠금 대기 중 연결: {during}')
+        rt.log(f'  제한 시간 직후 연결: {after_timeout}')
+        check(f'S12 {what} 대기 중: 업무용 풀 연결이 잠금 대기(Lock), 단일 인스턴스 연결은 대기 아님·잠금 유지',
+              count_act(during, 'pool', wait='Lock') >= 1 and count_act(during, 'guard', wait='Lock') == 0
+              and count_act(during, 'guard') == 1 and guard_held_during, str(during))
+        check(f'S12 {what} 제한 시간 뒤: 롤백·연결 반환(트랜잭션 중 유휴 0·잠금 대기 0)',
+              count_act(after_timeout, 'pool', state='idle in transaction') == 0
+              and count_act(after_timeout, 'pool', wait='Lock') == 0, str(after_timeout))
+        st = state(sid)
+        check(f'S12 {what} 잠금 중 매수 — 제한 시간(10초) 뒤 실패', kind_ != 'ok' and 8 <= took <= 14,
+              f'{kind_} {detail} {took:.1f}s')
+        check(f'S12 {what} 잠금 중 매수 — 주문·포지션·예약 흔적 없음(10,000)',
+              not st['orders'] and not st['positions'] and float(avail(st)) == 10000 and st['exchange_creates'] == 0,
+              f'orders={len(st["orders"])} pos={len(st["positions"])} {avail(st)}')
+        buy(sid)
+        rt.wait_until(lambda: state(sid)['orders'] and state(sid)['orders'][0][2] == 'FILLED', 60, 1, f'S12 {what} 회복')
+        st = state(sid)
+        check(f'S12 {what} 잠금 해제 뒤 매수 정상(1회·7,058.53)',
+              st['exchange_creates'] == 1 and float(avail(st)) == 7058.53, f'{st["exchange_creates"]} {avail(st)}')
+
+    # ② 체결 반영이 세션 잠금에 막힌다 → 풀린 뒤 한 번만 반영
+    sid = seed_live_session()
+    rt.ctl('POST', '/_ctl/plan', {'bid': {'fill': 'wait', 'once': True}})
+    buy(sid)
+    rt.wait_until(lambda: state(sid)['orders'][0][2] == 'SUBMITTED', 30, 1, 'S12 SUBMITTED')
+    h = hold(f'SELECT id FROM {table} WHERE id = {sid} FOR UPDATE', 25, 's12-fill')
+    rt.ctl('POST', '/_ctl/fill', {'uuid': this_order_uuid(sid, 'BUY'), 'state': 'done', 'volume': '9.8', 'funds': '2940'})
+    time.sleep(15)
+    mid = state(sid)
+    check('S12 세션 잠금 중에는 체결이 반영되지 않는다(7,000)', float(avail(mid)) == 7000, avail(mid))
+    h.wait()
+    rt.wait_until(lambda: state(sid)['orders'][0][2] == 'FILLED' and state(sid)['orders'][0][7] == 'f', 90, 2,
+                  'S12 반영')
+    time.sleep(10)
+    st = state(sid)
+    o, p = st['orders'][0], st['positions'][0]
+    check('S12 잠금 해제 뒤 한 번만 반영: 7,058.53·9.8·버전 1·대기 없음',
+          float(avail(st)) == 7058.53 and float(p[2]) == 9.8 and o[13] == '1' and o[7] == 'f',
+          f'{avail(st)} {p[2]} v{o[13]} pending={o[7]}')
+
+    # ③ 정지가 세션 잠금에 막힌다 → 이중 매도 없음 → 필요하면 재시도로 정지
+    rt.ctl('POST', '/_ctl/plan', {'ask': {'fill': 'done', 'once': True}})
+    h = hold(f'SELECT id FROM {table} WHERE id = {sid} FOR UPDATE', 15, 's12-stop')
+    t0 = time.time()
+    try:
+        stop_session(sid)
+        first = 'ok'
+    except Exception as e:
+        first = repr(e)[:120]
+    took = time.time() - t0
+    h.wait()
+    rt.log(f'  첫 정지: {first} ({took:.1f}s)')
+    time.sleep(20)
+    mid = state(sid)
+    show('첫 정지 뒤', mid)
+    asks = [e for e in mid['exchange_orders'] if e['side'] == 'ask']
+    check('S12 잠금 중 정지 — 무한 대기 없이 끝난다(≤ 40초)', took <= 40, f'{took:.1f}s {first}')
+    check('S12 잠금 중 정지 — 거래소 매도 ≤ 1', len(asks) <= 1, f'ask={len(asks)}')
+    if mid['session'][0][0] != 'STOPPED':
+        try:
+            stop_session(sid)
+        except Exception as e:
+            rt.log(f'  재시도 정지 오류: {e!r}')
+    rt.wait_until(lambda: state(sid)['positions'][0][1] == 'CLOSED', 120, 2, 'S12 CLOSED')
+    rt.wait_until(lambda: abs(float(avail(state(sid))) - 9997.35) < 0.006, 30, 2, 'S12 대금')
+    time.sleep(5)
+    st = state(sid)
+    show('정지 완료', st)
+    asks = [e for e in st['exchange_orders'] if e['side'] == 'ask']
+    check('S12 정지 완료: STOPPED·CLOSED·매도 1건·대금 한 번(9,997.35)',
+          st['session'][0][0] == 'STOPPED' and st['positions'][0][1] == 'CLOSED' and len(asks) == 1
+          and abs(float(avail(st)) - 9997.35) < 0.006, f'{st["session"]} ask={len(asks)}')
+
+    # ④ 잠금 없이 실제 경로끼리 동시에 — 매수(계좌→세션) · 시작(계좌→세션) · 정지
+    rt.psql(f"UPDATE {table} SET status = 'STOPPED' WHERE status = 'RUNNING'")   # 동시 실행 세션 수 상한 회피(시험 DB)
+    import threading
+    for rnd in range(3):
+        a = seed_live_session()
+        b_ = seed_live_session(status='STOPPED')
+        c = seed_live_session()
+        rt.ctl('POST', '/_ctl/plan', {'ask': {'fill': 'done'}})
+        buy(c)
+        rt.wait_until(lambda: state(c)['orders'][0][2] == 'FILLED', 60, 1, 'c FILLED')
+        out = {}
+
+        def run(k, f):
+            try:
+                f()
+                out[k] = 'ok'
+            except Exception as e:
+                out[k] = repr(e)[:100]
+        start_path = (f'/api/v1/dynamic-sessions/{b_}/start' if KIND == 'DYNAMIC'
+                      else f'/api/v1/trading/sessions/{b_}/start')
+        ths = [threading.Thread(target=run, args=('buy', lambda: buy(a))),
+               threading.Thread(target=run, args=('start', lambda: rt.api('POST', start_path, timeout=40))),
+               threading.Thread(target=run, args=('stop', lambda: stop_session(c)))]
+        for t in ths:
+            t.start()
+        for t in ths:
+            t.join()
+        rt.wait_until(lambda: state(c)['positions'][0][1] == 'CLOSED'
+                      and state(a)['orders'] and state(a)['orders'][0][2] == 'FILLED', 90, 2, 'S12④ 정리')
+        sa, sb, sc = state(a), state(b_), state(c)
+        check(f'S12④ 회차 {rnd + 1}: 세 호출 모두 성공', all(v == 'ok' for v in out.values()), str(out))
+        rt.wait_until(lambda: abs(float(avail(state(c))) - 9997.35) < 0.006, 30, 2, 'S12④ 대금')
+        sc = state(c)
+        check(f'S12④ 회차 {rnd + 1}: 매수 1회 반영·시작 RUNNING·정지 STOPPED/CLOSED·대금 9,997.35(보고 수수료)',
+              float(avail(sa)) == 7058.53 and sb['session'][0][0] == 'RUNNING'
+              and sc['session'][0][0] == 'STOPPED' and sc['positions'][0][1] == 'CLOSED'
+              and abs(float(avail(sc)) - 9997.35) < 0.006,
+              f'{avail(sa)} {sb["session"]} {sc["session"]} {sc["positions"]}')
+        rt.psql(f"UPDATE {table} SET status = 'STOPPED' WHERE id IN ({a}, {b_})")
+    rt.ctl('POST', '/_ctl/plan', {'ask': None})
+    dl1 = rt.deadlocks()
+    check('S12 교착 0(pg_stat_database.deadlocks 증가 없음)', dl1 == dl0, f'{dl0}→{dl1}')
+    check('S12 앱 로그에 교착 없음', 'deadlock detected' not in rt.app_log().lower())
+    final = pg_activity()
+    rt.log(f'  종료 시 연결: {final}')
+    check('S12 끝: 트랜잭션 중 유휴 0·잠금 대기 0·단일 인스턴스 잠금 유지',
+          count_act(final, 'pool', state='idle in transaction') == 0 and count_act(final, 'pool', wait='Lock') == 0
+          and len(lock_holders()) == 1, str(final))
+
+
+POOL_KEYS = ['trading.capital-pool.stage', 'trading.capital-pool.total-cap-krw',
+             'trading.capital-pool.per-position-cap-krw', 'trading.capital-pool.max-concurrent-positions']
+
+
+def stage_props(stage, total, per, slots):
+    return dict(zip(POOL_KEYS, [stage, total, per, slots]))
+
+
+def s13():
+    rt.log('S13 설정 누락·등록값 불일치·risk_config 없음 → 실자금 진입 차단, 흔적 없음')
+    cases = [
+        ('풀 설정 전부 누락', {k: None for k in POOL_KEYS}, '한도 설정 누락'),
+        ('총상한 하나만 누락', {'trading.capital-pool.total-cap-krw': None}, '한도 설정 누락'),
+        ('STAGE_1 이름에 다른 값(동시 4)', stage_props('STAGE_1', '100000', '20000', '4'), '등록값'),
+        ('STAGE_2 이름에 1단계 값', stage_props('STAGE_2', '100000', '20000', '3'), '등록값'),
+    ]
+    for i, (name, props, reason) in enumerate(cases):
+        rt.start_app(label=f's13-{i}', props=props)
+        log = rt.app_log()
+        check(f'S13 {name}: 기동 로그에 차단 경보', '공유 풀 한도가 사전 등록과 맞지 않는다' in log and reason in log)
+        sid = seed_live_session()
+        kind_, detail, _ = timed_buy(sid)
+        st = state(sid)
+        check(f'S13 {name}: 매수 거절·흔적 없음', kind_ != 'ok' and not st['orders'] and not st['positions']
+              and float(avail(st)) == 10000 and st['exchange_creates'] == 0, f'{kind_} {detail}')
+        check(f'S13 {name}: 거절 사유 POOL_NOT_REGISTERED', 'POOL_NOT_REGISTERED' in rt.app_log())
+        rt.kill_app()
+
+    # 대조군: STAGE_1 정확한 값이면 승인 — 같은 조건의 거절이 설정 때문임을 보인다
+    rt.psql("UPDATE live_trading_session SET status = 'STOPPED' WHERE status = 'RUNNING'")
+    rt.psql("UPDATE dynamic_session SET status = 'STOPPED' WHERE status = 'RUNNING'")
+    rt.start_app(label='s13-stage1-ok', props=stage_props('STAGE_1', '100000', '20000', '3'))
+    check('S13 대조군: 기동 로그에 차단 경보 없음', '공유 풀 한도가 사전 등록과 맞지 않는다' not in rt.app_log())
+    sid = seed_live_session()
+    buy(sid)
+    rt.wait_until(lambda: state(sid)['orders'] and state(sid)['orders'][0][2] == 'FILLED', 60, 1, 'S13 대조군')
+    st = state(sid)
+    check('S13 대조군 STAGE_1 정확한 값: 매수 승인·1회 반영', st['exchange_creates'] == 1 and float(avail(st)) == 7058.53,
+          f'{st["exchange_creates"]} {avail(st)}')
+    rt.kill_app()
+
+    # risk_config 행 없음 → 신규 매수 차단 (행은 시험 뒤 그대로 되돌린다)
+    saved = rt.one("SELECT json_agg(r) FROM risk_config r")
+    rt.psql("DELETE FROM risk_config")
+    try:
+        rt.start_app(label='s13-no-risk')
+        sid = seed_live_session()
+        kind_, detail, _ = timed_buy(sid)
+        st = state(sid)
+        check('S13 risk_config 없음: 매수 거절·흔적 없음', kind_ != 'ok' and not st['orders'] and not st['positions']
+              and float(avail(st)) == 10000 and st['exchange_creates'] == 0, f'{kind_} {detail}')
+        check('S13 risk_config 없음: 사유 기록', 'risk_config 행이 없어 신규 매수를 승인하지 않는다' in rt.app_log())
+        check('S13 risk_config 없음: 읽기 경로가 행을 만들지 않았다', rt.one("SELECT count(*) FROM risk_config") == '0')
+        rt.kill_app()
+    finally:
+        rt.psql("INSERT INTO risk_config SELECT * FROM json_populate_recordset(NULL::risk_config, '"
+                + saved.replace("'", "''") + "'::json)")
+    check('S13 risk_config 복원', rt.one("SELECT count(*) FROM risk_config") == '1')
+
+
+# ── 후속 판정 (2026-10-14 검토 반영) ─────────────────────────────────────────
+
+def app_requests():
+    """거래소 대역이 받은 앱 요청(/v1) 수 — 시험 제어(/_ctl)는 세지 않는다."""
+    import os
+    with open(os.path.join(rt.WORK, 'double.log'), encoding='utf-8', errors='replace') as f:
+        return sum(1 for line in f if '"GET /v1' in line or '"POST /v1' in line or '"DELETE /v1' in line)
+
+
+def pg_activity():
+    """업무용 풀 연결과 단일 인스턴스 잠금 연결을 따로 센다."""
+    rows = rt.psql(
+        "SELECT CASE WHEN application_name = 'cat-single-instance' THEN 'guard' ELSE 'pool' END, "
+        "coalesce(state, ''), coalesce(wait_event_type, ''), count(*) FROM pg_stat_activity "
+        "WHERE datname = 'crypto_auto_trader' AND pid <> pg_backend_pid() AND application_name <> 'psql' "
+        "GROUP BY 1, 2, 3 ORDER BY 1, 2, 3")
+    return [tuple(r) for r in rows]
+
+
+def count_act(act, who, state=None, wait=None):
+    return sum(int(r[3]) for r in act if r[0] == who and (state is None or r[1] == state)
+               and (wait is None or r[2] == wait))
+
+
+def s10b():
+    rt.log('S10b 잠금을 다른 연결이 쥔 동안 뜬 인스턴스 — 주문·복구·정리 실행 0건, 풀린 뒤 복구')
+    # 복구할 일거리 둘: ① 의도만 커밋된 주문(소유자 상실) ② 접수된 뒤 앱이 죽은 사이 체결된 주문
+    #    🔴 순서: 접수 주문을 먼저 만들고(대기), 의도는 마지막 앱이 만든다 — 앞 앱의 기동 복구가 뒤 일거리를 치우지 않게.
+    s_fill = seed_live_session()
+    rt.ctl('POST', '/_ctl/plan', {'bid': {'fill': 'wait', 'once': True}})
+    rt.start_app(label='s10b-submit')
+    buy(s_fill)
+    rt.wait_until(lambda: state(s_fill)['orders'][0][2] == 'SUBMITTED', 30, 1, 'SUBMITTED')
+    rt.kill_app()
+    s_intent = seed_live_session()
+    rt.start_app(crashpoint='AFTER_INTENT_COMMIT', label='s10b-intent')
+    buy(s_intent, expect_crash=True)
+    rt.wait_app_exit(30)
+    rt.ctl('POST', '/_ctl/fill', {'uuid': this_order_uuid(s_fill, 'BUY'), 'state': 'done', 'volume': '9.8', 'funds': '2940'})
+    before_i, before_f = state(s_intent), state(s_fill)
+    check('S10b 준비: 의도 INTENT_READY · 접수 주문 SUBMITTED(거래소는 체결)',
+          before_i['orders'][0][2] == 'INTENT_READY' and before_f['orders'][0][2] == 'SUBMITTED')
+
+    holder = rt.psql_background(f"SELECT pg_advisory_lock({LOCK_KEY}); SELECT pg_sleep(90);", 's10b-holder')
+    time.sleep(2)
+    req0 = app_requests()
+    b, rc = rt.start_other(OTHER_PORT, label='s10b-B')
+    time.sleep(3)
+    blog = rt.app_log(b)
+    check('S10b 기동 거부', rc is not None and rc != 0 and '다른 인스턴스가 이미 실행 중' in blog, f'rc={rc}')
+    check('S10b 거부된 인스턴스의 거래소 호출 0건(조회 포함)', app_requests() == req0, f'{req0}→{app_requests()}')
+    after_i, after_f = state(s_intent), state(s_fill)
+    check('S10b 주문·포지션·잔액·정리 대기 불변(복구·철회·반영 0건)',
+          after_i == before_i and after_f == before_f)
+    check('S10b 기동 완료·스케줄 작업 로그 없음',
+          'Started CryptoAutoTraderApplication' not in blog and '고아' not in blog and '정리 작업' not in blog)
+    holder.kill()
+    rt.psql(f"SELECT pg_terminate_backend(pid) FROM pg_locks WHERE locktype = 'advisory' "
+            f"AND ((classid::bigint << 32) | objid::bigint) = {LOCK_KEY}")
+    rt.wait_until(lambda: len(lock_holders()) == 0, 20, 0.5, '외부 보유 해제')
+    rt.start_app(label='s10b-recover')
+    rt.wait_until(lambda: state(s_fill)['orders'][0][2] == 'FILLED'
+                  and state(s_intent)['positions'][0][1] == 'CLOSED', 120, 2, 'S10b 복구')
+    time.sleep(5)
+    si, sf = state(s_intent), state(s_fill)
+    check('S10b 풀린 뒤 복구: 의도 철회(WITHDRAWN_OWNER_LOST)·예약 복원 10,000·거래소 0',
+          si['orders'][0][3] == 'WITHDRAWN_OWNER_LOST' and float(avail(si)) == 10000 and si['exchange_creates'] == 0,
+          f'{si["orders"][0][2]} {si["orders"][0][3]} {avail(si)}')
+    check('S10b 풀린 뒤 복구: 체결 한 번 반영(7,058.53·9.8·버전 1)',
+          float(avail(sf)) == 7058.53 and sf['orders'][0][13] == '1' and sf['exchange_creates'] == 1,
+          f'{avail(sf)} v{sf["orders"][0][13]}')
+    rt.kill_all()
+
+
+def s11b():
+    rt.log('S11b 잠금 상실 — 신규 주문 승인이 멈추는 시점과 진행 중 주문의 복구')
+    s_open = seed_live_session()
+    s_new = seed_live_session()
+    rt.ctl('POST', '/_ctl/plan', {'bid': {'fill': 'wait', 'once': True}})
+    rt.start_app(label='s11b-A')
+    buy(s_open)
+    rt.wait_until(lambda: state(s_open)['orders'][0][2] == 'SUBMITTED', 30, 1, 'SUBMITTED')
+    creates0 = len(rt.exchange_orders()['creates'])
+    import threading
+    attempts = []
+    stop_flag = threading.Event()
+
+    def hammer():
+        while not stop_flag.is_set():
+            t = time.time()
+            try:
+                rt.api('POST', f'/api/v1/restart-harness/buy?kind={KIND}&sessionId={s_new}&krw=1000', timeout=5)
+                attempts.append((t, 'ok'))
+            except Exception as e:
+                attempts.append((t, type(e).__name__))
+            time.sleep(0.1)
+    th = threading.Thread(target=hammer)
+    th.start()
+    time.sleep(1.0)
+    t_lost = time.time()
+    rt.psql(f"SELECT pg_terminate_backend({lock_holders()[0]})")
+    code = rt.wait_app_exit(30)
+    t_exit = time.time()
+    time.sleep(1)
+    stop_flag.set()
+    th.join()
+    ok_after = [a for a in attempts if a[0] >= t_lost and a[1] == 'ok']
+    ok_before = [a for a in attempts if a[0] < t_lost and a[1] == 'ok']
+    rt.log(f'  잠금 상실 {t_lost:.2f} → 종료 {t_exit:.2f} ({t_exit - t_lost:.2f}s), 상실 전 승인 {len(ok_before)}, 상실 후 승인 {len(ok_after)}')
+    log = rt.app_log()
+    check('S11b 종료 코드 3·사유 기록', code == 3 and 'SINGLE_INSTANCE_LOCK_LOST' in log, f'exit={code}')
+    st_new = state(s_new)
+    new_creates = len(rt.exchange_orders()['creates']) - creates0
+    sent_after = [o for o in st_new['orders'] if o[4] == 't']
+    rt.log(f'  상실 전후 생성된 주문 {len(st_new["orders"])}건, 거래소 접수 증가 {new_creates}')
+    check('S11b 잠금 상실 뒤 거래소로 나간 신규 주문 0 (claim 직전 확인)',
+          new_creates == len([o for o in st_new['orders'] if o[4] == 't']) and
+          all(o[2] != 'SUBMITTING' for o in st_new['orders'] if o[4] == 'f'),
+          f'creates+{new_creates} states={[o[2] for o in st_new["orders"]]}')
+    # 진행 중이던 주문 — 앱이 죽은 사이 체결된다
+    rt.ctl('POST', '/_ctl/plan', {'bid': None})
+    rt.ctl('POST', '/_ctl/fill', {'uuid': this_order_uuid(s_open, 'BUY'), 'state': 'done', 'volume': '9.8', 'funds': '2940'})
+    b, rc = rt.start_other(OTHER_PORT, label='s11b-B')
+    check('S11b 다른 인스턴스 기동', rc is None, f'rc={rc}')
+    rt.wait_until(lambda: state(s_open)['orders'][0][2] == 'FILLED', 90, 2, 'S11b 진행 주문 복구')
+    time.sleep(70)   # 고아 정리·폴러가 여러 번 돈다
+    so, sn = state(s_open), state(s_new)
+    show('S11b 복구 후(진행 주문)', so)
+    show('S11b 복구 후(신규 매수 세션)', sn)
+    check('S11b 진행 주문은 다른 인스턴스가 한 번 반영(7,058.53·버전 1)',
+          float(avail(so)) == 7058.53 and so['orders'][0][13] == '1' and so['exchange_creates'] == 1,
+          f'{avail(so)} v{so["orders"][0][13]}')
+    unsent = [o for o in sn['orders'] if o[4] == 'f']
+    check('S11b 나가지 않은 의도는 철회되고 예약 복원', all(o[2] == 'FAILED' for o in unsent),
+          str([(o[2], o[3]) for o in unsent]))
+    filled = sum(1 for o in sn['orders'] if o[2] == 'FILLED')
+    expect = 10000 - 980.49 * filled   # 대역: 1,000 요청 → 980 사용·수수료 0.49
+    rt.log(f'  신규 매수 세션: FILLED {filled}건, 잔액 {avail(sn)} (기대 {expect:.2f})')
+    check('S11b 신규 매수 세션: 모든 주문 종결(FILLED/FAILED)·잔액 = 10,000 − 체결분(미체결 예약 잔존 0)',
+          all(o[2] in ('FILLED', 'FAILED') for o in sn['orders']) and abs(float(avail(sn)) - expect) < 0.006,
+          f'{avail(sn)} filled={filled} states={[o[2] for o in sn["orders"]]}')
+    rt.kill_all()
+
+
+def s13b():
+    rt.log('S13b 설정 불일치·risk_config 없음에서도 기존 주문 추적·위험 축소(정지·청산)는 계속된다')
+    for case in ('pool', 'risk'):
+        sid = seed_live_session()
+        rt.ctl('POST', '/_ctl/plan', {'bid': {'fill': 'wait', 'once': True}})
+        rt.start_app(label=f's13b-{case}-submit')
+        buy(sid)
+        rt.wait_until(lambda: state(sid)['orders'][0][2] == 'SUBMITTED', 30, 1, 'SUBMITTED')
+        rt.kill_app()
+        saved = None
+        if case == 'pool':
+            props = stage_props('STAGE_1', '100000', '20000', '4')
+        else:
+            props = None
+            saved = rt.one("SELECT json_agg(r) FROM risk_config r")
+            rt.psql("DELETE FROM risk_config")
+        try:
+            rt.start_app(label=f's13b-{case}-blocked', props=props)
+            tag = '등록값 불일치' if case == 'pool' else 'risk_config 없음'
+            other = seed_live_session()
+            kind_, detail, _ = timed_buy(other)
+            check(f'S13b {tag}: 신규 매수는 거절', kind_ != 'ok' and not state(other)['orders'], f'{kind_} {detail}')
+            rt.ctl('POST', '/_ctl/fill', {'uuid': this_order_uuid(sid, 'BUY'), 'state': 'done',
+                                          'volume': '9.8', 'funds': '2940'})
+            rt.wait_until(lambda: state(sid)['orders'][0][2] == 'FILLED', 90, 2, f'S13b {tag} 추적')
+            st = state(sid)
+            check(f'S13b {tag}: 기존 주문 추적·체결 한 번 반영(7,058.53·9.8)',
+                  st['orders'][0][2] == 'FILLED' and float(avail(st)) == 7058.53 and float(st['positions'][0][2]) == 9.8,
+                  f'{st["orders"][0][2]} {avail(st)}')
+            rt.ctl('POST', '/_ctl/plan', {'ask': {'fill': 'done', 'once': True}})
+            stop_session(sid)
+            rt.wait_until(lambda: state(sid)['positions'][0][1] == 'CLOSED', 90, 2, f'S13b {tag} 청산')
+            time.sleep(5)
+            st = state(sid)
+            asks = [e for e in st['exchange_orders'] if e['side'] == 'ask']
+            check(f'S13b {tag}: 정지·청산 가능(STOPPED·CLOSED·매도 1건·9,997.35)',
+                  st['session'][0][0] == 'STOPPED' and st['positions'][0][1] == 'CLOSED' and len(asks) == 1
+                  and abs(float(avail(st)) - 9997.35) < 0.006, f'{st["session"]} ask={len(asks)} {avail(st)}')
+            rt.kill_app()
+        finally:
+            if saved is not None:
+                rt.psql("INSERT INTO risk_config SELECT * FROM json_populate_recordset(NULL::risk_config, '"
+                        + saved.replace("'", "''") + "'::json)")
+    check('S13b risk_config 복원', rt.one("SELECT count(*) FROM risk_config") == '1')
+
+
+def s11c():
+    rt.log('S11c claim 직전 잠금 확인 — 감시 주기를 600초로 늦추고, 의도 커밋 뒤·claim 전에 잠금을 끊는다')
+    sid = seed_live_session()
+    rt.start_app(label='s11c-A', crashpoint=None,
+                 props={'trading.single-instance.watchdog-seconds': '600', 'pausepoint': 'BEFORE_CLAIM_CHECK:6000'})
+    creates0 = len(rt.exchange_orders()['creates'])
+    buy(sid)    # 의도 커밋 후 응답, 제출 작업은 claim 직전에서 6초 멈춘다
+    rt.wait_until(lambda: state(sid)['orders'] and state(sid)['orders'][0][2] == 'INTENT_READY', 5, 0.2, '의도')
+    t0 = time.time()
+    rt.psql(f"SELECT pg_terminate_backend({lock_holders()[0]})")
+    code = rt.wait_app_exit(30)
+    took = time.time() - t0
+    log = rt.app_log()
+    st = state(sid)
+    show('종료 직후', st)
+    check('S11c 종료 코드 3 — 감시 주기(600초)가 아니라 claim 직전 확인이 멈췄다',
+          code == 3 and 'SINGLE_INSTANCE_LOCK_LOST [claim 직전]' in log and took < 15, f'exit={code} {took:.1f}s')
+    check('S11c 거래소 제출 0·주문은 INTENT_READY(claim 전)',
+          len(rt.exchange_orders()['creates']) == creates0 and st['orders'][0][2] == 'INTENT_READY',
+          f'{st["orders"][0][2]} creates+{len(rt.exchange_orders()["creates"]) - creates0}')
+    b, rc = rt.start_other(OTHER_PORT, label='s11c-B')
+    rt.wait_until(lambda: state(sid)['positions'][0][1] == 'CLOSED', 90, 2, 'S11c 복구')
+    st = state(sid)
+    check('S11c 다른 인스턴스가 철회(WITHDRAWN_OWNER_LOST)·예약 복원 10,000·거래소 0',
+          rc is None and st['orders'][0][3] == 'WITHDRAWN_OWNER_LOST' and float(avail(st)) == 10000
+          and st['exchange_creates'] == 0, f'{st["orders"][0][2]} {st["orders"][0][3]} {avail(st)}')
+    rt.kill_all()
+
+
 SCEN = {'S1': s1, 'S2': s2, 'S3': lambda: s3(False), 'S3b': lambda: s3(True),
-        'S4': lambda: s45('AFTER_FILL_OBSERVED'), 'S5': lambda: s45('IN_FILL_ACCOUNTING'), 'S6': s6, 'S7': s7, 'S8': s8, 'S9': s9}
+        'S4': lambda: s45('AFTER_FILL_OBSERVED'), 'S5': lambda: s45('IN_FILL_ACCOUNTING'), 'S6': s6, 'S7': s7, 'S8': s8, 'S9': s9,
+        'S10': s10, 'S11': s11, 'S12': s12, 'S13': s13,
+        'S10b': s10b, 'S11b': s11b, 'S11c': s11c, 'S13b': s13b}
 
 if __name__ == '__main__':
     args = sys.argv[1:]
@@ -375,16 +889,21 @@ if __name__ == '__main__':
             KIND = kind
             globals()['KIND'] = kind
             for n in names:
-                if kind == 'DYNAMIC' and n not in ('S3', 'S3b', 'S6', 'S7', 'S8', 'S9'):
+                if kind == 'DYNAMIC' and n not in ('S3', 'S3b', 'S6', 'S7', 'S8', 'S9', 'S12'):
                     continue   # DYNAMIC 은 접수 후 종료·부분 청산 중 종료·종료 중 체결만 (의도·claim·회계 지점은 공통 엔진)
                 try:
+                    rt.ctl('POST', '/_ctl/plan', {'bid': None, 'ask': None})   # 앞 시나리오의 1회용 계획이 새지 않게
                     SCEN[n]()
                 except Exception as e:
                     check(f'{n} 실행 오류', False, repr(e))
                 finally:
-                    rt.kill_app()
+                    rt.kill_all()
     finally:
         rt.stop_double()
+        try:
+            rt.dump_db('after-run')     # 🔴 실행 직후 상태를 남긴다 — 다음 --fresh 가 지우기 전에도 한 번 더 뜬다
+        except Exception as e:
+            rt.log(f'  DB 덤프 실패: {e!r}')
     rt.log('==== 요약 ====')
     for name, ok, detail in RESULTS:
         rt.log(f'{"PASS" if ok else "FAIL"} {name} {detail}')

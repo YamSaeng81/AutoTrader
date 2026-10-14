@@ -61,6 +61,7 @@ class CancelConfirmAndLateFillCleanupTest extends IntegrationTestBase {
     @Autowired private PositionRepository positionRepository;
     @Autowired private PositionCleanupRepository cleanupRepository;
     @Autowired private PositionCleanupRegistrar cleanupRegistrar;
+    @Autowired private com.cryptoautotrader.api.repository.TelegramNotificationLogRepository telegramLogRepository;
     @Autowired private com.cryptoautotrader.api.repository.OrderSettlementDiscrepancyRepository discrepancyRepository;
     @Autowired private LiveTradingSessionRepository liveRepo;
     @Autowired private DynamicSessionRepository dynamicRepo;
@@ -1150,6 +1151,58 @@ class CancelConfirmAndLateFillCleanupTest extends IntegrationTestBase {
                 .extracting(d -> d.getKind()).contains(com.cryptoautotrader.api.entity.OrderSettlementDiscrepancyEntity.KIND_FEE_DECREASE);
     }
 
+    /**
+     * G4 — 매도 <b>생성 응답이 이미 done</b>(보고 체결금액·수수료 포함)일 때도 보고 수수료로 확정한다 (2026-10-14).
+     * 실제 프로세스 S12 에서 발견: 종전에는 생성 응답 즉시 처리가 보고값을 기록하지 않고 추정(1.47)으로 확정했고,
+     * FILLED 는 다시 조회하지 않아 보고값(1.176)이 영영 반영되지 않았다(9,997.06).
+     */
+    @ParameterizedTest(name = "{0}")
+    @ValueSource(strings = {"LIVE", "DYNAMIC"})
+    @DisplayName("G4 매도 생성 응답이 이미 done 이어도 보고 수수료(1.176)로 한 번 확정 — 추정(1.47)으로 끝나지 않는다")
+    void sellDoneOnCreateUsesReportedFee(String kind) throws Exception {
+        Fx f = buy(kind, "RUNNING", "SUBMITTED", true);
+        Mockito.doReturn(exchange(f.uuid(), "wait", BigDecimal.ZERO)).when(upbitOrderClient).getOrder(f.uuid());
+        Mockito.doReturn(exchange(f.uuid(), "wait", BigDecimal.ZERO)).when(upbitOrderClient).cancelOrder(f.uuid());
+        String sellUuid = "uuid-sell-" + System.nanoTime();
+        OrderResponse sellDone = new OrderResponse();
+        sellDone.setUuid(sellUuid);
+        sellDone.setSide("ask");
+        sellDone.setOrdType("market");
+        sellDone.setState("done");
+        sellDone.setMarket("KRW-DOGE");
+        sellDone.setVolume(FILL);
+        sellDone.setExecutedVolume(FILL);
+        sellDone.setExecutedFunds(new BigDecimal("2940.00000000"));
+        sellDone.setPaidFee(new BigDecimal("1.17600000"));
+        Mockito.doAnswer(inv -> new UpbitOrderClient.ExchangeResult(sellDone, "{}"))
+                .when(upbitOrderClient).createOrder(Mockito.eq("KRW-DOGE"), Mockito.eq("ask"),
+                        Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
+        Mockito.doReturn(sellDone).when(upbitOrderClient).getOrder(sellUuid);
+
+        stop(f);
+        Mockito.doReturn(exchange(f.uuid(), "done", FILL)).when(upbitOrderClient).getOrder(f.uuid());
+        engine.pollActiveOrders();
+        assertThat(available(f)).isEqualByComparingTo("7058.53");
+        cleanupWorker(kind);
+        awaitDrained();
+        awaitSubmittedSells(f, 1);
+        for (int i = 0; i < 3; i++) {
+            engine.pollActiveOrders();
+            closingReconcile(kind);
+            cleanupWorker(kind);
+        }
+        awaitDrained();
+        List<OrderEntity> sells = sells(f);
+        OrderEntity sell = orderRepository.findById(sells.get(0).getId()).orElseThrow();
+        System.out.println("[G4 " + kind + "] " + snap(f) + " 반영수수료=" + sell.getAppliedPaidFee() + " 출처=" + sell.getFeeSource());
+        assertThat(sells).as("매도 한 번").hasSize(1);
+        assertThat(position(f).getStatus()).isEqualTo("CLOSED");
+        assertThat(sell.getFeeSource()).isEqualTo(OrderExecutionEngine.FEE_SOURCE_REPORTED);
+        assertThat(sell.getAppliedPaidFee()).isEqualByComparingTo("1.176");
+        assertThat(available(f)).as("7,058.53 + 2,940 − 1.176 (추정이면 9,997.06)")
+                .isCloseTo(new BigDecimal("9997.354"), org.assertj.core.data.Offset.offset(new BigDecimal("0.005")));
+    }
+
     // ── H. 지정가 차단 · I. 거래소 거절 분류 (2026-10-14) ──────────────────────────────
 
     private com.cryptoautotrader.api.dto.OrderRequest buyRequest(String kind, Long sid, Long posId, String type) {
@@ -1260,6 +1313,9 @@ class CancelConfirmAndLateFillCleanupTest extends IntegrationTestBase {
         orphanReconcile(kind);
         orphanReconcile(kind);
         assertThat(sessionAvailable(kind, sid)).as("거절 확인 — 예약 한 번 복원").isEqualByComparingTo("7000");
+        // 🔴 없음 확인은 같은 거래소 클라이언트(같은 계좌 키)로, 이 주문의 식별자로 했다
+        Mockito.verify(upbitOrderClient, Mockito.atLeastOnce()).getOrderByIdentifier(o.getClientOrderId());
+        assertThat(o.getClientOrderId()).isNotBlank();
     }
 
     @ParameterizedTest(name = "{0}")
@@ -1339,6 +1395,34 @@ class CancelConfirmAndLateFillCleanupTest extends IntegrationTestBase {
                 + " 메모=" + c.getLastNote());
         assertThat(sells(f)).hasSize(2).allMatch(o -> OrderExecutionEngine.EXCHANGE_REJECTED.equals(o.getFailureCode()));
         assertThat(c.getLastNote()).contains("거절");
-        assertThat(c.getDoneAt()).isNull();
+        // 🔴 멈춘 뒤에도 잔여 포지션·정리 대기·경보가 유지된다
+        assertThat(position(f).getStatus()).as("잔여 포지션은 열린 채").isEqualTo("OPEN");
+        assertThat(position(f).getSize()).isEqualByComparingTo("9.8");
+        assertThat(c.getDoneAt()).as("정리 대기는 완료가 아니다").isNull();
+        String label = kind + "#" + f.sessionId();
+        long alerts = 0;
+        long deadline = System.currentTimeMillis() + 60_000;   // 텔레그램 실행기(1 스레드)에 다른 재시도 알림이 쌓여 있을 수 있다
+        while (System.currentTimeMillis() < deadline) {
+            alerts = telegramLogRepository.findAll().stream()
+                    .filter(l -> "CLEANUP_NEEDS_HUMAN".equals(l.getType()) && label.equals(l.getSessionLabel())).count();
+            if (alerts > 0) break;
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+        cleanupWorker(kind);
+        cleanupWorker(kind);
+        try {
+            Thread.sleep(1500);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        alerts = telegramLogRepository.findAll().stream()
+                .filter(l -> "CLEANUP_NEEDS_HUMAN".equals(l.getType()) && label.equals(l.getSessionLabel())).count();
+        assertThat(alerts).as("경보는 상태에 들어갈 때 한 번 — 이후 회차에 반복하지 않는다").isEqualTo(1);
+        assertThat(cleanupRepository.findById(f.positionId()).orElseThrow().getDoneAt()).isNull();
     }
 }

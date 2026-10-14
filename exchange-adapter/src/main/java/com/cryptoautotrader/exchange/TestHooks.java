@@ -17,7 +17,7 @@ public final class TestHooks {
 
     public static final String HARNESS_MARKER = "com.cryptoautotrader.api.restartharness.RestartHarnessController";
     public static final String HARNESS_PROFILE = "restart-harness";
-    public static final List<String> PROPERTIES = List.of("crashpoint", "upbit.api.base-url", "upbit.health-check-url");
+    public static final List<String> PROPERTIES = List.of("crashpoint", "pausepoint", "upbit.api.base-url", "upbit.health-check-url");
 
     private TestHooks() {}
 
