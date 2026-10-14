@@ -609,6 +609,22 @@ public class LiveTradingService {
      */
     @Transactional
     public LiveTradingSessionEntity emergencyStopSession(Long sessionId) {
+        return emergencyStopSession(sessionId, s -> {});
+    }
+
+    /**
+     * 비상 정지 — 서킷 브레이커 기록처럼 상태 전환과 <b>같은 행에 함께 써야 하는</b> 필드가 있을 때 쓴다
+     * (DYNAMIC {@code emergencyStop(sessionId, extraMutations)} 와 같은 형태).
+     *
+     * <p>🔴 2026-10-14 (선행 조건 5-b): 종전에는 앞서 읽은 세션 엔티티에 상태를 쓰고 {@code sessionRepository.save} 했다.
+     * 청산 중 같은 행에 다른 쓰기가 들어오면(평가 루프·체결 반영·size=0 복원) 커밋에서 낙관적 잠금 충돌로 <b>정지 전체가
+     * 롤백</b>됐다 — 실측(`LiveEmergencyStopUnderConcurrentWriteTest`): 매도는 이미 거래소로 나갔는데(@Async) 세션은
+     * RUNNING, 포지션은 OPEN 으로 되돌아갔다. 10-07 일반 정지에서 고친 바로 그 형태다. 상태 전환만 재조회·재시도
+     * 경로({@code balanceUpdater})로 쓴다 — 청산은 다시 실행하지 않는다(이중 매도 방지).</p>
+     */
+    @Transactional
+    public LiveTradingSessionEntity emergencyStopSession(Long sessionId,
+                                                         java.util.function.Consumer<LiveTradingSessionEntity> extraMutations) {
         LiveTradingSessionEntity session = getSessionOrThrow(sessionId);
 
         log.error("실전매매 세션 비상 정지: id={}", sessionId);
@@ -619,12 +635,14 @@ public class LiveTradingService {
         // 해당 세션의 열린 포지션 시장가 청산
         closeSessionPositions(session, "비상 정지 -- 강제 시장가 청산");
 
-        session.setStatus("EMERGENCY_STOPPED");
-        session.setStoppedAt(Instant.now());
         sessionStatefulStrategies.remove(sessionId);
         lastDrawdownWarning.remove(sessionId);
         lastEvaluatedClosedCandle.remove(sessionId);
-        session = sessionRepository.save(session);
+        session = balanceUpdater.apply(sessionId, s -> {
+            extraMutations.accept(s);
+            s.setStatus("EMERGENCY_STOPPED");
+            s.setStoppedAt(Instant.now());
+        });
 
         log.error("실전매매 세션 비상 정지 완료: id={}", sessionId);
 
@@ -694,9 +712,16 @@ public class LiveTradingService {
                 }
 
                 closeSessionPositions(session, "전체 비상 정지 -- 강제 시장가 청산");
-                session.setStatus("EMERGENCY_STOPPED");
-                session.setStoppedAt(Instant.now());
-                sessionRepository.save(session);
+                // 🔴 2026-10-14: 앞서 읽은 엔티티를 save 하지 않는다 — 한 세션의 버전 충돌이 이 메서드의 트랜잭션 전체를
+                //    rollback-only 로 만들어 **모든 세션의 정지가 되돌아갔다**(실측: UnexpectedRollbackException, 매도는 이미 나감).
+                LiveTradingSessionEntity stopped = balanceUpdater.apply(session.getId(), s -> {
+                    s.setStatus("EMERGENCY_STOPPED");
+                    s.setStoppedAt(Instant.now());
+                });
+                sessionStatefulStrategies.remove(session.getId());
+                lastDrawdownWarning.remove(session.getId());
+                lastEvaluatedClosedCandle.remove(session.getId());
+                session = stopped;
                 telegramService.notifySessionStopped(
                         session.getId(), session.getCoinPair(), returnPct,
                         session.getTotalAssetKrw().longValue(), true);
@@ -935,13 +960,18 @@ public class LiveTradingService {
         CircuitBreakerResult cbResult = riskManagementService.checkCircuitBreaker(session);
         if (cbResult.isTriggered()) {
             log.error("서킷 브레이커 발동 (sessionId={}): {}", sessionId, cbResult.getReason());
-            session.setCircuitBreakerTriggeredAt(Instant.now());
-            session.setCircuitBreakerReason(cbResult.getReason());
-            // 누적 횟수 — 발동 시각은 덮어써지므로 반복 여부는 이 카운터로만 남는다
-            // (kill criteria CB_REPEAT 판정, docs/KILL_CRITERIA.md §4.A)
-            session.setCircuitBreakerTripCount(session.getCircuitBreakerTripCount() + 1);
-            sessionRepository.save(session);
-            emergencyStopSession(sessionId);
+            // 🔴 2026-10-14 (선행 조건 5-b): 종전에는 틱 시작에 읽어 둔 엔티티에 발동 기록을 쓰고 save 한 뒤 비상 정지를
+            //    불렀다. 그 사이 같은 행에 쓰기가 있으면 save 가 낙관적 잠금으로 실패해 **발동 기록도 비상 정지도 없이**
+            //    틱이 끝났다(실측). 발동 기록을 비상 정지의 상태 전환과 같은 재조회·재시도 갱신 하나로 쓴다.
+            String reason = cbResult.getReason();
+            Instant trippedAt = Instant.now();
+            emergencyStopSession(sessionId, s -> {
+                s.setCircuitBreakerTriggeredAt(trippedAt);
+                s.setCircuitBreakerReason(reason);
+                // 누적 횟수 — 발동 시각은 덮어써지므로 반복 여부는 이 카운터로만 남는다
+                // (kill criteria CB_REPEAT 판정, docs/KILL_CRITERIA.md §4.A)
+                s.setCircuitBreakerTripCount(s.getCircuitBreakerTripCount() + 1);
+            });
             return;
         }
 
