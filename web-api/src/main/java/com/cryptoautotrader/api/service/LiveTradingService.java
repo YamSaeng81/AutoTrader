@@ -228,6 +228,10 @@ public class LiveTradingService {
     @Autowired
     private CapitalReservationService capitalReservationService;
 
+    /** 신규 진입의 코인 우선순위 — 등록 단계에서는 같은 평가 회차 후보를 사전 순서로 승인한다 (2026-10-14). */
+    @Autowired
+    private EntryPriorityRounds entryPriorityRounds;
+
     /** 호가창 조회용 (선택적 의존성 — exchange-adapter 빈이 없을 경우 null) */
     @Autowired(required = false)
     private UpbitRestClient upbitRestClient;
@@ -1275,15 +1279,31 @@ public class LiveTradingService {
                 boolean hasClosingPos = positionRepository
                         .findBySessionKindAndSessionIdAndCoinPairAndStatus("LIVE", sessionId, coinPair, "CLOSING").isPresent();
                 if (openPos.isEmpty() && !hasClosingPos) {
+                    String buyReason = String.format("전략 신호: %s -- %s", strategyType, finalSignal.getReason());
+                    if (entryPriorityRounds.isActive()) {
+                        // 🔴 등록 단계 (2026-10-14, 선행 조건 3-e): 여기서 사지 않는다. 같은 마감 캔들의 후보를 모아 마감 뒤
+                        //    사전 등록 순서로 승인한다 — 평가가 빨리 끝난 세션이 슬롯을 먼저 갖지 않게.
+                        final BigDecimal priceAtSignal = currentPrice;
+                        final String regimeAtSignal = regimeName;
+                        final List<Candle> candlesAtSignal = evalCandles;
+                        String notQueued = entryPriorityRounds.submit(new EntryPriorityRounds.Candidate(
+                                "LIVE", sessionId, coinPair,
+                                new EntryPriorityRounds.RoundKey(timeframe, candlesAtSignal.get(candlesAtSignal.size() - 1).getTime()),
+                                () -> approveQueuedEntry(sessionId, coinPair, priceAtSignal, buyReason, finalSignal,
+                                        regimeAtSignal, candlesAtSignal, signalLogRef)),
+                                Instant.now());
+                        if (notQueued != null) {
+                            saveSignalQuality(signalLogRef, false, notQueued);
+                        }
+                        return;
+                    }
                     RiskCheckResult riskResult = riskManagementService.checkRisk();
                     if (!riskResult.isApproved()) {
                         log.warn("리스크 한도 초과로 매수 차단 (sessionId={}): {}", sessionId, riskResult.getReason());
                         saveSignalQuality(signalLogRef, false, "리스크 한도: " + riskResult.getReason());
                         return;
                     }
-                    executeSessionBuy(session, coinPair, currentPrice,
-                            String.format("전략 신호: %s -- %s", strategyType, finalSignal.getReason()),
-                            finalSignal, regimeName, evalCandles);
+                    executeSessionBuy(session, coinPair, currentPrice, buyReason, finalSignal, regimeName, evalCandles);
                     saveSignalQuality(signalLogRef, true, null);
                 } else {
                     String reason;
@@ -1362,7 +1382,33 @@ public class LiveTradingService {
         updateSessionUnrealizedPnl(session, coinPair, currentPrice);
     }
 
-    private void executeSessionBuy(LiveTradingSessionEntity session,
+    /**
+     * 회차 승인 차례에 부른다 (2026-10-14) — 평가 때와 지금 사이에 바뀐 것을 다시 확인한 뒤 같은 매수 경로를 탄다.
+     *
+     * @return 진입했으면 {@code null}, 아니면 사유
+     */
+    String approveQueuedEntry(Long sessionId, String coinPair, BigDecimal price, String reason,
+                              StrategySignal signal, String marketRegime, List<Candle> evalCandles,
+                              StrategyLogEntity signalLog) {
+        String result;
+        LiveTradingSessionEntity session = sessionRepository.findById(sessionId).orElse(null);
+        if (session == null || !"RUNNING".equals(session.getStatus())) {
+            result = "승인 차례에 세션이 실행 중이 아니다";
+        } else if (positionRepository.findBySessionKindAndSessionIdAndCoinPairAndStatus("LIVE", sessionId, coinPair, "OPEN").isPresent()
+                || positionRepository.findBySessionKindAndSessionIdAndCoinPairAndStatus("LIVE", sessionId, coinPair, "CLOSING").isPresent()) {
+            result = "승인 차례에 이미 포지션이 있다";
+        } else {
+            RiskCheckResult riskResult = riskManagementService.checkRisk();
+            result = riskResult.isApproved()
+                    ? executeSessionBuy(session, coinPair, price, reason, signal, marketRegime, evalCandles)
+                    : "리스크 한도: " + riskResult.getReason();
+        }
+        saveSignalQuality(signalLog, result == null, result);
+        return result;
+    }
+
+    /** @return 주문 의도를 만들고 실행기에 넘겼으면 {@code null}, 아니면 사유 (2026-10-14 — 회차 승인이 결과를 알아야 한다) */
+    private String executeSessionBuy(LiveTradingSessionEntity session,
                                     String coinPair, BigDecimal price, String reason,
                                     StrategySignal signal, String marketRegime,
                                     List<Candle> evalCandles) {
@@ -1371,7 +1417,7 @@ public class LiveTradingService {
                 session.getId(), coinPair, "BUY", ACTIVE_ORDER_STATES);
         if (hasPendingBuy) {
             log.warn("매수 스킵: 세션({})에 이미 활성 BUY 주문이 있습니다 ({})", session.getId(), coinPair);
-            return;
+            return "이미 활성 매수 주문이 있다";
         }
 
         BigDecimal ratio = session.getInvestRatio() != null ? session.getInvestRatio() : exitConfig().getInvestRatio();
@@ -1382,12 +1428,12 @@ public class LiveTradingService {
         if (investAmount.compareTo(BigDecimal.valueOf(5000)) < 0) {
             log.warn("매수 불가: 가용 자금 부족 ({}) sessionId={}",
                     session.getAvailableKrw(), session.getId());
-            return;
+            return "가용 자금 부족(최소 주문 5,000 미달)";
         }
 
         BigDecimal quantity = investAmount.divide(price, 8, RoundingMode.DOWN);
         if (quantity.compareTo(BigDecimal.ZERO) <= 0) {
-            return;
+            return "수량 0";
         }
 
         // 🔴 §8 한도 확인은 **예약 트랜잭션 안으로 옮겼다** (2026-10-12, V85).
@@ -1475,12 +1521,12 @@ public class LiveTradingService {
             // 🔴 거절은 슬롯·의도와 함께 **롤백**됐다 — 차감 없는 size=0 포지션이 남지 않는다.
             log.warn("매수 예약이 거절돼 롤백했다 (sessionId={}, {}, 사유={}): {}",
                     session.getId(), coinPair, rejected.getCode(), rejected.getMessage());
-            return;
+            return "예약 거절(" + rejected.getCode() + "): " + rejected.getMessage();
         }
         if (preparedOrderId == null) {
             log.warn("[§8] 매수 차단: 한도를 넘어 예약하지 않았다 (sessionId={}, 매수금={})",
                     session.getId(), investAmount);
-            return;
+            return "예약하지 않았다";
         }
 
         try {
@@ -1492,11 +1538,12 @@ public class LiveTradingService {
                     preparedOrderId, session.getId(), dispatchFailed.getMessage());
             orderExecutionEngine.withdrawUndispatchedIntent(preparedOrderId,
                     "실행기 디스패치 실패 — 제출하지 않았다: " + dispatchFailed.getClass().getSimpleName());
-            return;
+            return "실행기 디스패치 실패";
         }
 
         log.info("실전 매수 주문 (sessionId={}): {} {}개 @ {} 사유: {}",
                 session.getId(), coinPair, quantity, price, reason);
+        return null;
     }
 
     /**

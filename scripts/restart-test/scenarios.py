@@ -463,15 +463,23 @@ def s12():
         th.join()
         kind_, detail, took = res['r']
         after_timeout = pg_activity()
+        idle_detail = idle_in_tx_detail()
+        time.sleep(2.5)
+        idle_detail_later = idle_in_tx_detail()
         h.wait()
         rt.log(f'  잠금 대기 중 연결: {during}')
         rt.log(f'  제한 시간 직후 연결: {after_timeout}')
         check(f'S12 {what} 대기 중: 업무용 풀 연결이 잠금 대기(Lock), 단일 인스턴스 연결은 대기 아님·잠금 유지',
               count_act(during, 'pool', wait='Lock') >= 1 and count_act(during, 'guard', wait='Lock') == 0
               and count_act(during, 'guard') == 1 and guard_held_during, str(during))
-        check(f'S12 {what} 제한 시간 뒤: 롤백·연결 반환(트랜잭션 중 유휴 0·잠금 대기 0)',
-              count_act(after_timeout, 'pool', state='idle in transaction') == 0
-              and count_act(after_timeout, 'pool', wait='Lock') == 0, str(after_timeout))
+        rt.log(f'  제한 시간 직후 트랜잭션 중 유휴: {idle_detail} → 2.5초 뒤: {idle_detail_later}')
+        # 2026-10-15: 순간 측정 한 번은 다른 작업(DYNAMIC 틱 트랜잭션 등)이 SQL 사이에 잠깐 유휴인 것과 반납되지 않은 트랜잭션을
+        # 구분하지 못한다(208/209 회차에서 2건 관측). 반납되지 않은 트랜잭션은 유휴가 계속되므로 "2초 넘게 유휴인 트랜잭션 0" 을
+        # 2.5초 간격 두 번 모두에서 요구한다. 잠금 대기 0 은 그대로.
+        check(f'S12 {what} 제한 시간 뒤: 롤백·연결 반환(2초 넘게 유휴인 트랜잭션 0·잠금 대기 0)',
+              not stale_idle_in_tx(idle_detail) and not stale_idle_in_tx(idle_detail_later)
+              and count_act(after_timeout, 'pool', wait='Lock') == 0,
+              f'{after_timeout} 유휴상세={idle_detail} / {idle_detail_later}')
         st = state(sid)
         check(f'S12 {what} 잠금 중 매수 — 제한 시간(10초) 뒤 실패', kind_ != 'ok' and 8 <= took <= 14,
               f'{kind_} {detail} {took:.1f}s')
@@ -676,6 +684,21 @@ def pg_activity():
         "WHERE datname = 'crypto_auto_trader' AND pid <> pg_backend_pid() AND application_name <> 'psql' "
         "GROUP BY 1, 2, 3 ORDER BY 1, 2, 3")
     return [tuple(r) for r in rows]
+
+
+def idle_in_tx_detail():
+    """트랜잭션 중 유휴 연결의 내용 — (pid, 유휴 지속 초, 트랜잭션 나이 초, 마지막 쿼리 앞부분)."""
+    rows = rt.psql(
+        "SELECT pid, round(extract(epoch FROM now() - state_change)::numeric, 2), "
+        "round(extract(epoch FROM now() - xact_start)::numeric, 2), left(regexp_replace(query, '\\s+', ' ', 'g'), 90) "
+        "FROM pg_stat_activity WHERE datname = 'crypto_auto_trader' AND state = 'idle in transaction' "
+        "AND application_name <> 'cat-single-instance' AND application_name <> 'psql'")
+    return [tuple(r) for r in rows]
+
+
+def stale_idle_in_tx(detail, seconds=2.0):
+    """반납되지 않은 트랜잭션 — 유휴가 seconds 넘게 이어진 것. 다른 작업이 SQL 사이에서 잠깐 유휴인 것은 세지 않는다."""
+    return [d for d in detail if float(d[1]) > seconds]
 
 
 def count_act(act, who, state=None, wait=None):

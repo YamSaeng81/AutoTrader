@@ -302,6 +302,10 @@ public class DynamicTradingService {
     @Autowired
     private OptimisticRetry optimisticRetry;
 
+    /** 신규 진입의 코인 우선순위 — 등록 단계에서는 같은 평가 회차 후보를 사전 순서로 승인한다 (2026-10-14). */
+    @Autowired
+    private EntryPriorityRounds entryPriorityRounds;
+
     /** 정지 후 정리 대기 (V87) — 정지가 남긴 포지션을 닫힐 때까지 맡는다. */
     @Autowired
     private com.cryptoautotrader.api.repository.PositionCleanupRepository positionCleanupRepository;
@@ -851,6 +855,29 @@ public class DynamicTradingService {
                          BigDecimal sizeMultiplier) {}
 
     /**
+     * 회차 승인 차례에 부른다 (2026-10-14) — 자기 트랜잭션에서 세션을 다시 읽고, 평가 때와 지금 사이에 바뀐 것(정지·보유)을
+     * 확인한 뒤 같은 매수 경로({@link #executeBuy})를 탄다. {@code self} 프록시로 불러야 트랜잭션이 걸린다.
+     *
+     * @return 진입했으면 {@code null}, 아니면 사유
+     */
+    @Transactional
+    public String approveQueuedEntry(Long sid, String coinPair, List<Candle> evalCandles, StrategySignal signal,
+                                     BigDecimal sizeMultiplier, StrategyLogEntity signalLog) {
+        DynamicSessionEntity fresh = dynamicSessionRepo.findById(sid).orElse(null);
+        String result;
+        if (fresh == null || !"RUNNING".equals(fresh.getStatus())) {
+            result = "승인 차례에 세션이 실행 중이 아니다";
+        } else if (!"SCANNING".equals(fresh.getScanState())
+                || !positionRepository.findBySessionKindAndSessionIdAndStatus(sessionKind(fresh), sid, "OPEN").isEmpty()) {
+            result = "승인 차례에 이미 포지션이 있다";
+        } else {
+            result = executeBuy(fresh, coinPair, evalCandles, signal, sizeMultiplier);
+        }
+        updateSignalQuality(signalLog, result == null, result);
+        return result;
+    }
+
+    /**
      * BUY 후보 중 신호 강도(strength)가 가장 높은 것을 선택한다. 동률이면 먼저 평가된(워치리스트
      * 순서상 앞선) 코인을 유지한다(스트림 max()는 첫 최댓값을 보존).
      */
@@ -1161,8 +1188,25 @@ public class DynamicTradingService {
 
         log.info("[Dynamic] BUY 신호 진입: {} {} strength={} (id={}, 후보 {}개 중 최고)",
                 best.coinPair(), best.signal().getReason(), best.signal().getStrength(), sid, buyCandidates.size());
-        String blockedReason = executeBuy(session, best.coinPair(), best.evalCandles(), best.signal(), best.sizeMultiplier());
-        updateSignalQuality(best.signalLog(), blockedReason == null, blockedReason);
+        if (OrderSettlementService.isSharedPoolKind(sessionKind(session)) && entryPriorityRounds.isActive()) {
+            // 🔴 등록 단계의 공유 풀 세션 (2026-10-14, 선행 조건 3-e): 세션 안의 코인 선택(신호 강도)은 전략 규칙이라 그대로 두고,
+            //    공유 풀 진입은 같은 마감 캔들의 다른 세션 후보와 함께 마감 뒤 사전 등록 순서로 승인한다. 여기서는 사지 않는다.
+            //    🔴 갈림은 isPaper 가 아니라 **자본 모델**이다(동등성 시험의 규칙) — 슬롯 경합은 공유 풀에만 있다. 독립 자본
+            //    페이퍼(검증 66세션)는 경합이 없으므로 대상이 아니고, 공유 풀 페이퍼를 만들면 같은 규칙을 탄다.
+            Instant candleOpen = best.evalCandles().get(best.evalCandles().size() - 1).getTime();
+            String notQueued = entryPriorityRounds.submit(new EntryPriorityRounds.Candidate(
+                    "DYNAMIC", sid, best.coinPair(),
+                    new EntryPriorityRounds.RoundKey(session.getTimeframe(), candleOpen),
+                    () -> self.approveQueuedEntry(sid, best.coinPair(), best.evalCandles(), best.signal(),
+                            best.sizeMultiplier(), best.signalLog())),
+                    Instant.now());
+            if (notQueued != null) {
+                updateSignalQuality(best.signalLog(), false, notQueued);
+            }
+        } else {
+            String blockedReason = executeBuy(session, best.coinPair(), best.evalCandles(), best.signal(), best.sizeMultiplier());
+            updateSignalQuality(best.signalLog(), blockedReason == null, blockedReason);
+        }
 
         for (BuyCandidate other : buyCandidates) {
             if (other == best) continue;
