@@ -147,7 +147,9 @@ def fresh_db():
 
 POOL_DEFAULT = {
     'trading.capital-pool.stage': 'RESTART_TEST',
-    'trading.capital-pool.total-cap-krw': '1000000',
+    # 2026-10-14: 손실 한도(총 자본 × risk_config %)가 시나리오가 SQL 로 닫은 포지션(매도 없는 청산 = 현금 흐름상 손실)으로 차지
+    # 않게 크게 둔다. 손실 한도 자체는 S14 가 STAGE_1 정확한 값으로 본다. 가드는 모든 시나리오에서 켜져 있다.
+    'trading.capital-pool.total-cap-krw': '1000000000',
     'trading.capital-pool.per-position-cap-krw': '100000',
     # 시나리오가 남긴 열린 포지션이 슬롯을 채워 엉뚱한 거절이 나지 않게 넉넉히 (슬롯 거절 자체는 S13·단위 시험이 본다)
     'trading.capital-pool.max-concurrent-positions': '1000',

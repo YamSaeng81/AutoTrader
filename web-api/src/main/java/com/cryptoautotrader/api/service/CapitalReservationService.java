@@ -117,6 +117,7 @@ public class CapitalReservationService {
     private final PositionRepository positionRepository;
     private final PortfolioManager portfolioManager;
     private final CapitalPoolLimits limits;
+    private final PoolLossGuard poolLossGuard;
 
     @Autowired(required = false)
     private DynamicSessionRepository dynamicSessionRepository;
@@ -128,12 +129,14 @@ public class CapitalReservationService {
                                       OrderRepository orderRepository,
                                       PositionRepository positionRepository,
                                       PortfolioManager portfolioManager,
-                                      CapitalPoolLimits limits) {
+                                      CapitalPoolLimits limits,
+                                      PoolLossGuard poolLossGuard) {
         this.sessionRepository = sessionRepository;
         this.orderRepository = orderRepository;
         this.positionRepository = positionRepository;
         this.portfolioManager = portfolioManager;
         this.limits = limits;
+        this.poolLossGuard = poolLossGuard;
     }
 
     /**
@@ -176,6 +179,14 @@ public class CapitalReservationService {
         Decision pool = checkRegisteredPoolForBuy(amount, exclude);
         if (!pool.approved()) {
             return logged(sessionId, pool);
+        }
+
+        // ②-2 등록 손실 한도 (2026-10-14, 선행 조건 1번) — 단계 고정 자본 기준 누적·최근 24시간 순자산 감소.
+        //      🔴 LIVE·DYNAMIC 이 같은 자리에서 판정한다. 종전 손실 판정(checkRisk)은 LIVE 틱에만 있었고 DYNAMIC 실자금 매수는
+        //      어떤 손실 한도도 지나지 않았다.
+        Decision loss = poolLossGuard.checkForEntry(Instant.now(), selfPositionId);
+        if (!loss.approved()) {
+            return logged(sessionId, loss);
         }
 
         // ③ 계좌 여력 — 등록 한도 안이어도 계좌에 없는 돈은 승인하지 않는다.
@@ -229,8 +240,8 @@ public class CapitalReservationService {
         }
         em.flush();   // 🔴 잠금 안에서 반영을 확정한다 — 다음 예약이 읽을 합계에 들어가야 한다.
 
-        String msg = String.format("예약(%s): 세션 %s → %s, %s | %s", kind, before.toPlainString(),
-                after.toPlainString(), pool.message(), account.message());
+        String msg = String.format("예약(%s): 세션 %s → %s, %s | %s | %s", kind, before.toPlainString(),
+                after.toPlainString(), pool.message(), account.message(), loss.message());
         log.info("자금 예약 (sessionId={}): {}", sessionId, msg);
         return Decision.approve(msg);
     }
@@ -293,6 +304,10 @@ public class CapitalReservationService {
         if (!limits.isRegistered()) {
             return logged(sessionId, Decision.reject(POOL_NOT_REGISTERED,
                     "공유 풀 한도가 사전 등록과 맞지 않는다(" + limits.registrationProblem() + ") — 실자금 세션을 배정하지 않는다 (" + limits + ")"));
+        }
+        // 단계 시작 시각 — 첫 실자금 배정에서 만든다. 손실 한도의 대상 범위이며 세션 정지·재시작과 무관하다.
+        if (poolLossGuard.isEnabled()) {
+            poolLossGuard.ensureBaseline(Instant.now());
         }
         BigDecimal allocated = nz(sessionRepository.sumInitialCapitalExcluding(
                 LIVE_ALLOCATING_STATUSES, excludeLive))

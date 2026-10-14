@@ -618,15 +618,24 @@ def s13():
     # 대조군: STAGE_1 정확한 값이면 승인 — 같은 조건의 거절이 설정 때문임을 보인다
     rt.psql("UPDATE live_trading_session SET status = 'STOPPED' WHERE status = 'RUNNING'")
     rt.psql("UPDATE dynamic_session SET status = 'STOPPED' WHERE status = 'RUNNING'")
-    rt.start_app(label='s13-stage1-ok', props=stage_props('STAGE_1', '100000', '20000', '3'))
-    check('S13 대조군: 기동 로그에 차단 경보 없음', '공유 풀 한도가 사전 등록과 맞지 않는다' not in rt.app_log())
-    sid = seed_live_session()
-    buy(sid)
-    rt.wait_until(lambda: state(sid)['orders'] and state(sid)['orders'][0][2] == 'FILLED', 60, 1, 'S13 대조군')
-    st = state(sid)
-    check('S13 대조군 STAGE_1 정확한 값: 매수 승인·1회 반영', st['exchange_creates'] == 1 and float(avail(st)) == 7058.53,
-          f'{st["exchange_creates"]} {avail(st)}')
-    rt.kill_app()
+    # 🔴 2026-10-14(선행 조건 1번): STAGE_1 은 risk_config 도 등록값(24시간 3.0·누적 15.0)이어야 승인된다. 대조군은 둘 다 맞춘다.
+    rc_saved = rt.psql("SELECT id, max_daily_loss_pct::text, max_portfolio_drawdown_pct::text FROM risk_config ORDER BY id DESC LIMIT 1")[0]
+    # 앞 시나리오가 남긴 열린 포지션이 1단계 슬롯 3 을 채우지 않게 닫는다(기본 순서에서 S1~S12 가 먼저 돈다 — 시험 준비).
+    rt.psql("UPDATE position SET status = 'CLOSED' WHERE status IN ('OPEN', 'CLOSING') AND session_kind IN ('LIVE', 'DYNAMIC')")
+    rt.psql(f"UPDATE risk_config SET max_daily_loss_pct = 3.0, max_portfolio_drawdown_pct = 15.0 WHERE id = {rc_saved[0]}")
+    try:
+        rt.start_app(label='s13-stage1-ok', props=stage_props('STAGE_1', '100000', '20000', '3'))
+        check('S13 대조군: 기동 로그에 차단 경보 없음', '공유 풀 한도가 사전 등록과 맞지 않는다' not in rt.app_log())
+        sid = seed_live_session()
+        buy(sid)
+        rt.wait_until(lambda: state(sid)['orders'] and state(sid)['orders'][0][2] == 'FILLED', 60, 1, 'S13 대조군')
+        st = state(sid)
+        check('S13 대조군 STAGE_1 정확한 값: 매수 승인·1회 반영', st['exchange_creates'] == 1 and float(avail(st)) == 7058.53,
+              f'{st["exchange_creates"]} {avail(st)}')
+        rt.kill_app()
+    finally:
+        rt.psql(f"UPDATE risk_config SET max_daily_loss_pct = {rc_saved[1]}, max_portfolio_drawdown_pct = {rc_saved[2]} "
+                f"WHERE id = {rc_saved[0]}")
 
     # risk_config 행 없음 → 신규 매수 차단 (행은 시험 뒤 그대로 되돌린다)
     saved = rt.one("SELECT json_agg(r) FROM risk_config r")
@@ -638,7 +647,10 @@ def s13():
         st = state(sid)
         check('S13 risk_config 없음: 매수 거절·흔적 없음', kind_ != 'ok' and not st['orders'] and not st['positions']
               and float(avail(st)) == 10000 and st['exchange_creates'] == 0, f'{kind_} {detail}')
-        check('S13 risk_config 없음: 사유 기록', 'risk_config 행이 없어 신규 매수를 승인하지 않는다' in rt.app_log())
+        # 2026-10-14: 행이 없으면 예약 지점의 손실 한도 대조(RISK_CONFIG_MISMATCH)가 먼저 막는다 — 종전 사유(제출 승인 지점)도 받는다.
+        log = rt.app_log()
+        check('S13 risk_config 없음: 사유 기록', 'risk_config 행이 없어 신규 매수를 승인하지 않는다' in log
+              or ('RISK_CONFIG_MISMATCH' in log and 'risk_config 행이 없다' in log))
         check('S13 risk_config 없음: 읽기 경로가 행을 만들지 않았다', rt.one("SELECT count(*) FROM risk_config") == '0')
         rt.kill_app()
     finally:
@@ -866,10 +878,160 @@ def s11c():
     rt.kill_all()
 
 
+# ── 선행 조건 1번 — 공유 풀 손실 한도 (2026-10-14) ───────────────────────────────
+
+def buy_krw(sid, krw):
+    try:
+        r = rt.api('POST', f'/api/v1/restart-harness/buy?kind={KIND}&sessionId={sid}&krw={krw}', timeout=40)
+        return ('ok', r)
+    except urllib.error.HTTPError as e:
+        return ('http', e.code)
+    except Exception as e:
+        return ('err', repr(e))
+
+
+def start_session(sid):
+    path = f'/api/v1/dynamic-sessions/{sid}/start' if KIND == 'DYNAMIC' else f'/api/v1/trading/sessions/{sid}/start'
+    rt.api('POST', path, timeout=40)
+
+
+def loss_decisions_after(n, timeout=10):
+    """판정 줄이 n 개보다 많아질 때까지 기다린다 — 앱 로그가 파일에 늦게 쓰일 수 있다."""
+    t0 = time.time()
+    while time.time() - t0 < timeout:
+        d = loss_decisions()
+        if len(d) > n:
+            return d
+        time.sleep(0.5)
+    return loss_decisions()
+
+
+def loss_decisions():
+    """앱 로그의 손실 한도 판정 줄 — (순자산 변화, 누적 한도, 24시간 한도, 총 자본)."""
+    import re
+    out = []
+    for line in rt.app_log().splitlines():
+        if '한도 도달' in line and '순자산 변화' in line:
+            m = re.search(r'순자산 변화 (-?[\d.]+) .*한도 누적 −([\d.]+) · 24시간 −([\d.]+) \(총 자본 ([\d.]+) 고정\)', line)
+            if m:
+                out.append(m.groups())
+    return out
+
+
+def s14():
+    rt.log('S14 손실 한도 — risk_config 대조, 실제 체결 손실로 24시간 한도 도달, 신규 진입만 차단, 세션·프로세스 재시작에도 같은 한도')
+    stage1 = stage_props('STAGE_1', '100000', '20000', '3')
+    table = session_table()
+    # 앞 시나리오가 남긴 열린 포지션·세션을 닫는다 — 1단계 슬롯 3 을 채우지 않게. 단계 기준도 새로 시작한다(시험 준비).
+    rt.psql("UPDATE position SET status = 'CLOSED' WHERE status IN ('OPEN', 'CLOSING') AND session_kind IN ('LIVE', 'DYNAMIC')")
+    rt.psql("UPDATE live_trading_session SET status = 'STOPPED' WHERE status = 'RUNNING'")
+    rt.psql("UPDATE dynamic_session SET status = 'STOPPED' WHERE status = 'RUNNING' AND trading_mode = 'REAL'")
+    rt.psql("DELETE FROM pool_equity_snapshot")
+    rt.psql("DELETE FROM capital_stage_baseline")
+    saved = rt.psql("SELECT id, max_daily_loss_pct::text, max_portfolio_drawdown_pct::text FROM risk_config ORDER BY id DESC LIMIT 1")[0]
+    rid = saved[0]
+    try:
+        # ① 풀은 STAGE_1 정확한 값, risk_config 는 V88 기본값(24시간 1.5) → 등록값과 달라 진입 차단
+        rt.psql(f"UPDATE risk_config SET max_daily_loss_pct = 1.5, max_portfolio_drawdown_pct = 15.0 WHERE id = {rid}")
+        rt.start_app(label='s14-mismatch', props=stage1)
+        log = rt.app_log()
+        check('S14① risk_config 1.5: 기동 로그 경보', '위험 한도 설정이 사전 등록과 맞지 않는다' in log
+              and 'max_daily_loss_pct=1.5' in log)
+        sid = seed_live_session()
+        kind_, detail = buy_krw(sid, 3000)
+        st = state(sid)
+        check('S14① 매수 거절(RISK_CONFIG_MISMATCH)·흔적 없음', kind_ != 'ok' and 'RISK_CONFIG_MISMATCH' in rt.app_log()
+              and not st['orders'] and not st['positions'] and float(avail(st)) == 10000 and st['exchange_creates'] == 0,
+              f'{kind_} {detail}')
+        rt.psql(f"UPDATE {table} SET status = 'STOPPED' WHERE id = {sid}")
+        rt.kill_app()
+
+        # ② 등록값(3.0 · 15.0)이면 승인. 보유 하나(C)를 열고, 다른 세션(A)은 9,000 매수 후 5,000 에 팔아 실제 손실을 낸다.
+        rt.psql(f"UPDATE risk_config SET max_daily_loss_pct = 3.0, max_portfolio_drawdown_pct = 15.0 WHERE id = {rid}")
+        rt.start_app(label='s14-run', props=stage1)
+        check('S14② risk_config 3.0·15.0: 기동 경보 없음', '위험 한도 설정이 사전 등록과 맞지 않는다' not in rt.app_log())
+        c = seed_live_session()
+        buy_krw(c, 3000)
+        rt.wait_until(lambda: state(c)['orders'] and state(c)['orders'][0][2] == 'FILLED', 60, 1, 'S14 C 매수')
+        a = seed_live_session()
+        buy_krw(a, 9000)
+        rt.wait_until(lambda: state(a)['orders'] and state(a)['orders'][0][2] == 'FILLED', 60, 1, 'S14 A 매수')
+        check('S14② 한도 안에서는 승인(C 3,000·A 9,000 체결)',
+              state(c)['exchange_creates'] == 1 and state(a)['exchange_creates'] == 1,
+              f'{avail(state(c))} {avail(state(a))}')
+        rt.ctl('POST', '/_ctl/plan', {'ask': {'fill': 'wait', 'once': True}})
+        stop_session(a)
+        rt.wait_until(lambda: any(o[1] == 'SELL' and o[4] == 't' for o in state(a)['orders']), 60, 1, 'S14 A 매도 접수')
+        rt.ctl('POST', '/_ctl/fill', {'uuid': this_sell_uuid(a), 'state': 'done', 'volume': '29.4', 'funds': '5000'})
+        rt.wait_until(lambda: state(a)['positions'][0][1] == 'CLOSED', 90, 2, 'S14 A 청산')
+        time.sleep(3)
+        cash = rt.one("SELECT ROUND(SUM(CASE WHEN o.side = 'BUY' THEN -(o.applied_executed_funds + o.applied_paid_fee) "
+                      "ELSE o.applied_executed_funds - o.applied_paid_fee END), 2) FROM \"order\" o JOIN position p ON p.id = o.position_id "
+                      "WHERE p.session_kind IN ('LIVE', 'DYNAMIC') AND p.opened_at >= (SELECT started_at FROM capital_stage_baseline)")
+        rt.log(f'  단계 시작 이후 실자금 현금 흐름 = {cash} (A: −8,824.41 + 4,998.00, C: −2,941.47)')
+
+        # ③ 신규 진입 차단 — 대역 요청 없이, 흔적 없이
+        b = seed_live_session()
+        kind_, detail = buy_krw(b, 3000)
+        st = state(b)
+        d1 = loss_decisions_after(0)
+        check('S14③ 24시간 한도 도달: 매수 거절·흔적 없음·거래소 0', kind_ != 'ok' and not st['orders'] and not st['positions']
+              and float(avail(st)) == 10000 and st['exchange_creates'] == 0 and bool(d1), f'{kind_} {detail} {d1[-1:]}')
+        check('S14③ 판정: 순자산 변화 −3,829.35(현금 −6,767.88 + 보유 2,938.53), 한도 15,000/3,000(총 자본 100,000 고정)',
+              bool(d1) and d1[-1] == ('-3829.35', '15000.00', '3000.00', '100000.00'), str(d1[-1:]))
+        check('S14③ 사유: 최근 24시간 순자산 감소 한도', '최근 24시간 순자산 감소 한도 도달' in rt.app_log())
+
+        # ④ 세션 정지·재시작 — 한도 금액·순자산 변화가 그대로
+        stop_session(b)
+        rt.wait_until(lambda: state(b)['session'][0][0] == 'STOPPED', 30, 1, 'S14 B 정지')
+        start_session(b)
+        rt.wait_until(lambda: state(b)['session'][0][0] == 'RUNNING', 30, 1, 'S14 B 재시작')
+        kind_, detail = buy_krw(b, 3000)
+        d2 = loss_decisions_after(len(d1))
+        check('S14④ 세션 정지·재시작 뒤에도 같은 판정(같은 순자산 변화·같은 한도 금액)',
+              kind_ != 'ok' and len(d2) > len(d1) and d2[-1] == d1[-1] and state(b)['exchange_creates'] == 0,
+              f'{d1[-1:]} → {d2[-1:]}')
+
+        # ⑤ 위험 축소는 계속 — 차단 중에도 C 정지 매도가 나가고 한 번 반영된다
+        rt.ctl('POST', '/_ctl/plan', {'ask': {'fill': 'done', 'once': True}})
+        stop_session(c)
+        rt.wait_until(lambda: state(c)['positions'][0][1] == 'CLOSED', 90, 2, 'S14 C 청산')
+        sc = state(c)
+        asks = [e for e in sc['exchange_orders'] if e['side'] == 'ask']
+        check('S14⑤ 차단 중에도 정지·청산 계속(매도 1건, CLOSED)', len(asks) == 1 and sc['session'][0][0] == 'STOPPED', str(asks))
+
+        # ⑥ 기록 — 1분 스냅숏이 쌓인다(24시간 기준)
+        rt.wait_until(lambda: int(rt.one("SELECT count(*) FROM pool_equity_snapshot WHERE stage = 'STAGE_1'")) > 0,
+                      120, 5, 'S14 스냅숏')
+        snap = rt.psql("SELECT taken_at, net_change_krw::text FROM pool_equity_snapshot WHERE stage = 'STAGE_1' "
+                       "ORDER BY taken_at DESC LIMIT 1")
+        check('S14⑥ 순자산 변화 1분 기록이 남는다', bool(snap), str(snap))
+        base1 = rt.one("SELECT started_at FROM capital_stage_baseline WHERE stage = 'STAGE_1'")
+
+        # ⑦ 프로세스 재시작 — 기준 시각·한도 금액이 그대로이고 차단이 이어진다
+        rt.kill_app()
+        rt.start_app(label='s14-restart', props=stage1)
+        kind_, detail = buy_krw(b, 3000)
+        d3 = loss_decisions_after(0)
+        base2 = rt.one("SELECT started_at FROM capital_stage_baseline WHERE stage = 'STAGE_1'")
+        check('S14⑦ 프로세스 재시작: 기준 시각 불변·같은 한도 금액·차단 지속',
+              kind_ != 'ok' and base1 == base2 and bool(d3)
+              and d3[-1][1:] == ('15000.00', '3000.00', '100000.00') and state(b)['exchange_creates'] == 0,
+              f'{base1}→{base2} {d3[-1:]}')
+        rt.log(f'  재시작 뒤 판정 {d3[-1:]} (C 청산으로 보유 평가 2,938.53 → 매도 순대금으로 바뀌었다)')
+        rt.kill_app()
+    finally:
+        rt.psql(f"UPDATE risk_config SET max_daily_loss_pct = {saved[1]}, max_portfolio_drawdown_pct = {saved[2]} WHERE id = {rid}")
+        rt.psql("UPDATE position SET status = 'CLOSED' WHERE status IN ('OPEN', 'CLOSING') AND session_kind IN ('LIVE', 'DYNAMIC')")
+        rt.psql("UPDATE live_trading_session SET status = 'STOPPED' WHERE status = 'RUNNING'")
+        rt.psql("UPDATE dynamic_session SET status = 'STOPPED' WHERE status = 'RUNNING' AND trading_mode = 'REAL'")
+    check('S14 risk_config 복원', rt.psql(f"SELECT max_daily_loss_pct::text FROM risk_config WHERE id = {rid}")[0][0] == saved[1])
+
+
 SCEN = {'S1': s1, 'S2': s2, 'S3': lambda: s3(False), 'S3b': lambda: s3(True),
         'S4': lambda: s45('AFTER_FILL_OBSERVED'), 'S5': lambda: s45('IN_FILL_ACCOUNTING'), 'S6': s6, 'S7': s7, 'S8': s8, 'S9': s9,
         'S10': s10, 'S11': s11, 'S12': s12, 'S13': s13,
-        'S10b': s10b, 'S11b': s11b, 'S11c': s11c, 'S13b': s13b}
+        'S10b': s10b, 'S11b': s11b, 'S11c': s11c, 'S13b': s13b, 'S14': s14}
 
 if __name__ == '__main__':
     args = sys.argv[1:]
@@ -889,7 +1051,7 @@ if __name__ == '__main__':
             KIND = kind
             globals()['KIND'] = kind
             for n in names:
-                if kind == 'DYNAMIC' and n not in ('S3', 'S3b', 'S6', 'S7', 'S8', 'S9', 'S12'):
+                if kind == 'DYNAMIC' and n not in ('S3', 'S3b', 'S6', 'S7', 'S8', 'S9', 'S12', 'S14'):
                     continue   # DYNAMIC 은 접수 후 종료·부분 청산 중 종료·종료 중 체결만 (의도·claim·회계 지점은 공통 엔진)
                 try:
                     rt.ctl('POST', '/_ctl/plan', {'bid': None, 'ask': None})   # 앞 시나리오의 1회용 계획이 새지 않게
