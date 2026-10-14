@@ -420,6 +420,25 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
             nativeQuery = true)
     int markSellApplied(@Param("id") Long id, @Param("now") Instant now);
 
+    /**
+     * 매도 확정이 포지션·잔액에 반영한 대금·수수료를 기록한다 (2026-10-14) — 뒤늦은 정정은 이 값과의 차이만 반영한다.
+     * 영속성 컨텍스트를 비우지 않는다(확정 반복문의 포지션 엔티티를 떼어내지 않는다).
+     */
+    @org.springframework.data.jpa.repository.Modifying(flushAutomatically = true)
+    @Query("UPDATE OrderEntity o SET o.appliedExecutedFunds = :funds, o.appliedPaidFee = :fee, o.feeSource = :source, "
+            + "o.settlementVersion = o.settlementVersion + 1, o.settlementNextCheckAt = :nextCheckAt "
+            + "WHERE o.id = :id AND o.feeSource IS NOT NULL")
+    int recordSellApplied(@Param("id") Long id, @Param("funds") java.math.BigDecimal funds,
+                          @Param("fee") java.math.BigDecimal fee, @Param("source") String source,
+                          @Param("nextCheckAt") Instant nextCheckAt);
+
+    /** 아직 반영하지 않은 매도의 거래소 보고값만 갱신한다 — 반영값·버전은 건드리지 않는다 (2026-10-14). */
+    @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("UPDATE OrderEntity o SET o.reportedExecutedFunds = COALESCE(:funds, o.reportedExecutedFunds), "
+            + "o.reportedPaidFee = COALESCE(:fee, o.reportedPaidFee) WHERE o.id = :id")
+    int recordSellReported(@Param("id") Long id, @Param("funds") java.math.BigDecimal funds,
+                           @Param("fee") java.math.BigDecimal fee);
+
     /** 이미 {@code CANCELLED} 인 주문의 체결 없음을 재조회로 확인했다. */
     @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE OrderEntity o SET o.cancelConfirmedAt = :now, o.cancelCheckedAt = :now "

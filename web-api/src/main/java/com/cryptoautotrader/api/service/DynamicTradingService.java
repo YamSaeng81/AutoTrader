@@ -2369,6 +2369,16 @@ public class DynamicTradingService {
                     + ")가 체결 없이 끝났다는 근거가 없다 — 다시 내지 않는다. 사람 확인 필요");
             return;
         }
+        // 🔴 거래소가 매도를 명시적으로 거절한 것이 상한만큼 쌓이면 다시 내지 않는다 (2026-10-14) — 잔고 부족·최소 금액 미달
+        //    같은 거절은 같은 요청을 다시 내도 반복된다. 사람이 원인을 확인할 때까지 대기로 둔다.
+        long rejected = orderRepository.findByPositionIdOrderByCreatedAtDesc(posId).stream()
+                .filter(o -> "SELL".equalsIgnoreCase(o.getSide())
+                        && OrderExecutionEngine.EXCHANGE_REJECTED.equals(o.getFailureCode()))
+                .count();
+        if (rejected >= CLEANUP_MAX_REJECTED_SELLS) {
+            positionCleanupRepository.note(posId, "매도가 거래소에서 " + rejected + "회 거절됐다 — 다시 내지 않는다. 사람 확인 필요");
+            return;
+        }
         // 🔴 직전 제출이 아직 주문으로 나타나지 않았으면 기다린다. 제출은 커밋 뒤 비동기라, 실행기 적체 중에는
         //    청산 확정이 "매도 주문 없음" 으로 CLOSING 을 OPEN 으로 되돌린 뒤에야 의도가 생길 수 있다. 그 사이에
         //    다시 내면 매도가 두 번 나간다. 유예가 지나도 나타나지 않으면(재시작으로 제출 전에 사라짐) 다시 낸다.
@@ -2401,6 +2411,9 @@ public class DynamicTradingService {
         log.warn("[Dynamic] 정지 후 정리 — 청산 매도 제출 (posId={}, sessionId={}, 수량={}, 사유={})",
                 posId, c.getSessionId(), pos.getSize(), c.getReason());
     }
+
+    /** 정리 작업이 거래소 거절 뒤 매도를 다시 내는 상한 (2026-10-14). */
+    private static final int CLEANUP_MAX_REJECTED_SELLS = 2;
 
     /** 정리 작업의 직전 제출이 주문으로 나타나기를 기다리는 시간 (V87). */
     private static final Duration CLEANUP_SUBMIT_GRACE = Duration.ofMinutes(2);
@@ -2704,10 +2717,15 @@ public class DynamicTradingService {
         BigDecimal soldQty = filledOrder.getFilledQuantity() != null
                 ? filledOrder.getFilledQuantity() : pos.getSize();
 
-        BigDecimal proceeds = soldQty.multiply(fillPrice);
-        BigDecimal fee = proceeds.multiply(FEE_RATE);
-        BigDecimal netProceeds = proceeds.subtract(fee);
+        // 🔴 거래소 보고 대금·수수료를 쓴다 (2026-10-14) — 없으면 추정하고 출처를 남긴다. 쓴 값은 주문의 반영값으로
+        //    기록해, 뒤늦은 보고·정정은 정산이 그 차이만 반영한다.
+        OrderSettlementService.SellAmounts amounts =
+                OrderSettlementService.SellAmounts.of(filledOrder, soldQty, fillPrice, FEE_RATE);
+        BigDecimal proceeds = amounts.funds();
+        BigDecimal fee = amounts.fee();
+        BigDecimal netProceeds = amounts.net();
         BigDecimal realizedPnl = netProceeds.subtract(soldQty.multiply(pos.getAvgPrice()));
+        OrderSettlementService.recordSellApplied(orderRepository, filledOrder, amounts);
 
         // 부분 체결 후 취소(D-3) — 판 수량이 전체보다 적으면 잔여분은 여전히 보유 중이므로
         // 전체 CLOSED 대신 잔여 수량만 남기고 OPEN 유지한다 (LiveTradingService.finalizeSellPosition 동일 원칙).

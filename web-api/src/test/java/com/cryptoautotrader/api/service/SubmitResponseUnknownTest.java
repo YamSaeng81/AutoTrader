@@ -104,7 +104,8 @@ class SubmitResponseUnknownTest extends IntegrationTestBase {
         var pool = orderExecutor.getThreadPoolExecutor();
         long deadline = System.currentTimeMillis() + 15_000;
         while (System.currentTimeMillis() < deadline) {
-            if (pool.getQueue().isEmpty() && pool.getActiveCount() == 0) return;
+            if (pool.getQueue().isEmpty() && pool.getActiveCount() == 0
+                    && pool.getTaskCount() == pool.getCompletedTaskCount()) return;
             try {
                 Thread.sleep(50);
             } catch (InterruptedException ie) {

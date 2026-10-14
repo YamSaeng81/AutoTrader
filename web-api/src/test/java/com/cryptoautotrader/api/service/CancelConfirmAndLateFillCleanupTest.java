@@ -595,8 +595,7 @@ class CancelConfirmAndLateFillCleanupTest extends IntegrationTestBase {
         }
         awaitDrained();
 
-        List<OrderEntity> sells = orderRepository.findByPositionIdOrderByCreatedAtDesc(f.positionId()).stream()
-                .filter(o -> "SELL".equalsIgnoreCase(o.getSide())).toList();
+        List<OrderEntity> sells = awaitSubmittedSells(f, 1);
         System.out.println("[D1 " + kind + " 정리 작업 후] " + snap(f) + " 매도=" + sells.size()
                 + " " + sells.stream().map(o -> o.getState() + "/" + o.getQuantity()).toList());
         assertThat(sells).as("🔴 청산 매도는 한 번만 — 동시·반복 실행에도").hasSize(1);
@@ -654,10 +653,8 @@ class CancelConfirmAndLateFillCleanupTest extends IntegrationTestBase {
         Mockito.doReturn(exchange(f.uuid(), "done", FILL)).when(upbitOrderClient).getOrder(f.uuid());
         engine.pollActiveOrders();
         cleanupWorker(kind);
-        awaitDrained();
 
-        OrderEntity firstSell = orderRepository.findByPositionIdOrderByCreatedAtDesc(f.positionId()).stream()
-                .filter(o -> "SELL".equalsIgnoreCase(o.getSide())).findFirst().orElseThrow();
+        OrderEntity firstSell = awaitSubmittedSells(f, 1).get(0);
         switch (ending) {
             case "EXCHANGE_REJECTED" -> {
                 firstSell.setState("FAILED");
@@ -712,6 +709,51 @@ class CancelConfirmAndLateFillCleanupTest extends IntegrationTestBase {
                 .filter(o -> "SELL".equalsIgnoreCase(o.getSide())).toList();
     }
 
+    /**
+     * 제출하는 쪽(정리 작업 호출)이 끝난 **뒤에** 부른다 — 이 포지션의 매도가 {@code n} 건, 모두 거래소 주문번호를 받은
+     * 상태가 될 때까지 기다린다(2026-10-14). 실행기 수치(제출 수 = 완료 수)만으로는 제출 직전의 0 = 0 을 완료로 볼 수 있다.
+     */
+    /** 이 포지션의 매도가 {@code n} 건이고 모두 {@code ok} 를 만족할 때까지 기다린다 — 제출하는 쪽이 끝난 뒤에 부른다. */
+    private List<OrderEntity> awaitSells(Fx f, int n, java.util.function.Predicate<OrderEntity> ok) {
+        long deadline = System.currentTimeMillis() + 20_000;
+        List<OrderEntity> s = sells(f);
+        while (System.currentTimeMillis() < deadline) {
+            s = sells(f);
+            if (s.size() == n && s.stream().allMatch(ok)) {
+                awaitDrained();
+                return sells(f);
+            }
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+        throw new AssertionError("매도 " + n + "건이 기대 상태가 되지 않았다: "
+                + s.stream().map(o -> o.getState() + "/" + o.getExchangeOrderId()).toList());
+    }
+
+    private List<OrderEntity> awaitSubmittedSells(Fx f, int n) {
+        long deadline = System.currentTimeMillis() + 20_000;
+        List<OrderEntity> s = sells(f);
+        while (System.currentTimeMillis() < deadline) {
+            s = sells(f);
+            if (s.size() == n && s.stream().allMatch(o -> o.getExchangeOrderId() != null)) {
+                awaitDrained();
+                return sells(f);
+            }
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+        throw new AssertionError("매도 " + n + "건이 접수 상태가 되지 않았다: "
+                + s.stream().map(o -> o.getState() + "/" + o.getExchangeOrderId()).toList());
+    }
+
     private void verifySellSubmits(int times) {
         Mockito.verify(upbitOrderClient, Mockito.times(times)).createOrder(Mockito.eq("KRW-DOGE"), Mockito.eq("ask"),
                 Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
@@ -763,6 +805,7 @@ class CancelConfirmAndLateFillCleanupTest extends IntegrationTestBase {
             cleanupWorker(kind);
             awaitDrained();
         }
+        awaitSells(f, 2, o -> "FAILED".equals(o.getState()) || o.getExchangeOrderId() != null);
         System.out.println("[D3 " + kind + "] " + snap(f) + " 매도=" + sells(f).stream().map(OrderEntity::getState).toList());
         assertThat(orderRepository.findById(dead.getId()).orElseThrow().getFailureCode())
                 .isEqualTo(OrderExecutionEngine.WITHDRAWN_OWNER_LOST);
@@ -792,6 +835,7 @@ class CancelConfirmAndLateFillCleanupTest extends IntegrationTestBase {
         awaitDrained();
         cleanupWorker(kind);
         awaitDrained();
+        awaitSubmittedSells(f, 1);
         System.out.println("[D3b " + kind + "] " + snap(f) + " 매도=" + sells(f).size());
         verifySellSubmits(1);
         assertThat(sells(f)).hasSize(1);
@@ -808,8 +852,7 @@ class CancelConfirmAndLateFillCleanupTest extends IntegrationTestBase {
         Mockito.doReturn(null).when(upbitOrderClient).getOrderByIdentifier(Mockito.anyString());
 
         cleanupWorker(kind);
-        awaitDrained();
-        OrderEntity lost = sells(f).get(0);
+        OrderEntity lost = awaitSells(f, 1, o -> "UNKNOWN".equals(o.getState())).get(0);
         assertThat(lost.getState()).isEqualTo("UNKNOWN");
 
         PositionEntity p = position(f);
@@ -856,8 +899,8 @@ class CancelConfirmAndLateFillCleanupTest extends IntegrationTestBase {
         stubSellSubmissionsAccepted();
 
         cleanupWorker(kind);
-        awaitDrained();
-        OrderEntity s1 = sells(f).get(0);
+        OrderEntity s1 = awaitSubmittedSells(f, 1).get(0);
+        assertThat(s1.getState()).isEqualTo("SUBMITTED");
         Mockito.doReturn(sellReport(s1.getExchangeOrderId(), "cancel", "4.9", "1470"))
                 .when(upbitOrderClient).getOrder(s1.getExchangeOrderId());
         engine.pollActiveOrders();
@@ -871,10 +914,8 @@ class CancelConfirmAndLateFillCleanupTest extends IntegrationTestBase {
         assertThat(cleanupRepository.findById(f.positionId()).orElseThrow().getDoneAt()).isNull();
 
         cleanupWorker(kind);
-        awaitDrained();
         cleanupWorker(kind);
-        awaitDrained();
-        List<OrderEntity> all = sells(f);
+        List<OrderEntity> all = awaitSubmittedSells(f, 2);
         assertThat(all).hasSize(2);
         OrderEntity s2 = all.get(0);
         assertThat(s2.getQuantity()).as("남은 수량만").isEqualByComparingTo("4.9");
@@ -902,8 +943,8 @@ class CancelConfirmAndLateFillCleanupTest extends IntegrationTestBase {
         Fx f = lateFilledInStoppedSession(kind);
         stubSellSubmissionsAccepted();
         cleanupWorker(kind);
-        awaitDrained();
-        OrderEntity s1 = sells(f).get(0);
+        OrderEntity s1 = awaitSubmittedSells(f, 1).get(0);
+        assertThat(s1.getState()).isEqualTo("SUBMITTED");
         Mockito.doReturn(sellReport(s1.getExchangeOrderId(), "cancel", "4.9", "1470"))
                 .when(upbitOrderClient).getOrder(s1.getExchangeOrderId());
         engine.pollActiveOrders();
@@ -1021,5 +1062,283 @@ class CancelConfirmAndLateFillCleanupTest extends IntegrationTestBase {
         // 7,000 + (2,940 − 1.47) = 9,938.53
         assertThat(available(f)).as("🔴 대금 2,938.53 이 한 번 — 두 번이면 12,877.06").isEqualByComparingTo("9938.53");
         assertThat(position(f).getStatus()).isEqualTo("CLOSED");
+    }
+
+    // ── G. 매도 실측 수수료 (2026-10-14) ─────────────────────────────────────────────
+
+    /** 정지 세션의 9.8 포지션(CLOSING)과 체결된 매도 하나 — 보고 대금 2,940, 보고 수수료 {@code fee}(null 이면 미보고). */
+    private OrderEntity filledSell(Fx f, String fee) {
+        PositionEntity p = position(f);
+        p.setStatus("CLOSING");
+        p.setClosingAt(Instant.now());
+        positionRepository.save(p);
+        return orderRepository.save(OrderEntity.builder()
+                .coinPair("KRW-DOGE").side("SELL").orderType("MARKET").quantity(FILL).filledQuantity(FILL)
+                .price(new BigDecimal("300")).state("FILLED").filledAt(Instant.now())
+                .reportedExecutedFunds(new BigDecimal("2940")).reportedPaidFee(fee == null ? null : new BigDecimal(fee))
+                .sessionKind(f.kind()).sessionId(f.sessionId()).positionId(f.positionId())
+                .clientOrderId("cat-sell-g-" + System.nanoTime()).exchangeOrderId("uuid-sell-g-" + System.nanoTime())
+                .feeSource(OrderExecutionEngine.FEE_SOURCE_PENDING)
+                .settlementVersion(0L).settlementFinal(Boolean.FALSE).settlementAttempts(0)
+                .createdAt(Instant.now()).build());
+    }
+
+    private void settleWith(OrderEntity sell, String fee) {
+        OrderResponse r = sellReport(sell.getExchangeOrderId(), "done", "9.8", "2940");
+        r.setPaidFee(fee == null ? null : new BigDecimal(fee));
+        Mockito.doReturn(r).when(upbitOrderClient).getOrder(sell.getExchangeOrderId());
+        OrderEntity o = orderRepository.findById(sell.getId()).orElseThrow();
+        o.setSettlementNextCheckAt(Instant.now().minusSeconds(1));
+        orderRepository.save(o);
+        engine.checkOrderStatus(sell.getId());
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @ValueSource(strings = {"LIVE", "DYNAMIC"})
+    @DisplayName("G1 매도 확정이 거래소 보고 수수료를 쓴다 — 1.20 이면 대금 2,938.80, 추정 0.05%(1.47)가 아니다")
+    void sellUsesReportedFee(String kind) {
+        Fx f = lateFilledInStoppedSession(kind);
+        OrderEntity sell = filledSell(f, "1.20");
+        closingReconcile(kind);
+        OrderEntity after = orderRepository.findById(sell.getId()).orElseThrow();
+        System.out.println("[G1 " + kind + "] " + snap(f) + " 반영수수료=" + after.getAppliedPaidFee() + " 출처=" + after.getFeeSource()
+                + " 포지션수수료=" + position(f).getPositionFee() + " 실현손익=" + position(f).getRealizedPnl());
+        assertThat(position(f).getStatus()).isEqualTo("CLOSED");
+        assertThat(available(f)).as("7,000 + 2,940 − 1.20").isEqualByComparingTo("9938.80");
+        assertThat(position(f).getRealizedPnl()).as("2,938.80 − 9.8 × 300").isEqualByComparingTo("-1.20");
+        assertThat(after.getAppliedPaidFee()).isEqualByComparingTo("1.20");
+        assertThat(after.getFeeSource()).isEqualTo(OrderExecutionEngine.FEE_SOURCE_REPORTED);
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @ValueSource(strings = {"LIVE", "DYNAMIC"})
+    @DisplayName("G2 확정 때 수수료 미보고 — 추정(1.47)으로 확정 후, 보고(1.20)가 오면 차이 0.27 만 한 번 반영")
+    void sellEstimatedThenReported(String kind) {
+        Fx f = lateFilledInStoppedSession(kind);
+        OrderEntity sell = filledSell(f, null);
+        closingReconcile(kind);
+        assertThat(available(f)).as("추정 수수료 1.47").isEqualByComparingTo("9938.53");
+        assertThat(orderRepository.findById(sell.getId()).orElseThrow().getFeeSource())
+                .isEqualTo(OrderExecutionEngine.FEE_SOURCE_ESTIMATED);
+
+        settleWith(sell, "1.20");
+        String first = snap(f) + " pnl=" + position(f).getRealizedPnl();
+        System.out.println("[G2 " + kind + "] " + first);
+        assertThat(available(f)).isEqualByComparingTo("9938.80");
+        assertThat(position(f).getRealizedPnl()).isEqualByComparingTo("-1.20");
+        for (int i = 0; i < 3; i++) {
+            settleWith(sell, "1.20");
+            closingReconcile(kind);
+        }
+        assertThat(snap(f) + " pnl=" + position(f).getRealizedPnl()).as("반복에서 바뀌면 중복 반영").isEqualTo(first);
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @ValueSource(strings = {"LIVE", "DYNAMIC"})
+    @DisplayName("G3 보고 후 수수료 증가는 차이만 한 번, 감소는 자동 반영하지 않고 불일치로 보존")
+    void sellFeeIncreaseAndDecreaseAfterReported(String kind) {
+        Fx f = lateFilledInStoppedSession(kind);
+        OrderEntity sell = filledSell(f, "1.20");
+        closingReconcile(kind);
+        settleWith(sell, "1.50");
+        settleWith(sell, "1.50");
+        assertThat(available(f)).as("증가 0.30 한 번").isEqualByComparingTo("9938.50");
+        settleWith(sell, "1.40");
+        System.out.println("[G3 " + kind + "] " + snap(f));
+        assertThat(available(f)).as("감소는 자동 반영하지 않는다").isEqualByComparingTo("9938.50");
+        assertThat(discrepancyRepository.findByOrderIdOrderByDetectedAtDesc(sell.getId()))
+                .extracting(d -> d.getKind()).contains(com.cryptoautotrader.api.entity.OrderSettlementDiscrepancyEntity.KIND_FEE_DECREASE);
+    }
+
+    // ── H. 지정가 차단 · I. 거래소 거절 분류 (2026-10-14) ──────────────────────────────
+
+    private com.cryptoautotrader.api.dto.OrderRequest buyRequest(String kind, Long sid, Long posId, String type) {
+        com.cryptoautotrader.api.dto.OrderRequest req = new com.cryptoautotrader.api.dto.OrderRequest();
+        req.setCoinPair("KRW-DOGE");
+        req.setSide("BUY");
+        req.setOrderType(type);
+        req.setQuantity(new BigDecimal("3000"));
+        req.setPrice("LIMIT".equals(type) ? new BigDecimal("300") : null);
+        req.setSignalPrice(new BigDecimal("300"));
+        req.setReason("거절 분류 시험");
+        req.setSessionId(sid);
+        req.setSessionKind(kind);
+        req.setPositionId(posId);
+        return req;
+    }
+
+    /** 평가 루프와 같은 경계 — 한 트랜잭션에서 슬롯·예약·의도를 쓰고, 커밋 후 실행기가 claim·제출한다. */
+    private Long submitBuy(String kind, Long sid, String type) {
+        return new org.springframework.transaction.support.TransactionTemplate(txManager).execute(st -> {
+            PositionEntity pos = positionRepository.save(PositionEntity.builder()
+                    .coinPair("KRW-DOGE").side("BUY").entryPrice(new BigDecimal("300")).avgPrice(new BigDecimal("300"))
+                    .size(BigDecimal.ZERO).investedKrw(new BigDecimal("3000")).status("OPEN")
+                    .sessionKind(kind).sessionId(sid).openedAt(Instant.now()).build());
+            com.cryptoautotrader.api.dto.OrderRequest req = buyRequest(kind, sid, pos.getId(), type);
+            Long orderId = engine.reserveAndPrepareIntent(req);
+            engine.submitPreparedOrderAfterCommit(orderId, req);
+            return orderId;
+        });
+    }
+
+    private BigDecimal sessionAvailable(String kind, Long sid) {
+        return "DYNAMIC".equals(kind) ? dynamicRepo.findById(sid).orElseThrow().getAvailableKrw()
+                : liveRepo.findById(sid).orElseThrow().getAvailableKrw();
+    }
+
+    private static RuntimeException upbitError(int status, String name) {
+        String body = name == null ? "Internal Server Error"
+                : "{\"error\":{\"name\":\"" + name + "\",\"message\":\"" + name + "\"}}";
+        // 실제 클라이언트처럼 감싼다 — 엔진은 원인 사슬에서 찾는다
+        return new RuntimeException("주문 생성 실패",
+                new com.cryptoautotrader.exchange.upbit.UpbitApiException("주문 생성", status, body));
+    }
+
+    private OrderEntity awaitOrderState(Long orderId, java.util.function.Predicate<OrderEntity> ok) {
+        long deadline = System.currentTimeMillis() + 20_000;
+        OrderEntity o = orderRepository.findById(orderId).orElseThrow();
+        while (System.currentTimeMillis() < deadline && !ok.test(o)) {
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+            o = orderRepository.findById(orderId).orElseThrow();
+        }
+        awaitDrained();
+        return orderRepository.findById(orderId).orElseThrow();
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @ValueSource(strings = {"LIVE", "DYNAMIC"})
+    @DisplayName("H1 실자금 세션의 지정가 매수 — 예약 전에 거절, 주문 행·차감·거래소 호출 없음")
+    void limitBuyRejected(String kind) {
+        Long sid = session(kind, "RUNNING");
+        BigDecimal before = sessionAvailable(kind, sid);
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> submitBuy(kind, sid, "LIMIT"))
+                .isInstanceOf(OrderExecutionEngine.ReservationRejected.class)
+                .satisfies(t -> assertThat(((OrderExecutionEngine.ReservationRejected) t).getCode())
+                        .isEqualTo(OrderExecutionEngine.ORDER_TYPE_UNSUPPORTED));
+        assertThat(sessionAvailable(kind, sid)).isEqualByComparingTo(before);
+        assertThat(orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc(kind, sid)).isEmpty();
+        Mockito.verify(upbitOrderClient, Mockito.never()).createOrder(Mockito.any(), Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any());
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @ValueSource(strings = {"LIVE", "DYNAMIC"})
+    @DisplayName("H2 실자금 세션의 지정가 매도 — 의도 전에 거절, 주문 행·거래소 호출 없음")
+    void limitSellRejected(String kind) {
+        Long sid = session(kind, "RUNNING");
+        com.cryptoautotrader.api.dto.OrderRequest req = buyRequest(kind, sid, null, "LIMIT");
+        req.setSide("SELL");
+        req.setQuantity(FILL);
+        engine.submitOrder(req);
+        awaitDrained();
+        assertThat(orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc(kind, sid)).isEmpty();
+        Mockito.verify(upbitOrderClient, Mockito.never()).createOrder(Mockito.any(), Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any(), Mockito.any());
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @ValueSource(strings = {"LIVE", "DYNAMIC"})
+    @DisplayName("I1 명시적 거절(잔고 부족) + 식별자 조회 404 — FAILED/EXCHANGE_REJECTED, 예약 한 번 복원")
+    void explicitRejectionConfirmedAbsent(String kind) {
+        Long sid = session(kind, "RUNNING");
+        Mockito.doThrow(upbitError(400, "insufficient_funds_bid")).when(upbitOrderClient)
+                .createOrder(Mockito.eq("KRW-DOGE"), Mockito.eq("bid"), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
+        Mockito.doReturn(null).when(upbitOrderClient).getOrderByIdentifier(Mockito.anyString());
+
+        Long orderId = submitBuy(kind, sid, "MARKET");
+        OrderEntity o = awaitOrderState(orderId, x -> !"SUBMITTING".equals(x.getState()) && !"INTENT_READY".equals(x.getState()));
+        System.out.println("[I1 " + kind + "] state=" + o.getState() + " code=" + o.getFailureCode() + " reason=" + o.getFailedReason());
+        assertThat(o.getState()).isEqualTo("FAILED");
+        assertThat(o.getFailureCode()).isEqualTo(OrderExecutionEngine.EXCHANGE_REJECTED);
+        assertThat(o.getFailedReason()).contains("insufficient_funds_bid").contains("주문 없음 확인");
+        assertThat(sessionAvailable(kind, sid)).as("예약 3,000 차감 상태").isEqualByComparingTo("4000");
+        orphanReconcile(kind);
+        orphanReconcile(kind);
+        assertThat(sessionAvailable(kind, sid)).as("거절 확인 — 예약 한 번 복원").isEqualByComparingTo("7000");
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @ValueSource(strings = {"LIVE", "DYNAMIC"})
+    @DisplayName("I2 명시적 거절 응답인데 식별자로 주문이 조회된다 — 거절로 닫지 않고 주문번호를 붙여 추적")
+    void explicitRejectionButOrderExists(String kind) {
+        Long sid = session(kind, "RUNNING");
+        Mockito.doThrow(upbitError(400, "insufficient_funds_bid")).when(upbitOrderClient)
+                .createOrder(Mockito.eq("KRW-DOGE"), Mockito.eq("bid"), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
+        String uuid = "uuid-exists-" + System.nanoTime();
+        Mockito.doReturn(exchange(uuid, "wait", BigDecimal.ZERO)).when(upbitOrderClient).getOrderByIdentifier(Mockito.anyString());
+
+        Long orderId = submitBuy(kind, sid, "MARKET");
+        OrderEntity o = awaitOrderState(orderId, x -> "SUBMITTED".equals(x.getState()) || "FAILED".equals(x.getState())
+                || "UNKNOWN".equals(x.getState()));
+        System.out.println("[I2 " + kind + "] state=" + o.getState() + " uuid=" + o.getExchangeOrderId());
+        assertThat(o.getState()).isEqualTo("SUBMITTED");
+        assertThat(o.getExchangeOrderId()).isEqualTo(uuid);
+        assertThat(o.getFailureCode()).isNull();
+        orphanReconcile(kind);
+        assertThat(sessionAvailable(kind, sid)).as("주문이 있으므로 예약 유지").isEqualByComparingTo("4000");
+    }
+
+    @ParameterizedTest(name = "{0} HTTP {1} {2}")
+    @CsvSource({"LIVE,400,create_bid_error", "LIVE,500,", "LIVE,429,", "LIVE,400,",
+            "DYNAMIC,400,create_bid_error", "DYNAMIC,500,", "DYNAMIC,429,", "DYNAMIC,400,"})
+    @DisplayName("I3 거절로 확정할 수 없는 응답(생성 중 오류·이름 없음·5xx·429) — UNKNOWN, 예약 유지")
+    void ambiguousErrorsStayUnknown(String kind, int status, String name) {
+        Long sid = session(kind, "RUNNING");
+        Mockito.doThrow(upbitError(status, name)).when(upbitOrderClient)
+                .createOrder(Mockito.eq("KRW-DOGE"), Mockito.eq("bid"), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
+        Mockito.doReturn(null).when(upbitOrderClient).getOrderByIdentifier(Mockito.anyString());
+
+        Long orderId = submitBuy(kind, sid, "MARKET");
+        OrderEntity o = awaitOrderState(orderId, x -> "UNKNOWN".equals(x.getState()) || "FAILED".equals(x.getState()));
+        assertThat(o.getState()).isEqualTo("UNKNOWN");
+        assertThat(o.getFailureCode()).isNull();
+        orphanReconcile(kind);
+        assertThat(sessionAvailable(kind, sid)).isEqualByComparingTo("4000");
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @ValueSource(strings = {"LIVE", "DYNAMIC"})
+    @DisplayName("I4 명시적 거절인데 식별자 조회가 실패 — 거절로 확정하지 않고 UNKNOWN")
+    void explicitRejectionLookupFails(String kind) {
+        Long sid = session(kind, "RUNNING");
+        Mockito.doThrow(upbitError(400, "insufficient_funds_bid")).when(upbitOrderClient)
+                .createOrder(Mockito.eq("KRW-DOGE"), Mockito.eq("bid"), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
+        Mockito.doThrow(new RuntimeException("timeout")).when(upbitOrderClient).getOrderByIdentifier(Mockito.anyString());
+
+        Long orderId = submitBuy(kind, sid, "MARKET");
+        OrderEntity o = awaitOrderState(orderId, x -> "UNKNOWN".equals(x.getState()) || "FAILED".equals(x.getState()));
+        assertThat(o.getState()).isEqualTo("UNKNOWN");
+        assertThat(sessionAvailable(kind, sid)).isEqualByComparingTo("4000");
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @ValueSource(strings = {"LIVE", "DYNAMIC"})
+    @DisplayName("I5 정리 매도가 거래소에서 거절을 반복 — 거절 2회에서 멈추고 사람 확인으로 둔다")
+    void repeatedSellRejectionStops(String kind) {
+        Fx f = lateFilledInStoppedSession(kind);
+        Mockito.doThrow(upbitError(400, "insufficient_funds_ask")).when(upbitOrderClient)
+                .createOrder(Mockito.eq("KRW-DOGE"), Mockito.eq("ask"), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
+        Mockito.doReturn(null).when(upbitOrderClient).getOrderByIdentifier(Mockito.anyString());
+
+        for (int i = 0; i < 5; i++) {
+            cleanupWorker(kind);
+            if (i < 2) {
+                awaitSells(f, i + 1, o -> "FAILED".equals(o.getState()));
+            } else {
+                awaitDrained();
+            }
+            closingReconcile(kind);
+        }
+        PositionCleanupEntity c = cleanupRepository.findById(f.positionId()).orElseThrow();
+        System.out.println("[I5 " + kind + "] 매도=" + sells(f).stream().map(o -> o.getState() + "/" + o.getFailureCode()).toList()
+                + " 메모=" + c.getLastNote());
+        assertThat(sells(f)).hasSize(2).allMatch(o -> OrderExecutionEngine.EXCHANGE_REJECTED.equals(o.getFailureCode()));
+        assertThat(c.getLastNote()).contains("거절");
+        assertThat(c.getDoneAt()).isNull();
     }
 }

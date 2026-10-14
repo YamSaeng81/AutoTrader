@@ -112,8 +112,19 @@ public class OrderExecutionEngine {
     public static final String WITHDRAWN_DISPATCH_LOST = "WITHDRAWN_DISPATCH_LOST";
     public static final String RISK_REJECTED = "RISK_REJECTED";
     public static final String CLIENT_UNAVAILABLE = "CLIENT_UNAVAILABLE";
-    /** 거래소의 명시적 거절. 🔴 현재 제출 경로는 이것을 기록하지 않는다 — 제출 중 예외는 전부 {@code UNKNOWN}. */
+    /**
+     * 거래소의 명시적 거절 (2026-10-14부터 기록한다). 오류 의미가 주문 생성 전 검증·인증 거절이고 <b>식별자 조회로 주문이
+     * 없음을 확인한 경우에만</b> 쓴다({@code SubmitRejection}). 그 밖의 제출 실패는 {@code UNKNOWN} 이다.
+     */
     public static final String EXCHANGE_REJECTED = "EXCHANGE_REJECTED";
+    /** 실자금 공유 풀 세션의 지정가 — 정산 미구현이라 받지 않는다 (2026-10-14). */
+    public static final String ORDER_TYPE_UNSUPPORTED = "ORDER_TYPE_UNSUPPORTED";
+
+    private static String unsupportedOrderTypeMessage(OrderRequest r) {
+        return "🔴 실자금 세션의 지정가 주문은 받지 않는다 — 예약·체결 정산이 시장가 전제다 (sessionKind="
+                + r.getSessionKind() + ", sessionId=" + r.getSessionId() + ", side=" + r.getSide()
+                + ", type=" + r.getOrderType() + ")";
+    }
 
     /**
      * 정산 출처 — {@code order.fee_source} (V81·V82).
@@ -424,6 +435,10 @@ public class OrderExecutionEngine {
             throw new IllegalArgumentException("reserveAndPrepareIntent 는 실자금 세션 매수 전용이다: "
                     + request.getSide() + "/" + sessionKind);
         }
+        if (!"MARKET".equalsIgnoreCase(request.getOrderType())) {
+            // 🔴 지정가는 예약·정산이 시장가 전제라 받지 않는다 (2026-10-14) — 예약을 잡기 전에 거절한다.
+            throw new ReservationRejected(ORDER_TYPE_UNSUPPORTED, unsupportedOrderTypeMessage(request));
+        }
         if (capitalReservationService == null) {
             throw new IllegalStateException("예약 서비스가 없다 — 한도 확인 없이 승인하지 않는다");
         }
@@ -534,6 +549,14 @@ public class OrderExecutionEngine {
         if (duplicateExists) {
             log.warn("중복 주문 거부 (sessionKind={}, sessionId={}, {} {}): 이미 활성 주문이 있습니다",
                     sessionKind, request.getSessionId(), request.getCoinPair(), request.getSide());
+            return null;
+        }
+
+        // 🔴 실자금 공유 풀 세션은 **시장가만** 받는다 (2026-10-14). 지정가는 발행 경로가 없고, 예약(`quantity` 를 원화로
+        //    본다)·원자 체결 회계·매도 확정이 모두 시장가 전제다 — 들어오면 코인 수량을 원화로 예약하고 미사용 정산이
+        //    틀린다. 정산을 구현하기 전까지는 식별자를 소비하기 전에 거절한다. 매수·매도 모두다.
+        if (OrderSettlementService.isSharedPoolKind(sessionKind) && !"MARKET".equalsIgnoreCase(request.getOrderType())) {
+            log.error(unsupportedOrderTypeMessage(request));
             return null;
         }
 
@@ -798,10 +821,16 @@ public class OrderExecutionEngine {
         try {
             exchangeResult = submitToExchange(snapshot);
         } catch (Exception e) {
+            // 🔴 거래소의 **명시적 거절**은 따로 본다 (2026-10-14). 상태 코드만으로 확정하지 않는다 — 오류 의미가 "주문이
+            //    만들어지지 않는 검증·인증 거절" 이고, **식별자로 조회해 그 주문이 없음을 확인한 뒤에만** 거절로 닫는다.
+            SubmitRejection rejection = SubmitRejection.classify(e);
+            if (rejection.explicit() && resolveExplicitRejection(orderId, snapshot.getClientOrderId(), rejection)) {
+                return;
+            }
             // 🔴 여기서 갈린다. 접수 **전** 실패와 접수 **후** 응답 유실을 우리는 구분할 수 없다.
             //    구분할 수 없으므로 **더 위험한 쪽으로 가정한다** — 나갔을 수 있다고 본다.
-            log.error("거래소 주문 제출의 결과가 불명이다 (orderId={}, 식별자={}): {}",
-                    orderId, snapshot.getClientOrderId(), e.getMessage(), e);
+            log.error("거래소 주문 제출의 결과가 불명이다 (orderId={}, 식별자={}, 분류={}): {}",
+                    orderId, snapshot.getClientOrderId(), rejection, e.getMessage(), e);
             submitTx.execute(st -> {
                 OrderEntity o = orderRepository.findById(orderId).orElse(null);
                 if (o != null) {
@@ -819,6 +848,80 @@ public class OrderExecutionEngine {
             recordSubmitOutcome(orderId, exchangeResult);
             return null;
         });
+    }
+
+    /**
+     * 제출 실패의 분류 (2026-10-14).
+     *
+     * <p>🔴 <b>명시적 거절</b>은 "응답의 오류 의미가 주문 생성 전 검증·인증 단계의 거절" 인 경우뿐이다 — 잔고 부족, 최소
+     * 금액 미달, 수량·가격 형식, 인증 오류. 상태 코드가 4xx 라는 것만으로는 아니다. 오류 이름이 없거나 모르는 이름,
+     * 생성 도중의 서버 오류({@code create_bid_error} 등), 5xx, 시간 초과·연결 끊김은 <b>결과 불명</b>이다.</p>
+     */
+    record SubmitRejection(boolean explicit, Integer status, String errorName, String errorMessage) {
+        private static final java.util.Set<String> EXPLICIT_NAMES = java.util.Set.of(
+                "insufficient_funds_bid", "insufficient_funds_ask",
+                "under_min_total_bid", "under_min_total_ask",
+                "invalid_volume_bid", "invalid_volume_ask", "invalid_price_bid", "invalid_price_ask",
+                "validation_error", "invalid_parameter", "invalid_query_payload",
+                "jwt_verification", "expired_access_key", "invalid_access_key", "nonce_used",
+                "no_authorization_i_p", "no_authorization_ip", "out_of_scope");
+
+        static SubmitRejection classify(Throwable e) {
+            for (Throwable t = e; t != null; t = t.getCause()) {
+                if (t instanceof com.cryptoautotrader.exchange.upbit.UpbitApiException api) {
+                    boolean explicit = api.getStatusCode() >= 400 && api.getStatusCode() < 500
+                            && api.getErrorName() != null && EXPLICIT_NAMES.contains(api.getErrorName());
+                    return new SubmitRejection(explicit, api.getStatusCode(), api.getErrorName(), api.getErrorMessage());
+                }
+            }
+            return new SubmitRejection(false, null, null, null);
+        }
+
+        String describe() {
+            return "HTTP " + status + " " + errorName + (errorMessage != null ? " — " + errorMessage : "");
+        }
+    }
+
+    /**
+     * 명시적 거절을 <b>식별자 조회로 확인</b>한다.
+     *
+     * @return 처리했으면 {@code true} — 없음 확인 → {@code FAILED/EXCHANGE_REJECTED}, 있음 → 주문번호를 붙여 추적.
+     *         조회하지 못했으면 {@code false} — 호출자가 {@code UNKNOWN} 으로 둔다.
+     */
+    private boolean resolveExplicitRejection(Long orderId, String identifier, SubmitRejection rejection) {
+        if (identifier == null || upbitOrderClient == null) {
+            return false;
+        }
+        OrderResponse found;
+        try {
+            if (!rateLimiter.acquire()) {
+                return false;
+            }
+            found = upbitOrderClient.getOrderByIdentifier(identifier);
+        } catch (Exception ex) {
+            log.warn("거절 응답 뒤 식별자 조회 실패 — 거절로 확정하지 않고 불명으로 둔다 (orderId={}): {}",
+                    orderId, ex.getMessage());
+            return false;
+        }
+        if (found != null && found.getUuid() != null) {
+            // 🔴 거절 응답인데 주문이 있다 — 확정하지 않는다. 주문번호를 붙여 정상 추적에 넘긴다.
+            submitTx.execute(st -> orderRepository.attachFoundSubmission(orderId, found.getUuid(), Instant.now()));
+            log.error("🔴 거절 응답({})을 받았지만 식별자로 주문이 조회된다 — 거절로 닫지 않고 추적한다 (orderId={}, uuid={})",
+                    rejection.describe(), orderId, found.getUuid());
+            return true;
+        }
+        String reason = "거래소 거절(" + rejection.describe() + ") — 식별자 조회로 주문 없음 확인";
+        Boolean closed = submitTx.execute(st -> {
+            OrderEntity o = orderRepository.findByIdForUpdate(orderId).orElse(null);
+            if (o == null || !"SUBMITTING".equals(o.getState())) {
+                return Boolean.FALSE;
+            }
+            o.setFailureCode(EXCHANGE_REJECTED);
+            transitionState(o, "FAILED", reason);
+            return Boolean.TRUE;
+        });
+        log.warn("주문이 거래소에서 거절됐다 (orderId={}): {}", orderId, reason);
+        return Boolean.TRUE.equals(closed);
     }
 
     /** D — 접수 응답을 기록한다. */

@@ -15,6 +15,8 @@
         fill:  "done" | "wait" | "partial_wait"     (체결 방식)
         hold_ms: 응답 전 대기(그동안 앱을 죽일 수 있다)
         drop:  true 면 접수는 기록하고 응답하지 않고 연결을 끊는다(응답 유실)
+        reject: {"status":400,"name":"insufficient_funds_bid"} — 주문을 만들지 않고 거절
+        error_after_create: {"status":400,"name":"create_bid_error"} — 주문은 만들고 오류로 응답
   POST /_ctl/fill   {"uuid":..., "state":"done|cancel|wait", "volume":"..", "funds":".."}  체결 진행
   GET  /_ctl/orders  전체 주문
   POST /_ctl/reset
@@ -33,6 +35,7 @@ STATE_FILE = sys.argv[2] if len(sys.argv) > 2 else 'exchange_state.json'
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 18080
 PRICE = Decimal('300')          # DOGE 가격
 FEE_RATE = Decimal('0.0005')
+ASK_FEE_RATE = Decimal('0.0004')
 lock = threading.Lock()
 
 
@@ -68,7 +71,9 @@ def apply_fill(o, volume, funds):
     prev_f = Decimal(o.get('executed_funds') or '0')
     v, f = Decimal(volume), Decimal(funds)
     dv, df = v - prev_v, f - prev_f
-    fee = (f * FEE_RATE).quantize(Decimal('0.00000001'))
+    # 매도 수수료율을 앱의 추정(0.05%)과 다르게 둔다 — 앱이 거래소 보고 수수료를 쓰는지 구분된다 (2026-10-14)
+    rate = ASK_FEE_RATE if o['side'] == 'ask' else FEE_RATE
+    fee = (f * rate).quantize(Decimal('0.00000001'))
     dfee = fee - Decimal(o.get('paid_fee') or '0')
     if o['side'] == 'bid':
         state['krw'] = str(Decimal(state['krw']) - df - dfee)
@@ -158,6 +163,15 @@ class H(BaseHTTPRequestHandler):
                 side = b.get('side')
                 plan = state['plan'].get(side) or {}
                 now = time.strftime('%Y-%m-%dT%H:%M:%S+09:00')
+                rej = plan.get('reject')
+                if rej:
+                    # 주문을 만들지 않고 거절한다 — 업비트 오류 형식
+                    state.setdefault('rejected', []).append({'identifier': b.get('identifier'), 'side': side, 'at': now,
+                                                             'name': rej.get('name')})
+                    if plan.get('once'):
+                        state['plan'].pop(side, None)
+                    save()
+                    return self.reply(rej.get('status', 400), {'error': {'name': rej.get('name'), 'message': rej.get('name')}})
                 o = {'uuid': str(uuidlib.uuid4()), 'side': side, 'ord_type': b.get('ord_type'),
                      'market': b.get('market'), 'identifier': b.get('identifier'), 'created_at': now,
                      'price': b.get('price'), 'volume': b.get('volume'), 'state': 'wait'}
@@ -175,6 +189,10 @@ class H(BaseHTTPRequestHandler):
                 self.close_connection = True
                 self.connection.close()
                 return
+            err = plan.get('error_after_create')
+            if err:
+                # 주문은 만들었는데 오류로 응답한다 — 거절로 단정하면 안 되는 경우
+                return self.reply(err.get('status', 400), {'error': {'name': err.get('name'), 'message': err.get('name')}})
             return self.reply(201, view(o))
         with lock:
             if u.path == '/_ctl/plan':

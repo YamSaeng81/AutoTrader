@@ -307,17 +307,55 @@ def s7():
     st = state(sid)
     show('복구 후', st)
     asks = [e for e in st['exchange_orders'] if e['side'] == 'ask']
-    # 7,058.53 + (2,940 − 1.47) = 9,997.06
+    # 대역의 매도 수수료는 0.04% — 7,058.53 + (2,940 − 1.176) = 9,997.354 → 9,997.35 (추정 0.05% 였다면 9,997.06)
     check('S7 거래소 매도 1건(재매도 없음)', len(asks) == 1, f'{len(asks)}')
-    check('S7 대금 한 번: 9,997.06·포지션 CLOSED·정리 완료',
-          abs(float(avail(st)) - 9997.06) < 0.011 and st['positions'][0][1] == 'CLOSED' and st['cleanup'][0][2] == 't',
+    check('S7 대금 한 번(거래소 보고 수수료 1.176): 9,997.35·포지션 CLOSED·정리 완료',
+          abs(float(avail(st)) - 9997.35) < 0.006 and st['positions'][0][1] == 'CLOSED' and st['cleanup'][0][2] == 't',
           f'{avail(st)} {st["positions"][0][1]}')
     ok, _ = stable_after_restart(sid, settle_seconds=70)
     check('S7 재기동해도 불변', ok)
 
 
+def s8():
+    rt.log('S8 거래소 명시적 거절(잔고 부족) — 식별자로 없음 확인 후 FAILED/EXCHANGE_REJECTED, 예약 한 번 복원')
+    sid = seed_live_session()
+    rt.ctl('POST', '/_ctl/plan', {'bid': {'reject': {'status': 400, 'name': 'insufficient_funds_bid'}, 'once': True}})
+    rt.start_app(label='s8-run')
+    buy(sid)
+    rt.wait_until(lambda: state(sid)['orders'][0][2] == 'FAILED', 30, 1, 'S8 FAILED')
+    rt.wait_until(lambda: state(sid)['positions'][0][1] == 'CLOSED', 90, 2, 'S8 복원')
+    st = state(sid)
+    show('거절 후', st)
+    o = st['orders'][0]
+    check('S8 FAILED/EXCHANGE_REJECTED', o[2] == 'FAILED' and o[3] == 'EXCHANGE_REJECTED', f'{o[2]} {o[3]}')
+    check('S8 거래소에 주문 없음', st['exchange_creates'] == 0)
+    check('S8 예약 한 번 복원(10,000)·포지션 CLOSED', float(avail(st)) == 10000 and st['positions'][0][1] == 'CLOSED',
+          avail(st))
+    ok, _ = stable_after_restart(sid)
+    check('S8 재기동해도 불변', ok)
+
+
+def s9():
+    rt.log('S9 거래소가 주문을 만들고 오류(create_bid_error)로 응답 — 거절로 단정하지 않고 식별자로 찾아 한 번 반영')
+    sid = seed_live_session()
+    rt.ctl('POST', '/_ctl/plan', {'bid': {'fill': 'done', 'error_after_create': {'status': 400, 'name': 'create_bid_error'},
+                                          'once': True}})
+    rt.start_app(label='s9-run')
+    buy(sid)
+    rt.wait_until(lambda: state(sid)['orders'][0][2] == 'FILLED', 90, 2, 'S9 FILLED')
+    time.sleep(10)
+    st = state(sid)
+    show('복구 후', st)
+    o, p = st['orders'][0], st['positions'][0]
+    check('S9 FILLED·버전 1(거절로 닫지 않음)', o[2] == 'FILLED' and o[13] == '1' and o[3] == '', f'{o[2]} {o[3]} v{o[13]}')
+    check('S9 거래소 1회·재제출 없음', st['exchange_creates'] == 1)
+    check('S9 잔액 7,058.53·수량 9.8', float(avail(st)) == 7058.53 and float(p[2]) == 9.8, f'{avail(st)} {p[2]}')
+    ok, _ = stable_after_restart(sid)
+    check('S9 재기동해도 불변', ok)
+
+
 SCEN = {'S1': s1, 'S2': s2, 'S3': lambda: s3(False), 'S3b': lambda: s3(True),
-        'S4': lambda: s45('AFTER_FILL_OBSERVED'), 'S5': lambda: s45('IN_FILL_ACCOUNTING'), 'S6': s6, 'S7': s7}
+        'S4': lambda: s45('AFTER_FILL_OBSERVED'), 'S5': lambda: s45('IN_FILL_ACCOUNTING'), 'S6': s6, 'S7': s7, 'S8': s8, 'S9': s9}
 
 if __name__ == '__main__':
     args = sys.argv[1:]
@@ -337,7 +375,7 @@ if __name__ == '__main__':
             KIND = kind
             globals()['KIND'] = kind
             for n in names:
-                if kind == 'DYNAMIC' and n not in ('S3', 'S3b', 'S6', 'S7'):
+                if kind == 'DYNAMIC' and n not in ('S3', 'S3b', 'S6', 'S7', 'S8', 'S9'):
                     continue   # DYNAMIC 은 접수 후 종료·부분 청산 중 종료·종료 중 체결만 (의도·claim·회계 지점은 공통 엔진)
                 try:
                     SCEN[n]()

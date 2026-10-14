@@ -198,7 +198,8 @@ class LiveStopUnderConcurrentWriteTest extends IntegrationTestBase {
         var pool = orderExecutor.getThreadPoolExecutor();
         long deadline = System.currentTimeMillis() + 15_000;
         while (System.currentTimeMillis() < deadline) {
-            if (pool.getQueue().isEmpty() && pool.getActiveCount() == 0) {
+            if (pool.getQueue().isEmpty() && pool.getActiveCount() == 0
+                    && pool.getTaskCount() == pool.getCompletedTaskCount()) {
                 // 한 번 더 확인 — 작업이 큐에서 꺼내진 직후일 수 있다
                 try {
                     Thread.sleep(50);
@@ -206,7 +207,8 @@ class LiveStopUnderConcurrentWriteTest extends IntegrationTestBase {
                     Thread.currentThread().interrupt();
                     return;
                 }
-                if (pool.getQueue().isEmpty() && pool.getActiveCount() == 0) return;
+                if (pool.getQueue().isEmpty() && pool.getActiveCount() == 0
+                    && pool.getTaskCount() == pool.getCompletedTaskCount()) return;
             }
             try {
                 Thread.sleep(50);

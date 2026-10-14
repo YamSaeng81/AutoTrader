@@ -548,9 +548,8 @@ public class UpbitOrderClient {
         if (response.statusCode() < 200 || response.statusCode() >= 300) {
             log.error("Upbit API {} 실패: status={}, body={}",
                     operation, response.statusCode(), response.body());
-            throw new RuntimeException(String.format(
-                    "Upbit API %s 실패: HTTP %d - %s",
-                    operation, response.statusCode(), response.body()));
+            // 상태 코드와 오류 의미를 담는다 — 거절 확정 여부는 호출자가 판단한다 (2026-10-14)
+            throw new UpbitApiException(operation, response.statusCode(), response.body());
         }
     }
 }

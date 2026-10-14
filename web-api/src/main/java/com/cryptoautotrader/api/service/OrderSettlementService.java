@@ -148,6 +148,14 @@ public class OrderSettlementService {
         BigDecimal reportedFee = response.getPaidFee();
         BigDecimal reportedVolume = response.getExecutedVolume();
 
+        // 🔴 아직 포지션에 반영하지 않은 매도는 **보고값만** 남긴다 (2026-10-14). 확정(청산 확정)이 그 값으로 대금·수수료를
+        //    반영하고 반영값을 기록한다. 여기서 반영값을 먼저 쓰면 확정이 쓸 기준과 정정의 기준이 섞인다.
+        if ("SELL".equalsIgnoreCase(order.getSide()) && order.getSellAppliedAt() == null) {
+            orderRepository.recordSellReported(order.getId(), reportedFunds, reportedFee);
+            touchBackoff(order);
+            return Outcome.SKIPPED;
+        }
+
         // ── 1. 최신성 ──────────────────────────────────────────────────────
         // 🔴 누적 단조성: 이미 반영한 값보다 작으면 반영하지 않는다.
         BigDecimal appliedFunds = nz(order.getAppliedExecutedFunds());
@@ -240,6 +248,9 @@ public class OrderSettlementService {
         boolean firstApplication = order.getAppliedExecutedFunds() == null
                 && order.getAppliedPaidFee() == null;
         applyFundsDeltaToSession(order, targetFunds, targetFee, appliedFunds, appliedFee, firstApplication);
+        if ("SELL".equalsIgnoreCase(order.getSide())) {
+            applySellDelta(order, deltaFunds, deltaFee);
+        }
         log.info("정산 반영 (orderId={}): 체결금액 Δ{} 수수료 Δ{} → 출처={} (확정은 다음 회차에 "
                         + "차분 없음이 확인될 때)",
                 order.getId(), deltaFunds, deltaFee, nextSource);
@@ -527,6 +538,65 @@ public class OrderSettlementService {
         log.error("🔴 정산 불일치 — 자동 반영하지 않고 보존한다 (orderId={}, kind={}, 이전={}, 수신={}). "
                         + "사람이 확인해야 한다.",
                 order.getId(), kind, previous, received);
+    }
+
+    /**
+     * 매도 확정에 쓸 대금·수수료 (2026-10-14).
+     *
+     * <p>🔴 거래소 보고값을 먼저 쓴다. 종전에는 수량 × 체결가와 고정 수수료율(0.05%)로 추정했다 — 실제 수수료가 다르면
+     * 잔액·손익이 그만큼 어긋났다. 수수료가 아직 보고되지 않았으면 추정하고 출처를 {@code ESTIMATED} 로 남긴다 — 보고가
+     * 오면 정산이 차이만 반영한다.</p>
+     */
+    public record SellAmounts(BigDecimal funds, BigDecimal fee, String feeSource) {
+        public BigDecimal net() {
+            return funds.subtract(fee);
+        }
+
+        public static SellAmounts of(OrderEntity order, BigDecimal soldQty, BigDecimal fillPrice, BigDecimal feeRate) {
+            BigDecimal reportedFunds = order.getReportedExecutedFunds();
+            boolean fundsReported = reportedFunds != null && reportedFunds.signum() > 0;
+            BigDecimal funds = fundsReported ? reportedFunds : soldQty.multiply(fillPrice);
+            boolean feeReported = fundsReported && order.getReportedPaidFee() != null;
+            BigDecimal fee = feeReported ? order.getReportedPaidFee() : funds.multiply(feeRate);
+            return new SellAmounts(funds, fee, feeReported
+                    ? OrderExecutionEngine.FEE_SOURCE_REPORTED : OrderExecutionEngine.FEE_SOURCE_ESTIMATED);
+        }
+    }
+
+    /** 매도 확정이 쓴 값을 주문에 기록한다 — 정산 추적 대상(fee_source 있음)만. */
+    public static void recordSellApplied(OrderRepository repo, OrderEntity order, SellAmounts a) {
+        if (order.getFeeSource() == null) return;
+        repo.recordSellApplied(order.getId(), a.funds(), a.fee(), a.feeSource(), Instant.now().plus(BACKOFF_BASE));
+    }
+
+    /**
+     * 확정된 매도의 뒤늦은 정정 — 대금·수수료 차이를 세션 잔액과 포지션 손익에 반영한다 (2026-10-14).
+     * 정산 버전 가드를 통과한 호출만 부른다(같은 트랜잭션).
+     */
+    private void applySellDelta(OrderEntity order, BigDecimal deltaFunds, BigDecimal deltaFee) {
+        BigDecimal deltaNet = deltaFunds.subtract(deltaFee);
+        if (order.getSessionId() != null && deltaNet.signum() != 0 && isSharedPoolKind(order.getSessionKind())) {
+            if ("DYNAMIC".equals(order.getSessionKind())) {
+                dynamicBalanceUpdater.applyWithin(order.getSessionId(), s -> {
+                    s.setAvailableKrw(s.getAvailableKrw().add(deltaNet));
+                    s.setTotalAssetKrw(s.getTotalAssetKrw().add(deltaNet));
+                });
+            } else {
+                liveBalanceUpdater.applyWithin(order.getSessionId(), s -> {
+                    s.setAvailableKrw(s.getAvailableKrw().add(deltaNet));
+                    s.setTotalAssetKrw(s.getTotalAssetKrw().add(deltaNet));
+                });
+            }
+        }
+        if (order.getPositionId() != null) {
+            positionRepository.findById(order.getPositionId()).ifPresent(p -> {
+                p.setRealizedPnl(nz(p.getRealizedPnl()).add(deltaNet));
+                p.setPositionFee(nz(p.getPositionFee()).add(deltaFee));
+                positionRepository.save(p);
+            });
+        }
+        log.info("매도 정산 정정 (orderId={}): 대금 Δ{} 수수료 Δ{} → 잔액·실현손익 Δ{}",
+                order.getId(), deltaFunds, deltaFee, deltaNet);
     }
 
     /** 공유 풀 실자금 세션 — 원자 체결 회계의 대상. */

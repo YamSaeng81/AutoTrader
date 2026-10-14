@@ -100,7 +100,7 @@ def fresh_db():
     subprocess.run(['docker', 'rm', '-f', '-v', 'cat-rt-pg'], capture_output=True)   # 익명 볼륨까지
     subprocess.run(['docker', 'run', '-d', '--name', 'cat-rt-pg', '-e', 'POSTGRES_DB=crypto_auto_trader',
                     '-e', 'POSTGRES_USER=trader', '-e', 'POSTGRES_PASSWORD=rtpass', '-p', '127.0.0.1:15432:5432',
-                    'timescale/timescaledb:latest-pg15'], check=True, capture_output=True)
+                    'timescale/timescaledb@sha256:b26180320dea45a27190318903f63cc2839f190315663a53b6429a937dd02196'], check=True, capture_output=True)
     for _ in range(60):
         r = subprocess.run(['docker', 'exec', 'cat-rt-pg', 'pg_isready', '-U', 'trader', '-d', 'crypto_auto_trader'],
                            capture_output=True)
