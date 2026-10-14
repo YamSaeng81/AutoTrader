@@ -1283,13 +1283,12 @@ public class LiveTradingService {
                     if (entryPriorityRounds.isActive()) {
                         // 🔴 등록 단계 (2026-10-14, 선행 조건 3-e): 여기서 사지 않는다. 같은 마감 캔들의 후보를 모아 마감 뒤
                         //    사전 등록 순서로 승인한다 — 평가가 빨리 끝난 세션이 슬롯을 먼저 갖지 않게.
-                        final BigDecimal priceAtSignal = currentPrice;
                         final String regimeAtSignal = regimeName;
                         final List<Candle> candlesAtSignal = evalCandles;
                         String notQueued = entryPriorityRounds.submit(new EntryPriorityRounds.Candidate(
                                 "LIVE", sessionId, coinPair,
                                 new EntryPriorityRounds.RoundKey(timeframe, candlesAtSignal.get(candlesAtSignal.size() - 1).getTime()),
-                                () -> approveQueuedEntry(sessionId, coinPair, priceAtSignal, buyReason, finalSignal,
+                                () -> approveQueuedEntry(sessionId, coinPair, buyReason, finalSignal,
                                         regimeAtSignal, candlesAtSignal, signalLogRef)),
                                 Instant.now());
                         if (notQueued != null) {
@@ -1385,9 +1384,14 @@ public class LiveTradingService {
     /**
      * 회차 승인 차례에 부른다 (2026-10-14) — 평가 때와 지금 사이에 바뀐 것을 다시 확인한 뒤 같은 매수 경로를 탄다.
      *
+     * <p>🔴 2026-10-15: 승인은 평가보다 최대 마감 유예(5분)만큼 늦다. 즉시 진입이었다면 주문 직전에 봤을 것을 <b>승인 시점에 다시
+     * 본다</b> — 정지 상태 · 보유 · 세션 서킷 브레이커 · 전역 위험 한도 · 최신 캔들의 블랙스완·BTC 급락 관문(이 엔진은 진행 중
+     * 캔들로 매 틱 판정한다). 주문 금액은 승인 시점에 다시 읽은 가용 자금으로, 가격(수량·손절·익절 기준)은 승인 시점 현재가로
+     * 계산한다 — 즉시 진입이 주문 직전 현재가를 쓰던 것과 같은 의미다. 공유 풀 한도·슬롯·손실 한도는 예약 경계가 본다.</p>
+     *
      * @return 진입했으면 {@code null}, 아니면 사유
      */
-    String approveQueuedEntry(Long sessionId, String coinPair, BigDecimal price, String reason,
+    String approveQueuedEntry(Long sessionId, String coinPair, String reason,
                               StrategySignal signal, String marketRegime, List<Candle> evalCandles,
                               StrategyLogEntity signalLog) {
         String result;
@@ -1398,13 +1402,40 @@ public class LiveTradingService {
                 || positionRepository.findBySessionKindAndSessionIdAndCoinPairAndStatus("LIVE", sessionId, coinPair, "CLOSING").isPresent()) {
             result = "승인 차례에 이미 포지션이 있다";
         } else {
-            RiskCheckResult riskResult = riskManagementService.checkRisk();
-            result = riskResult.isApproved()
-                    ? executeSessionBuy(session, coinPair, price, reason, signal, marketRegime, evalCandles)
-                    : "리스크 한도: " + riskResult.getReason();
+            List<Candle> latest = fetchRecentCandles(coinPair, session.getTimeframe());
+            result = approvalTimeGate(session, coinPair, latest);
+            if (result == null) {
+                BigDecimal priceNow = latest.get(latest.size() - 1).getClose();
+                result = executeSessionBuy(session, coinPair, priceNow, reason, signal, marketRegime, evalCandles);
+            }
         }
         saveSignalQuality(signalLog, result == null, result);
         return result;
+    }
+
+    /** 승인 시점 관문 — 통과면 {@code null}. 서킷 브레이커가 걸렸으면 진입만 막는다(정지는 다음 틱의 평가가 한다). */
+    private String approvalTimeGate(LiveTradingSessionEntity session, String coinPair, List<Candle> latest) {
+        CircuitBreakerResult cb = riskManagementService.checkCircuitBreaker(session);
+        if (cb.isTriggered()) {
+            return "승인 차례에 서킷 브레이커 조건: " + cb.getReason();
+        }
+        RiskCheckResult riskResult = riskManagementService.checkRisk();
+        if (!riskResult.isApproved()) {
+            return "리스크 한도: " + riskResult.getReason();
+        }
+        if (latest.size() < 10) {
+            return "승인 차례에 최신 캔들을 못 읽었다(" + latest.size() + "건)";
+        }
+        BlackSwanGuard.Result blackSwan = BlackSwanGuard.check(latest);
+        if (blackSwan.triggered()) {
+            return "승인 차례에 BLACK_SWAN_GUARD 발동 — " + blackSwan.reason();
+        }
+        List<Candle> btc = "KRW-BTC".equals(coinPair) ? latest : fetchRecentCandles("KRW-BTC", session.getTimeframe());
+        BtcMarketGuard.Result btcGuard = BtcMarketGuard.check(btc);
+        if (btcGuard.triggered()) {
+            return "승인 차례에 BTC_MARKET_GUARD 발동 — " + btcGuard.reason();
+        }
+        return null;
     }
 
     /** @return 주문 의도를 만들고 실행기에 넘겼으면 {@code null}, 아니면 사유 (2026-10-14 — 회차 승인이 결과를 알아야 한다) */

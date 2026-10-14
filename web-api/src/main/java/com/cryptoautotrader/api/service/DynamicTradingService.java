@@ -871,10 +871,48 @@ public class DynamicTradingService {
                 || !positionRepository.findBySessionKindAndSessionIdAndStatus(sessionKind(fresh), sid, "OPEN").isEmpty()) {
             result = "승인 차례에 이미 포지션이 있다";
         } else {
-            result = executeBuy(fresh, coinPair, evalCandles, signal, sizeMultiplier);
+            result = approvalTimeGate(fresh, coinPair, evalCandles);
+            if (result == null) {
+                result = executeBuy(fresh, coinPair, evalCandles, signal, sizeMultiplier);
+            }
         }
         updateSignalQuality(signalLog, result == null, result);
         return result;
+    }
+
+    /**
+     * 승인 시점 관문 (2026-10-15) — 통과면 {@code null}.
+     *
+     * <p>승인은 평가보다 최대 마감 유예(5분)만큼 늦다. 평가 관문 중 <b>그 사이에 바뀔 수 있는 것</b>만 다시 본다 — 세션 서킷
+     * 브레이커, 손실 청산 쿨다운, 블랙스완 쿨다운(다른 세션의 차단 기록이 쌓인다), 세션 간 동일 코인 노출 상한(🔴 같은 회차에
+     * 같은 코인 후보가 여럿이면 평가 때는 모두 통과한다 — 앞 순위가 승인되면 여기서 상한에 걸린다). 마감 캔들만 입력으로 받는
+     * 관문(EMA200·횡보·블랙스완 낙폭·BTC 급락·Walk Forward)은 승인 마감이 다음 캔들 마감보다 앞서므로 결과가 같아 다시 보지
+     * 않는다. 서킷 브레이커가 걸렸으면 진입만 막는다(정지는 다음 틱의 평가가 한다).</p>
+     */
+    private String approvalTimeGate(DynamicSessionEntity session, String coinPair, List<Candle> evalCandles) {
+        Long sid = session.getId();
+        String kind = sessionKind(session);
+        CircuitBreakerResult cb = riskManagementService.checkCircuitBreaker(session);
+        if (cb.isTriggered()) {
+            return "승인 차례에 서킷 브레이커 조건: " + cb.getReason();
+        }
+        com.cryptoautotrader.api.entity.RiskConfigEntity riskConfig = riskManagementService.getRiskConfig();
+        int lossCooldownMinutes = riskConfig.getCooldownMinutes() != null ? riskConfig.getCooldownMinutes() : 60;
+        if (isInLossCooldown(kind, sid, coinPair, lossCooldownMinutes)) {
+            return String.format("승인 차례에 손실 청산 쿨다운 — 직전 손실 청산 후 %d분 내 동일 코인 재진입 차단", lossCooldownMinutes);
+        }
+        BigDecimal evalPrice = evalCandles.isEmpty() ? null : evalCandles.get(evalCandles.size() - 1).getClose();
+        BlackSwanGateDecision blackSwan = evaluateBlackSwanGate(
+                blackSwanBlockedAt.get(coinPair), blackSwanBlockedPrice.get(coinPair), evalPrice, Instant.now());
+        if (blackSwan.blockReason() != null) {
+            return "승인 차례에 " + blackSwan.blockReason();
+        }
+        long heldElsewhere = positionRepository.countBySessionKindAndCoinPairAndStatusAndSessionIdNot(kind, coinPair, "OPEN", sid);
+        String crossReason = crossSessionExposureBlockReason(heldElsewhere);
+        if (crossReason != null) {
+            return "승인 차례에 " + crossReason;
+        }
+        return null;
     }
 
     /**

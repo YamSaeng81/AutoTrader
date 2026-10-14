@@ -63,6 +63,10 @@ class EntryPriorityRoundsTest extends IntegrationTestBase {
     @Autowired private PlatformTransactionManager txManager;
     @Autowired private JdbcTemplate jdbc;
     @MockBean private PortfolioSyncService portfolioSyncService;
+    /** 전역 위험 검사만 통과로 고정 — 손실 집계 질의가 PostgreSQL JSON 연산자를 써서 H2 에서 실행되지 않는다. */
+    @org.springframework.boot.test.mock.mockito.SpyBean private RiskManagementService riskManagementService;
+    /** LIVE 엔진의 캔들 원천 — {@code market_data_cache} (엔진 필드 이름은 candleDataRepository 이지만 이 저장소다). */
+    @Autowired private com.cryptoautotrader.api.repository.MarketDataCacheRepository candleDataRepository;
 
     private String savedStage;
     private BigDecimal savedTotal;
@@ -82,6 +86,8 @@ class EntryPriorityRoundsTest extends IntegrationTestBase {
         poolLossGuard.setEnabledSetting(true);
         rounds.setForcedForTest(true);
         portfolioManager.syncTotalCapital(new BigDecimal("1000000000000"));
+        org.mockito.Mockito.doReturn(com.cryptoautotrader.core.risk.RiskCheckResult.approve())
+                .when(riskManagementService).checkRisk();
     }
 
     @AfterEach
@@ -262,7 +268,7 @@ class EntryPriorityRoundsTest extends IntegrationTestBase {
     void approvalRechecksSessionState() {
         Long live = session("KRW-IOTA");
         jdbc.update("UPDATE live_trading_session SET status = 'STOPPED' WHERE id = ?", live);
-        String r1 = liveTradingService.approveQueuedEntry(live, "KRW-IOTA", new BigDecimal("100"), "시험",
+        String r1 = liveTradingService.approveQueuedEntry(live, "KRW-IOTA", "시험",
                 com.cryptoautotrader.strategy.StrategySignal.buy(new BigDecimal("80"), "시험"), "TREND", List.of(), null);
         assertThat(r1).contains("실행 중이 아니다");
 
@@ -283,6 +289,168 @@ class EntryPriorityRoundsTest extends IntegrationTestBase {
             dynamicRepo.deleteById(dyn);
         }
         assertThat(orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc("LIVE", live)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("같은 코인 동순위 — 여러 세션이 같은 코인을 내면 접수 순서와 무관하게 세션 id 가 작은 쪽부터 승인")
+    void sameCoinTieBreakIgnoresArrival() throws Exception {
+        for (int run = 0; run < 6; run++) {
+            limits.setMaxConcurrentPositions((int) positionRepository.countPoolSlots(-1L) + 2);
+            limits.setPerPositionCapKrw(new BigDecimal("20000"));
+            limits.setTotalCapKrw(positionRepository.sumPoolExposureKrw(-1L).add(new BigDecimal("1000000")));
+            List<Long> ids = new ArrayList<>();
+            for (int i = 0; i < 4; i++) ids.add(session("KRW-IOTA"));
+            List<Long> arrival = new ArrayList<>(ids);
+            if (run == 0) {
+                Collections.reverse(arrival);   // 가장 큰 id 가 먼저 도착
+            } else {
+                Collections.shuffle(arrival, new Random(run));
+            }
+            EntryPriorityRounds.RoundKey round = new EntryPriorityRounds.RoundKey("H1",
+                    Instant.parse("2027-02-01T00:00:00Z").plus(run, ChronoUnit.HOURS));
+            Instant beforeDeadline = round.candleOpenTime().plus(61, ChronoUnit.MINUTES);
+            ExecutorService pool = Executors.newFixedThreadPool(1 + run % 4);
+            CountDownLatch go = new CountDownLatch(1);
+            List<java.util.concurrent.Future<String>> fs = new ArrayList<>();
+            for (Long id : arrival) {
+                fs.add(pool.submit(() -> {
+                    go.await();
+                    return rounds.submit(new EntryPriorityRounds.Candidate("LIVE", id, "KRW-IOTA", round,
+                            () -> reserve(id, "KRW-IOTA")), beforeDeadline);
+                }));
+            }
+            go.countDown();
+            for (var f : fs) assertThat(f.get(10, TimeUnit.SECONDS)).isNull();
+            pool.shutdown();
+            List<EntryPriorityRounds.Outcome> out = rounds.processDue(EntryPriorityRounds.deadline(round));
+            List<Long> approved = out.stream().filter(o -> o.reason() == null).map(o -> o.candidate().sessionId()).toList();
+            System.out.println("[동순위] 접수순서=" + arrival + " → 승인=" + approved);
+            List<Long> sorted = ids.stream().sorted().toList();
+            assertThat(approved).as("세션 id 가 작은 두 세션").containsExactly(sorted.get(0), sorted.get(1));
+            assertThat(out.stream().filter(o -> o.reason() != null).map(EntryPriorityRounds.Outcome::reason))
+                    .hasSize(2).allMatch("SLOT_LIMIT"::equals);
+            cleanSessions();
+        }
+    }
+
+    @Test
+    @DisplayName("동순위 규칙 — 같은 코인이면 LIVE 다음 DYNAMIC, 그 안에서 세션 id 순(모든 접수 순서에서 같은 정렬)")
+    void tieBreakOrderIsFixedForAllPermutations() {
+        List<EntryPriorityRounds.Candidate> cs = List.of(
+                cand("DYNAMIC", 5L, "KRW-IOTA"), cand("LIVE", 9L, "KRW-IOTA"), cand("DYNAMIC", 2L, "KRW-IOTA"),
+                cand("LIVE", 3L, "KRW-IOTA"), cand("LIVE", 1L, "KRW-CRO"));
+        List<String> expected = List.of("LIVE#3", "LIVE#9", "DYNAMIC#2", "DYNAMIC#5", "LIVE#1");
+        List<List<EntryPriorityRounds.Candidate>> perms = new ArrayList<>();
+        permute(new ArrayList<>(cs), 0, perms);
+        assertThat(perms).hasSize(120);
+        for (var p : perms) {
+            List<EntryPriorityRounds.Candidate> sorted = new ArrayList<>(p);
+            sorted.sort(EntryPriorityRounds.ORDER);
+            assertThat(sorted.stream().map(c -> c.kind() + "#" + c.sessionId()).toList()).containsExactlyElementsOf(expected);
+        }
+    }
+
+    private static EntryPriorityRounds.Candidate cand(String kind, Long id, String coin) {
+        return new EntryPriorityRounds.Candidate(kind, id, coin,
+                new EntryPriorityRounds.RoundKey("H1", Instant.parse("2027-03-01T00:00:00Z")), () -> null);
+    }
+
+    private static void permute(List<EntryPriorityRounds.Candidate> a, int k, List<List<EntryPriorityRounds.Candidate>> out) {
+        if (k == a.size()) {
+            out.add(new ArrayList<>(a));
+            return;
+        }
+        for (int i = k; i < a.size(); i++) {
+            Collections.swap(a, k, i);
+            permute(a, k + 1, out);
+            Collections.swap(a, k, i);
+        }
+    }
+
+    private Long realDynamic(String status) {
+        return dynamicRepo.saveAndFlush(com.cryptoautotrader.api.entity.DynamicSessionEntity.builder()
+                .strategyType("COMPOSITE_MOMENTUM_ICHIMOKU_V2").timeframe("H1")
+                .initialCapital(new BigDecimal("10000")).availableKrw(new BigDecimal("10000")).totalAssetKrw(new BigDecimal("10000"))
+                .investRatio(new BigDecimal("0.8000")).stopLossPct(new BigDecimal("5.00"))
+                .status(status).scanState("SCANNING").tradingMode("REAL")
+                .maxCandidateSize(30).targetWatchSize(10)
+                .minAtrPct(new BigDecimal("0.5000")).maxSpreadPct(new BigDecimal("0.1000")).watchlistRefreshMin(60)
+                .startedAt(Instant.now().minus(1, ChronoUnit.DAYS))
+                .build()).getId();
+    }
+
+    private PositionEntity dynPosition(Long sessionId, String coin, String status, BigDecimal realized, Instant closedAt) {
+        return positionRepository.save(PositionEntity.builder()
+                .coinPair(coin).side("BUY").entryPrice(new BigDecimal("100")).avgPrice(new BigDecimal("100"))
+                .size(BigDecimal.ONE).investedKrw(new BigDecimal("100")).status(status)
+                .realizedPnl(realized).closedAt(closedAt)
+                .sessionKind("DYNAMIC").sessionId(sessionId).openedAt(Instant.now().minus(2, ChronoUnit.HOURS)).build());
+    }
+
+    private static List<com.cryptoautotrader.strategy.Candle> risingCandles() {
+        List<com.cryptoautotrader.strategy.Candle> out = new ArrayList<>();
+        Instant t0 = Instant.now().truncatedTo(ChronoUnit.HOURS).minus(60, ChronoUnit.HOURS);
+        for (int i = 0; i < 60; i++) {
+            BigDecimal p = new BigDecimal(1000 + i);
+            out.add(com.cryptoautotrader.strategy.Candle.builder().time(t0.plus(i, ChronoUnit.HOURS))
+                    .open(p).high(p.add(BigDecimal.ONE)).low(p.subtract(BigDecimal.ONE)).close(p)
+                    .volume(new BigDecimal("1000")).build());
+        }
+        return out;
+    }
+
+    @Test
+    @DisplayName("🔴 승인 시점 재검사(DYNAMIC) — 평가 뒤 같은 코인 보유가 상한에 닿거나 손실 청산 쿨다운이 생기면 진입하지 않는다")
+    void dynamicApprovalRechecksTimeVaryingGates() {
+        Long dyn = realDynamic("RUNNING");
+        List<PositionEntity> made = new ArrayList<>();
+        try {
+            // ① 같은 코인을 다른 동적 세션 둘이 이미 든 상태(같은 회차의 앞 순위가 승인된 상황)
+            made.add(dynPosition(-9101L, "KRW-WAVES", "OPEN", null, null));
+            made.add(dynPosition(-9102L, "KRW-WAVES", "OPEN", null, null));
+            String r1 = dynamicTradingService.approveQueuedEntry(dyn, "KRW-WAVES", risingCandles(),
+                    com.cryptoautotrader.strategy.StrategySignal.buy(new BigDecimal("80"), "시험"), BigDecimal.ONE, null);
+            System.out.println("[승인 재검사 DYNAMIC] 동일 코인 → " + r1);
+            assertThat(r1).contains("승인 차례에").contains("동일코인 노출 상한");
+
+            // ② 평가 뒤 이 세션이 같은 코인을 손실로 청산했다
+            made.add(dynPosition(dyn, "KRW-ONG", "CLOSED", new BigDecimal("-50"), Instant.now().minus(5, ChronoUnit.MINUTES)));
+            String r2 = dynamicTradingService.approveQueuedEntry(dyn, "KRW-ONG", risingCandles(),
+                    com.cryptoautotrader.strategy.StrategySignal.buy(new BigDecimal("80"), "시험"), BigDecimal.ONE, null);
+            System.out.println("[승인 재검사 DYNAMIC] 손실 쿨다운 → " + r2);
+            assertThat(r2).contains("승인 차례에").contains("손실 청산 쿨다운");
+
+            assertThat(orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc("DYNAMIC", dyn)).isEmpty();
+            assertThat(positionRepository.findBySessionKindAndSessionIdAndStatus("DYNAMIC", dyn, "OPEN")).isEmpty();
+        } finally {
+            made.forEach(positionRepository::delete);
+            dynamicRepo.deleteById(dyn);
+        }
+    }
+
+    @Test
+    @DisplayName("🔴 승인 시점 재검사(LIVE) — 평가 뒤 최신 캔들에 급락이 생기면 블랙스완 관문으로 진입하지 않는다")
+    void liveApprovalRechecksLatestCandles() {
+        Long live = session("KRW-POLYX");
+        Instant t0 = Instant.now().truncatedTo(ChronoUnit.HOURS).minus(29, ChronoUnit.HOURS);
+        try {
+            // 마지막(진행 중) 캔들이 1000 → 880, -12% — 평가 때는 없던 급락.
+            for (int i = 0; i < 30; i++) {
+                boolean last = i == 29;
+                candleDataRepository.save(com.cryptoautotrader.api.entity.MarketDataCacheEntity.builder()
+                        .time(t0.plus(i, ChronoUnit.HOURS)).coinPair("KRW-POLYX").timeframe("H1")
+                        .open(new BigDecimal("1000")).high(new BigDecimal("1001"))
+                        .low(last ? new BigDecimal("880") : new BigDecimal("999"))
+                        .close(last ? new BigDecimal("880") : new BigDecimal("1000")).volume(new BigDecimal("1000")).build());
+            }
+            String r = liveTradingService.approveQueuedEntry(live, "KRW-POLYX", "시험",
+                    com.cryptoautotrader.strategy.StrategySignal.buy(new BigDecimal("80"), "시험"), "TREND", List.of(), null);
+            System.out.println("[승인 재검사 LIVE] 최신 캔들 급락 → " + r);
+            assertThat(r).contains("승인 차례에 BLACK_SWAN_GUARD");
+            assertThat(orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc("LIVE", live)).isEmpty();
+        } finally {
+            jdbc.update("DELETE FROM market_data_cache WHERE coin_pair = 'KRW-POLYX'");
+        }
     }
 
     @Test

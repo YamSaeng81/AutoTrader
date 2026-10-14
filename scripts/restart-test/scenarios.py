@@ -473,10 +473,12 @@ def s12():
               count_act(during, 'pool', wait='Lock') >= 1 and count_act(during, 'guard', wait='Lock') == 0
               and count_act(during, 'guard') == 1 and guard_held_during, str(during))
         rt.log(f'  제한 시간 직후 트랜잭션 중 유휴: {idle_detail} → 2.5초 뒤: {idle_detail_later}')
-        # 2026-10-15: 순간 측정 한 번은 다른 작업(DYNAMIC 틱 트랜잭션 등)이 SQL 사이에 잠깐 유휴인 것과 반납되지 않은 트랜잭션을
-        # 구분하지 못한다(208/209 회차에서 2건 관측). 반납되지 않은 트랜잭션은 유휴가 계속되므로 "2초 넘게 유휴인 트랜잭션 0" 을
+        # 2026-10-15: 순간 측정 한 번은 다른 작업(DYNAMIC 틱 트랜잭션 등)이 SQL 사이에 잠깐 유휴인 것과 오래 열린 트랜잭션을
+        # 구분하지 못한다(208/209 회차에서 2건 관측). 오래 열린 트랜잭션은 유휴가 계속되므로 "2초 넘게 유휴인 트랜잭션 0" 을
         # 2.5초 간격 두 번 모두에서 요구한다. 잠금 대기 0 은 그대로.
-        check(f'S12 {what} 제한 시간 뒤: 롤백·연결 반환(2초 넘게 유휴인 트랜잭션 0·잠금 대기 0)',
+        # 🔴 판정 범위 (2026-10-15 리뷰): 이것은 장기 미종료 트랜잭션의 관측 기준이다. 트랜잭션 없이 대여된 채 남은 연결이나
+        #    실행 중 정체는 잡지 못한다 — 연결 반환 자체의 입증으로 쓰지 않는다.
+        check(f'S12 {what} 제한 시간 뒤: 롤백 — 장기 미종료 트랜잭션 없음(2초 넘는 idle in transaction 0·잠금 대기 0)',
               not stale_idle_in_tx(idle_detail) and not stale_idle_in_tx(idle_detail_later)
               and count_act(after_timeout, 'pool', wait='Lock') == 0,
               f'{after_timeout} 유휴상세={idle_detail} / {idle_detail_later}')
@@ -697,7 +699,8 @@ def idle_in_tx_detail():
 
 
 def stale_idle_in_tx(detail, seconds=2.0):
-    """반납되지 않은 트랜잭션 — 유휴가 seconds 넘게 이어진 것. 다른 작업이 SQL 사이에서 잠깐 유휴인 것은 세지 않는다."""
+    """장기 미종료 트랜잭션 — 트랜잭션 중 유휴가 seconds 넘게 이어진 것. 다른 작업이 SQL 사이에서 잠깐 유휴인 것은 세지 않는다.
+    트랜잭션 없이 대여된 채 남은 연결이나 실행 중 정체는 이 기준으로 잡히지 않는다."""
     return [d for d in detail if float(d[1]) > seconds]
 
 
