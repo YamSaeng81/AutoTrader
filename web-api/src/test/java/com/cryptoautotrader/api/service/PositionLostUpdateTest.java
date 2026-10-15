@@ -73,7 +73,8 @@ class PositionLostUpdateTest extends IntegrationTestBase {
     }
 
     @Test
-    @DisplayName("🔴 낡은 엔티티의 다른 열만 바꿔 저장해도 그 사이 커밋된 CLOSED·청산 시각·실현손익은 그대로다(@DynamicUpdate)")
+    // 🔴 범위: 같은 트랜잭션이 관리하는(managed) 엔티티의 변경만 본다. 분리된 엔티티의 merge 는 이 시험의 대상이 아니고 @DynamicUpdate 가 막지 못한다.
+    @DisplayName("🔴 관리 중인 낡은 엔티티의 다른 열만 바꿔 저장해도 그 사이 커밋된 CLOSED·청산 시각·실현손익은 그대로다(@DynamicUpdate — 보조 방어)")
     void staleEntitySaveDoesNotRevertClose() {
         PositionEntity p = openPosition();
         new TransactionTemplate(txManager).executeWithoutResult(st -> {

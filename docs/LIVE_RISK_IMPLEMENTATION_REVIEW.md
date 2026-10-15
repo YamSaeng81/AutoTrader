@@ -970,7 +970,7 @@ SELECT s.timeframe, MAX(c.time) AS last_btc_candle, now() AS checked_at
 | M7 BTC 캔들 최신성 검사 제거 | `BtcGateUnknownEntryTest` | 실패 2 — 검출 |
 | M8 페이퍼 체결가 출처 미기록 | `CandleGapExitTest` | 실패 1 — 검출 |
 | M9 매도 가드의 닫힌 포지션 판정 제거(⑧ 첫 수정) | `DoubleSellGuardTest` | 실패 1 — 검출 |
-| M10 `PositionEntity` 의 `@DynamicUpdate` 제거(⑧ 실제 원인 수정) | `PositionLostUpdateTest` | 실패 1 — 검출(H2 에서도 갱신 유실 재현) |
+| M10 `PositionEntity` 의 `@DynamicUpdate` 제거(⑧ 보조 방어) | `PositionLostUpdateTest` | 실패 1 — 검출(관리 엔티티의 갱신 유실이 H2 에서도 재현) |
 
 🔴 첫 변형 실행은 **무효**다 — 스크립트가 빌드를 Windows 명령 창으로 불러 시작조차 못 했고(8건 모두 즉시 종료·시험 결과 파일 0), 출력은 "실패 0" 이었다.
 결과 파일 수를 함께 찍게 고치고 Git bash 로 빌드를 불러 다시 돌렸다(위 표). 두 실행 모두 복구는 절대 경로 백업으로 했고 매번 원본 해시와 같았다.
@@ -1000,10 +1000,12 @@ SELECT s.timeframe, MAX(c.time) AS last_btc_candle, now() AS checked_at
   쪽은 **평가 루프**다: LIVE·DYNAMIC 평가 루프는 회차 시작에 읽은 포지션 엔티티의 평가손익(표시용) 하나를 바꿔 `save` 했고, 포지션 엔티티에는 버전 열이 없고
   Hibernate 는 기본으로 모든 열을 쓴다 — 그 사이 다른 경로가 커밋한 청산이 그 시점 값으로 덮였다.
 - **수정.** ① 평가손익은 그 열 하나만, OPEN 일 때만 쓰는 단일 UPDATE(`PositionRepository.updateUnrealizedPnlIfOpen`) — 관리 중인 엔티티를 바꾸지 않는다(LIVE·DYNAMIC).
-  ② 방어선: `PositionEntity` 에 `@DynamicUpdate` — 낡은 엔티티를 저장하는 다른 경로도 바꾼 열만 쓴다. 버전 열(낙관적 잠금)은 넣지 않았다 — 모든 저장 경로에
+  ② 보조 방어: `PositionEntity` 에 `@DynamicUpdate` — **같은 영속성 컨텍스트가 관리하는 엔티티**의 변경 감지에서 손대지 않은 열을 쓰지 않는다. 🔴 오래된
+  분리(detached) 엔티티를 merge/save 하는 경로의 갱신 유실은 막지 못한다(그 엔티티 값과 현재 행이 다른 열을 모두 쓴다) — 직접 수정은 ①이다(리뷰 지적으로
+  범위를 좁혀 적는다). 버전 열(낙관적 잠금)은 넣지 않았다 — 모든 저장 경로에
   충돌 처리가 필요해 이번 범위를 넘는다(남는 위험: 같은 열을 두 경로가 바꾸면 나중 값이 이긴다).
 - **시험.** `PositionLostUpdateTest` 2(신규): 한 트랜잭션이 읽어 둔 사이 다른 연결이 CLOSED 로 커밋 → 낡은 엔티티의 평가손익만 바꿔 저장해도 CLOSED·청산 시각·
-  실현손익 그대로 / 평가손익 기록은 OPEN 일 때만(닫힌 뒤 0행). 변형(`@DynamicUpdate` 제거) → 실패 1 — H2 에서도 갱신 유실이 재현된다. 재시작 시험 재확인: S16·S18·S18b
+  실현손익 그대로 / 평가손익 기록은 OPEN 일 때만(닫힌 뒤 0행). 변형(`@DynamicUpdate` 제거) → 실패 1 — H2 에서도 관리 엔티티의 갱신 유실이 재현된다(시험 범위는 관리 엔티티 — 분리 엔티티 merge 는 대상 밖). 재시작 시험 재확인: S16·S18·S18b
   **32/32** — 이 실행에서도 유령 정산이 포지션을 닫은 0.14초 뒤 정지 재호출이 왔다(같은 경쟁 구간을 거쳤다). 두 번째 매도 없음·잔액 9,997.35. 최종 전체 실행 285/285.
 - 🔴 이 결함은 이번 회차 변경과 무관한 종전 결함이다 — 평가 루프가 보유 중인 포지션을 다른 경로가 닫는 모든 경우(정산·정지·정리)에 같은 위험이 있었다.
 
