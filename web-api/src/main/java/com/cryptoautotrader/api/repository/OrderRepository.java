@@ -44,6 +44,21 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
     boolean existsBySessionKindAndSessionIdAndCoinPairAndSideAndStateIn(
             String sessionKind, Long sessionId, String coinPair, String side, List<String> states);
 
+    /**
+     * 🔴 이 포지션의 <b>아직 반영되지 않은 매도</b> 수 — 미결이거나, 체결됐는데 포지션에 반영 전 (2026-10-15, 이중 매도 방지).
+     *
+     * <p>재시작 시험 S18b(전량 정지 리허설): DYNAMIC 비상 정지가 매도를 낸 뒤 세션 갱신에서 실패해 롤백되면, CLOSING 표시만
+     * 되돌아가고 거래소의 매도는 체결된 채 남는다. 다시 정지를 부르자 같은 수량을 <b>한 번 더 팔았다</b> — 중복 검사가 활성
+     * 상태만 봐서 체결된 미반영 매도를 놓쳤다. 공유 계좌에서는 다른 세션의 코인을 팔 수 있다.</p>
+     *
+     * <p>{@code since} 이전 행은 세지 않는다 — V87 이전에는 반영 표시({@code sell_applied_at})가 없었고 종전 코드가 체결 때
+     * 반영했다(NULL 이 "미반영" 이 아니다).</p>
+     */
+    @Query("SELECT COUNT(o) FROM OrderEntity o WHERE o.positionId = :positionId AND o.side = 'SELL' AND o.sellAppliedAt IS NULL "
+            + "AND o.createdAt >= :since AND (o.state IN ('PENDING', 'INTENT_READY', 'SUBMITTING', 'UNKNOWN', 'SUBMITTED', 'PARTIAL_FILLED') "
+            + "OR (o.filledQuantity > 0 AND o.state IN ('FILLED', 'CANCELLED')))")
+    long countUnresolvedSellsForPosition(@Param("positionId") Long positionId, @Param("since") Instant since);
+
     /** 특정 세션의 주문 내역 (최신순, 페이징) */
     Page<OrderEntity> findBySessionIdOrderByCreatedAtDesc(Long sessionId, Pageable pageable);
 

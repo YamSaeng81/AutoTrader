@@ -166,6 +166,10 @@ public class OrderExecutionEngine {
     @Autowired(required = false)
     private OrderSettlementService orderSettlementService;
 
+    /** 장기 UNKNOWN 수동 조정 기록 (V91) — 조정한 주문은 거래소 결과를 자동 정산하지 않는다. */
+    @Autowired(required = false)
+    private UnknownOrderAdjustmentService unknownOrderAdjustmentService;
+
     @Autowired(required = false)
     private TelegramNotificationService telegramService;
 
@@ -178,6 +182,36 @@ public class OrderExecutionEngine {
 
     @Autowired(required = false)
     private DynamicSessionBalanceUpdater dynamicBalanceUpdater;
+
+    @Autowired(required = false)
+    private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+
+    /** 매도 반영 표시({@code sell_applied_at}, V87)를 믿을 수 있는 시작 시각 — 그 전 매도는 종전 코드가 체결 때 반영했다. */
+    private volatile Instant sellTrackingSince;
+
+    @jakarta.annotation.PostConstruct
+    void initSellTracking() {
+        sellTrackingSince();
+    }
+
+    Instant sellTrackingSince() {
+        Instant v = sellTrackingSince;
+        if (v != null) return v;
+        v = Instant.EPOCH;   // 시험 기반(H2)에는 Flyway 기록이 없다 — 모든 매도를 반영 표시가 있는 시대로 본다
+        if (jdbcTemplate != null) {
+            try {
+                // installed_on 은 시간대 없는 값이다 — 설치한 연결의 시간대(같은 JVM)로 해석해 순간으로 바꾼다.
+                java.sql.Timestamp t = jdbcTemplate.queryForObject("SELECT installed_on AT TIME ZONE current_setting('TimeZone') "
+                        + "FROM flyway_schema_history WHERE version = '87' AND success", java.sql.Timestamp.class);
+                if (t != null) v = t.toInstant();
+            } catch (Exception e) {
+                log.info("V87 설치 시각을 읽지 못했다 — 모든 매도의 반영 표시를 믿는다: {}", e.getMessage());
+            }
+        }
+        sellTrackingSince = v;
+        log.info("매도 반영 표시 기준 시각: {}", v);
+        return v;
+    }
 
     /** §10 — Upbit API rate limit 대응 */
     @Autowired
@@ -554,6 +588,21 @@ public class OrderExecutionEngine {
             log.warn("중복 주문 거부 (sessionKind={}, sessionId={}, {} {}): 이미 활성 주문이 있습니다",
                     sessionKind, request.getSessionId(), request.getCoinPair(), request.getSide());
             return null;
+        }
+
+        // 🔴 같은 포지션에 반영되지 않은 매도가 있으면 새 매도를 내지 않는다 (2026-10-15, 전량 정지 리허설 S18b 에서 재현).
+        //    위의 중복 검사는 활성 상태만 본다 — 체결됐지만 포지션에 아직 반영되지 않은 매도(정지 롤백으로 CLOSING 이 되돌아간
+        //    경우)를 놓쳐 같은 수량을 두 번 팔았다. 매도는 막지 않는다는 아래 원칙의 예외가 아니다: 이미 나간 매도가 그 수량을
+        //    판다. 반영은 청산 확정(CLOSING)·정리 작업이 하고, 남은 수량이 있으면 그 뒤에 다시 판다(부분 체결 규칙 D5).
+        if ("SELL".equalsIgnoreCase(request.getSide()) && request.getPositionId() != null
+                && OrderSettlementService.isSharedPoolKind(sessionKind)) {
+            long unresolved = orderRepository.countUnresolvedSellsForPosition(request.getPositionId(), sellTrackingSince());
+            if (unresolved > 0) {
+                log.error("🔴 이중 매도 차단 (sessionKind={}, sessionId={}, posId={}, {}): 이 포지션에 반영되지 않은 매도 {}건 "
+                                + "(미결 또는 체결·미반영) — 새 매도를 내지 않는다",
+                        sessionKind, request.getSessionId(), request.getPositionId(), request.getCoinPair(), unresolved);
+                return null;
+            }
         }
 
         // 🔴 실자금 공유 풀 세션은 **시장가만** 받는다 (2026-10-14). 지정가는 발행 경로가 없고, 예약(`quantity` 를 원화로
@@ -1901,6 +1950,16 @@ public class OrderExecutionEngine {
             fresh.setUnknownReason("식별자로 조회되지 않음 — 미접수로 단정하지 않는다 (시도 "
                     + fresh.getUnknownProbeCount() + "회)");
             orderRepository.save(fresh);
+            return Boolean.FALSE;
+        }
+
+        // 🔴 사람이 수동 조정한 불명 주문이다 (V91, 2026-10-15) — 사람이 이미 회계를 맞췄으므로(세션 잔액 반환), 거래소 결과를
+        //    자동으로 정산하면 같은 돈이 두 번 움직인다. 상태를 UNKNOWN 그대로 두고 관측만 남긴다. 사람이 다시 본다.
+        if (unknownOrderAdjustmentService != null && unknownOrderAdjustmentService.isAdjusted(order.getId())) {
+            unknownOrderAdjustmentService.recordLaterObservation(order.getId(), found.getState(), found.getExecutedVolume(),
+                    String.format("거래소 보고: uuid=%s 상태=%s 체결수량=%s 체결금액=%s 수수료=%s", found.getUuid(), found.getState(),
+                            found.getExecutedVolume(), found.resolveExecutedFunds(), found.getPaidFee()),
+                    Instant.now());
             return Boolean.FALSE;
         }
 

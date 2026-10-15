@@ -320,7 +320,8 @@ public class PoolLossGuard {
     }
 
     /** 보유 평가에 쓴 시세와 그 출처. */
-    public record PriceMark(BigDecimal price, String source, boolean realtime) {}
+    /** @param at 실시간 시세를 받은 시각(대체 시세면 {@code null}) — 최신성 판단은 쓰는 쪽이 한다({@link PositionLimitGuard}). */
+    public record PriceMark(BigDecimal price, String source, boolean realtime, Instant at) {}
 
     /**
      * 보유 평가 시세 — 마지막 실시간 시세, 없으면 평가 루프가 마지막으로 적은 평가손익에서 되돌린 값, 그것도 없으면 평균단가.
@@ -329,11 +330,11 @@ public class PoolLossGuard {
     public PriceMark markFor(String coin, BigDecimal size, BigDecimal avg, BigDecimal unrealized) {
         MarkPriceBook.Mark m = markPriceBook.get(coin);
         if (m != null) {
-            return new PriceMark(m.price(), "시세@" + m.at(), true);
+            return new PriceMark(m.price(), "시세@" + m.at(), true, m.at());
         }
         BigDecimal price = unrealized == null || size.signum() == 0 ? avg
                 : avg.add(unrealized.divide(size, 12, RoundingMode.HALF_UP));
-        return new PriceMark(price, unrealized == null ? "평균단가" : "평가루프", false);
+        return new PriceMark(price, unrealized == null ? "평균단가" : "평가루프", false, null);
     }
 
     /**

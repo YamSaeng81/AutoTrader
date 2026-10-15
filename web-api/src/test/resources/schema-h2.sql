@@ -741,3 +741,19 @@ CREATE TABLE IF NOT EXISTS position_limit_breach (
     stop_at         TIMESTAMP WITH TIME ZONE,
     stop_note       TEXT
 );
+
+-- V91 장기 UNKNOWN 수동 조정 기록 (2026-10-15)
+CREATE TABLE IF NOT EXISTS order_manual_adjustment (
+    order_id            BIGINT          PRIMARY KEY,
+    session_kind        VARCHAR(20)     NOT NULL,
+    session_id          BIGINT          NOT NULL,
+    order_state_at      VARCHAR(20)     NOT NULL,
+    adjusted_by         VARCHAR(100)    NOT NULL,
+    reason              TEXT            NOT NULL,
+    evidence            TEXT,
+    released_krw        DECIMAL(20, 8)  NOT NULL,
+    unresolved_risk     TEXT            NOT NULL,
+    created_at          TIMESTAMP WITH TIME ZONE NOT NULL,
+    later_observation   TEXT,
+    later_observed_at   TIMESTAMP WITH TIME ZONE
+);

@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +49,8 @@ import java.util.List;
  *       낙폭이 실제보다 작게 계산될 수 있다(늦게 발동하는 쪽).</li>
  *   <li>도달과 차단 사이에 감시 주기만큼의 간격이 있다. 그 사이의 신규 진입은 공유 풀 한도(누적·24시간)만 막는다.</li>
  *   <li>시세는 공유 풀 손실 한도와 같다({@link PoolLossGuard#markFor}) — 청산 슬리피지는 넣지 않았다. 🔴 단 <b>실시간 시세일 때만</b>
- *       판정한다({@link #MARK_UNAVAILABLE}). 시세가 끊긴 동안 포지션별 한도는 판정하지 않는다.</li>
+ *       판정한다({@link #MARK_UNAVAILABLE}). 실시간 시세도 {@link #markMaxAgeSeconds} 를 넘으면 판정하지 않는다({@link #MARK_STALE}).
+ *       판정하지 못한 상태는 정상이 아니다 — {@link PositionLimitMonitor} 가 이어지면 경보한다.</li>
  * </ul>
  */
 @Slf4j
@@ -65,11 +67,27 @@ public class PositionLimitGuard {
      * 않는다 — 도달은 세션을 영구히 막고 되돌리지 않으므로 낡은 값으로 남기면 안 된다.
      */
     public static final String MARK_UNAVAILABLE = "MARK_UNAVAILABLE";
+    /**
+     * 실시간 시세는 있지만 받은 지 {@link #markMaxAge} 를 넘었다(2026-10-15 리뷰 6회차). 마지막 체결가가 오래된 것과 구독이 조용히
+     * 끊긴 것을 여기서는 구분할 수 없으므로, 판정하지 않는다 — {@link #MARK_UNAVAILABLE} 과 같게 다룬다.
+     */
+    public static final String MARK_STALE = "MARK_STALE";
+    /** 판정하지 못한 결과 — 한도 안(정상)이 아니다. */
+    public static boolean isUnjudged(String code) {
+        return VALUATION_UNKNOWN.equals(code) || MARK_UNAVAILABLE.equals(code) || MARK_STALE.equals(code);
+    }
 
     private static final BigDecimal HUNDRED = new BigDecimal("100");
 
     private final PoolLossGuard poolLossGuard;
     private final KillCriteriaConfig config = KillCriteriaConfig.defaults();
+
+    /**
+     * 판정에 쓸 수 있는 시세의 최대 나이 — 기본 120초. 근거: 웹소켓이 멎으면 30초 뒤 REST 대체 조회가 구독 코인 전부를 5초마다 다시
+     * 채우므로, 시세 경로가 살아 있으면 이 안에 새 값이 온다. 체결이 2분 넘게 없는 코인은 판정 불가로 남고 감시가 경보한다.
+     */
+    @org.springframework.beans.factory.annotation.Value("${position-limit.mark-max-age-seconds:120}")
+    private long markMaxAgeSeconds = 120;
 
     @PersistenceContext
     private EntityManager em;
@@ -81,7 +99,8 @@ public class PositionLimitGuard {
     /**
      * 포지션 하나의 판정.
      *
-     * @param code       {@code null} 이면 한도 안, 아니면 {@link #CAPITAL_LOSS}·{@link #MAX_DRAWDOWN}·{@link #VALUATION_UNKNOWN}
+     * @param code       {@code null} 이면 한도 안, 아니면 {@link #CAPITAL_LOSS}·{@link #MAX_DRAWDOWN}, 또는 판정 불가
+     *                   ({@link #VALUATION_UNKNOWN}·{@link #MARK_UNAVAILABLE}·{@link #MARK_STALE} — {@link #isUnjudged})
      * @param newBreach  이번 판정에서 도달 기록을 처음 남겼다
      */
     public record Evaluation(Long positionId, String sessionKind, Long sessionId, String coinPair,
@@ -154,6 +173,14 @@ public class PositionLimitGuard {
             log.warn("[포지션 한도] {}", detail);
             return new Evaluation(positionId, kind, sessionId, coin, cost, value, allocation, basis, oldPeak, mark,
                     MARK_UNAVAILABLE, detail, false);
+        }
+        long ageSeconds = Duration.between(pm.at(), now).getSeconds();
+        if (ageSeconds > markMaxAgeSeconds) {
+            String detail = String.format("포지션 #%d %s %s#%s — 시세 %s 가 %d초 전 값(기준 %d초 초과): 판정하지 않는다(고점 %s 유지, 평가액 참고 %s)",
+                    positionId, coin, kind, sessionId, mark, ageSeconds, markMaxAgeSeconds, plain(oldPeak), plain(value));
+            log.warn("[포지션 한도] {}", detail);
+            return new Evaluation(positionId, kind, sessionId, coin, cost, value, allocation, basis, oldPeak, mark,
+                    MARK_STALE, detail, false);
         }
 
         // 고점 — 더 클 때만 올린다. 동시에 다른 판정이 더 큰 값을 썼으면 그 값이 남는다.
@@ -251,6 +278,11 @@ public class PositionLimitGuard {
                         + "WHERE position_id = ?4 AND stop_action IS NULL")
                 .setParameter(1, action).setParameter(2, note).setParameter(3, Timestamp.from(at)).setParameter(4, positionId)
                 .executeUpdate();
+    }
+
+    /** 시험용. */
+    void setMarkMaxAgeSeconds(long v) {
+        this.markMaxAgeSeconds = v;
     }
 
     // ── 보조 ────────────────────────────────────────────────────────

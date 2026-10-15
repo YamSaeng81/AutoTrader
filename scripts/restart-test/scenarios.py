@@ -1162,10 +1162,328 @@ def s15():
         rt.psql("UPDATE dynamic_session SET status = 'STOPPED' WHERE status = 'RUNNING' AND trading_mode = 'REAL'")
 
 
+# ── 선행 조건 5번 5-h — 엔진 자체 청산의 진입 전 시험 (2026-10-15) ───────────────────────
+
+S16_COIN = 'KRW-DOGE'
+S16_PRICE = 310          # 캔들 종가 — 엔진의 판정가. 대역 체결가는 300 고정이다(판정가와 체결가가 다른 것도 그대로 본다)
+
+
+def seed_candles(close=S16_PRICE, n=520):
+    """닫힌 H1 캔들 n 개(현재 시간 포함). DYNAMIC 의 캐시 조회(500개 창)도 덮는다 — 대역 밖 REST 는 막혀 있어 캐시만 읽는다."""
+    rt.psql(f"DELETE FROM market_data_cache WHERE coin_pair = '{S16_COIN}' AND timeframe = 'H1'")
+    rt.psql("INSERT INTO market_data_cache (time, coin_pair, timeframe, open, high, low, close, volume) "
+            f"SELECT date_trunc('hour', now()) - (g || ' hours')::interval, '{S16_COIN}', 'H1', {close}, {close + 1}, {close - 1}, "
+            f"{close}, 1000 FROM generate_series(0, {n - 1}) g")
+
+
+def s16_session(case):
+    """case 별 세션 + 실제 매수로 연 포지션. 판정 조건은 포지션·세션 열로 만든다(엔진 판정 코드는 그대로)."""
+    sid = seed_live_session()
+    table = 'dynamic_session' if KIND == 'DYNAMIC' else 'live_trading_session'
+    rt.psql(f"UPDATE {table} SET strategy_type = 'HARNESS_SIGNAL', timeframe = 'H1', max_hold_hours = "
+            f"{1 if case == 'TIME_STOP' else 24} WHERE id = {sid}")
+    kind_, detail = buy_krw(sid, 3000)
+    rt.wait_until(lambda: state(sid)['orders'] and state(sid)['orders'][0][2] == 'FILLED'
+                  and state(sid)['positions'][0][2] not in ('0', '0.00000000'), 60, 1, f'S16 {case} 매수')
+    pid = int(state(sid)['positions'][0][0])
+    sl = {'STOP_LOSS': 320}.get(case, 250)                    # 310 ≤ 320 → 손절, 나머지는 250(미도달)
+    tp = {'TAKE_PROFIT': 305}.get(case, 'NULL')               # 310 ≥ 305 → 익절
+    held = {'TIME_STOP': '2 hours', 'STRATEGY_SIGNAL': '4 hours'}.get(case, '10 minutes')   # 전략 매도는 최소 보유 180분
+    rt.psql(f"UPDATE position SET stop_loss_price = {sl}, take_profit_price = {tp}, opened_at = now() - interval '{held}' "
+            f"WHERE id = {pid}")
+    if KIND == 'DYNAMIC':
+        rt.psql(f"UPDATE dynamic_session SET scan_state = 'POSITION_MONITORING', current_coin_pair = '{S16_COIN}', "
+                f"current_position_id = {pid} WHERE id = {sid}")
+    return sid, pid
+
+
+def s16():
+    rt.log('S16 엔진 자체 청산 — 실제 스케줄러(60초 평가)가 손절·익절·시간 초과·전략 매도를 내고, 제출·체결·정산·최종 상태까지')
+    rt.psql("UPDATE position SET status = 'CLOSED' WHERE status IN ('OPEN', 'CLOSING') AND session_kind IN ('LIVE', 'DYNAMIC')")
+    rt.psql("UPDATE live_trading_session SET status = 'STOPPED' WHERE status = 'RUNNING'")
+    rt.psql("UPDATE dynamic_session SET status = 'STOPPED' WHERE status = 'RUNNING'")
+    seed_candles()
+    try:
+        rt.start_app(label='s16-run')
+        rt.api('POST', '/api/v1/restart-harness/signal?action=SELL', timeout=10)
+        cases = ['STOP_LOSS', 'TAKE_PROFIT', 'TIME_STOP', 'STRATEGY_SIGNAL']
+        made = {c: s16_session(c) for c in cases}
+        t0 = time.time()
+        # DYNAMIC 의 전략 매도 청산은 운영 기본값에서 꺼져 있다(trading.strategy-signal-exit.enabled=false) — 청산이 아니라 기록만 남는다.
+        closing = [c for c in cases if not (KIND == 'DYNAMIC' and c == 'STRATEGY_SIGNAL')]
+
+        def closed(c):
+            return state(made[c][0])['positions'][0][1] == 'CLOSED'
+        try:
+            rt.wait_until(lambda: all(closed(c) for c in closing), 200, 3, 'S16 엔진 청산')
+        except Exception as e:
+            rt.log(f'  대기 초과: {e!r}')
+        rt.log(f'  청산 대기 {time.time() - t0:.0f}초')
+        for c in cases:
+            sid, pid = made[c]
+            st = state(sid)
+            show(f'S16 {c}', st)
+            sells = [o for o in st['orders'] if o[1] == 'SELL']
+            pos = st['positions'][0]
+            if c in closing:
+                # 매수: 3,000 예약 → 2,940 + 1.47 → 잔액 7,058.53. 매도: 9.8 × 300 = 2,940 − 거래소 보고 수수료 1.176 → 9,997.354
+                check(f'S16 {c}: 엔진이 청산 매도 1건 제출 → 체결 → 정산 → CLOSED·사유 {c}',
+                      pos[1] == 'CLOSED' and pos[4] == c and len(sells) == 1 and sells[0][2] == 'FILLED'
+                      and sells[0][6] not in ('', None) and sells[0][11] == 't' and st['exchange_creates'] == 2,
+                      f'{pos} {[s[:7] for s in sells]} creates={st["exchange_creates"]}')
+                # 잔액 열은 소수 둘째 자리 — 9,997.354 → 9,997.35
+                check(f'S16 {c}: 잔액 9,997.35 (대금·보고 수수료 한 번), 정리 대기 없음',
+                      avail(st) == '9997.35' and not st['cleanup'], f'{avail(st)} {st["cleanup"]}')
+            else:
+                blocked = rt.psql(f"SELECT was_executed, coalesce(blocked_reason,'') FROM strategy_log WHERE session_id = {sid} "
+                                  "AND signal = 'SELL' ORDER BY id DESC LIMIT 1")
+                check('S16 STRATEGY_SIGNAL(DYNAMIC): 운영 기본값대로 청산하지 않고 차단 사유를 기록, 매도 0',
+                      pos[1] == 'OPEN' and not sells and st['exchange_creates'] == 1 and blocked
+                      and blocked[0][0] == 'f' and '전략 SELL 청산 비활성화' in blocked[0][1], f'{pos} {blocked}')
+        # 앱 재기동 뒤 값이 변하지 않는다 — 정산이 두 번 일어나지 않는다
+        ok, _ = stable_after_restart(made['STOP_LOSS'][0])
+        same = all(state(made[c][0])['positions'][0][1] == ('CLOSED' if c in closing else 'OPEN') for c in cases)
+        check('S16 재기동 뒤 상태·잔액 불변(이중 정산·재청산 없음)', ok and same)
+        rt.kill_app()
+    finally:
+        rt.psql("UPDATE position SET status = 'CLOSED' WHERE status IN ('OPEN', 'CLOSING') AND session_kind IN ('LIVE', 'DYNAMIC')")
+        rt.psql("UPDATE live_trading_session SET status = 'STOPPED' WHERE status = 'RUNNING'")
+        rt.psql("UPDATE dynamic_session SET status = 'STOPPED' WHERE status = 'RUNNING'")
+
+
+# ── 선행 조건 5번 5-g — 캔들 캐시 동시 적재 (2026-10-15) ───────────────────────────────
+
+def s17():
+    rt.log('S17 캔들 캐시 — 같은 새 캔들을 8 스레드가 동시에 쓴다: 종전 저장(조회 후 삽입) 재현 vs 충돌 시 갱신')
+    try:
+        rt.start_app(label='s17-run')
+        res = {}
+        for mode in ('legacy', 'upsert'):
+            coin = f'KRW-RACE{mode[0].upper()}'
+            rt.psql(f"DELETE FROM market_data_cache WHERE coin_pair = '{coin}'")
+            r = rt.api('POST', f'/api/v1/restart-harness/candle-race?mode={mode}&coin={coin}&threads=8&rounds=30', timeout=300)
+            res[mode] = r
+            rt.log(f'  {mode}: {json.dumps(r, ensure_ascii=False)}')
+        lg, up = res['legacy'], res['upsert']
+        check('S17 종전 저장(JPA 병합) 재현: 동시 쓰기에서 PK 중복 실패가 난다',
+              lg['failed'] > 0 and any('duplicate key' in k or 'ConstraintViolation' in k or 'DataIntegrity' in k for k in lg['errors']),
+              f"실패 {lg['failed']}/{lg['writes']} {lg['errors']}")
+        check('S17 충돌 시 갱신: 240 쓰기 실패 0, 행 90 (회차 30 × 3) — 중복 없음',
+              up['failed'] == 0 and up['ok'] == up['writes'] and up['rows'] == 90, f"{up}")
+        rt.kill_app()
+    finally:
+        rt.psql("DELETE FROM market_data_cache WHERE coin_pair LIKE 'KRW-RACE%'")
+
+
+# ── 선행 조건 1-h — 전량 정지 집행 절차 리허설 (2026-10-15, LIVE_RISK_IMPLEMENTATION_REVIEW.md §6.5) ───────────
+
+TARGETS_SQL = ("SELECT 'LIVE' AS kind, id, status FROM live_trading_session WHERE status IN ('RUNNING', 'PAUSED', 'CREATED') "
+               "UNION ALL SELECT 'DYNAMIC', id, status FROM dynamic_session WHERE trading_mode = 'REAL' "
+               "AND status IN ('RUNNING', 'PAUSED', 'CREATED') ORDER BY 1, 2")
+OPEN_POS_SQL = ("SELECT session_kind, session_id, id, coin_pair, status, size FROM position "
+                "WHERE session_kind IN ('LIVE', 'DYNAMIC') AND status IN ('OPEN', 'CLOSING') ORDER BY 1, 2")
+PENDING_ORDERS_SQL = ("SELECT session_kind, session_id, id, side, state, client_order_id FROM \"order\" "
+                      "WHERE session_kind IN ('LIVE', 'DYNAMIC') AND state IN ('PENDING', 'INTENT_READY', 'SUBMITTING', "
+                      "'UNKNOWN', 'SUBMITTED', 'PARTIAL_FILLED') ORDER BY 1, 2")
+CLEANUP_SQL = "SELECT session_kind, session_id, position_id, reason, attempts, last_note FROM position_cleanup WHERE done_at IS NULL"
+
+
+def s18(hard=False):
+    tag = 'S18b' if hard else 'S18'
+    rt.log('S18 전량 정지 리허설 — §6.5 ①대상 확정 ②LIVE 일괄·DYNAMIC 세션별 정지 ③실패 재처리 ④미결 주문 종결까지 추적')
+    import os
+    timeline = []
+
+    def mark_t(what, detail=''):
+        t = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
+        timeline.append((t, what, detail))
+        rt.log(f'  ⏱ {t} {what} {detail}')
+
+    def seed(kind):
+        if kind == 'DYNAMIC':
+            sid = int(rt.one(
+                "INSERT INTO dynamic_session (strategy_type, timeframe, initial_capital, available_krw, total_asset_krw, "
+                "status, scan_state, trading_mode, invest_ratio, stop_loss_pct, max_candidate_size, target_watch_size, "
+                "min_atr_pct, max_spread_pct, watchlist_refresh_min, started_at) VALUES ('COMPOSITE_MOMENTUM_ICHIMOKU_V2', "
+                "'H1', 10000, 10000, 10000, 'RUNNING', 'POSITION_MONITORING', 'REAL', 0.3, 5, 30, 10, 0.5, 0.1, 60, now()) RETURNING id"))
+        else:
+            sid = int(rt.one(
+                "INSERT INTO live_trading_session (strategy_type, coin_pair, timeframe, initial_capital, available_krw, "
+                "total_asset_krw, status, session_type, started_at) VALUES ('COMPOSITE_MOMENTUM_ICHIMOKU_V2', 'KRW-DOGE', "
+                "'M5', 10000, 10000, 10000, 'RUNNING', 'REAL', now()) RETURNING id"))
+        rt.api('POST', f'/api/v1/restart-harness/buy?kind={kind}&sessionId={sid}&krw=3000', timeout=40)
+        return sid
+
+    def pos_of(kind, sid):
+        r = rt.psql(f"SELECT id, status, size::text FROM position WHERE session_kind='{kind}' AND session_id={sid} ORDER BY id LIMIT 1")
+        return r[0] if r else None
+
+    def sells(kind, sid):
+        return rt.psql(f"SELECT id, state, coalesce(client_order_id,'') FROM \"order\" WHERE session_kind='{kind}' "
+                       f"AND session_id={sid} AND side='SELL' ORDER BY id")
+
+    def avail_of(kind, sid):
+        t = 'dynamic_session' if kind == 'DYNAMIC' else 'live_trading_session'
+        return rt.one(f"SELECT available_krw::text FROM {t} WHERE id={sid}")
+
+    def creates_for(kind, sid):
+        idents = {r[0] for r in rt.psql(f"SELECT client_order_id FROM \"order\" WHERE session_kind='{kind}' AND session_id={sid} "
+                                        "AND client_order_id IS NOT NULL")}
+        return len([c for c in rt.exchange_orders()['creates'] if c['identifier'] in idents])
+
+    def call(path, timeout=40):
+        t0 = time.time()
+        try:
+            r = rt.api('POST', path, timeout=timeout)
+            return ('ok', f'{time.time() - t0:.1f}s', json.dumps(r, ensure_ascii=False)[:160])
+        except urllib.error.HTTPError as e:
+            return ('http', f'{time.time() - t0:.1f}s', f'{e.code} {e.read()[:200]!r}')
+        except Exception as e:
+            return ('err', f'{time.time() - t0:.1f}s', repr(e)[:200])
+
+    rt.psql("UPDATE position SET status = 'CLOSED' WHERE status IN ('OPEN', 'CLOSING') AND session_kind IN ('LIVE', 'DYNAMIC')")
+    rt.psql("UPDATE live_trading_session SET status = 'STOPPED' WHERE status IN ('RUNNING', 'PAUSED', 'CREATED')")
+    rt.psql("UPDATE dynamic_session SET status = 'STOPPED' WHERE status IN ('RUNNING', 'PAUSED', 'CREATED')")
+    rt.psql("UPDATE \"order\" SET state = 'CANCELLED' WHERE session_kind IN ('LIVE', 'DYNAMIC') AND state IN "
+            "('PENDING', 'INTENT_READY', 'SUBMITTING', 'UNKNOWN', 'SUBMITTED', 'PARTIAL_FILLED')")   # 앞 시나리오 잔여 — 시험 준비
+    rt.psql("UPDATE position_cleanup SET done_at = now() WHERE done_at IS NULL")
+    # 앞 실행이 남긴 반영값 없는 체결 주문(예: 수정 전 S18b 의 이중 매도) — 남기면 공유 풀 순자산을 계산하지 못해 매수가 막힌다
+    rt.psql("UPDATE \"order\" SET applied_executed_funds = coalesce(reported_executed_funds, 0), "
+            "applied_paid_fee = coalesce(reported_paid_fee, 0) WHERE session_kind IN ('LIVE', 'DYNAMIC') "
+            "AND filled_quantity > 0 AND applied_executed_funds IS NULL")
+    holder = None
+    try:
+        rt.start_app(label='s18-run')
+        sess = [('LIVE', seed('LIVE')), ('LIVE', seed('LIVE')), ('DYNAMIC', seed('DYNAMIC')), ('DYNAMIC', seed('DYNAMIC'))]
+        rt.wait_until(lambda: all(pos_of(k, s) and pos_of(k, s)[2] not in ('0', '0.00000000') for k, s in sess), 90, 1, 'S18 매수')
+        for k, s in sess:
+            if k == 'DYNAMIC':
+                pid = pos_of(k, s)[0]
+                rt.psql(f"UPDATE dynamic_session SET current_coin_pair = 'KRW-DOGE', current_position_id = {pid} WHERE id = {s}")
+        (la, a), (lb, b), (dc, c), (dd, d) = sess
+        mark_t('발동 신호(리허설: 공유 풀 손실 한도 도달 가정)')
+
+        # ① 대상 확정
+        targets = rt.psql(TARGETS_SQL)
+        mark_t('① 대상 확정', str(targets))
+        check('S18① 대상 목록에 실자금 세션 4개(LIVE 2·DYNAMIC 2)가 모두 있다',
+              {(k, str(s)) for k, s in sess} <= {(r[0], r[1]) for r in targets}, str(targets))
+
+        # ② 정지 호출 — DYNAMIC #c 의 세션 행을 다른 연결이 150초 잡고 있다(정지 호출 실패 유도).
+        hold_s = 240 if hard else 150
+        holder = rt.psql_background(f"BEGIN; SELECT id FROM dynamic_session WHERE id = {c} FOR UPDATE; SELECT pg_sleep({hold_s}); COMMIT;", 's18-lock')
+        time.sleep(1.5)
+        # LIVE 일괄 — 첫 매도는 접수되지만 응답이 유실된다(불명)
+        rt.ctl('POST', '/_ctl/plan', {'ask': {'drop': True, 'once': True}})
+        r_live = call('/api/v1/trading/emergency-stop', timeout=60)
+        mark_t('② LIVE 일괄 비상 정지', str(r_live))
+        o_after_live = rt.psql(PENDING_ORDERS_SQL)
+        mark_t('② LIVE 일괄 직후 미결 주문', str(o_after_live))
+        # LIVE 매도 두 건은 비동기로 나간다 — 거래소에 다 생성된 뒤에 다음 계획을 건다(계획이 엉뚱한 매도에 쓰이지 않게)
+        rt.wait_until(lambda: creates_for(la, a) == 2 and creates_for(lb, b) == 2, 30, 0.5, 'S18 LIVE 매도 생성')
+        # DYNAMIC #d — 매도가 거래소에서 대기로 남는다
+        rt.ctl('POST', '/_ctl/plan', {'ask': {'fill': 'wait', 'once': True}})
+        r_d = call(f'/api/v1/dynamic-sessions/{d}/emergency-stop', timeout=60)
+        mark_t(f'② DYNAMIC #{d} 비상 정지', str(r_d))
+        # 매도는 비동기로 나간다 — 거래소에 생성된 뒤에 계획을 지운다(먼저 지우면 즉시 체결로 나간다)
+        rt.wait_until(lambda: creates_for(dd, d) == 2, 30, 0.5, 'S18 DYNAMIC D 매도 생성')
+        rt.ctl('POST', '/_ctl/plan', {'ask': None})
+        # DYNAMIC #c — 운영자 쪽 30초 제한
+        r_c1 = call(f'/api/v1/dynamic-sessions/{c}/emergency-stop', timeout=30)
+        mark_t(f'② DYNAMIC #{c} 비상 정지(세션 행 잠김)', str(r_c1))
+        check('S18② 실패 유도: 세션 행이 잠긴 DYNAMIC 정지 호출이 성공 응답을 받지 못했다', r_c1[0] != 'ok', str(r_c1))
+        if hard:
+            # 서버 쪽 재시도(12회 × 잠금 대기 10초)가 끝내 실패할 때까지 기다린다
+            rt.wait_until(lambda: f'재시도 실패 — sessionId={c}' in rt.app_log(), 200, 3, 'S18b 서버 쪽 실패')
+            time.sleep(3)
+        else:
+            time.sleep(45)   # 서버 쪽 재시도가 아직 도는 중에 잠금을 푼다 — 늦게라도 성공한다
+        c_status_mid = rt.one(f"SELECT status FROM dynamic_session WHERE id = {c}")
+        c_sells_after_fail = sells(dc, c)
+        c_pos_after_fail = pos_of(dc, c)
+        mark_t(f'② DYNAMIC #{c} 실패 뒤 상태', f'세션 {c_status_mid} · 포지션 {c_pos_after_fail} · 매도 {c_sells_after_fail} · 거래소 생성 {creates_for(dc, c)}')
+        rt.psql(f"SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE query LIKE '%pg_sleep({hold_s})%' AND pid <> pg_backend_pid()")
+        if hard:
+            check('S18b② 서버 쪽도 실패: 세션은 RUNNING 그대로(정지 기록 없음)', c_status_mid == 'RUNNING', str(c_status_mid))
+        holder.wait(timeout=30)
+        holder = None
+        mark_t('잠금 해제')
+
+        # ③ 응답과 무관하게 ①을 다시 — 살아 있는 세션만 개별 호출로 다시 정지(최대 3회)
+        for attempt in range(1, 4):
+            alive = rt.psql(TARGETS_SQL)
+            mine = [r for r in alive if (r[0], int(r[1])) in {(k, s) for k, s in sess}]
+            mark_t(f'③ 재확인 {attempt}회차', str(mine))
+            if not mine:
+                break
+            for kind, sid, _ in mine:
+                path = (f'/api/v1/dynamic-sessions/{sid}/emergency-stop' if kind == 'DYNAMIC'
+                        else f'/api/v1/trading/sessions/{sid}/emergency-stop')
+                rr = call(path, timeout=60)
+                mark_t(f'③ {kind} #{sid} 재호출', str(rr))
+        t_stopped = time.time()
+        statuses = {(k, s): rt.one(f"SELECT status FROM {'dynamic_session' if k == 'DYNAMIC' else 'live_trading_session'} WHERE id={s}")
+                    for k, s in sess}
+        mark_t('정지 성공(세션 상태 전환) 확인', str(statuses))
+        check('S18③ 재처리 뒤 대상 세션 전부 정지(EMERGENCY_STOPPED/STOPPED)',
+              all(v in ('EMERGENCY_STOPPED', 'STOPPED') for v in statuses.values()) and not [
+                  r for r in rt.psql(TARGETS_SQL) if (r[0], int(r[1])) in set(sess)], str(statuses))
+        c_sells = sells(dc, c)
+        check(f'S18③ 실패한 호출 뒤 재호출해도 DYNAMIC #{c} 의 청산 매도는 1건(이중 매도 없음)',
+              len(c_sells) == 1 and creates_for(dc, c) == 2, f'실패 직후 {c_sells_after_fail} → {c_sells}, 거래소 생성 {creates_for(dc, c)}')
+
+        # ④ 최종 확인 — 정지 직후에는 미결이 남아 있어야 정상(불명 매도·거래소 대기 매도)
+        p0, o0, c0 = rt.psql(OPEN_POS_SQL), rt.psql(PENDING_ORDERS_SQL), rt.psql(CLEANUP_SQL)
+        mark_t('④ 정지 직후 남은 위험', f'포지션 {p0} | 미결 주문 {o0} | 정리 대기 {c0}')
+        check('S18② LIVE 일괄 직후: 응답이 유실된 매도가 미결(불명·제출 중)로 추적된다',
+              any(r[3] == 'SELL' and r[4] in ('UNKNOWN', 'SUBMITTING') for r in o_after_live), str(o_after_live))
+        check('S18④ 정지 성공 ≠ 정리 완료: 정지 확인 시점에 거래소 대기 매도가 미결로 남아 있다',
+              any(r[3] == 'SELL' and r[4] in ('SUBMITTED', 'PARTIAL_FILLED') for r in o0), str(o0))
+        # 거래소 대기 매도를 체결시킨다(운영에서는 시장이 체결한다). 불명 매도는 식별자 조회가 스스로 해소해야 한다.
+        for o in rt.exchange_orders()['orders']:
+            if o.get('side') == 'ask' and o.get('state') == 'wait':
+                rt.ctl('POST', '/_ctl/fill', {'uuid': o['uuid'], 'state': 'done', 'volume': o['volume'],
+                                              'funds': str(round(float(o['volume']) * 300, 8))})
+                mark_t('④ 거래소 대기 매도 체결', o['uuid'])
+
+        def all_clear():
+            return not rt.psql(OPEN_POS_SQL) and not rt.psql(PENDING_ORDERS_SQL) and not rt.psql(CLEANUP_SQL)
+        rt.wait_until(all_clear, 180, 3, 'S18 정리 완료')
+        t_clear = time.time()
+        p1, o1, c1 = rt.psql(OPEN_POS_SQL), rt.psql(PENDING_ORDERS_SQL), rt.psql(CLEANUP_SQL)
+        mark_t('④ 정리 완료 확인', f'포지션 {p1} | 미결 주문 {o1} | 정리 대기 {c1} (정지 확인 뒤 {t_clear - t_stopped:.0f}초)')
+        check('S18④ 정리 완료: 실자금 OPEN·CLOSING 포지션 0 · 미결 주문 0 · 정리 대기 0', not p1 and not o1 and not c1,
+              f'{p1} {o1} {c1}')
+        bal = {f'{k}#{s}': avail_of(k, s) for k, s in sess}
+        check('S18④ 네 세션 잔액 9,997.35 — 매수 1회·매도 1회 대금이 각각 한 번', all(v == '9997.35' for v in bal.values()), str(bal))
+        check('S18④ 거래소 주문 생성: 세션마다 매수 1·매도 1', all(creates_for(k, s) == 2 for k, s in sess),
+              str({f'{k}#{s}': creates_for(k, s) for k, s in sess}))
+
+        # 이미 정지된 세션에 비상 정지를 한 번 더 — 절차는 부르지 말라고 하지만, 실수로 불러도 매도·잔액이 움직이지 않는가
+        before = (creates_for(la, a), avail_of(la, a))
+        r_again = call(f'/api/v1/trading/sessions/{a}/emergency-stop')
+        r_again_d = call(f'/api/v1/dynamic-sessions/{d}/emergency-stop')
+        time.sleep(8)
+        mark_t('정지된 세션에 비상 정지 재호출', f'LIVE {r_again} / DYNAMIC {r_again_d}')
+        check('S18 정지된 세션에 비상 정지를 다시 불러도 매도 0·잔액 불변',
+              (creates_for(la, a), avail_of(la, a)) == before and creates_for(dd, d) == 2 and avail_of(dd, d) == '9997.35',
+              f'{before} → {(creates_for(la, a), avail_of(la, a))}')
+        ok, _ = stable_after_restart(a)
+        check('S18 재기동 뒤 상태·잔액 불변', ok and all(avail_of(k, s) == '9997.35' for k, s in sess))
+        rt.kill_app()
+    finally:
+        if holder is not None:
+            holder.kill()
+        with open(os.path.join(rt.WORK, f'{tag.lower()}-timeline.txt'), 'w', encoding='utf-8') as f:
+            for t, w, dtl in timeline:
+                f.write(f'{t}\t{w}\t{dtl}\n')
+        rt.ctl('POST', '/_ctl/plan', {'ask': None, 'bid': None})
+
+
 SCEN = {'S1': s1, 'S2': s2, 'S3': lambda: s3(False), 'S3b': lambda: s3(True),
         'S4': lambda: s45('AFTER_FILL_OBSERVED'), 'S5': lambda: s45('IN_FILL_ACCOUNTING'), 'S6': s6, 'S7': s7, 'S8': s8, 'S9': s9,
         'S10': s10, 'S11': s11, 'S12': s12, 'S13': s13,
-        'S10b': s10b, 'S11b': s11b, 'S11c': s11c, 'S13b': s13b, 'S14': s14, 'S15': s15}
+        'S10b': s10b, 'S11b': s11b, 'S11c': s11c, 'S13b': s13b, 'S14': s14, 'S15': s15, 'S16': s16, 'S17': s17, 'S18': s18, 'S18b': lambda: s18(True)}
 
 if __name__ == '__main__':
     args = sys.argv[1:]
@@ -1185,7 +1503,7 @@ if __name__ == '__main__':
             KIND = kind
             globals()['KIND'] = kind
             for n in names:
-                if kind == 'DYNAMIC' and n not in ('S3', 'S3b', 'S6', 'S7', 'S8', 'S9', 'S12', 'S14', 'S15'):
+                if kind == 'DYNAMIC' and n not in ('S3', 'S3b', 'S6', 'S7', 'S8', 'S9', 'S12', 'S14', 'S15', 'S16'):
                     continue   # DYNAMIC 은 접수 후 종료·부분 청산 중 종료·종료 중 체결만 (의도·claim·회계 지점은 공통 엔진)
                 try:
                     rt.ctl('POST', '/_ctl/plan', {'bid': None, 'ask': None})   # 앞 시나리오의 1회용 계획이 새지 않게

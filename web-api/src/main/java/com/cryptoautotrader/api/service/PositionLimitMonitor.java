@@ -8,10 +8,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 포지션별 한도의 <b>감시와 집행</b> (2026-10-15, 선행 조건 1번 1-g). 판정은 {@link PositionLimitGuard} 가 한다.
@@ -27,6 +30,11 @@ import java.util.Set;
  * </ul>
  * <p>처리 결과는 도달 기록에 남기고(정지 성공·실패·경보·세션이 이미 멈춤), 한 번 남긴 기록은 다시 처리하지 않는다. 처리 전에 프로세스가
  * 죽으면 재시작 뒤 다음 주기에 처리된다. 🔴 정지 성공은 <b>정리 완료가 아니다</b> — 청산 매도의 체결·정리 대기는 별도로 추적된다.</p>
+ *
+ * <h3>판정 불가 (2026-10-15 리뷰 6회차)</h3>
+ * <p>시세가 없거나 오래됐거나 반영값이 없어 판정하지 못한 포지션은 <b>한도 안으로 치지 않는다</b>. 같은 포지션이
+ * {@code position-limit.unjudged-alert-seconds}(기본 180초) 넘게 이어서 판정 불가면 경보 한 번, 다시 판정되면 해제를 알린다.
+ * 🔴 이어진 시간은 메모리에서 센다 — 재시작하면 처음부터 다시 센다(재시작 직후는 시세가 아직 없는 것이 보통이다).</p>
  */
 @Slf4j
 @Component
@@ -48,6 +56,15 @@ public class PositionLimitMonitor {
 
     @Value("${kill-criteria.auto-stop:false}")
     private boolean autoStop;
+
+    @Value("${position-limit.unjudged-alert-seconds:180}")
+    private long unjudgedAlertSeconds = 180;
+
+    /** 판정 불가가 이어지는 포지션 — 처음 본 시각·마지막 사유·경보 여부. */
+    public record Unjudged(Long positionId, String sessionKind, Long sessionId, String coinPair, Instant since,
+                           String code, String detail, boolean alerted) {}
+
+    private final Map<Long, Unjudged> unjudged = new ConcurrentHashMap<>();
 
     public PositionLimitMonitor(PositionLimitGuard guard, LiveTradingService liveTradingService,
                                 DynamicTradingService dynamicTradingService,
@@ -72,6 +89,7 @@ public class PositionLimitMonitor {
     /** 시험에서도 쓰는 본체. 판정 결과를 돌려준다. */
     public List<PositionLimitGuard.Evaluation> runOnce(Instant now) {
         List<PositionLimitGuard.Evaluation> evaluations = guard.evaluateAll(now);
+        trackUnjudged(evaluations, now);
         Set<String> handledSessions = new HashSet<>();
         for (PositionLimitGuard.PendingBreach b : guard.pendingBreaches()) {
             handle(b, now, handledSessions);
@@ -121,6 +139,53 @@ public class PositionLimitMonitor {
         }
     }
 
+    private void trackUnjudged(List<PositionLimitGuard.Evaluation> evaluations, Instant now) {
+        Set<Long> seen = new HashSet<>();
+        for (PositionLimitGuard.Evaluation e : evaluations) {
+            seen.add(e.positionId());
+            Unjudged prev = unjudged.get(e.positionId());
+            if (PositionLimitGuard.isUnjudged(e.code())) {
+                Instant since = prev == null ? now : prev.since();
+                boolean alerted = prev != null && prev.alerted();
+                long secs = Duration.between(since, now).getSeconds();
+                if (!alerted && secs >= unjudgedAlertSeconds) {
+                    alerted = true;
+                    String msg = String.format("포지션별 한도 판정 불가 %d초 — %s#%s 포지션 #%d %s (%s). 이 포지션은 한도 안으로 보지 않는다 — "
+                                    + "시세 경로를 확인하라. 신규 진입 차단·정지는 걸려 있지 않다 | %s",
+                            secs, e.sessionKind(), e.sessionId(), e.positionId(), e.coinPair(), e.code(), e.detail());
+                    log.error("🔴 [포지션 한도] {}", msg);
+                    send(msg);
+                }
+                unjudged.put(e.positionId(), new Unjudged(e.positionId(), e.sessionKind(), e.sessionId(), e.coinPair(),
+                        since, e.code(), e.detail(), alerted));
+            } else if (prev != null) {
+                unjudged.remove(e.positionId());
+                if (prev.alerted()) {
+                    String msg = String.format("포지션별 한도 판정 재개 — %s#%s 포지션 #%d %s (판정 불가 %d초, 사유 %s)",
+                            e.sessionKind(), e.sessionId(), e.positionId(), e.coinPair(),
+                            Duration.between(prev.since(), now).getSeconds(), prev.code());
+                    log.warn("[포지션 한도] {}", msg);
+                    send(msg);
+                }
+            }
+        }
+        unjudged.keySet().removeIf(id -> !seen.contains(id));   // 닫힌 포지션
+    }
+
+    /** 지금 판정 불가가 이어지는 포지션 — 상태 확인·시험용. */
+    public List<Unjudged> unjudgedPositions() {
+        return List.copyOf(unjudged.values());
+    }
+
+    private void send(String msg) {
+        if (telegram == null) return;
+        try {
+            telegram.sendCustomNotification("⚠️ " + msg);
+        } catch (Exception ex) {
+            log.warn("포지션 한도 경보 전송 실패: {}", ex.getMessage());
+        }
+    }
+
     private String sessionStatus(String kind, Long sessionId) {
         if ("LIVE".equals(kind)) {
             return liveSessionRepository.findById(sessionId).map(s -> s.getStatus()).orElse("없음");
@@ -131,5 +196,10 @@ public class PositionLimitMonitor {
     /** 시험용. */
     void setAutoStop(boolean v) {
         this.autoStop = v;
+    }
+
+    /** 시험용. */
+    void setUnjudgedAlertSeconds(long v) {
+        this.unjudgedAlertSeconds = v;
     }
 }

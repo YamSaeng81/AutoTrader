@@ -1,12 +1,16 @@
 package com.cryptoautotrader.api.service;
 
 import com.cryptoautotrader.api.entity.MarketDataCacheEntity;
-import com.cryptoautotrader.api.repository.MarketDataCacheRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.jdbc.core.ConnectionCallback;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 /**
@@ -35,19 +39,59 @@ import java.util.List;
 @Slf4j
 public class MarketDataUpsertService {
 
-    private final MarketDataCacheRepository marketDataCacheRepo;
+    private final JdbcTemplate jdbc;
+
+    /** PostgreSQL 이면 {@code ON CONFLICT}, 아니면(H2 시험 기반) {@code MERGE ... KEY}. 처음 한 번 확인한다. */
+    private volatile Boolean postgres;
 
     /**
-     * 한 (코인, 타임프레임) 의 캔들을 upsert 한다 — <b>이 호출이 하나의 트랜잭션</b>이다.
+     * 한 (코인, 타임프레임) 의 캔들을 upsert 한다 — <b>이 호출이 하나의 트랜잭션</b>이다(호출자가 트랜잭션이 아니면).
      *
-     * <p>PK(time + coinPair + timeframe) 충돌 시 UPDATE 로 병합된다(JPA merge).
+     * <p>🔴 2026-10-15 (선행 조건 5-g): 종전의 JPA 병합(saveAll)은 <b>조회한 뒤 삽입</b>이라, 두 트랜잭션이 같은 새 캔들을 동시에
+     * 쓰면 늦은 쪽이 PK 중복으로 실패했다 — 동기화(60초)와 DYNAMIC 틱({@link MarketDataSyncService#fetchWithCache}, 틱 트랜잭션
+     * 안)이 같은 코인의 현재 캔들을 함께 쓰는 것이 바로 그 경우다. DYNAMIC 쪽이 지면 <b>틱 트랜잭션 전체</b>가 커밋에서 실패한다.
+     * 이제 한 문장의 원자적 upsert({@code INSERT ... ON CONFLICT (PK) DO UPDATE})다 — 늦은 쪽은 앞 트랜잭션의 커밋을 기다렸다가
+     * 갱신한다. 행 순서는 시각 오름차순으로 고정해 두 쓰기의 잠금 순서가 같다.</p>
      *
      * @return 저장 요청한 행 수
      */
     @Transactional
     public int upsert(String coinPair, String timeframe, List<MarketDataCacheEntity> rows) {
         if (rows == null || rows.isEmpty()) return 0;
-        marketDataCacheRepo.saveAll(rows);
+        List<MarketDataCacheEntity> sorted = rows.stream()
+                .sorted(java.util.Comparator.comparing(MarketDataCacheEntity::getTime)).toList();
+        String sql = isPostgres()
+                ? "INSERT INTO market_data_cache (time, coin_pair, timeframe, open, high, low, close, volume) "
+                        + "VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (time, coin_pair, timeframe) DO UPDATE SET "
+                        + "open = EXCLUDED.open, high = EXCLUDED.high, low = EXCLUDED.low, close = EXCLUDED.close, volume = EXCLUDED.volume"
+                : "MERGE INTO market_data_cache (time, coin_pair, timeframe, open, high, low, close, volume) "
+                        + "KEY (time, coin_pair, timeframe) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        boolean pg = isPostgres();
+        jdbc.batchUpdate(sql, sorted, sorted.size(), (ps, r) -> {
+            if (pg) {
+                ps.setObject(1, OffsetDateTime.ofInstant(r.getTime(), ZoneOffset.UTC));
+            } else {
+                // H2 의 열은 시간대 없는 TIMESTAMP 이고, JPA 는 JVM 시간대로 읽고 쓴다 — 같은 방식으로 맞춘다.
+                ps.setTimestamp(1, Timestamp.from(r.getTime()));
+            }
+            ps.setString(2, r.getCoinPair());
+            ps.setString(3, r.getTimeframe());
+            ps.setBigDecimal(4, r.getOpen());
+            ps.setBigDecimal(5, r.getHigh());
+            ps.setBigDecimal(6, r.getLow());
+            ps.setBigDecimal(7, r.getClose());
+            ps.setBigDecimal(8, r.getVolume());
+        });
         return rows.size();
+    }
+
+    private boolean isPostgres() {
+        Boolean v = postgres;
+        if (v == null) {
+            v = Boolean.TRUE.equals(jdbc.execute((ConnectionCallback<Boolean>) c ->
+                    c.getMetaData().getDatabaseProductName().toLowerCase(java.util.Locale.ROOT).contains("postgres")));
+            postgres = v;
+        }
+        return v;
     }
 }

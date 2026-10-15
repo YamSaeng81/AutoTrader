@@ -3,8 +3,15 @@ package com.cryptoautotrader.api.restartharness;
 import com.cryptoautotrader.api.dto.OrderRequest;
 import com.cryptoautotrader.api.entity.PositionEntity;
 import com.cryptoautotrader.api.repository.PositionRepository;
+import com.cryptoautotrader.api.entity.MarketDataCacheEntity;
+import com.cryptoautotrader.api.repository.MarketDataCacheRepository;
 import com.cryptoautotrader.api.service.MarkPriceBook;
+import com.cryptoautotrader.api.service.MarketDataUpsertService;
 import com.cryptoautotrader.api.service.OrderExecutionEngine;
+import com.cryptoautotrader.strategy.Candle;
+import com.cryptoautotrader.strategy.Strategy;
+import com.cryptoautotrader.strategy.StrategyRegistry;
+import com.cryptoautotrader.strategy.StrategySignal;
 import org.springframework.context.annotation.Profile;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -15,7 +22,17 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 실제 프로세스 재시작 시험의 진입점 (2026-10-13) — <b>운영 jar 에 없다</b>({@code restartHarness} 소스 세트).
@@ -33,13 +50,96 @@ public class RestartHarnessController {
     private final PositionRepository positionRepository;
     private final TransactionTemplate tx;
     private final MarkPriceBook markPriceBook;
+    private final MarketDataUpsertService upsertService;
+    private final MarketDataCacheRepository cacheRepository;
 
     public RestartHarnessController(OrderExecutionEngine engine, PositionRepository positionRepository,
-                                    PlatformTransactionManager txManager, MarkPriceBook markPriceBook) {
+                                    PlatformTransactionManager txManager, MarkPriceBook markPriceBook,
+                                    MarketDataUpsertService upsertService, MarketDataCacheRepository cacheRepository) {
+        this.upsertService = upsertService;
+        this.cacheRepository = cacheRepository;
         this.engine = engine;
         this.positionRepository = positionRepository;
         this.tx = new TransactionTemplate(txManager);
         this.markPriceBook = markPriceBook;
+        StrategyRegistry.register(new HarnessSignal());
+    }
+
+    /** 시험용 전략 이름 — 엔진 평가가 이 전략을 부르면 {@link #signal} 을 그대로 낸다(2026-10-15, 5-h 엔진 자체 청산 S16). */
+    public static final String STRATEGY = "HARNESS_SIGNAL";
+    private static volatile String signal = "HOLD";
+
+    static final class HarnessSignal implements Strategy {
+        @Override public String getName() { return STRATEGY; }
+        @Override public StrategySignal evaluate(List<Candle> candles, Map<String, Object> params) {
+            String s = signal;
+            if ("SELL".equals(s)) return StrategySignal.sell(new BigDecimal("100"), "재시작 시험 신호 SELL");
+            if ("BUY".equals(s)) return StrategySignal.buy(new BigDecimal("100"), "재시작 시험 신호 BUY");
+            return StrategySignal.hold("재시작 시험 신호 HOLD");
+        }
+        @Override public int getMinimumCandleCount() { return 50; }
+    }
+
+    /**
+     * 같은 새 캔들을 여러 스레드가 동시에 쓴다 — 선행 조건 5-g (2026-10-15). {@code mode=legacy} 는 종전 저장(JPA 병합 = 조회 후 삽입,
+     * 각자 트랜잭션), {@code mode=upsert} 는 지금의 {@link MarketDataUpsertService#upsert}. 회차마다 새 시각 3개를 모든 스레드가 장벽에서
+     * 함께 출발해 쓴다. 실패한 쓰기의 예외 종류를 센다.
+     */
+    @PostMapping("/candle-race")
+    public Map<String, Object> candleRace(@RequestParam String mode, @RequestParam String coin,
+                                          @RequestParam(defaultValue = "8") int threads,
+                                          @RequestParam(defaultValue = "30") int rounds) throws Exception {
+        Instant base = Instant.now().truncatedTo(ChronoUnit.HOURS).minus(10_000, ChronoUnit.HOURS);
+        AtomicInteger ok = new AtomicInteger();
+        Map<String, AtomicInteger> errors = new ConcurrentHashMap<>();
+        ExecutorService pool = Executors.newFixedThreadPool(threads);
+        try {
+            for (int r = 0; r < rounds; r++) {
+                Instant t = base.plus(3L * r, ChronoUnit.HOURS);
+                CyclicBarrier start = new CyclicBarrier(threads);
+                List<Future<?>> fs = new ArrayList<>();
+                for (int k = 0; k < threads; k++) {
+                    BigDecimal close = new BigDecimal(100 + k);
+                    fs.add(pool.submit(() -> {
+                        List<MarketDataCacheEntity> rows = new ArrayList<>();
+                        for (int i = 0; i < 3; i++) {
+                            rows.add(MarketDataCacheEntity.builder().time(t.plus(i, ChronoUnit.HOURS)).coinPair(coin).timeframe("H1")
+                                    .open(close).high(close).low(close).close(close).volume(BigDecimal.ONE).build());
+                        }
+                        try {
+                            start.await();
+                            if ("legacy".equals(mode)) {
+                                tx.executeWithoutResult(st -> cacheRepository.saveAll(rows));
+                            } else {
+                                upsertService.upsert(coin, "H1", rows);
+                            }
+                            ok.incrementAndGet();
+                        } catch (Exception e) {
+                            Throwable c = e;
+                            while (c.getCause() != null && c.getCause() != c) c = c.getCause();
+                            errors.computeIfAbsent(e.getClass().getSimpleName() + " ← " + c.getClass().getSimpleName()
+                                    + ": " + String.valueOf(c.getMessage()).split("\n")[0], x -> new AtomicInteger()).incrementAndGet();
+                        }
+                        return null;
+                    }));
+                }
+                for (Future<?> f : fs) f.get();
+            }
+        } finally {
+            pool.shutdownNow();
+        }
+        Map<String, Integer> errs = new TreeMap<>();
+        errors.forEach((k, v) -> errs.put(k, v.get()));
+        long rowsNow = cacheRepository.findCandles(coin, "H1", base.minus(1, ChronoUnit.HOURS),
+                base.plus(3L * rounds + 3, ChronoUnit.HOURS)).size();
+        return Map.of("mode", mode, "writes", threads * rounds, "ok", ok.get(),
+                "failed", errs.values().stream().mapToInt(Integer::intValue).sum(), "errors", errs, "rows", rowsNow);
+    }
+
+    @PostMapping("/signal")
+    public Map<String, Object> signal(@RequestParam String action) {
+        signal = action;
+        return Map.of("signal", action);
     }
 
     /** 실시간 시세 한 건 — 대역에는 시세 구독이 없으므로 시험이 넣는다(2026-10-15, 포지션별 한도 S15). */

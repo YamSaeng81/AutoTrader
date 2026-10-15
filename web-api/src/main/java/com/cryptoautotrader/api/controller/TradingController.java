@@ -53,6 +53,7 @@ public class TradingController {
     private final TelegramNotificationService telegramNotificationService;
     private final PositionRepository positionRepository;
     private final BenchmarkAlphaService benchmarkAlphaService;
+    private final com.cryptoautotrader.api.service.UnknownOrderAdjustmentService unknownOrderAdjustmentService;
 
     @Autowired(required = false)
     private UpbitOrderClient upbitOrderClient;
@@ -118,6 +119,21 @@ public class TradingController {
     @PostMapping("/sessions/{id}/emergency-stop")
     public ApiResponse<LiveTradingSessionEntity> emergencyStopSession(@PathVariable Long id) {
         return ApiResponse.ok(liveTradingService.emergencyStopSession(id));
+    }
+
+    /** 장기 UNKNOWN 수동 조정 요청 — 책임자·근거·미해결 위험은 필수, 금액은 세션에 돌려줄 원화(0 이면 기록만). */
+    public record ManualAdjustmentRequest(String adjustedBy, String reason, String evidence,
+                                          java.math.BigDecimal releaseKrw, String unresolvedRisk) {}
+
+    /**
+     * 장기 UNKNOWN 주문의 수동 조정 (2026-10-15, V91). 🔴 주문 상태는 UNKNOWN 그대로다(FAILED 로 바꾸지 않는다) — 회계만 맞추고
+     * 근거·금액·책임자·미해결 위험을 남긴다. 공유 풀은 이 주문을 계속 미결로 센다. {@code UNKNOWN_ORDER_STATE_DESIGN.md} §1.1.
+     */
+    @PostMapping("/orders/{id}/manual-adjustment")
+    public ApiResponse<com.cryptoautotrader.api.service.UnknownOrderAdjustmentService.Adjustment> manualAdjustment(
+            @PathVariable Long id, @RequestBody ManualAdjustmentRequest req) {
+        return ApiResponse.ok(unknownOrderAdjustmentService.record(id, req.adjustedBy(), req.reason(), req.evidence(),
+                req.releaseKrw(), req.unresolvedRisk(), java.time.Instant.now()));
     }
 
     /** 세션 삭제 (STOPPED 상태만) */

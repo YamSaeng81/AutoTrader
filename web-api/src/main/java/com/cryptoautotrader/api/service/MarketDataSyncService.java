@@ -189,23 +189,40 @@ public class MarketDataSyncService {
             }
         }
 
-        UpbitCandleCollector collector = new UpbitCandleCollector(upbitRestClient);
-        List<Candle> fetched = collector.fetchCandles(coinPair, timeframe, from, to);
+        // 🔴 2026-10-15 (선행 조건 5-h 진입 전 시험 S16 에서 발견): REST 수집 실패를 여기서 잡는다. 종전에는 예외가 이 메서드의
+        //    트랜잭션 프록시를 지나 호출자(DYNAMIC processTick)의 트랜잭션을 롤백 전용으로 만들었다 — 호출자가 예외를 잡아도 틱
+        //    커밋이 "silently rolled back" 으로 실패했고, 캐시에 캔들이 충분해도 그 틱의 손절·익절·시간 초과 판정이 빠졌다.
+        //    이제 실패하면 캐시만 읽는다 — LIVE 가 늘 하는 것과 같다(LIVE 는 캐시만 읽고 수집은 syncMarketData 가 한다).
+        //    🔴 캐시의 마지막 캔들은 수집이 멎은 시각에 멈춰 있을 수 있다 — 두 엔진 모두 그 값으로 판정한다(로그에 시각을 남긴다).
+        List<Candle> fetched;
+        boolean fetchFailed = false;
+        try {
+            fetched = new UpbitCandleCollector(upbitRestClient).fetchCandles(coinPair, timeframe, from, to);
+        } catch (RuntimeException e) {
+            fetched = List.of();
+            fetchFailed = true;
+        }
         if (!fetched.isEmpty()) {
-            marketDataCacheRepo.saveAll(toEntities(fetched, coinPair, timeframe));
+            // 5-g: 원자적 upsert — 동기화와 같은 캔들을 동시에 써도 PK 중복으로 틱 트랜잭션이 깨지지 않는다.
+            upsertService.upsert(coinPair, timeframe, toEntities(fetched, coinPair, timeframe));
         }
 
         // 전체 구간을 방금 받아왔으면 그것이 곧 답이다 — 캐시를 다시 읽을 필요 없다.
-        if (from.equals(fullFrom)) {
+        if (from.equals(fullFrom) && !fetchFailed) {
             return fetched;
         }
 
-        return marketDataCacheRepo.findCandles(coinPair, timeframe, fullFrom, to).stream()
+        List<Candle> cached = marketDataCacheRepo.findCandles(coinPair, timeframe, fullFrom, to).stream()
                 .map(e -> Candle.builder()
                         .time(e.getTime()).open(e.getOpen()).high(e.getHigh())
                         .low(e.getLow()).close(e.getClose()).volume(e.getVolume())
                         .build())
                 .toList();
+        if (fetchFailed) {
+            log.warn("캔들 REST 수집 실패 — 캐시로 대신한다: {} {} 캐시 {}건, 마지막 캔들 {}", coinPair, timeframe, cached.size(),
+                    cached.isEmpty() ? "없음" : cached.get(cached.size() - 1).getTime());
+        }
+        return cached;
     }
 
     /** 캐시가 lookback 창을 못 덮을 때 전량 재수집을 재시도하는 최소 간격(분). */

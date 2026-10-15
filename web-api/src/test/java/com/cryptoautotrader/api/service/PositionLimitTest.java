@@ -374,6 +374,78 @@ class PositionLimitTest extends IntegrationTestBase {
     }
 
     @Test
+    @DisplayName("오래된 실시간 시세 — 기준(120초)을 넘으면 판정하지 않는다: 고점·도달 기록 없음, 새 시세가 오면 판정")
+    void staleRealtimeMarkIsNotJudged() {
+        Long s = liveSession("KRW-PLIMS");
+        PositionEntity p = position("LIVE", s, "KRW-PLIMS", "100", "200", "20010", "20010");
+        filledOrder(p, "BUY", "100", "20000", "10");
+        Instant now = Instant.now();
+
+        // 121초 전 시세 400 — 고점을 올리지 않는다(낡은 높은 값이 고점이 되면 뒤의 정상 시세가 거짓 낙폭이 된다).
+        marks.record("KRW-PLIMS", new BigDecimal("400"), now.minusSeconds(121));
+        PositionLimitGuard.Evaluation high = pick(guard.evaluateAll(now), p.getId());
+        assertThat(high.code()).isEqualTo(PositionLimitGuard.MARK_STALE);
+        assertThat(PositionLimitGuard.isUnjudged(high.code())).isTrue();
+        assertThat(high.detail()).contains("121초 전").contains("기준 120초");
+        assertThat(dbPeak(p.getId())).isNull();
+
+        // 121초 전 시세 100 — 손익 −10,015 ≤ −3,001.5 이지만 도달을 남기지 않는다.
+        marks.record("KRW-PLIMS", new BigDecimal("100"), now.minusSeconds(121));
+        assertThat(pick(guard.evaluateAll(now), p.getId()).code()).isEqualTo(PositionLimitGuard.MARK_STALE);
+        assertThat(breach(p.getId())).isNull();
+
+        // 경계 안(119초 전) 시세 250 은 판정한다 — 고점 24,987.5.
+        marks.record("KRW-PLIMS", new BigDecimal("250"), now.minusSeconds(119));
+        PositionLimitGuard.Evaluation ok = pick(guard.evaluateAll(now), p.getId());
+        assertThat(ok.code()).as(ok.detail()).isNull();
+        assertThat(dbPeak(p.getId())).isEqualByComparingTo("24987.5");
+
+        // 새 시세 100 → 도달.
+        marks.record("KRW-PLIMS", new BigDecimal("100"), now);
+        assertThat(pick(guard.evaluateAll(now), p.getId()).code()).isEqualTo(PositionLimitGuard.CAPITAL_LOSS);
+        assertThat(breach(p.getId())).containsEntry("CODE", "CAPITAL_LOSS");
+    }
+
+    @Test
+    @DisplayName("판정 불가가 이어지면 정상으로 두지 않는다 — 180초 넘게 이어지면 경보 한 번, 판정이 돌아오면 해제")
+    void monitorFlagsPersistentUnjudged() {
+        Long s = liveSession("KRW-PLIMU");
+        PositionEntity p = position("LIVE", s, "KRW-PLIMU", "100", "200", "20010", "20010");
+        filledOrder(p, "BUY", "100", "20000", "10");
+        Instant t0 = Instant.now();
+
+        // 시세 없음(재시작 직후와 같다) — 판정 불가로 잡히지만 아직 경보 전.
+        assertThat(pick(monitor.runOnce(t0), p.getId()).code()).isEqualTo(PositionLimitGuard.MARK_UNAVAILABLE);
+        assertThat(unjudged(p.getId())).isNotNull().extracting(PositionLimitMonitor.Unjudged::alerted).isEqualTo(false);
+
+        // 시세가 오지만 오래된 값 — 사유는 바뀌어도 이어진 시간은 처음부터 센다.
+        marks.record("KRW-PLIMU", new BigDecimal("210"), t0);
+        PositionLimitGuard.Evaluation stale = pick(monitor.runOnce(t0.plusSeconds(179)), p.getId());
+        assertThat(stale.code()).isEqualTo(PositionLimitGuard.MARK_STALE);
+        assertThat(unjudged(p.getId()).alerted()).isFalse();
+        assertThat(unjudged(p.getId()).since()).isEqualTo(t0);
+
+        monitor.runOnce(t0.plusSeconds(181));
+        assertThat(unjudged(p.getId()).alerted()).as("180초 넘게 판정 불가 → 경보").isTrue();
+        assertThat(unjudged(p.getId()).code()).isEqualTo(PositionLimitGuard.MARK_STALE);
+
+        // 새 시세 → 판정 재개, 목록에서 빠진다.
+        marks.record("KRW-PLIMU", new BigDecimal("210"), t0.plusSeconds(185));
+        assertThat(pick(monitor.runOnce(t0.plusSeconds(190)), p.getId()).code()).isNull();
+        assertThat(unjudged(p.getId())).isNull();
+        assertThat(breach(p.getId())).isNull();
+    }
+
+    private static PositionLimitGuard.Evaluation pick(List<PositionLimitGuard.Evaluation> all, Long positionId) {
+        return all.stream().filter(e -> e.positionId().equals(positionId)).findFirst()
+                .orElseThrow(() -> new AssertionError("판정 대상에 없다: 포지션 #" + positionId));
+    }
+
+    private PositionLimitMonitor.Unjudged unjudged(Long positionId) {
+        return monitor.unjudgedPositions().stream().filter(u -> u.positionId().equals(positionId)).findFirst().orElse(null);
+    }
+
+    @Test
     @DisplayName("반영값 없는 체결 주문이 있으면 평가하지 않고 고점도 올리지 않는다")
     void unappliedFillSkipsValuation() {
         Long s = liveSession("KRW-PLIMF");
