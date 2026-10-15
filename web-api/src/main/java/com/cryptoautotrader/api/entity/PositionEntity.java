@@ -11,8 +11,10 @@ import java.time.Instant;
  */
 @Entity
 @Table(name = "position")
-// 🔴 바뀐 열만 UPDATE 한다 (2026-10-16, 재시작 시험 S18b) — 버전 열이 없어서, 오래 사는 트랜잭션이 낡은 엔티티를 저장하면 다른 경로가 그 사이
-//    커밋한 상태·청산 시각까지 그 시점 값으로 덮였다(평가 루프가 CLOSED 를 OPEN 으로 되돌려 이중 매도). 바꾸지 않은 열은 쓰지 않는다.
+// 바뀐 열만 UPDATE 한다 (2026-10-16, 재시작 시험 S18b) — <b>보조 방어</b>다. 이중 매도의 직접 수정은 평가 루프의 조건부 단일 UPDATE
+// (PositionRepository.updateUnrealizedPnlIfOpen)이다. 🔴 보호 범위: 같은 영속성 컨텍스트가 관리하는 엔티티의 변경 감지에서 손대지 않은 열을
+// 쓰지 않는 것뿐이다. 낡은 분리(detached) 엔티티를 merge/save 하는 경로는 그 엔티티의 값을 현재 행과 비교해 다른 열을 모두 쓰므로 갱신 유실을
+// 막지 못한다 — 버전 열(낙관적 잠금)이 없는 한 그 경로들의 갱신 유실은 남는다.
 @org.hibernate.annotations.DynamicUpdate
 @Getter
 @Setter
