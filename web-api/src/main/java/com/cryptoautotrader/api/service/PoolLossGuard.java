@@ -334,16 +334,26 @@ public class PoolLossGuard {
         BigDecimal holdings = BigDecimal.ZERO;
         StringBuilder marks = new StringBuilder();
         List<String> unobserved = new java.util.ArrayList<>();
+        // 호가 관측은 코인별 합산 보유량으로 가격을 계산한다 — 이 문장에서 읽은 보유량과 지금 계좌 보유량 중 큰 쪽(평가 도중 늘어난 보유도 덮는다).
+        java.util.Map<String, BigDecimal> heldByCoin = new java.util.HashMap<>();
+        for (Object[] r : open) heldByCoin.merge((String) r[0], toDecimal(r[1]), BigDecimal::add);
+        heldByCoin.replaceAll((c, q) -> {
+            MarkPriceBook.Mark m = markPriceBook.get(c);
+            if (m == null || !m.isBook()) return q;
+            BigDecimal now2 = markPriceBook.heldQuantity(c);
+            return now2 == null ? q : q.max(now2);
+        });
         for (Object[] r : open) {
             String coin = (String) r[0];
             BigDecimal size = toDecimal(r[1]);
             BigDecimal avg = toDecimal(r[2]);
             BigDecimal unrealized = r[3] == null ? null : toDecimal(r[3]);
-            PriceMark pm = markFor(coin, size, avg, unrealized);
+            BigDecimal heldQty = heldByCoin.get(coin);
+            PriceMark pm = markFor(coin, size, avg, unrealized, heldQty);
             holdings = holdings.add(size.multiply(pm.price()).multiply(BigDecimal.ONE.subtract(FEE_RATE)));
             String label = coin + '=' + pm.price().stripTrailingZeros().toPlainString() + '(' + pm.source() + ')';
             // 포지션별 한도와 같은 기준 — 실시간 시세이고 받은 지 기준 이내여야 관측 가격이다.
-            if (!pm.realtime() || markPriceBook.freshPrice(coin, now) == null) {
+            if (!pm.realtime() || markPriceBook.freshPriceFor(coin, now, heldQty) == null) {
                 label = label + "[대체]";
                 unobserved.add(label);
             }
@@ -363,13 +373,26 @@ public class PoolLossGuard {
      */
     public PriceMark markFor(String coin, BigDecimal size, BigDecimal avg, BigDecimal unrealized) {
         MarkPriceBook.Mark m = markPriceBook.get(coin);
+        return markFor(coin, size, avg, unrealized, m != null && m.isBook() ? markPriceBook.heldQuantity(coin) : null);
+    }
+
+    /**
+     * @param heldQty 이 코인의 합산 보유량 — 호가 관측을 가격으로 바꿀 때 쓴다(2026-10-16 리뷰 지적: 호가 평균은 그 평균을 계산한 수량에만 맞다).
+     *                호가 깊이가 이 수량보다 얕으면 관측 가격이 아니다 — 대체 시세로 떨어진다(판정 불가).
+     */
+    public PriceMark markFor(String coin, BigDecimal size, BigDecimal avg, BigDecimal unrealized, BigDecimal heldQty) {
+        MarkPriceBook.Mark m = markPriceBook.get(coin);
         if (m != null) {
-            // 출처와 관측 시각(체결가면 체결 시각, 호가면 호가 시각)을 적는다 — 받은 시각이 아니다.
-            return new PriceMark(m.price(), m.source() + "@" + m.at(), true, m.at());
+            BigDecimal p = m.priceFor(heldQty);
+            if (p != null) {
+                // 출처와 관측 시각(체결가면 체결 시각, 호가면 호가 시각)을 적는다 — 받은 시각이 아니다.
+                return new PriceMark(p, m.source() + "@" + m.at(), true, m.at());
+            }
         }
         BigDecimal price = unrealized == null || size.signum() == 0 ? avg
                 : avg.add(unrealized.divide(size, 12, RoundingMode.HALF_UP));
-        return new PriceMark(price, unrealized == null ? "평균단가" : "평가루프", false, null);
+        String why = m != null && m.isBook() ? "호가 깊이 부족·" : "";
+        return new PriceMark(price, why + (unrealized == null ? "평균단가" : "평가루프"), false, null);
     }
 
     /**

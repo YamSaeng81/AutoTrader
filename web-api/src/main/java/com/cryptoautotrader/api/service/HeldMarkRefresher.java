@@ -85,7 +85,9 @@ public class HeldMarkRefresher {
         Map<String, BigDecimal> held = heldQuantities();
         for (String c : held.keySet()) {
             MarkPriceBook.Mark m = markPriceBook.get(c);
-            if (m == null || Duration.between(m.at(), now).compareTo(REFRESH_AFTER) > 0) targets.add(c);
+            // 시각만 보지 않는다 — 호가 관측이 지금 보유량을 소화하지 못하면(보유가 늘었다) 바로 다시 조회한다
+            if (m == null || Duration.between(m.at(), now).compareTo(REFRESH_AFTER) > 0
+                    || m.priceFor(held.get(c)) == null) targets.add(c);
         }
         if (targets.isEmpty()) {
             recovered();
@@ -118,17 +120,24 @@ public class HeldMarkRefresher {
         for (String c : targets) {
             if (byTrade.contains(c)) continue;
             try {
-                BookQuote q = bookPrice(c, held.get(c));
-                if (q == null) {
+                Book b = book(c);
+                if (b == null) {
                     errors.append(c).append(" 호가 없음; ");
-                } else if (q.price() == null) {
-                    errors.append(c).append(" 호가 깊이 부족(보이는 매수 잔량 ").append(q.depth().toPlainString())
-                            .append(" < 보유 ").append(held.get(c).toPlainString()).append("); ");
-                } else if (Duration.between(q.at(), now).getSeconds() > markPriceBook.maxAgeSeconds()) {
-                    errors.append(c).append(" 호가 시각 낡음(").append(q.at()).append("); ");
+                } else if (Duration.between(b.at(), now).getSeconds() > markPriceBook.maxAgeSeconds()) {
+                    errors.append(c).append(" 호가 시각 낡음(").append(b.at()).append("); ");
                 } else {
-                    markPriceBook.observe(c, q.price(), q.at(), now, MarkPriceBook.REST_ORDERBOOK_DEPTH);
-                    byBook.add(c);
+                    // 🔴 깊이가 모자란 호가도 적는다 — 더 최근 관측이 이전 호가 평균을 대신해야 판정 불가가 된다(리뷰 지적).
+                    markPriceBook.observeBook(c, b.bids(), b.at(), now);
+                    // 기록한 단계로 지금 보유량을 다시 채워 본다 — 조회하는 사이 보유가 늘었으면 그 수량으로
+                    BigDecimal qtyNow = markPriceBook.heldQuantity(c);
+                    BigDecimal qty = qtyNow == null ? held.get(c) : held.get(c).max(qtyNow);
+                    MarkPriceBook.BookQuote q = MarkPriceBook.fill(qty, b.bids());
+                    if (q.price() == null) {
+                        errors.append(c).append(" 호가 깊이 부족(보이는 매수 잔량 ").append(q.depth().toPlainString())
+                                .append(" < 보유 ").append(qty.toPlainString()).append("); ");
+                    } else {
+                        byBook.add(c);
+                    }
                 }
             } catch (Exception e) {
                 errors.append(c).append(" 호가 조회 실패: ").append(e.getMessage()).append("; ");
@@ -149,45 +158,33 @@ public class HeldMarkRefresher {
         return new Result(targets, byTrade, byBook, unobserved, error);
     }
 
-    /**
-     * @param price 보유량 전체를 채운 평균 가격 — 보이는 매수 잔량이 모자라면 {@code null}
-     * @param depth 보이는 매수 잔량 합
-     */
-    record BookQuote(BigDecimal price, BigDecimal depth, Instant at) {}
+    /** 호가 — 매수호가 단계 [가격, 잔량] 높은 순과 호가 시각. */
+    record Book(List<BigDecimal[]> bids, Instant at) {}
 
-    /** 호가로 본 보유량 평균 매도 가격 — 호가가 없으면 {@code null}. */
+    /** 호가 조회 — 없거나 형식이 맞지 않으면 {@code null}. 가격·잔량이 양수인 단계만 남긴다(잔량 정보가 없는 단계는 깊이로 세지 않는다). */
     @SuppressWarnings("unchecked")
-    private BookQuote bookPrice(String coin, BigDecimal qty) throws Exception {
+    private Book book(String coin) throws Exception {
         List<Map<String, Object>> books = upbitRestClient.getOrderbook(coin);
         if (books == null || books.isEmpty()) return null;
         Map<String, Object> book = books.get(0);
         Object units = book.get("orderbook_units");
         Object ts = book.get("timestamp");
-        if (!(units instanceof List<?> list) || list.isEmpty() || !(ts instanceof Number n)) return null;
-        return fill(qty, (List<Map<String, Object>>) list, Instant.ofEpochMilli(n.longValue()));
+        if (!(units instanceof List<?> list) || !(ts instanceof Number n)) return null;
+        List<BigDecimal[]> bids = toBids((List<Map<String, Object>>) list);
+        return bids.isEmpty() ? null : new Book(bids, Instant.ofEpochMilli(n.longValue()));
     }
 
-    /** 매수호가 단계를 위에서부터 채운다(업비트 순서 = 매수호가 높은 순). 평균은 내림으로 자른다. */
-    static BookQuote fill(BigDecimal qty, List<Map<String, Object>> units, Instant at) {
-        BigDecimal remaining = qty;
-        BigDecimal proceeds = BigDecimal.ZERO;
-        BigDecimal depth = BigDecimal.ZERO;
+    static List<BigDecimal[]> toBids(List<Map<String, Object>> units) {
+        List<BigDecimal[]> out = new ArrayList<>();
         for (Map<String, Object> u : units) {
             Object p = u.get("bid_price");
             Object s = u.get("bid_size");
             if (p == null || s == null) continue;
             BigDecimal price = new BigDecimal(p.toString());
             BigDecimal size = new BigDecimal(s.toString());
-            if (price.signum() <= 0 || size.signum() <= 0) continue;
-            depth = depth.add(size);
-            if (remaining.signum() > 0) {
-                BigDecimal take = remaining.min(size);
-                proceeds = proceeds.add(take.multiply(price));
-                remaining = remaining.subtract(take);
-            }
+            if (price.signum() > 0 && size.signum() > 0) out.add(new BigDecimal[]{price, size});
         }
-        if (qty == null || qty.signum() <= 0 || remaining.signum() > 0) return new BookQuote(null, depth, at);
-        return new BookQuote(proceeds.divide(qty, 8, java.math.RoundingMode.DOWN), depth, at);
+        return out;
     }
 
     /** 코인별 실자금 열린 보유량 합계(공유 계좌). */

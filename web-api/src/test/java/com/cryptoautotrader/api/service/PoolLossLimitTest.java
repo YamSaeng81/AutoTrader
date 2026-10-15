@@ -651,7 +651,7 @@ class PoolLossLimitTest extends IntegrationTestBase {
             HeldMarkRefresher.Result r2 = refresher.refreshNow(now);
             assertThat(r2.byBook()).contains("KRW-QUIET");
             assertThat(marks.get("KRW-QUIET").source()).isEqualTo(MarkPriceBook.REST_ORDERBOOK_DEPTH);
-            assertThat(marks.get("KRW-QUIET").price()).isEqualByComparingTo("285.66666666");
+            assertThat(marks.freshPrice("KRW-QUIET", now)).as("지금 보유량 30 으로 채운 평균").isEqualByComparingTo("285.66666666");
             CapitalReservationService.Decision ok = check(now);
             assertThat(ok.approved()).as(ok.message()).isTrue();
             assertThat(ok.message()).contains("KRW-QUIET=285.66666666(REST_ORDERBOOK_DEPTH@");
@@ -739,15 +739,96 @@ class PoolLossLimitTest extends IntegrationTestBase {
             List<java.util.Map<String, Object>> u = (List<java.util.Map<String, Object>>) orderbook("X", at, bids).get("orderbook_units");
             return u;
         };
-        assertThat(HeldMarkRefresher.fill(new BigDecimal("5"), units.apply(new String[]{"100:10", "90:10"}), at).price()).isEqualByComparingTo("100");
-        assertThat(HeldMarkRefresher.fill(new BigDecimal("15"), units.apply(new String[]{"100:10", "90:10"}), at).price())
+        java.util.function.Function<String[], List<BigDecimal[]>> bids = b -> HeldMarkRefresher.toBids(units.apply(b));
+        assertThat(MarkPriceBook.fill(new BigDecimal("5"), bids.apply(new String[]{"100:10", "90:10"})).price()).isEqualByComparingTo("100");
+        assertThat(MarkPriceBook.fill(new BigDecimal("15"), bids.apply(new String[]{"100:10", "90:10"})).price())
                 .isEqualByComparingTo("96.66666666");
-        var shallow = HeldMarkRefresher.fill(new BigDecimal("25"), units.apply(new String[]{"100:10", "90:10"}), at);
+        var shallow = MarkPriceBook.fill(new BigDecimal("25"), bids.apply(new String[]{"100:10", "90:10"}));
         assertThat(shallow.price()).isNull();
         assertThat(shallow.depth()).isEqualByComparingTo("20");
         // 잔량 정보가 없는 단계는 깊이로 세지 않는다
         List<java.util.Map<String, Object>> noSize = List.of(java.util.Map.of("bid_price", new BigDecimal("100")));
-        assertThat(HeldMarkRefresher.fill(new BigDecimal("1"), noSize, at).price()).isNull();
+        assertThat(HeldMarkRefresher.toBids(noSize)).isEmpty();
+        assertThat(MarkPriceBook.fill(new BigDecimal("1"), List.of()).price()).isNull();
+    }
+
+    @Test
+    @DisplayName("🔴 신선한 호가 평균이 있는 동안 보유량이 늘면 이전 가격으로 승인하지 않는다 — 호가 단계로 지금 보유량을 다시 채운다(리뷰 지적)")
+    void heldIncreaseInvalidatesBookPrice() throws Exception {
+        baseline();
+        Long s = liveSession("RUNNING");
+        PositionEntity first = position(s, "KRW-GROW", "OPEN", "10", "300");
+        order(first, "BUY", "3000", "1.5", "10");
+        Instant now = Instant.now();
+        var rest = org.mockito.Mockito.mock(com.cryptoautotrader.exchange.upbit.UpbitRestClient.class);
+        org.mockito.Mockito.when(rest.getTicker(org.mockito.ArgumentMatchers.anyString())).thenReturn(List.of());
+        org.mockito.Mockito.when(rest.getOrderbook("KRW-GROW")).thenReturn(List.of(orderbook("KRW-GROW", now, "289:10")));
+        withRest(rest, () -> {
+            assertThat(refresher.refreshNow(now).byBook()).contains("KRW-GROW");
+            assertThat(check(now).approved()).as("보유 10 — 매수 잔량 10 으로 채워진다").isTrue();
+
+            // 추가 체결로 보유 30 — 호가 관측은 아직 신선(같은 시각)하지만 10 만 소화한다
+            PositionEntity second = position(s, "KRW-GROW", "OPEN", "20", "300");
+            order(second, "BUY", "6000", "3", "20");
+            assertThat(marks.freshPrice("KRW-GROW", now)).as("지금 보유량으로 다시 채우면 깊이 부족").isNull();
+            CapitalReservationService.Decision d = check(now);
+            assertThat(d.code()).as("이전 평균으로 승인하지 않는다").isEqualTo(PoolLossGuard.POOL_VALUATION_UNKNOWN);
+            assertThat(d.message()).contains("호가 깊이 부족");
+
+            // 보강은 시각이 아니라 소화 여부로도 다시 조회한다 — 깊은 호가가 오면 30 전체로 다시 계산해 승인
+            stub(() -> org.mockito.Mockito.doReturn(List.of(orderbook("KRW-GROW", now, "289:10", "288:30"))).when(rest).getOrderbook("KRW-GROW"));
+            HeldMarkRefresher.Result r = refresher.refreshNow(now);
+            assertThat(r.targets()).as("가격 나이는 0초지만 대상").contains("KRW-GROW");
+            assertThat(r.byBook()).contains("KRW-GROW");
+            assertThat(marks.freshPrice("KRW-GROW", now)).isEqualByComparingTo("288.33333333");   // (289×10 + 288×20) / 30
+            assertThat(check(now).approved()).isTrue();
+        });
+    }
+
+    @Test
+    @DisplayName("🔴 기존 호가 가격이 아직 신선해도 새 조회에서 깊이 부족이 확인되면 차단을 유지한다 — 깊이 부족 호가도 최신 관측으로 적는다(리뷰 지적)")
+    void newShallowBookOverridesFreshPrice() throws Exception {
+        baseline();
+        Long s = liveSession("RUNNING");
+        PositionEntity held = position(s, "KRW-THIN", "OPEN", "30", "300");
+        order(held, "BUY", "9000", "4.5", "30");
+        Instant t0 = Instant.now();
+        Instant t1 = t0.plusSeconds(70);   // 보강 재조회 시점(60초 경과) — t0 의 호가는 아직 120초 이내
+        var rest = org.mockito.Mockito.mock(com.cryptoautotrader.exchange.upbit.UpbitRestClient.class);
+        org.mockito.Mockito.when(rest.getTicker(org.mockito.ArgumentMatchers.anyString())).thenReturn(List.of());
+        org.mockito.Mockito.when(rest.getOrderbook("KRW-THIN")).thenReturn(List.of(orderbook("KRW-THIN", t0, "289:40")));
+        withRest(rest, () -> {
+            refresher.refreshNow(t0);
+            assertThat(check(t0).approved()).isTrue();
+            stub(() -> org.mockito.Mockito.doReturn(List.of(orderbook("KRW-THIN", t1, "289:10", "288:5"))).when(rest).getOrderbook("KRW-THIN"));
+            HeldMarkRefresher.Result r = refresher.refreshNow(t1);
+            assertThat(r.unobserved()).contains("KRW-THIN");
+            assertThat(r.error()).contains("KRW-THIN 호가 깊이 부족(보이는 매수 잔량 15 < 보유 30");
+            assertThat(marks.get("KRW-THIN").at()).as("깊이 부족 호가가 최신 관측으로 남는다").isEqualTo(t1.truncatedTo(ChronoUnit.MILLIS));
+            assertThat(check(t1).code()).as("t0 의 평균(아직 120초 이내)으로 승인하지 않는다").isEqualTo(PoolLossGuard.POOL_VALUATION_UNKNOWN);
+        });
+    }
+
+    @Test
+    @DisplayName("호가를 조회하는 사이 보유량이 늘면 늘어난 수량으로 판정한다")
+    void heldChangesDuringQuery() throws Exception {
+        baseline();
+        Long s = liveSession("RUNNING");
+        PositionEntity held = position(s, "KRW-MID", "OPEN", "10", "300");
+        order(held, "BUY", "3000", "1.5", "10");
+        Instant now = Instant.now();
+        var rest = org.mockito.Mockito.mock(com.cryptoautotrader.exchange.upbit.UpbitRestClient.class);
+        org.mockito.Mockito.when(rest.getTicker(org.mockito.ArgumentMatchers.anyString())).thenReturn(List.of());
+        org.mockito.Mockito.when(rest.getOrderbook("KRW-MID")).thenAnswer(inv -> {
+            position(s, "KRW-MID", "OPEN", "20", "300");   // 조회 중에 체결이 반영됐다 — 보유 30
+            return List.of(orderbook("KRW-MID", now, "289:15"));
+        });
+        withRest(rest, () -> {
+            HeldMarkRefresher.Result r = refresher.refreshNow(now);
+            assertThat(r.byBook()).doesNotContain("KRW-MID");
+            assertThat(r.error()).contains("KRW-MID 호가 깊이 부족(보이는 매수 잔량 15 < 보유 30");
+            assertThat(check(now).code()).isEqualTo(PoolLossGuard.POOL_VALUATION_UNKNOWN);
+        });
     }
 
     @Autowired private LiveTradingService liveTradingService;
