@@ -627,7 +627,22 @@ public class OrderExecutionEngine {
         if ("SELL".equalsIgnoreCase(request.getSide()) && request.getPositionId() != null
                 && OrderSettlementService.isSharedPoolKind(sessionKind)) {
             lockSellSubmission(request.getPositionId());
-            long unresolved = orderRepository.countUnresolvedSellsForPosition(request.getPositionId());
+            // 🔴 (리뷰 8회차 S18b) 포지션 상태와 미반영 매도 수를 한 스냅숏으로 본다 — 다른 경로가 이미 정산해 닫은 포지션에 늦게 온 매도를 막는다.
+            List<Object[]> snap = orderRepository.sellSubmissionSnapshot(request.getPositionId());
+            if (snap.isEmpty()) {
+                log.error("🔴 매도 거절 — 포지션이 없다 (sessionKind={}, sessionId={}, posId={})",
+                        sessionKind, request.getSessionId(), request.getPositionId());
+                return null;
+            }
+            String posStatus = String.valueOf(snap.get(0)[0]).trim();
+            BigDecimal posSize = snap.get(0)[1] == null ? BigDecimal.ZERO : new BigDecimal(snap.get(0)[1].toString());
+            long unresolved = ((Number) snap.get(0)[2]).longValue();
+            if ("CLOSED".equals(posStatus) || posSize.signum() <= 0) {
+                log.error("🔴 이중 매도 차단 (sessionKind={}, sessionId={}, posId={}, {}): 포지션이 이미 {}·수량 {} — 다른 경로가 정산을 "
+                                + "끝냈다. 새 매도를 내지 않는다", sessionKind, request.getSessionId(), request.getPositionId(),
+                        request.getCoinPair(), posStatus, posSize.toPlainString());
+                return null;
+            }
             if (unresolved > 0) {
                 log.error("🔴 이중 매도 차단 (sessionKind={}, sessionId={}, posId={}, {}): 이 포지션에 반영되지 않은 매도 {}건 "
                                 + "(미결 또는 체결·미반영) — 새 매도를 내지 않는다",

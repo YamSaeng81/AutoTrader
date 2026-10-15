@@ -60,6 +60,20 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
             + "OR (o.filledQuantity > 0 AND o.state IN ('FILLED', 'CANCELLED')))")
     long countUnresolvedSellsForPosition(@Param("positionId") Long positionId);
 
+    /**
+     * 매도 제출 판정의 스냅숏 — [포지션 상태, 포지션 수량, 반영되지 않은 매도 수]를 <b>한 문장</b>으로 읽는다 (2026-10-15 리뷰 8회차 재시작 시험 S18b).
+     *
+     * <p>🔴 따로 읽으면 그 사이의 커밋이 끼어든다: 재시작 시험에서 정지 재호출이 CLOSING 을 표시한 직후 유령 포지션 정산이 같은 포지션의 체결된
+     * 매도를 반영하고 포지션을 CLOSED 로 커밋했다 — 미반영 매도 수만 보던 가드는 "반영됐다" 만 보고 <b>이미 닫힌 포지션에 같은 수량을 한 번 더
+     * 팔았다</b>. 정산은 반영 표시와 CLOSED 를 한 트랜잭션으로 쓰므로, 한 문장(같은 스냅숏)으로 읽으면 "미반영 + 열림" 이나 "반영 + 닫힘" 둘 중 하나만
+     * 보이고 어느 쪽이든 거절된다. 행 잠금은 쓰지 않는다 — 정지·청산 경로가 그 행을 CLOSING 으로 바꾼 채 매도를 넘긴다.</p>
+     */
+    @Query(value = "SELECT p.status, p.size, (SELECT COUNT(*) FROM \"order\" o WHERE o.position_id = p.id AND o.side = 'SELL' "
+            + "AND o.sell_applied_at IS NULL AND (o.state IN ('PENDING', 'INTENT_READY', 'SUBMITTING', 'UNKNOWN', 'SUBMITTED', 'PARTIAL_FILLED') "
+            + "OR (o.filled_quantity > 0 AND o.state IN ('FILLED', 'CANCELLED')))) FROM position p WHERE p.id = :positionId",
+            nativeQuery = true)
+    List<Object[]> sellSubmissionSnapshot(@Param("positionId") Long positionId);
+
     /** 특정 세션의 주문 내역 (최신순, 페이징) */
     Page<OrderEntity> findBySessionIdOrderByCreatedAtDesc(Long sessionId, Pageable pageable);
 

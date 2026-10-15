@@ -127,6 +127,23 @@ class DoubleSellGuardTest extends IntegrationTestBase {
     }
 
     @Test
+    @DisplayName("🔴 다른 경로가 매도를 반영하고 포지션을 닫은 뒤 늦게 온 매도는 내지 않는다 (리뷰 8회차 재시작 시험 S18b — 정지 재호출과 유령 정산의 경쟁)")
+    void lateSellAfterSettlementIsRefused() {
+        PositionEntity p = openPosition();
+        // 정지 재호출이 CLOSING 을 표시했다
+        jdbc.update("UPDATE position SET status = 'CLOSING', closing_at = ? WHERE id = ?", Timestamp.from(Instant.now()), p.getId());
+        // 그 사이 유령 정산이 앞선 체결 매도를 반영하고 포지션을 닫아 커밋했다(반영 표시와 CLOSED 는 한 트랜잭션)
+        OrderEntity first = filledUnappliedSell(p, Instant.now());
+        jdbc.update("UPDATE \"order\" SET sell_applied_at = ? WHERE id = ?", Timestamp.from(Instant.now()), first.getId());
+        jdbc.update("UPDATE position SET status = 'CLOSED', closed_at = ? WHERE id = ?", Timestamp.from(Instant.now()), p.getId());
+
+        sell(p);   // 정지가 넘긴 매도가 늦게 제출 단계에 온다
+
+        verify(upbitOrderClient, never()).createOrder(any(), any(), any(), any(), any(), any());
+        assertThat(sells(p)).as("식별자를 소비하기 전에 거절한다 — 매도 행은 앞선 1건뿐").hasSize(1);
+    }
+
+    @Test
     @DisplayName("반영된 뒤에는 막지 않는다 — 남은 수량을 다시 팔 수 있다(부분 체결 규칙). 대조군: 매도 이력 없는 포지션도 통과")
     void appliedSellDoesNotBlock() {
         when(upbitOrderClient.createOrder(anyString(), anyString(), any(), any(), anyString(), anyString())).thenReturn(new UpbitOrderClient.ExchangeResult(accepted(), "{}"));
