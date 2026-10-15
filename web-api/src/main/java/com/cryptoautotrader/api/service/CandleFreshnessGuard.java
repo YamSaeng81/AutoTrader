@@ -1,6 +1,7 @@
 package com.cryptoautotrader.api.service;
 
 import com.cryptoautotrader.api.util.TimeframeUtils;
+import com.cryptoautotrader.core.selector.BtcMarketGuard;
 import com.cryptoautotrader.strategy.Candle;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,8 +31,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * 있다 — 그 회차에는 진입·캔들 청산을 하지 않는다(로그·경보로 드러난다).</p>
  *
  * <p>🔴 범위: LIVE·DYNAMIC(실자금·페이퍼 모드 공통 — 엔진 동등)의 <b>세션 거래 코인</b>. 독립 자본 페이퍼 엔진(검증 66세션)은
- * 바꾸지 않는다. BTC 급락 관문의 BTC 캔들에는 걸지 않는다(관문은 캔들이 없으면 미발동으로 본다 — 별도 판단 사항).
- * 실시간 시세 손절 경로는 캔들을 쓰지 않으므로 무관하다.</p>
+ * 바꾸지 않는다. 실시간 시세 손절 경로는 캔들을 쓰지 않으므로 무관하다.</p>
+ *
+ * <p>🔴 BTC 급락 관문 (2026-10-15 리뷰 8회차): 같은 두 조건을 BTC 캔들에 건다({@link #btcGate}). 어기면 관문은 "미발동" 이 아니라
+ * <b>판정 불가</b>이고, 이 관문을 요구하는 신규 진입(LIVE·DYNAMIC 매수)을 막는다. 데이터가 돌아오면 다음 평가에서 다시 판정한다.
+ * 청산은 이 관문과 무관하다.</p>
  */
 @Slf4j
 @Component
@@ -104,6 +108,38 @@ public class CandleFreshnessGuard {
             log.debug("[캔들 최신성] {} 판정 불가 지속: {}", key, p);
         }
         return List.of();
+    }
+
+    /**
+     * BTC 급락 관문 판정 — BTC 캔들이 최신 완료 봉·결측 조건을 어기면 {@link BtcMarketGuard.Result#unknown 판정 불가}, 아니면
+     * {@link BtcMarketGuard#check}. 시각은 호출 시점.
+     *
+     * @param raw      최신성을 볼 원래 캔들(진행 중 봉 포함 가능)
+     * @param forCheck 관문 계산에 넣을 캔들(엔진이 닫힌 봉만 넣는다면 그 목록)
+     */
+    public BtcMarketGuard.Result btcGate(String engine, String timeframe, List<Candle> raw, List<Candle> forCheck) {
+        BtcMarketGuard.Result r = btcGate(timeframe, raw, forCheck, Instant.now());
+        String key = "BTC관문:" + timeframe;
+        if (!r.unknown()) {
+            String prev = stale.remove(key);
+            if (prev != null) {
+                log.warn("[캔들 최신성] BTC 급락 관문 {} 판정 재개 ({}): 종전 {}", timeframe, engine, prev);
+            }
+            return r;
+        }
+        if (stale.putIfAbsent(key, Instant.now() + " " + r.reason()) == null) {
+            log.error("🔴 [캔들 최신성] BTC 급락 관문 {} 판정 불가 ({}) — 이 관문을 요구하는 신규 진입을 막는다: {}", timeframe, engine, r.reason());
+        }
+        return r;
+    }
+
+    /** {@link #btcGate(String, String, List, List)} 의 판정 본체 — 시험용으로 시각을 받는다. */
+    static BtcMarketGuard.Result btcGate(String timeframe, List<Candle> raw, List<Candle> forCheck, Instant now) {
+        String p = problem(raw, timeframe, now);
+        if (p != null) {
+            return BtcMarketGuard.Result.unknown("BTC 캔들 판정 불가(" + p + ") — 급락 여부를 모른다");
+        }
+        return BtcMarketGuard.check(forCheck);
     }
 
     /** 실자금 보유가 있는 코인이면 경보한다 — 그 포지션의 60초 평가 손절·익절·시간 초과가 멈춘다. */

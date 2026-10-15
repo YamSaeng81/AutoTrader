@@ -13,6 +13,7 @@ import com.cryptoautotrader.strategy.Strategy;
 import com.cryptoautotrader.strategy.StrategyRegistry;
 import com.cryptoautotrader.strategy.StrategySignal;
 import org.springframework.context.annotation.Profile;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -52,10 +53,13 @@ public class RestartHarnessController {
     private final MarkPriceBook markPriceBook;
     private final MarketDataUpsertService upsertService;
     private final MarketDataCacheRepository cacheRepository;
+    private final JdbcTemplate jdbc;
 
     public RestartHarnessController(OrderExecutionEngine engine, PositionRepository positionRepository,
                                     PlatformTransactionManager txManager, MarkPriceBook markPriceBook,
-                                    MarketDataUpsertService upsertService, MarketDataCacheRepository cacheRepository) {
+                                    MarketDataUpsertService upsertService, MarketDataCacheRepository cacheRepository,
+                                    JdbcTemplate jdbc) {
+        this.jdbc = jdbc;
         this.upsertService = upsertService;
         this.cacheRepository = cacheRepository;
         this.engine = engine;
@@ -197,17 +201,81 @@ public class RestartHarnessController {
         return Map.of("signal", action);
     }
 
-    /** 실시간 시세 한 건 — 대역에는 시세 구독이 없으므로 시험이 넣는다(2026-10-15, 포지션별 한도 S15). */
+    /**
+     * 실시간 시세 한 건 — 대역에는 시세 구독이 없으므로 시험이 넣는다(2026-10-15, 포지션별 한도 S15). {@code ageSeconds} 를 주면 그만큼
+     * 지난 시각의 시세로 적는다(낡은 시세 시험, 리뷰 8회차 S14).
+     */
     @PostMapping("/mark")
-    public Map<String, Object> mark(@RequestParam String coin, @RequestParam BigDecimal price) {
-        markPriceBook.record(coin, price, Instant.now());
-        return Map.of("coin", coin, "price", price);
+    public Map<String, Object> mark(@RequestParam String coin, @RequestParam BigDecimal price,
+                                    @RequestParam(defaultValue = "0") long ageSeconds) {
+        markPriceBook.record(coin, price, Instant.now().minusSeconds(ageSeconds));
+        return Map.of("coin", coin, "price", price, "ageSeconds", ageSeconds);
+    }
+
+    /** 매수 순간에만 넣은 시세 — 코인별 참조 횟수와 넣기 전 기록(없었으면 null). 동시 매수가 서로의 시세를 지우지 않게 센다. */
+    private final Map<String, Object[]> fedMarks = new java.util.HashMap<>();
+
+    /**
+     * 🔴 대역에는 시세 구독이 없다. 공유 풀 손실 한도는 유효한 실시간 시세 없이 대체 가격으로만 평가되는 보유가 있으면 진입을 막는다
+     * (리뷰 8회차). 실제 운영의 "시세 경로가 살아 있는" 상태를 <b>이 매수의 판정 순간에만</b> 흉내 낸다 — 유효한 시세가 없는 보유
+     * 코인에 대역 체결가(signalPrice)를 지금 시각으로 넣고, 매수가 끝나면 넣기 전 상태로 되돌린다. 시세가 이미 유효한 코인은
+     * 건드리지 않는다(S15 처럼 시험이 직접 넣은 시세를 덮지 않는다). 시세 없는 판정을 시험하는 시나리오(S16b·S14 대체 시세)는
+     * {@code feedMarks=false} 로 이 흉내를 끈다.
+     */
+    private List<String> feedMarks(BigDecimal price) {
+        List<String> coins = jdbc.queryForList("SELECT DISTINCT coin_pair FROM position WHERE session_kind IN ('LIVE', 'DYNAMIC') "
+                + "AND status IN ('OPEN', 'CLOSING') AND size > 0", String.class);
+        List<String> fed = new ArrayList<>();
+        synchronized (fedMarks) {
+            Instant now = Instant.now();
+            for (String c : coins) {
+                Object[] e = fedMarks.get(c);
+                if (e != null) {
+                    e[0] = (Integer) e[0] + 1;
+                    markPriceBook.record(c, price, now);
+                    fed.add(c);
+                } else if (markPriceBook.freshPrice(c, now) == null) {
+                    fedMarks.put(c, new Object[]{1, markPriceBook.get(c)});
+                    markPriceBook.record(c, price, now);
+                    fed.add(c);
+                }
+            }
+        }
+        return fed;
+    }
+
+    private void unfeedMarks(List<String> fed) {
+        synchronized (fedMarks) {
+            for (String c : fed) {
+                Object[] e = fedMarks.get(c);
+                if (e == null) continue;
+                int n = (Integer) e[0] - 1;
+                if (n > 0) {
+                    e[0] = n;
+                    continue;
+                }
+                fedMarks.remove(c);
+                MarkPriceBook.Mark prev = (MarkPriceBook.Mark) e[1];
+                if (prev == null) markPriceBook.remove(c);
+                else markPriceBook.record(c, prev.price(), prev.at());
+            }
+        }
     }
 
     @PostMapping("/buy")
     public Map<String, Object> buy(@RequestParam String kind, @RequestParam Long sessionId,
                                    @RequestParam BigDecimal krw, @RequestParam(defaultValue = "KRW-DOGE") String coin,
-                                   @RequestParam(defaultValue = "300") BigDecimal signalPrice) {
+                                   @RequestParam(defaultValue = "300") BigDecimal signalPrice,
+                                   @RequestParam(defaultValue = "true") boolean feedMarks) {
+        List<String> fed = feedMarks ? feedMarks(signalPrice) : List.of();
+        try {
+            return buyInTx(kind, sessionId, krw, coin, signalPrice);
+        } finally {
+            unfeedMarks(fed);
+        }
+    }
+
+    private Map<String, Object> buyInTx(String kind, Long sessionId, BigDecimal krw, String coin, BigDecimal signalPrice) {
         return tx.execute(st -> {
             PositionEntity pos = positionRepository.save(PositionEntity.builder()
                     .coinPair(coin).side("BUY")

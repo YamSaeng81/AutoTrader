@@ -53,6 +53,11 @@ public class MarkPriceBook {
         return m.price();
     }
 
+    /** 시험용 — 한 코인의 기록을 지운다. */
+    public void remove(String coinPair) {
+        if (coinPair != null) marks.remove(coinPair);
+    }
+
     /** 시험용 — 기록을 지운다. */
     public void clear() {
         marks.clear();

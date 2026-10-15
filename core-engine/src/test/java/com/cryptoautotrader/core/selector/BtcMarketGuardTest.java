@@ -85,9 +85,13 @@ class BtcMarketGuardTest {
     }
 
     @Test
-    @DisplayName("캔들이 비어있으면 미발동 (보수적)")
-    void 빈_캔들은_미발동() {
-        assertThat(BtcMarketGuard.check(List.of()).triggered()).isFalse();
-        assertThat(BtcMarketGuard.check(null).triggered()).isFalse();
+    @DisplayName("캔들이 비어있으면 판정 불가 — 발동은 아니지만 신규 진입을 막는다 (2026-10-15 리뷰 8회차)")
+    void 빈_캔들은_판정_불가() {
+        for (List<Candle> empty : java.util.Arrays.asList(List.<Candle>of(), null)) {
+            BtcMarketGuard.Result r = BtcMarketGuard.check(empty);
+            assertThat(r.triggered()).isFalse();   // 백테스트·독립 자본 페이퍼는 이 값만 본다 — 종전과 같다
+            assertThat(r.unknown()).isTrue();
+            assertThat(r.blocksEntry()).isTrue();
+        }
     }
 }

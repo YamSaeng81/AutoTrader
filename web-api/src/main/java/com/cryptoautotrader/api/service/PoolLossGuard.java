@@ -50,6 +50,13 @@ import java.util.concurrent.atomic.AtomicReference;
  * 한도가 두 개가 되므로 실자금 진입을 막는다. 등록 단계({@code STAGE_1}·{@code STAGE_2})에서만 대조하고, 시험 런타임의 시험
  * 단계는 risk_config 값을 그대로 쓴다.</p>
  *
+ * <h3>🔴 대체 시세로는 승인하지 않는다 (2026-10-15 리뷰 8회차)</h3>
+ * <p>보유 평가에 쓴 시세가 하나라도 유효한 실시간 시세(받은 지 {@code position-limit.mark-max-age-seconds} 이내 — 포지션별 한도와
+ * 같은 기준)가 아니면, 순자산은 계산되지만 <b>판정 불가</b>로 보고 풀 전체의 신규 진입을 승인하지 않는다
+ * ({@link #POOL_VALUATION_UNKNOWN}). 대체 값(평가 루프 값·평균단가·낡은 시세)이 손실을 과소평가하지 않는다는 근거가 없다 — 값이
+ * 계산된다는 사실만으로 위험 한도를 판정할 수 없다. 같은 이유로 그런 평가는 24시간 기준 스냅숏에도 남기지 않는다(빈 칸은 기준
+ * 계산이 더 엄격한 쪽으로 대신한다). 주문 추적·청산·정리는 계속한다.</p>
+ *
  * <h3>차단의 범위</h3>
  * <p>신규 진입만 막는다. 청산·정지·주문 추적은 막지 않는다. 사전 등록은 "전량 정지" 를 요구하지만 자동 정지는 OFF 이고
  * 정지는 사람이 한다 — 여기서는 경보를 한 번 보낸다.</p>
@@ -74,10 +81,18 @@ public class PoolLossGuard {
 
     private static final BigDecimal HUNDRED = new BigDecimal("100");
 
-    /** 순자산 평가 결과. */
-    public record Valuation(BigDecimal cashFlow, BigDecimal holdings, int openPositions, String marks) {
+    /**
+     * 순자산 평가 결과.
+     *
+     * @param unobserved 유효한 실시간 시세 없이 대체 값으로 평가한 보유 — 비어 있지 않으면 한도를 판정하지 않는다
+     */
+    public record Valuation(BigDecimal cashFlow, BigDecimal holdings, int openPositions, String marks, List<String> unobserved) {
         public BigDecimal net() {
             return cashFlow.add(holdings);
+        }
+
+        public boolean observed() {
+            return unobserved.isEmpty();
         }
     }
 
@@ -159,10 +174,17 @@ public class PoolLossGuard {
         }
         Limits l = limitsFor(rc);
         Instant start = ensureBaseline(earliest(now, selfPositionId));
-        Valuation v = valuate(start);
+        Valuation v = valuate(start, now);
         if (v == null) {
             return CapitalReservationService.Decision.reject(POOL_VALUATION_UNKNOWN,
                     "순자산을 계산할 수 없다(반영값 없는 체결 주문) — 손실 한도를 확인할 수 없으므로 승인하지 않는다");
+        }
+        if (!v.observed()) {
+            String msg = "유효한 실시간 시세 없이 대체 가격으로만 평가되는 보유 " + v.unobserved().size() + "건 " + v.unobserved()
+                    + " — 대체 가격이 손실을 과소평가하지 않는다는 근거가 없어 손실 한도를 판정할 수 없다. 풀 전체 신규 진입을 승인하지 "
+                    + "않는다(주문 추적·청산은 계속)";
+            log.warn("[공유 풀 손실 한도] {}", msg);
+            return CapitalReservationService.Decision.reject(POOL_VALUATION_UNKNOWN, msg);
         }
         Reference ref = reference24h(start, now);
         if (ref == null) {
@@ -270,8 +292,13 @@ public class PoolLossGuard {
 
     // ── 평가 ────────────────────────────────────────────────────────
 
-    /** 순자산 변화 — 계산할 수 없으면 {@code null}. */
+    /** 순자산 변화 — 계산할 수 없으면 {@code null}. 시세 최신성은 지금 기준. */
     public Valuation valuate(Instant start) {
+        return valuate(start, Instant.now());
+    }
+
+    /** 순자산 변화 — 계산할 수 없으면 {@code null}. {@code now} 는 시세 최신성 판단 기준. */
+    public Valuation valuate(Instant start, Instant now) {
         Timestamp from = Timestamp.from(start);
         // 🔴 현금 흐름·보유·미반영 개수를 **한 문장**으로 읽는다. 따로 읽으면 그 사이에 커밋된 체결(주문 반영값과 포지션 수량을 한
         //    트랜잭션으로 쓴다)이 한쪽에만 보여, 한 주문 금액만큼 거짓 손실·이익이 생긴다. 한 문장은 같은 스냅숏을 본다.
@@ -306,6 +333,7 @@ public class PoolLossGuard {
         }
         BigDecimal holdings = BigDecimal.ZERO;
         StringBuilder marks = new StringBuilder();
+        List<String> unobserved = new java.util.ArrayList<>();
         for (Object[] r : open) {
             String coin = (String) r[0];
             BigDecimal size = toDecimal(r[1]);
@@ -313,10 +341,16 @@ public class PoolLossGuard {
             BigDecimal unrealized = r[3] == null ? null : toDecimal(r[3]);
             PriceMark pm = markFor(coin, size, avg, unrealized);
             holdings = holdings.add(size.multiply(pm.price()).multiply(BigDecimal.ONE.subtract(FEE_RATE)));
+            String label = coin + '=' + pm.price().stripTrailingZeros().toPlainString() + '(' + pm.source() + ')';
+            // 포지션별 한도와 같은 기준 — 실시간 시세이고 받은 지 기준 이내여야 관측 가격이다.
+            if (!pm.realtime() || markPriceBook.freshPrice(coin, now) == null) {
+                label = label + "[대체]";
+                unobserved.add(label);
+            }
             if (marks.length() > 0) marks.append(", ");
-            marks.append(coin).append('=').append(pm.price().stripTrailingZeros().toPlainString()).append('(').append(pm.source()).append(')');
+            marks.append(label);
         }
-        return new Valuation(cashFlow, holdings.setScale(8, RoundingMode.HALF_UP), open.size(), marks.toString());
+        return new Valuation(cashFlow, holdings.setScale(8, RoundingMode.HALF_UP), open.size(), marks.toString(), List.copyOf(unobserved));
     }
 
     /** 보유 평가에 쓴 시세와 그 출처. */
@@ -385,11 +419,18 @@ public class PoolLossGuard {
         recordSnapshotAt(start, Instant.now());
     }
 
-    /** 시험에서도 쓰는 본체. 기록했으면 그 값을, 계산할 수 없으면 {@code null}. */
+    /**
+     * 시험에서도 쓰는 본체. 기록했으면 그 값을, 계산할 수 없거나 대체 가격이 섞였으면 {@code null}. 🔴 대체 가격 평가는 24시간
+     * 기준으로 쓰지 않는다 — 그 칸은 비워 두고, 기준 계산이 구간 최댓값(더 엄격한 쪽)으로 대신한다.
+     */
     @Transactional
     public Valuation recordSnapshotAt(Instant start, Instant now) {
-        Valuation v = valuate(start);
+        Valuation v = valuate(start, now);
         if (v == null) return null;
+        if (!v.observed()) {
+            log.debug("[공유 풀 손실 한도] 대체 가격 평가 {} — 스냅숏을 남기지 않는다", v.unobserved());
+            return null;
+        }
         em.createNativeQuery("INSERT INTO pool_equity_snapshot (stage, taken_at, cash_flow_krw, holdings_krw, net_change_krw) "
                         + "VALUES (?1, ?2, ?3, ?4, ?5)")
                 .setParameter(1, stageKey()).setParameter(2, Timestamp.from(now))

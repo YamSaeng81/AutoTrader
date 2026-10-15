@@ -312,6 +312,16 @@ public class OrderEntity {
     public String getFailureCode() { return failureCode; }
     public void setFailureCode(String v) { this.failureCode = v; }
 
+    /**
+     * 페이퍼 체결가의 출처 (V92) — {@code PAPER_SIGNAL}·{@code PAPER_LAST_MARK}·{@code PAPER_AVG_PRICE}. {@code null} 은 기록 없음
+     * (실주문이거나 이전 행). 🔴 신호가가 비어 있는지로는 가정 체결을 정확히 가려낼 수 없다 — 이 열로 가린다.
+     */
+    @Column(name = "fill_price_source", length = 20)
+    private String fillPriceSource;
+
+    public String getFillPriceSource() { return fillPriceSource; }
+    public void setFillPriceSource(String v) { this.fillPriceSource = v; }
+
     /** 의도를 만든 프로세스 (V86). 복구는 소유자가 지금 프로세스가 아닐 때만 철회한다. */
     @Column(name = "intent_owner", length = 64)
     private String intentOwner;

@@ -573,17 +573,30 @@ class PositionLimitTest extends IntegrationTestBase {
         BigDecimal krwBefore = liveRepo.findById(live).orElseThrow().getAvailableKrw();
         assertThat(monitor.unjudgedPositions()).as("감시는 한 번도 돌지 않았다").noneMatch(u -> u.positionId().equals(lp.getId()));
 
-        // ① 시세 없음
-        assertThat(liveReserve(live, "KRW-PLIMQ2")).isEqualTo(PositionLimitGuard.POSITION_LIMIT_UNJUDGED);
-        // ② 121초 전 시세
-        marks.record("KRW-PLIMQ", new BigDecimal("250"), Instant.now().minusSeconds(121));
-        assertThat(liveReserve(live, "KRW-PLIMQ2")).isEqualTo(PositionLimitGuard.POSITION_LIMIT_UNJUDGED);
-        assertThat(liveRepo.findById(live).orElseThrow().getAvailableKrw()).as("거절은 아무것도 바꾸지 않는다").isEqualByComparingTo(krwBefore);
-        assertThat(breach(lp.getId())).as("판정 불가는 도달이 아니다 — 영구 기록 없음").isNull();
-
-        // ③ 대조: 다른 세션(열린 포지션 없음)은 같은 시각에 통과한다 — 공유 풀 평가는 계속된다
+        // 🔴 리뷰 8회차: 이 보유는 공유 풀에서도 대체 가격으로만 평가된다 — 예약 지점의 풀 판정(②-2)이 먼저, 풀 전체를 막는다.
         Long other = liveSession("KRW-PLIMQ3");
-        assertThat(liveReserve(other, "KRW-PLIMQ3")).isNull();
+        assertThat(liveReserve(live, "KRW-PLIMQ2")).isEqualTo(PoolLossGuard.POOL_VALUATION_UNKNOWN);
+        assertThat(liveReserve(other, "KRW-PLIMQ3")).as("풀 전체 — 다른 세션도").isEqualTo(PoolLossGuard.POOL_VALUATION_UNKNOWN);
+        marks.record("KRW-PLIMQ", new BigDecimal("250"), Instant.now().minusSeconds(121));
+        assertThat(liveReserve(other, "KRW-PLIMQ3")).as("121초 전 시세도 대체").isEqualTo(PoolLossGuard.POOL_VALUATION_UNKNOWN);
+        marks.remove("KRW-PLIMQ");
+
+        // 세션 단위 판정(②-4)은 그 뒤에 있다 — 풀 판정을 끄고(시험 런타임 전용) 그 연결을 따로 본다(7회차 변형 검사가 잡은 연결).
+        poolLossGuard.setEnabledSetting(false);
+        try {
+            // ① 시세 없음
+            assertThat(liveReserve(live, "KRW-PLIMQ2")).isEqualTo(PositionLimitGuard.POSITION_LIMIT_UNJUDGED);
+            // ② 121초 전 시세
+            marks.record("KRW-PLIMQ", new BigDecimal("250"), Instant.now().minusSeconds(121));
+            assertThat(liveReserve(live, "KRW-PLIMQ2")).isEqualTo(PositionLimitGuard.POSITION_LIMIT_UNJUDGED);
+            assertThat(liveRepo.findById(live).orElseThrow().getAvailableKrw()).as("거절은 아무것도 바꾸지 않는다").isEqualByComparingTo(krwBefore);
+            assertThat(breach(lp.getId())).as("판정 불가는 도달이 아니다 — 영구 기록 없음").isNull();
+
+            // ③ 대조: 세션 단위 판정만 보면 다른 세션(열린 포지션 없음)은 같은 시각에 통과한다
+            assertThat(liveReserve(other, "KRW-PLIMQ3")).isNull();
+        } finally {
+            poolLossGuard.setEnabledSetting(true);
+        }
 
         // ④ 그 포지션의 청산은 막지 않는다 — 매도는 거래소로 나간다
         Mockito.when(upbitOrderClient.createOrder(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any(),
@@ -631,8 +644,14 @@ class PositionLimitTest extends IntegrationTestBase {
         PositionEntity dp = position("DYNAMIC", dyn, "KRW-PLIMT", "100", "200", "20010", "20010");
         filledOrder(dp, "BUY", "100", "20000", "10");
         BigDecimal dynKrwBefore = dynamicRepo.findById(dyn).orElseThrow().getAvailableKrw();
-        assertThat(dynamicBuy(dyn, "KRW-PLIMT2")).contains("(" + PositionLimitGuard.POSITION_LIMIT_UNJUDGED + ")")
-                .contains("MARK_UNAVAILABLE");
+        assertThat(dynamicBuy(dyn, "KRW-PLIMT2")).as("풀 판정이 먼저 — 리뷰 8회차").contains("(" + PoolLossGuard.POOL_VALUATION_UNKNOWN + ")");
+        poolLossGuard.setEnabledSetting(false);
+        try {
+            assertThat(dynamicBuy(dyn, "KRW-PLIMT2")).contains("(" + PositionLimitGuard.POSITION_LIMIT_UNJUDGED + ")")
+                    .contains("MARK_UNAVAILABLE");
+        } finally {
+            poolLossGuard.setEnabledSetting(true);
+        }
         assertThat(dynamicRepo.findById(dyn).orElseThrow().getAvailableKrw()).isEqualByComparingTo(dynKrwBefore);
     }
 

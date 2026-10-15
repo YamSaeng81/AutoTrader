@@ -28,27 +28,42 @@ public final class BtcMarketGuard {
 
     private BtcMarketGuard() {}
 
-    public record Result(boolean triggered, String reason) {
-        private static final Result NONE = new Result(false, null);
+    /**
+     * @param unknown 판정 불가 — 필요한 BTC 캔들이 없거나 낡았다(2026-10-15 리뷰 8회차). {@code triggered} 는 거짓이지만 "미발동" 이
+     *                아니다. 실자금 엔진(LIVE·DYNAMIC)은 {@link #blocksEntry()} 로 신규 진입을 막는다. 백테스트·독립 자본 페이퍼
+     *                엔진은 {@link #triggered()} 만 보므로 종전 동작(미발동)과 같다 — 검증 결과를 소급해 바꾸지 않는다.
+     */
+    public record Result(boolean triggered, String reason, boolean unknown) {
+        private static final Result NONE = new Result(false, null, false);
 
         public static Result none() {
             return NONE;
         }
 
         public static Result triggered(String reason) {
-            return new Result(true, reason);
+            return new Result(true, reason, false);
+        }
+
+        public static Result unknown(String reason) {
+            return new Result(false, reason, true);
+        }
+
+        /** 이 관문을 요구하는 신규 진입을 막아야 하는가 — 발동 또는 판정 불가. */
+        public boolean blocksEntry() {
+            return triggered || unknown;
         }
     }
 
     /**
      * BTC 캔들을 기준으로 시장 전체 서킷 브레이커 발동 여부를 판정한다.
      *
-     * @param btcCandles BTC 캔들 (시간 오름차순, 마지막 원소가 현재/최신 캔들). null/empty면 판단 불가 → 미발동.
+     * @param btcCandles BTC 캔들 (시간 오름차순, 마지막 원소가 현재/최신 캔들). null/empty면 판정 불가({@link Result#unknown}).
+     *                   캔들의 최신성은 여기서 보지 않는다(현재 시각을 모른다) — 실자금 엔진이 앞에서 거른다.
      * @return 발동 시 사유 포함, 미발동 시 {@link Result#none()}
      */
     public static Result check(List<Candle> btcCandles) {
         if (btcCandles == null || btcCandles.isEmpty()) {
-            return Result.none();
+            return Result.unknown("BTC 캔들 없음");
         }
 
         Candle current = btcCandles.get(btcCandles.size() - 1);

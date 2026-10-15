@@ -906,9 +906,11 @@ def s11c():
 
 # ── 선행 조건 1번 — 공유 풀 손실 한도 (2026-10-14) ───────────────────────────────
 
-def buy_krw(sid, krw):
+def buy_krw(sid, krw, feed_marks=True):
+    """feed_marks=False 면 대역이 매수 순간에 넣는 임시 시세(유효한 시세 없는 보유 코인)를 끈다 — 대체 가격 판정 시험용(리뷰 8회차)."""
     try:
-        r = rt.api('POST', f'/api/v1/restart-harness/buy?kind={KIND}&sessionId={sid}&krw={krw}', timeout=40)
+        r = rt.api('POST', f'/api/v1/restart-harness/buy?kind={KIND}&sessionId={sid}&krw={krw}'
+                   f'&feedMarks={"true" if feed_marks else "false"}', timeout=40)
         return ('ok', r)
     except urllib.error.HTTPError as e:
         return ('http', e.code)
@@ -979,6 +981,26 @@ def s14():
         c = seed_live_session()
         buy_krw(c, 3000)
         rt.wait_until(lambda: state(c)['orders'] and state(c)['orders'][0][2] == 'FILLED', 60, 1, 'S14 C 매수')
+
+        # ②-b 대체 가격(리뷰 8회차): C 보유를 유효한 실시간 시세 없이 평가하게 되면 값은 계산돼도 풀 전체 신규 진입을 거절한다
+        x = seed_live_session()
+        n_unknown = rt.app_log().count('대체 가격으로만 평가되는 보유')
+        kind_, detail = buy_krw(x, 3000, feed_marks=False)
+        st = state(x)
+        check('S14②-b 시세 없음(평균단가 대체): 매수 거절(POOL_VALUATION_UNKNOWN)·흔적 없음·거래소 0',
+              kind_ != 'ok' and 'POOL_VALUATION_UNKNOWN' in rt.app_log()
+              and rt.app_log().count('대체 가격으로만 평가되는 보유') > n_unknown
+              and not st['orders'] and not st['positions'] and float(avail(st)) == 10000 and st['exchange_creates'] == 0,
+              f'{kind_} {detail}')
+        mark(300, age=600)
+        n_unknown = rt.app_log().count('대체 가격으로만 평가되는 보유')
+        kind_, detail = buy_krw(x, 3000, feed_marks=False)
+        st = state(x)
+        check('S14②-b 낡은 시세(10분 전): 매수 거절(POOL_VALUATION_UNKNOWN)·흔적 없음·거래소 0',
+              kind_ != 'ok' and rt.app_log().count('대체 가격으로만 평가되는 보유') > n_unknown
+              and not st['orders'] and not st['positions'] and st['exchange_creates'] == 0, f'{kind_} {detail}')
+        rt.psql(f"UPDATE {table} SET status = 'STOPPED' WHERE id = {x}")
+
         a = seed_live_session()
         buy_krw(a, 9000)
         rt.wait_until(lambda: state(a)['orders'] and state(a)['orders'][0][2] == 'FILLED', 60, 1, 'S14 A 매수')
@@ -1065,8 +1087,8 @@ def plim(sid):
     return rows[0] if rows else None
 
 
-def mark(price, coin='KRW-DOGE'):
-    rt.api('POST', f'/api/v1/restart-harness/mark?coin={coin}&price={price}', timeout=10)
+def mark(price, coin='KRW-DOGE', age=0):
+    rt.api('POST', f'/api/v1/restart-harness/mark?coin={coin}&price={price}&ageSeconds={age}', timeout=10)
 
 
 def num(v):

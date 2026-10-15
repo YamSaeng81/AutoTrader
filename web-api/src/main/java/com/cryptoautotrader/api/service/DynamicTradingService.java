@@ -214,6 +214,10 @@ public class DynamicTradingService {
      * (백테스트·페이퍼·실전)의 체결 가정을 통일한다. 매수는 불리하게 높게, 매도는 낮게 체결시킨다.
      */
     private static final BigDecimal PAPER_SLIPPAGE_PCT = TradingConstants.PAPER_SLIPPAGE_PCT;
+    /** 페이퍼 체결가 출처 (V92 {@code order.fill_price_source}) — 모두 가정 체결이다. */
+    static final String PAPER_FILL_SIGNAL = "PAPER_SIGNAL";
+    static final String PAPER_FILL_LAST_MARK = "PAPER_LAST_MARK";
+    static final String PAPER_FILL_AVG_PRICE = "PAPER_AVG_PRICE";
 
     /**
      * 진입(SCANNING) 완화 파라미터 — SCANNING(신규 진입) 경로에만 적용하고,
@@ -888,6 +892,9 @@ public class DynamicTradingService {
      * 같은 코인 후보가 여럿이면 평가 때는 모두 통과한다 — 앞 순위가 승인되면 여기서 상한에 걸린다). 마감 캔들만 입력으로 받는
      * 관문(EMA200·횡보·블랙스완 낙폭·BTC 급락·Walk Forward)은 승인 마감이 다음 캔들 마감보다 앞서므로 결과가 같아 다시 보지
      * 않는다. 서킷 브레이커가 걸렸으면 진입만 막는다(정지는 다음 틱의 평가가 한다).</p>
+     *
+     * <p>🔴 단 BTC 급락 관문의 <b>판정 가능 여부</b>는 시각에 따라 바뀐다(수집이 멎으면 평가 뒤에 낡는다) — 승인 시점에 다시 보고,
+     * 판정 불가면 막는다(2026-10-15 리뷰 8회차). 발동 여부는 같은 마감 봉이므로 평가 때와 같다.</p>
      */
     private String approvalTimeGate(DynamicSessionEntity session, String coinPair, List<Candle> evalCandles) {
         Long sid = session.getId();
@@ -911,6 +918,10 @@ public class DynamicTradingService {
         String crossReason = crossSessionExposureBlockReason(heldElsewhere);
         if (crossReason != null) {
             return "승인 차례에 " + crossReason;
+        }
+        BtcMarketGuard.Result btc = btcMarketGate(session.getTimeframe());
+        if (btc.unknown()) {
+            return "승인 차례에 BTC_MARKET_GUARD 판정 불가 — " + btc.reason();
         }
         return null;
     }
@@ -982,9 +993,8 @@ public class DynamicTradingService {
 
         // BTC_MARKET_GUARD — 워치리스트 전체가 같은 timeframe을 쓰므로 틱당 한 번만 조회한다
         // (2026-07-02 codex 분석 §6, BTC 1시간 -1.5% 급락 시 코인 무관 신규 진입 차단).
-        List<Candle> btcCandles = fetchCandles("KRW-BTC", session.getTimeframe());
-        BtcMarketGuard.Result btcMarketGuard = BtcMarketGuard.check(
-                closedCandleSlice(btcCandles, session.getTimeframe()));
+        // 🔴 2026-10-15 리뷰 8회차: BTC 캔들이 없거나 낡으면 "미발동" 이 아니라 판정 불가 — 매수 후보를 막는다(LIVE 와 같다).
+        BtcMarketGuard.Result btcMarketGuard = btcMarketGate(session.getTimeframe());
 
         for (String coinPair : watchlist) {
             Strategy strategy = resolveStrategy(sid, coinPair, session.getStrategyType());
@@ -1151,11 +1161,12 @@ public class DynamicTradingService {
 
             // BTC_MARKET_GUARD: BTC 1시간 -1.5% 급락 시 코인 무관 전체 신규 진입 차단.
             if (gateBlockReason == null && signal.getAction() == StrategySignal.Action.BUY
-                    && btcMarketGuard.triggered()) {
+                    && btcMarketGuard.blocksEntry()) {
                 btcMarketGuardBlocked++;
-                log.warn("[Dynamic] BTC_MARKET_GUARD 발동 — BUY 차단: {} (id={}): {}",
-                        coinPair, sid, btcMarketGuard.reason());
-                gateBlockReason = "BTC_MARKET_GUARD 발동 — " + btcMarketGuard.reason();
+                String what = btcMarketGuard.unknown() ? "판정 불가" : "발동";
+                log.warn("[Dynamic] BTC_MARKET_GUARD {} — BUY 차단: {} (id={}): {}",
+                        what, coinPair, sid, btcMarketGuard.reason());
+                gateBlockReason = "BTC_MARKET_GUARD " + what + " — " + btcMarketGuard.reason();
             }
 
             // 손실 청산 쿨다운: 이 세션에서 직전에 손실로 청산한 코인은 쿨다운 동안 재진입 차단.
@@ -1802,6 +1813,7 @@ public class DynamicTradingService {
                 .exchangeOrderId("PAPER-DYNAMIC-" + pos.getId())
                 .signalReason("동적 세션 BUY(PAPER) — " + signal.getReason())
                 .signalPrice(signalPrice)
+                .fillPriceSource(PAPER_FILL_SIGNAL)
                 .sessionId(sid)
                 .sessionKind(kind)
                 .filledAt(Instant.now())
@@ -1913,7 +1925,7 @@ public class DynamicTradingService {
         }
 
         if (session.isPaper()) {
-            executePaperSell(session, pos, currentPrice, reason, exitReason);
+            executePaperSell(session, pos, currentPrice, reason, exitReason, null);
             return true;
         }
 
@@ -1943,16 +1955,27 @@ public class DynamicTradingService {
      * 세션 노출(hasRemainingExposure) 계산 로직을 중복 구현하지 않고, REAL과 <b>완전히 같은
      * 코드로</b> 검증한다(이번 정렬 작업의 목적 그 자체).</p>
      */
+    /**
+     * @param priceSource 체결가 출처(V92) — {@code null} 이면 신호가가 있을 때 {@link #PAPER_FILL_SIGNAL}, 없을 때 아래 대체 규칙으로 정한다.
+     *                    🔴 정지 청산은 평균 단가를 신호가 자리에 넣으므로 신호가로는 가정 체결을 가려낼 수 없다 — {@link #PAPER_FILL_AVG_PRICE} 를 준다.
+     */
     private void executePaperSell(DynamicSessionEntity session, PositionEntity pos,
-                                   BigDecimal signalPrice, String reason, ExitReason exitReason) {
+                                   BigDecimal signalPrice, String reason, ExitReason exitReason, String priceSource) {
         // 신호가 없음 (2026-10-15 리뷰 7회차) — 캔들도 유효한 현재가도 없는 회차의 시간 초과 청산. 실전은 시장가로 그대로
         // 나가므로 페이퍼도 같이 나가고, 체결가만 마지막으로 받은 시세(나이 무관) → 없으면 평균 단가로 시뮬레이션한다.
+        // 🔴 이 체결가는 관측 가격이 아니라 가정이다 — 특히 평균 단가 체결은 그 값에 팔 수 있었다는 근거가 아니다. 출처를 열로
+        //    남기고(V92) 사유에도 적는다(2026-10-15 리뷰 8회차).
         BigDecimal basePrice = signalPrice;
+        String source = priceSource != null ? priceSource : PAPER_FILL_SIGNAL;
+        String recordedReason = reason;
         if (basePrice == null) {
             MarkPriceBook.Mark last = markPriceBook == null ? null : markPriceBook.get(pos.getCoinPair());
             basePrice = last != null ? last.price() : pos.getAvgPrice();
+            source = last != null ? PAPER_FILL_LAST_MARK : PAPER_FILL_AVG_PRICE;
+            String basis = last != null ? "마지막 시세(" + last.at() + ")" : "평균 단가";
+            recordedReason = reason + " [페이퍼 체결가 가정: " + basis + " " + basePrice.stripTrailingZeros().toPlainString() + " — 관측 가격 아님]";
             log.warn("[Dynamic][PAPER] 신호가 없는 매도 — 체결가를 {} {} 로 시뮬레이션한다 (posId={})",
-                    last != null ? "마지막 시세(" + last.at() + ")" : "평균 단가", basePrice, pos.getId());
+                    basis, basePrice, pos.getId());
         }
         // 슬리피지 — 매도는 신호가보다 불리하게(낮게) 체결된다.
         BigDecimal fillPrice = basePrice.multiply(BigDecimal.ONE.subtract(PAPER_SLIPPAGE_PCT))
@@ -1970,8 +1993,9 @@ public class DynamicTradingService {
                 .executedFunds(pos.getSize().multiply(fillPrice))
                 .state("FILLED")
                 .exchangeOrderId("PAPER-DYNAMIC-SELL-" + pos.getId())
-                .signalReason(reason)
+                .signalReason(recordedReason)
                 .signalPrice(signalPrice)
+                .fillPriceSource(source)
                 .sessionId(session.getId())
                 .sessionKind(sessionKind(session))
                 .filledAt(Instant.now())
@@ -2286,6 +2310,15 @@ public class DynamicTradingService {
         return candleFreshnessGuard == null ? candles : candleFreshnessGuard.filter("DYNAMIC", coinPair, timeframe, candles);
     }
 
+    /** BTC 급락 관문 — BTC 캔들이 없거나 낡으면 판정 불가({@link BtcMarketGuard.Result#unknown}). 관문 계산에는 닫힌 봉만 넣는다. LIVE 와 같다. */
+    private BtcMarketGuard.Result btcMarketGate(String timeframe) {
+        List<Candle> btc = fetchCandles("KRW-BTC", timeframe);
+        List<Candle> closed = closedCandleSlice(btc, timeframe);
+        return candleFreshnessGuard == null
+                ? CandleFreshnessGuard.btcGate(timeframe, btc, closed, Instant.now())
+                : candleFreshnessGuard.btcGate("DYNAMIC", timeframe, btc, closed);
+    }
+
     private List<Candle> fetchCandles(String coinPair, String timeframe) {
         // 틱 스코프가 열려 있으면 같은 (코인, 타임프레임) 은 틱당 1회만 실제 조회한다.
         return TickCandleCache.get(coinPair, timeframe, () -> loadCandles(coinPair, timeframe));
@@ -2404,7 +2437,7 @@ public class DynamicTradingService {
             if (session.isPaper()) {
                 // 현재가 정보가 없는 강제 정지 경로 — 진입가를 신호가로 대체(슬리피지만 반영).
                 // 정지/비상정지는 드문 경로이고, 정확한 청산가보다 "확실히 닫힌다"가 중요하다.
-                executePaperSell(session, pos, pos.getAvgPrice(), reason, ExitReason.FORCED_STOP);
+                executePaperSell(session, pos, pos.getAvgPrice(), reason, ExitReason.FORCED_STOP, PAPER_FILL_AVG_PRICE);
                 continue;
             }
 

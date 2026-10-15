@@ -238,6 +238,47 @@ class PoolLossLimitTest extends IntegrationTestBase {
     }
 
     @Test
+    @DisplayName("대체 가격(평가 루프 값·평균단가·낡은 시세)이 섞이면 값은 계산돼도 풀 전체 신규 진입을 막고 기준 기록도 남기지 않는다 (리뷰 8회차)")
+    void fallbackMarkBlocksEntry() {
+        Instant start = baseline();
+        Long s = liveSession("RUNNING");
+        PositionEntity held = position(s, "KRW-LOSSA", "OPEN", "30", "300");
+        order(held, "BUY", "9000", "4.5", "30");
+        Instant now = Instant.now();
+
+        // ① 시세 기록 없음 → 평균단가로 계산은 되지만 판정 불가
+        PoolLossGuard.Valuation v = tx(() -> guard.valuate(start, now));
+        assertThat(v).isNotNull();
+        assertThat(v.observed()).isFalse();
+        assertThat(v.marks()).contains("[대체]").doesNotContain("시세@");
+        CapitalReservationService.Decision none = check(now);
+        assertThat(none.approved()).isFalse();
+        assertThat(none.code()).isEqualTo(PoolLossGuard.POOL_VALUATION_UNKNOWN);
+        assertThat(none.message()).contains("대체 가격").contains("KRW-LOSSA");
+        // 대체 가격 평가는 24시간 기준으로 남기지 않는다
+        int before = jdbc.queryForObject("SELECT COUNT(*) FROM pool_equity_snapshot WHERE stage = ?", Integer.class, stage);
+        assertThat(tx(() -> guard.recordSnapshotAt(start, now))).isNull();
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM pool_equity_snapshot WHERE stage = ?", Integer.class, stage)).isEqualTo(before);
+
+        // ② 평가 루프 값도 대체다
+        jdbc.update("UPDATE position SET unrealized_pnl = -600 WHERE id = ?", held.getId());
+        assertThat(check(now).code()).isEqualTo(PoolLossGuard.POOL_VALUATION_UNKNOWN);
+
+        // ③ 실시간 시세라도 기준(120초)을 넘으면 대체다 — 포지션별 한도와 같은 기준
+        marks.record("KRW-LOSSA", new BigDecimal("280"), now.minusSeconds(121));
+        CapitalReservationService.Decision stale = check(now);
+        assertThat(stale.approved()).isFalse();
+        assertThat(stale.code()).isEqualTo(PoolLossGuard.POOL_VALUATION_UNKNOWN);
+
+        // ④ 기준 이내의 실시간 시세면 판정한다 — 한도 안이므로 승인, 기준 기록도 남는다
+        marks.record("KRW-LOSSA", new BigDecimal("280"), now.minusSeconds(119));
+        CapitalReservationService.Decision ok = check(now);
+        assertThat(ok.approved()).as(ok.message()).isTrue();
+        assertThat(tx(() -> guard.recordSnapshotAt(start, now))).isNotNull();
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM pool_equity_snapshot WHERE stage = ?", Integer.class, stage)).isEqualTo(before + 1);
+    }
+
+    @Test
     @DisplayName("반영값이 없는 체결 주문이 있으면 계산하지 않고 진입을 막는다")
     void unappliedFillBlocks() {
         baseline();

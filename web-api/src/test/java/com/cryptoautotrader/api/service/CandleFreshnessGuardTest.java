@@ -104,4 +104,66 @@ class CandleFreshnessGuardTest {
         assertThat(g.filter("DYNAMIC", "KRW-FRS", "H1", fresh)).hasSize(500);
         assertThat(g.staleKeys()).doesNotContainKey("KRW-FRS:H1");
     }
+
+    // ── BTC 급락 관문 (리뷰 8회차) — 캔들이 없거나 낡으면 "미발동" 이 아니라 판정 불가 ─────────────
+
+    /** H1 BTC 봉 — 마지막 봉 직전까지 100, 마지막 봉 종가 {@code lastClose}. */
+    private static List<Candle> btc(Instant lastStart, int n, String lastClose) {
+        List<Candle> out = h1(lastStart, n, Set.of());
+        Candle last = out.remove(out.size() - 1);
+        BigDecimal c = new BigDecimal(lastClose);
+        out.add(Candle.builder().time(last.getTime()).open(c).high(c).low(c).close(c).volume(BigDecimal.ONE).build());
+        return out;
+    }
+
+    @Test
+    @DisplayName("BTC 관문: 캔들 없음·낡은 캔들·결측이면 판정 불가 — 진입을 막고, 최신이면 발동/미발동을 그대로 판정한다")
+    void btcGateUnknownWhenMissingOrStale() {
+        BtcMarketGuardResultAssert.unknown(CandleFreshnessGuard.btcGate("H1", List.of(), List.of(), NOW), "캔들 없음");
+        List<Candle> stale = h1(Instant.parse("2026-10-15T06:00:00Z"), 500, Set.of());
+        BtcMarketGuardResultAssert.unknown(CandleFreshnessGuard.btcGate("H1", stale, stale, NOW), "최신 완료 봉 없음");
+        List<Candle> gappy = h1(Instant.parse("2026-10-15T09:00:00Z"), 500, Set.of(10, 20, 30));
+        BtcMarketGuardResultAssert.unknown(CandleFreshnessGuard.btcGate("H1", gappy, gappy, NOW), "결측 3칸");
+
+        // 최신이고 평온하면 미발동(진입 허용)
+        List<Candle> calm = h1(Instant.parse("2026-10-15T09:00:00Z"), 500, Set.of());
+        var ok = CandleFreshnessGuard.btcGate("H1", calm, calm, NOW);
+        assertThat(ok.triggered()).isFalse();
+        assertThat(ok.unknown()).isFalse();
+        assertThat(ok.blocksEntry()).isFalse();
+
+        // 최신이고 1시간 −3% 면 발동
+        List<Candle> drop = btc(Instant.parse("2026-10-15T09:00:00Z"), 500, "300");
+        var hit = CandleFreshnessGuard.btcGate("H1", drop, drop, NOW);
+        assertThat(hit.triggered()).isTrue();
+        assertThat(hit.blocksEntry()).isTrue();
+
+        // 🔴 낡은 캔들이 급락을 담고 있어도 "발동" 이 아니라 판정 불가 — 지금의 시장을 모른다
+        List<Candle> staleDrop = btc(Instant.parse("2026-10-15T06:00:00Z"), 500, "300");
+        BtcMarketGuardResultAssert.unknown(CandleFreshnessGuard.btcGate("H1", staleDrop, staleDrop, NOW), "최신 완료 봉 없음");
+    }
+
+    @Test
+    @DisplayName("BTC 관문 판정 불가는 시작·회복 때 한 번씩 기록하고, 데이터가 돌아오면 다시 판정한다")
+    void btcGateRecovers() {
+        CandleFreshnessGuard g = new CandleFreshnessGuard();
+        Instant now = Instant.now();
+        List<Candle> stale = h1(now.truncatedTo(ChronoUnit.HOURS).minus(5, ChronoUnit.HOURS), 500, Set.of());
+        assertThat(g.btcGate("LIVE", "H1", stale, stale).unknown()).isTrue();
+        assertThat(g.staleKeys()).containsKey("BTC관문:H1");
+        List<Candle> fresh = h1(now.truncatedTo(ChronoUnit.HOURS), 500, Set.of());
+        var r = g.btcGate("LIVE", "H1", fresh, fresh);
+        assertThat(r.unknown()).isFalse();
+        assertThat(r.blocksEntry()).isFalse();
+        assertThat(g.staleKeys()).doesNotContainKey("BTC관문:H1");
+    }
+
+    private static final class BtcMarketGuardResultAssert {
+        static void unknown(com.cryptoautotrader.core.selector.BtcMarketGuard.Result r, String reasonPart) {
+            assertThat(r.unknown()).as(r.reason()).isTrue();
+            assertThat(r.triggered()).isFalse();
+            assertThat(r.blocksEntry()).isTrue();
+            assertThat(r.reason()).contains(reasonPart);
+        }
+    }
 }

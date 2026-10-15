@@ -282,7 +282,9 @@ CREATE TABLE IF NOT EXISTS "order" (
     cancel_requested_at     TIMESTAMP,
     cancel_confirmed_at     TIMESTAMP,
     cancel_checked_at       TIMESTAMP,
-    sell_applied_at         TIMESTAMP
+    sell_applied_at         TIMESTAMP,
+    -- V92 — 페이퍼 체결가의 출처
+    fill_price_source       VARCHAR(20)
 );
 
 -- 정지 후 정리 대기 (V87)

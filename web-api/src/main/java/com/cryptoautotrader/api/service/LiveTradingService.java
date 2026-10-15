@@ -1078,8 +1078,8 @@ public class LiveTradingService {
 
         // BTC_MARKET_GUARD — BTC 1시간 급락 시 코인 무관 전체 신규 진입 차단(2026-07-02 codex 분석 §6).
         // BTC 세션은 candles 재사용, 그 외 코인은 별도 조회(같은 timeframe, DB 캐시 조회라 저비용).
-        List<Candle> btcCandles = "KRW-BTC".equals(coinPair) ? candles : fetchRecentCandles("KRW-BTC", timeframe);
-        BtcMarketGuard.Result btcMarketGuard = BtcMarketGuard.check(btcCandles);
+        // 🔴 2026-10-15 리뷰 8회차: BTC 캔들이 없거나 낡으면 "미발동" 이 아니라 판정 불가 — 매수를 막는다(DYNAMIC 과 같다).
+        BtcMarketGuard.Result btcMarketGuard = btcMarketGate(coinPair, timeframe, candles);
 
         // 시장 레짐 — evaluate 전에 이미 감지됨 (preEvalRegime). 재감지 불필요.
         final String regimeName = preEvalRegime != null ? preEvalRegime.name() : null;
@@ -1155,10 +1155,11 @@ public class LiveTradingService {
             // BTC_MARKET_GUARD: BTC 1시간 -1.5% 이상 급락 시 코인 무관 전체 신규 진입 차단.
             // 업비트 KRW 마켓은 BTC와 알트 상관관계가 높아 BTC 급락이 알트 동반 급락으로
             // 이어지는 경우가 많다 (2026-07-02 codex 분석 §6). 청산(SELL)에는 영향 없음.
-            if (signal.getAction() == StrategySignal.Action.BUY && btcMarketGuard.triggered()) {
-                log.warn("BTC_MARKET_GUARD 발동 — BUY 차단 (sessionId={}, {}): {}",
-                        sessionId, coinPair, btcMarketGuard.reason());
-                signal = StrategySignal.hold("BTC_MARKET_GUARD 발동 — " + btcMarketGuard.reason());
+            if (signal.getAction() == StrategySignal.Action.BUY && btcMarketGuard.blocksEntry()) {
+                String what = btcMarketGuard.unknown() ? "판정 불가" : "발동";
+                log.warn("BTC_MARKET_GUARD {} — BUY 차단 (sessionId={}, {}): {}",
+                        what, sessionId, coinPair, btcMarketGuard.reason());
+                signal = StrategySignal.hold("BTC_MARKET_GUARD " + what + " — " + btcMarketGuard.reason());
             }
 
             // 전략 로그 DB 저장 (신호 품질 + 레짐 + 지표 스냅샷)
@@ -1436,10 +1437,9 @@ public class LiveTradingService {
         if (blackSwan.triggered()) {
             return "승인 차례에 BLACK_SWAN_GUARD 발동 — " + blackSwan.reason();
         }
-        List<Candle> btc = "KRW-BTC".equals(coinPair) ? latest : fetchRecentCandles("KRW-BTC", session.getTimeframe());
-        BtcMarketGuard.Result btcGuard = BtcMarketGuard.check(btc);
-        if (btcGuard.triggered()) {
-            return "승인 차례에 BTC_MARKET_GUARD 발동 — " + btcGuard.reason();
+        BtcMarketGuard.Result btcGuard = btcMarketGate(coinPair, session.getTimeframe(), latest);
+        if (btcGuard.blocksEntry()) {
+            return "승인 차례에 BTC_MARKET_GUARD " + (btcGuard.unknown() ? "판정 불가" : "발동") + " — " + btcGuard.reason();
         }
         return null;
     }
@@ -3435,6 +3435,17 @@ public class LiveTradingService {
     /** 세션 거래 코인의 캔들 — 최신 완료 봉·결측 조건을 어기면 빈 목록(판정 불가). BTC 관문 캔들에는 쓰지 않는다. */
     private List<Candle> freshCandles(String coinPair, String timeframe, List<Candle> candles) {
         return candleFreshnessGuard == null ? candles : candleFreshnessGuard.filter("LIVE", coinPair, timeframe, candles);
+    }
+
+    /**
+     * BTC 급락 관문 — BTC 캔들이 없거나 낡으면 판정 불가({@link BtcMarketGuard.Result#unknown}). BTC 세션은 이미 최신성을 거른 자기
+     * 캔들을 쓴다(낡았으면 빈 목록 → 판정 불가). 이 엔진은 진행 중 봉까지 넣어 매 틱 판정한다(종전과 같다).
+     */
+    private BtcMarketGuard.Result btcMarketGate(String coinPair, String timeframe, List<Candle> ownCandles) {
+        List<Candle> btc = "KRW-BTC".equals(coinPair) ? ownCandles : fetchRecentCandles("KRW-BTC", timeframe);
+        return candleFreshnessGuard == null
+                ? CandleFreshnessGuard.btcGate(timeframe, btc, btc, Instant.now())
+                : candleFreshnessGuard.btcGate("LIVE", timeframe, btc, btc);
     }
 
     private List<Candle> fetchRecentCandles(String coinPair, String timeframe) {

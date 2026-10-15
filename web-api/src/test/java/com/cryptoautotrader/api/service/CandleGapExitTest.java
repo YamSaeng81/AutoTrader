@@ -238,5 +238,32 @@ class CandleGapExitTest extends IntegrationTestBase {
         List<OrderEntity> qs = sells(paperKind, q.getId());
         assertThat(qs).hasSize(1);
         assertThat(qs.get(0).getPrice()).isLessThan(new BigDecimal("295")).isGreaterThan(new BigDecimal("285"));
+
+        // 🔴 리뷰 8회차: 체결가 출처를 명시적으로 남긴다(V92) — 신호가 NULL 여부로는 가정 체결을 정확히 가려낼 수 없다.
+        assertThat(ps.get(0).getFillPriceSource()).isEqualTo("PAPER_AVG_PRICE");
+        assertThat(ps.get(0).getSignalPrice()).isNull();
+        assertThat(ps.get(0).getSignalReason()).contains("평균 단가").contains("관측 가격 아님");
+        assertThat(qs.get(0).getFillPriceSource()).isEqualTo("PAPER_LAST_MARK");
+        assertThat(qs.get(0).getSignalReason()).contains("마지막 시세").contains("관측 가격 아님");
+
+        // 정지 청산 — 신호가 자리에 평균 단가가 들어가 NULL 이 아니지만 가정 체결이다(신호가 NULL 조건이 놓치는 경우)
+        DynamicSessionEntity r = dynamicSession("KRW-GAPJ", 24, "PAPER");
+        position(paperKind, r.getId(), "KRW-GAPJ", Duration.ofMinutes(10));
+        dynamicTradingService.stopSession(r.getId());
+        List<OrderEntity> rs = sells(paperKind, r.getId());
+        assertThat(rs).hasSize(1);
+        assertThat(rs.get(0).getSignalPrice()).isEqualByComparingTo("300");
+        assertThat(rs.get(0).getFillPriceSource()).isEqualTo("PAPER_AVG_PRICE");
+
+        // 유효한 현재가로 판정한 페이퍼 손절 — 판정 가격에 슬리피지를 넣은 가정 체결(PAPER_SIGNAL)
+        DynamicSessionEntity t = dynamicSession("KRW-GAPK", 24, "PAPER");
+        PositionEntity pt = position(paperKind, t.getId(), "KRW-GAPK", Duration.ofMinutes(10));
+        marks.record("KRW-GAPK", new BigDecimal("285"), Instant.now());
+        assertThat(inTx(t, "KRW-GAPK")).isTrue();
+        assertThat(exitReason(pt.getId())).isEqualTo("CLOSED/STOP_LOSS");
+        List<OrderEntity> ts = sells(paperKind, t.getId());
+        assertThat(ts).hasSize(1);
+        assertThat(ts.get(0).getSignalPrice()).isEqualByComparingTo("285");
+        assertThat(ts.get(0).getFillPriceSource()).isEqualTo("PAPER_SIGNAL");
     }
 }
