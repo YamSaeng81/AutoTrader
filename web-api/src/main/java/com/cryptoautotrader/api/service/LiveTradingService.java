@@ -2478,15 +2478,20 @@ public class LiveTradingService {
 
     }
 
+    /** 웹소켓 틱 하나 — 수신 기록과 시세 이벤트. */
+    void onWsTick(com.cryptoautotrader.exchange.upbit.dto.TickerData ticker) {
+        // 실제 WS 틱 수신 기록 — "연결됨이지만 조용히 멎은" 상태 감지에 사용
+        exchangeHealthMonitor.markWsTick();
+        // 체결 시각을 싣는다 — 없으면 메시지 시각(틱은 체결 때 온다). 시세 장부의 최신성 기준이다(2026-10-15).
+        eventPublisher.publishEvent(new RealtimePriceEvent(ticker.getCode(), ticker.getTradePrice(),
+                ticker.getTradeTimestamp() != null ? ticker.getTradeTimestamp() : ticker.getTimestamp(),
+                RealtimePriceEvent.WS_TRADE));
+    }
+
     /** WebSocket 리스너 등록 및 구독 연결 — reconcileOnStartup의 finally에서 항상 호출 */
     private void initWebSocket() {
         if (wsClient != null) {
-            wsClient.addTickerListener(ticker -> {
-                // 실제 WS 틱 수신 기록 — "연결됨이지만 조용히 멎은" 상태 감지에 사용
-                exchangeHealthMonitor.markWsTick();
-                eventPublisher.publishEvent(
-                    new RealtimePriceEvent(ticker.getCode(), ticker.getTradePrice()));
-            });
+            wsClient.addTickerListener(this::onWsTick);
             wsClient.setConnectionStateListener(exchangeHealthMonitor::setWebSocketConnected);
             log.info("WebSocket 실시간 시세 리스너 등록 완료");
         }
@@ -2554,7 +2559,8 @@ public class LiveTradingService {
                 Object tradePriceObj = ticker.get("trade_price");
                 if (market == null || tradePriceObj == null) continue;
                 BigDecimal tradePrice = new BigDecimal(tradePriceObj.toString());
-                eventPublisher.publishEvent(new RealtimePriceEvent(market, tradePrice));
+                eventPublisher.publishEvent(new RealtimePriceEvent(market, tradePrice, restTradeTime(ticker),
+                        RealtimePriceEvent.REST_TRADE));
             }
         } catch (Exception e) {
             log.error("[§9] REST ticker fallback 실패: {}", e.getMessage());
@@ -2628,7 +2634,8 @@ public class LiveTradingService {
                 Object tradePriceObj = ticker.get("trade_price");
                 if (market == null || tradePriceObj == null) continue;
                 BigDecimal tradePrice = new BigDecimal(tradePriceObj.toString());
-                eventPublisher.publishEvent(new RealtimePriceEvent(market, tradePrice));
+                eventPublisher.publishEvent(new RealtimePriceEvent(market, tradePrice, restTradeTime(ticker),
+                        RealtimePriceEvent.REST_TRADE));
                 published = true;
             }
             return published;
@@ -3535,4 +3542,13 @@ public class LiveTradingService {
     }
 
 
+
+    /**
+     * REST 시세의 체결 시각 — 응답에 없으면 {@link Instant#EPOCH}(신선하지 않음). 🔴 받은 시각으로 메우지 않는다: 체결이 드문 코인의
+     * 낡은 체결가를 다시 받은 것을 신선한 가격으로 인정하게 된다(2026-10-15 리뷰 8회차 후속).
+     */
+    private static Instant restTradeTime(Map<String, Object> ticker) {
+        Instant t = RealtimePriceEvent.tradeTime(ticker);
+        return t != null ? t : Instant.EPOCH;
+    }
 }

@@ -27,7 +27,12 @@ import java.util.concurrent.atomic.AtomicLong;
 @Slf4j
 public class UpbitRestClient {
 
-    private static final String BASE_URL = "https://api.upbit.com/v1";
+    /**
+     * 공개 시세 API 주소 — 기본 업비트. 시스템 속성 {@code upbit.market-data.base-url} 로만 바꾼다(실제 프로세스 재시작 시험이 거래소
+     * 대역의 시세·호가·캔들 응답을 쓰기 위함, 2026-10-15). 운영은 설정하지 않는다.
+     */
+    private static final String DEFAULT_BASE_URL = "https://api.upbit.com/v1";
+    private final String BASE_URL = System.getProperty("upbit.market-data.base-url", DEFAULT_BASE_URL);
     private static final DateTimeFormatter UPBIT_FORMAT = DateTimeFormatter
             .ofPattern("yyyy-MM-dd'T'HH:mm:ss")
             .withZone(ZoneOffset.UTC);

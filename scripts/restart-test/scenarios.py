@@ -1606,10 +1606,130 @@ def s18(hard=False):
         rt.ctl('POST', '/_ctl/plan', {'ask': None, 'bid': None})
 
 
+# ── 리뷰 8회차 후속 — 위험 관문 데이터 공급 (2026-10-15) ────────────────────────────────
+
+MARKET_PROPS = {'upbit.market-data.base-url': f'http://127.0.0.1:{rt.DOUBLE_PORT}/v1'}
+
+
+def market(cfg):
+    """거래소 대역의 공개 시세 응답 — None 이면 끈다(503, 외부 차단과 같은 실패)."""
+    rt.ctl('POST', '/_ctl/market', cfg or {})
+
+
+def held_buy_rejected(sid):
+    """대역의 임시 시세 없이(feedMarks=false) 매수 — (거절됐는가, 흔적 없는가)."""
+    before = state(sid)
+    kind_, detail = buy_krw(sid, 3000, feed_marks=False)
+    after = state(sid)
+    clean = (len(after['orders']) == len(before['orders']) and len(after['positions']) == len(before['positions'])
+             and after['exchange_creates'] == before['exchange_creates'])
+    return kind_ != 'ok', clean, f'{kind_} {detail}'
+
+
+def s20():
+    rt.log('S20 위험 관문 데이터 공급 — BTC 세션 없는 LIVE 의 BTC 캔들 수집, 체결이 조용한 보유의 호가 관측, 재시작 직후, '
+           'REST 실패·복구: 차단이 작동하고 정상 데이터가 공급되면 실제 진입도 가능하다')
+    close_all_real()
+    table = session_table()
+    rt.psql("DELETE FROM market_data_cache WHERE coin_pair = 'KRW-BTC'")
+    seed_candles()
+    market(None)
+    try:
+        rt.start_app(label='s20-run', props=MARKET_PROPS)
+
+        if KIND == 'LIVE':
+            # ① BTC 세션 없는 LIVE — BTC 수집이 실패하는 동안 진입 차단(판정 불가)
+            rt.api('POST', '/api/v1/restart-harness/signal?action=BUY', timeout=10)
+            a = seed_live_session()
+            rt.psql(f"UPDATE live_trading_session SET strategy_type = 'HARNESS_SIGNAL', timeframe = 'H1' WHERE id = {a}")
+            try:
+                rt.wait_until(lambda: 'BTC_MARKET_GUARD 판정 불가' in rt.app_log(), 150, 3, 'S20 BTC 판정 불가')
+            except Exception as e:
+                rt.log(f'  대기 초과: {e!r}')
+            st = state(a)
+            btc_rows = rt.one("SELECT count(*) FROM market_data_cache WHERE coin_pair = 'KRW-BTC' AND timeframe = 'H1'")
+            check('S20① BTC 세션 없는 LIVE·BTC 수집 실패: 진입 차단(BTC_MARKET_GUARD 판정 불가)·주문 0·BTC 캐시 0',
+                  'BTC_MARKET_GUARD 판정 불가' in rt.app_log() and not st['orders'] and st['exchange_creates'] == 0
+                  and int(btc_rows) == 0, f'orders={len(st["orders"])} btc_rows={btc_rows}')
+            rt.psql(f"UPDATE live_trading_session SET status = 'STOPPED' WHERE id = {a}")
+
+            # ② 수집 복구 — BTC 세션을 만들지 않는다. 관문이 요구하는 데이터로 수집되고, 새 평가에서 실제 진입
+            market({'candles': {'KRW-BTC': {'close': '100000000'}}})
+            rt.wait_until(lambda: int(rt.one("SELECT count(*) FROM market_data_cache WHERE coin_pair = 'KRW-BTC' "
+                                             "AND timeframe = 'H1' AND time >= date_trunc('hour', now()) - interval '1 hour'")) > 0,
+                          150, 3, 'S20 BTC 수집')
+            btc_rows = rt.one("SELECT count(*) FROM market_data_cache WHERE coin_pair = 'KRW-BTC' AND timeframe = 'H1'")
+            seed_candles()      # 시나리오 도중 정시가 지나도 세션 코인 캔들이 최신이게
+            b = seed_live_session()
+            rt.psql(f"UPDATE live_trading_session SET strategy_type = 'HARNESS_SIGNAL', timeframe = 'H1' WHERE id = {b}")
+            try:
+                rt.wait_until(lambda: state(b)['orders'] and state(b)['orders'][0][2] == 'FILLED', 150, 3, 'S20 진입')
+            except Exception as e:
+                rt.log(f'  대기 초과: {e!r}')
+            st = state(b)
+            check('S20② 수집 복구(BTC 세션 없이 관문 요구 데이터로 KRW-BTC H1 수집) → 같은 LIVE 구성의 새 평가에서 실제 매수·체결',
+                  int(btc_rows) > 0 and bool(st['orders']) and st['orders'][0][1] == 'BUY' and st['orders'][0][2] == 'FILLED'
+                  and st['exchange_creates'] == 1, f'btc_rows={btc_rows} {st["orders"][:1]}')
+            rt.api('POST', '/api/v1/restart-harness/signal?action=HOLD', timeout=10)
+            rt.psql(f"UPDATE live_trading_session SET status = 'STOPPED' WHERE id = {b}")
+            close_all_real()
+
+        # ③ 보유 코인 — 체결이 조용하다(마지막 체결 10분 전). 호가 응답이 없으면 그 낡은 체결가는 관측 가격이 아니다 → 풀 진입 차단
+        market({'ticker': {'KRW-DOGE': {'price': '300', 'trade_age_sec': 600}}})
+        h = seed_live_session()
+        buy_krw(h, 3000)        # 보유를 만든다(대역 임시 시세로 그 순간만 평가)
+        rt.wait_until(lambda: state(h)['orders'] and state(h)['orders'][0][2] == 'FILLED'
+                      and state(h)['positions'][0][2] not in ('0', '0.00000000'), 60, 1, 'S20 보유 매수')
+        x = seed_live_session()
+        time.sleep(20)          # 보강 주기 15초 — 시세 조회가 낡은 체결가를 돌려준 뒤
+        rejected, clean, detail = held_buy_rejected(x)
+        check('S20③ 체결이 조용한 보유(10분 전 체결가를 지금 다시 받음): 신선하다고 보지 않음 → 매수 거절(POOL_VALUATION_UNKNOWN)·흔적 없음',
+              rejected and clean and 'POOL_VALUATION_UNKNOWN' in rt.app_log() and '[시세 보강]' in rt.app_log(), detail)
+
+        # ④ 호가가 오면 — 최우선 매수호가 299 로 관측 → 실제 진입
+        market({'ticker': {'KRW-DOGE': {'price': '300', 'trade_age_sec': 600}}, 'orderbook': {'KRW-DOGE': {'bid': '299'}}})
+        time.sleep(20)
+        kind_, detail = buy_krw(x, 3000, feed_marks=False)
+        try:
+            rt.wait_until(lambda: state(x)['orders'] and state(x)['orders'][0][2] == 'FILLED', 60, 1, 'S20 호가 관측 뒤 매수')
+        except Exception as e:
+            rt.log(f'  대기 초과: {e!r}')
+        st = state(x)
+        check('S20④ 최우선 매수호가로 관측(REST_ORDERBOOK_BID) → 대역 임시 시세 없이도 매수 승인·체결',
+              kind_ == 'ok' and bool(st['orders']) and st['orders'][0][2] == 'FILLED' and st['exchange_creates'] == 1
+              and 'REST_ORDERBOOK_BID' in rt.app_log(), f'{kind_} {st["orders"][:1]}')
+        rt.kill_app()
+
+        # ⑤ 재시작 직후 + REST 실패 — 장부가 비고 보강도 실패 → 차단·경보 기록. 복구되면 보강이 채워 진입
+        market({'fail': True})
+        rt.start_app(label='s20-restart', props=MARKET_PROPS)
+        y = seed_live_session()
+        time.sleep(25)
+        rejected, clean, detail = held_buy_rejected(y)
+        check('S20⑤ 재시작 직후·시세 REST 실패: 관측 가격 없음 → 매수 거절·흔적 없음·공급 실패 기록',
+              rejected and clean and '보유 코인의 관측 가격을 얻지 못했다' in rt.app_log(), detail)
+        market({'ticker': {'KRW-DOGE': {'price': '301', 'trade_age_sec': 2}}})
+        time.sleep(20)
+        kind_, detail = buy_krw(y, 3000, feed_marks=False)
+        try:
+            rt.wait_until(lambda: state(y)['orders'] and state(y)['orders'][0][2] == 'FILLED', 60, 1, 'S20 복구 뒤 매수')
+        except Exception as e:
+            rt.log(f'  대기 초과: {e!r}')
+        st = state(y)
+        check('S20⑥ REST 복구(최근 체결가) → 보강이 장부를 채워 매수 승인·체결, 회복 기록',
+              kind_ == 'ok' and bool(st['orders']) and st['orders'][0][2] == 'FILLED'
+              and '[시세 보강] 회복' in rt.app_log(), f'{kind_} {st["orders"][:1]}')
+        rt.kill_app()
+    finally:
+        market(None)
+        close_all_real()
+        rt.psql(f"UPDATE {table} SET status = 'STOPPED' WHERE status = 'RUNNING'")
+
+
 SCEN = {'S1': s1, 'S2': s2, 'S3': lambda: s3(False), 'S3b': lambda: s3(True),
         'S4': lambda: s45('AFTER_FILL_OBSERVED'), 'S5': lambda: s45('IN_FILL_ACCOUNTING'), 'S6': s6, 'S7': s7, 'S8': s8, 'S9': s9,
         'S10': s10, 'S11': s11, 'S12': s12, 'S13': s13,
-        'S10b': s10b, 'S11b': s11b, 'S11c': s11c, 'S13b': s13b, 'S14': s14, 'S15': s15, 'S16': s16, 'S16b': s16b, 'S17': s17, 'S18': s18, 'S18b': lambda: s18(True), 'S19': s19}
+        'S10b': s10b, 'S11b': s11b, 'S11c': s11c, 'S13b': s13b, 'S14': s14, 'S15': s15, 'S16': s16, 'S16b': s16b, 'S17': s17, 'S18': s18, 'S18b': lambda: s18(True), 'S19': s19, 'S20': s20}
 
 if __name__ == '__main__':
     args = sys.argv[1:]
@@ -1629,7 +1749,7 @@ if __name__ == '__main__':
             KIND = kind
             globals()['KIND'] = kind
             for n in names:
-                if kind == 'DYNAMIC' and n not in ('S3', 'S3b', 'S6', 'S7', 'S8', 'S9', 'S12', 'S14', 'S15', 'S16', 'S16b', 'S19'):
+                if kind == 'DYNAMIC' and n not in ('S3', 'S3b', 'S6', 'S7', 'S8', 'S9', 'S12', 'S14', 'S15', 'S16', 'S16b', 'S19', 'S20'):
                     continue   # DYNAMIC 은 접수 후 종료·부분 청산 중 종료·종료 중 체결만 (의도·claim·회계 지점은 공통 엔진)
                 try:
                     rt.ctl('POST', '/_ctl/plan', {'bid': None, 'ask': None})   # 앞 시나리오의 1회용 계획이 새지 않게

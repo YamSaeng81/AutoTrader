@@ -255,9 +255,7 @@ public class RestartHarnessController {
                     continue;
                 }
                 fedMarks.remove(c);
-                MarkPriceBook.Mark prev = (MarkPriceBook.Mark) e[1];
-                if (prev == null) markPriceBook.remove(c);
-                else markPriceBook.record(c, prev.price(), prev.at());
+                markPriceBook.restore(c, (MarkPriceBook.Mark) e[1]);
             }
         }
     }

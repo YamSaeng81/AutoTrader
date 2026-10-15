@@ -20,7 +20,14 @@
   POST /_ctl/fill   {"uuid":..., "state":"done|cancel|wait", "volume":"..", "funds":".."}  체결 진행
   GET  /_ctl/orders  전체 주문
   POST /_ctl/reset
+  POST /_ctl/market {"ticker": {"KRW-DOGE": {"price": "300", "trade_age_sec": 600}},
+                     "orderbook": {"KRW-DOGE": {"bid": "299"}}, "candles": {"KRW-BTC": {"close": "100000000"}},
+                     "fail": false}
+        공개 시세 응답(2026-10-15 리뷰 8회차 후속) — 앱이 -Dupbit.market-data.base-url 로 이 대역을 볼 때만 쓰인다.
+        설정이 없으면(기본) /v1/ticker·/v1/orderbook·/v1/candles 는 503 — 외부 차단과 같은 실패. fail=true 도 503.
+        시세의 trade_timestamp 는 지금 − trade_age_sec(체결이 조용한 코인), 호가 timestamp 는 지금.
 """
+import calendar
 import json
 import os
 import sys
@@ -150,10 +157,54 @@ class H(BaseHTTPRequestHandler):
                 return self.reply(200, {'bid_fee': '0.0005', 'ask_fee': '0.0005'})
             if u.path == '/v1/orders':
                 return self.reply(200, [view(o) for o in state['orders'].values() if o['state'] == 'wait'])
+            if u.path in ('/v1/ticker', '/v1/orderbook') or u.path.startswith('/v1/candles/'):
+                return self.market(u.path, q)
             if u.path == '/_ctl/orders':
                 return self.reply(200, {'orders': list(state['orders'].values()), 'creates': state['creates'],
                                         'krw': state['krw'], 'coin': state['coin']})
         self.reply(404, {'error': {'name': 'not_found', 'path': u.path}})
+
+    def market(self, path, q):
+        m = state.get('market')
+        if not m or m.get('fail'):
+            return self.reply(503, {'error': {'name': 'market_unavailable', 'message': '시험 대역 — 시세 응답 꺼짐'}})
+        now_ms = int(time.time() * 1000)
+        if path == '/v1/ticker':
+            out = []
+            for c in q.get('markets', [''])[0].split(','):
+                t = (m.get('ticker') or {}).get(c)
+                if t:
+                    out.append({'market': c, 'trade_price': float(t['price']),
+                                'trade_timestamp': now_ms - int(t.get('trade_age_sec', 0)) * 1000, 'timestamp': now_ms})
+            return self.reply(200, out)
+        if path == '/v1/orderbook':
+            out = []
+            for c in q.get('markets', [''])[0].split(','):
+                b = (m.get('orderbook') or {}).get(c)
+                if b:
+                    bid = Decimal(b['bid'])
+                    out.append({'market': c, 'timestamp': now_ms, 'total_ask_size': 100, 'total_bid_size': 100,
+                                'orderbook_units': [{'ask_price': float(bid + 1), 'bid_price': float(bid), 'ask_size': 100, 'bid_size': 100}]})
+            return self.reply(200, out)
+        # /v1/candles/minutes/60 — H1 만. 업비트처럼 진행 중 봉 포함, to 이전 봉을 최신순으로 count 개.
+        coin = q.get('market', [''])[0]
+        cfg = (m.get('candles') or {}).get(coin)
+        if not cfg or path != '/v1/candles/minutes/60':
+            return self.reply(404, {'error': {'name': 404, 'message': 'Code not found'}})
+        count = int(q.get('count', ['200'])[0])
+        now = int(time.time())
+        to = q.get('to', [None])[0]
+        to_s = calendar.timegm(time.strptime(to, '%Y-%m-%dT%H:%M:%S')) if to else now + 3600   # UTC
+        cur = now - now % 3600
+        close = Decimal(cfg['close'])
+        out = []
+        while len(out) < count and cur > now - 600 * 3600:
+            if cur < to_s:
+                out.append({'market': coin, 'candle_date_time_utc': time.strftime('%Y-%m-%dT%H:%M:%S', time.gmtime(cur)),
+                            'opening_price': float(close), 'high_price': float(close), 'low_price': float(close),
+                            'trade_price': float(close), 'candle_acc_trade_volume': 10})
+            cur -= 3600
+        return self.reply(200, out)
 
     def do_POST(self):
         u = urlparse(self.path)
@@ -208,6 +259,10 @@ class H(BaseHTTPRequestHandler):
                 o['state'] = b.get('state', o['state'])
                 save()
                 return self.reply(200, o)
+            if u.path == '/_ctl/market':
+                state['market'] = b
+                save()
+                return self.reply(200, b)
             if u.path == '/_ctl/reset':
                 state.clear()
                 state.update({'orders': {}, 'plan': {}, 'krw': '1000000', 'coin': '0', 'creates': []})

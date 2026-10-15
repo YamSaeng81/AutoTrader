@@ -250,7 +250,7 @@ class PoolLossLimitTest extends IntegrationTestBase {
         PoolLossGuard.Valuation v = tx(() -> guard.valuate(start, now));
         assertThat(v).isNotNull();
         assertThat(v.observed()).isFalse();
-        assertThat(v.marks()).contains("[대체]").doesNotContain("시세@");
+        assertThat(v.marks()).contains("[대체]").doesNotContain("@");   // 관측 가격이면 "출처@관측 시각" 이 붙는다
         CapitalReservationService.Decision none = check(now);
         assertThat(none.approved()).isFalse();
         assertThat(none.code()).isEqualTo(PoolLossGuard.POOL_VALUATION_UNKNOWN);
@@ -561,5 +561,201 @@ class PoolLossLimitTest extends IntegrationTestBase {
                     .build());
         }
         return out;
+    }
+
+    // ── 보유 코인 시세 보강 (리뷰 8회차 후속) — 차단이 작동하고, 정상 데이터가 공급되면 진입이 가능하다 ─────────────
+
+    @Autowired private HeldMarkRefresher refresher;
+
+    private static java.util.Map<String, Object> ticker(String coin, String price, Instant tradeAt) {
+        return java.util.Map.of("market", coin, "trade_price", new BigDecimal(price), "trade_timestamp", tradeAt.toEpochMilli());
+    }
+
+    private static java.util.Map<String, Object> orderbook(String coin, String bid, Instant at) {
+        return java.util.Map.of("market", coin, "timestamp", at.toEpochMilli(),
+                "orderbook_units", List.of(java.util.Map.of("bid_price", new BigDecimal(bid), "ask_price", new BigDecimal(bid).add(BigDecimal.ONE))));
+    }
+
+    /** 시세 REST 대역을 꽂고 본문을 돌린 뒤 되돌린다. */
+    private void withRest(com.cryptoautotrader.exchange.upbit.UpbitRestClient rest, Runnable body) {
+        HeldMarkRefresher target = AopTestUtils.getUltimateTargetObject(refresher);
+        Object saved = ReflectionTestUtils.getField(target, "upbitRestClient");
+        ReflectionTestUtils.setField(target, "upbitRestClient", rest);
+        try {
+            body.run();
+        } finally {
+            ReflectionTestUtils.setField(target, "upbitRestClient", saved);
+            ReflectionTestUtils.setField(target, "failing", new java.util.concurrent.atomic.AtomicReference<String>());
+        }
+    }
+
+    private static void stub(ThrowingRunnable r) {
+        try {
+            r.run();
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private interface ThrowingRunnable {
+        void run() throws Exception;
+    }
+
+    @Test
+    @DisplayName("웹소켓은 살아 있지만 체결이 조용한 보유: 낡은 체결가를 다시 받아도 신선하다고 보지 않고(차단 유지), 최우선 매수호가로 관측하면 승인")
+    void quietHoldingIsObservedByBestBid() throws Exception {
+        Instant start = baseline();
+        Long s = liveSession("RUNNING");
+        PositionEntity held = position(s, "KRW-QUIET", "OPEN", "30", "300");
+        order(held, "BUY", "9000", "4.5", "30");
+        Instant now = Instant.now();
+        Instant oldTrade = now.minusSeconds(600).truncatedTo(ChronoUnit.MILLIS);
+        // 연결은 살아 있다 — 다른 코인 틱은 지금 온다. 보유 코인의 마지막 웹소켓 틱은 10분 전 체결이다(지금 받았어도).
+        marks.onPrice(new RealtimePriceEvent("KRW-BTC", new BigDecimal("100000000"), now, RealtimePriceEvent.WS_TRADE));
+        marks.onPrice(new RealtimePriceEvent("KRW-QUIET", new BigDecimal("290"), oldTrade, RealtimePriceEvent.WS_TRADE));
+        assertThat(marks.get("KRW-QUIET").receivedAt()).isAfterOrEqualTo(now);
+        assertThat(check(now).code()).as("받은 시각이 아니라 체결 시각으로 판단 — 차단").isEqualTo(PoolLossGuard.POOL_VALUATION_UNKNOWN);
+
+        var rest = org.mockito.Mockito.mock(com.cryptoautotrader.exchange.upbit.UpbitRestClient.class);
+        // REST 시세도 같은 10분 전 체결가를 준다. 호가는 아직 실패.
+        org.mockito.Mockito.when(rest.getTicker(org.mockito.ArgumentMatchers.contains("KRW-QUIET")))
+                .thenReturn(List.of(ticker("KRW-QUIET", "290", oldTrade)));
+        org.mockito.Mockito.when(rest.getOrderbook("KRW-QUIET")).thenThrow(new RuntimeException("호가 조회 실패(시험)"));
+        withRest(rest, () -> {
+            HeldMarkRefresher.Result r = refresher.refreshNow(now);
+            assertThat(r.targets()).contains("KRW-QUIET");
+            assertThat(r.byTrade()).doesNotContain("KRW-QUIET");
+            assertThat(r.unobserved()).contains("KRW-QUIET");
+            assertThat(marks.get("KRW-QUIET").at()).as("재조회가 체결 시각을 바꾸지 않는다").isEqualTo(oldTrade);
+            assertThat(marks.freshPrice("KRW-QUIET", now)).isNull();
+            assertThat(check(now).code()).as("차단 유지").isEqualTo(PoolLossGuard.POOL_VALUATION_UNKNOWN);
+            assertThat(refresher.failingSince()).contains("KRW-QUIET");
+
+            // 호가가 오면 — 최우선 매수호가 289, 호가 시각 지금
+            stub(() -> org.mockito.Mockito.doReturn(List.of(orderbook("KRW-QUIET", "289", now))).when(rest).getOrderbook("KRW-QUIET"));
+            HeldMarkRefresher.Result r2 = refresher.refreshNow(now);
+            assertThat(r2.byBid()).contains("KRW-QUIET");
+            assertThat(marks.get("KRW-QUIET").source()).isEqualTo(MarkPriceBook.REST_ORDERBOOK_BID);
+            CapitalReservationService.Decision ok = check(now);
+            assertThat(ok.approved()).as(ok.message()).isTrue();
+            assertThat(ok.message()).contains("KRW-QUIET=289(REST_ORDERBOOK_BID@");
+            // 보유 평가 = 30 × 289 × 0.9995 — 마지막 체결가 290 이 아니라 지금 팔 수 있는 가격
+            assertThat(tx(() -> guard.valuate(start, now)).holdings()).isEqualByComparingTo("8665.665");
+            assertThat(refresher.failingSince()).as("회복").isNull();
+
+            // 뒤이어 온 낡은 체결가는 더 최근의 호가 관측을 덮지 않는다
+            marks.onPrice(new RealtimePriceEvent("KRW-QUIET", new BigDecimal("290"), oldTrade, RealtimePriceEvent.REST_TRADE));
+            assertThat(marks.get("KRW-QUIET").source()).isEqualTo(MarkPriceBook.REST_ORDERBOOK_BID);
+        });
+    }
+
+    @Test
+    @DisplayName("최근 체결이 있으면 시세 조회의 체결가로 충분하다 — 호가를 부르지 않는다. 호가 시각이 낡았으면 인정하지 않는다")
+    void recentTradeSufficesAndStaleBookIsRejected() throws Exception {
+        baseline();
+        Long s = liveSession("RUNNING");
+        position(s, "KRW-ACTIVE", "OPEN", "10", "300");
+        position(s, "KRW-STALEBOOK", "OPEN", "10", "300");
+        Instant now = Instant.now();
+        var rest = org.mockito.Mockito.mock(com.cryptoautotrader.exchange.upbit.UpbitRestClient.class);
+        org.mockito.Mockito.when(rest.getTicker(org.mockito.ArgumentMatchers.anyString())).thenReturn(List.of(
+                ticker("KRW-ACTIVE", "301", now.minusSeconds(5)), ticker("KRW-STALEBOOK", "300", now.minusSeconds(900))));
+        org.mockito.Mockito.when(rest.getOrderbook("KRW-STALEBOOK")).thenReturn(List.of(orderbook("KRW-STALEBOOK", "299", now.minusSeconds(300))));
+        withRest(rest, () -> {
+            HeldMarkRefresher.Result r = refresher.refreshNow(now);
+            assertThat(r.byTrade()).contains("KRW-ACTIVE");
+            assertThat(r.unobserved()).contains("KRW-STALEBOOK").doesNotContain("KRW-ACTIVE");
+            assertThat(r.error()).contains("KRW-STALEBOOK 호가 시각 낡음");
+            assertThat(marks.get("KRW-ACTIVE").source()).isEqualTo(MarkPriceBook.REST_TRADE);
+        });
+        org.mockito.Mockito.verify(rest, org.mockito.Mockito.never()).getOrderbook("KRW-ACTIVE");
+        assertThat(check(now).code()).as("한 보유라도 관측 가격이 없으면 풀 전체 차단").isEqualTo(PoolLossGuard.POOL_VALUATION_UNKNOWN);
+    }
+
+    @Test
+    @DisplayName("재시작 직후(빈 장부)·REST 실패: 차단과 경보 한 번, 복구되면 보강이 장부를 채워 승인")
+    void restartAndRestFailureRecovery() throws Exception {
+        baseline();
+        Long s = liveSession("RUNNING");
+        PositionEntity held = position(s, "KRW-RESTART", "OPEN", "30", "300");
+        order(held, "BUY", "9000", "4.5", "30");
+        marks.clear();   // 재시작 직후 — 장부가 비었다
+        Instant now = Instant.now();
+        assertThat(check(now).code()).isEqualTo(PoolLossGuard.POOL_VALUATION_UNKNOWN);
+
+        TelegramNotificationService tg = org.mockito.Mockito.mock(TelegramNotificationService.class);
+        HeldMarkRefresher target = AopTestUtils.getUltimateTargetObject(refresher);
+        Object savedTg = ReflectionTestUtils.getField(target, "telegram");
+        ReflectionTestUtils.setField(target, "telegram", tg);
+        var rest = org.mockito.Mockito.mock(com.cryptoautotrader.exchange.upbit.UpbitRestClient.class);
+        try {
+            org.mockito.Mockito.when(rest.getTicker(org.mockito.ArgumentMatchers.anyString())).thenThrow(new RuntimeException("503(시험)"));
+            org.mockito.Mockito.when(rest.getOrderbook(org.mockito.ArgumentMatchers.anyString())).thenThrow(new RuntimeException("503(시험)"));
+            withRest(rest, () -> {
+                refresher.refreshNow(now);
+                refresher.refreshNow(now.plusSeconds(15));
+                assertThat(check(now).code()).as("REST 실패 — 차단 유지").isEqualTo(PoolLossGuard.POOL_VALUATION_UNKNOWN);
+                org.mockito.Mockito.verify(tg, org.mockito.Mockito.times(1)).sendCustomNotification(
+                        org.mockito.ArgumentMatchers.argThat(m -> m.contains("KRW-RESTART") && m.contains("시세 공급 실패")));
+
+                // 복구 — REST 가 다시 응답한다(최근 체결)
+                Instant later = now.plusSeconds(30);
+                stub(() -> org.mockito.Mockito.doReturn(List.of(ticker("KRW-RESTART", "305", later.minusSeconds(3))))
+                        .when(rest).getTicker(org.mockito.ArgumentMatchers.anyString()));
+                HeldMarkRefresher.Result r = refresher.refreshNow(later);
+                assertThat(r.byTrade()).contains("KRW-RESTART");
+                CapitalReservationService.Decision ok = check(later);
+                assertThat(ok.approved()).as(ok.message()).isTrue();
+                assertThat(ok.message()).contains("KRW-RESTART=305(REST_TRADE@");
+            });
+        } finally {
+            ReflectionTestUtils.setField(target, "telegram", savedTg);
+        }
+    }
+
+    @Autowired private LiveTradingService liveTradingService;
+
+    @Test
+    @DisplayName("기존 시세 경로도 체결 시각을 싣는다 — 웹소켓 틱(ttms)·LIVE·DYNAMIC REST 강제 갱신(trade_timestamp, 없으면 신선하지 않음)")
+    void existingPricePathsCarryTradeTime() throws Exception {
+        Instant now = Instant.now();
+        Instant oldTrade = now.minusSeconds(600).truncatedTo(ChronoUnit.MILLIS);
+
+        // 웹소켓 틱 — 10분 전 체결(지금 받음) → 신선하지 않다
+        LiveTradingService live = AopTestUtils.getUltimateTargetObject(liveTradingService);
+        live.onWsTick(com.cryptoautotrader.exchange.upbit.dto.TickerData.builder().code("KRW-WSOLD")
+                .tradePrice(new BigDecimal("100")).timestamp(now).tradeTimestamp(oldTrade).build());
+        assertThat(marks.get("KRW-WSOLD").at()).isEqualTo(oldTrade);
+        assertThat(marks.get("KRW-WSOLD").source()).isEqualTo(MarkPriceBook.WS_TRADE);
+        assertThat(marks.freshPrice("KRW-WSOLD", now)).isNull();
+        live.onWsTick(com.cryptoautotrader.exchange.upbit.dto.TickerData.builder().code("KRW-WSNEW")
+                .tradePrice(new BigDecimal("100")).timestamp(now).tradeTimestamp(now).build());
+        assertThat(marks.freshPrice("KRW-WSNEW", now)).isEqualByComparingTo("100");
+
+        // REST 강제 갱신 — LIVE·DYNAMIC
+        var rest = org.mockito.Mockito.mock(com.cryptoautotrader.exchange.upbit.UpbitRestClient.class);
+        org.mockito.Mockito.when(rest.getTicker("KRW-RESTOLD")).thenReturn(List.of(ticker("KRW-RESTOLD", "200", oldTrade)));
+        org.mockito.Mockito.when(rest.getTicker("KRW-NOTS")).thenReturn(List.of(java.util.Map.of("market", "KRW-NOTS", "trade_price", 50)));
+        DynamicTradingService dyn = AopTestUtils.getUltimateTargetObject(dynamicTradingService);
+        Object savedLive = ReflectionTestUtils.getField(live, "upbitRestClient");
+        Object savedDyn = ReflectionTestUtils.getField(dyn, "upbitRestClient");
+        ReflectionTestUtils.setField(live, "upbitRestClient", rest);
+        ReflectionTestUtils.setField(dyn, "upbitRestClient", rest);
+        try {
+            assertThat(live.forceRefreshPrice("KRW-RESTOLD")).isTrue();
+            assertThat(marks.get("KRW-RESTOLD").at()).as("LIVE: 체결 시각").isEqualTo(oldTrade);
+            assertThat(marks.freshPrice("KRW-RESTOLD", now)).isNull();
+            marks.remove("KRW-RESTOLD");
+            assertThat(dyn.forceRefreshPrice("KRW-RESTOLD")).isTrue();
+            assertThat(marks.get("KRW-RESTOLD").at()).as("DYNAMIC: 체결 시각").isEqualTo(oldTrade);
+            assertThat(marks.get("KRW-RESTOLD").source()).isEqualTo(MarkPriceBook.REST_TRADE);
+            // 체결 시각이 없는 응답 — 받은 시각으로 메우지 않는다
+            assertThat(live.forceRefreshPrice("KRW-NOTS")).isTrue();
+            assertThat(marks.get("KRW-NOTS").at()).isEqualTo(Instant.EPOCH);
+            assertThat(marks.freshPrice("KRW-NOTS", now)).isNull();
+        } finally {
+            ReflectionTestUtils.setField(live, "upbitRestClient", savedLive);
+            ReflectionTestUtils.setField(dyn, "upbitRestClient", savedDyn);
+        }
     }
 }

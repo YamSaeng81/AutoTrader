@@ -3516,7 +3516,8 @@ public class DynamicTradingService {
                 Object tradePriceObj = ticker.get("trade_price");
                 if (market == null || tradePriceObj == null) continue;
                 BigDecimal tradePrice = new BigDecimal(tradePriceObj.toString());
-                eventPublisher.publishEvent(new RealtimePriceEvent(market, tradePrice));
+                eventPublisher.publishEvent(new RealtimePriceEvent(market, tradePrice, restTradeTime(ticker),
+                        RealtimePriceEvent.REST_TRADE));
                 published = true;
             }
             return published;
@@ -3584,5 +3585,14 @@ public class DynamicTradingService {
         params.put("coinPair", coinPair);
         params.put("timeframe", timeframe);
         return params;
+    }
+
+    /**
+     * REST 시세의 체결 시각 — 응답에 없으면 {@link Instant#EPOCH}(신선하지 않음). 🔴 받은 시각으로 메우지 않는다: 체결이 드문 코인의
+     * 낡은 체결가를 다시 받은 것을 신선한 가격으로 인정하게 된다(2026-10-15 리뷰 8회차 후속).
+     */
+    private static Instant restTradeTime(Map<String, Object> ticker) {
+        Instant t = RealtimePriceEvent.tradeTime(ticker);
+        return t != null ? t : Instant.EPOCH;
     }
 }

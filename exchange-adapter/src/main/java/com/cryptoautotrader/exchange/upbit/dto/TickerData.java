@@ -37,6 +37,12 @@ public class TickerData {
     /** 전일 대비: "RISE", "EVEN", "FALL" */
     private String change;
 
-    /** 타임스탬프 */
+    /** 타임스탬프 (메시지 시각) */
     private Instant timestamp;
+
+    /**
+     * 마지막 체결 시각 (SIMPLE {@code ttms}) — 가격 최신성의 기준이다(2026-10-15). 메시지를 받은 시각이나 메시지 시각이 아니라
+     * 이 가격이 실제로 체결된 시각. 없으면 {@code null}.
+     */
+    private Instant tradeTimestamp;
 }

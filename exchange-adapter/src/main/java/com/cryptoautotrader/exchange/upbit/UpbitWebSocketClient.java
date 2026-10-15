@@ -332,6 +332,7 @@ public class UpbitWebSocketClient {
                 .signedChangeRate(getDecimalSafe(node, "scr"))
                 .change(getTextSafe(node, "c"))
                 .timestamp(getInstantSafe(node, "tms"))
+                .tradeTimestamp(getInstantOrNull(node, "ttms"))
                 .build();
 
         lastTickers.put(ticker.getCode(), ticker);
@@ -464,6 +465,12 @@ public class UpbitWebSocketClient {
             return child.decimalValue();
         }
         return BigDecimal.ZERO;
+    }
+
+    /** 없으면 {@code null} — 체결 시각처럼 "지금" 으로 메우면 안 되는 값에 쓴다. */
+    private Instant getInstantOrNull(JsonNode node, String field) {
+        JsonNode child = node.get(field);
+        return child != null && child.isNumber() ? Instant.ofEpochMilli(child.asLong()) : null;
     }
 
     private Instant getInstantSafe(JsonNode node, String field) {

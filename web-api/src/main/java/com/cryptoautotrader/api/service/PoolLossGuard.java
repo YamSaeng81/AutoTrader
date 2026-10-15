@@ -364,7 +364,8 @@ public class PoolLossGuard {
     public PriceMark markFor(String coin, BigDecimal size, BigDecimal avg, BigDecimal unrealized) {
         MarkPriceBook.Mark m = markPriceBook.get(coin);
         if (m != null) {
-            return new PriceMark(m.price(), "시세@" + m.at(), true, m.at());
+            // 출처와 관측 시각(체결가면 체결 시각, 호가면 호가 시각)을 적는다 — 받은 시각이 아니다.
+            return new PriceMark(m.price(), m.source() + "@" + m.at(), true, m.at());
         }
         BigDecimal price = unrealized == null || size.signum() == 0 ? avg
                 : avg.add(unrealized.divide(size, 12, RoundingMode.HALF_UP));

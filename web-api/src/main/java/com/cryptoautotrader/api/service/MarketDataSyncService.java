@@ -58,6 +58,10 @@ public class MarketDataSyncService {
     @Autowired(required = false)
     private UpbitRestClient upbitRestClient;
 
+    /** 활성 위험 관문이 요구하는 캔들(BTC 급락 관문의 KRW-BTC) — 세션 구성과 무관하게 수집한다 (2026-10-15 리뷰 8회차 후속). */
+    @Autowired(required = false)
+    private RiskGateDataRequirements riskGateData;
+
     /**
      * 60초마다 실행. PaperTradingService.runStrategy() 보다
      * initialDelay 만큼 먼저 실행되어 데이터를 준비한다.
@@ -79,6 +83,8 @@ public class MarketDataSyncService {
     public void syncMarketData() {
         // RUNNING 세션에서 고유 (coinPair:timeframe) 추출 — 모의투자 + 실전매매 모두 포함
         List<String[]> rawPairs = new ArrayList<>();
+        // 🔴 위험 관문이 요구하는 캔들을 먼저 — 세션이 그 코인을 거래하지 않아도 관문이 판정할 수 있어야 한다.
+        if (riskGateData != null) rawPairs.addAll(riskGateData.requiredCandles());
         balanceRepo.findByStatusOrderByStartedAtAsc("RUNNING")
                 .forEach(s -> rawPairs.add(new String[]{s.getCoinPair(), s.getTimeframe()}));
         liveTradingSessionRepository.findByStatus("RUNNING")
