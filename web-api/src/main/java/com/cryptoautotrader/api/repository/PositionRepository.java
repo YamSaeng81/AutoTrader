@@ -202,6 +202,17 @@ public interface PositionRepository extends JpaRepository<PositionEntity, Long> 
     int markClosingIfOpen(@Param("id") Long id, @Param("now") java.time.Instant now);
 
     /**
+     * 평가손익(표시용) 한 열만, 포지션이 아직 {@code OPEN} 일 때만 쓴다 (2026-10-16, 재시작 시험 S18b).
+     *
+     * <p>🔴 평가 루프는 회차 시작에 읽은 포지션 엔티티를 {@code save} 했다 — 버전 열이 없어 행 전체가 그 시점 값으로 덮였다. 그 사이 다른
+     * 경로(유령 정산)가 같은 포지션을 CLOSED 로 커밋하면 평가 루프가 OPEN·{@code closed_at = NULL} 로 되돌렸고, 다음 정지가 그 포지션을 다시
+     * 팔았다(이중 매도, 잔액 12,936.17). 관리 중인 엔티티는 바꾸지 않는다 — 바꾸면 커밋 때 행 전체가 다시 쓰인다.</p>
+     */
+    @Modifying(flushAutomatically = true)
+    @Query("UPDATE PositionEntity p SET p.unrealizedPnl = :v WHERE p.id = :id AND p.status = 'OPEN'")
+    int updateUnrealizedPnlIfOpen(@Param("id") Long id, @Param("v") java.math.BigDecimal v);
+
+    /**
      * CLOSING 전환과 <b>청산 사유 기록을 한 UPDATE 로</b> 처리한다 (V73).
      *
      * <p>사유를 엔티티에 세팅해 {@code save()} 하면 위 네이티브 UPDATE 가 이미 바꾼

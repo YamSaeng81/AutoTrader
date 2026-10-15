@@ -11,6 +11,9 @@ import java.time.Instant;
  */
 @Entity
 @Table(name = "position")
+// 🔴 바뀐 열만 UPDATE 한다 (2026-10-16, 재시작 시험 S18b) — 버전 열이 없어서, 오래 사는 트랜잭션이 낡은 엔티티를 저장하면 다른 경로가 그 사이
+//    커밋한 상태·청산 시각까지 그 시점 값으로 덮였다(평가 루프가 CLOSED 를 OPEN 으로 되돌려 이중 매도). 바꾸지 않은 열은 쓰지 않는다.
+@org.hibernate.annotations.DynamicUpdate
 @Getter
 @Setter
 @NoArgsConstructor
