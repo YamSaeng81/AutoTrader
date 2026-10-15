@@ -242,6 +242,12 @@ class EntryPriorityEndToEndTest extends IntegrationTestBase {
         assertThat(croBuys.get(0).getSignalPrice()).as("승인 시점 현재가").isEqualByComparingTo("1300");
         assertThat(buys("DYNAMIC", g.getId())).as("슬롯 상한 — 주문 없음").isEmpty();
         assertThat(buys("LIVE", inj.getId())).isEmpty();
+
+        // 1-g (2026-10-15): 두 엔진 모두 포지션에 진입 배정액(= 시장가 매수 요청액)을 남긴다 — 포지션별 CAPITAL_LOSS 의 분모.
+        for (OrderEntity buy : List.of(buys("DYNAMIC", iota.getId()).get(0), croBuys.get(0))) {
+            assertThat(positionRepository.findById(buy.getPositionId()).orElseThrow().getEntryAllocationKrw())
+                    .as(buy.getSessionKind() + " 진입 배정액").isNotNull().isEqualByComparingTo(buy.getQuantity());
+        }
     }
 
     @Test

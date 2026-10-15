@@ -87,6 +87,28 @@ class StrategyKillCriteriaDecisionTest {
         assertThat(j.code()).isEqualTo("OK");
     }
 
+    // ── A. 공유 풀 세션 — 자본 기준은 포지션 단위로 넘긴다 (2026-10-15, 1-g) ─────
+
+    @Test
+    @DisplayName("공유 풀 세션은 세션 초기자본·세션 고점 기준 CAPITAL_LOSS·MAX_DRAWDOWN 을 보지 않는다 — PositionLimitGuard 가 맡는다")
+    void sharedPoolSessionSkipsSessionScopedCapitalRules() {
+        // 초기 10,000 → 7,000 (−30%), 고점 15,000 대비 −53%: 세션 단위라면 둘 다 걸린다.
+        SessionStats s = new SessionStats("LIVE", 300L, "MTF", "H1", "rs-test", "LIVE#300",
+                new BigDecimal("10000"), new BigDecimal("7000"), new BigDecimal("15000"),
+                0, 0, 0, BigDecimal.ZERO, Instant.now(), 1);
+        assertThat(StrategyKillCriteriaService.decide(s, CFG, false).code()).isEqualTo("CAPITAL_LOSS");
+        assertThat(StrategyKillCriteriaService.decide(s, CFG, true).verdict()).isEqualTo(Verdict.KEEP);
+    }
+
+    @Test
+    @DisplayName("공유 풀 세션도 서킷브레이커 반복은 세션 단위 그대로 본다")
+    void sharedPoolSessionStillChecksCircuitBreakerRepeat() {
+        SessionStats s = new SessionStats("DYNAMIC", 301L, "MTF", "H1", "rs-test", "DYNAMIC#301",
+                new BigDecimal("10000"), new BigDecimal("7000"), new BigDecimal("15000"),
+                3, 0, 0, BigDecimal.ZERO, Instant.now(), 1);
+        assertThat(StrategyKillCriteriaService.decide(s, CFG, true).code()).isEqualTo("CB_REPEAT");
+    }
+
     // ── A. 자본 보호 — 세션 단위, 표본 무관 ───────────────────────────────────
 
     @Nested

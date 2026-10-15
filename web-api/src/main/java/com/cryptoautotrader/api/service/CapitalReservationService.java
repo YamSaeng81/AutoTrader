@@ -118,6 +118,7 @@ public class CapitalReservationService {
     private final PortfolioManager portfolioManager;
     private final CapitalPoolLimits limits;
     private final PoolLossGuard poolLossGuard;
+    private final PositionLimitGuard positionLimitGuard;
 
     @Autowired(required = false)
     private DynamicSessionRepository dynamicSessionRepository;
@@ -130,13 +131,15 @@ public class CapitalReservationService {
                                       PositionRepository positionRepository,
                                       PortfolioManager portfolioManager,
                                       CapitalPoolLimits limits,
-                                      PoolLossGuard poolLossGuard) {
+                                      PoolLossGuard poolLossGuard,
+                                      PositionLimitGuard positionLimitGuard) {
         this.sessionRepository = sessionRepository;
         this.orderRepository = orderRepository;
         this.positionRepository = positionRepository;
         this.portfolioManager = portfolioManager;
         this.limits = limits;
         this.poolLossGuard = poolLossGuard;
+        this.positionLimitGuard = positionLimitGuard;
     }
 
     /**
@@ -187,6 +190,13 @@ public class CapitalReservationService {
         Decision loss = poolLossGuard.checkForEntry(Instant.now(), selfPositionId);
         if (!loss.approved()) {
             return logged(sessionId, loss);
+        }
+
+        // ②-3 포지션별 한도 (2026-10-15, 1-g) — 이 세션의 포지션이 CAPITAL_LOSS·MAX_DRAWDOWN 에 도달한 기록이 있으면 거절한다.
+        //      기록은 DB 에 있으므로 재시작 뒤에도, 포지션이 닫힌 뒤에도 걸린다. LIVE·DYNAMIC 공통.
+        Decision positionLimit = positionLimitGuard.checkSessionForEntry(kind, sessionId);
+        if (!positionLimit.approved()) {
+            return logged(sessionId, positionLimit);
         }
 
         // ③ 계좌 여력 — 등록 한도 안이어도 계좌에 없는 돈은 승인하지 않는다.

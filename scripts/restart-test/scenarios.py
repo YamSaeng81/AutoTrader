@@ -1054,10 +1054,118 @@ def s14():
     check('S14 risk_config 복원', rt.psql(f"SELECT max_daily_loss_pct::text FROM risk_config WHERE id = {rid}")[0][0] == saved[1])
 
 
+# ── 선행 조건 1번 1-g — 포지션별 한도 (2026-10-15) ────────────────────────────────
+
+def plim(sid):
+    """이 세션 첫 포지션의 (배정액, 투입금, 고점, 도달 코드, 처리)."""
+    rows = rt.psql(
+        "SELECT coalesce(p.entry_allocation_krw::text,''), coalesce(p.invested_krw::text,''), coalesce(p.peak_value_krw::text,''), "
+        "coalesce(b.code,''), coalesce(b.stop_action,'') FROM position p LEFT JOIN position_limit_breach b ON b.position_id = p.id "
+        f"WHERE p.session_kind='{KIND}' AND p.session_id={sid} ORDER BY p.id LIMIT 1")
+    return rows[0] if rows else None
+
+
+def mark(price, coin='KRW-DOGE'):
+    rt.api('POST', f'/api/v1/restart-harness/mark?coin={coin}&price={price}', timeout=10)
+
+
+def num(v):
+    return float(v) if v not in (None, '') else None
+
+
+def s15():
+    rt.log('S15 포지션별 한도 — 배정액·고점이 정산·프로세스 재시작을 넘어 유지, 실시간 시세로만 판정, 도달 → 진입 차단 → 정지')
+    stage1 = stage_props('STAGE_1', '100000', '20000', '3')
+    rt.psql("UPDATE position SET status = 'CLOSED' WHERE status IN ('OPEN', 'CLOSING') AND session_kind IN ('LIVE', 'DYNAMIC')")
+    rt.psql("UPDATE live_trading_session SET status = 'STOPPED' WHERE status = 'RUNNING'")
+    rt.psql("UPDATE dynamic_session SET status = 'STOPPED' WHERE status = 'RUNNING' AND trading_mode = 'REAL'")
+    rt.psql("DELETE FROM pool_equity_snapshot")
+    rt.psql("DELETE FROM capital_stage_baseline")
+    saved = rt.psql("SELECT id, max_daily_loss_pct::text, max_portfolio_drawdown_pct::text FROM risk_config ORDER BY id DESC LIMIT 1")[0]
+    rid = saved[0]
+    try:
+        rt.psql(f"UPDATE risk_config SET max_daily_loss_pct = 3.0, max_portfolio_drawdown_pct = 15.0 WHERE id = {rid}")
+        rt.start_app(label='s15-run', props=stage1)
+
+        # ① 매수 3,000 → 체결 2,940 + 1.47. 정산이 투입금을 실제 사용액으로 덮어써도 배정액은 3,000.
+        a = seed_live_session()
+        buy_krw(a, 3000)
+        rt.wait_until(lambda: state(a)['orders'] and state(a)['orders'][0][2] == 'FILLED', 60, 1, 'S15 A 매수')
+        rt.wait_until(lambda: num(plim(a)[1]) == 2941.47, 30, 1, 'S15 A 정산')
+        p = plim(a)
+        check('S15① 배정액 3,000 (투입금은 정산이 2,941.47 로 덮어씀)', num(p[0]) == 3000 and num(p[1]) == 2941.47, str(p))
+
+        # ② 실시간 시세 400 → 고점 9.8 × 400 × 0.9995 = 3,918.04
+        mark(400)
+        rt.wait_until(lambda: num(plim(a)[2]) == 3918.04, 60, 2, 'S15 고점')
+        check('S15② 실시간 시세로 고점 기록 3,918.04', num(plim(a)[2]) == 3918.04, str(plim(a)))
+
+        # ③ 프로세스 재시작 — 시세 기록이 사라진 동안 대체 시세(평균단가 300 = 고점 대비 −25%)로 도달을 기록하지 않는다
+        rt.kill_app()
+        rt.start_app(label='s15-restart', props=stage1)
+        time.sleep(45)   # 감시 첫 실행 25초 + 주기 10초를 넘긴다
+        p = plim(a)
+        check('S15③ 재시작: 배정액·고점 유지, 실시간 시세 전에는 도달 기록 없음',
+              num(p[0]) == 3000 and num(p[2]) == 3918.04 and p[3] == '', str(p))
+
+        # ④ 실시간 시세 310 → 3,036.48: 고점 대비 −881.56 ≤ −783.61 → MAX_DRAWDOWN (손익 +95 라 CAPITAL_LOSS 아님). 자동 정지 OFF → 경보
+        mark(310)
+        rt.wait_until(lambda: plim(a)[4] != '', 60, 2, 'S15 도달 처리')
+        p = plim(a)
+        check('S15④ MAX_DRAWDOWN 도달·경보(자동 정지 OFF)·세션 RUNNING 유지',
+              p[3] == 'MAX_DRAWDOWN' and p[4] == 'ALERTED' and state(a)['session'][0][0] == 'RUNNING', str(p))
+
+        # ⑤ 신규 진입 차단 — 흔적 없이
+        before = state(a)
+        kind_, detail = buy_krw(a, 3000)
+        after = state(a)
+        check('S15⑤ 도달 세션의 매수 거절(POSITION_LIMIT)·흔적 없음·거래소 0',
+              kind_ != 'ok' and 'POSITION_LIMIT' in rt.app_log() and len(after['orders']) == len(before['orders'])
+              and len(after['positions']) == len(before['positions']) and avail(after) == avail(before)
+              and after['exchange_creates'] == before['exchange_creates'], f'{kind_} {detail}')
+        rt.kill_app()
+
+        # ⑥ 자동 정지 ON 으로 재시작 — 이미 처리한 기록은 다시 처리하지 않고 차단은 이어진다
+        rt.start_app(label='s15-autostop', props=stage1 | {'kill-criteria.auto-stop': 'true'})
+        time.sleep(40)
+        kind_, detail = buy_krw(a, 3000)
+        check('S15⑥ 재시작 뒤에도 차단 지속·기록 재처리 없음(A 는 RUNNING, 처리 ALERTED 그대로)',
+              kind_ != 'ok' and plim(a)[4] == 'ALERTED' and state(a)['session'][0][0] == 'RUNNING', f'{kind_} {plim(a)}')
+
+        # ⑦ 새 세션 B: 300 에 사서 250 → 2,448.78, 손익 −492.69 ≤ −450 (배정액 3,000 × 15%) → CAPITAL_LOSS → 자동 정지
+        mark(300)
+        b = seed_live_session()
+        buy_krw(b, 3000)
+        rt.wait_until(lambda: state(b)['orders'] and state(b)['orders'][0][2] == 'FILLED', 60, 1, 'S15 B 매수')
+        rt.ctl('POST', '/_ctl/plan', {'ask': {'fill': 'wait', 'once': True}})
+        mark(250)
+        rt.wait_until(lambda: plim(b)[4] != '', 60, 2, 'S15 B 도달 처리')
+        t_stop = time.time()
+        p = plim(b)
+        sb = state(b)
+        check('S15⑦ CAPITAL_LOSS 도달 → 자동 정지(세션 STOPPED, 청산 매도 접수)',
+              p[3] == 'CAPITAL_LOSS' and p[4] == 'AUTO_STOPPED' and sb['session'][0][0] == 'STOPPED'
+              and any(o[1] == 'SELL' and o[4] == 't' for o in sb['orders']), f'{p} {sb["session"]}')
+        check('S15⑦ 정지 성공 ≠ 정리 완료: 매도 체결 전 포지션 CLOSING',
+              sb['positions'][0][1] == 'CLOSING', str(sb['positions']))
+        rt.ctl('POST', '/_ctl/fill', {'uuid': this_sell_uuid(b), 'state': 'done', 'volume': '9.8', 'funds': '2450'})
+        rt.wait_until(lambda: state(b)['positions'][0][1] == 'CLOSED', 90, 2, 'S15 B 청산')
+        rt.log(f'  정지 처리 → 정리 완료(포지션 CLOSED) {time.time() - t_stop:.1f}초')
+        check('S15⑦ 청산 체결 반영 후 정리 완료(CLOSED, 매도 1건)',
+              state(b)['positions'][0][1] == 'CLOSED'
+              and len([e for e in state(b)['exchange_orders'] if e['side'] == 'ask']) == 1, str(state(b)['positions']))
+        rt.kill_app()
+    finally:
+        rt.psql(f"UPDATE risk_config SET max_daily_loss_pct = {saved[1]}, max_portfolio_drawdown_pct = {saved[2]} WHERE id = {rid}")
+        rt.psql("UPDATE position SET status = 'CLOSED' WHERE status IN ('OPEN', 'CLOSING') AND session_kind IN ('LIVE', 'DYNAMIC')")
+        rt.psql("UPDATE live_trading_session SET status = 'STOPPED' WHERE status = 'RUNNING'")
+        rt.psql("UPDATE dynamic_session SET status = 'STOPPED' WHERE status = 'RUNNING' AND trading_mode = 'REAL'")
+
+
 SCEN = {'S1': s1, 'S2': s2, 'S3': lambda: s3(False), 'S3b': lambda: s3(True),
         'S4': lambda: s45('AFTER_FILL_OBSERVED'), 'S5': lambda: s45('IN_FILL_ACCOUNTING'), 'S6': s6, 'S7': s7, 'S8': s8, 'S9': s9,
         'S10': s10, 'S11': s11, 'S12': s12, 'S13': s13,
-        'S10b': s10b, 'S11b': s11b, 'S11c': s11c, 'S13b': s13b, 'S14': s14}
+        'S10b': s10b, 'S11b': s11b, 'S11c': s11c, 'S13b': s13b, 'S14': s14, 'S15': s15}
 
 if __name__ == '__main__':
     args = sys.argv[1:]
@@ -1077,7 +1185,7 @@ if __name__ == '__main__':
             KIND = kind
             globals()['KIND'] = kind
             for n in names:
-                if kind == 'DYNAMIC' and n not in ('S3', 'S3b', 'S6', 'S7', 'S8', 'S9', 'S12', 'S14'):
+                if kind == 'DYNAMIC' and n not in ('S3', 'S3b', 'S6', 'S7', 'S8', 'S9', 'S12', 'S14', 'S15'):
                     continue   # DYNAMIC 은 접수 후 종료·부분 청산 중 종료·종료 중 체결만 (의도·claim·회계 지점은 공통 엔진)
                 try:
                     rt.ctl('POST', '/_ctl/plan', {'bid': None, 'ask': None})   # 앞 시나리오의 1회용 계획이 새지 않게

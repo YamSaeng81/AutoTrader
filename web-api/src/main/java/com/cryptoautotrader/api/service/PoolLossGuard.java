@@ -311,23 +311,29 @@ public class PoolLossGuard {
             BigDecimal size = toDecimal(r[1]);
             BigDecimal avg = toDecimal(r[2]);
             BigDecimal unrealized = r[3] == null ? null : toDecimal(r[3]);
-            MarkPriceBook.Mark m = markPriceBook.get(coin);
-            BigDecimal price;
-            String src;
-            if (m != null) {
-                price = m.price();
-                src = "시세@" + m.at();
-            } else {
-                // 시세 기록이 없으면 평가 루프가 마지막으로 적은 평가손익에서 되돌린다(없으면 평균단가).
-                price = unrealized == null || size.signum() == 0 ? avg
-                        : avg.add(unrealized.divide(size, 12, RoundingMode.HALF_UP));
-                src = unrealized == null ? "평균단가" : "평가루프";
-            }
-            holdings = holdings.add(size.multiply(price).multiply(BigDecimal.ONE.subtract(FEE_RATE)));
+            PriceMark pm = markFor(coin, size, avg, unrealized);
+            holdings = holdings.add(size.multiply(pm.price()).multiply(BigDecimal.ONE.subtract(FEE_RATE)));
             if (marks.length() > 0) marks.append(", ");
-            marks.append(coin).append('=').append(price.stripTrailingZeros().toPlainString()).append('(').append(src).append(')');
+            marks.append(coin).append('=').append(pm.price().stripTrailingZeros().toPlainString()).append('(').append(pm.source()).append(')');
         }
         return new Valuation(cashFlow, holdings.setScale(8, RoundingMode.HALF_UP), open.size(), marks.toString());
+    }
+
+    /** 보유 평가에 쓴 시세와 그 출처. */
+    public record PriceMark(BigDecimal price, String source, boolean realtime) {}
+
+    /**
+     * 보유 평가 시세 — 마지막 실시간 시세, 없으면 평가 루프가 마지막으로 적은 평가손익에서 되돌린 값, 그것도 없으면 평균단가.
+     * 공유 풀 손실 한도와 포지션별 한도({@link PositionLimitGuard})가 <b>같은 시세</b>를 쓴다.
+     */
+    public PriceMark markFor(String coin, BigDecimal size, BigDecimal avg, BigDecimal unrealized) {
+        MarkPriceBook.Mark m = markPriceBook.get(coin);
+        if (m != null) {
+            return new PriceMark(m.price(), "시세@" + m.at(), true);
+        }
+        BigDecimal price = unrealized == null || size.signum() == 0 ? avg
+                : avg.add(unrealized.divide(size, 12, RoundingMode.HALF_UP));
+        return new PriceMark(price, unrealized == null ? "평균단가" : "평가루프", false);
     }
 
     /**

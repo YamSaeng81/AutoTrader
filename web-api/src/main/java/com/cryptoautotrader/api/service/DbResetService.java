@@ -131,6 +131,8 @@ public class DbResetService {
                 jdbc.update("DELETE FROM trade_log WHERE order_id IN (SELECT id FROM \"order\" WHERE session_id IS NOT NULL AND session_kind = 'LIVE')"));
         result.put("order",
                 jdbc.update("DELETE FROM \"order\" WHERE session_id IS NOT NULL AND session_kind = 'LIVE'"));
+        result.put("position_limit_breach",
+                jdbc.update("DELETE FROM position_limit_breach WHERE session_kind = 'LIVE'"));
         result.put("position",
                 jdbc.update("DELETE FROM position WHERE session_id IS NOT NULL AND session_kind = 'LIVE'"));
         result.put("live_trading_session",

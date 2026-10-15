@@ -1675,6 +1675,8 @@ public class DynamicTradingService {
         if (session.isPaper()) {
             return executePaperBuy(session, posTemplate, investAmount, coinPair, signal, kind);
         }
+        // 진입 배정액 — 포지션별 CAPITAL_LOSS 의 분모, 바뀌지 않는다 (V90). 공유 풀(실자금)만 — 독립 자본 페이퍼는 대상이 아니다.
+        posTemplate.setEntryAllocationKrw(investAmount);
 
         // 🔴 **실자금 공유 풀 — LIVE 와 같은 예약 경계를 지난다** (2026-10-12).
         //

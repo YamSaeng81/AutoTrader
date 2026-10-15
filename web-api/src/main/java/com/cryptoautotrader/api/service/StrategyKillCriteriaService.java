@@ -237,7 +237,10 @@ public class StrategyKillCriteriaService {
         // ── A: 세션별 자본 보호 판정 ──────────────────────────────
         List<Judgment> judgments = new ArrayList<>();
         for (SessionStats st : all) {
-            judgments.add(decide(st, config));
+            // 🔴 자본 모델로 나눈다 (2026-10-15, 1-g) — 공유 풀(실자금 LIVE·DYNAMIC)은 CAPITAL_LOSS·MAX_DRAWDOWN 을 포지션 단위로
+            //    PositionLimitGuard 가 본다(분모 = 진입 배정액·포지션 고점). 여기서 세션 초기자본 기준으로 또 보면 같은 이름의
+            //    기준이 두 개가 된다. 독립 자본(PAPER·DYN_PAPER)은 종전 그대로 세션 단위다.
+            judgments.add(decide(st, config, OrderSettlementService.isSharedPoolKind(st.sessionKind())));
         }
 
         // ── B: 전략×타임프레임 그룹별 엣지 판정 ────────────────────
@@ -370,16 +373,25 @@ public class StrategyKillCriteriaService {
      * 자본 한도 초과를 가리게 된다(문서 §2).</p>
      */
     public static Judgment decide(SessionStats st, KillCriteriaConfig cfg) {
+        return decide(st, cfg, false);
+    }
+
+    /**
+     * @param positionScopedCapital 공유 풀 세션이면 {@code true} — {@code CAPITAL_LOSS}·{@code MAX_DRAWDOWN} 을 여기서 보지 않는다.
+     *                              포지션 단위로 {@link PositionLimitGuard} 가 본다({@code LIVE_ENTRY_PREREG.md} §6). 서킷브레이커
+     *                              반복·판정 불가는 세션 단위 그대로다.
+     */
+    public static Judgment decide(SessionStats st, KillCriteriaConfig cfg, boolean positionScopedCapital) {
         // ── A. 자본 보호 (표본 무관) ──────────────────────────────
         BigDecimal returnPct = pct(st.initialCapital(), st.totalAsset());
-        if (returnPct != null && returnPct.compareTo(cfg.getCapitalLossPct()) <= 0) {
+        if (!positionScopedCapital && returnPct != null && returnPct.compareTo(cfg.getCapitalLossPct()) <= 0) {
             return kill(st, "CAPITAL_LOSS", String.format(
                     "누적 손실 %s%% (한도 %s%%) — 초기자본 %s → 총자산 %s",
                     returnPct.toPlainString(), cfg.getCapitalLossPct().toPlainString(),
                     plain(st.initialCapital()), plain(st.totalAsset())));
         }
 
-        BigDecimal ddPct = pct(st.mddPeakCapital(), st.totalAsset());
+        BigDecimal ddPct = positionScopedCapital ? null : pct(st.mddPeakCapital(), st.totalAsset());
         if (ddPct != null && ddPct.compareTo(cfg.getMaxDrawdownPct()) <= 0) {
             return kill(st, "MAX_DRAWDOWN", String.format(
                     "고점 대비 낙폭 %s%% (한도 %s%%) — 최고 %s → 현재 %s",

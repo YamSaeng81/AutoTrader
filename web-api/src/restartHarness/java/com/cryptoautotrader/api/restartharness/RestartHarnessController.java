@@ -3,6 +3,7 @@ package com.cryptoautotrader.api.restartharness;
 import com.cryptoautotrader.api.dto.OrderRequest;
 import com.cryptoautotrader.api.entity.PositionEntity;
 import com.cryptoautotrader.api.repository.PositionRepository;
+import com.cryptoautotrader.api.service.MarkPriceBook;
 import com.cryptoautotrader.api.service.OrderExecutionEngine;
 import org.springframework.context.annotation.Profile;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -31,12 +32,21 @@ public class RestartHarnessController {
     private final OrderExecutionEngine engine;
     private final PositionRepository positionRepository;
     private final TransactionTemplate tx;
+    private final MarkPriceBook markPriceBook;
 
     public RestartHarnessController(OrderExecutionEngine engine, PositionRepository positionRepository,
-                                    PlatformTransactionManager txManager) {
+                                    PlatformTransactionManager txManager, MarkPriceBook markPriceBook) {
         this.engine = engine;
         this.positionRepository = positionRepository;
         this.tx = new TransactionTemplate(txManager);
+        this.markPriceBook = markPriceBook;
+    }
+
+    /** 실시간 시세 한 건 — 대역에는 시세 구독이 없으므로 시험이 넣는다(2026-10-15, 포지션별 한도 S15). */
+    @PostMapping("/mark")
+    public Map<String, Object> mark(@RequestParam String coin, @RequestParam BigDecimal price) {
+        markPriceBook.record(coin, price, Instant.now());
+        return Map.of("coin", coin, "price", price);
     }
 
     @PostMapping("/buy")
@@ -48,6 +58,7 @@ public class RestartHarnessController {
                     .coinPair(coin).side("BUY")
                     .entryPrice(signalPrice).avgPrice(signalPrice)
                     .size(BigDecimal.ZERO).investedKrw(krw)
+                    .entryAllocationKrw(krw)   // 엔진과 같이 진입 배정액을 남긴다 (V90)
                     .status("OPEN").sessionKind(kind).sessionId(sessionId)
                     .openedAt(Instant.now()).build());
             OrderRequest req = new OrderRequest();

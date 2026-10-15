@@ -1514,6 +1514,7 @@ public class LiveTradingService {
                 .avgPrice(price)
                 .size(BigDecimal.ZERO)
                 .investedKrw(investAmount)   // 차감된 KRW — 주문 엔티티 없이도 복원 가능하도록 저장
+                .entryAllocationKrw(investAmount)   // 진입 배정액 — 포지션별 CAPITAL_LOSS 의 분모, 바뀌지 않는다 (V90)
                 .status("OPEN")
                 .sessionId(session.getId())
                 .stopLossPrice(stopLossPrice)

@@ -77,6 +77,22 @@ public class PositionEntity {
     @Column(name = "invested_krw", precision = 20, scale = 8)
     private BigDecimal investedKrw;
 
+    /**
+     * 진입 배정액 (V90, 2026-10-15) — 포지션별 {@code CAPITAL_LOSS} 의 분모. 실자금 매수 예약 때 한 번 쓴다.
+     *
+     * <p>🔴 {@code updatable = false} — 엔티티 저장으로는 바뀌지 않는다. {@link #investedKrw} 는 체결 정산이 실제 사용액으로
+     * 덮어쓰므로(추가 체결·수수료 정정) 분모가 될 수 없다.</p>
+     */
+    @Column(name = "entry_allocation_krw", precision = 20, scale = 8, updatable = false)
+    private BigDecimal entryAllocationKrw;
+
+    /**
+     * 포지션 고점 평가액 (V90) — 포지션별 {@code MAX_DRAWDOWN} 의 분모. 🔴 엔티티는 읽기만 한다 — {@code PositionLimitGuard} 가
+     * 조건부 UPDATE(더 클 때만)로 올린다. 엔진이 먼저 읽어 둔 엔티티를 저장해도 고점이 되돌아가지 않는다.
+     */
+    @Column(name = "peak_value_krw", precision = 24, scale = 8, insertable = false, updatable = false)
+    private BigDecimal peakValueKrw;
+
     /** 진입 시 계산된 손절가 (null이면 세션 stopLossPct 기반 % 비교로 대체) */
     @Column(name = "stop_loss_price", precision = 20, scale = 8)
     private BigDecimal stopLossPrice;

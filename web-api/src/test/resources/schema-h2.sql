@@ -721,3 +721,23 @@ CREATE TABLE IF NOT EXISTS pool_equity_snapshot (
     holdings_krw    DECIMAL(24,8) NOT NULL,
     net_change_krw  DECIMAL(24,8) NOT NULL
 );
+
+-- V90 — 포지션별 한도 (진입 배정액·포지션 고점·도달 기록)
+ALTER TABLE position ADD COLUMN IF NOT EXISTS entry_allocation_krw DECIMAL(20,8);
+ALTER TABLE position ADD COLUMN IF NOT EXISTS peak_value_krw       DECIMAL(24,8);
+ALTER TABLE position ADD COLUMN IF NOT EXISTS peak_value_at        TIMESTAMP WITH TIME ZONE;
+CREATE TABLE IF NOT EXISTS position_limit_breach (
+    position_id     BIGINT        PRIMARY KEY,
+    session_kind    VARCHAR(10)   NOT NULL,
+    session_id      BIGINT        NOT NULL,
+    code            VARCHAR(20)   NOT NULL,
+    value_krw       DECIMAL(24,8) NOT NULL,
+    cost_krw        DECIMAL(24,8) NOT NULL,
+    allocation_krw  DECIMAL(24,8),
+    peak_krw        DECIMAL(24,8),
+    detail          TEXT          NOT NULL,
+    breached_at     TIMESTAMP WITH TIME ZONE NOT NULL,
+    stop_action     VARCHAR(20),
+    stop_at         TIMESTAMP WITH TIME ZONE,
+    stop_note       TEXT
+);
