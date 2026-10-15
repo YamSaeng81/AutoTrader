@@ -1352,8 +1352,9 @@ public class DynamicTradingService {
         // SL/TP 판정은 아래에서 currentPrice 로 직접 하므로 매매 안전성과는 무관한 표시용 값이다.
         BigDecimal unrealized = currentPrice.subtract(pos.getAvgPrice()).multiply(pos.getSize());
         if (pos.getUnrealizedPnl() == null || pos.getUnrealizedPnl().compareTo(unrealized) != 0) {
-            pos.setUnrealizedPnl(unrealized);
-            positionRepository.save(pos);
+            // 🔴 엔티티 저장이 아니라 한 열만 — 회차 시작에 읽은 낡은 엔티티로 행 전체를 덮으면 그 사이 다른 경로가 커밋한 CLOSED 가
+            //    OPEN 으로 되돌아간다(재시작 시험 S18b 이중 매도, 2026-10-16). LIVE 와 같다.
+            positionRepository.updateUnrealizedPnlIfOpen(pos.getId(), unrealized);
         }
 
         // 세션 총자산 시가 평가 — 2026-08-06 신설 (LiveTradingService.updateSessionUnrealizedPnl 이식).

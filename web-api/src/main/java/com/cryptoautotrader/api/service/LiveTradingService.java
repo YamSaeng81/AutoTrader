@@ -1683,8 +1683,9 @@ public class LiveTradingService {
                 "LIVE", session.getId(), coinPair, "OPEN").ifPresent(pos -> {
             BigDecimal unrealized = currentPrice.subtract(pos.getAvgPrice())
                     .multiply(pos.getSize());
-            pos.setUnrealizedPnl(unrealized);
-            positionRepository.save(pos);
+            // 🔴 엔티티 저장이 아니라 한 열만 — 낡은 엔티티로 행 전체를 덮으면 그 사이 다른 경로가 커밋한 CLOSED·CLOSING 이 되돌아간다
+            //    (재시작 시험 S18b 이중 매도, 2026-10-16). DYNAMIC 과 같다.
+            positionRepository.updateUnrealizedPnlIfOpen(pos.getId(), unrealized);
 
             // 세션 총자산 업데이트 (size=0이면 매수 미체결 상태 — totalAssetKrw 갱신 보류)
             if (pos.getSize().compareTo(BigDecimal.ZERO) > 0) {
