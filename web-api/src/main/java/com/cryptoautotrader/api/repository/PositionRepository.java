@@ -207,7 +207,11 @@ public interface PositionRepository extends JpaRepository<PositionEntity, Long> 
      * <p>🔴 평가 루프는 회차 시작에 읽은 포지션 엔티티를 {@code save} 했다 — 버전 열이 없어 행 전체가 그 시점 값으로 덮였다. 그 사이 다른
      * 경로(유령 정산)가 같은 포지션을 CLOSED 로 커밋하면 평가 루프가 OPEN·{@code closed_at = NULL} 로 되돌렸고, 다음 정지가 그 포지션을 다시
      * 팔았다(이중 매도, 잔액 12,936.17). 관리 중인 엔티티는 바꾸지 않는다 — 바꾸면 커밋 때 행 전체가 다시 쓰인다.</p>
+     *
+     * <p>{@code @Transactional}: 바깥 트랜잭션이 있으면 그 안에서, 없으면 스스로 연다 — 종전 {@code save} 와 같은 호출 조건(LIVE 평가는
+     * 트랜잭션 밖에서도 불린다. 첫 수정에서 이것이 빠져 엔진 경로 시험 3건이 실패했다).</p>
      */
+    @org.springframework.transaction.annotation.Transactional
     @Modifying(flushAutomatically = true)
     @Query("UPDATE PositionEntity p SET p.unrealizedPnl = :v WHERE p.id = :id AND p.status = 'OPEN'")
     int updateUnrealizedPnlIfOpen(@Param("id") Long id, @Param("v") java.math.BigDecimal v);
