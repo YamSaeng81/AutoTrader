@@ -29,10 +29,10 @@ public class MarkPriceBook {
     /** REST 시세 조회의 마지막 체결가 — {@code at} 은 그 체결 시각. */
     public static final String REST_TRADE = RealtimePriceEvent.REST_TRADE;
     /**
-     * REST 호가 조회의 <b>최우선 매수호가</b> — {@code at} 은 호가 시각. 지금 시장가로 팔면 받을 수 있는 첫 호가라 보유 평가가 손실을
-     * 과소평가하지 않는 쪽이다(호가 깊이를 넘는 청산 슬리피지는 넣지 않는다 — 종전 평가와 같은 한계).
+     * REST 호가 조회로 <b>보유량 전체를 매수호가에 차례로 채운 평균 가격</b> — {@code at} 은 호가 시각. 보이는 잔량이 보유량보다 적으면
+     * 적지 않는다. 🔴 조회 순간의 호가로 계산한 평가액일 뿐 그 가격에 팔 수 있다는 보장은 아니다({@link HeldMarkRefresher}).
      */
-    public static final String REST_ORDERBOOK_BID = "REST_ORDERBOOK_BID";
+    public static final String REST_ORDERBOOK_DEPTH = "REST_ORDERBOOK_DEPTH";
     /** 출처를 모르는 기록(시험·재시작 시험이 직접 넣은 값). */
     public static final String RECORDED = "RECORDED";
 

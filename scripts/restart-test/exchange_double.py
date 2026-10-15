@@ -21,7 +21,7 @@
   GET  /_ctl/orders  전체 주문
   POST /_ctl/reset
   POST /_ctl/market {"ticker": {"KRW-DOGE": {"price": "300", "trade_age_sec": 600}},
-                     "orderbook": {"KRW-DOGE": {"bid": "299"}}, "candles": {"KRW-BTC": {"close": "100000000"}},
+                     "orderbook": {"KRW-DOGE": {"bid": "299", "size": "100"}}, "candles": {"KRW-BTC": {"close": "100000000"}},
                      "fail": false}
         공개 시세 응답(2026-10-15 리뷰 8회차 후속) — 앱이 -Dupbit.market-data.base-url 로 이 대역을 볼 때만 쓰인다.
         설정이 없으면(기본) /v1/ticker·/v1/orderbook·/v1/candles 는 503 — 외부 차단과 같은 실패. fail=true 도 503.
@@ -183,8 +183,9 @@ class H(BaseHTTPRequestHandler):
                 b = (m.get('orderbook') or {}).get(c)
                 if b:
                     bid = Decimal(b['bid'])
-                    out.append({'market': c, 'timestamp': now_ms, 'total_ask_size': 100, 'total_bid_size': 100,
-                                'orderbook_units': [{'ask_price': float(bid + 1), 'bid_price': float(bid), 'ask_size': 100, 'bid_size': 100}]})
+                    size = float(b.get('size', '100'))     # 매수 잔량 — 보유량보다 얕은 호가를 만들 수 있다(리뷰 8회차 후속)
+                    out.append({'market': c, 'timestamp': now_ms, 'total_ask_size': 100, 'total_bid_size': size,
+                                'orderbook_units': [{'ask_price': float(bid + 1), 'bid_price': float(bid), 'ask_size': 100, 'bid_size': size}]})
             return self.reply(200, out)
         # /v1/candles/minutes/60 — H1 만. 업비트처럼 진행 중 봉 포함, to 이전 봉을 최신순으로 count 개.
         coin = q.get('market', [''])[0]

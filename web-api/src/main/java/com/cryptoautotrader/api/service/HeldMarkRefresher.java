@@ -27,10 +27,17 @@ import java.util.concurrent.atomic.AtomicReference;
  * <ol>
  *   <li>REST 시세의 마지막 체결가 — 관측 시각은 <b>체결 시각</b>({@code trade_timestamp}). 🔴 10분 전 체결가를 지금 다시 받았다고
  *       받은 시각으로 신선하다고 보지 않는다 — 장부의 최신성은 체결 시각으로만 판단한다({@link MarkPriceBook}).</li>
- *   <li>그래도 낡으면 REST 호가의 <b>최우선 매수호가</b> — 관측 시각은 호가 시각. 체결이 없어도 지금 시장가로 팔면 받을 첫 가격이라
- *       보유 평가가 손실을 과소평가하지 않는 쪽이다(호가 깊이를 넘는 슬리피지는 넣지 않는다 — 종전 평가와 같은 한계). 호가가 비었거나
- *       호가 시각이 낡았으면 인정하지 않는다.</li>
+ *   <li>그래도 낡으면 REST 호가로 <b>보유량 전체를 매수호가에 위에서부터 차례로 채운 평균 가격</b>(2026-10-16 리뷰 지적 — 최우선
+ *       매수호가 하나만 쓰면 그 잔량보다 많이 보유할 때 더 낮은 가격으로 팔릴 부분을 보지 못한다). 보유량은 같은 코인의 실자금 열린
+ *       포지션 합계(공유 계좌). 관측 시각은 호가 시각. 🔴 <b>보이는 호가 잔량 합이 보유량보다 적으면 인정하지 않는다</b>(판정 불가 —
+ *       평가하지 않고 차단 유지). 호가가 비었거나 호가 시각이 낡았어도 인정하지 않는다.</li>
  * </ol>
+ *
+ * <h3>🔴 이 가격이 보장하지 않는 것</h3>
+ * <p>호가 평균 가격은 <b>조회 순간 보이는 호가</b>로 계산한 평가액이다. 실제로 그 가격에 팔 수 있다는 보장이 아니다 — 주문이 닿기 전에
+ * 호가가 바뀌거나 빠질 수 있고, 다른 매도와 겹칠 수 있고, 업비트가 돌려주는 호가 단계 밖의 깊이는 보지 않는다. 체결가 경로도 마찬가지로
+ * 마지막 체결의 가격일 뿐 지금 팔 수 있는 가격이 아니다. 둘 다 "손실을 과소평가하지 않는다" 고 말할 수 있는 값이 아니다 — 시각이 최신인
+ * 관측 가격으로만 인정한다.</p>
  * <p>둘 다 실패하면 그 보유는 계속 "관측 가격 없음" 이고 풀 진입 차단이 유지된다(차단 기준은 그대로). 실패가 시작되면 ERROR·경보 한 번,
  * 회복되면 기록한다. 이 보강은 장부만 채운다 — 손절·익절 이벤트를 내지 않는다(그 경로는 종전 그대로).</p>
  *
@@ -62,7 +69,7 @@ public class HeldMarkRefresher {
     }
 
     /** 한 회차의 결과 — 시험·로그용. */
-    public record Result(List<String> targets, List<String> byTrade, List<String> byBid, List<String> unobserved, String error) {}
+    public record Result(List<String> targets, List<String> byTrade, List<String> byBook, List<String> unobserved, String error) {}
 
     @Scheduled(fixedDelay = 15_000, initialDelay = 5_000)
     public void refresh() {
@@ -75,7 +82,8 @@ public class HeldMarkRefresher {
 
     public Result refreshNow(Instant now) {
         List<String> targets = new ArrayList<>();
-        for (String c : heldCoins()) {
+        Map<String, BigDecimal> held = heldQuantities();
+        for (String c : held.keySet()) {
             MarkPriceBook.Mark m = markPriceBook.get(c);
             if (m == null || Duration.between(m.at(), now).compareTo(REFRESH_AFTER) > 0) targets.add(c);
         }
@@ -87,7 +95,7 @@ public class HeldMarkRefresher {
             return new Result(targets, List.of(), List.of(), targets, "시세 REST 클라이언트 없음");
         }
         List<String> byTrade = new ArrayList<>();
-        List<String> byBid = new ArrayList<>();
+        List<String> byBook = new ArrayList<>();
         StringBuilder errors = new StringBuilder();
 
         // ① 시세 — 체결 시각으로 적는다. 낡은 체결가는 적혀도 신선하지 않다.
@@ -106,18 +114,21 @@ public class HeldMarkRefresher {
             errors.append("시세 조회 실패: ").append(e.getMessage()).append("; ");
         }
 
-        // ② 체결이 조용한 코인 — 최우선 매수호가
+        // ② 체결이 조용한 코인 — 보유량 전체를 매수호가에 차례로 채운 평균 가격
         for (String c : targets) {
             if (byTrade.contains(c)) continue;
             try {
-                BidQuote q = bestBid(c);
+                BookQuote q = bookPrice(c, held.get(c));
                 if (q == null) {
                     errors.append(c).append(" 호가 없음; ");
+                } else if (q.price() == null) {
+                    errors.append(c).append(" 호가 깊이 부족(보이는 매수 잔량 ").append(q.depth().toPlainString())
+                            .append(" < 보유 ").append(held.get(c).toPlainString()).append("); ");
                 } else if (Duration.between(q.at(), now).getSeconds() > markPriceBook.maxAgeSeconds()) {
                     errors.append(c).append(" 호가 시각 낡음(").append(q.at()).append("); ");
                 } else {
-                    markPriceBook.observe(c, q.price(), q.at(), now, MarkPriceBook.REST_ORDERBOOK_BID);
-                    byBid.add(c);
+                    markPriceBook.observe(c, q.price(), q.at(), now, MarkPriceBook.REST_ORDERBOOK_DEPTH);
+                    byBook.add(c);
                 }
             } catch (Exception e) {
                 errors.append(c).append(" 호가 조회 실패: ").append(e.getMessage()).append("; ");
@@ -131,33 +142,61 @@ public class HeldMarkRefresher {
         String error = errors.length() == 0 ? null : errors.toString();
         if (unobserved.isEmpty()) {
             recovered();
-            if (!byBid.isEmpty()) log.info("[시세 보강] 체결이 조용한 보유 {} — 최우선 매수호가로 관측", byBid);
+            if (!byBook.isEmpty()) log.info("[시세 보강] 체결이 조용한 보유 {} — 보유량을 매수호가에 채운 평균 가격으로 관측", byBook);
         } else {
             failed(unobserved, error);
         }
-        return new Result(targets, byTrade, byBid, unobserved, error);
+        return new Result(targets, byTrade, byBook, unobserved, error);
     }
 
-    record BidQuote(BigDecimal price, Instant at) {}
+    /**
+     * @param price 보유량 전체를 채운 평균 가격 — 보이는 매수 잔량이 모자라면 {@code null}
+     * @param depth 보이는 매수 잔량 합
+     */
+    record BookQuote(BigDecimal price, BigDecimal depth, Instant at) {}
 
-    /** 최우선 매수호가와 호가 시각 — 호가가 비었으면 {@code null}. */
+    /** 호가로 본 보유량 평균 매도 가격 — 호가가 없으면 {@code null}. */
     @SuppressWarnings("unchecked")
-    private BidQuote bestBid(String coin) throws Exception {
+    private BookQuote bookPrice(String coin, BigDecimal qty) throws Exception {
         List<Map<String, Object>> books = upbitRestClient.getOrderbook(coin);
         if (books == null || books.isEmpty()) return null;
         Map<String, Object> book = books.get(0);
         Object units = book.get("orderbook_units");
-        if (!(units instanceof List<?> list) || list.isEmpty()) return null;
-        Object bid = ((Map<String, Object>) list.get(0)).get("bid_price");
         Object ts = book.get("timestamp");
-        if (bid == null || !(ts instanceof Number n)) return null;
-        BigDecimal price = new BigDecimal(bid.toString());
-        return price.signum() > 0 ? new BidQuote(price, Instant.ofEpochMilli(n.longValue())) : null;
+        if (!(units instanceof List<?> list) || list.isEmpty() || !(ts instanceof Number n)) return null;
+        return fill(qty, (List<Map<String, Object>>) list, Instant.ofEpochMilli(n.longValue()));
     }
 
-    private List<String> heldCoins() {
-        return jdbc.queryForList("SELECT DISTINCT coin_pair FROM position WHERE session_kind IN ('LIVE', 'DYNAMIC') "
-                + "AND status IN ('OPEN', 'CLOSING') AND size > 0 ORDER BY coin_pair", String.class);
+    /** 매수호가 단계를 위에서부터 채운다(업비트 순서 = 매수호가 높은 순). 평균은 내림으로 자른다. */
+    static BookQuote fill(BigDecimal qty, List<Map<String, Object>> units, Instant at) {
+        BigDecimal remaining = qty;
+        BigDecimal proceeds = BigDecimal.ZERO;
+        BigDecimal depth = BigDecimal.ZERO;
+        for (Map<String, Object> u : units) {
+            Object p = u.get("bid_price");
+            Object s = u.get("bid_size");
+            if (p == null || s == null) continue;
+            BigDecimal price = new BigDecimal(p.toString());
+            BigDecimal size = new BigDecimal(s.toString());
+            if (price.signum() <= 0 || size.signum() <= 0) continue;
+            depth = depth.add(size);
+            if (remaining.signum() > 0) {
+                BigDecimal take = remaining.min(size);
+                proceeds = proceeds.add(take.multiply(price));
+                remaining = remaining.subtract(take);
+            }
+        }
+        if (qty == null || qty.signum() <= 0 || remaining.signum() > 0) return new BookQuote(null, depth, at);
+        return new BookQuote(proceeds.divide(qty, 8, java.math.RoundingMode.DOWN), depth, at);
+    }
+
+    /** 코인별 실자금 열린 보유량 합계(공유 계좌). */
+    private Map<String, BigDecimal> heldQuantities() {
+        Map<String, BigDecimal> out = new java.util.TreeMap<>();
+        jdbc.query("SELECT coin_pair, SUM(size) FROM position WHERE session_kind IN ('LIVE', 'DYNAMIC') "
+                + "AND status IN ('OPEN', 'CLOSING') AND size > 0 GROUP BY coin_pair",
+                (org.springframework.jdbc.core.RowCallbackHandler) rs -> out.put(rs.getString(1), rs.getBigDecimal(2)));
+        return out;
     }
 
     private void failed(List<String> unobserved, String error) {
@@ -173,13 +212,25 @@ public class HeldMarkRefresher {
                     log.warn("시세 보강 경보 전송 실패: {}", e.getMessage());
                 }
             }
+        } else if (!java.util.Objects.equals(lastReason.get(), reasonKey(unobserved, error))) {
+            // 사유가 바뀌면 남긴다(예: 조회 실패 → 호가 깊이 부족) — 경보는 실패가 시작될 때 한 번
+            log.warn("[시세 보강] 관측 가격 없음 지속 — 사유 변경 {}: {}", unobserved, error);
         } else {
             log.debug("[시세 보강] 관측 가격 없음 지속 {}: {}", unobserved, error);
         }
+        lastReason.set(reasonKey(unobserved, error));
+    }
+
+    /** 직전 실패 사유 — 사유가 바뀔 때만 다시 남기려고. 숫자(잔량 등)는 빼고 비교한다. */
+    private final AtomicReference<String> lastReason = new AtomicReference<>();
+
+    private static String reasonKey(List<String> unobserved, String error) {
+        return unobserved + "|" + (error == null ? "" : error.replaceAll("[0-9.]+", "#"));
     }
 
     private void recovered() {
         String prev = failing.getAndSet(null);
+        lastReason.set(null);
         if (prev != null) log.warn("[시세 보강] 회복 — 보유 코인 관측 가격 공급 재개 (종전: {})", prev);
     }
 

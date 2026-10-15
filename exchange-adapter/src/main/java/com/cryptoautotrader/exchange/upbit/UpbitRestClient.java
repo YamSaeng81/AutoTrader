@@ -29,10 +29,12 @@ public class UpbitRestClient {
 
     /**
      * 공개 시세 API 주소 — 기본 업비트. 시스템 속성 {@code upbit.market-data.base-url} 로만 바꾼다(실제 프로세스 재시작 시험이 거래소
-     * 대역의 시세·호가·캔들 응답을 쓰기 위함, 2026-10-15). 운영은 설정하지 않는다.
+     * 대역의 시세·호가·캔들 응답을 쓰기 위함, 2026-10-15). 🔴 주문 주소와 같이 시험 전용 가드를 거친다 — 시험 빌드·프로필이 아니면 이
+     * 속성이 설정된 것만으로 예외(기동 첫 단계 {@code TestHooks.verifyAtStartup} 과 이 사용 지점 양쪽, 2026-10-16 리뷰 지적).
      */
     private static final String DEFAULT_BASE_URL = "https://api.upbit.com/v1";
-    private final String BASE_URL = System.getProperty("upbit.market-data.base-url", DEFAULT_BASE_URL);
+    private final String BASE_URL = java.util.Objects.requireNonNullElse(
+            com.cryptoautotrader.exchange.TestHooks.require("upbit.market-data.base-url"), DEFAULT_BASE_URL);
     private static final DateTimeFormatter UPBIT_FORMAT = DateTimeFormatter
             .ofPattern("yyyy-MM-dd'T'HH:mm:ss")
             .withZone(ZoneOffset.UTC);

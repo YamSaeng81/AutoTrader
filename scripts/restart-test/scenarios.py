@@ -1697,8 +1697,15 @@ def s20():
         check('S20③ 체결이 조용한 보유(10분 전 체결가를 지금 다시 받음): 신선하다고 보지 않음 → 매수 거절(POOL_VALUATION_UNKNOWN)·흔적 없음',
               rejected and clean and 'POOL_VALUATION_UNKNOWN' in rt.app_log() and '[시세 보강]' in rt.app_log(), detail)
 
-        # ④ 호가가 오면 — 최우선 매수호가 299 로 관측 → 실제 진입
-        market({'ticker': {'KRW-DOGE': {'price': '300', 'trade_age_sec': 600}}, 'orderbook': {'KRW-DOGE': {'bid': '299'}}})
+        # ④-a 호가가 오지만 매수 잔량 5 < 보유 9.8 — 최우선 매수호가만으로 평가하지 않는다(깊이 부족 → 판정 불가, 차단 유지)
+        market({'ticker': {'KRW-DOGE': {'price': '300', 'trade_age_sec': 600}}, 'orderbook': {'KRW-DOGE': {'bid': '299', 'size': '5'}}})
+        time.sleep(20)
+        rejected, clean, detail = held_buy_rejected(x)
+        check('S20④-a 호가 깊이(매수 잔량 5)가 보유량 9.8 보다 얕음: 관측으로 인정하지 않음 → 매수 거절·흔적 없음·깊이 부족 기록',
+              rejected and clean and '호가 깊이 부족' in rt.app_log(), detail)
+
+        # ④ 깊이가 충분하면 — 보유량을 매수호가에 채운 평균 가격(299)으로 관측 → 실제 진입
+        market({'ticker': {'KRW-DOGE': {'price': '300', 'trade_age_sec': 600}}, 'orderbook': {'KRW-DOGE': {'bid': '299', 'size': '100'}}})
         time.sleep(20)
         kind_, detail = buy_krw(x, 3000, feed_marks=False)
         try:
@@ -1706,9 +1713,9 @@ def s20():
         except Exception as e:
             rt.log(f'  대기 초과: {e!r}')
         st = state(x)
-        check('S20④ 최우선 매수호가로 관측(REST_ORDERBOOK_BID) → 대역 임시 시세 없이도 매수 승인·체결',
+        check('S20④ 보유량을 매수호가에 채운 평균 가격으로 관측(REST_ORDERBOOK_DEPTH) → 대역 임시 시세 없이도 매수 승인·체결',
               kind_ == 'ok' and bool(st['orders']) and st['orders'][0][2] == 'FILLED' and st['exchange_creates'] == 1
-              and 'REST_ORDERBOOK_BID' in rt.app_log(), f'{kind_} {st["orders"][:1]}')
+              and 'REST_ORDERBOOK_DEPTH' in rt.app_log(), f'{kind_} {st["orders"][:1]}')
         rt.kill_app()
 
         # ⑤ 재시작 직후 + REST 실패 — 장부가 비고 보강도 실패 → 차단·경보 기록. 복구되면 보강이 채워 진입

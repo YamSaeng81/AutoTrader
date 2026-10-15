@@ -571,9 +571,15 @@ class PoolLossLimitTest extends IntegrationTestBase {
         return java.util.Map.of("market", coin, "trade_price", new BigDecimal(price), "trade_timestamp", tradeAt.toEpochMilli());
     }
 
-    private static java.util.Map<String, Object> orderbook(String coin, String bid, Instant at) {
-        return java.util.Map.of("market", coin, "timestamp", at.toEpochMilli(),
-                "orderbook_units", List.of(java.util.Map.of("bid_price", new BigDecimal(bid), "ask_price", new BigDecimal(bid).add(BigDecimal.ONE))));
+    /** 호가 — 매수호가 단계 "가격:잔량" 을 높은 순으로. */
+    private static java.util.Map<String, Object> orderbook(String coin, Instant at, String... bids) {
+        List<java.util.Map<String, Object>> units = new ArrayList<>();
+        for (String b : bids) {
+            String[] pq = b.split(":");
+            units.add(java.util.Map.of("bid_price", new BigDecimal(pq[0]), "bid_size", new BigDecimal(pq[1]),
+                    "ask_price", new BigDecimal(pq[0]).add(BigDecimal.ONE), "ask_size", BigDecimal.ONE));
+        }
+        return java.util.Map.of("market", coin, "timestamp", at.toEpochMilli(), "orderbook_units", units);
     }
 
     /** 시세 REST 대역을 꽂고 본문을 돌린 뒤 되돌린다. */
@@ -602,8 +608,9 @@ class PoolLossLimitTest extends IntegrationTestBase {
     }
 
     @Test
-    @DisplayName("웹소켓은 살아 있지만 체결이 조용한 보유: 낡은 체결가를 다시 받아도 신선하다고 보지 않고(차단 유지), 최우선 매수호가로 관측하면 승인")
-    void quietHoldingIsObservedByBestBid() throws Exception {
+    @DisplayName("웹소켓은 살아 있지만 체결이 조용한 보유: 낡은 체결가를 다시 받아도 신선하다고 보지 않는다. 호가 깊이가 보유량보다 얕으면 차단 유지, "
+            + "충분하면 보유량을 매수호가에 채운 평균 가격으로 관측해 승인")
+    void quietHoldingIsObservedByBookDepth() throws Exception {
         Instant start = baseline();
         Long s = liveSession("RUNNING");
         PositionEntity held = position(s, "KRW-QUIET", "OPEN", "30", "300");
@@ -631,21 +638,31 @@ class PoolLossLimitTest extends IntegrationTestBase {
             assertThat(check(now).code()).as("차단 유지").isEqualTo(PoolLossGuard.POOL_VALUATION_UNKNOWN);
             assertThat(refresher.failingSince()).contains("KRW-QUIET");
 
-            // 호가가 오면 — 최우선 매수호가 289, 호가 시각 지금
-            stub(() -> org.mockito.Mockito.doReturn(List.of(orderbook("KRW-QUIET", "289", now))).when(rest).getOrderbook("KRW-QUIET"));
+            // 호가가 오지만 보이는 매수 잔량(10 + 10 = 20)이 보유량 30 보다 적다 — 최우선 매수호가 289 만으로 평가하지 않는다
+            stub(() -> org.mockito.Mockito.doReturn(List.of(orderbook("KRW-QUIET", now, "289:10", "288:10"))).when(rest).getOrderbook("KRW-QUIET"));
+            HeldMarkRefresher.Result shallow = refresher.refreshNow(now);
+            assertThat(shallow.byBook()).doesNotContain("KRW-QUIET");
+            assertThat(shallow.unobserved()).contains("KRW-QUIET");
+            assertThat(shallow.error()).contains("KRW-QUIET 호가 깊이 부족(보이는 매수 잔량 20 < 보유 30");
+            assertThat(check(now).code()).as("깊이 부족 — 판정 불가, 차단 유지").isEqualTo(PoolLossGuard.POOL_VALUATION_UNKNOWN);
+
+            // 깊이가 충분하면 — 289×10 + 288×10 + 280×10 = 8,570 → 평균 285.66666666(내림)
+            stub(() -> org.mockito.Mockito.doReturn(List.of(orderbook("KRW-QUIET", now, "289:10", "288:10", "280:20"))).when(rest).getOrderbook("KRW-QUIET"));
             HeldMarkRefresher.Result r2 = refresher.refreshNow(now);
-            assertThat(r2.byBid()).contains("KRW-QUIET");
-            assertThat(marks.get("KRW-QUIET").source()).isEqualTo(MarkPriceBook.REST_ORDERBOOK_BID);
+            assertThat(r2.byBook()).contains("KRW-QUIET");
+            assertThat(marks.get("KRW-QUIET").source()).isEqualTo(MarkPriceBook.REST_ORDERBOOK_DEPTH);
+            assertThat(marks.get("KRW-QUIET").price()).isEqualByComparingTo("285.66666666");
             CapitalReservationService.Decision ok = check(now);
             assertThat(ok.approved()).as(ok.message()).isTrue();
-            assertThat(ok.message()).contains("KRW-QUIET=289(REST_ORDERBOOK_BID@");
-            // 보유 평가 = 30 × 289 × 0.9995 — 마지막 체결가 290 이 아니라 지금 팔 수 있는 가격
-            assertThat(tx(() -> guard.valuate(start, now)).holdings()).isEqualByComparingTo("8665.665");
+            assertThat(ok.message()).contains("KRW-QUIET=285.66666666(REST_ORDERBOOK_DEPTH@");
+            // 보유 평가 = 30 × 285.66666666 × 0.9995 — 마지막 체결가 290 도, 최우선 매수호가 289 도 아니다
+            BigDecimal expected = new BigDecimal("30").multiply(new BigDecimal("285.66666666")).multiply(new BigDecimal("0.9995"));
+            assertThat(tx(() -> guard.valuate(start, now)).holdings()).isEqualByComparingTo(expected.setScale(8, java.math.RoundingMode.HALF_UP));
             assertThat(refresher.failingSince()).as("회복").isNull();
 
             // 뒤이어 온 낡은 체결가는 더 최근의 호가 관측을 덮지 않는다
             marks.onPrice(new RealtimePriceEvent("KRW-QUIET", new BigDecimal("290"), oldTrade, RealtimePriceEvent.REST_TRADE));
-            assertThat(marks.get("KRW-QUIET").source()).isEqualTo(MarkPriceBook.REST_ORDERBOOK_BID);
+            assertThat(marks.get("KRW-QUIET").source()).isEqualTo(MarkPriceBook.REST_ORDERBOOK_DEPTH);
         });
     }
 
@@ -660,7 +677,7 @@ class PoolLossLimitTest extends IntegrationTestBase {
         var rest = org.mockito.Mockito.mock(com.cryptoautotrader.exchange.upbit.UpbitRestClient.class);
         org.mockito.Mockito.when(rest.getTicker(org.mockito.ArgumentMatchers.anyString())).thenReturn(List.of(
                 ticker("KRW-ACTIVE", "301", now.minusSeconds(5)), ticker("KRW-STALEBOOK", "300", now.minusSeconds(900))));
-        org.mockito.Mockito.when(rest.getOrderbook("KRW-STALEBOOK")).thenReturn(List.of(orderbook("KRW-STALEBOOK", "299", now.minusSeconds(300))));
+        org.mockito.Mockito.when(rest.getOrderbook("KRW-STALEBOOK")).thenReturn(List.of(orderbook("KRW-STALEBOOK", now.minusSeconds(300), "299:100")));
         withRest(rest, () -> {
             HeldMarkRefresher.Result r = refresher.refreshNow(now);
             assertThat(r.byTrade()).contains("KRW-ACTIVE");
@@ -711,6 +728,26 @@ class PoolLossLimitTest extends IntegrationTestBase {
         } finally {
             ReflectionTestUtils.setField(target, "telegram", savedTg);
         }
+    }
+
+    @Test
+    @DisplayName("호가 채우기 — 매수호가를 위에서부터 보유량만큼 채운 평균(내림), 잔량이 모자라거나 잔량 정보가 없으면 가격 없음")
+    void bookFillAveragesDownTheBook() {
+        Instant at = Instant.now();
+        java.util.function.Function<String[], List<java.util.Map<String, Object>>> units = bids -> {
+            @SuppressWarnings("unchecked")
+            List<java.util.Map<String, Object>> u = (List<java.util.Map<String, Object>>) orderbook("X", at, bids).get("orderbook_units");
+            return u;
+        };
+        assertThat(HeldMarkRefresher.fill(new BigDecimal("5"), units.apply(new String[]{"100:10", "90:10"}), at).price()).isEqualByComparingTo("100");
+        assertThat(HeldMarkRefresher.fill(new BigDecimal("15"), units.apply(new String[]{"100:10", "90:10"}), at).price())
+                .isEqualByComparingTo("96.66666666");
+        var shallow = HeldMarkRefresher.fill(new BigDecimal("25"), units.apply(new String[]{"100:10", "90:10"}), at);
+        assertThat(shallow.price()).isNull();
+        assertThat(shallow.depth()).isEqualByComparingTo("20");
+        // 잔량 정보가 없는 단계는 깊이로 세지 않는다
+        List<java.util.Map<String, Object>> noSize = List.of(java.util.Map.of("bid_price", new BigDecimal("100")));
+        assertThat(HeldMarkRefresher.fill(new BigDecimal("1"), noSize, at).price()).isNull();
     }
 
     @Autowired private LiveTradingService liveTradingService;

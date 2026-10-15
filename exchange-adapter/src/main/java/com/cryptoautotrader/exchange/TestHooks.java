@@ -7,7 +7,7 @@ import java.util.Locale;
  * 시험 전용 설정의 <b>기동 거부 가드</b> (2026-10-14).
  *
  * <p>실제 프로세스 재시작 시험은 JVM 시스템 속성으로 강제 종료 지점({@code crashpoint})과 거래소 주소
- * ({@code upbit.api.base-url}, {@code upbit.health-check-url})를 바꾼다. 🔴 운영에서 이 값이 설정되면 주문이 엉뚱한 곳으로
+ * ({@code upbit.api.base-url}, {@code upbit.health-check-url}, 공개 시세 {@code upbit.market-data.base-url})를 바꾼다. 🔴 운영에서 이 값이 설정되면 주문이 엉뚱한 곳으로
  * 가거나 프로세스가 스스로 멈춘다 — 경고로는 배포 차단이 보장되지 않으므로 <b>기동을 거부</b>한다.</p>
  *
  * <p>허용 조건(둘 다): ① 시험 진입점 클래스가 클래스패스에 있다 — 그 클래스는 {@code restartHarness} 소스 세트에만 있고
@@ -17,7 +17,9 @@ public final class TestHooks {
 
     public static final String HARNESS_MARKER = "com.cryptoautotrader.api.restartharness.RestartHarnessController";
     public static final String HARNESS_PROFILE = "restart-harness";
-    public static final List<String> PROPERTIES = List.of("crashpoint", "pausepoint", "upbit.api.base-url", "upbit.health-check-url");
+    public static final List<String> PROPERTIES = List.of("crashpoint", "pausepoint", "upbit.api.base-url", "upbit.health-check-url",
+            // 2026-10-16 리뷰 8회차 후속 지적: 공개 시세 주소도 시험 전용이다 — 운영에서 바뀌면 위험 판정의 시세·호가·캔들이 엉뚱한 곳에서 온다
+            "upbit.market-data.base-url");
 
     private TestHooks() {}
 
