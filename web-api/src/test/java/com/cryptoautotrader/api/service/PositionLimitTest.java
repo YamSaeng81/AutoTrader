@@ -562,6 +562,80 @@ class PositionLimitTest extends IntegrationTestBase {
         assertThat(liveReserve(clean, "KRW-PLIMK")).isNull();
     }
 
+    @Test
+    @DisplayName("🔴 판정 불가(시세 없음·120초 초과·반영값 없는 체결)인 포지션이 있는 세션은 그 순간부터 신규 진입 거절 — 감시·경보를 기다리지 않는다. "
+            + "다른 세션은 통과, 그 포지션의 청산은 나간다")
+    void unjudgedBlocksEntryImmediately() {
+        openPool();
+        Long live = liveSession("KRW-PLIMQ");
+        PositionEntity lp = position("LIVE", live, "KRW-PLIMQ", "100", "200", "20010", "20010");
+        filledOrder(lp, "BUY", "100", "20000", "10");
+        BigDecimal krwBefore = liveRepo.findById(live).orElseThrow().getAvailableKrw();
+        assertThat(monitor.unjudgedPositions()).as("감시는 한 번도 돌지 않았다").noneMatch(u -> u.positionId().equals(lp.getId()));
+
+        // ① 시세 없음
+        assertThat(liveReserve(live, "KRW-PLIMQ2")).isEqualTo(PositionLimitGuard.POSITION_LIMIT_UNJUDGED);
+        // ② 121초 전 시세
+        marks.record("KRW-PLIMQ", new BigDecimal("250"), Instant.now().minusSeconds(121));
+        assertThat(liveReserve(live, "KRW-PLIMQ2")).isEqualTo(PositionLimitGuard.POSITION_LIMIT_UNJUDGED);
+        assertThat(liveRepo.findById(live).orElseThrow().getAvailableKrw()).as("거절은 아무것도 바꾸지 않는다").isEqualByComparingTo(krwBefore);
+        assertThat(breach(lp.getId())).as("판정 불가는 도달이 아니다 — 영구 기록 없음").isNull();
+
+        // ③ 대조: 다른 세션(열린 포지션 없음)은 같은 시각에 통과한다 — 공유 풀 평가는 계속된다
+        Long other = liveSession("KRW-PLIMQ3");
+        assertThat(liveReserve(other, "KRW-PLIMQ3")).isNull();
+
+        // ④ 그 포지션의 청산은 막지 않는다 — 매도는 거래소로 나간다
+        Mockito.when(upbitOrderClient.createOrder(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any(),
+                Mockito.anyString(), Mockito.anyString())).thenReturn(acceptedSell("KRW-PLIMQ"));
+        OrderRequest sell = new OrderRequest();
+        sell.setCoinPair("KRW-PLIMQ");
+        sell.setSide("SELL");
+        sell.setOrderType("MARKET");
+        sell.setQuantity(new BigDecimal("100"));
+        sell.setReason("판정 불가 중 청산");
+        sell.setSessionId(live);
+        sell.setSessionKind("LIVE");
+        sell.setPositionId(lp.getId());
+        ((OrderExecutionEngine) org.springframework.test.util.AopTestUtils.getUltimateTargetObject(orderExecutionEngine)).submitOrder(sell);
+        Mockito.verify(upbitOrderClient, Mockito.times(1)).createOrder(Mockito.eq("KRW-PLIMQ"), Mockito.anyString(), Mockito.any(),
+                Mockito.any(), Mockito.anyString(), Mockito.anyString());
+        orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc("LIVE", live).stream()
+                .filter(o -> "SELL".equals(o.getSide())).forEach(orderRepository::delete);
+
+        // ⑤ 새 시세 → 같은 세션 통과
+        marks.record("KRW-PLIMQ", new BigDecimal("250"), Instant.now());
+        assertThat(liveReserve(live, "KRW-PLIMQ2")).isNull();
+
+        // ⑥ 반영값 없는 체결(시세는 새것) — 다시 거절
+        Long live2 = liveSession("KRW-PLIMR");
+        PositionEntity lp2 = position("LIVE", live2, "KRW-PLIMR", "100", "200", "20010", "20010");
+        filledOrder(lp2, "BUY", "100", "20000", "10");
+        marks.record("KRW-PLIMR", new BigDecimal("250"), Instant.now());
+        orderRepository.save(OrderEntity.builder()
+                .coinPair("KRW-PLIMR").side("SELL").orderType("MARKET")
+                .quantity(new BigDecimal("50")).filledQuantity(new BigDecimal("50"))
+                .state("FILLED").sessionKind("LIVE").sessionId(live2).positionId(lp2.getId())
+                .feeSource("REPORTED").clientOrderId("plim-" + UUID.randomUUID()).build());
+        assertThat(tx(() -> guard.checkUnjudgedForEntry("LIVE", live2, Instant.now())).code())
+                .isEqualTo(PositionLimitGuard.POSITION_LIMIT_UNJUDGED);
+        assertThat(tx(() -> guard.checkUnjudgedForEntry("LIVE", live2, Instant.now())).message()).contains("VALUATION_UNKNOWN");
+        // 🔴 반영값 없는 체결은 공유 풀 순자산도 계산할 수 없게 한다 — 그 세션뿐 아니라 풀 전체의 신규 승인이 먼저 막힌다
+        assertThat(liveReserve(live2, "KRW-PLIMR2")).isEqualTo(PoolLossGuard.POOL_VALUATION_UNKNOWN);
+        assertThat(liveReserve(other, "KRW-PLIMQ3")).as("풀 평가 불가 — 다른 세션도").isEqualTo(PoolLossGuard.POOL_VALUATION_UNKNOWN);
+        orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc("LIVE", live2).stream()
+                .filter(o -> "SELL".equals(o.getSide())).forEach(orderRepository::delete);
+
+        // ⑦ DYNAMIC — 같은 지점, 같은 사유
+        Long dyn = dynamicSession();
+        PositionEntity dp = position("DYNAMIC", dyn, "KRW-PLIMT", "100", "200", "20010", "20010");
+        filledOrder(dp, "BUY", "100", "20000", "10");
+        BigDecimal dynKrwBefore = dynamicRepo.findById(dyn).orElseThrow().getAvailableKrw();
+        assertThat(dynamicBuy(dyn, "KRW-PLIMT2")).contains("(" + PositionLimitGuard.POSITION_LIMIT_UNJUDGED + ")")
+                .contains("MARK_UNAVAILABLE");
+        assertThat(dynamicRepo.findById(dyn).orElseThrow().getAvailableKrw()).isEqualByComparingTo(dynKrwBefore);
+    }
+
     private UpbitOrderClient.ExchangeResult acceptedSell(String coin) {
         OrderResponse r = new OrderResponse();
         r.setUuid("plim-sell-" + UUID.randomUUID());

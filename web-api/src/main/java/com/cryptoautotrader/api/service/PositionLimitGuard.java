@@ -58,6 +58,8 @@ import java.util.List;
 public class PositionLimitGuard {
 
     public static final String POSITION_LIMIT = "POSITION_LIMIT";
+    /** 신규 진입 거절 — 이 세션에 판정 불가 포지션이 있다(2026-10-15 리뷰 7회차). */
+    public static final String POSITION_LIMIT_UNJUDGED = "POSITION_LIMIT_UNJUDGED";
     public static final String CAPITAL_LOSS = "CAPITAL_LOSS";
     public static final String MAX_DRAWDOWN = "MAX_DRAWDOWN";
     /** 반영값 없는 체결 주문이 있어 평가액을 계산하지 않았다. 고점도 올리지 않는다. */
@@ -111,27 +113,37 @@ public class PositionLimitGuard {
         }
     }
 
+    private static final String POSITION_ROWS = "SELECT p.id, p.session_kind, p.session_id, p.coin_pair, p.size, p.avg_price, p.unrealized_pnl, "
+            + "p.entry_allocation_krw, p.invested_krw, p.peak_value_krw, "
+            + "COALESCE(SUM(CASE WHEN o.side = 'BUY' THEN COALESCE(o.applied_executed_funds, 0) + COALESCE(o.applied_paid_fee, 0) ELSE 0 END), 0), "
+            + "COALESCE(SUM(CASE WHEN o.side = 'SELL' THEN COALESCE(o.applied_executed_funds, 0) - COALESCE(o.applied_paid_fee, 0) ELSE 0 END), 0), "
+            + "COALESCE(SUM(CASE WHEN o.filled_quantity > 0 AND o.applied_executed_funds IS NULL THEN 1 ELSE 0 END), 0) "
+            + "FROM position p LEFT JOIN \"order\" o ON o.position_id = p.id "
+            + "WHERE p.session_kind IN ('LIVE', 'DYNAMIC') AND p.status IN ('OPEN', 'CLOSING') AND p.size > 0 ";
+    private static final String POSITION_GROUP = "GROUP BY p.id, p.session_kind, p.session_id, p.coin_pair, p.size, p.avg_price, p.unrealized_pnl, "
+            + "p.entry_allocation_krw, p.invested_krw, p.peak_value_krw "
+            + "ORDER BY p.id";
+
     /** 실자금 열린 포지션 전부를 판정한다 — 고점을 올리고, 도달하면 기록한다. */
     @Transactional
     public List<Evaluation> evaluateAll(Instant now) {
         @SuppressWarnings("unchecked")
-        List<Object[]> rows = em.createNativeQuery(
-                "SELECT p.id, p.session_kind, p.session_id, p.coin_pair, p.size, p.avg_price, p.unrealized_pnl, "
-                        + "p.entry_allocation_krw, p.invested_krw, p.peak_value_krw, "
-                        + "COALESCE(SUM(CASE WHEN o.side = 'BUY' THEN COALESCE(o.applied_executed_funds, 0) + COALESCE(o.applied_paid_fee, 0) ELSE 0 END), 0), "
-                        + "COALESCE(SUM(CASE WHEN o.side = 'SELL' THEN COALESCE(o.applied_executed_funds, 0) - COALESCE(o.applied_paid_fee, 0) ELSE 0 END), 0), "
-                        + "COALESCE(SUM(CASE WHEN o.filled_quantity > 0 AND o.applied_executed_funds IS NULL THEN 1 ELSE 0 END), 0) "
-                        + "FROM position p LEFT JOIN \"order\" o ON o.position_id = p.id "
-                        + "WHERE p.session_kind IN ('LIVE', 'DYNAMIC') AND p.status IN ('OPEN', 'CLOSING') AND p.size > 0 "
-                        + "GROUP BY p.id, p.session_kind, p.session_id, p.coin_pair, p.size, p.avg_price, p.unrealized_pnl, "
-                        + "p.entry_allocation_krw, p.invested_krw, p.peak_value_krw "
-                        + "ORDER BY p.id")
-                .getResultList();
+        List<Object[]> rows = em.createNativeQuery(POSITION_ROWS + POSITION_GROUP).getResultList();
         List<Evaluation> out = new ArrayList<>();
         for (Object[] r : rows) {
             out.add(evaluateRow(r, now));
         }
         return out;
+    }
+
+    /**
+     * 판정 불가 사유 — 판정할 수 있으면 {@code null}. 감시({@link #evaluateRow})와 진입 판정({@link #checkUnjudgedForEntry})이 같은 조건을 쓴다.
+     */
+    String unjudgedCode(long unappliedFills, BigDecimal cost, PoolLossGuard.PriceMark pm, Instant now) {
+        if (unappliedFills > 0 || cost.signum() <= 0) return VALUATION_UNKNOWN;
+        if (!pm.realtime()) return MARK_UNAVAILABLE;
+        if (Duration.between(pm.at(), now).getSeconds() > markMaxAgeSeconds) return MARK_STALE;
+        return null;
     }
 
     private Evaluation evaluateRow(Object[] r, Instant now) {
@@ -167,15 +179,16 @@ public class PositionLimitGuard {
         BigDecimal value = sellNet.add(size.multiply(pm.price()).multiply(BigDecimal.ONE.subtract(PoolLossGuard.FEE_RATE)))
                 .setScale(8, RoundingMode.HALF_UP);
         String mark = pm.price().stripTrailingZeros().toPlainString() + "(" + pm.source() + ")";
-        if (!pm.realtime()) {
+        String uc = unjudgedCode(unapplied, cost, pm, now);
+        if (MARK_UNAVAILABLE.equals(uc)) {
             String detail = String.format("포지션 #%d %s %s#%s — 실시간 시세 없음, 대체 시세 %s 로는 판정하지 않는다(고점 %s 유지, 평가액 참고 %s)",
                     positionId, coin, kind, sessionId, mark, plain(oldPeak), plain(value));
             log.warn("[포지션 한도] {}", detail);
             return new Evaluation(positionId, kind, sessionId, coin, cost, value, allocation, basis, oldPeak, mark,
                     MARK_UNAVAILABLE, detail, false);
         }
-        long ageSeconds = Duration.between(pm.at(), now).getSeconds();
-        if (ageSeconds > markMaxAgeSeconds) {
+        if (MARK_STALE.equals(uc)) {
+            long ageSeconds = Duration.between(pm.at(), now).getSeconds();
             String detail = String.format("포지션 #%d %s %s#%s — 시세 %s 가 %d초 전 값(기준 %d초 초과): 판정하지 않는다(고점 %s 유지, 평가액 참고 %s)",
                     positionId, coin, kind, sessionId, mark, ageSeconds, markMaxAgeSeconds, plain(oldPeak), plain(value));
             log.warn("[포지션 한도] {}", detail);
@@ -249,6 +262,35 @@ public class PositionLimitGuard {
         return CapitalReservationService.Decision.reject(POSITION_LIMIT, String.format(
                 "포지션별 한도 도달 기록이 있는 세션 — 신규 진입을 승인하지 않는다(%s#%s, 포지션 #%s %s, %s, 기록 %d건)",
                 kind, sessionId, first[0], String.valueOf(first[1]).trim(), first[2], rows.size()));
+    }
+
+    /**
+     * 🔴 판정 불가 포지션이 있는 세션의 신규 진입을 막는다 (2026-10-15 리뷰 7회차).
+     *
+     * <p>공유 예약 지점(계좌 잠금 안)에서 <b>그 순간</b> 판정한다 — 감시 주기(10초)나 경보 기준(180초)을 기다리지 않는다. 시세가 없거나
+     * {@link #markMaxAgeSeconds} 를 넘었거나 반영값 없는 체결이 있으면, 그 포지션의 한도 도달 여부를 모르는 상태에서 같은 세션에 노출을
+     * 더하지 않는다. 쓰기는 없다(고점·도달 기록은 감시가 한다). 청산·주문 추적·정리는 이 판정과 무관하게 계속된다 — 매수 전용 지점이다.</p>
+     */
+    public CapitalReservationService.Decision checkUnjudgedForEntry(String kind, Long sessionId, Instant now) {
+        @SuppressWarnings("unchecked")
+        List<Object[]> rows = em.createNativeQuery(POSITION_ROWS + "AND p.session_kind = ?1 AND p.session_id = ?2 " + POSITION_GROUP)
+                .setParameter(1, kind).setParameter(2, sessionId).getResultList();
+        for (Object[] r : rows) {
+            Long positionId = ((Number) r[0]).longValue();
+            String coin = (String) r[3];
+            BigDecimal size = dec(r[4]);
+            long unapplied = ((Number) r[12]).longValue();
+            BigDecimal cost = dec(r[10]);
+            PoolLossGuard.PriceMark pm = poolLossGuard.markFor(coin, size, dec(r[5]), r[6] == null ? null : dec(r[6]));
+            String uc = unjudgedCode(unapplied, cost, pm, now);
+            if (uc != null) {
+                String age = pm.at() == null ? "실시간 시세 없음" : Duration.between(pm.at(), now).getSeconds() + "초 전 시세";
+                return CapitalReservationService.Decision.reject(POSITION_LIMIT_UNJUDGED, String.format(
+                        "포지션별 한도를 판정할 수 없는 포지션이 있는 세션 — 신규 진입을 승인하지 않는다(%s#%s, 포지션 #%d %s, %s: %s, 반영값 없는 체결 %d건). "
+                                + "청산·주문 추적은 계속된다", kind, sessionId, positionId, coin, uc, age, unapplied));
+            }
+        }
+        return CapitalReservationService.Decision.approve("포지션 한도: 열린 포지션 모두 판정 가능");
     }
 
     // ── 정지·정리 기록 ────────────────────────────────────────────────

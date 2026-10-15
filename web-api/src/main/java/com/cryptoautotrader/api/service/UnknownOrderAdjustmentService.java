@@ -30,7 +30,9 @@ import java.util.Map;
  *       계산에서 빠지지 않는다. 사람의 판단이 틀렸어도(실제로는 체결됐어도) 공유 풀이 과대 승인하지 않는 쪽이다.
  *       그 대가로 해당 금액·슬롯은 거래소 결과가 나올 때까지 풀에서 묶여 있다.</li>
  *   <li>조정 뒤 거래소가 그 주문을 보고하면 <b>자동으로 정산하지 않는다</b> — 사람이 돌려준 금액과 거래소 결과가 겹치기 때문이다.
- *       관측을 이 기록에 덧붙이고 정산 불일치({@code AFTER_MANUAL_ADJ})로 남겨 사람이 다시 본다.</li>
+ *       관측을 이 기록에 덧붙이고 정산 불일치({@code AFTER_MANUAL_ADJ})로 남기고, 조정 책임자를 적은 경보를 한 번 보낸다.</li>
+ *   <li>🔴 <b>조정은 회계 조정이지 자금이 실제로 회수됐다는 확인이 아니다</b> (리뷰 7회차). 주문이 {@code UNKNOWN} 으로 남으므로 그 세션의
+ *       신규 매수는 미해결 제출 가드({@code countUnresolvedSubmissions})에 계속 막힌다 — 조정이 진입을 풀지 않는다.</li>
  * </ul>
  *
  * <h3>대상</h3>
@@ -51,6 +53,9 @@ public class UnknownOrderAdjustmentService {
     private final SessionBalanceUpdater liveBalanceUpdater;
     private final DynamicSessionBalanceUpdater dynamicBalanceUpdater;
     private final JdbcTemplate jdbc;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private TelegramNotificationService telegram;
 
     public record Adjustment(Long orderId, String sessionKind, Long sessionId, String orderStateAt, String adjustedBy,
                              String reason, String evidence, BigDecimal releasedKrw, String unresolvedRisk,
@@ -125,7 +130,22 @@ public class UnknownOrderAdjustmentService {
             String st = exchangeState == null ? null : (exchangeState.length() > 20 ? exchangeState.substring(0, 20) : exchangeState);
             jdbc.update("INSERT INTO order_settlement_discrepancy (order_id, detected_at, kind, received_value, previous_state, received_state) "
                     + "VALUES (?, ?, ?, ?, 'UNKNOWN', ?)", orderId, Timestamp.from(at), DISCREPANCY_KIND, executedVolume, st);
-            log.error("🔴 수동 조정한 UNKNOWN 주문 #{} 를 거래소가 보고했다 — 자동 정산하지 않는다. 사람이 다시 본다: {}", orderId, observation);
+            Adjustment a = find(orderId);
+            // 🔴 (리뷰 7회차) 조정은 회계 조정이지 자금 회수의 확인이 아니다 — 늦은 체결이 나오면 사람이 처리해야 하고, 그 책임은 조정한
+            //    사람에게 돌아간다. 경보에 조정 책임자·반환액·당시 적은 미해결 위험을 함께 싣는다.
+            String msg = String.format("수동 조정한 UNKNOWN 주문 #%d (%s#%s) 를 거래소가 보고했다 — 자동 정산하지 않는다. 사람이 처리하라. "
+                            + "관측: %s | 조정 책임자 %s, 반환 %s, 당시 미해결 위험: %s",
+                    orderId, a == null ? "?" : a.sessionKind(), a == null ? "?" : a.sessionId(), observation,
+                    a == null ? "?" : a.adjustedBy(), a == null ? "?" : a.releasedKrw().toPlainString(),
+                    a == null ? "?" : a.unresolvedRisk());
+            log.error("🔴 {}", msg);
+            if (telegram != null) {
+                try {
+                    telegram.notifyRiskLimitBreached(msg);
+                } catch (Exception e) {
+                    log.warn("수동 조정 뒤 관측 경보 전송 실패: {}", e.getMessage());
+                }
+            }
         }
     }
 

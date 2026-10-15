@@ -1320,7 +1320,7 @@ estart-test-2026-10-13\` 와 `.zip`. 커밋 SHA,
 🔴 **시험 작성 원칙**: 각 시험은 **주문 행만 보지 않고 잔액·포지션까지** 확인한다. 그리고 🔴 **기존
 코드가 반드시 실패해야 한다고 맞추지 않는다** — 돌려서 **실제 결과와 그 원인**을 확인하고, 통과하면
 왜 통과하는지를 적는다.
-| 16 | 장기 `UNKNOWN` 수동 조정 | 주문이 `FAILED` 로 바뀌지 않고, **근거·금액·책임자·미해결 위험**이 보존되는가 | 🟢 **구현·작성·통과** (V91 `order_manual_adjustment`, `UnknownOrderAdjustmentService`, `UnknownOrderAdjustmentTest` 3, 2026-10-15) — 상태 `UNKNOWN` 유지, 근거·증거·금액·책임자·시각·미해결 위험 보존, 세션 잔액 한 번 반환, 공유 풀은 계속 미결로 셈, 재조정 거부, 조정 뒤 거래소 보고는 자동 정산하지 않고 관측·불일치(`AFTER_MANUAL_ADJ`)로 남김. 🔴 사람이 세우는 확정(`settlement_final`) 경로는 범위 밖 |
+| 16 | 장기 `UNKNOWN` 수동 조정 | 주문이 `FAILED` 로 바뀌지 않고, **근거·금액·책임자·미해결 위험**이 보존되는가 | 🟢 **구현·작성·통과** (V91 `order_manual_adjustment`, `UnknownOrderAdjustmentService`, `UnknownOrderAdjustmentTest` 3, 2026-10-15) — 상태 `UNKNOWN` 유지, 근거·증거·금액·책임자·시각·미해결 위험 보존, 세션 잔액 한 번 반환, 공유 풀은 계속 미결로 셈, 재조정 거부, 조정 뒤 거래소 보고는 자동 정산하지 않고 관측·불일치(`AFTER_MANUAL_ADJ`)로 남김. 🔴 사람이 세우는 확정(`settlement_final`) 경로는 범위 밖. **리뷰 7회차(2026-10-15)**: 조정은 회계 조정이지 회수 확인이 아니다 — 주문이 `UNKNOWN` 으로 남아 그 세션 신규 매수는 미해결 제출 가드에 계속 막힌다(`adjustmentDoesNotReopenEntry`, 대조 세션 승인, 변형 검출), 조정 뒤 거래소 보고가 처음 관측되면 책임자·반환액·당시 미해결 위험을 실은 경보 한 번("사람이 처리하라") — `UnknownOrderAdjustmentTest` 4 |
 
 ---
 

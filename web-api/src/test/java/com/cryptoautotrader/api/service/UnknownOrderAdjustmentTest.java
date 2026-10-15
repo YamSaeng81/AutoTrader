@@ -49,6 +49,8 @@ class UnknownOrderAdjustmentTest extends IntegrationTestBase {
 
     @MockBean private UpbitOrderClient upbitOrderClient;
     @MockBean private UpbitRestClient upbitRestClient;
+    @MockBean private TelegramNotificationService telegram;
+    @Autowired private org.springframework.transaction.PlatformTransactionManager txManager;
 
     private final List<Long> sessions = new ArrayList<>();
 
@@ -182,6 +184,9 @@ class UnknownOrderAdjustmentTest extends IntegrationTestBase {
         assertThat(d.get(0).getKind()).isEqualTo(UnknownOrderAdjustmentService.DISCREPANCY_KIND);
         assertThat(d.get(0).getReceivedValue()).isEqualByComparingTo("9.8");
         assertThat(d.get(0).getResolvedAt()).isNull();
+        // 🔴 사람이 처리해야 한다는 경보 — 조정 책임자와 함께, 반복 관측에도 한 번
+        Mockito.verify(telegram, Mockito.times(1)).notifyRiskLimitBreached(Mockito.argThat(m ->
+                m.contains("#" + f.orderId()) && m.contains("사람이 처리") && m.contains("운영자 본인") && m.contains("늦은 체결 가능성")));
 
         // 대조군 — 조정하지 않은 같은 주문은 거래소가 찾아지면 SUBMITTED 로 올라 기존 폴링·정산 경로로 간다.
         Fixture g = unknownBuy("UNKNOWN", 45);
@@ -190,6 +195,53 @@ class UnknownOrderAdjustmentTest extends IntegrationTestBase {
         orderExecutionEngine.resolveUnresolvedSubmission(g.orderId());
         assertThat(order(g).getState()).isNotEqualTo("UNKNOWN");
         assertThat(order(g).getExchangeOrderId()).isEqualTo("uuid-ctl-" + g.orderId());
+    }
+
+    @Test
+    @DisplayName("🔴 조정은 회계 조정일 뿐 — 주문이 UNKNOWN 으로 남아 그 세션의 신규 매수는 계속 막힌다(대조: 불명 주문 없는 세션은 승인)")
+    void adjustmentDoesNotReopenEntry() {
+        Fixture f = unknownBuy("UNKNOWN", 45);
+        adjustments.record(f.orderId(), "운영자 본인", "주문 내역에 없음", null, new BigDecimal("3000"), "늦은 체결 가능성", Instant.now());
+        assertThat(available(f)).isEqualByComparingTo("10000");
+
+        assertThat(reserve(f.sessionId(), "KRW-UNK2")).as("돌려받은 잔액이 있어도 불명 주문이 남은 세션은 진입하지 않는다")
+                .isEqualTo("INTENT_REJECTED");
+        assertThat(available(f)).as("거절은 예약을 되돌린다").isEqualByComparingTo("10000");
+        assertThat(order(f).getState()).isEqualTo("UNKNOWN");
+
+        Long clean = liveRepo.save(LiveTradingSessionEntity.builder()
+                .sessionType("REAL").strategyType("COMPOSITE_BREAKOUT").coinPair("KRW-UNK3").timeframe("H1")
+                .initialCapital(new BigDecimal("10000")).availableKrw(new BigDecimal("10000"))
+                .totalAssetKrw(new BigDecimal("10000")).status("RUNNING").startedAt(Instant.now()).build()).getId();
+        sessions.add(clean);
+        assertThat(reserve(clean, "KRW-UNK3")).isNull();
+    }
+
+    /** LIVE 매수 예약. @return 거절 코드, 승인이면 {@code null} */
+    private String reserve(Long sessionId, String coin) {
+        org.springframework.transaction.support.TransactionTemplate t = new org.springframework.transaction.support.TransactionTemplate(txManager);
+        try {
+            t.execute(st -> {
+                PositionEntity pos = positionRepository.save(PositionEntity.builder()
+                        .coinPair(coin).side("BUY").entryPrice(new BigDecimal("300")).avgPrice(new BigDecimal("300"))
+                        .size(BigDecimal.ZERO).investedKrw(new BigDecimal("1000")).entryAllocationKrw(new BigDecimal("1000"))
+                        .status("OPEN").sessionKind("LIVE").sessionId(sessionId).openedAt(Instant.now()).build());
+                com.cryptoautotrader.api.dto.OrderRequest req = new com.cryptoautotrader.api.dto.OrderRequest();
+                req.setCoinPair(coin);
+                req.setSide("BUY");
+                req.setOrderType("MARKET");
+                req.setQuantity(new BigDecimal("1000"));
+                req.setReason("조정 뒤 진입 시험");
+                req.setSignalPrice(new BigDecimal("300"));
+                req.setSessionId(sessionId);
+                req.setSessionKind("LIVE");
+                req.setPositionId(pos.getId());
+                return orderExecutionEngine.reserveAndPrepareIntent(req);
+            });
+            return null;
+        } catch (OrderExecutionEngine.ReservationRejected rejected) {
+            return rejected.getCode();
+        }
     }
 
     private static OrderResponse done(String uuid) {

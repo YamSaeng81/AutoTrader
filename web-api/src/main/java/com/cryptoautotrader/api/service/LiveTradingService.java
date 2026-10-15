@@ -983,13 +983,19 @@ public class LiveTradingService {
         String timeframe = session.getTimeframe();
         String strategyType = session.getStrategyType();
 
-        List<Candle> candles = fetchRecentCandles(coinPair, timeframe);
+        // 🔴 (2026-10-15 리뷰 7회차) 최신 완료 봉이 없거나 결측이 많으면 빈 목록 — 아래 절대 하한에서 이 회차를 건너뛴다.
+        //    낡은 캐시의 종가로 청산·진입을 판정하지 않는다(CandleFreshnessGuard).
+        List<Candle> candles = freshCandles(coinPair, timeframe, fetchRecentCandles(coinPair, timeframe));
 
         // 🔴 절대 하한 — 현재가조차 못 잡으면 청산 판정도 불가하므로 사이클을 통째로 건너뛴다.
         //    이 아래의 "전략 요구량 미달"과는 **다른 층위**다. 아래를 참조할 것.
         if (candles.size() < 10) {
             log.warn("캔들 부족: {} {} {}건 (sessionId={})",
                     coinPair, timeframe, candles.size(), sessionId);
+            // 🔴 (2026-10-15 리뷰 7회차) 건너뛰는 것은 캔들이 필요한 판정(전략·진입·캔들 종가 기반 청산)뿐이다. 시간 초과 청산과
+            //    유효한 실시간 현재가가 있을 때의 손절·익절은 여기서 계속한다 — 캔들 공백이 청산 누락으로 돌아오지 않게.
+            //    주문 추적·정리는 별도 스케줄러라 이 회차와 무관하다.
+            exitsWithoutCandles(session, coinPair);
             return;
         }
 
@@ -1402,7 +1408,7 @@ public class LiveTradingService {
                 || positionRepository.findBySessionKindAndSessionIdAndCoinPairAndStatus("LIVE", sessionId, coinPair, "CLOSING").isPresent()) {
             result = "승인 차례에 이미 포지션이 있다";
         } else {
-            List<Candle> latest = fetchRecentCandles(coinPair, session.getTimeframe());
+            List<Candle> latest = freshCandles(coinPair, session.getTimeframe(), fetchRecentCandles(coinPair, session.getTimeframe()));
             result = approvalTimeGate(session, coinPair, latest);
             if (result == null) {
                 BigDecimal priceNow = latest.get(latest.size() - 1).getClose();
@@ -3363,6 +3369,72 @@ public class LiveTradingService {
         final long timestampMs;
         final BigDecimal price;
         PriceSnapshot(long ts, BigDecimal p) { this.timestampMs = ts; this.price = p; }
+    }
+
+    @Autowired(required = false)
+    private CandleFreshnessGuard candleFreshnessGuard;
+
+    @Autowired(required = false)
+    private MarkPriceBook markPriceBook;
+
+    /**
+     * 캔들을 쓸 수 없는 회차의 청산 (2026-10-15 리뷰 7회차) — 정상 경로와 같은 순서(익절 → 시간 초과 → 손절), 같은 조건.
+     * 현재가는 받은 지 기준(120초) 이내의 실시간 시세만 쓴다. 없으면 가격 기반 손절·익절은 판정하지 않고(낡은 값은 현재가가 아니다)
+     * 시간 초과만 판정한다 — 시장가 매도라 가격이 필요 없다.
+     *
+     * @return 청산 매도를 시도했으면 true
+     */
+    boolean exitsWithoutCandles(LiveTradingSessionEntity session, String coinPair) {
+        Long sessionId = session.getId();
+        Optional<PositionEntity> openPos = positionRepository
+                .findBySessionKindAndSessionIdAndCoinPairAndStatus("LIVE", sessionId, coinPair, "OPEN");
+        if (openPos.isEmpty()) return false;
+        PositionEntity pos = openPos.get();
+        BigDecimal price = markPriceBook == null ? null : markPriceBook.freshPrice(coinPair, Instant.now());
+        BigDecimal pnlPct = price == null ? null : price.subtract(pos.getAvgPrice())
+                .divide(pos.getAvgPrice(), 6, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100));
+        String priceNote = price == null ? "유효한 현재가 없음" : "실시간 현재가 " + price;
+
+        if (price != null && pos.getTakeProfitPrice() != null && price.compareTo(pos.getTakeProfitPrice()) >= 0) {
+            log.info("익절 발동 — 캔들 없음, {} (sessionId={}): {} 익절가={}", priceNote, sessionId, coinPair, pos.getTakeProfitPrice());
+            executeSessionSell(session, pos, price, "익절 발동(캔들 판정 불가 회차, " + priceNote + ") — 익절가 "
+                    + pos.getTakeProfitPrice(), ExitReason.TAKE_PROFIT);
+            return true;
+        }
+        if (ExitRuleCalculator.shouldTimeStop(session.getMaxHoldHours(), pos.getOpenedAt(), Instant.now())) {
+            long heldHours = Duration.between(pos.getOpenedAt(), Instant.now()).toHours();
+            log.warn("시간 초과 청산 — 캔들 없음, {} (sessionId={}): {} 보유 {}h ≥ {}h", priceNote, sessionId, coinPair,
+                    heldHours, session.getMaxHoldHours());
+            if (executeSessionSell(session, pos, price, String.format("시간 초과 청산(캔들 판정 불가 회차, %s) — 보유 %d시간 ≥ %d시간",
+                    priceNote, heldHours, session.getMaxHoldHours()), ExitReason.TIME_STOP)) {
+                telegramService.notifyTimeStop(coinPair, heldHours, session.getMaxHoldHours(),
+                        pnlPct == null ? Double.NaN : pnlPct.doubleValue(), sessionId);
+            }
+            return true;
+        }
+        if (price == null) {
+            log.warn("캔들 판정 불가 + 유효한 현재가 없음 — 가격 기반 손절·익절을 이 회차에 판정하지 못했다 (sessionId={}, {}, posId={})",
+                    sessionId, coinPair, pos.getId());
+            return false;
+        }
+        BigDecimal rawStopLoss = session.getStopLossPct() != null ? session.getStopLossPct() : exitConfig().getStopLossPct();
+        boolean slTriggered = pos.getStopLossPrice() != null
+                ? price.compareTo(pos.getStopLossPrice()) <= 0
+                : pnlPct.compareTo(rawStopLoss.negate()) <= 0;
+        if (slTriggered) {
+            log.warn("손절 발동 — 캔들 없음, {} (sessionId={}): {} 손익률={}%", priceNote, sessionId, coinPair, pnlPct);
+            if (executeSessionSell(session, pos, price, "손절 발동(캔들 판정 불가 회차, " + priceNote + ") -- 손익률 " + pnlPct + "%",
+                    ExitReason.STOP_LOSS)) {
+                telegramService.notifyStopLoss(coinPair, pnlPct.doubleValue(), sessionId);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /** 세션 거래 코인의 캔들 — 최신 완료 봉·결측 조건을 어기면 빈 목록(판정 불가). BTC 관문 캔들에는 쓰지 않는다. */
+    private List<Candle> freshCandles(String coinPair, String timeframe, List<Candle> candles) {
+        return candleFreshnessGuard == null ? candles : candleFreshnessGuard.filter("LIVE", coinPair, timeframe, candles);
     }
 
     private List<Candle> fetchRecentCandles(String coinPair, String timeframe) {

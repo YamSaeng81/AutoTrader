@@ -17,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.util.AopTestUtils;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -49,6 +48,7 @@ class DoubleSellGuardTest extends IntegrationTestBase {
     @Autowired private OrderRepository orderRepository;
     @Autowired private PositionRepository positionRepository;
     @Autowired private JdbcTemplate jdbc;
+    @Autowired private SellQuarantineReport quarantineReport;
 
     @MockBean private UpbitOrderClient upbitOrderClient;
 
@@ -56,7 +56,6 @@ class DoubleSellGuardTest extends IntegrationTestBase {
 
     @AfterEach
     void tearDown() {
-        ReflectionTestUtils.setField((Object) AopTestUtils.getUltimateTargetObject(engine), "sellTrackingSince", Instant.EPOCH);
         for (Long id : sessions) {
             orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc("LIVE", id).forEach(orderRepository::delete);
             positionRepository.findBySessionKindAndSessionId("LIVE", id).forEach(positionRepository::delete);
@@ -145,16 +144,75 @@ class DoubleSellGuardTest extends IntegrationTestBase {
     }
 
     @Test
-    @DisplayName("V87 설치 전에 만든 매도는 반영 표시가 없어도 막지 않는다 — 종전 코드가 체결 때 반영했다")
-    void legacySellBeforeTrackingDoesNotBlock() {
-        when(upbitOrderClient.createOrder(anyString(), anyString(), any(), any(), anyString(), anyString())).thenReturn(new UpbitOrderClient.ExchangeResult(accepted(), "{}"));
-        ReflectionTestUtils.setField((Object) AopTestUtils.getUltimateTargetObject(engine), "sellTrackingSince",
-                Instant.now().minus(1, ChronoUnit.HOURS));
+    @DisplayName("🔴 V87 이전 매도도 판별 불가로 센다 — 반영 표시 없이 체결된 오래된 매도가 열린 포지션에 있으면 새 매도를 내지 않는다(격리)")
+    void legacySellWithoutMarkIsQuarantined() {
         PositionEntity p = openPosition();
-        OrderEntity legacy = filledUnappliedSell(p, Instant.now().minus(2, ChronoUnit.HOURS));
-        jdbc.update("UPDATE \"order\" SET created_at = ? WHERE id = ?", Timestamp.from(Instant.now().minus(2, ChronoUnit.HOURS)), legacy.getId());
+        OrderEntity legacy = filledUnappliedSell(p, Instant.now().minus(30, ChronoUnit.DAYS));
+        jdbc.update("UPDATE \"order\" SET created_at = ? WHERE id = ?", Timestamp.from(Instant.now().minus(30, ChronoUnit.DAYS)), legacy.getId());
 
         sell(p);
+        verify(upbitOrderClient, never()).createOrder(any(), any(), any(), any(), any(), any());
+        assertThat(sells(p)).hasSize(1);
+        // 기동 점검(배포 전 대조 SQL 과 같은 질의)이 이 포지션을 사람에게 알린다
+        assertThat(quarantineReport.report()).anySatisfy(r -> assertThat(((Number) (r.get("position_id") != null
+                ? r.get("position_id") : r.get("POSITION_ID"))).longValue()).isEqualTo(p.getId()));
+    }
+
+    @Test
+    @DisplayName("🔴 같은 포지션의 동시 청산 요청 8개 — 제출 권한은 하나만 얻는다: 거래소 생성 1건, 매도 주문 1행")
+    void concurrentSellsGetOneSubmission() throws Exception {
+        when(upbitOrderClient.createOrder(anyString(), anyString(), any(), any(), anyString(), anyString()))
+                .thenAnswer(inv -> new UpbitOrderClient.ExchangeResult(accepted(), "{}"));
+        PositionEntity p = openPosition();
+        // 매수 주문(예약 3,000 · 반영 2,940/1.47) — 매도 경합이 예약·반영값을 건드리지 않는지 본다
+        OrderEntity buy = orderRepository.save(OrderEntity.builder()
+                .coinPair("KRW-DSG").side("BUY").orderType("MARKET")
+                .quantity(new BigDecimal("3000")).reservedKrw(new BigDecimal("3000")).filledQuantity(new BigDecimal("9.8"))
+                .appliedExecutedFunds(new BigDecimal("2940")).appliedPaidFee(new BigDecimal("1.47")).state("FILLED")
+                .sessionKind("LIVE").sessionId(p.getSessionId()).positionId(p.getId())
+                .exchangeOrderId("dsg-buy-" + UUID.randomUUID()).clientOrderId("dsg-buy-" + UUID.randomUUID())
+                .feeSource("REPORTED").createdAt(Instant.now()).build());
+        OrderExecutionEngine target = (OrderExecutionEngine) AopTestUtils.getUltimateTargetObject(engine);
+        int n = 8;
+        java.util.concurrent.CyclicBarrier barrier = new java.util.concurrent.CyclicBarrier(n);
+        java.util.concurrent.ExecutorService pool = java.util.concurrent.Executors.newFixedThreadPool(n);
+        try {
+            List<java.util.concurrent.Future<?>> fs = new ArrayList<>();
+            for (int i = 0; i < n; i++) {
+                fs.add(pool.submit(() -> {
+                    barrier.await();
+                    OrderRequest r = new OrderRequest();
+                    r.setCoinPair("KRW-DSG");
+                    r.setSide("SELL");
+                    r.setOrderType("MARKET");
+                    r.setQuantity(new BigDecimal("9.8"));
+                    r.setReason("동시 청산 시험");
+                    r.setSessionId(p.getSessionId());
+                    r.setSessionKind("LIVE");
+                    r.setPositionId(p.getId());
+                    target.submitOrder(r);
+                    return null;
+                }));
+            }
+            for (java.util.concurrent.Future<?> f : fs) f.get(60, java.util.concurrent.TimeUnit.SECONDS);
+        } finally {
+            pool.shutdownNow();
+        }
         verify(upbitOrderClient, times(1)).createOrder(anyString(), anyString(), any(), any(), anyString(), anyString());
+        assertThat(sells(p)).as("의도 행도 하나 — 나머지는 식별자를 소비하기 전에 거절").hasSize(1);
+        // 🔴 나머지 7건은 아무 흔적도 남기지 않는다 — 추가 차감·예약 해제·정리 완료 표시 없음
+        assertThat(liveRepo.findById(p.getSessionId()).orElseThrow().getAvailableKrw()).as("세션 잔액 불변")
+                .isEqualByComparingTo("7058.53");
+        OrderEntity buyAfter = orderRepository.findById(buy.getId()).orElseThrow();
+        assertThat(buyAfter.getReservedKrw()).as("매수 예약 불변").isEqualByComparingTo("3000");
+        assertThat(buyAfter.getAppliedExecutedFunds()).isEqualByComparingTo("2940");
+        assertThat(buyAfter.getState()).isEqualTo("FILLED");
+        PositionEntity after = positionRepository.findById(p.getId()).orElseThrow();
+        assertThat(after.getSize()).as("포지션 수량 불변").isEqualByComparingTo("9.8");
+        assertThat(after.getStatus()).isEqualTo("OPEN");
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM position_cleanup WHERE position_id = ?", Integer.class, p.getId()))
+                .as("정리 대기·완료 표시 없음").isZero();
+        assertThat(orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc("LIVE", p.getSessionId()))
+                .as("주문은 매수 1 + 매도 1 뿐 — 거절된 요청은 FAILED 행도 남기지 않는다").hasSize(2);
     }
 }

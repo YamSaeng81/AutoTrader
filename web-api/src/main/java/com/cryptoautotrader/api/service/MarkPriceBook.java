@@ -39,6 +39,20 @@ public class MarkPriceBook {
         return coinPair == null ? null : marks.get(coinPair);
     }
 
+    /** 유효한 현재가로 볼 수 있는 실시간 시세의 최대 나이 — 포지션별 한도의 최신성 기준과 같다. */
+    @org.springframework.beans.factory.annotation.Value("${position-limit.mark-max-age-seconds:120}")
+    private long maxAgeSeconds = 120;
+
+    /**
+     * 받은 지 기준 이내인 실시간 시세 — 없거나 낡았으면 {@code null} (2026-10-15 리뷰 7회차). 캔들을 쓸 수 없는 회차에 가격 기반
+     * 손절·익절을 판정하는 근거로 쓴다 — 낡은 값은 현재가가 아니다.
+     */
+    public BigDecimal freshPrice(String coinPair, Instant now) {
+        Mark m = get(coinPair);
+        if (m == null || java.time.Duration.between(m.at(), now).getSeconds() > maxAgeSeconds) return null;
+        return m.price();
+    }
+
     /** 시험용 — 기록을 지운다. */
     public void clear() {
         marks.clear();

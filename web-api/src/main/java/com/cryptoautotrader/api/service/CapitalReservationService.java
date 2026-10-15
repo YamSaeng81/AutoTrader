@@ -198,6 +198,12 @@ public class CapitalReservationService {
         if (!positionLimit.approved()) {
             return logged(sessionId, positionLimit);
         }
+        // ②-4 판정 불가 (2026-10-15 리뷰 7회차) — 이 세션의 열린 포지션 중 하나라도 시세 누락·120초 초과·반영값 없는 체결로 한도를
+        //      판정할 수 없으면 거절한다. 경보(180초)를 기다리지 않고 지금 판정한다.
+        Decision unjudged = positionLimitGuard.checkUnjudgedForEntry(kind, sessionId, Instant.now());
+        if (!unjudged.approved()) {
+            return logged(sessionId, unjudged);
+        }
 
         // ③ 계좌 여력 — 등록 한도 안이어도 계좌에 없는 돈은 승인하지 않는다.
         Decision account = checkAccountHeadroom(amount, BigDecimal.ZERO);

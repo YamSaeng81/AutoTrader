@@ -186,31 +186,58 @@ public class OrderExecutionEngine {
     @Autowired(required = false)
     private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
-    /** 매도 반영 표시({@code sell_applied_at}, V87)를 믿을 수 있는 시작 시각 — 그 전 매도는 종전 코드가 체결 때 반영했다. */
-    private volatile Instant sellTrackingSince;
+    /**
+     * 같은 포지션의 매도 제출 권한 — 트랜잭션 수명 잠금 (2026-10-15 리뷰 7회차).
+     *
+     * <p>🔴 "반영되지 않은 매도가 있는가" 를 읽고 → 없으면 의도를 저장하는 사이가 직렬화되지 않으면, 같은 포지션의 동시 청산 요청
+     * 둘이 모두 0건을 읽고 둘 다 매도를 낸다. 잠금은 의도가 <b>커밋된 뒤에</b> 풀린다 — 뒤에 온 요청은 앞의 의도를 보고 거절된다.</p>
+     *
+     * <p>PostgreSQL 은 {@code pg_advisory_xact_lock(classid, objid)}(두 정수 형식 — 단일 인스턴스 잠금의 bigint 키와 다른 공간이다,
+     * 프로세스가 둘이어도 성립). 시험 기반(H2)은 같은 수명의 JVM 잠금이다(단일 인스턴스는 기동 시 강제된다).
+     * 포지션 행 잠금을 쓰지 않는 이유: 정지·청산 경로는 자기 트랜잭션에서 그 행을 CLOSING 으로 바꾼 채 매도를 넘긴다 — 행 잠금이면
+     * 매도 의도가 그 트랜잭션 끝까지 기다리다 잠금 시간 초과로 버려진다.</p>
+     */
+    private static final int SELL_LOCK_CLASS = 0x53454C4C;   // "SELL"
+    private final java.util.concurrent.ConcurrentHashMap<Long, java.util.concurrent.locks.ReentrantLock> sellLocks =
+            new java.util.concurrent.ConcurrentHashMap<>();
+    private volatile Boolean postgres;
 
-    @jakarta.annotation.PostConstruct
-    void initSellTracking() {
-        sellTrackingSince();
+    private boolean isPostgres() {
+        Boolean v = postgres;
+        if (v == null) {
+            v = jdbcTemplate != null && Boolean.TRUE.equals(jdbcTemplate.execute(
+                    (org.springframework.jdbc.core.ConnectionCallback<Boolean>) c ->
+                            c.getMetaData().getDatabaseProductName().toLowerCase(java.util.Locale.ROOT).contains("postgres")));
+            postgres = v;
+        }
+        return v;
     }
 
-    Instant sellTrackingSince() {
-        Instant v = sellTrackingSince;
-        if (v != null) return v;
-        v = Instant.EPOCH;   // 시험 기반(H2)에는 Flyway 기록이 없다 — 모든 매도를 반영 표시가 있는 시대로 본다
-        if (jdbcTemplate != null) {
-            try {
-                // installed_on 은 시간대 없는 값이다 — 설치한 연결의 시간대(같은 JVM)로 해석해 순간으로 바꾼다.
-                java.sql.Timestamp t = jdbcTemplate.queryForObject("SELECT installed_on AT TIME ZONE current_setting('TimeZone') "
-                        + "FROM flyway_schema_history WHERE version = '87' AND success", java.sql.Timestamp.class);
-                if (t != null) v = t.toInstant();
-            } catch (Exception e) {
-                log.info("V87 설치 시각을 읽지 못했다 — 모든 매도의 반영 표시를 믿는다: {}", e.getMessage());
-            }
+    /** 호출자 트랜잭션이 끝날 때까지 이 포지션의 매도 제출 권한을 쥔다. */
+    void lockSellSubmission(Long positionId) {
+        if (!TransactionSynchronizationManager.isActualTransactionActive()) {
+            throw new IllegalStateException("매도 제출 잠금은 트랜잭션 안에서만 잡는다 (posId=" + positionId + ")");
         }
-        sellTrackingSince = v;
-        log.info("매도 반영 표시 기준 시각: {}", v);
-        return v;
+        int objid = (int) (positionId ^ (positionId >>> 32));
+        if (isPostgres()) {
+            jdbcTemplate.query("SELECT pg_advisory_xact_lock(?, ?)", rs -> null, SELL_LOCK_CLASS, objid);
+            return;
+        }
+        java.util.concurrent.locks.ReentrantLock l = sellLocks.computeIfAbsent(positionId, k -> new java.util.concurrent.locks.ReentrantLock());
+        try {
+            if (!l.tryLock(30, java.util.concurrent.TimeUnit.SECONDS)) {
+                throw new IllegalStateException("매도 제출 잠금 대기 시간 초과 (posId=" + positionId + ")");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("매도 제출 잠금 대기 중단 (posId=" + positionId + ")", e);
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCompletion(int status) {
+                l.unlock();
+            }
+        });
     }
 
     /** §10 — Upbit API rate limit 대응 */
@@ -594,9 +621,13 @@ public class OrderExecutionEngine {
         //    위의 중복 검사는 활성 상태만 본다 — 체결됐지만 포지션에 아직 반영되지 않은 매도(정지 롤백으로 CLOSING 이 되돌아간
         //    경우)를 놓쳐 같은 수량을 두 번 팔았다. 매도는 막지 않는다는 아래 원칙의 예외가 아니다: 이미 나간 매도가 그 수량을
         //    판다. 반영은 청산 확정(CLOSING)·정리 작업이 하고, 남은 수량이 있으면 그 뒤에 다시 판다(부분 체결 규칙 D5).
+        //    🔴 (리뷰 7회차) 조회만으로는 동시 요청에 틈이 남는다 — 포지션 단위 잠금을 먼저 잡고 센다(lockSellSubmission).
+        //    🔴 V87 이전 매도도 센다 — 반영 표시가 없던 시절의 매도를 "반영됐다" 고 간주하지 않는다. 열린 포지션에 그런 매도가 있으면
+        //    그 포지션은 새 매도가 막힌다(격리). 배포 전 대조 SQL 로 미리 찾아 사람이 판정한다(LIVE_RISK_IMPLEMENTATION_REVIEW §6.8).
         if ("SELL".equalsIgnoreCase(request.getSide()) && request.getPositionId() != null
                 && OrderSettlementService.isSharedPoolKind(sessionKind)) {
-            long unresolved = orderRepository.countUnresolvedSellsForPosition(request.getPositionId(), sellTrackingSince());
+            lockSellSubmission(request.getPositionId());
+            long unresolved = orderRepository.countUnresolvedSellsForPosition(request.getPositionId());
             if (unresolved > 0) {
                 log.error("🔴 이중 매도 차단 (sessionKind={}, sessionId={}, posId={}, {}): 이 포지션에 반영되지 않은 매도 {}건 "
                                 + "(미결 또는 체결·미반영) — 새 매도를 내지 않는다",

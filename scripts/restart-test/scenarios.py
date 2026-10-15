@@ -1168,11 +1168,12 @@ S16_COIN = 'KRW-DOGE'
 S16_PRICE = 310          # 캔들 종가 — 엔진의 판정가. 대역 체결가는 300 고정이다(판정가와 체결가가 다른 것도 그대로 본다)
 
 
-def seed_candles(close=S16_PRICE, n=520):
-    """닫힌 H1 캔들 n 개(현재 시간 포함). DYNAMIC 의 캐시 조회(500개 창)도 덮는다 — 대역 밖 REST 는 막혀 있어 캐시만 읽는다."""
+def seed_candles(close=S16_PRICE, n=520, behind_hours=0):
+    """닫힌 H1 캔들 n 개(현재 시간 포함). DYNAMIC 의 캐시 조회(500개 창)도 덮는다 — 대역 밖 REST 는 막혀 있어 캐시만 읽는다.
+    behind_hours > 0 이면 마지막 캔들이 그만큼 앞에서 멈춘다(수집이 멎은 캐시)."""
     rt.psql(f"DELETE FROM market_data_cache WHERE coin_pair = '{S16_COIN}' AND timeframe = 'H1'")
     rt.psql("INSERT INTO market_data_cache (time, coin_pair, timeframe, open, high, low, close, volume) "
-            f"SELECT date_trunc('hour', now()) - (g || ' hours')::interval, '{S16_COIN}', 'H1', {close}, {close + 1}, {close - 1}, "
+            f"SELECT date_trunc('hour', now()) - ((g + {behind_hours}) || ' hours')::interval, '{S16_COIN}', 'H1', {close}, {close + 1}, {close - 1}, "
             f"{close}, 1000 FROM generate_series(0, {n - 1}) g")
 
 
@@ -1249,6 +1250,109 @@ def s16():
         rt.psql("UPDATE position SET status = 'CLOSED' WHERE status IN ('OPEN', 'CLOSING') AND session_kind IN ('LIVE', 'DYNAMIC')")
         rt.psql("UPDATE live_trading_session SET status = 'STOPPED' WHERE status = 'RUNNING'")
         rt.psql("UPDATE dynamic_session SET status = 'STOPPED' WHERE status = 'RUNNING'")
+
+
+def close_all_real():
+    rt.psql("UPDATE position SET status = 'CLOSED' WHERE status IN ('OPEN', 'CLOSING') AND session_kind IN ('LIVE', 'DYNAMIC')")
+    rt.psql("UPDATE live_trading_session SET status = 'STOPPED' WHERE status = 'RUNNING'")
+    rt.psql("UPDATE dynamic_session SET status = 'STOPPED' WHERE status = 'RUNNING'")
+
+
+def s16b():
+    rt.log('S16b 낡은 캔들 캐시 — 마지막 캔들이 3시간 전에 멈춘 캐시: 낡은 종가로는 손절하지 않고, 시간 초과는 나가고, '
+           '유효한 실시간 현재가가 오면 손절한다(캔들이 필요한 판정만 건너뛴다)')
+    close_all_real()
+    seed_candles(behind_hours=3)
+    try:
+        rt.start_app(label='s16b-run')
+        rt.api('POST', '/api/v1/restart-harness/signal?action=HOLD', timeout=10)
+        sl_sid, sl_pid = s16_session('STOP_LOSS')       # 손절가 320 — 낡은 종가 310 이면 손절 조건
+        ts_sid, ts_pid = s16_session('TIME_STOP')       # 최대 보유 1시간, 2시간 전 진입
+        # 판정 재개 확인용 — 손절가 250(미도달)이라 끝까지 감시 중으로 남는다. DYNAMIC 은 시험에서 외부 REST 가 막혀 공용
+        # 감시 목록이 비므로, 감시 중인 포지션이 없으면 이 코인을 다시 평가하는 경로가 없다(재개 기록은 다음 평가 때 남는다).
+        hold_sid, hold_pid = s16_session('HOLD')
+        t0 = time.time()
+        try:
+            rt.wait_until(lambda: state(ts_sid)['positions'][0][1] == 'CLOSED', 200, 3, 'S16b 시간 초과')
+        except Exception as e:
+            rt.log(f'  대기 초과: {e!r}')
+        time.sleep(max(0, 130 - (time.time() - t0)))   # 엔진 평가 60초 × 2회 이상
+        st_sl, st_ts = state(sl_sid), state(ts_sid)
+        show('S16b 손절 세션(낡은 캐시·시세 없음)', st_sl)
+        show('S16b 시간 초과 세션(낡은 캐시·시세 없음)', st_ts)
+        log = rt.app_log()
+        flagged = ('[캔들 최신성] KRW-DOGE:H1 판정 불가 (' + KIND + ')') in log and '최신 완료 봉 없음' in log
+        sl_sells = [o for o in st_sl['orders'] if o[1] == 'SELL']
+        check('S16b 낡은 캐시(종가 310 ≤ 손절가 320)·실시간 시세 없음 → 손절 매도를 내지 않는다, 판정 불가 기록',
+              st_sl['positions'][0][1] == 'OPEN' and not sl_sells and st_sl['exchange_creates'] == 1 and flagged,
+              f'{st_sl["positions"][0]} sells={len(sl_sells)} flagged={flagged} ({time.time() - t0:.0f}초)')
+        ts_sells = [o for o in st_ts['orders'] if o[1] == 'SELL']
+        reason = rt.psql(f"SELECT coalesce(signal_reason,'') FROM \"order\" WHERE session_kind='{KIND}' AND session_id={ts_sid} AND side='SELL'")
+        check('S16b 같은 낡은 캐시에서도 시간 초과 청산은 나간다 — 매도 1건·체결·CLOSED·TIME_STOP·잔액 9,997.35',
+              st_ts['positions'][0][1] == 'CLOSED' and st_ts['positions'][0][4] == 'TIME_STOP' and len(ts_sells) == 1
+              and ts_sells[0][2] == 'FILLED' and avail(st_ts) == '9997.35' and reason and '캔들 판정 불가 회차' in reason[0][0],
+              f'{st_ts["positions"][0]} sells={len(ts_sells)} {avail(st_ts)} {reason}')
+
+        # 유효한 실시간 현재가(310, 30초마다 새로) → 캔들 없이 손절
+        t1 = time.time()
+        deadline = time.time() + 200
+        while time.time() < deadline and state(sl_sid)['positions'][0][1] != 'CLOSED':
+            mark(S16_PRICE)
+            time.sleep(10)
+        st_sl = state(sl_sid)
+        show('S16b 손절 세션(실시간 시세 310)', st_sl)
+        sl_sells = [o for o in st_sl['orders'] if o[1] == 'SELL']
+        check('S16b 유효한 실시간 현재가가 오면 캔들 없이도 손절 — 매도 1건·체결·CLOSED·STOP_LOSS·잔액 9,997.35',
+              st_sl['positions'][0][1] == 'CLOSED' and st_sl['positions'][0][4] == 'STOP_LOSS' and len(sl_sells) == 1
+              and sl_sells[0][2] == 'FILLED' and avail(st_sl) == '9997.35',
+              f'{st_sl["positions"][0]} sells={len(sl_sells)} {avail(st_sl)} ({time.time() - t1:.0f}초)')
+
+        # 새 캔들 → 판정 재개
+        seed_candles()
+        try:
+            rt.wait_until(lambda: '[캔들 최신성] KRW-DOGE:H1 판정 재개' in rt.app_log(), 150, 3, 'S16b 판정 재개')
+        except Exception as e:
+            rt.log(f'  대기 초과: {e!r}')
+        st_hold = state(hold_sid)
+        check('S16b 새 캔들이 오면 판정 재개 기록 (감시 중 포지션 — 손절가 미도달이라 OPEN 유지)',
+              '[캔들 최신성] KRW-DOGE:H1 판정 재개' in rt.app_log() and st_hold['positions'][0][1] == 'OPEN',
+              f'{st_hold["positions"][0]}')
+        rt.kill_app()
+    finally:
+        close_all_real()
+
+
+# ── 리뷰 7회차 — 같은 포지션의 동시 청산 (2026-10-15) ────────────────────────────────
+
+def s19():
+    rt.log('S19 동시 청산 — CLOSING 전환 이후 같은 포지션의 엔진 제출 요청 8개를 장벽에서 동시에: 제출 권한은 하나(PostgreSQL advisory 잠금)·체결 정산 한 번. CLOSING 전환 자체의 동시성은 범위 밖')
+    close_all_real()
+    try:
+        rt.start_app(label='s19-run')
+        sid = seed_live_session()
+        buy_krw(sid, 3000)
+        rt.wait_until(lambda: state(sid)['orders'] and state(sid)['orders'][0][2] == 'FILLED'
+                      and state(sid)['positions'][0][2] not in ('0', '0.00000000'), 60, 1, 'S19 매수')
+        pid = int(state(sid)['positions'][0][0])
+        r = rt.api('POST', f'/api/v1/restart-harness/concurrent-sell?kind={KIND}&sessionId={sid}&positionId={pid}&qty=9.8&n=8',
+                   timeout=60)
+        rt.log(f'  동시 요청 → {r}')
+        try:
+            rt.wait_until(lambda: state(sid)['positions'][0][1] == 'CLOSED', 60, 1, 'S19 청산')
+        except Exception as e:
+            rt.log(f'  대기 초과: {e!r}')
+        time.sleep(5)
+        st = state(sid)
+        show('S19', st)
+        sells = [o for o in st['orders'] if o[1] == 'SELL']
+        check('S19 동시 매도 요청 8개 → 거래소 매도 생성 1건, 매도 주문 1행',
+              st['exchange_creates'] == 2 and len(sells) == 1, f'creates={st["exchange_creates"]} sells={len(sells)} {r}')
+        check('S19 그 한 건이 체결·반영 → CLOSED, 잔액 9,997.35(대금 한 번), 정리 대기 없음',
+              st['positions'][0][1] == 'CLOSED' and sells and sells[0][2] == 'FILLED' and sells[0][11] == 't'
+              and avail(st) == '9997.35' and not st['cleanup'], f'{st["positions"][0]} {avail(st)}')
+        rt.kill_app()
+    finally:
+        close_all_real()
 
 
 # ── 선행 조건 5번 5-g — 캔들 캐시 동시 적재 (2026-10-15) ───────────────────────────────
@@ -1483,7 +1587,7 @@ def s18(hard=False):
 SCEN = {'S1': s1, 'S2': s2, 'S3': lambda: s3(False), 'S3b': lambda: s3(True),
         'S4': lambda: s45('AFTER_FILL_OBSERVED'), 'S5': lambda: s45('IN_FILL_ACCOUNTING'), 'S6': s6, 'S7': s7, 'S8': s8, 'S9': s9,
         'S10': s10, 'S11': s11, 'S12': s12, 'S13': s13,
-        'S10b': s10b, 'S11b': s11b, 'S11c': s11c, 'S13b': s13b, 'S14': s14, 'S15': s15, 'S16': s16, 'S17': s17, 'S18': s18, 'S18b': lambda: s18(True)}
+        'S10b': s10b, 'S11b': s11b, 'S11c': s11c, 'S13b': s13b, 'S14': s14, 'S15': s15, 'S16': s16, 'S16b': s16b, 'S17': s17, 'S18': s18, 'S18b': lambda: s18(True), 'S19': s19}
 
 if __name__ == '__main__':
     args = sys.argv[1:]
@@ -1503,7 +1607,7 @@ if __name__ == '__main__':
             KIND = kind
             globals()['KIND'] = kind
             for n in names:
-                if kind == 'DYNAMIC' and n not in ('S3', 'S3b', 'S6', 'S7', 'S8', 'S9', 'S12', 'S14', 'S15', 'S16'):
+                if kind == 'DYNAMIC' and n not in ('S3', 'S3b', 'S6', 'S7', 'S8', 'S9', 'S12', 'S14', 'S15', 'S16', 'S16b', 'S19'):
                     continue   # DYNAMIC 은 접수 후 종료·부분 청산 중 종료·종료 중 체결만 (의도·claim·회계 지점은 공통 엔진)
                 try:
                     rt.ctl('POST', '/_ctl/plan', {'bid': None, 'ask': None})   # 앞 시나리오의 1회용 계획이 새지 않게

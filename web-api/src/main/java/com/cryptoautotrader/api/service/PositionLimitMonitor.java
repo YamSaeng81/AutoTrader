@@ -34,6 +34,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <h3>판정 불가 (2026-10-15 리뷰 6회차)</h3>
  * <p>시세가 없거나 오래됐거나 반영값이 없어 판정하지 못한 포지션은 <b>한도 안으로 치지 않는다</b>. 같은 포지션이
  * {@code position-limit.unjudged-alert-seconds}(기본 180초) 넘게 이어서 판정 불가면 경보 한 번, 다시 판정되면 해제를 알린다.
+ * 180초는 <b>경보</b> 기준이다 — 신규 진입 차단은 공유 예약 지점이 진입 순간에 판정해 즉시 건다({@link PositionLimitGuard#checkUnjudgedForEntry}).
  * 🔴 이어진 시간은 메모리에서 센다 — 재시작하면 처음부터 다시 센다(재시작 직후는 시세가 아직 없는 것이 보통이다).</p>
  */
 @Slf4j
@@ -151,7 +152,7 @@ public class PositionLimitMonitor {
                 if (!alerted && secs >= unjudgedAlertSeconds) {
                     alerted = true;
                     String msg = String.format("포지션별 한도 판정 불가 %d초 — %s#%s 포지션 #%d %s (%s). 이 포지션은 한도 안으로 보지 않는다 — "
-                                    + "시세 경로를 확인하라. 신규 진입 차단·정지는 걸려 있지 않다 | %s",
+                                    + "시세 경로를 확인하라. 이 세션의 신규 진입은 판정 불가가 확인된 순간부터 막혀 있다(정지는 걸려 있지 않다) | %s",
                             secs, e.sessionKind(), e.sessionId(), e.positionId(), e.coinPair(), e.code(), e.detail());
                     log.error("🔴 [포지션 한도] {}", msg);
                     send(msg);

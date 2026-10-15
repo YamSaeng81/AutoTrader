@@ -988,7 +988,8 @@ public class DynamicTradingService {
 
         for (String coinPair : watchlist) {
             Strategy strategy = resolveStrategy(sid, coinPair, session.getStrategyType());
-            List<Candle> candles = fetchCandles(coinPair, session.getTimeframe());
+            // 🔴 (2026-10-15 리뷰 7회차) 최신 완료 봉·결측 조건 — 어기면 빈 목록이라 아래 요구량 미달로 이 코인을 건너뛴다.
+            List<Candle> candles = freshCandles(coinPair, session.getTimeframe(), fetchCandles(coinPair, session.getTimeframe()));
 
             // ⚠️ 2026-08-31: 하드코딩된 15 를 **전략이 선언한 최소 캔들 수**로 교체.
             //
@@ -1290,8 +1291,13 @@ public class DynamicTradingService {
             return;
         }
 
-        List<Candle> candles = fetchCandles(coinPair, session.getTimeframe());
-        if (candles.isEmpty()) return;
+        // 🔴 (2026-10-15 리뷰 7회차) 수집 실패로 읽은 캐시가 낡았으면 빈 목록 — 낡은 종가로 손절·익절을 내지 않는다.
+        List<Candle> candles = freshCandles(coinPair, session.getTimeframe(), fetchCandles(coinPair, session.getTimeframe()));
+        if (candles.isEmpty()) {
+            // 🔴 (2026-10-15 리뷰 7회차) 건너뛰는 것은 캔들이 필요한 판정뿐 — 시간 초과와 유효한 실시간 현재가의 손절·익절은 계속한다.
+            monitorWithoutCandles(session, coinPair);
+            return;
+        }
 
         BigDecimal currentPrice = candles.get(candles.size() - 1).getClose();
 
@@ -1939,8 +1945,17 @@ public class DynamicTradingService {
      */
     private void executePaperSell(DynamicSessionEntity session, PositionEntity pos,
                                    BigDecimal signalPrice, String reason, ExitReason exitReason) {
+        // 신호가 없음 (2026-10-15 리뷰 7회차) — 캔들도 유효한 현재가도 없는 회차의 시간 초과 청산. 실전은 시장가로 그대로
+        // 나가므로 페이퍼도 같이 나가고, 체결가만 마지막으로 받은 시세(나이 무관) → 없으면 평균 단가로 시뮬레이션한다.
+        BigDecimal basePrice = signalPrice;
+        if (basePrice == null) {
+            MarkPriceBook.Mark last = markPriceBook == null ? null : markPriceBook.get(pos.getCoinPair());
+            basePrice = last != null ? last.price() : pos.getAvgPrice();
+            log.warn("[Dynamic][PAPER] 신호가 없는 매도 — 체결가를 {} {} 로 시뮬레이션한다 (posId={})",
+                    last != null ? "마지막 시세(" + last.at() + ")" : "평균 단가", basePrice, pos.getId());
+        }
         // 슬리피지 — 매도는 신호가보다 불리하게(낮게) 체결된다.
-        BigDecimal fillPrice = signalPrice.multiply(BigDecimal.ONE.subtract(PAPER_SLIPPAGE_PCT))
+        BigDecimal fillPrice = basePrice.multiply(BigDecimal.ONE.subtract(PAPER_SLIPPAGE_PCT))
                 .setScale(8, RoundingMode.HALF_DOWN);
 
         OrderEntity order = OrderEntity.builder()
@@ -2203,6 +2218,73 @@ public class DynamicTradingService {
     }
 
     // ── 내부: 캔들 조회 ────────────────────────────────────────────
+
+    @Autowired(required = false)
+    private CandleFreshnessGuard candleFreshnessGuard;
+
+    @Autowired(required = false)
+    private MarkPriceBook markPriceBook;
+
+    /**
+     * 캔들을 쓸 수 없는 회차의 보유 감시 (2026-10-15 리뷰 7회차) — 정상 경로와 같은 순서(익절 → 손절 → 시간 초과), 같은 조건. LIVE 와 같다.
+     * 현재가는 받은 지 기준(120초) 이내의 실시간 시세만 쓴다. 없으면 가격 기반 판정은 하지 않고 시간 초과만 판정한다(실자금은 시장가 매도라
+     * 가격이 필요 없다. 페이퍼는 체결가를 만들 가격이 없으므로 그 회차에는 내지 않는다 — 체결 모의의 차이). TP 트레일링은 하지 않는다.
+     *
+     * @return 청산 매도를 시도했으면 true
+     */
+    boolean monitorWithoutCandles(DynamicSessionEntity session, String coinPair) {
+        Long sid = session.getId();
+        List<PositionEntity> openPositions = positionRepository
+                .findBySessionKindAndSessionIdAndCoinPairAndStatusList(sessionKind(session), sid, coinPair, "OPEN");
+        Optional<PositionEntity> posOpt = pickMonitoredPosition(sid, session.getCurrentPositionId(), openPositions);
+        if (posOpt.isEmpty()) return false;
+        PositionEntity pos = posOpt.get();
+        BigDecimal price = markPriceBook == null ? null : markPriceBook.freshPrice(coinPair, Instant.now());
+        BigDecimal pnlPct = price == null ? null : price.subtract(pos.getAvgPrice())
+                .divide(pos.getAvgPrice(), 6, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100));
+        String priceNote = price == null ? "유효한 현재가 없음" : "실시간 현재가 " + price;
+
+        if (price != null) {
+            if (pos.getTakeProfitPrice() != null && price.compareTo(pos.getTakeProfitPrice()) >= 0) {
+                log.info("[Dynamic] 익절 — 캔들 없음, {} (id={}, {})", priceNote, sid, coinPair);
+                executeSell(session, pos, price, "익절(캔들 판정 불가 회차, " + priceNote + ") — 익절가 " + pos.getTakeProfitPrice(),
+                        ExitReason.TAKE_PROFIT);
+                return true;
+            }
+            boolean slTriggered = pos.getStopLossPrice() != null
+                    ? price.compareTo(pos.getStopLossPrice()) <= 0
+                    : pnlPct.compareTo(session.getStopLossPct().negate()) <= 0;
+            if (slTriggered) {
+                log.warn("[Dynamic] 손절 — 캔들 없음, {} pnl={}% (id={}, {})", priceNote, pnlPct, sid, coinPair);
+                if (executeSell(session, pos, price, "손절(캔들 판정 불가 회차, " + priceNote + ") — pnl " + pnlPct + "%",
+                        ExitReason.STOP_LOSS)) {
+                    telegramService.notifyStopLoss(coinPair, pnlPct.doubleValue(), sid);
+                }
+                return true;
+            }
+        }
+        Integer maxHoldHours = session.getMaxHoldHours();
+        if (ExitRuleCalculator.shouldTimeStop(maxHoldHours, pos.getOpenedAt(), Instant.now())) {
+            long heldHours = Duration.between(pos.getOpenedAt(), Instant.now()).toHours();
+            // 페이퍼·실전 같은 판정 — 현재가가 없을 때 페이퍼의 차이는 체결가 시뮬레이션(executePaperSell)에서만 생긴다.
+            log.warn("[Dynamic] 시간 초과 청산 — 캔들 없음, {} 보유 {}h ≥ {}h (id={}, {})", priceNote, heldHours, maxHoldHours, sid, coinPair);
+            if (executeSell(session, pos, price, String.format("시간 초과 청산(캔들 판정 불가 회차, %s) — 보유 %d시간 ≥ %d시간",
+                    priceNote, heldHours, maxHoldHours), ExitReason.TIME_STOP)) {
+                telegramService.notifyTimeStop(coinPair, heldHours, maxHoldHours, pnlPct == null ? Double.NaN : pnlPct.doubleValue(), sid);
+            }
+            return true;
+        }
+        if (price == null) {
+            log.warn("[Dynamic] 캔들 판정 불가 + 유효한 현재가 없음 — 가격 기반 손절·익절을 이 회차에 판정하지 못했다 (id={}, {}, posId={})",
+                    sid, coinPair, pos.getId());
+        }
+        return false;
+    }
+
+    /** 세션 거래 코인의 캔들 — 최신 완료 봉·결측 조건을 어기면 빈 목록(판정 불가). BTC 관문 캔들에는 쓰지 않는다. LIVE 와 같다. */
+    private List<Candle> freshCandles(String coinPair, String timeframe, List<Candle> candles) {
+        return candleFreshnessGuard == null ? candles : candleFreshnessGuard.filter("DYNAMIC", coinPair, timeframe, candles);
+    }
 
     private List<Candle> fetchCandles(String coinPair, String timeframe) {
         // 틱 스코프가 열려 있으면 같은 (코인, 타임프레임) 은 틱당 1회만 실제 조회한다.

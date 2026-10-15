@@ -136,6 +136,61 @@ public class RestartHarnessController {
                 "failed", errs.values().stream().mapToInt(Integer::intValue).sum(), "errors", errs, "rows", rowsNow);
     }
 
+    /**
+     * 같은 포지션에 청산 매도 요청 {@code n} 개를 <b>동시에</b> 낸다 (2026-10-15 리뷰 7회차, S19). 장벽에서 함께 출발한 스레드가 엔진 본체의
+     * {@code submitOrder} 를 같은 스레드에서 끝까지 부른다(비동기 실행기를 거치지 않아 경합이 가장 크다). 운영의 청산 경로들(정지·손절·
+     * 정리)은 모두 이 메서드로 들어온다.
+     */
+    @PostMapping("/concurrent-sell")
+    public Map<String, Object> concurrentSell(@RequestParam String kind, @RequestParam Long sessionId, @RequestParam Long positionId,
+                                              @RequestParam(defaultValue = "KRW-DOGE") String coin,
+                                              @RequestParam BigDecimal qty, @RequestParam(defaultValue = "8") int n) throws Exception {
+        Object target = engine;
+        while (org.springframework.aop.support.AopUtils.isAopProxy(target)) {
+            Object next = org.springframework.aop.framework.AopProxyUtils.getSingletonTarget(target);
+            if (next == null) break;
+            target = next;
+        }
+        OrderExecutionEngine direct = (OrderExecutionEngine) target;
+        // 실제 청산 경로처럼 먼저 원자적으로 CLOSING 표시 — 체결 반영(reconcileClosingPositions)은 CLOSING 만 본다.
+        //    이 표시를 통과한 뒤 여러 경로가 엔진까지 동시에 오는 경우를 재현해 엔진의 제출 잠금만 시험한다.
+        Integer marked = tx.execute(st -> positionRepository.markClosingIfOpen(positionId, Instant.now()));
+        if (marked == null || marked != 1) throw new IllegalStateException("CLOSING 표시 실패 (posId=" + positionId + ")");
+        CyclicBarrier start = new CyclicBarrier(n);
+        ExecutorService pool = Executors.newFixedThreadPool(n);
+        Map<String, AtomicInteger> outcome = new ConcurrentHashMap<>();
+        try {
+            List<Future<?>> fs = new ArrayList<>();
+            for (int i = 0; i < n; i++) {
+                fs.add(pool.submit(() -> {
+                    OrderRequest r = new OrderRequest();
+                    r.setCoinPair(coin);
+                    r.setSide("SELL");
+                    r.setOrderType("MARKET");
+                    r.setQuantity(qty);
+                    r.setReason("재시작 시험 동시 청산");
+                    r.setSessionId(sessionId);
+                    r.setSessionKind(kind);
+                    r.setPositionId(positionId);
+                    try {
+                        start.await();
+                        direct.submitOrder(r);
+                        outcome.computeIfAbsent("returned", x -> new AtomicInteger()).incrementAndGet();
+                    } catch (Exception e) {
+                        outcome.computeIfAbsent(e.getClass().getSimpleName(), x -> new AtomicInteger()).incrementAndGet();
+                    }
+                    return null;
+                }));
+            }
+            for (Future<?> f : fs) f.get();
+        } finally {
+            pool.shutdownNow();
+        }
+        Map<String, Integer> out = new TreeMap<>();
+        outcome.forEach((k, v) -> out.put(k, v.get()));
+        return Map.of("requests", n, "outcome", out);
+    }
+
     @PostMapping("/signal")
     public Map<String, Object> signal(@RequestParam String action) {
         signal = action;

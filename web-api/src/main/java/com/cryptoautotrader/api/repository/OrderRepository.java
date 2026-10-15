@@ -51,13 +51,14 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
      * 되돌아가고 거래소의 매도는 체결된 채 남는다. 다시 정지를 부르자 같은 수량을 <b>한 번 더 팔았다</b> — 중복 검사가 활성
      * 상태만 봐서 체결된 미반영 매도를 놓쳤다. 공유 계좌에서는 다른 세션의 코인을 팔 수 있다.</p>
      *
-     * <p>{@code since} 이전 행은 세지 않는다 — V87 이전에는 반영 표시({@code sell_applied_at})가 없었고 종전 코드가 체결 때
-     * 반영했다(NULL 이 "미반영" 이 아니다).</p>
+     * <p>🔴 V87 이전 매도도 센다 (2026-10-15 리뷰 7회차). 그때는 반영 표시({@code sell_applied_at})가 없어 NULL 이 "반영됨" 인지
+     * "미반영" 인지 판별할 수 없다 — 판별할 수 없는 것을 안전하다고 간주하지 않는다. 열린 포지션에 그런 매도가 있으면 새 매도가
+     * 막힌다(격리). 닫힌 포지션은 다시 팔 일이 없으므로 영향이 없다. 배포 전에 대조 SQL 로 찾아 사람이 판정한다.</p>
      */
     @Query("SELECT COUNT(o) FROM OrderEntity o WHERE o.positionId = :positionId AND o.side = 'SELL' AND o.sellAppliedAt IS NULL "
-            + "AND o.createdAt >= :since AND (o.state IN ('PENDING', 'INTENT_READY', 'SUBMITTING', 'UNKNOWN', 'SUBMITTED', 'PARTIAL_FILLED') "
+            + "AND (o.state IN ('PENDING', 'INTENT_READY', 'SUBMITTING', 'UNKNOWN', 'SUBMITTED', 'PARTIAL_FILLED') "
             + "OR (o.filledQuantity > 0 AND o.state IN ('FILLED', 'CANCELLED')))")
-    long countUnresolvedSellsForPosition(@Param("positionId") Long positionId, @Param("since") Instant since);
+    long countUnresolvedSellsForPosition(@Param("positionId") Long positionId);
 
     /** 특정 세션의 주문 내역 (최신순, 페이징) */
     Page<OrderEntity> findBySessionIdOrderByCreatedAtDesc(Long sessionId, Pageable pageable);
