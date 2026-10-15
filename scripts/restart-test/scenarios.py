@@ -1611,6 +1611,16 @@ def s18(hard=False):
 MARKET_PROPS = {'upbit.market-data.base-url': f'http://127.0.0.1:{rt.DOUBLE_PORT}/v1'}
 
 
+def seed_rising_candles(n=520):
+    """완만한 상승 H1 캔들(현재 시간 포함) — 마지막 종가 ≈ 301.9. 평평한 캔들은 BUY 신호가 EMA200 필터에서 먼저 HOLD 가 되어
+    BTC 관문까지 닿지 않는다(S20 첫 실행에서 관측)."""
+    rt.psql(f"DELETE FROM market_data_cache WHERE coin_pair = '{S16_COIN}' AND timeframe = 'H1'")
+    rt.psql("INSERT INTO market_data_cache (time, coin_pair, timeframe, open, high, low, close, volume) "
+            f"SELECT date_trunc('hour', now()) - (g || ' hours')::interval, '{S16_COIN}', 'H1', 250 + ({n - 1} - g) * 0.1, "
+            f"250 + ({n - 1} - g) * 0.1 + 0.05, 250 + ({n - 1} - g) * 0.1 - 0.05, 250 + ({n - 1} - g) * 0.1, 1000 "
+            f"FROM generate_series(0, {n - 1}) g")
+
+
 def market(cfg):
     """거래소 대역의 공개 시세 응답 — None 이면 끈다(503, 외부 차단과 같은 실패)."""
     rt.ctl('POST', '/_ctl/market', cfg or {})
@@ -1632,7 +1642,7 @@ def s20():
     close_all_real()
     table = session_table()
     rt.psql("DELETE FROM market_data_cache WHERE coin_pair = 'KRW-BTC'")
-    seed_candles()
+    seed_rising_candles()
     market(None)
     try:
         rt.start_app(label='s20-run', props=MARKET_PROPS)
@@ -1651,15 +1661,16 @@ def s20():
             check('S20① BTC 세션 없는 LIVE·BTC 수집 실패: 진입 차단(BTC_MARKET_GUARD 판정 불가)·주문 0·BTC 캐시 0',
                   'BTC_MARKET_GUARD 판정 불가' in rt.app_log() and not st['orders'] and st['exchange_creates'] == 0
                   and int(btc_rows) == 0, f'orders={len(st["orders"])} btc_rows={btc_rows}')
-            rt.psql(f"UPDATE live_trading_session SET status = 'STOPPED' WHERE id = {a}")
 
-            # ② 수집 복구 — BTC 세션을 만들지 않는다. 관문이 요구하는 데이터로 수집되고, 새 평가에서 실제 진입
+            # ② 수집 복구 — BTC 세션을 만들지 않는다. 세션 a 가 실행 중이므로 관문 요구 데이터(KRW-BTC H1)가 수집 대상이다.
+            #    🔴 LIVE 는 닫힌 봉 하나에 한 번 평가한다 — 판정 불가로 막힌 a 의 그 봉은 다시 평가되지 않는다(다음 봉에서 다시 판정).
+            #    그래서 진입 가능성은 데이터가 돌아온 뒤 처음 평가되는 같은 구성의 새 세션 b 로 본다.
             market({'candles': {'KRW-BTC': {'close': '100000000'}}})
             rt.wait_until(lambda: int(rt.one("SELECT count(*) FROM market_data_cache WHERE coin_pair = 'KRW-BTC' "
-                                             "AND timeframe = 'H1' AND time >= date_trunc('hour', now()) - interval '1 hour'")) > 0,
-                          150, 3, 'S20 BTC 수집')
+                                             "AND timeframe = 'H1'")) > 0, 150, 3, 'S20 BTC 수집')
             btc_rows = rt.one("SELECT count(*) FROM market_data_cache WHERE coin_pair = 'KRW-BTC' AND timeframe = 'H1'")
-            seed_candles()      # 시나리오 도중 정시가 지나도 세션 코인 캔들이 최신이게
+            rt.psql(f"UPDATE live_trading_session SET status = 'STOPPED' WHERE id = {a}")
+            seed_rising_candles()      # 시나리오 도중 정시가 지나도 세션 코인 캔들이 최신이게
             b = seed_live_session()
             rt.psql(f"UPDATE live_trading_session SET strategy_type = 'HARNESS_SIGNAL', timeframe = 'H1' WHERE id = {b}")
             try:
