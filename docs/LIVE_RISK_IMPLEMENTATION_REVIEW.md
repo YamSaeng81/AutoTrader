@@ -1138,6 +1138,74 @@ SELECT id, coin_pair, timeframe FROM paper_trading.virtual_balance WHERE status 
 **④ 현재 판정.** 선행 조건 1·5 **미완료**, 운영 배포 **보류**. 코드 쪽 검증은 ② 로 끝났다(배포 후보 297/297). 그 결과와 무관하게 A·B·D 결과 없이는
 배포를 판단하지 않는다. 배포 판단과 배포 실행은 운영자 몫이다.
 
+**⑤ 진행 결정 (리뷰어, 2026-10-16).** 후보 코드 `fc0c039` 는 **동결**하고, A·B 조회부터 실행한 뒤 조건부로 배포를 정한다.
+
+| 조회 결과 | 추천 |
+|---|---|
+| A 0행 · B 0행 | 운영자 수락(E)과 설정 영향 확인(C) 후 **통제된 배포** |
+| A 행 있음 · B 0행 | 현재 운영 장애가 없다면 **우선 보류** — 검증에 개입할 필요성과 영향을 기록한 뒤 결정 |
+| B 행 있음 | **배포 보류** — 해당 주문·포지션 대조와 격리 처리 절차(D)부터 확정 |
+
+🔴 A 가 0행이라는 것은 **이 SQL 이 검사한 범위 — BTC 추가 수집의 영향 대상이 없다** 로 한정한다. 재기동에 따른 전략 메모리 초기화·평가 공백(개입 #1·#5 의
+"확인되지 않은 것")은 없어지지 않는다 — 배포하면 그 영향은 그대로 생긴다.
+
+**실행 순서**: ① A·B 읽기 전용 조회 결과 확보 → ② E 운영자 수락 기록 → ③ C 설정의 기존 세션 영향과 배포·복구 계획 확인 → ④ 조건 충족 시 `fc0c039` 기준 배포 →
+⑤ 적용값·세션·적재·주문 추적 확인. 🔴 **소프트웨어 배포와 신규 실거래 시작은 별도 결정이다** — 배포가 승인돼도 전향 검증 종료·판정·WF 게이트 등 실전 진입 조건은
+그대로 남는다.
+
+**A·B 조회문 (읽기 전용 — 운영자가 운영 DB 에서 실행)**
+
+```sql
+-- A. 66세션 영향 대조 — 배포 뒤 KRW-BTC 를 새로 수집하게 될 타임프레임과, 그 타임프레임의 실행 중 독립 자본 페이퍼 세션
+--    (실행 중 LIVE·DYNAMIC 의 타임프레임 중 KRW-BTC 캐시가 없거나 두 봉 넘게 낡은 것 = 지금 수집되지 않는 것)
+--    판정: is_validation_66 = true 인 행이 0 이면 "A 0행". 결과 자체가 0행이면 새로 수집할 타임프레임이 없다.
+WITH req AS (
+  SELECT DISTINCT timeframe FROM live_trading_session WHERE status = 'RUNNING'
+  UNION SELECT DISTINCT timeframe FROM dynamic_session WHERE status = 'RUNNING'
+), mins AS (
+  SELECT timeframe, CASE timeframe WHEN 'M1' THEN 1 WHEN 'M3' THEN 3 WHEN 'M5' THEN 5 WHEN 'M10' THEN 10 WHEN 'M15' THEN 15
+                                   WHEN 'M30' THEN 30 WHEN 'H1' THEN 60 WHEN 'H4' THEN 240 WHEN 'D1' THEN 1440 END AS m
+    FROM req
+), btc AS (
+  SELECT timeframe, MAX(time) AS last_btc FROM market_data_cache WHERE coin_pair = 'KRW-BTC' GROUP BY timeframe
+), newly AS (
+  SELECT q.timeframe, b.last_btc FROM mins q LEFT JOIN btc b USING (timeframe)
+   WHERE b.last_btc IS NULL OR q.m IS NULL OR b.last_btc < now() - make_interval(mins => 2 * q.m + 2)
+)
+SELECT n.timeframe, n.last_btc, v.id AS paper_session_id, v.coin_pair, (v.id BETWEEN 522 AND 587) AS is_validation_66
+  FROM newly n LEFT JOIN paper_trading.virtual_balance v ON v.timeframe = n.timeframe AND v.status = 'RUNNING'
+ ORDER BY n.timeframe, v.id;
+
+-- B-1. 격리될 포지션 — 0행이어야 배포 뒤 매도가 막히는 포지션이 없다 (§6.8-③ 원문)
+SELECT p.id AS position_id, p.session_kind, p.session_id, p.coin_pair, p.status, p.size,
+       o.id AS order_id, o.state, o.filled_quantity, o.created_at
+  FROM position p JOIN "order" o ON o.position_id = p.id
+ WHERE p.session_kind IN ('LIVE','DYNAMIC') AND p.status IN ('OPEN','CLOSING')
+   AND o.side = 'SELL' AND o.sell_applied_at IS NULL AND o.filled_quantity > 0 AND o.state IN ('FILLED','CANCELLED')
+ ORDER BY p.id, o.id;
+
+-- B-2. 미결 상태로 남은 매도 — 0행이어야 한다 (§6.8-③ 원문)
+SELECT o.id, o.session_kind, o.session_id, o.position_id, o.state, o.created_at, o.exchange_order_id IS NOT NULL AS has_uuid
+  FROM "order" o
+ WHERE o.side = 'SELL' AND o.session_kind IN ('LIVE','DYNAMIC') AND o.sell_applied_at IS NULL
+   AND o.state IN ('PENDING','INTENT_READY','SUBMITTING','UNKNOWN','SUBMITTED','PARTIAL_FILLED')
+ ORDER BY o.id;
+```
+
+🔴 A 조회의 전제: ⓐ 검증 66세션 ID 는 522~587(`SUPERTREND_VALIDATION_PREREG.md`). ⓑ "두 봉 넘게 낡음" 은 캔들 최신성 판정(직전 완료 봉 + 2분 유예)을 단순화한 근사다 — 경계에
+걸리면 한 번 더 조회한다. ⓒ 이 조회는 **BTC 캔들 수집 확장**의 영향만 본다. 배포가 바꾸는 다른 것(위 재기동 영향, 공유 풀 대체 가격 차단·BTC 관문 판정 불가 —
+이 둘은 LIVE·DYNAMIC 만, 검증 엔진은 종전과 같다)은 이 조회의 범위가 아니다.
+
+**C 설정의 기존 세션 영향 (코드 확인, 2026-10-16).** `max_daily_loss_pct` 를 읽는 곳은 둘이다.
+- 종전 전역 위험 검사 `RiskManagementService.checkRisk()` — LIVE 엔진 진입(평가 회차·승인 시점)과 세션 없는 매수 주문(`OrderExecutionEngine`, `positionId` 없음)에서
+  부른다. 분모는 실행 중 LIVE 세션 초기자본 합, 분자는 최근 24시간 실현 손실. → **1.5 → 3.0 은 기존 LIVE 세션의 이 일일 한도를 실제로 완화한다.** DYNAMIC 엔진과
+  독립 자본 페이퍼 엔진(검증 66세션)은 이 검사를 부르지 않는다.
+- 공유 풀 손실 한도 `PoolLossGuard` — 등록 단계(STAGE_1·2)에서 이 값이 정확히 3.0 이 아니면 **모든 실자금 진입을 거절**한다(`RISK_CONFIG_MISMATCH`). 운영 설정의 단계가
+  등록 단계면 C 없이 배포한 상태는 실자금 진입이 막힌 쪽(안전 쪽)이다. 운영 설정의 `trading.capital-pool.stage` 값은 배포 설정에서 확인한다(DB 에 없다).
+- 그래서 C 는 **조회 결과를 보기 전에 하지 않는다.** 배포 승인 뒤 순서에 맞춰: 변경 전 값(현재 최신 행의 두 값)을 기록 → 변경 → 재기동 로그 "위험 한도 확인: … 누적 15.0%·
+  24시간 3.0%" 확인. 복구값은 변경 전 값이다(새 행을 넣는 방식이면 최신 행이 바뀐다 — `findTopByOrderByIdDesc`).
+
+
 ### 6.4 종합
 
 | 선행 조건 | 판정 | 남은 것 |
