@@ -149,7 +149,12 @@ sells = rt.psql(f"SELECT id, state FROM \"order\" WHERE position_id = {pos_id} A
 check('R③ V80 이 기존 보유를 청산 — 매도 1건·체결·CLOSED·거래소 매도 생성 1', st[0] == 'CLOSED' and len(sells) == 1 and sells[0][1] == 'FILLED'
       and len(asks()) - asks0 == 1, f'{st} {sells} ({time.time() - t1:.0f}초)')
 avail = one(f'SELECT available_krw::text FROM dynamic_session WHERE id = {dyn_id}')
-check('R③ 매도 대금 한 번 반영(가용 2,101.09 + 약 8,400)', avail is not None and 10400 < float(avail) < 10520, avail)
+# 기대값은 실제 체결로 계산한다 — 대역의 매수 체결량을 가정하지 않는다(첫 실행의 기대값 오류 — 결과 8/9 는 그대로 기록, 2026-10-16)
+from decimal import Decimal as D
+sq, sp = rt.psql(f"SELECT filled_quantity, price FROM \"order\" WHERE position_id = {pos_id} AND side = 'SELL'")[0]
+gross = D(sq) * D(sp)
+expected = D('2101.09') + gross - (gross * D('0.0005')).quantize(D('0.01'))
+check('R③ 매도 대금 한 번 반영(가용 2,101.09 + 체결량×체결가 − 수수료 0.05%)', avail is not None and abs(expected - D(avail)) < D('0.01'), f'기대 {expected} 실제 {avail}')
 
 # ④ 보유가 닫힌 뒤 — V80 DYNAMIC 이 스캔으로 돌아가도 invest_ratio 0 이라 신규 매수 0
 time.sleep(150)

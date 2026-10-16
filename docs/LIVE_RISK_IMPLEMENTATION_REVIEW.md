@@ -1368,6 +1368,56 @@ POSITION_MONITORING·현재 SUI·가용 2,101.09. → 리허설 전제(시장가
 > 1,349·익절 1,533.6·시간 초과)을 유지한다. **이 보유는 새 포지션별 한도(1-g: 진입 배정액 −15%·고점 −20%)의 판정 대상이 아니며**(V80 시절 매수라 반영값이 없다 — 10초마다
 > "평가하지 않는다" 경고, 180초 뒤 경보 한 번), 종전 청산 규칙으로만 관리된다. STAGE_1 활성화는 별도 승인 전까지 보류한다.
 
+**⑰ 기술 검토 종료와 운영자 기록 단계 (리뷰어, 2026-10-16).** 복구 절차(⑯)와 SUI 대조(⑭)는 보고한 범위에서 기술 검토를 마쳤다 — V80 기동 전 진입 차단, 기존 보유 청산 유지,
+미해결 신규 상태가 있으면 되돌리지 않는 제한. 복구 리허설 결과는 **8/9 로 유지**한다. 기대값을 고친 검사(R③ 대금 한 번 반영 — 실제 체결량×체결가 − 수수료 0.05%)는 리허설
+직후의 같은 시험 DB 에서 **다시 확인했다: 통과**(기대 10,333.2428 · 실제 10,333.24). 스크립트(`scripts/restart-test/rehearsal/rollback_rehearsal.py`)의 검사식도 고쳤다. 새 근거
+없이 9/9 로 바꾸지 않는다. 후보는 **`fc0c039` 유지**, 운영자 수락 전까지 **배포 보류**. 🔴 리뷰어의 기술 검토 의견은 운영자 수락을 대신하지 않는다.
+
+**운영자 본인이 작성할 세 기록 (확정 양식 — 각각 따로 남긴다)**
+
+① **66세션 개입과 재기동 영향 미확정 수락** (`SUPERTREND_VALIDATION_PREREG.md` 개입 기록 형식)
+> 개입 기록 #6 — (배포 일시) 배포 `fc0c039`(동결 예외 · 코드 변경). 발단: 실자금 경로 결함 수정(리뷰 7·8회차). 66세션 영향: BTC 추가 수집 대상 없음(A 0행 — 이 조회 범위에
+> 한정). 재기동에 따른 전략 메모리 초기화·평가 공백은 생기며 그 영향은 **미확정**임을 수락한다(개입 #1·#5 와 같은 성격). 성과 처리: T0 변경 없음, 구간 절단 없음. 배포 뒤
+> 66/66 RUNNING·적재 확인 결과를 덧붙인다. (수락자, 일시)
+
+② **신규 실자금 진입 중단·기존 SUI 관리 방식 수락**
+> (일시, 수락자) 두 실자금 세션(LIVE 202·DYNAMIC 93)의 신규 진입 중단을 수락한다. 기존 SUI 포지션(4151)은 즉시 강제 청산하지 않고 주문 추적·위험 관리·기존 청산 규칙(손절
+> 1,349·익절 1,533.6·시간 초과)을 유지한다. 이 보유는 새 포지션별 한도(1-g)의 판정 대상이 아니며 종전 청산 규칙으로만 관리된다. **배포 실패로 복구하는 동안 앱이 멈추면
+> SUI 의 자동 감시(손절·익절·시간 초과)도 멈춘다** — 그 사이에는 본인이 업비트에서 직접 관리한다. 복구는 §6.11-⑯ 절차(자동 재기동 없음·진입 차단 선적용·미해결 점검·
+> DB/거래소 대조)를 따르고, 재개는 별도 결정으로 한다. STAGE_1 활성화는 별도 승인 전까지 보류한다.
+
+③ **정지 절차의 집행 책임 수락** (1-h, §6.5)
+> (일시, 수락자) §6.5 전량 정지 집행 절차를 읽었고, 발동 시 본인이 집행한다. 자동 정지가 꺼져 있는 동안 정지는 사람이 한다. 시험 환경 리허설(S18·S18b)은 근거 자료이며 이
+> 수락을 대신하지 않는다.
+
+**배포 직전 재확인 (읽기 전용 — ⑥·⑨·⑭ 대조 이후 달라지지 않았는지)**
+
+```sql
+-- 실행 중 세션·열린 포지션 (⑨: DYNAMIC 78·85 페이퍼 보유 0, DYNAMIC 93 실자금 보유 1, LIVE 202 실자금 보유 0)
+SELECT 'LIVE' AS kind, s.id, s.status, s.session_type AS mode,
+       (SELECT count(*) FROM position p WHERE p.session_kind = 'LIVE' AND p.session_id = s.id AND p.status IN ('OPEN','CLOSING') AND p.size > 0) AS open_positions
+  FROM live_trading_session s WHERE s.status = 'RUNNING'
+UNION ALL
+SELECT 'DYNAMIC', s.id, s.status, s.trading_mode,
+       (SELECT count(*) FROM position p WHERE p.session_kind = 'DYNAMIC' AND p.session_id = s.id AND p.status IN ('OPEN','CLOSING') AND p.size > 0)
+  FROM dynamic_session s WHERE s.status = 'RUNNING' ORDER BY 1, 2;
+-- SUI (⑭: 포지션 4151 OPEN 5.92273431, 주문은 시장가 매수 12070 FILLED 하나, invest_ratio 0.8)
+SELECT id, status, size FROM position WHERE id = 4151;
+SELECT id, side, state, filled_quantity FROM "order" WHERE position_id = 4151 ORDER BY id;
+SELECT invest_ratio, scan_state, current_position_id FROM dynamic_session WHERE id = 93;
+-- B (V87 이전 운영용, ⑥: 둘 다 0행)
+SELECT p.id, o.id FROM position p JOIN "order" o ON o.position_id = p.id
+ WHERE p.session_kind IN ('LIVE','DYNAMIC') AND p.status IN ('OPEN','CLOSING') AND o.side = 'SELL' AND o.filled_quantity > 0 AND o.state IN ('FILLED','CANCELLED');
+SELECT id FROM "order" WHERE side = 'SELL' AND session_kind IN ('LIVE','DYNAMIC')
+   AND state IN ('PENDING','INTENT_READY','SUBMITTING','UNKNOWN','SUBMITTED','PARTIAL_FILLED');
+-- 진행 중 매수가 없는가 (배포 순간 미결 매수가 있으면 V84 이후 추적과 겹친다)
+SELECT id, session_kind, session_id, state FROM "order" WHERE side = 'BUY' AND session_kind IN ('LIVE','DYNAMIC') AND state IN ('PENDING','SUBMITTED','PARTIAL_FILLED');
+-- 마이그레이션 버전 (⑥: 80)
+SELECT max(version::int) FROM flyway_schema_history WHERE success;
+```
+결과가 위 기대와 다르면 배포하지 않고 그 차이부터 판단한다.
+
+
 
 
 
