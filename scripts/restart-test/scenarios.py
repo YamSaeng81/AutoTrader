@@ -9,6 +9,7 @@
 재기동해 값이 변하지 않는지 확인한다.
 """
 import json
+import os
 import sys
 import time
 import urllib.error
