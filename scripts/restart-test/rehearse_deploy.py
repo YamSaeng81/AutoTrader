@@ -131,7 +131,7 @@ check('R④ 엔진 평가의 BUY 신호도 진입 없음(거래소 생성 0)', l
       and one(f"SELECT count(*) FROM \"order\" WHERE session_kind = 'LIVE' AND session_id = {live_id}") == '0')
 rt.api('POST', '/api/v1/restart-harness/signal?action=HOLD', timeout=10)
 log = rt.app_log()
-check('R④ 거절 사유가 로그에 남음(자본 풀 미등록)', '등록' in log and ('자본 풀' in log or 'capital-pool' in log))
+check('R④ 거절 사유가 로그에 남음(공유 풀 미등록)', '공유 풀 한도가 사전 등록과 맞지 않는다' in log and 'POOL_NOT_REGISTERED' in log)
 
 # ⑤ 기존 보유의 위험 관리·청산 — 손절 조건을 만든다(종가 ≈ 310 ≤ 손절가 320)
 rt.psql(f'UPDATE position SET stop_loss_price = 320 WHERE id = {pos_id}')

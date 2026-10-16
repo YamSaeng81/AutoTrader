@@ -1,0 +1,87 @@
+package com.cryptoautotrader.api.service;
+
+import com.cryptoautotrader.api.entity.DynamicSessionEntity;
+import com.cryptoautotrader.api.repository.DynamicSessionRepository;
+import com.cryptoautotrader.api.repository.OrderRepository;
+import com.cryptoautotrader.api.repository.PositionRepository;
+import com.cryptoautotrader.api.support.IntegrationTestBase;
+import com.cryptoautotrader.strategy.Candle;
+import com.cryptoautotrader.strategy.StrategySignal;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
+/**
+ * 복구 리허설 보조 (2026-10-16) — <b>V80(main) 코드 그대로</b> 실행: 배포 실패로 V80 으로 되돌렸을 때, DYNAMIC 세션의 {@code invest_ratio = 0} 이
+ * 실제 매수 시도를 막는가. 이 파일은 복구 절차 검증용으로 main 작업 폴더에서만 돌렸다(main 에 커밋하지 않는다).
+ */
+@DisplayName("V80 복구 — invest_ratio 0 이면 BUY 신호에도 매수하지 않는다(대조: 0.8 이면 매수)")
+class RollbackInvestRatioZeroTest extends IntegrationTestBase {
+
+    @Autowired private DynamicTradingService dynamicTradingService;
+    @Autowired private DynamicSessionRepository sessionRepo;
+    @Autowired private PositionRepository positionRepository;
+    @Autowired private OrderRepository orderRepository;
+    @Autowired private PlatformTransactionManager txManager;
+    @MockBean private OrderExecutionEngine orderExecutionEngine;
+
+    private Long session(String ratio) {
+        return sessionRepo.saveAndFlush(DynamicSessionEntity.builder()
+                .strategyType("COMPOSITE_MOMENTUM_ICHIMOKU_V2").timeframe("M15")
+                .initialCapital(new BigDecimal("10000")).availableKrw(new BigDecimal("10333.24")).totalAssetKrw(new BigDecimal("10333.24"))
+                .investRatio(new BigDecimal(ratio)).stopLossPct(new BigDecimal("5.00"))
+                .status("RUNNING").scanState("SCANNING").tradingMode("REAL")
+                .maxCandidateSize(30).targetWatchSize(10)
+                .minAtrPct(new BigDecimal("0.5000")).maxSpreadPct(new BigDecimal("0.1000")).watchlistRefreshMin(60)
+                .build()).getId();
+    }
+
+    private List<Candle> candles() {
+        List<Candle> out = new ArrayList<>();
+        Instant t0 = Instant.now().minus(300, ChronoUnit.HOURS);
+        for (int i = 0; i < 300; i++) {
+            BigDecimal p = new BigDecimal(1000 + i);
+            out.add(Candle.builder().time(t0.plus(i, ChronoUnit.HOURS))
+                    .open(p).high(p.add(BigDecimal.TEN)).low(p.subtract(BigDecimal.TEN)).close(p).volume(new BigDecimal("1000")).build());
+        }
+        return out;
+    }
+
+    private String buy(Long id) {
+        return new TransactionTemplate(txManager).execute(st -> dynamicTradingService.executeBuy(
+                sessionRepo.findById(id).orElseThrow(), "KRW-SUI", candles(), StrategySignal.buy(new BigDecimal("80"), "복구 리허설"), BigDecimal.ONE));
+    }
+
+    @Test
+    @DisplayName("invest_ratio 0 → '가용 KRW 부족' 거절·포지션 0·주문 제출 0 / 대조 0.8 → 매수 제출 1")
+    void ratioZeroBlocksBuy() {
+        Long blocked = session("0.0000");
+        String r = buy(blocked);
+        System.out.println("[복구 리허설] invest_ratio 0 → " + r);
+        assertThat(r).contains("가용 KRW 부족");
+        assertThat(positionRepository.findBySessionKindAndSessionId("DYNAMIC", blocked)).isEmpty();
+        verify(orderExecutionEngine, never()).submitOrderAfterCommit(any());
+        verify(orderExecutionEngine, never()).submitOrder(any());
+
+        Long control = session("0.8000");
+        String c = buy(control);
+        System.out.println("[복구 리허설] 대조 invest_ratio 0.8 → " + c);
+        assertThat(positionRepository.findBySessionKindAndSessionId("DYNAMIC", control)).isNotEmpty();
+        verify(orderExecutionEngine, times(1)).submitOrderAfterCommit(any());
+    }
+}
