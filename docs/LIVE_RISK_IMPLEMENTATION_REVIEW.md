@@ -1205,6 +1205,40 @@ SELECT o.id, o.session_kind, o.session_id, o.position_id, o.state, o.created_at,
 - 그래서 C 는 **조회 결과를 보기 전에 하지 않는다.** 배포 승인 뒤 순서에 맞춰: 변경 전 값(현재 최신 행의 두 값)을 기록 → 변경 → 재기동 로그 "위험 한도 확인: … 누적 15.0%·
   24시간 3.0%" 확인. 복구값은 변경 전 값이다(새 행을 넣는 방식이면 최신 행이 바뀐다 — `findTopByOrderByIdDesc`).
 
+**⑥ 조회 결과 (운영자 실행, 2026-10-16).**
+- **0. 운영 DB 마이그레이션 V80.** 운영은 V81~V92 이전이다 — 배포하면 12개가 한 번에 적용된다. 그래서 B 는 V87 의 `sell_applied_at` 없이 "배포 뒤 반영 표시 없음이 될
+  체결 매도"를 찾는 **운영용 B**(같은 조건에서 `sell_applied_at IS NULL` 만 뺀 것 — V87 은 이 열을 빈 값으로 추가하고 기존 행을 채우지 않는다)로 조회했다.
+- **A: 1행 — `M5`, 마지막 KRW-BTC M5 봉 2026-08-07 09:55 KST, 실행 중 페이퍼 세션 없음** → `is_validation_66` 참인 행 0 = **A 0행**(BTC 추가 수집의 영향 대상 없음).
+  🔴 부수 관측: 실행 중 LIVE 또는 DYNAMIC 에 M5 세션이 있고 KRW-BTC M5 캐시가 두 달 넘게 멈춰 있다 — 현 운영 코드에서 그 세션의 BTC 급락 관문은 조회 구간 안에 캔들이
+  없어 **사실상 "미발동"** 으로 돌고 있었다. 배포하면 M5 BTC 가 수집되고 관문이 실제로 판정한다(수집 실패 시 판정 불가 → 진입 차단).
+- **B-1·B-2: 0행** → **B 0행.**
+- 결정 표: **A 0행 · B 0행 → 운영자 수락(E)과 설정 영향 확인(C) 후 통제된 배포.**
+
+**⑦ 마이그레이션 V81~V92 의 데이터 변경 (코드 확인).** 기존 설정 값을 바꾸는 것은 없다 — V88 은 `risk_config` 가 **비어 있을 때만** 기본 행을 넣는다(운영에는 행이 있다),
+V90 은 열린 실자금 포지션의 진입 배정액만 채운다(첫 시장가 매수 요청액, 없으면 투입금), V85 는 계좌 잠금 행 하나를 넣는다. 나머지는 열·표·인덱스 추가.
+
+**⑧ 🔴 배포가 바꾸는 운영 동작 — C 와 함께 확인할 것.**
+- **자본 풀 등록이 없으면 실자금 신규 진입이 모두 거절된다.** `trading.capital-pool.stage`·총 자본·포지션당 상한·동시 보유 상한이 등록값과 정확히 같아야
+  `CapitalPoolLimits.isRegistered()` 가 참이다(§6.2). `application*.yml` 에는 이 설정이 없다 — 운영 배포 설정(환경 변수 등)에도 없으면, 배포 즉시 **LIVE·DYNAMIC 실자금 매수가
+  전부 멈춘다**(청산·주문 추적·정지는 계속). 지금 운영에 실행 중인 실자금 세션이 있으면, 배포는 곧 그 세션들의 신규 진입 중단이다.
+- 등록 단계로 설정하면 `risk_config` 가 24시간 3.0·누적 15.0 이 아닌 한 역시 거절된다(C 전에는 막힌 쪽).
+- 확인할 읽기 전용 조회(운영자):
+
+```sql
+-- 실행 중 실자금 세션과 열린 포지션 — 배포 뒤 신규 진입이 멈출 대상
+SELECT 'LIVE' AS kind, s.id, s.coin_pair, s.timeframe, s.session_type AS mode, s.initial_capital,
+       (SELECT count(*) FROM position p WHERE p.session_kind = 'LIVE' AND p.session_id = s.id AND p.status IN ('OPEN','CLOSING') AND p.size > 0) AS open_positions
+  FROM live_trading_session s WHERE s.status = 'RUNNING'
+UNION ALL
+SELECT 'DYNAMIC', s.id, s.current_coin_pair, s.timeframe, s.trading_mode, s.initial_capital,
+       (SELECT count(*) FROM position p WHERE p.session_kind = 'DYNAMIC' AND p.session_id = s.id AND p.status IN ('OPEN','CLOSING') AND p.size > 0)
+  FROM dynamic_session s WHERE s.status = 'RUNNING'
+ ORDER BY 1, 2;
+
+-- C 의 변경 전 값(복구값) — 서비스가 읽는 행(id 가 가장 큰 행)
+SELECT id, max_daily_loss_pct, max_portfolio_drawdown_pct, updated_at FROM risk_config ORDER BY id DESC LIMIT 1;
+```
+
 
 ### 6.4 종합
 
