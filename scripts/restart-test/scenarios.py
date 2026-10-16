@@ -356,7 +356,7 @@ def s9():
 
 # ── 단일 인스턴스·잠금 순서·설정 (2026-10-14) ──────────────────────────────────
 
-OTHER_PORT = 18082
+OTHER_PORT = int(os.environ.get('RT_OTHER_PORT', 18082))
 LOCK_KEY = 0x43415431
 
 

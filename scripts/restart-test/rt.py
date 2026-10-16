@@ -18,7 +18,7 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 # 🔴 build/ 밖에 둔다 (2026-10-14) — `gradlew clean` 이 build/ 를 지워 실행 로그·덤프가 사라진 일이 있었다.
 WORK = os.environ.get('RT_WORK', os.path.join(ROOT, 'restart-test-work'))
 os.makedirs(WORK, exist_ok=True)
-APP_PORT = 18081
+APP_PORT = int(os.environ.get('RT_APP_PORT', 18081))   # 다른 프로그램이 쓰고 있으면 바꾼다(기본 그대로)
 DOUBLE_PORT = 18080
 TOKEN = 'rt-token'
 # 🔴 PATH 의 java 는 실행기 스텁이라 자식으로 실제 JVM 을 띄운다 — 스텁을 죽이면 앱이 남는다. JDK 를 직접 쓴다.
