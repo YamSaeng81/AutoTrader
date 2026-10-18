@@ -22,6 +22,10 @@ public interface MarketDataCacheRepository extends JpaRepository<MarketDataCache
             "FROM MarketDataCacheEntity c GROUP BY c.coinPair, c.timeframe ORDER BY c.coinPair, c.timeframe")
     List<Object[]> findDataSummary();
 
+    /** 최근 캔들이 쌓이는 (코인, 타임프레임) — 결측 재수집 대상 (2026-10-19). */
+    @Query("SELECT DISTINCT c.coinPair, c.timeframe FROM MarketDataCacheEntity c WHERE c.time > :since")
+    List<Object[]> findActivePairs(@Param("since") Instant since);
+
     @Query("SELECT MAX(c.time) FROM MarketDataCacheEntity c WHERE c.coinPair = :coinPair AND c.timeframe = :timeframe")
     Instant findMaxTime(@Param("coinPair") String coinPair, @Param("timeframe") String timeframe);
 

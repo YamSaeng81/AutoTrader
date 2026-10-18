@@ -47,6 +47,12 @@ public class ExchangeHealthMonitor {
     private static final int DOWN_THRESHOLD = 3; // 연속 N회 실패 시 DOWN 선언
 
     private volatile String status = "UP";
+    /**
+     * DOWN 을 선언한 뒤 아직 복구 이벤트를 내지 않았는가 (2026-10-19). 복구는 직전 상태가 아니라 <b>이 표시</b>로 판정한다 —
+     * 종전에는 {@code DOWN → UP} 직행만 복구로 봐서, 점검 재개 직후처럼 느린 응답으로 {@code DOWN → DEGRADED → UP} 을 거치면
+     * 복구 이벤트가 나지 않았다(비상 정지된 세션이 영영 재시작되지 않는다).
+     */
+    private volatile boolean downUnrecovered = false;
     private volatile long latencyMs = 0;
     private volatile Instant lastCheckedAt;
     private volatile boolean webSocketConnected = false;
@@ -215,7 +221,7 @@ public class ExchangeHealthMonitor {
 
     // ── 내부 메서드 ───────────────────────────────────────────
 
-    private void updateStatus(String newStatus) {
+    void updateStatus(String newStatus) {
         String oldStatus = this.status;
         this.status = newStatus;
 
@@ -224,6 +230,7 @@ public class ExchangeHealthMonitor {
 
             // DOWN 감지 시 이벤트 발행 → LiveTradingService가 리스닝
             if ("DOWN".equals(newStatus)) {
+                downUnrecovered = true;
                 String reason = String.format("Upbit API 연속 %d회 연결 실패", consecutiveFailCount);
                 log.error("거래소 DOWN 감지 — ExchangeDownEvent 발행 ({})", reason);
                 eventPublisher.publishEvent(new ExchangeDownEvent(this, reason));
@@ -236,10 +243,11 @@ public class ExchangeHealthMonitor {
                 }
             }
 
-            // DOWN 후 UP 복구 시 이벤트 발행 → LiveTradingService가 세션 자동 재시작
-            if ("UP".equals(newStatus) && "DOWN".equals(oldStatus)) {
-                log.info("거래소 DOWN → UP 복구 감지 — ExchangeRecoveredEvent 발행");
-                eventPublisher.publishEvent(new ExchangeRecoveredEvent(this, oldStatus));
+            // DOWN 후 UP 복구 시 이벤트 발행 → LiveTradingService가 세션 자동 재시작 (DEGRADED 를 거쳐도 — 위 표시 참조)
+            if ("UP".equals(newStatus) && downUnrecovered) {
+                downUnrecovered = false;
+                log.info("거래소 DOWN → UP 복구 감지 (직전 {}) — ExchangeRecoveredEvent 발행", oldStatus);
+                eventPublisher.publishEvent(new ExchangeRecoveredEvent(this, "DOWN"));
             }
         }
     }

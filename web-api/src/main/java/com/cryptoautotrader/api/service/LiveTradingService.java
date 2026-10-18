@@ -248,6 +248,16 @@ public class LiveTradingService {
     @Autowired(required = false)
     private UpbitOrderClient upbitOrderClient;
 
+    /**
+     * 자기 프록시 — 같은 클래스의 {@code @Transactional} 메서드를 <b>트랜잭션을 거쳐</b> 부를 때 쓴다 (2026-10-19).
+     *
+     * <p>🔴 운영 2026-10-19: 거래소 복구 이벤트가 {@code startSession} 을 직접 불러 트랜잭션 없이 돌았고, 계좌 잠금 검사가
+     * 그것을 거절해 LIVE 202 재시작이 실패했다. 자기 호출은 프록시를 우회하므로 {@code @Transactional} 이 조용히 무시된다.</p>
+     */
+    @Autowired
+    @org.springframework.context.annotation.Lazy
+    private LiveTradingService self;
+
     /** 정지 후 정리 대기 (V87) — 정지가 남긴 포지션을 닫힐 때까지 맡는다. */
     @Autowired
     private com.cryptoautotrader.api.repository.PositionCleanupRepository positionCleanupRepository;
@@ -279,7 +289,8 @@ public class LiveTradingService {
         // Discord ALERT
         sendDiscordEmergencyStopAlert(event.getReason(), sessionSummaries);
 
-        emergencyStopAll();
+        // 🔴 프록시로 부른다 (2026-10-19) — 시험에서 검증된 경로(트랜잭션 안의 전체 비상 정지)와 같게 한다.
+        self.emergencyStopAll();
     }
 
     @EventListener
@@ -293,30 +304,28 @@ public class LiveTradingService {
         log.info("거래소 복구 감지 — {} 세션 자동 재시작 시도", exchangeStoppedSessionIds.size());
 
         List<Long> toRestart = new ArrayList<>(exchangeStoppedSessionIds);
-        exchangeStoppedSessionIds.clear();
+        exchangeStoppedSessionIds.removeAll(toRestart);
 
         List<String> restarted = new ArrayList<>();
         List<String> failed    = new ArrayList<>();
 
         for (Long sessionId : toRestart) {
             try {
-                LiveTradingSessionEntity session = sessionRepository.findById(sessionId).orElse(null);
-                if (session == null) {
-                    log.warn("재시작 대상 세션 없음: id={}", sessionId);
-                    continue;
-                }
-                // EMERGENCY_STOPPED → STOPPED 으로 변경 후 startSession
-                session.setStatus("STOPPED");
-                session.setStoppedAt(null);
-                sessionRepository.save(session);
-
-                startSession(sessionId);
+                // 🔴 2026-10-19: 프록시를 거쳐 **수동 시작과 같은 트랜잭션·잠금·검사**로 재시작한다. 종전에는 STOPPED 를 먼저
+                //    저장한 뒤 startSession 을 직접 불렀다 — 트랜잭션 없이 돌아 거절됐고, 실패해도 정지 원인(EMERGENCY_STOPPED)이
+                //    지워졌다. 이제 상태 전환과 검사가 한 트랜잭션이라 거절되면 EMERGENCY_STOPPED 그대로 남는다.
+                LiveTradingSessionEntity session = self.restartAfterExchangeRecovery(sessionId);
+                if (session == null) continue;   // 사라졌거나 사람이 손댄 세션 — 사유는 로그에 남겼다
                 restarted.add(session.getStrategyType() + " " + session.getCoinPair()
                         + "[" + session.getTimeframe() + "]");
                 log.info("세션 자동 재시작 완료: id={} {} {}", sessionId,
                         session.getStrategyType(), session.getCoinPair());
             } catch (Exception e) {
-                log.error("세션 자동 재시작 실패: id={} — {}", sessionId, e.getMessage());
+                // 거래소가 다시 DOWN 이라 거절됐으면 다음 복구 때 다시 시도한다. 자본·등록 거절은 사람이 판단한다.
+                boolean downAgain = exchangeHealthMonitor != null && "DOWN".equals(exchangeHealthMonitor.getStatus());
+                if (downAgain) exchangeStoppedSessionIds.add(sessionId);
+                log.error("세션 자동 재시작 실패: id={} — {} (EMERGENCY_STOPPED 유지{})", sessionId, e.getMessage(),
+                        downAgain ? ", 거래소 DOWN — 다음 복구 때 다시 시도" : ", 재시작은 사람이 판단");
                 failed.add("세션#" + sessionId + "(" + e.getMessage() + ")");
             }
         }
@@ -488,7 +497,39 @@ public class LiveTradingService {
         if ("RUNNING".equals(session.getStatus())) {
             throw new SessionStateException("세션이 이미 실행 중입니다: id=" + sessionId);
         }
+        return startLocked(sessionId, session);
+    }
 
+    /**
+     * 거래소 복구 뒤 자동 재시작 (2026-10-19) — <b>거래소 DOWN 으로 비상 정지된 그대로인</b> 세션만 다시 켠다.
+     *
+     * <p>잠금·검사는 {@link #startSession} 과 같다(같은 {@link #startLocked}). 잠근 뒤 상태가 {@code EMERGENCY_STOPPED} 가 아니면
+     * 정지 뒤 사람이 손댄 것이다(수동 정지·시작·삭제) — 켜지 않는다. 검사에서 거절되면 예외가 이 트랜잭션을 되돌려
+     * {@code EMERGENCY_STOPPED} 가 남는다.</p>
+     *
+     * @return 재시작한 세션, 대상이 아니면 {@code null}
+     */
+    @Transactional
+    public LiveTradingSessionEntity restartAfterExchangeRecovery(Long sessionId) {
+        if (portfolioSyncService != null) {
+            portfolioSyncService.syncBalance();
+        }
+        capitalReservationService.lockAccountBeforeSession("LIVE 세션 복구 재시작 #" + sessionId);
+        if (sessionRepository.lockAndReadStatus(sessionId).isEmpty()) {
+            log.warn("재시작 대상 세션 없음: id={}", sessionId);
+            return null;
+        }
+        LiveTradingSessionEntity session = getSessionOrThrow(sessionId);
+        if (!"EMERGENCY_STOPPED".equals(session.getStatus())) {
+            log.warn("거래소 복구 — 세션 #{} 는 비상 정지 뒤 상태가 {} 로 바뀌었다(사람의 조작) — 자동 재시작하지 않는다",
+                    sessionId, session.getStatus());
+            return null;
+        }
+        return startLocked(sessionId, session);
+    }
+
+    /** 계좌·세션 잠금을 쥔 뒤의 시작 본체 — 수동 시작과 복구 재시작이 같은 검사를 지난다. */
+    private LiveTradingSessionEntity startLocked(Long sessionId, LiveTradingSessionEntity session) {
         // 동시 실행 세션 수 제한 확인
         long runningCount = sessionRepository.countByStatus("RUNNING");
         if (runningCount >= MAX_CONCURRENT_SESSIONS) {
