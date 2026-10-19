@@ -1540,6 +1540,12 @@ SELECT max(version::int) FROM flyway_schema_history WHERE success;
   08:00~08:20 의 마지막 30줄은 다른 컨테이너(`c9194c16…`, cloudflared-tunnel 네트워크, `unless-stopped`)가 08:14 부터 약 1분 간격으로 종료 코드 0 → 재시작(횟수 5→15)하는
   기록이다 — AutoTrader(`restart: always`) 의 기록이 아니다. 08:13 전후 구간은 잘려 보지 못했다. 호스트는 그대로인데 DB 를 포함한 스택 전체가 동시에 재기동된 모양은
   Docker 데몬 재시작과 맞을 수 있다 — **추정**이다. 08:10~08:15 데몬·systemd·apt 기록으로 확인한다.
+  **→ 확정 (운영자 조회, 2026-10-19)**: `/var/log/apt/history.log` — **08:13:25 KST `apt upgrade`(Requested-By: manicstr)**, 업그레이드에 containerd.io 2.3.5→2.4.2·docker-ce
+  29.8.1→29.9.1 포함, 끝 08:14:12. 08:13:36 dockerd "containerd … EOF", 08:13:42 systemd "Stopping Docker Application Container Engine"·dockerd "Processing signal 'terminated'"
+  (같은 시각 앱 로그의 DB `terminating connection due to administrator command`), 08:13:52 컨테이너 `436c569f…` 10초 안에 끝나지 않아 강제 종료, 이후 새 데몬이 재시작
+  정책으로 스택을 다시 띄움. **원인: 운영자의 수동 패키지 업그레이드에 따른 Docker 재시작** — 호스트 재부팅·자동 업데이트·거래소 점검이 아니다. 실자금 보유 0 이라 노출 영향 없음.
+  🔴 운영 교훈: Docker 패키지 업그레이드는 앱·DB 를 함께 내린다(보유 중이면 그동안 손절 감시가 멈춘다). 실자금 보유가 없는 시간에, 앱을 먼저 멈춘 뒤 하거나 패키지를 고정한다
+  (운영자 결정). 별건: `cloudflared-tunnel` 컨테이너가 `unless-stopped` 로 약 1분마다 종료·재시작(누적 38,628회) — AutoTrader 와 무관, 운영자 확인 대상.
 
 **④ 추가 조회 (운영자 실행, 읽기 전용 — 요청 시점의 목록).**
 - ④-1 SUI 정산: `dynamic_sell_settlement WHERE position_id = 4151` 1행이고 `net_proceeds` = 주문 12082 의 반영 체결금액 − 반영 수수료 = 가용 증가 8,044.97 인지.
