@@ -1689,6 +1689,17 @@ SELECT max(version::int) FROM flyway_schema_history WHERE success;
 - 전체 회귀(web-api): **839 / 실패 0**(건너뜀 1).
 - 한계 유지: **수량 합계 일치는 필요한 대조 조건이고, 잔액 반영 여부는 별도의 사람 확인**이다.
 
+**⑧ 배포 후보 실제 프로세스 검증 (후보 `0be46c5`, 2026-10-19)** — 증거 `D:/Claude Code/evidence/crypto-auto-trader/restart-test-2026-10-19-quarantine-0be46c5/`
+(MANIFEST.md: 코드 SHA·이미지 digest·운영 버전 jar sha256·로그·DB 덤프).
+- `rehearse_v94.py` — 운영 버전 `3b781d8`(로컬 빌드 jar, sha256 96d55e81…) 로 V93 → 후보로 **V94 업그레이드**. V87 이전 매수 9.8·매도 3.0(반영됨, 표시 없음 — 수량 6.8)
+  실자금 LIVE 포지션으로 **9/9**: ① V93 ② V94 한 건 적용·기동 점검이 격리 포지션 1개 알림 ③ 세션 정지 — 거래소 매도 생성 0·옛 매도 반영 표시 없음·수량 6.8·잔액 7,958.53
+  불변(정리 작업·청산 확정 40초)·경계 = V87 설치 시각 로그 ④ 대조 수량 6.7 해제 요청 → HTTP 409·기록·표시 없음 ⑤ 올바른 해제 → 기록·표시·잔액 불변·커밋 뒤 알림 로그
+  ⑥ 재기동 → 기동 점검 "격리 포지션 없음" ⑦ 정지가 남긴 정리 작업이 남은 6.8 을 한 번 팔아(거래소 생성 1) CLOSED, 잔액 9,997.71 = 7,958.53 + 반영 대금 2,040 − 반영 수수료
+  0.816(대금 한 번).
+- 전체 재시작 시험 `scenarios.py --fresh --both`(LIVE·DYNAMIC, 새 PostgreSQL): **297/297**.
+- 🔴 확인하지 않은 것: 경계 불명(Flyway 이력 없음) 상태의 실제 프로세스 동작 — 운영 DB 구조에서 V87 이력을 지우면 Flyway 검증이 기동을 막으므로 재현하지 않았다(H2 통합·단위
+  시험으로 확인). 운영 배포는 별도 판단이다.
+
 **⑤-1 현재 격리 대상 확인 (읽기 전용, 운영자)** — 10-16 의 0행은 그 시점의 결과다.
 ```sql
 SELECT p.id AS position_id, p.session_kind, p.session_id, p.coin_pair, p.status, p.size, o.id AS order_id, o.state, o.filled_quantity, o.created_at
