@@ -70,6 +70,8 @@ def hour_start(epoch):
 
 
 rt.log('배포 후보 확인 — fc0c039(V92) → 후보(V93): 점검 구간 조회·판정·재기동·거래소 복구')
+if not os.path.exists(OLD_JAR):
+    raise SystemExit(f'운영 버전 jar 가 없다 — fc0c039 작업 폴더에서 bootJar 를 먼저 만든다: {OLD_JAR}')
 rt.fresh_db()
 rt.start_double(fresh=True)
 
