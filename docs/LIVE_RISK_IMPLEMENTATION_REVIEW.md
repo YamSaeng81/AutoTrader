@@ -1605,6 +1605,9 @@ SELECT max(version::int) FROM flyway_schema_history WHERE success;
   저장 17:00~21:55 UTC(= 02:00~06:55 KST), 근거 공지 #6657. 기동 뒤 첫 결측 재수집 조회(1회, 13:02:16 KST) 직후 DYNAMIC 코인 판정 재개 — 예: M15 WLD·ONDO·SOL·ENA·SUI
   "결측 20칸" → 재개, H1 XRP·PUFFER·WLD·ONDO·SOL "결측 4~5칸" → 재개(경계 봉 1칸은 일반 결측으로 남음). KRW-SOPH M15 는 예외 로그는 있으나 재개 줄이 보이지 않았다 —
   점검 밖 무체결 칸(④-3)으로 판정 불가가 남는 것으로 보인다(확인 대기). BTC 급락 관문 재개·배포 뒤 다른 오류·개입 기록 #7 수락 시각: 확인 대기.
+  **추가 확인(운영자, 배포 뒤 30분)**: BTC 급락 관문 H1 재개 13:02:20·M15 재개 13:03:20 KST(결측 4칸·19칸 → 재개). KRW-SOPH M15 — 첫 판정 "결측 30칸", 재개 없음 →
+  점검 19칸을 빼도 점검 밖 무체결 칸이 남아 판정 불가 유지(**규칙대로** — 점검 밖 결측은 종전 기준). 그 칸들이 창에서 밀려나면 풀린다. 판정 불가·공유 풀 미등록 외 ERROR 없음.
+  `POOL_NOT_REGISTERED` 0건(30분 동안 DYNAMIC 93 진입 신호 없음 — 이상 아님). → 배포 확인 판정 기준대로. 🔴 남은 것: 개입 기록 #7(66세션) 수락 시각, 서버 재기동 원인(④-4).
 - **운영 적용 시 운영자가 넣을 행** (배포 뒤, 확인자 본인 이름·실제 시각):
   `INSERT INTO exchange_maintenance_window (exchange, scope, starts_at, ends_at, source, source_timezone, confirmed_at, confirmed_by, note) VALUES ('UPBIT', 'ALL_MARKETS',
   '2026-10-19 02:00:00+09', '2026-10-19 06:55:00+09', '업비트 공지 #6657 서버 점검 안내 (사전 공지 2026-10-13 18:34 KST, 완료 갱신 2026-10-19 06:48 KST)', 'Asia/Seoul', now(),
