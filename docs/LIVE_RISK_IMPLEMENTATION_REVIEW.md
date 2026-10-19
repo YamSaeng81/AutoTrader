@@ -1596,6 +1596,11 @@ SELECT max(version::int) FROM flyway_schema_history WHERE success;
   - 남는 한계: M15 경계는 H2 시험으로만 확인(대역은 H1 만 낸다).
 - **배포 순서 (리뷰)**: 배포 직전 상태 재확인 → 운영자 개입 결정(66세션 입력 변경 포함) → 배포(`3b781d8`) → 확인자를 적은 점검 구간 등록 → 판정 재개 확인. 서버 재기동 원인
   조사(호스트 부팅 이력·Docker 로그)는 별도로 남는다.
+- **⑩ 배포 직전 상태 재확인 (운영자 실행, 2026-10-19 — 읽기 전용)**: Flyway **92** · LIVE: 202 `STOPPED`(④-2), 나머지 20개(157·161·166~168·183~196·200)는
+  `EMERGENCY_STOPPED`(과거 세션) — 🔴 배포 뒤에도 자동 재시작되지 않는다: 복구 재시작 대상은 거래소 DOWN 순간 RUNNING 이던 세션 id 를 메모리에 담은 목록뿐이고, 기동 시
+  EMERGENCY_STOPPED 를 다시 켜는 경로는 없다(코드 확인) · DYNAMIC: 93 RUNNING REAL `invest_ratio` 0.8, 78·85 RUNNING PAPER · 실자금 보유 **0** · 미결 주문 **0** · 검증 **66**.
+  → 기대와 같다. 🔴 관찰: 배포·구간 등록 뒤 DYNAMIC 93 의 판정이 재개되면 실자금 신규 진입을 막는 것은 **공유 풀 미등록 거절(POOL_NOT_REGISTERED)** 하나다(10-16 수락한
+  운용 상태와 같다 — 지금까지는 캔들 판정 불가도 함께 막고 있었다). DYNAMIC 페이퍼 78·85 는 판정이 재개되면 다시 평가한다.
 - **운영 적용 시 운영자가 넣을 행** (배포 뒤, 확인자 본인 이름·실제 시각):
   `INSERT INTO exchange_maintenance_window (exchange, scope, starts_at, ends_at, source, source_timezone, confirmed_at, confirmed_by, note) VALUES ('UPBIT', 'ALL_MARKETS',
   '2026-10-19 02:00:00+09', '2026-10-19 06:55:00+09', '업비트 공지 #6657 서버 점검 안내 (사전 공지 2026-10-13 18:34 KST, 완료 갱신 2026-10-19 06:48 KST)', 'Asia/Seoul', now(),
