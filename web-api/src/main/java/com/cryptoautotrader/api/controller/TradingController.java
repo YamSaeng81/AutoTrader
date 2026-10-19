@@ -54,6 +54,7 @@ public class TradingController {
     private final PositionRepository positionRepository;
     private final BenchmarkAlphaService benchmarkAlphaService;
     private final com.cryptoautotrader.api.service.UnknownOrderAdjustmentService unknownOrderAdjustmentService;
+    private final com.cryptoautotrader.api.service.SellQuarantineReleaseService sellQuarantineReleaseService;
 
     @Autowired(required = false)
     private UpbitOrderClient upbitOrderClient;
@@ -134,6 +135,21 @@ public class TradingController {
             @PathVariable Long id, @RequestBody ManualAdjustmentRequest req) {
         return ApiResponse.ok(unknownOrderAdjustmentService.record(id, req.adjustedBy(), req.reason(), req.evidence(),
                 req.releaseKrw(), req.unresolvedRisk(), java.time.Instant.now()));
+    }
+
+    /** 매도 격리 해제 요청 — 책임자·근거·증거는 필수, 대조한 포지션 수량은 지금 DB 값과 같아야 한다. */
+    public record QuarantineReleaseRequest(String releasedBy, String reason, String evidence,
+                                           java.math.BigDecimal confirmedPositionSize) {}
+
+    /**
+     * 매도 격리 해제 (2026-10-19, V94). 🔴 "이 매도는 이미 포지션·잔액에 반영돼 있다" 는 사람의 판정을 반영 표시로 남긴다 — 잔액·수량·주문 상태는
+     * 바꾸지 않는다. 포지션 수량 = 체결 매수 합 − 체결 매도 합이 아니면(이 매도가 수량에 빠지지 않았으면) 거절한다.
+     */
+    @PostMapping("/orders/{id}/quarantine-release")
+    public ApiResponse<com.cryptoautotrader.api.service.SellQuarantineReleaseService.Release> quarantineRelease(
+            @PathVariable Long id, @RequestBody QuarantineReleaseRequest req) {
+        return ApiResponse.ok(sellQuarantineReleaseService.release(id, req.releasedBy(), req.reason(), req.evidence(),
+                req.confirmedPositionSize(), java.time.Instant.now()));
     }
 
     /** 세션 삭제 (STOPPED 상태만) */
