@@ -48,7 +48,8 @@ import static org.mockito.Mockito.when;
  * ② 🔴 반영되지 않은 매도(수량이 9.8 그대로)는 거절하고 아무것도 바꾸지 않는다 ③ 대조 수량이 지금과 다르면 거절 ④ 책임자·근거·증거 필수
  * ⑤ 두 번 해제 거절 ⑥ 같은 포지션에 미결 매도가 있으면 거절 ⑦ 격리 대상이 아닌 주문(닫힌 포지션·매수) 거절 ⑧ 매수 기록이 없으면 거절
  * ⑨ 해제 뒤 청산 확정이 그 매도를 다시 반영하지 않는다(새 매도만 한 번) ⑩~⑫ 🔴 해제 전 판별 불가 매도는 청산 확정·유령 정산이 자동 반영하지 않는다
- * (LIVE 청산 확정·DYNAMIC 청산 확정·DYNAMIC 유령 정산) ⑬ 대조군 — 경계 뒤의 미반영 체결 매도(정지 롤백 등)는 종전대로 자동 반영한다.</p>
+ * (LIVE 청산 확정·DYNAMIC 청산 확정·DYNAMIC 유령 정산) ⑬ 대조군 — 경계 뒤의 미반영 체결 매도(정지 롤백 등)는 종전대로 자동 반영한다
+ * ⑭ 🔴 경계 불명(이력·설정 없음) — 최근 매도도 자동 반영하지 않는다(보류) ⑮ 🔴 해제 알림은 커밋 뒤에만 — 롤백되면 기록·표시·알림 모두 없음.</p>
  *
  * <p>경계 시각(V87 설치 — 운영은 Flyway 이력)은 시험에서 1일 전으로 둔다: 30일 전 매도는 판별 불가, 방금 만든 매도는 아니다.</p>
  */
@@ -70,6 +71,8 @@ class SellQuarantineReleaseTest extends IntegrationTestBase {
     @Autowired private DynamicSessionRepository dynamicRepo;
 
     @MockBean private UpbitOrderClient upbitOrderClient;
+    @MockBean private TelegramNotificationService telegram;
+    @Autowired private org.springframework.transaction.PlatformTransactionManager txManager;
 
     private final List<Long> sessions = new ArrayList<>();
     private final List<Long> dynamicSessions = new ArrayList<>();
@@ -366,6 +369,45 @@ class SellQuarantineReleaseTest extends IntegrationTestBase {
         assertThat(appliedAt(rolledBack.getId())).isNotNull();
         assertThat(positionRepository.findById(p.getId()).orElseThrow().getStatus()).isEqualTo("CLOSED");
         assertThat(liveRepo.findById(p.getSessionId()).orElseThrow().getAvailableKrw()).isEqualByComparingTo("9997.51");
+    }
+
+    @Test
+    @DisplayName("🔴 ⑭ 경계 불명(Flyway 이력·설정 없음, 운영처럼) — 경계 뒤의 미반영 체결 매도도 자동 반영하지 않고 보류한다")
+    void unknownBoundaryHoldsAutoApply() {
+        PositionEntity p = legacyPosition("9.8");
+        jdbc.update("UPDATE \"order\" SET sell_applied_at = ? WHERE id = ?", Timestamp.from(Instant.now()), legacySell(p).getId());
+        jdbc.update("UPDATE position SET size = 6.8, status = 'CLOSING', closing_at = ? WHERE id = ?", Timestamp.from(Instant.now()), p.getId());
+        OrderEntity recent = order(p, "SELL", "6.8", "FILLED", Instant.now());
+        jdbc.update("UPDATE \"order\" SET reported_executed_funds = 2040, reported_paid_fee = 1.02 WHERE id = ?", recent.getId());
+        legacySellPolicy.resetForTest(false);   // 시험 기반의 H2 에는 Flyway 이력이 없다 — 설정도 없다 → 경계 불명
+
+        liveTradingService.reconcileClosingPositions();
+
+        assertThat(legacySellPolicy.state()).isEqualTo(LegacySellPolicy.State.UNKNOWN);
+        assertThat(appliedAt(recent.getId())).as("판정할 수 없으면 보류").isNull();
+        assertThat(liveRepo.findById(p.getSessionId()).orElseThrow().getAvailableKrw()).isEqualByComparingTo("7958.53");
+        verify(telegram, times(1)).notifyRiskLimitBreached(org.mockito.ArgumentMatchers.contains("경계 시각을 정하지 못했다"));
+    }
+
+    @Test
+    @DisplayName("🔴 ⑮ 해제 알림은 커밋 뒤에만 — 바깥 트랜잭션이 롤백되면 기록·반영 표시·알림이 모두 없다. 커밋되면 알림 한 번")
+    void releaseNotificationAfterCommitOnly() {
+        PositionEntity p = legacyPosition("6.8");
+        OrderEntity s = legacySell(p);
+
+        org.springframework.transaction.support.TransactionTemplate tx = new org.springframework.transaction.support.TransactionTemplate(txManager);
+        tx.executeWithoutResult(st -> {
+            release(s, "6.8");
+            st.setRollbackOnly();   // 해제 뒤 커밋이 실패한 것과 같다
+        });
+        assertThat(releaseService.find(s.getId())).isNull();
+        assertThat(appliedAt(s.getId())).isNull();
+        verify(telegram, never()).notifyRiskLimitBreached(org.mockito.ArgumentMatchers.contains("매도 격리 해제"));
+        assertThat(listed(p)).as("여전히 격리").isTrue();
+
+        release(s, "6.8");
+        assertThat(releaseService.find(s.getId())).isNotNull();
+        verify(telegram, times(1)).notifyRiskLimitBreached(org.mockito.ArgumentMatchers.contains("매도 격리 해제"));
     }
 
     @Test

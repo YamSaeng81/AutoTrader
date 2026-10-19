@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -147,14 +149,22 @@ public class SellQuarantineReleaseService {
                         + "수량 %s = 매수 %s − 매도 %s. 책임자 %s, 근거: %s, 증거: %s",
                 order.getId(), order.getPositionId(), order.getSessionKind(), order.getSessionId(), filled.toPlainString(),
                 size.toPlainString(), buys.toPlainString(), sells.toPlainString(), releasedBy.trim(), reason.trim(), evidence.trim());
-        log.warn("🔴 {}", msg);
-        if (telegram != null) {
-            try {
-                telegram.notifyRiskLimitBreached(msg);
-            } catch (Exception e) {
-                log.warn("격리 해제 알림 전송 실패: {}", e.getMessage());
+        log.info("매도 격리 해제 기록 작성 — 커밋 대기 (주문 #{})", order.getId());
+        // 🔴 완료 알림은 커밋이 성공한 뒤에만 (리뷰 2026-10-19) — 트랜잭션 안에서 보내면 커밋이 실패해도 "해제했다" 가 나간다.
+        //    롤백되면 기록·반영 표시·알림이 모두 남지 않는다.
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                log.warn("🔴 {}", msg);
+                if (telegram != null) {
+                    try {
+                        telegram.notifyRiskLimitBreached(msg);
+                    } catch (Exception e) {
+                        log.warn("격리 해제 알림 전송 실패: {}", e.getMessage());
+                    }
+                }
             }
-        }
+        });
         return find(orderId);
     }
 
