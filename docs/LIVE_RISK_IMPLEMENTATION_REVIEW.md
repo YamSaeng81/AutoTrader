@@ -1622,6 +1622,14 @@ SELECT max(version::int) FROM flyway_schema_history WHERE success;
   > 66세션 영향: 결측 재수집이 판정 창 안 빈 칸 중 거래소에 있는 봉을 채워 입력이 바뀔 수 있다. 재기동에 따른 전략 메모리 초기화·평가 공백은 영향 **미확정**임을 수락한다.
   > 성과 처리: T0 변경 없음, 구간 절단 없음. — yhdeabba / 2026-10-19 13:12:02 KST
   (④-4 는 같은 날 확정: 08:13 재기동은 운영자 수동 `apt upgrade` 에 따른 Docker 재시작 — 개입 #7 과 별개의 재기동이다.)
+- **⑬ 후속 결정 (리뷰 권고, 2026-10-19)**:
+  1. `fix/recovery-and-backfill` → **main 병합**(빨리 감기, 충돌 없음 — 앱 코드는 `3b781d8` 과 같다). **운영 배포 SHA 는 `3b781d8` 로 기록**한다. 병합만으로 재배포하지 않는다.
+  2. **Docker 정비**: 계획된 정비 시간에 앱(backend)을 먼저 멈추고 업그레이드한다. 영구 패키지 고정보다 일정 통제 — 자동 업데이트로 예고 없이 Docker 가 재시작되지 않게
+     설정하고, 필요하면 정비일까지 임시 고정한다. 정비 전 백업·주문 상태 확인, 정비 후 DB·앱·66세션 복구 확인과 개입 기록을 남긴다(Docker 는 데몬 종료 시 기본으로 컨테이너를
+     멈추고, live-restore 도 모든 업그레이드를 보장하지 않는다). 🔴 별도 일정으로 잡는다 — 아직 하지 않았다.
+  3. **`cloudflared-tunnel`**: 용도가 확인될 때까지 유지한다. 미사용이 확인되면 먼저 멈추고 접속 영향을 본 뒤 제거한다.
+  4. 확인용 작업 폴더 `d:/tmp/wt-fc0` 제거(미커밋 파일 0). 운영 버전 jar 는 증거 보관소 `restart-test-2026-10-19-full-3b781d8/fc0c039-web-api-0.1.0.jar`
+     (sha256 0b51c4fa…6287, 같은 값)에 보존하고 `rehearse_v93.py` 의 기본 경로를 그쪽으로 바꿨다(`RT_OLD_JAR` 로 바꿀 수 있다).
 - **운영 적용 시 운영자가 넣을 행** (배포 뒤, 확인자 본인 이름·실제 시각):
   `INSERT INTO exchange_maintenance_window (exchange, scope, starts_at, ends_at, source, source_timezone, confirmed_at, confirmed_by, note) VALUES ('UPBIT', 'ALL_MARKETS',
   '2026-10-19 02:00:00+09', '2026-10-19 06:55:00+09', '업비트 공지 #6657 서버 점검 안내 (사전 공지 2026-10-13 18:34 KST, 완료 갱신 2026-10-19 06:48 KST)', 'Asia/Seoul', now(),

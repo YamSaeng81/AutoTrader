@@ -10,7 +10,8 @@ os.environ.setdefault('RT_OTHER_PORT', '18092')
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import rt  # noqa: E402
 
-OLD_JAR = r'D:\tmp\wt-fc0\web-api\build\libs\web-api-0.1.0.jar'
+# 운영 버전(fc0c039) jar — 작업 폴더 밖 증거 보관소에 보존한 것(sha256 은 그 폴더의 MANIFEST.md). RT_OLD_JAR 로 바꿀 수 있다.
+OLD_JAR = os.environ.get('RT_OLD_JAR', r'D:\Claude Code\evidence\crypto-auto-trader\restart-test-2026-10-19-full-3b781d8\fc0c039-web-api-0.1.0.jar')
 OLD_PORT = 18093
 MARKET_PROPS = {'upbit.market-data.base-url': f'http://127.0.0.1:{rt.DOUBLE_PORT}/v1'}
 COIN = 'KRW-DOGE'
@@ -71,7 +72,7 @@ def hour_start(epoch):
 
 rt.log('배포 후보 확인 — fc0c039(V92) → 후보(V93): 점검 구간 조회·판정·재기동·거래소 복구')
 if not os.path.exists(OLD_JAR):
-    raise SystemExit(f'운영 버전 jar 가 없다 — fc0c039 작업 폴더에서 bootJar 를 먼저 만든다: {OLD_JAR}')
+    raise SystemExit(f'운영 버전 jar 가 없다 — 증거 보관소의 jar 를 두거나 fc0c039 에서 bootJar 를 만들어 RT_OLD_JAR 로 준다: {OLD_JAR}')
 rt.fresh_db()
 rt.start_double(fresh=True)
 
