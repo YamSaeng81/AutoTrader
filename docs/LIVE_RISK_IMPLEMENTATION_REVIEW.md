@@ -1589,7 +1589,7 @@ SELECT max(version::int) FROM flyway_schema_history WHERE success;
   정상 응답 UP → "복구 감지 (직전 DEGRADED)" → **자동 재시작 완료**(RUNNING), "호출자의 트랜잭션" 거절 없음.
   🔴 범위: 전체 재시작 시험(scenarios.py 전 시나리오)은 이 후보로 돌리지 않았다. 대역 거래소는 H1 캔들만 낸다(M15 경계는 H2 시험).
 - **⑨ 후보 `3b781d8` 전체 재시작 시험 (리뷰 요청, 2026-10-19)** — 앱 코드 고정(작업 트리 변경 0, 하네스 클래스패스 실행 직전 재빌드), 이미지 digest·로그·DB 덤프 보존:
-  `D:\Claude Code\evidence\crypto-auto-traderestart-test-2026-10-19-full-3b781d8\`(MANIFEST.md).
+  `D:/Claude Code/evidence/crypto-auto-trader/restart-test-2026-10-19-full-3b781d8/`(MANIFEST.md).
   - 전체 시나리오 `scenarios.py --fresh --both`(LIVE·DYNAMIC, 새 PostgreSQL, 10:56~12:39 KST): **297/297**.
   - V93 확인 1차: **실패 — 시험 준비 문제**. 앞선 확인 뒤 운영 버전 jar 가 든 작업 폴더(`d:/tmp/wt-fc0`)를 제가 지워 fc0c039 앱이 기동하지 않았다(`flyway_schema_history`
     없음). 후보 코드와 무관. 스크립트에 jar 사전 검사를 넣고 fc0c039 jar 를 다시 빌드해 **V93 확인만** 다시 돌렸다: **12/12**(12:40~12:50 KST). 전체 시나리오는 반복하지 않았다.
