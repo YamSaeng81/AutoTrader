@@ -28,9 +28,14 @@ public class ExchangeMaintenanceWindows {
     /** 한 점검 구간. 시각은 UTC 기준 시각. */
     public record Window(long id, Instant startsAt, Instant endsAt, String source, String sourceTimezone,
                          Instant confirmedAt, String confirmedBy) {
-        /** [slotStart, slotStart + tf) 가 이 구간과 겹치는가. */
-        boolean overlaps(Instant slotStart, long tfSec) {
-            return slotStart.isBefore(endsAt) && slotStart.plusSeconds(tfSec).isAfter(startsAt);
+        /**
+         * 봉 구간 [slotStart, slotStart + tf) 이 <b>통째로</b> 이 점검 구간 안에 있는가 (리뷰 2026-10-19).
+         *
+         * <p>겹치기만 하는 경계 봉(예: 점검 끝 06:55 의 M15 06:45~07:00, H1 06:00~07:00)은 재개 뒤 시간도 포함한다 — 그 봉이 없는 것은
+         * 재개 뒤 무체결일 수 있으므로 예외로 빼지 않는다(일반 결측으로 센다).</p>
+         */
+        boolean contains(Instant slotStart, long tfSec) {
+            return !slotStart.isBefore(startsAt) && !slotStart.plusSeconds(tfSec).isAfter(endsAt);
         }
 
         String describe() {
@@ -45,10 +50,10 @@ public class ExchangeMaintenanceWindows {
     private volatile List<Window> windows = List.of();
     private volatile Instant loadedAt;
 
-    /** 끝난 시장 공통 점검 구간 중 이 칸과 겹치는 것 — 없으면 {@code null}. */
+    /** 끝난 시장 공통 점검 구간 중 이 봉 구간을 통째로 담는 것 — 없으면 {@code null}. 경계에 걸친 봉은 담지 않는다. */
     public Window covering(Instant slotStart, long tfSec, Instant now) {
         for (Window w : current(now)) {
-            if (!w.endsAt().isAfter(now) && w.overlaps(slotStart, tfSec)) return w;
+            if (!w.endsAt().isAfter(now) && w.contains(slotStart, tfSec)) return w;
         }
         return null;
     }

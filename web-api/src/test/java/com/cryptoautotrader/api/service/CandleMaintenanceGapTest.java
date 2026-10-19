@@ -40,7 +40,11 @@ import static org.mockito.Mockito.when;
  *
  * <p>구분하는 것: ① 점검 공백(두 조건 충족) → 판정 가능 ② 점검 구간은 있으나 아직 거래소 조회 전 → 판정 불가 ③ 거래소에 없지만 점검 밖
  * (무체결·미확인) → 판정 불가 ④ 진행 중인 점검(끝 시각이 미래) → 판정 불가 ⑤ 점검 예외가 있어도 <b>현재 적재 정지</b>(최신 완료 봉 없음)
- * → 판정 불가 ⑥ 점검 공백 + 점검 밖 결측 3칸 → 판정 불가 ⑦ BTC 급락 관문도 같은 규칙.</p>
+ * → 판정 불가 ⑥ 점검 공백 + 점검 밖 결측 3칸 → 판정 불가 ⑦ BTC 급락 관문도 같은 규칙 ⑧ 🔴 점검 끝에 걸친 경계 봉은 빼지 않는다(재개 뒤 시간을
+ * 포함한다 — 리뷰 2026-10-19) ⑨ 봉 경계에 맞춰 끝난 점검은 마지막 봉까지 뺀다.</p>
+ *
+ * <p>기본 점검 구간({@link #maintenanceWindowFor})은 운영 2026-10-19 처럼 <b>봉 중간에 끝난다</b>(06:55 처럼) — 마지막 점검 칸은 경계 봉이라
+ * 일반 결측 1칸으로 남는다.</p>
  */
 @DisplayName("공식 점검 공백 — 캔들 최신성 관문 예외")
 class CandleMaintenanceGapTest extends IntegrationTestBase {
@@ -130,7 +134,7 @@ class CandleMaintenanceGapTest extends IntegrationTestBase {
         return lastClosed(3600);
     }
 
-    /** 점검: lastClosed 기준 20~24시간 전 칸(5칸)이 비었다. 점검 구간은 그 5칸을 덮는다. */
+    /** 점검: lastClosed 기준 20~24시간 전 칸(5칸)이 비었다. 점검 구간은 24시간 전부터 19시간 5분 전까지 — 20시간 전 칸은 경계 봉이다. */
     private static final Set<Integer> MAINT = Set.of(20, 21, 22, 23, 24);
 
     private void maintenanceWindowFor(Instant lastClosed) {
@@ -216,7 +220,39 @@ class CandleMaintenanceGapTest extends IntegrationTestBase {
         backfill.backfill(coin, TF, Instant.now());
 
         assertThat(guard.filter("DYNAMIC", coin, TF, cache(coin, TF))).isEmpty();
-        assertThat(guard.staleKeys().get(coin + ":" + TF)).contains("결측 3칸").contains("공식 점검 공백 5칸 제외 후");
+        assertThat(guard.staleKeys().get(coin + ":" + TF)).as("점검 밖 3칸 + 경계 봉 1칸")
+                .contains("결측 4칸").contains("공식 점검 공백 4칸 제외 후");
+    }
+
+    @Test
+    @DisplayName("🔴 ⑧ 점검 끝에 걸친 경계 봉은 빼지 않는다 — 경계 봉 1 + 점검 밖 2 = 3칸 → 판정 불가 (겹침 기준이면 통과했다)")
+    void boundaryCandleIsNotExempt() throws Exception {
+        String coin = "KRW-MTG";
+        Instant lc = lastClosedH1();
+        Set<Integer> hole = new HashSet<>(MAINT);
+        hole.addAll(Set.of(5, 8));
+        seed(coin, TF, lc, 60, hole);
+        exchangeMirrorsCache(coin, TF);
+        maintenanceWindowFor(lc);   // 19시간 5분 전에 끝남 — 20시간 전 칸 [lc-20h, lc-19h) 은 재개 뒤 55분을 포함한다
+        backfill.backfill(coin, TF, Instant.now());
+
+        assertThat(guard.filter("DYNAMIC", coin, TF, cache(coin, TF))).isEmpty();
+        assertThat(guard.staleKeys().get(coin + ":" + TF)).contains("결측 3칸").contains("공식 점검 공백 4칸 제외 후");
+    }
+
+    @Test
+    @DisplayName("⑨ 봉 경계에 맞춰 끝난 점검 — 마지막 칸까지 뺀다(점검 밖 2칸만 남아 판정 가능)")
+    void alignedWindowExemptsLastSlot() throws Exception {
+        String coin = "KRW-MTH";
+        Instant lc = lastClosedH1();
+        Set<Integer> hole = new HashSet<>(MAINT);
+        hole.addAll(Set.of(5, 8));
+        seed(coin, TF, lc, 60, hole);
+        exchangeMirrorsCache(coin, TF);
+        window(lc.minus(24, ChronoUnit.HOURS), lc.minus(19, ChronoUnit.HOURS));
+        backfill.backfill(coin, TF, Instant.now());
+
+        assertThat(guard.filter("DYNAMIC", coin, TF, cache(coin, TF))).isNotEmpty();
     }
 
     @Test

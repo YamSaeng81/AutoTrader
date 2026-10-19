@@ -35,7 +35,8 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * <p>🔴 <b>공식 점검 공백</b> (2026-10-19, V93): 업비트는 체결이 없는 구간에 봉을 만들지 않는다. 거래소 점검 중에는 전 마켓의 봉이 없고,
  * 이 규칙만으로는 점검이 끝나도 그 구간이 창에서 밀려날 때까지(M15 약 5일·H1 약 20일) 판정 불가가 된다. 그래서 ② 의 결측에서
- * <b>두 조건을 모두 만족하는 칸만</b> 뺀다 — (가) 운영자가 기록한 끝난 시장 공통 점검 구간({@link ExchangeMaintenanceWindows})과 겹친다
+ * <b>두 조건을 모두 만족하는 칸만</b> 뺀다 — (가) 봉 구간 전체가 운영자가 기록한 끝난 시장 공통 점검 구간({@link ExchangeMaintenanceWindows}) 안에
+ * 있다(경계에 걸친 봉은 재개 뒤 시간도 포함하므로 일반 결측으로 센다)
  * (나) 결측 재수집의 거래소 조회에서 <b>마지막 조회 시점에</b> 봉이 없었다({@link CandleGapBackfillService#absentAtLastCheck}).
  * 점검 밖의 결측(무체결·수집 실패)은 종전대로 센다. ① 최신 완료 봉 조건은 예외가 없다 — 과거 점검 예외가 현재 적재 정지를 가리지 않는다.
  * 전략별 최소 봉 수 검사(엔진)도 그대로다.</p>
@@ -188,7 +189,7 @@ public class CandleFreshnessGuard {
     }
 
     /**
-     * 공식 점검 공백 판정 — 끝난 시장 공통 점검 구간과 겹치고, 결측 재수집의 마지막 조회에서도 거래소에 봉이 없던 칸.
+     * 공식 점검 공백 판정 — 봉 구간 전체가 끝난 시장 공통 점검 구간 안에 있고, 결측 재수집의 마지막 조회에서도 거래소에 봉이 없던 칸.
      * 둘 중 하나라도 없으면(구성 요소가 없거나 아직 조회 전) 예외가 없다.
      */
     java.util.function.Predicate<Instant> maintenanceExemption(String coinPair, String timeframe, Instant now) {

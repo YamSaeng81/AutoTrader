@@ -26,6 +26,8 @@
         공개 시세 응답(2026-10-15 리뷰 8회차 후속) — 앱이 -Dupbit.market-data.base-url 로 이 대역을 볼 때만 쓰인다.
         설정이 없으면(기본) /v1/ticker·/v1/orderbook·/v1/candles 는 503 — 외부 차단과 같은 실패. fail=true 도 503.
         시세의 trade_timestamp 는 지금 − trade_age_sec(체결이 조용한 코인), 호가 timestamp 는 지금.
+        candles 의 "absent": [봉 시작 epoch 초, ...] — 그 봉은 대역(거래소)에도 없다(점검·무체결, 2026-10-19).
+  POST /_ctl/health {"mode": "ok" | "fail" | "slow"}  상태 확인(/v1/market/all) 응답 — fail 은 503, slow 는 3.5초 뒤 200 (2026-10-19)
 """
 import calendar
 import json
@@ -143,6 +145,14 @@ class H(BaseHTTPRequestHandler):
     def do_GET(self):
         u = urlparse(self.path)
         q = parse_qs(u.query)
+        if u.path == '/v1/market/all':
+            # 잠금 밖 — 느린 응답이 다른 요청을 막지 않게
+            mode = (state.get('health') or 'ok')
+            if mode == 'fail':
+                return self.reply(503, {'error': {'name': 'server_maintenance', 'message': '시험 대역 — 점검'}})
+            if mode == 'slow':
+                time.sleep(3.5)
+            return self.reply(200, [{'market': 'KRW-DOGE', 'korean_name': '도지코인', 'english_name': 'Dogecoin'}])
         with lock:
             if u.path == '/v1/order':
                 o = self.find(q)
@@ -198,9 +208,10 @@ class H(BaseHTTPRequestHandler):
         to_s = calendar.timegm(time.strptime(to, '%Y-%m-%dT%H:%M:%S')) if to else now + 3600   # UTC
         cur = now - now % 3600
         close = Decimal(cfg['close'])
+        absent = set(int(x) for x in cfg.get('absent', []))
         out = []
         while len(out) < count and cur > now - 600 * 3600:
-            if cur < to_s:
+            if cur < to_s and cur not in absent:
                 out.append({'market': coin, 'candle_date_time_utc': time.strftime('%Y-%m-%dT%H:%M:%S', time.gmtime(cur)),
                             'opening_price': float(close), 'high_price': float(close), 'low_price': float(close),
                             'trade_price': float(close), 'candle_acc_trade_volume': 10})
@@ -260,6 +271,10 @@ class H(BaseHTTPRequestHandler):
                 o['state'] = b.get('state', o['state'])
                 save()
                 return self.reply(200, o)
+            if u.path == '/_ctl/health':
+                state['health'] = b.get('mode', 'ok')
+                save()
+                return self.reply(200, {'health': state['health']})
             if u.path == '/_ctl/market':
                 state['market'] = b
                 save()
