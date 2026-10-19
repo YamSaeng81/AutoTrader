@@ -69,6 +69,7 @@ class ExchangeRecoveryRestartTest extends IntegrationTestBase {
     @AfterEach
     void cleanUp() {
         limits.setTotalCapKrw(savedTotal);
+        healthMonitor.healthCheckUriForTest(null);
         healthMonitor.updateStatus("UP");
         created.forEach(id -> {
             orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc("LIVE", id).forEach(orderRepository::delete);
@@ -155,6 +156,58 @@ class ExchangeRecoveryRestartTest extends IntegrationTestBase {
 
         recover();
         assertThat(status(id)).isEqualTo("STOPPED");
+    }
+
+    @Test
+    @DisplayName("⑤ 실제 경로 — HTTP 실패 3회 → DOWN(비상 정지) → 느린 응답 DEGRADED(재시작 안 함) → 빠른 응답 UP → 재시작")
+    void realHealthCheckPathThroughDegraded() throws Exception {
+        java.util.concurrent.atomic.AtomicReference<String> mode = new java.util.concurrent.atomic.AtomicReference<>("fail");
+        com.sun.net.httpserver.HttpServer server = com.sun.net.httpserver.HttpServer.create(
+                new java.net.InetSocketAddress("127.0.0.1", 0), 0);
+        server.createContext("/v1/market/all", ex -> {
+            int code = "fail".equals(mode.get()) ? 503 : 200;
+            if ("slow".equals(mode.get())) {
+                try {
+                    Thread.sleep(3_300);   // DEGRADED 임계 3초 초과
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+            byte[] body = "[]".getBytes();
+            ex.sendResponseHeaders(code, body.length);
+            ex.getResponseBody().write(body);
+            ex.close();
+        });
+        server.start();
+        try {
+            healthMonitor.healthCheckUriForTest(java.net.URI.create(
+                    "http://127.0.0.1:" + server.getAddress().getPort() + "/v1/market/all"));
+            healthMonitor.updateStatus("UP");
+            Long id = runningSession("KRW-DOGE");
+
+            healthMonitor.checkHealth();
+            healthMonitor.checkHealth();
+            assertThat(healthMonitor.getStatus()).isEqualTo("DEGRADED");
+            assertThat(status(id)).as("실패 2회는 아직 DOWN 이 아니다").isEqualTo("RUNNING");
+            healthMonitor.checkHealth();
+            awaitDrained(orderExecutor);
+            assertThat(healthMonitor.getStatus()).isEqualTo("DOWN");
+            assertThat(status(id)).as("DOWN 이벤트 → 비상 정지").isEqualTo("EMERGENCY_STOPPED");
+
+            mode.set("slow");
+            healthMonitor.checkHealth();
+            awaitDrained(marketDataExecutor);
+            assertThat(healthMonitor.getStatus()).isEqualTo("DEGRADED");
+            assertThat(status(id)).as("느린 응답은 복구가 아니다").isEqualTo("EMERGENCY_STOPPED");
+
+            mode.set("ok");
+            healthMonitor.checkHealth();
+            awaitDrained(marketDataExecutor);
+            assertThat(healthMonitor.getStatus()).isEqualTo("UP");
+            assertThat(status(id)).as("🔴 종전에는 DEGRADED 를 거치면 복구 이벤트가 나지 않아 재시작되지 않았다").isEqualTo("RUNNING");
+        } finally {
+            server.stop(0);
+        }
     }
 
     @Test

@@ -38,7 +38,8 @@ import static org.mockito.Mockito.when;
  * 판정 창 안의 결측 재수집 (2026-10-19) — {@link CandleGapBackfillService}.
  *
  * <p>확인하는 것: ① 거래소에 있는 봉은 다시 받아 채우고, 이미 있는 봉은 바꾸지 않는다 → 최신성 판정이 다시 가능해진다
- * ② 거래소에도 없는 칸(점검·무체결)은 "거래소에도 없음" 으로 기록하고 다시 묻지 않는다 — 이 경우 판정 불가는 그대로다
+ * ② 거래소에도 없는 칸(점검·무체결)은 "조회 시점에 없음" 으로 기록한다 — 오래된 칸은 프로세스마다 한 번, 최근 칸은 제한된 재확인.
+ * 재수집만으로는 판정 불가가 그대로다(점검 공백 예외는 {@code CandleMaintenanceGapTest})
  * ③ 수집 실패는 아무것도 쓰지 않고, 재시도 간격 안에서는 다시 부르지 않는다 ④ REST 호출은 트랜잭션 밖이다.</p>
  */
 @DisplayName("판정 창 안의 결측 재수집")
@@ -61,6 +62,9 @@ class CandleGapBackfillTest extends IntegrationTestBase {
     @AfterEach
     void tearDown() {
         jdbc.update("DELETE FROM market_data_cache WHERE coin_pair = ?", COIN);
+        // 조회 기록은 빈의 메모리에 있다 — 시험마다 비운다(같은 시각 칸을 쓰는 시험끼리 간섭하지 않게).
+        ((java.util.Map<?, ?>) org.springframework.test.util.ReflectionTestUtils.getField(backfill, "absentChecks")).clear();
+        ((java.util.Map<?, ?>) org.springframework.test.util.ReflectionTestUtils.getField(backfill, "lastFailure")).clear();
     }
 
     private static MarketDataCacheEntity row(Instant t, String close) {
@@ -131,7 +135,7 @@ class CandleGapBackfillTest extends IntegrationTestBase {
 
         assertThat(r.missing()).isEqualTo(4);
         assertThat(r.filled()).isEqualTo(4);
-        assertThat(r.confirmedAbsent()).isZero();
+        assertThat(r.absentAtCheck()).isZero();
         List<Candle> after = cache(now);
         assertThat(after).hasSize(40);
         assertThat(after.stream().filter(c -> c.getClose().compareTo(new BigDecimal("999")) == 0).count())
@@ -141,7 +145,7 @@ class CandleGapBackfillTest extends IntegrationTestBase {
     }
 
     @Test
-    @DisplayName("② 거래소에도 없는 칸(점검) — 기록하고 다시 묻지 않는다. 판정 불가는 그대로다")
+    @DisplayName("② 거래소에도 없는 오래된 칸 — 조회 시점 기록, 이 프로세스에서는 다시 묻지 않는다. 판정 불가는 그대로다")
     void exchangeAbsentSlotsAreRecordedOnce() throws Exception {
         Instant now = Instant.now();
         Set<Integer> maintenance = Set.of(20, 21, 22, 23, 24);
@@ -150,12 +154,13 @@ class CandleGapBackfillTest extends IntegrationTestBase {
 
         CandleGapBackfillService.Result r = backfill.backfill(COIN, TF, now);
         assertThat(r.filled()).isZero();
-        assertThat(r.confirmedAbsent()).isEqualTo(5);
+        assertThat(r.absentAtCheck()).isEqualTo(5);
+        assertThat(backfill.absentAtLastCheck(COIN, TF, lastClosed.minus(22, ChronoUnit.HOURS)).checks()).isEqualTo(1);
         int calls = restCalls.get();
 
-        CandleGapBackfillService.Result again = backfill.backfill(COIN, TF, now.plus(1, ChronoUnit.MINUTES));
-        assertThat(again.missing()).as("확인된 칸은 다시 결측으로 세지 않는다").isZero();
-        assertThat(restCalls.get()).as("다시 묻지 않는다").isEqualTo(calls);
+        CandleGapBackfillService.Result again = backfill.backfill(COIN, TF, now.plus(2, ChronoUnit.HOURS));
+        assertThat(again.missing()).as("최근 구간(6시간) 밖의 칸은 이 프로세스에서 다시 묻지 않는다").isZero();
+        assertThat(restCalls.get()).isEqualTo(calls);
         assertThat(CandleFreshnessGuard.problem(cache(now), TF, now))
                 .as("🔴 재수집으로 메워지지 않는다 — 판정 관문의 결측 규칙은 이 작업이 바꾸지 않는다").contains("결측 5칸");
     }
@@ -183,6 +188,49 @@ class CandleGapBackfillTest extends IntegrationTestBase {
         CandleGapBackfillService.Result retried = backfill.backfill(COIN, TF,
                 now.plus(CandleGapBackfillService.RETRY_AFTER_FAILURE).plus(1, ChronoUnit.MINUTES));
         assertThat(retried.filled()).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("🔴 최근 칸 — 영구 확정하지 않는다: 30분 간격으로 최대 4회 다시 묻고, 그 사이 거래소에 봉이 생기면 채운다")
+    void recentAbsentSlotsAreRecheckedWithLimit() throws Exception {
+        Instant now = Instant.now().truncatedTo(ChronoUnit.HOURS).plus(59, ChronoUnit.MINUTES);   // 경계에 가장 불리한 시각으로 고정
+        // 마지막 완료 봉 1~2시간 앞 — 시험 내내(최대 +62분) 최근 구간(6시간) 안에 있다. 칸이 6시간에 가까우면 시각에 따라 경계를 넘는다
+        // (2026-10-19 전체 실행 23:58 UTC 에 4시간 58분 전 칸이 +62분에 경계를 넘어 재확인 대상에서 빠졌다 — 정책대로의 동작).
+        Set<Integer> hole = Set.of(1, 2);
+        Instant lastClosed = seedWithHole(now, 40, hole);
+        exchangeHas(slots(lastClosed, 40, hole), "999");
+        Instant slot = lastClosed.minus(1, ChronoUnit.HOURS);
+
+        assertThat(backfill.backfill(COIN, TF, now).absentAtCheck()).isEqualTo(2);
+        int calls = restCalls.get();
+        assertThat(backfill.backfill(COIN, TF, now.plus(10, ChronoUnit.MINUTES)).missing()).as("간격 30분 안").isZero();
+        assertThat(restCalls.get()).isEqualTo(calls);
+
+        assertThat(backfill.backfill(COIN, TF, now.plus(31, ChronoUnit.MINUTES)).absentAtCheck()).isEqualTo(2);
+        assertThat(backfill.absentAtLastCheck(COIN, TF, slot).checks()).isEqualTo(2);
+
+        // 늦게 생긴 봉 — 거래소에 이제 있다
+        exchangeHas(slots(lastClosed, 40, Set.of()), "777");
+        CandleGapBackfillService.Result late = backfill.backfill(COIN, TF, now.plus(62, ChronoUnit.MINUTES));
+        assertThat(late.filled()).isEqualTo(2);
+        assertThat(backfill.absentAtLastCheck(COIN, TF, slot)).as("채워지면 기록을 지운다").isNull();
+    }
+
+    @Test
+    @DisplayName("최근 칸의 재확인은 최대 4회 — 그 뒤에는 이 프로세스에서 묻지 않는다")
+    void recheckLimit() throws Exception {
+        Instant now = Instant.now().truncatedTo(ChronoUnit.HOURS).plus(59, ChronoUnit.MINUTES);   // 경계에 가장 불리한 시각으로 고정
+        Set<Integer> hole = Set.of(1, 2);   // 시험 내내(최대 +155분) 최근 구간 안 — 한도만 시험한다
+        Instant lastClosed = seedWithHole(now, 40, hole);
+        exchangeHas(slots(lastClosed, 40, hole), "999");
+        for (int k = 0; k < CandleGapBackfillService.MAX_CHECKS; k++) {
+            backfill.backfill(COIN, TF, now.plus(31L * k, ChronoUnit.MINUTES));
+        }
+        assertThat(backfill.absentAtLastCheck(COIN, TF, lastClosed.minus(1, ChronoUnit.HOURS)).checks())
+                .isEqualTo(CandleGapBackfillService.MAX_CHECKS);
+        int calls = restCalls.get();
+        assertThat(backfill.backfill(COIN, TF, now.plus(31L * 5, ChronoUnit.MINUTES)).missing()).isZero();
+        assertThat(restCalls.get()).isEqualTo(calls);
     }
 
     @Test

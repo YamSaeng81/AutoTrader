@@ -46,6 +46,13 @@ public class ExchangeHealthMonitor {
 
     private static final int DOWN_THRESHOLD = 3; // 연속 N회 실패 시 DOWN 선언
 
+    /** 확인 주소 — 기본은 {@link #HEALTH_CHECK_URL}. 같은 패키지 시험만 바꾼다(실제 HTTP 응답으로 상태 전이를 재현). */
+    private volatile URI healthCheckUri = URI.create(HEALTH_CHECK_URL);
+
+    void healthCheckUriForTest(URI uri) {
+        this.healthCheckUri = uri == null ? URI.create(HEALTH_CHECK_URL) : uri;
+    }
+
     private volatile String status = "UP";
     /**
      * DOWN 을 선언한 뒤 아직 복구 이벤트를 내지 않았는가 (2026-10-19). 복구는 직전 상태가 아니라 <b>이 표시</b>로 판정한다 —
@@ -83,7 +90,7 @@ public class ExchangeHealthMonitor {
         long start = System.currentTimeMillis();
         try {
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(HEALTH_CHECK_URL))
+                    .uri(healthCheckUri)
                     .header("Accept", "application/json")
                     .GET()
                     .timeout(Duration.ofSeconds(10))

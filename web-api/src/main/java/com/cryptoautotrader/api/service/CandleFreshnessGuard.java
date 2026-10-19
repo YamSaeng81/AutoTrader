@@ -33,6 +33,18 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>🔴 범위: LIVE·DYNAMIC(실자금·페이퍼 모드 공통 — 엔진 동등)의 <b>세션 거래 코인</b>. 독립 자본 페이퍼 엔진(검증 66세션)은
  * 바꾸지 않는다. 실시간 시세 손절 경로는 캔들을 쓰지 않으므로 무관하다.</p>
  *
+ * <p>🔴 <b>공식 점검 공백</b> (2026-10-19, V93): 업비트는 체결이 없는 구간에 봉을 만들지 않는다. 거래소 점검 중에는 전 마켓의 봉이 없고,
+ * 이 규칙만으로는 점검이 끝나도 그 구간이 창에서 밀려날 때까지(M15 약 5일·H1 약 20일) 판정 불가가 된다. 그래서 ② 의 결측에서
+ * <b>두 조건을 모두 만족하는 칸만</b> 뺀다 — (가) 운영자가 기록한 끝난 시장 공통 점검 구간({@link ExchangeMaintenanceWindows})과 겹친다
+ * (나) 결측 재수집의 거래소 조회에서 <b>마지막 조회 시점에</b> 봉이 없었다({@link CandleGapBackfillService#absentAtLastCheck}).
+ * 점검 밖의 결측(무체결·수집 실패)은 종전대로 센다. ① 최신 완료 봉 조건은 예외가 없다 — 과거 점검 예외가 현재 적재 정지를 가리지 않는다.
+ * 전략별 최소 봉 수 검사(엔진)도 그대로다.</p>
+ *
+ * <p>🔴 가정과 한계: 가짜 봉을 만들지 않는다. 지표는 <b>관측된 봉을 이어서</b> 계산한다 — 점검 전 마지막 봉과 점검 뒤 첫 봉이 이웃한
+ * 봉으로 들어간다. 봉 개수로 정의된 지표(EMA·RSI·ATR·일목 등의 기간)는 점검 칸 수만큼 더 긴 실제 시간을 덮고, 점검 사이의 가격
+ * 변화가 한 봉의 변화로 들어간다(ATR·변화율이 커질 수 있다). 시각 기준 지표(예: 일 단위 기준점)는 영향이 없다. 이 영향은 점검 구간이
+ * 창에서 밀려나면 사라진다.</p>
+ *
  * <p>🔴 BTC 급락 관문 (2026-10-15 리뷰 8회차): 같은 두 조건을 BTC 캔들에 건다({@link #btcGate}). 어기면 관문은 "미발동" 이 아니라
  * <b>판정 불가</b>이고, 이 관문을 요구하는 신규 진입(LIVE·DYNAMIC 매수)을 막는다. 데이터가 돌아오면 다음 평가에서 다시 판정한다.
  * 청산은 이 관문과 무관하다.</p>
@@ -50,6 +62,15 @@ public class CandleFreshnessGuard {
     @Autowired(required = false)
     private JdbcTemplate jdbc;
 
+    @Autowired(required = false)
+    private ExchangeMaintenanceWindows maintenanceWindows;
+
+    @Autowired(required = false)
+    private CandleGapBackfillService gapBackfill;
+
+    /** 점검 공백을 뺀 (코인:타임프레임) — 같은 점검 구간에 대해 로그는 한 번. */
+    private final Map<String, Long> exemptionLogged = new ConcurrentHashMap<>();
+
     /** (코인:타임프레임) → 판정 불가가 시작된 시각과 사유. 경보는 판정 불가가 시작될 때 한 번. */
     private final Map<String, String> stale = new ConcurrentHashMap<>();
 
@@ -57,6 +78,14 @@ public class CandleFreshnessGuard {
      * 판정 불가 사유 — 쓸 수 있으면 {@code null}. 캔들은 시각 오름차순, 시각은 봉의 시작 시각.
      */
     public static String problem(List<Candle> candles, String timeframe, Instant now) {
+        return problem(candles, timeframe, now, null);
+    }
+
+    /**
+     * @param exemptSlot 결측에서 뺄 수 있는 칸인가(공식 점검 공백) — {@code null} 이면 모든 결측을 센다. ① 최신 완료 봉 조건에는 쓰지 않는다.
+     */
+    public static String problem(List<Candle> candles, String timeframe, Instant now,
+                                 java.util.function.Predicate<Instant> exemptSlot) {
         if (candles == null || candles.isEmpty()) return "캔들 없음";
         long tfSec = TimeframeUtils.toMinutes(timeframe) * 60L;
         long ref = now.minus(GRACE).getEpochSecond();
@@ -78,8 +107,17 @@ public class CandleFreshnessGuard {
         }
         long expected = Duration.between(first, last).getSeconds() / tfSec + 1;
         long missing = expected - closed;
-        if (missing > MAX_MISSING_SLOTS) {
-            return String.format("결측 %d칸(허용 %d) — 완료 봉 %d개 / 기대 %d개 (%s ~ %s)", missing, MAX_MISSING_SLOTS, closed, expected, first, last);
+        long exempt = 0;
+        if (missing > 0 && exemptSlot != null) {
+            java.util.Set<Long> have = new java.util.HashSet<>();
+            for (Candle c : candles) have.add(c.getTime().getEpochSecond());
+            for (long t = first.getEpochSecond(); t <= last.getEpochSecond(); t += tfSec) {
+                if (!have.contains(t) && exemptSlot.test(Instant.ofEpochSecond(t))) exempt++;
+            }
+        }
+        if (missing - exempt > MAX_MISSING_SLOTS) {
+            return String.format("결측 %d칸(허용 %d) — 완료 봉 %d개 / 기대 %d개 (%s ~ %s)%s", missing - exempt, MAX_MISSING_SLOTS, closed, expected,
+                    first, last, exempt > 0 ? " · 공식 점검 공백 " + exempt + "칸 제외 후" : "");
         }
         return null;
     }
@@ -92,7 +130,8 @@ public class CandleFreshnessGuard {
     public List<Candle> filter(String engine, String coinPair, String timeframe, List<Candle> candles) {
         if (candles == null || candles.isEmpty()) return candles == null ? List.of() : candles;
         String key = coinPair + ":" + timeframe;
-        String p = problem(candles, timeframe, Instant.now());
+        Instant now = Instant.now();
+        String p = problem(candles, timeframe, now, maintenanceExemption(coinPair, timeframe, now));
         if (p == null) {
             String prev = stale.remove(key);
             if (prev != null) {
@@ -118,7 +157,8 @@ public class CandleFreshnessGuard {
      * @param forCheck 관문 계산에 넣을 캔들(엔진이 닫힌 봉만 넣는다면 그 목록)
      */
     public BtcMarketGuard.Result btcGate(String engine, String timeframe, List<Candle> raw, List<Candle> forCheck) {
-        BtcMarketGuard.Result r = btcGate(timeframe, raw, forCheck, Instant.now());
+        Instant now = Instant.now();
+        BtcMarketGuard.Result r = btcGate(timeframe, raw, forCheck, now, maintenanceExemption("KRW-BTC", timeframe, now));
         String key = "BTC관문:" + timeframe;
         if (!r.unknown()) {
             String prev = stale.remove(key);
@@ -135,11 +175,36 @@ public class CandleFreshnessGuard {
 
     /** {@link #btcGate(String, String, List, List)} 의 판정 본체 — 시험용으로 시각을 받는다. */
     static BtcMarketGuard.Result btcGate(String timeframe, List<Candle> raw, List<Candle> forCheck, Instant now) {
-        String p = problem(raw, timeframe, now);
+        return btcGate(timeframe, raw, forCheck, now, null);
+    }
+
+    static BtcMarketGuard.Result btcGate(String timeframe, List<Candle> raw, List<Candle> forCheck, Instant now,
+                                         java.util.function.Predicate<Instant> exemptSlot) {
+        String p = problem(raw, timeframe, now, exemptSlot);
         if (p != null) {
             return BtcMarketGuard.Result.unknown("BTC 캔들 판정 불가(" + p + ") — 급락 여부를 모른다");
         }
         return BtcMarketGuard.check(forCheck);
+    }
+
+    /**
+     * 공식 점검 공백 판정 — 끝난 시장 공통 점검 구간과 겹치고, 결측 재수집의 마지막 조회에서도 거래소에 봉이 없던 칸.
+     * 둘 중 하나라도 없으면(구성 요소가 없거나 아직 조회 전) 예외가 없다.
+     */
+    java.util.function.Predicate<Instant> maintenanceExemption(String coinPair, String timeframe, Instant now) {
+        if (maintenanceWindows == null || gapBackfill == null) return null;
+        long tfSec = TimeframeUtils.toMinutes(timeframe) * 60L;
+        return slot -> {
+            ExchangeMaintenanceWindows.Window w = maintenanceWindows.covering(slot, tfSec, now);
+            if (w == null) return false;
+            CandleGapBackfillService.AbsentCheck check = gapBackfill.absentAtLastCheck(coinPair, timeframe, slot);
+            if (check == null) return false;
+            if (exemptionLogged.put(coinPair + ":" + timeframe, w.id()) == null) {
+                log.info("[캔들 최신성] {}:{} 공식 점검 공백을 결측에서 뺀다 — 점검 {} · 칸 {} 거래소 조회 {}회(마지막 {})",
+                        coinPair, timeframe, w.describe(), slot, check.checks(), check.lastCheckedAt());
+            }
+            return true;
+        };
     }
 
     /** 실자금 보유가 있는 코인이면 경보한다 — 그 포지션의 60초 평가 손절·익절·시간 초과가 멈춘다. */
