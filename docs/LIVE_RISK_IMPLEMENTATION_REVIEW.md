@@ -1601,6 +1601,10 @@ SELECT max(version::int) FROM flyway_schema_history WHERE success;
   EMERGENCY_STOPPED 를 다시 켜는 경로는 없다(코드 확인) · DYNAMIC: 93 RUNNING REAL `invest_ratio` 0.8, 78·85 RUNNING PAPER · 실자금 보유 **0** · 미결 주문 **0** · 검증 **66**.
   → 기대와 같다. 🔴 관찰: 배포·구간 등록 뒤 DYNAMIC 93 의 판정이 재개되면 실자금 신규 진입을 막는 것은 **공유 풀 미등록 거절(POOL_NOT_REGISTERED)** 하나다(10-16 수락한
   운용 상태와 같다 — 지금까지는 캔들 판정 불가도 함께 막고 있었다). DYNAMIC 페이퍼 78·85 는 판정이 재개되면 다시 평가한다.
+- **⑪ 운영 배포 `3b781d8` (2026-10-19, 운영자 실행)**: Flyway **93**, 배포 뒤 30분 실자금 매수 **0**. 점검 구간 #1 등록 — 확인 yhdeabba 2026-10-19 13:01:03 KST,
+  저장 17:00~21:55 UTC(= 02:00~06:55 KST), 근거 공지 #6657. 기동 뒤 첫 결측 재수집 조회(1회, 13:02:16 KST) 직후 DYNAMIC 코인 판정 재개 — 예: M15 WLD·ONDO·SOL·ENA·SUI
+  "결측 20칸" → 재개, H1 XRP·PUFFER·WLD·ONDO·SOL "결측 4~5칸" → 재개(경계 봉 1칸은 일반 결측으로 남음). KRW-SOPH M15 는 예외 로그는 있으나 재개 줄이 보이지 않았다 —
+  점검 밖 무체결 칸(④-3)으로 판정 불가가 남는 것으로 보인다(확인 대기). BTC 급락 관문 재개·배포 뒤 다른 오류·개입 기록 #7 수락 시각: 확인 대기.
 - **운영 적용 시 운영자가 넣을 행** (배포 뒤, 확인자 본인 이름·실제 시각):
   `INSERT INTO exchange_maintenance_window (exchange, scope, starts_at, ends_at, source, source_timezone, confirmed_at, confirmed_by, note) VALUES ('UPBIT', 'ALL_MARKETS',
   '2026-10-19 02:00:00+09', '2026-10-19 06:55:00+09', '업비트 공지 #6657 서버 점검 안내 (사전 공지 2026-10-13 18:34 KST, 완료 갱신 2026-10-19 06:48 KST)', 'Asia/Seoul', now(),
