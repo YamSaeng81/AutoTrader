@@ -1906,6 +1906,17 @@ SELECT p.id AS position_id, p.session_kind, p.session_id, p.coin_pair, p.status,
 - **텔레그램 시험 메시지의 범위**: 봇·채팅방·휴대폰 수신의 근거다. `RISK_LIMIT` 발생→전송 전체 경로 검증으로 확대하지 않는다(§6.15-④ 4 반영).
 - 날짜: 정비일은 **오늘(2026-10-21)**. 직전 보고의 "내일 10:00" 은 "오늘 10:00" — 절차서 §1 에 실제 수행 시각을 기록하고, 직전 점검·대응 시간을 확보하지 못했으면 미룬다고 적었다.
 
+**정기 점검 2026-10-21 오전(운영자 실행 — 실행 시각은 출력에 없음, 운영자가 기록)**: 정비 진행 가능.
+- `HEAD` **3b781d8** · 추적 파일 변경 없음. 추적 안 된 파일(`back_docker-compose.prod.yml`·`backups/`·`timestamp`·`scripts/prospective/*.json(l)`·`deploy_baseline.txt`)은
+  `3b781d8`·`39f994c` 어디에도 추적 대상이 아니다(로컬 `git ls-tree` 확인) → `git checkout 39f994c` 가 막히거나 덮어쓰지 않는다.
+- `ps`: backend **Up 43 hours**(10-19 배포 뒤 재시작 없음), db·redis healthy, 나머지 Up 2 days. 이미지 저장소 이름 `autotrader-backend`(절차서에 적음).
+- 최근 12시간 ERROR(로그 시각 UTC): 캔들 최신성 판정 불가(KRW-CAP·KRW-DOOD — 기존 유형) · 15:00:52~15:01:15 UTC(10-21 00:00 KST) 업비트 계좌 조회 실패·요청 시간 초과
+  묶음(일시적 통신 장애로 본다, 뒤이어 반복 없음) · 19:33:16 UTC 텔레그램 `Connection reset`(Q10 `CUSTOM` 실패와 같은 시각) · 20:00:03 UTC `ClaudeProvider` 요청 실패(LLM 보조, 매매 경로 아님).
+  공유 풀 미등록 ERROR 는 12시간 안에 없었다(진입 시도 시에만 나온다). 정비 보류 사유는 아니다.
+- 조회: Q1 **93**·V87 `2026-10-16 05:07:54Z` · Q2 실자금 RUNNING 은 **DYNAMIC 93 하나**(가용 10,146.06·`invest_ratio` 0.8 — 풀 미등록으로 신규 진입 거절, §6.13), 나머지는
+  STOPPED·EMERGENCY_STOPPED·DELETED(98행 기록) · Q3·Q4·Q5·Q6 **0** · Q7 **RUNNING 66** · Q8 0 · Q9 "건너뜀"(V93 — 수정한 분기 정상 동작) · `ROLLBACK` 으로 끝남(Q10 까지 실행).
+- Q10(7일): `CUSTOM` 실패 4·성공 7, `EXCHANGE_DOWN` 실패 1, `TIME_STOP` 실패 1 — 텔레그램 전송 실패가 실제로 드물지 않다. `RISK_LIMIT` 재시도 보완(위) 근거로 남긴다.
+
 ### 6.4 종합
 
 | 선행 조건 | 판정 | 남은 것 |

@@ -54,7 +54,7 @@ git show origin/main:scripts/ops/maint_checks.sql | $DC exec -T db psql -U trade
    ```bash
    git rev-parse --short HEAD                      # 3b781d8 이어야 한다
    git status --short                              # 변경 없음
-   $DC images backend                              # 저장소 이름 확인 (예: crypto-auto-trader-backend)
+   $DC images backend                              # 저장소 이름 확인 — 운영은 autotrader-backend (compose 프로젝트 autotrader, 10-21 점검 `ps` 로 확인)
    IMG=$(docker inspect --format '{{.Image}}' $($DC ps -q backend))    # 지금 실행 중인 컨테이너의 이미지 ID
    echo "$IMG" | tee ~/maint-20261021/image-3b781d8.txt
    docker tag "$IMG" <저장소 이름>:3b781d8          # 🔴 :latest 가 아니라 실행 중인 이미지 ID 에 직접 태그 (둘이 같다고 가정하지 않는다)
