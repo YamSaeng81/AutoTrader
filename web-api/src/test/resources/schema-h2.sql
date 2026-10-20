@@ -774,3 +774,21 @@ CREATE TABLE IF NOT EXISTS exchange_maintenance_window (
     note                TEXT,
     CONSTRAINT exchange_maintenance_window_range CHECK (ends_at > starts_at)
 );
+
+-- V94 매도 격리 해제 기록 (2026-10-19)
+CREATE TABLE IF NOT EXISTS sell_quarantine_release (
+    order_id                BIGINT          PRIMARY KEY,
+    position_id             BIGINT          NOT NULL,
+    session_kind            VARCHAR(20)     NOT NULL,
+    session_id              BIGINT          NOT NULL,
+    order_state_at          VARCHAR(20)     NOT NULL,
+    order_filled_qty        DECIMAL(30, 8)  NOT NULL,
+    position_status_at      VARCHAR(20)     NOT NULL,
+    position_size_at        DECIMAL(30, 8)  NOT NULL,
+    buy_filled_qty          DECIMAL(30, 8)  NOT NULL,
+    sell_filled_qty         DECIMAL(30, 8)  NOT NULL,
+    released_by             VARCHAR(100)    NOT NULL,
+    reason                  TEXT            NOT NULL,
+    evidence                TEXT            NOT NULL,
+    released_at             TIMESTAMP WITH TIME ZONE NOT NULL
+);

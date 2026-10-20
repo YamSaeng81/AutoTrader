@@ -2027,8 +2027,7 @@ public class LiveTradingService {
         //    체결로 확인되는 경우다(그동안 CLOSING 이 시간 초과로 OPEN 으로 되돌아갔을 수 있다). CLOSING 으로만
         //    돌려 청산 확정이 그 체결을 반영하게 한다.
         boolean unappliedFill = orderRepository.findByPositionIdOrderByCreatedAtDesc(posId).stream()
-                .anyMatch(o -> "SELL".equalsIgnoreCase(o.getSide()) && "FILLED".equals(o.getState())
-                        && o.getSellAppliedAt() == null);
+                .anyMatch(o -> "FILLED".equals(o.getState()) && autoApplicableSell(o));
         if (unappliedFill) {
             positionStateTransition.markClosingIfOpen(posId, Instant.now(), ExitReason.FORCED_STOP);
             positionCleanupRepository.note(posId, "체결된 매도 반영 대기 — 다시 팔지 않는다");
@@ -2498,7 +2497,7 @@ public class LiveTradingService {
             List<OrderEntity> sellOrders = orderRepository
                     .findByPositionIdOrderByCreatedAtDesc(pos.getId())
                     .stream()
-                    .filter(o -> "SELL".equalsIgnoreCase(o.getSide()) && o.getSellAppliedAt() == null)
+                    .filter(this::autoApplicableSell)
                     .toList();
             if (sellOrders.isEmpty()) {
                 pos.setStatus("OPEN");
@@ -2738,7 +2737,7 @@ public class LiveTradingService {
             List<OrderEntity> sellOrders = orderRepository
                     .findByPositionIdOrderByCreatedAtDesc(pos.getId())
                     .stream()
-                    .filter(o -> "SELL".equalsIgnoreCase(o.getSide()) && o.getSellAppliedAt() == null)
+                    .filter(this::autoApplicableSell)
                     .toList();
 
             if (sellOrders.isEmpty()) {
@@ -3147,10 +3146,29 @@ public class LiveTradingService {
         return v == null ? BigDecimal.ZERO : v;
     }
 
+    /** 판별 불가 매도(V87 이전, 반영 표시 없음)를 가리는 정책 — 없으면(단위 시험) 종전대로 반영 표시만 본다. */
+    @Autowired(required = false)
+    private LegacySellPolicy legacySellPolicy;
+
+    /**
+     * 자동 반영 후보인 미반영 매도인가 (2026-10-19). 🔴 V87 이전의 반영 표시 없는 매도는 반영됐는지 판별할 수 없다 — 자동 반영하면 이미 반영된
+     * 대금을 두 번 넣고 수량을 줄인다(격리 포지션이 CLOSING 이 될 때 재현). 사람이 격리 해제로 판정할 때까지 후보에서 뺀다.
+     */
+    private boolean autoApplicableSell(OrderEntity o) {
+        if (!"SELL".equalsIgnoreCase(o.getSide()) || o.getSellAppliedAt() != null) return false;
+        return legacySellPolicy == null || !legacySellPolicy.isUnverifiableLegacy(o);
+    }
+
     private void finalizeSellPosition(PositionEntity pos, OrderEntity filledOrder) {
         // 멱등성 guard — reconcileOnStartup() + reconcileClosingPositions() 동시 호출 방어
         if ("CLOSED".equals(pos.getStatus())) {
             log.debug("finalizeSellPosition 스킵: 이미 CLOSED (posId={})", pos.getId());
+            return;
+        }
+        // 🔴 마지막 방어선 (2026-10-19) — 판별 불가 매도는 자동 반영하지 않는다(대금 이중 반영 방지). 사람의 격리 해제를 기다린다.
+        if (legacySellPolicy != null && legacySellPolicy.isUnverifiableLegacy(filledOrder)) {
+            log.error("매도 확정 보류 — 판별 불가 매도(V87 이전·반영 표시 없음)는 자동 반영하지 않는다 — 격리 해제로 판정하라 (posId={}, orderId={})",
+                    pos.getId(), filledOrder.getId());
             return;
         }
         // ⚠️ 체결가가 확정되지 않은 주문은 finalize 하지 않는다 (방어선 2).
