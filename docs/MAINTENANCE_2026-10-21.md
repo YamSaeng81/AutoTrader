@@ -11,7 +11,13 @@
   2. **앱 단계** — `39f994c` 배포(V94). 앱 코드는 실제 프로세스로 검증한 `0be46c5` 와 같다(로컬 `git diff` 차이 없음 확인)
 - 16:00 까지는 확인·복구 여유다. 13:00 직전 점검이 기대와 다르면 **정비 전체를 보류**한다.
 - 재기동 두 번(Docker 단계·앱 단계)은 66세션에 영향을 줄 수 있다 → **개입 #8** 로 실제 시각과 내용을 남긴다(§5).
-- 아래 명령은 운영 서버의 저장소 디렉터리에서 실행한다. `DC="docker compose -f docker-compose.prod.yml"` 로 줄여 쓴다.
+- 아래 명령은 운영 서버의 저장소 디렉터리에서 실행한다. 🔴 **새 셸을 열 때마다 먼저** 아래 변수를 정한다(정하지 않으면 `$DC images` 가 `images` 명령으로,
+  `$DC ps` 가 시스템 `ps` 로 실행된다 — 10-21 실제로 겪음):
+  ```bash
+  cd ~/crypto_trader/AutoTrader
+  DC="docker compose -f docker-compose.prod.yml"; REPO=autotrader-backend; M=~/maint-20261021
+  mkdir -p "$M"
+  ```
 
 ## 1. 10:00 정기 점검 (오늘 2026-10-21)
 
@@ -57,13 +63,13 @@ git show origin/main:scripts/ops/maint_checks.sql | $DC exec -T db psql -U trade
    $DC images backend                              # 저장소 이름 확인 — 운영은 autotrader-backend (compose 프로젝트 autotrader, 10-21 점검 `ps` 로 확인)
    IMG=$(docker inspect --format '{{.Image}}' $($DC ps -q backend))    # 지금 실행 중인 컨테이너의 이미지 ID
    echo "$IMG" | tee ~/maint-20261021/image-3b781d8.txt
-   docker tag "$IMG" <저장소 이름>:3b781d8          # 🔴 :latest 가 아니라 실행 중인 이미지 ID 에 직접 태그 (둘이 같다고 가정하지 않는다)
-   docker image inspect --format '{{.Id}}' <저장소 이름>:3b781d8       # image-3b781d8.txt 와 같아야 한다
-   docker image inspect --format '{{.Id}}' <저장소 이름>:latest        # 참고로 기록 — 달라도 태그는 위 ID 기준
+   docker tag "$IMG" $REPO:3b781d8          # 🔴 :latest 가 아니라 실행 중인 이미지 ID 에 직접 태그 (둘이 같다고 가정하지 않는다)
+   docker image inspect --format '{{.Id}}' $REPO:3b781d8       # image-3b781d8.txt 와 같아야 한다
+   docker image inspect --format '{{.Id}}' $REPO:latest        # 참고로 기록 — 달라도 태그는 위 ID 기준
    $DC logs --no-color backend > ~/maint-20261021/backend-before.log
    ```
    되돌릴 때는 다시 빌드하지 않고 이 태그의 이미지를 쓴다. 이미지 생성 시각이 10-19 `3b781d8` 배포 시각(13:00경)과 맞는지
-   `docker image inspect --format '{{.Created}}' <저장소 이름>:3b781d8` 로 본다. 셸을 새로 열면 `IMG` 는 `image-3b781d8.txt` 에서 다시 읽는다.
+   `docker image inspect --format '{{.Created}}' $REPO:3b781d8` 로 본다. 셸을 새로 열면 `IMG` 는 `image-3b781d8.txt` 에서 다시 읽는다.
 
 ## 3. Docker 단계 (기존 앱 `3b781d8` 유지)
 
@@ -139,7 +145,7 @@ git show origin/main:scripts/ops/maint_checks.sql | $DC exec -T db psql -U trade
 **되돌리기(앱 단계 실패 시 — 기동 실패·마이그레이션 실패·주문 추적 이상·예상 밖 ERROR)**: 스키마는 V94 로 둔다(되돌리지 않는다).
 ```bash
 git checkout 3b781d8
-docker tag "$(cat ~/maint-20261021/image-3b781d8.txt)" <저장소 이름>:latest    # 기록한 이미지 ID 를 compose 가 쓰는 :latest 로
+docker tag "$(cat ~/maint-20261021/image-3b781d8.txt)" $REPO:latest    # 기록한 이미지 ID 를 compose 가 쓰는 :latest 로
 $DC up -d --no-build --force-recreate backend
 docker inspect --format '{{.Image}}' $($DC ps -q backend)    # image-3b781d8.txt 와 같아야 한다
 ```
