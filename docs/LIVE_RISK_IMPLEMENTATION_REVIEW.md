@@ -1917,6 +1917,15 @@ SELECT p.id AS position_id, p.session_kind, p.session_id, p.coin_pair, p.status,
   STOPPED·EMERGENCY_STOPPED·DELETED(98행 기록) · Q3·Q4·Q5·Q6 **0** · Q7 **RUNNING 66** · Q8 0 · Q9 "건너뜀"(V93 — 수정한 분기 정상 동작) · `ROLLBACK` 으로 끝남(Q10 까지 실행).
 - Q10(7일): `CUSTOM` 실패 4·성공 7, `EXCHANGE_DOWN` 실패 1, `TIME_STOP` 실패 1 — 텔레그램 전송 실패가 실제로 드물지 않다. `RISK_LIMIT` 재시도 보완(위) 근거로 남긴다.
 
+**정비 준비 일부 선행 — 2026-10-21 08:18 KST(운영자 실행, 정비 시작 전)**: §2 블록을 08:18 에 실행. 운영 변경 없음.
+- 점검 조회(`q-1300-before.txt`): Q3·Q4·Q5·Q6 **0** · Q7 **RUNNING 66** · Q9 건너뜀 · `ROLLBACK` 까지 실행. Q10 은 오전 점검과 같다.
+- DB 백업 `pre-maint-20261021.dump` 154,579,737 바이트, `pg_restore -l` 로 목록 읽힘(TOC 2841, 생성 23:18:51 UTC). `pg_dump` 의 "circular foreign-key constraints"
+  경고는 TimescaleDB 내부 카탈로그(`hypertable`·`chunk`·`continuous_agg`)에 대한 것으로, 전체 덤프(`-Fc`)에서는 문제가 아니다.
+- 복구 태그: 실행 중 이미지 `sha256:048e9dc8338e…3d36` → `autotrader-backend:3b781d8` 태그, 태그 ID 일치. 생성 시각 **2026-10-19 12:59:47 KST**(10-19 `3b781d8` 배포와 일치).
+  `:latest` 도 같은 ID. 기동 전 로그 175,450줄 저장.
+- 🔴 08:18 은 정비 시작 5시간 전이다 — 이 조회는 **13:00 직전 확인을 대신하지 않는다**(DYNAMIC 93 이 RUNNING). 태그·백업은 유효한 준비로 두고, 12:50 무렵 점검 조회를
+  다시 실행해(`q-1250-before.txt`) Q3·Q4·Q5·Q6 0 을 확인한 뒤 Docker 단계로 들어간다.
+
 ### 6.4 종합
 
 | 선행 조건 | 판정 | 남은 것 |
