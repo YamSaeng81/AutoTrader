@@ -1,6 +1,8 @@
 -- 계획 정비 점검 조회 (2026-10-21 정비용, 읽기 전용) — docs/MAINTENANCE_2026-10-21.md
 -- 실행: docker compose -f docker-compose.prod.yml exec -T db psql -U trader -d crypto_auto_trader -f - < scripts/ops/maint_checks.sql
 -- 🔴 읽기 전용 트랜잭션 안에서만 실행한다. 쓰기 문장은 없다.
+-- 오류가 나면 그 자리에서 멈춘다 — 실패한 트랜잭션 뒤 조회가 조용히 건너뛰어지지 않게 (리뷰 2026-10-21).
+\set ON_ERROR_STOP on
 BEGIN TRANSACTION READ ONLY;
 
 \echo '== Q1 Flyway 최고 버전 (Docker 단계 93 · 앱 단계 뒤 94) · V87 설치 시각 = 판별 불가 매도의 경계 (2026-10-16 05:07Z 기대)'
@@ -52,8 +54,13 @@ SELECT count(*) AS real_buys_since_maint
  WHERE o.side = 'BUY' AND o.created_at >= TIMESTAMPTZ '2026-10-21 13:00:00+09'
    AND (l.session_type = 'REAL' OR d.trading_mode = 'REAL');
 
-\echo '== Q9 격리 해제 기록 (V94 뒤에만 존재) — 기대 0행. V93 에서는 "relation does not exist" 가 정상'
+\echo '== Q9 격리 해제 기록 (V94 뒤에만 존재) — 기대 0. V93 에서는 테이블이 없어 건너뛴다'
+SELECT (to_regclass('public.sell_quarantine_release') IS NOT NULL)::int AS has_release_table \gset
+\if :has_release_table
 SELECT count(*) AS quarantine_release_rows FROM sell_quarantine_release;
+\else
+\echo '   (sell_quarantine_release 없음 — V93. Q9 건너뜀)'
+\endif
 
 \echo '== Q10 최근 7일 텔레그램 전송 기록 (참고 — 재기동 뒤에도 알림이 나가는가)'
 SELECT type, success, count(*), max(sent_at) AS last_sent FROM telegram_notification_log

@@ -13,7 +13,9 @@
 - 재기동 두 번(Docker 단계·앱 단계)은 66세션에 영향을 줄 수 있다 → **개입 #8** 로 실제 시각과 내용을 남긴다(§5).
 - 아래 명령은 운영 서버의 저장소 디렉터리에서 실행한다. `DC="docker compose -f docker-compose.prod.yml"` 로 줄여 쓴다.
 
-## 1. 10:00 정기 점검
+## 1. 10:00 정기 점검 (오늘 2026-10-21)
+
+🔴 각 단계는 **실제 수행 시각**을 기록한다. 10:00 이 이미 지났으면 지금 하고 그 시각을 적는다. 13:00 전에 이 점검과 대응 시간을 확보하지 못했으면 정비를 미룬다.
 
 평소 점검 그대로 — `$DC ps`(backend Up·재시작 횟수), 최근 ERROR(공유 풀 미등록·캔들 판정 불가 외), 아래 점검 조회. 이상이 있으면 정비를 보류한다.
 
@@ -32,8 +34,11 @@ git show origin/main:scripts/ops/maint_checks.sql | $DC exec -T db psql -U trade
 | Q6 격리 대조 대상 | 0행 — 행이 나오면 **보류**(행은 곧 격리가 아니라 대조 대상, §6.13-⑩) |
 | Q7 검증 66세션 | RUNNING 66 |
 | Q8 정비 뒤 신규 매수 | 0 (13:00 이전엔 의미 없음) |
-| Q9 격리 해제 기록 | V93 에서는 `relation "sell_quarantine_release" does not exist` 가 정상 |
+| Q9 격리 해제 기록 | V93: `(sell_quarantine_release 없음 — V93. Q9 건너뜀)` · V94: 0 |
 | Q10 텔레그램 기록 | 참고 |
+
+조회 파일은 `ON_ERROR_STOP` 으로 실행된다 — **오류가 나면 그 자리에서 멈추고 마지막 줄이 `ROLLBACK` 이 아니다.** 그때는 출력이 Q10 까지 왔는지 보고, 오류 줄을 그대로 보고한다
+(예상된 오류는 없다).
 
 ## 2. 13:00 정비 직전
 
@@ -50,11 +55,15 @@ git show origin/main:scripts/ops/maint_checks.sql | $DC exec -T db psql -U trade
    git rev-parse --short HEAD                      # 3b781d8 이어야 한다
    git status --short                              # 변경 없음
    $DC images backend                              # 저장소 이름 확인 (예: crypto-auto-trader-backend)
-   docker inspect --format '{{.Image}}' $($DC ps -q backend) | tee ~/maint-20261021/image-3b781d8.txt
-   docker tag <저장소 이름>:latest <저장소 이름>:3b781d8   # 되돌릴 때 다시 빌드하지 않고 이 이미지를 쓴다
+   IMG=$(docker inspect --format '{{.Image}}' $($DC ps -q backend))    # 지금 실행 중인 컨테이너의 이미지 ID
+   echo "$IMG" | tee ~/maint-20261021/image-3b781d8.txt
+   docker tag "$IMG" <저장소 이름>:3b781d8          # 🔴 :latest 가 아니라 실행 중인 이미지 ID 에 직접 태그 (둘이 같다고 가정하지 않는다)
+   docker image inspect --format '{{.Id}}' <저장소 이름>:3b781d8       # image-3b781d8.txt 와 같아야 한다
+   docker image inspect --format '{{.Id}}' <저장소 이름>:latest        # 참고로 기록 — 달라도 태그는 위 ID 기준
    $DC logs --no-color backend > ~/maint-20261021/backend-before.log
    ```
-   이미지 생성 시각이 10-19 `3b781d8` 배포 시각(13:00경)과 맞는지 `docker image inspect --format '{{.Created}}' <저장소 이름>:3b781d8` 로 본다.
+   되돌릴 때는 다시 빌드하지 않고 이 태그의 이미지를 쓴다. 이미지 생성 시각이 10-19 `3b781d8` 배포 시각(13:00경)과 맞는지
+   `docker image inspect --format '{{.Created}}' <저장소 이름>:3b781d8` 로 본다. 셸을 새로 열면 `IMG` 는 `image-3b781d8.txt` 에서 다시 읽는다.
 
 ## 3. Docker 단계 (기존 앱 `3b781d8` 유지)
 
@@ -65,12 +74,23 @@ git show origin/main:scripts/ops/maint_checks.sql | $DC exec -T db psql -U trade
    ```
    🔴 `stop` 만 하면 안 된다: backend 는 `restart: always` 라 **Docker 데몬이 재시작되면 수동으로 멈춘 컨테이너도 다시 뜬다** — 업그레이드 도중 DB 준비 전에
    앱이 저절로 기동할 수 있다. 컨테이너를 지우면 데몬 재시작이 되살릴 대상이 없다. 이미지·로그(`./logs/backend`)는 지워지지 않는다.
-2. **업그레이드**:
+2. **Docker 관련 패키지만 업그레이드** — 🔴 `apt-get upgrade`(전체)는 쓰지 않는다. Docker 외 OS 패키지 정비는 별도 일정으로 잡는다.
    ```bash
    sudo apt-get update
-   apt list --upgradable | tee ~/maint-20261021/upgradable.txt
-   sudo apt-get upgrade
+   dpkg -l | grep -E 'docker|containerd|runc' | tee ~/maint-20261021/docker-pkgs-before.txt      # 설치된 Docker 관련 패키지
+   apt list --upgradable 2>/dev/null | tee ~/maint-20261021/upgradable-all.txt                  # 참고 기록(이번에 올리지 않는 것 포함)
+   apt list --upgradable 2>/dev/null | grep -E 'docker|containerd|runc' | tee ~/maint-20261021/upgradable-docker.txt
+   ```
+   `upgradable-docker.txt` 에서 올릴 패키지를 **승인한 목록만** 이름으로 지정한다(아래는 예 — 위 목록에 있는 것만 남긴다). 먼저 시뮬레이션으로 함께 바뀌는 패키지를 본다:
+   ```bash
+   PKGS="docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-ce-rootless-extras"   # 승인 목록으로 바꾼다
+   sudo apt-get install --only-upgrade -s $PKGS | tee ~/maint-20261021/apt-simulate.txt | grep -E '^(Inst|Remv)'
+   ```
+   `Inst`·`Remv` 줄이 **승인 목록 밖 패키지**를 포함하면 멈추고 그 목록을 보고한다(제거 `Remv` 는 하나라도 있으면 멈춘다). 목록 안이면:
+   ```bash
+   sudo apt-get install --only-upgrade $PKGS
    tail -40 /var/log/apt/history.log > ~/maint-20261021/apt-history.txt
+   dpkg -l | grep -E 'docker|containerd|runc' > ~/maint-20261021/docker-pkgs-after.txt
    ls /var/run/reboot-required 2>/dev/null && cat /var/run/reboot-required.pkgs
    ```
    재부팅이 필요하다고 나와도 **이 정비에서는 재부팅하지 않는다**(계획에 없는 세 번째 재기동). 기록하고 따로 정한다.
@@ -119,7 +139,7 @@ git show origin/main:scripts/ops/maint_checks.sql | $DC exec -T db psql -U trade
 **되돌리기(앱 단계 실패 시 — 기동 실패·마이그레이션 실패·주문 추적 이상·예상 밖 ERROR)**: 스키마는 V94 로 둔다(되돌리지 않는다).
 ```bash
 git checkout 3b781d8
-docker tag <저장소 이름>:3b781d8 <저장소 이름>:latest
+docker tag "$(cat ~/maint-20261021/image-3b781d8.txt)" <저장소 이름>:latest    # 기록한 이미지 ID 를 compose 가 쓰는 :latest 로
 $DC up -d --no-build --force-recreate backend
 docker inspect --format '{{.Image}}' $($DC ps -q backend)    # image-3b781d8.txt 와 같아야 한다
 ```
@@ -132,7 +152,7 @@ Docker 단계와 같다. 🔴 되돌린 운영에는 격리 우회 결함이 다
 1. 앱 단계 30분 뒤 점검 조회 재실행 → `~/maint-20261021/q-after30.txt`: Q3·Q4·Q5·Q6·Q8 0 · Q7 RUNNING 66 · Q10 에서 재기동 뒤 알림 `success = t` 확인.
 2. 66세션 점검: `python scripts/prospective/start_66.py alerts --since 2026-10-21T04:00:00Z`(정비 구간의 경보·실행 누락).
 3. **개입 #8 기록**(운영자 본인이 시각·내용을 채운다 — 이 칸을 대신 채우지 않는다):
-   > 개입 #8 — 2026-10-21 계획 정비. ① Docker 단계: backend 정지 HH:MM KST → 업그레이드(패키지 목록 `upgradable.txt`) → `3b781d8` 재기동 HH:MM KST.
+   > 개입 #8 — 2026-10-21 계획 정비. ① Docker 단계: backend 정지 HH:MM KST → Docker 관련 패키지 업그레이드(승인 목록 `PKGS` · 결과 `docker-pkgs-after.txt`) → `3b781d8` 재기동 HH:MM KST.
    > ② 앱 단계: `39f994c`(V94) 기동 HH:MM KST, Flyway V94 `installed_on` (조회값). 재기동에 따른 전략 메모리 초기화·평가 공백의 영향은 미확정이며 T0·성과 구간은 유지한다.
    > 결과: (정상 / 되돌림 — 사유) — 운영자 / 시각
 4. 결과 파일(`~/maint-20261021/`)과 위 로그 줄을 보고하면 문서(§6.16·§6.4 판정표 5)에 반영한다. **판정표 5 의 전체 완료 표시는 그 확인 뒤 리뷰 판정으로** 한다.
@@ -140,4 +160,5 @@ Docker 단계와 같다. 🔴 되돌린 운영에는 격리 우회 결함이 다
 
 ## 6. 이번 정비에서 하지 않는 것
 
-STAGE_1 등록·활성화 · `risk_config` 변경 · 세션 시작·정지·`invest_ratio` 변경 · 격리 해제 API 호출 · 재부팅 · `cloudflared-tunnel` 정리 · 66세션·T0 변경.
+STAGE_1 등록·활성화 · `risk_config` 변경 · 세션 시작·정지·`invest_ratio` 변경 · 격리 해제 API 호출 · 재부팅 · **Docker 외 OS 패키지 업그레이드**(별도 정비) ·
+`cloudflared-tunnel` 정리 · 66세션·T0 변경 · `RISK_LIMIT` 경보 재시도 보완(별도 변경 — 이번 배포 후보 `39f994c` 에 넣지 않는다).
