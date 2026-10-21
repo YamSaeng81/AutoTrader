@@ -13,8 +13,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.concurrent.Executor;
+import java.util.concurrent.RejectedExecutionException;
 
 import java.math.BigDecimal;
 import java.net.URI;
@@ -655,30 +659,88 @@ public class TelegramNotificationService {
      * 이고, 그때마다 뒤쪽 알림이 조용히 사라진다.</p>
      *
      * <p><b>RISK_LIMIT 추가 (2026-10-21, 리뷰)</b>: 공유 풀 손실 한도·포지션별 한도·격리·판별 불가 매도·보유 코인 캔들 판정 불가 경보다.
-     * 자동 정지가 기본 OFF 라 이 경보가 운영자에게 집행을 맡기는 유일한 신호인데, 1회 시도라 실패하면 집행 기회가 사라졌다.
-     * 호출하는 쪽은 모두 상태가 바뀔 때 한 번만 보낸다(같은 도달이 매 회차 다시 오지 않는다) — 그래서 다음 주기에 다시 오지 않고, 재시도가
-     * 큐를 반복해서 점유하지도 않는다.</p>
+     * 자동 정지가 기본 OFF 라 이 경보가 운영자에게 집행을 맡기는 유일한 신호인데, 1회 시도라 실패하면 집행 기회가 사라졌다.</p>
+     *
+     * <p><b>CLEANUP_NEEDS_HUMAN·CLEANUP_INCOMPLETE·EXCHANGE_DOWN 추가 (2026-10-21, 리뷰 동의)</b>: 정리 중단·정리 미완료(제출 결과 불명)·
+     * 거래소 연결 끊김(전 세션 비상 정지) — 모두 사람이 대응해야 하는 경보다. 운영 이력에 {@code EXCHANGE_DOWN} 실패 1건(10-18)이 있다.</p>
+     *
+     * <p>호출하는 쪽은 모두 상태가 바뀔 때 한 번만 보낸다 — 다음 주기에 다시 오지 않는다. 다만 그것만으로 큐 부담이 없다고 보지 않는다:
+     * 재시도 대기 동안 다른 알림은 큐에서 기다리고, 큐가 차면 실행기가 받지 않는다({@link #sendMarkdownAndLog} 가 그 실패를 기록한다).</p>
      *
      * <p>요약(TRADE_SUMMARY) 같은 정기 알림은 다음 주기에 다시 오므로 재시도하지 않는다.</p>
      *
-     * <p>🔴 최종 실패: 이 유형이 {@link #RETRY_MAX_ATTEMPTS}회 모두 실패하면 ERROR 로그("최종 실패")를 남기고 이력에 {@code success=false} 로
-     * 한 줄 기록한다 — 이 유형의 {@code success=false} 는 "재시도까지 모두 실패" 를 뜻한다. 정기 점검(10:00·22:00)이 이력을 조회해 찾는다.</p>
+     * <p>🔴 최종 실패: 이 유형이 재시도까지 모두 실패하면 ERROR 로그(문구는 {@link #finalFailureNote})를 남기고 이력에 {@code success=false} 로
+     * 한 줄 기록한다 — 이 유형의 {@code success=false} 는 "재시도까지 모두 실패" 또는 "큐 진입 실패" 를 뜻한다. 정기 점검(10:00·22:00)이 이력을 조회해 찾는다.</p>
      */
-    private static final Set<String> RETRY_TYPES = Set.of("STOP_LOSS", "SESSION_STOP", "RISK_LIMIT");
+    static final Set<String> RETRY_TYPES = Set.of(
+            "STOP_LOSS", "SESSION_STOP", "RISK_LIMIT", "CLEANUP_NEEDS_HUMAN", "CLEANUP_INCOMPLETE", "EXCHANGE_DOWN");
 
     /** 재시도 총 횟수(최초 시도 포함) */
     private static final int RETRY_MAX_ATTEMPTS = 3;
 
-    /** 재시도 간 대기(ms) — 레이트리밋이 풀릴 시간을 준다. 최대 추가 지연 7초. */
+    /** 재시도 간 대기(ms) — 레이트리밋이 아닌 실패(응답 미수신·거부)에 쓴다. 최대 추가 지연 7초. */
     private static final long[] RETRY_BACKOFF_MS = {2000L, 5000L};
+
+    /**
+     * 재시도 대기의 합계 상한(ms) — 429 의 {@code retry_after} 를 따르되, 다음 대기가 이 상한을 넘기면 기다리지 않고 최종 실패로 끝낸다.
+     * 전송 스레드는 하나라 한 알림이 오래 붙잡으면 뒤의 알림이 모두 밀린다.
+     */
+    static final long RETRY_TOTAL_WAIT_CAP_MS = 30_000L;
 
     /** 테스트에서만 0으로 낮춘다 — 재시도 횟수 검증에 실제 대기가 필요하지 않다. */
     long backoffMs(int attemptIndex) {
         return RETRY_BACKOFF_MS[Math.min(attemptIndex, RETRY_BACKOFF_MS.length - 1)];
     }
 
+    /** 재시도 사이 대기 — 테스트에서 실제로 자지 않고 대기 시간만 기록하도록 바꿔 끼운다. 끼어들면 {@code false}. */
+    boolean pause(long ms) {
+        try {
+            Thread.sleep(ms);
+            return true;
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+            return false;
+        }
+    }
+
+    /** 큐 진입 실패 이력의 본문 머리 — Q10·이력 화면에서 전송 실패와 구별한다. */
+    static final String QUEUE_REJECTED_MARK = "[큐 포화 — 전송 안 함] ";
+
+    /** 큐 진입 실패 기록은 호출한 쪽 스레드(트랜잭션 안일 수 있다)에서 일어난다 — 그 트랜잭션에 섞이지 않게 새 트랜잭션으로 쓴다. */
+    @Autowired(required = false)
+    private PlatformTransactionManager transactionManager;
+
+    /**
+     * 실행기에 넘긴다. 🔴 큐가 차면 실행기가 받지 않는다(2026-10-21 리뷰) — 그때 전송 함수에 닿지 않아 이력에도 남지 않던 것을,
+     * 재시도 유형은 ERROR 와 이력 {@code success=false}(본문 앞에 {@link #QUEUE_REJECTED_MARK})로 남긴다. 그 밖의 유형은 WARN 만.
+     */
     private void sendMarkdownAndLog(String text, String type, String sessionLabel) {
-        telegramExecutor.execute(() -> doSendMarkdownAndLog(text, type, sessionLabel));
+        try {
+            telegramExecutor.execute(() -> doSendMarkdownAndLog(text, type, sessionLabel));
+        } catch (RejectedExecutionException e) {
+            if (type != null && RETRY_TYPES.contains(type)) {
+                log.error("[Telegram] 🔴 {} 알림 큐 진입 실패(큐 포화) — 전송하지 못함(이력 success=false): {}", type,
+                        text.substring(0, Math.min(120, text.length())));
+                recordQueueRejected(type, sessionLabel, text);
+            } else {
+                log.warn("[Telegram] 알림 큐 포화 — {} 드롭", type);
+            }
+        }
+    }
+
+    private void recordQueueRejected(String type, String sessionLabel, String text) {
+        TelegramNotificationLogEntity row = new TelegramNotificationLogEntity(type, sessionLabel, QUEUE_REJECTED_MARK + text, false);
+        try {
+            if (transactionManager == null) {
+                logRepository.save(row);
+                return;
+            }
+            TransactionTemplate tx = new TransactionTemplate(transactionManager);
+            tx.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+            tx.executeWithoutResult(s -> logRepository.save(row));
+        } catch (Exception e) {
+            log.warn("[Telegram] 큐 진입 실패 이력 저장 실패: {}", e.getMessage());
+        }
     }
 
     /** 동기 전송 — sendTestMessage()에서만 사용. 이력은 재시도가 끝난 뒤 최종 결과로 한 줄만 남긴다. */
@@ -696,49 +758,83 @@ public class TelegramNotificationService {
     /**
      * {@link #RETRY_TYPES}에 해당하면 실패 시 재시도하고, 그 외 유형은 1회만 시도한다.
      *
-     * <p>이 메서드는 {@code telegramExecutor}(코어 1) 위에서 돈다 — 대기 중 다른 알림은
-     * 큐(50)에 쌓일 뿐 유실되지 않으며, 중요 알림이 먼저 나가는 편이 낫다.</p>
+     * <p>대기: 429 면 응답의 {@code retry_after}(초)를 따르고, 그 밖의 실패는 {@link #backoffMs}. 대기 합계가
+     * {@link #RETRY_TOTAL_WAIT_CAP_MS} 를 넘게 되면 기다리지 않고 끝낸다.</p>
+     *
+     * <p>이 메서드는 {@code telegramExecutor}(코어 1) 위에서 돈다 — 대기 동안 다른 알림은 큐(50)에서 기다리고,
+     * 큐가 차면 받지 않는다(유실 — {@link #sendMarkdownAndLog} 가 재시도 유형의 큐 진입 실패를 기록한다).</p>
      */
     // 테스트에서 백오프를 0으로 낮춰 재시도 로직만 검증할 수 있게 package-private
     boolean sendWithRetry(String text, String type) {
         boolean retryable = type != null && RETRY_TYPES.contains(type);
         int attempts = retryable ? RETRY_MAX_ATTEMPTS : 1;
+        long waited = 0;
+        boolean anyNoResponse = false;
+        Attempt last = null;
+        int tried = 0;
 
         for (int i = 0; i < attempts; i++) {
-            if (sendMarkdown(text)) {
+            last = sendAttempt(text);
+            tried++;
+            if (last.ok()) {
                 if (i > 0) {
                     log.info("[Telegram] {} 재전송 성공 ({}번째 시도)", type, i + 1);
                 }
                 return true;
             }
+            if (last.outcome() == Outcome.NO_RESPONSE) anyNoResponse = true;
             if (i < attempts - 1) {
-                long backoff = backoffMs(i);
-                log.warn("[Telegram] {} 전송 실패 — {}ms 후 재시도 ({}/{})",
-                        type, backoff, i + 1, attempts);
-                try {
-                    Thread.sleep(backoff);
-                } catch (InterruptedException ie) {
-                    Thread.currentThread().interrupt();
-                    return false;
+                long wait = last.outcome() == Outcome.RATE_LIMITED && last.retryAfterMs() >= 0 ? last.retryAfterMs() : backoffMs(i);
+                if (waited + wait > RETRY_TOTAL_WAIT_CAP_MS) {
+                    log.warn("[Telegram] {} 재시도 중단 — 다음 대기 {}ms 가 대기 상한 {}ms 를 넘는다(이미 {}ms)",
+                            type, wait, RETRY_TOTAL_WAIT_CAP_MS, waited);
+                    break;
                 }
+                log.warn("[Telegram] {} 전송 실패({}) — {}ms 후 재시도 ({}/{})", type, last.outcome(), wait, i + 1, attempts);
+                if (!pause(wait)) return false;
+                waited += wait;
             }
         }
         if (retryable) {
-            log.error("[Telegram] 🔴 {} 알림 {}회 전송 실패 — 최종 실패, 유실됨(이력 success=false): {}", type, attempts,
-                    text.substring(0, Math.min(120, text.length())));
+            log.error("[Telegram] 🔴 {} 알림 {}회 시도 — {}(이력 success=false): {}", type, tried,
+                    finalFailureNote(anyNoResponse, last), text.substring(0, Math.min(120, text.length())));
         }
         return false;
     }
 
     /**
+     * 최종 실패 문구. 응답을 못 받은 시도가 한 번이라도 있으면 그 메시지는 도착했을 수 있다 — "유실" 이 아니라 확인 실패다(2026-10-21 리뷰).
+     * 모든 시도가 거부(429 포함)면 전달되지 않았다.
+     */
+    static String finalFailureNote(boolean anyNoResponse, Attempt last) {
+        if (anyNoResponse) return "최종 실패: 전송 성공 확인 실패 — 중복 도착 가능";
+        return "최종 실패: 전달되지 않음(마지막 " + (last == null ? "?" : last.outcome() + " HTTP " + last.status()) + ")";
+    }
+
+    /** 한 번 보낸 결과의 종류. */
+    enum Outcome { SENT, REJECTED, RATE_LIMITED, NO_RESPONSE }
+
+    /** 한 번 보낸 결과 — {@code retryAfterMs} 는 429 응답의 {@code retry_after}(없으면 -1). */
+    record Attempt(Outcome outcome, int status, long retryAfterMs) {
+        static Attempt sent() { return new Attempt(Outcome.SENT, 200, -1); }
+        static Attempt rejected(int status) { return new Attempt(Outcome.REJECTED, status, -1); }
+        static Attempt rateLimited(long retryAfterMs) { return new Attempt(Outcome.RATE_LIMITED, 429, retryAfterMs); }
+        static Attempt noResponse() { return new Attempt(Outcome.NO_RESPONSE, -1, -1); }
+        boolean ok() { return outcome == Outcome.SENT; }
+    }
+
+    /**
      * Markdown 형식 메시지 전송.
      *
-     * <p><b>API 가 거부하면 서식 없이 한 번 다시 보낸다 (2026-09-01)</b>.
+     * <p><b>서식 오류(400)면 서식 없이 한 번 다시 보낸다 (2026-09-01)</b>.
      * {@link #escapeMarkdownV2} 는 {@code *} {@code [} {@code ]} <code>`</code> 를 일부러
      * 이스케이프하지 않는다 — 알림 템플릿이 그 문자로 굵게·코드 서식을 쓰기 때문이다.
      * 템플릿은 짝을 맞춰 쓰니 안전하지만, <b>밖에서 온 텍스트</b>(LLM 응답, 외부 오류 문구)는
      * 짝이 안 맞을 수 있고 그러면 텔레그램이 400 을 돌려 <b>메시지가 통째로 사라진다</b>.
      * 서식을 잃는 편이 내용을 잃는 것보다 낫다.</p>
+     *
+     * <p>🔴 <b>평문 재전송은 400 에만 한다 (2026-10-21 리뷰)</b> — 429(레이트리밋)에 곧바로 평문을 보내면 같은 제한에 또 걸리고 요청만 늘어난다.
+     * 429 는 {@code retry_after} 를 돌려주고 대기는 {@link #sendWithRetry} 가 정한다. 그 밖의 거부(401·403·5xx 등)도 서식 문제가 아니라 다시 보내지 않는다.</p>
      *
      * <p><b>전송 계층 오류(타임아웃 등)에는 폴백하지 않는다</b> — 응답을 못 받았을 뿐
      * 메시지는 이미 도착했을 수 있고, 그 상태에서 재전송하면 중복 알림이 된다.
@@ -748,20 +844,32 @@ public class TelegramNotificationService {
      * @return 전송 성공 여부
      */
     public boolean sendMarkdown(String text) {
+        return sendAttempt(text).ok();
+    }
+
+    /** {@link #sendMarkdown} 의 본체 — 실패의 종류(거부·레이트리밋·응답 미수신)를 재시도에 넘긴다. */
+    Attempt sendAttempt(String text) {
         if (!enabled) {
             log.debug("[Telegram] 알림 비활성화 상태. 메시지 스킵: {}", text.substring(0, Math.min(50, text.length())));
-            return true;
+            return Attempt.sent();
         }
-        int status = post(escapeMarkdownV2(text), "MarkdownV2");
-        if (status == 200) {
+        Reply r = post(escapeMarkdownV2(text), "MarkdownV2");
+        if (r.status() == 200) {
             log.info("[Telegram] 메시지 전송 성공");
-            return true;
+            return Attempt.sent();
         }
-        if (status > 0) {
-            log.warn("[Telegram] MarkdownV2 거부(HTTP {}) — 서식 없이 재전송한다", status);
-            return sendPlain(text);
+        if (r.status() == 400) {
+            log.warn("[Telegram] MarkdownV2 거부(HTTP 400) — 서식 없이 재전송한다");
+            return toAttempt(post(text, null));
         }
-        return false;   // 응답 미수신 — 이미 도착했을 수 있어 재전송하지 않는다
+        return toAttempt(r);   // 429·그 밖의 거부·응답 미수신 — 평문으로 다시 보내지 않는다
+    }
+
+    private static Attempt toAttempt(Reply r) {
+        if (r.status() == 200) return Attempt.sent();
+        if (r.status() == 429) return Attempt.rateLimited(r.retryAfterSec() >= 0 ? r.retryAfterSec() * 1000L : -1);
+        if (r.status() > 0) return Attempt.rejected(r.status());
+        return Attempt.noResponse();
     }
 
     /**
@@ -770,8 +878,11 @@ public class TelegramNotificationService {
      */
     boolean sendPlain(String text) {
         if (!enabled) return true;
-        return post(text, null) == 200;
+        return post(text, null).status() == 200;
     }
+
+    /** sendMessage 응답 — 상태코드와 429 의 {@code parameters.retry_after}(초, 없으면 -1). */
+    private record Reply(int status, long retryAfterSec) {}
 
     /**
      * sendMessage 호출 — HTTP 상태코드를 그대로 돌려준다.
@@ -779,7 +890,7 @@ public class TelegramNotificationService {
      * <p><b>응답을 받지 못한 경우에만 {@code -1}</b> 이다. "거부당함"과 "모름"을 구별해야
      * 폴백 여부를 정할 수 있다 — 둘을 같은 {@code false} 로 뭉개면 중복 발송을 막을 수 없다.</p>
      */
-    private int post(String text, String parseMode) {
+    private Reply post(String text, String parseMode) {
         try {
             String body = objectMapper.writeValueAsString(
                     new SendMessageRequest(chatId, text, parseMode));
@@ -795,9 +906,19 @@ public class TelegramNotificationService {
             if (response.statusCode() != 200) {
                 log.warn("[Telegram] 메시지 전송 거부: HTTP {} / {}", response.statusCode(), response.body());
             }
-            return response.statusCode();
+            return new Reply(response.statusCode(), response.statusCode() == 429 ? retryAfterSec(response.body()) : -1);
         } catch (Exception e) {
             log.error("[Telegram] 메시지 전송 중 오류(응답 미수신): {}", e.getMessage());
+            return new Reply(-1, -1);
+        }
+    }
+
+    /** 429 응답 본문 {@code {"ok":false,"error_code":429,"parameters":{"retry_after":N}}} 의 N(초). 없거나 읽을 수 없으면 -1. */
+    private long retryAfterSec(String body) {
+        try {
+            com.fasterxml.jackson.databind.JsonNode n = objectMapper.readTree(body).path("parameters").path("retry_after");
+            return n.canConvertToLong() && n.asLong() >= 0 ? n.asLong() : -1;
+        } catch (Exception e) {
             return -1;
         }
     }

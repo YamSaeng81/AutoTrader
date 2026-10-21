@@ -1947,7 +1947,7 @@ SELECT p.id AS position_id, p.session_kind, p.session_id, p.coin_pair, p.status,
 **`RISK_LIMIT` 경보 재시도 보완 (2026-10-21 — 리뷰 권고, 별도 변경. 🔴 운영 미배포 — 운영은 `39f994c`)**:
 - **변경**: `TelegramNotificationService.RETRY_TYPES` 에 `RISK_LIMIT` 추가 — 기존 `STOP_LOSS`·`SESSION_STOP` 과 같은 **제한된 재시도**(최초 포함 3회, 대기 2초·5초).
   호출하는 7곳(`PoolLossGuard`·`PositionLimitMonitor`·`CandleFreshnessGuard`·`LegacySellPolicy`·`SellQuarantineReport`·`SellQuarantineReleaseService`·`UnknownOrderAdjustmentService`)은
-  모두 상태가 바뀔 때 한 번만 보낸다(코드 확인) — 재시도가 큐를 반복 점유하지 않는다.
+  모두 상태가 바뀔 때 한 번만 보낸다(코드 확인). ~~재시도가 큐를 반복 점유하지 않는다~~ → 🔴 틀린 판단(리뷰 2026-10-21) — 재시도 대기 동안 큐가 찰 수 있다, 아래 2차.
 - **최종 실패 표시**: 3회 모두 실패하면 ERROR `[Telegram] 🔴 RISK_LIMIT 알림 3회 전송 실패 — 최종 실패, 유실됨(이력 success=false): <본문 앞 120자>` 와 이력
   `telegram_notification_log` **한 줄 `success=false`**(재시도 유형에서 `success=false` = 재시도까지 모두 실패). 중간 실패는 이력에 따로 적지 않는다. 정기 점검 Q10 이 이 줄을 찾는다.
   스키마 변경 없음(마이그레이션 없음).
@@ -1955,10 +1955,38 @@ SELECT p.id AS position_id, p.session_kind, p.session_id, p.coin_pair, p.status,
   `TelegramRiskLimitRetryHttpTest` 4건(모의 텔레그램 서버, `notifyRiskLimitBreached` 부터 실제 HTTP: 429 한 시도 뒤 성공 = 요청 3·이력 성공 / 계속 429 = 요청 6(3회 × 서식+평문)·이력 실패 /
   응답 미수신 계속 = 서식 요청 3·평문 폴백 없음·이력 실패 / 대조: `CUSTOM` 은 1회). 전체 `:web-api:test` **847 통과·실패 0**(건너뜀 1).
 - 🔴 **알려 둘 점**: 응답 미수신(타임아웃)도 재시도한다 — 이미 도착했을 수 있어 **중복 경보가 날 수 있다**(유실보다 중복을 택한 `STOP_LOSS` 와 같은 선택). 최악 지연은 시도당
-  연결 10초 + 응답 10초라 약 1분, 그동안 다른 알림은 큐(50)에서 기다린다.
+  연결 10초 + 응답 10초라 약 1분, 그동안 다른 알림은 큐(50)에서 기다린다 — 🔴 큐가 차면 실행기가 받지 않고 **버렸다**(1차에서 놓친 것, 아래 2차에서 기록하도록 고침).
 - **범위 밖(판단 요청)**: 같은 이유("사람 개입 기회")가 `CLEANUP_NEEDS_HUMAN`·`CLEANUP_INCOMPLETE`·`EXCHANGE_DOWN` 에도 해당한다(Q10 에 `EXCHANGE_DOWN` 실패 1건). 이번에는 리뷰가 지목한
   `RISK_LIMIT` 만 넣었다.
 - **배포**: 앱 재기동이 필요하므로 다음 계획 정비에 묶는다(STAGE_1 전). 이 변경은 배포·STAGE_1 승인이 아니다.
+
+**경보 재시도 보완 2차 (2026-10-21 리뷰 반영 — 한 변경으로 묶음. 🔴 운영 미배포, 운영은 `39f994c`)**:
+리뷰: 세 유형(`CLEANUP_NEEDS_HUMAN`·`CLEANUP_INCOMPLETE`·`EXCHANGE_DOWN`) 추가 동의. 확대 전 보완 두 가지와 최종 문구 수정. (리뷰는 시험을 직접 재실행하지 않았다.)
+1. **429 에 평문 즉시 재전송 금지** — 종전 `sendMarkdown` 은 **모든 HTTP 오류**에 서식 없는 재전송을 해서 429 에서도 요청이 최대 6번 나갔다(1차 보완 시험이 그
+   동작을 "요청 6" 으로 고정했었다 — 리뷰 지적이 맞다). 이제 평문 재전송은 **서식 오류(400)에만**, 429 는 응답 `parameters.retry_after`(초)만큼 기다린 뒤 다음 시도,
+   `retry_after` 가 없으면 기본 대기(2초·5초). **대기 합계 상한 30초**(`RETRY_TOTAL_WAIT_CAP_MS`) — 다음 대기가 상한을 넘으면 기다리지 않고 최종 실패로 기록하고 끝낸다.
+   그 밖의 거부(401·403·5xx)도 평문으로 다시 보내지 않는다.
+2. **큐 포화 시 유실의 기록** — 리뷰 지적이 맞다: `AsyncConfig.telegramExecutor` 의 거절 처리기가 WARN 한 줄만 남기고 버려 전송 함수에 닿지 않았고 이력(Q10)에도
+   없었다. 1차 보완의 "큐에 쌓일 뿐 유실되지 않는다"·"큐를 반복 점유하지 않는다" 설명은 틀렸다(코드 주석·이 문서 모두 고침). 이제 거절 처리기는 `AbortPolicy`
+   (거절을 호출한 쪽으로), `sendMarkdownAndLog` 가 받아 **재시도 유형은 ERROR `🔴 <유형> 알림 큐 진입 실패(큐 포화) — 전송하지 못함` + 이력 `success=false`
+   (본문 머리 `[큐 포화 — 전송 안 함]`)**, 그 밖의 유형은 WARN. 이 기록은 호출한 쪽 스레드에서 일어나므로 **새 트랜잭션(REQUIRES_NEW)** 으로 써서 호출한 쪽 트랜잭션에
+   섞이지 않게 했고, 기록 실패도 호출한 쪽으로 던지지 않는다.
+3. **최종 문구** — 응답 미수신 시도가 한 번이라도 있으면 `최종 실패: 전송 성공 확인 실패 — 중복 도착 가능`, 모두 거부면 `최종 실패: 전달되지 않음(마지막 <종류> HTTP <코드>)`.
+   "유실됨" 문구 삭제. 중복 허용(미수신 뒤 재시도) 선택은 유지(리뷰 타당 판정).
+4. **세 유형 추가** — `RETRY_TYPES` = `STOP_LOSS`·`SESSION_STOP`·`RISK_LIMIT`·`CLEANUP_NEEDS_HUMAN`·`CLEANUP_INCOMPLETE`·`EXCHANGE_DOWN`.
+- **시험**(텔레그램 5개 클래스 34건 통과):
+  - `TelegramRiskLimitRetryHttpTest` 8건(모의 텔레그램 서버, 대기는 기록만): 429(`retry_after`=1) 뒤 성공 = 요청 2·평문 0·대기 [1000] / 계속 429(2초) = 요청 3(종전 6)·
+    대기 [2000, 2000]·최종 실패 / `retry_after` 31초 = 요청 1·대기 없음·최종 실패(`EXCHANGE_DOWN`) / 20초 두 번 = 합계 상한으로 두 번째 대기 안 함(`CLEANUP_NEEDS_HUMAN`) /
+    `retry_after` 없음 = 기본 2초·5초(`CLEANUP_INCOMPLETE`) / 400 = 같은 시도 안 평문 폴백으로 성공 / 응답 미수신 = 서식 3·평문 0·최종 실패 / 대조 `CUSTOM` 429 = 1회.
+  - `TelegramQueueSaturationTest` 4건 — **운영 설정 그대로의 실행기**(`new AsyncConfig().telegramExecutor()`: 코어 1·최대 2·큐 50)를 일꾼 2개 붙잡고 큐 50 을 채운 상태에서:
+    `RISK_LIMIT` → 전송 함수 미도달·이력 `success=false`·본문 머리 표시 / `EXCHANGE_DOWN`·`CLEANUP_INCOMPLETE`·`CLEANUP_NEEDS_HUMAN`·`STOP_LOSS` 각각 자기 유형으로 기록 /
+    대조 `CUSTOM` 은 이력 없음·예외 없음 / 큐가 풀리면 정상 전송·성공 한 줄.
+  - `TelegramCriticalRetryTest` 12건(세 유형 재시도·최종 실패 이력, 최종 문구 두 경우 추가. 한 번 보내기 대역을 `sendAttempt` 로 옮김 — 단언은 그대로).
+  - **변이 확인**: 종전 동작으로 되돌리면 잡힌다 — 모든 거부에 평문 폴백 → HTTP 시험 8건 중 6건 실패, 큐 포화 시 WARN 후 버림 → 포화 시험 4건 중 2건 실패(되돌린 뒤 원복).
+  - 전체 `:web-api:test` **859 통과·실패 0(건너뜀 1)**.
+- **남는 한계(기록)**: 전송 스레드는 하나다 — 한 경보가 최악(대기 상한 30초 + 시도마다 연결·응답 각 10초)으로 붙잡으면 1분 넘게 뒤 알림이 밀리고, 그 사이 큐(50)가 차면
+  뒤의 중요 경보는 이제 **기록되지만 전달되지는 않는다**. 이 기록을 정기 점검이 보도록 `maint_checks.sql` Q10 에 `queue_rejected` 열(본문이 `[큐 포화` 로 시작하는 줄 수)을 더했다(읽기 전용, 시험 DB 실행 확인).
+- **배포**: 다음 계획 정비(STAGE_1 전)에 묶는다. 배포·STAGE_1 활성화는 별도 결정.
 
 ### 6.4 종합
 

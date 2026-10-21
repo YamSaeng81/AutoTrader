@@ -26,7 +26,10 @@ import static org.mockito.Mockito.verify;
  */
 class TelegramCriticalRetryTest {
 
-    /** 실제 HTTP 대신 호출 횟수만 세는 테스트용 서비스 — 백오프는 0으로 낮춘다. */
+    /**
+     * 실제 HTTP 대신 호출 횟수만 세는 테스트용 서비스 — 백오프는 0으로 낮춘다.
+     * (2026-10-21: 재시도가 실패 종류를 보도록 {@code sendAttempt} 를 바꿔 끼운다 — 실패는 거부(500)로 돌려준다.)
+     */
     private static class CountingService extends TelegramNotificationService {
         final AtomicInteger calls = new AtomicInteger();
         private final int failuresBeforeSuccess;
@@ -41,8 +44,8 @@ class TelegramCriticalRetryTest {
         }
 
         @Override
-        public boolean sendMarkdown(String text) {
-            return calls.incrementAndGet() > failuresBeforeSuccess;
+        Attempt sendAttempt(String text) {
+            return calls.incrementAndGet() > failuresBeforeSuccess ? Attempt.sent() : Attempt.rejected(500);
         }
 
         @Override
@@ -126,6 +129,52 @@ class TelegramCriticalRetryTest {
         assertThat(saved.getValue().getType()).isEqualTo("RISK_LIMIT");
         assertThat(saved.getValue().isSuccess()).isFalse();
         assertThat(svc.calls.get()).isEqualTo(3);
+    }
+
+    // ── 사람 대응 경보 세 유형 (2026-10-21 리뷰 동의) ────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("CLEANUP_NEEDS_HUMAN·CLEANUP_INCOMPLETE·EXCHANGE_DOWN 도 실패 뒤 재시도해 전달된다")
+    void 사람대응경보_재시도() {
+        for (String type : new String[]{"CLEANUP_NEEDS_HUMAN", "CLEANUP_INCOMPLETE", "EXCHANGE_DOWN"}) {
+            CountingService svc = new CountingService(2);
+
+            assertThat(svc.sendWithRetry("경보", type)).as(type).isTrue();
+            assertThat(svc.calls.get()).as(type).isEqualTo(3);
+        }
+    }
+
+    @Test
+    @DisplayName("세 유형도 계속 실패하면 3회에서 멈추고 이력에 최종 실패 한 줄")
+    void 사람대응경보_최종실패() {
+        for (String type : new String[]{"CLEANUP_NEEDS_HUMAN", "CLEANUP_INCOMPLETE", "EXCHANGE_DOWN"}) {
+            TelegramNotificationLogRepository repo = mock(TelegramNotificationLogRepository.class);
+            CountingService svc = new CountingService(Integer.MAX_VALUE, repo);
+
+            assertThat(svc.doSendMarkdownAndLog("경보", type, null)).as(type).isFalse();
+            ArgumentCaptor<TelegramNotificationLogEntity> saved = ArgumentCaptor.forClass(TelegramNotificationLogEntity.class);
+            verify(repo, times(1)).save(saved.capture());
+            assertThat(saved.getValue().getType()).isEqualTo(type);
+            assertThat(saved.getValue().isSuccess()).isFalse();
+            assertThat(svc.calls.get()).as(type).isEqualTo(3);
+        }
+    }
+
+    // ── 최종 실패 문구 (2026-10-21 리뷰) — 응답 미수신이 끼면 "유실" 이 아니라 확인 실패 ─────────────────
+
+    @Test
+    @DisplayName("응답 미수신이 한 번이라도 있으면 '전송 성공 확인 실패 — 중복 도착 가능'")
+    void 최종문구_미수신() {
+        assertThat(TelegramNotificationService.finalFailureNote(true, TelegramNotificationService.Attempt.rateLimited(1000)))
+                .contains("전송 성공 확인 실패 — 중복 도착 가능")
+                .doesNotContain("유실");
+    }
+
+    @Test
+    @DisplayName("모든 시도가 거부면 '전달되지 않음' — 마지막 상태를 함께 적는다")
+    void 최종문구_거부() {
+        assertThat(TelegramNotificationService.finalFailureNote(false, TelegramNotificationService.Attempt.rateLimited(1000)))
+                .contains("전달되지 않음").contains("429").doesNotContain("중복");
     }
 
     @Test

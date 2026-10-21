@@ -52,8 +52,9 @@ public class AsyncConfig {
         executor.setMaxPoolSize(2);
         executor.setQueueCapacity(50);
         executor.setThreadNamePrefix("telegram-");
-        executor.setRejectedExecutionHandler((r, e) ->
-                log.warn("텔레그램 알림 큐 포화 — 메시지 드롭"));
+        // 큐가 차면 거절을 호출한 쪽으로 던진다(2026-10-21 리뷰) — 여기서 WARN 만 남기고 버리면 어떤 유형이 빠졌는지 모르고
+        // 이력에도 남지 않는다. TelegramNotificationService.sendMarkdownAndLog 가 받아 중요 경보는 유형과 함께 기록한다.
+        executor.setRejectedExecutionHandler(new java.util.concurrent.ThreadPoolExecutor.AbortPolicy());
         executor.initialize();
         return executor;
     }

@@ -62,8 +62,8 @@ SELECT count(*) AS quarantine_release_rows FROM sell_quarantine_release;
 \echo '   (sell_quarantine_release 없음 — V93. Q9 건너뜀)'
 \endif
 
-\echo '== Q10 최근 7일 텔레그램 전송 기록 (참고 — 재기동 뒤에도 알림이 나가는가)'
-SELECT type, success, count(*), max(sent_at) AS last_sent FROM telegram_notification_log
+\echo '== Q10 최근 7일 텔레그램 전송 기록 (참고 — 재기동 뒤에도 알림이 나가는가). queue_rejected = 큐 포화로 전송 못 한 중요 경보(재시도 보완 배포 뒤에만 생김)'
+SELECT type, success, count(*), count(*) FILTER (WHERE message_text LIKE '[큐 포화%') AS queue_rejected, max(sent_at) AS last_sent FROM telegram_notification_log
  WHERE sent_at >= now() - interval '7 days' GROUP BY type, success ORDER BY type, success;
 
 ROLLBACK;
