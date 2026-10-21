@@ -1944,6 +1944,22 @@ SELECT p.id AS position_id, p.session_kind, p.session_id, p.coin_pair, p.status,
   66세션 평가 공백은 13:42~13:48·13:58 전후. 결과·수락 칸은 운영자가 채운다.
 - 서버는 `39f994c`(detached HEAD)에 고정. 🔴 판정표 5 의 완료 표시는 리뷰 판정 뒤. 이 기록은 STAGE_1 활성화 승인이 아니다.
 
+**`RISK_LIMIT` 경보 재시도 보완 (2026-10-21 — 리뷰 권고, 별도 변경. 🔴 운영 미배포 — 운영은 `39f994c`)**:
+- **변경**: `TelegramNotificationService.RETRY_TYPES` 에 `RISK_LIMIT` 추가 — 기존 `STOP_LOSS`·`SESSION_STOP` 과 같은 **제한된 재시도**(최초 포함 3회, 대기 2초·5초).
+  호출하는 6곳(`PoolLossGuard`·`PositionLimitMonitor`·`CandleFreshnessGuard`·`LegacySellPolicy`·`SellQuarantineReport`·`SellQuarantineReleaseService`·`UnknownOrderAdjustmentService`)은
+  모두 상태가 바뀔 때 한 번만 보낸다(코드 확인) — 재시도가 큐를 반복 점유하지 않는다.
+- **최종 실패 표시**: 3회 모두 실패하면 ERROR `[Telegram] 🔴 RISK_LIMIT 알림 3회 전송 실패 — 최종 실패, 유실됨(이력 success=false): <본문 앞 120자>` 와 이력
+  `telegram_notification_log` **한 줄 `success=false`**(재시도 유형에서 `success=false` = 재시도까지 모두 실패). 중간 실패는 이력에 따로 적지 않는다. 정기 점검 Q10 이 이 줄을 찾는다.
+  스키마 변경 없음(마이그레이션 없음).
+- **시험**: `TelegramCriticalRetryTest` 4건 추가(실패 후 성공 3번째 시도·계속 실패 3회 상한·실패 후 성공 → 이력 성공 1줄·계속 실패 → 이력 실패 1줄) +
+  `TelegramRiskLimitRetryHttpTest` 4건(모의 텔레그램 서버, `notifyRiskLimitBreached` 부터 실제 HTTP: 429 한 시도 뒤 성공 = 요청 3·이력 성공 / 계속 429 = 요청 6(3회 × 서식+평문)·이력 실패 /
+  응답 미수신 계속 = 서식 요청 3·평문 폴백 없음·이력 실패 / 대조: `CUSTOM` 은 1회). 전체 `:web-api:test` **847 통과·실패 0**(건너뜀 1).
+- 🔴 **알려 둘 점**: 응답 미수신(타임아웃)도 재시도한다 — 이미 도착했을 수 있어 **중복 경보가 날 수 있다**(유실보다 중복을 택한 `STOP_LOSS` 와 같은 선택). 최악 지연은 시도당
+  연결 10초 + 응답 10초라 약 1분, 그동안 다른 알림은 큐(50)에서 기다린다.
+- **범위 밖(판단 요청)**: 같은 이유("사람 개입 기회")가 `CLEANUP_NEEDS_HUMAN`·`CLEANUP_INCOMPLETE`·`EXCHANGE_DOWN` 에도 해당한다(Q10 에 `EXCHANGE_DOWN` 실패 1건). 이번에는 리뷰가 지목한
+  `RISK_LIMIT` 만 넣었다.
+- **배포**: 앱 재기동이 필요하므로 다음 계획 정비에 묶는다(STAGE_1 전). 이 변경은 배포·STAGE_1 승인이 아니다.
+
 ### 6.4 종합
 
 | 선행 조건 | 판정 | 남은 것 |

@@ -1,11 +1,17 @@
 package com.cryptoautotrader.api.service;
 
+import com.cryptoautotrader.api.entity.TelegramNotificationLogEntity;
+import com.cryptoautotrader.api.repository.TelegramNotificationLogRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * 2026-08-06 회귀 테스트 — <b>중요 알림 전송 재시도</b>.
@@ -26,7 +32,11 @@ class TelegramCriticalRetryTest {
         private final int failuresBeforeSuccess;
 
         CountingService(int failuresBeforeSuccess) {
-            super(null);
+            this(failuresBeforeSuccess, null);
+        }
+
+        CountingService(int failuresBeforeSuccess, TelegramNotificationLogRepository repo) {
+            super(repo);
             this.failuresBeforeSuccess = failuresBeforeSuccess;
         }
 
@@ -65,6 +75,56 @@ class TelegramCriticalRetryTest {
         CountingService svc = new CountingService(Integer.MAX_VALUE);   // 항상 실패
 
         assertThat(svc.sendWithRetry("손절", "STOP_LOSS")).isFalse();
+        assertThat(svc.calls.get()).isEqualTo(3);
+    }
+
+    // ── RISK_LIMIT (2026-10-21 리뷰) — 자동 정지 기본 OFF 에서 운영자에게 집행을 맡기는 경보 ─────────────────────
+
+    @Test
+    @DisplayName("RISK_LIMIT 은 실패 뒤 재시도해 전달된다 — 한도 도달 경보가 1회 실패로 사라지지 않는다")
+    void 위험한도_실패후_성공() {
+        CountingService svc = new CountingService(2);   // 2회 실패 후 3번째 성공
+
+        assertThat(svc.sendWithRetry("한도", "RISK_LIMIT")).isTrue();
+        assertThat(svc.calls.get()).isEqualTo(3);
+    }
+
+    @Test
+    @DisplayName("RISK_LIMIT 계속 실패 — 3회에서 멈추고 실패를 돌려준다(제한된 재시도)")
+    void 위험한도_계속실패_상한() {
+        CountingService svc = new CountingService(Integer.MAX_VALUE);
+
+        assertThat(svc.sendWithRetry("한도", "RISK_LIMIT")).isFalse();
+        assertThat(svc.calls.get()).isEqualTo(3);
+    }
+
+    @Test
+    @DisplayName("RISK_LIMIT 실패 후 성공 — 이력은 재시도가 끝난 뒤 성공 한 줄만 남는다(중간 실패를 따로 적지 않는다)")
+    void 위험한도_실패후성공_이력() {
+        TelegramNotificationLogRepository repo = mock(TelegramNotificationLogRepository.class);
+        CountingService svc = new CountingService(1, repo);
+
+        assertThat(svc.doSendMarkdownAndLog("한도", "RISK_LIMIT", null)).isTrue();
+
+        ArgumentCaptor<TelegramNotificationLogEntity> saved = ArgumentCaptor.forClass(TelegramNotificationLogEntity.class);
+        verify(repo, times(1)).save(saved.capture());
+        assertThat(saved.getValue().getType()).isEqualTo("RISK_LIMIT");
+        assertThat(saved.getValue().isSuccess()).isTrue();
+        assertThat(svc.calls.get()).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("RISK_LIMIT 계속 실패 — 최종 실패가 이력에 success=false 한 줄로 남는다(정기 점검이 찾는 표시)")
+    void 위험한도_최종실패_이력() {
+        TelegramNotificationLogRepository repo = mock(TelegramNotificationLogRepository.class);
+        CountingService svc = new CountingService(Integer.MAX_VALUE, repo);
+
+        assertThat(svc.doSendMarkdownAndLog("한도", "RISK_LIMIT", null)).isFalse();
+
+        ArgumentCaptor<TelegramNotificationLogEntity> saved = ArgumentCaptor.forClass(TelegramNotificationLogEntity.class);
+        verify(repo, times(1)).save(saved.capture());
+        assertThat(saved.getValue().getType()).isEqualTo("RISK_LIMIT");
+        assertThat(saved.getValue().isSuccess()).isFalse();
         assertThat(svc.calls.get()).isEqualTo(3);
     }
 

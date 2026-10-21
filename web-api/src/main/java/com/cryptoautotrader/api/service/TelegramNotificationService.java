@@ -654,9 +654,17 @@ public class TelegramNotificationService {
      * 39·45가 DOGE 동시 진입) <b>손절이 여러 건 동시에 터지는 것은 예외가 아니라 기본 패턴</b>
      * 이고, 그때마다 뒤쪽 알림이 조용히 사라진다.</p>
      *
+     * <p><b>RISK_LIMIT 추가 (2026-10-21, 리뷰)</b>: 공유 풀 손실 한도·포지션별 한도·격리·판별 불가 매도·보유 코인 캔들 판정 불가 경보다.
+     * 자동 정지가 기본 OFF 라 이 경보가 운영자에게 집행을 맡기는 유일한 신호인데, 1회 시도라 실패하면 집행 기회가 사라졌다.
+     * 호출하는 쪽은 모두 상태가 바뀔 때 한 번만 보낸다(같은 도달이 매 회차 다시 오지 않는다) — 그래서 다음 주기에 다시 오지 않고, 재시도가
+     * 큐를 반복해서 점유하지도 않는다.</p>
+     *
      * <p>요약(TRADE_SUMMARY) 같은 정기 알림은 다음 주기에 다시 오므로 재시도하지 않는다.</p>
+     *
+     * <p>🔴 최종 실패: 이 유형이 {@link #RETRY_MAX_ATTEMPTS}회 모두 실패하면 ERROR 로그("최종 실패")를 남기고 이력에 {@code success=false} 로
+     * 한 줄 기록한다 — 이 유형의 {@code success=false} 는 "재시도까지 모두 실패" 를 뜻한다. 정기 점검(10:00·22:00)이 이력을 조회해 찾는다.</p>
      */
-    private static final Set<String> RETRY_TYPES = Set.of("STOP_LOSS", "SESSION_STOP");
+    private static final Set<String> RETRY_TYPES = Set.of("STOP_LOSS", "SESSION_STOP", "RISK_LIMIT");
 
     /** 재시도 총 횟수(최초 시도 포함) */
     private static final int RETRY_MAX_ATTEMPTS = 3;
@@ -673,8 +681,9 @@ public class TelegramNotificationService {
         telegramExecutor.execute(() -> doSendMarkdownAndLog(text, type, sessionLabel));
     }
 
-    /** 동기 전송 — sendTestMessage()에서만 사용 */
-    private boolean doSendMarkdownAndLog(String text, String type, String sessionLabel) {
+    /** 동기 전송 — sendTestMessage()에서만 사용. 이력은 재시도가 끝난 뒤 최종 결과로 한 줄만 남긴다. */
+    // 테스트에서 이력 기록(최종 성공·최종 실패)을 직접 검증할 수 있게 package-private
+    boolean doSendMarkdownAndLog(String text, String type, String sessionLabel) {
         boolean success = sendWithRetry(text, type);
         try {
             logRepository.save(new TelegramNotificationLogEntity(type, sessionLabel, text, success));
@@ -715,7 +724,8 @@ public class TelegramNotificationService {
             }
         }
         if (retryable) {
-            log.error("[Telegram] 🔴 {} 알림 {}회 전송 실패 — 유실됨", type, attempts);
+            log.error("[Telegram] 🔴 {} 알림 {}회 전송 실패 — 최종 실패, 유실됨(이력 success=false): {}", type, attempts,
+                    text.substring(0, Math.min(120, text.length())));
         }
         return false;
     }
