@@ -1946,7 +1946,7 @@ SELECT p.id AS position_id, p.session_kind, p.session_id, p.coin_pair, p.status,
 
 **`RISK_LIMIT` 경보 재시도 보완 (2026-10-21 — 리뷰 권고, 별도 변경. 🔴 운영 미배포 — 운영은 `39f994c`)**:
 - **변경**: `TelegramNotificationService.RETRY_TYPES` 에 `RISK_LIMIT` 추가 — 기존 `STOP_LOSS`·`SESSION_STOP` 과 같은 **제한된 재시도**(최초 포함 3회, 대기 2초·5초).
-  호출하는 6곳(`PoolLossGuard`·`PositionLimitMonitor`·`CandleFreshnessGuard`·`LegacySellPolicy`·`SellQuarantineReport`·`SellQuarantineReleaseService`·`UnknownOrderAdjustmentService`)은
+  호출하는 7곳(`PoolLossGuard`·`PositionLimitMonitor`·`CandleFreshnessGuard`·`LegacySellPolicy`·`SellQuarantineReport`·`SellQuarantineReleaseService`·`UnknownOrderAdjustmentService`)은
   모두 상태가 바뀔 때 한 번만 보낸다(코드 확인) — 재시도가 큐를 반복 점유하지 않는다.
 - **최종 실패 표시**: 3회 모두 실패하면 ERROR `[Telegram] 🔴 RISK_LIMIT 알림 3회 전송 실패 — 최종 실패, 유실됨(이력 success=false): <본문 앞 120자>` 와 이력
   `telegram_notification_log` **한 줄 `success=false`**(재시도 유형에서 `success=false` = 재시도까지 모두 실패). 중간 실패는 이력에 따로 적지 않는다. 정기 점검 Q10 이 이 줄을 찾는다.
