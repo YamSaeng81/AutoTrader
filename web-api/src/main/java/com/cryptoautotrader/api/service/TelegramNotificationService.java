@@ -683,7 +683,7 @@ public class TelegramNotificationService {
 
     /**
      * 재시도 대기의 합계 상한(ms) — 429 의 {@code retry_after} 를 따르되, 다음 대기가 이 상한을 넘기면 기다리지 않고 최종 실패로 끝낸다.
-     * 전송 스레드는 하나라 한 알림이 오래 붙잡으면 뒤의 알림이 모두 밀린다.
+     * 전송 실행기는 평소 스레드 1개(큐 50 이 찬 뒤에만 최대 2개)라 한 알림이 오래 붙잡으면 뒤의 알림이 밀린다.
      */
     static final long RETRY_TOTAL_WAIT_CAP_MS = 30_000L;
 
@@ -706,7 +706,11 @@ public class TelegramNotificationService {
     /** 큐 진입 실패 이력의 본문 머리 — Q10·이력 화면에서 전송 실패와 구별한다. */
     static final String QUEUE_REJECTED_MARK = "[큐 포화 — 전송 안 함] ";
 
-    /** 큐 진입 실패 기록은 호출한 쪽 스레드(트랜잭션 안일 수 있다)에서 일어난다 — 그 트랜잭션에 섞이지 않게 새 트랜잭션으로 쓴다. */
+    /**
+     * 큐 진입 실패 기록은 호출한 쪽 스레드(트랜잭션 안일 수 있다)에서 일어난다 — 그 트랜잭션에 섞이지 않게 새 트랜잭션으로 쓴다.
+     * 바깥이 롤백돼도 기록은 남고, 기록이 실패해도 바깥의 커밋·롤백 결과는 바뀌지 않는다({@code TelegramQueueRejectTxIntegrationTest}).
+     * 🔴 다만 새 연결을 잡는 동안의 대기(연결 풀)는 호출한 쪽 처리 시간에 그대로 더해진다.
+     */
     @Autowired(required = false)
     private PlatformTransactionManager transactionManager;
 
@@ -761,7 +765,7 @@ public class TelegramNotificationService {
      * <p>대기: 429 면 응답의 {@code retry_after}(초)를 따르고, 그 밖의 실패는 {@link #backoffMs}. 대기 합계가
      * {@link #RETRY_TOTAL_WAIT_CAP_MS} 를 넘게 되면 기다리지 않고 끝낸다.</p>
      *
-     * <p>이 메서드는 {@code telegramExecutor}(코어 1) 위에서 돈다 — 대기 동안 다른 알림은 큐(50)에서 기다리고,
+     * <p>이 메서드는 {@code telegramExecutor}(평소 스레드 1개, 큐 50 이 찬 뒤 최대 2개) 위에서 돈다 — 대기 동안 다른 알림은 큐(50)에서 기다리고,
      * 큐가 차면 받지 않는다(유실 — {@link #sendMarkdownAndLog} 가 재시도 유형의 큐 진입 실패를 기록한다).</p>
      */
     // 테스트에서 백오프를 0으로 낮춰 재시도 로직만 검증할 수 있게 package-private
