@@ -2148,6 +2148,9 @@ SELECT p.id AS position_id, p.session_kind, p.session_id, p.coin_pair, p.status,
   (시험하는 작업 트리의 미커밋 변경이 🔴 로 잡히던 것), git-bash 에서 `LC_ALL=C.UTF-8` 이 grep 의 이모지 일치를 깨 전역 로케일 설정을 뺐다(문자 단위 처리는 python3).
 - 다음: **DRY_RUN 출력 검토 → 실제 텔레그램 수신 확인 → cron 등록**(`docs/OPS_DAILY_CHECK.md` §3). 그전까지 수동 점검·운영 `39f994c` 유지.
 
+**리뷰(2026-10-22) — 정기 점검 자동화 설치 진행 허가(DRY_RUN 까지)**: 네 항목 해소 확인. **`fbd60d3` 으로 설치 → DRY_RUN 출력 공유**까지. 순서: ① 필수 도구·KST 시간대 확인
+② `fbd60d3` 에서 두 파일 설치·설치 SHA·체크섬 기록 ③ DRY_RUN 출력 공유 ④ 판정 확인 뒤 실제 텔레그램 수신 확인 → cron 등록(아직 아님). 앱 재배포·재기동 없음, 운영 `39f994c`·STAGE_1 비활성 유지.
+
 ### 6.4 종합
 
 | 선행 조건 | 판정 | 남은 것 |
