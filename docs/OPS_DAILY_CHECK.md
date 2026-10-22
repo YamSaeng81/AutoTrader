@@ -1,0 +1,109 @@
+# 정기 점검 자동화 (10:00·22:00 KST)
+
+> 2026-10-22 신설(리뷰 지시 — 정기 점검 자동화만, 배포 스크립트 제외). 근거·시험 기록: `LIVE_RISK_IMPLEMENTATION_REVIEW.md` §6.16.
+> 🔴 자동화는 **수집·비교·보고를 대신**할 뿐이다. 이미 수락한 운영자의 **결과 확인과 정지 집행 책임은 그대로**다.
+> 🔴 운영 설치는 시험 결과를 리뷰가 확인한 뒤에 한다(§3).
+
+## 1. 무엇이 바뀌나
+
+| 전 | 후 |
+|---|---|
+| 운영자가 10:00·22:00 에 명령을 붙여 넣고 출력을 보낸다 | 서버 cron 이 `scripts/ops/daily_check.sh` 를 돌려 결과를 텔레그램으로 보낸다 |
+| 사람이 출력을 읽고 판정 | 스크립트가 기대값과 비교해 🟢/🔴/⚪ 로 요약, 전체는 서버 파일에 남긴다 |
+| — | 운영자는 **보고가 왔는지**와 **🔴·⚪ 인지** 확인한다. 🔴·⚪ 면 결과 파일을 보내 판정을 받는다 |
+
+**판정**(결과 첫 줄):
+- `🟢 점검 항목 정상` — 아래 §2 항목이 모두 기대값이다. **그 항목에 한정된다**(시스템 전체가 정상이라는 뜻이 아니다).
+- `🔴 이상 N건` — 기대값과 다른 항목이 있다. 줄마다 무엇이 다른지 적혀 있다.
+- `⚪ 판정 불가 — 수집 실패 N건` — DB 조회 오류·시간 초과·출력 누락, 앱 상태·로그·66세션 조회 실패. **정상으로 보지 않는다.**
+- `🟡` 줄은 참고(알려진 외부 통신 실패 건수 등) — 판정을 바꾸지 않지만 늘어나면 본다.
+
+결과에는 **실행 시각(KST)·점검 구간(기본 직전 12시간)·운영 SHA** 가 항상 들어간다.
+
+## 2. 점검 항목과 기대값
+
+| 항목 | 출처 | 기대 | 다르면 |
+|---|---|---|---|
+| 서버 작업 트리 | `git status`(추적 파일) | 변경 없음 | 🔴 |
+| backend 컨테이너 | `docker inspect` | running · 재시작 0 · 구간 안 기동 없음 | 🔴(없음·멈춤·재시작·구간 안 기동 — "계획된 재기동인지 확인") |
+| 실자금 보유(OPEN·CLOSING) | `daily_checks.sql` | 0 | 🔴 |
+| 실자금 미결 주문 | 〃 | 0 | 🔴 |
+| 정리 대기 | 〃 | 0 | 🔴 |
+| 격리 대조 대상 | 〃 | 0 | 🔴 |
+| 구간 안 실자금 신규 매수 | 〃 (정비용 Q8 의 고정 날짜 대신 **점검 구간 시작**) | 0 (STAGE_1 비활성) | 🔴 |
+| 격리 해제 기록 | 〃 | 0 | 🔴 |
+| 검증 66세션(522~587) | 〃 | RUNNING 66 | 🔴 |
+| 텔레그램 중요 경보 전송 실패(구간) | 〃 — `STOP_LOSS`·`SESSION_STOP`·`RISK_LIMIT`·`CLEANUP_NEEDS_HUMAN`·`CLEANUP_INCOMPLETE`·`EXCHANGE_DOWN`·`CANDLE_REFRESH_REPORT` | 0 | 🔴 (그 밖의 유형 실패는 🟡) |
+| 텔레그램 큐 진입 실패(구간) | 〃 (본문 머리 `[큐 포화`) | 0 | 🔴 |
+| ERROR 로그(구간) | `docker compose logs --since` | 아래 알려진 유형 외 0 | 🔴 미분류 N건(앞 5줄을 결과에 적는다) |
+| 66세션 경보 | `start_66.py alerts --since <구간> --no-mark` | 🟢 경보 없음 · 실행 누락 없음 | 🔴(경보는 확정 아님 — 확인 필요) · 관측 없음은 ⚪ |
+| 서버 시간대 | `date +%z` | +0900 | 🟡(cron 시각이 어긋날 수 있다) |
+
+**알려진 ERROR — 로거와 문구로 한정**(같은 로거라도 문구가 다르면 미분류 🔴):
+
+| 분류 | 조건(정규식) | 처리 |
+|---|---|---|
+| 공유 풀 미등록 | `CapitalPoolLimits - .*공유 풀 한도가 사전 등록과 맞지 않는다.*한도 설정 누락` | 의도된 것(STAGE_1 비활성) — 건수만 |
+| 캔들 판정 불가 | `CandleFreshnessGuard - .*\[캔들 최신성\].*판정 불가` | 🟡 건수 |
+| 상장 폐지 코인 캔들 404 | `UpbitRestClient - Upbit API 오류: status=404, url=https://api.upbit.com/v1/candles/.*Code not found` | 건수만 |
+| 외부 통신 실패 | `UpbitCandleCollector - 캔들 수집 실패` · `MarketDataSyncService - 시장 데이터 동기화 실패` · `UpbitOrderClient - 계좌 조회 실패` · `WatchlistFilterService - [Watchlist] 필터링 실패` · `TelegramNotificationService - [Telegram] 메시지 전송 중 오류(응답 미수신)` · `ClaudeProvider - [ClaudeProvider] 요청 실패` | 🟡 건수 |
+
+이 목록에 넣는 것은 운영 기록으로 반복이 확인된 것만이다. 넣거나 빼려면 리뷰를 거친다.
+
+## 3. 설치 (리뷰 확인 뒤, 1회)
+
+```bash
+cd ~/crypto_trader/AutoTrader
+git fetch origin
+timedatectl | grep 'Time zone'            # Asia/Seoul (+0900) 이어야 cron 의 10·22 시가 KST 다
+date '+%F %T %z'
+git show origin/main:scripts/ops/daily_check.sh > /dev/null && echo 받음   # 아래는 서버 체크아웃(배포 SHA)과 무관하게 main 의 스크립트를 쓴다
+mkdir -p ~/daily-check ~/ops-scripts
+git show origin/main:scripts/ops/daily_check.sh   > ~/ops-scripts/daily_check.sh
+git show origin/main:scripts/ops/daily_checks.sql > ~/ops-scripts/daily_checks.sql
+chmod +x ~/ops-scripts/daily_check.sh
+```
+스크립트는 `REPO_DIR`(저장소)와 SQL 위치를 알아야 한다. 설치본은 `~/ops-scripts` 에 두므로 둘 다 지정해 돌린다:
+```bash
+REPO_DIR=~/crypto_trader/AutoTrader SQL_FILE=~/ops-scripts/daily_checks.sql DRY_RUN=1 ~/ops-scripts/daily_check.sh
+```
+첫 실행은 **`DRY_RUN=1`(보고를 보내지 않고 화면에)** 로 하고 출력을 리뷰에 보낸다. 판정이 맞으면 `DRY_RUN` 없이 한 번 더 돌려 텔레그램 수신을 확인한 뒤 cron 에 넣는다:
+```bash
+crontab -e
+# 정기 점검 자동화 (OPS_DAILY_CHECK.md) — 10:00·22:00 KST
+0 10,22 * * * REPO_DIR=$HOME/crypto_trader/AutoTrader SQL_FILE=$HOME/ops-scripts/daily_checks.sql $HOME/ops-scripts/daily_check.sh >> $HOME/daily-check/cron.log 2>&1
+```
+중복 실행은 스크립트가 막는다(`~/daily-check/.lock` — 살아 있는 실행이 있으면 종료 3, 죽은 잠금은 넘겨받는다).
+앱이 내려가 있어도 점검·보고는 돈다(앱 상태는 🔴, 66세션 경보는 앱 API 가 필요해 ⚪).
+
+## 4. 수동 실행
+
+```bash
+REPO_DIR=~/crypto_trader/AutoTrader SQL_FILE=~/ops-scripts/daily_checks.sql ~/ops-scripts/daily_check.sh; echo "종료 $?"
+```
+- `DRY_RUN=1` — 보고를 보내지 않고 화면에만. `WINDOW_HOURS=24` — 구간을 늘린다(기본 12).
+- 종료 코드: `0` 점검 항목 정상·보고 전송 · `1` 🔴 또는 ⚪·보고 전송 · `2` **보고 전송 실패** · `3` 이미 실행 중.
+
+## 5. 결과 확인과 실패 확인
+
+**보고 미수신 — 서버에 파일이 남는 것만으로는 운영자가 알 수 없다.** 운영자는 **10:05·22:05 무렵 보고 도착 여부**를 확인하고, 없으면 서버를 본다:
+```bash
+cat ~/daily-check/last_send                 # 마지막 보고 — "보고 전송 성공" / "🔴 보고 전송 실패(사유)"
+ls -t ~/daily-check/2*.txt | head -3        # 최근 결과 파일(YYYYMMDD-HHMM.txt) — 이번 회차 파일이 있는가
+tail -20 ~/daily-check/cron.log             # cron 실행 기록·오류(스크립트가 아예 안 돌았는지)
+grep CRON /var/log/syslog | tail -5         # cron 자체가 돌았는지
+```
+| 보이는 것 | 뜻 | 할 일 |
+|---|---|---|
+| 이번 회차 결과 파일 없음 · cron.log 에도 없음 | cron 이 돌지 않았다 | `crontab -l`·시간대 확인, 수동 실행(§4) |
+| 결과 파일 있음 · `last_send` 가 전송 실패 | 점검은 했고 보고만 못 갔다 | 결과 파일 첫 줄로 판정 확인 · 텔레그램 경로 확인 |
+| `⚪ 판정 불가` | 수집 실패 — 정상 아님 | 결과 파일과 `.raw`(원자료)를 보내 판정 |
+| `🔴` | 기대값과 다름 | 결과 파일을 보내 판정. 실자금 보유·미결·격리 대상·중요 경보 실패는 §6.5 절차에 따라 운영자가 집행 판단 |
+
+결과 파일: `~/daily-check/YYYYMMDD-HHMM.txt`(요약) · `….txt.raw`(DB·66세션 원자료). 60일 지난 파일은 지운다.
+
+## 6. 시험 (로컬 — 운영에 닿지 않는다)
+
+`python scripts/ops/test_daily_check.py` — 로컬 시험 DB(`cat-rt-pg`, V94 사본 + 66세션 행)와 모의 텔레그램 서버로 15건:
+정상(판정·시각·구간·SHA·알려진 ERROR 분류·평문 보고) · 수치 이상(66세션 65/66·중요 경보 실패 🔴·`CUSTOM` 실패 🟡) · 미분류 ERROR(다른 로거·알려진 로거의 다른 문구) ·
+DB 조회 실패 · 출력 누락 · 시간 초과 · 앱 없음(나머지 점검·보고 계속) · 구간 안 기동 · 텔레그램 전송 실패(3회·종료 2·파일 유지) · 중복 실행 · 죽은 잠금 · 시간대 불일치.
