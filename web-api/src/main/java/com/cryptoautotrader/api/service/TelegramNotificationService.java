@@ -570,6 +570,19 @@ public class TelegramNotificationService {
         sendMarkdownAndLog(message, "CUSTOM", "system");
     }
 
+    /**
+     * 04:10 KST 캔들 갱신 보고(이력 없음·요청 상한) — {@code CUSTOM} 에서 분리한 전용 유형 (2026-10-22 리뷰).
+     *
+     * <p>운영 30일 중 17일 이 보고가 {@code CUSTOM} 1회 시도로 전송 성공 미확인({@code Connection reset})이었다 — 운영 점검 자료의 신뢰성 문제다.
+     * 이 보고만 {@link #RETRY_TYPES} 에 넣어 같은 횟수·대기 상한·최종 이력 정책을 쓴다. {@code CUSTOM} 전체는 재시도 대상으로 바꾸지 않는다.</p>
+     */
+    public void notifyCandleRefreshReport(String message) {
+        sendMarkdownAndLog(message, CANDLE_REFRESH_REPORT, "캔들갱신");
+    }
+
+    /** 캔들 갱신 보고의 알림 유형 — 이력 {@code type} 열(30자) 안. */
+    static final String CANDLE_REFRESH_REPORT = "CANDLE_REFRESH_REPORT";
+
     // ── 데이터 수집 완료 알림 ─────────────────────────────────────────────────
 
     /**
@@ -664,6 +677,9 @@ public class TelegramNotificationService {
      * <p><b>CLEANUP_NEEDS_HUMAN·CLEANUP_INCOMPLETE·EXCHANGE_DOWN 추가 (2026-10-21, 리뷰 동의)</b>: 정리 중단·정리 미완료(제출 결과 불명)·
      * 거래소 연결 끊김(전 세션 비상 정지) — 모두 사람이 대응해야 하는 경보다. 운영 이력에 {@code EXCHANGE_DOWN} 실패 1건(10-18)이 있다.</p>
      *
+     * <p><b>CANDLE_REFRESH_REPORT 추가 (2026-10-22, 리뷰)</b>: 04:10 KST 캔들 갱신 보고 — 사람 대응 경보는 아니지만 30일 중 17일 전송 성공 미확인이라
+     * 운영 점검 자료의 신뢰성을 해쳤다. 하루 한 번(많아야 두 건)이라 큐 부담은 작다. {@code CUSTOM} 전체는 넣지 않는다.</p>
+     *
      * <p>호출하는 쪽은 모두 상태가 바뀔 때 한 번만 보낸다 — 다음 주기에 다시 오지 않는다. 다만 그것만으로 큐 부담이 없다고 보지 않는다:
      * 재시도 대기 동안 다른 알림은 큐에서 기다리고, 큐가 차면 실행기가 받지 않는다({@link #sendMarkdownAndLog} 가 그 실패를 기록한다).</p>
      *
@@ -673,7 +689,8 @@ public class TelegramNotificationService {
      * 한 줄 기록한다 — 이 유형의 {@code success=false} 는 "재시도까지 모두 실패" 또는 "큐 진입 실패" 를 뜻한다. 정기 점검(10:00·22:00)이 이력을 조회해 찾는다.</p>
      */
     static final Set<String> RETRY_TYPES = Set.of(
-            "STOP_LOSS", "SESSION_STOP", "RISK_LIMIT", "CLEANUP_NEEDS_HUMAN", "CLEANUP_INCOMPLETE", "EXCHANGE_DOWN");
+            "STOP_LOSS", "SESSION_STOP", "RISK_LIMIT", "CLEANUP_NEEDS_HUMAN", "CLEANUP_INCOMPLETE", "EXCHANGE_DOWN",
+            "CANDLE_REFRESH_REPORT");
 
     /** 재시도 총 횟수(최초 시도 포함) */
     private static final int RETRY_MAX_ATTEMPTS = 3;

@@ -13,6 +13,7 @@ const TYPE_LABELS: Record<string, { label: string; color: string }> = {
     EXCHANGE_DOWN:  { label: '거래소 장애',  color: 'bg-orange-500/15 text-orange-400' },
     RISK_LIMIT:     { label: '리스크 한도',  color: 'bg-yellow-500/15 text-yellow-400' },
     TEST:           { label: '테스트',       color: 'bg-purple-500/15 text-purple-400' },
+    CANDLE_REFRESH_REPORT: { label: '캔들 갱신 보고', color: 'bg-cyan-500/15 text-cyan-400' },
 };
 
 const PAGE_SIZE = 50;

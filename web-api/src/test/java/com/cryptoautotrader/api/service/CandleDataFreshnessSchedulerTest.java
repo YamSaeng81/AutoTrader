@@ -149,7 +149,7 @@ class CandleDataFreshnessSchedulerTest {
         scheduler.refreshNow();
 
         ArgumentCaptor<String> msg = ArgumentCaptor.forClass(String.class);
-        verify(telegram).sendCustomNotification(msg.capture());
+        verify(telegram).notifyCandleRefreshReport(msg.capture());
         assertThat(msg.getValue())
                 .as("09-14 에 같은 문제를 고치고도 09-18 에 30종이 밀려 있었다 — "
                         + "log.warn 만 남기면 조용히 실패한다")
@@ -179,7 +179,7 @@ class CandleDataFreshnessSchedulerTest {
         scheduler.refreshNow();
 
         ArgumentCaptor<String> msg = ArgumentCaptor.forClass(String.class);
-        verify(telegram, atLeastOnce()).sendCustomNotification(msg.capture());
+        verify(telegram, atLeastOnce()).notifyCandleRefreshReport(msg.capture());
         assertThat(msg.getAllValues())
                 .as("상한에 걸렸다고 뒤쪽 조합을 아예 훑지 않으면, 캔들이 없는 조합이 "
                         + "**영원히 보고되지 않는다** — 조용히 실패하는 바로 그 형태다")

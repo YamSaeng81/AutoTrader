@@ -235,9 +235,10 @@ public class CandleDataFreshnessScheduler {
     /** 갱신이 필요한 (코인, 타임프레임) 하나. {@code gapDays} 가 클수록 먼저 처리한다. */
     private record StaleTarget(String coin, String timeframe, Instant last, long gapDays) {}
 
+    /** 보고는 전용 유형으로 보낸다 — 재시도 대상(2026-10-22, {@link TelegramNotificationService#notifyCandleRefreshReport}). */
     private void notify(String message) {
         try {
-            telegramNotificationService.sendCustomNotification(message);
+            telegramNotificationService.notifyCandleRefreshReport(message);
         } catch (Exception e) {
             log.warn("[CandleFreshness] 알림 전송 실패", e);
         }
