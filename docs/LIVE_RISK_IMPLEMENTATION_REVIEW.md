@@ -2194,6 +2194,10 @@ SELECT p.id AS position_id, p.session_kind, p.session_id, p.coin_pair, p.status,
 - 기록 번호: 오늘 계획 정비가 개입 #9 이므로 이 집행은 **개입 #10**(KILL 사전 규칙 집행 3차)으로 `SUPERTREND_VALIDATION_PREREG.md` 에 남긴다. 🔴 개입 #3 처럼 정지한 M15 코인이 `syncMarketData` 집합에서 빠지면
   적재 조건 변경이므로 그대로 기록한다(정지 근거는 KILL 규칙 단독).
 
+**KILL 3차 집행 결과 (개입 #10, 2026-10-23 08:00:03 KST)**: PAPER 8세션 정지 — 전부 HTTP 200·`STOPPED`, #371 열린 포지션 1건 정상 청산, 모의 RUNNING 87 → 79, **검증 66/66 유지**, 설정 변경 없음.
+기록 `SUPERTREND_VALIDATION_PREREG.md` 개입 기록 #10. 🔴 운영자가 1단계(정지 전 확인) 결과를 내가 확인하기 전에 2단계를 실행했다 — 확인 조건은 출력상 모두 맞았으나 **서버 실험 파일 grep 출력은 받지 못했다**(사후 대조 요청).
+부수 효과(M15 8코인이 적재 집합에서 빠졌는지)는 확인 대기.
+
 ### 6.4 종합
 
 | 선행 조건 | 판정 | 남은 것 |
