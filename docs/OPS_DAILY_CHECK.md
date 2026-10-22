@@ -57,11 +57,16 @@ cd ~/crypto_trader/AutoTrader
 git fetch origin
 timedatectl | grep 'Time zone'            # Asia/Seoul (+0900) 이어야 cron 의 10·22 시가 KST 다
 date '+%F %T %z'
-git show origin/main:scripts/ops/daily_check.sh > /dev/null && echo 받음   # 아래는 서버 체크아웃(배포 SHA)과 무관하게 main 의 스크립트를 쓴다
+command -v flock python3 gzip curl        # 넷 다 있어야 한다(flock — 중복 실행 잠금, python3 — 보고 자르기·retry_after 해석)
+# 🔴 움직이는 origin/main 이 아니라 **리뷰가 검토한 커밋 SHA** 에서 두 파일을 함께 꺼낸다(리뷰 2026-10-22). 서버 체크아웃(배포 SHA)과는 무관하다.
+SHA=<검토한 커밋 SHA>
+git cat-file -e "$SHA":scripts/ops/daily_check.sh && git cat-file -e "$SHA":scripts/ops/daily_checks.sql && echo 두 파일 있음
 mkdir -p ~/daily-check ~/ops-scripts
-git show origin/main:scripts/ops/daily_check.sh   > ~/ops-scripts/daily_check.sh
-git show origin/main:scripts/ops/daily_checks.sql > ~/ops-scripts/daily_checks.sql
+git show "$SHA":scripts/ops/daily_check.sh   > ~/ops-scripts/daily_check.sh
+git show "$SHA":scripts/ops/daily_checks.sql > ~/ops-scripts/daily_checks.sql
+git rev-parse "$SHA" > ~/ops-scripts/INSTALLED_SHA      # 결과 첫머리에 "점검 스크립트 <SHA>" 로 나온다
 chmod +x ~/ops-scripts/daily_check.sh
+sha256sum ~/ops-scripts/daily_check.sh ~/ops-scripts/daily_checks.sql   # 설치 기록에 남긴다
 ```
 스크립트는 `REPO_DIR`(저장소)와 SQL 위치를 알아야 한다. 설치본은 `~/ops-scripts` 에 두므로 둘 다 지정해 돌린다:
 ```bash
@@ -73,7 +78,8 @@ crontab -e
 # 정기 점검 자동화 (OPS_DAILY_CHECK.md) — 10:00·22:00 KST
 0 10,22 * * * REPO_DIR=$HOME/crypto_trader/AutoTrader SQL_FILE=$HOME/ops-scripts/daily_checks.sql $HOME/ops-scripts/daily_check.sh >> $HOME/daily-check/cron.log 2>&1
 ```
-중복 실행은 스크립트가 막는다(`~/daily-check/.lock` — 살아 있는 실행이 있으면 종료 3, 죽은 잠금은 넘겨받는다).
+중복 실행은 스크립트가 막는다 — 서버는 **`flock`**(`~/daily-check/.lock.flock`, 원자적, 프로세스가 끝나면 풀린다). 이미 돌고 있으면 종료 3.
+(flock 이 없는 환경만 `mkdir` 잠금으로 대체 — 시험용.) 업데이트는 같은 순서로 새 SHA 를 꺼내 덮어쓰고 `INSTALLED_SHA` 를 바꾼다.
 앱이 내려가 있어도 점검·보고는 돈다(앱 상태는 🔴, 66세션 경보는 앱 API 가 필요해 ⚪).
 
 ## 4. 수동 실행
@@ -100,10 +106,14 @@ grep CRON /var/log/syslog | tail -5         # cron 자체가 돌았는지
 | `⚪ 판정 불가` | 수집 실패 — 정상 아님 | 결과 파일과 `.raw`(원자료)를 보내 판정 |
 | `🔴` | 기대값과 다름 | 결과 파일을 보내 판정. 실자금 보유·미결·격리 대상·중요 경보 실패는 §6.5 절차에 따라 운영자가 집행 판단 |
 
-결과 파일: `~/daily-check/YYYYMMDD-HHMM.txt`(요약) · `….txt.raw`(DB·66세션 원자료). 60일 지난 파일은 지운다.
+결과 파일: `~/daily-check/YYYYMMDD-HHMM.txt`(요약) · `….txt.raw`(DB·66세션 원자료) · `….txt.log.gz`(**수집한 앱 로그 원문** — 장애 대조용) · `….txt.msg`(보낸 본문).
+60일 지난 파일은 지운다. 보고 본문은 **문자 기준 3,500자**에서 자르고 "이하 생략 — 서버 결과 파일 …" 을 붙인다.
 
 ## 6. 시험 (로컬 — 운영에 닿지 않는다)
 
-`python scripts/ops/test_daily_check.py` — 로컬 시험 DB(`cat-rt-pg`, V94 사본 + 66세션 행)와 모의 텔레그램 서버로 15건:
-정상(판정·시각·구간·SHA·알려진 ERROR 분류·평문 보고) · 수치 이상(66세션 65/66·중요 경보 실패 🔴·`CUSTOM` 실패 🟡) · 미분류 ERROR(다른 로거·알려진 로거의 다른 문구) ·
-DB 조회 실패 · 출력 누락 · 시간 초과 · 앱 없음(나머지 점검·보고 계속) · 구간 안 기동 · 텔레그램 전송 실패(3회·종료 2·파일 유지) · 중복 실행 · 죽은 잠금 · 시간대 불일치.
+`python scripts/ops/test_daily_check.py` — 로컬 시험 DB(`cat-rt-pg`, V94 사본 + 66세션 행)·모의 텔레그램 서버·깨끗한 임시 저장소(서버 체크아웃 흉내)로 **29건**:
+정상(판정·시각·구간·운영 SHA·점검 스크립트 판·알려진 ERROR 분류·평문 보고) · 수치 이상(66세션 65/66·중요 경보 실패 🔴·`CUSTOM` 실패 🟡) · 미분류 ERROR(다른 로거·알려진 로거의 다른 문구) ·
+DB 조회 실패 · 출력 누락 · 시간 초과 · 앱 없음(나머지 점검·보고 계속) · 구간 안 기동 · 작업 트리 변경 · 텔레그램 전송 실패(3회·종료 2·파일 유지) · 중복 실행 · 죽은 잠금 · 시간대 불일치 ·
+**(리뷰 보완)** pid 기록 전 잠금은 실행 중 · 동시 시작 5회(로컬 mkdir 잠금) · **리눅스 `ubuntu:22.04` 컨테이너에서 flock 동시 시작 5회** · 66세션 종료 0 인데 출력 없음/알 수 없는 출력 → ⚪ ·
+종료 1 인데 🔴 줄 없음 → ⚪ · 🔴 줄 → 🔴 · 공백 있는 `retry_after`(3초 대기 뒤 성공) · `retry_after` 20초 두 번(합계 상한으로 두 번째 대기 없이 중단) · 긴 한글 보고(7,600자 → 3,500자, UTF-8 엄격 해석 통과) ·
+한글 한가운데 자르기(앞 41자 그대로) · 설치 SHA 표기 · 앱 로그 원문 `.log.gz` 보존.

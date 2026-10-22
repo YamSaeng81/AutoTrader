@@ -1,10 +1,14 @@
 """daily_check.sh 시험 (2026-10-22) — 로컬 시험 DB(cat-rt-pg, V94)와 모의 텔레그램 서버로 돌린다. 운영에 닿지 않는다.
 
 경우: 정상 · 수치 이상 · 미분류 ERROR · DB 조회 실패 · 출력 누락 · 시간 초과 · 앱 없음 · 텔레그램 전송 실패 · 중복 실행.
+2026-10-22 리뷰 보완: 66세션 결과 누락(종료 0 인데 정상 줄 없음 등) · 동시 시작 경합(로컬 mkdir 대체 잠금 + 리눅스 컨테이너의 flock) ·
+공백 있는 retry_after 와 대기 상한 · 긴 한글 보고의 문자 단위 자르기 · 앱 로그 원문 보존.
 실행: python scripts/ops/test_daily_check.py   (cat-rt-pg 컨테이너가 떠 있어야 한다 — scripts/restart-test/rt.py 와 같은 시험 DB)
 """
+import gzip
 import http.server
 import json
+import urllib.parse
 import os
 import shutil
 import subprocess
@@ -38,12 +42,23 @@ def sql(db, text):
 class TG(http.server.BaseHTTPRequestHandler):
     status = 200
     received = []
+    script = []        # 요청마다 (상태, 본문) — 비면 status·기본 본문
+    texts = []         # 받은 text 를 UTF-8 엄격 해석으로 — 깨진 바이트면 "!!INVALID"
 
     def do_POST(self):
         n = int(self.headers.get("Content-Length", "0"))
-        TG.received.append(self.rfile.read(n).decode("utf-8", "replace"))
-        body = json.dumps({"ok": TG.status == 200}).encode()
-        self.send_response(TG.status)
+        raw = self.rfile.read(n)
+        TG.received.append(raw.decode("utf-8", "replace"))
+        try:
+            TG.texts.append(urllib.parse.parse_qs(raw.decode("ascii"), encoding="utf-8", errors="strict")["text"][0])
+        except Exception as e:
+            TG.texts.append("!!INVALID " + repr(e))
+        if TG.script:
+            st, b = TG.script.pop(0)
+        else:
+            st, b = TG.status, json.dumps({"ok": TG.status == 200})
+        body = b.encode()
+        self.send_response(st)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
@@ -85,8 +100,17 @@ slow = os.path.join(work, "psql_slow.sh")
 with open(slow, "w", newline="\n") as f:
     f.write("#!/usr/bin/env bash\nsleep 20\n")
 
+# 서버 체크아웃을 흉내 내는 깨끗한 임시 저장소 — 시험하는 쪽 작업 트리의 변경이 "추적 파일 변경" 으로 잡히지 않게
+fake_repo = os.path.join(work, "repo").replace("\\", "/")
+os.makedirs(fake_repo)
+open(os.path.join(fake_repo, "docker-compose.prod.yml"), "w").write("services: {}\n")
+for c in (["init", "-q"], ["add", "."], ["-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "init"]):
+    subprocess.run(["git", "-C", fake_repo] + c, capture_output=True, check=True)
+FAKE_SHA = subprocess.run(["git", "-C", fake_repo, "rev-parse", "--short", "HEAD"], capture_output=True, text=True).stdout.strip()
+
 BASE_ENV = dict(os.environ,
-                REPO_DIR=REPO,
+                REPO_DIR=fake_repo,
+                SQL_FILE=os.path.join(HERE, "daily_checks.sql").replace("\\", "/"),
                 PSQL_CMD="docker exec -i cat-rt-pg psql -X -U trader -d " + DB,
                 LOGS_FILE=logs_ok,
                 APP_STATE="running|0|2026-10-01T00:00:00Z|sha256:8b1b8c7898c0",
@@ -101,6 +125,7 @@ def run(name, **over):
     env = dict(BASE_ENV, OUT_DIR=out_dir.replace("\\", "/"))
     env.update(over)
     TG.received.clear()
+    TG.texts.clear()
     r = subprocess.run([BASH, SCRIPT.replace("\\", "/")], env=env, capture_output=True)
     rep = ""
     if os.path.isdir(out_dir):
@@ -118,7 +143,8 @@ def run(name, **over):
 # 1. 정상
 rc, rep, last, sent, raw = run("normal")
 check("정상 — '점검 항목 정상'·종료 0·보고 1건 전송", rc == 0 and "🟢 점검 항목 정상" in rep and len(sent) == 1 and "보고 전송 성공" in last, raw + rep)
-check("정상 — 실행 시각·구간·운영 SHA 가 결과에 남는다", "실행 " in rep and "구간 " in rep and "운영 " in rep, rep)
+check("정상 — 실행 시각·구간·운영 SHA·점검 스크립트 판이 결과에 남는다",
+      "실행 " in rep and "구간 " in rep and ("운영 " + FAKE_SHA) in rep and "점검 스크립트 " in rep, rep)
 check("정상 — 알려진 ERROR 는 🔴 아님(공유 풀 1·캔들 1·404 1·통신 2·미분류 0)",
       "공유 풀 미등록 1 · 캔들 판정 불가 1 · 상장 폐지 404 1 · 통신 실패 2 · 미분류 0" in rep and "🔴" not in rep.split("—")[0], rep)
 check("정상 — 보고 본문은 평문(서식 지정 없음)", sent and "parse_mode" not in sent[0], sent[0] if sent else "")
@@ -171,21 +197,135 @@ check("텔레그램 전송 실패 — 3회 시도 뒤 종료 2·'보고 전송 �
 
 # 10. 중복 실행 — 살아 있는 잠금이면 건너뛴다
 dup_dir = os.path.join(work, "dup").replace("\\", "/")
-cmd = 'mkdir -p "%s/.lock"; sleep 15 & echo $! > "%s/.lock/pid"; bash "%s"; echo "rc=$?"; kill %%1' % (dup_dir, dup_dir, SCRIPT.replace("\\", "/"))
+cmd = 'mkdir -p "%s/.lock.d"; sleep 15 & echo $! > "%s/.lock.d/pid"; bash "%s"; echo "rc=$?"; kill %%1' % (dup_dir, dup_dir, SCRIPT.replace("\\", "/"))
 r = subprocess.run([BASH, "-c", cmd], env=dict(BASE_ENV, OUT_DIR=dup_dir), capture_output=True)
 o = r.stdout.decode("utf-8", "replace")
 check("중복 실행 — 살아 있는 잠금이면 종료 3·건너뜀", "rc=3" in o and "이미 실행 중" in o, o)
 
 # 11. 죽은 잠금은 넘겨받는다
 stale = os.path.join(work, "stale").replace("\\", "/")
-os.makedirs(stale + "/.lock")
-open(stale + "/.lock/pid", "w").write("999999")
+os.makedirs(stale + "/.lock.d")
+open(stale + "/.lock.d/pid", "w").write("999999")
 rc, rep, last, sent, raw = run("stale")
 check("죽은 잠금 — 넘겨받아 실행", rc == 0 and "점검 항목 정상" in rep, raw)
 
 # 12. 서버 시간대가 KST 가 아니면 🟡 로 알린다
 rc, rep, last, sent, raw = run("tz", TZ_EXPECT="+1234")
 check("시간대 불일치 — 🟡 경고(판정은 정상 유지)", rc == 0 and "🟡 서버 시간대" in rep, rep)
+
+# ── 리뷰 보완(2026-10-22) ──────────────────────────────────────────────────────────
+
+# 13. PID 기록 전의 잠금(빈 pid, 방금 생성)은 실행 중으로 본다 — 종전에는 지우고 함께 실행했다
+fresh = os.path.join(work, "fresh").replace("\\", "/")
+os.makedirs(fresh + "/.lock.d")
+rc, rep_, last, sent, raw = run("fresh")
+check("pid 기록 전 잠금 — 실행 중으로 보고 종료 3(지우지 않는다)", rc == 3 and os.path.isdir(fresh + "/.lock.d"), raw)
+
+# 14. 동시 시작 — 로컬(flock 없음 → mkdir 대체 잠금) 5회: 매번 정확히 하나만 실행
+SLOW_OK = "sleep 3; echo '🟢 경보 없음 · 실행 누락 없음'; exit 0"
+bad = []
+for k in range(5):
+    d = os.path.join(work, "conc%d" % k).replace("\\", "/")
+    env = dict(BASE_ENV, OUT_DIR=d, DRY_RUN="1", ALERTS_CMD=SLOW_OK)
+    sp = SCRIPT.replace("\\", "/")
+    cmd = 'bash "%s" >/dev/null 2>&1 & a=$!; bash "%s" >/dev/null 2>&1 & b=$!; wait $a; ra=$?; wait $b; rb=$?; echo "$ra $rb"' % (sp, sp)
+    o = subprocess.run([BASH, "-c", cmd], env=env, capture_output=True, text=True).stdout.split()
+    if sorted(o) != ["0", "3"]:
+        bad.append("round %d: %s" % (k, o))
+check("동시 시작(로컬 mkdir 잠금) 5회 — 매번 하나는 실행(0)·하나는 건너뜀(3)", not bad, "\n".join(bad))
+
+# 15~18. 66세션 결과 누락 — 종료 코드만 믿지 않는다
+rc, rep_, last, sent, raw = run("al_empty", ALERTS_CMD="exit 0")
+check("66세션 종료 0·출력 없음 — ⚪ 판정 불가(정상 아님)",
+      rc == 1 and "66세션 경보: 정상 결과 줄 없음" in rep_ and rep_.startswith("[정기 점검] ⚪"), rep_)
+rc, rep_, last, sent, raw = run("al_garbage", ALERTS_CMD="echo 'Traceback something'; exit 0")
+check("66세션 종료 0·알 수 없는 출력 — ⚪", rc == 1 and "정상 결과 줄 없음" in rep_, rep_)
+rc, rep_, last, sent, raw = run("al_red_noline", ALERTS_CMD="echo '이상함'; exit 1")
+check("66세션 종료 1·🔴 결과 줄 없음 — ⚪", rc == 1 and "66세션 경보: 결과 줄 없음(종료 1)" in rep_, rep_)
+rc, rep_, last, sent, raw = run("al_red", ALERTS_CMD="echo '🔴 실행 누락 1구간'; exit 1")
+check("66세션 종료 1·🔴 줄 — 🔴 경보(확정 아님)",
+      rc == 1 and "🔴 66세션 경보(확정 아님 — 확인 필요): 실행 누락 1구간" in rep_ and rep_.startswith("[정기 점검] 🔴"), rep_)
+
+# 19~20. 공백 있는 retry_after — JSON 으로 읽는다(실제로 자지 않는다: SLEEP_CMD=:)
+TG.script = [(429, '{"ok": false, "error_code": 429, "description": "Too Many Requests: retry after 3", "parameters": {"retry_after": 3}}')]
+rc, rep_, last, sent, raw = run("ra_spaced", SLEEP_CMD=":")
+check("429 retry_after(공백 있음)=3 — 3초 기다린 뒤 두 번째 시도 성공", rc == 0 and len(sent) == 2 and "재시도 대기 3초" in last, last + raw)
+TG.script = [(429, '{"ok": false, "error_code": 429, "parameters": {"retry_after": 20}}')] * 3
+rc, rep_, last, sent, raw = run("ra_cap", SLEEP_CMD=":")
+TG.script = []
+check("429 retry_after 20초 두 번 — 합계가 상한 30초를 넘어 두 번째 대기 없이 중단(요청 2·종료 2)",
+      rc == 2 and len(sent) == 2 and "다음 대기 20초가 대기 상한 30초를 넘어 중단" in last and "대기 20초" in last, last + raw)
+
+# 21~22. 긴 한글 보고 — 문자 단위로 자른다
+sql(DB, "INSERT INTO telegram_notification_log (type, session_label, message_text, success, sent_at) "
+        "SELECT '한글유형' || g, NULL, '본문', FALSE, now() FROM generate_series(1, 300) g;")
+rc, rep_, last, sent, raw = run("long_ko")
+txt = TG.texts[0] if TG.texts else ""
+check("긴 한글 보고(%d자) — UTF-8 깨짐 없이 3,500자 + 생략 표시로 전송" % len(rep_),
+      len(rep_) > 3500 and len(sent) == 1 and not txt.startswith("!!INVALID") and txt.startswith(rep_[:3500])
+      and "이하 생략" in txt and len(txt) <= 4096, txt[:80] + " … " + str(len(txt)))   # 생략 표시에 결과 파일 경로가 붙는다 — 텔레그램 상한 4096자 안
+sql(DB, "DELETE FROM telegram_notification_log;")
+rc, rep_, last, sent, raw = run("cut_ko", REPORT_LIMIT="41")
+txt = TG.texts[0] if TG.texts else ""
+check("자르는 자리가 한글 한가운데여도 문자 경계 — 앞 41자 그대로", not txt.startswith("!!INVALID") and txt.startswith(rep_[:41])
+      and txt[41:42] == "\n", repr(txt[:60]) + " / " + repr(rep_[:45]))
+
+# 서버 작업 트리 변경 — 🔴
+open(os.path.join(fake_repo, "docker-compose.prod.yml"), "a").write("# 손댐\n")
+rc, rep_, last, sent, raw = run("dirty")
+subprocess.run(["git", "-C", fake_repo, "checkout", "-q", "--", "."], check=True)
+check("서버 작업 트리에 추적 파일 변경 — 🔴", rc == 1 and "🔴 서버 작업 트리에 추적 파일 변경 1건" in rep_, rep_)
+
+# 설치 SHA 기록 — 스크립트 옆 INSTALLED_SHA 를 결과에 적는다
+inst = os.path.join(work, "inst").replace("\\", "/")
+os.makedirs(inst)
+shutil.copy(SCRIPT, inst + "/daily_check.sh")
+open(inst + "/INSTALLED_SHA", "w").write("abc1234def567890\n")
+env = dict(BASE_ENV, OUT_DIR=inst + "/out", DRY_RUN="1")
+o = subprocess.run([BASH, inst + "/daily_check.sh"], env=env, capture_output=True).stdout.decode("utf-8", "replace")
+check("설치 SHA — 결과에 '점검 스크립트 abc1234def56'", "점검 스크립트 abc1234def56" in o, o[:300])
+
+# 23. 앱 로그 원문 보존
+d = os.path.join(work, "normal")
+gz = [x for x in os.listdir(d) if x.endswith(".log.gz")]
+body = gzip.open(os.path.join(d, gz[0]), "rt", encoding="utf-8").read() if gz else ""
+check("앱 로그 원문을 결과 파일 옆에 압축 보존(.log.gz)", bool(gz) and "Connection reset" in body and "공유 풀 한도" in body, str(gz))
+
+# 24. 리눅스(서버와 같은 ubuntu:22.04)에서 flock 으로 동시 시작 — 도커로 돌린다
+CANNED = ("flyway_version|94\nreal_open_positions|0\nreal_unresolved_orders|0\ncleanup_pending|0\nquarantine_targets|0\n"
+          "s66_running|66\ns66_total|66\nreal_buys_window|0\nquarantine_release_rows|0\ntg_queue_rejected|0\ntg_ok_window|0\n"
+          "tg_last_ok|none\nEND|ok\n")
+with open(os.path.join(work, "canned.txt"), "w", newline="\n") as f:
+    f.write(CANNED)
+with open(os.path.join(work, "fakepsql"), "w", newline="\n") as f:
+    f.write("#!/bin/bash\ncat >/dev/null\ncat /w/canned.txt\n")
+with open(os.path.join(work, "linux_flock.sh"), "w", newline="\n", encoding="utf-8") as f:
+    f.write("""set -u
+command -v flock >/dev/null || { echo NOFLOCK; exit 0; }
+ok=0
+for k in 1 2 3 4 5; do
+  export OUT_DIR=/tmp/out$k
+  bash /repo/scripts/ops/daily_check.sh >/dev/null 2>&1 & a=$!
+  bash /repo/scripts/ops/daily_check.sh >/dev/null 2>&1 & b=$!
+  wait $a; ra=$?; wait $b; rb=$?
+  echo "round $k: $ra $rb"
+  # 컨테이너에는 git 이 없어 운영 SHA 가 ⚪(종료 1) — 잠금 판정은 "하나는 3, 다른 하나는 실행(0 또는 1)" 으로 본다
+  if { [ $ra = 3 ] && [ $rb != 3 ]; } || { [ $rb = 3 ] && [ $ra != 3 ]; }; then ok=$((ok+1)); fi
+  [ -e /tmp/out$k/.lock.flock ] && [ ! -e /tmp/out$k/.lock.d ] && echo "  flock 사용"
+done
+echo "OK=$ok"
+""")
+have = subprocess.run(["docker", "image", "inspect", "ubuntu:22.04"], capture_output=True).returncode == 0 or \
+       subprocess.run(["docker", "pull", "-q", "ubuntu:22.04"], capture_output=True).returncode == 0
+if not have:
+    check("리눅스 flock 동시 시작 — ubuntu:22.04 이미지를 받지 못함(판정 불가)", False, "docker pull 실패")
+else:
+    r = subprocess.run(["docker", "run", "--rm", "-v", REPO.replace("\\", "/") + ":/repo:ro", "-v", work.replace("\\", "/") + ":/w",
+                        "-e", "REPO_DIR=/repo", "-e", "PSQL_CMD=bash /w/fakepsql", "-e", "LOGS_FILE=/dev/null",
+                        "-e", "APP_STATE=running|0|2026-10-01T00:00:00Z|sha256:x", "-e", "DRY_RUN=1", "-e", "TZ_EXPECT=",
+                        "-e", "ALERTS_CMD=" + SLOW_OK, "ubuntu:22.04", "bash", "/w/linux_flock.sh"], capture_output=True)
+    out = r.stdout.decode("utf-8", "replace") + r.stderr.decode("utf-8", "replace")
+    check("리눅스(ubuntu:22.04) flock 동시 시작 5회 — 매번 하나만 실행·flock 잠금 사용", "OK=5" in out and out.count("flock 사용") == 5, out)
 
 sql("postgres", "DROP DATABASE IF EXISTS %s;" % DB)
 srv.shutdown()

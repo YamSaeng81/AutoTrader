@@ -14,7 +14,8 @@
 #
 # 종료 코드: 0 점검 항목 정상·보고 전송 / 1 이상 또는 판정 불가·보고 전송 / 2 보고 전송 실패 / 3 이미 실행 중
 #
-# 시험용 바꿔 끼우기(운영에서는 쓰지 않는다): PSQL_CMD · LOGS_FILE · APP_STATE · ALERTS_CMD · TG_API · SQL_TIMEOUT · TZ_EXPECT
+# 시험용 바꿔 끼우기(운영에서는 쓰지 않는다): PSQL_CMD · LOGS_FILE · APP_STATE · ALERTS_CMD · TG_API · SQL_TIMEOUT · TZ_EXPECT ·
+#   SLEEP_CMD · REPORT_LIMIT · LOCK_MODE(mkdir — flock 없는 환경의 대체 잠금을 시험할 때)
 set -u
 
 REPO_DIR="${REPO_DIR:-$(cd "$(dirname "$0")/../.." && pwd)}"
@@ -26,6 +27,12 @@ ALERTS_TIMEOUT="${ALERTS_TIMEOUT:-180}"
 EXPECT_S66="${EXPECT_S66:-66}"
 TZ_EXPECT="${TZ_EXPECT:-+0900}"
 TG_API="${TG_API:-https://api.telegram.org}"
+SLEEP_CMD="${SLEEP_CMD:-sleep}"
+REPORT_LIMIT="${REPORT_LIMIT:-3500}"      # 텔레그램 한 메시지 상한 4096자 안 — 문자 기준
+PY=$(command -v python3 || command -v python || true)
+# 설치 SHA — 설치 때 스크립트 옆에 INSTALLED_SHA 를 둔다(docs/OPS_DAILY_CHECK.md §3). 없으면 저장소판.
+SCRIPT_SHA=$(cat "$(dirname "$0")/INSTALLED_SHA" 2>/dev/null | head -c 12)
+SCRIPT_SHA="${SCRIPT_SHA:-저장소판}"
 DC="docker compose -f $REPO_DIR/docker-compose.prod.yml"
 PSQL_CMD="${PSQL_CMD:-$DC exec -T db psql -X -U trader -d crypto_auto_trader}"
 # 재시도 대상(중요 경보) 유형 — 이 유형의 전송 실패는 🔴. TelegramNotificationService.RETRY_TYPES 와 같게 둔다.
@@ -33,17 +40,31 @@ CRITICAL_TG_TYPES="STOP_LOSS SESSION_STOP RISK_LIMIT CLEANUP_NEEDS_HUMAN CLEANUP
 
 mkdir -p "$OUT_DIR"
 
-# ── 중복 실행 방지 — 디렉터리 잠금(flock 이 없는 환경에서도 동작), 죽은 잠금은 넘겨받는다 ──
-LOCK="$OUT_DIR/.lock"
-if ! mkdir "$LOCK" 2>/dev/null; then
-  old=$(cat "$LOCK/pid" 2>/dev/null || echo "")
-  if [ -n "$old" ] && kill -0 "$old" 2>/dev/null; then
-    echo "$(date '+%F %T %Z') 이미 실행 중(pid $old) — 이번 실행은 건너뛴다"; exit 3
+# ── 중복 실행 방지 ──
+# 서버: flock(원자적, 프로세스가 끝나면 커널이 푼다). flock 이 없는 환경(로컬 시험)만 mkdir 잠금으로 대체한다 —
+# mkdir 은 원자적이고, PID 를 아직 못 쓴 잠금(빈 pid)은 "실행 중" 으로 본다(리뷰 2026-10-22: 그 틈에 지우고 함께 실행하던 경합).
+# 버려진 잠금은 이름 바꾸기(mv — 원자적)로 한 실행만 넘겨받는다.
+busy() { echo "$(date '+%F %T %Z') 이미 실행 중($1) — 이번 실행은 건너뛴다"; exit 3; }
+if command -v flock >/dev/null 2>&1 && [ "${LOCK_MODE:-}" != "mkdir" ]; then
+  exec 9>"$OUT_DIR/.lock.flock"
+  flock -n 9 || busy "flock"
+else
+  LOCK="$OUT_DIR/.lock.d"
+  if ! mkdir "$LOCK" 2>/dev/null; then
+    old=$(cat "$LOCK/pid" 2>/dev/null || true)
+    if [ -z "$old" ]; then
+      age=$(( $(date +%s) - $(stat -c %Y "$LOCK" 2>/dev/null || date +%s) ))
+      [ "$age" -lt 600 ] && busy "잠금 생성 직후 — pid 기록 전"
+    elif kill -0 "$old" 2>/dev/null; then
+      busy "pid $old"
+    fi
+    mv "$LOCK" "$LOCK.stale.$$" 2>/dev/null || busy "다른 실행이 버려진 잠금을 넘겨받는 중"
+    rm -rf "$LOCK.stale.$$"
+    mkdir "$LOCK" 2>/dev/null || busy "잠금 경합"
   fi
-  rm -rf "$LOCK"; mkdir "$LOCK" || { echo "잠금 실패"; exit 3; }
+  echo $$ > "$LOCK/pid"
+  trap 'rm -rf "$LOCK"' EXIT
 fi
-echo $$ > "$LOCK/pid"
-trap 'rm -rf "$LOCK"' EXIT
 
 NOW_KST=$(TZ=KST-9 date '+%Y-%m-%d %H:%M %Z')
 SINCE_ISO=$(date -u -d "-${WINDOW_HOURS} hours" '+%Y-%m-%dT%H:%M:%SZ')
@@ -184,9 +205,13 @@ else
   AL_OUT=$(cd "$REPO_DIR" && timeout "$ALERTS_TIMEOUT" python3 scripts/prospective/start_66.py alerts --since "$SINCE_ISO" --no-mark 2>&1); AL_RC=$?
 fi
 AL_LAST=$(echo "$AL_OUT" | grep -E '^(🟢|🔴) ' | grep -v '🔴 🔴' | tail -1)
+AL_OK_LINE='🟢 경보 없음 · 실행 누락 없음'
+# 종료 코드만 믿지 않는다(리뷰 2026-10-22) — 정상은 정상 결과 줄이 있을 때만, 빈 출력·알 수 없는 출력은 판정 불가
 case $AL_RC in
-  0) if echo "$AL_OUT" | grep -q '⚪ 이 구간에 관측이 없다'; then unknown "66세션 경보: 구간 관측 없음"; fi ;;
-  1) red "66세션 경보(확정 아님 — 확인 필요): ${AL_LAST#🔴 }" ;;
+  0) if echo "$AL_OUT" | grep -q '⚪ 이 구간에 관측이 없다'; then unknown "66세션 경보: 구간 관측 없음"
+     elif [ "$AL_LAST" != "$AL_OK_LINE" ]; then unknown "66세션 경보: 정상 결과 줄 없음(종료 0, 출력 확인 필요)"; fi ;;
+  1) if [[ "$AL_LAST" == "🔴 "* ]]; then red "66세션 경보(확정 아님 — 확인 필요): ${AL_LAST#🔴 }"
+     else unknown "66세션 경보: 결과 줄 없음(종료 1)"; fi ;;
   124) unknown "66세션 경보 조회 시간 초과(${ALERTS_TIMEOUT}초)" ;;
   *) unknown "66세션 경보 조회 실패(종료 $AL_RC): $(echo "$AL_OUT" | tail -1 | cut -c1-120)" ;;
 esac
@@ -202,7 +227,7 @@ else
 fi
 {
   echo "[정기 점검] $HEAD"
-  echo "실행 $NOW_KST · 구간 $SINCE_KST ~ (${WINDOW_HOURS}시간) · 운영 $SHA"
+  echo "실행 $NOW_KST · 구간 $SINCE_KST ~ (${WINDOW_HOURS}시간) · 운영 $SHA · 점검 스크립트 $SCRIPT_SHA"
   for x in "${UNKNOWN[@]}"; do echo "⚪ $x"; done
   for x in "${RED[@]}"; do echo "🔴 $x"; done
   for x in "${NOTE[@]}"; do echo "🟡 $x"; done
@@ -215,6 +240,8 @@ fi
   echo "--- DB (종료 $SQL_RC)"; echo "$SQL_OUT"
   echo "--- 66세션 (종료 $AL_RC)"; echo "$AL_OUT" | tail -40
 } >> "$REPORT.raw"
+# 수집한 앱 로그 원문 — 장애 대조용(리뷰 2026-10-22). 압축해 결과 파일과 같은 이름으로 둔다.
+printf '%s\n' "${LOG_OUT:-}" | gzip -c > "$REPORT.log.gz" 2>/dev/null || true
 
 if [ "${DRY_RUN:-0}" = "1" ]; then
   cat "$REPORT"; echo "(DRY_RUN — 보고 보내지 않음 · 결과 $REPORT)"; exit $RC
@@ -224,25 +251,55 @@ fi
 envval() { grep -m1 "^$1=" "$REPO_DIR/.env" 2>/dev/null | cut -d= -f2- | sed -e 's/^["'\'']//' -e 's/["'\'']$//'; }
 BOT="${TELEGRAM_BOT_TOKEN:-$(envval TELEGRAM_BOT_TOKEN)}"
 CHAT="${TELEGRAM_CHAT_ID:-$(envval TELEGRAM_CHAT_ID)}"
-TEXT=$(head -c 3500 "$REPORT")
+# 보낼 본문 — **문자 단위**로 자른다(리뷰 2026-10-22: head -c 는 바이트라 한글 중간을 자른다). cron 은 로케일이 비어 셸의 ${#…} 도 바이트가 되므로
+# 파이썬으로 UTF-8 문자 수를 센다. 파이썬이 없으면 바이트로 자른 뒤 iconv -c 로 끝의 잘린 문자를 버린다. 본문은 명령 인자가 아니라 파일로 curl 에 넘긴다.
+MSG="$REPORT.msg"
+if [ -n "$PY" ]; then
+  "$PY" -c 'import sys
+src, dst, limit, tail = sys.argv[1], sys.argv[2], int(sys.argv[3]), sys.argv[4]
+t = open(src, encoding="utf-8").read().rstrip("\n")
+if len(t) > limit:
+    t = t[:limit] + "\n" + tail
+open(dst, "w", encoding="utf-8", newline="\n").write(t)' "$REPORT" "$MSG" "$REPORT_LIMIT" "…(이하 생략 — 서버 결과 파일 $REPORT)" 2>/dev/null \
+    || head -c 3000 "$REPORT" | iconv -c -f UTF-8 -t UTF-8 > "$MSG"
+else
+  if [ "$(wc -c < "$REPORT")" -gt $((REPORT_LIMIT * 3)) ]; then
+    { head -c $((REPORT_LIMIT * 3)) "$REPORT" | iconv -c -f UTF-8 -t UTF-8; printf '\n…(이하 생략 — 서버 결과 파일 %s)' "$REPORT"; } > "$MSG"
+  else
+    cp "$REPORT" "$MSG"
+  fi
+fi
 SENT=0; waited=0; last=""
 if [ -z "$BOT" ] || [ -z "$CHAT" ]; then
   last="토큰·채팅방 설정 없음"
 else
   for i in 1 2 3; do
     resp=$(curl -sS --max-time 20 -w '\n%{http_code}' -X POST "$TG_API/bot$BOT/sendMessage" \
-             --data-urlencode "chat_id=$CHAT" --data-urlencode "text=$TEXT" 2>&1); crc=$?
+             --data-urlencode "chat_id=$CHAT" --data-urlencode "text@$MSG" 2>&1); crc=$?
     code=$(echo "$resp" | tail -1); body=$(echo "$resp" | sed '$d')
     if [ $crc -eq 0 ] && [ "$code" = "200" ] && echo "$body" | grep -qE '"ok": *true'; then SENT=1; break; fi
     last="시도 $i: curl $crc · HTTP $code"
     [ $i -eq 3 ] && break
-    w=5; ra=$(echo "$body" | grep -oE '"retry_after":[0-9]+' | cut -d: -f2); [ "$code" = "429" ] && [ -n "$ra" ] && w=$ra
-    if [ $((waited + w)) -gt 30 ]; then last="$last · 대기 상한 초과로 중단"; break; fi
-    sleep "$w"; waited=$((waited + w))
+    w=5
+    if [ "$code" = "429" ]; then
+      ra=""
+      [ -n "$PY" ] && ra=$(printf '%s' "$body" | "$PY" -c 'import sys, json
+try:
+    v = json.load(sys.stdin).get("parameters", {}).get("retry_after")
+    print(int(v)) if v is not None else None
+except Exception:
+    pass' 2>/dev/null)
+      [ -z "$ra" ] && ra=$(printf '%s' "$body" | grep -oE '"retry_after"[[:space:]]*:[[:space:]]*[0-9]+' | grep -oE '[0-9]+$' | head -1)
+      [ -n "$ra" ] && w=$ra
+    fi
+    if [ $((waited + w)) -gt 30 ]; then last="$last · 다음 대기 ${w}초가 대기 상한 30초를 넘어 중단"; break; fi
+    WAITS="${WAITS:-}${WAITS:+,}${w}"
+    $SLEEP_CMD "$w"; waited=$((waited + w))
   done
 fi
+[ -n "${WAITS:-}" ] && last="$last · 대기 ${WAITS}초"
 if [ $SENT -eq 1 ]; then
-  echo "$(date '+%F %T %Z') 보고 전송 성공 · $HEAD" | tee -a "$REPORT" > "$OUT_DIR/last_send"
+  echo "$(date '+%F %T %Z') 보고 전송 성공${WAITS:+ (재시도 대기 ${WAITS}초)} · $HEAD" | tee -a "$REPORT" > "$OUT_DIR/last_send"
   find "$OUT_DIR" -maxdepth 1 -name '2*.txt*' -mtime +60 -delete 2>/dev/null
   exit $RC
 fi
