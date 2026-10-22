@@ -2162,6 +2162,14 @@ SELECT p.id AS position_id, p.session_kind, p.session_id, p.coin_pair, p.status,
   `.log.gz` 571,836B(12시간 앱 로그 원문 — 하루 두 번·60일 보존이면 약 70MB, 디스크 여유 안에서 감당 가능한 수준으로 본다).
 - 다음(리뷰 판정 뒤): 실제 텔레그램 수신 확인(`DRY_RUN` 없이 1회) → cron 등록.
 
+**정기 점검 자동화 — 실제 전송·cron 등록 (2026-10-22, 운영자 실행)**:
+- 실제 전송 1회 14:41:36 KST: 종료 0 · `last_send` "보고 전송 성공 · 🟢 점검 항목 정상". **휴대폰 수신 시각은 운영자 확인 대기**(전송 성공은 텔레그램 API 응답 기준이다).
+- **cron 등록**(14:4x): `0 10,22 * * * REPO_DIR=$HOME/crypto_trader/AutoTrader SQL_FILE=$HOME/ops-scripts/daily_checks.sql $HOME/ops-scripts/daily_check.sh >> $HOME/daily-check/cron.log 2>&1`
+  (설치 `fbd60d3`). 기존 cron `25 0 * * * … start_66.py watch --notify` 은 그대로. 첫 자동 실행 = **10-22 22:00 KST**.
+- 🔴 **순서 기록**: 리뷰가 정한 "④ 판정 확인 뒤 실제 수신 확인 → cron 등록" 에서 DRY_RUN 결과에 대한 **리뷰 판정을 받기 전에** 실제 전송과 cron 등록이 진행됐다(내 안내가 두 단계 명령을
+  함께 드려 판정 대기를 분명히 막지 못했다). 되돌리지는 않았다 — 읽기 전용·보고만 하는 작업이라 운영 영향이 없고, 리뷰가 등록 보류를 판정하면 `crontab -e` 로 두 줄을 지운다.
+- 22:05 KST 무렵 보고 도착 확인 · 오지 않으면 `docs/OPS_DAILY_CHECK.md` §5. 첫 자동 보고가 올 때까지 22:00 수동 점검도 함께 한다(자동 보고 확인 전).
+
 ### 6.4 종합
 
 | 선행 조건 | 판정 | 남은 것 |
