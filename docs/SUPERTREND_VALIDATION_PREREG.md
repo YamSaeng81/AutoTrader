@@ -415,11 +415,11 @@ PAPER 청산은 `pos.setStatus("CLOSED") + positionRepo.save(pos)` 로 평범한
 | 발단 | 10-23 00:25 KST 운영 감시 `[로그] 🔴 … KILL 경보 8`. 이전 감시의 "KILL 경보 2"(#370·371)는 10-20 부터 매일 반복됐다 |
 | 판정 | `kill_criteria_judgment` 10-22 00:00Z: `COMPOSITE_MTF_CONFIRMED@M15` #362 ADA·363 AVAX·364 BTC·365 DOGE·367 LINK·369 SOL → **`NEGATIVE_ALPHA`**(그룹 6세션 20거래, −1.24% vs 알트 보유 −0.28%, 알파 −0.96%p — 10-20·21 은 #362·363·369 가 `NO_SIGNAL` WARN) · `COMPOSITE_MEANREV_BB@M15` #370 ETH·371 XRP → **`NEGATIVE_EV`**(그룹 2세션 28거래, 누적 −923,814원, 평균 −32,993원, 승 7 — 10-20 이전부터) |
 | 🔴 판정 시점 ≠ 집행 시점 | MTF_CONFIRMED 6세션: 첫 KILL 10-22 00:00Z → 집행 10-22 23:00:03Z(**23시간**). MEANREV_BB 2세션: 10-20 00:00Z 기록에 이미 KILL → **70시간 이상**. 지연 사유는 경보를 "PAPER 라 급하지 않다" 로 미뤄 둔 것(실자금 위험 없음 ≠ KILL 기준 무시 — 리뷰) |
-| 🔴 집행 전 확인 | 8세션 모두 `paper_trading.virtual_balance` 에 있고 RUNNING·`in_66 = f` · 같은 id 의 LIVE·DYNAMIC 세션 없음 · 검증 66 RUNNING · 저장소의 사전 등록 문서에 이 범위를 쓰는 실험 없음 · 서버 실험 파일(`scripts/prospective/*.json`) 대조는 **출력 미수신**(아래) |
+| 🔴 집행 전 확인 | 8세션 모두 `paper_trading.virtual_balance` 에 있고 RUNNING·`in_66 = f` · 같은 id 의 LIVE·DYNAMIC 세션 없음 · 검증 66 RUNNING · 저장소의 사전 등록 문서에서 이 범위를 쓰는 실험을 **찾지 못함**(검색 범위: `docs/*PREREG*.md` 의 세션 번호·범위 표기) · 서버 실험 파일(`scripts/prospective/*.json`) 대조는 **출력이 아직 전달되지 않음** — 검색이 오류 없이 끝나고 출력이 비면 "확인한 파일·검색 범위에서 참조를 찾지 못함" 으로 적는다(다른 실험에서 쓰지 않는다는 확정이 아니다, 리뷰 2026-10-23) |
 | 집행 | 정상 정지 경로 `POST /api/v1/paper-trading/sessions/{id}/stop` 8건 **모두 1회에 HTTP 200**(08:00:03 KST). `#331` 같은 잠금 충돌 없음 |
 | 결과 | 8세션 `STOPPED`(`stopped_at` 23:00:03.70~03.96Z) · 열린 포지션 #371 의 1건이 정상 매도로 청산(주문 37 → 38, `total_krw` 9,571,116.19 → 9,559,624.98) · 나머지 주문 수 불변 · 판정 기록 보존 · 모의 RUNNING **87 → 79** · **검증 66/66 유지** |
 | 🔴 하지 **않은** 것 | 전역 자동 정지(`kill-criteria.auto-stop`)·전략 활성화(`strategy_type_enabled`) 변경 없음(리뷰 지시). 반복 경보를 숨기지 않았다 — 다음 운영 감시에 정지 전 로그가 구간에 남아 보이면 역사 기록으로 구분한다 |
-| 🔴 부수 효과 = 운용 조건 변경(한 코인) | 집행 뒤 RUNNING 조회(10-23): 같은 8코인 M15 를 쓰는 PAPER 가 ADA·AVAX·BTC·LINK·SOL 각 1, ETH·XRP 각 4 남았다 — **`KRW-DOGE@M15` 만 RUNNING 세션이 없다** (LIVE RUNNING 없음, DYNAMIC RUNNING 3 은 현재 코인 없음). 따라서 세션 기준 적재 집합에서 빠지는 것은 **DOGE@M15 하나**로 본다(동적 워치리스트 등 다른 출처가 넣는지는 확인하지 않았다). T0 이후 적재 조건 변경으로 기록한다(10-22 23:00Z). 근거는 KILL 규칙 단독 |
+| 🔴 부수 영향(정지의 결과, 정지 근거와 분리) | 집행 뒤 RUNNING 조회(10-23): 같은 8코인 M15 를 쓰는 PAPER 가 ADA·AVAX·BTC·LINK·SOL 각 1, ETH·XRP 각 4 남았다 — **`KRW-DOGE@M15` 만 RUNNING 세션이 없다** (LIVE M15 RUNNING 없음, DYNAMIC RUNNING 3 은 현재 코인 없음). 확인된 것은 **DOGE@M15 의 세션 기준 수집 필요가 없어졌다**는 것까지다. 워치리스트 등 다른 경로가 DOGE@M15 를 수집하는지는 **미확인**이므로 "실제로 수집 대상에서 빠졌다" 고 확정하지 않는다(리뷰 2026-10-23). 정지 근거는 KILL 규칙 단독. 검증 66세션의 T0·판정 기준은 그대로다 |
 | 성과 처리 | 운영 개입 규칙 그대로. T0 변경 없음, 구간 절단 없음 |
 
 ###### 📌 팔 구분이 실제로 동작하는가 — 유효성 확인 (2026-10-06, 성과 판정과 무관)
