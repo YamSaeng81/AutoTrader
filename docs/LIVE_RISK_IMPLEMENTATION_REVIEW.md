@@ -2196,7 +2196,7 @@ SELECT p.id AS position_id, p.session_kind, p.session_id, p.coin_pair, p.status,
 
 **KILL 3차 집행 결과 (개입 #10, 2026-10-23 08:00:03 KST)**: PAPER 8세션 정지 — 전부 HTTP 200·`STOPPED`, #371 열린 포지션 1건 정상 청산, 모의 RUNNING 87 → 79, **검증 66/66 유지**, 설정 변경 없음.
 기록 `SUPERTREND_VALIDATION_PREREG.md` 개입 기록 #10. 🔴 운영자가 1단계(정지 전 확인) 결과를 내가 확인하기 전에 2단계를 실행했다 — 확인 조건은 출력상 모두 맞았으나 **서버 실험 파일 grep 출력은 받지 못했다**(사후 대조 요청).
-부수 효과(M15 8코인이 적재 집합에서 빠졌는지)는 확인 대기.
+부수 효과: 8코인 중 **`KRW-DOGE@M15` 만** 남은 RUNNING 세션이 없다(나머지 7코인은 다른 PAPER M15 세션이 계속 씀) — 적재 조건 변경 한 코인으로 기록. 서버 실험 파일 grep 출력은 아직 받지 못했다.
 
 ### 6.4 종합
 

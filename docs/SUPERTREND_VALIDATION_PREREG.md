@@ -419,7 +419,7 @@ PAPER 청산은 `pos.setStatus("CLOSED") + positionRepo.save(pos)` 로 평범한
 | 집행 | 정상 정지 경로 `POST /api/v1/paper-trading/sessions/{id}/stop` 8건 **모두 1회에 HTTP 200**(08:00:03 KST). `#331` 같은 잠금 충돌 없음 |
 | 결과 | 8세션 `STOPPED`(`stopped_at` 23:00:03.70~03.96Z) · 열린 포지션 #371 의 1건이 정상 매도로 청산(주문 37 → 38, `total_krw` 9,571,116.19 → 9,559,624.98) · 나머지 주문 수 불변 · 판정 기록 보존 · 모의 RUNNING **87 → 79** · **검증 66/66 유지** |
 | 🔴 하지 **않은** 것 | 전역 자동 정지(`kill-criteria.auto-stop`)·전략 활성화(`strategy_type_enabled`) 변경 없음(리뷰 지시). 반복 경보를 숨기지 않았다 — 다음 운영 감시에 정지 전 로그가 구간에 남아 보이면 역사 기록으로 구분한다 |
-| 🔴 부수 효과 확인 대기 | 정지한 8세션의 ADA·AVAX·BTC·DOGE·LINK·SOL·ETH·XRP @M15 를 다른 RUNNING 세션이 쓰지 않으면 `syncMarketData` 집합에서 빠진다 — 개입 #3·#4 처럼 **적재 조건 변경**이므로 확인해 기록한다. 근거는 KILL 규칙 단독 |
+| 🔴 부수 효과 = 운용 조건 변경(한 코인) | 집행 뒤 RUNNING 조회(10-23): 같은 8코인 M15 를 쓰는 PAPER 가 ADA·AVAX·BTC·LINK·SOL 각 1, ETH·XRP 각 4 남았다 — **`KRW-DOGE@M15` 만 RUNNING 세션이 없다** (LIVE RUNNING 없음, DYNAMIC RUNNING 3 은 현재 코인 없음). 따라서 세션 기준 적재 집합에서 빠지는 것은 **DOGE@M15 하나**로 본다(동적 워치리스트 등 다른 출처가 넣는지는 확인하지 않았다). T0 이후 적재 조건 변경으로 기록한다(10-22 23:00Z). 근거는 KILL 규칙 단독 |
 | 성과 처리 | 운영 개입 규칙 그대로. T0 변경 없음, 구간 절단 없음 |
 
 ###### 📌 팔 구분이 실제로 동작하는가 — 유효성 확인 (2026-10-06, 성과 판정과 무관)
