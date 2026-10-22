@@ -2163,7 +2163,7 @@ SELECT p.id AS position_id, p.session_kind, p.session_id, p.coin_pair, p.status,
 - 다음(리뷰 판정 뒤): 실제 텔레그램 수신 확인(`DRY_RUN` 없이 1회) → cron 등록.
 
 **정기 점검 자동화 — 실제 전송·cron 등록 (2026-10-22, 운영자 실행)**:
-- 실제 전송 1회 14:41:36 KST: 종료 0 · `last_send` "보고 전송 성공 · 🟢 점검 항목 정상". **휴대폰 수신 시각은 운영자 확인 대기**(전송 성공은 텔레그램 API 응답 기준이다).
+- 실제 전송 1회 14:41:36 KST: 종료 0 · `last_send` "보고 전송 성공 · 🟢 점검 항목 정상". **휴대폰 수신 확인**(운영자, 2026-10-22 — 받은 본문이 결과 파일과 같다: 첫 줄 판정·실행 시각·구간·운영 SHA·점검 스크립트 SHA·🟡 3줄·세부 5줄·책임 문구, 한글·이모지 깨짐 없음).
 - **cron 등록**(14:4x): `0 10,22 * * * REPO_DIR=$HOME/crypto_trader/AutoTrader SQL_FILE=$HOME/ops-scripts/daily_checks.sql $HOME/ops-scripts/daily_check.sh >> $HOME/daily-check/cron.log 2>&1`
   (설치 `fbd60d3`). 기존 cron `25 0 * * * … start_66.py watch --notify` 은 그대로. 첫 자동 실행 = **10-22 22:00 KST**.
 - 🔴 **순서 기록**: 리뷰가 정한 "④ 판정 확인 뒤 실제 수신 확인 → cron 등록" 에서 DRY_RUN 결과에 대한 **리뷰 판정을 받기 전에** 실제 전송과 cron 등록이 진행됐다(내 안내가 두 단계 명령을
