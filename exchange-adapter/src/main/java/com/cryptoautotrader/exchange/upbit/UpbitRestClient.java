@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Upbit REST API 클라이언트
@@ -38,13 +37,9 @@ public class UpbitRestClient {
     private static final DateTimeFormatter UPBIT_FORMAT = DateTimeFormatter
             .ofPattern("yyyy-MM-dd'T'HH:mm:ss")
             .withZone(ZoneOffset.UTC);
-    /** Upbit 캔들 API 제한: 초당 10회 → 110ms 간격으로 호출 (여유 10%) */
-    private static final long MIN_INTERVAL_MS = 110;
 
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
-    // 전역 rate limit: 여러 인스턴스가 동시에 수집해도 Upbit 제한(초당 10회) 공유
-    private static final AtomicLong lastRequestTime = new AtomicLong(0);
 
     public UpbitRestClient() {
         this.httpClient = HttpClient.newBuilder()
@@ -189,13 +184,15 @@ public class UpbitRestClient {
                 .build();
     }
 
-    /** Upbit API Rate Limit 준수 — 연속 호출 시 최소 110ms 간격 보장 (원자적 처리) */
-    private synchronized void throttle() throws InterruptedException {
-        long now = System.currentTimeMillis();
-        long elapsed = now - lastRequestTime.get();
-        if (elapsed < MIN_INTERVAL_MS) {
-            Thread.sleep(MIN_INTERVAL_MS - elapsed);
-        }
-        lastRequestTime.set(System.currentTimeMillis());
+    /**
+     * 업비트 요청 한도 준수 — 프로세스 전체 공용 예산({@link UpbitRequestLimiter#QUOTATION})에서 요청 시각을 원자적으로 예약한다.
+     *
+     * <p>🔴 2026-10-23 (리뷰): 종전에는 마지막 요청 시각을 {@code static} 으로 공유하면서 {@code synchronized} 는 <b>인스턴스 잠금</b>이라,
+     * 서로 다른 인스턴스가 같은 시각을 동시에 읽고 함께 요청할 수 있었다(설명 주석의 "원자적 처리" 는 인스턴스 하나 안에서만 맞았다).
+     * 이제 모든 인스턴스가 한 예산을 쓴다. 기본 간격 125ms(종전 110ms).</p>
+     */
+    // 시험에서 여러 인스턴스를 동시에 돌려 예산 공유를 확인할 수 있게 package-private
+    void throttle() throws InterruptedException {
+        UpbitRequestLimiter.QUOTATION.acquire();
     }
 }
