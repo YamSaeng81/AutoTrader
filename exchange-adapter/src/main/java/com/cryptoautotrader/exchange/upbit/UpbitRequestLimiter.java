@@ -1,6 +1,7 @@
 package com.cryptoautotrader.exchange.upbit;
 
 import java.util.concurrent.TimeUnit;
+import java.util.function.LongSupplier;
 
 /**
  * 업비트 공개 시세 요청의 <b>프로세스 전체 공용 간격</b> — 요청이 <b>통과하는 순간</b>에 공유 간격을 확인하고 갱신한다 (2026-10-23).
@@ -12,6 +13,9 @@ import java.util.concurrent.TimeUnit;
  * GC·스케줄링 지연으로 여러 스레드가 늦게 깨어나면 <b>이미 지난 예약들이 거의 동시에 통과</b>할 수 있었다 — 예약의 원자성이 실제
  * 통과 간격을 보장하지 않았다. 이제는 예약하지 않는다: 깨어난 스레드가 잠금 안에서 <b>지금 시각과 마지막 통과 시각</b>을 다시 비교해,
  * 간격이 지났을 때만 통과하고 그 자리에서 마지막 통과 시각을 갱신한다. 아직이면 남은 만큼 다시 기다린다.</p>
+ * <p>③ (리뷰 2026-10-23 3차) 2차 수정은 "지금 시각" 을 {@code tryPass(System.nanoTime(), …)} 의 <b>인자로</b> 넘겨 잠금을 얻기 <b>전에</b> 읽었다.
+ * 잠금을 오래 기다리면 오래된 시각으로 통과를 승인하고(마지막 통과 시각도 그 오래된 값이 된다), 바로 뒤의 요청도 곧바로 통과할 수 있었다.
+ * 이제 시각은 {@code synchronized} 메서드 <b>안에서</b> 읽는다.</p>
  *
  * <h3>무엇을 보장하나 (시험 범위에 맞춘 문구)</h3>
  * <ul>
@@ -42,6 +46,7 @@ final class UpbitRequestLimiter {
 
     private final long intervalNanos;
     private final Sleeper sleeper;
+    private final LongSupplier clock;
     private boolean passedOnce;          // 이 객체의 잠금으로 보호
     private long lastPassNanos;          // 이 객체의 잠금으로 보호
 
@@ -49,13 +54,16 @@ final class UpbitRequestLimiter {
         if (intervalNanos <= 0) throw new IllegalArgumentException("간격은 0보다 커야 한다: " + intervalNanos);
         this.intervalNanos = intervalNanos;
         this.sleeper = sleeper;
+        this.clock = System::nanoTime;
     }
 
     /**
      * 통과해도 되는지 잠금 안에서 확인한다. 되면 마지막 통과 시각을 지금으로 갱신하고 0 을, 아니면 더 기다릴 나노초를 돌려준다.
+     * 🔴 "지금" 은 잠금을 얻은 <b>뒤에</b> 이 메서드 안에서 읽는다 — 인자로 받으면 잠금 대기 전에 평가돼 오래된 시각이 된다(3차 보완).
      * 통과한 시각은 {@code passedAt} 에 담는다(시험 관측용, null 가능).
      */
-    synchronized long tryPass(long nowNanos, long[] passedAt) {
+    synchronized long tryPass(long[] passedAt) {
+        long nowNanos = clock.getAsLong();
         if (passedOnce) {
             long earliest = lastPassNanos + intervalNanos;
             if (nowNanos - earliest < 0) {
@@ -76,7 +84,7 @@ final class UpbitRequestLimiter {
     /** {@link #acquire()} 와 같고, 통과 시각(잠금 안의 nanoTime)을 {@code passedAt[0]} 에 담는다. */
     void acquire(long[] passedAt) throws InterruptedException {
         while (true) {
-            long waitNanos = tryPass(System.nanoTime(), passedAt);
+            long waitNanos = tryPass(passedAt);
             if (waitNanos <= 0) return;
             sleeper.sleepNanos(waitNanos);
         }

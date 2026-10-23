@@ -21,6 +21,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -141,6 +142,41 @@ class UpbitRequestLimiterTest {
     }
 
     @Test
+    @DisplayName("🔴 잠금을 오래 기다린 요청도 '지금' 기준으로 통과한다 — 곧바로 뒤따르는 요청과 간격을 지킨다(3차 보완: 시각을 잠금 안에서 읽음)")
+    void longLockWait_doesNotApproveWithStaleTime() throws Exception {
+        UpbitRequestLimiter limiter = new UpbitRequestLimiter(INTERVAL, UpbitRequestLimiter.REAL_SLEEP);
+        limiter.acquire();                                   // 마지막 통과 L
+        Thread.sleep(200);                                   // 이제 간격이 지나 다음 요청은 통과 자격이 있다
+        AtomicReference<Long> bReturned = new AtomicReference<>();
+        AtomicReference<Throwable> bError = new AtomicReference<>();
+        Thread b;
+        synchronized (limiter) {                             // 🔴 제한기의 잠금을 시험이 쥐어 B 의 잠금 획득을 늦춘다
+            b = new Thread(() -> {
+                try {
+                    limiter.acquire();
+                    bReturned.set(System.nanoTime());
+                } catch (Throwable e) {
+                    bError.set(e);
+                }
+            });
+            b.start();
+            long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+            while (b.getState() != Thread.State.BLOCKED && System.nanoTime() < deadline) Thread.sleep(1);
+            assertThat(b.getState()).as("B 가 제한기 잠금을 기다리는 상태여야 시험이 성립한다").isEqualTo(Thread.State.BLOCKED);
+            Thread.sleep(400);                               // 잠금 대기 400ms — 2차 코드에선 B 가 이미 읽은 '지금'이 400ms 낡는다
+        }
+        b.join();
+        assertThat(bError.get()).isNull();
+        limiter.acquire();                                   // 곧바로 뒤따르는 요청 D
+        long dReturned = System.nanoTime();
+
+        assertThat(dReturned - bReturned.get())
+                .as("B 와 D 의 실제 통과 간격 %d ms — 2차 코드는 B 가 낡은 시각으로 통과·기록해 D 가 곧바로 통과했다",
+                        TimeUnit.NANOSECONDS.toMillis(dReturned - bReturned.get()))
+                .isGreaterThanOrEqualTo(INTERVAL - TimeUnit.MILLISECONDS.toNanos(2));
+    }
+
+    @Test
     @DisplayName("서로 다른 인스턴스도 같은 제한기를 쓴다 — 두 인스턴스의 연속 요청이 서버에 간격을 두고 닿는다(통과 뒤 전송 지연만큼 흔들림)")
     void instancesShareOneLimiter_atServer() throws Exception {
         UpbitRequestLimiter shared = new UpbitRequestLimiter(INTERVAL, UpbitRequestLimiter.REAL_SLEEP);
@@ -154,6 +190,7 @@ class UpbitRequestLimiterTest {
         // 🔴 처음 이 시험은 서버 쪽 간격 ≥ 120ms 를 요구했고 104ms 로 실패했다 — 첫 요청은 연결 수립이 끼어 늦게 닿고 둘째는 그만큼
         //    빨리 닿는다. 통과 시각은 125ms 이상 떨어져도 서버가 받는 간격은 전송 지연 차이만큼 좁아질 수 있다는 리뷰 지적 그대로다.
         //    엄격한 125ms 는 통과 시각 시험이 맡고, 여기서는 인스턴스가 달라도 함께 통과하지 않는다(간격이 크게 벌어진다)는 것만 본다.
+        //    🔴 60ms 는 **관측용 기준**이다 — 엄격한 간격 보장의 근거가 아니다(리뷰 2026-10-23).
         //    종전(인스턴스별 잠금)에서는 두 인스턴스가 동시에 시도하면 수 ms 안에 함께 닿을 수 있었다.
         assertThat(minGap(arrivals)).as("서버가 받은 간격 %d ms", TimeUnit.NANOSECONDS.toMillis(minGap(arrivals)))
                 .isGreaterThanOrEqualTo(TimeUnit.MILLISECONDS.toNanos(60));
@@ -162,6 +199,8 @@ class UpbitRequestLimiterTest {
     /** 다중 인스턴스 × 스레드가 실제 getCandles 로 모의 서버에 요청하고, 같은 IP 감시 작업(1초 간격)이 겹친다. */
     private void runAppAndMonitor(UpbitRequestLimiter shared, int instances, int threadsPerInstance, int perThread,
                                   long monitorSeconds) throws Exception {
+        AtomicReference<Throwable> appError = new AtomicReference<>();
+        AtomicReference<Throwable> monitorError = new AtomicReference<>();
         CountDownLatch go = new CountDownLatch(1);
         List<Thread> ts = new ArrayList<>();
         for (int i = 0; i < instances; i++) {
@@ -173,7 +212,8 @@ class UpbitRequestLimiterTest {
                         for (int k = 0; k < perThread; k++) {
                             client.getCandles("KRW-BTC", "minutes", 60, null, 1);
                         }
-                    } catch (Exception ignored) {
+                    } catch (Throwable e) {
+                        appError.compareAndSet(null, e);             // 🔴 삼키지 않는다 — 시험에 전달
                     }
                 });
                 ts.add(th);
@@ -186,22 +226,39 @@ class UpbitRequestLimiterTest {
                 go.await();
                 long end = System.nanoTime() + TimeUnit.SECONDS.toNanos(monitorSeconds);
                 while (System.nanoTime() < end) {
-                    raw.send(HttpRequest.newBuilder(URI.create(base() + "/monitor")).GET().build(), HttpResponse.BodyHandlers.discarding());
+                    HttpResponse<Void> r = raw.send(HttpRequest.newBuilder(URI.create(base() + "/monitor")).GET().build(),
+                            HttpResponse.BodyHandlers.discarding());
+                    if (r.statusCode() != 200) throw new IllegalStateException("감시 요청 HTTP " + r.statusCode());
                     Thread.sleep(1000);
                 }
-            } catch (Exception ignored) {
+            } catch (Throwable e) {
+                monitorError.compareAndSet(null, e);                 // 🔴 감시가 실패하면 앱 요청만으로 통과하지 않게 시험에 전달
             }
         });
         mon.start();
         go.countDown();
         for (Thread th : ts) th.join();
         mon.join();
+        assertThat(appError.get()).as("앱 요청 오류").isNull();
+        assertThat(monitorError.get()).as("감시 요청 오류").isNull();
+    }
+
+    /** 서버가 감시 요청을 받았고, 그중 여럿이 앱 요청 구간(첫~마지막 앱 요청) 안에 들어 실제로 겹쳤는지. */
+    private void assertMonitorOverlapped(int atLeast) {
+        List<Long> app = new ArrayList<>(arrivals);
+        Collections.sort(app);
+        long first = app.get(0), last = app.get(app.size() - 1);
+        long inside = monitorArrivals.stream().filter(t -> t >= first && t <= last).count();
+        assertThat(monitorArrivals).as("서버가 감시 요청을 받았다").isNotEmpty();
+        assertThat(inside).as("앱 요청 구간 %d ms 안에 든 감시 요청 수(전체 %d)",
+                TimeUnit.NANOSECONDS.toMillis(last - first), monitorArrivals.size()).isGreaterThanOrEqualTo(atLeast);
     }
 
     @Test
     @DisplayName("🔴 모의 HTTP 서버가 받은 시각 — 4인스턴스×3스레드(96건) + 감시 1초 간격이 겹쳐도 어느 1초 창에도 10회 이하(이 실행 조건)")
     void serverSideArrivals_multiInstancePlusMonitor() throws Exception {
         runAppAndMonitor(new UpbitRequestLimiter(INTERVAL, UpbitRequestLimiter.REAL_SLEEP), 4, 3, 8, 13);
+        assertMonitorOverlapped(8);     // 앱 96건 × 125ms ≈ 12초 — 감시 1초 간격이면 그 안에 10여 건
 
         List<Long> all = new ArrayList<>(arrivals);
         all.addAll(monitorArrivals);
@@ -218,6 +275,7 @@ class UpbitRequestLimiterTest {
         UpbitRequestLimiter.Sleeper oversleeping = nanos ->
                 TimeUnit.NANOSECONDS.sleep(nanos + TimeUnit.MILLISECONDS.toNanos(ThreadLocalRandom.current().nextLong(50, 300)));
         runAppAndMonitor(new UpbitRequestLimiter(INTERVAL, oversleeping), 4, 3, 4, 10);
+        assertMonitorOverlapped(4);
 
         List<Long> all = new ArrayList<>(arrivals);
         all.addAll(monitorArrivals);
