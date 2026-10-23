@@ -2385,6 +2385,10 @@ SELECT p.id AS position_id, p.session_kind, p.session_id, p.coin_pair, p.status,
 - 옛 절차서 이름 주석(`maint_verify.py` 첫 줄 `MAINTENANCE_NEXT_895a471.md`): 실행 영향 없음 — **다음 문서 정리 때** 고친다. 이것 때문에 QS 를 바꾸지 않는다.
 - **`bar_audit.py`**: 업비트를 따로 호출하고 요청 사이 대기 **0.12초**(리뷰 확인). 저장소의 정기 점검·감시 스크립트는 부르지 않지만 서버 등록 여부는 미확인 →
   정비 전 cron·timer 등록과 실행 여부를 읽기 전용으로 확인(절차서 §0 명령·판정표). 실행 중이면 요청량 분석 대상에 넣고, 현재 시험이 그 요청까지 **합산해 보장한다고 기록하지 않는다**.
+  → **확인 결과(10-23 15:51 KST 무렵)**: 사용자·root crontab(`no crontab for root`)·시스템 cron·timer·`/etc/systemd/system`·ops-scripts·`pgrep`·syslog(`syslog`·`syslog.1`, 대략 10-11~10-23) 모두 종료 코드 1,
+  `~/.config/systemd/user` 없음 → **확인한 범위에서 등록·실행 흔적을 찾지 못했다**(미사용 확정은 아니다 — 압축된 옛 syslog 는 안 봤고, 수동 도구라 사람이 돌릴 수 있다).
+  처음 받은 systemd unit 종료 코드 2 는 ⚪ 로 두고 경로별로 다시 확인했다(없는 폴더가 원인). root crontab 의 1 도 파이프 뒤 `grep` 의 값이라 `sudo crontab -l` 을 따로 확인했다.
+  지금은 요청량 분석 대상에 넣지 않는다. 정비 중에는 돌리지 않고, 나중에 돌리면 실행 시각을 남겨 분석에 넣는다.
 - 🔴 이 판정은 배포 실행·STAGE_1 활성화 승인이 아니다. 다음 단계는 정비 일시 결정. 그때까지 운영 `de3fe3a`·STAGE_1 비활성.
 
 ### 6.4 종합
