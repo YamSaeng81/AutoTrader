@@ -2236,7 +2236,10 @@ SELECT p.id AS position_id, p.session_kind, p.session_id, p.coin_pair, p.status,
   **재확인 구간**: 04:13:30Z(기동 2분 뒤) 첫 결측 재수집 → "공식 점검 공백을 결측에서 뺀다" + XRP·ETH M15·BTC 급락 관문 **"판정 재개"** 줄 확인, 최근 4분 판정 불가 없음 ·
   조회 Q1 94·Q3~Q6 0·Q7 66·Q8 0·Q9 0·`ROLLBACK` · 알림 시험 `POST …/telegram/test` HTTP 200 → 이력 `TEST t` 13:18:44 KST(휴대폰 수신 시각은 운영자 확인 대기 — 이 시험은 수신 경로 근거일 뿐) ·
   **새 코드 실림**: 컨테이너 `app.jar` 안 `TelegramNotificationService$Outcome` 1건(`de3fe3a` 에만 있는 클래스).
-- 남은 것: §6 30분 뒤 재점검(13:41 이후) · 개입 #9 기록(운영자) · 10-24 04:10 첫 `CANDLE_REFRESH_REPORT` 를 10-24 10:00 정기 점검에서 확인. 프런트엔드·Docker·STAGE_1 제외 그대로.
+- **§6 재점검(13:59:49 KST, 기동 48분 뒤)**: backend Up 48분·재시작 없음 · 최근 30분 ERROR(캔들 최신성·공유 풀 제외) **없음** · Q3~Q6 0·Q7 66·Q8 0·Q9 0·`ROLLBACK` · Q10 `queue_rejected` 0 ·
+  66세션 경보(빌드 시작 이후) 관측 1회 **13:19 KST 🟢 22/0/0**·실행 누락 없음. → **정비 완료, 되돌림 없음**. 운영 `de3fe3a`(이미지 `9a458bb1…`), 복구용 `autotrader-backend:39f994c` 보존.
+- 남은 것: 개입 #9 기록(시각·결과·수락 — 운영자) · 시험 메시지 휴대폰 수신 시각(운영자) · 10-24 04:10 첫 `CANDLE_REFRESH_REPORT` 를 10-24 10:00 정기 점검에서 확인 ·
+  리뷰의 정비 결과 판정. 프런트엔드·Docker·STAGE_1 제외 그대로, STAGE_1 비활성.
 
 ### 6.4 종합
 
