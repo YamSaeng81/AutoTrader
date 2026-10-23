@@ -422,6 +422,23 @@ PAPER 청산은 `pos.setStatus("CLOSED") + positionRepo.save(pos)` 로 평범한
 | 🔴 부수 영향(정지의 결과, 정지 근거와 분리) | 집행 뒤 RUNNING 조회(10-23): 같은 8코인 M15 를 쓰는 PAPER 가 ADA·AVAX·BTC·LINK·SOL 각 1, ETH·XRP 각 4 남았다 — **`KRW-DOGE@M15` 만 RUNNING 세션이 없다** (LIVE M15 RUNNING 없음, DYNAMIC RUNNING 3 은 현재 코인 없음). 확인된 것은 **DOGE@M15 의 세션 기준 수집 필요가 없어졌다**는 것까지다. 워치리스트 등 다른 경로가 DOGE@M15 를 수집하는지는 **미확인**이므로 "실제로 수집 대상에서 빠졌다" 고 확정하지 않는다(리뷰 2026-10-23). 정지 근거는 KILL 규칙 단독. 검증 66세션의 T0·판정 기준은 그대로다 |
 | 성과 처리 | 운영 개입 규칙 그대로. T0 변경 없음, 구간 절단 없음 |
 
+###### 개입 기록 #11 — 2026-10-23 06:58:28Z (계획에 없던 백엔드 재빌드·재기동, 같은 코드 `de3fe3a`)
+
+🔴 **계획 정비가 아니다.** 운영자가 다음 정비 절차(서버에서 git·빌드를 하는가)를 묻는 과정에서 `git fetch` 와
+`docker compose -f docker-compose.prod.yml up --build -d backend` 를 실행했다. 체크아웃은 하지 않았다 — 같은 코드로 다시 빌드해 백엔드만 재기동한 것이다.
+직전 안내(어시스턴트)가 명령을 설명 순서대로 늘어놓아 지금 실행하라는 뜻으로 읽힐 수 있었다 — 안내 쪽 원인이다. 10-26 계획 정비는 이 번호 뒤 **#12** 가 된다.
+
+| | |
+|---|---|
+| 시각(KST) | 이미지 생성 **15:58:16** · 컨테이너 기동 **15:58:28**(`06:58:28.10Z`) · 앱 기동 완료 **15:58:45**(`Started … in 16.019 seconds`) · 재시작 0 · 명령 시작 시각은 기록 없음 |
+| 코드 | HEAD `de3fe3a`·추적 파일 변경 없음·소스 폴더 추적 안 된 파일 없음 · jar 확인(`maint_verify jar`, QS `d028f74`): `UpbitRequestLimiter.class` **없음**(2eb4225 에만 있는 클래스) · `DynamicTradingService.class` 있음 → **옛 코드 그대로** |
+| 이미지 | 새 이미지 `sha256:0b94cb36…`(`autotrader-backend:latest`). 🔴 10-23 정비 이미지 `sha256:9a458bb1…` 는 `docker image ls -a` 에 **없다**(태그 없는 이미지 둘은 03-26·11-15 생성 — 다른 것). 보존 태그 `39f994c`·`3b781d8` 는 남아 있다 |
+| 영향 범위 | backend 만 재생성 · db·db-backup·frontend·redis·grafana·prometheus "Up 2 days" 그대로 |
+| 직후 조회(16:00, QS `d028f74`) | Q1 94 · Q3~Q6 0 · **Q7 RUNNING 66** · Q8(15:58 이후 실자금 신규 매수) 0 · Q9 0 · `ROLLBACK` |
+| 🔴 확인 중 | 기동 뒤 로그에 HikariCP `Apparent connection leak detected`(대여 60초 초과 진단 경고, `leak-detection-threshold`) — 시각·스택·과거 재기동 때도 있었는지 대조 중 · 16:19 감시 회차 결과 |
+| 성과 처리 | 운영 개입 규칙 그대로. T0 변경 없음, 구간 절단 없음 |
+| 결과·수용 | (운영자 기입) |
+
 ###### 📌 팔 구분이 실제로 동작하는가 — 유효성 확인 (2026-10-06, 성과 판정과 무관)
 
 MDD 수동 대조(개입 기록 참조) 중에 **같은 코인에서 세 팔의 자산이 소수점까지 동일한 사례**가
