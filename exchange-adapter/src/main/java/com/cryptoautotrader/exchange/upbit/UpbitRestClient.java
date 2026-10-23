@@ -32,16 +32,28 @@ public class UpbitRestClient {
      * 속성이 설정된 것만으로 예외(기동 첫 단계 {@code TestHooks.verifyAtStartup} 과 이 사용 지점 양쪽, 2026-10-16 리뷰 지적).
      */
     private static final String DEFAULT_BASE_URL = "https://api.upbit.com/v1";
-    private final String BASE_URL = java.util.Objects.requireNonNullElse(
-            com.cryptoautotrader.exchange.TestHooks.require("upbit.market-data.base-url"), DEFAULT_BASE_URL);
+    private final String BASE_URL;
     private static final DateTimeFormatter UPBIT_FORMAT = DateTimeFormatter
             .ofPattern("yyyy-MM-dd'T'HH:mm:ss")
             .withZone(ZoneOffset.UTC);
 
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
+    private final UpbitRequestLimiter limiter;
 
     public UpbitRestClient() {
+        this(java.util.Objects.requireNonNullElse(
+                com.cryptoautotrader.exchange.TestHooks.require("upbit.market-data.base-url"), DEFAULT_BASE_URL),
+                UpbitRequestLimiter.QUOTATION);
+    }
+
+    /**
+     * 같은 패키지의 시험 전용 — 모의 HTTP 서버 주소와 간격 제한기를 직접 준다(2026-10-23, 다중 인스턴스가 서버에 닿는 시각 확인).
+     * 운영 경로는 위 공개 생성자뿐이고, 시험 전용 주소 속성의 가드({@code TestHooks})는 그대로다.
+     */
+    UpbitRestClient(String baseUrl, UpbitRequestLimiter limiter) {
+        this.BASE_URL = baseUrl;
+        this.limiter = limiter;
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(10))
                 .build();
@@ -185,14 +197,14 @@ public class UpbitRestClient {
     }
 
     /**
-     * 업비트 요청 한도 준수 — 프로세스 전체 공용 예산({@link UpbitRequestLimiter#QUOTATION})에서 요청 시각을 원자적으로 예약한다.
+     * 업비트 요청 한도 준수 — 프로세스 전체 공용 간격({@link UpbitRequestLimiter#QUOTATION})을 <b>통과 순간에</b> 확인·갱신한다.
      *
      * <p>🔴 2026-10-23 (리뷰): 종전에는 마지막 요청 시각을 {@code static} 으로 공유하면서 {@code synchronized} 는 <b>인스턴스 잠금</b>이라,
-     * 서로 다른 인스턴스가 같은 시각을 동시에 읽고 함께 요청할 수 있었다(설명 주석의 "원자적 처리" 는 인스턴스 하나 안에서만 맞았다).
-     * 이제 모든 인스턴스가 한 예산을 쓴다. 기본 간격 125ms(종전 110ms).</p>
+     * 서로 다른 인스턴스가 같은 시각을 동시에 읽고 함께 요청할 수 있었다. 이제 모든 인스턴스가 한 제한기를 쓰고, 늦게 깨어난 요청도
+     * 통과 시점에 간격을 다시 확인한다. 기본 간격 125ms(종전 110ms). 보장 범위는 {@link UpbitRequestLimiter} 문서.</p>
      */
-    // 시험에서 여러 인스턴스를 동시에 돌려 예산 공유를 확인할 수 있게 package-private
+    // 시험에서 여러 인스턴스를 동시에 돌려 간격 공유를 확인할 수 있게 package-private
     void throttle() throws InterruptedException {
-        UpbitRequestLimiter.QUOTATION.acquire();
+        limiter.acquire();
     }
 }
