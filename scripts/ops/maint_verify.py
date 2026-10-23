@@ -99,15 +99,30 @@ def _keys(path, pattern):
     return keys
 
 
+def _stale_at_end(path):
+    """로그 끝 시점에 아직 판정 불가인 대상 — 판정 불가 뒤 재개가 나오면 빠진다(순서대로 마지막 상태)."""
+    state = {}
+    for line in open(path, encoding="utf-8", errors="replace"):
+        m = _STALE.search(line)
+        if m:
+            state[m.group(1)] = True
+            continue
+        m = _RESUME.search(line)
+        if m:
+            state[m.group(1)] = False
+    return {k for k, v in state.items() if v}
+
+
 def cmd_candle(after_log, before_log=None):
     """리뷰 2026-10-23: 특정 점검 공백 로그가 반드시 나와야 한다고 고정하지 않는다 — 재확인이 필요해진 대상마다 실제로 판정이 재개됐는지로 본다."""
     stale = _keys(after_log, _STALE)
     resumed = set(_keys(after_log, _RESUME))
-    pre = set(_keys(before_log, _STALE)) if before_log else set()
+    # 기동 '직전' 에도 판정 불가였던 대상만 예외로 둔다 — 이전 컨테이너 기간 중 한때 판정 불가였다가 재개된 대상은 예외가 아니다
+    pre = _stale_at_end(before_log) if before_log else set()
     left = [k for k in stale if k not in resumed]
     print("기동 뒤 판정 불가로 들어간 대상 %d · 그중 판정 재개 %d · 아직 재개 없음 %d" % (len(stale), len(stale) - len(left), len(left)))
     for k in left:
-        print("   재개 없음: %s%s" % (k, "  (기동 전에도 판정 불가였다)" if k in pre else ""))
+        print("   재개 없음: %s%s" % (k, "  (기동 직전에도 판정 불가였다)" if k in pre else ""))
     return 0 if all(k in pre for k in left) else 1
 
 

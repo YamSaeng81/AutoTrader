@@ -63,6 +63,11 @@ open(after, "w", encoding="utf-8").write(
 open(before, "w", encoding="utf-8").write("ERROR [캔들 최신성] KRW-CAP:M15 판정 불가 (DYNAMIC)\n")
 check("candle — 재개 안 된 대상이 기동 전에도 판정 불가였으면 통과", mv.cmd_candle(after, before) == 0)
 check("candle — 기동 전 기록 없이 재개 안 된 대상이 있으면 실패", mv.cmd_candle(after) == 1)
+open(before, "w", encoding="utf-8").write("ERROR [캔들 최신성] KRW-CAP:M15 판정 불가 (DYNAMIC)
+"
+                                           "WARN  [캔들 최신성] KRW-CAP:M15 판정 재개 (DYNAMIC): 종전 …
+")
+check("candle — 기동 전에 한때 판정 불가였다가 재개된 대상은 예외가 아니다(직전 상태로 판단)", mv.cmd_candle(after, before) == 1)
 
 shutil.rmtree(work, ignore_errors=True)
 print("\nmaint_verify 시험 %d/%d 통과" % (sum(results), len(results)))
