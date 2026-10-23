@@ -976,6 +976,7 @@ FRESH_LOG = os.path.join(_HERE, "freshness_log.jsonl")
 STREAK = os.path.join(_HERE, "freshness_streak.json")
 REQUIRED_HOURS = 72          # 운영 준비 점검 기준 — 무중단 보장 기준이 아니다
 MAX_GAP_MIN = 90             # 이보다 벌어지면 그 구간은 **관측 누락**이다
+UPBIT_GAP_S = 1.0            # 업비트 요청 사이 간격(초) — 1차 조회·재조회 공용. 근거는 cmd_freshness 1차 조회 주석
 
 
 def _upbit_latest_h1(pair):
@@ -1091,7 +1092,7 @@ def cmd_freshness(save=False):
         #    11초 안에서만 429 를 받았다 — 앱 제한기 110ms(초당 약 9.1회) + 이 도구 2회 > 한도 10회. 앱 제한기를 프로세스
         #    공용 예산·125ms(초당 8회)로 고친 것과 함께 쓰는 완충책이다(8 + 1 = 9, 1초 창 시험 UpbitRequestLimiterTest).
         #    🔴 이 스크립트는 서버 작업 트리(배포 SHA)에서 돈다 — 다음 배포로 체크아웃이 바뀔 때 적용된다. 적용 시각은 개입 기록에.
-        time.sleep(1.0)           # 초당 1회 — 22코인에 22초
+        time.sleep(UPBIT_GAP_S)   # 초당 1회 — 22코인에 22초
 
     behind = [p for p, s in state.items()
               if (s["dbTo"] and s["exTo"] and s["exTo"] > s["dbTo"])
@@ -1117,7 +1118,8 @@ def cmd_freshness(save=False):
             if ex2:
                 state[pair]["exTo"] = ex2
             rechecked.append(pair)
-            time.sleep(0.5)       # 위와 같은 이유 — 재확인도 같은 한도를 쓴다
+            # 🔴 2026-10-23 리뷰: 이 줄이 0.5s 로 남아 있었다(895a471) — 재확인도 1차 조회와 같은 간격이다
+            time.sleep(UPBIT_GAP_S)   # 위와 같은 이유 — 재확인도 같은 한도를 쓴다
         now = datetime.now(timezone.utc)
 
     # ── 판정 ───────────────────────────────────────────────────────────────
