@@ -2398,7 +2398,8 @@ SELECT p.id AS position_id, p.session_kind, p.session_id, p.coin_pair, p.status,
 (직전 안내가 명령을 늘어놓아 지금 실행하라는 뜻으로 읽힐 수 있었다 — 안내 쪽 원인). 체크아웃 없음 → HEAD `de3fe3a`·추적 파일 변경 없음, jar 에 `UpbitRequestLimiter.class` 없음(옛 코드 확인).
 기동 완료 15:58:45 · backend 만 재생성 · 직후 조회 Q1 94·Q3~Q6 0·Q7 RUNNING 66·Q8 0·Q9 0. 새 이미지 `0b94cb36…`, 🔴 10-23 정비 이미지 `9a458bb1…` 는 서버에 남아 있지 않다 → 10-26 정비의 되돌릴 대상은 `0b94cb36…`(같은 `de3fe3a` 코드).
 절차서 반영: 계획 정비는 **개입 #12**, §2 기대 이미지 ID 갱신. 기록 본문 `SUPERTREND_VALIDATION_PREREG.md` 개입 #11(결과·수용은 운영자 기입).
-확인 중: 기동 뒤 HikariCP `Apparent connection leak detected`(60초 진단 경고) 시각·스택·과거 재기동 대조, 16:19 감시 회차.
+연결 누수 진단 경고: 스택 `SignalQualityService.catchupOnStartup → evaluateHoldBaselineLoop`(이미 알려진 주체, 검증 중 건드리지 않음 — PREREG), `system.*.log` 하루 84~102건(10-18 204)이 10-01 부터 이어짐 → 재기동이 만든 현상 아님.
+  이 경로의 업비트 호출은 `UpbitRestClient.getCandles` 를 거친다 → 앱 제한기 범위 안이다(`bar_audit.py` 와 다름). 확인 중: 16:19 감시 회차.
 - 🔴 이 판정은 배포 실행·STAGE_1 활성화 승인이 아니다. 다음 단계는 정비 일시 결정. 그때까지 운영 `de3fe3a`·STAGE_1 비활성.
 
 ### 6.4 종합

@@ -435,7 +435,8 @@ PAPER 청산은 `pos.setStatus("CLOSED") + positionRepo.save(pos)` 로 평범한
 | 이미지 | 새 이미지 `sha256:0b94cb36…`(`autotrader-backend:latest`). 🔴 10-23 정비 이미지 `sha256:9a458bb1…` 는 `docker image ls -a` 에 **없다**(태그 없는 이미지 둘은 03-26·11-15 생성 — 다른 것). 보존 태그 `39f994c`·`3b781d8` 는 남아 있다 |
 | 영향 범위 | backend 만 재생성 · db·db-backup·frontend·redis·grafana·prometheus "Up 2 days" 그대로 |
 | 직후 조회(16:00, QS `d028f74`) | Q1 94 · Q3~Q6 0 · **Q7 RUNNING 66** · Q8(15:58 이후 실자금 신규 매수) 0 · Q9 0 · `ROLLBACK` |
-| 🔴 확인 중 | 기동 뒤 로그에 HikariCP `Apparent connection leak detected`(대여 60초 초과 진단 경고, `leak-detection-threshold`) — 시각·스택·과거 재기동 때도 있었는지 대조 중 · 16:19 감시 회차 결과 |
+| 연결 누수 진단 경고 | 기동 뒤 HikariCP `Apparent connection leak detected` 1건 — 스택 `SignalQualityService.catchupOnStartup:92 → evaluateHoldBaselineLoop:227`. **이미 알려진 주체**다(위 '코드 동결 예외' 조항·적재 기준 정정 📌: `@Transactional` 안에서 업비트 REST 최대 200회, 검증 중 건드리지 않음). 날짜별 `system.*.log` 건수 10-01~10-22 하루 84~102(10-18 만 204), 오늘 16:00 까지 33 → **이번 재기동으로 생긴 현상이 아니다.** 날짜별 건수가 전부 같은 주체인지는 이번 컨테이너 스택만 봤다 |
+| 확인 중 | 16:19 감시 회차 결과(재기동 뒤 첫 회차) — 첫 조회는 16:19 전에 실행돼 15:19 회차(🟢 22/0/0)만 보였다 |
 | 성과 처리 | 운영 개입 규칙 그대로. T0 변경 없음, 구간 절단 없음 |
 | 결과·수용 | (운영자 기입) |
 
