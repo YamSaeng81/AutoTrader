@@ -2214,6 +2214,9 @@ SELECT p.id AS position_id, p.session_kind, p.session_id, p.coin_pair, p.status,
 429 는 `system.*.log` 에서 모두 0 — 🔴 **이 수치는 근거가 못 된다**: `logback-spring.xml` 에서 `com.cryptoautotrader.exchange` 로거(UpbitRestClient)는 `additivity=false` 로 **`trade.log` 에만** 쓴다.
 429 반복 여부는 `trade.*.log` 로 다시 센다. (정기 점검 `daily_check` 는 `docker compose logs` — 콘솔 출력 — 를 보므로 두 로거를 모두 본다.)
 
+**429 재집계 (`trade.*.log`, 2026-10-23)**: 10-16 **7** · 17 0 · 18 **1** · 19 0 · 20 0 · 21 0 · 22 **6** · 현재 `trade.log` **6** → 간헐적으로 있던 현상(새 유형 아님). 다만 로그 파일 날짜는 앱 시간대(UTC) 기준이라
+`trade.log` 의 6건은 **10-23 00:00Z(09:00 KST) 이후** — 10:00 보고 구간 밖의 새 429 가 오늘 오전에 더 있었다. 그 줄(시각·URL)을 확인한다.
+
 ### 6.4 종합
 
 | 선행 조건 | 판정 | 남은 것 |
