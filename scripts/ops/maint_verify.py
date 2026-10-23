@@ -2,9 +2,10 @@
 
   python3 maint_verify.py jar <app.jar> <클래스 경로>...          app.jar 바깥(BOOT-INF/classes)과 중첩 모듈 jar(BOOT-INF/lib/*.jar) 안까지 찾는다
   python3 maint_verify.py freshness <체크아웃 UTC ISO> <freshness_log.jsonl>
-                                                                   체크아웃 뒤 회차만 골라 보인다 — 실행 중이면 판정하지 않는다
+                                                                   체크아웃 뒤 회차만 골라 보인다 — 실행 중이거나 실행 여부를 모르면 판정하지 않는다
+                                                                   (JSON at = 관측 시각, 시작 시각은 cron 기록)
   python3 maint_verify.py candle <기동 뒤 앱 로그> [<기동 전 앱 로그>]
-                                                                   기동 뒤 '판정 불가' 로 들어간 대상마다 '판정 재개' 가 있었는지
+                                                                   기동 뒤 '판정 불가' 로 들어간 대상마다 로그 끝에서 판정 재개 상태인지
 
 🔴 쓰기·외부 호출 없음. 판정은 사람이 한다 — 이 도구는 근거를 나란히 놓을 뿐이다.
 """
@@ -45,23 +46,35 @@ def cmd_jar(path, classes):
 
 
 def _running_freshness():
+    """실행 중인 freshness 프로세스 줄 목록. 확인하지 못했으면 None.
+
+    리뷰 2026-10-23: pgrep 종료 코드 0 = 있음, **1 만 '없음'** 이다. 2·3(실행 오류) 이나 도구 부재를 '없음' 으로 세면
+    실행 중인 회차를 끝난 것으로 판정할 수 있다."""
     try:
-        out = subprocess.run(["pgrep", "-af", "start_66.py freshness"], capture_output=True, text=True).stdout
-    except FileNotFoundError:
+        p = subprocess.run(["pgrep", "-af", "start_66.py freshness"], capture_output=True, text=True)
+    except (FileNotFoundError, OSError) as e:
+        print("⚪ pgrep 을 실행하지 못했다: %s" % e)
         return None
-    return [l for l in out.splitlines() if "pgrep" not in l and "maint_verify" not in l]
+    if p.returncode == 1:
+        return []
+    if p.returncode != 0:
+        print("⚪ pgrep 오류(종료 코드 %d): %s" % (p.returncode, (p.stderr or "").strip()[:200]))
+        return None
+    return [l for l in p.stdout.splitlines() if "pgrep" not in l and "maint_verify" not in l]
 
 
 def cmd_freshness(checkout_utc, log_path):
-    """리뷰 2026-10-23: cron 기록은 '시작' 근거일 뿐이다. 재조회가 붙으면 :20 에도 돈다 — 프로세스 종료와 그 회차의 JSON 결과를 맞춘다."""
+    """리뷰 2026-10-23: cron 기록은 '시작' 근거일 뿐이다. 재조회가 붙으면 :20 에도 돈다 — 프로세스 종료와 그 회차의 JSON 결과를 맞춘다.
+    JSON 의 `at` 은 그 회차의 **관측 시각**(판정 직전, 재조회가 있으면 재조회 뒤)이다 — 시작 시각이 아니다. 시작 시각은 cron 기록으로 본다."""
     running = _running_freshness()
+    if running is None:
+        print("⚪ 실행 여부를 확인하지 못해 판정하지 않는다 — pgrep 을 확인하고 다시 실행한다")
+        return 2
     if running:
         print("🔴 freshness 가 아직 실행 중이다 — 끝난 뒤 다시 본다:")
         for l in running:
             print("   " + l)
         return 2
-    if running is None:
-        print("⚪ pgrep 을 쓸 수 없어 실행 여부를 확인하지 못했다")
     rows = []
     for line in open(log_path, encoding="utf-8"):
         line = line.strip()
@@ -75,13 +88,16 @@ def cmd_freshness(checkout_utc, log_path):
     after = [r for r in rows if r.get("at", "")[:19] >= ck]
     if before:
         b = before[-1]
-        print("체크아웃 전 마지막 회차(옛 코드): %s green %s" % (b.get("at"), b.get("green")))
+        print("체크아웃 전 마지막 회차(옛 코드): 관측 %s green %s" % (b.get("at"), b.get("green")))
     if not after:
         print("⚪ 체크아웃(%sZ) 뒤 회차가 아직 없다 — 마지막 줄은 이전 회차다" % ck)
         return 2
     a = after[0]
-    print("✅ 체크아웃 뒤 첫 회차(새 코드): at %s · green %s · unknown %s · red %s · 재확인 %s"
+    print("✅ 체크아웃 뒤 첫 회차(새 코드): 관측 시각(at) %s · green %s · unknown %s · red %s · 재확인 %s"
           % (a.get("at"), a.get("green"), a.get("unknown"), a.get("red"), a.get("rechecked")))
+    if a.get("rechecked"):
+        print("   재확인이 있었다 — 관측 시각은 시작보다 70초 넘게 뒤다")
+    print("   🔴 at 은 시작 시각이 아니다 — 새 버전 첫 실행 '시작' 시각은 cron 기록으로 적는다")
     print("   체크아웃 뒤 회차 수 %d" % len(after))
     return 0
 
@@ -117,13 +133,18 @@ def cmd_candle(after_log, before_log=None):
     """리뷰 2026-10-23: 특정 점검 공백 로그가 반드시 나와야 한다고 고정하지 않는다 — 재확인이 필요해진 대상마다 실제로 판정이 재개됐는지로 본다."""
     stale = _keys(after_log, _STALE)
     resumed = set(_keys(after_log, _RESUME))
+    # 리뷰 2026-10-23: 기동 뒤 로그도 **마지막 상태**로 본다 — '불가 → 재개 → 다시 불가' 는 재개가 한 번 있었어도 지금 판정 불가다
+    end = _stale_at_end(after_log)
     # 기동 '직전' 에도 판정 불가였던 대상만 예외로 둔다 — 이전 컨테이너 기간 중 한때 판정 불가였다가 재개된 대상은 예외가 아니다
     pre = _stale_at_end(before_log) if before_log else set()
-    left = [k for k in stale if k not in resumed]
-    print("기동 뒤 판정 불가로 들어간 대상 %d · 그중 판정 재개 %d · 아직 재개 없음 %d" % (len(stale), len(stale) - len(left), len(left)))
+    left = [k for k in stale if k in end]
+    print("기동 뒤 판정 불가로 들어간 대상 %d · 로그 끝 기준 판정 재개 %d · 아직 판정 불가 %d"
+          % (len(stale), len(stale) - len(left), len(left)))
     for k in left:
-        print("   재개 없음: %s%s" % (k, "  (기동 직전에도 판정 불가였다)" if k in pre else ""))
-    return 0 if all(k in pre for k in left) else 1
+        print("   판정 불가: %s%s%s" % (k, "  (재개 뒤 다시 판정 불가)" if k in resumed else "",
+                                    "  (기동 직전에도 판정 불가였다)" if k in pre else ""))
+    # 기동 뒤 한 번이라도 재개됐다가 다시 판정 불가가 된 대상은 기동 직전 상태로 넘기지 않는다 — 새로 생긴 판정 불가다
+    return 0 if all(k in pre and k not in resumed for k in left) else 1
 
 
 def main(argv):

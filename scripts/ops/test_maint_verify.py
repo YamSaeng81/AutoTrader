@@ -6,12 +6,15 @@ import os
 import shutil
 import sys
 import tempfile
+import types
 import zipfile
+import contextlib
 
 sys.stdout.reconfigure(encoding="utf-8")
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import maint_verify as mv  # noqa: E402
+REAL_RUNNING = mv._running_freshness
 
 results = []
 
@@ -51,6 +54,41 @@ check("freshness — 체크아웃 뒤 첫 회차를 고른다", mv.cmd_freshness
 mv._running_freshness = lambda: ["12345 python3 scripts/prospective/start_66.py freshness --save"]
 check("freshness — 아직 실행 중이면 판정하지 않는다", mv.cmd_freshness("2026-10-24T04:05:00Z", log) == 2)
 
+# ── freshness: pgrep 종료 코드 — 1 만 '없음', 오류·도구 부재는 ⚪ 중단 (리뷰 2026-10-23) ──
+mv._running_freshness = REAL_RUNNING
+real_subprocess = mv.subprocess
+
+
+def fake_pgrep(rc=None, out="", err="", exc=None):
+    def run(*a, **k):
+        if exc:
+            raise exc
+        return types.SimpleNamespace(returncode=rc, stdout=out, stderr=err)
+    mv.subprocess = types.SimpleNamespace(run=run)
+
+
+fake_pgrep(rc=1)
+check("freshness — pgrep 종료 코드 1(없음)이면 판정한다", mv.cmd_freshness("2026-10-24T04:05:00Z", log) == 0)
+fake_pgrep(rc=0, out="12345 python3 scripts/prospective/start_66.py freshness --save\n")
+check("freshness — pgrep 종료 코드 0(있음)이면 판정하지 않는다", mv.cmd_freshness("2026-10-24T04:05:00Z", log) == 2)
+fake_pgrep(rc=2, err="pgrep: invalid option")
+check("freshness — pgrep 종료 코드 2(실행 오류)는 '없음' 이 아니다 → 판정하지 않는다", mv.cmd_freshness("2026-10-24T04:05:00Z", log) == 2)
+fake_pgrep(rc=3, err="pgrep: fatal")
+check("freshness — pgrep 종료 코드 3 도 판정하지 않는다", mv.cmd_freshness("2026-10-24T04:05:00Z", log) == 2)
+fake_pgrep(exc=FileNotFoundError("pgrep"))
+check("freshness — pgrep 이 없으면 판정하지 않는다", mv.cmd_freshness("2026-10-24T04:05:00Z", log) == 2)
+mv.subprocess = real_subprocess
+mv._running_freshness = lambda: []
+
+# ── freshness: at 은 관측 시각 — 재확인이 붙어 :20 대로 넘어간 회차도 체크아웃 뒤 첫 회차로 고른다 ──
+rows.append({"at": "2026-10-24T05:20:38.0+00:00", "green": 22, "unknown": 0, "red": 0, "rechecked": ["KRW-IOTA"]})
+open(log, "w", encoding="utf-8").write("\n".join(json.dumps(r) for r in rows) + "\n")
+buf = io.StringIO()
+with contextlib.redirect_stdout(buf):
+    rc = mv.cmd_freshness("2026-10-24T05:05:00Z", log)
+check("freshness — 재확인으로 at 이 :20 인 회차도 고르고, at 을 관측 시각으로 표시한다",
+      rc == 0 and "05:20:38" in buf.getvalue() and "관측 시각" in buf.getvalue() and "cron" in buf.getvalue(), buf.getvalue())
+
 # ── candle: 재개 여부 ──
 after = os.path.join(work, "after.log")
 before = os.path.join(work, "before.log")
@@ -66,6 +104,25 @@ check("candle — 기동 전 기록 없이 재개 안 된 대상이 있으면 �
 open(before, "w", encoding="utf-8").write("ERROR [캔들 최신성] KRW-CAP:M15 판정 불가 (DYNAMIC)\n"
                                            "WARN  [캔들 최신성] KRW-CAP:M15 판정 재개 (DYNAMIC): 종전 …\n")
 check("candle — 기동 전에 한때 판정 불가였다가 재개된 대상은 예외가 아니다(직전 상태로 판단)", mv.cmd_candle(after, before) == 1)
+
+# ── candle: 기동 뒤 로그도 마지막 상태로 (리뷰 2026-10-23) ──
+open(after, "w", encoding="utf-8").write(
+    "ERROR [캔들 최신성] KRW-XRP:M15 판정 불가 (DYNAMIC) — 결측 19칸\n"
+    "WARN  [캔들 최신성] KRW-XRP:M15 판정 재개 (DYNAMIC): 종전 …\n"
+    "ERROR [캔들 최신성] KRW-XRP:M15 판정 불가 (DYNAMIC) — 결측 3칸\n")
+open(before, "w", encoding="utf-8").write("")
+buf = io.StringIO()
+with contextlib.redirect_stdout(buf):
+    rc = mv.cmd_candle(after, before)
+check("candle — 불가 → 재개 → 다시 불가면 실패(아직 판정 불가 1)", rc == 1 and "아직 판정 불가 1" in buf.getvalue(), buf.getvalue())
+open(after, "a", encoding="utf-8").write("WARN  [캔들 최신성] KRW-XRP:M15 판정 재개 (DYNAMIC): 종전 …\n")
+check("candle — 그 뒤 다시 재개되면 통과", mv.cmd_candle(after, before) == 0)
+open(after, "w", encoding="utf-8").write(
+    "ERROR [캔들 최신성] KRW-CAP:M15 판정 불가 (DYNAMIC)\n"
+    "WARN  [캔들 최신성] KRW-CAP:M15 판정 재개 (DYNAMIC): 종전 …\n"
+    "ERROR [캔들 최신성] KRW-CAP:M15 판정 불가 (DYNAMIC)\n")
+open(before, "w", encoding="utf-8").write("ERROR [캔들 최신성] KRW-CAP:M15 판정 불가 (DYNAMIC)\n")
+check("candle — 기동 직전 판정 불가였어도 기동 뒤 재개됐다가 다시 불가면 예외가 아니다", mv.cmd_candle(after, before) == 1)
 
 shutil.rmtree(work, ignore_errors=True)
 print("\nmaint_verify 시험 %d/%d 통과" % (sum(results), len(results)))
