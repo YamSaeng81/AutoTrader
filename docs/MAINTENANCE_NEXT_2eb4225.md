@@ -1,6 +1,8 @@
 # 계획 정비 절차서 — 다음 정비(일시 미정) · 백엔드 `2eb4225` · 감시 간격
 
-> 근거: `LIVE_RISK_IMPLEMENTATION_REVIEW.md` §6.16(PAPER 매수 충돌 수정·업비트 제한기 기술 검토 완료, 앱 코드 후보는 `895a471` — 리뷰 2차에서 감시 재조회 간격을 더해 후보 SHA 를 `2eb4225` 로 갱신, 🔴 이 갱신은 **리뷰 확인 대기**).
+> 근거: `LIVE_RISK_IMPLEMENTATION_REVIEW.md` §6.16(PAPER 매수 충돌 수정·업비트 제한기 기술 검토 완료, 앱 코드 후보는 `895a471` — 리뷰 2차에서 감시 재조회 간격을 더해 후보 SHA 를 `2eb4225` 로 갱신).
+> 🟢 **리뷰 확인(2026-10-23)**: 이번 범위 기술 검토 완료 — 후보 **`2eb4225`**, 조회·확인 도구 **`QS=d028f74`** 고정(리뷰가 감시 간격 시험 6/6·확인 도구 시험 18/18 직접 실행).
+> 🔴 이 판정은 **배포 실행·STAGE_1 활성화 승인이 아니다.** 정비 일시가 정해질 때까지 운영 `de3fe3a`·STAGE_1 비활성 유지. 정비 전 `bar_audit.py` 등록·실행 확인(§0).
 > 형식은 `MAINTENANCE_2026-10-23.md` 와 같다. **일시가 정해지면 제목·§0 시간대만 채운다.**
 > 2026-10-23 리뷰 보완 4곳 반영: ① 제한기 클래스는 `app.jar` 안의 **중첩 모듈 jar** 까지 확인 ② 복구 뒤 확인 항목 분리 ③ 점검 조회는 **검토한 SHA** 의 것을 쓰고 Q8 기준 시각을 인자로
 > ④ 첫 `freshness` 는 **프로세스 종료와 그 회차의 JSON 결과**로 판정. 기동 확인은 특정 로그 줄이 아니라 **재확인 대상마다 판정이 재개됐는지**로 본다.
@@ -23,6 +25,25 @@
   | **새 앱 기동 시각** | 앱 제한기 125ms 적용 시각 | §3 `t-start.txt` |
 - 🔴 **체크아웃은 감시 작업이 돌지 않을 때** 한다 — `freshness` 는 cron 매시 **:19** 에 시작해 약 11초(옛 코드) 돈다 — 뒤처진 코인이 있으면 70초 대기와 재조회가 붙어 2분 가까이 돌 수 있다.
   체크아웃 직전 실행 중인 프로세스가 없는지 `pgrep` 으로 확인한다(§3) — 시각 창보다 `pgrep` 결과가 기준이다.
+- 🔴 **정비 전 — `bar_audit.py` 등록·실행 확인**(리뷰 2026-10-23, 읽기 전용). 이 스크립트도 업비트를 따로 호출하고 요청 사이 대기가 **0.12초**다.
+  저장소의 정기 점검·감시 스크립트는 이것을 부르지 않지만(사후 봉 대조용 수동 도구), **서버 등록 여부는 확인하지 않았다**:
+  ```bash
+  crontab -l 2>/dev/null | grep -n bar_audit; echo "사용자 crontab 종료 코드 $?"
+  sudo crontab -l 2>/dev/null | grep -n bar_audit; echo "root crontab 종료 코드 $?"
+  grep -rn bar_audit /etc/crontab /etc/cron.d /etc/cron.hourly /etc/cron.daily 2>/dev/null; echo "시스템 cron 종료 코드 $?"
+  systemctl list-timers --all --no-pager | grep -i bar_audit; echo "timer 종료 코드 $?"
+  grep -rln bar_audit /etc/systemd/system ~/.config/systemd/user 2>/dev/null; echo "systemd unit 종료 코드 $?"
+  grep -rn bar_audit ~/ops-scripts 2>/dev/null; echo "ops-scripts 종료 코드 $?"
+  pgrep -af bar_audit; echo "pgrep 종료 코드 $?"
+  grep -h bar_audit /var/log/syslog /var/log/syslog.1 2>/dev/null | tail -5      # 최근 cron 실행 흔적
+  ```
+  | 결과 | 뜻 | 처리 |
+  |---|---|---|
+  | 모든 종료 코드 **1**, 마지막 줄 출력 없음 | 확인한 범위에서 등록·실행 흔적을 찾지 못함 | 진행 — 기록은 "확인한 범위에서 찾지 못함" 까지 |
+  | 어느 하나라도 **0**(줄 출력) | 등록돼 있거나 실행 중 | **정비 전에 보고** — 요청량 분석 대상에 넣는다 |
+  | **2** 등 그 밖 | 확인 실패 | ⚪ 보고 — '없음' 으로 세지 않는다 |
+
+  🔴 `bar_audit.py` 가 돌고 있다면 현재 시험(제한기·감시 간격)이 그 요청까지 **합산해 보장한다고 쓰지 않는다** — 시험 범위는 앱 제한기와 `start_66.py freshness` 뿐이다.
 - 재기동 1회는 66세션에 영향을 줄 수 있다 → **개입 #11** 로 실제 시각과 내용을 남긴다(#9 = 10-23 정비, #10 = 10-23 KILL 3차).
 - 🔴 **새 셸을 열 때마다 먼저** 아래 변수를 정한다:
   ```bash
