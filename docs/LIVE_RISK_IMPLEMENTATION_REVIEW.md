@@ -2210,6 +2210,10 @@ SELECT p.id AS position_id, p.session_kind, p.session_id, p.coin_pair, p.status,
   개입 #3 의 `#331`(정지 요청과 평가의 같은 행 충돌)과 같은 계열 — 페이퍼라 손실 위험은 없지만 실자금 세션에서 같은 충돌이 나면 그 회차 평가가 빠진다.
 - 13:00 계획 정비의 §2 멈춤 조건(실자금·조회·배포 코드·이미지)에는 해당하지 않는다. 정비 진행 여부는 §2 결과와 함께 리뷰가 판단.
 
+**반복 여부 조회 (2026-10-23, 운영자 — 일별 `system.*.log`)**: DYNAMIC tick 충돌 **10-16 9 · 17 5 · 18 2 · 19 0 · 20 0 · 21 3 · 22 3** → **10-16 부터 거의 매일 있던 기존 현상**(새로 생긴 것 아님).
+429 는 `system.*.log` 에서 모두 0 — 🔴 **이 수치는 근거가 못 된다**: `logback-spring.xml` 에서 `com.cryptoautotrader.exchange` 로거(UpbitRestClient)는 `additivity=false` 로 **`trade.log` 에만** 쓴다.
+429 반복 여부는 `trade.*.log` 로 다시 센다. (정기 점검 `daily_check` 는 `docker compose logs` — 콘솔 출력 — 를 보므로 두 로거를 모두 본다.)
+
 ### 6.4 종합
 
 | 선행 조건 | 판정 | 남은 것 |
