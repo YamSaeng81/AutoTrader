@@ -2350,6 +2350,20 @@ SELECT p.id AS position_id, p.session_kind, p.session_id, p.coin_pair, p.status,
   체크아웃 뒤 첫 :19 회차의 CRON 기록으로 새 버전 첫 `freshness` 실행 시각 확인 → 30분 재점검 → 개입 #11(세 시각 칸). 복구는 체크아웃·이미지 모두 `de3fe3a`(감시 간격도 되돌아가므로 그 시각도 기록).
 - 그전까지 운영 `de3fe3a` 유지 · 429 감시 · STAGE_1 비활성.
 
+**다음 정비 절차서 보완 4곳 (2026-10-23 리뷰 — 앱 코드 기술 검토 완료 판정 유지, 절차·확인 명령만)**: `docs/MAINTENANCE_NEXT_895a471.md`.
+1. **제한기 클래스 확인** — `UpbitRequestLimiter` 는 별도 모듈이라 `app.jar` 안의 `BOOT-INF/lib/exchange-adapter-*.jar` 에 **중첩**된다(로컬 bootJar 로 확인: `BOOT-INF/lib/exchange-adapter-0.1.0.jar!/…/UpbitRequestLimiter.class`).
+   바깥 목록 검색(`unzip -l app.jar`)은 정상 이미지도 0 이 된다 → 컨테이너에서 jar 를 **호스트로 복사**해 `maint_verify.py jar` 로 중첩 jar 까지 확인. (10-23 정비의 `TelegramNotificationService$Outcome` 확인은 같은 모듈 `BOOT-INF/classes` 라 유효했다.)
+2. **복구 뒤 확인 분리** — 복구 뒤에는 이전 이미지 ID 일치·`de3fe3a` 체크아웃·기동·V94(`Schema up to date`)·판정 재개·공통 점검 조회만 보고, 새 제한기 클래스 검사(4-1b)는 하지 않는다.
+3. **조회문 SHA·시작 시각 고정** — `origin/main` 대신 **검토한 SHA `826cd48`** 의 `maint_checks.sql`·`maint_verify.py` 를 쓴다(`qc` 함수). `maint_checks.sql` Q8 의 **10-21 13:00 고정 시각을 인자 `maint_start` 로** 바꿨다(`0cf963f`) —
+   주지 않으면 Q8 은 오류 없이 건너뛴다(시험 DB: 인자 있음 → 그 시각 기준 0 / 인자 없음 → "Q8 건너뜀"·`ROLLBACK`). 절차서는 §2 시작 시각을 `maint_start.txt` 로 남겨 넘긴다.
+4. **첫 `freshness` 는 완료 확인 뒤 판정** — cron 기록은 시작 근거. `maint_verify.py freshness` 가 실행 중 프로세스(`pgrep`)가 있으면 판정하지 않고, `freshness_log.jsonl` 에서 **체크아웃 시각 뒤 회차만** 골라
+   첫 회차의 `at`·green 을 보인다 — 체크아웃 뒤 회차가 없으면 "마지막 줄은 이전 회차" 라고 하고 판정하지 않는다.
+- **기동 확인 기준 변경** — 특정 점검 공백 로그 줄이 반드시 나와야 한다고 고정하지 않고, `maint_verify.py candle` 로 **기동 뒤 판정 불가로 들어간 대상마다 판정 재개가 있었는지**를 본다. 재개 없는 대상은
+  **기동 직전에도 판정 불가였는지**(이전 컨테이너 로그의 마지막 상태)를 함께 표시한다 — 한때 판정 불가였다가 재개된 대상은 예외로 보지 않는다.
+- 도구 시험 `scripts/ops/test_maint_verify.py` **9/9**(중첩 jar·없는 클래스·실제 bootJar · 체크아웃 뒤 회차 없음/있음/실행 중 · 재개 대조 3). 🔴 작성 중 실수: 시험 파일에 문자열 줄바꿈이 들어가
+  문법 오류인 채로 한 번 커밋했다(`e8108e7`, 시험이 실행되지 않았다) → 바로 고쳐 9/9 실행 확인(`826cd48`). 전체 회귀는 돌리지 않았다(리뷰: 절차·확인 명령 보완).
+- 운영 `de3fe3a`·STAGE_1 비활성 유지.
+
 ### 6.4 종합
 
 | 선행 조건 | 판정 | 남은 것 |

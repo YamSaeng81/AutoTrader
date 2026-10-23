@@ -1,7 +1,9 @@
 # 계획 정비 절차서 — 다음 정비(일시 미정) · 백엔드 `895a471` · 감시 간격
 
 > 근거: `LIVE_RISK_IMPLEMENTATION_REVIEW.md` §6.16(PAPER 매수 충돌 수정·업비트 제한기 기술 검토 완료, 다음 배포 후보 = `895a471` 한 SHA).
-> 형식은 `MAINTENANCE_2026-10-23.md` 와 같다. **일시가 정해지면 제목·§0 시간대·기록 폴더 날짜만 채운다.**
+> 형식은 `MAINTENANCE_2026-10-23.md` 와 같다. **일시가 정해지면 제목·§0 시간대만 채운다.**
+> 2026-10-23 리뷰 보완 4곳 반영: ① 제한기 클래스는 `app.jar` 안의 **중첩 모듈 jar** 까지 확인 ② 복구 뒤 확인 항목 분리 ③ 점검 조회는 **검토한 SHA** 의 것을 쓰고 Q8 기준 시각을 인자로
+> ④ 첫 `freshness` 는 **프로세스 종료와 그 회차의 JSON 결과**로 판정. 기동 확인은 특정 로그 줄이 아니라 **재확인 대상마다 판정이 재개됐는지**로 본다.
 > 🔴 **이번 정비에서 하지 않는 것**: 프런트엔드 · Docker·OS 패키지 정비 · STAGE_1 등록·활성화 · DB 변경. 이 절차서는 STAGE_1·실거래 시작 승인이 아니다.
 
 ## 0. 전제와 보류 조건
@@ -22,8 +24,11 @@
   ```bash
   cd ~/crypto_trader/AutoTrader
   DC="docker compose -f docker-compose.prod.yml"; REPO=autotrader-backend; M=~/maint-$(date +%Y%m%d)
+  QS=826cd48856af53e0bd31c4f92ea2512df2987dd6      # 🔴 검토한 점검 조회·확인 도구의 SHA — origin/main 을 쓰지 않는다
   mkdir -p "$M"
+  qc() { git show $QS:scripts/ops/maint_checks.sql | $DC exec -T db psql -U trader -d crypto_auto_trader -v maint_start="$(cat "$M/maint_start.txt")" -f - ; }
   ```
+  `qc` 는 점검 조회 실행 함수다(Q8 은 `$M/maint_start.txt` 의 정비 시작 시각 이후 실자금 신규 매수를 센다 — §2 에서 기록).
 - 각 단계는 **실제 수행 시각**을 `date` 로 남긴다.
 
 ## 1. 정기 점검
@@ -33,10 +38,12 @@
 ## 2. 직전 점검 — 기대와 다르면 연기
 
 ```bash
-date '+%F %T %Z' | tee "$M/t-before.txt"
+date '+%F %T %Z' | tee "$M/t-before.txt"; date '+%F %T%:z' > "$M/maint_start.txt"     # 🔴 정비 시작 시각 = Q8 기준
 git fetch origin
+git cat-file -e $QS && echo "검토 SHA 있음"
+git show $QS:scripts/ops/maint_verify.py > "$M/maint_verify.py"          # 확인 도구(읽기 전용)
 git rev-parse --short HEAD; git status --short | grep -v '^??'      # de3fe3a · 추적 파일 변경 없음(빈 출력)
-git show origin/main:scripts/ops/maint_checks.sql | $DC exec -T db psql -U trader -d crypto_auto_trader -f - > "$M/q-before.txt" 2>&1
+qc > "$M/q-before.txt" 2>&1
 grep -A3 '== Q1' "$M/q-before.txt" | head -4; sed -n '/== Q3/,$p' "$M/q-before.txt" | grep -vE '^-+|^\s*$'
 ```
 | 조회 | 기대 |
@@ -45,6 +52,7 @@ grep -A3 '== Q1' "$M/q-before.txt" | head -4; sed -n '/== Q3/,$p' "$M/q-before.t
 | Q1 | 94 |
 | Q3·Q4·Q5·Q6 | 0 — 하나라도 아니면 **연기** |
 | Q7 | RUNNING 66 |
+| Q8 | 첫 줄에 기록한 정비 시작 시각 · 0 |
 | Q9 | 0 |
 | 마지막 줄 | `ROLLBACK` |
 
@@ -77,7 +85,7 @@ $DC logs --no-color backend > "$M/backend-before.log"; wc -l "$M/backend-before.
 date '+%M'                                                  # 18~21 이면 몇 분 기다린다
 pgrep -af "start_66.py freshness" || echo "실행 중인 freshness 없음"
 git checkout 895a471                                        # detached HEAD — 배포 버전 고정
-date '+%F %T %Z' | tee "$M/t-checkout.txt"                  # 🔴 체크아웃 시각 = 감시 스크립트 파일 교체 시각
+date '+%F %T %Z' | tee "$M/t-checkout.txt"; date -u '+%Y-%m-%dT%H:%M:%SZ' > "$M/t-checkout.utc"   # 🔴 체크아웃 시각 = 감시 스크립트 파일 교체 시각
 git rev-parse --short HEAD                                  # 895a471
 grep -n "time.sleep(1.0)" scripts/prospective/start_66.py   # 새 감시 간격이 파일에 들어왔는지
 ```
@@ -95,26 +103,36 @@ $DC ps                                                      # frontend·db·redi
 
 ## 4. 기동·적용 확인
 
-**4-1 기동 2~3분 뒤** — 10-23 절차서 §4 와 같은 확인:
+**4-1 공통 확인(기동 3~5분 뒤)** — §5 복구 뒤에도 같은 항목을 쓴다:
 ```bash
 S=$(cat "$M/t-build.utc")
+$DC ps backend
 $DC logs --since $S backend | grep -E "Schema .* is up to date|Migrating schema|Successfully applied|매도 격리 점검|Started CryptoAutoTrader| ERROR " | grep -v "캔들 최신성" | head -20
-$DC logs --since $S backend | grep -E "결측 재수집\].*거래소에도 봉이 없다|공식 점검 공백을 결측에서 뺀다|판정 재개" | head -5
-$DC logs --since 4m backend | grep -E "캔들 최신성.*판정 불가" | tail -5
-git show origin/main:scripts/ops/maint_checks.sql | $DC exec -T db psql -U trader -d crypto_auto_trader -f - > "$M/q-app.txt" 2>&1
+$DC logs --no-color --since $S backend > "$M/app-after.log"
+python3 "$M/maint_verify.py" candle "$M/app-after.log" "$M/backend-before.log"    # 재확인 대상마다 판정 재개 여부
+qc > "$M/q-app.txt" 2>&1
 grep -A3 '== Q1' "$M/q-app.txt" | head -4; sed -n '/== Q3/,$p' "$M/q-app.txt" | grep -vE '^-+|^\s*$'
-$DC exec -T backend sh -c 'unzip -l app.jar 2>/dev/null | grep -c "UpbitRequestLimiter"'   # 1 이상 = 895a471 의 제한기 클래스가 실림
 ```
-기대: `Schema "public" is up to date`(마이그레이션 없음) · `Started` · 격리 점검 "없음" · ERROR 는 공유 풀 미등록뿐 ·
-🔴 **재확인 구간**(리뷰 2026-10-22): 시간 경과만으로 정상 판정하지 않고 결측 재조회·판정 재개 줄을 확인 · Q1 94·Q3~Q6 0·Q7 66·Q8 0·Q9 0·`ROLLBACK` · 제한기 클래스 1 이상.
+기대: `Schema "public" is up to date`(마이그레이션 없음 — V94) · `Started` · 격리 점검 "없음" · ERROR 는 공유 풀 미등록뿐 ·
+🔴 **재확인 구간**(리뷰 2026-10-22·23): 시간 경과나 특정 점검 공백 로그 줄로 정상 판정하지 않는다 — `candle` 결과로 **기동 뒤 판정 불가로 들어간 대상마다 판정이 재개됐는지** 본다.
+"아직 재개 없음" 이 남으면 그 대상이 **기동 직전에도 판정 불가**였는지(도구가 표시) 보고, 아니면 몇 분 뒤 다시 실행한다 · Q1 94·Q3~Q6 0·Q7 66·Q8 0·Q9 0·`ROLLBACK`.
 
-**4-2 새 버전 첫 `freshness` 실행**(체크아웃 뒤 첫 :19 회차 — 그 회차가 끝난 :20 이후):
+**4-1b 새 이미지 확인(배포에서만 — 복구 뒤에는 하지 않는다)**: 제한기 클래스는 다른 모듈이라 `app.jar` 안의 `BOOT-INF/lib/exchange-adapter-*.jar` 에 **중첩**된다 — 바깥 목록만 보면 정상 이미지도 0 이다(리뷰).
+호스트로 jar 를 복사해 중첩 jar 안까지 본다:
 ```bash
-grep -E "CRON.*start_66.py freshness" /var/log/syslog | tail -3          # 🔴 체크아웃 시각 뒤 첫 줄의 시각 = 새 버전 첫 실행 시각
-tail -1 scripts/prospective/freshness_log.jsonl | cut -c1-120           # 그 회차 결과(green 22 기대)
+docker cp $($DC ps -q backend):/app/app.jar "$M/app-895a471.jar"
+python3 "$M/maint_verify.py" jar "$M/app-895a471.jar" upbit/UpbitRequestLimiter.class
+```
+기대: `있음 upbit/UpbitRequestLimiter.class` · 위치가 `BOOT-INF/lib/exchange-adapter-….jar!/…`(로컬 bootJar 로 같은 결과 확인, `scripts/ops/test_maint_verify.py`).
+
+**4-2 새 버전 첫 `freshness` 실행**(체크아웃 뒤 첫 :19 회차). 🔴 cron 기록은 **시작** 근거일 뿐이다 — 재확인이 붙으면 :20 넘어서도 돈다. **프로세스가 끝났고, 그 회차의 JSON 결과가 있을 때** 판정한다:
+```bash
+grep -E "CRON.*start_66.py freshness" /var/log/syslog | tail -3          # 체크아웃 시각 뒤 첫 줄 = 새 버전 첫 실행 '시작' 시각
+python3 "$M/maint_verify.py" freshness "$(cat "$M/t-checkout.utc")" scripts/prospective/freshness_log.jsonl
 grep -h 'status=429' logs/backend/trade.log | tail -5                     # 그 :19 회차에 429 가 있었는지(있으면 그대로 보고 — 감시 유지)
 ```
-기대: 체크아웃 시각 뒤 첫 CRON 줄이 있고 그 회차 `green 22`. 그 회차의 429 유무는 기록만 한다(완충책 효과는 이후 정기 점검으로 계속 본다).
+`freshness` 결과 읽기: "아직 실행 중" 또는 "체크아웃 뒤 회차가 아직 없다 — 마지막 줄은 이전 회차" 면 **판정하지 않고** 몇 분 뒤 다시 실행한다. "✅ 체크아웃 뒤 첫 회차" 의 `at` 이
+위 CRON 시작 시각과 같은 시간대(:19)여야 하고 `green 22` 를 기대한다 — 그 `at` 을 **새 버전 첫 실행 시각**으로 기록한다. 그 회차의 429 유무는 기록만 한다.
 
 🔴 **되돌림 사유**: 기동 실패 · 재시작 반복 · 공유 풀 미등록 외 새 ERROR · Q3~Q6 이 0 이 아님 · Q7 이 66 이 아님 · 결측 재조회·판정 재개가 확인되지 않음.
 429 가 다시 보이는 것만으로는 되돌리지 않는다(감시 분류 유지 — 보고).
@@ -125,11 +143,16 @@ grep -h 'status=429' logs/backend/trade.log | tail -5                     # 그 
 git checkout de3fe3a                                        # 🔴 감시 스크립트도 0.5초 간격으로 돌아간다 — 이 시각도 기록
 date '+%F %T %Z' | tee "$M/t-rollback-checkout.txt"
 docker tag "$(cat "$M/image-de3fe3a.txt")" $REPO:latest
-date '+%F %T %Z' | tee "$M/t-rollback.txt"
+date '+%F %T %Z' | tee "$M/t-rollback.txt"; date -u '+%Y-%m-%dT%H:%M:%SZ' > "$M/t-rollback.utc"
 $DC up -d --no-build --force-recreate backend
 docker inspect --format '{{.Image}}' $($DC ps -q backend); cat "$M/image-de3fe3a.txt"   # 둘이 같아야 한다
 ```
-그 뒤 §4-1 을 같은 기대로 다시 본다. 복구 시각들은 개입 #11 에 함께 적는다.
+**복구 뒤 확인**(배포 확인과 다르다 — 이전 이미지에는 새 제한기 클래스가 없으므로 4-1b 는 하지 않는다):
+- 실행 이미지 ID 가 `image-de3fe3a.txt` 와 **같다**(위 마지막 명령) · `git rev-parse --short HEAD` = `de3fe3a`
+- §4-1 공통 확인을 `S=$(cat "$M/t-rollback.utc")` 로 바꿔 다시 실행(`app-after.log` 도 복구 뒤 로그로 다시 만든다) —
+  `Started` · `Schema "public" is up to date`(V94 그대로) · 판정 재개 대조 · 점검 조회(Q1 94·Q3~Q6 0·Q7 66·Q8 0·Q9 0·`ROLLBACK`)
+- 감시 스크립트가 0.5초 간격으로 돌아간 시각(`t-rollback-checkout.txt`)과 그 뒤 첫 `freshness` 회차도 4-2 와 같은 방법으로 기록한다.
+복구 시각들은 개입 #11 에 함께 적는다.
 
 ## 6. 30분 뒤 재점검과 기록
 
@@ -137,7 +160,7 @@ docker inspect --format '{{.Image}}' $($DC ps -q backend); cat "$M/image-de3fe3a
 date '+%F %T %Z'
 $DC ps backend
 $DC logs --since 30m backend | grep " ERROR " | grep -v -E "캔들 최신성|공유 풀 한도" | tail -10
-git show origin/main:scripts/ops/maint_checks.sql | $DC exec -T db psql -U trader -d crypto_auto_trader -f - > "$M/q-after30.txt" 2>&1
+qc > "$M/q-after30.txt" 2>&1
 sed -n '/== Q3/,$p' "$M/q-after30.txt" | grep -vE '^-+|^\s*$'
 python3 scripts/prospective/start_66.py alerts --since "$(cat "$M/t-build.utc")" --no-mark 2>&1 | tail -8
 ```
