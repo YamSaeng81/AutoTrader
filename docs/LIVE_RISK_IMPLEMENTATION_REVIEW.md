@@ -2284,6 +2284,17 @@ SELECT p.id AS position_id, p.session_kind, p.session_id, p.coin_pair, p.status,
   앱 간격 110 → 125ms(초당 8회)와 함께면 8 + 1 = 9. 🔴 앱 간격은 **검증 입력 수집 속도**를 바꾸므로 개입 기록 대상이고 배포가 필요하다. 감시 쪽만 낮추는 것은 서버 스크립트 변경(관측 도구)이라 영향이 작지만
   그것만으로는 경계에 남는다. 변경 시각은 개입 기록에.
 
+**DYNAMIC PAPER 매수 수정 (2026-10-23 — 리뷰 동의 범위, 별도 커밋. 🔴 운영 미배포, 운영 `de3fe3a`)**:
+- **변경**(`DynamicTradingService.executePaperBuy`): ① 반영 전에 `flush` → 세션 `findById` → `refresh(PESSIMISTIC_WRITE)` — **잠근 채 최신으로 다시 읽기**(실자금 경로와 같은 방식, 낡은 엔티티를 고친 다음 다시 읽지 않는다)
+  ② 그 **최신 상태**에서 정지 여부(`RUNNING`)·가용 자금(≥ 투자금)·중복 보유(OPEN 포지션 없음·`SCANNING`)를 확인하고 아니면 매수하지 않고 사유를 돌려준다 ③ 잔액·상태를 최신 엔티티에 쓴다
+  ④ **"[Dynamic][PAPER] 매수 체결" 로그를 커밋 성공 뒤에만** 남긴다(`afterCommit`). 평가 전체 재시도·PAPER 에 공유 풀 규칙 소급 없음.
+- **시험** `DynamicPaperBuySameTickWatchlistTest` 7건(생산 경로·실제 트랜잭션·H2): 같은 틱 워치리스트 갱신 뒤 PAPER 매수 **완료**(포지션 1·주문 1·잔액 정확히 1회 차감·`POSITION_MONITORING`·워치리스트 보존·체결 로그 1)
+  — 기존 결함 재현 시험의 기대를 매수 완료로 바꿈 · **틱 롤백 시 체결 로그 0** · 최신 상태 확인 3건(틱이 읽은 뒤 다른 트랜잭션이 정지/가용 6,000원/보유 상태로 바꾸면 매수 안 함) · 대조 2건(PAPER 갱신 없음·REAL 같은 순서).
+  시험 프로필이 `com.cryptoautotrader` 를 WARN 으로 두어 INFO 체결 로그가 만들어지지 않던 것을 시험 동안만 INFO 로 올려 확인.
+  **변이 확인**: 로그를 커밋 전에 찍게 되돌리면 7건 중 1건, 다시 읽기를 빼면 7건 중 4건 실패(원복). 관련 동적 매수 시험(PaperTrading 9·BuyCompletes·ExternalSubmission·OuterWriteOrdering·PoolReservation) 통과,
+  전체 `:web-api:test` **872 통과·실패 0**(건너뜀 3 — 백테스트 측정 러너, 로컬 도커 DB 꺼짐).
+- 🔴 판정 범위: "같은 틱 워치리스트 갱신에 의한 충돌은 PAPER 매수 경로의 결함" 까지 좁혀졌다 — **실자금의 다른 동시 쓰기(WS 매도·정지 요청 등)까지 안전하다는 판정이 아니다**(STAGE_1 전 기술 확인 항목 유지).
+
 ### 6.4 종합
 
 | 선행 조건 | 판정 | 남은 것 |

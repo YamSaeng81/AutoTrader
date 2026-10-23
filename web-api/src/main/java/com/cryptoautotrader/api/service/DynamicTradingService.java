@@ -1777,6 +1777,33 @@ public class DynamicTradingService {
         Long sid = session.getId();
         BigDecimal signalPrice = posTemplate.getEntryPrice();
 
+        // 🔴 잠근 채 최신으로 다시 읽고, **그 최신 상태에서 확인한 뒤에만** 반영한다 (2026-10-23, 리뷰).
+        //    같은 틱의 워치리스트 기록(persistWatchlist — 별도 트랜잭션)이 세션 행 @Version 을 먼저 올려 두면, 종전처럼
+        //    틱이 읽은 낡은 엔티티에 쓰고 저장할 때 커밋에서 낙관적 잠금 실패로 포지션·주문·세션 변경이 전부 롤백됐다
+        //    (운영 DYNAMIC 85, 10-16 부터 하루 0~9건 — DynamicPaperBuySameTickWatchlistTest). 실자금 경로(executeBuy 의
+        //    예약 뒤 refresh)와 같은 다시 읽기다. 낡은 엔티티를 고친 다음 다시 읽는 순서는 쓰지 않는다 — 고치기 전에 읽는다.
+        //    flush 는 실자금 경로와 같게 둔다: 이 틱이 세션 행을 이미 더럽혔다면 다시 읽기가 그 변경을 조용히 버리지 않고 여기서 드러난다.
+        //    평가 전체를 재시도하지 않는다. 공유 풀 규칙은 PAPER 에 적용하지 않는다(독립 자본).
+        entityManager.flush();
+        DynamicSessionEntity managed = dynamicSessionRepo.findById(sid).orElseThrow();
+        entityManager.refresh(managed, jakarta.persistence.LockModeType.PESSIMISTIC_WRITE);
+        if (!"RUNNING".equals(managed.getStatus())) {
+            log.warn("[Dynamic][PAPER] 매수 취소 — 최신 상태가 {} (id={}, {})", managed.getStatus(), sid, coinPair);
+            return "세션이 실행 중이 아님(최신 상태 " + managed.getStatus() + ") — 매수 취소";
+        }
+        if (managed.getAvailableKrw().compareTo(investAmount) < 0) {
+            log.warn("[Dynamic][PAPER] 매수 취소 — 최신 가용 {} < 투자금 {} (id={}, {})",
+                    managed.getAvailableKrw(), investAmount, sid, coinPair);
+            return String.format("가용 KRW 부족(최신 상태): 가용 %s원 < 투자금 %s원",
+                    managed.getAvailableKrw().setScale(0, RoundingMode.DOWN), investAmount.setScale(0, RoundingMode.DOWN));
+        }
+        if (!positionRepository.findBySessionKindAndSessionIdAndStatus(kind, sid, "OPEN").isEmpty()
+                || !"SCANNING".equals(managed.getScanState())) {
+            log.warn("[Dynamic][PAPER] 매수 취소 — 이미 보유 중(최신 상태 scanState={}) (id={}, {})",
+                    managed.getScanState(), sid, coinPair);
+            return "이미 보유 중(최신 상태) — 중복 매수 차단";
+        }
+
         // 슬리피지 — 매수는 신호가보다 불리하게(높게) 체결된다 (PaperTradingService와 동일 값).
         BigDecimal fillPrice = signalPrice.multiply(BigDecimal.ONE.add(PAPER_SLIPPAGE_PCT))
                 .setScale(8, RoundingMode.HALF_UP);
@@ -1824,15 +1851,35 @@ public class DynamicTradingService {
         // 비동기 갭이 없으므로 REQUIRES_NEW·롤백 보상 없이 세션을 직접 갱신한다 — 트랜잭션이
         // 롤백되면 position/order/session 변경 전부가 함께 롤백되어 REAL이 겪던 "차감만
         // 살아남는" 부분 롤백 자체가 구조적으로 발생할 수 없다.
-        session.setAvailableKrw(session.getAvailableKrw().subtract(investAmount));
-        session.setScanState("POSITION_MONITORING");
-        session.setCurrentCoinPair(coinPair);
-        session.setCurrentPositionId(pos.getId());
-        dynamicSessionRepo.save(session);
+        // 위에서 잠그고 다시 읽은 최신 엔티티에 쓴다.
+        managed.setAvailableKrw(managed.getAvailableKrw().subtract(investAmount));
+        managed.setScanState("POSITION_MONITORING");
+        managed.setCurrentCoinPair(coinPair);
+        managed.setCurrentPositionId(pos.getId());
+        dynamicSessionRepo.save(managed);
 
-        log.info("[Dynamic][PAPER] 매수 체결: id={} {} {}개 @ {} SL={} TP={} (수수료={})",
-                sid, coinPair, quantity, fillPrice, pos.getStopLossPrice(), pos.getTakeProfitPrice(), fee);
+        // 🔴 체결 완료 로그는 **커밋이 성공한 뒤에만** 남긴다 (2026-10-23, 리뷰). 종전에는 커밋 전에 찍혀,
+        //    커밋이 깨져 전부 롤백된 매수도 "매수 체결" 로 남았다(운영 #85 — 로그와 DB 가 어긋났다).
+        Long posId = pos.getId();
+        BigDecimal sl = pos.getStopLossPrice();
+        BigDecimal tp = pos.getTakeProfitPrice();
+        runAfterCommit(() -> log.info("[Dynamic][PAPER] 매수 체결: id={} {} {}개 @ {} SL={} TP={} (수수료={}, 포지션 {})",
+                sid, coinPair, quantity, fillPrice, sl, tp, fee, posId));
         return null;
+    }
+
+    /** 트랜잭션이 커밋된 뒤에 실행한다. 트랜잭션 밖이면 곧바로 — 롤백될 것이 없다. */
+    private static void runAfterCommit(Runnable r) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            r.run();
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                r.run();
+            }
+        });
     }
 
     /**
