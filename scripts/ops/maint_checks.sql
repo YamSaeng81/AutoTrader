@@ -1,5 +1,6 @@
 -- 계획 정비 점검 조회 (2026-10-21 정비용, 읽기 전용) — docs/MAINTENANCE_2026-10-21.md
--- 실행: docker compose -f docker-compose.prod.yml exec -T db psql -U trader -d crypto_auto_trader -f - < scripts/ops/maint_checks.sql
+-- 실행: docker compose -f docker-compose.prod.yml exec -T db psql -U trader -d crypto_auto_trader -v maint_start='2026-10-21 13:00:00+09' -f - < scripts/ops/maint_checks.sql
+--   maint_start = 이번 정비 시작 시각(Q8 의 기준, 2026-10-23 리뷰 — 종전엔 10-21 13:00 이 고정돼 있었다). 주지 않으면 Q8 은 건너뛴다(오류 아님).
 -- 🔴 읽기 전용 트랜잭션 안에서만 실행한다. 쓰기 문장은 없다.
 -- 오류가 나면 그 자리에서 멈춘다 — 실패한 트랜잭션 뒤 조회가 조용히 건너뛰어지지 않게 (리뷰 2026-10-21).
 \set ON_ERROR_STOP on
@@ -46,13 +47,17 @@ SELECT p.id AS position_id, p.session_kind, p.session_id, p.coin_pair, p.status,
 \echo '== Q7 검증 66세션 상태 — 기대 RUNNING 66'
 SELECT status, count(*) FROM paper_trading.virtual_balance WHERE id BETWEEN 522 AND 587 GROUP BY status ORDER BY status;
 
-\echo '== Q8 정비 시작(13:00 KST) 뒤 실자금 신규 매수 — 기대 0'
-SELECT count(*) AS real_buys_since_maint
+\if :{?maint_start}
+\echo '== Q8 정비 시작(' :'maint_start' ') 뒤 실자금 신규 매수 — 기대 0'
+SELECT :'maint_start'::timestamptz AS maint_start, count(*) AS real_buys_since_maint
   FROM "order" o
   LEFT JOIN live_trading_session l ON o.session_kind = 'LIVE' AND l.id = o.session_id
   LEFT JOIN dynamic_session d ON o.session_kind = 'DYNAMIC' AND d.id = o.session_id
- WHERE o.side = 'BUY' AND o.created_at >= TIMESTAMPTZ '2026-10-21 13:00:00+09'
+ WHERE o.side = 'BUY' AND o.created_at >= :'maint_start'::timestamptz
    AND (l.session_type = 'REAL' OR d.trading_mode = 'REAL');
+\else
+\echo '== Q8 건너뜀 — 정비 시작 시각(-v maint_start=...)을 주지 않았다'
+\endif
 
 \echo '== Q9 격리 해제 기록 (V94 뒤에만 존재) — 기대 0. V93 에서는 테이블이 없어 건너뛴다'
 SELECT (to_regclass('public.sell_quarantine_release') IS NOT NULL)::int AS has_release_table \gset
