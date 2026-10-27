@@ -22,6 +22,7 @@ import sys
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
+from urllib.parse import parse_qs, urlsplit
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -114,6 +115,7 @@ class Data:
     candles: dict = field(default_factory=dict)   # coin → {open_time: close}
     no_trade: dict = field(default_factory=dict)  # {(coin, open_time): 확인 근거 행} — validate_no_trade 를 통과한 것만
     no_trade_used: dict = field(default_factory=dict)   # 실제로 평가에 쓴 예외 — 결과에 남긴다
+    mark_scope: dict | None = None                      # 평가 가격 검사 범위(check_marks)
     signal_counts: list = field(default_factory=list)
     snapshot: datetime | None = None
     hashes: dict = field(default_factory=dict)
@@ -168,8 +170,14 @@ def validate_no_trade(r):
         raise InputError(f"{where}: 조회 시각 {iso(checked)} 이 봉 마감 전이다 — 부재를 말할 수 없다")
     if r["response_status"].strip() != "200":
         raise InputError(f"{where}: 응답 상태 {r['response_status']} — 200 이 아니면 근거가 아니다")
-    if "candles/minutes/60" not in r["request"] or coin not in r["request"]:
-        raise InputError(f"{where}: 요청이 그 마켓의 H1 캔들 조회가 아니다")
+    # 요청은 URL 로 파싱해 정확히 대조한다 — 문자열 포함 검사는 'market=KRW-BTC&note=KRW-NEAR' 를 통과시켰다(리뷰 5차)
+    url = urlsplit(r["request"].strip())
+    query = parse_qs(url.query, keep_blank_values=True)
+    if (url.scheme, url.netloc, url.path) != ("https", "api.upbit.com", "/v1/candles/minutes/60") \
+            or query.get("market") != [coin] or not set(query) <= {"market", "to", "count"} \
+            or any(len(v) != 1 for v in query.values()):
+        raise InputError(f"{where}: 요청이 그 마켓의 H1 캔들 조회가 아니다 "
+                         f"(https://api.upbit.com/v1/candles/minutes/60, market={coin} 하나, 매개변수 market·to·count 만)")
     try:
         body = json.loads(r["response_body"])
         if not isinstance(body, list):
@@ -482,6 +490,9 @@ def load_counts(indir, cfg):
         if len(buys) != 1 or len(sells) > 1 or len(buys) + len(sells) != len(os_):
             errors.append(f"포지션 {pid}: 매수 {len(buys)}·매도 {len(sells)} — 매수 1 + 매도 0~1 이어야 한다")
             continue
+        if buys[0]["filled_at"] < cfg["t0"]:      # 공용 로더와 같은 규칙 — T0 이전 왕복을 세지 않는다(리뷰 5차)
+            errors.append(f"포지션 {pid}: T0 이전 매수 {iso(buys[0]['filled_at'])}")
+            continue
         if sells and sells[0]["filled_at"] < buys[0]["filled_at"]:
             errors.append(f"포지션 {pid}: 매도가 매수보다 앞선다")
             continue
@@ -542,13 +553,15 @@ def mark_requirements(data, sid, end, inclusive_end):
 def check_marks(data, t_end=None):
     """설계 §4-1 측정 분류 중 평가 가격 — 필요한 봉이 캐시에 있거나 확인된 무거래 근거로 이어지는지. 가격·손익은 출력하지 않는다.
 
-    t_end 가 있으면 T0 ~ T_end 의 모든 경계와 끝점, 없으면(종료 전) 스냅샷 − 1시간까지의 경계만 본다.
+    t_end 가 있으면 T0 ~ T_end 의 모든 경계와 끝점(유예 없음), 없으면(종료 전 예비 검사) 스냅샷 − 1시간까지의 경계만 본다.
+    검사 범위와 보류한 최근 경계는 data.mark_scope 에 남긴다 — 'verify 통과' 만으로는 범위가 드러나지 않는다(리뷰 5차).
     """
     errors = []
     if t_end is not None:
         end, inclusive_end = t_end, True
     else:
         end, inclusive_end = data.snapshot - VERIFY_LAG, False
+    deferred = []
     for sid in sorted(data.sessions):
         coin = data.sessions[sid]["coin_pair"]
         for t, _ in mark_requirements(data, sid, end, inclusive_end):
@@ -556,7 +569,23 @@ def check_marks(data, t_end=None):
                 mark_price(data, coin, t.replace(minute=0, second=0, microsecond=0) - HOUR)
             except InputError as e:
                 errors.append(f"세션 {sid} 평가 시각 {iso(t)}: {e}")
+        if t_end is None:                         # 유예 구간(end, 스냅샷] 에서 보유가 있어 검사를 미룬 경계
+            deferred += [(sid, iso(t)) for t, _ in mark_requirements(data, sid, data.snapshot, False) if t > end]
+    data.mark_scope = {"checked_until": iso(end), "end_point_checked": inclusive_end,
+                       "grace": None if t_end is not None else "스냅샷 직전 1시간 경계 보류(예비 verify)",
+                       "deferred_boundaries": deferred}
     return errors
+
+
+def describe_scope(scope):
+    """평가 가격 검사 범위 한 줄 — verify 출력용(가격 없음)."""
+    if scope is None:
+        return "평가 가격 검사 범위: 없음"
+    if scope["grace"] is None:
+        return f"평가 가격 검사 범위: T0 ~ {scope['checked_until']} 의 모든 경계 + 끝점 (유예 없음)"
+    d = scope["deferred_boundaries"]
+    return (f"평가 가격 검사 범위: T0 ~ {scope['checked_until']} 의 경계 (종료 전 예비 검사 — {scope['grace']}, 끝점 검사 없음) · "
+            + (f"보류된 최근 경계 {len(d)}건: " + ", ".join(f"세션 {s} {t}" for s, t in d) if d else "보류된 최근 경계 없음"))
 
 
 def equity(data, sid, t, inclusive):
@@ -804,6 +833,7 @@ def main(argv):
             errors = verify(data, cfg["t_end"])
             for e in errors:
                 print("🔴 " + e)
+            print(describe_scope(data.mark_scope))
             print("verify " + ("통과" if not errors else f"실패 {len(errors)}건"))
             return 0 if not errors else 1
         res = cmd_final(data, args[2])

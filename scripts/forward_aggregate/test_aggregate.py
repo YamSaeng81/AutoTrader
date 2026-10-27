@@ -279,7 +279,23 @@ for label, ev, pat in [
         ("다른 마켓의 응답", no_trade_evidence(coin, missing, market="KRW-BTC"), "캔들 목록이 아니다"),
         ("H1 캔들 조회가 아닌 요청", no_trade_evidence(coin, missing, request="https://api.upbit.com/v1/ticker"),
          "H1 캔들"),
-        ("응답 원문이 JSON 아님", dict(no_trade_evidence(coin, missing), response_body="<html>"), "캔들 목록이 아니다")]:
+        ("응답 원문이 JSON 아님", dict(no_trade_evidence(coin, missing), response_body="<html>"), "캔들 목록이 아니다"),
+        # 리뷰 5차 재현 — 요청 market 은 다른 마켓인데 다른 매개변수에 대상 코인 이름만 넣은 경우
+        ("요청 market 이 다른 마켓(note 에 대상 코인)", no_trade_evidence(
+            coin, missing, request=f"https://api.upbit.com/v1/candles/minutes/60?market=KRW-BTC&note={coin}&count=4"),
+         "H1 캔들"),
+        ("요청 market 이 두 번", no_trade_evidence(
+            coin, missing, request=f"https://api.upbit.com/v1/candles/minutes/60?market={coin}&market=KRW-BTC"), "H1 캔들"),
+        ("요청 경로가 H1 이 아님(minutes/600)", no_trade_evidence(
+            coin, missing, request=f"https://api.upbit.com/v1/candles/minutes/600?market={coin}"), "H1 캔들"),
+        ("요청 경로 뒤에 덧붙임", no_trade_evidence(
+            coin, missing, request=f"https://api.upbit.com/v1/candles/minutes/60/x?market={coin}"), "H1 캔들"),
+        ("요청 호스트가 업비트 아님", no_trade_evidence(
+            coin, missing, request=f"https://api.upbit.com.evil.example/v1/candles/minutes/60?market={coin}"), "H1 캔들"),
+        ("요청이 https 아님", no_trade_evidence(
+            coin, missing, request=f"http://api.upbit.com/v1/candles/minutes/60?market={coin}"), "H1 캔들"),
+        ("요청에 모르는 매개변수", no_trade_evidence(
+            coin, missing, request=f"https://api.upbit.com/v1/candles/minutes/60?market={coin}&note=x"), "H1 캔들")]:
     f.no_trade[-1] = ev
     check(f"F9 근거 결함 — {label} → 계산 안 함", raises(lambda: load(f.write("f9x", SNAP)), pat))
 f.no_trade.clear()
@@ -298,6 +314,32 @@ data = load(f.write("lag", at("2026-10-15T00:30:00")))
 check("종료 전 verify: 스냅샷 30분 전 경계의 막 마감된 봉은 아직 결측으로 보지 않는다", ag.verify(data) == [],
       ag.verify(data))
 check("T_end 를 주면 그 경계까지 검사해 결측을 잡는다", any("측정 결측" in e for e in ag.verify(data, at("2026-10-15T00:20:00"))))
+# 리뷰 5차 — 검사 범위와 보류한 최근 경계를 출력한다
+ag.verify(data)
+sc = data.mark_scope
+check("예비 verify 범위: 스냅샷 − 1시간까지, 끝점 검사 없음, 보류 경계 = 보유 세션의 10-15 00:00Z",
+      sc["checked_until"] == z(at("2026-10-14T23:30:00")) and sc["end_point_checked"] is False and sc["grace"] and
+      sc["deferred_boundaries"] == [(sid, z(at("2026-10-15T00:00:00")))], sc)
+buf = io.StringIO()
+with contextlib.redirect_stdout(buf):
+    rc = ag.main(["verify", os.path.join(WORK, "lag")])
+vout = buf.getvalue()
+check("verify 출력에 검사 종료 시각·유예·보류 경계가 나온다",
+      rc == 0 and "2026-10-14T23:30:00" in vout and "예비" in vout and "보류된 최근 경계 1건" in vout and
+      f"세션 {sid} 2026-10-15T00:00:00" in vout and "verify 통과" in vout, vout)
+ag.verify(data, at("2026-10-15T00:20:00"))
+check("명시적 T_end 에는 유예 없음 — 범위 = T_end·끝점 포함·보류 0",
+      data.mark_scope["grace"] is None and data.mark_scope["end_point_checked"] is True and
+      data.mark_scope["deferred_boundaries"] == [] and "유예 없음" in ag.describe_scope(data.mark_scope),
+      data.mark_scope)
+gl = Fake()                                            # final 은 유예 없이 끝점 봉까지 — 최근 봉 결측을 거절한다
+gl.bars(coin, ALL_BARS, SIX + timedelta(days=1))
+gl.buy(sid, SIX - timedelta(hours=5), 1000)
+del gl.candles[coin][SIX.replace(minute=0, second=0, microsecond=0) - timedelta(hours=1)]   # 끝점 평가 봉(05:00Z)
+glast = gl.write("grace_final", SIX + timedelta(minutes=10))
+gdata = load(glast)
+check("같은 입력의 예비 verify 는 통과(끝점은 종료 전 검사 대상 아님)", ag.verify(gdata) == [], ag.verify(gdata))
+check("final 은 끝점의 최근 봉 결측을 거절(유예 미적용)", raises(lambda: final(glast), "측정 결측"))
 
 # ════════════════════════════════════════════════════════════════════════════
 # F19 · 건수 전용 모드 — 필요한 필드만 읽는다(리뷰 4차)
@@ -379,7 +421,18 @@ def bad_session(t):
     t["sessions"][0]["strategy_name"] = "X"
 
 
-for label, m in (("매도 2건", two_sells), ("짝 없는 주문", bad_pair), ("세션 대응 불일치", bad_session)):
+def before_t0_round_trip(t):                     # T0 이전에 끝난 왕복 — 매수·매도 둘 다 T0 앞
+    b = next(o for o in t["orders"] if o["side"] == "BUY")
+    s = next(o for o in t["orders"] if o["side"] == "SELL" and o["position_id"] == b["position_id"])
+    b["filled_at"] = z(T0 - timedelta(hours=3))
+    s["filled_at"] = z(T0 - timedelta(hours=2))
+
+
+check("count — T0 이전에 끝난 왕복은 입력 오류로 거절(1건으로 세지 않는다)",
+      raises(lambda: ag.load_counts(dp.write("f19t0", T0 + timedelta(days=5), before_t0_round_trip), CFG), "T0 이전 매수"))
+
+for label, m in (("매도 2건", two_sells), ("짝 없는 주문", bad_pair), ("세션 대응 불일치", bad_session),
+                 ("T0 이전 매수", before_t0_round_trip)):
     rc, text = count_error_output(m)
     check(f"count 오류({label}) — 실패하고 출력에 가격·금액이 없다",
           rc == 1 and "계산하지 않는다" in text and SECRET not in text and "NOT_A_NUMBER" not in text and
