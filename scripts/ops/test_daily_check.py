@@ -398,6 +398,20 @@ else:
     out = r.stdout.decode("utf-8", "replace") + r.stderr.decode("utf-8", "replace")
     check("리눅스(ubuntu:22.04) flock 동시 시작 5회 — 매번 하나만 실행·flock 잠금 사용", "OK=5" in out and out.count("flock 사용") == 5, out)
 
+    # 2026-10-27: 서버 대화형 셸(C.UTF-8)에서 공유 풀 기동 줄이 미분류 🔴 로 셌다 — 스크립트가 로케일을 C 로 고정한다. 실제 줄 그대로.
+    with open(os.path.join(work, "pool_line.txt"), "w", encoding="utf-8", newline="\n") as f:
+        f.write("backend-1  | 01:30:12.574 [main] ERROR c.c.api.service.CapitalPoolLimits - 🔴 공유 풀 한도가 사전 등록과 맞지 않는다 — "
+                "실자금 진입·배정을 모두 거절한다: 한도 설정 누락 (단계= 총상한=null 포지션당=null 동시보유=null)\n")
+    for loc in ("C.UTF-8", "C"):
+        r = subprocess.run(["docker", "run", "--rm", "-v", REPO.replace("\\", "/") + ":/repo:ro", "-v", work.replace("\\", "/") + ":/w",
+                            "-e", "LC_ALL=" + loc, "-e", "LANG=" + loc, "-e", "REPO_DIR=/repo", "-e", "PSQL_CMD=bash /w/fakepsql",
+                            "-e", "LOGS_FILE=/w/pool_line.txt", "-e", "OUT_DIR=/tmp/pool", "-e", "APP_STATE=running|0|2026-10-01T00:00:00Z|sha256:x",
+                            "-e", "DRY_RUN=1", "-e", "TZ_EXPECT=", "-e", "ALERTS_CMD=echo '🟢 경보 없음 · 실행 누락 없음'; exit 0",
+                            "ubuntu:22.04", "bash", "/repo/scripts/ops/daily_check.sh"], capture_output=True)
+        out = r.stdout.decode("utf-8", "replace") + r.stderr.decode("utf-8", "replace")
+        check("리눅스 %s 로 실행해도 공유 풀 기동 줄은 '공유 풀 미등록 1 · … 미분류 0'" % loc,
+              "공유 풀 미등록 1 ·" in out and "미분류 0" in out and "미분류 ERROR" not in out, out)
+
 sql("postgres", "DROP DATABASE IF EXISTS %s;" % DB)
 srv.shutdown()
 shutil.rmtree(work, ignore_errors=True)

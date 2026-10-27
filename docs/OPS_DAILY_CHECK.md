@@ -58,6 +58,7 @@ KILL 경보·잠금·누수는 WARN 이라 `[정기 점검]` 에는 나오지 �
 | 외부 통신 실패 | `UpbitCandleCollector - 캔들 수집 실패` · `MarketDataSyncService - 시장 데이터 동기화 실패` · `UpbitOrderClient - 계좌 조회 실패` · `WatchlistFilterService - [Watchlist] 필터링 실패` · `TelegramNotificationService - [Telegram] 메시지 전송 중 오류(응답 미수신)` · `ClaudeProvider - [ClaudeProvider] 요청 실패` | 🟡 건수 |
 
 이 목록에 넣는 것은 운영 기록으로 반복이 확인된 것만이다. 넣거나 빼려면 리뷰를 거친다.
+🔴 스크립트는 로케일을 **`LC_ALL=C`(바이트 비교)로 고정**한다(2026-10-27) — 서버 대화형 셸(`C.UTF-8`)에서 GNU grep 3.7 이 공유 풀 기동 줄을 위 정규식으로 잡지 못해 미분류 🔴 로 셌다(cron 의 `C` 에서는 정상, 원인 미규명).
 `S66_ENDED_IDS`·`ENDED_MARKETS`(스크립트 기본값)도 같다 — 검증 코인의 거래지원 종료가 확인되고 리뷰가 처리를 정한 뒤에만 넣는다(`SUPERTREND_VALIDATION_PREREG.md` 📌 KRW-BLAST).
 
 ## 3. 설치 (리뷰 확인 뒤, 1회)

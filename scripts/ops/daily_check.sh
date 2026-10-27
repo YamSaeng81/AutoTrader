@@ -17,6 +17,10 @@
 # 시험용 바꿔 끼우기(운영에서는 쓰지 않는다): PSQL_CMD · LOGS_FILE · APP_STATE · ALERTS_CMD · TG_API · SQL_TIMEOUT · TZ_EXPECT ·
 #   SLEEP_CMD · REPORT_LIMIT · LOCK_MODE(mkdir — flock 없는 환경의 대체 잠금을 시험할 때)
 set -u
+# 🔴 2026-10-27: 로케일을 C(바이트 비교)로 고정한다. 서버 대화형 셸(C.UTF-8)에서 GNU grep 3.7 이 공유 풀 기동 줄을
+#    P_POOL 로 잡지 못해(0) 미분류 🔴 로 셌다 — cron(로케일 없음 = C)에서는 1. 글자 단위로는 재현되지 않아 원인은 미규명이고,
+#    패턴은 UTF-8 바이트 그대로 쓰므로 C 에서 같은 뜻이다. 보고 자르기는 파이썬이 UTF-8 로 직접 센다(아래 7).
+export LC_ALL=C
 
 REPO_DIR="${REPO_DIR:-$(cd "$(dirname "$0")/../.." && pwd)}"
 OUT_DIR="${OUT_DIR:-$HOME/daily-check}"
