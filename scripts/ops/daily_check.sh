@@ -170,10 +170,15 @@ if [ ${#KV[@]} -gt 0 ]; then
       [ "$x" = "-" ] && continue
       if [[ " $S66_ENDED_IDS " == *" ${x%%:*} "* ]] && [ "${x#*:}" = "STOPPED" ]; then s66_ended+=("${x%%:*}"); else s66_bad+=("$x"); fi
     done
-    s66_wait=()
-    for i in $S66_ENDED_IDS; do [[ " ${s66_ended[*]} " == *" $i "* ]] || s66_wait+=("$i"); done
+    # 지정 종료 세션은 정지가 끝났다(10-27 13:05 KST) — 다시 RUNNING 이면 '정지 대기' 가 아니라 의도치 않은 재시작이다(리뷰 2026-10-27).
+    # RUNNING 아닌 다른 상태(PAUSED 등)는 위 s66_bad 로 이미 🔴
+    s66_rerun=()
+    for i in $S66_ENDED_IDS; do
+      [[ " ${s66_ended[*]} " == *" $i "* ]] && continue
+      [[ " ${KV[s66_not_running]} " == *" $i:"* ]] || s66_rerun+=("$i")
+    done
     [ ${#s66_bad[@]} -gt 0 ] && red "검증 세션 RUNNING 아님(지정 종료 외): ${s66_bad[*]}"
-    [ ${#s66_wait[@]} -gt 0 ] && note "거래 종료 지정 세션이 아직 STOPPED 아님(정지 대기): ${s66_wait[*]}"
+    [ ${#s66_rerun[@]} -gt 0 ] && red "거래 종료한 지정 세션이 다시 RUNNING(의도치 않은 재시작): ${s66_rerun[*]}"
     S66_LINE="66세션: 원래 ${KV[s66_total]:-?} 중 RUNNING ${KV[s66_running]:-?} · 지정 종료 STOPPED ${#s66_ended[@]}/$(echo $S66_ENDED_IDS | wc -w)${S66_ENDED_IDS:+($S66_ENDED_IDS)}"
   fi
   detail "DB: Flyway ${KV[flyway_version]:-?} · 실자금 보유 ${KV[real_open_positions]:-?} · 미결 ${KV[real_unresolved_orders]:-?} · 정리 대기 ${KV[cleanup_pending]:-?} · 격리 대상 ${KV[quarantine_targets]:-?} · $S66_LINE · 구간 실자금 매수 ${KV[real_buys_window]:-?}"

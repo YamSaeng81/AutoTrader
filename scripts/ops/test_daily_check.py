@@ -21,7 +21,10 @@ REPO = os.path.abspath(os.path.join(HERE, "..", ".."))
 SCRIPT = os.path.join(HERE, "daily_check.sh")
 DB = "rt_daily"
 PG = ["docker", "exec", "-i", "cat-rt-pg", "psql", "-X", "-q", "-U", "trader"]
-BASH = shutil.which("bash") or r"C:\Program Files\Git\bin\bash.exe"
+# 2026-10-27: Windows 에서는 Git Bash 를 먼저 — PowerShell 의 PATH 로는 `bash` 가 WSL(System32\bash.exe)로 잡혀 `D:/…` 경로를 찾지 못하고
+# 대부분의 경우가 실패한다(리뷰 실행 26/41 · 내 첫 실행도 같은 증상). 시험 대상 코드와 무관한 실행 환경 문제다.
+GIT_BASH = r"C:\Program Files\Git\bin\bash.exe"
+BASH = GIT_BASH if os.name == "nt" and os.path.exists(GIT_BASH) else (shutil.which("bash") or GIT_BASH)
 
 results = []
 sys.stdout.reconfigure(encoding="utf-8")
@@ -80,6 +83,8 @@ sql(DB, "INSERT INTO paper_trading.virtual_balance (id, total_krw, available_krw
 COINS22 = "IOTA WAVES CRO ONG SC POLYX NEAR WAXP BCH CVC POWR T ANKR DKA GLM HIVE PUNDIX ELF BLAST JUP G INJ".split()
 sql(DB, "UPDATE paper_trading.virtual_balance v SET coin_pair = 'KRW-' || (ARRAY[%s])[(v.id - 522) / 3 + 1] WHERE v.id BETWEEN 522 AND 587;"
     % ",".join("'%s'" % c for c in COINS22))
+# 운영 현재 상태가 기준 — KRW-BLAST 세 팔은 2026-10-27 13:05 KST 정지 완료(원래 66 중 RUNNING 63)
+sql(DB, "UPDATE paper_trading.virtual_balance SET status='STOPPED' WHERE id IN (576,577,578);")
 
 work = tempfile.mkdtemp(prefix="daily-check-")
 logs_ok = os.path.join(work, "logs_ok.txt")
@@ -161,19 +166,24 @@ rc, rep, last, sent, raw = run("anomaly")
 # 2026-10-27: 개수(65/66)가 아니라 어느 세션인지로 알린다 — 지정 종료 세션 밖이라 🔴
 check("수치 이상 — 🔴·종료 1·지정 종료 밖 587 정지 🔴·중요 경보 실패 🔴·CUSTOM 실패는 🟡",
       rc == 1 and rep.startswith("[정기 점검] 🔴") and "🔴 검증 세션 RUNNING 아님(지정 종료 외): 587:STOPPED" in rep
-      and "원래 66 중 RUNNING 65" in rep
+      and "원래 66 중 RUNNING 62" in rep
       and "🔴 텔레그램 중요 경보 전송 실패 RISK_LIMIT 1건" in rep and "🟡 텔레그램 전송 실패 CUSTOM 1건" in rep and len(sent) == 1, raw + rep)
 sql(DB, "UPDATE paper_trading.virtual_balance SET status='RUNNING' WHERE id=587; DELETE FROM telegram_notification_log;")
 
 # ── 2026-10-27 리뷰: 검증 코인 BLAST 거래지원 종료 — 지정 종료 세션·검증 코인 404·종료 확인 마켓의 66세션 경보 ──
-rc, rep, last, sent, raw = run("ended_wait")
-check("지정 종료 세션이 아직 RUNNING — 🟡 정지 대기(판정은 정상)·'원래 66 중 RUNNING 66 · 지정 종료 STOPPED 0/3'",
-      rc == 0 and "🟡 거래 종료 지정 세션이 아직 STOPPED 아님(정지 대기): 576 577 578" in rep
-      and "66세션: 원래 66 중 RUNNING 66 · 지정 종료 STOPPED 0/3(576 577 578)" in rep, rep)
+# 2026-10-27 리뷰: 종전 이 경우는 '🟡 정지 대기(판정 정상)' 를 기대했다 — 정지가 끝난 지금은 다시 RUNNING 이면 🔴(의도치 않은 재시작)
+sql(DB, "UPDATE paper_trading.virtual_balance SET status='RUNNING' WHERE id=576;")
+rc, rep, last, sent, raw = run("ended_rerun_one")
+check("종료한 지정 세션 576 하나만 다시 RUNNING — 🔴 의도치 않은 재시작(🟡 로 넘기지 않는다)",
+      rc == 1 and "🔴 거래 종료한 지정 세션이 다시 RUNNING(의도치 않은 재시작): 576" in rep
+      and "66세션: 원래 66 중 RUNNING 64 · 지정 종료 STOPPED 2/3(576 577 578)" in rep and "🟡 거래 종료" not in rep, rep)
+sql(DB, "UPDATE paper_trading.virtual_balance SET status='RUNNING' WHERE id IN (576,577,578);")
+rc, rep, last, sent, raw = run("ended_rerun_all")
+check("지정 세션 셋 모두 RUNNING — 🔴 576 577 578", rc == 1 and "다시 RUNNING(의도치 않은 재시작): 576 577 578" in rep, rep)
 sql(DB, "UPDATE paper_trading.virtual_balance SET status='STOPPED' WHERE id IN (576,577,578);")
 rc, rep, last, sent, raw = run("ended_done")
-check("지정 종료 3세션 STOPPED — 정상·'원래 66 중 RUNNING 63 · 지정 종료 STOPPED 3/3'(기대값을 63 으로 낮춘 것이 아니다)",
-      rc == 0 and "🟢 점검 항목 정상" in rep and "정지 대기" not in rep
+check("나머지 63 RUNNING + 576·577·578 STOPPED — 정상·'원래 66 중 RUNNING 63 · 지정 종료 STOPPED 3/3'(기대값을 63 으로 낮춘 것이 아니다)",
+      rc == 0 and "🟢 점검 항목 정상" in rep and "다시 RUNNING" not in rep
       and "66세션: 원래 66 중 RUNNING 63 · 지정 종료 STOPPED 3/3(576 577 578)" in rep, rep)
 sql(DB, "UPDATE paper_trading.virtual_balance SET status='STOPPED' WHERE id=522;")
 rc, rep, last, sent, raw = run("ended_plus_other")
@@ -181,13 +191,12 @@ check("지정 종료 3 + 다른 세션 522 정지 — RUNNING 63 이 아니라 6
       rc == 1 and "🔴 검증 세션 RUNNING 아님(지정 종료 외): 522:STOPPED" in rep and "RUNNING 62" in rep, rep)
 sql(DB, "UPDATE paper_trading.virtual_balance SET status='RUNNING' WHERE id=522; UPDATE paper_trading.virtual_balance SET status='PAUSED' WHERE id=576;")
 rc, rep, last, sent, raw = run("ended_other_status")
-check("지정 종료 세션이라도 STOPPED 가 아닌 상태(PAUSED)면 🔴 — 그리고 정지 대기 🟡",
-      rc == 1 and "🔴 검증 세션 RUNNING 아님(지정 종료 외): 576:PAUSED" in rep and "정지 대기): 576" in rep, rep)
+check("지정 종료 세션이라도 STOPPED 가 아닌 상태(PAUSED)면 🔴 — 재시작으로 겹쳐 세지 않는다",
+      rc == 1 and "🔴 검증 세션 RUNNING 아님(지정 종료 외): 576:PAUSED" in rep and "다시 RUNNING" not in rep, rep)
 sql(DB, "UPDATE paper_trading.virtual_balance SET status='STOPPED' WHERE id IN (576,577,578);")
 rc, rep, last, sent, raw = run("ended_override", S66_ENDED_IDS="")
 check("지정 종료 목록이 비면(설정으로 덮어씀) 576~578 정지는 🔴 — 목록 밖 정지를 정상으로 보지 않는다",
       rc == 1 and "🔴 검증 세션 RUNNING 아님(지정 종료 외): 576:STOPPED 577:STOPPED 578:STOPPED" in rep, rep)
-sql(DB, "UPDATE paper_trading.virtual_balance SET status='RUNNING' WHERE id IN (576,577,578);")
 
 logs_404 = os.path.join(work, "logs_404.txt")
 shutil.copy(logs_ok, logs_404)
@@ -243,7 +252,7 @@ check("DB 시간 초과 — ⚪ 판정 불가", rc == 1 and "DB 조회 시간 �
 rc, rep, last, sent, raw = run("app_down", APP_STATE="absent|0|-|-",
                                ALERTS_CMD="echo 'API 에 닿지 않는다' >&2; exit 2")
 check("앱 없음 — 🔴 컨테이너 없음 + DB 점검은 그대로 + 66세션은 판정 불가 + 보고 전송",
-      rc == 1 and "🔴 backend 컨테이너 없음" in rep and "원래 66 중 RUNNING 66" in rep and "66세션 경보 조회 실패" in rep and len(sent) == 1, raw + rep)   # 2026-10-27 표시 형식 변경
+      rc == 1 and "🔴 backend 컨테이너 없음" in rep and "원래 66 중 RUNNING 63" in rep and "66세션 경보 조회 실패" in rep and len(sent) == 1, raw + rep)   # 2026-10-27 표시 형식 변경·BLAST 3 정지
 
 # 8. 구간 안 재기동 — 계획 여부 확인 요구
 rc, rep, last, sent, raw = run("restarted", APP_STATE="running|0|%s|sha256:abc" %
@@ -355,7 +364,7 @@ check("앱 로그 원문을 결과 파일 옆에 압축 보존(.log.gz)", bool(g
 
 # 24. 리눅스(서버와 같은 ubuntu:22.04)에서 flock 으로 동시 시작 — 도커로 돌린다
 CANNED = ("flyway_version|94\nreal_open_positions|0\nreal_unresolved_orders|0\ncleanup_pending|0\nquarantine_targets|0\n"
-          "s66_running|66\ns66_total|66\ns66_not_running|-\ns66_coins|KRW-BLAST\nreal_buys_window|0\nquarantine_release_rows|0\ntg_queue_rejected|0\ntg_ok_window|0\n"
+          "s66_running|63\ns66_total|66\ns66_not_running|576:STOPPED 577:STOPPED 578:STOPPED\ns66_coins|KRW-BLAST\nreal_buys_window|0\nquarantine_release_rows|0\ntg_queue_rejected|0\ntg_ok_window|0\n"
           "tg_last_ok|none\nEND|ok\n")
 with open(os.path.join(work, "canned.txt"), "w", newline="\n") as f:
     f.write(CANNED)
