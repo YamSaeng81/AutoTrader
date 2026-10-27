@@ -41,11 +41,11 @@ KILL 경보·잠금·누수는 WARN 이라 `[정기 점검]` 에는 나오지 �
 | 격리 대조 대상 | 〃 | 0 | 🔴 |
 | 구간 안 실자금 신규 매수 | 〃 (정비용 Q8 의 고정 날짜 대신 **점검 구간 시작**) | 0 (STAGE_1 비활성) | 🔴 |
 | 격리 해제 기록 | 〃 | 0 | 🔴 |
-| 검증 66세션(522~587) | 〃 | RUNNING 66 | 🔴 |
+| 검증 66세션(522~587) | 〃 — RUNNING 아닌 세션 `id:상태` 목록(`s66_not_running`) | 원래 66개 중 **지정 종료 세션(`S66_ENDED_IDS`, 기본 `576 577 578`)만 STOPPED**, 나머지 RUNNING | 🔴 지정 밖 세션이 RUNNING 아님(지정 세션이 STOPPED 아닌 다른 상태여도) · 세션 수 66 아님 · 🟡 지정 세션이 아직 STOPPED 아님(정지 대기). 🔴 기대값을 63 으로 낮춘 것이 아니다 — 어느 세션인지로 비교한다(리뷰 2026-10-27) |
 | 텔레그램 중요 경보 전송 실패(구간) | 〃 — `STOP_LOSS`·`SESSION_STOP`·`RISK_LIMIT`·`CLEANUP_NEEDS_HUMAN`·`CLEANUP_INCOMPLETE`·`EXCHANGE_DOWN`·`CANDLE_REFRESH_REPORT` | 0 | 🔴 (그 밖의 유형 실패는 🟡) |
 | 텔레그램 큐 진입 실패(구간) | 〃 (본문 머리 `[큐 포화`) | 0 | 🔴 |
 | ERROR 로그(구간) | `docker compose logs --since` | 아래 알려진 유형 외 0 | 🔴 미분류 N건(앞 5줄을 결과에 적는다) |
-| 66세션 경보 | `start_66.py alerts --since <구간> --no-mark` | 🟢 경보 없음 · 실행 누락 없음 | 🔴(경보는 확정 아님 — 확인 필요) · 관측 없음은 ⚪ |
+| 66세션 경보 | `start_66.py alerts --since <구간> --no-mark` | 🟢 경보 없음 · 실행 누락 없음 | 🔴(경보는 확정 아님 — 확인 필요, 종료 확인 마켓 밖 코인명을 붙인다) · 관측 없음은 ⚪ · 🟡 **적재 뒤처짐만 있고 그 회차들의 🔴 코인이 전부 거래지원 종료 확인 마켓(`ENDED_MARKETS`, 기본 `KRW-BLAST`)일 때만** |
 | 서버 시간대 | `date +%z` | +0900 | 🟡(cron 시각이 어긋날 수 있다) |
 
 **알려진 ERROR — 로거와 문구로 한정**(같은 로거라도 문구가 다르면 미분류 🔴):
@@ -54,10 +54,11 @@ KILL 경보·잠금·누수는 WARN 이라 `[정기 점검]` 에는 나오지 �
 |---|---|---|
 | 공유 풀 미등록 | `CapitalPoolLimits - .*공유 풀 한도가 사전 등록과 맞지 않는다.*한도 설정 누락` | 의도된 것(STAGE_1 비활성) — 건수만 |
 | 캔들 판정 불가 | `CandleFreshnessGuard - .*\[캔들 최신성\].*판정 불가` | 🟡 건수 |
-| 상장 폐지 코인 캔들 404 | `UpbitRestClient - Upbit API 오류: status=404, url=https://api.upbit.com/v1/candles/.*Code not found` | 건수만 |
+| 상장 폐지 코인 캔들 404 | `UpbitRestClient - Upbit API 오류: status=404, url=https://api.upbit.com/v1/candles/.*Code not found` | 건수 + **마켓별**(리뷰 2026-10-27 — BLAST 상장 폐지가 건수에 묻혔다): **검증 코인**(`s66_coins`)이면 코인명과 함께 — 거래지원 종료 확인 마켓(`ENDED_MARKETS`)은 🟡, 확인되지 않은 마켓 소실은 🔴(업비트 공지 확인). 검증 밖 마켓은 마켓명·건수만 |
 | 외부 통신 실패 | `UpbitCandleCollector - 캔들 수집 실패` · `MarketDataSyncService - 시장 데이터 동기화 실패` · `UpbitOrderClient - 계좌 조회 실패` · `WatchlistFilterService - [Watchlist] 필터링 실패` · `TelegramNotificationService - [Telegram] 메시지 전송 중 오류(응답 미수신)` · `ClaudeProvider - [ClaudeProvider] 요청 실패` | 🟡 건수 |
 
 이 목록에 넣는 것은 운영 기록으로 반복이 확인된 것만이다. 넣거나 빼려면 리뷰를 거친다.
+`S66_ENDED_IDS`·`ENDED_MARKETS`(스크립트 기본값)도 같다 — 검증 코인의 거래지원 종료가 확인되고 리뷰가 처리를 정한 뒤에만 넣는다(`SUPERTREND_VALIDATION_PREREG.md` 📌 KRW-BLAST).
 
 ## 3. 설치 (리뷰 확인 뒤, 1회)
 

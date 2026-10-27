@@ -25,6 +25,10 @@ SQL_TIMEOUT="${SQL_TIMEOUT:-60}"
 LOG_TIMEOUT="${LOG_TIMEOUT:-60}"
 ALERTS_TIMEOUT="${ALERTS_TIMEOUT:-180}"
 EXPECT_S66="${EXPECT_S66:-66}"
+# 검증 도중 거래를 끝낸 것으로 지정된 세션·거래지원 종료가 확인된 마켓 (리뷰 2026-10-27, SUPERTREND_VALIDATION_PREREG.md 📌 KRW-BLAST).
+# 분모에서 빼는 것이 아니다 — 원래 66개는 그대로 세고, 이 세션만 STOPPED 를 정상으로 본다. 추가는 리뷰 판단을 받은 뒤에만.
+S66_ENDED_IDS="${S66_ENDED_IDS-576 577 578}"
+ENDED_MARKETS="${ENDED_MARKETS-KRW-BLAST}"
 TZ_EXPECT="${TZ_EXPECT:-+0900}"
 TG_API="${TG_API:-https://api.telegram.org}"
 SLEEP_CMD="${SLEEP_CMD:-sleep}"
@@ -141,7 +145,7 @@ else
   done <<< "$SQL_OUT"
   # 필수 키가 하나라도 빠지면 출력 누락
   for k in flyway_version real_open_positions real_unresolved_orders cleanup_pending quarantine_targets s66_running s66_total \
-           real_buys_window quarantine_release_rows tg_queue_rejected tg_ok_window tg_last_ok; do
+           s66_not_running s66_coins real_buys_window quarantine_release_rows tg_queue_rejected tg_ok_window tg_last_ok; do
     [ -n "${KV[$k]+x}" ] || unknown "DB 조회 출력 누락($k)"
   done
 fi
@@ -157,8 +161,22 @@ if [ ${#KV[@]} -gt 0 ]; then
   chk_zero real_buys_window "점검 구간 실자금 신규 매수"
   chk_zero tg_queue_rejected "텔레그램 큐 진입 실패"
   qr="${KV[quarantine_release_rows]:-}"; [ -n "$qr" ] && [ "$qr" != "0" ] && [ "$qr" != "-1" ] && red "격리 해제 기록 $qr"
-  [ -n "${KV[s66_running]:-}" ] && [ "${KV[s66_running]}" != "$EXPECT_S66" ] && red "검증 66세션 RUNNING ${KV[s66_running]}/${KV[s66_total]:-?}"
-  detail "DB: Flyway ${KV[flyway_version]:-?} · 실자금 보유 ${KV[real_open_positions]:-?} · 미결 ${KV[real_unresolved_orders]:-?} · 정리 대기 ${KV[cleanup_pending]:-?} · 격리 대상 ${KV[quarantine_targets]:-?} · 66세션 RUNNING ${KV[s66_running]:-?} · 구간 실자금 매수 ${KV[real_buys_window]:-?}"
+  # 검증 세션 — 개수가 아니라 어느 세션인지로 본다: 지정 종료 세션의 STOPPED 만 정상, 그 밖의 RUNNING 아님은 🔴
+  S66_LINE="66세션 RUNNING ${KV[s66_running]:-?}"
+  if [ -n "${KV[s66_not_running]:-}" ]; then
+    [ -n "${KV[s66_total]:-}" ] && [ "${KV[s66_total]}" != "$EXPECT_S66" ] && red "검증 세션 수 ${KV[s66_total]}(원래 $EXPECT_S66)"
+    s66_bad=(); s66_ended=()
+    for x in ${KV[s66_not_running]}; do
+      [ "$x" = "-" ] && continue
+      if [[ " $S66_ENDED_IDS " == *" ${x%%:*} "* ]] && [ "${x#*:}" = "STOPPED" ]; then s66_ended+=("${x%%:*}"); else s66_bad+=("$x"); fi
+    done
+    s66_wait=()
+    for i in $S66_ENDED_IDS; do [[ " ${s66_ended[*]} " == *" $i "* ]] || s66_wait+=("$i"); done
+    [ ${#s66_bad[@]} -gt 0 ] && red "검증 세션 RUNNING 아님(지정 종료 외): ${s66_bad[*]}"
+    [ ${#s66_wait[@]} -gt 0 ] && note "거래 종료 지정 세션이 아직 STOPPED 아님(정지 대기): ${s66_wait[*]}"
+    S66_LINE="66세션: 원래 ${KV[s66_total]:-?} 중 RUNNING ${KV[s66_running]:-?} · 지정 종료 STOPPED ${#s66_ended[@]}/$(echo $S66_ENDED_IDS | wc -w)${S66_ENDED_IDS:+($S66_ENDED_IDS)}"
+  fi
+  detail "DB: Flyway ${KV[flyway_version]:-?} · 실자금 보유 ${KV[real_open_positions]:-?} · 미결 ${KV[real_unresolved_orders]:-?} · 정리 대기 ${KV[cleanup_pending]:-?} · 격리 대상 ${KV[quarantine_targets]:-?} · $S66_LINE · 구간 실자금 매수 ${KV[real_buys_window]:-?}"
   detail "텔레그램(구간): 성공 ${KV[tg_ok_window]:-?} · 큐 진입 실패 ${KV[tg_queue_rejected]:-?} · 마지막 성공 ${KV[tg_last_ok]:-?}"
   for line in "${TG_FAIL_LINES[@]}"; do
     t="${line%%|*}"; n="${line##*|}"
@@ -192,6 +210,23 @@ else
   detail "ERROR(구간): 전체 ${n_all} · 공유 풀 미등록 ${n_pool} · 캔들 판정 불가 ${n_candle} · 상장 폐지 404 ${n_404} · 통신 실패 ${n_io} · 미분류 ${n_other}"
   [ "${n_candle:-0}" != "0" ] && note "캔들 판정 불가 ERROR ${n_candle}건"
   [ "${n_io:-0}" != "0" ] && note "외부 통신 실패 ERROR ${n_io}건"
+  # 캔들 404 를 마켓별로 — 검증 코인은 코인명을 드러낸다(리뷰 2026-10-27: BLAST 상장 폐지가 건수에 묻혔다).
+  # 거래지원 종료가 확인된 마켓(ENDED_MARKETS)은 🟡, 확인되지 않은 검증 코인 마켓 소실은 🔴. 검증 밖 마켓은 마켓명만 남긴다.
+  if [ "${n_404:-0}" != "0" ]; then
+    s66c="${KV[s66_coins]:-}"
+    [ -z "$s66c" ] && unknown "검증 코인 목록이 없어 캔들 404 를 가르지 못했다(${n_404}건)"
+    other404=()
+    while read -r n m; do
+      [ -z "$m" ] && continue
+      if [ -n "$s66c" ] && [[ " $s66c " == *" $m "* ]]; then
+        if [[ " $ENDED_MARKETS " == *" $m "* ]]; then note "검증 코인 $m 캔들 404 ${n}건 — 거래지원 종료 확인된 마켓"
+        else red "검증 코인 $m 캔들 404 ${n}건 — 마켓 소실(거래지원 종료 미확인): 업비트 공지를 확인한다"; fi
+      else
+        other404+=("$m $n")
+      fi
+    done <<< "$(echo "$ERRS" | grep -E "$P_404" | grep -oE 'market=[A-Z0-9]+-[A-Z0-9]+' | cut -d= -f2 | sort | uniq -c)"
+    [ ${#other404[@]} -gt 0 ] && detail "  · 캔들 404 검증 밖 마켓: $(IFS=,; echo "${other404[*]}")"
+  fi
   if [ "${n_other:-0}" != "0" ]; then
     red "미분류 ERROR ${n_other}건"
     while IFS= read -r l; do detail "  · $(echo "$l" | sed 's/^backend-1 *| *//' | cut -c1-200)"; done <<< "$(echo "$OTHER" | head -5)"
@@ -210,7 +245,16 @@ AL_OK_LINE='🟢 경보 없음 · 실행 누락 없음'
 case $AL_RC in
   0) if echo "$AL_OUT" | grep -q '⚪ 이 구간에 관측이 없다'; then unknown "66세션 경보: 구간 관측 없음"
      elif [ "$AL_LAST" != "$AL_OK_LINE" ]; then unknown "66세션 경보: 정상 결과 줄 없음(종료 0, 출력 확인 필요)"; fi ;;
-  1) if [[ "$AL_LAST" == "🔴 "* ]]; then red "66세션 경보(확정 아님 — 확인 필요): ${AL_LAST#🔴 }"
+  1) if [[ "$AL_LAST" == "🔴 "* ]]; then
+       # 적재 뒤처짐만 있고 그 회차들의 🔴 코인이 전부 거래지원 종료 확인 마켓이면 🟡 — 그 밖(다른 코인·판정 불가·실행 누락)은 🔴 그대로
+       al_rows=$(echo "$AL_OUT" | grep -E '^🔴 [0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}  [0-9]+종: ' || true)
+       al_other=""
+       for c in $(echo "$al_rows" | sed 's/^.*종: //' | tr ' ' '\n' | sort -u); do [[ " $ENDED_MARKETS " == *" $c "* ]] || al_other="$al_other $c"; done
+       if [[ "$AL_LAST" =~ ^🔴\ 적재\ 뒤처짐\ [0-9]+회$ ]] && [ -n "$al_rows" ] && [ -z "$al_other" ]; then
+         note "66세션 경보: ${AL_LAST#🔴 } — 전부 거래지원 종료 확인 마켓($ENDED_MARKETS), 다른 코인 이상 없음"
+       else
+         red "66세션 경보(확정 아님 — 확인 필요): ${AL_LAST#🔴 }${al_other:+ · 코인:$al_other}"
+       fi
      else unknown "66세션 경보: 결과 줄 없음(종료 1)"; fi ;;
   124) unknown "66세션 경보 조회 시간 초과(${ALERTS_TIMEOUT}초)" ;;
   *) unknown "66세션 경보 조회 실패(종료 $AL_RC): $(echo "$AL_OUT" | tail -1 | cut -c1-120)" ;;

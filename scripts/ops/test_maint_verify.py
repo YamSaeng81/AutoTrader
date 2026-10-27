@@ -124,6 +124,39 @@ open(after, "w", encoding="utf-8").write(
 open(before, "w", encoding="utf-8").write("ERROR [캔들 최신성] KRW-CAP:M15 판정 불가 (DYNAMIC)\n")
 check("candle — 기동 직전 판정 불가였어도 기동 뒤 재개됐다가 다시 불가면 예외가 아니다", mv.cmd_candle(after, before) == 1)
 
+# ── candle: 실제 로그 형식 — BTC 관문 재개 줄의 '종전' 사유에 '판정 불가' 가 들어 있다 (정비 #12 2026-10-27, 리뷰) ──
+P = "backend-1  | %s [scheduler-%d] %s c.c.api.service.CandleFreshnessGuard - "
+BTC_STALE = (P % ("01:31:16.316", 4, "ERROR") + "🔴 [캔들 최신성] BTC 급락 관문 H1 판정 불가 (DYNAMIC) — 이 관문을 요구하는 신규 진입을 막는다: "
+             "BTC 캔들 판정 불가(결측 4칸(허용 2) — 완료 봉 196개 / 기대 200개 (2026-10-19T02:00:00Z ~ 2026-10-27T00:00:00Z)) — 급락 여부를 모른다\n")
+BTC_RESUME = (P % ("01:32:20.910", 6, "WARN ") + "[캔들 최신성] BTC 급락 관문 H1 판정 재개 (DYNAMIC): 종전 2026-10-27T01:31:16.315929903Z "
+              "BTC 캔들 판정 불가(결측 4칸(허용 2) — 완료 봉 196개 / 기대 200개 (2026-10-19T02:00:00Z ~ 2026-10-27T00:00:00Z)) — 급락 여부를 모른다\n")
+COIN_STALE = (P % ("01:30:40.100", 2, "ERROR") + "🔴 [캔들 최신성] KRW-SOON:M15 판정 불가 (DYNAMIC) — 이 회차의 진입·캔들 기반 청산을 하지 않는다: "
+              "결측 5칸(허용 2) — 완료 봉 470개 / 기대 475개\n")
+open(before, "w", encoding="utf-8").write(BTC_STALE + BTC_RESUME + COIN_STALE)
+open(after, "w", encoding="utf-8").write(BTC_STALE + COIN_STALE + BTC_RESUME)
+buf = io.StringIO()
+with contextlib.redirect_stdout(buf):
+    rc = mv.cmd_candle(after, before)
+out = buf.getvalue()
+check("candle — 실제 형식: BTC 관문 재개 줄을 재개로 읽는다(종전 사유의 '판정 불가' 에 속지 않는다)",
+      rc == 0 and "판정 불가로 들어간 대상 2 · 로그 끝 기준 판정 재개 1 · 아직 판정 불가 1" in out
+      and "판정 재개 (DYNAMIC)" not in out and "BTC 급락 관문 H1" not in out, out)
+check("candle — 실제 형식: 재개 줄 키는 'BTC 급락 관문 H1' 하나다",
+      mv._keys(after, False) == ["BTC 급락 관문 H1"] and mv._keys(after, True) == ["BTC 급락 관문 H1", "KRW-SOON:M15"],
+      (mv._keys(after, True), mv._keys(after, False)))
+open(after, "w", encoding="utf-8").write(BTC_STALE + BTC_RESUME + BTC_STALE.replace("01:31:16.316", "01:45:16.002"))
+open(before, "w", encoding="utf-8").write("")
+buf = io.StringIO()
+with contextlib.redirect_stdout(buf):
+    rc = mv.cmd_candle(after, before)
+check("candle — 실제 형식: 판정 불가 → 재개 → 다시 판정 불가면 실패(재개 뒤 다시 판정 불가)",
+      rc == 1 and "판정 불가: BTC 급락 관문 H1  (재개 뒤 다시 판정 불가)" in buf.getvalue(), buf.getvalue())
+open(after, "a", encoding="utf-8").write(BTC_RESUME.replace("01:32:20.910", "01:46:20.500"))
+check("candle — 실제 형식: 그 뒤 다시 재개되면 통과", mv.cmd_candle(after, before) == 0)
+dbg = os.path.join(work, "dbg.log")
+open(dbg, "w", encoding="utf-8").write("DEBUG [캔들 최신성] KRW-SOON:M15 판정 불가 지속: 결측 5칸\n")
+check("candle — '판정 불가 지속' 디버그 줄은 상태 줄로 세지 않는다(엔진 괄호 없음)", list(mv._events(dbg)) == [])
+
 shutil.rmtree(work, ignore_errors=True)
 print("\nmaint_verify 시험 %d/%d 통과" % (sum(results), len(results)))
 sys.exit(0 if all(results) else 1)

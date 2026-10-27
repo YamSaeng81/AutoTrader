@@ -76,6 +76,10 @@ TG_API = "http://127.0.0.1:%d" % srv.server_address[1]
 sql("postgres", "DROP DATABASE IF EXISTS %s; CREATE DATABASE %s TEMPLATE crypto_auto_trader;" % (DB, DB))
 sql(DB, "INSERT INTO paper_trading.virtual_balance (id, total_krw, available_krw, status) "
         "SELECT g, 1000000, 1000000, 'RUNNING' FROM generate_series(522, 587) g;")
+# 검증 22코인 × 세 팔 — 사전 등록 순서 그대로(id 522 부터 코인마다 3개, KRW-BLAST = 576·577·578)
+COINS22 = "IOTA WAVES CRO ONG SC POLYX NEAR WAXP BCH CVC POWR T ANKR DKA GLM HIVE PUNDIX ELF BLAST JUP G INJ".split()
+sql(DB, "UPDATE paper_trading.virtual_balance v SET coin_pair = 'KRW-' || (ARRAY[%s])[(v.id - 522) / 3 + 1] WHERE v.id BETWEEN 522 AND 587;"
+    % ",".join("'%s'" % c for c in COINS22))
 
 work = tempfile.mkdtemp(prefix="daily-check-")
 logs_ok = os.path.join(work, "logs_ok.txt")
@@ -154,10 +158,68 @@ sql(DB, "UPDATE paper_trading.virtual_balance SET status='STOPPED' WHERE id=587;
         "INSERT INTO telegram_notification_log (type, session_label, message_text, success, sent_at) VALUES ('RISK_LIMIT', NULL, '한도', FALSE, now());"
         "INSERT INTO telegram_notification_log (type, session_label, message_text, success, sent_at) VALUES ('CUSTOM', 'system', '보고', FALSE, now());")
 rc, rep, last, sent, raw = run("anomaly")
-check("수치 이상 — 🔴·종료 1·66세션 65/66·중요 경보 실패 🔴·CUSTOM 실패는 🟡",
-      rc == 1 and rep.startswith("[정기 점검] 🔴") and "🔴 검증 66세션 RUNNING 65/66" in rep
+# 2026-10-27: 개수(65/66)가 아니라 어느 세션인지로 알린다 — 지정 종료 세션 밖이라 🔴
+check("수치 이상 — 🔴·종료 1·지정 종료 밖 587 정지 🔴·중요 경보 실패 🔴·CUSTOM 실패는 🟡",
+      rc == 1 and rep.startswith("[정기 점검] 🔴") and "🔴 검증 세션 RUNNING 아님(지정 종료 외): 587:STOPPED" in rep
+      and "원래 66 중 RUNNING 65" in rep
       and "🔴 텔레그램 중요 경보 전송 실패 RISK_LIMIT 1건" in rep and "🟡 텔레그램 전송 실패 CUSTOM 1건" in rep and len(sent) == 1, raw + rep)
 sql(DB, "UPDATE paper_trading.virtual_balance SET status='RUNNING' WHERE id=587; DELETE FROM telegram_notification_log;")
+
+# ── 2026-10-27 리뷰: 검증 코인 BLAST 거래지원 종료 — 지정 종료 세션·검증 코인 404·종료 확인 마켓의 66세션 경보 ──
+rc, rep, last, sent, raw = run("ended_wait")
+check("지정 종료 세션이 아직 RUNNING — 🟡 정지 대기(판정은 정상)·'원래 66 중 RUNNING 66 · 지정 종료 STOPPED 0/3'",
+      rc == 0 and "🟡 거래 종료 지정 세션이 아직 STOPPED 아님(정지 대기): 576 577 578" in rep
+      and "66세션: 원래 66 중 RUNNING 66 · 지정 종료 STOPPED 0/3(576 577 578)" in rep, rep)
+sql(DB, "UPDATE paper_trading.virtual_balance SET status='STOPPED' WHERE id IN (576,577,578);")
+rc, rep, last, sent, raw = run("ended_done")
+check("지정 종료 3세션 STOPPED — 정상·'원래 66 중 RUNNING 63 · 지정 종료 STOPPED 3/3'(기대값을 63 으로 낮춘 것이 아니다)",
+      rc == 0 and "🟢 점검 항목 정상" in rep and "정지 대기" not in rep
+      and "66세션: 원래 66 중 RUNNING 63 · 지정 종료 STOPPED 3/3(576 577 578)" in rep, rep)
+sql(DB, "UPDATE paper_trading.virtual_balance SET status='STOPPED' WHERE id=522;")
+rc, rep, last, sent, raw = run("ended_plus_other")
+check("지정 종료 3 + 다른 세션 522 정지 — RUNNING 63 이 아니라 62, 522 를 🔴 로 짚는다",
+      rc == 1 and "🔴 검증 세션 RUNNING 아님(지정 종료 외): 522:STOPPED" in rep and "RUNNING 62" in rep, rep)
+sql(DB, "UPDATE paper_trading.virtual_balance SET status='RUNNING' WHERE id=522; UPDATE paper_trading.virtual_balance SET status='PAUSED' WHERE id=576;")
+rc, rep, last, sent, raw = run("ended_other_status")
+check("지정 종료 세션이라도 STOPPED 가 아닌 상태(PAUSED)면 🔴 — 그리고 정지 대기 🟡",
+      rc == 1 and "🔴 검증 세션 RUNNING 아님(지정 종료 외): 576:PAUSED" in rep and "정지 대기): 576" in rep, rep)
+sql(DB, "UPDATE paper_trading.virtual_balance SET status='STOPPED' WHERE id IN (576,577,578);")
+rc, rep, last, sent, raw = run("ended_override", S66_ENDED_IDS="")
+check("지정 종료 목록이 비면(설정으로 덮어씀) 576~578 정지는 🔴 — 목록 밖 정지를 정상으로 보지 않는다",
+      rc == 1 and "🔴 검증 세션 RUNNING 아님(지정 종료 외): 576:STOPPED 577:STOPPED 578:STOPPED" in rep, rep)
+sql(DB, "UPDATE paper_trading.virtual_balance SET status='RUNNING' WHERE id IN (576,577,578);")
+
+logs_404 = os.path.join(work, "logs_404.txt")
+shutil.copy(logs_ok, logs_404)
+with open(logs_404, "a", encoding="utf-8") as f:
+    for i in range(2):
+        f.write("backend-1  | 01:3%d:20.802 [scheduler-2] ERROR c.c.exchange.upbit.UpbitRestClient - Upbit API 오류: status=404, url=https://api.upbit.com/v1/candles/minutes/60?market=KRW-BLAST&count=200&to=2026-10-27T01:30:20, body={\"error\":{\"name\":404,\"message\":\"Code not found\"}}\n" % i)
+rc, rep, last, sent, raw = run("v404_ended", LOGS_FILE=logs_404)
+check("검증 코인 BLAST 404(종료 확인 마켓) — 🟡 코인명·건수, 검증 밖 BONK 는 마켓명만, 판정은 정상",
+      rc == 0 and "🟡 검증 코인 KRW-BLAST 캔들 404 2건 — 거래지원 종료 확인된 마켓" in rep
+      and "캔들 404 검증 밖 마켓: KRW-BONK 1" in rep and "상장 폐지 404 3" in rep, rep)
+with open(logs_404, "a", encoding="utf-8") as f:
+    f.write("backend-1  | 02:00:01.000 [scheduler-3] ERROR c.c.exchange.upbit.UpbitRestClient - Upbit API 오류: status=404, url=https://api.upbit.com/v1/candles/minutes/60?market=KRW-JUP&count=200&to=2026-10-27T02:00:01, body={\"error\":{\"name\":404,\"message\":\"Code not found\"}}\n")
+rc, rep, last, sent, raw = run("v404_unconfirmed", LOGS_FILE=logs_404)
+check("검증 코인 JUP 404(종료 확인 안 됨) — 🔴 마켓 소실, BLAST 는 🟡 그대로",
+      rc == 1 and "🔴 검증 코인 KRW-JUP 캔들 404 1건 — 마켓 소실(거래지원 종료 미확인)" in rep
+      and "🟡 검증 코인 KRW-BLAST 캔들 404 2건" in rep, rep)
+rc, rep, last, sent, raw = run("v404_no_ended", LOGS_FILE=logs_404, ENDED_MARKETS="")
+check("종료 확인 마켓이 비면 BLAST 404 도 🔴", rc == 1 and "🔴 검증 코인 KRW-BLAST 캔들 404 2건 — 마켓 소실" in rep, rep)
+
+AL_BLAST = ("echo '관측 2회 (구간 지정 시각)'; echo '🔴 10-27 01:19  1종: KRW-BLAST'; echo '🔴 10-27 02:19  1종: KRW-BLAST'; "
+            "echo '현재 10-27 02:19: 🟢 21 / ⚪ 0 / 🔴 1'; echo; echo '🔴 적재 뒤처짐 2회'; echo; "
+            "echo '🔴 🔴 은 경보이고 확정이 아니다 — 분봉'; exit 1")
+rc, rep, last, sent, raw = run("al_ended", ALERTS_CMD=AL_BLAST)
+check("66세션 경보가 전부 종료 확인 마켓(BLAST) — 🟡, 판정은 정상",
+      rc == 0 and "🟡 66세션 경보: 적재 뒤처짐 2회 — 전부 거래지원 종료 확인 마켓(KRW-BLAST), 다른 코인 이상 없음" in rep, rep)
+rc, rep, last, sent, raw = run("al_mixed", ALERTS_CMD=AL_BLAST.replace("1종: KRW-BLAST'; echo '🔴 10-27 02:19", "2종: KRW-BLAST KRW-NEAR'; echo '🔴 10-27 02:19"))
+check("66세션 경보에 다른 코인(NEAR)이 섞이면 🔴 — 코인명 표시",
+      rc == 1 and "🔴 66세션 경보(확정 아님 — 확인 필요): 적재 뒤처짐 2회 · 코인: KRW-NEAR" in rep, rep)
+rc, rep, last, sent, raw = run("al_ended_gap", ALERTS_CMD=AL_BLAST.replace("echo '🔴 적재 뒤처짐 2회'", "echo '🔴 적재 뒤처짐 2회 / 실행 누락 1구간'"))
+check("BLAST 뿐이어도 실행 누락이 함께 있으면 🔴", rc == 1 and "🔴 66세션 경보(확정 아님 — 확인 필요): 적재 뒤처짐 2회 / 실행 누락 1구간" in rep, rep)
+rc, rep, last, sent, raw = run("al_ended_none", ALERTS_CMD=AL_BLAST, ENDED_MARKETS="")
+check("종료 확인 마켓이 비면 BLAST 경보도 🔴", rc == 1 and "🔴 66세션 경보(확정 아님 — 확인 필요): 적재 뒤처짐 2회 · 코인: KRW-BLAST" in rep, rep)
 
 # 3. 미분류 ERROR
 rc, rep, last, sent, raw = run("unknown_error", LOGS_FILE=logs_bad)
@@ -181,7 +243,7 @@ check("DB 시간 초과 — ⚪ 판정 불가", rc == 1 and "DB 조회 시간 �
 rc, rep, last, sent, raw = run("app_down", APP_STATE="absent|0|-|-",
                                ALERTS_CMD="echo 'API 에 닿지 않는다' >&2; exit 2")
 check("앱 없음 — 🔴 컨테이너 없음 + DB 점검은 그대로 + 66세션은 판정 불가 + 보고 전송",
-      rc == 1 and "🔴 backend 컨테이너 없음" in rep and "66세션 RUNNING 66" in rep and "66세션 경보 조회 실패" in rep and len(sent) == 1, raw + rep)
+      rc == 1 and "🔴 backend 컨테이너 없음" in rep and "원래 66 중 RUNNING 66" in rep and "66세션 경보 조회 실패" in rep and len(sent) == 1, raw + rep)   # 2026-10-27 표시 형식 변경
 
 # 8. 구간 안 재기동 — 계획 여부 확인 요구
 rc, rep, last, sent, raw = run("restarted", APP_STATE="running|0|%s|sha256:abc" %
@@ -293,7 +355,7 @@ check("앱 로그 원문을 결과 파일 옆에 압축 보존(.log.gz)", bool(g
 
 # 24. 리눅스(서버와 같은 ubuntu:22.04)에서 flock 으로 동시 시작 — 도커로 돌린다
 CANNED = ("flyway_version|94\nreal_open_positions|0\nreal_unresolved_orders|0\ncleanup_pending|0\nquarantine_targets|0\n"
-          "s66_running|66\ns66_total|66\nreal_buys_window|0\nquarantine_release_rows|0\ntg_queue_rejected|0\ntg_ok_window|0\n"
+          "s66_running|66\ns66_total|66\ns66_not_running|-\ns66_coins|KRW-BLAST\nreal_buys_window|0\nquarantine_release_rows|0\ntg_queue_rejected|0\ntg_ok_window|0\n"
           "tg_last_ok|none\nEND|ok\n")
 with open(os.path.join(work, "canned.txt"), "w", newline="\n") as f:
     f.write(CANNED)

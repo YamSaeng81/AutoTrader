@@ -31,9 +31,14 @@ SELECT 'quarantine_targets', count(*)
  WHERE p.session_kind IN ('LIVE','DYNAMIC') AND p.status IN ('OPEN','CLOSING')
    AND o.side = 'SELL' AND o.sell_applied_at IS NULL AND o.filled_quantity > 0 AND o.state IN ('FILLED','CANCELLED');
 
--- 검증 66세션(522~587) — 기대 RUNNING 66
+-- 검증 66세션(522~587) — 기대: 원래 66개 중 지정 종료 세션(daily_check.sh S66_ENDED_IDS)만 STOPPED, 나머지 RUNNING
 SELECT 's66_running', count(*) FILTER (WHERE status = 'RUNNING') FROM paper_trading.virtual_balance WHERE id BETWEEN 522 AND 587;
 SELECT 's66_total', count(*) FROM paper_trading.virtual_balance WHERE id BETWEEN 522 AND 587;
+-- RUNNING 아닌 검증 세션 "id:상태" 목록(없으면 -) — 개수가 아니라 어느 세션인지로 비교한다(리뷰 2026-10-27: 기대값을 63 으로 낮추지 않는다)
+SELECT 's66_not_running', coalesce(string_agg(id || ':' || coalesce(status, 'NULL'), ' ' ORDER BY id), '-')
+  FROM paper_trading.virtual_balance WHERE id BETWEEN 522 AND 587 AND status IS DISTINCT FROM 'RUNNING';
+-- 검증 코인 목록 — 캔들 404 를 검증 코인과 그 밖으로 가른다
+SELECT 's66_coins', coalesce(string_agg(DISTINCT coin_pair, ' ' ORDER BY coin_pair), '-') FROM paper_trading.virtual_balance WHERE id BETWEEN 522 AND 587;
 
 -- 점검 구간 안의 실자금 신규 매수 — 기대 0 (STAGE_1 비활성 — 공유 풀 미등록이라 실자금 진입은 거절된다)
 SELECT 'real_buys_window', count(*)
