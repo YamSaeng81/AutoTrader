@@ -122,7 +122,9 @@ class Fake:
                   "signal_counts": self.signal or [{"session_id": 522, "day": "2026-10-01", "n": 17}],
                   "meta": [{"snapshot_ts": z(snapshot)}]}
         if self.no_trade:
-            tables["no_trade_bars"] = [{"coin_pair": c, "time": z(t), "evidence": "가짜"} for c, t in self.no_trade]
+            # dict = 근거를 갖춘 행(no_trade_evidence), (코인, 시각) = 근거 없는 두 필드만의 행(리뷰 4차 재현용)
+            tables["no_trade_bars"] = [dict(e) if isinstance(e, dict) else {"coin_pair": e[0], "time": z(e[1])}
+                                       for e in self.no_trade]
         if mutate:
             mutate(tables)
         for n, rows in tables.items():
@@ -162,3 +164,17 @@ def bars_all(f, end, price=lambda t: 1000):
     for c in COINS:
         if c != "KRW-BLAST":
             f.bars(c, ALL_BARS, end, price)
+
+
+def no_trade_evidence(coin, bar, checked_at=None, status="200", around=(1, 1), include_bar=False, market=None,
+                      request=None):
+    """근거를 갖춘 무거래 예외 행 — 업비트 H1 캔들 응답 모양(빠진 봉의 앞 around[0]개·뒤 around[1]개 봉)."""
+    times = [bar - timedelta(hours=k) for k in range(1, around[0] + 1)] + \
+            [bar + timedelta(hours=k) for k in range(1, around[1] + 1)] + ([bar] if include_bar else [])
+    body = [{"market": market or coin, "candle_date_time_utc": t.strftime("%Y-%m-%dT%H:%M:%S"), "trade_price": 1000}
+            for t in sorted(times, reverse=True)]
+    import json
+    return {"coin_pair": coin, "time": z(bar), "checked_at": z(checked_at or bar + timedelta(hours=3)),
+            "request": request or f"https://api.upbit.com/v1/candles/minutes/60?market={coin}&to="
+                                  f"{(bar + timedelta(hours=2)).strftime('%Y-%m-%dT%H:%M:%S')}Z&count=4",
+            "response_status": status, "response_body": json.dumps(body)}

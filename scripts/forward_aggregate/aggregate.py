@@ -112,7 +112,8 @@ class Data:
     sessions: dict              # id → row
     trades: dict                # session id → [Trade] (매수 시각 순)
     candles: dict = field(default_factory=dict)   # coin → {open_time: close}
-    no_trade: set = field(default_factory=set)    # {(coin, open_time)}
+    no_trade: dict = field(default_factory=dict)  # {(coin, open_time): 확인 근거 행} — validate_no_trade 를 통과한 것만
+    no_trade_used: dict = field(default_factory=dict)   # 실제로 평가에 쓴 예외 — 결과에 남긴다
     signal_counts: list = field(default_factory=list)
     snapshot: datetime | None = None
     hashes: dict = field(default_factory=dict)
@@ -121,6 +122,7 @@ class Data:
 def load_config(path):
     with open(path, encoding="utf-8") as f:
         cfg = json.load(f)
+    cfg["_path"] = path
     cfg["t0"] = ts(cfg["t0"])
     cfg["six_months_at"] = ts(cfg["six_months_at"])
     cfg["t_end"] = ts(cfg.get("t_end"))
@@ -140,11 +142,57 @@ def load_config(path):
     return cfg
 
 
+def input_hashes(indir, cfg, files):
+    """결과에 남길 입력 해시 — 고정 설정 파일과 (있으면) 무거래 예외 파일까지 포함한다."""
+    hashes = {f: sha256(os.path.join(indir, f)) for f in files if os.path.exists(os.path.join(indir, f))}
+    hashes["forward_config.json"] = sha256(cfg["_path"])
+    return hashes
+
+
+NO_TRADE_COLUMNS = ("coin_pair", "time", "checked_at", "request", "response_status", "response_body")
+
+
+def validate_no_trade(r):
+    """무거래 봉 예외 한 행의 확인 근거를 검사한다(설계 §4-1 3). 근거가 모자라면 InputError — 예외로 인정하지 않는다.
+
+    근거 = 업비트 H1 캔들 조회의 조회 시각·요청·응답 원문. 응답이 그 마켓의 캔들 목록이고, 빠진 봉의 **앞과 뒤 봉을 모두 담으면서
+    그 봉만 없어야** '거래소에도 없는 봉' 으로 본다. 오류 응답(예: 거래지원 종료 404)은 봉의 부재를 말하지 않는다.
+    """
+    missing = [c for c in NO_TRADE_COLUMNS if not (r.get(c) or "").strip()]
+    if missing:
+        raise InputError(f"무거래 예외 {r.get('coin_pair')} {r.get('time')}: 근거 필드 없음 {missing}")
+    coin, bar = r["coin_pair"], ts(r["time"])
+    checked = ts(r["checked_at"])
+    where = f"무거래 예외 {coin} {iso(bar)}"
+    if checked < bar + HOUR:
+        raise InputError(f"{where}: 조회 시각 {iso(checked)} 이 봉 마감 전이다 — 부재를 말할 수 없다")
+    if r["response_status"].strip() != "200":
+        raise InputError(f"{where}: 응답 상태 {r['response_status']} — 200 이 아니면 근거가 아니다")
+    if "candles/minutes/60" not in r["request"] or coin not in r["request"]:
+        raise InputError(f"{where}: 요청이 그 마켓의 H1 캔들 조회가 아니다")
+    try:
+        body = json.loads(r["response_body"])
+        if not isinstance(body, list):
+            raise ValueError("목록이 아니다")
+        times = {datetime.fromisoformat(x["candle_date_time_utc"]).replace(tzinfo=timezone.utc)
+                 for x in body if x.get("market") == coin}
+        if len(times) != len(body):
+            raise ValueError("다른 마켓 또는 형식 오류")
+    except (ValueError, TypeError, KeyError, AttributeError) as e:
+        raise InputError(f"{where}: 응답 원문이 그 마켓의 캔들 목록이 아니다 ({e})")
+    if bar in times:
+        raise InputError(f"{where}: 응답에 그 봉이 있다 — 무거래가 아니다")
+    if not any(t < bar for t in times) or not any(t > bar for t in times):
+        raise InputError(f"{where}: 응답이 그 봉의 앞·뒤 봉을 모두 담지 않는다 — 구간을 덮었다고 볼 수 없다")
+    return {"coin_pair": coin, "time": iso(bar), "checked_at": iso(checked), "request": r["request"],
+            "response_sha256": hashlib.sha256(r["response_body"].encode("utf-8")).hexdigest()}
+
+
 def load(indir, cfg, with_market=True):
     files = ["sessions.csv", "positions.csv", "orders.csv", "meta.csv"]
     if with_market:
-        files += ["candles.csv", "signal_counts.csv"]
-    hashes = {f: sha256(os.path.join(indir, f)) for f in files if os.path.exists(os.path.join(indir, f))}
+        files += ["candles.csv", "signal_counts.csv", "no_trade_bars.csv"]
+    hashes = input_hashes(indir, cfg, files)
 
     meta = read_csv(os.path.join(indir, "meta.csv"))
     if len(meta) != 1:
@@ -187,7 +235,8 @@ def load(indir, cfg, with_market=True):
         for r in read_csv(os.path.join(indir, "candles.csv")):
             data.candles.setdefault(r["coin_pair"], {})[ts(r["time"])] = Decimal(r["close"])
         for r in read_csv(os.path.join(indir, "no_trade_bars.csv"), required=False):
-            data.no_trade.add((r["coin_pair"], ts(r["time"])))
+            ev = validate_no_trade(r)
+            data.no_trade[(ev["coin_pair"], ts(ev["time"]))] = ev
         data.signal_counts = read_csv(os.path.join(indir, "signal_counts.csv"))
     return data
 
@@ -351,6 +400,8 @@ def verify(data, t_end=None):
         elif s["status"] != "RUNNING":
             if t_end is None or s["stopped_at"] is None or s["stopped_at"] < t_end:
                 errors.append(f"세션 {sid}: 상태 {s['status']}(정지 {s['stopped_at']}) — 지정된 종료가 아니다 → 측정 결측(판정 불가)")
+    # 평가 가격 — 보유 평가에 필요한 봉과 무거래 근거(측정 결측이면 실패). 성과는 계산하지 않는다
+    errors += check_marks(data, t_end)
     return errors
 
 
@@ -373,13 +424,81 @@ def determine_end(data):
     return six, "6개월 경과"
 
 
+COUNT_FIELDS = {   # 건수 전용 경로가 읽는 필드 — 금액·가격·수량·손익 컬럼은 읽지 않는다
+    "sessions.csv": ("id", "coin_pair", "strategy_name", "timeframe"),
+    "positions.csv": ("id", "session_id"),
+    "orders.csv": ("id", "session_id", "position_id", "side", "state", "filled_at"),
+}
+
+
+def load_counts(indir, cfg):
+    """건수 전용 로더(리뷰 4차) — 세션 대응·주문 짝·체결 시각만 읽는다. 금액 변환 없음, 오류에는 번호·시각만 쓴다."""
+    def rows(name):
+        return [{k: r.get(k, "") for k in COUNT_FIELDS[name]} for r in read_csv(os.path.join(indir, name))]
+
+    meta = read_csv(os.path.join(indir, "meta.csv"))
+    if len(meta) != 1:
+        raise InputError("meta.csv 는 스냅샷 한 줄이어야 한다")
+    errors = []
+    by_id = {s["id"]: s for s in cfg["sessions"]}
+    sessions = {}
+    for r in rows("sessions.csv"):
+        sid = int(r["id"])
+        want = by_id.get(sid)
+        if sid in sessions:
+            errors.append(f"세션 중복: {sid}")
+        sessions[sid] = {"id": sid, "coin_pair": r["coin_pair"]}
+        if want is None:
+            continue
+        if r["coin_pair"] != want["coin"] or r["strategy_name"] != cfg["arms"][want["arm"]] \
+                or r["timeframe"] != cfg["timeframe"]:
+            errors.append(f"세션 {sid}: 코인·팔·타임프레임이 설정과 다르다")
+    if set(sessions) != set(by_id):
+        errors.append(f"세션 집합이 설정과 다르다: 빠짐 {sorted(set(by_id) - set(sessions))}, "
+                      f"남음 {sorted(set(sessions) - set(by_id))}")
+    positions = {int(r["id"]): int(r["session_id"]) for r in rows("positions.csv")}
+    by_pos = {}
+    for r in rows("orders.csv"):
+        oid = int(r["id"])
+        if int(r["session_id"]) not in sessions:
+            errors.append(f"주문 {oid}: 66세션 밖")
+            continue
+        if r["state"] != "FILLED" or not r["filled_at"]:
+            errors.append(f"주문 {oid}: 체결 상태·시각 없음")
+            continue
+        pid = int(r["position_id"]) if r["position_id"] else None
+        if pid not in positions or positions[pid] != int(r["session_id"]):
+            errors.append(f"주문 {oid}: 짝 포지션 없음")
+            continue
+        by_pos.setdefault(pid, []).append({"id": oid, "side": r["side"], "filled_at": ts(r["filled_at"])})
+    trades = {sid: [] for sid in sessions}
+    for pid, sid in positions.items():
+        if sid not in sessions:
+            errors.append(f"포지션 {pid}: 66세션 밖")
+            continue
+        os_ = by_pos.get(pid, [])
+        buys = [o for o in os_ if o["side"] == "BUY"]
+        sells = [o for o in os_ if o["side"] == "SELL"]
+        if len(buys) != 1 or len(sells) > 1 or len(buys) + len(sells) != len(os_):
+            errors.append(f"포지션 {pid}: 매수 {len(buys)}·매도 {len(sells)} — 매수 1 + 매도 0~1 이어야 한다")
+            continue
+        if sells and sells[0]["filled_at"] < buys[0]["filled_at"]:
+            errors.append(f"포지션 {pid}: 매도가 매수보다 앞선다")
+            continue
+        trades[sid].append(Trade({"id": pid}, buys[0], sells[0] if sells else None))
+    if errors:
+        raise InputError("\n".join(errors))
+    hashes = input_hashes(indir, cfg, ["sessions.csv", "positions.csv", "orders.csv", "meta.csv"])
+    return Data(cfg=cfg, sessions=sessions, trades=trades, snapshot=ts(meta[0]["snapshot_ts"]), hashes=hashes)
+
+
 def cmd_count(data):
     """건수 전용 — 손익·자산·수익률을 계산하지 않는다(설계 §5, R11)."""
     counts = arm_counts(data, data.snapshot)
     out = {"snapshot": iso(data.snapshot), "closed_round_trips": counts,
            "reached_200": {a: n >= END_TRADES for a, n in counts.items()},
            "reached_100": {a: n >= MIN_TRADES for a, n in counts.items()},
-           "six_months_at": iso(data.cfg["six_months_at"])}
+           "six_months_at": iso(data.cfg["six_months_at"]), "inputs_sha256": data.hashes}
     return out
 
 
@@ -390,13 +509,54 @@ def mark_price(data, coin, last_open):
     closes = data.candles.get(coin, {})
     o = last_open
     floor = data.cfg["t0"] - 2 * DAY
+    used = []
     while o >= floor:
         if o in closes:
+            for ev in used:                        # 실제로 거슬러 간 예외만 기록한다
+                data.no_trade_used[(coin, ev["time"])] = ev
             return closes[o]
-        if (coin, o) not in data.no_trade:
-            raise InputError(f"측정 결측: {coin} 봉 {iso(o)} 이 캐시에 없고 무거래 확인도 없다 — 판정 불가")
+        ev = data.no_trade.get((coin, o))
+        if ev is None:
+            raise InputError(f"측정 결측: {coin} 봉 {iso(o)} 이 캐시에 없고 확인된 무거래 근거도 없다 — 판정 불가")
+        used.append(ev)
         o -= HOUR
     raise InputError(f"측정 결측: {coin} 의 평가 가격을 찾지 못했다(T0 이전까지)")
+
+
+VERIFY_LAG = HOUR   # 종료 전 verify 는 스냅샷 직전 1시간 안의 경계를 보지 않는다 — 막 마감된 봉은 아직 적재 전일 수 있다
+
+
+def mark_requirements(data, sid, end, inclusive_end):
+    """평가 가격이 필요한 (시각, 포함 규칙) — 보유가 있는 날짜 경계(<) 와, inclusive_end 면 끝점(≤)."""
+    t0 = data.cfg["t0"]
+    trades = data.trades[sid]
+    b = datetime.combine(t0.date() + DAY, datetime.min.time(), tzinfo=timezone.utc)
+    while b <= end:
+        if ledger_at(trades, b, False, data.cfg["initial_capital"])[1]:
+            yield b, False
+        b += DAY
+    if inclusive_end and ledger_at(trades, end, True, data.cfg["initial_capital"])[1]:
+        yield end, True
+
+
+def check_marks(data, t_end=None):
+    """설계 §4-1 측정 분류 중 평가 가격 — 필요한 봉이 캐시에 있거나 확인된 무거래 근거로 이어지는지. 가격·손익은 출력하지 않는다.
+
+    t_end 가 있으면 T0 ~ T_end 의 모든 경계와 끝점, 없으면(종료 전) 스냅샷 − 1시간까지의 경계만 본다.
+    """
+    errors = []
+    if t_end is not None:
+        end, inclusive_end = t_end, True
+    else:
+        end, inclusive_end = data.snapshot - VERIFY_LAG, False
+    for sid in sorted(data.sessions):
+        coin = data.sessions[sid]["coin_pair"]
+        for t, _ in mark_requirements(data, sid, end, inclusive_end):
+            try:
+                mark_price(data, coin, t.replace(minute=0, second=0, microsecond=0) - HOUR)
+            except InputError as e:
+                errors.append(f"세션 {sid} 평가 시각 {iso(t)}: {e}")
+    return errors
 
 
 def equity(data, sid, t, inclusive):
@@ -501,7 +661,10 @@ def cmd_final(data, outdir):
     sample = "정상" if all(n >= END_TRADES for n in counts.values()) else \
         ("표본 부족 명시" if all(n >= MIN_TRADES for n in counts.values()) else "판정 불가")
     result = {"t_end": iso(t_end), "end_reason": reason, "snapshot": iso(data.snapshot),
-              "round_trips": counts, "sample": sample, "inputs_sha256": data.hashes}
+              "round_trips": counts, "sample": sample, "inputs_sha256": data.hashes,
+              # 직전 종가로 이은 무거래 예외 — verify(check_marks) 가 T_end 까지 필요한 평가 봉을 전부 훑은 뒤라 완전하다
+              "no_trade_used": sorted(data.no_trade_used.values(), key=lambda e: (e["coin_pair"], e["time"]))}
+    report.append(f"무거래 봉 예외 사용 {len(result['no_trade_used'])}건 — 근거(조회 시각·요청·응답 해시)는 result.json")
     if sample == "판정 불가":
         report.append("🔴 한 팔이라도 100거래 미만 — 판정 불가 (사전 등록 §5). 성과는 계산하지 않는다.")
         _write(outdir, report, result)
@@ -622,7 +785,8 @@ def _write(outdir, report, result):
 
 
 def main(argv):
-    sys.stdout.reconfigure(encoding="utf-8")
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     args = [a for a in argv if not a.startswith("--config=")]
     cfg_path = next((a.split("=", 1)[1] for a in argv if a.startswith("--config=")),
                     os.path.join(HERE, "forward_config.json"))
@@ -632,7 +796,7 @@ def main(argv):
     try:
         cfg = load_config(cfg_path)
         if args[0] == "count":
-            data = load(args[1], cfg, with_market=False)
+            data = load_counts(args[1], cfg)
             print(json.dumps(cmd_count(data), ensure_ascii=False, indent=2))
             return 0
         data = load(args[1], cfg)

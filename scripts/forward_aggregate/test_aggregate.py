@@ -4,8 +4,10 @@
 엔진 모형(PaperTradingService 금액식 + PostgreSQL 반올림)으로 만들어 회계가 실제 엔진과 같게 맞는다.
 🔴 운영 데이터를 쓰지 않는다.
 """
+import contextlib
 import copy
 import csv
+import io
 import json
 import os
 import re
@@ -29,7 +31,7 @@ def check(name, ok, detail=""):
 
 
 from fakedata import (ALL_BARS, CFG, COINS, SID, SIX, T0, WORK, Fake, at, bars_all,  # noqa: E402
-                      fill_arms, z)
+                      fill_arms, no_trade_evidence, z)
 
 
 def load(d, cfg=CFG, market=True):
@@ -123,6 +125,7 @@ check("F2 verify 통과", ag.verify(data) == [], ag.verify(data))
 # 리뷰 2차 — 저장 realized_pnl(NUMERIC(20,8) 반올림)과 재계산 값은 다른 값이다
 diffs = []
 f2 = Fake()
+f2.bars("KRW-SC", ALL_BARS, SIX)
 for k in range(40):
     f2.trip(SID[("KRW-SC", "B")], T0 + timedelta(hours=2 * k + 1), 1000 + k * 0.37,
             T0 + timedelta(hours=2 * k + 2), 1003 + k * 0.41)
@@ -145,6 +148,7 @@ check("저장 realized_pnl 이 상한(0.000000005) 넘게 어긋나면 verify �
 # ════════════════════════════════════════════════════════════════════════════
 # F15 · 잔액 검산
 f = Fake()
+f.bars("KRW-ONG", ALL_BARS, SIX)
 for k in range(30):
     f.trip(SID[("KRW-ONG", "OFF")], T0 + timedelta(hours=2 * k + 1), 1000 + k, T0 + timedelta(hours=2 * k + 2),
            999 + k)
@@ -234,43 +238,152 @@ b = at("2026-10-07T00:00:00")
 check("F4 정각 00:00:00Z 매도 → 경계(<) 에서는 아직 보유, 다음 날로 귀속",
       ag.ledger_at(data.trades[sid], b, False, Decimal(1000000))[1] != [] and
       ag.ledger_at(data.trades[sid], b, True, Decimal(1000000))[1] == [])
-# F9·F10·F11 · 봉 결측
+# F9·F10·F11 · 봉 결측 — 무거래 예외는 확인 근거(조회 시각·요청·응답 원문)가 있어야만 (리뷰 4차)
 f = Fake()
 f.bars(coin, ALL_BARS, SIX)
 f.buy(sid, at("2026-10-08T10:00:00"), 1000)
 f.sell(sid, at("2026-10-09T10:00:00"), 1000)
 missing = at("2026-10-08T23:00:00")
 del f.candles[coin][missing]
-data = load(f.write("f10", SIX))
-check("F10 보유 중 봉 결측 + 확인 없음 → 측정 결측(판정 불가)",
+SNAP = at("2026-10-12T00:00:00")
+d10 = f.write("f10", SNAP)
+data = load(d10)
+check("F10 보유 중 봉 결측 + 확인 없음 → 평가에서 측정 결측",
       raises(lambda: ag.equity(data, sid, at("2026-10-09T00:00:00"), False), "측정 결측"))
-f.no_trade.append((coin, missing))
-data = load(f.write("f9", SIX))
-check("F9 무거래 확인 있음 → 직전 봉(22:00Z) 종가 이월",
+errs = ag.verify(data)
+check("F10 verify 가 측정 결측을 실패로 보고(final 전에)", any("측정 결측" in e and "2026-10-08T23:00" in e for e in errs),
+      errs)
+check("F10 verify 오류에 가격이 없다", not any(re.search(r"\b1000\b|close|종가 \d", e) for e in errs), errs)
+f.no_trade.append((coin, missing))                        # 리뷰 재현 — 코인·시각 두 필드만
+check("F9 근거 없는 예외 행(코인·시각만) → 계산 안 함", raises(lambda: load(f.write("f9a", SNAP)), "근거 필드 없음"))
+f.no_trade[-1] = no_trade_evidence(coin, missing)
+d9 = f.write("f9", SNAP)
+data = load(d9)
+check("F9 근거 갖춘 무거래 예외 → verify 통과", ag.verify(data) == [], ag.verify(data))
+check("F9 직전 봉(22:00Z) 종가 이월",
       ag.equity(data, sid, at("2026-10-09T00:00:00"), False) ==
       ag.ledger_at(data.trades[sid], at("2026-10-09T00:00:00"), False, Decimal(1000000))[0]
       + data.trades[sid][0].position["size"] * data.candles[coin][at("2026-10-08T22:00:00")])
+used = list(data.no_trade_used.values())
+check("F9 사용한 예외가 기록된다(조회 시각·요청·응답 해시)", len(used) == 1 and used[0]["time"] == z(missing) and
+      len(used[0]["response_sha256"]) == 64 and used[0]["checked_at"] and used[0]["request"], used)
+h10, h9 = load(d10).hashes, data.hashes
+check("입력 해시에 예외 파일·고정 설정이 들어간다(예외 파일을 더하면 해시 목록이 바뀐다)",
+      "no_trade_bars.csv" in h9 and "no_trade_bars.csv" not in h10 and "forward_config.json" in h9 and h9 != h10,
+      (sorted(h10), sorted(h9)))
+for label, ev, pat in [
+        ("조회 시각이 봉 마감 전", no_trade_evidence(coin, missing, checked_at=missing + timedelta(minutes=30)), "마감 전"),
+        ("응답 상태 404", no_trade_evidence(coin, missing, status="404"), "200"),
+        ("응답에 그 봉이 있음", no_trade_evidence(coin, missing, include_bar=True), "그 봉이 있다"),
+        ("응답이 뒤 봉을 담지 않음", no_trade_evidence(coin, missing, around=(2, 0)), "앞·뒤"),
+        ("다른 마켓의 응답", no_trade_evidence(coin, missing, market="KRW-BTC"), "캔들 목록이 아니다"),
+        ("H1 캔들 조회가 아닌 요청", no_trade_evidence(coin, missing, request="https://api.upbit.com/v1/ticker"),
+         "H1 캔들"),
+        ("응답 원문이 JSON 아님", dict(no_trade_evidence(coin, missing), response_body="<html>"), "캔들 목록이 아니다")]:
+    f.no_trade[-1] = ev
+    check(f"F9 근거 결함 — {label} → 계산 안 함", raises(lambda: load(f.write("f9x", SNAP)), pat))
+f.no_trade.clear()
 f = Fake()
 f.bars(coin, ALL_BARS, SIX)
 del f.candles[coin][at("2026-10-20T23:00:00")]
 data = load(f.write("f11", SIX))
 check("F11 보유 0 인 날 봉 결측은 결측이 아니다", ag.equity(data, sid, at("2026-10-21T00:00:00"), False)
-      == Decimal("1000000"))
+      == Decimal("1000000") and ag.verify(data) == [])
+# 종료 전 verify 의 적재 여유 — 스냅샷 직전 1시간 안의 경계는 아직 보지 않고, T_end 를 주면 끝까지 본다
+f = Fake()
+f.bars(coin, ALL_BARS, SIX)
+f.buy(sid, at("2026-10-14T20:00:00"), 1000)
+del f.candles[coin][at("2026-10-14T23:00:00")]
+data = load(f.write("lag", at("2026-10-15T00:30:00")))
+check("종료 전 verify: 스냅샷 30분 전 경계의 막 마감된 봉은 아직 결측으로 보지 않는다", ag.verify(data) == [],
+      ag.verify(data))
+check("T_end 를 주면 그 경계까지 검사해 결측을 잡는다", any("측정 결측" in e for e in ag.verify(data, at("2026-10-15T00:20:00"))))
 
 # ════════════════════════════════════════════════════════════════════════════
-# F19 · 건수 전용 모드
+# F19 · 건수 전용 모드 — 필요한 필드만 읽는다(리뷰 4차)
 f = Fake()
 fill_arms(f, 5, T0 + timedelta(hours=1))
 d = f.write("f19", T0 + timedelta(days=5))
-out = ag.cmd_count(load(d, market=False))
-flat = json.dumps(out, ensure_ascii=False)
-check("F19 count 출력 키는 건수·도달 여부·시각뿐", set(out) == {"snapshot", "closed_round_trips", "reached_200",
-                                                         "reached_100", "six_months_at"}, out)
+out = ag.cmd_count(ag.load_counts(d, CFG))
+flat = json.dumps({k: v for k, v in out.items() if k != "inputs_sha256"}, ensure_ascii=False)
+check("F19 count 출력 키는 건수·도달 여부·시각·입력 해시뿐", set(out) == {"snapshot", "closed_round_trips", "reached_200",
+                                                              "reached_100", "six_months_at", "inputs_sha256"}, out)
 check("F19 count 출력에 손익·자산·수익률 관련 값 없음",
       not re.search(r"pnl|equity|krw|return|profit|realized|price|available|수익|손익|자산", flat, re.I), flat)
 check("F19 팔별 왕복 5", out["closed_round_trips"] == {"OFF": 5, "B": 5, "A": 5}, out)
 os.remove(os.path.join(d, "candles.csv"))
-check("F19 count 는 캔들 없이 돈다(가격을 읽지 않는다)", ag.cmd_count(load(d, market=False)) == out)
+check("F19 count 는 캔들 없이 돈다(가격을 읽지 않는다)", ag.cmd_count(ag.load_counts(d, CFG))["closed_round_trips"]
+      == out["closed_round_trips"])
+SECRET = "777777.77"                                     # 금액·가격 칸을 모두 이 값으로 — 읽거나 출력하면 드러난다
+
+
+def poison(t):
+    for name, cols in (("sessions", ("initial_capital", "available_krw", "realized_pnl", "total_fee")),
+                       ("positions", ("invested_krw", "size", "entry_price", "avg_price", "realized_pnl", "position_fee")),
+                       ("orders", ("price", "quantity", "filled_quantity"))):
+        for r in t[name]:
+            for c in cols:
+                r[c] = SECRET if name != "orders" or c != "price" else "NOT_A_NUMBER"
+
+
+dp = Fake()
+fill_arms(dp, 3, T0 + timedelta(hours=1))
+dpd = dp.write("f19p", T0 + timedelta(days=5), poison)
+calls = {"dec": 0, "Decimal": 0}
+real_dec, real_D = ag.dec, ag.Decimal
+
+
+def counting_dec(s):
+    calls["dec"] += 1
+    return real_dec(s)
+
+
+class CountingDecimal(Decimal):
+    def __new__(cls, *a, **k):
+        calls["Decimal"] += 1
+        return real_D.__new__(real_D, *a, **k)
+
+
+ag.dec, ag.Decimal = counting_dec, CountingDecimal
+try:
+    pout = ag.cmd_count(ag.load_counts(dpd, CFG))
+except Exception as e:                    # 금액 칸을 변환하려 들면 'NOT_A_NUMBER' 에서 터진다 — 실패로 센다
+    pout = {"closed_round_trips": None, "error": repr(e)}
+finally:
+    ag.dec, ag.Decimal = real_dec, real_D
+check("count 경로는 금액을 변환하지 않는다(dec·Decimal 호출 0)", calls == {"dec": 0, "Decimal": 0}, calls)
+check("금액 칸이 숫자가 아니어도 count 는 돈다(읽지 않으므로)", pout["closed_round_trips"] == {"OFF": 3, "B": 3, "A": 3}, pout)
+check("count 출력에 금액 값이 없다", SECRET not in json.dumps(pout), pout)
+
+
+def count_error_output(mutate):
+    dd = dp.write("f19e", T0 + timedelta(days=5), lambda t: (poison(t), mutate(t)))
+    buf = io.StringIO()
+    try:
+        with contextlib.redirect_stdout(buf):
+            rc = ag.main(["count", dd])
+    except Exception as e:                # InputError 가 아닌 예외로 죽으면 그 자체가 실패다
+        return -1, buf.getvalue() + repr(e)
+    return rc, buf.getvalue()
+
+
+def two_sells(t):
+    t["orders"].append(dict(next(o for o in t["orders"] if o["side"] == "SELL"), id=99999))
+
+
+def bad_pair(t):
+    t["orders"][0]["position_id"] = "424242"
+
+
+def bad_session(t):
+    t["sessions"][0]["strategy_name"] = "X"
+
+
+for label, m in (("매도 2건", two_sells), ("짝 없는 주문", bad_pair), ("세션 대응 불일치", bad_session)):
+    rc, text = count_error_output(m)
+    check(f"count 오류({label}) — 실패하고 출력에 가격·금액이 없다",
+          rc == 1 and "계산하지 않는다" in text and SECRET not in text and "NOT_A_NUMBER" not in text and
+          not re.search(r"가격|매수가|price|entry|krw|손익|pnl", text, re.I), text)
 
 # ── 종료 전에는 final 을 거부 — 중간 성과 계산 금지 ──
 check("종료 전 스냅샷 → final 거부", raises(lambda: final(f.write("early", T0 + timedelta(days=5))), "종료 전"))

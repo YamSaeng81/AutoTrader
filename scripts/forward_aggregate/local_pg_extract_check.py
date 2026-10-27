@@ -100,7 +100,8 @@ def main():
     # 가짜 장부 — 시각은 T0 이후 ~ 어제(로컬 시계 기준 스냅샷보다 앞)
     f = Fake()
     now = datetime.now(timezone.utc)
-    last_bar = (now - timedelta(days=1)).replace(minute=0, second=0, microsecond=0)
+    # 스냅샷 직전까지 마감된 봉 전부 — 열린 포지션의 경계 평가에 필요하다(verify 가 평가 가격을 검사한다, 리뷰 4차)
+    last_bar = (now - timedelta(hours=2)).replace(minute=0, second=0, microsecond=0)
     for c in COINS:
         if c == "KRW-BLAST":
             f.bars(c, ALL_BARS, at("2026-10-26T02:00:00"))   # 거래지원 종료 — 그 뒤 봉 없음
@@ -163,7 +164,7 @@ def main():
         snap = b.snapshot
         check("스냅샷 시각 = 추출 트랜잭션 시각(지금)", abs(snap - datetime.now(timezone.utc)) < timedelta(minutes=5), snap)
         check("추출본 verify 통과", ag.verify(b) == [], ag.verify(b)[:3])
-        check("추출본 count = 원본 count", ag.cmd_count(ag.load(out_dir, CFG, with_market=False))["closed_round_trips"]
+        check("추출본 count = 원본 count", ag.cmd_count(ag.load_counts(out_dir, CFG))["closed_round_trips"]
               == {"OFF": 12, "B": 12, "A": 12})
         try:
             ag.cmd_final(b, os.path.join(work, "final"))
