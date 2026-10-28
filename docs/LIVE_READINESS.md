@@ -139,7 +139,7 @@ echo "exit $?"
 - 결과 파일 `d:/tmp/bwf_out/bwf_result.csv`, SHA-256 `155d45e430fb7406a96fadcd4df4d4f0a2d9e155873a936ca53c0e9e0b98f97e`.
 - **사전 등록 충족 0/21, 코드 게이트 PASS 0/21.** verdict: OVERFITTING 20, INSUFFICIENT_DATA 1(ANKR — "미충족 — 과최적화 판정 불가").
 - 미충족 첫 사유(러너 순서: OOS<20 → 기대값≤0 → verdict): OOS<20 14개 · 기대값≤0 6개(DKA·JUP·ONG·POLYX·POWR·WAVES) · OVERFITTING 1개(WAXP, OOS 22·기대값 +1.31%). OOS 거래는 코인당 8~30.
-- OOS 기대값 > 0 인 코인 12개도 모두 verdict 가 OVERFITTING 이거나 INSUFFICIENT_DATA 다.
+- OOS 기대값 > 0 인 코인 11개도 모두 verdict 가 OVERFITTING 이거나 INSUFFICIENT_DATA 다.
 
 | 코인 | OOS 거래 | OOS 기대값 % | verdict | 사전 등록 |
 |---|---|---|---|---|
