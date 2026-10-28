@@ -1,0 +1,18 @@
+> Task :strategy-lib:compileJava UP-TO-DATE
+> Task :strategy-lib:processResources NO-SOURCE
+> Task :strategy-lib:classes UP-TO-DATE
+> Task :strategy-lib:jar UP-TO-DATE
+> Task :core-engine:compileJava UP-TO-DATE
+> Task :core-engine:processResources NO-SOURCE
+> Task :core-engine:classes UP-TO-DATE
+> Task :core-engine:compileTestJava UP-TO-DATE
+> Task :core-engine:processTestResources NO-SOURCE
+> Task :core-engine:testClasses UP-TO-DATE
+
+> Task :core-engine:test
+
+BWalkForwardRunner > strategySpecReachesTestJvm() STANDARD_OUT
+    시험 JVM 이 받은 bwf.strategies = POOL23 → 전략 23개
+
+BUILD SUCCESSFUL in 1s
+5 actionable tasks: 1 executed, 4 up-to-date

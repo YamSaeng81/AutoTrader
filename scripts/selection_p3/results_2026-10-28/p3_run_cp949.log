@@ -1,0 +1,745 @@
+Initialized native services in: C:\Users\SangJoon_Lee\.gradle\native
+Initialized jansi services in: C:\Users\SangJoon_Lee\.gradle\native
+Received JVM installation metadata from 'C:\Program Files\Java\jdk-17': {JAVA_HOME=C:\Program Files\Java\jdk-17, JAVA_VERSION=17.0.12, JAVA_VENDOR=Oracle Corporation, RUNTIME_NAME=Java(TM) SE Runtime Environment, RUNTIME_VERSION=17.0.12+8-LTS-286, VM_NAME=Java HotSpot(TM) 64-Bit Server VM, VM_VERSION=17.0.12+8-LTS-286, VM_VENDOR=Oracle Corporation, OS_ARCH=amd64}
+The client will now receive all logging from the daemon (pid: 37020). The daemon log file: C:\Users\SangJoon_Lee\.gradle\daemon\8.7\daemon-37020.out.log
+Starting 38th build in daemon [uptime: 4 hrs 30 mins 37.421 secs, performance: 100%, GC rate: 0.00/s, heap usage: 0% of 512 MiB, non-heap usage: 23% of 384 MiB]
+Using 16 worker leases.
+Closing daemon's stdin at end of input.
+The daemon will no longer process any standard input.
+Now considering [D:\Claude Code\projects\crypto-auto-trader] as hierarchies to watch
+Watching the file system is configured to be enabled if available
+File system watching is active
+Starting Build
+Settings evaluated using settings file 'D:\Claude Code\projects\crypto-auto-trader\settings.gradle'.
+Projects loaded. Root project using build file 'D:\Claude Code\projects\crypto-auto-trader\build.gradle'.
+Included projects: [root project 'crypto-auto-trader', project ':core-engine', project ':exchange-adapter', project ':strategy-lib', project ':web-api']
+
+> Configure project :
+Evaluating root project 'crypto-auto-trader' using build file 'D:\Claude Code\projects\crypto-auto-trader\build.gradle'.
+Transforming spring-boot-gradle-plugin-3.2.5.jar (org.springframework.boot:spring-boot-gradle-plugin:3.2.5) with ExternalDependencyInstrumentingArtifactTransform
+Transforming dependency-management-plugin-1.1.4.jar (io.spring.gradle:dependency-management-plugin:1.1.4) with ExternalDependencyInstrumentingArtifactTransform
+Transforming spring-boot-buildpack-platform-3.2.5.jar (org.springframework.boot:spring-boot-buildpack-platform:3.2.5) with ExternalDependencyInstrumentingArtifactTransform
+Transforming spring-boot-loader-tools-3.2.5.jar (org.springframework.boot:spring-boot-loader-tools:3.2.5) with ExternalDependencyInstrumentingArtifactTransform
+Transforming commons-compress-1.21.jar (org.apache.commons:commons-compress:1.21) with ExternalDependencyInstrumentingArtifactTransform
+Transforming spring-core-6.0.10.jar (org.springframework:spring-core:6.0.10) with ExternalDependencyInstrumentingArtifactTransform
+Transforming jackson-annotations-2.14.2.jar (com.fasterxml.jackson.core:jackson-annotations:2.14.2) with ExternalDependencyInstrumentingArtifactTransform
+Transforming jackson-core-2.14.2.jar (com.fasterxml.jackson.core:jackson-core:2.14.2) with ExternalDependencyInstrumentingArtifactTransform
+Transforming jackson-module-parameter-names-2.14.2.jar (com.fasterxml.jackson.module:jackson-module-parameter-names:2.14.2) with ExternalDependencyInstrumentingArtifactTransform
+Transforming jackson-databind-2.14.2.jar (com.fasterxml.jackson.core:jackson-databind:2.14.2) with ExternalDependencyInstrumentingArtifactTransform
+Transforming jna-platform-5.13.0.jar (net.java.dev.jna:jna-platform:5.13.0) with ExternalDependencyInstrumentingArtifactTransform
+Transforming httpclient5-5.2.3.jar (org.apache.httpcomponents.client5:httpclient5:5.2.3) with ExternalDependencyInstrumentingArtifactTransform
+Transforming tomlj-1.0.0.jar (org.tomlj:tomlj:1.0.0) with ExternalDependencyInstrumentingArtifactTransform
+Transforming spring-jcl-6.0.10.jar (org.springframework:spring-jcl:6.0.10) with ExternalDependencyInstrumentingArtifactTransform
+Transforming jna-5.13.0.jar (net.java.dev.jna:jna:5.13.0) with ExternalDependencyInstrumentingArtifactTransform
+Transforming httpcore5-h2-5.2.4.jar (org.apache.httpcomponents.core5:httpcore5-h2:5.2.4) with ExternalDependencyInstrumentingArtifactTransform
+Transforming httpcore5-5.2.4.jar (org.apache.httpcomponents.core5:httpcore5:5.2.4) with ExternalDependencyInstrumentingArtifactTransform
+Transforming slf4j-api-1.7.36.jar (org.slf4j:slf4j-api:1.7.36) with ExternalDependencyInstrumentingArtifactTransform
+Transforming antlr4-runtime-4.7.2.jar (org.antlr:antlr4-runtime:4.7.2) with ExternalDependencyInstrumentingArtifactTransform
+Transforming jsr305-3.0.2.jar (com.google.code.findbugs:jsr305:3.0.2) with ExternalDependencyInstrumentingArtifactTransform
+
+> Configure project :core-engine
+Evaluating project ':core-engine' using build file 'D:\Claude Code\projects\crypto-auto-trader\core-engine\build.gradle'.
+
+> Configure project :exchange-adapter
+Evaluating project ':exchange-adapter' using build file 'D:\Claude Code\projects\crypto-auto-trader\exchange-adapter\build.gradle'.
+Applying dependency management to configuration 'annotationProcessor' in project 'exchange-adapter'
+Applying dependency management to configuration 'apiElements' in project 'exchange-adapter'
+Applying dependency management to configuration 'archives' in project 'exchange-adapter'
+Applying dependency management to configuration 'compileClasspath' in project 'exchange-adapter'
+Applying dependency management to configuration 'compileOnly' in project 'exchange-adapter'
+Applying dependency management to configuration 'default' in project 'exchange-adapter'
+Applying dependency management to configuration 'implementation' in project 'exchange-adapter'
+Applying dependency management to configuration 'mainSourceElements' in project 'exchange-adapter'
+Applying dependency management to configuration 'runtimeClasspath' in project 'exchange-adapter'
+Applying dependency management to configuration 'runtimeElements' in project 'exchange-adapter'
+Applying dependency management to configuration 'runtimeOnly' in project 'exchange-adapter'
+Applying dependency management to configuration 'testAnnotationProcessor' in project 'exchange-adapter'
+Applying dependency management to configuration 'testCompileClasspath' in project 'exchange-adapter'
+Applying dependency management to configuration 'testCompileOnly' in project 'exchange-adapter'
+Applying dependency management to configuration 'testImplementation' in project 'exchange-adapter'
+Applying dependency management to configuration 'testResultsElementsForTest' in project 'exchange-adapter'
+Applying dependency management to configuration 'testRuntimeClasspath' in project 'exchange-adapter'
+Applying dependency management to configuration 'testRuntimeOnly' in project 'exchange-adapter'
+
+> Configure project :strategy-lib
+Evaluating project ':strategy-lib' using build file 'D:\Claude Code\projects\crypto-auto-trader\strategy-lib\build.gradle'.
+
+> Configure project :web-api
+Evaluating project ':web-api' using build file 'D:\Claude Code\projects\crypto-auto-trader\web-api\build.gradle'.
+Applying dependency management to configuration 'annotationProcessor' in project 'web-api'
+Applying dependency management to configuration 'apiElements' in project 'web-api'
+Applying dependency management to configuration 'archives' in project 'web-api'
+Applying dependency management to configuration 'bootArchives' in project 'web-api'
+Applying dependency management to configuration 'compileClasspath' in project 'web-api'
+Applying dependency management to configuration 'compileOnly' in project 'web-api'
+Applying dependency management to configuration 'default' in project 'web-api'
+Applying dependency management to configuration 'developmentOnly' in project 'web-api'
+Applying dependency management to configuration 'implementation' in project 'web-api'
+Applying dependency management to configuration 'mainSourceElements' in project 'web-api'
+Applying dependency management to configuration 'productionRuntimeClasspath' in project 'web-api'
+Applying dependency management to configuration 'runtimeClasspath' in project 'web-api'
+Applying dependency management to configuration 'runtimeElements' in project 'web-api'
+Applying dependency management to configuration 'runtimeOnly' in project 'web-api'
+Applying dependency management to configuration 'testAndDevelopmentOnly' in project 'web-api'
+Applying dependency management to configuration 'testAnnotationProcessor' in project 'web-api'
+Applying dependency management to configuration 'testCompileClasspath' in project 'web-api'
+Applying dependency management to configuration 'testCompileOnly' in project 'web-api'
+Applying dependency management to configuration 'testImplementation' in project 'web-api'
+Applying dependency management to configuration 'testResultsElementsForTest' in project 'web-api'
+Applying dependency management to configuration 'testRuntimeClasspath' in project 'web-api'
+Applying dependency management to configuration 'testRuntimeOnly' in project 'web-api'
+Applying dependency management to configuration 'restartHarnessImplementation' in project 'web-api'
+Applying dependency management to configuration 'restartHarnessCompileOnly' in project 'web-api'
+Applying dependency management to configuration 'restartHarnessCompileClasspath' in project 'web-api'
+Applying dependency management to configuration 'restartHarnessAnnotationProcessor' in project 'web-api'
+Applying dependency management to configuration 'restartHarnessRuntimeOnly' in project 'web-api'
+Applying dependency management to configuration 'restartHarnessRuntimeClasspath' in project 'web-api'
+All projects evaluated.
+Task path ':core-engine:test' matched project ':core-engine'
+Task name matched 'test'
+Selected primary task 'test' from project :core-engine
+Tasks to be executed: [task ':strategy-lib:compileJava', task ':strategy-lib:processResources', task ':strategy-lib:classes', task ':strategy-lib:jar', task ':core-engine:compileJava', task ':core-engine:processResources', task ':core-engine:classes', task ':core-engine:compileTestJava', task ':core-engine:processTestResources', task ':core-engine:testClasses', task ':core-engine:test']
+Tasks that were excluded: []
+Resolve mutations for :strategy-lib:compileJava (Thread[Execution worker,5,main]) started.
+:strategy-lib:compileJava (Thread[Execution worker,5,main]) started.
+
+> Task :strategy-lib:compileJava UP-TO-DATE
+Caching disabled for task ':strategy-lib:compileJava' because:
+  Build cache is disabled
+Skipping task ':strategy-lib:compileJava' as it is up-to-date.
+Resolve mutations for :strategy-lib:processResources (Thread[Execution worker,5,main]) started.
+:strategy-lib:processResources (Thread[Execution worker,5,main]) started.
+
+> Task :strategy-lib:processResources NO-SOURCE
+Skipping task ':strategy-lib:processResources' as it has no source files and no previous output files.
+Resolve mutations for :strategy-lib:classes (Thread[Execution worker,5,main]) started.
+:strategy-lib:classes (Thread[Execution worker,5,main]) started.
+
+> Task :strategy-lib:classes UP-TO-DATE
+Skipping task ':strategy-lib:classes' as it has no actions.
+Resolve mutations for :strategy-lib:jar (Thread[Execution worker,5,main]) started.
+:strategy-lib:jar (Thread[Execution worker,5,main]) started.
+
+> Task :strategy-lib:jar UP-TO-DATE
+Caching disabled for task ':strategy-lib:jar' because:
+  Build cache is disabled
+  Not worth caching
+Skipping task ':strategy-lib:jar' as it is up-to-date.
+work action resolve strategy-lib-0.1.0.jar (project :strategy-lib) (Thread[Execution worker,5,main]) started.
+Resolve mutations for :core-engine:compileJava (Thread[Execution worker Thread 8,5,main]) started.
+:core-engine:compileJava (Thread[Execution worker Thread 8,5,main]) started.
+
+> Task :core-engine:compileJava UP-TO-DATE
+Caching disabled for task ':core-engine:compileJava' because:
+  Build cache is disabled
+Skipping task ':core-engine:compileJava' as it is up-to-date.
+Resolve mutations for :core-engine:processResources (Thread[Execution worker Thread 8,5,main]) started.
+:core-engine:processResources (Thread[Execution worker Thread 8,5,main]) started.
+
+> Task :core-engine:processResources NO-SOURCE
+Skipping task ':core-engine:processResources' as it has no source files and no previous output files.
+Resolve mutations for :core-engine:classes (Thread[Execution worker Thread 8,5,main]) started.
+:core-engine:classes (Thread[Execution worker Thread 9,5,main]) started.
+
+> Task :core-engine:classes UP-TO-DATE
+Skipping task ':core-engine:classes' as it has no actions.
+Resolve mutations for :core-engine:compileTestJava (Thread[Execution worker Thread 9,5,main]) started.
+:core-engine:compileTestJava (Thread[Execution worker Thread 9,5,main]) started.
+
+> Task :core-engine:compileTestJava UP-TO-DATE
+Caching disabled for task ':core-engine:compileTestJava' because:
+  Build cache is disabled
+Skipping task ':core-engine:compileTestJava' as it is up-to-date.
+Resolve mutations for :core-engine:processTestResources (Thread[Execution worker Thread 9,5,main]) started.
+:core-engine:processTestResources (Thread[Execution worker Thread 15,5,main]) started.
+
+> Task :core-engine:processTestResources NO-SOURCE
+Skipping task ':core-engine:processTestResources' as it has no source files and no previous output files.
+Resolve mutations for :core-engine:testClasses (Thread[Execution worker Thread 15,5,main]) started.
+:core-engine:testClasses (Thread[Execution worker Thread 15,5,main]) started.
+
+> Task :core-engine:testClasses UP-TO-DATE
+Skipping task ':core-engine:testClasses' as it has no actions.
+Resolve mutations for :core-engine:test (Thread[Execution worker Thread 6,5,main]) started.
+:core-engine:test (Thread[Execution worker Thread 6,5,main]) started.
+Gradle Test Executor 35 started executing tests.
+
+> Task :core-engine:test
+Caching disabled for task ':core-engine:test' because:
+  Build cache is disabled
+Task ':core-engine:test' is not up-to-date because:
+  Value of input property 'filter.commandLineIncludePatterns' has changed for task ':core-engine:test'
+  Value of input property 'systemProperties' has changed for task ':core-engine:test'
+Starting process 'Gradle Test Executor 35'. Working directory: D:\Claude Code\projects\crypto-auto-trader\core-engine Command: C:\Program Files\Java\jdk-17\bin\java.exe -Dbwf.btc=d:/tmp/stval_btc/btc_h1.csv -Dbwf.dir=d:/tmp/stval -Dbwf.investPct=80.00 -Dbwf.out=d:/tmp/p3_out -Dbwf.sl=5.00 -Dbwf.strategies=POOL23 -Dbwf.tpMult=2.00 -Dbwf.trailSlPct=0.300 -Dbwf.trailTpPct=0.500 -Dbwf.trailing=t -Dorg.gradle.internal.worker.tmpdir=D:\Claude Code\projects\crypto-auto-trader\core-engine\build\tmp\test\work -Dorg.gradle.native=false -XX:+ExitOnOutOfMemoryError @C:\Users\SangJoon_Lee\.gradle\.tmp\gradle-worker-classpath6172100273122928701txt -Xmx2g -Dfile.encoding=x-windows-949 -Duser.country=KR -Duser.language=ko -Duser.variant -ea worker.org.gradle.process.internal.worker.GradleWorkerMain 'Gradle Test Executor 35'
+Successfully started process 'Gradle Test Executor 35'
+
+BWalkForwardRunner > strategySpecReachesTestJvm() SKIPPED
+
+BWalkForwardRunner > run() STANDARD_OUT
+
+    전략 목록: bwf.strategies = POOL23 → 23개
+
+    청산 규칙(변환 후): SL 5.00% · TP 배수 2.00 · 추적 true · 추적 TP 0.005000 · 추적 SL 0.003000 · 투자 비율 0.8000 · 최대 보유 24h
+
+    [ATR_BREAKOUT]
+      KRW-ANKR    OOS   29  기대값    0.8179%  verdict CAUTION           코드 PASS 사전등록 충족
+      KRW-BCH     OOS   57  기대값   -0.9711%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-CRO     OOS   37  기대값    0.9208%  verdict CAUTION           코드 PASS 사전등록 충족
+      KRW-CVC     OOS   47  기대값    0.3313%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-DKA     OOS   40  기대값   -0.7243%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-ELF     OOS   48  기대값    0.6523%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? 과최적화 판정 불가
+      KRW-G       OOS   36  기대값    1.9400%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-GLM     OOS   34  기대값    0.7932%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-HIVE    OOS   54  기대값    0.8976%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-INJ     OOS   32  기대값    0.7916%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-IOTA    OOS   54  기대값   -0.0215%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-JUP     OOS   36  기대값   -0.0744%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-NEAR    OOS   42  기대값   -0.3424%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-ONG     OOS   43  기대값   -1.0833%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-POLYX   OOS   45  기대값   -0.1696%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-POWR    OOS   39  기대값   -0.1890%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-PUNDIX  OOS   53  기대값    0.2045%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-SC      OOS   46  기대값   -0.0735%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-T       OOS   48  기대값   -0.0063%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-WAVES   OOS   55  기대값   -0.6318%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-WAXP    OOS   40  기대값    0.4275%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+    코드 게이트 PASS 2/21 · 사전 등록 충족 2/21 · 후보 미적격 (코인별, 병합 판정 없음)
+
+    [BOLLINGER]
+      KRW-ANKR    OOS   20  기대값    0.3700%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-BCH     OOS   18  기대값   -0.4989%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-CRO     OOS   16  기대값   -0.5225%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-CVC     OOS   19  기대값   -0.0095%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-DKA     OOS    7  기대값    0.8100%  verdict ACCEPTABLE        코드 PASS 사전등록 미충족 ? OOS<20
+      KRW-ELF     OOS    3  기대값   -0.9700%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-G       OOS   25  기대값   -0.2412%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-GLM     OOS    9  기대값   -0.6844%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-HIVE    OOS   27  기대값    0.6411%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-INJ     OOS   18  기대값   -0.2850%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-IOTA    OOS    8  기대값   -1.3088%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-JUP     OOS   28  기대값   -0.4329%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-NEAR    OOS   30  기대값   -0.7570%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-ONG     OOS   15  기대값   -0.4427%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-POLYX   OOS    9  기대값    0.0889%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-POWR    OOS   10  기대값    0.8010%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-PUNDIX  OOS   17  기대값    0.2241%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-SC      OOS    8  기대값   -0.3775%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-T       OOS   12  기대값    0.3700%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-WAVES   OOS    6  기대값   -1.3983%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-WAXP    OOS   11  기대값   -0.6500%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+    코드 게이트 PASS 1/21 · 사전 등록 충족 0/21 · 후보 미적격 (코인별, 병합 판정 없음)
+
+    [EMA_CROSS]
+      KRW-ANKR    OOS   20  기대값    0.3625%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-BCH     OOS   20  기대값   -0.0510%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-CRO     OOS   20  기대값   -0.0635%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-CVC     OOS   18  기대값    1.3378%  verdict CAUTION           코드 PASS 사전등록 미충족 ? OOS<20
+      KRW-DKA     OOS   31  기대값    1.0355%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-ELF     OOS   29  기대값    0.3024%  verdict ACCEPTABLE        코드 PASS 사전등록 충족
+      KRW-G       OOS   14  기대값   -0.8393%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-GLM     OOS   16  기대값   -0.1781%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-HIVE    OOS   24  기대값   -1.2450%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-INJ     OOS   21  기대값    0.0605%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? 과최적화 판정 불가
+      KRW-IOTA    OOS   18  기대값    0.1883%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-JUP     OOS   16  기대값   -0.8463%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-NEAR    OOS   21  기대값   -0.3033%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-ONG     OOS   26  기대값   -0.8046%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-POLYX   OOS   24  기대값    0.2746%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-POWR    OOS   28  기대값    0.4721%  verdict CAUTION           코드 PASS 사전등록 충족
+      KRW-PUNDIX  OOS   29  기대값    3.0603%  verdict ACCEPTABLE        코드 PASS 사전등록 충족
+      KRW-SC      OOS   32  기대값    0.8678%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-T       OOS   24  기대값   -0.2563%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-WAVES   OOS   28  기대값    0.5350%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? 과최적화 판정 불가
+      KRW-WAXP    OOS   30  기대값    0.5457%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+    코드 게이트 PASS 4/21 · 사전 등록 충족 3/21 · 후보 미적격 (코인별, 병합 판정 없음)
+
+    [FAIR_VALUE_GAP]
+      KRW-ANKR    OOS  119  기대값    0.0396%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-BCH     OOS  120  기대값   -0.2477%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-CRO     OOS   94  기대값    0.6441%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-CVC     OOS  118  기대값    0.3735%  verdict CAUTION           코드 PASS 사전등록 충족
+      KRW-DKA     OOS   96  기대값   -0.8683%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-ELF     OOS   72  기대값   -0.4149%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-G       OOS  108  기대값    0.3519%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-GLM     OOS  116  기대값    0.5502%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-HIVE    OOS  115  기대값    0.9303%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-INJ     OOS  116  기대값   -0.1529%  verdict ACCEPTABLE        코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-IOTA    OOS  121  기대값   -0.1452%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-JUP     OOS  140  기대값    0.0532%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-NEAR    OOS  127  기대값    0.4280%  verdict ACCEPTABLE        코드 PASS 사전등록 충족
+      KRW-ONG     OOS  116  기대값   -0.1744%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-POLYX   OOS  127  기대값   -0.5750%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-POWR    OOS  123  기대값   -0.3630%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-PUNDIX  OOS  107  기대값    0.6017%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-SC      OOS  104  기대값   -0.5480%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-T       OOS  108  기대값    0.4807%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-WAVES   OOS  109  기대값    0.8971%  verdict CAUTION           코드 PASS 사전등록 충족
+      KRW-WAXP    OOS  108  기대값    0.8313%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+    코드 게이트 PASS 3/21 · 사전 등록 충족 3/21 · 후보 미적격 (코인별, 병합 판정 없음)
+
+    [GRID]
+      KRW-ANKR    OOS    6  기대값   -2.0233%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-BCH     OOS    9  기대값   -0.4678%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-CRO     OOS    4  기대값   -1.4000%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-CVC     OOS   10  기대값    0.9090%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-DKA     OOS   10  기대값    0.0960%  verdict ACCEPTABLE        코드 PASS 사전등록 미충족 ? OOS<20
+      KRW-ELF     OOS   17  기대값    0.8676%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-G       OOS    9  기대값   -1.8589%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-GLM     OOS    7  기대값   -0.0243%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-HIVE    OOS   17  기대값    1.9700%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-INJ     OOS    7  기대값   -1.5886%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-IOTA    OOS    9  기대값   -1.9833%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-JUP     OOS    8  기대값   -3.1450%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-NEAR    OOS    6  기대값    1.2517%  verdict ACCEPTABLE        코드 PASS 사전등록 미충족 ? OOS<20
+      KRW-ONG     OOS    3  기대값   -2.0467%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-POLYX   OOS    9  기대값    1.1900%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-POWR    OOS   12  기대값    0.4125%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-PUNDIX  OOS   13  기대값    0.2085%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-SC      OOS   10  기대값    1.4500%  verdict CAUTION           코드 PASS 사전등록 미충족 ? OOS<20
+      KRW-T       OOS    7  기대값   -1.2500%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-WAVES   OOS   12  기대값    0.6050%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-WAXP    OOS   12  기대값    0.1825%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+    코드 게이트 PASS 3/21 · 사전 등록 충족 0/21 · 후보 미적격 (코인별, 병합 판정 없음)
+
+    [HEIKIN_ASHI_STOCH]
+      KRW-ANKR    OOS   41  기대값    0.0468%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-BCH     OOS   37  기대값   -0.7051%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-CRO     OOS   35  기대값   -0.6854%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-CVC     OOS   37  기대값   -0.0273%  verdict CAUTION           코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-DKA     OOS   35  기대값    0.4791%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-ELF     OOS   33  기대값    1.6591%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-G       OOS   27  기대값    3.1719%  verdict ACCEPTABLE        코드 PASS 사전등록 충족
+      KRW-GLM     OOS   35  기대값    1.1986%  verdict CAUTION           코드 PASS 사전등록 충족
+      KRW-HIVE    OOS   41  기대값    0.0720%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-INJ     OOS   25  기대값    0.7392%  verdict ACCEPTABLE        코드 PASS 사전등록 충족
+      KRW-IOTA    OOS   45  기대값   -0.1402%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-JUP     OOS   38  기대값   -0.4400%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-NEAR    OOS   43  기대값   -0.1435%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-ONG     OOS   45  기대값    0.0547%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-POLYX   OOS   35  기대값    0.2417%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-POWR    OOS   33  기대값    0.5770%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-PUNDIX  OOS   43  기대값   -0.2991%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-SC      OOS   35  기대값    1.3286%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-T       OOS   39  기대값   -0.0610%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-WAVES   OOS   39  기대값   -0.9454%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-WAXP    OOS   44  기대값   -0.0577%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+    코드 게이트 PASS 3/21 · 사전 등록 충족 3/21 · 후보 미적격 (코인별, 병합 판정 없음)
+
+    [MACD]
+      KRW-ANKR    OOS   30  기대값   -0.2133%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-BCH     OOS   30  기대값   -0.6237%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-CRO     OOS   32  기대값   -0.5631%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-CVC     OOS   33  기대값    0.1842%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-DKA     OOS   57  기대값   -0.5584%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-ELF     OOS   43  기대값    0.6149%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-G       OOS   28  기대값    0.4086%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-GLM     OOS   45  기대값    1.1247%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-HIVE    OOS   29  기대값    2.9021%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-INJ     OOS   21  기대값    0.0938%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-IOTA    OOS   33  기대값   -0.5130%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-JUP     OOS   30  기대값   -1.0307%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-NEAR    OOS   32  기대값   -0.4584%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-ONG     OOS   39  기대값    1.0828%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-POLYX   OOS   36  기대값   -0.5078%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-POWR    OOS   50  기대값   -0.0476%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-PUNDIX  OOS   39  기대값   -0.8987%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-SC      OOS   46  기대값   -0.0561%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-T       OOS   36  기대값    0.1394%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-WAVES   OOS   46  기대값   -0.1148%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-WAXP    OOS   44  기대값    0.5041%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+    코드 게이트 PASS 0/21 · 사전 등록 충족 0/21 · 후보 미적격 (코인별, 병합 판정 없음)
+
+    [MACD_STOCH_BB]
+      KRW-ANKR    OOS    4  기대값    1.6175%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-BCH     OOS    4  기대값   -0.5650%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-CRO     OOS    3  기대값    0.1267%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-CVC     OOS    0  기대값    0.0000%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-DKA     OOS    1  기대값   -0.2600%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-ELF     OOS    0  기대값    0.0000%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-G       OOS    0  기대값    0.0000%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-GLM     OOS    0  기대값    0.0000%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-HIVE    OOS    0  기대값    0.0000%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-INJ     OOS    3  기대값   -1.3200%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-IOTA    OOS    3  기대값   -1.1433%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-JUP     OOS    0  기대값    0.0000%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-NEAR    OOS    5  기대값    0.1320%  verdict ACCEPTABLE        코드 PASS 사전등록 미충족 ? OOS<20
+      KRW-ONG     OOS    0  기대값    0.0000%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-POLYX   OOS    1  기대값   -1.8900%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-POWR    OOS    2  기대값   -0.1000%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-PUNDIX  OOS    0  기대값    0.0000%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-SC      OOS    2  기대값   -0.7250%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-T       OOS    4  기대값    0.4975%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-WAVES   OOS    3  기대값    4.4133%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-WAXP    OOS    1  기대값    0.4300%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? OOS<20
+    코드 게이트 PASS 1/21 · 사전 등록 충족 0/21 · 후보 미적격 (코인별, 병합 판정 없음)
+
+    [RSI]
+      KRW-ANKR    OOS    3  기대값    2.8433%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-BCH     OOS    4  기대값   -0.9250%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-CRO     OOS    6  기대값    1.4000%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-CVC     OOS    5  기대값   -0.1720%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-DKA     OOS    5  기대값   -2.0480%  verdict CAUTION           코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-ELF     OOS    2  기대값   -0.1350%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-G       OOS    5  기대값   -1.3440%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-GLM     OOS    3  기대값   -1.7733%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-HIVE    OOS    7  기대값   -0.6086%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-INJ     OOS    7  기대값   -0.8486%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-IOTA    OOS    7  기대값    6.1671%  verdict CAUTION           코드 PASS 사전등록 미충족 ? OOS<20
+      KRW-JUP     OOS    7  기대값   -0.3257%  verdict ACCEPTABLE        코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-NEAR    OOS    9  기대값   -1.0856%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-ONG     OOS    4  기대값   -1.1725%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-POLYX   OOS    5  기대값    1.5240%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-POWR    OOS    4  기대값    4.1525%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-PUNDIX  OOS    5  기대값    2.7520%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-SC      OOS    4  기대값    0.5675%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-T       OOS    5  기대값   -0.4840%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-WAVES   OOS    6  기대값    0.3800%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-WAXP    OOS    3  기대값    2.6267%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? OOS<20
+    코드 게이트 PASS 1/21 · 사전 등록 충족 0/21 · 후보 미적격 (코인별, 병합 판정 없음)
+
+    [STOCHASTIC_RSI]
+      KRW-ANKR    OOS    8  기대값   -0.2925%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-BCH     OOS   13  기대값    0.0615%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-CRO     OOS    6  기대값    1.6467%  verdict CAUTION           코드 PASS 사전등록 미충족 ? OOS<20
+      KRW-CVC     OOS    8  기대값    3.2238%  verdict ACCEPTABLE        코드 PASS 사전등록 미충족 ? OOS<20
+      KRW-DKA     OOS    4  기대값    0.4975%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-ELF     OOS    2  기대값   -0.8450%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-G       OOS    5  기대값    2.4520%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-GLM     OOS    6  기대값    2.4767%  verdict CAUTION           코드 PASS 사전등록 미충족 ? OOS<20
+      KRW-HIVE    OOS    9  기대값    0.3656%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-INJ     OOS    9  기대값   -0.7400%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-IOTA    OOS   11  기대값   -1.9609%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-JUP     OOS   10  기대값   -1.1150%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-NEAR    OOS   14  기대값    0.8814%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-ONG     OOS    6  기대값    0.2867%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-POLYX   OOS   10  기대값    0.1730%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-POWR    OOS   10  기대값   -0.2710%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-PUNDIX  OOS    5  기대값    2.4940%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-SC      OOS    7  기대값   -1.3914%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-T       OOS    4  기대값    0.1125%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-WAVES   OOS    7  기대값   -0.4714%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-WAXP    OOS    6  기대값    0.4917%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+    코드 게이트 PASS 3/21 · 사전 등록 충족 0/21 · 후보 미적격 (코인별, 병합 판정 없음)
+
+    [SUPERTREND]
+      KRW-ANKR    OOS  139  기대값   -0.3525%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-BCH     OOS  138  기대값   -0.4651%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-CRO     OOS  130  기대값    0.0274%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-CVC     OOS  164  기대값    0.2463%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-DKA     OOS  153  기대값    0.0736%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-ELF     OOS  136  기대값   -0.2201%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-G       OOS  145  기대값    2.6258%  verdict ACCEPTABLE        코드 PASS 사전등록 충족
+      KRW-GLM     OOS  144  기대값    0.2018%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-HIVE    OOS  170  기대값    0.4252%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-INJ     OOS  114  기대값    0.7890%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-IOTA    OOS  159  기대값   -0.2583%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-JUP     OOS  150  기대값   -0.1172%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-NEAR    OOS  141  기대값    0.2221%  verdict ACCEPTABLE        코드 PASS 사전등록 충족
+      KRW-ONG     OOS  170  기대값    0.1445%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-POLYX   OOS  139  기대값   -0.3699%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-POWR    OOS  152  기대값   -0.0099%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-PUNDIX  OOS  149  기대값   -0.2317%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-SC      OOS  156  기대값    0.5983%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-T       OOS  158  기대값   -0.0144%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-WAVES   OOS  166  기대값    0.1215%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-WAXP    OOS  154  기대값   -0.1688%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+    코드 게이트 PASS 2/21 · 사전 등록 충족 2/21 · 후보 미적격 (코인별, 병합 판정 없음)
+
+    [VOLUME_DELTA]
+      KRW-ANKR    OOS   76  기대값   -0.1539%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-BCH     OOS   80  기대값   -0.5850%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-CRO     OOS   72  기대값    0.2150%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-CVC     OOS   77  기대값    0.7727%  verdict CAUTION           코드 PASS 사전등록 충족
+      KRW-DKA     OOS   78  기대값   -0.1294%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-ELF     OOS   64  기대값    0.0267%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-G       OOS   74  기대값    1.2235%  verdict CAUTION           코드 PASS 사전등록 충족
+      KRW-GLM     OOS   69  기대값    0.6136%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-HIVE    OOS   96  기대값    0.0847%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-INJ     OOS   59  기대값    0.6747%  verdict CAUTION           코드 PASS 사전등록 충족
+      KRW-IOTA    OOS   83  기대값   -0.0135%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-JUP     OOS   87  기대값   -0.1883%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-NEAR    OOS   86  기대값    0.2251%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-ONG     OOS  101  기대값   -0.6938%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-POLYX   OOS   84  기대값   -0.2215%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-POWR    OOS   79  기대값    0.3701%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-PUNDIX  OOS   77  기대값   -0.1861%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-SC      OOS   72  기대값   -1.1354%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-T       OOS   90  기대값    0.0470%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-WAVES   OOS   89  기대값   -0.0109%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-WAXP    OOS   89  기대값   -0.5078%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+    코드 게이트 PASS 3/21 · 사전 등록 충족 3/21 · 후보 미적격 (코인별, 병합 판정 없음)
+
+    [VWAP]
+      KRW-ANKR    OOS   49  기대값   -0.4453%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-BCH     OOS   41  기대값    0.3954%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-CRO     OOS   53  기대값   -0.1791%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-CVC     OOS   64  기대값    0.4661%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-DKA     OOS   65  기대값    0.4782%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-ELF     OOS   64  기대값    1.4253%  verdict ACCEPTABLE        코드 PASS 사전등록 충족
+      KRW-G       OOS   74  기대값    0.2131%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-GLM     OOS   57  기대값    0.5846%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-HIVE    OOS   87  기대값    2.6044%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-INJ     OOS   54  기대값   -0.4157%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-IOTA    OOS   66  기대값    0.0241%  verdict CAUTION           코드 PASS 사전등록 충족
+      KRW-JUP     OOS   75  기대값    0.1247%  verdict CAUTION           코드 PASS 사전등록 충족
+      KRW-NEAR    OOS   63  기대값   -0.3898%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-ONG     OOS   72  기대값    2.2692%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-POLYX   OOS   71  기대값    0.1656%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-POWR    OOS   68  기대값    1.1531%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-PUNDIX  OOS   61  기대값    0.6734%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-SC      OOS   48  기대값    2.0404%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-T       OOS   69  기대값    0.3925%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-WAVES   OOS   66  기대값    0.7706%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-WAXP    OOS   55  기대값    0.0640%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+    코드 게이트 PASS 3/21 · 사전 등록 충족 3/21 · 후보 미적격 (코인별, 병합 판정 없음)
+
+    [COMPOSITE_REGIME_ROUTER]
+      KRW-ANKR    OOS   17  기대값   -0.4324%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-BCH     OOS    9  기대값   -1.6867%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-CRO     OOS   15  기대값    0.4300%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-CVC     OOS   16  기대값    2.1963%  verdict CAUTION           코드 PASS 사전등록 미충족 ? OOS<20
+      KRW-DKA     OOS   35  기대값    1.7234%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-ELF     OOS   24  기대값    0.7908%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-G       OOS   13  기대값    3.3738%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-GLM     OOS   17  기대값    1.0347%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-HIVE    OOS   24  기대값    5.3508%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-INJ     OOS    8  기대값   -0.6050%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-IOTA    OOS   15  기대값   -1.3200%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-JUP     OOS   13  기대값   -0.9315%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-NEAR    OOS   18  기대값    0.0828%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-ONG     OOS   28  기대값    2.9157%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-POLYX   OOS   24  기대값   -0.8658%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-POWR    OOS   26  기대값   -0.4338%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-PUNDIX  OOS   21  기대값   -1.3567%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-SC      OOS   19  기대값    1.0063%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-T       OOS   15  기대값   -0.9520%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-WAVES   OOS   30  기대값    0.6317%  verdict ACCEPTABLE        코드 PASS 사전등록 충족
+      KRW-WAXP    OOS   21  기대값    0.5967%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? 과최적화 판정 불가
+    코드 게이트 PASS 2/21 · 사전 등록 충족 1/21 · 후보 미적격 (코인별, 병합 판정 없음)
+
+    [COMPOSITE_MOMENTUM]
+      KRW-ANKR    OOS   29  기대값   -0.1276%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-BCH     OOS   20  기대값   -0.7305%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-CRO     OOS   34  기대값    0.4659%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-CVC     OOS   38  기대값    1.0705%  verdict CAUTION           코드 PASS 사전등록 충족
+      KRW-DKA     OOS   54  기대값    0.2950%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-ELF     OOS   54  기대값    2.1320%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? 과최적화 판정 불가
+      KRW-G       OOS   37  기대값    2.5546%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-GLM     OOS   41  기대값    0.7671%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-HIVE    OOS   50  기대값    1.9530%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-INJ     OOS   27  기대값   -0.4848%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-IOTA    OOS   38  기대값   -0.2989%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-JUP     OOS   34  기대값    0.3506%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-NEAR    OOS   30  기대값   -0.2170%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-ONG     OOS   53  기대값    2.0794%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-POLYX   OOS   44  기대값    0.3609%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-POWR    OOS   51  기대값    0.0378%  verdict ACCEPTABLE        코드 PASS 사전등록 충족
+      KRW-PUNDIX  OOS   43  기대값   -0.4126%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-SC      OOS   41  기대값    2.6205%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-T       OOS   34  기대값    1.3082%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-WAVES   OOS   54  기대값    0.9665%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-WAXP    OOS   35  기대값    0.3306%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+    코드 게이트 PASS 2/21 · 사전 등록 충족 2/21 · 후보 미적격 (코인별, 병합 판정 없음)
+
+    [COMPOSITE_ETH]
+      KRW-ANKR    OOS   14  기대값    0.0450%  verdict ACCEPTABLE        코드 PASS 사전등록 미충족 ? OOS<20
+      KRW-BCH     OOS   28  기대값   -0.9196%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-CRO     OOS   19  기대값    0.2279%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-CVC     OOS   26  기대값    1.6700%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-DKA     OOS   31  기대값   -1.0771%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-ELF     OOS   28  기대값    1.3129%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-G       OOS   22  기대값    4.7577%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-GLM     OOS   23  기대값    0.0939%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-HIVE    OOS   29  기대값    2.2003%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-INJ     OOS   15  기대값    2.5620%  verdict CAUTION           코드 PASS 사전등록 미충족 ? OOS<20
+      KRW-IOTA    OOS   28  기대값   -0.8375%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-JUP     OOS   13  기대값    0.7746%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-NEAR    OOS   15  기대값   -0.4413%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-ONG     OOS   31  기대값   -0.4290%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-POLYX   OOS   27  기대값   -1.3896%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-POWR    OOS   25  기대값   -0.5308%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-PUNDIX  OOS   32  기대값   -0.9034%  verdict ACCEPTABLE        코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-SC      OOS   34  기대값   -0.9129%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-T       OOS   26  기대값    0.8931%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-WAVES   OOS   44  기대값   -0.8493%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-WAXP    OOS   27  기대값    0.5407%  verdict CAUTION           코드 PASS 사전등록 충족
+    코드 게이트 PASS 3/21 · 사전 등록 충족 1/21 · 후보 미적격 (코인별, 병합 판정 없음)
+
+    [COMPOSITE_BREAKOUT]
+      KRW-ANKR    OOS   13  기대값   -0.2069%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-BCH     OOS   24  기대값   -0.5471%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-CRO     OOS   17  기대값   -0.5965%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-CVC     OOS   26  기대값    0.2650%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-DKA     OOS   25  기대값   -0.0836%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-ELF     OOS   22  기대값    4.8177%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-G       OOS   18  기대값    1.4744%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-GLM     OOS   15  기대값    0.6433%  verdict ACCEPTABLE        코드 PASS 사전등록 미충족 ? OOS<20
+      KRW-HIVE    OOS   19  기대값    2.7232%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-INJ     OOS   10  기대값    1.0390%  verdict CAUTION           코드 PASS 사전등록 미충족 ? OOS<20
+      KRW-IOTA    OOS   23  기대값   -0.5957%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-JUP     OOS   10  기대값   -0.3460%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-NEAR    OOS   12  기대값   -0.9125%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-ONG     OOS   14  기대값   -0.1250%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-POLYX   OOS   27  기대값   -1.3067%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-POWR    OOS   26  기대값    0.4731%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-PUNDIX  OOS   21  기대값   -0.7729%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-SC      OOS   24  기대값   -0.8571%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-T       OOS   20  기대값    0.7920%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-WAVES   OOS   29  기대값   -1.6262%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-WAXP    OOS   27  기대값    0.1489%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+    코드 게이트 PASS 2/21 · 사전 등록 충족 0/21 · 후보 미적격 (코인별, 병합 판정 없음)
+
+    [COMPOSITE_MOMENTUM_ICHIMOKU]
+      KRW-ANKR    OOS   17  기대값   -0.4324%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-BCH     OOS    9  기대값   -1.6867%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-CRO     OOS   15  기대값    0.4300%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-CVC     OOS   16  기대값    2.1963%  verdict CAUTION           코드 PASS 사전등록 미충족 ? OOS<20
+      KRW-DKA     OOS   35  기대값    1.7234%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-ELF     OOS   25  기대값    0.7192%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-G       OOS   15  기대값    4.4813%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-GLM     OOS   17  기대값    1.0347%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-HIVE    OOS   25  기대값    5.8188%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-INJ     OOS    9  기대값   -0.9800%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-IOTA    OOS   16  기대값   -1.4925%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-JUP     OOS   13  기대값   -0.9315%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-NEAR    OOS   18  기대값    0.0828%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-ONG     OOS   28  기대값    2.9157%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-POLYX   OOS   24  기대값   -0.8658%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-POWR    OOS   28  기대값   -0.8025%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-PUNDIX  OOS   21  기대값   -1.3567%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-SC      OOS   21  기대값    1.0305%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-T       OOS   16  기대값   -0.3144%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-WAVES   OOS   30  기대값    0.6317%  verdict ACCEPTABLE        코드 PASS 사전등록 충족
+      KRW-WAXP    OOS   21  기대값    0.5967%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? 과최적화 판정 불가
+    코드 게이트 PASS 2/21 · 사전 등록 충족 1/21 · 후보 미적격 (코인별, 병합 판정 없음)
+
+    [COMPOSITE_BREAKOUT_ICHIMOKU]
+      KRW-ANKR    OOS   11  기대값   -0.1327%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-BCH     OOS   16  기대값   -0.9700%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-CRO     OOS   10  기대값   -1.6060%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-CVC     OOS   18  기대값    0.1339%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-DKA     OOS   21  기대값    0.3371%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-ELF     OOS   15  기대값    1.1260%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-G       OOS   10  기대값    2.9150%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-GLM     OOS   12  기대값    0.1975%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-HIVE    OOS   16  기대값   -0.0406%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-INJ     OOS    8  기대값    1.8538%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-IOTA    OOS   19  기대값   -0.2858%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-JUP     OOS    9  기대값    0.0433%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-NEAR    OOS    9  기대값   -1.6056%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-ONG     OOS   11  기대값    0.3864%  verdict ACCEPTABLE        코드 PASS 사전등록 미충족 ? OOS<20
+      KRW-POLYX   OOS   20  기대값   -1.1765%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-POWR    OOS   25  기대값    0.2324%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-PUNDIX  OOS   17  기대값   -0.1829%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-SC      OOS   13  기대값   -1.0023%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-T       OOS   13  기대값    1.1315%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-WAVES   OOS   23  기대값   -1.8935%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-WAXP    OOS   22  기대값    0.3541%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+    코드 게이트 PASS 1/21 · 사전 등록 충족 0/21 · 후보 미적격 (코인별, 병합 판정 없음)
+
+    [COMPOSITE_MTF_CONFIRMED]
+      KRW-ANKR    OOS   15  기대값   -1.0273%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-BCH     OOS    8  기대값   -1.9650%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-CRO     OOS    9  기대값    0.6489%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-CVC     OOS   15  기대값    2.8860%  verdict CAUTION           코드 PASS 사전등록 미충족 ? OOS<20
+      KRW-DKA     OOS   31  기대값    2.2555%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-ELF     OOS   21  기대값    0.0267%  verdict CAUTION           코드 PASS 사전등록 충족
+      KRW-G       OOS   10  기대값    3.8210%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-GLM     OOS   14  기대값    1.2936%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-HIVE    OOS   20  기대값    2.8905%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-INJ     OOS    7  기대값   -0.0971%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-IOTA    OOS   14  기대값   -1.3857%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-JUP     OOS   12  기대값   -0.9267%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-NEAR    OOS   18  기대값    0.0828%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-ONG     OOS   26  기대값    3.1458%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-POLYX   OOS   22  기대값   -0.6268%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-POWR    OOS   20  기대값   -0.4900%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-PUNDIX  OOS   17  기대값   -1.3906%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-SC      OOS   16  기대값    1.5988%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-T       OOS   11  기대값   -0.7182%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-WAVES   OOS   26  기대값    0.8723%  verdict ACCEPTABLE        코드 PASS 사전등록 충족
+      KRW-WAXP    OOS   20  기대값    0.8400%  verdict ACCEPTABLE        코드 PASS 사전등록 충족
+    코드 게이트 PASS 4/21 · 사전 등록 충족 3/21 · 후보 미적격 (코인별, 병합 판정 없음)
+
+    [COMPOSITE_MTF_BTC]
+      KRW-ANKR    OOS   12  기대값   -0.7158%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-BCH     OOS   22  기대값   -0.6368%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-CRO     OOS   10  기대값   -0.8480%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-CVC     OOS   20  기대값    0.6500%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-DKA     OOS   24  기대값   -0.1613%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-ELF     OOS   21  기대값    5.1957%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-G       OOS   14  기대값    1.9343%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-GLM     OOS   11  기대값    0.9755%  verdict ACCEPTABLE        코드 PASS 사전등록 미충족 ? OOS<20
+      KRW-HIVE    OOS   16  기대값    0.7381%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-INJ     OOS    8  기대값    0.5088%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-IOTA    OOS   19  기대값   -0.4263%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-JUP     OOS   10  기대값   -0.3460%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-NEAR    OOS   10  기대값   -0.8720%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-ONG     OOS   12  기대값   -1.0075%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-POLYX   OOS   23  기대값   -1.2617%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-POWR    OOS   23  기대값    0.6961%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-PUNDIX  OOS   18  기대값   -0.6511%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-SC      OOS   19  기대값   -1.1584%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-T       OOS   11  기대값    3.1345%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OOS<20
+      KRW-WAVES   OOS   27  기대값   -1.4585%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-WAXP    OOS   25  기대값   -0.0860%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+    코드 게이트 PASS 1/21 · 사전 등록 충족 0/21 · 후보 미적격 (코인별, 병합 판정 없음)
+
+    [COMPOSITE_PULLBACK_MTF]
+      KRW-ANKR    OOS   80  기대값   -0.4559%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-BCH     OOS  106  기대값   -0.6274%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-CRO     OOS   68  기대값   -0.2643%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-CVC     OOS  106  기대값    0.1241%  verdict ACCEPTABLE        코드 PASS 사전등록 충족
+      KRW-DKA     OOS   98  기대값   -0.2506%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-ELF     OOS   77  기대값   -0.1431%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-G       OOS   68  기대값    0.0972%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-GLM     OOS   70  기대값    0.4943%  verdict CAUTION           코드 PASS 사전등록 충족
+      KRW-HIVE    OOS   80  기대값    0.8963%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-INJ     OOS   69  기대값   -0.3487%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-IOTA    OOS   73  기대값   -0.4010%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-JUP     OOS   92  기대값   -0.2717%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-NEAR    OOS  106  기대값   -0.1790%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-ONG     OOS   80  기대값   -0.2523%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-POLYX   OOS   98  기대값   -0.3248%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-POWR    OOS   94  기대값    0.6151%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-PUNDIX  OOS  102  기대값    0.1054%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-SC      OOS   81  기대값    0.9258%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-T       OOS   65  기대값    0.7486%  verdict ACCEPTABLE        코드 PASS 사전등록 충족
+      KRW-WAVES   OOS  100  기대값    0.3996%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-WAXP    OOS   89  기대값    0.1425%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+    코드 게이트 PASS 3/21 · 사전 등록 충족 3/21 · 후보 미적격 (코인별, 병합 판정 없음)
+
+    [COMPOSITE_MEANREV_BB]
+      KRW-ANKR    OOS   53  기대값   -0.1828%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-BCH     OOS   36  기대값   -0.3747%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-CRO     OOS   34  기대값   -0.0471%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-CVC     OOS   46  기대값   -0.9863%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-DKA     OOS   25  기대값   -0.9276%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-ELF     OOS   26  기대값    0.7362%  verdict ACCEPTABLE        코드 PASS 사전등록 충족
+      KRW-G       OOS   31  기대값    0.3439%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-GLM     OOS   43  기대값   -0.3253%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-HIVE    OOS   43  기대값   -0.3419%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-INJ     OOS   35  기대값    0.8229%  verdict CAUTION           코드 PASS 사전등록 충족
+      KRW-IOTA    OOS   32  기대값   -0.5309%  verdict ACCEPTABLE        코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-JUP     OOS   42  기대값   -0.5238%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-NEAR    OOS   56  기대값   -0.6193%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-ONG     OOS   54  기대값    0.1561%  verdict ACCEPTABLE        코드 PASS 사전등록 충족
+      KRW-POLYX   OOS   53  기대값   -0.2119%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-POWR    OOS   30  기대값    0.2407%  verdict INSUFFICIENT_DATA 코드 FAIL 사전등록 미충족 ? 과최적화 판정 불가
+      KRW-PUNDIX  OOS   33  기대값   -0.1961%  verdict ACCEPTABLE        코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-SC      OOS   38  기대값    0.4682%  verdict ACCEPTABLE        코드 PASS 사전등록 충족
+      KRW-T       OOS   35  기대값    0.1800%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? OVERFITTING
+      KRW-WAVES   OOS   33  기대값   -0.7003%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+      KRW-WAXP    OOS   44  기대값   -0.4882%  verdict OVERFITTING       코드 FAIL 사전등록 미충족 ? 기대값≤0
+    코드 게이트 PASS 4/21 · 사전 등록 충족 4/21 · 후보 미적격 (코인별, 병합 판정 없음)
+
+Gradle Test Executor 35 finished executing tests.
+
+> Task :core-engine:test
+Finished generating test XML results (0.016 secs) into: D:\Claude Code\projects\crypto-auto-trader\core-engine\build\test-results\test
+Generating HTML test report...
+Finished generating test html results (0.033 secs) into: D:\Claude Code\projects\crypto-auto-trader\core-engine\build\reports\tests\test
+
+BUILD SUCCESSFUL in 1h 28m 46s
+5 actionable tasks: 1 executed, 4 up-to-date
+Watched directory hierarchies: [D:\Claude Code\projects\crypto-auto-trader]

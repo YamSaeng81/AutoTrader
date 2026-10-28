@@ -1,0 +1,1 @@
+./gradlew :core-engine:test --tests '*BWalkForwardRunner' -i -Dbwf.dir=d:/tmp/stval -Dbwf.btc=d:/tmp/stval_btc/btc_h1.csv -Dbwf.out=d:/tmp/p3_out -Dbwf.sl=5.00 -Dbwf.tpMult=2.00 -Dbwf.trailing=t -Dbwf.trailTpPct=0.500 -Dbwf.trailSlPct=0.300 -Dbwf.investPct=80.00 -Dbwf.strategies=POOL23
