@@ -101,7 +101,18 @@ public class PaperTradingService {
      * 백테스트(`BacktestEngine`)가 쓰는 0.1%와 같은 값으로 맞춰 세 엔진(백테스트·페이퍼·실전)의
      * 체결 가정을 통일한다. 실측 슬리피지는 LIVE BTC 기준 0.1% 수준이었다.</p>
      */
-    private static final BigDecimal SLIPPAGE_PCT = TradingConstants.PAPER_SLIPPAGE_PCT;
+    /**
+     * 매수 체결가 — 신호가 × (1 + 슬리피지), 소수 8자리 HALF_UP. 슬리피지는 세션별(V95)이고 없으면
+     * {@link TradingConstants#PAPER_SLIPPAGE_PCT}. 반올림 규칙은 세션별 슬리피지 도입 전과 같다.
+     */
+    static BigDecimal buyFillPrice(BigDecimal signalPrice, BigDecimal slippageRate) {
+        return signalPrice.multiply(BigDecimal.ONE.add(slippageRate)).setScale(8, RoundingMode.HALF_UP);
+    }
+
+    /** 매도 체결가 — 신호가 × (1 − 슬리피지), 소수 8자리 HALF_DOWN. 도입 전과 같은 반올림. */
+    static BigDecimal sellFillPrice(BigDecimal signalPrice, BigDecimal slippageRate) {
+        return signalPrice.multiply(BigDecimal.ONE.subtract(slippageRate)).setScale(8, RoundingMode.HALF_DOWN);
+    }
 
     /** Stateful 전략 세션별 인스턴스 (COMPOSITE, COMPOSITE_MOMENTUM 등 상태 보유 전략) */
     private final Map<Long, com.cryptoautotrader.strategy.Strategy> sessionStatefulStrategies = new ConcurrentHashMap<>();
@@ -202,10 +213,15 @@ public class PaperTradingService {
                 // 조용히 기본 규칙으로 돌고 **대조군과 구별 불가능한 중복 표본**이 됐다
                 // (손절폭 A/B 1차 시도에서 40세션이 그렇게 만들어졌다).
                 .strategyParams(req.getStrategyParams())
+                // 세션별 슬리피지 (V95) — 요청은 %, 저장은 비율. 미지정이면 NULL 로 두어 종전 상수를 쓴다.
+                .slippageRate(req.getSlippagePct() != null
+                        ? req.getSlippagePct().divide(BigDecimal.valueOf(100), 6, RoundingMode.UNNECESSARY)
+                        : null)
                 .build();
 
-        log.info("모의투자 세션 시작: {} {} {} 초기자본={}",
-                req.getStrategyType(), req.getCoinPair(), req.getTimeframe(), req.getInitialCapital());
+        log.info("모의투자 세션 시작: {} {} {} 초기자본={} 슬리피지={}",
+                req.getStrategyType(), req.getCoinPair(), req.getTimeframe(), req.getInitialCapital(),
+                session.slippageRateOrDefault());
         VirtualBalanceEntity saved = balanceRepo.save(session);
 
         if (req.isEnableTelegram()) {
@@ -946,9 +962,8 @@ public class PaperTradingService {
             return false;
         }
 
-        // 체결 슬리피지 — 매수는 신호가보다 불리하게(높게) 체결된다.
-        BigDecimal price = signalPrice.multiply(BigDecimal.ONE.add(SLIPPAGE_PCT))
-                .setScale(8, RoundingMode.HALF_UP);
+        // 체결 슬리피지 — 매수는 신호가보다 불리하게(높게) 체결된다. 세션값이 없으면 종전 상수(V95).
+        BigDecimal price = buyFillPrice(signalPrice, session.slippageRateOrDefault());
 
         BigDecimal fee = investAmount.multiply(FEE_RATE);
         BigDecimal netAmount = investAmount.subtract(fee);
@@ -1040,9 +1055,8 @@ public class PaperTradingService {
     private void closePosition(PaperPositionEntity pos, BigDecimal signalPrice,
                                VirtualBalanceEntity session, String reason,
                                ExitReason exitReason) {
-        // 체결 슬리피지 — 매도는 신호가보다 불리하게(낮게) 체결된다 (매수 반대 방향).
-        BigDecimal currentPrice = signalPrice.multiply(BigDecimal.ONE.subtract(SLIPPAGE_PCT))
-                .setScale(8, RoundingMode.HALF_DOWN);
+        // 체결 슬리피지 — 매도는 신호가보다 불리하게(낮게) 체결된다 (매수 반대 방향). 세션값이 없으면 종전 상수(V95).
+        BigDecimal currentPrice = sellFillPrice(signalPrice, session.slippageRateOrDefault());
 
         BigDecimal proceeds = pos.getSize().multiply(currentPrice);
         BigDecimal fee = proceeds.multiply(FEE_RATE);

@@ -37,14 +37,19 @@ def z(t):
 class Fake:
     """66세션 가짜 장부. 매수·매도는 엔진 모형으로, 시각은 직접 준다."""
 
-    def __init__(self):
-        self.led = {s["id"]: lr.PaperLedger(CFG["initial_capital"], "0.80") for s in CFG["sessions"]}
-        self.coin = {s["id"]: s["coin"] for s in CFG["sessions"]}
-        self.arm = {s["id"]: s["arm"] for s in CFG["sessions"]}
+    def __init__(self, cfg=CFG, slippage=None):
+        """cfg·slippage 는 B 집계 경로 시험용(slippage = {팔: 세션 슬리피지 저장값}) — 기본값이면 66세션 그대로."""
+        self.cfg = cfg
+        self.slippage = slippage
+        self.led = {s["id"]: lr.PaperLedger(cfg["initial_capital"], "0.80",
+                                            slippage[s["arm"]] if slippage else lr.SLIPPAGE)
+                    for s in cfg["sessions"]}
+        self.coin = {s["id"]: s["coin"] for s in cfg["sessions"]}
+        self.arm = {s["id"]: s["arm"] for s in cfg["sessions"]}
         self.pos = []          # (session id, ledger pos dict, buy order row, sell order row|None)
         self.status = {sid: "RUNNING" for sid in self.led}
         self.stopped = {}
-        for c in CFG["confirmed_ends"]:
+        for c in cfg["confirmed_ends"]:
             self.status[c["id"]] = "STOPPED"
             self.stopped[c["id"]] = c["stopped_at"]
         self.candles = {}      # coin → {open: close}
@@ -94,11 +99,14 @@ class Fake:
         sessions = []
         for sid, led in self.led.items():
             led.reload()
-            sessions.append({"id": sid, "coin_pair": self.coin[sid], "strategy_name": CFG["arms"][self.arm[sid]],
-                             "timeframe": "H1", "status": self.status[sid], "initial_capital": "1000000.00",
-                             "available_krw": str(led.db["available"]), "realized_pnl": str(led.db["realized"]),
-                             "total_fee": str(led.db["total_fee"]), "started_at": z(T0 - timedelta(seconds=59)),
-                             "stopped_at": z(self.stopped.get(sid))})
+            row = {"id": sid, "coin_pair": self.coin[sid], "strategy_name": self.cfg["arms"][self.arm[sid]],
+                   "timeframe": "H1", "status": self.status[sid], "initial_capital": "1000000.00",
+                   "available_krw": str(led.db["available"]), "realized_pnl": str(led.db["realized"]),
+                   "total_fee": str(led.db["total_fee"]), "started_at": z(self.cfg["t0"] - timedelta(seconds=59)),
+                   "stopped_at": z(self.stopped.get(sid))}
+            if self.slippage:
+                row["slippage_rate"] = self.slippage[self.arm[sid]]
+            sessions.append(row)
         positions, orders = [], []
         for i, (sid, p, b, s) in enumerate(self.pos, start=1):
             positions.append({"id": i, "session_id": sid, "coin_pair": self.coin[sid], "side": "BUY",
@@ -119,7 +127,7 @@ class Fake:
         candles = [{"coin_pair": c, "time": z(t), "close": str(v)}
                    for c, m in self.candles.items() for t, v in sorted(m.items())]
         tables = {"sessions": sessions, "positions": positions, "orders": orders, "candles": candles,
-                  "signal_counts": self.signal or [{"session_id": 522, "day": "2026-10-01", "n": 17}],
+                  "signal_counts": self.signal or [{"session_id": min(self.led), "day": "2026-10-01", "n": 17}],
                   "meta": [{"snapshot_ts": z(snapshot)}]}
         if self.no_trade:
             # dict = 근거를 갖춘 행(no_trade_evidence), (코인, 시각) = 근거 없는 두 필드만의 행(리뷰 4차 재현용)

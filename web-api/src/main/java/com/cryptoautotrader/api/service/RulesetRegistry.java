@@ -158,8 +158,9 @@ public class RulesetRegistry {
                 .put("session.maxHoldHours", session.getMaxHoldHours())
                 .put("session.stopLossPct", session.getStopLossPct())
                 .put("session.investRatio", session.getInvestRatio())
-                // 체결 가정 — 페이퍼만의 값이라 실전 지문과 반드시 갈려야 한다
-                .put("paper.slippagePct", TradingConstants.PAPER_SLIPPAGE_PCT)
+                // 체결 가정 — 페이퍼만의 값이라 실전 지문과 반드시 갈려야 한다.
+                // 세션별 슬리피지(V95): 세션값이 없으면 종전 상수 → V95 이전 세션의 지문은 그대로다
+                .put("paper.slippagePct", session.slippageRateOrDefault())
                 .build());
     }
 

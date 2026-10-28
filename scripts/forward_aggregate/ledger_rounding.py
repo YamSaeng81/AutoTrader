@@ -48,7 +48,8 @@ class PaperLedger:
 
     KEYS = ("available", "total_fee", "realized")
 
-    def __init__(self, initial, invest_ratio):
+    def __init__(self, initial, invest_ratio, slippage=SLIPPAGE):
+        self.slippage = Decimal(slippage)   # 세션 슬리피지(V95) — 기본값은 종전 상수
         start = pg_round(Decimal(initial), 2)
         self.db = {"available": start, "total_fee": Decimal(0), "realized": Decimal(0)}
         self.mem = dict(self.db)
@@ -72,7 +73,7 @@ class PaperLedger:
         invest = (self.mem["available"] * self.invest_ratio).quantize(S2, rounding=ROUND_DOWN)
         if invest < MIN_ORDER_KRW:
             return False
-        price = (signal_price * (1 + SLIPPAGE)).quantize(S8, rounding=ROUND_HALF_UP)
+        price = (signal_price * (1 + self.slippage)).quantize(S8, rounding=ROUND_HALF_UP)
         fee = invest * FEE_RATE
         qty = java_divide_down(invest - fee, price, 8)
         if qty <= 0:
@@ -97,7 +98,7 @@ class PaperLedger:
         """PaperTradingService:1040-1083."""
         pos = self.open
         assert pos is not None
-        price = (signal_price * (1 - SLIPPAGE)).quantize(S8, rounding=ROUND_HALF_DOWN)
+        price = (signal_price * (1 - self.slippage)).quantize(S8, rounding=ROUND_HALF_DOWN)
         proceeds = pos["size"] * price
         fee = proceeds * FEE_RATE
         net = proceeds - fee

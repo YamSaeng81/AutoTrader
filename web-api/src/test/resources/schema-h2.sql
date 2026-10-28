@@ -691,6 +691,9 @@ ALTER TABLE execution_drift_log    ADD COLUMN IF NOT EXISTS session_kind VARCHAR
 ALTER TABLE dynamic_session ADD COLUMN IF NOT EXISTS strategy_params VARCHAR(4000);
 ALTER TABLE paper_trading.virtual_balance ADD COLUMN IF NOT EXISTS strategy_params VARCHAR(4000);
 
+-- V95 — 세션별 체결 슬리피지(비율). NULL 이면 종전 상수
+ALTER TABLE paper_trading.virtual_balance ADD COLUMN IF NOT EXISTS slippage_rate DECIMAL(7, 6);
+
 -- V85 — 매수 예약의 직렬화 지점. 행 하나를 FOR UPDATE 로 잠근다.
 CREATE TABLE IF NOT EXISTS account_capital_lock (
     id          SMALLINT     PRIMARY KEY,

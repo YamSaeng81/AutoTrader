@@ -72,6 +72,21 @@ public class VirtualBalanceEntity {
     @Column(name = "max_hold_hours")
     private Integer maxHoldHours;
 
+    /**
+     * 편도 체결 슬리피지(비율, 0.001 = 0.1%). NULL 이면 {@code TradingConstants.PAPER_SLIPPAGE_PCT}. (V95)
+     *
+     * <p>새 후보 B 검증의 MAIN(0.1%)·STRESS(0.2%) 두 팔을 위해 추가했다(B_VALIDATION_PREREG.md §7 ⓐ).
+     * V95 이전 세션은 모두 NULL 이라 종전과 같은 상수를 쓴다. 체결가 계산·규칙 지문은
+     * {@link #slippageRateOrDefault()} 만 읽는다.</p>
+     */
+    @Column(name = "slippage_rate")
+    private BigDecimal slippageRate;
+
+    /** 실제 체결에 쓰는 슬리피지 — 세션값이 없으면 종전 상수. */
+    public BigDecimal slippageRateOrDefault() {
+        return slippageRate != null ? slippageRate : com.cryptoautotrader.api.util.TradingConstants.PAPER_SLIPPAGE_PCT;
+    }
+
     /** 세션 누적 실현 손익 (매도 체결 시마다 합산) */
     @Column(name = "realized_pnl", nullable = false)
     @Builder.Default
