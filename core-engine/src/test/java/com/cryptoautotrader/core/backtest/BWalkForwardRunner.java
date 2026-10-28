@@ -39,10 +39,18 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>판정은 두 열로 낸다. 코드 게이트(표본 하한 5건)와 사전 등록(OOS ≥ 20 · 기대값 > 0 · OVERFITTING 아님).
  * 코드가 PASS 여도 사전 등록 미충족일 수 있다. 병합 판정은 내지 않는다(코인별).</p>
  *
+ * <p><b>전략 목록 (2026-10-28 리뷰 12차 P2, {@code NEXT_CANDIDATE_PLAN.md} §2-2·§3-1)</b>:
+ * {@code bwf.strategies} 를 주지 않으면 B 와 같은 단일 전략({@value #STRATEGY})으로 돈다.
+ * {@code POOL23} 이나 쉼표 목록을 주면 그 목록이 선별 풀 23개({@link #SELECTION_POOL})와 정확히 같을 때만 돈다 —
+ * 빠짐·목록 밖·중복이 하나라도 있으면 실행하지 않는다(코인 집합과 같은 규칙). 결과는 전략 × 코인 행이고,
+ * 전략별 요약에 사전 등록 충족 코인 수와 후보 적격(≥ {@value #ELIGIBLE_MIN_COINS}/21)을 적는다.
+ * 결과 CSV 에 {@code scoreMethod}·{@code overfittingScore}·{@code rawOverfittingScore} 를 함께 남긴다.</p>
+ *
  * <pre>
  * ./gradlew :core-engine:test --tests '*BWalkForwardRunner' \
  *   -Dbwf.dir=d:/tmp/stval -Dbwf.btc=d:/tmp/stval_btc/btc_h1.csv -Dbwf.out=d:/tmp/bwf_out \
- *   -Dbwf.sl=… -Dbwf.tpMult=… -Dbwf.trailing=… -Dbwf.trailTpPct=… -Dbwf.trailSlPct=… -Dbwf.investPct=…
+ *   -Dbwf.sl=… -Dbwf.tpMult=… -Dbwf.trailing=… -Dbwf.trailTpPct=… -Dbwf.trailSlPct=… -Dbwf.investPct=… \
+ *   [-Dbwf.strategies=POOL23]
  * </pre>
  */
 class BWalkForwardRunner {
@@ -52,6 +60,27 @@ class BWalkForwardRunner {
     private static final int WINDOWS = 5;
     private static final int MAX_HOLD_HOURS = 24;
     private static final int PREREG_MIN_OOS_TRADES = 20;
+    /** 후보 적격 — 사전 등록 충족 코인 ≥ 11 / 21 (NEXT_CANDIDATE_PLAN.md §3-1, 리뷰 11차 D5). */
+    static final int ELIGIBLE_MIN_COINS = 11;
+    static final String POOL_KEYWORD = "POOL23";
+
+    /** NEXT_CANDIDATE_PLAN.md §2-2 선별 풀 23개 (리뷰 12차 G1). 출력 순서도 이 순서다. */
+    static final List<String> SELECTION_POOL = List.of(
+            "ATR_BREAKOUT", "BOLLINGER", "EMA_CROSS", "FAIR_VALUE_GAP", "GRID", "HEIKIN_ASHI_STOCH", "MACD",
+            "MACD_STOCH_BB", "RSI", "STOCHASTIC_RSI", "SUPERTREND", "VOLUME_DELTA", "VWAP",
+            "COMPOSITE_REGIME_ROUTER", "COMPOSITE_MOMENTUM", "COMPOSITE_ETH", "COMPOSITE_BREAKOUT",
+            "COMPOSITE_MOMENTUM_ICHIMOKU", "COMPOSITE_BREAKOUT_ICHIMOKU", "COMPOSITE_MTF_CONFIRMED",
+            "COMPOSITE_MTF_BTC", "COMPOSITE_PULLBACK_MTF", "COMPOSITE_MEANREV_BB");
+
+    /** §2-2 제외 규칙 — 등록 전략 30개 = 풀 23 + 제외 7. 성과를 보고 뺀 것이 아니다. */
+    static final Map<String, String> EXCLUDED = Map.of(
+            "TEST_TIMED", "시험용",
+            "ORDERBOOK_IMBALANCE", "백테스트 ≠ 운영(실호가)",
+            "COMPOSITE_MOMENTUM_ICHIMOKU_V2", "66세션·B 와 같은 계열",
+            "COMPOSITE_MTF_MOMENTUM", "66세션·B 와 같은 계열",
+            "COMPOSITE_MTF_MOMENTUM_CLOSED", "66세션·B 와 같은 계열",
+            "COMPOSITE_MTF_BTC_STRICT", "폐기(DEPRECATED)",
+            "COMPOSITE", "운영 입력 재현 불가(동적 가중치)");
 
     /** B_VALIDATION_PREREG.md §2 의 21코인 — 개수가 아니라 이 목록과 정확히 같아야 실행한다(리뷰 4차). */
     static final List<String> COINS = List.of(
@@ -82,7 +111,9 @@ class BWalkForwardRunner {
         if (!missing.isEmpty() || !extra.isEmpty()) {
             throw new IllegalStateException("🔴 코인 집합이 사전 등록 21코인과 다르다 — 빠짐 " + missing + " · 목록 밖 " + extra);
         }
-        return csvs;
+        // 결과 행 순서를 사전 등록 목록 순서로 고정한다(리뷰 12차 P2). 이전에는 Path 정렬이었는데 Windows 는
+        // 대소문자를 무시해 대문자로 비교하므로 st_glm 이 st_g_ 보다 앞에 와('L' < '_') 운영체제마다 순서가 달랐다.
+        return csvs.stream().sorted(java.util.Comparator.comparingInt(p -> COINS.indexOf(coinOf(p)))).toList();
     }
 
     /** 코인 집합 검사 — 정확한 21개는 통과, 한 코인을 다른 코인으로 바꾼 21개와 빠진 20개는 거절. */
@@ -94,6 +125,8 @@ class BWalkForwardRunner {
         }
         Files.writeString(ok.resolve("st_blast_h1.csv"), "");             // BLAST 는 있어도 뺀다
         assertThat(selectCoinCsvs(ok)).hasSize(21);
+        assertThat(selectCoinCsvs(ok).stream().map(BWalkForwardRunner::coinOf).toList())
+                .as("순서는 사전 등록 목록 순서 — KRW-G 가 KRW-GLM 앞").isEqualTo(COINS);
 
         Path swapped = Files.createDirectories(tmp.resolve("swapped"));
         for (String c : COINS) {
@@ -109,6 +142,83 @@ class BWalkForwardRunner {
         }
         org.assertj.core.api.Assertions.assertThatThrownBy(() -> selectCoinCsvs(short20))
                 .hasMessageContaining("빠짐 [KRW-ANKR]");
+    }
+
+    /**
+     * 실행할 전략 목록. 비었으면 B 단일 전략. {@value #POOL_KEYWORD} 나 쉼표 목록이면 선별 풀 23개와 정확히 같아야 하고,
+     * 출력은 풀 순서로 고정한다. 개수만 보면 한 전략이 다른 전략으로 바뀌어도 통과하므로 집합을 비교하고, 중복도 거절한다.
+     */
+    static List<String> selectStrategies(String spec) {
+        if (spec == null || spec.isBlank()) {
+            return List.of(STRATEGY);
+        }
+        if (POOL_KEYWORD.equals(spec.trim())) {
+            return SELECTION_POOL;
+        }
+        List<String> given = java.util.Arrays.stream(spec.split(",")).map(String::trim).filter(x -> !x.isEmpty()).toList();
+        java.util.Set<String> seen = new java.util.HashSet<>();
+        java.util.Set<String> dup = new java.util.TreeSet<>();
+        for (String g : given) {
+            if (!seen.add(g)) dup.add(g);
+        }
+        java.util.Set<String> missing = new java.util.TreeSet<>(SELECTION_POOL);
+        missing.removeAll(seen);
+        java.util.Set<String> extra = new java.util.TreeSet<>(seen);
+        SELECTION_POOL.forEach(extra::remove);
+        if (!missing.isEmpty() || !extra.isEmpty() || !dup.isEmpty()) {
+            throw new IllegalStateException("🔴 전략 목록이 선별 풀 23개와 다르다 — 빠짐 " + missing + " · 목록 밖 " + extra
+                    + " · 중복 " + dup);
+        }
+        return SELECTION_POOL;
+    }
+
+    /** 전략 목록 검사 — 비면 B, 정확한 23개(순서 무관)는 풀 순서, 바꿔치기·빠짐·중복은 거절. */
+    @Test
+    void strategyListMustMatchPoolExactly() {
+        assertThat(selectStrategies(null)).containsExactly(STRATEGY);
+        assertThat(selectStrategies(" ")).containsExactly(STRATEGY);
+        assertThat(selectStrategies(POOL_KEYWORD)).isEqualTo(SELECTION_POOL).hasSize(23).doesNotHaveDuplicates();
+
+        List<String> reversed = new ArrayList<>(SELECTION_POOL);
+        java.util.Collections.reverse(reversed);
+        assertThat(selectStrategies(String.join(", ", reversed))).isEqualTo(SELECTION_POOL);
+
+        List<String> swapped = new ArrayList<>(SELECTION_POOL);
+        swapped.set(swapped.indexOf("RSI"), "COMPOSITE");            // 개수는 23
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> selectStrategies(String.join(",", swapped)))
+                .hasMessageContaining("빠짐 [RSI]").hasMessageContaining("목록 밖 [COMPOSITE]");
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(
+                        () -> selectStrategies(String.join(",", SELECTION_POOL.subList(1, 23))))
+                .hasMessageContaining("빠짐 [ATR_BREAKOUT]");
+
+        List<String> withDup = new ArrayList<>(SELECTION_POOL);
+        withDup.add("GRID");
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> selectStrategies(String.join(",", withDup)))
+                .hasMessageContaining("중복 [GRID]");
+
+        // B 단일 전략을 목록으로 주는 것도 거절한다 — B 는 목록 없이만 돈다
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> selectStrategies(STRATEGY))
+                .hasMessageContaining("목록 밖 [" + STRATEGY + "]");
+    }
+
+    /**
+     * 풀이 코드 등록 목록에서 나오는지 — 운영 코드에 등록된 전략 = 풀 23 + 제외 7, 서로 겹치지 않는다.
+     * 같은 JVM 의 다른 시험이 등록한 시험용 전략(시험·러너 클래스 안의 클래스)은 뺀다.
+     */
+    @Test
+    void poolEqualsRegisteredMinusExclusions() {
+        com.cryptoautotrader.core.selector.CompositePresets.ensureRegistered();
+        java.util.Set<String> registered = new java.util.TreeSet<>();
+        com.cryptoautotrader.strategy.StrategyRegistry.getAll().forEach((name, st) -> {
+            String top = st.getClass().getName().split("\\$")[0];
+            if (!top.endsWith("Test") && !top.endsWith("Runner")) registered.add(name);
+        });
+        assertThat(registered).hasSize(30);
+        assertThat(SELECTION_POOL).doesNotHaveDuplicates().doesNotContainAnyElementsOf(EXCLUDED.keySet());
+        java.util.Set<String> expected = new java.util.TreeSet<>(SELECTION_POOL);
+        expected.addAll(EXCLUDED.keySet());
+        assertThat(registered).isEqualTo(expected);
     }
 
     /** 운영 원값 → 서버와 같은 변환. "NULL" 이면 서버의 NULL 기본값. */
@@ -182,6 +292,7 @@ class BWalkForwardRunner {
         Path dir = Path.of(System.getProperty("bwf.dir"));
         Path btcPath = Path.of(System.getProperty("bwf.btc", ""));
         Path out = Path.of(System.getProperty("bwf.out", "d:/tmp/bwf_out"));
+        List<String> strategies = selectStrategies(System.getProperty("bwf.strategies"));
         Map<String, String> raw = new java.util.HashMap<>();
         for (String k : List.of("sl", "tpMult", "trailing", "trailTpPct", "trailSlPct", "investPct")) {
             raw.put(k, System.getProperty("bwf." + k));
@@ -192,67 +303,99 @@ class BWalkForwardRunner {
         Files.createDirectories(out);
 
         List<Path> csvs = selectCoinCsvs(dir);
-
-        List<String> rows = new ArrayList<>();
-        rows.add("coin,candles,start,end,btcCandles,oosTrades,oosExpectancyPct,oosTotalReturnPct,overfittingScore,verdict,"
-                + "codeGate,preregGate,preregReason");
         System.out.printf("%n청산 규칙(변환 후): SL %s%% · TP 배수 %s · 추적 %s · 추적 TP %s · 추적 SL %s · 투자 비율 %s · 최대 보유 %dh%n",
                 exit.getStopLossPct(), exit.getTakeProfitMultiplier(), exit.isTrailingEnabled(),
                 exit.getTrailingTpMargin(), exit.getTrailingSlMargin(), exit.getInvestRatio(), MAX_HOLD_HOURS);
-        int codePass = 0, preregPass = 0;
-        for (Path csv : csvs) {
-            String coin = coinOf(csv);
-            List<Candle> candles = loadCsv(csv.toString());
-            var first = candles.get(0).getTime();
-            var last = candles.get(candles.size() - 1).getTime();
-            List<Candle> btcSlice = btc.stream()
-                    .filter(c -> !c.getTime().isBefore(first) && !c.getTime().isAfter(last)).toList();
-            // BTC 파일이 이 코인 구간 전체를 덮는가 — 구간 안의 빠진 시간은 서버 조회와 똑같이 그대로 둔다
-            assertThat(btc.get(0).getTime()).as("🔴 %s: BTC 가 코인 시작 전부터 있지 않다", coin).isBeforeOrEqualTo(first);
-            assertThat(btc.get(btc.size() - 1).getTime()).as("🔴 %s: BTC 가 코인 끝까지 있지 않다", coin).isAfterOrEqualTo(last);
-            assertThat(btcSlice).as("🔴 %s 구간의 BTC 캔들 없음", coin).isNotEmpty();
-
-            BacktestConfig config = BacktestConfig.builder()
-                    .strategyName(STRATEGY).coinPair(coin).timeframe("H1")
-                    .startDate(first).endDate(last)
-                    .initialCapital(new BigDecimal("10000000"))
-                    .slippagePct(new BigDecimal("0.1")).feePct(new BigDecimal("0.05"))
-                    .strategyParams(Map.of())
-                    .exitRuleConfig(exit)
-                    .maxHoldHours(MAX_HOLD_HOURS)
-                    .btcCandles(btcSlice)
-                    .build();
-            WalkForwardTestRunner.WalkForwardResult r =
-                    new WalkForwardTestRunner().run(config, candles, IN_SAMPLE_RATIO, WINDOWS);
-            PerformanceReport agg = r.getAggregatedOutSampleMetrics();
-            int n = agg != null ? agg.getTotalTrades() : 0;
-            BigDecimal exp = agg != null ? agg.getExpectancyPct() : null;
-            boolean expPos = exp != null && exp.signum() > 0;
-            String v = r.getVerdict();
-            // 코드 게이트(WalkForwardValidationGate.decide) 와 같은 순서·하한
-            boolean code = v != null && !"INSUFFICIENT_DATA".equals(v) && !"OVERFITTING".equals(v)
-                    && !"HOLD_OUT_FAILED".equals(v) && n >= 5 && expPos;
-            String why = n < PREREG_MIN_OOS_TRADES ? "OOS<20"
-                    : !expPos ? "기대값≤0"
-                    : "OVERFITTING".equals(v) ? "OVERFITTING"
-                    : "INSUFFICIENT_DATA".equals(v) ? "과최적화 판정 불가" : "";   // 수익성이 나쁘다는 판정과 구분(리뷰 4차)
-            boolean prereg = why.isEmpty();
-            codePass += code ? 1 : 0;
-            preregPass += prereg ? 1 : 0;
-            rows.add(String.join(",", coin, String.valueOf(candles.size()), first.toString(), last.toString(),
-                    String.valueOf(btcSlice.size()), String.valueOf(n), exp == null ? "" : exp.toPlainString(),
-                    agg == null ? "" : agg.getTotalReturnPct().toPlainString(),
-                    r.getOverfittingScore() == null ? "" : r.getOverfittingScore().toPlainString(), v,
-                    code ? "PASS" : "FAIL", prereg ? "충족" : "미충족", why));
-            System.out.printf("  %-11s OOS %4d  기대값 %9s%%  verdict %-17s 코드 %-4s 사전등록 %s%n", coin, n,
-                    exp == null ? "-" : exp.setScale(4, RoundingMode.HALF_UP).toPlainString(), v,
-                    code ? "PASS" : "FAIL", prereg ? "충족" : "미충족 — " + why);
+        Result res = runAll(strategies, csvs, btc, exit);
+        boolean single = strategies.size() == 1;
+        Files.write(out.resolve(single ? "bwf_result.csv" : "selection_result.csv"), res.rows(), StandardCharsets.UTF_8);
+        if (!single) {
+            Files.write(out.resolve("selection_summary.csv"), res.summary(), StandardCharsets.UTF_8);
         }
-        Files.write(out.resolve("bwf_result.csv"), rows, StandardCharsets.UTF_8);
-        System.out.printf("%n코드 게이트 PASS %d/21 · 사전 등록 충족 %d/21 (코인별, 병합 판정 없음)%n", codePass, preregPass);
     }
 
-    private static List<Candle> loadCsv(String path) throws Exception {
+    /** 전략 × 코인 결과 행(머리 포함)과 전략별 요약 행(머리 포함). */
+    record Result(List<String> rows, List<String> summary) { }
+
+    /**
+     * 전략 순서 × 코인(파일 이름) 순서로 WF 를 돌린다. 전략·코인 검사는 호출 전에 끝나 있어야 한다.
+     * 판정·열은 B 실행과 같고, 전략 열과 {@code scoreMethod}·{@code rawOverfittingScore} 열을 더했다(리뷰 12차 P2).
+     */
+    static Result runAll(List<String> strategies, List<Path> csvs, List<Candle> btc, ExitRuleConfig exit) throws Exception {
+        List<String> rows = new ArrayList<>();
+        rows.add("strategy,coin,candles,start,end,btcCandles,oosTrades,oosExpectancyPct,oosTotalReturnPct,"
+                + "scoreMethod,overfittingScore,rawOverfittingScore,verdict,codeGate,preregGate,preregReason");
+        List<String> summary = new ArrayList<>();
+        summary.add("strategy,coins,codePass,preregPass,eligible");
+        List<List<Candle>> loaded = new ArrayList<>();
+        for (Path csv : csvs) {
+            loaded.add(loadCsv(csv.toString()));
+        }
+        for (String strategy : strategies) {
+            System.out.printf("%n[%s]%n", strategy);
+            int codePass = 0, preregPass = 0;
+            for (int k = 0; k < csvs.size(); k++) {
+                String coin = coinOf(csvs.get(k));
+                List<Candle> candles = loaded.get(k);
+                var first = candles.get(0).getTime();
+                var last = candles.get(candles.size() - 1).getTime();
+                List<Candle> btcSlice = btc.stream()
+                        .filter(c -> !c.getTime().isBefore(first) && !c.getTime().isAfter(last)).toList();
+                // BTC 파일이 이 코인 구간 전체를 덮는가 — 구간 안의 빠진 시간은 서버 조회와 똑같이 그대로 둔다
+                assertThat(btc.get(0).getTime()).as("🔴 %s: BTC 가 코인 시작 전부터 있지 않다", coin).isBeforeOrEqualTo(first);
+                assertThat(btc.get(btc.size() - 1).getTime()).as("🔴 %s: BTC 가 코인 끝까지 있지 않다", coin).isAfterOrEqualTo(last);
+                assertThat(btcSlice).as("🔴 %s 구간의 BTC 캔들 없음", coin).isNotEmpty();
+
+                WalkForwardTestRunner.WalkForwardResult r = new WalkForwardTestRunner()
+                        .run(config(strategy, coin, candles, btcSlice, exit), candles, IN_SAMPLE_RATIO, WINDOWS);
+                PerformanceReport agg = r.getAggregatedOutSampleMetrics();
+                int n = agg != null ? agg.getTotalTrades() : 0;
+                BigDecimal exp = agg != null ? agg.getExpectancyPct() : null;
+                boolean expPos = exp != null && exp.signum() > 0;
+                String v = r.getVerdict();
+                // 코드 게이트(WalkForwardValidationGate.decide) 와 같은 순서·하한
+                boolean code = v != null && !"INSUFFICIENT_DATA".equals(v) && !"OVERFITTING".equals(v)
+                        && !"HOLD_OUT_FAILED".equals(v) && n >= 5 && expPos;
+                String why = n < PREREG_MIN_OOS_TRADES ? "OOS<20"
+                        : !expPos ? "기대값≤0"
+                        : "OVERFITTING".equals(v) ? "OVERFITTING"
+                        : "INSUFFICIENT_DATA".equals(v) ? "과최적화 판정 불가" : "";   // 수익성이 나쁘다는 판정과 구분(리뷰 4차)
+                boolean prereg = why.isEmpty();
+                codePass += code ? 1 : 0;
+                preregPass += prereg ? 1 : 0;
+                rows.add(String.join(",", strategy, coin, String.valueOf(candles.size()), first.toString(), last.toString(),
+                        String.valueOf(btcSlice.size()), String.valueOf(n), exp == null ? "" : exp.toPlainString(),
+                        agg == null ? "" : agg.getTotalReturnPct().toPlainString(), r.getScoreMethod(),
+                        r.getOverfittingScore() == null ? "" : r.getOverfittingScore().toPlainString(),
+                        r.getRawOverfittingScore() == null ? "" : r.getRawOverfittingScore().toPlainString(), v,
+                        code ? "PASS" : "FAIL", prereg ? "충족" : "미충족", why));
+                System.out.printf("  %-11s OOS %4d  기대값 %9s%%  verdict %-17s 코드 %-4s 사전등록 %s%n", coin, n,
+                        exp == null ? "-" : exp.setScale(4, RoundingMode.HALF_UP).toPlainString(), v,
+                        code ? "PASS" : "FAIL", prereg ? "충족" : "미충족 — " + why);
+            }
+            boolean eligible = preregPass >= ELIGIBLE_MIN_COINS;
+            summary.add(String.join(",", strategy, String.valueOf(csvs.size()), String.valueOf(codePass),
+                    String.valueOf(preregPass), eligible ? "적격" : "미적격"));
+            System.out.printf("코드 게이트 PASS %d/%d · 사전 등록 충족 %d/%d · 후보 %s (코인별, 병합 판정 없음)%n",
+                    codePass, csvs.size(), preregPass, csvs.size(), eligible ? "적격" : "미적격");
+        }
+        return new Result(rows, summary);
+    }
+
+    static BacktestConfig config(String strategy, String coin, List<Candle> candles, List<Candle> btcSlice, ExitRuleConfig exit) {
+        return BacktestConfig.builder()
+                .strategyName(strategy).coinPair(coin).timeframe("H1")
+                .startDate(candles.get(0).getTime()).endDate(candles.get(candles.size() - 1).getTime())
+                .initialCapital(new BigDecimal("10000000"))
+                .slippagePct(new BigDecimal("0.1")).feePct(new BigDecimal("0.05"))
+                .strategyParams(Map.of())
+                .exitRuleConfig(exit)
+                .maxHoldHours(MAX_HOLD_HOURS)
+                .btcCandles(btcSlice)
+                .build();
+    }
+
+    static List<Candle> loadCsv(String path) throws Exception {
         List<Candle> out = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(path))) {
             String line;
