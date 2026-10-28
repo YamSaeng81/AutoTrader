@@ -53,6 +53,64 @@ class BWalkForwardRunner {
     private static final int MAX_HOLD_HOURS = 24;
     private static final int PREREG_MIN_OOS_TRADES = 20;
 
+    /** B_VALIDATION_PREREG.md §2 의 21코인 — 개수가 아니라 이 목록과 정확히 같아야 실행한다(리뷰 4차). */
+    static final List<String> COINS = List.of(
+            "KRW-ANKR", "KRW-BCH", "KRW-CRO", "KRW-CVC", "KRW-DKA", "KRW-ELF", "KRW-G", "KRW-GLM", "KRW-HIVE",
+            "KRW-INJ", "KRW-IOTA", "KRW-JUP", "KRW-NEAR", "KRW-ONG", "KRW-POLYX", "KRW-POWR", "KRW-PUNDIX",
+            "KRW-SC", "KRW-T", "KRW-WAVES", "KRW-WAXP");
+
+    static String coinOf(Path csv) {
+        return "KRW-" + csv.getFileName().toString().substring(3).replace("_h1.csv", "").toUpperCase();
+    }
+
+    /**
+     * 폴더에서 21코인 CSV 를 고른다. BLAST 는 빼고, 나머지 코인 집합이 {@link #COINS} 와 정확히 같아야 한다.
+     * 빠진 코인·목록 밖 코인이 하나라도 있으면 실행하지 않는다 — 개수만 보면 한 코인이 다른 코인으로 바뀌어도 통과한다.
+     */
+    static List<Path> selectCoinCsvs(Path dir) throws java.io.IOException {
+        List<Path> csvs;
+        try (Stream<Path> s = Files.list(dir)) {
+            csvs = s.filter(p -> p.getFileName().toString().matches("st_\\w+_h1\\.csv"))
+                    .filter(p -> !p.getFileName().toString().equals("st_blast_h1.csv"))
+                    .sorted().toList();
+        }
+        java.util.Set<String> found = new java.util.TreeSet<>(csvs.stream().map(BWalkForwardRunner::coinOf).toList());
+        java.util.Set<String> missing = new java.util.TreeSet<>(COINS);
+        missing.removeAll(found);
+        java.util.Set<String> extra = new java.util.TreeSet<>(found);
+        extra.removeAll(COINS);
+        if (!missing.isEmpty() || !extra.isEmpty()) {
+            throw new IllegalStateException("🔴 코인 집합이 사전 등록 21코인과 다르다 — 빠짐 " + missing + " · 목록 밖 " + extra);
+        }
+        return csvs;
+    }
+
+    /** 코인 집합 검사 — 정확한 21개는 통과, 한 코인을 다른 코인으로 바꾼 21개와 빠진 20개는 거절. */
+    @Test
+    void coinSetMustMatchPreregExactly(@org.junit.jupiter.api.io.TempDir Path tmp) throws Exception {
+        Path ok = Files.createDirectories(tmp.resolve("ok"));
+        for (String c : COINS) {
+            Files.writeString(ok.resolve("st_" + c.substring(4).toLowerCase() + "_h1.csv"), "");
+        }
+        Files.writeString(ok.resolve("st_blast_h1.csv"), "");             // BLAST 는 있어도 뺀다
+        assertThat(selectCoinCsvs(ok)).hasSize(21);
+
+        Path swapped = Files.createDirectories(tmp.resolve("swapped"));
+        for (String c : COINS) {
+            String name = c.equals("KRW-NEAR") ? "btc" : c.substring(4).toLowerCase();   // NEAR 대신 BTC — 개수는 21
+            Files.writeString(swapped.resolve("st_" + name + "_h1.csv"), "");
+        }
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> selectCoinCsvs(swapped))
+                .hasMessageContaining("빠짐 [KRW-NEAR]").hasMessageContaining("목록 밖 [KRW-BTC]");
+
+        Path short20 = Files.createDirectories(tmp.resolve("short"));
+        for (String c : COINS.subList(1, 21)) {
+            Files.writeString(short20.resolve("st_" + c.substring(4).toLowerCase() + "_h1.csv"), "");
+        }
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> selectCoinCsvs(short20))
+                .hasMessageContaining("빠짐 [KRW-ANKR]");
+    }
+
     /** 운영 원값 → 서버와 같은 변환. "NULL" 이면 서버의 NULL 기본값. */
     static ExitRuleConfig exitRuleFromRaw(Map<String, String> raw) {
         BigDecimal pct100 = BigDecimal.valueOf(100);
@@ -133,13 +191,7 @@ class BWalkForwardRunner {
         List<Candle> btc = loadCsv(btcPath.toString());
         Files.createDirectories(out);
 
-        List<Path> csvs;
-        try (Stream<Path> s = Files.list(dir)) {
-            csvs = s.filter(p -> p.getFileName().toString().matches("st_\\w+_h1\\.csv"))
-                    .filter(p -> !p.getFileName().toString().equals("st_blast_h1.csv"))
-                    .sorted().toList();
-        }
-        assertThat(csvs).hasSize(21);
+        List<Path> csvs = selectCoinCsvs(dir);
 
         List<String> rows = new ArrayList<>();
         rows.add("coin,candles,start,end,btcCandles,oosTrades,oosExpectancyPct,oosTotalReturnPct,overfittingScore,verdict,"
@@ -149,7 +201,7 @@ class BWalkForwardRunner {
                 exit.getTrailingTpMargin(), exit.getTrailingSlMargin(), exit.getInvestRatio(), MAX_HOLD_HOURS);
         int codePass = 0, preregPass = 0;
         for (Path csv : csvs) {
-            String coin = "KRW-" + csv.getFileName().toString().substring(3).replace("_h1.csv", "").toUpperCase();
+            String coin = coinOf(csv);
             List<Candle> candles = loadCsv(csv.toString());
             var first = candles.get(0).getTime();
             var last = candles.get(candles.size() - 1).getTime();
@@ -183,7 +235,7 @@ class BWalkForwardRunner {
             String why = n < PREREG_MIN_OOS_TRADES ? "OOS<20"
                     : !expPos ? "기대값≤0"
                     : "OVERFITTING".equals(v) ? "OVERFITTING"
-                    : "INSUFFICIENT_DATA".equals(v) ? "과최적화 미측정" : "";
+                    : "INSUFFICIENT_DATA".equals(v) ? "과최적화 판정 불가" : "";   // 수익성이 나쁘다는 판정과 구분(리뷰 4차)
             boolean prereg = why.isEmpty();
             codePass += code ? 1 : 0;
             preregPass += prereg ? 1 : 0;
@@ -192,9 +244,9 @@ class BWalkForwardRunner {
                     agg == null ? "" : agg.getTotalReturnPct().toPlainString(),
                     r.getOverfittingScore() == null ? "" : r.getOverfittingScore().toPlainString(), v,
                     code ? "PASS" : "FAIL", prereg ? "충족" : "미충족", why));
-            System.out.printf("  %-11s OOS %4d  기대값 %9s%%  %-17s 코드 %-4s 사전등록 %s %s%n", coin, n,
+            System.out.printf("  %-11s OOS %4d  기대값 %9s%%  verdict %-17s 코드 %-4s 사전등록 %s%n", coin, n,
                     exp == null ? "-" : exp.setScale(4, RoundingMode.HALF_UP).toPlainString(), v,
-                    code ? "PASS" : "FAIL", prereg ? "충족" : "미충족", why);
+                    code ? "PASS" : "FAIL", prereg ? "충족" : "미충족 — " + why);
         }
         Files.write(out.resolve("bwf_result.csv"), rows, StandardCharsets.UTF_8);
         System.out.printf("%n코드 게이트 PASS %d/21 · 사전 등록 충족 %d/21 (코인별, 병합 판정 없음)%n", codePass, preregPass);
