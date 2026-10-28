@@ -166,6 +166,28 @@ def main():
         check("추출본 verify 통과", ag.verify(b) == [], ag.verify(b)[:3])
         check("추출본 count = 원본 count", ag.cmd_count(ag.load_counts(out_dir, CFG))["closed_round_trips"]
               == {"OFF": 12, "B": 12, "A": 12})
+        # 건수 전용 추출(2026-10-28, LIVE_READINESS §4) — 같은 장부에서 count_extract.sql → count
+        csql = open(os.path.join(HERE, "count_extract.sql"), encoding="utf-8").read()
+        r = subprocess.run(["docker", "exec", "-i", CONTAINER, "sh", "-c",
+                            f"rm -rf /tmp/fa_c && mkdir /tmp/fa_c && cd /tmp/fa_c && psql -X -U trader -d {DB} -f -"],
+                           input=csql.encode("utf-8"), capture_output=True, env=ENV)
+        clog = (r.stdout + r.stderr).decode("utf-8", "replace")
+        check("count_extract.sql 실행 성공", r.returncode == 0, clog)
+        check("count_extract 트랜잭션: BEGIN … ROLLBACK (쓰기 없음)",
+              "BEGIN" in clog and "ROLLBACK" in clog and "COMMIT" not in clog, clog)
+        cdir = os.path.join(work, "count_extracted")
+        subprocess.run(["docker", "cp", f"{CONTAINER}:/tmp/fa_c", cdir], check=True, env=ENV)
+        check("건수 추출 CSV 4개", sorted(os.listdir(cdir)) == ["meta.csv", "orders.csv", "positions.csv", "sessions.csv"],
+              os.listdir(cdir))
+        heads = {n: open(os.path.join(cdir, n), encoding="utf-8").readline().strip() for n in os.listdir(cdir)}
+        check("건수 추출 헤더 = count 로더가 읽는 열",
+              all(heads[n] == ",".join(cols) for n, cols in ag.COUNT_FIELDS.items()) and heads["meta.csv"] == "snapshot_ts",
+              heads)
+        full_count = ag.cmd_count(ag.load_counts(out_dir, CFG))
+        slim_count = ag.cmd_count(ag.load_counts(cdir, CFG))
+        check("건수 추출의 count = 전체 추출의 count(해시·스냅샷 제외)",
+              {k: v for k, v in slim_count.items() if k not in ("inputs_sha256", "snapshot")}
+              == {k: v for k, v in full_count.items() if k not in ("inputs_sha256", "snapshot")}, (slim_count, full_count))
         try:
             ag.cmd_final(b, os.path.join(work, "final"))
             refused = False
