@@ -88,19 +88,21 @@ services:
         condition: service_healthy
     environment:
       PGPASSWORD: ${DB_PASSWORD}
+      # 실패 경보용(리뷰 22차). 비어 있으면 경보만 생략하고 로그는 남긴다.
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID}
     volumes:
       - ./backups:/backups
-    entrypoint: >
-      /bin/sh -c "
-        mkdir -p /backups &&
-        while true; do
-          FILENAME=/backups/backup_$$(date +%Y%m%d_%H%M%S).sql.gz &&
-          pg_dump -h db -U trader crypto_auto_trader | gzip > $$FILENAME &&
-          echo \"백업 완료: $$FILENAME\" &&
-          find /backups -name '*.sql.gz' -mtime +7 -delete &&
-          sleep 86400;
-        done
-      "
+      - ./scripts/db-backup/backup-loop.sh:/backup-loop.sh:ro
+    # 덤프·압축·검사가 모두 성공했을 때만 *.sql.gz 로 확정한다. 실패는 "백업 실패" 로그 + 텔레그램 경보.
+    entrypoint: ["/bin/sh", "/backup-loop.sh"]
+    # 마지막 성공이 26시간보다 오래되면 unhealthy (docker ps 에 드러난다)
+    healthcheck:
+      test: ["CMD-SHELL", "test -n \"$$(find /backups/.last_success -mmin -1560 2>/dev/null)\""]
+      interval: 10m
+      timeout: 10s
+      retries: 1
+      start_period: 30m
 
   prometheus:
     image: prom/prometheus:latest

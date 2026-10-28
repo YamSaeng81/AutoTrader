@@ -1,143 +1,118 @@
 #!/bin/bash
 # =============================================================================
-# DB 복원 드릴 스크립트 — 20260415_analy.md Tier 4 §17
+# DB 복구 확인 (리뷰 22차, 2026-10-28) — 서버 밖 사본 1개를 격리된 로컬 컨테이너에 복구해 본다.
 #
-# 목적: 백업 파일로부터 새 Postgres 컨테이너에 복원하고 스키마를 검증한다.
-#       "복원 해본 적 없는 백업은 백업이 아니다" — 월 1회 실행 권장.
+# 목적: 기존 66세션 자료 보호. 백업 파일이 실제로 복구되는지만 확인한다.
+#       확인 범위 = 복원 오류 없음 · 스키마(필수 테이블·마이그레이션 이력) · 66세션 식별자 · 주요 테이블 행 수.
+#       🔴 중간 성과(손익·수익률·잔액)는 계산하지 않는다.
 #
-# 사용법:
-#   ./scripts/db-restore-drill.sh                      # 최신 백업 파일 자동 선택
-#   ./scripts/db-restore-drill.sh backups/backup_X.sql.gz  # 특정 파일 지정
+# 사용법 (운영 서버가 아니라 서버 밖 사본이 있는 PC 에서):
+#   scripts/db-restore-drill.sh <backup.sql.gz> <기대 SHA-256> <이미지> <기대 TimescaleDB 버전>
+#   예) scripts/db-restore-drill.sh d:/private/backup_20261028_044929.sql.gz 3f…e1 \
+#          timescale/timescaledb:2.17.2-pg15 2.17.2
+#   이미지·버전은 운영 DB 에서 읽은 값(§3-6 ⓐ)과 같아야 한다. 다르면 시작 전에 실패한다.
 #
-# 전제 조건:
-#   - Docker가 실행 중이어야 한다.
-#   - backups/ 디렉토리에 *.sql.gz 파일이 1건 이상 있어야 한다.
-#   - DB_PASSWORD 환경변수 또는 .env 파일이 필요하다.
+# 예전 스크립트(Tier 4 §17)에서 고친 것:
+#   - 고정 포트(15432) 공개 → 포트를 열지 않는다(docker exec 로만 접근). 컨테이너 이름도 실행마다 다르다.
+#   - 오래된 테이블 목록(V73 에서 삭제된 trade_log 등) → 66세션 장부 3개 + 캔들 + 이력으로 교체.
+#   - 복원 오류 무시(psql 기본값, 2>/dev/null || echo 0) → ON_ERROR_STOP, 오류 1건이면 즉시 실패.
+#   - 버전 미고정(latest) → 이미지·TimescaleDB 버전을 인자로 받아 확인. timescaledb_pre_restore/post_restore 사용.
+#   - 운영 비밀번호(.env) 사용 → 임시 컨테이너용 비밀번호를 그때그때 만든다(출력하지 않는다).
+#   - ./backups 에 기록 → 아무 파일도 쓰지 않는다. 결과는 표준 출력으로만.
 # =============================================================================
 set -euo pipefail
 
-# ── 설정 ──────────────────────────────────────────────────────────────────────
-RESTORE_CONTAINER="crypto-restore-drill"
-RESTORE_DB="crypto_auto_trader_restore"
-RESTORE_PORT="15432"
-DB_USER="trader"
-BACKUP_DIR="./backups"
-REQUIRED_TABLES=(
-    "live_trading_session"
-    "position"
-    "order_details"
-    "trade_log"
-    "backtest_run"
-    "candle_data"
-    "execution_drift_log"
-)
-
-# ── 색상 출력 ─────────────────────────────────────────────────────────────────
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m'
-
-ok()   { echo -e "${GREEN}[OK]${NC} $*"; }
-warn() { echo -e "${YELLOW}[WARN]${NC} $*"; }
-fail() { echo -e "${RED}[FAIL]${NC} $*"; exit 1; }
-
-# ── DB_PASSWORD 로드 ──────────────────────────────────────────────────────────
-if [ -z "${DB_PASSWORD:-}" ]; then
-    if [ -f ".env" ]; then
-        export $(grep -v '^#' .env | xargs)
-    fi
+if [ $# -ne 4 ]; then
+    echo "사용법: $0 <backup.sql.gz> <기대 SHA-256> <이미지> <기대 TimescaleDB 버전>" >&2
+    exit 2
 fi
-if [ -z "${DB_PASSWORD:-}" ]; then
-    fail "DB_PASSWORD 환경변수가 설정되지 않았습니다. .env 파일 또는 export DB_PASSWORD=... 필요."
-fi
+BACKUP_FILE="$1"; EXPECT_SHA="$2"; IMAGE="$3"; EXPECT_TSDB="$4"
+HERE="$(cd "$(dirname "$0")" && pwd)"
+CONFIG="${HERE}/forward_aggregate/forward_config.json"
+CONTAINER="restore-check-$(date +%Y%m%d%H%M%S)-$$"
+DB="restore_check"
 
-# ── 백업 파일 선택 ────────────────────────────────────────────────────────────
-if [ $# -ge 1 ]; then
-    BACKUP_FILE="$1"
-else
-    BACKUP_FILE=$(ls -t "${BACKUP_DIR}"/*.sql.gz 2>/dev/null | head -1)
-fi
+ok()   { echo "[OK] $*"; }
+fail() { echo "[FAIL] $*" >&2; exit 1; }
+cleanup() { docker rm -f "${CONTAINER}" >/dev/null 2>&1 || true; }
+trap cleanup EXIT
 
-if [ -z "${BACKUP_FILE:-}" ] || [ ! -f "${BACKUP_FILE}" ]; then
-    fail "백업 파일을 찾을 수 없습니다: ${BACKUP_FILE:-'(없음)'}. backups/ 디렉토리를 확인하세요."
-fi
-ok "복원 대상 백업 파일: ${BACKUP_FILE}"
+q() { docker exec "${CONTAINER}" psql -X -v ON_ERROR_STOP=1 -U postgres -d "${DB}" -tAc "$1"; }
 
-# ── 기존 드릴 컨테이너 정리 ──────────────────────────────────────────────────
-echo "기존 드릴 컨테이너 정리 중..."
-docker rm -f "${RESTORE_CONTAINER}" 2>/dev/null || true
+# ── 1. 파일 해시·압축 검사 ─────────────────────────────────────────────────────
+[ -f "${BACKUP_FILE}" ] || fail "파일 없음: ${BACKUP_FILE}"
+ACTUAL_SHA=$(sha256sum "${BACKUP_FILE}" | cut -d' ' -f1)
+[ "${ACTUAL_SHA}" = "${EXPECT_SHA,,}" ] || fail "SHA-256 불일치: 실제 ${ACTUAL_SHA}"
+ok "SHA-256 일치: ${ACTUAL_SHA} ($(wc -c < "${BACKUP_FILE}" | tr -d ' ') 바이트)"
+gzip -t "${BACKUP_FILE}" || fail "압축 검사(gzip -t) 실패"
+# 예전 백업 루프는 pg_dump 가 중간에 끊겨도 정상 압축 파일을 남겼다 → 덤프 끝 표시로 완결 여부를 본다
+gunzip -c "${BACKUP_FILE}" | tail -n 5 | grep -q "PostgreSQL database dump complete" \
+    || fail "덤프 끝 표시 없음 — 중간에 끊긴 덤프"
+ok "압축 검사·덤프 끝 표시 통과"
 
-# ── 새 Postgres 컨테이너 시작 ─────────────────────────────────────────────────
-echo "복원용 Postgres 컨테이너 시작 중..."
-docker run -d \
-    --name "${RESTORE_CONTAINER}" \
-    -e POSTGRES_USER="${DB_USER}" \
-    -e POSTGRES_PASSWORD="${DB_PASSWORD}" \
-    -e POSTGRES_DB="${RESTORE_DB}" \
-    -p "${RESTORE_PORT}:5432" \
-    timescale/timescaledb:latest-pg15
-
-# ── Postgres 준비 대기 ────────────────────────────────────────────────────────
-echo "Postgres 준비 대기 중..."
-for i in $(seq 1 30); do
-    if docker exec "${RESTORE_CONTAINER}" pg_isready -U "${DB_USER}" -q 2>/dev/null; then
-        ok "Postgres 준비 완료 (${i}초)"
+# ── 2. 격리 컨테이너 (포트 공개 없음, 일회용 비밀번호) ─────────────────────────
+TMP_PW=$(head -c 24 /dev/urandom | od -An -tx1 | tr -d ' \n')
+docker run -d --name "${CONTAINER}" --network none \
+    -e POSTGRES_PASSWORD="${TMP_PW}" -e POSTGRES_DB="${DB}" \
+    "${IMAGE}" >/dev/null
+unset TMP_PW
+for i in $(seq 1 120); do
+    # 이미지 초기화(확장 설치)가 끝나고 서버가 다시 뜬 뒤에만 쓴다
+    if docker logs "${CONTAINER}" 2>&1 | grep -q "PostgreSQL init process complete" \
+       && docker exec "${CONTAINER}" pg_isready -U postgres -q 2>/dev/null; then
         break
     fi
-    if [ "$i" -eq 30 ]; then
-        docker rm -f "${RESTORE_CONTAINER}" 2>/dev/null || true
-        fail "Postgres 30초 내 준비 실패"
-    fi
+    [ "$i" -eq 120 ] && fail "컨테이너 준비 120초 초과"
     sleep 1
 done
+TSDB=$(q "SELECT extversion FROM pg_extension WHERE extname='timescaledb'")
+PGV=$(q "SHOW server_version")
+[ "${TSDB}" = "${EXPECT_TSDB}" ] || fail "TimescaleDB 버전 불일치: 컨테이너 ${TSDB}, 기대 ${EXPECT_TSDB}"
+ok "컨테이너 ${IMAGE} · PostgreSQL ${PGV} · TimescaleDB ${TSDB} (네트워크 없음)"
 
-# ── 복원 실행 ────────────────────────────────────────────────────────────────
-echo "백업 복원 중 (${BACKUP_FILE})..."
-if gunzip -c "${BACKUP_FILE}" | docker exec -i "${RESTORE_CONTAINER}" \
-        psql -U "${DB_USER}" -d "${RESTORE_DB}" -q 2>&1; then
-    ok "복원 완료"
-else
-    docker rm -f "${RESTORE_CONTAINER}" 2>/dev/null || true
-    fail "복원 실패 — psql 오류 발생"
+# ── 3. 복원 — 오류 1건이면 즉시 실패 ──────────────────────────────────────────
+# 덤프의 소유자(trader)가 있어야 ALTER … OWNER 가 실패하지 않는다
+q "CREATE ROLE trader LOGIN" >/dev/null
+q "SELECT timescaledb_pre_restore()" >/dev/null
+echo "복원 중… (수 분 걸릴 수 있다)"
+RESTORE_LOG=$(mktemp)
+if ! gunzip -c "${BACKUP_FILE}" | docker exec -i "${CONTAINER}" \
+        psql -X -q -v ON_ERROR_STOP=1 -U postgres -d "${DB}" >/dev/null 2>"${RESTORE_LOG}"; then
+    echo "--- 복원 오류 (마지막 20줄) ---" >&2; tail -n 20 "${RESTORE_LOG}" >&2; rm -f "${RESTORE_LOG}"
+    fail "복원 실패 — 오류에서 중단(ON_ERROR_STOP)"
 fi
-
-# ── 스키마 검증 ──────────────────────────────────────────────────────────────
-echo "스키마 검증 중..."
-FAILED_TABLES=()
-for TABLE in "${REQUIRED_TABLES[@]}"; do
-    COUNT=$(docker exec "${RESTORE_CONTAINER}" psql -U "${DB_USER}" -d "${RESTORE_DB}" -tAc \
-        "SELECT COUNT(*) FROM information_schema.tables WHERE table_name='${TABLE}';" 2>/dev/null || echo "0")
-    if [ "${COUNT:-0}" -gt 0 ]; then
-        ok "  테이블 존재: ${TABLE}"
-    else
-        warn "  테이블 없음: ${TABLE}"
-        FAILED_TABLES+=("${TABLE}")
-    fi
-done
-
-# ── 행 수 요약 ───────────────────────────────────────────────────────────────
-echo ""
-echo "=== 주요 테이블 행 수 ==="
-for TABLE in live_trading_session position backtest_run candle_data; do
-    ROWS=$(docker exec "${RESTORE_CONTAINER}" psql -U "${DB_USER}" -d "${RESTORE_DB}" -tAc \
-        "SELECT COUNT(*) FROM ${TABLE};" 2>/dev/null || echo "조회 실패")
-    echo "  ${TABLE}: ${ROWS} 행"
-done
-
-# ── 컨테이너 정리 ────────────────────────────────────────────────────────────
-docker rm -f "${RESTORE_CONTAINER}" 2>/dev/null || true
-ok "드릴 컨테이너 정리 완료"
-
-# ── 결과 요약 ────────────────────────────────────────────────────────────────
-echo ""
-if [ ${#FAILED_TABLES[@]} -eq 0 ]; then
-    ok "복원 드릴 성공 — 모든 필수 테이블 확인됨"
-    echo "드릴 실행일: $(date '+%Y-%m-%d %H:%M:%S')" >> "${BACKUP_DIR}/drill-log.txt"
-    echo "사용 파일: ${BACKUP_FILE}" >> "${BACKUP_DIR}/drill-log.txt"
-    echo "결과: SUCCESS" >> "${BACKUP_DIR}/drill-log.txt"
-    echo "---" >> "${BACKUP_DIR}/drill-log.txt"
-    exit 0
-else
-    fail "복원 드릴 실패 — 누락 테이블: ${FAILED_TABLES[*]}"
+if grep -q "ERROR" "${RESTORE_LOG}"; then
+    grep "ERROR" "${RESTORE_LOG}" | head -n 20 >&2; rm -f "${RESTORE_LOG}"
+    fail "복원 출력에 ERROR"
 fi
+rm -f "${RESTORE_LOG}"
+q "SELECT timescaledb_post_restore()" >/dev/null
+ok "복원 완료 (오류 0)"
+
+# ── 4. 스키마 ─────────────────────────────────────────────────────────────────
+for T in public.flyway_schema_history paper_trading.virtual_balance paper_trading.position \
+         'paper_trading."order"' public.market_data_cache; do
+    [ "$(q "SELECT to_regclass('${T}') IS NOT NULL")" = "t" ] || fail "테이블 없음: ${T}"
+done
+ok "필수 테이블 5개 존재 (paper_trading 장부 3 · market_data_cache · flyway_schema_history)"
+FAILED_MIG=$(q "SELECT count(*) FROM flyway_schema_history WHERE NOT success")
+[ "${FAILED_MIG}" = "0" ] || fail "실패한 마이그레이션 ${FAILED_MIG}건"
+ok "마이그레이션 이력: 최신 $(q "SELECT version FROM flyway_schema_history WHERE success ORDER BY installed_rank DESC LIMIT 1"), 실패 0"
+
+# ── 5. 66세션 식별자 (id·코인이 forward_config.json 과 같아야 한다) ───────────
+EXPECTED=$(python -c "import json,sys; c=json.load(open(sys.argv[1],encoding='utf-8')); print('\n'.join(f\"{s['id']}|{s['coin']}\" for s in sorted(c['sessions'],key=lambda s:s['id'])))" "${CONFIG}" | tr -d '\r')
+ACTUAL=$(q "SELECT id||'|'||coin_pair FROM paper_trading.virtual_balance WHERE id BETWEEN 522 AND 587 ORDER BY id" | tr -d '\r')
+if [ "${EXPECTED}" != "${ACTUAL}" ]; then
+    diff <(echo "${EXPECTED}") <(echo "${ACTUAL}") | head -n 20 >&2 || true
+    fail "66세션 식별자 불일치 (기대 $(echo "${EXPECTED}" | grep -c .) / 복원 $(echo "${ACTUAL}" | grep -c .))"
+fi
+ok "66세션 식별자 일치 (id 522~587 · 코인)"
+
+# ── 6. 주요 테이블 행 수 (건수만, 금액·손익 열은 읽지 않는다) ──────────────────
+echo "=== 행 수 ==="
+echo "  paper_trading.virtual_balance (66세션): $(q "SELECT count(*) FROM paper_trading.virtual_balance WHERE id BETWEEN 522 AND 587")"
+echo "  paper_trading.position (66세션):        $(q "SELECT count(*) FROM paper_trading.position WHERE session_id BETWEEN 522 AND 587")"
+echo "  paper_trading.order (66세션):           $(q "SELECT count(*) FROM paper_trading.\"order\" WHERE session_id BETWEEN 522 AND 587")"
+echo "  paper_trading.virtual_balance (전체):   $(q "SELECT count(*) FROM paper_trading.virtual_balance")"
+echo "  public.market_data_cache (전체):        $(q "SELECT count(*) FROM public.market_data_cache")"
+ok "복구 확인 성공 — 파일 해시·복원·스키마·66세션 식별자·행 수 (성과 계산 없음)"
