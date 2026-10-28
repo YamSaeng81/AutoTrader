@@ -54,6 +54,7 @@
 | 20차 | 결함 2건 수정 확인. 현금 부족 매수(체결 시점 현금만, 재매수 없음) **채택**. 전량 매도 5,000원 미만 예외 **불채택**(업비트 매도 최소 금액) → 미달 잔량 보유, 종료 때 남으면 계산 불가. 판정 우선순위 = 계산된 팔 위반 탈락 > 계산 불가 시 "판정 불가·다음 단계 진행 불가" > 통과, 러너 반영. 반영·시험 통과 시 추가 승인 없이 개발 자료 1회 실행 동의(로컬까지). → 실행 결과: 두 팔 절대·상대 미충족 **탈락, 제안 종료** |
 | 21차 | #10 **"개발 기준 미충족 — 제안 종료" 확정**(입력 해시·출력 사본 해시·판정 대조). 변형·구간 변경·재실행·전향 구현 금지. 계산기는 **검토 완료 아님** — 매도 최소 주문을 체결 시점에 검사하지 않는 한계 기록, 재사용 때 수정(이번 제안 재실행 없음). 기록 정리: `run.log` 저장소 추가, 제안서 "0회" 문구 삭제, 138주 → 기록 시점 138개·경과 137주. 다음 = 백업 존재·상태 확인 마무리. 새 후보는 새 수익 근거·검증 자료가 생길 때 결정 |
 | 22차 | 백업 보고 표현 정정: "비정상 조건 해당 없음" → **최근 백업 파일 생성 확인·실패 감지 결함 존재·복구 가능성 미검증**, 7일 보존은 오래된 날짜의 백업본만 사라진다는 뜻(현재 DB 기록은 최신 덤프에 포함). 다음 = **최신 백업 1개 서버 밖 보존 + 격리 로컬 복구 1회 + 실패를 성공으로 기록하는 결함만 수정**(§3-6). 목적은 66세션 자료 보호, 끝나면 보조 개발 중단 |
+| 23차 | `15892c9` 운영 적용 **보류** — 실패가 성공으로 끝나는 3곳 재현: ① 백업 루프 mv 실패 시 성공 기록·회전 삭제·종료 0 ② ⓑ 보존 블록이 검사 실패 뒤에도 복사·해시 기록·종료 0 ③ 복구 확인이 행 수 조회 실패를 빈 값으로 삼키고 성공·종료 0. 세 실패 시험 + 가짜 66세션 덤프 성공 시험 1건 요구, 운영 명령은 최종 검토 SHA 고정. ⓐ 진행 가능, ⓑⓒ 는 고친 명령으로 진행, ⓓⓔ 는 보완 뒤 → `b3bd1ab` 수정·시험 40건 통과(이전 판 13건 실패) |
 
 ---
 
@@ -86,7 +87,7 @@
 |---|---|---|---|---|---|---|---|---|
 | 1 | **새 후보 B 전향 검증 판정**: `MAIN` 팔 (나) 주 비용 + `STRESS` 팔 스트레스 열 | 새 실험 집계 경로가 사전 기준대로 출력하고 리뷰가 판정한다 | 종료까지 기다린다. 중간 성과는 보지 않는다 | 기다림 | 시스템 → 리뷰 | B 종료 시점(상한 새 T0 + 6개월) | ⬜ **B 미시작 — 미실시로 남김**(리뷰 9차, 2026-10-28). 실패 아님. 다음 후보가 정해지면 그 후보로 다시 쓴다(#9) | §5 |
 | 2 | **B 시작 준비**: R13 결정 (가)가 남긴 경로 | ① 사전 등록 확정 ② 세션별 슬리피지 + 66세션 불변 시험 ③ 새 실험 집계 경로 + 시험 ④ 계획 정비 배포·42세션 시작 **별도 승인** | §5-3 | 리뷰 → 개발 → 운영자 | 리뷰·Claude·운영자 | ① **11-11** ②③ **11-25** ④ 승인 뒤 | ① 🟢 `B_VALIDATION_PREREG.md` **확정**(2026-10-28, 리뷰 5차). ② 🟡 로컬 완료(V95·세션 생성·매수/매도 체결가·지문, `PaperSessionSlippageTest` 6/6 · 웹 API 회귀 881 통과, 리뷰 8차 `31b3046` 로컬 구현·시험 기술 검토 완료 — 매수 호출부 변이 검출·복원 포함) ③ 🟡 로컬 완료(`b_aggregate.py`, 시험 33/33 · 변이 7 잡힘, 리뷰 7차 로컬 CSV 계산기 범위 검토 통과). 운영 배포 없음. ④ **B 로는 진행하지 않음**(리뷰 9차). ②③ 구현은 다음 후보에서 재사용하도록 보존하고, B 시작만을 위한 V95 배포·부하 측정은 보류 | `B_VALIDATION_PREREG.md` |
-| 2-a | └ 원자료 최소 보존 확인 | §3-5 읽기 전용 확인 결과 기록 | 운영자 실행(▶ §3-5, 2차에서 백업 명령 수정) | 운영자 | 운영자 | **11-04** | 🟡 **최근 백업 파일 생성 확인 · 실패 감지 결함 존재 · 복구 가능성 미검증**(2026-10-28, 리뷰 22차 표현): 백업 컨테이너 가동, 10-22~10-28 매일 152~156 MB, 10-21 실패 덤프 20 B 1건(재시작 직후로 추정), 초기화 비밀번호 설정됨. 파일 존재·크기 확인, 복구 가능성 미검증 | §3-5 · §3-6(서버 밖 보존 ⓑⓒ ▶, 로컬 복구 ⓓ ⏸, 결함 수정 ⓔ 로컬 시험 완료·적용 ⏸) |
+| 2-a | └ 원자료 최소 보존 확인 | §3-5 읽기 전용 확인 결과 기록 | 운영자 실행(▶ §3-5, 2차에서 백업 명령 수정) | 운영자 | 운영자 | **11-04** | 🟡 **최근 백업 파일 생성 확인 · 실패 감지 결함 존재 · 복구 가능성 미검증**(2026-10-28, 리뷰 22차 표현): 백업 컨테이너 가동, 10-22~10-28 매일 152~156 MB, 10-21 실패 덤프 20 B 1건(재시작 직후로 추정), 초기화 비밀번호 설정됨. 파일 존재·크기 확인, 복구 가능성 미검증 | §3-5 · §3-6(ⓐ ▶, 서버 밖 보존 ⓑⓒ ▶ `keep-latest.sh`, 로컬 복구 ⓓ ⏸, 결함 수정 ⓔ `b3bd1ab` 로컬 시험 40건·적용 ⏸) |
 | 3 | **B 집계 실행** | B 종료 뒤 운영 추출 승인 → 추출 → 검사 통과 → 판정 출력 | 새 실험 집계 경로(#2 ③)로 실행 | 기다림·리뷰 | 리뷰 → 운영자 | B 종료 시점 | B 미시작으로 해당 없음(리뷰 9차) | §5-2 집계 |
 | 4 | **WF 게이트: B × 21코인 × H1, 코인별** | 조합마다 OOS ≥ 20거래 · OOS 기대값 > 0 · verdict ≠ OVERFITTING. 병합값으로 미통과 조합을 통과시키지 않는다 | 아래 고정안. ⓐ 운영 값을 받아 고정한 뒤 로컬 실행 | 개발·리뷰 | Claude → 리뷰 | 입력 확정 **11-04** · 로컬 결과 **11-11** | 🔴 **WF 실행·결과 확인 완료, 승격 요건 미충족**(리뷰 9차, 2026-10-28): 사전 등록 충족 0/21 · 코드 게이트 PASS 0/21(OVERFITTING 20 · INSUFFICIENT_DATA 1). 통과·정상 완료가 아니다. 기준·입력·코인을 바꿔 다시 돌리지 않는다. 보존 `scripts/b_walkforward/results_2026-10-28/` | `LIVE_ENTRY_PREREG.md` §2 |
 | 5 | **실자금 동시 쓰기 경로 확인**: WS 매도·정지 요청 등이 평가 틱과 같은 행을 다툴 때 | 경로 목록 + 각 경로의 잠금·재시도 근거 또는 시험 | 코드 확인 → 빠진 경로만 시험 | 개발 | Claude → 리뷰 | **11-25** | 🔴 미착수 | `LIVE_RISK_IMPLEMENTATION_REVIEW.md:2297` |
@@ -309,9 +310,9 @@ if c=$(crontab -l 2>&1); then printf '%s\n' "$c" | grep -inE 'pg_dump|pg_basebac
   2. 보존 7일이라 7일보다 오래된 날짜의 백업본은 없다(현재 DB 의 과거 기록은 최신 덤프에 들어 있다).
   3. 복구 훈련을 하지 않았다. TimescaleDB 덤프는 복원 절차가 따로 필요할 수 있다(위 경고).
   4. 백업이 같은 서버의 프로젝트 폴더에 있다(서버 손실 시 함께 잃는다).
-- 1·3·4 는 리뷰 22차 범위로 다룬다(§3-6). 큰 보존 시스템은 만들지 않는다.
+- 1·3·4 는 리뷰 22·23차 범위로 다룬다(§3-6). 큰 보존 시스템은 만들지 않는다.
 
-### 3-6. 최신 백업 1개 서버 밖 보존 + 로컬 복구 1회 + 실패 감지 수정 (리뷰 22차)
+### 3-6. 최신 백업 1개 서버 밖 보존 + 로컬 복구 1회 + 실패 감지 수정 (리뷰 22·23차)
 
 목적은 **기존 66세션 자료 보호**다. 범위는 아래 셋뿐이다. 끝나면 보조 개발을 멈춘다.
 
@@ -321,7 +322,7 @@ if c=$(crontab -l 2>&1); then printf '%s\n' "$c" | grep -inE 'pg_dump|pg_basebac
 | ⓑ | 최신 완료 백업 1개를 회전 삭제 대상 밖(`~/crypto_trader/backup_keep/`)에 복사, SHA-256 기록 | 운영자 | ▶ 지금 실행 |
 | ⓒ | 서버 밖 비공개 위치(운영자 PC)로 복사, 해시 대조 | 운영자 | ▶ ⓑ 뒤 |
 | ⓓ | 그 사본으로 격리된 로컬 컨테이너에 복구 1회(`scripts/db-restore-drill.sh`) | 운영자 PC 또는 Claude(사본을 이 PC 에 두면) | ⏸ ⓐ~ⓒ 뒤 |
-| ⓔ | 백업 실패를 성공으로 기록하는 결함 수정(`scripts/db-backup/backup-loop.sh`) | Claude 로컬 시험 완료 → 운영자 적용 | ⏸ 복구 확인 뒤, 적용 승인 뒤 |
+| ⓔ | 백업 실패를 성공으로 기록하는 결함 수정(`scripts/db-backup/backup-loop.sh`) | Claude 로컬 시험 완료(`b3bd1ab`, 40건) → 운영자 적용 | ⏸ 복구 확인 뒤, 적용 승인 뒤 (`15892c9` 적용 보류) |
 
 **ⓐ ▶ 지금 실행 (운영자, 읽기 전용).** 비밀 값은 출력되지 않는다.
 ```bash
@@ -332,18 +333,16 @@ $DC exec -T db psql -X -U trader -d crypto_auto_trader -tAc "SELECT extversion F
 docker image inspect "$(docker inspect --format '{{.Image}}' "$($DC ps -q db)")" --format '{{join .RepoDigests " "}}' || echo "조회 실패: 이미지 다이제스트"
 ```
 
-**ⓑ ▶ 지금 실행 (운영자).** `./backups` 안의 하위 폴더도 회전 삭제(`find /backups …`)에 걸리므로 **프로젝트 밖**에 둔다. 덤프가 도는 시각(매일 13:45~13:55 KST 무렵)은 피한다.
+**ⓑ ▶ 지금 실행 (운영자).** 리뷰 23차: 예전 블록은 검사에 실패해도 복사·해시 기록을 끝내고 종료 0 이었다 → 검사 스크립트 `scripts/db-backup/keep-latest.sh` 로 바꿨다. 압축 검사 · 덤프 끝 표시 · 복사 · 사본 해시 대조 중 하나라도 실패하면 **즉시 중단(종료 1)**하고, 보존 폴더·`SHA256SUMS` 에 아무것도 남기지 않는다. 보존 폴더는 **프로젝트 밖**(`~/crypto_trader/backup_keep`)이다(`./backups` 하위 폴더도 회전 삭제에 걸린다). 덤프가 도는 시각(매일 13:45~13:55 KST 무렵)은 피한다.
+- 스크립트는 **검토 고정 커밋 `b3bd1ab`** 에서 꺼낸다. `git fetch` 는 작업 폴더(운영 `2eb4225`)를 바꾸지 않는다.
 ```bash
 cd ~/crypto_trader/AutoTrader
-KEEP=~/crypto_trader/backup_keep
-mkdir -p "$KEEP" && chmod 700 "$KEEP"
-F=$(ls -t backups/backup_*.sql.gz | head -1); ls -l "$F"
-gzip -t "$F" && echo "압축 검사 통과" || echo "압축 검사 실패"
-gunzip -c "$F" | tail -n 5 | grep -q "PostgreSQL database dump complete" && echo "덤프 끝 표시 있음" || echo "덤프 끝 표시 없음 — 이 파일 쓰지 말 것"
-cp -p "$F" "$KEEP/" && chmod 600 "$KEEP/$(basename "$F")"
-(cd "$KEEP" && sha256sum "$(basename "$F")" | tee -a SHA256SUMS)
+git fetch origin
+git show b3bd1ab782a9518dd741f2690660a57b5ad5f70d:scripts/db-backup/keep-latest.sh > /tmp/keep-latest.sh
+sha256sum /tmp/keep-latest.sh    # 기대값 29bb5a1405785c118d51ad2ffbd519ec246433472f67f246f7f8d6e93ad7a0be — 다르면 멈춘다
+bash /tmp/keep-latest.sh; echo "종료 코드: $?"
 ```
-- 출력의 파일 이름·크기·SHA-256 을 전달한다. 끝 표시가 없거나 압축 검사가 실패하면 그 앞 파일로 다시 한다.
+- 출력(파일 이름 · 크기 · SHA-256 · 종료 코드)을 전달한다. `[중단]` 으로 끝나면 그 출력을 그대로 전달하고, 바로 앞 파일로 다시 한다: `bash /tmp/keep-latest.sh backups/<앞 파일 이름>`.
 
 **ⓒ ▶ ⓑ 뒤 (운영자 PC, Git Bash).** 백업에는 운영 DB 전체가 들어 있다. **저장소 폴더·클라우드 동기화 폴더가 아닌 비공개 폴더**에 둔다. 저장소에 커밋하지 않는다.
 ```bash
@@ -358,21 +357,28 @@ bash scripts/db-restore-drill.sh <비공개 폴더>/<파일 이름> <ⓑ SHA-256
 - 포트를 열지 않고 네트워크 없이 띄운다. 일회용 비밀번호를 쓴다. 운영 비밀번호는 쓰지 않는다. 끝나면 컨테이너를 지운다.
 - 해시 불일치 · 압축 오류 · 덤프 끝 표시 없음 · 버전 불일치 · **복원 오류 1건** 중 하나라도 있으면 즉시 실패한다.
 - 확인하는 것: 필수 테이블 5개(`paper_trading` 장부 3 · `market_data_cache` · `flyway_schema_history`), 실패 마이그레이션 0, **66세션 식별자(id 522~587·코인)가 `forward_config.json` 과 일치**, 행 수(66세션 장부 3개·캔들). 🔴 중간 성과는 계산하지 않는다.
-- 로컬 시험(2026-10-28, 로컬 오래된 DB 사본으로 만든 덤프): 해시·압축·끝 표시·버전·복원(오류 0)·스키마 단계 통과. 66세션 단계는 로컬 사본에 66세션이 없어 **불일치로 실패(기대대로)**. 해시 불일치·버전 불일치·끝 표시 없는 덤프·오류 문장이 든 덤프·20 바이트 빈 덤프는 모두 실패로 잡혔다. 66세션 일치 경로는 실제 사본으로 처음 확인된다.
+- 로컬 시험(2026-10-28, `scripts/db-backup/test_backup_restore.sh`): **가짜 66세션 덤프로 마지막 "복구 확인 성공"까지 도달**(66세션 식별자 일치, 행 수 66·130·260·67·500 이 넣은 값과 같음). 행 수 조회를 가짜 docker 로 실패시키면 "조회 실패"·종료 1, "성공" 출력 없음(리뷰 23차 결함 — 이전 판은 빈 행 수로 성공·종료 0). 그 밖에 해시 불일치·버전 불일치·끝 표시 없는 덤프·오류 문장이 든 덤프·20 바이트 빈 덤프도 실패로 잡혔다(22차).
 
-**ⓔ ⏸ 복구 확인 뒤, 적용 승인 뒤 (운영자, 백업 컨테이너만).**
-- 수정: 덤프는 임시 이름(`*.sql.gz.part`)에 쓴다. pg_dump 종료 코드 0 · gzip 종료 코드 0 · `gzip -t` · 덤프 끝 표시 · 최소 1 MB 를 모두 통과해야 `*.sql.gz` 로 확정한다. 실패하면 임시 파일을 지우고 "백업 실패" 를 오류 로그에 남기고 텔레그램 경보를 보낸다. 실패한 회차에는 회전 삭제를 하지 않고 1시간 뒤 다시 시도한다. 시작 직후 DB 준비를 최대 10분 기다린다. 마지막 성공이 26시간보다 오래되면 컨테이너가 unhealthy 가 된다.
-- 로컬 시험(2026-10-28, 같은 이미지): 정상 → 확정·회전 삭제, 크기 미달 → 확정 없음·오래된 파일 보존, pg_dump 실패(인증 실패·없는 DB) → 확정 없음·경보 경로, 가짜 토큰으로 경보 전송 실패 → 로그에 토큰 0회, 남은 임시 파일 정리, healthcheck(최근 0 · 27시간 전 1 · 없음 1).
-- `docker-compose.prod.yml` 은 `2eb4225` 와 비교해 **db-backup 부분만** 다르다. 운영 코드 `2eb4225` 는 그대로 두고 두 파일만 가져와 백업 컨테이너만 다시 만든다:
+**ⓔ ⏸ 복구 확인 뒤, 적용 승인 뒤 (운영자, 백업 컨테이너만).** `15892c9` 의 운영 적용은 보류됐다(리뷰 23차). 적용 대상은 **검토 고정 커밋 `b3bd1ab`** 이다.
+- 수정: 덤프는 임시 이름(`*.sql.gz.part`)에 쓴다. pg_dump 종료 코드 0 · gzip 종료 코드 0 · `gzip -t` · 덤프 끝 표시 · 최소 1 MB 를 모두 통과해야 `*.sql.gz` 로 확정한다. **확정(mv)과 성공 기록(`.last_success`) 저장의 종료 코드도 확인한다**(23차). 하나라도 실패하면 "백업 실패" 오류 로그 · 텔레그램 경보 · 실패 반환 · 회전 삭제 생략, 1시간 뒤 다시 시도한다. 시작 직후 DB 준비를 최대 10분 기다린다. 마지막 성공이 26시간보다 오래되면 컨테이너가 unhealthy 가 된다.
+- 로컬 시험: `scripts/db-backup/test_backup_restore.sh` **40건 통과**(B 백업 루프 · K 보존 · D 복구). mv 실패 → 확정 0 · 성공 기록 없음 · 오래된 파일 보존 · 종료 1. 성공 기록 실패 → 종료 1 · 오래된 파일 보존. 같은 시험을 이전 판(`15892c9`)에 돌리면 **13건 실패**(리뷰가 재현한 결함과 같다). 22차 시험(같은 이미지, 크기 미달·인증 실패·없는 DB·가짜 토큰 노출 0·healthcheck)도 유지.
+- `docker-compose.prod.yml` 은 `2eb4225` 와 비교해 **db-backup 부분만** 다르다. 운영 코드 `2eb4225` 는 그대로 두고 고정 커밋에서 두 파일만 가져와 백업 컨테이너만 다시 만든다. 해시가 다르면 아무것도 바꾸지 않고 멈춘다:
 ```bash
 cd ~/crypto_trader/AutoTrader
+bash -euo pipefail <<'EOF'
+SHA=b3bd1ab782a9518dd741f2690660a57b5ad5f70d
 git fetch origin
-cp docker-compose.prod.yml ~/crypto_trader/backup_keep/docker-compose.prod.yml.before
+git show $SHA:scripts/db-backup/backup-loop.sh > /tmp/backup-loop.sh
+git show $SHA:docker-compose.prod.yml > /tmp/docker-compose.prod.yml
+echo "8c85b15e370db3504a7199b36b44cdf2581ef88830e595e0a76ec81e3e0e9de1  /tmp/backup-loop.sh" | sha256sum -c -
+echo "50d7692726fe683a6ea0185f9d17c18dc04a370bd75b4ca6d2faf7d5440a9aab  /tmp/docker-compose.prod.yml" | sha256sum -c -
+git diff --no-index --stat docker-compose.prod.yml /tmp/docker-compose.prod.yml || true   # db-backup 부분만 바뀌는지 확인
+cp -p docker-compose.prod.yml ~/crypto_trader/backup_keep/docker-compose.prod.yml.before
 mkdir -p scripts/db-backup
-git show origin/main:scripts/db-backup/backup-loop.sh > scripts/db-backup/backup-loop.sh
-git show origin/main:docker-compose.prod.yml > docker-compose.prod.yml
-git diff --stat 2eb4225 -- docker-compose.prod.yml   # db-backup 부분만 바뀌었는지 확인
+cp /tmp/backup-loop.sh scripts/db-backup/backup-loop.sh
+cp /tmp/docker-compose.prod.yml docker-compose.prod.yml
 docker compose -f docker-compose.prod.yml up -d --no-deps db-backup
+EOF
 docker compose -f docker-compose.prod.yml logs --no-color --tail 5 db-backup   # 시작 직후 1회 백업, "백업 완료 … 검사 통과" 확인
 ```
 - 되돌리기: `cp ~/crypto_trader/backup_keep/docker-compose.prod.yml.before docker-compose.prod.yml && docker compose -f docker-compose.prod.yml up -d --no-deps db-backup`.
