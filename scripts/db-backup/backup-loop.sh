@@ -93,11 +93,25 @@ backup_once() {
         return 1
     fi
 
-    mv "$part" "$final"
-    date -u +%Y-%m-%dT%H:%M:%SZ > "$DIR/.last_success"
+    # 확정(mv)·성공 기록이 실패하면 성공으로 치지 않는다(리뷰 23차: mv 실패인데 성공 기록·회전 삭제·종료 0 이던 결함).
+    if ! mv "$part" "$final" || [ ! -s "$final" ]; then
+        rm -f "$part"
+        err "백업 실패: 파일 확정(mv) 실패 (확정 파일 없음, 회전 삭제 건너뜀)"
+        alert "백업 실패: 파일 확정(mv) 실패"
+        return 1
+    fi
+    if ! date -u +%Y-%m-%dT%H:%M:%SZ > "$DIR/.last_success"; then
+        err "백업 실패: 성공 기록(.last_success) 저장 실패 (확정 파일 $final 은 남김, 회전 삭제 건너뜀)"
+        alert "백업 실패: 성공 기록 저장 실패"
+        return 1
+    fi
     log "백업 완료: $final (${size} 바이트, 덤프·압축·검사 통과)"
-    # 회전 삭제는 이번 회차가 성공했을 때만, 확정 파일(*.sql.gz)만 대상으로 한다.
-    find "$DIR" -maxdepth 1 -name 'backup_*.sql.gz' -mtime +"$KEEP_DAYS" -print -delete | sed 's/^/회전 삭제: /'
+    # 회전 삭제는 이번 회차가 확정·기록까지 성공했을 때만, 확정 파일(*.sql.gz)만 대상으로 한다.
+    if ! find "$DIR" -maxdepth 1 -name 'backup_*.sql.gz' -mtime +"$KEEP_DAYS" -print -delete > "$DIR/.rotate_log.$$"; then
+        err "회전 삭제 실패 (백업은 확정됨)"
+        alert "회전 삭제 실패 (백업은 확정됨)"
+    fi
+    sed 's/^/회전 삭제: /' "$DIR/.rotate_log.$$"; rm -f "$DIR/.rotate_log.$$"
     return 0
 }
 

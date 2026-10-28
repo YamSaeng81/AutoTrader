@@ -38,6 +38,10 @@ cleanup() { docker rm -f "${CONTAINER}" >/dev/null 2>&1 || true; }
 trap cleanup EXIT
 
 q() { docker exec "${CONTAINER}" psql -X -v ON_ERROR_STOP=1 -U postgres -d "${DB}" -tAc "$1"; }
+# 조회 결과를 먼저 변수에 받고 성공 여부를 확인한다(리뷰 23차: echo "$(q …)" 는 조회 실패를 빈 값으로 삼켰다).
+qset() { local __o; __o=$(q "$2" | tr -d '\r') || fail "조회 실패: $3"; printf -v "$1" '%s' "$__o"; }
+qcount() { qset "$1" "$2" "$3"; [[ "${!1}" =~ ^[0-9]+$ ]] || fail "행 수가 숫자가 아님: $3 ('${!1}')"; }
+qrun() { q "$1" >/dev/null || fail "실행 실패: $2"; }
 
 # ── 1. 파일 해시·압축 검사 ─────────────────────────────────────────────────────
 [ -f "${BACKUP_FILE}" ] || fail "파일 없음: ${BACKUP_FILE}"
@@ -65,15 +69,15 @@ for i in $(seq 1 120); do
     [ "$i" -eq 120 ] && fail "컨테이너 준비 120초 초과"
     sleep 1
 done
-TSDB=$(q "SELECT extversion FROM pg_extension WHERE extname='timescaledb'")
-PGV=$(q "SHOW server_version")
+qset TSDB "SELECT extversion FROM pg_extension WHERE extname='timescaledb'" "TimescaleDB 버전"
+qset PGV "SHOW server_version" "PostgreSQL 버전"
 [ "${TSDB}" = "${EXPECT_TSDB}" ] || fail "TimescaleDB 버전 불일치: 컨테이너 ${TSDB}, 기대 ${EXPECT_TSDB}"
 ok "컨테이너 ${IMAGE} · PostgreSQL ${PGV} · TimescaleDB ${TSDB} (네트워크 없음)"
 
 # ── 3. 복원 — 오류 1건이면 즉시 실패 ──────────────────────────────────────────
 # 덤프의 소유자(trader)가 있어야 ALTER … OWNER 가 실패하지 않는다
-q "CREATE ROLE trader LOGIN" >/dev/null
-q "SELECT timescaledb_pre_restore()" >/dev/null
+qrun "CREATE ROLE trader LOGIN" "trader 역할 생성"
+qrun "SELECT timescaledb_pre_restore()" "timescaledb_pre_restore"
 echo "복원 중… (수 분 걸릴 수 있다)"
 RESTORE_LOG=$(mktemp)
 if ! gunzip -c "${BACKUP_FILE}" | docker exec -i "${CONTAINER}" \
@@ -86,22 +90,26 @@ if grep -q "ERROR" "${RESTORE_LOG}"; then
     fail "복원 출력에 ERROR"
 fi
 rm -f "${RESTORE_LOG}"
-q "SELECT timescaledb_post_restore()" >/dev/null
+qrun "SELECT timescaledb_post_restore()" "timescaledb_post_restore"
 ok "복원 완료 (오류 0)"
 
 # ── 4. 스키마 ─────────────────────────────────────────────────────────────────
 for T in public.flyway_schema_history paper_trading.virtual_balance paper_trading.position \
          'paper_trading."order"' public.market_data_cache; do
-    [ "$(q "SELECT to_regclass('${T}') IS NOT NULL")" = "t" ] || fail "테이블 없음: ${T}"
+    qset EXISTS "SELECT to_regclass('${T}') IS NOT NULL" "테이블 존재 ${T}"
+    [ "${EXISTS}" = "t" ] || fail "테이블 없음: ${T}"
 done
 ok "필수 테이블 5개 존재 (paper_trading 장부 3 · market_data_cache · flyway_schema_history)"
-FAILED_MIG=$(q "SELECT count(*) FROM flyway_schema_history WHERE NOT success")
+qcount FAILED_MIG "SELECT count(*) FROM flyway_schema_history WHERE NOT success" "실패 마이그레이션 수"
 [ "${FAILED_MIG}" = "0" ] || fail "실패한 마이그레이션 ${FAILED_MIG}건"
-ok "마이그레이션 이력: 최신 $(q "SELECT version FROM flyway_schema_history WHERE success ORDER BY installed_rank DESC LIMIT 1"), 실패 0"
+qset LAST_MIG "SELECT version FROM flyway_schema_history WHERE success ORDER BY installed_rank DESC LIMIT 1" "최신 마이그레이션"
+[ -n "${LAST_MIG}" ] || fail "마이그레이션 이력 비어 있음"
+ok "마이그레이션 이력: 최신 ${LAST_MIG}, 실패 0"
 
 # ── 5. 66세션 식별자 (id·코인이 forward_config.json 과 같아야 한다) ───────────
 EXPECTED=$(python -c "import json,sys; c=json.load(open(sys.argv[1],encoding='utf-8')); print('\n'.join(f\"{s['id']}|{s['coin']}\" for s in sorted(c['sessions'],key=lambda s:s['id'])))" "${CONFIG}" | tr -d '\r')
-ACTUAL=$(q "SELECT id||'|'||coin_pair FROM paper_trading.virtual_balance WHERE id BETWEEN 522 AND 587 ORDER BY id" | tr -d '\r')
+[ "$(echo "${EXPECTED}" | grep -c .)" = "66" ] || fail "forward_config.json 세션 목록이 66개가 아님"
+qset ACTUAL "SELECT id||'|'||coin_pair FROM paper_trading.virtual_balance WHERE id BETWEEN 522 AND 587 ORDER BY id" "66세션 식별자"
 if [ "${EXPECTED}" != "${ACTUAL}" ]; then
     diff <(echo "${EXPECTED}") <(echo "${ACTUAL}") | head -n 20 >&2 || true
     fail "66세션 식별자 불일치 (기대 $(echo "${EXPECTED}" | grep -c .) / 복원 $(echo "${ACTUAL}" | grep -c .))"
@@ -109,10 +117,15 @@ fi
 ok "66세션 식별자 일치 (id 522~587 · 코인)"
 
 # ── 6. 주요 테이블 행 수 (건수만, 금액·손익 열은 읽지 않는다) ──────────────────
+qcount N_VB66 "SELECT count(*) FROM paper_trading.virtual_balance WHERE id BETWEEN 522 AND 587" "virtual_balance(66세션)"
+qcount N_POS66 "SELECT count(*) FROM paper_trading.position WHERE session_id BETWEEN 522 AND 587" "position(66세션)"
+qcount N_ORD66 "SELECT count(*) FROM paper_trading.\"order\" WHERE session_id BETWEEN 522 AND 587" "order(66세션)"
+qcount N_VB "SELECT count(*) FROM paper_trading.virtual_balance" "virtual_balance(전체)"
+qcount N_MDC "SELECT count(*) FROM public.market_data_cache" "market_data_cache(전체)"
 echo "=== 행 수 ==="
-echo "  paper_trading.virtual_balance (66세션): $(q "SELECT count(*) FROM paper_trading.virtual_balance WHERE id BETWEEN 522 AND 587")"
-echo "  paper_trading.position (66세션):        $(q "SELECT count(*) FROM paper_trading.position WHERE session_id BETWEEN 522 AND 587")"
-echo "  paper_trading.order (66세션):           $(q "SELECT count(*) FROM paper_trading.\"order\" WHERE session_id BETWEEN 522 AND 587")"
-echo "  paper_trading.virtual_balance (전체):   $(q "SELECT count(*) FROM paper_trading.virtual_balance")"
-echo "  public.market_data_cache (전체):        $(q "SELECT count(*) FROM public.market_data_cache")"
+echo "  paper_trading.virtual_balance (66세션): ${N_VB66}"
+echo "  paper_trading.position (66세션):        ${N_POS66}"
+echo "  paper_trading.order (66세션):           ${N_ORD66}"
+echo "  paper_trading.virtual_balance (전체):   ${N_VB}"
+echo "  public.market_data_cache (전체):        ${N_MDC}"
 ok "복구 확인 성공 — 파일 해시·복원·스키마·66세션 식별자·행 수 (성과 계산 없음)"
