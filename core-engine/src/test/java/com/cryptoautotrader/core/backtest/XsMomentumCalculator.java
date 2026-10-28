@@ -180,7 +180,11 @@ final class XsMomentumCalculator {
             return v;
         }
 
-        /** 체결 봉 시가 ± 슬리피지, 대금에 수수료. 매수는 그 시각에 있는 현금만 쓴다 — 모자라 최소 주문 미만이면 false. */
+        /**
+         * 체결 봉 시가 ± 슬리피지, 대금에 수수료. 매수는 그 시각에 있는 현금만 쓴다 — 모자라 최소 주문 미만이면 false.
+         * ⚠ 알려진 한계(리뷰 21차, 미수정): 매도 최소 주문은 계획 시점(t 판정 가격)에만 검사하고 여기서는 검사하지 않는다.
+         * 체결 봉 시가가 급락하면 5,000원 미만 매도가 체결된다. 계산기를 다시 쓸 때 고친다.
+         */
         boolean execute(Order o, Costs c, BigDecimal minOrder) {
             BigDecimal open = o.fill().open();
             if (o.sell()) {
