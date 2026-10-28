@@ -79,6 +79,12 @@ subprojects {
             testLogging.showStandardStreams = true
             maxHeapSize = '2g'
         }
+        // #9 D3 호출 경로 비교(가짜 자료): -Dcallpath.out=<CSV 경로>
+        if (System.getProperty('callpath.out')) {
+            systemProperty 'callpath.out', System.getProperty('callpath.out')
+            testLogging.showStandardStreams = true
+            maxHeapSize = '2g'
+        }
         // Supertrend Q2 (ON/OFF 운용 비교): -Dstfilter.q2.dir=<H1 CSV 디렉터리>
         if (System.getProperty('stfilter.q2.dir')) {
             systemProperty 'stfilter.q2.dir', System.getProperty('stfilter.q2.dir')
