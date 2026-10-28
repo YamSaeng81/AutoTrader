@@ -279,6 +279,36 @@ class XsMomentumCalculatorFakeDataTest {
     }
 
     @Test
+    @DisplayName("리뷰 20차 ②: 전량 매도에도 최소 주문 적용 — 800원 잔량 5건은 팔지 않고 보유, 종료 때 남으면 계산 불가")
+    void dustBelowMinOrderNotSold() {
+        Map<String, List<Bar>> data = new TreeMap<>();
+        // A~E: 5주차까지 100, 6주차에 0.04 로 폭락(각 200만 원 → 800원). F~J: 100 평평 → 6주차에 F~J 로 바뀐다
+        for (String c : List.of("A", "B", "C", "D", "E")) data.put(c, bars(T0, week(10), ramp(week(5), week(6), 100, 0.04)));
+        for (String c : List.of("F", "G", "H", "I", "J")) data.put(c, bars(T0, week(10), growth(0.0)));
+        Result r = new XsMomentumCalculator(data).run(Mode.TOP_N, ZERO, P, week(5), week(7));
+        var w6 = r.weeks().get(1);
+        assertThat(w6.selected()).containsExactly("F", "G", "H", "I", "J");
+        assertThat(w6.sold().signum()).isZero();                       // 800원 매도 5건을 체결하지 않는다
+        assertThat(w6.qtyAfter()).containsKeys("A", "B", "C", "D", "E"); // 잔량은 보유한 채
+        assertThat(w6.cashAfter().signum()).isZero();                  // 4,000원을 현금으로 만들지 않는다
+        assertThat(r.computable()).isFalse();
+        assertThat(r.finalValue()).isNull();
+        assertThat(r.uncomputable()).startsWith("A 최소 주문 미만 잔량(800원)");
+    }
+
+    @Test
+    @DisplayName("리뷰 20차 ③: 판정 우선순위 — 계산된 팔의 조건 위반 = 탈락, 그 밖에 계산 불가 팔 = 판정 불가, 아니면 통과")
+    void overallPriority() {
+        var pass = new XsMomentumCalculator.ArmVerdict(MAIN, true, true, true, true);
+        var fail = new XsMomentumCalculator.ArmVerdict(MAIN, true, false, true, true);
+        var na = new XsMomentumCalculator.ArmVerdict(MAIN, false, false, false, false);
+        assertThat(XsMomentumCalculator.overall(List.of(pass, pass))).isEqualTo(XsMomentumCalculator.Overall.PASS);
+        assertThat(XsMomentumCalculator.overall(List.of(pass, na))).isEqualTo(XsMomentumCalculator.Overall.UNDETERMINED);
+        assertThat(XsMomentumCalculator.overall(List.of(na, fail))).isEqualTo(XsMomentumCalculator.Overall.FAIL);
+        assertThat(XsMomentumCalculator.overall(List.of(fail, pass))).isEqualTo(XsMomentumCalculator.Overall.FAIL);
+    }
+
+    @Test
     @DisplayName("구간: 시작 = 적격 5개 이상인 첫 월요일, 종료 = 가장 이른 마지막 봉 이하의 월요일")
     void startEnd() {
         Map<String, List<Bar>> data = new TreeMap<>();

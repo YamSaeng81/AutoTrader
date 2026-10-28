@@ -75,7 +75,7 @@ class XsMomentumRunner {
         List<String> weekly = new ArrayList<>(List.of(
                 "arm,mode,t,eligible,selected,value_before,bought,sold,fee,slippage,cash_after,unfilled"));
         List<String> verdict = new ArrayList<>(List.of("구간(UTC) " + s + " ~ " + e));
-        boolean all = true, computable = true;
+        List<ArmVerdict> arms = new ArrayList<>();
         for (Costs c : ARMS) {
             Result st = calc.run(Mode.TOP_N, c, p, s, e);
             Result bk = calc.run(Mode.BASKET, c, p, s, e);
@@ -91,8 +91,7 @@ class XsMomentumRunner {
                 }
             }
             ArmVerdict v = XsMomentumCalculator.verdict(st, bk);
-            all &= v.pass();
-            computable &= v.computable();
+            arms.add(v);
             if (!v.computable()) {
                 for (Result r : List.of(st, bk)) {
                     if (!r.computable()) verdict.add(c.name() + ": " + r.mode() + " 계산 불가 — " + r.uncomputable());
@@ -104,8 +103,12 @@ class XsMomentumRunner {
                     + " · 낙폭 " + ok(v.drawdown()) + " (차 " + pct(st.mdd().subtract(bk.mdd())) + "%p)"
                     + " → " + (v.pass() ? "통과" : "탈락"));
         }
-        verdict.add("개발 판정: " + (!computable ? "계산 불가 — 판정하지 않음(가상 청산 없음, 리뷰 판단)"
-                : all ? "통과(두 팔 모두 세 조건 충족)" : "탈락 — 제안 종료(§5-⑥)"));
+        // 우선순위(리뷰 20차): 계산된 팔의 조건 위반 = 탈락 → 계산 불가 팔 = 판정 불가 → 통과
+        verdict.add("개발 판정: " + switch (XsMomentumCalculator.overall(arms)) {
+            case FAIL -> "탈락 — 제안 종료(§5-⑨)";
+            case UNDETERMINED -> "판정 불가·다음 단계 진행 불가(계산 불가 팔 있음, 가상 청산 없음)";
+            case PASS -> "통과(두 팔 모두 세 조건 충족)";
+        });
         Files.write(out.resolve("summary.csv"), summary, StandardCharsets.UTF_8);
         Files.write(out.resolve("weekly.csv"), weekly, StandardCharsets.UTF_8);
         Files.write(out.resolve("verdict.txt"), verdict, StandardCharsets.UTF_8);

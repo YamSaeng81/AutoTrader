@@ -25,11 +25,12 @@ import java.util.TreeMap;
  *   <li>4주 = 달력 28일: R = 판정가격(t) / 판정가격(t−28일) − 1 — 행 수(672)로 세지 않는다</li>
  *   <li>체결 = 시작이 [t, t+24h) 인 첫 봉의 시가 ± 슬리피지, 대금에 수수료. 그런 봉이 없으면 그 주 그 코인은 거래하지 않는다</li>
  *   <li>목표 비중: TOP_N 은 선택 코인마다 1/N(남는 자리는 현금), BASKET 은 적격 코인 전체 동일 비중</li>
- *   <li>매주 목표 비중으로 다시 맞춘다(유지 종목 비중 조정 포함). 대금 5,000원 미만 주문은 하지 않는다(전량 매도는 예외)</li>
+ *   <li>매주 목표 비중으로 다시 맞춘다(유지 종목 비중 조정 포함). 대금 5,000원 미만 주문은 매수·매도 모두 하지 않는다(전량 매도도, 리뷰 20차)</li>
  *   <li>주문 크기는 t 에 완료된 봉의 종가로 정하고, 체결은 봉 시각 순서로 처리한다 — 매도 전 대금을 쓰지 않고,
  *       매수 전 보유량을 평가에 넣지 않는다(리뷰 19차)</li>
  *   <li>종료 시각 E 에 전부 같은 체결 규칙으로 청산한다(청산 비용 포함)</li>
- *   <li>체결 봉을 확인하지 못한 종료 청산, 자료가 끝난 보유 코인 → 가상 청산 없이 <b>계산 불가</b>(리뷰 19차).
+ *   <li>체결 봉을 확인하지 못한 종료 청산, 최소 주문 미만이라 청산하지 못한 잔량, 자료가 끝난 보유 코인
+ *       → 가상 청산 없이 <b>계산 불가</b>(리뷰 19·20차).
  *       마지막 종가 매도 가정은 쓰지 않는다</li>
  * </ul>
  */
@@ -236,8 +237,12 @@ final class XsMomentumCalculator {
                 BigDecimal mp = markPrice(c, t);
                 BigDecimal target = sel.contains(c) ? value.multiply(w, MC) : BigDecimal.ZERO;
                 BigDecimal excess = e.getValue().multiply(mp, MC).subtract(target);
-                // 목표 0 이면 전량 매도(최소 주문 미만 잔량도), 아니면 초과분이 최소 주문 이상일 때만
-                if (target.signum() > 0 && excess.compareTo(p.minOrder()) < 0) continue;
+                // 매도도 최소 주문 이상일 때만 — 전량 매도 예외 없음(업비트 매도 최소 금액, 리뷰 20차). 미달 잔량은 보유한 채 둔다
+                if (excess.compareTo(p.minOrder()) < 0) {
+                    if (last) return uncomputable(mode, costs, start, end, weeks, b,
+                            c + " 최소 주문 미만 잔량(" + excess.setScale(0, java.math.RoundingMode.HALF_UP) + "원) — 종료 청산 불가");
+                    continue;
+                }
                 BigDecimal q = target.signum() == 0 ? e.getValue() : excess.divide(mp, MC);
                 orders.add(new Order(c, true, q, fillBar(c, t)));
                 budget = budget.add(q.multiply(mp, MC).multiply(BigDecimal.ONE.subtract(costs.slip()), MC)
@@ -316,5 +321,14 @@ final class XsMomentumCalculator {
         boolean rel = strat.cumReturn().subtract(basket.cumReturn()).signum() > 0;
         boolean dd = strat.mdd().subtract(basket.mdd()).compareTo(new BigDecimal("0.10")) < 0;
         return new ArmVerdict(strat.costs(), true, abs, rel, dd);
+    }
+
+    enum Overall { PASS, FAIL, UNDETERMINED }
+
+    /** 개발 판정 우선순위(리뷰 20차): 계산된 팔이 조건을 어기면 탈락 → 아니고 계산 불가 팔이 있으면 판정 불가 → 아니면 통과. */
+    static Overall overall(List<ArmVerdict> arms) {
+        if (arms.stream().anyMatch(v -> v.computable() && !v.pass())) return Overall.FAIL;
+        if (arms.stream().anyMatch(v -> !v.computable())) return Overall.UNDETERMINED;
+        return Overall.PASS;
     }
 }
