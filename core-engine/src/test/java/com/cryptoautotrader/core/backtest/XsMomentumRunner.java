@@ -71,11 +71,11 @@ class XsMomentumRunner {
         Instant s = calc.firstStart(p.topN()), e = calc.lastEnd();
         Files.createDirectories(out);
         List<String> summary = new ArrayList<>(List.of(
-                "arm,mode,start,end,weeks,final_value,cum_return_pct,mdd_pct,bought,sold,fee,slippage,delist_sales"));
+                "arm,mode,start,end,weeks,final_value,cum_return_pct,mdd_pct,bought,sold,fee,slippage,status"));
         List<String> weekly = new ArrayList<>(List.of(
-                "arm,mode,t,eligible,selected,value_before,bought,sold,fee,slippage,cash_after"));
+                "arm,mode,t,eligible,selected,value_before,bought,sold,fee,slippage,cash_after,unfilled"));
         List<String> verdict = new ArrayList<>(List.of("구간(UTC) " + s + " ~ " + e));
-        boolean all = true;
+        boolean all = true, computable = true;
         for (Costs c : ARMS) {
             Result st = calc.run(Mode.TOP_N, c, p, s, e);
             Result bk = calc.run(Mode.BASKET, c, p, s, e);
@@ -83,21 +83,29 @@ class XsMomentumRunner {
                 summary.add(String.join(",", c.name(), r.mode().name(), s.toString(), e.toString(),
                         String.valueOf(r.weeks().size()), n(r.finalValue(), 0), pct(r.cumReturn()), pct(r.mdd()),
                         n(r.totalBought(), 0), n(r.totalSold(), 0), n(r.totalFee(), 0), n(r.totalSlippage(), 0),
-                        String.valueOf(r.delistSales())));
+                        r.computable() ? "ok" : "uncomputable: " + r.uncomputable().replace(',', ';')));
                 for (var w : r.weeks()) {
                     weekly.add(String.join(",", c.name(), r.mode().name(), w.t().toString(), String.valueOf(w.eligible()),
                             String.join("|", w.selected()), n(w.valueBefore(), 0), n(w.bought(), 0), n(w.sold(), 0),
-                            n(w.fee(), 0), n(w.slippage(), 0), n(w.cashAfter(), 0)));
+                            n(w.fee(), 0), n(w.slippage(), 0), n(w.cashAfter(), 0), String.join("|", w.unfilled())));
                 }
             }
             ArmVerdict v = XsMomentumCalculator.verdict(st, bk);
             all &= v.pass();
+            computable &= v.computable();
+            if (!v.computable()) {
+                for (Result r : List.of(st, bk)) {
+                    if (!r.computable()) verdict.add(c.name() + ": " + r.mode() + " 계산 불가 — " + r.uncomputable());
+                }
+                continue;
+            }
             verdict.add(c.name() + ": 절대 " + ok(v.absolute()) + " (전략 " + pct(st.cumReturn()) + "%)"
                     + " · 상대 " + ok(v.relative()) + " (차 " + pct(st.cumReturn().subtract(bk.cumReturn())) + "%p)"
                     + " · 낙폭 " + ok(v.drawdown()) + " (차 " + pct(st.mdd().subtract(bk.mdd())) + "%p)"
                     + " → " + (v.pass() ? "통과" : "탈락"));
         }
-        verdict.add("개발 판정: " + (all ? "통과(두 팔 모두 세 조건 충족)" : "탈락 — 제안 종료(§5-⑥)"));
+        verdict.add("개발 판정: " + (!computable ? "계산 불가 — 판정하지 않음(가상 청산 없음, 리뷰 판단)"
+                : all ? "통과(두 팔 모두 세 조건 충족)" : "탈락 — 제안 종료(§5-⑥)"));
         Files.write(out.resolve("summary.csv"), summary, StandardCharsets.UTF_8);
         Files.write(out.resolve("weekly.csv"), weekly, StandardCharsets.UTF_8);
         Files.write(out.resolve("verdict.txt"), verdict, StandardCharsets.UTF_8);
@@ -106,7 +114,7 @@ class XsMomentumRunner {
 
     static String ok(boolean b) { return b ? "충족" : "미충족"; }
 
-    static String n(BigDecimal v, int scale) { return v.setScale(scale, RoundingMode.HALF_UP).toPlainString(); }
+    static String n(BigDecimal v, int scale) { return v == null ? "NA" : v.setScale(scale, RoundingMode.HALF_UP).toPlainString(); }
 
-    static String pct(BigDecimal v) { return v.multiply(XsMomentumCalculator.HUNDRED).setScale(2, RoundingMode.HALF_UP).toPlainString(); }
+    static String pct(BigDecimal v) { return v == null ? "NA" : v.multiply(XsMomentumCalculator.HUNDRED).setScale(2, RoundingMode.HALF_UP).toPlainString(); }
 }

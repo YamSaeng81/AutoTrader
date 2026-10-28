@@ -183,18 +183,99 @@ class XsMomentumCalculatorFakeDataTest {
         assertThat(b2.weeks().get(1).sold().signum()).isPositive();
     }
 
+    /** 1개만 보유하는 매개변수 — 체결 순서 사례를 손으로 셀 수 있게. */
+    static final Params ONE = new Params(1, BigDecimal.valueOf(10_000_000), BigDecimal.valueOf(5_000));
+
+    static List<Bar> without(List<Bar> list, Instant from, Duration len) {
+        List<Bar> out = new ArrayList<>(list);
+        out.removeIf(b -> !b.start().isBefore(from) && b.start().isBefore(from.plus(len)));
+        return out;
+    }
+
+    /** 두 시각 사이를 곧게 잇고 앞뒤는 평평한 가격. */
+    static Function<Instant, Double> ramp(Instant from, Instant to, double p0, double p1) {
+        return h -> h.isBefore(from) ? p0 : !h.isBefore(to) ? p1
+                : p0 + (p1 - p0) * Duration.between(from, h).toMinutes() / Duration.between(from, to).toMinutes();
+    }
+
     @Test
-    @DisplayName("보유 코인 자료가 끝나면 마지막 종가에 비용을 빼고 판 것으로 본다")
-    void delistedSoldAtLastClose() {
+    @DisplayName("리뷰 19차 ①: 20:00 매도 대금으로 같은 날 00:00 매수하지 않는다 — 원금이 불어나지 않는다")
+    void sellProceedsNotUsedBeforeSellFill() {
+        Map<String, List<Bar>> data = new TreeMap<>();
+        // A: 1~5주 100→110 뒤 평평, B: 5~6주 100→120 뒤 평평 → 5주차 A, 6주차 B 선택
+        // A 는 6주차 0~20시 봉이 없어 매도가 20:00 에 체결된다. B 매수 봉은 00:00
+        data.put("A", without(bars(T0, week(10), ramp(week(1), week(5), 100, 110)), week(6), Duration.ofHours(20)));
+        data.put("B", bars(T0, week(10), ramp(week(5), week(6), 100, 120)));
+        var calc = new XsMomentumCalculator(data);
+        Result r = calc.run(Mode.TOP_N, ZERO, ONE, week(5), week(7));
+        assertThat(r.computable()).isTrue();
+        var w6 = r.weeks().get(1);
+        assertThat(w6.selected()).containsExactly("B");
+        assertThat(w6.sold().doubleValue()).isCloseTo(10_000_000, within(1e-6));   // 20:00 에 A 매도
+        assertThat(w6.bought().signum()).isZero();                                 // 00:00 에는 쓸 현금이 없었다
+        assertThat(w6.unfilled()).containsExactly("B:현금부족");
+        for (var w : r.weeks()) assertThat(w.cashAfter().signum()).isGreaterThanOrEqualTo(0);
+        assertThat(r.finalValue().doubleValue()).isCloseTo(10_000_000, within(1e-6));
+    }
+
+    @Test
+    @DisplayName("리뷰 19차 ①: 매수가 20시간 늦게 체결돼도 그 전에는 현금으로 평가 — 손실 없는 경로에 낙폭이 생기지 않는다")
+    void lateBuyNoPhantomDrawdown() {
+        var calc = new XsMomentumCalculator(Map.of("A",
+                without(bars(T0, week(10), growth(0.0)), week(5), Duration.ofHours(20))));
+        Result r = calc.run(Mode.TOP_N, ZERO, ONE, week(5), week(6));
+        assertThat(r.weeks().get(0).bought().doubleValue()).isCloseTo(10_000_000, within(1e-6));
+        assertThat(r.mdd().doubleValue()).isCloseTo(0, within(1e-12));
+        assertThat(r.finalValue().doubleValue()).isCloseTo(10_000_000, within(1e-6));
+    }
+
+    @Test
+    @DisplayName("리뷰 19차 ①: 목표 금액은 체결 시가가 아니라 t 에 완료된 봉 종가로 정한다")
+    void targetUsesKnownPricesOnly() {
+        Map<String, List<Bar>> data = new TreeMap<>();
+        for (String c : List.of("A", "B", "C", "D", "E")) data.put(c, bars(T0, week(10), growth(0.0)));
+        // 6주차 A 체결 봉의 시가만 크게 바꾼다 — t 에는 알 수 없는 값
+        List<Bar> a = new ArrayList<>(data.get("A"));
+        a.replaceAll(b -> b.start().equals(week(6)) ? new Bar(b.start(), bd(999), b.close()) : b);
+        data.put("A", a);
+        Result r = new XsMomentumCalculator(data).run(Mode.TOP_N, ZERO, P, week(5), week(7));
+        var w6 = r.weeks().get(1);
+        assertThat(w6.valueBefore().doubleValue()).isCloseTo(10_000_000, within(1e-6));
+        assertThat(w6.bought().signum()).isZero();
+        assertThat(w6.sold().signum()).isZero();
+    }
+
+    @Test
+    @DisplayName("리뷰 19차 ②: 종료 뒤 30시간 체결 봉이 없으면 가상 청산하지 않고 계산 불가")
+    void endLiquidationWithoutFillBarUncomputable() {
+        Map<String, List<Bar>> data = new TreeMap<>();
+        for (String c : List.of("A", "B", "C", "D", "E")) data.put(c, bars(T0, week(10), growth(0.0)));
+        data.put("A", without(data.get("A"), week(7), Duration.ofHours(30)));
+        var calc = new XsMomentumCalculator(data);
+        Result r = calc.run(Mode.TOP_N, ZERO, P, week(5), week(7));
+        assertThat(r.computable()).isFalse();
+        assertThat(r.finalValue()).isNull();
+        assertThat(r.cumReturn()).isNull();
+        assertThat(r.uncomputable()).startsWith("A 자료 결측");
+        var v = XsMomentumCalculator.verdict(r, calc.run(Mode.BASKET, ZERO, P, week(5), week(7)));
+        assertThat(v.computable()).isFalse();
+        assertThat(v.pass()).isFalse();
+    }
+
+    @Test
+    @DisplayName("리뷰 19차 ②: 보유 코인 자료가 끝나면 마지막 종가 매도 없이 계산 불가 — 확인된 거래지원 종료와 이유를 구분")
+    void heldCoinDataEndedUncomputable() {
         Map<String, List<Bar>> data = new TreeMap<>();
         for (String c : List.of("A", "B", "C", "D", "E")) data.put(c, bars(T0, week(12), growth(0.0)));
         data.put("Z", bars(T0, week(6).plus(Duration.ofHours(30)), growth(0.05)));  // 가장 강한 코인, 6주차+30h 에 끝남
-        var calc = new XsMomentumCalculator(data);
-        Result r = calc.run(Mode.TOP_N, MAIN, P, week(5), week(9));
+        Result r = new XsMomentumCalculator(data).run(Mode.TOP_N, MAIN, P, week(5), week(9));
         assertThat(r.weeks().get(0).selected()).contains("Z");
-        assertThat(r.delistSales()).isEqualTo(1);
-        assertThat(r.weeks().get(2).qtyAfter()).doesNotContainKey("Z");
-        assertThat(r.weeks().get(2).selected()).doesNotContain("Z");
+        assertThat(r.computable()).isFalse();
+        assertThat(r.finalValue()).isNull();
+        assertThat(r.uncomputable()).startsWith("Z 자료 종료(거래지원 종료 미확인)");
+        Result c = new XsMomentumCalculator(data, java.util.Set.of("Z")).run(Mode.TOP_N, MAIN, P, week(5), week(9));
+        assertThat(c.computable()).isFalse();
+        assertThat(c.uncomputable()).startsWith("Z 확인된 거래지원 종료");
     }
 
     @Test
@@ -219,6 +300,9 @@ class XsMomentumCalculatorFakeDataTest {
                 res(new BigDecimal("-0.30"), BigDecimal.ZERO)).absolute()).isFalse();
         assertThat(XsMomentumCalculator.verdict(s, res(new BigDecimal("0.05"), new BigDecimal("0.15"))).relative()).isFalse();
         assertThat(XsMomentumCalculator.verdict(s, res(new BigDecimal("0.01"), new BigDecimal("0.10"))).drawdown()).isFalse();
+        var bad = new Result(Mode.BASKET, MAIN, T0, T0, List.of(), null, null, null,
+                BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, "X 자료 결측");
+        assertThat(XsMomentumCalculator.verdict(s, bad).pass()).isFalse();
     }
 
     @Test
@@ -275,6 +359,6 @@ class XsMomentumCalculatorFakeDataTest {
 
     static Result res(BigDecimal cum, BigDecimal mdd) {
         return new Result(Mode.TOP_N, MAIN, T0, T0, List.of(), BigDecimal.ZERO, cum, mdd,
-                BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, 0);
+                BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, null);
     }
 }
