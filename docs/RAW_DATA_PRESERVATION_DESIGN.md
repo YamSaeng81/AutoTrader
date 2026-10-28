@@ -214,7 +214,8 @@ cat ~/preserve/p0-logs-20261028/RECORD.txt
 | 파일 수·총크기·10-01 파일 | 54개 · 353,463,793 bytes(338M) — `system` 27개(10-01~10-27) · `strategy` **0개** · `trade` 27개(10-01~10-27) · `system.2026-10-01.log` **있음**(4,652,265 bytes) · 읽기 불가 0 |
 | 대조 결과·`SHA256SUMS` 해시 | OK 54 / 54 · 불일치 0 · 복사 실패 0 · 스크립트 안 재검사 OK · ③ 별도 재검사 OK · `exit=0` · `SHA256SUMS` 의 sha256 `63487c4da58458ee66cb68c8df4f138a4d576473a866c3c08b42e839b7fb97a6` |
 | 디스크 여유(사본 위치) | 전 630,224,343,040 · 후 629,870,735,360 bytes (차 353,607,680 — 총크기 + 기록 파일·블록 단위와 맞음) |
-| 붙여 주지 않은 출력 | ① 스크립트 해시 줄·`plan` 출력, ③ `ls -ld` — 사본 폴더 700 은 copy 출력이 보여 줌. 상위 `~/preserve` 권한은 기록에 없음 |
+| 권한(③ `ls -ld`, 추가로 붙여 줌) | `~/preserve` `drwx------ manicstr manicstr` 09:06 생성 · `~/preserve/p0-logs-20261028` `drwx------ manicstr manicstr` 09:06 — 둘 다 소유자만(700) |
+| 붙여 주지 않은 출력 | ① 스크립트 해시 줄·`plan` 출력 |
 | 관찰(판단 아님) | `strategy` 날짜 파일 0개. logback 은 그 로그에 쓰기가 있어야 회전 파일을 만든다 — `com.cryptoautotrader.strategy`·`core.backtest` 로거(`logback-spring.xml:52-62`)가 이 기간 기록하지 않았을 가능성. 설계 F 항목(앱 로그)의 보존 대상 판단에 쓸 사실로만 둔다 |
 | 결과·수용 | (운영자 기입) |
 
