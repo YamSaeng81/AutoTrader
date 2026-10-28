@@ -70,6 +70,15 @@ subprojects {
             testLogging.showStandardStreams = true
             maxHeapSize = '2g'
         }
+        // 새 후보 B WF 로컬 실행(LIVE_READINESS §1 #4): -Dbwf.dir=<H1 CSV> -Dbwf.btc=<BTC CSV> + 청산 규칙 원값 6개
+        if (System.getProperty('bwf.dir')) {
+            ['bwf.dir', 'bwf.btc', 'bwf.out', 'bwf.sl', 'bwf.tpMult', 'bwf.trailing',
+             'bwf.trailTpPct', 'bwf.trailSlPct', 'bwf.investPct'].each { k ->
+                if (System.getProperty(k)) { systemProperty k, System.getProperty(k) }
+            }
+            testLogging.showStandardStreams = true
+            maxHeapSize = '2g'
+        }
         // Supertrend Q2 (ON/OFF 운용 비교): -Dstfilter.q2.dir=<H1 CSV 디렉터리>
         if (System.getProperty('stfilter.q2.dir')) {
             systemProperty 'stfilter.q2.dir', System.getProperty('stfilter.q2.dir')
