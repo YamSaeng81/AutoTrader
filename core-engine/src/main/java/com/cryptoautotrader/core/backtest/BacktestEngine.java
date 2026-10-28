@@ -39,11 +39,18 @@ public class BacktestEngine {
     private static final int SCALE = 8;
 
     /**
+     * 전략에 넘기는 최근 봉 수 상한. 전체 이력을 전달하면 O(n²) 가 되므로 최근 N개로 고정한다.
+     * Wilder ATR/ADX/RSI의 EMA는 200개 이후 수렴 오차 < 0.001% — 500은 충분한 여유.
+     * 구간 예열({@link #runSegment})도 이 길이 − 1 개를 넘는 이력은 쓰이지 않는다.
+     */
+    public static final int MAX_LOOKBACK = 500;
+
+    /**
      * 외부에서 생성한 Strategy를 직접 전달하는 오버로드.
      * CompositeStrategy, MultiTimeframeFilter 등 동적으로 조합한 전략에 사용한다.
      */
     public BacktestResult run(BacktestConfig config, List<Candle> candles, Strategy strategy) {
-        return runWithStrategy(config, candles, strategy);
+        return runWithStrategy(config, candles, strategy, 0);
     }
 
     /**
@@ -59,16 +66,39 @@ public class BacktestEngine {
      * 새 인스턴스를 뽑는다.
      */
     public BacktestResult run(BacktestConfig config, List<Candle> candles) {
+        return runSegment(config, candles, 0);
+    }
+
+    /**
+     * 구간 예열 경로 — 2026-10-28 리뷰 12차 (G3).
+     *
+     * <p>{@code candles} 는 [구간 직전 이력 … | 구간 …] 이고, {@code tradeStart} 는 구간 첫 봉의 위치다.
+     * 이전에는 Walk-Forward 가 구간만 잘라 넘겨, 구간마다 창이 0 봉부터 다시 자랐다 — 구간 첫 499봉은
+     * 운영보다 짧은 이력으로 신호를 냈다(docs/D3_CALL_PATH_CHECK.md, BOLLINGER 최대 10% 불일치).
+     *
+     * <p>직전 이력은 <b>지표 이력으로만</b> 쓴다. 전략 호출·주문·수수료·포지션은 {@code tradeStart}
+     * 부터이며, 체결은 다음 봉 시가이므로 모든 거래는 구간 안({@code tradeStart+1} 이후)에서만 생긴다.
+     * 전략·자본·무보유 상태는 호출마다 새로 시작한다 — 앞 구간의 거래 상태는 넘어오지 않는다.
+     * 이력이 부족하면(데이터 첫머리) 기존처럼 {@code minCandles} 까지 기다린다.
+     *
+     * <p>운영과 같아지는 것은 아니다. 운영은 시간 범위로 조회해 미완성 봉을 빼므로 닫힌 봉이 늘
+     * 500개는 아니다. 이 경로는 <b>초기 이력 부족을 줄일</b> 뿐이다.
+     */
+    public BacktestResult runSegment(BacktestConfig config, List<Candle> candles, int tradeStart) {
         // 이름으로 찾기 전에 복합 프리셋 등록을 보장한다 — 클래스 로딩 순서에 의존하지 않는다.
         CompositePresets.ensureRegistered();
         String name = config.getStrategyName();
         Strategy strategy = StrategyRegistry.hasFactory(name)
                 ? StrategyRegistry.createNew(name)
                 : StrategyRegistry.get(name);
-        return runWithStrategy(config, candles, strategy);
+        return runWithStrategy(config, candles, strategy, tradeStart);
     }
 
-    private BacktestResult runWithStrategy(BacktestConfig config, List<Candle> candles, Strategy strategy) {
+    private BacktestResult runWithStrategy(BacktestConfig config, List<Candle> candles, Strategy strategy,
+                                           int tradeStart) {
+        if (tradeStart < 0 || (tradeStart > 0 && tradeStart >= candles.size())) {
+            throw new IllegalArgumentException("tradeStart(" + tradeStart + ") 가 캔들 범위(" + candles.size() + ") 밖입니다");
+        }
         MarketRegimeDetector regimeDetector = new MarketRegimeDetector();
         ExitRuleChecker exitChecker = new ExitRuleChecker(config.getExitRuleConfig());
         FillSimulator fillSimulator = config.isFillSimulationEnabled()
@@ -90,16 +120,18 @@ public class BacktestEngine {
         BigDecimal takeProfitPrice = BigDecimal.ZERO;
 
         int minCandles = strategy.getMinimumCandleCount();
-        // 지표 수렴에 충분한 lookback. 전체 이력을 전달하면 O(n²) 가 되므로 최근 N개로 고정한다.
-        // Wilder ATR/ADX/RSI의 EMA는 200개 이후 수렴 오차 < 0.001% — 500은 충분한 여유.
-        final int MAX_LOOKBACK = 500;
+        // 평가 대상 봉 수 — 루프가 도는 봉 전부다. SL/TP·시간 청산·게이트로 전략 호출을 건너뛴 봉,
+        // HOLD 인 봉도 센다. Walk-Forward 가 구간 길이를 보정하는 분모로 쓴다(시간 차로 추정하지 않는다
+        // — 결측 봉이 있으면 달라진다).
+        int evaluatedBars = 0;
 
         // BTC_MARKET_GUARD — 두 캔들 시리즈(대상 코인, BTC) 모두 시간 오름차순이므로
         // 투 포인터로 O(n+m)에 정렬 위치를 추적한다. btcCandles가 null이면 게이트 비활성.
         List<Candle> btcCandles = config.getBtcCandles();
         int btcPtr = -1;
 
-        for (int i = minCandles; i < candles.size() - 1; i++) {
+        for (int i = Math.max(minCandles, tradeStart); i < candles.size() - 1; i++) {
+            evaluatedBars++;
             int windowStart = Math.max(0, i + 1 - MAX_LOOKBACK);
             List<Candle> window = candles.subList(windowStart, i + 1);
             Candle currentCandle = candles.get(i);
@@ -319,10 +351,15 @@ public class BacktestEngine {
             // 다음 캔들 open에서 체결 (Look-Ahead Bias 방지)
             // BUY: 포지션 없고 pending 이월도 없을 때만 진입
             boolean rangeGatePass = !(regime == MarketRegime.RANGE && RangeRegimeGate.isBlocked(config.getStrategyName()));
+            // EMA200 게이트 — LIVE·PAPER 와 같은 조건(평균회귀 계열 isExempt 면 건너뛴다).
+            // 2026-10-28(리뷰 12차) 이전에는 면제 확인 없이 allowsBuy 만 불러, COMPOSITE_MEANREV_BB 가
+            // 백테스트에서만 EMA200 아래 매수를 막혔다 — 운영과 다른 규칙으로 선별하게 된다.
+            boolean ema200Pass = Ema200RegimeGate.isExempt(config.getStrategyName())
+                    || Ema200RegimeGate.allowsBuy(window, config.getCoinPair());
             if (signal.getAction() == StrategySignal.Action.BUY
                     && position.compareTo(BigDecimal.ZERO) == 0
                     && pendingQuantity.compareTo(BigDecimal.ZERO) == 0
-                    && Ema200RegimeGate.allowsBuy(window, config.getCoinPair())
+                    && ema200Pass
                     && rangeGatePass
                     && btcGatePass) {
 
@@ -493,6 +530,8 @@ public class BacktestEngine {
                 .unrealizedPnl(unrealizedPnl)
                 .openPositionValue(openPositionValue)
                 .finalEquity(finalEquity)
+                .evaluatedBars(evaluatedBars)
+                .warmupBars(tradeStart)
                 .build();
     }
 

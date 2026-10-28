@@ -161,23 +161,15 @@ public class BacktestService {
         WalkForwardTestRunner.WalkForwardResult wfResult = walkForwardRunner.run(config, candles, inSampleRatio, windowCount);
 
         // 응답 구성 (날짜 포함)
-        List<Map<String, Object>> windowMaps = wfResult.getWindows().stream().map(w -> {
-            Map<String, Object> windowMap = new HashMap<>();
-            windowMap.put("windowIndex", w.getWindowIndex());
-            Map<String, Object> inMap = metricsToMap(w.getInSampleMetrics());
-            inMap.put("start", w.getInSampleStart() != null ? w.getInSampleStart().toString() : null);
-            inMap.put("end",   w.getInSampleEnd()   != null ? w.getInSampleEnd().toString()   : null);
-            Map<String, Object> outMap = metricsToMap(w.getOutSampleMetrics());
-            outMap.put("start", w.getOutSampleStart() != null ? w.getOutSampleStart().toString() : null);
-            outMap.put("end",   w.getOutSampleEnd()   != null ? w.getOutSampleEnd().toString()   : null);
-            windowMap.put("inSample",  inMap);
-            windowMap.put("outSample", outMap);
-            return windowMap;
-        }).toList();
+        List<Map<String, Object>> windowMaps = wfResult.getWindows().stream()
+                .map(BacktestService::windowToMap).toList();
 
         Map<String, Object> response = new HashMap<>();
         response.put("windows", windowMaps);
         response.put("overfittingScore", wfResult.getOverfittingScore());
+        // 판정식 표시 — 이전 식(누적 수익률 비교) 점수도 감사용으로 함께 남긴다 (리뷰 12차)
+        response.put("rawOverfittingScore", wfResult.getRawOverfittingScore());
+        response.put("scoreMethod", wfResult.getScoreMethod());
         response.put("verdict", wfResult.getVerdict());
         response.put("mode", wfResult.getMode() != null ? wfResult.getMode().name() : "ROLLING");
         response.put("aggregatedOutSample", wfResult.getAggregatedOutSampleMetrics() != null
@@ -824,7 +816,34 @@ public class BacktestService {
         return response;
     }
 
-    private Map<String, Object> metricsToMap(PerformanceReport report) {
+    /**
+     * WF 윈도우 하나를 응답·저장 JSON 형태로 바꾼다.
+     *
+     * <p>IS·OOS 각각에 점수 계산 근거(평가 봉 수·예열 봉 수·봉당 로그 성장률)를 함께 싣는다 —
+     * 저장된 결과만으로 {@code PER_BAR_LOG_V1} 점수를 다시 계산·감사할 수 있어야 한다(리뷰 12차).
+     * 성장률이 정의되지 않으면(평가 봉 0 · 수익률 −100% 이하) null 로 남는다.
+     */
+    static Map<String, Object> windowToMap(WalkForwardTestRunner.WindowResult w) {
+        Map<String, Object> windowMap = new HashMap<>();
+        windowMap.put("windowIndex", w.getWindowIndex());
+        Map<String, Object> inMap = metricsToMap(w.getInSampleMetrics());
+        inMap.put("start", w.getInSampleStart() != null ? w.getInSampleStart().toString() : null);
+        inMap.put("end",   w.getInSampleEnd()   != null ? w.getInSampleEnd().toString()   : null);
+        inMap.put("evaluatedBars",   w.getInSampleEvaluatedBars());
+        inMap.put("warmupBars",      w.getInSampleWarmupBars());
+        inMap.put("perBarLogGrowth", w.getInSamplePerBarLogGrowth());
+        Map<String, Object> outMap = metricsToMap(w.getOutSampleMetrics());
+        outMap.put("start", w.getOutSampleStart() != null ? w.getOutSampleStart().toString() : null);
+        outMap.put("end",   w.getOutSampleEnd()   != null ? w.getOutSampleEnd().toString()   : null);
+        outMap.put("evaluatedBars",   w.getOutSampleEvaluatedBars());
+        outMap.put("warmupBars",      w.getOutSampleWarmupBars());
+        outMap.put("perBarLogGrowth", w.getOutSamplePerBarLogGrowth());
+        windowMap.put("inSample",  inMap);
+        windowMap.put("outSample", outMap);
+        return windowMap;
+    }
+
+    private static Map<String, Object> metricsToMap(PerformanceReport report) {
         Map<String, Object> map = new HashMap<>();
         map.put("totalReturn", report.getTotalReturnPct());
         map.put("winRate", report.getWinRatePct());

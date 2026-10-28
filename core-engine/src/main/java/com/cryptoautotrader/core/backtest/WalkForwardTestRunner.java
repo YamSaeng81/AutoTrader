@@ -41,12 +41,34 @@ public class WalkForwardTestRunner {
         ANCHORED
     }
 
+    /**
+     * 과적합 점수 계산식 — 2026-10-28 리뷰 12차 (docs/WF_PERIOD_BIAS_FIX.md (가)).
+     *
+     * <p>윈도우마다 IS·OOS 수익률을 <b>평가 봉 1개당 로그 성장률</b> {@code g = ln(1+R/100) / 평가봉수}
+     * 로 바꿔 {@code max(0, (g_IS − g_OOS) / g_IS)} 를 낸다. 이전 식은 누적 수익률을 그대로 비교해
+     * 학습 비율 0.7 에서 성과 저하가 없어도 0.571 → OVERFITTING 이었다.
+     * 바꾼 것은 비교 단위 하나다 — 대상(IS > 0 윈도우)·0 하한·평균·임계값 0.5/0.3·표본 하한은 같다.
+     */
+    public static final String SCORE_METHOD = "PER_BAR_LOG_V1";
+
     @Getter
     @Builder
     public static class WalkForwardResult {
         private final Mode mode;
         private final List<WindowResult> windows;
+        /**
+         * {@link #SCORE_METHOD} 로 낸 점수. 판정({@link #verdict})은 이 값으로 낸다.
+         * 평가 봉 수가 0 이거나 로그가 정의되지 않는 윈도우가 있으면 <b>null</b> 이고 판정은
+         * {@link #VERDICT_INSUFFICIENT_DATA} 다 — 비유한 값을 담지 않는다.
+         */
         private final BigDecimal overfittingScore;
+        /**
+         * 이전 식(누적 수익률 그대로 비교)으로 같은 윈도우를 잰 점수 — 비교·감사용, 판정에 쓰지 않는다.
+         * 윈도우 수익률 자체가 예열로 바뀌었으므로 2026-10-28 이전 결과(B WF 등)의 점수와 같지 않다.
+         */
+        private final BigDecimal rawOverfittingScore;
+        /** {@link #overfittingScore} 의 계산식. */
+        private final String scoreMethod;
         /** ACCEPTABLE, CAUTION, OVERFITTING, INSUFFICIENT_DATA, HOLD_OUT_FAILED */
         private final String verdict;
         /**
@@ -79,6 +101,15 @@ public class WalkForwardTestRunner {
         private final Instant inSampleEnd;
         private final Instant outSampleStart;
         private final Instant outSampleEnd;
+        /** 엔진이 센 평가 대상 봉 수 ({@link BacktestResult#getEvaluatedBars()}). */
+        private final int inSampleEvaluatedBars;
+        private final int outSampleEvaluatedBars;
+        /** 지표 이력으로만 받은 구간 직전 봉 수 ({@link BacktestResult#getWarmupBars()}). */
+        private final int inSampleWarmupBars;
+        private final int outSampleWarmupBars;
+        /** 평가 봉 1개당 로그 성장률. 평가 봉이 0 이거나 수익률 ≤ −100% 면 null(정의 안 됨). */
+        private final BigDecimal inSamplePerBarLogGrowth;
+        private final BigDecimal outSamplePerBarLogGrowth;
     }
 
     /** 레거시 시그니처 — ROLLING 모드로 동작. */
@@ -129,40 +160,93 @@ public class WalkForwardTestRunner {
             return runWithHoldOut(config, tuningCandles, candles, inSampleRatio, windowCount, mode, holdOutCutoff);
         }
 
+        // 윈도우 OOS 거래를 그대로 모은다. 이전에는 병합 지표를 위해 OOS 구간을 한 번 더 돌렸다 —
+        // 개별 윈도우와 병합 OOS 가 같은 경로(같은 예열·같은 실행)를 쓴다는 것을 구조로 보장한다.
+        List<TradeRecord> oosTrades = new ArrayList<>();
         List<WindowResult> windows = (mode == Mode.ANCHORED)
-                ? runAnchored(config, candles, inSampleRatio, windowCount)
-                : runRolling(config, candles, inSampleRatio, windowCount);
+                ? runAnchored(config, candles, inSampleRatio, windowCount, oosTrades)
+                : runRolling(config, candles, inSampleRatio, windowCount, oosTrades);
 
-        // ── overfitting score: 윈도우별 IS→OOS 수익률 하락률 평균 ──
-        BigDecimal totalDropRate = BigDecimal.ZERO;
-        int dropRateSamples = 0;
-        for (WindowResult w : windows) {
-            BigDecimal inPct = w.getInSampleMetrics().getTotalReturnPct();
-            BigDecimal outPct = w.getOutSampleMetrics().getTotalReturnPct();
-            if (inPct.compareTo(BigDecimal.ZERO) > 0) {
-                BigDecimal drop = inPct.subtract(outPct)
-                        .divide(inPct, 4, RoundingMode.HALF_UP)
-                        .max(BigDecimal.ZERO);
-                totalDropRate = totalDropRate.add(drop);
-                dropRateSamples++;
-            }
-        }
-        BigDecimal avgDropRate = dropRateSamples == 0 ? BigDecimal.ZERO
-                : totalDropRate.divide(BigDecimal.valueOf(dropRateSamples), 4, RoundingMode.HALF_UP);
+        Score score = score(windows);
 
         // ── 모든 OOS 거래를 시간순으로 병합해 단일 성과 지표 계산 ──
         // 판정보다 **먼저** 계산한다 — 표본 수를 봐야 판정이 의미를 갖는지 알 수 있다.
-        PerformanceReport aggregated = buildAggregatedOosMetrics(config, candles, inSampleRatio, windowCount, mode);
+        // 정렬 키가 같은 거래는 윈도우 순서를 유지한다(안정 정렬).
+        oosTrades.sort(Comparator.comparing(TradeRecord::getExecutedAt));
+        PerformanceReport aggregated = MetricsCalculator.calculate(oosTrades, config.getInitialCapital(), "OOS_AGGREGATED");
 
-        String verdict = resolveVerdict(avgDropRate, dropRateSamples, aggregated);
+        // 점수를 정의할 수 없는 윈도우가 있으면 판정하지 않는다 — 그 윈도우를 빼면
+        // 원금 전액 손실 같은 최악의 구간이 점수에서 사라진다.
+        String verdict = score.value() == null ? VERDICT_INSUFFICIENT_DATA
+                : resolveVerdict(score.value(), score.samples(), aggregated);
 
         return WalkForwardResult.builder()
                 .mode(mode)
                 .windows(windows)
-                .overfittingScore(avgDropRate)
+                .overfittingScore(score.value())
+                .rawOverfittingScore(score.raw())
+                .scoreMethod(SCORE_METHOD)
                 .verdict(verdict)
                 .aggregatedOutSampleMetrics(aggregated)
                 .build();
+    }
+
+    // ── 점수 ──────────────────────────────────────────────────
+
+    /** value 가 null 이면 정의되지 않는 윈도우가 있었다는 뜻이다. */
+    record Score(BigDecimal value, BigDecimal raw, int samples) { }
+
+    /**
+     * 윈도우별 IS→OOS 하락률 평균. IS 수익률이 양수인 윈도우만 센다(이전 식과 같다).
+     * {@link #SCORE_METHOD} 값과 이전 식 값을 같은 윈도우로 함께 낸다.
+     */
+    static Score score(List<WindowResult> windows) {
+        BigDecimal rawTotal = BigDecimal.ZERO;
+        double total = 0;
+        int samples = 0;
+        boolean defined = true;
+        for (WindowResult w : windows) {
+            BigDecimal inPct = w.getInSampleMetrics().getTotalReturnPct();
+            BigDecimal outPct = w.getOutSampleMetrics().getTotalReturnPct();
+            if (inPct.compareTo(BigDecimal.ZERO) <= 0) continue;
+            samples++;
+            rawTotal = rawTotal.add(inPct.subtract(outPct)
+                    .divide(inPct, 4, RoundingMode.HALF_UP)
+                    .max(BigDecimal.ZERO));
+
+            BigDecimal gIn = w.getInSamplePerBarLogGrowth();
+            BigDecimal gOut = w.getOutSamplePerBarLogGrowth();
+            if (gIn == null || gOut == null || gIn.signum() <= 0) {
+                defined = false;
+                continue;
+            }
+            double drop = (gIn.doubleValue() - gOut.doubleValue()) / gIn.doubleValue();
+            if (!Double.isFinite(drop)) {
+                defined = false;
+                continue;
+            }
+            total += Math.max(0, drop);
+        }
+        if (samples == 0) {
+            return new Score(BigDecimal.ZERO, BigDecimal.ZERO, 0);
+        }
+        BigDecimal raw = rawTotal.divide(BigDecimal.valueOf(samples), 4, RoundingMode.HALF_UP);
+        BigDecimal value = defined
+                ? BigDecimal.valueOf(total / samples).setScale(4, RoundingMode.HALF_UP)
+                : null;
+        return new Score(value, raw, samples);
+    }
+
+    /**
+     * 평가 봉 1개당 로그 성장률 {@code ln(1 + R/100) / bars}.
+     * 평가 봉이 없거나 수익률이 −100% 이하라 로그가 정의되지 않으면 null.
+     */
+    static BigDecimal perBarLogGrowth(BigDecimal returnPct, int evaluatedBars) {
+        if (evaluatedBars <= 0 || returnPct == null) return null;
+        double ratio = returnPct.doubleValue() / 100.0;
+        if (ratio <= -1.0) return null;
+        double g = Math.log1p(ratio) / evaluatedBars;
+        return Double.isFinite(g) ? BigDecimal.valueOf(g) : null;
     }
 
     // ── 판정 ──────────────────────────────────────────────────
@@ -228,7 +312,8 @@ public class WalkForwardTestRunner {
 
     // ── ROLLING: 고정 크기, contiguous non-overlapping ─────────
     private List<WindowResult> runRolling(BacktestConfig config, List<Candle> candles,
-                                           double inSampleRatio, int windowCount) {
+                                           double inSampleRatio, int windowCount,
+                                           List<TradeRecord> oosSink) {
         int totalSize = candles.size();
         int windowSize = totalSize / windowCount;
         if (windowSize < 2) return List.of();
@@ -243,14 +328,15 @@ public class WalkForwardTestRunner {
             int osEnd = Math.min(start + windowSize, totalSize);
             if (isEnd >= totalSize || osEnd <= isEnd) break;
 
-            windows.add(evaluateWindow(config, candles, w, start, isEnd, osEnd));
+            windows.add(evaluateWindow(config, candles, w, start, isEnd, osEnd, oosSink));
         }
         return windows;
     }
 
     // ── ANCHORED: train 누적 확장, test 는 연속 고정 크기 ──────
     private List<WindowResult> runAnchored(BacktestConfig config, List<Candle> candles,
-                                            double inSampleRatio, int windowCount) {
+                                            double inSampleRatio, int windowCount,
+                                            List<TradeRecord> oosSink) {
         int totalSize = candles.size();
         // 전체 기간의 초기 train = inSampleRatio × totalSize,
         // 이후 test = 나머지를 windowCount 로 분할한 고정 크기.
@@ -268,18 +354,17 @@ public class WalkForwardTestRunner {
             int osEnd = Math.min(osStart + testSize, totalSize);
             if (isEnd >= totalSize || osEnd <= osStart) break;
 
-            windows.add(evaluateWindow(config, candles, w, isStart, isEnd, osEnd));
+            windows.add(evaluateWindow(config, candles, w, isStart, isEnd, osEnd, oosSink));
         }
         return windows;
     }
 
     private WindowResult evaluateWindow(BacktestConfig config, List<Candle> candles,
-                                         int index, int isStart, int isEnd, int osEnd) {
-        List<Candle> inSampleCandles = candles.subList(isStart, isEnd);
-        List<Candle> outSampleCandles = candles.subList(isEnd, osEnd);
-
-        BacktestResult inResult = backtestEngine.run(config, inSampleCandles);
-        BacktestResult outResult = backtestEngine.run(config, outSampleCandles);
+                                         int index, int isStart, int isEnd, int osEnd,
+                                         List<TradeRecord> oosSink) {
+        BacktestResult inResult = runWithWarmup(config, candles, isStart, isEnd);
+        BacktestResult outResult = runWithWarmup(config, candles, isEnd, osEnd);
+        oosSink.addAll(outResult.getTrades());
 
         PerformanceReport inMetrics = MetricsCalculator.calculate(
                 inResult.getTrades(), config.getInitialCapital(), "IN_SAMPLE");
@@ -290,66 +375,29 @@ public class WalkForwardTestRunner {
                 .windowIndex(index)
                 .inSampleMetrics(inMetrics)
                 .outSampleMetrics(outMetrics)
-                .inSampleStart(inSampleCandles.get(0).getTime())
-                .inSampleEnd(inSampleCandles.get(inSampleCandles.size() - 1).getTime())
-                .outSampleStart(outSampleCandles.get(0).getTime())
-                .outSampleEnd(outSampleCandles.get(outSampleCandles.size() - 1).getTime())
+                .inSampleStart(candles.get(isStart).getTime())
+                .inSampleEnd(candles.get(isEnd - 1).getTime())
+                .outSampleStart(candles.get(isEnd).getTime())
+                .outSampleEnd(candles.get(osEnd - 1).getTime())
+                .inSampleEvaluatedBars(inResult.getEvaluatedBars())
+                .outSampleEvaluatedBars(outResult.getEvaluatedBars())
+                .inSampleWarmupBars(inResult.getWarmupBars())
+                .outSampleWarmupBars(outResult.getWarmupBars())
+                .inSamplePerBarLogGrowth(perBarLogGrowth(inMetrics.getTotalReturnPct(), inResult.getEvaluatedBars()))
+                .outSamplePerBarLogGrowth(perBarLogGrowth(outMetrics.getTotalReturnPct(), outResult.getEvaluatedBars()))
                 .build();
     }
 
     /**
-     * 모든 OOS 윈도우 거래를 시간순으로 병합해 하나의 성과 지표로 집약한다.
-     * per-window 수익률 단순 합산이 갖는 통계적 왜곡(윈도우 간 Compounding 무시, 거래 수
-     * 격차 무시)을 피하기 위한 보조 지표.
+     * 구간 [segStart, segEnd) 을 직전 최대 {@code MAX_LOOKBACK − 1} 봉의 이력과 함께 돌린다 (G3 구간 예열).
+     *
+     * <p>이력은 지표 계산에만 쓰이고 거래는 구간 안에서만 생긴다({@link BacktestEngine#runSegment}).
+     * 실행마다 새 전략·초기자본·무보유로 시작하므로 IS 의 거래 상태가 OOS 로 넘어가지 않는다.
+     * 데이터 첫머리처럼 이력이 모자라면 있는 만큼만 쓴다.
      */
-    private PerformanceReport buildAggregatedOosMetrics(BacktestConfig config, List<Candle> candles,
-                                                         double inSampleRatio, int windowCount, Mode mode) {
-        List<TradeRecord> merged = new ArrayList<>();
-        List<WindowResult> windows = (mode == Mode.ANCHORED)
-                ? runAnchoredTradesOnly(config, candles, inSampleRatio, windowCount, merged)
-                : runRollingTradesOnly(config, candles, inSampleRatio, windowCount, merged);
-        // windows 변수는 side-effect로만 사용 — merged가 채워짐
-        merged.sort(Comparator.comparing(TradeRecord::getExecutedAt));
-        return MetricsCalculator.calculate(merged, config.getInitialCapital(), "OOS_AGGREGATED");
-    }
-
-    private List<WindowResult> runRollingTradesOnly(BacktestConfig config, List<Candle> candles,
-                                                     double inSampleRatio, int windowCount,
-                                                     List<TradeRecord> sink) {
-        int totalSize = candles.size();
-        int windowSize = totalSize / windowCount;
-        if (windowSize < 2) return List.of();
-        int inSampleSize = Math.max(1, (int) (windowSize * inSampleRatio));
-        if (inSampleSize >= windowSize) inSampleSize = windowSize - 1;
-
-        for (int w = 0; w < windowCount; w++) {
-            int start = w * windowSize;
-            int isEnd = start + inSampleSize;
-            int osEnd = Math.min(start + windowSize, totalSize);
-            if (isEnd >= totalSize || osEnd <= isEnd) break;
-            BacktestResult r = backtestEngine.run(config, candles.subList(isEnd, osEnd));
-            sink.addAll(r.getTrades());
-        }
-        return List.of();
-    }
-
-    private List<WindowResult> runAnchoredTradesOnly(BacktestConfig config, List<Candle> candles,
-                                                      double inSampleRatio, int windowCount,
-                                                      List<TradeRecord> sink) {
-        int totalSize = candles.size();
-        int initialTrainSize = Math.max(2, (int) (totalSize * inSampleRatio));
-        if (initialTrainSize >= totalSize) return List.of();
-        int remaining = totalSize - initialTrainSize;
-        int testSize = Math.max(1, remaining / windowCount);
-
-        for (int w = 0; w < windowCount; w++) {
-            int osStart = initialTrainSize + w * testSize;
-            int osEnd = Math.min(osStart + testSize, totalSize);
-            if (osEnd <= osStart) break;
-            BacktestResult r = backtestEngine.run(config, candles.subList(osStart, osEnd));
-            sink.addAll(r.getTrades());
-        }
-        return List.of();
+    private BacktestResult runWithWarmup(BacktestConfig config, List<Candle> candles, int segStart, int segEnd) {
+        int from = Math.max(0, segStart - (BacktestEngine.MAX_LOOKBACK - 1));
+        return backtestEngine.runSegment(config, candles.subList(from, segEnd), segStart - from);
     }
 
     // ── §12 look-ahead bias 방지 헬퍼 ────────────────────────────
@@ -392,7 +440,10 @@ public class WalkForwardTestRunner {
             return base; // holdOut 캔들 없으면 일반 결과 그대로
         }
 
-        BacktestResult holdOutResult = backtestEngine.run(config, holdOutCandles);
+        // 홀드아웃도 OOS 윈도우와 같은 예열 경로를 쓴다 — 튜닝 구간 끝의 봉은 지표 이력으로만 들어간다.
+        List<Candle> ordered = new ArrayList<>(tuningCandles);
+        ordered.addAll(holdOutCandles);
+        BacktestResult holdOutResult = runWithWarmup(config, ordered, tuningCandles.size(), ordered.size());
         PerformanceReport holdOutMetrics = MetricsCalculator.calculate(
                 holdOutResult.getTrades(), config.getInitialCapital(), "HOLD_OUT");
 
@@ -404,6 +455,8 @@ public class WalkForwardTestRunner {
                 .inSampleEnd(tuningCandles.get(tuningCandles.size() - 1).getTime())
                 .outSampleStart(holdOutCandles.get(0).getTime())
                 .outSampleEnd(holdOutCandles.get(holdOutCandles.size() - 1).getTime())
+                .outSampleEvaluatedBars(holdOutResult.getEvaluatedBars())
+                .outSampleWarmupBars(holdOutResult.getWarmupBars())
                 .build();
 
         List<WindowResult> allWindows = new ArrayList<>(base.getWindows());
@@ -419,6 +472,8 @@ public class WalkForwardTestRunner {
                 .mode(mode)
                 .windows(allWindows)
                 .overfittingScore(base.getOverfittingScore())
+                .rawOverfittingScore(base.getRawOverfittingScore())
+                .scoreMethod(base.getScoreMethod())
                 .verdict(verdict)
                 .aggregatedOutSampleMetrics(base.getAggregatedOutSampleMetrics())
                 .holdOutMetrics(holdOutMetrics)
@@ -449,6 +504,8 @@ public class WalkForwardTestRunner {
                 .mode(mode)
                 .windows(List.of())
                 .overfittingScore(BigDecimal.ZERO)
+                .rawOverfittingScore(BigDecimal.ZERO)
+                .scoreMethod(SCORE_METHOD)
                 // 캔들이 부족해 윈도우를 하나도 만들지 못한 경우다. 2026-09-09 이전에는 여기서
                 // "ACCEPTABLE" 을 돌려줬다 — **데이터가 아예 없는데 양호 판정**이었다.
                 .verdict(VERDICT_INSUFFICIENT_DATA)
