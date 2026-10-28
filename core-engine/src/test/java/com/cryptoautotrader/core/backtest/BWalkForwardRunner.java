@@ -203,6 +203,30 @@ class BWalkForwardRunner {
     }
 
     /**
+     * Gradle 명령 → 시험 JVM → 전략 선택 연결 확인 (리뷰 14차). 실제 자료를 읽지 않는다.
+     * {@code selectStrategies} 를 직접 부르는 시험은 build.gradle 이 {@code bwf.strategies} 를 시험 JVM 에 넘기지 않는
+     * 누락을 잡지 못했다 — 그대로 실행하면 483 조합 대신 B 단일 전략이 돈다. 이 시험은 시험 JVM 이 실제로 받은 값으로 고른다.
+     * <pre>
+     * ./gradlew :core-engine:test --tests '*BWalkForwardRunner.strategySpecReachesTestJvm' \
+     *   -Dbwf.dir=none -Dbwf.strategies=POOL23 -Dbwf.expectStrategyCount=23
+     * </pre>
+     */
+    @Test
+    @EnabledIfSystemProperty(named = "bwf.expectStrategyCount", matches = ".+")
+    void strategySpecReachesTestJvm() {
+        String spec = System.getProperty("bwf.strategies");
+        int expect = Integer.parseInt(System.getProperty("bwf.expectStrategyCount"));
+        List<String> selected = selectStrategies(spec);
+        System.out.printf("시험 JVM 이 받은 bwf.strategies = %s → 전략 %d개%n", spec, selected.size());
+        assertThat(selected).as("시험 JVM 이 받은 bwf.strategies = %s", spec).hasSize(expect);
+        if (expect == SELECTION_POOL.size()) {
+            assertThat(selected).isEqualTo(SELECTION_POOL);
+        } else {
+            assertThat(selected).containsExactly(STRATEGY);
+        }
+    }
+
+    /**
      * 풀이 코드 등록 목록에서 나오는지 — 운영 코드에 등록된 전략 = 풀 23 + 제외 7, 서로 겹치지 않는다.
      * 같은 JVM 의 다른 시험이 등록한 시험용 전략(시험·러너 클래스 안의 클래스)은 뺀다.
      */
@@ -293,6 +317,7 @@ class BWalkForwardRunner {
         Path btcPath = Path.of(System.getProperty("bwf.btc", ""));
         Path out = Path.of(System.getProperty("bwf.out", "d:/tmp/bwf_out"));
         List<String> strategies = selectStrategies(System.getProperty("bwf.strategies"));
+        System.out.printf("%n전략 목록: bwf.strategies = %s → %d개%n", System.getProperty("bwf.strategies"), strategies.size());
         Map<String, String> raw = new java.util.HashMap<>();
         for (String k : List.of("sl", "tpMult", "trailing", "trailTpPct", "trailSlPct", "investPct")) {
             raw.put(k, System.getProperty("bwf." + k));

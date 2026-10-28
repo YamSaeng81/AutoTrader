@@ -71,9 +71,10 @@ subprojects {
             maxHeapSize = '2g'
         }
         // 새 후보 B WF 로컬 실행(LIVE_READINESS §1 #4): -Dbwf.dir=<H1 CSV> -Dbwf.btc=<BTC CSV> + 청산 규칙 원값 6개
+        // #9 1단계 선별: + -Dbwf.strategies=POOL23 (빠뜨리면 B 단일 전략으로 돈다 — 리뷰 14차에서 전달 누락 발견)
         if (System.getProperty('bwf.dir')) {
             ['bwf.dir', 'bwf.btc', 'bwf.out', 'bwf.sl', 'bwf.tpMult', 'bwf.trailing',
-             'bwf.trailTpPct', 'bwf.trailSlPct', 'bwf.investPct'].each { k ->
+             'bwf.trailTpPct', 'bwf.trailSlPct', 'bwf.investPct', 'bwf.strategies', 'bwf.expectStrategyCount'].each { k ->
                 if (System.getProperty(k)) { systemProperty k, System.getProperty(k) }
             }
             testLogging.showStandardStreams = true
