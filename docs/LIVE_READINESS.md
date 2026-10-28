@@ -344,6 +344,11 @@ echo "29bb5a1405785c118d51ad2ffbd519ec246433472f67f246f7f8d6e93ad7a0be  /tmp/kee
 ```
 - 출력(파일 이름 · 크기 · SHA-256 · 종료 코드)을 전달한다. `[중단]` 으로 끝나면 그 출력을 그대로 전달하고, 바로 앞 파일로 다시 한다: `bash /tmp/keep-latest.sh backups/<앞 파일 이름>`.
 
+**ⓐ·ⓑ 결과 (2026-10-29, 운영자 실행)**
+- ⓐ PostgreSQL **15.13** (x86_64 musl, Alpine) · TimescaleDB **2.25.2** · 이미지 `timescale/timescaledb@sha256:b26180320dea45a27190318903f63cc2839f190315663a53b6429a937dd02196`.
+- ⓑ 스크립트 해시 OK → `backups/backup_20261028_044929.sql.gz` 압축 검사 통과 · 덤프 끝 표시 있음 → `~/crypto_trader/backup_keep/backup_20261028_044929.sql.gz` **156,149,595 바이트 · SHA-256 `797ffff7b7464b19aa7c30079e04f6c302a697facbe4947ed89cdd5e7f6fd323` · 종료 코드 0**.
+- (운영자가 ⓓ 자리표시 명령을 서버에서 그대로 입력해 `syntax error near unexpected token '<'` — 아무것도 실행되지 않았다. ⓓ 는 서버가 아니라 ⓒ 사본이 있는 PC 에서 한다.)
+
 **ⓒ ▶ ⓑ 뒤 (운영자 PC, Git Bash).** 백업에는 운영 DB 전체가 들어 있다. **저장소 폴더·클라우드 동기화 폴더가 아닌 비공개 폴더**에 둔다. 저장소에 커밋하지 않는다.
 ```bash
 scp <운영자>@<서버>:crypto_trader/backup_keep/<파일 이름> <비공개 폴더>/
