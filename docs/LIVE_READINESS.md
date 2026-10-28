@@ -339,8 +339,7 @@ docker image inspect "$(docker inspect --format '{{.Image}}' "$($DC ps -q db)")"
 cd ~/crypto_trader/AutoTrader
 git fetch origin
 git show b3bd1ab782a9518dd741f2690660a57b5ad5f70d:scripts/db-backup/keep-latest.sh > /tmp/keep-latest.sh
-sha256sum /tmp/keep-latest.sh    # 기대값 29bb5a1405785c118d51ad2ffbd519ec246433472f67f246f7f8d6e93ad7a0be — 다르면 멈춘다
-bash /tmp/keep-latest.sh; echo "종료 코드: $?"
+echo "29bb5a1405785c118d51ad2ffbd519ec246433472f67f246f7f8d6e93ad7a0be  /tmp/keep-latest.sh" | sha256sum -c -   && { bash /tmp/keep-latest.sh; echo "종료 코드: $?"; }    # 해시가 다르면 실행하지 않는다
 ```
 - 출력(파일 이름 · 크기 · SHA-256 · 종료 코드)을 전달한다. `[중단]` 으로 끝나면 그 출력을 그대로 전달하고, 바로 앞 파일로 다시 한다: `bash /tmp/keep-latest.sh backups/<앞 파일 이름>`.
 
