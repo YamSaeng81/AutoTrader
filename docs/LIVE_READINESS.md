@@ -66,7 +66,7 @@
 | 2 | **B 시작 준비**: R13 결정 (가)가 남긴 경로 | ① 사전 등록 확정 ② 세션별 슬리피지 + 66세션 불변 시험 ③ 새 실험 집계 경로 + 시험 ④ 계획 정비 배포·42세션 시작 **별도 승인** | §5-3 | 리뷰 → 개발 → 운영자 | 리뷰·Claude·운영자 | ① **11-11** ②③ **11-25** ④ 승인 뒤 | ① 🟢 `B_VALIDATION_PREREG.md` **확정**(2026-10-28, 리뷰 5차). ② 🟡 로컬 완료(V95·세션 생성·매수/매도 체결가·지문, `PaperSessionSlippageTest` 6/6 · 웹 API 회귀 881 통과, 리뷰 8차 `31b3046` 로컬 구현·시험 기술 검토 완료 — 매수 호출부 변이 검출·복원 포함) ③ 🟡 로컬 완료(`b_aggregate.py`, 시험 33/33 · 변이 7 잡힘, 리뷰 7차 로컬 CSV 계산기 범위 검토 통과). 운영 배포 없음 | `B_VALIDATION_PREREG.md` |
 | 2-a | └ 원자료 최소 보존 확인 | §3-5 읽기 전용 확인 결과 기록 | 운영자 실행(▶ §3-5, 2차에서 백업 명령 수정) | 운영자 | 운영자 | **11-04** | 진행 가능 | §3-5 |
 | 3 | **B 집계 실행** | B 종료 뒤 운영 추출 승인 → 추출 → 검사 통과 → 판정 출력 | 새 실험 집계 경로(#2 ③)로 실행 | 기다림·리뷰 | 리뷰 → 운영자 | B 종료 시점 | 시작 전 | §5-2 집계 |
-| 4 | **WF 게이트: B × 21코인 × H1, 코인별** | 조합마다 OOS ≥ 20거래 · OOS 기대값 > 0 · verdict ≠ OVERFITTING. 병합값으로 미통과 조합을 통과시키지 않는다 | 아래 고정안. ⓐ 운영 값을 받아 고정한 뒤 로컬 실행 | 개발·리뷰 | Claude → 리뷰 | 입력 확정 **11-04** · 로컬 결과 **11-11** | 🔴 결과 없음. ⓑ·ⓒ 고정·자료 확보 완료, ⓐ 운영 조회 출력 대기 | `LIVE_ENTRY_PREREG.md` §2 |
+| 4 | **WF 게이트: B × 21코인 × H1, 코인별** | 조합마다 OOS ≥ 20거래 · OOS 기대값 > 0 · verdict ≠ OVERFITTING. 병합값으로 미통과 조합을 통과시키지 않는다 | 아래 고정안. ⓐ 운영 값을 받아 고정한 뒤 로컬 실행 | 개발·리뷰 | Claude → 리뷰 | 입력 확정 **11-04** · 로컬 결과 **11-11** | 🔴 **로컬 결과 2026-10-28: 사전 등록 충족 0/21 · 코드 게이트 PASS 0/21**(OVERFITTING 20 · INSUFFICIENT_DATA 1). 리뷰 판정 대기. 기준은 바꾸지 않는다 | `LIVE_ENTRY_PREREG.md` §2 |
 | 5 | **실자금 동시 쓰기 경로 확인**: WS 매도·정지 요청 등이 평가 틱과 같은 행을 다툴 때 | 경로 목록 + 각 경로의 잠금·재시도 근거 또는 시험 | 코드 확인 → 빠진 경로만 시험 | 개발 | Claude → 리뷰 | **11-25** | 🔴 미착수 | `LIVE_RISK_IMPLEMENTATION_REVIEW.md:2297` |
 | 6 | ~~선행 조건 5: V94 운영 적용 확인~~ | — | — | — | — | — | 🟢 **닫힘**(리뷰 1차, 운영 `2eb4225` 포함). 동시 쓰기의 남은 확인은 #5 | `LIVE_RISK_IMPLEMENTATION_REVIEW.md:2469` |
 | 7 | **선행 조건 4: 본인 손실 감내 기록** | `LIVE_ENTRY_PREREG.md` §8 확인란에 본인이 기록 | 운영자 기록 | 운영자 | 운영자 | **11-15**(언제든 가능) | 🔴 미기록 | `LIVE_ENTRY_PREREG.md` §7 #4 |
@@ -133,6 +133,40 @@ echo "exit $?"
 - 코인 집합은 `B_VALIDATION_PREREG.md` §2 의 21코인과 **정확히 같아야** 실행한다(개수만 보지 않는다). 시험 `coinSetMustMatchPreregExactly`: 정확한 21개 통과, NEAR→BTC 교체 21개 거절, 20개 거절. 변이(개수만 검사로 되돌림)를 이 시험이 잡았다.
 - `CAUTION` 은 OVERFITTING 이 아니므로 충족 조건을 막지 않는다.
 - 러너: `BWalkForwardRunner`(core-engine 시험, `-Dbwf.dir` 를 줄 때만 실행). 청산 규칙 원값 6개를 모두 주지 않으면 실행하지 않는다(NULL 은 문자열 `NULL`). 변환 시험 `exitRuleConversionMatchesServer` 통과.
+
+**로컬 실행 결과 (2026-10-28, 리뷰 판정 대기)**
+- 입력: ⓐ 위 확정값 표(실행 로그 "SL 5.00% · TP 배수 2.00 · 추적 true · 추적 TP 0.005000 · 추적 SL 0.003000 · 투자 비율 0.8000 · 최대 보유 24h"), ⓑ 24, ⓒ BTC 파일(SHA-256 일치 확인). 코드 `27eed13`(앱 코드는 `31b3046` 과 같다), BUILD SUCCESSFUL 4m 52s.
+- 결과 파일 `d:/tmp/bwf_out/bwf_result.csv`, SHA-256 `155d45e430fb7406a96fadcd4df4d4f0a2d9e155873a936ca53c0e9e0b98f97e`.
+- **사전 등록 충족 0/21, 코드 게이트 PASS 0/21.** verdict: OVERFITTING 20, INSUFFICIENT_DATA 1(ANKR — "미충족 — 과최적화 판정 불가").
+- 미충족 첫 사유(러너 순서: OOS<20 → 기대값≤0 → verdict): OOS<20 14개 · 기대값≤0 6개(DKA·JUP·ONG·POLYX·POWR·WAVES) · OVERFITTING 1개(WAXP, OOS 22·기대값 +1.31%). OOS 거래는 코인당 8~30.
+- OOS 기대값 > 0 인 코인 12개도 모두 verdict 가 OVERFITTING 이거나 INSUFFICIENT_DATA 다.
+
+| 코인 | OOS 거래 | OOS 기대값 % | verdict | 사전 등록 |
+|---|---|---|---|---|
+| ANKR | 15 | 0.1293 | INSUFFICIENT_DATA | 미충족 OOS<20 |
+| BCH | 17 | -1.9971 | OVERFITTING | 미충족 OOS<20 |
+| CRO | 10 | 0.4280 | OVERFITTING | 미충족 OOS<20 |
+| CVC | 18 | 1.6772 | OVERFITTING | 미충족 OOS<20 |
+| DKA | 30 | -0.4877 | OVERFITTING | 미충족 기대값≤0 |
+| ELF | 17 | -0.0994 | OVERFITTING | 미충족 OOS<20 |
+| GLM | 16 | 1.5488 | OVERFITTING | 미충족 OOS<20 |
+| G | 11 | 3.8700 | OVERFITTING | 미충족 OOS<20 |
+| HIVE | 12 | 1.1317 | OVERFITTING | 미충족 OOS<20 |
+| INJ | 8 | 0.6188 | OVERFITTING | 미충족 OOS<20 |
+| IOTA | 18 | -0.8194 | OVERFITTING | 미충족 OOS<20 |
+| JUP | 20 | -1.2260 | OVERFITTING | 미충족 기대값≤0 |
+| NEAR | 15 | 0.3020 | OVERFITTING | 미충족 OOS<20 |
+| ONG | 23 | -0.2248 | OVERFITTING | 미충족 기대값≤0 |
+| POLYX | 22 | -0.4750 | OVERFITTING | 미충족 기대값≤0 |
+| POWR | 25 | -1.2452 | OVERFITTING | 미충족 기대값≤0 |
+| PUNDIX | 14 | 0.5343 | OVERFITTING | 미충족 OOS<20 |
+| SC | 12 | 0.3108 | OVERFITTING | 미충족 OOS<20 |
+| T | 10 | -1.2750 | OVERFITTING | 미충족 OOS<20 |
+| WAVES | 27 | -0.8219 | OVERFITTING | 미충족 기대값≤0 |
+| WAXP | 22 | 1.3145 | OVERFITTING | 미충족 OVERFITTING |
+
+- 이미 적어 둔 규칙(`B_VALIDATION_PREREG.md` §8)에 따르면, WF 를 통과하지 못한 코인은 STAGE_1 에서 막는다. 이 결과대로라면 **B 의 21코인이 모두 STAGE_1 에서 막힌다.** 전향 검증의 코인 집합은 WF 결과로 바꾸지 않는다.
+- 이것이 B 경로 전체에 무엇을 뜻하는지(42세션 시작을 할지 등)는 리뷰 판정이다. 여기서는 판정하지 않고, 기준·입력·코인 집합도 바꾸지 않는다.
 
 **이미 닫힌 항목 — 다시 열지 않는다**:
 - 선행 조건 2(1단계 비용 집계 `scripts/stage1_cost/`, 2026-10-19)
