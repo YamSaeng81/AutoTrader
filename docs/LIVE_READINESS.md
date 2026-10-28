@@ -92,7 +92,7 @@
 
 | 입력 | 서버 경로 | 확정 | 상태 |
 |---|---|---|---|
-| ⓐ 청산 규칙(`exitRuleConfig`) | `risk_config` 의 **가장 큰 ID 행**(`findTopByOrderByIdDesc`, `RiskManagementService.java:51`). 변환 `:120-134`: NULL 이면 손절 5.0 · 익절 배수 2.0 · 추적 켜짐 · 추적 TP 0.005 · 추적 SL 0.003 · 투자 비율 0.25. 추적 마진 2개와 투자 비율은 **÷100**(%→비율) | 운영 원값 6개를 받아 서버와 같은 변환을 적용한다. **변환 후 값을 아래 표에 먼저 적고 나서** 실행한다 | ▶ 운영 조회 출력 대기. 🔴 조회가 실패하면 기본값으로 넘기지 않는다 — 출력을 먼저 확인한다 |
+| ⓐ 청산 규칙(`exitRuleConfig`) | `risk_config` 의 **가장 큰 ID 행**(`findTopByOrderByIdDesc`, `RiskManagementService.java:51`). 변환 `:120-134`: NULL 이면 손절 5.0 · 익절 배수 2.0 · 추적 켜짐 · 추적 TP 0.005 · 추적 SL 0.003 · 투자 비율 0.25. 추적 마진 2개와 투자 비율은 **÷100**(%→비율) | 운영 원값 6개를 받아 서버와 같은 변환을 적용한다. **변환 후 값을 아래 표에 먼저 적고 나서** 실행한다 | **확정**(2026-10-28 운영 조회, 아래 표). 🔴 조회가 실패하면 기본값으로 넘기지 않는다 — 출력을 먼저 확인한다 |
 | ⓑ 최대 보유 시간 | 24시간(`DynamicSessionEntity.DEFAULT_MAX_HOLD_HOURS`) | **24** | 확정 |
 | ⓒ BTC 시장 가드 캔들 | 같은 start~end 의 `KRW-BTC` H1(`BacktestService.java:850-857`). 서버는 BTC 가 없으면 가드를 조용히 끈다 | 업비트 공개 시세에서 받은 `KRW-BTC` H1 을 코인마다 그 코인의 첫·끝 봉 구간으로 잘라 넣는다. 🔴 BTC 파일이 없거나 코인 구간을 덮지 못하면 실행하지 않는다 | **확보 완료**(아래) |
 
@@ -107,7 +107,7 @@
 
 | 원값(운영 `risk_config`) | 행 ID · 갱신 시각 | 변환 후 WF 에 넣는 값 |
 |---|---|---|
-| (대기) | (대기) | (대기) |
+| `stop_loss_pct` 5.00 · `take_profit_multiplier` 2.00 · `trailing_enabled` t · `trailing_tp_margin_pct` 0.500 · `trailing_sl_margin_pct` 0.300 · `invest_ratio_pct` 80.00 (NULL 없음) | ID 1 · 2026-07-15 23:33:58.083231+00 (운영자 읽기 전용 조회 2026-10-28, `exit 0`, 1행, ROLLBACK) | 손절 5.00% · 익절 배수 2.00 · 추적 켜짐 · 추적 TP 0.005000 · 추적 SL 0.003000 · **투자 비율 0.8000**(서버 NULL 기본 0.25 아님) — `toExitRuleConfig` 와 같은 ÷100 |
 
 **▶ 지금 실행: 운영자 (읽기 전용, 리뷰 3차 승인 범위).** 가장 큰 ID 행 하나의 ID·갱신 시각과 값 6개만 출력한다. 읽기 전용 트랜잭션이고 ROLLBACK 으로 끝난다.
 
