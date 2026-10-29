@@ -1741,10 +1741,6 @@ public class LiveTradingService {
     // -- 내부: 세션 포지션 청산 ----------------------------------
 
     private void closeSessionPositions(LiveTradingSessionEntity session, String reason) {
-        // 🔴 매도가 이미 진행 중인 CLOSING 포지션도 정리 대기로 등록한다 (2026-10-13) — 그 매도가 실패·취소돼 OPEN 으로
-        //    되돌아가면 정지된 세션에서는 아무도 다시 팔지 않는다. 등록만 하고 매도는 내지 않는다(진행 중 매도 확인).
-        positionRepository.findBySessionKindAndSessionIdAndStatus("LIVE", session.getId(), "CLOSING")
-                .forEach(p -> registerStopCleanup(p, session.getId()));
         List<PositionEntity> openPositions =
                 positionRepository.findBySessionKindAndSessionIdAndStatus("LIVE", session.getId(), "OPEN");
 
@@ -1793,6 +1789,16 @@ public class LiveTradingService {
                 log.error("세션 포지션 청산 실패 (sessionId={}, posId={}): {}",
                         session.getId(), pos.getId(), e.getMessage());
             }
+        }
+        // 🔴 닫히지 않은 포지션은 **모두** 정리 대기로 등록한다 — 위 처리가 끝난 **뒤에** 다시 읽는다 (2026-10-29, #5).
+        //    매도가 진행 중인 CLOSING 포지션은 그 매도가 실패·취소돼 OPEN 으로 되돌아가면 정지된 세션에서 아무도 다시 팔지 않는다
+        //    (2026-10-13). 종전에는 CLOSING 을 **위 처리 전에** 한 번 읽고, OPEN 은 CLOSING 전환에 성공한 것만 등록했다 —
+        //    그 사이 WS 손절·평가 틱이 먼저 CLOSING 으로 바꾸면 전환이 0 을 받아 **등록 없이 건너뛰었다**
+        //    (`StopVersusInFlightExitRaceTest` 재현: 정지 STOPPED · 포지션 CLOSING · 정리 대기 없음). 등록은 중복되지 않는다.
+        //    위에서 예외로 건너뛴 OPEN 포지션도 여기서 등록돼 정리 작업이 다시 낸다. 등록만 하고 매도는 내지 않는다.
+        for (String status : List.of("CLOSING", "OPEN")) {
+            positionRepository.findBySessionKindAndSessionIdAndStatus("LIVE", session.getId(), status)
+                    .forEach(p -> registerStopCleanup(p, session.getId()));
         }
     }
 
