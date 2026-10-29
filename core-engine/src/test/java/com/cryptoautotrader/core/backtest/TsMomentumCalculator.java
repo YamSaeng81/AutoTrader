@@ -113,6 +113,55 @@ final class TsMomentumCalculator {
             return absentConfirmed.getOrDefault(coin, Set.of()).contains(slot)
                     && windows.stream().anyMatch(w -> !w.endsAt().isAfter(now) && w.contains(slot));
         }
+
+        /**
+         * 고정 입력 두 개를 읽는다(리뷰 40차: 개발 실행·교차 확인이 같은 읽기 코드를 쓴다).
+         * 인정 구간 CSV 의 {@code id·starts_at_utc·ends_at_utc} 열과 재조회 {@code summary.json} 의 시장별 {@code absent} 칸.
+         * 열이 없거나 구간·재조회가 하나도 읽히지 않으면 예외를 던진다 — 조용히 {@link #NONE} 이 되지 않게 한다.
+         */
+        static Maintenance load(java.nio.file.Path windowsCsv, java.nio.file.Path recheckSummary) throws java.io.IOException {
+            List<String> lines = java.nio.file.Files.readAllLines(windowsCsv, java.nio.charset.StandardCharsets.UTF_8);
+            List<String> head = List.of(lines.get(0).split(","));
+            int id = head.indexOf("id"), from = head.indexOf("starts_at_utc"), to = head.indexOf("ends_at_utc");
+            if (id < 0 || from < 0 || to < 0) throw new IllegalArgumentException("인정 구간 열 없음: " + head);
+            List<Window> w = new ArrayList<>();
+            for (String line : lines.subList(1, lines.size())) {
+                if (line.isBlank()) continue;
+                String[] c = line.split(",");
+                w.add(new Window(c[id], Instant.parse(c[from]), Instant.parse(c[to])));
+            }
+            Map<String, Set<Instant>> absent = new TreeMap<>();
+            String json = java.nio.file.Files.readString(recheckSummary, java.nio.charset.StandardCharsets.UTF_8);
+            var m = java.util.regex.Pattern.compile("\"market\":\\s*\"([A-Z-]+)\"[^\\]]*?\"absent\":\\s*\\[([^\\]]*)\\]",
+                    java.util.regex.Pattern.DOTALL).matcher(json);
+            while (m.find()) {
+                var a = java.util.regex.Pattern.compile("\"(\\d{4}-\\d{2}-\\d{2}T\\d{2})\"").matcher(m.group(2));
+                Set<Instant> set = absent.computeIfAbsent(m.group(1), k -> new java.util.TreeSet<>());
+                while (a.find()) set.add(Instant.parse(a.group(1) + ":00:00Z"));
+            }
+            if (w.isEmpty() || absent.isEmpty()) throw new IllegalArgumentException("점검 예외 입력이 비었다: 구간 " + w.size() + " · 재조회 시장 " + absent.size());
+            return new Maintenance(List.copyOf(w), absent);
+        }
+    }
+
+    /** 실제 배치 상한(리뷰 40차)의 판단 한 회 — 그 주 매수 창에서 살 수 있는가, 팔 수 있는가. */
+    record Decision(boolean canBuy, boolean canSell) {}
+
+    /**
+     * 판단 순서대로 매수·매도 기회가 주어졌을 때 자연 청산 왕복의 최대값 — 현금·보유 두 상태의 동적 계획.
+     * 리뷰 40차: "막힌 주가 n주 이상이면 20 미만" 같은 주 수 셈 대신 이 값을 쓴다. 막힌 주가 매도 차례에만 걸리면 상한은 줄지 않는다.
+     * 끝에 보유 중이면 그 포지션은 강제청산이라 세지 않는다.
+     */
+    static int maxNaturalRoundTrips(List<Decision> decisions) {
+        final int none = Integer.MIN_VALUE / 2;
+        int cash = 0, held = none;
+        for (Decision d : decisions) {
+            int c = Math.max(cash, d.canSell() ? held + 1 : none);
+            int h = Math.max(held, d.canBuy() ? cash : none);
+            cash = c;
+            held = h;
+        }
+        return Math.max(cash, held);
     }
 
     record Result(Costs costs, Instant start, Instant end, List<Week> weeks, List<Trade> trades,
@@ -151,6 +200,8 @@ final class TsMomentumCalculator {
     }
 
     List<String> coins() { return List.copyOf(bars.keySet()); }
+
+    Maintenance maintenance() { return maintenance; }
 
     // ── 가격 규칙 ───────────────────────────────────────────────────────
 

@@ -1,2 +1,8 @@
 scripts/db-backup/*.sh text eol=lf
 scripts/db-restore-drill.sh text eol=lf
+
+# TSMOM 고정 입력(리뷰 40차): 해시를 고정한 바이트 그대로 둔다 — 체크아웃 줄바꿈 변환 금지
+scripts/tsmom/maintenance_windows_tsmom.csv -text
+scripts/tsmom/maintenance_recheck_summary.json -text
+scripts/tsmom/maintenance_evidence_manifest.txt -text
+scripts/tsmom/tsmom_devrun_inputs.sha256 -text

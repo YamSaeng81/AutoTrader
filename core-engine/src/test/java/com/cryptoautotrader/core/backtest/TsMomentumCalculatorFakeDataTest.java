@@ -421,6 +421,24 @@ class TsMomentumCalculatorFakeDataTest {
         assertThat(w.get(2).oosEnd()).isEqualTo(Instant.parse("2026-09-22T00:00:00Z"));
     }
 
+    @Test
+    @DisplayName("리뷰 40차: 실제 배치 상한은 막힌 주의 수가 아니라 위치로 정해진다 — 매도 차례만 막히면 그대로, 매수 차례가 막히면 준다")
+    void boundFollowsPlacement() {
+        java.util.function.BiFunction<Integer, Set<Integer>, Integer> bound = (n, blocked) -> TsMomentumCalculator.maxNaturalRoundTrips(
+                java.util.stream.IntStream.range(0, n).mapToObj(i -> new TsMomentumCalculator.Decision(!blocked.contains(i), true)).toList());
+        assertThat(bound.apply(14, Set.of())).isEqualTo(7);
+        assertThat(bound.apply(15, Set.of())).isEqualTo(7);
+        assertThat(bound.apply(14, Set.of(1, 3))).isEqualTo(7);          // 2주 막혀도 매도 차례(홀수)뿐 → 줄지 않는다
+        assertThat(bound.apply(14, Set.of(0, 2))).isEqualTo(6);          // 같은 2주라도 매수 차례 → 하나 준다
+        assertThat(bound.apply(14, Set.of(0, 13))).isEqualTo(6);
+        assertThat(bound.apply(15, Set.of(0, 2))).isEqualTo(7);          // 판단이 15회면 남는 1회가 흡수한다(1–2, 3–4, …, 13–14)
+        assertThat(bound.apply(14, Set.of(9, 10, 11))).isEqualTo(6);     // ⑩ 의 실제 모양(연속 3주) — 리뷰 39차 6
+        assertThat(bound.apply(4, Set.of(0, 1, 2, 3))).isZero();
+        // 매도 불가(체결 봉 없음)도 반영한다
+        assertThat(TsMomentumCalculator.maxNaturalRoundTrips(List.of(new TsMomentumCalculator.Decision(true, true),
+                new TsMomentumCalculator.Decision(true, false)))).isZero();
+    }
+
     // ── 리뷰 39차: 공식 점검 예외(운영 V93 두 조건) ─────────────────────────────
 
     static TsMomentumCalculator calc(List<Bar> btc, List<Bar> eth, Maintenance m) {

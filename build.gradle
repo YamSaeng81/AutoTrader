@@ -94,6 +94,14 @@ subprojects {
             testLogging.showStandardStreams = true
             maxHeapSize = '2g'
         }
+        // TSMOM 개발 자료 1회 실행(RESEARCH_PROPOSAL_TS_MOMENTUM.md §7 3단계, 리뷰 40차): -Dtsm.mode=run|wire -Dtsm.out=<출력>
+        if (System.getProperty('tsm.mode')) {
+            ['tsm.mode', 'tsm.out'].each { k ->
+                if (System.getProperty(k)) { systemProperty k, System.getProperty(k) }
+            }
+            testLogging.showStandardStreams = true
+            maxHeapSize = '2g'
+        }
         // Supertrend Q2 (ON/OFF 운용 비교): -Dstfilter.q2.dir=<H1 CSV 디렉터리>
         if (System.getProperty('stfilter.q2.dir')) {
             systemProperty 'stfilter.q2.dir', System.getProperty('stfilter.q2.dir')
