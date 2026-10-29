@@ -35,7 +35,13 @@ import java.util.UUID;
 import java.util.function.IntFunction;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * 12월 제한 실거래 시험 — "DAILY_SMA20 신호 + 운영 보호 규칙" 결합의 LIVE 주문 경로 (docs/LIMITED_LIVE_TEST_PLAN.md §5-2).
@@ -63,6 +69,8 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
     @Autowired private StrategyLogRepository strategyLogRepository;
     @Autowired private JdbcTemplate jdbc;
     @Autowired private com.cryptoautotrader.api.repository.MarketDataCacheRepository cacheRepository;
+    @Autowired @org.springframework.beans.factory.annotation.Qualifier("orderExecutor")
+    private org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor orderExecutor;
 
     @MockBean private MarketDataSyncService marketDataSyncService;
     @MockBean private UpbitRestClient upbitRestClient;
@@ -93,6 +101,11 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
         doReturn(com.cryptoautotrader.core.risk.RiskCheckResult.approve()).when(riskManagementService).checkRisk();
         // 운영은 STAGE_1 이 등록돼 있어 진입이 회차 접수 → 마감 뒤 승인 경로를 탄다. 시험도 그 경로로 돌린다.
         rounds.setForcedForTest(true);
+        // 정상 주문은 거래소가 접수(wait)로 답한다 — 대역이 null 을 돌려주면 주문 스레드가 접수 기록에서 죽고(NPE)
+        // 행 생성만 기다리는 단언은 그 실패를 놓친다(2026-10-30 리뷰: 18건 통과 중 주문 스레드 예외 7건).
+        when(upbitOrderClient.createOrder(anyString(), anyString(), any(), any(), anyString(), anyString()))
+                .thenAnswer(inv -> new com.cryptoautotrader.exchange.upbit.UpbitOrderClient.ExchangeResult(
+                        accepted(inv.getArgument(1), inv.getArgument(4)), "{}"));
         jdbc.update("DELETE FROM market_data_cache WHERE coin_pair = ? AND timeframe = 'H1'", COIN);
         // 닫힌 최신 봉 = 61분 전에 시작한 봉(회차 마감 전). 그 봉을 일봉 마감 봉으로 둔다.
         // 시험마다 몇 초씩 옮겨 회차 키가 겹치지 않게 한다 — 처리된 회차는 늦은 접수를 받지 않는다.
@@ -105,6 +118,8 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
 
     @AfterEach
     void tearDown() {
+        // 비동기 주문 작업이 끝난 뒤 지운다 — 지운 행을 주문 스레드가 다시 찾는 경합을 막는다.
+        awaitDrained();
         rounds.setForcedForTest(false);
         StrategyRegistry.register(new DailySmaTrendStrategy());
         for (Long id : liveIds) {
@@ -119,6 +134,32 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
         limits.setTotalCapKrw(savedTotal);
         limits.setPerPositionCapKrw(savedPer);
         limits.setMaxConcurrentPositions(savedSlots);
+    }
+
+    private static com.cryptoautotrader.exchange.upbit.dto.OrderResponse accepted(String side, String ordType) {
+        com.cryptoautotrader.exchange.upbit.dto.OrderResponse r = new com.cryptoautotrader.exchange.upbit.dto.OrderResponse();
+        r.setUuid("sma20-new-" + UUID.randomUUID());
+        r.setSide(side);
+        r.setOrdType(ordType);
+        r.setState("wait");
+        r.setMarket(COIN);
+        return r;
+    }
+
+    private void awaitDrained() {
+        var pool = orderExecutor.getThreadPoolExecutor();
+        long deadline = System.currentTimeMillis() + 15_000;
+        while (System.currentTimeMillis() < deadline) {
+            if (pool.getQueue().isEmpty() && pool.getActiveCount() == 0
+                    && pool.getTaskCount() == pool.getCompletedTaskCount()) return;
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+        }
+        throw new AssertionError("orderExecutor 가 비워지지 않았다 — 작업 스레드가 반환되지 않았다");
     }
 
     private static void useCloseHour(int hourUtc) {
@@ -259,6 +300,23 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
         return found;
     }
 
+    /**
+     * 정상 주문은 행 생성이 아니라 <b>접수 기록(SUBMITTED)과 거래소 호출 1회</b>까지 확인한다.
+     * 주문 실행기가 빈 뒤에 보므로 접수 기록이 실패하면 상태가 SUBMITTED 가 아니어서 잡힌다.
+     */
+    private OrderEntity assertSubmittedOnce(LiveTradingSessionEntity s, String side) {
+        awaitOrders(s, side, 1);
+        awaitDrained();
+        List<OrderEntity> found = orders(s, side);
+        assertThat(found).as(side + " 주문 1건").hasSize(1);
+        assertThat(found.get(0).getState()).as(side + " 접수 기록").isEqualTo("SUBMITTED");
+        assertThat(found.get(0).getExchangeOrderId()).as("거래소 주문번호").startsWith("sma20-new-");
+        verify(upbitOrderClient, times(1)).createOrder(anyString(), anyString(), any(), any(), anyString(), anyString());
+        verify(upbitOrderClient, times(1)).createOrder(eq(COIN), eq("BUY".equals(side) ? "bid" : "ask"),
+                any(), any(), anyString(), anyString());
+        return found.get(0);
+    }
+
     private StrategyLogEntity lastLog(LiveTradingSessionEntity s) {
         List<StrategyLogEntity> logs = strategyLogRepository.findAllBySessionTypeAndSessionIdOrderByCreatedAtDesc("LIVE", s.getId());
         assertThat(logs).as("전략 로그").isNotEmpty();
@@ -277,10 +335,9 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
         insertCache(uptrend());
         LiveTradingSessionEntity s = testSession();
         evaluate(s);
-        List<OrderEntity> buys = orders(s, "BUY");
         System.out.println("[SMA20 진입] " + lastLog(s).getSignal() + " / " + lastLog(s).getReason());
-        assertThat(buys).hasSize(1);
-        assertThat(buys.get(0).getQuantity()).isEqualByComparingTo("20000");
+        OrderEntity buy = assertSubmittedOnce(s, "BUY");
+        assertThat(buy.getQuantity()).isEqualByComparingTo("20000");
         assertThat(lastLog(s).getSignal()).isEqualTo("BUY");
     }
 
@@ -323,7 +380,7 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
         PositionEntity after = reload(p);
         assertThat(after.getStatus()).isEqualTo("CLOSING");
         assertThat(after.getExitReason()).isEqualTo(ExitReason.TIME_STOP);
-        assertThat(awaitOrders(s, "SELL", 1)).hasSize(1);
+        assertSubmittedOnce(s, "SELL");
         assertThat(orders(s, "BUY")).as("시간 청산 회차는 return — 재진입은 다음 마감 봉").isEmpty();
         assertThat(lastLog(s).getSignal()).as("신호 자체는 BUY 였다").isEqualTo("BUY");
     }
@@ -352,7 +409,7 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
         PositionEntity after = reload(p);
         assertThat(after.getStatus()).isEqualTo("CLOSING");
         assertThat(after.getExitReason()).isEqualTo(ExitReason.STRATEGY_SIGNAL);
-        assertThat(awaitOrders(s, "SELL", 1)).hasSize(1);
+        assertSubmittedOnce(s, "SELL");
     }
 
     @Test
@@ -380,7 +437,7 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
         old.setClosedAt(Instant.now().minus(2, ChronoUnit.DAYS));
         positionRepository.save(old);
         evaluate(s);
-        assertThat(orders(s, "BUY")).hasSize(1);
+        assertSubmittedOnce(s, "BUY");
     }
 
     @Test
@@ -394,8 +451,7 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
         List<EntryPriorityRounds.Outcome> out = approveRound();
         assertThat(out).hasSize(2);
 
-        assertThat(orders(capped, "BUY")).hasSize(1);
-        assertThat(orders(capped, "BUY").get(0).getQuantity()).isEqualByComparingTo("20000");
+        assertThat(assertSubmittedOnce(capped, "BUY").getQuantity()).isEqualByComparingTo("20000");
 
         assertThat(orders(uncapped, "BUY")).as("24,875 > 포지션당 20,000 → 예약 거절").isEmpty();
         assertThat(lastLog(uncapped).getBlockedReason()).contains("PER_POSITION_CAP");
@@ -464,7 +520,7 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
         evaluate(s);
         assertThat(reload(p).getStatus()).isEqualTo("CLOSING");
         assertThat(reload(p).getExitReason()).isEqualTo(ExitReason.STOP_LOSS);
-        assertThat(awaitOrders(s, "SELL", 1)).hasSize(1);
+        assertSubmittedOnce(s, "SELL");
         assertThat(orders(s, "BUY")).isEmpty();
     }
 
@@ -481,7 +537,7 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
         evaluate(s);
         assertThat(reload(p).getStatus()).isEqualTo("CLOSING");
         assertThat(reload(p).getExitReason()).isEqualTo(ExitReason.TAKE_PROFIT);
-        assertThat(awaitOrders(s, "SELL", 1)).hasSize(1);
+        assertSubmittedOnce(s, "SELL");
     }
 
     @Test
@@ -495,7 +551,7 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
         evaluate(s);
         assertThat(reload(p).getStatus()).isEqualTo("CLOSING");
         assertThat(reload(p).getExitReason()).isEqualTo(ExitReason.STRATEGY_SIGNAL);
-        assertThat(awaitOrders(s, "SELL", 1)).hasSize(1);
+        assertSubmittedOnce(s, "SELL");
     }
 
     // ── 주문 상태 불명(UNKNOWN) — 확인 전에는 같은 세션이 중복 주문을 내지 않는다 (문서 §6-2) ──────
