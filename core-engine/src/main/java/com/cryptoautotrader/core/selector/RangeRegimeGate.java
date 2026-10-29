@@ -42,7 +42,10 @@ public final class RangeRegimeGate {
             "COMPOSITE_MTF_MOMENTUM_CLOSED",
             "COMPOSITE_PULLBACK_MTF",
             // 헤이킨아시 추세 전략
-            "HEIKIN_ASHI_STOCH"
+            "HEIKIN_ASHI_STOCH",
+            // 일봉 SMA20 보유/현금 — 추세 추종이라 같은 정책을 따른다(12월 제한 실거래 시험, 2026-10-29).
+            // 시험 대상은 "SMA20 신호 + 운영 보호 규칙"의 결합이다(docs/LIMITED_LIVE_TEST_PLAN.md §2-3).
+            "DAILY_SMA20"
     );
 
     private RangeRegimeGate() {}

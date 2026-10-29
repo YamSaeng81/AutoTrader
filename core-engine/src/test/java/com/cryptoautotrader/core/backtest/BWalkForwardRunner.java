@@ -72,7 +72,7 @@ class BWalkForwardRunner {
             "COMPOSITE_MOMENTUM_ICHIMOKU", "COMPOSITE_BREAKOUT_ICHIMOKU", "COMPOSITE_MTF_CONFIRMED",
             "COMPOSITE_MTF_BTC", "COMPOSITE_PULLBACK_MTF", "COMPOSITE_MEANREV_BB");
 
-    /** §2-2 제외 규칙 — 등록 전략 30개 = 풀 23 + 제외 7. 성과를 보고 뺀 것이 아니다. */
+    /** §2-2 제외 규칙 — 등록 전략 30개 = 풀 23 + 제외 7. 성과를 보고 뺀 것이 아니다. 2026-10-29 부터 31개(DAILY_SMA20 제외 추가, 풀 불변). */
     static final Map<String, String> EXCLUDED = Map.of(
             "TEST_TIMED", "시험용",
             "ORDERBOOK_IMBALANCE", "백테스트 ≠ 운영(실호가)",
@@ -80,7 +80,9 @@ class BWalkForwardRunner {
             "COMPOSITE_MTF_MOMENTUM", "66세션·B 와 같은 계열",
             "COMPOSITE_MTF_MOMENTUM_CLOSED", "66세션·B 와 같은 계열",
             "COMPOSITE_MTF_BTC_STRICT", "폐기(DEPRECATED)",
-            "COMPOSITE", "운영 입력 재현 불가(동적 가중치)");
+            "COMPOSITE", "운영 입력 재현 불가(동적 가중치)",
+            // 2026-10-29 — 풀 확정(리뷰 12차) 뒤 등록. 종료한 23개 풀은 그대로 두고 여기 넣는다(풀을 다시 열지 않는다).
+            "DAILY_SMA20", "풀 확정 뒤 등록 — 12월 제한 실거래 시험 후보");
 
     /** B_VALIDATION_PREREG.md §2 의 21코인 — 개수가 아니라 이 목록과 정확히 같아야 실행한다(리뷰 4차). */
     static final List<String> COINS = List.of(
@@ -238,7 +240,7 @@ class BWalkForwardRunner {
             String top = st.getClass().getName().split("\\$")[0];
             if (!top.endsWith("Test") && !top.endsWith("Runner")) registered.add(name);
         });
-        assertThat(registered).hasSize(30);
+        assertThat(registered).hasSize(31); // 30(풀 23 + 제외 7) + 2026-10-29 DAILY_SMA20(제외)
         assertThat(SELECTION_POOL).doesNotHaveDuplicates().doesNotContainAnyElementsOf(EXCLUDED.keySet());
         java.util.Set<String> expected = new java.util.TreeSet<>(SELECTION_POOL);
         expected.addAll(EXCLUDED.keySet());

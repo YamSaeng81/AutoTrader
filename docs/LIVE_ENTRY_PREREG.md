@@ -55,8 +55,9 @@ A 가 떨어져도 자동매매 프로젝트가 떨어지는 것이 아니고, A
 | 항목 | 현재 |
 |---|---|
 | 플래그 | `strategy-validation.require-walk-forward-gate` = **`false`** (`application.yml:90`) |
-| 연결된 곳 | **DYNAMIC 세션 생성만** (`DynamicTradingService:464` → `throwIfBlockedByTimeframe`) |
-| 연결되지 **않은** 곳| 🔴 **LIVE 세션 생성**, PAPER 세션 생성 |
+| 연결된 곳 | ~~**DYNAMIC 세션 생성만**~~ DYNAMIC 세션 생성 (`DynamicTradingService:464` → `throwIfBlockedByTimeframe`), **LIVE 세션 생성** (`LiveTradingService.createSession` → `throwIfBlocked(전략, 코인, 타임프레임)`, 2026-08-06 `f8d1376` 부터, 운영 `98aaac4` 에도 있다) |
+| 연결되지 **않은** 곳| ~~🔴 **LIVE 세션 생성**,~~ PAPER 세션 생성 |
+| 🔴 정정 (2026-10-29, 리뷰 지적) | 이 표는 10-01 작성 때 LIVE 연결을 놓쳤다. LIVE 는 **연결돼 있고 강제 여부가 플래그로 달라지는 구조**다. 아래 "LIVE 세션 생성에 게이트를 연결" 요구는 이미 연결된 상태에서 플래그를 켜는 것만 남는다. 12월 제한 실거래 시험의 처리 범위는 `LIMITED_LIVE_TEST_PLAN.md` §5-4 |
 | 통과 요건 (`WalkForwardValidationGate`) | 실행 이력 있음 · `verdict != OVERFITTING` · OOS 병합 거래 ≥ **5** · OOS `expectancyPct` > 0 |
 
 ### 실전 진입 시 요구사항 (여기서 고정한다)
