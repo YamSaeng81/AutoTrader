@@ -4,8 +4,9 @@
 >
 > 근거: `LIMITED_LIVE_TEST_PLAN.md` v1.3 §5-5·§5-7. 형식은 `MAINTENANCE_NEXT_98aaac4.md`(개입 #13, 10-29 수행)와 같다. 공통 함수·점검 조회·되돌림 판단은 그 문서와 같은 것을 쓰고, 다른 점만 적는다.
 >
-> 배포 후보: **`8ea2ec0f4ace15958444f3dfad587194e21d14c5`** (브랜치 `deploy/sma20-limited-live`)
-> - 만든 방법: `98aaac4` 위에 본 코드 5파일과 시험 3개를 `main` 판 그대로 올렸다. 본 코드 네 기존 파일은 `98aaac4` 와 `main`(`b9cd698`)이 같은 내용이었다.
+> 배포 후보: **`504ab8178f1e5fbc0770ac14e0a5f8855a9a7771`** (브랜치 `deploy/sma20-limited-live`, 2026-10-30 고정)
+> - 만든 방법: `98aaac4` 위에 본 코드 5파일과 시험 3개를 `main` 판 그대로 올렸다(`8ea2ec0`). 본 코드 네 기존 파일은 `98aaac4` 와 `main`(`b9cd698`)이 같은 내용이었다.
+> - 그 위에 시험 보완 1커밋(`504ab81`, 리뷰 2026-10-30): `DailySma20LiveOrderPathTest` 의 거래소 대역이 null 을 돌려줘 주문 스레드 예외 7건이 나던 것을 정리. **본 코드는 `8ea2ec0` 과 같다** — 앞 후보 `8ea2ec0` 은 쓰지 않는다.
 > - 들어간 것: 전략 `DAILY_SMA20`(새 파일)·등록 1줄 · RANGE 관문 목록 1항목 · LIVE 세션 생성 요청의 `maxInvestment` 필드와 그 전달 1줄.
 > - 빠진 것: `main` 의 다른 변경 전부(V95 · 세션 슬리피지 · WF·백테스트 · 대조 러너 · `build.gradle`).
 
@@ -26,7 +27,7 @@
   ```bash
   cd ~/crypto_trader/AutoTrader
   DC="docker compose -f docker-compose.prod.yml"; REPO=autotrader-backend; M=~/maint-$(date +%Y%m%d)
-  NEW=8ea2ec0f4ace15958444f3dfad587194e21d14c5   # 🔴 배포 후보 — 브랜치 이름이 아니라 고정 SHA 로 체크아웃한다
+  NEW=504ab8178f1e5fbc0770ac14e0a5f8855a9a7771   # 🔴 배포 후보 — 브랜치 이름이 아니라 고정 SHA 로 체크아웃한다
   OLD=98aaac49d5b811a9679e59e863cf546dca4a495f
   QS=fa0691e647b61f6df4a85bdf796996f50470185e    # 점검 조회·확인 도구 — #12·#13 에서 쓴 것, origin/main 을 쓰지 않는다
   mkdir -p "$M"
@@ -47,15 +48,20 @@
 
 `MAINTENANCE_NEXT_98aaac4.md` §1·§2 명령을 그대로 쓴다. 다른 점:
 - HEAD 기대값은 **`98aaac4`**, 추적 파일 변경 없음.
+- 🔴 **HEAD 와 추적 파일 상태는 화면이 아니라 파일로 남긴다**(#13 에서 이 원문이 빠졌다). 그 문서 §2 의 `git rev-parse … ; git status …` 한 줄 대신 아래를 쓴다:
+  ```bash
+  { date '+%F %T %Z'; git rev-parse HEAD; git status --short --untracked-files=no; echo "(끝)"; } | tee "$M/git-before.txt"
+  ```
+  기대: 시각 다음 줄이 `98aaac49d5b811a9679e59e863cf546dca4a495f`, 그다음 바로 `(끝)`(추적 파일 변경 없음 = 빈 출력). 다르면 **연기**한다. 이 파일은 개입 #14 증빙으로 보존한다.
 - 기대표(Q1 94 · Q3~Q6 0 · Q7 `RUNNING 63`·`STOPPED 3` · Q8 0 · Q9 0 · `ROLLBACK` · `sc` = `66 | 63 | 3 | -` · `svc` 다섯 줄)는 같다.
 
 **배포 코드 확인**(기대와 다르면 멈춘다):
 ```bash
 git diff --name-only $OLD $NEW
 git diff --quiet $OLD $NEW -- web-api/src/main/resources scripts docker-compose.prod.yml web-api/Dockerfile crypto-trader-frontend build.gradle && echo 마이그레이션·설정·스크립트 변경 없음
-git log --oneline $OLD..$NEW                                     # 커밋 1개
+git log --oneline $OLD..$NEW                                     # 커밋 2개(후보 + 시험 보완)
 ```
-기대: 첫 명령은 정확히 아래 8줄(뒤 3줄은 시험 파일이라 이미지에 들어가지 않는다). 둘째는 `마이그레이션·설정·스크립트 변경 없음`. 셋째는 배포 후보 커밋 한 줄.
+기대: 첫 명령은 정확히 아래 8줄(시험 파일 3개는 이미지에 들어가지 않는다). 둘째는 `마이그레이션·설정·스크립트 변경 없음`. 셋째는 두 줄 — `504ab81 배포 후보 시험 보완 …` 과 `8ea2ec0 배포 후보 …`.
 ```
 core-engine/src/main/java/com/cryptoautotrader/core/selector/RangeRegimeGate.java
 core-engine/src/test/java/com/cryptoautotrader/core/StrategyBehaviourFingerprintTest.java
@@ -81,7 +87,7 @@ $DC logs --no-color backend > "$M/backend-before.log"; wc -l "$M/backend-before.
 ```bash
 git checkout $NEW                                           # detached HEAD — 배포 버전 고정
 date '+%F %T %Z' | tee "$M/t-checkout.txt"
-git rev-parse --short HEAD                                  # 8ea2ec0
+{ date '+%F %T %Z'; git rev-parse HEAD; git status --short --untracked-files=no; echo "(끝)"; } | tee "$M/git-deploy.txt"   # 504ab81…, 바로 (끝)
 date '+%F %T %Z' | tee "$M/t-build.txt"; date -u '+%Y-%m-%dT%H:%M:%SZ' > "$M/t-build.utc"
 $DC up --build -d --no-deps backend                         # 🔴 backend 만 — 의존 서비스(db·redis)는 손대지 않는다
 date '+%F %T %Z' | tee "$M/t-start.txt"                     # 🔴 새 앱 기동 시각
@@ -111,7 +117,7 @@ print("있음" if "com/cryptoautotrader/strategy/dailysma/DailySmaTrendStrategy.
 print("있음" if b"DAILY_SMA20" in inner.read("com/cryptoautotrader/strategy/StrategyRegistry.class") + inner.read("com/cryptoautotrader/strategy/dailysma/DailySmaTrendStrategy.class") else "없음", "DAILY_SMA20 이름")
 EOF
 ```
-- 기대: 세 줄 모두 `있음`. 로컬에서 후보로 만든 `bootJar` 로 같은 결과를 확인했다(2026-10-30, `web-api-0.1.0.jar` · `strategy-lib-0.1.0.jar`). `98aaac4` 의 `LiveTradingStartRequest` 에는 `maxInvestment` 가 없다.
+- 기대: 세 줄 모두 `있음`. 로컬에서 후보 `8ea2ec0` 으로 만든 `bootJar` 로 같은 결과를 확인했다(2026-10-30, `web-api-0.1.0.jar` · `strategy-lib-0.1.0.jar`). `504ab81` 은 본 코드가 같다(시험 파일만 다름). `98aaac4` 의 `LiveTradingStartRequest` 에는 `maxInvestment` 가 없다.
 - 하나라도 `없음` 이거나 파일을 못 찾는 오류가 나면 새 코드가 들어가지 않은 것이다. §5 로 되돌리고 보고한다.
 
 🔴 **되돌림 사유**: `MAINTENANCE_NEXT_98aaac4.md` §4 와 같다(기동 실패·재시작 반복, 공유 풀 미등록 외 새 ERROR, Q3~Q6 ≠ 0, `sc` ≠ `66 | 63 | 3 | -`, 판정 재개 미확인) + 4-1b 에 `없음`.
@@ -128,7 +134,7 @@ docker inspect --format '{{.Image}}' $($DC ps -q backend); cat "$M/image-98aaac4
 svc | tee "$M/svc-rollback.txt"
 diff <(grep -v '^backend ' "$M/svc-before.txt") <(grep -v '^backend ' "$M/svc-rollback.txt") && echo "backend 외 이미지·기동 시각 그대로"
 ```
-- 복구 뒤 확인: 실행 이미지 ID = `image-98aaac4.txt`, `git rev-parse --short HEAD` = `98aaac4`, §4-1 공통 확인을 `S=$(cat "$M/t-rollback.utc")` 로 다시 실행(`sc` 는 `s-rollback.txt`). 4-1b 는 하지 않는다.
+- 복구 뒤 확인: 실행 이미지 ID = `image-98aaac4.txt`, HEAD 는 `{ date '+%F %T %Z'; git rev-parse HEAD; git status --short --untracked-files=no; echo "(끝)"; } | tee "$M/git-rollback.txt"` 로 저장해 `98aaac4…`·바로 `(끝)`, §4-1 공통 확인을 `S=$(cat "$M/t-rollback.utc")` 로 다시 실행(`sc` 는 `s-rollback.txt`). 4-1b 는 하지 않는다.
 - 이 배포에는 DB 변경이 없다. 그래서 복구에 DB 작업이 없다. 배포 뒤 `DAILY_SMA20` 세션을 만들지 않았다면 되돌린 앱이 모르는 데이터도 없다.
 
 ## 6. 30분 뒤 재점검과 기록
@@ -136,14 +142,15 @@ diff <(grep -v '^backend ' "$M/svc-before.txt") <(grep -v '^backend ' "$M/svc-ro
 `MAINTENANCE_NEXT_98aaac4.md` §6 명령과 기대·경보 네 갈래 구분을 그대로 쓴다.
 
 **개입 #14 기록**(운영자 본인이 시각·결과를 채운다):
-> 개입 #14 — (날짜) 계획 정비(백엔드 `8ea2ec0`, `DAILY_SMA20` 등록 · LIVE 생성 요청 `maxInvestment`).
+> 개입 #14 — (날짜) 계획 정비(백엔드 `504ab81`, `DAILY_SMA20` 등록 · LIVE 생성 요청 `maxInvestment`).
+> 정비 전 상태: `git-before.txt` 원문(HEAD `98aaac4…`, 추적 파일 변경 없음). 배포 뒤 `git-deploy.txt`.
 > 순서: `98aaac4` 이미지 보존(ID 기록) → 체크아웃 HH:MM:SS → 빌드 HH:MM → **새 앱 기동 HH:MM:SS**. 4-1b 는 세 줄 모두 `있음`.
 > 검증 세션: `sc` 가 직전·기동 후·30분 모두 `66 | 63 | 3 | -`. backend 외 서비스의 이미지·기동 시각은 그대로.
 > 경보: 기존 BLAST 반복 N회(시각) / 새 경보 (없음·내용) / ⚪ (없음·내용) / 실행 누락 (없음·내용).
 > 66세션의 입력 수집과 판정 규칙은 바뀌지 않았다. 바뀐 것은 전략 등록 1개·RANGE 목록 1항목·LIVE 생성 요청 필드 1개다. 재기동에 따른 평가 공백의 영향은 미확정이며, T0·성과 구간은 유지한다.
 > 결과: (정상 / 복구 — 사유·복구 시각들) — 운영자 / 시각
 
-- 서버는 `8ea2ec0`(복구했다면 `98aaac4`)에 고정한다. 무조건 `git checkout main` 하지 않는다.
+- 서버는 `504ab81`(복구했다면 `98aaac4`)에 고정한다. 무조건 `git checkout main` 하지 않는다.
 
 ## 7. 배포 뒤에도 하지 않는 것 — 활성화는 별도 결정
 
