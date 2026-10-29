@@ -512,9 +512,10 @@ PAPER 청산은 `pos.setStatus("CLOSED") + positionRepo.save(pos)` 로 평범한
 
 | | |
 |---|---|
-| 시각(KST) | 정비 시작(Q8 기준) **13:39:29** · 체크아웃 (운영자 기입 — `t-checkout.txt`) · 빌드 시작 **13:40:39**(`t-build.utc` 04:40:39Z) · 새 앱 기동 **13:42:13**(컨테이너 `StartedAt` 04:42:13Z · 앱 `Started … in 15.129 seconds` 04:42:29Z) · 30분 재점검 **14:25:28** |
+| 시각(KST) | 정비 시작(Q8 기준) **13:39:29** · 체크아웃 **13:40:39**(`t-checkout.txt`) · 빌드 시작 **13:40:39**(`t-build.utc` 04:40:39Z) · 새 앱 기동 **13:42:13**(컨테이너 `StartedAt` 04:42:13Z · 앱 `Started … in 15.129 seconds` 04:42:29Z) · 30분 재점검 **14:25:28** |
 | 이미지 | 보존: 실행 중이던 `sha256:7516eaf6…`(개입 #12 의 `2eb4225` 빌드) → `autotrader-backend:2eb4225` · 새 이미지 `sha256:bc8fe9fd…` |
-| 직전 점검(§2) | 🔴 **출력 원문을 어시스턴트가 받지 못했다.** 확인된 것은 대조 결과뿐이다: `s-before` = `s-app`(diff 같음 → `66 \| 63 \| 3 \| -`) · `svc-before` 와 배포 뒤 backend 외 줄 같음. `q-before`·`git` 확인·배포 코드 차이·`alerts-before` 원문은 운영자가 보내면 보완, 없으면 **확인 자료 누락** |
+| 직전 점검(§2) | 원문은 정비 뒤 저장 파일로 받았다(`q-before`·`s-before`·`alerts-before`). Q1 94 · Q3~Q6 0 · Q7 RUNNING 63·STOPPED 3 · Q8 0 · Q9 0 · `sc` `66 \| 63 \| 3 \| -` · 지난 1일 경보 = **10-28 05:19Z ~ 10-29 04:19Z 매시 24회 모두 `1종: KRW-BLAST`**(⚪·실행 누락·다른 코인 없음) |
+| 배포 코드(§2) | 서버: `git diff --name-only 2eb4225 $NEW` 정확히 4파일 · 커밋 1개 `98aaac4 … (리뷰 30차)` · 정비 뒤 HEAD `98aaac4`. 마이그레이션·설정·스크립트 변경 없음은 서버 출력이 아니라 **어시스턴트가 로컬에서 같은 `git diff --quiet` 로 확인**(`origin/deploy/5-stop-cleanup` = `98aaac49…`). 🔴 정비 전 HEAD `2eb4225`·추적 파일 변경 없음의 원문은 없다 — 확인 자료 누락 |
 | 영향 범위 | `--no-deps` 로 backend 만 재생성 · db·redis·frontend(10-21 04:45:59Z 기동)·db-backup(10-28 23:35:34Z 기동)의 이미지·기동 시각 배포 직후·30분 뒤 모두 그대로 |
 | 기동 확인(§4-1) | `Schema "public" is up to date`(V94) · `Started` · 매도 격리 점검 "없음" · ERROR = 공유 풀 한도 미등록 1(STAGE_1 비활성, 예상) · `maint_verify candle`: 기동 뒤 판정 불가 10 · 판정 재개 10 · 아직 판정 불가 0 · Q1 94 · Q3~Q6 0 · Q7 RUNNING 63·STOPPED 3 · Q8 0 · Q9 0 · `ROLLBACK` · `sc` `66 \| 63 \| 3 \| -` 직전과 같음 |
 | 새 이미지(§4-1b) | `findBySessionKindAndSessionIdAndStatusIn` — `PositionRepository`·`LiveTradingService`·`DynamicTradingService` 세 클래스 모두 `있음` |
