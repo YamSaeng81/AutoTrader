@@ -1,6 +1,6 @@
 # 다음 연구 근거 조사 — 한 페이지 (리뷰 33차 권고 3번)
 
-> **상태**: 조사만(2026-10-29). 구현·자료 수집·백테스트 실행·서버 작업 없음. → **리뷰 34차: A 를 제안서 한 건으로 정리하는 데 동의**, 이미 열람한 자료의 개발용 사용 허락 → [`RESEARCH_PROPOSAL_TS_MOMENTUM.md`](RESEARCH_PROPOSAL_TS_MOMENTUM.md). 아래 문헌 서술 두 곳과 실행 가능성 4번은 그 제안서에서 정정했다(🔴 표시).
+> **상태**: 조사만(2026-10-29). 구현·자료 수집·백테스트 실행·서버 작업 없음. → **리뷰 34차: A 를 제안서 한 건으로 정리하는 데 동의**, 이미 열람한 자료의 개발용 사용 허락 → [`RESEARCH_PROPOSAL_TS_MOMENTUM.md`](RESEARCH_PROPOSAL_TS_MOMENTUM.md). 아래 문헌 서술 두 곳과 실행 가능성 4번은 그 제안서에서 정정했다(🔴 표시). 리뷰 35차: 제안서 v2(엔진 대조·워크포워드 구조적 상한·비용 재판정), 실전 절차는 별도 사전 등록 초안 [`LIVE_ENTRY_PREREG_TSMOM.md`](LIVE_ENTRY_PREREG_TSMOM.md).
 > 이 문서는 새 계획의 승인 요청이 아니다. 근거를 보고 **제안서로 갈지, 연구를 멈출지** 리뷰가 판단하도록 정리했다.
 > 지킨 것: 탈락한 전략(23개 풀·B·#10 코인 간 모멘텀)의 기준을 낮추거나 변형해 다시 올리지 않는다. 기존 66세션 중간 성과는 쓰지 않는다. 운영 `98aaac4`, STAGE_1 비활성, 66세션·T0·기준 유지.
 
@@ -36,7 +36,7 @@
    - 개발 자료는 "이미 열람한 자료에서 성립"까지만 말할 수 있다.
    - 실전 근거는 새 T0 이후 전향 자료뿐이다. 주 1회 판단 × 2코인이면 1년에 판단이 약 104회이고, 실제 거래는 그보다 훨씬 적다. 효과를 확인하기에는 **표본이 작다**. 그래서 근거 수준은 #10 과 같은 "제한된 반증 시험"이다.
 4. **실행 가능성**
-   - D1 봉과 매수·현금 두 상태만 쓰므로 엔진 구조를 바꿀 필요는 없어 보인다(코드 수정 범위는 아직 확인하지 않았다).
+   - ~~D1 봉과 매수·현금 두 상태만 쓰므로 엔진 구조를 바꿀 필요는 없어 보인다(코드 수정 범위는 아직 확인하지 않았다).~~ 🔴 **정정(리뷰 35차, 엔진 대조)**: 입력은 H1 이고, 손절·익절·추적 청산·SELL 차단·EMA200·H1 조회 길이(500봉 < 673봉)에 코드 변경이 필요하다. 제안서 §4-1.
    - ~~STAGE_1 에서 바뀌어야 하는 것은 코인 목록뿐이다.~~ 🔴 **정정(리뷰 34차)**: H1 WF 게이트, 판정 가능 코인 ≥ 8/22, 60일 안 왕복 ≥ 30 도 두 코인·주간 판단과 맞지 않는다. 개정안은 제안서 §6. 한도(총 100,000·포지션 20,000·동시 3)는 그대로 둘 수 있다.
 5. **기간과 중단 조건(제안서로 간다면 이 틀로)**
    - 제안서·계산 규칙 고정에 1주를 쓴다.
@@ -51,7 +51,7 @@
 ## 출처
 
 - Liu, Y. & Tsyvinski, A. (2021). Risks and Returns of Cryptocurrency. *Review of Financial Studies* 34(6), 2689–2727. (NBER WP 24877) — https://ideas.repec.org/a/oup/rfinst/v34y2021i6p2689-2727..html
-- Han, C., Kang, B. & Ryu, J. Time-Series and Cross-Sectional Momentum in the Cryptocurrency Market. *Review of Asset Pricing Studies*, 2026-10-13 온라인 게재 — https://academic.oup.com/raps/advance-article/doi/10.1093/rapstu/raag011/8914819 · 공개 초고(이 문서가 읽은 판) — https://acfr.aut.ac.nz/__data/assets/pdf_file/0009/918729/Time_Series_and_Cross_Sectional_Momentum_in_the_Cryptocurrency_Market_with_IA.pdf
+- Han, C., Kang, B. & Ryu, J. 게재판 제목: Momentum in the Cryptocurrency Market: A Comprehensive Analysis under Realistic Assumptions(🔴 리뷰 35차 정정 — 초고 제목 Time-Series and Cross-Sectional Momentum in the Cryptocurrency Market 과 다르다). *Review of Asset Pricing Studies*, 2026-10-13 온라인 게재 — https://academic.oup.com/raps/advance-article/doi/10.1093/rapstu/raag011/8914819 · 공개 초고(이 문서가 읽은 판) — https://acfr.aut.ac.nz/__data/assets/pdf_file/0009/918729/Time_Series_and_Cross_Sectional_Momentum_in_the_Cryptocurrency_Market_with_IA.pdf
 - Zarattini, C., Pagani, A. & Barbon, A. (2025). Catching Crypto Trends. 워킹페이퍼 — https://abarbon.com/papers/catching-crypto-trends
 - Shen, D., Urquhart, A. & Wang, P. (2022). Bitcoin Intraday Time Series Momentum. *Financial Review* 57(2), 319–344 — https://research.birmingham.ac.uk/en/publications/bitcoin-intraday-time-series-momentum/
 - Makarov, I. & Schoar, A. (2020). Trading and Arbitrage in Cryptocurrency Markets. *JFE* 135(2), 293–319 — https://personal.lse.ac.uk/makarov1/index_files/CryptocurrencyMarkets.pdf
