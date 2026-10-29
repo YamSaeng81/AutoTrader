@@ -15,6 +15,8 @@ import com.cryptoautotrader.api.support.IntegrationTestBase;
 import com.cryptoautotrader.exchange.upbit.UpbitOrderClient;
 import com.cryptoautotrader.exchange.upbit.UpbitRestClient;
 import com.cryptoautotrader.exchange.upbit.dto.OrderResponse;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -26,6 +28,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
@@ -34,8 +37,10 @@ import org.springframework.transaction.support.TransactionTemplate;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -60,7 +65,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * </ul>
  *
  * <p>대역은 거래소 경계뿐이다. 경합은 두 방식으로 만든다: (가) 정지의 {@code markClosingIfOpen(FORCED_STOP)} 호출 직전에 WS 손절을
- * 끝까지 실행·커밋시키는 결정적 끼어들기, (나) WS 손절과 정지를 장벽으로 함께 출발시키는 실제 동시 실행(여러 회).</p>
+ * 끝까지 실행·커밋시키는 결정적 끼어들기, (나) WS 손절과 정지를 장벽으로 함께 출발시키는 실제 동시 실행(여러 회),
+ * (다) 정지의 <b>마지막 등록 조회</b> 도중 포지션이 OPEN→CLOSING 으로 다시 바뀌는 순서(리뷰 29차 재현 — 종전에는 CLOSING·OPEN 을
+ * 따로 읽어 둘 다 놓쳤다).</p>
  *
  * <p>🔴 증명하지 않는 것: 평가 틱의 매도도 같은 {@code executeSessionSell}/{@code executeSell} → {@code markClosingIfOpen} 을 거치므로
  * 같은 창을 갖지만, 틱 자체(캔들·전략 판정)를 돌리지는 않았다. 수정은 트리거와 무관하게 정지 쪽에서 등록을 보장한다.</p>
@@ -75,7 +82,9 @@ class StopVersusInFlightExitRaceTest extends IntegrationTestBase {
     @Autowired private DynamicTradingService dynamicTradingService;
     @Autowired private LiveTradingSessionRepository liveRepo;
     @Autowired private DynamicSessionRepository dynamicRepo;
-    @Autowired private PositionRepository positionRepository;
+    /** (다) 정지의 조회 사이에 다른 트랜잭션을 끼워 넣는 지점. 끼어들지 않는 호출은 실제 저장소로 그대로 간다. */
+    @SpyBean private PositionRepository positionRepository;
+    @PersistenceContext private EntityManager em;
     @Autowired private OrderRepository orderRepository;
     @Autowired private PositionCleanupRepository cleanupRepository;
     @Autowired private JdbcTemplate jdbc;
@@ -259,6 +268,32 @@ class StopVersusInFlightExitRaceTest extends IntegrationTestBase {
                 + s.stream().map(o -> o.getState() + "/" + o.getExchangeOrderId()).toList());
     }
 
+    /** 매도가 거래소에서 거절됐다 — 체결 없음의 근거. 청산 확정이 이를 보고 포지션을 OPEN 으로 되돌린다. */
+    private void reject(OrderEntity sell) {
+        sell.setState("FAILED");
+        sell.setFailureCode(OrderExecutionEngine.EXCHANGE_REJECTED);
+        orderRepository.save(sell);
+    }
+
+    /** 같은 코인의 다음 WS 이벤트가 점검 간격(평상시 5초)에 걸리지 않게 그 코인의 마지막 점검 시각을 지운다. */
+    @SuppressWarnings("unchecked")
+    private void resetWsThrottle(Fx f) {
+        if ("DYNAMIC".equals(f.kind())) {
+            ((Map<String, Long>) ReflectionTestUtils.getField(dynamicTradingService, "rtCheckLastMs")).remove(f.coin());
+        } else {
+            ((Map<String, Long>) ReflectionTestUtils.getField(liveTradingService, "rtStopLossLastCheckMs")).remove(f.coin());
+            ((Map<String, Long>) ReflectionTestUtils.getField(liveTradingService, "spikeCheckLastMs")).remove(f.coin());
+        }
+    }
+
+    /** 저장소 조회와 같은 JPQL — 끼어든 호출도 정지 트랜잭션 안에서 실제로 DB 를 읽는다. */
+    private List<PositionEntity> scan(String kind, Long sessionId, Collection<String> statuses) {
+        return em.createQuery("SELECT p FROM PositionEntity p WHERE p.sessionKind = :k AND p.sessionId = :s AND p.status IN :st",
+                        PositionEntity.class)
+                .setParameter("k", kind).setParameter("s", sessionId).setParameter("st", statuses)
+                .getResultList();
+    }
+
     /**
      * 정지가 끝난 뒤의 공통 확인 — 매도 1회·정리 대기 등록, 그리고 그 매도가 거절됐을 때 정리 작업이 한 번만 다시 판다.
      * @param label 출력용
@@ -276,10 +311,7 @@ class StopVersusInFlightExitRaceTest extends IntegrationTestBase {
                 .as("🔴 정지가 끝나면 이 포지션은 정리 대기에 있다 — 누가 먼저 CLOSING 으로 바꿨든").isPresent();
 
         // 앞선 매도가 거래소에서 거절됐다(체결 없음의 근거) → 청산 확정이 OPEN 으로 되돌린다.
-        OrderEntity rejected = first.get(0);
-        rejected.setState("FAILED");
-        rejected.setFailureCode(OrderExecutionEngine.EXCHANGE_REJECTED);
-        orderRepository.save(rejected);
+        reject(first.get(0));
         closingReconcile(f.kind());
         assertThat(committedStatus(f.positionId())).as("거절된 매도 — OPEN 롤백").isEqualTo("OPEN");
 
@@ -362,6 +394,74 @@ class StopVersusInFlightExitRaceTest extends IntegrationTestBase {
             assertTrackedAfterStop(f, "나 " + kind + " #" + round);
         }
         System.out.println("[나 " + kind + "] WS 손절이 먼저 매도한 회차 " + wsWins + "/6");
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @ValueSource(strings = {"LIVE", "DYNAMIC"})
+    @DisplayName("🔴 (다) 정지의 마지막 등록 조회 도중 거절된 매도가 OPEN 으로 돌아오고 WS 가 다시 CLOSING — 정지 후에도 정리 대기 (리뷰 29차)")
+    void positionFlipsDuringFinalRegistrationScan(String kind) {
+        Fx f = running(kind);
+        // 처음: WS 손절 매도가 진행 중(CLOSING)이고, 그 매도는 거래소에서 거절됐다 — 청산 확정은 아직 반영 전.
+        wsStopLoss(f);
+        drain(marketDataExecutor);
+        reject(awaitSells(f, 1).get(0));
+        resetWsThrottle(f);
+        assertThat(committedStatus(f.positionId())).isEqualTo("CLOSING");
+
+        AtomicInteger phase = new AtomicInteger();
+        Runnable reopen = () -> {
+            // ① 정지가 매도 대상(OPEN)을 다 읽은 뒤 — 청산 확정이 거절을 반영해 OPEN 으로 되돌리고 커밋한다.
+            TransactionTemplate t = new TransactionTemplate(txManager);
+            t.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+            t.executeWithoutResult(st -> closingReconcile(kind));
+            assertThat(committedStatus(f.positionId())).isEqualTo("OPEN");
+        };
+        Runnable reclose = () -> {
+            // ② 정지의 마지막 등록 조회가 결과를 읽은 직후 — WS 가 다시 CLOSING 으로 바꾸고 두 번째 매도를 낸다.
+            wsStopLoss(f);
+            drain(marketDataExecutor);
+            awaitSells(f, 2);
+            assertThat(committedStatus(f.positionId())).isEqualTo("CLOSING");
+        };
+        Mockito.doAnswer(inv -> {
+            String status = inv.getArgument(2);
+            List<PositionEntity> result = scan(kind, f.sessionId(), List.of(status));
+            if ("OPEN".equals(status) && phase.compareAndSet(0, 1)) reopen.run();
+            // 종전 코드(CLOSING 을 먼저, OPEN 을 따로 읽음)에서도 같은 지점에 걸리게 한다 — 되돌리면 이 시험이 실패한다.
+            else if ("CLOSING".equals(status) && phase.compareAndSet(1, 2)) reclose.run();
+            return result;
+        }).when(positionRepository).findBySessionKindAndSessionIdAndStatus(Mockito.eq(kind), Mockito.eq(f.sessionId()), Mockito.anyString());
+        Mockito.doAnswer(inv -> {
+            List<PositionEntity> result = scan(kind, f.sessionId(), inv.getArgument(2));
+            if (phase.compareAndSet(1, 2)) reclose.run();
+            return result;
+        }).when(positionRepository).findBySessionKindAndSessionIdAndStatusIn(Mockito.eq(kind), Mockito.eq(f.sessionId()), Mockito.any());
+
+        stop(f);
+
+        assertThat(phase.get()).as("두 끼어들기가 모두 일어났다").isEqualTo(2);
+        System.out.println("[다 " + kind + "] 세션=" + sessionStatus(f) + " 포지션=" + committedStatus(f.positionId())
+                + " 정리대기=" + cleanupRepository.findById(f.positionId()).isPresent());
+        assertThat(sessionStatus(f)).isEqualTo("STOPPED");
+        assertThat(exchangeSells(f)).as("정지는 매도를 내지 않았다 — WS 매도 2건뿐").isEqualTo(2);
+        assertThat(committedStatus(f.positionId())).isEqualTo("CLOSING");
+        assertThat(cleanupRepository.findById(f.positionId()))
+                .as("🔴 마지막 조회 도중 OPEN↔CLOSING 이 바뀌어도 정리 대기에 있다").isPresent();
+
+        // 두 번째 매도도 거절 → OPEN. 정리 대기에 있으므로 정리 작업이 맡는다 — 거절이 상한(2회)에 닿았으므로 다시 팔지 않고
+        // 사람 확인을 기다린다(기존 규칙, CLEANUP_MAX_REJECTED_SELLS). 종전에는 이 포지션이 정리 작업에 아예 없었다.
+        reject(sells(f).get(0));
+        closingReconcile(kind);
+        assertThat(committedStatus(f.positionId())).isEqualTo("OPEN");
+        for (int i = 0; i < 3; i++) {
+            cleanupWorker(kind);
+            drain(orderExecutor);
+        }
+        PositionCleanupEntity c = cleanupRepository.findById(f.positionId()).orElseThrow();
+        System.out.println("[다 " + kind + " 거절 후] 포지션=" + committedStatus(f.positionId()) + " 정리 메모=" + c.getLastNote());
+        assertThat(exchangeSells(f)).as("거절 상한 — 정리 작업은 다시 팔지 않는다").isEqualTo(2);
+        assertThat(c.getLastNote()).as("🔴 주인 없는 포지션이 아니라 사람 확인 대기").contains("2회 거절").contains("사람 확인 필요");
+        assertThat(c.getDoneAt()).isNull();
     }
 
     @org.junit.jupiter.api.Test

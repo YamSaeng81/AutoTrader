@@ -1796,10 +1796,10 @@ public class LiveTradingService {
         //    그 사이 WS 손절·평가 틱이 먼저 CLOSING 으로 바꾸면 전환이 0 을 받아 **등록 없이 건너뛰었다**
         //    (`StopVersusInFlightExitRaceTest` 재현: 정지 STOPPED · 포지션 CLOSING · 정리 대기 없음). 등록은 중복되지 않는다.
         //    위에서 예외로 건너뛴 OPEN 포지션도 여기서 등록돼 정리 작업이 다시 낸다. 등록만 하고 매도는 내지 않는다.
-        for (String status : List.of("CLOSING", "OPEN")) {
-            positionRepository.findBySessionKindAndSessionIdAndStatus("LIVE", session.getId(), status)
-                    .forEach(p -> registerStopCleanup(p, session.getId()));
-        }
+        //    🔴 두 상태를 **한 SQL** 로 읽는다 (리뷰 29차) — CLOSING·OPEN 을 따로 읽으면 그 사이 거절된 매도가 OPEN 으로 되돌아오고
+        //    WS 가 다시 CLOSING 으로 바꾼 포지션을 둘 다 놓쳤다(`StopVersusInFlightExitRaceTest` 두 조회 사이 뒤집힘).
+        positionRepository.findBySessionKindAndSessionIdAndStatusIn("LIVE", session.getId(), List.of("OPEN", "CLOSING"))
+                .forEach(p -> registerStopCleanup(p, session.getId()));
     }
 
     /**

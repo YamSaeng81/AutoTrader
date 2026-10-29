@@ -2505,10 +2505,9 @@ public class DynamicTradingService {
         //    먼저 CLOSING 으로 바꾸면 등록 없이 건너뛰어, 그 매도가 체결 없이 끝나 OPEN 으로 되돌아가면 정지된 세션에서 아무도 팔지 않았다
         //    (`StopVersusInFlightExitRaceTest`). 페이퍼·실전에 같은 규칙이다 — 등록은 포지션 자신의 종류로 하므로(아래 registerStopCleanup)
         //    페이퍼 포지션이 실자금 정리 작업(DYNAMIC)에 오르지 않는다.
-        for (String status : List.of("CLOSING", "OPEN")) {
-            positionRepository.findBySessionKindAndSessionIdAndStatus(sessionKind(session), session.getId(), status)
-                    .forEach(p -> registerStopCleanup(p, session.getId()));
-        }
+        //    🔴 두 상태를 **한 SQL** 로 읽는다 (리뷰 29차, LIVE 와 같은 이유) — 상태별로 따로 읽으면 그 사이 OPEN↔CLOSING 이 바뀐 포지션을 놓쳤다.
+        positionRepository.findBySessionKindAndSessionIdAndStatusIn(sessionKind(session), session.getId(), List.of("OPEN", "CLOSING"))
+                .forEach(p -> registerStopCleanup(p, session.getId()));
     }
 
     /**
