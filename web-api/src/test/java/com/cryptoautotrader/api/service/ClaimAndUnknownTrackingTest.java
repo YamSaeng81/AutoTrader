@@ -134,6 +134,37 @@ class ClaimAndUnknownTrackingTest extends IntegrationTestBase {
         throw new AssertionError("orderExecutor 가 비워지지 않았다 — 작업 스레드가 반환되지 않았다");
     }
 
+    /**
+     * 이 시험 세션의 주문이 {@code UNKNOWN} 으로 저장되고, 그 식별자가 거래소 접수 기록에 남을 때까지
+     * 제한 시간 안에서 기다린다 (리뷰 31차, 2026-10-29).
+     *
+     * <p>🔴 {@link #awaitDrained()} 만으로는 부족하다. 작업이 큐에서 꺼내졌지만 아직 실행 전인 순간에는
+     * 큐 0 · 활성 0 · 작업 수 = 완료 수가 모두 성립해, <b>작업이 돌기 전에 완료로 판단</b>할 수 있다
+     * (리뷰가 로컬에서 재현). 그래서 이 주문의 결과 자체를 기다린 뒤, 남은 작업이 끝나도록 비움을 확인한다.
+     * 결과의 내용은 각 시험의 단언이 그대로 검사한다.</p>
+     */
+    private void awaitUnknownCommitted(Fixture f) {
+        long deadline = System.currentTimeMillis() + 15_000;
+        while (System.currentTimeMillis() < deadline) {
+            boolean committed = orderRepository
+                    .findBySessionKindAndSessionIdOrderByCreatedAtDesc("LIVE", f.sessionId()).stream()
+                    .anyMatch(o -> "UNKNOWN".equals(o.getState()) && o.getClientOrderId() != null
+                            && accepted.contains(o.getClientOrderId()));
+            if (committed) {
+                awaitDrained();
+                return;
+            }
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+        }
+        throw new AssertionError("15초 안에 이 세션의 주문이 UNKNOWN 으로 저장되지 않았거나, "
+                + "그 식별자가 접수 기록에 없다 — 접수 기록: " + accepted);
+    }
+
     private record Fixture(Long sessionId, Long positionId, OrderRequest request) { }
 
     private Fixture runningSessionWithBuyRequest() {
@@ -196,7 +227,7 @@ class ClaimAndUnknownTrackingTest extends IntegrationTestBase {
         stubAcceptThenTimeout();
 
         orderExecutionEngine.submitOrder(f.request());
-        awaitDrained();
+        awaitUnknownCommitted(f);
 
         OrderEntity o = theOrder(f);
 
@@ -245,7 +276,7 @@ class ClaimAndUnknownTrackingTest extends IntegrationTestBase {
         Fixture f = runningSessionWithBuyRequest();
         stubAcceptThenTimeout();
         orderExecutionEngine.submitOrder(f.request());
-        awaitDrained();
+        awaitUnknownCommitted(f);
 
         String identifier = theOrder(f).getClientOrderId();
         Mockito.doThrow(new RuntimeException("조회 실패"))
@@ -497,7 +528,7 @@ class ClaimAndUnknownTrackingTest extends IntegrationTestBase {
         Fixture f = runningSessionWithBuyRequest();
         stubAcceptThenTimeout();
         orderExecutionEngine.submitOrder(f.request());
-        awaitDrained();
+        awaitUnknownCommitted(f);
         assertThat(theOrder(f).getState()).isEqualTo("UNKNOWN");
 
         liveTradingService.stopSession(f.sessionId());

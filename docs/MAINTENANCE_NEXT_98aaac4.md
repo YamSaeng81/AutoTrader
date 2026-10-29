@@ -8,6 +8,10 @@
 >
 > 🔴 **이 절차서는 배포 후보 준비까지다.** 배포 실행·STAGE_1 활성화·실거래 시작의 승인이 아니다. 정비 일시가 정해질 때까지 운영은 `2eb4225`, STAGE_1 은 비활성이다.
 > 형식은 `MAINTENANCE_NEXT_2eb4225.md`(개입 #12, 10-27 수행)와 같다.
+> **리뷰 31차 보완(2026-10-29)**
+> - ① 검증 세션 기대값을 개수가 아니라 **ID별**로 본다: 원래 66개 유지, 576·577·578 만 STOPPED, 나머지 63 RUNNING. 직전·기동 후·복구·30분 점검 모두 같다.
+> - ② 30분 경보 확인에서 기존 BLAST 반복 경보와 새 경보·⚪·실행 누락을 가른다.
+> - ③ 배포·복구 모두 `--no-deps` 로 backend 만 재생성하고, db·redis·db-backup·frontend 의 이미지·기동 시각을 전후 대조한다.
 >
 > **지난 정비와 다른 점**
 > - 감시 스크립트(`scripts/`)가 바뀌지 않는다. 그래서 `freshness` 회차를 피할 필요가 없고, 4-2 첫 회차 확인도 하지 않는다.
@@ -31,6 +35,9 @@
   - 지금 운영에는 실자금 보유가 0 이다(Q3). 그래서 배포 뒤 바뀐 경로가 실제로 돌지는 않는다.
   - 운영 적용 확인은 다음 셋으로 한다: 새 코드가 실행 중인지(§4-1b), 기동이 정상인지, 점검 조회 결과.
 - **복구**: 스키마가 그대로이므로 **앱 이미지와 체크아웃만** `2eb4225` 로 되돌리면 된다(§5).
+- **검증 세션의 현재 상태**: 원래 66개(`paper_trading.virtual_balance` id 522~587)는 그대로다. 그중 **576·577·578(BLAST, 10-27 정지)만 STOPPED**, 나머지 63개가 RUNNING 이다.
+  - 그래서 점검 조회 Q7 은 `RUNNING 63 · STOPPED 3` 이 정상이다.
+  - 🔴 Q7 은 개수만 보므로, **어느 세션이 멈췄는지는 `sc` 로 ID별로 확인한다.**
 - **66세션 영향**: 재기동 1회는 66세션에 영향을 줄 수 있다. **개입 #13** 으로 실제 시각과 내용을 남긴다(#12 = 10-27 `2eb4225` 정비).
 - 🔴 **새 셸을 열 때마다 먼저** 아래 변수를 정한다.
   ```bash
@@ -40,8 +47,22 @@
   QS=fa0691e647b61f6df4a85bdf796996f50470185e    # 🔴 점검 조회·확인 도구 — 10-27 리뷰 반영판(정비 #12 에서 쓴 것), origin/main 을 쓰지 않는다
   mkdir -p "$M"
   qc() { git show $QS:scripts/ops/maint_checks.sql | $DC exec -T db psql -U trader -d crypto_auto_trader -v maint_start="$(cat "$M/maint_start.txt")" -f - ; }
+  sc() { $DC exec -T db psql -U trader -d crypto_auto_trader -At -F ' | ' -c "
+    SELECT count(*) AS total,
+           count(*) FILTER (WHERE status = 'RUNNING' AND id NOT IN (576,577,578)) AS running_63,
+           count(*) FILTER (WHERE status = 'STOPPED' AND id IN (576,577,578))     AS stopped_3,
+           coalesce(string_agg(id || ':' || status, ' ' ORDER BY id) FILTER (WHERE NOT (
+               (id IN (576,577,578) AND status = 'STOPPED') OR
+               (id NOT IN (576,577,578) AND status = 'RUNNING'))), '-') AS mismatch
+      FROM paper_trading.virtual_balance WHERE id BETWEEN 522 AND 587" ; }
+  svc() { for s in backend db redis db-backup frontend; do docker inspect --format "$s {{.Image}} {{.State.StartedAt}}" "$($DC ps -q $s)"; done ; }
   ```
   - `qc` 는 점검 조회를 실행하는 함수다.
+  - `sc` 는 검증 세션을 **ID별로** 확인한다(읽기 전용). 기대 출력은 정확히 `66 | 63 | 3 | -` 이다.
+    - `mismatch` 에는 기대와 다른 세션이 `id:상태` 로 찍힌다. `-` 가 아니면 그 ID 를 기록한다.
+    - 개수가 맞아도 `mismatch` 가 `-` 가 아니면 기대와 다르다(예: 576 이 RUNNING 이 되고 다른 세션 하나가 STOPPED 가 된 경우).
+  - `svc` 는 서비스별 이미지·기동 시각을 찍는다. backend 외의 줄은 배포·복구 전후로 같아야 한다.
+    - `db-backup` 은 `~/crypto_trader/backup_keep/` 의 compose 로 적용된 컨테이너다(리뷰 25·26차). 프로젝트가 같아서 `$DC ps -q db-backup` 으로 찾는다.
   - Q8 은 `$M/maint_start.txt` 의 정비 시작 시각 뒤에 생긴 실자금 신규 매수를 센다. 이 시각은 §2 에서 기록한다.
 - 각 단계의 **실제 수행 시각**을 `date` 로 남긴다.
 
@@ -61,6 +82,9 @@ git show $QS:scripts/ops/maint_verify.py > "$M/maint_verify.py"          # 확�
 git rev-parse --short HEAD; git status --short | grep -v '^??'      # 2eb4225 · 추적 파일 변경 없음(빈 출력)
 qc > "$M/q-before.txt" 2>&1
 grep -A3 '== Q1' "$M/q-before.txt" | head -4; sed -n '/== Q3/,$p' "$M/q-before.txt" | grep -vE '^-+|^\s*$'
+sc | tee "$M/s-before.txt"                                          # 66 | 63 | 3 | -
+svc | tee "$M/svc-before.txt"                                       # 서비스별 이미지·기동 시각
+python3 scripts/prospective/start_66.py alerts --days 1 --no-mark > "$M/alerts-before.txt" 2>&1; grep -E '^(🔴|⚪)' "$M/alerts-before.txt"
 ```
 | 조회 | 기대 |
 |---|---|
@@ -68,10 +92,13 @@ grep -A3 '== Q1' "$M/q-before.txt" | head -4; sed -n '/== Q3/,$p' "$M/q-before.t
 | HEAD | `2eb4225`, 추적 파일 변경 없음 |
 | Q1 | 94 |
 | Q3·Q4·Q5·Q6 | 0 — 하나라도 아니면 **연기** |
-| Q7 | RUNNING 66 |
+| Q7 | `RUNNING 63` · `STOPPED 3` (다른 상태 줄 없음) |
 | Q8 | 첫 줄에 기록한 정비 시작 시각 · 0 |
 | Q9 | 0 |
 | 마지막 줄 | `ROLLBACK` |
+| `sc` | 정확히 `66 \| 63 \| 3 \| -`. 다르면 **연기**하고 `mismatch` 의 ID 를 보고한다 |
+| `svc` | 다섯 줄(backend·db·redis·db-backup·frontend). 빈 ID 로 오류가 나면 그 서비스 이름을 확인하고 보고한다 |
+| 지난 1일 경보 | 기준선으로 기록만 한다. 🔴 줄은 지금까지 **`KRW-BLAST` 한 종**이었다(상장 폐지, 매 회차 반복). 다른 코인의 🔴·⚪·실행 누락이 있으면 내용을 보고 진행 여부를 판단한다 |
 
 **배포 코드 확인**(기대와 다르면 멈춘다):
 ```bash
@@ -107,12 +134,17 @@ git checkout $NEW                                           # detached HEAD — 
 date '+%F %T %Z' | tee "$M/t-checkout.txt"
 git rev-parse --short HEAD                                  # 98aaac4
 date '+%F %T %Z' | tee "$M/t-build.txt"; date -u '+%Y-%m-%dT%H:%M:%SZ' > "$M/t-build.utc"
-$DC up --build -d backend                                   # backend 만
+$DC up --build -d --no-deps backend                         # 🔴 backend 만 — 의존 서비스(db·redis)는 손대지 않는다
 date '+%F %T %Z' | tee "$M/t-start.txt"                     # 🔴 새 앱 기동 시각
 docker inspect --format '{{.Image}}' $($DC ps -q backend) | tee "$M/image-98aaac4.txt"   # image-2eb4225.txt 와 달라야 한다
-$DC ps                                                      # frontend·db·redis 는 재시작되지 않았어야 한다
+svc | tee "$M/svc-deploy.txt"
+diff <(grep -v '^backend ' "$M/svc-before.txt") <(grep -v '^backend ' "$M/svc-deploy.txt") && echo "backend 외 이미지·기동 시각 그대로"
 ```
-- 🔴 `up --build -d` 에 서비스 이름 `backend` 를 반드시 붙인다.
+- 🔴 `up --build -d` 에 **`--no-deps` 와 서비스 이름 `backend` 를 둘 다** 붙인다.
+  - 서비스 이름만 주면 compose 는 그 서비스의 의존 서비스(db·redis)도 처리 대상에 넣는다. 그래서 설정이 달라 보이면 그것들도 다시 만들 수 있다.
+  - `--no-deps` 를 주면 연결된 서비스를 시작하지 않는다([Docker 문서 `docker compose up`](https://docs.docker.com/reference/cli/docker/compose/up/)).
+- 기대: 마지막 명령이 `backend 외 이미지·기동 시각 그대로` 를 출력한다.
+  - diff 가 나오면 어느 서비스가 다시 만들어졌는지 기록하고 보고한다. 되돌림 사유는 아니고, 원인을 확인할 대상이다.
 - 감시 스크립트는 `2eb4225` 와 같다. 그래서 체크아웃이 `freshness` 회차와 겹쳐도 바뀌는 파일이 없다.
 
 ## 4. 기동·적용 확인
@@ -135,7 +167,11 @@ grep -A3 '== Q1' "$M/q-app.txt" | head -4; sed -n '/== Q3/,$p' "$M/q-app.txt" | 
 - `candle` 결과에서 기동 뒤 판정 불가로 들어간 대상마다 **판정이 재개됐다.**
   - "아직 판정 불가" 가 남으면, 그 대상이 기동 직전에도 판정 불가였는지 본다(도구가 표시한다).
   - 직전에는 판정 가능했다면 몇 분 뒤 다시 실행한다.
-- 점검 조회: Q1 94 · Q3~Q6 0 · Q7 66 · Q8 0 · Q9 0 · `ROLLBACK`.
+- 점검 조회: Q1 94 · Q3~Q6 0 · Q7 `RUNNING 63`·`STOPPED 3` · Q8 0 · Q9 0 · `ROLLBACK`.
+- 검증 세션 ID별: 아래 명령이 정확히 `66 | 63 | 3 | -` 이고, 직전 기록과 같다.
+  ```bash
+  sc | tee "$M/s-app.txt"; diff "$M/s-before.txt" "$M/s-app.txt" && echo "검증 세션 ID별 상태 직전과 같음"
+  ```
 
 **4-1b 새 이미지 확인(배포에서만 — 복구 뒤에는 하지 않는다)**
 - 새 메서드 이름 `findBySessionKindAndSessionIdAndStatusIn` 이 있는지 본다. 이 이름은 `2eb4225` 에는 없고 `98aaac4` 에만 있다.
@@ -156,7 +192,8 @@ EOF
 🔴 **되돌림 사유**
 - 기동 실패, 또는 재시작 반복.
 - 공유 풀 미등록 외의 새 ERROR.
-- Q3~Q6 이 0 이 아니거나, Q7 이 66 이 아님.
+- Q3~Q6 이 0 이 아님.
+- `sc` 가 `66 | 63 | 3 | -` 가 아님. 특히 576·577·578 외의 세션이 RUNNING 이 아니거나, 576·577·578 중 하나가 다시 RUNNING 이 됨.
 - 판정 재개가 확인되지 않음.
 - 4-1b 에 `없음` 이 있음.
 
@@ -167,13 +204,17 @@ git checkout 2eb4225
 date '+%F %T %Z' | tee "$M/t-rollback-checkout.txt"
 docker tag "$(cat "$M/image-2eb4225.txt")" $REPO:latest
 date '+%F %T %Z' | tee "$M/t-rollback.txt"; date -u '+%Y-%m-%dT%H:%M:%SZ' > "$M/t-rollback.utc"
-$DC up -d --no-build --force-recreate backend
+$DC up -d --no-build --no-deps --force-recreate backend      # 🔴 backend 만 — 의존 서비스는 손대지 않는다
 docker inspect --format '{{.Image}}' $($DC ps -q backend); cat "$M/image-2eb4225.txt"   # 둘이 같아야 한다
+svc | tee "$M/svc-rollback.txt"
+diff <(grep -v '^backend ' "$M/svc-before.txt") <(grep -v '^backend ' "$M/svc-rollback.txt") && echo "backend 외 이미지·기동 시각 그대로"
 ```
 **복구 뒤 확인** — 4-1b 는 하지 않는다. 이전 이미지에는 새 메서드가 없기 때문이다.
 - 실행 이미지 ID 가 `image-2eb4225.txt` 와 **같다**(위 마지막 명령).
 - `git rev-parse --short HEAD` 가 `2eb4225` 다.
+- `backend 외 이미지·기동 시각 그대로` 가 출력된다.
 - §4-1 공통 확인을 `S=$(cat "$M/t-rollback.utc")` 로 바꿔 다시 실행한다. `app-after.log` 도 복구 뒤 로그로 다시 만든다.
+  - 그 안의 `sc` 도 다시 실행해 `66 | 63 | 3 | -` 이고 `s-before.txt` 와 같은지 본다(저장 파일 이름은 `s-rollback.txt`).
 - 복구 시각들은 개입 #13 에 함께 적는다.
 
 ## 6. 30분 뒤 재점검과 기록
@@ -184,17 +225,34 @@ $DC ps backend
 $DC logs --since 30m backend | grep " ERROR " | grep -v -E "캔들 최신성|공유 풀 한도" | tail -10
 qc > "$M/q-after30.txt" 2>&1
 sed -n '/== Q3/,$p' "$M/q-after30.txt" | grep -vE '^-+|^\s*$'
-python3 scripts/prospective/start_66.py alerts --since "$(cat "$M/t-build.utc")" --no-mark 2>&1 | tail -8
+sc | tee "$M/s-after30.txt"; diff "$M/s-before.txt" "$M/s-after30.txt" && echo "검증 세션 ID별 상태 직전과 같음"
+svc | tee "$M/svc-after30.txt"; diff <(grep -v '^backend ' "$M/svc-before.txt") <(grep -v '^backend ' "$M/svc-after30.txt") && echo "backend 외 이미지·기동 시각 그대로"
+python3 scripts/prospective/start_66.py alerts --since "$(cat "$M/t-build.utc")" --no-mark > "$M/alerts-after30.txt" 2>&1
+cat "$M/alerts-after30.txt"                                 # 🔴 tail 로 자르지 않는다 — 중간 줄이 가려진다
 ```
 기대:
 - 재시작 없음.
 - 새 ERROR 없음. 429 는 별도로 보고한다.
-- Q3~Q6 0 · Q7 66 · Q8 0 · Q9 0 · `ROLLBACK`.
-- 66세션 경보 없음. 정비 구간의 평가 공백은 예외다.
+- Q3~Q6 0 · Q7 `RUNNING 63`·`STOPPED 3` · Q8 0 · Q9 0 · `ROLLBACK`.
+- `sc` 가 `66 | 63 | 3 | -` 이고 직전과 같다.
+- backend 외 서비스의 이미지·기동 시각이 직전과 같다.
+- **경보는 네 가지로 갈라 적는다.** `alerts` 의 마지막 요약 줄(`🔴 적재 뒤처짐 N회 / …`)은 기존 경보도 함께 세므로, 그 줄만 보고 판단하지 않는다.
+
+  | 구분 | 알아보는 법 | 처리 |
+  |---|---|---|
+  | 기존 반복 경보 | `🔴 <시각>  1종: KRW-BLAST` — 직전 기준선(`alerts-before.txt`)과 같은 모양 | **기록만** 한다(회차 수·시각). 되돌림 사유가 아니다 |
+  | 새 경보 | `🔴 <시각>` 줄에 **BLAST 외 코인**이 있거나, 종 수가 1 보다 크다 | 코인·시각을 기록하고 보고한다. 분봉·같은 시각 수집 로그로 오판인지 본 뒤 판단한다 |
+  | ⚪ 판정 불가 | `⚪ <시각>  N종: …` 줄 | 코인·시각을 기록하고 보고한다. BLAST 가 🔴 대신 ⚪ 로 나와도 모양이 바뀐 것이므로 적는다 |
+  | 실행 누락 | `🔴 실행 누락 A → B  N분` 줄 | 정비 구간과 겹치는지 시각으로 확인하고 기록한다. 정비와 무관한 누락이면 보고한다 |
+
+  - 30분 구간에는 `freshness` 회차(매시 :19)가 0~1회 들어간다.
+  - 0회면 `⚪ 이 구간에 관측이 없다` 가 나온다. 아직 확인하지 않았다는 뜻이므로, 다음 :19 회차 뒤 같은 명령을 다시 돌린다.
 
 **개입 #13 기록**(운영자 본인이 시각·결과를 채운다):
 > 개입 #13 — (날짜) 계획 정비(백엔드 `98aaac4`, #5 정지 끝 정리 대기 등록).
 > 순서: `2eb4225` 이미지 보존(ID 기록) → 체크아웃 HH:MM:SS → 빌드 HH:MM → **새 앱 기동 HH:MM:SS**. 4-1b 는 세 줄 모두 `있음`.
+> 검증 세션: `sc` 가 직전·기동 후·30분 모두 `66 | 63 | 3 | -`(576·577·578 만 STOPPED). backend 외 서비스의 이미지·기동 시각은 그대로.
+> 경보: 기존 BLAST 반복 N회(시각) / 새 경보 (없음·내용) / ⚪ (없음·내용) / 실행 누락 (없음·내용).
 > 66세션의 입력 수집과 판정 규칙은 바뀌지 않았다. 바뀐 것은 실자금 세션 정지 경로뿐이다. 재기동에 따른 평가 공백의 영향은 미확정이며, T0·성과 구간은 유지한다.
 > 결과: (정상 / 복구 — 사유·복구 시각들) — 운영자 / 시각
 
