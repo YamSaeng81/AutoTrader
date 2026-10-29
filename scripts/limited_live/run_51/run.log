@@ -1,0 +1,5 @@
+# 2026-10-29 1회 실행 (규칙 고정 커밋 10452cb 뒤, 코드 변경 없음)
+# Java: ./gradlew :strategy-lib:test --tests "*DailySmaParityRunTest*" :core-engine:test --tests "*DailySma20CombinedRunTest*" -Dsma20.h1=<이 폴더>/btc_h1.csv -Dsma20.out=<이 폴더> --rerun-tasks -q
+#   -q 로 표준 출력이 남지 않았다. 출력 파일: strategy_signals.csv, combined_summary.csv, combined_trades_*.csv, gate_diagnostic.csv
+# Python: python scripts/limited_live/parity_check.py <이 폴더>  → parity.json, parity_run.log
+# 입력: btc_h1.csv e8fce892cd38de2ddf2d103922e12be9154f39f2dd62ca12b0ff5fac916abcc8, btc_d1.csv(run_48) 9ead5c5e42dacf5ae2a7f78ed82d97597fbb06f1dba6500e536a6ef96ef7e606
