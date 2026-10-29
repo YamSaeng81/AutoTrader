@@ -5,6 +5,7 @@ import com.cryptoautotrader.core.backtest.TsMomentumCalculator.Bar;
 import com.cryptoautotrader.core.backtest.TsMomentumCalculator.Costs;
 import com.cryptoautotrader.core.backtest.TsMomentumCalculator.Gate;
 import com.cryptoautotrader.core.backtest.TsMomentumCalculator.Hit;
+import com.cryptoautotrader.core.backtest.TsMomentumCalculator.Maintenance;
 import com.cryptoautotrader.core.backtest.TsMomentumCalculator.OosWindow;
 import com.cryptoautotrader.core.backtest.TsMomentumCalculator.Overall;
 import com.cryptoautotrader.core.backtest.TsMomentumCalculator.Params;
@@ -21,6 +22,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Function;
 
@@ -417,5 +419,94 @@ class TsMomentumCalculatorFakeDataTest {
         assertThat(w.stream().mapToInt(OosWindow::maxNaturalRoundTrips).sum()).isEqualTo(21);
         assertThat(w.get(0).oosStart()).isEqualTo(Instant.parse("2024-08-19T21:00:00Z"));
         assertThat(w.get(2).oosEnd()).isEqualTo(Instant.parse("2026-09-22T00:00:00Z"));
+    }
+
+    // ── 리뷰 39차: 공식 점검 예외(운영 V93 두 조건) ─────────────────────────────
+
+    static TsMomentumCalculator calc(List<Bar> btc, List<Bar> eth, Maintenance m) {
+        Map<String, List<Bar>> d = new TreeMap<>();
+        d.put(BTC, btc);
+        d.put(ETH, eth);
+        return new TsMomentumCalculator(d, m);
+    }
+
+    /** h 로부터 ages 시간 전 칸들. */
+    static Set<Instant> slots(Instant h, long... ages) {
+        return java.util.Arrays.stream(ages).mapToObj(a -> h.minus(Duration.ofHours(a))).collect(java.util.stream.Collectors.toSet());
+    }
+
+    static Maintenance window(Instant from, Instant to, Map<String, Set<Instant>> absent) {
+        return new Maintenance(List.of(new Maintenance.Window("W", from, to)), absent);
+    }
+
+    @Test
+    @DisplayName("리뷰 39차: 끝난 점검 구간 안 + 거래소 재조회에서도 없던 칸만 결측에서 뺀다 — 재조회 확인이 없는 칸은 그대로 센다")
+    void maintenanceExemptsOnlyConfirmedSlots() {
+        Instant h = Instant.parse("2024-04-01T00:00:00Z");
+        List<Bar> eth = flatAround(h, 100);
+        List<Bar> btc = flatAround(h, 100, 100, 101, 102, 103);   // BTC 4칸 결측 (100~103시간 전)
+        Instant from = h.minus(Duration.ofHours(103)), to = h.minus(Duration.ofHours(99));
+        assertThat(calc(btc, eth).gate(ETH, h)).isEqualTo(Gate.BTC_UNKNOWN);                          // 예외 없음(종전)
+        assertThat(calc(btc, eth, window(from, to, Map.of(BTC, slots(h, 100, 101, 102, 103)))).gate(ETH, h)).isEqualTo(Gate.CLEAR);
+        // 재조회로 확인된 칸이 2개뿐이면 남은 2칸 — 허용치 안
+        assertThat(calc(btc, eth, window(from, to, Map.of(BTC, slots(h, 100, 101)))).gate(ETH, h)).isEqualTo(Gate.CLEAR);
+        // 1개뿐이면 남은 3칸 — 막는다
+        assertThat(calc(btc, eth, window(from, to, Map.of(BTC, slots(h, 100)))).gate(ETH, h)).isEqualTo(Gate.BTC_UNKNOWN);
+        // 재조회 확인이 다른 코인(ETH)에만 있으면 BTC 칸은 빼지 않는다
+        assertThat(calc(btc, eth, window(from, to, Map.of(ETH, slots(h, 100, 101, 102, 103)))).gate(ETH, h)).isEqualTo(Gate.BTC_UNKNOWN);
+    }
+
+    @Test
+    @DisplayName("리뷰 39차: 점검 구간 경계에 걸친 봉(재개 뒤 시간 포함)은 빼지 않는다 — 봉 구간 전체가 점검 안이어야 한다")
+    void maintenanceBoundaryBarCounts() {
+        Instant h = Instant.parse("2024-04-01T00:00:00Z");
+        List<Bar> eth = flatAround(h, 100);
+        List<Bar> btc = flatAround(h, 100, 100, 101, 102, 103);   // 4칸 결측: 103·102·101·100시간 전
+        var absent = Map.of(BTC, slots(h, 100, 101, 102, 103));
+        // 뒤 경계: 101 칸은 통째로, 100 칸은 절반만 담는 구간 → 1칸만 빠지고 3칸 남음 → 막는다
+        Instant from = h.minus(Duration.ofHours(101));
+        assertThat(calc(btc, eth, window(from, h.minus(Duration.ofHours(99)).minus(Duration.ofMinutes(30)), absent)).gate(ETH, h))
+                .isEqualTo(Gate.BTC_UNKNOWN);
+        assertThat(calc(btc, eth, window(from, h.minus(Duration.ofHours(99)), absent)).gate(ETH, h)).isEqualTo(Gate.CLEAR);
+        // 앞 경계: 103 칸 시작 1분 뒤부터 → 103 은 빼지 않고 102 만 빠짐 → 3칸 남음 → 막는다
+        Instant to = h.minus(Duration.ofHours(101));
+        assertThat(calc(btc, eth, window(h.minus(Duration.ofHours(103)).plus(Duration.ofMinutes(1)), to, absent)).gate(ETH, h))
+                .isEqualTo(Gate.BTC_UNKNOWN);
+        assertThat(calc(btc, eth, window(h.minus(Duration.ofHours(103)), to, absent)).gate(ETH, h)).isEqualTo(Gate.CLEAR);
+    }
+
+    @Test
+    @DisplayName("리뷰 39차: 판정 시각에 아직 끝나지 않은 점검 구간은 쓰지 않고, 최신 완료 봉 조건에는 예외가 없다")
+    void maintenanceNeedsEndedWindowAndLatestBar() {
+        Instant h = Instant.parse("2024-04-01T00:00:00Z");
+        Instant now = h.plus(TsMomentumCalculator.GRACE);
+        List<Bar> eth = flatAround(h, 100);
+        List<Bar> btc = flatAround(h, 100, 4, 5, 6);              // 4~6시간 전 3칸 결측
+        var absent = Map.of(BTC, slots(h, 4, 5, 6));
+        Instant from = h.minus(Duration.ofHours(6));
+        assertThat(calc(btc, eth, window(from, h.minus(Duration.ofHours(3)), absent)).gate(ETH, h)).isEqualTo(Gate.CLEAR);
+        // 구간 끝이 판정 시각 now 뒤면(진행 중) 쓰지 않는다
+        assertThat(calc(btc, eth, window(from, now.plusSeconds(1), absent)).gate(ETH, h)).isEqualTo(Gate.BTC_UNKNOWN);
+        assertThat(calc(btc, eth, window(from, now, absent)).gate(ETH, h)).isEqualTo(Gate.CLEAR);
+        // h−1h 봉이 점검 안에서 없으면 "최신 완료 봉 없음" — 예외로 풀지 않는다
+        List<Bar> btcLatest = flatAround(h, 100, 1, 2, 3);
+        assertThat(calc(btcLatest, eth, window(h.minus(Duration.ofHours(3)), h, Map.of(BTC, slots(h, 1, 2, 3)))).gate(ETH, h))
+                .isEqualTo(Gate.BTC_UNKNOWN);
+        assertThat(TsMomentumCalculator.problem(
+                calc(btcLatest, eth).fetched(BTC, now), now, s -> true)).startsWith("최신 완료 봉 없음");
+    }
+
+    @Test
+    @DisplayName("리뷰 39차: 코인 쪽 최신성에도 같은 예외 — 가짜 봉을 만들지 않고 결측 수에서만 뺀다")
+    void maintenanceAppliesToCoinFreshness() {
+        Instant h = Instant.parse("2024-04-01T00:00:00Z");
+        List<Bar> btc = flatAround(h, 100);
+        List<Bar> eth = flatAround(h, 100, 10, 11, 12);
+        Instant from = h.minus(Duration.ofHours(12)), to = h.minus(Duration.ofHours(9));
+        assertThat(calc(btc, eth).gate(ETH, h)).isEqualTo(Gate.COIN_UNKNOWN);
+        var c = calc(btc, eth, window(from, to, Map.of(ETH, slots(h, 10, 11, 12))));
+        assertThat(c.gate(ETH, h)).isEqualTo(Gate.CLEAR);
+        // 입력 봉 목록은 그대로(빈 칸을 채우지 않는다)
+        assertThat(c.fetched(ETH, h.plus(TsMomentumCalculator.GRACE))).noneMatch(x -> slots(h, 10, 11, 12).contains(x.getTime()));
     }
 }

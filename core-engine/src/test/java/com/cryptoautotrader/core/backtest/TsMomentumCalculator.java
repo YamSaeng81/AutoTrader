@@ -16,7 +16,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.Predicate;
 
 /**
  * BTC·ETH 주간 시계열 모멘텀(매수 또는 현금) — 로컬 계산기 (docs/RESEARCH_PROPOSAL_TS_MOMENTUM.md v3 §4, 리뷰 35·36차).
@@ -94,6 +96,25 @@ final class TsMomentumCalculator {
     /** 규칙 ⑮ 진단 — 조건이 거짓에서 참이 된 시각. 판정에 쓰지 않는다. */
     record Hit(String kind, String coin, Instant at) {}
 
+    /**
+     * 공식 점검 예외(리뷰 39차) — 운영 V93 {@code CandleFreshnessGuard.maintenanceExemption} 의 두 조건을 옮긴 것.
+     * (가) 봉 구간 [slot, slot+1h) 전체가 판정 시각 now 이전에 <b>끝난</b> 점검 구간 안에 있다(경계에 걸친 봉은 빼지 않는다)
+     * (나) 거래소 재조회에서도 그 코인의 그 칸이 없었다. 구간·재조회 결과는 입력 파일로 고정한다
+     * (scripts/tsmom/maintenance_windows_tsmom.csv · maintenance_recheck_h1.py). ① 최신 완료 봉 조건에는 쓰지 않는다.
+     */
+    record Maintenance(List<Window> windows, Map<String, Set<Instant>> absentConfirmed) {
+        record Window(String id, Instant startsAt, Instant endsAt) {
+            boolean contains(Instant slot) { return !slot.isBefore(startsAt) && !slot.plus(HOUR).isAfter(endsAt); }
+        }
+
+        static final Maintenance NONE = new Maintenance(List.of(), Map.of());
+
+        boolean exempt(String coin, Instant slot, Instant now) {
+            return absentConfirmed.getOrDefault(coin, Set.of()).contains(slot)
+                    && windows.stream().anyMatch(w -> !w.endsAt().isAfter(now) && w.contains(slot));
+        }
+    }
+
     record Result(Costs costs, Instant start, Instant end, List<Week> weeks, List<Trade> trades,
                   BigDecimal finalValue, BigDecimal cumReturn, BigDecimal mdd, List<Hit> hits, String uncomputable) {
         boolean computable() { return uncomputable == null; }
@@ -107,8 +128,14 @@ final class TsMomentumCalculator {
     private final Map<String, NavigableMap<Instant, Bar>> bars = new TreeMap<>();
     /** 관문 입력용 — 같은 봉을 운영 Candle 로 한 번만 바꿔 둔다. */
     private final Map<String, NavigableMap<Instant, Candle>> candles = new TreeMap<>();
+    private final Maintenance maintenance;
 
     TsMomentumCalculator(Map<String, List<Bar>> data) {
+        this(data, Maintenance.NONE);
+    }
+
+    TsMomentumCalculator(Map<String, List<Bar>> data, Maintenance maintenance) {
+        this.maintenance = maintenance;
         if (!data.containsKey(BTC)) throw new IllegalArgumentException("BTC 급락 관문에 " + BTC + " 자료가 필요하다");
         data.forEach((coin, list) -> {
             NavigableMap<Instant, Bar> m = new TreeMap<>();
@@ -162,17 +189,18 @@ final class TsMomentumCalculator {
      *       BTC 가 어기면 판정 불가로 막는다(LIVE {@code blocksEntry})</li>
      *   <li>코인 급락: {@link BlackSwanGuard#check}. BTC 급락: {@link BtcMarketGuard#check}. 입력은 위의 완료 봉 목록</li>
      * </ul>
-     * 모형의 한계: 운영은 진행 중인 봉과 60초 주기를 쓰고 공식 점검 공백을 결측에서 뺀다. 여기서는 셋 다 재현하지 않는다.
+     * 공식 점검 공백은 {@link Maintenance} 가 주어지면 운영과 같은 두 조건으로 결측에서 뺀다(리뷰 39차, 기본은 예외 없음).
+     * 모형의 한계: 운영은 진행 중인 봉과 60초 주기를 쓴다. 여기서는 둘 다 재현하지 않는다.
      */
     Gate gate(String coin, Instant h) {
         Instant now = h.plus(GRACE);
         List<Candle> own = fetched(coin, now);
-        if (problem(own, now) != null) return Gate.COIN_UNKNOWN;
+        if (problem(own, now, s -> maintenance.exempt(coin, s, now)) != null) return Gate.COIN_UNKNOWN;
         BlackSwanGuard.Result swan = BlackSwanGuard.check(own);
         // 운영 Result 에는 종류가 없어 사유 문구로 나눈다(98aaac4: "1시간 내 급락 …" / "거래량 급증 …"). 판정에는 쓰지 않고 기록용이다
         if (swan.triggered()) return swan.reason().startsWith("거래량") ? Gate.COIN_VOLUME : Gate.COIN_DROP;
         List<Candle> btc = fetched(BTC, now);
-        if (problem(btc, now) != null) return Gate.BTC_UNKNOWN;
+        if (problem(btc, now, s -> maintenance.exempt(BTC, s, now)) != null) return Gate.BTC_UNKNOWN;
         return BtcMarketGuard.check(btc).triggered() ? Gate.BTC_DROP : Gate.CLEAR;
     }
 
@@ -187,6 +215,11 @@ final class TsMomentumCalculator {
      * 범위 앞쪽의 빈 칸은 첫 봉 앞이므로 세지 않는다(운영과 같다).
      */
     static String problem(List<Candle> candles, Instant now) {
+        return problem(candles, now, null);
+    }
+
+    /** 위와 같고, {@code exemptSlot} 이 참인 빈 칸은 ② 에서 뺀다(운영 problem(…, exemptSlot) 과 같은 순서). {@code null} 이면 모두 센다. */
+    static String problem(List<Candle> candles, Instant now, Predicate<Instant> exemptSlot) {
         if (candles.isEmpty()) return "캔들 없음";
         long tfSec = HOUR.getSeconds();
         long ref = now.minus(GRACE).getEpochSecond();
@@ -202,7 +235,15 @@ final class TsMomentumCalculator {
         if (last == null) return "완료 봉 없음";
         if (last.isBefore(latestClosedStart)) return "최신 완료 봉 없음";
         long missing = Duration.between(first, last).getSeconds() / tfSec + 1 - closed;
-        return missing > MAX_MISSING ? "결측 " + missing + "칸" : null;
+        long exempt = 0;
+        if (missing > 0 && exemptSlot != null) {
+            Set<Long> have = new java.util.HashSet<>();
+            for (Candle c : candles) have.add(c.getTime().getEpochSecond());
+            for (long t = first.getEpochSecond(); t <= last.getEpochSecond(); t += tfSec) {
+                if (!have.contains(t) && exemptSlot.test(Instant.ofEpochSecond(t))) exempt++;
+            }
+        }
+        return missing - exempt > MAX_MISSING ? "결측 " + (missing - exempt) + "칸" : null;
     }
 
     // ── 구간 ─────────────────────────────────────────────────────────
