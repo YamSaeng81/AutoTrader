@@ -429,6 +429,7 @@ public class LiveTradingService {
                 .availableKrw(req.getInitialCapital())
                 .totalAssetKrw(req.getInitialCapital())
                 .investRatio(investRatio)
+                .maxInvestment(req.getMaxInvestment())
                 .status("CREATED")
                 .strategyParams(req.getStrategyParams() != null
                         ? req.getStrategyParams() : Collections.emptyMap())

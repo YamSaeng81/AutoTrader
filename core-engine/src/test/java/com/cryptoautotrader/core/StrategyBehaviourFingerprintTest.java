@@ -109,6 +109,8 @@ class StrategyBehaviourFingerprintTest {
             Map.entry("COMPOSITE_MTF_MOMENTUM_CLOSED", "243001c860725068"),
             Map.entry("COMPOSITE_PULLBACK_MTF", "aafccdc608b5d427"),
             Map.entry("COMPOSITE_REGIME_ROUTER", "6123e8904316362f"),
+            // 2026-10-29 추가 — 12월 제한 실거래 시험 후보(새 전략). 기존 30개 지문은 그대로라 규칙 버전은 올리지 않는다.
+            Map.entry("DAILY_SMA20", "65e7c37fa5852fa6"),
             Map.entry("EMA_CROSS", "aa4802dd98e6b240"),
             Map.entry("FAIR_VALUE_GAP", "aad70c51231eec30"),
             Map.entry("GRID", "9f3ea497b55eb3a2"),

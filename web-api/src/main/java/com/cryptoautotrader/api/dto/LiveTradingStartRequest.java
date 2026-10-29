@@ -40,6 +40,15 @@ public class LiveTradingStartRequest {
     private BigDecimal investRatio;
 
     /**
+     * 1회 매수금 상한 (KRW, 선택) — 매수금 = min(availableKrw × investRatio, maxInvestment).
+     * 엔티티·매수 계산에는 있었지만 생성 요청으로 넣을 길이 없었다. 미지정이면 종전대로 상한 없음.
+     * 이익으로 세션 잔액이 포지션당 한도(STAGE_1 20,000)를 넘으면 매수가 PER_POSITION_CAP 으로 거절되므로,
+     * 고정 금액으로 반복 진입하는 세션은 이 값을 한도에 맞춘다(docs/LIMITED_LIVE_TEST_PLAN.md §5-1, 2026-10-29).
+     */
+    @DecimalMin(value = "5000", message = "maxInvestment 는 최소 주문금액 5,000 KRW 이상이어야 합니다")
+    private BigDecimal maxInvestment;
+
+    /**
      * 최대 보유시간(시) — time stop. 초과 시 손익과 무관하게 시장가 청산.
      * 미지정·0 이하면 비활성(기본값). dynamic_session의 동일 필드와 짝을 맞춘다.
      */

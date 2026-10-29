@@ -3,6 +3,7 @@ package com.cryptoautotrader.strategy;
 import com.cryptoautotrader.strategy.atrbreakout.AtrBreakoutStrategy;
 import com.cryptoautotrader.strategy.fvg.FairValueGapStrategy;
 import com.cryptoautotrader.strategy.bollinger.BollingerStrategy;
+import com.cryptoautotrader.strategy.dailysma.DailySmaTrendStrategy;
 import com.cryptoautotrader.strategy.ema.EmaCrossStrategy;
 import com.cryptoautotrader.strategy.grid.GridStrategy;
 import com.cryptoautotrader.strategy.heikinashi.HeikinAshiStochStrategy;
@@ -49,6 +50,8 @@ public final class StrategyRegistry {
         registerStateful("MACD_STOCH_BB", MacdStochBbStrategy::new);
         // 실전매매 동작 검증용 테스트 전략
         register(new TestTimedStrategy());
+        // 12월 제한 실거래 시험 후보 — 일봉 종가 > 20일 SMA 보유/현금 (docs/LIMITED_LIVE_TEST_PLAN.md)
+        register(new DailySmaTrendStrategy());
     }
 
     private StrategyRegistry() {}
