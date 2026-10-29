@@ -1,5 +1,9 @@
 package com.cryptoautotrader.core.backtest;
 
+import com.cryptoautotrader.core.selector.BlackSwanGuard;
+import com.cryptoautotrader.core.selector.BtcMarketGuard;
+import com.cryptoautotrader.strategy.Candle;
+
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.time.DayOfWeek;
@@ -41,13 +45,12 @@ final class TsMomentumCalculator {
     static final Duration WEEK = Duration.ofDays(7);
     static final String BTC = "KRW-BTC";
 
-    // 급락 관문 상수 — 운영 98aaac4 BlackSwanGuard.check · BtcMarketGuard.check · CandleFreshnessGuard 와 같은 값
-    static final BigDecimal COIN_DROP = new BigDecimal("-0.05");
-    static final BigDecimal COIN_VOLUME_DROP = new BigDecimal("-0.02");
-    static final BigDecimal VOLUME_MULTIPLIER = new BigDecimal("5");
-    static final int VOLUME_BASELINE = 20;
-    static final BigDecimal BTC_DROP = new BigDecimal("-0.015");
-    static final int FRESH_WINDOW = 500;
+    // 급락 관문 — 급락 판정은 운영 BlackSwanGuard.check · BtcMarketGuard.check 를 그대로 부른다(리뷰 37차: 반올림 순서까지 같게).
+    // 최신성은 web-api 의 CandleFreshnessGuard.problem 을 core-engine 에서 부를 수 없어 같은 순서로 옮겼다. 상수는 98aaac4 와 같다.
+    /** LIVE 조회 범위 — TradingConstants.CANDLE_LOOKBACK 봉 길이의 <b>시간</b>(H1 이면 500시간). 행 수가 아니다(리뷰 37차). */
+    static final Duration FETCH_SPAN = Duration.ofHours(500);
+    /** CandleFreshnessGuard.GRACE — 계산기의 판정 시각은 봉 시작 h + GRACE 다(h−1h 봉이 최신 완료 봉으로 요구되는 첫 시각). */
+    static final Duration GRACE = Duration.ofMinutes(2);
     static final int MAX_MISSING = 2;
 
     record Bar(Instant start, BigDecimal open, BigDecimal high, BigDecimal low, BigDecimal close, BigDecimal volume) {}
@@ -102,13 +105,21 @@ final class TsMomentumCalculator {
     }
 
     private final Map<String, NavigableMap<Instant, Bar>> bars = new TreeMap<>();
+    /** 관문 입력용 — 같은 봉을 운영 Candle 로 한 번만 바꿔 둔다. */
+    private final Map<String, NavigableMap<Instant, Candle>> candles = new TreeMap<>();
 
     TsMomentumCalculator(Map<String, List<Bar>> data) {
         if (!data.containsKey(BTC)) throw new IllegalArgumentException("BTC 급락 관문에 " + BTC + " 자료가 필요하다");
         data.forEach((coin, list) -> {
             NavigableMap<Instant, Bar> m = new TreeMap<>();
-            for (Bar b : list) m.put(b.start(), b);
+            NavigableMap<Instant, Candle> cm = new TreeMap<>();
+            for (Bar b : list) {
+                m.put(b.start(), b);
+                cm.put(b.start(), Candle.builder().time(b.start()).open(b.open()).high(b.high()).low(b.low())
+                        .close(b.close()).volume(b.volume()).build());
+            }
             bars.put(coin, m);
+            candles.put(coin, cm);
         });
     }
 
@@ -143,54 +154,55 @@ final class TsMomentumCalculator {
     // ── 급락 관문 (완료 H1 모형) ──────────────────────────────────────────
 
     /**
-     * 시작 h 인 봉의 시가로 매수하려 할 때의 관문 — 시작 ≤ h−1h 인 완료 봉만 본다.
+     * 시작 h 인 봉의 시가로 매수하려 할 때의 관문. 판정 시각 now = h + {@link #GRACE}.
      * <ul>
-     *   <li>최신성(CandleFreshnessGuard ①②): h−1h 봉이 있고, 최근 {@value #FRESH_WINDOW} 봉 사이 빈 칸 ≤ {@value #MAX_MISSING}.
-     *       코인이 어기면 운영은 그 회차를 평가하지 않으므로 진입하지 않는다. BTC 가 어기면 판정 불가로 막는다(LIVE {@code blocksEntry})</li>
-     *   <li>낙폭 = h−1h 봉 종가 / (시작이 h−2h 이후인 봉의 최고가) − 1 — 운영의 "현재 봉 시각 − 60분 이후" 창을 완료 봉에 적용한 것</li>
-     *   <li>코인: 낙폭 ≤ −5%, 또는 낙폭 ≤ −2% 이면서 거래량 ≥ 직전 20봉 평균 × 5. BTC: 낙폭 ≤ −1.5%</li>
+     *   <li>입력 캔들: 시작이 [now − {@link #FETCH_SPAN}, now] 인 봉 중 완료된 것(시작 ≤ h−1h) — LIVE {@code loadRecentCandles} 의 시각 범위다.
+     *       전략 판단용 28일 이력({@link #lookbackReturn})과는 따로 고른다</li>
+     *   <li>최신성({@link #problem}, CandleFreshnessGuard ①②): 코인이 어기면 운영은 그 회차를 평가하지 않으므로 진입하지 않는다.
+     *       BTC 가 어기면 판정 불가로 막는다(LIVE {@code blocksEntry})</li>
+     *   <li>코인 급락: {@link BlackSwanGuard#check}. BTC 급락: {@link BtcMarketGuard#check}. 입력은 위의 완료 봉 목록</li>
      * </ul>
      * 모형의 한계: 운영은 진행 중인 봉과 60초 주기를 쓰고 공식 점검 공백을 결측에서 뺀다. 여기서는 셋 다 재현하지 않는다.
      */
     Gate gate(String coin, Instant h) {
-        if (!fresh(coin, h)) return Gate.COIN_UNKNOWN;
-        BigDecimal drop = drop(coin, h);
-        if (drop.compareTo(COIN_DROP) <= 0) return Gate.COIN_DROP;
-        if (drop.compareTo(COIN_VOLUME_DROP) <= 0 && volumeSpike(coin, h)) return Gate.COIN_VOLUME;
-        if (!fresh(BTC, h)) return Gate.BTC_UNKNOWN;
-        if (drop(BTC, h).compareTo(BTC_DROP) <= 0) return Gate.BTC_DROP;
-        return Gate.CLEAR;
+        Instant now = h.plus(GRACE);
+        List<Candle> own = fetched(coin, now);
+        if (problem(own, now) != null) return Gate.COIN_UNKNOWN;
+        BlackSwanGuard.Result swan = BlackSwanGuard.check(own);
+        // 운영 Result 에는 종류가 없어 사유 문구로 나눈다(98aaac4: "1시간 내 급락 …" / "거래량 급증 …"). 판정에는 쓰지 않고 기록용이다
+        if (swan.triggered()) return swan.reason().startsWith("거래량") ? Gate.COIN_VOLUME : Gate.COIN_DROP;
+        List<Candle> btc = fetched(BTC, now);
+        if (problem(btc, now) != null) return Gate.BTC_UNKNOWN;
+        return BtcMarketGuard.check(btc).triggered() ? Gate.BTC_DROP : Gate.CLEAR;
     }
 
-    private boolean fresh(String coin, Instant h) {
-        NavigableMap<Instant, Bar> m = bars.get(coin).headMap(h.minus(HOUR), true);
-        if (m.isEmpty() || !m.lastKey().equals(h.minus(HOUR))) return false;
-        int n = 0;
-        Instant first = null;
-        for (Instant k : m.descendingKeySet()) {
-            first = k;
-            if (++n == FRESH_WINDOW) break;
+    /** LIVE 가 now 에 조회하는 시각 범위 [now − 500h, now] 의 완료 봉(시각 오름차순). */
+    List<Candle> fetched(String coin, Instant now) {
+        return List.copyOf(candles.get(coin).subMap(now.minus(FETCH_SPAN), true, now.minus(HOUR), true).values());
+    }
+
+    /**
+     * CandleFreshnessGuard.problem(candles, "H1", now) 를 옮긴 것(공식 점검 예외 없음) — 쓸 수 있으면 {@code null}.
+     * ① 최신 완료 봉 시작 ≥ floor(now − GRACE) − 1h ② 첫 완료 봉부터 마지막 완료 봉까지 빈 칸 ≤ {@value #MAX_MISSING}.
+     * 범위 앞쪽의 빈 칸은 첫 봉 앞이므로 세지 않는다(운영과 같다).
+     */
+    static String problem(List<Candle> candles, Instant now) {
+        if (candles.isEmpty()) return "캔들 없음";
+        long tfSec = HOUR.getSeconds();
+        long ref = now.minus(GRACE).getEpochSecond();
+        Instant latestClosedStart = Instant.ofEpochSecond(ref - Math.floorMod(ref, tfSec) - tfSec);
+        int closed = 0;
+        Instant first = null, last = null;
+        for (Candle c : candles) {
+            if (c.getTime().plusSeconds(tfSec).isAfter(now)) continue;
+            if (first == null) first = c.getTime();
+            last = c.getTime();
+            closed++;
         }
-        long slots = Duration.between(first, m.lastKey()).toHours() + 1;
-        return slots - n <= MAX_MISSING;
-    }
-
-    private BigDecimal drop(String coin, Instant h) {
-        Bar cur = bars.get(coin).get(h.minus(HOUR));
-        BigDecimal high = bars.get(coin).subMap(h.minus(Duration.ofHours(2)), true, h.minus(HOUR), true).values().stream()
-                .map(Bar::high).max(Comparator.naturalOrder()).orElse(cur.close());
-        if (high.signum() <= 0) return BigDecimal.ZERO;
-        return cur.close().divide(high, MC).subtract(BigDecimal.ONE);
-    }
-
-    /** 운영과 같이 행 기준 직전 20봉 평균 — 거래량 기준선만 행 수로 센다(운영 코드가 그렇다). */
-    private boolean volumeSpike(String coin, Instant h) {
-        List<Bar> prev = new ArrayList<>(bars.get(coin).headMap(h.minus(HOUR), false).descendingMap().values());
-        if (prev.size() < VOLUME_BASELINE) return false;
-        BigDecimal avg = prev.subList(0, VOLUME_BASELINE).stream().map(Bar::volume)
-                .reduce(BigDecimal.ZERO, BigDecimal::add).divide(BigDecimal.valueOf(VOLUME_BASELINE), MC);
-        if (avg.signum() <= 0) return false;
-        return bars.get(coin).get(h.minus(HOUR)).volume().compareTo(avg.multiply(VOLUME_MULTIPLIER, MC)) >= 0;
+        if (last == null) return "완료 봉 없음";
+        if (last.isBefore(latestClosedStart)) return "최신 완료 봉 없음";
+        long missing = Duration.between(first, last).getSeconds() / tfSec + 1 - closed;
+        return missing > MAX_MISSING ? "결측 " + missing + "칸" : null;
     }
 
     // ── 구간 ─────────────────────────────────────────────────────────

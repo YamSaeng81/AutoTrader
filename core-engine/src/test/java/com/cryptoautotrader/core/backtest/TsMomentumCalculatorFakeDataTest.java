@@ -11,6 +11,7 @@ import com.cryptoautotrader.core.backtest.TsMomentumCalculator.Params;
 import com.cryptoautotrader.core.backtest.TsMomentumCalculator.Result;
 import com.cryptoautotrader.core.backtest.TsMomentumCalculator.Stage;
 import com.cryptoautotrader.core.backtest.TsMomentumCalculator.Trade;
+import com.cryptoautotrader.core.selector.BtcMarketGuard;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -177,7 +178,7 @@ class TsMomentumCalculatorFakeDataTest {
     }
 
     @Test
-    @DisplayName("관문: [t, t+24h) 내내 막히면 그 주는 현금 — BTC 결측(판정 불가)은 500봉 창에서 밀려날 때까지 계속 막는다")
+    @DisplayName("관문: [t, t+24h) 내내 막히면 그 주는 현금 — BTC 결측(판정 불가)은 검사 범위(500시간)에 남아 허용치를 넘는 동안 막는다")
     void gateBlocksWholeWindowThenCash() {
         List<Bar> eth = bars(DATA_FROM, week(12), growth(0.03));
         var probe = calc(bars(DATA_FROM, week(12), flat()), eth);
@@ -189,10 +190,13 @@ class TsMomentumCalculatorFakeDataTest {
         Result r = c.run(ZERO, P, S, s, c.lastEnd());
         assertThat(r.weeks().get(0).coins().get(ETH).action()).isEqualTo("BUY_BLOCKED");
         assertThat(r.weeks().get(0).coins().get(ETH).gateWaits()).isEqualTo(24);
-        // 빈 칸 25개가 최근 500봉 안에 남아 있는 동안(운영 CandleFreshnessGuard ② 와 같다) 다음 주도 막힌다
+        // 빈 칸 25개(s−1h ~ s+23h)는 앞쪽 봉 s−2h 가 검사 범위 [now − 500h, now] 에 남아 있는 동안 결측으로 센다(운영 ② 와 같다).
+        // s−2h 가 범위에서 빠지는 s+498h 부터는 빈 칸이 첫 봉 앞이 되어 세지 않는다 — 기간은 빈 칸 위치·길이에 따라 다르다
         assertThat(r.weeks().get(1).coins().get(ETH).action()).isEqualTo("BUY_BLOCKED");
+        assertThat(c.gate(ETH, s.plus(Duration.ofHours(497)))).isEqualTo(Gate.BTC_UNKNOWN);
+        assertThat(c.gate(ETH, s.plus(Duration.ofHours(498)))).isEqualTo(Gate.CLEAR);
         Instant entry = r.trades().stream().filter(x -> x.coin().equals(ETH)).findFirst().orElseThrow().at();
-        assertThat(entry).isAfterOrEqualTo(s.plus(Duration.ofHours(24 + 500 - 2)));
+        assertThat(entry).isEqualTo(s.plus(Duration.ofDays(21)));   // 풀린 뒤 첫 주간 판단
     }
 
     @Test
@@ -225,6 +229,73 @@ class TsMomentumCalculatorFakeDataTest {
         eth2.replaceAll(b -> b.start().equals(h.minus(H))
                 ? new Bar(b.start(), bd(100), bd(100), bd(97), bd(97.9), new BigDecimal("4.99")) : b);
         assertThat(calc(bars(DATA_FROM, week(8), flat()), eth2).gate(ETH, h)).isEqualTo(Gate.CLEAR);
+    }
+
+    /** [h−800h, h] 시간봉, 모두 시가·고가·저가·종가 v, 거래량 1. ages 에 든 "h 로부터 몇 시간 전" 봉은 뺀다. */
+    static List<Bar> flatAround(Instant h, double v, long... ages) {
+        List<Bar> out = new ArrayList<>();
+        for (Instant t = h.minus(Duration.ofHours(800)); !t.isAfter(h); t = t.plus(H)) {
+            long age = Duration.between(t, h).toHours();
+            if (java.util.Arrays.stream(ages).noneMatch(a -> a == age)) out.add(bar(t, v, v));
+        }
+        return out;
+    }
+
+    /** list 의 시작 at 봉을 고가 high·종가 close·거래량 volume 으로 바꾼다(시가는 high). */
+    static List<Bar> with(List<Bar> list, Instant at, String high, String close, String volume) {
+        List<Bar> out = new ArrayList<>(list);
+        out.replaceAll(b -> b.start().equals(at)
+                ? new Bar(at, new BigDecimal(high), new BigDecimal(high), new BigDecimal(close), new BigDecimal(close), new BigDecimal(volume))
+                : b);
+        return out;
+    }
+
+    @Test
+    @DisplayName("리뷰 37차 ①: 최신성 검사 범위는 최근 500행이 아니라 LIVE 조회 범위 [now − 500시간, now] 다")
+    void freshnessWindowIsHoursNotRows() {
+        Instant h = Instant.parse("2024-04-01T00:00:00Z");
+        List<Bar> eth = flatAround(h.plus(H), 100);
+        // 500·501·502시간 전 BTC 결측 — LIVE 조회 범위 밖. 종전 계산기(최근 500행)는 BTC_UNKNOWN 이었다
+        var outside = calc(flatAround(h.plus(H), 100, 501, 502, 503), eth);
+        assertThat(outside.fetched(BTC, h.plus(TsMomentumCalculator.GRACE))).allMatch(c -> !c.getTime().isBefore(h.minus(Duration.ofHours(499))));
+        assertThat(outside.gate(ETH, h)).isEqualTo(Gate.CLEAR);
+        // 같은 3칸이 범위 안(495~497시간 전)에 있으면 막는다 — 빈 칸 앞뒤에 봉이 있어야 결측으로 센다(운영과 같다)
+        assertThat(calc(flatAround(h.plus(H), 100, 496, 497, 498), eth).gate(ETH, h)).isEqualTo(Gate.BTC_UNKNOWN);
+        // 2칸은 허용
+        assertThat(calc(flatAround(h.plus(H), 100, 496, 497), eth).gate(ETH, h)).isEqualTo(Gate.CLEAR);
+        // 범위 맨 앞 빈 칸은 첫 봉 앞이라 세지 않는다 — 499·500·501시간 전 결측(h 기준)
+        assertThat(calc(flatAround(h.plus(H), 100, 500, 501, 502), eth).gate(ETH, h)).isEqualTo(Gate.CLEAR);
+    }
+
+    @Test
+    @DisplayName("리뷰 37차 ②: BTC 낙폭 비율은 운영 BtcMarketGuard 와 같이 소수 6자리로 반올림한 뒤 −1.5% 와 비교한다")
+    void btcDropRoundsLikeCore() {
+        Instant h = Instant.parse("2024-04-01T00:00:00Z");
+        List<Bar> eth = flatAround(h, 100);
+        List<Bar> base = flatAround(h, 10000);
+        // 10,000 → 9,850.004: 반올림 전 −1.49996% (종전 계산기 CLEAR), 반올림 뒤 −1.5000% (운영 차단)
+        var blocked = calc(with(base, h.minus(H), "10000", "9850.004", "1"), eth);
+        assertThat(BtcMarketGuard.check(blocked.fetched(BTC, h.plus(TsMomentumCalculator.GRACE))).triggered()).isTrue();
+        assertThat(blocked.gate(ETH, h)).isEqualTo(Gate.BTC_DROP);
+        // 9,850.006: 반올림 뒤 −1.4999% → 허용
+        assertThat(calc(with(base, h.minus(H), "10000", "9850.006", "1"), eth).gate(ETH, h)).isEqualTo(Gate.CLEAR);
+    }
+
+    @Test
+    @DisplayName("리뷰 37차 ②: 코인 급락·거래량 경계도 운영 BlackSwanGuard 의 반올림(비율 6자리, 거래량 배수 4자리)을 따른다")
+    void coinBoundariesRoundLikeCore() {
+        Instant h = Instant.parse("2024-04-01T00:00:00Z");
+        List<Bar> btc = flatAround(h, 100);
+        List<Bar> eth = flatAround(h, 100);
+        // 100 → 95.00004: 반올림 전 −4.999996%, 반올림 뒤 −5.0000% → 차단
+        assertThat(calc(btc, with(eth, h.minus(H), "100", "95.00004", "1")).gate(ETH, h)).isEqualTo(Gate.COIN_DROP);
+        assertThat(calc(btc, with(eth, h.minus(H), "100", "95.00006", "1")).gate(ETH, h)).isEqualTo(Gate.CLEAR);
+        // 거래량: 직전 20봉 평균 1, 현재 4.99996 → 배수 반올림 5.0000 → 차단 / 4.99994 → 4.9999 → 허용 (낙폭 −2.1%)
+        assertThat(calc(btc, with(eth, h.minus(H), "100", "97.9", "4.99996")).gate(ETH, h)).isEqualTo(Gate.COIN_VOLUME);
+        assertThat(calc(btc, with(eth, h.minus(H), "100", "97.9", "4.99994")).gate(ETH, h)).isEqualTo(Gate.CLEAR);
+        // 낙폭 경계 −2%: 98.00004 → 반올림 뒤 −2.0000% 라 거래량 조건을 본다 / 98.00006 → −1.9999% 라 보지 않는다
+        assertThat(calc(btc, with(eth, h.minus(H), "100", "98.00004", "5")).gate(ETH, h)).isEqualTo(Gate.COIN_VOLUME);
+        assertThat(calc(btc, with(eth, h.minus(H), "100", "98.00006", "5")).gate(ETH, h)).isEqualTo(Gate.CLEAR);
     }
 
     @Test
