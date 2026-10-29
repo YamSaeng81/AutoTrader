@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -103,6 +104,12 @@ public interface PositionRepository extends JpaRepository<PositionEntity, Long> 
      * 조회하면 다른 종류 세션의 포지션을 잘못 채택할 위험이 있다. 신규 코드는 이 메서드를 사용한다.
      */
     List<PositionEntity> findBySessionKindAndSessionIdAndStatus(String sessionKind, Long sessionId, String status);
+
+    /**
+     * 세션 종류 + ID + 여러 상태를 <b>한 SQL</b>({@code status IN (…)})로 조회한다 (2026-10-29, #5 리뷰 29차).
+     * 정지의 정리 대기 등록용 — 상태별로 따로 읽으면 두 조회 사이에 OPEN↔CLOSING 이 바뀐 포지션을 둘 다 놓친다.
+     */
+    List<PositionEntity> findBySessionKindAndSessionIdAndStatusIn(String sessionKind, Long sessionId, Collection<String> statuses);
 
     /** 특정 세션의 전체 포지션 조회 */
     List<PositionEntity> findBySessionId(Long sessionId);
