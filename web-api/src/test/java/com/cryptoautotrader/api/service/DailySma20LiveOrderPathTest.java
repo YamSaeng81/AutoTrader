@@ -168,13 +168,17 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
 
     // ── 세션·포지션 ──────────────────────────────────────────────────
 
-    /** 시험 세션 설정(문서 §5-1): 초기 20,200 · 투자 비율 0.995 · 1회 상한 20,000 · 손절 하한 5% · 시간 청산 24h. */
+    /** 시험 세션 설정(문서 §5-1 v1.2): 초기 20,200 · 투자 비율 0.995 · 1회 상한 20,000 · 손절 하한 5% · 시간 청산 24h. */
     private LiveTradingSessionEntity session(BigDecimal availableKrw, BigDecimal maxInvestment) {
+        return session(availableKrw, maxInvestment, 24);
+    }
+
+    private LiveTradingSessionEntity session(BigDecimal availableKrw, BigDecimal maxInvestment, int maxHoldHours) {
         LiveTradingSessionEntity s = liveRepo.save(LiveTradingSessionEntity.builder()
                 .sessionType("REAL").strategyType(DailySmaTrendStrategy.NAME).coinPair(COIN).timeframe("H1")
                 .initialCapital(new BigDecimal("20200")).availableKrw(availableKrw).totalAssetKrw(availableKrw)
                 .investRatio(new BigDecimal("0.995")).maxInvestment(maxInvestment)
-                .stopLossPct(new BigDecimal("5.00")).maxHoldHours(24)
+                .stopLossPct(new BigDecimal("5.00")).maxHoldHours(maxHoldHours)
                 .status("RUNNING").startedAt(Instant.now().minus(30, ChronoUnit.DAYS)).build());
         liveIds.add(s.getId());
         return s;
@@ -184,12 +188,30 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
         return session(new BigDecimal("20200"), new BigDecimal("20000"));
     }
 
+    /** 운영자 결정 (나)(2026-10-30) 뒤의 시험 세션 — 시간 청산만 끈다(maxHoldHours=0). 다른 값은 그대로. */
+    private LiveTradingSessionEntity noTimeStopSession() {
+        return session(new BigDecimal("20200"), new BigDecimal("20000"), 0);
+    }
+
     private PositionEntity openPosition(LiveTradingSessionEntity s, BigDecimal avgPrice, Instant openedAt) {
-        BigDecimal size = new BigDecimal("0.001");
+        return position(s, avgPrice, openedAt, new BigDecimal("0.001"), "OPEN");
+    }
+
+    private PositionEntity position(LiveTradingSessionEntity s, BigDecimal avgPrice, Instant openedAt,
+                                    BigDecimal size, String status) {
         return positionRepository.save(PositionEntity.builder()
                 .coinPair(COIN).side("BUY").entryPrice(avgPrice).avgPrice(avgPrice).size(size)
                 .investedKrw(avgPrice.multiply(size)).entryAllocationKrw(avgPrice.multiply(size))
-                .status("OPEN").sessionId(s.getId()).sessionKind("LIVE").openedAt(openedAt).build());
+                .status(status).sessionId(s.getId()).sessionKind("LIVE").openedAt(openedAt).build());
+    }
+
+    /** 응답을 잃은 주문(UNKNOWN) — 식별자는 있고 거래소 주문번호는 없다. */
+    private OrderEntity unknownOrder(LiveTradingSessionEntity s, PositionEntity p, String side, BigDecimal quantity) {
+        return orderRepository.save(OrderEntity.builder()
+                .positionId(p.getId()).coinPair(COIN).side(side).orderType("MARKET").quantity(quantity)
+                .state("UNKNOWN").clientOrderId("sma20-unknown-" + UUID.randomUUID())
+                .createdAt(Instant.now().minus(10, ChronoUnit.MINUTES))
+                .sessionId(s.getId()).sessionKind("LIVE").build());
     }
 
     /** 평가 회차만 돌린다(매수는 회차에 접수될 뿐). */
@@ -377,5 +399,169 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
 
         assertThat(orders(uncapped, "BUY")).as("24,875 > 포지션당 20,000 → 예약 거절").isEmpty();
         assertThat(lastLog(uncapped).getBlockedReason()).contains("PER_POSITION_CAP");
+    }
+
+    // ── 운영자 결정 (나), 2026-10-30: 이 세션만 maxHoldHours=0 (문서 §5-7) ──────────────────
+
+    @Test
+    @DisplayName("maxHoldHours=0 — 생성 요청(POST) → 저장 → 재조회(GET·DB)까지 0 이 유지되고 다른 설정도 그대로다")
+    void maxHoldZeroSurvivesCreateAndReload() throws Exception {
+        String body = """
+                {"strategyType":"DAILY_SMA20","coinPair":"KRW-BTC","timeframe":"H1",
+                 "initialCapital":20200,"investRatio":0.995,"maxInvestment":20000,
+                 "stopLossPct":5,"maxHoldHours":0}""";
+        String created = mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .post("/api/v1/trading/sessions")
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON).content(body))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        com.fasterxml.jackson.databind.JsonNode data = objectMapper.readTree(created).get("data");
+        long id = data.get("id").asLong();
+        liveIds.add(id);
+        assertThat(data.get("maxHoldHours").asInt()).as("생성 응답").isZero();
+
+        String fetched = mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .get("/api/v1/trading/sessions/" + id))
+                .andReturn().getResponse().getContentAsString();
+        com.fasterxml.jackson.databind.JsonNode got = objectMapper.readTree(fetched).get("data");
+        System.out.println("[SMA20 생성·재조회] " + got.get("status") + " maxHoldHours=" + got.get("maxHoldHours")
+                + " maxInvestment=" + got.get("maxInvestment") + " investRatio=" + got.get("investRatio")
+                + " stopLossPct=" + got.get("stopLossPct") + " initialCapital=" + got.get("initialCapital"));
+        assertThat(got.get("maxHoldHours").asInt()).as("GET 재조회").isZero();
+
+        LiveTradingSessionEntity row = liveRepo.findById(id).orElseThrow();
+        assertThat(row.getMaxHoldHours()).as("DB 재조회 — 기본값 24 로 바뀌지 않는다").isZero();
+        assertThat(row.getMaxInvestment()).isEqualByComparingTo("20000");
+        assertThat(row.getInvestRatio()).isEqualByComparingTo("0.995");
+        assertThat(row.getStopLossPct()).isEqualByComparingTo("5");
+        assertThat(row.getInitialCapital()).isEqualByComparingTo("20200");
+        assertThat(row.getStatus()).as("생성만 — 시작은 별도 요청").isEqualTo("CREATED");
+    }
+
+    @Test
+    @DisplayName("maxHoldHours=0 — 보유 72시간에도 시간 청산·추가 매수가 없다(일봉 BUY 유지 중)")
+    void noTimeStopAndNoPyramidingWhenMaxHoldZero() {
+        List<Candle> cs = uptrend();
+        insertCache(cs);
+        LiveTradingSessionEntity s = noTimeStopSession();
+        PositionEntity p = openPosition(s, lastClose(cs), Instant.now().minus(72, ChronoUnit.HOURS));
+        evaluate(s);
+        assertThat(reload(p).getStatus()).isEqualTo("OPEN");
+        assertThat(reload(p).getExitReason()).isNull();
+        assertThat(orders(s, "SELL")).isEmpty();
+        assertThat(orders(s, "BUY")).isEmpty();
+        assertThat(lastLog(s).getSignal()).isEqualTo("BUY");
+    }
+
+    @Test
+    @DisplayName("maxHoldHours=0 — 손절은 그대로 작동한다(보유 72시간, −10%)")
+    void stopLossStillFiresWhenMaxHoldZero() {
+        List<Candle> cs = uptrend();
+        insertCache(cs);
+        LiveTradingSessionEntity s = noTimeStopSession();
+        BigDecimal avg = lastClose(cs).divide(new BigDecimal("0.90"), 0, java.math.RoundingMode.HALF_UP);
+        PositionEntity p = openPosition(s, avg, Instant.now().minus(72, ChronoUnit.HOURS));
+        evaluate(s);
+        assertThat(reload(p).getStatus()).isEqualTo("CLOSING");
+        assertThat(reload(p).getExitReason()).isEqualTo(ExitReason.STOP_LOSS);
+        assertThat(awaitOrders(s, "SELL", 1)).hasSize(1);
+        assertThat(orders(s, "BUY")).isEmpty();
+    }
+
+    @Test
+    @DisplayName("maxHoldHours=0 — 익절은 그대로 작동한다(보유 72시간, 저장된 익절가 도달)")
+    void takeProfitStillFiresWhenMaxHoldZero() {
+        List<Candle> cs = uptrend();
+        insertCache(cs);
+        LiveTradingSessionEntity s = noTimeStopSession();
+        BigDecimal avg = lastClose(cs).divide(new BigDecimal("1.10"), 0, java.math.RoundingMode.HALF_UP);
+        PositionEntity p = openPosition(s, avg, Instant.now().minus(72, ChronoUnit.HOURS));
+        p.setTakeProfitPrice(avg.multiply(new BigDecimal("1.08")));
+        positionRepository.save(p);
+        evaluate(s);
+        assertThat(reload(p).getStatus()).isEqualTo("CLOSING");
+        assertThat(reload(p).getExitReason()).isEqualTo(ExitReason.TAKE_PROFIT);
+        assertThat(awaitOrders(s, "SELL", 1)).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("maxHoldHours=0 — 마감 종가 ≤ SMA20 이면 전략 SELL 이 그대로 나간다(보유 72시간, −2%)")
+    void strategySellStillFiresWhenMaxHoldZero() {
+        List<Candle> cs = downtrend();
+        insertCache(cs);
+        LiveTradingSessionEntity s = noTimeStopSession();
+        BigDecimal avg = lastClose(cs).divide(new BigDecimal("0.98"), 0, java.math.RoundingMode.HALF_UP);
+        PositionEntity p = openPosition(s, avg, Instant.now().minus(72, ChronoUnit.HOURS));
+        evaluate(s);
+        assertThat(reload(p).getStatus()).isEqualTo("CLOSING");
+        assertThat(reload(p).getExitReason()).isEqualTo(ExitReason.STRATEGY_SIGNAL);
+        assertThat(awaitOrders(s, "SELL", 1)).hasSize(1);
+    }
+
+    // ── 주문 상태 불명(UNKNOWN) — 확인 전에는 같은 세션이 중복 주문을 내지 않는다 (문서 §6-2) ──────
+
+    @Test
+    @DisplayName("UNKNOWN 매수가 남은 세션 — 다음 마감의 BUY 신호에도 새 매수를 내지 않는다")
+    void unknownBuyBlocksNewBuy() {
+        insertCache(uptrend());
+        LiveTradingSessionEntity s = noTimeStopSession();
+        // 실제 매수 경로처럼 size=0 포지션 + 응답을 잃은 매수 주문
+        PositionEntity p = position(s, lastClose(uptrend()), Instant.now().minus(10, ChronoUnit.MINUTES), BigDecimal.ZERO, "OPEN");
+        unknownOrder(s, p, "BUY", new BigDecimal("20000"));
+        evaluate(s);
+        assertThat(orders(s, "BUY")).as("UNKNOWN 1건 그대로 — 새 매수 없음").hasSize(1);
+        assertThat(orders(s, "SELL")).isEmpty();
+        assertThat(reload(p).getStatus()).as("확인 전에는 닫지도 복원하지도 않는다").isEqualTo("OPEN");
+    }
+
+    @Test
+    @DisplayName("UNKNOWN 매도가 남은 CLOSING 포지션 — 손절 구간·SELL 신호여도 다시 팔지 않고 새로 사지도 않는다")
+    void unknownSellIsNotResubmitted() {
+        List<Candle> cs = downtrend();
+        insertCache(cs);
+        LiveTradingSessionEntity s = noTimeStopSession();
+        BigDecimal avg = lastClose(cs).divide(new BigDecimal("0.90"), 0, java.math.RoundingMode.HALF_UP);
+        PositionEntity p = position(s, avg, Instant.now().minus(72, ChronoUnit.HOURS), new BigDecimal("0.001"), "CLOSING");
+        unknownOrder(s, p, "SELL", new BigDecimal("0.001"));
+        evaluate(s);
+        assertThat(orders(s, "SELL")).as("UNKNOWN 1건 그대로 — 재매도 없음").hasSize(1);
+        assertThat(orders(s, "BUY")).isEmpty();
+        assertThat(reload(p).getStatus()).isEqualTo("CLOSING");
+    }
+
+    /**
+     * 🔴 정지는 "신규 주문만 막는 기능"이 아니다 — 매수 취소 요청과 장부 수량 청산을 함께 시작한다({@code stopSession}).
+     * 여기서는 불명 주문이 남은 채 정지해도 <b>그 주문을 다시 내지 않는지</b>만 본다.
+     */
+    @Test
+    @DisplayName("정지 — UNKNOWN 매수는 식별자 취소 요청만, 매도·자금 복원 없음, 포지션은 정리 대기로 열어 둔다")
+    void stopWithUnknownBuyDoesNotDuplicate() {
+        insertCache(uptrend());
+        LiveTradingSessionEntity s = noTimeStopSession();
+        PositionEntity p = position(s, lastClose(uptrend()), Instant.now().minus(10, ChronoUnit.MINUTES), BigDecimal.ZERO, "OPEN");
+        OrderEntity buy = unknownOrder(s, p, "BUY", new BigDecimal("20000"));
+        liveTradingService.stopSession(s.getId());
+        org.mockito.Mockito.verify(upbitOrderClient).cancelOrderByIdentifier(buy.getClientOrderId());
+        assertThat(liveRepo.findById(s.getId()).orElseThrow().getStatus()).isEqualTo("STOPPED");
+        assertThat(orders(s, "BUY")).as("새 매수 없음").hasSize(1);
+        assertThat(orders(s, "SELL")).as("수량 0 — 매도 없음").isEmpty();
+        assertThat(orderRepository.findById(buy.getId()).orElseThrow().getState()).as("확인 전 종결 안 함").isEqualTo("UNKNOWN");
+        assertThat(liveRepo.findById(s.getId()).orElseThrow().getAvailableKrw()).as("복원 없음").isEqualByComparingTo("20200");
+        assertThat(reload(p).getStatus()).isEqualTo("OPEN");
+    }
+
+    @Test
+    @DisplayName("정지 — UNKNOWN 매도가 남은 CLOSING 포지션은 다시 팔지 않는다(진행 중 매도는 취소도 하지 않는다)")
+    void stopWithUnknownSellDoesNotDuplicate() {
+        List<Candle> cs = downtrend();
+        insertCache(cs);
+        LiveTradingSessionEntity s = noTimeStopSession();
+        PositionEntity p = position(s, lastClose(cs), Instant.now().minus(72, ChronoUnit.HOURS), new BigDecimal("0.001"), "CLOSING");
+        OrderEntity sell = unknownOrder(s, p, "SELL", new BigDecimal("0.001"));
+        liveTradingService.stopSession(s.getId());
+        org.mockito.Mockito.verify(upbitOrderClient, org.mockito.Mockito.never()).cancelOrderByIdentifier(sell.getClientOrderId());
+        assertThat(liveRepo.findById(s.getId()).orElseThrow().getStatus()).isEqualTo("STOPPED");
+        assertThat(orders(s, "SELL")).as("UNKNOWN 1건 그대로 — 정지가 새 매도를 내지 않는다").hasSize(1);
+        assertThat(reload(p).getStatus()).isEqualTo("CLOSING");
     }
 }
