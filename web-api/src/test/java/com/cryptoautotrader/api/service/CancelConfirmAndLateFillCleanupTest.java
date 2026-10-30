@@ -81,6 +81,43 @@ class CancelConfirmAndLateFillCleanupTest extends IntegrationTestBase {
     private final List<Long> liveSessions = new ArrayList<>();
     private final List<Long> dynamicSessions = new ArrayList<>();
 
+    /**
+     * D1·D3·D5 단계 기록 (2026-10-30) — 10-30 1회차에 DYNAMIC 사례 하나가 "expected CLOSING but was OPEN" 으로
+     * 실패했고 어느 시험·어느 단계인지 남지 않았다. 다시 실패하면 실패 메시지에 단계별 포지션 상태·매도 주문·정리 대기·
+     * 실행기 수치가 함께 남는다.
+     */
+    private final List<String> trail = java.util.Collections.synchronizedList(new ArrayList<>());
+
+    @BeforeEach
+    void startTrail(org.junit.jupiter.api.TestInfo info) {
+        trail.clear();
+        trail.add("시험=" + info.getDisplayName() + " / " + info.getTestMethod().map(m -> m.getName()).orElse("?"));
+    }
+
+    private void step(Fx f, String label) {
+        PositionEntity p = position(f);
+        var pool = orderExecutor.getThreadPoolExecutor();
+        String sellsText = sells(f).stream()
+                .map(o -> "#" + o.getId() + ":" + o.getState() + "/filled=" + o.getFilledQuantity()
+                        + "/exch=" + (o.getExchangeOrderId() != null) + "/applied=" + (o.getSellAppliedAt() != null)
+                        + (o.getFailureCode() != null ? "/code=" + o.getFailureCode() : "")
+                        + "/created=" + o.getCreatedAt())
+                .toList().toString();
+        String cleanup = cleanupRepository.findById(f.positionId())
+                .map(c -> "note=" + c.getLastNote() + " lastAttempt=" + c.getLastAttemptAt() + " done=" + (c.getDoneAt() != null))
+                .orElse("없음");
+        trail.add(String.format("%s %s | pos{status=%s closingAt=%s exit=%s size=%s} 매도=%s 정리{%s} 실행기{q=%d active=%d task=%d done=%d}",
+                Instant.now(), label, p.getStatus(), p.getClosingAt(), p.getExitReason(), p.getSize(), sellsText, cleanup,
+                pool.getQueue().size(), pool.getActiveCount(), pool.getTaskCount(), pool.getCompletedTaskCount()));
+    }
+
+    private void assertClosing(Fx f, String label) {
+        step(f, label + " 확인 시점");
+        assertThat(position(f).getStatus())
+                .as(() -> "🔴 " + label + " — CLOSING 기대. 단계 기록:\n  " + String.join("\n  ", trail))
+                .isEqualTo("CLOSING");
+    }
+
     @BeforeEach
     void defaultExchange() {
         // 공유 DB 에 남은 다른 활성 주문은 "대기 중" 으로 답한다.
@@ -89,6 +126,7 @@ class CancelConfirmAndLateFillCleanupTest extends IntegrationTestBase {
 
     @AfterEach
     void cleanUp() {
+        if (trail.size() > 1) System.out.println("[단계 기록]\n  " + String.join("\n  ", trail));
         awaitDrained();
         for (Long id : liveSessions) {
             positionRepository.findBySessionKindAndSessionId("LIVE", id).forEach(p -> cleanupRepository.deleteById(p.getId()));
@@ -562,12 +600,14 @@ class CancelConfirmAndLateFillCleanupTest extends IntegrationTestBase {
                         Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
 
         stop(f);
+        step(f, "D1 정지 후");
         assertThat(position(f).getStatus()).as("진행 중 매수의 size=0 포지션은 열어 둔다").isEqualTo("OPEN");
         assertThat(cleanupRepository.findById(f.positionId())).as("정지가 정리 대기로 등록한다").isPresent();
 
         // 정지 후 체결
         Mockito.doReturn(exchange(f.uuid(), "done", FILL)).when(upbitOrderClient).getOrder(f.uuid());
         engine.pollActiveOrders();
+        step(f, "D1 늦은 체결 반영 후");
         System.out.println("[D1 " + kind + " 늦은 체결 반영] " + snap(f));
         assertThat(available(f)).isEqualByComparingTo("7058.53");
         assertThat(position(f).getSize()).isEqualByComparingTo("9.8");
@@ -590,9 +630,12 @@ class CancelConfirmAndLateFillCleanupTest extends IntegrationTestBase {
         t1.join();
         t2.join();
         assertThat(errors).isEmpty();
+        step(f, "D1 동시 정리 2건 후(대기 전)");
         awaitDrained();
+        step(f, "D1 동시 정리 2건·실행기 비움 후");
         for (int i = 0; i < 3; i++) {
             cleanupWorker(kind);
+            step(f, "D1 반복 정리 " + (i + 1) + "회 후");
         }
         awaitDrained();
 
@@ -601,7 +644,7 @@ class CancelConfirmAndLateFillCleanupTest extends IntegrationTestBase {
                 + " " + sells.stream().map(o -> o.getState() + "/" + o.getQuantity()).toList());
         assertThat(sells).as("🔴 청산 매도는 한 번만 — 동시·반복 실행에도").hasSize(1);
         assertThat(sells.get(0).getQuantity()).isEqualByComparingTo("9.8");
-        assertThat(position(f).getStatus()).isEqualTo("CLOSING");
+        assertClosing(f, "D1 " + kind + " 청산 매도 접수 뒤");
         assertThat(position(f).getExitReason()).isEqualTo(com.cryptoautotrader.api.entity.ExitReason.FORCED_STOP);
         assertThat(cleanupRepository.findById(f.positionId()).orElseThrow().getDoneAt())
                 .as("🔴 매도를 제출했다는 사실로 완료 처리하지 않는다").isNull();
@@ -796,15 +839,23 @@ class CancelConfirmAndLateFillCleanupTest extends IntegrationTestBase {
                 .feeSource(OrderExecutionEngine.FEE_SOURCE_PENDING)
                 .settlementVersion(0L).settlementFinal(Boolean.FALSE).settlementAttempts(0).build());
 
+        step(f, "D3 의도만 남은 상태");
         engine.pollActiveOrders();     // 복구 — 소유자가 사라진 의도를 철회
+        step(f, "D3 철회 후");
         closingReconcile(kind);        // FAILED → OPEN
+        step(f, "D3 청산 확정(OPEN 롤백) 후");
         cleanupWorker(kind);
+        step(f, "D3 정리(재제출) 후(대기 전)");
         awaitDrained();
+        step(f, "D3 정리·실행기 비움 후");
         for (int i = 0; i < 3; i++) {
             engine.pollActiveOrders();
+            step(f, "D3 반복 " + (i + 1) + " 조회 후");
             closingReconcile(kind);
+            step(f, "D3 반복 " + (i + 1) + " 청산 확정 후");
             cleanupWorker(kind);
             awaitDrained();
+            step(f, "D3 반복 " + (i + 1) + " 정리·실행기 비움 후");
         }
         awaitSells(f, 2, o -> "FAILED".equals(o.getState()) || o.getExchangeOrderId() != null);
         System.out.println("[D3 " + kind + "] " + snap(f) + " 매도=" + sells(f).stream().map(OrderEntity::getState).toList());
@@ -812,7 +863,7 @@ class CancelConfirmAndLateFillCleanupTest extends IntegrationTestBase {
                 .isEqualTo(OrderExecutionEngine.WITHDRAWN_OWNER_LOST);
         verifySellSubmits(1);
         assertThat(sells(f)).hasSize(2);
-        assertThat(position(f).getStatus()).isEqualTo("CLOSING");
+        assertClosing(f, "D3 " + kind + " 재제출 접수 뒤");
         assertThat(cleanupRepository.findById(f.positionId()).orElseThrow().getDoneAt()).isNull();
     }
 
@@ -914,15 +965,20 @@ class CancelConfirmAndLateFillCleanupTest extends IntegrationTestBase {
         assertThat(available(f)).as("1차 대금 1,470 − 수수료 0.735 (2자리 반올림)").isEqualByComparingTo("8469.27");
         assertThat(cleanupRepository.findById(f.positionId()).orElseThrow().getDoneAt()).isNull();
 
+        step(f, "D5 1차 부분 체결 반영 후");
         cleanupWorker(kind);
+        step(f, "D5 정리 1회 후");
         cleanupWorker(kind);
+        step(f, "D5 정리 2회 후");
         List<OrderEntity> all = awaitSubmittedSells(f, 2);
+        step(f, "D5 2차 매도 접수·실행기 비움 후");
         assertThat(all).hasSize(2);
         OrderEntity s2 = all.get(0);
         assertThat(s2.getQuantity()).as("남은 수량만").isEqualByComparingTo("4.9");
         closingReconcile(kind);
+        step(f, "D5 2차 진행 중 청산 확정 후");
         assertThat(available(f)).as("🔴 2차가 진행 중일 때 1차를 다시 반영하면 대금이 두 번 들어간다").isEqualByComparingTo("8469.27");
-        assertThat(position(f).getStatus()).isEqualTo("CLOSING");
+        assertClosing(f, "D5 " + kind + " 2차 매도 진행 중");
 
         Mockito.doReturn(sellReport(s2.getExchangeOrderId(), "done", "4.9", "1470"))
                 .when(upbitOrderClient).getOrder(s2.getExchangeOrderId());

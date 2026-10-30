@@ -1,5 +1,7 @@
 # 12월 제한 실거래 시험 — 후보와 실행안
 
+> **v1.20 (2026-10-30)**: 리뷰가 ⑤·⑥과 `57ccc3a` 범위를 수용했다. DYNAMIC 간헐 실패를 2시간 한도 안에서 조사했고 재현하지 못했다(원인 미확인). D1·D3·D5 단계 기록을 추가했다. 이번 정산 수정은 `@DynamicUpdate` 라 `status` 를 쓰지 않고, 세 후보 시험에서 바뀐 분기가 실행되지 않음을 대조했다. 남은 불확실성은 어느 시험인지 모름, 시험 DB 가 H2 라는 점. 실현손익 설명은 REAL LIVE 경로로 좁혀 정정했다(⑤ 실제 순손실 −1,119.43). **후보 `f0872e2`**(시험 파일만 추가, 운영 코드 = `57ccc3a`). backend 단독 배포 G0~G4·되돌림 명령을 준비했고 ⏸ 리뷰 확정 전 실행하지 않는다. 운영 `82d15d4`, SID 203 `CREATED`(§5-9).
+>
 > **v1.19 (2026-10-30)**: 리뷰가 `5eadf5b` 를 수용했다. 청산·정지 통합 시험 2건 추가 — ⑤ 매수 체결 → 손절 → 매도 체결 → CLOSED·잔액 19,080.57, ⑥ 매수 체결 → 정지 → 청산 → STOPPED·활성 주문 0·정리 대기 0·대역 보유량 0 일치. 둘 다 통과. 관련 158건을 main 에서 6회 돌렸고 1회차에 기존 `CancelConfirmAndLateFillCleanupTest` DYNAMIC 1건 실패(재현 안 됨, 원인 미확인으로 유지). **배포 후보 `57ccc3a`** = `82d15d4` + 정산 수정 + 이 시험 클래스, 그 브랜치에서 158건 두 번 통과. 배포 명령은 리뷰 확인 뒤. 운영 `82d15d4`, SID 203 `CREATED`(§5-9).
 >
 > **v1.18 (2026-10-30)**: 리뷰가 정산 수정과 통합 시험 3건을 수용했다. **배포는 ㉯** — 11월 보완을 모아 11-20 까지 배포 확인을 마친다. 묶음 1회차 "BUY 주문 0건"은 **시험 준비 코드의 회차 키 충돌**로 원인을 확인하고 시험 코드만 고쳤다(운영 코드 결함 아님). ④ 체결대금만 정정 시험을 추가했다. 관련 회귀 141건을 두 번 돌려 모두 통과했다. 운영은 `82d15d4` 그대로다. SID 203 `CREATED`, F0 완료, 위험 한도·56일 종료 유지(§5-9).
@@ -1006,12 +1008,233 @@ PY
 
 - **⑤ 매수 체결 → 손절 → 매도 체결** (`sma20BuyThenStopLossSellClosesAndSettles`): 실제 회차로 매수 접수 → 0.0016 BTC · 19,980 · 9.99 체결(잔액 210.01, 평균 12,487,500, 저장 손절가 11,870,250). 같은 봉 위치에 가격만 내린 자료(마지막 종가 11,800,000, −5.5%)로 평가 → 포지션 CLOSING·청산 사유 `STOP_LOSS`, 매도 1건 접수(수량 0.0016, 거래소 매도 호출 1회). 매도 체결 0.0016 · 18,880 · 수수료 9.44 → 청산 확정. **통과**.
   - 주문 FILLED·반영 대금 18,880·수수료 9.44, 포지션 CLOSED·종료 시각 기록, 잔액 210.01 + 18,880 − 9.44 = **19,080.57**, 활성 주문 0, 같은 매도 응답 반복에 변화 없음. 손절은 세션을 멈추지 않는다(RUNNING).
+  - 🔴 **v1.20 정정(리뷰 지적)**: 아래 "세 엔진 공통 규칙"은 틀렸다 — PAPER 는 매수 수수료를 평균단가에 넣고(`PaperTradingService` 977행 `avgPriceWithFee`), 백테스트는 진입 수수료를 손익에서 뺀다(`BacktestEngine` 222행). 이번 REAL LIVE 경로에서만 확인한 사실이다. ⑤의 실제 순손실은 잔액 기준 **−1,119.43** 이고, `position_fee` 전체를 실현손익에서 다시 빼면 매도 수수료가 두 번 빠진다. 처음 기대값 −1,119.43 은 순손실로서 맞았고, 틀린 것은 그 값을 `realized_pnl` 칸에 기대한 것이다. 원문은 기록으로 남긴다.
   - 실현손익은 −1,109.44 = 18,880 − 9.44 − 0.0016 × 12,487,500 이다. 🔴 **실현손익에는 매수 수수료(9.99)가 들어가지 않는다** — 세 엔진 공통 규칙(매도 순대금 − 수량 × 평균단가)이고 매수 수수료는 `position_fee`(9.99 + 9.44 = 19.43)에 따로 쌓인다. 세션 잔액은 두 수수료를 모두 반영한다(20,200 + 실현손익 − 매수 수수료 = 19,080.57 을 시험이 확인). 처음 시험은 매수 수수료를 넣은 −1,119.43 을 기대해 실패했고, 규칙을 확인한 뒤 기대값을 고쳤다. 운영 코드는 바꾸지 않았다. 56일 성과를 `realized_pnl` 합으로 셀 때는 매수 수수료만큼 좋게 나오므로 잔액 기준이나 `position_fee` 를 함께 본다.
 - **⑥ 매수 체결 → 세션 정지 → 청산** (`sma20BuyThenStopLiquidatesAndCleansUp`): 같은 체결 뒤 `stopSession` → 세션 STOPPED, 포지션 CLOSING·`FORCED_STOP`, 청산 매도 1건 접수, 정리 대기 1건(매도 제출만으로 완료 처리하지 않음 확인). 매도 체결 0.0016 · 19,992 · 9.99 → 청산 확정 → 정리 작업. **통과**.
   - **STOPPED 유지**, 포지션 CLOSED, 잔액 210.01 + 19,992 − 9.99 = **20,192.02**, **활성 주문 0**, 미해결 제출 0, **정리 대기 0**, 반복 응답·정리 작업 반복에도 대금 한 번·매도 추가 없음(거래소 주문 호출은 매수 1·매도 1 = 2회).
 - **대역 거래소 보유량과 내부 기록 대조**: 시험 안에서 대역 거래소가 보고한 주문별 체결 수량(매수 +, 매도 −)을 장부로 두고, 열린 포지션 수량 합·주문 체결 수량 합과 비교한다. ⑤·⑥ 모두 매수 체결 뒤 0.0016 = 0.0016 = 0.0016, 청산 뒤 0 = 0 = 0. 운영의 거래소 잔고 조회 경로를 쓰는 대조가 아니라 시험 대역 기준이다.
-- **실행한 시험**: SMA20 클래스 단독 24/24. 관련 범위 17개 클래스 158건(기존 14개 + ⑤·⑥ + 정지·매도 관련 `DoubleSellGuardTest`·`StopVersusInFlightExitRaceTest`·`LiveStopUnderConcurrentWriteTest`)을 main 에서 6회 돌렸다. 🔴 **1회차에 1건 실패**: `CancelConfirmAndLateFillCleanupTest` 의 DYNAMIC 사례 1건, `expected: "CLOSING" but was: "OPEN"`(설명 없는 단언 — 같은 클래스 604·815·925행 후보). 2회차 결과가 1회차 결과 파일을 덮어써 어느 시험인지와 단계 출력이 남지 않았다(기록 보존 실패). 2~6회차와 그 클래스 + SMA20 클래스만 6회는 모두 통과해 재현하지 못했다. **원인 미확인 — 해결로 보지 않는다.** 이번 변경(SMA20 시험 파일)은 그 클래스와 코드 경로를 공유하지 않고, 시험 환경에서 스케줄러는 꺼져 있어 상태를 바꾸는 것은 시험이 직접 부른 호출뿐이다. 이후 회귀는 회차마다 결과 파일을 따로 보존한다. 10-29 매도 대기 실패와 같은 증상(주문 행 없음)은 이번에 재발하지 않았다.
+- **실행한 시험**: SMA20 클래스 단독 24/24. 관련 범위 17개 클래스 158건(기존 14개 + ⑤·⑥ + 정지·매도 관련 `DoubleSellGuardTest`·`StopVersusInFlightExitRaceTest`·`LiveStopUnderConcurrentWriteTest`)을 main 에서 6회 돌렸다. 🔴 **1회차에 1건 실패**: `CancelConfirmAndLateFillCleanupTest` 의 DYNAMIC 사례 1건, `expected: "CLOSING" but was: "OPEN"`(설명 없는 단언 — 같은 클래스 604·815·925행 후보). 2회차 결과가 1회차 결과 파일을 덮어써 어느 시험인지와 단계 출력이 남지 않았다(기록 보존 실패). 2~6회차와 그 클래스 + SMA20 클래스만 6회는 모두 통과해 재현하지 못했다. **원인 미확인 — 해결로 보지 않는다.** (🔴 v1.20 정정: 다음 문장은 근거가 부족했다 — 그 시험도 변경한 공통 정산 서비스를 쓴다. 영향 범위 대조는 아래 v1.20.) 이번 변경(SMA20 시험 파일)은 그 클래스와 코드 경로를 공유하지 않고, 시험 환경에서 스케줄러는 꺼져 있어 상태를 바꾸는 것은 시험이 직접 부른 호출뿐이다. 이후 회귀는 회차마다 결과 파일을 따로 보존한다. 10-29 매도 대기 실패와 같은 증상(주문 행 없음)은 이번에 재발하지 않았다.
 - **배포 후보 `57ccc3a`** (`deploy/sma20-limited-live`, 부모 `82d15d4`, push 완료): `OrderSettlementService.java`(main 과 같은 수정) + `DailySma20LiveOrderPathTest.java`(통합 ①~⑥·회차 키 수정) 두 파일만. compose·설정·DB 변경 없음. 이 브랜치에서 같은 17개 클래스 158건을 두 번 돌려 두 번 모두 실패 0건. main 의 백테스트·모의투자 변경(V95 등)은 넣지 않았다. jar 변경이라 이미지 재빌드·backend 재기동이 필요하고, 배포하면 F1 의 HEAD·이미지 기대값을 `57ccc3a` 와 새 이미지로 바꾼다. **배포 명령은 리뷰가 후보를 확인한 뒤 단계별로 준다.**
+
+**리뷰 판정과 DYNAMIC 실패 조사·배포 명령 준비(2026-10-30, v1.20)** — 리뷰 원문(운영자 전달): "⑤ 손절 청산과 ⑥ 정지 청산 시험은 수용합니다. `57ccc3a`의 배포 범위도 적절합니다." · "DYNAMIC 실패는 2시간 한도로 조사합니다. … 후보인 D1·D3·D5에 시험명, 포지션 상태 전환, 매도 주문 상태와 반영 여부를 남기고 비동기 작업 경계를 대조하세요. 반복 실행 횟수를 늘리는 방식은 그만합니다. 재현하지 못하면 확인한 범위와 남은 불확실성을 보고하고 조사를 멈춥니다." · "'세 엔진 공통으로 매수 수수료 미포함'이라는 설명은 정정합니다. … 이번에는 설명과 시험 주석만 바로잡고 손익 계산 코드까지 확대하지 않습니다." · "위 조사와 병행해 backend 단독 배포·복구 명령을 준비하세요. 미확인 실패의 영향 범위를 대조한 뒤 배포 실행을 확정하겠습니다."
+
+- **DYNAMIC 실패 조사 (약 1.5시간, 한도 2시간 안에서 멈춤) — 재현 못 함, 원인 미확인.**
+  - 남은 근거: 1회차 결과 파일은 덮어써져 없다. 보존된 다른 기록(`runs/1~3`, 10-13; `run3~6`·`cc1~6`·`dep1~2`, 10-30)에는 이 실패가 없다. 실패 문구는 `expected: "CLOSING" but was: "OPEN"` 뿐이고, 설명 없이 `CLOSING` 을 기대하는 단언은 이 클래스에서 604(D1)·815(D3)·925(D5) 세 곳뿐이다(537 C3 는 설명이 붙어 문구가 다르다).
+  - **단계 기록 추가(시험 파일만)**: D1·D3·D5 각 단계 뒤에 시험명·포지션 `status`·`closing_at`·청산 사유·수량, 매도 주문별 상태·체결량·거래소 번호 유무·**반영 여부(`sell_applied_at`)**·실패 코드·생성 시각, 정리 대기 메모·마지막 시도·완료 여부, 주문 실행기(큐·실행 중·제출 수·완료 수)를 쌓는다. `CLOSING` 단언이 실패하면 이 기록 전체가 실패 메시지에 들어가고, 통과해도 시험 출력에 남는다. 한 번 실행해 기록이 남는 것을 확인했다(74/74, `runs/diag1`). 반복 실행으로 재현을 노리지 않았다.
+  - **상태를 OPEN 으로 되돌리는 코드 경로 전수(DYNAMIC)**: 청산 확정 `reconcileDynamicClosingPositions` 의 세 분기(① 반영 대상 매도 없음 ② 최신 매도 `FAILED`·`CANCELLED` ③ `CLOSING` 8분 초과)와 부분 청산 확정(`finalizeDynamicSell` 부분 체결) 넷뿐이다. 주문 실행기(`orderExecutor`)에서 도는 작업은 `submitOrder`·`submitPreparedOrder` 둘뿐이고 포지션 행을 쓰지 않는다. 시험에서 스케줄러는 꺼져 있다(`app.scheduling.enabled=false`, 켜는 프로필을 쓰는 `SchedulerProfileCleanupTest` 는 이 17개 묶음에 없다). 이벤트 수신(`onRealtimePriceEvent`)은 `RUNNING` 세션만 보고, 실시간 시세 발행이 없다.
+  - **비동기 경계 대조(기록으로 확인)**: 정리 작업이 `CLOSING` 을 커밋한 직후 매도 의도가 생기기 전까지 "매도 주문 0건·실행기 실행 중 1" 인 구간이 실제로 있다(D1 `동시 정리 2건 후(대기 전)`, D5 `정리 1회 후`). 이 구간에 청산 확정이 돌면 분기 ①로 OPEN 이 된다. 세 시험은 모두 실행기를 비운 뒤(`awaitDrained`·`awaitSubmittedSells`)에야 청산 확정을 부르므로, 시험 안에서는 이 구간에 청산 확정이 끼어들 호출이 없다. D3 는 재제출 뒤 실행기를 비우고 청산 확정을 세 번 부르는데, 그때 최신 매도는 새 `SUBMITTED`(죽은 의도 `FAILED` 보다 나중 생성)라 분기 ②가 아니다. → 이 시험 안에서 OPEN 이 될 경로를 코드로는 찾지 못했다.
+  - 🔴 **운영에서는 같은 구간이 생길 수 있다**: 5초 청산 확정과 10초 정리 작업이 따로 돈다. 이 경우 포지션이 OPEN 으로 돌아가고 매도는 그대로 진행되며, 정리 작업은 진행 중 매도를 보고 다시 내지 않는다. 체결되면 "체결된 매도 반영 대기" 분기가 다시 `CLOSING` 으로 돌려 확정한다(`cleanupOne` 주석에 적힌 설계). 이중 매도는 막히지만 잠시 `OPEN`+매도 진행 중 상태가 보인다. 이것은 82d15d4 운영 코드에 이미 있던 동작이고, 이번 후보가 바꾸지 않는다.
+  - **이번 수정과의 영향 범위 대조**: 바뀐 것은 `applyToPosition` 이 **수량 변화 0 이고 CLOSED 가 아닐 때** 평균단가·투입금·수량(같은 값)을 다시 쓰는 것 하나다. `PositionEntity` 는 `@DynamicUpdate` 라 이 저장은 바뀐 열만 쓰고 `status`·`closing_at` 을 쓰지 않는다. 그래서 이 경로로는 `CLOSING` → `OPEN` 이 일어날 수 없다. 또 D3·D5 는 매수 정산을 거치지 않고(시험이 수량을 직접 넣는다) D1 의 매수 정산은 수량 9.8 이 바뀌는 분기라 수정 전후 동작이 같다. 따라서 세 후보 시험에서 이번 수정이 바꾼 분기는 실행되지 않는다.
+  - **남은 불확실성**: ① 실패한 시험이 D1·D3·D5 중 무엇이었는지 모른다. ② 시험 DB 는 PostgreSQL 이 아니라 H2(PostgreSQL 모드)다. 10-13 에 H2 결과 재사용 때문에 커밋된 값을 못 보던 결함이 있었다(설정으로 끔). 이번 실패가 시험 기반 문제인지 운영 코드 경합인지 가리지 못했다. ③ 다시 실패하면 이번 단계 기록으로 단계·상태를 특정할 수 있다. 조사는 여기서 멈춘다.
+- **실현손익 설명 정정**: 위 ⑤ 항목에 정정 표시를 붙였다. 시험 주석을 "REAL LIVE 경로에서 확인한 사실"로 좁혔고, 잔액 기준 실제 순손익 단언을 넣었다 — ⑤ **−1,119.43**, ⑥ −7.98. 손익 계산 코드는 바꾸지 않았다. (참고: 실자금 경로의 `realized_pnl` 과 PAPER 의 규칙이 다른 것은 엔진 동등성 원칙상 차이로 남는다 — 이번 범위 밖, 기록만.)
+- **배포 후보 `f0872e2`** (`deploy/sma20-limited-live`, 부모 `57ccc3a`, push 완료) — 위 두 시험 파일 변경만 더했다. 운영 코드·compose·설정·빌드 파일은 `57ccc3a` 와 같다(`git diff --name-only 57ccc3a f0872e2 -- web-api/src/main core-engine strategy-lib exchange-adapter docker-compose.prod.yml web-api/Dockerfile build.gradle settings.gradle` 0줄). main 과 시험 파일 내용이 같다. `82d15d4..f0872e2` = 세 파일(`OrderSettlementService.java` + 시험 두 개). 이 브랜치에서 관련 두 클래스 98건 실패 0(`runs/dep3`). main 에서도 같은 두 클래스 98건 실패 0(`runs/diag2`).
+- **jar 대조 기대값(로컬)**: `82d15d4` 와 `f0872e2` 로 각각 `bootJar` 를 만들어 클래스 바이트를 비교했다. 바뀐 것은 정확히 `OrderSettlementService.class` 와 `OrderSettlementService$SellAmounts.class` 두 개다. 뒤의 것은 같은 파일 안 레코드라 줄 번호만 밀렸다. 추가·삭제 0, 라이브러리 jar 이름 변화 0, 클래스 677 = 677. 아래 G1 이 서버에서 같은 대조를 하고, 다르면 **재기동 전에** 멈춘다.
+
+**G. backend 단독 배포 — 개입 #16 (⏸ 리뷰가 실행을 확정한 뒤에만. 11-20 까지)**
+- 범위: backend 이미지 재빌드·재기동 1회. DB·compose·`.env`·다른 서비스는 그대로이고 마이그레이션은 없다. SID 203 은 `CREATED` 그대로 두고, 시작·정지 API 를 부르지 않는다. 재기동은 66세션에 영향을 줄 수 있으므로 **개입 #16** 으로 기록한다.
+- 시간: 운영자가 끝까지 대응할 수 있을 때. 10:00·22:00 정기 점검 보고를 본 뒤 시작한다. G0 통과 30분 안에 G1, G1 통과 뒤 바로 G2.
+- 각 묶음은 `( set -euo pipefail … )` 다. 실패하면 그 자리에서 끝나고, 통과 표지(`ok-G0`~`ok-G4`)가 있어야 다음 묶음이 시작한다. 결과는 새 폴더 `~/maint-sma20fix` 에만 쓴다. `#15` 폴더(`MS`)는 읽기만 한다.
+
+**G 변수** — 🔴 새 셸마다: 먼저 §5-8 **F 변수** 블록 전체를 실행하고(`PSQL`·`sc`·`svc`·`EG`·`EGS`·`LIVE1`·`KEEP`·`BASE`·`BASEX`·`MS`), 그다음 아래 블록을 실행한다. 아래 블록이 `M`·`NEW` 를 덮어쓴다.
+```bash
+M=~/maint-sma20fix; mkdir -p "$M"; REPO=autotrader-backend
+OLD=82d15d42fa22bb7d0f24a8243ebc888a2a7f071c; NEW=f0872e2547c918a7b5146f027d325bd441ddf0d7
+QS=fa0691e647b61f6df4a85bdf796996f50470185e
+qc() { git show $QS:scripts/ops/maint_checks.sql | $PSQL -v maint_start="$(cat "$M/maint_start.txt")" -f - ; }
+POOLX="$(printf 'TRADING_CAPITALPOOL_MAXCONCURRENTPOSITIONS=3\nTRADING_CAPITALPOOL_PERPOSITIONCAPKRW=20000\nTRADING_CAPITALPOOL_STAGE=STAGE_1\nTRADING_CAPITALPOOL_TOTALCAPKRW=100000' | sort)"
+NOT404='status=404, url=https://api\.upbit\.com/v1/candles/[^ ]*[?&]market=KRW-(BLAST|BONK|STORJ)([^A-Z0-9_-][^ ]*)?, body=.*Code not found'
+ZERO="SELECT 'real_open_positions', count(*) FROM position p LEFT JOIN live_trading_session l ON p.session_kind = 'LIVE' AND l.id = p.session_id LEFT JOIN dynamic_session d ON p.session_kind = 'DYNAMIC' AND d.id = p.session_id WHERE p.status IN ('OPEN','CLOSING') AND (l.session_type = 'REAL' OR d.trading_mode = 'REAL')
+UNION ALL SELECT 'real_unresolved_orders', count(*) FROM \"order\" o LEFT JOIN live_trading_session l ON o.session_kind = 'LIVE' AND l.id = o.session_id LEFT JOIN dynamic_session d ON o.session_kind = 'DYNAMIC' AND d.id = o.session_id WHERE o.state IN ('PENDING','INTENT_READY','SUBMITTING','UNKNOWN','SUBMITTED','PARTIAL_FILLED') AND (l.session_type = 'REAL' OR d.trading_mode = 'REAL')
+UNION ALL SELECT 'cleanup_pending', count(*) FROM position_cleanup WHERE done_at IS NULL
+UNION ALL SELECT 'sid_orders', count(*) FROM \"order\" WHERE session_kind = 'LIVE' AND session_id = 203
+UNION ALL SELECT 'sid_positions', count(*) FROM position WHERE session_kind = 'LIVE' AND session_id = 203"
+sid203() { [ "$($PSQL -At -c "$EG")" = "$EGS" ] && [ "$($PSQL -At -c "$LIVE1")" = "$SID:CREATED" ] && [ "$($PSQL -At -c "$KEEP")" = "t" ] \
+  && [ "$($PSQL -At -c "SELECT available_krw = 20200 AND started_at IS NULL FROM live_trading_session WHERE id = $SID")" = "t" ] \
+  && [ "$($PSQL -At -c "$BASE")" = "$BASEX" ] && [ "$($PSQL -At -F ' ' -c "$ZERO" | awk '{s+=$2} END {print s+0}')" = "0" ] ; }
+```
+- `sid203` 는 F1 과 같은 SID 203·기준 행·0 확인을 한 번에 본다. 통과하면 아무것도 출력하지 않는다.
+
+**G0. ▶ 직전 확인 — 읽기 전용, 재기동 없음**
+```bash
+(
+set -euo pipefail
+stop() { echo "🔴 멈춤: $*"; exit 1; }
+[ "$M" = "$HOME/maint-sma20fix" ] && [ "$NEW" = f0872e2547c918a7b5146f027d325bd441ddf0d7 ] || stop "변수 순서 — F 변수 다음에 G 변수"
+date '+%F %T %Z' | tee "$M/t-before.txt"; date '+%F %T%:z' > "$M/maint_start.txt"
+{ git rev-parse HEAD; git status --porcelain --untracked-files=no; echo "(끝)"; } | tee "$M/git-before.txt"
+[ "$(head -1 "$M/git-before.txt")" = "$OLD" ] && [ "$(sed -n 2p "$M/git-before.txt")" = "(끝)" ] || stop "HEAD 가 82d15d4 가 아니거나 추적 파일 변경 있음"
+git fetch origin
+git cat-file -e "$NEW^{commit}" || stop "후보 커밋 없음"
+[ "$(git diff --name-only $OLD $NEW)" = "$(printf 'web-api/src/main/java/com/cryptoautotrader/api/service/OrderSettlementService.java\nweb-api/src/test/java/com/cryptoautotrader/api/service/CancelConfirmAndLateFillCleanupTest.java\nweb-api/src/test/java/com/cryptoautotrader/api/service/DailySma20LiveOrderPathTest.java')" ] || stop "diff 가 정확히 세 파일이 아님"
+svc | tee "$M/svc-before.txt"
+IMG0=$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)"); echo "$IMG0" | tee "$M/image-before.txt"
+[ "$IMG0" = "$(cat "$MS/image-before.txt")" ] || stop "실행 이미지가 #15 때(e08b35b0…)와 다름"
+[ "$(docker image inspect --format '{{.Id}}' $REPO:latest)" = "$IMG0" ] || stop "$REPO:latest 가 실행 이미지와 다름"
+[ "$($DC exec -T backend env | grep '^TRADING_CAPITALPOOL_' | sort)" = "$POOLX" ] || stop "공유 풀 등록값이 STAGE_1·100000·20000·3 과 다름"
+sid203 || stop "SID 203·기준 행·EG·0 확인 중 다른 것 있음 — F1 과 같은 조회로 보고"
+sc | tee "$M/s-before.txt"; [ "$(cat "$M/s-before.txt")" = "66 | 63 | 3 | -" ] || stop "검증 66세션 상태 다름"
+qc > "$M/q-before.txt" 2>&1; sed -n '/== Q3/,$p' "$M/q-before.txt" | grep -vE '^-+|^\s*$'
+git show $QS:scripts/ops/maint_verify.py > "$M/maint_verify.py"
+$DC logs --no-color backend > "$M/backend-before.log"
+python3 scripts/prospective/start_66.py alerts --days 1 --no-mark > "$M/alerts-before.txt" 2>&1 && AE=0 || AE=$?
+grep -q "^구간 " "$M/alerts-before.txt" || stop "경보 조회 실패 — alerts-before.txt 를 보고"
+grep -E '^(🔴|⚪)' "$M/alerts-before.txt" || true
+touch "$M/ok-G0"; echo "✅ G0 통과 — 30분 안에 G1"
+)
+```
+- 기대: `git-before` = `82d15d4…` 다음 바로 `(끝)` · diff 세 파일 · 실행 이미지 = `latest` = #15 때 `sha256:e08b35b0…` · 공유 풀 네 값 · `sid203` 통과 · `sc` `66 | 63 | 3 | -` · Q3~Q6 0 · Q7 `RUNNING 63`·`STOPPED 3` · Q8 0 · Q9 0 · `ROLLBACK`(눈으로) · 경보는 기준선으로 기록만. 멈추면 아무것도 바뀌지 않았다 — 출력을 보고한다.
+
+**G1. 새 이미지 빌드와 jar 대조 — 재기동 없음**
+```bash
+(
+set -euo pipefail
+stop() { echo "🔴 멈춤: $*"; exit 1; }
+[ -e "$M/ok-G0" ] || stop "G0 미통과"
+[ $(( $(date +%s) - $(stat -c %Y "$M/ok-G0") )) -le 1800 ] || stop "G0 가 30분보다 오래됨 — G0 부터"
+IMG0=$(cat "$M/image-before.txt")
+docker tag "$IMG0" $REPO:82d15d4
+[ "$(docker image inspect --format '{{.Id}}' $REPO:82d15d4)" = "$IMG0" ] || stop "기존 이미지 보존 태그 실패"
+git checkout --quiet $NEW
+[ "$(git rev-parse HEAD)" = "$NEW" ] && [ -z "$(git status --porcelain --untracked-files=no)" ] || stop "체크아웃 결과가 NEW 가 아니거나 변경 있음 — G1-되돌림"
+date '+%F %T %Z' | tee "$M/t-build.txt"
+$DC build backend > "$M/build.log" 2>&1 || stop "빌드 실패 — build.log 를 보고. G1-되돌림"
+IMG1=$(docker image inspect --format '{{.Id}}' $REPO:latest); echo "$IMG1" | tee "$M/image-new.txt"
+[ "$IMG1" != "$IMG0" ] || stop "새 이미지가 만들어지지 않음 — G1-되돌림"
+[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$IMG0" ] || stop "🔴 실행 중 backend 가 바뀌었다 — 보고"
+docker cp "$($DC ps -q backend)":/app/app.jar "$M/app-old.jar"
+CID=$(docker create $REPO:latest); docker cp "$CID":/app/app.jar "$M/app-new.jar"; docker rm "$CID" > /dev/null
+python3 - "$M/app-old.jar" "$M/app-new.jar" <<'EOF' | tee "$M/jar-diff.txt"
+import hashlib, io, re, sys, zipfile
+OWN = re.compile(r"BOOT-INF/lib/(core-engine|strategy-lib|exchange-adapter)[^/]*\.jar$")
+def classes(path):
+    z, out = zipfile.ZipFile(path), {}
+    for n in z.namelist():
+        if n.startswith("BOOT-INF/classes/") and n.endswith(".class"):
+            out[n] = hashlib.sha256(z.read(n)).hexdigest()
+        elif n.startswith("BOOT-INF/lib/") and n.endswith(".jar"):
+            if OWN.match(n):
+                inner = zipfile.ZipFile(io.BytesIO(z.read(n)))
+                for m in inner.namelist():
+                    if m.endswith(".class"):
+                        out[re.sub(r"-[0-9.]+(-SNAPSHOT)?\.jar$", ".jar", n) + "!" + m] = hashlib.sha256(inner.read(m)).hexdigest()
+            else:
+                out[n] = "lib"
+    return out
+a, b = classes(sys.argv[1]), classes(sys.argv[2])
+for k in sorted(set(a) | set(b)):
+    if a.get(k) != b.get(k):
+        print(("추가 " if k not in a else "삭제 " if k not in b else "변경 ") + k)
+print("(끝)", len(a), len(b))
+EOF
+[ "$(grep -v '^(끝)' "$M/jar-diff.txt")" = "$(printf '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderSettlementService$SellAmounts.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderSettlementService.class')" ] || stop "jar 차이가 기대 두 줄이 아님 — jar-diff.txt 를 보고(재기동 전). G1-되돌림"
+touch "$M/ok-G1"; echo "✅ G1 통과 — 바로 G2"
+)
+```
+- 기대: `jar-diff.txt` 가 `변경 …OrderSettlementService$SellAmounts.class`·`변경 …OrderSettlementService.class` 두 줄과 `(끝) N N`(두 수가 같음). 차이가 더 많으면(예: 빌드 기반 이미지가 바뀜) 재기동하지 않고 보고한다.
+- **G1-되돌림**(G1 이 멈췄을 때 — 실행 중 backend 는 그대로다): `git checkout --quiet $OLD; docker tag "$(cat "$M/image-before.txt")" $REPO:latest; git rev-parse HEAD; docker image inspect --format '{{.Id}}' $REPO:latest` → `82d15d4…`·`image-before.txt` 와 같은 ID. 재기동은 하지 않는다.
+
+**G2. 재기동 (개입 #16) — G1 통과 뒤 바로**
+```bash
+(
+set -euo pipefail
+stop() { echo "🔴 멈춤: $*"; exit 1; }
+[ -e "$M/ok-G1" ] || stop "G1 미통과"
+IMG1=$(cat "$M/image-new.txt")
+[ "$(git rev-parse HEAD)" = "$NEW" ] || stop "HEAD 가 NEW 가 아님"
+[ "$(docker image inspect --format '{{.Id}}' $REPO:latest)" = "$IMG1" ] || stop "latest 가 image-new 와 다름"
+sid203 || stop "SID 203·기준 행·EG·0 확인 중 다른 것 있음"
+[ "$(sc)" = "66 | 63 | 3 | -" ] || stop "검증 66세션 상태 다름"
+date '+%F %T %Z' | tee "$M/t-deploy.txt"; date -u '+%Y-%m-%dT%H:%M:%SZ' > "$M/t-deploy.utc"
+echo "== 여기부터 재기동 — 이 뒤의 멈춤은 '되돌림 필요'"
+$DC up -d --no-build --no-deps backend || stop "되돌림 필요: 재생성 실패"
+sleep 15
+[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$IMG1" ] || stop "되돌림 필요: 새 컨테이너 이미지가 image-new 와 다름"
+[ "$($DC exec -T backend env | grep '^TRADING_CAPITALPOOL_' | sort)" = "$POOLX" ] || stop "되돌림 필요: 공유 풀 등록값 다름"
+svc | tee "$M/svc-deploy.txt"
+diff <(grep -v '^backend ' "$M/svc-before.txt") <(grep -v '^backend ' "$M/svc-deploy.txt") || stop "되돌림 필요: backend 외 서비스가 바뀜"
+{ git rev-parse HEAD; git status --porcelain --untracked-files=no; echo "(끝)"; } | tee "$M/git-deploy.txt"
+touch "$M/ok-G2"; echo "✅ G2 통과 — 3~5분 뒤 G3"
+)
+```
+
+**G3. 기동 확인 — G2 3~5분 뒤** (되돌림 뒤에도 같은 묶음을 쓴다 — `t-rollback.utc` 가 있으면 그 시각과 기존 이미지로 본다)
+```bash
+(
+set -euo pipefail
+stop() { echo "🔴 멈춤: $*"; exit 1; }
+if [ -e "$M/t-rollback.utc" ]; then S=$(cat "$M/t-rollback.utc"); EXP=$(cat "$M/image-before.txt"); T=rollback; else [ -e "$M/ok-G2" ] || stop "G2 미통과"; S=$(cat "$M/t-deploy.utc"); EXP=$(cat "$M/image-new.txt"); T=deploy; fi
+$DC ps backend
+[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$EXP" ] || stop "실행 이미지가 기대와 다름"
+$DC logs --no-color --since "$S" backend > "$M/app-$T.log"
+grep -E "Schema .* is up to date|Migrating schema|Successfully applied|매도 격리 점검|Started CryptoAutoTrader" "$M/app-$T.log" | head -10
+grep -q "Started CryptoAutoTrader" "$M/app-$T.log" || stop "되돌림 필요: 기동 완료 줄 없음"
+! grep -qE "Migrating schema|Successfully applied" "$M/app-$T.log" || stop "되돌림 필요: 마이그레이션이 돌았다(이번 배포에는 없어야 함)"
+grep -qF "공유 풀 한도 확인: 단계=STAGE_1 총상한=100000 포지션당=20000 동시보유=3" "$M/app-$T.log" || stop "되돌림 필요: 공유 풀 등록 로그 없음"
+grep -qF "위험 한도 확인: 단계 STAGE_1 총 자본 100000 기준 누적 15.00%·24시간 3.00%" "$M/app-$T.log" || stop "되돌림 필요: 위험 한도 로그 없음"
+! grep -qE "🔴 (공유 풀 한도|위험 한도)" "$M/app-$T.log" || stop "되돌림 필요: 🔴 공유 풀/위험 한도 줄"
+grep " ERROR " "$M/app-$T.log" | grep -v "캔들 최신성" | grep -v -E "$NOT404" > "$M/errors-$T.txt" || true
+[ ! -s "$M/errors-$T.txt" ] || stop "세 마켓 캔들 404 밖의 ERROR — errors-$T.txt 를 보고"
+python3 "$M/maint_verify.py" candle "$M/app-$T.log" "$M/backend-before.log"
+qc > "$M/q-$T.txt" 2>&1; sed -n '/== Q3/,$p' "$M/q-$T.txt" | grep -vE '^-+|^\s*$'
+sc | tee "$M/s-$T.txt"; diff "$M/s-before.txt" "$M/s-$T.txt" || stop "되돌림 필요: 검증 세션 상태 바뀜"
+sid203 || stop "SID 203·기준 행·EG·0 확인 중 바뀐 것 있음 — 보고"
+touch "$M/ok-G3-$T"; echo "✅ G3($T) 통과 — 기동 30분 뒤 G4"
+)
+```
+- 기대: `Started` · `Schema "public" is up to date`(마이그레이션 없음) · 매도 격리 점검 "없음" · 두 한도 줄이 정확히 위 문구 · ERROR 는 세 마켓 캔들 404 뿐 · `candle` 판정 재개 · Q3~Q6 0 · Q7 `RUNNING 63`·`STOPPED 3` · Q8 0 · Q9 0 · `ROLLBACK`(눈으로) · `sc` 같음 · `sid203` 통과.
+
+**G4. 30분 재점검 — 기동 30분 뒤**
+```bash
+(
+set -euo pipefail
+stop() { echo "🔴 멈춤: $*"; exit 1; }
+[ -e "$M/ok-G3-deploy" ] || stop "G3 미통과"
+S=$(cat "$M/t-deploy.utc")
+[ $(( $(date +%s) - $(date -d "$S" +%s) )) -ge 1800 ] || stop "아직 30분 전"
+date '+%F %T %Z' | tee "$M/t-after30.txt"
+$DC ps backend
+$DC logs --no-color --since "$S" backend > "$M/app-after30.log"
+grep " ERROR " "$M/app-after30.log" | grep -v "캔들 최신성" | grep -v -E "$NOT404" > "$M/errors-after30.txt" || true
+[ ! -s "$M/errors-after30.txt" ] || stop "세 마켓 캔들 404 밖의 ERROR — errors-after30.txt 를 보고"
+! grep -qE "🔴 (공유 풀 한도|위험 한도)" "$M/app-after30.log" || stop "되돌림 필요: 🔴 공유 풀/위험 한도 줄"
+qc > "$M/q-after30.txt" 2>&1; sed -n '/== Q3/,$p' "$M/q-after30.txt" | grep -vE '^-+|^\s*$'
+sc | tee "$M/s-after30.txt"; diff "$M/s-before.txt" "$M/s-after30.txt" || stop "되돌림 필요: 검증 세션 상태 바뀜"
+svc | tee "$M/svc-after30.txt"
+diff <(grep -v '^backend ' "$M/svc-before.txt") <(grep -v '^backend ' "$M/svc-after30.txt") || stop "되돌림 필요: backend 외 서비스가 바뀜"
+[ "$(grep '^backend ' "$M/svc-deploy.txt")" = "$(grep '^backend ' "$M/svc-after30.txt")" ] || stop "되돌림 필요: backend 재시작 있음"
+sid203 || stop "SID 203·기준 행·EG·0 확인 중 바뀐 것 있음 — 보고"
+python3 scripts/prospective/start_66.py alerts --since "$S" --no-mark > "$M/alerts-after30.txt" 2>&1 && AE=0 || AE=$?
+echo "경보 종료코드 $AE (1 = 🔴 경보 있음 — 이것만으로 멈추지 않고 네 갈래로 대조)"
+grep -q "^구간 " "$M/alerts-after30.txt" || stop "경보 조회 실패 — alerts-after30.txt 를 보고"
+echo "== 경보 (지금)"; cat "$M/alerts-after30.txt"
+echo "== 경보 (배포 전 기준선)"; cat "$M/alerts-before.txt"
+touch "$M/ok-G4"; echo "✅ G4 통과 — 경보 네 갈래를 대조해 보고"
+)
+```
+- 기대: Q3~Q6 0 · Q7 63/3 · Q8 0 · Q9 0 · `ROLLBACK` · `sc` 같음 · backend 재시작 없음 · `sid203` 통과. 경보는 네 갈래(기존 반복·새 경보·⚪·실행 누락)로 `alerts-before.txt` 와 대조한다. KRW-BLAST 반복 밖에 무엇이 있으면 보고한다.
+- G4 통과 뒤(개발 에이전트): F 변수의 `NEW` 를 `f0872e2…` 로, F1 의 이미지 비교 기준을 `#15 image-before.txt` 에서 `~/maint-sma20fix/image-new.txt` 로 바꿔 커밋한다(배포 전에는 바꾸지 않는다). 개입 #16 기록(정비 전 `git-before`, 빌드·재기동 시각, `jar-diff.txt`, G3·G4 결과)을 남긴다.
+
+**G 되돌림 — G2~G4 의 "되돌림 필요" 때만** (DB 변경이 없으므로 데이터 작업 없음. SID 203 은 주문이 없으므로 새 코드가 남긴 자료도 없다)
+```bash
+(
+set -euo pipefail
+stop() { echo "🔴 멈춤: $*"; exit 1; }
+IMG0=$(cat "$M/image-before.txt")
+date '+%F %T %Z' | tee "$M/t-rollback.txt"; date -u '+%Y-%m-%dT%H:%M:%SZ' > "$M/t-rollback.utc"
+git checkout --quiet $OLD; [ "$(git rev-parse HEAD)" = "$OLD" ] || stop "체크아웃 실패"
+docker tag "$IMG0" $REPO:latest
+$DC up -d --no-build --no-deps --force-recreate backend
+sleep 15
+[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$IMG0" ] || stop "이미지가 image-before 와 다름"
+[ "$($DC exec -T backend env | grep '^TRADING_CAPITALPOOL_' | sort)" = "$POOLX" ] || stop "공유 풀 등록값 다름"
+svc | tee "$M/svc-rollback.txt"
+{ git rev-parse HEAD; git status --porcelain --untracked-files=no; echo "(끝)"; } | tee "$M/git-rollback.txt"
+echo "✅ 82d15d4 (e08b35b0…) 로 복귀 — 3~5분 뒤 G3 를 다시 실행(t-rollback.utc 기준으로 자동 전환)"
+)
+```
+- 되돌린 뒤에는 G4·F 변수 변경을 하지 않는다. F1 은 원래대로 `82d15d4`·#15 이미지를 기대한다.
+
+**리뷰 확인을 기다리는 것**: ① 위 미확인 실패의 영향 범위 대조로 배포 실행을 확정할지 ② 후보 SHA `57ccc3a` → `f0872e2`(시험 파일만 추가) 변경 수용 여부. 확정 전에는 G 를 실행하지 않는다.
 
 SMA20 신호·설정과 위험 한도를 기준으로 주문·정산·보호 기능의 결함을 보완한다. 새 시험 결과를 얻으려고 전략 파라미터를 탐색하거나 종료 후보를 재개하지 않는다. 추가 시험은 새 시나리오·실패·수정 범위에 맞춰 실행한다. 기존 66세션·T0·판정 기준은 유지하고, 이 준비 활동을 그 세션들의 성과 평가에 사용하지 않는다. F0는 완료 상태를 유지한다.
 
@@ -1031,6 +1254,7 @@ SMA20 신호·설정과 위험 한도를 기준으로 주문·정산·보호 기
 - **v1.16 (2026-10-30)**: 운영자 질문에 따라 12-01의 의미를 실거래 시작 목표일로 정정하고, 11월을 준비 기간으로 쓰는 §5-9를 추가했다. 소스에서 SMA20 전용 시험의 정상 주문 확인은 SUBMITTED까지이며 정산은 별도 공통 시험이 다룸을 대조했다. 첫 보완은 두 경로를 잇는 통합 시나리오다. 이번 변경은 작업 계획·소스 대조 기록이며 새 시험·서버 명령·주문은 실행하지 않았다. F0 완료·기존 시작일·F1~F4 명령·위험 한도·56일 종료는 유지한다.
 - **v1.17 (2026-10-30)**: 리뷰 판정(§5-9 수용·첫 통합 시험 착수)에 따라 SMA20 신호 → 회차 승인 → 접수 → 공통 정산·DB 반영 시험 3건 추가. 수수료만 정정될 때 포지션 투입금이 갱신되지 않는 결함을 찾아 국소 수정(`OrderSettlementService`), 관련 회귀 140건. 묶음 1회차 간헐 실패 3건 기록. 약 1.5시간. 운영 미배포(리뷰 대기).
 - **v1.18 (2026-10-30)**: 리뷰 판정 — 수정·통합 시험 수용, 배포 ㉯(11-20 까지 배포 확인). 묶음 1회차 "BUY 주문 0건"의 원인을 시험 회차 키 충돌로 확인했다(지연 재현 → 시험 코드 수정 → 같은 지연에서 통과). ④ 체결대금만 정정 시험 추가, 관련 회귀 141건 두 번 통과. 약 1시간. 운영 미배포.
+- **v1.20 (2026-10-30)**: 리뷰 판정 — ⑤·⑥·`57ccc3a` 범위 수용. DYNAMIC 실패 조사(재현 못 함·원인 미확인·단계 기록 추가·영향 범위 대조), 실현손익 설명 정정, 후보 `f0872e2`(시험 파일만), jar 대조 기대값, G0~G4·되돌림 명령. 약 2시간. 운영 미배포.
 - **v1.19 (2026-10-30)**: 리뷰 판정 — `5eadf5b` 수용·첫 통합 보완 완료. ⑤ 손절 청산·⑥ 정지 청산 통합 시험 추가(통과), 관련 158건 — main 6회 중 1회차 기존 클래스 1건 간헐 실패(미해결·재현 안 됨), 후보 브랜치 2회 통과. 배포 후보 `57ccc3a` 분리·push. 약 1.5시간. 운영 미배포.
 - **v1.13 (2026-10-30)**: 리뷰 보완 — F3 판정(`settlement_final` 참고만, 없는 반영값 ❔, 포지션 수량 대조, 세션 상태 ⛔). 문서 명령만.
 - **v1.7 (2026-10-30)**: 리뷰 보완 — #15 별도 기록 폴더·실패 시 중단 묶음(A~E)·전체 이미지 ID 비교 약 1시간 → **누적 약 23시간**. 남은 일 추정(확정 아님): 실행 결과 확인·기록 약 1h.
