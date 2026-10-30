@@ -462,6 +462,10 @@ SQL
 - 기대: S1 `STOPPED`·`stopped_at` 있음 · S2 0 · S3 0행(행이 있으면 내용 그대로 보고 — 주문이 전혀 없다고 단정하지 않는다) · S4 0행 · S5 0. 다르면 A 로 가지 않고 보고한다. 93 을 다시 시작하거나 다시 정지 요청하지 않는다.
 - 🔴 과거 비상정지 21개(LIVE 20·DYNAMIC 92)는 수동 시작·soft-delete 하지 않고, 92 의 남은 상태 필드(`scan_state`·`current_position_id`)도 고치지 않는다.
 
+**A0 실행 결과 (운영자 실행)**: 첫 A 기록 `a1/` 보존. 93 정지 요청 1회 10:43:13 KST → 응답 `success:true`·`STOPPED`·`stoppedAt` 01:43:13.18Z·`currentPositionId` null·잔고 10,146.06(수익 +1.46%). 확인 조회: S1 `STOPPED`·`stopped_at` 01:43:13Z · S2 활성 주문 0 · S3 정지 뒤 주문 0행 · S4 열린 포지션 0행 · S5 정리 대기 0. → 리뷰 기대와 같다.
+
+**A 재실행 결과 (10:44:10 KST)**: `git-before` = `504ab81…` 다음 `(끝)` · E1 `DELETED 16`·`EMERGENCY_STOPPED 20`·`STOPPED 11` · E2 `DELETED 49`·`EMERGENCY_STOPPED 1`·`STOPPED 1` · E3 0행 · E4 3.00·15.00 · `EG` = `EGX`(`EG 기대와 같음`) · Q1 94 · Q3~Q6 0 · Q7 63/3 · Q8 0 · Q9 0 · `sc` `66 | 63 | 3 | -` · 이미지 두 줄 `e08b35b0…` 같음 · 경보 기준선 BLAST 반복만 · 미등록 ERROR(기대) · 텔레그램 `200` 10:45:07 KST(`TEST t` 01:45:08Z). 🔴 `operator-confirm.txt` 는 다시 자리표시 그대로 써졌다(`grep -c "<"` = 2) → B 로 가지 않았다. 운영자는 "2-1,2 모두 괜찮"(청구액·수신)이라고 전했으나 구체 값(청구액·근거, 수신 시각)은 아직 받지 못했다.
+
 **A. ▶ 직전 확인·기준선 — 읽기 전용, 재기동 없음** (v1.8: A0 통과 뒤 처음부터 다시)
 ```bash
 date '+%F %T %Z' | tee "$M/t-before.txt"; date '+%F %T%:z' > "$M/maint_start.txt"     # Q8 기준 = #15 정비 시작
