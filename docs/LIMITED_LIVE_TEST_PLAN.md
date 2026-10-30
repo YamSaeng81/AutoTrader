@@ -1,6 +1,6 @@
 # 12월 제한 실거래 시험 — 후보와 실행안
 
-> **상태**: v1.13 (2026-10-30, 리뷰 판정 — 날짜·공유 풀 검사 통과, 시작 결정 유지. F3 보완: `settlement_final` 은 참고만·30분 대기 삭제, 없는 반영값은 ❔ 확인 불가(0 대체 없음), 거래소 BTC 증감 = 주문 순체결량 = 열린 포지션 수량, 세션 `RUNNING` 아니면 ⛔ 별도 보고. 앱 코드·재배포 없음. 지금은 `CREATED` 유지, F0 미기록) · v1.12 (2026-10-30, 리뷰 판정 — 12-01 08:50 KST 조건부 시작 유지, 절차 세 곳 보완: F2 날짜 검사 `START_DATE`, F1 공유 풀 네 값 정확 비교, F3 정산 대조(중복 매수·청산 사유·체결량·수수료·잔액·거래소 증감). 앱 코드·재배포 없음. 지금은 `CREATED` 유지, F0 미기록) · v1.11 (2026-10-30, 리뷰 판정 — #15 등록·SID 203 생성 통과 수용, **12-01(화) 08:50 KST SID 203 시작 결정**(조건: F0 비용 기록·당일 F1 점검). 경보 조회 완료 확인 보완, `EGS` 교체, §5-8 F0~F4. 지금은 `CREATED` 유지) · v1.10 (2026-10-30, 리뷰 판정 — 필터 경계·캔들 404 한정, 첫 D 보존 뒤 D 재실행, 통과하면 E. 청구액은 E 까지 잠정 수용·`start` 전 화면 확인) · v1.9 (D 멈춤 — 404 필터 정규식 순서 결함 수정) · v1.8 (A 멈춤 판단 반영) — **리뷰 판정: DYNAMIC 93 정지 승인(운영자 1회 호출), 과거 비상정지 21개는 보존(선택지 ②) — 실행 가능 상태 0 검사 + LIVE 20·DYNAMIC 92 의 ID·상태 별도 대조로 `EG` 교체(§5-8 0·A0).** 93 정지 확인 뒤 A 부터 다시, 통과하면 B~E 를 추가 승인 없이. 월 청구액·휴대폰 수신 시각은 필수 확인. `start` 아님.
+> **상태**: v1.14 (2026-10-30, 리뷰 판정 — v1.13 세 보완 통과, 시작 결정 유지. F3 에 미해결 정산 불일치(`order_settlement_discrepancy`, `resolved_at` 없음) 조회 연결: 1건 이상 🔴, 조회 실패면 정상 판정 없음. 로컬 PostgreSQL 가짜 자료로 F3 실행 확인. 이것으로 절차 검토 마무리, 지금은 `CREATED` 유지, F0 미기록) · v1.13 (2026-10-30, 리뷰 판정 — 날짜·공유 풀 검사 통과, 시작 결정 유지. F3 보완: `settlement_final` 은 참고만·30분 대기 삭제, 없는 반영값은 ❔ 확인 불가(0 대체 없음), 거래소 BTC 증감 = 주문 순체결량 = 열린 포지션 수량, 세션 `RUNNING` 아니면 ⛔ 별도 보고. 앱 코드·재배포 없음. 지금은 `CREATED` 유지, F0 미기록) · v1.12 (2026-10-30, 리뷰 판정 — 12-01 08:50 KST 조건부 시작 유지, 절차 세 곳 보완: F2 날짜 검사 `START_DATE`, F1 공유 풀 네 값 정확 비교, F3 정산 대조(중복 매수·청산 사유·체결량·수수료·잔액·거래소 증감). 앱 코드·재배포 없음. 지금은 `CREATED` 유지, F0 미기록) · v1.11 (2026-10-30, 리뷰 판정 — #15 등록·SID 203 생성 통과 수용, **12-01(화) 08:50 KST SID 203 시작 결정**(조건: F0 비용 기록·당일 F1 점검). 경보 조회 완료 확인 보완, `EGS` 교체, §5-8 F0~F4. 지금은 `CREATED` 유지) · v1.10 (2026-10-30, 리뷰 판정 — 필터 경계·캔들 404 한정, 첫 D 보존 뒤 D 재실행, 통과하면 E. 청구액은 E 까지 잠정 수용·`start` 전 화면 확인) · v1.9 (D 멈춤 — 404 필터 정규식 순서 결함 수정) · v1.8 (A 멈춤 판단 반영) — **리뷰 판정: DYNAMIC 93 정지 승인(운영자 1회 호출), 과거 비상정지 21개는 보존(선택지 ②) — 실행 가능 상태 0 검사 + LIVE 20·DYNAMIC 92 의 ID·상태 별도 대조로 `EG` 교체(§5-8 0·A0).** 93 정지 확인 뒤 A 부터 다시, 통과하면 B~E 를 추가 승인 없이. 월 청구액·휴대폰 수신 시각은 필수 확인. `start` 아님.
 >
 > v1.7 (2026-10-30, 개입 #15 승인) — 🔴 **A 직전 확인에서 멈춤(10:10 KST): `EG` = `20|2|0|true` — 실자금 DYNAMIC 1개 RUNNING·EMERGENCY_STOPPED 1개, LIVE EMERGENCY_STOPPED 20개. 등록하면 RUNNING DYNAMIC 의 실자금 진입이 열릴 수 있어 B 로 가지 않았다. 리뷰 판단 대기(§5-8 A 실행 결과).** **리뷰 판정: 후보 `82d15d4` 와 STAGE_1 등록 재기동(개입 #15) 승인, 생성 시 손실 한도 기준 행 기록 수용.** 보완 두 가지(#15 점검 기록 분리 · 실패 시 다음 변경 중단)를 §5-8 A~E 에 반영했다. 추가 승인 없이 청구액·KRW·E1~E4·경보 수신 → 등록 재기동 → 기동·30분 점검 → 세션 1개 `CREATED` 생성·저장값 대조까지 진행(`start` 아님). 기준 행은 생성 시각으로 보존하고 12월 시작 때 다시 만들지 않는다. 56일은 실제 `start` 시각부터. 운영 `504ab81`, STAGE_1 비활성(실행 전).
 >
@@ -702,6 +702,13 @@ $PSQL -c "SELECT * FROM capital_stage_baseline;" | tee "$M/baseline.txt"     # 1
 - ③ 열린 포지션(`OPEN`·`CLOSING`) 수량 합계를 추가해 거래소 BTC 증감 = 주문 순체결량 = 포지션 수량을 정확히 대조한다. 세션 상태가 `RUNNING` 이 아니면 다른 결과와 상관없이 ⛔(정상 운영 아님, 별도 보고)로 판정한다.
 - 로컬 확인(가짜 입력): 정상 체결 + `settlement_final` 거짓 → ✅ 매수 1건 보유 · 반영값 누락(잔액은 맞음) → ❔ · 회계 반영 대기 → ❔ · 포지션 수량 불일치 → 🔴 · 비상정지 → ⛔ · 정지 → ⛔. 그 밖에 매수 없음 ✅ · 정상 청산 ✅ · 보고≠반영 🔴 · 거래소 KRW 차이 🔴. 문서 안 파이썬은 시험한 파일과 같고 F3 블록 `bash -n` 통과. 실제 DB 로는 돌리지 않았다(SQL 은 12-01 첫 실행이 첫 실행이다).
 
+**리뷰 판정 (v1.13 뒤, 2026-10-30 운영자 전달)**: "세 보완은 통과입니다. 문서의 파이썬으로 관련 6개 사례도 확인했습니다. 12월 1일 08:50 KST 조건부 시작은 유지합니다." · "다만 F3에 누락 하나가 남았습니다. 현재 SQL은 보고값과 반영값만 비교하고, `order_settlement_discrepancy`의 미해결 기록은 조회하지 않습니다. 운영 코드에는 불일치를 그 테이블에 보존하고 기존 값을 유지하는 경로가 있어, 두 값이 같아도 미해결 문제가 남을 수 있습니다." · "0건: 나머지 조건으로 판정 · 1건 이상: 🔴 §6-2 대응·보고 · 조회 실패: 정상 판정 금지" · "확인은 '보고값·반영값은 같지만 미해결 기록 1건' → 🔴 사례와, 로컬 PostgreSQL 가짜 자료로 F3 SQL 실행까지 하면 충분합니다. 앱 수정·재배포·전체 회귀는 필요 없습니다." · "이 보완이 확인되면 절차 검토를 마무리합니다. 이후에는 F0 비용 기록과 당일 F1 통과 시 추가 승인 없이 SID 203만 시작합니다. 지금은 `CREATED`를 유지하세요."
+
+**v1.14 반영** (F3 만, 문서 명령·기대값만):
+- F3 읽기 조회에 G6(SID 203 주문의 미해결 정산 불일치 목록, 기대 0행)을 넣고, 개수 조회 `CNT` 에 12번째 값으로 같은 조건(`order_settlement_discrepancy` ⋈ `"order"`, `session_kind = 'LIVE'`·`session_id = 203`·`resolved_at IS NULL`)의 건수를 넣었다. 1건 이상이면 🔴(§6-2 대응·보고). 보고값·반영값이 같아도 🔴 다.
+- 장부·개수·계좌 값 중 하나라도 읽지 못하면(조회 실패로 빈 값 등) 파이썬이 ❔ "조회 실패 — 정상 판정 아님"만 찍고 끝낸다. ✅ 는 나오지 않는다.
+- 로컬 확인: 재시작 시험용 PostgreSQL(V94 스키마)에 별도 DB `f3test` 를 만들어 운영과 같은 표 정의를 복사하고, 문서에서 F3 블록을 그대로 뽑아(계좌 조회 `curl` 한 줄만 가짜 파일 복사로 바꿈) 실행했다. 정상 보유·불일치 없음 → ✅ · 다른 세션 주문의 미해결 불일치만 → ✅(203 만 셈) · 보고값=반영값인데 203 미해결 1건 → 🔴(G6 에 그 줄 출력) · 같은 기록 해결됨 → ✅ · 불일치 표 조회 실패 → ❔ 조회 실패 · 비상정지 + 미해결 → ⛔. 운영 DB 로는 돌리지 않았다.
+
 **F0. 시작 전 비용 확인 (운영자, 화면 확인 — 서버 명령 없음)**: 청구·사용량 화면에서 ① 현재 청구 비용(기간 포함) ② 무료 혜택 종료일 ③ 유료 전환 시 월 예상 비용 ④ 그 근거 화면(서비스 이름·메뉴). 무료 혜택이 시험 종료(2027-01-26 무렵) 전에 끝나면 ③ 으로 10만 원 이내인지 본다. 운영자가 본 그대로를 운영자 진술로 출처와 함께 아래에 기록한다(개발 에이전트가 대신 판정하지 않는다).
 - F0 기록: (미기록)
 
@@ -841,6 +848,8 @@ SELECT id, coin_pair, status, size, entry_price, avg_price, invested_krw, positi
 SELECT status, available_krw, total_asset_krw FROM live_trading_session WHERE id = 203;
 \echo '== G5 정리 대기 — 기대 0'
 SELECT count(*) FROM position_cleanup WHERE done_at IS NULL;
+\echo '== G6 SID 203 미해결 정산 불일치 — 기대 0행'
+SELECT d.id, d.order_id, d.kind, d.previous_value, d.received_value, d.previous_state, d.received_state, d.detected_at AT TIME ZONE 'Asia/Seoul' AS kst FROM order_settlement_discrepancy d JOIN "order" o ON o.id = d.order_id WHERE o.session_kind = 'LIVE' AND o.session_id = 203 AND d.resolved_at IS NULL ORDER BY d.id;
 ROLLBACK;
 SQL
 # 장부(체결 있는 주문의 반영값만, 없는 값은 0 으로 채우지 않는다): 세션 상태 · 세션 잔액 · 기대 잔액 = 20200 − Σ매수(반영 대금 + 반영 수수료) + Σ매도(반영 대금 − 반영 수수료) · 주문 순체결량 · 열린 포지션 수량 합계
@@ -852,7 +861,7 @@ SELECT l.status, l.available_krw,
        (SELECT coalesce(sum(size), 0) FROM position WHERE session_kind = 'LIVE' AND session_id = $SID AND status IN ('OPEN','CLOSING'))
   FROM live_trading_session l LEFT JOIN \"order\" o ON o.session_kind = 'LIVE' AND o.session_id = l.id
  WHERE l.id = $SID GROUP BY l.status, l.available_krw")
-# 개수: 판단 기록 · 체결 매수 · 체결 매도 · 미종결 주문 · 회계 반영 대기 · 체결 주문의 보고값·반영값 없음 · 보고값≠반영값 · settlement_final 거짓(참고) · 열린 포지션 · 정상 사유 밖 청산 · 정리 대기
+# 개수: 판단 기록 · 체결 매수 · 체결 매도 · 미종결 주문 · 회계 반영 대기 · 체결 주문의 보고값·반영값 없음 · 보고값≠반영값 · settlement_final 거짓(참고) · 열린 포지션 · 정상 사유 밖 청산 · 정리 대기 · 미해결 정산 불일치
 CNT=$($PSQL -At -F '|' -c "
 SELECT (SELECT count(*) FROM strategy_log WHERE session_type = 'LIVE' AND session_id = $SID AND created_at >= (SELECT started_at FROM live_trading_session WHERE id = $SID)),
        count(*) FILTER (WHERE side = 'BUY' AND coalesce(filled_quantity, 0) > 0),
@@ -864,7 +873,8 @@ SELECT (SELECT count(*) FROM strategy_log WHERE session_type = 'LIVE' AND sessio
        count(*) FILTER (WHERE coalesce(filled_quantity, 0) > 0 AND NOT settlement_final),
        (SELECT count(*) FROM position WHERE session_kind = 'LIVE' AND session_id = $SID AND status IN ('OPEN','CLOSING')),
        (SELECT count(*) FROM position WHERE session_kind = 'LIVE' AND session_id = $SID AND status = 'CLOSED' AND coalesce(exit_reason, '-') NOT IN ('STOP_LOSS','TAKE_PROFIT','TRAILING_STOP')),
-       (SELECT count(*) FROM position_cleanup WHERE done_at IS NULL)
+       (SELECT count(*) FROM position_cleanup WHERE done_at IS NULL),
+       (SELECT count(*) FROM order_settlement_discrepancy d JOIN \"order\" o ON o.id = d.order_id WHERE o.session_kind = 'LIVE' AND o.session_id = $SID AND d.resolved_at IS NULL)
   FROM \"order\" WHERE session_kind = 'LIVE' AND session_id = $SID")
 curl -s -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/v1/account/summary > "$M/account-f3.json"
 python3 - "$M/account-f1.json" "$M/account-f3.json" "$LEDGER" "$CNT" <<'PY' 2>&1 | tee -a "$M/f3.txt"
@@ -874,9 +884,13 @@ def acct(p):  # 업비트 KRW(주문 가능 + 묶임, 원 단위 반올림) · B
     d = json.load(open(p))["data"]
     btc = sum((D(str(h["balance"])) + D(str(h["locked"])) for h in d.get("holdings", []) if h["currency"] == "BTC"), D(0))
     return D(str(d["availableKrw"])) + D(str(d["lockedKrw"])), btc
-k1, b1 = acct(sys.argv[1]); k3, b3 = acct(sys.argv[2])
-st, avail, expect, net, posq = sys.argv[3].split("|"); avail, expect, net, posq = D(avail), D(expect), D(net), D(posq)
-logs, buys, sells, unres, pend, miss, diff, unfinal, opn, badexit, cleanup = (int(x) for x in sys.argv[4].split("|"))
+try:
+    k1, b1 = acct(sys.argv[1]); k3, b3 = acct(sys.argv[2])
+    st, avail, expect, net, posq = sys.argv[3].split("|"); avail, expect, net, posq = D(avail), D(expect), D(net), D(posq)
+    logs, buys, sells, unres, pend, miss, diff, unfinal, opn, badexit, cleanup, disc = (int(x) for x in sys.argv[4].split("|"))
+except Exception as e:  # 장부·개수·계좌 조회 중 하나라도 실패하면 정상 판정을 내지 않는다
+    print(f"❔ 판정: 조회 실패({type(e).__name__}) — 정상 판정 아님. F3 를 다시 조회, 그대로면 §6-2 대응·보고")
+    sys.exit(1)
 print("== 대조 (시작 전 기준 = F1 의 account-f1.json)")
 print("세션 상태", st)
 print("업비트 KRW", k1, "→", k3, "· BTC", b1, "→", b3)
@@ -888,12 +902,12 @@ print("거래소 KRW 증감", k3 - k1, "· 세션 증감", avail - 20200, "· �
 print("거래소 BTC 증감", b3 - b1, "· 주문 순체결량", net, "· 열린 포지션 수량", posq)
 print("판단 기록", logs, "· 체결 매수", buys, "· 체결 매도", sells, "· 미종결 주문", unres, "· 회계 반영 대기", pend,
       "· 반영값·보고값 없음", miss, "· 보고≠반영", diff, "· settlement_final 거짓(참고)", unfinal,
-      "· 열린 포지션", opn, "· 정상 사유 밖 청산", badexit, "· 정리 대기", cleanup)
+      "· 열린 포지션", opn, "· 정상 사유 밖 청산", badexit, "· 정리 대기", cleanup, "· 미해결 정산 불일치", disc)
 match = (b3 - b1) == net == posq and abs((k3 - k1) - (avail - 20200)) <= 1
 if st != "RUNNING":
     print(f"⛔ 판정: 세션 상태 {st} — 정상 운영 아님. 이 출력 전체를 별도 보고(§6-2 완료 확인). 재시작·재요청 없음")
-elif logs == 0 or unres or cleanup or badexit or buys > 1 or diff:
-    print("🔴 판정: 판단 기록 없음·미종결 주문·정리 대기·정상 사유 밖 청산·중복 매수·보고값≠반영값 중 하나 — §6-2 대응·보고")
+elif logs == 0 or unres or cleanup or badexit or buys > 1 or diff or disc:
+    print("🔴 판정: 판단 기록 없음·미종결 주문·정리 대기·정상 사유 밖 청산·중복 매수·보고값≠반영값·미해결 정산 불일치(G6) 중 하나 — §6-2 대응·보고")
 elif miss or pend:
     print("❔ 판정: 확인 불가 — 체결 주문의 보고값·반영값이 비었거나 회계 반영 대기. G2 줄로 확인하고 F3 를 다시 조회, 그대로면 §6-2 대응·보고")
 elif abs(avail - expect) > D("0.01") or not match:
@@ -913,14 +927,15 @@ PY
   - 체결 있는 주문은 보고값(`reported_*`)과 반영값(`applied_*`)이 같아야 한다.
   - 거래소 KRW 증감 = 세션 증감(±1원, 계좌 조회가 원 단위로 반올림한다).
   - **거래소 BTC 증감 = 주문 순체결량(Σ매수 − Σ매도 체결량) = 열린 포지션(`OPEN`·`CLOSING`) 수량 합계**, 셋 다 정확히 같다.
+  - SID 203 주문의 미해결 정산 불일치(G6, `resolved_at` 없음)는 0건이어야 한다. 보고값·반영값이 같아도 1건 이상이면 🔴 다.
   - `settlement_final` 거짓은 참고로만 출력한다. 운영 코드는 정상 정산 뒤에도 이 값을 자동으로 참으로 만들지 않으므로 판정에 쓰지 않는다.
-- ✅ 정상(셋 중 하나, 세션 `RUNNING` · 위 대조 모두 일치 · 회계 반영 대기 0 · 미종결 0 · 정리 대기 0 · 판단 기록 1개 이상). ✅ 는 **"현재 조회 기준 일치"** 이고 정산 최종 확정을 뜻하지 않는다.
+- ✅ 정상(셋 중 하나, 세션 `RUNNING` · 위 대조 모두 일치 · 회계 반영 대기 0 · 미종결 0 · 정리 대기 0 · 미해결 정산 불일치 0 · 판단 기록 1개 이상). ✅ 는 **"현재 조회 기준 일치"** 이고 정산 최종 확정을 뜻하지 않는다.
   - **매수 없음**: 09:00 회차 HOLD 이거나 BUY 가 관문에서 막힘(`blocked_reason`). 현금으로 기다린다(조치 없음).
   - **매수 1건 보유**: 체결 있는 매수 1건(전량 `FILLED` 이거나 부분 체결 뒤 취소 — 실제 체결분이 정산됐으면 정상) · 포지션 1개 `OPEN`.
   - **매수 뒤 정상 청산**: 매수 1건 + 매도 1건 · 포지션 `CLOSED` · `exit_reason` 이 `STOP_LOSS`·`TAKE_PROFIT`·`TRAILING_STOP` 중 하나.
-- ❔ 확인 불가(체결 주문의 보고값·반영값 없음, 또는 `fill_accounting_pending`): G2 의 해당 주문 줄로 어느 값이 비었는지 보고, F3 를 다시 조회한다. 그대로면 §6-2 대응을 따르고 보고한다.
+- ❔ 확인 불가(체결 주문의 보고값·반영값 없음, 또는 `fill_accounting_pending`): G2 의 해당 주문 줄로 어느 값이 비었는지 보고, F3 를 다시 조회한다. 그대로면 §6-2 대응을 따르고 보고한다. "조회 실패" ❔(장부·개수·계좌 값을 못 읽음)도 같다 — 정상으로 보지 않는다.
 - ⛔ 세션 상태가 `RUNNING` 이 아님(`EMERGENCY_STOPPED`·`STOPPED`·`PAUSED` 등): 정상 운영으로 보지 않는다. 출력 전체를 별도로 보고하고 §6-2 완료 확인을 따른다.
-- 🔴 그 밖(체결 매수 2건 이상, `UNKNOWN`·미종결 주문, 판단 기록 없음, 정상 사유 밖 청산, 보고값≠반영값, 설명되지 않는 잔액·거래소·포지션 수량 차이)은 §6-2 대응 순서를 따르고 출력을 그대로 보고한다.
+- 🔴 그 밖(체결 매수 2건 이상, `UNKNOWN`·미종결 주문, 판단 기록 없음, 정상 사유 밖 청산, 보고값≠반영값, 미해결 정산 불일치(G6), 설명되지 않는 잔액·거래소·포지션 수량 차이)은 §6-2 대응 순서를 따르고 출력을 그대로 보고한다.
 - 어느 경우든 재시작·재요청하지 않는다.
 
 **F4. 종료 시각 고정** — 종료 = F2 확인의 `end_kst`(실제 `started_at` + 56일, 예정대로면 2027-01-26 08:50 KST 무렵). 운영자가 시작 당일 종료 점검 일정을 등록한다. 종료 때 정지 API(`POST …/sessions/$SID/stop`) 한 번 → §6-2 의 완료 확인(STOPPED · 활성 주문 0 · 정리 대기 0 · 업비트 BTC 와 기록 일치) → §6-3 보고. 증액·추가 입금·자동 연장은 없다.
@@ -936,6 +951,7 @@ PY
 - **v1.10 (2026-10-30)**: 리뷰 판정 반영 — 필터 경계 `[^A-Z0-9_-]`·캔들 404 한정, 첫 D 보존·재실행, 청구액 잠정 수용 범위(E 까지) 기록.
 - **v1.11 (2026-10-30)**: 리뷰 시작 판정 반영 — F0 비용 확인, F1 직전 점검(`EGS`·저장값·기준 행·0 확인·거래소·KRW·경보 완료 확인·텔레그램), F2 시작 1회, F3 첫 일봉 확인, F4 종료 고정.
 - **v1.12 (2026-10-30)**: 리뷰 보완 세 곳 — F2 `START_DATE` 날짜 검사, F1 공유 풀 네 값 정확 비교, F3 정산 대조 판정. 문서 명령만.
+- **v1.14 (2026-10-30)**: 리뷰 보완 — F3 에 미해결 정산 불일치 조회(G6·개수) 연결, 1건 이상 🔴, 조회 실패면 정상 판정 없음. 로컬 PostgreSQL 가짜 자료로 F3 실행 확인. 문서 명령만.
 - **v1.13 (2026-10-30)**: 리뷰 보완 — F3 판정(`settlement_final` 참고만, 없는 반영값 ❔, 포지션 수량 대조, 세션 상태 ⛔). 문서 명령만.
 - **v1.7 (2026-10-30)**: 리뷰 보완 — #15 별도 기록 폴더·실패 시 중단 묶음(A~E)·전체 이미지 ID 비교 약 1시간 → **누적 약 23시간**. 남은 일 추정(확정 아님): 실행 결과 확인·기록 약 1h.
 - **v1.6 (2026-10-30)**: #8 준비 — 생성 경로 코드 대조, 등록 통로 후보(`82d15d4`)·시험, §5-8 명령 약 1.5시간 → **누적 약 22시간**. 남은 일 추정(확정 아님): 등록 재기동·생성 지원 약 1h.
@@ -1018,4 +1034,5 @@ PY
 - **운영자 (v1.11)**: 🔴 F0 비용 확인(현재 비용·무료 혜택 종료일·유료 전환 예상 비용, 월 10만 원 이내) — 미기록. B·C 화면 원문 있음/없음 — 답 대기(없으면 누락 기록, 시작은 막지 않음).
 - ~~**리뷰 (v1.11 뒤)**: F0~F4 절차 검토~~ → 판정: 시작 결정 유지, 세 곳 보완(v1.12 반영). 남은 조건은 F0 기록과 당일 F1.
 - ~~**리뷰 (v1.12 뒤)**: F3 판정 검토~~ → 판정: 날짜·공유 풀 통과, F3 세 곳 보완(v1.13 반영). 남은 조건은 F0 기록과 당일 F1. B·C 원문 없으면 누락 기록.
+- ~~**리뷰 (v1.13 뒤)**: F3 보완 확인~~ → 판정: 세 보완 통과, 미해결 정산 불일치 조회 한 곳 보완(v1.14 반영). 확인되면 절차 검토 마무리. 이후 F0 기록·당일 F1 통과 시 추가 승인 없이 SID 203 만 시작.
 - **운영자**: ~~운영 WF 게이트 값 확인~~ → false(09:03:06 KST, §5-4). 🔴 **서버 실제 월 청구액 기록(§6-1 7번) — 활성화 전에 월 10만 원 한도 안인지 확인**(리뷰 요구, 아직 미기록). ~~개입 #14 결과·수용 칸 기입~~ → 리뷰 판정문의 운영자 결정 문안으로 기입(2026-10-30). §5-8 A~E 실행(A 확인 → B 등록 재기동 → C 기동 → D 30분 → E 생성 1회, 실패하면 그 자리에서 멈추고 보고). `start` 는 리뷰가 시각을 정한 뒤.
