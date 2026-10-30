@@ -54,6 +54,12 @@ services:
       DB_RESET_PASSWORD: ${DB_RESET_PASSWORD}
       REQUIRE_WALK_FORWARD_GATE: ${REQUIRE_WALK_FORWARD_GATE:-false}
       STRATEGY_SIGNAL_EXIT_ENABLED: ${STRATEGY_SIGNAL_EXIT_ENABLED:-false}
+      # 공유 풀 단계 등록 (2026-10-30, CapitalPoolLimits · LIVE_ENTRY_PREREG.md §3). 종전에는 넘길 통로가 없어 항상 미등록이었다.
+      # 🔴 .env 에 값이 없으면 빈 값 = 미등록 = 실자금 세션 배정·진입 전부 거절(종전과 같다). 값은 등록 표와 정확히 같아야 한다.
+      TRADING_CAPITALPOOL_STAGE: ${CAPITAL_POOL_STAGE:-}
+      TRADING_CAPITALPOOL_TOTALCAPKRW: ${CAPITAL_POOL_TOTAL_CAP_KRW:-}
+      TRADING_CAPITALPOOL_PERPOSITIONCAPKRW: ${CAPITAL_POOL_PER_POSITION_CAP_KRW:-}
+      TRADING_CAPITALPOOL_MAXCONCURRENTPOSITIONS: ${CAPITAL_POOL_MAX_CONCURRENT_POSITIONS:-}
       # 16GB 서버: Java 6GB / 32GB 업그레이드 후 -Xmx12g 로 변경
       JAVA_OPTS: "-XX:-OmitStackTraceInFastThrow -Xms1g -Xmx6g -XX:+UseG1GC -XX:MaxGCPauseMillis=200"
     ports:

@@ -2,8 +2,21 @@ package com.cryptoautotrader.api.service;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.context.properties.source.ConfigurationPropertySources;
+import org.springframework.boot.convert.ApplicationConversionService;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.core.env.StandardEnvironment;
+import org.springframework.core.env.SystemEnvironmentPropertySource;
 
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -70,5 +83,59 @@ class CapitalPoolRegistrationTest {
     @DisplayName("이 시험 클래스패스는 시험 런타임이다(H2 드라이버) — 운영 jar 에는 표지 클래스가 없다")
     void testRuntimeDetected() {
         assertThat(CapitalPoolLimits.testRuntime()).isTrue();
+    }
+
+    @Test
+    @DisplayName("🔴 운영 compose 의 환경변수 이름이 @Value 에 묶인다 — 값이 있으면 등록, 빈 값(.env 미기입)이면 미등록(종전과 같다)")
+    void prodComposeEnvironmentNamesBind() throws Exception {
+        List<String> names = composeCapitalPoolEnvNames();
+        assertThat(names).containsExactlyInAnyOrder("TRADING_CAPITALPOOL_STAGE", "TRADING_CAPITALPOOL_TOTALCAPKRW",
+                "TRADING_CAPITALPOOL_PERPOSITIONCAPKRW", "TRADING_CAPITALPOOL_MAXCONCURRENTPOSITIONS");
+
+        CapitalPoolLimits set = bindFromEnvironment(Map.of(
+                "TRADING_CAPITALPOOL_STAGE", "STAGE_1",
+                "TRADING_CAPITALPOOL_TOTALCAPKRW", "100000",
+                "TRADING_CAPITALPOOL_PERPOSITIONCAPKRW", "20000",
+                "TRADING_CAPITALPOOL_MAXCONCURRENTPOSITIONS", "3"));
+        assertThat(set.registrationProblem(false)).isNull();
+        assertThat(set.toString()).isEqualTo("단계=STAGE_1 총상한=100000 포지션당=20000 동시보유=3");
+
+        // compose 의 ${...:-} 는 .env 에 값이 없으면 빈 문자열을 넘긴다 — 기동은 되고 미등록이어야 한다
+        CapitalPoolLimits empty = bindFromEnvironment(Map.of(
+                "TRADING_CAPITALPOOL_STAGE", "",
+                "TRADING_CAPITALPOOL_TOTALCAPKRW", "",
+                "TRADING_CAPITALPOOL_PERPOSITIONCAPKRW", "",
+                "TRADING_CAPITALPOOL_MAXCONCURRENTPOSITIONS", ""));
+        assertThat(empty.registrationProblem(false)).contains("누락");
+    }
+
+    /** 운영과 같은 방식(시스템 환경변수 + 느슨한 이름 대응 + 부트 변환)으로 {@code @Value} 를 채운다. */
+    private static CapitalPoolLimits bindFromEnvironment(Map<String, Object> env) {
+        StandardEnvironment environment = new StandardEnvironment();
+        environment.getPropertySources().replace(StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME,
+                new SystemEnvironmentPropertySource(StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME, env));
+        ConfigurationPropertySources.attach(environment);
+        try (AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext()) {
+            ctx.setEnvironment(environment);
+            ctx.getBeanFactory().setConversionService(ApplicationConversionService.getSharedInstance());
+            ctx.registerBean(PropertySourcesPlaceholderConfigurer.class);
+            ctx.registerBean(CapitalPoolLimits.class);
+            ctx.refresh();
+            return ctx.getBean(CapitalPoolLimits.class);
+        }
+    }
+
+    private static List<String> composeCapitalPoolEnvNames() throws Exception {
+        Path compose = Path.of("../docker-compose.prod.yml");
+        if (!Files.exists(compose)) {
+            compose = Path.of("docker-compose.prod.yml");
+        }
+        assertThat(compose).as("docker-compose.prod.yml 을 찾지 못했다").exists();
+        Matcher m = Pattern.compile("(?m)^\\s+(TRADING_CAPITALPOOL_[A-Z]+):").matcher(Files.readString(compose));
+        List<String> names = new ArrayList<>();
+        while (m.find()) {
+            names.add(m.group(1));
+        }
+        return names;
     }
 }
