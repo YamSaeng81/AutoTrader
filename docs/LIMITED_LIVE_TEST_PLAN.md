@@ -476,6 +476,8 @@ SQL
 
 **v1.10 반영**: C·D 의 필터를 아래로 바꿨다(로컬 시험 — 실제 세 줄과 `market=KRW-STORJ` 로 url 이 끝나는 줄은 제외, `BLAST2`·`BLAST_X`·`BLAST-X`·티커/주문 경로 404·캔들 500·다른 메시지·다른 마켓 줄 뒤에 붙은 `market=KRW-BLAST` 는 남음): `status=404, url=https://api\.upbit\.com/v1/candles/[^ ]*[?&]market=KRW-(BLAST|BONK|STORJ)([^A-Z0-9_-][^ ]*)?, body=.*Code not found`. 경계 `([^A-Z0-9_-][^ ]*)?, body=` 는 리뷰의 `([^A-Z0-9_-]|$)` 와 같은 뜻을 url 안에서 쓴 것이다(마켓 코드 바로 뒤가 경계 문자이거나 url 끝). D 재실행 전 보존: 첫 D 의 `*-after30*`·`errors-other30.txt`·`d-rest.txt` → 접미사 `.fail1`.
 
+**v1.10 실행 (10-30, 운영자)**: B·C 증빙 보강(`bc-evidence.txt`) — `ok-B` 10:51:05 · `ok-C` 10:57:20 KST · HEAD `82d15d4…` · 이미지 직전 = B 뒤 = 지금 `e08b35b0…` · backend 외 서비스 B 전↔B 뒤 같음 · 한도 로그 두 줄. 첫 D 보존 `.fail1` 8개(`errors-other30.txt.fail1` 779바이트). **D 2회차 13:02:24 KST (`d-run2.txt`)**: backend `Up 2 hours` · 고친 필터 통과(남은 ERROR 0, 걸러진 404 3줄) · 🔴 한도 줄 없음 · Q3~Q6 0 · Q7 63/3 · Q8 0 · Q9 0 · `ROLLBACK` · `sc` 같음 · backend 외 서비스 같음 · backend 재시작 없음 · `EG` = `EGX` — 그 뒤 **멈춤 문구 없이 끝남**(경보 출력·`✅ D 통과` 없음, `ok-D` 없음). 원인: **절차 결함 둘째** — `start_66.py alerts` 는 🔴 경보가 있으면 종료코드 1 을 돌려준다(`cmd_alerts` `return 0 if not bad else 1`). BLAST 반복 경보가 있어 `set -e` 묶음이 그 줄에서 조용히 끝났다. 수정: 종료코드를 받아 출력하고, 조회 자체가 돌았는지(`구간 ` 줄)만 멈춤 조건으로 둔다 — 경보 판단은 원래대로 네 갈래 대조. 2회차 기록은 `.fail2` 로 보존하고 D 를 한 번 더 처음부터.
+
 **A. ▶ 직전 확인·기준선 — 읽기 전용, 재기동 없음** (v1.8: A0 통과 뒤 처음부터 다시)
 ```bash
 date '+%F %T %Z' | tee "$M/t-before.txt"; date '+%F %T%:z' > "$M/maint_start.txt"     # Q8 기준 = #15 정비 시작
@@ -611,7 +613,9 @@ svc | tee "$M/svc-after30.txt"
 diff <(grep -v '^backend ' "$M/svc-before.txt") <(grep -v '^backend ' "$M/svc-after30.txt") || stop "되돌림 필요: backend 외 서비스가 바뀜"
 [ "$(grep '^backend ' "$M/svc-deploy.txt")" = "$(grep '^backend ' "$M/svc-after30.txt")" ] || stop "되돌림 필요: backend 재시작 있음"
 [ "$($PSQL -At -c "$EG")" = "$EGX" ] || stop "E1~E4 바뀜 — 보고"
-python3 scripts/prospective/start_66.py alerts --since "$S" --no-mark > "$M/alerts-after30.txt" 2>&1
+python3 scripts/prospective/start_66.py alerts --since "$S" --no-mark > "$M/alerts-after30.txt" 2>&1 && AE=0 || AE=$?
+echo "경보 종료코드 $AE (1 = 🔴 경보 있음 — 이것만으로 멈추지 않고 네 갈래로 대조)"
+grep -q "^구간 " "$M/alerts-after30.txt" || stop "경보 조회 실패 — alerts-after30.txt 를 보고"
 cat "$M/alerts-after30.txt"
 touch "$M/ok-D"; echo "✅ D 통과 — 경보 네 갈래 확인 뒤 E"
 )
