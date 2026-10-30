@@ -852,12 +852,16 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
         assertThat(c.getStatus()).isEqualTo("CLOSED");
         assertThat(c.getExitReason()).isEqualTo(ExitReason.STOP_LOSS);
         assertThat(c.getClosedAt()).isNotNull();
-        // 실현손익은 세 엔진 공통 규칙 = 매도 순대금 − 수량 × 평균단가 — 매수 수수료는 position_fee 에 따로 쌓인다.
-        assertThat(c.getRealizedPnl()).as("18,880 − 9.44 − 0.0016 × 12,487,500").isEqualByComparingTo("-1109.44");
+        // 🔴 이 REAL LIVE 경로에서 확인한 사실이다(엔진 공통 규칙이 아니다 — PAPER 는 매수 수수료를 평균단가에 넣고,
+        //    백테스트는 진입 수수료를 손익에서 뺀다). 여기서 realized_pnl = 매도 순대금 − 수량 × 평균단가 이고 평균단가는
+        //    체결금액 ÷ 수량이라 **매수 수수료 9.99 가 빠져 있다.** 실제 순손실은 잔액 기준 −1,119.43 이다.
+        //    position_fee(매수 + 매도)를 realized_pnl 에서 다시 빼면 매도 수수료가 두 번 빠진다(−1,128.87, 틀림).
+        assertThat(c.getRealizedPnl()).as("18,880 − 9.44 − 0.0016 × 12,487,500 (매수 수수료 미포함)").isEqualByComparingTo("-1109.44");
         assertThat(c.getPositionFee()).as("매수 9.99 + 매도 9.44").isEqualByComparingTo("19.43");
         assertThat(available(s)).as("210.01 + 18,880 − 9.44").isEqualByComparingTo("19080.57");
-        assertThat(available(s)).as("초기 20,200 + 실현손익 − 매수 수수료")
-                .isEqualByComparingTo(new BigDecimal("20200").add(c.getRealizedPnl()).subtract(new BigDecimal("9.99")));
+        assertThat(available(s).subtract(new BigDecimal("20200"))).as("실제 순손실(잔액 기준) = 실현손익 − 매수 수수료")
+                .isEqualByComparingTo("-1119.43")
+                .isEqualByComparingTo(c.getRealizedPnl().subtract(new BigDecimal("9.99")));
         assertThat(activeOrders(s)).as("활성 주문 0").isEmpty();
         assertHoldingsMatch(s, "청산 뒤");
 
@@ -900,9 +904,11 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
         PositionEntity c = reload(p);
         assertThat(c.getStatus()).isEqualTo("CLOSED");
         assertThat(c.getExitReason()).isEqualTo(ExitReason.FORCED_STOP);
-        assertThat(c.getRealizedPnl()).as("19,992 − 9.99 − 0.0016 × 12,487,500").isEqualByComparingTo("2.01");
+        // ⑤와 같은 REAL LIVE 경로 규칙 — realized_pnl 2.01 은 매수 수수료 미포함, 실제 순손익은 잔액 기준 −7.98.
+        assertThat(c.getRealizedPnl()).as("19,992 − 9.99 − 0.0016 × 12,487,500 (매수 수수료 미포함)").isEqualByComparingTo("2.01");
         assertThat(c.getPositionFee()).as("매수 9.99 + 매도 9.99").isEqualByComparingTo("19.98");
         assertThat(fin.getAvailableKrw()).as("210.01 + 19,992 − 9.99").isEqualByComparingTo("20192.02");
+        assertThat(fin.getAvailableKrw().subtract(new BigDecimal("20200"))).as("실제 순손익(잔액 기준)").isEqualByComparingTo("-7.98");
         assertThat(activeOrders(s)).as("활성 주문 0").isEmpty();
         assertThat(orderRepository.countUnresolvedSubmissions("LIVE", s.getId())).as("미해결 제출 0").isZero();
         assertThat(cleanupRepository.countPending("LIVE", s.getId())).as("정리 대기 0").isZero();
