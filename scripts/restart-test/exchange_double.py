@@ -27,6 +27,9 @@
         설정이 없으면(기본) /v1/ticker·/v1/orderbook·/v1/candles 는 503 — 외부 차단과 같은 실패. fail=true 도 503.
         시세의 trade_timestamp 는 지금 − trade_age_sec(체결이 조용한 코인), 호가 timestamp 는 지금.
         candles 의 "absent": [봉 시작 epoch 초, ...] — 그 봉은 대역(거래소)에도 없다(점검·무체결, 2026-10-19).
+        (2026-10-30, SMA20 리허설 — 설정이 없으면 종전과 같다) candles 의 "slope": 시간당 종가 변화, "anchor": 종가가 "close" 인
+        봉의 시작 epoch 초(없으면 지금 봉), "spread": 고가·저가 폭. "fill_price": {"KRW-BTC": "..."} 시장가 체결가(없으면 300),
+        "coin_currency": 계좌의 코인 이름(없으면 DOGE), "markets": [{"market":..,"korean_name":..,"english_name":..}] 상태 확인 목록.
   POST /_ctl/health {"mode": "ok" | "fail" | "slow"}  상태 확인(/v1/market/all) 응답 — fail 은 503, slow 는 3.5초 뒤 200 (2026-10-19)
 """
 import calendar
@@ -97,13 +100,19 @@ def apply_fill(o, volume, funds):
         o['remaining_volume'] = str(Decimal(o['volume']) - v)
 
 
+def fill_price(o):
+    fp = ((state.get('market') or {}).get('fill_price') or {}).get(o.get('market'))
+    return Decimal(fp) if fp is not None else PRICE
+
+
 def default_fill(o, mode):
+    price = fill_price(o)
     if o['side'] == 'bid':
         total = Decimal(o['price'])            # 시장가 매수: price = 총액
         full_funds = (total * Decimal('0.98')).quantize(Decimal('0.00000001'))   # 2,940 / 3,000
     else:
-        full_funds = (Decimal(o['volume']) * PRICE).quantize(Decimal('0.00000001'))
-    full_vol = full_funds / PRICE
+        full_funds = (Decimal(o['volume']) * price).quantize(Decimal('0.00000001'))
+    full_vol = full_funds / price
     if mode == 'done':
         apply_fill(o, str(full_vol), str(full_funds))
         o['state'] = 'done'
@@ -152,7 +161,8 @@ class H(BaseHTTPRequestHandler):
                 return self.reply(503, {'error': {'name': 'server_maintenance', 'message': '시험 대역 — 점검'}})
             if mode == 'slow':
                 time.sleep(3.5)
-            return self.reply(200, [{'market': 'KRW-DOGE', 'korean_name': '도지코인', 'english_name': 'Dogecoin'}])
+            markets = (state.get('market') or {}).get('markets')
+            return self.reply(200, markets or [{'market': 'KRW-DOGE', 'korean_name': '도지코인', 'english_name': 'Dogecoin'}])
         with lock:
             if u.path == '/v1/order':
                 o = self.find(q)
@@ -160,7 +170,8 @@ class H(BaseHTTPRequestHandler):
             if u.path == '/v1/accounts':
                 return self.reply(200, [
                     {'currency': 'KRW', 'balance': state['krw'], 'locked': '0', 'avg_buy_price': '0', 'unit_currency': 'KRW'},
-                    {'currency': 'DOGE', 'balance': state['coin'], 'locked': '0', 'avg_buy_price': '300', 'unit_currency': 'KRW'}])
+                    {'currency': (state.get('market') or {}).get('coin_currency', 'DOGE'), 'balance': state['coin'], 'locked': '0',
+                     'avg_buy_price': '300', 'unit_currency': 'KRW'}])
             if u.path == '/v1/market/all':
                 return self.reply(200, [{'market': 'KRW-DOGE', 'korean_name': '도지코인', 'english_name': 'Dogecoin'}])
             if u.path == '/v1/orders/chance':
@@ -208,13 +219,18 @@ class H(BaseHTTPRequestHandler):
         to_s = calendar.timegm(time.strptime(to, '%Y-%m-%dT%H:%M:%S')) if to else now + 3600   # UTC
         cur = now - now % 3600
         close = Decimal(cfg['close'])
+        slope = Decimal(cfg.get('slope', '0'))
+        anchor = int(cfg.get('anchor', cur))
+        spread = Decimal(cfg.get('spread', '0'))
         absent = set(int(x) for x in cfg.get('absent', []))
         out = []
         while len(out) < count and cur > now - 600 * 3600:
             if cur < to_s and cur not in absent:
+                c = close + slope * (cur - anchor) // 3600
+                o_ = c - slope
                 out.append({'market': coin, 'candle_date_time_utc': time.strftime('%Y-%m-%dT%H:%M:%S', time.gmtime(cur)),
-                            'opening_price': float(close), 'high_price': float(close), 'low_price': float(close),
-                            'trade_price': float(close), 'candle_acc_trade_volume': 10})
+                            'opening_price': float(o_), 'high_price': float(max(c, o_) + spread), 'low_price': float(min(c, o_) - spread),
+                            'trade_price': float(c), 'candle_acc_trade_volume': 10})
             cur -= 3600
         return self.reply(200, out)
 

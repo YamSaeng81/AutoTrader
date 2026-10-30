@@ -67,6 +67,14 @@ public class RestartHarnessController {
         this.tx = new TransactionTemplate(txManager);
         this.markPriceBook = markPriceBook;
         StrategyRegistry.register(new HarnessSignal());
+        // 일봉 마감 시각 이동 (2026-10-30, SMA20 격리 리허설) — 규칙은 같고 하루의 경계만 옮긴 인스턴스를 같은 이름으로 등록한다
+        // (DailySma20LiveOrderPathTest 와 같은 방식). 스케줄러가 돌기 전(빈 생성 시점)에 등록해 재기동 직후 첫 평가부터 같은 경계를 쓴다.
+        String closeHour = System.getProperty("harness.daily-close-hour-utc");
+        if (closeHour != null) {
+            StrategyRegistry.register(new com.cryptoautotrader.strategy.dailysma.DailySmaTrendStrategy(Integer.parseInt(closeHour)));
+            org.slf4j.LoggerFactory.getLogger(RestartHarnessController.class)
+                    .warn("[재시작 시험] DAILY_SMA20 일봉 마감 시각 이동: 마감 봉 = {}:00 UTC 시작 H1 봉", closeHour);
+        }
     }
 
     /** 시험용 전략 이름 — 엔진 평가가 이 전략을 부르면 {@link #signal} 을 그대로 낸다(2026-10-15, 5-h 엔진 자체 청산 S16). */
