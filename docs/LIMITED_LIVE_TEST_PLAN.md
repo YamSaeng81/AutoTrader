@@ -1,6 +1,6 @@
 # 12월 제한 실거래 시험 — 후보와 실행안
 
-> **상태**: v1.7 (2026-10-30, 개입 #15 승인) — **리뷰 판정: 후보 `82d15d4` 와 STAGE_1 등록 재기동(개입 #15) 승인, 생성 시 손실 한도 기준 행 기록 수용.** 보완 두 가지(#15 점검 기록 분리 · 실패 시 다음 변경 중단)를 §5-8 A~E 에 반영했다. 추가 승인 없이 청구액·KRW·E1~E4·경보 수신 → 등록 재기동 → 기동·30분 점검 → 세션 1개 `CREATED` 생성·저장값 대조까지 진행(`start` 아님). 기준 행은 생성 시각으로 보존하고 12월 시작 때 다시 만들지 않는다. 56일은 실제 `start` 시각부터. 운영 `504ab81`, STAGE_1 비활성(실행 전).
+> **상태**: v1.7 (2026-10-30, 개입 #15 승인) — 🔴 **A 직전 확인에서 멈춤(10:10 KST): `EG` = `20|2|0|true` — 실자금 DYNAMIC 1개 RUNNING·EMERGENCY_STOPPED 1개, LIVE EMERGENCY_STOPPED 20개. 등록하면 RUNNING DYNAMIC 의 실자금 진입이 열릴 수 있어 B 로 가지 않았다. 리뷰 판단 대기(§5-8 A 실행 결과).** **리뷰 판정: 후보 `82d15d4` 와 STAGE_1 등록 재기동(개입 #15) 승인, 생성 시 손실 한도 기준 행 기록 수용.** 보완 두 가지(#15 점검 기록 분리 · 실패 시 다음 변경 중단)를 §5-8 A~E 에 반영했다. 추가 승인 없이 청구액·KRW·E1~E4·경보 수신 → 등록 재기동 → 기동·30분 점검 → 세션 1개 `CREATED` 생성·저장값 대조까지 진행(`start` 아님). 기준 행은 생성 시각으로 보존하고 12월 시작 때 다시 만들지 않는다. 56일은 실제 `start` 시각부터. 운영 `504ab81`, STAGE_1 비활성(실행 전).
 >
 > v1.6 (2026-10-30, #8 준비) — **리뷰 판정: 개입 #14 배포 통과, `504ab81` 운영 유지 수용.** 다음 활성화 직전 확인(#8) 준비 승인, 비용·직전 확인 통과 시 세션 1개 `CREATED` 생성·저장값 대조까지 승인(`start` 아님), 이번 시험은 WF `false` 유지. 🔴 **준비 중 확인: 세션 생성도 STAGE_1 등록이 있어야 되는데, 운영 compose 에 등록값을 넘길 통로가 없다** → 후보 `82d15d4`(compose 4줄, jar 무변경)와 등록 재기동 절차를 준비했다(§5-8). 등록 재기동은 리뷰 판단 뒤. 운영 `504ab81`, STAGE_1 비활성.
 >
@@ -383,7 +383,7 @@ v1.1 의 추정표(약 17h)는 아래 실제 작업으로 바꿨다. 로컬 구�
 - 준비한 후보 **`82d15d4`**(`deploy/sma20-limited-live`, 부모 `504ab81`): compose backend 환경변수 4줄(`TRADING_CAPITALPOOL_STAGE`·`…TOTALCAPKRW`·`…PERPOSITIONCAPKRW`·`…MAXCONCURRENTPOSITIONS` ← `.env` 의 `CAPITAL_POOL_*`)과 시험 1건. 본 코드·jar 변경 없음 → 이미지 재빌드 없이 `e08b35b0…` 그대로 쓴다. `.env` 에 값이 없으면 빈 값 = 미등록(종전과 같다). main 에도 같은 변경을 넣었다.
   - 시험 `CapitalPoolRegistrationTest.prodComposeEnvironmentNamesBind`: compose 의 네 이름을 읽어, 운영과 같은 방식(시스템 환경변수·느슨한 이름 대응·부트 변환)으로 `@Value` 에 묶는다. 값 있음 → 등록 통과·`단계=STAGE_1 총상한=100000 포지션당=20000 동시보유=3`, 빈 값 → "누락". 6/6 통과(main·후보 둘 다). 이름을 일부러 틀리게 바꾸면 실패함을 확인했다. `docker compose config` 로 빈 값 렌더링을 확인했다.
 - 생성이 함께 하는 일(코드 대조): ⓐ 거래소 잔고 동기화 뒤 **업비트 KRW 여유 ≥ 20,200원**이어야 한다(계좌 여유 검사). ⓑ 첫 실자금 배정이라 **`capital_stage_baseline` 에 STAGE_1 시작 행을 쓴다**(`PoolLossGuard.ensureBaseline`, 한 번 쓰면 바뀌지 않는다). 공유 풀 손실 한도의 계산 시작이 생성 시각이 된다. 시작 전에는 주문이 없어 손익은 0 이다. 56일은 리뷰 판정대로 시작(`start`) 시각부터 센다.
-- 등록이 여는 것: 등록 뒤에는 **실행 중인 모든 실자금 세션**의 진입이 등록 한도 안에서 승인될 수 있다. 그래서 등록 전에 E1·E2 로 실자금 세션이 진입할 수 없는 상태인지 확인한다(`LIVE_RISK_IMPLEMENTATION_REVIEW.md` §6.15-④ 1). LIVE `EMERGENCY_STOPPED` 는 거래소 복구 때 자동 재시작 대상이라 함께 본다.
+- 등록이 여는 것: 등록 뒤에는 **실행 중인 모든 실자금 세션**의 진입이 등록 한도 안에서 승인될 수 있다. 그래서 등록 전에 E1·E2 로 실자금 세션이 진입할 수 없는 상태인지 확인한다(`LIVE_RISK_IMPLEMENTATION_REVIEW.md` §6.15-④ 1). LIVE `EMERGENCY_STOPPED` 는 거래소 복구 때 자동 재시작 대상이라 함께 본다. (v1.7 정정: 자동 재시작 대상은 거래소 DOWN 순간 RUNNING 이던 세션 id 를 프로세스 메모리에 담은 목록뿐이고, 기동 때 `EMERGENCY_STOPPED` 를 다시 켜는 경로는 없다 — `LiveTradingService.onExchangeRecovered`, `LIVE_RISK_IMPLEMENTATION_REVIEW.md` §6.15 ⑩ 10-19 확인. DYNAMIC 에는 복구 자동 재시작이 없다. 다만 수동 `start` 는 가능하다.)
 
 **리뷰 판정 (2026-10-30, 운영자 전달) — 개입 #15 승인**: "후보 `82d15d4`와 STAGE_1 등록 재기동(개입 #15)을 승인합니다. 생성 시 손실 한도 기준 행이 기록되는 것도 수용합니다." · 보완 두 가지: "#15 점검 기록을 분리하세요" · "실패하면 다음 변경을 실행하지 않도록 하세요." · "추가 승인 요청 없이 다음 순서로 진행하세요." · "기준 행은 생성 시각으로 보존하고, 12월 시작 때 다시 만들거나 초기화하지 않습니다. 56일 시험 기간은 실제 `start` 시각부터 셉니다." · "`start`는 아직 실행하지 않습니다."
 
@@ -457,6 +457,15 @@ $PSQL -c "SELECT type, success, count(*), max(sent_at) FROM telegram_notificatio
 printf '월 청구액: %s\n업비트 KRW 주문 가능: %s\n경보 수신 시각: %s\n' "<금액·청구 기간>" "<금액>" "<HH:MM:SS>" | tee "$M/operator-confirm.txt"
 ```
 - 기대(하나라도 다르면 B 로 가지 않고 보고한다): 월 청구액 ≤ 100,000원 · 업비트 KRW ≥ 20,200원 · 경보 수신 · `git-before` = OLD 전체 SHA 다음 바로 `(끝)` · `eg-before` = `0|0|0|true` · Q1 94 · Q3~Q6 0 · Q7 `RUNNING 63`·`STOPPED 3` · Q8 0 · Q9 0 · `ROLLBACK` · `sc` = `66 | 63 | 3 | -` · `svc` 다섯 줄 · 두 이미지 ID 같음 · 기존 경보는 기준선으로 기록만.
+**A 실행 결과 (2026-10-30 10:10:01 KST, 운영자 실행) — 🔴 멈춤, B 로 가지 않았다**
+- 통과: `git-before` = `504ab81…` 다음 바로 `(끝)` · E3 0행 · E4 3.00·15.00 · Q1 94 · Q3~Q6 0 · Q7 `RUNNING 63`·`STOPPED 3` · Q8 0 · Q9 0 · `ROLLBACK` · `sc` = `66 | 63 | 3 | -` · `svc` 다섯 줄 · 실행 이미지와 `latest` 모두 `sha256:e08b35b00a3cac875617c5b33c63d7cd792d1db86c437e72a9240fcbd77ea5e3` · 한도 로그 `🔴 … 한도 설정 누락`(00:10:05Z 기동분, 미등록 = 기대) · 텔레그램 시험 `200`, `TEST` `t` 01:10:25Z(10:10:25 KST) 기록 · 업비트 KRW 주문 가능 **55,853원**(운영자 전달, ≥ 20,200원).
+- 🔴 **기대와 다름**: `eg-before` = **`20|2|0|true`**(기대 `0|0|0|true`).
+  - E1 실자금 LIVE: `DELETED 16` · **`EMERGENCY_STOPPED 20`**(합 340,000) · `STOPPED 11`. 10-19 확인(§6.15 ⑩)의 과거 세션 20개(157·161·166~168·183~196·200)와 같은 개수다 — id 는 확인 조회로 대조한다.
+  - E2 실자금 DYNAMIC: `DELETED 49` · **`EMERGENCY_STOPPED 1`**(10,000, 0.8) · **`RUNNING 1`**(10,000, `invest_ratio` 0.8). 10-19 기록의 "DYNAMIC 93 RUNNING REAL 0.8" 로 보인다 — 확인 조회로 대조한다. 🔴 **이 세션이 RUNNING 인 채로 등록하면, 등록 한도 안에서 실자금 신규 진입이 승인될 수 있다.** 지금 막는 것은 미등록 거절(`POOL_NOT_REGISTERED`) 하나다. 이번 시험은 BTC 세션 1개라는 설계와 맞지 않는다.
+  - 🔴 절차 쪽 빠짐: v1.6 E1·E2 기대를 적을 때 이 세션들(10-19 기록에 이미 있음)을 대조하지 않았다. B 의 `operator-confirm.txt` 검사가 비어 있는지만 봐서, `<자리표시>` 가 남은 파일도 통과할 수 있었다 → `<` 검사를 추가했다(이번에는 `EG` 검사에서 먼저 멈췄을 것이다).
+- 미기록: **월 청구액**, **휴대폰 수신 시각**. `operator-confirm.txt` 는 자리표시 그대로 만들어졌다 — 실제 값으로 다시 쓴다.
+- 참고(Q10): `TIME_STOP` 전송 실패 `f` 2건(마지막 10-28 17:01Z). 이번 판단과 별개로 기록만 한다.
+- 다음: 읽기 전용 확인 조회(세션별 상세) → **리뷰 판단**: DYNAMIC 실자금 RUNNING 세션의 처리(등록 전 정지 등)와, `EMERGENCY_STOPPED` 세션들을 `EG` 기대에서 어떻게 볼지. 판단 전에는 세션을 정지·삭제하지 않고 기준(`0|0|0|true`)도 바꾸지 않는다.
 
 **B. 등록 재기동 (개입 #15) — A 통과 뒤 바로**
 ```bash
@@ -464,6 +473,7 @@ printf '월 청구액: %s\n업비트 KRW 주문 가능: %s\n경보 수신 시각
 set -euo pipefail
 stop() { echo "🔴 멈춤: $*"; exit 1; }
 [ -s "$M/operator-confirm.txt" ] || stop "운영자 기록(청구액·KRW·수신) 없음"
+! grep -q "<" "$M/operator-confirm.txt" || stop "운영자 기록에 <자리표시> 가 남아 있음"
 [ "$(git rev-parse HEAD)" = "$OLD" ] || stop "HEAD 가 504ab81 이 아님"
 [ -z "$(git status --porcelain --untracked-files=no)" ] || stop "추적 파일 변경 있음"
 git fetch origin
