@@ -1,6 +1,6 @@
 # 12월 제한 실거래 시험 — 후보와 실행안
 
-> **상태**: v1.8 (2026-10-30, A 멈춤 판단 반영) — **리뷰 판정: DYNAMIC 93 정지 승인(운영자 1회 호출), 과거 비상정지 21개는 보존(선택지 ②) — 실행 가능 상태 0 검사 + LIVE 20·DYNAMIC 92 의 ID·상태 별도 대조로 `EG` 교체(§5-8 0·A0).** 93 정지 확인 뒤 A 부터 다시, 통과하면 B~E 를 추가 승인 없이. 월 청구액·휴대폰 수신 시각은 필수 확인. `start` 아님.
+> **상태**: v1.9 (2026-10-30, D 멈춤 — 404 필터 정규식 순서 결함 수정, 리뷰 판단 대기) · v1.8 (A 멈춤 판단 반영) — **리뷰 판정: DYNAMIC 93 정지 승인(운영자 1회 호출), 과거 비상정지 21개는 보존(선택지 ②) — 실행 가능 상태 0 검사 + LIVE 20·DYNAMIC 92 의 ID·상태 별도 대조로 `EG` 교체(§5-8 0·A0).** 93 정지 확인 뒤 A 부터 다시, 통과하면 B~E 를 추가 승인 없이. 월 청구액·휴대폰 수신 시각은 필수 확인. `start` 아님.
 >
 > v1.7 (2026-10-30, 개입 #15 승인) — 🔴 **A 직전 확인에서 멈춤(10:10 KST): `EG` = `20|2|0|true` — 실자금 DYNAMIC 1개 RUNNING·EMERGENCY_STOPPED 1개, LIVE EMERGENCY_STOPPED 20개. 등록하면 RUNNING DYNAMIC 의 실자금 진입이 열릴 수 있어 B 로 가지 않았다. 리뷰 판단 대기(§5-8 A 실행 결과).** **리뷰 판정: 후보 `82d15d4` 와 STAGE_1 등록 재기동(개입 #15) 승인, 생성 시 손실 한도 기준 행 기록 수용.** 보완 두 가지(#15 점검 기록 분리 · 실패 시 다음 변경 중단)를 §5-8 A~E 에 반영했다. 추가 승인 없이 청구액·KRW·E1~E4·경보 수신 → 등록 재기동 → 기동·30분 점검 → 세션 1개 `CREATED` 생성·저장값 대조까지 진행(`start` 아님). 기준 행은 생성 시각으로 보존하고 12월 시작 때 다시 만들지 않는다. 56일은 실제 `start` 시각부터. 운영 `504ab81`, STAGE_1 비활성(실행 전).
 >
@@ -468,6 +468,8 @@ SQL
 
 **B·C·D 진행 (10-30, 운영자)**: B·C 는 운영자가 통과로 진행했다(출력 원문은 아직 받지 않음 — 다음 보고에 첨부). 🔴 **D 멈춤 11:55:47 KST**: `docker compose ps` backend `Up About an hour`(재생성 이후 계속 실행) · `🔴 멈춤: 세 마켓 404 밖의 ERROR — errors-other30.txt 를 보고`. 이 멈춤은 '되돌림 필요' 가 아니다 — D 의 뒤쪽 검사(🔴 한도 줄·Q·`sc`·서비스·backend 재시작·`EG`·경보)는 실행되지 않았고 `ok-D` 는 없다. **E(생성) 하지 않음.** `errors-other30.txt` 내용과 나머지 읽기 전용 점검을 받아 원인을 본 뒤 판단한다.
 
+**D 멈춤 원인 (10-30 12:4x KST, 읽기 전용 점검 결과)**: `errors-other30.txt` 3줄은 **모두 세 마켓 404**(01:59:12 UTC, `SignalQualityService` 조회, BLAST·BONK·STORJ 각 1줄, 각각 바로 뒤 "거래소에 없다(404) — 더 조회하지 않는다" WARN). 멈춤은 **절차 결함**이다 — 거르는 정규식이 `Code not found.*market=…` 순서였는데 실제 줄은 `url=…market=KRW-…` 가 앞, `body=…Code not found` 가 뒤라 한 줄도 걸러지지 않았다. C 의 같은 필터(`errors-other.txt` 0줄)는 C 실행(01:57 UTC 무렵)이 첫 404(01:59:12) 전이라 결함이 드러나지 않았다. 나머지 D 점검(멈춤 없이 읽기만, `d-rest.txt`): 🔴 한도 줄 없음 · Q3~Q6 0 · Q7 63/3 · Q8 0 · Q9 0 · `ROLLBACK` · `sc` `66 | 63 | 3 | -` 같음 · backend 외 서비스 같음 · backend 재시작 없음(01:50:49 그대로) · `EG` = `EGX` · 경보 2회 모두 KRW-BLAST 반복(02:19·03:19, ⚪ 0). 참고: Q10 `TIME_STOP` 실패 2건은 10-28 17:01 UTC 로 정비 전. → 정규식을 순서 맞춰 고쳤다(v1.9, C·D 두 곳). 문서의 C 지침("세 마켓 404 가 다른 모양으로 찍힌 것이면 되돌리지 말고 출력을 보고한다")에 따라 **되돌리지 않고 리뷰에 보고, `ok-D` 없음, E 하지 않음.** 리뷰가 승인하면 고친 D 묶음을 처음부터 다시 실행해 통과할 때만 E.
+
 **A. ▶ 직전 확인·기준선 — 읽기 전용, 재기동 없음** (v1.8: A0 통과 뒤 처음부터 다시)
 ```bash
 date '+%F %T %Z' | tee "$M/t-before.txt"; date '+%F %T%:z' > "$M/maint_start.txt"     # Q8 기준 = #15 정비 시작
@@ -571,7 +573,7 @@ grep -qF "공유 풀 한도 확인: 단계=STAGE_1 총상한=100000 포지션당
 grep -qF "위험 한도 확인: 단계 STAGE_1 총 자본 100000 기준 누적 15.00%·24시간 3.00%" "$M/app-after.log" || stop "되돌림 필요: 위험 한도 로그 없음"
 ! grep -qE "🔴 (공유 풀 한도|위험 한도)" "$M/app-after.log" || stop "되돌림 필요: 🔴 공유 풀/위험 한도 줄"
 grep " ERROR " "$M/app-after.log" | grep -v "캔들 최신성" | tee "$M/errors-after.txt" || true
-grep -v -E "Code not found.*market=KRW-(BLAST|BONK|STORJ)([^A-Z]|$)" "$M/errors-after.txt" > "$M/errors-other.txt" || true
+grep -v -E "market=KRW-(BLAST|BONK|STORJ)([^A-Z]|$).*Code not found" "$M/errors-after.txt" > "$M/errors-other.txt" || true
 [ ! -s "$M/errors-other.txt" ] || stop "세 마켓 404 밖의 ERROR — errors-other.txt 를 보고"
 python3 "$M/maint_verify.py" candle "$M/app-after.log" "$M/backend-before.log"
 qc > "$M/q-app.txt" 2>&1; grep -A3 '== Q1' "$M/q-app.txt" | head -4; sed -n '/== Q3/,$p' "$M/q-app.txt" | grep -vE '^-+|^\s*$'
@@ -594,7 +596,7 @@ S=$(cat "$M/t-stage1.utc")
 date '+%F %T %Z' | tee "$M/t-after30.txt"
 $DC ps backend
 $DC logs --no-color --since "$S" backend > "$M/app-after30.log"
-grep " ERROR " "$M/app-after30.log" | grep -v "캔들 최신성" | grep -v -E "Code not found.*market=KRW-(BLAST|BONK|STORJ)([^A-Z]|$)" > "$M/errors-other30.txt" || true
+grep " ERROR " "$M/app-after30.log" | grep -v "캔들 최신성" | grep -v -E "market=KRW-(BLAST|BONK|STORJ)([^A-Z]|$).*Code not found" > "$M/errors-other30.txt" || true
 [ ! -s "$M/errors-other30.txt" ] || stop "세 마켓 404 밖의 ERROR — errors-other30.txt 를 보고"
 ! grep -qE "🔴 (공유 풀 한도|위험 한도)" "$M/app-after30.log" || stop "되돌림 필요: 🔴 공유 풀/위험 한도 줄"
 qc > "$M/q-after30.txt" 2>&1; sed -n '/== Q3/,$p' "$M/q-after30.txt" | grep -vE '^-+|^\s*$'
@@ -673,6 +675,7 @@ $PSQL -c "SELECT * FROM capital_stage_baseline;" | tee "$M/baseline.txt"     # 1
 - 🔴 **40시간·월 10만 원 안에서 충분한지는 확정하지 않는다.** 서버 실제 청구액은 아직 확인하지 않았다(§7 운영자 확인).
 - **v1.3 (2026-10-30)**: (나) 반영 — 백테스트 근사 정정, `maxHoldHours=0` 주문 경로 시험, 불명 주문 대응 확인, 배포 후보·절차서 약 4.5시간 → **누적 약 18.5시간**. 남은 일 추정(확정 아님): 리뷰 대응 약 2h, WF 예외(§5-4 3번에 해당할 때만) 약 2h, 배포 지원 약 1h, 활성화 직전 확인(#8)·세션 생성 명령 약 2h → **약 5~7h**.
 - **v1.8 (2026-10-30)**: A 실행 결과 대조·`EG` 교체·A0(93 정지·확인) 약 1시간 → **누적 약 24시간**.
+- **v1.9 (2026-10-30)**: D 멈춤 원인 확인(404 필터 정규식 순서 결함, C·D 두 곳 수정) → 리뷰 판단 대기.
 - **v1.7 (2026-10-30)**: 리뷰 보완 — #15 별도 기록 폴더·실패 시 중단 묶음(A~E)·전체 이미지 ID 비교 약 1시간 → **누적 약 23시간**. 남은 일 추정(확정 아님): 실행 결과 확인·기록 약 1h.
 - **v1.6 (2026-10-30)**: #8 준비 — 생성 경로 코드 대조, 등록 통로 후보(`82d15d4`)·시험, §5-8 명령 약 1.5시간 → **누적 약 22시간**. 남은 일 추정(확정 아님): 등록 재기동·생성 지원 약 1h.
 - **v1.5 (2026-10-30)**: 배포 지원(절차 안내·결과 확인·기록) 약 1시간 → **누적 약 20.5시간**. 남은 일 추정(확정 아님): 활성화 직전 확인(#8)·세션 생성 명령 약 2h. WF 예외는 `gateEnabled` false 라 필요 없다.
