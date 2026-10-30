@@ -1,6 +1,8 @@
 # 12월 제한 실거래 시험 — 후보와 실행안
 
-> **상태**: v1.5 (2026-10-30, 배포 결과) — **`504ab81` backend 단독 배포 완료(개입 #14), 복구 없음.** 리뷰 판정(운영자 전달): "`504ab81`은 기술 검토 통과입니다. 운영 판단은 backend 단독 배포로 진행하는 것입니다." · "이번 승인은 배포까지입니다." 배포 전 `gateEnabled` = false(§5-4). 기동·30분 점검 결과는 §5-5 끝. **활성화·`DAILY_SMA20` 세션 생성은 승인되지 않았다** — 배포 결과 리뷰 뒤 별도 결정. `maxHoldHours=0`·매수 상한 2만 원·56일 종료 그대로. 운영 `504ab81`, STAGE_1 비활성.
+> **상태**: v1.6 (2026-10-30, #8 준비) — **리뷰 판정: 개입 #14 배포 통과, `504ab81` 운영 유지 수용.** 다음 활성화 직전 확인(#8) 준비 승인, 비용·직전 확인 통과 시 세션 1개 `CREATED` 생성·저장값 대조까지 승인(`start` 아님), 이번 시험은 WF `false` 유지. 🔴 **준비 중 확인: 세션 생성도 STAGE_1 등록이 있어야 되는데, 운영 compose 에 등록값을 넘길 통로가 없다** → 후보 `82d15d4`(compose 4줄, jar 무변경)와 등록 재기동 절차를 준비했다(§5-8). 등록 재기동은 리뷰 판단 뒤. 운영 `504ab81`, STAGE_1 비활성.
+>
+> v1.5 (2026-10-30, 배포 결과) — **`504ab81` backend 단독 배포 완료(개입 #14), 복구 없음.** 리뷰 판정(운영자 전달): "`504ab81`은 기술 검토 통과입니다. 운영 판단은 backend 단독 배포로 진행하는 것입니다." · "이번 승인은 배포까지입니다." 배포 전 `gateEnabled` = false(§5-4). 기동·30분 점검 결과는 §5-5 끝. **활성화·`DAILY_SMA20` 세션 생성은 승인되지 않았다** — 배포 결과 리뷰 뒤 별도 결정. `maxHoldHours=0`·매수 상한 2만 원·56일 종료 그대로. 운영 `504ab81`, STAGE_1 비활성.
 >
 > v1.4 (2026-10-30, 리뷰 판정 반영) — **운영 판단 준비 계속. 청산 없는 차단 기능이 없는 한계는 이번 BTC 1개·매수 상한 2만 원 시험에서 수용(리뷰), 별도 차단 기능은 만들지 않는다.** 주문 경로 시험의 비동기 예외 7건을 정리하고 배포 후보를 **`504ab81`** 로 고정했다(§5-5, 본 코드는 `8ea2ec0` 과 같음). §6-2 대응 순서를 리뷰 지시로 고쳤다(정산 불일치는 다음 마감까지 기다리지 않고 정지 절차, STOPPED ≠ 청산·정산 완료). 운영 `98aaac4`, STAGE_1 비활성.
 >
@@ -369,12 +371,99 @@ v1.1 의 추정표(약 17h)는 아래 실제 작업으로 바꿨다. 로컬 구�
 - 추적 익절은 실시간 경로(`ExitRuleChecker.updateTrailingStops`)라 이 평가 회차 시험에 들어가지 않는다. `maxHoldHours` 와 무관한 기존 경로다.
 - 🔴 **시험하지 못한 것**은 v1.2 와 같다: 부분 체결·수량 반올림·실제 수수료 정산, 실제 거래소의 주문 상태 불명.
 
+### 5-8. 활성화 직전 확인(#8) — 이 시험에 적용 (v1.6, 준비만)
+
+리뷰 판정(2026-10-30, 운영자 전달): "다음은 활성화 직전 확인(#8)입니다. 준비 진행을 승인합니다." · "이번 시험의 WF는 `false`를 유지합니다." · "비용과 직전 확인을 통과하면 세션 한 개를 `CREATED`로 생성하고 저장값을 대조하는 것까지 승인합니다. `start`는 아직 실행하지 않습니다." `LIVE_READINESS.md` #8 의 ③(WF 게이트 켜기)은 이 시험에 적용하지 않는다. 이미 끝낸 동시성·정지 시험은 반복하지 않는다.
+
+**🔴 준비 중 확인한 것 — 생성도 STAGE_1 등록이 있어야 된다 (코드 대조)**
+- `LiveTradingService.createSession` 은 저장 전에 `CapitalReservationService.checkSessionAllocation` 을 부른다. 공유 풀이 등록되지 않았으면 `POOL_NOT_REGISTERED` 로 **생성 자체를 거절**한다. 생성과 시작이 분리돼 있다는 리뷰 확인은 맞지만, 생성도 등록 뒤에만 된다.
+- 그런데 **운영 compose 에는 `trading.capital-pool.*` 을 넘기는 통로가 없다**(`504ab81` `docker-compose.prod.yml` backend `environment`). 운영은 지금까지 항상 미등록이었고, 기동 로그의 ERROR "공유 풀 한도 … 한도 설정 누락"(#13·#14 기동 확인에서 "예상"으로 적은 줄)이 그 상태다. 등록하려면 compose 변경과 backend 재생성(재기동 1회)이 필요하다.
+- 준비한 후보 **`82d15d4`**(`deploy/sma20-limited-live`, 부모 `504ab81`): compose backend 환경변수 4줄(`TRADING_CAPITALPOOL_STAGE`·`…TOTALCAPKRW`·`…PERPOSITIONCAPKRW`·`…MAXCONCURRENTPOSITIONS` ← `.env` 의 `CAPITAL_POOL_*`)과 시험 1건. 본 코드·jar 변경 없음 → 이미지 재빌드 없이 `e08b35b0…` 그대로 쓴다. `.env` 에 값이 없으면 빈 값 = 미등록(종전과 같다). main 에도 같은 변경을 넣었다.
+  - 시험 `CapitalPoolRegistrationTest.prodComposeEnvironmentNamesBind`: compose 의 네 이름을 읽어, 운영과 같은 방식(시스템 환경변수·느슨한 이름 대응·부트 변환)으로 `@Value` 에 묶는다. 값 있음 → 등록 통과·`단계=STAGE_1 총상한=100000 포지션당=20000 동시보유=3`, 빈 값 → "누락". 6/6 통과(main·후보 둘 다). 이름을 일부러 틀리게 바꾸면 실패함을 확인했다. `docker compose config` 로 빈 값 렌더링을 확인했다.
+- 생성이 함께 하는 일(코드 대조): ⓐ 거래소 잔고 동기화 뒤 **업비트 KRW 여유 ≥ 20,200원**이어야 한다(계좌 여유 검사). ⓑ 첫 실자금 배정이라 **`capital_stage_baseline` 에 STAGE_1 시작 행을 쓴다**(`PoolLossGuard.ensureBaseline`, 한 번 쓰면 바뀌지 않는다). 공유 풀 손실 한도의 계산 시작이 생성 시각이 된다. 시작 전에는 주문이 없어 손익은 0 이다. 56일은 리뷰 판정대로 시작(`start`) 시각부터 센다.
+- 등록이 여는 것: 등록 뒤에는 **실행 중인 모든 실자금 세션**의 진입이 등록 한도 안에서 승인될 수 있다. 그래서 등록 전에 E1·E2 로 실자금 세션이 진입할 수 없는 상태인지 확인한다(`LIVE_RISK_IMPLEMENTATION_REVIEW.md` §6.15-④ 1). LIVE `EMERGENCY_STOPPED` 는 거래소 복구 때 자동 재시작 대상이라 함께 본다.
+
+**▶ 지금 실행 — 읽기 전용, 재기동 없음** (새 셸이면 `MAINTENANCE_NEXT_98aaac4.md` §0 변수, `M=~/maint-20261030`)
+- 월 청구액: 서버 실제 월 청구액(최근 청구서 금액·기간)을 운영자가 적는다. 기준 월 10만 원.
+- 업비트 KRW 주문 가능 금액이 20,200원 이상인지 운영자가 앱·웹에서 확인해 적는다.
+```bash
+$DC exec -T db psql -U trader -d crypto_auto_trader <<'SQL'
+BEGIN TRANSACTION READ ONLY;
+\echo '== E1 실자금 LIVE 세션 상태별 — 기대: RUNNING·PAUSED·CREATED·EMERGENCY_STOPPED 0'
+SELECT status, count(*), coalesce(sum(initial_capital), 0) AS initial_capital_sum FROM live_trading_session WHERE session_type = 'REAL' GROUP BY status ORDER BY status;
+\echo '== E2 실자금 DYNAMIC 세션 상태별 — 기대: RUNNING·PAUSED·CREATED 0 (있으면 invest_ratio 를 본다)'
+SELECT status, count(*), coalesce(sum(initial_capital), 0) AS initial_capital_sum, max(invest_ratio) AS max_invest_ratio FROM dynamic_session WHERE trading_mode = 'REAL' GROUP BY status ORDER BY status;
+\echo '== E3 단계 시작 기록 — 기대 0행'
+SELECT * FROM capital_stage_baseline;
+\echo '== E4 위험 한도 최신 행 — 기대 24시간 3.0 · 누적 15.0'
+SELECT id, max_daily_loss_pct, max_portfolio_drawdown_pct FROM risk_config ORDER BY id DESC LIMIT 1;
+ROLLBACK;
+SQL
+$DC logs --no-color backend | grep -E "공유 풀 한도|위험 한도" | tail -3      # 기대: 🔴 … 한도 설정 누락 (지금은 미등록 = 실자금 진입 전부 거절)
+grep "Code not found" "$M/backend-before.log" | grep -o "market=KRW-[A-Z]*" | sort | uniq -c   # 개입 #14 증빙 보강(리뷰: 한 번만)
+```
+- 실제 경보 수신(§6.15-④ 4, 실제 손실·주문 없이):
+```bash
+TOKEN=$(grep -m1 '^API_AUTH_TOKEN=' .env | cut -d= -f2-)
+date '+%F %T %Z'; curl -s -o /dev/null -w '%{http_code}\n' -X POST -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/v1/settings/telegram/test
+$DC exec -T db psql -U trader -d crypto_auto_trader -c "SELECT type, success, count(*), max(sent_at) FROM telegram_notification_log WHERE type IN ('TEST','RISK_LIMIT') GROUP BY type, success ORDER BY type, success;"
+```
+  기대: `200`, 휴대폰 수신(수신 시각을 적는다), `TEST` 행 `success = t` 시각 갱신. `RISK_LIMIT` 행이 있으면 `success` 를 본다. 이 메시지는 봇·채팅방·휴대폰 수신의 근거일 뿐이다.
+- 멈춤 조건: E1·E2 에 기대 밖 행, E3 행 있음, E4 다름, 업비트 KRW < 20,200원, 수신 실패 → 등록하지 않고 보고한다.
+
+**⏸ 리뷰 판단 뒤 — STAGE_1 등록 재기동 (개입 #15 예정)**: `82d15d4` 체크아웃은 compose 만 바꾼다. `.env` 에 등록값을 넣은 뒤 backend 만 같은 이미지로 재생성한다. 66세션에 재기동 1회.
+```bash
+{ date '+%F %T %Z'; git rev-parse HEAD; git status --short --untracked-files=no; echo "(끝)"; } | tee "$M/git-before-stage1.txt"   # 504ab81…, 바로 (끝)
+git fetch origin; NEW=82d15d42fa22bb7d0f24a8243ebc888a2a7f071c   # 🔴 고정 SHA 로 체크아웃한다
+git diff --name-only 504ab81 $NEW                             # 기대 정확히 2줄: docker-compose.prod.yml · …/CapitalPoolRegistrationTest.java
+grep -c '^CAPITAL_POOL_' .env                                 # 기대 0
+svc | tee "$M/svc-before-stage1.txt"; $DC logs --no-color backend > "$M/backend-before-stage1.log"
+date '+%F %T%:z' > "$M/maint_start.txt"                       # Q8 기준 = 이 정비 시작
+git checkout $NEW
+printf 'CAPITAL_POOL_STAGE=STAGE_1\nCAPITAL_POOL_TOTAL_CAP_KRW=100000\nCAPITAL_POOL_PER_POSITION_CAP_KRW=20000\nCAPITAL_POOL_MAX_CONCURRENT_POSITIONS=3\n' >> .env
+grep '^CAPITAL_POOL_' .env                                    # 네 줄(비밀값 아님)
+date '+%F %T %Z' | tee "$M/t-start-stage1.txt"; date -u '+%Y-%m-%dT%H:%M:%SZ' > "$M/t-stage1.utc"
+$DC up -d --no-build --no-deps backend                        # 환경변수가 바뀌어 backend 만 재생성, 이미지 그대로
+docker inspect --format '{{.Image}}' $($DC ps -q backend)     # e08b35b0… (#14 새 이미지와 같아야 한다)
+$DC exec -T backend env | grep '^TRADING_CAPITALPOOL_'        # 네 줄
+```
+- 3~5분 뒤: `$DC logs --no-color --since "$(cat "$M/t-stage1.utc")" backend | grep -E "공유 풀 한도|위험 한도"` — 기대는 정확히 `공유 풀 한도 확인: 단계=STAGE_1 총상한=100000 포지션당=20000 동시보유=3` 과 `위험 한도 확인: 단계 STAGE_1 총 자본 100000 기준 누적 15.00%·24시간 3.00%`, 🔴 줄 없음. 이 두 줄과 E4 를 기록한다(#8 ② 1-e 적용값).
+- 나머지는 `MAINTENANCE_NEXT_98aaac4.md` §4-1·§6 그대로(`S=$(cat "$M/t-stage1.utc")`). 다른 점: ERROR 기대는 "공유 풀 미등록" 줄이 **없어지는 것**이다. 상장 폐지 3마켓(BLAST·BONK·STORJ) 404 는 기록하고, 그 밖의 404 는 새 ERROR 로 본다. Q8 = 0 · `sc` = `66 | 63 | 3 | -` · backend 외 서비스 그대로. E1~E3 를 다시 실행해 같음을 본다.
+- 되돌림 사유: 두 로그 줄이 기대와 다름 · 🔴 공유 풀/위험 한도 줄 · Q8 ≠ 0 · 새 ERROR · 재시작 반복 · `sc` 다름. 되돌림(등록만으로는 DB 에 쓰지 않으므로 데이터 변경 없음):
+```bash
+sed -i '/^CAPITAL_POOL_/d' .env; git checkout 504ab81
+$DC up -d --no-build --no-deps --force-recreate backend      # 미등록으로 복귀, 같은 이미지
+```
+
+**⏸ 등록 확인 뒤 — 세션 생성 1회 (`CREATED`, 리뷰 승인 범위)**
+```bash
+TOKEN=$(grep -m1 '^API_AUTH_TOKEN=' .env | cut -d= -f2-)
+date '+%F %T %Z' | tee "$M/t-create.txt"
+curl -s -X POST -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' http://localhost:8080/api/v1/trading/sessions \
+  -d '{"strategyType":"DAILY_SMA20","coinPair":"KRW-BTC","timeframe":"H1","initialCapital":20200,"investRatio":0.995,"maxInvestment":20000,"stopLossPct":5.0,"maxHoldHours":0}' \
+  | tee "$M/session-create.json"; echo
+```
+- 🔴 **한 번만 실행한다.** 응답이 없거나 애매하면 다시 보내지 말고 아래 조회로 생성 여부부터 본다. 거절(`POOL_NOT_REGISTERED`·`POOL_CAP`·계좌 여유 부족)이면 그 문구를 그대로 보고한다.
+- 저장값 대조(`SID` = 응답의 `id`):
+```bash
+SID=<응답 id>
+curl -s -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/v1/trading/sessions/$SID; echo
+$DC exec -T db psql -U trader -d crypto_auto_trader -x -c "SELECT id, status, session_type, strategy_type, coin_pair, timeframe, initial_capital, available_krw, invest_ratio, max_investment, stop_loss_pct, max_hold_hours, strategy_params, started_at, created_at FROM live_trading_session WHERE id = $SID;"
+$DC exec -T db psql -U trader -d crypto_auto_trader -c "SELECT * FROM capital_stage_baseline;"
+```
+  기대: `CREATED` · `REAL` · `DAILY_SMA20` · `KRW-BTC` · `H1` · 20200 · 20200 · 0.9950 · 20000 · 5.0 · **`max_hold_hours = 0`** · `{}` · `started_at` 비어 있음. 기준 행 1개(STAGE_1, 생성 시각 근처, 100000). 하나라도 다르면 시작하지 않고 보고한다. 되돌리기는 리뷰 판단이다 — `CREATED` 는 `DELETE /api/v1/trading/sessions/$SID` 로 지울 수 있지만 기준 행은 남는다.
+- 시작·정지 명령(🔴 **실행하지 않는다** — 12월 시작 시각을 리뷰가 정한 뒤):
+  - 시작: `curl -s -X POST -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/v1/trading/sessions/$SID/start` → `RUNNING`, `started_at` = 56일 기산점.
+  - 정지: `curl -s -X POST -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/v1/trading/sessions/$SID/stop` — `RUNNING` 에서만 받는다. 미종결 매수 취소 + 장부 수량 시장가 매도 + `STOPPED`(§6-2, 청산 없는 차단 아님).
+  - 조회: `GET /api/v1/trading/sessions/$SID` · `…/$SID/orders` · `…/$SID/positions`.
+
 ### 5-6. 사용 시간과 남은 일
 
 - 40시간 중 사용: v1.1 까지 약 7.5시간 + 이번 구현·시험·대조·문서 약 6.5시간 = **약 14시간**.
 - 남은 일 추정(확정 아님): 리뷰 대응 약 3h, 배포 후보 브랜치·절차서 약 3h, WF 예외(§5-4 3번에 해당할 때만) 약 2h, 활성화 직전 확인(#8) 지원 약 2h → **약 8~10h**. 합계 약 21~23시간.
 - 🔴 **40시간·월 10만 원 안에서 충분한지는 확정하지 않는다.** 서버 실제 청구액은 아직 확인하지 않았다(§7 운영자 확인).
 - **v1.3 (2026-10-30)**: (나) 반영 — 백테스트 근사 정정, `maxHoldHours=0` 주문 경로 시험, 불명 주문 대응 확인, 배포 후보·절차서 약 4.5시간 → **누적 약 18.5시간**. 남은 일 추정(확정 아님): 리뷰 대응 약 2h, WF 예외(§5-4 3번에 해당할 때만) 약 2h, 배포 지원 약 1h, 활성화 직전 확인(#8)·세션 생성 명령 약 2h → **약 5~7h**.
+- **v1.6 (2026-10-30)**: #8 준비 — 생성 경로 코드 대조, 등록 통로 후보(`82d15d4`)·시험, §5-8 명령 약 1.5시간 → **누적 약 22시간**. 남은 일 추정(확정 아님): 등록 재기동·생성 지원 약 1h.
 - **v1.5 (2026-10-30)**: 배포 지원(절차 안내·결과 확인·기록) 약 1시간 → **누적 약 20.5시간**. 남은 일 추정(확정 아님): 활성화 직전 확인(#8)·세션 생성 명령 약 2h. WF 예외는 `gateEnabled` false 라 필요 없다.
 - **v1.4 (2026-10-30)**: 리뷰 판정 반영 — 주문 경로 시험 비동기 예외 정리·재시험, 후보 `504ab81` 고정, 절차서 보완, §6-2 정정 약 1시간 → **누적 약 19.5시간**. 남은 일 추정(확정 아님): 배포 지원 약 1h, WF 예외(§5-4 3번에 해당할 때만) 약 2h, 활성화 직전 확인(#8)·세션 생성 명령 약 2h → **약 3~5h**.
 
@@ -448,5 +537,6 @@ v1.1 의 추정표(약 17h)는 아래 실제 작업으로 바꿨다. 로컬 구�
 - ~~**리뷰 (v1.2)**: 🔴 §5-3 준비 중단 조건 ① 해당 — (가)/(나)/(다) 판단~~ → 2026-10-30 운영자 결정 (나), `maxHoldHours=0` 만(§5-7).
 - ~~**리뷰 (v1.3)**: 배포 후보 `8ea2ec0`(§5-5)·절차서, §6-2 불명 주문 대응(청산 없는 차단 기능 없음을 받아들일지), §5-7 시험.~~ → 2026-10-30 리뷰 판정: 준비 계속, 한계 수용(이 시험 한정), 본 코드 5파일 범위 수용, 시험 보완 1건 요구 → v1.4 에서 반영(후보 `504ab81`, §5-5). 절차서에 정비 전 HEAD·추적 파일 상태 원문 파일 저장 보완.
 - ~~**리뷰 (v1.4)**: 수정한 시험 결과와 고정 SHA `504ab81` 확인. 그 뒤 운영자가 backend 단독 배포 진행(`MAINTENANCE_NEXT_SMA20.md`), 배포 후 점검 통과 시 활성화 직전 확인과 세션 생성.~~ → 2026-10-30 리뷰 판정: `504ab81` 기술 검토 통과, backend 단독 배포 진행, "이번 승인은 배포까지" → 개입 #14 로 배포(§5-5).
-- **리뷰 (v1.5)**: 배포 결과(개입 #14) 판단. 그 뒤 활성화 직전 확인(#8)과 세션 생성 여부.
-- **운영자**: ~~운영 WF 게이트 값 확인~~ → false(09:03:06 KST, §5-4). 🔴 **서버 실제 월 청구액 기록(§6-1 7번) — 활성화 전에 월 10만 원 한도 안인지 확인**(리뷰 요구, 아직 미기록). 개입 #14 결과·수용 칸 기입. 활성화는 따로 결정.
+- ~~**리뷰 (v1.5)**: 배포 결과(개입 #14) 판단. 그 뒤 활성화 직전 확인(#8)과 세션 생성 여부.~~ → 2026-10-30 리뷰 판정: 배포 통과·`504ab81` 유지 수용, #8 준비 승인, 비용·직전 확인 통과 시 `CREATED` 생성·저장값 대조까지 승인, WF `false` 유지(§5-8).
+- **리뷰 (v1.6)**: 🔴 생성에 STAGE_1 등록이 필요하고 등록에 compose 변경·재기동이 필요하다(§5-8). 후보 `82d15d4` 와 등록 재기동(개입 #15 예정)을 진행할지. 생성 시 `capital_stage_baseline` 기록(손실 한도 기산 = 생성 시각)을 받아들일지.
+- **운영자**: ~~운영 WF 게이트 값 확인~~ → false(09:03:06 KST, §5-4). 🔴 **서버 실제 월 청구액 기록(§6-1 7번) — 활성화 전에 월 10만 원 한도 안인지 확인**(리뷰 요구, 아직 미기록). ~~개입 #14 결과·수용 칸 기입~~ → 리뷰 판정문의 운영자 결정 문안으로 기입(2026-10-30). §5-8 ▶ 읽기 전용 확인(E1~E4·경보 수신·업비트 KRW ≥ 20,200원·이전 로그 404 대조). 활성화는 따로 결정.
