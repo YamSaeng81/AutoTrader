@@ -1,6 +1,6 @@
 # 12월 제한 실거래 시험 — 후보와 실행안
 
-> **상태**: v1.12 (2026-10-30, 리뷰 판정 — 12-01 08:50 KST 조건부 시작 유지, 절차 세 곳 보완: F2 날짜 검사 `START_DATE`, F1 공유 풀 네 값 정확 비교, F3 정산 대조(중복 매수·청산 사유·체결량·수수료·잔액·거래소 증감). 앱 코드·재배포 없음. 지금은 `CREATED` 유지, F0 미기록) · v1.11 (2026-10-30, 리뷰 판정 — #15 등록·SID 203 생성 통과 수용, **12-01(화) 08:50 KST SID 203 시작 결정**(조건: F0 비용 기록·당일 F1 점검). 경보 조회 완료 확인 보완, `EGS` 교체, §5-8 F0~F4. 지금은 `CREATED` 유지) · v1.10 (2026-10-30, 리뷰 판정 — 필터 경계·캔들 404 한정, 첫 D 보존 뒤 D 재실행, 통과하면 E. 청구액은 E 까지 잠정 수용·`start` 전 화면 확인) · v1.9 (D 멈춤 — 404 필터 정규식 순서 결함 수정) · v1.8 (A 멈춤 판단 반영) — **리뷰 판정: DYNAMIC 93 정지 승인(운영자 1회 호출), 과거 비상정지 21개는 보존(선택지 ②) — 실행 가능 상태 0 검사 + LIVE 20·DYNAMIC 92 의 ID·상태 별도 대조로 `EG` 교체(§5-8 0·A0).** 93 정지 확인 뒤 A 부터 다시, 통과하면 B~E 를 추가 승인 없이. 월 청구액·휴대폰 수신 시각은 필수 확인. `start` 아님.
+> **상태**: v1.13 (2026-10-30, 리뷰 판정 — 날짜·공유 풀 검사 통과, 시작 결정 유지. F3 보완: `settlement_final` 은 참고만·30분 대기 삭제, 없는 반영값은 ❔ 확인 불가(0 대체 없음), 거래소 BTC 증감 = 주문 순체결량 = 열린 포지션 수량, 세션 `RUNNING` 아니면 ⛔ 별도 보고. 앱 코드·재배포 없음. 지금은 `CREATED` 유지, F0 미기록) · v1.12 (2026-10-30, 리뷰 판정 — 12-01 08:50 KST 조건부 시작 유지, 절차 세 곳 보완: F2 날짜 검사 `START_DATE`, F1 공유 풀 네 값 정확 비교, F3 정산 대조(중복 매수·청산 사유·체결량·수수료·잔액·거래소 증감). 앱 코드·재배포 없음. 지금은 `CREATED` 유지, F0 미기록) · v1.11 (2026-10-30, 리뷰 판정 — #15 등록·SID 203 생성 통과 수용, **12-01(화) 08:50 KST SID 203 시작 결정**(조건: F0 비용 기록·당일 F1 점검). 경보 조회 완료 확인 보완, `EGS` 교체, §5-8 F0~F4. 지금은 `CREATED` 유지) · v1.10 (2026-10-30, 리뷰 판정 — 필터 경계·캔들 404 한정, 첫 D 보존 뒤 D 재실행, 통과하면 E. 청구액은 E 까지 잠정 수용·`start` 전 화면 확인) · v1.9 (D 멈춤 — 404 필터 정규식 순서 결함 수정) · v1.8 (A 멈춤 판단 반영) — **리뷰 판정: DYNAMIC 93 정지 승인(운영자 1회 호출), 과거 비상정지 21개는 보존(선택지 ②) — 실행 가능 상태 0 검사 + LIVE 20·DYNAMIC 92 의 ID·상태 별도 대조로 `EG` 교체(§5-8 0·A0).** 93 정지 확인 뒤 A 부터 다시, 통과하면 B~E 를 추가 승인 없이. 월 청구액·휴대폰 수신 시각은 필수 확인. `start` 아님.
 >
 > v1.7 (2026-10-30, 개입 #15 승인) — 🔴 **A 직전 확인에서 멈춤(10:10 KST): `EG` = `20|2|0|true` — 실자금 DYNAMIC 1개 RUNNING·EMERGENCY_STOPPED 1개, LIVE EMERGENCY_STOPPED 20개. 등록하면 RUNNING DYNAMIC 의 실자금 진입이 열릴 수 있어 B 로 가지 않았다. 리뷰 판단 대기(§5-8 A 실행 결과).** **리뷰 판정: 후보 `82d15d4` 와 STAGE_1 등록 재기동(개입 #15) 승인, 생성 시 손실 한도 기준 행 기록 수용.** 보완 두 가지(#15 점검 기록 분리 · 실패 시 다음 변경 중단)를 §5-8 A~E 에 반영했다. 추가 승인 없이 청구액·KRW·E1~E4·경보 수신 → 등록 재기동 → 기동·30분 점검 → 세션 1개 `CREATED` 생성·저장값 대조까지 진행(`start` 아님). 기준 행은 생성 시각으로 보존하고 12월 시작 때 다시 만들지 않는다. 56일은 실제 `start` 시각부터. 운영 `504ab81`, STAGE_1 비활성(실행 전).
 >
@@ -694,6 +694,14 @@ $PSQL -c "SELECT * FROM capital_stage_baseline;" | tee "$M/baseline.txt"     # 1
 - ③ F3 을 정산 대조로 교체 — 세션 장부 잔액(20200 − Σ매수(대금 + 수수료) + Σ매도(대금 − 수수료), 정산 코드 `OrderSettlementService` 의 미사용액 복원·매도 정정과 같은 방향), 거래소 KRW·BTC 증감(F1 `account-f1.json` 기준), 체결 있는 매수 수(중복), 청산 사유, 미종결·정산 미확정·정리 대기를 함께 보고 판정 한 줄을 낸다. 로컬 가짜 입력 9가지(매수 없음·보유·정상 청산·판단 기록 없음·수수료 누락·정산 미확정·중복 매수·강제 청산·BTC 차이)에서 판정이 기대와 같았다.
 - 운영자 답 대기(B·C 원문 있음/없음)는 없으면 누락 기록으로 끝낸다.
 
+**리뷰 판정 (v1.12 뒤, 2026-10-30 운영자 전달)**: "날짜 검사와 공유 풀 네 값 비교는 통과입니다. 12월 1일 08:50 KST 조건부 시작 결정도 유지합니다. 다만 F3에는 다음 보완이 필요합니다." · ① "`settlement_final=false`와 미반영을 구분하세요. 운영 코드는 정상 정산 뒤에도 이 값을 자동으로 참으로 만들지 않습니다. 정상 체결·잔액 일치 사례를 넣어도 현재 F3는 🟡로 나오는 것을 확인했습니다. 따라서 30분 대기 규칙은 채택하지 않습니다. 보고값·반영값이 일치하고 회계 반영 대기와 미해결 불일치가 없으면 '현재 조회 기준 일치'로 판정하세요. 최종 정산 확정을 뜻하지는 않습니다." · ② "없는 금액·수수료를 0으로 대체하지 마세요. 체결이 있는 주문의 `applied_*`가 없으면 확인 불가로 표시해야 합니다. '수수료만큼 차이가 나서 반드시 잡힌다'는 보장은 없습니다. 조회로 확인하고, 해결되지 않으면 기존 §6-2 대응을 따릅니다." · ③ "포지션 수량과 세션 상태도 판정에 넣으세요. … 거래소 BTC 증감 = 주문 순체결량 = 열린 포지션 수량 합계를 대조하세요. 비상정지·정지 상태는 정상 운영으로 표시하지 말고 별도로 보고합니다." · "수정 확인은 정상 체결인데 `settlement_final=false`, 반영값 누락, 포지션 수량 불일치, 비상정지 사례로 한정하면 됩니다. 앱 수정·재배포·전체 회귀는 필요 없습니다." · "이 보완과 F0 비용 기록, 당일 F1이 충족되면 추가 승인 없이 SID 203만 예정대로 시작합니다. 지금은 `CREATED`를 유지합니다. B·C 원문이 없으면 누락으로 기록하고 마무리하세요."
+
+**v1.13 반영** (F3 만, 문서 명령·기대값만):
+- ① 🟡 30분 대기 규칙을 뺐다. `settlement_final` 거짓은 참고로만 출력하고 판정에 쓰지 않는다. 판정에 쓰는 것은 체결 주문의 보고값(`reported_executed_funds`·`reported_paid_fee`)과 반영값(`applied_*`)의 일치, `fill_accounting_pending`, 미해결 불일치다. ✅ 문구에 "현재 조회 기준 일치 — 정산 최종 확정을 뜻하지 않음"을 붙였다.
+- ② 장부 잔액 계산에서 `executed_funds` 대체와 수수료 0 대체를 뺐다. 체결 주문의 보고값·반영값 중 하나라도 없거나 회계 반영 대기면 장부 기대를 "계산 불가"로 찍고 ❔ 확인 불가로 판정한다(G2 줄로 확인 → F3 재조회 → 그대로면 §6-2).
+- ③ 열린 포지션(`OPEN`·`CLOSING`) 수량 합계를 추가해 거래소 BTC 증감 = 주문 순체결량 = 포지션 수량을 정확히 대조한다. 세션 상태가 `RUNNING` 이 아니면 다른 결과와 상관없이 ⛔(정상 운영 아님, 별도 보고)로 판정한다.
+- 로컬 확인(가짜 입력): 정상 체결 + `settlement_final` 거짓 → ✅ 매수 1건 보유 · 반영값 누락(잔액은 맞음) → ❔ · 회계 반영 대기 → ❔ · 포지션 수량 불일치 → 🔴 · 비상정지 → ⛔ · 정지 → ⛔. 그 밖에 매수 없음 ✅ · 정상 청산 ✅ · 보고≠반영 🔴 · 거래소 KRW 차이 🔴. 문서 안 파이썬은 시험한 파일과 같고 F3 블록 `bash -n` 통과. 실제 DB 로는 돌리지 않았다(SQL 은 12-01 첫 실행이 첫 실행이다).
+
 **F0. 시작 전 비용 확인 (운영자, 화면 확인 — 서버 명령 없음)**: 청구·사용량 화면에서 ① 현재 청구 비용(기간 포함) ② 무료 혜택 종료일 ③ 유료 전환 시 월 예상 비용 ④ 그 근거 화면(서비스 이름·메뉴). 무료 혜택이 시험 종료(2027-01-26 무렵) 전에 끝나면 ③ 으로 10만 원 이내인지 본다. 운영자가 본 그대로를 운영자 진술로 출처와 함께 아래에 기록한다(개발 에이전트가 대신 판정하지 않는다).
 - F0 기록: (미기록)
 
@@ -826,7 +834,7 @@ BEGIN TRANSACTION READ ONLY;
 \echo '== G1 SID 203 판단 기록(시작 뒤 전부)'
 SELECT created_at AT TIME ZONE 'Asia/Seoul' AS kst, signal, signal_price, was_executed, blocked_reason, reason FROM strategy_log WHERE session_type = 'LIVE' AND session_id = 203 AND created_at >= :'s'::timestamptz ORDER BY id;
 \echo '== G2 SID 203 주문'
-SELECT id, position_id, side, order_type, state, quantity, filled_quantity, executed_funds, applied_executed_funds, applied_paid_fee, fee_source, settlement_final, fill_accounting_pending, signal_reason, created_at AT TIME ZONE 'Asia/Seoul' AS kst FROM "order" WHERE session_kind = 'LIVE' AND session_id = 203 ORDER BY id;
+SELECT id, position_id, side, order_type, state, quantity, filled_quantity, reported_executed_funds, applied_executed_funds, reported_paid_fee, applied_paid_fee, fee_source, settlement_final, fill_accounting_pending, signal_reason, created_at AT TIME ZONE 'Asia/Seoul' AS kst FROM "order" WHERE session_kind = 'LIVE' AND session_id = 203 ORDER BY id;
 \echo '== G3 SID 203 포지션'
 SELECT id, coin_pair, status, size, entry_price, avg_price, invested_krw, position_fee, realized_pnl, exit_reason, opened_at AT TIME ZONE 'Asia/Seoul' AS opened_kst, closed_at AT TIME ZONE 'Asia/Seoul' AS closed_kst FROM position WHERE session_kind = 'LIVE' AND session_id = 203 ORDER BY id;
 \echo '== G4 SID 203 세션 잔액'
@@ -835,21 +843,25 @@ SELECT status, available_krw, total_asset_krw FROM live_trading_session WHERE id
 SELECT count(*) FROM position_cleanup WHERE done_at IS NULL;
 ROLLBACK;
 SQL
-# 장부: 기대 잔액 = 20200 − Σ매수(체결대금 + 수수료) + Σ매도(체결대금 − 수수료) · 순 BTC = Σ매수 체결량 − Σ매도 체결량
+# 장부(체결 있는 주문의 반영값만, 없는 값은 0 으로 채우지 않는다): 세션 상태 · 세션 잔액 · 기대 잔액 = 20200 − Σ매수(반영 대금 + 반영 수수료) + Σ매도(반영 대금 − 반영 수수료) · 주문 순체결량 · 열린 포지션 수량 합계
 LEDGER=$($PSQL -At -F '|' -c "
-SELECT l.available_krw,
-       20200 - coalesce(sum(coalesce(o.applied_executed_funds, o.executed_funds, 0) + coalesce(o.applied_paid_fee, 0)) FILTER (WHERE o.side = 'BUY'), 0)
-             + coalesce(sum(coalesce(o.applied_executed_funds, o.executed_funds, 0) - coalesce(o.applied_paid_fee, 0)) FILTER (WHERE o.side = 'SELL'), 0),
-       coalesce(sum(o.filled_quantity) FILTER (WHERE o.side = 'BUY'), 0) - coalesce(sum(o.filled_quantity) FILTER (WHERE o.side = 'SELL'), 0)
+SELECT l.status, l.available_krw,
+       20200 - coalesce(sum(o.applied_executed_funds + o.applied_paid_fee) FILTER (WHERE o.side = 'BUY' AND o.filled_quantity > 0), 0)
+             + coalesce(sum(o.applied_executed_funds - o.applied_paid_fee) FILTER (WHERE o.side = 'SELL' AND o.filled_quantity > 0), 0),
+       coalesce(sum(o.filled_quantity) FILTER (WHERE o.side = 'BUY'), 0) - coalesce(sum(o.filled_quantity) FILTER (WHERE o.side = 'SELL'), 0),
+       (SELECT coalesce(sum(size), 0) FROM position WHERE session_kind = 'LIVE' AND session_id = $SID AND status IN ('OPEN','CLOSING'))
   FROM live_trading_session l LEFT JOIN \"order\" o ON o.session_kind = 'LIVE' AND o.session_id = l.id
- WHERE l.id = $SID GROUP BY l.available_krw")
-# 개수: 판단 기록 · 체결 있는 매수 · 체결 있는 매도 · 미종결 주문 · 정산 미확정 · 열린 포지션 · 정상 사유 밖 청산 · 정리 대기
+ WHERE l.id = $SID GROUP BY l.status, l.available_krw")
+# 개수: 판단 기록 · 체결 매수 · 체결 매도 · 미종결 주문 · 회계 반영 대기 · 체결 주문의 보고값·반영값 없음 · 보고값≠반영값 · settlement_final 거짓(참고) · 열린 포지션 · 정상 사유 밖 청산 · 정리 대기
 CNT=$($PSQL -At -F '|' -c "
 SELECT (SELECT count(*) FROM strategy_log WHERE session_type = 'LIVE' AND session_id = $SID AND created_at >= (SELECT started_at FROM live_trading_session WHERE id = $SID)),
        count(*) FILTER (WHERE side = 'BUY' AND coalesce(filled_quantity, 0) > 0),
        count(*) FILTER (WHERE side = 'SELL' AND coalesce(filled_quantity, 0) > 0),
        count(*) FILTER (WHERE state IN ('PENDING','INTENT_READY','SUBMITTING','UNKNOWN','SUBMITTED','PARTIAL_FILLED')),
-       count(*) FILTER (WHERE fill_accounting_pending OR (fee_source IS NOT NULL AND NOT settlement_final)),
+       count(*) FILTER (WHERE fill_accounting_pending),
+       count(*) FILTER (WHERE coalesce(filled_quantity, 0) > 0 AND (applied_executed_funds IS NULL OR applied_paid_fee IS NULL OR reported_executed_funds IS NULL OR reported_paid_fee IS NULL)),
+       count(*) FILTER (WHERE coalesce(filled_quantity, 0) > 0 AND (reported_executed_funds <> applied_executed_funds OR reported_paid_fee <> applied_paid_fee)),
+       count(*) FILTER (WHERE coalesce(filled_quantity, 0) > 0 AND NOT settlement_final),
        (SELECT count(*) FROM position WHERE session_kind = 'LIVE' AND session_id = $SID AND status IN ('OPEN','CLOSING')),
        (SELECT count(*) FROM position WHERE session_kind = 'LIVE' AND session_id = $SID AND status = 'CLOSED' AND coalesce(exit_reason, '-') NOT IN ('STOP_LOSS','TAKE_PROFIT','TRAILING_STOP')),
        (SELECT count(*) FROM position_cleanup WHERE done_at IS NULL)
@@ -863,39 +875,53 @@ def acct(p):  # 업비트 KRW(주문 가능 + 묶임, 원 단위 반올림) · B
     btc = sum((D(str(h["balance"])) + D(str(h["locked"])) for h in d.get("holdings", []) if h["currency"] == "BTC"), D(0))
     return D(str(d["availableKrw"])) + D(str(d["lockedKrw"])), btc
 k1, b1 = acct(sys.argv[1]); k3, b3 = acct(sys.argv[2])
-avail, expect, net = (D(x) for x in sys.argv[3].split("|"))
-logs, buys, sells, unres, settle, opn, badexit, cleanup = (int(x) for x in sys.argv[4].split("|"))
+st, avail, expect, net, posq = sys.argv[3].split("|"); avail, expect, net, posq = D(avail), D(expect), D(net), D(posq)
+logs, buys, sells, unres, pend, miss, diff, unfinal, opn, badexit, cleanup = (int(x) for x in sys.argv[4].split("|"))
 print("== 대조 (시작 전 기준 = F1 의 account-f1.json)")
+print("세션 상태", st)
 print("업비트 KRW", k1, "→", k3, "· BTC", b1, "→", b3)
-print("세션 잔액", avail, "· 장부 기대", expect, "· 차이", avail - expect)
+if miss or pend:
+    print("세션 잔액", avail, "· 장부 기대 계산 불가(반영값 없음 또는 회계 반영 대기)")
+else:
+    print("세션 잔액", avail, "· 장부 기대", expect, "· 차이", avail - expect)
 print("거래소 KRW 증감", k3 - k1, "· 세션 증감", avail - 20200, "· 차이", (k3 - k1) - (avail - 20200), "(±1원 = 반올림)")
-print("거래소 BTC 증감", b3 - b1, "· 장부 순 BTC", net, "· 차이", (b3 - b1) - net)
-print("판단 기록", logs, "· 체결 매수", buys, "· 체결 매도", sells, "· 미종결 주문", unres, "· 정산 미확정", settle,
+print("거래소 BTC 증감", b3 - b1, "· 주문 순체결량", net, "· 열린 포지션 수량", posq)
+print("판단 기록", logs, "· 체결 매수", buys, "· 체결 매도", sells, "· 미종결 주문", unres, "· 회계 반영 대기", pend,
+      "· 반영값·보고값 없음", miss, "· 보고≠반영", diff, "· settlement_final 거짓(참고)", unfinal,
       "· 열린 포지션", opn, "· 정상 사유 밖 청산", badexit, "· 정리 대기", cleanup)
-ok = abs(avail - expect) <= D("0.01") and abs((k3 - k1) - (avail - 20200)) <= 1 and (b3 - b1) == net
-if logs == 0 or unres or cleanup or badexit or buys > 1 or not ok:
-    print("🔴 판정: 설명되지 않음(판단 기록 없음·미종결·정리 대기·중복 매수·정상 사유 밖 청산·정산 차이 중 하나) — §6-2 대응·보고")
-elif settle:
-    print("🟡 판정: 정산 미확정만 남음 — 30분 뒤 F3 만 다시. 그때도 남으면 보고")
+match = (b3 - b1) == net == posq and abs((k3 - k1) - (avail - 20200)) <= 1
+if st != "RUNNING":
+    print(f"⛔ 판정: 세션 상태 {st} — 정상 운영 아님. 이 출력 전체를 별도 보고(§6-2 완료 확인). 재시작·재요청 없음")
+elif logs == 0 or unres or cleanup or badexit or buys > 1 or diff:
+    print("🔴 판정: 판단 기록 없음·미종결 주문·정리 대기·정상 사유 밖 청산·중복 매수·보고값≠반영값 중 하나 — §6-2 대응·보고")
+elif miss or pend:
+    print("❔ 판정: 확인 불가 — 체결 주문의 보고값·반영값이 비었거나 회계 반영 대기. G2 줄로 확인하고 F3 를 다시 조회, 그대로면 §6-2 대응·보고")
+elif abs(avail - expect) > D("0.01") or not match:
+    print("🔴 판정: 세션 잔액·장부·거래소 증감·포지션 수량 중 설명되지 않는 차이 — §6-2 대응·보고")
 elif buys == 0 and sells == 0 and opn == 0:
-    print("✅ 판정: 매수 없음 — 현금 대기")
+    print("✅ 판정: 매수 없음 — 현금 대기 (현재 조회 기준 일치)")
 elif buys == 1 and sells == 0 and opn == 1:
-    print("✅ 판정: 매수 1건 보유 중")
+    print("✅ 판정: 매수 1건 보유 중 (현재 조회 기준 일치 — 정산 최종 확정을 뜻하지 않음)")
 elif buys == 1 and sells == 1 and opn == 0:
-    print("✅ 판정: 매수 뒤 정상 사유(손절·익절·추적) 청산")
+    print("✅ 판정: 매수 뒤 정상 사유(손절·익절·추적) 청산 (현재 조회 기준 일치 — 정산 최종 확정을 뜻하지 않음)")
 else:
     print("🔴 판정: 위 세 경우 밖의 조합 — §6-2 대응·보고")
 PY
 ```
-- 판정은 주문 건수가 아니라 **중복 매수 · 매도 사유 · 실제 체결량 · 수수료 · 잔액** 대조로 한다. 시작 전 기준은 F1 의 `account-f1.json`(08:30 업비트 KRW·BTC)이고, 거래소는 그 **증감분**으로 비교한다(시작 전 BTC 보유가 있어도 같다).
-  - 세션 잔액 = 20200 − Σ매수(체결대금 + 수수료) + Σ매도(체결대금 − 수수료). 정산이 반영한 값(`applied_*`)을 쓰고, 없으면 `executed_funds` 와 수수료 0 으로 계산한다 — 그 경우 수수료만큼 차이가 나 🔴 로 드러난다.
-  - 거래소 KRW 증감 = 세션 증감(±1원, 계좌 조회가 원 단위로 반올림한다) · 거래소 BTC 증감 = Σ매수 체결량 − Σ매도 체결량(정확히 같다).
-- ✅ 정상(셋 중 하나, 모두 대조 차이 0 · 미종결 0 · 정리 대기 0 · 판단 기록 1개 이상):
+- 판정은 주문 건수가 아니라 **세션 상태 · 중복 매수 · 매도 사유 · 실제 체결량 · 포지션 수량 · 수수료 · 잔액** 대조로 한다. 시작 전 기준은 F1 의 `account-f1.json`(08:30 업비트 KRW·BTC)이고, 거래소는 그 **증감분**으로 비교한다(시작 전 BTC 보유가 있어도 같다).
+  - 세션 잔액 = 20200 − Σ매수(반영 대금 + 반영 수수료) + Σ매도(반영 대금 − 반영 수수료). 체결 있는 주문의 `applied_*` 만 쓰고, **없는 값을 0 이나 다른 열로 채우지 않는다** — 없으면 "확인 불가" 다.
+  - 체결 있는 주문은 보고값(`reported_*`)과 반영값(`applied_*`)이 같아야 한다.
+  - 거래소 KRW 증감 = 세션 증감(±1원, 계좌 조회가 원 단위로 반올림한다).
+  - **거래소 BTC 증감 = 주문 순체결량(Σ매수 − Σ매도 체결량) = 열린 포지션(`OPEN`·`CLOSING`) 수량 합계**, 셋 다 정확히 같다.
+  - `settlement_final` 거짓은 참고로만 출력한다. 운영 코드는 정상 정산 뒤에도 이 값을 자동으로 참으로 만들지 않으므로 판정에 쓰지 않는다.
+- ✅ 정상(셋 중 하나, 세션 `RUNNING` · 위 대조 모두 일치 · 회계 반영 대기 0 · 미종결 0 · 정리 대기 0 · 판단 기록 1개 이상). ✅ 는 **"현재 조회 기준 일치"** 이고 정산 최종 확정을 뜻하지 않는다.
   - **매수 없음**: 09:00 회차 HOLD 이거나 BUY 가 관문에서 막힘(`blocked_reason`). 현금으로 기다린다(조치 없음).
   - **매수 1건 보유**: 체결 있는 매수 1건(전량 `FILLED` 이거나 부분 체결 뒤 취소 — 실제 체결분이 정산됐으면 정상) · 포지션 1개 `OPEN`.
   - **매수 뒤 정상 청산**: 매수 1건 + 매도 1건 · 포지션 `CLOSED` · `exit_reason` 이 `STOP_LOSS`·`TAKE_PROFIT`·`TRAILING_STOP` 중 하나.
-- 🟡 정산 미확정(`settlement_final` 아직 거짓 또는 `fill_accounting_pending`)만 남으면 30분 뒤 이 F3 만 다시 돌린다. 그때도 남으면 보고한다.
-- 🔴 그 밖(체결 매수 2건 이상, `UNKNOWN`·미종결 주문, 판단 기록 없음, 정상 사유 밖 청산, 설명되지 않는 정산·거래소 차이)은 §6-2 대응 순서를 따르고 출력을 그대로 보고한다. 재시작·재요청하지 않는다.
+- ❔ 확인 불가(체결 주문의 보고값·반영값 없음, 또는 `fill_accounting_pending`): G2 의 해당 주문 줄로 어느 값이 비었는지 보고, F3 를 다시 조회한다. 그대로면 §6-2 대응을 따르고 보고한다.
+- ⛔ 세션 상태가 `RUNNING` 이 아님(`EMERGENCY_STOPPED`·`STOPPED`·`PAUSED` 등): 정상 운영으로 보지 않는다. 출력 전체를 별도로 보고하고 §6-2 완료 확인을 따른다.
+- 🔴 그 밖(체결 매수 2건 이상, `UNKNOWN`·미종결 주문, 판단 기록 없음, 정상 사유 밖 청산, 보고값≠반영값, 설명되지 않는 잔액·거래소·포지션 수량 차이)은 §6-2 대응 순서를 따르고 출력을 그대로 보고한다.
+- 어느 경우든 재시작·재요청하지 않는다.
 
 **F4. 종료 시각 고정** — 종료 = F2 확인의 `end_kst`(실제 `started_at` + 56일, 예정대로면 2027-01-26 08:50 KST 무렵). 운영자가 시작 당일 종료 점검 일정을 등록한다. 종료 때 정지 API(`POST …/sessions/$SID/stop`) 한 번 → §6-2 의 완료 확인(STOPPED · 활성 주문 0 · 정리 대기 0 · 업비트 BTC 와 기록 일치) → §6-3 보고. 증액·추가 입금·자동 연장은 없다.
 
@@ -910,6 +936,7 @@ PY
 - **v1.10 (2026-10-30)**: 리뷰 판정 반영 — 필터 경계 `[^A-Z0-9_-]`·캔들 404 한정, 첫 D 보존·재실행, 청구액 잠정 수용 범위(E 까지) 기록.
 - **v1.11 (2026-10-30)**: 리뷰 시작 판정 반영 — F0 비용 확인, F1 직전 점검(`EGS`·저장값·기준 행·0 확인·거래소·KRW·경보 완료 확인·텔레그램), F2 시작 1회, F3 첫 일봉 확인, F4 종료 고정.
 - **v1.12 (2026-10-30)**: 리뷰 보완 세 곳 — F2 `START_DATE` 날짜 검사, F1 공유 풀 네 값 정확 비교, F3 정산 대조 판정. 문서 명령만.
+- **v1.13 (2026-10-30)**: 리뷰 보완 — F3 판정(`settlement_final` 참고만, 없는 반영값 ❔, 포지션 수량 대조, 세션 상태 ⛔). 문서 명령만.
 - **v1.7 (2026-10-30)**: 리뷰 보완 — #15 별도 기록 폴더·실패 시 중단 묶음(A~E)·전체 이미지 ID 비교 약 1시간 → **누적 약 23시간**. 남은 일 추정(확정 아님): 실행 결과 확인·기록 약 1h.
 - **v1.6 (2026-10-30)**: #8 준비 — 생성 경로 코드 대조, 등록 통로 후보(`82d15d4`)·시험, §5-8 명령 약 1.5시간 → **누적 약 22시간**. 남은 일 추정(확정 아님): 등록 재기동·생성 지원 약 1h.
 - **v1.5 (2026-10-30)**: 배포 지원(절차 안내·결과 확인·기록) 약 1시간 → **누적 약 20.5시간**. 남은 일 추정(확정 아님): 활성화 직전 확인(#8)·세션 생성 명령 약 2h. WF 예외는 `gateEnabled` false 라 필요 없다.
@@ -990,4 +1017,5 @@ PY
 - ~~**리뷰 (v1.7 뒤)**: 청구액·#15 점검 결과·생성된 세션 ID·저장값을 보고받아 12월 `start` 시각을 정한다.~~ → 2026-10-30 리뷰 판정: #15·SID 203 통과 수용, 12-01 08:50 KST 시작(조건 F0·F1, §5-8 F). 놓치면 다음 대응 가능한 날 08:50.
 - **운영자 (v1.11)**: 🔴 F0 비용 확인(현재 비용·무료 혜택 종료일·유료 전환 예상 비용, 월 10만 원 이내) — 미기록. B·C 화면 원문 있음/없음 — 답 대기(없으면 누락 기록, 시작은 막지 않음).
 - ~~**리뷰 (v1.11 뒤)**: F0~F4 절차 검토~~ → 판정: 시작 결정 유지, 세 곳 보완(v1.12 반영). 남은 조건은 F0 기록과 당일 F1.
+- ~~**리뷰 (v1.12 뒤)**: F3 판정 검토~~ → 판정: 날짜·공유 풀 통과, F3 세 곳 보완(v1.13 반영). 남은 조건은 F0 기록과 당일 F1. B·C 원문 없으면 누락 기록.
 - **운영자**: ~~운영 WF 게이트 값 확인~~ → false(09:03:06 KST, §5-4). 🔴 **서버 실제 월 청구액 기록(§6-1 7번) — 활성화 전에 월 10만 원 한도 안인지 확인**(리뷰 요구, 아직 미기록). ~~개입 #14 결과·수용 칸 기입~~ → 리뷰 판정문의 운영자 결정 문안으로 기입(2026-10-30). §5-8 A~E 실행(A 확인 → B 등록 재기동 → C 기동 → D 30분 → E 생성 1회, 실패하면 그 자리에서 멈추고 보고). `start` 는 리뷰가 시각을 정한 뒤.
