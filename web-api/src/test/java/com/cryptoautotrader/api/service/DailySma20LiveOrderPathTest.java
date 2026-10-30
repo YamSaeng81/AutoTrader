@@ -69,6 +69,8 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
     @Autowired private StrategyLogRepository strategyLogRepository;
     @Autowired private JdbcTemplate jdbc;
     @Autowired private com.cryptoautotrader.api.repository.MarketDataCacheRepository cacheRepository;
+    @Autowired private OrderExecutionEngine orderExecutionEngine;
+    @Autowired private com.cryptoautotrader.api.repository.PositionCleanupRepository cleanupRepository;
     @Autowired @org.springframework.beans.factory.annotation.Qualifier("orderExecutor")
     private org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor orderExecutor;
 
@@ -108,13 +110,16 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
                         accepted(inv.getArgument(1), inv.getArgument(4)), "{}"));
         jdbc.update("DELETE FROM market_data_cache WHERE coin_pair = ? AND timeframe = 'H1'", COIN);
         // 닫힌 최신 봉 = 61분 전에 시작한 봉(회차 마감 전). 그 봉을 일봉 마감 봉으로 둔다.
-        // 시험마다 몇 초씩 옮겨 회차 키가 겹치지 않게 한다 — 처리된 회차는 늦은 접수를 받지 않는다.
-        lastOpen = Instant.now().minus(61, ChronoUnit.MINUTES).truncatedTo(ChronoUnit.SECONDS)
-                .minusSeconds(ROUND_SEQ.incrementAndGet());
+        // 회차 키는 시험마다 앞 시험보다 이르게 둔다 — 처리된 회차는 늦은 접수를 받지 않는다("회차 마감 뒤 도착").
+        // 🔴 (2026-10-30) 예전 "현재 − 순번(초)" 은 시험 하나가 1초쯤 걸리면 시각 증가와 순번 증가가 상쇄돼 앞 시험과
+        //    같은 키가 되었다 — 묶음 실행 1회차의 "BUY 주문 0건" 3건이 이것이다(1.1초 지연으로 재현, 문서 §5-9).
+        Instant base = Instant.now().minus(61, ChronoUnit.MINUTES).truncatedTo(ChronoUnit.SECONDS);
+        lastOpen = LAST_ROUND.updateAndGet(prev -> base.isBefore(prev) ? base : prev.minusSeconds(1));
         useCloseHour(lastOpen.atZone(ZoneOffset.UTC).getHour());
     }
 
-    private static final java.util.concurrent.atomic.AtomicInteger ROUND_SEQ = new java.util.concurrent.atomic.AtomicInteger();
+    private static final java.util.concurrent.atomic.AtomicReference<Instant> LAST_ROUND =
+            new java.util.concurrent.atomic.AtomicReference<>(Instant.MAX);
 
     @AfterEach
     void tearDown() {
@@ -270,10 +275,18 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
         return out;
     }
 
+    /** 마지막 평가의 흐름 — 주문이 0건이면 실패 메시지에 싣는다(신호 → 후보 접수 → 회차 승인 결과). */
+    private String lastTrace = "평가 없음";
+
     /** 평가 회차 + 회차 승인 — 운영 한 번의 마감 처리와 같다. */
     private void evaluate(LiveTradingSessionEntity s) {
         evaluateOnly(s);
-        approveRound();
+        List<StrategyLogEntity> logs = strategyLogRepository.findAllBySessionTypeAndSessionIdOrderByCreatedAtDesc("LIVE", s.getId());
+        String signal = logs.isEmpty() ? "로그 없음"
+                : logs.get(0).getSignal() + " / 접수 거절=" + logs.get(0).getBlockedReason();
+        List<EntryPriorityRounds.Outcome> out = approveRound();
+        lastTrace = String.format("회차 키 H1 %s · 신호 %s · 승인 %s", lastOpen, signal,
+                out.stream().map(o -> "LIVE#" + o.candidate().sessionId() + "→" + (o.reason() == null ? "진입" : o.reason())).toList());
     }
 
     private List<OrderEntity> orders(LiveTradingSessionEntity s, String side) {
@@ -308,7 +321,7 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
         awaitOrders(s, side, 1);
         awaitDrained();
         List<OrderEntity> found = orders(s, side);
-        assertThat(found).as(side + " 주문 1건").hasSize(1);
+        assertThat(found).as(side + " 주문 1건 — " + lastTrace).hasSize(1);
         assertThat(found.get(0).getState()).as(side + " 접수 기록").isEqualTo("SUBMITTED");
         assertThat(found.get(0).getExchangeOrderId()).as("거래소 주문번호").startsWith("sma20-new-");
         verify(upbitOrderClient, times(1)).createOrder(anyString(), anyString(), any(), any(), anyString(), anyString());
@@ -552,6 +565,355 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
         assertThat(reload(p).getStatus()).isEqualTo("CLOSING");
         assertThat(reload(p).getExitReason()).isEqualTo(ExitReason.STRATEGY_SIGNAL);
         assertSubmittedOnce(s, "SELL");
+    }
+
+    // ── 신호 → 진입 승인 → 주문 접수 → 공통 정산·DB 반영 (문서 §5-9, 2026-10-30) ──────────────────
+    //
+    // 위 시험들은 접수(SUBMITTED)에서 멈춘다. 여기서는 같은 회차가 낸 실제 주문 행을 정산 폴러
+    // ({@code checkOrderStatus})로 이어 받아, 주문·포지션·세션 잔액이 거래소 보고값과 맞는지 본다.
+    // 거래소 응답만 대역이다. 예약 20,000 = 체결대금 + 수수료 + 미사용 복원.
+
+    /** 시장가 매수(ord_type=price) 조회 응답. */
+    private static com.cryptoautotrader.exchange.upbit.dto.OrderResponse buyReport(
+            String uuid, String state, String volume, String funds, String fee) {
+        com.cryptoautotrader.exchange.upbit.dto.OrderResponse r = new com.cryptoautotrader.exchange.upbit.dto.OrderResponse();
+        r.setUuid(uuid);
+        r.setSide("bid");
+        r.setOrdType("price");
+        r.setState(state);
+        r.setMarket(COIN);
+        r.setPrice(new BigDecimal("20000"));
+        r.setExecutedVolume(new BigDecimal(volume));
+        r.setExecutedFunds(new BigDecimal(funds));
+        r.setPaidFee(new BigDecimal(fee));
+        return r;
+    }
+
+    /** 신호부터 접수까지 실제 회차로 돌리고, 접수 직후 잔액(20,200 − 예약 20,000 = 200)을 확인한다. */
+    private OrderEntity submittedSma20Buy(LiveTradingSessionEntity s) {
+        insertCache(uptrend());
+        evaluate(s);
+        OrderEntity buy = assertSubmittedOnce(s, "BUY");
+        assertThat(buy.getQuantity()).isEqualByComparingTo("20000");
+        assertThat(available(s)).as("접수 직후 — 예약만 빠진다").isEqualByComparingTo("200");
+        return buy;
+    }
+
+    /**
+     * 대역 거래소의 보유량 장부 — 주문별 마지막 보고 체결 수량(매수 +, 매도 −). 같은 주문의 반복·정정 보고는 덮어쓴다.
+     * 내부 기록(포지션 수량·주문 체결 수량)과 맞는지 {@link #assertHoldingsMatch} 가 본다.
+     */
+    private final java.util.Map<String, BigDecimal> exchangeFills = new java.util.HashMap<>();
+
+    private void settle(OrderEntity o, com.cryptoautotrader.exchange.upbit.dto.OrderResponse report) {
+        BigDecimal vol = report.getExecutedVolume() == null ? BigDecimal.ZERO : report.getExecutedVolume();
+        exchangeFills.put(report.getUuid(), "ask".equals(report.getSide()) ? vol.negate() : vol);
+        doReturn(report).when(upbitOrderClient).getOrder(o.getExchangeOrderId());
+        OrderEntity cur = orderRepository.findById(o.getId()).orElseThrow();
+        // 백오프는 시각 문제다 — 차분 반영만 본다(SettlementIdempotencyTest 와 같은 방식).
+        cur.setSettlementNextCheckAt(Instant.now().minusSeconds(1));
+        orderRepository.save(cur);
+        orderExecutionEngine.checkOrderStatus(o.getId());
+    }
+
+    private BigDecimal available(LiveTradingSessionEntity s) {
+        return liveRepo.findById(s.getId()).orElseThrow().getAvailableKrw();
+    }
+
+    private PositionEntity entryPosition(OrderEntity o) {
+        return positionRepository.findById(o.getPositionId()).orElseThrow();
+    }
+
+    private String settled(LiveTradingSessionEntity s, OrderEntity o) {
+        OrderEntity cur = orderRepository.findById(o.getId()).orElseThrow();
+        PositionEntity p = entryPosition(o);
+        return String.format("order{state=%s reported=%s filled=%s funds=%s fee=%s src=%s ver=%s} "
+                        + "pos{status=%s size=%s avg=%s invested=%s} available=%s",
+                cur.getState(), cur.getReportedState(), cur.getFilledQuantity(), cur.getAppliedExecutedFunds(),
+                cur.getAppliedPaidFee(), cur.getFeeSource(), cur.getSettlementVersion(),
+                p.getStatus(), p.getSize(), p.getAvgPrice(), p.getInvestedKrw(), available(s));
+    }
+
+    @Test
+    @DisplayName("통합 ① 전량 체결 — 체결대금 19,980·수수료 9.99·BTC 0.0016, 미사용 10.01 복원 → 잔액 210.01")
+    void sma20BuyFullFillSettles() {
+        LiveTradingSessionEntity s = noTimeStopSession();
+        OrderEntity buy = submittedSma20Buy(s);
+        settle(buy, buyReport(buy.getExchangeOrderId(), "done", "0.0016", "19980", "9.99"));
+        System.out.println("[SMA20 통합 ① 전량 체결] " + settled(s, buy));
+
+        OrderEntity o = orderRepository.findById(buy.getId()).orElseThrow();
+        assertThat(o.getState()).isEqualTo("FILLED");
+        assertThat(o.getFilledQuantity()).isEqualByComparingTo("0.0016");
+        assertThat(o.getAppliedExecutedFunds()).as("체결대금").isEqualByComparingTo("19980");
+        assertThat(o.getAppliedPaidFee()).as("거래소 보고 수수료").isEqualByComparingTo("9.99");
+        assertThat(o.getFeeSource()).isEqualTo(OrderExecutionEngine.FEE_SOURCE_REPORTED);
+        assertThat(o.getSettlementVersion()).isEqualTo(1L);
+        PositionEntity p = entryPosition(buy);
+        assertThat(p.getStatus()).isEqualTo("OPEN");
+        assertThat(p.getSize()).as("BTC 수량").isEqualByComparingTo("0.0016");
+        assertThat(p.getInvestedKrw()).as("투입금 = 체결대금 + 수수료").isEqualByComparingTo("19989.99");
+        assertThat(available(s)).as("200 + (20,000 − 19,980 − 9.99)").isEqualByComparingTo("210.01");
+        assertThat(engineActive(buy)).as("종결 — 활성 목록에서 빠진다").isFalse();
+        verify(upbitOrderClient, times(1)).createOrder(anyString(), anyString(), any(), any(), anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("통합 ② 부분 체결 뒤 잔량 취소 — 0.0008 BTC·10,000·수수료 5 반영, 미사용 9,995 복원(고아 정리 반복에도 한 번)")
+    void sma20BuyPartialFillThenCancelSettles() {
+        LiveTradingSessionEntity s = noTimeStopSession();
+        OrderEntity buy = submittedSma20Buy(s);
+        settle(buy, buyReport(buy.getExchangeOrderId(), "cancel", "0.0008", "10000", "5"));
+        liveTradingService.reconcileOrphanBuyPositions();
+        liveTradingService.reconcileOrphanBuyPositions();
+        System.out.println("[SMA20 통합 ② 부분 체결 뒤 취소] " + settled(s, buy));
+
+        OrderEntity o = orderRepository.findById(buy.getId()).orElseThrow();
+        assertThat(o.getState()).as("체결분이 있으면 CANCELLED 가 아니다").isEqualTo("FILLED");
+        assertThat(o.getReportedState()).as("거래소 cancel 보존").isEqualTo("cancel");
+        assertThat(o.getQuantity()).as("요청액 보존").isEqualByComparingTo("20000");
+        assertThat(o.getFilledQuantity()).isEqualByComparingTo("0.0008");
+        assertThat(o.getAppliedExecutedFunds()).isEqualByComparingTo("10000");
+        assertThat(o.getAppliedPaidFee()).isEqualByComparingTo("5");
+        PositionEntity p = entryPosition(buy);
+        assertThat(p.getStatus()).isEqualTo("OPEN");
+        assertThat(p.getSize()).isEqualByComparingTo("0.0008");
+        assertThat(p.getInvestedKrw()).isEqualByComparingTo("10005");
+        assertThat(available(s)).as("200 + (20,000 − 10,000 − 5)").isEqualByComparingTo("10195");
+        assertThat(engineActive(buy)).isFalse();
+    }
+
+    @Test
+    @DisplayName("통합 ③ 같은 응답 반복·수수료 정정 — 반복은 변화 없음, 수수료 9.00→9.99 는 차액 0.99 만 한 번")
+    void sma20BuyRepeatAndFeeCorrectionAppliesDifferenceOnce() {
+        LiveTradingSessionEntity s = noTimeStopSession();
+        OrderEntity buy = submittedSma20Buy(s);
+        String uuid = buy.getExchangeOrderId();
+
+        settle(buy, buyReport(uuid, "done", "0.0016", "19980", "9.00"));
+        String first = settled(s, buy);
+        assertThat(available(s)).as("200 + (20,000 − 19,980 − 9.00)").isEqualByComparingTo("211.00");
+
+        settle(buy, buyReport(uuid, "done", "0.0016", "19980", "9.00"));
+        settle(buy, buyReport(uuid, "done", "0.0016", "19980", "9.00"));
+        assertThat(settled(s, buy)).as("같은 응답 반복 — 주문·포지션·잔액 변화 없음%n  1회차: %s", first).isEqualTo(first);
+
+        settle(buy, buyReport(uuid, "done", "0.0016", "19980", "9.99"));
+        String corrected = settled(s, buy);
+        System.out.println("[SMA20 통합 ③ 수수료 정정]\n  1회차: " + first + "\n  정정후: " + corrected);
+        OrderEntity o = orderRepository.findById(buy.getId()).orElseThrow();
+        assertThat(o.getAppliedPaidFee()).isEqualByComparingTo("9.99");
+        assertThat(o.getSettlementVersion()).as("반영 회차만 — 1회차·정정 두 번").isEqualTo(2L);
+        assertThat(entryPosition(buy).getSize()).as("수량 불변").isEqualByComparingTo("0.0016");
+        assertThat(entryPosition(buy).getInvestedKrw()).isEqualByComparingTo("19989.99");
+        assertThat(available(s)).as("차액 0.99 만 차감").isEqualByComparingTo("210.01");
+
+        settle(buy, buyReport(uuid, "done", "0.0016", "19980", "9.99"));
+        assertThat(settled(s, buy)).as("정정 응답 반복 — 다시 빼지 않는다").isEqualTo(corrected);
+        verify(upbitOrderClient, times(1)).createOrder(anyString(), anyString(), any(), any(), anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("통합 ④ 체결대금만 정정 — 수량 0.0016 그대로, 19,980→19,990 이면 평균단가·투입금·잔액이 함께 바뀌고 반복은 변화 없음")
+    void sma20BuyFundsOnlyCorrectionUpdatesPositionAndBalance() {
+        // CLOSED 포지션에 온 정정이 재개방하지 않는 것은 LateFillCorrectionTest 가 본다 — 여기서는 열린 포지션만.
+        LiveTradingSessionEntity s = noTimeStopSession();
+        OrderEntity buy = submittedSma20Buy(s);
+        String uuid = buy.getExchangeOrderId();
+
+        settle(buy, buyReport(uuid, "done", "0.0016", "19980", "9.99"));
+        String first = settled(s, buy);
+        assertThat(entryPosition(buy).getAvgPrice()).as("19,980 / 0.0016").isEqualByComparingTo("12487500");
+        assertThat(available(s)).isEqualByComparingTo("210.01");
+
+        settle(buy, buyReport(uuid, "done", "0.0016", "19990", "9.99"));
+        String corrected = settled(s, buy);
+        System.out.println("[SMA20 통합 ④ 체결대금 정정]\n  1회차: " + first + "\n  정정후: " + corrected);
+        OrderEntity o = orderRepository.findById(buy.getId()).orElseThrow();
+        assertThat(o.getAppliedExecutedFunds()).isEqualByComparingTo("19990");
+        assertThat(o.getAppliedPaidFee()).as("수수료 그대로").isEqualByComparingTo("9.99");
+        assertThat(o.getSettlementVersion()).as("1회차·정정 두 번").isEqualTo(2L);
+        PositionEntity p = entryPosition(buy);
+        assertThat(p.getSize()).as("수량 불변").isEqualByComparingTo("0.0016");
+        assertThat(p.getAvgPrice()).as("19,990 / 0.0016").isEqualByComparingTo("12493750");
+        assertThat(p.getInvestedKrw()).as("19,990 + 9.99").isEqualByComparingTo("19999.99");
+        assertThat(available(s)).as("차액 10 만 차감 — 200 + (20,000 − 19,990 − 9.99)").isEqualByComparingTo("200.01");
+
+        settle(buy, buyReport(uuid, "done", "0.0016", "19990", "9.99"));
+        assertThat(settled(s, buy)).as("정정 응답 반복 — 다시 빼지 않는다").isEqualTo(corrected);
+        verify(upbitOrderClient, times(1)).createOrder(anyString(), anyString(), any(), any(), anyString(), anyString());
+    }
+
+    private boolean engineActive(OrderEntity o) {
+        return orderExecutionEngine.getActiveOrders().stream().anyMatch(a -> a.getId().equals(o.getId()));
+    }
+
+    // ── 매수 체결 → 청산 → 매도 체결 → 포지션 종료 (문서 §5-9, 2026-10-30 리뷰 지시) ──────────────────
+
+    /** 시장가 매도(ord_type=market) 조회 응답. */
+    private static com.cryptoautotrader.exchange.upbit.dto.OrderResponse sellReport(
+            String uuid, String volume, String funds, String fee) {
+        com.cryptoautotrader.exchange.upbit.dto.OrderResponse r = new com.cryptoautotrader.exchange.upbit.dto.OrderResponse();
+        r.setUuid(uuid);
+        r.setSide("ask");
+        r.setOrdType("market");
+        r.setState("done");
+        r.setMarket(COIN);
+        r.setVolume(new BigDecimal(volume));
+        r.setExecutedVolume(new BigDecimal(volume));
+        r.setExecutedFunds(new BigDecimal(funds));
+        r.setPaidFee(new BigDecimal(fee));
+        return r;
+    }
+
+    /** 매수 전량 체결(0.0016 BTC · 19,980 · 9.99)까지 — 통합 ①과 같은 출발점(잔액 210.01). */
+    private OrderEntity filledSma20Buy(LiveTradingSessionEntity s) {
+        OrderEntity buy = submittedSma20Buy(s);
+        settle(buy, buyReport(buy.getExchangeOrderId(), "done", "0.0016", "19980", "9.99"));
+        assertThat(entryPosition(buy).getSize()).isEqualByComparingTo("0.0016");
+        assertThat(available(s)).isEqualByComparingTo("210.01");
+        assertHoldingsMatch(s, "매수 체결 뒤");
+        return buy;
+    }
+
+    /**
+     * 매도는 별도 스레드에서 만들어진다 — 행과 접수 기록(SUBMITTED)을 기다린 뒤, 거래소 매도 호출이 1번뿐인지 본다.
+     * 매도 대기가 실패하면 단계별 근거(포지션 상태·청산 사유·주문 목록·실행기 상태)를 메시지에 싣는다.
+     */
+    private OrderEntity assertSellSubmittedOnce(LiveTradingSessionEntity s, PositionEntity p) {
+        awaitOrders(s, "SELL", 1);
+        awaitDrained();
+        List<OrderEntity> sells = orders(s, "SELL");
+        PositionEntity cur = reload(p);
+        var pool = orderExecutor.getThreadPoolExecutor();
+        String trace = String.format("포지션 %s/%s · 주문 %s · 실행기 대기 %d·활성 %d·완료 %d/%d",
+                cur.getStatus(), cur.getExitReason(),
+                orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc("LIVE", s.getId()).stream()
+                        .map(o -> o.getSide() + ":" + o.getState()).toList(),
+                pool.getQueue().size(), pool.getActiveCount(), pool.getCompletedTaskCount(), pool.getTaskCount());
+        assertThat(sells).as("SELL 주문 1건 — " + trace).hasSize(1);
+        assertThat(sells.get(0).getState()).as("SELL 접수 기록 — " + trace).isEqualTo("SUBMITTED");
+        assertThat(sells.get(0).getQuantity()).as("매도 수량 = 보유 수량").isEqualByComparingTo("0.0016");
+        verify(upbitOrderClient, times(1)).createOrder(eq(COIN), eq("ask"), any(), any(), anyString(), anyString());
+        return sells.get(0);
+    }
+
+    /** 대역 거래소 보유량 = 열린 포지션 수량 합 = 주문 체결 수량(매수 − 매도) 합. */
+    private void assertHoldingsMatch(LiveTradingSessionEntity s, String when) {
+        BigDecimal exchange = exchangeFills.values().stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal positions = positionRepository.findBySessionKindAndSessionId("LIVE", s.getId()).stream()
+                .filter(p -> !"CLOSED".equals(p.getStatus()))
+                .map(PositionEntity::getSize).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal orders = orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc("LIVE", s.getId()).stream()
+                .filter(o -> o.getFilledQuantity() != null && o.getFilledQuantity().signum() > 0)
+                .map(o -> "SELL".equals(o.getSide()) ? o.getFilledQuantity().negate() : o.getFilledQuantity())
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        System.out.println("[SMA20 보유량 " + when + "] 거래소 " + exchange + " · 포지션 " + positions + " · 주문 " + orders);
+        assertThat(positions).as(when + " — 열린 포지션 수량 = 대역 거래소 보유량").isEqualByComparingTo(exchange);
+        assertThat(orders).as(when + " — 주문 체결 수량 합 = 대역 거래소 보유량").isEqualByComparingTo(exchange);
+    }
+
+    private List<OrderEntity> activeOrders(LiveTradingSessionEntity s) {
+        return orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc("LIVE", s.getId()).stream()
+                .filter(o -> com.cryptoautotrader.api.util.TradingConstants.ACTIVE_ORDER_STATES.contains(o.getState())
+                        || engineActive(o))
+                .toList();
+    }
+
+    @Test
+    @DisplayName("통합 ⑤ 매수 체결 → 손절 → 매도 체결 — 포지션 CLOSED, 잔액 210.01 + 18,880 − 9.44, 보유량 0 일치, 반복 응답은 한 번만")
+    void sma20BuyThenStopLossSellClosesAndSettles() {
+        LiveTradingSessionEntity s = noTimeStopSession();
+        OrderEntity buy = filledSma20Buy(s);
+        PositionEntity p = entryPosition(buy);
+        System.out.println("[SMA20 통합 ⑤ 진입] avg=" + p.getAvgPrice() + " 손절가=" + p.getStopLossPrice()
+                + " 익절가=" + p.getTakeProfitPrice());
+
+        // 같은 마감 봉 위치에 가격만 내린 자료 — 마지막 종가 11,800,000(평균 12,487,500 대비 −5.5%, 손절 5% 아래).
+        // 신호 평가는 이미 본 봉이라 건너뛰고, 손절 감시는 매 회차 돈다.
+        jdbc.update("DELETE FROM market_data_cache WHERE coin_pair = ? AND timeframe = 'H1'", COIN);
+        insertCache(series(i -> 9_305_000L + 5_000L * i));
+        evaluateOnly(s);
+        assertThat(reload(p).getStatus()).isEqualTo("CLOSING");
+        assertThat(reload(p).getExitReason()).isEqualTo(ExitReason.STOP_LOSS);
+        OrderEntity sell = assertSellSubmittedOnce(s, p);
+
+        settle(sell, sellReport(sell.getExchangeOrderId(), "0.0016", "18880", "9.44"));
+        liveTradingService.reconcileClosingPositions();
+        String closed = settled(s, buy) + " sell=" + orderRepository.findById(sell.getId()).orElseThrow().getState();
+        System.out.println("[SMA20 통합 ⑤ 청산] " + closed + " realized=" + reload(p).getRealizedPnl());
+
+        OrderEntity so = orderRepository.findById(sell.getId()).orElseThrow();
+        assertThat(so.getState()).isEqualTo("FILLED");
+        assertThat(so.getFilledQuantity()).isEqualByComparingTo("0.0016");
+        assertThat(so.getAppliedExecutedFunds()).isEqualByComparingTo("18880");
+        assertThat(so.getAppliedPaidFee()).isEqualByComparingTo("9.44");
+        PositionEntity c = reload(p);
+        assertThat(c.getStatus()).isEqualTo("CLOSED");
+        assertThat(c.getExitReason()).isEqualTo(ExitReason.STOP_LOSS);
+        assertThat(c.getClosedAt()).isNotNull();
+        // 실현손익은 세 엔진 공통 규칙 = 매도 순대금 − 수량 × 평균단가 — 매수 수수료는 position_fee 에 따로 쌓인다.
+        assertThat(c.getRealizedPnl()).as("18,880 − 9.44 − 0.0016 × 12,487,500").isEqualByComparingTo("-1109.44");
+        assertThat(c.getPositionFee()).as("매수 9.99 + 매도 9.44").isEqualByComparingTo("19.43");
+        assertThat(available(s)).as("210.01 + 18,880 − 9.44").isEqualByComparingTo("19080.57");
+        assertThat(available(s)).as("초기 20,200 + 실현손익 − 매수 수수료")
+                .isEqualByComparingTo(new BigDecimal("20200").add(c.getRealizedPnl()).subtract(new BigDecimal("9.99")));
+        assertThat(activeOrders(s)).as("활성 주문 0").isEmpty();
+        assertHoldingsMatch(s, "청산 뒤");
+
+        // 같은 매도 응답이 다시 와도 대금을 두 번 넣지 않는다.
+        settle(sell, sellReport(sell.getExchangeOrderId(), "0.0016", "18880", "9.44"));
+        liveTradingService.reconcileClosingPositions();
+        assertThat(settled(s, buy) + " sell=" + orderRepository.findById(sell.getId()).orElseThrow().getState())
+                .as("매도 응답 반복 — 변화 없음").isEqualTo(closed);
+        assertThat(liveRepo.findById(s.getId()).orElseThrow().getStatus()).as("손절은 세션을 멈추지 않는다").isEqualTo("RUNNING");
+        verify(upbitOrderClient, times(2)).createOrder(anyString(), anyString(), any(), any(), anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("통합 ⑥ 매수 체결 → 세션 정지 → 청산 매도 체결 — STOPPED·활성 주문 0·정리 대기 0·보유량 0 일치")
+    void sma20BuyThenStopLiquidatesAndCleansUp() {
+        LiveTradingSessionEntity s = noTimeStopSession();
+        OrderEntity buy = filledSma20Buy(s);
+        PositionEntity p = entryPosition(buy);
+
+        liveTradingService.stopSession(s.getId());
+        assertThat(liveRepo.findById(s.getId()).orElseThrow().getStatus()).isEqualTo("STOPPED");
+        assertThat(reload(p).getStatus()).isEqualTo("CLOSING");
+        assertThat(reload(p).getExitReason()).isEqualTo(ExitReason.FORCED_STOP);
+        OrderEntity sell = assertSellSubmittedOnce(s, p);
+        liveTradingService.cleanupStoppedSessionPositions();
+        assertThat(cleanupRepository.countPending("LIVE", s.getId()))
+                .as("🔴 매도를 제출했다는 사실로 정리 완료가 아니다").isEqualTo(1L);
+        verify(upbitOrderClient, times(2)).createOrder(anyString(), anyString(), any(), any(), anyString(), anyString());
+
+        // 정지 시점 가격(마지막 종가 12,495,000)으로 체결 — 0.0016 × 12,495,000 = 19,992, 수수료 9.99.
+        settle(sell, sellReport(sell.getExchangeOrderId(), "0.0016", "19992", "9.99"));
+        liveTradingService.reconcileClosingPositions();
+        liveTradingService.cleanupStoppedSessionPositions();
+        String done = settled(s, buy);
+        System.out.println("[SMA20 통합 ⑥ 정지 청산] " + done + " realized=" + reload(p).getRealizedPnl()
+                + " 정리 대기=" + cleanupRepository.countPending("LIVE", s.getId()));
+
+        LiveTradingSessionEntity fin = liveRepo.findById(s.getId()).orElseThrow();
+        assertThat(fin.getStatus()).as("청산 확정이 정지 상태를 되돌리지 않는다").isEqualTo("STOPPED");
+        PositionEntity c = reload(p);
+        assertThat(c.getStatus()).isEqualTo("CLOSED");
+        assertThat(c.getExitReason()).isEqualTo(ExitReason.FORCED_STOP);
+        assertThat(c.getRealizedPnl()).as("19,992 − 9.99 − 0.0016 × 12,487,500").isEqualByComparingTo("2.01");
+        assertThat(c.getPositionFee()).as("매수 9.99 + 매도 9.99").isEqualByComparingTo("19.98");
+        assertThat(fin.getAvailableKrw()).as("210.01 + 19,992 − 9.99").isEqualByComparingTo("20192.02");
+        assertThat(activeOrders(s)).as("활성 주문 0").isEmpty();
+        assertThat(orderRepository.countUnresolvedSubmissions("LIVE", s.getId())).as("미해결 제출 0").isZero();
+        assertThat(cleanupRepository.countPending("LIVE", s.getId())).as("정리 대기 0").isZero();
+        assertHoldingsMatch(s, "정지 청산 뒤");
+
+        // 반복 응답·정리 작업 반복 — 대금 한 번, 매도 추가 없음.
+        settle(sell, sellReport(sell.getExchangeOrderId(), "0.0016", "19992", "9.99"));
+        liveTradingService.reconcileClosingPositions();
+        liveTradingService.cleanupStoppedSessionPositions();
+        assertThat(settled(s, buy)).as("반복 — 변화 없음").isEqualTo(done);
+        verify(upbitOrderClient, times(2)).createOrder(anyString(), anyString(), any(), any(), anyString(), anyString());
     }
 
     // ── 주문 상태 불명(UNKNOWN) — 확인 전에는 같은 세션이 중복 주문을 내지 않는다 (문서 §6-2) ──────

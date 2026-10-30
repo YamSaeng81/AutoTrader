@@ -451,18 +451,20 @@ public class OrderSettlementService {
         if (pos == null) return;
 
         boolean closed = "CLOSED".equals(pos.getStatus());
-        if (deltaVolume.signum() != 0) {
-            if (closed) {
+        if (closed) {
+            if (deltaVolume.signum() != 0) {
                 log.warn("🔴 CLOSED 포지션에 수량 정정이 도착했다 — 재개방하지 않고 수량을 바꾸지 "
                         + "않는다 (posId={}, 수량차={})", pos.getId(), deltaVolume);
-            } else {
-                pos.setSize(nz(pos.getSize()).add(deltaVolume));
-                pos.setAvgPrice(avgPrice);
-                // 🔴 투입금은 **실제 사용액**(체결금액 + 수수료)이다 (2026-10-13). 종전에는 요청액(예약액)이 그대로
-                //    남아, 미사용분을 세션에 돌려준 뒤에도 포지션은 요청액을 썼다고 기록했다 — 부분 체결 후 잔량
-                //    취소에서 차이가 크다(수익률의 분모가 틀린다).
-                pos.setInvestedKrw(funds.add(fee != null ? fee : BigDecimal.ZERO));
             }
+        } else {
+            pos.setSize(nz(pos.getSize()).add(deltaVolume));
+            pos.setAvgPrice(avgPrice);
+            // 🔴 투입금은 **실제 사용액**(체결금액 + 수수료)이다 (2026-10-13). 종전에는 요청액(예약액)이 그대로
+            //    남아, 미사용분을 세션에 돌려준 뒤에도 포지션은 요청액을 썼다고 기록했다 — 부분 체결 후 잔량
+            //    취소에서 차이가 크다(수익률의 분모가 틀린다).
+            // 🔴 수량이 그대로인 정정(수수료·체결금액만)도 다시 쓴다 (2026-10-30, SMA20 통합 ③). 종전에는 수량이
+            //    바뀔 때만 써서, 수수료 9.00→9.99 정정에 세션 잔액은 0.99 줄었는데 투입금은 19,989.00 에 남았다.
+            pos.setInvestedKrw(funds.add(fee != null ? fee : BigDecimal.ZERO));
         }
         // 수수료는 OPEN·CLOSED 양쪽에서 조정한다 — 손익 기록이므로 재개방과 무관하다.
         pos.setPositionFee(fee);
