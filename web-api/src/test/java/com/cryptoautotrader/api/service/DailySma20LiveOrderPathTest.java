@@ -69,6 +69,7 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
     @Autowired private StrategyLogRepository strategyLogRepository;
     @Autowired private JdbcTemplate jdbc;
     @Autowired private com.cryptoautotrader.api.repository.MarketDataCacheRepository cacheRepository;
+    @Autowired private OrderExecutionEngine orderExecutionEngine;
     @Autowired @org.springframework.beans.factory.annotation.Qualifier("orderExecutor")
     private org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor orderExecutor;
 
@@ -552,6 +553,148 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
         assertThat(reload(p).getStatus()).isEqualTo("CLOSING");
         assertThat(reload(p).getExitReason()).isEqualTo(ExitReason.STRATEGY_SIGNAL);
         assertSubmittedOnce(s, "SELL");
+    }
+
+    // ── 신호 → 진입 승인 → 주문 접수 → 공통 정산·DB 반영 (문서 §5-9, 2026-10-30) ──────────────────
+    //
+    // 위 시험들은 접수(SUBMITTED)에서 멈춘다. 여기서는 같은 회차가 낸 실제 주문 행을 정산 폴러
+    // ({@code checkOrderStatus})로 이어 받아, 주문·포지션·세션 잔액이 거래소 보고값과 맞는지 본다.
+    // 거래소 응답만 대역이다. 예약 20,000 = 체결대금 + 수수료 + 미사용 복원.
+
+    /** 시장가 매수(ord_type=price) 조회 응답. */
+    private static com.cryptoautotrader.exchange.upbit.dto.OrderResponse buyReport(
+            String uuid, String state, String volume, String funds, String fee) {
+        com.cryptoautotrader.exchange.upbit.dto.OrderResponse r = new com.cryptoautotrader.exchange.upbit.dto.OrderResponse();
+        r.setUuid(uuid);
+        r.setSide("bid");
+        r.setOrdType("price");
+        r.setState(state);
+        r.setMarket(COIN);
+        r.setPrice(new BigDecimal("20000"));
+        r.setExecutedVolume(new BigDecimal(volume));
+        r.setExecutedFunds(new BigDecimal(funds));
+        r.setPaidFee(new BigDecimal(fee));
+        return r;
+    }
+
+    /** 신호부터 접수까지 실제 회차로 돌리고, 접수 직후 잔액(20,200 − 예약 20,000 = 200)을 확인한다. */
+    private OrderEntity submittedSma20Buy(LiveTradingSessionEntity s) {
+        insertCache(uptrend());
+        evaluate(s);
+        OrderEntity buy = assertSubmittedOnce(s, "BUY");
+        assertThat(buy.getQuantity()).isEqualByComparingTo("20000");
+        assertThat(available(s)).as("접수 직후 — 예약만 빠진다").isEqualByComparingTo("200");
+        return buy;
+    }
+
+    private void settle(OrderEntity o, com.cryptoautotrader.exchange.upbit.dto.OrderResponse report) {
+        doReturn(report).when(upbitOrderClient).getOrder(o.getExchangeOrderId());
+        OrderEntity cur = orderRepository.findById(o.getId()).orElseThrow();
+        // 백오프는 시각 문제다 — 차분 반영만 본다(SettlementIdempotencyTest 와 같은 방식).
+        cur.setSettlementNextCheckAt(Instant.now().minusSeconds(1));
+        orderRepository.save(cur);
+        orderExecutionEngine.checkOrderStatus(o.getId());
+    }
+
+    private BigDecimal available(LiveTradingSessionEntity s) {
+        return liveRepo.findById(s.getId()).orElseThrow().getAvailableKrw();
+    }
+
+    private PositionEntity entryPosition(OrderEntity o) {
+        return positionRepository.findById(o.getPositionId()).orElseThrow();
+    }
+
+    private String settled(LiveTradingSessionEntity s, OrderEntity o) {
+        OrderEntity cur = orderRepository.findById(o.getId()).orElseThrow();
+        PositionEntity p = entryPosition(o);
+        return String.format("order{state=%s reported=%s filled=%s funds=%s fee=%s src=%s ver=%s} "
+                        + "pos{status=%s size=%s avg=%s invested=%s} available=%s",
+                cur.getState(), cur.getReportedState(), cur.getFilledQuantity(), cur.getAppliedExecutedFunds(),
+                cur.getAppliedPaidFee(), cur.getFeeSource(), cur.getSettlementVersion(),
+                p.getStatus(), p.getSize(), p.getAvgPrice(), p.getInvestedKrw(), available(s));
+    }
+
+    @Test
+    @DisplayName("통합 ① 전량 체결 — 체결대금 19,980·수수료 9.99·BTC 0.0016, 미사용 10.01 복원 → 잔액 210.01")
+    void sma20BuyFullFillSettles() {
+        LiveTradingSessionEntity s = noTimeStopSession();
+        OrderEntity buy = submittedSma20Buy(s);
+        settle(buy, buyReport(buy.getExchangeOrderId(), "done", "0.0016", "19980", "9.99"));
+        System.out.println("[SMA20 통합 ① 전량 체결] " + settled(s, buy));
+
+        OrderEntity o = orderRepository.findById(buy.getId()).orElseThrow();
+        assertThat(o.getState()).isEqualTo("FILLED");
+        assertThat(o.getFilledQuantity()).isEqualByComparingTo("0.0016");
+        assertThat(o.getAppliedExecutedFunds()).as("체결대금").isEqualByComparingTo("19980");
+        assertThat(o.getAppliedPaidFee()).as("거래소 보고 수수료").isEqualByComparingTo("9.99");
+        assertThat(o.getFeeSource()).isEqualTo(OrderExecutionEngine.FEE_SOURCE_REPORTED);
+        assertThat(o.getSettlementVersion()).isEqualTo(1L);
+        PositionEntity p = entryPosition(buy);
+        assertThat(p.getStatus()).isEqualTo("OPEN");
+        assertThat(p.getSize()).as("BTC 수량").isEqualByComparingTo("0.0016");
+        assertThat(p.getInvestedKrw()).as("투입금 = 체결대금 + 수수료").isEqualByComparingTo("19989.99");
+        assertThat(available(s)).as("200 + (20,000 − 19,980 − 9.99)").isEqualByComparingTo("210.01");
+        assertThat(engineActive(buy)).as("종결 — 활성 목록에서 빠진다").isFalse();
+        verify(upbitOrderClient, times(1)).createOrder(anyString(), anyString(), any(), any(), anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("통합 ② 부분 체결 뒤 잔량 취소 — 0.0008 BTC·10,000·수수료 5 반영, 미사용 9,995 복원(고아 정리 반복에도 한 번)")
+    void sma20BuyPartialFillThenCancelSettles() {
+        LiveTradingSessionEntity s = noTimeStopSession();
+        OrderEntity buy = submittedSma20Buy(s);
+        settle(buy, buyReport(buy.getExchangeOrderId(), "cancel", "0.0008", "10000", "5"));
+        liveTradingService.reconcileOrphanBuyPositions();
+        liveTradingService.reconcileOrphanBuyPositions();
+        System.out.println("[SMA20 통합 ② 부분 체결 뒤 취소] " + settled(s, buy));
+
+        OrderEntity o = orderRepository.findById(buy.getId()).orElseThrow();
+        assertThat(o.getState()).as("체결분이 있으면 CANCELLED 가 아니다").isEqualTo("FILLED");
+        assertThat(o.getReportedState()).as("거래소 cancel 보존").isEqualTo("cancel");
+        assertThat(o.getQuantity()).as("요청액 보존").isEqualByComparingTo("20000");
+        assertThat(o.getFilledQuantity()).isEqualByComparingTo("0.0008");
+        assertThat(o.getAppliedExecutedFunds()).isEqualByComparingTo("10000");
+        assertThat(o.getAppliedPaidFee()).isEqualByComparingTo("5");
+        PositionEntity p = entryPosition(buy);
+        assertThat(p.getStatus()).isEqualTo("OPEN");
+        assertThat(p.getSize()).isEqualByComparingTo("0.0008");
+        assertThat(p.getInvestedKrw()).isEqualByComparingTo("10005");
+        assertThat(available(s)).as("200 + (20,000 − 10,000 − 5)").isEqualByComparingTo("10195");
+        assertThat(engineActive(buy)).isFalse();
+    }
+
+    @Test
+    @DisplayName("통합 ③ 같은 응답 반복·수수료 정정 — 반복은 변화 없음, 수수료 9.00→9.99 는 차액 0.99 만 한 번")
+    void sma20BuyRepeatAndFeeCorrectionAppliesDifferenceOnce() {
+        LiveTradingSessionEntity s = noTimeStopSession();
+        OrderEntity buy = submittedSma20Buy(s);
+        String uuid = buy.getExchangeOrderId();
+
+        settle(buy, buyReport(uuid, "done", "0.0016", "19980", "9.00"));
+        String first = settled(s, buy);
+        assertThat(available(s)).as("200 + (20,000 − 19,980 − 9.00)").isEqualByComparingTo("211.00");
+
+        settle(buy, buyReport(uuid, "done", "0.0016", "19980", "9.00"));
+        settle(buy, buyReport(uuid, "done", "0.0016", "19980", "9.00"));
+        assertThat(settled(s, buy)).as("같은 응답 반복 — 주문·포지션·잔액 변화 없음%n  1회차: %s", first).isEqualTo(first);
+
+        settle(buy, buyReport(uuid, "done", "0.0016", "19980", "9.99"));
+        String corrected = settled(s, buy);
+        System.out.println("[SMA20 통합 ③ 수수료 정정]\n  1회차: " + first + "\n  정정후: " + corrected);
+        OrderEntity o = orderRepository.findById(buy.getId()).orElseThrow();
+        assertThat(o.getAppliedPaidFee()).isEqualByComparingTo("9.99");
+        assertThat(o.getSettlementVersion()).as("반영 회차만 — 1회차·정정 두 번").isEqualTo(2L);
+        assertThat(entryPosition(buy).getSize()).as("수량 불변").isEqualByComparingTo("0.0016");
+        assertThat(entryPosition(buy).getInvestedKrw()).isEqualByComparingTo("19989.99");
+        assertThat(available(s)).as("차액 0.99 만 차감").isEqualByComparingTo("210.01");
+
+        settle(buy, buyReport(uuid, "done", "0.0016", "19980", "9.99"));
+        assertThat(settled(s, buy)).as("정정 응답 반복 — 다시 빼지 않는다").isEqualTo(corrected);
+        verify(upbitOrderClient, times(1)).createOrder(anyString(), anyString(), any(), any(), anyString(), anyString());
+    }
+
+    private boolean engineActive(OrderEntity o) {
+        return orderExecutionEngine.getActiveOrders().stream().anyMatch(a -> a.getId().equals(o.getId()));
     }
 
     // ── 주문 상태 불명(UNKNOWN) — 확인 전에는 같은 세션이 중복 주문을 내지 않는다 (문서 §6-2) ──────
