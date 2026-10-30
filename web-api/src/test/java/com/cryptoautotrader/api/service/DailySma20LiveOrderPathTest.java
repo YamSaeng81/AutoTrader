@@ -109,13 +109,16 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
                         accepted(inv.getArgument(1), inv.getArgument(4)), "{}"));
         jdbc.update("DELETE FROM market_data_cache WHERE coin_pair = ? AND timeframe = 'H1'", COIN);
         // 닫힌 최신 봉 = 61분 전에 시작한 봉(회차 마감 전). 그 봉을 일봉 마감 봉으로 둔다.
-        // 시험마다 몇 초씩 옮겨 회차 키가 겹치지 않게 한다 — 처리된 회차는 늦은 접수를 받지 않는다.
-        lastOpen = Instant.now().minus(61, ChronoUnit.MINUTES).truncatedTo(ChronoUnit.SECONDS)
-                .minusSeconds(ROUND_SEQ.incrementAndGet());
+        // 회차 키는 시험마다 앞 시험보다 이르게 둔다 — 처리된 회차는 늦은 접수를 받지 않는다("회차 마감 뒤 도착").
+        // 🔴 (2026-10-30) 예전 "현재 − 순번(초)" 은 시험 하나가 1초쯤 걸리면 시각 증가와 순번 증가가 상쇄돼 앞 시험과
+        //    같은 키가 되었다 — 묶음 실행 1회차의 "BUY 주문 0건" 3건이 이것이다(1.1초 지연으로 재현, 문서 §5-9).
+        Instant base = Instant.now().minus(61, ChronoUnit.MINUTES).truncatedTo(ChronoUnit.SECONDS);
+        lastOpen = LAST_ROUND.updateAndGet(prev -> base.isBefore(prev) ? base : prev.minusSeconds(1));
         useCloseHour(lastOpen.atZone(ZoneOffset.UTC).getHour());
     }
 
-    private static final java.util.concurrent.atomic.AtomicInteger ROUND_SEQ = new java.util.concurrent.atomic.AtomicInteger();
+    private static final java.util.concurrent.atomic.AtomicReference<Instant> LAST_ROUND =
+            new java.util.concurrent.atomic.AtomicReference<>(Instant.MAX);
 
     @AfterEach
     void tearDown() {
@@ -271,10 +274,18 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
         return out;
     }
 
+    /** 마지막 평가의 흐름 — 주문이 0건이면 실패 메시지에 싣는다(신호 → 후보 접수 → 회차 승인 결과). */
+    private String lastTrace = "평가 없음";
+
     /** 평가 회차 + 회차 승인 — 운영 한 번의 마감 처리와 같다. */
     private void evaluate(LiveTradingSessionEntity s) {
         evaluateOnly(s);
-        approveRound();
+        List<StrategyLogEntity> logs = strategyLogRepository.findAllBySessionTypeAndSessionIdOrderByCreatedAtDesc("LIVE", s.getId());
+        String signal = logs.isEmpty() ? "로그 없음"
+                : logs.get(0).getSignal() + " / 접수 거절=" + logs.get(0).getBlockedReason();
+        List<EntryPriorityRounds.Outcome> out = approveRound();
+        lastTrace = String.format("회차 키 H1 %s · 신호 %s · 승인 %s", lastOpen, signal,
+                out.stream().map(o -> "LIVE#" + o.candidate().sessionId() + "→" + (o.reason() == null ? "진입" : o.reason())).toList());
     }
 
     private List<OrderEntity> orders(LiveTradingSessionEntity s, String side) {
@@ -309,7 +320,7 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
         awaitOrders(s, side, 1);
         awaitDrained();
         List<OrderEntity> found = orders(s, side);
-        assertThat(found).as(side + " 주문 1건").hasSize(1);
+        assertThat(found).as(side + " 주문 1건 — " + lastTrace).hasSize(1);
         assertThat(found.get(0).getState()).as(side + " 접수 기록").isEqualTo("SUBMITTED");
         assertThat(found.get(0).getExchangeOrderId()).as("거래소 주문번호").startsWith("sma20-new-");
         verify(upbitOrderClient, times(1)).createOrder(anyString(), anyString(), any(), any(), anyString(), anyString());
@@ -689,6 +700,37 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
         assertThat(available(s)).as("차액 0.99 만 차감").isEqualByComparingTo("210.01");
 
         settle(buy, buyReport(uuid, "done", "0.0016", "19980", "9.99"));
+        assertThat(settled(s, buy)).as("정정 응답 반복 — 다시 빼지 않는다").isEqualTo(corrected);
+        verify(upbitOrderClient, times(1)).createOrder(anyString(), anyString(), any(), any(), anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("통합 ④ 체결대금만 정정 — 수량 0.0016 그대로, 19,980→19,990 이면 평균단가·투입금·잔액이 함께 바뀌고 반복은 변화 없음")
+    void sma20BuyFundsOnlyCorrectionUpdatesPositionAndBalance() {
+        // CLOSED 포지션에 온 정정이 재개방하지 않는 것은 LateFillCorrectionTest 가 본다 — 여기서는 열린 포지션만.
+        LiveTradingSessionEntity s = noTimeStopSession();
+        OrderEntity buy = submittedSma20Buy(s);
+        String uuid = buy.getExchangeOrderId();
+
+        settle(buy, buyReport(uuid, "done", "0.0016", "19980", "9.99"));
+        String first = settled(s, buy);
+        assertThat(entryPosition(buy).getAvgPrice()).as("19,980 / 0.0016").isEqualByComparingTo("12487500");
+        assertThat(available(s)).isEqualByComparingTo("210.01");
+
+        settle(buy, buyReport(uuid, "done", "0.0016", "19990", "9.99"));
+        String corrected = settled(s, buy);
+        System.out.println("[SMA20 통합 ④ 체결대금 정정]\n  1회차: " + first + "\n  정정후: " + corrected);
+        OrderEntity o = orderRepository.findById(buy.getId()).orElseThrow();
+        assertThat(o.getAppliedExecutedFunds()).isEqualByComparingTo("19990");
+        assertThat(o.getAppliedPaidFee()).as("수수료 그대로").isEqualByComparingTo("9.99");
+        assertThat(o.getSettlementVersion()).as("1회차·정정 두 번").isEqualTo(2L);
+        PositionEntity p = entryPosition(buy);
+        assertThat(p.getSize()).as("수량 불변").isEqualByComparingTo("0.0016");
+        assertThat(p.getAvgPrice()).as("19,990 / 0.0016").isEqualByComparingTo("12493750");
+        assertThat(p.getInvestedKrw()).as("19,990 + 9.99").isEqualByComparingTo("19999.99");
+        assertThat(available(s)).as("차액 10 만 차감 — 200 + (20,000 − 19,990 − 9.99)").isEqualByComparingTo("200.01");
+
+        settle(buy, buyReport(uuid, "done", "0.0016", "19990", "9.99"));
         assertThat(settled(s, buy)).as("정정 응답 반복 — 다시 빼지 않는다").isEqualTo(corrected);
         verify(upbitOrderClient, times(1)).createOrder(anyString(), anyString(), any(), any(), anyString(), anyString());
     }
