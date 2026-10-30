@@ -1,6 +1,6 @@
 # 12월 제한 실거래 시험 — 후보와 실행안
 
-> **상태**: v1.10 (2026-10-30, 리뷰 판정 — 필터 경계·캔들 404 한정, 첫 D 보존 뒤 D 재실행, 통과하면 E. 청구액은 E 까지 잠정 수용·`start` 전 화면 확인) · v1.9 (D 멈춤 — 404 필터 정규식 순서 결함 수정) · v1.8 (A 멈춤 판단 반영) — **리뷰 판정: DYNAMIC 93 정지 승인(운영자 1회 호출), 과거 비상정지 21개는 보존(선택지 ②) — 실행 가능 상태 0 검사 + LIVE 20·DYNAMIC 92 의 ID·상태 별도 대조로 `EG` 교체(§5-8 0·A0).** 93 정지 확인 뒤 A 부터 다시, 통과하면 B~E 를 추가 승인 없이. 월 청구액·휴대폰 수신 시각은 필수 확인. `start` 아님.
+> **상태**: v1.11 (2026-10-30, 리뷰 판정 — #15 등록·SID 203 생성 통과 수용, **12-01(화) 08:50 KST SID 203 시작 결정**(조건: F0 비용 기록·당일 F1 점검). 경보 조회 완료 확인 보완, `EGS` 교체, §5-8 F0~F4. 지금은 `CREATED` 유지) · v1.10 (2026-10-30, 리뷰 판정 — 필터 경계·캔들 404 한정, 첫 D 보존 뒤 D 재실행, 통과하면 E. 청구액은 E 까지 잠정 수용·`start` 전 화면 확인) · v1.9 (D 멈춤 — 404 필터 정규식 순서 결함 수정) · v1.8 (A 멈춤 판단 반영) — **리뷰 판정: DYNAMIC 93 정지 승인(운영자 1회 호출), 과거 비상정지 21개는 보존(선택지 ②) — 실행 가능 상태 0 검사 + LIVE 20·DYNAMIC 92 의 ID·상태 별도 대조로 `EG` 교체(§5-8 0·A0).** 93 정지 확인 뒤 A 부터 다시, 통과하면 B~E 를 추가 승인 없이. 월 청구액·휴대폰 수신 시각은 필수 확인. `start` 아님.
 >
 > v1.7 (2026-10-30, 개입 #15 승인) — 🔴 **A 직전 확인에서 멈춤(10:10 KST): `EG` = `20|2|0|true` — 실자금 DYNAMIC 1개 RUNNING·EMERGENCY_STOPPED 1개, LIVE EMERGENCY_STOPPED 20개. 등록하면 RUNNING DYNAMIC 의 실자금 진입이 열릴 수 있어 B 로 가지 않았다. 리뷰 판단 대기(§5-8 A 실행 결과).** **리뷰 판정: 후보 `82d15d4` 와 STAGE_1 등록 재기동(개입 #15) 승인, 생성 시 손실 한도 기준 행 기록 수용.** 보완 두 가지(#15 점검 기록 분리 · 실패 시 다음 변경 중단)를 §5-8 A~E 에 반영했다. 추가 승인 없이 청구액·KRW·E1~E4·경보 수신 → 등록 재기동 → 기동·30분 점검 → 세션 1개 `CREATED` 생성·저장값 대조까지 진행(`start` 아님). 기준 행은 생성 시각으로 보존하고 12월 시작 때 다시 만들지 않는다. 56일은 실제 `start` 시각부터. 운영 `504ab81`, STAGE_1 비활성(실행 전).
 >
@@ -679,6 +679,162 @@ $PSQL -c "SELECT * FROM capital_stage_baseline;" | tee "$M/baseline.txt"     # 1
 
 **개입 #15 기록**(운영자 본인이 시각·결과를 채운다): 개입 #15 — (날짜) STAGE_1 등록 재기동(`82d15d4`, compose 4줄 + `.env` 등록값, 이미지 그대로). 체크아웃·`.env`·**재생성 HH:MM:SS**(`t-start-stage1`). 등록 로그 두 줄 확인. `sc` 직전·기동 후·30분 모두 `66 | 63 | 3 | -`. backend 외 서비스 그대로. 경보 네 갈래. 66세션의 입력 수집·판정 규칙은 바뀌지 않았고 바뀐 것은 실자금 공유 풀 등록뿐이다. 재기동에 따른 평가 공백의 영향은 미확정이며 T0·성과 구간은 유지한다. 결과: (정상 / 되돌림 — 사유·시각) — 운영자 / 시각.
 
+**리뷰 판정 (v1.10 E 보고 뒤, 2026-10-30 운영자 전달) — 시작 일정**: "개입 #15의 등록과 SID 203 생성은 통과로 수용합니다. 청구 확인과 당일 점검을 조건으로, 12월 1일(화) 08:50 KST에 SID 203을 시작하는 것으로 결정합니다." · "조건을 충족하면 추가 승인 요청 없이 진행하세요." · ① 시작 전 비용 확인 — "청구·사용량 화면에서 현재 비용, 무료 혜택 종료일, 유료 전환 시 예상 비용을 확인해 월 10만 원 이내인지 기록합니다. 아직 이 조건은 미완료입니다." · ② 당일 08:30부터 직전 점검 — SID 203 `CREATED`·저장값 유지, 다른 실행 가능 실자금 세션 없음, 활성 주문·열린 포지션·정리 대기 0건, KRW 여유 20,200원 이상, 위험 한도·거래소 연결·경보 수신, 기존 66세션 기대 상태. "생성 전의 `EGX`는 그대로 쓰지 않습니다. 지금은 SID 203과 기준 행 1개가 있는 상태가 정상입니다." · ③ "08:50에 SID 203만 시작" — 요청 한 번, `RUNNING`·실제 `started_at` 확인, "응답이 불명확하면 재호출보다 조회를 먼저 합니다." 09시 일봉 판단 뒤 신호·관문·주문·정산 확인, "매수 신호가 없거나 관문이 막으면 현금으로 기다립니다." · ④ 종료 — "실제 `started_at + 56일`로 고정합니다." 예정대로면 2027-01-26 08:50 KST 무렵. 종료 점검 일정을 미리 등록, 기존 정지·청산 절차로 마무리. "증액·추가 입금·자동 연장은 없습니다." · B·C 화면 원문 — "남아 있으면 첨부하고, 없으면 누락으로 기록하세요. … 이 누락만으로 재기동하거나 시작을 막지는 않습니다." · 절차 보완 — "경보 조회는 종료코드 0/1과 정상 출력 완료를 함께 확인하세요. `구간` 헤더는 오류 전에 출력될 수 있습니다. 이번 D는 상세 관측 결과가 있으므로 다시 실행할 필요 없습니다." · "지금은 SID 203을 CREATED로 유지합니다. 조건 확인과 운영자 대응이 가능한 경우에만 예정 시각에 시작하며, 시각을 놓치면 다음 대응 가능한 날 08:50으로 미룹니다."
+
+**v1.11 반영** — 아래 F0~F4 는 이 판정의 실행 절차다. 판정 기준은 바꾸지 않았다.
+- **경보 조회 보완**: 종료코드가 0 또는 1 이고, 출력 끝의 안내 줄(`🔴 🔴 은 경보이고 확정이 아니다`)까지 나왔고, `Traceback` 이 없어야 조회 성공이다. 파이썬 예외도 종료코드 1 이라 종료코드만으로는 경보와 오류를 가를 수 없다. `구간 ` 줄만 보던 D 의 검사는 이것으로 바꾼다(D 는 다시 실행하지 않는다).
+- **`EG` 기대 교체**: 생성 뒤 정상 상태는 `EGS` = 실자금 LIVE 실행 가능 1개(SID 203) · DYNAMIC 0 · 기준 행 1 · 한도 3.0·15.0 · 과거 비상정지 21개 그대로 · 예상 밖 상태 0. 실행 가능한 1개가 `203` 인지는 따로 대조한다.
+- 🔴 `start` 는 F0 비용 기록이 이 문서에 월 10만 원 이내로 적힌 뒤, 그날 F1 이 통과했을 때만 한다. 둘 중 하나라도 없으면 SID 203 은 `CREATED` 그대로 두고 다음 대응 가능한 날 08:50 으로 미룬다.
+
+**F0. 시작 전 비용 확인 (운영자, 화면 확인 — 서버 명령 없음)**: 청구·사용량 화면에서 ① 현재 청구 비용(기간 포함) ② 무료 혜택 종료일 ③ 유료 전환 시 월 예상 비용 ④ 그 근거 화면(서비스 이름·메뉴). 무료 혜택이 시험 종료(2027-01-26 무렵) 전에 끝나면 ③ 으로 10만 원 이내인지 본다. 운영자가 본 그대로를 운영자 진술로 출처와 함께 아래에 기록한다(개발 에이전트가 대신 판정하지 않는다).
+- F0 기록: (미기록)
+
+**F 변수** — 🔴 12-01 새 셸마다 먼저 (#15 폴더 `MS` 는 읽기만)
+```bash
+cd ~/crypto_trader/AutoTrader
+DC="docker compose -f docker-compose.prod.yml"; SID=203
+M=~/start-sid203; MS=~/maint-20261030-stage1; mkdir -p "$M"
+NEW=82d15d42fa22bb7d0f24a8243ebc888a2a7f071c
+PSQL="$DC exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader"
+sc() { $PSQL -At -F ' | ' -c "
+  SELECT count(*) AS total,
+         count(*) FILTER (WHERE status = 'RUNNING' AND id NOT IN (576,577,578)) AS running_63,
+         count(*) FILTER (WHERE status = 'STOPPED' AND id IN (576,577,578))     AS stopped_3,
+         coalesce(string_agg(id || ':' || status, ' ' ORDER BY id) FILTER (WHERE NOT (
+             (id IN (576,577,578) AND status = 'STOPPED') OR
+             (id NOT IN (576,577,578) AND status = 'RUNNING'))), '-') AS mismatch
+    FROM paper_trading.virtual_balance WHERE id BETWEEN 522 AND 587" ; }
+svc() { for s in backend db redis db-backup frontend; do docker inspect --format "$s {{.Image}} {{.State.StartedAt}}" "$($DC ps -q $s)"; done ; }
+EG="SELECT (SELECT count(*) FROM live_trading_session WHERE session_type = 'REAL' AND status IN ('RUNNING','PAUSED','CREATED')) || '|' ||
+           (SELECT count(*) FROM dynamic_session WHERE trading_mode = 'REAL' AND status IN ('RUNNING','PAUSED','CREATED')) || '|' ||
+           (SELECT count(*) FROM capital_stage_baseline) || '|' ||
+           (SELECT (max_daily_loss_pct = 3.0 AND max_portfolio_drawdown_pct = 15.0)::text FROM risk_config ORDER BY id DESC LIMIT 1) || '|' ||
+           (SELECT coalesce(string_agg(id::text, ',' ORDER BY id), '-') FROM live_trading_session WHERE session_type = 'REAL' AND status = 'EMERGENCY_STOPPED') || '|' ||
+           (SELECT coalesce(string_agg(id::text, ',' ORDER BY id), '-') FROM dynamic_session WHERE trading_mode = 'REAL' AND status = 'EMERGENCY_STOPPED') || '|' ||
+           ((SELECT count(*) FROM live_trading_session WHERE session_type = 'REAL' AND status NOT IN ('RUNNING','PAUSED','CREATED','EMERGENCY_STOPPED','STOPPED','DELETED')) +
+            (SELECT count(*) FROM dynamic_session WHERE trading_mode = 'REAL' AND status NOT IN ('RUNNING','PAUSED','CREATED','EMERGENCY_STOPPED','STOPPED','DELETED')))"
+EGS='1|0|1|true|157,161,166,167,168,183,184,185,186,187,188,189,190,191,192,193,194,195,196,200|92|0'
+LIVE1="SELECT coalesce(string_agg(id || ':' || status, ',' ORDER BY id), '-') FROM live_trading_session WHERE session_type = 'REAL' AND status IN ('RUNNING','PAUSED','CREATED')"
+BASE="SELECT stage || '|' || to_char(started_at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI:SS.US') || '|' || total_cap_krw FROM capital_stage_baseline"
+BASEX='STAGE_1|2026-10-30 04:16:57.997762|100000.00'
+KEEP="SELECT session_type = 'REAL' AND strategy_type = 'DAILY_SMA20' AND coin_pair = 'KRW-BTC' AND timeframe = 'H1'
+  AND initial_capital = 20200 AND invest_ratio = 0.995 AND max_investment = 20000 AND stop_loss_pct = 5.0
+  AND max_hold_hours = 0 AND coalesce(strategy_params::text, '{}') = '{}'
+  AND to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI:SS.US') = '2026-10-30 04:16:58.044684' FROM live_trading_session WHERE id = $SID"
+```
+
+**F1. 직전 점검 — 12-01 08:30 KST 부터 (읽기 전용 + 텔레그램 시험 1회)**
+```bash
+(
+set -euo pipefail
+stop() { echo "🔴 멈춤: $*"; exit 1; }
+date '+%F %T %Z' | tee "$M/t-f1.txt"; date -u '+%Y-%m-%dT%H:%M:%SZ' > "$M/t-f1.utc"
+{ git rev-parse HEAD; git status --porcelain --untracked-files=no; echo "(끝)"; } | tee "$M/git-f1.txt"
+[ "$(head -1 "$M/git-f1.txt")" = "$NEW" ] && [ "$(sed -n 2p "$M/git-f1.txt")" = "(끝)" ] || stop "HEAD 가 82d15d4 가 아니거나 추적 파일 변경 있음 — 보고"
+svc | tee "$M/svc-f1.txt"
+[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$(cat "$MS/image-before.txt")" ] || stop "backend 이미지가 #15 때와 다름 — 보고"
+$DC exec -T backend env | grep '^TRADING_CAPITALPOOL_' | sort | tee "$M/pool-f1.txt"   # STAGE_1 · 100000 · 20000 · 3 네 줄
+[ "$(wc -l < "$M/pool-f1.txt")" -eq 4 ] || stop "공유 풀 등록값이 네 줄이 아님"
+[ "$($PSQL -At -c "$EG" | tee "$M/eg-f1.txt")" = "$EGS" ] || stop "EG 가 EGS 와 다름 — eg-f1.txt 를 보고"
+[ "$($PSQL -At -c "$LIVE1" | tee "$M/live1-f1.txt")" = "$SID:CREATED" ] || stop "실행 가능 실자금 세션이 203:CREATED 하나가 아님"
+[ "$($PSQL -At -c "$KEEP" | tee "$M/keep-f1.txt")" = "t" ] || stop "SID 203 저장값이 생성 때와 다름"
+$PSQL -x -c "SELECT id, status, initial_capital, available_krw, invest_ratio, max_investment, stop_loss_pct, max_hold_hours, strategy_params, started_at, created_at FROM live_trading_session WHERE id = $SID;" | tee "$M/session-f1.txt"
+[ "$($PSQL -At -c "SELECT available_krw = 20200 AND started_at IS NULL FROM live_trading_session WHERE id = $SID")" = "t" ] || stop "available_krw 20200·started_at 비어 있음이 아님"
+[ "$($PSQL -At -c "$BASE" | tee "$M/base-f1.txt")" = "$BASEX" ] || stop "기준 행이 생성 때와 다름"
+$PSQL -At -F ' ' <<'SQL' | tee "$M/zero-f1.txt"
+SELECT 'real_open_positions', count(*) FROM position p
+  LEFT JOIN live_trading_session l ON p.session_kind = 'LIVE' AND l.id = p.session_id
+  LEFT JOIN dynamic_session d ON p.session_kind = 'DYNAMIC' AND d.id = p.session_id
+ WHERE p.status IN ('OPEN','CLOSING') AND (l.session_type = 'REAL' OR d.trading_mode = 'REAL');
+SELECT 'real_unresolved_orders', count(*) FROM "order" o
+  LEFT JOIN live_trading_session l ON o.session_kind = 'LIVE' AND l.id = o.session_id
+  LEFT JOIN dynamic_session d ON o.session_kind = 'DYNAMIC' AND d.id = o.session_id
+ WHERE o.state IN ('PENDING','INTENT_READY','SUBMITTING','UNKNOWN','SUBMITTED','PARTIAL_FILLED') AND (l.session_type = 'REAL' OR d.trading_mode = 'REAL');
+SELECT 'cleanup_pending', count(*) FROM position_cleanup WHERE done_at IS NULL;
+SELECT 'sid_orders', count(*) FROM "order" WHERE session_kind = 'LIVE' AND session_id = 203;
+SELECT 'sid_positions', count(*) FROM position WHERE session_kind = 'LIVE' AND session_id = 203;
+SQL
+[ "$(awk '{s+=$2} END {print s+0}' "$M/zero-f1.txt")" = "0" ] || stop "활성 주문·열린 포지션·정리 대기·SID 203 주문/포지션 중 0 이 아닌 것 있음"
+sc | tee "$M/s-f1.txt"; [ "$(cat "$M/s-f1.txt")" = "66 | 63 | 3 | -" ] || stop "검증 66세션 상태가 기대와 다름"
+curl -s http://localhost:8080/api/v1/trading/health/exchange | tee "$M/exchange-f1.json"; echo
+python3 -c 'import json,sys; d=json.load(open(sys.argv[1]))["data"]; print("거래소", d["status"], d["latencyMs"], "ms"); sys.exit(0 if d["status"] == "UP" else 1)' "$M/exchange-f1.json" || stop "거래소 연결 UP 아님"
+TOKEN=$(grep -m1 '^API_AUTH_TOKEN=' .env | cut -d= -f2-)
+curl -s -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/v1/account/summary > "$M/account-f1.json"
+python3 -c 'import json,sys; d=json.load(open(sys.argv[1]))["data"]; a=float(d["availableKrw"]); l=float(d["lockedKrw"]); b=[(h["balance"], h["locked"]) for h in d.get("holdings", []) if h["currency"] == "BTC"]; print("KRW 주문 가능", a, "· 묶인 KRW", l, "· BTC", b or "없음"); sys.exit(0 if a >= 20200 and l == 0 else 1)' "$M/account-f1.json" || stop "KRW 주문 가능 20,200원 미만이거나 묶인 KRW 있음(업비트 미체결) 또는 조회 실패"
+python3 scripts/prospective/start_66.py alerts --days 1 --no-mark > "$M/alerts-f1.txt" 2>&1 && AE=0 || AE=$?
+echo "경보 종료코드 $AE"
+{ [ "$AE" -le 1 ] && grep -q '^🔴 🔴 은 경보이고 확정이 아니다' "$M/alerts-f1.txt" && ! grep -q 'Traceback' "$M/alerts-f1.txt"; } || stop "경보 조회가 끝까지 돌지 않음 — alerts-f1.txt 를 보고"
+echo "== 경보 (지금)"; cat "$M/alerts-f1.txt"
+echo "== 경보 (#15 정비 전 기준선)"; cat "$MS/alerts-before.txt"
+{ date '+%F %T %Z'; curl -s -o /dev/null -w '%{http_code}\n' -X POST -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/v1/settings/telegram/test; } | tee "$M/telegram-f1.txt"
+[ "$(tail -1 "$M/telegram-f1.txt")" = "200" ] || stop "텔레그램 시험 200 아님"
+touch "$M/ok-F1"; echo "✅ F1 기계 점검 통과 — 경보 네 갈래와 휴대폰 수신을 확인하고 운영자 확인 파일을 쓴 뒤 08:50 F2"
+)
+```
+- 기대: `git-f1` = `82d15d4…` 다음 `(끝)` · 이미지 = #15 때 전체 ID · 공유 풀 네 줄 · `EG` = `EGS` · `203:CREATED` · 저장값 `t` · `available_krw` 20200·`started_at` 비어 있음 · 기준 행 = `BASEX` · 0 다섯 줄 · `sc` `66 | 63 | 3 | -` · 거래소 `UP` · KRW 주문 가능 ≥ 20,200·묶인 KRW 0 · 경보 조회 완료 · 텔레그램 `200`. 멈추면 F2 로 가지 않고 그 출력을 보고한다 — 그날은 시작하지 않는다.
+- 경보는 `MS/alerts-before.txt` 와 네 갈래(기존 반복·새 경보·⚪·실행 누락)로 대조한다. KRW-BLAST 반복 밖의 🔴·⚪·실행 누락이 있으면 시작하지 않고 보고한다.
+- 운영자 확인 파일 — 경보 대조와 휴대폰 수신(이번 시험 메시지의 말풍선 시각)을 본 뒤에만, 빈칸을 직접 채워 만든다:
+```bash
+printf '경보 네 갈래: %s\n휴대폰 수신 시각: %s\n' "<기존 반복만 / 다른 것 있음 — 내용>" "<HH:MM>" | tee "$M/operator-confirm.txt"
+```
+
+**F2. 시작 1회 — 12-01 08:50 KST (F1 통과 · 확인 파일 작성 뒤)**
+```bash
+(
+set -euo pipefail
+stop() { echo "🔴 멈춤: $*"; exit 1; }
+[ -e "$M/ok-F1" ] || stop "F1 미통과"
+[ $(( $(date +%s) - $(stat -c %Y "$M/ok-F1") )) -le 1800 ] || stop "F1 통과가 30분보다 오래됨 — F1 부터 다시"
+[ -s "$M/operator-confirm.txt" ] && ! grep -q '<' "$M/operator-confirm.txt" && [ "$M/operator-confirm.txt" -nt "$M/ok-F1" ] || stop "운영자 확인 파일 없음·자리표시 남음·F1 보다 오래됨"
+! grep -q '다른 것 있음' "$M/operator-confirm.txt" || stop "경보에 기존 반복 밖의 것 있음 — 시작하지 않고 보고"
+HM=$(TZ=Asia/Seoul date +%H%M); [ $((10#$HM)) -ge 850 ] && [ $((10#$HM)) -le 855 ] || stop "지금 $HM KST — 08:50~08:55 밖이라 시작하지 않는다(다음 대응 가능한 날 08:50)"
+[ ! -e "$M/start-sent" ] || stop "이미 시작 요청을 보냈다 — 다시 보내지 않는다. 아래 확인 조회부터"
+[ "$($PSQL -At -c "$EG")" = "$EGS" ] || stop "EG 가 EGS 와 다름"
+[ "$($PSQL -At -c "$LIVE1")" = "$SID:CREATED" ] || stop "203:CREATED 가 아님"
+TOKEN=$(grep -m1 '^API_AUTH_TOKEN=' .env | cut -d= -f2-)
+date '+%F %T %Z' | tee "$M/t-start.txt"; touch "$M/start-sent"
+curl -s -X POST -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/v1/trading/sessions/$SID/start | tee "$M/start.json"; echo
+)
+```
+- 🔴 **한 번만.** `start-sent` 표지가 두 번째 요청을 막는다. 응답이 없거나 애매해도 다시 부르지 말고 아래 확인부터 한다. 거절 문구가 오면 그대로 보고한다(다시 보내지 않는다).
+- 시작 확인(1분 뒤, 읽기 전용 — 기대와 다르면 몇 분 뒤 이 조회만 다시):
+```bash
+$PSQL -x -c "SELECT id, status, available_krw, started_at, started_at AT TIME ZONE 'Asia/Seoul' AS started_kst, (started_at + interval '56 days') AT TIME ZONE 'Asia/Seoul' AS end_kst FROM live_trading_session WHERE id = $SID;" | tee "$M/start-check.txt"
+$PSQL -At -c "$KEEP" | tee -a "$M/start-check.txt"                                  # t
+$PSQL -At -c "$LIVE1" | tee -a "$M/start-check.txt"                                 # 203:RUNNING
+$PSQL -At -c "$EG" | tee -a "$M/start-check.txt"; $PSQL -At -c "$BASE" | tee -a "$M/start-check.txt"   # EGS · BASEX
+sc | tee -a "$M/start-check.txt"                                                    # 66 | 63 | 3 | -
+```
+- 기대: `status` `RUNNING` · `started_at` 08:50 KST 무렵(이 값이 56일 기산점) · `end_kst` = `started_at` + 56일 · 저장값 `t` · `203:RUNNING` · `EG` = `EGS` · 기준 행 = `BASEX`(다시 만들지 않음) · `sc` 같음. `CREATED` 그대로면 다시 부르지 말고 응답과 이 출력을 보고한다.
+
+**F3. 첫 일봉 판단 확인 — 12-01 09:15 KST (읽기 전용)**
+```bash
+S=$($PSQL -At -c "SELECT started_at FROM live_trading_session WHERE id = $SID")
+TOKEN=$(grep -m1 '^API_AUTH_TOKEN=' .env | cut -d= -f2-)
+$PSQL -v s="$S" <<'SQL' 2>&1 | tee "$M/f3.txt"
+BEGIN TRANSACTION READ ONLY;
+\echo '== G1 SID 203 판단 기록(시작 뒤 전부)'
+SELECT created_at AT TIME ZONE 'Asia/Seoul' AS kst, signal, signal_price, was_executed, blocked_reason, reason FROM strategy_log WHERE session_type = 'LIVE' AND session_id = 203 AND created_at >= :'s'::timestamptz ORDER BY id;
+\echo '== G2 SID 203 주문'
+SELECT id, side, state, price, quantity, filled_quantity, created_at AT TIME ZONE 'Asia/Seoul' AS kst FROM "order" WHERE session_kind = 'LIVE' AND session_id = 203 ORDER BY id;
+\echo '== G3 SID 203 포지션'
+SELECT id, coin_pair, status, size, entry_price, opened_at FROM position WHERE session_kind = 'LIVE' AND session_id = 203 ORDER BY id;
+\echo '== G4 SID 203 세션 잔액'
+SELECT status, available_krw FROM live_trading_session WHERE id = 203;
+\echo '== G5 정리 대기 — 기대 0'
+SELECT count(*) FROM position_cleanup WHERE done_at IS NULL;
+ROLLBACK;
+SQL
+curl -s -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/v1/account/summary > "$M/account-f3.json"
+python3 -c 'import json,sys; d=json.load(open(sys.argv[1]))["data"]; print("KRW 주문 가능", d["availableKrw"], "· 묶인 KRW", d["lockedKrw"], "· BTC", [(h["balance"], h["locked"], h["avgBuyPrice"]) for h in d.get("holdings", []) if h["currency"] == "BTC"] or "없음")' "$M/account-f3.json" | tee -a "$M/f3.txt"
+```
+- 기대(둘 중 하나):
+  - **매수 없음**: 09:00 회차 판단이 HOLD 이거나 BUY 가 관문에서 막힘(`blocked_reason` 기록) · 주문 0 · 포지션 0 · `available_krw` 20200 · 업비트 KRW 그대로. 현금으로 기다린다(조치 없음).
+  - **매수 1건**: 09:00 회차 BUY · 주문 1건 `BUY` 20,000원 `FILLED` · 포지션 1개 `OPEN` · `available_krw` ≈ 200 · 업비트 BTC 수량 = 포지션 수량(수수료·반올림 범위).
+  - 그 밖(주문 2건 이상, `UNKNOWN`·미체결 남음, 판단 기록 없음, 업비트 수량과 기록 불일치)은 §6-2 대응 순서를 따르고 출력을 그대로 보고한다. 재시작·재요청하지 않는다.
+
+**F4. 종료 시각 고정** — 종료 = F2 확인의 `end_kst`(실제 `started_at` + 56일, 예정대로면 2027-01-26 08:50 KST 무렵). 운영자가 시작 당일 종료 점검 일정을 등록한다. 종료 때 정지 API(`POST …/sessions/$SID/stop`) 한 번 → §6-2 의 완료 확인(STOPPED · 활성 주문 0 · 정리 대기 0 · 업비트 BTC 와 기록 일치) → §6-3 보고. 증액·추가 입금·자동 연장은 없다.
+
 ### 5-6. 사용 시간과 남은 일
 
 - 40시간 중 사용: v1.1 까지 약 7.5시간 + 이번 구현·시험·대조·문서 약 6.5시간 = **약 14시간**.
@@ -688,6 +844,7 @@ $PSQL -c "SELECT * FROM capital_stage_baseline;" | tee "$M/baseline.txt"     # 1
 - **v1.8 (2026-10-30)**: A 실행 결과 대조·`EG` 교체·A0(93 정지·확인) 약 1시간 → **누적 약 24시간**.
 - **v1.9 (2026-10-30)**: D 멈춤 원인 확인(404 필터 정규식 순서 결함, C·D 두 곳 수정) → 리뷰 판단 대기.
 - **v1.10 (2026-10-30)**: 리뷰 판정 반영 — 필터 경계 `[^A-Z0-9_-]`·캔들 404 한정, 첫 D 보존·재실행, 청구액 잠정 수용 범위(E 까지) 기록.
+- **v1.11 (2026-10-30)**: 리뷰 시작 판정 반영 — F0 비용 확인, F1 직전 점검(`EGS`·저장값·기준 행·0 확인·거래소·KRW·경보 완료 확인·텔레그램), F2 시작 1회, F3 첫 일봉 확인, F4 종료 고정.
 - **v1.7 (2026-10-30)**: 리뷰 보완 — #15 별도 기록 폴더·실패 시 중단 묶음(A~E)·전체 이미지 ID 비교 약 1시간 → **누적 약 23시간**. 남은 일 추정(확정 아님): 실행 결과 확인·기록 약 1h.
 - **v1.6 (2026-10-30)**: #8 준비 — 생성 경로 코드 대조, 등록 통로 후보(`82d15d4`)·시험, §5-8 명령 약 1.5시간 → **누적 약 22시간**. 남은 일 추정(확정 아님): 등록 재기동·생성 지원 약 1h.
 - **v1.5 (2026-10-30)**: 배포 지원(절차 안내·결과 확인·기록) 약 1시간 → **누적 약 20.5시간**. 남은 일 추정(확정 아님): 활성화 직전 확인(#8)·세션 생성 명령 약 2h. WF 예외는 `gateEnabled` false 라 필요 없다.
@@ -765,5 +922,6 @@ $PSQL -c "SELECT * FROM capital_stage_baseline;" | tee "$M/baseline.txt"     # 1
 - ~~**리뷰 (v1.4)**: 수정한 시험 결과와 고정 SHA `504ab81` 확인. 그 뒤 운영자가 backend 단독 배포 진행(`MAINTENANCE_NEXT_SMA20.md`), 배포 후 점검 통과 시 활성화 직전 확인과 세션 생성.~~ → 2026-10-30 리뷰 판정: `504ab81` 기술 검토 통과, backend 단독 배포 진행, "이번 승인은 배포까지" → 개입 #14 로 배포(§5-5).
 - ~~**리뷰 (v1.5)**: 배포 결과(개입 #14) 판단. 그 뒤 활성화 직전 확인(#8)과 세션 생성 여부.~~ → 2026-10-30 리뷰 판정: 배포 통과·`504ab81` 유지 수용, #8 준비 승인, 비용·직전 확인 통과 시 `CREATED` 생성·저장값 대조까지 승인, WF `false` 유지(§5-8).
 - ~~**리뷰 (v1.6)**: 🔴 생성에 STAGE_1 등록이 필요하고 등록에 compose 변경·재기동이 필요하다(§5-8). 후보 `82d15d4` 와 등록 재기동(개입 #15 예정)을 진행할지. 생성 시 `capital_stage_baseline` 기록(손실 한도 기산 = 생성 시각)을 받아들일지.~~ → 2026-10-30 리뷰 판정: 둘 다 승인·수용, 절차 보완 두 가지 뒤 추가 승인 없이 진행(§5-8 v1.7).
-- **리뷰 (v1.7 뒤)**: 청구액·#15 점검 결과·생성된 세션 ID·저장값을 보고받아 12월 `start` 시각을 정한다.
+- ~~**리뷰 (v1.7 뒤)**: 청구액·#15 점검 결과·생성된 세션 ID·저장값을 보고받아 12월 `start` 시각을 정한다.~~ → 2026-10-30 리뷰 판정: #15·SID 203 통과 수용, 12-01 08:50 KST 시작(조건 F0·F1, §5-8 F). 놓치면 다음 대응 가능한 날 08:50.
+- **운영자 (v1.11)**: 🔴 F0 비용 확인(현재 비용·무료 혜택 종료일·유료 전환 예상 비용, 월 10만 원 이내) — 미기록. B·C 화면 원문 있음/없음 — 답 대기(없으면 누락 기록, 시작은 막지 않음).
 - **운영자**: ~~운영 WF 게이트 값 확인~~ → false(09:03:06 KST, §5-4). 🔴 **서버 실제 월 청구액 기록(§6-1 7번) — 활성화 전에 월 10만 원 한도 안인지 확인**(리뷰 요구, 아직 미기록). ~~개입 #14 결과·수용 칸 기입~~ → 리뷰 판정문의 운영자 결정 문안으로 기입(2026-10-30). §5-8 A~E 실행(A 확인 → B 등록 재기동 → C 기동 → D 30분 → E 생성 1회, 실패하면 그 자리에서 멈추고 보고). `start` 는 리뷰가 시각을 정한 뒤.
