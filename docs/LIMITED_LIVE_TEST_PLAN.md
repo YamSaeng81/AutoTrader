@@ -1,6 +1,6 @@
 # 12월 제한 실거래 시험 — 후보와 실행안
 
-> **상태**: v1.9 (2026-10-30, D 멈춤 — 404 필터 정규식 순서 결함 수정, 리뷰 판단 대기) · v1.8 (A 멈춤 판단 반영) — **리뷰 판정: DYNAMIC 93 정지 승인(운영자 1회 호출), 과거 비상정지 21개는 보존(선택지 ②) — 실행 가능 상태 0 검사 + LIVE 20·DYNAMIC 92 의 ID·상태 별도 대조로 `EG` 교체(§5-8 0·A0).** 93 정지 확인 뒤 A 부터 다시, 통과하면 B~E 를 추가 승인 없이. 월 청구액·휴대폰 수신 시각은 필수 확인. `start` 아님.
+> **상태**: v1.10 (2026-10-30, 리뷰 판정 — 필터 경계·캔들 404 한정, 첫 D 보존 뒤 D 재실행, 통과하면 E. 청구액은 E 까지 잠정 수용·`start` 전 화면 확인) · v1.9 (D 멈춤 — 404 필터 정규식 순서 결함 수정) · v1.8 (A 멈춤 판단 반영) — **리뷰 판정: DYNAMIC 93 정지 승인(운영자 1회 호출), 과거 비상정지 21개는 보존(선택지 ②) — 실행 가능 상태 0 검사 + LIVE 20·DYNAMIC 92 의 ID·상태 별도 대조로 `EG` 교체(§5-8 0·A0).** 93 정지 확인 뒤 A 부터 다시, 통과하면 B~E 를 추가 승인 없이. 월 청구액·휴대폰 수신 시각은 필수 확인. `start` 아님.
 >
 > v1.7 (2026-10-30, 개입 #15 승인) — 🔴 **A 직전 확인에서 멈춤(10:10 KST): `EG` = `20|2|0|true` — 실자금 DYNAMIC 1개 RUNNING·EMERGENCY_STOPPED 1개, LIVE EMERGENCY_STOPPED 20개. 등록하면 RUNNING DYNAMIC 의 실자금 진입이 열릴 수 있어 B 로 가지 않았다. 리뷰 판단 대기(§5-8 A 실행 결과).** **리뷰 판정: 후보 `82d15d4` 와 STAGE_1 등록 재기동(개입 #15) 승인, 생성 시 손실 한도 기준 행 기록 수용.** 보완 두 가지(#15 점검 기록 분리 · 실패 시 다음 변경 중단)를 §5-8 A~E 에 반영했다. 추가 승인 없이 청구액·KRW·E1~E4·경보 수신 → 등록 재기동 → 기동·30분 점검 → 세션 1개 `CREATED` 생성·저장값 대조까지 진행(`start` 아님). 기준 행은 생성 시각으로 보존하고 12월 시작 때 다시 만들지 않는다. 56일은 실제 `start` 시각부터. 운영 `504ab81`, STAGE_1 비활성(실행 전).
 >
@@ -472,6 +472,10 @@ SQL
 
 **B·C 기록 (`bc-record.txt`, 재실행 아님 — 저장 파일 읽기)**: B — 재생성 10:50:38 KST(01:50:38Z) · HEAD `82d15d42fa22bb7d0f24a8243ebc888a2a7f071c` · `.env` `CAPITAL_POOL_` 네 줄(STAGE_1·100000·20000·3) · 컨테이너 `TRADING_CAPITALPOOL_` 네 줄 같은 값 · 서비스 backend `e08b35b0…` 01:50:49Z, db·redis·db-backup·frontend 직전과 같음. C — `Schema "public" is up to date`(01:50:55) · `Started`(01:51:05, 15.262초) · 매도 격리 점검 "없음" · `공유 풀 한도 확인: 단계=STAGE_1 총상한=100000 포지션당=20000 동시보유=3`(01:51:02.138) · `위험 한도 확인: 단계 STAGE_1 총 자본 100000 기준 누적 15.00%·24시간 3.00%`(01:51:02.406) · `errors-after.txt` 0줄 · "공유 풀 미등록" 0 · `candle` 판정 불가 11 → 재개 11 · 남음 0 · Q1 94 · Q3~Q6 0 · Q7 `RUNNING 63`·`STOPPED 3` · Q8 0 · Q9 0 · `ROLLBACK` · `sc` `66 | 63 | 3 | -`. 모두 C 기대와 같다.
 
+**리뷰 판정 (v1.9 보고 뒤, 운영자 전달)**: 되돌림 없이 D 재실행, 통과하면 E. ① 필터 경계를 `([^A-Z0-9_-]|$)` 로 좁히고(`BLAST2`·`BLAST_X`·`BLAST-X` 는 남긴다) 제외 대상을 **캔들 조회의 `status=404`·`Code not found`** 로 한정 — 문서 명령 수정, 배포 후보 변경 없음. ② 처음 멈춘 D 의 로그·`errors-other30.txt`·`d-rest.txt` 를 다른 이름으로 보존한 뒤 D 전체를 재기동 없이 기존 `t-stage1` 부터 다시(경보까지). ③ B·C 증빙은 기존 파일로 보강(`ok-B`·`ok-C`·한도 로그·이미지·서비스 대조·HEAD `82d15d4`), 화면 원문이 없으면 **누락으로 기록**, B 재실행 없음. ④ 월 청구액: **"운영자 진술 0원, 청구 화면 미확인"** — 이번 `CREATED` 준비 단계(E 까지)에 한해 잠정 수용. 🔴 실제 `start` 전에 청구·사용량 화면에서 현재 비용과 무료 혜택 종료 여부를 확인해 월 10만 원 한도와 대조한다. 보완과 D 가 통과하면 추가 승인 없이 E(생성 1회 + API·DB 대조: `CREATED`·`maxHoldHours=0`·매수 상한 20,000·`started_at` 비어 있음). `start` 아님.
+
+**v1.10 반영**: C·D 의 필터를 아래로 바꿨다(로컬 시험 — 실제 세 줄과 `market=KRW-STORJ` 로 url 이 끝나는 줄은 제외, `BLAST2`·`BLAST_X`·`BLAST-X`·티커/주문 경로 404·캔들 500·다른 메시지·다른 마켓 줄 뒤에 붙은 `market=KRW-BLAST` 는 남음): `status=404, url=https://api\.upbit\.com/v1/candles/[^ ]*[?&]market=KRW-(BLAST|BONK|STORJ)([^A-Z0-9_-][^ ]*)?, body=.*Code not found`. 경계 `([^A-Z0-9_-][^ ]*)?, body=` 는 리뷰의 `([^A-Z0-9_-]|$)` 와 같은 뜻을 url 안에서 쓴 것이다(마켓 코드 바로 뒤가 경계 문자이거나 url 끝). D 재실행 전 보존: 첫 D 의 `*-after30*`·`errors-other30.txt`·`d-rest.txt` → 접미사 `.fail1`.
+
 **A. ▶ 직전 확인·기준선 — 읽기 전용, 재기동 없음** (v1.8: A0 통과 뒤 처음부터 다시)
 ```bash
 date '+%F %T %Z' | tee "$M/t-before.txt"; date '+%F %T%:z' > "$M/maint_start.txt"     # Q8 기준 = #15 정비 시작
@@ -575,7 +579,7 @@ grep -qF "공유 풀 한도 확인: 단계=STAGE_1 총상한=100000 포지션당
 grep -qF "위험 한도 확인: 단계 STAGE_1 총 자본 100000 기준 누적 15.00%·24시간 3.00%" "$M/app-after.log" || stop "되돌림 필요: 위험 한도 로그 없음"
 ! grep -qE "🔴 (공유 풀 한도|위험 한도)" "$M/app-after.log" || stop "되돌림 필요: 🔴 공유 풀/위험 한도 줄"
 grep " ERROR " "$M/app-after.log" | grep -v "캔들 최신성" | tee "$M/errors-after.txt" || true
-grep -v -E "market=KRW-(BLAST|BONK|STORJ)([^A-Z]|$).*Code not found" "$M/errors-after.txt" > "$M/errors-other.txt" || true
+grep -v -E 'status=404, url=https://api\.upbit\.com/v1/candles/[^ ]*[?&]market=KRW-(BLAST|BONK|STORJ)([^A-Z0-9_-][^ ]*)?, body=.*Code not found' "$M/errors-after.txt" > "$M/errors-other.txt" || true
 [ ! -s "$M/errors-other.txt" ] || stop "세 마켓 404 밖의 ERROR — errors-other.txt 를 보고"
 python3 "$M/maint_verify.py" candle "$M/app-after.log" "$M/backend-before.log"
 qc > "$M/q-app.txt" 2>&1; grep -A3 '== Q1' "$M/q-app.txt" | head -4; sed -n '/== Q3/,$p' "$M/q-app.txt" | grep -vE '^-+|^\s*$'
@@ -598,7 +602,7 @@ S=$(cat "$M/t-stage1.utc")
 date '+%F %T %Z' | tee "$M/t-after30.txt"
 $DC ps backend
 $DC logs --no-color --since "$S" backend > "$M/app-after30.log"
-grep " ERROR " "$M/app-after30.log" | grep -v "캔들 최신성" | grep -v -E "market=KRW-(BLAST|BONK|STORJ)([^A-Z]|$).*Code not found" > "$M/errors-other30.txt" || true
+grep " ERROR " "$M/app-after30.log" | grep -v "캔들 최신성" | grep -v -E 'status=404, url=https://api\.upbit\.com/v1/candles/[^ ]*[?&]market=KRW-(BLAST|BONK|STORJ)([^A-Z0-9_-][^ ]*)?, body=.*Code not found' > "$M/errors-other30.txt" || true
 [ ! -s "$M/errors-other30.txt" ] || stop "세 마켓 404 밖의 ERROR — errors-other30.txt 를 보고"
 ! grep -qE "🔴 (공유 풀 한도|위험 한도)" "$M/app-after30.log" || stop "되돌림 필요: 🔴 공유 풀/위험 한도 줄"
 qc > "$M/q-after30.txt" 2>&1; sed -n '/== Q3/,$p' "$M/q-after30.txt" | grep -vE '^-+|^\s*$'
@@ -678,6 +682,7 @@ $PSQL -c "SELECT * FROM capital_stage_baseline;" | tee "$M/baseline.txt"     # 1
 - **v1.3 (2026-10-30)**: (나) 반영 — 백테스트 근사 정정, `maxHoldHours=0` 주문 경로 시험, 불명 주문 대응 확인, 배포 후보·절차서 약 4.5시간 → **누적 약 18.5시간**. 남은 일 추정(확정 아님): 리뷰 대응 약 2h, WF 예외(§5-4 3번에 해당할 때만) 약 2h, 배포 지원 약 1h, 활성화 직전 확인(#8)·세션 생성 명령 약 2h → **약 5~7h**.
 - **v1.8 (2026-10-30)**: A 실행 결과 대조·`EG` 교체·A0(93 정지·확인) 약 1시간 → **누적 약 24시간**.
 - **v1.9 (2026-10-30)**: D 멈춤 원인 확인(404 필터 정규식 순서 결함, C·D 두 곳 수정) → 리뷰 판단 대기.
+- **v1.10 (2026-10-30)**: 리뷰 판정 반영 — 필터 경계 `[^A-Z0-9_-]`·캔들 404 한정, 첫 D 보존·재실행, 청구액 잠정 수용 범위(E 까지) 기록.
 - **v1.7 (2026-10-30)**: 리뷰 보완 — #15 별도 기록 폴더·실패 시 중단 묶음(A~E)·전체 이미지 ID 비교 약 1시간 → **누적 약 23시간**. 남은 일 추정(확정 아님): 실행 결과 확인·기록 약 1h.
 - **v1.6 (2026-10-30)**: #8 준비 — 생성 경로 코드 대조, 등록 통로 후보(`82d15d4`)·시험, §5-8 명령 약 1.5시간 → **누적 약 22시간**. 남은 일 추정(확정 아님): 등록 재기동·생성 지원 약 1h.
 - **v1.5 (2026-10-30)**: 배포 지원(절차 안내·결과 확인·기록) 약 1시간 → **누적 약 20.5시간**. 남은 일 추정(확정 아님): 활성화 직전 확인(#8)·세션 생성 명령 약 2h. WF 예외는 `gateEnabled` false 라 필요 없다.
