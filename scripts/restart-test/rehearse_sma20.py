@@ -276,7 +276,8 @@ try:
     rt.log('  재기동 뒤 판단: ' + str(one(
         f"SELECT string_agg(signal || ' · ' || coalesce(blocked_reason, '-'), ' / ' ORDER BY id) FROM strategy_log WHERE session_type = 'LIVE' AND session_id = {SID} "
         f"AND created_at > (SELECT max(created_at) FROM \"order\" WHERE session_id = {SID})")))
-    rc, out = run_bash('F3-hold', doc_block('**F3.'), created_at)
+    # 🔴 (2026-10-31 4차 전 점검) F3 도 F1·F2 처럼 바꾼다 — 그대로면 토큰을 .env 에서, 계좌를 localhost:8080 에서 읽어 '조회 실패' 가 난다.
+    rc, out = run_bash('F3-hold', localize(doc_block('**F3.'), (), 'F3-hold'), created_at)
     check('⑤  F3 판정 — ✅ 매수 1건 보유 중', '✅ 판정: 매수 1건 보유 중' in out)
 
     # ⑥ 정지 1회 → 청산 매도 → 정리 완료 → 잔여량 대조
@@ -295,7 +296,7 @@ try:
     xo = rt.exchange_orders()
     check('⑥  거래소 대역 — 매수 1 · 매도 1, BTC 잔량 0, KRW 999,982.36', [c['side'] for c in xo['creates']] == ['bid', 'ask']
           and float(xo['coin']) == 0 and abs(float(xo['krw']) - 999982.36) < 1e-6, f"KRW {xo['krw']} BTC {xo['coin']}")
-    rc, out = run_bash('F3-stopped', doc_block('**F3.'), created_at)
+    rc, out = run_bash('F3-stopped', localize(doc_block('**F3.'), (), 'F3-stopped'), created_at)
     check('⑥  F3 — ⛔ 세션 상태 STOPPED(정상 운영 아님 판정) · 대조 줄 일치',
           '⛔ 판정: 세션 상태 STOPPED' in out and '거래소 BTC 증감 0' in out and '세션 증감 -17.64' in out and '· 차이 0' in out)
     done = snapshot()
