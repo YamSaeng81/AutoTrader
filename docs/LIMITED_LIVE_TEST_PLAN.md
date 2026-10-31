@@ -1652,6 +1652,14 @@ crontab -l | grep -c 'sid_ledger.sql'; crontab -l | grep -c 'SID_OK_STATUS=CREAT
 - **장부 설치 기록(2026-10-31 13:57 KST, 운영자 출력 원문 요지)**: `장부 파일 있음` · `설치함` · sha256 `7e3ae2c96af6270e701a4a2b1811cd43dd115968c7c6d0d13daaba7a4c225a0f`(기대와 같음) · `SID_LEDGER_SHA` `a3c30b0896a84609ae6b5e84466471419e1d40d5` · `종료 0`.
   - `install-check.txt`: L0 `queried_kst 2026-10-31 13:57:32` · `203 | KRW-BTC | CREATED | 20200.00 | 20200 | t | 20200.00 | - | - | -` · L1·L2·L3 `(0 rows)` · L4 `CREATED | 20200.00 | 20200 | 0 | 0 | 0 | 103873000.00000000 @10-31 13:00 | - | - | -` · L5 서킷브레이커 0 · 포지션 한도 도달 0 · 공유 풀 손실 한도(진입 차단) 0 · 세션 최종 상태 `CREATED` `정지 아님` · `ROLLBACK` · `== 끝`. 모두 기대와 같다(L4 평가 봉은 13:57 조회 기준 마지막 마감 H1 봉 13:00).
   - 붙여넣은 출력은 기록 cron 줄 추가 블록의 첫 줄 `(` 에서 끝났다 — 그 블록의 결과는 아직 받지 않았다.
+- **리뷰 판정(2026-10-31, 원문 그대로)**:
+  > 현재 cron에 검토한 09:30 장부 기록 줄이 정확히 1개 있고 다른 일정이 보존돼 있으면 등록 완료입니다. 보존본은 있는데 등록 줄이 없으면 중간에 멈춘 상태이므로, 파일을 지우거나 블록을 재실행하지 말고 출력으로 이어서 판단합니다.
+  >
+  > 이번 확인을 위한 별도 수정·커밋은 필요 없습니다. 12월 1일 08:50 시작 일정은 유지합니다.
+- **기록 cron 줄 확인(2026-10-31, 운영자 읽기 명령 출력 원문 요지 — 블록 재실행 없음, cron·파일 무변경)**: `crontab.before-ledger` 585바이트·`crontab.new-ledger` 868바이트(둘 다 Oct 31 13:57) · `sid_ledger.sql` 줄 `1` · `SID_OK_STATUS=CREATED ` 줄 `1` · `적용본과 같음`(현재 crontab = 적용본) · `다른 줄 보존`(장부 줄 뺀 현재 crontab = 보존본).
+  - `crontab -l`: 종전 네 줄(`19 * * * *` freshness · `25 0 * * *` watch · 정기 점검 주석 · `0 10,22 * * * SID_OK_STATUS=CREATED …`) 그대로 + 끝에 `30 9 * * * set -C; cd $HOME/crypto_trader/AutoTrader && docker compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -v sid=203 -v init=20200 -f - < $HOME/ops-scripts/sid_ledger.sql > $HOME/sid203-ledger/$(date +\%Y\%m\%d).txt 2>&1` 한 줄 — 검토한 줄과 글자 그대로 같다.
+  - 리뷰 판정 기준(장부 줄 정확히 1개·다른 일정 보존)에 맞는 출력이다. 블록 자체의 화면 출력(`✅ 장부 기록 줄 추가 …`)은 받지 않았다.
+  - ⏸ 첫 자동 기록 11-01 09:30 KST — `tail -3 ~/sid203-ledger/20261101.txt` 끝이 `== 끝` 인지. ⏸ 오늘 22:00 KST 정기 점검 자동 보고 수신(첫머리 `점검 스크립트 c587e32f95ca`).
 
 SMA20 신호·설정과 위험 한도를 기준으로 주문·정산·보호 기능의 결함을 보완한다. 새 시험 결과를 얻으려고 전략 파라미터를 탐색하거나 종료 후보를 재개하지 않는다. 추가 시험은 새 시나리오·실패·수정 범위에 맞춰 실행한다. 기존 66세션·T0·판정 기준은 유지하고, 이 준비 활동을 그 세션들의 성과 평가에 사용하지 않는다. F0는 완료 상태를 유지한다.
 
