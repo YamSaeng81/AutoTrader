@@ -98,12 +98,16 @@ SELECT id, position_id AS pos, side, state, to_char(created_at AT TIME ZONE 'Asi
 \echo '== L3 왕복별 — 사전 등록 정의(LIVE_ENTRY_PREREG.md 비용의 정의): 왕복 실측 비용(%) = 불리(진입) + 불리(청산) + 0.10 · §6-2 > 0.40% 대조'
 -- 불리 슬리피지(%) = 매수 (체결가 − 신호가)/신호가 × 100, 매도 (신호가 − 체결가)/신호가 × 100 (양수 = 비용, 유리하면 음수 그대로). 체결가·신호가는 그 쪽 주문의 체결량 가중
 --   (주문 1건이면 그 주문의 값). 0.10 은 수수료 편당 0.05% × 2 로 고정 — 실제 수수료는 fees·fee_pct_actual 로 따로 적고 비용률에 넣지 않는다.
--- rt_status: 열린 포지션 = '왕복 미완료' · 진입/청산 기준가(신호가) 없음 · 정산 확인 불가 · 매수/매도 체결량 불일치 = '측정 불가(사유)' — 이 둘은 cost_pct 를 비운다(빠진 값을 빼고 계산하지 않는다).
+-- rt_status: 열린 포지션 = '왕복 미완료' · 진입/청산 기준가(신호가) 없음 · 정산 확인 불가 · 정산 불일치 · 매수/매도 체결량 불일치 = '측정 불가(사유)' — 이 둘은 cost_pct 를 비운다(빠진 값을 빼고 계산하지 않는다).
+-- 정산 불일치(리뷰 2026-10-31 장부 보완 1) = 그 왕복의 체결 주문 중 보고값≠반영값(대금 또는 수수료)이거나 그 주문에 미해결 정산 불일치 기록(order_settlement_discrepancy, resolved_at 없음)이 있음.
+--   어느 값을 쓰느냐에 따라 비용률이 0.40% 양쪽으로 갈릴 수 있어 cost_pct·cost_gt_040·fee_pct_actual·net_krw 를 비운다. 기록이 해결되고 값이 같아지면 다시 '측정'.
 -- cost_gt_040 은 반올림 전 값으로 판정한다(0.4000 은 f).
 WITH _o AS (
   SELECT o.id, o.position_id, o.side, o.filled_quantity AS q, o.signal_price AS sp, o.applied_executed_funds AS af, o.applied_paid_fee AS afee,
          (o.filled_quantity > 0 AND (o.reported_executed_funds IS NULL OR o.reported_paid_fee IS NULL OR o.applied_executed_funds IS NULL
-                                      OR o.applied_paid_fee IS NULL OR o.fill_accounting_pending)) AS unk
+                                      OR o.applied_paid_fee IS NULL OR o.fill_accounting_pending)) AS unk,
+         (coalesce(o.reported_executed_funds <> o.applied_executed_funds OR o.reported_paid_fee <> o.applied_paid_fee, false)
+          OR EXISTS (SELECT 1 FROM order_settlement_discrepancy x WHERE x.order_id = o.id AND x.resolved_at IS NULL)) AS mism
     FROM "order" o WHERE o.session_kind = 'LIVE' AND o.session_id = :sid AND o.filled_quantity > 0),
 _p AS (
   SELECT p.id, p.status, p.exit_reason, p.realized_pnl,
@@ -111,17 +115,18 @@ _p AS (
          sum(o.af) FILTER (WHERE o.side = 'BUY') AS buy_funds, sum(o.af) FILTER (WHERE o.side = 'SELL') AS sell_funds,
          sum(o.sp * o.q) FILTER (WHERE o.side = 'BUY') AS buy_ref, sum(o.sp * o.q) FILTER (WHERE o.side = 'SELL') AS sell_ref,
          count(*) FILTER (WHERE o.side = 'BUY' AND o.sp IS NULL) AS buy_noref, count(*) FILTER (WHERE o.side = 'SELL' AND o.sp IS NULL) AS sell_noref,
-         sum(o.afee) AS fees, count(*) FILTER (WHERE o.unk) AS unk
+         sum(o.afee) AS fees, count(*) FILTER (WHERE o.unk) AS unk, count(*) FILTER (WHERE o.mism) AS mism
     FROM position p JOIN _o o ON o.position_id = p.id
    WHERE p.session_kind = 'LIVE' AND p.session_id = :sid
    GROUP BY p.id, p.status, p.exit_reason, p.realized_pnl),
 _c AS (
   SELECT _p.*,
          CASE WHEN status <> 'CLOSED' THEN '왕복 미완료'
-              WHEN buy_noref + sell_noref > 0 OR unk > 0 OR bq <> sq OR buy_funds IS NULL OR sell_funds IS NULL THEN
+              WHEN buy_noref + sell_noref > 0 OR unk > 0 OR mism > 0 OR bq <> sq OR buy_funds IS NULL OR sell_funds IS NULL THEN
                    '측정 불가(' || concat_ws(' · ',
                        CASE WHEN buy_noref > 0 THEN '진입 기준가 없음' END, CASE WHEN sell_noref > 0 OR sell_funds IS NULL THEN '청산 기준가 없음' END,
-                       CASE WHEN unk > 0 THEN '정산 확인 불가' END, CASE WHEN bq <> sq THEN '매수/매도 수량 불일치' END) || ')'
+                       CASE WHEN unk > 0 THEN '정산 확인 불가' END, CASE WHEN mism > 0 THEN '정산 불일치' END,
+                       CASE WHEN bq <> sq THEN '매수/매도 수량 불일치' END) || ')'
               ELSE '측정' END AS rt_status,
          (buy_funds - buy_ref) / nullif(buy_ref, 0) * 100 AS entry_unf, (sell_ref - sell_funds) / nullif(sell_ref, 0) * 100 AS exit_unf
     FROM _p)
@@ -129,8 +134,8 @@ SELECT id AS pos, status, exit_reason, rt_status, bq AS buy_qty, sq AS sell_qty,
        round(entry_unf, 8) AS entry_unf_pct, round(exit_unf, 8) AS exit_unf_pct,
        CASE WHEN rt_status = '측정' THEN round(entry_unf + exit_unf + 0.10, 8) END AS cost_pct,
        CASE WHEN rt_status = '측정' THEN entry_unf + exit_unf + 0.10 > 0.40 END AS cost_gt_040,
-       fees, CASE WHEN unk = 0 THEN round(fees / nullif(buy_funds, 0) * 100, 4) END AS fee_pct_actual,
-       CASE WHEN unk = 0 AND bq = sq AND status = 'CLOSED' THEN sell_funds - (fees) - buy_funds END AS net_krw,
+       fees, CASE WHEN unk = 0 AND mism = 0 THEN round(fees / nullif(buy_funds, 0) * 100, 4) END AS fee_pct_actual,
+       CASE WHEN unk = 0 AND mism = 0 AND bq = sq AND status = 'CLOSED' THEN sell_funds - (fees) - buy_funds END AS net_krw,
        realized_pnl AS realized_pnl_ref
   FROM _c ORDER BY id;
 

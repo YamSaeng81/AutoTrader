@@ -155,15 +155,16 @@ check("보고 수수료 9.9 ≠ 반영 9.8 — 주문 줄 '보고≠반영'(현�
 
 
 
-def rt(bq="0.001", sq="0.001", b_sp="10000000", s_sp="10000000", b_af="9990", s_af="9960", b_fee="4.995", s_fee="4.98", pos_status="CLOSED", sell=True, s_fee_rep=""):
-    """왕복 1개(포지션 2, 매수 id 11 · 매도 id 12). 값은 문자열, None 은 NULL. s_fee_rep 를 비우면 보고 수수료 = 반영 수수료."""
+def rt(bq="0.001", sq="0.001", b_sp="10000000", s_sp="10000000", b_af="9990", s_af="9960", b_fee="4.995", s_fee="4.98", pos_status="CLOSED", sell=True, s_fee_rep="",
+       b_rf=None):
+    """왕복 1개(포지션 2, 매수 id 11 · 매도 id 12). 값은 문자열, None 은 NULL. s_fee_rep 를 비우면 보고 수수료 = 반영 수수료, b_rf 를 비우면 매수 보고 대금 = 반영 대금."""
     v = lambda x: "NULL" if x is None else x
     sql(DB, "INSERT INTO position (id, coin_pair, side, entry_price, avg_price, size, status, session_id, session_kind) "
             "VALUES (2, 'KRW-BTC', 'LONG', 10000000, 10000000, %s, '%s', 203, 'LIVE');" % ("0" if pos_status == "CLOSED" else bq, pos_status))
     ins = ('INSERT INTO "order" (id, position_id, coin_pair, side, order_type, quantity, state, filled_quantity, session_id, session_kind, created_at, filled_at, '
            "signal_price, reported_executed_funds, reported_paid_fee, applied_executed_funds, applied_paid_fee, fill_accounting_pending) VALUES ")
     sql(DB, ins + "(11, 2, 'KRW-BTC', 'BUY', 'MARKET', %s, 'FILLED', %s, 203, 'LIVE', '2026-10-28 09:00:10+09', '2026-10-28 09:00:10+09', %s, %s, %s, %s, %s, false);"
-            % (bq, bq, v(b_sp), b_af, b_fee, b_af, b_fee))
+            % (bq, bq, v(b_sp), b_rf or b_af, b_fee, b_af, b_fee))
     if sell:
         sql(DB, ins + "(12, 2, 'KRW-BTC', 'SELL', 'MARKET', %s, 'FILLED', %s, 203, 'LIVE', '2026-10-29 09:00:10+09', '2026-10-29 09:00:10+09', %s, %s, %s, %s, %s, false);"
                 % (sq, sq, v(s_sp), s_af, v(s_fee) if s_fee_rep == "" else v(s_fee_rep), s_af, v(s_fee)))
@@ -200,6 +201,31 @@ check("매수 0.001 · 매도 0.0009 — '측정 불가(매수/매도 수량 불
 reset(); rc, l3, R, raw = rt(pos_status="OPEN", sell=False)
 check("열린 포지션 — '왕복 미완료' · 비용률·판정 비움(진입 불리 −0.1 은 적는다)", rc == 0 and l3["rt_status"] == "왕복 미완료"
       and l3["cost_pct"] == "-" and l3["cost_gt_040"] == "-" and D(l3["entry_unf_pct"]) == D("-0.1"), l3)
+
+# 3-1. 정산 불일치 — 보고값≠반영값이거나 미해결 불일치 기록이 있으면 측정 불가 (리뷰 2026-10-31 장부 보완 1)
+reset(); rc, l3, R, raw = rt(b_af="10000", b_rf="10040", s_af="9980")
+by_applied, by_reported = prereg("10000", "10000", "9980", "10000"), prereg("10040", "10000", "9980", "10000")   # 0.30 · 0.70
+check("매수 반영 10,000·보고 10,040 — 반영값이면 %s%%(≤ 0.40), 보고값이면 %s%%(> 0.40)로 갈림 → '측정 불가(정산 불일치)' · 비용률·판정·실제 수수료율·순손익 비움"
+      % (by_applied, by_reported),
+      rc == 0 and by_applied <= D("0.40") < by_reported and l3.get("rt_status") == "측정 불가(정산 불일치)" and l3["cost_pct"] == "-"
+      and l3["cost_gt_040"] == "-" and l3["fee_pct_actual"] == "-" and l3["net_krw"] == "-" and R["L2"][0]["note"] == "보고≠반영", l3)
+reset(); rc, l3, R, raw = rt(b_af="10000", s_af="9980")
+check("같은 왕복, 보고값 = 반영값·불일치 기록 없음 — '측정' %s%% → f (아래 두 사례의 기준)" % by_applied,
+      rc == 0 and l3.get("rt_status") == "측정" and D(l3["cost_pct"]) == by_applied and l3["cost_gt_040"] == "f", l3)
+sql(DB, "INSERT INTO order_settlement_discrepancy (id, order_id, detected_at, kind, previous_value, received_value) "
+        "VALUES (901, 999, '2026-10-29 09:00:20+09', 'FEE_DECREASE', 4.98, 4.90);")
+rc, R, raw = ledger(DB); l3 = R["L3"][0]
+check("미해결 불일치 기록이 다른 주문(999)에만 — 이 왕복은 '측정' 그대로", rc == 0 and l3["rt_status"] == "측정" and D(l3["cost_pct"]) == by_applied, l3)
+sql(DB, "INSERT INTO order_settlement_discrepancy (id, order_id, detected_at, kind, previous_value, received_value) "
+        "VALUES (902, 12, '2026-10-29 09:00:20+09', 'FEE_DECREASE', 4.98, 4.90);")
+rc, R, raw = ledger(DB); l3 = R["L3"][0]
+check("값은 같지만 청산 주문(12)에 미해결 불일치 기록 — '측정 불가(정산 불일치)' · 비용률·판정·순손익 비움",
+      rc == 0 and l3["rt_status"] == "측정 불가(정산 불일치)" and l3["cost_pct"] == "-" and l3["cost_gt_040"] == "-" and l3["net_krw"] == "-", l3)
+sql(DB, "UPDATE order_settlement_discrepancy SET resolved_at = '2026-10-29 10:00+09', resolved_by = 't', resolution_note = 't' WHERE id = 902;")
+rc, R, raw = ledger(DB); l3 = R["L3"][0]
+check("그 기록 해결 뒤 — '측정' %s%% → f · 순손익 = 9980 − 4.98 − 10000 − 4.995 로 복귀" % by_applied,
+      rc == 0 and l3["rt_status"] == "측정" and D(l3["cost_pct"]) == by_applied and l3["cost_gt_040"] == "f"
+      and D(l3["net_krw"]) == D("9980") - D("4.98") - D("10000") - D("4.995"), l3)
 
 # 4. 중단 기능별 기록(L5) — 서킷브레이커와 다른 중단 사유를 구분 (리뷰 2026-10-31 보완 4)
 reset(status="EMERGENCY_STOPPED", stopped="2026-10-29 10:00:00+09")
@@ -243,12 +269,14 @@ def stop_check(db):
 
 
 rc, out = stop_check("crypto_auto_trader")
-check("F5-3 완료 조회(문서 그대로) — 보존 4차 기록: 'STOPPED | 20182.36 | … | 0 | 0 | 0 | 0 | 완료 조건 충족 — 상태 STOPPED 그대로'",
-      rc == 0 and out.startswith("STOPPED | 20182.36 | ") and out.endswith(" | 0 | 0 | 0 | 0 | 완료 조건 충족 — 상태 STOPPED 그대로"), out)
+F5_OK = "DB 정리 조건 충족 — 정산·거래소 대조 별도 확인 필요"   # 리뷰 2026-10-31 장부 보완 2 — 확인 범위대로(종전 '완료 조건 충족 — 상태 … 그대로')
+check("F5-3 완료 조회(문서 그대로) — 보존 4차 기록: 'STOPPED | 20182.36 | … | 0 | 0 | 0 | 0 | " + F5_OK + "'",
+      rc == 0 and out.startswith("STOPPED | 20182.36 | ") and out.endswith(" | 0 | 0 | 0 | 0 | " + F5_OK), out)
+check("F5-3 — 끝 문구에 '완료 조건 충족'·'그대로' 가 없다(정산·거래소 대조 전 완료로 읽히지 않게)", "완료 조건 충족" not in out and "그대로" not in out, out)
 reset(status="EMERGENCY_STOPPED", stopped="2026-10-29 10:00:00+09"); rt()
 rc, out = stop_check(DB)
-check("F5-3 — 비상정지 뒤 청산 완료(포지션 CLOSED·활성 주문 0): '완료 조건 충족 — 상태 EMERGENCY_STOPPED 그대로'(STOPPED 를 요구하지 않음)",
-      rc == 0 and out.startswith("EMERGENCY_STOPPED | ") and out.endswith(" | 0 | 0 | 0 | 0 | 완료 조건 충족 — 상태 EMERGENCY_STOPPED 그대로"), out)
+check("F5-3 — 비상정지 뒤 청산 완료(포지션 CLOSED·활성 주문 0): 첫 칸 EMERGENCY_STOPPED · '" + F5_OK + "'(STOPPED 를 요구하지 않음)",
+      rc == 0 and out.startswith("EMERGENCY_STOPPED | ") and out.endswith(" | 0 | 0 | 0 | 0 | " + F5_OK), out)
 reset(status="EMERGENCY_STOPPED", stopped="2026-10-29 10:00:00+09"); rt(pos_status="OPEN", sell=False)
 rc, out = stop_check(DB)
 check("F5-3 — 비상정지인데 열린 포지션 1: '미완료'", rc == 0 and out.startswith("EMERGENCY_STOPPED | ") and out.endswith(" | 0 | 1 | 0 | 0 | 미완료"), out)

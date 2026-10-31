@@ -172,6 +172,57 @@ rc, out, now, written, d = run(cron=OLD_CRON, script=RBLOCK, FAKE_CORRUPT="1")
 check("교체 적용 뒤 대조 실패 — 🔴 되돌리기 안내 · ✅ 없음",
       rc != 0 and "🔴 적용 뒤 대조 실패" in out and "crontab.before-sidok" in out and "✅" not in out, (rc, out))
 
+# ── 2026-10-31 리뷰(장부 보완 뒤): LIMITED_LIVE_TEST_PLAN §5-9 9 "장부 기록 cron 줄 추가" — 09:30 set -C 줄 1개만 덧붙임 ──
+PLAN = os.path.join(HERE, "..", "..", "docs", "LIMITED_LIVE_TEST_PLAN.md")
+
+
+def block_ledger():
+    doc = open(PLAN, encoding="utf-8").read()
+    sec = doc[doc.index("**장부 기록 cron 줄 추가"):]
+    return re.search(r"```bash\n(\(\n.*?\n\))\n", sec, re.S).group(1)
+
+
+LBLOCK = block_ledger()
+_plan = open(PLAN, encoding="utf-8").read()
+_i = _plan.index("날짜별 원본 파일 보존: cron 줄에 `set -C`")
+SETC_LINE = re.search(r"\n    `(30 9 \* \* \* set -C; [^`]+)`", _plan[_i:]).group(1)      # §5-9 8 ③ 에 적힌 줄(리뷰가 본 줄)
+LCRON = "".join(CRON.splitlines(True)[i] for i in (0, 1, 3))                       # 운영 cron 모양: 주석 · 정기 점검(CREATED) · 다른 일정, 장부 줄 없음
+PREP = "mkdir -p ~/ops-scripts ~/sid203-ledger; echo '-- 장부' > ~/ops-scripts/sid_ledger.sql\n"
+check("장부 줄 블록을 꺼냈다 — 덧붙일 줄이 §5-9 8 ③ set -C 줄과 글자 그대로 같다 · 다른 줄 보존 · 적용 뒤 대조 · 파이프 적용 없음",
+      ("NEW='" + SETC_LINE + "'") in LBLOCK and "set -euo pipefail" in LBLOCK and "diff <(" in LBLOCK and "cmp -s" in LBLOCK
+      and "| crontab -" not in LBLOCK and "\\%Y\\%m\\%d" in SETC_LINE, (SETC_LINE, LBLOCK))
+
+rc, out, now, written, d = run(cron=LCRON, script=PREP + LBLOCK)
+check("장부 줄 정상 — ✅ · 끝에 09:30 줄 1개만 덧붙고 다른 3줄 그대로 · 보존본 = 원래 cron",
+      rc == 0 and "✅ 장부 기록 줄 추가" in out and now == LCRON + SETC_LINE + "\n"
+      and open(os.path.join(d, "daily-check", "crontab.before-ledger"), encoding="utf-8").read() == LCRON, (rc, out, now))
+rc2, out2, now2, w2, d2 = run(cron=now, script=BLOCK)
+check("장부 줄 추가 뒤 12-01 §3-1 전환(CREATED → RUNNING) — 정기 점검 줄만 바뀌고 장부 줄 그대로",
+      rc2 == 0 and now2 == (LCRON + SETC_LINE + "\n").replace("SID_OK_STATUS=CREATED ", "SID_OK_STATUS=RUNNING "), (rc2, out2, now2))
+rc, out, now, written, d = run(cron=LCRON.rstrip("\n"), script=PREP + LBLOCK)
+check("장부 줄 — 원래 cron 끝에 줄바꿈이 없어도 마지막 줄과 붙지 않는다", rc == 0 and now == LCRON + SETC_LINE + "\n", (rc, out, now))
+
+for name, cron, prep, kw, msg in (
+        ("조회 실패", LCRON, PREP, dict(FAKE_LIST_FAIL="1"), "crontab 조회 실패"),
+        ("빈 crontab", "", PREP, {}, "조회한 crontab 이 비었다"),
+        ("장부 파일 없음(설치 전)", LCRON, "", {}, "장부 파일 또는 ~/sid203-ledger 가 없다"),
+        ("정기 점검 줄이 CREATED 명시 아님", OLD_CRON.replace(CRON.splitlines(True)[2], ""), PREP, {}, "정기 점검 줄(SID_OK_STATUS=CREATED)이 정확히 1개가 아니다"),
+        ("정기 점검 줄 2", LCRON + CRON.splitlines(True)[1], PREP, {}, "정기 점검 줄(SID_OK_STATUS=CREATED)이 정확히 1개가 아니다"),
+        ("장부 줄 이미 있음", LCRON + SETC_LINE + "\n", PREP, {}, "장부 기록 줄이 이미 있다"),
+        ("적용 실패", LCRON, PREP, dict(FAKE_WRITE_FAIL="1"), "crontab 적용 실패"),
+):
+    rc, out, now, written, d = run(cron=cron, script=prep + LBLOCK, **kw)
+    check("장부 줄 %s — 🔴 멈춤 '%s' · cron 그대로" % (name, msg),
+          rc != 0 and ("🔴 멈춤: " + msg) in out and "✅" not in out and now == cron and not written, (rc, out, now))
+rc1, out1, now1, w1, d = run(cron=LCRON, script=PREP + LBLOCK)
+rc, out, now, written, d = run(cron=LCRON, script=PREP + LBLOCK, d=d)
+check("장부 줄 두 번째 실행(보존본 있음) — 🔴 멈춤 · 보존본 그대로",
+      rc1 == 0 and rc != 0 and "이미 있다" in out and now == LCRON and not written
+      and open(os.path.join(d, "daily-check", "crontab.before-ledger"), encoding="utf-8").read() == LCRON, out)
+rc, out, now, written, d = run(cron=LCRON, script=PREP + LBLOCK, FAKE_CORRUPT="1")
+check("장부 줄 적용 뒤 대조 실패 — 🔴 되돌리기 안내 · ✅ 없음",
+      rc != 0 and "🔴 적용 뒤 대조 실패" in out and "crontab.before-ledger" in out and "✅" not in out, (rc, out))
+
 n_ok = sum(1 for _, ok in results if ok)
 print(f"cron 전환 시험 {n_ok}/{len(results)} 통과")
 sys.exit(0 if n_ok == len(results) else 1)
