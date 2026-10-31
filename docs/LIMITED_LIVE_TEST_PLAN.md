@@ -1,5 +1,6 @@
 # 12월 제한 실거래 시험 — 후보와 실행안
 
+> **v1.37 (2026-10-31)**: 개입 #17 실행 — 운영자가 H0~H5 를 진행했고 모두 통과(H0 20:12 KST, 재기동 20:15:58 KST, H4 20:58:57 KST, H5 ✅). 운영 backend `cad3939`(이미지 `a747a8e6…`), 설치 장부 `8bfe8a9` 판(`02a85850…`), L4 `CREATED`·잔액 기대 20,200·차이 0. jar 대조 추가 1·변경 10·`(끝) 677 678`(기대와 같음). BTC 관문 불가 11:17Z → 재개 11:19Z. KRW-WET:H1 은 기동 직전부터 판정 불가라 `candle` 예외로 통과(기록). 경보는 KRW-BLAST 반복·적재 뒤처짐 비율이 기준선과 같음. F 변수 `NEW`·F1 이미지 기대(파일·전체 해시 둘 다)·F1 장부 판 확인을 갱신했다. ⑧ 출력 앞부분(HEAD·통과 표지·`git-before`·`t-build`·`image-new` 파일)은 받지 못해 읽기 명령으로 요청한다. SID 203 `CREATED`(§5-9 13).
 > **v1.36 (2026-10-31)**: 리뷰 판정 — `cad3939` 배포 승인 유지, 실행 전 절차 두 곳 보완. ① H1 jar 대조에서 외부 라이브러리 jar 도 내용 해시로 비교(같은 이름의 내용 변경을 잡음) ② H3·H4 에 `btcgate` — BTC 관문은 `candle` 의 '기동 직전에도 판정 불가' 예외를 받지 않고 기동 뒤 마지막 상태가 재개여야 함(불가·재개 줄이 없으면 통과). 가짜 입력 확인: jar 2사례(로컬 jar 기대 그대로·라이브러리 내용만 바꾼 jar 를 잡음, 고치기 전 코드는 놓침), BTC 관문 6사례. 추가 승인 없이 H0~H5 진행 가능. 운영·DB·장부·F1 무변경(§5-9 13).
 > **v1.35 (2026-10-31)**: 리뷰 판정 — 후보 `cad3939` 수용, backend 단독 배포 승인. 배포·복구 명령 H0~H5(개입 #17) 준비: H0 직전 확인(HEAD `f0872e2`·#16 이미지·V94·66세션·SID 203·설치 장부 `a3c30b0`·cron·과거 기록 보존) → H1 빌드·jar 대조(추가 1·변경 10, 677 → 678) → H2 재기동 → H3 기동 5분 뒤(V94·BTC 관문 재개) → H4 30분 → H5 장부 `8bfe8a9` 판 교체(보존본·잔액 기대 20,200·차이 0). 되돌림은 backend·장부 따로. H5 블록 로컬 대역 9사례. ⏸ 운영자 실행 대기 — 운영·DB·장부·F1 무변경(§5-9 13).
 > **v1.34 (2026-10-31)**: 리뷰 판정 — 잔액 반올림 수정 방향 수용, 보완 뒤 `f0872e2` 기반 배포 후보. 보완: ① 종결 매수 주문 정정이 열린 포지션 투입액·평균단가를 맞춤(공유 풀 시장가·첫 반영 뒤), 포지션 수수료는 차분만 더함(CLOSED 재개방 없음·매도 수수료 보존) ② LIVE·DYNAMIC 실제 예약 경로 요청액 절삭 시험 ③ "구버전 한 번 반영이면 일치" 철회, F5 원시·저장 잔액 구분 ④ `position_fee` 열 확대 보류(알려진 한계). PG 16/16(운영 코드 V94 에서 8/16 실패), H2 관련 회귀 286/286·후보 277/277, 장부 56/56. 후보 `candidate/rounding-f0872e2` `cad3939`. 운영·DB·설치 장부 무변경(§5-9 12).
@@ -754,7 +755,7 @@ cd ~/crypto_trader/AutoTrader
 DC="docker compose -f docker-compose.prod.yml"; SID=203
 START_DATE=2026-12-01   # 시작 예정일(KST). 연기하면 이 줄을 문서에서 고쳐 커밋한 뒤 그 값으로 쓴다
 M=~/start-sid203; MS=~/maint-20261030-stage1; mkdir -p "$M"
-NEW=f0872e2547c918a7b5146f027d325bd441ddf0d7   # v1.22: 개입 #16(2026-10-30 19:57 KST) 배포 뒤 기대 HEAD. 이전 값 82d15d42fa22bb7d0f24a8243ebc888a2a7f071c
+NEW=cad393956e131c257195fcd08fcac18c83802788   # v1.37: 개입 #17(2026-10-31 20:15 KST) 배포 뒤 기대 HEAD. 이전 값 f0872e2547c918a7b5146f027d325bd441ddf0d7(v1.22 #16), 그 전 82d15d42fa22bb7d0f24a8243ebc888a2a7f071c
 PSQL="$DC exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader"
 sc() { $PSQL -At -F ' | ' -c "
   SELECT count(*) AS total,
@@ -790,9 +791,11 @@ set -euo pipefail
 stop() { echo "🔴 멈춤: $*"; exit 1; }
 date '+%F %T %Z' | tee "$M/t-f1.txt"; date -u '+%Y-%m-%dT%H:%M:%SZ' > "$M/t-f1.utc"
 { git rev-parse HEAD; git status --porcelain --untracked-files=no; echo "(끝)"; } | tee "$M/git-f1.txt"
-[ "$(head -1 "$M/git-f1.txt")" = "$NEW" ] && [ "$(sed -n 2p "$M/git-f1.txt")" = "(끝)" ] || stop "HEAD 가 f0872e2 가 아니거나 추적 파일 변경 있음 — 보고"
+[ "$(head -1 "$M/git-f1.txt")" = "$NEW" ] && [ "$(sed -n 2p "$M/git-f1.txt")" = "(끝)" ] || stop "HEAD 가 cad3939 가 아니거나 추적 파일 변경 있음 — 보고"
 svc | tee "$M/svc-f1.txt"
-[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$(cat ~/maint-sma20fix/image-new.txt)" ] || stop "backend 이미지가 #16 배포 이미지와 다름 — 보고"
+IMGF1=sha256:a747a8e6c3043ae655e73bd2f6495a6ba755cb85d92c6fec7c96c6b3e8b357ae   # v1.37: #17 배포 이미지. 이전 기대 ~/maint-sma20fix/image-new.txt(#16, fdd7695a…)
+[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$IMGF1" ] && [ "$(cat ~/maint-rounding/image-new.txt)" = "$IMGF1" ] || stop "backend 이미지가 #17 배포 이미지(a747a8e6…)와 다름 — 보고"
+[ "$(cat ~/ops-scripts/SID_LEDGER_SHA)" = 8bfe8a9fa896f400b3fb6681fef021c99d6ba43b ] && [ "$(sha256sum < ~/ops-scripts/sid_ledger.sql | cut -d' ' -f1)" = 02a8585021fb2a1a52d9b3b56b60e957cb71b9ca3c11bf819595df15cf334f1c ] || stop "설치 장부가 8bfe8a9 판(02a85850…)이 아님 — 보고"
 $DC exec -T backend env | grep '^TRADING_CAPITALPOOL_' | sort | tee "$M/pool-f1.txt"
 [ "$(cat "$M/pool-f1.txt")" = "$(printf 'TRADING_CAPITALPOOL_MAXCONCURRENTPOSITIONS=3\nTRADING_CAPITALPOOL_PERPOSITIONCAPKRW=20000\nTRADING_CAPITALPOOL_STAGE=STAGE_1\nTRADING_CAPITALPOOL_TOTALCAPKRW=100000' | sort)" ] || stop "공유 풀 등록값이 STAGE_1 · 100000 · 20000 · 3 과 다름 — pool-f1.txt 를 보고"
 [ "$($PSQL -At -c "$EG" | tee "$M/eg-f1.txt")" = "$EGS" ] || stop "EG 가 EGS 와 다름 — eg-f1.txt 를 보고"
@@ -831,7 +834,7 @@ echo "== 경보 (#15 정비 전 기준선)"; cat "$MS/alerts-before.txt"
 touch "$M/ok-F1"; echo "✅ F1 기계 점검 통과 — 경보 네 갈래와 휴대폰 수신을 확인하고 운영자 확인 파일을 쓴 뒤 08:50 F2"
 )
 ```
-- 기대: `git-f1` = `f0872e2…` 다음 `(끝)` · 이미지 = #16 배포 이미지(`~/maint-sma20fix/image-new.txt`, `sha256:fdd7695a…`) 전체 ID · 공유 풀 네 값이 정확히 `STAGE_1` · `100000` · `20000` · `3` · `EG` = `EGS` · `203:CREATED` · 저장값 `t` · `available_krw` 20200·`started_at` 비어 있음 · 기준 행 = `BASEX` · 0 다섯 줄 · `sc` `66 | 63 | 3 | -` · 거래소 `UP` · KRW 주문 가능 ≥ 20,200·묶인 KRW 0 · 경보 조회 완료 · 텔레그램 `200`. 멈추면 F2 로 가지 않고 그 출력을 보고한다 — 그날은 시작하지 않는다.
+- 기대: `git-f1` = `cad39395…` 다음 `(끝)` · 이미지 = #17 배포 이미지 전체 ID `sha256:a747a8e6c3043ae655e73bd2f6495a6ba755cb85d92c6fec7c96c6b3e8b357ae`(실행 이미지와 `~/maint-rounding/image-new.txt` 가 둘 다 이 값) · 설치 장부 `SID_LEDGER_SHA` `8bfe8a9f…`·sha256 `02a85850…` · 공유 풀 네 값이 정확히 `STAGE_1` · `100000` · `20000` · `3` · `EG` = `EGS` · `203:CREATED` · 저장값 `t` · `available_krw` 20200·`started_at` 비어 있음 · 기준 행 = `BASEX` · 0 다섯 줄 · `sc` `66 | 63 | 3 | -` · 거래소 `UP` · KRW 주문 가능 ≥ 20,200·묶인 KRW 0 · 경보 조회 완료 · 텔레그램 `200`. 멈추면 F2 로 가지 않고 그 출력을 보고한다 — 그날은 시작하지 않는다.
 - 경보는 `MS/alerts-before.txt` 와 네 갈래(기존 반복·새 경보·⚪·실행 누락)로 대조한다. KRW-BLAST 반복 밖의 🔴·⚪·실행 누락이 있으면 시작하지 않고 보고한다.
 - 운영자 확인 파일 — 경보 대조와 휴대폰 수신(이번 시험 메시지의 말풍선 시각)을 본 뒤에만, 빈칸을 직접 채워 만든다:
 ```bash
@@ -1971,7 +1974,7 @@ FILE logs/backend/system.log | first=2026-10-31 00:00:00 | last=2026-10-31 07:31
   - 운영 배포·장부 교체는 후보 확인 뒤 진행한다. 지금 운영은 `f0872e2`, 설치 장부는 `a3c30b0` 판이다.
 - **하지 않은 것**: 실제 프로세스 재기동 시험, 전체 리허설, 실제 거래소 체결. BTC 점검 표(확인 1)·봉 전진(확인 3)은 기존 읽기 절차로 남아 있다.
 
-**13. backend 단독 배포 `f0872e2` → `cad3939` · 장부 새 판 — 개입 #17 (2026-10-31, v1.35·v1.36 보완). ⏸ 운영자 실행 대기**
+**13. backend 단독 배포 `f0872e2` → `cad3939` · 장부 새 판 — 개입 #17 (2026-10-31, v1.35·v1.36 보완). ✅ H0~H5 실행·통과(v1.37 기록)**
 
 - **리뷰 판정 원문(v1.34 뒤, 2026-10-31 운영자 전달)**:
   > **후보 `cad3939`를 수용하고, backend 단독 배포를 승인합니다.** 코드와 시험 내용을 검토했으며, 이번 범위에서 추가 배포 차단 사유는 찾지 못했습니다.
@@ -2382,6 +2385,24 @@ echo "✅ f0872e2 (fdd7695a…) 로 복귀 — 3~5분 뒤 H3 를 다시 실행(t
   - 첫 jar 확인은 시험 쪽 결함이었다. 꺼내는 awk 가 같은 첫 줄을 가진 이전 절 G1 블록을 집었다. H1 제목 뒤 블록을 꺼내도록 시험 스크립트만 고친 뒤 위 결과를 얻었다. 문서 블록은 바꾸지 않았다.
   - H0·H2·H5 는 이번에 바꾸지 않았다. H5 9사례 결과(v1.35)는 그대로다. H0~H4 실행 확인은 여전히 없다(문법과 위 두 부분만).
 - **운영 상태(v1.36 커밋 시점)**: 바꾼 것 없음 — 위와 같다. ▶ 운영자는 이 판의 블록으로 H0~H5 를 진행한다(추가 승인 불필요).
+- **리뷰 판정 원문(v1.36 뒤, 2026-10-31 운영자 전달 — 실행 시점 정정 전)**:
+  > **개입 #17 승인 유지입니다. 추가 승인·시험·문서 커밋 없이 `8d14b39` 절차로 진행하면 됩니다.** 오늘 22:00 보고 뒤에도 끝까지 대응할 수 있으면 진행하고, 어렵다면 내일 10:00 보고 뒤 진행합니다. 내일로 미뤄야 하는 기술적 이유는 없습니다. 실행할 때 세 가지만 구분하세요. - **H1:** 실행 중 backend는 유지됩니다. 서버에서는 빌드 부하가 생기고 HEAD와 이미지 태그가 바뀝니다. - **30분 제한:** H1 시작 시 확인하는 H0의 유효시간입니다. 빌드를 30분 안에 끝내라는 뜻은 아닙니다. - **H5:** 교체 전 검사에서 멈추면 기존 장부를 유지하고 보고합니다. 교체 후 `H5-되돌림` 지시가 나오면 장부만 복구합니다. 완료 후 **H3·H4·H5 출력과 새 이미지 전체 해시, jar 대조 결과**를 확인해 F1 기대값을 갱신합니다. SID 203은 `CREATED`로 유지하고, 실거래 시작 일정은 **12월 1일 08:50 KST** 그대로입니다.
+- **리뷰 판정 원문(정정 확인, 2026-10-31 운영자 전달)**:
+  > **정정 내용 확인했습니다. 개입 #17은 `8d14b39` 절차로 진행하세요. 추가 승인·시험·문서 커밋은 필요 없습니다.** 정기 보고를 확인한 뒤 약 50분 동안 대응할 수 있는 시간에 H0~H5를 실행하면 됩니다. H1 진입 시 H0가 30분을 넘었다면, 변경 없이 멈춘 상태이므로 H0부터 다시 진행합니다. 다음 검토 대상은 **실제 H3·H4·H5 출력과 새 이미지 전체 해시, jar 대조 결과**입니다. H4·H5 통과를 확인한 뒤 F1 기대값과 개입 #17 기록을 함께 갱신하면 됩니다. SID 203은 `CREATED`로 유지하고, **12월 1일 08:50 KST 실거래 시작 일정**은 그대로 유지합니다.
+- **개입 #17 실행 기록(v1.37, 운영자 출력 두 번 — 2026-10-31)**:
+  - 블록은 `8d14b39` 판 그대로다. 운영자에게는 F·G·H 변수를 한 블록으로 합치고 끝에 `echo "변수 준비 끝…"` 한 줄을 더해 전달했다. 묶음 블록은 바꾸지 않았다.
+  - 시각(KST): H0 정비 시작 `20:12:00`(Q8 `maint_start`) · backend 기동 `20:15:58`(`StartedAt 11:15:58Z`, `Started … in 15.174 seconds` 11:16:14Z) · H4 `20:58:57`(`t-after30`) · H5 는 그 뒤(L4 마지막 가격 `@10-31 21:00`). `t-build` 시각은 받지 못했다.
+  - H1 jar 대조(`jar-diff.txt` 원문): `추가 …/BalanceAmounts.class` 1줄, `변경` 10줄(`DynamicTradingService` `$1`·`$2`·`$3`·`$EmptyPositionOutcome`·본체, `LiveTradingService` `$EmptyPositionOutcome`·`$PriceSnapshot`·본체, `OrderSettlementService` `$SellAmounts`·본체), `(끝) 677 678`. 로컬 기대 `JARX` 와 같다. 라이브러리 jar 차이 0.
+  - H3(파일에서 다시 출력): `Schema "public" is up to date. No migration necessary.` · `공유 풀 한도 확인: 단계=STAGE_1 총상한=100000 포지션당=20000 동시보유=3` · `위험 한도 확인: 단계 STAGE_1 총 자본 100000 기준 누적 15.00%·24시간 3.00%` · `Started CryptoAutoTraderApplication` · `매도 격리 점검: … 열린 실자금 포지션 없음` · `errors-deploy.txt` 0 바이트 · `s-deploy` `66 | 63 | 3 | -`. H3 화면 출력 자체는 받지 못했다. H4 가 `ok-H3-deploy` 를 요구하므로 H3 통과로 본다.
+  - BTC 관문: `11:17:11Z 🔴 BTC 급락 관문 H1 판정 불가` → `11:19:15Z 판정 재개`. `btcgate` `BTC 관문 마지막 상태: BTC 급락 관문 H1 판정 재개`.
+  - `candle`(H4): `기동 뒤 판정 불가로 들어간 대상 9 · 로그 끝 기준 판정 재개 8 · 아직 판정 불가 1` / `판정 불가: KRW-WET:H1 (기동 직전에도 판정 불가였다)`. KRW-WET:H1 은 11:17:11Z 에 판정 불가가 들어왔고 기동 전부터 불가였던 대상이라 공통 예외로 통과했다. BTC 관문이 아니므로 절차상 통과이며, 재개 여부는 정기 점검에서 따로 본다(새 기준 아님, 기록만).
+  - H4: backend `Up 42 minutes`(재시작 없음) · Q3 0행 · Q4 0 · Q5 0 · Q6 0행 · Q7 `RUNNING 63`·`STOPPED 3` · Q8 0 · Q9 0 · `ROLLBACK` · `sc` `66 | 63 | 3 | -` · `errors-after30.txt` 0 바이트 · 다른 서비스 이미지·기동 시각 그대로(db·redis·frontend `10-21 04:45:59Z`, db-backup `10-28 23:35:34Z`) · 실행 backend `sha256:a747a8e6c3043ae655e73bd2f6495a6ba755cb85d92c6fec7c96c6b3e8b357ae`.
+  - 경보 네 갈래(H4): 지금 구간 `11:15:57Z ~ 11:58:59Z` 관측 1회 — `🔴 10-31 11:19 1종: KRW-BLAST`, `🔴 적재 뒤처짐 1회`, ⚪ 0. 기준선(최근 1일) 관측 24회 — 매시 :19~:20 `KRW-BLAST` 1종, `🔴 적재 뒤처짐 24회`. 기존 반복과 같고 새 경보·⚪·실행 누락 없음.
+  - H5 원문: `02a8585021fb2a1a52d9b3b56b60e957cb71b9ca3c11bf819595df15cf334f1c  /home/manicstr/ops-scripts/sid_ledger.sql` · `8bfe8a9fa896f400b3fb6681fef021c99d6ba43b` · L4 `CREATED|20200.00|20200|0.00|20200|0.00|0|0|0|104515000.00000000 @10-31 21:00|-|-|-` · `✅ H5 통과 — 장부 8bfe8a9 판 · 잔액 기대 20200 · 차이 0 · cron·과거 기록 그대로`. 붙여 넣은 입력이 화면에 겹쳐 찍혔으나 결과 줄은 위와 같다.
+  - 되돌림은 하지 않았다. 보존본 `~/ops-scripts/sid_ledger.sql.a3c30b0`·`SID_LEDGER_SHA.a3c30b0`, 절차 사본 `LIMITED_LIVE_TEST_PLAN.8bfe8a9.md`, 이미지 태그 `autotrader-backend:f0872e2`(`fdd7695a…`)는 지우지 않는다.
+  - 받지 못한 것: ⑧ 출력 앞부분(HEAD·통과 표지 목록·`git-before`·`t-before`·`t-build`·`image-before`·`image-new` 파일). 새 이미지 전체 해시는 H4 의 `svc` 출력에서 읽었다. H5 가 실행 이미지 = `image-new.txt` 를 확인하고 통과했으므로 파일도 같은 값이어야 한다. F1 은 파일과 전체 해시를 둘 다 비교하므로 다르면 12-01 F1 이 멈춘다.
+- **F 갱신(v1.37)**: F 변수 `NEW` = `cad39395…`. F1 이미지 기대 = 전체 해시 `IMGF1` 과 `~/maint-rounding/image-new.txt` 둘 다. F1 에 설치 장부 판 확인(`SID_LEDGER_SHA` `8bfe8a9f…`·sha256 `02a85850…`) 추가. F1 경보 기준선은 그대로 #15 `MS/alerts-before.txt`. F3·F5 는 절차 사본(`8bfe8a9` 판)의 블록을 쓴다.
+- **운영 상태(v1.37 커밋 시점)**: 운영 backend `cad3939`(이미지 `a747a8e6…`), DB V94, 설치 장부 `8bfe8a9` 판, cron 무변경(다음 09:30 기록부터 새 판), SID 203 `CREATED`. DB·`.env`·compose·다른 서비스 무변경.
 
 SMA20 신호·설정과 위험 한도를 기준으로 주문·정산·보호 기능의 결함을 보완한다. 새 시험 결과를 얻으려고 전략 파라미터를 탐색하거나 종료 후보를 재개하지 않는다. 추가 시험은 새 시나리오·실패·수정 범위에 맞춰 실행한다. 기존 66세션·T0·판정 기준은 유지하고, 이 준비 활동을 그 세션들의 성과 평가에 사용하지 않는다. F0는 완료 상태를 유지한다.
 
