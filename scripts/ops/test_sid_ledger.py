@@ -284,6 +284,77 @@ reset(status="RUNNING"); rt()
 rc, out = stop_check(DB)
 check("F5-3 — RUNNING 이면 주문·포지션이 0 이어도 '미완료'", rc == 0 and out.startswith("RUNNING | ") and out.endswith(" | 미완료"), out)
 
+# 4. 일반 청산 → 장부 연결 (리뷰 2026-10-31 "일반 청산 → 비용 장부 연결") — 실제 LIVE 경로가 만든 행을 그대로 넣는다.
+#    DailySma20LiveOrderPathTest 통합 ⑤ 손절 · ⑥ 정지 청산 · ⑦ 익절 · ⑧ 전략 SELL 이 왕복을 마친 뒤 web-api/build/sid-ledger-link/<사례>.tsv 를 남긴다
+#    (그 시험이 매도 signal_price = 청산 판단 당시 가격(마지막 봉 종가)을 먼저 단언한다). 파일이 없으면 그 시험부터 돌린다 — 실패로 센다.
+#    기대값은 파일이 아니라 그 시험의 입력(판단가·체결 대금·수수료)에서 따로 계산한다.
+LINK = os.path.join(HERE, "..", "..", "web-api", "build", "sid-ledger-link")
+
+
+def link(name):
+    path = os.path.join(LINK, name + ".tsv")
+    if not os.path.exists(path):
+        return None
+    rows = [l.rstrip("\n").split("\t") for l in open(path, encoding="utf-8") if l.strip()]
+    q = lambda x: "NULL" if x == "\\N" else "'%s'" % x
+    reset()
+    srow = [r for r in rows if r[0] == "S"][0]
+    sql(DB, "UPDATE live_trading_session SET available_krw = %s WHERE id = 203;" % srow[3])
+    for r in rows:
+        if r[0] == "P":
+            sql(DB, "INSERT INTO position (id, coin_pair, side, entry_price, avg_price, size, status, exit_reason, realized_pnl, session_id, session_kind) "
+                    "VALUES (%s, 'KRW-BTC', 'BUY', %s, %s, %s, %s, %s, %s, 203, 'LIVE');" % (r[1], r[4], r[5], r[6], q(r[2]), q(r[3]), q(r[7])))
+    for r in rows:
+        if r[0] == "O":
+            sql(DB, 'INSERT INTO "order" (id, position_id, coin_pair, side, order_type, quantity, state, filled_quantity, signal_price, reported_executed_funds, '
+                    "reported_paid_fee, applied_executed_funds, applied_paid_fee, fill_accounting_pending, created_at, filled_at, session_id, session_kind) "
+                    "VALUES (%s, %s, 'KRW-BTC', %s, 'MARKET', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 203, 'LIVE');"
+                    % (r[1], r[2], q(r[3]), r[5], q(r[4]), r[6], q(r[7]), q(r[8]), q(r[9]), q(r[10]), q(r[11]), r[12], q(r[13]), q(r[14])))
+    rc, R, raw = ledger(DB)
+    return rc, R, raw, rows
+
+
+B_REF, B_AF, B_FEE, Q = D("12495000"), D("19980"), D("9.99"), D("0.0016")    # 매수: 판단가 12,495,000 · 대금 19,980 · 수수료 9.99 (통합 ①과 같음)
+CASES = [  # 사례 · 청산 사유 · 매도 판단가 · 매도 대금 · 매도 수수료 · 시험이 본 세션 잔액(NUMERIC(20,2))
+    ("stop_loss", "STOP_LOSS", D("11800000"), D("18880"), D("9.44"), D("19080.57")),
+    ("take_profit", "TAKE_PROFIT", D("13500000"), D("21590"), D("10.795"), D("21789.22")),
+    ("strategy_sell", "STRATEGY_SIGNAL", D("12237750"), D("19570"), D("9.785"), D("19770.23")),
+]
+for name, why, s_sp, s_af, s_fee, avail in CASES:
+    got = link(name)
+    if got is None:
+        check("일반 청산 연결 %s — web-api/build/sid-ledger-link/%s.tsv 없음: DailySma20LiveOrderPathTest 를 먼저 돌린다" % (name, name), False)
+        continue
+    rc, R, raw, rows = got
+    sell = [r for r in rows if r[0] == "O" and r[3] == "SELL"]
+    l3 = (R.get("L3") or [{}])[0]
+    exp = prereg(B_AF, B_REF * Q, s_af, s_sp * Q)
+    net = s_af - (B_FEE + s_fee) - B_AF
+    check("일반 청산 연결 %s — 실제 경로 행: 청산 사유 %s · 매도 signal_price = 판단가 %s · 매수 signal_price = 12495000" % (name, why, s_sp),
+          len(sell) == 1 and D(sell[0][7]) == s_sp and [r for r in rows if r[0] == "P"][0][3] == why
+          and D([r for r in rows if r[0] == "O" and r[3] == "BUY"][0][7]) == B_REF, rows)
+    check("일반 청산 연결 %s — L3 '측정' · cost_pct = 불리 진입 + 불리 청산 + 0.10 = %.8f%% · 0.40 판정 f · 순손익 %s(= 매도 대금 − 수수료 합 − 매수 대금, 반영값)"
+          % (name, round(exp, 8), net),
+          rc == 0 and l3.get("rt_status") == "측정" and D(l3["cost_pct"]) == round(exp, 8) and l3["cost_gt_040"] == "f"
+          and D(l3["net_krw"]) == net and D(l3["fees"]) == B_FEE + s_fee, l3)
+    l4 = R["L4"][0]
+    cash = D("20200") - B_AF - B_FEE + s_af - s_fee
+    # 🔴 기록: 세션 잔액 열은 NUMERIC(20,2), 반영 대금·수수료는 8자리 — 수수료 끝자리가 있으면 L4 장부 현금과 세션 잔액이 0.005 다르다(문서 §5-9 10, 리뷰 판단 대기).
+    check("일반 청산 연결 %s — L4 장부 현금 %s · 세션 잔액 %s · 차이 %s (기록 — 잔액 열 둘째 자리 저장)" % (name, cash, avail, avail - cash),
+          D(l4["ledger_cash"]) == cash and D(l4["available_krw"]) == avail and D(l4["net_btc"]) == 0 and D(l4["open_size"]) == 0, l4)
+
+got = link("forced_stop")
+if got is None:
+    check("정지 청산 연결 — web-api/build/sid-ledger-link/forced_stop.tsv 없음: DailySma20LiveOrderPathTest 를 먼저 돌린다", False)
+else:
+    rc, R, raw, rows = got
+    l3 = (R.get("L3") or [{}])[0]
+    l2s = [r for r in R["L2"] if r["side"] == "SELL"]
+    check("정지 청산 연결 — 정지 정리 매도 signal_price 없음 → L2 '기준가 없음' · L3 '측정 불가(청산 기준가 없음)' · 비용률·판정 비움(승인한 처리 그대로) · 순손익 −7.98",
+          rc == 0 and len(l2s) == 1 and l2s[0]["signal_price"] == "-" and l2s[0]["note"] == "기준가 없음"
+          and l3.get("rt_status") == "측정 불가(청산 기준가 없음)" and l3["cost_pct"] == "-" and l3["cost_gt_040"] == "-"
+          and l3["exit_reason"] == "FORCED_STOP" and D(l3["net_krw"]) == D("19992") - D("19.98") - B_AF == D("-7.98"), l3)
+
 reset(started=None, status="CREATED")
 rc, R, raw = ledger(DB)
 check("시작 전(CREATED·started_at 없음) — L1 날짜 행 0 · L0 상태 CREATED", rc == 0 and R["L1"] == [] and R["L0"][0]["status"] == "CREATED", raw)

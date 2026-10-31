@@ -422,7 +422,7 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
         PositionEntity after = reload(p);
         assertThat(after.getStatus()).isEqualTo("CLOSING");
         assertThat(after.getExitReason()).isEqualTo(ExitReason.STRATEGY_SIGNAL);
-        assertSubmittedOnce(s, "SELL");
+        assertExitSignalPrice(assertSubmittedOnce(s, "SELL"), cs);
     }
 
     @Test
@@ -533,7 +533,7 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
         evaluate(s);
         assertThat(reload(p).getStatus()).isEqualTo("CLOSING");
         assertThat(reload(p).getExitReason()).isEqualTo(ExitReason.STOP_LOSS);
-        assertSubmittedOnce(s, "SELL");
+        assertExitSignalPrice(assertSubmittedOnce(s, "SELL"), cs);
         assertThat(orders(s, "BUY")).isEmpty();
     }
 
@@ -550,7 +550,7 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
         evaluate(s);
         assertThat(reload(p).getStatus()).isEqualTo("CLOSING");
         assertThat(reload(p).getExitReason()).isEqualTo(ExitReason.TAKE_PROFIT);
-        assertSubmittedOnce(s, "SELL");
+        assertExitSignalPrice(assertSubmittedOnce(s, "SELL"), cs);
     }
 
     @Test
@@ -564,7 +564,16 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
         evaluate(s);
         assertThat(reload(p).getStatus()).isEqualTo("CLOSING");
         assertThat(reload(p).getExitReason()).isEqualTo(ExitReason.STRATEGY_SIGNAL);
-        assertSubmittedOnce(s, "SELL");
+        assertExitSignalPrice(assertSubmittedOnce(s, "SELL"), cs);
+    }
+
+    /**
+     * 청산 판단가 = 그 회차가 본 마지막 봉 종가(LiveTradingService 의 currentPrice) — 매도 주문의 signal_price 로 저장돼야
+     * 장부(sid_ledger.sql L2·L3)가 청산 슬리피지와 왕복 비용률을 낸다. 없으면 장부는 '측정 불가(청산 기준가 없음)'.
+     */
+    private static void assertExitSignalPrice(OrderEntity sell, List<Candle> cs) {
+        assertThat(sell.getSignalPrice()).as("매도 signal_price = 청산 판단 당시 가격(마지막 봉 종가)")
+                .isNotNull().isEqualByComparingTo(cs.get(cs.size() - 1).getClose());
     }
 
     // ── 신호 → 진입 승인 → 주문 접수 → 공통 정산·DB 반영 (문서 §5-9, 2026-10-30) ──────────────────
@@ -595,6 +604,8 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
         evaluate(s);
         OrderEntity buy = assertSubmittedOnce(s, "BUY");
         assertThat(buy.getQuantity()).isEqualByComparingTo("20000");
+        assertThat(buy.getSignalPrice()).as("매수 signal_price = 진입 판단 당시 가격(마지막 봉 종가 12,495,000)")
+                .isNotNull().isEqualByComparingTo(lastClose(uptrend()));
         assertThat(available(s)).as("접수 직후 — 예약만 빠진다").isEqualByComparingTo("200");
         return buy;
     }
@@ -832,11 +843,13 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
         // 같은 마감 봉 위치에 가격만 내린 자료 — 마지막 종가 11,800,000(평균 12,487,500 대비 −5.5%, 손절 5% 아래).
         // 신호 평가는 이미 본 봉이라 건너뛰고, 손절 감시는 매 회차 돈다.
         jdbc.update("DELETE FROM market_data_cache WHERE coin_pair = ? AND timeframe = 'H1'", COIN);
-        insertCache(series(i -> 9_305_000L + 5_000L * i));
+        List<Candle> slCandles = series(i -> 9_305_000L + 5_000L * i);
+        insertCache(slCandles);
         evaluateOnly(s);
         assertThat(reload(p).getStatus()).isEqualTo("CLOSING");
         assertThat(reload(p).getExitReason()).isEqualTo(ExitReason.STOP_LOSS);
         OrderEntity sell = assertSellSubmittedOnce(s, p);
+        assertExitSignalPrice(sell, slCandles);
 
         settle(sell, sellReport(sell.getExchangeOrderId(), "0.0016", "18880", "9.44"));
         liveTradingService.reconcileClosingPositions();
@@ -872,6 +885,7 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
                 .as("매도 응답 반복 — 변화 없음").isEqualTo(closed);
         assertThat(liveRepo.findById(s.getId()).orElseThrow().getStatus()).as("손절은 세션을 멈추지 않는다").isEqualTo("RUNNING");
         verify(upbitOrderClient, times(2)).createOrder(anyString(), anyString(), any(), any(), anyString(), anyString());
+        exportLedgerRows("stop_loss", s);
     }
 
     @Test
@@ -886,6 +900,8 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
         assertThat(reload(p).getStatus()).isEqualTo("CLOSING");
         assertThat(reload(p).getExitReason()).isEqualTo(ExitReason.FORCED_STOP);
         OrderEntity sell = assertSellSubmittedOnce(s, p);
+        // 정지·정리 매도는 기준가를 싣지 않는다 — 장부는 이 왕복을 '측정 불가(청산 기준가 없음)'로 둔다(승인된 처리, 0 으로 채우지 않는다).
+        assertThat(sell.getSignalPrice()).as("정지 청산 매도 signal_price 없음").isNull();
         liveTradingService.cleanupStoppedSessionPositions();
         assertThat(cleanupRepository.countPending("LIVE", s.getId()))
                 .as("🔴 매도를 제출했다는 사실로 정리 완료가 아니다").isEqualTo(1L);
@@ -920,6 +936,101 @@ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
         liveTradingService.cleanupStoppedSessionPositions();
         assertThat(settled(s, buy)).as("반복 — 변화 없음").isEqualTo(done);
         verify(upbitOrderClient, times(2)).createOrder(anyString(), anyString(), any(), any(), anyString(), anyString());
+        exportLedgerRows("forced_stop", s);
+    }
+
+    @Test
+    @DisplayName("통합 ⑦ 매수 체결 → 익절 → 매도 체결 — 매도 signal_price = 익절 판단가 13,500,000, 포지션 CLOSED·잔액 210.01 + 21,590 − 10.795")
+    void sma20BuyThenTakeProfitSellRecordsSignalPrice() {
+        LiveTradingSessionEntity s = noTimeStopSession();
+        OrderEntity buy = filledSma20Buy(s);
+        PositionEntity p = entryPosition(buy);
+        // 익절가는 한 열만 고친다(엔티티 저장으로 행 전체를 덮지 않는다). 같은 마감 봉 위치에 가격만 올린 자료 — 마지막 종가 13,500,000.
+        jdbc.update("UPDATE position SET take_profit_price = ? WHERE id = ?", new BigDecimal("13000000"), p.getId());
+        jdbc.update("DELETE FROM market_data_cache WHERE coin_pair = ? AND timeframe = 'H1'", COIN);
+        List<Candle> tpCandles = series(i -> 11_005_000L + 5_000L * i);
+        insertCache(tpCandles);
+        evaluateOnly(s);
+        assertThat(reload(p).getExitReason()).isEqualTo(ExitReason.TAKE_PROFIT);
+        OrderEntity sell = assertSellSubmittedOnce(s, p);
+        assertExitSignalPrice(sell, tpCandles);
+
+        // 0.0016 × 13,500,000 = 21,600 — 10 원 불리하게 21,590 · 수수료 10.795.
+        settle(sell, sellReport(sell.getExchangeOrderId(), "0.0016", "21590", "10.795"));
+        liveTradingService.reconcileClosingPositions();
+        System.out.println("[SMA20 통합 ⑦ 익절] " + settled(s, buy) + " realized=" + reload(p).getRealizedPnl());
+        assertThat(reload(p).getStatus()).isEqualTo("CLOSED");
+        assertThat(reload(p).getExitReason()).isEqualTo(ExitReason.TAKE_PROFIT);
+        // 잔액 열은 NUMERIC(20,2) — 정확한 값 21,789.215 가 21,789.22 로 저장된다. 장부(sid_ledger.sql L4)의 현금은 반영값으로
+        // 다시 계산해 21,789.215 로 나온다 — 0.005 차이(문서 §5-9 10, 리뷰 판단 대기).
+        assertThat(available(s)).as("210.01 + 21,590 − 10.795 = 21,789.215 → 잔액 열 둘째 자리").isEqualByComparingTo("21789.22");
+        assertHoldingsMatch(s, "익절 뒤");
+        exportLedgerRows("take_profit", s);
+    }
+
+    @Test
+    @DisplayName("통합 ⑧ 매수 체결 → 다음 일봉 마감 전략 SELL(−2%) → 매도 체결 — 매도 signal_price = 마감 종가 12,237,750")
+    void sma20BuyThenStrategySellRecordsSignalPrice() {
+        LiveTradingSessionEntity s = noTimeStopSession();
+        OrderEntity buy = filledSma20Buy(s);
+        PositionEntity p = entryPosition(buy);
+        // 다음 일봉 마감 회차를 같은 봉 위치로 흉내 낸다 — 평가한 봉 기록만 지우고, 최소 보유 180분을 넘기도록 진입 시각만 당긴다.
+        Object target = AopTestUtils.getUltimateTargetObject(liveTradingService);
+        @SuppressWarnings("unchecked")
+        java.util.Map<Long, Instant> evaluated = (java.util.Map<Long, Instant>) ReflectionTestUtils.getField(target, "lastEvaluatedClosedCandle");
+        evaluated.remove(s.getId());
+        jdbc.update("UPDATE position SET opened_at = ? WHERE id = ?", java.sql.Timestamp.from(Instant.now().minus(20, ChronoUnit.HOURS)), p.getId());
+        // 완만한 하락 — 마감 종가 12,237,750(평균 12,487,500 대비 −2%) ≤ SMA20, 손절 5% 위.
+        jdbc.update("DELETE FROM market_data_cache WHERE coin_pair = ? AND timeframe = 'H1'", COIN);
+        List<Candle> sellCandles = series(i -> 12_237_750L + 5_000L * (499 - i));
+        insertCache(sellCandles);
+        evaluateOnly(s);
+        System.out.println("[SMA20 통합 ⑧ 신호] " + lastLog(s).getSignal() + " / " + lastLog(s).getReason());
+        assertThat(reload(p).getExitReason()).isEqualTo(ExitReason.STRATEGY_SIGNAL);
+        OrderEntity sell = assertSellSubmittedOnce(s, p);
+        assertExitSignalPrice(sell, sellCandles);
+
+        // 0.0016 × 12,237,750 = 19,580.4 — 불리하게 19,570 · 수수료 9.785.
+        settle(sell, sellReport(sell.getExchangeOrderId(), "0.0016", "19570", "9.785"));
+        liveTradingService.reconcileClosingPositions();
+        System.out.println("[SMA20 통합 ⑧ 전략 SELL] " + settled(s, buy) + " realized=" + reload(p).getRealizedPnl());
+        assertThat(reload(p).getStatus()).isEqualTo("CLOSED");
+        assertThat(reload(p).getExitReason()).isEqualTo(ExitReason.STRATEGY_SIGNAL);
+        assertThat(available(s)).as("210.01 + 19,570 − 9.785 = 19,770.225 → 잔액 열 둘째 자리(⑦과 같은 0.005 차이)").isEqualByComparingTo("19770.23");
+        assertHoldingsMatch(s, "전략 SELL 뒤");
+        exportLedgerRows("strategy_sell", s);
+    }
+
+    /**
+     * 왕복을 마친 이 세션의 포지션·주문 행을 장부 시험(scripts/ops/test_sid_ledger.py)이 읽는 파일로 남긴다 —
+     * 그 시험이 행을 그대로 PostgreSQL 사본에 넣고 sid_ledger.sql L3 를 돌린다(이 시험의 H2 는 그 조회를 돌리지 못한다).
+     * 파일: web-api/build/sid-ledger-link/&lt;name&gt;.tsv · 빈 값은 \N.
+     */
+    private void exportLedgerRows(String name, LiveTradingSessionEntity s) {
+        java.util.function.Function<Object, String> v = x -> x == null ? "\\N"
+                : x instanceof BigDecimal b ? b.toPlainString() : x.toString();
+        List<String> lines = new ArrayList<>();
+        LiveTradingSessionEntity cur = liveRepo.findById(s.getId()).orElseThrow();
+        lines.add(String.join("\t", "S",v.apply(cur.getStatus()), v.apply(cur.getInitialCapital()), v.apply(cur.getAvailableKrw())));
+        for (PositionEntity p : positionRepository.findBySessionKindAndSessionId("LIVE", s.getId())) {
+            lines.add(String.join("\t", "P", v.apply(p.getId()), v.apply(p.getStatus()), v.apply(p.getExitReason()),
+                    v.apply(p.getEntryPrice()), v.apply(p.getAvgPrice()), v.apply(p.getSize()), v.apply(p.getRealizedPnl())));
+        }
+        for (OrderEntity o : orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc("LIVE", s.getId())) {
+            lines.add(String.join("\t", "O", v.apply(o.getId()), v.apply(o.getPositionId()), v.apply(o.getSide()), v.apply(o.getState()),
+                    v.apply(o.getQuantity()), v.apply(o.getFilledQuantity()), v.apply(o.getSignalPrice()),
+                    v.apply(o.getReportedExecutedFunds()), v.apply(o.getReportedPaidFee()),
+                    v.apply(o.getAppliedExecutedFunds()), v.apply(o.getAppliedPaidFee()), v.apply(o.getFillAccountingPending()),
+                    v.apply(o.getCreatedAt()), v.apply(o.getFilledAt())));
+        }
+        try {
+            java.nio.file.Path dir = java.nio.file.Path.of("build", "sid-ledger-link");
+            java.nio.file.Files.createDirectories(dir);
+            java.nio.file.Files.write(dir.resolve(name + ".tsv"), lines, java.nio.charset.StandardCharsets.UTF_8);
+            System.out.println("[SMA20 장부 연결] " + dir.resolve(name + ".tsv").toAbsolutePath() + " " + lines.size() + "줄");
+        } catch (java.io.IOException e) {
+            throw new AssertionError("장부 연결 파일을 쓰지 못했다: " + e.getMessage(), e);
+        }
     }
 
     // ── 주문 상태 불명(UNKNOWN) — 확인 전에는 같은 세션이 중복 주문을 내지 않는다 (문서 §6-2) ──────
