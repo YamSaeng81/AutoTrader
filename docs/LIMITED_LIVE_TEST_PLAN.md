@@ -1,5 +1,6 @@
 # 12월 제한 실거래 시험 — 후보와 실행안
 
+> **v1.35 (2026-10-31)**: 리뷰 판정 — 후보 `cad3939` 수용, backend 단독 배포 승인. 배포·복구 명령 H0~H5(개입 #17) 준비: H0 직전 확인(HEAD `f0872e2`·#16 이미지·V94·66세션·SID 203·설치 장부 `a3c30b0`·cron·과거 기록 보존) → H1 빌드·jar 대조(추가 1·변경 10, 677 → 678) → H2 재기동 → H3 기동 5분 뒤(V94·BTC 관문 재개) → H4 30분 → H5 장부 `8bfe8a9` 판 교체(보존본·잔액 기대 20,200·차이 0). 되돌림은 backend·장부 따로. H5 블록 로컬 대역 9사례. ⏸ 운영자 실행 대기 — 운영·DB·장부·F1 무변경(§5-9 13).
 > **v1.34 (2026-10-31)**: 리뷰 판정 — 잔액 반올림 수정 방향 수용, 보완 뒤 `f0872e2` 기반 배포 후보. 보완: ① 종결 매수 주문 정정이 열린 포지션 투입액·평균단가를 맞춤(공유 풀 시장가·첫 반영 뒤), 포지션 수수료는 차분만 더함(CLOSED 재개방 없음·매도 수수료 보존) ② LIVE·DYNAMIC 실제 예약 경로 요청액 절삭 시험 ③ "구버전 한 번 반영이면 일치" 철회, F5 원시·저장 잔액 구분 ④ `position_fee` 열 확대 보류(알려진 한계). PG 16/16(운영 코드 V94 에서 8/16 실패), H2 관련 회귀 286/286·후보 277/277, 장부 56/56. 후보 `candidate/rounding-f0872e2` `cad3939`. 운영·DB·설치 장부 무변경(§5-9 12).
 > **v1.33 (2026-10-31)**: 운영 확인 2(재기동 뒤 BTC H1 재조회·예외 로그) 기대와 같음 — 10-30 재기동 2분 뒤 재수집 4칸 거래소 부재 기록 → 점검 #1 예외 → BTC H1 판정 재개, 유효 결측 1칸은 점검 표(확인 1) 뒤 확정. 리뷰 결정 — 반올림 누적을 정산 경로 국소 수정으로(로컬): `BalanceAmounts`(요청액 버림·누적 금액 두 자리 HALF_UP 차분), LIVE·DYNAMIC 매수 정산·매도 확정·매도 정정. PostgreSQL 실제 정산 코드 12/12(수정 전 코드 8/12 — 반복 정정 사례 실패), 단위 3/3, H2 관련 회귀 306/306, 장부 56/56. 장부 L4 `balance_expected`·`balance_diff`, F3 차이 0, F5-4 `balance_diff`. 발견: 정산 경로 매수 정정이 포지션을 안 고침·`position_fee` 두 자리. 운영·DB 무변경(§5-9 10·11).
 > **v1.32 (2026-10-31)**: 리뷰 판정(BTC H1 1회차) — 적재 장애·새 결함 아님. 정정: B1 은 2분 유예 필요 완료 봉 존재로 판정(`lag_min` 참고값, 1회차 충족) · 빠진 4개 중 03·04·05시는 점검 #1 예외 대상, 06시 경계 봉 → 유효 결측 1(허용 2) · "가운데 빠짐은 메워지지 않는다" 철회(`CandleGapBackfillService`) · 최신성 관문과 SMA20 HOLD 구분, SID 203 시간 청산 없음. 반올림 누적 22-c: 0.001원 정정 10회가 저장 잔액에 한 번도 들어가지 않아 차이 0.01(처리 리뷰 판단). 운영 확인 3건(점검 표·재조회 로그·2회차) 대기. 운영 코드 무변경(§5-9 10).
@@ -1968,6 +1969,363 @@ FILE logs/backend/system.log | first=2026-10-31 00:00:00 | last=2026-10-31 07:31
   - 적용 범위(검토용, 아직 명령을 주지 않는다): backend 이미지 재빌드·재기동(재기동 직후 약 2분 BTC H1 판정 불가 — §5-9 11 확인 2) → F1 의 HEAD·이미지 기대값을 `cad3939` 로 → 같은 시점에 장부 조회 새 판(main `scripts/ops/sid_ledger.sql`) 설치와 F3·F5 새 판 사용.
   - 운영 배포·장부 교체는 후보 확인 뒤 진행한다. 지금 운영은 `f0872e2`, 설치 장부는 `a3c30b0` 판이다.
 - **하지 않은 것**: 실제 프로세스 재기동 시험, 전체 리허설, 실제 거래소 체결. BTC 점검 표(확인 1)·봉 전진(확인 3)은 기존 읽기 절차로 남아 있다.
+
+**13. backend 단독 배포 `f0872e2` → `cad3939` · 장부 새 판 — 개입 #17 (2026-10-31, v1.35). ⏸ 운영자 실행 대기**
+
+- **리뷰 판정 원문(v1.34 뒤, 2026-10-31 운영자 전달)**:
+  > **후보 `cad3939`를 수용하고, backend 단독 배포를 승인합니다.** 코드와 시험 내용을 검토했으며, 이번 범위에서 추가 배포 차단 사유는 찾지 못했습니다.
+  >
+  > 다음 순서로 진행하세요.
+  >
+  > 1. **배포·복구 명령 준비 후 실행**
+  >    - backend는 `cad3939`로 고정합니다.
+  >    - 기존 이미지와 정비 전 상태를 보존하고, 기존 G0~G4 방식으로 기동 직후·30분 뒤를 확인합니다.
+  >    - V94 유지, 66세션 상태, SID 203 `CREATED`, BTC 관문 재개를 확인합니다.
+  >
+  > 2. **새 장부와 절차를 함께 적용**
+  >    - 장부·F3·F5는 검토한 main **`8bfe8a9`의 파일**로 고정합니다.
+  >    - 운영 HEAD는 후보에 둔 채 파일만 추출합니다.
+  >    - 기존 장부를 보존하고, 복구할 때는 장부와 F1 기대값도 이전 판으로 되돌립니다.
+  >
+  > 3. **배포 확인 뒤 F1 갱신**
+  >    - HEAD와 실제 새 이미지 전체 해시를 반영합니다.
+  >    - 새 장부 조회에서 잔액 기대값 **20,200원, 차이 0**을 확인합니다.
+  >    - 기존 cron 일정과 과거 기록은 보존합니다.
+  >
+  > 전체 리허설이나 이미 통과한 회귀를 다시 반복할 필요는 없습니다. `position_fee` 자릿수 확대는 예정대로 보류합니다.
+  >
+  > **지금 할 다음 작업은 배포 명령 준비와 위 순서의 적용입니다.** F0 완료, SID 203 시작 대기, **12월 1일 08:50 KST 실매매 시작 목표**는 유지합니다.
+- **범위**: backend 이미지 재빌드·재기동 1회(개입 #17) + 장부 조회 파일 교체 1회. DB·compose·`.env`·다른 서비스·cron 은 바꾸지 않고, 마이그레이션도 없다(V94 유지). SID 203 은 `CREATED` 그대로 두고, 시작·정지 API 를 부르지 않는다. 재기동은 66세션에 영향을 줄 수 있어 개입으로 기록한다.
+- **고정값**: backend = 후보 `cad393956e131c257195fcd08fcac18c83802788`(`candidate/rounding-f0872e2`). 장부·F3·F5 = main `8bfe8a9fa896f400b3fb6681fef021c99d6ba43b` 의 파일이다. 운영 HEAD 는 후보에 두고, `git show` 로 파일만 꺼낸다.
+  - `scripts/ops/sid_ledger.sql` sha256 `02a8585021fb2a1a52d9b3b56b60e957cb71b9ca3c11bf819595df15cf334f1c`
+  - `docs/LIMITED_LIVE_TEST_PLAN.md`(F3·F5 블록이 들어 있는 판) sha256 `2c447dfca9ce87fc82bddf213f17a48d7bc1462df461bfaa843af719d91be309`
+  - 사본은 `~/ops-scripts/LIMITED_LIVE_TEST_PLAN.8bfe8a9.md` 에 둔다. 12-01 F3, 56일 종료 F5 는 이 사본의 블록을 쓴다. 이 뒤 main 커밋은 F3·F5 블록을 바꾸지 않는다(F1·F 변수만 바꾼다).
+  - 지금 설치본은 `a3c30b0` 판(sha256 `7e3ae2c9…a0f`)이다. `~/ops-scripts/sid_ledger.sql.a3c30b0`·`SID_LEDGER_SHA.a3c30b0` 로 보존하고 지우지 않는다.
+- **시간**: 운영자가 약 50분 동안 계속 대응할 수 있을 때 한다. 10:00·22:00 정기 점검 보고를 본 뒤 시작하고, 09:00~09:59 KST 는 피한다(09:30 장부 기록과 겹침). 순서는 H0 → 30분 안에 H1 → 바로 H2 → 5~10분 뒤 H3 → 기동 30분 뒤 H4 → 바로 H5.
+- **재기동 직후 BTC 관문**: 10-30 #16 기록(§5-9 11 확인 2)에서는 기동 뒤 약 1분 만에 BTC H1·KRW-BTC:H1 판정 불가(결측 4칸)가 들어왔다. 약 3분 뒤 점검 #1 예외로 판정이 재개됐다. 그동안 해당 진입은 막힌다(안전한 방향). H3 은 기동 5분 뒤부터 돌고, 판정이 재개되지 않았으면 멈춘다.
+- **jar 대조 기대값(로컬)**: `f0872e2` 와 `cad3939` 로 각각 `:web-api:bootJar` 를 만들어 G1 과 같은 비교 코드로 대조했다. 결과는 추가 1(`BalanceAmounts`)과 변경 10이다. 변경 10은 `DynamicTradingService` 본체·`$1`·`$2`·`$3`·`$EmptyPositionOutcome`, `LiveTradingService` 본체·`$EmptyPositionOutcome`·`$PriceSnapshot`, `OrderSettlementService` 본체·`$SellAmounts` 이다. 클래스 수는 677 → 678, 삭제 0, 라이브러리 jar 변화 0 이다. 내부 클래스는 같은 파일 안이라 줄 번호만 밀렸다. 서버 H1 이 같은 대조를 하고, 다르면 **재기동 전에** 멈춘다.
+- 각 묶음은 `( set -euo pipefail … )` 다. 실패하면 그 자리에서 끝나고, 통과 표지(`ok-H0`~`ok-H5`)가 있어야 다음 묶음이 시작한다. 결과는 새 폴더 `~/maint-rounding` 에만 쓴다. `~/maint-sma20fix`(#16)는 읽기만 한다.
+
+**H 변수** — 🔴 새 셸마다 §5-8 **F 변수** → 위 **G 변수** → 아래 블록 순서로 실행한다. G 변수 블록은 함수(`qc`·`zero5`·`alertsok`·`sid203`)와 `REPO`·`QS`·`POOLX`·`NOT404` 를 준다. 아래 블록이 `M`·`OLD`·`NEW` 를 덮어쓴다.
+```bash
+M=~/maint-rounding; mkdir -p "$M"; OPS=~/ops-scripts
+OLD=f0872e2547c918a7b5146f027d325bd441ddf0d7; NEW=cad393956e131c257195fcd08fcac18c83802788
+IMGOLD=sha256:fdd7695a59d6d1cff2c5b63f03af41cdb397795c0df7a7d97a1be37b8848fff2   # #16 배포 이미지(지금 실행 중)
+LS=8bfe8a9fa896f400b3fb6681fef021c99d6ba43b                                       # 장부·F3·F5 고정 커밋(main)
+LSUM=02a8585021fb2a1a52d9b3b56b60e957cb71b9ca3c11bf819595df15cf334f1c             # 그 커밋의 sid_ledger.sql
+PSUM=2c447dfca9ce87fc82bddf213f17a48d7bc1462df461bfaa843af719d91be309             # 그 커밋의 LIMITED_LIVE_TEST_PLAN.md
+LSHA0=a3c30b0896a84609ae6b5e84466471419e1d40d5; LSUM0=7e3ae2c96af6270e701a4a2b1811cd43dd115968c7c6d0d13daaba7a4c225a0f   # 지금 설치본
+h256() { sha256sum < "$1" | cut -d' ' -f1 ; }
+v94() { [ "$($PSQL -At -c "SELECT max(version::int) FROM flyway_schema_history WHERE success")" = "94" ] ; }
+DIFF7="$(printf '%s\n' web-api/src/main/java/com/cryptoautotrader/api/service/{BalanceAmounts,DynamicTradingService,LiveTradingService,OrderSettlementService}.java web-api/src/test/java/com/cryptoautotrader/api/service/{BalanceAmountsTest,BuySettlementEdgeTest,SettlementRoundingPgTest}.java)"
+JC=BOOT-INF/classes/com/cryptoautotrader/api/service
+JARX="추가 $JC/BalanceAmounts.class
+변경 $JC/DynamicTradingService\$1.class
+변경 $JC/DynamicTradingService\$2.class
+변경 $JC/DynamicTradingService\$3.class
+변경 $JC/DynamicTradingService\$EmptyPositionOutcome.class
+변경 $JC/DynamicTradingService.class
+변경 $JC/LiveTradingService\$EmptyPositionOutcome.class
+변경 $JC/LiveTradingService\$PriceSnapshot.class
+변경 $JC/LiveTradingService.class
+변경 $JC/OrderSettlementService\$SellAmounts.class
+변경 $JC/OrderSettlementService.class"
+L4HX='status|available_krw|balance_expected|balance_diff|ledger_cash|raw_diff|unk_orders|net_btc|open_size|last_mark|realized_pnl_sum_ref|fees_total|slip_total'
+```
+
+**H0. ▶ 직전 확인 — 읽기 전용, 재기동 없음**
+```bash
+(
+set -euo pipefail
+stop() { echo "🔴 멈춤: $*"; exit 1; }
+[ "$M" = "$HOME/maint-rounding" ] && [ "$NEW" = cad393956e131c257195fcd08fcac18c83802788 ] && type sid203 > /dev/null 2>&1 || stop "변수 순서 — F 변수 → G 변수 → H 변수"
+[ ! -e "$M/ok-H1" ] || stop "H1 을 이미 시작했다 — H0 를 다시 하지 않는다. ls -l $M 를 보고"
+[ "$(git rev-parse HEAD)" = "$OLD" ] && [ -z "$(git status --porcelain --untracked-files=no)" ] || stop "HEAD 가 f0872e2 가 아니거나 추적 파일 변경 있음"
+date '+%F %T %Z' | tee "$M/t-before.txt"; date '+%F %T%:z' > "$M/maint_start.txt"
+{ git rev-parse HEAD; git status --porcelain --untracked-files=no; echo "(끝)"; } | tee "$M/git-before.txt"
+git fetch origin
+git cat-file -e "$NEW^{commit}" && git cat-file -e "$LS^{commit}" || stop "후보 cad3939 또는 장부 커밋 8bfe8a9 없음"
+[ "$(git diff --name-only $OLD $NEW)" = "$DIFF7" ] || stop "diff 가 정확히 일곱 파일이 아님"
+[ "$(git show $LS:scripts/ops/sid_ledger.sql | sha256sum | cut -d' ' -f1)" = "$LSUM" ] || stop "8bfe8a9 의 sid_ledger.sql 해시가 다름"
+[ "$(git show $LS:docs/LIMITED_LIVE_TEST_PLAN.md | sha256sum | cut -d' ' -f1)" = "$PSUM" ] || stop "8bfe8a9 의 계획 문서 해시가 다름"
+svc | tee "$M/svc-before.txt"
+IMG0=$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)"); echo "$IMG0" | tee "$M/image-before.txt"
+[ "$IMG0" = "$IMGOLD" ] && [ "$IMGOLD" = "$(cat ~/maint-sma20fix/image-new.txt)" ] || stop "실행 이미지가 #16 배포 이미지(fdd7695a…)와 다름"
+[ "$(docker image inspect --format '{{.Id}}' $REPO:latest)" = "$IMG0" ] || stop "$REPO:latest 가 실행 이미지와 다름"
+[ "$($DC exec -T backend env | grep '^TRADING_CAPITALPOOL_' | sort)" = "$POOLX" ] || stop "공유 풀 등록값이 STAGE_1·100000·20000·3 과 다름"
+v94 || stop "Flyway 최고 버전이 94 가 아님"
+sid203 || stop "SID 203·기준 행·EG·0 확인 중 다른 것 있음 — F1 과 같은 조회로 보고"
+sc | tee "$M/s-before.txt"; [ "$(cat "$M/s-before.txt")" = "66 | 63 | 3 | -" ] || stop "검증 66세션 상태 다름"
+[ "$(h256 "$OPS/sid_ledger.sql")" = "$LSUM0" ] && [ "$(cat "$OPS/SID_LEDGER_SHA")" = "$LSHA0" ] || stop "설치 장부가 a3c30b0 판이 아님"
+[ ! -e "$OPS/sid_ledger.sql.a3c30b0" ] && [ ! -e "$OPS/SID_LEDGER_SHA.a3c30b0" ] && [ ! -e "$OPS/LIMITED_LIVE_TEST_PLAN.8bfe8a9.md" ] || stop "장부 보존본 또는 절차 사본이 이미 있다 — ls -l $OPS 를 보고"
+crontab -l > "$M/crontab-before.txt" || stop "crontab 조회 실패"
+[ -s "$M/crontab-before.txt" ] && [ "$(grep -c 'sid_ledger.sql' "$M/crontab-before.txt")" = 1 ] || stop "crontab 이 비었거나 장부 기록 줄이 1개가 아님"
+( cd ~/sid203-ledger && sha256sum -- * ) > "$M/ledger-files-before.sha"; cat "$M/ledger-files-before.sha"
+qc > "$M/q-before.txt" 2>&1; sed -n '/== Q3/,$p' "$M/q-before.txt" | grep -vE '^-+|^\s*$'
+git show $QS:scripts/ops/maint_verify.py > "$M/maint_verify.py"
+$DC logs --no-color backend > "$M/backend-before.log"
+python3 scripts/prospective/start_66.py alerts --days 1 --no-mark > "$M/alerts-before.txt" 2>&1 && AE=0 || AE=$?
+echo "경보 종료코드 $AE"
+alertsok "$AE" "$M/alerts-before.txt" || stop "경보 조회가 끝까지 돌지 않음 — alerts-before.txt 를 보고"
+grep -E '^(🔴|⚪)' "$M/alerts-before.txt" || true
+touch "$M/ok-H0"; echo "✅ H0 통과 — 30분 안에 H1"
+)
+```
+- 기대 결과:
+  - `git-before` 는 `f0872e25…` 다음 바로 `(끝)` 이고, diff 는 일곱 파일이다.
+  - 실행 이미지 = `latest` = `sha256:fdd7695a…`(#16) 이다.
+  - 공유 풀 네 값, V94, `sid203` 통과, `sc` `66 | 63 | 3 | -` 이다.
+  - 설치 장부는 `a3c30b0` 판이고 보존본은 아직 없다. crontab 의 장부 줄은 1개다.
+  - Q3~Q6 0 · Q7 `RUNNING 63`·`STOPPED 3` · Q8 0 · Q9 0 · `ROLLBACK`(눈으로) 이다. 경보는 기준선으로 기록만 한다.
+- 멈추면 아무것도 바뀌지 않았다. 출력을 보고한다.
+
+**H1. 새 이미지 빌드와 jar 대조 — 재기동 없음**
+```bash
+(
+set -euo pipefail
+stop() { echo "🔴 멈춤: $*"; exit 1; }
+[ -e "$M/ok-H0" ] || stop "H0 미통과"
+[ ! -e "$M/ok-H1" ] || stop "H1 을 이미 통과했다 — 바로 H2"
+[ $(( $(date +%s) - $(stat -c %Y "$M/ok-H0") )) -le 1800 ] || stop "H0 가 30분보다 오래됨 — H0 부터"
+IMG0=$(cat "$M/image-before.txt")
+if docker image inspect $REPO:f0872e2 > /dev/null 2>&1; then [ "$(docker image inspect --format '{{.Id}}' $REPO:f0872e2)" = "$IMG0" ] || stop "$REPO:f0872e2 태그가 이미 다른 이미지를 가리킨다"; fi
+docker tag "$IMG0" $REPO:f0872e2
+[ "$(docker image inspect --format '{{.Id}}' $REPO:f0872e2)" = "$IMG0" ] || stop "기존 이미지 보존 태그 실패"
+git checkout --quiet $NEW
+[ "$(git rev-parse HEAD)" = "$NEW" ] && [ -z "$(git status --porcelain --untracked-files=no)" ] || stop "체크아웃 결과가 NEW 가 아니거나 변경 있음 — H1-되돌림"
+date '+%F %T %Z' | tee "$M/t-build.txt"
+$DC build backend > "$M/build.log" 2>&1 || stop "빌드 실패 — build.log 를 보고. H1-되돌림"
+IMG1=$(docker image inspect --format '{{.Id}}' $REPO:latest); echo "$IMG1" | tee "$M/image-new.txt"
+[ "$IMG1" != "$IMG0" ] || stop "새 이미지가 만들어지지 않음 — H1-되돌림"
+[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$IMG0" ] || stop "🔴 실행 중 backend 가 바뀌었다 — 보고"
+docker cp "$($DC ps -q backend)":/app/app.jar "$M/app-old.jar"
+CID=$(docker create $REPO:latest); docker cp "$CID":/app/app.jar "$M/app-new.jar"; docker rm "$CID" > /dev/null
+python3 - "$M/app-old.jar" "$M/app-new.jar" <<'EOF' | tee "$M/jar-diff.txt"
+import hashlib, io, re, sys, zipfile
+OWN = re.compile(r"BOOT-INF/lib/(core-engine|strategy-lib|exchange-adapter)[^/]*\.jar$")
+def classes(path):
+    z, out = zipfile.ZipFile(path), {}
+    for n in z.namelist():
+        if n.startswith("BOOT-INF/classes/") and n.endswith(".class"):
+            out[n] = hashlib.sha256(z.read(n)).hexdigest()
+        elif n.startswith("BOOT-INF/lib/") and n.endswith(".jar"):
+            if OWN.match(n):
+                inner = zipfile.ZipFile(io.BytesIO(z.read(n)))
+                for m in inner.namelist():
+                    if m.endswith(".class"):
+                        out[re.sub(r"-[0-9.]+(-SNAPSHOT)?\.jar$", ".jar", n) + "!" + m] = hashlib.sha256(inner.read(m)).hexdigest()
+            else:
+                out[n] = "lib"
+    return out
+a, b = classes(sys.argv[1]), classes(sys.argv[2])
+for k in sorted(set(a) | set(b)):
+    if a.get(k) != b.get(k):
+        print(("추가 " if k not in a else "삭제 " if k not in b else "변경 ") + k)
+print("(끝)", len(a), len(b))
+EOF
+[ "$(grep -v '^(끝)' "$M/jar-diff.txt")" = "$JARX" ] || stop "jar 차이가 기대 열한 줄이 아님 — jar-diff.txt 를 보고(재기동 전). H1-되돌림"
+grep -qx '(끝) 677 678' "$M/jar-diff.txt" || stop "클래스 수가 677 → 678 이 아님 — jar-diff.txt 를 보고(재기동 전). H1-되돌림"
+touch "$M/ok-H1"; echo "✅ H1 통과 — 바로 H2"
+)
+```
+- 기대: `jar-diff.txt` 가 위 기대값 열한 줄(추가 1·변경 10)과 `(끝) 677 678` 이다. 차이가 더 많으면(예: 빌드 기반 이미지가 바뀜) 재기동하지 않고 보고한다.
+- **H1-되돌림**(H1 이 멈췄을 때 — 실행 중 backend 는 그대로다): `git checkout --quiet $OLD; docker tag "$(cat "$M/image-before.txt")" $REPO:latest; git rev-parse HEAD; docker image inspect --format '{{.Id}}' $REPO:latest` → `f0872e25…`·`image-before.txt` 와 같은 ID. 재기동하지 않는다. 장부는 아직 바꾸지 않았다.
+
+**H2. 재기동 (개입 #17) — H1 통과 뒤 바로**
+```bash
+(
+set -euo pipefail
+stop() { echo "🔴 멈춤: $*"; exit 1; }
+[ -e "$M/ok-H1" ] || stop "H1 미통과"
+[ ! -e "$M/ok-H2" ] || stop "H2 를 이미 했다 — H3"
+IMG1=$(cat "$M/image-new.txt")
+[ "$(git rev-parse HEAD)" = "$NEW" ] || stop "HEAD 가 NEW 가 아님"
+[ "$(docker image inspect --format '{{.Id}}' $REPO:latest)" = "$IMG1" ] || stop "latest 가 image-new 와 다름"
+sid203 || stop "SID 203·기준 행·EG·0 확인 중 다른 것 있음"
+[ "$(sc)" = "66 | 63 | 3 | -" ] || stop "검증 66세션 상태 다름"
+date '+%F %T %Z' | tee "$M/t-deploy.txt"; date -u '+%Y-%m-%dT%H:%M:%SZ' > "$M/t-deploy.utc"
+echo "== 여기부터 재기동 — 이 뒤의 멈춤은 '되돌림 필요'"
+$DC up -d --no-build --no-deps backend || stop "되돌림 필요: 재생성 실패"
+sleep 15
+[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$IMG1" ] || stop "되돌림 필요: 새 컨테이너 이미지가 image-new 와 다름"
+[ "$($DC exec -T backend env | grep '^TRADING_CAPITALPOOL_' | sort)" = "$POOLX" ] || stop "되돌림 필요: 공유 풀 등록값 다름"
+svc | tee "$M/svc-deploy.txt"
+diff <(grep -v '^backend ' "$M/svc-before.txt") <(grep -v '^backend ' "$M/svc-deploy.txt") || stop "되돌림 필요: backend 외 서비스가 바뀜"
+{ git rev-parse HEAD; git status --porcelain --untracked-files=no; echo "(끝)"; } | tee "$M/git-deploy.txt"
+touch "$M/ok-H2"; echo "✅ H2 통과 — 5~10분 뒤 H3"
+)
+```
+
+**H3. 기동 확인 — H2 5~10분 뒤** (되돌림 뒤에도 같은 묶음을 쓴다. `t-rollback.utc` 가 있으면 그 시각과 기존 이미지로 본다)
+```bash
+(
+set -euo pipefail
+stop() { echo "🔴 멈춤: $*"; exit 1; }
+if [ -e "$M/t-rollback.utc" ]; then S=$(cat "$M/t-rollback.utc"); EXP=$(cat "$M/image-before.txt"); T=rollback; else [ -e "$M/ok-H2" ] || stop "H2 미통과"; S=$(cat "$M/t-deploy.utc"); EXP=$(cat "$M/image-new.txt"); T=deploy; fi
+[ $(( $(date +%s) - $(date -d "$S" +%s) )) -ge 300 ] || stop "기동 5분 전 — 5분이 지난 뒤 H3"
+$DC ps backend
+[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$EXP" ] || stop "실행 이미지가 기대와 다름"
+$DC logs --no-color --since "$S" backend > "$M/app-$T.log"
+grep -E "Schema .* is up to date|Migrating schema|Successfully applied|매도 격리 점검|Started CryptoAutoTrader" "$M/app-$T.log" | head -10
+grep -q "Started CryptoAutoTrader" "$M/app-$T.log" || stop "되돌림 필요: 기동 완료 줄 없음"
+! grep -qE "Migrating schema|Successfully applied" "$M/app-$T.log" || stop "되돌림 필요: 마이그레이션이 돌았다(이번 배포에는 없어야 함)"
+v94 || stop "되돌림 필요: Flyway 최고 버전이 94 가 아님"
+grep -qF "공유 풀 한도 확인: 단계=STAGE_1 총상한=100000 포지션당=20000 동시보유=3" "$M/app-$T.log" || stop "되돌림 필요: 공유 풀 등록 로그 없음"
+grep -qF "위험 한도 확인: 단계 STAGE_1 총 자본 100000 기준 누적 15.00%·24시간 3.00%" "$M/app-$T.log" || stop "되돌림 필요: 위험 한도 로그 없음"
+! grep -qE "🔴 (공유 풀 한도|위험 한도)" "$M/app-$T.log" || stop "되돌림 필요: 🔴 공유 풀/위험 한도 줄"
+grep " ERROR " "$M/app-$T.log" | grep -v "캔들 최신성" | grep -v -E "$NOT404" > "$M/errors-$T.txt" || true
+[ ! -s "$M/errors-$T.txt" ] || stop "세 마켓 캔들 404 밖의 ERROR — errors-$T.txt 를 보고"
+grep -E "BTC 급락 관문 H1 판정 (불가|재개)" "$M/app-$T.log" | cut -c1-140 || true
+python3 "$M/maint_verify.py" candle "$M/app-$T.log" "$M/backend-before.log" || stop "기동 뒤 판정 불가 대상이 아직 재개되지 않음(BTC 관문 포함) — 위 출력을 보고"
+qc > "$M/q-$T.txt" 2>&1; sed -n '/== Q3/,$p' "$M/q-$T.txt" | grep -vE '^-+|^\s*$'
+sc | tee "$M/s-$T.txt"; diff "$M/s-before.txt" "$M/s-$T.txt" || stop "되돌림 필요: 검증 세션 상태 바뀜"
+sid203 || stop "SID 203·기준 행·EG·0 확인 중 바뀐 것 있음 — 보고"
+touch "$M/ok-H3-$T"; echo "✅ H3($T) 통과 — 기동 30분 뒤 H4"
+)
+```
+- 기대 결과:
+  - `Started`, `Schema "public" is up to date`(마이그레이션 없음), V94, 매도 격리 점검 "없음".
+  - 두 한도 줄이 정확히 위 문구이고, ERROR 는 세 마켓 캔들 404 뿐이다.
+  - BTC 관문 줄은 `판정 불가` 다음 `판정 재개` 이고, `candle` 줄은 `아직 판정 불가 0` 이다.
+  - Q3~Q6 0 · Q7 `RUNNING 63`·`STOPPED 3` · Q8 0 · Q9 0 · `ROLLBACK`(눈으로) · `sc` 같음 · `sid203` 통과.
+- BTC 관문이 재개되지 않아 멈추면 바로 되돌리지 않는다. 출력을 보고하고, 되돌림 여부는 판단 뒤에 정한다. 판정 불가 동안 해당 진입은 막혀 있다.
+
+**H4. 30분 재점검 — 기동 30분 뒤**
+```bash
+(
+set -euo pipefail
+stop() { echo "🔴 멈춤: $*"; exit 1; }
+[ -e "$M/ok-H3-deploy" ] || stop "H3 미통과"
+S=$(cat "$M/t-deploy.utc")
+[ $(( $(date +%s) - $(date -d "$S" +%s) )) -ge 1800 ] || stop "아직 30분 전"
+date '+%F %T %Z' | tee "$M/t-after30.txt"
+$DC ps backend
+$DC logs --no-color --since "$S" backend > "$M/app-after30.log"
+grep " ERROR " "$M/app-after30.log" | grep -v "캔들 최신성" | grep -v -E "$NOT404" > "$M/errors-after30.txt" || true
+[ ! -s "$M/errors-after30.txt" ] || stop "세 마켓 캔들 404 밖의 ERROR — errors-after30.txt 를 보고"
+! grep -qE "🔴 (공유 풀 한도|위험 한도)" "$M/app-after30.log" || stop "되돌림 필요: 🔴 공유 풀/위험 한도 줄"
+v94 || stop "되돌림 필요: Flyway 최고 버전이 94 가 아님"
+grep -E "BTC 급락 관문 H1 판정 (불가|재개)" "$M/app-after30.log" | cut -c1-140 || true
+python3 "$M/maint_verify.py" candle "$M/app-after30.log" "$M/backend-before.log" || stop "판정 불가 대상이 남아 있음(BTC 관문 포함) — 위 출력을 보고"
+qc > "$M/q-after30.txt" 2>&1; sed -n '/== Q3/,$p' "$M/q-after30.txt" | grep -vE '^-+|^\s*$'
+sc | tee "$M/s-after30.txt"; diff "$M/s-before.txt" "$M/s-after30.txt" || stop "되돌림 필요: 검증 세션 상태 바뀜"
+svc | tee "$M/svc-after30.txt"
+diff <(grep -v '^backend ' "$M/svc-before.txt") <(grep -v '^backend ' "$M/svc-after30.txt") || stop "되돌림 필요: backend 외 서비스가 바뀜"
+[ "$(grep '^backend ' "$M/svc-deploy.txt")" = "$(grep '^backend ' "$M/svc-after30.txt")" ] || stop "되돌림 필요: backend 재시작 있음"
+sid203 || stop "SID 203·기준 행·EG·0 확인 중 바뀐 것 있음 — 보고"
+python3 scripts/prospective/start_66.py alerts --since "$S" --no-mark > "$M/alerts-after30.txt" 2>&1 && AE=0 || AE=$?
+echo "경보 종료코드 $AE (1 = 🔴 경보 있음 — 이것만으로 멈추지 않고 네 갈래로 대조)"
+alertsok "$AE" "$M/alerts-after30.txt" || stop "경보 조회가 끝까지 돌지 않음 — alerts-after30.txt 를 보고"
+echo "== 경보 (지금)"; cat "$M/alerts-after30.txt"
+echo "== 경보 (배포 전 기준선)"; cat "$M/alerts-before.txt"
+touch "$M/ok-H4"; echo "✅ H4 통과 — 바로 H5(장부 교체)"
+)
+```
+- 기대 결과:
+  - V94, Q3~Q6 0 · Q7 63/3 · Q8 0 · Q9 0 · `ROLLBACK`, `sc` 같음.
+  - backend 재시작 없음, BTC 관문 재개 그대로, `sid203` 통과.
+  - 경보는 네 갈래(기존 반복·새 경보·⚪·실행 누락)로 `alerts-before.txt` 와 대조한다. KRW-BLAST 반복 밖에 무엇이 있으면 H5 로 가지 않고 보고한다.
+
+**H5. 장부 새 판 교체 — H4 통과 뒤 바로 (09시대 제외)**
+```bash
+(
+set -euo pipefail
+stop() { echo "🔴 멈춤: $*"; exit 1; }
+[ -e "$M/ok-H4" ] || stop "H4 미통과"
+[ ! -e "$M/ok-H5" ] || stop "H5 를 이미 했다"
+[ "$(date +%H)" != 09 ] || stop "09시대 — 09:30 장부 기록과 겹친다. 10시 이후에 H5"
+[ "$(git rev-parse HEAD)" = "$NEW" ] || stop "HEAD 가 cad3939 가 아님"
+[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$(cat "$M/image-new.txt")" ] || stop "실행 backend 가 새 이미지가 아님"
+[ "$(h256 "$OPS/sid_ledger.sql")" = "$LSUM0" ] && [ "$(cat "$OPS/SID_LEDGER_SHA")" = "$LSHA0" ] || stop "설치 장부가 a3c30b0 판이 아님(H0 뒤 바뀜)"
+crontab -l | cmp -s - "$M/crontab-before.txt" || stop "cron 이 H0 때와 다름"
+( cd ~/sid203-ledger && sha256sum --quiet -c "$M/ledger-files-before.sha" ) || stop "과거 장부 기록 파일이 H0 때와 다름"
+git show $LS:scripts/ops/sid_ledger.sql > "$M/sid_ledger.sql.new"
+[ "$(h256 "$M/sid_ledger.sql.new")" = "$LSUM" ] || stop "꺼낸 장부 해시가 다름"
+[ ! -e "$OPS/sid_ledger.sql.a3c30b0" ] && [ ! -e "$OPS/SID_LEDGER_SHA.a3c30b0" ] && [ ! -e "$OPS/LIMITED_LIVE_TEST_PLAN.8bfe8a9.md" ] || stop "보존본 또는 절차 사본이 이미 있다 — ls -l $OPS 를 보고"
+cp -p "$OPS/sid_ledger.sql" "$OPS/sid_ledger.sql.a3c30b0"; cp -p "$OPS/SID_LEDGER_SHA" "$OPS/SID_LEDGER_SHA.a3c30b0"
+cmp "$OPS/sid_ledger.sql" "$OPS/sid_ledger.sql.a3c30b0" && cmp "$OPS/SID_LEDGER_SHA" "$OPS/SID_LEDGER_SHA.a3c30b0" || stop "보존본이 원본과 다름 — 장부는 아직 그대로"
+( set -C; git show $LS:docs/LIMITED_LIVE_TEST_PLAN.md > "$OPS/LIMITED_LIVE_TEST_PLAN.8bfe8a9.md" ) || stop "절차 사본 쓰기 실패 — 장부는 아직 그대로"
+[ "$(h256 "$OPS/LIMITED_LIVE_TEST_PLAN.8bfe8a9.md")" = "$PSUM" ] || stop "절차 사본 해시가 다름 — 장부는 아직 그대로"
+echo "== 여기부터 장부 교체 — 이 뒤의 멈춤은 'H5-되돌림'"
+cp "$M/sid_ledger.sql.new" "$OPS/sid_ledger.sql.tmp" && mv -f "$OPS/sid_ledger.sql.tmp" "$OPS/sid_ledger.sql"
+echo "$LS" > "$OPS/SID_LEDGER_SHA.tmp" && mv -f "$OPS/SID_LEDGER_SHA.tmp" "$OPS/SID_LEDGER_SHA"
+{ sha256sum "$OPS/sid_ledger.sql"; cat "$OPS/SID_LEDGER_SHA"; } | tee "$M/ledger-installed.txt"
+[ "$(h256 "$OPS/sid_ledger.sql")" = "$LSUM" ] && [ "$(cat "$OPS/SID_LEDGER_SHA")" = "$LS" ] || stop "교체 결과가 8bfe8a9 판이 아님 — H5-되돌림"
+$PSQL -A -F '|' -v sid=$SID -v init=20200 -f - < "$OPS/sid_ledger.sql" > "$M/ledger-check.txt" 2>&1 || stop "새 장부 조회 실패 — ledger-check.txt 를 보고. H5-되돌림"
+[ "$(tail -1 "$M/ledger-check.txt")" = "== 끝" ] || stop "새 장부 조회가 끝까지 돌지 않음 — H5-되돌림"
+sed -n '/^== L4/,/^== L5/p' "$M/ledger-check.txt"
+[ "$(awk '/^== L4/{s=1; n=0; next} s{n++} s && n==1{print; exit}' "$M/ledger-check.txt")" = "$L4HX" ] || stop "L4 열 이름이 기대와 다름 — H5-되돌림"
+awk '/^== L4/{s=1; n=0; next} s{n++} s && n==2{print; exit}' "$M/ledger-check.txt" \
+  | awk -F'|' '$1 == "CREATED" && $2 == "20200.00" && $3 ~ /^20200(\.0+)?$/ && $4 ~ /^0(\.0+)?$/ && $7 == "0" && $8 ~ /^0(\.0+)?$/ && $9 ~ /^0(\.0+)?$/ {ok = 1} END {exit !ok}' \
+  || stop "L4 가 CREATED·잔액 20200.00·잔액 기대 20200·차이 0·확인 불가 0·순체결 0·보유 0 이 아님 — H5-되돌림"
+crontab -l | cmp -s - "$M/crontab-before.txt" || stop "cron 이 H0 때와 다름 — crontab -l 을 보고"
+( cd ~/sid203-ledger && sha256sum --quiet -c "$M/ledger-files-before.sha" ) || stop "과거 장부 기록 파일이 바뀜 — 보고"
+touch "$M/ok-H5"; echo "✅ H5 통과 — 장부 8bfe8a9 판 · 잔액 기대 20200 · 차이 0 · cron·과거 기록 그대로. 출력을 보고"
+)
+```
+- 기대 결과:
+  - `ledger-installed.txt` 의 sha256 은 `02a85850…334f1c`, `SID_LEDGER_SHA` 는 `8bfe8a9f…` 이다.
+  - L4 줄은 `CREATED|20200.00|20200|0.00|20200|0.00|0|0|0|<최근 봉 종가 @시각>|-|-|-` 이다. `balance_expected` 20,200, `balance_diff` 0 이다.
+  - cron 과 과거 기록 파일(`install-check.txt`, 이미 생긴 날짜 파일)은 H0 때와 같다.
+- 09:30 cron 줄은 같은 경로 `~/ops-scripts/sid_ledger.sql` 을 읽으므로 cron 을 고치지 않는다. 다음 09:30 기록부터 새 판이다. 그 전 날짜 파일은 옛 판 출력으로 남는다.
+
+**H5-되돌림 — 장부만 (H5 의 'H5-되돌림' 멈춤 때, 또는 아래 H 되돌림 때)**
+```bash
+(
+set -euo pipefail
+stop() { echo "🔴 멈춤: $*"; exit 1; }
+[ -s "$OPS/sid_ledger.sql.a3c30b0" ] && [ -s "$OPS/SID_LEDGER_SHA.a3c30b0" ] || stop "보존본 없음 — 장부를 바꾸기 전이다. 되돌릴 것 없음"
+[ "$(h256 "$OPS/sid_ledger.sql.a3c30b0")" = "$LSUM0" ] && [ "$(cat "$OPS/SID_LEDGER_SHA.a3c30b0")" = "$LSHA0" ] || stop "보존본이 a3c30b0 판이 아님 — ls -l $OPS 를 보고"
+date '+%F %T %Z' | tee "$M/t-ledger-rollback.txt"
+cp -p "$OPS/sid_ledger.sql" "$M/sid_ledger.sql.removed"
+cp -p "$OPS/sid_ledger.sql.a3c30b0" "$OPS/sid_ledger.sql.tmp" && mv -f "$OPS/sid_ledger.sql.tmp" "$OPS/sid_ledger.sql"
+cp -p "$OPS/SID_LEDGER_SHA.a3c30b0" "$OPS/SID_LEDGER_SHA.tmp" && mv -f "$OPS/SID_LEDGER_SHA.tmp" "$OPS/SID_LEDGER_SHA"
+[ "$(h256 "$OPS/sid_ledger.sql")" = "$LSUM0" ] && [ "$(cat "$OPS/SID_LEDGER_SHA")" = "$LSHA0" ] || stop "되돌림 결과가 a3c30b0 판이 아님"
+[ ! -e "$M/ok-H5" ] || mv "$M/ok-H5" "$M/ok-H5.rolledback"
+crontab -l | cmp -s - "$M/crontab-before.txt" || echo "🔴 cron 이 H0 때와 다름 — crontab -l 을 보고"
+echo "✅ 장부 a3c30b0 판으로 복귀 — 보존본 두 개·절차 사본은 그대로 둔다"
+)
+```
+
+**H 되돌림 — backend (H2~H5 의 "되돌림 필요" 때, 또는 판단 뒤)** (DB 변경이 없으므로 데이터 작업은 없다. SID 203 은 주문이 없어 새 코드가 남긴 자료도 없다)
+```bash
+(
+set -euo pipefail
+stop() { echo "🔴 멈춤: $*"; exit 1; }
+IMG0=$(cat "$M/image-before.txt"); [ "$IMG0" = "$IMGOLD" ] || stop "image-before 가 #16 이미지가 아님"
+date '+%F %T %Z' | tee "$M/t-rollback.txt"; date -u '+%Y-%m-%dT%H:%M:%SZ' > "$M/t-rollback.utc"
+git checkout --quiet $OLD; [ "$(git rev-parse HEAD)" = "$OLD" ] || stop "체크아웃 실패"
+docker tag "$IMG0" $REPO:latest
+$DC up -d --no-build --no-deps --force-recreate backend
+sleep 15
+[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$IMG0" ] || stop "이미지가 image-before 와 다름"
+[ "$($DC exec -T backend env | grep '^TRADING_CAPITALPOOL_' | sort)" = "$POOLX" ] || stop "공유 풀 등록값 다름"
+svc | tee "$M/svc-rollback.txt"
+{ git rev-parse HEAD; git status --porcelain --untracked-files=no; echo "(끝)"; } | tee "$M/git-rollback.txt"
+if [ -e "$OPS/sid_ledger.sql.a3c30b0" ]; then echo "== 장부를 이미 바꿨다 — 이어서 H5-되돌림을 실행"; fi
+echo "✅ f0872e2 (fdd7695a…) 로 복귀 — 3~5분 뒤 H3 를 다시 실행(t-rollback.utc 기준으로 자동 전환, 5분 조건 그대로)"
+)
+```
+- 되돌린 뒤에는 장부도 `a3c30b0` 판으로 돌린다(H5-되돌림). F1·F 변수는 `f0872e2`·#16 이미지 그대로 둔다. 이미 바꿨으면 개발 에이전트가 이전 값으로 되돌려 커밋한다.
+
+**배포 확인 뒤 — 개발 에이전트(운영자가 H4·H5 출력을 보낸 뒤, 이 커밋에서는 하지 않는다)**:
+- F 변수 `NEW` 를 `cad393956e131c257195fcd08fcac18c83802788` 로 바꾼다.
+- F1 이미지 기대는 `~/maint-rounding/image-new.txt` 로 바꾸고, 그 실제 전체 해시를 F1 에 글자 그대로 적는다(파일과 해시가 모두 같아야 통과).
+- F1 에 장부 판 확인을 더한다: `~/ops-scripts/SID_LEDGER_SHA` = `8bfe8a9f…`, sha256 = `02a85850…`.
+- 개입 #17 기록(정비 전 `git-before`, 빌드·재기동 시각, `jar-diff.txt`, H3·H4·H5 결과)을 남긴다.
+- 되돌렸다면 이 갱신은 하지 않는다.
+- **로컬 확인(문서 블록을 그대로 꺼내 실행, 서버 명령 아님)**:
+  - H 변수·H0~H5·H5-되돌림·H 되돌림 모두 `bash -n` 통과.
+  - H 변수의 기대값: `JARX` = 로컬 jar 대조 출력(열한 줄, `(끝) 677 678`) · `DIFF7` = `git diff --name-only f0872e2 cad3939` · `LSUM`·`PSUM` = 커밋 원본 해시.
+  - H5·H5-되돌림은 임시 HOME·가짜 `docker`/`crontab`·로컬 PostgreSQL `rt_ledger`(SID 203 `CREATED`·20,200)로 9사례를 돌렸고 모두 기대와 같았다.
+    - 정상: ✅, 장부 `02a85850`·`SID_LEDGER_SHA` `8bfe8a9`·보존본 2·사본 1. L4 `CREATED|20200.00|20200|0.00|20200|0.00|0|0|0|…`.
+    - 다시 실행: 멈춤. H5-되돌림: `7e3ae2c9`·`a3c30b0` 로 복귀, `ok-H5` 는 `ok-H5.rolledback` 으로.
+    - 잔액 20,200.01: 교체 뒤 L4 멈춤(`balance_diff` 0.01) → H5-되돌림으로 복귀.
+    - 설치 장부가 다른 판 · 과거 기록 파일 변경 · cron 변경: 모두 **바꾸기 전에** 멈춤, 보존본 0.
+    - 09:30 새 날짜 파일이 생긴 경우: 통과(과거 파일만 대조). 보존본 없이 H5-되돌림: 멈춤.
+  - H0~H4·H 되돌림은 문법만 확인했다(G0~G4 와 같은 줄에 V94·BTC 관문 재개·장부·cron 보존 확인을 더한 것). 실행 확인은 아니다.
+  - 첫 두 시도는 시험 쪽 결함이었다(윈도 cp949 출력 오류, 블록을 새 프로세스로 실행해 변수 없음). 블록은 바꾸지 않았다. 마지막 판(H5-되돌림의 `ok-H5` 이름 바꾸기 추가) 으로 다시 돌린 결과가 위와 같다.
+- **운영 상태(이 커밋 시점)**: 바꾼 것 없음 — 운영 `f0872e2`(`fdd7695a…`), DB V94, 설치 장부 `a3c30b0` 판, SID 203 `CREATED`. F 변수·F1 은 그대로다(배포 확인 뒤 바꾼다).
 
 SMA20 신호·설정과 위험 한도를 기준으로 주문·정산·보호 기능의 결함을 보완한다. 새 시험 결과를 얻으려고 전략 파라미터를 탐색하거나 종료 후보를 재개하지 않는다. 추가 시험은 새 시나리오·실패·수정 범위에 맞춰 실행한다. 기존 66세션·T0·판정 기준은 유지하고, 이 준비 활동을 그 세션들의 성과 평가에 사용하지 않는다. F0는 완료 상태를 유지한다.
 
