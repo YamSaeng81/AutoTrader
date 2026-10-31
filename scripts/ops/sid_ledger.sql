@@ -8,6 +8,9 @@
 --   L0 세션·조회 시각 · L1 날짜별(신호·관문 차단 사유·주문·체결·수수료·슬리피지·현금·보유·평가액·순손익) · L2 주문별 · L3 왕복별 비용 · L4 지금 대조 · L5 중단 기능별 기록
 -- 🔴 순손익 = (현금 + 보유 평가액) − 시작 잔액. realized_pnl 합계는 참고로만 낸다(판정에 쓰지 않는다).
 --    현금 = 시작 잔액 − Σ매수(반영 대금 + 반영 수수료) + Σ매도(반영 대금 − 반영 수수료) — F3 장부와 같은 식, 체결 있는 주문의 applied_* 만.
+--    🔴 원시 현금(8자리)과 잔액 기대(주문별 두 자리)는 다르다 (리뷰 2026-10-31 반올림 결정). 세션 잔액은 주문마다 누적 금액을 둘째 자리 HALF_UP 으로
+--       반올림한 값만 받는다 — 매수 −요청액 + round(요청액 − 반영 대금 − 반영 수수료, 2), 매도 + round(반영 대금 − 반영 수수료, 2). L4 의 balance_expected 가
+--       그 식이고 세션 잔액과 같아야 한다(balance_diff 0). ledger_cash(원시)와 세션 잔액의 차이(raw_diff)는 반올림이라 참고로 낸다.
 --    체결 있는 주문의 보고값·반영값 중 하나라도 없거나 회계 반영 대기면 그 날 이후 현금·평가·순손익은 비운다(0 으로 대체하지 않는다 — "확인 불가").
 --    보유 평가액 = 보유 수량 × 그 날 끝(KST 24:00, 운영 중인 날은 지금) 이전 마지막 마감 H1 봉 종가(market_data_cache). 봉이 없으면 비운다.
 --    슬리피지(원) = 매수: 반영 대금 − 신호가 × 체결량, 매도: 신호가 × 체결량 − 반영 대금 (양수 = 비용). 신호가(order.signal_price)가 없는 주문(정지·보호 청산 등)은 비우고 건수를 따로 센다.
@@ -139,9 +142,9 @@ SELECT id AS pos, status, exit_reason, rt_status, bq AS buy_qty, sq AS sell_qty,
        realized_pnl AS realized_pnl_ref
   FROM _c ORDER BY id;
 
-\echo '== L4 지금 대조 — 세션 잔액 = 장부 현금 · 순체결량 = 열린 포지션 수량 · 지금 자산·순손익 · realized_pnl 합계(참고)'
+\echo '== L4 지금 대조 — 세션 잔액 = 잔액 기대(주문별 두 자리, balance_diff 0) · 장부 현금(원시 8자리, raw_diff 참고) · 순체결량 = 열린 포지션 수량 · realized_pnl 합계(참고)'
 WITH _o AS (
-  SELECT o.id, o.position_id, o.side, o.state, o.filled_quantity AS q, o.signal_price AS sp, o.created_at, coalesce(o.filled_at, o.created_at) AS ft,
+  SELECT o.id, o.position_id, o.side, o.state, o.filled_quantity AS q, o.quantity AS qty, o.signal_price AS sp, o.created_at, coalesce(o.filled_at, o.created_at) AS ft,
          o.reported_executed_funds AS rf, o.reported_paid_fee AS rfee, o.applied_executed_funds AS af, o.applied_paid_fee AS afee,
          o.fill_accounting_pending AS pend,
          (o.filled_quantity > 0 AND (o.reported_executed_funds IS NULL OR o.reported_paid_fee IS NULL OR o.applied_executed_funds IS NULL
@@ -149,11 +152,17 @@ WITH _o AS (
          CASE WHEN o.filled_quantity > 0 AND o.signal_price IS NOT NULL AND o.applied_executed_funds IS NOT NULL THEN
               CASE o.side WHEN 'BUY' THEN o.applied_executed_funds - o.signal_price * o.filled_quantity
                           ELSE o.signal_price * o.filled_quantity - o.applied_executed_funds END END AS slip
-    FROM "order" o WHERE o.session_kind = 'LIVE' AND o.session_id = :sid)
-SELECT l.status, l.available_krw,
-       CASE WHEN (SELECT count(*) FROM _o WHERE unk) > 0 THEN NULL ELSE
-       :init::numeric - coalesce((SELECT sum(af + afee) FROM _o WHERE side = 'BUY' AND q > 0), 0)
-                      + coalesce((SELECT sum(af - afee) FROM _o WHERE side = 'SELL' AND q > 0), 0) END AS ledger_cash,
+    FROM "order" o WHERE o.session_kind = 'LIVE' AND o.session_id = :sid),
+_k AS (
+  SELECT CASE WHEN (SELECT count(*) FROM _o WHERE unk) > 0 THEN NULL ELSE
+         :init::numeric - coalesce((SELECT sum(af + afee) FROM _o WHERE side = 'BUY' AND q > 0), 0)
+                        + coalesce((SELECT sum(af - afee) FROM _o WHERE side = 'SELL' AND q > 0), 0) END AS ledger_cash,
+         -- 잔액 기대: 매수 −요청액 + round(요청액 − 대금 − 수수료, 2) · 매도 + round(대금 − 수수료, 2) — 주문마다 두 자리(HALF_UP, PostgreSQL round 는 0 에서 먼 쪽)
+         CASE WHEN (SELECT count(*) FROM _o WHERE unk) > 0 THEN NULL ELSE
+         :init::numeric - coalesce((SELECT sum(qty - round(qty - af - afee, 2)) FROM _o WHERE side = 'BUY' AND q > 0), 0)
+                        + coalesce((SELECT sum(round(af - afee, 2)) FROM _o WHERE side = 'SELL' AND q > 0), 0) END AS balance_expected)
+SELECT l.status, l.available_krw, k.balance_expected, l.available_krw - k.balance_expected AS balance_diff,
+       k.ledger_cash, l.available_krw - k.ledger_cash AS raw_diff,
        (SELECT count(*) FROM _o WHERE unk) AS unk_orders,
        coalesce((SELECT sum(q) FROM _o WHERE side = 'BUY' AND q > 0), 0) - coalesce((SELECT sum(q) FROM _o WHERE side = 'SELL' AND q > 0), 0) AS net_btc,
        (SELECT coalesce(sum(size), 0) FROM position WHERE session_kind = 'LIVE' AND session_id = :sid AND status IN ('OPEN', 'CLOSING')) AS open_size,
@@ -161,7 +170,7 @@ SELECT l.status, l.available_krw,
          WHERE c.coin_pair = l.coin_pair AND c.timeframe = 'H1' AND c.time + interval '1 hour' <= now() ORDER BY c.time DESC LIMIT 1) AS last_mark,
        (SELECT sum(realized_pnl) FROM position WHERE session_kind = 'LIVE' AND session_id = :sid) AS realized_pnl_sum_ref,
        (SELECT sum(afee) FROM _o WHERE q > 0) AS fees_total, (SELECT round(sum(slip), 2) FROM _o WHERE q > 0) AS slip_total
-  FROM live_trading_session l WHERE l.id = :sid;
+  FROM live_trading_session l, _k k WHERE l.id = :sid;
 
 \echo '== L5 중단 기능별 기록 — 서킷브레이커 · 포지션 한도 · 공유 풀 손실 한도(진입 차단 — 정지 아님) · 세션 최종 상태. 사람 판단 정지(§6-2)는 운영자 기록으로'
 -- 출처마다 따로 낸다. 한 출처의 기록이 없다고 다른 중단 기능까지 "발동 없음"으로 적지 않는다.

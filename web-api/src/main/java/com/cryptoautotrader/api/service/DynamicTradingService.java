@@ -1625,7 +1625,9 @@ public class DynamicTradingService {
         // EMA200 게이트 사이즈 배수 적용 — 정상 1.0, 근접 하회 감액 0.5. null은 방어적으로 1.0 취급.
         BigDecimal effectiveRatio = session.getInvestRatio()
                 .multiply(sizeMultiplier != null ? sizeMultiplier : BigDecimal.ONE);
-        BigDecimal investAmount = session.getAvailableKrw().multiply(effectiveRatio);
+        // 🔴 요청액은 예약 전에 둘째 자리 버림 — 이 금액으로 최소 주문·한도를 보고 예약한다 (리뷰 2026-10-31, {@link BalanceAmounts}).
+        //    REAL·PAPER 모드가 같은 금액을 쓴다(엔진 동등).
+        BigDecimal investAmount = BalanceAmounts.buyRequest(session.getAvailableKrw().multiply(effectiveRatio));
         BigDecimal minOrder = BigDecimal.valueOf(5000);
         // 감액 진입이 최소주문(5,000원) 미만이면, 정상 사이즈로는 최소주문을 넘는 한 최소주문액으로
         // 올려 진입을 살린다 — 소액 세션(자본 1만원)에서 절반 사이즈(4,000원)가 최소주문에 걸려
@@ -3090,8 +3092,10 @@ public class DynamicTradingService {
                     .realizedPnl(realizedPnl)
                     .build();
 
+            // 🔴 잔액에는 순입금을 두 자리로 반올림해 넣는다 (리뷰 2026-10-31, {@link BalanceAmounts}) — 정산 표식·실현손익은 8자리 그대로.
+            final BigDecimal balanceCredit = amounts.balanceCredit();
             boolean credited = balanceUpdater.applySettlementOnce(settlement, s -> {
-                BigDecimal newAvailableKrw = s.getAvailableKrw().add(netProceeds);
+                BigDecimal newAvailableKrw = s.getAvailableKrw().add(balanceCredit);
                 s.setAvailableKrw(newAvailableKrw);
                 if (!hasRemainingExposure) {
                     s.setTotalAssetKrw(newAvailableKrw);

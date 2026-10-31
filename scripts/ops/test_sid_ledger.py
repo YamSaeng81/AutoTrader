@@ -9,7 +9,7 @@
 import os
 import subprocess
 import sys
-from decimal import Decimal as D
+from decimal import Decimal as D, ROUND_HALF_UP
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SQL_FILE = os.path.join(HERE, "sid_ledger.sql")
@@ -18,6 +18,11 @@ PG = ["docker", "exec", "-i", "cat-rt-pg", "psql", "-X", "-q", "-U", "trader"]
 
 results = []
 sys.stdout.reconfigure(encoding="utf-8")
+
+
+def r2(x):
+    """잔액 반영값 — 둘째 자리 HALF_UP(운영 코드 BalanceAmounts·PostgreSQL round 와 같다). 🔴 Python round() 는 Decimal 에서 HALF_EVEN 이라 쓰지 않는다."""
+    return x.quantize(D("0.01"), rounding=ROUND_HALF_UP)
 
 
 def check(name, ok, detail=""):
@@ -63,6 +68,9 @@ check("원본 리허설 — 날 끝 현금 = 20200 − (19600+9.80) + (19600−7
 l4 = R["L4"][0]
 check("원본 리허설 — 장부 현금 = 세션 잔액 20182.36 · 순체결량 0 = 열린 포지션 0",
       D(l4["ledger_cash"]) == D(l4["available_krw"]) == exp_cash and D(l4["net_btc"]) == 0 and D(l4["open_size"]) == 0, l4)
+exp_bal = D("20200") - D("20000") + r2(D("20000") - D("19600") - D("9.8")) + r2(D("19600") - D("7.84"))   # 리뷰 2026-10-31 반올림 결정
+check("원본 리허설 — 잔액 기대(주문별 두 자리: −요청 20000 + 환급 390.20 + 순입금 19592.16) = 세션 잔액 20182.36 · balance_diff 0 · raw_diff 0",
+      D(l4["balance_expected"]) == exp_bal == D(l4["available_krw"]) and D(l4["balance_diff"]) == 0 and D(l4["raw_diff"]) == 0, l4)
 check("원본 리허설 — realized_pnl 합계(−7.84)는 참고로만, 순손익(−17.64)과 다르다(매수 수수료 빠짐)",
       D(l4["realized_pnl_sum_ref"]) == D("-7.84") and D(l1[0]["net_pnl"]) == D("-17.64"), l4)
 l2 = {r["id"]: r for r in R["L2"]}
@@ -339,9 +347,12 @@ for name, why, s_sp, s_af, s_fee, avail in CASES:
           and D(l3["net_krw"]) == net and D(l3["fees"]) == B_FEE + s_fee, l3)
     l4 = R["L4"][0]
     cash = D("20200") - B_AF - B_FEE + s_af - s_fee
-    # 🔴 기록: 세션 잔액 열은 NUMERIC(20,2), 반영 대금·수수료는 8자리 — 수수료 끝자리가 있으면 L4 장부 현금과 세션 잔액이 0.005 다르다(문서 §5-9 10, 리뷰 판단 대기).
+    # 🔴 기록: 세션 잔액 열은 NUMERIC(20,2), 반영 대금·수수료는 8자리 — 원시 장부 현금과 세션 잔액은 0.005 다를 수 있다(§5-9 10). 리뷰 결정(2026-10-31)으로 잔액 대조는 아래 잔액 기대(주문별 두 자리)로 한다.
     check("일반 청산 연결 %s — L4 장부 현금 %s · 세션 잔액 %s · 차이 %s (기록 — 잔액 열 둘째 자리 저장)" % (name, cash, avail, avail - cash),
           D(l4["ledger_cash"]) == cash and D(l4["available_krw"]) == avail and D(l4["net_btc"]) == 0 and D(l4["open_size"]) == 0, l4)
+    bal = D("20200") - D("20000") + r2(D("20000") - B_AF - B_FEE) + r2(s_af - s_fee)
+    check("일반 청산 연결 %s — L4 잔액 기대(주문별 두 자리) %s = 세션 잔액 · balance_diff 0 · raw_diff %s(원시 장부와의 반올림, 참고)" % (name, bal, avail - cash),
+          D(l4["balance_expected"]) == bal == avail and D(l4["balance_diff"]) == 0 and D(l4["raw_diff"]) == avail - cash, l4)
 
 got = link("forced_stop")
 if got is None:
@@ -354,6 +365,30 @@ else:
           rc == 0 and len(l2s) == 1 and l2s[0]["signal_price"] == "-" and l2s[0]["note"] == "기준가 없음"
           and l3.get("rt_status") == "측정 불가(청산 기준가 없음)" and l3["cost_pct"] == "-" and l3["cost_gt_040"] == "-"
           and l3["exit_reason"] == "FORCED_STOP" and D(l3["net_krw"]) == D("19992") - D("19.98") - B_AF == D("-7.98"), l3)
+
+# 5. 셋째 자리 수수료(리뷰 2026-10-31 반올림 결정) — 원시 장부와 잔액 기대를 따로 낸다. 기대값은 입력에서 따로 계산한다.
+def sub_cent(avail):
+    reset()
+    sql(DB, "UPDATE live_trading_session SET available_krw = %s WHERE id = 203;" % avail)
+    sql(DB, "INSERT INTO position (id, coin_pair, side, entry_price, avg_price, size, status, session_id, session_kind) "
+            "VALUES (1, 'KRW-BTC', 'LONG', 12495000, 12495000, 0.0016, 'CLOSED', 203, 'LIVE');"
+            "INSERT INTO \"order\" (id, position_id, coin_pair, side, order_type, quantity, state, filled_quantity, session_id, session_kind, created_at, filled_at, "
+            "signal_price, reported_executed_funds, reported_paid_fee, applied_executed_funds, applied_paid_fee, fill_accounting_pending) VALUES "
+            "(1, 1, 'KRW-BTC', 'BUY', 'MARKET', 20000, 'FILLED', 0.0016, 203, 'LIVE', '2026-10-28 09:00:10+09', '2026-10-28 09:00:10+09', 12495000, 19980, 9.994, 19980, 9.994, false),"
+            "(2, 1, 'KRW-BTC', 'SELL', 'MARKET', 0.0016, 'FILLED', 0.0016, 203, 'LIVE', '2026-10-29 09:00:10+09', '2026-10-29 09:00:10+09', 13500000, 21590, 10.805, 21590, 10.805, false);")
+    return ledger(DB)
+
+
+raw_cash = D("20200") - (D("19980") + D("9.994")) + (D("21590") - D("10.805"))                                     # 21789.201
+bal = D("20200") - D("20000") + r2(D("20000") - D("19980") - D("9.994")) + r2(D("21590") - D("10.805"))  # 10.006→10.01, 21579.195→21579.20 = 21789.21
+rc, R, raw = sub_cent(bal)
+l4 = R["L4"][0]
+check("셋째 자리 수수료 — 원시 장부 현금 %s · 잔액 기대 %s(주문별 두 자리) = 세션 잔액 · balance_diff 0 · raw_diff %s(참고)" % (raw_cash, bal, bal - raw_cash),
+      rc == 0 and D(l4["ledger_cash"]) == raw_cash and D(l4["balance_expected"]) == bal and D(l4["balance_diff"]) == 0
+      and D(l4["raw_diff"]) == bal - raw_cash == D("0.009"), l4)
+rc, R, raw = sub_cent(bal + D("0.01"))
+check("셋째 자리 수수료 — 세션 잔액이 0.01 다르면 balance_diff 0.01 로 드러난다(허용 오차 없음)",
+      rc == 0 and D(R["L4"][0]["balance_diff"]) == D("0.01"), R["L4"])
 
 reset(started=None, status="CREATED")
 rc, R, raw = ledger(DB)

@@ -216,21 +216,23 @@ class BuySettlementEdgeTest extends IntegrationTestBase {
     }
 
     /**
-     * 22-c — 반올림 누적 기록 (리뷰 2026-10-31 "0.005원 차이"). 세션 잔액 열은 DECIMAL(20,2), 주문 반영값은 8자리다.
-     * 같은 주문의 수수료가 0.001원씩 늘어나는 정정을 10번 반영하고, 회차마다 세 값을 따로 본다.
+     * 22-c — 반올림 누적 (리뷰 2026-10-31). 세션 잔액 열은 DECIMAL(20,2), 주문 반영값은 8자리다. 같은 주문의 수수료가 0.001원씩
+     * 늘어나는 정정을 10번 반영하고, 회차마다 세 값을 따로 본다.
      *
      * <ul>
-     *   <li>원시 장부 = 예약 뒤 잔액 7,000 + (요청 3,000 − 반영 대금 − 반영 수수료) — 주문 행의 반영값으로 다시 계산한 값</li>
+     *   <li>원시 장부 = 예약 뒤 잔액 7,000 + (요청 3,000 − 반영 대금 − 반영 수수료) — 주문 행의 8자리 반영값으로 다시 계산한 값</li>
      *   <li>저장 잔액 = 세션 행 {@code available_krw}</li>
-     *   <li>저장 규칙 예측 = 직전 저장 잔액 + 이번 정정 Δ 를 둘째 자리에서 반올림(HALF_UP)한 값 — 이 시험이 따로 계산한다</li>
+     *   <li>주문별 두 자리 기대 = 7,000 + (요청 − 반영 대금 − 반영 수수료) 를 둘째 자리 HALF_UP — 이 시험이 따로 계산한다</li>
      * </ul>
      *
-     * <p>🔴 기록이다 — 허용 오차를 두지 않고, 차이가 어떻게 쌓이는지 그대로 단언한다. 이 시험이 통과한다는 것은 "누적된다" 를
-     * 확인했다는 뜻이지 그 차이를 받아들였다는 뜻이 아니다(처리는 리뷰 판단, LIMITED_LIVE_TEST_PLAN §5-9 10).</p>
+     * <p>🔴 수정 전 기록(2026-10-31, 첫 실행 4/4): 저장 잔액이 10회 내내 7,058.53 — 정정분이 한 번도 들어가지 않아 원시 장부와 차이 0.01
+     * 까지 쌓였다(LIMITED_LIVE_TEST_PLAN §5-9 10). 리뷰 결정으로 정산을 "누적 환급 두 자리 반올림의 차분" 으로 고쳤다
+     * ({@link BalanceAmounts}). 이제 저장 잔액은 회차마다 주문별 두 자리 기대와 같고, 원시 장부와의 차이는 그 회차의 반올림 하나뿐이다
+     * (쌓이지 않는다). 허용 오차 없음.</p>
      */
     @Test
-    @DisplayName("22-c — 매수: 같은 주문의 수수료를 0.001원씩 10번 정정하면 원시 장부·저장 잔액·차이가 회차마다 어떻게 되는지 기록한다")
-    void repeatedSubCentFeeCorrectionsAccumulateRoundingGap() {
+    @DisplayName("22-c — 매수: 같은 주문의 수수료를 0.001원씩 10번 정정해도 저장 잔액은 회차마다 주문별 두 자리 기대와 같고 차이가 쌓이지 않는다")
+    void repeatedSubCentFeeCorrectionsDoNotAccumulate() {
         Fixture f = submittedBuy();
         settlement.observeAndApplyBuyFill(f.orderId(), response("done", "9.8", "2940", "1.47"));
         assertThat(order(f).getFeeSource()).isEqualTo(OrderExecutionEngine.FEE_SOURCE_REPORTED);
@@ -238,30 +240,33 @@ class BuySettlementEdgeTest extends IntegrationTestBase {
 
         BigDecimal step = new BigDecimal("0.001");
         BigDecimal fee = new BigDecimal("1.47");
-        BigDecimal predicted = available(f);
-        StringBuilder trace = new StringBuilder("회차 | 반영 수수료 | 원시 장부 | 저장 잔액 | 저장 규칙 예측 | 차이(저장 − 원시)\n");
+        StringBuilder trace = new StringBuilder("회차 | 반영 수수료 | 원시 장부 | 저장 잔액 | 주문별 두 자리 기대 | 차이(저장 − 원시)\n");
         for (int i = 1; i <= 10; i++) {
             fee = fee.add(step);
             OrderSettlementService.Outcome out = settlement.settle(f.orderId(), response("done", "9.8", "2940", fee.toPlainString()));
             assertThat(out).as("회차 %d — 수수료 증가 정정은 반영 대상", i).isEqualTo(OrderSettlementService.Outcome.APPLIED);
 
             OrderEntity o = order(f);
-            assertThat(o.getAppliedPaidFee()).as("회차 %d — 주문 반영 수수료", i).isEqualByComparingTo(fee);
+            assertThat(o.getAppliedPaidFee()).as("회차 %d — 주문 반영 수수료(8자리 원시 기록)", i).isEqualByComparingTo(fee);
             BigDecimal raw = new BigDecimal("7000").add(new BigDecimal("3000"))
                     .subtract(o.getAppliedExecutedFunds()).subtract(o.getAppliedPaidFee());
-            predicted = predicted.subtract(step).setScale(2, java.math.RoundingMode.HALF_UP);
+            BigDecimal expected = new BigDecimal("7000").add(new BigDecimal("3000").subtract(new BigDecimal("2940")).subtract(fee)
+                    .setScale(2, java.math.RoundingMode.HALF_UP));
             BigDecimal stored = available(f);
             trace.append(String.format("%d | %s | %s | %s | %s | %s%n", i, fee.toPlainString(), raw.toPlainString(),
-                    stored.toPlainString(), predicted.toPlainString(), stored.subtract(raw).toPlainString()));
+                    stored.toPlainString(), expected.toPlainString(), stored.subtract(raw).toPlainString()));
             assertThat(raw).as("회차 %d — 원시 장부", i).isEqualByComparingTo(new BigDecimal("7058.53").subtract(step.multiply(BigDecimal.valueOf(i))));
-            assertThat(stored).as("회차 %d — 저장 잔액은 저장 규칙 예측과 같다", i).isEqualByComparingTo(predicted);
+            assertThat(stored).as("회차 %d — 저장 잔액 = 주문별 두 자리 기대", i).isEqualByComparingTo(expected);
         }
         System.out.println("[22-c 반올림 누적]\n" + trace);
 
-        // 10회 뒤: 원시 장부 7,058.52 · 저장 잔액 7,058.53(매 회차 7,058.529 → 7,058.53 으로 정정분이 사라진다) · 차이 0.01
-        BigDecimal raw = new BigDecimal("7058.52");
-        assertThat(available(f)).as("저장 잔액").isEqualByComparingTo("7058.53");
-        assertThat(available(f).subtract(raw)).as("차이 — 회차마다 0.001 씩 쌓인다").isEqualByComparingTo("0.01");
+        // 10회 뒤: 원시 장부 7,058.52 · 저장 잔액 7,058.52 · 차이 0 (수정 전 7,058.53 · 0.01)
+        assertThat(available(f)).as("저장 잔액").isEqualByComparingTo("7058.52");
+
+        // 같은 최종 수수료를 한 번에 받은 주문과 같은 잔액이다
+        Fixture once = submittedBuy();
+        settlement.observeAndApplyBuyFill(once.orderId(), response("done", "9.8", "2940", "1.48"));
+        assertThat(available(once)).as("일괄 반영").isEqualByComparingTo(available(f));
         assertThat(discrepancies(f)).as("증가 정정은 불일치가 아니다").isEmpty();
     }
 }
