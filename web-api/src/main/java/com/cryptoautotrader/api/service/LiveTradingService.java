@@ -1501,9 +1501,10 @@ public class LiveTradingService {
 
         BigDecimal ratio = session.getInvestRatio() != null ? session.getInvestRatio() : exitConfig().getInvestRatio();
         BigDecimal baseAmount = session.getAvailableKrw().multiply(ratio);
-        BigDecimal investAmount = session.getMaxInvestment() != null
+        // 🔴 요청액은 예약 전에 둘째 자리 버림 — 이 금액으로 최소 주문·한도를 보고 예약한다 (리뷰 2026-10-31, {@link BalanceAmounts}).
+        BigDecimal investAmount = BalanceAmounts.buyRequest(session.getMaxInvestment() != null
                 ? baseAmount.min(session.getMaxInvestment())
-                : baseAmount;
+                : baseAmount);
         if (investAmount.compareTo(BigDecimal.valueOf(5000)) < 0) {
             log.warn("매수 불가: 가용 자금 부족 ({}) sessionId={}",
                     session.getAvailableKrw(), session.getId());
@@ -3004,8 +3005,10 @@ public class LiveTradingService {
         boolean hasOpenPosition = positionRepository
                 .findBySessionKindAndSessionIdAndCoinPairAndStatus("LIVE", sessionId, pos.getCoinPair(), "OPEN")
                 .isPresent();
+        // 잔액에는 추정 순입금을 두 자리로 반올림해 넣는다 (리뷰 2026-10-31, {@link BalanceAmounts}) — 매도 확정과 같은 규칙.
+        final BigDecimal balanceCredit = BalanceAmounts.toBalance(netProceeds);
         balanceUpdater.apply(sessionId, s -> {
-            BigDecimal newAvailableKrw = s.getAvailableKrw().add(netProceeds);
+            BigDecimal newAvailableKrw = s.getAvailableKrw().add(balanceCredit);
             s.setAvailableKrw(newAvailableKrw);
             if (!hasOpenPosition) {
                 s.setTotalAssetKrw(newAvailableKrw);
@@ -3240,8 +3243,10 @@ public class LiveTradingService {
             // 🔴 대금은 확정과 **같은 트랜잭션**에서 넣는다 (2026-10-13). 종전 REQUIRES_NEW 는 대금만 따로 커밋돼, 확정이
             //    롤백되면(포지션·반영 표시가 되돌아감) 다음 시도가 대금을 또 넣었다. 바깥은 이 세션 행을 먼저 쓰지
             //    않으므로 같은 트랜잭션 갱신이 안전하다(§8).
+            //    🔴 잔액에는 순입금을 두 자리로 반올림해 넣는다 (리뷰 2026-10-31, {@link BalanceAmounts}) — 실현손익은 8자리 그대로.
+            final BigDecimal balanceCredit = amounts.balanceCredit();
             balanceUpdater.applyWithin(sessionId, s -> {
-                BigDecimal newAvailableKrw = s.getAvailableKrw().add(netProceeds);
+                BigDecimal newAvailableKrw = s.getAvailableKrw().add(balanceCredit);
                 s.setAvailableKrw(newAvailableKrw);
                 if (!hasOpenPosition) {
                     s.setTotalAssetKrw(newAvailableKrw);

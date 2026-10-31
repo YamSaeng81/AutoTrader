@@ -250,7 +250,9 @@ public class OrderSettlementService {
                 && order.getAppliedPaidFee() == null;
         applyFundsDeltaToSession(order, targetFunds, targetFee, appliedFunds, appliedFee, firstApplication);
         if ("SELL".equalsIgnoreCase(order.getSide())) {
-            applySellDelta(order, deltaFunds, deltaFee);
+            applySellDelta(order, appliedFunds, appliedFee, targetFunds, targetFee);
+        } else if (!firstApplication) {
+            applyBuyCorrectionToPosition(order, targetFunds, targetFee, deltaFee);
         }
         log.info("정산 반영 (orderId={}): 체결금액 Δ{} 수수료 Δ{} → 출처={} (확정은 다음 회차에 "
                         + "차분 없음이 확인될 때)",
@@ -293,10 +295,12 @@ public class OrderSettlementService {
         if (order.getQuantity() == null) return;
 
         BigDecimal requested = order.getQuantity();
-        BigDecimal targetRestore = requested.subtract(targetFunds).subtract(targetFee);
+        // 🔴 누적 환급을 두 자리로 반올림한 값끼리의 차분이다 (리뷰 2026-10-31) — 8자리 차분을 넣으면 잔액 열(2자리)이 매번
+        //    반올림해 정정 횟수에 따라 잔액이 달라졌다({@link BalanceAmounts}).
+        BigDecimal targetRestore = BalanceAmounts.buyRefund(requested, targetFunds, targetFee);
         BigDecimal appliedRestore = firstApplication
                 ? BigDecimal.ZERO
-                : requested.subtract(appliedFunds).subtract(appliedFee);
+                : BalanceAmounts.buyRefund(requested, appliedFunds, appliedFee);
         BigDecimal restoreDelta = targetRestore.subtract(appliedRestore);
         if (restoreDelta.signum() == 0) return;
 
@@ -418,7 +422,7 @@ public class OrderSettlementService {
             // 포지션 갱신을 기다리지 않게 한다.
             registerLateFillIfStopped(order);
         }
-        applyToPosition(order, deltaVolume, avgPrice, targetFee, fee != null, funds);
+        applyToPosition(order, deltaVolume, avgPrice, targetFee, deltaFee, fee != null, funds);
 
         boolean first = order.getAppliedExecutedFunds() == null && order.getAppliedPaidFee() == null;
         applyFundsDeltaToSession(order, funds, targetFee, appliedFunds, appliedFee, first);
@@ -445,7 +449,8 @@ public class OrderSettlementService {
      * 조건이 달라진다 — 최초 설정과 늦은 정정은 별도 규칙이다.</p>
      */
     private void applyToPosition(OrderEntity order, BigDecimal deltaVolume,
-                                  BigDecimal avgPrice, BigDecimal fee, boolean feeReported, BigDecimal funds) {
+                                  BigDecimal avgPrice, BigDecimal fee, BigDecimal deltaFee,
+                                  boolean feeReported, BigDecimal funds) {
         if (order.getPositionId() == null) return;
         PositionEntity pos = positionRepository.findById(order.getPositionId()).orElse(null);
         if (pos == null) return;
@@ -467,12 +472,50 @@ public class OrderSettlementService {
             pos.setInvestedKrw(funds.add(fee != null ? fee : BigDecimal.ZERO));
         }
         // 수수료는 OPEN·CLOSED 양쪽에서 조정한다 — 손익 기록이므로 재개방과 무관하다.
-        pos.setPositionFee(fee);
+        // 🔴 덮어쓰지 않고 이 주문의 수수료 차분만 더한다 (리뷰 2026-10-31). 종전 set 은 포지션에 이미 더해진 매도 수수료
+        //    (청산 뒤 늦은 체결, 부분 매도 뒤)를 매수 수수료로 지웠다.
+        pos.setPositionFee(nz(pos.getPositionFee()).add(deltaFee));
         positionRepository.save(pos);
         if (!feeReported) {
             log.warn("수수료 보고값이 없어 **추정**으로 반영했다 — 확정값으로 취급하지 않는다 (posId={})",
                     pos.getId());
         }
+    }
+
+    /**
+     * 종결된 매수 주문의 정정(대금·수수료)을 포지션에 반영한다 (리뷰 2026-10-31 — 발견 1).
+     *
+     * <p>🔴 종결된 것은 <b>주문</b>이고 포지션은 열려 있을 수 있다. 종전에는 이 경로가 잔액만 고쳐, 투입액이 첫 반영값에
+     * 남았다 — 투입액은 공유 풀 노출 합계({@code sumPoolExposureKrw})와 수익률 분모에 쓰인다. 규칙은 체결 회계
+     * ({@link #applyToPosition})와 같다: 닫히지 않은 포지션은 투입액(대금 + 수수료)·평균단가(대금 ÷ 체결 수량)를 다시 쓰고,
+     * CLOSED 는 재개방하지 않고 수량·투입액을 그대로 둔다. 수수료는 양쪽 다 차분만 더한다(매도 수수료 보존).
+     * 정산 버전 가드를 통과한 호출만 부른다 — 같은 응답의 중복은 그 앞에서 {@code NO_CHANGE} 로 끝난다.</p>
+     *
+     * <p>🔴 <b>범위: 원자 체결 경로가 첫 반영을 한 주문(공유 풀 시장가 매수)의 정정만</b>이다. 첫 반영이 이 정산에서 일어나는
+     * 주문(지정가 등)은 옛 체결 경로가 포지션 수수료를 자체 계산값으로 이미 넣었다 — 여기서 더하면 이중 계상이다(H2 회귀
+     * {@code SettlementIdempotencyTest} 원본 보존 시험이 첫 작성본에서 1.50 + 1.475 = 2.98 로 잡았다).</p>
+     *
+     * <p>🔴 {@code position_fee} 는 NUMERIC(20,2) 라 셋째 자리 차분은 열에서 반올림된다 — 알려진 통계 한계로 두고
+     * 이번 배포에서 열을 넓히지 않는다(리뷰 2026-10-31). 원시 수수료는 주문 반영값이 갖는다.</p>
+     */
+    private void applyBuyCorrectionToPosition(OrderEntity order, BigDecimal targetFunds,
+                                              BigDecimal targetFee, BigDecimal deltaFee) {
+        if (order.getPositionId() == null || !isSharedPoolKind(order.getSessionKind())) return;
+        if (!"MARKET".equalsIgnoreCase(order.getOrderType())) return;
+        BigDecimal volume = order.getFilledQuantity();
+        if (volume == null || volume.signum() <= 0) return;
+        PositionEntity pos = positionRepository.findById(order.getPositionId()).orElse(null);
+        if (pos == null) return;
+
+        if (!"CLOSED".equals(pos.getStatus())) {
+            pos.setAvgPrice(targetFunds.divide(volume, 8, RoundingMode.HALF_UP));
+            pos.setInvestedKrw(targetFunds.add(targetFee));
+        }
+        pos.setPositionFee(nz(pos.getPositionFee()).add(deltaFee));
+        positionRepository.save(pos);
+        log.info("매수 정산 정정 → 포지션 (posId={}, status={}): 투입액={} 수수료 Δ{}{}",
+                pos.getId(), pos.getStatus(), pos.getInvestedKrw(), deltaFee,
+                "CLOSED".equals(pos.getStatus()) ? " (CLOSED — 수량·투입액 그대로, 재개방 안 함)" : "");
     }
 
     /**
@@ -555,6 +598,11 @@ public class OrderSettlementService {
             return funds.subtract(fee);
         }
 
+        /** 세션 잔액에 넣는 순입금 — {@link #net()} 을 두 자리 HALF_UP (리뷰 2026-10-31). 정산 정정도 같은 식의 차분이다. */
+        public BigDecimal balanceCredit() {
+            return BalanceAmounts.sellCredit(funds, fee);
+        }
+
         public static SellAmounts of(OrderEntity order, BigDecimal soldQty, BigDecimal fillPrice, BigDecimal feeRate) {
             BigDecimal reportedFunds = order.getReportedExecutedFunds();
             boolean fundsReported = reportedFunds != null && reportedFunds.signum() > 0;
@@ -575,19 +623,27 @@ public class OrderSettlementService {
     /**
      * 확정된 매도의 뒤늦은 정정 — 대금·수수료 차이를 세션 잔액과 포지션 손익에 반영한다 (2026-10-14).
      * 정산 버전 가드를 통과한 호출만 부른다(같은 트랜잭션).
+     *
+     * <p>🔴 잔액에는 누적 순입금을 두 자리로 반올림한 값끼리의 차분을 넣는다 (리뷰 2026-10-31, {@link BalanceAmounts}) — 매도 확정의
+     * 최초 입금과 같은 식이다. 포지션 실현손익·수수료는 8자리 원시 차분 그대로다.</p>
      */
-    private void applySellDelta(OrderEntity order, BigDecimal deltaFunds, BigDecimal deltaFee) {
+    private void applySellDelta(OrderEntity order, BigDecimal appliedFunds, BigDecimal appliedFee,
+                                BigDecimal targetFunds, BigDecimal targetFee) {
+        BigDecimal deltaFunds = targetFunds.subtract(appliedFunds);
+        BigDecimal deltaFee = targetFee.subtract(appliedFee);
         BigDecimal deltaNet = deltaFunds.subtract(deltaFee);
-        if (order.getSessionId() != null && deltaNet.signum() != 0 && isSharedPoolKind(order.getSessionKind())) {
+        BigDecimal deltaBalance = BalanceAmounts.sellCredit(targetFunds, targetFee)
+                .subtract(BalanceAmounts.sellCredit(appliedFunds, appliedFee));
+        if (order.getSessionId() != null && deltaBalance.signum() != 0 && isSharedPoolKind(order.getSessionKind())) {
             if ("DYNAMIC".equals(order.getSessionKind())) {
                 dynamicBalanceUpdater.applyWithin(order.getSessionId(), s -> {
-                    s.setAvailableKrw(s.getAvailableKrw().add(deltaNet));
-                    s.setTotalAssetKrw(s.getTotalAssetKrw().add(deltaNet));
+                    s.setAvailableKrw(s.getAvailableKrw().add(deltaBalance));
+                    s.setTotalAssetKrw(s.getTotalAssetKrw().add(deltaBalance));
                 });
             } else {
                 liveBalanceUpdater.applyWithin(order.getSessionId(), s -> {
-                    s.setAvailableKrw(s.getAvailableKrw().add(deltaNet));
-                    s.setTotalAssetKrw(s.getTotalAssetKrw().add(deltaNet));
+                    s.setAvailableKrw(s.getAvailableKrw().add(deltaBalance));
+                    s.setTotalAssetKrw(s.getTotalAssetKrw().add(deltaBalance));
                 });
             }
         }
@@ -598,8 +654,8 @@ public class OrderSettlementService {
                 positionRepository.save(p);
             });
         }
-        log.info("매도 정산 정정 (orderId={}): 대금 Δ{} 수수료 Δ{} → 잔액·실현손익 Δ{}",
-                order.getId(), deltaFunds, deltaFee, deltaNet);
+        log.info("매도 정산 정정 (orderId={}): 대금 Δ{} 수수료 Δ{} → 실현손익 Δ{} · 잔액 Δ{}(누적 순입금 두 자리 차분)",
+                order.getId(), deltaFunds, deltaFee, deltaNet, deltaBalance);
     }
 
     /** 공유 풀 실자금 세션 — 원자 체결 회계의 대상. */
