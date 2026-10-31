@@ -128,6 +128,50 @@ check("종료 뒤 전환(첫 줄만 바꿈) RUNNING → EMERGENCY_STOPPED — �
       end_block != BLOCK and rc == 0 and "✅ cron 전환 RUNNING → EMERGENCY_STOPPED" in out
       and now == exp.replace("SID_OK_STATUS=RUNNING ", "SID_OK_STATUS=EMERGENCY_STOPPED "), (rc, out, now))
 
+# ── 2026-10-31 리뷰: §3 "기존 줄 교체" 블록 — SID_OK_STATUS 없는 2026-10-22 줄을 CREATED 명시 줄로, 그 줄만 ──
+def block_replace():
+    doc = open(DOC, encoding="utf-8").read()
+    sec = doc[doc.index("**기존 줄 교체"):doc.index("### 3-1.")]
+    return re.search(r"```bash\n(\(\n.*?\n\))\n", sec, re.S).group(1)
+
+
+RBLOCK = block_replace()
+OLD_LINE = ("0 10,22 * * * REPO_DIR=$HOME/crypto_trader/AutoTrader SQL_FILE=$HOME/ops-scripts/daily_checks.sql "
+            "$HOME/ops-scripts/daily_check.sh >> $HOME/daily-check/cron.log 2>&1\n")
+OLD_CRON = CRON.replace(CRON.splitlines(True)[1], OLD_LINE)
+check("교체 블록을 꺼냈다 — 글자 그대로 1줄(grep -Fx) · 다른 줄 보존 · 적용 뒤 대조 · 파이프 적용 없음",
+      "set -euo pipefail" in RBLOCK and "grep -cFx" in RBLOCK and "diff <(" in RBLOCK and "cmp -s" in RBLOCK and "| crontab -" not in RBLOCK
+      and OLD_LINE.strip() in RBLOCK, RBLOCK)
+
+rc, out, now, written, d = run(cron=OLD_CRON, script=RBLOCK)
+check("교체 정상 — ✅ · 대상 줄만 CREATED 명시 줄로, 다른 일정 3줄 그대로 · 보존본 = 원래 cron",
+      rc == 0 and "✅ 정기 점검 줄 교체" in out and now == CRON
+      and open(os.path.join(d, "daily-check", "crontab.before-sidok"), encoding="utf-8").read() == OLD_CRON, (rc, out, now))
+# 이어서 12-01 §3-1 전환이 그대로 된다
+rc2, out2, now2, w2, d = run(cron=now, script=BLOCK, d=d)
+check("교체 뒤 §3-1 전환(CREATED → RUNNING)이 이어서 된다", rc2 == 0 and now2 == exp, (rc2, out2, now2))
+
+for name, kw, msg in (
+        ("조회 실패", dict(FAKE_LIST_FAIL="1"), "crontab 조회 실패"),
+        ("대상 줄 0(이미 교체됨)", dict(cron=CRON), "SID_OK_STATUS 줄이 이미 있다"),
+        ("정기 점검 줄 2", dict(cron=OLD_CRON + OLD_LINE), "정기 점검 줄이 정확히 1개가 아니다"),
+        ("글자가 다른 줄(시각 0 9,21)", dict(cron=OLD_CRON.replace("0 10,22 ", "0 9,21 ")), "기존 10:00·22:00 줄과 글자 그대로 같은 줄이 정확히 1개가 아니다"),
+        ("글자가 다른 줄(끝 공백)", dict(cron=OLD_CRON.replace("2>&1\n30 9", "2>&1 \n30 9")), "기존 10:00·22:00 줄과 글자 그대로 같은 줄이 정확히 1개가 아니다"),
+        ("적용 실패", dict(FAKE_WRITE_FAIL="1"), "crontab 적용 실패"),
+):
+    before = kw.pop("cron", OLD_CRON)
+    rc, out, now, written, d = run(cron=before, script=RBLOCK, **kw)
+    check("교체 %s — 🔴 멈춤 '%s' · cron 그대로" % (name, msg),
+          rc != 0 and ("🔴 멈춤: " + msg) in out and "✅" not in out and now == before and not written, (rc, out, now))
+rc1, out1, now1, w1, d = run(cron=OLD_CRON, script=RBLOCK)
+rc, out, now, written, d = run(cron=OLD_CRON, script=RBLOCK, d=d)
+check("교체 두 번째 실행(보존본 있음) — 🔴 멈춤 · 보존본 그대로",
+      rc1 == 0 and rc != 0 and "이미 있다" in out and now == OLD_CRON and not written
+      and open(os.path.join(d, "daily-check", "crontab.before-sidok"), encoding="utf-8").read() == OLD_CRON, out)
+rc, out, now, written, d = run(cron=OLD_CRON, script=RBLOCK, FAKE_CORRUPT="1")
+check("교체 적용 뒤 대조 실패 — 🔴 되돌리기 안내 · ✅ 없음",
+      rc != 0 and "🔴 적용 뒤 대조 실패" in out and "crontab.before-sidok" in out and "✅" not in out, (rc, out))
+
 n_ok = sum(1 for _, ok in results if ok)
 print(f"cron 전환 시험 {n_ok}/{len(results)} 통과")
 sys.exit(0 if n_ok == len(results) else 1)

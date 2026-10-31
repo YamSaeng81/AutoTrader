@@ -64,6 +64,11 @@ KILL 경보·잠금·누수는 WARN 이라 `[정기 점검]` 에는 나오지 �
 | 캔들 판정 불가 | `CandleFreshnessGuard - .*\[캔들 최신성\].*판정 불가` | 🟡 건수 |
 | 상장 폐지 코인 캔들 404 | `UpbitRestClient - Upbit API 오류: status=404, url=https://api.upbit.com/v1/candles/.*Code not found` | 건수 + **마켓별**(리뷰 2026-10-27 — BLAST 상장 폐지가 건수에 묻혔다): **검증 코인**(`s66_coins`)이면 코인명과 함께 — 거래지원 종료 확인 마켓(`ENDED_MARKETS`)은 🟡, 확인되지 않은 마켓 소실은 🔴(업비트 공지 확인). 검증 밖 마켓은 마켓명·건수만 |
 | 외부 통신 실패 | `UpbitCandleCollector - 캔들 수집 실패` · `MarketDataSyncService - 시장 데이터 동기화 실패` · `UpbitOrderClient - 계좌 조회 실패` · `WatchlistFilterService - [Watchlist] 필터링 실패` · `TelegramNotificationService - [Telegram] 메시지 전송 중 오류(응답 미수신)` · `ClaudeProvider - [ClaudeProvider] 요청 실패` | 🟡 건수 |
+| 보조 뉴스 수집 실패 — 원인 미확인(리뷰 2026-10-31, 이날부터) | `\.(RssNewsSource - \[RssNewsSource\] 수집 실패 — sourceId=(tokenpost_rss\|coindesk_rss)\|CoinGeckoTrendingSource - \[CoinGeckoTrendingSource\] 수집 실패): null$` — 줄 끝까지 원문 그대로 | 🟡 건수 + **출처별 건수**. 예외 메시지만 남기는 로그라 `null` 로 통신 실패를 확정하지 않는다. 뉴스 "수집 완료 0건" 은 실패 뒤에도 나오므로 복구 증거로 쓰지 않는다 |
+| KRW-BLAST 보충 수집 실패 — 상세 원인 미확인(리뷰 2026-10-31, 이날부터) | `\.DataCollectionService - 캔들 수집 실패: KRW-BLAST — 캔들 데이터 수집 실패$` — 줄 끝까지 원문 그대로 | 🟡 건수. 이 줄만으로 404 원인을 확정하지 않는다 |
+
+원인 미확인 두 가지는 보고된 원문과 **로거·출처·마켓·메시지가 모두 같을 때만** 🟡 이다 — 다른 sourceId·다른 뉴스 출처·`KRW-BLASTX` 같은 다른 마켓·`null` 이 아닌 메시지·뒤에 덧붙은 문구는 미분류 🔴 그대로다.
+분류 변경 전(2026-10-31 이전) 보고의 미분류 🔴 는 그대로 보존한다(LIMITED_LIVE_TEST_PLAN §5-9 8).
 
 **SID 203 판정(리뷰 2026-10-31)**: 종전 판은 실자금 보유·신규 매수가 모두 0 이어야 정상이라 SID 203 의 정상 매수도 🔴 였다. 지금은 SID 203 을 따로 세고(위 표), 그 밖의 실자금 세션은 종전대로 0 을 기대한다. 첫날 F3(§5-8)는 누적 매수 2건 이상을 이상으로 보므로 일상 점검에 다시 쓰지 않는다. 잔액·비용·순손익 대조는 이 점검의 범위 밖이다(별도 기록 — 리뷰 2026-10-31 2번).
 정산 판정(리뷰 2026-10-31 보완): 반영값만 보던 종전 판은 거래소 보고값이 빠졌거나 보고값≠반영값인 주문을 놓쳤다. 지금은 넷을 함께 보고, 확인 불가는 발견 즉시 ⚪(시간 조건 없음), 대기 없는 불일치·미해결 불일치 기록은 🔴 이다. `STALE_MIN` 은 미결 주문 지속 검사에만 쓴다. UNKNOWN 은 즉시 🔴 그대로다.
@@ -101,6 +106,33 @@ crontab -e
 0 10,22 * * * SID_OK_STATUS=CREATED REPO_DIR=$HOME/crypto_trader/AutoTrader SQL_FILE=$HOME/ops-scripts/daily_checks.sql $HOME/ops-scripts/daily_check.sh >> $HOME/daily-check/cron.log 2>&1
 ```
 `SID_OK_STATUS=CREATED` 는 기본값과 같지만 **cron 줄에 적어 둔다** — 시작 뒤 바꿀 자리를 한 곳으로 두기 위해서다(§3-1).
+
+**기존 줄 교체(이미 cron 이 있는 서버 — 2026-10-31 리뷰, 1회)**: 2026-10-22 에 넣은 줄(`SID_OK_STATUS` 없음)을 위 줄로 바꾼다. `crontab -e` 로 손으로 고치지 않는다.
+보존본 저장 → 기존 줄과 **글자 그대로 같은 줄이 정확히 1개** → 그 줄만 바꾸고 다른 일정은 보존 확인 → 적용 → 적용 뒤 대조. 어느 확인이든 실패하면 적용 전에 멈추고 cron 은 그대로다(§6 `test_cron_switch.py`).
+```bash
+(
+set -euo pipefail
+OLD='0 10,22 * * * REPO_DIR=$HOME/crypto_trader/AutoTrader SQL_FILE=$HOME/ops-scripts/daily_checks.sql $HOME/ops-scripts/daily_check.sh >> $HOME/daily-check/cron.log 2>&1'
+NEW='0 10,22 * * * SID_OK_STATUS=CREATED REPO_DIR=$HOME/crypto_trader/AutoTrader SQL_FILE=$HOME/ops-scripts/daily_checks.sql $HOME/ops-scripts/daily_check.sh >> $HOME/daily-check/cron.log 2>&1'
+D=~/daily-check; B="$D/crontab.before-sidok"; N="$D/crontab.new-sidok"
+stop() { echo "🔴 멈춤: $* — cron 은 바꾸지 않았다"; exit 1; }
+[ ! -e "$B" ] || stop "$B 가 이미 있다(전에 바꾼 적이 있다) — crontab -l 출력과 함께 보고"
+crontab -l > "$B" || stop "crontab 조회 실패"
+[ -s "$B" ] || stop "조회한 crontab 이 비었다"
+[ "$(grep -c 'ops-scripts/daily_check.sh' "$B" || true)" = 1 ] || stop "정기 점검 줄이 정확히 1개가 아니다"
+! grep -q 'SID_OK_STATUS=' "$B" || stop "SID_OK_STATUS 줄이 이미 있다"
+[ "$(grep -cFx -- "$OLD" "$B" || true)" = 1 ] || stop "기존 10:00·22:00 줄과 글자 그대로 같은 줄이 정확히 1개가 아니다"
+while IFS= read -r l || [ -n "$l" ]; do if [ "$l" = "$OLD" ]; then printf '%s\n' "$NEW"; else printf '%s\n' "$l"; fi; done < "$B" > "$N"
+[ "$(wc -l < "$N")" = "$(wc -l < "$B")" ] || stop "수정본 줄 수가 다르다"
+[ "$(grep -cFx -- "$NEW" "$N" || true)" = 1 ] && [ "$(grep -cFx -- "$OLD" "$N" || true)" = 0 ] || stop "수정본에서 바뀐 줄이 1개가 아니다"
+diff <(grep -vFx -- "$NEW" "$N" || true) <(grep -vFx -- "$OLD" "$B" || true) > /dev/null || stop "수정본에서 다른 줄이 달라졌다"
+crontab "$N" || stop "crontab 적용 실패 — crontab -l 로 지금 상태를 확인해 보고"
+crontab -l | cmp -s - "$N" || { echo "🔴 적용 뒤 대조 실패 — crontab \"$B\" 로 되돌리고 crontab -l 출력을 보고"; exit 1; }
+echo "✅ 정기 점검 줄 교체 — SID_OK_STATUS=CREATED 명시 · 보존본 $B · 적용본 $N"
+)
+crontab -l | grep -c 'SID_OK_STATUS=CREATED '      # 1
+```
+- 기대: `✅ 정기 점검 줄 교체 …` 한 줄과 `1`. `🔴 멈춤` 이면 cron 은 그대로다 — 출력과 `crontab -l` 출력을 보낸다. 블록을 고쳐 다시 돌리지 않는다.
 중복 실행은 스크립트가 막는다 — 서버는 **`flock`**(`~/daily-check/.lock.flock`, 원자적, 프로세스가 끝나면 풀린다). 이미 돌고 있으면 종료 3.
 (flock 이 없는 환경만 `mkdir` 잠금으로 대체 — 시험용.) 업데이트는 같은 순서로 새 SHA 를 꺼내 덮어쓰고 `INSTALLED_SHA` 를 바꾼다.
 앱이 내려가 있어도 점검·보고는 돈다(앱 상태는 🔴, 66세션 경보는 앱 API 가 필요해 ⚪).
@@ -176,3 +208,5 @@ DB 조회 실패 · 출력 누락 · 시간 초과 · 앱 없음(나머지 점�
 **(리뷰 보완)** pid 기록 전 잠금은 실행 중 · 동시 시작 5회(로컬 mkdir 잠금) · **리눅스 `ubuntu:22.04` 컨테이너에서 flock 동시 시작 5회** · 66세션 종료 0 인데 출력 없음/알 수 없는 출력 → ⚪ ·
 종료 1 인데 🔴 줄 없음 → ⚪ · 🔴 줄 → 🔴 · 공백 있는 `retry_after`(3초 대기 뒤 성공) · `retry_after` 20초 두 번(합계 상한으로 두 번째 대기 없이 중단) · 긴 한글 보고(7,600자 → 3,500자, UTF-8 엄격 해석 통과) ·
 한글 한가운데 자르기(앞 41자 그대로) · 설치 SHA 표기 · 앱 로그 원문 `.log.gz` 보존.
+**(2026-10-31 리뷰 — 원인 미확인 🟡)** 운영 보고 원문 뉴스 3줄·BLAST 줄은 🟡(출처별 건수)·미분류 0 · 해당 줄 없으면 0 · 경계 밖 13가지(다른 sourceId·접미 붙은 sourceId·`null` 아닌 메시지·덧붙은 문구·다른 뉴스 출처 둘·이름 접미가 같은 다른 로거·`KRW-BLASTX`·다른 마켓·다른 BLAST 메시지·다른 로거의 같은 문구)는 미분류 🔴 · 리눅스 `C.UTF-8` 에서도 같은 판정. 전체 **91/91**.
+`test_cron_switch.py` 는 위 "기존 줄 교체" 블록도 문서에서 꺼내 돌린다: 정상 교체(다른 일정 보존) · 조회 실패·대상 0줄·2줄·글자가 다른 줄·이미 `SID_OK_STATUS` 있음·적용 실패·두 번째 실행은 멈추고 cron 그대로 · 교체 뒤 §3-1 전환으로 이어짐.

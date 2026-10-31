@@ -386,6 +386,53 @@ rc, rep, last, sent, raw = run("unknown_error", LOGS_FILE=logs_bad)
 check("미분류 ERROR — 🔴 2건(다른 로거 1 + 알려진 로거의 다른 문구 1), 줄을 결과에 남긴다",
       rc == 1 and "🔴 미분류 ERROR 2건" in rep and "주문 상태 조회 실패" in rep and "공유 풀 예약 실패" in rep, rep)
 
+# 3-1. 리뷰 2026-10-31: 원인 미확인 🟡 두 가지 — 운영 보고 원문(10-31 10:00) 그대로만, 경계 밖은 미분류 🔴
+RAW_NEWS = [
+    "backend-1  | 15:01:16.089 [scheduler-6] ERROR c.c.api.news.source.RssNewsSource - [RssNewsSource] 수집 실패 — sourceId=tokenpost_rss: null",
+    "backend-1  | 15:01:21.098 [scheduler-6] ERROR c.c.a.n.s.CoinGeckoTrendingSource - [CoinGeckoTrendingSource] 수집 실패: null",
+    "backend-1  | 15:01:26.106 [scheduler-6] ERROR c.c.api.news.source.RssNewsSource - [RssNewsSource] 수집 실패 — sourceId=coindesk_rss: null",
+]
+RAW_BLAST = "backend-1  | 19:12:16.443 [task-1] ERROR c.c.a.service.DataCollectionService - 캔들 수집 실패: KRW-BLAST — 캔들 데이터 수집 실패"
+
+
+def logs_with(name, lines):
+    p = os.path.join(work, name)
+    shutil.copy(logs_ok, p)
+    with open(p, "a", encoding="utf-8", newline="\n") as f:
+        for l in lines:
+            f.write(l + "\n")
+    return p
+
+
+rc, rep, last, sent, raw = run("raw_known", LOGS_FILE=logs_with("raw_known.txt", RAW_NEWS + [RAW_BLAST, RAW_BLAST + "\n\tat com.x.Y(Y.java:1)"]))
+check("원문 뉴스 3·BLAST 2 — 🟡 원인 미확인(출처별 건수), 미분류 0·🔴 없음",
+      rc == 0 and "미분류 0" in rep and "🔴" not in rep
+      and "ERROR(원인 미확인 🟡): 보조 뉴스 수집 실패 3 · KRW-BLAST 보충 수집 실패 2" in rep
+      and "🟡 보조 뉴스 수집 실패 — 원인 미확인 3건(출처별: CoinGeckoTrendingSource 1, coindesk_rss 1, tokenpost_rss 1)" in rep
+      and "🟡 KRW-BLAST 보충 수집 실패 — 상세 원인 미확인 2건" in rep, raw + rep)
+rc, rep, last, sent, raw = run("raw_none")
+check("해당 줄 없음 — 원인 미확인 0 · 0, 🟡 줄 없음",
+      "보조 뉴스 수집 실패 0 · KRW-BLAST 보충 수집 실패 0" in rep and "원인 미확인 0건" not in rep and "상세 원인 미확인 0건" not in rep, rep)
+EDGE = [
+    ("다른 RSS sourceId", RAW_NEWS[0].replace("tokenpost_rss", "cointelegraph_rss")),
+    ("sourceId 접미(tokenpost_rss2)", RAW_NEWS[0].replace("tokenpost_rss", "tokenpost_rss2")),
+    ("RSS 메시지 null 아님", RAW_NEWS[2].replace(": null", ": Read timed out")),
+    ("RSS 메시지 null 뒤 덧붙임", RAW_NEWS[2] + " (retry)"),
+    ("CoinGecko 메시지 null 아님", RAW_NEWS[1].replace(": null", ": 429 Too Many Requests")),
+    ("다른 뉴스 출처(CryptoPanic)", "backend-1  | 15:01:30.000 [scheduler-6] ERROR c.c.a.n.s.CryptoPanicSource - [CryptoPanicSource] 수집 실패: null"),
+    ("다른 뉴스 출처(UpbitNotice)", "backend-1  | 15:01:31.000 [scheduler-6] ERROR c.c.a.n.s.UpbitNoticeSource - [UpbitNoticeSource] 수집 실패: null"),
+    ("다른 로거 이름이 같은 접미(XRssNewsSource)", RAW_NEWS[0].replace(".RssNewsSource - ", ".XRssNewsSource - ")),
+    ("마켓 KRW-BLASTX", RAW_BLAST.replace("KRW-BLAST —", "KRW-BLASTX —")),
+    ("다른 마켓 KRW-BTC", RAW_BLAST.replace("KRW-BLAST", "KRW-BTC")),
+    ("BLAST 메시지 다름", RAW_BLAST.replace("캔들 데이터 수집 실패", "Read timed out")),
+    ("BLAST 메시지 뒤 덧붙임", RAW_BLAST + ": 404"),
+    ("다른 로거의 같은 BLAST 문구", RAW_BLAST.replace("c.c.a.service.DataCollectionService", "c.c.a.service.CandleBackfillService")),
+]
+for nm, line in EDGE:
+    rc, rep, last, sent, raw = run("edge", LOGS_FILE=logs_with("edge.txt", [line]))
+    check("경계 밖 — %s 는 미분류 🔴 1건(🟡 0)" % nm,
+          rc == 1 and "🔴 미분류 ERROR 1건" in rep and "보조 뉴스 수집 실패 0 · KRW-BLAST 보충 수집 실패 0" in rep, line + "\n" + rep)
+
 # 4. DB 조회 실패
 rc, rep, last, sent, raw = run("db_fail", PSQL_CMD="docker exec -i cat-rt-pg psql -X -U trader -d no_such_db")
 check("DB 조회 실패 — ⚪ 판정 불가·종료 1·보고 전송(정상 아님)",
@@ -564,6 +611,19 @@ else:
         out = r.stdout.decode("utf-8", "replace") + r.stderr.decode("utf-8", "replace")
         check("리눅스 %s 로 실행해도 공유 풀 기동 줄은 '공유 풀 미등록 1 · … 미분류 0'" % loc,
               "공유 풀 미등록 1 ·" in out and "미분류 0" in out and "미분류 ERROR" not in out, out)
+
+    # 2026-10-31: 원인 미확인 🟡 원문과 경계(KRW-BLASTX)를 서버와 같은 리눅스·대화형 셸 로케일로
+    with open(os.path.join(work, "raw_lines.txt"), "w", encoding="utf-8", newline="\n") as f:
+        f.write("\n".join(RAW_NEWS + [RAW_BLAST, RAW_BLAST.replace("KRW-BLAST —", "KRW-BLASTX —")]) + "\n")
+    r = subprocess.run(["docker", "run", "--rm", "-v", REPO.replace("\\", "/") + ":/repo:ro", "-v", work.replace("\\", "/") + ":/w",
+                        "-e", "LC_ALL=C.UTF-8", "-e", "LANG=C.UTF-8", "-e", "REPO_DIR=/repo", "-e", "PSQL_CMD=bash /w/fakepsql",
+                        "-e", "LOGS_FILE=/w/raw_lines.txt", "-e", "OUT_DIR=/tmp/raw", "-e", "APP_STATE=running|0|2026-10-01T00:00:00Z|sha256:x",
+                        "-e", "DRY_RUN=1", "-e", "TZ_EXPECT=", "-e", "ALERTS_CMD=echo '🟢 경보 없음 · 실행 누락 없음'; exit 0",
+                        "ubuntu:22.04", "bash", "/repo/scripts/ops/daily_check.sh"], capture_output=True)
+    out = r.stdout.decode("utf-8", "replace") + r.stderr.decode("utf-8", "replace")
+    check("리눅스 C.UTF-8 — 원문 뉴스 3·BLAST 1 은 🟡, KRW-BLASTX 1 은 미분류 🔴",
+          "보조 뉴스 수집 실패 3 · KRW-BLAST 보충 수집 실패 1" in out and "미분류 1" in out and "KRW-BLASTX" in out
+          and "출처별: CoinGeckoTrendingSource 1, coindesk_rss 1, tokenpost_rss 1" in out, out)
 
 sql("postgres", "DROP DATABASE IF EXISTS %s;" % DB)
 srv.shutdown()

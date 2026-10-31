@@ -242,15 +242,27 @@ else
   P_CANDLE='CandleFreshnessGuard - .*\[캔들 최신성\].*판정 불가'
   P_404='UpbitRestClient - Upbit API 오류: status=404, url=https://api.upbit.com/v1/candles/.*Code not found'
   P_IO='(UpbitCandleCollector - 캔들 수집 실패|MarketDataSyncService - 시장 데이터 동기화 실패|UpbitOrderClient - 계좌 조회 실패|WatchlistFilterService - \[Watchlist\] 필터링 실패|TelegramNotificationService - \[Telegram\] 메시지 전송 중 오류\(응답 미수신\)|ClaudeProvider - \[ClaudeProvider\] 요청 실패)'
+  # 원인 미확인 🟡(리뷰 2026-10-31 — 이날부터, 그 전 보고의 미분류 🔴 는 그대로 둔다). 보고된 원문 그대로만 — 로거·출처·마켓·메시지가
+  # 하나라도 다르면(다른 sourceId·KRW-BLASTX·null 아닌 메시지) 미분류 🔴. 예외 메시지만 남기는 로그라 null 로 통신 실패를 확정하지 않는다.
+  P_NEWS='\.(RssNewsSource - \[RssNewsSource\] 수집 실패 — sourceId=(tokenpost_rss|coindesk_rss)|CoinGeckoTrendingSource - \[CoinGeckoTrendingSource\] 수집 실패): null$'
+  P_BLAST='\.DataCollectionService - 캔들 수집 실패: KRW-BLAST — 캔들 데이터 수집 실패$'
   n_pool=$(echo "$ERRS" | grep -cE "$P_POOL" || true)
   n_candle=$(echo "$ERRS" | grep -cE "$P_CANDLE" || true)
   n_404=$(echo "$ERRS" | grep -cE "$P_404" || true)
   n_io=$(echo "$ERRS" | grep -cE "$P_IO" || true)
-  OTHER=$(echo "$ERRS" | grep -vE "$P_POOL|$P_CANDLE|$P_404|$P_IO" | grep -v '^$' || true)
+  n_news=$(echo "$ERRS" | grep -cE "$P_NEWS" || true)
+  n_blast=$(echo "$ERRS" | grep -cE "$P_BLAST" || true)
+  OTHER=$(echo "$ERRS" | grep -vE "$P_POOL|$P_CANDLE|$P_404|$P_IO|$P_NEWS|$P_BLAST" | grep -v '^$' || true)
   n_other=$(echo -n "$OTHER" | grep -c '' || true)
   detail "ERROR(구간): 전체 ${n_all} · 공유 풀 미등록 ${n_pool} · 캔들 판정 불가 ${n_candle} · 상장 폐지 404 ${n_404} · 통신 실패 ${n_io} · 미분류 ${n_other}"
+  detail "ERROR(원인 미확인 🟡): 보조 뉴스 수집 실패 ${n_news} · KRW-BLAST 보충 수집 실패 ${n_blast}"
   [ "${n_candle:-0}" != "0" ] && note "캔들 판정 불가 ERROR ${n_candle}건"
   [ "${n_io:-0}" != "0" ] && note "외부 통신 실패 ERROR ${n_io}건"
+  if [ "${n_news:-0}" != "0" ]; then
+    by_src=$(echo "$ERRS" | grep -E "$P_NEWS" | grep -oE 'sourceId=[a-z_]+|CoinGeckoTrendingSource - ' | sed 's/^sourceId=//; s/ - $//' | sort | uniq -c | awk '{printf "%s%s %s", (NR>1?", ":""), $2, $1}')
+    note "보조 뉴스 수집 실패 — 원인 미확인 ${n_news}건(출처별: ${by_src})"
+  fi
+  [ "${n_blast:-0}" != "0" ] && note "KRW-BLAST 보충 수집 실패 — 상세 원인 미확인 ${n_blast}건"
   # 캔들 404 를 마켓별로 — 검증 코인은 코인명을 드러낸다(리뷰 2026-10-27: BLAST 상장 폐지가 건수에 묻혔다).
   # 거래지원 종료가 확인된 마켓(ENDED_MARKETS)은 🟡, 확인되지 않은 검증 코인 마켓 소실은 🔴. 검증 밖 마켓은 마켓명만 남긴다.
   if [ "${n_404:-0}" != "0" ]; then
