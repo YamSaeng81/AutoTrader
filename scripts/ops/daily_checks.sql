@@ -1,7 +1,7 @@
 -- 정기 점검 조회 (10:00·22:00 KST 자동 점검용, 읽기 전용) — scripts/ops/daily_check.sh 가 실행한다.
 -- 사람이 읽는 정비용 조회(maint_checks.sql)와 달리 기계가 비교하도록 "키|값" 한 줄씩 낸다. 마지막 줄 END|ok 가 없으면 출력 누락으로 본다.
 -- 실행: psql -X -At -F'|' -v since='<ISO 시각>' -v sid=203 -v stale_min=15 -f daily_checks.sql
---   since = 점검 구간 시작(보통 12시간 전) · sid = 실거래 시험 세션(LIVE) · stale_min = 미결 주문을 오래됐다고 보는 분
+--   since = 점검 구간 시작(보통 12시간 전) · sid = 실거래 시험 세션(LIVE) · stale_min = 미결 주문을 오래됐다고 보는 분(미결 주문에만 쓴다)
 -- 2026-10-31 리뷰: SID 203 실거래(12-01 시작)의 정상 매수·보유·청산·재진입은 허용하고, 그 밖의 실자금 세션은 종전대로 0 을 기대한다.
 --   실자금 세 값(real_*)은 SID 203 을 뺀 "다른 실자금 세션" 값이고, SID 203 은 sid_* 로 따로 낸다.
 -- 🔴 읽기 전용 트랜잭션 안에서만 실행한다. 쓰기 문장은 없다. 오류가 나면 그 자리에서 멈춘다(ON_ERROR_STOP).
@@ -77,11 +77,22 @@ SELECT 'sid_filled_buys_window', count(*) FROM "order"
 -- 구간 안 주문 활동(참고) — 매수·매도 건수
 SELECT 'sid_orders_window', count(*) FILTER (WHERE side = 'BUY') || ' ' || count(*) FILTER (WHERE side = 'SELL') FROM "order"
  WHERE session_kind = 'LIVE' AND session_id = :sid AND created_at >= :'since'::timestamptz;
--- 정산 반영 지연 — 체결 있는 주문 중 반영값이 비었거나 회계 반영 대기, stale_min 분 넘게 — 기대 0 (0 대체 없음)
-SELECT 'sid_unapplied_fills', count(*) FROM "order"
+-- 정산 — 체결 있는 주문의 거래소 보고값(reported_*)과 회계 반영값(applied_*)을 함께 본다(리뷰 2026-10-31 보완). 시간 조건 없음.
+--   확인 불가 = 보고값·반영값 중 하나라도 없음(NULL — 0 으로 대체하지 않는다) 또는 회계 반영 대기 — 기대 0, 아니면 ⚪
+SELECT 'sid_settle_unknown', count(*) FROM "order"
  WHERE session_kind = 'LIVE' AND session_id = :sid AND filled_quantity > 0
-   AND (applied_executed_funds IS NULL OR applied_paid_fee IS NULL OR coalesce(fill_accounting_pending, false))
-   AND created_at < now() - make_interval(mins => :stale_min);
+   AND (reported_executed_funds IS NULL OR reported_paid_fee IS NULL
+        OR applied_executed_funds IS NULL OR applied_paid_fee IS NULL OR coalesce(fill_accounting_pending, false));
+--   불일치 = 대기 없이 네 값이 다 있는데 보고값 ≠ 반영값 — 기대 0, 아니면 🔴
+SELECT 'sid_settle_mismatch', count(*) FROM "order"
+ WHERE session_kind = 'LIVE' AND session_id = :sid AND filled_quantity > 0 AND NOT coalesce(fill_accounting_pending, false)
+   AND (reported_executed_funds <> applied_executed_funds OR reported_paid_fee <> applied_paid_fee);
+--   해당 주문 id(없으면 -) — 재조회·대응용
+SELECT 'sid_settle_ids', coalesce(string_agg(id::text, ' ' ORDER BY id), '-') FROM "order"
+ WHERE session_kind = 'LIVE' AND session_id = :sid AND filled_quantity > 0
+   AND (reported_executed_funds IS NULL OR reported_paid_fee IS NULL OR applied_executed_funds IS NULL OR applied_paid_fee IS NULL
+        OR coalesce(fill_accounting_pending, false)
+        OR reported_executed_funds <> applied_executed_funds OR reported_paid_fee <> applied_paid_fee);
 
 -- 미해결 정산 불일치(모든 세션) — 기대 0
 SELECT 'settlement_unresolved', count(*) FROM order_settlement_discrepancy WHERE resolved_at IS NULL;

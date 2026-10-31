@@ -239,11 +239,20 @@ check("종료 확인 마켓이 비면 BLAST 경보도 🔴", rc == 1 and "🔴 6
 
 
 # ── 2026-10-31 리뷰: SID 203 실거래 — 정상 매수·보유·청산·재진입은 허용, 다른 실자금 진입·중복 주문·정산 불일치는 계속 잡는다 ──
-def order(oid, pid, side, state, filled, ago_min, sid=203, applied=True, pending=False):
+# 정상 체결 주문은 거래소 보고값(reported_*)과 반영값(applied_*)을 둘 다 갖고 같다(리뷰 2026-10-31 보완 — 종전 시험은 보고값을 넣지 않아 누락 자료가 🟢 였다).
+# None = NULL(0 으로 대체하지 않는다). 체결 없는 주문(filled 0)은 넷 다 NULL.
+def order(oid, pid, side, state, filled, ago_min, sid=203, applied=True, pending=False,
+          rep_funds="19600", rep_fee="9.8", app_funds="19600", app_fee="9.8"):
+    if not filled:
+        rep_funds = rep_fee = app_funds = app_fee = None
+    if not applied:
+        app_funds = app_fee = None
+    v = lambda x: "NULL" if x is None else x
     sql(DB, "INSERT INTO \"order\" (id, position_id, coin_pair, side, order_type, quantity, state, filled_quantity, session_id, session_kind, created_at, "
-            "applied_executed_funds, applied_paid_fee, fill_accounting_pending) VALUES (%d, %s, 'KRW-BTC', '%s', 'MARKET', 0.0016, '%s', %s, %d, 'LIVE', "
-            "now() - interval '%d minutes', %s, %s, %s);" % (oid, pid or "NULL", side, state, filled, sid, ago_min,
-            "19600" if applied else "NULL", "9.8" if applied else "NULL", "true" if pending else "false"))
+            "reported_executed_funds, reported_paid_fee, applied_executed_funds, applied_paid_fee, fill_accounting_pending) "
+            "VALUES (%d, %s, 'KRW-BTC', '%s', 'MARKET', 0.0016, '%s', %s, %d, 'LIVE', now() - interval '%d minutes', %s, %s, %s, %s, %s);"
+            % (oid, pid or "NULL", side, state, filled, sid, ago_min, v(rep_funds), v(rep_fee), v(app_funds), v(app_fee),
+               "true" if pending else "false"))
 
 
 def pos(pid, status, sid=203):
@@ -257,6 +266,8 @@ def sid_reset(status="RUNNING"):
 
 
 GREEN = "🟢 점검 항목 정상"
+GRAY = "⚪ 판정 불가"
+RUNNING = dict(SID_OK_STATUS="RUNNING")   # F2 시작 확인 뒤 설치본 cron 의 설정(OPS_DAILY_CHECK.md §3-1) — 기본값은 CREATED 하나
 
 rc, rep, last, sent, raw = run("sid_created")
 check("SID 203 CREATED·주문 없음(지금 운영 상태) — 정상, 'SID 203: CREATED' 표시",
@@ -267,64 +278,101 @@ check("SID 203 CREATED 인데 매수·보유 — 🔴 시작 전 주문", rc == 
       and "sid_orders_window 1 0" in rep, rep)
 
 sid_reset(); pos(1, "OPEN"); order(1, 1, "BUY", "FILLED", 0.0016, 60)
-rc, rep, last, sent, raw = run("sid_buy_hold")
+rc, rep, last, sent, raw = run("sid_buy_hold", **RUNNING)
 check("SID 203 RUNNING·정상 매수 1건 체결·보유 — 정상(종전에는 실자금 보유·매수로 🔴)",
       rc == 0 and GREEN in rep and "SID 203: RUNNING" in rep and "보유 1 · 미결 0 · 구간 주문 매수 1 매도 0" in rep and "SID 203 밖 실자금 보유 0" in rep, rep)
 sql(DB, "UPDATE position SET status='CLOSED' WHERE id=1;"); order(2, 1, "SELL", "FILLED", 0.0016, 30)
-rc, rep, last, sent, raw = run("sid_close")
+rc, rep, last, sent, raw = run("sid_close", **RUNNING)
 check("SID 203 매수 뒤 청산(매도 체결·CLOSED) — 정상", rc == 0 and GREEN in rep and "보유 0 · 미결 0 · 구간 주문 매수 1 매도 1" in rep, rep)
 sql(DB, "UPDATE \"order\" SET created_at = now() - interval '2 days' WHERE id IN (1,2);"); pos(2, "OPEN"); order(3, 2, "BUY", "FILLED", 0.0016, 60)
-rc, rep, last, sent, raw = run("sid_reentry")
+rc, rep, last, sent, raw = run("sid_reentry", **RUNNING)
 check("SID 203 청산 뒤 다음 봉 재진입(새 포지션·체결 매수 1) — 정상", rc == 0 and GREEN in rep and "보유 1 · 미결 0 · 구간 주문 매수 1 매도 0" in rep, rep)
 order(4, 2, "SELL", "SUBMITTED", 0, 2)
-rc, rep, last, sent, raw = run("sid_sell_fresh")
+rc, rep, last, sent, raw = run("sid_sell_fresh", **RUNNING)
 check("SID 203 매도 접수 직후(2분) 미결 1건 — 정상", rc == 0 and GREEN in rep and "미결 1" in rep, rep)
 
 sid_reset(); pos(1, "OPEN"); pos(2, "OPEN"); order(1, 1, "BUY", "FILLED", 0.0016, 60); order(2, 2, "BUY", "FILLED", 0.0016, 50)
-rc, rep, last, sent, raw = run("sid_two_positions")
+rc, rep, last, sent, raw = run("sid_two_positions", **RUNNING)
 check("SID 203 열린 포지션 2 · 구간 체결 매수 2 — 🔴 둘 다", rc == 1 and "🔴 SID 203 열린 포지션 2(상한 1)" in rep
       and "🔴 SID 203 구간 안 체결 매수(일봉 전략 — 중복 매수 의심) 2(상한 1)" in rep, rep)
 sid_reset(); pos(1, "OPEN"); order(1, 1, "BUY", "FILLED", 0.0016, 60); order(2, 1, "BUY", "FILLED", 0.0016, 59)
-rc, rep, last, sent, raw = run("sid_dup_buy")
+rc, rep, last, sent, raw = run("sid_dup_buy", **RUNNING)
 check("SID 203 한 포지션에 체결 매수 2건 — 🔴 중복 매수", rc == 1 and "🔴 SID 203 한 포지션에 체결 매수 2건 이상(중복 매수) 1" in rep, rep)
 sid_reset(); pos(1, "OPEN"); order(1, 1, "SELL", "SUBMITTED", 0, 2); order(2, 1, "SELL", "PENDING", 0, 1)
-rc, rep, last, sent, raw = run("sid_two_active")
+rc, rep, last, sent, raw = run("sid_two_active", **RUNNING)
 check("SID 203 미결 주문 동시 2건 — 🔴 중복 주문", rc == 1 and "🔴 SID 203 동시 미결 주문(중복 주문) 2(상한 1)" in rep, rep)
 sid_reset(); pos(1, "OPEN"); order(1, 1, "SELL", "SUBMITTED", 0, 30)
-rc, rep, last, sent, raw = run("sid_stale")
+rc, rep, last, sent, raw = run("sid_stale", **RUNNING)
 check("SID 203 미결 주문 30분 지속 — 🔴(15분 기준)", rc == 1 and "🔴 SID 203 미결 주문 15분 넘게 지속 1" in rep, rep)
 sid_reset(); order(1, None, "BUY", "UNKNOWN", 0, 1)
-rc, rep, last, sent, raw = run("sid_unknown")
+rc, rep, last, sent, raw = run("sid_unknown", **RUNNING)
 check("SID 203 UNKNOWN 주문 — 바로 🔴", rc == 1 and "🔴 SID 203 UNKNOWN 주문 1" in rep, rep)
 sid_reset(); pos(1, "OPEN"); order(1, 1, "BUY", "FILLED", 0.0016, 30, applied=False)
-rc, rep, last, sent, raw = run("sid_unapplied")
-check("SID 203 체결 주문의 반영값 없음(30분) — 🔴(0 대체 없음)", rc == 1 and "🔴 SID 203 체결 주문 정산 반영값 없음·반영 대기(15분 넘게) 1" in rep, rep)
+rc, rep, last, sent, raw = run("sid_unapplied", **RUNNING)
+check("SID 203 체결 주문의 반영값 없음 — ⚪ 확인 불가(0 대체 없음)", rc == 1 and GRAY in rep and "⚪ SID 203 체결 주문 정산 확인 불가 1건" in rep and "주문 1)" in rep, rep)
 sid_reset(); pos(1, "OPEN"); order(1, 1, "BUY", "FILLED", 0.0016, 30, pending=True)
-rc, rep, last, sent, raw = run("sid_acct_pending")
-check("SID 203 회계 반영 대기(30분) — 🔴", rc == 1 and "🔴 SID 203 체결 주문 정산 반영값 없음·반영 대기(15분 넘게) 1" in rep, rep)
+rc, rep, last, sent, raw = run("sid_acct_pending", **RUNNING)
+check("SID 203 회계 반영 대기 — ⚪ 확인 불가", rc == 1 and GRAY in rep and "⚪ SID 203 체결 주문 정산 확인 불가 1건" in rep, rep)
 sid_reset(); pos(1, "OPEN"); order(1, 1, "BUY", "FILLED", 0.0016, 60)
 sql(DB, "INSERT INTO order_settlement_discrepancy (order_id, kind) VALUES (1, 'FEE');")
-rc, rep, last, sent, raw = run("sid_discrepancy")
+rc, rep, last, sent, raw = run("sid_discrepancy", **RUNNING)
 check("미해결 정산 불일치 1건(보고값·반영값은 같아도) — 🔴", rc == 1 and "🔴 미해결 정산 불일치 1" in rep, rep)
 sql(DB, "UPDATE order_settlement_discrepancy SET resolved_at = now(), resolved_by = 'test';")
-rc, rep, last, sent, raw = run("sid_discrepancy_resolved")
+rc, rep, last, sent, raw = run("sid_discrepancy_resolved", **RUNNING)
 check("같은 불일치가 해결됨 — 정상", rc == 0 and GREEN in rep, rep)
 
 sid_reset()
 sql(DB, "INSERT INTO live_trading_session (id, strategy_type, coin_pair, timeframe, initial_capital, available_krw, total_asset_krw, status, session_type) "
         "VALUES (204, 'DAILY_SMA20', 'KRW-ETH', 'H1', 20000, 20000, 20000, 'RUNNING', 'REAL');")
 pos(9, "OPEN", sid=204); order(9, 9, "BUY", "FILLED", 0.0016, 60, sid=204); order(10, 9, "SELL", "SUBMITTED", 0, 1, sid=204)
-rc, rep, last, sent, raw = run("other_real")
+rc, rep, last, sent, raw = run("other_real", **RUNNING)
 check("다른 실자금 세션(204) 진입 — 🔴 보유·미결·신규 매수 모두(SID 203 은 정상)",
       rc == 1 and "🔴 SID 203 밖 실자금 보유(OPEN·CLOSING) 1" in rep and "🔴 SID 203 밖 실자금 미결 주문 1" in rep
       and "🔴 점검 구간 SID 203 밖 실자금 신규 매수 1" in rep and "SID 203 열린" not in rep, rep)
 sql(DB, "UPDATE live_trading_session SET session_type='PAPER' WHERE id=204;")
-rc, rep, last, sent, raw = run("other_paper")
+rc, rep, last, sent, raw = run("other_paper", **RUNNING)
 check("같은 기록이 모의 세션(PAPER)이면 — 정상", rc == 0 and GREEN in rep, rep)
 
 sid_reset("EMERGENCY_STOPPED")
 rc, rep, last, sent, raw = run("sid_emergency")
-check("SID 203 EMERGENCY_STOPPED — 🔴 상태", rc == 1 and "🔴 SID 203 상태 EMERGENCY_STOPPED(정상: CREATED RUNNING)" in rep, rep)
+check("SID 203 EMERGENCY_STOPPED — 🔴 상태", rc == 1 and "🔴 SID 203 상태 EMERGENCY_STOPPED(정상: CREATED)" in rep, rep)
+rc, rep, last, sent, raw = run("sid_emergency_running", **RUNNING)
+check("SID 203 EMERGENCY_STOPPED(시작 뒤 설정) — 🔴 상태", rc == 1 and "🔴 SID 203 상태 EMERGENCY_STOPPED(정상: RUNNING)" in rep, rep)
+
+# 리뷰 2026-10-31 보완 ① 시작 전·후 정상 상태 구분 — 기본(설치 시) CREATED 만, F2 시작 확인 뒤 RUNNING 만
+sid_reset("RUNNING")
+rc, rep, last, sent, raw = run("sid_running_default")
+check("설치 설정(CREATED 만)인데 SID 203 RUNNING(잘못 시작) — 🔴 상태", rc == 1 and "🔴 SID 203 상태 RUNNING(정상: CREATED)" in rep, rep)
+sid_reset("CREATED")
+rc, rep, last, sent, raw = run("sid_created_after_switch", **RUNNING)
+check("시작 뒤 설정(RUNNING 만)인데 SID 203 CREATED(시작 안 됨) — 🔴 상태", rc == 1 and "🔴 SID 203 상태 CREATED(정상: RUNNING)" in rep, rep)
+
+# ② 거래소 보고값 — 누락·반영 대기 ⚪, 대기 없이 보고값≠반영값 🔴 / ③ 시간 조건 없음(발견 즉시)
+sid_reset(); pos(1, "OPEN"); order(1, 1, "BUY", "FILLED", 0.0016, 60, rep_fee=None)
+rc, rep, last, sent, raw = run("settle_no_rep_fee", **RUNNING)
+check("보고 수수료 없음(반영값은 있음) — ⚪ 확인 불가(종전 판은 🟢)", rc == 1 and GRAY in rep and "⚪ SID 203 체결 주문 정산 확인 불가 1건" in rep, rep)
+sid_reset(); pos(1, "OPEN"); order(1, 1, "BUY", "FILLED", 0.0016, 60, rep_funds=None)
+rc, rep, last, sent, raw = run("settle_no_rep_funds", **RUNNING)
+check("보고 체결금액 없음 — ⚪ 확인 불가", rc == 1 and GRAY in rep and "⚪ SID 203 체결 주문 정산 확인 불가 1건" in rep, rep)
+sid_reset(); pos(1, "OPEN"); order(1, 1, "BUY", "FILLED", 0.0016, 1, applied=False)
+rc, rep, last, sent, raw = run("settle_unapplied_fresh", **RUNNING)
+check("체결 1분 뒤 반영값 없음 — 15분 기다리지 않고 ⚪", rc == 1 and GRAY in rep and "⚪ SID 203 체결 주문 정산 확인 불가 1건" in rep, rep)
+sid_reset(); pos(1, "OPEN"); order(1, 1, "BUY", "FILLED", 0.0016, 2 * 24 * 60, pending=True)
+rc, rep, last, sent, raw = run("settle_old_order_pending", **RUNNING)
+check("이틀 전 주문에 방금 수수료 정정(반영 대기) — 경과 시간과 무관하게 ⚪(🔴 '15분 넘게' 아님)",
+      rc == 1 and GRAY in rep and "⚪ SID 203 체결 주문 정산 확인 불가 1건" in rep and "🔴" not in rep, rep)
+sid_reset(); pos(1, "OPEN"); order(1, 1, "BUY", "FILLED", 0.0016, 60, rep_fee="9.9")
+rc, rep, last, sent, raw = run("settle_fee_mismatch", **RUNNING)
+check("대기 없이 보고 수수료 9.9 ≠ 반영 9.8 — 🔴", rc == 1 and "🔴 SID 203 체결 주문 보고값≠반영값(반영 대기 아님, 주문 1) 1" in rep and GRAY not in rep, rep)
+sid_reset(); pos(1, "OPEN"); order(1, 1, "BUY", "FILLED", 0.0016, 60, rep_funds="19650")
+rc, rep, last, sent, raw = run("settle_funds_mismatch", **RUNNING)
+check("대기 없이 보고 체결금액 ≠ 반영 — 🔴", rc == 1 and "🔴 SID 203 체결 주문 보고값≠반영값(반영 대기 아님, 주문 1) 1" in rep, rep)
+sid_reset(); pos(1, "OPEN"); order(1, 1, "BUY", "FILLED", 0.0016, 60, rep_fee="9.9", pending=True)
+rc, rep, last, sent, raw = run("settle_mismatch_pending", **RUNNING)
+check("보고값 ≠ 반영값이지만 반영 대기 — 🔴 아닌 ⚪", rc == 1 and GRAY in rep and "보고값≠반영값(반영 대기 아님" not in rep, rep)
+sid_reset(); pos(1, "OPEN"); order(1, 1, "BUY", "FILLED", 0.0016, 60); order(2, 1, "SELL", "CANCELLED", 0, 30)
+rc, rep, last, sent, raw = run("settle_unfilled_null", **RUNNING)
+check("체결 없는 취소 주문(보고값·반영값 모두 NULL)은 정산 대상 아님 — 정상", rc == 0 and GREEN in rep and "정산 확인 불가 0 · 보고값≠반영값 0" in rep, rep)
 sid_reset("STOPPED")
 rc, rep, last, sent, raw = run("sid_stopped_end", SID_OK_STATUS="STOPPED")
 check("56일 종료 뒤 STOPPED 를 정상으로 지정하면 — 정상", rc == 0 and GREEN in rep and "SID 203: STOPPED" in rep, rep)
@@ -469,7 +517,7 @@ check("앱 로그 원문을 결과 파일 옆에 압축 보존(.log.gz)", bool(g
 CANNED = ("flyway_version|94\nreal_open_positions|0\nreal_unresolved_orders|0\ncleanup_pending|0\nquarantine_targets|0\n"
           "s66_running|63\ns66_total|66\ns66_not_running|576:STOPPED 577:STOPPED 578:STOPPED\ns66_coins|KRW-BLAST\nreal_buys_window|0\nquarantine_release_rows|0\ntg_queue_rejected|0\ntg_ok_window|0\n"
           "sid_status|CREATED\nsid_available_krw|20200\nsid_open_positions|0\nsid_active_orders|0\nsid_stale_orders|0\nsid_unknown_orders|0\n"
-          "sid_dup_buy_positions|0\nsid_filled_buys_window|0\nsid_orders_window|0 0\nsid_unapplied_fills|0\nsettlement_unresolved|0\n"
+          "sid_dup_buy_positions|0\nsid_filled_buys_window|0\nsid_orders_window|0 0\nsid_settle_unknown|0\nsid_settle_mismatch|0\nsid_settle_ids|-\nsettlement_unresolved|0\n"
           "tg_last_ok|none\nEND|ok\n")
 with open(os.path.join(work, "canned.txt"), "w", newline="\n") as f:
     f.write(CANNED)

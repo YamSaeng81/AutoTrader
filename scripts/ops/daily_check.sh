@@ -35,9 +35,10 @@ S66_ENDED_IDS="${S66_ENDED_IDS-576 577 578}"
 ENDED_MARKETS="${ENDED_MARKETS-KRW-BLAST}"
 TZ_EXPECT="${TZ_EXPECT:-+0900}"
 # 실거래 시험 세션(리뷰 2026-10-31) — 정상 매수·보유·청산·재진입은 허용하고 중복·미결 지연·정산 이상만 🔴. 다른 실자금 세션은 종전대로 0 기대.
-# SID_OK_STATUS: 정상으로 보는 상태 — 시작 전 CREATED, 운영 중 RUNNING. 56일 종료로 정지한 뒤에는 리뷰 판단을 받아 STOPPED 로 바꾼다.
+# SID_OK_STATUS: 정상으로 보는 상태 하나 — 설치·시작 전 CREATED, F2 시작 확인 뒤 RUNNING 으로 바꾼다(OPS_DAILY_CHECK.md §3-1).
+#   둘을 함께 허용하지 않는다(리뷰 2026-10-31 보완 — 잘못 시작해도 정상으로 보던 것). 56일 종료로 정지한 뒤에는 리뷰 판단을 받아 STOPPED.
 SID_ID="${SID_ID:-203}"
-SID_OK_STATUS="${SID_OK_STATUS-CREATED RUNNING}"
+SID_OK_STATUS="${SID_OK_STATUS-CREATED}"
 STALE_MIN="${STALE_MIN:-15}"
 TG_API="${TG_API:-https://api.telegram.org}"
 SLEEP_CMD="${SLEEP_CMD:-sleep}"
@@ -154,7 +155,7 @@ else
   done <<< "$SQL_OUT"
   # 필수 키가 하나라도 빠지면 출력 누락
   for k in flyway_version real_open_positions real_unresolved_orders cleanup_pending quarantine_targets s66_running s66_total \
-           s66_not_running s66_coins real_buys_window quarantine_release_rows tg_queue_rejected tg_ok_window tg_last_ok            sid_status sid_available_krw sid_open_positions sid_active_orders sid_stale_orders sid_unknown_orders            sid_dup_buy_positions sid_filled_buys_window sid_orders_window sid_unapplied_fills settlement_unresolved; do
+           s66_not_running s66_coins real_buys_window quarantine_release_rows tg_queue_rejected tg_ok_window tg_last_ok            sid_status sid_available_krw sid_open_positions sid_active_orders sid_stale_orders sid_unknown_orders            sid_dup_buy_positions sid_filled_buys_window sid_orders_window sid_settle_unknown sid_settle_mismatch sid_settle_ids settlement_unresolved; do
     [ -n "${KV[$k]+x}" ] || unknown "DB 조회 출력 누락($k)"
   done
 fi
@@ -189,7 +190,9 @@ if [ ${#KV[@]} -gt 0 ]; then
   chk_zero sid_unknown_orders "SID $SID_ID UNKNOWN 주문"
   chk_zero sid_dup_buy_positions "SID $SID_ID 한 포지션에 체결 매수 2건 이상(중복 매수)"
   chk_max sid_filled_buys_window 1 "SID $SID_ID 구간 안 체결 매수(일봉 전략 — 중복 매수 의심)"
-  chk_zero sid_unapplied_fills "SID $SID_ID 체결 주문 정산 반영값 없음·반영 대기(${STALE_MIN}분 넘게)"
+  # 정산 — 보고값·반영값 누락 또는 반영 대기는 발견 즉시 ⚪(확인 불가 — 정상으로 보지 않는다), 대기 없이 보고값≠반영값은 🔴
+  v="${KV[sid_settle_unknown]:-}"; [ -n "$v" ] && [ "$v" != "0" ] && unknown "SID $SID_ID 체결 주문 정산 확인 불가 ${v}건(보고값·반영값 누락 또는 반영 대기, 주문 ${KV[sid_settle_ids]:-?}) — 재조회 대상"
+  chk_zero sid_settle_mismatch "SID $SID_ID 체결 주문 보고값≠반영값(반영 대기 아님, 주문 ${KV[sid_settle_ids]:-?})"
   chk_zero tg_queue_rejected "텔레그램 큐 진입 실패"
   qr="${KV[quarantine_release_rows]:-}"; [ -n "$qr" ] && [ "$qr" != "0" ] && [ "$qr" != "-1" ] && red "격리 해제 기록 $qr"
   # 검증 세션 — 개수가 아니라 어느 세션인지로 본다: 지정 종료 세션의 STOPPED 만 정상, 그 밖의 RUNNING 아님은 🔴
@@ -214,7 +217,7 @@ if [ ${#KV[@]} -gt 0 ]; then
   fi
   detail "DB: Flyway ${KV[flyway_version]:-?} · SID $SID_ID 밖 실자금 보유 ${KV[real_open_positions]:-?} · 미결 ${KV[real_unresolved_orders]:-?} · 정리 대기 ${KV[cleanup_pending]:-?} · 격리 대상 ${KV[quarantine_targets]:-?} · $S66_LINE · 구간 SID $SID_ID 밖 실자금 매수 ${KV[real_buys_window]:-?}"
   read -r sb ss <<< "${KV[sid_orders_window]:-? ?}"
-  detail "SID $SID_ID: ${KV[sid_status]:-?} · 잔액 ${KV[sid_available_krw]:-?} · 보유 ${KV[sid_open_positions]:-?} · 미결 ${KV[sid_active_orders]:-?} · 구간 주문 매수 ${sb} 매도 ${ss} · 미해결 정산 불일치(전체) ${KV[settlement_unresolved]:-?}"
+  detail "SID $SID_ID: ${KV[sid_status]:-?} · 잔액 ${KV[sid_available_krw]:-?} · 보유 ${KV[sid_open_positions]:-?} · 미결 ${KV[sid_active_orders]:-?} · 구간 주문 매수 ${sb} 매도 ${ss} · 정산 확인 불가 ${KV[sid_settle_unknown]:-?} · 보고값≠반영값 ${KV[sid_settle_mismatch]:-?} · 미해결 정산 불일치(전체) ${KV[settlement_unresolved]:-?}"
   detail "텔레그램(구간): 성공 ${KV[tg_ok_window]:-?} · 큐 진입 실패 ${KV[tg_queue_rejected]:-?} · 마지막 성공 ${KV[tg_last_ok]:-?}"
   for line in "${TG_FAIL_LINES[@]}"; do
     t="${line%%|*}"; n="${line##*|}"
