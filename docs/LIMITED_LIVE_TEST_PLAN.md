@@ -1,5 +1,6 @@
 # 12월 제한 실거래 시험 — 후보와 실행안
 
+> **v1.36 (2026-10-31)**: 리뷰 판정 — `cad3939` 배포 승인 유지, 실행 전 절차 두 곳 보완. ① H1 jar 대조에서 외부 라이브러리 jar 도 내용 해시로 비교(같은 이름의 내용 변경을 잡음) ② H3·H4 에 `btcgate` — BTC 관문은 `candle` 의 '기동 직전에도 판정 불가' 예외를 받지 않고 기동 뒤 마지막 상태가 재개여야 함(불가·재개 줄이 없으면 통과). 가짜 입력 확인: jar 2사례(로컬 jar 기대 그대로·라이브러리 내용만 바꾼 jar 를 잡음, 고치기 전 코드는 놓침), BTC 관문 6사례. 추가 승인 없이 H0~H5 진행 가능. 운영·DB·장부·F1 무변경(§5-9 13).
 > **v1.35 (2026-10-31)**: 리뷰 판정 — 후보 `cad3939` 수용, backend 단독 배포 승인. 배포·복구 명령 H0~H5(개입 #17) 준비: H0 직전 확인(HEAD `f0872e2`·#16 이미지·V94·66세션·SID 203·설치 장부 `a3c30b0`·cron·과거 기록 보존) → H1 빌드·jar 대조(추가 1·변경 10, 677 → 678) → H2 재기동 → H3 기동 5분 뒤(V94·BTC 관문 재개) → H4 30분 → H5 장부 `8bfe8a9` 판 교체(보존본·잔액 기대 20,200·차이 0). 되돌림은 backend·장부 따로. H5 블록 로컬 대역 9사례. ⏸ 운영자 실행 대기 — 운영·DB·장부·F1 무변경(§5-9 13).
 > **v1.34 (2026-10-31)**: 리뷰 판정 — 잔액 반올림 수정 방향 수용, 보완 뒤 `f0872e2` 기반 배포 후보. 보완: ① 종결 매수 주문 정정이 열린 포지션 투입액·평균단가를 맞춤(공유 풀 시장가·첫 반영 뒤), 포지션 수수료는 차분만 더함(CLOSED 재개방 없음·매도 수수료 보존) ② LIVE·DYNAMIC 실제 예약 경로 요청액 절삭 시험 ③ "구버전 한 번 반영이면 일치" 철회, F5 원시·저장 잔액 구분 ④ `position_fee` 열 확대 보류(알려진 한계). PG 16/16(운영 코드 V94 에서 8/16 실패), H2 관련 회귀 286/286·후보 277/277, 장부 56/56. 후보 `candidate/rounding-f0872e2` `cad3939`. 운영·DB·설치 장부 무변경(§5-9 12).
 > **v1.33 (2026-10-31)**: 운영 확인 2(재기동 뒤 BTC H1 재조회·예외 로그) 기대와 같음 — 10-30 재기동 2분 뒤 재수집 4칸 거래소 부재 기록 → 점검 #1 예외 → BTC H1 판정 재개, 유효 결측 1칸은 점검 표(확인 1) 뒤 확정. 리뷰 결정 — 반올림 누적을 정산 경로 국소 수정으로(로컬): `BalanceAmounts`(요청액 버림·누적 금액 두 자리 HALF_UP 차분), LIVE·DYNAMIC 매수 정산·매도 확정·매도 정정. PostgreSQL 실제 정산 코드 12/12(수정 전 코드 8/12 — 반복 정정 사례 실패), 단위 3/3, H2 관련 회귀 306/306, 장부 56/56. 장부 L4 `balance_expected`·`balance_diff`, F3 차이 0, F5-4 `balance_diff`. 발견: 정산 경로 매수 정정이 포지션을 안 고침·`position_fee` 두 자리. 운영·DB 무변경(§5-9 10·11).
@@ -1970,7 +1971,7 @@ FILE logs/backend/system.log | first=2026-10-31 00:00:00 | last=2026-10-31 07:31
   - 운영 배포·장부 교체는 후보 확인 뒤 진행한다. 지금 운영은 `f0872e2`, 설치 장부는 `a3c30b0` 판이다.
 - **하지 않은 것**: 실제 프로세스 재기동 시험, 전체 리허설, 실제 거래소 체결. BTC 점검 표(확인 1)·봉 전진(확인 3)은 기존 읽기 절차로 남아 있다.
 
-**13. backend 단독 배포 `f0872e2` → `cad3939` · 장부 새 판 — 개입 #17 (2026-10-31, v1.35). ⏸ 운영자 실행 대기**
+**13. backend 단독 배포 `f0872e2` → `cad3939` · 장부 새 판 — 개입 #17 (2026-10-31, v1.35·v1.36 보완). ⏸ 운영자 실행 대기**
 
 - **리뷰 판정 원문(v1.34 뒤, 2026-10-31 운영자 전달)**:
   > **후보 `cad3939`를 수용하고, backend 단독 배포를 승인합니다.** 코드와 시험 내용을 검토했으며, 이번 범위에서 추가 배포 차단 사유는 찾지 못했습니다.
@@ -2031,6 +2032,22 @@ JARX="추가 $JC/BalanceAmounts.class
 변경 $JC/OrderSettlementService\$SellAmounts.class
 변경 $JC/OrderSettlementService.class"
 L4HX='status|available_krw|balance_expected|balance_diff|ledger_cash|raw_diff|unk_orders|net_btc|open_size|last_mark|realized_pnl_sum_ref|fees_total|slip_total'
+# 리뷰 보완(v1.36): BTC 관문은 candle 의 '기동 직전에도 판정 불가' 예외를 받지 않는다 — 기동 뒤 로그에서 키마다 마지막 상태가 재개여야 한다.
+# 판정 불가·재개 줄이 아예 없으면 통과(재개 줄을 강제하지 않는다). 줄은 maint_verify.py 와 같은 정규식으로 읽는다.
+btcgate() { python3 - "$1" <<'PYEOF'
+import re, sys
+st = {}
+for line in open(sys.argv[1], encoding="utf-8", errors="replace"):
+    m = re.search(r"\[캔들 최신성\] (.+?) 판정 (불가|재개) \(", line)
+    if m and m.group(1).startswith("BTC 급락 관문 "):
+        st[m.group(1)] = m.group(2)
+if not st:
+    print("BTC 관문: 판정 불가·재개 줄 없음")
+for k, v in st.items():
+    print("BTC 관문 마지막 상태: %s 판정 %s" % (k, v))
+sys.exit(1 if "불가" in st.values() else 0)
+PYEOF
+}
 ```
 
 **H0. ▶ 직전 확인 — 읽기 전용, 재기동 없음**
@@ -2115,7 +2132,7 @@ def classes(path):
                     if m.endswith(".class"):
                         out[re.sub(r"-[0-9.]+(-SNAPSHOT)?\.jar$", ".jar", n) + "!" + m] = hashlib.sha256(inner.read(m)).hexdigest()
             else:
-                out[n] = "lib"
+                out[n] = hashlib.sha256(z.read(n)).hexdigest()
     return out
 a, b = classes(sys.argv[1]), classes(sys.argv[2])
 for k in sorted(set(a) | set(b)):
@@ -2176,7 +2193,8 @@ grep -qF "위험 한도 확인: 단계 STAGE_1 총 자본 100000 기준 누적 1
 grep " ERROR " "$M/app-$T.log" | grep -v "캔들 최신성" | grep -v -E "$NOT404" > "$M/errors-$T.txt" || true
 [ ! -s "$M/errors-$T.txt" ] || stop "세 마켓 캔들 404 밖의 ERROR — errors-$T.txt 를 보고"
 grep -E "BTC 급락 관문 H1 판정 (불가|재개)" "$M/app-$T.log" | cut -c1-140 || true
-python3 "$M/maint_verify.py" candle "$M/app-$T.log" "$M/backend-before.log" || stop "기동 뒤 판정 불가 대상이 아직 재개되지 않음(BTC 관문 포함) — 위 출력을 보고"
+btcgate "$M/app-$T.log" || stop "BTC 관문 마지막 상태가 판정 불가 — 바로 되돌리지 말고 위 출력을 보고"
+python3 "$M/maint_verify.py" candle "$M/app-$T.log" "$M/backend-before.log" || stop "기동 뒤 판정 불가 대상이 아직 재개되지 않음— 위 출력을 보고"
 qc > "$M/q-$T.txt" 2>&1; sed -n '/== Q3/,$p' "$M/q-$T.txt" | grep -vE '^-+|^\s*$'
 sc | tee "$M/s-$T.txt"; diff "$M/s-before.txt" "$M/s-$T.txt" || stop "되돌림 필요: 검증 세션 상태 바뀜"
 sid203 || stop "SID 203·기준 행·EG·0 확인 중 바뀐 것 있음 — 보고"
@@ -2186,7 +2204,7 @@ touch "$M/ok-H3-$T"; echo "✅ H3($T) 통과 — 기동 30분 뒤 H4"
 - 기대 결과:
   - `Started`, `Schema "public" is up to date`(마이그레이션 없음), V94, 매도 격리 점검 "없음".
   - 두 한도 줄이 정확히 위 문구이고, ERROR 는 세 마켓 캔들 404 뿐이다.
-  - BTC 관문 줄은 `판정 불가` 다음 `판정 재개` 이고, `candle` 줄은 `아직 판정 불가 0` 이다.
+  - `btcgate` 줄은 `BTC 관문 마지막 상태: BTC 급락 관문 H1 판정 재개`(불가·재개 줄이 아예 없었으면 `BTC 관문: 판정 불가·재개 줄 없음`)이고, `candle` 줄은 `아직 판정 불가 0` 이다. BTC 관문은 기동 직전에도 판정 불가였더라도 예외로 넘기지 않는다(`candle` 이 통과해도 `btcgate` 가 멈춘다).
   - Q3~Q6 0 · Q7 `RUNNING 63`·`STOPPED 3` · Q8 0 · Q9 0 · `ROLLBACK`(눈으로) · `sc` 같음 · `sid203` 통과.
 - BTC 관문이 재개되지 않아 멈추면 바로 되돌리지 않는다. 출력을 보고하고, 되돌림 여부는 판단 뒤에 정한다. 판정 불가 동안 해당 진입은 막혀 있다.
 
@@ -2206,7 +2224,8 @@ grep " ERROR " "$M/app-after30.log" | grep -v "캔들 최신성" | grep -v -E "$
 ! grep -qE "🔴 (공유 풀 한도|위험 한도)" "$M/app-after30.log" || stop "되돌림 필요: 🔴 공유 풀/위험 한도 줄"
 v94 || stop "되돌림 필요: Flyway 최고 버전이 94 가 아님"
 grep -E "BTC 급락 관문 H1 판정 (불가|재개)" "$M/app-after30.log" | cut -c1-140 || true
-python3 "$M/maint_verify.py" candle "$M/app-after30.log" "$M/backend-before.log" || stop "판정 불가 대상이 남아 있음(BTC 관문 포함) — 위 출력을 보고"
+btcgate "$M/app-after30.log" || stop "BTC 관문 마지막 상태가 판정 불가 — 바로 되돌리지 말고 위 출력을 보고"
+python3 "$M/maint_verify.py" candle "$M/app-after30.log" "$M/backend-before.log" || stop "판정 불가 대상이 남아 있음— 위 출력을 보고"
 qc > "$M/q-after30.txt" 2>&1; sed -n '/== Q3/,$p' "$M/q-after30.txt" | grep -vE '^-+|^\s*$'
 sc | tee "$M/s-after30.txt"; diff "$M/s-before.txt" "$M/s-after30.txt" || stop "되돌림 필요: 검증 세션 상태 바뀜"
 svc | tee "$M/svc-after30.txt"
@@ -2326,6 +2345,43 @@ echo "✅ f0872e2 (fdd7695a…) 로 복귀 — 3~5분 뒤 H3 를 다시 실행(t
   - H0~H4·H 되돌림은 문법만 확인했다(G0~G4 와 같은 줄에 V94·BTC 관문 재개·장부·cron 보존 확인을 더한 것). 실행 확인은 아니다.
   - 첫 두 시도는 시험 쪽 결함이었다(윈도 cp949 출력 오류, 블록을 새 프로세스로 실행해 변수 없음). 블록은 바꾸지 않았다. 마지막 판(H5-되돌림의 `ok-H5` 이름 바꾸기 추가) 으로 다시 돌린 결과가 위와 같다.
 - **운영 상태(이 커밋 시점)**: 바꾼 것 없음 — 운영 `f0872e2`(`fdd7695a…`), DB V94, 설치 장부 `a3c30b0` 판, SID 203 `CREATED`. F 변수·F1 은 그대로다(배포 확인 뒤 바꾼다).
+- **리뷰 판정 원문(v1.35 뒤, 2026-10-31 운영자 전달)**:
+  > **`cad3939` 배포 승인은 유지합니다. 실행 전에 절차 두 곳만 보완하세요.**
+  >
+  > 1. **H1: 외부 라이브러리도 내용 해시로 비교**
+  >    현재 `out[n] = "lib"`는 같은 이름의 jar 내용 변경을 놓칩니다. 다음으로 바꾸세요.
+  >
+  >    ```python
+  >    out[n] = hashlib.sha256(z.read(n)).hexdigest()
+  >    ```
+  >
+  > 2. **H3·H4: BTC 관문은 기존 장애 예외에서 제외**
+  >    공통 `candle` 도구는 기동 전부터 계속 판정 불가였던 대상을 통과시킵니다. **BTC 관문이 기동 뒤 판정 불가가 됐다면 마지막 상태가 재개인지 별도로 확인**하세요. 기동 전부터 불가였다는 이유로 통과시키면 안 됩니다. 불가 로그 자체가 없으면 재개 로그를 강제할 필요는 없습니다.
+  >
+  > 두 보완은 가짜 입력으로 확인하면 충분합니다. **앱 수정, 후보 재작성, 전체 리허설은 필요 없습니다. 보완 후 기존 승인 범위에서 H0~H5를 진행하세요. 추가 승인 요청도 필요 없습니다.**
+  >
+  > 장부·절차 사본 해시는 일치했고, H5 교체·복구에서 추가 문제는 찾지 못했습니다. H4 경보 네 갈래 대조까지 정상인 것을 확인한 뒤 H5로 넘어가세요.
+  >
+  > 배포 뒤에는 실제 이미지 전체 해시와 장부 결과를 받아 F1을 갱신합니다. **SID 203은 `CREATED`, 시작은 12월 1일 08:50 KST 그대로입니다.**
+- **보완(v1.36, 절차 문서만 — 앱·후보·장부·F3·F5 무변경)**:
+  - ① H1 jar 대조의 외부 라이브러리 줄을 `out[n] = hashlib.sha256(z.read(n)).hexdigest()` 로 바꿨다. 자체 모듈(core-engine·strategy-lib·exchange-adapter)은 종전대로 안쪽 클래스별로 본다. 이전 절(G1)의 블록은 당시 기록이라 그대로 둔다.
+  - ② H 변수에 `btcgate` 함수를 더했다. 기동 뒤 로그에서 `BTC 급락 관문 <봉>` 키마다 마지막 상태(불가/재개)를 출력하고, 하나라도 마지막이 `판정 불가`면 실패한다. 기동 전 로그는 보지 않는다(예외 없음). 불가·재개 줄이 아예 없으면 `판정 불가·재개 줄 없음` 으로 통과한다. 줄은 `maint_verify.py` 와 같은 정규식으로 읽는다(재개 줄의 '종전 … 판정 불가' 문구를 불가로 읽지 않음).
+  - H3·H4 는 `btcgate` 를 `candle` **앞에** 돌린다. `btcgate` 로 멈추면 바로 되돌리지 않고 출력을 보고한다(종전 H3 안내와 같음). 그 밖의 대상은 종전대로 `candle` 이 본다.
+  - H4 통과 표지 뒤에도 경보 네 갈래 대조가 정상인지 눈으로 확인한 뒤 H5 로 간다(리뷰 원문).
+- **보완 확인(가짜 입력, 서버 명령 아님 — 문서 블록을 그대로 꺼내 실행)**:
+  - H 변수·H0~H5·H5-되돌림·H 되돌림 모두 `bash -n` 통과.
+  - jar J1 — 로컬 `f0872e2`·`cad3939` jar: 출력이 `JARX` 열한 줄과 같고 `(끝) 677 678`(라이브러리 jar 내용 차이 0).
+  - jar J2 — 새 jar 의 `BOOT-INF/lib/jackson-core-2.15.4.jar` 내용만 1바이트 늘린 사본: `변경 BOOT-INF/lib/jackson-core-2.15.4.jar` 가 더 나와 H1 이 멈춘다. 같은 입력을 고치기 전 코드(`"lib"`)로 돌리면 기대와 같다고 나와 놓친다.
+  - BTC 관문 6사례(`btcgate` 종료 코드 · 같은 입력의 `candle` 종료 코드):
+    1. 불가 → 재개(KRW-BTC:H1 도 불가 → 재개): `판정 재개` 0 · candle 0.
+    2. 기동 뒤 불가만, 기동 직전 로그에도 불가: `판정 불가` **1** · candle 0(예외로 통과) — 리뷰가 지적한 경우를 `btcgate` 가 잡는다.
+    3. 불가·재개 줄 없음: `줄 없음` 0 · candle 0.
+    4. 불가 → 재개 → 다시 불가: 1 · candle 1.
+    5. 기동 직전 불가, 기동 뒤 재개만: 0 · candle 0.
+    6. BTC 관문 재개, KRW-BTC:H1 만 불가: 0 · candle 1(그 대상은 종전대로 candle 이 멈춘다).
+  - 첫 jar 확인은 시험 쪽 결함이었다. 꺼내는 awk 가 같은 첫 줄을 가진 이전 절 G1 블록을 집었다. H1 제목 뒤 블록을 꺼내도록 시험 스크립트만 고친 뒤 위 결과를 얻었다. 문서 블록은 바꾸지 않았다.
+  - H0·H2·H5 는 이번에 바꾸지 않았다. H5 9사례 결과(v1.35)는 그대로다. H0~H4 실행 확인은 여전히 없다(문법과 위 두 부분만).
+- **운영 상태(v1.36 커밋 시점)**: 바꾼 것 없음 — 위와 같다. ▶ 운영자는 이 판의 블록으로 H0~H5 를 진행한다(추가 승인 불필요).
 
 SMA20 신호·설정과 위험 한도를 기준으로 주문·정산·보호 기능의 결함을 보완한다. 새 시험 결과를 얻으려고 전략 파라미터를 탐색하거나 종료 후보를 재개하지 않는다. 추가 시험은 새 시나리오·실패·수정 범위에 맞춰 실행한다. 기존 66세션·T0·판정 기준은 유지하고, 이 준비 활동을 그 세션들의 성과 평가에 사용하지 않는다. F0는 완료 상태를 유지한다.
 
