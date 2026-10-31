@@ -46,6 +46,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * docker exec cat-rt-pg psql -U trader -d postgres -c "DROP DATABASE IF EXISTS settle_round_check" -c "CREATE DATABASE settle_round_check"
  * SR_PG_URL=jdbc:postgresql://localhost:15432/settle_round_check ./gradlew :web-api:cleanTest :web-api:test --tests '*SettlementRoundingPgTest'
  * </pre>
+ * <p>보완(리뷰 2026-10-31 수용 뒤): ⑦ 종결 매수 주문의 정정이 열린 포지션 투입액·평균단가를 맞추고(①), CLOSED 를 재개방하지 않고
+ * 매도 수수료를 덮어쓰지 않는다. ⑧ 상한 미만 소수 요청액이 실제 매수 경로(LIVE {@code executeSessionBuy}, DYNAMIC {@code executeBuy})에서
+ * 예약 전에 두 자리로 버려진다. 배포 후보 검증은 운영과 같은 마이그레이션(V94)까지의 시험 DB 로 한다.</p>
  * <p>🔴 롤백 사례는 시험 DB 에만 일시 트리거를 걸어 세션 갱신을 실패시킨다. "재시작" 은 프로세스 재기동이 아니라, 실패 뒤 DB 에 남은
  * 행만으로 다시 정산하는 것이다(정산은 메모리 상태를 쓰지 않는다). 실제 프로세스 재기동 시험은 하지 않았다.</p>
  */
@@ -252,10 +255,17 @@ class SettlementRoundingPgTest extends IntegrationTestBase {
         poll(once, buyResponse("done", "9.8", "2940", "1.48"));
         trace(kind + " 매수 일괄", "1.48", buyRaw(once), available(once));
         assertThat(available(f)).as("반복 정정 최종 = 일괄 반영").isEqualByComparingTo(available(once)).isEqualByComparingTo("7058.52");
-        // 🔴 발견(기록, 리뷰 판단 — 이번 수정 범위 밖): 종결 뒤 매수 수수료 정정(settle)은 포지션을 고치지 않는다 — 투입액이 첫 반영값
-        //    2,941.47 에 남고, 한 번에 받은 주문은 2,941.48 이다. 잔액·주문 반영값은 맞다. 이 시험 첫 실행에서 드러났다.
-        assertThat(position(f).getInvestedKrw()).as("정정 주문의 포지션 투입액(첫 반영값에 남음)").isEqualByComparingTo("2941.47");
-        assertThat(position(once).getInvestedKrw()).as("일괄 주문의 포지션 투입액").isEqualByComparingTo("2941.48");
+        // 🔴 발견 1(리뷰 2026-10-31 — 이번 수정에 포함): 종결 뒤 매수 정정(settle)도 열린 포지션의 투입액·평균단가를 맞춘다.
+        //    수정 전에는 투입액이 첫 반영값 2,941.47 에 남았다(이 시험 첫 실행 기록 — 계획 문서 §5-9 11).
+        assertThat(position(f).getStatus()).isEqualTo("OPEN");
+        assertThat(position(f).getInvestedKrw()).as("정정 주문의 포지션 투입액 = 일괄").isEqualByComparingTo(position(once).getInvestedKrw())
+                .isEqualByComparingTo("2941.48");
+        assertThat(position(f).getAvgPrice()).as("평균단가 = 대금 ÷ 수량").isEqualByComparingTo(position(once).getAvgPrice())
+                .isEqualByComparingTo("300");
+        // 알려진 통계 한계(리뷰 2026-10-31 — 이번 배포에서 열을 넓히지 않는다): position_fee 는 NUMERIC(20,2) 라 0.001원 차분이 열에서
+        //    사라진다. 원시 수수료는 주문 반영값(위 단언 1.48)이 갖는다.
+        assertThat(position(f).getPositionFee()).as("정정 포지션 수수료(2자리 열 — 한계)").isEqualByComparingTo("1.47");
+        assertThat(position(once).getPositionFee()).as("일괄 포지션 수수료").isEqualByComparingTo("1.48");
     }
 
     @ParameterizedTest(name = "{0}")
@@ -391,6 +401,196 @@ class SettlementRoundingPgTest extends IntegrationTestBase {
             assertThat(available(f)).isEqualByComparingTo(buyExpected("2940", "1.476")).isEqualByComparingTo("7058.52");
         } finally {
             dropFailure(table);
+        }
+    }
+
+    /** 포지션을 청산 중으로 두고, 그 포지션의 체결된 매도(보고 대금·수수료)를 만든다 — 확정은 {@link #confirmSells}. */
+    private Long filledSellOn(Fx f, String qty, String funds, String fee) {
+        jdbc.update("UPDATE position SET status = 'CLOSING', closing_at = now() WHERE id = ?", f.positionId());
+        return orderRepository.save(OrderEntity.builder()
+                .coinPair("KRW-RND").side("SELL").orderType("MARKET")
+                .quantity(new BigDecimal(qty)).state("FILLED").filledQuantity(new BigDecimal(qty))
+                .price(new BigDecimal("306")).filledAt(Instant.now())
+                .reportedExecutedFunds(new BigDecimal(funds)).reportedPaidFee(new BigDecimal(fee))
+                .sessionKind(f.kind()).sessionId(f.sessionId()).positionId(f.positionId())
+                .exchangeOrderId("rnd-" + UUID.randomUUID()).clientOrderId("rnd-" + UUID.randomUUID())
+                .feeSource(OrderExecutionEngine.FEE_SOURCE_PENDING)
+                .createdAt(Instant.now()).submittedAt(Instant.now()).build()).getId();
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @ValueSource(strings = {"LIVE", "DYNAMIC"})
+    @DisplayName("⑦ CLOSED 포지션의 매수 정정 — 재개방·수량·투입액 변경 없음, 매도 수수료 보존, 같은 응답 중복 반영 없음")
+    void buyCorrectionOnClosedPosition(String kind) throws Exception {
+        // (가) 종결 뒤 정정(settle): 체결 1.47 → 매도 확정(수수료 1.50) → 매수 수수료 1.49 정정
+        Fx f = submittedBuy(kind);
+        poll(f, buyResponse("done", "9.8", "2940", "1.47"));
+        filledSellOn(f, "9.8", "3000", "1.50");
+        confirmSells(kind);
+        assertThat(position(f).getStatus()).isEqualTo("CLOSED");
+        assertThat(position(f).getPositionFee()).as("매수 1.47 + 매도 1.50").isEqualByComparingTo("2.97");
+        assertThat(available(f)).isEqualByComparingTo("10057.03");   // 7,058.53 + 2,998.50
+
+        assertThat(settlement.settle(f.orderId(), buyResponse("done", "9.8", "2940", "1.49")))
+                .isEqualTo(OrderSettlementService.Outcome.APPLIED);
+        for (int i = 0; i < 2; i++) {
+            assertThat(settlement.settle(f.orderId(), buyResponse("done", "9.8", "2940", "1.49")))
+                    .as("같은 응답 다시").isEqualTo(OrderSettlementService.Outcome.NO_CHANGE);
+        }
+        PositionEntity p = position(f);
+        trace(kind + " CLOSED 정정", p.getStatus(), p.getSize(), p.getInvestedKrw(), p.getPositionFee(), available(f));
+        assertThat(p.getStatus()).as("재개방하지 않는다").isEqualTo("CLOSED");
+        assertThat(p.getSize()).isEqualByComparingTo("9.8");
+        assertThat(p.getInvestedKrw()).as("CLOSED 투입액 그대로").isEqualByComparingTo("2941.47");
+        assertThat(p.getPositionFee()).as("매도 수수료 보존 + 매수 차분 0.02 한 번").isEqualByComparingTo("2.99");
+        assertThat(available(f)).as("잔액 −0.02 한 번").isEqualByComparingTo("10057.01");
+
+        // (나) 닫힌 포지션에 늦은 체결(체결 회계 경로 applyToPosition): 매수가 아직 활성인데 포지션이 이미 CLOSED 이고 매도 수수료
+        //    0.80 이 기록된 상태 — 🔴 상태는 시험이 직접 만든다(부분 체결 'wait' 응답은 원자 체결 경로를 타지 않아 포지션 수량이 0 으로
+        //    남으므로, 그 수량을 실제 매도로 닫는 순서는 이 엔진에서 생기지 않는다 — 첫 작성본의 시나리오 설계 실수, 실패 기록).
+        Fx g = submittedBuy(kind);
+        jdbc.update("UPDATE position SET status = 'CLOSED', closed_at = now(), position_fee = 0.80 WHERE id = ?", g.positionId());
+        poll(g, buyResponse("done", "9.8", "2940", "1.47"));
+        PositionEntity q = position(g);
+        trace(kind + " CLOSED 늦은 체결", q.getStatus(), q.getSize(), q.getInvestedKrw(), q.getPositionFee(), available(g));
+        assertThat(order(g).getState()).isEqualTo("FILLED");
+        assertThat(q.getStatus()).as("재개방하지 않는다").isEqualTo("CLOSED");
+        assertThat(q.getSize()).as("수량을 되살리지 않는다").isEqualByComparingTo("0");
+        assertThat(q.getPositionFee()).as("매도 수수료 0.80 보존 + 매수 1.47 — 종전 set 이면 1.47").isEqualByComparingTo("2.27");
+        assertThat(available(g)).as("잔액은 미사용 환급만").isEqualByComparingTo("7058.53");
+        for (int i = 0; i < 2; i++) poll(g, buyResponse("done", "9.8", "2940", "1.47"));
+        assertThat(position(g).getPositionFee()).as("같은 응답 다시 — 변화 없음").isEqualByComparingTo("2.27");
+        assertThat(available(g)).isEqualByComparingTo("7058.53");
+    }
+
+    @Autowired private CapitalPoolLimits limits;
+    @Autowired private PoolLossGuard poolLossGuard;
+    @Autowired @org.springframework.beans.factory.annotation.Qualifier("orderExecutor")
+    private org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor orderExecutor;
+    @Autowired private org.springframework.transaction.PlatformTransactionManager txManager;
+
+    private static java.util.List<com.cryptoautotrader.strategy.Candle> candles() {
+        java.util.List<com.cryptoautotrader.strategy.Candle> out = new java.util.ArrayList<>();
+        Instant t0 = Instant.now().minus(300, java.time.temporal.ChronoUnit.HOURS);
+        for (int i = 0; i < 300; i++) {
+            BigDecimal p = new BigDecimal(300 + i % 7);
+            out.add(com.cryptoautotrader.strategy.Candle.builder().time(t0.plus(i, java.time.temporal.ChronoUnit.HOURS))
+                    .open(p).high(p.add(BigDecimal.ONE)).low(p.subtract(BigDecimal.ONE)).close(p)
+                    .volume(new BigDecimal("1000")).build());
+        }
+        return out;
+    }
+
+    private void awaitSubmitted(Long orderId) throws InterruptedException {
+        long deadline = System.currentTimeMillis() + 15_000;
+        while (System.currentTimeMillis() < deadline) {
+            OrderEntity o = orderRepository.findById(orderId).orElseThrow();
+            var pool = orderExecutor.getThreadPoolExecutor();
+            if (o.getExchangeOrderId() != null && pool.getActiveCount() == 0 && pool.getQueue().isEmpty()) return;
+            Thread.sleep(50);
+        }
+        throw new AssertionError("주문 접수 기록 대기 시간 초과 (orderId=" + orderId + ")");
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @ValueSource(strings = {"LIVE", "DYNAMIC"})
+    @DisplayName("⑧ 상한 미만 소수 요청액 — 실제 매수 경로가 예약 전에 두 자리로 버리고, 체결 뒤 잔액 = 주문별 두 자리 기대")
+    void fractionalRequestTruncatedBeforeReservation(String kind) throws Exception {
+        String stage = limits.getStage();
+        BigDecimal total = limits.getTotalCapKrw();
+        BigDecimal per = limits.getPerPositionCapKrw();
+        Integer slots = limits.getMaxConcurrentPositions();
+        limits.setStage("RND_" + UUID.randomUUID().toString().substring(0, 8));
+        limits.setMaxConcurrentPositions((int) positionRepository.countPoolSlots(-1L) + 10);
+        limits.setPerPositionCapKrw(new BigDecimal("20000"));
+        limits.setTotalCapKrw(positionRepository.sumPoolExposureKrw(-1L).add(new BigDecimal("1000000")));
+        poolLossGuard.setEnabledSetting(true);
+        Mockito.when(upbitOrderClient.createOrder(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any(),
+                        Mockito.anyString(), Mockito.anyString()))
+                .thenAnswer(inv -> {
+                    OrderResponse r = new OrderResponse();
+                    r.setUuid("rnd-new-" + UUID.randomUUID());
+                    r.setSide(inv.getArgument(1));
+                    r.setOrdType(inv.getArgument(4));
+                    r.setState("wait");
+                    r.setMarket(inv.getArgument(0));
+                    return new UpbitOrderClient.ExchangeResult(r, "{}");
+                });
+        try {
+            BigDecimal init;
+            BigDecimal raw;            // 비율을 곱한 원래 요청액(셋째 자리 이하 있음)
+            BigDecimal request;        // 기대 — 둘째 자리 버림
+            Long sid;
+            String result;
+            if ("LIVE".equals(kind)) {
+                // SID 203 과 같은 비율·상한(0.995 · 20,000) — 16,240.37 × 0.995 = 16,159.16815
+                init = new BigDecimal("16240.37");
+                raw = init.multiply(new BigDecimal("0.995"));
+                LiveTradingSessionEntity s = liveRepo.save(LiveTradingSessionEntity.builder()
+                        .sessionType("REAL").strategyType("COMPOSITE_BREAKOUT").coinPair("KRW-RND").timeframe("H1")
+                        .initialCapital(init).availableKrw(init).totalAssetKrw(init)
+                        .investRatio(new BigDecimal("0.995")).maxInvestment(new BigDecimal("20000"))
+                        .stopLossPct(new BigDecimal("5.00")).maxHoldHours(0)
+                        .status("RUNNING").startedAt(Instant.now()).build());
+                sid = s.getId();
+                Object target = org.springframework.test.util.AopTestUtils.getUltimateTargetObject(liveTradingService);
+                result = org.springframework.test.util.ReflectionTestUtils.invokeMethod(target, "executeSessionBuy",
+                        liveRepo.findById(sid).orElseThrow(), "KRW-RND", new BigDecimal("300"), "반올림 PG ⑧",
+                        null, null, candles());
+            } else {
+                // 10,000.37 × 0.8 = 8,000.296
+                init = new BigDecimal("10000.37");
+                raw = init.multiply(new BigDecimal("0.8000"));
+                sid = dynamicRepo.saveAndFlush(DynamicSessionEntity.builder()
+                        .strategyType("COMPOSITE_MOMENTUM_ICHIMOKU_V2").timeframe("H1")
+                        .initialCapital(init).availableKrw(init).totalAssetKrw(init)
+                        .investRatio(new BigDecimal("0.8000")).stopLossPct(new BigDecimal("5.00"))
+                        .status("RUNNING").scanState("SCANNING").tradingMode("REAL")
+                        .maxCandidateSize(30).targetWatchSize(10)
+                        .minAtrPct(new BigDecimal("0.5000")).maxSpreadPct(new BigDecimal("0.1000"))
+                        .watchlistRefreshMin(60).build()).getId();
+                Long dsid = sid;
+                result = new org.springframework.transaction.support.TransactionTemplate(txManager).execute(st ->
+                        dynamicTradingService.executeBuy(dynamicRepo.findById(dsid).orElseThrow(), "KRW-RND", candles(),
+                                com.cryptoautotrader.strategy.StrategySignal.buy(new BigDecimal("80"), "반올림 PG ⑧"), BigDecimal.ONE));
+            }
+            request = raw.setScale(2, RoundingMode.DOWN);
+            assertThat(result).as("%s 매수 경로 결과(null = 예약·제출)", kind).isNull();
+
+            OrderEntity o = orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc(kind, sid).stream()
+                    .filter(x -> "BUY".equals(x.getSide())).findFirst().orElseThrow();
+            awaitSubmitted(o.getId());
+            o = orderRepository.findById(o.getId()).orElseThrow();
+            Fx f = new Fx(kind, sid, o.getPositionId(), o.getId());
+            BigDecimal reserved = available(f);
+            trace(kind + " 예약", raw, o.getQuantity(), o.getReservedKrw(), reserved, position(f).getInvestedKrw());
+            assertThat(raw.scale()).as("원래 요청액은 셋째 자리 이하가 있다").isGreaterThan(2);
+            assertThat(raw.compareTo(new BigDecimal("20000"))).as("상한 미만").isNegative();
+            assertThat(o.getQuantity()).as("주문 요청액 = 둘째 자리 버림").isEqualByComparingTo(request);
+            assertThat(o.getReservedKrw()).as("예약액 = 요청액").isEqualByComparingTo(request);
+            assertThat(position(f).getInvestedKrw()).isEqualByComparingTo(request);
+            assertThat(reserved).as("예약 뒤 잔액 = 시작 − 버린 요청액 (수정 전이면 원래 요청액을 빼 열에서 반올림)")
+                    .isEqualByComparingTo(init.subtract(request));
+
+            // 체결 — 환급의 셋째 자리 이하가 있는 대금·수수료
+            BigDecimal funds = request.subtract(new BigDecimal("10.16655"));
+            BigDecimal fee = new BigDecimal("8.07506");
+            OrderResponse fill = buyResponse("done", "53.8", funds.toPlainString(), fee.toPlainString());
+            fill.setMarket("KRW-RND");
+            poll(f, fill);
+            BigDecimal expected = init.subtract(request)
+                    .add(request.subtract(funds).subtract(fee).setScale(2, RoundingMode.HALF_UP));
+            BigDecimal rawLedger = init.subtract(funds).subtract(fee);
+            trace(kind + " 체결", funds, fee, rawLedger, available(f), expected);
+            assertThat(order(f).getState()).isEqualTo("FILLED");
+            assertThat(available(f)).as("저장 잔액 = 주문별 두 자리 기대(시작 − 요청 + round(요청 − 대금 − 수수료, 2))")
+                    .isEqualByComparingTo(expected);
+            assertThat(position(f).getInvestedKrw()).as("투입액 = 대금 + 수수료(원시)").isEqualByComparingTo(funds.add(fee));
+        } finally {
+            limits.setStage(stage);
+            limits.setTotalCapKrw(total);
+            limits.setPerPositionCapKrw(per);
+            limits.setMaxConcurrentPositions(slots);
         }
     }
 
