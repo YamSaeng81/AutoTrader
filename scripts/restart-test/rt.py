@@ -43,6 +43,16 @@ def psql(sql):
     return [line.split('|') for line in r.stdout.strip().splitlines() if line]
 
 
+def psql_json(sql):
+    """결과 한 칸(JSON)을 자르지 않고 읽는다 — psql() 은 '|' 로 칸을 나눠 문자열을 자른다(2026-10-31 리뷰)."""
+    r = subprocess.run(['docker', 'exec', '-i', 'cat-rt-pg', 'psql', '-U', 'trader', '-d', 'crypto_auto_trader',
+                        '-v', 'ON_ERROR_STOP=1', '-At', '-c', sql],
+                       capture_output=True, text=True, encoding='utf-8')
+    if r.returncode != 0:
+        raise RuntimeError(r.stderr)
+    return json.loads(r.stdout)
+
+
 def psql_background(sql, label):
     """별도 psql 연결로 SQL 을 백그라운드 실행한다(잠금을 쥐고 기다리는 용도). 프로세스를 돌려준다."""
     out = open(os.path.join(WORK, f'psql-{label}.log'), 'w', encoding='utf-8')

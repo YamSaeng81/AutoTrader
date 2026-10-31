@@ -141,16 +141,145 @@ def seed_cache(anchor, cur_hour):
 
 
 def snapshot():
-    q = (f"SELECT (SELECT status || '|' || available_krw FROM live_trading_session WHERE id = {SID}) || ' # ' || "
-         f"(SELECT coalesce(string_agg(side || ':' || state || ':' || coalesce(filled_quantity::text, '-') || ':' || "
-         f"coalesce(applied_executed_funds::text, '-') || ':' || coalesce(applied_paid_fee::text, '-'), ',' ORDER BY id), '-') "
-         f"FROM \"order\" WHERE session_kind = 'LIVE' AND session_id = {SID}) || ' # ' || "
-         f"(SELECT coalesce(string_agg(status || ':' || size || ':' || coalesce(exit_reason, '-') || ':' || coalesce(realized_pnl::text, '-'), ',' ORDER BY id), '-') "
-         f"FROM position WHERE session_kind = 'LIVE' AND session_id = {SID}) || ' # cleanup ' || "
-         f"(SELECT count(*) FROM position_cleanup WHERE done_at IS NULL)")
-    x = rt.exchange_orders()
-    return one(q) + f" # 거래소 KRW {x['krw']} BTC {x['coin']} 주문 " + \
-        ','.join(f"{o['side']}:{o['state']}:{o.get('executed_volume')}" for o in x['orders'])
+    """⑥ 로그용 한 줄 요약 — ⑦ 대조에는 쓰지 않는다(record() 를 쓴다)."""
+    r = record()
+    s = r['session']
+    return (f"{s['status']} {s['available_krw']} # 주문 " + ','.join(f"{o['side']}:{o['state']}" for o in r['orders'])
+            + ' # 포지션 ' + ','.join(f"{p['status']}:{p['exit_reason']}" for p in r['positions'])
+            + f" # 거래소 KRW {r['exchange']['krw']} BTC {r['exchange']['coin']}")
+
+
+def record():
+    """🔴 (2026-10-31 리뷰) ⑦ 대조 기록 — 행 전체를 JSON 으로 읽는다.
+    종전 snapshot() 은 rt.one() 이 '|' 에서 잘라 'STOPPED' 만 비교했다(4차 ⑦ — 잔액·주문·포지션이 달라도 통과)."""
+    r = rt.psql_json(
+        "SELECT json_build_object("
+        f"'session', (SELECT row_to_json(s) FROM live_trading_session s WHERE id = {SID}), "
+        f"'orders', (SELECT coalesce(json_agg(o ORDER BY o.id), '[]') FROM \"order\" o WHERE session_kind = 'LIVE' AND session_id = {SID}), "
+        f"'positions', (SELECT coalesce(json_agg(p ORDER BY p.id), '[]') FROM position p WHERE session_kind = 'LIVE' AND session_id = {SID}), "
+        "'cleanup', (SELECT coalesce(json_agg(c ORDER BY c.position_id, c.pending_at), '[]') FROM position_cleanup c), "
+        "'discrepancies', (SELECT coalesce(json_agg(d ORDER BY d.id), '[]') FROM order_settlement_discrepancy d))")
+    r['exchange'] = rt.exchange_orders()
+    return r
+
+
+_MISSING = object()
+
+
+def differences(a, b, path=''):
+    """두 기록의 다른 곳을 모두 돌려준다(경로: 이전 → 이후)."""
+    if isinstance(a, dict) and isinstance(b, dict):
+        out = []
+        for k in sorted(set(a) | set(b), key=str):
+            out += differences(a.get(k, _MISSING), b.get(k, _MISSING), f'{path}.{k}')
+        return out
+    if isinstance(a, list) and isinstance(b, list):
+        if len(a) != len(b):
+            return [f'{path} 개수 {len(a)} → {len(b)}']
+        return [d for i, (x, y) in enumerate(zip(a, b)) for d in differences(x, y, f'{path}[{i}]')]
+    if a is _MISSING or b is _MISSING or a != b:
+        return [f"{path}: {'(없음)' if a is _MISSING else repr(a)} → {'(없음)' if b is _MISSING else repr(b)}"]
+    return []
+
+
+def save(name, data):
+    with open(os.path.join(rt.WORK, name), 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=1, sort_keys=True)
+
+
+def check_comparator(base):
+    """가짜 입력으로 비교기가 차이를 잡는지 본다 — 같은 기록은 차이 0, 바꾼 칸은 그 경로로 잡힌다."""
+    import copy
+    check('⑦  비교기 — 같은 기록은 차이 0', differences(base, copy.deepcopy(base)) == [])
+    fakes = [('잔액', lambda r: r['session'].__setitem__('available_krw', 20182.37), '.session.available_krw'),
+             ('주문 상태', lambda r: r['orders'][-1].__setitem__('state', 'SUBMITTED'), '.orders[1].state'),
+             ('포지션 상태', lambda r: r['positions'][0].__setitem__('status', 'OPEN'), '.positions[0].status'),
+             ('정리 대기', lambda r: r['cleanup'].append({'position_id': 0, 'done_at': None}), '.cleanup 개수'),
+             ('거래소 BTC', lambda r: r['exchange'].__setitem__('coin', '0.0016'), '.exchange.coin')]
+    for name, change, where in fakes:
+        fake = copy.deepcopy(base)
+        change(fake)
+        d = differences(base, fake)
+        check(f'⑦  비교기 — 가짜 {name} 변경을 잡는다', len(d) == 1 and d[0].startswith(where), '; '.join(d))
+
+
+def check_stopped_state(step):
+    """정지·청산 뒤 기대 상태 — 잔액 20,182.36 · 매수·매도 각 1건 FILLED · CLOSED · 활성 주문·정리 대기·미해결 불일치 0 · 대역 BTC 0."""
+    r = record()
+    s, orders, pos, x = r['session'], r['orders'], r['positions'], r['exchange']
+    check(f'{step}  세션 STOPPED · 잔액 20,182.36', s['status'] == 'STOPPED' and abs(float(s['available_krw']) - 20182.36) < 1e-9,
+          f"{s['status']} {s['available_krw']}")
+    check(f'{step}  주문 매수 1 · 매도 1, 둘 다 FILLED', [(o['side'], o['state']) for o in orders] == [('BUY', 'FILLED'), ('SELL', 'FILLED')],
+          str([(o['side'], o['state']) for o in orders]))
+    check(f'{step}  포지션 1개 CLOSED(FORCED_STOP)', [(p['status'], p['exit_reason']) for p in pos] == [('CLOSED', 'FORCED_STOP')],
+          str([(p['status'], p['exit_reason']) for p in pos]))
+    active = [o['id'] for o in orders if o['state'] in ('PENDING', 'INTENT_READY', 'SUBMITTING', 'UNKNOWN', 'SUBMITTED', 'PARTIAL_FILLED')]
+    pending = [c for c in r['cleanup'] if c['done_at'] is None]
+    order_ids = {o['id'] for o in orders}
+    unresolved = [d for d in r['discrepancies'] if d['order_id'] in order_ids and d['resolved_at'] is None]
+    check(f'{step}  활성 주문 0 · 정리 대기 0 · 미해결 정산 불일치 0', not active and not pending and not unresolved,
+          f'활성 {active} · 정리 대기 {len(pending)} · 미해결 {len(unresolved)}')
+    check(f'{step}  거래소 대역 — 매수 1 · 매도 1, BTC 0, KRW 999,982.36', [c['side'] for c in x['creates']] == ['bid', 'ask']
+          and float(x['coin']) == 0 and abs(float(x['krw']) - 999982.36) < 1e-6, f"KRW {x['krw']} BTC {x['coin']}")
+    return r
+
+
+def final_restart(props, done):
+    """⑦ 강제 종료(또는 이미 종료된 상태)에서 재기동 → 기록 전체가 그대로인지 본다."""
+    save('final-before.json', done)
+    check_comparator(done)
+    rt.kill_app()
+    rt.start_app(label='sma20-final-restart', props=props)
+    time.sleep(90)
+    after = record()
+    save('final-after.json', after)
+    d = differences(done, after)
+    check('⑦  강제 종료·재기동 뒤 세션·주문·포지션·정리·정산 불일치·거래소 기록 전체 그대로', d == [],
+          f'차이 {len(d)}' + ''.join('\n      ' + x for x in d[:30]))
+
+
+def summary():
+    errs = [l for l in rt.app_log().splitlines() if ' ERROR ' in l] if rt._app is not None else []
+    rt.log(f'마지막 앱 로그 ERROR {len(errs)}줄' + ''.join('\n    ' + l[:220] for l in errs[:10]))
+    passed = sum(1 for _, ok, _ in results if ok)
+    rt.log(f'결과 {passed}/{len(results)} 통과')
+    for name, ok, detail in results:
+        print(('PASS ' if ok else 'FAIL ') + name + (' — ' + detail if detail else ''))
+    sys.exit(0 if passed == len(results) else 1)
+
+
+# ── ⑦ 만 다시(2026-10-31 리뷰) ─────────────────────────────────────────────
+# RT_FINAL_FROM=<4차 증거 폴더> — 새 DB·①~⑥ 없이, 그 실행이 남긴 DB(cat-rt-pg)·대역 상태(사본)로 정지 상태를 다시 확인하고
+# 기록 전체를 파일로 남긴 뒤 재기동 대조만 한다. 원래 폴더의 파일은 바꾸지 않는다.
+FINAL_FROM = os.environ.get('RT_FINAL_FROM')
+if FINAL_FROM:
+    import shutil
+    if rt.port_in_use(rt.DOUBLE_PORT) or rt.port_in_use(rt.APP_PORT):
+        raise SystemExit(f'포트 {rt.DOUBLE_PORT}·{rt.APP_PORT} 중 사용 중 — 이전 대역·앱이 살아 있다. 정리한 뒤 다시')
+    with open(os.path.join(FINAL_FROM, 'exchange_state.json'), encoding='utf-8') as f:
+        prev_anchor = json.load(f)['market']['candles'][COIN]['anchor']
+    props = {'trading.capital-pool.stage': 'STAGE_1', 'trading.capital-pool.total-cap-krw': '100000',
+             'trading.capital-pool.per-position-cap-krw': '20000', 'trading.capital-pool.max-concurrent-positions': '3',
+             'upbit.market-data.base-url': f'http://127.0.0.1:{rt.DOUBLE_PORT}/v1',
+             'harness.daily-close-hour-utc': str(time.gmtime(prev_anchor).tm_hour)}
+    rt.log(f'⑦ 만 다시 — 원본 {FINAL_FROM}, 마감 시각(UTC) {props["harness.daily-close-hour-utc"]}시')
+    rt.dump_db('before-final-restart')
+    shutil.copyfile(os.path.join(FINAL_FROM, 'exchange_state.json'), os.path.join(rt.WORK, 'exchange_state.json'))
+    subprocess.run(['docker', 'start', 'cat-rt-redis'], capture_output=True)
+    rt.start_double(fresh=False)
+    try:
+        rt.log('  종전 비교값(rt.one, 잘림): ' + repr(one(
+            f"SELECT status || '|' || available_krw FROM live_trading_session WHERE id = {SID}")))
+        final_restart(props, check_stopped_state('②'))
+    except Abort as e:
+        rt.log(f'🔴 필수 단계 실패로 중단: {e}')
+    except Exception as e:
+        rt.log('🔴 실행기 예외로 중단:\n' + traceback.format_exc())
+        results.append((f'실행기 예외 {type(e).__name__}', False, str(e)))
+    finally:
+        rt.kill_all()
+        rt.stop_double()
+    summary()
 
 
 # ── 시작 ─────────────────────────────────────────────────────────────────
@@ -299,14 +428,10 @@ try:
     rc, out = run_bash('F3-stopped', localize(doc_block('**F3.'), (), 'F3-stopped'), created_at)
     check('⑥  F3 — ⛔ 세션 상태 STOPPED(정상 운영 아님 판정) · 대조 줄 일치',
           '⛔ 판정: 세션 상태 STOPPED' in out and '거래소 BTC 증감 0' in out and '세션 증감 -17.64' in out and '· 차이 0' in out)
-    done = snapshot()
-    rt.log(f'  정지 전: {before_stop}\n  정지 뒤: {done}')
+    rt.log(f'  정지 전: {before_stop}\n  정지 뒤: {snapshot()}')
 
-    # ⑦ 강제 종료 · 재기동 — 변화 없음
-    rt.kill_app()
-    rt.start_app(label='sma20-final-restart', props=PROPS)
-    time.sleep(90)
-    check('⑦  강제 종료·재기동 뒤 주문·잔액·포지션·정리·거래소 기록 그대로', snapshot() == done, snapshot())
+    # ⑦ 강제 종료 · 재기동 — 기록 전체 그대로
+    final_restart(PROPS, check_stopped_state('⑥'))
     rt.kill_app()
     rt.stop_double()
 
@@ -319,10 +444,4 @@ except Exception as e:
 finally:
     rt.kill_all()
     rt.stop_double()
-errs = [l for l in rt.app_log().splitlines() if ' ERROR ' in l] if rt._app is not None else []
-rt.log(f'마지막 앱 로그 ERROR {len(errs)}줄' + ''.join('\n    ' + l[:220] for l in errs[:10]))
-passed = sum(1 for _, ok, _ in results if ok)
-rt.log(f'결과 {passed}/{len(results)} 통과')
-for name, ok, detail in results:
-    print(('PASS ' if ok else 'FAIL ') + name + (' — ' + detail if detail else ''))
-sys.exit(0 if passed == len(results) else 1)
+summary()
