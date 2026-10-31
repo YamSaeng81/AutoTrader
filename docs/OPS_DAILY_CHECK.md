@@ -35,11 +35,18 @@ KILL 경보·잠금·누수는 WARN 이라 `[정기 점검]` 에는 나오지 �
 |---|---|---|---|
 | 서버 작업 트리 | `git status`(추적 파일) | 변경 없음 | 🔴 |
 | backend 컨테이너 | `docker inspect` | running · 재시작 0 · 구간 안 기동 없음 | 🔴(없음·멈춤·재시작·구간 안 기동 — "계획된 재기동인지 확인") |
-| 실자금 보유(OPEN·CLOSING) | `daily_checks.sql` | 0 | 🔴 |
-| 실자금 미결 주문 | 〃 | 0 | 🔴 |
+| SID 203 밖 실자금 보유(OPEN·CLOSING) | `daily_checks.sql` | 0 | 🔴 |
+| SID 203 밖 실자금 미결 주문 | 〃 | 0 | 🔴 |
 | 정리 대기 | 〃 | 0 | 🔴 |
 | 격리 대조 대상 | 〃 | 0 | 🔴 |
-| 구간 안 실자금 신규 매수 | 〃 (정비용 Q8 의 고정 날짜 대신 **점검 구간 시작**) | 0 (STAGE_1 비활성) | 🔴 |
+| 구간 안 SID 203 밖 실자금 신규 매수 | 〃 (정비용 Q8 의 고정 날짜 대신 **점검 구간 시작**) | 0 (실자금 진입은 SID 203 하나만) | 🔴 |
+| 미해결 정산 불일치(모든 세션, `order_settlement_discrepancy` `resolved_at` 없음) | 〃 | 0 | 🔴 |
+| SID 203 상태(`SID_ID`, 기본 203) | 〃 | `SID_OK_STATUS`(기본 `CREATED RUNNING`) 안. 56일 종료로 정지한 뒤에는 리뷰 판단을 받아 `STOPPED` 로 지정 | 🔴(비상정지·없음 등) |
+| SID 203 시작 전(`CREATED`) 주문·보유 | 〃 | 열린 포지션·미결 주문·구간 주문 모두 0 | 🔴 |
+| SID 203 열린 포지션 · 동시 미결 주문 | 〃 | 각각 **0~1** — 정상 매수·보유·청산·재진입은 허용 | 🔴 2 이상(중복 주문) |
+| SID 203 미결 주문 지속 · UNKNOWN | 〃 | `STALE_MIN`(기본 15)분 넘는 미결 0 · UNKNOWN 0 | 🔴 |
+| SID 203 중복 매수 | 〃 | 한 포지션의 체결 매수 1건 이하 · 구간 안 체결 매수 1건 이하(일봉 전략) | 🔴 |
+| SID 203 체결 주문 정산 반영 | 〃 | `STALE_MIN` 분 넘게 반영값(`applied_*`) 없음·회계 반영 대기 0 — 0 으로 대체하지 않는다 | 🔴 |
 | 격리 해제 기록 | 〃 | 0 | 🔴 |
 | 검증 66세션(522~587) | 〃 — RUNNING 아닌 세션 `id:상태` 목록(`s66_not_running`) | 원래 66개 중 **지정 종료 세션(`S66_ENDED_IDS`, 기본 `576 577 578`)만 STOPPED**, 나머지 RUNNING | 🔴 지정 밖 세션이 RUNNING 아님(지정 세션이 STOPPED 아닌 다른 상태여도) · 세션 수 66 아님 · **지정 세션이 다시 RUNNING(의도치 않은 재시작)** — 정지 완료(10-27 13:05 KST) 뒤라 '정지 대기' 로 넘기지 않는다(리뷰 2026-10-27, 종전 판 `fa0691e` 의 🟡 를 고쳤다). 🔴 기대값을 63 으로 낮춘 것이 아니다 — 어느 세션인지로 비교한다(리뷰 2026-10-27) |
 | 텔레그램 중요 경보 전송 실패(구간) | 〃 — `STOP_LOSS`·`SESSION_STOP`·`RISK_LIMIT`·`CLEANUP_NEEDS_HUMAN`·`CLEANUP_INCOMPLETE`·`EXCHANGE_DOWN`·`CANDLE_REFRESH_REPORT` | 0 | 🔴 (그 밖의 유형 실패는 🟡) |
@@ -56,6 +63,8 @@ KILL 경보·잠금·누수는 WARN 이라 `[정기 점검]` 에는 나오지 �
 | 캔들 판정 불가 | `CandleFreshnessGuard - .*\[캔들 최신성\].*판정 불가` | 🟡 건수 |
 | 상장 폐지 코인 캔들 404 | `UpbitRestClient - Upbit API 오류: status=404, url=https://api.upbit.com/v1/candles/.*Code not found` | 건수 + **마켓별**(리뷰 2026-10-27 — BLAST 상장 폐지가 건수에 묻혔다): **검증 코인**(`s66_coins`)이면 코인명과 함께 — 거래지원 종료 확인 마켓(`ENDED_MARKETS`)은 🟡, 확인되지 않은 마켓 소실은 🔴(업비트 공지 확인). 검증 밖 마켓은 마켓명·건수만 |
 | 외부 통신 실패 | `UpbitCandleCollector - 캔들 수집 실패` · `MarketDataSyncService - 시장 데이터 동기화 실패` · `UpbitOrderClient - 계좌 조회 실패` · `WatchlistFilterService - [Watchlist] 필터링 실패` · `TelegramNotificationService - [Telegram] 메시지 전송 중 오류(응답 미수신)` · `ClaudeProvider - [ClaudeProvider] 요청 실패` | 🟡 건수 |
+
+**SID 203 판정(리뷰 2026-10-31)**: 종전 판은 실자금 보유·신규 매수가 모두 0 이어야 정상이라 SID 203 의 정상 매수도 🔴 였다. 지금은 SID 203 을 따로 세고(위 표), 그 밖의 실자금 세션은 종전대로 0 을 기대한다. 첫날 F3(§5-8)는 누적 매수 2건 이상을 이상으로 보므로 일상 점검에 다시 쓰지 않는다. 잔액·비용·순손익 대조는 이 점검의 범위 밖이다(별도 기록 — 리뷰 2026-10-31 2번).
 
 이 목록에 넣는 것은 운영 기록으로 반복이 확인된 것만이다. 넣거나 빼려면 리뷰를 거친다.
 🔴 스크립트는 로케일을 **`LC_ALL=C`(바이트 비교)로 고정**한다(2026-10-27) — 서버 대화형 셸(`C.UTF-8`)에서 GNU grep 3.7 이 공유 풀 기동 줄을 위 정규식으로 잡지 못해 미분류 🔴 로 셌다(cron 의 `C` 에서는 정상, 원인 미규명).

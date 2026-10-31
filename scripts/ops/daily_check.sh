@@ -34,6 +34,11 @@ EXPECT_S66="${EXPECT_S66:-66}"
 S66_ENDED_IDS="${S66_ENDED_IDS-576 577 578}"
 ENDED_MARKETS="${ENDED_MARKETS-KRW-BLAST}"
 TZ_EXPECT="${TZ_EXPECT:-+0900}"
+# 실거래 시험 세션(리뷰 2026-10-31) — 정상 매수·보유·청산·재진입은 허용하고 중복·미결 지연·정산 이상만 🔴. 다른 실자금 세션은 종전대로 0 기대.
+# SID_OK_STATUS: 정상으로 보는 상태 — 시작 전 CREATED, 운영 중 RUNNING. 56일 종료로 정지한 뒤에는 리뷰 판단을 받아 STOPPED 로 바꾼다.
+SID_ID="${SID_ID:-203}"
+SID_OK_STATUS="${SID_OK_STATUS-CREATED RUNNING}"
+STALE_MIN="${STALE_MIN:-15}"
 TG_API="${TG_API:-https://api.telegram.org}"
 SLEEP_CMD="${SLEEP_CMD:-sleep}"
 REPORT_LIMIT="${REPORT_LIMIT:-3500}"      # 텔레그램 한 메시지 상한 4096자 안 — 문자 기준
@@ -129,7 +134,7 @@ detail "앱: $APP_STATUS · 재시작 ${APP_RESTARTS:-?} · 기동 $APP_STARTED 
 
 # ── 3. DB 조회 — 시간 초과·오류·출력 누락은 판정 불가 ──
 SQL_FILE="${SQL_FILE:-$REPO_DIR/scripts/ops/daily_checks.sql}"   # 설치본은 저장소 밖(~/ops-scripts) — 서버 체크아웃은 배포 SHA 에 고정돼 있다
-SQL_OUT=$(timeout "$SQL_TIMEOUT" $PSQL_CMD -At -F'|' -v since="$SINCE_ISO" -f - < "$SQL_FILE" 2>&1); SQL_RC=$?
+SQL_OUT=$(timeout "$SQL_TIMEOUT" $PSQL_CMD -At -F'|' -v since="$SINCE_ISO" -v sid="$SID_ID" -v stale_min="$STALE_MIN" -f - < "$SQL_FILE" 2>&1); SQL_RC=$?
 declare -A KV=()
 TG_FAIL_LINES=()
 if [ $SQL_RC -eq 124 ]; then
@@ -149,7 +154,7 @@ else
   done <<< "$SQL_OUT"
   # 필수 키가 하나라도 빠지면 출력 누락
   for k in flyway_version real_open_positions real_unresolved_orders cleanup_pending quarantine_targets s66_running s66_total \
-           s66_not_running s66_coins real_buys_window quarantine_release_rows tg_queue_rejected tg_ok_window tg_last_ok; do
+           s66_not_running s66_coins real_buys_window quarantine_release_rows tg_queue_rejected tg_ok_window tg_last_ok            sid_status sid_available_krw sid_open_positions sid_active_orders sid_stale_orders sid_unknown_orders            sid_dup_buy_positions sid_filled_buys_window sid_orders_window sid_unapplied_fills settlement_unresolved; do
     [ -n "${KV[$k]+x}" ] || unknown "DB 조회 출력 누락($k)"
   done
 fi
@@ -157,12 +162,34 @@ chk_zero() {  # 키 설명
   local v="${KV[$1]:-}"; [ -z "$v" ] && return
   [ "$v" = "0" ] || red "$2 $v"
 }
+chk_max() {  # 키 상한 설명
+  local v="${KV[$1]:-}"; [ -z "$v" ] && return
+  [ "$v" -le "$2" ] 2>/dev/null || red "$3 $v(상한 $2)"
+}
 if [ ${#KV[@]} -gt 0 ]; then
-  chk_zero real_open_positions "실자금 보유(OPEN·CLOSING)"
-  chk_zero real_unresolved_orders "실자금 미결 주문"
+  chk_zero real_open_positions "SID $SID_ID 밖 실자금 보유(OPEN·CLOSING)"
+  chk_zero real_unresolved_orders "SID $SID_ID 밖 실자금 미결 주문"
   chk_zero cleanup_pending "정리 대기"
   chk_zero quarantine_targets "격리 대조 대상"
-  chk_zero real_buys_window "점검 구간 실자금 신규 매수"
+  chk_zero real_buys_window "점검 구간 SID $SID_ID 밖 실자금 신규 매수"
+  chk_zero settlement_unresolved "미해결 정산 불일치"
+  # SID 203 — 개수 상한으로 본다: 보유 0~1 · 미결 0~1 · 구간 체결 매수 0~1(일봉 전략). 시작 전(CREATED)에는 주문·보유 모두 0.
+  st="${KV[sid_status]:-}"
+  if [ -n "$st" ]; then
+    [[ " $SID_OK_STATUS " == *" $st "* ]] || red "SID $SID_ID 상태 $st(정상: $SID_OK_STATUS)"
+    if [ "$st" = "CREATED" ]; then
+      for k in sid_open_positions sid_active_orders sid_orders_window; do
+        v="${KV[$k]:-0}"; [ "$v" = "0" ] || [ "$v" = "0 0" ] || red "SID $SID_ID 시작 전(CREATED)인데 $k $v"
+      done
+    fi
+  fi
+  chk_max sid_open_positions 1 "SID $SID_ID 열린 포지션"
+  chk_max sid_active_orders 1 "SID $SID_ID 동시 미결 주문(중복 주문)"
+  chk_zero sid_stale_orders "SID $SID_ID 미결 주문 ${STALE_MIN}분 넘게 지속"
+  chk_zero sid_unknown_orders "SID $SID_ID UNKNOWN 주문"
+  chk_zero sid_dup_buy_positions "SID $SID_ID 한 포지션에 체결 매수 2건 이상(중복 매수)"
+  chk_max sid_filled_buys_window 1 "SID $SID_ID 구간 안 체결 매수(일봉 전략 — 중복 매수 의심)"
+  chk_zero sid_unapplied_fills "SID $SID_ID 체결 주문 정산 반영값 없음·반영 대기(${STALE_MIN}분 넘게)"
   chk_zero tg_queue_rejected "텔레그램 큐 진입 실패"
   qr="${KV[quarantine_release_rows]:-}"; [ -n "$qr" ] && [ "$qr" != "0" ] && [ "$qr" != "-1" ] && red "격리 해제 기록 $qr"
   # 검증 세션 — 개수가 아니라 어느 세션인지로 본다: 지정 종료 세션의 STOPPED 만 정상, 그 밖의 RUNNING 아님은 🔴
@@ -185,7 +212,9 @@ if [ ${#KV[@]} -gt 0 ]; then
     [ ${#s66_rerun[@]} -gt 0 ] && red "거래 종료한 지정 세션이 다시 RUNNING(의도치 않은 재시작): ${s66_rerun[*]}"
     S66_LINE="66세션: 원래 ${KV[s66_total]:-?} 중 RUNNING ${KV[s66_running]:-?} · 지정 종료 STOPPED ${#s66_ended[@]}/$(echo $S66_ENDED_IDS | wc -w)${S66_ENDED_IDS:+($S66_ENDED_IDS)}"
   fi
-  detail "DB: Flyway ${KV[flyway_version]:-?} · 실자금 보유 ${KV[real_open_positions]:-?} · 미결 ${KV[real_unresolved_orders]:-?} · 정리 대기 ${KV[cleanup_pending]:-?} · 격리 대상 ${KV[quarantine_targets]:-?} · $S66_LINE · 구간 실자금 매수 ${KV[real_buys_window]:-?}"
+  detail "DB: Flyway ${KV[flyway_version]:-?} · SID $SID_ID 밖 실자금 보유 ${KV[real_open_positions]:-?} · 미결 ${KV[real_unresolved_orders]:-?} · 정리 대기 ${KV[cleanup_pending]:-?} · 격리 대상 ${KV[quarantine_targets]:-?} · $S66_LINE · 구간 SID $SID_ID 밖 실자금 매수 ${KV[real_buys_window]:-?}"
+  read -r sb ss <<< "${KV[sid_orders_window]:-? ?}"
+  detail "SID $SID_ID: ${KV[sid_status]:-?} · 잔액 ${KV[sid_available_krw]:-?} · 보유 ${KV[sid_open_positions]:-?} · 미결 ${KV[sid_active_orders]:-?} · 구간 주문 매수 ${sb} 매도 ${ss} · 미해결 정산 불일치(전체) ${KV[settlement_unresolved]:-?}"
   detail "텔레그램(구간): 성공 ${KV[tg_ok_window]:-?} · 큐 진입 실패 ${KV[tg_queue_rejected]:-?} · 마지막 성공 ${KV[tg_last_ok]:-?}"
   for line in "${TG_FAIL_LINES[@]}"; do
     t="${line%%|*}"; n="${line##*|}"
