@@ -53,7 +53,8 @@ def ledger(db, init="20200"):
 # 1. 보존된 리허설 4차 기록(원본, 읽기 전용) — 정지 청산 매도가 stopped_at 뒤에 체결된 실제 자료
 rc, R, raw = ledger("crypto_auto_trader")
 l1 = R.get("L1", [])
-check("원본 리허설 — 종료 0·L0~L4 모두 나온다·끝 표시", rc == 0 and all(k in R for k in ("L0", "L1", "L2", "L3", "L4")) and "== 끝" in raw, raw)
+check("원본 리허설 — 종료 0·L0~L5 모두 나온다·끝 표시·L0 조회 시각(재구성 시점)", rc == 0 and all(k in R for k in ("L0", "L1", "L2", "L3", "L4", "L5")) and "== 끝" in raw
+      and R["L0"][0]["queried_kst"][:2] == "20", raw)
 check("원본 리허설 — L0 initial_capital = init (t)", R["L0"][0]["init_ok"] == "t", R["L0"])
 exp_cash = D("20200") - (D("19600") + D("9.8")) + (D("19600") - D("7.84"))   # 20182.36
 check("원본 리허설 — 날 끝 현금 = 20200 − (19600+9.80) + (19600−7.84) = 20182.36 · BTC 0 · 순손익 −17.64(정지 뒤 체결한 매도 포함)",
@@ -68,9 +69,15 @@ l2 = {r["id"]: r for r in R["L2"]}
 check("원본 리허설 — 매수 슬리피지 = 19600 − 12255000×0.0016 = −8.00(유리) · 매도는 신호가 없어 '기준가 없음'(0 으로 채우지 않음)",
       D(l2["1"]["slip_krw"]) == D("-8.00") and l2["2"]["slip_krw"] == "-" and l2["2"]["note"] == "기준가 없음", R["L2"])
 l3 = R["L3"][0]
-check("원본 리허설 — 왕복 비용률 = (17.64 − 8.00) / 19600 = 0.0492% · 순 −17.64 · 기준가 없음 1",
-      D(l3["cost_pct"]) == round((D("17.64") - D("8")) / D("19600") * 100, 4) == D("0.0492") and D(l3["net_krw"]) == D("-17.64") and l3["no_ref"] == "1",
-      l3)
+# 🔴 리뷰 2026-10-31 보완 1: 종전 판은 청산 기준가가 없는데도 빠진 슬리피지를 빼고 0.0492% 를 냈다 — 완전한 왕복 비용률이 아니다.
+check("원본 리허설 — 정지 청산 매도에 신호가가 없어 왕복 '측정 불가(청산 기준가 없음)' · 비용률·판정 비움(종전 0.0492% 아님) · 진입 불리 −0.04079967% · 실제 수수료 17.64 따로 · 순 −17.64",
+      l3["rt_status"] == "측정 불가(청산 기준가 없음)" and l3["cost_pct"] == "-" and l3["cost_gt_040"] == "-"
+      and D(l3["entry_unf_pct"]) == round((D("19600") - D("12255000") * D("0.0016")) / (D("12255000") * D("0.0016")) * 100, 8)
+      and l3["exit_unf_pct"] == "-" and D(l3["fees"]) == D("17.64") and D(l3["net_krw"]) == D("-17.64"), l3)
+l5 = {r["kind"]: r for r in R["L5"]}
+check("원본 리허설 — L5 출처별: 서킷브레이커 0 · 포지션 한도 0 · 공유 풀 차단 0 · 최종 STOPPED '일반 정지'(사유는 운영자 기록)",
+      l5["서킷브레이커"]["n"] == "0" and l5["포지션 한도 도달"]["n"] == "0" and l5["공유 풀 손실 한도(진입 차단)"]["n"] == "0"
+      and l5["세션 최종 상태"]["n"] == "STOPPED" and l5["세션 최종 상태"]["detail"].startswith("일반 정지"), R["L5"])
 before = sql("crypto_auto_trader", 'SELECT status, available_krw FROM live_trading_session WHERE id = 203; SELECT count(*), sum(filled_quantity) FROM "order";', at=True)
 check("원본 리허설 — 조회 뒤에도 원본 그대로(STOPPED 20182.36 · 주문 2)", before.split() == ["STOPPED|20182.36", "2|0.00320000"], before)
 
@@ -79,7 +86,8 @@ sql("postgres", "DROP DATABASE IF EXISTS %s; CREATE DATABASE %s TEMPLATE crypto_
 
 
 def reset(started="2026-10-28 08:50:00+09", status="RUNNING", stopped=None):
-    sql(DB, 'DELETE FROM order_settlement_discrepancy; DELETE FROM position_cleanup; DELETE FROM trade_log; DELETE FROM "order"; DELETE FROM position; '
+    sql(DB, 'DELETE FROM order_settlement_discrepancy; DELETE FROM position_cleanup; DELETE FROM trade_log; DELETE FROM "order"; DELETE FROM position; DELETE FROM position_limit_breach; '
+            "DELETE FROM strategy_log WHERE session_type = 'PAPER' AND session_id = 203; "
             "DELETE FROM strategy_log WHERE session_id = 203; "
             "UPDATE live_trading_session SET status = '%s', started_at = %s, stopped_at = %s, available_krw = 20200 WHERE id = 203;"
             % (status, "'%s'" % started if started else "NULL", "'%s'" % stopped if stopped else "NULL"))
@@ -123,6 +131,12 @@ check("여러 날 — L4 순체결량 0.0016 = 열린 포지션 0.0016 · 장부
       D(R["L4"][0]["net_btc"]) == D("0.0016") == D(R["L4"][0]["open_size"]) and D(R["L4"][0]["ledger_cash"]) == cash
       and D(R["L4"][0]["available_krw"]) == D("20200"), R["L4"])
 
+sql(DB, "UPDATE \"order\" SET applied_paid_fee = 10.0, reported_paid_fee = 10.0 WHERE id = 1;")   # 며칠 뒤 온 수수료 정정
+rc, R2, raw = ledger(DB)
+d2 = {r["kst_date"]: r for r in R2["L1"]}
+check("늦은 수수료 정정(9.8 → 10.0) — 다시 돌리면 지난 날(10-28)의 현금도 590.00 으로 바뀐다(조회 시점 최신 반영값으로 재구성한 기록 — 그날 값은 날짜별 원본 파일)",
+      rc == 0 and D(days["2026-10-28"]["cash"]) == cash and D(d2["2026-10-28"]["cash"]) == D("20200") - D("19600") - D("10.0"), R2["L1"])
+
 reset(); buy(fee=None)
 rc, R, raw = ledger(DB)
 check("반영 수수료 없음 — 그 날부터 현금·자산·순손익 비움 '확인 불가'(0 대체 없음), 보유 수량·평가액은 낸다",
@@ -138,6 +152,109 @@ reset(); buy(rfee="9.9")
 rc, R, raw = ledger(DB)
 check("보고 수수료 9.9 ≠ 반영 9.8 — 주문 줄 '보고≠반영'(현금은 반영값 기준)", rc == 0 and R["L2"][0]["note"] == "보고≠반영"
       and D(R["L1"][0]["cash"]) == cash, R["L2"])
+
+
+
+def rt(bq="0.001", sq="0.001", b_sp="10000000", s_sp="10000000", b_af="9990", s_af="9960", b_fee="4.995", s_fee="4.98", pos_status="CLOSED", sell=True, s_fee_rep=""):
+    """왕복 1개(포지션 2, 매수 id 11 · 매도 id 12). 값은 문자열, None 은 NULL. s_fee_rep 를 비우면 보고 수수료 = 반영 수수료."""
+    v = lambda x: "NULL" if x is None else x
+    sql(DB, "INSERT INTO position (id, coin_pair, side, entry_price, avg_price, size, status, session_id, session_kind) "
+            "VALUES (2, 'KRW-BTC', 'LONG', 10000000, 10000000, %s, '%s', 203, 'LIVE');" % ("0" if pos_status == "CLOSED" else bq, pos_status))
+    ins = ('INSERT INTO "order" (id, position_id, coin_pair, side, order_type, quantity, state, filled_quantity, session_id, session_kind, created_at, filled_at, '
+           "signal_price, reported_executed_funds, reported_paid_fee, applied_executed_funds, applied_paid_fee, fill_accounting_pending) VALUES ")
+    sql(DB, ins + "(11, 2, 'KRW-BTC', 'BUY', 'MARKET', %s, 'FILLED', %s, 203, 'LIVE', '2026-10-28 09:00:10+09', '2026-10-28 09:00:10+09', %s, %s, %s, %s, %s, false);"
+            % (bq, bq, v(b_sp), b_af, b_fee, b_af, b_fee))
+    if sell:
+        sql(DB, ins + "(12, 2, 'KRW-BTC', 'SELL', 'MARKET', %s, 'FILLED', %s, 203, 'LIVE', '2026-10-29 09:00:10+09', '2026-10-29 09:00:10+09', %s, %s, %s, %s, %s, false);"
+                % (sq, sq, v(s_sp), s_af, v(s_fee) if s_fee_rep == "" else v(s_fee_rep), s_af, v(s_fee)))
+    rc, R, raw = ledger(DB)
+    return rc, (R.get("L3") or [{}])[0], R, raw
+
+
+# 3. 왕복 비용률 — 사전 등록 정의(불리 진입 + 불리 청산 + 0.10) · 측정 불가 · 왕복 미완료 (리뷰 2026-10-31 보완 1)
+def prereg(b_af, b_ref, s_af, s_ref):
+    """LIVE_ENTRY_PREREG.md 비용의 정의 — 조회와 따로 계산"""
+    return (D(b_af) - D(b_ref)) / D(b_ref) * 100 + (D(s_ref) - D(s_af)) / D(s_ref) * 100 + D("0.10")
+
+
+reset(); rc, l3, R, raw = rt()
+exp = prereg("9990", "10000", "9960", "10000")                                   # −0.10 + 0.40 + 0.10 = 0.40
+old = (D("4.995") + D("4.98") + (D("9990") - D("10000")) + (D("10000") - D("9960"))) / D("9990") * 100   # 종전 식 (수수료 + 슬리피지) / 매수 대금
+check("경계 — 사전 등록 정의 0.40000000%% → cost_gt_040 f (종전 식이면 %.8f%% 로 > 0.40 — 판단이 갈리는 사례) · 실제 수수료 9.975 는 따로" % old,
+      rc == 0 and exp == D("0.40") and old > D("0.40") and l3.get("rt_status") == "측정" and D(l3["cost_pct"]) == exp and l3["cost_gt_040"] == "f"
+      and D(l3["fees"]) == D("9.975"), l3)
+reset(); rc, l3, R, raw = rt(s_af="9959.99")
+check("경계 바로 위 — 청산 9959.99 → 0.40010000% → cost_gt_040 t (반올림 전 값으로 판정)",
+      rc == 0 and D(l3["cost_pct"]) == round(prereg("9990", "10000", "9959.99", "10000"), 8) == D("0.40010000") and l3["cost_gt_040"] == "t", l3)
+reset(); rc, l3, R, raw = rt(b_sp=None)
+check("진입 기준가 없음 — '측정 불가(진입 기준가 없음)' · 비용률·판정 비움", rc == 0 and l3["rt_status"] == "측정 불가(진입 기준가 없음)"
+      and l3["cost_pct"] == "-" and l3["cost_gt_040"] == "-", l3)
+reset(); rc, l3, R, raw = rt(s_fee=None)
+check("청산 반영 수수료 없음 — '측정 불가(정산 확인 불가)' · 비용률·순손익 비움", rc == 0 and l3["rt_status"] == "측정 불가(정산 확인 불가)"
+      and l3["cost_pct"] == "-" and l3["net_krw"] == "-", l3)
+reset(); rc, l3, R, raw = rt(s_fee_rep=None)
+check("청산 보고 수수료 없음 — '측정 불가(정산 확인 불가)'", rc == 0 and l3["rt_status"] == "측정 불가(정산 확인 불가)" and l3["cost_pct"] == "-", l3)
+reset(); rc, l3, R, raw = rt(sq="0.0009", s_af="8964")
+check("매수 0.001 · 매도 0.0009 — '측정 불가(매수/매도 수량 불일치)' · 비용률·순손익 비움", rc == 0 and l3["rt_status"] == "측정 불가(매수/매도 수량 불일치)"
+      and l3["cost_pct"] == "-" and l3["net_krw"] == "-", l3)
+reset(); rc, l3, R, raw = rt(pos_status="OPEN", sell=False)
+check("열린 포지션 — '왕복 미완료' · 비용률·판정 비움(진입 불리 −0.1 은 적는다)", rc == 0 and l3["rt_status"] == "왕복 미완료"
+      and l3["cost_pct"] == "-" and l3["cost_gt_040"] == "-" and D(l3["entry_unf_pct"]) == D("-0.1"), l3)
+
+# 4. 중단 기능별 기록(L5) — 서킷브레이커와 다른 중단 사유를 구분 (리뷰 2026-10-31 보완 4)
+reset(status="EMERGENCY_STOPPED", stopped="2026-10-29 10:00:00+09")
+sql(DB, "UPDATE live_trading_session SET circuit_breaker_trip_count = 1, circuit_breaker_reason = 'MDD 20% 초과', "
+        "circuit_breaker_triggered_at = '2026-10-29 10:00:00+09' WHERE id = 203;")
+rc, R, raw = ledger(DB)
+l5 = {r["kind"]: r for r in R["L5"]}
+check("서킷브레이커 비상정지 — 서킷브레이커 1·사유·시각 · 최종 EMERGENCY_STOPPED '서킷브레이커 발동 기록과 함께'",
+      rc == 0 and l5["서킷브레이커"]["n"] == "1" and l5["서킷브레이커"]["detail"] == "MDD 20% 초과" and l5["서킷브레이커"]["last_kst"] == "2026-10-29 10:00:00"
+      and l5["세션 최종 상태"]["n"] == "EMERGENCY_STOPPED" and "서킷브레이커 발동 기록과 함께" in l5["세션 최종 상태"]["detail"], R["L5"])
+sql(DB, "UPDATE live_trading_session SET circuit_breaker_trip_count = 0, circuit_breaker_reason = NULL, circuit_breaker_triggered_at = NULL WHERE id = 203;")
+rc, R, raw = ledger(DB)
+l5 = {r["kind"]: r for r in R["L5"]}
+check("서킷브레이커 기록 없는 비상정지(거래소 장애 일괄·수동) — 서킷브레이커 0 이어도 '발동 없음'으로 끝내지 않고 '사유는 앱 로그·텔레그램으로 확인'",
+      rc == 0 and l5["서킷브레이커"]["n"] == "0" and "서킷브레이커 기록 없음" in l5["세션 최종 상태"]["detail"]
+      and "앱 로그" in l5["세션 최종 상태"]["detail"], R["L5"])
+reset(status="STOPPED", stopped="2026-10-29 10:00:00+09")
+sql(DB, "INSERT INTO position_limit_breach (position_id, session_kind, session_id, code, value_krw, cost_krw, detail, breached_at, stop_action, stop_at) "
+        "VALUES (1, 'LIVE', 203, 'CAPITAL_LOSS', 17000, 20000, 't', '2026-10-29 09:59:00+09', 'AUTO_STOPPED', '2026-10-29 10:00:00+09'), "
+        "(9, 'LIVE', 204, 'MAX_DRAWDOWN', 1, 1, 't', '2026-10-29 09:59:00+09', NULL, NULL);"
+        "INSERT INTO strategy_log (strategy_name, coin_pair, signal, reason, created_at, session_type, session_id, was_executed, blocked_reason) VALUES "
+        "('DAILY_SMA20', 'KRW-BTC', 'BUY', 't', '2026-10-28 09:00:05+09', 'LIVE', 203, false, '예약 거절(POOL_LOSS_LIMIT): 누적 손실 한도 도달 — t'), "
+        "('DAILY_SMA20', 'KRW-BTC', 'BUY', 't', '2026-10-28 09:00:05+09', 'PAPER', 203, false, '예약 거절(POOL_LOSS_LIMIT): 다른 세션 종류');")
+rc, R, raw = ledger(DB)
+l5 = {r["kind"]: r for r in R["L5"]}
+check("포지션 한도 자동 정지·공유 풀 손실 한도 차단 — 각각 1(SID 203 LIVE 만, 204·PAPER 제외) · 최종 STOPPED '일반 정지'",
+      rc == 0 and l5["포지션 한도 도달"]["n"] == "1" and "CAPITAL_LOSS 정지 AUTO_STOPPED" in l5["포지션 한도 도달"]["detail"]
+      and l5["공유 풀 손실 한도(진입 차단)"]["n"] == "1" and l5["세션 최종 상태"]["n"] == "STOPPED", R["L5"])
+
+# 5. §5-8 F5-3 완료 조회 — 문서에서 그대로 꺼내 돌린다. 최종 상태는 STOPPED 또는 EMERGENCY_STOPPED (리뷰 2026-10-31 보완 4)
+PLAN = os.path.join(HERE, "..", "..", "docs", "LIMITED_LIVE_TEST_PLAN.md")
+_doc = open(PLAN, encoding="utf-8").read()
+_i = _doc.index('$PSQL -At -F \' | \' -c "SELECT *, CASE WHEN status IN')
+_q = _doc[_doc.index('"', _i) + 1:_doc.index(' x" | tee "$E/stop-check.txt"', _i) + 2]
+STOP_CHECK = _q.replace('\\"', '"').replace("$SID", "203") + ";"
+
+
+def stop_check(db):
+    r = subprocess.run(PG + ["-d", db, "-At", "-F", " | ", "-c", STOP_CHECK], capture_output=True)
+    return r.returncode, r.stdout.decode("utf-8").strip() + r.stderr.decode("utf-8", "replace")
+
+
+rc, out = stop_check("crypto_auto_trader")
+check("F5-3 완료 조회(문서 그대로) — 보존 4차 기록: 'STOPPED | 20182.36 | … | 0 | 0 | 0 | 0 | 완료 조건 충족 — 상태 STOPPED 그대로'",
+      rc == 0 and out.startswith("STOPPED | 20182.36 | ") and out.endswith(" | 0 | 0 | 0 | 0 | 완료 조건 충족 — 상태 STOPPED 그대로"), out)
+reset(status="EMERGENCY_STOPPED", stopped="2026-10-29 10:00:00+09"); rt()
+rc, out = stop_check(DB)
+check("F5-3 — 비상정지 뒤 청산 완료(포지션 CLOSED·활성 주문 0): '완료 조건 충족 — 상태 EMERGENCY_STOPPED 그대로'(STOPPED 를 요구하지 않음)",
+      rc == 0 and out.startswith("EMERGENCY_STOPPED | ") and out.endswith(" | 0 | 0 | 0 | 0 | 완료 조건 충족 — 상태 EMERGENCY_STOPPED 그대로"), out)
+reset(status="EMERGENCY_STOPPED", stopped="2026-10-29 10:00:00+09"); rt(pos_status="OPEN", sell=False)
+rc, out = stop_check(DB)
+check("F5-3 — 비상정지인데 열린 포지션 1: '미완료'", rc == 0 and out.startswith("EMERGENCY_STOPPED | ") and out.endswith(" | 0 | 1 | 0 | 0 | 미완료"), out)
+reset(status="RUNNING"); rt()
+rc, out = stop_check(DB)
+check("F5-3 — RUNNING 이면 주문·포지션이 0 이어도 '미완료'", rc == 0 and out.startswith("RUNNING | ") and out.endswith(" | 미완료"), out)
 
 reset(started=None, status="CREATED")
 rc, R, raw = ledger(DB)

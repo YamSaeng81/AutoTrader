@@ -92,7 +92,7 @@ sha256sum ~/ops-scripts/daily_check.sh ~/ops-scripts/daily_checks.sql   # 설치
 ```
 스크립트는 `REPO_DIR`(저장소)와 SQL 위치를 알아야 한다. 설치본은 `~/ops-scripts` 에 두므로 둘 다 지정해 돌린다:
 ```bash
-REPO_DIR=~/crypto_trader/AutoTrader SQL_FILE=~/ops-scripts/daily_checks.sql DRY_RUN=1 ~/ops-scripts/daily_check.sh
+SID_OK_STATUS=CREATED REPO_DIR=~/crypto_trader/AutoTrader SQL_FILE=~/ops-scripts/daily_checks.sql DRY_RUN=1 ~/ops-scripts/daily_check.sh
 ```
 첫 실행은 **`DRY_RUN=1`(보고를 보내지 않고 화면에)** 로 하고 출력을 리뷰에 보낸다. 판정이 맞으면 `DRY_RUN` 없이 한 번 더 돌려 텔레그램 수신을 확인한 뒤 cron 에 넣는다:
 ```bash
@@ -108,23 +108,42 @@ crontab -e
 ### 3-1. SID 203 시작 뒤 정상 상태 전환 (1회, F2 시작 확인 직후)
 
 설치부터 시작 전까지는 `CREATED` 만 정상이다 — 계획 밖에서 시작되면 다음 점검이 🔴 로 잡는다.
-§5-8 F2 의 시작 요청 뒤 **세션이 `RUNNING` 인 것을 확인한 직후**, 첫 정기 점검(10:00 KST) 전에 cron 줄의 값 하나만 바꾼다:
+§5-8 F2 의 시작 요청 뒤 **세션이 `RUNNING` 인 것을 확인한 직후**, 첫 정기 점검(10:00 KST) 전에 cron 줄의 값 하나만 바꾼다.
+🔴 종전 명령(`crontab -l | sed … | crontab -`)은 조회가 실패하면 빈 입력을 그대로 적용해 **cron 전체를 비운다**(리뷰 2026-10-31 지적, 모의 명령으로 확인 — §6 `test_cron_switch.py`). 아래 블록은 조회 성공본을 파일로 저장 → 대상 줄 정확히 1개 확인 → 수정본에서 다른 줄 보존 확인 → 적용 → 적용 뒤 대조 순서다. 어느 확인이든 실패하면 **적용 전에 멈추고 cron 은 그대로**다.
 ```bash
-crontab -l > ~/daily-check/crontab.before-running     # 바꾸기 전 줄 보존
-crontab -l | sed 's/SID_OK_STATUS=CREATED /SID_OK_STATUS=RUNNING /' | crontab -
-crontab -l | grep -c 'SID_OK_STATUS=RUNNING '          # 1 이어야 한다
+(
+set -euo pipefail
+FROM=CREATED; TO=RUNNING                                    # 56일 종료 뒤에는 리뷰 판단을 받아 이 줄만 FROM=RUNNING; TO=<최종 상태>
+D=~/daily-check; B="$D/crontab.before-$TO"; N="$D/crontab.new-$TO"
+stop() { echo "🔴 멈춤: $* — cron 은 바꾸지 않았다"; exit 1; }
+[ ! -e "$B" ] || stop "$B 가 이미 있다(전에 바꾼 적이 있다) — crontab -l 출력과 함께 보고"
+crontab -l > "$B" || stop "crontab 조회 실패"
+[ -s "$B" ] || stop "조회한 crontab 이 비었다"
+[ "$(grep -c "SID_OK_STATUS=$FROM " "$B" || true)" = 1 ] || stop "SID_OK_STATUS=$FROM 줄이 정확히 1개가 아니다"
+! grep -q "SID_OK_STATUS=$TO " "$B" || stop "SID_OK_STATUS=$TO 줄이 이미 있다"
+sed "s/SID_OK_STATUS=$FROM /SID_OK_STATUS=$TO /" "$B" > "$N"
+[ "$(wc -l < "$N")" = "$(wc -l < "$B")" ] || stop "수정본 줄 수가 다르다"
+[ "$(grep -c "SID_OK_STATUS=$TO " "$N" || true)" = 1 ] || stop "수정본에서 바뀐 줄이 1개가 아니다"
+diff <(grep -v "SID_OK_STATUS=$TO " "$N" || true) <(grep -v "SID_OK_STATUS=$FROM " "$B" || true) > /dev/null || stop "수정본에서 다른 줄이 달라졌다"
+crontab "$N" || stop "crontab 적용 실패 — crontab -l 로 지금 상태를 확인해 보고"
+crontab -l | cmp -s - "$N" || { echo "🔴 적용 뒤 대조 실패 — crontab \"$B\" 로 되돌리고 crontab -l 출력을 보고"; exit 1; }
+echo "✅ cron 전환 $FROM → $TO · 보존본 $B · 적용본 $N"
+)
 SID_OK_STATUS=RUNNING REPO_DIR=~/crypto_trader/AutoTrader SQL_FILE=~/ops-scripts/daily_checks.sql DRY_RUN=1 ~/ops-scripts/daily_check.sh
 ```
-- 기대: 마지막 명령의 결과에 `SID 203: RUNNING` 줄이 있고 `SID 203 상태` 🔴 줄이 없다.
-- `grep -c` 가 1 이 아니면: `crontab ~/daily-check/crontab.before-running` 으로 되돌리고 `crontab -l` 출력을 보낸다.
+- 기대: `✅ cron 전환 CREATED → RUNNING` 한 줄, 그리고 마지막 명령의 결과에 `SID 203: RUNNING` 줄이 있고 `SID 203 상태` 🔴 줄이 없다.
+- `🔴 멈춤` 이면 cron 은 바뀌지 않았다 — 출력 그대로와 `crontab -l` 출력을 보낸다. 블록을 고쳐 다시 돌리지 않는다.
+- `🔴 적용 뒤 대조 실패` 면 안내대로 보존본으로 되돌리고 `crontab -l` 출력을 보낸다.
 - 시작이 확인되지 않았으면(F2 실패·보류) 바꾸지 않는다 — `CREATED` 그대로가 맞다.
-- 56일 종료 뒤 `STOPPED` 로 바꾸는 것은 리뷰 판단을 받은 뒤 같은 방법으로 한다.
+- 56일 종료 뒤 최종 상태(`STOPPED` 또는 `EMERGENCY_STOPPED` — 비상정지면 그 상태 그대로)로 바꾸는 것은 리뷰 판단을 받은 뒤 같은 블록으로, 첫 줄 `FROM=RUNNING; TO=<최종 상태>` 만 바꿔서 한다(§5-8 F5-4).
 
 ## 4. 수동 실행
 
 ```bash
-REPO_DIR=~/crypto_trader/AutoTrader SQL_FILE=~/ops-scripts/daily_checks.sql ~/ops-scripts/daily_check.sh; echo "종료 $?"
+SID_OK_STATUS=CREATED REPO_DIR=~/crypto_trader/AutoTrader SQL_FILE=~/ops-scripts/daily_checks.sql ~/ops-scripts/daily_check.sh; echo "종료 $?"   # SID 203 시작 전
+SID_OK_STATUS=RUNNING REPO_DIR=~/crypto_trader/AutoTrader SQL_FILE=~/ops-scripts/daily_checks.sql ~/ops-scripts/daily_check.sh; echo "종료 $?"   # F2 시작 확인 뒤(§3-1)
 ```
+- 🔴 `SID_OK_STATUS` 는 **늘 적는다** — cron 줄과 같은 값(`crontab -l | grep -o 'SID_OK_STATUS=[A-Z_]*'`). 빼면 기본값 `CREATED` 로 판정해, 시작 뒤에는 정상 운영을 🔴 로 낸다(리뷰 2026-10-31 보완).
 - `DRY_RUN=1` — 보고를 보내지 않고 화면에만. `WINDOW_HOURS=24` — 구간을 늘린다(기본 12).
 - 종료 코드: `0` 점검 항목 정상·보고 전송 · `1` 🔴 또는 ⚪·보고 전송 · `2` **보고 전송 실패** · `3` 이미 실행 중.
 
@@ -148,6 +167,8 @@ grep CRON /var/log/syslog | tail -5         # cron 자체가 돌았는지
 60일 지난 파일은 지운다. 보고 본문은 **문자 기준 3,500자**에서 자르고 "이하 생략 — 서버 결과 파일 …" 을 붙인다.
 
 ## 6. 시험 (로컬 — 운영에 닿지 않는다)
+
+`python scripts/ops/test_cron_switch.py` — §3-1 전환 블록을 이 문서에서 그대로 꺼내 가짜 `crontab`·임시 HOME 으로 돌린다(리뷰 2026-10-31 보완 2): 종전 명령 재현(조회 실패 → cron 비움) · 정상 전환 · 조회 실패·crontab 없음·빈 crontab·대상 0줄·2줄·적용 실패·두 번째 실행은 멈추고 cron 그대로 · 적용 뒤 대조 실패는 되돌리기 안내 · 종료 전환.
 
 `python scripts/ops/test_daily_check.py` — 로컬 시험 DB(`cat-rt-pg`, V94 사본 + 66세션 행)·모의 텔레그램 서버·깨끗한 임시 저장소(서버 체크아웃 흉내)로 **29건**:
 정상(판정·시각·구간·운영 SHA·점검 스크립트 판·알려진 ERROR 분류·평문 보고) · 수치 이상(66세션 65/66·중요 경보 실패 🔴·`CUSTOM` 실패 🟡) · 미분류 ERROR(다른 로거·알려진 로거의 다른 문구) ·
