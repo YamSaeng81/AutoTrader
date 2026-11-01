@@ -433,6 +433,77 @@ for nm, line in EDGE:
     check("경계 밖 — %s 는 미분류 🔴 1건(🟡 0)" % nm,
           rc == 1 and "🔴 미분류 ERROR 1건" in rep and "보조 뉴스 수집 실패 0 · KRW-BLAST 보충 수집 실패 0" in rep, line + "\n" + rep)
 
+# 3-2. 리뷰 2026-11-01: 캔들 판정 대상별 요약 — 대상·불가 시각·재개 시각·구간의 마지막 관측. 🟡 분류·건수·판정은 그대로.
+#      줄 형식은 CandleFreshnessGuard 의 실제 문구(불가 ERROR · 재개 WARN). 로그 시각은 UTC.
+def cu(t, key, eng="DYNAMIC", tail="결측 4칸"):
+    if key.startswith("BTC 급락 관문"):
+        return "backend-1  | %s.001 [scheduler-3] ERROR c.c.api.service.CandleFreshnessGuard - 🔴 [캔들 최신성] %s 판정 불가 (%s) — 이 관문을 요구하는 신규 진입을 막는다: %s" % (t, key, eng, tail)
+    return "backend-1  | %s.001 [scheduler-3] ERROR c.c.api.service.CandleFreshnessGuard - 🔴 [캔들 최신성] %s 판정 불가 (%s) — 이 회차의 진입·캔들 기반 청산을 하지 않는다: %s" % (t, key, eng, tail)
+
+
+def cr(t, key, eng="DYNAMIC", prev="2026-11-01T01:00:00Z 결측 4칸"):
+    return "backend-1  | %s.002 [scheduler-3] WARN  c.c.api.service.CandleFreshnessGuard - [캔들 최신성] %s 판정 재개 (%s): 종전 %s" % (t, key, eng, prev)
+
+
+def candle_run(name, lines, **over):
+    p = os.path.join(work, name + ".txt")
+    with open(p, "w", encoding="utf-8", newline="\n") as f:
+        for l in lines:
+            f.write(l + "\n")
+    return run(name, LOGS_FILE=p, **over)
+
+
+# 운영 10-31 22:00~11-01 10:00 구간과 같은 모양(리뷰 회신: QUID·STX·RSR·CAP·GTC 재개, DOOD 재개 기록 미확인) — 시각·사유는 꾸민 값
+SIX = []
+for i, c in enumerate("QUID STX RSR CAP GTC DOOD".split()):
+    SIX.append(cu("16:%02d:00" % (10 + i), "KRW-%s:H1" % c))
+for i, c in enumerate("QUID STX RSR CAP GTC".split()):
+    SIX.append(cr("17:%02d:00" % (10 + i), "KRW-%s:H1" % c))
+rc, rep, last, sent, raw = candle_run("cs_six", SIX)
+check("캔들 요약 — 여섯 대상, 재개 5·재개 미관측 1(DOOD 를 먼저), 🟡 6건·판정 🟢 그대로·🔴 없음",
+      rc == 0 and "🟢 점검 항목 정상" in rep and "🟡 캔들 판정 불가 ERROR 6건" in rep and "캔들 판정 불가 6 ·" in rep and "🔴" not in rep
+      and "캔들 판정(구간, 로그 시각 UTC): 대상 6 · 마지막 관측 재개 5 · 재개 미관측 1" in rep
+      and "  · KRW-DOOD:H1 불가 16:15:00 · 마지막 관측: 판정 불가 — 재개 미관측(현재 미회복 확정 아님)" in rep
+      and "  · KRW-QUID:H1 불가 16:10:00 → 재개 17:10:00 · 마지막 관측: 재개" in rep
+      and rep.index("KRW-DOOD:H1") < rep.index("KRW-QUID:H1") < rep.index("KRW-STX:H1") < rep.index("KRW-GTC:H1"), rep)
+check("캔들 요약 — '미회복' 을 확정 문구로 쓰지 않는다", "미회복 확정 아님" in rep and "미회복 확정)" not in rep and "현재 미회복" not in rep.replace("현재 미회복 확정 아님", ""), rep)
+B = "BTC 급락 관문 H1"
+CS = [
+    ("재개만(불가 시작은 구간 밖)", [cr("02:00:00", "KRW-WET:H1")],
+     ["대상 1 · 마지막 관측 재개 1 · 재개 미관측 0", "  · KRW-WET:H1 재개 02:00:00(불가 시작은 구간 밖) · 마지막 관측: 재개"], 0),
+    ("불가 → 재개 → 다시 불가", [cu("01:00:00", "KRW-CAP:M15"), cr("01:15:00", "KRW-CAP:M15"), cu("03:00:00", "KRW-CAP:M15")],
+     ["재개 미관측 1", "  · KRW-CAP:M15 불가 01:00:00 → 재개 01:15:00 → 불가 03:00:00 · 마지막 관측: 판정 불가 — 재개 미관측"], 2),
+    ("BTC 관문 재개 줄의 종전 사유 '판정 불가(' 를 불가로 읽지 않는다",
+     [cu("01:00:00", B, tail="BTC 캔들 판정 불가(결측 4칸) — 급락 여부를 모른다"), cr("01:03:00", B, prev="2026-11-01T01:00Z BTC 캔들 판정 불가(결측 4칸) — 급락 여부를 모른다")],
+     ["대상 1 · 마지막 관측 재개 1", "  · BTC 급락 관문 H1 불가 01:00:00 → 재개 01:03:00 · 마지막 관측: 재개"], 1),
+    ("같은 키를 LIVE·DYNAMIC 이 남겨도 대상 하나", [cu("01:00:00", "KRW-BTC:H1", eng="LIVE"), cr("01:05:00", "KRW-BTC:H1", eng="DYNAMIC")],
+     ["대상 1 ·", "  · KRW-BTC:H1 불가 01:00:00 → 재개 01:05:00 · 마지막 관측: 재개"], 1),
+    ("접두가 같은 다른 키(KRW-CAP:M15 · KRW-CAPX:M15)는 따로", [cu("01:00:00", "KRW-CAP:M15"), cu("01:01:00", "KRW-CAPX:M15"), cr("01:02:00", "KRW-CAPX:M15")],
+     ["대상 2 · 마지막 관측 재개 1 · 재개 미관측 1", "  · KRW-CAP:M15 불가 01:00:00 · 마지막", "  · KRW-CAPX:M15 불가 01:01:00 → 재개 01:02:00 · 마지막 관측: 재개"], 2),
+    ("같은 키 일곱 번 바뀜 — 처음 둘·끝 둘과 전체 횟수", [cu("0%d:00:00" % h, "KRW-X:M15") if h % 2 == 1 else cr("0%d:00:00" % h, "KRW-X:M15") for h in range(1, 8)],
+     ["  · KRW-X:M15 불가 01:00:00 → 재개 02:00:00 → …(전체 7회) → 재개 06:00:00 → 불가 07:00:00 · 마지막 관측: 판정 불가"], 4),
+]
+for nm, lines, want, ncandle in CS:
+    rc, rep, last, sent, raw = candle_run("cs_edge", lines)
+    check("캔들 요약 — %s" % nm, all(w in rep for w in want) and ("캔들 판정 불가 %d ·" % ncandle) in rep and "미분류 0" in rep, "\n".join(lines) + "\n" + rep)
+# 요약에 넣지 않는 줄 — 다른 로거의 같은 문구(미분류 🔴 는 종전 그대로)·디버그 '판정 불가 지속'·시각 없는 줄
+NOT = [
+    ("다른 로거의 같은 문구", cu("01:00:00", "KRW-Y:H1").replace("c.c.api.service.CandleFreshnessGuard", "c.c.api.service.OtherGuard"), 1),
+    ("판정 불가 지속(디버그)", "backend-1  | 01:00:00.001 [scheduler-3] DEBUG c.c.api.service.CandleFreshnessGuard - [캔들 최신성] KRW-Y:H1 판정 불가 지속: 결측", 0),
+]
+for nm, line, rc_want in NOT:
+    rc, rep, last, sent, raw = candle_run("cs_not", [line])
+    check("캔들 요약 없음 — %s" % nm, "캔들 판정(구간" not in rep and "KRW-Y:H1 불가" not in rep and rc == rc_want, line + "\n" + rep)
+rc, rep, last, sent, raw = candle_run("cs_notime", ["backend-1  | ERROR c.c.api.service.CandleFreshnessGuard - 🔴 [캔들 최신성] KRW-Y:H1 판정 불가 (DYNAMIC) — x"])
+check("캔들 요약 — 시각 없는 줄도 빼지 않고 시각 '?'(건수와 어긋나지 않게)", rc == 0 and "캔들 판정 불가 1 ·" in rep and "  · KRW-Y:H1 불가 ? · 마지막 관측: 판정 불가" in rep, rep)
+rc, rep, last, sent, raw = candle_run("cs_none", ["backend-1  | 05:00:00.000 [main] INFO  c.c.api.CryptoAutoTraderApplication - Started"])
+check("캔들 줄 없음 — 요약 줄 없음·🟡 캔들 줄 없음", rc == 0 and "캔들 판정(구간" not in rep and "캔들 판정 불가 ERROR" not in rep, rep)
+MANY = [cu("01:%02d:00" % i, "KRW-M%02d:H1" % i) for i in range(12)] + [cr("02:00:00", "KRW-M00:H1")]
+rc, rep, last, sent, raw = candle_run("cs_many", MANY)
+check("캔들 요약 — 대상 12개면 10줄 + '외 2개'(재개 미관측 11을 먼저, 재개 1 은 잘린 쪽)",
+      "대상 12 · 마지막 관측 재개 1 · 재개 미관측 11" in rep and "  · 외 2개 — 결과 파일의 앱 로그 원문(.log.gz)" in rep
+      and rep.count("마지막 관측: 판정 불가") == 10 and "KRW-M00:H1 불가" not in rep and "KRW-M01:H1 불가" in rep and rc == 0, rep)
+
 # 4. DB 조회 실패
 rc, rep, last, sent, raw = run("db_fail", PSQL_CMD="docker exec -i cat-rt-pg psql -X -U trader -d no_such_db")
 check("DB 조회 실패 — ⚪ 판정 불가·종료 1·보고 전송(정상 아님)",
@@ -624,6 +695,21 @@ else:
     check("리눅스 C.UTF-8 — 원문 뉴스 3·BLAST 1 은 🟡, KRW-BLASTX 1 은 미분류 🔴",
           "보조 뉴스 수집 실패 3 · KRW-BLAST 보충 수집 실패 1" in out and "미분류 1" in out and "KRW-BLASTX" in out
           and "출처별: CoinGeckoTrendingSource 1, coindesk_rss 1, tokenpost_rss 1" in out, out)
+
+    # 2026-11-01: 캔들 대상 요약을 서버와 같은 리눅스(우분투 기본 awk = mawk)·두 로케일로 — BTC 관문 재개 줄의 '판정 불가(' 포함
+    with open(os.path.join(work, "candle_lines.txt"), "w", encoding="utf-8", newline="\n") as f:
+        f.write("\n".join(SIX + [cu("01:00:00", B, tail="BTC 캔들 판정 불가(결측 4칸)"), cr("01:03:00", B, prev="x BTC 캔들 판정 불가(결측 4칸)")]) + "\n")
+    for loc in ("C.UTF-8", "C"):
+        r = subprocess.run(["docker", "run", "--rm", "-v", REPO.replace("\\", "/") + ":/repo:ro", "-v", work.replace("\\", "/") + ":/w",
+                            "-e", "LC_ALL=" + loc, "-e", "LANG=" + loc, "-e", "REPO_DIR=/repo", "-e", "PSQL_CMD=bash /w/fakepsql",
+                            "-e", "LOGS_FILE=/w/candle_lines.txt", "-e", "OUT_DIR=/tmp/cs", "-e", "APP_STATE=running|0|2026-10-01T00:00:00Z|sha256:x",
+                            "-e", "DRY_RUN=1", "-e", "TZ_EXPECT=", "-e", "ALERTS_CMD=echo '🟢 경보 없음 · 실행 누락 없음'; exit 0",
+                            "ubuntu:22.04", "bash", "/repo/scripts/ops/daily_check.sh"], capture_output=True)
+        out = r.stdout.decode("utf-8", "replace") + r.stderr.decode("utf-8", "replace")
+        check("리눅스 %s — 캔들 요약 대상 7 · 재개 6 · 재개 미관측 1(DOOD), BTC 관문은 재개" % loc,
+              "대상 7 · 마지막 관측 재개 6 · 재개 미관측 1" in out
+              and "  · KRW-DOOD:H1 불가 16:15:00 · 마지막 관측: 판정 불가 — 재개 미관측(현재 미회복 확정 아님)" in out
+              and "  · BTC 급락 관문 H1 불가 01:00:00 → 재개 01:03:00 · 마지막 관측: 재개" in out and "캔들 판정 불가 7 ·" in out, out)
 
 sql("postgres", "DROP DATABASE IF EXISTS %s;" % DB)
 srv.shutdown()

@@ -7,6 +7,7 @@
 기대값은 조회와 따로 계산한다(시작 잔액·체결 대금·수수료·봉 종가에서 Decimal 로).
 """
 import os
+import shutil
 import subprocess
 import sys
 from decimal import Decimal as D, ROUND_HALF_UP
@@ -395,6 +396,73 @@ rc, R, raw = ledger(DB)
 check("시작 전(CREATED·started_at 없음) — L1 날짜 행 0 · L0 상태 CREATED", rc == 0 and R["L1"] == [] and R["L0"][0]["status"] == "CREATED", raw)
 rc, R, raw = ledger(DB, init="20000")
 check("init 가 initial_capital 과 다르면 L0 init_ok = f", rc == 0 and R["L0"][0]["init_ok"] == "f", R["L0"])
+
+# 6. §5-8 F3-2 일상 장부 읽기(리뷰 2026-11-01 3번) — 문서의 판정 코드를 그대로 꺼내, 실제 장부 조회 출력(psql -A -F '|' 파일)에 돌린다.
+_f32 = _doc[_doc.index("**F3-2. "):_doc.index("**F4. 종료 시각 고정**")]
+READ_PY = _f32[_f32.index("<<'PY'\n") + len("<<'PY'\n"):_f32.index("\nPY\n")]
+check("F3-2 — 블록 조회 줄이 장부를 -A -F '|' 로 새 파일(set -C)에 남긴다", "( set -C; cd ~/crypto_trader/AutoTrader && docker compose" in _f32
+      and "psql -X -A -F '|' -v ON_ERROR_STOP=1" in _f32 and "-v sid=203 -v init=20200 -f - < ~/ops-scripts/sid_ledger.sql > \"$F\"" in _f32, _f32[:600])
+import tempfile
+_tmp = tempfile.mkdtemp(prefix="ledger-read-")
+
+
+def read_case(name, adjust="0", cut=0):
+    """세션 잔액을 잔액 기대(+adjust)로 맞춘 뒤 운영과 같은 형식으로 조회해 문서의 판정 코드를 돌린다. cut = 끝에서 버릴 줄 수(조회 중단 흉내).
+    rt() 의 매수 주문은 요청액 칸에 BTC 수량(0.001)이 들어 있어 잔액 기대가 셋째 자리가 된다(두 자리 세션 잔액과 0.001 어긋남) — 실제 LIVE 매수처럼
+    원 단위 요청액(두 자리) 10,010원으로 바꾼다. 첫 실행 65/70 의 실패 5건이 이 시험 자료 문제였다(판정 코드는 그대로)."""
+    sql(DB, "UPDATE \"order\" SET quantity = 10010 WHERE session_id = 203 AND side = 'BUY' AND id = 11;")
+    rc, R, raw = ledger(DB)
+    be = R["L4"][0]["balance_expected"]
+    if be != "-":
+        sql(DB, "UPDATE live_trading_session SET available_krw = %s + %s WHERE id = 203;" % (be, adjust))
+    r = subprocess.run(PG + ["-d", DB, "-A", "-F", "|", "-v", "ON_ERROR_STOP=1", "-v", "sid=203", "-v", "init=20200", "-f", "-"], stdin=open(SQL_FILE, "rb"), capture_output=True)
+    lines = r.stdout.decode("utf-8").splitlines(True)
+    p = os.path.join(_tmp, name + ".txt")
+    open(p, "w", encoding="utf-8", newline="\n").write("".join(lines[:len(lines) - cut]))
+    x = subprocess.run([sys.executable, "-", p], input=READ_PY.encode("utf-8"), capture_output=True, env=dict(os.environ, PYTHONIOENCODING="utf-8"))
+    out = x.stdout.decode("utf-8") + x.stderr.decode("utf-8", "replace")
+    return x.returncode, out, out.strip().splitlines()[-1] if out.strip() else ""
+
+
+reset()
+rc, out, last = read_case("r_none")
+check("F3-2 — 시작 뒤 매수 없음: ✅ 완료 왕복 0건 · balance_diff 0 · 종료 0", rc == 0 and last == "✅ 판정: 현재 조회 기준 일치 — 완료 왕복 0건 모두 측정·0.40% 이하 · 왕복 미완료 0건 · balance_diff 0", out)
+reset(); rt()
+rc, out, last = read_case("r_040")
+check("F3-2 — 경계 0.40000000%(해당 아님): ✅ 완료 왕복 1건 · L3 줄에 비용 0.40000000% · > 0.40 f",
+      rc == 0 and last.startswith("✅ 판정: 현재 조회 기준 일치 — 완료 왕복 1건") and "L3 포지션 2 CLOSED - · 측정 · 비용 0.40000000% · > 0.40 f" in out, out)
+reset(); rt(s_af="9959.99")
+rc, out, last = read_case("r_over")
+check("F3-2 — 0.40010000% → 🔴 §6-2 중단 조건(포지션 2) · 종료 1", rc == 1 and last.startswith("🔴 판정: §6-2 중단 조건 — 왕복 실측 비용 > 0.40%(포지션 2)"), out)
+reset(status="STOPPED", stopped="2026-10-29 10:00:00+09"); rt(s_af="9959.99")
+rc, out, last = read_case("r_over_stopped")
+check("F3-2 — 정지 뒤라도 > 0.40 이면 중단 조건 줄이 먼저(⛔ 로 묻히지 않음)", rc == 1 and last.startswith("🔴 판정: §6-2 중단 조건"), out)
+reset(); rt(b_sp=None)
+rc, out, last = read_case("r_noref")
+check("F3-2 — 진입 기준가 없음 → ❔ 측정 불가(사유 그대로) · 0.40% 대조 안 함", rc == 1 and last.startswith("❔ 판정: 측정 불가 — 포지션 2 측정 불가(진입 기준가 없음)"), out)
+reset(); rt(b_af="10000", b_rf="10040", s_af="9980")
+rc, out, last = read_case("r_mism")
+check("F3-2 — 보고≠반영 → ❔ 측정 불가(정산 불일치)", rc == 1 and last.startswith("❔ 판정: 측정 불가 — 포지션 2 측정 불가(정산 불일치)"), out)
+reset(); rt(pos_status="OPEN", sell=False)
+rc, out, last = read_case("r_open")
+check("F3-2 — 보유 중(왕복 미완료) → ✅ 완료 왕복 0건 · 왕복 미완료 1건", rc == 0 and last.endswith("완료 왕복 0건 모두 측정·0.40% 이하 · 왕복 미완료 1건 · balance_diff 0"), out)
+reset(); rt()
+rc, out, last = read_case("r_diff", adjust="0.01")
+check("F3-2 — 세션 잔액이 잔액 기대보다 0.01 많음 → 🔴 정산 balance_diff 0.01(허용 오차 없음)", rc == 1 and last.startswith("🔴 판정: 정산 — balance_diff 0.01000000 "), out)
+reset(); rt(sq="0.0009", s_af="8964")
+rc, out, last = read_case("r_qty")
+check("F3-2 — 매도 수량 부족(순체결량 0.0001 ≠ 열린 포지션 0) → 🔴 정산", rc == 1 and last.startswith("🔴 판정: 정산 — ") and "순체결량 0.00010000 / 열린 포지션 수량 0" in last, out)
+reset(); buy(pending=True)
+rc, out, last = read_case("r_pend")
+check("F3-2 — 회계 반영 대기 → ❔ 확인 불가(1건)", rc == 1 and last.startswith("❔ 판정: 확인 불가 — ") and "(1건)" in last, out)
+reset(status="EMERGENCY_STOPPED", stopped="2026-10-29 10:00:00+09")
+rc, out, last = read_case("r_emerg")
+check("F3-2 — 비상정지 → ⛔ 세션 상태 EMERGENCY_STOPPED", rc == 1 and last.startswith("⛔ 판정: 세션 상태 EMERGENCY_STOPPED"), out)
+reset(); rt()
+for cut, what in ((1, "끝 표시 없음"), (12, "L4·L5 빠짐")):
+    rc, out, last = read_case("r_cut%d" % cut, cut=cut)
+    check("F3-2 — 조회 중단(%s) → ❔ 끝까지 돌지 않음 · 정상 판정 없음" % what, rc == 1 and last.startswith("❔ 판정: 장부 조회가 끝까지 돌지 않음") and "✅" not in out, out)
+shutil.rmtree(_tmp, ignore_errors=True)
 
 after = sql("crypto_auto_trader", 'SELECT status, available_krw FROM live_trading_session WHERE id = 203; SELECT count(*), sum(filled_quantity) FROM "order";', at=True)
 check("끝 — 원본 시험 DB 그대로(STOPPED 20182.36 · 주문 2)", after.split() == ["STOPPED|20182.36", "2|0.00320000"], after)

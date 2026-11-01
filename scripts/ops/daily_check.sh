@@ -263,6 +263,33 @@ else
     note "보조 뉴스 수집 실패 — 원인 미확인 ${n_news}건(출처별: ${by_src})"
   fi
   [ "${n_blast:-0}" != "0" ] && note "KRW-BLAST 보충 수집 실패 — 상세 원인 미확인 ${n_blast}건"
+  # 캔들 판정 대상별 요약(리뷰 2026-11-01: 건수만 보여 수동 조회가 반복됐다) — 🟡 분류·건수는 위 그대로, 상세 줄만 더한다.
+  # CandleFreshnessGuard 는 상태가 바뀔 때만 남긴다(불가 시작 ERROR · 재개 WARN). 키는 `코인:봉` 또는 `BTC 급락 관문 봉` 이고,
+  # 상태는 키 바로 뒤의 '판정 불가 (' · '판정 재개 (' 로 읽는다 — 재개 줄의 종전 사유 '… 판정 불가(…' 를 불가로 읽지 않는다(maint_verify.py 와 같다).
+  # 구간 끝에 마지막 관측이 불가여도 '재개 미관측' 일 뿐 지금 미회복이라고 확정하지 않는다(구간 뒤·로그 밖은 모른다).
+  #  줄 앞부분에서 시각(HH:MM:SS)을 찾고, 없으면 '?' — 줄을 빼면 위 건수와 요약이 어긋난다.
+  CANDLE_EV=$(echo "$LOG_OUT" | sed -nE 's/^(.*)CandleFreshnessGuard - .*\[캔들 최신성\] (BTC 급락 관문 [A-Z0-9]+|[^ ]+) 판정 (불가|재개) \(.*$/\1\t\2\t\3/p')
+  if [ -n "$CANDLE_EV" ]; then
+    while IFS= read -r l; do detail "$l"; done <<< "$(echo "$CANDLE_EV" | awk -F'\t' -v MAX="${CANDLE_SUMMARY_MAX:-10}" '
+      { t = (match($1, /[0-9][0-9]:[0-9][0-9]:[0-9][0-9]/) ? substr($1, RSTART, 8) : "?") }
+      !($2 in seen) { seen[$2] = 1; keys[++n] = $2 }
+      { ev[$2, ++c[$2]] = ($3 == "불가" ? "불가 " : "재개 ") t; last[$2] = $3 }
+      END {
+        for (i = 1; i <= n; i++) if (last[keys[i]] == "불가") u++
+        printf "캔들 판정(구간, 로그 시각 UTC): 대상 %d · 마지막 관측 재개 %d · 재개 미관측 %d\n", n, n - u, u
+        # 재개 미관측을 먼저, 같은 쪽 안에서는 처음 나온 순서
+        for (p = 0; p < 2; p++) for (i = 1; i <= n; i++) {
+          k = keys[i]; if ((last[k] == "불가") != (p == 0)) continue
+          if (++shown > MAX) continue
+          m = c[k]; s = ""
+          if (m <= 4) { for (j = 1; j <= m; j++) s = s (j > 1 ? " → " : "") ev[k, j] }
+          else s = ev[k, 1] " → " ev[k, 2] " → …(전체 " m "회) → " ev[k, m - 1] " → " ev[k, m]
+          printf "  · %s %s%s · 마지막 관측: %s\n", k, s, (ev[k, 1] ~ /^재개/ ? "(불가 시작은 구간 밖)" : ""),
+                 (last[k] == "불가" ? "판정 불가 — 재개 미관측(현재 미회복 확정 아님)" : "재개")
+        }
+        if (shown > MAX) printf "  · 외 %d개 — 결과 파일의 앱 로그 원문(.log.gz)\n", shown - MAX
+      }')"
+  fi
   # 캔들 404 를 마켓별로 — 검증 코인은 코인명을 드러낸다(리뷰 2026-10-27: BLAST 상장 폐지가 건수에 묻혔다).
   # 거래지원 종료가 확인된 마켓(ENDED_MARKETS)은 🟡, 확인되지 않은 검증 코인 마켓 소실은 🔴. 검증 밖 마켓은 마켓명만 남긴다.
   if [ "${n_404:-0}" != "0" ]; then

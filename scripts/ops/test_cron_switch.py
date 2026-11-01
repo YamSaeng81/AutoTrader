@@ -223,6 +223,24 @@ rc, out, now, written, d = run(cron=LCRON, script=PREP + LBLOCK, FAKE_CORRUPT="1
 check("장부 줄 적용 뒤 대조 실패 — 🔴 되돌리기 안내 · ✅ 없음",
       rc != 0 and "🔴 적용 뒤 대조 실패" in out and "crontab.before-ledger" in out and "✅" not in out, (rc, out))
 
+# 2026-11-01 리뷰 3번: 시작 순서 F2-1 — 계획 문서의 블록을 그대로 꺼내, 리뷰 커밋에서 §3-1 을 꺼내는 줄(git show)만 이 저장소의 문서를 읽도록 바꿔 돌린다.
+_f21 = _plan[_plan.index("**F2-1. "):]
+F21 = re.search(r"```bash\n(.*?)\n```", _f21, re.S).group(1)
+GIT_LINE = 'git fetch origin && git show "$SHA":docs/OPS_DAILY_CHECK.md'
+check("F2-1 — 블록에 리뷰 커밋에서 §3-1 을 꺼내는 줄이 1개", F21.count(GIT_LINE) == 1, F21)
+OPS_POSIX = subprocess.run([BASH, "-c", 'cygpath -u "$0" 2>/dev/null || echo "$0"', os.path.abspath(DOC)], capture_output=True, text=True).stdout.strip()
+F21_LOCAL = "M=$HOME/m; mkdir -p $M\n" + F21.replace("SHA=<리뷰가 확인한 커밋 SHA>", "SHA=x").replace(GIT_LINE, 'cat "%s"' % OPS_POSIX)
+LEDGER_CRON = CRON.replace(CRON.splitlines(True)[2], SETC_LINE + "\n")         # 운영 모양: 주석 · 정기 점검(CREATED) · 장부 줄 · 다른 일정
+rc, out, now, written, d = run(cron=LEDGER_CRON, script=F21_LOCAL)
+ext = open(os.path.join(d, "m", "cron-switch.sh"), encoding="utf-8").read()
+check("F2-1 — 꺼낸 블록 = 이 시험이 돌리는 §3-1 블록 + DRY_RUN 확인 줄(손으로 옮기지 않음)",
+      ext.startswith(BLOCK + "\n") and ext.rstrip("\n").splitlines()[-1].startswith("SID_OK_STATUS=RUNNING ") and "DRY_RUN=1" in ext.splitlines()[-1], ext)
+check("F2-1 — ✅ CREATED → RUNNING · 정기 점검 줄만 바뀜 · 장부 줄·다른 일정 그대로 · 마지막 세 숫자 1 0 1",
+      "✅ cron 전환 CREATED → RUNNING" in out and now == LEDGER_CRON.replace("SID_OK_STATUS=CREATED ", "SID_OK_STATUS=RUNNING ")
+      and out.rstrip().splitlines()[-3:] == ["1", "0", "1"], (out, now))
+rc, out, now, written, d = run(cron=LEDGER_CRON.replace("SID_OK_STATUS=CREATED ", "SID_OK_STATUS=RUNNING "), script=F21_LOCAL)
+check("F2-1 — 이미 RUNNING(두 번 돌림 등) — 🔴 멈춤 · cron 그대로", "🔴 멈춤: SID_OK_STATUS=CREATED 줄이 정확히 1개가 아니다" in out and not written, out)
+
 n_ok = sum(1 for _, ok in results if ok)
 print(f"cron 전환 시험 {n_ok}/{len(results)} 통과")
 sys.exit(0 if n_ok == len(results) else 1)
