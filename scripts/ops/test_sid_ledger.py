@@ -400,8 +400,14 @@ check("init 가 initial_capital 과 다르면 L0 init_ok = f", rc == 0 and R["L0
 # 6. §5-8 F3-2 일상 장부 읽기(리뷰 2026-11-01 3번) — 문서의 판정 코드를 그대로 꺼내, 실제 장부 조회 출력(psql -A -F '|' 파일)에 돌린다.
 _f32 = _doc[_doc.index("**F3-2. "):_doc.index("**F4. 종료 시각 고정**")]
 READ_PY = _f32[_f32.index("<<'PY'\n") + len("<<'PY'\n"):_f32.index("\nPY\n")]
-check("F3-2 — 블록 조회 줄이 장부를 -A -F '|' 로 새 파일(set -C)에 남긴다", "( set -C; cd ~/crypto_trader/AutoTrader && docker compose" in _f32
-      and "psql -X -A -F '|' -v ON_ERROR_STOP=1" in _f32 and "-v sid=203 -v init=20200 -f - < ~/ops-scripts/sid_ledger.sql > \"$F\"" in _f32, _f32[:600])
+M1_SQL = _f32[_f32.index("<<'SQL'\n") + len("<<'SQL'\n"):_f32.index("\nSQL\n") + 1]   # v1.42 보완 2 — 장부 뒤에 붙는 정산 불일치 검사
+F32_BLOCK = _f32[_f32.index("```bash\n") + len("```bash\n"):_f32.index("\n```\n", _f32.index("```bash\n")) + 1]
+# ~~v1.41 블록 줄 확인('… -f - < ~/ops-scripts/sid_ledger.sql > "$F"')~~ → v1.42: 장부 + M1 을 한 psql 에 넣고, 조회 종료가 0 일 때만 파서를 돌린다
+check("F3-2 — 블록 조회 줄이 장부 + M1 을 -A -F '|' 로 새 파일(set -C)에 남기고, 조회 종료 0 일 때만 파서를 돌린다",
+      "( set -C -o pipefail; cd ~/crypto_trader/AutoTrader && { cat ~/ops-scripts/sid_ledger.sql && cat <<'SQL'" in _f32
+      and "psql -X -A -F '|' -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -v sid=203 -v init=20200 -f - > \"$F\" 2>&1 ); RC=$?" in _f32
+      and "if [ \"$RC\" -ne 0 ]; then" in _f32 and "else python3 - \"$F\" <<'PY'" in _f32 and "\nPY\nfi\n" in _f32
+      and "BEGIN TRANSACTION READ ONLY;" in M1_SQL and M1_SQL.rstrip().endswith("\\echo '== 정산 검사 끝'"), _f32[:900])
 import tempfile
 _tmp = tempfile.mkdtemp(prefix="ledger-read-")
 
@@ -415,10 +421,16 @@ def read_case(name, adjust="0", cut=0):
     be = R["L4"][0]["balance_expected"]
     if be != "-":
         sql(DB, "UPDATE live_trading_session SET available_krw = %s + %s WHERE id = 203;" % (be, adjust))
-    r = subprocess.run(PG + ["-d", DB, "-A", "-F", "|", "-v", "ON_ERROR_STOP=1", "-v", "sid=203", "-v", "init=20200", "-f", "-"], stdin=open(SQL_FILE, "rb"), capture_output=True)
+    # v1.42: 운영 블록과 같게 장부 + M1 을 한 입력으로, -q 없이(BEGIN·ROLLBACK·(n rows) 줄까지 운영 출력과 같은 모양)
+    r = subprocess.run([a for a in PG if a != "-q"] + ["-d", DB, "-A", "-F", "|", "-v", "ON_ERROR_STOP=1", "-v", "sid=203", "-v", "init=20200", "-f", "-"],
+                       input=open(SQL_FILE, "rb").read() + M1_SQL.encode("utf-8"), capture_output=True)
     lines = r.stdout.decode("utf-8").splitlines(True)
     p = os.path.join(_tmp, name + ".txt")
-    open(p, "w", encoding="utf-8", newline="\n").write("".join(lines[:len(lines) - cut]))
+    if isinstance(cut, str):                       # v1.42: 이 표시로 시작하는 줄부터 버린다(구역 단위 조회 중단 흉내)
+        lines = lines[:next(i for i, x in enumerate(lines) if x.startswith(cut))]
+    else:
+        lines = lines[:len(lines) - cut]
+    open(p, "w", encoding="utf-8", newline="\n").write("".join(lines))
     x = subprocess.run([sys.executable, "-", p], input=READ_PY.encode("utf-8"), capture_output=True, env=dict(os.environ, PYTHONIOENCODING="utf-8"))
     out = x.stdout.decode("utf-8") + x.stderr.decode("utf-8", "replace")
     return x.returncode, out, out.strip().splitlines()[-1] if out.strip() else ""
@@ -426,7 +438,8 @@ def read_case(name, adjust="0", cut=0):
 
 reset()
 rc, out, last = read_case("r_none")
-check("F3-2 — 시작 뒤 매수 없음: ✅ 완료 왕복 0건 · balance_diff 0 · 종료 0", rc == 0 and last == "✅ 판정: 현재 조회 기준 일치 — 완료 왕복 0건 모두 측정·0.40% 이하 · 왕복 미완료 0건 · balance_diff 0", out)
+# v1.42: ✅ 줄 끝에 "· 정산 불일치 0" 을 붙였다(M1) — 종전 기대 "… · balance_diff 0" 으로 끝남
+check("F3-2 — 시작 뒤 매수 없음: ✅ 완료 왕복 0건 · balance_diff 0 · 정산 불일치 0 · 종료 0", rc == 0 and last == "✅ 판정: 현재 조회 기준 일치 — 완료 왕복 0건 모두 측정·0.40% 이하 · 왕복 미완료 0건 · balance_diff 0 · 정산 불일치 0", out)
 reset(); rt()
 rc, out, last = read_case("r_040")
 check("F3-2 — 경계 0.40000000%(해당 아님): ✅ 완료 왕복 1건 · L3 줄에 비용 0.40000000% · > 0.40 f",
@@ -442,10 +455,13 @@ rc, out, last = read_case("r_noref")
 check("F3-2 — 진입 기준가 없음 → ❔ 측정 불가(사유 그대로) · 0.40% 대조 안 함", rc == 1 and last.startswith("❔ 판정: 측정 불가 — 포지션 2 측정 불가(진입 기준가 없음)"), out)
 reset(); rt(b_af="10000", b_rf="10040", s_af="9980")
 rc, out, last = read_case("r_mism")
-check("F3-2 — 보고≠반영 → ❔ 측정 불가(정산 불일치)", rc == 1 and last.startswith("❔ 판정: 측정 불가 — 포지션 2 측정 불가(정산 불일치)"), out)
+# ~~v1.41 기대: 완료 왕복의 보고≠반영 → '❔ 판정: 측정 불가 — 포지션 2 측정 불가(정산 불일치)'~~ → v1.42(리뷰 2026-11-01 F3-2 보완 2): OPEN·CLOSED 무관 🔴 정산
+check("F3-2 — 완료 왕복의 매수 보고 10,040 ≠ 반영 10,000 → 🔴 정산(보고≠반영 1건) · L3 줄은 '측정 불가(정산 불일치)' 그대로",
+      rc == 1 and last.startswith("🔴 판정: 정산 — 보고≠반영 1건 · 미해결 정산 불일치 기록 0건") and "측정 불가(정산 불일치)" in out
+      and "주문 11 BUY 보고 10040" in out and " 반영 10000" in out, out)
 reset(); rt(pos_status="OPEN", sell=False)
 rc, out, last = read_case("r_open")
-check("F3-2 — 보유 중(왕복 미완료) → ✅ 완료 왕복 0건 · 왕복 미완료 1건", rc == 0 and last.endswith("완료 왕복 0건 모두 측정·0.40% 이하 · 왕복 미완료 1건 · balance_diff 0"), out)
+check("F3-2 — 보유 중(왕복 미완료) → ✅ 완료 왕복 0건 · 왕복 미완료 1건", rc == 0 and last.endswith("완료 왕복 0건 모두 측정·0.40% 이하 · 왕복 미완료 1건 · balance_diff 0 · 정산 불일치 0"), out)
 reset(); rt()
 rc, out, last = read_case("r_diff", adjust="0.01")
 check("F3-2 — 세션 잔액이 잔액 기대보다 0.01 많음 → 🔴 정산 balance_diff 0.01(허용 오차 없음)", rc == 1 and last.startswith("🔴 판정: 정산 — balance_diff 0.01000000 "), out)
@@ -459,10 +475,213 @@ reset(status="EMERGENCY_STOPPED", stopped="2026-10-29 10:00:00+09")
 rc, out, last = read_case("r_emerg")
 check("F3-2 — 비상정지 → ⛔ 세션 상태 EMERGENCY_STOPPED", rc == 1 and last.startswith("⛔ 판정: 세션 상태 EMERGENCY_STOPPED"), out)
 reset(); rt()
-for cut, what in ((1, "끝 표시 없음"), (12, "L4·L5 빠짐")):
-    rc, out, last = read_case("r_cut%d" % cut, cut=cut)
+# ~~v1.41: (1, "끝 표시 없음"), (12, "L4·L5 빠짐")~~ → v1.42: 출력 끝이 M1 뒤 '== 정산 검사 끝' 으로 바뀌어 줄 수 대신 구역 표시로도 자른다
+for i, (cut, what) in enumerate(((1, "정산 검사 끝 표시 없음"), ("== M1", "장부는 끝까지 · M1 빠짐"), ("== 끝", "장부 끝 표시·M1 빠짐"), ("== L4", "L4·L5·M1 빠짐"))):
+    rc, out, last = read_case("r_cut%d" % i, cut=cut)
     check("F3-2 — 조회 중단(%s) → ❔ 끝까지 돌지 않음 · 정상 판정 없음" % what, rc == 1 and last.startswith("❔ 판정: 장부 조회가 끝까지 돌지 않음") and "✅" not in out, out)
+
+# 6-1. v1.42 보완 2(리뷰 2026-11-01) — 보유 중 정산 불일치. 리뷰 재현: 매수 보고 10,040 · 반영 10,000, 잔액·수량은 반영값 기준으로 맞음 → v1.41 은 ✅
+reset(); rt(pos_status="OPEN", sell=False, b_af="10000", b_rf="10040")
+rc, out, last = read_case("r_open_mism")
+check("F3-2 — 보유 중(왕복 미완료) 매수 보고 10,040 ≠ 반영 10,000, 잔액·수량은 반영값 기준 일치 → 🔴 정산(보고≠반영 1건) · ✅ 아님",
+      rc == 1 and last.startswith("🔴 판정: 정산 — 보고≠반영 1건 · 미해결 정산 불일치 기록 0건(포지션 OPEN·CLOSED 무관)")
+      and "왕복 미완료" in out and "balance_diff 0.00" in out and "✅" not in out, out)
+reset(); rt(pos_status="OPEN", sell=False, b_af="10000")
+rc, out, last = read_case("r_open_ok")
+check("F3-2 — 같은 보유, 보고 = 반영·기록 없음 → ✅ · M1 0 · 0", rc == 0 and last.startswith("✅ 판정: ") and "M1 보고≠반영(반영 끝난 주문) 0 · 미해결 정산 불일치 기록 0 · -" in out, out)
+sql(DB, "INSERT INTO order_settlement_discrepancy (id, order_id, detected_at, kind, previous_value, received_value) "
+        "VALUES (903, 999, '2026-10-28 09:00:20+09', 'FEE_DECREASE', 4.98, 4.90);")
+rc, out, last = read_case("r_open_other")
+check("F3-2 — 미해결 기록이 SID 203 주문이 아닌 주문(999)에만 → ✅(203 만 센다)", rc == 0 and last.startswith("✅ 판정: "), out)
+sql(DB, "INSERT INTO order_settlement_discrepancy (id, order_id, detected_at, kind, previous_value, received_value) "
+        "VALUES (904, 11, '2026-10-28 09:00:20+09', 'FEE_DECREASE', 4.995, 4.90);")
+rc, out, last = read_case("r_open_disc")
+check("F3-2 — 보유 중, 값은 같지만 매수 주문(11)에 미해결 정산 불일치 기록 → 🔴 정산(기록 1건) · detail 에 기록 904 FEE_DECREASE",
+      rc == 1 and last.startswith("🔴 판정: 정산 — 보고≠반영 0건 · 미해결 정산 불일치 기록 1건") and "주문 11 미해결 기록 904 FEE_DECREASE" in out, out)
+sql(DB, "UPDATE order_settlement_discrepancy SET resolved_at = '2026-10-28 10:00+09', resolved_by = 't', resolution_note = 't' WHERE id = 904;")
+rc, out, last = read_case("r_open_resolved")
+check("F3-2 — 그 기록 해결 뒤 → ✅ 복귀", rc == 0 and last.startswith("✅ 판정: "), out)
+reset(); buy(pending=True, rfee="9.9")
+rc, out, last = read_case("r_pend_mism")
+check("F3-2 — 회계 반영 대기 주문의 보고 9.9 ≠ 반영 9.8 → M1 에 넣지 않고 ❔ 확인 불가(1건) 유지", rc == 1 and last.startswith("❔ 판정: 확인 불가 — ")
+      and "M1 보고≠반영(반영 끝난 주문) 0 · " in out, out)
+reset(); buy(rfee=None)
+rc, out, last = read_case("r_rep_missing")
+check("F3-2 — 보고 수수료 없음(값 누락) → M1 에 넣지 않고 ❔ 확인 불가(1건) 유지", rc == 1 and last.startswith("❔ 판정: 확인 불가 — ") and "(1건)" in last, out)
+reset(status="STOPPED", stopped="2026-10-29 10:00:00+09"); rt(pos_status="OPEN", sell=False, b_af="10000", b_rf="10040")
+rc, out, last = read_case("r_stopped_mism")
+check("F3-2 — 정지 뒤 보고≠반영 → 판정 줄은 ⛔(순서대로), M1 줄에 1건이 보인다", rc == 1 and last.startswith("⛔ 판정: 세션 상태 STOPPED")
+      and "M1 보고≠반영(반영 끝난 주문) 1 · " in out, out)
 shutil.rmtree(_tmp, ignore_errors=True)
+
+# 7. v1.42 보완 1(리뷰 2026-11-01) — F3-2 블록 전체를 문서에서 꺼내 Git Bash 로 돌린다. 리뷰 재현: 같은 분 재실행(set -C 가 덮어쓰기를 막음) → v1.41 은 '조회 종료 1' 뒤 ✅·종료 0.
+#    가짜: docker(compose … exec -T db psql → 시험 컨테이너 psql, -d crypto_auto_trader → rt_ledger, FAKE_FAIL 이면 앞 5줄만 내고 종료 2) · date(분 고정) · python3(이 파이썬)
+GIT_BASH = r"C:\Program Files\Git\bin\bash.exe"
+BASH = GIT_BASH if os.name == "nt" and os.path.exists(GIT_BASH) else (shutil.which("bash") or GIT_BASH)
+
+
+def px(p):
+    """bash PATH 에 넣을 경로 — 'C:/…' 는 콜론 때문에 PATH 가 갈라진다(첫 실행에서 가짜 docker·date·curl 이 안 잡힌 원인). '/c/…' 로 바꾼다."""
+    p = p.replace("\\", "/")
+    return "/" + p[0].lower() + p[2:] if len(p) > 2 and p[1] == ":" else p
+
+_blk = tempfile.mkdtemp(prefix="f32-block-")
+_bh, _bb = os.path.join(_blk, "home"), os.path.join(_blk, "bin")
+os.makedirs(os.path.join(_bh, "crypto_trader", "AutoTrader")); os.makedirs(os.path.join(_bh, "ops-scripts")); os.makedirs(_bb)
+shutil.copy(SQL_FILE, os.path.join(_bh, "ops-scripts", "sid_ledger.sql"))
+_real_docker = (shutil.which("docker") or "docker").replace("\\", "/")
+for _n, _body in (("docker", '[ "$1 $2 $3 $4 $5 $6 $7" = "compose -f docker-compose.prod.yml exec -T db psql" ] || { echo "가짜 docker: 예상 밖 $*" >&2; exit 99; }\n'
+                             'shift 7; a=(); for x in "$@"; do [ "$x" = crypto_auto_trader ] && x=%s; a+=("$x"); done\n'
+                             'if [ -n "$FAKE_FAIL" ]; then "%s" exec -i cat-rt-pg psql "${a[@]}" | head -5; echo "psql: error: 가짜 조회 실패" >&2; exit 2; fi\n'
+                             'exec "%s" exec -i cat-rt-pg psql "${a[@]}"\n' % (DB, _real_docker, _real_docker)),
+                  ("date", '[ "$1" = "+%Y%m%d-%H%M" ] && { echo "$FAKE_MIN"; exit 0; }; exec /usr/bin/date "$@"\n'),
+                  ("python3", 'exec "%s" "$@"\n' % sys.executable.replace("\\", "/"))):
+    with open(os.path.join(_bb, _n), "w", encoding="utf-8", newline="\n") as f:
+        f.write("#!/usr/bin/env bash\n" + _body)
+
+
+def block(minute, fail=False):
+    env = dict(os.environ, HOME=_bh.replace("\\", "/"), FAKE_MIN=minute, PYTHONIOENCODING="utf-8")   # 경로 변환은 켠 채로 — 윈도우 파이썬이 /tmp/… 를 읽게
+    env.pop("FAKE_FAIL", None)
+    if fail:
+        env["FAKE_FAIL"] = "1"
+    guard = 'export PATH="%s:$PATH"; for c in docker date python3; do [ "$(command -v $c)" = "%s/$c" ] || { echo "가짜 $c 가 아님: $(command -v $c)"; exit 97; }; done\n' % (px(_bb), px(_bb))
+    r = subprocess.run([BASH, "-c", guard + F32_BLOCK], env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)   # 화면 순서 그대로(마지막 줄 = 판정)
+    out = r.stdout.decode("utf-8", "replace")
+    return r.returncode, out, out.strip().splitlines()[-1] if out.strip() else ""
+
+
+def rfile(minute):
+    p = os.path.join(_bh, "sid203-read", minute + ".txt")
+    return open(p, "rb").read() if os.path.exists(p) else None
+
+
+reset(); rt()
+_tmp = tempfile.mkdtemp(prefix="ledger-read-")   # read_case 로 세션 잔액만 맞춘다
+read_case("align")
+rc, out, last = block("20261201-1000")
+first = rfile("20261201-1000")
+check("F3-2 블록 — 정상: '조회 종료 0' · ✅ · 종료 0 · 파일 20261201-1000.txt 생김", rc == 0 and "조회 종료 0" in out and last.startswith("✅ 판정: ") and first, out)
+rc, out, last = block("20261201-1000")
+check("F3-2 블록 — 리뷰 재현(같은 분 재실행): '조회 종료 1' · ❔ 조회하지 않음 · ✅ 없음 · 종료 0 아님 · 기존 파일 그대로",
+      rc != 0 and "조회 종료 1" in out and last.startswith("❔ 판정: 조회하지 않음 — 같은 분의 파일이 이미 있다(set -C)") and "✅" not in out
+      and rfile("20261201-1000") == first, out)
+rc, out, last = block("20261201-1000", fail=True)
+check("F3-2 블록 — 같은 분 + 조회 실패: ❔ 조회하지 않음 · ✅ 없음 · 기존 파일 그대로", rc != 0 and last.startswith("❔ 판정: 조회하지 않음") and "✅" not in out
+      and rfile("20261201-1000") == first, out)
+rc, out, last = block("20261201-1001", fail=True)
+part = rfile("20261201-1001")
+check("F3-2 블록 — 새 분 + 조회 실패(종료 2): '조회 종료 2' · ❔ 장부 조회 실패(파서 실행 안 함) · ✅ 없음 · 일부 출력 파일 보존",
+      rc != 0 and "조회 종료 2" in out and last.startswith("❔ 판정: 장부 조회 실패(종료 2) — 판정하지 않는다(파서 실행 안 함)") and "✅" not in out
+      and "== 장부 읽기" not in out and part and b"== L0" in part and "가짜 조회 실패".encode("utf-8") in part, out)
+reset(); rt(pos_status="OPEN", sell=False, b_af="10000", b_rf="10040"); read_case("align2")
+rc, out, last = block("20261201-1002")
+check("F3-2 블록 — 보유 중 보고≠반영(리뷰 재현 2) → '조회 종료 0' · 🔴 정산 · 종료 1", rc == 1 and "조회 종료 0" in out
+      and last.startswith("🔴 판정: 정산 — 보고≠반영 1건"), out)
+shutil.rmtree(_tmp, ignore_errors=True)
+
+# 8. v1.42 F6 중도 정지(리뷰 2026-11-01) — 문서의 F6 블록을 그대로 꺼내 로컬 대역으로 돌린다. 운영 세션·운영 API 에 닿지 않는다.
+#    대역: PSQL = 시험 컨테이너 rt_ledger · curl = 가짜(호출을 기록하고 정해 둔 응답) · .env = 가짜 토큰 · HOME·M = 임시 폴더.
+_f6 = _doc[_doc.index("**F6. "):]
+F6_BLOCK = _f6[_f6.index("```bash\n") + len("```bash\n"):_f6.index("\n```\n", _f6.index("```bash\n")) + 1]
+_f52 = _doc[_doc.index("**F5-2. "):_doc.index("**F5-3. ")]
+F6_REASON = "REASON='§6-2 왕복 실측 비용 > 0.40%(포지션 2, cost_pct 0.40010000) — 로컬 대역'"
+check("F6 — 블록에 56일 조건이 없고, F5-2 와 같은 정지 표지·정지 요청 줄을 쓴다",
+      "56 days" not in F6_BLOCK and "56 days" in _f52
+      and all(x in F6_BLOCK and x in _f52 for x in ('[ ! -e "$E/stop-sent" ] || stop "이미 정지 요청을 보냈다 — 다시 보내지 않는다. F5-3 확인부터"',
+                                                    "date '+%F %T %Z' | tee \"$E/t-stop.txt\"; touch \"$E/stop-sent\"",
+                                                    'curl -s -X POST -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/v1/trading/sessions/$SID/stop | tee "$E/stop.json"; echo')),
+      F6_BLOCK)
+
+
+def f6_env():
+    d = tempfile.mkdtemp(prefix="f6-")
+    for sub in ("home", "bin", "work", "home/start-sid203"):
+        os.makedirs(os.path.join(d, sub), exist_ok=True)
+    open(os.path.join(d, "home", "start-sid203", "account-f1.json"), "w").write('{"f1":1}')
+    open(os.path.join(d, "work", ".env"), "w", newline="\n").write("X=1\nAPI_AUTH_TOKEN=local-fake-token\n")
+    basis = os.path.join(d, "home", "sid203-read-20261215-1003.txt")
+    open(basis, "w", encoding="utf-8").write("🔴 판정: §6-2 중단 조건 — 로컬 대역\n")
+    with open(os.path.join(d, "bin", "curl"), "w", encoding="utf-8", newline="\n") as f:
+        f.write('#!/usr/bin/env bash\necho "$*" >> "$CURL_LOG"\n'
+                'case "$*" in *"/stop"*) [ -n "$STOP_RC" ] && exit "$STOP_RC"; printf \'%s\' "$STOP_RESP" ;; *) printf \'{"krw":"1"}\' ;; esac\n')
+    return d, basis.replace("\\", "/")
+
+
+def f6(d, basis, sid="203", reason=F6_REASON, fill=True, stop_rc="", resp='{"status":"STOPPED"}'):
+    blk = F6_BLOCK
+    if fill:
+        blk = blk.replace(blk[blk.index("REASON='<"):blk.index("\n", blk.index("REASON='<"))], reason)
+        blk = blk.replace(blk[blk.index("BASIS='<"):blk.index("\n", blk.index("BASIS='<"))], "BASIS='%s'" % basis)
+    u = lambda *x: os.path.join(d, *x).replace("\\", "/")
+    env = dict(os.environ, HOME=u("home"), M=u("home", "start-sid203"), SID=sid, CURL_LOG=u("curl.log"), STOP_RC=stop_rc, STOP_RESP=resp,
+               PSQL="docker exec -i cat-rt-pg psql -X -v ON_ERROR_STOP=1 -U trader -d " + DB, PYTHONIOENCODING="utf-8")
+    guard = 'export PATH="%s:$PATH"; [ "$(command -v curl)" = "%s/curl" ] || { echo "가짜 curl 이 아님: $(command -v curl)"; exit 97; }; cd "%s"\n' % (px(u("bin")), px(u("bin")), u("work"))
+    r = subprocess.run([BASH, "-c", guard + blk], env=env, capture_output=True)
+    out = r.stdout.decode("utf-8", "replace") + r.stderr.decode("utf-8", "replace")
+    log = open(u("curl.log"), encoding="utf-8").read().splitlines() if os.path.exists(u("curl.log")) else []
+    E = os.path.join(d, "home", "end-sid203")
+    rd = lambda n: open(os.path.join(E, n), encoding="utf-8").read() if os.path.exists(os.path.join(E, n)) else None
+    return r.returncode, out, log, rd
+
+
+def status203():
+    return sql(DB, "SELECT status FROM live_trading_session WHERE id = 203;", at=True).strip()
+
+
+reset(started="2026-10-28 08:50:00+09")                         # 시작 4일 뒤 — 56일 전
+d, basis = f6_env()
+rc, out, log, rd = f6(d, basis)
+posts = [x for x in log if "-X POST" in x]
+check("F6 — RUNNING · 시작 + 56일 전: 정지 요청 1회(POST …/sessions/203/stop) · 계좌 조회 1회 · stop-sent·t-stop·stop.json · 종료 0",
+      rc == 0 and len(log) == 2 and len(posts) == 1 and posts[0].endswith("http://localhost:8080/api/v1/trading/sessions/203/stop")
+      and "Bearer local-fake-token" in posts[0] and rd("stop-sent") == "" and rd("t-stop.txt") and rd("stop.json") == '{"status":"STOPPED"}'
+      and rd("account-f1.json") == '{"f1":1}', out + "\n" + "\n".join(log))
+why = rd("midstop-reason.txt") or ""
+check("F6 — 사유·시각·근거 기록: '== 중도 정지 판단 … KST · 56일 대기 조건 적용 안 함' · 사유 · 근거 경로 · 근거 sha256 · 조회 상태 RUNNING",
+      "== 중도 정지 판단 " in why and " KST · 56일 대기 조건 적용 안 함" in why and "사유: §6-2 왕복 실측 비용 > 0.40%(포지션 2" in why
+      and ("근거: " + basis) in why and basis.split("/")[-1] in why.split("\n")[3] and "조회 상태: SID 203 RUNNING" in why, why)
+rc, out, log, rd = f6(d, basis)
+check("F6 — 다시 붙이면: 🔴 멈춤 이미 정지 요청을 보냈다 · 새 호출 0(누적 POST 1) · 사유 기록에 덧붙이지 않음",
+      rc == 1 and "🔴 멈춤: 이미 정지 요청을 보냈다" in out and sum("-X POST" in x for x in log) == 1 and len(log) == 2
+      and rd("midstop-reason.txt") == why, out)
+f52 = _f52[_f52.index("```bash\n") + len("```bash\n"):_f52.index("\n```\n", _f52.index("```bash\n")) + 1]
+env52 = dict(os.environ, E=os.path.join(d, "home", "end-sid203").replace("\\", "/"), SID="203", CURL_LOG=os.path.join(d, "curl.log").replace("\\", "/"),
+             PSQL="docker exec -i cat-rt-pg psql -X -v ON_ERROR_STOP=1 -U trader -d " + DB)
+r52 = subprocess.run([BASH, "-c", 'export PATH="%s:$PATH"; [ "$(command -v curl)" = "%s/curl" ] || exit 97; cd "%s"\n' % (px(d + "/bin"), px(d + "/bin"), (d + "/work").replace("\\", "/")) + f52],
+                     env=env52, capture_output=True)
+log = open(os.path.join(d, "curl.log"), encoding="utf-8").read().splitlines()
+check("F6 뒤 56일 F5-2 블록(문서 그대로) — 같은 표지로 멈춤 · 새 호출 0", r52.returncode == 1 and "이미 정지 요청을 보냈다" in r52.stdout.decode("utf-8", "replace")
+      and len(log) == 2, r52.stdout.decode("utf-8", "replace"))
+for st in ("STOPPED", "EMERGENCY_STOPPED"):
+    reset(status=st, stopped="2026-10-29 10:00:00+09")
+    d, basis = f6_env()
+    rc, out, log, rd = f6(d, basis)
+    check("F6 — 이미 %s: 정지 요청 없음(curl 0) · stop-sent 없음 · '⛔ 이미 %s' 기록 · 종료 0 · DB 상태 %s 그대로" % (st, st, st),
+          rc == 0 and log == [] and rd("stop-sent") is None and ("⛔ 이미 %s — 정지 요청을 보내지 않는다(상태 보존)" % st) in (rd("midstop-reason.txt") or "")
+          and ("조회 상태: SID 203 %s" % st) in rd("midstop-reason.txt") and status203() == st, out)
+reset(status="CREATED", started=None)
+d, basis = f6_env()
+rc, out, log, rd = f6(d, basis)
+check("F6 — CREATED: 🔴 멈춤 RUNNING 이 아님 · curl 0 · stop-sent 없음 · 상태 그대로", rc == 1 and "🔴 멈춤: SID 203 상태 'CREATED' — RUNNING 이 아님" in out
+      and log == [] and rd("stop-sent") is None and status203() == "CREATED", out)
+reset()
+for what, kw, msg in (("사유·근거 <…> 그대로", dict(fill=False), "🔴 멈춤: 사유·근거의 <…> 를 채우지 않았다"),
+                      ("사유 빈 값", dict(reason="REASON=''"), "🔴 멈춤: 사유가 비었다"),
+                      ("SID 204", dict(sid="204"), "🔴 멈춤: SID 가 203 이 아님(204)")):
+    d, basis = f6_env()
+    rc, out, log, rd = f6(d, basis, **kw)
+    check("F6 — %s: %s · curl 0 · stop-sent 없음" % (what, msg), rc == 1 and msg in out and log == [] and rd("stop-sent") is None, out)
+d, basis = f6_env()
+rc, out, log, rd = f6(d, basis[:-4] + "-없음.txt")
+check("F6 — 근거 파일 없음: 🔴 멈춤 판정 근거 파일이 없다 · curl 0", rc == 1 and "🔴 멈춤: 판정 근거 파일이 없다" in out and log == [] and rd("stop-sent") is None, out)
+d, basis = f6_env()
+rc, out, log, rd = f6(d, basis, stop_rc="28", resp="")
+check("F6 — 응답 불명확(정지 요청 curl 시간 초과 28): 표지는 남고 POST 1회 · 종료 0 아님", rc != 0 and rd("stop-sent") == "" and sum("-X POST" in x for x in log) == 1, out)
+rc, out, log, rd = f6(d, basis)
+check("F6 — 그 뒤 다시 붙여도 재요청 없음(조회부터) · 누적 POST 1", rc == 1 and "이미 정지 요청을 보냈다" in out and sum("-X POST" in x for x in log) == 1, out)
+check("F6 — 대역 시험 동안 시험 DB SID 203 상태는 정지 요청으로 바뀌지 않음(가짜 curl) · RUNNING", status203() == "RUNNING")
+shutil.rmtree(_blk, ignore_errors=True)
 
 after = sql("crypto_auto_trader", 'SELECT status, available_krw FROM live_trading_session WHERE id = 203; SELECT count(*), sum(filled_quantity) FROM "order";', at=True)
 check("끝 — 원본 시험 DB 그대로(STOPPED 20182.36 · 주문 2)", after.split() == ["STOPPED|20182.36", "2|0.00320000"], after)
