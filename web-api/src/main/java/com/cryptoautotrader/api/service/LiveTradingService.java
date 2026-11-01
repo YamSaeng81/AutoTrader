@@ -178,6 +178,12 @@ public class LiveTradingService {
     /** 거래소 DOWN으로 비상 정지된 세션 ID 목록 — 복구 시 자동 재시작 대상 */
     private final Set<Long> exchangeStoppedSessionIds = ConcurrentHashMap.newKeySet();
 
+    /**
+     * 거래소 복구 자동 재시작에서 빼는 전략 (N01, 2026-11-01) — {@code DAILY_SMA20} 은 56일 제한시험 전용이다(SID 203,
+     * F1 이 다른 실자금 SMA20 세션이 없음을 확인한다). 제한시험은 중단 뒤 재개하지 않는다.
+     */
+    static final Set<String> NO_RECOVERY_RESTART_STRATEGIES = Set.of("DAILY_SMA20");
+
     private static final DateTimeFormatter KST_FMT =
             DateTimeFormatter.ofPattern("HH:mm").withZone(ZoneId.of("Asia/Seoul"));
 
@@ -524,6 +530,13 @@ public class LiveTradingService {
         if (!"EMERGENCY_STOPPED".equals(session.getStatus())) {
             log.warn("거래소 복구 — 세션 #{} 는 비상 정지 뒤 상태가 {} 로 바뀌었다(사람의 조작) — 자동 재시작하지 않는다",
                     sessionId, session.getStatus());
+            return null;
+        }
+        // 🔴 N01 (2026-11-01): 제한시험은 중단 뒤 재개하지 않고 종료는 최초 started_at + 56일이다(LIMITED_LIVE_TEST_PLAN §5-8 F4·F5·§6-2).
+        //    startLocked 는 started_at 을 지금으로 덮으므로 다시 켜면 재개 금지와 기산점이 함께 깨진다. 일반 세션의 자동 복구는 그대로다.
+        if (NO_RECOVERY_RESTART_STRATEGIES.contains(session.getStrategyType())) {
+            log.warn("거래소 복구 — 세션 #{} ({}) 는 제한시험이다 — 자동 재시작하지 않는다(EMERGENCY_STOPPED·started_at {} 유지)",
+                    sessionId, session.getStrategyType(), session.getStartedAt());
             return null;
         }
         return startLocked(sessionId, session);
@@ -3298,6 +3311,13 @@ public class LiveTradingService {
         String coinCode = event.getCoinCode();
         BigDecimal price = event.getPrice();
         long now = System.currentTimeMillis();
+
+        // 🔴 N02 (2026-11-01): 관측 시각이 유효기간을 넘은 가격은 현재가가 아니다 — 시세 장부와 같은 정의(MarkPriceBook).
+        //    이력·점검 간격·SL 점검 시각을 남기기 전에 버린다. 낡은 체결가로 손절 매도를 내거나 TP 를 올리지 않는다.
+        if (markPriceBook != null && markPriceBook.isStale(event.getObservedAt(), Instant.now())) {
+            log.debug("낡은 실시간 시세 무시: {} {} 관측 {}", coinCode, price, event.getObservedAt());
+            return;
+        }
 
         // 1. 가격 이력 업데이트 (throttle 전 — 항상 기록)
         updatePriceHistory(coinCode, price, now);

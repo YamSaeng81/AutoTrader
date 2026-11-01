@@ -157,6 +157,14 @@ public class MarkPriceBook {
     }
 
     /**
+     * 관측 시각이 유효기간을 넘었는가 — {@link #freshPriceFor} 와 같은 기준(N02, 2026-11-01). 실시간 손절·익절 처리기가 이벤트 가격을 쓰기 전에
+     * 본다. 관측 시각을 모르면({@code null}) {@link #onPrice} 가 받은 시각으로 적는 것과 같게 낡지 않은 것으로 본다.
+     */
+    public boolean isStale(Instant observedAt, Instant now) {
+        return observedAt != null && Duration.between(observedAt, now).getSeconds() > maxAgeSeconds;
+    }
+
+    /**
      * 관측 시각이 기준 이내인 가격 — 없거나 낡았으면 {@code null} (2026-10-15 리뷰 7회차). 공유 풀 평가·포지션별 한도·캔들 없는 회차의
      * 손절·익절 판정이 쓴다 — 낡은 값은 현재가가 아니다. 호가 관측이면 <b>지금의 합산 보유량</b>으로 다시 계산한다(깊이가 모자라면 {@code null}).
      */

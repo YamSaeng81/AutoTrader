@@ -3408,6 +3408,13 @@ public class DynamicTradingService {
         BigDecimal price = event.getPrice();
         long now = System.currentTimeMillis();
 
+        // 🔴 N02 (2026-11-01): 관측 시각이 유효기간을 넘은 가격은 현재가가 아니다 — LIVE 처리기·시세 장부와 같은 정의.
+        //    점검 간격·SL 점검 시각을 남기기 전에 버린다.
+        if (markPriceBook != null && markPriceBook.isStale(event.getObservedAt(), Instant.now())) {
+            log.debug("[Dynamic] 낡은 실시간 시세 무시: {} {} 관측 {}", coinCode, price, event.getObservedAt());
+            return;
+        }
+
         Long lastMs = rtCheckLastMs.get(coinCode);
         if (lastMs != null && now - lastMs < RT_CHECK_INTERVAL_MS) return;
         rtCheckLastMs.put(coinCode, now);
