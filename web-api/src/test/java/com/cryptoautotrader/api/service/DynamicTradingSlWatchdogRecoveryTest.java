@@ -97,14 +97,15 @@ class DynamicTradingSlWatchdogRecoveryTest extends IntegrationTestBase {
     // ── forceRefreshPrice 단위 동작 ──────────────────────────────────
 
     @Test
-    @DisplayName("forceRefreshPrice: REST 시세 조회 성공 시 true 반환")
+    @DisplayName("forceRefreshPrice: REST 시세 조회 성공(신선한 체결 시각) 시 PUBLISHED 반환 — ~~true~~ (N02 보완)")
     void forceRefreshPrice_succeeds() throws Exception {
+        // N02 보완(2026-11-01): 반환이 boolean → 조회·발행 결과. ~~기대 true~~ → 신선한 체결 시각이 있는 응답이면 PUBLISHED.
         when(upbitRestClient.getTicker("KRW-XRP")).thenReturn(List.of(
-                Map.of("market", "KRW-XRP", "trade_price", "1550")));
+                Map.of("market", "KRW-XRP", "trade_price", "1550", "trade_timestamp", System.currentTimeMillis())));
 
-        boolean result = dynamicTradingService.forceRefreshPrice("KRW-XRP");
+        ForceRefreshResult result = dynamicTradingService.forceRefreshPrice("KRW-XRP");
 
-        assertThat(result).isTrue();
+        assertThat(result.outcome()).isEqualTo(ForceRefreshResult.Outcome.PUBLISHED);
     }
 
     @Test
@@ -112,9 +113,9 @@ class DynamicTradingSlWatchdogRecoveryTest extends IntegrationTestBase {
     void forceRefreshPrice_returnsFalse_onException() throws Exception {
         when(upbitRestClient.getTicker("KRW-XRP")).thenThrow(new RuntimeException("Upbit API timeout"));
 
-        boolean result = dynamicTradingService.forceRefreshPrice("KRW-XRP");
+        ForceRefreshResult result = dynamicTradingService.forceRefreshPrice("KRW-XRP");
 
-        assertThat(result).isFalse();
+        assertThat(result.outcome()).as("~~false~~ → FAILED (N02 보완)").isEqualTo(ForceRefreshResult.Outcome.FAILED);
     }
 
     // ── warnStaleSlCheck 통합 ──────────────────────────────────
@@ -135,8 +136,9 @@ class DynamicTradingSlWatchdogRecoveryTest extends IntegrationTestBase {
         openPosition(session.getId(), "KRW-XRP");
         lastSlCheckAt().put(session.getId(), Instant.now().minus(10, ChronoUnit.MINUTES));
 
+        // N02 보완(2026-11-01): 정상 거래소 응답에는 체결 시각이 있다 — 없으면 낡은 시세(STALE)로 본다.
         when(upbitRestClient.getTicker(anyString())).thenReturn(List.of(
-                Map.of("market", "KRW-XRP", "trade_price", "1550")));
+                Map.of("market", "KRW-XRP", "trade_price", "1550", "trade_timestamp", System.currentTimeMillis())));
 
         dynamicTradingService.warnStaleSlCheck();
 

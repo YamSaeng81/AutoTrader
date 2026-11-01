@@ -860,15 +860,15 @@ class PoolLossLimitTest extends IntegrationTestBase {
         ReflectionTestUtils.setField(live, "upbitRestClient", rest);
         ReflectionTestUtils.setField(dyn, "upbitRestClient", rest);
         try {
-            assertThat(live.forceRefreshPrice("KRW-RESTOLD")).isTrue();
+            assertThat(live.forceRefreshPrice("KRW-RESTOLD").outcome()).as("~~true~~ → 발행하되 낡음 (N02 보완)").isEqualTo(ForceRefreshResult.Outcome.STALE);
             assertThat(marks.get("KRW-RESTOLD").at()).as("LIVE: 체결 시각").isEqualTo(oldTrade);
             assertThat(marks.freshPrice("KRW-RESTOLD", now)).isNull();
             marks.remove("KRW-RESTOLD");
-            assertThat(dyn.forceRefreshPrice("KRW-RESTOLD")).isTrue();
+            assertThat(dyn.forceRefreshPrice("KRW-RESTOLD").outcome()).as("~~true~~ → 발행하되 낡음 (N02 보완)").isEqualTo(ForceRefreshResult.Outcome.STALE);
             assertThat(marks.get("KRW-RESTOLD").at()).as("DYNAMIC: 체결 시각").isEqualTo(oldTrade);
             assertThat(marks.get("KRW-RESTOLD").source()).isEqualTo(MarkPriceBook.REST_TRADE);
             // 체결 시각이 없는 응답 — 받은 시각으로 메우지 않는다
-            assertThat(live.forceRefreshPrice("KRW-NOTS")).isTrue();
+            assertThat(live.forceRefreshPrice("KRW-NOTS").outcome()).as("~~true~~ → 체결 시각 없음 = 낡음 (N02 보완)").isEqualTo(ForceRefreshResult.Outcome.STALE);
             assertThat(marks.get("KRW-NOTS").at()).isEqualTo(Instant.EPOCH);
             assertThat(marks.freshPrice("KRW-NOTS", now)).isNull();
         } finally {

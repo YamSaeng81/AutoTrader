@@ -62,10 +62,10 @@ class DynamicSlWatchdogNoiseTest extends IntegrationTestBase {
         sessionRepo.deleteAll();
     }
 
-    /** REST 강제 갱신이 성공하는 상태 — 정상적인 거래소. */
+    /** REST 강제 갱신이 성공하는 상태 — 정상적인 거래소(N02 보완 2026-11-01: 체결 시각을 싣는다 — 없으면 낡은 시세로 본다). */
     private void exchangeHealthy() throws Exception {
-        when(upbitRestClient.getTicker(anyString())).thenReturn(List.of(
-                Map.of("market", COIN, "trade_price", new BigDecimal("1000"))));
+        when(upbitRestClient.getTicker(anyString())).thenAnswer(inv -> List.of(
+                Map.of("market", COIN, "trade_price", new BigDecimal("1000"), "trade_timestamp", System.currentTimeMillis())));
     }
 
     /** REST 강제 갱신이 실패하는 상태 — 거래소 API 장애. */
@@ -154,8 +154,8 @@ class DynamicSlWatchdogNoiseTest extends IntegrationTestBase {
         // REST 호출은 성공하지만 <b>다른 코인</b> 시세가 돌아오는 상황 — 이벤트는 발행되는데
         // 이 세션의 코인과 맞지 않아 점검이 기록되지 않는다. "강제 갱신은 되는데
         // 실시간 판정 경로가 죽은" 상태를 재현한다.
-        when(upbitRestClient.getTicker(anyString())).thenReturn(List.of(
-                Map.of("market", "KRW-BTC", "trade_price", new BigDecimal("1000"))));
+        when(upbitRestClient.getTicker(anyString())).thenAnswer(inv -> List.of(
+                Map.of("market", "KRW-BTC", "trade_price", new BigDecimal("1000"), "trade_timestamp", System.currentTimeMillis())));
         DynamicSessionEntity s = monitoringSession(true);
         openPosition(s);
 

@@ -3485,7 +3485,8 @@ public class DynamicTradingService {
      * <p>이제 알림은 <b>자가복구가 실제로 실패했을 때만</b> 나간다 — 아래 세 경우다:
      * ① REST 강제 갱신 자체가 실패(거래소 API 오류), ② 그 코인이 WS 구독 목록에 아예 없음
      * (구독 배선이 깨진 것 — 이건 진짜 버그다), ③ 강제 갱신을 계속 했는데도
-     * {@value #SL_STALE_NOTIFY_STREAK}회 연속으로 점검이 기록되지 않음(이벤트 경로가 죽어 있다).</p>
+     * {@value #SL_STALE_NOTIFY_STREAK}회 연속으로 점검이 기록되지 않음(이벤트 경로가 죽어 있다 — 또는 N02 보완 뒤에는
+     * REST 시세도 낡아 처리기가 거절한 것이다. 이 경우 문구가 따로 나간다).</p>
      */
     private final Map<Long, Integer> slStaleStreak = new ConcurrentHashMap<>();
 
@@ -3556,21 +3557,28 @@ public class DynamicTradingService {
                 refreshWsSubscription();
             }
             boolean subscribed = wsSubscriptionManager.getSubscribedCoins().contains(coin);
-            boolean recovered = forceRefreshPrice(coin);
+            // 🔴 N02 보완 (2026-11-01 총괄): 조회·발행 결과(refresh)와 실제 점검(lastSlCheckAt 갱신)을 나눈다. 처리기는 비동기이고
+            //    낡은 시세는 거절하므로 발행만으로 복구됐다고 보지 않는다 — streak 은 실제 점검 기록이 있어야 지워진다(위).
+            ForceRefreshResult refresh = forceRefreshPrice(coin);
+            boolean fetched = refresh.outcome() != ForceRefreshResult.Outcome.FAILED;
 
             log.warn("[Dynamic][§9] SL 미점검: sessionId={} coin={} 마지막체크={} ({}분 초과, "
-                            + "연속 {}회, WS구독={}, REST강제갱신={})",
+                            + "연속 {}회, WS구독={}, REST강제갱신={} {})",
                     s.getId(), coin, last != null ? last : "기록없음", SL_STALE_WARN_MINUTES,
-                    streak, subscribed ? "있음" : "없음", recovered ? "성공" : "실패");
+                    streak, subscribed ? "있음" : "없음", refresh.outcome(), refresh.describeAge(Instant.now()));
 
             // 자가복구가 먹히는 동안은 알리지 않는다 — 거래가 뜸한 코인의 정상적인 틱 공백이다.
-            boolean needsHuman = !recovered || !subscribed || streak >= SL_STALE_NOTIFY_STREAK;
+            boolean needsHuman = !fetched || !subscribed || streak >= SL_STALE_NOTIFY_STREAK;
             if (!needsHuman) continue;
 
             String cause = !subscribed
                     ? "이 코인이 WS 구독 목록에 없습니다 — 구독 배선 확인 필요."
-                    : !recovered
+                    : !fetched
                     ? "REST 강제 갱신도 실패 — 거래소 API 상태를 확인하세요."
+                    : refresh.outcome() == ForceRefreshResult.Outcome.STALE
+                    ? String.format("REST 시세도 %s 값이라(기준 %d초) %d분 연속 실시간 SL 점검에 쓰지 못했습니다 "
+                            + "— 낡은 시세로는 점검·매도하지 않습니다.",
+                            refresh.describeAge(Instant.now()), markPriceBook.maxAgeSeconds(), streak)
                     : String.format("REST 강제 갱신을 %d분 연속 시도했는데도 점검이 기록되지 않습니다 "
                             + "— 실시간 이벤트 경로가 죽었을 수 있습니다.", streak);
 
@@ -3587,26 +3595,28 @@ public class DynamicTradingService {
     /**
      * 특정 코인 하나만 REST로 즉시 시세를 가져와 {@link RealtimePriceEvent}를 발행한다.
      * {@link #warnStaleSlCheck}가 개별 세션의 SL 미점검을 발견했을 때 즉시 복구를 시도하는 용도 —
-     * LIVE {@link LiveTradingService#forceRefreshPrice}와 동일 패턴.
+     * LIVE {@link LiveTradingService#forceRefreshPrice}와 동일 패턴 — 결과는 조회·발행 결과다({@link ForceRefreshResult}, N02 보완).
      */
-    boolean forceRefreshPrice(String coinPair) {
-        if (upbitRestClient == null) return false;
+    ForceRefreshResult forceRefreshPrice(String coinPair) {
+        if (upbitRestClient == null) return ForceRefreshResult.failed();
         try {
             List<Map<String, Object>> tickers = upbitRestClient.getTicker(coinPair);
-            boolean published = false;
+            ForceRefreshResult result = ForceRefreshResult.failed();
             for (Map<String, Object> ticker : tickers) {
                 String market = (String) ticker.get("market");
                 Object tradePriceObj = ticker.get("trade_price");
                 if (market == null || tradePriceObj == null) continue;
                 BigDecimal tradePrice = new BigDecimal(tradePriceObj.toString());
-                eventPublisher.publishEvent(new RealtimePriceEvent(market, tradePrice, restTradeTime(ticker),
+                Instant observedAt = restTradeTime(ticker);
+                eventPublisher.publishEvent(new RealtimePriceEvent(market, tradePrice, observedAt,
                         RealtimePriceEvent.REST_TRADE));
-                published = true;
+                boolean stale = markPriceBook != null && markPriceBook.isStale(observedAt, Instant.now());
+                result = new ForceRefreshResult(stale ? ForceRefreshResult.Outcome.STALE : ForceRefreshResult.Outcome.PUBLISHED, observedAt);
             }
-            return published;
+            return result;
         } catch (Exception e) {
             log.error("[Dynamic][§9] SL 미점검 세션 강제 복구 실패 (coin={}): {}", coinPair, e.getMessage());
-            return false;
+            return ForceRefreshResult.failed();
         }
     }
 

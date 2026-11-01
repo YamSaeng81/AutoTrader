@@ -179,10 +179,13 @@ public class LiveTradingService {
     private final Set<Long> exchangeStoppedSessionIds = ConcurrentHashMap.newKeySet();
 
     /**
-     * 거래소 복구 자동 재시작에서 빼는 전략 (N01, 2026-11-01) — {@code DAILY_SMA20} 은 56일 제한시험 전용이다(SID 203,
-     * F1 이 다른 실자금 SMA20 세션이 없음을 확인한다). 제한시험은 중단 뒤 재개하지 않는다.
+     * 제한시험 전략 (N01, 2026-11-01) — {@code DAILY_SMA20} 은 56일 제한시험 전용이다(SID 203, F1 이 다른 실자금 SMA20 세션이 없음을
+     * 확인한다). 제한시험은 중단 뒤 재개하지 않고 종료는 최초 {@code started_at} + 56일이므로 이 전략의 LIVE 세션은
+     * ① 거래소 복구 자동 재시작 대상이 아니고({@link #restartAfterExchangeRecovery}) ② 수동 시작도 {@code CREATED} 이고
+     * {@code started_at} 이 없는 최초 시작만 받는다({@link #startSession}).
+     * 🔴 판별은 전략 이름이다(총괄 수용 2026-11-01) — 앞으로 만드는 LIVE {@code DAILY_SMA20} 세션도 모두 자동 복구되지 않고 정지 뒤 다시 시작할 수 없다.
      */
-    static final Set<String> NO_RECOVERY_RESTART_STRATEGIES = Set.of("DAILY_SMA20");
+    static final Set<String> LIMITED_TEST_STRATEGIES = Set.of("DAILY_SMA20");
 
     private static final DateTimeFormatter KST_FMT =
             DateTimeFormatter.ofPattern("HH:mm").withZone(ZoneId.of("Asia/Seoul"));
@@ -504,6 +507,15 @@ public class LiveTradingService {
         if ("RUNNING".equals(session.getStatus())) {
             throw new SessionStateException("세션이 이미 실행 중입니다: id=" + sessionId);
         }
+        // 🔴 N01 보완 (2026-11-01 총괄): 제한시험은 최초 시작(CREATED·started_at 없음)만 받는다. 정지·비상정지 뒤 수동 시작이
+        //    startLocked 를 지나면 재개 금지가 깨지고 started_at 이 덮여 56일 기산점이 밀린다. 거절은 예외라 상태·시각·주문이 그대로다.
+        if (LIMITED_TEST_STRATEGIES.contains(session.getStrategyType())
+                && !("CREATED".equals(session.getStatus()) && session.getStartedAt() == null)) {
+            log.warn("제한시험 세션 #{} ({}) 재시작 거절 — 상태 {}·started_at {} (최초 시작만 허용)",
+                    sessionId, session.getStrategyType(), session.getStatus(), session.getStartedAt());
+            throw new SessionStateException("제한시험 세션은 최초 시작(CREATED·started_at 없음)만 허용합니다 — 정지 뒤 재개할 수 없습니다: id="
+                    + sessionId + " 상태=" + session.getStatus());
+        }
         return startLocked(sessionId, session);
     }
 
@@ -534,7 +546,7 @@ public class LiveTradingService {
         }
         // 🔴 N01 (2026-11-01): 제한시험은 중단 뒤 재개하지 않고 종료는 최초 started_at + 56일이다(LIMITED_LIVE_TEST_PLAN §5-8 F4·F5·§6-2).
         //    startLocked 는 started_at 을 지금으로 덮으므로 다시 켜면 재개 금지와 기산점이 함께 깨진다. 일반 세션의 자동 복구는 그대로다.
-        if (NO_RECOVERY_RESTART_STRATEGIES.contains(session.getStrategyType())) {
+        if (LIMITED_TEST_STRATEGIES.contains(session.getStrategyType())) {
             log.warn("거래소 복구 — 세션 #{} ({}) 는 제한시험이다 — 자동 재시작하지 않는다(EMERGENCY_STOPPED·started_at {} 유지)",
                     sessionId, session.getStrategyType(), session.getStartedAt());
             return null;
@@ -2669,13 +2681,21 @@ public class LiveTradingService {
                         s.getId(), s.getCoinPair(),
                         last != null ? last : "기록없음", SL_STALE_WARN_MINUTES);
 
-                boolean recovered = forceRefreshPrice(s.getCoinPair());
+                // 🔴 N02 보완 (2026-11-01 총괄): 발행 성공은 SL 점검 재개가 아니다 — 처리기는 비동기이고 낡은 시세는 거절한다.
+                //    실제 점검은 lastSlCheckAt 갱신으로만 확인되며, 기록이 없으면 다음 주기에 이 경보가 다시 나간다.
+                //    (cad3939 문구: "REST로 해당 코인 시세를 즉시 강제 갱신해 SL 감시를 재개했습니다." — 낡은 시세에도 나갔다)
+                ForceRefreshResult refresh = forceRefreshPrice(s.getCoinPair());
+                Instant now = Instant.now();
+                String detail = switch (refresh.outcome()) {
+                    case PUBLISHED -> String.format("REST로 해당 코인 시세를 강제 갱신해(%s) SL 점검 이벤트를 발행했습니다 — "
+                            + "실제 점검 기록은 다음 주기에 확인하며, 그때도 없으면 다시 알립니다.", refresh.describeAge(now));
+                    case STALE -> String.format("REST 시세도 %s 값이라(기준 %d초) SL 점검에 쓰지 않았습니다 — 점검·매도 없음.",
+                            refresh.describeAge(now), markPriceBook.maxAgeSeconds());
+                    case FAILED -> "자동 복구도 실패 — WS/거래소 상태를 직접 확인하세요.";
+                };
                 telegramService.sendCustomNotification(String.format(
                         "⚠️ SL 미점검 %d분 초과: 세션 %d (%s). %s",
-                        SL_STALE_WARN_MINUTES, s.getId(), s.getCoinPair(),
-                        recovered
-                                ? "REST로 해당 코인 시세를 즉시 강제 갱신해 SL 감시를 재개했습니다."
-                                : "자동 복구도 실패 — WS/거래소 상태를 직접 확인하세요."));
+                        SL_STALE_WARN_MINUTES, s.getId(), s.getCoinPair(), detail));
             }
         }
     }
@@ -2685,25 +2705,30 @@ public class LiveTradingService {
      * {@link #warnStaleSlCheck}가 개별 코인의 SL 미점검(전역 WS는 정상인데 이 코인만 조용히
      * 끊긴 경우)을 발견했을 때, 사람 개입 없이 그 자리에서 즉시 한 번 복구를 시도하는 용도.
      * 실패해도 다음 60초 주기에 다시 시도되며, 그사이엔 알림 문구로 자동 복구 실패를 알린다.
+     *
+     * <p>🔴 N02 보완 (2026-11-01): 결과는 조회·발행 결과다({@link ForceRefreshResult}) — 낡은 시세면 {@code STALE}(처리기가 거절),
+     * 신선하면 {@code PUBLISHED}(점검은 비동기로, 아직 확인 전).</p>
      */
-    boolean forceRefreshPrice(String coinPair) {
-        if (upbitRestClient == null) return false;
+    ForceRefreshResult forceRefreshPrice(String coinPair) {
+        if (upbitRestClient == null) return ForceRefreshResult.failed();
         try {
             List<Map<String, Object>> tickers = upbitRestClient.getTicker(coinPair);
-            boolean published = false;
+            ForceRefreshResult result = ForceRefreshResult.failed();
             for (Map<String, Object> ticker : tickers) {
                 String market = (String) ticker.get("market");
                 Object tradePriceObj = ticker.get("trade_price");
                 if (market == null || tradePriceObj == null) continue;
                 BigDecimal tradePrice = new BigDecimal(tradePriceObj.toString());
-                eventPublisher.publishEvent(new RealtimePriceEvent(market, tradePrice, restTradeTime(ticker),
+                Instant observedAt = restTradeTime(ticker);
+                eventPublisher.publishEvent(new RealtimePriceEvent(market, tradePrice, observedAt,
                         RealtimePriceEvent.REST_TRADE));
-                published = true;
+                boolean stale = markPriceBook != null && markPriceBook.isStale(observedAt, Instant.now());
+                result = new ForceRefreshResult(stale ? ForceRefreshResult.Outcome.STALE : ForceRefreshResult.Outcome.PUBLISHED, observedAt);
             }
-            return published;
+            return result;
         } catch (Exception e) {
             log.error("[§9] SL 미점검 세션 강제 복구 실패 (coin={}): {}", coinPair, e.getMessage());
-            return false;
+            return ForceRefreshResult.failed();
         }
     }
 

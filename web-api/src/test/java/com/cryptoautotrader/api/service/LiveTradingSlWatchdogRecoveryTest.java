@@ -95,14 +95,15 @@ class LiveTradingSlWatchdogRecoveryTest extends IntegrationTestBase {
     // ── forceRefreshPrice 단위 동작 ──────────────────────────────────
 
     @Test
-    @DisplayName("forceRefreshPrice: REST 시세 조회 성공 시 true 반환")
+    @DisplayName("forceRefreshPrice: REST 시세 조회 성공(신선한 체결 시각) 시 PUBLISHED 반환 — ~~true~~ (N02 보완)")
     void forceRefreshPrice_succeeds() throws Exception {
+        // N02 보완(2026-11-01): 반환이 boolean → 조회·발행 결과. ~~기대 true~~ → 신선한 체결 시각이 있는 응답이면 PUBLISHED.
         when(upbitRestClient.getTicker("KRW-BTC")).thenReturn(List.of(
-                Map.of("market", "KRW-BTC", "trade_price", "91000000")));
+                Map.of("market", "KRW-BTC", "trade_price", "91000000", "trade_timestamp", System.currentTimeMillis())));
 
-        boolean result = liveTradingService.forceRefreshPrice("KRW-BTC");
+        ForceRefreshResult result = liveTradingService.forceRefreshPrice("KRW-BTC");
 
-        assertThat(result).isTrue();
+        assertThat(result.outcome()).isEqualTo(ForceRefreshResult.Outcome.PUBLISHED);
     }
 
     @Test
@@ -110,9 +111,9 @@ class LiveTradingSlWatchdogRecoveryTest extends IntegrationTestBase {
     void forceRefreshPrice_returnsFalse_onException() throws Exception {
         when(upbitRestClient.getTicker("KRW-BTC")).thenThrow(new RuntimeException("Upbit API timeout"));
 
-        boolean result = liveTradingService.forceRefreshPrice("KRW-BTC");
+        ForceRefreshResult result = liveTradingService.forceRefreshPrice("KRW-BTC");
 
-        assertThat(result).isFalse();
+        assertThat(result.outcome()).as("~~false~~ → FAILED (N02 보완)").isEqualTo(ForceRefreshResult.Outcome.FAILED);
     }
 
     @Test
@@ -120,27 +121,29 @@ class LiveTradingSlWatchdogRecoveryTest extends IntegrationTestBase {
     void forceRefreshPrice_returnsFalse_onEmptyResponse() throws Exception {
         when(upbitRestClient.getTicker("KRW-BTC")).thenReturn(List.of());
 
-        boolean result = liveTradingService.forceRefreshPrice("KRW-BTC");
+        ForceRefreshResult result = liveTradingService.forceRefreshPrice("KRW-BTC");
 
-        assertThat(result).isFalse();
+        assertThat(result.outcome()).as("~~false~~ → FAILED (N02 보완)").isEqualTo(ForceRefreshResult.Outcome.FAILED);
     }
 
     // ── warnStaleSlCheck 통합 — 알림 문구로 복구 성공/실패 구분 ──────────────
 
     @Test
-    @DisplayName("warnStaleSlCheck: SL 미점검 감지 시 강제 복구를 시도하고 성공 문구를 보낸다")
+    @DisplayName("warnStaleSlCheck: SL 미점검 감지 시 강제 갱신을 시도하고 발행 문구를 보낸다 — ~~재개 성공 문구~~ (N02 보완)")
     void warnStaleSlCheck_attemptsRecovery_andReportsSuccess() throws Exception {
         LiveTradingSessionEntity session = newRunningSession();
         openPosition(session.getId());
         lastSlCheckAt().put(session.getId(), Instant.now().minus(10, ChronoUnit.MINUTES));
 
         when(upbitRestClient.getTicker(anyString())).thenReturn(List.of(
-                Map.of("market", "KRW-BTC", "trade_price", "91000000")));
+                Map.of("market", "KRW-BTC", "trade_price", "91000000", "trade_timestamp", System.currentTimeMillis())));
 
         liveTradingService.warnStaleSlCheck();
 
+        // N02 보완(2026-11-01): 발행은 점검 재개가 아니다 — "재개했습니다"라고 말하지 않는다. 실제 점검 확인은 SlWatchdogFreshnessTest.
         verify(telegramService).sendCustomNotification(
-                argThat(msg -> msg.contains("강제 갱신") && msg.contains("세션 " + session.getId())));
+                argThat(msg -> msg.contains("강제 갱신") && msg.contains("발행") && !msg.contains("재개했습니다")
+                        && msg.contains("세션 " + session.getId())));
     }
 
     @Test
