@@ -501,6 +501,12 @@ check("F3-2 — 보유 중, 값은 같지만 매수 주문(11)에 미해결 정�
 sql(DB, "UPDATE order_settlement_discrepancy SET resolved_at = '2026-10-28 10:00+09', resolved_by = 't', resolution_note = 't' WHERE id = 904;")
 rc, out, last = read_case("r_open_resolved")
 check("F3-2 — 그 기록 해결 뒤 → ✅ 복귀", rc == 0 and last.startswith("✅ 판정: "), out)
+# v1.44(리뷰 2026-11-01) — 누락과 확정 불일치가 한 주문에 함께: 보고 대금 NULL · 보고 수수료 5 · 반영 수수료 4 → 🔴 유지, 상세의 NULL 은 '미확인'(0 대체 없음)
+reset(); rt(pos_status="OPEN", sell=False, b_af="10000", b_fee="4")
+sql(DB, "UPDATE \"order\" SET reported_executed_funds = NULL, reported_paid_fee = 5 WHERE id = 11;")
+rc, out, last = read_case("r_null_and_mism")
+check("F3-2 — 보고 대금 없음 + 보고 수수료 5 ≠ 반영 4 → 🔴 정산(보고≠반영 1건, ❔ 로 내리지 않음) · 상세 '주문 11 BUY 보고 미확인/5… 반영 10000…/4…'",
+      rc == 1 and last.startswith("🔴 판정: 정산 — 보고≠반영 1건") and "주문 11 BUY 보고 미확인/5" in out and " 반영 10000" in out and "✅" not in out, out)
 reset(); buy(pending=True, rfee="9.9")
 rc, out, last = read_case("r_pend_mism")
 check("F3-2 — 회계 반영 대기 주문의 보고 9.9 ≠ 반영 9.8 → M1 에 넣지 않고 ❔ 확인 불가(1건) 유지", rc == 1 and last.startswith("❔ 판정: 확인 불가 — ")
@@ -640,7 +646,8 @@ check("F6 — RUNNING · 시작 + 56일 전: 정지 요청 1회(POST …/session
 why = rd("midstop-reason.txt") or ""
 check("F6 — 사유·시각·근거 기록: '== 중도 정지 판단 … KST · 56일 대기 조건 적용 안 함' · 사유 · 근거 경로 · 근거 sha256 · 조회 상태 RUNNING",
       "== 중도 정지 판단 " in why and " KST · 56일 대기 조건 적용 안 함" in why and "사유: §6-2 왕복 실측 비용 > 0.40%(포지션 2" in why
-      and ("근거: " + basis) in why and basis.split("/")[-1] in why.split("\n")[3] and "조회 상태: SID 203 RUNNING" in why, why)
+      and ("근거: " + basis) in why and basis.split("/")[-1] in why.split("\n")[3] and "조회 상태: SID 203 RUNNING" in why
+      and "F6 정지 요청 보냄 " in why, why)   # v1.44: 실제로 보냈을 때만 이 줄(사람 판단 정지 기록 근거)
 rc, out, log, rd = f6(d, basis)
 check("F6 — 다시 붙이면: 🔴 멈춤 이미 정지 요청을 보냈다 · 새 호출 0(누적 POST 1) · 사유 기록에 덧붙이지 않음",
       rc == 1 and "🔴 멈춤: 이미 정지 요청을 보냈다" in out and sum("-X POST" in x for x in log) == 1 and len(log) == 2
@@ -658,7 +665,9 @@ for st in ("STOPPED", "EMERGENCY_STOPPED"):
     d, basis = f6_env()
     rc, out, log, rd = f6(d, basis)
     check("F6 — 이미 %s: 정지 요청 없음(curl 0) · stop-sent 없음 · '⛔ 이미 %s' 기록 · 종료 0 · DB 상태 %s 그대로" % (st, st, st),
-          rc == 0 and log == [] and rd("stop-sent") is None and ("⛔ 이미 %s — 정지 요청을 보내지 않는다(상태 보존)" % st) in (rd("midstop-reason.txt") or "")
+          # ~~v1.42 기대 '⛔ 이미 %s — 정지 요청을 보내지 않는다(상태 보존)'~~ → v1.44: 'F6 정지 요청 없음' 을 남기고 '정지 요청 보냄' 줄은 없다
+          rc == 0 and log == [] and rd("stop-sent") is None and ("⛔ 이미 %s — F6 정지 요청 없음(상태 보존)" % st) in (rd("midstop-reason.txt") or "")
+          and "F6 정지 요청 보냄" not in rd("midstop-reason.txt")
           and ("조회 상태: SID 203 %s" % st) in rd("midstop-reason.txt") and status203() == st, out)
 reset(status="CREATED", started=None)
 d, basis = f6_env()
