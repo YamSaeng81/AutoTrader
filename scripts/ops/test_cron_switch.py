@@ -62,6 +62,11 @@ def run(cron=CRON, script=None, d=None, **env):
         os.makedirs(os.path.join(d, "bin")); os.makedirs(os.path.join(d, "daily-check"))
         with open(os.path.join(d, "bin", "crontab"), "w", encoding="utf-8", newline="\n") as f:
             f.write(FAKE)
+        os.makedirs(os.path.join(d, "ops-scripts"))
+        with open(os.path.join(d, "ops-scripts", "daily_check.sh"), "w", encoding="utf-8", newline="\n") as f:
+            f.write('#!/bin/bash\nset -eu\nprintf "%s\\n" "$SID_OK_STATUS" >> "$FAKE_DIR/monitor-status"\n'
+                    'printf "SID 203: %s\\n" "$SID_OK_STATUS"\n')
+        os.chmod(os.path.join(d, "ops-scripts", "daily_check.sh"), 0o755)
     for x in ("written", "crontab.txt"):
         if os.path.exists(os.path.join(d, x)):
             os.remove(os.path.join(d, x))
@@ -127,6 +132,22 @@ rc, out, now, written, d = run(cron=exp, script=end_block)
 check("종료 뒤 전환(첫 줄만 바꿈) RUNNING → EMERGENCY_STOPPED — ✅ · 대상 줄만 바뀜",
       end_block != BLOCK and rc == 0 and "✅ cron 전환 RUNNING → EMERGENCY_STOPPED" in out
       and now == exp.replace("SID_OK_STATUS=RUNNING ", "SID_OK_STATUS=EMERGENCY_STOPPED "), (rc, out, now))
+
+# 전환과 직후 점검을 연결한다. 종료 cron 값은 맞는데 DRY_RUN이 RUNNING을 기대하던 누락을 잡는다.
+for from_status, to_status, cron in (
+        ("CREATED", "RUNNING", CRON),
+        ("RUNNING", "STOPPED", exp),
+        ("RUNNING", "EMERGENCY_STOPPED", exp)):
+    linked = BLOCK.replace("FROM=CREATED; TO=RUNNING", "FROM=%s; TO=%s" % (from_status, to_status), 1)
+    rc, out, now, written, d = run(cron=cron, script=linked)
+    monitor_status = os.path.join(d, "monitor-status")
+    observed = open(monitor_status, encoding="utf-8").read().splitlines() if os.path.exists(monitor_status) else []
+    applied_status = re.findall(r"SID_OK_STATUS=([A-Z_]+) ", now or "")
+    check("전환+DRY_RUN %s → %s — 적용 cron과 점검 기대 상태가 동일, 점검 1회" % (from_status, to_status),
+          rc == 0 and written and applied_status == observed == [to_status], (rc, out, now, observed))
+rc, out, now, written, d = run(FAKE_WRITE_FAIL="1")
+check("전환 실패 뒤 DRY_RUN 없음 — 이전 상태로 점검하지 않는다",
+      rc != 0 and not written and not os.path.exists(os.path.join(d, "monitor-status")), (rc, out))
 
 # ── 2026-10-31 리뷰: §3 "기존 줄 교체" 블록 — SID_OK_STATUS 없는 2026-10-22 줄을 CREATED 명시 줄로, 그 줄만 ──
 def block_replace():
@@ -233,8 +254,8 @@ F21_LOCAL = "M=$HOME/m; mkdir -p $M\n" + F21.replace("SHA=<리뷰가 확인한 �
 LEDGER_CRON = CRON.replace(CRON.splitlines(True)[2], SETC_LINE + "\n")         # 운영 모양: 주석 · 정기 점검(CREATED) · 장부 줄 · 다른 일정
 rc, out, now, written, d = run(cron=LEDGER_CRON, script=F21_LOCAL)
 ext = open(os.path.join(d, "m", "cron-switch.sh"), encoding="utf-8").read()
-check("F2-1 — 꺼낸 블록 = 이 시험이 돌리는 §3-1 블록 + DRY_RUN 확인 줄(손으로 옮기지 않음)",
-      ext.startswith(BLOCK + "\n") and ext.rstrip("\n").splitlines()[-1].startswith("SID_OK_STATUS=RUNNING ") and "DRY_RUN=1" in ext.splitlines()[-1], ext)
+check("F2-1 — 꺼낸 블록 = 이 시험이 돌리는 §3-1 전체(TO와 DRY_RUN을 같은 블록에서 사용)",
+      ext.strip() == BLOCK.strip() and 'SID_OK_STATUS="$TO" ' in ext and "DRY_RUN=1" in ext, ext)
 check("F2-1 — ✅ CREATED → RUNNING · 정기 점검 줄만 바뀜 · 장부 줄·다른 일정 그대로 · 마지막 세 숫자 1 0 1",
       "✅ cron 전환 CREATED → RUNNING" in out and now == LEDGER_CRON.replace("SID_OK_STATUS=CREATED ", "SID_OK_STATUS=RUNNING ")
       and out.rstrip().splitlines()[-3:] == ["1", "0", "1"], (out, now))

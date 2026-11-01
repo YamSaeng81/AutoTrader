@@ -160,8 +160,8 @@ diff <(grep -v "SID_OK_STATUS=$TO " "$N" || true) <(grep -v "SID_OK_STATUS=$FROM
 crontab "$N" || stop "crontab 적용 실패 — crontab -l 로 지금 상태를 확인해 보고"
 crontab -l | cmp -s - "$N" || { echo "🔴 적용 뒤 대조 실패 — crontab \"$B\" 로 되돌리고 crontab -l 출력을 보고"; exit 1; }
 echo "✅ cron 전환 $FROM → $TO · 보존본 $B · 적용본 $N"
+SID_OK_STATUS="$TO" REPO_DIR=~/crypto_trader/AutoTrader SQL_FILE=~/ops-scripts/daily_checks.sql DRY_RUN=1 ~/ops-scripts/daily_check.sh
 )
-SID_OK_STATUS=RUNNING REPO_DIR=~/crypto_trader/AutoTrader SQL_FILE=~/ops-scripts/daily_checks.sql DRY_RUN=1 ~/ops-scripts/daily_check.sh
 ```
 - 기대: `✅ cron 전환 CREATED → RUNNING` 한 줄, 그리고 마지막 명령의 결과에 `SID 203: RUNNING` 줄이 있고 `SID 203 상태` 🔴 줄이 없다.
 - `🔴 멈춤` 이면 cron 은 바뀌지 않았다 — 출력 그대로와 `crontab -l` 출력을 보낸다. 블록을 고쳐 다시 돌리지 않는다.
@@ -169,6 +169,7 @@ SID_OK_STATUS=RUNNING REPO_DIR=~/crypto_trader/AutoTrader SQL_FILE=~/ops-scripts
 - 시작이 확인되지 않았으면(F2 실패·보류) 바꾸지 않는다 — `CREATED` 그대로가 맞다.
 - 시작 순서에서는 `LIMITED_LIVE_TEST_PLAN.md` §5-8 **F2-1** 이 이 블록을 리뷰가 확인한 커밋에서 그대로 꺼내 F2 시작 확인 직후 돌린다(리뷰 2026-11-01 3번).
 - 56일 종료 뒤 최종 상태(`STOPPED` 또는 `EMERGENCY_STOPPED` — 비상정지면 그 상태 그대로)로 바꾸는 것은 리뷰 판단을 받은 뒤 같은 블록으로, 첫 줄 `FROM=RUNNING; TO=<최종 상태>` 만 바꿔서 한다(§5-8 F5-4).
+- 전환 뒤 `DRY_RUN`도 같은 `TO`를 기대한다. 종료 상태로 전환한 뒤 `RUNNING`을 기대해 잘못 경보를 내던 고정값을 없앴다. 전환이 실패하면 `DRY_RUN`은 실행하지 않는다. 전환 성공 뒤 점검에서 이상이 나오면 cron 적용 결과는 보존하고 출력 전체를 보고한다.
 
 ## 4. 수동 실행
 
@@ -212,3 +213,4 @@ DB 조회 실패 · 출력 누락 · 시간 초과 · 앱 없음(나머지 점�
 **(2026-10-31 리뷰 — 원인 미확인 🟡)** 운영 보고 원문 뉴스 3줄·BLAST 줄은 🟡(출처별 건수)·미분류 0 · 해당 줄 없으면 0 · 경계 밖 13가지(다른 sourceId·접미 붙은 sourceId·`null` 아닌 메시지·덧붙은 문구·다른 뉴스 출처 둘·이름 접미가 같은 다른 로거·`KRW-BLASTX`·다른 마켓·다른 BLAST 메시지·다른 로거의 같은 문구)는 미분류 🔴 · 리눅스 `C.UTF-8` 에서도 같은 판정. (91/91)
 **(2026-11-01 리뷰 — 캔들 대상별 요약, 새 15)** 운영 구간 모양 여섯 대상(재개 5·재개 미관측 1, 재개 미관측 먼저, 🟡 6건·🟢 그대로) · '미회복' 을 확정 문구로 쓰지 않음 · 재개만(불가 시작은 구간 밖) · 불가 → 재개 → 다시 불가 · BTC 관문 재개 줄의 '판정 불가(' 를 불가로 읽지 않음 · 같은 키 LIVE·DYNAMIC 은 대상 하나 · 접두가 같은 다른 키는 따로 · 일곱 번 바뀐 키는 처음 둘·끝 둘·전체 횟수 · 다른 로거의 같은 문구(요약 없음, 미분류 🔴 그대로) · 디버그 '판정 불가 지속' 제외 · 시각 없는 줄은 '?' 로 남김(건수와 어긋나지 않게) · 캔들 줄 없음 · 대상 12개(10줄 + 외 2개) · 리눅스 `ubuntu:22.04`(mawk) `C.UTF-8`·`C` 두 로케일. 전체 **106/106**(첫 실행 105/106 — 시험 기대값 실수: '불가 → 재개 → 다시 불가' 의 불가 ERROR 2줄을 1로 적음, 스크립트 출력은 맞았다).
 `test_cron_switch.py` 는 위 "기존 줄 교체" 블록도 문서에서 꺼내 돌린다: 정상 교체(다른 일정 보존) · 조회 실패·대상 0줄·2줄·글자가 다른 줄·이미 `SID_OK_STATUS` 있음·적용 실패·두 번째 실행은 멈추고 cron 그대로 · 교체 뒤 §3-1 전환으로 이어짐. 2026-11-01: 계획 문서 §5-8 F2-1 블록도 그대로 꺼내(리뷰 커밋에서 꺼내는 `git show` 줄만 이 저장소 문서를 읽게 바꿔) 돌린다 — 꺼낸 블록 = §3-1 블록 + `DRY_RUN` 줄 · 정기 점검 줄만 `RUNNING` 으로, 장부 줄·다른 일정 그대로 · 이미 `RUNNING` 이면 멈춤. 전체 **40/40**(종전 36 + 새 4, 첫 실행 통과).
+2026-11-01 추가 연결 점검: `DRY_RUN`을 §3-1 안으로 옮기고 `TO`를 공유한다. RUNNING·STOPPED·EMERGENCY_STOPPED 세 전환에서 적용 cron과 점검 기대 상태가 같고, 전환 실패 뒤 점검이 실행되지 않는지 4건을 추가했다. 전체 **44/44**. 이전의 종료 상태 전환 뒤 `RUNNING` 고정 기대는 구버전 원문으로 재현했다.
