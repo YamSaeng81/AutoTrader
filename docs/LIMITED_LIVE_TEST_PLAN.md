@@ -1,5 +1,6 @@
 # 12월 제한 실거래 시험 — 후보와 실행안
 
+> **v1.48 (2026-11-01)**: 총괄 판정 — N01·N02 핵심 수정 수용, N00 완료. 보완 두 건(제한시험 수동 시작은 `CREATED`·`started_at` 없음만 / SL 감시기 조회·발행과 실제 점검 구분)을 재현 확인(이전 후보 `2498072` 에서 8건 중 5건 실패) → 로컬 검증. N04 고정 후보 `5bb0544`, 관련 시험 119/119(보완 경로 68·N01·N02 나머지 51), jar 대조 추가 2·변경 6·678 → 680. 배포·복구 명령 I0~I4·I 되돌림(개입 #18) 준비 — 운영자 실행 대기, 운영 무변경(§5-9 20).
 > **v1.47 (2026-11-01)**: 총괄 P0 두 건 재현·로컬 수정(§5-9 19). N01 — 거래소 DOWN → UP 이 SMA20 제한시험을 `RUNNING` 으로 다시 열고 `started_at` 을 덮는 것을 `cad3939` 에서 재현(2/2 실패) → 복구 재시작에서 `DAILY_SMA20` 제외, 2/2 통과. N02 — 121초 전 체결가 280 이 LIVE·DYNAMIC 보호 매도로 이어지는 것을 재현(2/2 실패) → 기존 120초 정의(`MarkPriceBook`)로 두 처리기에서 거절, 2/2 통과(수정 결함 1건: 밀리초 절사 → `Instant.now()`). 바뀐 경로 회귀 75/75. 후보 `2498072`(`cad3939` 기점), 운영 반영 전. 함께 v1.46 N00 을 `3a8fcc7` 로 커밋 인계.
 > **v1.46 (2026-11-01, 로컬 수정)**: 시작·종료 절차를 연결해 결함 두 곳을 보완했다. F1 새 시도는 이전 증거를 보존하고 통과·운영자 확인을 무효화하며, F2는 최신 시도 뒤의 통과만 받는다. 기존 'F1 실패면 그날 시작하지 않음'도 날짜별 실패 표지로 확인한다. cron 전환 뒤 점검은 고정 `RUNNING` 대신 전환한 `TO`를 기대한다. 국소 시험 시작 7/7·cron 44/44. 운영·DB·설치 파일 변경 및 커밋·푸시는 하지 않았다(§5-9 18).
 > **v1.45 (2026-11-01)**: BTC 확인 1·3 결과(운영자 실행, 12:47 KST, 읽기 전용) — 확인 1 점검 표 1행 기대와 같음 → 점검 표·두 재기동(10-30 #16·10-31 #17) 뒤 재조회·재개 기록이 모두 맞아 **유효 결측 1칸(허용 2) 확정**. 확인 3 2회차 봉 전진: B1 최신 완료 11-01 11:00(필요 11:00 충족, 1회차 10-31 15:00 보다 뒤) · B2 빠짐 같은 4개 · B3 20/20 · B4 SID 203 `CREATED`·유지 세션 78·85 → 기대와 같음. BTC 입력 확인 마무리(§5-9 17).
@@ -3092,12 +3093,308 @@ echo "✅ f0872e2 (fdd7695a…) 로 복귀 — 3~5분 뒤 H3 를 다시 실행(t
   - N01: `cad3939` 에서 재현했다. UP 뒤 `RUNNING`, `started_at` 이 2026-10-29T06:43:24Z → 2026-11-01T06:43:24.97Z 로 덮였다. 수정은 복구 재시작에서 `DAILY_SMA20` 을 빼는 것이다. 수정 뒤 비상정지와 최초 `started_at` 이 유지되고, 추가 매수 0·청산 매도 1회다. 일반 세션 복구는 그대로다.
   - N02: `cad3939` 에서 재현했다. 121초 전 280 이 LIVE·DYNAMIC 에서 매도 1회로 이어졌다. 수정은 기존 120초 정의를 두 처리기 맨 앞에 연결한 것이다. 수정 뒤 낡은 이벤트는 매도 0, 신선한 이벤트는 매도 1회, 중복 매도는 없다.
   - 바뀐 경로 회귀 75/75. 실패 이력: 수정 뒤 첫 실행 74/75(DYNAMIC, 밀리초 절사 결함 — 고침).
-- 총괄 판단 대기:
+- ~~총괄 판단 대기~~ → 총괄 판정(2026-11-01, §5-9 20): ① 전략명 판별 수용 ② 수동 시작도 코드로 막음 ③ 감시기 성공 판정 정정 ④ 보완과 함께 N04 후보로 묶음.
   - ① N01 판별 정책(전략 `DAILY_SMA20` 기준, 다른 안 두 가지).
   - ② 수동 `start` 의 `started_at` 덮어쓰기를 코드로도 막을지.
   - ③ N02 이후 체결 드문 보유 코인의 SL 미점검 경보 증가와 LIVE 경보 문구.
   - ④ N04 배포 후보로 묶을지(F1 HEAD·이미지 기대값이 바뀐다).
 - 운영 상태: 바꾼 것 없음 — 운영 `cad3939`, 정기 점검 `baa4b0e`, 장부 `8bfe8a9` 판, SID 203 `CREATED`, 12월 1일 08:50 KST 시작 목표.
+
+**20. 총괄 판정 — N01·N02 핵심 수정 수용, 보완 두 건 → N04 후보 `5bb0544` · 배포·복구 명령 I0~I4 (2026-11-01, v1.48). 운영 반영 전**
+
+- 판정 원문(총괄, 2026-11-01 운영자 전달):
+  > **N01·N02의 핵심 수정은 수용합니다. 배포 전 보완은 두 가지입니다.** 후보 원문과 작업 사본이 일치하고, 시험 XML도 **75건·실패 0·오류 0·건너뜀 0**임을 확인했습니다. N00은 완료로 닫습니다.
+  >
+  > 1. **전략명 판별은 수용합니다.**
+  >    이번에는 `DAILY_SMA20`으로 구분하세요. 향후 생성하는 LIVE SMA20도 자동 복구하지 않는다는 영향을 명시합니다. DB·설정·SID 표지는 추가하지 않습니다.
+  >
+  > 2. **수동 재시작도 코드로 막으세요.**
+  >    제한시험은 **`CREATED`이고 `started_at`이 없는 최초 시작만 허용**합니다. 정지·비상정지 뒤에는 수동 호출로도 재개하거나 기산점을 덮을 수 없어야 합니다.
+  >    최초 시작 허용, STOPPED·EMERGENCY_STOPPED 재시작 거절, 거절 시 상태·시각·주문 불변을 확인하세요. 일반 전략의 기존 복구는 유지합니다.
+  >
+  > 3. **손절 감시기의 성공 판정을 바로잡으세요.**
+  >    이벤트 발행 성공은 실제 SL 점검 재개를 뜻하지 않습니다. LIVE·DYNAMIC 모두 **조회/발행 결과와 실제 점검 시각 갱신을 구분**하세요.
+  >    오래된 REST 응답에서는 매도·점검 시각 갱신·"재개 성공" 문구가 없어야 하고, 신선한 응답에서는 실제 점검 기록을 확인해야 합니다. 경보를 없애거나 최신성 기준을 완화하지 않습니다.
+  >
+  > 4. **N01 시험 범위를 정확히 기록하세요.**
+  >    매수 완료 상태는 준비 자료이며, 이번 시험은 **매도 접수 후 대기 중 정리·복구의 중복 제출 방지**까지 확인했습니다. 매도 체결·최종 정산 완료까지 검증했다고 적지 않습니다.
+  >
+  > **보완 두 건을 N04 후보에 함께 묶으세요.** 완료 즉시 고정 SHA, 변경 범위, 관련 시험 결과, jar 대조, 배포·복구 명령을 한 번에 보고합니다. 11월 20일까지 기다릴 필요는 없습니다. 추가 착수 승인 없이 진행하고, 전체 회귀·전체 리허설은 반복하지 않습니다.
+  >
+  > 운영은 `cad3939`, SID 203은 `CREATED`로 유지합니다.
+- 결과·원문·변경 범위는 [`NOVEMBER_LIVE_UPGRADE.md`](NOVEMBER_LIVE_UPGRADE.md) "N01·N02 보완과 N04 후보"에 적었다. 요약:
+  - 고정 후보: `5bb0544926a694832e75234670bb8f99dfe33bb0`(`candidate/n01-n02-cad3939`, `cad3939` → `2498072` → `5bb0544`). 운영 기점 대비 본 코드 4파일(`LiveTradingService`·`DynamicTradingService`·`MarkPriceBook`·새 `ForceRefreshResult`), 시험 7파일.
+  - 보완 2 재현 확인(이전 후보 `2498072` 에서 실패) → 로컬 검증. 보완 3 재현 확인(LIVE "SL 감시를 재개했습니다"·DYNAMIC "이벤트 경로가 죽었을 수 있습니다" 오인) → 로컬 검증.
+  - 관련 시험: 이번 보완 경로 10개 클래스 68/68, N01·N02 나머지 관련 5개 클래스는 NOVEMBER 문서 표.
+  - jar 대조(로컬 `cad3939` ↔ `5bb0544` bootJar): 추가 2·변경 6, 클래스 678 → 680, 삭제 0, 라이브러리 jar 변화 0.
+
+**개입 #18 (N04) — backend 단독 배포·복구 명령 I0~I4**
+
+- **고정값**: 지금 운영 `cad393956e131c257195fcd08fcac18c83802788`(이미지 `sha256:a747a8e6…`, #17) → 후보 `5bb0544926a694832e75234670bb8f99dfe33bb0`. DB 마이그레이션 없음(V94 그대로). 장부·F3·F5·정기 점검 설치본·cron 은 바꾸지 않는다(H5 같은 장부 교체 단계 없음).
+- **서버 git**: `git fetch origin` 뒤 `git checkout --quiet <후보 SHA>`(분리 HEAD)만 한다. `git checkout main`·`git pull` 은 하지 않는다. #17 과 같다.
+- **시간**: 운영자가 약 45분 계속 대응할 수 있을 때. 10:00·22:00 정기 보고를 본 뒤 시작하고 09:00~09:59 KST 는 피한다(09:30 장부 기록). 순서 I0 → 30분 안에 I1 → 바로 I2 → 5~10분 뒤 I3 → 기동 30분 뒤 I4. 재기동이 다음 정기 보고 구간 안에 있으면 그 보고에 재기동 🔴 가 한 번 나온다(이 배포로 설명됨, 기록).
+- **바뀌는 운영 동작(배포 뒤)**:
+  - LIVE `DAILY_SMA20` 세션(지금은 SID 203 `CREATED` 하나): 거래소 복구 자동 재시작 없음. 수동 `start` 는 `CREATED`·`started_at` 없음일 때만 — 12-01 F2 의 최초 시작은 그대로 받는다(F1·`sid203` 이 `CREATED`·`started_at` 비어 있음을 확인). 앞으로 만드는 LIVE `DAILY_SMA20` 도 같다.
+  - LIVE·DYNAMIC 실시간 처리기: 체결 시각이 120초를 넘은 이벤트로 손절·익절하지 않는다(N02). PAPER 66세션(`PaperTradingService`)에는 실시간 처리기가 없다.
+  - SL 미점검 감시기 알림 문구: LIVE "REST로 해당 코인 시세를 즉시 강제 갱신해 SL 감시를 재개했습니다" 가 없어지고, 신선하면 "…SL 점검 이벤트를 발행했습니다 — 실제 점검 기록은 다음 주기에 확인…", 낡았으면 "REST 시세도 체결 n초 전 값이라(기준 120초) SL 점검에 쓰지 않았습니다 — 점검·매도 없음." DYNAMIC 은 5회 연속 미점검일 때 원인을 낡은 시세와 이벤트 경로 고장으로 나눠 알린다. 거래가 드문 코인 보유 중이면 텔레그램 경보가 늘 수 있다 — I4 에서 개수만 기록한다.
+- **jar 대조 기대값(로컬)**: `cad3939` 와 `5bb0544` 로 각각 `:web-api:bootJar` 를 만들어 H1 과 같은 비교 코드(라이브러리 jar 는 내용 해시)로 대조했다. 추가 2(`ForceRefreshResult`·`$Outcome`), 변경 6(`DynamicTradingService`, `LiveTradingService` 본체·`$1`·`$EmptyPositionOutcome`·`$PriceSnapshot`, `MarkPriceBook`), `(끝) 678 680`. `LiveTradingService` 안쪽 클래스 셋은 같은 파일이라 줄 번호만 밀렸다. 서버 I1 이 같은 대조를 하고, 다르면 **재기동 전에** 멈춘다.
+- 각 묶음은 `( set -euo pipefail … )` 다. 통과 표지(`ok-I0`~`ok-I4`)가 있어야 다음 묶음이 시작한다. 결과는 새 폴더 `~/maint-n04` 에만 쓴다. `~/maint-rounding`(#17)은 읽기만 한다.
+
+**I 변수** — 🔴 새 셸마다 §5-8 **F 변수** → §5-9 의 **G 변수** → 아래 블록 순서로 실행한다(G 변수가 `qc`·`zero5`·`alertsok`·`sid203`·`REPO`·`QS`·`POOLX`·`NOT404` 를 준다). 아래 블록이 `M`·`OLD`·`NEW` 를 덮어쓴다. H 변수는 넣지 않는다.
+```bash
+M=~/maint-n04; mkdir -p "$M"; OPS=~/ops-scripts
+OLD=cad393956e131c257195fcd08fcac18c83802788; NEW=5bb0544926a694832e75234670bb8f99dfe33bb0
+IMGOLD=sha256:a747a8e6c3043ae655e73bd2f6495a6ba755cb85d92c6fec7c96c6b3e8b357ae   # #17 배포 이미지(지금 실행 중)
+LS=8bfe8a9fa896f400b3fb6681fef021c99d6ba43b; LSUM=02a8585021fb2a1a52d9b3b56b60e957cb71b9ca3c11bf819595df15cf334f1c   # 지금 설치 장부 — 바꾸지 않는다
+h256() { sha256sum < "$1" | cut -d' ' -f1 ; }
+v94() { [ "$($PSQL -At -c "SELECT max(version::int) FROM flyway_schema_history WHERE success")" = "94" ] ; }
+SV=web-api/src/main/java/com/cryptoautotrader/api/service; TV=web-api/src/test/java/com/cryptoautotrader/api/service
+DIFF11="$(printf '%s\n' $SV/{DynamicTradingService,ForceRefreshResult,LiveTradingService,MarkPriceBook}.java $TV/{DynamicSlWatchdogNoiseTest,DynamicTradingSlWatchdogRecoveryTest,LimitedTestExchangeRecoveryTest,LiveTradingSlWatchdogRecoveryTest,PoolLossLimitTest,SlWatchdogFreshnessTest,StaleRealtimeExitTest}.java)"
+JC=BOOT-INF/classes/com/cryptoautotrader/api/service
+JARX="변경 $JC/DynamicTradingService.class
+추가 $JC/ForceRefreshResult\$Outcome.class
+추가 $JC/ForceRefreshResult.class
+변경 $JC/LiveTradingService\$1.class
+변경 $JC/LiveTradingService\$EmptyPositionOutcome.class
+변경 $JC/LiveTradingService\$PriceSnapshot.class
+변경 $JC/LiveTradingService.class
+변경 $JC/MarkPriceBook.class"
+# BTC 관문은 candle 의 '기동 직전에도 판정 불가' 예외를 받지 않는다(v1.36 과 같다).
+btcgate() { python3 - "$1" <<'PYEOF'
+import re, sys
+st = {}
+for line in open(sys.argv[1], encoding="utf-8", errors="replace"):
+    m = re.search(r"\[캔들 최신성\] (.+?) 판정 (불가|재개) \(", line)
+    if m and m.group(1).startswith("BTC 급락 관문 "):
+        st[m.group(1)] = m.group(2)
+if not st:
+    print("BTC 관문: 판정 불가·재개 줄 없음")
+for k, v in st.items():
+    print("BTC 관문 마지막 상태: %s 판정 %s" % (k, v))
+sys.exit(1 if "불가" in st.values() else 0)
+PYEOF
+}
+```
+
+**I0. ▶ 직전 확인 — 읽기 전용, 재기동 없음**
+```bash
+(
+set -euo pipefail
+stop() { echo "🔴 멈춤: $*"; exit 1; }
+[ "$M" = "$HOME/maint-n04" ] && [ "$NEW" = 5bb0544926a694832e75234670bb8f99dfe33bb0 ] && type sid203 > /dev/null 2>&1 || stop "변수 순서 — F 변수 → G 변수 → I 변수"
+[ ! -e "$M/ok-I1" ] || stop "I1 을 이미 시작했다 — I0 를 다시 하지 않는다. ls -l $M 를 보고"
+[ "$(git rev-parse HEAD)" = "$OLD" ] && [ -z "$(git status --porcelain --untracked-files=no)" ] || stop "HEAD 가 cad3939 가 아니거나 추적 파일 변경 있음"
+date '+%F %T %Z' | tee "$M/t-before.txt"; date '+%F %T%:z' > "$M/maint_start.txt"
+{ git rev-parse HEAD; git status --porcelain --untracked-files=no; echo "(끝)"; } | tee "$M/git-before.txt"
+git fetch origin
+git cat-file -e "$NEW^{commit}" || stop "후보 5bb0544 없음"
+[ "$(git diff --name-only $OLD $NEW)" = "$DIFF11" ] || stop "diff 가 정확히 열한 파일이 아님"
+svc | tee "$M/svc-before.txt"
+IMG0=$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)"); echo "$IMG0" | tee "$M/image-before.txt"
+[ "$IMG0" = "$IMGOLD" ] && [ "$IMGOLD" = "$(cat ~/maint-rounding/image-new.txt)" ] || stop "실행 이미지가 #17 배포 이미지(a747a8e6…)와 다름"
+[ "$(docker image inspect --format '{{.Id}}' $REPO:latest)" = "$IMG0" ] || stop "$REPO:latest 가 실행 이미지와 다름"
+[ "$($DC exec -T backend env | grep '^TRADING_CAPITALPOOL_' | sort)" = "$POOLX" ] || stop "공유 풀 등록값이 STAGE_1·100000·20000·3 과 다름"
+v94 || stop "Flyway 최고 버전이 94 가 아님"
+sid203 || stop "SID 203·기준 행·EG·0 확인 중 다른 것 있음 — F1 과 같은 조회로 보고"
+sc | tee "$M/s-before.txt"; [ "$(cat "$M/s-before.txt")" = "66 | 63 | 3 | -" ] || stop "검증 66세션 상태 다름"
+[ "$(h256 "$OPS/sid_ledger.sql")" = "$LSUM" ] && [ "$(cat "$OPS/SID_LEDGER_SHA")" = "$LS" ] || stop "설치 장부가 8bfe8a9 판이 아님"
+crontab -l > "$M/crontab-before.txt" || stop "crontab 조회 실패"
+[ -s "$M/crontab-before.txt" ] && [ "$(grep -c 'sid_ledger.sql' "$M/crontab-before.txt")" = 1 ] || stop "crontab 이 비었거나 장부 기록 줄이 1개가 아님"
+( cd ~/sid203-ledger && sha256sum -- * ) > "$M/ledger-files-before.sha"; cat "$M/ledger-files-before.sha"
+qc > "$M/q-before.txt" 2>&1; sed -n '/== Q3/,$p' "$M/q-before.txt" | grep -vE '^-+|^\s*$'
+git show $QS:scripts/ops/maint_verify.py > "$M/maint_verify.py"
+$DC logs --no-color backend > "$M/backend-before.log"
+python3 scripts/prospective/start_66.py alerts --days 1 --no-mark > "$M/alerts-before.txt" 2>&1 && AE=0 || AE=$?
+echo "경보 종료코드 $AE"
+alertsok "$AE" "$M/alerts-before.txt" || stop "경보 조회가 끝까지 돌지 않음 — alerts-before.txt 를 보고"
+grep -E '^(🔴|⚪)' "$M/alerts-before.txt" || true
+touch "$M/ok-I0"; echo "✅ I0 통과 — 30분 안에 I1"
+)
+```
+- 기대 결과:
+  - `git-before` 는 `cad39395…` 다음 바로 `(끝)` 이고, diff 는 열한 파일이다.
+  - 실행 이미지 = `latest` = `sha256:a747a8e6…`(#17) 이다.
+  - 공유 풀 네 값, V94, `sid203` 통과, `sc` `66 | 63 | 3 | -`, 설치 장부 `8bfe8a9` 판, crontab 장부 줄 1개.
+  - Q3~Q6 0 · Q7 `RUNNING 63`·`STOPPED 3` · Q8 0 · Q9 0 · `ROLLBACK`(눈으로). 경보는 기준선으로 기록만 한다.
+- 멈추면 아무것도 바뀌지 않았다. 출력을 보고한다.
+
+**I1. 새 이미지 빌드와 jar 대조 — 재기동 없음**
+```bash
+(
+set -euo pipefail
+stop() { echo "🔴 멈춤: $*"; exit 1; }
+[ -e "$M/ok-I0" ] || stop "I0 미통과"
+[ ! -e "$M/ok-I1" ] || stop "I1 을 이미 통과했다 — 바로 I2"
+[ $(( $(date +%s) - $(stat -c %Y "$M/ok-I0") )) -le 1800 ] || stop "I0 가 30분보다 오래됨 — I0 부터"
+IMG0=$(cat "$M/image-before.txt")
+if docker image inspect $REPO:cad3939 > /dev/null 2>&1; then [ "$(docker image inspect --format '{{.Id}}' $REPO:cad3939)" = "$IMG0" ] || stop "$REPO:cad3939 태그가 이미 다른 이미지를 가리킨다"; fi
+docker tag "$IMG0" $REPO:cad3939
+[ "$(docker image inspect --format '{{.Id}}' $REPO:cad3939)" = "$IMG0" ] || stop "기존 이미지 보존 태그 실패"
+git checkout --quiet $NEW
+[ "$(git rev-parse HEAD)" = "$NEW" ] && [ -z "$(git status --porcelain --untracked-files=no)" ] || stop "체크아웃 결과가 NEW 가 아니거나 변경 있음 — I1-되돌림"
+date '+%F %T %Z' | tee "$M/t-build.txt"
+$DC build backend > "$M/build.log" 2>&1 || stop "빌드 실패 — build.log 를 보고. I1-되돌림"
+IMG1=$(docker image inspect --format '{{.Id}}' $REPO:latest); echo "$IMG1" | tee "$M/image-new.txt"
+[ "$IMG1" != "$IMG0" ] || stop "새 이미지가 만들어지지 않음 — I1-되돌림"
+[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$IMG0" ] || stop "🔴 실행 중 backend 가 바뀌었다 — 보고"
+docker cp "$($DC ps -q backend)":/app/app.jar "$M/app-old.jar"
+CID=$(docker create $REPO:latest); docker cp "$CID":/app/app.jar "$M/app-new.jar"; docker rm "$CID" > /dev/null
+python3 - "$M/app-old.jar" "$M/app-new.jar" <<'EOF' | tee "$M/jar-diff.txt"
+import hashlib, io, re, sys, zipfile
+OWN = re.compile(r"BOOT-INF/lib/(core-engine|strategy-lib|exchange-adapter)[^/]*\.jar$")
+def classes(path):
+    z, out = zipfile.ZipFile(path), {}
+    for n in z.namelist():
+        if n.startswith("BOOT-INF/classes/") and n.endswith(".class"):
+            out[n] = hashlib.sha256(z.read(n)).hexdigest()
+        elif n.startswith("BOOT-INF/lib/") and n.endswith(".jar"):
+            if OWN.match(n):
+                inner = zipfile.ZipFile(io.BytesIO(z.read(n)))
+                for m in inner.namelist():
+                    if m.endswith(".class"):
+                        out[re.sub(r"-[0-9.]+(-SNAPSHOT)?\.jar$", ".jar", n) + "!" + m] = hashlib.sha256(inner.read(m)).hexdigest()
+            else:
+                out[n] = hashlib.sha256(z.read(n)).hexdigest()
+    return out
+a, b = classes(sys.argv[1]), classes(sys.argv[2])
+for k in sorted(set(a) | set(b)):
+    if a.get(k) != b.get(k):
+        print(("추가 " if k not in a else "삭제 " if k not in b else "변경 ") + k)
+print("(끝)", len(a), len(b))
+EOF
+[ "$(grep -v '^(끝)' "$M/jar-diff.txt")" = "$JARX" ] || stop "jar 차이가 기대 여덟 줄이 아님 — jar-diff.txt 를 보고(재기동 전). I1-되돌림"
+grep -qx '(끝) 678 680' "$M/jar-diff.txt" || stop "클래스 수가 678 → 680 이 아님 — jar-diff.txt 를 보고(재기동 전). I1-되돌림"
+touch "$M/ok-I1"; echo "✅ I1 통과 — 바로 I2"
+)
+```
+- 기대: `jar-diff.txt` 가 위 기대값 여덟 줄(추가 2·변경 6)과 `(끝) 678 680` 이다. 차이가 더 많으면 재기동하지 않고 보고한다.
+- **I1-되돌림**(I1 이 멈췄을 때 — 실행 중 backend 는 그대로다): `git checkout --quiet $OLD; docker tag "$(cat "$M/image-before.txt")" $REPO:latest; git rev-parse HEAD; docker image inspect --format '{{.Id}}' $REPO:latest` → `cad39395…`·`image-before.txt` 와 같은 ID. 재기동하지 않는다.
+
+**I2. 재기동 (개입 #18) — I1 통과 뒤 바로**
+```bash
+(
+set -euo pipefail
+stop() { echo "🔴 멈춤: $*"; exit 1; }
+[ -e "$M/ok-I1" ] || stop "I1 미통과"
+[ ! -e "$M/ok-I2" ] || stop "I2 를 이미 했다 — I3"
+IMG1=$(cat "$M/image-new.txt")
+[ "$(git rev-parse HEAD)" = "$NEW" ] || stop "HEAD 가 NEW 가 아님"
+[ "$(docker image inspect --format '{{.Id}}' $REPO:latest)" = "$IMG1" ] || stop "latest 가 image-new 와 다름"
+sid203 || stop "SID 203·기준 행·EG·0 확인 중 다른 것 있음"
+[ "$(sc)" = "66 | 63 | 3 | -" ] || stop "검증 66세션 상태 다름"
+date '+%F %T %Z' | tee "$M/t-deploy.txt"; date -u '+%Y-%m-%dT%H:%M:%SZ' > "$M/t-deploy.utc"
+echo "== 여기부터 재기동 — 이 뒤의 멈춤은 '되돌림 필요'"
+$DC up -d --no-build --no-deps backend || stop "되돌림 필요: 재생성 실패"
+sleep 15
+[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$IMG1" ] || stop "되돌림 필요: 새 컨테이너 이미지가 image-new 와 다름"
+[ "$($DC exec -T backend env | grep '^TRADING_CAPITALPOOL_' | sort)" = "$POOLX" ] || stop "되돌림 필요: 공유 풀 등록값 다름"
+svc | tee "$M/svc-deploy.txt"
+diff <(grep -v '^backend ' "$M/svc-before.txt") <(grep -v '^backend ' "$M/svc-deploy.txt") || stop "되돌림 필요: backend 외 서비스가 바뀜"
+{ git rev-parse HEAD; git status --porcelain --untracked-files=no; echo "(끝)"; } | tee "$M/git-deploy.txt"
+touch "$M/ok-I2"; echo "✅ I2 통과 — 5~10분 뒤 I3"
+)
+```
+
+**I3. 기동 확인 — I2 5~10분 뒤** (되돌림 뒤에도 같은 묶음을 쓴다. `t-rollback.utc` 가 있으면 그 시각과 기존 이미지로 본다)
+```bash
+(
+set -euo pipefail
+stop() { echo "🔴 멈춤: $*"; exit 1; }
+if [ -e "$M/t-rollback.utc" ]; then S=$(cat "$M/t-rollback.utc"); EXP=$(cat "$M/image-before.txt"); T=rollback; else [ -e "$M/ok-I2" ] || stop "I2 미통과"; S=$(cat "$M/t-deploy.utc"); EXP=$(cat "$M/image-new.txt"); T=deploy; fi
+[ $(( $(date +%s) - $(date -d "$S" +%s) )) -ge 300 ] || stop "기동 5분 전 — 5분이 지난 뒤 I3"
+$DC ps backend
+[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$EXP" ] || stop "실행 이미지가 기대와 다름"
+$DC logs --no-color --since "$S" backend > "$M/app-$T.log"
+grep -E "Schema .* is up to date|Migrating schema|Successfully applied|매도 격리 점검|Started CryptoAutoTrader" "$M/app-$T.log" | head -10
+grep -q "Started CryptoAutoTrader" "$M/app-$T.log" || stop "되돌림 필요: 기동 완료 줄 없음"
+! grep -qE "Migrating schema|Successfully applied" "$M/app-$T.log" || stop "되돌림 필요: 마이그레이션이 돌았다(이번 배포에는 없어야 함)"
+v94 || stop "되돌림 필요: Flyway 최고 버전이 94 가 아님"
+grep -qF "공유 풀 한도 확인: 단계=STAGE_1 총상한=100000 포지션당=20000 동시보유=3" "$M/app-$T.log" || stop "되돌림 필요: 공유 풀 등록 로그 없음"
+grep -qF "위험 한도 확인: 단계 STAGE_1 총 자본 100000 기준 누적 15.00%·24시간 3.00%" "$M/app-$T.log" || stop "되돌림 필요: 위험 한도 로그 없음"
+! grep -qE "🔴 (공유 풀 한도|위험 한도)" "$M/app-$T.log" || stop "되돌림 필요: 🔴 공유 풀/위험 한도 줄"
+grep " ERROR " "$M/app-$T.log" | grep -v "캔들 최신성" | grep -v -E "$NOT404" > "$M/errors-$T.txt" || true
+[ ! -s "$M/errors-$T.txt" ] || stop "세 마켓 캔들 404 밖의 ERROR — errors-$T.txt 를 보고"
+grep -E "BTC 급락 관문 H1 판정 (불가|재개)" "$M/app-$T.log" | cut -c1-140 || true
+btcgate "$M/app-$T.log" || stop "BTC 관문 마지막 상태가 판정 불가 — 바로 되돌리지 말고 위 출력을 보고"
+python3 "$M/maint_verify.py" candle "$M/app-$T.log" "$M/backend-before.log" || stop "기동 뒤 판정 불가 대상이 아직 재개되지 않음 — 위 출력을 보고"
+qc > "$M/q-$T.txt" 2>&1; sed -n '/== Q3/,$p' "$M/q-$T.txt" | grep -vE '^-+|^\s*$'
+sc | tee "$M/s-$T.txt"; diff "$M/s-before.txt" "$M/s-$T.txt" || stop "되돌림 필요: 검증 세션 상태 바뀜"
+sid203 || stop "SID 203·기준 행·EG·0 확인 중 바뀐 것 있음 — 보고"
+touch "$M/ok-I3-$T"; echo "✅ I3($T) 통과 — 기동 30분 뒤 I4"
+)
+```
+- 기대 결과: H3 과 같다 — `Started`, `Schema "public" is up to date`(마이그레이션 없음), V94, 매도 격리 점검 "없음", 두 한도 줄, ERROR 는 세 마켓 캔들 404 뿐, `btcgate` 재개(또는 줄 없음), `candle` `아직 판정 불가 0`, Q3~Q6 0 · Q7 63/3 · Q8 0 · Q9 0 · `ROLLBACK`, `sc` 같음, `sid203` 통과.
+- BTC 관문이 재개되지 않아 멈추면 바로 되돌리지 않는다. 출력을 보고한다.
+
+**I4. 30분 재점검 — 기동 30분 뒤**
+```bash
+(
+set -euo pipefail
+stop() { echo "🔴 멈춤: $*"; exit 1; }
+[ -e "$M/ok-I3-deploy" ] || stop "I3 미통과"
+S=$(cat "$M/t-deploy.utc")
+[ $(( $(date +%s) - $(date -d "$S" +%s) )) -ge 1800 ] || stop "아직 30분 전"
+date '+%F %T %Z' | tee "$M/t-after30.txt"
+$DC ps backend
+$DC logs --no-color --since "$S" backend > "$M/app-after30.log"
+grep " ERROR " "$M/app-after30.log" | grep -v "캔들 최신성" | grep -v -E "$NOT404" > "$M/errors-after30.txt" || true
+[ ! -s "$M/errors-after30.txt" ] || stop "세 마켓 캔들 404 밖의 ERROR — errors-after30.txt 를 보고"
+! grep -qE "🔴 (공유 풀 한도|위험 한도)" "$M/app-after30.log" || stop "되돌림 필요: 🔴 공유 풀/위험 한도 줄"
+v94 || stop "되돌림 필요: Flyway 최고 버전이 94 가 아님"
+grep -E "BTC 급락 관문 H1 판정 (불가|재개)" "$M/app-after30.log" | cut -c1-140 || true
+btcgate "$M/app-after30.log" || stop "BTC 관문 마지막 상태가 판정 불가 — 바로 되돌리지 말고 위 출력을 보고"
+python3 "$M/maint_verify.py" candle "$M/app-after30.log" "$M/backend-before.log" || stop "판정 불가 대상이 남아 있음 — 위 출력을 보고"
+qc > "$M/q-after30.txt" 2>&1; sed -n '/== Q3/,$p' "$M/q-after30.txt" | grep -vE '^-+|^\s*$'
+sc | tee "$M/s-after30.txt"; diff "$M/s-before.txt" "$M/s-after30.txt" || stop "되돌림 필요: 검증 세션 상태 바뀜"
+svc | tee "$M/svc-after30.txt"
+diff <(grep -v '^backend ' "$M/svc-before.txt") <(grep -v '^backend ' "$M/svc-after30.txt") || stop "되돌림 필요: backend 외 서비스가 바뀜"
+[ "$(grep '^backend ' "$M/svc-deploy.txt")" = "$(grep '^backend ' "$M/svc-after30.txt")" ] || stop "되돌림 필요: backend 재시작 있음"
+sid203 || stop "SID 203·기준 행·EG·0 확인 중 바뀐 것 있음 — 보고"
+[ "$(h256 "$OPS/sid_ledger.sql")" = "$LSUM" ] && [ "$(cat "$OPS/SID_LEDGER_SHA")" = "$LS" ] || stop "설치 장부가 바뀜 — 보고"
+crontab -l | cmp -s - "$M/crontab-before.txt" || stop "cron 이 I0 때와 다름 — crontab -l 을 보고"
+( cd ~/sid203-ledger && sha256sum --quiet -c "$M/ledger-files-before.sha" ) || stop "과거 장부 기록 파일이 바뀜 — 보고"
+echo "== N02 감시기 문구(개수만 기록 — 멈춤 조건 아님)"
+for p in "SL 미점검" "SL 실시간 감시 이상" "SL 점검에 쓰지 않았습니다" "쓰지 못했습니다" "제한시험"; do printf '%s\t%s\n' "$p" "$(grep -c -- "$p" "$M/app-after30.log" || true)"; done | tee "$M/n04-lines-after30.txt"
+python3 scripts/prospective/start_66.py alerts --since "$S" --no-mark > "$M/alerts-after30.txt" 2>&1 && AE=0 || AE=$?
+echo "경보 종료코드 $AE (1 = 🔴 경보 있음 — 이것만으로 멈추지 않고 네 갈래로 대조)"
+alertsok "$AE" "$M/alerts-after30.txt" || stop "경보 조회가 끝까지 돌지 않음 — alerts-after30.txt 를 보고"
+echo "== 경보 (지금)"; cat "$M/alerts-after30.txt"
+echo "== 경보 (배포 전 기준선)"; cat "$M/alerts-before.txt"
+touch "$M/ok-I4"; echo "✅ I4 통과 — 출력을 보고(F1 기대값은 개발 에이전트가 갱신)"
+)
+```
+- 기대 결과:
+  - V94, Q3~Q6 0 · Q7 63/3 · Q8 0 · Q9 0 · `ROLLBACK`, `sc` 같음, backend 재시작 없음, BTC 관문 재개 그대로, `sid203` 통과.
+  - 설치 장부 `8bfe8a9` 판·cron·과거 장부 기록 파일이 I0 때와 같다.
+  - `n04-lines-after30.txt` 는 다섯 줄 개수(기록만). `제한시험` 은 0 이어야 맞다(SID 203 은 `CREATED` 라 복구·수동 시작 거절 로그가 나올 일이 없다) — 0 이 아니면 보고만 한다.
+  - 경보는 네 갈래(기존 반복·새 경보·⚪·실행 누락)로 `alerts-before.txt` 와 대조한다. KRW-BLAST 반복 밖에 무엇이 있으면 보고한다.
+
+**I 되돌림 — backend (I2~I4 의 "되돌림 필요" 때, 또는 판단 뒤)** (DB·장부 변경이 없으므로 데이터 작업은 없다. SID 203 은 `CREATED`·주문 0 이라 새 코드가 남긴 자료도 없다)
+```bash
+(
+set -euo pipefail
+stop() { echo "🔴 멈춤: $*"; exit 1; }
+IMG0=$(cat "$M/image-before.txt"); [ "$IMG0" = "$IMGOLD" ] || stop "image-before 가 #17 이미지가 아님"
+date '+%F %T %Z' | tee "$M/t-rollback.txt"; date -u '+%Y-%m-%dT%H:%M:%SZ' > "$M/t-rollback.utc"
+git checkout --quiet $OLD; [ "$(git rev-parse HEAD)" = "$OLD" ] || stop "체크아웃 실패"
+docker tag "$IMG0" $REPO:latest
+$DC up -d --no-build --no-deps --force-recreate backend
+sleep 15
+[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$IMG0" ] || stop "이미지가 image-before 와 다름"
+[ "$($DC exec -T backend env | grep '^TRADING_CAPITALPOOL_' | sort)" = "$POOLX" ] || stop "공유 풀 등록값 다름"
+svc | tee "$M/svc-rollback.txt"
+{ git rev-parse HEAD; git status --porcelain --untracked-files=no; echo "(끝)"; } | tee "$M/git-rollback.txt"
+echo "✅ cad3939 (a747a8e6…) 로 복귀 — 5분 뒤 I3 를 다시 실행(t-rollback.utc 기준으로 자동 전환)"
+)
+```
+- 되돌리면 F 변수·F1 은 `cad3939`·#17 이미지 그대로 둔다.
+
+**배포 확인 뒤 — 개발 에이전트(운영자가 I3·I4 출력을 보낸 뒤, 이 커밋에서는 하지 않는다)**:
+- F 변수 `NEW` 를 `5bb0544926a694832e75234670bb8f99dfe33bb0` 로, F1 의 HEAD 멈춤 문구를 `5bb0544` 로 바꾼다.
+- F1 이미지 기대는 `~/maint-n04/image-new.txt` 로 바꾸고, 그 실제 전체 해시를 `IMGF1` 에 글자 그대로 적는다(파일과 해시가 모두 같아야 통과). 장부 판 확인(`8bfe8a9`·`02a85850…`)은 그대로다.
+- 개입 #18 기록(`git-before`, 빌드·재기동 시각, `jar-diff.txt`, I3·I4 결과)을 남긴다. 되돌렸다면 이 갱신은 하지 않는다.
+- **로컬 확인(문서 블록을 그대로 꺼내 실행, 서버 명령 아님)**: I 변수·I0~I4·I 되돌림 모두 `bash -n` 통과. I 변수의 `DIFF11` = `git diff --name-only cad3939 5bb0544`, `JARX` = 로컬 jar 대조 출력(여덟 줄, `(끝) 678 680`). I0~I4 는 H0~H4 와 같은 줄에 대상 값만 바꾼 것이고(장부 교체 대신 장부·cron 불변 확인, N02 문구 개수 기록 추가) 실행 확인은 아니다.
+- **운영 상태(v1.48 커밋 시점)**: 바꾼 것 없음 — 운영 `cad3939`(`a747a8e6…`), DB V94, 정기 점검 `baa4b0e`, 장부 `8bfe8a9` 판, SID 203 `CREATED`, 12월 1일 08:50 KST 시작 목표. ⏸ 운영자 I0~I4 실행 대기(총괄이 "추가 착수 승인 없이 진행"이라 했으나, 운영 코드 변경이므로 이 보고를 총괄이 확인한 뒤 실행한다).
 
 SMA20 신호·설정과 위험 한도를 기준으로 주문·정산·보호 기능의 결함을 보완한다. 새 시험 결과를 얻으려고 전략 파라미터를 탐색하거나 종료 후보를 재개하지 않는다. 추가 시험은 새 시나리오·실패·수정 범위에 맞춰 실행한다. 기존 66세션·T0·판정 기준은 유지하고, 이 준비 활동을 그 세션들의 성과 평가에 사용하지 않는다. F0는 완료 상태를 유지한다.
 
