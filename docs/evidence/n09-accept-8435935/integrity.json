@@ -1,0 +1,39 @@
+{
+  "source_sha": "8435935e975ceb6c2e16a09ef5b82530574a7da2",
+  "install_files": {
+    "scripts/ops/daily_check.sh": {
+      "sha256": "a6ddc54994355066b940c276d98d7396e501aad3cce31004475ca35574d4d657",
+      "blob": "303f3a923c28f5b24c6eae709e0ae89954648ca8"
+    },
+    "scripts/ops/daily_checks.sql": {
+      "sha256": "653b22bab04b68c50bf9daf2a54f2c281f9c57eaf6795076225ed39d62d48fa8",
+      "blob": "ce4afe2c6c207d50de909585bf26bccb0179b525"
+    }
+  },
+  "evidence_line_endings": [
+    {
+      "file": "test-new.txt",
+      "preserved_working_sha256": "f7538b5f5ea8ecc7f4e8f357be30a2071cd97b6a7e25953293b832f07db31892",
+      "sha256_in_8435935": "85bb8bf31335a2ab5330e0680c428df82d0246e08cc7d8a59530c3465f7dc66f",
+      "working_equals_git": false,
+      "lf_equal": true
+    },
+    {
+      "file": "test-old-333e968.txt",
+      "preserved_working_sha256": "e1c996ca2e0bb30479846773ae783403b80bd1d2874bc80f2e0e9fd919a3fe36",
+      "sha256_in_8435935": "af70a4ba20106f616b2a4d3dfc6bc82651a950774221e0c5a9e8a5e40502a6ee",
+      "working_equals_git": false,
+      "lf_equal": true
+    },
+    {
+      "file": "README.md",
+      "preserved_working_sha256": "299ce5660fe7ac12158468d8dd1334cf1db715755d3ec55767d1b9dafbf9cd42",
+      "sha256_in_8435935": "299ce5660fe7ac12158468d8dd1334cf1db715755d3ec55767d1b9dafbf9cd42",
+      "working_equals_git": true,
+      "lf_equal": true
+    }
+  ],
+  "scope": "Read committed code/developer logs and run 13 local fake-input shell cases only. No production commands or application tests.",
+  "sql_equals_333e968": true,
+  "evidence_followup": "Added .gitattributes * -text to n09-fix-parser. Original local log bytes and existing SHA256SUMS are unchanged. Next result commit should include these preserved CRLF blobs. Old 8435935 records remain historical and are not rewritten. Explicitly git add --renormalize the two log paths after adding the attribute; verify committed Git bytes against the unchanged manifest."
+}
