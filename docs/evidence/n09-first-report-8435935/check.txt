@@ -1,0 +1,25 @@
+# 2026-11-03 08:0x KST 읽기 확인 (ssh cat-prod)
+## ls ~/daily-check (22:00 관련)
+-rw-rw-r-- 1 manicstr manicstr   1598 Nov  2 22:00 20261102-2200.txt
+-rw-rw-r-- 1 manicstr manicstr 207618 Nov  2 22:00 20261102-2200.txt.log.gz
+-rw-rw-r-- 1 manicstr manicstr   1532 Nov  2 22:00 20261102-2200.txt.msg
+-rw-rw-r-- 1 manicstr manicstr   1789 Nov  2 22:00 20261102-2200.txt.raw
+-rw-rw-r-- 1 manicstr manicstr     21 Oct 31 16:18 cron.log
+-rw-rw-r-- 1 manicstr manicstr     65 Nov  2 22:00 last_send
+-rw-rw-r-- 1 manicstr manicstr      0 Nov  2 22:00 .lock.flock
+## sha256
+fe16ea269f3740667c484a6c1172680c8d192c18ae4b94fbb4733d674ae9e8f8  20261102-2200.txt
+080da07bb6893743312d8515690df5d2b28c9e55ae47487a5d6e1924cbd9651a  20261102-2200.txt.msg
+55c47f66fe1488eb9952604a0090b814032e299806552f6734bed59a2513e1e7  20261102-2200.txt.raw
+526f6d87b3e00affb7cfa10e949af6f2bd9e50b7163c38f3aa1395bd2109ea16  20261102-2200.txt.log.gz
+6a22ae0240f8c1d21d51efc40a73f457ae3d78f83df5c1d2e8abfb746fc813f0  last_send
+## INSTALLED_SHA
+8435935e975ceb6c2e16a09ef5b82530574a7da2
+## crontab sha256
+f2dce2809c09aa4466a95200caa19547118e444b4ac90b4363e20a158dee9b5b  -
+## crontab 점검 줄
+4:0 10,22 * * * SID_OK_STATUS=CREATED REPO_DIR=$HOME/crypto_trader/AutoTrader SQL_FILE=$HOME/ops-scripts/daily_checks.sql $HOME/ops-scripts/daily_check.sh >> $HOME/daily-check/cron.log 2>&1
+## cron.log (마지막 변경 10-31, 22:00 실행 출력 없음)
+0: command not found
+## last_send
+2026-11-02 22:00:03 KST 보고 전송 성공 · 🔴 이상 1건
