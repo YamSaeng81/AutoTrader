@@ -196,15 +196,25 @@ if [ ${#KV[@]} -gt 0 ]; then
   chk_zero sid_settle_mismatch "SID $SID_ID 체결 주문 보고값≠반영값(반영 대기 아님, 주문 ${KV[sid_settle_ids]:-?})"
   # BTC H1 입력(N09, 계획 §5-9 28) — F1 과 같은 B1(2분 유예 필요 완료 봉)·B3(최근 20일 마감 봉 20/20). SID 가 CREATED·RUNNING 일 때만 판정하고,
   #   종료 상태(STOPPED·EMERGENCY_STOPPED·없음 등)는 입력 판정에서 뺀다 — 그 상태 경보는 위 SID 상태 줄이 그대로 낸다.
-  #   확인된 미충족은 🔴, 값 형식 이상은 ⚪(정상으로 보지 않는다). 키 누락은 위 필수 키 검사가 ⚪ 로 낸다.
-  b1="${KV[btc_h1_ok]:-}"; b3="${KV[btc_h1_daily]:-}"
-  BTC_LINE="BTC H1 입력(관측 ${KV[btc_h1_at]:-?} KST): B1 ${b1:-?} · 최신 완료 봉 ${KV[btc_h1_done]:-?} · 필요 ${KV[btc_h1_need]:-?}(2분 유예) · B3 최근 20일 마감 봉 ${b3:-?}/20"
+  #   확인된 미충족은 🔴, 빈 값·형식 이상·모순은 ⚪(정상으로 보지 않는다). 키 누락은 위 필수 키 검사가 ⚪ 로 낸다.
+  #   B3 는 조회식이 낼 수 있는 0~20 만, 시각은 MM-DD HH24:MI(관측은 :SS 까지)만 유효. 완료 봉 '-' 는 빈 캐시의 결측 표현(B1 false 일 때만).
+  b1="${KV[btc_h1_ok]:-}"; b3="${KV[btc_h1_daily]:-}"; bd="${KV[btc_h1_done]:-}"; bn="${KV[btc_h1_need]:-}"; ba="${KV[btc_h1_at]:-}"
+  BTC_LINE="BTC H1 입력(관측 ${ba:-?} KST): B1 ${b1:-?} · 최신 완료 봉 ${bd:-?} · 필요 ${bn:-?}(2분 유예) · B3 최근 20일 마감 봉 ${b3:-?}/20"
   case "$st" in
     CREATED|RUNNING)
-      if [ -z "$b1" ] || [ -z "$b3" ]; then :
-      elif { [ "$b1" != true ] && [ "$b1" != false ]; } || ! [[ "$b3" =~ ^[0-9]+$ ]]; then
-        unknown "BTC H1 입력 값 형식 이상(B1 $b1 · B3 $b3) — 재조회 대상"
+      tm='^[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}'; bad=0
+      if [ -z "${KV[btc_h1_ok]+x}" ] || [ -z "${KV[btc_h1_done]+x}" ] || [ -z "${KV[btc_h1_need]+x}" ] || [ -z "${KV[btc_h1_daily]+x}" ] || [ -z "${KV[btc_h1_at]+x}" ]; then bad=1
       else
+        if { [ "$b1" != true ] && [ "$b1" != false ]; } || ! [[ "$b3" =~ ^([0-9]|1[0-9]|20)$ ]]; then
+          unknown "BTC H1 입력 값 형식 이상(B1 ${b1:-빈 값} · B3 ${b3:-빈 값}) — 재조회 대상"; bad=1
+        fi
+        if ! [[ "$bd" =~ ${tm}$ || "$bd" = - ]] || ! [[ "$bn" =~ ${tm}$ ]] || ! [[ "$ba" =~ ${tm}:[0-9]{2}$ ]]; then
+          unknown "BTC H1 입력 시각 형식 이상(관측 ${ba:-빈 값} · 완료 봉 ${bd:-빈 값} · 필요 ${bn:-빈 값}) — 재조회 대상"; bad=1
+        elif [ "$b1" = true ] && [ "$bd" = - ]; then
+          unknown "BTC H1 입력 모순(B1 true 인데 완료 봉 없음 '-') — 재조회 대상"; bad=1
+        fi
+      fi
+      if [ $bad = 0 ]; then
         [ "$b1" = true ] || red "BTC H1 입력 미충족(B1) — 최신 완료 봉 ${KV[btc_h1_done]:-?} · 필요 ${KV[btc_h1_need]:-?}(2분 유예) · SID $SID_ID $st"
         [ "$b3" = 20 ] || red "BTC H1 최근 20일 마감 봉 ${b3}/20(B3) · SID $SID_ID $st"
       fi ;;

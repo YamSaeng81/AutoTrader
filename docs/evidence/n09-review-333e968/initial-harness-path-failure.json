@@ -1,0 +1,198 @@
+{
+  "manifest": [
+    {
+      "file": "maint-n08/alerts-after30.txt",
+      "exact": true,
+      "lf_normalized": true
+    },
+    {
+      "file": "maint-n08/alerts-before.txt",
+      "exact": true,
+      "lf_normalized": true
+    },
+    {
+      "file": "maint-n08/btc-advance.txt",
+      "exact": true,
+      "lf_normalized": true
+    },
+    {
+      "file": "maint-n08/btc-after30.txt",
+      "exact": true,
+      "lf_normalized": true
+    },
+    {
+      "file": "maint-n08/btc-before.txt",
+      "exact": true,
+      "lf_normalized": true
+    },
+    {
+      "file": "maint-n08/btc-deploy.txt",
+      "exact": true,
+      "lf_normalized": true
+    },
+    {
+      "file": "maint-n08/git-before.txt",
+      "exact": true,
+      "lf_normalized": true
+    },
+    {
+      "file": "maint-n08/git-deploy.txt",
+      "exact": true,
+      "lf_normalized": true
+    },
+    {
+      "file": "maint-n08/image-before.txt",
+      "exact": true,
+      "lf_normalized": true
+    },
+    {
+      "file": "maint-n08/image-new.txt",
+      "exact": true,
+      "lf_normalized": true
+    },
+    {
+      "file": "maint-n08/jar-diff.txt",
+      "exact": true,
+      "lf_normalized": true
+    },
+    {
+      "file": "maint-n08/src-advance.txt",
+      "exact": true,
+      "lf_normalized": true
+    },
+    {
+      "file": "maint-n08/src-before.txt",
+      "exact": true,
+      "lf_normalized": true
+    },
+    {
+      "file": "maint-n08/src-deploy.txt",
+      "exact": true,
+      "lf_normalized": true
+    },
+    {
+      "file": "maint-n08/t-btc-deploy.utc",
+      "exact": true,
+      "lf_normalized": true
+    },
+    {
+      "file": "maint-n08/t-build.txt",
+      "exact": true,
+      "lf_normalized": true
+    },
+    {
+      "file": "maint-n08/t-deploy.txt",
+      "exact": true,
+      "lf_normalized": true
+    },
+    {
+      "file": "n06-blocks.json",
+      "exact": true,
+      "lf_normalized": false
+    },
+    {
+      "file": "out-J0.txt",
+      "exact": true,
+      "lf_normalized": true
+    },
+    {
+      "file": "out-J1.txt",
+      "exact": true,
+      "lf_normalized": true
+    },
+    {
+      "file": "out-J2.txt",
+      "exact": true,
+      "lf_normalized": true
+    },
+    {
+      "file": "out-J3.txt",
+      "exact": true,
+      "lf_normalized": true
+    },
+    {
+      "file": "out-J4.txt",
+      "exact": true,
+      "lf_normalized": true
+    },
+    {
+      "file": "out-J5.txt",
+      "exact": true,
+      "lf_normalized": true
+    },
+    {
+      "file": "pin-validation.json",
+      "exact": true,
+      "lf_normalized": false
+    },
+    {
+      "file": "README.md",
+      "exact": true,
+      "lf_normalized": false
+    },
+    {
+      "file": "result-review.json",
+      "exact": true,
+      "lf_normalized": false
+    }
+  ],
+  "cases": [
+    {
+      "case": "normal",
+      "exit": 1,
+      "header": "[정기 점검] ⚪ 판정 불가 — 수집 실패 1건 (정상으로 보지 않는다)",
+      "btc": [],
+      "external_failure": false
+    },
+    {
+      "case": "blank_b1",
+      "exit": 1,
+      "header": "[정기 점검] ⚪ 판정 불가 — 수집 실패 1건 (정상으로 보지 않는다)",
+      "btc": [],
+      "external_failure": false
+    },
+    {
+      "case": "blank_b3",
+      "exit": 1,
+      "header": "[정기 점검] ⚪ 판정 불가 — 수집 실패 1건 (정상으로 보지 않는다)",
+      "btc": [],
+      "external_failure": false
+    },
+    {
+      "case": "blank_both",
+      "exit": 1,
+      "header": "[정기 점검] ⚪ 판정 불가 — 수집 실패 1건 (정상으로 보지 않는다)",
+      "btc": [],
+      "external_failure": false
+    },
+    {
+      "case": "blank_time",
+      "exit": 1,
+      "header": "[정기 점검] ⚪ 판정 불가 — 수집 실패 1건 (정상으로 보지 않는다)",
+      "btc": [],
+      "external_failure": false
+    },
+    {
+      "case": "invalid_time",
+      "exit": 1,
+      "header": "[정기 점검] ⚪ 판정 불가 — 수집 실패 1건 (정상으로 보지 않는다)",
+      "btc": [],
+      "external_failure": false
+    },
+    {
+      "case": "invalid_done_need",
+      "exit": 1,
+      "header": "[정기 점검] ⚪ 판정 불가 — 수집 실패 1건 (정상으로 보지 않는다)",
+      "btc": [],
+      "external_failure": false
+    },
+    {
+      "case": "malformed_b1",
+      "exit": 1,
+      "header": "[정기 점검] ⚪ 판정 불가 — 수집 실패 1건 (정상으로 보지 않는다)",
+      "btc": [],
+      "external_failure": false
+    }
+  ],
+  "scope": "Local daily_check.sh with all external reads stubbed and DRY_RUN=1; no Docker, DB, HTTP, SSH, crontab or app tests."
+}

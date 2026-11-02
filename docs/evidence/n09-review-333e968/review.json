@@ -1,0 +1,129 @@
+{
+  "source_sha": "333e9686b0b2b2fe5d8c9f509ff40e122927e499",
+  "source_sha256": {
+    "scripts/ops/daily_check.sh": "84fda4f67433e3686e79263c56fffaee6ef3d252a823236e87c23f092814ecd8",
+    "scripts/ops/daily_checks.sql": "653b22bab04b68c50bf9daf2a54f2c281f9c57eaf6795076225ed39d62d48fa8",
+    "scripts/ops/test_daily_check.py": "acbc850ac66bf9dcab075bd6b032f8ee78f923a4939121ccd75e4dec6270727c"
+  },
+  "developer_logs_read_not_reexecuted": {
+    "test-run1.txt": {
+      "pass_lines": 125,
+      "fail_lines": 0,
+      "last_line": "daily_check 시험 125/125 통과",
+      "sha256": "256915b1f6f5d5d508e80730fad9069345a4a05d96a7a7d60e29b2c80aa5651c"
+    },
+    "test-old.txt": {
+      "pass_lines": 107,
+      "fail_lines": 18,
+      "last_line": "daily_check 시험 107/125 통과",
+      "sha256": "a7c310879ea6ab23763dec7a2c70b8b88a1fa8f05de4715071a94053a1b7a9ab"
+    }
+  },
+  "local_cases": [
+    {
+      "case": "normal",
+      "exit": 0,
+      "header": "[정기 점검] 🟢 점검 항목 정상",
+      "btc": [
+        "BTC H1 입력(관측 11-02 22:00:05 KST): B1 true · 최신 완료 봉 11-02 21:00 · 필요 11-02 20:00(2분 유예) · B3 최근 20일 마감 봉 20/20"
+      ],
+      "external_failure": false,
+      "expected_exit": 0,
+      "expected_header": "🟢",
+      "matches_requirement": true
+    },
+    {
+      "case": "blank_b1",
+      "exit": 0,
+      "header": "[정기 점검] 🟢 점검 항목 정상",
+      "btc": [
+        "BTC H1 입력(관측 11-02 22:00:05 KST): B1 ? · 최신 완료 봉 11-02 21:00 · 필요 11-02 20:00(2분 유예) · B3 최근 20일 마감 봉 20/20"
+      ],
+      "external_failure": false,
+      "expected_exit": 1,
+      "expected_header": "⚪",
+      "matches_requirement": false
+    },
+    {
+      "case": "blank_b3",
+      "exit": 0,
+      "header": "[정기 점검] 🟢 점검 항목 정상",
+      "btc": [
+        "BTC H1 입력(관측 11-02 22:00:05 KST): B1 true · 최신 완료 봉 11-02 21:00 · 필요 11-02 20:00(2분 유예) · B3 최근 20일 마감 봉 ?/20"
+      ],
+      "external_failure": false,
+      "expected_exit": 1,
+      "expected_header": "⚪",
+      "matches_requirement": false
+    },
+    {
+      "case": "blank_both",
+      "exit": 0,
+      "header": "[정기 점검] 🟢 점검 항목 정상",
+      "btc": [
+        "BTC H1 입력(관측 11-02 22:00:05 KST): B1 ? · 최신 완료 봉 11-02 21:00 · 필요 11-02 20:00(2분 유예) · B3 최근 20일 마감 봉 ?/20"
+      ],
+      "external_failure": false,
+      "expected_exit": 1,
+      "expected_header": "⚪",
+      "matches_requirement": false
+    },
+    {
+      "case": "blank_time",
+      "exit": 0,
+      "header": "[정기 점검] 🟢 점검 항목 정상",
+      "btc": [
+        "BTC H1 입력(관측 ? KST): B1 true · 최신 완료 봉 11-02 21:00 · 필요 11-02 20:00(2분 유예) · B3 최근 20일 마감 봉 20/20"
+      ],
+      "external_failure": false,
+      "expected_exit": 1,
+      "expected_header": "⚪",
+      "matches_requirement": false
+    },
+    {
+      "case": "invalid_time",
+      "exit": 0,
+      "header": "[정기 점검] 🟢 점검 항목 정상",
+      "btc": [
+        "BTC H1 입력(관측 NOT_A_TIME KST): B1 true · 최신 완료 봉 11-02 21:00 · 필요 11-02 20:00(2분 유예) · B3 최근 20일 마감 봉 20/20"
+      ],
+      "external_failure": false,
+      "expected_exit": 1,
+      "expected_header": "⚪",
+      "matches_requirement": false
+    },
+    {
+      "case": "invalid_done_need",
+      "exit": 0,
+      "header": "[정기 점검] 🟢 점검 항목 정상",
+      "btc": [
+        "BTC H1 입력(관측 11-02 22:00:05 KST): B1 true · 최신 완료 봉 garbage · 필요 garbage(2분 유예) · B3 최근 20일 마감 봉 20/20"
+      ],
+      "external_failure": false,
+      "expected_exit": 1,
+      "expected_header": "⚪",
+      "matches_requirement": false
+    },
+    {
+      "case": "malformed_b1",
+      "exit": 1,
+      "header": "[정기 점검] ⚪ 판정 불가 — 수집 실패 1건 (정상으로 보지 않는다)",
+      "btc": [
+        "⚪ BTC H1 입력 값 형식 이상(B1 t · B3 20) — 재조회 대상",
+        "BTC H1 입력(관측 11-02 22:00:05 KST): B1 t · 최신 완료 봉 11-02 21:00 · 필요 11-02 20:00(2분 유예) · B3 최근 20일 마감 봉 20/20"
+      ],
+      "external_failure": false,
+      "expected_exit": 1,
+      "expected_header": "⚪",
+      "matches_requirement": true
+    }
+  ],
+  "j19_manifest_exact": {
+    "matched": 27,
+    "total": 27,
+    "normalization_used": false
+  },
+  "execution_scope": "Local Git Bash runs of unmodified daily_check.sh, canned SQL + APP_STATE + LOGS_FILE + ALERTS_CMD + git stub, DRY_RUN=1. Docker/curl/crontab stubs reject any call; no such call occurred. No SQL, DB, Docker, SSH, HTTP, app tests, builds or production commands.",
+  "initial_harness_failure": "Initial PSQL_CMD included a workspace path with spaces and shell splitting caused all eight to be DB-query unknown. Corrected only the harness to PSQL_CMD=bash ./psql.sh and cwd=review directory. Initial normal output and all initial result codes preserved separately.",
+  "decision": "Hold installation of 333e968. Empty BTC values and invalid timestamp metadata must be UNKNOWN with nonzero exit, never GREEN. PAUSED remains excluded from BTC readiness decision and retains independent SID status alert."
+}

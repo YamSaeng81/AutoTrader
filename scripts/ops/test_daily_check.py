@@ -480,6 +480,39 @@ with open(odd, "w", newline="\n") as f:
     f.write('#!/usr/bin/env bash\ndocker exec -i cat-rt-pg psql -X -U trader -d %s "$@" | sed "s/^btc_h1_ok|true$/btc_h1_ok|t/"\n' % DB)
 rc, rep, last, sent, raw = run("btc_odd_value", PSQL_CMD="bash " + odd.replace("\\", "/"))
 check("B1 값 형식 이상(t) — ⚪ 재조회 대상·BTC 🔴 없음", rc == 1 and "⚪ BTC H1 입력 값 형식 이상(B1 t · B3 20) — 재조회 대상" in rep and "🔴 BTC" not in rep, rep)
+# 2026-11-02 총괄 검토(§5-9 30) — 키는 있으나 값이 비었거나 시각이 잘못된 출력이 🟢·종료 0 으로 통과했다. ⚪·종료 비0, BTC 🔴 로 단정하지 않는다.
+def btc_sed(name, expr):
+    p = os.path.join(work, "psql_%s.sh" % name)
+    with open(p, "w", newline="\n") as f:
+        f.write('#!/usr/bin/env bash\ndocker exec -i cat-rt-pg psql -X -U trader -d %s "$@" | sed -E %s\n' % (DB, expr))
+    return run(name, PSQL_CMD="bash " + p.replace("\\", "/"))
+for name, expr, want in [
+        ("btc_blank_b1", "'s/^btc_h1_ok\\|true$/btc_h1_ok|/'", "⚪ BTC H1 입력 값 형식 이상(B1 빈 값 · B3 20)"),
+        ("btc_blank_b3", "'s/^btc_h1_daily\\|20$/btc_h1_daily|/'", "⚪ BTC H1 입력 값 형식 이상(B1 true · B3 빈 값)"),
+        ("btc_blank_both", "-e 's/^btc_h1_ok\\|true$/btc_h1_ok|/' -e 's/^btc_h1_daily\\|20$/btc_h1_daily|/'", "⚪ BTC H1 입력 값 형식 이상(B1 빈 값 · B3 빈 값)"),
+        ("btc_blank_at", "'s/^btc_h1_at\\|.*/btc_h1_at|/'", "⚪ BTC H1 입력 시각 형식 이상(관측 빈 값 · 완료 봉 11-02 21:00 · 필요 11-02 20:00)"),
+        ("btc_bad_at", "'s/^btc_h1_at\\|.*/btc_h1_at|NOT_A_TIME/'", "⚪ BTC H1 입력 시각 형식 이상(관측 NOT_A_TIME"),
+        ("btc_bad_done_need", "-e 's/^btc_h1_done\\|.*/btc_h1_done|garbage/' -e 's/^btc_h1_need\\|.*/btc_h1_need|garbage/'",
+         "⚪ BTC H1 입력 시각 형식 이상(관측 11-02 22:00:05 · 완료 봉 garbage · 필요 garbage)"),
+        ("btc_b3_range", "'s/^btc_h1_daily\\|20$/btc_h1_daily|21/'", "⚪ BTC H1 입력 값 형식 이상(B1 true · B3 21)"),
+        ("btc_true_dash", "'s/^btc_h1_done\\|.*/btc_h1_done|-/'", "⚪ BTC H1 입력 모순(B1 true 인데 완료 봉 없음 '-')"),
+        ]:
+    rc, rep, last, sent, raw = btc_sed(name, expr)
+    check("%s — ⚪ 재조회 대상·종료 비0·BTC 🔴 없음" % name, rc == 1 and rep.startswith("[정기 점검] ⚪") and want in rep and "🔴 BTC" not in rep, rep)
+# 대조군 — 빈 캐시의 완료 봉 '-'(B1 false·B3 0)는 유효한 결측 표현이라 ⚪ 가 아니라 🔴 그대로
+sql(DB, "DELETE FROM market_data_cache WHERE coin_pair = 'KRW-BTC' AND timeframe = 'H1';")
+rc, rep, last, sent, raw = run("btc_empty_control")
+check("빈 캐시 대조군 — 🔴 B1·B3 0/20, BTC ⚪ 없음",
+      rc == 1 and BTC_B1_RED + " — 최신 완료 봉 -" in rep and BTC_B3_RED + " 0/20(B3)" in rep and "⚪ BTC" not in rep, rep)
+# PAUSED — 입력 판정 적용 제외(빈 캐시라도 BTC 🔴·⚪ 없음), 기존 SID 상태 🔴 그대로(§5-9 30 결정)
+sid_reset("PAUSED")
+rc, rep, last, sent, raw = run("btc_paused")
+check("PAUSED·빈 캐시 — 🔴 상태 PAUSED·입력 판정 적용 제외",
+      rc == 1 and "🔴 SID 203 상태 PAUSED(정상: CREATED)" in rep and "SID 203 PAUSED — 입력 판정 적용 제외" in rep
+      and "🔴 BTC" not in rep and "⚪ BTC" not in rep, rep)
+sql(DB, "DELETE FROM live_trading_session WHERE id=203;")
+sql(DB, SID203_ROW)
+btc_fill()
 rc, rep, last, sent, raw = run("btc_back")
 check("BTC 시험 뒤 원래 자료로 — 정상", rc == 0 and GREEN in rep, rep)
 
