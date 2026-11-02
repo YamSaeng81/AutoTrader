@@ -1,5 +1,6 @@
 # 12월 제한 실거래 시험 — 후보와 실행안
 
+> **v1.58 (2026-11-02, 개입 #19 준비)**: 총괄 v1.57 로컬 반영을 내용 그대로 커밋(`afe1e35`). N08 후보 `ea44900` 배포·복구 명령 J 변수·J0~J5·J 되돌림 준비 — #18 I0~I4 와 같은 줄에 대상 값(`5bb0544`/`39875d5f…` → `ea44900`, 복구 기준 `5bb0544`)만 바꾸고, BTC 입력(`BTCIN`)·다른 소비자(`SRC`)를 J0 배포 전 관측·J3 충족·J4 기록으로 넣었다. 새 J5 는 J3 BTC 읽기 뒤 다음 H1 마감＋2분 이후 B1/B3 충족과 완료 봉 전진을 본다. jar 기대 `변경 MarketDataSyncService.class`·`(끝) 680 680`(로컬 대조). 블록 `bash -n`·J3/J5 가짜 입력 12사례 로컬 확인. 서버 실행 없음, 총괄 확인 대기, F 변수·F1 핀 그대로(§5-9 27).
 > **v1.57 (2026-11-02, 총괄 검토·로컬 보완)**: N08 후보 `ea44900`의 수집 수정과 F1의 B1/B3 검사를 수용한다. 보존 XML 64/64와 jar의 단일 클래스 차이를 직접 대조했다. F3를 종료 확인에 재사용하면 입력 부족 경보가 잘못 나오고 입력 조회 실패가 정산 출력을 막는 문제를 가짜 입력으로 재현해 문서에서 보완했다. 입력 검사는 RUNNING 첫날에만 적용하며 종료에서는 적용 제외한다. 정산 분기는 유지했다. 개입 #19 배포·복구 절차 준비로 진행하고 운영 반영·봉 전진 확인 뒤 N08을 완료한다(§5-9 26). 운영은 아직 `5bb0544`다.
 > **v1.56 (2026-11-02, N08 개발·로컬 검증)**: 운영 `5bb0544` 기점 후보 `ea44900`(브랜치 `n08-btc-h1-created-collect`) — 최초 시작 전 REAL·`DAILY_SMA20`·KRW-BTC·H1 세션의 캔들만 기존 60초 수집 대상에 넣었다. 새 시험 3건은 수정 전 2건 실패(캐시 null·대상 0) → 수정 후 3/3, 관련 10개 클래스 64/64. jar 차이 `MarketDataSyncService.class` 1개. F 변수 `BTCIN`·F1 BTC 입력 멈춤·F3 입력 판정(정산 판정과 별개)을 추가하고 로컬 리허설 DB·가짜 입력으로 대조했다. 운영 미배포, SID 203 `CREATED` 유지(§5-9 26 개발 결과).
 > **v1.55 (2026-11-02, 총괄 로컬 반영)**: 11:20:54 KST 운영 조회에서 직접 PAPER BTC/H1 수집 세션 0·필요 완료 봉 10:00·마지막 완료 봉 09:00·`up_to_date f`를 확인했다. N08 수집 유지 취약성이 운영에서 재현됐다. 추가 서버 조회 대신 최소 수정·국소 검증을 진행한다. F1의 BTC 최신성/20개 마감 봉 직접 검사와 F3 첫 판단의 데이터 부족 HOLD 구분도 기존 B1/B3 기준을 재사용해 함께 보완한다. 운영 `5bb0544`·SID 203 `CREATED`는 유지하며 시작을 앞당기거나 정지 세션을 재개하지 않는다(§5-9 26).
@@ -3700,6 +3701,361 @@ echo "✅ cad3939 (a747a8e6…) 로 복귀 — 5분 뒤 I3 를 다시 실행(t-r
   - **다음 개발 지시 — 개입 #19 준비**: 후보 SHA는 `ea44900`으로 유지하고, #18 I0~I4의 구조를 재사용한 배포·복구 블록을 준비한다. 직전 HEAD/이미지는 `5bb0544`/`39875d5f…`, 복구 대상도 이 둘이다. 재기동 전 jar 내용 차이는 수집 서비스 클래스 하나여야 한다. DB V94·SID 203 CREATED·잔액/시작 시각/주문·66세션·다른 서비스·장부·cron·과거 기록 보존을 확인한다. 기존 BTC 정체는 배포 전 관측값으로 보존하며, 배포 뒤에는 B1/B3 충족과 **다음 H1 마감 뒤 2분 유예가 지난 시점의 완료 봉 전진**을 읽어 확인하는 단계를 넣는다. 30분 점검 두 번이 같은 H1 안에 있다는 이유로 봉 전진을 요구하지 않는다. 위험 관문/경보 대조·복구 기준은 완화하지 않는다. 절차를 구체화한 뒤 총괄이 확인하며 현재 단계에서 서버 실행은 하지 않는다.
   - **인계·핀**: 개발은 위 로컬 문서 보완을 내용대로 확인하고 #19 절차와 함께 커밋한다. 후보 코드의 같은 64건이나 전체 리허설을 확인용으로 반복하지 않는다. #19 결과를 받은 뒤에만 F 변수 NEW·F1 HEAD/이미지/이미지 기록 경로를 갱신한다. 그 전까지 운영 `5bb0544`, SID 203 CREATED, 12-01 08:50 KST 최초 시작을 유지한다.
 - **완료 기준**: 11-05까지 국소 재현·최소 수정 후보와 근거를 검토한다. 운영 반영은 별도 확인 뒤다. N06 최종 원본은 이 변경이 실제 반영되면 그 기대값까지 포함해야 하며, 기록 커밋이 생겼다는 이유만으로 자동 변경하지 않는다. SID 203 최초 시작은 12-01 08:50 KST 그대로다.
+
+**27. 개입 #19 (N08) — backend 단독 배포·복구 명령 J0~J5 (2026-11-02, v1.58). 총괄 확인 전·운영 반영 전**
+
+- **지시 원문(총괄, 2026-11-02 운영자 전달)**:
+  > **N08 후보 `ea44900`과 F1 보완을 수용합니다.** XML 64/64 통과와 jar 차이 1클래스를 직접 확인했습니다.
+  >
+  > F3에서는 두 문제를 찾아 문서에서 수정했습니다.
+  >
+  > - 종료된 세션에도 입력 부족 경보가 나오는 문제 → 종료 확인에서는 입력 검사 적용 제외.
+  > - 입력 조회 실패가 정산 대조 출력까지 막는 문제 → 입력·정산 처리를 분리.
+  >
+  > 보완 후 **파서 11사례·조회 게이트 4사례·문법 검사**를 통과했습니다.
+  >
+  > **다음 개발 지시는 개입 #19 배포·복구 절차 준비입니다.**
+  >
+  > 1. 후보 `ea44900`을 유지하고 현재 `5bb0544`를 복구 기준으로 삼습니다.
+  > 2. 배포 뒤 BTC 입력 충족과 **다음 H1 마감＋2분 이후 완료 봉 전진**을 확인하도록 넣습니다.
+  > 3. 결과가 맞을 때 F1의 HEAD·이미지 기대값을 갱신합니다. 같은 64건과 전체 리허설을 반복할 필요는 없습니다.
+  >
+  > [계획 문서](<D:/Claude Code/projects/crypto-auto-trader/docs/LIMITED_LIVE_TEST_PLAN.md>) 등 4개 문서와 검토 근거를 로컬에 반영했습니다. 아직 커밋하지 않았으며, #19 절차와 함께 기록하면 됩니다.
+  >
+  > 운영은 `5bb0544`, SID 203은 `CREATED`, **12월 1일 08:50 시작 목표**를 유지합니다.
+- 총괄 로컬 반영(v1.57, 문서 4개·검토 근거)은 내용 그대로 `afe1e35` 로 커밋했다. 커밋 뒤 검토 근거 `SHA256SUMS` 5/5 일치.
+- **운영자는 아직 실행하지 않는다.** 총괄이 아래 J 변수·J0~J5·J 되돌림을 확인한 뒤에만 실행한다(⏸ 총괄 확인 대기).
+
+**개입 #19 (N08) — 구조와 고정값**
+
+- **고정값**: 지금 운영 `5bb0544926a694832e75234670bb8f99dfe33bb0`(이미지 `sha256:39875d5f921972ef217d35822b8f207b88191e3c840e79b9a6e10ea1dcd16aa4`, #18) → 후보 `ea4490099f0fa6b614fe71102534b0ba84c0eb7f`(브랜치 `n08-btc-h1-created-collect`, `5bb0544` 바로 위 커밋 하나). 복구 기준도 `5bb0544`·`39875d5f…` 다. DB 마이그레이션 없음(V94 그대로). 장부·F3·F5·정기 점검 설치본·cron·세션 설정·위험 한도는 바꾸지 않는다.
+- **구조**: #18 I 변수·I0~I4·I 되돌림과 같은 줄에 대상 값만 바꿨다. 다른 점은 셋이다.
+  1. N02 감시기 문구 개수 기록(#18 전용)을 뺐다.
+  2. BTC 입력(F 변수 `BTCIN`)과 BTC H1 다른 소비자 수(`SRC`)를 J0(배포 전 관측)·J3·J4 에서 기록한다. J3 은 B1/B3 충족을 확인한다.
+  3. **J5 를 더했다**: J3 의 BTC 읽기 시각 뒤 **다음 H1 마감＋2분**이 지난 뒤에만 돈다. 그때 B1/B3 충족과 최신 완료 봉이 J3 보다 앞으로 갔는지를 본다. J4(기동 30분 뒤)는 같은 H1 안일 수 있으므로 봉 전진을 요구하지 않는다.
+- **서버 git**: `git fetch origin` 뒤 `git checkout --quiet <후보 SHA>`(분리 HEAD)만 한다. `git checkout main`·`git pull` 은 하지 않는다.
+- **시간**: 운영자가 약 1시간 계속 대응할 수 있을 때. 10:00·22:00 정기 보고를 본 뒤 시작하고 09:00~09:59 KST 는 피한다(09:30 장부 기록). 순서는 J0 → 30분 안에 J1 → 바로 J2 → 5~10분 뒤 J3 → 기동 30분 뒤 J4 → J3 시각 다음 정시＋2분 뒤 J5 다. 예: 10:05 J0·10:10 J1·10:15 J2·10:22 J3·10:46 J4·11:02 이후 J5. J4 가 이미 그 시각을 지났으면 J4 바로 뒤에 J5 를 한다. 재기동은 다음 정기 보고에 기동 🔴 를 한 번 낸다(이 배포로 설명됨, 기록).
+- **바뀌는 운영 동작(배포 뒤)**:
+  - 60초 수집 대상에 `CREATED`·`started_at` 없음·REAL·`DAILY_SMA20`·KRW-BTC·H1 인 LIVE 세션(지금은 SID 203 하나)의 KRW-BTC H1 이 더해진다. 다른 소비자가 없으면 업비트 공개 캔들 호출이 분당 1회 남짓 늘어난다.
+  - 첫 회차는 마지막 저장 봉 5개 전부터 지금까지 받아 정체 구간을 메운다(`syncPair` 갭 조회, 520개 범위 안). 그래서 J3 에서 B1/B3 가 이미 충족돼야 맞다.
+  - 평가·회차 승인·자금 예약·주문은 그대로 `RUNNING` 에서만 한다. SID 203 은 `CREATED`·`started_at` 없음·20,200원·주문/보유 0 그대로여야 한다.
+  - 같은 캐시를 읽는 소비자는 갱신되는 BTC H1 을 본다. 66세션의 T0·분모·성과 기준은 바꾸지 않는다.
+- **jar 대조 기대값(로컬 검증)**: 로컬 `5bb0544`(`D:/tmp/wt-5bb0544`)·`ea44900`(`cat-n08`) 의 `:web-api:bootJar` 를 아래 J1 과 같은 비교 코드(#18 I1 블록 그대로)로 대조했다. 출력은 `변경 BOOT-INF/classes/com/cryptoautotrader/api/service/MarketDataSyncService.class` 한 줄과 `(끝) 680 680` 이다. #18 I1 의 새 쪽 클래스 수 680 과도 맞다. 서버 J1 이 실행 중 컨테이너 jar 와 새 이미지 jar 로 같은 대조를 하고, 다르면 **재기동 전에** 멈춘다.
+- 각 묶음은 `( set -euo pipefail … )` 다. 통과 표지(`ok-J0`~`ok-J5`)가 있어야 다음 묶음이 시작한다. 결과는 새 폴더 `~/maint-n08` 에만 쓴다. `~/maint-n04`(#18)는 읽기만 한다.
+
+**J 변수** — 🔴 새 셸마다 §5-8 **F 변수** → §5-9 의 **G 변수** → 아래 블록 순서로 실행한다. F 변수가 `BTCIN` 을, G 변수가 `qc`·`zero5`·`alertsok`·`sid203`·`REPO`·`QS`·`POOLX`·`NOT404` 를 준다. 아래 블록이 `M`·`OLD`·`NEW` 를 덮어쓴다. H·I 변수는 넣지 않는다.
+```bash
+M=~/maint-n08; mkdir -p "$M"; OPS=~/ops-scripts
+OLD=5bb0544926a694832e75234670bb8f99dfe33bb0; NEW=ea4490099f0fa6b614fe71102534b0ba84c0eb7f
+IMGOLD=sha256:39875d5f921972ef217d35822b8f207b88191e3c840e79b9a6e10ea1dcd16aa4   # #18 배포 이미지(지금 실행 중)
+LS=8bfe8a9fa896f400b3fb6681fef021c99d6ba43b; LSUM=02a8585021fb2a1a52d9b3b56b60e957cb71b9ca3c11bf819595df15cf334f1c   # 지금 설치 장부 — 바꾸지 않는다
+h256() { sha256sum < "$1" | cut -d' ' -f1 ; }
+v94() { [ "$($PSQL -At -c "SELECT max(version::int) FROM flyway_schema_history WHERE success")" = "94" ] ; }
+DIFF2="$(printf '%s\n' web-api/src/main/java/com/cryptoautotrader/api/service/MarketDataSyncService.java web-api/src/test/java/com/cryptoautotrader/api/service/PreStartLimitedTestCandleSupplyTest.java)"
+JARX="변경 BOOT-INF/classes/com/cryptoautotrader/api/service/MarketDataSyncService.class"
+# KRW-BTC H1 의 다른 소비자: RUNNING LIVE H1(관문) | RUNNING DYNAMIC H1(관문) | RUNNING 직접 PAPER KRW-BTC/H1. 0|0|0 이면 J5 의 전진은 CREATED 수집 경로다
+SRC="SELECT (SELECT count(*) FROM live_trading_session WHERE status = 'RUNNING' AND timeframe = 'H1') || '|' ||
+  (SELECT count(*) FROM dynamic_session WHERE status = 'RUNNING' AND timeframe = 'H1') || '|' ||
+  (SELECT count(*) FROM paper_trading.virtual_balance WHERE status = 'RUNNING' AND coin_pair = 'KRW-BTC' AND timeframe = 'H1')"
+btcok() { [ "$(cut -d'|' -f1 "$1")" = true ] && [ "$(cut -d'|' -f4 "$1")" = 20/20 ] ; }
+# BTC 관문은 candle 의 '기동 직전에도 판정 불가' 예외를 받지 않는다(v1.36 과 같다).
+btcgate() { python3 - "$1" <<'PYEOF'
+import re, sys
+st = {}
+for line in open(sys.argv[1], encoding="utf-8", errors="replace"):
+    m = re.search(r"\[캔들 최신성\] (.+?) 판정 (불가|재개) \(", line)
+    if m and m.group(1).startswith("BTC 급락 관문 "):
+        st[m.group(1)] = m.group(2)
+if not st:
+    print("BTC 관문: 판정 불가·재개 줄 없음")
+for k, v in st.items():
+    print("BTC 관문 마지막 상태: %s 판정 %s" % (k, v))
+sys.exit(1 if "불가" in st.values() else 0)
+PYEOF
+}
+```
+
+**J0. ⏸ 직전 확인 — 읽기 전용, 재기동 없음** (총괄 확인 뒤)
+```bash
+(
+set -euo pipefail
+stop() { echo "🔴 멈춤: $*"; exit 1; }
+[ "$M" = "$HOME/maint-n08" ] && [ "$NEW" = ea4490099f0fa6b614fe71102534b0ba84c0eb7f ] && [ -n "${BTCIN:-}" ] && type sid203 > /dev/null 2>&1 || stop "변수 순서 — F 변수 → G 변수 → J 변수"
+[ ! -e "$M/ok-J1" ] || stop "J1 을 이미 시작했다 — J0 를 다시 하지 않는다. ls -l $M 를 보고"
+[ "$(git rev-parse HEAD)" = "$OLD" ] && [ -z "$(git status --porcelain --untracked-files=no)" ] || stop "HEAD 가 5bb0544 가 아니거나 추적 파일 변경 있음"
+date '+%F %T %Z' | tee "$M/t-before.txt"; date '+%F %T%:z' > "$M/maint_start.txt"
+{ git rev-parse HEAD; git status --porcelain --untracked-files=no; echo "(끝)"; } | tee "$M/git-before.txt"
+git fetch origin
+git cat-file -e "$NEW^{commit}" || stop "후보 ea44900 없음"
+[ "$(git diff --name-only $OLD $NEW)" = "$DIFF2" ] || stop "diff 가 정확히 두 파일이 아님"
+svc | tee "$M/svc-before.txt"
+IMG0=$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)"); echo "$IMG0" | tee "$M/image-before.txt"
+[ "$IMG0" = "$IMGOLD" ] && [ "$IMGOLD" = "$(cat ~/maint-n04/image-new.txt)" ] || stop "실행 이미지가 #18 배포 이미지(39875d5f…)와 다름"
+[ "$(docker image inspect --format '{{.Id}}' $REPO:latest)" = "$IMG0" ] || stop "$REPO:latest 가 실행 이미지와 다름"
+[ "$($DC exec -T backend env | grep '^TRADING_CAPITALPOOL_' | sort)" = "$POOLX" ] || stop "공유 풀 등록값이 STAGE_1·100000·20000·3 과 다름"
+v94 || stop "Flyway 최고 버전이 94 가 아님"
+sid203 || stop "SID 203·기준 행·EG·0 확인 중 다른 것 있음 — F1 과 같은 조회로 보고"
+sc | tee "$M/s-before.txt"; [ "$(cat "$M/s-before.txt")" = "66 | 63 | 3 | -" ] || stop "검증 66세션 상태 다름"
+[ "$(h256 "$OPS/sid_ledger.sql")" = "$LSUM" ] && [ "$(cat "$OPS/SID_LEDGER_SHA")" = "$LS" ] || stop "설치 장부가 8bfe8a9 판이 아님"
+crontab -l > "$M/crontab-before.txt" || stop "crontab 조회 실패"
+[ -s "$M/crontab-before.txt" ] && [ "$(grep -c 'sid_ledger.sql' "$M/crontab-before.txt")" = 1 ] || stop "crontab 이 비었거나 장부 기록 줄이 1개가 아님"
+( cd ~/sid203-ledger && sha256sum -- * ) > "$M/ledger-files-before.sha"; cat "$M/ledger-files-before.sha"
+echo "== BTC H1 배포 전 관측(기록만 — 정체여도 멈추지 않는다): 충족|최신 완료 봉|필요 봉|최근 20일 마감 봉 · 다른 소비자 LIVE H1|DYNAMIC H1|PAPER BTC/H1"
+$PSQL -At -c "$BTCIN" > "$M/btc-before.txt" || stop "BTC 입력 조회 실패"; cat "$M/btc-before.txt"
+$PSQL -At -c "$SRC" > "$M/src-before.txt" || stop "BTC 소비자 조회 실패"; cat "$M/src-before.txt"
+qc > "$M/q-before.txt" 2>&1; sed -n '/== Q3/,$p' "$M/q-before.txt" | grep -vE '^-+|^\s*$'
+git show $QS:scripts/ops/maint_verify.py > "$M/maint_verify.py"
+$DC logs --no-color backend > "$M/backend-before.log"
+python3 scripts/prospective/start_66.py alerts --days 1 --no-mark > "$M/alerts-before.txt" 2>&1 && AE=0 || AE=$?
+echo "경보 종료코드 $AE"
+alertsok "$AE" "$M/alerts-before.txt" || stop "경보 조회가 끝까지 돌지 않음 — alerts-before.txt 를 보고"
+grep -E '^(🔴|⚪)' "$M/alerts-before.txt" || true
+touch "$M/ok-J0"; echo "✅ J0 통과 — 30분 안에 J1"
+)
+```
+- 기대 결과:
+  - `git-before` 는 `5bb05449…` 다음 바로 `(끝)` 이고, diff 는 두 파일이다.
+  - 실행 이미지 = `latest` = `sha256:39875d5f…`(#18) = `~/maint-n04/image-new.txt` 이다.
+  - 공유 풀 네 값, V94, `sid203` 통과, `sc` `66 | 63 | 3 | -`, 설치 장부 `8bfe8a9` 판, crontab 장부 줄 1개.
+  - BTC 는 배포 전 관측값으로 보존한다. 11:20 과 같은 정체라면 첫 칸 `false` 이고 둘째 칸이 셋째 칸보다 이르다. 정체가 하루를 넘었으면 넷째 칸도 `20/20` 미만일 수 있다. 다른 소비자는 10:32·11:20 조회와 같으면 `0|0|0` 이다. 어느 값이든 J0 를 멈추지 않는다.
+  - Q3~Q6 0 · Q7 `RUNNING 63`·`STOPPED 3` · Q8 0 · Q9 0 · `ROLLBACK`(눈으로). 경보는 기준선으로 기록만 한다.
+- 멈추면 아무것도 바뀌지 않았다. 출력을 보고한다.
+
+**J1. 새 이미지 빌드와 jar 대조 — 재기동 없음**
+```bash
+(
+set -euo pipefail
+stop() { echo "🔴 멈춤: $*"; exit 1; }
+[ -e "$M/ok-J0" ] || stop "J0 미통과"
+[ ! -e "$M/ok-J1" ] || stop "J1 을 이미 통과했다 — 바로 J2"
+[ $(( $(date +%s) - $(stat -c %Y "$M/ok-J0") )) -le 1800 ] || stop "J0 가 30분보다 오래됨 — J0 부터"
+IMG0=$(cat "$M/image-before.txt")
+if docker image inspect $REPO:5bb0544 > /dev/null 2>&1; then [ "$(docker image inspect --format '{{.Id}}' $REPO:5bb0544)" = "$IMG0" ] || stop "$REPO:5bb0544 태그가 이미 다른 이미지를 가리킨다"; fi
+docker tag "$IMG0" $REPO:5bb0544
+[ "$(docker image inspect --format '{{.Id}}' $REPO:5bb0544)" = "$IMG0" ] || stop "기존 이미지 보존 태그 실패"
+git checkout --quiet $NEW
+[ "$(git rev-parse HEAD)" = "$NEW" ] && [ -z "$(git status --porcelain --untracked-files=no)" ] || stop "체크아웃 결과가 NEW 가 아니거나 변경 있음 — J1-되돌림"
+date '+%F %T %Z' | tee "$M/t-build.txt"
+$DC build backend > "$M/build.log" 2>&1 || stop "빌드 실패 — build.log 를 보고. J1-되돌림"
+IMG1=$(docker image inspect --format '{{.Id}}' $REPO:latest); echo "$IMG1" | tee "$M/image-new.txt"
+[ "$IMG1" != "$IMG0" ] || stop "새 이미지가 만들어지지 않음 — J1-되돌림"
+[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$IMG0" ] || stop "🔴 실행 중 backend 가 바뀌었다 — 보고"
+docker cp "$($DC ps -q backend)":/app/app.jar "$M/app-old.jar"
+CID=$(docker create $REPO:latest); docker cp "$CID":/app/app.jar "$M/app-new.jar"; docker rm "$CID" > /dev/null
+python3 - "$M/app-old.jar" "$M/app-new.jar" <<'EOF' | tee "$M/jar-diff.txt"
+import hashlib, io, re, sys, zipfile
+OWN = re.compile(r"BOOT-INF/lib/(core-engine|strategy-lib|exchange-adapter)[^/]*\.jar$")
+def classes(path):
+    z, out = zipfile.ZipFile(path), {}
+    for n in z.namelist():
+        if n.startswith("BOOT-INF/classes/") and n.endswith(".class"):
+            out[n] = hashlib.sha256(z.read(n)).hexdigest()
+        elif n.startswith("BOOT-INF/lib/") and n.endswith(".jar"):
+            if OWN.match(n):
+                inner = zipfile.ZipFile(io.BytesIO(z.read(n)))
+                for m in inner.namelist():
+                    if m.endswith(".class"):
+                        out[re.sub(r"-[0-9.]+(-SNAPSHOT)?\.jar$", ".jar", n) + "!" + m] = hashlib.sha256(inner.read(m)).hexdigest()
+            else:
+                out[n] = hashlib.sha256(z.read(n)).hexdigest()
+    return out
+a, b = classes(sys.argv[1]), classes(sys.argv[2])
+for k in sorted(set(a) | set(b)):
+    if a.get(k) != b.get(k):
+        print(("추가 " if k not in a else "삭제 " if k not in b else "변경 ") + k)
+print("(끝)", len(a), len(b))
+EOF
+[ "$(grep -v '^(끝)' "$M/jar-diff.txt")" = "$JARX" ] || stop "jar 차이가 수집 서비스 한 줄이 아님 — jar-diff.txt 를 보고(재기동 전). J1-되돌림"
+grep -qx '(끝) 680 680' "$M/jar-diff.txt" || stop "클래스 수가 680 → 680 이 아님 — jar-diff.txt 를 보고(재기동 전). J1-되돌림"
+touch "$M/ok-J1"; echo "✅ J1 통과 — 바로 J2"
+)
+```
+- 기대: `jar-diff.txt` 가 `변경 BOOT-INF/classes/com/cryptoautotrader/api/service/MarketDataSyncService.class` 한 줄과 `(끝) 680 680` 이다. 차이가 더 많거나 다르면 재기동하지 않고 보고한다.
+- **J1-되돌림**(J1 이 멈췄을 때 — 실행 중 backend 는 그대로다): `git checkout --quiet $OLD; docker tag "$(cat "$M/image-before.txt")" $REPO:latest; git rev-parse HEAD; docker image inspect --format '{{.Id}}' $REPO:latest` → `5bb05449…`·`image-before.txt` 와 같은 ID. 재기동하지 않는다.
+
+**J2. 재기동 (개입 #19) — J1 통과 뒤 바로**
+```bash
+(
+set -euo pipefail
+stop() { echo "🔴 멈춤: $*"; exit 1; }
+[ -e "$M/ok-J1" ] || stop "J1 미통과"
+[ ! -e "$M/ok-J2" ] || stop "J2 를 이미 했다 — J3"
+IMG1=$(cat "$M/image-new.txt")
+[ "$(git rev-parse HEAD)" = "$NEW" ] || stop "HEAD 가 NEW 가 아님"
+[ "$(docker image inspect --format '{{.Id}}' $REPO:latest)" = "$IMG1" ] || stop "latest 가 image-new 와 다름"
+sid203 || stop "SID 203·기준 행·EG·0 확인 중 다른 것 있음"
+[ "$(sc)" = "66 | 63 | 3 | -" ] || stop "검증 66세션 상태 다름"
+date '+%F %T %Z' | tee "$M/t-deploy.txt"; date -u '+%Y-%m-%dT%H:%M:%SZ' > "$M/t-deploy.utc"
+echo "== 여기부터 재기동 — 이 뒤의 멈춤은 '되돌림 필요'"
+$DC up -d --no-build --no-deps backend || stop "되돌림 필요: 재생성 실패"
+sleep 15
+[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$IMG1" ] || stop "되돌림 필요: 새 컨테이너 이미지가 image-new 와 다름"
+[ "$($DC exec -T backend env | grep '^TRADING_CAPITALPOOL_' | sort)" = "$POOLX" ] || stop "되돌림 필요: 공유 풀 등록값 다름"
+svc | tee "$M/svc-deploy.txt"
+diff <(grep -v '^backend ' "$M/svc-before.txt") <(grep -v '^backend ' "$M/svc-deploy.txt") || stop "되돌림 필요: backend 외 서비스가 바뀜"
+{ git rev-parse HEAD; git status --porcelain --untracked-files=no; echo "(끝)"; } | tee "$M/git-deploy.txt"
+touch "$M/ok-J2"; echo "✅ J2 통과 — 5~10분 뒤 J3"
+)
+```
+
+**J3. 기동·BTC 입력 확인 — J2 5~10분 뒤** (되돌림 뒤에도 같은 묶음을 쓴다. `t-rollback.utc` 가 있으면 그 시각과 기존 이미지로 보고, BTC 는 기록만 한다)
+```bash
+(
+set -euo pipefail
+stop() { echo "🔴 멈춤: $*"; exit 1; }
+if [ -e "$M/t-rollback.utc" ]; then S=$(cat "$M/t-rollback.utc"); EXP=$(cat "$M/image-before.txt"); T=rollback; else [ -e "$M/ok-J2" ] || stop "J2 미통과"; S=$(cat "$M/t-deploy.utc"); EXP=$(cat "$M/image-new.txt"); T=deploy; fi
+[ $(( $(date +%s) - $(date -d "$S" +%s) )) -ge 300 ] || stop "기동 5분 전 — 5분이 지난 뒤 J3"
+$DC ps backend
+[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$EXP" ] || stop "실행 이미지가 기대와 다름"
+$DC logs --no-color --since "$S" backend > "$M/app-$T.log"
+grep -E "Schema .* is up to date|Migrating schema|Successfully applied|매도 격리 점검|Started CryptoAutoTrader" "$M/app-$T.log" | head -10
+grep -q "Started CryptoAutoTrader" "$M/app-$T.log" || stop "되돌림 필요: 기동 완료 줄 없음"
+! grep -qE "Migrating schema|Successfully applied" "$M/app-$T.log" || stop "되돌림 필요: 마이그레이션이 돌았다(이번 배포에는 없어야 함)"
+v94 || stop "되돌림 필요: Flyway 최고 버전이 94 가 아님"
+grep -qF "공유 풀 한도 확인: 단계=STAGE_1 총상한=100000 포지션당=20000 동시보유=3" "$M/app-$T.log" || stop "되돌림 필요: 공유 풀 등록 로그 없음"
+grep -qF "위험 한도 확인: 단계 STAGE_1 총 자본 100000 기준 누적 15.00%·24시간 3.00%" "$M/app-$T.log" || stop "되돌림 필요: 위험 한도 로그 없음"
+! grep -qE "🔴 (공유 풀 한도|위험 한도)" "$M/app-$T.log" || stop "되돌림 필요: 🔴 공유 풀/위험 한도 줄"
+grep " ERROR " "$M/app-$T.log" | grep -v "캔들 최신성" | grep -v -E "$NOT404" > "$M/errors-$T.txt" || true
+[ ! -s "$M/errors-$T.txt" ] || stop "세 마켓 캔들 404 밖의 ERROR — errors-$T.txt 를 보고"
+grep -E "BTC 급락 관문 H1 판정 (불가|재개)" "$M/app-$T.log" | cut -c1-140 || true
+btcgate "$M/app-$T.log" || stop "BTC 관문 마지막 상태가 판정 불가 — 바로 되돌리지 말고 위 출력을 보고"
+python3 "$M/maint_verify.py" candle "$M/app-$T.log" "$M/backend-before.log" || stop "기동 뒤 판정 불가 대상이 아직 재개되지 않음 — 위 출력을 보고"
+qc > "$M/q-$T.txt" 2>&1; sed -n '/== Q3/,$p' "$M/q-$T.txt" | grep -vE '^-+|^\s*$'
+sc | tee "$M/s-$T.txt"; diff "$M/s-before.txt" "$M/s-$T.txt" || stop "되돌림 필요: 검증 세션 상태 바뀜"
+sid203 || stop "SID 203·기준 행·EG·0 확인 중 바뀐 것 있음 — 보고"
+date -u '+%Y-%m-%dT%H:%M:%SZ' > "$M/t-btc-$T.utc"
+$PSQL -At -c "$BTCIN" > "$M/btc-$T.txt" || stop "BTC 입력 조회 실패 — 1분 뒤 J3 를 다시"
+$PSQL -At -c "$SRC" > "$M/src-$T.txt" || stop "BTC 소비자 조회 실패 — 1분 뒤 J3 를 다시"
+echo "== BTC H1 배포 전 $(cat "$M/btc-before.txt") · 지금 $(cat "$M/btc-$T.txt") · 다른 소비자 $(cat "$M/src-$T.txt")"
+if [ "$T" = deploy ]; then btcok "$M/btc-$T.txt" || stop "BTC 입력 미충족 — 바로 되돌리지 말고 위 출력을 보고(재기동 없이 J3 만 5분 뒤 한 번 다시)"; fi
+touch "$M/ok-J3-$T"
+if [ "$T" = deploy ]; then echo "✅ J3(deploy) 통과 — 기동 30분 뒤 J4, $(TZ=Asia/Seoul date -d @$(( ( $(date -d "$(cat "$M/t-btc-deploy.utc")" +%s) / 3600 + 1 ) * 3600 + 120 )) '+%H:%M KST') 이후 J5"; else echo "✅ J3(rollback) 통과 — 5bb0544 복귀 확인. J4·J5 는 하지 않고 출력을 보고"; fi
+)
+```
+- 기대 결과(배포):
+  - #18 I3 와 같다: `Started`, `Schema "public" is up to date`(마이그레이션 없음), V94, 매도 격리 점검 "없음", 두 한도 줄, ERROR 는 세 마켓 캔들 404 뿐, `btcgate` 줄 없음 또는 재개, `candle` `아직 판정 불가 0`, Q3~Q6 0 · Q7 63/3 · Q8 0 · Q9 0 · `ROLLBACK`, `sc` 같음, `sid203` 통과.
+  - BTC 는 `true|<최신 완료 봉>|<필요 봉>|20/20` 이고 둘째 칸이 셋째 칸과 같거나 늦다. 첫 수집이 정체 구간을 메우므로 배포 전보다 앞으로 가 있어야 맞다. 다른 소비자는 `0|0|0` 으로 예상한다(다르면 그 값을 같이 보고).
+- BTC 관문이 재개되지 않거나 BTC 입력이 미충족이면 바로 되돌리지 않는다. 출력을 보고한다. 5분 뒤 J3 를 한 번 다시 해도 그대로면 총괄 판단을 기다린다(재기동·수동 봉 삽입·세션 시작 금지).
+
+**J4. 30분 재점검 — 기동 30분 뒤** (봉 전진은 요구하지 않는다 — 같은 H1 안일 수 있다)
+```bash
+(
+set -euo pipefail
+stop() { echo "🔴 멈춤: $*"; exit 1; }
+[ -e "$M/ok-J3-deploy" ] || stop "J3 미통과"
+S=$(cat "$M/t-deploy.utc")
+[ $(( $(date +%s) - $(date -d "$S" +%s) )) -ge 1800 ] || stop "아직 30분 전"
+date '+%F %T %Z' | tee "$M/t-after30.txt"
+$DC ps backend
+$DC logs --no-color --since "$S" backend > "$M/app-after30.log"
+grep " ERROR " "$M/app-after30.log" | grep -v "캔들 최신성" | grep -v -E "$NOT404" > "$M/errors-after30.txt" || true
+[ ! -s "$M/errors-after30.txt" ] || stop "세 마켓 캔들 404 밖의 ERROR — errors-after30.txt 를 보고"
+! grep -qE "🔴 (공유 풀 한도|위험 한도)" "$M/app-after30.log" || stop "되돌림 필요: 🔴 공유 풀/위험 한도 줄"
+v94 || stop "되돌림 필요: Flyway 최고 버전이 94 가 아님"
+grep -E "BTC 급락 관문 H1 판정 (불가|재개)" "$M/app-after30.log" | cut -c1-140 || true
+btcgate "$M/app-after30.log" || stop "BTC 관문 마지막 상태가 판정 불가 — 바로 되돌리지 말고 위 출력을 보고"
+python3 "$M/maint_verify.py" candle "$M/app-after30.log" "$M/backend-before.log" || stop "판정 불가 대상이 남아 있음 — 위 출력을 보고"
+qc > "$M/q-after30.txt" 2>&1; sed -n '/== Q3/,$p' "$M/q-after30.txt" | grep -vE '^-+|^\s*$'
+sc | tee "$M/s-after30.txt"; diff "$M/s-before.txt" "$M/s-after30.txt" || stop "되돌림 필요: 검증 세션 상태 바뀜"
+svc | tee "$M/svc-after30.txt"
+diff <(grep -v '^backend ' "$M/svc-before.txt") <(grep -v '^backend ' "$M/svc-after30.txt") || stop "되돌림 필요: backend 외 서비스가 바뀜"
+[ "$(grep '^backend ' "$M/svc-deploy.txt")" = "$(grep '^backend ' "$M/svc-after30.txt")" ] || stop "되돌림 필요: backend 재시작 있음"
+sid203 || stop "SID 203·기준 행·EG·0 확인 중 바뀐 것 있음 — 보고"
+[ "$(h256 "$OPS/sid_ledger.sql")" = "$LSUM" ] && [ "$(cat "$OPS/SID_LEDGER_SHA")" = "$LS" ] || stop "설치 장부가 바뀜 — 보고"
+crontab -l | cmp -s - "$M/crontab-before.txt" || stop "cron 이 J0 때와 다름 — crontab -l 을 보고"
+( cd ~/sid203-ledger && sha256sum --quiet -c "$M/ledger-files-before.sha" ) || stop "과거 장부 기록 파일이 바뀜 — 보고"
+$PSQL -At -c "$BTCIN" > "$M/btc-after30.txt" || stop "BTC 입력 조회 실패 — 1분 뒤 J4 를 다시"
+echo "== BTC H1 J3 $(cat "$M/btc-deploy.txt") · 지금 $(cat "$M/btc-after30.txt") (기록 — 전진은 J5 에서 본다)"
+btcok "$M/btc-after30.txt" || stop "BTC 입력 미충족 — 바로 되돌리지 말고 위 출력을 보고"
+python3 scripts/prospective/start_66.py alerts --since "$S" --no-mark > "$M/alerts-after30.txt" 2>&1 && AE=0 || AE=$?
+echo "경보 종료코드 $AE (1 = 🔴 경보 있음 — 이것만으로 멈추지 않고 네 갈래로 대조)"
+alertsok "$AE" "$M/alerts-after30.txt" || stop "경보 조회가 끝까지 돌지 않음 — alerts-after30.txt 를 보고"
+echo "== 경보 (지금)"; cat "$M/alerts-after30.txt"
+echo "== 경보 (배포 전 기준선)"; cat "$M/alerts-before.txt"
+touch "$M/ok-J4"; echo "✅ J4 통과 — $(TZ=Asia/Seoul date -d @$(( ( $(date -d "$(cat "$M/t-btc-deploy.utc")" +%s) / 3600 + 1 ) * 3600 + 120 )) '+%H:%M KST') 이후 J5"
+)
+```
+- 기대 결과:
+  - V94, Q3~Q6 0 · Q7 63/3 · Q8 0 · Q9 0 · `ROLLBACK`, `sc` 같음, backend 재시작 없음, 다른 서비스 불변, BTC 관문 줄 없음 또는 재개, `sid203` 통과.
+  - 설치 장부 `8bfe8a9` 판·cron·과거 장부 기록 파일이 J0 때와 같다.
+  - BTC 는 여전히 `true …|20/20` 이다. 최신 완료 봉이 J3 와 같아도 정상이다(같은 H1 안).
+  - 경보는 네 갈래(기존 반복·새 경보·⚪·실행 누락)로 `alerts-before.txt` 와 대조한다. KRW-BLAST 반복 밖에 무엇이 있으면 보고한다. #18 때처럼 구간 안에 매시 19분 회차가 없으면 미측정으로 적는다.
+
+**J5. 완료 봉 전진 확인 — J3 의 BTC 읽기 뒤 다음 H1 마감＋2분 이후** (J4 통과 뒤. 읽기 전용)
+```bash
+(
+set -euo pipefail
+stop() { echo "🔴 멈춤: $*"; exit 1; }
+[ -e "$M/ok-J4" ] || stop "J4 미통과"
+[ ! -e "$M/ok-J5" ] || stop "J5 를 이미 통과했다 — 출력을 보고"
+T3=$(cat "$M/t-btc-deploy.utc"); DUE=$(( ( $(date -d "$T3" +%s) / 3600 + 1 ) * 3600 + 120 ))
+[ "$(date +%s)" -ge "$DUE" ] || stop "다음 H1 마감＋2분 전 — $(TZ=Asia/Seoul date -d @$DUE '+%H:%M KST') 이후 J5"
+date '+%F %T %Z' | tee "$M/t-advance.txt"
+[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$(cat "$M/image-new.txt")" ] || stop "실행 이미지가 image-new 와 다름 — 보고"
+svc | tee "$M/svc-advance.txt"
+[ "$(grep '^backend ' "$M/svc-deploy.txt")" = "$(grep '^backend ' "$M/svc-advance.txt")" ] || stop "backend 재시작 있음 — 보고"
+sid203 || stop "SID 203·기준 행·EG·0 확인 중 바뀐 것 있음 — 보고"
+$PSQL -At -c "$BTCIN" > "$M/btc-advance.txt" || stop "BTC 입력 조회 실패 — 1분 뒤 J5 를 다시"
+$PSQL -At -c "$SRC" > "$M/src-advance.txt" || stop "BTC 소비자 조회 실패 — 1분 뒤 J5 를 다시"
+B3=$(cat "$M/btc-deploy.txt"); B5=$(cat "$M/btc-advance.txt")
+echo "== BTC H1 배포 전 $(cat "$M/btc-before.txt") · J3 $B3 · 지금 $B5 · 다른 소비자 $(cat "$M/src-advance.txt")"
+btcok "$M/btc-advance.txt" || stop "BTC 입력 미충족 — 바로 되돌리지 말고 위 출력을 보고(5분 뒤 J5 를 한 번 다시)"
+[[ "$(cut -d'|' -f2 <<< "$B5")" > "$(cut -d'|' -f2 <<< "$B3")" ]] || stop "최신 완료 봉이 J3 뒤 전진하지 않음 — 바로 되돌리지 말고 위 출력을 보고(5분 뒤 J5 를 한 번 다시)"
+[ "$(cat "$M/src-advance.txt")" = "0|0|0" ] && echo "다른 소비자 0 — 전진은 CREATED 수집 경로로 일어났다" || echo "다른 소비자 있음 — 전진을 CREATED 경로만으로 단정하지 않는다. 이 줄과 위 출력을 함께 보고"
+touch "$M/ok-J5"; echo "✅ J5 통과 — J0~J5 출력을 보고(F1 기대값은 개발 에이전트가 갱신)"
+)
+```
+- 기대 결과: BTC `true|<J3 보다 늦은 완료 봉>|<필요 봉>|20/20`, 다른 소비자 `0|0|0`, SID 203 `CREATED`·`started_at` 없음·20,200원·0 다섯 줄(`sid203` 통과), backend 재시작 없음. 이 다섯이 맞아야 "CREATED 상태 BTC H1 완료 봉 전진(운영 반영 확인)" 으로 기록한다.
+- 멈추면 되돌리지 않는다. 5분 뒤 J5 를 한 번만 다시 한다. 그대로면 출력을 보고하고 총괄 판단을 기다린다. 미충족·미전진은 수정이 효과가 없다는 뜻이지 기존 운영보다 위험해졌다는 뜻이 아니다. 되돌림은 총괄 지시가 있을 때만 한다.
+
+**J 되돌림 — backend (J2~J4 의 "되돌림 필요" 때, 또는 총괄 지시 뒤)** (DB 마이그레이션·장부 변경이 없으므로 데이터 작업은 없다)
+```bash
+(
+set -euo pipefail
+stop() { echo "🔴 멈춤: $*"; exit 1; }
+IMG0=$(cat "$M/image-before.txt"); [ "$IMG0" = "$IMGOLD" ] || stop "image-before 가 #18 이미지가 아님"
+date '+%F %T %Z' | tee "$M/t-rollback.txt"; date -u '+%Y-%m-%dT%H:%M:%SZ' > "$M/t-rollback.utc"
+git checkout --quiet $OLD; [ "$(git rev-parse HEAD)" = "$OLD" ] || stop "체크아웃 실패"
+docker tag "$IMG0" $REPO:latest
+$DC up -d --no-build --no-deps --force-recreate backend
+sleep 15
+[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$IMG0" ] || stop "이미지가 image-before 와 다름"
+[ "$($DC exec -T backend env | grep '^TRADING_CAPITALPOOL_' | sort)" = "$POOLX" ] || stop "공유 풀 등록값 다름"
+svc | tee "$M/svc-rollback.txt"
+{ git rev-parse HEAD; git status --porcelain --untracked-files=no; echo "(끝)"; } | tee "$M/git-rollback.txt"
+echo "✅ 5bb0544 (39875d5f…) 로 복귀 — 5분 뒤 J3 를 다시 실행(t-rollback.utc 기준으로 자동 전환, BTC 는 기록만)"
+)
+```
+- 새 코드가 그동안 받아 둔 KRW-BTC H1 행은 업비트 공개 캔들을 기존 upsert 경로로 저장한 것이다. 기존 코드도 RUNNING 소비자가 있으면 같은 행을 쓴다. 지우거나 고치지 않는다. SID 203 은 `CREATED`·주문 0 이라 새 코드가 남긴 주문·포지션 자료는 없다.
+- 되돌리면 BTC H1 수집은 배포 전처럼 다시 멈출 수 있다(N08 미해결 상태로 복귀). F 변수·F1 은 `5bb0544`·`39875d5f…` 그대로 두고, N08 은 완료로 쓰지 않는다.
+
+**배포 확인 뒤 — 개발 에이전트(운영자가 J0~J5 출력을 보낸 뒤, 이 커밋에서는 하지 않는다)**:
+- F 변수 `NEW` 를 `ea4490099f0fa6b614fe71102534b0ba84c0eb7f` 로, F1 의 HEAD 멈춤 문구를 `ea44900` 으로 바꾼다.
+- F1 이미지 기대를 `~/maint-n08/image-new.txt` 로 바꾸고, 그 실제 전체 해시를 `IMGF1` 에 글자 그대로 적는다(파일과 해시가 모두 같아야 통과). F1 기대 문구도 맞춘다. 장부 판 확인(`8bfe8a9`·`02a85850…`)·`BTCIN` 검사는 그대로다.
+- 개입 #19 기록(`git-before`, 빌드·재기동 시각, `jar-diff.txt`, J3·J4·J5 결과, BTC 배포 전/J3/J5 세 값)을 남긴다. 되돌렸다면 이 갱신은 하지 않는다.
+- F 변수·F1 이 바뀌므로 N06 블록 해시도 다시 계산한다. 원본 `S` 는 자동으로 바꾸지 않고 11-30 확인 때 대조한다.
+- 같은 64건·전체 리허설은 반복하지 않는다(총괄 지시).
+
+**로컬 확인(v1.58, 서버 명령 아님)**:
+- J 변수·J0~J5·J 되돌림을 문서에서 그대로 꺼내 `bash -n` 을 돌렸다.
+- `DIFF2` 는 `git diff --name-only 5bb0544 ea44900` 출력과 같고, `JARX`·`(끝) 680 680` 은 위 로컬 jar 대조 출력과 같다.
+- `SRC`·`BTCIN` 은 로컬 리허설 DB(`cat-rt-pg`)에서 문법·출력 모양을 확인했다.
+- `SRC`·`BTCIN` 결과: `0|0|0`, `false|10-31 08:00|11-02 12:00|18/20`. 이 사본은 10-30 까지만 BTC H1 이 있어서 정체 모양이다.
+- J3·J5 블록은 문서 그대로 실행했다. `$PSQL`·`$DC`·`docker`·`svc`·`sid203`·`sc`·`qc`·`maint_verify` 만 대역이고 `btcgate` 는 실제로 돌렸다. 12사례가 모두 기대와 같았다.
+  - J3 배포(4사례): 충족 → 통과, B1 정체 → 멈춤, B3 19/20 → 멈춤, BTC 조회 실패 → 멈춤(부분 출력 없음).
+  - J3 되돌림(1사례): BTC 정체여도 기록만 하고 통과한다. J4·J5 안내를 하지 않는다.
+  - J5(7사례):
+    - 다음 정시＋2분 전 → 멈춤(시각 안내)
+    - 전진·다른 소비자 0 → 통과("CREATED 수집 경로")
+    - 같은 봉 → 멈춤
+    - B1 미충족 → 멈춤
+    - 다른 소비자 1 → 통과하되 "단정하지 않는다" 출력
+    - backend 재시작 → 멈춤
+    - 조회 실패 → 멈춤
+  - 첫 사례 묶음에서 대역 `$PSQL` 실패가 Flyway 조회까지 막아 J3 조회 실패 사례가 그 앞에서 멈췄다. 대역을 BTC 조회에만 실패하도록 고쳐 다시 돌렸다(문서 블록은 그대로).
+  - J3 되돌림이 J5 시각을 안내하던 끝 문구를 배포/되돌림으로 나눴다.
+- J0~J4 의 나머지 줄은 #18 I0~I4 와 같은 줄에 대상 값만 바꾼 것이다. 실행 확인은 아니다.
+- **운영 상태(v1.58 커밋 시점)**: 바꾼 것 없음 — 운영 `5bb0544`(`39875d5f…`), DB V94, 정기 점검 `baa4b0e`, 장부 `8bfe8a9` 판, SID 203 `CREATED`, 12월 1일 08:50 KST 시작 목표. ⏸ 총괄 확인 → 승인 뒤 운영자 J0~J5.
 
 SMA20 신호·설정과 위험 한도를 기준으로 주문·정산·보호 기능의 결함을 보완한다. 새 시험 결과를 얻으려고 전략 파라미터를 탐색하거나 종료 후보를 재개하지 않는다. 추가 시험은 새 시나리오·실패·수정 범위에 맞춰 실행한다. 기존 66세션·T0·판정 기준은 유지하고, 이 준비 활동을 그 세션들의 성과 평가에 사용하지 않는다. F0는 완료 상태를 유지한다.
 
