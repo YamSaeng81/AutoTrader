@@ -1,0 +1,42 @@
+{
+  "source_commit": "0de23ca",
+  "source_document": "docs/LIMITED_LIVE_TEST_PLAN.md",
+  "document_sha256": "128bff9d3912183336c330590e64b225b762b9a21f737aa838d503a65895fd78",
+  "f3_normalized_sha256": "1f9147d5733ceea1f9b14376d867a22f7dc8e5457e7789379701a47506cb4220",
+  "parser_sha256": "f4c363f171b9d366bd0458b7c6fd04a6181c3a1004dfc76f1b207b1e8a5199c4",
+  "scope": "문서에서 추출한 Python만 가짜 계좌/SQL 문자열로 실행. DB/curl/API/전체 F3 실행 없음.",
+  "cases": [
+    {
+      "case": "stopped-stale-btc",
+      "exit": 0,
+      "accounting_comparison_emitted": true,
+      "state_verdict_emitted": true,
+      "input_red_emitted": true,
+      "output": "== 대조 (시작 전 기준 = F1 의 account-f1.json)\n세션 상태 STOPPED\n업비트 KRW 1000000 → 999982.36 · BTC 0 → 0\n세션 잔액 20182.36 · 잔액 기대(주문별 두 자리) 20182.36 · 차이 0.00 · 원시 장부 20182.36 · 원시 차이(참고) 0.00\n거래소 KRW 증감 -17.64 · 세션 증감 -17.64 · 차이 0.00 (±1원 = 반올림)\n거래소 BTC 증감 0 · 주문 순체결량 0 · 열린 포지션 수량 0\n판단 기록 2 · 체결 매수 1 · 체결 매도 1 · 미종결 주문 0 · 회계 반영 대기 0 · 반영값·보고값 없음 0 · 보고≠반영 0 · settlement_final 거짓(참고) 0 · 열린 포지션 0 · 정상 사유 밖 청산 1 · 정리 대기 0 · 미해결 정산 불일치 0\n⛔ 판정: 세션 상태 STOPPED — 정상 운영 아님. 이 출력 전체를 별도 보고(§6-2 완료 확인). 재시작·재요청 없음\n== 입력 (정산 판정과 별개, v1.56)\nBTC H1 최신 완료 봉 11-02 09:00 · 필요(2분 유예) 11-02 10:00 · 충족 false · 최근 20일 마감 봉 20/20 · 일봉 판단 1 · 입력 부족·판정 불가 기록 0\n🔴 입력 판정: 입력 부족·판정 불가 — 매수 없음이어도 정상 전략 HOLD 가 아니다. G1·이 출력을 보고(데이터 부족을 매수로 바꾸거나 기준을 완화하지 않는다)\n"
+    },
+    {
+      "case": "emergency-before-first-daily",
+      "exit": 0,
+      "accounting_comparison_emitted": true,
+      "state_verdict_emitted": true,
+      "input_red_emitted": true,
+      "output": "== 대조 (시작 전 기준 = F1 의 account-f1.json)\n세션 상태 EMERGENCY_STOPPED\n업비트 KRW 1000000 → 1000000 · BTC 0 → 0\n세션 잔액 20200 · 잔액 기대(주문별 두 자리) 20200 · 차이 0 · 원시 장부 20200 · 원시 차이(참고) 0\n거래소 KRW 증감 0 · 세션 증감 0 · 차이 0 (±1원 = 반올림)\n거래소 BTC 증감 0 · 주문 순체결량 0 · 열린 포지션 수량 0\n판단 기록 0 · 체결 매수 0 · 체결 매도 0 · 미종결 주문 0 · 회계 반영 대기 0 · 반영값·보고값 없음 0 · 보고≠반영 0 · settlement_final 거짓(참고) 0 · 열린 포지션 0 · 정상 사유 밖 청산 0 · 정리 대기 0 · 미해결 정산 불일치 0\n⛔ 판정: 세션 상태 EMERGENCY_STOPPED — 정상 운영 아님. 이 출력 전체를 별도 보고(§6-2 완료 확인). 재시작·재요청 없음\n== 입력 (정산 판정과 별개, v1.56)\nBTC H1 최신 완료 봉 12-01 08:00 · 필요(2분 유예) 12-01 08:00 · 충족 true · 최근 20일 마감 봉 20/20 · 일봉 판단 0 · 입력 부족·판정 불가 기록 0\n🔴 입력 판정: 입력 부족·판정 불가 — 매수 없음이어도 정상 전략 HOLD 가 아니다. G1·이 출력을 보고(데이터 부족을 매수로 바꾸거나 기준을 완화하지 않는다)\n"
+    },
+    {
+      "case": "stopped-input-query-empty",
+      "exit": 1,
+      "accounting_comparison_emitted": false,
+      "state_verdict_emitted": false,
+      "input_red_emitted": false,
+      "output": "❔ 판정: 조회 실패(ValueError) — 정상 판정 아님. F3 를 다시 조회, 그대로면 §6-2 대응·보고\n"
+    },
+    {
+      "case": "running-input-query-empty",
+      "exit": 1,
+      "accounting_comparison_emitted": false,
+      "state_verdict_emitted": false,
+      "input_red_emitted": false,
+      "output": "❔ 판정: 조회 실패(ValueError) — 정상 판정 아님. F3 를 다시 조회, 그대로면 §6-2 대응·보고\n"
+    }
+  ]
+}

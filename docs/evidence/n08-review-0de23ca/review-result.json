@@ -1,0 +1,99 @@
+{
+  "reviewed_main": "0de23ca",
+  "candidate": "ea4490099f0fa6b614fe71102534b0ba84c0eb7f",
+  "reproduction_cases": 4,
+  "fixed_parser_cases": 11,
+  "input_gate_cases": 4,
+  "f3_bash_n": "PASS",
+  "accounting_parser_and_verdict_before_input": "unchanged except removal of input parsing from accounting try",
+  "f3_fixed_sha256": "bb86fb397da00523f564a8f02a1960c98bb1ac03887629fe74372990929fa2bb",
+  "xml_totals": {
+    "tests": 64,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "xml": [
+    {
+      "file": "TEST-com.cryptoautotrader.api.service.BtcGateSupplyEndToEndTest.xml",
+      "sha256": "098cd966dfb2a18a169a112a6ad2a2ce894989590a0c70f71dc9f6180195fc06",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "file": "TEST-com.cryptoautotrader.api.service.BtcGateUnknownEntryTest.xml",
+      "sha256": "6a06cdc51d628278e05c80f8b82732900f53c9a980f113a9f2d8e1f07ad1e7f4",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "file": "TEST-com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest.xml",
+      "sha256": "f09f2c95df3c99c55c56ea315164f6be55a977fedc32712fa9b783c4d9f1200f",
+      "tests": 24,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "file": "TEST-com.cryptoautotrader.api.service.DynamicMinimumCandleGuardTest.xml",
+      "sha256": "42f5d622af66a64cd4f3fe24e69ecfd03f943aaf9558f6ce14ffeb94af453e43",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "file": "TEST-com.cryptoautotrader.api.service.EntryPriorityEndToEndTest.xml",
+      "sha256": "b14416d10962fc41590bf195ef170643a41eea9bb7e33c269a213a767b21745f",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "file": "TEST-com.cryptoautotrader.api.service.MarketDataCacheCoverageTest.xml",
+      "sha256": "21223770f7857aaf0e22e5dd8422fe8b015565eb81aeeac1ff77d88e925a31f8",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "file": "TEST-com.cryptoautotrader.api.service.MarketDataFetchFallbackTest.xml",
+      "sha256": "c68d3f7199b05e8d83eedd911f5ae0d153b2350c0522d4642da5ac7767fe0d4f",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "file": "TEST-com.cryptoautotrader.api.service.MarketDataUpsertIsolationTest.xml",
+      "sha256": "7153c56713301e43d278767e24184d72607cdd34f512551f37e638961097eac6",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "file": "TEST-com.cryptoautotrader.api.service.PaperLiveAlignmentTest.xml",
+      "sha256": "45c4a2dc244af0a31919b0bee7d22f2e18d5cbc15964744d06da47c9b91373f8",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "file": "TEST-com.cryptoautotrader.api.service.PreStartLimitedTestCandleSupplyTest.xml",
+      "sha256": "ae328cc9f088e69f8568ff18a9863a64962d0f93a7a05f504831383439721fcf",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "scope": "보존 XML 검토·문서 Python 가짜 입력 및 입력 조회 게이트 국소 실행. 앱 시험/DB/API/curl/배포 실행 없음."
+}
