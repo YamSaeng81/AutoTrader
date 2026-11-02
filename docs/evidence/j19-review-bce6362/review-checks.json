@@ -1,0 +1,118 @@
+{
+  "base_commit": "bce6362",
+  "scope": "document commands only; no app/DB/network execution",
+  "clock_cases": [
+    {
+      "version": "original",
+      "query_start": "2026-11-02T10:20:00Z",
+      "query_end": "2026-11-02T10:20:01Z",
+      "deadline": "2026-11-02T11:02:00Z",
+      "exit": 0
+    },
+    {
+      "version": "original",
+      "query_start": "2026-11-02T10:59:59Z",
+      "query_end": "2026-11-02T11:00:02Z",
+      "deadline": "2026-11-02T11:02:00Z",
+      "exit": 0
+    },
+    {
+      "version": "fixed",
+      "query_start": "2026-11-02T10:20:00Z",
+      "query_end": "2026-11-02T10:20:01Z",
+      "deadline": "2026-11-02T11:02:00Z",
+      "exit": 0
+    },
+    {
+      "version": "fixed",
+      "query_start": "2026-11-02T10:59:59Z",
+      "query_end": "2026-11-02T11:00:02Z",
+      "deadline": "2026-11-02T12:02:00Z",
+      "exit": 0
+    }
+  ],
+  "source_cases": [
+    {
+      "version": "original",
+      "src_j3": "1|0|0",
+      "src_j5": "0|0|0",
+      "exit": 0,
+      "stdout": "다른 소비자 0 — 전진은 CREATED 수집 경로로 일어났다\n",
+      "stderr": ""
+    },
+    {
+      "version": "fixed",
+      "src_j3": "1|0|0",
+      "src_j5": "0|0|0",
+      "exit": 0,
+      "stdout": "== 다른 소비자 배포 전 0|0|0 · J3 1|0|0 · J5 0|0|0 (각 조회 순간의 수)\n다른 소비자 관측 — 완료 봉 전진 확인. CREATED 경로만으로 단정하지 않는다. 이 줄과 위 출력을 함께 보고\n",
+      "stderr": ""
+    },
+    {
+      "version": "fixed",
+      "src_j3": "0|0|0",
+      "src_j5": "0|0|0",
+      "exit": 0,
+      "stdout": "== 다른 소비자 배포 전 0|0|0 · J3 0|0|0 · J5 0|0|0 (각 조회 순간의 수)\nJ3·J5 조회에서 다른 소비자 0 — SID 203 CREATED 유지 중 완료 봉 전진 확인. 조회 사이 다른 소비자 유무는 확인하지 않았다\n",
+      "stderr": ""
+    }
+  ],
+  "syntax": [
+    {
+      "block": "variables",
+      "exit": 0,
+      "stderr": "",
+      "sha256": "edb015567ff5b6dfe01a8d668c1208caca6bbf6ab0a6080ec3e9bc7ff772d0c6"
+    },
+    {
+      "block": "J0",
+      "exit": 0,
+      "stderr": "",
+      "sha256": "7729b2a46c40b24b1c16f612af0ce2edbf67fb604c386beec18ac825c46a5433"
+    },
+    {
+      "block": "J1",
+      "exit": 0,
+      "stderr": "",
+      "sha256": "62e2f132912818a16d79dc907a8b648541c13692ce08448e32fecd15c5b6a903"
+    },
+    {
+      "block": "J2",
+      "exit": 0,
+      "stderr": "",
+      "sha256": "a1d3b780dc6eb08a471ec983e8686b6c7ce403a14f27f947110882367d1a07c7"
+    },
+    {
+      "block": "J3",
+      "exit": 0,
+      "stderr": "",
+      "sha256": "51e193934549817ef0fcda926f546339597f8f469bdb66977699509c1fbfec32"
+    },
+    {
+      "block": "J4",
+      "exit": 0,
+      "stderr": "",
+      "sha256": "7410d3cc5b66036d3d25eff2da36ec7e9c0436143f2fb0fb8ceaf199c82a9af2"
+    },
+    {
+      "block": "J5",
+      "exit": 0,
+      "stderr": "",
+      "sha256": "1542848388dbea1b4e497b15d884dfbf29ffc8250476bf5301e3f98a51ef1fc2"
+    },
+    {
+      "block": "rollback",
+      "exit": 0,
+      "stderr": "",
+      "sha256": "5f18131f31e91591cee6a82dafeec1fd664371c725fccf68d2d0b00275ed2718"
+    }
+  ],
+  "anchored_bash_block_count": 63,
+  "afe1e35_original_blocks_unchanged": 55,
+  "jar": "변경 BOOT-INF/classes/com/cryptoautotrader/api/service/MarketDataSyncService.class\n(끝) 680 680\n",
+  "changed_J_blocks": [
+    "variables",
+    "J3",
+    "J5"
+  ]
+}
