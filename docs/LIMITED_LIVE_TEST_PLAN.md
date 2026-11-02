@@ -1,5 +1,6 @@
 # 12월 제한 실거래 시험 — 후보와 실행안
 
+> **v1.56 (2026-11-02, N08 개발·로컬 검증)**: 운영 `5bb0544` 기점 후보 `ea44900`(브랜치 `n08-btc-h1-created-collect`) — 최초 시작 전 REAL·`DAILY_SMA20`·KRW-BTC·H1 세션의 캔들만 기존 60초 수집 대상에 넣었다. 새 시험 3건은 수정 전 2건 실패(캐시 null·대상 0) → 수정 후 3/3, 관련 10개 클래스 64/64. jar 차이 `MarketDataSyncService.class` 1개. F 변수 `BTCIN`·F1 BTC 입력 멈춤·F3 입력 판정(정산 판정과 별개)을 추가하고 로컬 리허설 DB·가짜 입력으로 대조했다. 운영 미배포, SID 203 `CREATED` 유지(§5-9 26 개발 결과).
 > **v1.55 (2026-11-02, 총괄 로컬 반영)**: 11:20:54 KST 운영 조회에서 직접 PAPER BTC/H1 수집 세션 0·필요 완료 봉 10:00·마지막 완료 봉 09:00·`up_to_date f`를 확인했다. N08 수집 유지 취약성이 운영에서 재현됐다. 추가 서버 조회 대신 최소 수정·국소 검증을 진행한다. F1의 BTC 최신성/20개 마감 봉 직접 검사와 F3 첫 판단의 데이터 부족 HOLD 구분도 기존 B1/B3 기준을 재사용해 함께 보완한다. 운영 `5bb0544`·SID 203 `CREATED`는 유지하며 시작을 앞당기거나 정지 세션을 재개하지 않는다(§5-9 26).
 > **v1.54 (2026-11-02, 총괄 로컬 반영)**: 후속 조회에서 78·85 모두 PAPER·EMERGENCY_STOPPED를 확인했다. 85는 모의 FLOCK 강제 청산·CLOSED/FILLED·잔여 보유/미결/정리/미해결 정산 0으로 보호 중단과 모의 잔여 없음은 수용한다. 주문 `applied_*` 공란은 PAPER 별도 회계 경로와 일치하며 REAL 규칙으로 판정하지 않는다. 10:32 BTC H1 완료 봉 09:00은 아직 최신이지만 LIVE/DYNAMIC H1 관문 수집 유지 세션이 0이다. N08 P0로 시작 전 BTC 수집 의존성 보완을 로컬 착수하도록 지시하며, 운영에서는 직접 PAPER BTC 수집 대상과 다음 봉 전진만 확인한다(§5-9 25·26).
 > **v1.53 (2026-11-02, 총괄 로컬 반영)**: 10:00 정기 보고 전송·09:30 SID 203 장부 자동 기록 확인. SID 203 `CREATED`·20,200원·주문/보유 0·잔액 차이 0이다. 계획된 #18 기동 경보 외에 DYNAMIC 85 MDD 20.21% 서킷브레이커/비상정지 ERROR 두 줄을 새로 관측했다(09:41:59 KST). 현재 모드·청산/정산·BTC H1 수집 유지 확인 전이므로 N03 조사 중이며, 정상으로 일괄 예외 처리하지 않는다. 시작/위험 한도·운영 코드·F1은 바꾸지 않는다(§5-9 25).
@@ -800,6 +801,11 @@ KEEP="SELECT session_type = 'REAL' AND strategy_type = 'DAILY_SMA20' AND coin_pa
   AND initial_capital = 20200 AND invest_ratio = 0.995 AND max_investment = 20000 AND stop_loss_pct = 5.0
   AND max_hold_hours = 0 AND coalesce(strategy_params::text, '{}') = '{}'
   AND to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI:SS.US') = '2026-10-30 04:16:58.044684' FROM live_trading_session WHERE id = $SID"
+# v1.56 (N08): BTC H1 입력 — B1 필요 완료 봉(운영 CandleFreshnessGuard 와 같은 2분 유예) 충족 | 최신 완료 봉 | 필요 봉 | B3 최근 20일 마감 봉(23:00 UTC 시작) 개수/20
+BTCIN="WITH h AS (SELECT max(time) FILTER (WHERE time + interval '1 hour' <= now()) AS done, date_trunc('hour', now() - interval '2 minutes') - interval '1 hour' AS need FROM market_data_cache WHERE coin_pair = 'KRW-BTC' AND timeframe = 'H1'),
+  d AS (SELECT (date_trunc('day', now() AT TIME ZONE 'UTC') - interval '1 hour' - make_interval(days => k)) AT TIME ZONE 'UTC' AS t FROM generate_series(0, 19) k)
+SELECT coalesce(h.done >= h.need, false) || '|' || coalesce(to_char(h.done AT TIME ZONE 'Asia/Seoul', 'MM-DD HH24:MI'), '-') || '|' || to_char(h.need AT TIME ZONE 'Asia/Seoul', 'MM-DD HH24:MI')
+  || '|' || (SELECT count(c.close) FROM d JOIN market_data_cache c ON c.coin_pair = 'KRW-BTC' AND c.timeframe = 'H1' AND c.time = d.t) || '/20' FROM h"
 ```
 
 **F1. 직전 점검 — 12-01 08:30 KST 부터 (읽기 전용 + 텔레그램 시험 1회)**
@@ -845,6 +851,8 @@ SELECT 'sid_orders', count(*) FROM "order" WHERE session_kind = 'LIVE' AND sessi
 SELECT 'sid_positions', count(*) FROM position WHERE session_kind = 'LIVE' AND session_id = 203;
 SQL
 [ "$(awk '{s+=$2} END {print s+0}' "$M/zero-f1.txt")" = "0" ] || stop "활성 주문·열린 포지션·정리 대기·SID 203 주문/포지션 중 0 이 아닌 것 있음"
+$PSQL -At -c "$BTCIN" | tee "$M/btc-f1.txt"
+[ "$(cut -d'|' -f1 "$M/btc-f1.txt")" = true ] && [ "$(cut -d'|' -f4 "$M/btc-f1.txt")" = 20/20 ] || stop "BTC H1 입력 미충족 — 2분 유예 필요 완료 봉 또는 최근 20일 마감 봉 20/20 아님(btc-f1.txt 를 보고)"
 sc | tee "$M/s-f1.txt"; [ "$(cat "$M/s-f1.txt")" = "66 | 63 | 3 | -" ] || stop "검증 66세션 상태가 기대와 다름"
 curl -s http://localhost:8080/api/v1/trading/health/exchange | tee "$M/exchange-f1.json"; echo
 python3 -c 'import json,sys; d=json.load(open(sys.argv[1]))["data"]; print("거래소", d["status"], d["latencyMs"], "ms"); sys.exit(0 if d["status"] == "UP" else 1)' "$M/exchange-f1.json" || stop "거래소 연결 UP 아님"
@@ -861,7 +869,7 @@ echo "== 경보 (#15 정비 전 기준선)"; cat "$MS/alerts-before.txt"
 touch "$M/ok-F1"; echo "✅ F1 기계 점검 통과 — 경보 네 갈래와 휴대폰 수신을 확인하고 운영자 확인 파일을 쓴 뒤 08:50 F2"
 )
 ```
-- 기대: `git-f1` = `5bb05449…` 다음 `(끝)` · 이미지 = #18 배포 이미지 전체 ID `sha256:39875d5f921972ef217d35822b8f207b88191e3c840e79b9a6e10ea1dcd16aa4`(실행 이미지와 `~/maint-n04/image-new.txt` 가 둘 다 이 값) · 설치 장부 `SID_LEDGER_SHA` `8bfe8a9f…`·sha256 `02a85850…` · 공유 풀 네 값이 정확히 `STAGE_1` · `100000` · `20000` · `3` · `EG` = `EGS` · `203:CREATED` · 저장값 `t` · `available_krw` 20200·`started_at` 비어 있음 · 기준 행 = `BASEX` · 0 다섯 줄 · `sc` `66 | 63 | 3 | -` · 거래소 `UP` · KRW 주문 가능 ≥ 20,200·묶인 KRW 0 · 경보 조회 완료 · 텔레그램 `200`. 멈추면 F2 로 가지 않고 그 출력을 보고한다 — 그날은 시작하지 않는다.
+- 기대: `git-f1` = `5bb05449…` 다음 `(끝)` · 이미지 = #18 배포 이미지 전체 ID `sha256:39875d5f921972ef217d35822b8f207b88191e3c840e79b9a6e10ea1dcd16aa4`(실행 이미지와 `~/maint-n04/image-new.txt` 가 둘 다 이 값) · 설치 장부 `SID_LEDGER_SHA` `8bfe8a9f…`·sha256 `02a85850…` · 공유 풀 네 값이 정확히 `STAGE_1` · `100000` · `20000` · `3` · `EG` = `EGS` · `203:CREATED` · 저장값 `t` · `available_krw` 20200·`started_at` 비어 있음 · 기준 행 = `BASEX` · 0 다섯 줄 · BTC 입력 `true|12-01 07:00|12-01 07:00|20/20`(08:30 무렵 실행 기준, v1.56) · `sc` `66 | 63 | 3 | -` · 거래소 `UP` · KRW 주문 가능 ≥ 20,200·묶인 KRW 0 · 경보 조회 완료 · 텔레그램 `200`. 멈추면 F2 로 가지 않고 그 출력을 보고한다 — 그날은 시작하지 않는다.
 - 새 시도는 이전 F1 파일·통과 표지·운영자 확인을 `f1-attempts/`에 보존하고 기존 통과·확인을 무효화한다. 실패하면 날짜별 `f1-failed-YYYY-MM-DD`를 남기며 그날 F1·F2는 모두 거절한다. 이 표지를 지워 재시도하지 않는다. F2는 통과 표지가 최신 시도(`t-f1.txt`) 뒤에 만들어졌는지도 확인한다.
 - 경보는 `MS/alerts-before.txt` 와 네 갈래(기존 반복·새 경보·⚪·실행 누락)로 대조한다. KRW-BLAST 반복 밖의 🔴·⚪·실행 누락이 있으면 시작하지 않고 보고한다.
 - 운영자 확인 파일 — 경보 대조와 휴대폰 수신(이번 시험 메시지의 말풍선 시각)을 본 뒤에만, 빈칸을 직접 채워 만든다:
@@ -962,8 +970,17 @@ SELECT (SELECT count(*) FROM strategy_log WHERE session_type = 'LIVE' AND sessio
        (SELECT count(*) FROM position_cleanup WHERE done_at IS NULL),
        (SELECT count(*) FROM order_settlement_discrepancy d JOIN \"order\" o ON o.id = d.order_id WHERE o.session_kind = 'LIVE' AND o.session_id = $SID AND d.resolved_at IS NULL)
   FROM \"order\" WHERE session_kind = 'LIVE' AND session_id = $SID")
+# v1.56 (N08) 입력: BTCIN(B1·B3) · 일봉 판단 기록(마감 봉 아님·미갱신 스킵·입력 부족 사유 제외) · 입력 부족·판정 불가 기록
+BTC3=$($PSQL -At -c "$BTCIN")
+INP=$($PSQL -At -F '|' -c "
+SELECT count(*) FILTER (WHERE coalesce(reason, '') NOT LIKE '일봉 마감 봉 아님%' AND coalesce(reason, '') NOT LIKE '닫힌 캔들 미갱신%' AND NOT (
+         coalesce(reason, '') LIKE '데이터 부족%' OR coalesce(reason, '') LIKE '일봉 종가 누락%' OR coalesce(reason, '') LIKE '전략 요구 캔들 미달%'
+         OR coalesce(reason, '') LIKE 'BTC_MARKET_GUARD 판정 불가%' OR coalesce(blocked_reason, '') LIKE '%판정 불가%')),
+       count(*) FILTER (WHERE coalesce(reason, '') LIKE '데이터 부족%' OR coalesce(reason, '') LIKE '일봉 종가 누락%' OR coalesce(reason, '') LIKE '전략 요구 캔들 미달%'
+         OR coalesce(reason, '') LIKE 'BTC_MARKET_GUARD 판정 불가%' OR coalesce(blocked_reason, '') LIKE '%판정 불가%')
+  FROM strategy_log WHERE session_type = 'LIVE' AND session_id = $SID AND created_at >= (SELECT started_at FROM live_trading_session WHERE id = $SID)")
 curl -s -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/v1/account/summary > "$M/account-f3.json"
-python3 - "$M/account-f1.json" "$M/account-f3.json" "$LEDGER" "$CNT" <<'PY' 2>&1 | tee -a "$M/f3.txt"
+python3 - "$M/account-f1.json" "$M/account-f3.json" "$LEDGER" "$CNT" "$BTC3" "$INP" <<'PY' 2>&1 | tee -a "$M/f3.txt"
 import json, sys
 from decimal import Decimal as D
 def acct(p):  # 업비트 KRW(주문 가능 + 묶임, 원 단위 반올림) · BTC(보유 + 묶임)
@@ -974,6 +991,7 @@ try:
     k1, b1 = acct(sys.argv[1]); k3, b3 = acct(sys.argv[2])
     st, avail, raw, expect, net, posq = sys.argv[3].split("|"); avail, raw, expect, net, posq = D(avail), D(raw), D(expect), D(net), D(posq)
     logs, buys, sells, unres, pend, miss, diff, unfinal, opn, badexit, cleanup, disc = (int(x) for x in sys.argv[4].split("|"))
+    in_ok, in_done, in_need, in_b3 = sys.argv[5].split("|"); dec, short = (int(x) for x in sys.argv[6].split("|"))
 except Exception as e:  # 장부·개수·계좌 조회 중 하나라도 실패하면 정상 판정을 내지 않는다
     print(f"❔ 판정: 조회 실패({type(e).__name__}) — 정상 판정 아님. F3 를 다시 조회, 그대로면 §6-2 대응·보고")
     sys.exit(1)
@@ -1006,6 +1024,12 @@ elif buys == 1 and sells == 1 and opn == 0:
     print("✅ 판정: 매수 뒤 정상 사유(손절·익절·추적) 청산 (현재 조회 기준 일치 — 정산 최종 확정을 뜻하지 않음)")
 else:
     print("🔴 판정: 위 세 경우 밖의 조합 — §6-2 대응·보고")
+print("== 입력 (정산 판정과 별개, v1.56)")
+print("BTC H1 최신 완료 봉", in_done, "· 필요(2분 유예)", in_need, "· 충족", in_ok, "· 최근 20일 마감 봉", in_b3, "· 일봉 판단", dec, "· 입력 부족·판정 불가 기록", short)
+if in_ok != "true" or in_b3 != "20/20" or short or dec == 0:
+    print("🔴 입력 판정: 입력 부족·판정 불가 — 매수 없음이어도 정상 전략 HOLD 가 아니다. G1·이 출력을 보고(데이터 부족을 매수로 바꾸거나 기준을 완화하지 않는다)")
+else:
+    print("✅ 입력 판정: 입력 충족·일봉 판단 있음 — HOLD 면 정상 전략 HOLD, blocked_reason 이 있으면 관문 차단")
 PY
 ```
 - 판정은 주문 건수가 아니라 **세션 상태 · 중복 매수 · 매도 사유 · 실제 체결량 · 포지션 수량 · 수수료 · 잔액** 대조로 한다. 시작 전 기준은 F1 의 `account-f1.json`(08:30 업비트 KRW·BTC)이고, 거래소는 그 **증감분**으로 비교한다(시작 전 BTC 보유가 있어도 같다).
@@ -1022,6 +1046,10 @@ PY
 - ❔ 확인 불가(체결 주문의 보고값·반영값 없음, 또는 `fill_accounting_pending`): G2 의 해당 주문 줄로 어느 값이 비었는지 보고, F3 를 다시 조회한다. 그대로면 §6-2 대응을 따르고 보고한다. "조회 실패" ❔(장부·개수·계좌 값을 못 읽음)도 같다 — 정상으로 보지 않는다.
 - ⛔ 세션 상태가 `RUNNING` 이 아님(`EMERGENCY_STOPPED`·`STOPPED`·`PAUSED` 등): 정상 운영으로 보지 않는다. 출력 전체를 별도로 보고하고 §6-2 완료 확인을 따른다.
 - 🔴 그 밖(체결 매수 2건 이상, `UNKNOWN`·미종결 주문, 판단 기록 없음, 정상 사유 밖 청산, 보고값≠반영값, 미해결 정산 불일치(G6), 설명되지 않는 잔액·거래소·포지션 수량 차이)은 §6-2 대응 순서를 따르고 출력을 그대로 보고한다.
+- **입력 판정(v1.56, N08)** — 정산 판정 줄 아래에 따로 낸다. 정산 일치와 입력 준비 상태를 섞지 않는다.
+  - 🔴 입력 부족·판정 불가: B1 필요 완료 봉(09:15 실행이면 당일 08:00 봉) 미충족 · B3 20/20 아님 · 판단 기록에 `데이터 부족`·`일봉 종가 누락`·`전략 요구 캔들 미달`·`BTC_MARKET_GUARD 판정 불가` 사유나 `blocked_reason` 의 `판정 불가` · 일봉 판단 0(최신성 판정 불가면 그 회차는 판단 기록 없이 건너뛴다 — 코드 `CandleFreshnessGuard`·`LiveTradingService`). 이때 "매수 없음 ✅" 을 정상 HOLD 로 쓰지 않는다.
+  - ✅ 입력 충족: 위가 모두 아니고 일봉 판단이 1개 이상. HOLD 면 정상 전략 HOLD, `blocked_reason`(EMA200·RANGE·BLACK_SWAN·BTC 발동 등)이 있으면 관문 차단이다.
+  - `일봉 마감 봉 아님`·`닫힌 캔들 미갱신` 은 판단으로 세지 않는다(08:50~09:00 회차는 07:00 봉이라 `일봉 마감 봉 아님` 이 정상).
 - 어느 경우든 재시작·재요청하지 않는다.
 
 **F3-2. 일상 운영 — 장부 읽기 (시작 뒤 매일, v1.41 리뷰 2026-11-01 3번 · v1.42 보완 — 조회 실패 시 판정 없음, 보유 중 정산 불일치 🔴)**
@@ -3623,6 +3651,22 @@ echo "✅ cad3939 (a747a8e6…) 로 복귀 — 5분 뒤 I3 를 다시 실행(t-r
   5. **입력 검사 연결 보완**: 현 F1은 BTC H1 최신 완료 봉·SMA20의 20개 마감 봉을 직접 확인하지 않는다. 기존 B1의 운영과 같은 2분 유예식(`floor(now-2분,H1)-1시간`)과 B3의 최신 완료 마감 봉 20/20을 F1 통과 전에 읽어 확인한다. `lag_min`이나 유예 없는 옛 `up_to_date`를 새 기준으로 쓰지 않는다. 08:30 F1 때 아직 형성 중인 당일 08:00 봉까지 보장했다고 쓰지 않는다.
   6. **첫 판단 연결 확인**: 현 F3는 판단 기록이 있고 주문이 없으면 데이터 부족 HOLD도 매수 없음으로 판정할 수 있다. 09:15 첫 판단에서는 같은 B1/B3 또는 G1 reason으로 입력 부족·관문 차단과 정상 전략 HOLD를 구분하는 보완을 준비한다. 정산 일치 판정과 입력 준비 상태를 혼동하지 않으며, 데이터 부족을 매수로 바꾸거나 기존 전략/위험 기준을 완화하지 않는다. 해당 공백을 잡는 국소 사례만 확인한다.
   7. 원인·실패/수정 후 근거·범위·후보 SHA·jar 차이·배포 필요 여부를 보고한다. 운영 코드가 바뀌면 새 개입과 F1 HEAD/이미지 갱신을 함께 준비하고 총괄이 검토한다. #18 배포 완료 판정을 취소하거나 기존 운영을 임의로 되돌리지 않는다.
+- **개발 결과(v1.56, 2026-11-02 — 로컬 검증, 운영 반영 전)**:
+  - **원인**: `MarketDataSyncService.syncMarketData` 의 수집 대상은 위험 관문 요구(RUNNING LIVE·DYNAMIC 의 봉 단위마다 KRW-BTC)·RUNNING 페이퍼·RUNNING LIVE 뿐이다. `CREATED` SID 203 은 어느 쪽에도 들지 않아, 다른 H1 세션이 모두 멈추면 BTC H1 수집이 끊긴다.
+  - **후보**: `ea4490099f0fa6b614fe71102534b0ba84c0eb7f` (기점 `5bb0544926a694832e75234670bb8f99dfe33bb0`, 브랜치 `n08-btc-h1-created-collect`, push). 바뀐 운영 코드는 `MarketDataSyncService` 하나다. 수집 대상 계산을 `collectionTargets()` 로 떼어 내고(동작 무변경), `CREATED` 중 `isPreStartLimitedTest`(REAL·`LiveTradingService.LIMITED_TEST_STRATEGIES`·KRW-BTC·H1·`started_at` 없음)인 세션의 (코인, 봉)만 더했다. 기존 60초 수집·코인별 upsert·겹침 재조회를 그대로 쓴다. 평가·회차 승인·예약·주문 경로와 `RiskGateDataRequirements` 는 바꾸지 않았다. DB 마이그레이션·새 세션·새 한도는 없다.
+  - **시험(로컬 검증)**: 새 `PreStartLimitedTestCandleSupplyTest` — 실행 중 LIVE·DYNAMIC 전부와 직접 PAPER BTC/H1 을 멈추고 SID 203 모양 세션만 `CREATED` 로 둔다. 거래소 캔들만 대역이다.
+    - 수정 전(수집 대상 분리만 한 상태): 3건 중 2건 실패 — `[시작 전에도 BTC H1 이 수집된다] expected 2026-11-02T01:00:00Z but was null`, `[시작 전] expected 1L but was 0L`. 운영 11:20 재현과 같은 모양이다.
+    - 수정 뒤 3/3: 수집 → 다음 회차 봉 전진, 세션 `CREATED`·`started_at` 없음·`available_krw` 20200·주문/포지션 0 그대로 · 일반 전략·PAPER 유형·`started_at` 있는 `CREATED`·다른 코인·종료된 SMA20 은 대상 0·거래소 호출 0 · `RUNNING` 전환 뒤 대상 1개(중복 없음) · `STOPPED` 뒤 0 · H1 DYNAMIC 이 있으면 1 유지.
+    - 첫 수정 후 실행에서 1건이 시험 코드의 낡은 엔티티 저장(낙관적 잠금 `ObjectOptimisticLockingFailureException`)으로 실패했다. 시험이 행을 다시 읽어 저장하도록 고쳤다. 기대값은 바꾸지 않았다.
+    - 관련 회귀(수집 서비스를 쓰는 시험 클래스 전부): `BtcGateSupplyEndToEndTest` 3 · `BtcGateUnknownEntryTest` 3 · `DailySma20LiveOrderPathTest` 24 · `DynamicMinimumCandleGuardTest` 5 · `EntryPriorityEndToEndTest` 2 · `MarketDataCacheCoverageTest` 7 · `MarketDataFetchFallbackTest` 2 · `MarketDataUpsertIsolationTest` 3 · `PaperLiveAlignmentTest` 12 · 새 시험 3 = **64/64**. 전체 회귀는 돌리지 않았다.
+  - **jar 대조(로컬 검증)**: `5bb0544`·`ea44900` 각각 `bootJar` → 내부 jar 까지 펼친 항목 49,431개 중 다른 항목은 `BOOT-INF/classes/com/cryptoautotrader/api/service/MarketDataSyncService.class` 하나, 추가·삭제 0.
+  - **영향(기록)**: 배포되면 SID 203 이 `CREATED` 인 동안 KRW-BTC H1 을 60초마다 겹침 조회한다(분당 업비트 공개 호출 1회 남짓). 같은 캐시를 읽는 H1 검증 세션도 갱신되는 BTC 봉을 보게 된다. T0·분모·성과 기준은 바꾸지 않는다. 12-01 시작 뒤에는 기존 RUNNING 경로가 같은 대상을 맡고, 종료(`STOPPED`·`EMERGENCY_STOPPED`) 뒤에는 다른 소비자가 없으면 수집이 멈춘다.
+  - **F1 입력 검사(5번)**: F 변수에 `BTCIN` 을 더했다. B1 필요 완료 봉은 운영 `CandleFreshnessGuard` 와 같은 `date_trunc('hour', now() − 2분) − 1시간` 이고, B3 는 최근 20일 23:00 UTC 시작 봉(가장 최근 마감 `date_trunc('day', UTC) − 1시간` 부터 20개)이다. 기존 B3 의 CASE 첫 갈래는 참이 될 수 없어 같은 값이다. F1 은 0 확인 뒤 `true` 와 `20/20` 이 아니면 멈춘다. `lag_min`·유예 없는 `up_to_date` 는 쓰지 않는다. 08:30 F1 은 형성 중인 당일 08:00 봉을 보장하지 않는다(B3 창 11-11~11-30).
+  - **F3 입력 판정(6번)**: 정산 판정 줄 아래에 `== 입력` 과 판정 한 줄을 따로 낸다. 정산 판정 문장·조건은 바꾸지 않았다. 입력 부족 사유 목록은 운영 코드의 HOLD 문자열(`DailySmaTrendStrategy`·`LiveTradingService`)에서 가져왔다.
+  - **로컬 대조(검토 결과·로컬 검증)**: 로컬 리허설 DB(`cat-rt-pg`)에서 `now()` 를 고정 시각으로 바꾼 `BTCIN` 13 사례가 기대와 같다 — 08:30 정상 `true|12-01 07:00|12-01 07:00|20/20` · 07:00 봉 없음 `false` · 09:01 유예 안 `true`/09:03 `false` · 09:15 08:00 봉 있음 `true`/없음 `false|…|19/20` · 11-25·11-11 마감 봉 빠짐 19/20 · 11-10(창 밖)·11-30 09:00(마감 봉 아님) 빠짐 20/20 · 실제 시각 리허설 자료 `false|10-31 08:00|11-02 11:00|18/20` · 행 없음 `false|-|…|0/20`. F1 멈춤 줄은 통과 1·멈춤 3. 문서에서 꺼낸 F3 파이썬은 가짜 입력 10 사례에서 입력 판정이 기대와 같았다(충족 ✅ · B1 미충족·B3 19/20·누락 사유·판정 불가·일봉 판단 0 은 🔴 · 빈 값은 기존 ❔ 조회 실패). F3 의 판단 기록 개수 조회는 로컬 DB 가짜 기록 8줄(시작 전·스킵 2·누락·판정 불가·정상 HOLD·관문 차단 BUY)에서 `2|2` 였다. 문서에서 꺼낸 F1·F3 블록은 `bash -n` 을 통과했다.
+    - 첫 F3 대조에서 새 변수 이름 `b1`·`b3` 이 기존 BTC 수량 변수와 겹쳐 오류가 났다. `in_*` 로 바꾸고 같은 사례를 다시 돌렸다.
+  - **배포·F1 핀**: 운영 코드가 바뀌므로 반영하려면 새 개입(후보 `ea44900` 배포·이미지 교체)이 필요하다. 그때 F 변수 `NEW`·F1 `IMGF1`·`image-new.txt` 기대값을 새 값으로 함께 바꾼다. 이번에는 바꾸지 않았다(`5bb0544`·`39875d5f…` 그대로). F 변수·F1·F3 블록은 이번에 바뀌었으므로 N06 블록 해시도 달라진다. N06 원본 `S` 는 자동으로 바꾸지 않고 11-30 확인 때 다시 대조한다.
+  - **남은 것**: 총괄 검토 → 배포 결정 → 운영 반영 뒤 `CREATED` 상태에서 BTC H1 완료 봉 전진 확인. 그 전까지 이 항목을 완료로 쓰지 않는다.
 - **완료 기준**: 11-05까지 국소 재현·최소 수정 후보와 근거를 검토한다. 운영 반영은 별도 확인 뒤다. N06 최종 원본은 이 변경이 실제 반영되면 그 기대값까지 포함해야 하며, 기록 커밋이 생겼다는 이유만으로 자동 변경하지 않는다. SID 203 최초 시작은 12-01 08:50 KST 그대로다.
 
 SMA20 신호·설정과 위험 한도를 기준으로 주문·정산·보호 기능의 결함을 보완한다. 새 시험 결과를 얻으려고 전략 파라미터를 탐색하거나 종료 후보를 재개하지 않는다. 추가 시험은 새 시나리오·실패·수정 범위에 맞춰 실행한다. 기존 66세션·T0·판정 기준은 유지하고, 이 준비 활동을 그 세션들의 성과 평가에 사용하지 않는다. F0는 완료 상태를 유지한다.
