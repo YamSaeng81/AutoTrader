@@ -1,0 +1,83 @@
+{
+  "kind": "N06 rehearsal evidence; not final operational handoff",
+  "source_commit": "cd71d6ac052d94a44ff7f5c017a8ca8df8bf41dc",
+  "scope": "Read-only source, hash and one-line-difference review; no operational command execution by reviewer",
+  "original_documents_in_git": {
+    "docs/LIMITED_LIVE_TEST_PLAN.md": {
+      "sha256": "756366c4646ad1667ff03de2e494a25ad5f8fcb5c5ed15abbf9068daf38224c7",
+      "bytes": 537279
+    },
+    "docs/OPS_DAILY_CHECK.md": {
+      "sha256": "d8a4a3036b492716dc3c111c5e43dc997fc7160eb46be5a32810fc229340cd52",
+      "bytes": 27576
+    }
+  },
+  "artifacts": {
+    "blk_S.txt": {
+      "sha256": "d6889b8a4b396fb8540ac819ff03e545abe8c363d0f24842c529cc2d8c60d31a",
+      "bytes": 1223
+    },
+    "cron-final.EMERGENCY_STOPPED.sh": {
+      "sha256": "e22d6f68254cab5d2d1f5dffbf1c2c9e884b397e0926eab2b0f6c20dd37212e2",
+      "bytes": 1617
+    },
+    "cron-final.STOPPED.sh": {
+      "sha256": "6d4dfc5c673518ad92f9c92ab1568528e5983b0db961e8e6f65e4b04ddf89ea8",
+      "bytes": 1607
+    },
+    "cron-switch.sh": {
+      "sha256": "d158e8361761616acd991e5c3dafa1d145a0b060a28bf36644d4ffeedf9e1607",
+      "bytes": 1607
+    },
+    "f21.exec.sh": {
+      "sha256": "4085aaf61afecb48f6f33c917782e6836c86b9533f45aef104e3499122410d1d",
+      "bytes": 703
+    },
+    "f21.orig.sh": {
+      "sha256": "8036c6ffce422e7926a6c81fced331fb8d92054e43a066bc713377842aafd39e",
+      "bytes": 695
+    },
+    "f3-block.sh": {
+      "sha256": "30b5e729c2f857ae9e22e597bbcf96f6e1436b9a14e05eb6557b2339c3e94ca1",
+      "bytes": 9183
+    },
+    "f53.exec.sh": {
+      "sha256": "93243dc8b8dc9a06308d113f9e0cd576e7351b7c34bd80c4275c9915b16d918d",
+      "bytes": 1510
+    },
+    "f53.orig.sh": {
+      "sha256": "9de0f09db93740a0de2af331b8997ebb866e73e7ce95ffdf38722985712976c6",
+      "bytes": 1502
+    }
+  },
+  "one_line_differences": {
+    "f21.exec.sh": {
+      "compared_to": "f21.orig.sh",
+      "changed_lines": [
+        1
+      ]
+    },
+    "f53.exec.sh": {
+      "compared_to": "f53.orig.sh",
+      "changed_lines": [
+        1
+      ]
+    },
+    "cron-final.STOPPED.sh": {
+      "compared_to": "cron-switch.sh",
+      "changed_lines": [
+        3
+      ]
+    },
+    "cron-final.EMERGENCY_STOPPED.sh": {
+      "compared_to": "cron-switch.sh",
+      "changed_lines": [
+        3
+      ]
+    }
+  },
+  "plan_block_count": 15,
+  "unchanged_plan_blocks_vs_4d4c5be": 13,
+  "unchanged_including_ops_block": 14,
+  "final_source_commit": null
+}
