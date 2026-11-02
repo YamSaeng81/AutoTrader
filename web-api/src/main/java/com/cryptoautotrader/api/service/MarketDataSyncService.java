@@ -1,5 +1,6 @@
 package com.cryptoautotrader.api.service;
 
+import com.cryptoautotrader.api.entity.LiveTradingSessionEntity;
 import com.cryptoautotrader.api.entity.MarketDataCacheEntity;
 import com.cryptoautotrader.api.repository.LiveTradingSessionRepository;
 import com.cryptoautotrader.api.repository.MarketDataCacheRepository;
@@ -81,20 +82,7 @@ public class MarketDataSyncService {
      */
     @Scheduled(fixedDelay = 60_000)
     public void syncMarketData() {
-        // RUNNING 세션에서 고유 (coinPair:timeframe) 추출 — 모의투자 + 실전매매 모두 포함
-        List<String[]> rawPairs = new ArrayList<>();
-        // 🔴 위험 관문이 요구하는 캔들을 먼저 — 세션이 그 코인을 거래하지 않아도 관문이 판정할 수 있어야 한다.
-        if (riskGateData != null) rawPairs.addAll(riskGateData.requiredCandles());
-        balanceRepo.findByStatusOrderByStartedAtAsc("RUNNING")
-                .forEach(s -> rawPairs.add(new String[]{s.getCoinPair(), s.getTimeframe()}));
-        liveTradingSessionRepository.findByStatus("RUNNING")
-                .forEach(s -> rawPairs.add(new String[]{s.getCoinPair(), s.getTimeframe()}));
-
-        Set<String> seen = new HashSet<>();
-        List<String[]> pairs = rawPairs.stream()
-                .filter(p -> seen.add(p[0] + ":" + p[1]))
-                .collect(Collectors.toList());
-
+        List<String[]> pairs = collectionTargets();
         if (pairs.isEmpty()) return;
 
         log.debug("시장 데이터 동기화 시작: {} 종목", pairs.size());
@@ -105,6 +93,38 @@ public class MarketDataSyncService {
                 log.error("시장 데이터 동기화 실패: {} {} - {}", pair[0], pair[1], e.getMessage());
             }
         }
+    }
+
+    /** 이번 회차의 수집 대상 (coinPair, timeframe) — 중복 없음, 위험 관문 요구가 먼저. */
+    List<String[]> collectionTargets() {
+        // RUNNING 세션에서 고유 (coinPair:timeframe) 추출 — 모의투자 + 실전매매 모두 포함
+        List<String[]> rawPairs = new ArrayList<>();
+        // 🔴 위험 관문이 요구하는 캔들을 먼저 — 세션이 그 코인을 거래하지 않아도 관문이 판정할 수 있어야 한다.
+        if (riskGateData != null) rawPairs.addAll(riskGateData.requiredCandles());
+        balanceRepo.findByStatusOrderByStartedAtAsc("RUNNING")
+                .forEach(s -> rawPairs.add(new String[]{s.getCoinPair(), s.getTimeframe()}));
+        liveTradingSessionRepository.findByStatus("RUNNING")
+                .forEach(s -> rawPairs.add(new String[]{s.getCoinPair(), s.getTimeframe()}));
+        // 🔴 N08 (2026-11-02): 제한시험(SID 203)은 12-01 최초 시작까지 CREATED 다. 다른 H1 매매 세션이 모두 멈추자 KRW-BTC H1 수집이
+        //    끊겨 완료 봉이 멈췄다(11-02 11:20 KST 운영 재현). 최초 시작 전 제한시험의 캔들만 수집한다 — 평가·회차·예약·주문은 RUNNING 에서만.
+        //    일반 CREATED 세션은 넣지 않는다.
+        liveTradingSessionRepository.findByStatus("CREATED").stream()
+                .filter(MarketDataSyncService::isPreStartLimitedTest)
+                .forEach(s -> rawPairs.add(new String[]{s.getCoinPair(), s.getTimeframe()}));
+
+        Set<String> seen = new HashSet<>();
+        return rawPairs.stream()
+                .filter(p -> seen.add(p[0] + ":" + p[1]))
+                .collect(Collectors.toList());
+    }
+
+    /** 최초 시작 전 제한시험 — REAL·{@code DAILY_SMA20}·KRW-BTC·H1·{@code started_at} 없음 (N08). */
+    static boolean isPreStartLimitedTest(LiveTradingSessionEntity s) {
+        return "REAL".equals(s.getSessionType())
+                && LiveTradingService.LIMITED_TEST_STRATEGIES.contains(s.getStrategyType())
+                && RiskGateDataRequirements.BTC.equals(s.getCoinPair())
+                && "H1".equals(s.getTimeframe())
+                && s.getStartedAt() == null;
     }
 
     /**
