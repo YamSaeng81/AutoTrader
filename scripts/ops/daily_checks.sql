@@ -1,11 +1,16 @@
 -- 정기 점검 조회 (10:00·22:00 KST 자동 점검용, 읽기 전용) — scripts/ops/daily_check.sh 가 실행한다.
 -- 사람이 읽는 정비용 조회(maint_checks.sql)와 달리 기계가 비교하도록 "키|값" 한 줄씩 낸다. 마지막 줄 END|ok 가 없으면 출력 누락으로 본다.
--- 실행: psql -X -At -F'|' -v since='<ISO 시각>' -v sid=203 -v stale_min=15 -f daily_checks.sql
+-- 실행: psql -X -At -F'|' -v since='<ISO 시각>' -v sid=203 -v stale_min=15 -f daily_checks.sql   (btc_now 는 시험용 — 아래)
 --   since = 점검 구간 시작(보통 12시간 전) · sid = 실거래 시험 세션(LIVE) · stale_min = 미결 주문을 오래됐다고 보는 분(미결 주문에만 쓴다)
 -- 2026-10-31 리뷰: SID 203 실거래(12-01 시작)의 정상 매수·보유·청산·재진입은 허용하고, 그 밖의 실자금 세션은 종전대로 0 을 기대한다.
 --   실자금 세 값(real_*)은 SID 203 을 뺀 "다른 실자금 세션" 값이고, SID 203 은 sid_* 로 따로 낸다.
 -- 🔴 읽기 전용 트랜잭션 안에서만 실행한다. 쓰기 문장은 없다. 오류가 나면 그 자리에서 멈춘다(ON_ERROR_STOP).
+--   btc_now = BTC H1 입력 판정의 기준 시각(시험용 바꿔 끼우기 — 운영에서는 비우거나 주지 않는다 → now())
 \set ON_ERROR_STOP on
+\if :{?btc_now}
+\else
+\set btc_now ''
+\endif
 BEGIN TRANSACTION READ ONLY;
 
 SELECT 'flyway_version', max(version::int) FROM flyway_schema_history WHERE success;
@@ -112,6 +117,22 @@ SELECT 'tg_queue_rejected', count(*) FROM telegram_notification_log
  WHERE sent_at >= :'since'::timestamptz AND message_text LIKE '[큐 포화%';
 SELECT 'tg_ok_window', count(*) FROM telegram_notification_log WHERE sent_at >= :'since'::timestamptz AND success;
 SELECT 'tg_last_ok', coalesce(to_char(max(sent_at) AT TIME ZONE 'Asia/Seoul', 'YYYY-MM-DD HH24:MI'), 'none') FROM telegram_notification_log WHERE success;
+
+-- BTC H1 입력(N09, 2026-11-02 계획 §5-9 28) — 캔들 판정 로그 요약만으로는 시작 전(CREATED)처럼 평가가 없을 때 공급 정체가
+--   새 판정 불가 로그 없이 이어진다. 캐시를 직접 읽는다. 식은 계획 §5-8 F 변수 BTCIN 과 같다(기준 시각만 btc_now 로 바꿔 끼울 수 있다):
+--   B1 완료 봉 = 시작+1시간 ≤ 기준인 최신 봉, 필요 봉 = date_trunc('hour', 기준 − 2분) − 1시간(운영 CandleFreshnessGuard 의 2분 유예)
+--   B3 = 최근 20일 마감 봉(23:00 UTC 시작, 가장 최근 마감 date_trunc('day', UTC) − 1시간부터 20개) 중 캐시에 있는 개수
+--   시각은 KST 'MM-DD HH24:MI'(완료 봉 없으면 '-'). 판정(SID 가 CREATED·RUNNING 일 때만)은 daily_check.sh.
+WITH r AS (SELECT coalesce(nullif(:'btc_now', '')::timestamptz, now()) AS t),
+  h AS (SELECT r.t, (SELECT max(time) FROM market_data_cache WHERE coin_pair = 'KRW-BTC' AND timeframe = 'H1' AND time + interval '1 hour' <= r.t) AS done,
+               date_trunc('hour', r.t - interval '2 minutes') - interval '1 hour' AS need FROM r),
+  d AS (SELECT (date_trunc('day', r.t AT TIME ZONE 'UTC') - interval '1 hour' - make_interval(days => k)) AT TIME ZONE 'UTC' AS t FROM r, generate_series(0, 19) k)
+SELECT v.k, v.val FROM h CROSS JOIN LATERAL (VALUES
+  ('btc_h1_ok', coalesce(h.done >= h.need, false)::text),
+  ('btc_h1_done', coalesce(to_char(h.done AT TIME ZONE 'Asia/Seoul', 'MM-DD HH24:MI'), '-')),
+  ('btc_h1_need', to_char(h.need AT TIME ZONE 'Asia/Seoul', 'MM-DD HH24:MI')),
+  ('btc_h1_daily', (SELECT count(c.close) FROM d JOIN market_data_cache c ON c.coin_pair = 'KRW-BTC' AND c.timeframe = 'H1' AND c.time = d.t)::text),
+  ('btc_h1_at', to_char(h.t AT TIME ZONE 'Asia/Seoul', 'MM-DD HH24:MI:SS'))) v(k, val);
 
 ROLLBACK;
 SELECT 'END', 'ok';

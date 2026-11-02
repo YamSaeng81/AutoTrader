@@ -93,6 +93,19 @@ sql(DB, "UPDATE paper_trading.virtual_balance v SET coin_pair = 'KRW-' || (ARRAY
 # 운영 현재 상태가 기준 — KRW-BLAST 세 팔은 2026-10-27 13:05 KST 정지 완료(원래 66 중 RUNNING 63)
 sql(DB, "UPDATE paper_trading.virtual_balance SET status='STOPPED' WHERE id IN (576,577,578);")
 
+# 2026-11-02 N09: BTC H1 입력(B1·B3)을 정기 점검이 직접 본다. 원본 시험 DB 의 KRW-BTC H1 은 10-30 까지라 사본에서만 매시 봉으로 바꾸고,
+# 판정 기준 시각을 BTC_NOW 로 고정한다(22:00:05 KST 정기 보고 시각) — 기존 경우들의 기대값은 그대로다.
+BTC_NOW = "2026-11-02T13:00:05Z"
+
+
+def btc_fill(last="2026-11-02 12:00+00", first="2026-10-05 00:00+00"):
+    sql(DB, "DELETE FROM market_data_cache WHERE coin_pair = 'KRW-BTC' AND timeframe = 'H1';"
+            "INSERT INTO market_data_cache (time, coin_pair, timeframe, open, high, low, close, volume) "
+            "SELECT g, 'KRW-BTC', 'H1', 1, 1, 1, 1, 1 FROM generate_series('%s'::timestamptz, '%s'::timestamptz, interval '1 hour') g;" % (first, last))
+
+
+btc_fill()
+
 work = tempfile.mkdtemp(prefix="daily-check-")
 logs_ok = os.path.join(work, "logs_ok.txt")
 with open(logs_ok, "w", encoding="utf-8") as f:
@@ -133,6 +146,7 @@ BASE_ENV = dict(os.environ,
                 ALERTS_CMD="echo '🟢 경보 없음 · 실행 누락 없음'; exit 0",
                 TG_API=TG_API, TELEGRAM_BOT_TOKEN="test-token", TELEGRAM_CHAT_ID="1",
                 TZ_EXPECT="",   # 시험 기계 시간대는 따지지 않는다(아래 별도 경우)
+                BTC_NOW=BTC_NOW,
                 SQL_TIMEOUT="20")
 
 
@@ -380,6 +394,94 @@ sql(DB, "DELETE FROM live_trading_session WHERE id=203;")
 rc, rep, last, sent, raw = run("sid_missing")
 check("SID 203 세션 없음 — 🔴 상태 none", rc == 1 and "🔴 SID 203 상태 none" in rep, rep)
 sql(DB, SID203_ROW)
+
+# ── 2026-11-02 N09(계획 §5-9 28): BTC H1 입력 직접 검사 — F1 의 B1(2분 유예)·B3(최근 20일 마감 봉 20/20)을 정기 점검에 ──
+# 종전 점검은 캔들 판정 로그만 요약해 시작 전(CREATED) 공급 정체(11-02 09:00 에서 멈춤)를 직접 잡지 못했다.
+BTC_B1_RED = "🔴 BTC H1 입력 미충족(B1)"
+BTC_B3_RED = "🔴 BTC H1 최근 20일 마감 봉"
+rc, rep, last, sent, raw = run("btc_ok")
+check("BTC 정상(CREATED, 22:00:05 KST) — 정상·관측 시각/완료 봉/필요 봉/B3 를 적는다",
+      rc == 0 and GREEN in rep and "BTC H1 입력(관측 11-02 22:00:05 KST): B1 true · 최신 완료 봉 11-02 21:00 · 필요 11-02 20:00(2분 유예) · B3 최근 20일 마감 봉 20/20" in rep, rep)
+# 유예 경계 — 11-02 20:00 KST 봉까지 있을 때 21:00 봉은 22:02:00 KST 부터 필요하다
+btc_fill(last="2026-11-02 11:00+00")
+rc, rep, last, sent, raw = run("btc_grace_in", BTC_NOW="2026-11-02T13:01:59Z")
+check("유예 안(22:01:59) — 20:00 봉으로 충족·정상", rc == 0 and GREEN in rep and "B1 true · 최신 완료 봉 11-02 20:00 · 필요 11-02 20:00" in rep, rep)
+rc, rep, last, sent, raw = run("btc_grace_out", BTC_NOW="2026-11-02T13:02:00Z")
+check("유예 끝(22:02:00) — 21:00 봉 없음 🔴 B1, B3 는 20/20 이라 🔴 아님",
+      rc == 1 and BTC_B1_RED + " — 최신 완료 봉 11-02 20:00 · 필요 11-02 21:00(2분 유예) · SID 203 CREATED" in rep and BTC_B3_RED not in rep, rep)
+# 정각 경계 — 형성 중인 봉(시작+1시간 > 기준)은 완료 봉으로 치지 않는다
+btc_fill(last="2026-11-02 13:00+00")
+rc, rep, last, sent, raw = run("btc_forming", BTC_NOW="2026-11-02T13:59:59Z")
+check("정각 1초 전(22:59:59) — 형성 중 22:00 봉은 빼고 완료 봉 21:00", rc == 0 and "최신 완료 봉 11-02 21:00 · 필요 11-02 21:00" in rep, rep)
+rc, rep, last, sent, raw = run("btc_on_hour", BTC_NOW="2026-11-02T14:00:00Z")
+check("정각(23:00:00) — 22:00 봉이 완료 봉", rc == 0 and "최신 완료 봉 11-02 22:00 · 필요 11-02 21:00" in rep, rep)
+# 일봉 창 — 08:30 KST(F1 시각)에는 형성 중인 당일 08:00 봉(23:00 UTC 시작)을 요구하지 않는다
+btc_fill(last="2026-11-01 22:00+00")
+rc, rep, last, sent, raw = run("btc_0830", BTC_NOW="2026-11-01T23:30:00Z")
+check("08:30 KST — 07:00 봉으로 B1 충족, B3 는 10-13~11-01 08:00 KST 마감 봉 20/20(형성 중 11-02 08:00 봉 제외)",
+      rc == 0 and GREEN in rep and "B1 true · 최신 완료 봉 11-02 07:00 · 필요 11-02 07:00(2분 유예) · B3 최근 20일 마감 봉 20/20" in rep, rep)
+btc_fill()
+sql(DB, "DELETE FROM market_data_cache WHERE coin_pair = 'KRW-BTC' AND timeframe = 'H1' AND time IN ('2026-11-01 23:00+00');")
+rc, rep, last, sent, raw = run("btc_daily_newest")
+check("가장 최근 마감 봉(11-02 08:00 KST) 빠짐 — 🔴 B3 19/20, B1 은 충족",
+      rc == 1 and BTC_B3_RED + " 19/20(B3) · SID 203 CREATED" in rep and BTC_B1_RED not in rep, rep)
+btc_fill()
+sql(DB, "DELETE FROM market_data_cache WHERE coin_pair = 'KRW-BTC' AND timeframe = 'H1' AND time IN ('2026-10-13 23:00+00');")
+rc, rep, last, sent, raw = run("btc_daily_oldest")
+check("창의 가장 오래된 마감 봉(10-14 08:00 KST) 빠짐 — 🔴 B3 19/20", rc == 1 and BTC_B3_RED + " 19/20(B3)" in rep, rep)
+btc_fill()
+sql(DB, "DELETE FROM market_data_cache WHERE coin_pair = 'KRW-BTC' AND timeframe = 'H1' AND time IN ('2026-10-12 23:00+00', '2026-11-01 22:00+00');")
+rc, rep, last, sent, raw = run("btc_daily_outside")
+check("창 밖(10-13 08:00 KST)·마감 봉 아닌 시각(11-02 07:00 KST) 빠짐 — B3 20/20·정상", rc == 0 and GREEN in rep and "B3 최근 20일 마감 봉 20/20" in rep, rep)
+# 빈 캐시 — 다른 코인·다른 봉은 세지 않는다
+sql(DB, "DELETE FROM market_data_cache WHERE coin_pair = 'KRW-BTC' AND timeframe = 'H1';"
+        "INSERT INTO market_data_cache (time, coin_pair, timeframe, open, high, low, close, volume) VALUES "
+        "('2026-11-02 12:00+00', 'KRW-ETH', 'H1', 1, 1, 1, 1, 1), ('2026-11-02 12:00+00', 'KRW-BTC', 'M15', 1, 1, 1, 1, 1);")
+rc, rep, last, sent, raw = run("btc_empty")
+check("KRW-BTC H1 없음(ETH H1·BTC M15 만) — 🔴 B1(완료 봉 -)·🔴 B3 0/20",
+      rc == 1 and BTC_B1_RED + " — 최신 완료 봉 - · 필요 11-02 20:00" in rep and BTC_B3_RED + " 0/20(B3)" in rep, rep)
+sql(DB, "DELETE FROM market_data_cache WHERE (coin_pair, timeframe) IN (('KRW-ETH', 'H1'), ('KRW-BTC', 'M15')) AND time = '2026-11-02 12:00+00';")
+# CREATED 정체 — 11-02 운영 J0(15:03:44 KST) 원문 false|11-02 09:00|11-02 14:00|20/20 과 같은 모양
+btc_fill(last="2026-11-02 00:00+00")
+rc, rep, last, sent, raw = run("btc_stall_created", BTC_NOW="2026-11-02T06:03:44Z")
+check("CREATED 공급 정체(완료 09:00·필요 14:00, BTC 판정 로그 없음) — 🔴 B1",
+      rc == 1 and BTC_B1_RED + " — 최신 완료 봉 11-02 09:00 · 필요 11-02 14:00(2분 유예) · SID 203 CREATED" in rep
+      and "B3 최근 20일 마감 봉 20/20" in rep and BTC_B3_RED not in rep and "BTC 급락 관문" not in rep and "KRW-BTC:H1" not in rep, rep)
+sid_reset("RUNNING")
+rc, rep, last, sent, raw = run("btc_stall_running", BTC_NOW="2026-11-02T06:03:44Z", **RUNNING)
+check("RUNNING 공급 정체 — 🔴 B1(SID 203 RUNNING)", rc == 1 and BTC_B1_RED + " — 최신 완료 봉 11-02 09:00 · 필요 11-02 14:00(2분 유예) · SID 203 RUNNING" in rep, rep)
+# 종료 상태 — 입력 판정에서 빼고, 상태 경보는 그대로
+sql(DB, "DELETE FROM market_data_cache WHERE coin_pair = 'KRW-BTC' AND timeframe = 'H1';")
+sid_reset("STOPPED")
+rc, rep, last, sent, raw = run("btc_stopped", SID_OK_STATUS="STOPPED")
+check("STOPPED(종료 뒤 설정)·빈 캐시 — 입력 판정 적용 제외·정상",
+      rc == 0 and GREEN in rep and "B3 최근 20일 마감 봉 0/20 · SID 203 STOPPED — 입력 판정 적용 제외" in rep and "🔴 BTC" not in rep, rep)
+sid_reset("EMERGENCY_STOPPED")
+rc, rep, last, sent, raw = run("btc_emergency")
+check("EMERGENCY_STOPPED·빈 캐시 — 🔴 상태만(BTC 🔴 없음)",
+      rc == 1 and "🔴 SID 203 상태 EMERGENCY_STOPPED(정상: CREATED)" in rep and "🔴 BTC" not in rep and "입력 판정 적용 제외" in rep, rep)
+sql(DB, "DELETE FROM live_trading_session WHERE id=203;")
+rc, rep, last, sent, raw = run("btc_sid_missing")
+check("SID 203 없음·빈 캐시 — 🔴 상태 none 만", rc == 1 and "🔴 SID 203 상태 none" in rep and "🔴 BTC" not in rep and "SID 203 none — 입력 판정 적용 제외" in rep, rep)
+sql(DB, SID203_ROW)
+btc_fill()
+# 조회 실패·출력 누락·형식 이상 — ⚪(정상 아님), B1/B3 🔴 로 단정하지 않는다
+sql(DB, "ALTER TABLE market_data_cache RENAME TO market_data_cache_x;")
+rc, rep, last, sent, raw = run("btc_query_fail")
+sql(DB, "ALTER TABLE market_data_cache_x RENAME TO market_data_cache;")
+check("캐시 조회 실패(테이블 없음) — ⚪ DB 조회 실패·BTC 🔴 없음", rc == 1 and rep.startswith("[정기 점검] ⚪") and "DB 조회 실패" in rep and "🔴 BTC" not in rep, rep)
+drop = os.path.join(work, "psql_drop_btc.sh")
+with open(drop, "w", newline="\n") as f:
+    f.write('#!/usr/bin/env bash\ndocker exec -i cat-rt-pg psql -X -U trader -d %s "$@" | grep -v "^btc_h1_daily|"\n' % DB)
+rc, rep, last, sent, raw = run("btc_key_missing", PSQL_CMD="bash " + drop.replace("\\", "/"))
+check("B3 키 누락 — ⚪ 출력 누락(btc_h1_daily)·BTC 🔴 없음", rc == 1 and "⚪ DB 조회 출력 누락(btc_h1_daily)" in rep and "🔴 BTC" not in rep, rep)
+odd = os.path.join(work, "psql_odd_btc.sh")
+with open(odd, "w", newline="\n") as f:
+    f.write('#!/usr/bin/env bash\ndocker exec -i cat-rt-pg psql -X -U trader -d %s "$@" | sed "s/^btc_h1_ok|true$/btc_h1_ok|t/"\n' % DB)
+rc, rep, last, sent, raw = run("btc_odd_value", PSQL_CMD="bash " + odd.replace("\\", "/"))
+check("B1 값 형식 이상(t) — ⚪ 재조회 대상·BTC 🔴 없음", rc == 1 and "⚪ BTC H1 입력 값 형식 이상(B1 t · B3 20) — 재조회 대상" in rep and "🔴 BTC" not in rep, rep)
+rc, rep, last, sent, raw = run("btc_back")
+check("BTC 시험 뒤 원래 자료로 — 정상", rc == 0 and GREEN in rep, rep)
 
 # 3. 미분류 ERROR
 rc, rep, last, sent, raw = run("unknown_error", LOGS_FILE=logs_bad)
@@ -636,7 +738,7 @@ CANNED = ("flyway_version|94\nreal_open_positions|0\nreal_unresolved_orders|0\nc
           "s66_running|63\ns66_total|66\ns66_not_running|576:STOPPED 577:STOPPED 578:STOPPED\ns66_coins|KRW-BLAST\nreal_buys_window|0\nquarantine_release_rows|0\ntg_queue_rejected|0\ntg_ok_window|0\n"
           "sid_status|CREATED\nsid_available_krw|20200\nsid_open_positions|0\nsid_active_orders|0\nsid_stale_orders|0\nsid_unknown_orders|0\n"
           "sid_dup_buy_positions|0\nsid_filled_buys_window|0\nsid_orders_window|0 0\nsid_settle_unknown|0\nsid_settle_mismatch|0\nsid_settle_ids|-\nsettlement_unresolved|0\n"
-          "tg_last_ok|none\nEND|ok\n")
+          "tg_last_ok|none\nbtc_h1_ok|true\nbtc_h1_done|11-02 21:00\nbtc_h1_need|11-02 20:00\nbtc_h1_daily|20\nbtc_h1_at|11-02 22:00:05\nEND|ok\n")
 with open(os.path.join(work, "canned.txt"), "w", newline="\n") as f:
     f.write(CANNED)
 with open(os.path.join(work, "fakepsql"), "w", newline="\n") as f:

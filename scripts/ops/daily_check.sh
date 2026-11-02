@@ -15,7 +15,7 @@
 # 종료 코드: 0 점검 항목 정상·보고 전송 / 1 이상 또는 판정 불가·보고 전송 / 2 보고 전송 실패 / 3 이미 실행 중
 #
 # 시험용 바꿔 끼우기(운영에서는 쓰지 않는다): PSQL_CMD · LOGS_FILE · APP_STATE · ALERTS_CMD · TG_API · SQL_TIMEOUT · TZ_EXPECT ·
-#   SLEEP_CMD · REPORT_LIMIT · LOCK_MODE(mkdir — flock 없는 환경의 대체 잠금을 시험할 때)
+#   SLEEP_CMD · REPORT_LIMIT · LOCK_MODE(mkdir — flock 없는 환경의 대체 잠금을 시험할 때) · BTC_NOW(BTC H1 입력 판정 기준 시각)
 set -u
 # 🔴 2026-10-27: 로케일을 C(바이트 비교)로 고정한다. 서버 대화형 셸(C.UTF-8)에서 GNU grep 3.7 이 공유 풀 기동 줄을
 #    P_POOL 로 잡지 못해(0) 미분류 🔴 로 셌다 — cron(로케일 없음 = C)에서는 1. 글자 단위로는 재현되지 않아 원인은 미규명이고,
@@ -135,7 +135,7 @@ detail "앱: $APP_STATUS · 재시작 ${APP_RESTARTS:-?} · 기동 $APP_STARTED 
 
 # ── 3. DB 조회 — 시간 초과·오류·출력 누락은 판정 불가 ──
 SQL_FILE="${SQL_FILE:-$REPO_DIR/scripts/ops/daily_checks.sql}"   # 설치본은 저장소 밖(~/ops-scripts) — 서버 체크아웃은 배포 SHA 에 고정돼 있다
-SQL_OUT=$(timeout "$SQL_TIMEOUT" $PSQL_CMD -At -F'|' -v since="$SINCE_ISO" -v sid="$SID_ID" -v stale_min="$STALE_MIN" -f - < "$SQL_FILE" 2>&1); SQL_RC=$?
+SQL_OUT=$(timeout "$SQL_TIMEOUT" $PSQL_CMD -At -F'|' -v since="$SINCE_ISO" -v sid="$SID_ID" -v stale_min="$STALE_MIN" -v btc_now="${BTC_NOW:-}" -f - < "$SQL_FILE" 2>&1); SQL_RC=$?
 declare -A KV=()
 TG_FAIL_LINES=()
 if [ $SQL_RC -eq 124 ]; then
@@ -155,7 +155,8 @@ else
   done <<< "$SQL_OUT"
   # 필수 키가 하나라도 빠지면 출력 누락
   for k in flyway_version real_open_positions real_unresolved_orders cleanup_pending quarantine_targets s66_running s66_total \
-           s66_not_running s66_coins real_buys_window quarantine_release_rows tg_queue_rejected tg_ok_window tg_last_ok            sid_status sid_available_krw sid_open_positions sid_active_orders sid_stale_orders sid_unknown_orders            sid_dup_buy_positions sid_filled_buys_window sid_orders_window sid_settle_unknown sid_settle_mismatch sid_settle_ids settlement_unresolved; do
+           s66_not_running s66_coins real_buys_window quarantine_release_rows tg_queue_rejected tg_ok_window tg_last_ok            sid_status sid_available_krw sid_open_positions sid_active_orders sid_stale_orders sid_unknown_orders            sid_dup_buy_positions sid_filled_buys_window sid_orders_window sid_settle_unknown sid_settle_mismatch sid_settle_ids settlement_unresolved \
+           btc_h1_ok btc_h1_done btc_h1_need btc_h1_daily btc_h1_at; do
     [ -n "${KV[$k]+x}" ] || unknown "DB 조회 출력 누락($k)"
   done
 fi
@@ -193,6 +194,22 @@ if [ ${#KV[@]} -gt 0 ]; then
   # 정산 — 보고값·반영값 누락 또는 반영 대기는 발견 즉시 ⚪(확인 불가 — 정상으로 보지 않는다), 대기 없이 보고값≠반영값은 🔴
   v="${KV[sid_settle_unknown]:-}"; [ -n "$v" ] && [ "$v" != "0" ] && unknown "SID $SID_ID 체결 주문 정산 확인 불가 ${v}건(보고값·반영값 누락 또는 반영 대기, 주문 ${KV[sid_settle_ids]:-?}) — 재조회 대상"
   chk_zero sid_settle_mismatch "SID $SID_ID 체결 주문 보고값≠반영값(반영 대기 아님, 주문 ${KV[sid_settle_ids]:-?})"
+  # BTC H1 입력(N09, 계획 §5-9 28) — F1 과 같은 B1(2분 유예 필요 완료 봉)·B3(최근 20일 마감 봉 20/20). SID 가 CREATED·RUNNING 일 때만 판정하고,
+  #   종료 상태(STOPPED·EMERGENCY_STOPPED·없음 등)는 입력 판정에서 뺀다 — 그 상태 경보는 위 SID 상태 줄이 그대로 낸다.
+  #   확인된 미충족은 🔴, 값 형식 이상은 ⚪(정상으로 보지 않는다). 키 누락은 위 필수 키 검사가 ⚪ 로 낸다.
+  b1="${KV[btc_h1_ok]:-}"; b3="${KV[btc_h1_daily]:-}"
+  BTC_LINE="BTC H1 입력(관측 ${KV[btc_h1_at]:-?} KST): B1 ${b1:-?} · 최신 완료 봉 ${KV[btc_h1_done]:-?} · 필요 ${KV[btc_h1_need]:-?}(2분 유예) · B3 최근 20일 마감 봉 ${b3:-?}/20"
+  case "$st" in
+    CREATED|RUNNING)
+      if [ -z "$b1" ] || [ -z "$b3" ]; then :
+      elif { [ "$b1" != true ] && [ "$b1" != false ]; } || ! [[ "$b3" =~ ^[0-9]+$ ]]; then
+        unknown "BTC H1 입력 값 형식 이상(B1 $b1 · B3 $b3) — 재조회 대상"
+      else
+        [ "$b1" = true ] || red "BTC H1 입력 미충족(B1) — 최신 완료 봉 ${KV[btc_h1_done]:-?} · 필요 ${KV[btc_h1_need]:-?}(2분 유예) · SID $SID_ID $st"
+        [ "$b3" = 20 ] || red "BTC H1 최근 20일 마감 봉 ${b3}/20(B3) · SID $SID_ID $st"
+      fi ;;
+    *) BTC_LINE="$BTC_LINE · SID $SID_ID ${st:-?} — 입력 판정 적용 제외" ;;
+  esac
   chk_zero tg_queue_rejected "텔레그램 큐 진입 실패"
   qr="${KV[quarantine_release_rows]:-}"; [ -n "$qr" ] && [ "$qr" != "0" ] && [ "$qr" != "-1" ] && red "격리 해제 기록 $qr"
   # 검증 세션 — 개수가 아니라 어느 세션인지로 본다: 지정 종료 세션의 STOPPED 만 정상, 그 밖의 RUNNING 아님은 🔴
@@ -218,6 +235,7 @@ if [ ${#KV[@]} -gt 0 ]; then
   detail "DB: Flyway ${KV[flyway_version]:-?} · SID $SID_ID 밖 실자금 보유 ${KV[real_open_positions]:-?} · 미결 ${KV[real_unresolved_orders]:-?} · 정리 대기 ${KV[cleanup_pending]:-?} · 격리 대상 ${KV[quarantine_targets]:-?} · $S66_LINE · 구간 SID $SID_ID 밖 실자금 매수 ${KV[real_buys_window]:-?}"
   read -r sb ss <<< "${KV[sid_orders_window]:-? ?}"
   detail "SID $SID_ID: ${KV[sid_status]:-?} · 잔액 ${KV[sid_available_krw]:-?} · 보유 ${KV[sid_open_positions]:-?} · 미결 ${KV[sid_active_orders]:-?} · 구간 주문 매수 ${sb} 매도 ${ss} · 정산 확인 불가 ${KV[sid_settle_unknown]:-?} · 보고값≠반영값 ${KV[sid_settle_mismatch]:-?} · 미해결 정산 불일치(전체) ${KV[settlement_unresolved]:-?}"
+  detail "$BTC_LINE"
   detail "텔레그램(구간): 성공 ${KV[tg_ok_window]:-?} · 큐 진입 실패 ${KV[tg_queue_rejected]:-?} · 마지막 성공 ${KV[tg_last_ok]:-?}"
   for line in "${TG_FAIL_LINES[@]}"; do
     t="${line%%|*}"; n="${line##*|}"
