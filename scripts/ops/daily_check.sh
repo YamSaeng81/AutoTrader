@@ -145,15 +145,18 @@ elif [ $SQL_RC -ne 0 ]; then
 elif ! echo "$SQL_OUT" | grep -qx 'END|ok'; then
   unknown "DB 조회 출력 누락(끝 표시 END|ok 없음)"
 else
-  while IFS='|' read -r k a b; do
-    [ -z "$k" ] && continue
+  # N10(계획 §5-9 40): 칸 수는 분리 전 원문의 구분자로 센다 — read 로 나누면 끝의 빈 칸이 사라져 'k|0|' 같은 빈 초과 칸을 놓친다
+  while IFS= read -r line; do
+    k="${line%%|*}"; [ -z "$k" ] && continue
+    rest=""; [[ "$line" == *"|"* ]] && rest="${line#*|}"
     case "$k" in
-      tg_fail) TG_FAIL_LINES+=("$a|$b") ;;
+      tg_fail) TG_FAIL_LINES+=("$rest") ;;   # 행마다 '유형|건수' 정확히 3칸 — 아래 형식 검사(빈 넷째 칸 포함)
       BEGIN|ROLLBACK|END) ;;
-      # N10(계획 §5-9 36): 단일 값 키는 처음 값을 두고 몇 번 나왔는지·셋째 칸을 따로 센다 — 뒤 값으로 조용히 덮지 않는다
-      *) KVN[$k]=$(( ${KVN[$k]:-0} + 1 ))
+      # N10(계획 §5-9 36): 단일 값 키는 처음 값을 두고 몇 번 나왔는지·셋째 칸(빈 칸 포함)을 따로 센다 — 뒤 값으로 조용히 덮지 않는다
+      *) a="${rest%%|*}"
+         KVN[$k]=$(( ${KVN[$k]:-0} + 1 ))
          if [ "${KVN[$k]}" = 1 ]; then KV[$k]="$a"; KVALL[$k]="$a"; else KVALL[$k]="${KVALL[$k]} / $a"; fi
-         [ -n "$b" ] && KVX[$k]=1 ;;
+         [[ "$rest" == *"|"* ]] && KVX[$k]=1 ;;
     esac
   done <<< "$SQL_OUT"
   # 필수 키가 하나라도 빠지면 출력 누락
@@ -266,8 +269,9 @@ if [ ${#KV[@]} -gt 0 ]; then
   qr="${KV[quarantine_release_rows]:-}"; [ -n "${BAD[quarantine_release_rows]+x}" ] && qr=""; [ -n "$qr" ] && [ "$qr" != "0" ] && [ "$qr" != "-1" ] && red "격리 해제 기록 $qr"
   # 검증 세션 — 개수가 아니라 어느 세션인지로 본다: 지정 종료 세션의 STOPPED 만 정상, 그 밖의 RUNNING 아님은 🔴
   S66_LINE="66세션 RUNNING ${KV[s66_running]:-?}"
+  # N10(계획 §5-9 40): 총수는 목록과 독립 — 목록을 확인할 수 없어도 유효하게 읽은 총수의 🔴 는 낸다(총수 자체가 무효면 위에서 ⚪)
+  [ -n "${KV[s66_total]:-}" ] && [ -z "${BAD[s66_total]+x}" ] && [ "${KV[s66_total]}" != "$EXPECT_S66" ] && red "검증 세션 수 ${KV[s66_total]}(원래 $EXPECT_S66)"
   if [ -n "${KV[s66_not_running]:-}" ] && [ -z "${BAD[s66_not_running]+x}" ]; then
-    [ -n "${KV[s66_total]:-}" ] && [ -z "${BAD[s66_total]+x}" ] && [ "${KV[s66_total]}" != "$EXPECT_S66" ] && red "검증 세션 수 ${KV[s66_total]}(원래 $EXPECT_S66)"
     s66_bad=(); s66_ended=()
     for x in ${KV[s66_not_running]}; do
       [ "$x" = "-" ] && continue

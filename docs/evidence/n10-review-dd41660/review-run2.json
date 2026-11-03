@@ -1,0 +1,15 @@
+{
+  "source_sha": "dd416603227704d19e37cfeccc601243a573917a",
+  "shell_sha256": "05889ecfc34741fd76e0e378b8ad204bbb807427ed25b7f7aebec04cc799d977",
+  "cases": [
+    {
+      "case": "duplicate_s66_total65",
+      "expected": "white_red_s66",
+      "exit": 1,
+      "header": "[정기 점검] ⚪ 판정 불가 — 수집 실패 1건 (정상으로 보지 않는다)",
+      "meets_expected": false,
+      "external_command_called": false
+    }
+  ],
+  "scope": "Local full original shell with SQL output stubbed, DRY_RUN. No database, HTTP, Docker, SSH, crontab, or source mutation."
+}

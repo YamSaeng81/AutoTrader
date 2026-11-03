@@ -1,0 +1,15 @@
+{
+  "source_sha": "working-tree-candidate",
+  "shell_sha256": "2135e95314edeea68f6b9dfc31a1c0b0034f84b9d3cbfd52be7ee82afab9cc60",
+  "cases": [
+    {
+      "case": "prod_1000",
+      "expected": "green",
+      "exit": 0,
+      "header": "[정기 점검] 🟢 점검 항목 정상",
+      "meets_expected": true,
+      "external_command_called": false
+    }
+  ],
+  "scope": "Local full original shell with SQL output stubbed, DRY_RUN. No database, HTTP, Docker, SSH, crontab, or source mutation."
+}

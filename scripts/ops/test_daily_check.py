@@ -571,6 +571,31 @@ check("n10 대조군 상태 none·잔액 '-'(세션 없음 표기) — 🔴 상�
 rc, rep, last, sent, raw = n10_sed("n10_tg_fail_rows", r"s/^tg_queue_rejected\|0$/tg_fail|CUSTOM|2\ntg_fail|TRADE_SUMMARY|1\ntg_queue_rejected|0/")
 check("n10 대조군 정상 tg_fail 두 행(유형별) — 🟡 두 줄·정상·중복 ⚪ 아님",
       rc == 0 and GREEN in rep and "🟡 텔레그램 전송 실패 CUSTOM 2건" in rep and "🟡 텔레그램 전송 실패 TRADE_SUMMARY 1건" in rep and "⚪" not in rep, rep)
+# 2026-11-03 N10 재검토(계획 §5-9 40, evidence/n10-review-dd41660): dd41660 은 아래 5건을 놓쳤다.
+#   빈 초과 칸 — read 분리에서 끝의 빈 칸이 사라져 🟢·종료 0. 칸 수는 분리 전 원문으로 센다.
+for name, exprs, want in [
+        ("n10_empty_extra_unknown", [r"s/^sid_unknown_orders\|0$/sid_unknown_orders|0|/"], "⚪ DB 조회 값 형식 이상(sid_unknown_orders 칸 수 초과)"),
+        ("n10_empty_extra_btc_ok", [r"s/^btc_h1_ok\|true$/btc_h1_ok|true|/"], "⚪ DB 조회 값 형식 이상(btc_h1_ok 칸 수 초과)"),
+        ("n10_empty_extra_tg_fail", [r"s/^tg_queue_rejected\|0$/tg_fail|CUSTOM|1|\ntg_queue_rejected|0/"], "⚪ DB 조회 텔레그램 실패 행 형식 이상(CUSTOM|1|)"),
+        ]:
+    rc, rep, last, sent, raw = n10_sed(name, *exprs)
+    check("%s — 빈 초과 칸도 ⚪·종료 비0·정상 아님" % name, rc == 1 and rep.startswith(WHITE) and want in rep and GREEN not in rep, rep)
+    if name == "n10_empty_extra_tg_fail":
+        check("%s — 형식 이상 행을 🟡 건수로 세지 않는다" % name, "텔레그램 전송 실패 CUSTOM" not in rep, rep)
+#   목록(s66_not_running)을 확인할 수 없어도 유효하게 읽은 총수 65 의 🔴 는 남는다 — 총수 검사는 목록 검사와 독립
+for name, exprs, want in [
+        ("n10_blank_s66_list_total65", [r"s/^s66_not_running\|.*/s66_not_running|/", r"s/^s66_total\|.*/s66_total|65/"],
+         "⚪ DB 조회 값 빈 값(s66_not_running)"),
+        ("n10_dup_s66_list_total65", [r"s/^(s66_not_running\|.*)$/\1\n\1/", r"s/^s66_total\|.*/s66_total|65/"],
+         "⚪ DB 조회 단일 값 키 중복(s66_not_running 2회:"),
+        ]:
+    rc, rep, last, sent, raw = n10_sed(name, *exprs)
+    check("%s — ⚪ 머리글·종료 1, 목록 ⚪ 와 함께 세션 수 65 🔴 유지" % name,
+          rc == 1 and rep.startswith(WHITE) and want in rep and "🔴 검증 세션 수 65(원래 66)" in rep, rep)
+# 대조군 — 내용 있는 셋째 칸 ⚪(위 n10_extra_field)·총수만 65(목록 정상)는 🔴 하나
+rc, rep, last, sent, raw = n10_sed("n10_total65_only", r"s/^s66_total\|.*/s66_total|65/")
+check("n10 대조군 총수 65·목록 정상 — 🔴 세션 수 65·⚪ 없음",
+      rc == 1 and "🔴 검증 세션 수 65(원래 66)" in rep and "⚪" not in rep, rep)
 
 # 3. 미분류 ERROR
 rc, rep, last, sent, raw = run("unknown_error", LOGS_FILE=logs_bad)
