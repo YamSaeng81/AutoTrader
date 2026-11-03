@@ -4,6 +4,9 @@
 > 🔴 자동화는 **수집·비교·보고를 대신**할 뿐이다. 이미 수락한 운영자의 **결과 확인과 정지 집행 책임은 그대로**다.
 > 🔴 운영 설치는 시험 결과를 리뷰가 확인한 뒤에 한다(§3).
 
+> **N10 설치(2026-11-03 17:02, d491fd1)**: 아래 승인대로 셸·INSTALLED_SHA만 교체(기대 해시 일치, SQL 동일 해시 유지), 기존 843 판·crontab은 서버 `~/ops-scripts/pre-d491fd1/` 보존, cron 바이트 동일. DRY_RUN 머리글 d491fd1609b7·BTC B1 true·20/20·⚪ 없음·🟢. 운영 반영 확인은 첫 자동 보고 뒤(계획 §5-9 43, 근거 `evidence/n10-install-d491fd1/`).
+> **N10 설치 승인(총괄2026-11-03, v1.74)**: 고정 SHA `d491fd1609b700d195ecc4d0ccea6be2987bf2fe`의 기존 설치본 교체만 승인한다. 셸 sha256 `2135e95314edeea68f6b9dfc31a1c0b0034f84b9d3cbfd52be7ee82afab9cc60`, SQL `653b22bab04b68c50bf9daf2a54f2c281f9c57eaf6795076225ed39d62d48fa8`. SQL은 현재843 설치본과 동일하므로 대조 후 유지한다. 같은 `.lock.flock`/기존 판 보존 뒤 셸·INSTALLED_SHA를 교체하고 잠금 해제 뒤 DRY_RUN을 한 번 확인한다. cron 등록/전환·수동 전송은 하지 않는다. 설치/첫 자동 보고 확인 전 N10 완료가 아니며 기존 뉴스 미분류 🔴는 유지한다. 상세 실행·완료 조건: [계획 §5-9 42](LIMITED_LIVE_TEST_PLAN.md), [총괄 근거](evidence/n10-accept-d491fd1/README.md).
+
 ## 1. 무엇이 바뀌나
 
 | 전 | 후 |

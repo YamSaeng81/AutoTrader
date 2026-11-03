@@ -1,0 +1,175 @@
+{
+  "source_sha": "d491fd1609b700d195ecc4d0ccea6be2987bf2fe",
+  "shell_sha256": "2135e95314edeea68f6b9dfc31a1c0b0034f84b9d3cbfd52be7ee82afab9cc60",
+  "cases": [
+    {
+      "case": "normal",
+      "expected": "green",
+      "exit": 0,
+      "header": "[정기 점검] 🟢 점검 항목 정상",
+      "meets_expected": true,
+      "external_command_called": false
+    },
+    {
+      "case": "blank_sid_status",
+      "expected": "white",
+      "exit": 1,
+      "header": "[정기 점검] ⚪ 판정 불가 — 수집 실패 1건 (정상으로 보지 않는다)",
+      "meets_expected": true,
+      "external_command_called": false
+    },
+    {
+      "case": "blank_unknown_orders",
+      "expected": "white",
+      "exit": 1,
+      "header": "[정기 점검] ⚪ 판정 불가 — 수집 실패 1건 (정상으로 보지 않는다)",
+      "meets_expected": true,
+      "external_command_called": false
+    },
+    {
+      "case": "blank_settle_mismatch",
+      "expected": "white",
+      "exit": 1,
+      "header": "[정기 점검] ⚪ 판정 불가 — 수집 실패 1건 (정상으로 보지 않는다)",
+      "meets_expected": true,
+      "external_command_called": false
+    },
+    {
+      "case": "blank_unresolved_settlement",
+      "expected": "white",
+      "exit": 1,
+      "header": "[정기 점검] ⚪ 판정 불가 — 수집 실패 1건 (정상으로 보지 않는다)",
+      "meets_expected": true,
+      "external_command_called": false
+    },
+    {
+      "case": "blank_other_real_orders",
+      "expected": "white",
+      "exit": 1,
+      "header": "[정기 점검] ⚪ 판정 불가 — 수집 실패 1건 (정상으로 보지 않는다)",
+      "meets_expected": true,
+      "external_command_called": false
+    },
+    {
+      "case": "blank_status_with_stale_btc",
+      "expected": "white",
+      "exit": 1,
+      "header": "[정기 점검] ⚪ 판정 불가 — 수집 실패 1건 (정상으로 보지 않는다)",
+      "meets_expected": true,
+      "external_command_called": false
+    },
+    {
+      "case": "duplicate_unknown_1_then_0",
+      "expected": "white",
+      "exit": 1,
+      "header": "[정기 점검] ⚪ 판정 불가 — 수집 실패 1건 (정상으로 보지 않는다)",
+      "meets_expected": true,
+      "external_command_called": false
+    },
+    {
+      "case": "unknown_orders_one",
+      "expected": "red",
+      "exit": 1,
+      "header": "[정기 점검] 🔴 이상 1건",
+      "meets_expected": true,
+      "external_command_called": false
+    },
+    {
+      "case": "missing_sid_status",
+      "expected": "white",
+      "exit": 1,
+      "header": "[정기 점검] ⚪ 판정 불가 — 수집 실패 1건 (정상으로 보지 않는다)",
+      "meets_expected": true,
+      "external_command_called": false
+    },
+    {
+      "case": "empty_third_column",
+      "expected": "white",
+      "exit": 1,
+      "header": "[정기 점검] ⚪ 판정 불가 — 수집 실패 1건 (정상으로 보지 않는다)",
+      "meets_expected": true,
+      "external_command_called": false
+    },
+    {
+      "case": "nonempty_third_column",
+      "expected": "white",
+      "exit": 1,
+      "header": "[정기 점검] ⚪ 판정 불가 — 수집 실패 1건 (정상으로 보지 않는다)",
+      "meets_expected": true,
+      "external_command_called": false
+    },
+    {
+      "case": "btc_empty_third_column",
+      "expected": "white",
+      "exit": 1,
+      "header": "[정기 점검] ⚪ 판정 불가 — 수집 실패 1건 (정상으로 보지 않는다)",
+      "meets_expected": true,
+      "external_command_called": false
+    },
+    {
+      "case": "tg_empty_fourth_column",
+      "expected": "white",
+      "exit": 1,
+      "header": "[정기 점검] ⚪ 판정 불가 — 수집 실패 1건 (정상으로 보지 않는다)",
+      "meets_expected": true,
+      "external_command_called": false
+    },
+    {
+      "case": "blank_s66_total65",
+      "expected": "white_red_s66",
+      "exit": 1,
+      "header": "[정기 점검] ⚪ 판정 불가 — 수집 실패 1건 (정상으로 보지 않는다)",
+      "meets_expected": true,
+      "external_command_called": false
+    },
+    {
+      "case": "duplicate_s66_total65",
+      "expected": "white_red_s66",
+      "exit": 1,
+      "header": "[정기 점검] ⚪ 판정 불가 — 수집 실패 1건 (정상으로 보지 않는다)",
+      "meets_expected": true,
+      "external_command_called": false
+    },
+    {
+      "case": "blank_count_other_red",
+      "expected": "white_red_other",
+      "exit": 1,
+      "header": "[정기 점검] ⚪ 판정 불가 — 수집 실패 1건 (정상으로 보지 않는다)",
+      "meets_expected": true,
+      "external_command_called": false
+    },
+    {
+      "case": "valid_none_dash",
+      "expected": "red_none",
+      "exit": 1,
+      "header": "[정기 점검] 🔴 이상 1건",
+      "meets_expected": true,
+      "external_command_called": false
+    },
+    {
+      "case": "valid_tg_rows",
+      "expected": "green",
+      "exit": 0,
+      "header": "[정기 점검] 🟢 점검 항목 정상",
+      "meets_expected": true,
+      "external_command_called": false
+    },
+    {
+      "case": "valid_critical_tg",
+      "expected": "red_tg",
+      "exit": 1,
+      "header": "[정기 점검] 🔴 이상 1건",
+      "meets_expected": true,
+      "external_command_called": false
+    },
+    {
+      "case": "prod_1000",
+      "expected": "green",
+      "exit": 0,
+      "header": "[정기 점검] 🟢 점검 항목 정상",
+      "meets_expected": true,
+      "external_command_called": false
+    }
+  ],
+  "scope": "Local full original shell with SQL output stubbed, DRY_RUN. No database, HTTP, Docker, SSH, crontab, or source mutation."
+}
