@@ -516,6 +516,62 @@ btc_fill()
 rc, rep, last, sent, raw = run("btc_back")
 check("BTC 시험 뒤 원래 자료로 — 정상", rc == 0 and GREEN in rep, rep)
 
+# ── 2026-11-03 N10(계획 §5-9 36·38): 필수 위험 값의 빈 값·형식 이상·단일 값 키 중복 — ⚪·종료 비0 ──
+# 설치판 8435935 은 키 존재만 보고 빈 값은 건너뛰며 같은 키는 뒤 값으로 덮어, 아래 앞 7건이 🟢·종료 0 이었다(evidence/n10-critical-fields-8435935).
+# 조회식(daily_checks.sql)은 그대로 두고 실제 시험 DB 출력의 한 줄만 바꾼다. 유효한 다른 🔴·정상 결측('-'·none)·복수 tg_fail 은 그대로.
+WHITE = "[정기 점검] ⚪"
+def n10_sed(name, *exprs):
+    p = os.path.join(work, "psql_%s.sh" % name)
+    with open(p, "w", newline="\n") as f:
+        f.write('#!/usr/bin/env bash\ndocker exec -i cat-rt-pg psql -X -U trader -d %s "$@" | sed -E %s\n'
+                % (DB, " ".join("-e '%s'" % e for e in exprs)))
+    return run(name, PSQL_CMD="bash " + p.replace("\\", "/"))
+for name, exprs, want in [
+        ("n10_blank_sid_status", [r"s/^sid_status\|.*/sid_status|/"], "⚪ DB 조회 값 빈 값(sid_status)"),
+        ("n10_blank_unknown_orders", [r"s/^sid_unknown_orders\|.*/sid_unknown_orders|/"], "⚪ DB 조회 값 빈 값(sid_unknown_orders)"),
+        ("n10_blank_settle_mismatch", [r"s/^sid_settle_mismatch\|.*/sid_settle_mismatch|/"], "⚪ DB 조회 값 빈 값(sid_settle_mismatch)"),
+        ("n10_blank_settlement_unresolved", [r"s/^settlement_unresolved\|.*/settlement_unresolved|/"], "⚪ DB 조회 값 빈 값(settlement_unresolved)"),
+        ("n10_blank_real_unresolved", [r"s/^real_unresolved_orders\|.*/real_unresolved_orders|/"], "⚪ DB 조회 값 빈 값(real_unresolved_orders)"),
+        ("n10_dup_unknown_1_0", [r"s/^sid_unknown_orders\|0$/sid_unknown_orders|1\nsid_unknown_orders|0/"],
+         "⚪ DB 조회 단일 값 키 중복(sid_unknown_orders 2회: 1 / 0)"),
+        ("n10_dup_unknown_same", [r"s/^sid_unknown_orders\|0$/sid_unknown_orders|0\nsid_unknown_orders|0/"],
+         "⚪ DB 조회 단일 값 키 중복(sid_unknown_orders 2회: 0 / 0)"),
+        ("n10_bad_number", [r"s/^sid_unknown_orders\|.*/sid_unknown_orders|abc/"], "⚪ DB 조회 값 형식 이상(sid_unknown_orders abc)"),
+        ("n10_negative", [r"s/^sid_unknown_orders\|.*/sid_unknown_orders|-1/"], "⚪ DB 조회 값 형식 이상(sid_unknown_orders -1)"),
+        ("n10_extra_field", [r"s/^sid_unknown_orders\|0$/sid_unknown_orders|0|1/"], "⚪ DB 조회 값 형식 이상(sid_unknown_orders 칸 수 초과)"),
+        ("n10_blank_created_open", [r"s/^sid_open_positions\|.*/sid_open_positions|/"], "⚪ DB 조회 값 빈 값(sid_open_positions)"),
+        ("n10_blank_s66_not_running", [r"s/^s66_not_running\|.*/s66_not_running|/"], "⚪ DB 조회 값 빈 값(s66_not_running)"),
+        ("n10_dup_btc_ok", [r"s/^btc_h1_ok\|true$/btc_h1_ok|true\nbtc_h1_ok|false/"], "⚪ DB 조회 단일 값 키 중복(btc_h1_ok 2회: true / false)"),
+        ("n10_tg_fail_bad", [r"s/^tg_queue_rejected\|0$/tg_fail|CUSTOM|\ntg_queue_rejected|0/"], "⚪ DB 조회 텔레그램 실패 행 형식 이상(CUSTOM|)"),
+        ]:
+    rc, rep, last, sent, raw = n10_sed(name, *exprs)
+    check("%s — ⚪·종료 비0·정상 아님" % name, rc == 1 and rep.startswith(WHITE) and want in rep and GREEN not in rep, rep)
+    if name.startswith("n10_dup_unknown") or name in ("n10_bad_number", "n10_negative", "n10_extra_field"):
+        check("%s — 그 키는 🔴 로 단정하지 않는다(한 값을 골라 판정하지 않음)" % name, "🔴 SID 203 UNKNOWN" not in rep, rep)
+# 상태 빈 값 + B1 false — 상태를 모르면 입력 판정을 못 한 것이지 정상이 아니다
+rc, rep, last, sent, raw = n10_sed("n10_blank_status_b1_false", r"s/^sid_status\|.*/sid_status|/", r"s/^btc_h1_ok\|true$/btc_h1_ok|false/")
+check("n10 상태 빈 값 + B1 false — ⚪·종료 비0·'상태 확인 불가 — 입력 판정 못 함'(적용 제외로 정상 처리하지 않음)",
+      rc == 1 and rep.startswith(WHITE) and "⚪ DB 조회 값 빈 값(sid_status)" in rep and "SID 203 상태 확인 불가 — 입력 판정 못 함(⚪)" in rep
+      and "입력 판정 적용 제외" not in rep, rep)
+# 유효한 다른 위험 🔴 는 ⚪ 와 함께 그대로 남는다
+rc, rep, last, sent, raw = n10_sed("n10_blank_status_with_red", r"s/^sid_status\|.*/sid_status|/", r"s/^real_open_positions\|0$/real_open_positions|1/")
+check("n10 상태 빈 값 + SID 밖 실자금 보유 1 — ⚪ 머리글, 🔴 줄 유지",
+      rc == 1 and rep.startswith(WHITE) and "🔴 SID 203 밖 실자금 보유(OPEN·CLOSING) 1" in rep, rep)
+# 대조군 — 유효한 위험 1·키 누락·정상 결측 표기·복수 tg_fail
+rc, rep, last, sent, raw = n10_sed("n10_unknown_one", r"s/^sid_unknown_orders\|.*/sid_unknown_orders|1/")
+check("n10 대조군 UNKNOWN 1 — 🔴·종료 1·⚪ 없음", rc == 1 and "🔴 SID 203 UNKNOWN 주문 1" in rep and "⚪" not in rep, rep)
+drop_st = os.path.join(work, "psql_drop_status.sh")
+with open(drop_st, "w", newline="\n") as f:
+    f.write('#!/usr/bin/env bash\ndocker exec -i cat-rt-pg psql -X -U trader -d %s "$@" | grep -v "^sid_status|"\n' % DB)
+rc, rep, last, sent, raw = run("n10_missing_status", PSQL_CMD="bash " + drop_st.replace("\\", "/"))
+check("n10 대조군 상태 키 누락 — ⚪ 출력 누락(sid_status)", rc == 1 and "⚪ DB 조회 출력 누락(sid_status)" in rep and GREEN not in rep, rep)
+rc, rep, last, sent, raw = n10_sed("n10_status_none", r"s/^sid_status\|.*/sid_status|none/", r"s/^sid_available_krw\|.*/sid_available_krw|-/")
+check("n10 대조군 상태 none·잔액 '-'(세션 없음 표기) — 🔴 상태 none 그대로, 값 ⚪ 없음",
+      rc == 1 and "🔴 SID 203 상태 none" in rep and "⚪ DB 조회 값" not in rep, rep)
+rc, rep, last, sent, raw = n10_sed("n10_tg_fail_rows", r"s/^tg_queue_rejected\|0$/tg_fail|CUSTOM|2\ntg_fail|TRADE_SUMMARY|1\ntg_queue_rejected|0/")
+check("n10 대조군 정상 tg_fail 두 행(유형별) — 🟡 두 줄·정상·중복 ⚪ 아님",
+      rc == 0 and GREEN in rep and "🟡 텔레그램 전송 실패 CUSTOM 2건" in rep and "🟡 텔레그램 전송 실패 TRADE_SUMMARY 1건" in rep and "⚪" not in rep, rep)
+
 # 3. 미분류 ERROR
 rc, rep, last, sent, raw = run("unknown_error", LOGS_FILE=logs_bad)
 check("미분류 ERROR — 🔴 2건(다른 로거 1 + 알려진 로거의 다른 문구 1), 줄을 결과에 남긴다",

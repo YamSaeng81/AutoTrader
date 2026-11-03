@@ -136,7 +136,7 @@ detail "앱: $APP_STATUS · 재시작 ${APP_RESTARTS:-?} · 기동 $APP_STARTED 
 # ── 3. DB 조회 — 시간 초과·오류·출력 누락은 판정 불가 ──
 SQL_FILE="${SQL_FILE:-$REPO_DIR/scripts/ops/daily_checks.sql}"   # 설치본은 저장소 밖(~/ops-scripts) — 서버 체크아웃은 배포 SHA 에 고정돼 있다
 SQL_OUT=$(timeout "$SQL_TIMEOUT" $PSQL_CMD -At -F'|' -v since="$SINCE_ISO" -v sid="$SID_ID" -v stale_min="$STALE_MIN" -v btc_now="${BTC_NOW:-}" -f - < "$SQL_FILE" 2>&1); SQL_RC=$?
-declare -A KV=()
+declare -A KV=() KVN=() KVALL=() KVX=() BAD=()
 TG_FAIL_LINES=()
 if [ $SQL_RC -eq 124 ]; then
   unknown "DB 조회 시간 초과(${SQL_TIMEOUT}초)"
@@ -150,7 +150,10 @@ else
     case "$k" in
       tg_fail) TG_FAIL_LINES+=("$a|$b") ;;
       BEGIN|ROLLBACK|END) ;;
-      *) KV[$k]="$a" ;;
+      # N10(계획 §5-9 36): 단일 값 키는 처음 값을 두고 몇 번 나왔는지·셋째 칸을 따로 센다 — 뒤 값으로 조용히 덮지 않는다
+      *) KVN[$k]=$(( ${KVN[$k]:-0} + 1 ))
+         if [ "${KVN[$k]}" = 1 ]; then KV[$k]="$a"; KVALL[$k]="$a"; else KVALL[$k]="${KVALL[$k]} / $a"; fi
+         [ -n "$b" ] && KVX[$k]=1 ;;
     esac
   done <<< "$SQL_OUT"
   # 필수 키가 하나라도 빠지면 출력 누락
@@ -159,12 +162,48 @@ else
            btc_h1_ok btc_h1_done btc_h1_need btc_h1_daily btc_h1_at; do
     [ -n "${KV[$k]+x}" ] || unknown "DB 조회 출력 누락($k)"
   done
+  # N10(계획 §5-9 36) — 값 계약: daily_checks.sql 이 내는 모양만 유효. 빈 값·형식 이상·단일 값 키 중복·셋째 칸은 ⚪(정상으로 보지 않는다),
+  #   그 키의 🔴/정상 판정은 하지 않는다(0 으로 메우거나 한 값을 골라 판정하지 않는다). 다른 키의 유효한 🔴 는 그대로 낸다.
+  #   건수 = 음수 아닌 정수 · 상태 = SQL 이 내는 상태 이름 또는 none · 정상 표기 '-'·none 은 계약 안 · tg_fail 은 여러 행이 정상(아래 따로).
+  #   btc_h1_* 값 형식은 아래 BTC 입력 검사(N09)가 상태별로 그대로 본다 — 여기서는 중복·셋째 칸만.
+  R_CNT='^[0-9]+$'
+  declare -A RX=(
+    [flyway_version]="$R_CNT" [real_open_positions]="$R_CNT" [real_unresolved_orders]="$R_CNT" [cleanup_pending]="$R_CNT"
+    [quarantine_targets]="$R_CNT" [s66_running]="$R_CNT" [s66_total]="$R_CNT" [real_buys_window]="$R_CNT"
+    [tg_queue_rejected]="$R_CNT" [tg_ok_window]="$R_CNT" [sid_open_positions]="$R_CNT" [sid_active_orders]="$R_CNT"
+    [sid_stale_orders]="$R_CNT" [sid_unknown_orders]="$R_CNT" [sid_dup_buy_positions]="$R_CNT" [sid_filled_buys_window]="$R_CNT"
+    [sid_settle_unknown]="$R_CNT" [sid_settle_mismatch]="$R_CNT" [settlement_unresolved]="$R_CNT"
+    [quarantine_release_rows]='^(-1|[0-9]+)$'
+    [sid_status]='^([A-Z][A-Z_]*|none)$'
+    [sid_available_krw]='^([0-9]+(\.[0-9]+)?|-)$'
+    [sid_orders_window]='^[0-9]+ [0-9]+$'
+    [sid_settle_ids]='^(-|[0-9]+( [0-9]+)*)$'
+    [s66_not_running]='^(-|[0-9]+:[A-Za-z_]+( [0-9]+:[A-Za-z_]+)*)$'
+    [s66_coins]='^(-|[^ ]+( [^ ]+)*)$'
+    [tg_last_ok]='^([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}|none)$'
+  )
+  for k in "${!KV[@]}"; do
+    re="${RX[$k]:-}"
+    if [ "${KVN[$k]}" != 1 ]; then
+      unknown "DB 조회 단일 값 키 중복($k ${KVN[$k]}회: $(echo "${KVALL[$k]}" | cut -c1-80)) — 재조회 대상"; BAD[$k]=1
+    elif [ -n "${KVX[$k]+x}" ]; then
+      unknown "DB 조회 값 형식 이상($k 칸 수 초과) — 재조회 대상"; BAD[$k]=1
+    elif [ -n "$re" ] && ! [[ "${KV[$k]}" =~ $re ]]; then
+      unknown "DB 조회 값 $( [ -z "${KV[$k]}" ] && echo "빈 값($k)" || echo "형식 이상($k $(echo "${KV[$k]}" | cut -c1-40))") — 재조회 대상"; BAD[$k]=1
+    fi
+  done
+  for k in "${!BAD[@]}"; do KV[$k]="?"; done   # 보고 줄에는 확인 불가 '?' — 첫 값을 사실처럼 적지 않는다
+  for line in "${TG_FAIL_LINES[@]}"; do
+    [[ "$line" =~ ^[^|]+\|[0-9]+$ ]] || { unknown "DB 조회 텔레그램 실패 행 형식 이상($(echo "$line" | cut -c1-60)) — 재조회 대상"; }
+  done
 fi
-chk_zero() {  # 키 설명
+chk_zero() {  # 키 설명 — 확인 불가(BAD) 키는 위에서 ⚪ 로 냈다
+  [ -n "${BAD[$1]+x}" ] && return
   local v="${KV[$1]:-}"; [ -z "$v" ] && return
   [ "$v" = "0" ] || red "$2 $v"
 }
 chk_max() {  # 키 상한 설명
+  [ -n "${BAD[$1]+x}" ] && return
   local v="${KV[$1]:-}"; [ -z "$v" ] && return
   [ "$v" -le "$2" ] 2>/dev/null || red "$3 $v(상한 $2)"
 }
@@ -176,11 +215,12 @@ if [ ${#KV[@]} -gt 0 ]; then
   chk_zero real_buys_window "점검 구간 SID $SID_ID 밖 실자금 신규 매수"
   chk_zero settlement_unresolved "미해결 정산 불일치"
   # SID 203 — 개수 상한으로 본다: 보유 0~1 · 미결 0~1 · 구간 체결 매수 0~1(일봉 전략). 시작 전(CREATED)에는 주문·보유 모두 0.
-  st="${KV[sid_status]:-}"
+  st="${KV[sid_status]:-}"; [ -n "${BAD[sid_status]+x}" ] && st=""   # 상태 확인 불가 — 위에서 ⚪(전체 정상 아님)
   if [ -n "$st" ]; then
     [[ " $SID_OK_STATUS " == *" $st "* ]] || red "SID $SID_ID 상태 $st(정상: $SID_OK_STATUS)"
     if [ "$st" = "CREATED" ]; then
       for k in sid_open_positions sid_active_orders sid_orders_window; do
+        [ -n "${BAD[$k]+x}" ] && continue
         v="${KV[$k]:-0}"; [ "$v" = "0" ] || [ "$v" = "0 0" ] || red "SID $SID_ID 시작 전(CREATED)인데 $k $v"
       done
     fi
@@ -192,7 +232,7 @@ if [ ${#KV[@]} -gt 0 ]; then
   chk_zero sid_dup_buy_positions "SID $SID_ID 한 포지션에 체결 매수 2건 이상(중복 매수)"
   chk_max sid_filled_buys_window 1 "SID $SID_ID 구간 안 체결 매수(일봉 전략 — 중복 매수 의심)"
   # 정산 — 보고값·반영값 누락 또는 반영 대기는 발견 즉시 ⚪(확인 불가 — 정상으로 보지 않는다), 대기 없이 보고값≠반영값은 🔴
-  v="${KV[sid_settle_unknown]:-}"; [ -n "$v" ] && [ "$v" != "0" ] && unknown "SID $SID_ID 체결 주문 정산 확인 불가 ${v}건(보고값·반영값 누락 또는 반영 대기, 주문 ${KV[sid_settle_ids]:-?}) — 재조회 대상"
+  v="${KV[sid_settle_unknown]:-}"; [ -n "${BAD[sid_settle_unknown]+x}" ] && v=""; [ -n "$v" ] && [ "$v" != "0" ] && unknown "SID $SID_ID 체결 주문 정산 확인 불가 ${v}건(보고값·반영값 누락 또는 반영 대기, 주문 ${KV[sid_settle_ids]:-?}) — 재조회 대상"
   chk_zero sid_settle_mismatch "SID $SID_ID 체결 주문 보고값≠반영값(반영 대기 아님, 주문 ${KV[sid_settle_ids]:-?})"
   # BTC H1 입력(N09, 계획 §5-9 28) — F1 과 같은 B1(2분 유예 필요 완료 봉)·B3(최근 20일 마감 봉 20/20). SID 가 CREATED·RUNNING 일 때만 판정하고,
   #   종료 상태(STOPPED·EMERGENCY_STOPPED·없음 등)는 입력 판정에서 뺀다 — 그 상태 경보는 위 SID 상태 줄이 그대로 낸다.
@@ -204,6 +244,7 @@ if [ ${#KV[@]} -gt 0 ]; then
     CREATED|RUNNING)
       tm='^[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}'; bad=0
       if [ -z "${KV[btc_h1_ok]+x}" ] || [ -z "${KV[btc_h1_done]+x}" ] || [ -z "${KV[btc_h1_need]+x}" ] || [ -z "${KV[btc_h1_daily]+x}" ] || [ -z "${KV[btc_h1_at]+x}" ]; then bad=1
+      elif [ -n "${BAD[btc_h1_ok]+x}${BAD[btc_h1_done]+x}${BAD[btc_h1_need]+x}${BAD[btc_h1_daily]+x}${BAD[btc_h1_at]+x}" ]; then bad=1   # 중복 — 위에서 ⚪
       else
         if { [ "$b1" != true ] && [ "$b1" != false ]; } || ! [[ "$b3" =~ ^([0-9]|1[0-9]|20)$ ]]; then
           unknown "BTC H1 입력 값 형식 이상(B1 ${b1:-빈 값} · B3 ${b3:-빈 값}) — 재조회 대상"; bad=1
@@ -218,14 +259,15 @@ if [ ${#KV[@]} -gt 0 ]; then
         [ "$b1" = true ] || red "BTC H1 입력 미충족(B1) — 최신 완료 봉 ${KV[btc_h1_done]:-?} · 필요 ${KV[btc_h1_need]:-?}(2분 유예) · SID $SID_ID $st"
         [ "$b3" = 20 ] || red "BTC H1 최근 20일 마감 봉 ${b3}/20(B3) · SID $SID_ID $st"
       fi ;;
+    "") BTC_LINE="$BTC_LINE · SID $SID_ID 상태 확인 불가 — 입력 판정 못 함(⚪)" ;;
     *) BTC_LINE="$BTC_LINE · SID $SID_ID ${st:-?} — 입력 판정 적용 제외" ;;
   esac
   chk_zero tg_queue_rejected "텔레그램 큐 진입 실패"
-  qr="${KV[quarantine_release_rows]:-}"; [ -n "$qr" ] && [ "$qr" != "0" ] && [ "$qr" != "-1" ] && red "격리 해제 기록 $qr"
+  qr="${KV[quarantine_release_rows]:-}"; [ -n "${BAD[quarantine_release_rows]+x}" ] && qr=""; [ -n "$qr" ] && [ "$qr" != "0" ] && [ "$qr" != "-1" ] && red "격리 해제 기록 $qr"
   # 검증 세션 — 개수가 아니라 어느 세션인지로 본다: 지정 종료 세션의 STOPPED 만 정상, 그 밖의 RUNNING 아님은 🔴
   S66_LINE="66세션 RUNNING ${KV[s66_running]:-?}"
-  if [ -n "${KV[s66_not_running]:-}" ]; then
-    [ -n "${KV[s66_total]:-}" ] && [ "${KV[s66_total]}" != "$EXPECT_S66" ] && red "검증 세션 수 ${KV[s66_total]}(원래 $EXPECT_S66)"
+  if [ -n "${KV[s66_not_running]:-}" ] && [ -z "${BAD[s66_not_running]+x}" ]; then
+    [ -n "${KV[s66_total]:-}" ] && [ -z "${BAD[s66_total]+x}" ] && [ "${KV[s66_total]}" != "$EXPECT_S66" ] && red "검증 세션 수 ${KV[s66_total]}(원래 $EXPECT_S66)"
     s66_bad=(); s66_ended=()
     for x in ${KV[s66_not_running]}; do
       [ "$x" = "-" ] && continue
@@ -248,6 +290,7 @@ if [ ${#KV[@]} -gt 0 ]; then
   detail "$BTC_LINE"
   detail "텔레그램(구간): 성공 ${KV[tg_ok_window]:-?} · 큐 진입 실패 ${KV[tg_queue_rejected]:-?} · 마지막 성공 ${KV[tg_last_ok]:-?}"
   for line in "${TG_FAIL_LINES[@]}"; do
+    [[ "$line" =~ ^[^|]+\|[0-9]+$ ]] || continue   # 형식 이상 행은 위에서 ⚪
     t="${line%%|*}"; n="${line##*|}"
     if [[ " $CRITICAL_TG_TYPES " == *" $t "* ]]; then red "텔레그램 중요 경보 전송 실패 $t ${n}건"; else note "텔레그램 전송 실패 $t ${n}건"; fi
   done
