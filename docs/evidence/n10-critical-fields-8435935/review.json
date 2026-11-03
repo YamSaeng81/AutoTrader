@@ -1,0 +1,87 @@
+{
+  "source_sha": "8435935e975ceb6c2e16a09ef5b82530574a7da2",
+  "shell_sha256": "a6ddc54994355066b940c276d98d7396e501aad3cce31004475ca35574d4d657",
+  "cases": [
+    {
+      "case": "normal",
+      "expected": "green",
+      "exit": 0,
+      "header": "[정기 점검] 🟢 점검 항목 정상",
+      "meets_expected": true,
+      "external_command_called": false
+    },
+    {
+      "case": "blank_sid_status",
+      "expected": "white",
+      "exit": 0,
+      "header": "[정기 점검] 🟢 점검 항목 정상",
+      "meets_expected": false,
+      "external_command_called": false
+    },
+    {
+      "case": "blank_unknown_orders",
+      "expected": "white",
+      "exit": 0,
+      "header": "[정기 점검] 🟢 점검 항목 정상",
+      "meets_expected": false,
+      "external_command_called": false
+    },
+    {
+      "case": "blank_settle_mismatch",
+      "expected": "white",
+      "exit": 0,
+      "header": "[정기 점검] 🟢 점검 항목 정상",
+      "meets_expected": false,
+      "external_command_called": false
+    },
+    {
+      "case": "blank_unresolved_settlement",
+      "expected": "white",
+      "exit": 0,
+      "header": "[정기 점검] 🟢 점검 항목 정상",
+      "meets_expected": false,
+      "external_command_called": false
+    },
+    {
+      "case": "blank_other_real_orders",
+      "expected": "white",
+      "exit": 0,
+      "header": "[정기 점검] 🟢 점검 항목 정상",
+      "meets_expected": false,
+      "external_command_called": false
+    },
+    {
+      "case": "blank_status_with_stale_btc",
+      "expected": "white",
+      "exit": 0,
+      "header": "[정기 점검] 🟢 점검 항목 정상",
+      "meets_expected": false,
+      "external_command_called": false
+    },
+    {
+      "case": "duplicate_unknown_1_then_0",
+      "expected": "white",
+      "exit": 0,
+      "header": "[정기 점검] 🟢 점검 항목 정상",
+      "meets_expected": false,
+      "external_command_called": false
+    },
+    {
+      "case": "unknown_orders_one",
+      "expected": "red",
+      "exit": 1,
+      "header": "[정기 점검] 🔴 이상 1건",
+      "meets_expected": true,
+      "external_command_called": false
+    },
+    {
+      "case": "missing_sid_status",
+      "expected": "white",
+      "exit": 1,
+      "header": "[정기 점검] ⚪ 판정 불가 — 수집 실패 1건 (정상으로 보지 않는다)",
+      "meets_expected": true,
+      "external_command_called": false
+    }
+  ],
+  "scope": "Local full original shell with SQL output stubbed, DRY_RUN. No database, HTTP, Docker, SSH, crontab, or source mutation."
+}
