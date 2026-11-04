@@ -1,0 +1,516 @@
+{
+  "submission": "95400d828bd94fa539ceb679700c28b6ca40ac8e",
+  "submitted_manifest": [
+    {
+      "path": ".gitattributes",
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "README.md",
+      "sha256": "352b46105566e2cd9d483336eb46e32d07abece01c20b42201c1ce721d21e634",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "block-hashes.json",
+      "sha256": "bcd492decad6cb67ad2879876bf4d8ecc2e7ea0716f5c8b8cd4d57ecb15c706e",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "blocks-syntax.txt",
+      "sha256": "a65209cbbd7461411965c38dba475166efa1397c2fc6fc74c64eb6329c0b001e",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "blocks/L0.sh",
+      "sha256": "ee1ca6e5c6cef3a619569a526b424ba9a88ff7c84047639674ebd41782cd99c9",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "blocks/L1.sh",
+      "sha256": "c28cd0ccfe82206383e91b6dcebb5640c6771bce932a47e3bdc7dab895f807b5",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "blocks/L2.sh",
+      "sha256": "13788dfeb2a9a5ee3ecd9ea67515b7ead2bffc68556e26f24f1a7e24983cef25",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "blocks/L3.sh",
+      "sha256": "ce78d72ffcf72f210fbdf3a39eb47c89c4e1ba668aeacb0e046f86466220eade",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "blocks/L4.sh",
+      "sha256": "d9ec1eb144d499700de2d6b4c042d204fd449b20e4872df24efc0292302551c9",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "blocks/Lafter.sh",
+      "sha256": "b6e7f2bd68be60c44f2aaf8dffea99ed6e2649862286750154db0dfc82542003",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "blocks/Lback.sh",
+      "sha256": "15dd05fdddabdeb1cc4266fdec6c6f59a83a5ff0e7719f37243d189bd06e7912",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "blocks/Lvar.sh",
+      "sha256": "ce4e4f606447128543244b3c4814bf4365e1f2b05f75424317c8b2d5905e34ef",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "cases/c01-old-cp-body.txt",
+      "sha256": "3c13c093683795cd44a8f2a6218b8dd6321b18bdacd1b930b8baf4c550fa8856",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "cases/c02-new-cp.txt",
+      "sha256": "1b90084a85217ba41c11a6bfc645d9b4b3906b2fda30061b3778dc10b4e4e02c",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "cases/c03-new-upbit.txt",
+      "sha256": "e2178602e47cc5e6108451bfd5928be718d6ed561de16129afac27707c3f5c92",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "cases/c04-coingecko.txt",
+      "sha256": "03ed2df0d52f94c52ef80bec424d5a78982e91abae498f4872f8dc71f462b730",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "cases/c05-rss.txt",
+      "sha256": "0632b02dd70b14522968bfb79502055df7d06684e727465c88a28da0a7993b56",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "cases/c06-new-no-pair.txt",
+      "sha256": "c93a391856f2a3cac08f2f870f221e6ef438dc5c737ca8076d737769aacf4d00",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "cases/c07-new-with-cont.txt",
+      "sha256": "3304781f61bb3ae8539ac8e7b7bf15455e038cbdb8b49ef1fcfb8bf02fb239e6",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "cases/c08-none.txt",
+      "sha256": "c9ec57561dd0091f8a3bc8da7b250eeb929717ea539935060a7226927fb23f94",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "cases/c09-old-upbit-120.txt",
+      "sha256": "7f0e19a544118ec476a616cdd910848461c509755ddf0a43a60695ce207a4499",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "cases/c10-mixed.txt",
+      "sha256": "57cb0c6baefb9faf06a10e5600d2d134dd15f8038705dbf73a28cf7222157852",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "cases/c11-pair-other-sid.txt",
+      "sha256": "4acefe899e53243f27a5e7bac97dfcaf7be8f159725d914e2521f0586c2477b5",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "cases/c12-pair-other-status.txt",
+      "sha256": "e75d59a5bd5f7cc7f74079d3dfa39fdae8c6376d35762d98d2bf5ab9cc187547",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "cases/c13-no-prefix.txt",
+      "sha256": "613f3af6c8e0f025dae4105b128826514b0158c77b71c8b8b5e2743c18cae159",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "cases/c14-repeat.txt",
+      "sha256": "ed473025d2add5266492209951fda4eb3cb0568e14ff6807b7d930b2536a11ff",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "cases/c15-k20-real-lines.txt",
+      "sha256": "9dc270c97780393d288cb12330a95f3aac77ea385e95f4ad04bfa850c42c644d",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "cases/r-cross-thread.txt",
+      "sha256": "825cc4811248af9be00471b926a28e12df66057e952f86804653813ef975d7a3",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "cases/r-same-thread-control.txt",
+      "sha256": "a5284a6f277465bab3aabe02e2cfa10b2499d6e46d3b03c3db4aabf4a8497292",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "cases/r-two-warns-one-result.txt",
+      "sha256": "54a0ea0e4e1b67e8e691f747563fee4c2782284c70cc525fd704693a6adf909f",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "cases/r-untrusted-source-id.txt",
+      "sha256": "2a026f413d084a76d832e93db93fdb3710cefc2a4f83cd2f43fee18377c161f2",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "cases/x-coingecko-other-source.txt",
+      "sha256": "92d810c5de8ec7710b9af01f773611a84eb18e3508fa02d439ed55b01499b3e0",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "httpobs-cases.txt",
+      "sha256": "d727b3b1d485b6fe4a118642374567f7cb9e1e74424c4c4d686bcb26d7308b86",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "l-to-m.diff",
+      "sha256": "f6995cb4b0e2f751d030eff3d75e18c012e42fb51c0d399720029b3b366811ab",
+      "raw_and_git_match": true
+    }
+  ],
+  "previous_review_manifest": [
+    {
+      "path": ".gitattributes",
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "cases/cross-thread.txt",
+      "sha256": "825cc4811248af9be00471b926a28e12df66057e952f86804653813ef975d7a3",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "cases/same-thread-control.txt",
+      "sha256": "a5284a6f277465bab3aabe02e2cfa10b2499d6e46d3b03c3db4aabf4a8497292",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "cases/two-warns-one-result.txt",
+      "sha256": "54a0ea0e4e1b67e8e691f747563fee4c2782284c70cc525fd704693a6adf909f",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "cases/untrusted-source-id.txt",
+      "sha256": "2a026f413d084a76d832e93db93fdb3710cefc2a4f83cd2f43fee18377c161f2",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "document-check.json",
+      "sha256": "bf2d795d372a8ea4d596eddba1824acab8ab59cd9e6cde826d7f99558399559b",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "httpobs.py",
+      "sha256": "dfaab638435bed1dae12a3fbc2761016d65470f21c070701cafdcfb0ee45b9fb",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "jar-compare.py",
+      "sha256": "d6f1b3bb5d0369567b251e8dc0802a5d17861ccc1a21e9be09a85319bdc35046",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "jar-diff.txt",
+      "sha256": "143a5fde07f7104d8ebd76309bc5e6c018df85252c4fb0bf9d789b12debcb035",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "README.md",
+      "sha256": "38573d9592366ba568068c6a86ed9765d27c127b6fa5951aec20040d7b85862f",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "results/cross-thread.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "results/cross-thread.stdout",
+      "sha256": "91a9581047bf9e2fa326f42b0cc648748d52669a259b32254105b08fa05b7759",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "results/same-thread-control.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "results/same-thread-control.stdout",
+      "sha256": "91a9581047bf9e2fa326f42b0cc648748d52669a259b32254105b08fa05b7759",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "results/two-warns-one-result.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "results/two-warns-one-result.stdout",
+      "sha256": "8d82e54113a6e2b6793ee881ef670212dde5a5d34b34450c8fc85d0cec36fdd8",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "results/untrusted-source-id.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "results/untrusted-source-id.stdout",
+      "sha256": "110ee3063fe9aeb3fc0d84fab4b95900d7d7766412ab36b902ab38546062a29a",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "review.json",
+      "sha256": "0d51027aa102713aeb1595427ce4b876c10483767dfc617ce1a38622c68827a0",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "review.py",
+      "sha256": "a85f351954f8869c058abcce52cf0e2bed371aa7b2e0ea2e57363383d8b563e9",
+      "raw_and_git_match": true
+    }
+  ],
+  "old_84_blocks_unchanged": true,
+  "block_syntax": [
+    {
+      "name": "Lvar",
+      "sha256": "ce4e4f606447128543244b3c4814bf4365e1f2b05f75424317c8b2d5905e34ef",
+      "exit": 0
+    },
+    {
+      "name": "L0",
+      "sha256": "ee1ca6e5c6cef3a619569a526b424ba9a88ff7c84047639674ebd41782cd99c9",
+      "exit": 0
+    },
+    {
+      "name": "L1",
+      "sha256": "c28cd0ccfe82206383e91b6dcebb5640c6771bce932a47e3bdc7dab895f807b5",
+      "exit": 0
+    },
+    {
+      "name": "L2",
+      "sha256": "13788dfeb2a9a5ee3ecd9ea67515b7ead2bffc68556e26f24f1a7e24983cef25",
+      "exit": 0
+    },
+    {
+      "name": "L3",
+      "sha256": "ce78d72ffcf72f210fbdf3a39eb47c89c4e1ba668aeacb0e046f86466220eade",
+      "exit": 0
+    },
+    {
+      "name": "L4",
+      "sha256": "d9ec1eb144d499700de2d6b4c042d204fd449b20e4872df24efc0292302551c9",
+      "exit": 0
+    },
+    {
+      "name": "Lafter",
+      "sha256": "b6e7f2bd68be60c44f2aaf8dffea99ed6e2649862286750154db0dfc82542003",
+      "exit": 0
+    },
+    {
+      "name": "Lback",
+      "sha256": "15dd05fdddabdeb1cc4266fdec6c6f59a83a5ff0e7719f37243d189bd06e7912",
+      "exit": 0
+    }
+  ],
+  "scope": [
+    {
+      "name": "Lvar",
+      "only_helper_and_version_marker_changed": true
+    },
+    {
+      "name": "L0",
+      "only_helper_and_version_marker_changed": true
+    },
+    {
+      "name": "L1",
+      "only_helper_and_version_marker_changed": true
+    },
+    {
+      "name": "L2",
+      "only_helper_and_version_marker_changed": true
+    },
+    {
+      "name": "L3",
+      "only_helper_and_version_marker_changed": true
+    },
+    {
+      "name": "L4",
+      "only_helper_and_version_marker_changed": true
+    },
+    {
+      "name": "Lafter",
+      "only_helper_and_version_marker_changed": true
+    },
+    {
+      "name": "Lback",
+      "only_helper_and_version_marker_changed": true
+    }
+  ],
+  "f_15_and_ops_7_unchanged": true,
+  "four_previous_inputs_byte_identical": true,
+  "fifteen_previous_inputs_byte_identical": true,
+  "cases": [
+    {
+      "name": "c01-old-cp-body.txt",
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "raw_id_thread_body_in_output": false,
+      "stderr_empty": true
+    },
+    {
+      "name": "c02-new-cp.txt",
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "raw_id_thread_body_in_output": false,
+      "stderr_empty": true
+    },
+    {
+      "name": "c03-new-upbit.txt",
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "raw_id_thread_body_in_output": false,
+      "stderr_empty": true
+    },
+    {
+      "name": "c04-coingecko.txt",
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "raw_id_thread_body_in_output": false,
+      "stderr_empty": true
+    },
+    {
+      "name": "c05-rss.txt",
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "raw_id_thread_body_in_output": false,
+      "stderr_empty": true
+    },
+    {
+      "name": "c06-new-no-pair.txt",
+      "expected_exit": 3,
+      "actual_exit": 3,
+      "raw_id_thread_body_in_output": false,
+      "stderr_empty": true
+    },
+    {
+      "name": "c07-new-with-cont.txt",
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "raw_id_thread_body_in_output": false,
+      "stderr_empty": true
+    },
+    {
+      "name": "c08-none.txt",
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "raw_id_thread_body_in_output": false,
+      "stderr_empty": true
+    },
+    {
+      "name": "c09-old-upbit-120.txt",
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "raw_id_thread_body_in_output": false,
+      "stderr_empty": true
+    },
+    {
+      "name": "c10-mixed.txt",
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "raw_id_thread_body_in_output": false,
+      "stderr_empty": true
+    },
+    {
+      "name": "c11-pair-other-sid.txt",
+      "expected_exit": 3,
+      "actual_exit": 3,
+      "raw_id_thread_body_in_output": false,
+      "stderr_empty": true
+    },
+    {
+      "name": "c12-pair-other-status.txt",
+      "expected_exit": 3,
+      "actual_exit": 3,
+      "raw_id_thread_body_in_output": false,
+      "stderr_empty": true
+    },
+    {
+      "name": "c13-no-prefix.txt",
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "raw_id_thread_body_in_output": false,
+      "stderr_empty": true
+    },
+    {
+      "name": "c14-repeat.txt",
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "raw_id_thread_body_in_output": false,
+      "stderr_empty": true
+    },
+    {
+      "name": "c15-k20-real-lines.txt",
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "raw_id_thread_body_in_output": false,
+      "stderr_empty": true
+    },
+    {
+      "name": "r-cross-thread.txt",
+      "expected_exit": 3,
+      "actual_exit": 3,
+      "raw_id_thread_body_in_output": false,
+      "stderr_empty": true
+    },
+    {
+      "name": "r-same-thread-control.txt",
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "raw_id_thread_body_in_output": false,
+      "stderr_empty": true
+    },
+    {
+      "name": "r-two-warns-one-result.txt",
+      "expected_exit": 3,
+      "actual_exit": 3,
+      "raw_id_thread_body_in_output": false,
+      "stderr_empty": true
+    },
+    {
+      "name": "r-untrusted-source-id.txt",
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "raw_id_thread_body_in_output": false,
+      "stderr_empty": true
+    },
+    {
+      "name": "x-coingecko-other-source.txt",
+      "expected_exit": 3,
+      "actual_exit": 3,
+      "raw_id_thread_body_in_output": false,
+      "stderr_empty": true
+    },
+    {
+      "name": "no_arguments",
+      "expected_exit": 3,
+      "actual_exit": 3,
+      "raw_id_thread_body_in_output": false,
+      "stderr_empty": true
+    }
+  ],
+  "same_thread_evidence": "Synchronous source.fetch(config) followed by aggregator result log in collectFromSource; intervening unrelated/debug logs conservatively yield unknown.",
+  "ruling": "Accept helper correction; approve #21 execution from pinned 95400d8 section 63. App candidate and prior jar expectations remain accepted. Operational N12 completion awaits actual results.",
+  "limits": [
+    "Root executed only pure local log parsing and shell syntax checks; no L stages were sourced or executed.",
+    "No SSH/DB/HTTP access, app tests, jar rebuilds/comparison variants or full rehearsal were run.",
+    "Five following log headers and first same-thread record are a conservative pairing rule, not a request ID.",
+    "CoinGecko has no sourceId in its HTTP line; absent competing-source evidence is not independent configuration proof.",
+    "Interleaved/debug/incomplete observations remain white/3. Natural HTTP failure absent means unobserved, not validated.",
+    "CryptoPanic HTTP403 cause and Connection reset recovery are unresolved; catch ERROR classification is unchanged."
+  ]
+}

@@ -1,0 +1,35 @@
+6995c52 NewsAggregatorService.collectFromSource: synchronous fetch to result log.
+        log.debug("[NewsAggregator] 수집 시작 — sourceId={}", config.getSourceId());
+        NewsFetchResult result = source.fetch(config);
+        if (result == null) result = NewsFetchResult.failed(NewsFetchResult.NULL_RESULT); // 계약 위반도 성공으로 보지 않는다
+        List<NewsItem> items = result.items();
+        int saved = 0;
+
+        for (NewsItem item : items) {
+            if (item.getExternalId() == null) continue;
+            if (newsCacheRepo.existsBySourceIdAndExternalId(item.getSourceId(), item.getExternalId())) {
+                continue; // 중복 스킵
+            }
+            NewsItemCacheEntity entity = NewsItemCacheEntity.builder()
+                    .sourceId(item.getSourceId())
+                    .externalId(item.getExternalId())
+                    .title(item.getTitle())
+                    .url(item.getUrl())
+                    .summary(item.getOriginalSummary())
+                    .category(item.getCategory())
+                    .publishedAt(item.getPublishedAt())
+                    .build();
+            newsCacheRepo.save(entity);
+            saved++;
+        }
+
+        config.setLastFetchedAt(Instant.now());
+        sourceConfigRepo.save(config);
+
+        if (result.isSuccess()) {
+            log.info("[NewsAggregator] 수집 완료 — sourceId={} 전체={}건 신규={}건",
+                    config.getSourceId(), items.size(), saved);
+        } else {
+            log.warn("[NewsAggregator] 수집 미완료 — sourceId={} 결과={} 종류={} 판정={} 받은={}건 신규={}건",
+                    config.getSourceId(), result.status(), result.failureKind(), result.decidedAt(), items.size(), saved);
+        }

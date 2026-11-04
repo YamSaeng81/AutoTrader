@@ -1,0 +1,77 @@
+== c01-old-cp-body.txt expected=1 actual=1
+🔴 CryptoPanicSource 05:12:35.872 HTTP 403 — 고정 한 줄이 아님(꼬리 17자·뒤 연속 줄 3줄, 내용은 출력하지 않는다)
+CryptoPanicSource HTTP 403 ×1 — 고정 한 줄 0 · 본문 형식/연속 줄 1 · 같은 스레드 상위 FAILED/HTTP_n/0건 짝 0 · 짝 미확인 0
+
+== c02-new-cp.txt expected=0 actual=0
+CryptoPanicSource HTTP 403 ×1 — 고정 한 줄 1 · 본문 형식/연속 줄 0 · 같은 스레드 상위 FAILED/HTTP_n/0건 짝 1 · 짝 미확인 0
+
+== c03-new-upbit.txt expected=0 actual=0
+UpbitNoticeSource HTTP 503 ×1 — 고정 한 줄 1 · 본문 형식/연속 줄 0 · 같은 스레드 상위 FAILED/HTTP_n/0건 짝 1 · 짝 미확인 0
+
+== c04-coingecko.txt expected=0 actual=0
+CoinGeckoTrendingSource HTTP 429 ×1 — 고정 한 줄 1 · 본문 형식/연속 줄 0 · 같은 스레드 상위 FAILED/HTTP_n/0건 짝 1 · 짝 미확인 0
+
+== c05-rss.txt expected=0 actual=0
+RssNewsSource HTTP 404 ×1 — 고정 한 줄 1 · 본문 형식/연속 줄 0 · 같은 스레드 상위 FAILED/HTTP_n/0건 짝 1 · 짝 미확인 0
+
+== c06-new-no-pair.txt expected=3 actual=3
+⚪ CryptoPanicSource 05:12:35.872 HTTP 403 — 같은 스레드 다음 줄이 상위 FAILED/HTTP_n/0건 결과가 아님 — 보고
+CryptoPanicSource HTTP 403 ×1 — 고정 한 줄 1 · 본문 형식/연속 줄 0 · 같은 스레드 상위 FAILED/HTTP_n/0건 짝 0 · 짝 미확인 1
+
+== c07-new-with-cont.txt expected=1 actual=1
+🔴 CryptoPanicSource 05:12:35.872 HTTP 403 — 고정 한 줄이 아님(꼬리 23자·뒤 연속 줄 1줄, 내용은 출력하지 않는다)
+CryptoPanicSource HTTP 403 ×1 — 고정 한 줄 0 · 본문 형식/연속 줄 1 · 같은 스레드 상위 FAILED/HTTP_n/0건 짝 0 · 짝 미확인 0
+
+== c08-none.txt expected=0 actual=0
+출처 HTTP 비200 줄: 미관측 — 이 구간에 자연 발생한 비200 응답 없음(실패를 유도하지 않는다)
+
+== c09-old-upbit-120.txt expected=1 actual=1
+🔴 UpbitNoticeSource 06:00:01.100 HTTP 503 — 고정 한 줄이 아님(꼬리 70자·뒤 연속 줄 0줄, 내용은 출력하지 않는다)
+UpbitNoticeSource HTTP 503 ×1 — 고정 한 줄 0 · 본문 형식/연속 줄 1 · 같은 스레드 상위 FAILED/HTTP_n/0건 짝 0 · 짝 미확인 0
+
+== c10-mixed.txt expected=1 actual=1
+🔴 UpbitNoticeSource 06:00:01.100 HTTP 503 — 고정 한 줄이 아님(꼬리 70자·뒤 연속 줄 0줄, 내용은 출력하지 않는다)
+CryptoPanicSource HTTP 403 ×1 — 고정 한 줄 1 · 본문 형식/연속 줄 0 · 같은 스레드 상위 FAILED/HTTP_n/0건 짝 1 · 짝 미확인 0
+UpbitNoticeSource HTTP 503 ×1 — 고정 한 줄 0 · 본문 형식/연속 줄 1 · 같은 스레드 상위 FAILED/HTTP_n/0건 짝 0 · 짝 미확인 0
+
+== c11-pair-other-sid.txt expected=3 actual=3
+⚪ CryptoPanicSource 05:12:35.872 HTTP 403 — 같은 스레드 상위 결과의 sourceId 가 HTTP 줄과 다름(값은 출력하지 않는다) — 보고
+CryptoPanicSource HTTP 403 ×1 — 고정 한 줄 1 · 본문 형식/연속 줄 0 · 같은 스레드 상위 FAILED/HTTP_n/0건 짝 0 · 짝 미확인 1
+
+== c12-pair-other-status.txt expected=3 actual=3
+⚪ CryptoPanicSource 05:12:35.872 HTTP 403 — 같은 스레드 상위 결과의 상태가 다름 — 보고
+CryptoPanicSource HTTP 403 ×1 — 고정 한 줄 1 · 본문 형식/연속 줄 0 · 같은 스레드 상위 FAILED/HTTP_n/0건 짝 0 · 짝 미확인 1
+
+== c13-no-prefix.txt expected=0 actual=0
+CryptoPanicSource HTTP 403 ×1 — 고정 한 줄 1 · 본문 형식/연속 줄 0 · 같은 스레드 상위 FAILED/HTTP_n/0건 짝 1 · 짝 미확인 0
+
+== c14-repeat.txt expected=0 actual=0
+CryptoPanicSource HTTP 403 ×2 — 고정 한 줄 2 · 본문 형식/연속 줄 0 · 같은 스레드 상위 FAILED/HTTP_n/0건 짝 2 · 짝 미확인 0
+UpbitNoticeSource HTTP 503 ×1 — 고정 한 줄 1 · 본문 형식/연속 줄 0 · 같은 스레드 상위 FAILED/HTTP_n/0건 짝 1 · 짝 미확인 0
+
+== c15-k20-real-lines.txt expected=1 actual=1
+🔴 CryptoPanicSource 05:12:35.872 HTTP 403 — 고정 한 줄이 아님(꼬리 17자·뒤 연속 줄 0줄, 내용은 출력하지 않는다)
+🔴 CryptoPanicSource 05:42:40.710 HTTP 403 — 고정 한 줄이 아님(꼬리 17자·뒤 연속 줄 0줄, 내용은 출력하지 않는다)
+CryptoPanicSource HTTP 403 ×2 — 고정 한 줄 0 · 본문 형식/연속 줄 2 · 같은 스레드 상위 FAILED/HTTP_n/0건 짝 0 · 짝 미확인 0
+
+== r-cross-thread.txt expected=3 actual=3
+⚪ CryptoPanicSource 05:12:35.872 HTTP 403 — 뒤 5줄 안에 같은 스레드의 다음 줄 없음 — 보고
+CryptoPanicSource HTTP 403 ×1 — 고정 한 줄 1 · 본문 형식/연속 줄 0 · 같은 스레드 상위 FAILED/HTTP_n/0건 짝 0 · 짝 미확인 1
+
+== r-same-thread-control.txt expected=0 actual=0
+CryptoPanicSource HTTP 403 ×1 — 고정 한 줄 1 · 본문 형식/연속 줄 0 · 같은 스레드 상위 FAILED/HTTP_n/0건 짝 1 · 짝 미확인 0
+
+== r-two-warns-one-result.txt expected=3 actual=3
+⚪ CryptoPanicSource 05:12:35.870 HTTP 403 — 같은 스레드 다음 줄이 상위 FAILED/HTTP_n/0건 결과가 아님 — 보고
+CryptoPanicSource HTTP 403 ×2 — 고정 한 줄 2 · 본문 형식/연속 줄 0 · 같은 스레드 상위 FAILED/HTTP_n/0건 짝 1 · 짝 미확인 1
+
+== r-untrusted-source-id.txt expected=0 actual=0
+CryptoPanicSource HTTP 403 ×1 — 고정 한 줄 1 · 본문 형식/연속 줄 0 · 같은 스레드 상위 FAILED/HTTP_n/0건 짝 1 · 짝 미확인 0
+
+== x-coingecko-other-source.txt expected=3 actual=3
+⚪ CoinGeckoTrendingSource 06:10:00.000 HTTP 403 — 같은 스레드 상위 결과의 sourceId 를 다른 출처가 찍음(값은 출력하지 않는다) — 보고
+CoinGeckoTrendingSource HTTP 403 ×1 — 고정 한 줄 1 · 본문 형식/연속 줄 0 · 같은 스레드 상위 FAILED/HTTP_n/0건 짝 0 · 짝 미확인 1
+CryptoPanicSource HTTP 403 ×1 — 고정 한 줄 1 · 본문 형식/연속 줄 0 · 같은 스레드 상위 FAILED/HTTP_n/0건 짝 1 · 짝 미확인 0
+
+== no_arguments expected=3 actual=3
+⚪ httpobs 인자는 1개(앱 로그)
