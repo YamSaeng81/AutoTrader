@@ -67,8 +67,8 @@ public class UpbitNoticeSource implements NewsSource {
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) {
-                log.warn("[UpbitNoticeSource] HTTP {}: {}", response.statusCode(),
-                        response.body() != null ? response.body().substring(0, Math.min(120, response.body().length())) : "");
+                // 응답 본문(HTML·줄바꿈·URL 등)은 옮기지 않는다 — 출처와 상태 코드만 한 줄 (N12)
+                log.warn("[UpbitNoticeSource] HTTP {} — sourceId={}", response.statusCode(), config.getSourceId());
                 return NewsFetchResult.httpStatus(response.statusCode());
             }
 
