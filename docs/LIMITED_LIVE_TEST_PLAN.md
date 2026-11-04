@@ -1,5 +1,7 @@
 # 12월 제한 실거래 시험 — 후보와 실행안
 
+> **v1.102 (2026-11-05, 총괄 야간 후보 수용·실행 절차 보완)**: N13 C2 fe01207/N14 c669ccd를 수용한다. XML16/16·보존194/194·실제jar1클래스/879→879·성능근거 대조, 인덱스 추가 없음. #22의 스택 줄 획득timeout 누락과 설치 실패 뒤DRY_RUN진행을 직접 보완·국소검증했다. 새수정커밋의§69(PV70)를쓰며46f2c04옛블록은쓰지않는다. N14설치/DRY_RUN→10시보고→10:10이후#22, P0시간대/설치판검사·기존P2직전확인1회 유지. 운영/설치완료는실제결과뒤, F핀/S·203CREATED·12-01일정유지. §5-9 70.
+
 > **v1.101 (2026-11-04~05, 야간 작업 — N13 SQL 후보·#22 배포안 초안, N14 로그 범위 후보·설치안 초안)**: 총괄 v1.100 로컬 문서 5개·근거 `n13-review-1aa77eb`·야간 지시를 그대로 함께 넣는다. N13 후보 `fe01207`(격리 브랜치, NOT EXISTS 안쪽만 평가된 (코인, 정시) DISTINCT 집합 대조): 실제 PostgreSQL 15.13 시험 16/16(격자 2,472건 전체 열 일치·회차 예산/중복/실패/오류/연결 0 단언), 로컬 250만 생성 자료에서 구판 26~28초·30초 초과 → 0.36~1.44초, 계획 두 키 Merge Anti Join, C1 판은 limit 에 따라 30초 초과라 버림. #22 P 블록 8개(복구 기준 6995c52·67294e80…, jar 1줄·879→879, `holdobs` 관측: 획득 시간 초과 P0 멈춤·장기 대여 ⚪) 로컬 확인만. N14 후보 `c669ccd`(설치판 d491fd1 기점, Created 로 재생성 공백 ⚪·StartedAt 미사용, SQL 무변경): 구판 169/194 → 194/194, 설치안 대역 4경우. 운영 배포·설치·DB·cron·장부·세션 변경 없음. F 변수·F1·N06 15블록·최종 S·d491fd1·SID 203 `CREATED`·12-01 08:50 그대로. §5-9 69.
 
 > **v1.100 (2026-11-04, 총괄 N03 결과 수용·N13 SQL 후보 범위 결정)**: 11-04 22시 보고와17:19~21:19 적재5회 수용, #21 적재 확인 공백을 닫는다. N13 연결 경계 관측/플래너 자료를 수용하며 두 HOLD 조회SQL 우선 개선·실제 PostgreSQL 동등성/로컬 실행 측정을 승인한다. 운영 실행 측정·DDL/통계 갱신은 보류, N13은 조사/후보 중이다. 재생성 뒤 명목12시간 ERROR 로그가 일부만 집계되는 공백은N14 로컬 보완으로 분리한다. F핀/S·운영6995/점검d491/장부cron/203CREATED·12-01 일정 유지. §5-9 68.
@@ -6355,7 +6357,7 @@ echo "✅ b1d7664 (fd3ac351…) 로 복귀 — 5분 뒤 L3 를 다시 실행(t-r
   - 고정값:
     - 복구 기준 6995c52·이미지 `67294e80…`, 새 기록 폴더 `~/maint-n13`, 보존 태그 `autotrader-backend:6995c52`.
     - 이전 복구 태그 `ea44900`·`b1d7664` 는 P0 가 확인한다.
-    - 판 표지 `PV=69`.
+    - 판 표지 `PV=70`.
   - jar 는 실제 두 jar(6995c52 기존 사본 `a8bdf107…`·후보 `73567cb3…`)에서 셌다. `변경 …/StrategyLogRepository.class` 1줄, `(끝) 879 879` 다.
   - **관측·중단 기준**(`holdobs`): 기동 직후 catchup 과 5분 뒤 첫 정기 회차를 포함한 30분 로그에서 본다.
     - Hikari 장기 대여 경고(HOLD 프레임·그 밖)·반환·`Connection is not available, request timed out` 줄을 센다.
@@ -6390,17 +6392,17 @@ echo "✅ b1d7664 (fd3ac351…) 로 복귀 — 5분 뒤 L3 를 다시 실행(t-r
   3. N14 후보 수용과 설치 시점, 그리고 #22 와의 순서
   4. 운영 Created 값 형식은 서버에서 다시 보지 않았다
 
-아래 P 블록 8개와 N14 설치 블록은 🔴 **총괄 검토 전 초안 — 운영자는 실행하지 않는다.**
+아래는 **총괄 v1.102 §70 보완본**이다. 이 수정이 포함된 새 고정 커밋의 블록만 쓴다. 46f2c04 원문 P/설치 블록은 사용하지 않는다. N14 설치·10시 자동 보고 확인 뒤 #22를 진행한다.
 
 **P 변수** — 🔴 새 셸마다 §5-8 **F 변수** → §5-9 의 **G 변수** → 이 블록 순서로 실행한다. F 변수가 `BTCIN`·`PSQL`·`DC`·`sc`·`svc` 를, G 변수가 `qc`·`zero5`·`alertsok`·`sid203`·`REPO`·`QS`·`POOLX`·`NOT404` 를 준다. 이 블록이 `M`·`OLD`·`NEW` 를 덮어쓴다. H~L 변수는 넣지 않는다.
 ```bash
-M=~/maint-n13; mkdir -p "$M"; OPS=~/ops-scripts; PV=69   # v1.101(§5-9 69) 판 표지 — P 블록 전부가 확인한다
+M=~/maint-n13; mkdir -p "$M"; OPS=~/ops-scripts; PV=70   # v1.102(§5-9 69 블록·§70 판정) 판 표지 — P 블록 전부가 확인한다
 OLD=6995c52259e3de4c7c922a32f9fb2aa9ddd49f00; NEW=fe01207f3f60e97e308925157f84a1bb2da04388
 IMGOLD=sha256:67294e80ada31d346e36caeb01a2c259b6b5514357c804977ba1d20fba6aec07   # #21 배포 이미지(지금 실행 중, ~/maint-n12/image-new.txt)
 IMGPREV=sha256:618046540764e49aa40efef7ec950f28cd5882e8bf7d6bdfdc3da0ed1f0112f9   # #19 이미지 — 이전 복구 태그 autotrader-backend:ea44900 가 가리킨다(보존, 바꾸지 않는다)
 IMGPREV2=sha256:fd3ac351bcf508d465b9c2f6024ba978273603729f3e6cecba40a639a2f4dcb6   # #20 이미지 — 이전 복구 태그 autotrader-backend:b1d7664 가 가리킨다(보존, 바꾸지 않는다)
 LS=8bfe8a9fa896f400b3fb6681fef021c99d6ba43b; LSUM=02a8585021fb2a1a52d9b3b56b60e957cb71b9ca3c11bf819595df15cf334f1c   # 지금 설치 장부 — 바꾸지 않는다
-CK=d491fd1609b700d195ecc4d0ccea6be2987bf2fe; CKSH=2135e95314edeea68f6b9dfc31a1c0b0034f84b9d3cbfd52be7ee82afab9cc60; CKSQL=653b22bab04b68c50bf9daf2a54f2c281f9c57eaf6795076225ed39d62d48fa8   # 정기 점검 설치본 — 바꾸지 않는다
+CK=c669ccdc6e248ce8e55e9a7ac7405197d266fa18; CKSH=ff0a5d7dbc9e250d364a7f32f80106454b6f4b939d37c578f8192e8206e7c1cc; CKSQL=653b22bab04b68c50bf9daf2a54f2c281f9c57eaf6795076225ed39d62d48fa8   # 정기 점검 설치본 — 바꾸지 않는다
 CRON=f2dce2809c09aa4466a95200caa19547118e444b4ac90b4363e20a158dee9b5b   # crontab — 바꾸지 않는다
 h256() { sha256sum < "$1" | cut -d' ' -f1 ; }
 v94() { [ "$($PSQL -At -c "SELECT max(version::int) FROM flyway_schema_history WHERE success")" = "94" ] ; }
@@ -6587,8 +6589,14 @@ TO = re.compile(r"Connection is not available, request timed out")
 kind = lambda t: re.sub(r"-\d+$", "-N", t)
 rows = [PRE.sub("", l.rstrip("\r\n")) for l in open(sys.argv[1], encoding="utf-8", errors="replace")]
 leaks, cur, to, cs, ce = [], None, [], [], []
+context = None
 for r in rows:
     h = HEAD.match(r)
+    if h:
+        context = (h.group(1), kind(h.group(2)))
+    # Hikari timeout can be on a non-header Caused by line. Count every matching line once.
+    if TO.search(r):
+        to.append(context or ("시각미확인", "스레드미확인"))
     if h:
         cur = None
         m = TRIG.search(r)
@@ -6603,8 +6611,6 @@ for r in rows:
                     k["ret"] = h.group(1)
                     break
             continue
-        if TO.search(r):
-            to.append((h.group(1), kind(h.group(2))))
         if "[SignalQuality] 시작 Catchup 시작" in r:
             cs.append(h.group(1))
         if "[SignalQuality] 시작 Catchup 완료" in r:
@@ -6636,7 +6642,7 @@ PYEOF
 (
 set -euo pipefail
 stop() { echo "🔴 멈춤: $*"; exit 1; }
-[ "$M" = "$HOME/maint-n13" ] && [ "${PV:-}" = 69 ] && [ "$NEW" = fe01207f3f60e97e308925157f84a1bb2da04388 ] && [ -n "${BTCIN:-}" ] && type sid203 > /dev/null 2>&1 && type newsobs > /dev/null 2>&1 && type httpobs > /dev/null 2>&1 && type holdobs > /dev/null 2>&1 || stop "변수 순서 — F 변수 → G 변수 → §5-9 69 P 변수"
+[ "$M" = "$HOME/maint-n13" ] && [ "${PV:-}" = 70 ] && [ "$NEW" = fe01207f3f60e97e308925157f84a1bb2da04388 ] && [ -n "${BTCIN:-}" ] && type sid203 > /dev/null 2>&1 && type newsobs > /dev/null 2>&1 && type httpobs > /dev/null 2>&1 && type holdobs > /dev/null 2>&1 || stop "변수 순서 — F 변수 → G 변수 → §5-9 69 P 변수"
 [ ! -e "$M/ok-P1" ] || stop "P1 을 이미 시작했다 — P0 를 다시 하지 않는다. ls -l $M 를 보고"
 kwin "$(date +%s)" || stop "시작 시각·정기 보고 확인 — 위 줄"
 [ "$(git rev-parse HEAD)" = "$OLD" ] && [ -z "$(git status --porcelain --untracked-files=no)" ] || stop "HEAD 가 6995c52 가 아니거나 추적 파일 변경 있음"
@@ -6654,10 +6660,15 @@ IMG0=$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)"); echo "$IMG0
 [ "$(docker image inspect --format '{{.Id}}' $REPO:latest)" = "$IMG0" ] || stop "$REPO:latest 가 실행 이미지와 다름"
 [ "$($DC exec -T backend env | grep '^TRADING_CAPITALPOOL_' | sort)" = "$POOLX" ] || stop "공유 풀 등록값이 STAGE_1·100000·20000·3 과 다름"
 v94 || stop "Flyway 최고 버전이 94 가 아님"
+TZDB=$($PSQL -At -c "SHOW TimeZone") || stop "DB TimeZone 조회 실패"
+printf 'DB 조회 세션 TimeZone: %s\n' "$TZDB" | tee "$M/timezone-before.txt"
+case "$TZDB" in UTC|Etc/UTC|GMT|Etc/GMT|Asia/Seoul) ;; *) stop "DB TimeZone 이 검증한 UTC/Asia-Seoul 계열이 아님 — timezone-before.txt 를 보고" ;; esac
+$DC exec -T backend date '+%Y-%m-%d %H:%M:%S %Z %z' | tee "$M/container-time-before.txt"
+
 sid203 || stop "SID 203·기준 행·EG·0 확인 중 다른 것 있음 — F1 과 같은 조회로 보고"
 sc | tee "$M/s-before.txt"; [ "$(cat "$M/s-before.txt")" = "66 | 63 | 3 | -" ] || stop "검증 66세션 상태 다름"
 [ "$(h256 "$OPS/sid_ledger.sql")" = "$LSUM" ] && [ "$(cat "$OPS/SID_LEDGER_SHA")" = "$LS" ] || stop "설치 장부가 8bfe8a9 판이 아님"
-[ "$(cat "$OPS/INSTALLED_SHA")" = "$CK" ] && [ "$(h256 "$OPS/daily_check.sh")" = "$CKSH" ] && [ "$(h256 "$OPS/daily_checks.sql")" = "$CKSQL" ] || stop "정기 점검 설치본이 d491fd1 판이 아님"
+[ "$(cat "$OPS/INSTALLED_SHA")" = "$CK" ] && [ "$(h256 "$OPS/daily_check.sh")" = "$CKSH" ] && [ "$(h256 "$OPS/daily_checks.sql")" = "$CKSQL" ] || stop "정기 점검 설치본이 c669ccd 판이 아님(N14 먼저 설치)"
 crontab -l > "$M/crontab-before.txt" || stop "crontab 조회 실패"
 [ "$(h256 "$M/crontab-before.txt")" = "$CRON" ] || stop "crontab 이 f2dce280… 과 다름"
 ( cd ~/sid203-ledger && sha256sum -- * ) > "$M/ledger-files-before.sha"; cat "$M/ledger-files-before.sha"
@@ -6692,7 +6703,7 @@ touch "$M/ok-P0"; echo "✅ P0 통과 — 30분 안에 P1"
 (
 set -euo pipefail
 stop() { echo "🔴 멈춤: $*"; exit 1; }
-[ "${PV:-}" = 69 ] || stop "P 변수가 v1.101(§5-9 69) 판이 아님 — F → G → §5-9 69 P 변수"
+[ "${PV:-}" = 70 ] || stop "P 변수가 v1.102(§5-9 69 블록·§70 판정) 판이 아님 — F → G → §5-9 69 P 변수"
 [ -e "$M/ok-P0" ] || stop "P0 미통과"
 [ ! -e "$M/ok-P1" ] || stop "P1 을 이미 통과했다 — 바로 P2"
 [ $(( $(date +%s) - $(stat -c %Y "$M/ok-P0") )) -le 1800 ] || stop "P0 가 30분보다 오래됨 — P0 부터(아직 바꾼 것 없음, P1-되돌림 하지 않는다)"
@@ -6747,7 +6758,7 @@ touch "$M/ok-P1"; echo "✅ P1 통과 — ⏸ 운영자 확인 1회 뒤 P2"
 (
 set -euo pipefail
 stop() { echo "🔴 멈춤: $*"; exit 1; }
-[ "${PV:-}" = 69 ] || stop "P 변수가 v1.101(§5-9 69) 판이 아님 — F → G → §5-9 69 P 변수"
+[ "${PV:-}" = 70 ] || stop "P 변수가 v1.102(§5-9 69 블록·§70 판정) 판이 아님 — F → G → §5-9 69 P 변수"
 [ -e "$M/ok-P1" ] || stop "P1 미통과"
 [ ! -e "$M/ok-P2" ] || stop "P2 를 이미 했다 — P3"
 IMG1=$(cat "$M/image-new.txt")
@@ -6773,7 +6784,7 @@ touch "$M/ok-P2"; echo "✅ P2 통과 — 5~10분 뒤 P3"
 (
 set -euo pipefail
 stop() { echo "🔴 멈춤: $*"; exit 1; }
-[ "${PV:-}" = 69 ] || stop "P 변수가 v1.101(§5-9 69) 판이 아님 — F → G → §5-9 69 P 변수"
+[ "${PV:-}" = 70 ] || stop "P 변수가 v1.102(§5-9 69 블록·§70 판정) 판이 아님 — F → G → §5-9 69 P 변수"
 if [ -e "$M/t-rollback.utc" ]; then S=$(cat "$M/t-rollback.utc"); EXP=$(cat "$M/image-before.txt"); T=rollback; else [ -e "$M/ok-P2" ] || stop "P2 미통과"; S=$(cat "$M/t-deploy.utc"); EXP=$(cat "$M/image-new.txt"); T=deploy; fi
 [ $(( $(date +%s) - $(date -d "$S" +%s) )) -ge 300 ] || stop "기동 5분 전 — 5분이 지난 뒤 P3"
 $DC ps backend
@@ -6826,7 +6837,7 @@ if [ "$T" = deploy ]; then echo "✅ P3(deploy) 통과 — 기동 30분 뒤 P4";
 (
 set -euo pipefail
 stop() { echo "🔴 멈춤: $*"; exit 1; }
-[ "${PV:-}" = 69 ] || stop "P 변수가 v1.101(§5-9 69) 판이 아님 — F → G → §5-9 69 P 변수"
+[ "${PV:-}" = 70 ] || stop "P 변수가 v1.102(§5-9 69 블록·§70 판정) 판이 아님 — F → G → §5-9 69 P 변수"
 [ -e "$M/ok-P3-deploy" ] || stop "P3 미통과"
 S=$(cat "$M/t-deploy.utc")
 [ $(( $(date +%s) - $(date -d "$S" +%s) )) -ge 1800 ] || stop "아직 30분 전 — 완료로 판정하지 않는다"
@@ -6890,7 +6901,7 @@ touch "$M/ok-P4"; echo "✅ P4 통과 — P0~P4 출력을 보고(F 변수·F1 �
 (
 set -euo pipefail
 stop() { echo "🔴 멈춤: $*"; exit 1; }
-[ "${PV:-}" = 69 ] || stop "P 변수가 v1.101(§5-9 69) 판이 아님 — F → G → §5-9 69 P 변수"
+[ "${PV:-}" = 70 ] || stop "P 변수가 v1.102(§5-9 69 블록·§70 판정) 판이 아님 — F → G → §5-9 69 P 변수"
 [ -e "$M/ok-P4" ] || stop "P4 미통과"
 S=$(cat "$M/t-deploy.utc"); TS=$(date '+%Y%m%d-%H%M')
 [ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$(cat "$M/image-new.txt")" ] || stop "실행 이미지가 image-new 와 다름 — 보고"
@@ -6915,7 +6926,7 @@ case "$HQ" in 0) ;; 3) echo "⚪ 장기 대여 경고 있음 — 개선 미확�
 (
 set -euo pipefail
 stop() { echo "🔴 멈춤: $*"; exit 1; }
-[ "${PV:-}" = 69 ] || stop "P 변수가 v1.101(§5-9 69) 판이 아님 — F → G → §5-9 69 P 변수"
+[ "${PV:-}" = 70 ] || stop "P 변수가 v1.102(§5-9 69 블록·§70 판정) 판이 아님 — F → G → §5-9 69 P 변수"
 IMG0=$(cat "$M/image-before.txt"); [ "$IMG0" = "$IMGOLD" ] || stop "image-before 가 #21 이미지(67294e80…)가 아님"
 date '+%F %T %Z' | tee "$M/t-rollback.txt"; date -u '+%Y-%m-%dT%H:%M:%SZ' > "$M/t-rollback.utc"
 git checkout --quiet $OLD; [ "$(git rev-parse HEAD)" = "$OLD" ] || stop "체크아웃 실패"
@@ -6966,12 +6977,32 @@ crontab -l | cmp -s - "$T/crontab.before" || stop "crontab 이 바뀜 — 보고
 git -C ~/crypto_trader/AutoTrader rev-parse HEAD
 echo "✅ 설치 — 잠금을 풀고 DRY_RUN 1회"
 )
-SID_OK_STATUS=CREATED REPO_DIR=~/crypto_trader/AutoTrader SQL_FILE=~/ops-scripts/daily_checks.sql DRY_RUN=1 ~/ops-scripts/daily_check.sh; echo "rc=$?"
+INSTALL_RC=$?
+if [ "$INSTALL_RC" -ne 0 ]; then
+  echo "🔴 설치 종료 $INSTALL_RC — DRY_RUN 은 실행하지 않았다. 위 출력 위치에 따라 보고/되돌림"
+  false
+else
+  SID_OK_STATUS=CREATED REPO_DIR=~/crypto_trader/AutoTrader SQL_FILE=~/ops-scripts/daily_checks.sql DRY_RUN=1 ~/ops-scripts/daily_check.sh
+  DRY_RC=$?; echo "DRY_RUN rc=$DRY_RC — 본문/설치 해시로 판정"
+fi
 ```
 
 - **DRY_RUN 기대**: 머리글 `점검 스크립트 c669ccdc6e24`, 상세에 `로그 범위: 요청 … · 현재 컨테이너 생성 11-04 16:39:…(구간 …)` 한 줄. 지금 backend 는 11-04 16:39 KST 에 새로 만들어졌으므로, 그 뒤 12시간 안의 실행이면 ⚪ `ERROR 로그 범위 미확보` 가 나오고, 그보다 늦으면 공백 없음이다. 설치 시각에 따라 달라지므로 실제 출력으로 판정한다. 그 밖의 줄(SID 203·BTC·66세션·ERROR 분류)은 d491fd1 과 같은 형식이다.
 - **첫 자동 보고**: 설치 뒤 다음 10:00 또는 22:00 보고에서 머리글 SHA·로그 범위 줄·서버 전송(`last_send`)을 읽는다. 휴대폰 수신은 따로 확인한다.
 - **되돌림**: `cp -p ~/ops-scripts/pre-c669ccd/daily_check.sh ~/ops-scripts/pre-c669ccd/INSTALLED_SHA ~/ops-scripts/` (같은 잠금 아래) → 셸 `2135e953…cc60`·`INSTALLED_SHA` d491fd1 대조. SQL·crontab 은 처음부터 바뀌지 않았다.
+
+**70. 총괄 야간 후보 수용·N14 먼저 설치·#22 실행 절차 보완 승인 (2026-11-05, v1.102)**
+
+- **판정**: 제출46f2c04의 N13 C2 `fe01207f3f60e97e308925157f84a1bb2da04388`와 N14 `c669ccdc6e248ce8e55e9a7ac7405197d266fa18`를 로컬 후보로 수용한다. 지금 인덱스를 더하지 않는다. N13 운영 개선/N14 설치 완료는 실제 결과 뒤 판정한다. 상세 검토·수정 근거는 [`overnight-review-46f2c04`](evidence/overnight-review-46f2c04/README.md)다.
+- **근거 대조**: 후보53/53·N1420/20·앞선총괄6/6 작업파일/Git 일치, 보존XML에서 PostgreSQL동등성6/회차4/기존단위6=16/16·실패/오류/건너뜀0을 확인했다. N14의 기존check121개 AST(루프확장167건)가 같고 구판169/194·후보194/194 근거를 수용한다. 측정r3/r4의 C2 성공/두키MergeAnti 및 최대1444.004ms/구판30초초과를 대조했다. 겹친/불완전수치와 로컬CPU/캐시·SeqScan잔여부하는 한계로 둔다. 보존jar실제해시/전체내용비교는 Repository.class1줄·879879로같다. 앱시험/194건/재빌드는 반복하지 않았다.
+- **근거 누락 보완**: #22준비는 작업사본28/28이맞으나46f2c04 Git에는23개만있고가짜입력.log5개가ignore로빠졌다. 새.gitignore로기존원본5개를다음커밋에포함하게했다. 원문은재작성/재실행하지않는다. 과거커밋에28개모두있었다고쓰지않는다.
+- **실행 함수 직접 보완**: holdobs는머리줄만검색해Caused by의Hikari획득timeout을0건/종료0으로통과함을재현했다. 모든줄에서일치문구를한번씩세도록고쳤고문맥없는스택은시각/스레드미확인으로낸다. 출력에원문/연결식별자를쓰지않는다. 원래5입력과스택/중복/머리없음/HTTP대조/CRLF/머리줄/빈로그/인자없음13사례가맞는다. 실제운영획득장애가있었다는뜻은아니다. 일치줄수와독립장애횟수를구분한다.
+- **설치 진행 보완**: 설치서브셸실패뒤DRY_RUN이이어지는것을막고직후INSTALL_RC로성공일때만실행한다. 서브셸을&&조건으로감싸내부set-e를무력화하지않았다. 성공/명시중단/내부명령실패3사례로진행여부·종료값·errexit보존을확인했다. §69의P8개·설치1개만보완/문법9개통과, 원래92/F15/OPS7은같다.
+- **고정 실행 출처**: 이번총괄수정문서/검토근거/누락원문을실제절차보완커밋으로고정·푸시하고그새40자리SHA의§69블록을쓴다. 46f2c04의옛블록을쓰지않는다. 추가수용회신/확인용커밋은필요없다. P판표지는PV70, CK/CKSH는N14설치후c669ccd/ff0a5d7d…를기대한다. F1운영핀은아직6995/67294e80…로유지한다.
+- **순서① N14**: 같은잠금/백업/고정해시로먼저셸·INSTALLED_SHA만교체하고성공뒤DRY_RUN1회를본다. 머리글c669ccdc6e24·실제Created형식/범위·BTC/203/파서/해시/cron을확인한다. 예상밖🔴/⚪는원문보고하고다음변경을진행하지않는다. 설치가끝난뒤다음자동보고에서첫운영반영을확인한다. SQL/backend/cron은교체하지않는다.
+- **순서② 10시 보고/#22**: 11-05 10시보고생성/전송완료원문을읽고정상범위를확인한뒤10:10이후시작한다. 설치가보고전끝났으면c669머리글/범위줄, 기존16:39기동은구간밖이라기동경보소멸이기대된다. 같은새출처F→G→§69P변수(PV70)→P0→30분안P1→기존P2직전운영자확인1회→P2→5~10분뒤P3→30분뒤P4→P뒤관측을쓴다. 시작창/지속대응/명시적되돌림기준은유지한다. 획득timeout은즉시P0보고, 장기대여경고는개선미확인으로남기고자동되돌리지않는다.
+- **운영 값 확인**: P0에SHOW TimeZone기록·검증한UTC/Etc-UTC/GMT/Etc-GMT/Asia-Seoul외이면멈춤을추가했고컨테이너date/zone도기록한다. SHOW는조회연결의세션값이며모든앱JDBC연결을직접관측한것이라고쓰지않는다. 별도앱시간대재정의/예상밖불일치는출력보고한다. Created실제형식은N14실제조회/DRY_RUN에서확인한다. 총괄SSH읽기시도는cat-prod별칭이없어이름해석에서실패했고서버/DB명령은전달되지않았다. 현재운영값을새로읽었다고쓰지않는다.
+- **제출/완료 구분**: N14설치/DRY_RUN·첫자동보고/전송·해시/cron, P3/P4/P뒤전체/경보네갈래, ~/maint-n13의HEAD·빌드/배포시각·새이미지전체·jar 차이·시간대/BTC/holdobs/catchup기록을낸다. 실제결과수용뒤만F1/N06운영핀을갱신한다. N13운영개선과N14완료는각실제관측으로판정한다. 현재6995/전체67294e80…·V94·점검d491·장부cron/203CREATED·S/F0/위험한도·12-01 08:50유지, 운영변경은이번총괄검토에서없었다.
 
 ## 6. 시작·중단·종료 조건
 

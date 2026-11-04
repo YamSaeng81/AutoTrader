@@ -1,0 +1,11 @@
+backend-1  | 07:40:00.000 [main] INFO  c.c.a.CryptoAutoTraderApplication - Started CryptoAutoTraderApplication
+backend-1  | 07:40:01.000 [task-1] INFO  c.c.a.service.SignalQualityService - [SignalQuality] 시작 Catchup 시작
+backend-1  | 07:40:05.000 [task-1] INFO  c.c.a.service.SignalQualityService - [SignalQuality] 시작 Catchup 완료 — 4h: 0건, 24h: 0건 (HOLD 기준선 3/2건)
+backend-1  | 07:46:00.100 [HikariPool-1 housekeeper] WARN  com.zaxxer.hikari.pool.ProxyLeakTask - Connection leak detection triggered for org.postgresql.jdbc.PgConnection@1a2b on thread scheduler-3, stack trace follows
+backend-1  | java.lang.Exception: Apparent connection leak detected
+backend-1  | 	at com.zaxxer.hikari.pool.HikariPool.getConnection(HikariPool.java:181)
+backend-1  | 	at jdk.proxy2/jdk.proxy2.$Proxy212.findPendingHoldFor4hEval(Unknown Source)
+backend-1  | 	at com.cryptoautotrader.api.service.SignalQualityService.evaluateHoldBaselineLoop(SignalQualityService.java:227)
+backend-1  | 	at com.cryptoautotrader.api.service.SignalQualityService.evaluateSignalQuality(SignalQualityService.java:70)
+backend-1  | 07:47:10.200 [scheduler-3] INFO  com.zaxxer.hikari.pool.ProxyLeakTask - Previously reported leaked connection org.postgresql.jdbc.PgConnection@1a2b on thread scheduler-3 was returned to the pool (unleaked)
+backend-1  | 07:55:00.000 [scheduler-1] ERROR c.c.a.service.LiveTradingService - 처리 실패: HikariPool-1 - Connection is not available, request timed out after 30000ms.
