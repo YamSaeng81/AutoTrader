@@ -114,6 +114,16 @@ public interface StrategyLogRepository extends JpaRepository<StrategyLogEntity, 
     // (distinct coin-hour = 7,658건). NOT EXISTS 로 <b>이미 평가된 시간대를 통째로 제외</b>하는
     // 것이 핵심이다 — 이게 없으면 대표 1건이 평가되는 순간 같은 시간대의 다음 행이 새 대표가
     // 되어 결국 74,462건을 전부 부른다.
+    //
+    // 2026-11-04 N13: "같은 시간대에 평가된 HOLD 가 있으면 제외" 를 범위 두 조건(e.created_at >= 정시,
+    // < 정시+1시간)에서 "평가된 (coin_pair, 정시) 집합" 과의 등식 대조로 바꿨다. 범위 조건은 결합 키가 될 수
+    // 없어 계획이 coin_pair 만으로 Merge Anti Join 을 하고 시간 조건을 Join Filter 로 걸렀다 — 같은 코인 행 수의
+    // 곱에 비례해 느려진다(운영 장기 대여 경고 141~545초 구간의 후보). 집합을 DISTINCT 로 먼저 만들면
+    // (coin_pair, 정시) 두 키가 모두 결합 조건이 된다. 등식만 쓰는 판(상관 NOT EXISTS)은 로컬 측정에서 limit·자료에
+    // 따라 Nested Loop 로 바뀌어 30초를 넘는 경우가 있어 쓰지 않았다(docs/evidence N13 후보 측정).
+    // 의미: 세션 TimeZone 의 정시 구간이 정확히 1시간인 동안(UTC·Asia/Seoul) 원문과 같은 행을 고른다.
+    // 선택 조건·정렬·LIMIT·e 의 조건(HOLD·같은 코인·평가됨만 — 가격/전략/세션/cutoff 무조건)은 그대로다.
+    // 실제 PostgreSQL 대조는 n13/HoldBaselineSqlEquivalencePgTest(N13_PG_URL 이 있을 때만 실행).
     @Query(value = """
             SELECT DISTINCT ON (l.coin_pair, date_trunc('hour', l.created_at)) l.*
             FROM strategy_log l
@@ -122,12 +132,13 @@ public interface StrategyLogRepository extends JpaRepository<StrategyLogEntity, 
               AND l.signal_price IS NOT NULL
               AND l.price_after_4h IS NULL
               AND NOT EXISTS (
-                    SELECT 1 FROM strategy_log e
-                    WHERE e.signal = 'HOLD'
-                      AND e.coin_pair = l.coin_pair
-                      AND e.created_at >= date_trunc('hour', l.created_at)
-                      AND e.created_at <  date_trunc('hour', l.created_at) + interval '1 hour'
-                      AND e.price_after_4h IS NOT NULL)
+                    SELECT 1
+                    FROM (SELECT DISTINCT e.coin_pair, date_trunc('hour', e.created_at) AS hour_start
+                          FROM strategy_log e
+                          WHERE e.signal = 'HOLD'
+                            AND e.price_after_4h IS NOT NULL) d
+                    WHERE d.coin_pair = l.coin_pair
+                      AND d.hour_start = date_trunc('hour', l.created_at))
             ORDER BY l.coin_pair, date_trunc('hour', l.created_at), l.created_at
             LIMIT :limit
             """, nativeQuery = true)
@@ -143,12 +154,13 @@ public interface StrategyLogRepository extends JpaRepository<StrategyLogEntity, 
               AND l.signal_price IS NOT NULL
               AND l.price_after_24h IS NULL
               AND NOT EXISTS (
-                    SELECT 1 FROM strategy_log e
-                    WHERE e.signal = 'HOLD'
-                      AND e.coin_pair = l.coin_pair
-                      AND e.created_at >= date_trunc('hour', l.created_at)
-                      AND e.created_at <  date_trunc('hour', l.created_at) + interval '1 hour'
-                      AND e.price_after_24h IS NOT NULL)
+                    SELECT 1
+                    FROM (SELECT DISTINCT e.coin_pair, date_trunc('hour', e.created_at) AS hour_start
+                          FROM strategy_log e
+                          WHERE e.signal = 'HOLD'
+                            AND e.price_after_24h IS NOT NULL) d
+                    WHERE d.coin_pair = l.coin_pair
+                      AND d.hour_start = date_trunc('hour', l.created_at))
             ORDER BY l.coin_pair, date_trunc('hour', l.created_at), l.created_at
             LIMIT :limit
             """, nativeQuery = true)
