@@ -1,0 +1,199 @@
+{
+  "submission": "8e852f40deba39d6f51c9cb113e38efa05dafb9c",
+  "base": "b1d7664db73222aec5d86f2e9137debef0ff4df3",
+  "failure_first": "b7a8da15933899b5c296e556b8282f79e535f690",
+  "candidate": "6995c52259e3de4c7c922a32f9fb2aa9ddd49f00",
+  "submitted_manifest": [
+    {
+      "path": ".gitattributes",
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "README.md",
+      "sha256": "ea34781a5cf55eade55e976067aad7e898f86eb5bbaf8c87932ccdc4c4c12400",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "after-summary.txt",
+      "sha256": "aebc2a4d2f08700c8bf0be39aef11b7c7a6017a6400ce5cc98d53a3e0d6e09b5",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "after/TEST-com.cryptoautotrader.api.news.NewsFetchGapReproTest.xml",
+      "sha256": "8b03e22ab3f4983a1beb77a76907c2a43d6ec2c839f45602caae54e5f00d03c4",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "after/TEST-com.cryptoautotrader.api.news.NewsFetchResultContractTest.xml",
+      "sha256": "53786406e426a5e492fffbc438f58c73e8e85d782ef3743581f653ed094c206a",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "after/TEST-com.cryptoautotrader.api.news.NewsHttpErrorLogTest.xml",
+      "sha256": "ee280a2f96b7ed9845d4c2d53ee9f756221c6a406fd512b3104e80c9fb1b4699",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "after/TEST-com.cryptoautotrader.api.news.NewsResponseShapeTest.xml",
+      "sha256": "5ecba19a1c3789724a25236e59983c49d7a3fd35715a4531f7cf8a48d1a757b3",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "before-summary.txt",
+      "sha256": "49716bfa759dcd47ba1cd5a2eee91ee088d0d3b4c0d5e31325393ac060c8d097",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "before/TEST-com.cryptoautotrader.api.news.NewsHttpErrorLogTest.xml",
+      "sha256": "6381a4ba88c7ae233084f4e2d36f180b3a2fc8c633cbe6d3a3b76e6cf79d1726",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "diff-b1d7664-6995c52.txt",
+      "sha256": "7d2463cb02233e671cb6f8cc58af89013e89b4d84c6f5d719d21ec1517b158de",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "source-log-lines.txt",
+      "sha256": "b4720ae02719d764d2f07663d99d4f31f9c6a045877d36adf33fda596c1f69bc",
+      "raw_and_git_match": true
+    }
+  ],
+  "previous_review_manifest": [
+    {
+      "path": ".gitattributes",
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "n06-blocks.json",
+      "sha256": "5da48b2aa67aa45710748330049e439ece4114659dc5d53584bd090c225245ce",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "README.md",
+      "sha256": "9cd9c275536476674ccb419a81a5b554da4ab7789a84730c5fb86bf040410f77",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "review.json",
+      "sha256": "a0b4342b38015b643087a7d1dc41f74b04b785f41c2eb79715e5910f18e14c4f",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "review.py",
+      "sha256": "21c855f5a81fc5983aed446c90a213302f197e0d0411a17cd4ed2b53786ca9c3",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "source-log-excerpts.txt",
+      "sha256": "2684f099effec3ecdc6110c480c7786f02e132145dfc341d900c0c51ecf3fb85",
+      "raw_and_git_match": true
+    },
+    {
+      "path": "verify_pins.py",
+      "sha256": "f70d5ab437662ec0b70b073c844a1f291ccb40cae04f0aa3c449a1e354dbe4e0",
+      "raw_and_git_match": true
+    }
+  ],
+  "scope": {
+    "failure_first_test_only": true,
+    "fix_two_sources_only": true,
+    "test_unchanged_between_failure_and_fix": true,
+    "test_sha256": "46f92277a734e958e36925586ce36f1da4b353a94779375bfd5c7136b5f150dd",
+    "changed_paths": [
+      "web-api/src/main/java/com/cryptoautotrader/api/news/source/CryptoPanicSource.java",
+      "web-api/src/main/java/com/cryptoautotrader/api/news/source/UpbitNoticeSource.java",
+      "web-api/src/test/java/com/cryptoautotrader/api/news/NewsHttpErrorLogTest.java"
+    ]
+  },
+  "source_changes": {
+    "CryptoPanicSource": {
+      "old_sha256": "78defc85057ca229489fa7ea1594f8f02c90934162b937776d9ede3dea1d9b2b",
+      "new_sha256": "0c446d069362d8a038dc87493f2b686494c36be612af0e3cff678398da20d0c2",
+      "only_http_warn_and_comment_changed": true,
+      "typed_failure_and_other_code_unchanged": true
+    },
+    "UpbitNoticeSource": {
+      "old_sha256": "19542280d7e5a3170ab6dca549fa585e470935260156f7a2d94b72f88f1bb708",
+      "new_sha256": "c1bc5ff381ec7de0d65209daf93ff04cf68f6ae89f3f8198bbb91ab7e00632a8",
+      "only_http_warn_and_comment_changed": true,
+      "typed_failure_and_other_code_unchanged": true
+    }
+  },
+  "unchanged_paths": [
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/news/source/RssNewsSource.java",
+      "sha256": "c4d2525315b2b47d23b397622ebe6969dba79a87dfb54f7036ed61780471d93d"
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/news/source/CoinGeckoTrendingSource.java",
+      "sha256": "395c25e231a1c94fca2b2e663668e3e35c6ae3aa8c800eb4b6b1da04ca8d35da"
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java",
+      "sha256": "324c3e14b80343f29dc466452bbc5a05ff9923354f479467a784a3c0684a7f46"
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/news/NewsFetchResult.java",
+      "sha256": "2ea9d666266e2615ed1a968542fa5366914fd9af6a9a7b17995662abace94fcb"
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/news/NewsSource.java",
+      "sha256": "e6dba02466b173f5b59a31d217f46b05f898e135150f45bf992c3c6e3fb483da"
+    },
+    {
+      "path": "scripts/ops/daily_check.sh",
+      "sha256": "1e2c6c0a24db8dc68c86e24085c562e12bd81002848cc6501d39fe41cb209c9c"
+    },
+    {
+      "path": "scripts/ops/daily_checks.sql",
+      "sha256": "7c815cfa5fec4e23b84a5f8c1dd63e9bb2167ade08c19a364ea75614b0e4413a"
+    }
+  ],
+  "preserved_diff_equals_git_diff": true,
+  "preserved_xml": [
+    {
+      "path": "docs/evidence/n12-http-log-body/before/TEST-com.cryptoautotrader.api.news.NewsHttpErrorLogTest.xml",
+      "tests": 8,
+      "failures": 4,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "docs/evidence/n12-http-log-body/after/TEST-com.cryptoautotrader.api.news.NewsFetchGapReproTest.xml",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "docs/evidence/n12-http-log-body/after/TEST-com.cryptoautotrader.api.news.NewsFetchResultContractTest.xml",
+      "tests": 36,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "docs/evidence/n12-http-log-body/after/TEST-com.cryptoautotrader.api.news.NewsHttpErrorLogTest.xml",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "docs/evidence/n12-http-log-body/after/TEST-com.cryptoautotrader.api.news.NewsResponseShapeTest.xml",
+      "tests": 27,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "limits": [
+    "XML is preserved developer execution evidence, not a new root test execution.",
+    "Root did not run application tests, build jars, access SSH/production DB or HTTP.",
+    "Production remains b1d7664; this review does not certify deployment or resolve HTTP403.",
+    "Fake response/API values demonstrate logging behavior, not an actual secret leak."
+  ]
+}

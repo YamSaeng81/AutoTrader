@@ -1,0 +1,324 @@
+--- Kvar(원문)
++++ Lvar
+@@ -1,23 +1,16 @@
+-M=~/maint-n11; mkdir -p "$M"; OPS=~/ops-scripts; KV=55   # v1.87(§5-9 55) 판 표지 — K1·K3·K4·K 뒤 뉴스 관측이 확인한다
+-OLD=ea4490099f0fa6b614fe71102534b0ba84c0eb7f; NEW=b1d7664db73222aec5d86f2e9137debef0ff4df3
+-IMGOLD=sha256:618046540764e49aa40efef7ec950f28cd5882e8bf7d6bdfdc3da0ed1f0112f9   # #19 배포 이미지(지금 실행 중)
++M=~/maint-n12; mkdir -p "$M"; OPS=~/ops-scripts; LV=61   # v1.93(§5-9 61) 판 표지 — L 블록 전부가 확인한다
++OLD=b1d7664db73222aec5d86f2e9137debef0ff4df3; NEW=6995c52259e3de4c7c922a32f9fb2aa9ddd49f00
++IMGOLD=sha256:fd3ac351bcf508d465b9c2f6024ba978273603729f3e6cecba40a639a2f4dcb6   # #20 배포 이미지(지금 실행 중, ~/maint-n11/image-new.txt)
++IMGPREV=sha256:618046540764e49aa40efef7ec950f28cd5882e8bf7d6bdfdc3da0ed1f0112f9   # #19 이미지 — 이전 복구 태그 autotrader-backend:ea44900 가 가리킨다(보존, 바꾸지 않는다)
+ LS=8bfe8a9fa896f400b3fb6681fef021c99d6ba43b; LSUM=02a8585021fb2a1a52d9b3b56b60e957cb71b9ca3c11bf819595df15cf334f1c   # 지금 설치 장부 — 바꾸지 않는다
+ CK=d491fd1609b700d195ecc4d0ccea6be2987bf2fe; CKSH=2135e95314edeea68f6b9dfc31a1c0b0034f84b9d3cbfd52be7ee82afab9cc60; CKSQL=653b22bab04b68c50bf9daf2a54f2c281f9c57eaf6795076225ed39d62d48fa8   # 정기 점검 설치본 — 바꾸지 않는다
+ CRON=f2dce2809c09aa4466a95200caa19547118e444b4ac90b4363e20a158dee9b5b   # crontab — 바꾸지 않는다
+ h256() { sha256sum < "$1" | cut -d' ' -f1 ; }
+ v94() { [ "$($PSQL -At -c "SELECT max(version::int) FROM flyway_schema_history WHERE success")" = "94" ] ; }
+-DIFF13="$(printf '%s\n' web-api/src/main/java/com/cryptoautotrader/api/controller/NewsSourceController.java \
+-  web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java web-api/src/main/java/com/cryptoautotrader/api/news/NewsFetchResult.java \
+-  web-api/src/main/java/com/cryptoautotrader/api/news/NewsSource.java web-api/src/main/java/com/cryptoautotrader/api/news/source/CoinGeckoTrendingSource.java \
+-  web-api/src/main/java/com/cryptoautotrader/api/news/source/CryptoPanicSource.java web-api/src/main/java/com/cryptoautotrader/api/news/source/RssNewsSource.java \
+-  web-api/src/main/java/com/cryptoautotrader/api/news/source/UpbitNoticeSource.java web-api/src/test/java/com/cryptoautotrader/api/news/LocalHttpStub.java \
+-  web-api/src/test/java/com/cryptoautotrader/api/news/NewsFetchGapReproTest.java web-api/src/test/java/com/cryptoautotrader/api/news/NewsFetchResultContractTest.java \
+-  web-api/src/test/java/com/cryptoautotrader/api/news/NewsResponseShapeTest.java web-api/src/test/java/com/cryptoautotrader/api/service/AiPipelineTest.java)"
+-KARX="$(printf '%s\n' 'BOOT-INF/classes/com/cryptoautotrader/api/controller/NewsSourceController.class' 'BOOT-INF/classes/com/cryptoautotrader/api/news/NewsAggregatorService.class' \
+-  '+BOOT-INF/classes/com/cryptoautotrader/api/news/NewsFetchResult$Status.class' '+BOOT-INF/classes/com/cryptoautotrader/api/news/NewsFetchResult.class' \
+-  'BOOT-INF/classes/com/cryptoautotrader/api/news/NewsSource.class' 'BOOT-INF/classes/com/cryptoautotrader/api/news/source/CoinGeckoTrendingSource.class' \
+-  'BOOT-INF/classes/com/cryptoautotrader/api/news/source/CryptoPanicSource.class' 'BOOT-INF/classes/com/cryptoautotrader/api/news/source/RssNewsSource.class' \
+-  'BOOT-INF/classes/com/cryptoautotrader/api/news/source/UpbitNoticeSource.class' | sed -e 's/^+/추가 /' -e t -e 's/^/변경 /')"
++DIFF3="$(printf '%s\n' web-api/src/main/java/com/cryptoautotrader/api/news/source/CryptoPanicSource.java \
++  web-api/src/main/java/com/cryptoautotrader/api/news/source/UpbitNoticeSource.java web-api/src/test/java/com/cryptoautotrader/api/news/NewsHttpErrorLogTest.java)"
++LARX="$(printf '%s\n' 'BOOT-INF/classes/com/cryptoautotrader/api/news/source/CryptoPanicSource.class' \
++  'BOOT-INF/classes/com/cryptoautotrader/api/news/source/UpbitNoticeSource.class' | sed 's/^/변경 /')"   # 실제 bootJar 대조(v1.93) — 이전 9줄·877→879 는 쓰지 않는다
+ # 기존 뉴스 출처 ERROR 원문 4개(후보에서도 바뀌지 않음). 정기 점검에서는 미분류 🔴 그대로다
+ NEWSERR='\[(RssNewsSource\] 수집 실패 — sourceId=|(UpbitNoticeSource|CryptoPanicSource|CoinGeckoTrendingSource)\] 수집 실패: )'
+ NEWSCFG="SELECT source_id || '|' || source_type || '|' || is_enabled || '|' || fetch_interval_min || '|' || coalesce(extract(epoch FROM last_fetched_at)::bigint::text, '-') FROM news_source_config ORDER BY source_id"
+@@ -103,3 +96,53 @@
+ sys.exit(rc if rc else (3 if chk else 0))
+ PYEOF
+ }
++# N12 출처 HTTP 비200 줄 관측. 인자: 앱 로그. 본문 내용은 출력하지 않는다(출처·상태·sourceId·줄 수만).
++# 종료 1 = 🔴 본문이 붙은 형식이거나 HTTP 줄 바로 뒤에 로그 머리 없는 연속 줄, 3 = ⚪ 고정 한 줄인데 바로 뒤 상위 FAILED/HTTP_n/0건 짝 없음, 0 = 모두 고정 한 줄+짝 또는 미관측
++httpobs() { python3 - "$@" <<'PYEOF'
++import re, sys
++if len(sys.argv) != 2:
++    print("⚪ httpobs 인자는 1개(앱 로그)"); sys.exit(3)
++PRE = re.compile(r"^[A-Za-z0-9_.-]+-\d+\s+\| ?")
++HEAD = re.compile(r"^\d\d:\d\d:\d\d\.\d{3} \[")
++HTTP = re.compile(r"\[(CryptoPanicSource|UpbitNoticeSource|RssNewsSource|CoinGeckoTrendingSource)\] HTTP (\d{3})(.*)$")
++FIX = {"CoinGeckoTrendingSource": re.compile(r"^$")}
++SID = re.compile(r"^ — sourceId=(\S+)$")
++UP = re.compile(r"\[NewsAggregator\] 수집 미완료 — sourceId=(\S+) 결과=FAILED 종류=HTTP_(\d{3}) 판정=\S+ 받은=0건 신규=0건$")
++rows = [PRE.sub("", l.rstrip("\r\n")) for l in open(sys.argv[1], encoding="utf-8", errors="replace")]
++bad, chk, seen = 0, 0, {}
++for i, r in enumerate(rows):
++    m = HTTP.search(r)
++    if not m or not HEAD.match(r):
++        continue
++    src, st, tail = m.group(1), m.group(2), m.group(3)
++    cont = 0
++    while i + 1 + cont < len(rows) and not HEAD.match(rows[i + 1 + cont]):
++        cont += 1
++    k = "%s HTTP %s" % (src, st)
++    s = seen.setdefault(k, [0, 0, 0, 0, set()])   # 전체·고정 한 줄·본문 형식/연속 줄·상위 짝
++    s[0] += 1
++    sm = SID.match(tail)
++    fixed = (FIX[src].match(tail) is not None) if src in FIX else sm is not None
++    if not fixed or cont:
++        s[2] += 1; bad += 1
++        print("🔴 %s %s — 고정 한 줄이 아님(꼬리 %d자·뒤 연속 줄 %d줄, 내용은 출력하지 않는다)" % (src, r[:12], len(tail), cont))
++        continue
++    s[1] += 1
++    if sm:
++        s[4].add(sm.group(1))
++    nxt = [x for x in rows[i + 1:i + 6] if HEAD.match(x)]
++    ups = [UP.search(x) for x in nxt]
++    pair = any(u and u.group(2) == st and (not sm or u.group(1) == sm.group(1)) for u in ups)
++    if pair:
++        s[3] += 1
++    else:
++        chk += 1
++        print("⚪ %s %s HTTP %s — 고정 한 줄인데 뒤 5줄 안에 상위 '수집 미완료 … FAILED 종류=HTTP_%s … 받은=0건 신규=0건' 없음 — 보고" % (src, r[:12], st, st))
++if not seen:
++    print("출처 HTTP 비200 줄: 미관측 — 이 구간에 자연 발생한 비200 응답 없음(실패를 유도하지 않는다)")
++for k in sorted(seen):
++    a, f, b, p, ids = seen[k]
++    print("%s ×%d — 고정 한 줄 %d · 본문 형식/연속 줄 %d · 상위 FAILED/HTTP_n/0건 짝 %d%s" % (k, a, f, b, p, (" · sourceId=" + ",".join(sorted(ids))) if ids else ""))
++sys.exit(1 if bad else (3 if chk else 0))
++PYEOF
++}
+--- K0(원문)
++++ L0
+@@ -1,19 +1,20 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "$M" = "$HOME/maint-n11" ] && [ "$NEW" = b1d7664db73222aec5d86f2e9137debef0ff4df3 ] && [ -n "${BTCIN:-}" ] && type sid203 > /dev/null 2>&1 && type newsobs > /dev/null 2>&1 || stop "변수 순서 — F 변수 → G 변수 → K 변수"
+-[ ! -e "$M/ok-K1" ] || stop "K1 을 이미 시작했다 — K0 를 다시 하지 않는다. ls -l $M 를 보고"
++[ "$M" = "$HOME/maint-n12" ] && [ "${LV:-}" = 61 ] && [ "$NEW" = 6995c52259e3de4c7c922a32f9fb2aa9ddd49f00 ] && [ -n "${BTCIN:-}" ] && type sid203 > /dev/null 2>&1 && type newsobs > /dev/null 2>&1 && type httpobs > /dev/null 2>&1 || stop "변수 순서 — F 변수 → G 변수 → §5-9 61 L 변수"
++[ ! -e "$M/ok-L1" ] || stop "L1 을 이미 시작했다 — L0 를 다시 하지 않는다. ls -l $M 를 보고"
+ kwin "$(date +%s)" || stop "시작 시각·정기 보고 확인 — 위 줄"
+-[ "$(git rev-parse HEAD)" = "$OLD" ] && [ -z "$(git status --porcelain --untracked-files=no)" ] || stop "HEAD 가 ea44900 이 아니거나 추적 파일 변경 있음"
++[ "$(git rev-parse HEAD)" = "$OLD" ] && [ -z "$(git status --porcelain --untracked-files=no)" ] || stop "HEAD 가 b1d7664 가 아니거나 추적 파일 변경 있음"
+ date '+%F %T %Z' | tee "$M/t-before.txt"; date '+%F %T%:z' > "$M/maint_start.txt"
+ { git rev-parse HEAD; git status --porcelain --untracked-files=no; echo "(끝)"; } | tee "$M/git-before.txt"
+ git fetch origin
+-git cat-file -e "$NEW^{commit}" || stop "후보 b1d7664 없음"
+-git merge-base --is-ancestor $OLD $NEW || stop "ea44900 이 후보의 조상이 아님"
+-[ "$(git diff --name-only $OLD $NEW)" = "$DIFF13" ] || stop "diff 가 정확히 뉴스 13개 파일이 아님(마이그레이션 포함 금지)"
++git cat-file -e "$NEW^{commit}" || stop "후보 6995c52 없음"
++git merge-base --is-ancestor $OLD $NEW || stop "b1d7664 가 후보의 조상이 아님"
++[ "$(git diff --name-only $OLD $NEW)" = "$DIFF3" ] || stop "diff 가 정확히 N12 3개 파일이 아님(마이그레이션 포함 금지)"
+ svc | tee "$M/svc-before.txt"
+ IMG0=$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)"); echo "$IMG0" | tee "$M/image-before.txt"
+-[ "$IMG0" = "$IMGOLD" ] && [ "$IMGOLD" = "$(cat ~/maint-n08/image-new.txt)" ] || stop "실행 이미지가 #19 배포 이미지(61804654…)와 다름"
++[ "$IMG0" = "$IMGOLD" ] && [ "$IMGOLD" = "$(cat ~/maint-n11/image-new.txt)" ] || stop "실행 이미지가 #20 배포 이미지(fd3ac351…)와 다름"
++[ "$(docker image inspect --format '{{.Id}}' $REPO:ea44900)" = "$IMGPREV" ] || stop "이전 복구 태그 $REPO:ea44900 이 #19 이미지(61804654…)가 아님 — 보고"
+ [ "$(docker image inspect --format '{{.Id}}' $REPO:latest)" = "$IMG0" ] || stop "$REPO:latest 가 실행 이미지와 다름"
+ [ "$($DC exec -T backend env | grep '^TRADING_CAPITALPOOL_' | sort)" = "$POOLX" ] || stop "공유 풀 등록값이 STAGE_1·100000·20000·3 과 다름"
+ v94 || stop "Flyway 최고 버전이 94 가 아님"
+@@ -37,9 +38,11 @@
+ echo "== 배포 전 기준선: 실행 중 backend 로그의 뉴스 출처 ERROR $(wc -l < "$M/news-err-before.txt")줄(출처별)"
+ grep -oE "$NEWSERR" "$M/news-err-before.txt" | sort | uniq -c || true
+ tail -n 3 "$M/news-err-before.txt" | cut -c1-200
++httpobs "$M/backend-before.log" > "$M/http-before.txt" && HB=0 || HB=$?
++echo "== 배포 전 기준선: 출처 HTTP 비200 줄(httpobs 종료 $HB — b1d7664 는 CryptoPanic·업비트 본문을 찍으므로 1 이어도 멈추지 않는다, 기록만)"; cat "$M/http-before.txt"
+ python3 scripts/prospective/start_66.py alerts --days 1 --no-mark > "$M/alerts-before.txt" 2>&1 && AE=0 || AE=$?
+ echo "경보 종료코드 $AE"
+ alertsok "$AE" "$M/alerts-before.txt" || stop "경보 조회가 끝까지 돌지 않음 — alerts-before.txt 를 보고"
+ grep -E '^(🔴|⚪)' "$M/alerts-before.txt" || true
+-touch "$M/ok-K0"; echo "✅ K0 통과 — 30분 안에 K1"
++touch "$M/ok-L0"; echo "✅ L0 통과 — 30분 안에 L1"
+ )
+--- K1(원문)
++++ L1
+@@ -1,20 +1,20 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "${KV:-}" = 55 ] || stop "K 변수가 v1.87(§5-9 55) 판이 아님 — F → G → §5-9 55 K 변수"
+-[ -e "$M/ok-K0" ] || stop "K0 미통과"
+-[ ! -e "$M/ok-K1" ] || stop "K1 을 이미 통과했다 — 바로 K2"
+-[ $(( $(date +%s) - $(stat -c %Y "$M/ok-K0") )) -le 1800 ] || stop "K0 가 30분보다 오래됨 — K0 부터(아직 바꾼 것 없음, K1-되돌림 하지 않는다)"
++[ "${LV:-}" = 61 ] || stop "L 변수가 v1.93(§5-9 61) 판이 아님 — F → G → §5-9 61 L 변수"
++[ -e "$M/ok-L0" ] || stop "L0 미통과"
++[ ! -e "$M/ok-L1" ] || stop "L1 을 이미 통과했다 — 바로 L2"
++[ $(( $(date +%s) - $(stat -c %Y "$M/ok-L0") )) -le 1800 ] || stop "L0 가 30분보다 오래됨 — L0 부터(아직 바꾼 것 없음, L1-되돌림 하지 않는다)"
+ IMG0=$(cat "$M/image-before.txt")
+-if docker image inspect $REPO:ea44900 > /dev/null 2>&1; then [ "$(docker image inspect --format '{{.Id}}' $REPO:ea44900)" = "$IMG0" ] || stop "$REPO:ea44900 태그가 이미 다른 이미지를 가리킨다(HEAD·latest 그대로, K1-되돌림 하지 않는다)"; fi
+-docker tag "$IMG0" $REPO:ea44900
+-[ "$(docker image inspect --format '{{.Id}}' $REPO:ea44900)" = "$IMG0" ] || stop "기존 이미지 보존 태그 실패(HEAD·latest 그대로, K1-되돌림 하지 않는다)"
++if docker image inspect $REPO:b1d7664 > /dev/null 2>&1; then [ "$(docker image inspect --format '{{.Id}}' $REPO:b1d7664)" = "$IMG0" ] || stop "$REPO:b1d7664 태그가 이미 다른 이미지를 가리킨다(HEAD·latest 그대로, L1-되돌림 하지 않는다)"; fi
++docker tag "$IMG0" $REPO:b1d7664
++[ "$(docker image inspect --format '{{.Id}}' $REPO:b1d7664)" = "$IMG0" ] || stop "기존 이미지 보존 태그 실패(HEAD·latest 그대로, L1-되돌림 하지 않는다)"
+ git checkout --quiet $NEW
+-[ "$(git rev-parse HEAD)" = "$NEW" ] && [ -z "$(git status --porcelain --untracked-files=no)" ] || stop "체크아웃 결과가 NEW 가 아니거나 변경 있음 — K1-되돌림"
++[ "$(git rev-parse HEAD)" = "$NEW" ] && [ -z "$(git status --porcelain --untracked-files=no)" ] || stop "체크아웃 결과가 NEW 가 아니거나 변경 있음 — L1-되돌림"
+ date '+%F %T %Z' | tee "$M/t-build.txt"
+-$DC build backend > "$M/build.log" 2>&1 || stop "빌드 실패 — build.log 를 보고. K1-되돌림"
++$DC build backend > "$M/build.log" 2>&1 || stop "빌드 실패 — build.log 를 보고. L1-되돌림"
+ IMG1=$(docker image inspect --format '{{.Id}}' $REPO:latest); echo "$IMG1" | tee "$M/image-new.txt"
+-[ "$IMG1" != "$IMG0" ] || stop "새 이미지가 만들어지지 않음 — K1-되돌림"
++[ "$IMG1" != "$IMG0" ] || stop "새 이미지가 만들어지지 않음 — L1-되돌림"
+ [ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$IMG0" ] || stop "🔴 실행 중 backend 가 바뀌었다 — 보고"
+ docker cp "$($DC ps -q backend)":/app/app.jar "$M/app-old.jar"
+ CID=$(docker create $REPO:latest); docker cp "$CID":/app/app.jar "$M/app-new.jar"; docker rm "$CID" > /dev/null
+@@ -43,7 +43,7 @@
+         print(("추가 " if k not in a else "삭제 " if k not in b else "변경 ") + k)
+ print("(끝)", len(a), len(b))
+ EOF
+-[ "$(grep -v '^(끝)' "$M/jar-diff.txt")" = "$KARX" ] || stop "jar 차이가 뉴스 9줄이 아님 — jar-diff.txt 를 보고(재기동 전). K1-되돌림"
+-grep -qx '(끝) 877 879' "$M/jar-diff.txt" || stop "항목 수가 877 → 879 가 아님 — jar-diff.txt 를 보고(재기동 전). K1-되돌림"
+-touch "$M/ok-K1"; echo "✅ K1 통과 — 바로 K2"
++[ "$(grep -v '^(끝)' "$M/jar-diff.txt")" = "$LARX" ] || stop "jar 차이가 N12 2줄이 아님 — jar-diff.txt 를 보고(재기동 전). L1-되돌림"
++grep -qx '(끝) 879 879' "$M/jar-diff.txt" || stop "항목 수가 879 → 879 가 아님 — jar-diff.txt 를 보고(재기동 전). L1-되돌림"
++touch "$M/ok-L1"; echo "✅ L1 통과 — ⏸ 운영자 확인 1회 뒤 L2"
+ )
+--- K2(원문)
++++ L2
+@@ -1,8 +1,9 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ -e "$M/ok-K1" ] || stop "K1 미통과"
+-[ ! -e "$M/ok-K2" ] || stop "K2 를 이미 했다 — K3"
++[ "${LV:-}" = 61 ] || stop "L 변수가 v1.93(§5-9 61) 판이 아님 — F → G → §5-9 61 L 변수"
++[ -e "$M/ok-L1" ] || stop "L1 미통과"
++[ ! -e "$M/ok-L2" ] || stop "L2 를 이미 했다 — L3"
+ IMG1=$(cat "$M/image-new.txt")
+ [ "$(git rev-parse HEAD)" = "$NEW" ] || stop "HEAD 가 NEW 가 아님"
+ [ "$(docker image inspect --format '{{.Id}}' $REPO:latest)" = "$IMG1" ] || stop "latest 가 image-new 와 다름"
+@@ -17,5 +18,5 @@
+ svc | tee "$M/svc-deploy.txt"
+ diff <(grep -v '^backend ' "$M/svc-before.txt") <(grep -v '^backend ' "$M/svc-deploy.txt") || stop "되돌림 필요: backend 외 서비스가 바뀜"
+ { git rev-parse HEAD; git status --porcelain --untracked-files=no; echo "(끝)"; } | tee "$M/git-deploy.txt"
+-touch "$M/ok-K2"; echo "✅ K2 통과 — 5~10분 뒤 K3"
++touch "$M/ok-L2"; echo "✅ L2 통과 — 5~10분 뒤 L3"
+ )
+--- K3(원문)
++++ L3
+@@ -1,12 +1,12 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "${KV:-}" = 55 ] || stop "K 변수가 v1.87(§5-9 55) 판이 아님 — F → G → §5-9 55 K 변수"
+-if [ -e "$M/t-rollback.utc" ]; then S=$(cat "$M/t-rollback.utc"); EXP=$(cat "$M/image-before.txt"); T=rollback; else [ -e "$M/ok-K2" ] || stop "K2 미통과"; S=$(cat "$M/t-deploy.utc"); EXP=$(cat "$M/image-new.txt"); T=deploy; fi
+-[ $(( $(date +%s) - $(date -d "$S" +%s) )) -ge 300 ] || stop "기동 5분 전 — 5분이 지난 뒤 K3"
++[ "${LV:-}" = 61 ] || stop "L 변수가 v1.93(§5-9 61) 판이 아님 — F → G → §5-9 61 L 변수"
++if [ -e "$M/t-rollback.utc" ]; then S=$(cat "$M/t-rollback.utc"); EXP=$(cat "$M/image-before.txt"); T=rollback; else [ -e "$M/ok-L2" ] || stop "L2 미통과"; S=$(cat "$M/t-deploy.utc"); EXP=$(cat "$M/image-new.txt"); T=deploy; fi
++[ $(( $(date +%s) - $(date -d "$S" +%s) )) -ge 300 ] || stop "기동 5분 전 — 5분이 지난 뒤 L3"
+ $DC ps backend
+ [ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$EXP" ] || stop "실행 이미지가 기대와 다름"
+-$PSQL -At -c "$NEWSCFG" > "$M/news-$T.txt" || stop "뉴스 설정 조회 실패 — 1분 뒤 K3 를 다시"
++$PSQL -At -c "$NEWSCFG" > "$M/news-$T.txt" || stop "뉴스 설정 조회 실패 — 1분 뒤 L3 를 다시"
+ OBS=$(date +%s); echo "$OBS" > "$M/obs-$T.txt"   # 관측 시각 = 뉴스 설정을 읽은 시각(로그는 그 뒤에 읽는다)
+ $DC logs --no-color --since "$S" backend > "$M/app-$T.log"
+ grep -E "Schema .* is up to date|Migrating schema|Successfully applied|매도 격리 점검|Started CryptoAutoTrader" "$M/app-$T.log" | head -10
+@@ -30,13 +30,16 @@
+ qc > "$M/q-$T.txt" 2>&1; sed -n '/== Q3/,$p' "$M/q-$T.txt" | grep -vE '^-+|^\s*$'
+ sc | tee "$M/s-$T.txt"; diff "$M/s-before.txt" "$M/s-$T.txt" || stop "되돌림 필요: 검증 세션 상태 바뀜"
+ sid203 || stop "SID 203·기준 행·EG·0 확인 중 바뀐 것 있음 — 보고"
+-$PSQL -At -c "$BTCIN" > "$M/btc-$T.txt" || stop "BTC 입력 조회 실패 — 1분 뒤 K3 를 다시"
++$PSQL -At -c "$BTCIN" > "$M/btc-$T.txt" || stop "BTC 입력 조회 실패 — 1분 뒤 L3 를 다시"
+ echo "== BTC H1 배포 전 $(cat "$M/btc-before.txt") · 지금 $(cat "$M/btc-$T.txt")"
+-if [ "$T" = deploy ]; then btcok "$M/btc-$T.txt" || stop "BTC 입력 미충족 — 바로 되돌리지 말고 위 출력을 보고(재기동 없이 K3 만 5분 뒤 한 번 다시)"; fi
++if [ "$T" = deploy ]; then btcok "$M/btc-$T.txt" || stop "BTC 입력 미충족 — 바로 되돌리지 말고 위 출력을 보고(재기동 없이 L3 만 5분 뒤 한 번 다시)"; fi
+ echo "== 뉴스 출처별(기동 $(cut -c12-19 <<< "$S")Z 뒤 로그 · 첫 회차는 기동 3분 뒤)"
+ newsobs "$M/app-$T.log" "$M/news-before.txt" "$M/news-$T.txt" "$(date -d "$S" +%s)" "$OBS" | tee "$M/newsobs-$T.txt" && NO=0 || NO=$?
+ [ "$NO" = 0 ] || [ "$NO" = 3 ] || [ "$T" = rollback ] || stop "뉴스 관측 이상(종료 $NO) — 되돌리지 말고 위 출력을 보고"
+ if [ "$NO" = 3 ]; then cp "$M/newsobs-$T.txt" "$M/news-check-$T.txt"; echo "⚪ 뉴스 확인 필요 — 되돌리지 않는다. 위 ⚪ 줄을 보고(정상 관측 아님)"; fi
+-touch "$M/ok-K3-$T"
+-if [ "$T" = deploy ]; then echo "✅ K3(deploy) 통과 — 기동 30분 뒤 K4"; else echo "✅ K3(rollback) 통과 — ea44900 복귀 확인. K4 는 하지 않고 출력을 보고"; fi
++httpobs "$M/app-$T.log" | tee "$M/httpobs-$T.txt" && HO=0 || HO=$?
++[ "$HO" = 0 ] || [ "$HO" = 3 ] || [ "$T" = rollback ] || stop "출처 HTTP 비200 줄이 고정 한 줄이 아님(종료 $HO) — 되돌리지 말고 위 출력을 보고"
++if [ "$HO" = 3 ]; then cp "$M/httpobs-$T.txt" "$M/http-check-$T.txt"; echo "⚪ HTTP 줄 확인 필요 — 되돌리지 않는다. 위 ⚪ 줄을 보고"; fi
++touch "$M/ok-L3-$T"
++if [ "$T" = deploy ]; then echo "✅ L3(deploy) 통과 — 기동 30분 뒤 L4"; else echo "✅ L3(rollback) 통과 — b1d7664 복귀 확인. L4 는 하지 않고 출력을 보고"; fi
+ )
+--- K4(원문)
++++ L4
+@@ -1,13 +1,13 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "${KV:-}" = 55 ] || stop "K 변수가 v1.87(§5-9 55) 판이 아님 — F → G → §5-9 55 K 변수"
+-[ -e "$M/ok-K3-deploy" ] || stop "K3 미통과"
++[ "${LV:-}" = 61 ] || stop "L 변수가 v1.93(§5-9 61) 판이 아님 — F → G → §5-9 61 L 변수"
++[ -e "$M/ok-L3-deploy" ] || stop "L3 미통과"
+ S=$(cat "$M/t-deploy.utc")
+ [ $(( $(date +%s) - $(date -d "$S" +%s) )) -ge 1800 ] || stop "아직 30분 전 — 완료로 판정하지 않는다"
+ date '+%F %T %Z' | tee "$M/t-after30.txt"
+ $DC ps backend
+-$PSQL -At -c "$NEWSCFG" > "$M/news-after30.txt" || stop "뉴스 설정 조회 실패 — 1분 뒤 K4 를 다시"
++$PSQL -At -c "$NEWSCFG" > "$M/news-after30.txt" || stop "뉴스 설정 조회 실패 — 1분 뒤 L4 를 다시"
+ OBS=$(date +%s); echo "$OBS" > "$M/obs-after30.txt"   # 관측 시각 = 뉴스 설정을 읽은 시각(로그는 그 뒤에 읽는다)
+ $DC logs --no-color --since "$S" backend > "$M/app-after30.log"
+ grep " ERROR " "$M/app-after30.log" | grep -v "캔들 최신성" | grep -v -E "$NOT404" > "$M/errors-all-after30.txt" || true
+@@ -31,20 +31,24 @@
+ sid203 || stop "SID 203·기준 행·EG·0 확인 중 바뀐 것 있음 — 보고"
+ [ "$(h256 "$OPS/sid_ledger.sql")" = "$LSUM" ] && [ "$(cat "$OPS/SID_LEDGER_SHA")" = "$LS" ] || stop "설치 장부가 바뀜 — 보고"
+ [ "$(cat "$OPS/INSTALLED_SHA")" = "$CK" ] && [ "$(h256 "$OPS/daily_check.sh")" = "$CKSH" ] && [ "$(h256 "$OPS/daily_checks.sql")" = "$CKSQL" ] || stop "정기 점검 설치본이 바뀜 — 보고"
+-crontab -l | cmp -s - "$M/crontab-before.txt" || stop "cron 이 K0 때와 다름 — crontab -l 을 보고"
++crontab -l | cmp -s - "$M/crontab-before.txt" || stop "cron 이 L0 때와 다름 — crontab -l 을 보고"
+ ( cd ~/sid203-ledger && sha256sum --quiet -c "$M/ledger-files-before.sha" ) || stop "과거 장부 기록 파일이 바뀜 — 보고"
+-$PSQL -At -c "$BTCIN" > "$M/btc-after30.txt" || stop "BTC 입력 조회 실패 — 1분 뒤 K4 를 다시"
+-echo "== BTC H1 K3 $(cat "$M/btc-deploy.txt") · 지금 $(cat "$M/btc-after30.txt")"
++$PSQL -At -c "$BTCIN" > "$M/btc-after30.txt" || stop "BTC 입력 조회 실패 — 1분 뒤 L4 를 다시"
++echo "== BTC H1 L3 $(cat "$M/btc-deploy.txt") · 지금 $(cat "$M/btc-after30.txt")"
+ btcok "$M/btc-after30.txt" || stop "BTC 입력 미충족 — 바로 되돌리지 말고 위 출력을 보고"
+ echo "== 뉴스 출처별(기동 뒤 30분 로그)"
+ newsobs "$M/app-after30.log" "$M/news-before.txt" "$M/news-after30.txt" "$(date -d "$S" +%s)" "$OBS" | tee "$M/newsobs-after30.txt" && NO=0 || NO=$?
+ [ "$NO" = 0 ] || [ "$NO" = 3 ] || stop "뉴스 관측 이상(종료 $NO) — 되돌리지 말고 위 출력을 보고"
+ if [ "$NO" = 3 ]; then cp "$M/newsobs-after30.txt" "$M/news-check-after30.txt"; echo "⚪ 뉴스 확인 필요 — 되돌리지 않는다. 위 ⚪ 줄을 보고(정상 관측 아님)"; fi
++httpobs "$M/app-after30.log" | tee "$M/httpobs-after30.txt" && HO=0 || HO=$?
++[ "$HO" = 0 ] || [ "$HO" = 3 ] || stop "출처 HTTP 비200 줄이 고정 한 줄이 아님(종료 $HO) — 되돌리지 말고 위 출력을 보고"
++if [ "$HO" = 3 ]; then cp "$M/httpobs-after30.txt" "$M/http-check-after30.txt"; echo "⚪ HTTP 줄 확인 필요 — 되돌리지 않는다. 위 ⚪ 줄을 보고"; fi
+ python3 scripts/prospective/start_66.py alerts --since "$S" --no-mark > "$M/alerts-after30.txt" 2>&1 && AE=0 || AE=$?
+ echo "경보 종료코드 $AE (1 = 🔴 경보 있음 — 이것만으로 멈추지 않고 네 갈래로 대조)"
+ alertsok "$AE" "$M/alerts-after30.txt" || stop "경보 조회가 끝까지 돌지 않음 — alerts-after30.txt 를 보고"
+ echo "== 경보 (지금)"; cat "$M/alerts-after30.txt"
+ echo "== 경보 (배포 전 기준선)"; cat "$M/alerts-before.txt"
+-touch "$M/ok-K4"; echo "✅ K4 통과 — K0~K4 출력을 보고(F 변수·F1 은 총괄 판단 뒤 개발 에이전트가 갱신)"
++touch "$M/ok-L4"; echo "✅ L4 통과 — L0~L4 출력을 보고(F 변수·F1 은 총괄 판단 뒤 개발 에이전트가 갱신)"
+ [ ! -e "$M/news-check-after30.txt" ] || echo "⚪ 단, 뉴스 확인 필요가 남았다 — 뉴스 관측 완료로 보고하지 않는다(news-check-after30.txt)"
++[ ! -e "$M/http-check-after30.txt" ] || echo "⚪ 단, HTTP 줄 확인 필요가 남았다 — N12 운영 관측 완료로 보고하지 않는다(http-check-after30.txt)"
+ )
+--- Kafter(원문)
++++ Lafter
+@@ -1,8 +1,8 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "${KV:-}" = 55 ] || stop "K 변수가 v1.87(§5-9 55) 판이 아님 — F → G → §5-9 55 K 변수"
+-[ -e "$M/ok-K4" ] || stop "K4 미통과"
++[ "${LV:-}" = 61 ] || stop "L 변수가 v1.93(§5-9 61) 판이 아님 — F → G → §5-9 61 L 변수"
++[ -e "$M/ok-L4" ] || stop "L4 미통과"
+ S=$(cat "$M/t-deploy.utc"); TS=$(date '+%Y%m%d-%H%M')
+ [ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$(cat "$M/image-new.txt")" ] || stop "실행 이미지가 image-new 와 다름 — 보고"
+ $PSQL -At -c "$NEWSCFG" > "$M/news-$TS.txt" || stop "뉴스 설정 조회 실패"
+@@ -12,4 +12,7 @@
+ case "$NO" in 0) ;; 3) echo "⚪ 뉴스 확인 필요 — 위 ⚪ 줄을 보고(정상 관측 아님, 실패로 확정하지 않음)" ;; *) echo "🔴 뉴스 관측 이상(종료 $NO) — 위 출력을 보고" ;; esac
+ grep " ERROR " "$M/app-news-$TS.log" | grep -E "$NEWSERR" > "$M/errors-news-$TS.txt" || true
+ echo "== 기동 뒤 뉴스 출처 ERROR $(wc -l < "$M/errors-news-$TS.txt")줄(출처별)"; grep -oE "$NEWSERR" "$M/errors-news-$TS.txt" | sort | uniq -c || true
++echo "== 기동 뒤 출처 HTTP 비200 줄(N12)"
++httpobs "$M/app-news-$TS.log" | tee "$M/httpobs-$TS.txt" && HO=0 || HO=$?
++case "$HO" in 0) ;; 3) echo "⚪ HTTP 줄 확인 필요 — 위 ⚪ 줄을 보고" ;; *) echo "🔴 출처 HTTP 비200 줄이 고정 한 줄이 아님(종료 $HO) — 위 출력을 보고" ;; esac
+ )
+--- Kback(원문)
++++ Lback
+@@ -1,7 +1,8 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-IMG0=$(cat "$M/image-before.txt"); [ "$IMG0" = "$IMGOLD" ] || stop "image-before 가 #19 이미지가 아님"
++[ "${LV:-}" = 61 ] || stop "L 변수가 v1.93(§5-9 61) 판이 아님 — F → G → §5-9 61 L 변수"
++IMG0=$(cat "$M/image-before.txt"); [ "$IMG0" = "$IMGOLD" ] || stop "image-before 가 #20 이미지(fd3ac351…)가 아님"
+ date '+%F %T %Z' | tee "$M/t-rollback.txt"; date -u '+%Y-%m-%dT%H:%M:%SZ' > "$M/t-rollback.utc"
+ git checkout --quiet $OLD; [ "$(git rev-parse HEAD)" = "$OLD" ] || stop "체크아웃 실패"
+ docker tag "$IMG0" $REPO:latest
+@@ -11,5 +12,5 @@
+ [ "$($DC exec -T backend env | grep '^TRADING_CAPITALPOOL_' | sort)" = "$POOLX" ] || stop "공유 풀 등록값 다름"
+ svc | tee "$M/svc-rollback.txt"
+ { git rev-parse HEAD; git status --porcelain --untracked-files=no; echo "(끝)"; } | tee "$M/git-rollback.txt"
+-echo "✅ ea44900 (61804654…) 로 복귀 — 5분 뒤 K3 를 다시 실행(t-rollback.utc 기준으로 자동 전환, BTC·뉴스는 기록만)"
++echo "✅ b1d7664 (fd3ac351…) 로 복귀 — 5분 뒤 L3 를 다시 실행(t-rollback.utc 기준으로 자동 전환, BTC·뉴스·HTTP 줄은 기록만)"
+ )
