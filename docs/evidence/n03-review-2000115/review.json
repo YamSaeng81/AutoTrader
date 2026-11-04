@@ -1,0 +1,130 @@
+{
+  "review_date_kst": "2026-11-04",
+  "submission": "20001155d07e5ecde2c34623c5cdaf4c6e5435c4",
+  "production_source": "ea4490099f0fa6b614fe71102534b0ba84c0eb7f",
+  "scope": "Local committed artifacts and source inspection only; no SSH, DB, HTTP, app tests or report execution.",
+  "manifest": [
+    {
+      "file": "20261104-1000.txt",
+      "expected": "2e26004cca3b0982772a70d5eec7b79816558c52ef8a9b54108cabc03211f94b",
+      "working_copy_matches": true,
+      "committed_blob_matches": true
+    },
+    {
+      "file": "20261104-1000.txt.msg",
+      "expected": "cae3c00b08b0edbd8e7d49fd22dbdbfcad35a358489f03a001b750104244df12",
+      "working_copy_matches": true,
+      "committed_blob_matches": true
+    },
+    {
+      "file": "20261104-1000.txt.raw",
+      "expected": "4a201028c73804e1a10e8235f9b1fe2fce5843e59896218503381060d51873cd",
+      "working_copy_matches": true,
+      "committed_blob_matches": true
+    },
+    {
+      "file": "last_send",
+      "expected": "278ccc93d1b4dd2f1cbc45e005e8bbaf415ff7d6c1bd710c0832e686ce59c6a9",
+      "working_copy_matches": true,
+      "committed_blob_matches": true
+    },
+    {
+      "file": "sid203-ledger-20261104.txt",
+      "expected": "1fb483c1b909f848c2c381659b1f3964f5d7ee01da805dcf61bc6ff40fa21dad",
+      "working_copy_matches": true,
+      "committed_blob_matches": true
+    },
+    {
+      "file": "error_lines.txt",
+      "expected": "dc0b6f9752a8011cffdac950c81cdc17e59881c2248c742616910ab17f2c78dc",
+      "working_copy_matches": true,
+      "committed_blob_matches": true
+    },
+    {
+      "file": "install_state.txt",
+      "expected": "195897d6dde90935c251c4a81621c28de117bef1567dbbb929352f159af473e2",
+      "working_copy_matches": true,
+      "committed_blob_matches": true
+    },
+    {
+      "file": "README.md",
+      "expected": "12b32a98295b01828280a8fb8fd6c1236722f023876684ea50d61edffc2866a7",
+      "working_copy_matches": true,
+      "committed_blob_matches": true
+    },
+    {
+      "file": ".gitattributes",
+      "expected": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+      "working_copy_matches": true,
+      "committed_blob_matches": true
+    }
+  ],
+  "report_and_msg_match_ignoring_final_newline": true,
+  "report_footer_matches_last_send": true,
+  "db_key_count": 32,
+  "db_two_nonempty_fields": true,
+  "duplicate_keys": [],
+  "btc_observed_kst": "2026-11-04T10:00:02",
+  "btc_required_recalculated_kst": "2026-11-04T08:00:00",
+  "btc_required_matches": true,
+  "btc_finished_covers_required": true,
+  "btc_b1": "true",
+  "btc_b3": "20",
+  "error_line_count": 17,
+  "current_news_errors": [
+    "backend-1  | 14:27:59.895 [scheduler-1] ERROR c.c.api.news.source.RssNewsSource - [RssNewsSource] 수집 실패 — sourceId=tokenpost_rss: Connection reset",
+    "backend-1  | 15:28:06.955 [scheduler-6] ERROR c.c.a.news.source.UpbitNoticeSource - [UpbitNoticeSource] 수집 실패: Connection reset",
+    "backend-1  | 15:28:07.128 [scheduler-6] ERROR c.c.a.news.source.CryptoPanicSource - [CryptoPanicSource] 수집 실패: Connection reset"
+  ],
+  "previous_news_errors": [
+    "backend-1  | 14:25:51.216 [scheduler-4] ERROR c.c.api.news.source.RssNewsSource - [RssNewsSource] 수집 실패 — sourceId=tokenpost_rss: Connection reset",
+    "backend-1  | 15:25:56.841 [scheduler-1] ERROR c.c.a.news.source.UpbitNoticeSource - [UpbitNoticeSource] 수집 실패: Connection reset",
+    "backend-1  | 15:25:57.042 [scheduler-1] ERROR c.c.a.news.source.CryptoPanicSource - [CryptoPanicSource] 수집 실패: Connection reset"
+  ],
+  "timeout_request_count": 3,
+  "timeout_sync_failure_count": 3,
+  "timeout_count_interpretation": "Three coin requests produced six ERROR lines; the +4 category count is six timeout lines replacing the previous window's two timeout lines, not six additional requests.",
+  "installed_source_hashes": {
+    "daily_check.sh": {
+      "sha256": "2135e95314edeea68f6b9dfc31a1c0b0034f84b9d3cbfd52be7ee82afab9cc60",
+      "recorded_in_install_state": true
+    },
+    "daily_checks.sql": {
+      "sha256": "653b22bab04b68c50bf9daf2a54f2c281f9c57eaf6795076225ed39d62d48fa8",
+      "recorded_in_install_state": true
+    }
+  },
+  "recorded_cron_hash_occurrences": 2,
+  "error_lines_remote_hash_recorded": true,
+  "remote_original_five_hash_limit": "Developer reports server-original hashes 5/5. The five remote digest values are not separately retained in this evidence set; reviewer verified local files and committed blobs 9/9, not an independent server-side five-file comparison.",
+  "phone_receipt": "Unconfirmed; server-send success is distinct.",
+  "source_files": [
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/news/NewsSource.java",
+      "sha256": "551292f6a2ddd9190fdd123dbadb78a7d42dc68da716dac6eced3e90f3855b5c",
+      "same_in_submission": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java",
+      "sha256": "a59686be3685e1770b758cd58c16964416f4ae26a4597c8b9aa707ee216fa684",
+      "same_in_submission": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/news/source/RssNewsSource.java",
+      "sha256": "c927d8d76c46e67c36aaa00003f62410a3dc14c0be0ea0f1184e4cd4a90003a4",
+      "same_in_submission": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/news/source/UpbitNoticeSource.java",
+      "sha256": "c359a0555ae5aeed5b0a8016e905d20873856f71852f595de34f1f8a4a8ac50f",
+      "same_in_submission": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/news/source/CryptoPanicSource.java",
+      "sha256": "59134bc9b20a565b0b78e15831ddf7eb0351afe0389b3dca9dd3d1dcc31f1545",
+      "same_in_submission": true
+    }
+  ],
+  "static_finding": "NewsSource.fetch returns a list only (failure may return an empty or partial list). NewsAggregatorService unconditionally updates lastFetchedAt and logs collection complete after fetch. This cannot distinguish a successful empty result from a source-caught failure. This is a code inspection, not an executed failure test or proof of a particular post-error production completion log.",
+  "cause_limit": "Repeated sources and similar times do not establish DNS, TLS, pool, provider, scheduler or network root cause, nor source recovery."
+}

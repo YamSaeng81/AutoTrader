@@ -1,0 +1,180 @@
+# Deployed source ea4490099f0fa6b614fe71102534b0ba84c0eb7f; numbered excerpts, not execution evidence.
+
+web-api/src/main/java/com/cryptoautotrader/api/news/NewsSource.java
+20:      * 예: "API", "RSS", "CRAWLER"
+21:      * 단일 구현체가 여러 URL을 처리할 수 있도록 type 기반 매핑 사용.
+22:      */
+23:     String getSupportedType();
+24: 
+25:     /**
+26:      * 설정 기반 뉴스 수집.
+27:      *
+28:      * @param config DB에서 조회한 소스 설정 (url, api_key, config_json 등)
+29:      * @return 수집된 뉴스 목록 (실패 시 빈 리스트 반환, 예외 throw 금지)
+30:      */
+31:     List<NewsItem> fetch(NewsSourceConfigEntity config);
+32: }
+
+web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java
+37:     /**
+38:      * 15분마다 실행 — 각 소스의 주기를 개별 체크.
+39:      * initialDelay 3분: 앱 기동 직후 준비 시간.
+40:      */
+41:     @Scheduled(initialDelay = 3 * 60 * 1000, fixedDelay = 15 * 60 * 1000)
+42:     @Transactional
+43:     public void collectAll() {
+44:         List<NewsSourceConfigEntity> sources = sourceConfigRepo.findAllByEnabledTrue();
+45:         if (sources.isEmpty()) {
+46:             log.debug("[NewsAggregator] 활성화된 뉴스 소스 없음");
+47:             return;
+48:         }
+49: 
+50:         for (NewsSourceConfigEntity sourceConfig : sources) {
+51:             if (!isDue(sourceConfig)) continue;
+52:             collectFromSource(sourceConfig);
+53:         }
+54:     }
+55: 
+56:     /**
+
+63:         return collectFromSource(config);
+64:     }
+65: 
+66:     private List<NewsItem> collectFromSource(NewsSourceConfigEntity config) {
+67:         NewsSource source = sourceRegistry.get(config.getSourceType());
+68:         if (source == null) {
+69:             log.warn("[NewsAggregator] 지원하지 않는 소스 타입: {} (sourceId={})",
+70:                     config.getSourceType(), config.getSourceId());
+71:             return List.of();
+72:         }
+73: 
+74:         log.debug("[NewsAggregator] 수집 시작 — sourceId={}", config.getSourceId());
+75:         List<NewsItem> items = source.fetch(config);
+76:         int saved = 0;
+77: 
+78:         for (NewsItem item : items) {
+79:             if (item.getExternalId() == null) continue;
+80:             if (newsCacheRepo.existsBySourceIdAndExternalId(item.getSourceId(), item.getExternalId())) {
+81:                 continue; // 중복 스킵
+82:             }
+83:             NewsItemCacheEntity entity = NewsItemCacheEntity.builder()
+84:                     .sourceId(item.getSourceId())
+85:                     .externalId(item.getExternalId())
+86:                     .title(item.getTitle())
+87:                     .url(item.getUrl())
+88:                     .summary(item.getOriginalSummary())
+89:                     .category(item.getCategory())
+90:                     .publishedAt(item.getPublishedAt())
+91:                     .build();
+92:             newsCacheRepo.save(entity);
+93:             saved++;
+94:         }
+95: 
+96:         config.setLastFetchedAt(Instant.now());
+97:         sourceConfigRepo.save(config);
+98: 
+99:         log.info("[NewsAggregator] 수집 완료 — sourceId={} 전체={}건 신규={}건",
+100:                 config.getSourceId(), items.size(), saved);
+101:         return items;
+102:     }
+103: 
+104:     /** fetch_interval_min 기준으로 수집 시점 도래 여부 확인 */
+105:     private boolean isDue(NewsSourceConfigEntity config) {
+106:         if (config.getLastFetchedAt() == null) return true;
+107:         return ChronoUnit.MINUTES.between(config.getLastFetchedAt(), Instant.now()) >= config.getFetchIntervalMin();
+108:     }
+109: 
+110:     /** 특정 시간 이후 수집된 뉴스 조회 (보고서·브리핑 생성용) */
+
+web-api/src/main/java/com/cryptoautotrader/api/news/source/RssNewsSource.java
+55: 
+56:     @Override
+57:     public List<NewsItem> fetch(NewsSourceConfigEntity config) {
+58:         List<NewsItem> items = new ArrayList<>();
+59:         try {
+60:             HttpRequest request = HttpRequest.newBuilder()
+61:                     .uri(URI.create(config.getUrl()))
+62:                     .timeout(Duration.ofSeconds(15))
+63:                     .header("User-Agent", "CryptoAutoTrader/1.0")
+64:                     .GET()
+65:                     .build();
+66: 
+67:             HttpResponse<InputStream> response = httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
+68: 
+69:             if (response.statusCode() != 200) {
+70:                 log.warn("[RssNewsSource] HTTP {} — sourceId={}", response.statusCode(), config.getSourceId());
+71:                 return items;
+72:             }
+73: 
+
+103: 
+104:             log.debug("[RssNewsSource] 수집 완료 — sourceId={} {}건", config.getSourceId(), items.size());
+105: 
+106:         } catch (Exception e) {
+107:             log.error("[RssNewsSource] 수집 실패 — sourceId={}: {}", config.getSourceId(), e.getMessage());
+108:         }
+109:         return items;
+110:     }
+
+web-api/src/main/java/com/cryptoautotrader/api/news/source/UpbitNoticeSource.java
+54:     public List<NewsItem> fetch(NewsSourceConfigEntity config) {
+55:         List<NewsItem> items = new ArrayList<>();
+56:         try {
+57:             HttpRequest request = HttpRequest.newBuilder()
+58:                     .uri(URI.create(config.getUrl()))
+59:                     .timeout(Duration.ofSeconds(15))
+60:                     .header("Accept", "application/json")
+61:                     // 업비트 매니저 API는 UA 없으면 차단될 수 있어 브라우저 UA 지정
+62:                     .header("User-Agent", "Mozilla/5.0 (compatible; CryptoAutoTrader/1.0)")
+63:                     .GET()
+64:                     .build();
+65: 
+66:             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+67:             if (response.statusCode() != 200) {
+68:                 log.warn("[UpbitNoticeSource] HTTP {}: {}", response.statusCode(),
+69:                         response.body() != null ? response.body().substring(0, Math.min(120, response.body().length())) : "");
+70:                 return items;
+71:             }
+72: 
+73:             JsonNode root = objectMapper.readTree(response.body());
+74:             JsonNode data = root.path("data");
+75:             // 응답 스키마 변형 대비: data.notices → data.list → 최상위 notices 순으로 탐색
+76:             JsonNode notices = firstArray(data.path("notices"), data.path("list"), root.path("notices"));
+77:             if (notices == null) {
+78:                 log.warn("[UpbitNoticeSource] 공지 배열을 찾지 못함 (스키마 변경 가능) — url={}", config.getUrl());
+79:                 return items;
+80:             }
+81: 
+
+98:             }
+99:             log.debug("[UpbitNoticeSource] 수집 완료 — {}건", items.size());
+100: 
+101:         } catch (Exception e) {
+102:             log.error("[UpbitNoticeSource] 수집 실패: {}", e.getMessage());
+103:         }
+104:         return items;
+105:     }
+
+web-api/src/main/java/com/cryptoautotrader/api/news/source/CryptoPanicSource.java
+76: 
+77:             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+78: 
+79:             if (response.statusCode() != 200) {
+80:                 log.warn("[CryptoPanicSource] HTTP {}: {}", response.statusCode(), response.body());
+81:                 return items;
+82:             }
+83: 
+84:             JsonNode json = objectMapper.readTree(response.body());
+85:             JsonNode results = json.get("results");
+86:             if (results == null || !results.isArray()) return items;
+87: 
+
+105: 
+106:             log.debug("[CryptoPanicSource] 수집 완료 — {}건", items.size());
+107: 
+108:         } catch (Exception e) {
+109:             log.error("[CryptoPanicSource] 수집 실패: {}", e.getMessage());
+110:         }
+111:         return items;
+112:     }
+

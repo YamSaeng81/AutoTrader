@@ -1,0 +1,1149 @@
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/controller/NewsSourceController.java b/web-api/src/main/java/com/cryptoautotrader/api/controller/NewsSourceController.java
+index 2bab871..817d399 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/controller/NewsSourceController.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/controller/NewsSourceController.java
+@@ -4,6 +4,7 @@ import com.cryptoautotrader.api.dto.ApiResponse;
+ import com.cryptoautotrader.api.entity.NewsItemCacheEntity;
+ import com.cryptoautotrader.api.entity.NewsSourceConfigEntity;
+ import com.cryptoautotrader.api.news.NewsAggregatorService;
++import com.cryptoautotrader.api.news.NewsFetchResult;
+ import com.cryptoautotrader.api.news.NewsItem;
+ import com.cryptoautotrader.api.news.NewsSourceRegistry;
+ import com.cryptoautotrader.api.repository.NewsItemCacheRepository;
+@@ -123,9 +124,12 @@ public class NewsSourceController {
+ 
+     @PostMapping("/{sourceId}/fetch")
+     public ApiResponse<Map<String, Object>> fetchNow(@PathVariable String sourceId) {
+-        List<NewsItem> items = newsAggregatorService.collectFromSourceManual(sourceId);
++        NewsFetchResult fetched = newsAggregatorService.collectFromSourceManual(sourceId);
++        List<NewsItem> items = fetched.items();
+         Map<String, Object> result = new HashMap<>();
+         result.put("sourceId", sourceId);
++        result.put("status", fetched.status().name());   // N11: SUCCESS / PARTIAL / FAILED
++        result.put("failureKind", fetched.failureKind()); // 성공이면 null
+         result.put("collected", items.size());
+         result.put("titles", items.stream().limit(5).map(NewsItem::getTitle).toList());
+         return ApiResponse.ok(result);
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java b/web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java
+index 54e1241..747ede6 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java
+@@ -57,22 +57,34 @@ public class NewsAggregatorService {
+      * 특정 소스 수동 수집 (관리 API 테스트용).
+      */
+     @Transactional
+-    public List<NewsItem> collectFromSourceManual(String sourceId) {
++    public NewsFetchResult collectFromSourceManual(String sourceId) {
+         NewsSourceConfigEntity config = sourceConfigRepo.findBySourceId(sourceId)
+                 .orElseThrow(() -> new IllegalArgumentException("소스 없음: " + sourceId));
+         return collectFromSource(config);
+     }
+ 
+-    private List<NewsItem> collectFromSource(NewsSourceConfigEntity config) {
++    /**
++     * 한 출처 수집 (N11, 2026-11-04).
++     * <ul>
++     *   <li>SUCCESS(0건 포함)만 "수집 완료"를 INFO 로 남긴다. FAILED·PARTIAL 은 "수집 미완료" WARN 으로 남긴다
++     *       (출처 자신의 ERROR 원문은 그대로 — 점검 분류 무변경, 여기서 ERROR 를 더하지 않는다).</li>
++     *   <li>PARTIAL 로 받은 항목도 기존과 같이 중복 확인 뒤 저장한다. 기존 캐시는 지우지 않는다.</li>
++     *   <li>last_fetched_at 은 성공·실패와 관계없이 시도 시각으로 갱신한다(기존 재시도 주기 보존).
++     *       지원하지 않는 타입은 기존처럼 갱신하지 않는다.</li>
++     * </ul>
++     */
++    private NewsFetchResult collectFromSource(NewsSourceConfigEntity config) {
+         NewsSource source = sourceRegistry.get(config.getSourceType());
+         if (source == null) {
+             log.warn("[NewsAggregator] 지원하지 않는 소스 타입: {} (sourceId={})",
+                     config.getSourceType(), config.getSourceId());
+-            return List.of();
++            return NewsFetchResult.failed(NewsFetchResult.UNSUPPORTED_TYPE);
+         }
+ 
+         log.debug("[NewsAggregator] 수집 시작 — sourceId={}", config.getSourceId());
+-        List<NewsItem> items = source.fetch(config);
++        NewsFetchResult result = source.fetch(config);
++        if (result == null) result = NewsFetchResult.failed(NewsFetchResult.NULL_RESULT); // 계약 위반도 성공으로 보지 않는다
++        List<NewsItem> items = result.items();
+         int saved = 0;
+ 
+         for (NewsItem item : items) {
+@@ -96,9 +108,14 @@ public class NewsAggregatorService {
+         config.setLastFetchedAt(Instant.now());
+         sourceConfigRepo.save(config);
+ 
+-        log.info("[NewsAggregator] 수집 완료 — sourceId={} 전체={}건 신규={}건",
+-                config.getSourceId(), items.size(), saved);
+-        return items;
++        if (result.isSuccess()) {
++            log.info("[NewsAggregator] 수집 완료 — sourceId={} 전체={}건 신규={}건",
++                    config.getSourceId(), items.size(), saved);
++        } else {
++            log.warn("[NewsAggregator] 수집 미완료 — sourceId={} 결과={} 종류={} 판정={} 받은={}건 신규={}건",
++                    config.getSourceId(), result.status(), result.failureKind(), result.decidedAt(), items.size(), saved);
++        }
++        return result;
+     }
+ 
+     /** fetch_interval_min 기준으로 수집 시점 도래 여부 확인 */
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/news/NewsFetchResult.java b/web-api/src/main/java/com/cryptoautotrader/api/news/NewsFetchResult.java
+new file mode 100644
+index 0000000..045bb19
+--- /dev/null
++++ b/web-api/src/main/java/com/cryptoautotrader/api/news/NewsFetchResult.java
+@@ -0,0 +1,72 @@
++package com.cryptoautotrader.api.news;
++
++import java.time.Instant;
++import java.util.List;
++import java.util.Objects;
++
++/**
++ * 뉴스 출처 한 번의 수집 결과 (N11, 2026-11-04).
++ *
++ * <ul>
++ *   <li>{@link Status#SUCCESS} — 응답을 받아 파싱까지 끝났다. 0건도 성공이다.</li>
++ *   <li>{@link Status#PARTIAL} — 일부 항목을 만든 뒤 실패했다. 만든 항목은 그대로 둔다.</li>
++ *   <li>{@link Status#FAILED} — 항목 없이 실패했다(연결 오류·HTTP 비200·필요한 필드 없는 응답 등).</li>
++ * </ul>
++ *
++ * <p>{@code failureKind}는 짧은 분류값만 담는다: {@code HTTP_<코드>}, {@code INVALID_RESPONSE},
++ * 예외 클래스의 단순 이름(예: {@code IOException}), {@code UNSUPPORTED_TYPE}, {@code NULL_RESULT}.
++ * 토큰·전체 URL·응답 본문·예외 메시지는 넣지 않는다.
++ * {@code decidedAt}은 출처가 결과를 판정한 시각이다.
++ */
++public record NewsFetchResult(Status status, List<NewsItem> items, String failureKind, Instant decidedAt) {
++
++    public enum Status { SUCCESS, PARTIAL, FAILED }
++
++    public static final String INVALID_RESPONSE = "INVALID_RESPONSE";
++    public static final String UNSUPPORTED_TYPE = "UNSUPPORTED_TYPE";
++    public static final String NULL_RESULT = "NULL_RESULT";
++
++    public NewsFetchResult {
++        Objects.requireNonNull(status, "status");
++        Objects.requireNonNull(decidedAt, "decidedAt");
++        items = items == null ? List.of() : List.copyOf(items);
++        if (status == Status.SUCCESS && failureKind != null) {
++            throw new IllegalArgumentException("성공 결과에는 실패 종류가 없다");
++        }
++        if (status != Status.SUCCESS && (failureKind == null || failureKind.isBlank())) {
++            throw new IllegalArgumentException("실패·부분 결과에는 실패 종류가 필요하다");
++        }
++        if (status == Status.FAILED && !items.isEmpty()) {
++            throw new IllegalArgumentException("항목이 있으면 FAILED 가 아니라 PARTIAL 이다");
++        }
++        if (status == Status.PARTIAL && items.isEmpty()) {
++            throw new IllegalArgumentException("항목이 없으면 PARTIAL 이 아니라 FAILED 다");
++        }
++    }
++
++    public static NewsFetchResult success(List<NewsItem> items) {
++        return new NewsFetchResult(Status.SUCCESS, items, null, Instant.now());
++    }
++
++    public static NewsFetchResult failed(String failureKind) {
++        return new NewsFetchResult(Status.FAILED, List.of(), failureKind, Instant.now());
++    }
++
++    public static NewsFetchResult httpStatus(int statusCode) {
++        return failed("HTTP_" + statusCode);
++    }
++
++    /** 예외로 끝난 수집. 이미 만든 항목이 있으면 PARTIAL, 없으면 FAILED. 예외 메시지는 담지 않는다. */
++    public static NewsFetchResult fromException(List<NewsItem> collectedSoFar, Exception e) {
++        String kind = e.getClass().getSimpleName();
++        if (kind.isEmpty()) kind = e.getClass().getName(); // 익명 클래스
++        if (collectedSoFar == null || collectedSoFar.isEmpty()) {
++            return new NewsFetchResult(Status.FAILED, List.of(), kind, Instant.now());
++        }
++        return new NewsFetchResult(Status.PARTIAL, collectedSoFar, kind, Instant.now());
++    }
++
++    public boolean isSuccess() {
++        return status == Status.SUCCESS;
++    }
++}
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/news/NewsSource.java b/web-api/src/main/java/com/cryptoautotrader/api/news/NewsSource.java
+index ccc93bd..0313b4f 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/news/NewsSource.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/news/NewsSource.java
+@@ -2,8 +2,6 @@ package com.cryptoautotrader.api.news;
+ 
+ import com.cryptoautotrader.api.entity.NewsSourceConfigEntity;
+ 
+-import java.util.List;
+-
+ /**
+  * 뉴스 소스 추상화 인터페이스.
+  *
+@@ -26,7 +24,9 @@ public interface NewsSource {
+      * 설정 기반 뉴스 수집.
+      *
+      * @param config DB에서 조회한 소스 설정 (url, api_key, config_json 등)
+-     * @return 수집된 뉴스 목록 (실패 시 빈 리스트 반환, 예외 throw 금지)
++     * @return 수집 결과 — 응답·파싱이 끝났으면 SUCCESS(0건 포함), 항목 없이 실패하면 FAILED,
++     *         일부 항목을 만든 뒤 실패하면 PARTIAL. 예외 throw 금지 (N11, 2026-11-04).
++     *         실패를 SUCCESS 빈 목록으로 돌려주지 않는다.
+      */
+-    List<NewsItem> fetch(NewsSourceConfigEntity config);
++    NewsFetchResult fetch(NewsSourceConfigEntity config);
+ }
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/news/source/CoinGeckoTrendingSource.java b/web-api/src/main/java/com/cryptoautotrader/api/news/source/CoinGeckoTrendingSource.java
+index 99c1335..2f06995 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/news/source/CoinGeckoTrendingSource.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/news/source/CoinGeckoTrendingSource.java
+@@ -1,6 +1,7 @@
+ package com.cryptoautotrader.api.news.source;
+ 
+ import com.cryptoautotrader.api.entity.NewsSourceConfigEntity;
++import com.cryptoautotrader.api.news.NewsFetchResult;
+ import com.cryptoautotrader.api.news.NewsItem;
+ import com.cryptoautotrader.api.news.NewsSource;
+ import com.fasterxml.jackson.databind.JsonNode;
+@@ -44,7 +45,7 @@ public class CoinGeckoTrendingSource implements NewsSource {
+     }
+ 
+     @Override
+-    public List<NewsItem> fetch(NewsSourceConfigEntity config) {
++    public NewsFetchResult fetch(NewsSourceConfigEntity config) {
+         List<NewsItem> items = new ArrayList<>();
+         try {
+             HttpRequest request = HttpRequest.newBuilder()
+@@ -58,12 +59,13 @@ public class CoinGeckoTrendingSource implements NewsSource {
+ 
+             if (response.statusCode() != 200) {
+                 log.warn("[CoinGeckoTrendingSource] HTTP {}", response.statusCode());
+-                return items;
++                return NewsFetchResult.httpStatus(response.statusCode());
+             }
+ 
+             JsonNode json = objectMapper.readTree(response.body());
+             JsonNode coins = json.path("coins");
+-            if (!coins.isArray()) return items;
++            // coins 배열이 없으면 잘못된 응답, 빈 배열이면 정상 0건
++            if (!coins.isArray()) return NewsFetchResult.failed(NewsFetchResult.INVALID_RESPONSE);
+ 
+             Instant now = Instant.now();
+             for (JsonNode coinNode : coins) {
+@@ -88,10 +90,11 @@ public class CoinGeckoTrendingSource implements NewsSource {
+             }
+ 
+             log.debug("[CoinGeckoTrendingSource] 수집 완료 — {}건", items.size());
++            return NewsFetchResult.success(items);
+ 
+         } catch (Exception e) {
+             log.error("[CoinGeckoTrendingSource] 수집 실패: {}", e.getMessage());
++            return NewsFetchResult.fromException(items, e);
+         }
+-        return items;
+     }
+ }
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/news/source/CryptoPanicSource.java b/web-api/src/main/java/com/cryptoautotrader/api/news/source/CryptoPanicSource.java
+index 0e0d7ff..8e1518d 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/news/source/CryptoPanicSource.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/news/source/CryptoPanicSource.java
+@@ -1,6 +1,7 @@
+ package com.cryptoautotrader.api.news.source;
+ 
+ import com.cryptoautotrader.api.entity.NewsSourceConfigEntity;
++import com.cryptoautotrader.api.news.NewsFetchResult;
+ import com.cryptoautotrader.api.news.NewsItem;
+ import com.cryptoautotrader.api.news.NewsSource;
+ import com.fasterxml.jackson.databind.JsonNode;
+@@ -48,7 +49,7 @@ public class CryptoPanicSource implements NewsSource {
+     }
+ 
+     @Override
+-    public List<NewsItem> fetch(NewsSourceConfigEntity config) {
++    public NewsFetchResult fetch(NewsSourceConfigEntity config) {
+         List<NewsItem> items = new ArrayList<>();
+         try {
+             String baseUrl = config.getUrl();
+@@ -78,12 +79,13 @@ public class CryptoPanicSource implements NewsSource {
+ 
+             if (response.statusCode() != 200) {
+                 log.warn("[CryptoPanicSource] HTTP {}: {}", response.statusCode(), response.body());
+-                return items;
++                return NewsFetchResult.httpStatus(response.statusCode());
+             }
+ 
+             JsonNode json = objectMapper.readTree(response.body());
+             JsonNode results = json.get("results");
+-            if (results == null || !results.isArray()) return items;
++            // results 배열이 없으면 잘못된 응답, 빈 배열이면 정상 0건
++            if (results == null || !results.isArray()) return NewsFetchResult.failed(NewsFetchResult.INVALID_RESPONSE);
+ 
+             for (JsonNode node : results) {
+                 String id    = node.path("id").asText(null);
+@@ -104,11 +106,12 @@ public class CryptoPanicSource implements NewsSource {
+             }
+ 
+             log.debug("[CryptoPanicSource] 수집 완료 — {}건", items.size());
++            return NewsFetchResult.success(items);
+ 
+         } catch (Exception e) {
+             log.error("[CryptoPanicSource] 수집 실패: {}", e.getMessage());
++            return NewsFetchResult.fromException(items, e);
+         }
+-        return items;
+     }
+ 
+     private Instant parseInstant(String text) {
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/news/source/RssNewsSource.java b/web-api/src/main/java/com/cryptoautotrader/api/news/source/RssNewsSource.java
+index 12cbcee..79931f3 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/news/source/RssNewsSource.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/news/source/RssNewsSource.java
+@@ -1,6 +1,7 @@
+ package com.cryptoautotrader.api.news.source;
+ 
+ import com.cryptoautotrader.api.entity.NewsSourceConfigEntity;
++import com.cryptoautotrader.api.news.NewsFetchResult;
+ import com.cryptoautotrader.api.news.NewsItem;
+ import com.cryptoautotrader.api.news.NewsSource;
+ import org.slf4j.Logger;
+@@ -54,7 +55,7 @@ public class RssNewsSource implements NewsSource {
+     }
+ 
+     @Override
+-    public List<NewsItem> fetch(NewsSourceConfigEntity config) {
++    public NewsFetchResult fetch(NewsSourceConfigEntity config) {
+         List<NewsItem> items = new ArrayList<>();
+         try {
+             HttpRequest request = HttpRequest.newBuilder()
+@@ -68,7 +69,7 @@ public class RssNewsSource implements NewsSource {
+ 
+             if (response.statusCode() != 200) {
+                 log.warn("[RssNewsSource] HTTP {} — sourceId={}", response.statusCode(), config.getSourceId());
+-                return items;
++                return NewsFetchResult.httpStatus(response.statusCode());
+             }
+ 
+             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+@@ -77,6 +78,11 @@ public class RssNewsSource implements NewsSource {
+             DocumentBuilder builder = factory.newDocumentBuilder();
+             Document doc = builder.parse(response.body());
+             doc.getDocumentElement().normalize();
++            // RSS 문서의 필수 요소(channel)가 없으면 정상 0건이 아니라 잘못된 응답이다
++            if (doc.getElementsByTagName("channel").getLength() == 0) {
++                log.warn("[RssNewsSource] channel 요소 없음 — sourceId={}", config.getSourceId());
++                return NewsFetchResult.failed(NewsFetchResult.INVALID_RESPONSE);
++            }
+ 
+             NodeList itemNodes = doc.getElementsByTagName("item");
+             for (int i = 0; i < itemNodes.getLength(); i++) {
+@@ -102,11 +108,12 @@ public class RssNewsSource implements NewsSource {
+             }
+ 
+             log.debug("[RssNewsSource] 수집 완료 — sourceId={} {}건", config.getSourceId(), items.size());
++            return NewsFetchResult.success(items);
+ 
+         } catch (Exception e) {
+             log.error("[RssNewsSource] 수집 실패 — sourceId={}: {}", config.getSourceId(), e.getMessage());
++            return NewsFetchResult.fromException(items, e);
+         }
+-        return items;
+     }
+ 
+     private String getText(Element parent, String tagName) {
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/news/source/UpbitNoticeSource.java b/web-api/src/main/java/com/cryptoautotrader/api/news/source/UpbitNoticeSource.java
+index f24d665..8c610a8 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/news/source/UpbitNoticeSource.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/news/source/UpbitNoticeSource.java
+@@ -1,6 +1,7 @@
+ package com.cryptoautotrader.api.news.source;
+ 
+ import com.cryptoautotrader.api.entity.NewsSourceConfigEntity;
++import com.cryptoautotrader.api.news.NewsFetchResult;
+ import com.cryptoautotrader.api.news.NewsItem;
+ import com.cryptoautotrader.api.news.NewsSource;
+ import com.fasterxml.jackson.databind.JsonNode;
+@@ -27,7 +28,7 @@ import java.util.List;
+  *
+  * <p>응답 형태(예): {"success":true,"data":{"notices":[{"id":..,"title":..,"listed_at":..}], ...}}
+  * 엔드포인트가 바뀔 수 있어 URL은 news_source_config.url로 설정 가능(코드 무수정 대응).
+- * 실패 시 예외를 던지지 않고 빈 리스트 반환(수집기 계약).
++ * 실패 시 예외를 던지지 않고 실패 결과를 반환한다(수집기 계약, N11). 빈 공지 배열은 정상 0건이다.
+  */
+ @Component
+ public class UpbitNoticeSource implements NewsSource {
+@@ -51,7 +52,7 @@ public class UpbitNoticeSource implements NewsSource {
+     }
+ 
+     @Override
+-    public List<NewsItem> fetch(NewsSourceConfigEntity config) {
++    public NewsFetchResult fetch(NewsSourceConfigEntity config) {
+         List<NewsItem> items = new ArrayList<>();
+         try {
+             HttpRequest request = HttpRequest.newBuilder()
+@@ -67,7 +68,7 @@ public class UpbitNoticeSource implements NewsSource {
+             if (response.statusCode() != 200) {
+                 log.warn("[UpbitNoticeSource] HTTP {}: {}", response.statusCode(),
+                         response.body() != null ? response.body().substring(0, Math.min(120, response.body().length())) : "");
+-                return items;
++                return NewsFetchResult.httpStatus(response.statusCode());
+             }
+ 
+             JsonNode root = objectMapper.readTree(response.body());
+@@ -75,8 +76,13 @@ public class UpbitNoticeSource implements NewsSource {
+             // 응답 스키마 변형 대비: data.notices → data.list → 최상위 notices 순으로 탐색
+             JsonNode notices = firstArray(data.path("notices"), data.path("list"), root.path("notices"));
+             if (notices == null) {
++                // 공지 배열 자리가 빈 배열이면 정상 0건, 배열 자체가 없으면 잘못된 응답
++                if (anyArray(data.path("notices"), data.path("list"), root.path("notices"))) {
++                    log.debug("[UpbitNoticeSource] 수집 완료 — 0건(빈 공지 배열)");
++                    return NewsFetchResult.success(items);
++                }
+                 log.warn("[UpbitNoticeSource] 공지 배열을 찾지 못함 (스키마 변경 가능) — url={}", config.getUrl());
+-                return items;
++                return NewsFetchResult.failed(NewsFetchResult.INVALID_RESPONSE);
+             }
+ 
+             for (JsonNode n : notices) {
+@@ -97,11 +103,12 @@ public class UpbitNoticeSource implements NewsSource {
+                         .build());
+             }
+             log.debug("[UpbitNoticeSource] 수집 완료 — {}건", items.size());
++            return NewsFetchResult.success(items);
+ 
+         } catch (Exception e) {
+             log.error("[UpbitNoticeSource] 수집 실패: {}", e.getMessage());
++            return NewsFetchResult.fromException(items, e);
+         }
+-        return items;
+     }
+ 
+     private static JsonNode firstArray(JsonNode... candidates) {
+@@ -111,6 +118,13 @@ public class UpbitNoticeSource implements NewsSource {
+         return null;
+     }
+ 
++    private static boolean anyArray(JsonNode... candidates) {
++        for (JsonNode c : candidates) {
++            if (c != null && c.isArray()) return true;
++        }
++        return false;
++    }
++
+     private static String firstText(JsonNode node, String... fields) {
+         for (String f : fields) {
+             String v = node.path(f).asText(null);
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/news/LocalHttpStub.java b/web-api/src/test/java/com/cryptoautotrader/api/news/LocalHttpStub.java
+new file mode 100644
+index 0000000..2e15cec
+--- /dev/null
++++ b/web-api/src/test/java/com/cryptoautotrader/api/news/LocalHttpStub.java
+@@ -0,0 +1,115 @@
++package com.cryptoautotrader.api.news;
++
++import java.io.ByteArrayOutputStream;
++import java.io.IOException;
++import java.io.InputStream;
++import java.io.OutputStream;
++import java.net.InetAddress;
++import java.net.ServerSocket;
++import java.net.Socket;
++import java.nio.charset.StandardCharsets;
++import java.util.Map;
++import java.util.concurrent.ConcurrentHashMap;
++import java.util.concurrent.atomic.AtomicInteger;
++
++/**
++ * N11 시험 전용 HTTP 대역 — 127.0.0.1 에만 열고 외부로 나가지 않는다.
++ * 경로별로 ① 요청을 읽은 뒤 RST 로 끊기(SO_LINGER 0 — 서버 쪽 연결 강제 종료. 예외 문구는 OS·JDK 마다 다르며
++ * Windows JDK 17 에서는 "HTTP/1.1 header parser received no bytes", 운영 리눅스 로그는 "Connection reset") ② 지정 상태·본문 응답을 고른다.
++ * 쿼리 문자열은 경로 판정에서 뺀다(CryptoPanic 은 "?public=true" 를 붙인다).
++ */
++final class LocalHttpStub implements AutoCloseable {
++
++    record Reply(boolean dropWithRst, int status, String body) {
++        static Reply reset() { return new Reply(true, 0, null); }
++        static Reply ok(String body) { return new Reply(false, 200, body); }
++        static Reply status(int status, String body) { return new Reply(false, status, body); }
++    }
++
++    private final ServerSocket server;
++    private final Map<String, Reply> routes = new ConcurrentHashMap<>();
++    private final Map<String, AtomicInteger> hits = new ConcurrentHashMap<>();
++    private final Thread acceptor;
++
++    LocalHttpStub() throws IOException {
++        server = new ServerSocket(0, 50, InetAddress.getLoopbackAddress());
++        acceptor = new Thread(this::acceptLoop, "n11-http-stub");
++        acceptor.setDaemon(true);
++        acceptor.start();
++    }
++
++    void route(String path, Reply reply) {
++        routes.put(path, reply);
++        hits.put(path, new AtomicInteger());
++    }
++
++    String url(String path) {
++        return "http://127.0.0.1:" + server.getLocalPort() + path;
++    }
++
++    int hits(String path) {
++        AtomicInteger n = hits.get(path);
++        return n == null ? 0 : n.get();
++    }
++
++    private void acceptLoop() {
++        while (!server.isClosed()) {
++            try {
++                Socket s = server.accept();
++                handle(s);
++            } catch (IOException e) {
++                // 닫힘
++            }
++        }
++    }
++
++    private void handle(Socket s) throws IOException {
++        String head = readHead(s.getInputStream());
++        String path = "/";
++        String[] first = head.split("\r\n", 2)[0].split(" ");
++        if (first.length >= 2) path = first[1];
++        int q = path.indexOf('?');
++        if (q >= 0) path = path.substring(0, q);
++        Reply r = routes.get(path);
++        AtomicInteger n = hits.get(path);
++        if (n != null) n.incrementAndGet();
++        if (r == null) r = Reply.status(404, "");
++        if (r.dropWithRst()) {
++            // 요청을 다 읽고 잠시 뒤 RST — 클라이언트가 응답을 기다리는 중에 끊긴다
++            try { Thread.sleep(100); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); }
++            s.setSoLinger(true, 0); // close → RST
++            s.close();
++            return;
++        }
++        byte[] body = r.body() == null ? new byte[0] : r.body().getBytes(StandardCharsets.UTF_8);
++        String resp = "HTTP/1.1 " + r.status() + " X\r\n"
++                + "Content-Type: application/octet-stream\r\n"
++                + "Content-Length: " + body.length + "\r\n"
++                + "Connection: close\r\n\r\n";
++        OutputStream out = s.getOutputStream();
++        out.write(resp.getBytes(StandardCharsets.US_ASCII));
++        out.write(body);
++        out.flush();
++        s.close();
++    }
++
++    private static String readHead(InputStream in) throws IOException {
++        ByteArrayOutputStream buf = new ByteArrayOutputStream();
++        int state = 0;
++        int b;
++        while ((b = in.read()) != -1) {
++            buf.write(b);
++            // \r\n\r\n
++            if ((state == 0 || state == 2) && b == '\r') state++;
++            else if ((state == 1 || state == 3) && b == '\n') state++;
++            else state = (b == '\r') ? 1 : 0;
++            if (state == 4) break;
++        }
++        return buf.toString(StandardCharsets.US_ASCII);
++    }
++
++    @Override
++    public void close() throws IOException {
++        server.close();
++    }
++}
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/news/NewsFetchGapReproTest.java b/web-api/src/test/java/com/cryptoautotrader/api/news/NewsFetchGapReproTest.java
+new file mode 100644
+index 0000000..d841d45
+--- /dev/null
++++ b/web-api/src/test/java/com/cryptoautotrader/api/news/NewsFetchGapReproTest.java
+@@ -0,0 +1,131 @@
++package com.cryptoautotrader.api.news;
++
++import ch.qos.logback.classic.Level;
++import ch.qos.logback.classic.Logger;
++import ch.qos.logback.classic.spi.ILoggingEvent;
++import ch.qos.logback.core.read.ListAppender;
++import com.cryptoautotrader.api.entity.NewsSourceConfigEntity;
++import com.cryptoautotrader.api.news.source.CryptoPanicSource;
++import com.cryptoautotrader.api.news.source.RssNewsSource;
++import com.cryptoautotrader.api.news.source.UpbitNoticeSource;
++import com.cryptoautotrader.api.repository.NewsItemCacheRepository;
++import com.cryptoautotrader.api.repository.NewsSourceConfigRepository;
++import com.fasterxml.jackson.databind.ObjectMapper;
++import org.junit.jupiter.api.AfterEach;
++import org.junit.jupiter.api.BeforeEach;
++import org.junit.jupiter.api.DisplayName;
++import org.junit.jupiter.params.ParameterizedTest;
++import org.junit.jupiter.params.provider.ValueSource;
++import org.slf4j.LoggerFactory;
++
++import java.time.Instant;
++import java.util.List;
++
++import static org.assertj.core.api.Assertions.assertThat;
++import static org.mockito.ArgumentMatchers.any;
++import static org.mockito.Mockito.mock;
++import static org.mockito.Mockito.when;
++
++/**
++ * N11 재현(2026-11-04) — 운영 ea44900의 공개 경로(collectAll)와 로그·last_fetched_at만 본다.
++ * 외부 접속 없이 127.0.0.1 소켓 대역({@link LocalHttpStub})으로
++ * ① 요청 뒤 서버 RST(운영 로그의 "Connection reset" 과 같은 연결 강제 종료 — 예외 문구는 OS 마다 다름) ② 정상 빈 응답을
++ * 실제 출처 → 상위 수집기에 넣는다.
++ *
++ * <p>기대(보완 계약): 실패한 수집에는 "수집 완료"가 찍히지 않고, 정상 빈 응답에는 "수집 완료 … 전체=0건"이 찍힌다.
++ * 두 경우 모두 last_fetched_at 은 시도 시각으로 갱신된다(재시도 주기 보존).
++ * 운영 코드(ea44900)에서는 실패에도 "수집 완료"가 찍혀 이 시험이 실패한다 — 그것이 재현 결과다.
++ * 이 파일은 운영 기점과 후보에서 바이트 그대로 함께 돈다(새 API를 쓰지 않는다).
++ */
++class NewsFetchGapReproTest {
++
++    private final ListAppender<ILoggingEvent> logs = new ListAppender<>();
++    private Logger aggLogger;
++    private Level savedLevel;
++    private LocalHttpStub stub;
++
++    private NewsSourceConfigRepository configRepo;
++    private NewsItemCacheRepository cacheRepo;
++    private NewsAggregatorService service;
++
++    @BeforeEach
++    void setUp() {
++        aggLogger = (Logger) LoggerFactory.getLogger(NewsAggregatorService.class);
++        savedLevel = aggLogger.getLevel();
++        aggLogger.setLevel(Level.DEBUG);
++        logs.start();
++        aggLogger.addAppender(logs);
++
++        ObjectMapper om = new ObjectMapper();
++        NewsSourceRegistry registry = new NewsSourceRegistry(List.of(
++                new RssNewsSource(), new UpbitNoticeSource(om), new CryptoPanicSource(om)));
++        configRepo = mock(NewsSourceConfigRepository.class);
++        cacheRepo = mock(NewsItemCacheRepository.class);
++        when(configRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
++        when(cacheRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
++        service = new NewsAggregatorService(configRepo, cacheRepo, registry);
++    }
++
++    @AfterEach
++    void tearDown() throws Exception {
++        aggLogger.detachAppender(logs);
++        aggLogger.setLevel(savedLevel);
++        if (stub != null) stub.close();
++    }
++
++    private static String emptyBody(String type) {
++        return switch (type) {
++            case "RSS" -> "<?xml version=\"1.0\"?><rss version=\"2.0\"><channel><title>t</title></channel></rss>";
++            case "UPBIT_NOTICE" -> "{\"success\":true,\"data\":{\"notices\":[]}}";
++            case "CRYPTOPANIC" -> "{\"results\":[]}";
++            default -> throw new IllegalArgumentException(type);
++        };
++    }
++
++    private NewsSourceConfigEntity config(String sourceId, String type, String url) {
++        return NewsSourceConfigEntity.builder()
++                .sourceId(sourceId).sourceType(type).url(url)
++                .enabled(true).fetchIntervalMin(30).category("CRYPTO")
++                .lastFetchedAt(null)
++                .build();
++    }
++
++    private List<String> aggregatorLines(String sourceId) {
++        return logs.list.stream()
++                .map(ILoggingEvent::getFormattedMessage)
++                .filter(m -> m.contains("sourceId=" + sourceId + " ") || m.endsWith("sourceId=" + sourceId))
++                .toList();
++    }
++
++    @ParameterizedTest(name = "{0}: Connection reset 은 수집 완료가 아니고, 정상 빈 응답은 수집 완료 0건")
++    @ValueSource(strings = {"RSS", "UPBIT_NOTICE", "CRYPTOPANIC"})
++    @DisplayName("재현 — 실패와 정상 0건이 상위 수집기 기록에서 구분되는가")
++    void resetVersusEmpty(String type) throws Exception {
++        stub = new LocalHttpStub();
++        stub.route("/reset", LocalHttpStub.Reply.reset());
++        stub.route("/empty", LocalHttpStub.Reply.ok(emptyBody(type)));
++
++        NewsSourceConfigEntity failing = config("stub_reset", type, stub.url("/reset"));
++        NewsSourceConfigEntity empty = config("stub_empty", type, stub.url("/empty"));
++        when(configRepo.findAllByEnabledTrue()).thenReturn(List.of(failing, empty));
++
++        Instant before = Instant.now();
++        service.collectAll();
++
++        List<String> failLines = aggregatorLines("stub_reset");
++        List<String> emptyLines = aggregatorLines("stub_empty");
++        System.out.println("[repro " + type + "] reset 대역 요청 " + stub.hits("/reset") + "회 → 수집기 기록 " + failLines);
++        System.out.println("[repro " + type + "] empty 대역 요청 " + stub.hits("/empty") + "회 → 수집기 기록 " + emptyLines);
++
++        // 두 출처 모두 실제로 요청이 갔다(다음 출처 진행 포함)
++        assertThat(stub.hits("/reset")).isGreaterThanOrEqualTo(1);
++        assertThat(stub.hits("/empty")).isEqualTo(1);
++        // 시도 시각 기준 갱신은 둘 다 유지
++        assertThat(failing.getLastFetchedAt()).isNotNull().isAfterOrEqualTo(before);
++        assertThat(empty.getLastFetchedAt()).isNotNull().isAfterOrEqualTo(before);
++        // 정상 빈 응답 = 수집 완료 0건
++        assertThat(emptyLines).anyMatch(m -> m.startsWith("[NewsAggregator] 수집 완료") && m.contains("전체=0건"));
++        // 실패 = 수집 완료가 아니다 (운영 ea44900 에서는 여기서 실패한다)
++        assertThat(failLines).noneMatch(m -> m.startsWith("[NewsAggregator] 수집 완료"));
++    }
++}
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/news/NewsFetchResultContractTest.java b/web-api/src/test/java/com/cryptoautotrader/api/news/NewsFetchResultContractTest.java
+new file mode 100644
+index 0000000..d032705
+--- /dev/null
++++ b/web-api/src/test/java/com/cryptoautotrader/api/news/NewsFetchResultContractTest.java
+@@ -0,0 +1,411 @@
++package com.cryptoautotrader.api.news;
++
++import ch.qos.logback.classic.Level;
++import ch.qos.logback.classic.Logger;
++import ch.qos.logback.classic.spi.ILoggingEvent;
++import ch.qos.logback.core.read.ListAppender;
++import com.cryptoautotrader.api.controller.NewsSourceController;
++import com.cryptoautotrader.api.dto.ApiResponse;
++import com.cryptoautotrader.api.entity.NewsSourceConfigEntity;
++import com.cryptoautotrader.api.news.source.CoinGeckoTrendingSource;
++import com.cryptoautotrader.api.news.source.CryptoPanicSource;
++import com.cryptoautotrader.api.news.source.RssNewsSource;
++import com.cryptoautotrader.api.news.source.UpbitNoticeSource;
++import com.cryptoautotrader.api.repository.NewsItemCacheRepository;
++import com.cryptoautotrader.api.repository.NewsSourceConfigRepository;
++import com.fasterxml.jackson.databind.ObjectMapper;
++import org.junit.jupiter.api.AfterEach;
++import org.junit.jupiter.api.BeforeEach;
++import org.junit.jupiter.api.DisplayName;
++import org.junit.jupiter.api.Test;
++import org.junit.jupiter.params.ParameterizedTest;
++import org.junit.jupiter.params.provider.CsvSource;
++import org.junit.jupiter.params.provider.ValueSource;
++import org.slf4j.LoggerFactory;
++
++import java.time.Instant;
++import java.time.temporal.ChronoUnit;
++import java.util.ArrayList;
++import java.util.List;
++import java.util.Map;
++import java.util.Optional;
++
++import static org.assertj.core.api.Assertions.assertThat;
++import static org.assertj.core.api.Assertions.assertThatThrownBy;
++import static org.mockito.ArgumentMatchers.any;
++import static org.mockito.ArgumentMatchers.anyString;
++import static org.mockito.Mockito.mock;
++import static org.mockito.Mockito.never;
++import static org.mockito.Mockito.times;
++import static org.mockito.Mockito.verify;
++import static org.mockito.Mockito.when;
++
++/**
++ * N11 결과 계약 국소 시험 (2026-11-04). 외부 접속 없음 — 실제 출처 4종을 127.0.0.1 대역({@link LocalHttpStub})에 붙인다.
++ * 저장소는 대역(mock). DB·스케줄러·Spring 컨텍스트는 띄우지 않는다.
++ */
++class NewsFetchResultContractTest {
++
++    private static final String SECRET = "N11SECRETTOKEN";
++
++    private final ListAppender<ILoggingEvent> logs = new ListAppender<>();
++    private final List<Logger> watched = new ArrayList<>();
++    private final List<Level> savedLevels = new ArrayList<>();
++    private LocalHttpStub stub;
++
++    private NewsSourceConfigRepository configRepo;
++    private NewsItemCacheRepository cacheRepo;
++    private NewsSourceRegistry registry;
++    private NewsAggregatorService service;
++
++    @BeforeEach
++    void setUp() throws Exception {
++        logs.start();
++        for (Class<?> c : List.of(NewsAggregatorService.class, RssNewsSource.class, UpbitNoticeSource.class,
++                CryptoPanicSource.class, CoinGeckoTrendingSource.class)) {
++            Logger l = (Logger) LoggerFactory.getLogger(c);
++            savedLevels.add(l.getLevel());
++            l.setLevel(Level.DEBUG);
++            l.addAppender(logs);
++            watched.add(l);
++        }
++        ObjectMapper om = new ObjectMapper();
++        registry = new NewsSourceRegistry(List.of(new RssNewsSource(), new UpbitNoticeSource(om),
++                new CryptoPanicSource(om), new CoinGeckoTrendingSource(om)));
++        configRepo = mock(NewsSourceConfigRepository.class);
++        cacheRepo = mock(NewsItemCacheRepository.class);
++        when(configRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
++        when(cacheRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
++        service = new NewsAggregatorService(configRepo, cacheRepo, registry);
++        stub = new LocalHttpStub();
++    }
++
++    @AfterEach
++    void tearDown() throws Exception {
++        for (int i = 0; i < watched.size(); i++) {
++            watched.get(i).detachAppender(logs);
++            watched.get(i).setLevel(savedLevels.get(i));
++        }
++        stub.close();
++    }
++
++    // ── 대역 본문 ────────────────────────────────────────────────────────────
++
++    private static String body(String type, String kind) {
++        return switch (type + ":" + kind) {
++            case "RSS:empty" -> "<?xml version=\"1.0\"?><rss version=\"2.0\"><channel><title>t</title></channel></rss>";
++            case "RSS:one" -> "<?xml version=\"1.0\"?><rss version=\"2.0\"><channel><title>t</title><item><title>A</title>"
++                    + "<link>http://x/a</link><guid>g1</guid><pubDate>Mon, 02 Nov 2026 10:00:00 +0000</pubDate></item></channel></rss>";
++            case "RSS:invalid" -> "<?xml version=\"1.0\"?><html><body>maintenance</body></html>";
++            case "RSS:malformed" -> "<rss><channel>";
++            case "UPBIT_NOTICE:empty" -> "{\"success\":true,\"data\":{\"notices\":[]}}";
++            case "UPBIT_NOTICE:one" -> "{\"success\":true,\"data\":{\"notices\":[{\"id\":101,\"title\":\"공지 A\",\"listed_at\":\"2026-11-02T10:00:00+09:00\"}]}}";
++            case "UPBIT_NOTICE:invalid" -> "{\"success\":true,\"data\":{}}";
++            case "UPBIT_NOTICE:malformed" -> "{\"data\":";
++            case "CRYPTOPANIC:empty" -> "{\"results\":[]}";
++            case "CRYPTOPANIC:one" -> "{\"results\":[{\"id\":5,\"title\":\"News A\",\"url\":\"http://x/5\",\"published_at\":\"2026-11-02T01:00:00Z\"}]}";
++            case "CRYPTOPANIC:invalid" -> "{\"detail\":\"rate limited\"}";
++            case "CRYPTOPANIC:malformed" -> "{\"results\":";
++            case "COINGECKO:empty" -> "{\"coins\":[]}";
++            case "COINGECKO:one" -> "{\"coins\":[{\"item\":{\"id\":\"bitcoin\",\"name\":\"Bitcoin\",\"symbol\":\"btc\",\"market_cap_rank\":1}}]}";
++            case "COINGECKO:invalid" -> "{\"status\":{\"error_code\":429}}";
++            case "COINGECKO:malformed" -> "{\"coins\":";
++            default -> throw new IllegalArgumentException(type + ":" + kind);
++        };
++    }
++
++    private NewsSourceConfigEntity config(String sourceId, String type, String path) {
++        return NewsSourceConfigEntity.builder()
++                .sourceId(sourceId).sourceType(type).url(stub.url(path))
++                .enabled(true).fetchIntervalMin(30).category("CRYPTO")
++                .apiKey("CRYPTOPANIC".equals(type) ? SECRET : null)
++                .build();
++    }
++
++    private NewsFetchResult manual(NewsSourceConfigEntity cfg) {
++        when(configRepo.findBySourceId(cfg.getSourceId())).thenReturn(Optional.of(cfg));
++        return service.collectFromSourceManual(cfg.getSourceId());
++    }
++
++    private List<String> lines(Level level, String loggerSuffix) {
++        return logs.list.stream()
++                .filter(e -> e.getLevel() == level && e.getLoggerName().endsWith(loggerSuffix))
++                .map(ILoggingEvent::getFormattedMessage).toList();
++    }
++
++    private List<String> completeLines(String sourceId) {
++        return lines(Level.INFO, "NewsAggregatorService").stream()
++                .filter(m -> m.startsWith("[NewsAggregator] 수집 완료 — sourceId=" + sourceId + " ")).toList();
++    }
++
++    private List<String> incompleteLines(String sourceId) {
++        return lines(Level.WARN, "NewsAggregatorService").stream()
++                .filter(m -> m.startsWith("[NewsAggregator] 수집 미완료 — sourceId=" + sourceId + " ")).toList();
++    }
++
++    private List<String> aggregatorErrors() {
++        return lines(Level.ERROR, "NewsAggregatorService");
++    }
++
++    // ── 1. 성공: 0건·1건·중복 ────────────────────────────────────────────────
++
++    @ParameterizedTest(name = "{0}: 정상 빈 응답 = SUCCESS 0건, 수집 완료 전체=0건")
++    @ValueSource(strings = {"RSS", "UPBIT_NOTICE", "CRYPTOPANIC", "COINGECKO"})
++    void successZero(String type) {
++        stub.route("/s", LocalHttpStub.Reply.ok(body(type, "empty")));
++        NewsSourceConfigEntity cfg = config("s0", type, "/s");
++        NewsFetchResult r = manual(cfg);
++        assertThat(r.status()).isEqualTo(NewsFetchResult.Status.SUCCESS);
++        assertThat(r.items()).isEmpty();
++        assertThat(r.failureKind()).isNull();
++        assertThat(completeLines("s0")).containsExactly("[NewsAggregator] 수집 완료 — sourceId=s0 전체=0건 신규=0건");
++        assertThat(incompleteLines("s0")).isEmpty();
++        assertThat(cfg.getLastFetchedAt()).isNotNull();
++        verify(cacheRepo, never()).save(any());
++    }
++
++    @ParameterizedTest(name = "{0}: 1건 = SUCCESS, 신규 1건 저장")
++    @ValueSource(strings = {"RSS", "UPBIT_NOTICE", "CRYPTOPANIC", "COINGECKO"})
++    void successOne(String type) {
++        stub.route("/s", LocalHttpStub.Reply.ok(body(type, "one")));
++        NewsSourceConfigEntity cfg = config("s1", type, "/s");
++        when(cacheRepo.existsBySourceIdAndExternalId(anyString(), anyString())).thenReturn(false);
++        NewsFetchResult r = manual(cfg);
++        assertThat(r.status()).isEqualTo(NewsFetchResult.Status.SUCCESS);
++        assertThat(r.items()).hasSize(1);
++        assertThat(completeLines("s1")).containsExactly("[NewsAggregator] 수집 완료 — sourceId=s1 전체=1건 신규=1건");
++        verify(cacheRepo, times(1)).save(any());
++    }
++
++    @ParameterizedTest(name = "{0}: 이미 있는 뉴스뿐 = SUCCESS, 신규 0건(실패 아님)")
++    @ValueSource(strings = {"RSS", "UPBIT_NOTICE", "CRYPTOPANIC", "COINGECKO"})
++    void successDuplicateOnly(String type) {
++        stub.route("/s", LocalHttpStub.Reply.ok(body(type, "one")));
++        NewsSourceConfigEntity cfg = config("sd", type, "/s");
++        when(cacheRepo.existsBySourceIdAndExternalId(anyString(), anyString())).thenReturn(true);
++        NewsFetchResult r = manual(cfg);
++        assertThat(r.status()).isEqualTo(NewsFetchResult.Status.SUCCESS);
++        assertThat(completeLines("sd")).containsExactly("[NewsAggregator] 수집 완료 — sourceId=sd 전체=1건 신규=0건");
++        assertThat(incompleteLines("sd")).isEmpty();
++        verify(cacheRepo, never()).save(any());
++    }
++
++    // ── 2. 실패: 연결 강제 종료·HTTP 비200·잘못된 응답 ─────────────────────────
++
++    @ParameterizedTest(name = "{0}: 연결 강제 종료 = FAILED(예외 종류), 출처 ERROR 원문 형식 유지, 수집 완료 없음")
++    @CsvSource({
++            "RSS,          RssNewsSource,          '[RssNewsSource] 수집 실패 — sourceId=sr: '",
++            "UPBIT_NOTICE, UpbitNoticeSource,      '[UpbitNoticeSource] 수집 실패: '",
++            "CRYPTOPANIC,  CryptoPanicSource,      '[CryptoPanicSource] 수집 실패: '",
++            "COINGECKO,    CoinGeckoTrendingSource, '[CoinGeckoTrendingSource] 수집 실패: '"})
++    void connectionDropped(String type, String sourceLogger, String errorPrefix) {
++        stub.route("/s", LocalHttpStub.Reply.reset());
++        NewsSourceConfigEntity cfg = config("sr", type, "/s");
++        Instant before = Instant.now();
++        NewsFetchResult r = manual(cfg);
++
++        assertThat(r.status()).isEqualTo(NewsFetchResult.Status.FAILED);
++        assertThat(r.items()).isEmpty();
++        assertThat(r.failureKind()).isNotBlank().doesNotContain(" ").doesNotContain("127.0.0.1");
++        assertThat(r.decidedAt()).isAfterOrEqualTo(before);
++        // 출처 자신의 ERROR 한 줄 — 기존 문구 형식 그대로 (점검 분류 대상)
++        assertThat(lines(Level.ERROR, sourceLogger)).singleElement().asString().startsWith(errorPrefix);
++        // 상위 수집기: 수집 완료 없음, 미완료 WARN 1줄, 상위에서 ERROR 를 더하지 않음
++        assertThat(completeLines("sr")).isEmpty();
++        assertThat(incompleteLines("sr")).singleElement().asString()
++                .contains("결과=FAILED").contains("종류=" + r.failureKind()).contains("받은=0건 신규=0건");
++        assertThat(aggregatorErrors()).isEmpty();
++        // 시도 기준 last_fetched_at 유지
++        assertThat(cfg.getLastFetchedAt()).isAfterOrEqualTo(before);
++    }
++
++    @ParameterizedTest(name = "{0}: HTTP 503 = FAILED HTTP_503")
++    @ValueSource(strings = {"RSS", "UPBIT_NOTICE", "CRYPTOPANIC", "COINGECKO"})
++    void httpNon200(String type) {
++        stub.route("/s", LocalHttpStub.Reply.status(503, "busy"));
++        NewsSourceConfigEntity cfg = config("sh", type, "/s");
++        NewsFetchResult r = manual(cfg);
++        assertThat(r.status()).isEqualTo(NewsFetchResult.Status.FAILED);
++        assertThat(r.failureKind()).isEqualTo("HTTP_503");
++        assertThat(completeLines("sh")).isEmpty();
++        assertThat(incompleteLines("sh")).singleElement().asString().contains("종류=HTTP_503");
++        assertThat(cfg.getLastFetchedAt()).isNotNull();
++    }
++
++    @ParameterizedTest(name = "{0}: 필요한 배열/요소가 없는 응답 = FAILED INVALID_RESPONSE (정상 빈 배열과 구분)")
++    @ValueSource(strings = {"RSS", "UPBIT_NOTICE", "CRYPTOPANIC", "COINGECKO"})
++    void missingRequiredField(String type) {
++        stub.route("/s", LocalHttpStub.Reply.ok(body(type, "invalid")));
++        NewsSourceConfigEntity cfg = config("si", type, "/s");
++        NewsFetchResult r = manual(cfg);
++        assertThat(r.status()).isEqualTo(NewsFetchResult.Status.FAILED);
++        assertThat(r.failureKind()).isEqualTo(NewsFetchResult.INVALID_RESPONSE);
++        assertThat(completeLines("si")).isEmpty();
++    }
++
++    @ParameterizedTest(name = "{0}: 깨진 본문 = FAILED(파싱 예외 종류)")
++    @ValueSource(strings = {"RSS", "UPBIT_NOTICE", "CRYPTOPANIC", "COINGECKO"})
++    void malformedBody(String type) {
++        stub.route("/s", LocalHttpStub.Reply.ok(body(type, "malformed")));
++        NewsSourceConfigEntity cfg = config("sm", type, "/s");
++        NewsFetchResult r = manual(cfg);
++        assertThat(r.status()).isEqualTo(NewsFetchResult.Status.FAILED);
++        assertThat(r.failureKind()).isNotBlank().isNotEqualTo(NewsFetchResult.INVALID_RESPONSE);
++        assertThat(completeLines("sm")).isEmpty();
++        assertThat(incompleteLines("sm")).hasSize(1);
++    }
++
++    // ── 3. 순회: 실패해도 다음 출처 진행, 시도 간격 유지 ──────────────────────
++
++    @Test
++    @DisplayName("collectAll: 앞 출처가 실패해도 다음 출처를 수집하고, 각자 결과대로 기록한다")
++    void nextSourceProceedsAfterFailure() {
++        stub.route("/bad", LocalHttpStub.Reply.reset());
++        stub.route("/good", LocalHttpStub.Reply.ok(body("UPBIT_NOTICE", "one")));
++        NewsSourceConfigEntity bad = config("bad", "RSS", "/bad");
++        NewsSourceConfigEntity good = config("good", "UPBIT_NOTICE", "/good");
++        when(configRepo.findAllByEnabledTrue()).thenReturn(List.of(bad, good));
++        when(cacheRepo.existsBySourceIdAndExternalId(anyString(), anyString())).thenReturn(false);
++
++        service.collectAll();
++
++        assertThat(stub.hits("/good")).isEqualTo(1);
++        assertThat(incompleteLines("bad")).hasSize(1);
++        assertThat(completeLines("bad")).isEmpty();
++        assertThat(completeLines("good")).containsExactly("[NewsAggregator] 수집 완료 — sourceId=good 전체=1건 신규=1건");
++        verify(cacheRepo, times(1)).save(any());
++    }
++
++    @Test
++    @DisplayName("시도 간격: 실패 뒤에도 last_fetched_at 은 시도 시각 — 다음 주기 전에는 다시 요청하지 않고, 간격이 지나면 요청한다")
++    void attemptIntervalPreservedAfterFailure() {
++        stub.route("/bad", LocalHttpStub.Reply.status(500, ""));
++        NewsSourceConfigEntity bad = config("iv", "CRYPTOPANIC", "/bad");
++        when(configRepo.findAllByEnabledTrue()).thenReturn(List.of(bad));
++
++        service.collectAll();               // 첫 시도(last_fetched_at 없음)
++        assertThat(stub.hits("/bad")).isEqualTo(1);
++        Instant attempted = bad.getLastFetchedAt();
++        assertThat(attempted).isNotNull();
++
++        service.collectAll();               // 같은 주기 안 — 실패였어도 즉시 재시도하지 않는다
++        assertThat(stub.hits("/bad")).isEqualTo(1);
++        assertThat(bad.getLastFetchedAt()).isEqualTo(attempted);
++
++        bad.setLastFetchedAt(Instant.now().minus(30, ChronoUnit.MINUTES)); // 간격(30분) 경과
++        service.collectAll();
++        assertThat(stub.hits("/bad")).isEqualTo(2);
++    }
++
++    // ── 4. 부분 결과·계약 위반·지원하지 않는 타입 ──────────────────────────────
++
++    @Test
++    @DisplayName("PARTIAL: 받은 항목은 기존처럼 중복 확인 뒤 저장, 수집 완료로 기록하지 않음, 캐시 삭제 없음")
++    void partialSavesItemsButIsNotComplete() {
++        NewsSource partialSource = mock(NewsSource.class);
++        NewsSourceRegistry reg = mock(NewsSourceRegistry.class);
++        when(reg.get("MOCK")).thenReturn(partialSource);
++        NewsAggregatorService svc = new NewsAggregatorService(configRepo, cacheRepo, reg);
++        NewsSourceConfigEntity cfg = NewsSourceConfigEntity.builder().sourceId("pp").sourceType("MOCK").enabled(true).build();
++        NewsItem it = NewsItem.builder().sourceId("pp").externalId("e1").title("t").build();
++        when(partialSource.fetch(cfg)).thenReturn(
++                NewsFetchResult.fromException(List.of(it), new java.net.SocketException("Connection reset")));
++        when(configRepo.findBySourceId("pp")).thenReturn(Optional.of(cfg));
++        when(cacheRepo.existsBySourceIdAndExternalId("pp", "e1")).thenReturn(false);
++
++        NewsFetchResult r = svc.collectFromSourceManual("pp");
++
++        assertThat(r.status()).isEqualTo(NewsFetchResult.Status.PARTIAL);
++        assertThat(r.failureKind()).isEqualTo("SocketException");
++        verify(cacheRepo, times(1)).save(any());
++        verify(cacheRepo, never()).deleteByFetchedAtBefore(any());
++        assertThat(completeLines("pp")).isEmpty();
++        assertThat(incompleteLines("pp")).singleElement().asString()
++                .contains("결과=PARTIAL").contains("종류=SocketException").contains("받은=1건 신규=1건")
++                .doesNotContain("Connection reset");
++        assertThat(cfg.getLastFetchedAt()).isNotNull();
++    }
++
++    @Test
++    @DisplayName("출처가 null 을 돌려주면(계약 위반) 성공으로 보지 않는다 — FAILED NULL_RESULT")
++    void nullResultIsNotSuccess() {
++        NewsSource broken = mock(NewsSource.class);
++        NewsSourceRegistry reg = mock(NewsSourceRegistry.class);
++        when(reg.get("MOCK")).thenReturn(broken);
++        NewsAggregatorService svc = new NewsAggregatorService(configRepo, cacheRepo, reg);
++        NewsSourceConfigEntity cfg = NewsSourceConfigEntity.builder().sourceId("nn").sourceType("MOCK").enabled(true).build();
++        when(configRepo.findBySourceId("nn")).thenReturn(Optional.of(cfg));
++
++        NewsFetchResult r = svc.collectFromSourceManual("nn");
++
++        assertThat(r.status()).isEqualTo(NewsFetchResult.Status.FAILED);
++        assertThat(r.failureKind()).isEqualTo(NewsFetchResult.NULL_RESULT);
++        assertThat(completeLines("nn")).isEmpty();
++    }
++
++    @Test
++    @DisplayName("지원하지 않는 타입: FAILED UNSUPPORTED_TYPE, last_fetched_at 은 기존처럼 갱신하지 않음")
++    void unsupportedTypeKeepsOldBehaviour() {
++        NewsSourceConfigEntity cfg = NewsSourceConfigEntity.builder().sourceId("uu").sourceType("NOPE").enabled(true).build();
++        when(configRepo.findBySourceId("uu")).thenReturn(Optional.of(cfg));
++
++        NewsFetchResult r = service.collectFromSourceManual("uu");
++
++        assertThat(r.status()).isEqualTo(NewsFetchResult.Status.FAILED);
++        assertThat(r.failureKind()).isEqualTo(NewsFetchResult.UNSUPPORTED_TYPE);
++        assertThat(cfg.getLastFetchedAt()).isNull();
++        verify(configRepo, never()).save(any());
++    }
++
++    // ── 5. 비밀값·결과 불변식·수동 조회 호출부 ─────────────────────────────────
++
++    @Test
++    @DisplayName("실패 기록(결과·상위 WARN)에 토큰·URL·예외 메시지가 들어가지 않는다")
++    void failureRecordCarriesNoSecretOrUrl() {
++        stub.route("/s", LocalHttpStub.Reply.reset());
++        NewsSourceConfigEntity cfg = config("sx", "CRYPTOPANIC", "/s");
++        NewsFetchResult r = manual(cfg);
++        assertThat(r.failureKind()).doesNotContain(SECRET).doesNotContain("http").doesNotContain(":");
++        assertThat(incompleteLines("sx")).singleElement().asString()
++                .doesNotContain(SECRET).doesNotContain("127.0.0.1").doesNotContain("http");
++    }
++
++    @Test
++    @DisplayName("결과 불변식: 성공에 실패 종류 금지, 실패·부분에 종류 필수, 항목 유무로 FAILED/PARTIAL 구분")
++    void resultInvariants() {
++        Instant t = Instant.now();
++        NewsItem it = NewsItem.builder().sourceId("x").externalId("e").title("t").build();
++        assertThatThrownBy(() -> new NewsFetchResult(NewsFetchResult.Status.SUCCESS, List.of(), "X", t))
++                .isInstanceOf(IllegalArgumentException.class);
++        assertThatThrownBy(() -> new NewsFetchResult(NewsFetchResult.Status.FAILED, List.of(), null, t))
++                .isInstanceOf(IllegalArgumentException.class);
++        assertThatThrownBy(() -> new NewsFetchResult(NewsFetchResult.Status.FAILED, List.of(it), "X", t))
++                .isInstanceOf(IllegalArgumentException.class);
++        assertThatThrownBy(() -> new NewsFetchResult(NewsFetchResult.Status.PARTIAL, List.of(), "X", t))
++                .isInstanceOf(IllegalArgumentException.class);
++        assertThat(NewsFetchResult.fromException(List.of(), new java.io.IOException("Connection reset")).status())
++                .isEqualTo(NewsFetchResult.Status.FAILED);
++        assertThat(NewsFetchResult.success(null).items()).isEmpty();
++    }
++
++    @Test
++    @SuppressWarnings("unchecked")
++    @DisplayName("수동 조회 API: 기존 sourceId·collected·titles 유지 + status·failureKind 추가")
++    void manualFetchEndpointCarriesStatus() {
++        NewsAggregatorService agg = mock(NewsAggregatorService.class);
++        NewsSourceController controller = new NewsSourceController(configRepo, cacheRepo, agg, registry);
++
++        when(agg.collectFromSourceManual("a")).thenReturn(NewsFetchResult.failed("HTTP_503"));
++        Map<String, Object> failed = controller.fetchNow("a").getData();
++        assertThat(failed).containsEntry("sourceId", "a").containsEntry("collected", 0)
++                .containsEntry("status", "FAILED").containsEntry("failureKind", "HTTP_503");
++        assertThat((List<String>) failed.get("titles")).isEmpty();
++
++        NewsItem it = NewsItem.builder().sourceId("b").externalId("e").title("제목").build();
++        when(agg.collectFromSourceManual("b")).thenReturn(NewsFetchResult.success(List.of(it)));
++        ApiResponse<Map<String, Object>> ok = controller.fetchNow("b");
++        assertThat(ok.getData()).containsEntry("collected", 1).containsEntry("status", "SUCCESS")
++                .containsEntry("failureKind", null);
++        assertThat((List<String>) ok.getData().get("titles")).containsExactly("제목");
++    }
++}
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/AiPipelineTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/AiPipelineTest.java
+index 7289bc4..0dfc7c1 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/AiPipelineTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/AiPipelineTest.java
+@@ -13,6 +13,7 @@ import com.cryptoautotrader.api.llm.LlmTask;
+ import com.cryptoautotrader.api.llm.LlmTaskRouter;
+ import com.cryptoautotrader.api.llm.provider.MockProvider;
+ import com.cryptoautotrader.api.news.NewsAggregatorService;
++import com.cryptoautotrader.api.news.NewsFetchResult;
+ import com.cryptoautotrader.api.news.NewsItem;
+ import com.cryptoautotrader.api.news.NewsSource;
+ import com.cryptoautotrader.api.news.NewsSourceRegistry;
+@@ -156,12 +157,12 @@ class AiPipelineTest {
+                     .category("crypto")
+                     .publishedAt(Instant.now())
+                     .build();
+-            when(mockSource.fetch(config)).thenReturn(List.of(item));
++            when(mockSource.fetch(config)).thenReturn(NewsFetchResult.success(List.of(item)));
+             when(newsCacheRepo.existsBySourceIdAndExternalId("test_rss", "item-001")).thenReturn(false);
+             when(newsCacheRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+             when(sourceConfigRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+ 
+-            List<NewsItem> result = service.collectFromSourceManual("test_rss");
++            List<NewsItem> result = service.collectFromSourceManual("test_rss").items();
+ 
+             assertThat(result).hasSize(1);
+             verify(newsCacheRepo).save(any(NewsItemCacheEntity.class));
+@@ -185,7 +186,7 @@ class AiPipelineTest {
+                     .category("crypto")
+                     .publishedAt(Instant.now())
+                     .build();
+-            when(mockSource.fetch(config)).thenReturn(List.of(item));
++            when(mockSource.fetch(config)).thenReturn(NewsFetchResult.success(List.of(item)));
+             // 이미 존재하는 항목
+             when(newsCacheRepo.existsBySourceIdAndExternalId("test_rss", "item-001")).thenReturn(true);
+             when(sourceConfigRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+@@ -213,7 +214,7 @@ class AiPipelineTest {
+                     .category("crypto")
+                     .publishedAt(Instant.now())
+                     .build();
+-            when(mockSource.fetch(config)).thenReturn(List.of(item));
++            when(mockSource.fetch(config)).thenReturn(NewsFetchResult.success(List.of(item)));
+             when(sourceConfigRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+ 
+             service.collectFromSourceManual("test_rss");

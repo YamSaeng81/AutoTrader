@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="NewsAggregatorService" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-04T01:39:56" hostname="redacted" time="0.006">
+  <properties/>
+  <testcase name="신규 뉴스 아이템 정상 저장" classname="com.cryptoautotrader.api.service.AiPipelineTest$NewsAggregatorServiceTest" time="0.003"/>
+  <testcase name="externalId가 null인 아이템은 저장 건너뜀" classname="com.cryptoautotrader.api.service.AiPipelineTest$NewsAggregatorServiceTest" time="0.001"/>
+  <testcase name="중복 externalId는 저장하지 않음" classname="com.cryptoautotrader.api.service.AiPipelineTest$NewsAggregatorServiceTest" time="0.001"/>
+  <system-out><![CDATA[10:39:56.839 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=test_rss 전체=1건 신규=1건
+10:39:56.841 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=test_rss 전체=1건 신규=0건
+10:39:56.842 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=test_rss 전체=1건 신규=0건
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
