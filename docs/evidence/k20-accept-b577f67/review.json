@@ -1,0 +1,120 @@
+{
+  "source_sha": "b577f673e700e166c949b225272dc959be071ed7",
+  "candidate_sha": "b1d7664db73222aec5d86f2e9137debef0ff4df3",
+  "jar_cases": [
+    {
+      "target": "META-INF/MANIFEST.MF",
+      "comparator_exit": 0,
+      "fixed_expectation_gate_passed": false,
+      "output_file": "jar-case-1.txt"
+    },
+    {
+      "target": "BOOT-INF/classpath.idx",
+      "comparator_exit": 0,
+      "fixed_expectation_gate_passed": false,
+      "output_file": "jar-case-2.txt"
+    },
+    {
+      "target": "org/springframework/boot/loader/jar/ManifestInfo.class",
+      "comparator_exit": 0,
+      "fixed_expectation_gate_passed": false,
+      "output_file": "jar-case-3.txt"
+    },
+    {
+      "target": "zip_metadata_only",
+      "comparator_exit": 0,
+      "fixed_expectation_gate_passed": true,
+      "output_file": "jar-case-4.txt"
+    }
+  ],
+  "news_cases": [
+    {
+      "case": "not_due_control",
+      "start_epoch": 1793761200,
+      "observation_epoch": 1793763300,
+      "exit": 0,
+      "stdout": "(기동 12:00 KST · 관측 12:35 KST · 회차는 기동 3분 뒤부터 15분 간격으로 계산 — 실제는 앞 회차 소요만큼 늦어질 수 있다)\ntokenpost_rss RSS(120분): 미관측 — 계산상 차례 전(13:59 KST 이후 첫 회차 14:03 KST 무렵)\n",
+      "stderr": "",
+      "inputs_sha256": {
+        "not_due_control.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "not_due_control-before.txt": "e881e917d5e5342b55da1cc4af56592eb3fc71878f123bc52e862798e6cbf2f8",
+        "not_due_control-now.txt": "e881e917d5e5342b55da1cc4af56592eb3fc71878f123bc52e862798e6cbf2f8"
+      }
+    },
+    {
+      "case": "due_from_null_no_attempt_no_log",
+      "start_epoch": 1793761200,
+      "observation_epoch": 1793763300,
+      "exit": 3,
+      "stdout": "(기동 12:00 KST · 관측 12:35 KST · 회차는 기동 3분 뒤부터 15분 간격으로 계산 — 실제는 앞 회차 소요만큼 늦어질 수 있다)\n⚪ tokenpost_rss RSS(30분): 확인 필요 — 계산상 회차 12:03 KST ≤ 관측 12:35 KST 인데 시도 기록·완료·미완료 줄 없음(앞 회차 소요로 늦을 수 있어 실패로 확정하지 않는다) — 보고\n⚪ 확인 필요 1개 — 정상 관측으로 세지 않는다. 수집 API·강제 재시도·주기 변경·즉시 되돌림 없이 출력만 보고\n",
+      "stderr": "",
+      "inputs_sha256": {
+        "due_from_null_no_attempt_no_log.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "due_from_null_no_attempt_no_log-before.txt": "239acb090d23f0871be5d624816b72720fdfb8e4c5585a728f22136cc6f18186",
+        "due_from_null_no_attempt_no_log-now.txt": "239acb090d23f0871be5d624816b72720fdfb8e4c5585a728f22136cc6f18186"
+      }
+    },
+    {
+      "case": "due_from_old_no_attempt_no_log",
+      "start_epoch": 1793761200,
+      "observation_epoch": 1793763300,
+      "exit": 3,
+      "stdout": "(기동 12:00 KST · 관측 12:35 KST · 회차는 기동 3분 뒤부터 15분 간격으로 계산 — 실제는 앞 회차 소요만큼 늦어질 수 있다)\n⚪ tokenpost_rss RSS(30분): 확인 필요 — 계산상 회차 12:03 KST ≤ 관측 12:35 KST 인데 시도 기록·완료·미완료 줄 없음(앞 회차 소요로 늦을 수 있어 실패로 확정하지 않는다) — 보고\n⚪ 확인 필요 1개 — 정상 관측으로 세지 않는다. 수집 API·강제 재시도·주기 변경·즉시 되돌림 없이 출력만 보고\n",
+      "stderr": "",
+      "inputs_sha256": {
+        "due_from_old_no_attempt_no_log.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "due_from_old_no_attempt_no_log-before.txt": "8f967cef9afb6d61f3befeca6081a23080ff54dc11804a08c3a8d565c76a5b88",
+        "due_from_old_no_attempt_no_log-now.txt": "8f967cef9afb6d61f3befeca6081a23080ff54dc11804a08c3a8d565c76a5b88"
+      }
+    },
+    {
+      "case": "attempt_advanced_no_log_control",
+      "start_epoch": 1793761200,
+      "observation_epoch": 1793763300,
+      "exit": 2,
+      "stdout": "(기동 12:00 KST · 관측 12:35 KST · 회차는 기동 3분 뒤부터 15분 간격으로 계산 — 실제는 앞 회차 소요만큼 늦어질 수 있다)\n⚪ tokenpost_rss RSS: 새 코드가 시도(last_fetched_at 12:03 KST)했는데 완료·미완료 줄 없음 — 원문 보고\n",
+      "stderr": "",
+      "inputs_sha256": {
+        "attempt_advanced_no_log_control.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "attempt_advanced_no_log_control-before.txt": "8f967cef9afb6d61f3befeca6081a23080ff54dc11804a08c3a8d565c76a5b88",
+        "attempt_advanced_no_log_control-now.txt": "9f862a3e6fa13e1e4df0ac8e135be4420e2db2fdc9b17332fb33226d126ba0a4"
+      }
+    },
+    {
+      "case": "due_from_null_no_attempt_no_log",
+      "start_epoch": 1793761200,
+      "observation_epoch": 1793761379,
+      "exit": 0,
+      "stdout": "(기동 12:00 KST · 관측 12:02 KST · 회차는 기동 3분 뒤부터 15분 간격으로 계산 — 실제는 앞 회차 소요만큼 늦어질 수 있다)\ntokenpost_rss RSS(30분): 미관측 — 계산상 차례 전(12:03 KST 이후 첫 회차 12:03 KST 무렵)\n",
+      "stderr": "",
+      "inputs_sha256": {
+        "due_from_null_no_attempt_no_log.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "due_from_null_no_attempt_no_log-before.txt": "239acb090d23f0871be5d624816b72720fdfb8e4c5585a728f22136cc6f18186",
+        "due_from_null_no_attempt_no_log-now.txt": "239acb090d23f0871be5d624816b72720fdfb8e4c5585a728f22136cc6f18186"
+      }
+    },
+    {
+      "case": "due_from_null_no_attempt_no_log",
+      "start_epoch": 1793761200,
+      "observation_epoch": 1793761380,
+      "exit": 3,
+      "stdout": "(기동 12:00 KST · 관측 12:03 KST · 회차는 기동 3분 뒤부터 15분 간격으로 계산 — 실제는 앞 회차 소요만큼 늦어질 수 있다)\n⚪ tokenpost_rss RSS(30분): 확인 필요 — 계산상 회차 12:03 KST ≤ 관측 12:03 KST 인데 시도 기록·완료·미완료 줄 없음(앞 회차 소요로 늦을 수 있어 실패로 확정하지 않는다) — 보고\n⚪ 확인 필요 1개 — 정상 관측으로 세지 않는다. 수집 API·강제 재시도·주기 변경·즉시 되돌림 없이 출력만 보고\n",
+      "stderr": "",
+      "inputs_sha256": {
+        "due_from_null_no_attempt_no_log.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "due_from_null_no_attempt_no_log-before.txt": "239acb090d23f0871be5d624816b72720fdfb8e4c5585a728f22136cc6f18186",
+        "due_from_null_no_attempt_no_log-now.txt": "239acb090d23f0871be5d624816b72720fdfb8e4c5585a728f22136cc6f18186"
+      }
+    }
+  ],
+  "white_continuation_static_check": {
+    "k3_no3_allowed": true,
+    "k4_no3_allowed": true,
+    "k4_does_not_claim_news_complete": true
+  },
+  "external_http_calls": 0,
+  "db_calls": 0,
+  "ssh_calls": 0,
+  "production_mutations": 0,
+  "app_tests_or_rebuilds": 0
+}

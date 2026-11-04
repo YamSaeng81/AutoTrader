@@ -1,0 +1,57 @@
+NAME                   IMAGE                COMMAND                  SERVICE   CREATED         STATUS         PORTS
+autotrader-backend-1   autotrader-backend   "sh -c 'java $JAVA_O…"   backend   7 minutes ago   Up 7 minutes   0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp
+backend-1  | 04:54:24.155 [main] INFO  o.f.core.internal.command.DbMigrate - Schema "public" is up to date. No migration necessary.
+backend-1  | 04:54:33.988 [main] INFO  c.c.api.CryptoAutoTraderApplication - Started CryptoAutoTraderApplication in 15.275 seconds (process running for 15.924)
+backend-1  | 04:54:34.308 [main] INFO  c.c.api.service.SellQuarantineReport - 매도 격리 점검: 반영 표시 없이 체결된 매도가 있는 열린 실자금 포지션 없음
+BTC 관문: 판정 불가·재개 줄 없음
+기동 뒤 판정 불가로 들어간 대상 0 · 로그 끝 기준 판정 재개 0 · 아직 판정 불가 0
+== Q3 실자금 보유 (OPEN·CLOSING) — 기대 0행
+ id | session_kind | session_id | coin_pair | status | size 
+(0 rows)
+== Q4 실자금 미결 주문 — 기대 0
+ real_unresolved_orders 
+                      0
+(1 row)
+== Q5 정리 대기 — 기대 0
+ cleanup_pending 
+               0
+(1 row)
+== Q6 격리 대조 대상 (§6.13 ⑤-1) — 기대 0행. 행이 나오면 정비 보류
+ position_id | session_kind | session_id | coin_pair | status | size | order_id | state | filled_quantity | created_at 
+(0 rows)
+== Q7 검증 66세션 상태 — 기대 RUNNING 66
+ status  | count 
+ RUNNING |    63
+ STOPPED |     3
+(2 rows)
+== Q8 정비 시작( '2026-11-04 13:52:05+09:00' ) 뒤 실자금 신규 매수 — 기대 0
+      maint_start       | real_buys_since_maint 
+ 2026-11-04 04:52:05+00 |                     0
+(1 row)
+== Q9 격리 해제 기록 (V94 뒤에만 존재) — 기대 0. V93 에서는 테이블이 없어 건너뛴다
+ quarantine_release_rows 
+                       0
+(1 row)
+== Q10 최근 7일 텔레그램 전송 기록 (참고 — 재기동 뒤에도 알림이 나가는가). queue_rejected = 큐 포화로 전송 못 한 중요 경보(재시도 보완 배포 뒤에만 생김)
+         type          | success | count | queue_rejected |           last_sent           
+ CANDLE_REFRESH_REPORT | t       |     9 |              0 | 2026-11-03 19:36:19.598998+00
+ CUSTOM                | t       |     2 |              0 | 2026-11-02 00:42:00.944251+00
+ STOP_LOSS             | t       |     4 |              0 | 2026-10-30 12:17:25.109498+00
+ TEST                  | t       |     2 |              0 | 2026-10-30 01:45:08.990262+00
+ TIME_STOP             | f       |     1 |              0 | 2026-10-28 17:01:04.054583+00
+ TIME_STOP             | t       |     1 |              0 | 2026-11-01 07:00:38.373287+00
+ TRADE_SUMMARY         | t       |    15 |              0 | 2026-11-04 03:00:01.633592+00
+(7 rows)
+ROLLBACK
+66 | 63 | 3 | -
+== BTC H1 배포 전 true|11-04 12:00|11-04 12:00|20/20 · 지금 true|11-04 13:00|11-04 12:00|20/20
+== 뉴스 출처별(기동 04:54:06Z 뒤 로그 · 첫 회차는 기동 3분 뒤)
+(기동 13:54 KST · 관측 14:01 KST · 회차는 기동 3분 뒤부터 15분 간격으로 계산 — 실제는 앞 회차 소요만큼 늦어질 수 있다)
+blockmedia_rss RSS(60분): 미관측 — 계산상 차례 전(14:29 KST 이후 첫 회차 14:42 KST 무렵)
+bloomberg_rss RSS(60분): 미관측 — 계산상 차례 전(14:29 KST 이후 첫 회차 14:42 KST 무렵)
+coindesk_rss RSS(60분): 미관측 — 계산상 차례 전(14:29 KST 이후 첫 회차 14:42 KST 무렵)
+coingecko_trending COINGECKO(60분): 미관측 — 계산상 차례 전(14:29 KST 이후 첫 회차 14:42 KST 무렵)
+cryptopanic CRYPTOPANIC(30분): 미관측 — 계산상 차례 전(13:59 KST 이후 첫 회차 14:12 KST 무렵)
+tokenpost_rss RSS(60분): 미관측 — 계산상 차례 전(14:29 KST 이후 첫 회차 14:42 KST 무렵)
+upbit_notice UPBIT_NOTICE(30분): 미관측 — 계산상 차례 전(13:59 KST 이후 첫 회차 14:12 KST 무렵)
+✅ K3(deploy) 통과 — 기동 30분 뒤 K4

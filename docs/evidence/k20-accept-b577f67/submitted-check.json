@@ -1,0 +1,271 @@
+{
+  "source_sha": "b577f673e700e166c949b225272dc959be071ed7",
+  "unchanged_existing_bash_blocks": 71,
+  "total_bash_blocks": 76,
+  "blocks": [
+    {
+      "block": "kvars",
+      "sha256": "837c0448ec862fae836b46c1fc2d409dbd8d3f2dbfef2e0a6eaa1f6ea0be75be",
+      "bash_n_exit": 0
+    },
+    {
+      "block": "k1",
+      "sha256": "7cf5e97ffbcdeab8fe8640935ab556ad01b40429c85df7132edc2e58a360ffeb",
+      "bash_n_exit": 0
+    },
+    {
+      "block": "k3",
+      "sha256": "98e5ff9aa7d430c5ac1b0c61c2bbbf5aeb1160b5a4d168ea0c8ebaf44fc5b50f",
+      "bash_n_exit": 0
+    },
+    {
+      "block": "k4",
+      "sha256": "082d9ce595b3a765ac173ab67d62e8bce822b0322213811227533a7c38dfd027",
+      "bash_n_exit": 0
+    },
+    {
+      "block": "knews",
+      "sha256": "941614d69aeba9ed1fd79f26e67df7001764b26b9c73ce31f3a5f129a1157570",
+      "bash_n_exit": 0
+    },
+    {
+      "block": "k0",
+      "sha256": "080390b5b613bc2c6415eaaf715d4b7e35c14c67565ebacbf84f4bd46c5ba478",
+      "bash_n_exit": 0
+    },
+    {
+      "block": "k2",
+      "sha256": "fc91785f5213a554faf95db69ca9c71d489799cc03ee339df8ad9ae05853ea94",
+      "bash_n_exit": 0
+    },
+    {
+      "block": "krollback",
+      "sha256": "426d3cff8cd9dde6f480e81e23f55eede7109af7acef835e0abe084bcc2761fa",
+      "bash_n_exit": 0
+    }
+  ],
+  "manifests": [
+    {
+      "folder": "k20-fix-k1-newsobs",
+      "count": 28,
+      "files": [
+        {
+          "path": "README.md",
+          "sha256": "ed7d66bbe9bfe80d3f1690fd69acfecee773136967fbbe1c4eed1adf26f69d53",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "block-hashes.json",
+          "sha256": "934f6c9fa2dda3503124fd4a36433c6967e59c70adb67928834bcaf2b479406b",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "blocks-syntax.txt",
+          "sha256": "98581eae5fd3d9ee7d52f8b71a572d6c85a1392d5fe6c2a8e6c5a79f3ab882c9",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "cases/k0-btc-19.out",
+          "sha256": "ba4843a7375d0cae1323ee027e8e05a019d9632c547c9d4c62a3707fd2c17089",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "cases/k0-btc-false.out",
+          "sha256": "24887ac097e7802750607708a3ee475a5527b0240aafdba0f8b9e40358ff7ec3",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "cases/k0-cron.out",
+          "sha256": "d6be22690aed9c8966705a68be8e7cd4cf66cc9d55bc2f702460face6e6f527a",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "cases/k0-diff14.out",
+          "sha256": "cb9fc56c18001b4283e22e78f9a3a05688573744803c135bde1e5698bae01a6e",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "cases/k0-installed.out",
+          "sha256": "40a5ed20604c56c2a1d4dbc2b9878e340a1957c97ad562a60301fbb944930a27",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "cases/k0-normal.out",
+          "sha256": "8726d705603d93b909b845008ed673ee908c605925e014595f82bc9d28c2c190",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "cases/k3-btc-false.out",
+          "sha256": "c14791b5c60643b2798865d16f814c610167a4d7b91ccb0833601cc6dfbfd15a",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "cases/k3-early.out",
+          "sha256": "9364c16ef16f86040819a4b32fe1268fd947e2ae50c9c87426fb2733ee5ac088",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "cases/k3-news-due.out",
+          "sha256": "fd3f13594f0dbe92e12fa92ccafcc887f90a8f2c502b49fed7c2cc5de160d704",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "cases/k3-news-interval.out",
+          "sha256": "3ef2dbd01801edd98de4802fd47148c6a91c7a1532dab0f2f8bb2c0c1794e24e",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "cases/k3-news-unlogged.out",
+          "sha256": "b8f3aa38ee03d9049c172d8541c2f52844b7d66995cba4f2b9c75b134661cd1d",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "cases/k3-normal.out",
+          "sha256": "606c37c954cbbb371e5380e78cf0883ece9bd8c30844b982bde41228d8c42d4e",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "cases/k3-oldkv.out",
+          "sha256": "45f6c8dd1ff24dc1ab6910b7639cff549d662d71d5ac4ea6d81007103e1fe9c0",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "cases/k3-other-error.out",
+          "sha256": "508a609539139bc49e7eb470edb4c70d63bd5fbe68de18f30e7ea6fb6ea01d98",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "cases/k3-rollback.out",
+          "sha256": "603c0fedba1c4eeb26ee1cf78a8588fe0f90b457eb294d063bdce46762073076",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "cases/k4-cron.out",
+          "sha256": "b6bcd9e0701854e856df3ced1c7c83b08782b04c893c706cf37d18bbea39faae",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "cases/k4-early.out",
+          "sha256": "da638b79a52b84a4025e2028c648964882c3d3944846685e2892637f0aea736c",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "cases/k4-news-due.out",
+          "sha256": "346c4894ddcdaff2138d09aa560dd254a791d96687a72e797c67c9ed561a11f7",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "cases/k4-normal.out",
+          "sha256": "a24bf0ce001c99e56d3f0b3ad9e61865d7ee94b2d5a5d5bf0db0f987286d8b51",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "cases/k4-restart.out",
+          "sha256": "00206fefefb6dcb113c58beecdaab2e8ac818333c02f55a20f268c8c5cdd251d",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "jar-diff-k1v2.txt",
+          "sha256": "c0350a6a016f55c416627a6576d39b33ce4423de86e845e3ac5f985c2da4ff96",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "jar-tamper-k1v1.txt",
+          "sha256": "dba108d8cdf9a80f1d6de5854bb6c37fa1b8341f2d911937d5c9d6dd2495510a",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "jar-tamper.txt",
+          "sha256": "540f0b8598469af1018888d41b9c07e499d161f96aebc318037693c011a72557",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "k-cases-summary.txt",
+          "sha256": "c1a64345730290730200fe6b848463233860a8f2b13c377ba181f97d7a04ec35",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "newsobs-cases.txt",
+          "sha256": "3291530cc8569c26f225ec1eebb93c3cd86dd176b4c3420de36dad29583cb94f",
+          "working_and_commit_match": true
+        }
+      ]
+    },
+    {
+      "folder": "k20-review-350efd1",
+      "count": 14,
+      "files": [
+        {
+          "path": ".gitattributes",
+          "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "jar-baseline.txt",
+          "sha256": "aa71444dcc45d97619bcb1550b15dc6d78d685d5da2b6b424c9609166b393223",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "jar-case-1-full.txt",
+          "sha256": "22be38344e7751a6f9143688cbaedd8cb4ab4b55237e2a1c9e06e901b74aeabf",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "jar-case-1-k1.txt",
+          "sha256": "aa71444dcc45d97619bcb1550b15dc6d78d685d5da2b6b424c9609166b393223",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "jar-case-2-full.txt",
+          "sha256": "27be453f2adeeee9803e577353f5100babbf0393db88f2a5d5904dbb740622b3",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "jar-case-2-k1.txt",
+          "sha256": "aa71444dcc45d97619bcb1550b15dc6d78d685d5da2b6b424c9609166b393223",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "jar-case-3-full.txt",
+          "sha256": "39bb969a4a24aeb9e27f19f27d72729c1cf943c2c6059f055ffee6b9d1e6e1ec",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "jar-case-3-k1.txt",
+          "sha256": "aa71444dcc45d97619bcb1550b15dc6d78d685d5da2b6b424c9609166b393223",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "k1-exact.py",
+          "sha256": "fe5c7f61a718513f35c2c036ba45a0923b7aaaf8a2f7d54d22371be504a5a15b",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "newsobs-exact.py",
+          "sha256": "49499368db62c6c6ba79141b9564ca1d9b1fc138482e0d6809f92d499a173496",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "README.md",
+          "sha256": "0bb20774eaedee10353ed07df1d3dd4541822ee13fd51058243307be4ac8da97",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "review.json",
+          "sha256": "8f98826d4eb1e7131eea6330ffbf7a5657cfafa6d80551d72c91667c22bec4cb",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "review.py",
+          "sha256": "5c7a518de6de6b0c559ed887bad7834835a66ae1b4f0696165f89ce75626f75b",
+          "working_and_commit_match": true
+        },
+        {
+          "path": "submitted-check.json",
+          "sha256": "ce66ac31a3fb590f539f825395c40bc868e89e76c721eaca48aa81f2e0da5931",
+          "working_and_commit_match": true
+        }
+      ]
+    }
+  ]
+}
