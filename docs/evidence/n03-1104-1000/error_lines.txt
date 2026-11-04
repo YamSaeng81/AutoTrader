@@ -1,0 +1,17 @@
+backend-1  | 14:27:59.895 [scheduler-1] ERROR c.c.api.news.source.RssNewsSource - [RssNewsSource] 수집 실패 — sourceId=tokenpost_rss: Connection reset
+backend-1  | 15:00:29.406 [scheduler-6] ERROR c.c.e.upbit.UpbitCandleCollector - 캔들 수집 실패: request timed out
+backend-1  | 15:00:29.407 [scheduler-6] ERROR c.c.a.service.MarketDataSyncService - 시장 데이터 동기화 실패: KRW-PUNDIX H1 - 캔들 데이터 수집 실패
+backend-1  | 15:00:44.411 [scheduler-6] ERROR c.c.e.upbit.UpbitCandleCollector - 캔들 수집 실패: request timed out
+backend-1  | 15:00:44.412 [scheduler-6] ERROR c.c.a.service.MarketDataSyncService - 시장 데이터 동기화 실패: KRW-ELF H1 - 캔들 데이터 수집 실패
+backend-1  | 15:00:59.416 [scheduler-6] ERROR c.c.e.upbit.UpbitCandleCollector - 캔들 수집 실패: request timed out
+backend-1  | 15:00:59.416 [scheduler-6] ERROR c.c.a.service.MarketDataSyncService - 시장 데이터 동기화 실패: KRW-JUP H1 - 캔들 데이터 수집 실패
+backend-1  | 15:28:06.955 [scheduler-6] ERROR c.c.a.news.source.UpbitNoticeSource - [UpbitNoticeSource] 수집 실패: Connection reset
+backend-1  | 15:28:07.128 [scheduler-6] ERROR c.c.a.news.source.CryptoPanicSource - [CryptoPanicSource] 수집 실패: Connection reset
+backend-1  | 19:10:01.381 [task-4] ERROR c.c.exchange.upbit.UpbitRestClient - Upbit API 오류: status=404, url=https://api.upbit.com/v1/candles/minutes/60?market=KRW-BLAST&count=200&to=2026-10-31T15:00:00, body={"error":{"name":404,"message":"Code not found"}}
+backend-1  | 19:10:01.381 [task-4] ERROR c.c.e.upbit.UpbitCandleCollector - 캔들 수집 실패: Upbit API 호출 실패: 404 (https://api.upbit.com/v1/candles/minutes/60?market=KRW-BLAST&count=200&to=2026-10-31T15:00:00)
+backend-1  | 19:10:01.381 [task-4] ERROR c.c.a.service.DataCollectionService - 캔들 수집 실패: KRW-BLAST — 캔들 데이터 수집 실패
+backend-1  | 19:10:46.378 [task-1] ERROR c.c.exchange.upbit.UpbitRestClient - Upbit API 오류: status=404, url=https://api.upbit.com/v1/candles/minutes/60?market=KRW-BLAST&count=200&to=2026-11-03T15:00:00, body={"error":{"name":404,"message":"Code not found"}}
+backend-1  | 19:10:46.378 [task-1] ERROR c.c.e.upbit.UpbitCandleCollector - 캔들 수집 실패: Upbit API 호출 실패: 404 (https://api.upbit.com/v1/candles/minutes/60?market=KRW-BLAST&count=200&to=2026-11-03T15:00:00)
+backend-1  | 19:10:46.378 [task-1] ERROR c.c.a.service.DataCollectionService - 캔들 수집 실패: KRW-BLAST — 캔들 데이터 수집 실패
+backend-1  | 19:36:16.621 [telegram-1] ERROR c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 중 오류(응답 미수신): Connection reset
+backend-1  | 20:00:02.467 [scheduler-7] ERROR c.c.api.llm.provider.ClaudeProvider - [ClaudeProvider] 요청 실패
