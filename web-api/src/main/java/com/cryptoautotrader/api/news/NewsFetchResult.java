@@ -14,7 +14,7 @@ import java.util.Objects;
  * </ul>
  *
  * <p>{@code failureKind}는 짧은 분류값만 담는다: {@code HTTP_<코드>}, {@code INVALID_RESPONSE},
- * 예외 클래스의 단순 이름(예: {@code IOException}), {@code UNSUPPORTED_TYPE}, {@code NULL_RESULT}.
+ * {@code SOURCE_REPORTED_FAILURE}, 예외 클래스의 단순 이름(예: {@code IOException}), {@code UNSUPPORTED_TYPE}, {@code NULL_RESULT}.
  * 토큰·전체 URL·응답 본문·예외 메시지는 넣지 않는다.
  * {@code decidedAt}은 출처가 결과를 판정한 시각이다.
  */
@@ -25,6 +25,8 @@ public record NewsFetchResult(Status status, List<NewsItem> items, String failur
     public static final String INVALID_RESPONSE = "INVALID_RESPONSE";
     public static final String UNSUPPORTED_TYPE = "UNSUPPORTED_TYPE";
     public static final String NULL_RESULT = "NULL_RESULT";
+    /** 응답 본문이 스스로 실패를 밝혔다(예: 업비트 {@code success:false}). 본문 내용은 담지 않는다. */
+    public static final String SOURCE_REPORTED_FAILURE = "SOURCE_REPORTED_FAILURE";
 
     public NewsFetchResult {
         Objects.requireNonNull(status, "status");

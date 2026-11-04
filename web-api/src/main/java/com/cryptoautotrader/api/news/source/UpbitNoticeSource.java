@@ -29,6 +29,7 @@ import java.util.List;
  * <p>응답 형태(예): {"success":true,"data":{"notices":[{"id":..,"title":..,"listed_at":..}], ...}}
  * 엔드포인트가 바뀔 수 있어 URL은 news_source_config.url로 설정 가능(코드 무수정 대응).
  * 실패 시 예외를 던지지 않고 실패 결과를 반환한다(수집기 계약, N11). 빈 공지 배열은 정상 0건이다.
+ * 본문 {@code success} 가 false 면 항목과 관계없이 실패, 있는데 boolean 이 아니면 잘못된 응답이다.
  */
 @Component
 public class UpbitNoticeSource implements NewsSource {
@@ -72,6 +73,19 @@ public class UpbitNoticeSource implements NewsSource {
             }
 
             JsonNode root = objectMapper.readTree(response.body());
+            // 본문이 success 를 밝히면 그것을 따른다: false 는 실패(항목을 넘기지 않음), boolean 이 아니면 잘못된 응답.
+            // 필드가 없으면 기존처럼 공지 배열로만 판정한다(호환).
+            JsonNode successFlag = root.path("success");
+            if (!successFlag.isMissingNode()) {
+                if (!successFlag.isBoolean()) {
+                    log.warn("[UpbitNoticeSource] success 값이 boolean 아님 — sourceId={}", config.getSourceId());
+                    return NewsFetchResult.failed(NewsFetchResult.INVALID_RESPONSE);
+                }
+                if (!successFlag.booleanValue()) {
+                    log.warn("[UpbitNoticeSource] 응답 success=false — sourceId={}", config.getSourceId());
+                    return NewsFetchResult.failed(NewsFetchResult.SOURCE_REPORTED_FAILURE);
+                }
+            }
             JsonNode data = root.path("data");
             // 응답 스키마 변형 대비: data.notices → data.list → 최상위 notices 순으로 탐색
             JsonNode notices = firstArray(data.path("notices"), data.path("list"), root.path("notices"));
