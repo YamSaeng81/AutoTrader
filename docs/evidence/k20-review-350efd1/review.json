@@ -1,0 +1,77 @@
+{
+  "source_sha": "350efd14205526f9f8eb91b683349ce9e10ab48c",
+  "candidate_sha": "b1d7664db73222aec5d86f2e9137debef0ff4df3",
+  "jar_cases": [
+    {
+      "target": "META-INF/MANIFEST.MF",
+      "k1_exit": 0,
+      "k1_gate_passed": true,
+      "full_comparison_detected": true,
+      "mutated_jar_sha256": "514403e556c40692781105d070b52fdb20adff0c9a5399b8eb84ce1529f36bec"
+    },
+    {
+      "target": "BOOT-INF/classpath.idx",
+      "k1_exit": 0,
+      "k1_gate_passed": true,
+      "full_comparison_detected": true,
+      "mutated_jar_sha256": "65a06479bdcfee5409bff191488021c06304e64155203367caab8fac71e31624"
+    },
+    {
+      "target": "org/springframework/boot/loader/jar/ManifestInfo.class",
+      "k1_exit": 0,
+      "k1_gate_passed": true,
+      "full_comparison_detected": true,
+      "mutated_jar_sha256": "50703fbb0d4db88f6ebb8843e864408b4a8b08e7b5411386c1d67e7f872e7c50"
+    }
+  ],
+  "news_cases": [
+    {
+      "case": "not_due_control",
+      "start_epoch": 1793761200,
+      "observation_epoch": 1793763300,
+      "before_last_fetched": 1793761140,
+      "now_last_fetched": 1793761140,
+      "interval_min": 120,
+      "exit": 0,
+      "stdout": "tokenpost_rss RSS(120분): 미관측 — 기동 뒤 차례 전(13:59 KST 이후 첫 15분 회차)\n",
+      "stderr": ""
+    },
+    {
+      "case": "due_from_null_no_attempt_no_log",
+      "start_epoch": 1793761200,
+      "observation_epoch": 1793763300,
+      "before_last_fetched": "-",
+      "now_last_fetched": "-",
+      "interval_min": 30,
+      "exit": 0,
+      "stdout": "tokenpost_rss RSS(30분): 미관측 — 기동 뒤 차례 전(12:03 KST 이후 첫 15분 회차)\n",
+      "stderr": ""
+    },
+    {
+      "case": "due_from_old_no_attempt_no_log",
+      "start_epoch": 1793761200,
+      "observation_epoch": 1793763300,
+      "before_last_fetched": 1793754000,
+      "now_last_fetched": 1793754000,
+      "interval_min": 30,
+      "exit": 0,
+      "stdout": "tokenpost_rss RSS(30분): 미관측 — 기동 뒤 차례 전(12:03 KST 이후 첫 15분 회차)\n",
+      "stderr": ""
+    },
+    {
+      "case": "attempt_advanced_no_log_control",
+      "start_epoch": 1793761200,
+      "observation_epoch": 1793763300,
+      "before_last_fetched": 1793754000,
+      "now_last_fetched": 1793761380,
+      "interval_min": 30,
+      "exit": 2,
+      "stdout": "⚪ tokenpost_rss RSS: 새 코드가 시도(last_fetched_at 12:03 KST)했는데 완료·미완료 줄 없음 — 원문 보고\n",
+      "stderr": ""
+    }
+  ],
+  "external_http_calls": 0,
+  "db_calls": 0,
+  "ssh_calls": 0,
+  "production_mutations": 0
+}

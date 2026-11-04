@@ -1,0 +1,21 @@
+### 사례 k3-rollback — 블록 k3
+backend Up
+2026-11-04 03:30:10.000 INFO  o.f.c.i.c.DbMigrate : Schema "public" is up to date. No migration necessary.
+2026-11-04 03:30:10.000 INFO  c.c.a.s.SellQuarantineCheck : 매도 격리 점검 — 격리 없음
+2026-11-04 03:30:10.000 INFO  c.c.a.CryptoAutoTrader : Started CryptoAutoTrader in 15.2 seconds
+BTC 관문: 판정 불가·재개 줄 없음
+candle: 아직 판정 불가 0
+== Q3 0
+66 | 63 | 3 | -
+== BTC H1 배포 전 true|11-04 12:00|11-04 12:00|20/20 · 지금 true|11-04 12:00|11-04 12:00|20/20
+== 뉴스 출처별(기동 04:34:33Z 뒤 로그 · 첫 회차는 기동 3분 뒤)
+(기동 13:34 KST · 관측 13:41 KST · 회차는 기동 3분 뒤부터 15분 간격으로 계산 — 실제는 앞 회차 소요만큼 늦어질 수 있다)
+bloomberg_rss RSS(60분): 미관측 — 계산상 차례 전(13:59 KST 이후 첫 회차 14:07 KST 무렵)
+⚪ coindesk_rss RSS(30분): 확인 필요 — 계산상 회차 13:37 KST ≤ 관측 13:41 KST 인데 시도 기록·완료·미완료 줄 없음(앞 회차 소요로 늦을 수 있어 실패로 확정하지 않는다) — 보고
+cryptopanic CRYPTOPANIC: 사용 안 함
+tokenpost_rss RSS(30분): 완료 1·미완료 0 — 마지막 '수집 완료 — 전체=0건 신규=0건'
+⚪ upbit_notice UPBIT_NOTICE(10분): 확인 필요 — 계산상 회차 13:37 KST ≤ 관측 13:41 KST 인데 시도 기록·완료·미완료 줄 없음(앞 회차 소요로 늦을 수 있어 실패로 확정하지 않는다) — 보고
+⚪ 확인 필요 2개 — 정상 관측으로 세지 않는다. 수집 API·강제 재시도·주기 변경·즉시 되돌림 없이 출력만 보고
+⚪ 뉴스 확인 필요 — 되돌리지 않는다. 위 ⚪ 줄을 보고(정상 관측 아님)
+✅ K3(rollback) 통과 — ea44900 복귀 확인. K4 는 하지 않고 출력을 보고
+### 종료 0 · 표지: ok-K0 ok-K1 ok-K2 ok-K3-rollback 
