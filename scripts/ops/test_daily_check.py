@@ -143,6 +143,8 @@ BASE_ENV = dict(os.environ,
                 PSQL_CMD="docker exec -i cat-rt-pg psql -X -U trader -d " + DB,
                 LOGS_FILE=logs_ok,
                 APP_STATE="running|0|2026-10-01T00:00:00Z|sha256:8b1b8c7898c0",
+                # 2026-11-04 N14: 정상 준비 자료에 컨테이너 생성 시각(구간 전)을 보충한다 — 기존 경우의 기대값은 바꾸지 않는다.
+                APP_CREATED="2026-10-01T00:00:00Z",
                 ALERTS_CMD="echo '🟢 경보 없음 · 실행 누락 없음'; exit 0",
                 TG_API=TG_API, TELEGRAM_BOT_TOKEN="test-token", TELEGRAM_CHAT_ID="1",
                 TZ_EXPECT="",   # 시험 기계 시간대는 따지지 않는다(아래 별도 경우)
@@ -855,6 +857,123 @@ CANNED = ("flyway_version|94\nreal_open_positions|0\nreal_unresolved_orders|0\nc
           "tg_last_ok|none\nbtc_h1_ok|true\nbtc_h1_done|11-02 21:00\nbtc_h1_need|11-02 20:00\nbtc_h1_daily|20\nbtc_h1_at|11-02 22:00:05\nEND|ok\n")
 with open(os.path.join(work, "canned.txt"), "w", newline="\n") as f:
     f.write(CANNED)
+
+# ── 2026-11-04 N14: 요청 로그 구간과 현재 컨테이너 생성 시각 — 재생성으로 앞 로그가 빠지면 ⚪, StartedAt 으로 판정하지 않음 ──
+def ago(expr):
+    return subprocess.run([BASH, "-c", "date -u -d '%s' '+%%Y-%%m-%%dT%%H:%%M:%%SZ'" % expr], capture_output=True, text=True).stdout.strip()
+
+
+GAP_MSG = "⚪ ERROR 로그 범위 미확보 — 구간 안에 backend 컨테이너가 새로 만들어졌다(생성 "
+OK_SCOPE = "(구간 시작 전·같음 — 재생성 공백 없음)"
+rc, rep, last, sent, raw = run("n14_created_before")
+check("N14 생성 시각이 구간 전 — ⚪ 없음·'현재 컨테이너 생성 10-01 09:00:00(구간 시작 전·같음…)'·ERROR(구간) 그대로·종료 0",
+      rc == 0 and "🟢 점검 항목 정상" in rep and "로그 범위: 요청 " in rep and "현재 컨테이너 생성 10-01 09:00:00" + OK_SCOPE in rep
+      and "ERROR(구간): 전체 5 · 공유 풀 미등록 1" in rep and "로그 범위 미확보" not in rep, raw + rep)
+
+t1 = ago("-1 hour")
+rc, rep, last, sent, raw = run("n14_recreated", APP_STATE="running|0|%s|sha256:abc" % t1, APP_CREATED=t1)
+check("N14 구간 안 재생성 — ⚪ 로그 범위 미확보 + 구간 안 기동 🔴 함께, 머리 ⚪·종료 1·보고 전송",
+      rc == 1 and rep.startswith("[정기 점검] ⚪") and GAP_MSG in rep and "🔴 점검 구간 안에 backend 기동" in rep and len(sent) == 1, raw + rep)
+check("N14 구간 안 재생성 — ERROR 줄은 '현재 컨테이너 생성 … 뒤만 — 구간 앞부분 미포함' 으로 표시하고 분류·건수는 그대로",
+      "ERROR(현재 컨테이너 생성 " in rep
+      and "뒤만 — 구간 앞부분 미포함): 전체 5 · 공유 풀 미등록 1 · 캔들 판정 불가 1 · 상장 폐지 404 1 · 통신 실패 2 · 미분류 0" in rep
+      and "(구간 안 — 생성 전 로그 미포함)" in rep, rep)
+check("N14 구간 안 재생성 — DB·BTC·66세션 독립 검사는 끝까지 진행(원래 66 중 RUNNING 63·BTC 줄·66세션 줄)",
+      "원래 66 중 RUNNING 63" in rep and "BTC H1 입력(관측 " in rep and "66세션: 🟢 경보 없음" in rep, rep)
+
+SINCE_FIX = "2026-11-04T01:00:00Z"
+for name, created, gap in [("eq", "2026-11-04T01:00:00Z", False), ("eq_frac0", "2026-11-04T01:00:00.000000000Z", False),
+                           ("minus1ns", "2026-11-04T00:59:59.999999999Z", False), ("minus1s", "2026-11-04T00:59:59Z", False),
+                           ("plus1us", "2026-11-04T01:00:00.000001Z", True), ("plus1s", "2026-11-04T01:00:01Z", True),
+                           ("kst_eq", "2026-11-04T10:00:00+09:00", False), ("kst_plus1s", "2026-11-04T10:00:01+09:00", True)]:
+    rc, rep, last, sent, raw = run("n14_edge_" + name, CHECK_SINCE_ISO=SINCE_FIX, APP_CREATED=created)
+    if gap:
+        check("N14 경계 — 생성 %s > 구간 시작 %s 이면 ⚪ 미확보" % (created, SINCE_FIX),
+              rc == 1 and GAP_MSG in rep and "구간 시작 11-04 10:00 ~ 생성 전 로그는 ERROR 집계 밖" in rep, raw + rep)
+    else:
+        check("N14 경계 — 생성 %s ≤ 구간 시작 %s 이면 공백 아님" % (created, SINCE_FIX),
+              "로그 범위 미확보" not in rep and "로그 범위 확인 불가" not in rep and OK_SCOPE in rep and "ERROR(구간): 전체 5" in rep, raw + rep)
+
+rc, rep, last, sent, raw = run("n14_same_container_restart", APP_STATE="running|1|%s|sha256:abc" % t1)
+check("N14 같은 컨테이너 재시작(StartedAt 만 구간 안·생성은 구간 전) — 기동·재시작 🔴 는 그대로, 로그 범위 ⚪ 는 없음",
+      rc == 1 and "🔴 점검 구간 안에 backend 기동" in rep and "🔴 backend 재시작 횟수 1" in rep and "로그 범위 미확보" not in rep
+      and OK_SCOPE in rep and "ERROR(구간): 전체 5" in rep, raw + rep)
+
+for name, created, shown in [("empty", "", "값 없음"), ("garbage", "garbage", "garbage"),
+                             ("bad_date", "2026-13-45T99:00:00Z", "2026-13-45T99:00:00Z"),
+                             ("no_tz", "2026-11-04T01:00:00", "2026-11-04T01:00:00"), ("multiline", "x\n한글", "x")]:
+    rc, rep, last, sent, raw = run("n14_created_" + name, APP_CREATED=created)
+    check("N14 생성 시각 %s — ⚪ 확인 불가(받은 값 '%s')·ERROR 줄은 '로그 범위 확인 불가'·종료 1" % (name, shown),
+          rc == 1 and rep.startswith("[정기 점검] ⚪")
+          and ("⚪ ERROR 로그 범위 확인 불가 — backend 컨테이너 생성 시각을 읽지 못했다(%s)" % shown) in rep
+          and "ERROR(로그 범위 확인 불가): 전체 5" in rep and "현재 컨테이너 생성 시각 확인 불가" in rep, raw + rep)
+
+logs_empty = os.path.join(work, "logs_empty.txt")
+open(logs_empty, "w").close()
+rc, rep, last, sent, raw = run("n14_error0_gap", LOGS_FILE=logs_empty, APP_CREATED=t1)
+check("N14 현재 ERROR 0 + 재생성 공백 — 🟢 아님, ⚪ 미확보·'뒤만 … 전체 0'",
+      rc == 1 and "🟢 점검 항목 정상" not in rep and GAP_MSG in rep and "뒤만 — 구간 앞부분 미포함): 전체 0 ·" in rep, raw + rep)
+rc, rep, last, sent, raw = run("n14_error0_ok", LOGS_FILE=logs_empty)
+check("N14 현재 ERROR 0 + 공백 없음 — 종전대로 🟢·'ERROR(구간): 전체 0'",
+      rc == 0 and "🟢 점검 항목 정상" in rep and "ERROR(구간): 전체 0 ·" in rep, raw + rep)
+
+sql(DB, "UPDATE paper_trading.virtual_balance SET status='STOPPED' WHERE id=587;")
+rc, rep, last, sent, raw = run("n14_gap_and_red", APP_CREATED=t1, LOGS_FILE=logs_bad)
+sql(DB, "UPDATE paper_trading.virtual_balance SET status='RUNNING' WHERE id=587;")
+check("N14 재생성 공백 + 독립 위험 🔴(587 정지·미분류 ERROR 2) — ⚪ 와 🔴 줄이 함께 남는다",
+      rc == 1 and GAP_MSG in rep and "🔴 검증 세션 RUNNING 아님(지정 종료 외): 587:STOPPED" in rep and "🔴 미분류 ERROR 2건" in rep
+      and "원래 66 중 RUNNING 62" in rep, raw + rep)
+
+rc, rep, last, sent, raw = run("n14_app_absent", APP_STATE="absent|0|-|-", APP_CREATED="",
+                               ALERTS_CMD="echo 'API 에 닿지 않는다' >&2; exit 2")
+check("N14 앱 없음 + 생성 시각 없음 — 🔴 컨테이너 없음과 ⚪ 로그 범위 확인 불가가 함께",
+      rc == 1 and "🔴 backend 컨테이너 없음" in rep
+      and "⚪ ERROR 로그 범위 확인 불가 — backend 컨테이너 생성 시각을 읽지 못했다(값 없음)" in rep, raw + rep)
+
+# 실제 조회 분기(APP_STATE 없음) — docker 를 대신하는 셸로 compose ps·inspect 의 형식 문자열까지 본다. 그 밖의 docker 호출은 실제 docker 로 넘긴다.
+shim_dir = os.path.join(work, "shim")
+os.makedirs(shim_dir)
+real_docker = shutil.which("docker").replace("\\", "/")
+with open(os.path.join(shim_dir, "docker"), "w", newline="\n") as f:
+    f.write("""#!/usr/bin/env bash
+echo "$*" >> "$SHIM_LOG"
+if [ "$1" = compose ]; then
+  case " $* " in *" ps -q backend "*) echo shimcid; exit 0 ;; esac
+fi
+if [ "$1" = inspect ] && [ "$2" = --format ] && [ "$4" = shimcid ]; then
+  case "$3" in
+    '{{.State.Status}}|{{.RestartCount}}|{{.State.StartedAt}}|{{.Image}}') echo "running|0|$SHIM_STARTED|sha256:shim"; exit 0 ;;
+    '{{.Created}}') [ "$SHIM_CREATED" = FAIL ] && exit 1; echo "$SHIM_CREATED"; exit 0 ;;
+  esac
+  echo "unexpected format: $3" >&2; exit 9
+fi
+exec "%s" "$@"
+""" % real_docker)
+shim_path = shim_dir + os.pathsep + os.environ.get("PATH", "")
+for name, started, created, expect in [("old", "2026-10-01T00:00:00.123456789Z", "2026-09-30T23:59:58.5Z", "ok"),
+                                       ("recreated", t1, t1.replace("Z", ".25Z"), "gap"),
+                                       ("inspect_fail", "2026-10-01T00:00:00Z", "FAIL", "unknown")]:
+    log_f = os.path.join(work, "shim_%s.log" % name)
+    out_dir = os.path.join(work, "n14_shim_" + name)
+    env = dict(BASE_ENV, OUT_DIR=out_dir.replace("\\", "/"))
+    env.pop("APP_STATE"); env.pop("APP_CREATED")
+    env.update(PATH=shim_path, SHIM_LOG=log_f.replace("\\", "/"), SHIM_STARTED=started, SHIM_CREATED=created)
+    TG.received.clear(); TG.texts.clear()
+    r = subprocess.run([BASH, SCRIPT.replace("\\", "/")], env=env, capture_output=True)
+    files = sorted(x for x in os.listdir(out_dir) if x.endswith(".txt") and x[0] == "2") if os.path.isdir(out_dir) else []
+    rep = open(os.path.join(out_dir, files[-1]), encoding="utf-8").read() if files else ""
+    calls = open(log_f, encoding="utf-8").read() if os.path.exists(log_f) else ""
+    raw = r.stdout.decode("utf-8", "replace") + r.stderr.decode("utf-8", "replace") + "\n[shim]\n" + calls
+    base_ok = "inspect --format {{.Created}} shimcid" in calls and "앱: running" in rep
+    if expect == "ok":
+        check("N14 실제 조회 분기 — docker inspect '{{.Created}}'(구간 전, 소수초) → 공백 없음",
+              base_ok and OK_SCOPE in rep and "로그 범위 미확보" not in rep and "ERROR(구간)" in rep, raw + rep)
+    elif expect == "gap":
+        check("N14 실제 조회 분기 — 생성 시각 구간 안(소수초) → ⚪ 미확보", base_ok and GAP_MSG in rep and r.returncode == 1, raw + rep)
+    else:
+        check("N14 실제 조회 분기 — 생성 시각 조회 실패 → ⚪ 확인 불가(값 없음)",
+              base_ok and "⚪ ERROR 로그 범위 확인 불가 — backend 컨테이너 생성 시각을 읽지 못했다(값 없음)" in rep and r.returncode == 1, raw + rep)
+
 with open(os.path.join(work, "fakepsql"), "w", newline="\n") as f:
     f.write("#!/bin/bash\ncat >/dev/null\ncat /w/canned.txt\n")
 with open(os.path.join(work, "linux_flock.sh"), "w", newline="\n", encoding="utf-8") as f:
@@ -880,7 +999,7 @@ if not have:
 else:
     r = subprocess.run(["docker", "run", "--rm", "-v", REPO.replace("\\", "/") + ":/repo:ro", "-v", work.replace("\\", "/") + ":/w",
                         "-e", "REPO_DIR=/repo", "-e", "PSQL_CMD=bash /w/fakepsql", "-e", "LOGS_FILE=/dev/null",
-                        "-e", "APP_STATE=running|0|2026-10-01T00:00:00Z|sha256:x", "-e", "DRY_RUN=1", "-e", "TZ_EXPECT=",
+                        "-e", "APP_STATE=running|0|2026-10-01T00:00:00Z|sha256:x", "-e", "APP_CREATED=2026-10-01T00:00:00Z", "-e", "DRY_RUN=1", "-e", "TZ_EXPECT=",
                         "-e", "ALERTS_CMD=" + SLOW_OK, "ubuntu:22.04", "bash", "/w/linux_flock.sh"], capture_output=True)
     out = r.stdout.decode("utf-8", "replace") + r.stderr.decode("utf-8", "replace")
     check("리눅스(ubuntu:22.04) flock 동시 시작 5회 — 매번 하나만 실행·flock 잠금 사용", "OK=5" in out and out.count("flock 사용") == 5, out)
@@ -892,7 +1011,7 @@ else:
     for loc in ("C.UTF-8", "C"):
         r = subprocess.run(["docker", "run", "--rm", "-v", REPO.replace("\\", "/") + ":/repo:ro", "-v", work.replace("\\", "/") + ":/w",
                             "-e", "LC_ALL=" + loc, "-e", "LANG=" + loc, "-e", "REPO_DIR=/repo", "-e", "PSQL_CMD=bash /w/fakepsql",
-                            "-e", "LOGS_FILE=/w/pool_line.txt", "-e", "OUT_DIR=/tmp/pool", "-e", "APP_STATE=running|0|2026-10-01T00:00:00Z|sha256:x",
+                            "-e", "LOGS_FILE=/w/pool_line.txt", "-e", "OUT_DIR=/tmp/pool", "-e", "APP_STATE=running|0|2026-10-01T00:00:00Z|sha256:x", "-e", "APP_CREATED=2026-10-01T00:00:00Z",
                             "-e", "DRY_RUN=1", "-e", "TZ_EXPECT=", "-e", "ALERTS_CMD=echo '🟢 경보 없음 · 실행 누락 없음'; exit 0",
                             "ubuntu:22.04", "bash", "/repo/scripts/ops/daily_check.sh"], capture_output=True)
         out = r.stdout.decode("utf-8", "replace") + r.stderr.decode("utf-8", "replace")
@@ -904,7 +1023,7 @@ else:
         f.write("\n".join(RAW_NEWS + [RAW_BLAST, RAW_BLAST.replace("KRW-BLAST —", "KRW-BLASTX —")]) + "\n")
     r = subprocess.run(["docker", "run", "--rm", "-v", REPO.replace("\\", "/") + ":/repo:ro", "-v", work.replace("\\", "/") + ":/w",
                         "-e", "LC_ALL=C.UTF-8", "-e", "LANG=C.UTF-8", "-e", "REPO_DIR=/repo", "-e", "PSQL_CMD=bash /w/fakepsql",
-                        "-e", "LOGS_FILE=/w/raw_lines.txt", "-e", "OUT_DIR=/tmp/raw", "-e", "APP_STATE=running|0|2026-10-01T00:00:00Z|sha256:x",
+                        "-e", "LOGS_FILE=/w/raw_lines.txt", "-e", "OUT_DIR=/tmp/raw", "-e", "APP_STATE=running|0|2026-10-01T00:00:00Z|sha256:x", "-e", "APP_CREATED=2026-10-01T00:00:00Z",
                         "-e", "DRY_RUN=1", "-e", "TZ_EXPECT=", "-e", "ALERTS_CMD=echo '🟢 경보 없음 · 실행 누락 없음'; exit 0",
                         "ubuntu:22.04", "bash", "/repo/scripts/ops/daily_check.sh"], capture_output=True)
     out = r.stdout.decode("utf-8", "replace") + r.stderr.decode("utf-8", "replace")
@@ -918,7 +1037,7 @@ else:
     for loc in ("C.UTF-8", "C"):
         r = subprocess.run(["docker", "run", "--rm", "-v", REPO.replace("\\", "/") + ":/repo:ro", "-v", work.replace("\\", "/") + ":/w",
                             "-e", "LC_ALL=" + loc, "-e", "LANG=" + loc, "-e", "REPO_DIR=/repo", "-e", "PSQL_CMD=bash /w/fakepsql",
-                            "-e", "LOGS_FILE=/w/candle_lines.txt", "-e", "OUT_DIR=/tmp/cs", "-e", "APP_STATE=running|0|2026-10-01T00:00:00Z|sha256:x",
+                            "-e", "LOGS_FILE=/w/candle_lines.txt", "-e", "OUT_DIR=/tmp/cs", "-e", "APP_STATE=running|0|2026-10-01T00:00:00Z|sha256:x", "-e", "APP_CREATED=2026-10-01T00:00:00Z",
                             "-e", "DRY_RUN=1", "-e", "TZ_EXPECT=", "-e", "ALERTS_CMD=echo '🟢 경보 없음 · 실행 누락 없음'; exit 0",
                             "ubuntu:22.04", "bash", "/repo/scripts/ops/daily_check.sh"], capture_output=True)
         out = r.stdout.decode("utf-8", "replace") + r.stderr.decode("utf-8", "replace")
@@ -926,6 +1045,22 @@ else:
               "대상 7 · 마지막 관측 재개 6 · 재개 미관측 1" in out
               and "  · KRW-DOOD:H1 불가 16:15:00 · 마지막 관측: 판정 불가 — 재개 미관측(현재 미회복 확정 아님)" in out
               and "  · BTC 급락 관문 H1 불가 01:00:00 → 재개 01:03:00 · 마지막 관측: 재개" in out and "캔들 판정 불가 7 ·" in out, out)
+
+    # 2026-11-04 N14: 서버와 같은 리눅스(GNU date·bash)에서 소수초 생성 시각의 경계 — 구간 시작과 같음은 공백 아님, 0.5초 뒤는 ⚪
+    for created, gap in [("2026-11-04T01:00:00.000000000Z", False), ("2026-11-04T01:00:00.5Z", True)]:
+        r = subprocess.run(["docker", "run", "--rm", "-v", REPO.replace("\\", "/") + ":/repo:ro", "-v", work.replace("\\", "/") + ":/w",
+                            "-e", "LC_ALL=C.UTF-8", "-e", "LANG=C.UTF-8", "-e", "REPO_DIR=/repo", "-e", "PSQL_CMD=bash /w/fakepsql",
+                            "-e", "LOGS_FILE=/dev/null", "-e", "OUT_DIR=/tmp/n14", "-e", "APP_STATE=running|0|2026-10-01T00:00:00Z|sha256:x",
+                            "-e", "APP_CREATED=" + created, "-e", "CHECK_SINCE_ISO=2026-11-04T01:00:00Z",
+                            "-e", "DRY_RUN=1", "-e", "TZ_EXPECT=", "-e", "ALERTS_CMD=echo '🟢 경보 없음 · 실행 누락 없음'; exit 0",
+                            "ubuntu:22.04", "bash", "/repo/scripts/ops/daily_check.sh"], capture_output=True)
+        out = r.stdout.decode("utf-8", "replace") + r.stderr.decode("utf-8", "replace")
+        if gap:
+            check("N14 리눅스 — 생성 %s(구간 시작 0.5초 뒤) ⚪ 미확보" % created,
+                  "ERROR 로그 범위 미확보" in out and "생성 11-04 10:00:00" in out, out)
+        else:
+            check("N14 리눅스 — 생성 %s(구간 시작과 같음) 공백 아님" % created,
+                  "ERROR 로그 범위" not in out and "(구간 시작 전·같음 — 재생성 공백 없음)" in out and "ERROR(구간): 전체 0" in out, out)
 
 sql("postgres", "DROP DATABASE IF EXISTS %s;" % DB)
 srv.shutdown()
