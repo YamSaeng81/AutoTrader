@@ -1,0 +1,63 @@
+{
+  "compile_exit": 0,
+  "run1_note": "The application ran and emitted six-case JSON. The reviewer wrapper then failed while decoding CP949 console logs as UTF-8. Original output is retained; ASCII JSON extracted without rerunning agrees with run2. The original subprocess exit code was not saved.",
+  "run2_exit": 1,
+  "external_network_calls": 0,
+  "test_db_calls": 0,
+  "cases": [
+    {
+      "expectedItems": 0,
+      "matches": false,
+      "status": "SUCCESS",
+      "items": 0,
+      "case": "upbit_explicit_failure_empty",
+      "httpDoubleCalls": 1,
+      "expectedStatus": "FAILED"
+    },
+    {
+      "expectedItems": 0,
+      "matches": false,
+      "status": "SUCCESS",
+      "items": 1,
+      "case": "upbit_explicit_failure_one",
+      "httpDoubleCalls": 1,
+      "expectedStatus": "FAILED"
+    },
+    {
+      "expectedItems": 0,
+      "matches": true,
+      "status": "SUCCESS",
+      "items": 0,
+      "case": "upbit_success_empty",
+      "httpDoubleCalls": 1,
+      "expectedStatus": "SUCCESS"
+    },
+    {
+      "expectedItems": 0,
+      "matches": false,
+      "status": "SUCCESS",
+      "items": 0,
+      "case": "rss_nonfeed_with_channel",
+      "httpDoubleCalls": 1,
+      "expectedStatus": "FAILED"
+    },
+    {
+      "expectedItems": 0,
+      "matches": true,
+      "status": "SUCCESS",
+      "items": 0,
+      "case": "rss_valid_empty",
+      "httpDoubleCalls": 1,
+      "expectedStatus": "SUCCESS"
+    },
+    {
+      "expectedItems": 1,
+      "matches": true,
+      "status": "SUCCESS",
+      "items": 1,
+      "case": "rss_valid_one",
+      "httpDoubleCalls": 1,
+      "expectedStatus": "SUCCESS"
+    }
+  ]
+}

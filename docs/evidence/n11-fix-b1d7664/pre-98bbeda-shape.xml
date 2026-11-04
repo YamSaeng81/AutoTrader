@@ -1,0 +1,700 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.news.NewsResponseShapeTest" tests="27" skipped="0" failures="13" errors="0" timestamp="2026-11-04T01:58:55" hostname="redacted" time="1.881">
+  <properties/>
+  <testcase name="[1] RSS html 아래 channel → FAILED INVALID_RESPONSE" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="1.504">
+    <failure message="org.opentest4j.AssertionFailedError: &#13;&#10;expected: FAILED&#13;&#10; but was: SUCCESS" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: 
+expected: FAILED
+ but was: SUCCESS
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base@17.0.12/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base@17.0.12/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+	at app//com.cryptoautotrader.api.news.NewsResponseShapeTest.assertRejected(NewsResponseShapeTest.java:109)
+	at app//com.cryptoautotrader.api.news.NewsResponseShapeTest.rssNonFeedRejected(NewsResponseShapeTest.java:157)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="[2] RSS html 아래 channel·item → FAILED INVALID_RESPONSE" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.025">
+    <failure message="org.opentest4j.AssertionFailedError: &#13;&#10;expected: FAILED&#13;&#10; but was: SUCCESS" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: 
+expected: FAILED
+ but was: SUCCESS
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base@17.0.12/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base@17.0.12/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+	at app//com.cryptoautotrader.api.news.NewsResponseShapeTest.assertRejected(NewsResponseShapeTest.java:109)
+	at app//com.cryptoautotrader.api.news.NewsResponseShapeTest.rssNonFeedRejected(NewsResponseShapeTest.java:157)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="[3] RSS rss 손자 channel → FAILED INVALID_RESPONSE" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.016">
+    <failure message="org.opentest4j.AssertionFailedError: &#13;&#10;expected: FAILED&#13;&#10; but was: SUCCESS" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: 
+expected: FAILED
+ but was: SUCCESS
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base@17.0.12/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base@17.0.12/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+	at app//com.cryptoautotrader.api.news.NewsResponseShapeTest.assertRejected(NewsResponseShapeTest.java:109)
+	at app//com.cryptoautotrader.api.news.NewsResponseShapeTest.rssNonFeedRejected(NewsResponseShapeTest.java:157)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="[4] RSS rss 아래 channel 없음 → FAILED INVALID_RESPONSE" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.017"/>
+  <testcase name="[5] RSS Atom(미지원) → FAILED INVALID_RESPONSE" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.011"/>
+  <testcase name="[6] RSS RDF 네임스페이스 아님 → FAILED INVALID_RESPONSE" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.012">
+    <failure message="org.opentest4j.AssertionFailedError: &#13;&#10;expected: FAILED&#13;&#10; but was: SUCCESS" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: 
+expected: FAILED
+ but was: SUCCESS
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base@17.0.12/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base@17.0.12/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+	at app//com.cryptoautotrader.api.news.NewsResponseShapeTest.assertRejected(NewsResponseShapeTest.java:109)
+	at app//com.cryptoautotrader.api.news.NewsResponseShapeTest.rssNonFeedRejected(NewsResponseShapeTest.java:157)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="[7] RSS 접두어 붙은 rss → FAILED INVALID_RESPONSE" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.014">
+    <failure message="org.opentest4j.AssertionFailedError: &#13;&#10;expected: FAILED&#13;&#10; but was: SUCCESS" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: 
+expected: FAILED
+ but was: SUCCESS
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base@17.0.12/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base@17.0.12/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+	at app//com.cryptoautotrader.api.news.NewsResponseShapeTest.assertRejected(NewsResponseShapeTest.java:109)
+	at app//com.cryptoautotrader.api.news.NewsResponseShapeTest.rssNonFeedRejected(NewsResponseShapeTest.java:157)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="[1] RSS 2.0 빈 channel → SUCCESS 0건 (기존 형식 유지)" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.014"/>
+  <testcase name="[2] RSS 2.0 1건 → SUCCESS 1건 (기존 형식 유지)" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.011"/>
+  <testcase name="[3] RSS 0.91 1건 → SUCCESS 1건 (기존 형식 유지)" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.011"/>
+  <testcase name="[4] RSS 2.0 미선언 dc 접두어 1건 → SUCCESS 1건 (기존 형식 유지)" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.011"/>
+  <testcase name="[5] RSS 1.0(RDF) 빈 channel → SUCCESS 0건 (기존 형식 유지)" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.011"/>
+  <testcase name="[6] RSS 1.0(RDF) 1건 → SUCCESS 1건 (기존 형식 유지)" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.012"/>
+  <testcase name="[1] 업비트 success:true 빈 배열 → SUCCESS 0건 (기존 호환)" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.02"/>
+  <testcase name="[2] 업비트 success:true 1건 → SUCCESS 1건 (기존 호환)" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.012"/>
+  <testcase name="[3] 업비트 success 없음 data.notices → SUCCESS 1건 (기존 호환)" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.013"/>
+  <testcase name="[4] 업비트 success 없음 data.list → SUCCESS 1건 (기존 호환)" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.01"/>
+  <testcase name="[5] 업비트 success 없음 최상위 notices → SUCCESS 1건 (기존 호환)" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.01"/>
+  <testcase name="[6] 업비트 success 없음 빈 배열 → SUCCESS 0건 (기존 호환)" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.015"/>
+  <testcase name="[1] 업비트 success:false 빈 배열 → FAILED SOURCE_REPORTED_FAILURE, 항목 저장 없음" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.011">
+    <failure message="org.opentest4j.AssertionFailedError: &#13;&#10;expected: FAILED&#13;&#10; but was: SUCCESS" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: 
+expected: FAILED
+ but was: SUCCESS
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base@17.0.12/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base@17.0.12/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+	at app//com.cryptoautotrader.api.news.NewsResponseShapeTest.assertRejected(NewsResponseShapeTest.java:109)
+	at app//com.cryptoautotrader.api.news.NewsResponseShapeTest.upbitExplicitOrInvalidSuccessFlag(NewsResponseShapeTest.java:130)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="[2] 업비트 success:false 항목 1개 → FAILED SOURCE_REPORTED_FAILURE, 항목 저장 없음" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.014">
+    <failure message="org.opentest4j.AssertionFailedError: &#13;&#10;expected: FAILED&#13;&#10; but was: SUCCESS" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: 
+expected: FAILED
+ but was: SUCCESS
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base@17.0.12/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base@17.0.12/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+	at app//com.cryptoautotrader.api.news.NewsResponseShapeTest.assertRejected(NewsResponseShapeTest.java:109)
+	at app//com.cryptoautotrader.api.news.NewsResponseShapeTest.upbitExplicitOrInvalidSuccessFlag(NewsResponseShapeTest.java:130)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="[3] 업비트 success:false data.list → FAILED SOURCE_REPORTED_FAILURE, 항목 저장 없음" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.011">
+    <failure message="org.opentest4j.AssertionFailedError: &#13;&#10;expected: FAILED&#13;&#10; but was: SUCCESS" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: 
+expected: FAILED
+ but was: SUCCESS
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base@17.0.12/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base@17.0.12/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+	at app//com.cryptoautotrader.api.news.NewsResponseShapeTest.assertRejected(NewsResponseShapeTest.java:109)
+	at app//com.cryptoautotrader.api.news.NewsResponseShapeTest.upbitExplicitOrInvalidSuccessFlag(NewsResponseShapeTest.java:130)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="[4] 업비트 success:false 배열 없음 → FAILED SOURCE_REPORTED_FAILURE, 항목 저장 없음" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.011">
+    <failure message="org.opentest4j.AssertionFailedError: &#13;&#10;expected: &quot;SOURCE_REPORTED_FAILURE&quot;&#13;&#10; but was: &quot;INVALID_RESPONSE&quot;" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: 
+expected: &quot;SOURCE_REPORTED_FAILURE&quot;
+ but was: &quot;INVALID_RESPONSE&quot;
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base@17.0.12/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base@17.0.12/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+	at app//com.cryptoautotrader.api.news.NewsResponseShapeTest.assertRejected(NewsResponseShapeTest.java:111)
+	at app//com.cryptoautotrader.api.news.NewsResponseShapeTest.upbitExplicitOrInvalidSuccessFlag(NewsResponseShapeTest.java:130)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="[5] 업비트 success 문자열 &quot;true&quot; → FAILED INVALID_RESPONSE, 항목 저장 없음" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.012">
+    <failure message="org.opentest4j.AssertionFailedError: &#13;&#10;expected: FAILED&#13;&#10; but was: SUCCESS" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: 
+expected: FAILED
+ but was: SUCCESS
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base@17.0.12/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base@17.0.12/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+	at app//com.cryptoautotrader.api.news.NewsResponseShapeTest.assertRejected(NewsResponseShapeTest.java:109)
+	at app//com.cryptoautotrader.api.news.NewsResponseShapeTest.upbitExplicitOrInvalidSuccessFlag(NewsResponseShapeTest.java:130)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="[6] 업비트 success 숫자 1 → FAILED INVALID_RESPONSE, 항목 저장 없음" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.012">
+    <failure message="org.opentest4j.AssertionFailedError: &#13;&#10;expected: FAILED&#13;&#10; but was: SUCCESS" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: 
+expected: FAILED
+ but was: SUCCESS
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base@17.0.12/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base@17.0.12/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+	at app//com.cryptoautotrader.api.news.NewsResponseShapeTest.assertRejected(NewsResponseShapeTest.java:109)
+	at app//com.cryptoautotrader.api.news.NewsResponseShapeTest.upbitExplicitOrInvalidSuccessFlag(NewsResponseShapeTest.java:130)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="[7] 업비트 success null → FAILED INVALID_RESPONSE, 항목 저장 없음" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.015">
+    <failure message="org.opentest4j.AssertionFailedError: &#13;&#10;expected: FAILED&#13;&#10; but was: SUCCESS" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: 
+expected: FAILED
+ but was: SUCCESS
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base@17.0.12/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base@17.0.12/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+	at app//com.cryptoautotrader.api.news.NewsResponseShapeTest.assertRejected(NewsResponseShapeTest.java:109)
+	at app//com.cryptoautotrader.api.news.NewsResponseShapeTest.upbitExplicitOrInvalidSuccessFlag(NewsResponseShapeTest.java:130)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="[8] 업비트 success 문자열 &quot;false&quot; → FAILED INVALID_RESPONSE, 항목 저장 없음" classname="com.cryptoautotrader.api.news.NewsResponseShapeTest" time="0.016">
+    <failure message="org.opentest4j.AssertionFailedError: &#13;&#10;expected: FAILED&#13;&#10; but was: SUCCESS" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: 
+expected: FAILED
+ but was: SUCCESS
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base@17.0.12/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base@17.0.12/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+	at app//com.cryptoautotrader.api.news.NewsResponseShapeTest.assertRejected(NewsResponseShapeTest.java:109)
+	at app//com.cryptoautotrader.api.news.NewsResponseShapeTest.upbitExplicitOrInvalidSuccessFlag(NewsResponseShapeTest.java:130)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <system-out><![CDATA[10:58:55.277 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+10:58:56.266 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=b
+10:58:56.423 [Test worker] DEBUG com.cryptoautotrader.api.news.source.RssNewsSource -- [RssNewsSource] 수집 완료 ? sourceId=b 0건
+10:58:56.424 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=b 전체=0건 신규=0건
+10:58:56.546 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+10:58:56.548 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=b
+10:58:56.556 [Test worker] DEBUG com.cryptoautotrader.api.news.source.RssNewsSource -- [RssNewsSource] 수집 완료 ? sourceId=b 1건
+10:58:56.560 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=b 전체=1건 신규=1건
+10:58:56.570 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+10:58:56.573 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=b
+10:58:56.578 [Test worker] DEBUG com.cryptoautotrader.api.news.source.RssNewsSource -- [RssNewsSource] 수집 완료 ? sourceId=b 0건
+10:58:56.579 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=b 전체=0건 신규=0건
+10:58:56.587 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+10:58:56.589 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=b
+10:58:56.592 [Test worker] WARN com.cryptoautotrader.api.news.source.RssNewsSource -- [RssNewsSource] channel 요소 없음 ? sourceId=b
+10:58:56.592 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=b 결과=FAILED 종류=INVALID_RESPONSE 판정=2026-11-04T01:58:56.592690900Z 받은=0건 신규=0건
+10:58:56.606 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+10:58:56.607 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=b
+10:58:56.610 [Test worker] WARN com.cryptoautotrader.api.news.source.RssNewsSource -- [RssNewsSource] channel 요소 없음 ? sourceId=b
+10:58:56.610 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=b 결과=FAILED 종류=INVALID_RESPONSE 판정=2026-11-04T01:58:56.610624Z 받은=0건 신규=0건
+10:58:56.617 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+10:58:56.619 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=b
+10:58:56.623 [Test worker] DEBUG com.cryptoautotrader.api.news.source.RssNewsSource -- [RssNewsSource] 수집 완료 ? sourceId=b 0건
+10:58:56.623 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=b 전체=0건 신규=0건
+10:58:56.632 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+10:58:56.634 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=b
+10:58:56.638 [Test worker] DEBUG com.cryptoautotrader.api.news.source.RssNewsSource -- [RssNewsSource] 수집 완료 ? sourceId=b 0건
+10:58:56.638 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=b 전체=0건 신규=0건
+10:58:56.648 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+10:58:56.650 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=b
+10:58:56.654 [Test worker] DEBUG com.cryptoautotrader.api.news.source.RssNewsSource -- [RssNewsSource] 수집 완료 ? sourceId=b 0건
+10:58:56.655 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=b 전체=0건 신규=0건
+10:58:56.662 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+10:58:56.663 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=b
+10:58:56.667 [Test worker] DEBUG com.cryptoautotrader.api.news.source.RssNewsSource -- [RssNewsSource] 수집 완료 ? sourceId=b 1건
+10:58:56.667 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=b 전체=1건 신규=1건
+10:58:56.673 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+10:58:56.675 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=b
+10:58:56.679 [Test worker] DEBUG com.cryptoautotrader.api.news.source.RssNewsSource -- [RssNewsSource] 수집 완료 ? sourceId=b 1건
+10:58:56.680 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=b 전체=1건 신규=1건
+10:58:56.686 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+10:58:56.688 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=b
+10:58:56.691 [Test worker] DEBUG com.cryptoautotrader.api.news.source.RssNewsSource -- [RssNewsSource] 수집 완료 ? sourceId=b 1건
+10:58:56.691 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=b 전체=1건 신규=1건
+10:58:56.698 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+10:58:56.699 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=b
+10:58:56.702 [Test worker] DEBUG com.cryptoautotrader.api.news.source.RssNewsSource -- [RssNewsSource] 수집 완료 ? sourceId=b 0건
+10:58:56.703 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=b 전체=0건 신규=0건
+10:58:56.710 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+10:58:56.712 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=b
+10:58:56.716 [Test worker] DEBUG com.cryptoautotrader.api.news.source.RssNewsSource -- [RssNewsSource] 수집 완료 ? sourceId=b 1건
+10:58:56.716 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=b 전체=1건 신규=1건
+10:58:56.724 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+10:58:56.726 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=b
+10:58:56.737 [Test worker] DEBUG com.cryptoautotrader.api.news.source.UpbitNoticeSource -- [UpbitNoticeSource] 수집 완료 ? 0건(빈 공지 배열)
+10:58:56.738 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=b 전체=0건 신규=0건
+10:58:56.746 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+10:58:56.747 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=b
+10:58:56.751 [Test worker] DEBUG com.cryptoautotrader.api.news.source.UpbitNoticeSource -- [UpbitNoticeSource] 수집 완료 ? 1건
+10:58:56.751 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=b 전체=1건 신규=1건
+10:58:56.759 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+10:58:56.761 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=b
+10:58:56.765 [Test worker] DEBUG com.cryptoautotrader.api.news.source.UpbitNoticeSource -- [UpbitNoticeSource] 수집 완료 ? 1건
+10:58:56.765 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=b 전체=1건 신규=1건
+10:58:56.771 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+10:58:56.774 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=b
+10:58:56.776 [Test worker] DEBUG com.cryptoautotrader.api.news.source.UpbitNoticeSource -- [UpbitNoticeSource] 수집 완료 ? 1건
+10:58:56.776 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=b 전체=1건 신규=1건
+10:58:56.782 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+10:58:56.783 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=b
+10:58:56.787 [Test worker] DEBUG com.cryptoautotrader.api.news.source.UpbitNoticeSource -- [UpbitNoticeSource] 수집 완료 ? 1건
+10:58:56.787 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=b 전체=1건 신규=1건
+10:58:56.794 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+10:58:56.795 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=b
+10:58:56.802 [Test worker] DEBUG com.cryptoautotrader.api.news.source.UpbitNoticeSource -- [UpbitNoticeSource] 수집 완료 ? 0건(빈 공지 배열)
+10:58:56.802 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=b 전체=0건 신규=0건
+10:58:56.812 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+10:58:56.814 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=b
+10:58:56.816 [Test worker] DEBUG com.cryptoautotrader.api.news.source.UpbitNoticeSource -- [UpbitNoticeSource] 수집 완료 ? 0건(빈 공지 배열)
+10:58:56.816 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=b 전체=0건 신규=0건
+10:58:56.825 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+10:58:56.827 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=b
+10:58:56.830 [Test worker] DEBUG com.cryptoautotrader.api.news.source.UpbitNoticeSource -- [UpbitNoticeSource] 수집 완료 ? 1건
+10:58:56.831 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=b 전체=1건 신규=1건
+10:58:56.838 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+10:58:56.840 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=b
+10:58:56.842 [Test worker] DEBUG com.cryptoautotrader.api.news.source.UpbitNoticeSource -- [UpbitNoticeSource] 수집 완료 ? 1건
+10:58:56.842 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=b 전체=1건 신규=1건
+10:58:56.849 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+10:58:56.850 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=b
+10:58:56.852 [Test worker] WARN com.cryptoautotrader.api.news.source.UpbitNoticeSource -- [UpbitNoticeSource] 공지 배열을 찾지 못함 (스키마 변경 가능) ? url=http://127.0.0.1:2331/s
+10:58:56.853 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=b 결과=FAILED 종류=INVALID_RESPONSE 판정=2026-11-04T01:58:56.852866300Z 받은=0건 신규=0건
+10:58:56.861 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+10:58:56.863 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=b
+10:58:56.866 [Test worker] DEBUG com.cryptoautotrader.api.news.source.UpbitNoticeSource -- [UpbitNoticeSource] 수집 완료 ? 1건
+10:58:56.867 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=b 전체=1건 신규=1건
+10:58:56.874 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+10:58:56.875 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=b
+10:58:56.878 [Test worker] DEBUG com.cryptoautotrader.api.news.source.UpbitNoticeSource -- [UpbitNoticeSource] 수집 완료 ? 1건
+10:58:56.879 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=b 전체=1건 신규=1건
+10:58:56.887 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+10:58:56.889 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=b
+10:58:56.894 [Test worker] DEBUG com.cryptoautotrader.api.news.source.UpbitNoticeSource -- [UpbitNoticeSource] 수집 완료 ? 0건(빈 공지 배열)
+10:58:56.894 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=b 전체=0건 신규=0건
+10:58:56.906 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+10:58:56.908 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=b
+10:58:56.912 [Test worker] DEBUG com.cryptoautotrader.api.news.source.UpbitNoticeSource -- [UpbitNoticeSource] 수집 완료 ? 0건(빈 공지 배열)
+10:58:56.912 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=b 전체=0건 신규=0건
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

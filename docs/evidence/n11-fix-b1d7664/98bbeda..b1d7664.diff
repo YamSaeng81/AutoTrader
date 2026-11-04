@@ -1,0 +1,304 @@
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/news/NewsFetchResult.java b/web-api/src/main/java/com/cryptoautotrader/api/news/NewsFetchResult.java
+index 045bb19..5964f88 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/news/NewsFetchResult.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/news/NewsFetchResult.java
+@@ -14,7 +14,7 @@ import java.util.Objects;
+  * </ul>
+  *
+  * <p>{@code failureKind}는 짧은 분류값만 담는다: {@code HTTP_<코드>}, {@code INVALID_RESPONSE},
+- * 예외 클래스의 단순 이름(예: {@code IOException}), {@code UNSUPPORTED_TYPE}, {@code NULL_RESULT}.
++ * {@code SOURCE_REPORTED_FAILURE}, 예외 클래스의 단순 이름(예: {@code IOException}), {@code UNSUPPORTED_TYPE}, {@code NULL_RESULT}.
+  * 토큰·전체 URL·응답 본문·예외 메시지는 넣지 않는다.
+  * {@code decidedAt}은 출처가 결과를 판정한 시각이다.
+  */
+@@ -25,6 +25,8 @@ public record NewsFetchResult(Status status, List<NewsItem> items, String failur
+     public static final String INVALID_RESPONSE = "INVALID_RESPONSE";
+     public static final String UNSUPPORTED_TYPE = "UNSUPPORTED_TYPE";
+     public static final String NULL_RESULT = "NULL_RESULT";
++    /** 응답 본문이 스스로 실패를 밝혔다(예: 업비트 {@code success:false}). 본문 내용은 담지 않는다. */
++    public static final String SOURCE_REPORTED_FAILURE = "SOURCE_REPORTED_FAILURE";
+ 
+     public NewsFetchResult {
+         Objects.requireNonNull(status, "status");
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/news/source/RssNewsSource.java b/web-api/src/main/java/com/cryptoautotrader/api/news/source/RssNewsSource.java
+index 79931f3..cb00c9a 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/news/source/RssNewsSource.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/news/source/RssNewsSource.java
+@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
+ import org.springframework.stereotype.Component;
+ import org.w3c.dom.Document;
+ import org.w3c.dom.Element;
++import org.w3c.dom.Node;
+ import org.w3c.dom.NodeList;
+ 
+ import javax.xml.parsers.DocumentBuilder;
+@@ -32,11 +33,13 @@ import java.util.Locale;
+  * CoinDesk, Bloomberg, Naver 경제 등 RSS URL을 지원하는 모든 소스에 재사용된다.
+  *
+  * <p>하나의 구현체로 여러 RSS 소스를 처리 (설정만 다름).
++ * 루트가 rss(0.9x/2.0) 또는 RDF(1.0)이고 바로 아래 channel 이 있어야 정상 응답이다({@link #isSupportedFeed}).
+  */
+ @Component
+ public class RssNewsSource implements NewsSource {
+ 
+     private static final Logger log = LoggerFactory.getLogger(RssNewsSource.class);
++    static final String RDF_NS = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
+     private static final DateTimeFormatter RFC_822 =
+             DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
+ 
+@@ -78,9 +81,10 @@ public class RssNewsSource implements NewsSource {
+             DocumentBuilder builder = factory.newDocumentBuilder();
+             Document doc = builder.parse(response.body());
+             doc.getDocumentElement().normalize();
+-            // RSS 문서의 필수 요소(channel)가 없으면 정상 0건이 아니라 잘못된 응답이다
+-            if (doc.getElementsByTagName("channel").getLength() == 0) {
+-                log.warn("[RssNewsSource] channel 요소 없음 — sourceId={}", config.getSourceId());
++            // 지원하는 피드 구조가 아니면 정상 0건이 아니라 잘못된 응답이다
++            if (!isSupportedFeed(doc.getDocumentElement())) {
++                log.warn("[RssNewsSource] 지원하는 RSS 구조 아님(루트 rss 또는 rdf:RDF 바로 아래 channel 필요) — sourceId={}",
++                        config.getSourceId());
+                 return NewsFetchResult.failed(NewsFetchResult.INVALID_RESPONSE);
+             }
+ 
+@@ -116,6 +120,32 @@ public class RssNewsSource implements NewsSource {
+         }
+     }
+ 
++    /**
++     * 지원하는 피드 구조 (N11). 기존에 읽던 RSS 형식만 받는다 — Atom 등 새 형식은 추가하지 않는다.
++     * <ul>
++     *   <li>RSS 0.9x/2.0: 루트가 접두어 없는 {@code rss} 이고 바로 아래 {@code channel} 이 있다.</li>
++     *   <li>RSS 1.0: 루트가 RDF 네임스페이스({@value #RDF_NS})의 {@code RDF} 이고 바로 아래 {@code channel} 이 있다.</li>
++     * </ul>
++     * 파서는 기존처럼 네임스페이스를 해석하지 않으므로(미선언 접두어 허용) 접두어와 xmlns 속성을 직접 대조한다.
++     */
++    static boolean isSupportedFeed(Element root) {
++        if (root == null) return false;
++        String tag = root.getTagName();
++        boolean rss = "rss".equals(tag);
++        boolean rdf = false;
++        int colon = tag.indexOf(':');
++        String local = colon < 0 ? tag : tag.substring(colon + 1);
++        if ("RDF".equals(local)) {
++            String nsAttr = colon < 0 ? "xmlns" : "xmlns:" + tag.substring(0, colon);
++            rdf = RDF_NS.equals(root.getAttribute(nsAttr));
++        }
++        if (!rss && !rdf) return false;
++        for (Node n = root.getFirstChild(); n != null; n = n.getNextSibling()) {
++            if (n.getNodeType() == Node.ELEMENT_NODE && "channel".equals(((Element) n).getTagName())) return true;
++        }
++        return false;
++    }
++
+     private String getText(Element parent, String tagName) {
+         NodeList nodes = parent.getElementsByTagName(tagName);
+         if (nodes.getLength() == 0) return null;
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/news/source/UpbitNoticeSource.java b/web-api/src/main/java/com/cryptoautotrader/api/news/source/UpbitNoticeSource.java
+index 8c610a8..9b21c93 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/news/source/UpbitNoticeSource.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/news/source/UpbitNoticeSource.java
+@@ -29,6 +29,7 @@ import java.util.List;
+  * <p>응답 형태(예): {"success":true,"data":{"notices":[{"id":..,"title":..,"listed_at":..}], ...}}
+  * 엔드포인트가 바뀔 수 있어 URL은 news_source_config.url로 설정 가능(코드 무수정 대응).
+  * 실패 시 예외를 던지지 않고 실패 결과를 반환한다(수집기 계약, N11). 빈 공지 배열은 정상 0건이다.
++ * 본문 {@code success} 가 false 면 항목과 관계없이 실패, 있는데 boolean 이 아니면 잘못된 응답이다.
+  */
+ @Component
+ public class UpbitNoticeSource implements NewsSource {
+@@ -72,6 +73,19 @@ public class UpbitNoticeSource implements NewsSource {
+             }
+ 
+             JsonNode root = objectMapper.readTree(response.body());
++            // 본문이 success 를 밝히면 그것을 따른다: false 는 실패(항목을 넘기지 않음), boolean 이 아니면 잘못된 응답.
++            // 필드가 없으면 기존처럼 공지 배열로만 판정한다(호환).
++            JsonNode successFlag = root.path("success");
++            if (!successFlag.isMissingNode()) {
++                if (!successFlag.isBoolean()) {
++                    log.warn("[UpbitNoticeSource] success 값이 boolean 아님 — sourceId={}", config.getSourceId());
++                    return NewsFetchResult.failed(NewsFetchResult.INVALID_RESPONSE);
++                }
++                if (!successFlag.booleanValue()) {
++                    log.warn("[UpbitNoticeSource] 응답 success=false — sourceId={}", config.getSourceId());
++                    return NewsFetchResult.failed(NewsFetchResult.SOURCE_REPORTED_FAILURE);
++                }
++            }
+             JsonNode data = root.path("data");
+             // 응답 스키마 변형 대비: data.notices → data.list → 최상위 notices 순으로 탐색
+             JsonNode notices = firstArray(data.path("notices"), data.path("list"), root.path("notices"));
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/news/NewsResponseShapeTest.java b/web-api/src/test/java/com/cryptoautotrader/api/news/NewsResponseShapeTest.java
+new file mode 100644
+index 0000000..8a8544c
+--- /dev/null
++++ b/web-api/src/test/java/com/cryptoautotrader/api/news/NewsResponseShapeTest.java
+@@ -0,0 +1,171 @@
++package com.cryptoautotrader.api.news;
++
++import ch.qos.logback.classic.Level;
++import ch.qos.logback.classic.Logger;
++import ch.qos.logback.classic.spi.ILoggingEvent;
++import ch.qos.logback.core.read.ListAppender;
++import com.cryptoautotrader.api.entity.NewsSourceConfigEntity;
++import com.cryptoautotrader.api.news.source.CoinGeckoTrendingSource;
++import com.cryptoautotrader.api.news.source.CryptoPanicSource;
++import com.cryptoautotrader.api.news.source.RssNewsSource;
++import com.cryptoautotrader.api.news.source.UpbitNoticeSource;
++import com.cryptoautotrader.api.repository.NewsItemCacheRepository;
++import com.cryptoautotrader.api.repository.NewsSourceConfigRepository;
++import com.fasterxml.jackson.databind.ObjectMapper;
++import org.junit.jupiter.api.AfterEach;
++import org.junit.jupiter.api.BeforeEach;
++import org.junit.jupiter.params.ParameterizedTest;
++import org.junit.jupiter.params.provider.CsvSource;
++import org.slf4j.LoggerFactory;
++
++import java.util.ArrayList;
++import java.util.List;
++import java.util.Optional;
++
++import static org.assertj.core.api.Assertions.assertThat;
++import static org.mockito.ArgumentMatchers.any;
++import static org.mockito.ArgumentMatchers.anyString;
++import static org.mockito.Mockito.mock;
++import static org.mockito.Mockito.never;
++import static org.mockito.Mockito.verify;
++import static org.mockito.Mockito.when;
++
++/**
++ * N11 응답 판정 경계 (총괄 98bbeda 검토 보완, 2026-11-04). 외부 접속 없음 — 127.0.0.1 대역({@link LocalHttpStub}).
++ *
++ * <ul>
++ *   <li>업비트: 본문 {@code success} 가 false 면 항목과 관계없이 FAILED, boolean 이 아니면 INVALID_RESPONSE.
++ *       필드가 없으면 기존처럼 배열(data.notices → data.list → notices)로 판정한다.</li>
++ *   <li>RSS: 루트가 {@code rss}(0.9x/2.0) 또는 RDF 네임스페이스의 {@code RDF}(RSS 1.0)이고 그 바로 아래
++ *       {@code channel} 이 있어야 한다. 이름만 같은 {@code channel} 은 거부한다. Atom 등 새 형식은 지원하지 않는다.</li>
++ * </ul>
++ * 상위 수집기를 거쳐 기록·저장까지 본다. 실패 종류는 상수 대신 문자열로 적어 보완 전 후보에서도 컴파일된다.
++ */
++class NewsResponseShapeTest {
++
++    private final ListAppender<ILoggingEvent> logs = new ListAppender<>();
++    private final List<Logger> watched = new ArrayList<>();
++    private final List<Level> savedLevels = new ArrayList<>();
++    private LocalHttpStub stub;
++    private NewsSourceConfigRepository configRepo;
++    private NewsItemCacheRepository cacheRepo;
++    private NewsAggregatorService service;
++
++    @BeforeEach
++    void setUp() throws Exception {
++        logs.start();
++        for (Class<?> c : List.of(NewsAggregatorService.class, RssNewsSource.class, UpbitNoticeSource.class)) {
++            Logger l = (Logger) LoggerFactory.getLogger(c);
++            savedLevels.add(l.getLevel());
++            l.setLevel(Level.DEBUG);
++            l.addAppender(logs);
++            watched.add(l);
++        }
++        ObjectMapper om = new ObjectMapper();
++        NewsSourceRegistry registry = new NewsSourceRegistry(List.of(new RssNewsSource(), new UpbitNoticeSource(om),
++                new CryptoPanicSource(om), new CoinGeckoTrendingSource(om)));
++        configRepo = mock(NewsSourceConfigRepository.class);
++        cacheRepo = mock(NewsItemCacheRepository.class);
++        when(configRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
++        when(cacheRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
++        when(cacheRepo.existsBySourceIdAndExternalId(anyString(), anyString())).thenReturn(false);
++        service = new NewsAggregatorService(configRepo, cacheRepo, registry);
++        stub = new LocalHttpStub();
++    }
++
++    @AfterEach
++    void tearDown() throws Exception {
++        for (int i = 0; i < watched.size(); i++) {
++            watched.get(i).detachAppender(logs);
++            watched.get(i).setLevel(savedLevels.get(i));
++        }
++        stub.close();
++    }
++
++    private NewsFetchResult run(String type, String payload) {
++        stub.route("/s", LocalHttpStub.Reply.ok(payload));
++        NewsSourceConfigEntity cfg = NewsSourceConfigEntity.builder()
++                .sourceId("b").sourceType(type).url(stub.url("/s"))
++                .enabled(true).fetchIntervalMin(30).category("CRYPTO").build();
++        when(configRepo.findBySourceId("b")).thenReturn(Optional.of(cfg));
++        NewsFetchResult r = service.collectFromSourceManual("b");
++        assertThat(cfg.getLastFetchedAt()).as("시도 기준 last_fetched_at").isNotNull();
++        assertThat(lines(Level.ERROR)).as("출처·상위 모두 ERROR 를 더하지 않음(점검 분류 무변경)").isEmpty();
++        return r;
++    }
++
++    private List<String> lines(Level level) {
++        return logs.list.stream().filter(e -> e.getLevel() == level).map(ILoggingEvent::getFormattedMessage).toList();
++    }
++
++    private void assertComplete(NewsFetchResult r, int items) {
++        assertThat(r.status()).isEqualTo(NewsFetchResult.Status.SUCCESS);
++        assertThat(r.items()).hasSize(items);
++        assertThat(lines(Level.INFO)).contains("[NewsAggregator] 수집 완료 — sourceId=b 전체=" + items + "건 신규=" + items + "건");
++        assertThat(lines(Level.WARN)).noneMatch(m -> m.startsWith("[NewsAggregator] 수집 미완료"));
++    }
++
++    private void assertRejected(NewsFetchResult r, String kind) {
++        assertThat(r.status()).isEqualTo(NewsFetchResult.Status.FAILED);
++        assertThat(r.items()).isEmpty();
++        assertThat(r.failureKind()).isEqualTo(kind);
++        assertThat(lines(Level.INFO)).noneMatch(m -> m.startsWith("[NewsAggregator] 수집 완료"));
++        assertThat(lines(Level.WARN)).anyMatch(m -> m.startsWith("[NewsAggregator] 수집 미완료 — sourceId=b 결과=FAILED 종류=" + kind + " "));
++        verify(cacheRepo, never()).save(any());
++    }
++
++    // ── 업비트 success 필드 ──────────────────────────────────────────────────
++
++    @ParameterizedTest(name = "[{index}] 업비트 {0} → FAILED {2}, 항목 저장 없음")
++    @CsvSource(delimiter = '|', value = {
++            "success:false 빈 배열      | {\"success\":false,\"data\":{\"notices\":[]}}                                   | SOURCE_REPORTED_FAILURE",
++            "success:false 항목 1개     | {\"success\":false,\"data\":{\"notices\":[{\"id\":1,\"title\":\"untrusted\"}]}} | SOURCE_REPORTED_FAILURE",
++            "success:false data.list    | {\"success\":false,\"data\":{\"list\":[{\"id\":2,\"title\":\"untrusted\"}]}}    | SOURCE_REPORTED_FAILURE",
++            "success:false 배열 없음    | {\"success\":false,\"error\":{\"name\":\"x\"}}                                   | SOURCE_REPORTED_FAILURE",
++            "success 문자열 \"true\"    | {\"success\":\"true\",\"data\":{\"notices\":[{\"id\":3,\"title\":\"A\"}]}}       | INVALID_RESPONSE",
++            "success 숫자 1             | {\"success\":1,\"data\":{\"notices\":[{\"id\":4,\"title\":\"A\"}]}}               | INVALID_RESPONSE",
++            "success null               | {\"success\":null,\"data\":{\"notices\":[]}}                                     | INVALID_RESPONSE",
++            "success 문자열 \"false\"   | {\"success\":\"false\",\"data\":{\"notices\":[]}}                                | INVALID_RESPONSE"})
++    void upbitExplicitOrInvalidSuccessFlag(String name, String payload, String kind) {
++        assertRejected(run("UPBIT_NOTICE", payload), kind);
++    }
++
++    @ParameterizedTest(name = "[{index}] 업비트 {0} → SUCCESS {2}건 (기존 호환)")
++    @CsvSource(delimiter = '|', value = {
++            "success:true 빈 배열        | {\"success\":true,\"data\":{\"notices\":[]}}                         | 0",
++            "success:true 1건            | {\"success\":true,\"data\":{\"notices\":[{\"id\":5,\"title\":\"A\"}]}} | 1",
++            "success 없음 data.notices   | {\"data\":{\"notices\":[{\"id\":6,\"title\":\"A\"}]}}                 | 1",
++            "success 없음 data.list      | {\"data\":{\"list\":[{\"id\":7,\"title\":\"A\"}]}}                    | 1",
++            "success 없음 최상위 notices | {\"notices\":[{\"id\":8,\"title\":\"A\"}]}                            | 1",
++            "success 없음 빈 배열        | {\"data\":{\"notices\":[]}}                                           | 0"})
++    void upbitCompatibleShapes(String name, String payload, int items) {
++        assertComplete(run("UPBIT_NOTICE", payload), items);
++    }
++
++    // ── RSS 루트·구조 ────────────────────────────────────────────────────────
++
++    @ParameterizedTest(name = "[{index}] RSS {0} → FAILED INVALID_RESPONSE")
++    @CsvSource(delimiter = '|', value = {
++            "html 아래 channel          | <html><body><channel/></body></html>",
++            "html 아래 channel·item     | <html><body><channel><item><title>A</title><guid>g</guid></item></channel></body></html>",
++            "rss 손자 channel           | <rss version=\"2.0\"><wrap><channel/></wrap></rss>",
++            "rss 아래 channel 없음      | <rss version=\"2.0\"><item><title>A</title><guid>g</guid></item></rss>",
++            "Atom(미지원)               | <feed xmlns=\"http://www.w3.org/2005/Atom\"><title>t</title><entry><title>A</title></entry></feed>",
++            "RDF 네임스페이스 아님      | <x:RDF xmlns:x=\"http://example.com/\"><channel/></x:RDF>",
++            "접두어 붙은 rss            | <a:rss xmlns:a=\"http://example.com/\"><channel/></a:rss>"})
++    void rssNonFeedRejected(String name, String payload) {
++        assertRejected(run("RSS", payload), "INVALID_RESPONSE");
++    }
++
++    @ParameterizedTest(name = "[{index}] RSS {0} → SUCCESS {2}건 (기존 형식 유지)")
++    @CsvSource(delimiter = '|', value = {
++            "2.0 빈 channel              | <?xml version=\"1.0\"?><rss version=\"2.0\"><channel><title>t</title></channel></rss> | 0",
++            "2.0 1건                     | <rss version=\"2.0\"><channel><item><title>a</title><guid>g1</guid></item></channel></rss> | 1",
++            "0.91 1건                    | <rss version=\"0.91\"><channel><title>t</title><item><title>a</title><link>http://x/a</link></item></channel></rss> | 1",
++            "2.0 미선언 dc 접두어 1건    | <rss version=\"2.0\"><channel><item><title>a</title><guid>g2</guid><dc:creator>c</dc:creator></item></channel></rss> | 1",
++            "1.0(RDF) 빈 channel         | <rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" xmlns=\"http://purl.org/rss/1.0/\"><channel rdf:about=\"c\"><title>t</title></channel></rdf:RDF> | 0",
++            "1.0(RDF) 1건                | <rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" xmlns=\"http://purl.org/rss/1.0/\"><channel rdf:about=\"c\"><title>t</title></channel><item rdf:about=\"http://x/a\"><title>a</title><link>http://x/a</link></item></rdf:RDF> | 1"})
++    void rssSupportedFeeds(String name, String payload, int items) {
++        assertComplete(run("RSS", payload), items);
++    }
++}
