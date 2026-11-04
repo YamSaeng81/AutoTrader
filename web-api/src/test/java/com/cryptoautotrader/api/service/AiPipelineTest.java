@@ -13,6 +13,7 @@ import com.cryptoautotrader.api.llm.LlmTask;
 import com.cryptoautotrader.api.llm.LlmTaskRouter;
 import com.cryptoautotrader.api.llm.provider.MockProvider;
 import com.cryptoautotrader.api.news.NewsAggregatorService;
+import com.cryptoautotrader.api.news.NewsFetchResult;
 import com.cryptoautotrader.api.news.NewsItem;
 import com.cryptoautotrader.api.news.NewsSource;
 import com.cryptoautotrader.api.news.NewsSourceRegistry;
@@ -156,12 +157,12 @@ class AiPipelineTest {
                     .category("crypto")
                     .publishedAt(Instant.now())
                     .build();
-            when(mockSource.fetch(config)).thenReturn(List.of(item));
+            when(mockSource.fetch(config)).thenReturn(NewsFetchResult.success(List.of(item)));
             when(newsCacheRepo.existsBySourceIdAndExternalId("test_rss", "item-001")).thenReturn(false);
             when(newsCacheRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
             when(sourceConfigRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-            List<NewsItem> result = service.collectFromSourceManual("test_rss");
+            List<NewsItem> result = service.collectFromSourceManual("test_rss").items();
 
             assertThat(result).hasSize(1);
             verify(newsCacheRepo).save(any(NewsItemCacheEntity.class));
@@ -185,7 +186,7 @@ class AiPipelineTest {
                     .category("crypto")
                     .publishedAt(Instant.now())
                     .build();
-            when(mockSource.fetch(config)).thenReturn(List.of(item));
+            when(mockSource.fetch(config)).thenReturn(NewsFetchResult.success(List.of(item)));
             // 이미 존재하는 항목
             when(newsCacheRepo.existsBySourceIdAndExternalId("test_rss", "item-001")).thenReturn(true);
             when(sourceConfigRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
@@ -213,7 +214,7 @@ class AiPipelineTest {
                     .category("crypto")
                     .publishedAt(Instant.now())
                     .build();
-            when(mockSource.fetch(config)).thenReturn(List.of(item));
+            when(mockSource.fetch(config)).thenReturn(NewsFetchResult.success(List.of(item)));
             when(sourceConfigRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
             service.collectFromSourceManual("test_rss");

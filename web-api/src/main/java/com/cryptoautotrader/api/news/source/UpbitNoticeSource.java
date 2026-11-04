@@ -1,6 +1,7 @@
 package com.cryptoautotrader.api.news.source;
 
 import com.cryptoautotrader.api.entity.NewsSourceConfigEntity;
+import com.cryptoautotrader.api.news.NewsFetchResult;
 import com.cryptoautotrader.api.news.NewsItem;
 import com.cryptoautotrader.api.news.NewsSource;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -27,7 +28,7 @@ import java.util.List;
  *
  * <p>응답 형태(예): {"success":true,"data":{"notices":[{"id":..,"title":..,"listed_at":..}], ...}}
  * 엔드포인트가 바뀔 수 있어 URL은 news_source_config.url로 설정 가능(코드 무수정 대응).
- * 실패 시 예외를 던지지 않고 빈 리스트 반환(수집기 계약).
+ * 실패 시 예외를 던지지 않고 실패 결과를 반환한다(수집기 계약, N11). 빈 공지 배열은 정상 0건이다.
  */
 @Component
 public class UpbitNoticeSource implements NewsSource {
@@ -51,7 +52,7 @@ public class UpbitNoticeSource implements NewsSource {
     }
 
     @Override
-    public List<NewsItem> fetch(NewsSourceConfigEntity config) {
+    public NewsFetchResult fetch(NewsSourceConfigEntity config) {
         List<NewsItem> items = new ArrayList<>();
         try {
             HttpRequest request = HttpRequest.newBuilder()
@@ -67,7 +68,7 @@ public class UpbitNoticeSource implements NewsSource {
             if (response.statusCode() != 200) {
                 log.warn("[UpbitNoticeSource] HTTP {}: {}", response.statusCode(),
                         response.body() != null ? response.body().substring(0, Math.min(120, response.body().length())) : "");
-                return items;
+                return NewsFetchResult.httpStatus(response.statusCode());
             }
 
             JsonNode root = objectMapper.readTree(response.body());
@@ -75,8 +76,13 @@ public class UpbitNoticeSource implements NewsSource {
             // 응답 스키마 변형 대비: data.notices → data.list → 최상위 notices 순으로 탐색
             JsonNode notices = firstArray(data.path("notices"), data.path("list"), root.path("notices"));
             if (notices == null) {
+                // 공지 배열 자리가 빈 배열이면 정상 0건, 배열 자체가 없으면 잘못된 응답
+                if (anyArray(data.path("notices"), data.path("list"), root.path("notices"))) {
+                    log.debug("[UpbitNoticeSource] 수집 완료 — 0건(빈 공지 배열)");
+                    return NewsFetchResult.success(items);
+                }
                 log.warn("[UpbitNoticeSource] 공지 배열을 찾지 못함 (스키마 변경 가능) — url={}", config.getUrl());
-                return items;
+                return NewsFetchResult.failed(NewsFetchResult.INVALID_RESPONSE);
             }
 
             for (JsonNode n : notices) {
@@ -97,11 +103,12 @@ public class UpbitNoticeSource implements NewsSource {
                         .build());
             }
             log.debug("[UpbitNoticeSource] 수집 완료 — {}건", items.size());
+            return NewsFetchResult.success(items);
 
         } catch (Exception e) {
             log.error("[UpbitNoticeSource] 수집 실패: {}", e.getMessage());
+            return NewsFetchResult.fromException(items, e);
         }
-        return items;
     }
 
     private static JsonNode firstArray(JsonNode... candidates) {
@@ -109,6 +116,13 @@ public class UpbitNoticeSource implements NewsSource {
             if (c != null && c.isArray() && c.size() > 0) return c;
         }
         return null;
+    }
+
+    private static boolean anyArray(JsonNode... candidates) {
+        for (JsonNode c : candidates) {
+            if (c != null && c.isArray()) return true;
+        }
+        return false;
     }
 
     private static String firstText(JsonNode node, String... fields) {

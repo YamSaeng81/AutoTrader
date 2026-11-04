@@ -2,8 +2,6 @@ package com.cryptoautotrader.api.news;
 
 import com.cryptoautotrader.api.entity.NewsSourceConfigEntity;
 
-import java.util.List;
-
 /**
  * 뉴스 소스 추상화 인터페이스.
  *
@@ -26,7 +24,9 @@ public interface NewsSource {
      * 설정 기반 뉴스 수집.
      *
      * @param config DB에서 조회한 소스 설정 (url, api_key, config_json 등)
-     * @return 수집된 뉴스 목록 (실패 시 빈 리스트 반환, 예외 throw 금지)
+     * @return 수집 결과 — 응답·파싱이 끝났으면 SUCCESS(0건 포함), 항목 없이 실패하면 FAILED,
+     *         일부 항목을 만든 뒤 실패하면 PARTIAL. 예외 throw 금지 (N11, 2026-11-04).
+     *         실패를 SUCCESS 빈 목록으로 돌려주지 않는다.
      */
-    List<NewsItem> fetch(NewsSourceConfigEntity config);
+    NewsFetchResult fetch(NewsSourceConfigEntity config);
 }

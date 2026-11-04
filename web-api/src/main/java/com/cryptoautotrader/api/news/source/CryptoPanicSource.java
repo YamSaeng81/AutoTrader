@@ -1,6 +1,7 @@
 package com.cryptoautotrader.api.news.source;
 
 import com.cryptoautotrader.api.entity.NewsSourceConfigEntity;
+import com.cryptoautotrader.api.news.NewsFetchResult;
 import com.cryptoautotrader.api.news.NewsItem;
 import com.cryptoautotrader.api.news.NewsSource;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -48,7 +49,7 @@ public class CryptoPanicSource implements NewsSource {
     }
 
     @Override
-    public List<NewsItem> fetch(NewsSourceConfigEntity config) {
+    public NewsFetchResult fetch(NewsSourceConfigEntity config) {
         List<NewsItem> items = new ArrayList<>();
         try {
             String baseUrl = config.getUrl();
@@ -78,12 +79,13 @@ public class CryptoPanicSource implements NewsSource {
 
             if (response.statusCode() != 200) {
                 log.warn("[CryptoPanicSource] HTTP {}: {}", response.statusCode(), response.body());
-                return items;
+                return NewsFetchResult.httpStatus(response.statusCode());
             }
 
             JsonNode json = objectMapper.readTree(response.body());
             JsonNode results = json.get("results");
-            if (results == null || !results.isArray()) return items;
+            // results 배열이 없으면 잘못된 응답, 빈 배열이면 정상 0건
+            if (results == null || !results.isArray()) return NewsFetchResult.failed(NewsFetchResult.INVALID_RESPONSE);
 
             for (JsonNode node : results) {
                 String id    = node.path("id").asText(null);
@@ -104,11 +106,12 @@ public class CryptoPanicSource implements NewsSource {
             }
 
             log.debug("[CryptoPanicSource] 수집 완료 — {}건", items.size());
+            return NewsFetchResult.success(items);
 
         } catch (Exception e) {
             log.error("[CryptoPanicSource] 수집 실패: {}", e.getMessage());
+            return NewsFetchResult.fromException(items, e);
         }
-        return items;
     }
 
     private Instant parseInstant(String text) {

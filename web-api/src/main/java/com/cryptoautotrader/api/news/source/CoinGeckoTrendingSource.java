@@ -1,6 +1,7 @@
 package com.cryptoautotrader.api.news.source;
 
 import com.cryptoautotrader.api.entity.NewsSourceConfigEntity;
+import com.cryptoautotrader.api.news.NewsFetchResult;
 import com.cryptoautotrader.api.news.NewsItem;
 import com.cryptoautotrader.api.news.NewsSource;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -44,7 +45,7 @@ public class CoinGeckoTrendingSource implements NewsSource {
     }
 
     @Override
-    public List<NewsItem> fetch(NewsSourceConfigEntity config) {
+    public NewsFetchResult fetch(NewsSourceConfigEntity config) {
         List<NewsItem> items = new ArrayList<>();
         try {
             HttpRequest request = HttpRequest.newBuilder()
@@ -58,12 +59,13 @@ public class CoinGeckoTrendingSource implements NewsSource {
 
             if (response.statusCode() != 200) {
                 log.warn("[CoinGeckoTrendingSource] HTTP {}", response.statusCode());
-                return items;
+                return NewsFetchResult.httpStatus(response.statusCode());
             }
 
             JsonNode json = objectMapper.readTree(response.body());
             JsonNode coins = json.path("coins");
-            if (!coins.isArray()) return items;
+            // coins 배열이 없으면 잘못된 응답, 빈 배열이면 정상 0건
+            if (!coins.isArray()) return NewsFetchResult.failed(NewsFetchResult.INVALID_RESPONSE);
 
             Instant now = Instant.now();
             for (JsonNode coinNode : coins) {
@@ -88,10 +90,11 @@ public class CoinGeckoTrendingSource implements NewsSource {
             }
 
             log.debug("[CoinGeckoTrendingSource] 수집 완료 — {}건", items.size());
+            return NewsFetchResult.success(items);
 
         } catch (Exception e) {
             log.error("[CoinGeckoTrendingSource] 수집 실패: {}", e.getMessage());
+            return NewsFetchResult.fromException(items, e);
         }
-        return items;
     }
 }

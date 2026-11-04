@@ -1,6 +1,7 @@
 package com.cryptoautotrader.api.news.source;
 
 import com.cryptoautotrader.api.entity.NewsSourceConfigEntity;
+import com.cryptoautotrader.api.news.NewsFetchResult;
 import com.cryptoautotrader.api.news.NewsItem;
 import com.cryptoautotrader.api.news.NewsSource;
 import org.slf4j.Logger;
@@ -54,7 +55,7 @@ public class RssNewsSource implements NewsSource {
     }
 
     @Override
-    public List<NewsItem> fetch(NewsSourceConfigEntity config) {
+    public NewsFetchResult fetch(NewsSourceConfigEntity config) {
         List<NewsItem> items = new ArrayList<>();
         try {
             HttpRequest request = HttpRequest.newBuilder()
@@ -68,7 +69,7 @@ public class RssNewsSource implements NewsSource {
 
             if (response.statusCode() != 200) {
                 log.warn("[RssNewsSource] HTTP {} — sourceId={}", response.statusCode(), config.getSourceId());
-                return items;
+                return NewsFetchResult.httpStatus(response.statusCode());
             }
 
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -77,6 +78,11 @@ public class RssNewsSource implements NewsSource {
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document doc = builder.parse(response.body());
             doc.getDocumentElement().normalize();
+            // RSS 문서의 필수 요소(channel)가 없으면 정상 0건이 아니라 잘못된 응답이다
+            if (doc.getElementsByTagName("channel").getLength() == 0) {
+                log.warn("[RssNewsSource] channel 요소 없음 — sourceId={}", config.getSourceId());
+                return NewsFetchResult.failed(NewsFetchResult.INVALID_RESPONSE);
+            }
 
             NodeList itemNodes = doc.getElementsByTagName("item");
             for (int i = 0; i < itemNodes.getLength(); i++) {
@@ -102,11 +108,12 @@ public class RssNewsSource implements NewsSource {
             }
 
             log.debug("[RssNewsSource] 수집 완료 — sourceId={} {}건", config.getSourceId(), items.size());
+            return NewsFetchResult.success(items);
 
         } catch (Exception e) {
             log.error("[RssNewsSource] 수집 실패 — sourceId={}: {}", config.getSourceId(), e.getMessage());
+            return NewsFetchResult.fromException(items, e);
         }
-        return items;
     }
 
     private String getText(Element parent, String tagName) {

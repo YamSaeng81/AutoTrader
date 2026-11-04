@@ -4,6 +4,7 @@ import com.cryptoautotrader.api.dto.ApiResponse;
 import com.cryptoautotrader.api.entity.NewsItemCacheEntity;
 import com.cryptoautotrader.api.entity.NewsSourceConfigEntity;
 import com.cryptoautotrader.api.news.NewsAggregatorService;
+import com.cryptoautotrader.api.news.NewsFetchResult;
 import com.cryptoautotrader.api.news.NewsItem;
 import com.cryptoautotrader.api.news.NewsSourceRegistry;
 import com.cryptoautotrader.api.repository.NewsItemCacheRepository;
@@ -123,9 +124,12 @@ public class NewsSourceController {
 
     @PostMapping("/{sourceId}/fetch")
     public ApiResponse<Map<String, Object>> fetchNow(@PathVariable String sourceId) {
-        List<NewsItem> items = newsAggregatorService.collectFromSourceManual(sourceId);
+        NewsFetchResult fetched = newsAggregatorService.collectFromSourceManual(sourceId);
+        List<NewsItem> items = fetched.items();
         Map<String, Object> result = new HashMap<>();
         result.put("sourceId", sourceId);
+        result.put("status", fetched.status().name());   // N11: SUCCESS / PARTIAL / FAILED
+        result.put("failureKind", fetched.failureKind()); // 성공이면 null
         result.put("collected", items.size());
         result.put("titles", items.stream().limit(5).map(NewsItem::getTitle).toList());
         return ApiResponse.ok(result);

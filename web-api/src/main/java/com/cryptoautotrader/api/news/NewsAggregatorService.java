@@ -57,22 +57,34 @@ public class NewsAggregatorService {
      * 특정 소스 수동 수집 (관리 API 테스트용).
      */
     @Transactional
-    public List<NewsItem> collectFromSourceManual(String sourceId) {
+    public NewsFetchResult collectFromSourceManual(String sourceId) {
         NewsSourceConfigEntity config = sourceConfigRepo.findBySourceId(sourceId)
                 .orElseThrow(() -> new IllegalArgumentException("소스 없음: " + sourceId));
         return collectFromSource(config);
     }
 
-    private List<NewsItem> collectFromSource(NewsSourceConfigEntity config) {
+    /**
+     * 한 출처 수집 (N11, 2026-11-04).
+     * <ul>
+     *   <li>SUCCESS(0건 포함)만 "수집 완료"를 INFO 로 남긴다. FAILED·PARTIAL 은 "수집 미완료" WARN 으로 남긴다
+     *       (출처 자신의 ERROR 원문은 그대로 — 점검 분류 무변경, 여기서 ERROR 를 더하지 않는다).</li>
+     *   <li>PARTIAL 로 받은 항목도 기존과 같이 중복 확인 뒤 저장한다. 기존 캐시는 지우지 않는다.</li>
+     *   <li>last_fetched_at 은 성공·실패와 관계없이 시도 시각으로 갱신한다(기존 재시도 주기 보존).
+     *       지원하지 않는 타입은 기존처럼 갱신하지 않는다.</li>
+     * </ul>
+     */
+    private NewsFetchResult collectFromSource(NewsSourceConfigEntity config) {
         NewsSource source = sourceRegistry.get(config.getSourceType());
         if (source == null) {
             log.warn("[NewsAggregator] 지원하지 않는 소스 타입: {} (sourceId={})",
                     config.getSourceType(), config.getSourceId());
-            return List.of();
+            return NewsFetchResult.failed(NewsFetchResult.UNSUPPORTED_TYPE);
         }
 
         log.debug("[NewsAggregator] 수집 시작 — sourceId={}", config.getSourceId());
-        List<NewsItem> items = source.fetch(config);
+        NewsFetchResult result = source.fetch(config);
+        if (result == null) result = NewsFetchResult.failed(NewsFetchResult.NULL_RESULT); // 계약 위반도 성공으로 보지 않는다
+        List<NewsItem> items = result.items();
         int saved = 0;
 
         for (NewsItem item : items) {
@@ -96,9 +108,14 @@ public class NewsAggregatorService {
         config.setLastFetchedAt(Instant.now());
         sourceConfigRepo.save(config);
 
-        log.info("[NewsAggregator] 수집 완료 — sourceId={} 전체={}건 신규={}건",
-                config.getSourceId(), items.size(), saved);
-        return items;
+        if (result.isSuccess()) {
+            log.info("[NewsAggregator] 수집 완료 — sourceId={} 전체={}건 신규={}건",
+                    config.getSourceId(), items.size(), saved);
+        } else {
+            log.warn("[NewsAggregator] 수집 미완료 — sourceId={} 결과={} 종류={} 판정={} 받은={}건 신규={}건",
+                    config.getSourceId(), result.status(), result.failureKind(), result.decidedAt(), items.size(), saved);
+        }
+        return result;
     }
 
     /** fetch_interval_min 기준으로 수집 시점 도래 여부 확인 */
