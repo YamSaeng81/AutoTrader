@@ -1,0 +1,143 @@
+# 6995c52 고정 소스 발췌(git show, 줄 번호는 파일 기준)
+== web-api/src/main/java/com/cryptoautotrader/api/service/SignalQualityService.java 62-96
+62:     @Scheduled(fixedDelay = 30 * 60 * 1000, initialDelay = 5 * 60 * 1000)
+63:     public void evaluateSignalQuality() {
+64:         int processed4h  = evaluateLoop(true,  MAX_PER_RUN);
+65:         int processed24h = evaluateLoop(false, MAX_PER_RUN);
+66:         if (processed4h > 0 || processed24h > 0) {
+67:             log.info("[SignalQuality] 정기 평가 완료 — 4h: {}건, 24h: {}건", processed4h, processed24h);
+68:         }
+69:         // 신호 평가 이후에 돌린다 — 기준선이 신호 평가를 밀어내면 안 된다.
+70:         int hold4h  = evaluateHoldBaselineLoop(true,  MAX_HOLD_PER_RUN);
+71:         int hold24h = evaluateHoldBaselineLoop(false, MAX_HOLD_PER_RUN);
+72:         if (hold4h > 0 || hold24h > 0) {
+73:             log.info("[SignalQuality] HOLD 기준선 평가 — 4h: {}건, 24h: {}건", hold4h, hold24h);
+74:         }
+75:     }
+76: 
+77:     // ── 시작 Catchup ──────────────────────────────────────────────────────────
+78: 
+79:     /**
+80:      * 서버 재시작 시 쌓인 미평가 신호를 비동기로 전량 처리한다.
+81:      * 건수 제한 없이 루프를 돌며 Upbit API 과부하를 막기 위해 배치 사이별 100ms 대기.
+82:      */
+83:     @EventListener(ApplicationReadyEvent.class)
+84:     @Async
+85:     public void catchupOnStartup() {
+86:         log.info("[SignalQuality] 시작 Catchup 시작");
+87:         int total4h  = evaluateLoop(true,  Integer.MAX_VALUE);
+88:         int total24h = evaluateLoop(false, Integer.MAX_VALUE);
+89:         // HOLD 기준선은 catchup 에서도 예산을 건다 — 백로그가 7,658 coin-hour 라
+90:         // Integer.MAX_VALUE 로 열면 재시작 때마다 Upbit 로 수천 콜이 한 번에 나간다.
+91:         // 30분 주기로 200건씩 따라잡으면 약 2일이면 소진된다.
+92:         int hold4h  = evaluateHoldBaselineLoop(true,  MAX_HOLD_PER_RUN);
+93:         int hold24h = evaluateHoldBaselineLoop(false, MAX_HOLD_PER_RUN);
+94:         log.info("[SignalQuality] 시작 Catchup 완료 — 4h: {}건, 24h: {}건 (HOLD 기준선 {}/{}건)",
+95:                 total4h, total24h, hold4h, hold24h);
+96:     }
+== web-api/src/main/java/com/cryptoautotrader/api/service/SignalQualityService.java 218-243
+218:     @Transactional
+219:     public int evaluateHoldBaselineLoop(boolean is4h, int maxTotal) {
+220:         long hours = is4h ? 4 : 24;
+221:         Instant cutoff = Instant.now().minus(hours, ChronoUnit.HOURS);
+222:         int processed = 0;
+223: 
+224:         while (processed < maxTotal) {
+225:             int remaining = Math.min(BATCH_SIZE, maxTotal - processed);
+226:             List<StrategyLogEntity> pending = is4h
+227:                     ? strategyLogRepository.findPendingHoldFor4hEval(cutoff,  remaining)
+228:                     : strategyLogRepository.findPendingHoldFor24hEval(cutoff, remaining);
+229:             if (pending.isEmpty()) break;
+230: 
+231:             List<StrategyLogEntity> toSave = new ArrayList<>();
+232:             for (StrategyLogEntity entry : pending) {
+233:                 try {
+234:                     Instant targetTime = entry.getCreatedAt().plus(hours, ChronoUnit.HOURS);
+235:                     BigDecimal price = fetchClosePrice(entry.getCoinPair(), targetTime);
+236:                     if (price == null) continue;
+237:                     BigDecimal ret = calcReturn(entry.getSignal(), entry.getSignalPrice(), price);
+238:                     if (is4h) {
+239:                         entry.setPriceAfter4h(price);
+240:                         entry.setReturn4hPct(ret);
+241:                     } else {
+242:                         entry.setPriceAfter24h(price);
+243:                         entry.setReturn24hPct(ret);
+== web-api/src/main/java/com/cryptoautotrader/api/repository/StrategyLogRepository.java 108-156
+108:     // 대조군이 없으면 "BUY 신호 사후 -1.25%" 가 신호가 나쁜 건지 그 시기 그 코인이 빠진 건지
+109:     // 구분할 수 없다 — 코인·시각을 통제하니 실제로 -1.25% → -0.16% 로 바뀌었고 전략 순위가
+110:     // 통째로 뒤집혔다(MTF_BTC -0.48% → +1.21%). 그 통제군을 상시 확보하기 위한 경로다.
+111:     //
+112:     // <b>(코인, 정시) 당 1건만 평가한다</b>: 같은 코인·같은 1시간의 HOLD 는 signal_price 가
+113:     // 사실상 같아 사후수익이 동일하다. 전량(74,462건)을 부르면 Upbit 호출만 10배 낭비된다
+114:     // (distinct coin-hour = 7,658건). NOT EXISTS 로 <b>이미 평가된 시간대를 통째로 제외</b>하는
+115:     // 것이 핵심이다 — 이게 없으면 대표 1건이 평가되는 순간 같은 시간대의 다음 행이 새 대표가
+116:     // 되어 결국 74,462건을 전부 부른다.
+117:     @Query(value = """
+118:             SELECT DISTINCT ON (l.coin_pair, date_trunc('hour', l.created_at)) l.*
+119:             FROM strategy_log l
+120:             WHERE l.signal = 'HOLD'
+121:               AND l.created_at < :cutoff
+122:               AND l.signal_price IS NOT NULL
+123:               AND l.price_after_4h IS NULL
+124:               AND NOT EXISTS (
+125:                     SELECT 1 FROM strategy_log e
+126:                     WHERE e.signal = 'HOLD'
+127:                       AND e.coin_pair = l.coin_pair
+128:                       AND e.created_at >= date_trunc('hour', l.created_at)
+129:                       AND e.created_at <  date_trunc('hour', l.created_at) + interval '1 hour'
+130:                       AND e.price_after_4h IS NOT NULL)
+131:             ORDER BY l.coin_pair, date_trunc('hour', l.created_at), l.created_at
+132:             LIMIT :limit
+133:             """, nativeQuery = true)
+134:     List<StrategyLogEntity> findPendingHoldFor4hEval(@Param("cutoff") Instant cutoff,
+135:                                                      @Param("limit") int limit);
+136: 
+137:     /** 24h 판. 4h 판과 동일 규칙 — price_after_24h 기준. */
+138:     @Query(value = """
+139:             SELECT DISTINCT ON (l.coin_pair, date_trunc('hour', l.created_at)) l.*
+140:             FROM strategy_log l
+141:             WHERE l.signal = 'HOLD'
+142:               AND l.created_at < :cutoff
+143:               AND l.signal_price IS NOT NULL
+144:               AND l.price_after_24h IS NULL
+145:               AND NOT EXISTS (
+146:                     SELECT 1 FROM strategy_log e
+147:                     WHERE e.signal = 'HOLD'
+148:                       AND e.coin_pair = l.coin_pair
+149:                       AND e.created_at >= date_trunc('hour', l.created_at)
+150:                       AND e.created_at <  date_trunc('hour', l.created_at) + interval '1 hour'
+151:                       AND e.price_after_24h IS NOT NULL)
+152:             ORDER BY l.coin_pair, date_trunc('hour', l.created_at), l.created_at
+153:             LIMIT :limit
+154:             """, nativeQuery = true)
+155:     List<StrategyLogEntity> findPendingHoldFor24hEval(@Param("cutoff") Instant cutoff,
+156:                                                       @Param("limit") int limit);
+== web-api/src/main/resources/application.yml 10-35
+10:     hikari:
+11:       maximum-pool-size: 20
+12:       minimum-idle: 5
+13:       connection-timeout: 30000
+14:       idle-timeout: 600000
+15:       max-lifetime: 1800000
+16:       # ── 2026-09-26: 잠금 대기가 영구 정지로 번지는 것을 끊는다 ──────────────
+17:       # 사고: 미종료 트랜잭션이 보유한 행 잠금을 다른 트랜잭션이 기다렸고, Postgres 는
+18:       # 잠금 대기에 기본 제한이 없어 **2시간 동안 아무 경고 없이** 멈춰 있었다.
+19:       # MarketDataSyncService 는 fixedDelay 라 그 한 번이 끝나지 않으면 다음 회차가
+20:       # 영구히 없다 → 22코인 캔들 적재가 조용히 중단됐다.
+21:       #
+22:       # 🔴 lock_timeout 이 이 실패에 정확히 대응한다 — 잠금 대기만 끊고 정상 질의는
+23:       #    건드리지 않는다. 초과 시 예외 → 트랜잭션 롤백 → 커넥션 반환 → 다음 회차 진행.
+24:       #    (`connection-timeout` 은 커넥션 **획득** 대기라 이 실패를 막지 못한다.)
+25:       #
+26:       # ⚠️ statement_timeout·socketTimeout 은 **지금 넣지 않는다.** 운영에 2분 40초짜리
+27:       #    무거운 질의가 실재하고(strategy_log 시간별 DISTINCT ON, 병렬 워커 4개),
+28:       #    그 둘은 잠금 대기가 아닌 정상 질의까지 끊는다. 그 질의를 먼저 손본 뒤 별도로
+29:       #    판단한다 — 안전장치를 넣다가 동작하는 기능을 깨지 않는다.
+30:       connection-init-sql: SET lock_timeout = '${DB_LOCK_TIMEOUT:10s}'
+31:       # 누수 감지는 **진단용**이다. 대여 시간이 이 값을 넘으면 Hikari 가 경고와 함께
+32:       # **대여한 스레드의 스택**을 남긴다 — "어느 스레드가 트랜잭션을 쥐고 있었는가"를
+33:       # 사후에 잇는 유일한 수단이다(이번 사고에서 그걸 잇지 못해 추정에 머물렀다).
+34:       # 🔴 대여를 취소하지 않으므로 이것만으로는 정지가 풀리지 않는다. 끊는 것은 lock_timeout 이다.
+35:       leak-detection-threshold: ${DB_LEAK_DETECTION_MS:60000}
+== b1d7664 대비 두 파일 변경
+(끝)

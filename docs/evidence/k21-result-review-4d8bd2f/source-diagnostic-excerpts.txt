@@ -1,0 +1,66 @@
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:37:     /**
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:38:      * 15분마다 실행 — 각 소스의 주기를 개별 체크.
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:39:      * initialDelay 3분: 앱 기동 직후 준비 시간.
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:40:      */
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:41:     @Scheduled(initialDelay = 3 * 60 * 1000, fixedDelay = 15 * 60 * 1000)
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:42:     @Transactional
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:43:     public void collectAll() {
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:44:         List<NewsSourceConfigEntity> sources = sourceConfigRepo.findAllByEnabledTrue();
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:45:         if (sources.isEmpty()) {
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:46:             log.debug("[NewsAggregator] 활성화된 뉴스 소스 없음");
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:47:             return;
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:48:         }
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:49: 
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:50:         for (NewsSourceConfigEntity sourceConfig : sources) {
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:51:             if (!isDue(sourceConfig)) continue;
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:52:             collectFromSource(sourceConfig);
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:53:         }
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:54:     }
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:55: 
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:56:     /**
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:58:      */
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:59:     @Transactional
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:60:     public NewsFetchResult collectFromSourceManual(String sourceId) {
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:61:         NewsSourceConfigEntity config = sourceConfigRepo.findBySourceId(sourceId)
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:62:                 .orElseThrow(() -> new IllegalArgumentException("소스 없음: " + sourceId));
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:63:         return collectFromSource(config);
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:64:     }
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:65: 
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:66:     /**
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:80:                     config.getSourceType(), config.getSourceId());
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:81:             return NewsFetchResult.failed(NewsFetchResult.UNSUPPORTED_TYPE);
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:82:         }
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:83: 
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:84:         log.debug("[NewsAggregator] 수집 시작 — sourceId={}", config.getSourceId());
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:85:         NewsFetchResult result = source.fetch(config);
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:86:         if (result == null) result = NewsFetchResult.failed(NewsFetchResult.NULL_RESULT); // 계약 위반도 성공으로 보지 않는다
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:87:         List<NewsItem> items = result.items();
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:88:         int saved = 0;
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:89: 
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java:90:         for (NewsItem item : items) {
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/resources/application.yml:10:     hikari:
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/resources/application.yml:11:       maximum-pool-size: 20
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/resources/application.yml:12:       minimum-idle: 5
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/resources/application.yml:13:       connection-timeout: 30000
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/resources/application.yml:14:       idle-timeout: 600000
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/resources/application.yml:15:       max-lifetime: 1800000
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/resources/application.yml:16:       # ── 2026-09-26: 잠금 대기가 영구 정지로 번지는 것을 끊는다 ──────────────
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/resources/application.yml:17:       # 사고: 미종료 트랜잭션이 보유한 행 잠금을 다른 트랜잭션이 기다렸고, Postgres 는
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/resources/application.yml:18:       # 잠금 대기에 기본 제한이 없어 **2시간 동안 아무 경고 없이** 멈춰 있었다.
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/resources/application.yml:19:       # MarketDataSyncService 는 fixedDelay 라 그 한 번이 끝나지 않으면 다음 회차가
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/resources/application.yml:20:       # 영구히 없다 → 22코인 캔들 적재가 조용히 중단됐다.
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/resources/application.yml:21:       #
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/resources/application.yml:22:       # 🔴 lock_timeout 이 이 실패에 정확히 대응한다 — 잠금 대기만 끊고 정상 질의는
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/resources/application.yml:23:       #    건드리지 않는다. 초과 시 예외 → 트랜잭션 롤백 → 커넥션 반환 → 다음 회차 진행.
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/resources/application.yml:24:       #    (`connection-timeout` 은 커넥션 **획득** 대기라 이 실패를 막지 못한다.)
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/resources/application.yml:25:       #
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/resources/application.yml:26:       # ⚠️ statement_timeout·socketTimeout 은 **지금 넣지 않는다.** 운영에 2분 40초짜리
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/resources/application.yml:27:       #    무거운 질의가 실재하고(strategy_log 시간별 DISTINCT ON, 병렬 워커 4개),
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/resources/application.yml:28:       #    그 둘은 잠금 대기가 아닌 정상 질의까지 끊는다. 그 질의를 먼저 손본 뒤 별도로
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/resources/application.yml:29:       #    판단한다 — 안전장치를 넣다가 동작하는 기능을 깨지 않는다.
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/resources/application.yml:30:       connection-init-sql: SET lock_timeout = '${DB_LOCK_TIMEOUT:10s}'
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/resources/application.yml:31:       # 누수 감지는 **진단용**이다. 대여 시간이 이 값을 넘으면 Hikari 가 경고와 함께
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/resources/application.yml:32:       # **대여한 스레드의 스택**을 남긴다 — "어느 스레드가 트랜잭션을 쥐고 있었는가"를
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/resources/application.yml:33:       # 사후에 잇는 유일한 수단이다(이번 사고에서 그걸 잇지 못해 추정에 머물렀다).
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/resources/application.yml:34:       # 🔴 대여를 취소하지 않으므로 이것만으로는 정지가 풀리지 않는다. 끊는 것은 lock_timeout 이다.
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00:web-api/src/main/resources/application.yml:35:       leak-detection-threshold: ${DB_LEAK_DETECTION_MS:60000}

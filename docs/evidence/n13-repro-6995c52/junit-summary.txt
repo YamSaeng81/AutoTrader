@@ -1,0 +1,7 @@
+<testsuite name="com.cryptoautotrader.api.n13.HoldBaselineConnectionReproTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-11-04T12:33:25"  time="32.702">
+<testcase name="0 프록시 확인" classname="com.cryptoautotrader.api.n13.HoldBaselineConnectionReproTest" time="2.86"
+<testcase name="1 정기 경로 정상: scheduler 스레드에서 프록시로 evaluateSignalQuality" classname="com.cryptoautotrader.api.n13.HoldBaselineConnectionReproTest" time="5.537"
+<testcase name="2 정기 경로 가격 조회 실패 뒤 후속 회차" classname="com.cryptoautotrader.api.n13.HoldBaselineConnectionReproTest" time="8.0"
+<testcase name="3 시작 catchup 경로: 프록시로 catchupOnStartup(@Async)" classname="com.cryptoautotrader.api.n13.HoldBaselineConnectionReproTest" time="6.599"
+<testcase name="4 질의 오류 뒤 연결 반환과 후속 회차" classname="com.cryptoautotrader.api.n13.HoldBaselineConnectionReproTest" time="5.914"
+<testcase name="5 대조군: 다른 빈처럼 프록시로 evaluateHoldBaselineLoop 직접 호출" classname="com.cryptoautotrader.api.n13.HoldBaselineConnectionReproTest" time="3.791"

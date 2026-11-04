@@ -1,0 +1,38 @@
+# 2026-11-04 22:0x KST 읽기 조회 출력(서버 읽기만). 시각은 UTC.
+== 적재 회차(scripts/prospective/freshness_log.jsonl, 08:19Z 이후, 스크래치 fr.py)
+2026-11-04T08:19:02Z 🟢21 ⚪0 🔴1 🔴코인=KRW-BLAST ⚪코인=- 재확인=-
+   KRW-PUNDIX db=2026-11-04T08:00 ex=2026-11-04T08:00 exErr=None
+   KRW-ELF db=2026-11-04T08:00 ex=2026-11-04T08:00 exErr=None
+   KRW-JUP db=2026-11-04T08:00 ex=2026-11-04T08:00 exErr=None
+2026-11-04T09:19:01Z 🟢21 ⚪0 🔴1 🔴코인=KRW-BLAST ⚪코인=- 재확인=-
+   KRW-PUNDIX db=2026-11-04T08:00 ex=2026-11-04T08:00 exErr=None
+   KRW-ELF db=2026-11-04T09:00 ex=2026-11-04T09:00 exErr=None
+   KRW-JUP db=2026-11-04T09:00 ex=2026-11-04T09:00 exErr=None
+2026-11-04T10:19:01Z 🟢21 ⚪0 🔴1 🔴코인=KRW-BLAST ⚪코인=- 재확인=-
+   KRW-PUNDIX db=2026-11-04T10:00 ex=2026-11-04T10:00 exErr=None
+   KRW-ELF db=2026-11-04T10:00 ex=2026-11-04T10:00 exErr=None
+   KRW-JUP db=2026-11-04T10:00 ex=2026-11-04T10:00 exErr=None
+2026-11-04T11:19:01Z 🟢21 ⚪0 🔴1 🔴코인=KRW-BLAST ⚪코인=- 재확인=-
+   KRW-PUNDIX db=2026-11-04T10:00 ex=2026-11-04T10:00 exErr=None
+   KRW-ELF db=2026-11-04T11:00 ex=2026-11-04T11:00 exErr=None
+   KRW-JUP db=2026-11-04T11:00 ex=2026-11-04T11:00 exErr=None
+2026-11-04T12:19:01Z 🟢21 ⚪0 🔴1 🔴코인=KRW-BLAST ⚪코인=- 재확인=-
+   KRW-PUNDIX db=2026-11-04T12:00 ex=2026-11-04T12:00 exErr=None
+   KRW-ELF db=2026-11-04T12:00 ex=2026-11-04T12:00 exErr=None
+   KRW-JUP db=2026-11-04T12:00 ex=2026-11-04T12:00 exErr=None
+회차 5개 (기준 2026-11-04T08:1 이후)
+== 보고 로그(20261104-2200.txt.log.gz, 머리 시각 07:39:15.913Z ~ 12:59:50.208Z) 출처 HTTP 비200 줄(시각·수준·클래스·상태만)
+07:57:36.454 WARN CryptoPanicSource HTTP 403
+08:27:37.876 WARN CryptoPanicSource HTTP 403
+08:57:42.367 WARN CryptoPanicSource HTTP 403
+09:27:43.668 WARN CryptoPanicSource HTTP 403
+09:57:48.672 WARN CryptoPanicSource HTTP 403
+10:27:49.592 WARN CryptoPanicSource HTTP 403
+10:57:54.355 WARN CryptoPanicSource HTTP 403
+11:27:55.255 WARN CryptoPanicSource HTTP 403
+11:57:56.477 WARN CryptoPanicSource HTTP 403
+12:28:00.675 WARN CryptoPanicSource HTTP 403
+12:58:07.227 WARN CryptoPanicSource HTTP 403
+== 같은 로그 '수집 미완료' 11줄: 모두 FAILED 종류=HTTP_403 받은=0건 신규=0건, 판정 시각은 위 11줄과 같은 ms. '수집 완료' 41줄.
+== 같은 로그 뉴스 관련 ERROR 0줄 · DOCTYPE/<html 0줄
+== 같은 로그 Hikari: leak detection triggered 35 · unleaked 34 · Connection is not available 0

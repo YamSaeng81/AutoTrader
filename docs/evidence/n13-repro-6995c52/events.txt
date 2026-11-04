@@ -1,0 +1,202 @@
+== 0 프록시 확인
+SignalQualityService 빈 AOP 프록시=true 대상=SignalQualityService
+-- 끝: 풀사용중=0 평가행 4h=0 24h=0 (전체 2)
+== 1 정기 경로 정상: scheduler 스레드에서 프록시로 evaluateSignalQuality
+      4ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  연결 대여 c25
+      4ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  연결 반환 c25
+      5ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  연결 대여 c26
+      5ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  연결 반환 c26
+      6ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  연결 대여 c27
+      6ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  HOLD 4h 질의 대기 시작(c27)
+    411ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  HOLD 4h 질의 끝(c27)
+    413ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  연결 반환 c27
+    416ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  가격 조회 대기 시작(KRW-AAA)
+    820ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  가격 조회 끝
+    820ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  가격 조회 대기 시작(KRW-BBB)
+   1221ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  가격 조회 끝
+   1224ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  연결 대여 c28
+   1256ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  연결 반환 c28
+   1371ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  연결 대여 c29
+   1371ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  HOLD 4h 질의 대기 시작(c29)
+   1780ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  HOLD 4h 질의 끝(c29)
+   1781ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  연결 반환 c29
+   1782ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  연결 대여 c30
+   1782ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  HOLD 24h 질의 대기 시작(c30)
+   2189ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  HOLD 24h 질의 끝(c30)
+   2190ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  연결 반환 c30
+   2191ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  가격 조회 대기 시작(KRW-AAA)
+   2602ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  가격 조회 끝
+   2603ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  가격 조회 대기 시작(KRW-BBB)
+   3014ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  가격 조회 끝
+   3015ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  연결 대여 c31
+   3020ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  연결 반환 c31
+   3122ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  연결 대여 c32
+   3122ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  HOLD 24h 질의 대기 시작(c32)
+   3524ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  HOLD 24h 질의 끝(c32)
+   3524ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  연결 반환 c32
+   3525ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  호출 정상 반환
+   3525ms Test worker  tx=false 이스레드보유=1 풀사용중=1  연결 대여 c33
+   3525ms Test worker  tx=false 이스레드보유=0 풀사용중=0  연결 반환 c33
+   3525ms Test worker  tx=false 이스레드보유=0 풀사용중=0  정기 회차 끝 — 평가행 4h=2 24h=2 (전체 2)
+-- 끝: 풀사용중=0 평가행 4h=2 24h=2 (전체 2)
+== 2 정기 경로 가격 조회 실패 뒤 후속 회차
+      2ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  연결 대여 c38
+      2ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  연결 반환 c38
+      3ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  연결 대여 c39
+      3ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  연결 반환 c39
+      3ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  연결 대여 c40
+      3ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  HOLD 4h 질의 대기 시작(c40)
+    410ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  HOLD 4h 질의 끝(c40)
+    411ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  연결 반환 c40
+    412ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  가격 조회 대기 시작(KRW-AAA)
+    824ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  가격 조회 실패 던짐
+    824ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  가격 조회 대기 시작(KRW-BBB)
+   1235ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  가격 조회 실패 던짐
+   1236ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  연결 대여 c41
+   1236ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  HOLD 24h 질의 대기 시작(c41)
+   1644ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  HOLD 24h 질의 끝(c41)
+   1645ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  연결 반환 c41
+   1646ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  가격 조회 대기 시작(KRW-AAA)
+   2047ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  가격 조회 실패 던짐
+   2047ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  가격 조회 대기 시작(KRW-BBB)
+   2453ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  가격 조회 실패 던짐
+   2454ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  호출 정상 반환
+   2454ms Test worker  tx=false 이스레드보유=1 풀사용중=1  연결 대여 c42
+   2454ms Test worker  tx=false 이스레드보유=0 풀사용중=0  연결 반환 c42
+   2454ms Test worker  tx=false 이스레드보유=0 풀사용중=0  실패 회차 끝 — 평가행 4h=0 24h=0 (전체 2)
+   2456ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  연결 대여 c43
+   2456ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  연결 반환 c43
+   2456ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  연결 대여 c44
+   2456ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  연결 반환 c44
+   2457ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  연결 대여 c45
+   2457ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  HOLD 4h 질의 대기 시작(c45)
+   2865ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  HOLD 4h 질의 끝(c45)
+   2866ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  연결 반환 c45
+   2867ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  가격 조회 대기 시작(KRW-AAA)
+   3277ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  가격 조회 끝
+   3278ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  가격 조회 대기 시작(KRW-BBB)
+   3686ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  가격 조회 끝
+   3687ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  연결 대여 c46
+   3690ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  연결 반환 c46
+   3795ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  연결 대여 c47
+   3795ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  HOLD 4h 질의 대기 시작(c47)
+   4204ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  HOLD 4h 질의 끝(c47)
+   4205ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  연결 반환 c47
+   4206ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  연결 대여 c48
+   4206ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  HOLD 24h 질의 대기 시작(c48)
+   4613ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  HOLD 24h 질의 끝(c48)
+   4614ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  연결 반환 c48
+   4615ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  가격 조회 대기 시작(KRW-AAA)
+   5022ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  가격 조회 끝
+   5023ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  가격 조회 대기 시작(KRW-BBB)
+   5432ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  가격 조회 끝
+   5432ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  연결 대여 c49
+   5436ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  연결 반환 c49
+   5539ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  연결 대여 c50
+   5539ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  HOLD 24h 질의 대기 시작(c50)
+   5948ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  HOLD 24h 질의 끝(c50)
+   5949ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  연결 반환 c50
+   5949ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  호출 정상 반환
+   5949ms Test worker  tx=false 이스레드보유=1 풀사용중=1  연결 대여 c51
+   5949ms Test worker  tx=false 이스레드보유=0 풀사용중=0  연결 반환 c51
+   5949ms Test worker  tx=false 이스레드보유=0 풀사용중=0  후속 회차 끝 — 평가행 4h=2 24h=2 (전체 2)
+-- 끝: 풀사용중=0 평가행 4h=2 24h=2 (전체 2)
+== 3 시작 catchup 경로: 프록시로 catchupOnStartup(@Async)
+      1ms Test worker  tx=false 이스레드보유=0 풀사용중=0  catchupOnStartup 호출 반환(호출 스레드)
+      2ms task-N       tx=false 이스레드보유=1 풀사용중=1  연결 대여 c57
+      2ms task-N       tx=false 이스레드보유=0 풀사용중=0  연결 반환 c57
+      3ms task-N       tx=false 이스레드보유=1 풀사용중=1  연결 대여 c58
+      3ms task-N       tx=false 이스레드보유=0 풀사용중=0  연결 반환 c58
+      4ms task-N       tx=false 이스레드보유=1 풀사용중=1  연결 대여 c59
+      4ms task-N       tx=false 이스레드보유=1 풀사용중=1  HOLD 4h 질의 대기 시작(c59)
+    408ms task-N       tx=false 이스레드보유=1 풀사용중=1  HOLD 4h 질의 끝(c59)
+    409ms task-N       tx=false 이스레드보유=0 풀사용중=0  연결 반환 c59
+    410ms task-N       tx=false 이스레드보유=0 풀사용중=0  가격 조회 대기 시작(KRW-AAA)
+    820ms task-N       tx=false 이스레드보유=0 풀사용중=0  가격 조회 끝
+    820ms task-N       tx=false 이스레드보유=0 풀사용중=0  가격 조회 대기 시작(KRW-BBB)
+   1229ms task-N       tx=false 이스레드보유=0 풀사용중=0  가격 조회 끝
+   1229ms task-N       tx=false 이스레드보유=1 풀사용중=1  연결 대여 c71
+   1234ms task-N       tx=false 이스레드보유=0 풀사용중=0  연결 반환 c71
+   1335ms task-N       tx=false 이스레드보유=1 풀사용중=1  연결 대여 c73
+   1336ms task-N       tx=false 이스레드보유=1 풀사용중=1  HOLD 4h 질의 대기 시작(c73)
+   1747ms task-N       tx=false 이스레드보유=1 풀사용중=1  HOLD 4h 질의 끝(c73)
+   1747ms task-N       tx=false 이스레드보유=0 풀사용중=0  연결 반환 c73
+   1748ms task-N       tx=false 이스레드보유=1 풀사용중=1  연결 대여 c78
+   1748ms task-N       tx=false 이스레드보유=1 풀사용중=1  HOLD 24h 질의 대기 시작(c78)
+   2157ms task-N       tx=false 이스레드보유=1 풀사용중=1  HOLD 24h 질의 끝(c78)
+   2158ms task-N       tx=false 이스레드보유=0 풀사용중=0  연결 반환 c78
+   2158ms task-N       tx=false 이스레드보유=0 풀사용중=0  가격 조회 대기 시작(KRW-AAA)
+   2565ms task-N       tx=false 이스레드보유=0 풀사용중=0  가격 조회 끝
+   2566ms task-N       tx=false 이스레드보유=0 풀사용중=0  가격 조회 대기 시작(KRW-BBB)
+   2975ms task-N       tx=false 이스레드보유=0 풀사용중=0  가격 조회 끝
+   2975ms task-N       tx=false 이스레드보유=1 풀사용중=2  연결 대여 c91
+   2977ms task-N       tx=false 이스레드보유=0 풀사용중=0  연결 반환 c91
+   3081ms task-N       tx=false 이스레드보유=1 풀사용중=1  연결 대여 c93
+   3082ms task-N       tx=false 이스레드보유=1 풀사용중=1  HOLD 24h 질의 대기 시작(c93)
+   3493ms task-N       tx=false 이스레드보유=1 풀사용중=1  HOLD 24h 질의 끝(c93)
+   3494ms task-N       tx=false 이스레드보유=0 풀사용중=0  연결 반환 c93
+catchup 뒤 평가행 4h=2 24h=2 (전체 2)
+-- 끝: 풀사용중=0 평가행 4h=2 24h=2 (전체 2)
+== 4 질의 오류 뒤 연결 반환과 후속 회차
+      3ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  연결 대여 c99
+      3ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  연결 반환 c99
+      3ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  연결 대여 c100
+      3ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  연결 반환 c100
+      4ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  연결 대여 c101
+      4ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  HOLD 4h 질의 대기 시작(c101)
+    407ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  HOLD 4h 질의 대역 오류 던짐(c101)
+    412ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  연결 반환 c101
+    414ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  호출 예외로 끝남: JpaSystemException
+    415ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  연결 대여 c102
+    416ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  연결 반환 c102
+    416ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  연결 대여 c103
+    416ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  연결 반환 c103
+    417ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  연결 대여 c104
+    417ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  HOLD 4h 질의 대기 시작(c104)
+    818ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  HOLD 4h 질의 끝(c104)
+    819ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  연결 반환 c104
+    820ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  가격 조회 대기 시작(KRW-AAA)
+   1228ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  가격 조회 끝
+   1229ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  가격 조회 대기 시작(KRW-BBB)
+   1639ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  가격 조회 끝
+   1640ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  연결 대여 c105
+   1642ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  연결 반환 c105
+   1748ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  연결 대여 c106
+   1748ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  HOLD 4h 질의 대기 시작(c106)
+   2155ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  HOLD 4h 질의 끝(c106)
+   2156ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  연결 반환 c106
+   2158ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  연결 대여 c107
+   2158ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  HOLD 24h 질의 대기 시작(c107)
+   2566ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  HOLD 24h 질의 끝(c107)
+   2567ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  연결 반환 c107
+   2568ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  가격 조회 대기 시작(KRW-AAA)
+   2973ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  가격 조회 끝
+   2974ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  가격 조회 대기 시작(KRW-BBB)
+   3379ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  가격 조회 끝
+   3380ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  연결 대여 c108
+   3383ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  연결 반환 c108
+   3484ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  연결 대여 c109
+   3484ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  HOLD 24h 질의 대기 시작(c109)
+   3897ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  HOLD 24h 질의 끝(c109)
+   3898ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  연결 반환 c109
+   3898ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  호출 정상 반환
+   3898ms Test worker  tx=false 이스레드보유=1 풀사용중=1  연결 대여 c110
+   3899ms Test worker  tx=false 이스레드보유=0 풀사용중=0  연결 반환 c110
+   3899ms Test worker  tx=false 이스레드보유=0 풀사용중=0  후속 회차 끝 — 평가행 4h=2 24h=2 (전체 2)
+-- 끝: 풀사용중=0 평가행 4h=2 24h=2 (전체 2)
+== 5 대조군: 다른 빈처럼 프록시로 evaluateHoldBaselineLoop 직접 호출
+      1ms scheduler-N  tx=false 이스레드보유=1 풀사용중=1  연결 대여 c115
+      2ms scheduler-N  tx=true  이스레드보유=1 풀사용중=1  HOLD 4h 질의 대기 시작(c115)
+    410ms scheduler-N  tx=true  이스레드보유=1 풀사용중=1  HOLD 4h 질의 끝(c115)
+    411ms scheduler-N  tx=true  이스레드보유=1 풀사용중=1  가격 조회 대기 시작(KRW-AAA)
+    823ms scheduler-N  tx=true  이스레드보유=1 풀사용중=1  가격 조회 끝
+    824ms scheduler-N  tx=true  이스레드보유=1 풀사용중=1  가격 조회 대기 시작(KRW-BBB)
+   1232ms scheduler-N  tx=true  이스레드보유=1 풀사용중=1  가격 조회 끝
+   1342ms scheduler-N  tx=true  이스레드보유=1 풀사용중=1  HOLD 4h 질의 대기 시작(c115)
+   1751ms scheduler-N  tx=true  이스레드보유=1 풀사용중=1  HOLD 4h 질의 끝(c115)
+   1753ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  연결 반환 c115
+   1753ms scheduler-N  tx=false 이스레드보유=0 풀사용중=0  호출 정상 반환
+   1753ms Test worker  tx=false 이스레드보유=1 풀사용중=1  연결 대여 c116
+   1753ms Test worker  tx=false 이스레드보유=0 풀사용중=0  연결 반환 c116
+   1754ms Test worker  tx=false 이스레드보유=0 풀사용중=0  대조군 끝 — 평가행 4h=2 24h=0 (전체 2)
+-- 끝: 풀사용중=0 평가행 4h=2 24h=0 (전체 2)

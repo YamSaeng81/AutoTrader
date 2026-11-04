@@ -1,0 +1,11 @@
+# 운영 backend(autotrader-backend-1, 6995c52) 누수 임계값 유효값 확인 — 2026-11-04 20:55 KST 읽기 전용, 값 대신 이름만 출력
+docker exec printenv DB_LEAK_DETECTION_MS -> 설정 없음(종료 1)
+docker exec printenv DB_LOCK_TIMEOUT      -> 설정 없음(종료 1)
+환경변수 이름 중 HIKARI/LEAK/PROFILES 포함 -> SPRING_PROFILES_ACTIVE 하나(값 prod)
+환경변수 이름 중 SPRING_ 시작 -> SPRING_PROFILES_ACTIVE 하나
+jar 안 설정 파일 -> web-api/src/main/resources/application.yml 하나(application-prod.yml 없음, git ls-tree 6995c52)
+컨테이너 /config, /app/config -> 없음
+docker-compose*.yml 의 SPRING_CONFIG·application*.yml·/config -> 0줄
+ENTRYPOINT -> sh -c "java $JAVA_OPTS -jar app.jar", 실행 인자 추가 없음
+JAVA_OPTS 옵션 이름 -> -XX:-OmitStackTraceInFastThrow -Xms1g -Xmx6g -XX:+UseG1GC -XX:MaxGCPauseMillis
+결론: leak-detection-threshold 는 application.yml 기본값 60000ms, lock_timeout 은 기본값 10s 로 본다.

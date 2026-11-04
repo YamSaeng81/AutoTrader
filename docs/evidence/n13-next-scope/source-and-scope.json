@@ -1,0 +1,44 @@
+{
+  "source": "6995c52259e3de4c7c922a32f9fb2aa9ddd49f00",
+  "source_repo": "web-api/src/main/java/com/cryptoautotrader/api/repository/StrategyLogRepository.java",
+  "source_service": "web-api/src/main/java/com/cryptoautotrader/api/service/SignalQualityService.java",
+  "previous_b1d7664_two_source_files_identical": true,
+  "queries": [
+    {
+      "method": "findPendingHoldFor4hEval",
+      "original_sha256": "600b36bb57b5be2ccc73d04b7216e5cb27db3402788233b49fdc18f60f022253",
+      "hours": 4,
+      "limit": 100,
+      "sql": "SELECT DISTINCT ON (l.coin_pair, date_trunc('hour', l.created_at)) l.*\nFROM strategy_log l\nWHERE l.signal = 'HOLD'\n  AND l.created_at < now() - interval '4 hours'\n  AND l.signal_price IS NOT NULL\n  AND l.price_after_4h IS NULL\n  AND NOT EXISTS (\n        SELECT 1 FROM strategy_log e\n        WHERE e.signal = 'HOLD'\n          AND e.coin_pair = l.coin_pair\n          AND e.created_at >= date_trunc('hour', l.created_at)\n          AND e.created_at <  date_trunc('hour', l.created_at) + interval '1 hour'\n          AND e.price_after_4h IS NOT NULL)\nORDER BY l.coin_pair, date_trunc('hour', l.created_at), l.created_at\nLIMIT 100"
+    },
+    {
+      "method": "findPendingHoldFor24hEval",
+      "original_sha256": "ac6e2ce6d7748064a4b6e826852d4325838ba8c624879d62c98dccb97e1a6ec2",
+      "hours": 24,
+      "limit": 100,
+      "sql": "SELECT DISTINCT ON (l.coin_pair, date_trunc('hour', l.created_at)) l.*\nFROM strategy_log l\nWHERE l.signal = 'HOLD'\n  AND l.created_at < now() - interval '24 hours'\n  AND l.signal_price IS NOT NULL\n  AND l.price_after_24h IS NULL\n  AND NOT EXISTS (\n        SELECT 1 FROM strategy_log e\n        WHERE e.signal = 'HOLD'\n          AND e.coin_pair = l.coin_pair\n          AND e.created_at >= date_trunc('hour', l.created_at)\n          AND e.created_at <  date_trunc('hour', l.created_at) + interval '1 hour'\n          AND e.price_after_24h IS NOT NULL)\nORDER BY l.coin_pair, date_trunc('hour', l.created_at), l.created_at\nLIMIT 100"
+    }
+  ],
+  "query_batch_limit": 100,
+  "cutoff": "now is transaction start; same 4h/24h cutoffs as service, not fixed historical replay",
+  "planning_only": true,
+  "exact_counts_or_explain_analyze": false,
+  "limits": {
+    "lock": "1s",
+    "per_statement": "5s",
+    "idle_transaction": "30s"
+  },
+  "sql_sha256": "79d12e371ff7ba3a80fb2b5dc2715b2ff684f4ffac0b30473478ea0e89179c91",
+  "verification": "extracted from fixed Git; placeholders replaced and read scope checked; not run against a DB",
+  "reported_initial_evidence": "377 warnings /375 observed returns /2 unobserved; source path accepted as developer analysis, raw pairs not independently replayed",
+  "initial_list_review": {
+    "warning_rows": 377,
+    "observed_returns_in_list": 375,
+    "unobserved_return_times_utc": [
+      "04:50:41.445",
+      "07:37:02.282"
+    ],
+    "fixed_source_excerpt_lines_matched": 136,
+    "raw_pair_algorithm_independently_replayed": false
+  }
+}
