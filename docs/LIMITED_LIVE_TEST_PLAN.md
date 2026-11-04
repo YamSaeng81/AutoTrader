@@ -1,5 +1,7 @@
 # 12월 제한 실거래 시험 — 후보와 실행안
 
+> **v1.85 (2026-11-04, 개입 #20 준비 — 로컬, 서버 실행 없음)**: 총괄 v1.84 로컬 문서 5개와 근거 n11-accept-b1d7664 를 그대로 함께 넣는다. ea44900·b1d7664 bootJar 를 로컬에서 새로 만들어 대조했다: 뉴스 클래스 9줄(변경 7·추가 2)만 다르고, 설정·리소스까지 넓힌 K1 비교 코드로 `(끝) 779 781`(J1 원래 코드로는 680 682 — 리소스 99개를 보지 않음). K 변수·K0~K4·K1-되돌림·K 되돌림·K 뒤 뉴스 관측을 준비했다(복구 ea44900/61804654…, 기록 ~/maint-n11). J 와 다른 점: K0 BTC 충족 필수(N08 정체 예외 없음), 시작 시각·직전 정기 보고 검사, jar 리소스 대조, 뉴스 출처 ERROR 4원문 분리(🔴 원문 출력·이것만으로 멈추거나 되돌리지 않음), 출처별 완료/미완료 관측(미도래는 미관측), 정기 점검 설치본·crontab 해시 대조. 블록 문법·국소 가짜 입력은 §5-9 53 근거. §52 정정(거부15/정상12, 시간 구분) 반영. 운영자는 총괄 검토 전 실행하지 않는다. F 변수·F1·최종 S·SID 203 CREATED·12-01 일정 무변경. §5-9 53.
+> **v1.84 (2026-11-04, 총괄 N11후보b1d7664 수용·개입 #20 절차 준비 지시)**: 보완 근거17/17·앞선14/14와 보존 경계27/27·계약36/36·재현3/3·AiPipeline11/11을 확인했고 같은 실행기/고정 후보 소스의 총괄6입력도6/6·종료0이다. 두 판정 보완을 수용한다. 후보는ea44900 기점이며 운영 미반영이고, 개발은 지금 #20 K0~K4/복구와 실제jar대조 기대값을 준비한다. RSS/업비트 실제 응답 검증·뉴스 외부 원인 해결로 확대하지 않는다. 경계 거부 총15/정상12(구판 새실패13/통과14), 시간은 기록된약0.1시간·사전작성 미기록으로 구분한다. 현재 운영/F1 핀/최종S·SID203 CREATED·12-01 일정 유지. §5-9 52.
 > **v1.83 (2026-11-04, N11 두 판정 보완 후보 제출)**: 브랜치 n11-news-fetch-result: 실패 먼저 1ad38b4(경계 시험 NewsResponseShapeTest 27건, 98bbeda 에서 업비트 success:false/비boolean 8건·RSS 비피드 루트 5건 = 13건 실패, 기존 호환 14건 통과), 보완 후보 b1d7664db73222aec5d86f2e9137debef0ff4df3(업비트 본문 success=false 는 항목과 관계없이 FAILED SOURCE_REPORTED_FAILURE·항목 미전달, 있는데 boolean 아님은 INVALID_RESPONSE, 없으면 기존 배열 판정 유지; RSS 는 루트 rss(0.9x/2.0) 또는 RDF 네임스페이스 RDF(1.0) 바로 아래 channel 만 정상, 이름만 같은 channel·Atom 은 INVALID_RESPONSE, 파서 설정·항목 읽기 무변경; 둘 다 출처 WARN 만, ERROR 원문·점검 분류·시도 간격·캐시·API 필드 무변경), 총괄 N11Review 같은 6입력 무수정 실행 98bbeda 3건 불일치·종료 1 → b1d7664 6/6·종료 0, 경계 27/27·계약 36/36·재현 3/3·AiPipelineTest 11/11, 운영 설치·서버·DB·외부 접속 없음. 운영 적용은 총괄 검토 뒤. N03 22:00 회복 확인은 다음 보고 때. §5-9 51.
 > **v1.82 (2026-11-04, 총괄 N11후보98bbeda 보완 요청·계획 사본 복원)**: 제출 근거8/8·앞선5/5 및 보존 재현/계약/AiPipeline 결과를 확인했다. 결과 계약/시도 간격/기존 ERROR 보존 방향은 수용하되, 추가 파서6입력 중 업비트 success:false의0/1건·비RSS XML channel3입력이 SUCCESS로 오판돼 두 판정 보완 전 운영 적용은 보류한다. 정상 대조군3건은 통과했다. 사용자 비의도 편집 확인에 따라 계획을7c2cae7 v1.81로 복원한 뒤 이 판정만 추가했다. 운영 ea44900·점검d491fd1·SID203 CREATED·N09/N10 완료·12-01 일정·최종S 미확정 유지. §5-9 50.
 > **v1.81 (2026-11-04, N11 재현·최소 후보 제출)**: 운영 ea44900 기점 브랜치 n11-news-fetch-result: 재현 05347f0(실제 출처→수집기 경로에 127.0.0.1 RST/정상 빈 응답 대역, 기점에서 RSS·업비트 공지·CryptoPanic 3/3이 실패에도 '수집 완료 전체=0건' = 재현), 후보 98bbeda36910ca80f9def562eed8b132df6e12b6(NewsSource.fetch → NewsFetchResult SUCCESS(0건 포함)/PARTIAL/FAILED·종류·판정 시각, SUCCESS만 기존 '수집 완료' INFO·실패/부분은 '수집 미완료' WARN, 출처 ERROR 원문·점검 분류 무변경·상위 ERROR 추가 없음, last_fetched_at 시도 기준·간격 유지, PARTIAL 항목은 기존처럼 저장, 빈 배열=성공 0건/필수 배열·channel 없음=INVALID_RESPONSE, 수동 조회 API에 status·failureKind 추가), 같은 재현 파일 후보 3/3·계약 시험 36/36·기존 AiPipelineTest 11/11, 운영 설치·서버·DB 접근 없음. 운영 적용은 총괄 검토 뒤. N03 22:00 회복 확인은 다음 보고 때. §5-9 49.
@@ -4408,6 +4410,430 @@ SMA20 신호·설정과 위험 한도를 기준으로 주문·정산·보호 기
 - **바꾸지 않은 것**: 출처 ERROR 호출 4개 원문(보완분에 `log.error` 변경 없음)·상위 ERROR 없음·점검 분류·뉴스 미분류 🔴, `last_fetched_at` 시도 기준·수집 간격, 부분 결과 저장, 캐시, 수동 조회 API 필드. DB 마이그레이션·재시도·타임아웃/TLS 없음.
 - **한계**: 실제 RSS 4개·업비트 공지 응답은 외부 접속 없이 읽지 않았다. 대역 입력에 대한 판정이며 실제 출처 검증이 아니다. 실제 출처가 지원 구조를 벗어나면 그 출처는 INVALID_RESPONSE WARN 으로 기록되고 ERROR·주기는 변하지 않는다.
 - **근거·시간**: [`evidence/n11-fix-b1d7664/`](evidence/n11-fix-b1d7664/README.md)(JUnit 원본은 hostname 만 가림). 총괄 v1.82 로컬 문서 5개와 근거 `n11-review-98bbeda`(계획 사본 복원 기록 포함)를 고치지 않고 함께 넣는다. 사용 시간 10:58 실패 먼저 실행 ~ 11:00 후보 푸시, 근거·문서 포함 약 0.3시간. 운영 적용은 총괄 검토 뒤 판단. 운영 ea44900·점검 d491fd1·SID 203 CREATED·F0/위험 한도·12-01 08:50·11-30 최종 S 무변경.
+
+**52. N11 보완 후보b1d7664 수용·개입 #20 준비 지시 (총괄, 2026-11-04, v1.84)**
+
+- **판정**: 고정 후보 `b1d7664db73222aec5d86f2e9137debef0ff4df3`를 수용한다. 두 지적(업비트 명시적 실패/잘못된 타입 거부·RSS 지원 루트/바로 아래channel 구분)이 보완됐다. 운영ea44900 기점 격리·본 코드8개/시험5개·DB 마이그레이션 없음, 기존 ERROR4호출·시도 간격·부분 저장/캐시·수동 API 기존 필드 보존을 확인했다. **N11은 로컬 후보 수용·운영 미반영**이며 이번 판정으로 서버를 실행하지 않는다.
+- **근거 대조**: 제출 main `81b0b80c6be928e0956d926d8f7216de634c8930`의 `n11-fix-b1d7664`17/17·앞선 총괄 `n11-review-98bbeda`14/14가 작업 사본/Git 블롭에서 일치하고, 두 제출diff는 실제Git 출력과 같다. 계획은 복원 상태를 유지한 채7c2cae7 대비 추가23줄/삭제0이다. 실패 먼저1ad38b4는 시험1파일만 추가했고 보완 후보와 같은 시험 원문이다.
+- **시험 수용**: 보존XML의 구판 경계27건중13건실패→후보27/27·계약36/36·재현3/3·기존AiPipeline11/11을 확인했다(총괄 회귀 재실행 아님). 총괄은 원래 `N11Review.java` 해시48e967e9… 동일 파일과 고정 후보의 파서/결과 원문4개를 직접javac해 비네트워크 HttpClient 대역6입력만 추가 실행했고6/6·종료0이다. 상위수집/저장 연결은 개발의 보존 경계시험으로 확인한다. 운영에서 같은 응답이 발생한 것이나 RSS4개/업비트 실제 응답을 검증한 것으로 적지 않는다.
+- **보고 정정**: 경계27건의 거부 기대는 업비트8+RSS7=15건, 정상 기대는6+6=12건이다. 새로 바로잡은 실패13건 외2건은 구판도 이미 거부했다. 구판 통과14건을 전부 정상형식 호환14건으로 적지 않는다. 원문/시험은 보존하고 다음 실제 결과에 이 설명을 함께 넣는다. 시간도 기존약0.3시간 추정과 기록된10:58~11:02 약4분(반올림약0.1시간), 사전시험작성 미기록을 구분한다. 전체0.1시간이나0.3이과다라는 수치는 확정하지 않는다. 별도정정/확인커밋은 만들지 않고40시간 잔여는 추정하지 않는다.
+- **지금 개발 지시 — 개입 #20 준비**: 추가승인/확인용회신 없이 K변수·K0~K4·K1-되돌림·K되돌림을 준비한다. 신규b1d7664·직전ea44900/이미지 `sha256:618046540764e49aa40efef7ec950f28cd5882e8bf7d6bdfdc3da0ed1f0112f9`·V94·결과폴더 `~/maint-n11`을 쓴다(`maint-n08`은 읽기만). 현 이미지는ea44900태그로 보존하는 절차를 둔다. 로컬 두bootJar를 실제로 만들어 클래스/리소스/외부라이브러리 내용 해시 대조의 정확한 기대목록을 고정하고 서버와 다르면 재기동 전에 멈춘다. 블록 추출/문법·필요한 국소 가짜입력만 확인하고 기존167건/전체리허설은 반복하지 않는다. 필요한 F→G→K 의존성과 시작시각/정기보고 확인·09시대회피·K0신선도·단독재기동/5~10분·30분점검·명시적복구 기준을 적는다. 구체 절차/실제jar대조 제출 뒤 총괄이 운영 실행을 판단한다.
+- **#20 점검 범위**: 현재 BTC B1/B3충족,203CREATED/started_at없음/20200/보유·주문0,66세션63/지정종료3,V94/한도·격리,다른서비스시작시각,설치점검d491fd1·장부8bfe8a9·cron/과거파일 보존을 대조한다. N08 배포 전 정체 허용 예외는 옮기지 않는다. 기존 뉴스Connection reset은 원문기준선과 구분해 기록하며 분류를 낮추지 않는다. BTC미재개/보조출처실패만으로 즉시되돌리지 않고 명시적 지시/총괄판단을 따른다.
+- **뉴스 운영 관측 계획**: K3/K4에서 실제 자동수집이 돈 출처의 완료/미완료·sourceId/failureKind를 확인한다. last_fetched_at/소스별간격 보존 때문에 모두기동5분내 돌아야 한다고 요구하지 않으며 미도래는 미관측으로 남긴다. 이후 기존주기로 RSS4개/업비트의 실제응답 호환성을 별도로 확인하고 INVALID_RESPONSE 반복은 원문으로 보고한다. 수집API/강제재시도/주기변경은 하지 않는다. 실패가 없으면 실제실패미발생을 명시하며 모든실패를 운영에서 유발하지 않는다. N03 오늘22:00 기존보고/보존로그의 뉴스·PUNDIX·ELF·JUP 회복근거 확인도 병행한다.
+- **근거/기록**: [`evidence/n11-accept-b1d7664/`](evidence/n11-accept-b1d7664/README.md). 총괄은 외부HTTP/서버/DB/전체앱시험에 접근·실행하지 않았다. 현재 운영ea44900/이미지61804654…·점검d491fd1·장부/cron·N09/N10완료·F0/위험한도·SID203CREATED·12-01 08:50 유지. 서버 결과 전 F변수NEW/F1 HEAD·이미지·기록경로를 바꾸지 않고 최종S도11-30확인 전 자동변경하지 않는다. 문서5개/근거는 다음 실제 절차준비 또는 관측결과와 함께 커밋하며 확인용회신/단독커밋은 만들지 않는다.
+
+**53. 개입 #20 (N11) 준비 — backend 단독 배포·복구 명령 K0~K4 (2026-11-04, v1.85, 로컬 준비·서버 실행 없음)**
+
+- **이번 커밋**: 총괄 v1.84 로컬 문서 5개와 근거 `n11-accept-b1d7664`를 고치지 않고 함께 넣는다. 아래 명령은 총괄 검토 전이며 **운영자는 실행하지 않는다.** 총괄이 이 절차와 실제 jar 대조를 검토한 뒤 운영 실행을 판단한다. F 변수 `NEW`·F1 HEAD·이미지·기록 경로와 최종 S는 그대로다.
+- **§52 기록 정정 반영**: 경계 시험 27건은 거부 기대 15건(업비트 8·RSS 7)과 정상 기대 12건(업비트 6·RSS 6)이다. 98bbeda에서 실패한 13건은 거부 기대 15건 중 새로 바로잡은 것이다. 나머지 거부 2건(RSS `rss` 아래 channel 없음·Atom)은 98bbeda도 이미 거부했다. 그래서 98bbeda 통과 14건 = 정상 12건 + 이미 거부되던 2건이며, §51과 보고에 적은 "호환 14건"은 틀린 묶음이다(원문과 시험은 그대로 둔다). 사용 시간은 §51의 "약 0.3시간"(추정)과 기록된 구간 10:58~11:02 약 4분, 그 전 시험 작성(시각 미기록)을 나눠 적는다. 전체를 0.1시간으로 확정하지 않는다.
+
+**개입 #20 (N11) — 구조와 고정값**
+
+- **고정값**: 지금 운영 `ea4490099f0fa6b614fe71102534b0ba84c0eb7f`(이미지 `sha256:618046540764e49aa40efef7ec950f28cd5882e8bf7d6bdfdc3da0ed1f0112f9`, #19, `~/maint-n08/image-new.txt`) → 후보 `b1d7664db73222aec5d86f2e9137debef0ff4df3`(브랜치 `n11-news-fetch-result`, ea44900 이 조상). 복구 기준도 `ea44900`·`61804654…`다. DB 마이그레이션 없음(후보 최고 V94). **main 의 미배포 V95 는 들어가지 않는다** — 서버는 고정 SHA 만 체크아웃하고 K0 가 ea44900..b1d7664 변경 경로 13개를 그대로 대조하며, K1 의 jar 대조가 `db/migration` 리소스까지 본다.
+- **구조**: #19 J 변수·J0~J4·J 되돌림과 같은 줄에 대상 값만 바꾸고, 다섯 가지를 바꿨다.
+  1. **BTC**: K0 에서 BTC 입력(F 변수 `BTCIN`)이 이미 충족돼야 한다. N08 때의 "배포 전 정체 허용" 예외는 옮기지 않는다. 다른 소비자 수(`SRC`)와 J5(봉 전진)는 이번 변경과 관계없어 뺐다. K3·K4 는 충족 유지만 본다.
+  2. **jar 대조 범위**: J1 비교 코드는 `BOOT-INF/classes` 의 `.class` 와 자체 모듈 jar 안의 `.class`, 외부 라이브러리 jar 만 봤다. 설정·리소스(`application*.yml`·`db/migration/*.sql` 등 96개, 자체 모듈 안 3개)는 보지 않았다. 그래서 두 줄(`.class` 조건 → 디렉터리가 아닌 모든 항목)만 바꿨다. 나머지 줄은 J1 과 같다. 아래 로컬 대조에서 기대값을 고정했다.
+  3. **뉴스 ERROR 분리**: 기존 출처 ERROR 원문 4개(`[RssNewsSource] 수집 실패 — sourceId=`·`[UpbitNoticeSource] 수집 실패: `·`[CryptoPanicSource] 수집 실패: `·`[CoinGeckoTrendingSource] 수집 실패: `)는 K3·K4 에서 따로 모아 🔴 원문으로 출력한다. 이것만으로 멈추거나 되돌리지 않는다. 그 밖의 ERROR(세 마켓 캔들 404 제외)는 J 와 같이 멈춘다. 배포 전 기준선은 K0 의 실행 중 컨테이너 로그(#19 기동 이후)에서 같은 4개 원문을 센 값이다. 정기 점검의 뉴스 미분류 🔴 분류는 바꾸지 않는다.
+  4. **뉴스 관측(`newsobs`)**: K0 에서 `news_source_config` 의 출처·종류·사용 여부·간격·`last_fetched_at` 을 읽고, K3·K4 에서 다시 읽어 새 코드의 `수집 완료`/`수집 미완료 … 결과= 종류=` 줄을 출처별로 낸다. 기동 뒤 차례가 아직 안 온 출처는 "미관측"으로 남긴다. 간격·사용 여부·종류가 K0 와 다르면 멈추고 보고한다(되돌림 아님).
+  5. **시작 시각 검사(`kwin`)**: K0 는 KST 10:10~20:59 또는 22:10~07:59 에만 통과하고, 그 직전 10:00 또는 22:00 정기 보고 파일(`~/daily-check/YYYYMMDD-HHMM.txt`)이 있어야 한다. 09시대와 정기 점검 시각을 피하고 K4 가 다음 09:00·10:00·22:00 전에 끝나게 하려는 것이다. 보고 파일이 없으면 OPS §5 대로 보고만 하고 재실행·재전송하지 않는다. 운영자는 그 보고를 읽은 뒤 시작한다. KST 는 고정 +9시간으로 계산한다(시간대 자료 불필요, 한국은 서머타임 없음).
+- **보존·대조**: SID 203 `CREATED`·`started_at` 없음·20,200원·주문/보유 0(`sid203`), V94, `sc` `66 | 63 | 3 | -`, 공유 풀·위험 한도 줄, 다른 서비스 이미지·시작 시각(`svc`), 정기 점검 설치본 `INSTALLED_SHA` `d491fd1`·셸 `2135e953…cc60`·SQL `653b22ba…8fa8`, 장부 `8bfe8a9` 판, crontab `f2dce280…9b5b`, 과거 장부 파일. K0 에서 모두 맞아야 하고 K4 에서 그대로여야 한다.
+- **서버 git**: `git fetch origin` 뒤 `git checkout --quiet <후보 SHA>`(분리 HEAD)만 한다. `git checkout main`·`git pull` 은 하지 않는다.
+- **시간**: 운영자가 약 1시간 계속 대응할 수 있을 때. 순서는 K0 → 30분 안에 K1(빌드 약 3~5분) → 바로 K2 → 5~10분 뒤 K3 → 기동 30분 뒤 K4. 예: 10:15 K0·10:20 K1·10:26 K2·10:33 K3·10:57 K4. 30분 전에는 완료로 판정하지 않는다(K4 가 막는다). 재기동은 다음 정기 보고에 기동 🔴 를 한 번 낸다(이 배포로 설명됨, 기록).
+- **바뀌는 운영 동작(배포 뒤)**: 뉴스 수집만 바뀐다. 출처 실패·부분 실패가 `수집 완료` 대신 `수집 미완료 … 결과= 종류=` WARN 으로 남는다. 업비트 `success:false` 는 FAILED·항목 미저장이고, 지원 구조가 아닌 RSS 는 `INVALID_RESPONSE` 다. 수동 조회 API 에 `status`·`failureKind` 가 더해진다. 수집 일정(기동 3분 뒤 첫 회차, 15분마다 차례 확인)·출처별 간격·`last_fetched_at` 시도 기준·캐시·출처 ERROR 원문은 그대로다. 매매·평가·주문·세션·위험 한도 코드는 바뀌지 않는다.
+- **jar 대조 기대값(로컬 실제 빌드)**: `cat-n08`(ea44900)·`cat-n11`(b1d7664) 에서 `:web-api:clean :web-api:bootJar -x test` 를 새로 돌려 만든 jar 두 개를 아래 K1 비교 코드로 대조했다. 출력은 아래 9줄과 `(끝) 779 781` 이다. 같은 jar 에 J1 원래 코드를 돌리면 같은 9줄과 `(끝) 680 682` 다(ea44900 쪽 680 은 #19 J1 서버 출력의 새 쪽 680 과 같다). 이 두 jar 는 `.class`·리소스·외부 라이브러리·로더·`META-INF` 까지 전체 항목(877 → 879)을 비교해도 같은 9줄만 다르다.
+  ```
+  변경 BOOT-INF/classes/com/cryptoautotrader/api/controller/NewsSourceController.class
+  변경 BOOT-INF/classes/com/cryptoautotrader/api/news/NewsAggregatorService.class
+  추가 BOOT-INF/classes/com/cryptoautotrader/api/news/NewsFetchResult$Status.class
+  추가 BOOT-INF/classes/com/cryptoautotrader/api/news/NewsFetchResult.class
+  변경 BOOT-INF/classes/com/cryptoautotrader/api/news/NewsSource.class
+  변경 BOOT-INF/classes/com/cryptoautotrader/api/news/source/CoinGeckoTrendingSource.class
+  변경 BOOT-INF/classes/com/cryptoautotrader/api/news/source/CryptoPanicSource.class
+  변경 BOOT-INF/classes/com/cryptoautotrader/api/news/source/RssNewsSource.class
+  변경 BOOT-INF/classes/com/cryptoautotrader/api/news/source/UpbitNoticeSource.class
+  (끝) 779 781
+  ```
+  서버 K1 은 실행 중 컨테이너 jar 와 새 이미지 jar 로 같은 대조를 한다. 다르면 **재기동 전에** 멈춘다.
+- 각 묶음은 `( set -euo pipefail … )` 다. 통과 표지(`ok-K0`~`ok-K4`)가 있어야 다음 묶음이 시작한다. 결과는 새 폴더 `~/maint-n11` 에만 쓴다. `~/maint-n08`(#19)은 읽기만 한다.
+
+**K 변수** — 🔴 새 셸마다 §5-8 **F 변수** → §5-9 의 **G 변수** → 아래 블록 순서로 실행한다. F 변수가 `BTCIN`·`PSQL`·`DC`·`sc`·`svc` 를, G 변수가 `qc`·`zero5`·`alertsok`·`sid203`·`REPO`·`QS`·`POOLX`·`NOT404` 를 준다. 아래 블록이 `M`·`OLD`·`NEW` 를 덮어쓴다. H·I·J 변수는 넣지 않는다.
+```bash
+M=~/maint-n11; mkdir -p "$M"; OPS=~/ops-scripts
+OLD=ea4490099f0fa6b614fe71102534b0ba84c0eb7f; NEW=b1d7664db73222aec5d86f2e9137debef0ff4df3
+IMGOLD=sha256:618046540764e49aa40efef7ec950f28cd5882e8bf7d6bdfdc3da0ed1f0112f9   # #19 배포 이미지(지금 실행 중)
+LS=8bfe8a9fa896f400b3fb6681fef021c99d6ba43b; LSUM=02a8585021fb2a1a52d9b3b56b60e957cb71b9ca3c11bf819595df15cf334f1c   # 지금 설치 장부 — 바꾸지 않는다
+CK=d491fd1609b700d195ecc4d0ccea6be2987bf2fe; CKSH=2135e95314edeea68f6b9dfc31a1c0b0034f84b9d3cbfd52be7ee82afab9cc60; CKSQL=653b22bab04b68c50bf9daf2a54f2c281f9c57eaf6795076225ed39d62d48fa8   # 정기 점검 설치본 — 바꾸지 않는다
+CRON=f2dce2809c09aa4466a95200caa19547118e444b4ac90b4363e20a158dee9b5b   # crontab — 바꾸지 않는다
+h256() { sha256sum < "$1" | cut -d' ' -f1 ; }
+v94() { [ "$($PSQL -At -c "SELECT max(version::int) FROM flyway_schema_history WHERE success")" = "94" ] ; }
+DIFF13="$(printf '%s\n' web-api/src/main/java/com/cryptoautotrader/api/controller/NewsSourceController.java \
+  web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java web-api/src/main/java/com/cryptoautotrader/api/news/NewsFetchResult.java \
+  web-api/src/main/java/com/cryptoautotrader/api/news/NewsSource.java web-api/src/main/java/com/cryptoautotrader/api/news/source/CoinGeckoTrendingSource.java \
+  web-api/src/main/java/com/cryptoautotrader/api/news/source/CryptoPanicSource.java web-api/src/main/java/com/cryptoautotrader/api/news/source/RssNewsSource.java \
+  web-api/src/main/java/com/cryptoautotrader/api/news/source/UpbitNoticeSource.java web-api/src/test/java/com/cryptoautotrader/api/news/LocalHttpStub.java \
+  web-api/src/test/java/com/cryptoautotrader/api/news/NewsFetchGapReproTest.java web-api/src/test/java/com/cryptoautotrader/api/news/NewsFetchResultContractTest.java \
+  web-api/src/test/java/com/cryptoautotrader/api/news/NewsResponseShapeTest.java web-api/src/test/java/com/cryptoautotrader/api/service/AiPipelineTest.java)"
+KARX="$(printf '%s\n' 'BOOT-INF/classes/com/cryptoautotrader/api/controller/NewsSourceController.class' 'BOOT-INF/classes/com/cryptoautotrader/api/news/NewsAggregatorService.class' \
+  '+BOOT-INF/classes/com/cryptoautotrader/api/news/NewsFetchResult$Status.class' '+BOOT-INF/classes/com/cryptoautotrader/api/news/NewsFetchResult.class' \
+  'BOOT-INF/classes/com/cryptoautotrader/api/news/NewsSource.class' 'BOOT-INF/classes/com/cryptoautotrader/api/news/source/CoinGeckoTrendingSource.class' \
+  'BOOT-INF/classes/com/cryptoautotrader/api/news/source/CryptoPanicSource.class' 'BOOT-INF/classes/com/cryptoautotrader/api/news/source/RssNewsSource.class' \
+  'BOOT-INF/classes/com/cryptoautotrader/api/news/source/UpbitNoticeSource.class' | sed -e 's/^+/추가 /' -e t -e 's/^/변경 /')"
+# 기존 뉴스 출처 ERROR 원문 4개(후보에서도 바뀌지 않음). 정기 점검에서는 미분류 🔴 그대로다
+NEWSERR='\[(RssNewsSource\] 수집 실패 — sourceId=|(UpbitNoticeSource|CryptoPanicSource|CoinGeckoTrendingSource)\] 수집 실패: )'
+NEWSCFG="SELECT source_id || '|' || source_type || '|' || is_enabled || '|' || fetch_interval_min || '|' || coalesce(extract(epoch FROM last_fetched_at)::bigint::text, '-') FROM news_source_config ORDER BY source_id"
+btcok() { [ "$(cut -d'|' -f1 "$1")" = true ] && [ "$(cut -d'|' -f4 "$1")" = 20/20 ] ; }
+# BTC 관문은 candle 의 '기동 직전에도 판정 불가' 예외를 받지 않는다(v1.36 과 같다).
+btcgate() { python3 - "$1" <<'PYEOF'
+import re, sys
+st = {}
+for line in open(sys.argv[1], encoding="utf-8", errors="replace"):
+    m = re.search(r"\[캔들 최신성\] (.+?) 판정 (불가|재개) \(", line)
+    if m and m.group(1).startswith("BTC 급락 관문 "):
+        st[m.group(1)] = m.group(2)
+if not st:
+    print("BTC 관문: 판정 불가·재개 줄 없음")
+for k, v in st.items():
+    print("BTC 관문 마지막 상태: %s 판정 %s" % (k, v))
+sys.exit(1 if "불가" in st.values() else 0)
+PYEOF
+}
+# 시작 가능 시각(KST 10:10~20:59·22:10~07:59)과 직전 정기 보고 파일. 인자: 기준 epoch 초
+kwin() { local now=$1 hm last
+  hm=$(date -u -d "@$(( now + 32400 ))" +%H%M)
+  if [ "$hm" -ge 1010 ] && [ "$hm" -lt 2100 ]; then last=$(date -u -d "@$(( now + 32400 ))" +%Y%m%d)-1000
+  elif [ "$hm" -ge 2210 ]; then last=$(date -u -d "@$(( now + 32400 ))" +%Y%m%d)-2200
+  elif [ "$hm" -lt 0800 ]; then last=$(date -u -d "@$(( now + 32400 - 86400 ))" +%Y%m%d)-2200
+  else echo "시작 가능 시각 아님 — KST 10:10~20:59·22:10~07:59 에만 K0 (지금 KST ${hm:0:2}:${hm:2:2})"; return 1; fi
+  [ -s "$HOME/daily-check/$last.txt" ] || { echo "직전 정기 보고 ~/daily-check/$last.txt 없음 — OPS §5 대로 보고만(재실행·재전송 금지)"; return 1; }
+  echo "직전 정기 보고 ~/daily-check/$last.txt (읽은 뒤 시작)" ; }
+# 뉴스 출처별 관측. 인자: 앱 로그, K0 설정, 지금 설정, 기동 epoch 초. 종료 1 = 설정(종류·사용·간격)이 K0 와 다름, 2 = 새 코드가 시도했는데 완료·미완료 줄 없음
+newsobs() { python3 - "$@" <<'PYEOF'
+import re, sys, time
+log, before, now, start = sys.argv[1], sys.argv[2], sys.argv[3], int(sys.argv[4])
+def cfg(p):
+    d = {}
+    for line in open(p, encoding="utf-8"):
+        f = line.rstrip("\n").split("|")
+        if len(f) != 5:
+            print("⚪ 뉴스 설정 줄 형식 다름: %r" % line); sys.exit(2)
+        d[f[0]] = f
+    return d
+kst = lambda t: time.strftime("%H:%M KST", time.gmtime(t + 32400))
+b, n = cfg(before), cfg(now)
+seen = {}
+pat = re.compile(r"\[NewsAggregator\] 수집 (완료|미완료) — sourceId=(\S+) (.*)$")
+for line in open(log, encoding="utf-8", errors="replace"):
+    m = pat.search(line)
+    if m:
+        seen.setdefault(m.group(2), []).append((m.group(1), m.group(3).strip()))
+rc = 0
+for k in sorted(set(b) | set(n)):
+    if b.get(k, ["없음"])[:4] != n.get(k, ["없음"])[:4]:
+        print("🔴 뉴스 설정이 K0 때와 다름: %s → %s" % ("|".join(b.get(k, ["없음"])[:4]), "|".join(n.get(k, ["없음"])[:4])))
+        rc = 1
+for k in sorted(n):
+    sid, typ, en, iv, lf = n[k]
+    rs = seen.get(sid, [])
+    if rs:
+        done = sum(1 for r in rs if r[0] == "완료")
+        print("%s %s(%s분): 완료 %d·미완료 %d — 마지막 '수집 %s — %s'" % (sid, typ, iv, done, len(rs) - done, rs[-1][0], rs[-1][1]))
+        for r in rs:
+            if r[0] == "미완료" and ("종류=INVALID_RESPONSE" in r[1] or "종류=SOURCE_REPORTED_FAILURE" in r[1]):
+                print("   🔴 새 판정 — 출처 원문과 함께 보고: 수집 미완료 — sourceId=%s %s" % (sid, r[1]))
+    elif en not in ("t", "true"):
+        print("%s %s: 사용 안 함" % (sid, typ))
+    elif lf != "-" and int(lf) >= start + 60:
+        print("⚪ %s %s: 새 코드가 시도(last_fetched_at %s)했는데 완료·미완료 줄 없음 — 원문 보고" % (sid, typ, kst(int(lf))))
+        rc = max(rc, 2)
+    else:
+        due = max(int(lf) + int(iv) * 60 if lf != "-" else start, start + 180)
+        print("%s %s(%s분): 미관측 — 기동 뒤 차례 전(%s 이후 첫 15분 회차)" % (sid, typ, iv, kst(due)))
+sys.exit(rc)
+PYEOF
+}
+```
+
+**K0. ⏸ 직전 확인 — 읽기 전용, 재기동 없음** (총괄 실행 판단 뒤)
+```bash
+(
+set -euo pipefail
+stop() { echo "🔴 멈춤: $*"; exit 1; }
+[ "$M" = "$HOME/maint-n11" ] && [ "$NEW" = b1d7664db73222aec5d86f2e9137debef0ff4df3 ] && [ -n "${BTCIN:-}" ] && type sid203 > /dev/null 2>&1 && type newsobs > /dev/null 2>&1 || stop "변수 순서 — F 변수 → G 변수 → K 변수"
+[ ! -e "$M/ok-K1" ] || stop "K1 을 이미 시작했다 — K0 를 다시 하지 않는다. ls -l $M 를 보고"
+kwin "$(date +%s)" || stop "시작 시각·정기 보고 확인 — 위 줄"
+[ "$(git rev-parse HEAD)" = "$OLD" ] && [ -z "$(git status --porcelain --untracked-files=no)" ] || stop "HEAD 가 ea44900 이 아니거나 추적 파일 변경 있음"
+date '+%F %T %Z' | tee "$M/t-before.txt"; date '+%F %T%:z' > "$M/maint_start.txt"
+{ git rev-parse HEAD; git status --porcelain --untracked-files=no; echo "(끝)"; } | tee "$M/git-before.txt"
+git fetch origin
+git cat-file -e "$NEW^{commit}" || stop "후보 b1d7664 없음"
+git merge-base --is-ancestor $OLD $NEW || stop "ea44900 이 후보의 조상이 아님"
+[ "$(git diff --name-only $OLD $NEW)" = "$DIFF13" ] || stop "diff 가 정확히 뉴스 13개 파일이 아님(마이그레이션 포함 금지)"
+svc | tee "$M/svc-before.txt"
+IMG0=$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)"); echo "$IMG0" | tee "$M/image-before.txt"
+[ "$IMG0" = "$IMGOLD" ] && [ "$IMGOLD" = "$(cat ~/maint-n08/image-new.txt)" ] || stop "실행 이미지가 #19 배포 이미지(61804654…)와 다름"
+[ "$(docker image inspect --format '{{.Id}}' $REPO:latest)" = "$IMG0" ] || stop "$REPO:latest 가 실행 이미지와 다름"
+[ "$($DC exec -T backend env | grep '^TRADING_CAPITALPOOL_' | sort)" = "$POOLX" ] || stop "공유 풀 등록값이 STAGE_1·100000·20000·3 과 다름"
+v94 || stop "Flyway 최고 버전이 94 가 아님"
+sid203 || stop "SID 203·기준 행·EG·0 확인 중 다른 것 있음 — F1 과 같은 조회로 보고"
+sc | tee "$M/s-before.txt"; [ "$(cat "$M/s-before.txt")" = "66 | 63 | 3 | -" ] || stop "검증 66세션 상태 다름"
+[ "$(h256 "$OPS/sid_ledger.sql")" = "$LSUM" ] && [ "$(cat "$OPS/SID_LEDGER_SHA")" = "$LS" ] || stop "설치 장부가 8bfe8a9 판이 아님"
+[ "$(cat "$OPS/INSTALLED_SHA")" = "$CK" ] && [ "$(h256 "$OPS/daily_check.sh")" = "$CKSH" ] && [ "$(h256 "$OPS/daily_checks.sql")" = "$CKSQL" ] || stop "정기 점검 설치본이 d491fd1 판이 아님"
+crontab -l > "$M/crontab-before.txt" || stop "crontab 조회 실패"
+[ "$(h256 "$M/crontab-before.txt")" = "$CRON" ] || stop "crontab 이 f2dce280… 과 다름"
+( cd ~/sid203-ledger && sha256sum -- * ) > "$M/ledger-files-before.sha"; cat "$M/ledger-files-before.sha"
+$PSQL -At -c "$BTCIN" > "$M/btc-before.txt" || stop "BTC 입력 조회 실패"
+echo "== BTC H1 충족|최신 완료 봉|필요 봉|최근 20일 마감 봉: $(cat "$M/btc-before.txt")"
+btcok "$M/btc-before.txt" || stop "BTC 입력 미충족 — 배포하지 않고 보고(N08 때의 정체 허용 예외는 이번에 없다)"
+$PSQL -At -c "$NEWSCFG" > "$M/news-before.txt" || stop "뉴스 설정 조회 실패"
+[ -s "$M/news-before.txt" ] || stop "뉴스 설정이 비었음"
+echo "== 뉴스 출처(종류|사용|간격 분|last_fetched_at epoch)"; cat "$M/news-before.txt"
+qc > "$M/q-before.txt" 2>&1; sed -n '/== Q3/,$p' "$M/q-before.txt" | grep -vE '^-+|^\s*$'
+git show $QS:scripts/ops/maint_verify.py > "$M/maint_verify.py"
+$DC logs --no-color backend > "$M/backend-before.log"
+grep " ERROR " "$M/backend-before.log" | grep -E "$NEWSERR" > "$M/news-err-before.txt" || true
+echo "== 배포 전 기준선: 실행 중 backend 로그의 뉴스 출처 ERROR $(wc -l < "$M/news-err-before.txt")줄(출처별)"
+grep -oE "$NEWSERR" "$M/news-err-before.txt" | sort | uniq -c || true
+tail -n 3 "$M/news-err-before.txt" | cut -c1-200
+python3 scripts/prospective/start_66.py alerts --days 1 --no-mark > "$M/alerts-before.txt" 2>&1 && AE=0 || AE=$?
+echo "경보 종료코드 $AE"
+alertsok "$AE" "$M/alerts-before.txt" || stop "경보 조회가 끝까지 돌지 않음 — alerts-before.txt 를 보고"
+grep -E '^(🔴|⚪)' "$M/alerts-before.txt" || true
+touch "$M/ok-K0"; echo "✅ K0 통과 — 30분 안에 K1"
+)
+```
+- 기대 결과:
+  - `kwin` 이 직전 정기 보고 파일을 출력한다. `git-before` 는 `ea449009…` 다음 바로 `(끝)` 이고, diff 는 뉴스 13개 파일이다.
+  - 실행 이미지 = `latest` = `sha256:61804654…`(#19) = `~/maint-n08/image-new.txt` 다.
+  - 공유 풀 네 값, V94, `sid203` 통과, `sc` `66 | 63 | 3 | -`, 장부 `8bfe8a9` 판, 정기 점검 `d491fd1` 판, crontab `f2dce280…`.
+  - BTC `true|<완료 봉>|<필요 봉>|20/20`. 미충족이면 멈추고 배포하지 않는다.
+  - 뉴스 출처 목록과 배포 전 뉴스 출처 ERROR 기준선(출처별 줄 수·마지막 3줄)을 기록한다. 기준선은 멈춤 조건이 아니다.
+  - Q3~Q6 0 · Q7 `RUNNING 63`·`STOPPED 3` · Q8 0 · Q9 0 · `ROLLBACK`(눈으로). 경보는 기준선으로 기록만 한다.
+- 멈추면 아무것도 바뀌지 않았다. 출력을 보고한다.
+
+**K1. 새 이미지 빌드와 jar 대조 — 재기동 없음**
+```bash
+(
+set -euo pipefail
+stop() { echo "🔴 멈춤: $*"; exit 1; }
+[ -e "$M/ok-K0" ] || stop "K0 미통과"
+[ ! -e "$M/ok-K1" ] || stop "K1 을 이미 통과했다 — 바로 K2"
+[ $(( $(date +%s) - $(stat -c %Y "$M/ok-K0") )) -le 1800 ] || stop "K0 가 30분보다 오래됨 — K0 부터"
+IMG0=$(cat "$M/image-before.txt")
+if docker image inspect $REPO:ea44900 > /dev/null 2>&1; then [ "$(docker image inspect --format '{{.Id}}' $REPO:ea44900)" = "$IMG0" ] || stop "$REPO:ea44900 태그가 이미 다른 이미지를 가리킨다"; fi
+docker tag "$IMG0" $REPO:ea44900
+[ "$(docker image inspect --format '{{.Id}}' $REPO:ea44900)" = "$IMG0" ] || stop "기존 이미지 보존 태그 실패"
+git checkout --quiet $NEW
+[ "$(git rev-parse HEAD)" = "$NEW" ] && [ -z "$(git status --porcelain --untracked-files=no)" ] || stop "체크아웃 결과가 NEW 가 아니거나 변경 있음 — K1-되돌림"
+date '+%F %T %Z' | tee "$M/t-build.txt"
+$DC build backend > "$M/build.log" 2>&1 || stop "빌드 실패 — build.log 를 보고. K1-되돌림"
+IMG1=$(docker image inspect --format '{{.Id}}' $REPO:latest); echo "$IMG1" | tee "$M/image-new.txt"
+[ "$IMG1" != "$IMG0" ] || stop "새 이미지가 만들어지지 않음 — K1-되돌림"
+[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$IMG0" ] || stop "🔴 실행 중 backend 가 바뀌었다 — 보고"
+docker cp "$($DC ps -q backend)":/app/app.jar "$M/app-old.jar"
+CID=$(docker create $REPO:latest); docker cp "$CID":/app/app.jar "$M/app-new.jar"; docker rm "$CID" > /dev/null
+sha256sum "$M/app-old.jar" "$M/app-new.jar" | tee "$M/jar-sha.txt"
+python3 - "$M/app-old.jar" "$M/app-new.jar" <<'EOF' | tee "$M/jar-diff.txt"
+import hashlib, io, re, sys, zipfile
+OWN = re.compile(r"BOOT-INF/lib/(core-engine|strategy-lib|exchange-adapter)[^/]*\.jar$")
+def classes(path):
+    z, out = zipfile.ZipFile(path), {}
+    for n in z.namelist():
+        if n.startswith("BOOT-INF/classes/") and not n.endswith("/"):
+            out[n] = hashlib.sha256(z.read(n)).hexdigest()
+        elif n.startswith("BOOT-INF/lib/") and n.endswith(".jar"):
+            if OWN.match(n):
+                inner = zipfile.ZipFile(io.BytesIO(z.read(n)))
+                for m in inner.namelist():
+                    if not m.endswith("/"):
+                        out[re.sub(r"-[0-9.]+(-SNAPSHOT)?\.jar$", ".jar", n) + "!" + m] = hashlib.sha256(inner.read(m)).hexdigest()
+            else:
+                out[n] = hashlib.sha256(z.read(n)).hexdigest()
+    return out
+a, b = classes(sys.argv[1]), classes(sys.argv[2])
+for k in sorted(set(a) | set(b)):
+    if a.get(k) != b.get(k):
+        print(("추가 " if k not in a else "삭제 " if k not in b else "변경 ") + k)
+print("(끝)", len(a), len(b))
+EOF
+[ "$(grep -v '^(끝)' "$M/jar-diff.txt")" = "$KARX" ] || stop "jar 차이가 뉴스 9줄이 아님 — jar-diff.txt 를 보고(재기동 전). K1-되돌림"
+grep -qx '(끝) 779 781' "$M/jar-diff.txt" || stop "항목 수가 779 → 781 이 아님 — jar-diff.txt 를 보고(재기동 전). K1-되돌림"
+touch "$M/ok-K1"; echo "✅ K1 통과 — 바로 K2"
+)
+```
+- 기대: `jar-diff.txt` 가 위 "jar 대조 기대값"의 9줄과 `(끝) 779 781` 이다. 설정·리소스(마이그레이션 SQL 포함)·외부 라이브러리 어느 것이든 하나라도 더 다르면 재기동하지 않고 보고한다.
+- **K1-되돌림**(K1 이 멈췄을 때 — 실행 중 backend 는 그대로다): `git checkout --quiet $OLD; docker tag "$(cat "$M/image-before.txt")" $REPO:latest; git rev-parse HEAD; docker image inspect --format '{{.Id}}' $REPO:latest` → `ea449009…`·`image-before.txt` 와 같은 ID. 재기동하지 않는다.
+
+**K2. 재기동 (개입 #20) — K1 통과 뒤 바로** (⏸ 바로 앞에서 운영자 확인을 한 번 받는다)
+```bash
+(
+set -euo pipefail
+stop() { echo "🔴 멈춤: $*"; exit 1; }
+[ -e "$M/ok-K1" ] || stop "K1 미통과"
+[ ! -e "$M/ok-K2" ] || stop "K2 를 이미 했다 — K3"
+IMG1=$(cat "$M/image-new.txt")
+[ "$(git rev-parse HEAD)" = "$NEW" ] || stop "HEAD 가 NEW 가 아님"
+[ "$(docker image inspect --format '{{.Id}}' $REPO:latest)" = "$IMG1" ] || stop "latest 가 image-new 와 다름"
+sid203 || stop "SID 203·기준 행·EG·0 확인 중 다른 것 있음"
+[ "$(sc)" = "66 | 63 | 3 | -" ] || stop "검증 66세션 상태 다름"
+date '+%F %T %Z' | tee "$M/t-deploy.txt"; date -u '+%Y-%m-%dT%H:%M:%SZ' > "$M/t-deploy.utc"
+echo "== 여기부터 재기동 — 이 뒤의 멈춤은 '되돌림 필요'"
+$DC up -d --no-build --no-deps backend || stop "되돌림 필요: 재생성 실패"
+sleep 15
+[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$IMG1" ] || stop "되돌림 필요: 새 컨테이너 이미지가 image-new 와 다름"
+[ "$($DC exec -T backend env | grep '^TRADING_CAPITALPOOL_' | sort)" = "$POOLX" ] || stop "되돌림 필요: 공유 풀 등록값 다름"
+svc | tee "$M/svc-deploy.txt"
+diff <(grep -v '^backend ' "$M/svc-before.txt") <(grep -v '^backend ' "$M/svc-deploy.txt") || stop "되돌림 필요: backend 외 서비스가 바뀜"
+{ git rev-parse HEAD; git status --porcelain --untracked-files=no; echo "(끝)"; } | tee "$M/git-deploy.txt"
+touch "$M/ok-K2"; echo "✅ K2 통과 — 5~10분 뒤 K3"
+)
+```
+
+**K3. 기동·뉴스 첫 회차 확인 — K2 5~10분 뒤** (되돌림 뒤에도 같은 묶음을 쓴다. `t-rollback.utc` 가 있으면 그 시각과 기존 이미지로 보고, BTC·뉴스는 기록만 한다)
+```bash
+(
+set -euo pipefail
+stop() { echo "🔴 멈춤: $*"; exit 1; }
+if [ -e "$M/t-rollback.utc" ]; then S=$(cat "$M/t-rollback.utc"); EXP=$(cat "$M/image-before.txt"); T=rollback; else [ -e "$M/ok-K2" ] || stop "K2 미통과"; S=$(cat "$M/t-deploy.utc"); EXP=$(cat "$M/image-new.txt"); T=deploy; fi
+[ $(( $(date +%s) - $(date -d "$S" +%s) )) -ge 300 ] || stop "기동 5분 전 — 5분이 지난 뒤 K3"
+$DC ps backend
+[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$EXP" ] || stop "실행 이미지가 기대와 다름"
+$DC logs --no-color --since "$S" backend > "$M/app-$T.log"
+grep -E "Schema .* is up to date|Migrating schema|Successfully applied|매도 격리 점검|Started CryptoAutoTrader" "$M/app-$T.log" | head -10
+grep -q "Started CryptoAutoTrader" "$M/app-$T.log" || stop "되돌림 필요: 기동 완료 줄 없음"
+! grep -qE "Migrating schema|Successfully applied" "$M/app-$T.log" || stop "되돌림 필요: 마이그레이션이 돌았다(이번 배포에는 없어야 함)"
+v94 || stop "되돌림 필요: Flyway 최고 버전이 94 가 아님"
+grep -qF "공유 풀 한도 확인: 단계=STAGE_1 총상한=100000 포지션당=20000 동시보유=3" "$M/app-$T.log" || stop "되돌림 필요: 공유 풀 등록 로그 없음"
+grep -qF "위험 한도 확인: 단계 STAGE_1 총 자본 100000 기준 누적 15.00%·24시간 3.00%" "$M/app-$T.log" || stop "되돌림 필요: 위험 한도 로그 없음"
+! grep -qE "🔴 (공유 풀 한도|위험 한도)" "$M/app-$T.log" || stop "되돌림 필요: 🔴 공유 풀/위험 한도 줄"
+grep " ERROR " "$M/app-$T.log" | grep -v "캔들 최신성" | grep -v -E "$NOT404" > "$M/errors-all-$T.txt" || true
+grep -E "$NEWSERR" "$M/errors-all-$T.txt" > "$M/errors-news-$T.txt" || true
+grep -v -E "$NEWSERR" "$M/errors-all-$T.txt" > "$M/errors-$T.txt" || true
+[ ! -s "$M/errors-$T.txt" ] || stop "세 마켓 캔들 404·뉴스 출처 ERROR 밖의 ERROR — errors-$T.txt 를 보고"
+if [ -s "$M/errors-news-$T.txt" ]; then
+  echo "🔴 뉴스 출처 ERROR $(wc -l < "$M/errors-news-$T.txt")줄 — 미분류 🔴 그대로, 이것만으로 되돌리지 않는다. 원문과 배포 전 기준선 $(wc -l < "$M/news-err-before.txt")줄을 함께 보고"
+  cut -c1-200 "$M/errors-news-$T.txt"
+fi
+grep -E "BTC 급락 관문 H1 판정 (불가|재개)" "$M/app-$T.log" | cut -c1-140 || true
+btcgate "$M/app-$T.log" || stop "BTC 관문 마지막 상태가 판정 불가 — 바로 되돌리지 말고 위 출력을 보고"
+python3 "$M/maint_verify.py" candle "$M/app-$T.log" "$M/backend-before.log" || stop "기동 뒤 판정 불가 대상이 아직 재개되지 않음 — 위 출력을 보고"
+qc > "$M/q-$T.txt" 2>&1; sed -n '/== Q3/,$p' "$M/q-$T.txt" | grep -vE '^-+|^\s*$'
+sc | tee "$M/s-$T.txt"; diff "$M/s-before.txt" "$M/s-$T.txt" || stop "되돌림 필요: 검증 세션 상태 바뀜"
+sid203 || stop "SID 203·기준 행·EG·0 확인 중 바뀐 것 있음 — 보고"
+$PSQL -At -c "$BTCIN" > "$M/btc-$T.txt" || stop "BTC 입력 조회 실패 — 1분 뒤 K3 를 다시"
+echo "== BTC H1 배포 전 $(cat "$M/btc-before.txt") · 지금 $(cat "$M/btc-$T.txt")"
+if [ "$T" = deploy ]; then btcok "$M/btc-$T.txt" || stop "BTC 입력 미충족 — 바로 되돌리지 말고 위 출력을 보고(재기동 없이 K3 만 5분 뒤 한 번 다시)"; fi
+$PSQL -At -c "$NEWSCFG" > "$M/news-$T.txt" || stop "뉴스 설정 조회 실패 — 1분 뒤 K3 를 다시"
+echo "== 뉴스 출처별(기동 $(cut -c12-19 <<< "$S")Z 뒤 로그 · 첫 회차는 기동 3분 뒤)"
+newsobs "$M/app-$T.log" "$M/news-before.txt" "$M/news-$T.txt" "$(date -d "$S" +%s)" | tee "$M/newsobs-$T.txt" && NO=0 || NO=$?
+[ "$NO" = 0 ] || [ "$T" = rollback ] || stop "뉴스 관측 이상(종료 $NO) — 되돌리지 말고 위 출력을 보고"
+touch "$M/ok-K3-$T"
+if [ "$T" = deploy ]; then echo "✅ K3(deploy) 통과 — 기동 30분 뒤 K4"; else echo "✅ K3(rollback) 통과 — ea44900 복귀 확인. K4 는 하지 않고 출력을 보고"; fi
+)
+```
+- 기대 결과(배포):
+  - #19 J3 와 같다: `Started`, `Schema "public" is up to date`(마이그레이션 없음), V94, 매도 격리 점검 "없음", 두 한도 줄, 뉴스 출처 ERROR 와 세 마켓 캔들 404 밖의 ERROR 없음, `btcgate` 줄 없음 또는 재개, `candle` `아직 판정 불가 0`, Q3~Q6 0 · Q7 63/3 · Q8 0 · Q9 0 · `ROLLBACK`, `sc` 같음, `sid203` 통과, BTC `true|…|20/20`.
+  - 뉴스: 기동 3분 뒤 첫 회차에서 차례가 온 출처마다 `수집 완료 — 전체=N건 신규=M건` 또는 `수집 미완료 — 결과=FAILED|PARTIAL 종류=…` 한 줄씩. 차례 전인 출처는 "미관측"이다. 모든 출처가 기동 5분 안에 돌아야 하는 것은 아니다.
+  - 뉴스 출처 ERROR 가 있으면 🔴 원문으로 나온다. 같은 출처의 `수집 미완료` WARN 이 뒤따라야 맞다(전에는 `수집 완료`). 기준선과 출처·문구를 대조해 보고한다. `INVALID_RESPONSE`·`SOURCE_REPORTED_FAILURE` 가 나오면 출처 원문과 함께 보고한다.
+- BTC 관문 미재개·BTC 입력 미충족·뉴스 관측 이상은 바로 되돌리지 않는다. 출력을 보고한다. 5분 뒤 K3 를 한 번 다시 해도 그대로면 총괄 판단을 기다린다(재기동·수동 봉 삽입·수집 API·강제 재시도·설정 주기 변경·세션 시작 금지).
+
+**K4. 30분 재점검 — 기동 30분 뒤**
+```bash
+(
+set -euo pipefail
+stop() { echo "🔴 멈춤: $*"; exit 1; }
+[ -e "$M/ok-K3-deploy" ] || stop "K3 미통과"
+S=$(cat "$M/t-deploy.utc")
+[ $(( $(date +%s) - $(date -d "$S" +%s) )) -ge 1800 ] || stop "아직 30분 전 — 완료로 판정하지 않는다"
+date '+%F %T %Z' | tee "$M/t-after30.txt"
+$DC ps backend
+$DC logs --no-color --since "$S" backend > "$M/app-after30.log"
+grep " ERROR " "$M/app-after30.log" | grep -v "캔들 최신성" | grep -v -E "$NOT404" > "$M/errors-all-after30.txt" || true
+grep -E "$NEWSERR" "$M/errors-all-after30.txt" > "$M/errors-news-after30.txt" || true
+grep -v -E "$NEWSERR" "$M/errors-all-after30.txt" > "$M/errors-after30.txt" || true
+[ ! -s "$M/errors-after30.txt" ] || stop "세 마켓 캔들 404·뉴스 출처 ERROR 밖의 ERROR — errors-after30.txt 를 보고"
+if [ -s "$M/errors-news-after30.txt" ]; then
+  echo "🔴 뉴스 출처 ERROR $(wc -l < "$M/errors-news-after30.txt")줄 — 미분류 🔴 그대로, 이것만으로 되돌리지 않는다. 원문과 배포 전 기준선 $(wc -l < "$M/news-err-before.txt")줄을 함께 보고"
+  cut -c1-200 "$M/errors-news-after30.txt"
+fi
+! grep -qE "🔴 (공유 풀 한도|위험 한도)" "$M/app-after30.log" || stop "되돌림 필요: 🔴 공유 풀/위험 한도 줄"
+v94 || stop "되돌림 필요: Flyway 최고 버전이 94 가 아님"
+grep -E "BTC 급락 관문 H1 판정 (불가|재개)" "$M/app-after30.log" | cut -c1-140 || true
+btcgate "$M/app-after30.log" || stop "BTC 관문 마지막 상태가 판정 불가 — 바로 되돌리지 말고 위 출력을 보고"
+python3 "$M/maint_verify.py" candle "$M/app-after30.log" "$M/backend-before.log" || stop "판정 불가 대상이 남아 있음 — 위 출력을 보고"
+qc > "$M/q-after30.txt" 2>&1; sed -n '/== Q3/,$p' "$M/q-after30.txt" | grep -vE '^-+|^\s*$'
+sc | tee "$M/s-after30.txt"; diff "$M/s-before.txt" "$M/s-after30.txt" || stop "되돌림 필요: 검증 세션 상태 바뀜"
+svc | tee "$M/svc-after30.txt"
+diff <(grep -v '^backend ' "$M/svc-before.txt") <(grep -v '^backend ' "$M/svc-after30.txt") || stop "되돌림 필요: backend 외 서비스가 바뀜"
+[ "$(grep '^backend ' "$M/svc-deploy.txt")" = "$(grep '^backend ' "$M/svc-after30.txt")" ] || stop "되돌림 필요: backend 재시작 있음"
+sid203 || stop "SID 203·기준 행·EG·0 확인 중 바뀐 것 있음 — 보고"
+[ "$(h256 "$OPS/sid_ledger.sql")" = "$LSUM" ] && [ "$(cat "$OPS/SID_LEDGER_SHA")" = "$LS" ] || stop "설치 장부가 바뀜 — 보고"
+[ "$(cat "$OPS/INSTALLED_SHA")" = "$CK" ] && [ "$(h256 "$OPS/daily_check.sh")" = "$CKSH" ] && [ "$(h256 "$OPS/daily_checks.sql")" = "$CKSQL" ] || stop "정기 점검 설치본이 바뀜 — 보고"
+crontab -l | cmp -s - "$M/crontab-before.txt" || stop "cron 이 K0 때와 다름 — crontab -l 을 보고"
+( cd ~/sid203-ledger && sha256sum --quiet -c "$M/ledger-files-before.sha" ) || stop "과거 장부 기록 파일이 바뀜 — 보고"
+$PSQL -At -c "$BTCIN" > "$M/btc-after30.txt" || stop "BTC 입력 조회 실패 — 1분 뒤 K4 를 다시"
+echo "== BTC H1 K3 $(cat "$M/btc-deploy.txt") · 지금 $(cat "$M/btc-after30.txt")"
+btcok "$M/btc-after30.txt" || stop "BTC 입력 미충족 — 바로 되돌리지 말고 위 출력을 보고"
+$PSQL -At -c "$NEWSCFG" > "$M/news-after30.txt" || stop "뉴스 설정 조회 실패 — 1분 뒤 K4 를 다시"
+echo "== 뉴스 출처별(기동 뒤 30분 로그)"
+newsobs "$M/app-after30.log" "$M/news-before.txt" "$M/news-after30.txt" "$(date -d "$S" +%s)" | tee "$M/newsobs-after30.txt" || stop "뉴스 관측 이상 — 되돌리지 말고 위 출력을 보고"
+python3 scripts/prospective/start_66.py alerts --since "$S" --no-mark > "$M/alerts-after30.txt" 2>&1 && AE=0 || AE=$?
+echo "경보 종료코드 $AE (1 = 🔴 경보 있음 — 이것만으로 멈추지 않고 네 갈래로 대조)"
+alertsok "$AE" "$M/alerts-after30.txt" || stop "경보 조회가 끝까지 돌지 않음 — alerts-after30.txt 를 보고"
+echo "== 경보 (지금)"; cat "$M/alerts-after30.txt"
+echo "== 경보 (배포 전 기준선)"; cat "$M/alerts-before.txt"
+touch "$M/ok-K4"; echo "✅ K4 통과 — K0~K4 출력을 보고(F 변수·F1 은 총괄 판단 뒤 개발 에이전트가 갱신)"
+)
+```
+- 기대 결과:
+  - V94, Q3~Q6 0 · Q7 63/3 · Q8 0 · Q9 0 · `ROLLBACK`, `sc` 같음, backend 재시작 없음, 다른 서비스 이미지·시작 시각 불변, BTC 관문 줄 없음 또는 재개, BTC `true|…|20/20`, `sid203` 통과.
+  - 설치 장부 `8bfe8a9` 판·정기 점검 `d491fd1` 판·cron·과거 장부 기록 파일이 K0 때와 같다.
+  - 뉴스: 기동 뒤 30분 동안(회차 3·18·33분 무렵) 차례가 온 출처의 완료/미완료 줄. 간격이 긴 출처는 여전히 "미관측"일 수 있다. 미관측은 실패가 아니다.
+  - 경보는 네 갈래(기존 반복·새 경보·⚪·실행 누락)로 `alerts-before.txt` 와 대조한다. KRW-BLAST 반복과 뉴스 출처 ERROR 밖에 무엇이 있으면 보고한다. 통과 표지가 있어도 새 경보·⚪·실행 누락이 있으면 원문을 보고한다.
+
+**K 뒤 뉴스 관측 — 읽기 전용, 반복 가능** (K4 통과 뒤 다음 정기 보고 무렵 등. 수집 API·강제 재시도·주기 변경 없이 기존 주기의 로그만 읽는다)
+```bash
+(
+set -euo pipefail
+stop() { echo "🔴 멈춤: $*"; exit 1; }
+[ -e "$M/ok-K4" ] || stop "K4 미통과"
+S=$(cat "$M/t-deploy.utc"); TS=$(date '+%Y%m%d-%H%M')
+[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$(cat "$M/image-new.txt")" ] || stop "실행 이미지가 image-new 와 다름 — 보고"
+$DC logs --no-color --since "$S" backend > "$M/app-news-$TS.log"
+$PSQL -At -c "$NEWSCFG" > "$M/news-$TS.txt" || stop "뉴스 설정 조회 실패"
+newsobs "$M/app-news-$TS.log" "$M/news-before.txt" "$M/news-$TS.txt" "$(date -d "$S" +%s)" | tee "$M/newsobs-$TS.txt" || echo "🔴 뉴스 관측 이상 — 위 출력을 보고"
+grep " ERROR " "$M/app-news-$TS.log" | grep -E "$NEWSERR" > "$M/errors-news-$TS.txt" || true
+echo "== 기동 뒤 뉴스 출처 ERROR $(wc -l < "$M/errors-news-$TS.txt")줄(출처별)"; grep -oE "$NEWSERR" "$M/errors-news-$TS.txt" | sort | uniq -c || true
+)
+```
+- RSS 4개·업비트 공지의 실제 응답 호환성은 여기서 처음 운영으로 확인한다. 출처마다 `수집 완료` 가 한 번 이상 나오면 그 출처는 실제 응답을 새 판정으로 읽은 것이다. `INVALID_RESPONSE`·`SOURCE_REPORTED_FAILURE` 가 반복되면 출처별 원문(WARN 줄 포함)으로 보고한다. 실패가 한 번도 없으면 "실제 실패 미발생"으로 적고 로컬 재현 근거와 구분한다. 일부러 실패를 만들지 않는다.
+
+**K 되돌림 — backend (K2~K4 의 "되돌림 필요" 때, 또는 총괄 지시 뒤)** (DB 마이그레이션·장부 변경이 없으므로 데이터 작업은 없다)
+```bash
+(
+set -euo pipefail
+stop() { echo "🔴 멈춤: $*"; exit 1; }
+IMG0=$(cat "$M/image-before.txt"); [ "$IMG0" = "$IMGOLD" ] || stop "image-before 가 #19 이미지가 아님"
+date '+%F %T %Z' | tee "$M/t-rollback.txt"; date -u '+%Y-%m-%dT%H:%M:%SZ' > "$M/t-rollback.utc"
+git checkout --quiet $OLD; [ "$(git rev-parse HEAD)" = "$OLD" ] || stop "체크아웃 실패"
+docker tag "$IMG0" $REPO:latest
+$DC up -d --no-build --no-deps --force-recreate backend
+sleep 15
+[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$IMG0" ] || stop "이미지가 image-before 와 다름"
+[ "$($DC exec -T backend env | grep '^TRADING_CAPITALPOOL_' | sort)" = "$POOLX" ] || stop "공유 풀 등록값 다름"
+svc | tee "$M/svc-rollback.txt"
+{ git rev-parse HEAD; git status --porcelain --untracked-files=no; echo "(끝)"; } | tee "$M/git-rollback.txt"
+echo "✅ ea44900 (61804654…) 로 복귀 — 5분 뒤 K3 를 다시 실행(t-rollback.utc 기준으로 자동 전환, BTC·뉴스는 기록만)"
+)
+```
+- 새 코드가 그동안 저장한 뉴스 캐시 행은 기존과 같은 저장 경로(중복 확인 뒤 저장)로 들어간 것이다. 지우거나 고치지 않는다. `last_fetched_at` 도 기존과 같은 시도 기준이라 손대지 않는다. SID 203 은 `CREATED`·주문 0 이라 새 코드가 남긴 주문·포지션 자료는 없다.
+- 되돌리면 뉴스 실패가 다시 `수집 완료 … 0건`으로 남는 상태(N11 미해결)로 돌아간다. F 변수·F1 은 `ea44900`·`61804654…` 그대로 두고 N11 은 운영 반영으로 쓰지 않는다.
+
+**배포 확인 뒤 — 개발 에이전트(K0~K4 출력과 총괄 판단 뒤, 이 커밋에서는 하지 않는다)**:
+- F 변수 `NEW` 를 `b1d7664db73222aec5d86f2e9137debef0ff4df3` 로, F1 의 HEAD 멈춤 문구를 `b1d7664` 로 바꾼다. F1 이미지 기대를 `~/maint-n11/image-new.txt` 로 바꾸고 그 실제 전체 해시를 `IMGF1` 에 글자 그대로 적는다. 장부·`BTCIN` 검사는 그대로다.
+- 개입 #20 기록(`git-before`, 빌드·재기동 시각, `jar-sha.txt`·`jar-diff.txt`, K3·K4 결과, 뉴스 기준선·출처별 관측)을 남긴다. 되돌렸다면 이 갱신은 하지 않는다.
+- F 변수·F1 이 바뀌므로 N06 블록 해시를 다시 계산한다. 최종 `S` 는 자동으로 바꾸지 않고 11-30 확인 때 대조한다.
+
+**로컬 확인(v1.85, 서버 명령 아님)**: 근거 [`evidence/k20-prep-b1d7664/`](evidence/k20-prep-b1d7664/README.md).
 
 ## 6. 시작·중단·종료 조건
 

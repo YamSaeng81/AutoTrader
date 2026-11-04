@@ -1,0 +1,17 @@
+k0-normal: ### 종료 0 · 표지: ok-K0  | ✅ K0 통과 — 30분 안에 K1
+k0-btc-false: ### 종료 1 · 표지:  | 🔴 멈춤: BTC 입력 미충족 — 배포하지 않고 보고(N08 때의 정체 허용 예외는 이번에 없다)
+k0-btc-19: ### 종료 1 · 표지:  | 🔴 멈춤: BTC 입력 미충족 — 배포하지 않고 보고(N08 때의 정체 허용 예외는 이번에 없다)
+k0-diff14: ### 종료 1 · 표지:  | 🔴 멈춤: diff 가 정확히 뉴스 13개 파일이 아님(마이그레이션 포함 금지)
+k0-cron: ### 종료 1 · 표지:  | 🔴 멈춤: crontab 이 f2dce280… 과 다름
+k0-installed: ### 종료 1 · 표지:  | 🔴 멈춤: 정기 점검 설치본이 d491fd1 판이 아님
+k3-normal: ### 종료 0 · 표지: ok-K0 ok-K1 ok-K2 ok-K3-deploy  | ✅ K3(deploy) 통과 — 기동 30분 뒤 K4
+k3-early: ### 종료 1 · 표지: ok-K0 ok-K1 ok-K2  | 🔴 멈춤: 기동 5분 전 — 5분이 지난 뒤 K3
+k3-other-error: ### 종료 1 · 표지: ok-K0 ok-K1 ok-K2  | 🔴 멈춤: 세 마켓 캔들 404·뉴스 출처 ERROR 밖의 ERROR — errors-deploy.txt 를 보고
+k3-btc-false: ### 종료 1 · 표지: ok-K0 ok-K1 ok-K2  | 🔴 멈춤: BTC 입력 미충족 — 바로 되돌리지 말고 위 출력을 보고(재기동 없이 K3 만 5분 뒤 한 번 다시)
+k3-news-unlogged: ### 종료 1 · 표지: ok-K0 ok-K1 ok-K2  | 🔴 멈춤: 뉴스 관측 이상(종료 2) — 되돌리지 말고 위 출력을 보고
+k3-news-interval: ### 종료 1 · 표지: ok-K0 ok-K1 ok-K2  | 🔴 멈춤: 뉴스 관측 이상(종료 1) — 되돌리지 말고 위 출력을 보고
+k3-rollback: ### 종료 0 · 표지: ok-K0 ok-K1 ok-K2 ok-K3-rollback  | ✅ K3(rollback) 통과 — ea44900 복귀 확인. K4 는 하지 않고 출력을 보고
+k4-normal: ### 종료 0 · 표지: ok-K0 ok-K1 ok-K2 ok-K3-deploy ok-K4  | ✅ K4 통과 — K0~K4 출력을 보고(F 변수·F1 은 총괄 판단 뒤 개발 에이전트가 갱신)
+k4-early: ### 종료 1 · 표지: ok-K0 ok-K1 ok-K2 ok-K3-deploy  | 🔴 멈춤: 아직 30분 전 — 완료로 판정하지 않는다
+k4-restart: ### 종료 1 · 표지: ok-K0 ok-K1 ok-K2 ok-K3-deploy  | 🔴 멈춤: 되돌림 필요: backend 재시작 있음
+k4-cron: ### 종료 1 · 표지: ok-K0 ok-K1 ok-K2 ok-K3-deploy  | 🔴 멈춤: cron 이 K0 때와 다름 — crontab -l 을 보고

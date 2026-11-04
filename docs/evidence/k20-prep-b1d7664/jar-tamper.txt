@@ -1,0 +1,97 @@
+== 사례 v95 (b1d7664 jar 변형)
+-- J1 원래 코드
+변경 BOOT-INF/classes/com/cryptoautotrader/api/controller/NewsSourceController.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/NewsAggregatorService.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/news/NewsFetchResult$Status.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/news/NewsFetchResult.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/NewsSource.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/source/CoinGeckoTrendingSource.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/source/CryptoPanicSource.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/source/RssNewsSource.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/source/UpbitNoticeSource.class
+(끝) 680 682
+-- K1 코드
+변경 BOOT-INF/classes/com/cryptoautotrader/api/controller/NewsSourceController.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/NewsAggregatorService.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/news/NewsFetchResult$Status.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/news/NewsFetchResult.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/NewsSource.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/source/CoinGeckoTrendingSource.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/source/CryptoPanicSource.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/source/RssNewsSource.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/source/UpbitNoticeSource.class
+추가 BOOT-INF/classes/db/migration/V95__x.sql
+(끝) 779 782
+== 사례 yml (b1d7664 jar 변형)
+-- J1 원래 코드
+변경 BOOT-INF/classes/com/cryptoautotrader/api/controller/NewsSourceController.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/NewsAggregatorService.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/news/NewsFetchResult$Status.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/news/NewsFetchResult.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/NewsSource.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/source/CoinGeckoTrendingSource.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/source/CryptoPanicSource.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/source/RssNewsSource.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/source/UpbitNoticeSource.class
+(끝) 680 682
+-- K1 코드
+변경 BOOT-INF/classes/application.yml
+변경 BOOT-INF/classes/com/cryptoautotrader/api/controller/NewsSourceController.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/NewsAggregatorService.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/news/NewsFetchResult$Status.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/news/NewsFetchResult.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/NewsSource.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/source/CoinGeckoTrendingSource.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/source/CryptoPanicSource.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/source/RssNewsSource.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/source/UpbitNoticeSource.class
+(끝) 779 781
+== 사례 lib (b1d7664 jar 변형)
+-- J1 원래 코드
+변경 BOOT-INF/classes/com/cryptoautotrader/api/controller/NewsSourceController.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/NewsAggregatorService.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/news/NewsFetchResult$Status.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/news/NewsFetchResult.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/NewsSource.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/source/CoinGeckoTrendingSource.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/source/CryptoPanicSource.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/source/RssNewsSource.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/source/UpbitNoticeSource.class
+변경 BOOT-INF/lib/flyway-core-9.22.3.jar
+(끝) 680 682
+-- K1 코드
+변경 BOOT-INF/classes/com/cryptoautotrader/api/controller/NewsSourceController.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/NewsAggregatorService.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/news/NewsFetchResult$Status.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/news/NewsFetchResult.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/NewsSource.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/source/CoinGeckoTrendingSource.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/source/CryptoPanicSource.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/source/RssNewsSource.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/source/UpbitNoticeSource.class
+변경 BOOT-INF/lib/flyway-core-9.22.3.jar
+(끝) 779 781
+== 사례 ownres (b1d7664 jar 변형)
+-- J1 원래 코드
+변경 BOOT-INF/classes/com/cryptoautotrader/api/controller/NewsSourceController.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/NewsAggregatorService.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/news/NewsFetchResult$Status.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/news/NewsFetchResult.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/NewsSource.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/source/CoinGeckoTrendingSource.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/source/CryptoPanicSource.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/source/RssNewsSource.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/source/UpbitNoticeSource.class
+(끝) 680 682
+-- K1 코드
+변경 BOOT-INF/classes/com/cryptoautotrader/api/controller/NewsSourceController.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/NewsAggregatorService.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/news/NewsFetchResult$Status.class
+추가 BOOT-INF/classes/com/cryptoautotrader/api/news/NewsFetchResult.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/NewsSource.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/source/CoinGeckoTrendingSource.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/source/CryptoPanicSource.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/source/RssNewsSource.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/news/source/UpbitNoticeSource.class
+변경 BOOT-INF/lib/core-engine.jar!META-INF/MANIFEST.MF
+(끝) 779 781

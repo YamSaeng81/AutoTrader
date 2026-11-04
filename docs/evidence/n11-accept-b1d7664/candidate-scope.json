@@ -1,0 +1,64 @@
+{
+  "production": "ea4490099f0fa6b614fe71102534b0ba84c0eb7f",
+  "candidate": "b1d7664db73222aec5d86f2e9137debef0ff4df3",
+  "all_changed_paths": [
+    "web-api/src/main/java/com/cryptoautotrader/api/controller/NewsSourceController.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/news/NewsFetchResult.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/news/NewsSource.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/news/source/CoinGeckoTrendingSource.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/news/source/CryptoPanicSource.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/news/source/RssNewsSource.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/news/source/UpbitNoticeSource.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/news/LocalHttpStub.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/news/NewsFetchGapReproTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/news/NewsFetchResultContractTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/news/NewsResponseShapeTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/AiPipelineTest.java"
+  ],
+  "production_sources": [
+    {
+      "file": "web-api/src/main/java/com/cryptoautotrader/api/controller/NewsSourceController.java",
+      "sha256": "396097c7786bd9edb4f9a40cbb66dcd2b1e475c7a374a72e356a619df8583d08",
+      "error_calls_unchanged": true
+    },
+    {
+      "file": "web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java",
+      "sha256": "324c3e14b80343f29dc466452bbc5a05ff9923354f479467a784a3c0684a7f46",
+      "error_calls_unchanged": true
+    },
+    {
+      "file": "web-api/src/main/java/com/cryptoautotrader/api/news/NewsFetchResult.java",
+      "sha256": "2ea9d666266e2615ed1a968542fa5366914fd9af6a9a7b17995662abace94fcb",
+      "error_calls_unchanged": true
+    },
+    {
+      "file": "web-api/src/main/java/com/cryptoautotrader/api/news/NewsSource.java",
+      "sha256": "e6dba02466b173f5b59a31d217f46b05f898e135150f45bf992c3c6e3fb483da",
+      "error_calls_unchanged": true
+    },
+    {
+      "file": "web-api/src/main/java/com/cryptoautotrader/api/news/source/CoinGeckoTrendingSource.java",
+      "sha256": "395c25e231a1c94fca2b2e663668e3e35c6ae3aa8c800eb4b6b1da04ca8d35da",
+      "error_calls_unchanged": true
+    },
+    {
+      "file": "web-api/src/main/java/com/cryptoautotrader/api/news/source/CryptoPanicSource.java",
+      "sha256": "78defc85057ca229489fa7ea1594f8f02c90934162b937776d9ede3dea1d9b2b",
+      "error_calls_unchanged": true
+    },
+    {
+      "file": "web-api/src/main/java/com/cryptoautotrader/api/news/source/RssNewsSource.java",
+      "sha256": "c4d2525315b2b47d23b397622ebe6969dba79a87dfb54f7036ed61780471d93d",
+      "error_calls_unchanged": true
+    },
+    {
+      "file": "web-api/src/main/java/com/cryptoautotrader/api/news/source/UpbitNoticeSource.java",
+      "sha256": "19542280d7e5a3170ab6dca549fa585e470935260156f7a2d94b72f88f1bb708",
+      "error_calls_unchanged": true
+    }
+  ],
+  "migration_paths": [],
+  "ancestor_verified": true,
+  "operational_scope": "Local review only; no server/DB/HTTP/build deployment. Deployment procedure and actual jar comparison are next, not already approved execution."
+}

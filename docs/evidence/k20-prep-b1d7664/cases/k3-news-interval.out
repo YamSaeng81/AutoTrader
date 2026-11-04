@@ -1,0 +1,22 @@
+### 사례 k3-news-interval — 블록 k3
+backend Up
+2026-11-04 03:30:10.000 INFO  o.f.c.i.c.DbMigrate : Schema "public" is up to date. No migration necessary.
+2026-11-04 03:30:10.000 INFO  c.c.a.s.SellQuarantineCheck : 매도 격리 점검 — 격리 없음
+2026-11-04 03:30:10.000 INFO  c.c.a.CryptoAutoTrader : Started CryptoAutoTrader in 15.2 seconds
+🔴 뉴스 출처 ERROR 1줄 — 미분류 🔴 그대로, 이것만으로 되돌리지 않는다. 원문과 배포 전 기준선 3줄을 함께 보고
+2026-11-04 03:30:10.000 ERROR c.c.a.n.s.RssNewsSource : [RssNewsSource] 수집 실패 — sourceId=tokenpost_rss: Connection reset
+BTC 관문: 판정 불가·재개 줄 없음
+candle: 아직 판정 불가 0
+== Q3 0
+66 | 63 | 3 | -
+== BTC H1 배포 전 true|11-04 12:00|11-04 12:00|20/20 · 지금 true|11-04 12:00|11-04 12:00|20/20
+== 뉴스 출처별(기동 03:52:28Z 뒤 로그 · 첫 회차는 기동 3분 뒤)
+🔴 뉴스 설정이 K0 때와 다름: coindesk_rss|RSS|t|30 → coindesk_rss|RSS|t|15
+bloomberg_rss RSS(60분): 미관측 — 기동 뒤 차례 전(13:17 KST 이후 첫 15분 회차)
+coindesk_rss RSS(15분): 완료 1·미완료 0 — 마지막 '수집 완료 — 전체=25건 신규=3건'
+cryptopanic CRYPTOPANIC: 사용 안 함
+tokenpost_rss RSS(30분): 완료 0·미완료 1 — 마지막 '수집 미완료 — 결과=FAILED 종류=SocketException 판정=2026-11-04T03:33:10Z 받은=0건 신규=0건'
+upbit_notice UPBIT_NOTICE(10분): 완료 0·미완료 1 — 마지막 '수집 미완료 — 결과=FAILED 종류=SOURCE_REPORTED_FAILURE 판정=2026-11-04T03:33:11Z 받은=0건 신규=0건'
+   🔴 새 판정 — 출처 원문과 함께 보고: 수집 미완료 — sourceId=upbit_notice 결과=FAILED 종류=SOURCE_REPORTED_FAILURE 판정=2026-11-04T03:33:11Z 받은=0건 신규=0건
+🔴 멈춤: 뉴스 관측 이상(종료 1) — 되돌리지 말고 위 출력을 보고
+### 종료 1 · 표지: ok-K0 ok-K1 ok-K2 
