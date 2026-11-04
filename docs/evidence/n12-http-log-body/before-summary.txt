@@ -1,0 +1,57 @@
+FAIL CRYPTOPANIC HTTP 403: 본문 없이 출처·상태 코드만, 결과·다음 출처 그대로
+FAIL CRYPTOPANIC HTTP 503: 본문 없이 출처·상태 코드만, 결과·다음 출처 그대로
+FAIL UPBIT_NOTICE HTTP 403: 본문 없이 출처·상태 코드만, 결과·다음 출처 그대로
+FAIL UPBIT_NOTICE HTTP 503: 본문 없이 출처·상태 코드만, 결과·다음 출처 그대로
+PASS RSS HTTP 403: 본문 없이 출처·상태 코드만, 결과·다음 출처 그대로
+PASS RSS HTTP 503: 본문 없이 출처·상태 코드만, 결과·다음 출처 그대로
+PASS COINGECKO HTTP 403: 본문 없이 출처·상태 코드만, 결과·다음 출처 그대로
+PASS COINGECKO HTTP 503: 본문 없이 출처·상태 코드만, 결과·다음 출처 그대로
+
+[n12 CRYPTOPANIC 403] 출처 WARN 1개:
+  >>[CryptoPanicSource] HTTP 403: <!DOCTYPE html>\n<p>FAKE-SECRET-N12-7f3a9c https://blocked.invalid/cdn-cgi?token=FAKE-SECRET-N12-7f3a9c</p>\r\n<html><head><title>Just a moment...</title></head>\n<body>Access denied</body></html>\n<<
+  [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+  [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_403 판정=2026-11-04T06:02:47.000434200Z 받은=0건 신규=0건
+  [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+  [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건
+[n12 CRYPTOPANIC 503] 출처 WARN 1개:
+  >>[CryptoPanicSource] HTTP 503: <!DOCTYPE html>\n<p>FAKE-SECRET-N12-7f3a9c https://blocked.invalid/cdn-cgi?token=FAKE-SECRET-N12-7f3a9c</p>\r\n<html><head><title>Just a moment...</title></head>\n<body>Access denied</body></html>\n<<
+  [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+  [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_503 판정=2026-11-04T06:02:47.165523700Z 받은=0건 신규=0건
+  [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+  [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건
+[n12 UPBIT_NOTICE 403] 출처 WARN 1개:
+  >>[UpbitNoticeSource] HTTP 403: <!DOCTYPE html>\n<p>FAKE-SECRET-N12-7f3a9c https://blocked.invalid/cdn-cgi?token=FAKE-SECRET-N12-7f3a9c</p>\r\n<html><head><<
+  [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+  [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_403 판정=2026-11-04T06:02:47.189006900Z 받은=0건 신규=0건
+  [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+  [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건
+[n12 UPBIT_NOTICE 503] 출처 WARN 1개:
+  >>[UpbitNoticeSource] HTTP 503: <!DOCTYPE html>\n<p>FAKE-SECRET-N12-7f3a9c https://blocked.invalid/cdn-cgi?token=FAKE-SECRET-N12-7f3a9c</p>\r\n<html><head><<
+  [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+  [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_503 판정=2026-11-04T06:02:47.210200200Z 받은=0건 신규=0건
+  [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+  [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건
+[n12 RSS 403] 출처 WARN 1개:
+  >>[RssNewsSource] HTTP 403 ? sourceId=stub_fail<<
+  [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+  [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_403 판정=2026-11-04T06:02:47.232538Z 받은=0건 신규=0건
+  [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+  [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건
+[n12 RSS 503] 출처 WARN 1개:
+  >>[RssNewsSource] HTTP 503 ? sourceId=stub_fail<<
+  [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+  [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_503 판정=2026-11-04T06:02:47.291531800Z 받은=0건 신규=0건
+  [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+  [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건
+[n12 COINGECKO 403] 출처 WARN 1개:
+  >>[CoinGeckoTrendingSource] HTTP 403<<
+  [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+  [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_403 판정=2026-11-04T06:02:47.309974800Z 받은=0건 신규=0건
+  [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+  [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건
+[n12 COINGECKO 503] 출처 WARN 1개:
+  >>[CoinGeckoTrendingSource] HTTP 503<<
+  [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+  [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_503 판정=2026-11-04T06:02:47.323544200Z 받은=0건 신규=0건
+  [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+  [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건

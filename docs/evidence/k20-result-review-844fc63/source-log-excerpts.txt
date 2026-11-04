@@ -1,0 +1,22 @@
+b1d7664db73222aec5d86f2e9137debef0ff4df3:web-api/src/main/java/com/cryptoautotrader/api/news/source/RssNewsSource.java:74: log.warn("[RssNewsSource] HTTP {} — sourceId={}", response.statusCode(), config.getSourceId());
+b1d7664db73222aec5d86f2e9137debef0ff4df3:web-api/src/main/java/com/cryptoautotrader/api/news/source/RssNewsSource.java:82: Document doc = builder.parse(response.body());
+b1d7664db73222aec5d86f2e9137debef0ff4df3:web-api/src/main/java/com/cryptoautotrader/api/news/source/RssNewsSource.java:86: log.warn("[RssNewsSource] 지원하는 RSS 구조 아님(루트 rss 또는 rdf:RDF 바로 아래 channel 필요) — sourceId={}",
+b1d7664db73222aec5d86f2e9137debef0ff4df3:web-api/src/main/java/com/cryptoautotrader/api/news/source/RssNewsSource.java:114: log.debug("[RssNewsSource] 수집 완료 — sourceId={} {}건", config.getSourceId(), items.size());
+b1d7664db73222aec5d86f2e9137debef0ff4df3:web-api/src/main/java/com/cryptoautotrader/api/news/source/RssNewsSource.java:118: log.error("[RssNewsSource] 수집 실패 — sourceId={}: {}", config.getSourceId(), e.getMessage());
+b1d7664db73222aec5d86f2e9137debef0ff4df3:web-api/src/main/java/com/cryptoautotrader/api/news/source/UpbitNoticeSource.java:70: log.warn("[UpbitNoticeSource] HTTP {}: {}", response.statusCode(),
+b1d7664db73222aec5d86f2e9137debef0ff4df3:web-api/src/main/java/com/cryptoautotrader/api/news/source/UpbitNoticeSource.java:71: response.body() != null ? response.body().substring(0, Math.min(120, response.body().length())) : "");
+b1d7664db73222aec5d86f2e9137debef0ff4df3:web-api/src/main/java/com/cryptoautotrader/api/news/source/UpbitNoticeSource.java:75: JsonNode root = objectMapper.readTree(response.body());
+b1d7664db73222aec5d86f2e9137debef0ff4df3:web-api/src/main/java/com/cryptoautotrader/api/news/source/UpbitNoticeSource.java:81: log.warn("[UpbitNoticeSource] success 값이 boolean 아님 — sourceId={}", config.getSourceId());
+b1d7664db73222aec5d86f2e9137debef0ff4df3:web-api/src/main/java/com/cryptoautotrader/api/news/source/UpbitNoticeSource.java:85: log.warn("[UpbitNoticeSource] 응답 success=false — sourceId={}", config.getSourceId());
+b1d7664db73222aec5d86f2e9137debef0ff4df3:web-api/src/main/java/com/cryptoautotrader/api/news/source/UpbitNoticeSource.java:95: log.debug("[UpbitNoticeSource] 수집 완료 — 0건(빈 공지 배열)");
+b1d7664db73222aec5d86f2e9137debef0ff4df3:web-api/src/main/java/com/cryptoautotrader/api/news/source/UpbitNoticeSource.java:98: log.warn("[UpbitNoticeSource] 공지 배열을 찾지 못함 (스키마 변경 가능) — url={}", config.getUrl());
+b1d7664db73222aec5d86f2e9137debef0ff4df3:web-api/src/main/java/com/cryptoautotrader/api/news/source/UpbitNoticeSource.java:119: log.debug("[UpbitNoticeSource] 수집 완료 — {}건", items.size());
+b1d7664db73222aec5d86f2e9137debef0ff4df3:web-api/src/main/java/com/cryptoautotrader/api/news/source/UpbitNoticeSource.java:123: log.error("[UpbitNoticeSource] 수집 실패: {}", e.getMessage());
+b1d7664db73222aec5d86f2e9137debef0ff4df3:web-api/src/main/java/com/cryptoautotrader/api/news/source/CryptoPanicSource.java:81: log.warn("[CryptoPanicSource] HTTP {}: {}", response.statusCode(), response.body());
+b1d7664db73222aec5d86f2e9137debef0ff4df3:web-api/src/main/java/com/cryptoautotrader/api/news/source/CryptoPanicSource.java:85: JsonNode json = objectMapper.readTree(response.body());
+b1d7664db73222aec5d86f2e9137debef0ff4df3:web-api/src/main/java/com/cryptoautotrader/api/news/source/CryptoPanicSource.java:108: log.debug("[CryptoPanicSource] 수집 완료 — {}건", items.size());
+b1d7664db73222aec5d86f2e9137debef0ff4df3:web-api/src/main/java/com/cryptoautotrader/api/news/source/CryptoPanicSource.java:112: log.error("[CryptoPanicSource] 수집 실패: {}", e.getMessage());
+b1d7664db73222aec5d86f2e9137debef0ff4df3:web-api/src/main/java/com/cryptoautotrader/api/news/source/CoinGeckoTrendingSource.java:61: log.warn("[CoinGeckoTrendingSource] HTTP {}", response.statusCode());
+b1d7664db73222aec5d86f2e9137debef0ff4df3:web-api/src/main/java/com/cryptoautotrader/api/news/source/CoinGeckoTrendingSource.java:65: JsonNode json = objectMapper.readTree(response.body());
+b1d7664db73222aec5d86f2e9137debef0ff4df3:web-api/src/main/java/com/cryptoautotrader/api/news/source/CoinGeckoTrendingSource.java:92: log.debug("[CoinGeckoTrendingSource] 수집 완료 — {}건", items.size());
+b1d7664db73222aec5d86f2e9137debef0ff4df3:web-api/src/main/java/com/cryptoautotrader/api/news/source/CoinGeckoTrendingSource.java:96: log.error("[CoinGeckoTrendingSource] 수집 실패: {}", e.getMessage());

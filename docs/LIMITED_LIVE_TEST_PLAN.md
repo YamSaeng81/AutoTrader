@@ -1,5 +1,9 @@
 # 12월 제한 실거래 시험 — 후보와 실행안
 
+> **v1.91 (2026-11-04, N12 로컬 후보 — 서버 실행 없음)**: 총괄 v1.90(§58)의 N12 지시대로 운영 b1d7664 기점 브랜치 `n12-http-log-body` 에서 실패 먼저 `b7a8da1`(시험만) → 고정 후보 `6995c52259e3de4c7c922a32f9fb2aa9ddd49f00`. CryptoPanic(본문 전체)·UpbitNotice(앞 120자)의 HTTP 비200 WARN 을 RSS 와 같은 `[출처] HTTP n — sourceId=…` 한 줄로 바꿨다. catch ERROR 원문·분류·NewsFetchResult·상위 로그·캐시·간격·요청·설정은 그대로, RSS·CoinGecko 는 읽기 대조만. 127.0.0.1 대역 403/503 다중 행 HTML·가짜 비밀 값 8사례: b7a8da1 4건 실패(재현) → 6995c52 8/8, 같은 판 재현 3/3·계약 36/36·경계 27/27. 운영 설치 없음, 22:00 N03 은 그대로 남음. §5-9 59, 근거 [`n12-http-log-body`](evidence/n12-http-log-body/README.md).
+
+> **v1.90 (2026-11-04, 총괄 #20 결과 수용·N11 완료)**: 제출58/58·앞선12/12·원격 사본49/49와 K3/K4·뉴스 실제 주기 관측을 대조해 배포 및 N11 운영 반영을 수용했다. F1을 b1d7664/전체fd3ac351…/`~/maint-n11/image-new.txt`로 갱신했다. CryptoPanic HTTP403은 미해결이고 Connection reset ERROR 처리는 그대로다. 다음은 HTTP 오류 본문 로깅 최소 보완(N12 로컬 후보)과22시 N03 원문 확인이다. 최종S/점검d491fd1/장부/cron/203CREATED·12-01 일정 유지. §5-9 58.
+
 > **v1.89 (2026-11-04, 개입 #20 운영 실행 결과)**: 실행 출처 b577f67 에서 F→G→§55 K 변수→§53 K0→§55 K1→§53 K2→§55 K3→§55 K4→§55 K 뒤 뉴스 관측을 멈춤·되돌림 없이 마쳤다(운영자 확인은 K0 전·K2 직전 각 1회). K0 13:52:05 통과(BTC true 12:00/12:00 20/20). K1 새 이미지 `sha256:fd3ac351bcf508d465b9c2f6024ba978273603729f3e6cecba40a639a2f4dcb6`, jar-diff 뉴스 9줄·`(끝) 877 879`(기대와 같음), 보존 태그 ea44900→61804654…. K2 13:54:06 재생성·backend 기동 13:54:17 KST, HEAD b1d7664, backend 밖 4서비스 그대로. K3 14:01·K4 14:25:15 통과, 기동 뒤 ERROR 0줄, Q3~Q9 기대와 같음, 66|63|3|-, BTC K4 true 13:00/13:00 20/20, ⚪ 없음·news-check 없음. 경보: 🔴 적재 뒤처짐 KRW-BLAST 1종(05:19) — 기준선 24회와 같은 패턴, ⚪ 0, 새 경보 없음. 뉴스: 30분 출처 첫 회차 14:12:35 — upbit_notice 완료(30·1), cryptopanic 미완료 FAILED·HTTP_403; 14:43 K 뒤 관측 — RSS 4개(blockmedia 10·3, bloomberg 20·4, coindesk 25·4, tokenpost 50·17)·coingecko(15·15) 완료, upbit 완료 2회, cryptopanic 미완료 2회(HTTP_403), 기동 뒤 뉴스 출처 ERROR 0줄. 한 회차라 Connection reset 회복·원인 해결로 확정하지 않는다. F 변수·F1 핀·최종 S·d491fd1·분류·장부·cron·SID 203 CREATED·12-01 08:50 은 총괄 판단 전 그대로. §5-9 57, 근거 [`k20-result-b1d7664`](evidence/k20-result-b1d7664/README.md).
 
 > **v1.88 (2026-11-04, 총괄 개입 #20 보완 수용·실행 승인)**: b577f67의 제출28/28·앞선14/14·블록8/8·기존71개 불변을 확인했다. 새 K1은 같은 jar의 뉴스9줄/877→879와 바깥3변형 거부·ZIP 메타데이터 대조군 통과, newsobs는 같은4입력/경계2입력의 0·3·3·2·0·3을 직접 확인했다. ⚪에도 안전 확인을 계속하되 뉴스 관측 완료로 쓰지 않는 방식/조회 순서를 수용한다. 실행 출처b577f67·후보b1d7664로 #20을 승인하며 K2 직전 확인1회는 기존대로다. 실제 배포/뉴스 관측/N11 완료는 결과 뒤 판단, F1 핀/S는 아직 그대로다. 근거 k20-accept-b577f67, §5-9 56.
@@ -810,7 +814,7 @@ cd ~/crypto_trader/AutoTrader
 DC="docker compose -f docker-compose.prod.yml"; SID=203
 START_DATE=2026-12-01   # 시작 예정일(KST). 연기하면 이 줄을 문서에서 고쳐 커밋한 뒤 그 값으로 쓴다
 M=~/start-sid203; MS=~/maint-20261030-stage1; mkdir -p "$M"
-NEW=ea4490099f0fa6b614fe71102534b0ba84c0eb7f   # v1.60: 개입 #19(2026-11-02 15:07 KST) 배포 뒤 기대 HEAD. 이전 값 5bb0544926a694832e75234670bb8f99dfe33bb0(#18), cad393956e131c257195fcd08fcac18c83802788(#17), f0872e2547c918a7b5146f027d325bd441ddf0d7(#16), 82d15d42fa22bb7d0f24a8243ebc888a2a7f071c
+NEW=b1d7664db73222aec5d86f2e9137debef0ff4df3   # v1.90: 개입 #20(2026-11-04 13:54 KST) 운영 결과 수용 뒤 기대 HEAD. 이전 값 ea4490099f0fa6b614fe71102534b0ba84c0eb7f(#19). 이전 값 5bb0544926a694832e75234670bb8f99dfe33bb0(#18), cad393956e131c257195fcd08fcac18c83802788(#17), f0872e2547c918a7b5146f027d325bd441ddf0d7(#16), 82d15d42fa22bb7d0f24a8243ebc888a2a7f071c
 PSQL="$DC exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader"
 sc() { $PSQL -At -F ' | ' -c "
   SELECT count(*) AS total,
@@ -860,10 +864,10 @@ done
 rm -f "$M/ok-F1" "$M/operator-confirm.txt"             # 이전 통과·확인으로 새 실패를 우회하지 않는다(사본은 위 폴더 보존)
 date '+%F %T %Z' | tee "$M/t-f1.txt"; date -u '+%Y-%m-%dT%H:%M:%SZ' > "$M/t-f1.utc"
 { git rev-parse HEAD; git status --porcelain --untracked-files=no; echo "(끝)"; } | tee "$M/git-f1.txt"
-[ "$(head -1 "$M/git-f1.txt")" = "$NEW" ] && [ "$(sed -n 2p "$M/git-f1.txt")" = "(끝)" ] || stop "HEAD 가 ea44900 가 아니거나 추적 파일 변경 있음 — 보고"
+[ "$(head -1 "$M/git-f1.txt")" = "$NEW" ] && [ "$(sed -n 2p "$M/git-f1.txt")" = "(끝)" ] || stop "HEAD 가 b1d7664 가 아니거나 추적 파일 변경 있음 — 보고"
 svc | tee "$M/svc-f1.txt"
-IMGF1=sha256:618046540764e49aa40efef7ec950f28cd5882e8bf7d6bdfdc3da0ed1f0112f9   # v1.60: #19 배포 이미지. 이전 기대 ~/maint-n04/image-new.txt(#18, 39875d5f…), ~/maint-rounding/image-new.txt(#17, a747a8e6…)
-[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$IMGF1" ] && [ "$(cat ~/maint-n08/image-new.txt)" = "$IMGF1" ] || stop "backend 이미지가 #19 배포 이미지(61804654…)와 다름 — 보고"
+IMGF1=sha256:fd3ac351bcf508d465b9c2f6024ba978273603729f3e6cecba40a639a2f4dcb6   # v1.90: #20 배포 이미지. 이전 기대 ~/maint-n08/image-new.txt(#19, 61804654…). 이전 기대 ~/maint-n04/image-new.txt(#18, 39875d5f…), ~/maint-rounding/image-new.txt(#17, a747a8e6…)
+[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$IMGF1" ] && [ "$(cat ~/maint-n11/image-new.txt)" = "$IMGF1" ] || stop "backend 이미지가 #20 배포 이미지(fd3ac351…)와 다름 — 보고"
 [ "$(cat ~/ops-scripts/SID_LEDGER_SHA)" = 8bfe8a9fa896f400b3fb6681fef021c99d6ba43b ] && [ "$(sha256sum < ~/ops-scripts/sid_ledger.sql | cut -d' ' -f1)" = 02a8585021fb2a1a52d9b3b56b60e957cb71b9ca3c11bf819595df15cf334f1c ] || stop "설치 장부가 8bfe8a9 판(02a85850…)이 아님 — 보고"
 $DC exec -T backend env | grep '^TRADING_CAPITALPOOL_' | sort | tee "$M/pool-f1.txt"
 [ "$(cat "$M/pool-f1.txt")" = "$(printf 'TRADING_CAPITALPOOL_MAXCONCURRENTPOSITIONS=3\nTRADING_CAPITALPOOL_PERPOSITIONCAPKRW=20000\nTRADING_CAPITALPOOL_STAGE=STAGE_1\nTRADING_CAPITALPOOL_TOTALCAPKRW=100000' | sort)" ] || stop "공유 풀 등록값이 STAGE_1 · 100000 · 20000 · 3 과 다름 — pool-f1.txt 를 보고"
@@ -905,7 +909,7 @@ echo "== 경보 (#15 정비 전 기준선)"; cat "$MS/alerts-before.txt"
 touch "$M/ok-F1"; echo "✅ F1 기계 점검 통과 — 경보 네 갈래와 휴대폰 수신을 확인하고 운영자 확인 파일을 쓴 뒤 08:50 F2"
 )
 ```
-- 기대: `git-f1` = `ea449009…` 다음 `(끝)` · 이미지 = #19 배포 이미지 전체 ID `sha256:618046540764e49aa40efef7ec950f28cd5882e8bf7d6bdfdc3da0ed1f0112f9`(실행 이미지와 `~/maint-n08/image-new.txt` 가 둘 다 이 값) · 설치 장부 `SID_LEDGER_SHA` `8bfe8a9f…`·sha256 `02a85850…` · 공유 풀 네 값이 정확히 `STAGE_1` · `100000` · `20000` · `3` · `EG` = `EGS` · `203:CREATED` · 저장값 `t` · `available_krw` 20200·`started_at` 비어 있음 · 기준 행 = `BASEX` · 0 다섯 줄 · BTC 입력 `true|12-01 07:00|12-01 07:00|20/20`(08:30 무렵 실행 기준, v1.56) · `sc` `66 | 63 | 3 | -` · 거래소 `UP` · KRW 주문 가능 ≥ 20,200·묶인 KRW 0 · 경보 조회 완료 · 텔레그램 `200`. 멈추면 F2 로 가지 않고 그 출력을 보고한다 — 그날은 시작하지 않는다.
+- 기대: `git-f1` = `b1d7664d…` 다음 `(끝)` · 이미지 = #20 배포 이미지 전체 ID `sha256:fd3ac351bcf508d465b9c2f6024ba978273603729f3e6cecba40a639a2f4dcb6`(실행 이미지와 `~/maint-n11/image-new.txt` 가 둘 다 이 값) · 설치 장부 `SID_LEDGER_SHA` `8bfe8a9f…`·sha256 `02a85850…` · 공유 풀 네 값이 정확히 `STAGE_1` · `100000` · `20000` · `3` · `EG` = `EGS` · `203:CREATED` · 저장값 `t` · `available_krw` 20200·`started_at` 비어 있음 · 기준 행 = `BASEX` · 0 다섯 줄 · BTC 입력 `true|12-01 07:00|12-01 07:00|20/20`(08:30 무렵 실행 기준, v1.56) · `sc` `66 | 63 | 3 | -` · 거래소 `UP` · KRW 주문 가능 ≥ 20,200·묶인 KRW 0 · 경보 조회 완료 · 텔레그램 `200`. 멈추면 F2 로 가지 않고 그 출력을 보고한다 — 그날은 시작하지 않는다.
 - 새 시도는 이전 F1 파일·통과 표지·운영자 확인을 `f1-attempts/`에 보존하고 기존 통과·확인을 무효화한다. 실패하면 날짜별 `f1-failed-YYYY-MM-DD`를 남기며 그날 F1·F2는 모두 거절한다. 이 표지를 지워 재시도하지 않는다. F2는 통과 표지가 최신 시도(`t-f1.txt`) 뒤에 만들어졌는지도 확인한다.
 - 경보는 `MS/alerts-before.txt` 와 네 갈래(기존 반복·새 경보·⚪·실행 누락)로 대조한다. KRW-BLAST 반복 밖의 🔴·⚪·실행 누락이 있으면 시작하지 않고 보고한다.
 - 운영자 확인 파일 — 경보 대조와 휴대폰 수신(이번 시험 메시지의 말풍선 시각)을 본 뒤에만, 빈칸을 직접 채워 만든다:
@@ -5282,3 +5286,35 @@ echo "== 기동 뒤 뉴스 출처 ERROR $(wc -l < "$M/errors-news-$TS.txt")줄(�
 - ~~**리뷰 (v1.12 뒤)**: F3 판정 검토~~ → 판정: 날짜·공유 풀 통과, F3 세 곳 보완(v1.13 반영). 남은 조건은 F0 기록과 당일 F1. B·C 원문 없으면 누락 기록.
 - ~~**리뷰 (v1.13 뒤)**: F3 보완 확인~~ → 판정: 세 보완 통과, 미해결 정산 불일치 조회 한 곳 보완(v1.14 반영). 확인되면 절차 검토 마무리. 이후 F0 기록·당일 F1 통과 시 추가 승인 없이 SID 203 만 시작.
 - **운영자**: WF 게이트 false 유지(§5-4), F0 비용 조건 완료(§5-8 F0), 개입 #14 수용 및 A~E 완료. **현재는 SID 203 `CREATED`**이고, 시작은 12-01 당일 F1 통과 뒤 08:50~08:55 요청 1회다. 실제 `started_at + 56일`에 종료하며 증액·추가 입금·자동 연장은 없다.
+
+**58. 총괄 개입 #20 결과 수용·N11 완료·후속 로그 보완 지시 (2026-11-04, v1.90)**
+
+- **판정**: `844fc63f7dce4e2c964c33e37e99a3bf39886d24`의 제출 원문을 대조해 개입 #20의 배포·안전 확인과 N11 **운영 반영 확인 완료**를 수용한다. K0~K4 통과·되돌림 없음. 실제 운영은 `b1d7664db73222aec5d86f2e9137debef0ff4df3`, 이미지 `sha256:fd3ac351bcf508d465b9c2f6024ba978273603729f3e6cecba40a639a2f4dcb6`, 컨테이너 시작 `2026-11-04T04:54:17.850162707Z`다. CryptoPanic 정상화나 Connection reset 원인 해결을 완료로 판정한 것은 아니다.
+- **근거 확인 범위**: `k20-result-b1d7664` 58/58과 앞선 `k20-accept-b577f67` 12/12를 작업 사본·Git 블롭으로 대조했다. 보존된 원격 체크섬 목록의 작은 파일49개가 사본49/49와 같다. K1 jar 차이9줄/`(끝) 877 879`는 고정 기대와 같으며 K3/K4 Q·세션 상태는 직전과 바이트 동일, backend 외4서비스 불변·backend 재시작 없음·BTC 충족·기존BLAST 예정1회/관측1회·다른 경보/⚪ 없음이다. 설치본/장부/cron/과거 파일 보존은 검토한 K4 블록의 통과 출력으로 수용한다. jar 원본·전체 앱 로그·cron 원본은 서버에 보존됐고 총괄이 새로 내려받거나 서버를 조회한 것은 아니다. 실행 블록은 열 시작 기준76개 전부 기존과 같고, 인용된 과거 bash1개를 포함하면 개발 보고의77개다.
+- **N11 완료의 근거**: 실제 자동 주기에서 RSS4개·CoinGecko의 성공과 업비트 공지2회 성공, CryptoPanic2회 `FAILED/HTTP_403/받은0/신규0` 및 상위 `수집 미완료`를 확인했다. RSS/업비트 응답 호환성과 실패를 정상0건으로 쓰지 않는 연결은 운영에서 관측됐다. 성공0건·부분 수집·예외 경계는 앞서 수용한 로컬 근거이며 운영에서 억지로 만들지 않는다. CryptoPanic HTTP403은 **미해결 외부 출처 실패**로 N03에 남긴다. 응답 차단의 원인·권한/정책 문제·뉴스 전체 복구는 확정하지 않는다.
+- **설명 정정**: §57/근거 README의 “뉴스 출처 실패가 이제 ERROR가 아니라 WARN”이라는 일반화는 틀렸다. 네 출처의 `catch` ERROR 호출은 ea44900과 b1d7664에서 동일하므로 Connection reset이 다시 발생하면 기존 ERROR와 미분류🔴가 남는다. HTTP 비200은 이전 코드에서도 WARN이었다. N11이 추가한 것은 상위의 정확한 `수집 미완료` WARN이다. 22시 ERROR 감소만으로 회복·성공을 판정하지 않는다. 기존 근거 원문은 고치지 않고 이 정정을 덧붙인다.
+- **F1/N06 갱신**: F 변수 NEW·F1 HEAD/IMGF1을 위 실제 전체 값으로, 이미지 기록 경로를 `~/maint-n11/image-new.txt`로 바꿨다. 실행 이미지와 기록 파일이 모두 이 전체 해시여야 한다. 15개 F 블록 중 F 변수/F1 첫 블록만 바뀌고 나머지13개·OPS 명령은 그대로다. 새 해시는 F 변수 `6be1c35a87e172dbb41249f9f419f3849c7d2358ee612f2cb1d23ac25c20341d`, F1 첫 블록 `c81139ddf9a9b74c44eb80c8f2bdf975d25f3b111eeaec416f5c16aa88879d9f`. 전체15개 값은 아래 검토 근거 `n06-blocks.json`에 있다. 최종S·실행 사본 자리표시자는 자동 갱신하지 않는다. 복구 태그 `autotrader-backend:ea44900`/기존61804654… 이미지와 `~/maint-n11` 기록은 보존한다.
+- **N12 개발 지시(P2·로컬 후보 목표11-06, 지금 착수 가능)**: 운영 관측에서 드러난 HTTP 오류 응답 본문 로깅만 최소 보완한다. b1d7664 기점 격리 후보에서 CryptoPanic 전체 본문 및 UpbitNotice 앞120자 로깅을 없애고 정해진 문구·sourceId·HTTP 상태 코드만 한 줄로 남긴다. HTML/줄바꿈/URL/헤더/토큰/응답 본문 일부를 옮겨 적지 않는다. 이 두 HTTP 비200 분기에 한정하며 기존 catch ERROR 원문/점검 분류, NewsFetchResult·상위 결과 로그, 캐시/시도 시각/간격, 요청/TLS/재시도/DB/설정은 바꾸지 않는다. RSS/CoinGecko의 HTTP 로그는 이미 본문을 쓰지 않으므로 읽기 대조만 한다. 외부 접속 없는 403/503 다중 행·가짜 비밀 문자열 본문으로 수정 전 본문 노출을 재현한 뒤, 수정 후 로그에 그 값이 없고 FAILED/HTTP_n·받은0/신규0·다음 출처 진행이 그대로임을 관련 국소 시험한다. 정상 경로 대조·고정 SHA/diff/원문 근거를 제출한다. 기존167건/전체 리허설은 반복하지 않으며 운영 설치는 후보 검토 뒤 별도다. 실제 비밀 유출이 확인됐다고 확대하지 않는다.
+- **N03 다음 실제 결과**: 11-04 22:00 보고와 보존 로그를 읽기만 한다. 점검 머리글d491fd1609b7·운영b1d7664/이미지fd3ac351…·13:54 계획 기동🔴1회·BTC/파서/장부/설치/cron·서버 전송을 대조하고, 뉴스 출처별 완료/미완료·HTTP403은 ERROR 집계와 별도로 적는다. 기존 PUNDIX/ELF/JUP 회복 근거 조회도 같은 범위에서 계속한다. 새🔴/⚪는 원문 전체 보고, 휴대폰 실제 수신은 별도다. 수동 수집/API 호출·강제 재시도·재전송·실패 유도·주기/한도 변경은 하지 않는다. 보고를 읽을 시각을 기다리는 동안 N12 로컬 작업은 진행할 수 있다.
+- **인계**: 총괄은 이번에 로컬 근거/코드만 대조했으며 서버·운영DB·외부HTTP·앱 시험/재빌드를 실행하지 않았다. 점검d491fd1·장부·cron·V94·SID203 CREATED/20200·F0·위험 한도·12-01 08:50 일정은 유지한다. 총괄 문서5개와 [`k20-result-review-844fc63`](evidence/k20-result-review-844fc63/README.md)는 다음 실제 N12 결과 또는 N03 결과와 함께 그대로 커밋한다. 확인용 회신/단독 커밋·기존 통과 시험 반복은 필요 없다.
+
+**59. N12 HTTP 오류 응답 본문 로깅 — 로컬 후보 (2026-11-04, v1.91)**
+
+- **지시**: 총괄 v1.90 §58 의 N12. 서버·운영 DB·외부 HTTP·운영 설치·jar/docker 빌드는 하지 않았다. 기존 167건·전체 리허설은 반복하지 않았다.
+- **후보**: 기점 `b1d7664`, 브랜치 `n12-http-log-body`(원격 푸시). 실패 먼저 `b7a8da15933899b5c296e556b8282f79e535f690`(시험 파일만) → **고정 후보 `6995c52259e3de4c7c922a32f9fb2aa9ddd49f00`**. b1d7664 대비 파일 3개(시험 1개 175줄, 코드 2곳).
+- **코드**: HTTP 비200 분기 두 곳만 바꿨다.
+  - CryptoPanic `HTTP {}: {본문 전체}` → `[CryptoPanicSource] HTTP {} — sourceId={}`.
+  - UpbitNotice `HTTP {}: {본문 앞 120자}` → `[UpbitNoticeSource] HTTP {} — sourceId={}`.
+  - 새 문구는 RSS 의 기존 HTTP 줄과 같은 형식이다. 바로 다음 `return NewsFetchResult.httpStatus(...)` 는 그대로다.
+  - 네 출처 catch ERROR 원문·점검 분류, NewsFetchResult·상위 `수집 완료`/`수집 미완료`, 캐시·시도 시각·간격, 요청·TLS·재시도·DB·설정은 바꾸지 않았다.
+  - RSS(상태·sourceId)·CoinGecko(상태만)는 이미 본문을 쓰지 않아 읽기 대조만 했다. Upbit 정상 분기의 `공지 배열을 찾지 못함 — url={}`(설정 URL)은 범위 밖이라 그대로다.
+- **국소 시험 `NewsHttpErrorLogTest` 8사례**(CryptoPanic·Upbit·RSS·CoinGecko × 403·503):
+  - 127.0.0.1 대역이 다중 행 HTML·`
+`/`
+`·URL·가짜 비밀 값 본문을 돌려주고, 다음 출처는 정상 빈 응답이다. CryptoPanic 에는 가짜 API 키도 넣었다. 실제 출처 → `collectAll()` 경로, 뉴스 패키지 전체 로그(DEBUG)를 본다.
+  - 검사: 본문 값·API 키·`auth_token`·HTML·URL·줄바꿈이 어느 로그에도 없음, 출처 WARN 1줄(CryptoPanic·Upbit 는 정확한 문구), 상위 `수집 미완료 … 결과=FAILED 종류=HTTP_n … 받은=0건 신규=0건`, 다음 출처 `수집 완료 … 전체=0건`(정상 경로), 두 출처 시도 시각 갱신, ERROR 없음.
+  - **b7a8da1: 8건 중 4건 실패**(CryptoPanic 403·503 은 본문 전체, Upbit 403·503 은 비밀 값·URL 이 든 앞 120자가 WARN 에 남음). RSS·CoinGecko 4건은 통과. 이것이 재현 결과다.
+  - **6995c52: 8/8**. 같은 판에서 뉴스 패키지 `NewsFetchGapReproTest` 3/3·`NewsFetchResultContractTest` 36/36·`NewsResponseShapeTest` 27/27.
+- **한계**: 운영 로그로는 확인하지 않았다. 대역의 고정 본문만 보며, 실제 CryptoPanic 403 본문에 비밀 값이 있었다고 확대하지 않는다. 운영 b1d7664 의 기존 앱 로그에 이미 찍힌 403 HTML 은 그대로 남아 있고 건드리지 않았다. CryptoPanic 403 원인은 미해결이다.
+- **운영 반영**: 하지 않았다. 후보 검토 뒤 별도 절차다. F 변수·F1(v1.90 판)·최종 S·d491fd1·장부·cron·SID 203 `CREATED`·12-01 08:50 은 그대로다.
+- **다음**: 22:00 N03(§58 범위)은 아직이다. 근거 [`n12-http-log-body`](evidence/n12-http-log-body/README.md)(11/11).

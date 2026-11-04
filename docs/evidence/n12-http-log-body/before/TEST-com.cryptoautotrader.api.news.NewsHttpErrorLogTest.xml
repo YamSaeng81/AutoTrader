@@ -1,0 +1,342 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.news.NewsHttpErrorLogTest" tests="8" skipped="0" failures="4" errors="0" timestamp="2026-11-04T06:02:43" hostname="DESKTOP-SF1KUQ5" time="4.247">
+  <properties/>
+  <testcase name="CRYPTOPANIC HTTP 403: 본문 없이 출처·상태 코드만, 결과·다음 출처 그대로" classname="com.cryptoautotrader.api.news.NewsHttpErrorLogTest" time="4.069">
+    <failure message="java.lang.AssertionError: &#13;&#10;Expecting no elements of:&#13;&#10;  [&quot;[NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]&quot;,&#13;&#10;    &quot;[NewsAggregator] 수집 시작 — sourceId=stub_fail&quot;,&#13;&#10;    &quot;[CryptoPanicSource] HTTP 403: &lt;!DOCTYPE html&gt;&#10;&lt;p&gt;FAKE-SECRET-N12-7f3a9c https://blocked.invalid/cdn-cgi?token=FAKE-SECRET-N12-7f3a9c&lt;/p&gt;&#13;&#10;&lt;html&gt;&lt;head&gt;&lt;title&gt;Just a moment...&lt;/title&gt;&lt;/head&gt;&#10;&lt;body&gt;Access denied&lt;/body&gt;&lt;/html&gt;&#10;&quot;,&#13;&#10;    &quot;[NewsAggregator] 수집 미완료 — sourceId=stub_fail 결과=FAILED 종류=HTTP_403 판정=2026-11-04T06:02:47.000434200Z 받은=0건 신규=0건&quot;,&#13;&#10;    &quot;[NewsAggregator] 수집 시작 — sourceId=stub_ok&quot;,&#13;&#10;    &quot;[CryptoPanicSource] 수집 완료 — 0건&quot;,&#13;&#10;    &quot;[NewsAggregator] 수집 완료 — sourceId=stub_ok 전체=0건 신규=0건&quot;]&#13;&#10;to match given predicate but this element did:&#13;&#10;  &quot;[CryptoPanicSource] HTTP 403: &lt;!DOCTYPE html&gt;&#10;&lt;p&gt;FAKE-SECRET-N12-7f3a9c https://blocked.invalid/cdn-cgi?token=FAKE-SECRET-N12-7f3a9c&lt;/p&gt;&#13;&#10;&lt;html&gt;&lt;head&gt;&lt;title&gt;Just a moment...&lt;/title&gt;&lt;/head&gt;&#10;&lt;body&gt;Access denied&lt;/body&gt;&lt;/html&gt;&#10;&quot;" type="java.lang.AssertionError">java.lang.AssertionError: 
+Expecting no elements of:
+  [&quot;[NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]&quot;,
+    &quot;[NewsAggregator] 수집 시작 — sourceId=stub_fail&quot;,
+    &quot;[CryptoPanicSource] HTTP 403: &lt;!DOCTYPE html&gt;
+&lt;p&gt;FAKE-SECRET-N12-7f3a9c https://blocked.invalid/cdn-cgi?token=FAKE-SECRET-N12-7f3a9c&lt;/p&gt;
+&lt;html&gt;&lt;head&gt;&lt;title&gt;Just a moment...&lt;/title&gt;&lt;/head&gt;
+&lt;body&gt;Access denied&lt;/body&gt;&lt;/html&gt;
+&quot;,
+    &quot;[NewsAggregator] 수집 미완료 — sourceId=stub_fail 결과=FAILED 종류=HTTP_403 판정=2026-11-04T06:02:47.000434200Z 받은=0건 신규=0건&quot;,
+    &quot;[NewsAggregator] 수집 시작 — sourceId=stub_ok&quot;,
+    &quot;[CryptoPanicSource] 수집 완료 — 0건&quot;,
+    &quot;[NewsAggregator] 수집 완료 — sourceId=stub_ok 전체=0건 신규=0건&quot;]
+to match given predicate but this element did:
+  &quot;[CryptoPanicSource] HTTP 403: &lt;!DOCTYPE html&gt;
+&lt;p&gt;FAKE-SECRET-N12-7f3a9c https://blocked.invalid/cdn-cgi?token=FAKE-SECRET-N12-7f3a9c&lt;/p&gt;
+&lt;html&gt;&lt;head&gt;&lt;title&gt;Just a moment...&lt;/title&gt;&lt;/head&gt;
+&lt;body&gt;Access denied&lt;/body&gt;&lt;/html&gt;
+&quot;
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at com.cryptoautotrader.api.news.NewsHttpErrorLogTest.httpErrorBodyNotLogged(NewsHttpErrorLogTest.java:153)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="CRYPTOPANIC HTTP 503: 본문 없이 출처·상태 코드만, 결과·다음 출처 그대로" classname="com.cryptoautotrader.api.news.NewsHttpErrorLogTest" time="0.021">
+    <failure message="java.lang.AssertionError: &#13;&#10;Expecting no elements of:&#13;&#10;  [&quot;[NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]&quot;,&#13;&#10;    &quot;[NewsAggregator] 수집 시작 — sourceId=stub_fail&quot;,&#13;&#10;    &quot;[CryptoPanicSource] HTTP 503: &lt;!DOCTYPE html&gt;&#10;&lt;p&gt;FAKE-SECRET-N12-7f3a9c https://blocked.invalid/cdn-cgi?token=FAKE-SECRET-N12-7f3a9c&lt;/p&gt;&#13;&#10;&lt;html&gt;&lt;head&gt;&lt;title&gt;Just a moment...&lt;/title&gt;&lt;/head&gt;&#10;&lt;body&gt;Access denied&lt;/body&gt;&lt;/html&gt;&#10;&quot;,&#13;&#10;    &quot;[NewsAggregator] 수집 미완료 — sourceId=stub_fail 결과=FAILED 종류=HTTP_503 판정=2026-11-04T06:02:47.165523700Z 받은=0건 신규=0건&quot;,&#13;&#10;    &quot;[NewsAggregator] 수집 시작 — sourceId=stub_ok&quot;,&#13;&#10;    &quot;[CryptoPanicSource] 수집 완료 — 0건&quot;,&#13;&#10;    &quot;[NewsAggregator] 수집 완료 — sourceId=stub_ok 전체=0건 신규=0건&quot;]&#13;&#10;to match given predicate but this element did:&#13;&#10;  &quot;[CryptoPanicSource] HTTP 503: &lt;!DOCTYPE html&gt;&#10;&lt;p&gt;FAKE-SECRET-N12-7f3a9c https://blocked.invalid/cdn-cgi?token=FAKE-SECRET-N12-7f3a9c&lt;/p&gt;&#13;&#10;&lt;html&gt;&lt;head&gt;&lt;title&gt;Just a moment...&lt;/title&gt;&lt;/head&gt;&#10;&lt;body&gt;Access denied&lt;/body&gt;&lt;/html&gt;&#10;&quot;" type="java.lang.AssertionError">java.lang.AssertionError: 
+Expecting no elements of:
+  [&quot;[NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]&quot;,
+    &quot;[NewsAggregator] 수집 시작 — sourceId=stub_fail&quot;,
+    &quot;[CryptoPanicSource] HTTP 503: &lt;!DOCTYPE html&gt;
+&lt;p&gt;FAKE-SECRET-N12-7f3a9c https://blocked.invalid/cdn-cgi?token=FAKE-SECRET-N12-7f3a9c&lt;/p&gt;
+&lt;html&gt;&lt;head&gt;&lt;title&gt;Just a moment...&lt;/title&gt;&lt;/head&gt;
+&lt;body&gt;Access denied&lt;/body&gt;&lt;/html&gt;
+&quot;,
+    &quot;[NewsAggregator] 수집 미완료 — sourceId=stub_fail 결과=FAILED 종류=HTTP_503 판정=2026-11-04T06:02:47.165523700Z 받은=0건 신규=0건&quot;,
+    &quot;[NewsAggregator] 수집 시작 — sourceId=stub_ok&quot;,
+    &quot;[CryptoPanicSource] 수집 완료 — 0건&quot;,
+    &quot;[NewsAggregator] 수집 완료 — sourceId=stub_ok 전체=0건 신규=0건&quot;]
+to match given predicate but this element did:
+  &quot;[CryptoPanicSource] HTTP 503: &lt;!DOCTYPE html&gt;
+&lt;p&gt;FAKE-SECRET-N12-7f3a9c https://blocked.invalid/cdn-cgi?token=FAKE-SECRET-N12-7f3a9c&lt;/p&gt;
+&lt;html&gt;&lt;head&gt;&lt;title&gt;Just a moment...&lt;/title&gt;&lt;/head&gt;
+&lt;body&gt;Access denied&lt;/body&gt;&lt;/html&gt;
+&quot;
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at com.cryptoautotrader.api.news.NewsHttpErrorLogTest.httpErrorBodyNotLogged(NewsHttpErrorLogTest.java:153)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="UPBIT_NOTICE HTTP 403: 본문 없이 출처·상태 코드만, 결과·다음 출처 그대로" classname="com.cryptoautotrader.api.news.NewsHttpErrorLogTest" time="0.02">
+    <failure message="java.lang.AssertionError: &#13;&#10;Expecting no elements of:&#13;&#10;  [&quot;[NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]&quot;,&#13;&#10;    &quot;[NewsAggregator] 수집 시작 — sourceId=stub_fail&quot;,&#13;&#10;    &quot;[UpbitNoticeSource] HTTP 403: &lt;!DOCTYPE html&gt;&#10;&lt;p&gt;FAKE-SECRET-N12-7f3a9c https://blocked.invalid/cdn-cgi?token=FAKE-SECRET-N12-7f3a9c&lt;/p&gt;&#13;&#10;&lt;html&gt;&lt;head&gt;&quot;,&#13;&#10;    &quot;[NewsAggregator] 수집 미완료 — sourceId=stub_fail 결과=FAILED 종류=HTTP_403 판정=2026-11-04T06:02:47.189006900Z 받은=0건 신규=0건&quot;,&#13;&#10;    &quot;[NewsAggregator] 수집 시작 — sourceId=stub_ok&quot;,&#13;&#10;    &quot;[UpbitNoticeSource] 수집 완료 — 0건(빈 공지 배열)&quot;,&#13;&#10;    &quot;[NewsAggregator] 수집 완료 — sourceId=stub_ok 전체=0건 신규=0건&quot;]&#13;&#10;to match given predicate but this element did:&#13;&#10;  &quot;[UpbitNoticeSource] HTTP 403: &lt;!DOCTYPE html&gt;&#10;&lt;p&gt;FAKE-SECRET-N12-7f3a9c https://blocked.invalid/cdn-cgi?token=FAKE-SECRET-N12-7f3a9c&lt;/p&gt;&#13;&#10;&lt;html&gt;&lt;head&gt;&quot;" type="java.lang.AssertionError">java.lang.AssertionError: 
+Expecting no elements of:
+  [&quot;[NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]&quot;,
+    &quot;[NewsAggregator] 수집 시작 — sourceId=stub_fail&quot;,
+    &quot;[UpbitNoticeSource] HTTP 403: &lt;!DOCTYPE html&gt;
+&lt;p&gt;FAKE-SECRET-N12-7f3a9c https://blocked.invalid/cdn-cgi?token=FAKE-SECRET-N12-7f3a9c&lt;/p&gt;
+&lt;html&gt;&lt;head&gt;&quot;,
+    &quot;[NewsAggregator] 수집 미완료 — sourceId=stub_fail 결과=FAILED 종류=HTTP_403 판정=2026-11-04T06:02:47.189006900Z 받은=0건 신규=0건&quot;,
+    &quot;[NewsAggregator] 수집 시작 — sourceId=stub_ok&quot;,
+    &quot;[UpbitNoticeSource] 수집 완료 — 0건(빈 공지 배열)&quot;,
+    &quot;[NewsAggregator] 수집 완료 — sourceId=stub_ok 전체=0건 신규=0건&quot;]
+to match given predicate but this element did:
+  &quot;[UpbitNoticeSource] HTTP 403: &lt;!DOCTYPE html&gt;
+&lt;p&gt;FAKE-SECRET-N12-7f3a9c https://blocked.invalid/cdn-cgi?token=FAKE-SECRET-N12-7f3a9c&lt;/p&gt;
+&lt;html&gt;&lt;head&gt;&quot;
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at com.cryptoautotrader.api.news.NewsHttpErrorLogTest.httpErrorBodyNotLogged(NewsHttpErrorLogTest.java:153)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="UPBIT_NOTICE HTTP 503: 본문 없이 출처·상태 코드만, 결과·다음 출처 그대로" classname="com.cryptoautotrader.api.news.NewsHttpErrorLogTest" time="0.021">
+    <failure message="java.lang.AssertionError: &#13;&#10;Expecting no elements of:&#13;&#10;  [&quot;[NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]&quot;,&#13;&#10;    &quot;[NewsAggregator] 수집 시작 — sourceId=stub_fail&quot;,&#13;&#10;    &quot;[UpbitNoticeSource] HTTP 503: &lt;!DOCTYPE html&gt;&#10;&lt;p&gt;FAKE-SECRET-N12-7f3a9c https://blocked.invalid/cdn-cgi?token=FAKE-SECRET-N12-7f3a9c&lt;/p&gt;&#13;&#10;&lt;html&gt;&lt;head&gt;&quot;,&#13;&#10;    &quot;[NewsAggregator] 수집 미완료 — sourceId=stub_fail 결과=FAILED 종류=HTTP_503 판정=2026-11-04T06:02:47.210200200Z 받은=0건 신규=0건&quot;,&#13;&#10;    &quot;[NewsAggregator] 수집 시작 — sourceId=stub_ok&quot;,&#13;&#10;    &quot;[UpbitNoticeSource] 수집 완료 — 0건(빈 공지 배열)&quot;,&#13;&#10;    &quot;[NewsAggregator] 수집 완료 — sourceId=stub_ok 전체=0건 신규=0건&quot;]&#13;&#10;to match given predicate but this element did:&#13;&#10;  &quot;[UpbitNoticeSource] HTTP 503: &lt;!DOCTYPE html&gt;&#10;&lt;p&gt;FAKE-SECRET-N12-7f3a9c https://blocked.invalid/cdn-cgi?token=FAKE-SECRET-N12-7f3a9c&lt;/p&gt;&#13;&#10;&lt;html&gt;&lt;head&gt;&quot;" type="java.lang.AssertionError">java.lang.AssertionError: 
+Expecting no elements of:
+  [&quot;[NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]&quot;,
+    &quot;[NewsAggregator] 수집 시작 — sourceId=stub_fail&quot;,
+    &quot;[UpbitNoticeSource] HTTP 503: &lt;!DOCTYPE html&gt;
+&lt;p&gt;FAKE-SECRET-N12-7f3a9c https://blocked.invalid/cdn-cgi?token=FAKE-SECRET-N12-7f3a9c&lt;/p&gt;
+&lt;html&gt;&lt;head&gt;&quot;,
+    &quot;[NewsAggregator] 수집 미완료 — sourceId=stub_fail 결과=FAILED 종류=HTTP_503 판정=2026-11-04T06:02:47.210200200Z 받은=0건 신규=0건&quot;,
+    &quot;[NewsAggregator] 수집 시작 — sourceId=stub_ok&quot;,
+    &quot;[UpbitNoticeSource] 수집 완료 — 0건(빈 공지 배열)&quot;,
+    &quot;[NewsAggregator] 수집 완료 — sourceId=stub_ok 전체=0건 신규=0건&quot;]
+to match given predicate but this element did:
+  &quot;[UpbitNoticeSource] HTTP 503: &lt;!DOCTYPE html&gt;
+&lt;p&gt;FAKE-SECRET-N12-7f3a9c https://blocked.invalid/cdn-cgi?token=FAKE-SECRET-N12-7f3a9c&lt;/p&gt;
+&lt;html&gt;&lt;head&gt;&quot;
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at com.cryptoautotrader.api.news.NewsHttpErrorLogTest.httpErrorBodyNotLogged(NewsHttpErrorLogTest.java:153)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="RSS HTTP 403: 본문 없이 출처·상태 코드만, 결과·다음 출처 그대로" classname="com.cryptoautotrader.api.news.NewsHttpErrorLogTest" time="0.059"/>
+  <testcase name="RSS HTTP 503: 본문 없이 출처·상태 코드만, 결과·다음 출처 그대로" classname="com.cryptoautotrader.api.news.NewsHttpErrorLogTest" time="0.018"/>
+  <testcase name="COINGECKO HTTP 403: 본문 없이 출처·상태 코드만, 결과·다음 출처 그대로" classname="com.cryptoautotrader.api.news.NewsHttpErrorLogTest" time="0.015"/>
+  <testcase name="COINGECKO HTTP 503: 본문 없이 출처·상태 코드만, 결과·다음 출처 그대로" classname="com.cryptoautotrader.api.news.NewsHttpErrorLogTest" time="0.014"/>
+  <system-out><![CDATA[15:02:43.391 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:02:46.834 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+15:02:46.995 [Test worker] WARN com.cryptoautotrader.api.news.source.CryptoPanicSource -- [CryptoPanicSource] HTTP 403: <!DOCTYPE html>
+<p>FAKE-SECRET-N12-7f3a9c https://blocked.invalid/cdn-cgi?token=FAKE-SECRET-N12-7f3a9c</p>
+<html><head><title>Just a moment...</title></head>
+<body>Access denied</body></html>
+
+15:02:47.003 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_403 판정=2026-11-04T06:02:47.000434200Z 받은=0건 신규=0건
+15:02:47.004 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+15:02:47.028 [Test worker] DEBUG com.cryptoautotrader.api.news.source.CryptoPanicSource -- [CryptoPanicSource] 수집 완료 ? 0건
+15:02:47.028 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건
+[n12 CRYPTOPANIC 403] 출처 WARN 1개:
+  >>[CryptoPanicSource] HTTP 403: <!DOCTYPE html>\n<p>FAKE-SECRET-N12-7f3a9c https://blocked.invalid/cdn-cgi?token=FAKE-SECRET-N12-7f3a9c</p>\r\n<html><head><title>Just a moment...</title></head>\n<body>Access denied</body></html>\n<<
+  [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+  [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_403 판정=2026-11-04T06:02:47.000434200Z 받은=0건 신규=0건
+  [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+  [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건
+15:02:47.159 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:02:47.161 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+15:02:47.165 [Test worker] WARN com.cryptoautotrader.api.news.source.CryptoPanicSource -- [CryptoPanicSource] HTTP 503: <!DOCTYPE html>
+<p>FAKE-SECRET-N12-7f3a9c https://blocked.invalid/cdn-cgi?token=FAKE-SECRET-N12-7f3a9c</p>
+<html><head><title>Just a moment...</title></head>
+<body>Access denied</body></html>
+
+15:02:47.165 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_503 판정=2026-11-04T06:02:47.165523700Z 받은=0건 신규=0건
+15:02:47.167 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+15:02:47.170 [Test worker] DEBUG com.cryptoautotrader.api.news.source.CryptoPanicSource -- [CryptoPanicSource] 수집 완료 ? 0건
+15:02:47.170 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건
+[n12 CRYPTOPANIC 503] 출처 WARN 1개:
+  >>[CryptoPanicSource] HTTP 503: <!DOCTYPE html>\n<p>FAKE-SECRET-N12-7f3a9c https://blocked.invalid/cdn-cgi?token=FAKE-SECRET-N12-7f3a9c</p>\r\n<html><head><title>Just a moment...</title></head>\n<body>Access denied</body></html>\n<<
+  [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+  [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_503 판정=2026-11-04T06:02:47.165523700Z 받은=0건 신규=0건
+  [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+  [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건
+15:02:47.182 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:02:47.184 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+15:02:47.187 [Test worker] WARN com.cryptoautotrader.api.news.source.UpbitNoticeSource -- [UpbitNoticeSource] HTTP 403: <!DOCTYPE html>
+<p>FAKE-SECRET-N12-7f3a9c https://blocked.invalid/cdn-cgi?token=FAKE-SECRET-N12-7f3a9c</p>
+<html><head>
+15:02:47.189 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_403 판정=2026-11-04T06:02:47.189006900Z 받은=0건 신규=0건
+15:02:47.189 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+15:02:47.192 [Test worker] DEBUG com.cryptoautotrader.api.news.source.UpbitNoticeSource -- [UpbitNoticeSource] 수집 완료 ? 0건(빈 공지 배열)
+15:02:47.192 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건
+[n12 UPBIT_NOTICE 403] 출처 WARN 1개:
+  >>[UpbitNoticeSource] HTTP 403: <!DOCTYPE html>\n<p>FAKE-SECRET-N12-7f3a9c https://blocked.invalid/cdn-cgi?token=FAKE-SECRET-N12-7f3a9c</p>\r\n<html><head><<
+  [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+  [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_403 판정=2026-11-04T06:02:47.189006900Z 받은=0건 신규=0건
+  [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+  [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건
+15:02:47.204 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:02:47.206 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+15:02:47.210 [Test worker] WARN com.cryptoautotrader.api.news.source.UpbitNoticeSource -- [UpbitNoticeSource] HTTP 503: <!DOCTYPE html>
+<p>FAKE-SECRET-N12-7f3a9c https://blocked.invalid/cdn-cgi?token=FAKE-SECRET-N12-7f3a9c</p>
+<html><head>
+15:02:47.210 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_503 판정=2026-11-04T06:02:47.210200200Z 받은=0건 신규=0건
+15:02:47.210 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+15:02:47.214 [Test worker] DEBUG com.cryptoautotrader.api.news.source.UpbitNoticeSource -- [UpbitNoticeSource] 수집 완료 ? 0건(빈 공지 배열)
+15:02:47.214 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건
+[n12 UPBIT_NOTICE 503] 출처 WARN 1개:
+  >>[UpbitNoticeSource] HTTP 503: <!DOCTYPE html>\n<p>FAKE-SECRET-N12-7f3a9c https://blocked.invalid/cdn-cgi?token=FAKE-SECRET-N12-7f3a9c</p>\r\n<html><head><<
+  [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+  [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_503 판정=2026-11-04T06:02:47.210200200Z 받은=0건 신규=0건
+  [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+  [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건
+15:02:47.226 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:02:47.228 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+15:02:47.232 [Test worker] WARN com.cryptoautotrader.api.news.source.RssNewsSource -- [RssNewsSource] HTTP 403 ? sourceId=stub_fail
+15:02:47.232 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_403 판정=2026-11-04T06:02:47.232538Z 받은=0건 신규=0건
+15:02:47.232 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+15:02:47.274 [Test worker] DEBUG com.cryptoautotrader.api.news.source.RssNewsSource -- [RssNewsSource] 수집 완료 ? sourceId=stub_ok 0건
+15:02:47.274 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건
+[n12 RSS 403] 출처 WARN 1개:
+  >>[RssNewsSource] HTTP 403 ? sourceId=stub_fail<<
+  [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+  [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_403 판정=2026-11-04T06:02:47.232538Z 받은=0건 신규=0건
+  [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+  [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건
+15:02:47.287 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:02:47.289 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+15:02:47.291 [Test worker] WARN com.cryptoautotrader.api.news.source.RssNewsSource -- [RssNewsSource] HTTP 503 ? sourceId=stub_fail
+15:02:47.291 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_503 판정=2026-11-04T06:02:47.291531800Z 받은=0건 신규=0건
+15:02:47.291 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+15:02:47.294 [Test worker] DEBUG com.cryptoautotrader.api.news.source.RssNewsSource -- [RssNewsSource] 수집 완료 ? sourceId=stub_ok 0건
+15:02:47.295 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건
+[n12 RSS 503] 출처 WARN 1개:
+  >>[RssNewsSource] HTTP 503 ? sourceId=stub_fail<<
+  [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+  [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_503 판정=2026-11-04T06:02:47.291531800Z 받은=0건 신규=0건
+  [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+  [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건
+15:02:47.303 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:02:47.305 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+15:02:47.309 [Test worker] WARN com.cryptoautotrader.api.news.source.CoinGeckoTrendingSource -- [CoinGeckoTrendingSource] HTTP 403
+15:02:47.309 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_403 판정=2026-11-04T06:02:47.309974800Z 받은=0건 신규=0건
+15:02:47.309 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+15:02:47.312 [Test worker] DEBUG com.cryptoautotrader.api.news.source.CoinGeckoTrendingSource -- [CoinGeckoTrendingSource] 수집 완료 ? 0건
+15:02:47.312 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건
+[n12 COINGECKO 403] 출처 WARN 1개:
+  >>[CoinGeckoTrendingSource] HTTP 403<<
+  [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+  [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_403 판정=2026-11-04T06:02:47.309974800Z 받은=0건 신규=0건
+  [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+  [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건
+15:02:47.319 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:02:47.320 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+15:02:47.323 [Test worker] WARN com.cryptoautotrader.api.news.source.CoinGeckoTrendingSource -- [CoinGeckoTrendingSource] HTTP 503
+15:02:47.323 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_503 판정=2026-11-04T06:02:47.323544200Z 받은=0건 신규=0건
+15:02:47.323 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+15:02:47.326 [Test worker] DEBUG com.cryptoautotrader.api.news.source.CoinGeckoTrendingSource -- [CoinGeckoTrendingSource] 수집 완료 ? 0건
+15:02:47.326 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건
+[n12 COINGECKO 503] 출처 WARN 1개:
+  >>[CoinGeckoTrendingSource] HTTP 503<<
+  [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+  [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_503 판정=2026-11-04T06:02:47.323544200Z 받은=0건 신규=0건
+  [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+  [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

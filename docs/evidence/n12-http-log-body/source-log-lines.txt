@@ -1,0 +1,37 @@
+== b1d7664
+CryptoPanicSource:81:                log.warn("[CryptoPanicSource] HTTP {}: {}", response.statusCode(), response.body());
+CryptoPanicSource:108:            log.debug("[CryptoPanicSource] 수집 완료 — {}건", items.size());
+CryptoPanicSource:112:            log.error("[CryptoPanicSource] 수집 실패: {}", e.getMessage());
+UpbitNoticeSource:70:                log.warn("[UpbitNoticeSource] HTTP {}: {}", response.statusCode(),
+UpbitNoticeSource:71:                        response.body() != null ? response.body().substring(0, Math.min(120, response.body().length())) : "");
+UpbitNoticeSource:81:                    log.warn("[UpbitNoticeSource] success 값이 boolean 아님 — sourceId={}", config.getSourceId());
+UpbitNoticeSource:85:                    log.warn("[UpbitNoticeSource] 응답 success=false — sourceId={}", config.getSourceId());
+UpbitNoticeSource:95:                    log.debug("[UpbitNoticeSource] 수집 완료 — 0건(빈 공지 배열)");
+UpbitNoticeSource:98:                log.warn("[UpbitNoticeSource] 공지 배열을 찾지 못함 (스키마 변경 가능) — url={}", config.getUrl());
+UpbitNoticeSource:119:            log.debug("[UpbitNoticeSource] 수집 완료 — {}건", items.size());
+UpbitNoticeSource:123:            log.error("[UpbitNoticeSource] 수집 실패: {}", e.getMessage());
+RssNewsSource:74:                log.warn("[RssNewsSource] HTTP {} — sourceId={}", response.statusCode(), config.getSourceId());
+RssNewsSource:86:                log.warn("[RssNewsSource] 지원하는 RSS 구조 아님(루트 rss 또는 rdf:RDF 바로 아래 channel 필요) — sourceId={}",
+RssNewsSource:114:            log.debug("[RssNewsSource] 수집 완료 — sourceId={} {}건", config.getSourceId(), items.size());
+RssNewsSource:118:            log.error("[RssNewsSource] 수집 실패 — sourceId={}: {}", config.getSourceId(), e.getMessage());
+CoinGeckoTrendingSource:61:                log.warn("[CoinGeckoTrendingSource] HTTP {}", response.statusCode());
+CoinGeckoTrendingSource:92:            log.debug("[CoinGeckoTrendingSource] 수집 완료 — {}건", items.size());
+CoinGeckoTrendingSource:96:            log.error("[CoinGeckoTrendingSource] 수집 실패: {}", e.getMessage());
+== 6995c52
+CryptoPanicSource:82:                log.warn("[CryptoPanicSource] HTTP {} — sourceId={}", response.statusCode(), config.getSourceId());
+CryptoPanicSource:109:            log.debug("[CryptoPanicSource] 수집 완료 — {}건", items.size());
+CryptoPanicSource:113:            log.error("[CryptoPanicSource] 수집 실패: {}", e.getMessage());
+UpbitNoticeSource:71:                log.warn("[UpbitNoticeSource] HTTP {} — sourceId={}", response.statusCode(), config.getSourceId());
+UpbitNoticeSource:81:                    log.warn("[UpbitNoticeSource] success 값이 boolean 아님 — sourceId={}", config.getSourceId());
+UpbitNoticeSource:85:                    log.warn("[UpbitNoticeSource] 응답 success=false — sourceId={}", config.getSourceId());
+UpbitNoticeSource:95:                    log.debug("[UpbitNoticeSource] 수집 완료 — 0건(빈 공지 배열)");
+UpbitNoticeSource:98:                log.warn("[UpbitNoticeSource] 공지 배열을 찾지 못함 (스키마 변경 가능) — url={}", config.getUrl());
+UpbitNoticeSource:119:            log.debug("[UpbitNoticeSource] 수집 완료 — {}건", items.size());
+UpbitNoticeSource:123:            log.error("[UpbitNoticeSource] 수집 실패: {}", e.getMessage());
+RssNewsSource:74:                log.warn("[RssNewsSource] HTTP {} — sourceId={}", response.statusCode(), config.getSourceId());
+RssNewsSource:86:                log.warn("[RssNewsSource] 지원하는 RSS 구조 아님(루트 rss 또는 rdf:RDF 바로 아래 channel 필요) — sourceId={}",
+RssNewsSource:114:            log.debug("[RssNewsSource] 수집 완료 — sourceId={} {}건", config.getSourceId(), items.size());
+RssNewsSource:118:            log.error("[RssNewsSource] 수집 실패 — sourceId={}: {}", config.getSourceId(), e.getMessage());
+CoinGeckoTrendingSource:61:                log.warn("[CoinGeckoTrendingSource] HTTP {}", response.statusCode());
+CoinGeckoTrendingSource:92:            log.debug("[CoinGeckoTrendingSource] 수집 완료 — {}건", items.size());
+CoinGeckoTrendingSource:96:            log.error("[CoinGeckoTrendingSource] 수집 실패: {}", e.getMessage());

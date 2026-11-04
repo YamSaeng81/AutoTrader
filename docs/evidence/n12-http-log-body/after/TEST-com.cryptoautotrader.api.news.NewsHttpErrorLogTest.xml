@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.news.NewsHttpErrorLogTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-11-04T06:03:17" hostname="DESKTOP-SF1KUQ5" time="0.159">
+  <properties/>
+  <testcase name="CRYPTOPANIC HTTP 403: 본문 없이 출처·상태 코드만, 결과·다음 출처 그대로" classname="com.cryptoautotrader.api.news.NewsHttpErrorLogTest" time="0.032"/>
+  <testcase name="CRYPTOPANIC HTTP 503: 본문 없이 출처·상태 코드만, 결과·다음 출처 그대로" classname="com.cryptoautotrader.api.news.NewsHttpErrorLogTest" time="0.021"/>
+  <testcase name="UPBIT_NOTICE HTTP 403: 본문 없이 출처·상태 코드만, 결과·다음 출처 그대로" classname="com.cryptoautotrader.api.news.NewsHttpErrorLogTest" time="0.019"/>
+  <testcase name="UPBIT_NOTICE HTTP 503: 본문 없이 출처·상태 코드만, 결과·다음 출처 그대로" classname="com.cryptoautotrader.api.news.NewsHttpErrorLogTest" time="0.018"/>
+  <testcase name="RSS HTTP 403: 본문 없이 출처·상태 코드만, 결과·다음 출처 그대로" classname="com.cryptoautotrader.api.news.NewsHttpErrorLogTest" time="0.018"/>
+  <testcase name="RSS HTTP 503: 본문 없이 출처·상태 코드만, 결과·다음 출처 그대로" classname="com.cryptoautotrader.api.news.NewsHttpErrorLogTest" time="0.016"/>
+  <testcase name="COINGECKO HTTP 403: 본문 없이 출처·상태 코드만, 결과·다음 출처 그대로" classname="com.cryptoautotrader.api.news.NewsHttpErrorLogTest" time="0.016"/>
+  <testcase name="COINGECKO HTTP 503: 본문 없이 출처·상태 코드만, 결과·다음 출처 그대로" classname="com.cryptoautotrader.api.news.NewsHttpErrorLogTest" time="0.015"/>
+  <system-out><![CDATA[15:03:17.491 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:17.495 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+15:03:17.498 [Test worker] WARN com.cryptoautotrader.api.news.source.CryptoPanicSource -- [CryptoPanicSource] HTTP 403 ? sourceId=stub_fail
+15:03:17.499 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_403 판정=2026-11-04T06:03:17.498891800Z 받은=0건 신규=0건
+15:03:17.499 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+15:03:17.503 [Test worker] DEBUG com.cryptoautotrader.api.news.source.CryptoPanicSource -- [CryptoPanicSource] 수집 완료 ? 0건
+15:03:17.503 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건
+[n12 CRYPTOPANIC 403] 출처 WARN 1개:
+  >>[CryptoPanicSource] HTTP 403 ? sourceId=stub_fail<<
+  [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+  [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_403 판정=2026-11-04T06:03:17.498891800Z 받은=0건 신규=0건
+  [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+  [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건
+15:03:17.525 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:17.527 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+15:03:17.530 [Test worker] WARN com.cryptoautotrader.api.news.source.CryptoPanicSource -- [CryptoPanicSource] HTTP 503 ? sourceId=stub_fail
+15:03:17.530 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_503 판정=2026-11-04T06:03:17.530874900Z 받은=0건 신규=0건
+15:03:17.530 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+15:03:17.533 [Test worker] DEBUG com.cryptoautotrader.api.news.source.CryptoPanicSource -- [CryptoPanicSource] 수집 완료 ? 0건
+15:03:17.534 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건
+[n12 CRYPTOPANIC 503] 출처 WARN 1개:
+  >>[CryptoPanicSource] HTTP 503 ? sourceId=stub_fail<<
+  [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+  [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_503 판정=2026-11-04T06:03:17.530874900Z 받은=0건 신규=0건
+  [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+  [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건
+15:03:17.546 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:17.547 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+15:03:17.550 [Test worker] WARN com.cryptoautotrader.api.news.source.UpbitNoticeSource -- [UpbitNoticeSource] HTTP 403 ? sourceId=stub_fail
+15:03:17.551 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_403 판정=2026-11-04T06:03:17.551506300Z 받은=0건 신규=0건
+15:03:17.551 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+15:03:17.555 [Test worker] DEBUG com.cryptoautotrader.api.news.source.UpbitNoticeSource -- [UpbitNoticeSource] 수집 완료 ? 0건(빈 공지 배열)
+15:03:17.555 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건
+[n12 UPBIT_NOTICE 403] 출처 WARN 1개:
+  >>[UpbitNoticeSource] HTTP 403 ? sourceId=stub_fail<<
+  [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+  [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_403 판정=2026-11-04T06:03:17.551506300Z 받은=0건 신규=0건
+  [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+  [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건
+15:03:17.565 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:17.567 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+15:03:17.571 [Test worker] WARN com.cryptoautotrader.api.news.source.UpbitNoticeSource -- [UpbitNoticeSource] HTTP 503 ? sourceId=stub_fail
+15:03:17.571 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_503 판정=2026-11-04T06:03:17.571654300Z 받은=0건 신규=0건
+15:03:17.571 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+15:03:17.574 [Test worker] DEBUG com.cryptoautotrader.api.news.source.UpbitNoticeSource -- [UpbitNoticeSource] 수집 완료 ? 0건(빈 공지 배열)
+15:03:17.574 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건
+[n12 UPBIT_NOTICE 503] 출처 WARN 1개:
+  >>[UpbitNoticeSource] HTTP 503 ? sourceId=stub_fail<<
+  [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+  [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_503 판정=2026-11-04T06:03:17.571654300Z 받은=0건 신규=0건
+  [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+  [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건
+15:03:17.583 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:17.585 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+15:03:17.588 [Test worker] WARN com.cryptoautotrader.api.news.source.RssNewsSource -- [RssNewsSource] HTTP 403 ? sourceId=stub_fail
+15:03:17.588 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_403 판정=2026-11-04T06:03:17.588958100Z 받은=0건 신규=0건
+15:03:17.588 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+15:03:17.591 [Test worker] DEBUG com.cryptoautotrader.api.news.source.RssNewsSource -- [RssNewsSource] 수집 완료 ? sourceId=stub_ok 0건
+15:03:17.591 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건
+[n12 RSS 403] 출처 WARN 1개:
+  >>[RssNewsSource] HTTP 403 ? sourceId=stub_fail<<
+  [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+  [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_403 판정=2026-11-04T06:03:17.588958100Z 받은=0건 신규=0건
+  [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+  [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건
+15:03:17.601 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:17.603 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+15:03:17.606 [Test worker] WARN com.cryptoautotrader.api.news.source.RssNewsSource -- [RssNewsSource] HTTP 503 ? sourceId=stub_fail
+15:03:17.606 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_503 판정=2026-11-04T06:03:17.606243300Z 받은=0건 신규=0건
+15:03:17.606 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+15:03:17.609 [Test worker] DEBUG com.cryptoautotrader.api.news.source.RssNewsSource -- [RssNewsSource] 수집 완료 ? sourceId=stub_ok 0건
+15:03:17.609 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건
+[n12 RSS 503] 출처 WARN 1개:
+  >>[RssNewsSource] HTTP 503 ? sourceId=stub_fail<<
+  [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+  [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_503 판정=2026-11-04T06:03:17.606243300Z 받은=0건 신규=0건
+  [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+  [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건
+15:03:17.617 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:17.620 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+15:03:17.622 [Test worker] WARN com.cryptoautotrader.api.news.source.CoinGeckoTrendingSource -- [CoinGeckoTrendingSource] HTTP 403
+15:03:17.623 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_403 판정=2026-11-04T06:03:17.622663200Z 받은=0건 신규=0건
+15:03:17.623 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+15:03:17.625 [Test worker] DEBUG com.cryptoautotrader.api.news.source.CoinGeckoTrendingSource -- [CoinGeckoTrendingSource] 수집 완료 ? 0건
+15:03:17.625 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건
+[n12 COINGECKO 403] 출처 WARN 1개:
+  >>[CoinGeckoTrendingSource] HTTP 403<<
+  [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+  [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_403 판정=2026-11-04T06:03:17.622663200Z 받은=0건 신규=0건
+  [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+  [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건
+15:03:17.634 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:17.636 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+15:03:17.638 [Test worker] WARN com.cryptoautotrader.api.news.source.CoinGeckoTrendingSource -- [CoinGeckoTrendingSource] HTTP 503
+15:03:17.639 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_503 판정=2026-11-04T06:03:17.639455700Z 받은=0건 신규=0건
+15:03:17.639 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+15:03:17.641 [Test worker] DEBUG com.cryptoautotrader.api.news.source.CoinGeckoTrendingSource -- [CoinGeckoTrendingSource] 수집 완료 ? 0건
+15:03:17.641 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건
+[n12 COINGECKO 503] 출처 WARN 1개:
+  >>[CoinGeckoTrendingSource] HTTP 503<<
+  [NewsAggregator] 수집 시작 ? sourceId=stub_fail
+  [NewsAggregator] 수집 미완료 ? sourceId=stub_fail 결과=FAILED 종류=HTTP_503 판정=2026-11-04T06:03:17.639455700Z 받은=0건 신규=0건
+  [NewsAggregator] 수집 시작 ? sourceId=stub_ok
+  [NewsAggregator] 수집 완료 ? sourceId=stub_ok 전체=0건 신규=0건
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

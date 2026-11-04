@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.news.NewsFetchResultContractTest" tests="36" skipped="0" failures="0" errors="0" timestamp="2026-11-04T06:03:15" hostname="DESKTOP-SF1KUQ5" time="2.024">
+  <properties/>
+  <testcase name="collectAll: 앞 출처가 실패해도 다음 출처를 수집하고, 각자 결과대로 기록한다" classname="com.cryptoautotrader.api.news.NewsFetchResultContractTest" time="0.247"/>
+  <testcase name="시도 간격: 실패 뒤에도 last_fetched_at 은 시도 시각 — 다음 주기 전에는 다시 요청하지 않고, 간격이 지나면 요청한다" classname="com.cryptoautotrader.api.news.NewsFetchResultContractTest" time="0.013"/>
+  <testcase name="지원하지 않는 타입: FAILED UNSUPPORTED_TYPE, last_fetched_at 은 기존처럼 갱신하지 않음" classname="com.cryptoautotrader.api.news.NewsFetchResultContractTest" time="0.01"/>
+  <testcase name="RSS: 정상 빈 응답 = SUCCESS 0건, 수집 완료 전체=0건" classname="com.cryptoautotrader.api.news.NewsFetchResultContractTest" time="0.012"/>
+  <testcase name="UPBIT_NOTICE: 정상 빈 응답 = SUCCESS 0건, 수집 완료 전체=0건" classname="com.cryptoautotrader.api.news.NewsFetchResultContractTest" time="0.009"/>
+  <testcase name="CRYPTOPANIC: 정상 빈 응답 = SUCCESS 0건, 수집 완료 전체=0건" classname="com.cryptoautotrader.api.news.NewsFetchResultContractTest" time="0.01"/>
+  <testcase name="COINGECKO: 정상 빈 응답 = SUCCESS 0건, 수집 완료 전체=0건" classname="com.cryptoautotrader.api.news.NewsFetchResultContractTest" time="0.01"/>
+  <testcase name="RSS: 1건 = SUCCESS, 신규 1건 저장" classname="com.cryptoautotrader.api.news.NewsFetchResultContractTest" time="0.021"/>
+  <testcase name="UPBIT_NOTICE: 1건 = SUCCESS, 신규 1건 저장" classname="com.cryptoautotrader.api.news.NewsFetchResultContractTest" time="0.011"/>
+  <testcase name="CRYPTOPANIC: 1건 = SUCCESS, 신규 1건 저장" classname="com.cryptoautotrader.api.news.NewsFetchResultContractTest" time="0.009"/>
+  <testcase name="COINGECKO: 1건 = SUCCESS, 신규 1건 저장" classname="com.cryptoautotrader.api.news.NewsFetchResultContractTest" time="0.013"/>
+  <testcase name="실패 기록(결과·상위 WARN)에 토큰·URL·예외 메시지가 들어가지 않는다" classname="com.cryptoautotrader.api.news.NewsFetchResultContractTest" time="0.226"/>
+  <testcase name="RSS: 필요한 배열/요소가 없는 응답 = FAILED INVALID_RESPONSE (정상 빈 배열과 구분)" classname="com.cryptoautotrader.api.news.NewsFetchResultContractTest" time="0.013"/>
+  <testcase name="UPBIT_NOTICE: 필요한 배열/요소가 없는 응답 = FAILED INVALID_RESPONSE (정상 빈 배열과 구분)" classname="com.cryptoautotrader.api.news.NewsFetchResultContractTest" time="0.01"/>
+  <testcase name="CRYPTOPANIC: 필요한 배열/요소가 없는 응답 = FAILED INVALID_RESPONSE (정상 빈 배열과 구분)" classname="com.cryptoautotrader.api.news.NewsFetchResultContractTest" time="0.017"/>
+  <testcase name="COINGECKO: 필요한 배열/요소가 없는 응답 = FAILED INVALID_RESPONSE (정상 빈 배열과 구분)" classname="com.cryptoautotrader.api.news.NewsFetchResultContractTest" time="0.012"/>
+  <testcase name="수동 조회 API: 기존 sourceId·collected·titles 유지 + status·failureKind 추가" classname="com.cryptoautotrader.api.news.NewsFetchResultContractTest" time="0.099"/>
+  <testcase name="RSS: 이미 있는 뉴스뿐 = SUCCESS, 신규 0건(실패 아님)" classname="com.cryptoautotrader.api.news.NewsFetchResultContractTest" time="0.022"/>
+  <testcase name="UPBIT_NOTICE: 이미 있는 뉴스뿐 = SUCCESS, 신규 0건(실패 아님)" classname="com.cryptoautotrader.api.news.NewsFetchResultContractTest" time="0.018"/>
+  <testcase name="CRYPTOPANIC: 이미 있는 뉴스뿐 = SUCCESS, 신규 0건(실패 아님)" classname="com.cryptoautotrader.api.news.NewsFetchResultContractTest" time="0.017"/>
+  <testcase name="COINGECKO: 이미 있는 뉴스뿐 = SUCCESS, 신규 0건(실패 아님)" classname="com.cryptoautotrader.api.news.NewsFetchResultContractTest" time="0.017"/>
+  <testcase name="RSS: 연결 강제 종료 = FAILED(예외 종류), 출처 ERROR 원문 형식 유지, 수집 완료 없음" classname="com.cryptoautotrader.api.news.NewsFetchResultContractTest" time="0.237"/>
+  <testcase name="UPBIT_NOTICE: 연결 강제 종료 = FAILED(예외 종류), 출처 ERROR 원문 형식 유지, 수집 완료 없음" classname="com.cryptoautotrader.api.news.NewsFetchResultContractTest" time="0.226"/>
+  <testcase name="CRYPTOPANIC: 연결 강제 종료 = FAILED(예외 종류), 출처 ERROR 원문 형식 유지, 수집 완료 없음" classname="com.cryptoautotrader.api.news.NewsFetchResultContractTest" time="0.228"/>
+  <testcase name="COINGECKO: 연결 강제 종료 = FAILED(예외 종류), 출처 ERROR 원문 형식 유지, 수집 완료 없음" classname="com.cryptoautotrader.api.news.NewsFetchResultContractTest" time="0.23"/>
+  <testcase name="결과 불변식: 성공에 실패 종류 금지, 실패·부분에 종류 필수, 항목 유무로 FAILED/PARTIAL 구분" classname="com.cryptoautotrader.api.news.NewsFetchResultContractTest" time="0.011"/>
+  <testcase name="RSS: HTTP 503 = FAILED HTTP_503" classname="com.cryptoautotrader.api.news.NewsFetchResultContractTest" time="0.011"/>
+  <testcase name="UPBIT_NOTICE: HTTP 503 = FAILED HTTP_503" classname="com.cryptoautotrader.api.news.NewsFetchResultContractTest" time="0.016"/>
+  <testcase name="CRYPTOPANIC: HTTP 503 = FAILED HTTP_503" classname="com.cryptoautotrader.api.news.NewsFetchResultContractTest" time="0.019"/>
+  <testcase name="COINGECKO: HTTP 503 = FAILED HTTP_503" classname="com.cryptoautotrader.api.news.NewsFetchResultContractTest" time="0.013"/>
+  <testcase name="PARTIAL: 받은 항목은 기존처럼 중복 확인 뒤 저장, 수집 완료로 기록하지 않음, 캐시 삭제 없음" classname="com.cryptoautotrader.api.news.NewsFetchResultContractTest" time="0.043"/>
+  <testcase name="RSS: 깨진 본문 = FAILED(파싱 예외 종류)" classname="com.cryptoautotrader.api.news.NewsFetchResultContractTest" time="0.03"/>
+  <testcase name="UPBIT_NOTICE: 깨진 본문 = FAILED(파싱 예외 종류)" classname="com.cryptoautotrader.api.news.NewsFetchResultContractTest" time="0.015"/>
+  <testcase name="CRYPTOPANIC: 깨진 본문 = FAILED(파싱 예외 종류)" classname="com.cryptoautotrader.api.news.NewsFetchResultContractTest" time="0.013"/>
+  <testcase name="COINGECKO: 깨진 본문 = FAILED(파싱 예외 종류)" classname="com.cryptoautotrader.api.news.NewsFetchResultContractTest" time="0.017"/>
+  <testcase name="출처가 null 을 돌려주면(계약 위반) 성공으로 보지 않는다 — FAILED NULL_RESULT" classname="com.cryptoautotrader.api.news.NewsFetchResultContractTest" time="0.011"/>
+  <system-out><![CDATA[15:03:15.461 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:15.463 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=bad
+15:03:15.687 [Test worker] ERROR com.cryptoautotrader.api.news.source.RssNewsSource -- [RssNewsSource] 수집 실패 ? sourceId=bad: HTTP/1.1 header parser received no bytes
+15:03:15.687 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=bad 결과=FAILED 종류=IOException 판정=2026-11-04T06:03:15.687760800Z 받은=0건 신규=0건
+15:03:15.688 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=good
+15:03:15.696 [Test worker] DEBUG com.cryptoautotrader.api.news.source.UpbitNoticeSource -- [UpbitNoticeSource] 수집 완료 ? 1건
+15:03:15.697 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=good 전체=1건 신규=1건
+15:03:15.708 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:15.710 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=iv
+15:03:15.712 [Test worker] WARN com.cryptoautotrader.api.news.source.CryptoPanicSource -- [CryptoPanicSource] HTTP 500 ? sourceId=iv
+15:03:15.713 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=iv 결과=FAILED 종류=HTTP_500 판정=2026-11-04T06:03:15.713027300Z 받은=0건 신규=0건
+15:03:15.713 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=iv
+15:03:15.715 [Test worker] WARN com.cryptoautotrader.api.news.source.CryptoPanicSource -- [CryptoPanicSource] HTTP 500 ? sourceId=iv
+15:03:15.715 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=iv 결과=FAILED 종류=HTTP_500 판정=2026-11-04T06:03:15.715026900Z 받은=0건 신규=0건
+15:03:15.720 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:15.723 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 지원하지 않는 소스 타입: NOPE (sourceId=uu)
+15:03:15.734 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:15.735 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=s0
+15:03:15.739 [Test worker] DEBUG com.cryptoautotrader.api.news.source.RssNewsSource -- [RssNewsSource] 수집 완료 ? sourceId=s0 0건
+15:03:15.739 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=s0 전체=0건 신규=0건
+15:03:15.746 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:15.747 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=s0
+15:03:15.749 [Test worker] DEBUG com.cryptoautotrader.api.news.source.UpbitNoticeSource -- [UpbitNoticeSource] 수집 완료 ? 0건(빈 공지 배열)
+15:03:15.749 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=s0 전체=0건 신규=0건
+15:03:15.756 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:15.757 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=s0
+15:03:15.760 [Test worker] DEBUG com.cryptoautotrader.api.news.source.CryptoPanicSource -- [CryptoPanicSource] 수집 완료 ? 0건
+15:03:15.760 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=s0 전체=0건 신규=0건
+15:03:15.766 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:15.768 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=s0
+15:03:15.771 [Test worker] DEBUG com.cryptoautotrader.api.news.source.CoinGeckoTrendingSource -- [CoinGeckoTrendingSource] 수집 완료 ? 0건
+15:03:15.771 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=s0 전체=0건 신규=0건
+15:03:15.777 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:15.779 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=s1
+15:03:15.793 [Test worker] DEBUG com.cryptoautotrader.api.news.source.RssNewsSource -- [RssNewsSource] 수집 완료 ? sourceId=s1 1건
+15:03:15.794 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=s1 전체=1건 신규=1건
+15:03:15.799 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:15.801 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=s1
+15:03:15.804 [Test worker] DEBUG com.cryptoautotrader.api.news.source.UpbitNoticeSource -- [UpbitNoticeSource] 수집 완료 ? 1건
+15:03:15.805 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=s1 전체=1건 신규=1건
+15:03:15.811 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:15.812 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=s1
+15:03:15.815 [Test worker] DEBUG com.cryptoautotrader.api.news.source.CryptoPanicSource -- [CryptoPanicSource] 수집 완료 ? 1건
+15:03:15.815 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=s1 전체=1건 신규=1건
+15:03:15.823 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:15.824 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=s1
+15:03:15.829 [Test worker] DEBUG com.cryptoautotrader.api.news.source.CoinGeckoTrendingSource -- [CoinGeckoTrendingSource] 수집 완료 ? 1건
+15:03:15.829 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=s1 전체=1건 신규=1건
+15:03:15.835 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:15.837 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=sx
+15:03:16.052 [Test worker] ERROR com.cryptoautotrader.api.news.source.CryptoPanicSource -- [CryptoPanicSource] 수집 실패: HTTP/1.1 header parser received no bytes
+15:03:16.053 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=sx 결과=FAILED 종류=IOException 판정=2026-11-04T06:03:16.052687300Z 받은=0건 신규=0건
+15:03:16.062 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:16.063 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=si
+15:03:16.068 [Test worker] WARN com.cryptoautotrader.api.news.source.RssNewsSource -- [RssNewsSource] 지원하는 RSS 구조 아님(루트 rss 또는 rdf:RDF 바로 아래 channel 필요) ? sourceId=si
+15:03:16.069 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=si 결과=FAILED 종류=INVALID_RESPONSE 판정=2026-11-04T06:03:16.069940900Z 받은=0건 신규=0건
+15:03:16.076 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:16.078 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=si
+15:03:16.080 [Test worker] WARN com.cryptoautotrader.api.news.source.UpbitNoticeSource -- [UpbitNoticeSource] 공지 배열을 찾지 못함 (스키마 변경 가능) ? url=http://127.0.0.1:5365/s
+15:03:16.081 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=si 결과=FAILED 종류=INVALID_RESPONSE 판정=2026-11-04T06:03:16.081831500Z 받은=0건 신규=0건
+15:03:16.092 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:16.093 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=si
+15:03:16.098 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=si 결과=FAILED 종류=INVALID_RESPONSE 판정=2026-11-04T06:03:16.098931900Z 받은=0건 신규=0건
+15:03:16.106 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:16.108 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=si
+15:03:16.111 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=si 결과=FAILED 종류=INVALID_RESPONSE 판정=2026-11-04T06:03:16.111479600Z 받은=0건 신규=0건
+15:03:16.120 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:16.234 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:16.239 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=sd
+15:03:16.244 [Test worker] DEBUG com.cryptoautotrader.api.news.source.RssNewsSource -- [RssNewsSource] 수집 완료 ? sourceId=sd 1건
+15:03:16.244 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=sd 전체=1건 신규=0건
+15:03:16.256 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:16.258 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=sd
+15:03:16.262 [Test worker] DEBUG com.cryptoautotrader.api.news.source.UpbitNoticeSource -- [UpbitNoticeSource] 수집 완료 ? 1건
+15:03:16.263 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=sd 전체=1건 신규=0건
+15:03:16.275 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:16.277 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=sd
+15:03:16.280 [Test worker] DEBUG com.cryptoautotrader.api.news.source.CryptoPanicSource -- [CryptoPanicSource] 수집 완료 ? 1건
+15:03:16.281 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=sd 전체=1건 신규=0건
+15:03:16.292 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:16.294 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=sd
+15:03:16.297 [Test worker] DEBUG com.cryptoautotrader.api.news.source.CoinGeckoTrendingSource -- [CoinGeckoTrendingSource] 수집 완료 ? 1건
+15:03:16.298 [Test worker] INFO com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 완료 ? sourceId=sd 전체=1건 신규=0건
+15:03:16.349 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:16.350 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=sr
+15:03:16.575 [Test worker] ERROR com.cryptoautotrader.api.news.source.RssNewsSource -- [RssNewsSource] 수집 실패 ? sourceId=sr: HTTP/1.1 header parser received no bytes
+15:03:16.576 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=sr 결과=FAILED 종류=IOException 판정=2026-11-04T06:03:16.576241100Z 받은=0건 신규=0건
+15:03:16.585 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:16.588 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=sr
+15:03:16.805 [Test worker] ERROR com.cryptoautotrader.api.news.source.UpbitNoticeSource -- [UpbitNoticeSource] 수집 실패: HTTP/1.1 header parser received no bytes
+15:03:16.805 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=sr 결과=FAILED 종류=IOException 판정=2026-11-04T06:03:16.805650900Z 받은=0건 신규=0건
+15:03:16.815 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:16.816 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=sr
+15:03:17.032 [Test worker] ERROR com.cryptoautotrader.api.news.source.CryptoPanicSource -- [CryptoPanicSource] 수집 실패: HTTP/1.1 header parser received no bytes
+15:03:17.033 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=sr 결과=FAILED 종류=IOException 판정=2026-11-04T06:03:17.033410900Z 받은=0건 신규=0건
+15:03:17.046 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:17.048 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=sr
+15:03:17.263 [Test worker] ERROR com.cryptoautotrader.api.news.source.CoinGeckoTrendingSource -- [CoinGeckoTrendingSource] 수집 실패: HTTP/1.1 header parser received no bytes
+15:03:17.264 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=sr 결과=FAILED 종류=IOException 판정=2026-11-04T06:03:17.263653300Z 받은=0건 신규=0건
+15:03:17.274 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:17.288 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:17.290 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=sh
+15:03:17.293 [Test worker] WARN com.cryptoautotrader.api.news.source.RssNewsSource -- [RssNewsSource] HTTP 503 ? sourceId=sh
+15:03:17.293 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=sh 결과=FAILED 종류=HTTP_503 판정=2026-11-04T06:03:17.293436600Z 받은=0건 신규=0건
+15:03:17.305 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:17.307 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=sh
+15:03:17.308 [Test worker] WARN com.cryptoautotrader.api.news.source.UpbitNoticeSource -- [UpbitNoticeSource] HTTP 503 ? sourceId=sh
+15:03:17.309 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=sh 결과=FAILED 종류=HTTP_503 판정=2026-11-04T06:03:17.308312Z 받은=0건 신규=0건
+15:03:17.325 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:17.326 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=sh
+15:03:17.329 [Test worker] WARN com.cryptoautotrader.api.news.source.CryptoPanicSource -- [CryptoPanicSource] HTTP 503 ? sourceId=sh
+15:03:17.329 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=sh 결과=FAILED 종류=HTTP_503 판정=2026-11-04T06:03:17.329892800Z 받은=0건 신규=0건
+15:03:17.339 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:17.341 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=sh
+15:03:17.344 [Test worker] WARN com.cryptoautotrader.api.news.source.CoinGeckoTrendingSource -- [CoinGeckoTrendingSource] HTTP 503
+15:03:17.344 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=sh 결과=FAILED 종류=HTTP_503 판정=2026-11-04T06:03:17.344318500Z 받은=0건 신규=0건
+15:03:17.349 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:17.388 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=pp
+15:03:17.389 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=pp 결과=PARTIAL 종류=SocketException 판정=2026-11-04T06:03:17.388010400Z 받은=1건 신규=1건
+15:03:17.398 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:17.400 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=sm
+15:03:17.418 [Test worker] ERROR com.cryptoautotrader.api.news.source.RssNewsSource -- [RssNewsSource] 수집 실패 ? sourceId=sm: XML document structures must start and end within the same entity.
+15:03:17.419 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=sm 결과=FAILED 종류=SAXParseException 판정=2026-11-04T06:03:17.419403900Z 받은=0건 신규=0건
+15:03:17.428 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:17.429 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=sm
+15:03:17.435 [Test worker] ERROR com.cryptoautotrader.api.news.source.UpbitNoticeSource -- [UpbitNoticeSource] 수집 실패: Unexpected end-of-input within/between Object entries
+ at [Source: (String)"{"data":"; line: 1, column: 9]
+15:03:17.435 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=sm 결과=FAILED 종류=JsonEOFException 판정=2026-11-04T06:03:17.435001800Z 받은=0건 신규=0건
+15:03:17.443 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:17.445 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=sm
+15:03:17.449 [Test worker] ERROR com.cryptoautotrader.api.news.source.CryptoPanicSource -- [CryptoPanicSource] 수집 실패: Unexpected end-of-input within/between Object entries
+ at [Source: (String)"{"results":"; line: 1, column: 12]
+15:03:17.450 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=sm 결과=FAILED 종류=JsonEOFException 판정=2026-11-04T06:03:17.449610100Z 받은=0건 신규=0건
+15:03:17.460 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:17.461 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=sm
+15:03:17.466 [Test worker] ERROR com.cryptoautotrader.api.news.source.CoinGeckoTrendingSource -- [CoinGeckoTrendingSource] 수집 실패: Unexpected end-of-input within/between Object entries
+ at [Source: (String)"{"coins":"; line: 1, column: 10]
+15:03:17.466 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=sm 결과=FAILED 종류=JsonEOFException 판정=2026-11-04T06:03:17.466284900Z 받은=0건 신규=0건
+15:03:17.476 [Test worker] INFO com.cryptoautotrader.api.news.NewsSourceRegistry -- [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+15:03:17.478 [Test worker] DEBUG com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 시작 ? sourceId=nn
+15:03:17.479 [Test worker] WARN com.cryptoautotrader.api.news.NewsAggregatorService -- [NewsAggregator] 수집 미완료 ? sourceId=nn 결과=FAILED 종류=NULL_RESULT 판정=2026-11-04T06:03:17.479511600Z 받은=0건 신규=0건
+]]></system-out>
+  <system-err><![CDATA[[Fatal Error] :1:15: XML document structures must start and end within the same entity.
+]]></system-err>
+</testsuite>
