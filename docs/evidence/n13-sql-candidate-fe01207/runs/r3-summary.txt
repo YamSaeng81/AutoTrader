@@ -1,0 +1,500 @@
+====================================================================================================
+m025-S1  생성 6.3s  rows=249087 pages=10845 size=88842240 hold_priced=125831 done4=7880 done24=7097 l4=115452 l24=104261 md5=5d216a2d5cb8b38aa3dbb88924ac7dfd
+  orig 4h  run1  exec=    350.3ms plan=   4.2ms wall=  0.48s rows=100  buffers hit=41227 read=11096 temp_w=0  at=2026-11-04T22:48:38.262+09:00
+  orig 4h  run2  exec=    346.0ms plan=   2.8ms wall=  0.47s rows=100  buffers hit=51387 read=18 temp_w=0  at=2026-11-04T22:48:38.736+09:00
+  orig 4h  run3  exec=    335.0ms plan=   2.8ms wall=  0.48s rows=100  buffers hit=51100 read=0 temp_w=0  at=2026-11-04T22:48:39.213+09:00
+  orig 24h run1  exec=    275.6ms plan=   3.0ms wall=  0.41s rows=100  buffers hit=47439 read=1 temp_w=0  at=2026-11-04T22:48:39.622+09:00
+  orig 24h run2  exec=    277.1ms plan=   3.0ms wall=  0.40s rows=100  buffers hit=47440 read=0 temp_w=0  at=2026-11-04T22:48:40.018+09:00
+  orig 24h run3  exec=    279.8ms plan=   2.8ms wall=  0.41s rows=100  buffers hit=50298 read=19 temp_w=0  at=2026-11-04T22:48:40.428+09:00
+  c1   4h  run1  exec=     69.2ms plan=   3.5ms wall=  0.18s rows=100  buffers hit=36889 read=11094 temp_w=0  at=2026-11-04T22:48:41.445+09:00
+  c1   4h  run2  exec=     52.2ms plan=   3.2ms wall=  0.18s rows=100  buffers hit=47948 read=0 temp_w=0  at=2026-11-04T22:48:41.627+09:00
+  c1   4h  run3  exec=     50.3ms plan=   2.8ms wall=  0.17s rows=100  buffers hit=47982 read=0 temp_w=0  at=2026-11-04T22:48:41.798+09:00
+  c1   24h run1  exec=     47.7ms plan=   2.9ms wall=  0.20s rows=100  buffers hit=44499 read=0 temp_w=0  at=2026-11-04T22:48:41.995+09:00
+  c1   24h run2  exec=     47.5ms plan=   2.8ms wall=  0.17s rows=100  buffers hit=44450 read=0 temp_w=0  at=2026-11-04T22:48:42.164+09:00
+  c1   24h run3  exec=     45.1ms plan=   2.8ms wall=  0.19s rows=100  buffers hit=44626 read=1 temp_w=0  at=2026-11-04T22:48:42.352+09:00
+  c2   4h  run1  exec=     67.3ms plan=   3.3ms wall=  0.20s rows=100  buffers hit=37028 read=11094 temp_w=0  at=2026-11-04T22:48:43.350+09:00
+  c2   4h  run2  exec=     51.0ms plan=   2.9ms wall=  0.17s rows=100  buffers hit=48120 read=0 temp_w=0  at=2026-11-04T22:48:43.522+09:00
+  c2   4h  run3  exec=     50.1ms plan=   2.7ms wall=  0.17s rows=100  buffers hit=48282 read=1 temp_w=0  at=2026-11-04T22:48:43.693+09:00
+  c2   24h run1  exec=     45.4ms plan=   2.7ms wall=  0.18s rows=100  buffers hit=44589 read=0 temp_w=0  at=2026-11-04T22:48:43.871+09:00
+  c2   24h run2  exec=     45.9ms plan=   2.9ms wall=  0.16s rows=100  buffers hit=44768 read=0 temp_w=0  at=2026-11-04T22:48:44.032+09:00
+  c2   24h run3  exec=     47.2ms plan=   3.1ms wall=  0.19s rows=100  buffers hit=44766 read=0 temp_w=0  at=2026-11-04T22:48:44.219+09:00
+  -- 계획 orig 4h (run1)
+     Limit rows=100 loops=1 
+       Unique rows=100 loops=1 
+         Merge Join(Anti) rows=1531 loops=1 Merge=((l.coin_pair)::text = (e.coin_pair)::text) Join=((e.created_at >= date_trunc('hour'::text, l.created_at)) AND (e.created_at < (date_trunc('hour'::text, l.created_at) + '01:00:00'::interval))) removed_join_filter=2973618
+           Gather Merge rows=28807 loops=1 workers=3/3
+             Incremental Sort rows=7320 loops=4 
+               Index Scan rows=8618 loops=4 Relation=strategy_log Index=idx_hold_baseline_eval removed_filter=588
+           Sort rows=2973619 loops=1 
+             Gather rows=7880 loops=1 workers=3/3
+               Seq Scan rows=1970 loops=4 Relation=strategy_log removed_filter=60302
+  -- 계획 orig 24h (run1)
+     Limit rows=100 loops=1 
+       Unique rows=100 loops=1 
+         Merge Join(Anti) rows=1523 loops=1 Merge=((l.coin_pair)::text = (e.coin_pair)::text) Join=((e.created_at >= date_trunc('hour'::text, l.created_at)) AND (e.created_at < (date_trunc('hour'::text, l.created_at) + '01:00:00'::interval))) removed_join_filter=2425146
+           Gather Merge rows=26153 loops=1 workers=3/3
+             Incremental Sort rows=6635 loops=4 
+               Index Scan rows=8393 loops=4 Relation=strategy_log Index=idx_hold_baseline_eval removed_filter=572
+           Sort rows=2425147 loops=1 
+             Gather rows=7097 loops=1 workers=3/3
+               Seq Scan rows=1774 loops=4 Relation=strategy_log removed_filter=60498
+  -- 계획 c1 4h (run1)
+     Limit rows=100 loops=1 
+       Unique rows=100 loops=1 
+         Merge Join(Anti) rows=1531 loops=1 Merge=(((l.coin_pair)::text = (e.coin_pair)::text) AND (date_trunc('hour'::text, l.created_at) = (date_trunc('hour'::text, e.created_at))))
+           Gather Merge rows=28807 loops=1 workers=3/3
+             Incremental Sort rows=7266 loops=4 
+               Index Scan rows=8532 loops=4 Relation=strategy_log Index=idx_hold_baseline_eval removed_filter=582
+           Sort rows=1976 loops=1 
+             Gather rows=7880 loops=1 workers=3/3
+               Seq Scan rows=1970 loops=4 Relation=strategy_log removed_filter=60302
+  -- 계획 c1 24h (run1)
+     Limit rows=100 loops=1 
+       Unique rows=100 loops=1 
+         Merge Join(Anti) rows=1523 loops=1 Merge=(((l.coin_pair)::text = (e.coin_pair)::text) AND (date_trunc('hour'::text, l.created_at) = (date_trunc('hour'::text, e.created_at))))
+           Gather Merge rows=26153 loops=1 workers=3/3
+             Incremental Sort rows=6618 loops=4 
+               Index Scan rows=7716 loops=4 Relation=strategy_log Index=idx_hold_baseline_eval removed_filter=525
+           Sort rows=1781 loops=1 
+             Gather rows=7097 loops=1 workers=3/3
+               Seq Scan rows=1774 loops=4 Relation=strategy_log removed_filter=60498
+  -- 계획 c2 4h (run1)
+     Limit rows=100 loops=1 
+       Unique rows=100 loops=1 
+         Merge Join(Anti) rows=1531 loops=1 Merge=(((l.coin_pair)::text = (e.coin_pair)::text) AND (date_trunc('hour'::text, l.created_at) = (date_trunc('hour'::text, e.created_at))))
+           Gather Merge rows=28807 loops=1 workers=3/3
+             Incremental Sort rows=7305 loops=4 
+               Index Scan rows=8532 loops=4 Relation=strategy_log Index=idx_hold_baseline_eval removed_filter=582
+           Unique rows=1976 loops=1 
+             Gather Merge rows=1976 loops=1 workers=3/3
+               Sort rows=1428 loops=4 
+                 Seq Scan rows=1970 loops=4 Relation=strategy_log removed_filter=60302
+  -- 계획 c2 24h (run1)
+     Limit rows=100 loops=1 
+       Unique rows=100 loops=1 
+         Merge Join(Anti) rows=1523 loops=1 Merge=(((l.coin_pair)::text = (e.coin_pair)::text) AND (date_trunc('hour'::text, l.created_at) = (date_trunc('hour'::text, e.created_at))))
+           Gather Merge rows=26153 loops=1 workers=3/3
+             Incremental Sort rows=6638 loops=4 
+               Index Scan rows=7705 loops=4 Relation=strategy_log Index=idx_hold_baseline_eval removed_filter=524
+           Unique rows=1781 loops=1 
+             Gather Merge rows=1781 loops=1 workers=3/3
+               Sort rows=1362 loops=4 
+                 Seq Scan rows=1774 loops=4 Relation=strategy_log removed_filter=60498
+  -- 결과 대조(같은 자료·같은 cutoff·limit, 전체 열 해시)
+     24h limit=1: orig=1행/74062529296d · c1=1행/74062529296d · c2=1행/74062529296d → 같음
+     24h limit=100: orig=100행/ab5a9d954005 · c1=100행/ab5a9d954005 · c2=100행/ab5a9d954005 → 같음
+     4h limit=1: orig=1행/74062529296d · c1=1행/74062529296d · c2=1행/74062529296d → 같음
+     4h limit=100: orig=100행/9af0c77e9ae3 · c1=100행/9af0c77e9ae3 · c2=100행/9af0c77e9ae3 → 같음
+====================================================================================================
+m025-S2  생성 4.8s  rows=250963 pages=10338 size=84688896 hold_priced=126807 done4=2519 done24=2249 l4=121896 l24=110032 md5=efc858c27611773f4e83ed033f9ce5a3
+  orig 4h  run1  exec=    156.9ms plan=   3.5ms wall=  0.29s rows=100  buffers hit=6176 read=10379 temp_w=0  at=2026-11-04T22:48:52.778+09:00
+  orig 4h  run2  exec=    144.1ms plan=   2.8ms wall=  0.26s rows=100  buffers hit=16555 read=0 temp_w=0  at=2026-11-04T22:48:53.041+09:00
+  orig 4h  run3  exec=    135.8ms plan=   2.7ms wall=  0.26s rows=100  buffers hit=16555 read=0 temp_w=0  at=2026-11-04T22:48:53.306+09:00
+  orig 24h run1  exec=    130.2ms plan=   3.0ms wall=  0.26s rows=100  buffers hit=15927 read=0 temp_w=0  at=2026-11-04T22:48:53.567+09:00
+  orig 24h run2  exec=    125.4ms plan=   2.9ms wall=  0.25s rows=100  buffers hit=15927 read=0 temp_w=0  at=2026-11-04T22:48:53.817+09:00
+  orig 24h run3  exec=    133.9ms plan=   3.1ms wall=  0.25s rows=100  buffers hit=15927 read=0 temp_w=0  at=2026-11-04T22:48:54.067+09:00
+  c1   4h  run1  exec=    157.9ms plan=   3.5ms wall=  0.30s rows=100  buffers hit=6176 read=10379 temp_w=0  at=2026-11-04T22:48:55.705+09:00
+  c1   4h  run2  exec=    137.7ms plan=   3.0ms wall=  0.25s rows=100  buffers hit=16555 read=0 temp_w=0  at=2026-11-04T22:48:55.951+09:00
+  c1   4h  run3  exec=    134.2ms plan=   2.9ms wall=  0.27s rows=100  buffers hit=16555 read=0 temp_w=0  at=2026-11-04T22:48:56.219+09:00
+  c1   24h run1  exec=    126.2ms plan=   3.1ms wall=  0.28s rows=100  buffers hit=15927 read=0 temp_w=0  at=2026-11-04T22:48:56.495+09:00
+  c1   24h run2  exec=    125.5ms plan=   2.8ms wall=  0.25s rows=100  buffers hit=15927 read=0 temp_w=0  at=2026-11-04T22:48:56.750+09:00
+  c1   24h run3  exec=    126.0ms plan=   3.1ms wall=  0.25s rows=100  buffers hit=15927 read=0 temp_w=0  at=2026-11-04T22:48:57.001+09:00
+  c2   4h  run1  exec=     39.1ms plan=   3.2ms wall=  0.13s rows=100  buffers hit=6314 read=10379 temp_w=0  at=2026-11-04T22:48:58.504+09:00
+  c2   4h  run2  exec=     24.9ms plan=   2.8ms wall=  0.15s rows=100  buffers hit=16693 read=0 temp_w=0  at=2026-11-04T22:48:58.654+09:00
+  c2   4h  run3  exec=     23.7ms plan=   3.0ms wall=  0.13s rows=100  buffers hit=16693 read=0 temp_w=0  at=2026-11-04T22:48:58.786+09:00
+  c2   24h run1  exec=     24.5ms plan=   3.1ms wall=  0.15s rows=100  buffers hit=16065 read=0 temp_w=0  at=2026-11-04T22:48:58.938+09:00
+  c2   24h run2  exec=     24.2ms plan=   2.8ms wall=  0.14s rows=100  buffers hit=16065 read=0 temp_w=0  at=2026-11-04T22:48:59.082+09:00
+  c2   24h run3  exec=     24.2ms plan=   2.9ms wall=  0.15s rows=100  buffers hit=16065 read=0 temp_w=0  at=2026-11-04T22:48:59.232+09:00
+  -- 계획 orig 4h (run1)
+     Limit rows=100 loops=1 
+       Unique rows=100 loops=1 
+         Nested Loop(Anti) rows=1447 loops=1 Join=(((e.coin_pair)::text = (l.coin_pair)::text) AND (e.created_at >= date_trunc('hour'::text, l.created_at)) AND (e.created_at < (date_trunc('hour'::text, l.created_at) + '01:00:00'::interval))) removed_join_filter=4100682
+           Gather Merge rows=1946 loops=1 workers=3/3
+             Incremental Sort rows=618 loops=4 
+               Index Scan rows=1468 loops=4 Relation=strategy_log Index=idx_hold_baseline_eval removed_filter=29
+           Materialize rows=2107 loops=1946 
+             Gather rows=2519 loops=1 workers=3/3
+               Seq Scan rows=630 loops=4 Relation=strategy_log removed_filter=62111
+  -- 계획 orig 24h (run1)
+     Limit rows=100 loops=1 
+       Unique rows=100 loops=1 
+         Nested Loop(Anti) rows=1521 loops=1 Join=(((e.coin_pair)::text = (l.coin_pair)::text) AND (e.created_at >= date_trunc('hour'::text, l.created_at)) AND (e.created_at < (date_trunc('hour'::text, l.created_at) + '01:00:00'::interval))) removed_join_filter=3684596
+           Gather Merge rows=2011 loops=1 workers=3/3
+             Incremental Sort rows=634 loops=4 
+               Index Scan rows=1313 loops=4 Relation=strategy_log Index=idx_hold_baseline_eval removed_filter=27
+           Materialize rows=1832 loops=2011 
+             Gather rows=2249 loops=1 workers=3/3
+               Seq Scan rows=562 loops=4 Relation=strategy_log removed_filter=62178
+  -- 계획 c1 4h (run1)
+     Limit rows=100 loops=1 
+       Unique rows=100 loops=1 
+         Nested Loop(Anti) rows=1447 loops=1 Join=(((e.coin_pair)::text = (l.coin_pair)::text) AND (date_trunc('hour'::text, e.created_at) = date_trunc('hour'::text, l.created_at))) removed_join_filter=4254041
+           Gather Merge rows=1946 loops=1 workers=3/3
+             Incremental Sort rows=618 loops=4 
+               Index Scan rows=1468 loops=4 Relation=strategy_log Index=idx_hold_baseline_eval removed_filter=29
+           Materialize rows=2186 loops=1946 
+             Gather rows=2519 loops=1 workers=3/3
+               Seq Scan rows=630 loops=4 Relation=strategy_log removed_filter=62111
+  -- 계획 c1 24h (run1)
+     Limit rows=100 loops=1 
+       Unique rows=100 loops=1 
+         Nested Loop(Anti) rows=1521 loops=1 Join=(((e.coin_pair)::text = (l.coin_pair)::text) AND (date_trunc('hour'::text, e.created_at) = date_trunc('hour'::text, l.created_at))) removed_join_filter=3697781
+           Gather Merge rows=2011 loops=1 workers=3/3
+             Incremental Sort rows=634 loops=4 
+               Index Scan rows=1313 loops=4 Relation=strategy_log Index=idx_hold_baseline_eval removed_filter=27
+           Materialize rows=1839 loops=2011 
+             Gather rows=2249 loops=1 workers=3/3
+               Seq Scan rows=562 loops=4 Relation=strategy_log removed_filter=62178
+  -- 계획 c2 4h (run1)
+     Limit rows=100 loops=1 
+       Unique rows=100 loops=1 
+         Merge Join(Anti) rows=1447 loops=1 Merge=(((l.coin_pair)::text = (e.coin_pair)::text) AND (date_trunc('hour'::text, l.created_at) = (date_trunc('hour'::text, e.created_at))))
+           Gather Merge rows=1946 loops=1 workers=3/3
+             Incremental Sort rows=618 loops=4 
+               Index Scan rows=1468 loops=4 Relation=strategy_log Index=idx_hold_baseline_eval removed_filter=29
+           Unique rows=37 loops=1 
+             Gather Merge rows=37 loops=1 workers=3/3
+               Sort rows=466 loops=4 
+                 Seq Scan rows=630 loops=4 Relation=strategy_log removed_filter=62111
+  -- 계획 c2 24h (run1)
+     Limit rows=100 loops=1 
+       Unique rows=100 loops=1 
+         Merge Join(Anti) rows=1521 loops=1 Merge=(((l.coin_pair)::text = (e.coin_pair)::text) AND (date_trunc('hour'::text, l.created_at) = (date_trunc('hour'::text, e.created_at))))
+           Gather Merge rows=2011 loops=1 workers=3/3
+             Incremental Sort rows=634 loops=4 
+               Index Scan rows=1313 loops=4 Relation=strategy_log Index=idx_hold_baseline_eval removed_filter=27
+           Unique rows=42 loops=1 
+             Gather Merge rows=42 loops=1 workers=3/3
+               Sort rows=163 loops=4 
+                 Seq Scan rows=562 loops=4 Relation=strategy_log removed_filter=62178
+  -- 결과 대조(같은 자료·같은 cutoff·limit, 전체 열 해시)
+     24h limit=1: orig=1행/17ffe21a4a1e · c1=1행/17ffe21a4a1e · c2=1행/17ffe21a4a1e → 같음
+     24h limit=100: orig=100행/24d297741257 · c1=100행/24d297741257 · c2=100행/24d297741257 → 같음
+     4h limit=1: orig=1행/17ffe21a4a1e · c1=1행/17ffe21a4a1e · c2=1행/17ffe21a4a1e → 같음
+     4h limit=100: orig=100행/14e31a0c24d4 · c1=100행/14e31a0c24d4 · c2=100행/14e31a0c24d4 → 같음
+====================================================================================================
+m025-S3  생성 4.9s  rows=249610 pages=10902 size=89309184 hold_priced=127107 done4=8320 done24=7520 l4=116568 l24=104869 md5=94f49620f1656bd68672bca0cbef05ad
+  orig 4h  run1  exec=   1340.6ms plan=   3.4ms wall=  1.50s rows=0    buffers hit=126119 read=11743 temp_w=0  at=2026-11-04T22:49:08.763+09:00
+  orig 4h  run2  exec=   1306.9ms plan=   3.0ms wall=  1.48s rows=0    buffers hit=137863 read=0 temp_w=0  at=2026-11-04T22:49:10.245+09:00
+  orig 4h  run3  exec=   1309.8ms plan=   2.8ms wall=  1.49s rows=0    buffers hit=137861 read=0 temp_w=0  at=2026-11-04T22:49:11.734+09:00
+  orig 24h run1  exec=   1058.9ms plan=   3.1ms wall=  1.22s rows=0    buffers hit=125369 read=0 temp_w=0  at=2026-11-04T22:49:12.957+09:00
+  orig 24h run2  exec=   1083.4ms plan=   2.9ms wall=  1.27s rows=0    buffers hit=125373 read=0 temp_w=0  at=2026-11-04T22:49:14.224+09:00
+  orig 24h run3  exec=   1067.6ms plan=   2.7ms wall=  1.20s rows=0    buffers hit=125373 read=0 temp_w=0  at=2026-11-04T22:49:15.422+09:00
+  c1   4h  run1  exec=    149.7ms plan=   3.2ms wall=  0.29s rows=0    buffers hit=126109 read=11744 temp_w=0  at=2026-11-04T22:49:16.508+09:00
+  c1   4h  run2  exec=    128.7ms plan=   3.2ms wall=  0.26s rows=0    buffers hit=137854 read=0 temp_w=0  at=2026-11-04T22:49:16.770+09:00
+  c1   4h  run3  exec=    123.0ms plan=   2.7ms wall=  0.23s rows=0    buffers hit=137856 read=0 temp_w=0  at=2026-11-04T22:49:16.999+09:00
+  c1   24h run1  exec=    111.1ms plan=   2.8ms wall=  0.23s rows=0    buffers hit=125363 read=0 temp_w=0  at=2026-11-04T22:49:17.228+09:00
+  c1   24h run2  exec=    113.0ms plan=   3.0ms wall=  0.26s rows=0    buffers hit=125362 read=0 temp_w=0  at=2026-11-04T22:49:17.483+09:00
+  c1   24h run3  exec=    118.8ms plan=   3.1ms wall=  0.24s rows=0    buffers hit=125363 read=0 temp_w=0  at=2026-11-04T22:49:17.727+09:00
+  c2   4h  run1  exec=    150.3ms plan=   3.5ms wall=  0.28s rows=0    buffers hit=126248 read=11744 temp_w=0  at=2026-11-04T22:49:19.416+09:00
+  c2   4h  run2  exec=    121.6ms plan=   3.1ms wall=  0.25s rows=0    buffers hit=137992 read=0 temp_w=0  at=2026-11-04T22:49:19.663+09:00
+  c2   4h  run3  exec=    125.4ms plan=   3.3ms wall=  0.26s rows=0    buffers hit=137996 read=0 temp_w=0  at=2026-11-04T22:49:19.920+09:00
+  c2   24h run1  exec=    120.4ms plan=   3.1ms wall=  0.25s rows=0    buffers hit=125504 read=0 temp_w=0  at=2026-11-04T22:49:20.166+09:00
+  c2   24h run2  exec=    112.1ms plan=   3.1ms wall=  0.25s rows=0    buffers hit=125499 read=0 temp_w=0  at=2026-11-04T22:49:20.412+09:00
+  c2   24h run3  exec=    109.0ms plan=   2.8ms wall=  0.22s rows=0    buffers hit=125503 read=0 temp_w=0  at=2026-11-04T22:49:20.637+09:00
+  -- 계획 orig 4h (run1)
+     Limit rows=0 loops=1 
+       Unique rows=0 loops=1 
+         Merge Join(Anti) rows=0 loops=1 Merge=((l.coin_pair)::text = (e.coin_pair)::text) Join=((e.created_at >= date_trunc('hour'::text, l.created_at)) AND (e.created_at < (date_trunc('hour'::text, l.created_at) + '01:00:00'::interval))) removed_join_filter=12037708
+           Gather Merge rows=116568 loops=1 workers=3/3
+             Incremental Sort rows=29142 loops=4 
+               Index Scan rows=29142 loops=4 Relation=strategy_log Index=idx_hold_baseline_eval removed_filter=2080
+           Sort rows=12042267 loops=1 
+             Gather rows=8320 loops=1 workers=3/3
+               Seq Scan rows=2080 loops=4 Relation=strategy_log removed_filter=60322
+  -- 계획 orig 24h (run1)
+     Limit rows=0 loops=1 
+       Unique rows=0 loops=1 
+         Merge Join(Anti) rows=0 loops=1 Merge=((l.coin_pair)::text = (e.coin_pair)::text) Join=((e.created_at >= date_trunc('hour'::text, l.created_at)) AND (e.created_at < (date_trunc('hour'::text, l.created_at) + '01:00:00'::interval))) removed_join_filter=9791031
+           Gather Merge rows=104869 loops=1 workers=3/3
+             Incremental Sort rows=26217 loops=4 
+               Index Scan rows=26217 loops=4 Relation=strategy_log Index=idx_hold_baseline_eval removed_filter=1880
+           Sort rows=9795118 loops=1 
+             Gather rows=7520 loops=1 workers=3/3
+               Seq Scan rows=1880 loops=4 Relation=strategy_log removed_filter=60522
+  -- 계획 c1 4h (run1)
+     Limit rows=0 loops=1 
+       Unique rows=0 loops=1 
+         Merge Join(Anti) rows=0 loops=1 Merge=(((l.coin_pair)::text = (e.coin_pair)::text) AND (date_trunc('hour'::text, l.created_at) = (date_trunc('hour'::text, e.created_at))))
+           Gather Merge rows=116568 loops=1 workers=3/3
+             Incremental Sort rows=29142 loops=4 
+               Index Scan rows=29142 loops=4 Relation=strategy_log Index=idx_hold_baseline_eval removed_filter=2080
+           Sort rows=8320 loops=1 
+             Gather rows=8320 loops=1 workers=3/3
+               Seq Scan rows=2080 loops=4 Relation=strategy_log removed_filter=60322
+  -- 계획 c1 24h (run1)
+     Limit rows=0 loops=1 
+       Unique rows=0 loops=1 
+         Merge Join(Anti) rows=0 loops=1 Merge=(((l.coin_pair)::text = (e.coin_pair)::text) AND (date_trunc('hour'::text, l.created_at) = (date_trunc('hour'::text, e.created_at))))
+           Gather Merge rows=104869 loops=1 workers=3/3
+             Incremental Sort rows=26217 loops=4 
+               Index Scan rows=26217 loops=4 Relation=strategy_log Index=idx_hold_baseline_eval removed_filter=1880
+           Sort rows=7519 loops=1 
+             Gather rows=7520 loops=1 workers=3/3
+               Seq Scan rows=1880 loops=4 Relation=strategy_log removed_filter=60522
+  -- 계획 c2 4h (run1)
+     Limit rows=0 loops=1 
+       Unique rows=0 loops=1 
+         Merge Join(Anti) rows=0 loops=1 Merge=(((l.coin_pair)::text = (e.coin_pair)::text) AND (date_trunc('hour'::text, l.created_at) = (date_trunc('hour'::text, e.created_at))))
+           Gather Merge rows=116568 loops=1 workers=3/3
+             Incremental Sort rows=29142 loops=4 
+               Index Scan rows=29142 loops=4 Relation=strategy_log Index=idx_hold_baseline_eval removed_filter=2080
+           Unique rows=8320 loops=1 
+             Gather Merge rows=8320 loops=1 workers=3/3
+               Sort rows=2080 loops=4 
+                 Seq Scan rows=2080 loops=4 Relation=strategy_log removed_filter=60322
+  -- 계획 c2 24h (run1)
+     Limit rows=0 loops=1 
+       Unique rows=0 loops=1 
+         Merge Join(Anti) rows=0 loops=1 Merge=(((l.coin_pair)::text = (e.coin_pair)::text) AND (date_trunc('hour'::text, l.created_at) = (date_trunc('hour'::text, e.created_at))))
+           Gather Merge rows=104869 loops=1 workers=3/3
+             Incremental Sort rows=26217 loops=4 
+               Index Scan rows=26217 loops=4 Relation=strategy_log Index=idx_hold_baseline_eval removed_filter=1880
+           Unique rows=7519 loops=1 
+             Gather Merge rows=7519 loops=1 workers=3/3
+               Sort rows=1880 loops=4 
+                 Seq Scan rows=1880 loops=4 Relation=strategy_log removed_filter=60522
+  -- 결과 대조(같은 자료·같은 cutoff·limit, 전체 열 해시)
+     24h limit=1: orig=0행/e3b0c44298fc · c1=0행/e3b0c44298fc · c2=0행/e3b0c44298fc → 같음
+     24h limit=100: orig=0행/e3b0c44298fc · c1=0행/e3b0c44298fc · c2=0행/e3b0c44298fc → 같음
+     4h limit=1: orig=0행/e3b0c44298fc · c1=0행/e3b0c44298fc · c2=0행/e3b0c44298fc → 같음
+     4h limit=100: orig=0행/e3b0c44298fc · c1=0행/e3b0c44298fc · c2=0행/e3b0c44298fc → 같음
+====================================================================================================
+m250-S1  생성 50.8s  rows=2501171 pages=109925 size=900505600 hold_priced=1273380 done4=84186 done24=83387 l4=1186833 l24=1175975 md5=efe300ccd38f3b282fd73bd71c1c14e0
+  orig 4h  run1  exec=  27898.4ms plan=   3.2ms wall= 29.10s rows=100  buffers hit=448111 read=112887 temp_w=17451  at=2026-11-04T22:51:49.636+09:00
+  orig 4h  run2  exec=  27898.7ms plan=   3.0ms wall= 29.07s rows=100  buffers hit=556550 read=0 temp_w=17766  at=2026-11-04T22:52:18.701+09:00
+  orig 4h  run3  exec=  27319.3ms plan=   3.0ms wall= 28.47s rows=100  buffers hit=524286 read=0 temp_w=16394  at=2026-11-04T22:52:47.171+09:00
+  orig 24h run1  exec=  26242.4ms plan=   3.0ms wall= 27.35s rows=100  buffers hit=552606 read=1 temp_w=17147  at=2026-11-04T22:53:14.518+09:00
+  orig 24h run2  exec=  28200.9ms plan=   3.1ms wall= 29.36s rows=100  buffers hit=583865 read=214 temp_w=18832  at=2026-11-04T22:53:43.881+09:00
+  orig 24h run3  exec=  26251.9ms plan=   2.7ms wall= 27.36s rows=100  buffers hit=520277 read=0 temp_w=16168  at=2026-11-04T22:54:11.244+09:00
+  c1   4h  run1  exec=    493.6ms plan=   3.5ms wall=  0.63s rows=100  buffers hit=347044 read=112235 temp_w=13731  at=2026-11-04T22:54:13.008+09:00
+  c1   4h  run2  exec=    403.7ms plan=   3.0ms wall=  0.53s rows=100  buffers hit=459145 read=0 temp_w=13306  at=2026-11-04T22:54:13.542+09:00
+  c1   4h  run3  exec=    405.1ms plan=   3.0ms wall=  0.55s rows=100  buffers hit=459145 read=0 temp_w=13512  at=2026-11-04T22:54:14.095+09:00
+  c1   24h run1  exec=    356.2ms plan=   3.0ms wall=  0.49s rows=100  buffers hit=455953 read=0 temp_w=12481  at=2026-11-04T22:54:14.587+09:00
+  c1   24h run2  exec=    364.7ms plan=   2.8ms wall=  0.49s rows=100  buffers hit=455973 read=0 temp_w=13141  at=2026-11-04T22:54:15.081+09:00
+  c1   24h run3  exec=    428.0ms plan=   2.9ms wall=  0.56s rows=100  buffers hit=488108 read=216 temp_w=14941  at=2026-11-04T22:54:15.647+09:00
+  c2   4h  run1  exec=    463.2ms plan=   3.6ms wall=  0.60s rows=100  buffers hit=347133 read=112234 temp_w=13117  at=2026-11-04T22:54:17.118+09:00
+  c2   4h  run2  exec=    385.2ms plan=   2.8ms wall=  0.50s rows=100  buffers hit=459468 read=1 temp_w=12918  at=2026-11-04T22:54:17.618+09:00
+  c2   4h  run3  exec=    428.4ms plan=   2.8ms wall=  0.57s rows=100  buffers hit=491857 read=216 temp_w=13674  at=2026-11-04T22:54:18.186+09:00
+  c2   24h run1  exec=    384.4ms plan=   2.9ms wall=  0.53s rows=100  buffers hit=456230 read=0 temp_w=13152  at=2026-11-04T22:54:18.718+09:00
+  c2   24h run2  exec=    357.9ms plan=   2.8ms wall=  0.49s rows=100  buffers hit=456502 read=0 temp_w=12553  at=2026-11-04T22:54:19.205+09:00
+  c2   24h run3  exec=    368.2ms plan=   2.7ms wall=  0.51s rows=100  buffers hit=456326 read=0 temp_w=13149  at=2026-11-04T22:54:19.714+09:00
+  -- 계획 orig 4h (run1)
+     Limit rows=100 loops=1 
+       Unique rows=100 loops=1 
+         Merge Join(Anti) rows=1638 loops=1 Merge=((l.coin_pair)::text = (e.coin_pair)::text) Join=((e.created_at >= date_trunc('hour'::text, l.created_at)) AND (e.created_at < (date_trunc('hour'::text, l.created_at) + '01:00:00'::interval))) removed_join_filter=280443933
+           Gather Merge rows=265641 loops=1 workers=5/5
+             Incremental Sort rows=44403 loops=6 
+               Index Scan rows=69154 loops=6 Relation=strategy_log Index=idx_hold_baseline_eval removed_filter=4900
+           Materialize rows=280443934 loops=1 
+             Sort rows=18932 loops=1 
+               Gather rows=84186 loops=1 workers=5/5
+                 Seq Scan rows=14031 loops=6 Relation=strategy_log removed_filter=402831
+  -- 계획 orig 24h (run1)
+     Limit rows=100 loops=1 
+       Unique rows=100 loops=1 
+         Merge Join(Anti) rows=1555 loops=1 Merge=((l.coin_pair)::text = (e.coin_pair)::text) Join=((e.created_at >= date_trunc('hour'::text, l.created_at)) AND (e.created_at < (date_trunc('hour'::text, l.created_at) + '01:00:00'::interval))) removed_join_filter=274859092
+           Gather Merge rows=263189 loops=1 workers=5/5
+             Incremental Sort rows=43983 loops=6 
+               Index Scan rows=68536 loops=6 Relation=strategy_log Index=idx_hold_baseline_eval removed_filter=4855
+           Materialize rows=274859093 loops=1 
+             Sort rows=18752 loops=1 
+               Gather rows=83387 loops=1 workers=5/5
+                 Seq Scan rows=13898 loops=6 Relation=strategy_log removed_filter=402964
+  -- 계획 c1 4h (run1)
+     Limit rows=100 loops=1 
+       Unique rows=100 loops=1 
+         Merge Join(Anti) rows=1638 loops=1 Merge=(((l.coin_pair)::text = (e.coin_pair)::text) AND (date_trunc('hour'::text, l.created_at) = (date_trunc('hour'::text, e.created_at))))
+           Gather Merge rows=265641 loops=1 workers=5/5
+             Incremental Sort rows=44363 loops=6 
+               Index Scan rows=54068 loops=6 Relation=strategy_log Index=idx_hold_baseline_eval removed_filter=3850
+           Sort rows=18932 loops=1 
+             Gather rows=84186 loops=1 workers=5/5
+               Seq Scan rows=14031 loops=6 Relation=strategy_log removed_filter=402831
+  -- 계획 c1 24h (run1)
+     Limit rows=100 loops=1 
+       Unique rows=100 loops=1 
+         Merge Join(Anti) rows=1555 loops=1 Merge=(((l.coin_pair)::text = (e.coin_pair)::text) AND (date_trunc('hour'::text, l.created_at) = (date_trunc('hour'::text, e.created_at))))
+           Gather Merge rows=263189 loops=1 workers=5/5
+             Incremental Sort rows=43980 loops=6 
+               Index Scan rows=53549 loops=6 Relation=strategy_log Index=idx_hold_baseline_eval removed_filter=3812
+           Sort rows=18752 loops=1 
+             Gather rows=83387 loops=1 workers=5/5
+               Seq Scan rows=13898 loops=6 Relation=strategy_log removed_filter=402964
+  -- 계획 c2 4h (run1)
+     Limit rows=100 loops=1 
+       Unique rows=100 loops=1 
+         Merge Join(Anti) rows=1638 loops=1 Merge=(((l.coin_pair)::text = (e.coin_pair)::text) AND (date_trunc('hour'::text, l.created_at) = (date_trunc('hour'::text, e.created_at))))
+           Gather Merge rows=265641 loops=1 workers=5/5
+             Incremental Sort rows=44379 loops=6 
+               Index Scan rows=54047 loops=6 Relation=strategy_log Index=idx_hold_baseline_eval removed_filter=3848
+           Unique rows=18932 loops=1 
+             Gather Merge rows=18932 loops=1 workers=5/5
+               Sort rows=4122 loops=6 
+                 Seq Scan rows=14031 loops=6 Relation=strategy_log removed_filter=402831
+  -- 계획 c2 24h (run1)
+     Limit rows=100 loops=1 
+       Unique rows=100 loops=1 
+         Merge Join(Anti) rows=1555 loops=1 Merge=(((l.coin_pair)::text = (e.coin_pair)::text) AND (date_trunc('hour'::text, l.created_at) = (date_trunc('hour'::text, e.created_at))))
+           Gather Merge rows=263189 loops=1 workers=5/5
+             Incremental Sort rows=43964 loops=6 
+               Index Scan rows=53558 loops=6 Relation=strategy_log Index=idx_hold_baseline_eval removed_filter=3811
+           Unique rows=18752 loops=1 
+             Gather Merge rows=18752 loops=1 workers=5/5
+               Sort rows=4139 loops=6 
+                 Seq Scan rows=13898 loops=6 Relation=strategy_log removed_filter=402964
+  -- 결과 대조(같은 자료·같은 cutoff·limit, 전체 열 해시)
+     24h limit=1: orig=1행/a76b95789a46 · c1=1행/a76b95789a46 · c2=1행/a76b95789a46 → 같음
+     24h limit=100: orig=100행/043138f869a9 · c1=100행/043138f869a9 · c2=100행/043138f869a9 → 같음
+     4h limit=1: orig=1행/a76b95789a46 · c1=1행/a76b95789a46 · c2=1행/a76b95789a46 → 같음
+     4h limit=100: orig=100행/db01aac8fca3 · c1=100행/db01aac8fca3 · c2=100행/db01aac8fca3 → 같음
+====================================================================================================
+m250-S2  생성 46.6s  rows=2497082 pages=103182 size=845266944 hold_priced=1264780 done4=25275 done24=24985 l4=1236939 l24=1225267 md5=64fdf07a8ba474bd34e87bcb82c0f473
+  orig 4h  run1  exec=   1351.4ms plan=   3.6ms wall=  1.51s rows=100  buffers hit=31699 read=103388 temp_w=404  at=2026-11-04T22:56:19.859+09:00
+  orig 4h  run2  exec=   1264.9ms plan=   2.7ms wall=  1.43s rows=100  buffers hit=135087 read=0 temp_w=468  at=2026-11-04T22:56:21.290+09:00
+  orig 4h  run3  exec=   1294.6ms plan=   2.7ms wall=  1.47s rows=100  buffers hit=135087 read=0 temp_w=454  at=2026-11-04T22:56:22.757+09:00
+  orig 24h run1  exec=   1145.3ms plan=   2.7ms wall=  1.29s rows=100  buffers hit=134799 read=0 temp_w=390  at=2026-11-04T22:56:24.051+09:00
+  orig 24h run2  exec=   1144.5ms plan=   2.8ms wall=  1.30s rows=100  buffers hit=134799 read=0 temp_w=472  at=2026-11-04T22:56:25.355+09:00
+  orig 24h run3  exec=   1149.8ms plan=   3.0ms wall=  1.30s rows=100  buffers hit=134799 read=0 temp_w=449  at=2026-11-04T22:56:26.661+09:00
+  c1   4h  run1  exec=   1364.7ms plan=   3.2ms wall=  1.51s rows=100  buffers hit=31699 read=103388 temp_w=437  at=2026-11-04T22:56:29.037+09:00
+  c1   4h  run2  exec=   1271.8ms plan=   3.7ms wall=  1.46s rows=100  buffers hit=135087 read=0 temp_w=470  at=2026-11-04T22:56:30.497+09:00
+  c1   4h  run3  exec=   1424.0ms plan=   2.7ms wall=  1.61s rows=100  buffers hit=135087 read=0 temp_w=475  at=2026-11-04T22:56:32.107+09:00
+  c1   24h run1  exec=   1142.4ms plan=   2.8ms wall=  1.33s rows=100  buffers hit=134799 read=0 temp_w=465  at=2026-11-04T22:56:33.434+09:00
+  c1   24h run2  exec=   1153.6ms plan=   3.0ms wall=  1.31s rows=100  buffers hit=134799 read=0 temp_w=474  at=2026-11-04T22:56:34.742+09:00
+  c1   24h run3  exec=   1136.5ms plan=   2.9ms wall=  1.30s rows=100  buffers hit=134799 read=0 temp_w=467  at=2026-11-04T22:56:36.045+09:00
+  c2   4h  run1  exec=    192.1ms plan=   3.6ms wall=  0.34s rows=100  buffers hit=31929 read=103388 temp_w=415  at=2026-11-04T22:56:37.914+09:00
+  c2   4h  run2  exec=    120.0ms plan=   2.8ms wall=  0.24s rows=100  buffers hit=135317 read=0 temp_w=458  at=2026-11-04T22:56:38.152+09:00
+  c2   4h  run3  exec=    104.8ms plan=   2.7ms wall=  0.24s rows=100  buffers hit=135317 read=0 temp_w=479  at=2026-11-04T22:56:38.391+09:00
+  c2   24h run1  exec=    104.3ms plan=   2.8ms wall=  0.25s rows=100  buffers hit=135029 read=0 temp_w=468  at=2026-11-04T22:56:38.639+09:00
+  c2   24h run2  exec=    104.9ms plan=   2.7ms wall=  0.24s rows=100  buffers hit=135029 read=0 temp_w=471  at=2026-11-04T22:56:38.882+09:00
+  c2   24h run3  exec=    104.2ms plan=   2.9ms wall=  0.25s rows=100  buffers hit=135029 read=0 temp_w=407  at=2026-11-04T22:56:39.132+09:00
+  -- 계획 orig 4h (run1)
+     Limit rows=100 loops=1 
+       Unique rows=100 loops=1 
+         Nested Loop(Anti) rows=1496 loops=1 Join=(((e.coin_pair)::text = (l.coin_pair)::text) AND (e.created_at >= date_trunc('hour'::text, l.created_at)) AND (e.created_at < (date_trunc('hour'::text, l.created_at) + '01:00:00'::interval))) removed_join_filter=42259320
+           Gather Merge rows=2297 loops=1 workers=5/5
+             Incremental Sort rows=528 loops=6 
+               Index Scan rows=5123 loops=6 Relation=strategy_log Index=idx_hold_baseline_eval removed_filter=109
+           Materialize rows=18398 loops=2297 
+             Gather rows=25275 loops=1 workers=5/5
+               Seq Scan rows=4212 loops=6 Relation=strategy_log removed_filter=411968
+  -- 계획 orig 24h (run1)
+     Limit rows=100 loops=1 
+       Unique rows=100 loops=1 
+         Nested Loop(Anti) rows=1370 loops=1 Join=(((e.coin_pair)::text = (l.coin_pair)::text) AND (e.created_at >= date_trunc('hour'::text, l.created_at)) AND (e.created_at < (date_trunc('hour'::text, l.created_at) + '01:00:00'::interval))) removed_join_filter=37928239
+           Gather Merge rows=2160 loops=1 workers=5/5
+             Incremental Sort rows=506 loops=6 
+               Index Scan rows=5080 loops=6 Relation=strategy_log Index=idx_hold_baseline_eval removed_filter=104
+           Materialize rows=17560 loops=2160 
+             Gather rows=24985 loops=1 workers=5/5
+               Seq Scan rows=4164 loops=6 Relation=strategy_log removed_filter=412016
+  -- 계획 c1 4h (run1)
+     Limit rows=100 loops=1 
+       Unique rows=100 loops=1 
+         Nested Loop(Anti) rows=1496 loops=1 Join=(((e.coin_pair)::text = (l.coin_pair)::text) AND (date_trunc('hour'::text, e.created_at) = date_trunc('hour'::text, l.created_at))) removed_join_filter=41887945
+           Gather Merge rows=2297 loops=1 workers=5/5
+             Incremental Sort rows=528 loops=6 
+               Index Scan rows=5123 loops=6 Relation=strategy_log Index=idx_hold_baseline_eval removed_filter=109
+           Materialize rows=18236 loops=2297 
+             Gather rows=25275 loops=1 workers=5/5
+               Seq Scan rows=4212 loops=6 Relation=strategy_log removed_filter=411968
+  -- 계획 c1 24h (run1)
+     Limit rows=100 loops=1 
+       Unique rows=100 loops=1 
+         Nested Loop(Anti) rows=1370 loops=1 Join=(((e.coin_pair)::text = (l.coin_pair)::text) AND (date_trunc('hour'::text, e.created_at) = date_trunc('hour'::text, l.created_at))) removed_join_filter=37861734
+           Gather Merge rows=2160 loops=1 workers=5/5
+             Incremental Sort rows=506 loops=6 
+               Index Scan rows=5080 loops=6 Relation=strategy_log Index=idx_hold_baseline_eval removed_filter=104
+           Materialize rows=17529 loops=2160 
+             Gather rows=24985 loops=1 workers=5/5
+               Seq Scan rows=4164 loops=6 Relation=strategy_log removed_filter=412016
+  -- 계획 c2 4h (run1)
+     Limit rows=100 loops=1 
+       Unique rows=100 loops=1 
+         Merge Join(Anti) rows=1496 loops=1 Merge=(((l.coin_pair)::text = (e.coin_pair)::text) AND (date_trunc('hour'::text, l.created_at) = (date_trunc('hour'::text, e.created_at))))
+           Gather Merge rows=2297 loops=1 workers=5/5
+             Incremental Sort rows=529 loops=6 
+               Index Scan rows=5123 loops=6 Relation=strategy_log Index=idx_hold_baseline_eval removed_filter=109
+           Unique rows=63 loops=1 
+             Gather Merge rows=63 loops=1 workers=5/5
+               Sort rows=1138 loops=6 
+                 Seq Scan rows=4212 loops=6 Relation=strategy_log removed_filter=411968
+  -- 계획 c2 24h (run1)
+     Limit rows=100 loops=1 
+       Unique rows=100 loops=1 
+         Merge Join(Anti) rows=1370 loops=1 Merge=(((l.coin_pair)::text = (e.coin_pair)::text) AND (date_trunc('hour'::text, l.created_at) = (date_trunc('hour'::text, e.created_at))))
+           Gather Merge rows=2160 loops=1 workers=5/5
+             Incremental Sort rows=506 loops=6 
+               Index Scan rows=5080 loops=6 Relation=strategy_log Index=idx_hold_baseline_eval removed_filter=104
+           Unique rows=54 loops=1 
+             Gather Merge rows=54 loops=1 workers=5/5
+               Sort rows=1144 loops=6 
+                 Seq Scan rows=4164 loops=6 Relation=strategy_log removed_filter=412016
+  -- 결과 대조(같은 자료·같은 cutoff·limit, 전체 열 해시)
+     24h limit=1: orig=1행/1c8581d970c4 · c1=1행/1c8581d970c4 · c2=1행/1c8581d970c4 → 같음
+     24h limit=100: orig=100행/583884aced30 · c1=100행/583884aced30 · c2=100행/583884aced30 → 같음
+     4h limit=1: orig=1행/9a3e6fd0a3f4 · c1=1행/9a3e6fd0a3f4 · c2=1행/9a3e6fd0a3f4 → 같음
+     4h limit=100: orig=100행/2b17a93f53b7 · c1=100행/2b17a93f53b7 · c2=100행/2b17a93f53b7 → 같음
+====================================================================================================
+m250-S3  생성 51.5s  rows=2497069 pages=109790 size=899399680 hold_priced=1270520 done4=84600 done24=83800 l4=1183658 l24=1172135 md5=ae0849e8d5965b5922071492f8ab6e08
+  orig 4h  run1  30초 초과(statement_timeout) wall= 30.11s  at=2026-11-04T22:58:08.426+09:00  stderr=ERROR:  canceling statement due to statement timeout
+  orig 24h run1  30초 초과(statement_timeout) wall= 30.05s  at=2026-11-04T22:58:38.478+09:00  stderr=ERROR:  canceling statement due to statement timeout
+  c1   4h  run1  exec=   1598.2ms plan=   4.0ms wall=  1.79s rows=0    buffers hit=1265791 read=118225 temp_w=51401  at=2026-11-04T22:58:41.946+09:00
+  c1   4h  run2  exec=   1337.5ms plan=   2.8ms wall=  1.50s rows=0    buffers hit=1383988 read=0 temp_w=51144  at=2026-11-04T22:58:43.444+09:00
+  c1   4h  run3  exec=   1129.0ms plan=   2.8ms wall=  1.29s rows=0    buffers hit=1383966 read=0 temp_w=49265  at=2026-11-04T22:58:44.732+09:00
+  c1   24h run1  exec=   1226.0ms plan=   3.0ms wall=  1.38s rows=0    buffers hit=1371721 read=0 temp_w=48774  at=2026-11-04T22:58:46.115+09:00
+  c1   24h run2  exec=   1262.9ms plan=   2.8ms wall=  1.44s rows=0    buffers hit=1371709 read=0 temp_w=49927  at=2026-11-04T22:58:47.550+09:00
+  c1   24h run3  exec=   1138.4ms plan=   2.8ms wall=  1.28s rows=0    buffers hit=1371682 read=0 temp_w=48944  at=2026-11-04T22:58:48.835+09:00
+  c2   4h  run1  exec=   1312.3ms plan=   3.6ms wall=  1.49s rows=0    buffers hit=1265977 read=118225 temp_w=49224  at=2026-11-04T22:58:51.203+09:00
+  c2   4h  run2  exec=   1235.8ms plan=   2.8ms wall=  1.40s rows=0    buffers hit=1384221 read=0 temp_w=47394  at=2026-11-04T22:58:52.607+09:00
+  c2   4h  run3  exec=   1224.3ms plan=   2.9ms wall=  1.40s rows=0    buffers hit=1384207 read=0 temp_w=50350  at=2026-11-04T22:58:54.009+09:00
+  c2   24h run1  exec=   1420.8ms plan=   2.8ms wall=  1.61s rows=0    buffers hit=1371945 read=0 temp_w=50162  at=2026-11-04T22:58:55.619+09:00
+  c2   24h run2  exec=   1356.4ms plan=   2.9ms wall=  1.52s rows=0    buffers hit=1371944 read=0 temp_w=50074  at=2026-11-04T22:58:57.144+09:00
+  c2   24h run3  exec=   1444.0ms plan=   3.0ms wall=  1.62s rows=0    buffers hit=1371967 read=0 temp_w=50117  at=2026-11-04T22:58:58.768+09:00
+  -- 계획 c1 4h (run1)
+     Limit rows=0 loops=1 
+       Unique rows=0 loops=1 
+         Merge Join(Anti) rows=0 loops=1 Merge=(((l.coin_pair)::text = (e.coin_pair)::text) AND (date_trunc('hour'::text, l.created_at) = (date_trunc('hour'::text, e.created_at))))
+           Gather Merge rows=1183658 loops=1 workers=5/5
+             Incremental Sort rows=197276 loops=6 
+               Index Scan rows=197276 loops=6 Relation=strategy_log Index=idx_hold_baseline_eval removed_filter=14100
+           Sort rows=84600 loops=1 
+             Gather rows=84600 loops=1 workers=5/5
+               Seq Scan rows=14100 loops=6 Relation=strategy_log removed_filter=402078
+  -- 계획 c1 24h (run1)
+     Limit rows=0 loops=1 
+       Unique rows=0 loops=1 
+         Merge Join(Anti) rows=0 loops=1 Merge=(((l.coin_pair)::text = (e.coin_pair)::text) AND (date_trunc('hour'::text, l.created_at) = (date_trunc('hour'::text, e.created_at))))
+           Gather Merge rows=1172135 loops=1 workers=5/5
+             Incremental Sort rows=195356 loops=6 
+               Index Scan rows=195356 loops=6 Relation=strategy_log Index=idx_hold_baseline_eval removed_filter=13967
+           Sort rows=83800 loops=1 
+             Gather rows=83800 loops=1 workers=5/5
+               Seq Scan rows=13967 loops=6 Relation=strategy_log removed_filter=402212
+  -- 계획 c2 4h (run1)
+     Limit rows=0 loops=1 
+       Unique rows=0 loops=1 
+         Merge Join(Anti) rows=0 loops=1 Merge=(((l.coin_pair)::text = (e.coin_pair)::text) AND (date_trunc('hour'::text, l.created_at) = (date_trunc('hour'::text, e.created_at))))
+           Gather Merge rows=1183658 loops=1 workers=5/5
+             Incremental Sort rows=197276 loops=6 
+               Index Scan rows=197276 loops=6 Relation=strategy_log Index=idx_hold_baseline_eval removed_filter=14100
+           Unique rows=84600 loops=1 
+             Gather Merge rows=84600 loops=1 workers=5/5
+               Sort rows=14100 loops=6 
+                 Seq Scan rows=14100 loops=6 Relation=strategy_log removed_filter=402078
+  -- 계획 c2 24h (run1)
+     Limit rows=0 loops=1 
+       Unique rows=0 loops=1 
+         Merge Join(Anti) rows=0 loops=1 Merge=(((l.coin_pair)::text = (e.coin_pair)::text) AND (date_trunc('hour'::text, l.created_at) = (date_trunc('hour'::text, e.created_at))))
+           Gather Merge rows=1172135 loops=1 workers=5/5
+             Incremental Sort rows=195356 loops=6 
+               Index Scan rows=195356 loops=6 Relation=strategy_log Index=idx_hold_baseline_eval removed_filter=13967
+           Unique rows=83800 loops=1 
+             Gather Merge rows=83800 loops=1 workers=5/5
+               Sort rows=13967 loops=6 
+                 Seq Scan rows=13967 loops=6 Relation=strategy_log removed_filter=402212
+  -- 결과 대조(같은 자료·같은 cutoff·limit, 전체 열 해시)
+     24h limit=1: orig=30초 초과 · c1=30초 초과 · c2=0행/e3b0c44298fc → 완료한 판끼리 같음
+     24h limit=100: orig=30초 초과 · c1=0행/e3b0c44298fc · c2=0행/e3b0c44298fc → 완료한 판끼리 같음
+     4h limit=1: orig=30초 초과 · c1=30초 초과 · c2=0행/e3b0c44298fc → 완료한 판끼리 같음
+     4h limit=100: orig=30초 초과 · c1=0행/e3b0c44298fc · c2=0행/e3b0c44298fc → 완료한 판끼리 같음

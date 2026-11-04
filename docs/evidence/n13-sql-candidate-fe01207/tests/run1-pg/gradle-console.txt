@@ -1,0 +1,34 @@
+> Task :strategy-lib:compileJava
+> Task :strategy-lib:processResources NO-SOURCE
+> Task :strategy-lib:classes
+> Task :strategy-lib:jar
+> Task :core-engine:compileJava
+> Task :core-engine:processResources NO-SOURCE
+> Task :core-engine:classes
+> Task :core-engine:jar
+> Task :exchange-adapter:compileJava
+> Task :exchange-adapter:processResources NO-SOURCE
+> Task :exchange-adapter:classes
+> Task :exchange-adapter:jar
+> Task :web-api:compileJava
+> Task :web-api:processResources
+> Task :web-api:classes
+> Task :web-api:compileTestJava
+> Task :web-api:processTestResources
+> Task :web-api:testClasses
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+> Task :web-api:test
+
+23:16:31.375 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+23:16:31.375 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+23:16:31.379 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+23:16:31.381 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+23:16:31.385 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+23:16:31.391 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+23:16:31.391 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+23:16:31.392 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+23:16:31.392 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-2 - Shutdown initiated...
+23:16:31.394 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-2 - Shutdown completed.
+
+BUILD SUCCESSFUL in 56s
+11 actionable tasks: 11 executed

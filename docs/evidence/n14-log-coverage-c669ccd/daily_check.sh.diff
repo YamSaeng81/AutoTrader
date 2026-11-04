@@ -1,0 +1,77 @@
+diff --git a/scripts/ops/daily_check.sh b/scripts/ops/daily_check.sh
+index 593f6d3..690ef42 100644
+--- a/scripts/ops/daily_check.sh
++++ b/scripts/ops/daily_check.sh
+@@ -15,7 +15,8 @@
+ # 종료 코드: 0 점검 항목 정상·보고 전송 / 1 이상 또는 판정 불가·보고 전송 / 2 보고 전송 실패 / 3 이미 실행 중
+ #
+ # 시험용 바꿔 끼우기(운영에서는 쓰지 않는다): PSQL_CMD · LOGS_FILE · APP_STATE · ALERTS_CMD · TG_API · SQL_TIMEOUT · TZ_EXPECT ·
+-#   SLEEP_CMD · REPORT_LIMIT · LOCK_MODE(mkdir — flock 없는 환경의 대체 잠금을 시험할 때) · BTC_NOW(BTC H1 입력 판정 기준 시각)
++#   SLEEP_CMD · REPORT_LIMIT · LOCK_MODE(mkdir — flock 없는 환경의 대체 잠금을 시험할 때) · BTC_NOW(BTC H1 입력 판정 기준 시각) ·
++#   APP_CREATED(APP_STATE 와 함께 — backend 컨테이너 생성 시각) · CHECK_SINCE_ISO(구간 시작 고정 — 경계 시험)
+ set -u
+ # 🔴 2026-10-27: 로케일을 C(바이트 비교)로 고정한다. 서버 대화형 셸(C.UTF-8)에서 GNU grep 3.7 이 공유 풀 기동 줄을
+ #    P_POOL 로 잡지 못해(0) 미분류 🔴 로 셌다 — cron(로케일 없음 = C)에서는 1. 글자 단위로는 재현되지 않아 원인은 미규명이고,
+@@ -81,7 +82,7 @@ else
+ fi
+ 
+ NOW_KST=$(TZ=KST-9 date '+%Y-%m-%d %H:%M %Z')
+-SINCE_ISO=$(date -u -d "-${WINDOW_HOURS} hours" '+%Y-%m-%dT%H:%M:%SZ')
++SINCE_ISO="${CHECK_SINCE_ISO:-$(date -u -d "-${WINDOW_HOURS} hours" '+%Y-%m-%dT%H:%M:%SZ')}"
+ SINCE_KST=$(TZ=KST-9 date -d "$SINCE_ISO" '+%m-%d %H:%M')
+ STAMP=$(TZ=KST-9 date '+%Y%m%d-%H%M')
+ REPORT="$OUT_DIR/$STAMP.txt"
+@@ -133,6 +134,43 @@ if [ "$APP_STATUS" = "running" ] && [ "$APP_STARTED" != "-" ]; then
+ fi
+ detail "앱: $APP_STATUS · 재시작 ${APP_RESTARTS:-?} · 기동 $APP_STARTED · 이미지 ${APP_IMAGE_SHORT:--}"
+ 
++# ── 2-1. ERROR 로그 범위 (2026-11-04 N14) ──
++# `docker compose logs` 는 **현재 컨테이너**의 로그만 준다. 구간 안에 컨테이너가 새로 만들어졌으면(Created > 구간 시작)
++# 구간 시작 ~ 생성 전의 로그는 이 보고의 ERROR 집계에 없다 → ⚪(ERROR 0 을 구간 전체 정상으로 보지 않는다).
++# 같은 컨테이너의 재시작은 StartedAt 만 바뀌고 로그가 남으므로 공백으로 보지 않는다 — StartedAt 으로 재생성을 판정하지 않는다
++# (구간 안 기동 🔴 는 위 2 그대로). 생성 시각을 못 읽거나 형식이 다르면 확인 불가 ⚪.
++# 범위: 재생성으로 확실한 공백만 표시한다. 로그 회전·보존 한도까지 검증하지 않는다. 이전 컨테이너 로그를 합산하지 않는다.
++if [ -n "${APP_STATE:-}" ]; then
++  APP_CREATED_RAW="${APP_CREATED:-}"
++elif [ -n "${CID:-}" ]; then
++  APP_CREATED_RAW=$(docker inspect --format '{{.Created}}' "$CID" 2>/dev/null || true)
++else
++  APP_CREATED_RAW=""
++fi
++LOG_SCOPE="unknown"; CREATED_KST="?"; created_ns=""
++if [[ "$APP_CREATED_RAW" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,9})?(Z|[+-][0-9]{2}:[0-9]{2})$ ]]; then
++  created_ns=$(date -d "$APP_CREATED_RAW" +%s%N 2>/dev/null || true)
++fi
++since_ns=$(date -d "$SINCE_ISO" +%s%N)
++if [ -z "$created_ns" ]; then
++  # 받은 값은 ASCII 인쇄 문자만 앞 40자 — 보고 본문에 깨진 바이트를 넣지 않는다(LC_ALL=C 의 cut 은 바이트 단위)
++  shown=$(printf '%s' "$APP_CREATED_RAW" | head -1 | tr -cd ' -~' | cut -c1-40)
++  unknown "ERROR 로그 범위 확인 불가 — backend 컨테이너 생성 시각을 읽지 못했다(${shown:-값 없음}) · ERROR 집계를 구간 전체로 보지 않는다"
++else
++  CREATED_KST=$(TZ=KST-9 date -d "$APP_CREATED_RAW" '+%m-%d %H:%M:%S')
++  if [ "$created_ns" -gt "$since_ns" ]; then
++    LOG_SCOPE="gap"
++    unknown "ERROR 로그 범위 미확보 — 구간 안에 backend 컨테이너가 새로 만들어졌다(생성 ${CREATED_KST}). 구간 시작 ${SINCE_KST} ~ 생성 전 로그는 ERROR 집계 밖"
++  else
++    LOG_SCOPE="ok"
++  fi
++fi
++case "$LOG_SCOPE" in
++  ok)  detail "로그 범위: 요청 ${SINCE_KST} ~ 실행 시각 · 현재 컨테이너 생성 ${CREATED_KST}(구간 시작 전·같음 — 재생성 공백 없음)" ;;
++  gap) detail "로그 범위: 요청 ${SINCE_KST} ~ 실행 시각 · 현재 컨테이너 생성 ${CREATED_KST}(구간 안 — 생성 전 로그 미포함)" ;;
++  *)   detail "로그 범위: 요청 ${SINCE_KST} ~ 실행 시각 · 현재 컨테이너 생성 시각 확인 불가" ;;
++esac
++
+ # ── 3. DB 조회 — 시간 초과·오류·출력 누락은 판정 불가 ──
+ SQL_FILE="${SQL_FILE:-$REPO_DIR/scripts/ops/daily_checks.sql}"   # 설치본은 저장소 밖(~/ops-scripts) — 서버 체크아웃은 배포 SHA 에 고정돼 있다
+ SQL_OUT=$(timeout "$SQL_TIMEOUT" $PSQL_CMD -At -F'|' -v since="$SINCE_ISO" -v sid="$SID_ID" -v stale_min="$STALE_MIN" -v btc_now="${BTC_NOW:-}" -f - < "$SQL_FILE" 2>&1); SQL_RC=$?
+@@ -329,7 +367,8 @@ else
+   n_blast=$(echo "$ERRS" | grep -cE "$P_BLAST" || true)
+   OTHER=$(echo "$ERRS" | grep -vE "$P_POOL|$P_CANDLE|$P_404|$P_IO|$P_NEWS|$P_BLAST" | grep -v '^$' || true)
+   n_other=$(echo -n "$OTHER" | grep -c '' || true)
+-  detail "ERROR(구간): 전체 ${n_all} · 공유 풀 미등록 ${n_pool} · 캔들 판정 불가 ${n_candle} · 상장 폐지 404 ${n_404} · 통신 실패 ${n_io} · 미분류 ${n_other}"
++  case "$LOG_SCOPE" in ok) ERR_SCOPE="구간" ;; gap) ERR_SCOPE="현재 컨테이너 생성 ${CREATED_KST} 뒤만 — 구간 앞부분 미포함" ;; *) ERR_SCOPE="로그 범위 확인 불가" ;; esac
++  detail "ERROR(${ERR_SCOPE}): 전체 ${n_all} · 공유 풀 미등록 ${n_pool} · 캔들 판정 불가 ${n_candle} · 상장 폐지 404 ${n_404} · 통신 실패 ${n_io} · 미분류 ${n_other}"
+   detail "ERROR(원인 미확인 🟡): 보조 뉴스 수집 실패 ${n_news} · KRW-BLAST 보충 수집 실패 ${n_blast}"
+   [ "${n_candle:-0}" != "0" ] && note "캔들 판정 불가 ERROR ${n_candle}건"
+   [ "${n_io:-0}" != "0" ] && note "외부 통신 실패 ERROR ${n_io}건"

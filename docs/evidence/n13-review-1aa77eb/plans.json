@@ -1,0 +1,296 @@
+[
+  {
+    "method": "findPendingHoldFor4hEval",
+    "json": {
+      "Plan": {
+        "Node Type": "Limit",
+        "Parallel Aware": false,
+        "Async Capable": false,
+        "Startup Cost": 115901.81,
+        "Total Cost": 155789.85,
+        "Plan Rows": 100,
+        "Plan Width": 529,
+        "Plans": [
+          {
+            "Node Type": "Unique",
+            "Parent Relationship": "Outer",
+            "Parallel Aware": false,
+            "Async Capable": false,
+            "Startup Cost": 115901.81,
+            "Total Cost": 419020892.64,
+            "Plan Rows": 1050202,
+            "Plan Width": 529,
+            "Plans": [
+              {
+                "Node Type": "Merge Join",
+                "Parent Relationship": "Outer",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Join Type": "Anti",
+                "Startup Cost": 115901.81,
+                "Total Cost": 419015641.63,
+                "Plan Rows": 1050202,
+                "Plan Width": 529,
+                "Inner Unique": false,
+                "Merge Cond": "((l.coin_pair)::text = (e.coin_pair)::text)",
+                "Join Filter": "((e.created_at >= date_trunc('hour'::text, l.created_at)) AND (e.created_at < (date_trunc('hour'::text, l.created_at) + '01:00:00'::interval)))",
+                "Plans": [
+                  {
+                    "Node Type": "Gather Merge",
+                    "Parent Relationship": "Outer",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Startup Cost": 1785.42,
+                    "Total Cost": 283107.18,
+                    "Plan Rows": 1181477,
+                    "Plan Width": 521,
+                    "Workers Planned": 5,
+                    "Plans": [
+                      {
+                        "Node Type": "Incremental Sort",
+                        "Parent Relationship": "Outer",
+                        "Parallel Aware": false,
+                        "Async Capable": false,
+                        "Startup Cost": 785.35,
+                        "Total Cost": 139827.96,
+                        "Plan Rows": 236295,
+                        "Plan Width": 521,
+                        "Sort Key": [
+                          "l.coin_pair",
+                          "(date_trunc('hour'::text, l.created_at))",
+                          "l.created_at"
+                        ],
+                        "Presorted Key": [
+                          "l.coin_pair"
+                        ],
+                        "Plans": [
+                          {
+                            "Node Type": "Index Scan",
+                            "Parent Relationship": "Outer",
+                            "Parallel Aware": true,
+                            "Async Capable": false,
+                            "Scan Direction": "Forward",
+                            "Index Name": "idx_hold_baseline_eval",
+                            "Relation Name": "strategy_log",
+                            "Alias": "l",
+                            "Startup Cost": 0.43,
+                            "Total Cost": 117094.82,
+                            "Plan Rows": 236295,
+                            "Plan Width": 521,
+                            "Index Cond": "(created_at < (now() - '04:00:00'::interval))",
+                            "Filter": "(price_after_4h IS NULL)"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "Node Type": "Materialize",
+                    "Parent Relationship": "Inner",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Startup Cost": 114116.38,
+                    "Total Cost": 114515.55,
+                    "Plan Rows": 79833,
+                    "Plan Width": 16,
+                    "Plans": [
+                      {
+                        "Node Type": "Sort",
+                        "Parent Relationship": "Outer",
+                        "Parallel Aware": false,
+                        "Async Capable": false,
+                        "Startup Cost": 114116.38,
+                        "Total Cost": 114315.97,
+                        "Plan Rows": 79833,
+                        "Plan Width": 16,
+                        "Sort Key": [
+                          "e.coin_pair"
+                        ],
+                        "Plans": [
+                          {
+                            "Node Type": "Gather",
+                            "Parent Relationship": "Outer",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Startup Cost": 1000.0,
+                            "Total Cost": 106816.6,
+                            "Plan Rows": 79833,
+                            "Plan Width": 16,
+                            "Workers Planned": 5,
+                            "Single Copy": false,
+                            "Plans": [
+                              {
+                                "Node Type": "Seq Scan",
+                                "Parent Relationship": "Outer",
+                                "Parallel Aware": true,
+                                "Async Capable": false,
+                                "Relation Name": "strategy_log",
+                                "Alias": "e",
+                                "Startup Cost": 0.0,
+                                "Total Cost": 97833.3,
+                                "Plan Rows": 15967,
+                                "Plan Width": 16,
+                                "Filter": "((price_after_4h IS NOT NULL) AND ((signal)::text = 'HOLD'::text))"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "method": "findPendingHoldFor24hEval",
+    "json": {
+      "Plan": {
+        "Node Type": "Limit",
+        "Parallel Aware": false,
+        "Async Capable": false,
+        "Startup Cost": 115702.4,
+        "Total Cost": 155089.66,
+        "Plan Rows": 100,
+        "Plan Width": 529,
+        "Plans": [
+          {
+            "Node Type": "Unique",
+            "Parent Relationship": "Outer",
+            "Parallel Aware": false,
+            "Async Capable": false,
+            "Startup Cost": 115702.4,
+            "Total Cost": 413778855.23,
+            "Plan Rows": 1050246,
+            "Plan Width": 529,
+            "Plans": [
+              {
+                "Node Type": "Merge Join",
+                "Parent Relationship": "Outer",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Join Type": "Anti",
+                "Startup Cost": 115702.4,
+                "Total Cost": 413773604.0,
+                "Plan Rows": 1050246,
+                "Plan Width": 529,
+                "Inner Unique": false,
+                "Merge Cond": "((l.coin_pair)::text = (e.coin_pair)::text)",
+                "Join Filter": "((e.created_at >= date_trunc('hour'::text, l.created_at)) AND (e.created_at < (date_trunc('hour'::text, l.created_at) + '01:00:00'::interval)))",
+                "Plans": [
+                  {
+                    "Node Type": "Gather Merge",
+                    "Parent Relationship": "Outer",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Startup Cost": 1785.42,
+                    "Total Cost": 283113.01,
+                    "Plan Rows": 1181527,
+                    "Plan Width": 521,
+                    "Workers Planned": 5,
+                    "Plans": [
+                      {
+                        "Node Type": "Incremental Sort",
+                        "Parent Relationship": "Outer",
+                        "Parallel Aware": false,
+                        "Async Capable": false,
+                        "Startup Cost": 785.34,
+                        "Total Cost": 139827.76,
+                        "Plan Rows": 236305,
+                        "Plan Width": 521,
+                        "Sort Key": [
+                          "l.coin_pair",
+                          "(date_trunc('hour'::text, l.created_at))",
+                          "l.created_at"
+                        ],
+                        "Presorted Key": [
+                          "l.coin_pair"
+                        ],
+                        "Plans": [
+                          {
+                            "Node Type": "Index Scan",
+                            "Parent Relationship": "Outer",
+                            "Parallel Aware": true,
+                            "Async Capable": false,
+                            "Scan Direction": "Forward",
+                            "Index Name": "idx_hold_baseline_eval",
+                            "Relation Name": "strategy_log",
+                            "Alias": "l",
+                            "Startup Cost": 0.43,
+                            "Total Cost": 117093.56,
+                            "Plan Rows": 236305,
+                            "Plan Width": 521,
+                            "Index Cond": "(created_at < (now() - '24:00:00'::interval))",
+                            "Filter": "(price_after_24h IS NULL)"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "Node Type": "Materialize",
+                    "Parent Relationship": "Inner",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Startup Cost": 113916.98,
+                    "Total Cost": 114311.13,
+                    "Plan Rows": 78830,
+                    "Plan Width": 16,
+                    "Plans": [
+                      {
+                        "Node Type": "Sort",
+                        "Parent Relationship": "Outer",
+                        "Parallel Aware": false,
+                        "Async Capable": false,
+                        "Startup Cost": 113916.98,
+                        "Total Cost": 114114.05,
+                        "Plan Rows": 78830,
+                        "Plan Width": 16,
+                        "Sort Key": [
+                          "e.coin_pair"
+                        ],
+                        "Plans": [
+                          {
+                            "Node Type": "Gather",
+                            "Parent Relationship": "Outer",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Startup Cost": 1000.0,
+                            "Total Cost": 106716.3,
+                            "Plan Rows": 78830,
+                            "Plan Width": 16,
+                            "Workers Planned": 5,
+                            "Single Copy": false,
+                            "Plans": [
+                              {
+                                "Node Type": "Seq Scan",
+                                "Parent Relationship": "Outer",
+                                "Parallel Aware": true,
+                                "Async Capable": false,
+                                "Relation Name": "strategy_log",
+                                "Alias": "e",
+                                "Startup Cost": 0.0,
+                                "Total Cost": 97833.3,
+                                "Plan Rows": 15766,
+                                "Plan Width": 16,
+                                "Filter": "((price_after_24h IS NOT NULL) AND ((signal)::text = 'HOLD'::text))"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+]

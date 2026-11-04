@@ -1,0 +1,17 @@
+PASS 판 표지 PV=69·M=~/maint-n13
+PASS OLD 6995c52·NEW fe01207
+PASS IMGOLD = #21 이미지 67294e80…
+PASS 이전 복구 태그 두 이미지
+PASS DIFFN = git diff --name-only 6995c52 fe01207(4개)
+PASS PARX = 실제 jar 비교 출력(끝 줄 제외)
+PASS jar 비교 끝 줄 (끝) 879 879
+PASS 장부·점검·cron 기준값 그대로
+PASS 관측 함수 셋 정의
+PASS holdobs 경고 없음 — 종료 0·catchup 시각
+PASS holdobs HOLD 경고+반환 — 종료 3·스레드 종류만
+PASS holdobs 그 밖의 경고 — 종료 3
+PASS holdobs 획득 시간 초과 — 종료 1(P0)
+PASS holdobs 반환 미관측 — 종료 3
+PASS holdobs 인자 없음 — ⚪ 종료 3
+PASS 출력에 연결 식별자·정확한 스레드 이름 없음
+== 16 통과 / 0 실패

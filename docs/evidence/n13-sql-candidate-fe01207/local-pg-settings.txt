@@ -1,0 +1,28 @@
+container=/n13-pg image=timescale/timescaledb@sha256:b26180320dea45a27190318903f63cc2839f190315663a53b6429a937dd02196 created=2026-11-04T13:29:07.047513114Z
+PostgreSQL 15.13 on x86_64-pc-linux-musl, compiled by gcc (Alpine 13.2.1_git20240309) 13.2.1 20240309, 64-bit
+TimeZone=UTC
+autovacuum=on
+default_statistics_target=100
+effective_cache_size=15107848kB
+effective_io_concurrency=256
+jit=off
+maintenance_work_mem=2014208kB
+max_parallel_workers=16
+max_parallel_workers_per_gather=8
+max_worker_processes=35
+plan_cache_mode=auto
+random_page_cost=1.1
+seq_page_cost=1
+shared_buffers=5035528kB
+statement_timeout=0ms
+work_mem=2518kB
+idx_hold_baseline_eval | CREATE INDEX idx_hold_baseline_eval ON public.strategy_log USING btree (coin_pair, created_at) WHERE (((signal)::text = 'HOLD'::text) AND (signal_price IS NOT NULL))
+idx_signal_quality_eval | CREATE INDEX idx_signal_quality_eval ON public.strategy_log USING btree (signal, created_at) WHERE ((signal)::text = ANY ((ARRAY['BUY'::character varying, 'SELL'::character varying])::text[]))
+idx_strategy_log_ruleset | CREATE INDEX idx_strategy_log_ruleset ON public.strategy_log USING btree (ruleset_hash)
+idx_strategy_log_session_id | CREATE INDEX idx_strategy_log_session_id ON public.strategy_log USING btree (session_id)
+idx_strategy_log_session_type | CREATE INDEX idx_strategy_log_session_type ON public.strategy_log USING btree (session_type)
+idx_strategy_log_strategy_coin_tf | CREATE INDEX idx_strategy_log_strategy_coin_tf ON public.strategy_log USING btree (strategy_name, coin_pair, timeframe, created_at)
+idx_strategy_log_time | CREATE INDEX idx_strategy_log_time ON public.strategy_log USING btree (created_at DESC)
+strategy_log_pkey | CREATE UNIQUE INDEX strategy_log_pkey ON public.strategy_log USING btree (id)
+16
+docker_cpus=16 docker_mem=16502673408

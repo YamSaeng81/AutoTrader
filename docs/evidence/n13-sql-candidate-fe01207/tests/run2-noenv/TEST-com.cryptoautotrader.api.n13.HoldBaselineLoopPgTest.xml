@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.n13.HoldBaselineLoopPgTest" tests="4" skipped="4" failures="0" errors="0" timestamp="2026-11-04T14:17:29" hostname="DESKTOP-SF1KUQ5" time="0.001">
+  <properties/>
+  <testcase name="시작 catchup(@Async task 스레드): 후보 SQL 로 같은 예산·결과, 가격 조회 중 연결 0·트랜잭션 없음" classname="com.cryptoautotrader.api.n13.HoldBaselineLoopPgTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="가격 조회 실패: 실패 코인 행은 미평가로 남고 연결은 반환, 다른 코인은 평가 — 후속 회차에서 실패 코인만 평가(중복 없음)" classname="com.cryptoautotrader.api.n13.HoldBaselineLoopPgTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="질의 오류: 4h 첫 HOLD 질의가 실패하면 그 회차는 예외로 끝나고 연결은 모두 반환 — 후속 회차는 정상 평가" classname="com.cryptoautotrader.api.n13.HoldBaselineLoopPgTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="예산·배치: 250 시간대 → 1회차 4h·24h 각 200(limit 100·100), 2회차 50(limit 100·100, 두 번째는 0행), 3회차 0 — 시간대당 평가 1행, 가격 조회 중 연결 0" classname="com.cryptoautotrader.api.n13.HoldBaselineLoopPgTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
