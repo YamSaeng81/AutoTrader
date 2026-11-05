@@ -1,0 +1,8 @@
+backend-1  | 13:00:29.675 [scheduler-2] ERROR c.c.a.news.source.CryptoPanicSource - [CryptoPanicSource] 수집 실패: Connection reset
+backend-1  | 19:10:01.456 [task-2] ERROR c.c.exchange.upbit.UpbitRestClient - Upbit API 오류: status=404, url=https://api.upbit.com/v1/candles/minutes/60?market=KRW-BLAST&count=200&to=2026-10-31T15:00:00, body={"error":{"name":404,"message":"Code not found"}}
+backend-1  | 19:10:01.457 [task-2] ERROR c.c.e.upbit.UpbitCandleCollector - 캔들 수집 실패: Upbit API 호출 실패: 404 (https://api.upbit.com/v1/candles/minutes/60?market=KRW-BLAST&count=200&to=2026-10-31T15:00:00)
+backend-1  | 19:10:01.460 [task-2] ERROR c.c.a.service.DataCollectionService - 캔들 수집 실패: KRW-BLAST — 캔들 데이터 수집 실패
+backend-1  | 19:10:46.451 [task-3] ERROR c.c.exchange.upbit.UpbitRestClient - Upbit API 오류: status=404, url=https://api.upbit.com/v1/candles/minutes/60?market=KRW-BLAST&count=200&to=2026-11-05T15:00:00, body={"error":{"name":404,"message":"Code not found"}}
+backend-1  | 19:10:46.451 [task-3] ERROR c.c.e.upbit.UpbitCandleCollector - 캔들 수집 실패: Upbit API 호출 실패: 404 (https://api.upbit.com/v1/candles/minutes/60?market=KRW-BLAST&count=200&to=2026-11-05T15:00:00)
+backend-1  | 19:10:46.452 [task-3] ERROR c.c.a.service.DataCollectionService - 캔들 수집 실패: KRW-BLAST — 캔들 데이터 수집 실패
+(끝) 2026-11-06 07:50:34 KST

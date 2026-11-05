@@ -1,0 +1,37 @@
+[로컬 시작] 2026-11-05 22:08:44 +0900
+== 시각 2026-11-05 22:08:45 KST
+== 서비스
+서비스 5개 T4(20:12)와 같음
+backend Created=2026-11-05T10:41:44.782771166Z StartedAt=2026-11-05T10:41:45.989275157Z RestartCount=0 Status=running
+HEAD 7a944723c2959898226c2ad80f6b079ab5678296
+== 세션
+세션 상태 T4 와 같음
+SID 203·기준 행·EG·0 확인 통과
+Flyway 94
+== BTC true|11-05 21:00|11-05 21:00|20/20
+== 설치·cron·장부
+설치판 c669ccd 그대로
+장부 설치 그대로
+crontab T0 와 같음 f2dce2809c09aa44
+과거 장부 파일 그대로
+-rw-rw-r-- 1 manicstr manicstr 3735 11-05T09:30 20261105.txt
+-rw-rw-r-- 1 manicstr manicstr 3540 10-31T13:57 install-check.txt
+== 로그(2026-11-05T13:00:00Z 이후)
+줄 수 313 · 첫/끝 머리:
+backend-1  | 13:00:22.863
+backend-1  | 13:07:53.454
+ERROR 전체 1 · 세 마켓 404 밖 1
+backend-1  | 13:00:29.675 [scheduler-2] ERROR c.c.a.news.source.CryptoPanicSource - [CryptoPanicSource] 수집 실패: Connection reset
+연결 획득 실패(Connection is not available) 0 · 누수 경고 0 · unleaked 0
+🔴 공유 풀/위험 한도 줄 0 · BTC 판정 불가/재개 0
+HTTP 비200:
+뉴스 완료 1 · 미완료 1
+      1 수집 미완료 — sourceId=cryptopanic 결과=FAILED 종류=IOE
+N17 줄 0 · REST 폴백 줄 0
+주문·체결 관련 줄(참고) 0
+== 정기 점검 폴더 최근 파일
+-rw-rw-r-- 1 manicstr manicstr    563 10-31T13:31 crontab.before-sidok
+-rw-rw-r-- 1 manicstr manicstr    868 10-31T13:57 crontab.new-ledger
+-rw-rw-r-- 1 manicstr manicstr    585 10-31T13:31 crontab.new-sidok
+-rw-rw-r-- 1 manicstr manicstr    121 11-05T22:00 last_send
+[로컬 끝] 2026-11-05 22:08:50 +0900 rc=0
