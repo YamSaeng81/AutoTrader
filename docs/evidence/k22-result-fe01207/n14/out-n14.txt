@@ -1,0 +1,38 @@
+[로컬 시작] 2026-11-05 08:15:45 +0900
+From https://github.com/YamSaeng81/AutoTrader
+ * [new branch]      candidate/n13-hold-sql-6995c52 -> origin/candidate/n13-hold-sql-6995c52
+ * [new branch]      candidate/n14-log-coverage-d491fd1 -> origin/candidate/n14-log-coverage-d491fd1
+   95400d8..782e7ac  main       -> origin/main
+2135e95314edeea68f6b9dfc31a1c0b0034f84b9d3cbfd52be7ee82afab9cc60  daily_check.sh
+653b22bab04b68c50bf9daf2a54f2c281f9c57eaf6795076225ed39d62d48fa8  daily_checks.sql
+930ee34e1e59d5761c83c3de19894ccd973c09be07a314373d02634a500b4369  INSTALLED_SHA
+f2dce2809c09aa4466a95200caa19547118e444b4ac90b4363e20a158dee9b5b  crontab.before
+== 교체 뒤(셸·INSTALLED_SHA 만)
+6995c52259e3de4c7c922a32f9fb2aa9ddd49f00
+✅ 설치 — 잠금을 풀고 DRY_RUN 1회
+[정기 점검] 🔴 이상 1건
+실행 2026-11-05 08:15 KST · 구간 11-04 20:15 ~ (12시간) · 운영 6995c52 · 점검 스크립트 c669ccdc6e24
+🔴 미분류 ERROR 8건
+🟡 외부 통신 실패 ERROR 7건
+🟡 KRW-BLAST 보충 수집 실패 — 상세 원인 미확인 2건
+🟡 검증 코인 KRW-BLAST 캔들 404 2건 — 거래지원 종료 확인된 마켓
+🟡 66세션 경보: 적재 뒤처짐 12회 — 전부 거래지원 종료 확인 마켓(KRW-BLAST), 다른 코인 이상 없음
+—
+앱: running · 재시작 0 · 기동 2026-11-04T07:39:14.259114932Z · 이미지 67294e80ada3
+로그 범위: 요청 11-04 20:15 ~ 실행 시각 · 현재 컨테이너 생성 11-04 16:39:03(구간 시작 전·같음 — 재생성 공백 없음)
+DB: Flyway 94 · SID 203 밖 실자금 보유 0 · 미결 0 · 정리 대기 0 · 격리 대상 0 · 66세션: 원래 66 중 RUNNING 63 · 지정 종료 STOPPED 3/3(576 577 578) · 구간 SID 203 밖 실자금 매수 0
+SID 203: CREATED · 잔액 20200.00 · 보유 0 · 미결 0 · 구간 주문 매수 0 매도 0 · 정산 확인 불가 0 · 보고값≠반영값 0 · 미해결 정산 불일치(전체) 0
+BTC H1 입력(관측 11-05 08:15:49 KST): B1 true · 최신 완료 봉 11-05 07:00 · 필요 11-05 07:00(2분 유예) · B3 최근 20일 마감 봉 20/20
+텔레그램(구간): 성공 2 · 큐 진입 실패 0 · 마지막 성공 2026-11-05 04:34
+ERROR(구간): 전체 19 · 공유 풀 미등록 0 · 캔들 판정 불가 0 · 상장 폐지 404 2 · 통신 실패 7 · 미분류 8
+ERROR(원인 미확인 🟡): 보조 뉴스 수집 실패 0 · KRW-BLAST 보충 수집 실패 2
+  · 13:58:09.599 [scheduler-8] ERROR c.c.api.news.source.RssNewsSource - [RssNewsSource] 수집 실패 — sourceId=tokenpost_rss: Connection reset
+  · 15:28:23.666 [scheduler-1] ERROR c.c.a.news.source.UpbitNoticeSource - [UpbitNoticeSource] 수집 실패: Connection reset
+  · 15:28:23.816 [scheduler-1] ERROR c.c.a.news.source.CryptoPanicSource - [CryptoPanicSource] 수집 실패: Connection reset
+  · 15:58:23.966 [scheduler-2] ERROR c.c.api.news.source.RssNewsSource - [RssNewsSource] 수집 실패 — sourceId=tokenpost_rss: Connection reset
+  · 15:58:24.146 [scheduler-2] ERROR c.c.a.n.s.CoinGeckoTrendingSource - [CoinGeckoTrendingSource] 수집 실패: Connection reset
+66세션: 🔴 적재 뒤처짐 12회
+(DRY_RUN — 보고 보내지 않음 · 결과 /home/manicstr/daily-check/20261105-0815.txt)
+DRY_RUN rc=1 — 본문/설치 해시로 판정
+[로컬] 종료 0
+[로컬 끝] 2026-11-05 08:15:49 +0900
