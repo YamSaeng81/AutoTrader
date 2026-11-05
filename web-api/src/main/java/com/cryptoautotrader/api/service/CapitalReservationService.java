@@ -96,6 +96,8 @@ public class CapitalReservationService {
     public static final String ACCOUNT_HEADROOM = "ACCOUNT_HEADROOM";
     public static final String SESSION_FUNDS = "SESSION_FUNDS";
     public static final String INVALID_REQUEST = "INVALID_REQUEST";
+    /** 진입 승인 실행 만료(N15) — 잠금을 잡은 뒤 만료 시각이 지났다. */
+    public static final String ENTRY_EXPIRED = "ENTRY_EXPIRED";
 
     /**
      * 판정 결과.
@@ -122,6 +124,10 @@ public class CapitalReservationService {
 
     @Autowired(required = false)
     private DynamicSessionRepository dynamicSessionRepository;
+
+    /** 진입 승인 실행 만료 판정 시계 — 회차 처리와 같은 것(N15). 없으면(단위 생성) 시스템 시계. */
+    @Autowired(required = false)
+    private EntryClock entryClock;
 
     @PersistenceContext
     private EntityManager em;
@@ -165,6 +171,16 @@ public class CapitalReservationService {
      * 계좌 스냅숏의 공급원만 모의 계좌로 바꾼다(지금은 미구현이라 거절한다).</p>
      */
     public Decision reserveForBuy(String kind, Long sessionId, BigDecimal amount, Long selfPositionId) {
+        return reserveForBuy(kind, sessionId, amount, selfPositionId, null);
+    }
+
+    /**
+     * @param entryExpiresAt 회차 승인의 실행 만료 시각(N15) — 이 시각 이상이면 아무것도 바꾸지 않고 거절한다({@link #ENTRY_EXPIRED}).
+     *                       두 번 본다: 잠금을 잡은 직후(빠른 거절)와, 한도 조회·세션 행 잠금을 모두 지난 <b>차감 바로 앞</b>(최종 판정).
+     *                       🔴 잠금을 얻었다고 그 뒤 조회·잠금이 즉시 끝난다고 가정하지 않는다(총괄 v1.109 재현: 손실 한도 검사·세션
+     *                       refresh 중 E 도달 → 차감). {@code null} 이면 보지 않는다.
+     */
+    public Decision reserveForBuy(String kind, Long sessionId, BigDecimal amount, Long selfPositionId, Instant entryExpiresAt) {
         requireTransaction("자금 예약 (" + kind + ", sessionId=" + sessionId + ")");
         if (amount == null || amount.signum() <= 0 || sessionId == null) {
             return Decision.reject(INVALID_REQUEST, "금액·세션이 없다");
@@ -175,6 +191,12 @@ public class CapitalReservationService {
 
         // ① 공유 잠금 — 이 트랜잭션이 끝날 때까지 다른 예약·배정은 여기서 기다린다.
         lockAccount();
+
+        // ①-2 진입 승인 실행 만료(N15) — 잠금 대기 뒤, 한도 확인보다 먼저 본다(빠른 거절). 최종 판정은 ④ 차감 바로 앞이다.
+        Decision expiredAfterLock = entryExpiry(entryExpiresAt, "잠금 뒤");
+        if (expiredAfterLock != null) {
+            return logged(sessionId, expiredAfterLock);
+        }
 
         long exclude = selfPositionId != null ? selfPositionId : NO_ID;
 
@@ -223,6 +245,11 @@ public class CapitalReservationService {
             if (before.compareTo(amount) < 0) {
                 return logged(sessionId, sessionFunds(before, amount));
             }
+            // ④-0 최종 만료 판정(N15) — 한도 조회를 모두 지난 차감 바로 앞. 거절이면 아무것도 바꾸지 않았다.
+            Decision expiredBeforeDeduct = entryExpiry(entryExpiresAt, "차감 직전");
+            if (expiredBeforeDeduct != null) {
+                return logged(sessionId, expiredBeforeDeduct);
+            }
             after = before.subtract(amount);
             session.setAvailableKrw(after);
             sessionRepository.save(session);
@@ -247,6 +274,11 @@ public class CapitalReservationService {
             before = nz(session.getAvailableKrw());
             if (before.compareTo(amount) < 0) {
                 return logged(sessionId, sessionFunds(before, amount));
+            }
+            // ④-0 최종 만료 판정(N15) — 세션 행 잠금(refresh) 대기를 지난 차감 바로 앞. 거절이면 아무것도 바꾸지 않았다.
+            Decision expiredBeforeDeduct = entryExpiry(entryExpiresAt, "차감 직전");
+            if (expiredBeforeDeduct != null) {
+                return logged(sessionId, expiredBeforeDeduct);
             }
             after = before.subtract(amount);
             // 🔴 같은 트랜잭션의 **관리 엔티티**를 바꾼다. 별도 트랜잭션(REQUIRES_NEW)으로 쓰면 이
@@ -282,6 +314,28 @@ public class CapitalReservationService {
             });
         }
         em.flush();
+    }
+
+    /**
+     * 진입 승인 실행 만료 판정(N15) — 회차 처리와 <b>같은 시계</b>({@link EntryClock})로 {@code entryExpiresAt} 이상인지 본다.
+     *
+     * <p>🔴 "최종 승인" 은 애플리케이션이 필요한 잠금·조회를 모두 지난 뒤 하는 <b>마지막 만료 판정</b>이다(차감 직전, 의도 저장 직전).
+     * 그 판정 뒤 DB 커밋이 물리적으로 끝나는 시각까지 E 미만을 보장하는 기능은 아니다 — 대기 가능한 조회·잠금이 판정 <b>뒤에</b> 남아
+     * E 이후 새 예약·의도를 승인하는 경로를 없애는 것이 목적이다(총괄 v1.109).</p>
+     *
+     * @param stage 판정 위치(사유 문구에 남긴다)
+     * @return 만료면 {@link #ENTRY_EXPIRED} 거절, 아니거나 {@code entryExpiresAt} 이 {@code null} 이면 {@code null}
+     */
+    public Decision entryExpiry(Instant entryExpiresAt, String stage) {
+        if (entryExpiresAt == null) {
+            return null;
+        }
+        Instant now = entryClock != null ? entryClock.now() : Instant.now();
+        if (!EntryPriorityRounds.isExpired(entryExpiresAt, now)) {
+            return null;
+        }
+        return Decision.reject(ENTRY_EXPIRED,
+                "승인 실행 만료(만료 " + entryExpiresAt + ", " + stage + " 판정 " + now + ") — 새 예약·매수 의도 없음");
     }
 
     private static Decision sessionFunds(BigDecimal before, BigDecimal amount) {

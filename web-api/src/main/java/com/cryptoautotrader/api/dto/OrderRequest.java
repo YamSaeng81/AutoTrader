@@ -54,4 +54,10 @@ public class OrderRequest {
      * 호출자(LiveTradingService/DynamicTradingService)가 명시해야 한다.
      */
     private String sessionKind;
+
+    /**
+     * 진입 승인 실행 만료 시각(N15, 2026-11-05) — 회차 승인으로 온 매수만 싣는다. 계좌 잠금 안 예약 직전에 이 시각 이상이면
+     * 예약·의도를 만들지 않는다({@code ENTRY_EXPIRED}). {@code null} 이면 검사하지 않는다(즉시 진입·청산).
+     */
+    private java.time.Instant entryExpiresAt;
 }
