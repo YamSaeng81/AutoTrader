@@ -1,0 +1,11 @@
+fe01207f3f60e97e308925157f84a1bb2da04388:web-api/src/main/java/com/cryptoautotrader/api/service/SignalQualityService.java:62:     @Scheduled(fixedDelay = 30 * 60 * 1000, initialDelay = 5 * 60 * 1000)
+fe01207f3f60e97e308925157f84a1bb2da04388:web-api/src/main/java/com/cryptoautotrader/api/service/SignalQualityService.java:66:         if (processed4h > 0 || processed24h > 0) {
+fe01207f3f60e97e308925157f84a1bb2da04388:web-api/src/main/java/com/cryptoautotrader/api/service/SignalQualityService.java:67:             log.info("[SignalQuality] 정기 평가 완료 — 4h: {}건, 24h: {}건", processed4h, processed24h);
+fe01207f3f60e97e308925157f84a1bb2da04388:web-api/src/main/java/com/cryptoautotrader/api/service/SignalQualityService.java:70:         int hold4h  = evaluateHoldBaselineLoop(true,  MAX_HOLD_PER_RUN);
+fe01207f3f60e97e308925157f84a1bb2da04388:web-api/src/main/java/com/cryptoautotrader/api/service/SignalQualityService.java:71:         int hold24h = evaluateHoldBaselineLoop(false, MAX_HOLD_PER_RUN);
+fe01207f3f60e97e308925157f84a1bb2da04388:web-api/src/main/java/com/cryptoautotrader/api/service/SignalQualityService.java:72:         if (hold4h > 0 || hold24h > 0) {
+fe01207f3f60e97e308925157f84a1bb2da04388:web-api/src/main/java/com/cryptoautotrader/api/service/SignalQualityService.java:73:             log.info("[SignalQuality] HOLD 기준선 평가 — 4h: {}건, 24h: {}건", hold4h, hold24h);
+fe01207f3f60e97e308925157f84a1bb2da04388:web-api/src/main/java/com/cryptoautotrader/api/service/SignalQualityService.java:92:         int hold4h  = evaluateHoldBaselineLoop(true,  MAX_HOLD_PER_RUN);
+fe01207f3f60e97e308925157f84a1bb2da04388:web-api/src/main/java/com/cryptoautotrader/api/service/SignalQualityService.java:93:         int hold24h = evaluateHoldBaselineLoop(false, MAX_HOLD_PER_RUN);
+fe01207f3f60e97e308925157f84a1bb2da04388:web-api/src/main/java/com/cryptoautotrader/api/service/SignalQualityService.java:94:         log.info("[SignalQuality] 시작 Catchup 완료 — 4h: {}건, 24h: {}건 (HOLD 기준선 {}/{}건)",
+fe01207f3f60e97e308925157f84a1bb2da04388:web-api/src/main/java/com/cryptoautotrader/api/service/SignalQualityService.java:212:      * HOLD 기준선 평가 루프 — (코인, 정시) 당 1건만 평가해 대조군을 만든다.

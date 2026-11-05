@@ -1,5 +1,9 @@
 # 12월 제한 실거래 시험 — 후보와 실행안
 
+> **v1.105 (2026-11-05, 낮 작업 N15·N16 로컬 결과)**: 운영 fe01207 별도 사본에서 로컬만. N15 — 사전 등록 "최대 5분"과 달리 제때 접수된 후보의 늦은 승인에 상한이 없음을 재현(LIVE 10분·61분 뒤 진입, DYNAMIC 평가 때 종가로 주문·손절), 수정 후보 없음·승인 기한 판단 대기. N16 — 실시간 처리기가 가격 0·음수·null 을 거르지 않아 보호 매도·점검 오염을 재현(웹소켓 `tp` 없는 ticker → 0 경로 포함), 후보 3385f70(처리기를 장부와 같은 정의로) 9/9·관련 76/76, 미래 관측 시각의 장부 고정은 판단 대기. 운영 반영 없음. 총괄 v1.104 문서·근거 그대로 함께. §5-9 73.
+
+> **v1.104 (2026-11-05, 총괄 #22 결과 수용·N14 완료)**: 제출71/71·서버 보존 기록59/59와 P0~P4/P 뒤 관측·10시 자동 보고를 대조했다. 운영fe01207/전체9cb5d84f…를 수용하고 F1/N06 운영 핀을 갱신한다. N14 설치·첫 자동 보고/서버 전송·범위/BTC/cron 확인 완료, 휴대폰은 운영자 회신으로 확인했다. N13은 운영 반영 수용·정기 HOLD 개선 관측 중이며 catchup/약51분 경고0은 개선 징후다. 22시 계획 기동🔴·범위미확보⚪ 예상과 기존 HOLD 완료/장기대여/획득timeout을 N03에서 읽는다. 최종S/203CREATED·한도·12-01 일정 유지. §5-9 72.
+
 > **v1.103 (2026-11-05, N14 설치·첫 자동 보고와 #22(N13) 운영 실행 결과)**: 실행 출처 782e7ac §69(PV70). N14 08:15 설치·10:00 첫 자동 보고 생성/전송 성공. #22 P0~P4·P 뒤 관측 멈춤·되돌림 없음, backend 기동(StartedAt) 10:14:51 KST·새 이미지 9cb5d84f…·jar 1클래스/879→879. 획득 timeout 0, HOLD 장기 대여 배포 전 103(약 17.5시간)→배포 뒤 0(약 31분)은 개선 징후, 정기 회차 기준 개선은 미확인. F핀/S·203 CREATED·12-01 유지. §5-9 71.
 
 > **v1.102 (2026-11-05, 총괄 야간 후보 수용·실행 절차 보완)**: N13 C2 fe01207/N14 c669ccd를 수용한다. XML16/16·보존194/194·실제jar1클래스/879→879·성능근거 대조, 인덱스 추가 없음. #22의 스택 줄 획득timeout 누락과 설치 실패 뒤DRY_RUN진행을 직접 보완·국소검증했다. 새수정커밋의§69(PV70)를쓰며46f2c04옛블록은쓰지않는다. N14설치/DRY_RUN→10시보고→10:10이후#22, P0시간대/설치판검사·기존P2직전확인1회 유지. 운영/설치완료는실제결과뒤, F핀/S·203CREATED·12-01일정유지. §5-9 70.
@@ -838,7 +842,7 @@ cd ~/crypto_trader/AutoTrader
 DC="docker compose -f docker-compose.prod.yml"; SID=203
 START_DATE=2026-12-01   # 시작 예정일(KST). 연기하면 이 줄을 문서에서 고쳐 커밋한 뒤 그 값으로 쓴다
 M=~/start-sid203; MS=~/maint-20261030-stage1; mkdir -p "$M"
-NEW=6995c52259e3de4c7c922a32f9fb2aa9ddd49f00   # v1.98: 개입 #21(2026-11-04 16:39 KST) 운영 결과 수용 뒤 기대 HEAD. 이전 값 b1d7664db73222aec5d86f2e9137debef0ff4df3(#20). 이전 값 ea4490099f0fa6b614fe71102534b0ba84c0eb7f(#19). 이전 값 5bb0544926a694832e75234670bb8f99dfe33bb0(#18), cad393956e131c257195fcd08fcac18c83802788(#17), f0872e2547c918a7b5146f027d325bd441ddf0d7(#16), 82d15d42fa22bb7d0f24a8243ebc888a2a7f071c
+NEW=fe01207f3f60e97e308925157f84a1bb2da04388   # v1.104: 개입 #22(2026-11-05 10:14 KST) 운영 결과 수용 뒤 기대 HEAD. 이전 값 6995c52259e3de4c7c922a32f9fb2aa9ddd49f00(#21). 이전 값 b1d7664db73222aec5d86f2e9137debef0ff4df3(#20). 이전 값 ea4490099f0fa6b614fe71102534b0ba84c0eb7f(#19). 이전 값 5bb0544926a694832e75234670bb8f99dfe33bb0(#18), cad393956e131c257195fcd08fcac18c83802788(#17), f0872e2547c918a7b5146f027d325bd441ddf0d7(#16), 82d15d42fa22bb7d0f24a8243ebc888a2a7f071c
 PSQL="$DC exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader"
 sc() { $PSQL -At -F ' | ' -c "
   SELECT count(*) AS total,
@@ -888,10 +892,10 @@ done
 rm -f "$M/ok-F1" "$M/operator-confirm.txt"             # 이전 통과·확인으로 새 실패를 우회하지 않는다(사본은 위 폴더 보존)
 date '+%F %T %Z' | tee "$M/t-f1.txt"; date -u '+%Y-%m-%dT%H:%M:%SZ' > "$M/t-f1.utc"
 { git rev-parse HEAD; git status --porcelain --untracked-files=no; echo "(끝)"; } | tee "$M/git-f1.txt"
-[ "$(head -1 "$M/git-f1.txt")" = "$NEW" ] && [ "$(sed -n 2p "$M/git-f1.txt")" = "(끝)" ] || stop "HEAD 가 6995c52 가 아니거나 추적 파일 변경 있음 — 보고"
+[ "$(head -1 "$M/git-f1.txt")" = "$NEW" ] && [ "$(sed -n 2p "$M/git-f1.txt")" = "(끝)" ] || stop "HEAD 가 fe01207 가 아니거나 추적 파일 변경 있음 — 보고"
 svc | tee "$M/svc-f1.txt"
-IMGF1=sha256:67294e80ada31d346e36caeb01a2c259b6b5514357c804977ba1d20fba6aec07   # v1.98: #21 배포 이미지. 이전 기대 ~/maint-n11/image-new.txt(#20, fd3ac351…). 이전 기대 ~/maint-n08/image-new.txt(#19, 61804654…). 이전 기대 ~/maint-n04/image-new.txt(#18, 39875d5f…), ~/maint-rounding/image-new.txt(#17, a747a8e6…)
-[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$IMGF1" ] && [ "$(cat ~/maint-n12/image-new.txt)" = "$IMGF1" ] || stop "backend 이미지가 #21 배포 이미지(67294e80…)와 다름 — 보고"
+IMGF1=sha256:9cb5d84f0bfde5208f24f591ad291dacabdfa691a0b2e1f057c4f8c3e1720fb7   # v1.104: #22 배포 이미지. 이전 기대 ~/maint-n12/image-new.txt(#21, 67294e80…). 이전 기대 ~/maint-n11/image-new.txt(#20, fd3ac351…). 이전 기대 ~/maint-n08/image-new.txt(#19, 61804654…). 이전 기대 ~/maint-n04/image-new.txt(#18, 39875d5f…), ~/maint-rounding/image-new.txt(#17, a747a8e6…)
+[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$IMGF1" ] && [ "$(cat ~/maint-n13/image-new.txt)" = "$IMGF1" ] || stop "backend 이미지가 #22 배포 이미지(9cb5d84f…)와 다름 — 보고"
 [ "$(cat ~/ops-scripts/SID_LEDGER_SHA)" = 8bfe8a9fa896f400b3fb6681fef021c99d6ba43b ] && [ "$(sha256sum < ~/ops-scripts/sid_ledger.sql | cut -d' ' -f1)" = 02a8585021fb2a1a52d9b3b56b60e957cb71b9ca3c11bf819595df15cf334f1c ] || stop "설치 장부가 8bfe8a9 판(02a85850…)이 아님 — 보고"
 $DC exec -T backend env | grep '^TRADING_CAPITALPOOL_' | sort | tee "$M/pool-f1.txt"
 [ "$(cat "$M/pool-f1.txt")" = "$(printf 'TRADING_CAPITALPOOL_MAXCONCURRENTPOSITIONS=3\nTRADING_CAPITALPOOL_PERPOSITIONCAPKRW=20000\nTRADING_CAPITALPOOL_STAGE=STAGE_1\nTRADING_CAPITALPOOL_TOTALCAPKRW=100000' | sort)" ] || stop "공유 풀 등록값이 STAGE_1 · 100000 · 20000 · 3 과 다름 — pool-f1.txt 를 보고"
@@ -933,7 +937,7 @@ echo "== 경보 (#15 정비 전 기준선)"; cat "$MS/alerts-before.txt"
 touch "$M/ok-F1"; echo "✅ F1 기계 점검 통과 — 경보 네 갈래와 휴대폰 수신을 확인하고 운영자 확인 파일을 쓴 뒤 08:50 F2"
 )
 ```
-- 기대: `git-f1` = `6995c522…` 다음 `(끝)` · 이미지 = #21 배포 이미지 전체 ID `sha256:67294e80ada31d346e36caeb01a2c259b6b5514357c804977ba1d20fba6aec07`(실행 이미지와 `~/maint-n12/image-new.txt` 가 둘 다 이 값) · 설치 장부 `SID_LEDGER_SHA` `8bfe8a9f…`·sha256 `02a85850…` · 공유 풀 네 값이 정확히 `STAGE_1` · `100000` · `20000` · `3` · `EG` = `EGS` · `203:CREATED` · 저장값 `t` · `available_krw` 20200·`started_at` 비어 있음 · 기준 행 = `BASEX` · 0 다섯 줄 · BTC 입력 `true|12-01 07:00|12-01 07:00|20/20`(08:30 무렵 실행 기준, v1.56) · `sc` `66 | 63 | 3 | -` · 거래소 `UP` · KRW 주문 가능 ≥ 20,200·묶인 KRW 0 · 경보 조회 완료 · 텔레그램 `200`. 멈추면 F2 로 가지 않고 그 출력을 보고한다 — 그날은 시작하지 않는다.
+- 기대: `git-f1` = `fe01207f…` 다음 `(끝)` · 이미지 = #22 배포 이미지 전체 ID `sha256:9cb5d84f0bfde5208f24f591ad291dacabdfa691a0b2e1f057c4f8c3e1720fb7`(실행 이미지와 `~/maint-n13/image-new.txt` 가 둘 다 이 값) · 설치 장부 `SID_LEDGER_SHA` `8bfe8a9f…`·sha256 `02a85850…` · 공유 풀 네 값이 정확히 `STAGE_1` · `100000` · `20000` · `3` · `EG` = `EGS` · `203:CREATED` · 저장값 `t` · `available_krw` 20200·`started_at` 비어 있음 · 기준 행 = `BASEX` · 0 다섯 줄 · BTC 입력 `true|12-01 07:00|12-01 07:00|20/20`(08:30 무렵 실행 기준, v1.56) · `sc` `66 | 63 | 3 | -` · 거래소 `UP` · KRW 주문 가능 ≥ 20,200·묶인 KRW 0 · 경보 조회 완료 · 텔레그램 `200`. 멈추면 F2 로 가지 않고 그 출력을 보고한다 — 그날은 시작하지 않는다.
 - 새 시도는 이전 F1 파일·통과 표지·운영자 확인을 `f1-attempts/`에 보존하고 기존 통과·확인을 무효화한다. 실패하면 날짜별 `f1-failed-YYYY-MM-DD`를 남기며 그날 F1·F2는 모두 거절한다. 이 표지를 지워 재시도하지 않는다. F2는 통과 표지가 최신 시도(`t-f1.txt`) 뒤에 만들어졌는지도 확인한다.
 - 경보는 `MS/alerts-before.txt` 와 네 갈래(기존 반복·새 경보·⚪·실행 누락)로 대조한다. KRW-BLAST 반복 밖의 🔴·⚪·실행 누락이 있으면 시작하지 않고 보고한다.
 - 운영자 확인 파일 — 경보 대조와 휴대폰 수신(이번 시험 메시지의 말풍선 시각)을 본 뒤에만, 빈칸을 직접 채워 만든다:
@@ -7025,6 +7029,25 @@ fi
 - **뉴스**: 기동 뒤 출처 ERROR 0줄. RSS 4·CoinGecko·업비트 완료, CryptoPanic 미완료 2회(HTTP_403, 고정 한 줄·상위 짝). 회복으로 확정하지 않는다.
 - **22:00 예상**: 이번 재생성으로 계획 기동 🔴 와 `ERROR 로그 범위 미확보` ⚪ 가 나올 것으로 예상한다. N03 에서 원문 그대로 읽는다.
 - **그대로 둔 것**: F 변수·F1·N06(`NEW=6995c52`·`IMGF1=67294e80…`)은 총괄 판정 뒤 갱신한다. 최종 S·위험 한도·장부·cron·뉴스 미분류 🔴 분류·SID 203 `CREATED`·12-01 08:50 그대로다.
+
+**72. 총괄 #22 결과 수용·N14 완료, N13 정기 HOLD 개선 관측 계속 (2026-11-05, v1.104)**
+
+- **근거 확인**: 제출 `ed119aaa6089f363a091d2a7caba115dfc69cbf6`의 원본/Git 체크섬71/71·서버 보존 해시 목록과 작은 기록59/59를 대조했다. 총괄의 새 SSH/DB/HTTP 조회·앱 시험/재빌드는 없었다. 상세는 [검토 근거](evidence/k22-result-review-ed119aa/README.md)에 둔다. jar/전체 앱 로그/cron 원본은 서버 보존이며 직접 다시 읽은 것으로 쓰지 않는다.
+- **#22 배포 수용**: 운영 HEAD `fe01207f3f60e97e308925157f84a1bb2da04388`, 이미지 `sha256:9cb5d84f0bfde5208f24f591ad291dacabdfa691a0b2e1f057c4f8c3e1720fb7`. jar Repository1클래스/879→879·옛jar=#21새jar, V94·Q/sc·다른4서비스/재시작 없음·BTC·설치/장부/cron 보존·BLAST만 적재1회 결과를 수용한다. 복구 태그6995c52/67294e80…와 이전 태그·모든 정비 기록은 보존한다.
+- **N14 완료**: 08:15 설치/DRY_RUN 및10:00 첫 자동 보고 생성·전송10:00:03을 수용한다. 머리글c669ccdc6e24, Created11-04 16:39:03/구간 전·같음, BTC true/09:00/08:00/20/20·⚪ 없음,203CREATED20200·cron보존 확인. 뉴스 미분류ERROR8줄의기존🔴1건은 유지한다. 휴대폰은 운영자 회신으로 수신 확인했으며 독립 바이트 대조는 아니다. 현재 marker/셸은`c669ccdc6e248ce8e55e9a7ac7405197d266fa18`, 셸sha256 `ff0a5d7dbc9e250d364a7f32f80106454b6f4b939d37c578f8192e8206e7c1cc`, SQL은기존843파일/동일`653b22ba…`다.
+- **N13 구분**: 운영 반영 수용·정기 HOLD 개선 관측 중이다. catchup 완료32.378초와배포뒤약51분장기대여/획득timeout0은개선징후이며 운영SQL실측/속도배수는아니다. catchup HOLD23/23과정기01:50신호평가0/2의세부원문줄은별도미제출로개발요약과구분한다. HOLD 처리줄부재를미실행/처리량부족으로단정하지않는다. 조회결과0행이어도SQL은실행되며 신호완료줄은HOLD단계앞이므로HOLD완료까지입증하지않는다. 정기HOLD개선은로그로미확인이다.
+- **기록 정정**: 설치전 `930ee34e…`는INSTALLED_SHA파일의sha256이고내용은d491fd1의40자리+LF다(직접계산일치). `svc`시각은StartedAt이다. 이전ERROR로그는`~/maint-n13/backend-before.log`에보존됐으므로“사라짐”이아니라현재컨테이너집계에서제외된것이다. 제출원문은그대로보존한다.
+- **F1/N06 갱신**: NEW/F1 HEAD·IMGF1·`~/maint-n13/image-new.txt`를위실제값으로갱신한다. F15개중2개운영핀만변경/13개동일, 그밖99개bash/OPS7개불변이며전체해시는검토근거`n06-blocks.json`에둔다. 최종S는11-30까지미확정이며자동변경하지않는다.
+- **다음 실제 확인**: 11-05 22시N03에서원문/서버전송·c669/운영fe01207·BTC/203/설치/cron을읽고계획10:14기동🔴·Created기준ERROR범위미확보⚪가예상대로인지본다. 그외새이상은전체보고한다. 같은기존로그에서HOLD처리완료/건수·장기대여/반환·획득timeout을남기되없으면미확인유지한다. 강제평가/실패유도·운영SQL실측/DDL/설정/트랜잭션변경·추가빌드는없다. timeout은즉시P0보고,장기대여만남으면개선미확인/자동되돌림없음이다.
+- **유지/인계**:203CREATED·한도/F0·장부/cron·12-01 08:50일정유지. 총괄문서5개와검토근거는다음실제N03결과와함께그대로커밋하며확인용회신/단독커밋·통과시험반복은필요없다.
+
+**73. 낮 작업 N15·N16 로컬 결과 (2026-11-05, 총괄 지시 `DAY_WORK_20261105.md`)**
+
+- **범위**: 운영 `fe01207` 기점 별도 작업 사본(`D:\Claude Code\projects\cat-n15`, 미배포 V95 없음)에서 로컬 검토·국소 재현·최소 후보만 했다. 운영 서버·DB·외부 출처 조회, 배포·재빌드·설정·cron·장부·세션 조작은 없었다. 총괄 v1.104 로컬 문서 5개·검토 근거 `k22-result-review-ed119aa`·지시서 `DAY_WORK_20261105.md` 는 손대지 않고 이 결과와 함께 기록한다.
+- **N15 (12:45~12:52 KST, 문서 정리 포함 약 0.3h)**: 검토 결과 — 사전 등록 §5 "신호 뒤 **최대 5분** 늦게 진입"과 코드가 불일치한다. `EntryPriorityRounds.processDue` 는 제때 접수된 후보를 늦게 처리해도 승인 실행 시각을 검사하지 않고, 후보별 경과도 다시 보지 않는다. 재현 3/3(새 시험 `N15EntryDelayReproTest`): LIVE 는 마감 직후·10분 뒤·다음 H1 마감 뒤(61분) 모두 진입·매수 의도 1건(재처리 중복 없음). DYNAMIC 은 접수 뒤 1299→1100 급락에도 다음 H1 마감 뒤 승인이 평가 때 종가 1299 로 주문·손절가 1234.05(이미 시세 위)를 만들었다(같은 상황 LIVE 는 블랙스완으로 거절). 앞 후보 1.5초 지연은 뒤 후보 승인을 그대로 늦췄다. 1차 실행 1건 실패는 시험 설계(세 세션이 같은 회차) — 원문 보존. 동시 처리·대기 중 정지·재기동은 기존 시험/연결 ⑦로 충분해 새로 만들지 않았다. **수정 후보 없음 — 승인 실행 기한 값이 필요해 판단 대기**(권고 (가) 다음 캔들 마감 전까지, 후보마다 승인 직전 실제 시각으로 검사). 계획 §2-3 표 "마감 뒤 최대 5분 안에 승인"은 실제로 "수집 마감(마감+5분) 뒤부터 승인"이며 판단과 함께 정정한다. 근거 [n15-entry-delay-fe01207](evidence/n15-entry-delay-fe01207/README.md).
+- **N16 (12:52~13:05 KST, 약 0.2h)**: 입력 계약 위반 확인·재현·최소 후보. LIVE·DYNAMIC 실시간 처리기가 가격 null·0·음수를 거르지 않았다(장부 `MarkPriceBook.observe` 는 거절). 수정 전 fe01207 7/9 실패: 0·−1 은 두 엔진 모두 실제 보호 매도 제출(`SUBMITTED@0`·`@-1`), 운영 웹소켓 파서는 `tp` 없는 ticker 를 0 으로 메워 그 경로로 LIVE 매도 1, LIVE null 은 급등락 이력을 오염시켜 다음 정상 280 의 손절이 막혔고 DYNAMIC null 은 점검 시각만 남겨 감시를 가렸다. **후보 `3385f70902999210dafe7774570fdc69d1a1fe82`**(`candidate/n16-invalid-price-fe01207`, 부모 fe01207, 운영 코드 3파일 +25/−1: `MarkPriceBook.isPrice` 와 두 처리기의 N02 낡음 검사 뒤 같은 정의로 버림·WARN 한 줄) — N16 9/9, 관련 10클래스 76/76(N02 `StaleRealtimeExitTest` 2/2 포함). 웹소켓 파서·120초 기준·주문 경로 무변경. 첫 컴파일 실패(시험의 없는 메서드 호출)는 원문 미보존으로 기록. **미래 관측 시각은 판단 대기**: 미래 값 하나가 장부를 고정(이후 정상 값 버림·나이 음수로 23시간 뒤에도 신선·보유 시세 보강 조회 0회)하는 현재 동작을 기록만 했다(권고 (가) 장부 정렬·나이 시각을 `min(관측, 받은 시각)`, 새 숫자 없음). 근거 [n16-invalid-price-fe01207](evidence/n16-invalid-price-fe01207/README.md).
+- **운영 반영**: 둘 다 없음. N16 후보 배포 여부·시점과 N15·N16 의 두 정책 판단은 총괄 검토 뒤. 실자금 보유·RUNNING 실자금 세션은 마지막 P4(Q3 0행) 기준 없음.
+- **그대로 둔 것**: F 변수·F1·N06·최종 S·위험 한도·장부·cron·SID 203 `CREATED`·12-01 08:50. 22:00 N03 은 별도로 읽는다(§72).
 
 ## 6. 시작·중단·종료 조건
 
