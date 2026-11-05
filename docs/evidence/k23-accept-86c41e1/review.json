@@ -1,0 +1,139 @@
+{
+  "execution_source": "86c41e11f70c6cc44ccabe8e9bed5b2a5275d21b",
+  "candidate": "1103f48505a1457029f6555547a87aa986535738",
+  "parent": "51dcee530721c0ab23f3f6f875a15b9416b751a3",
+  "base": "fe01207f3f60e97e308925157f84a1bb2da04388",
+  "manifests": {
+    "k23-final-1103f48": {
+      "raw_and_committed_blobs_match": 92
+    },
+    "k23-review-6287c59": {
+      "raw_and_committed_blobs_match": 6
+    }
+  },
+  "candidate_delta": {
+    "file": "web-api/src/test/java/com/cryptoautotrader/api/service/DailySma20LiveOrderPathTest.java",
+    "added": 8,
+    "removed": 0
+  },
+  "production_files_exactly_preserved": [
+    "web-api/src/main/java/com/cryptoautotrader/api/dto/OrderRequest.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/CapitalReservationService.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/EntryClock.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/EntryPriorityRounds.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/MarkPriceBook.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java"
+  ],
+  "all_changed_paths": [
+    "web-api/src/main/java/com/cryptoautotrader/api/dto/OrderRequest.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/CapitalReservationService.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/EntryClock.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/EntryPriorityRounds.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/MarkPriceBook.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/DailySma20LiveOrderPathTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/N15EntryExpiryTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/N15FinalApprovalBoundaryTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/N16InvalidPriceReproTest.java"
+  ],
+  "XML_25_classes": {
+    "classes": 25,
+    "tests": 173,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "same_173_case_names_as_previous_run": true,
+  "isolation_before": {
+    "classes": 2,
+    "tests": 25,
+    "failures": 9,
+    "errors": 0,
+    "skipped": 0
+  },
+  "isolation_after": {
+    "classes": 3,
+    "tests": 26,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "shared_probe_state_preserved": true,
+  "R_blocks": [
+    {
+      "block": "R변수",
+      "sha256": "8eeeb4d35afa6f57d5d752583705756557b9b4552a599b41481ddc6059e2a3ba",
+      "bash_n": 0
+    },
+    {
+      "block": "R0",
+      "sha256": "5402dd46cd36060839a746f6e94e36f880838984aae5424ce32fad3fc872f99b",
+      "bash_n": 0
+    },
+    {
+      "block": "R1",
+      "sha256": "9320342224cb2a278ef798980a47a74de14480f941d1890af480884190888b22",
+      "bash_n": 0
+    },
+    {
+      "block": "R2",
+      "sha256": "4abd80a7d71a7f48be11c2dbfcc1c0a05badb0e00369429656fb220b458b4cef",
+      "bash_n": 0
+    },
+    {
+      "block": "R3",
+      "sha256": "a4aaa334ea56cabef839edfd0b5e8a104b77603ad9dff2d8db8dcb4f6a0bf7e8",
+      "bash_n": 0
+    },
+    {
+      "block": "R4",
+      "sha256": "ee36b9ec11c92edd8f854051f8c1d21794c4cf3dabe26e05ddf524f771f482a8",
+      "bash_n": 0
+    },
+    {
+      "block": "R뒤관측",
+      "sha256": "c1a0ad3084e3b57f35acfe37dae91d31fd8b7a924f7d199bce790dbfae94edcf",
+      "bash_n": 0
+    },
+    {
+      "block": "R되돌림",
+      "sha256": "045573744733e61a9479edeeb4f7304e68e82552d953a32246921f5f1eb1eb86",
+      "bash_n": 0
+    }
+  ],
+  "prior_R_equivalent_except_reviewed_values_comments_and_test_path": true,
+  "existing_local_jar_hashes": [
+    {
+      "file": "fe01207.jar",
+      "sha256": "14b55d0f44818ff20aedbcbe55053d37d15f16766b492fd1e0560596d8e93284",
+      "duplicate_entry_names": 0
+    },
+    {
+      "file": "51dcee5.jar",
+      "sha256": "68465166a2a99b841647e6ce4667c9e0835dc968d0da34ce39bc1cde54f2b0b9",
+      "duplicate_entry_names": 0
+    },
+    {
+      "file": "1103f48.jar",
+      "sha256": "f7ee2ef4bf822a6af4a6597892cb64739a7523be0aa1091c5c44f6f875ceacbe",
+      "duplicate_entry_names": 0
+    }
+  ],
+  "rerun_jar_item_comparison": [
+    {
+      "left": "fe01207.jar",
+      "right": "1103f48.jar",
+      "output": "변경 BOOT-INF/classes/com/cryptoautotrader/api/dto/OrderRequest.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/CapitalReservationService$Decision.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/CapitalReservationService.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$1.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$2.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$3.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$BlackSwanGateDecision.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$EmptyPositionOutcome.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService.class\n추가 BOOT-INF/classes/com/cryptoautotrader/api/service/EntryClock.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/EntryPriorityRounds$Candidate.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/EntryPriorityRounds$Outcome.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/EntryPriorityRounds$RoundKey.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/EntryPriorityRounds.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$1.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$EmptyPositionOutcome.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$PriceSnapshot.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/MarkPriceBook$BookQuote.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/MarkPriceBook$Mark.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/MarkPriceBook.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$3.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$4.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$5.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$CancelOutcome.class\n추가 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$IntentExpired.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$ReservationRejected.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$SubmitRejection.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine.class\n(끝) 879 881\n"
+    },
+    {
+      "left": "51dcee5.jar",
+      "right": "1103f48.jar",
+      "output": "(끝) 881 881\n"
+    }
+  ],
+  "no_server_network_DB_Gradle_bootJar_or_application_test_execution": true
+}
