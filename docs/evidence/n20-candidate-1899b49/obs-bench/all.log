@@ -1,0 +1,11 @@
+backend-1  | 08:00:00.101 [scheduling-1] WARN  c.c.a.s.HeldMarkRefresher - [시세 보강] 시세 항목 건너뜀 — 가격 형식이 숫자가 아님
+backend-1  | 08:00:00.102 [scheduling-1] WARN  c.c.a.s.HeldMarkRefresher - [시세 보강] 시세 항목 건너뜀 ? 가격이 아님 (부호=0)
+backend-1  | 08:00:00.103 [scheduling-1] WARN  c.c.a.s.HeldMarkRefresher - [시세 보강] 시세 항목 건너뜀 — 가격이 아님 (부호=음수)
+backend-1  | 08:00:00.104 [scheduling-1] WARN  c.c.a.s.HeldMarkRefresher - [시세 보강] 시세 항목 건너뜀 — 코인 형식이 문자열이 아님
+backend-1  | 08:00:00.105 [scheduling-1] WARN  c.c.a.s.HeldMarkRefresher - [시세 보강] 시세 처리 실패 (종류=IllegalStateException)
+backend-1  | 08:00:00.106 [scheduling-1] ERROR c.c.a.s.HeldMarkRefresher - [시세 보강] 회차 오류 (종류=DataAccessResourceFailureException)
+backend-1  | 08:00:00.107 [scheduling-1] WARN  c.c.a.s.HeldMarkRefresher - [시세 보강] 경보 전송 실패 (종류=RuntimeException)
+backend-1  | 08:00:00.108 [scheduling-1] INFO  c.c.a.s.HeldMarkRefresher - [시세 보강] 호가로 보강한 보유 [KRW-X] — 보유량을 매수호가에 채운 평균 가격으로 관측
+backend-1  | 08:00:00.109 [scheduling-1] WARN  c.c.a.s.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격 형식이 숫자가 아님
+backend-1  | 08:00:00.110 [scheduling-1] WARN  c.c.a.s.HeldMarkRefresher - [시세 보강] 시세 항목 건너뜀 — 가격 형식이 숫자가 아님 FORGED
+backend-1  | 08:00:00.111 [scheduling-1] INFO  c.c.a.s.HeldMarkRefresher - [시세 보강] 체결이 조용한 보유 [KRW-X] — 보유량을 매수호가에 채운 평균 가격으로 관측

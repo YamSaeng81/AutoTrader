@@ -1,0 +1,33 @@
+FAIL B 기존 WS 90초 전 190 + 이번 PRICE_ZERO × 호가 FAIL | java.lang.AssertionError: [이번 0·음수는 체결 성공이 아니다]  Expecting   ["KRW-N20A", "KRW-N20B", "KRW-N20C"] not to contain   ["KRW-N20B"] but found   ["KRW-N20B"] 
+FAIL B 기존 WS 90초 전 190 + 이번 PRICE_NEG × 호가 FAIL | java.lang.AssertionError: [이번 0·음수는 체결 성공이 아니다]  Expecting   ["KRW-N20A", "KRW-N20B", "KRW-N20C"] not to contain   ["KRW-N20B"] but found   ["KRW-N20B"] 
+FAIL B 기존 WS 90초 전 190 + 이번 PRICE_ZERO × 호가 DEEP | java.lang.AssertionError: [이번 0·음수는 체결 성공이 아니다]  Expecting   ["KRW-N20A", "KRW-N20B", "KRW-N20C"] not to contain   ["KRW-N20B"] but found   ["KRW-N20B"] 
+FAIL B 기존 WS 90초 전 190 + 이번 PRICE_NEG × 호가 DEEP | java.lang.AssertionError: [이번 0·음수는 체결 성공이 아니다]  Expecting   ["KRW-N20A", "KRW-N20B", "KRW-N20C"] not to contain   ["KRW-N20B"] but found   ["KRW-N20B"] 
+FAIL ④ B 호가만 형식 이상 — 그 코인의 호가 조회 실패(고정 문구), C 는 영향 | java.lang.AssertionError:  Expecting ArrayList:   ["KRW-N20A"] to contain:   ["KRW-N20A", "KRW-N20C"] but could not find the following element(s):   ["KRW-N20C"] 
+FAIL ⑨ 회차 오류(보유 조회 예외) — 고정 ERROR, 예외 원문 없음 | org.opentest4j.AssertionFailedError:  Expecting actual:   ["ERROR [시세 보강] 회차 오류: DB N20FORGED ERROR 가짜 줄"] to contain exactly (and in same order):   ["ERROR [시세 보강] 회
+FAIL ⑧ 실패 시작 → 같은 사유 지속 → 사유 변경 → 회복 — 경보 1회·ERROR | org.opentest4j.AssertionFailedError:  Expecting actual:   ["KRW-N20B", "KRW-N20C"] to contain exactly (and in same order):   ["KRW-N20B"] but some elements were not 
+FAIL PRICE_FORGED × C 기존 WS 90초 전 × 호가 FAIL | java.lang.AssertionError:  Expecting ArrayList:   ["KRW-N20A"] to contain:   ["KRW-N20A", "KRW-N20C"] but could not find the following element(s):   ["KRW-N20C"] 
+FAIL PRICE_FORGED × C 기존 WS 130초 전 × 호가 FAIL | java.lang.AssertionError:  Expecting ArrayList:   ["KRW-N20A"] to contain:   ["KRW-N20A", "KRW-N20C"] but could not find the following element(s):   ["KRW-N20C"] 
+FAIL MARKET_NUM × C 기존 WS 90초 전 × 호가 FAIL | java.lang.AssertionError:  Expecting ArrayList:   ["KRW-N20A"] to contain:   ["KRW-N20A", "KRW-N20C"] but could not find the following element(s):   ["KRW-N20C"] 
+FAIL MARKET_NUM × C 기존 WS 130초 전 × 호가 FAIL | java.lang.AssertionError:  Expecting ArrayList:   ["KRW-N20A"] to contain:   ["KRW-N20A", "KRW-N20C"] but could not find the following element(s):   ["KRW-N20C"] 
+FAIL ⑤ 시세 조회 예외·호가 예외 원문이 오류문·실패 표시·ERROR·경보에 실리지  | org.opentest4j.AssertionFailedError:  expected: "시세 조회 실패; KRW-N20A 호가 조회 실패; KRW-N20B 호가 조회 실패; KRW-N20C 호가 조회 실패; "  but was: "시세 조회 실패: ticker 500 N20FORGED ERROR 가짜
+PASS CONTROL × 호가 DEEP | 
+PASS CONTROL × 호가 FAIL | 
+FAIL PRICE_FORGED × 호가 DEEP | java.lang.AssertionError: [A·C 는 이번 체결로 관측]  Expecting ArrayList:   ["KRW-N20A"] to contain:   ["KRW-N20A", "KRW-N20C"] but could not find the following element(s):
+FAIL PRICE_FORGED × 호가 SHALLOW | java.lang.AssertionError: [A·C 는 이번 체결로 관측]  Expecting ArrayList:   ["KRW-N20A"] to contain:   ["KRW-N20A", "KRW-N20C"] but could not find the following element(s):
+FAIL PRICE_FORGED × 호가 FAIL | java.lang.AssertionError: [A·C 는 이번 체결로 관측]  Expecting ArrayList:   ["KRW-N20A"] to contain:   ["KRW-N20A", "KRW-N20C"] but could not find the following element(s):
+FAIL PRICE_ABC × 호가 DEEP | java.lang.AssertionError: [A·C 는 이번 체결로 관측]  Expecting ArrayList:   ["KRW-N20A"] to contain:   ["KRW-N20A", "KRW-N20C"] but could not find the following element(s):
+FAIL PRICE_ABC × 호가 SHALLOW | java.lang.AssertionError: [A·C 는 이번 체결로 관측]  Expecting ArrayList:   ["KRW-N20A"] to contain:   ["KRW-N20A", "KRW-N20C"] but could not find the following element(s):
+FAIL PRICE_ABC × 호가 FAIL | java.lang.AssertionError: [A·C 는 이번 체결로 관측]  Expecting ArrayList:   ["KRW-N20A"] to contain:   ["KRW-N20A", "KRW-N20C"] but could not find the following element(s):
+FAIL MARKET_NUM × 호가 DEEP | java.lang.AssertionError: [A·C 는 이번 체결로 관측]  Expecting ArrayList:   ["KRW-N20A"] to contain:   ["KRW-N20A", "KRW-N20C"] but could not find the following element(s):
+FAIL MARKET_NUM × 호가 SHALLOW | java.lang.AssertionError: [A·C 는 이번 체결로 관측]  Expecting ArrayList:   ["KRW-N20A"] to contain:   ["KRW-N20A", "KRW-N20C"] but could not find the following element(s):
+FAIL MARKET_NUM × 호가 FAIL | java.lang.AssertionError: [A·C 는 이번 체결로 관측]  Expecting ArrayList:   ["KRW-N20A"] to contain:   ["KRW-N20A", "KRW-N20C"] but could not find the following element(s):
+FAIL PRICE_ZERO × 호가 DEEP | java.lang.AssertionError:  Expecting any elements of:   ["INFO [시세 보강] 체결이 조용한 보유 [KRW-N20B] — 보유량을 매수호가에 채운 평균 가격으로 관측"] to match given predicate but none did.
+FAIL PRICE_ZERO × 호가 FAIL | org.opentest4j.AssertionFailedError:  expected: "KRW-N20B 호가 조회 실패; "  but was: "KRW-N20B 호가 조회 실패: 호가 503 N20FORGED ERROR 가짜 줄; "
+FAIL PRICE_NEG × 호가 DEEP | java.lang.AssertionError:  Expecting any elements of:   ["INFO [시세 보강] 체결이 조용한 보유 [KRW-N20B] — 보유량을 매수호가에 채운 평균 가격으로 관측"] to match given predicate but none did.
+FAIL PRICE_NEG × 호가 FAIL | org.opentest4j.AssertionFailedError:  expected: "KRW-N20B 호가 조회 실패; "  but was: "KRW-N20B 호가 조회 실패: 호가 503 N20FORGED ERROR 가짜 줄; "
+FAIL PRICE_NULL × 호가 DEEP | java.lang.AssertionError:  Expecting any elements of:   ["INFO [시세 보강] 체결이 조용한 보유 [KRW-N20B] — 보유량을 매수호가에 채운 평균 가격으로 관측"] to match given predicate but none did.
+FAIL PRICE_NULL × 호가 FAIL | org.opentest4j.AssertionFailedError:  expected: "KRW-N20B 호가 조회 실패; "  but was: "KRW-N20B 호가 조회 실패: 호가 503 N20FORGED ERROR 가짜 줄; "
+FAIL TS_BAD × 호가 DEEP | java.lang.AssertionError:  Expecting any elements of:   ["INFO [시세 보강] 체결이 조용한 보유 [KRW-N20B] — 보유량을 매수호가에 채운 평균 가격으로 관측"] to match given predicate but none did.
+FAIL TS_BAD × 호가 FAIL | org.opentest4j.AssertionFailedError:  expected: "KRW-N20B 호가 조회 실패; "  but was: "KRW-N20B 호가 조회 실패: 호가 503 N20FORGED ERROR 가짜 줄; "
+FAIL ⑦ 경보 전송 실패 — 원문 없는 고정 WARN, 실패 표시는 남는다(성공으로 바 | org.opentest4j.AssertionFailedError:  Expecting actual:   ["KRW-N20B", "KRW-N20C"] to contain exactly (and in same order):   ["KRW-N20B"] but some elements were not 
+FAIL ⑥ 장부 내부 예외는 항목 건너뜀으로 삼키지 않는다 — 고정 '시세 처리 실패'  | java.lang.AssertionError:  Expecting actual:   "시세 조회 실패: 내부 N20FORGED ERROR 가짜 줄; KRW-N20B 호가 조회 실패: 호가 503 N20FORGED ERROR 가짜 줄; KRW-N20C 호가 조회 실패: 호가 503 N20FORGED E

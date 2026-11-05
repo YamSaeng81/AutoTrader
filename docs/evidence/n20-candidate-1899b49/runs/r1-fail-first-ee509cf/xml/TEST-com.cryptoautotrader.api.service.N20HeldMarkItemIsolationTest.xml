@@ -1,0 +1,1293 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="N20 보유 시세 보강 — 항목 격리·고정 기록 계약" tests="33" skipped="0" failures="31" errors="0" timestamp="2026-11-05T23:41:45" hostname="DESKTOP-SF1KUQ5" time="1.774">
+  <properties/>
+  <testcase name="B 기존 WS 90초 전 190 + 이번 PRICE_ZERO × 호가 FAIL" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="1.328">
+    <failure message="java.lang.AssertionError: [이번 0·음수는 체결 성공이 아니다] &#13;&#10;Expecting&#13;&#10;  [&quot;KRW-N20A&quot;, &quot;KRW-N20B&quot;, &quot;KRW-N20C&quot;]&#13;&#10;not to contain&#13;&#10;  [&quot;KRW-N20B&quot;]&#13;&#10;but found&#13;&#10;  [&quot;KRW-N20B&quot;]&#13;&#10;" type="java.lang.AssertionError">java.lang.AssertionError: [이번 0·음수는 체결 성공이 아니다] 
+Expecting
+  [&quot;KRW-N20A&quot;, &quot;KRW-N20B&quot;, &quot;KRW-N20C&quot;]
+not to contain
+  [&quot;KRW-N20B&quot;]
+but found
+  [&quot;KRW-N20B&quot;]
+
+	at com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest.existingFreshMarkForBWithZeroPrice(N20HeldMarkItemIsolationTest.java:323)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="B 기존 WS 90초 전 190 + 이번 PRICE_NEG × 호가 FAIL" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.013">
+    <failure message="java.lang.AssertionError: [이번 0·음수는 체결 성공이 아니다] &#13;&#10;Expecting&#13;&#10;  [&quot;KRW-N20A&quot;, &quot;KRW-N20B&quot;, &quot;KRW-N20C&quot;]&#13;&#10;not to contain&#13;&#10;  [&quot;KRW-N20B&quot;]&#13;&#10;but found&#13;&#10;  [&quot;KRW-N20B&quot;]&#13;&#10;" type="java.lang.AssertionError">java.lang.AssertionError: [이번 0·음수는 체결 성공이 아니다] 
+Expecting
+  [&quot;KRW-N20A&quot;, &quot;KRW-N20B&quot;, &quot;KRW-N20C&quot;]
+not to contain
+  [&quot;KRW-N20B&quot;]
+but found
+  [&quot;KRW-N20B&quot;]
+
+	at com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest.existingFreshMarkForBWithZeroPrice(N20HeldMarkItemIsolationTest.java:323)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="B 기존 WS 90초 전 190 + 이번 PRICE_ZERO × 호가 DEEP" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.005">
+    <failure message="java.lang.AssertionError: [이번 0·음수는 체결 성공이 아니다] &#13;&#10;Expecting&#13;&#10;  [&quot;KRW-N20A&quot;, &quot;KRW-N20B&quot;, &quot;KRW-N20C&quot;]&#13;&#10;not to contain&#13;&#10;  [&quot;KRW-N20B&quot;]&#13;&#10;but found&#13;&#10;  [&quot;KRW-N20B&quot;]&#13;&#10;" type="java.lang.AssertionError">java.lang.AssertionError: [이번 0·음수는 체결 성공이 아니다] 
+Expecting
+  [&quot;KRW-N20A&quot;, &quot;KRW-N20B&quot;, &quot;KRW-N20C&quot;]
+not to contain
+  [&quot;KRW-N20B&quot;]
+but found
+  [&quot;KRW-N20B&quot;]
+
+	at com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest.existingFreshMarkForBWithZeroPrice(N20HeldMarkItemIsolationTest.java:323)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="B 기존 WS 90초 전 190 + 이번 PRICE_NEG × 호가 DEEP" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.005">
+    <failure message="java.lang.AssertionError: [이번 0·음수는 체결 성공이 아니다] &#13;&#10;Expecting&#13;&#10;  [&quot;KRW-N20A&quot;, &quot;KRW-N20B&quot;, &quot;KRW-N20C&quot;]&#13;&#10;not to contain&#13;&#10;  [&quot;KRW-N20B&quot;]&#13;&#10;but found&#13;&#10;  [&quot;KRW-N20B&quot;]&#13;&#10;" type="java.lang.AssertionError">java.lang.AssertionError: [이번 0·음수는 체결 성공이 아니다] 
+Expecting
+  [&quot;KRW-N20A&quot;, &quot;KRW-N20B&quot;, &quot;KRW-N20C&quot;]
+not to contain
+  [&quot;KRW-N20B&quot;]
+but found
+  [&quot;KRW-N20B&quot;]
+
+	at com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest.existingFreshMarkForBWithZeroPrice(N20HeldMarkItemIsolationTest.java:323)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="④ B 호가만 형식 이상 — 그 코인의 호가 조회 실패(고정 문구), C 는 영향 없음" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.039">
+    <failure message="java.lang.AssertionError: &#13;&#10;Expecting ArrayList:&#13;&#10;  [&quot;KRW-N20A&quot;]&#13;&#10;to contain:&#13;&#10;  [&quot;KRW-N20A&quot;, &quot;KRW-N20C&quot;]&#13;&#10;but could not find the following element(s):&#13;&#10;  [&quot;KRW-N20C&quot;]&#13;&#10;" type="java.lang.AssertionError">java.lang.AssertionError: 
+Expecting ArrayList:
+  [&quot;KRW-N20A&quot;]
+to contain:
+  [&quot;KRW-N20A&quot;, &quot;KRW-N20C&quot;]
+but could not find the following element(s):
+  [&quot;KRW-N20C&quot;]
+
+	at com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest.badBookForBOnly(N20HeldMarkItemIsolationTest.java:348)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="⑨ 회차 오류(보유 조회 예외) — 고정 ERROR, 예외 원문 없음" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.022">
+    <failure message="org.opentest4j.AssertionFailedError: &#13;&#10;Expecting actual:&#13;&#10;  [&quot;ERROR [시세 보강] 회차 오류: DB N20FORGED&#10;ERROR 가짜 줄&quot;]&#13;&#10;to contain exactly (and in same order):&#13;&#10;  [&quot;ERROR [시세 보강] 회차 오류 (종류=IllegalStateException)&quot;]&#13;&#10;but some elements were not found:&#13;&#10;  [&quot;ERROR [시세 보강] 회차 오류 (종류=IllegalStateException)&quot;]&#13;&#10;and others were not expected:&#13;&#10;  [&quot;ERROR [시세 보강] 회차 오류: DB N20FORGED&#10;ERROR 가짜 줄&quot;]&#13;&#10;" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  [&quot;ERROR [시세 보강] 회차 오류: DB N20FORGED
+ERROR 가짜 줄&quot;]
+to contain exactly (and in same order):
+  [&quot;ERROR [시세 보강] 회차 오류 (종류=IllegalStateException)&quot;]
+but some elements were not found:
+  [&quot;ERROR [시세 보강] 회차 오류 (종류=IllegalStateException)&quot;]
+and others were not expected:
+  [&quot;ERROR [시세 보강] 회차 오류: DB N20FORGED
+ERROR 가짜 줄&quot;]
+
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base@17.0.12/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base@17.0.12/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+	at app//com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest.roundErrorTextIsNotPropagated(N20HeldMarkItemIsolationTest.java:443)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="⑧ 실패 시작 → 같은 사유 지속 → 사유 변경 → 회복 — 경보 1회·ERROR 1·변경 WARN·회복 WARN, 원문 없음" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.007">
+    <failure message="org.opentest4j.AssertionFailedError: &#13;&#10;Expecting actual:&#13;&#10;  [&quot;KRW-N20B&quot;, &quot;KRW-N20C&quot;]&#13;&#10;to contain exactly (and in same order):&#13;&#10;  [&quot;KRW-N20B&quot;]&#13;&#10;but some elements were not expected:&#13;&#10;  [&quot;KRW-N20C&quot;]&#13;&#10;" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  [&quot;KRW-N20B&quot;, &quot;KRW-N20C&quot;]
+to contain exactly (and in same order):
+  [&quot;KRW-N20B&quot;]
+but some elements were not expected:
+  [&quot;KRW-N20C&quot;]
+
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base@17.0.12/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base@17.0.12/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+	at app//com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest.failurePersistRecoverCycle(N20HeldMarkItemIsolationTest.java:414)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="PRICE_FORGED × C 기존 WS 90초 전 × 호가 FAIL" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.015">
+    <failure message="java.lang.AssertionError: &#13;&#10;Expecting ArrayList:&#13;&#10;  [&quot;KRW-N20A&quot;]&#13;&#10;to contain:&#13;&#10;  [&quot;KRW-N20A&quot;, &quot;KRW-N20C&quot;]&#13;&#10;but could not find the following element(s):&#13;&#10;  [&quot;KRW-N20C&quot;]&#13;&#10;" type="java.lang.AssertionError">java.lang.AssertionError: 
+Expecting ArrayList:
+  [&quot;KRW-N20A&quot;]
+to contain:
+  [&quot;KRW-N20A&quot;, &quot;KRW-N20C&quot;]
+but could not find the following element(s):
+  [&quot;KRW-N20C&quot;]
+
+	at com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest.existingMarkForC(N20HeldMarkItemIsolationTest.java:304)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="PRICE_FORGED × C 기존 WS 130초 전 × 호가 FAIL" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.009">
+    <failure message="java.lang.AssertionError: &#13;&#10;Expecting ArrayList:&#13;&#10;  [&quot;KRW-N20A&quot;]&#13;&#10;to contain:&#13;&#10;  [&quot;KRW-N20A&quot;, &quot;KRW-N20C&quot;]&#13;&#10;but could not find the following element(s):&#13;&#10;  [&quot;KRW-N20C&quot;]&#13;&#10;" type="java.lang.AssertionError">java.lang.AssertionError: 
+Expecting ArrayList:
+  [&quot;KRW-N20A&quot;]
+to contain:
+  [&quot;KRW-N20A&quot;, &quot;KRW-N20C&quot;]
+but could not find the following element(s):
+  [&quot;KRW-N20C&quot;]
+
+	at com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest.existingMarkForC(N20HeldMarkItemIsolationTest.java:304)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="MARKET_NUM × C 기존 WS 90초 전 × 호가 FAIL" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.011">
+    <failure message="java.lang.AssertionError: &#13;&#10;Expecting ArrayList:&#13;&#10;  [&quot;KRW-N20A&quot;]&#13;&#10;to contain:&#13;&#10;  [&quot;KRW-N20A&quot;, &quot;KRW-N20C&quot;]&#13;&#10;but could not find the following element(s):&#13;&#10;  [&quot;KRW-N20C&quot;]&#13;&#10;" type="java.lang.AssertionError">java.lang.AssertionError: 
+Expecting ArrayList:
+  [&quot;KRW-N20A&quot;]
+to contain:
+  [&quot;KRW-N20A&quot;, &quot;KRW-N20C&quot;]
+but could not find the following element(s):
+  [&quot;KRW-N20C&quot;]
+
+	at com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest.existingMarkForC(N20HeldMarkItemIsolationTest.java:304)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="MARKET_NUM × C 기존 WS 130초 전 × 호가 FAIL" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.01">
+    <failure message="java.lang.AssertionError: &#13;&#10;Expecting ArrayList:&#13;&#10;  [&quot;KRW-N20A&quot;]&#13;&#10;to contain:&#13;&#10;  [&quot;KRW-N20A&quot;, &quot;KRW-N20C&quot;]&#13;&#10;but could not find the following element(s):&#13;&#10;  [&quot;KRW-N20C&quot;]&#13;&#10;" type="java.lang.AssertionError">java.lang.AssertionError: 
+Expecting ArrayList:
+  [&quot;KRW-N20A&quot;]
+to contain:
+  [&quot;KRW-N20A&quot;, &quot;KRW-N20C&quot;]
+but could not find the following element(s):
+  [&quot;KRW-N20C&quot;]
+
+	at com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest.existingMarkForC(N20HeldMarkItemIsolationTest.java:304)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="⑤ 시세 조회 예외·호가 예외 원문이 오류문·실패 표시·ERROR·경보에 실리지 않는다" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.027">
+    <failure message="org.opentest4j.AssertionFailedError: &#13;&#10;expected: &quot;시세 조회 실패; KRW-N20A 호가 조회 실패; KRW-N20B 호가 조회 실패; KRW-N20C 호가 조회 실패; &quot;&#13;&#10; but was: &quot;시세 조회 실패: ticker 500 N20FORGED&#10;ERROR 가짜 줄; KRW-N20A 호가 조회 실패: 호가 503 N20FORGED&#10;ERROR 가짜 줄; KRW-N20B 호가 조회 실패: 호가 503 N20FORGED&#10;ERROR 가짜 줄; KRW-N20C 호가 조회 실패: 호가 503 N20FORGED&#10;ERROR 가짜 줄; &quot;" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: 
+expected: &quot;시세 조회 실패; KRW-N20A 호가 조회 실패; KRW-N20B 호가 조회 실패; KRW-N20C 호가 조회 실패; &quot;
+ but was: &quot;시세 조회 실패: ticker 500 N20FORGED
+ERROR 가짜 줄; KRW-N20A 호가 조회 실패: 호가 503 N20FORGED
+ERROR 가짜 줄; KRW-N20B 호가 조회 실패: 호가 503 N20FORGED
+ERROR 가짜 줄; KRW-N20C 호가 조회 실패: 호가 503 N20FORGED
+ERROR 가짜 줄; &quot;
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base@17.0.12/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base@17.0.12/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+	at app//com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest.tickerAndBookExceptionTextIsNotPropagated(N20HeldMarkItemIsolationTest.java:364)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="CONTROL × 호가 DEEP" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.036"/>
+  <testcase name="CONTROL × 호가 FAIL" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.003"/>
+  <testcase name="PRICE_FORGED × 호가 DEEP" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.005">
+    <failure message="java.lang.AssertionError: [A·C 는 이번 체결로 관측] &#13;&#10;Expecting ArrayList:&#13;&#10;  [&quot;KRW-N20A&quot;]&#13;&#10;to contain:&#13;&#10;  [&quot;KRW-N20A&quot;, &quot;KRW-N20C&quot;]&#13;&#10;but could not find the following element(s):&#13;&#10;  [&quot;KRW-N20C&quot;]&#13;&#10;" type="java.lang.AssertionError">java.lang.AssertionError: [A·C 는 이번 체결로 관측] 
+Expecting ArrayList:
+  [&quot;KRW-N20A&quot;]
+to contain:
+  [&quot;KRW-N20A&quot;, &quot;KRW-N20C&quot;]
+but could not find the following element(s):
+  [&quot;KRW-N20C&quot;]
+
+	at com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest.middleBadItemIsIsolated(N20HeldMarkItemIsolationTest.java:252)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="PRICE_FORGED × 호가 SHALLOW" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.007">
+    <failure message="java.lang.AssertionError: [A·C 는 이번 체결로 관측] &#13;&#10;Expecting ArrayList:&#13;&#10;  [&quot;KRW-N20A&quot;]&#13;&#10;to contain:&#13;&#10;  [&quot;KRW-N20A&quot;, &quot;KRW-N20C&quot;]&#13;&#10;but could not find the following element(s):&#13;&#10;  [&quot;KRW-N20C&quot;]&#13;&#10;" type="java.lang.AssertionError">java.lang.AssertionError: [A·C 는 이번 체결로 관측] 
+Expecting ArrayList:
+  [&quot;KRW-N20A&quot;]
+to contain:
+  [&quot;KRW-N20A&quot;, &quot;KRW-N20C&quot;]
+but could not find the following element(s):
+  [&quot;KRW-N20C&quot;]
+
+	at com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest.middleBadItemIsIsolated(N20HeldMarkItemIsolationTest.java:252)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="PRICE_FORGED × 호가 FAIL" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.008">
+    <failure message="java.lang.AssertionError: [A·C 는 이번 체결로 관측] &#13;&#10;Expecting ArrayList:&#13;&#10;  [&quot;KRW-N20A&quot;]&#13;&#10;to contain:&#13;&#10;  [&quot;KRW-N20A&quot;, &quot;KRW-N20C&quot;]&#13;&#10;but could not find the following element(s):&#13;&#10;  [&quot;KRW-N20C&quot;]&#13;&#10;" type="java.lang.AssertionError">java.lang.AssertionError: [A·C 는 이번 체결로 관측] 
+Expecting ArrayList:
+  [&quot;KRW-N20A&quot;]
+to contain:
+  [&quot;KRW-N20A&quot;, &quot;KRW-N20C&quot;]
+but could not find the following element(s):
+  [&quot;KRW-N20C&quot;]
+
+	at com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest.middleBadItemIsIsolated(N20HeldMarkItemIsolationTest.java:252)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="PRICE_ABC × 호가 DEEP" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.007">
+    <failure message="java.lang.AssertionError: [A·C 는 이번 체결로 관측] &#13;&#10;Expecting ArrayList:&#13;&#10;  [&quot;KRW-N20A&quot;]&#13;&#10;to contain:&#13;&#10;  [&quot;KRW-N20A&quot;, &quot;KRW-N20C&quot;]&#13;&#10;but could not find the following element(s):&#13;&#10;  [&quot;KRW-N20C&quot;]&#13;&#10;" type="java.lang.AssertionError">java.lang.AssertionError: [A·C 는 이번 체결로 관측] 
+Expecting ArrayList:
+  [&quot;KRW-N20A&quot;]
+to contain:
+  [&quot;KRW-N20A&quot;, &quot;KRW-N20C&quot;]
+but could not find the following element(s):
+  [&quot;KRW-N20C&quot;]
+
+	at com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest.middleBadItemIsIsolated(N20HeldMarkItemIsolationTest.java:252)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="PRICE_ABC × 호가 SHALLOW" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.006">
+    <failure message="java.lang.AssertionError: [A·C 는 이번 체결로 관측] &#13;&#10;Expecting ArrayList:&#13;&#10;  [&quot;KRW-N20A&quot;]&#13;&#10;to contain:&#13;&#10;  [&quot;KRW-N20A&quot;, &quot;KRW-N20C&quot;]&#13;&#10;but could not find the following element(s):&#13;&#10;  [&quot;KRW-N20C&quot;]&#13;&#10;" type="java.lang.AssertionError">java.lang.AssertionError: [A·C 는 이번 체결로 관측] 
+Expecting ArrayList:
+  [&quot;KRW-N20A&quot;]
+to contain:
+  [&quot;KRW-N20A&quot;, &quot;KRW-N20C&quot;]
+but could not find the following element(s):
+  [&quot;KRW-N20C&quot;]
+
+	at com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest.middleBadItemIsIsolated(N20HeldMarkItemIsolationTest.java:252)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="PRICE_ABC × 호가 FAIL" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.009">
+    <failure message="java.lang.AssertionError: [A·C 는 이번 체결로 관측] &#13;&#10;Expecting ArrayList:&#13;&#10;  [&quot;KRW-N20A&quot;]&#13;&#10;to contain:&#13;&#10;  [&quot;KRW-N20A&quot;, &quot;KRW-N20C&quot;]&#13;&#10;but could not find the following element(s):&#13;&#10;  [&quot;KRW-N20C&quot;]&#13;&#10;" type="java.lang.AssertionError">java.lang.AssertionError: [A·C 는 이번 체결로 관측] 
+Expecting ArrayList:
+  [&quot;KRW-N20A&quot;]
+to contain:
+  [&quot;KRW-N20A&quot;, &quot;KRW-N20C&quot;]
+but could not find the following element(s):
+  [&quot;KRW-N20C&quot;]
+
+	at com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest.middleBadItemIsIsolated(N20HeldMarkItemIsolationTest.java:252)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="MARKET_NUM × 호가 DEEP" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.006">
+    <failure message="java.lang.AssertionError: [A·C 는 이번 체결로 관측] &#13;&#10;Expecting ArrayList:&#13;&#10;  [&quot;KRW-N20A&quot;]&#13;&#10;to contain:&#13;&#10;  [&quot;KRW-N20A&quot;, &quot;KRW-N20C&quot;]&#13;&#10;but could not find the following element(s):&#13;&#10;  [&quot;KRW-N20C&quot;]&#13;&#10;" type="java.lang.AssertionError">java.lang.AssertionError: [A·C 는 이번 체결로 관측] 
+Expecting ArrayList:
+  [&quot;KRW-N20A&quot;]
+to contain:
+  [&quot;KRW-N20A&quot;, &quot;KRW-N20C&quot;]
+but could not find the following element(s):
+  [&quot;KRW-N20C&quot;]
+
+	at com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest.middleBadItemIsIsolated(N20HeldMarkItemIsolationTest.java:252)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="MARKET_NUM × 호가 SHALLOW" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.008">
+    <failure message="java.lang.AssertionError: [A·C 는 이번 체결로 관측] &#13;&#10;Expecting ArrayList:&#13;&#10;  [&quot;KRW-N20A&quot;]&#13;&#10;to contain:&#13;&#10;  [&quot;KRW-N20A&quot;, &quot;KRW-N20C&quot;]&#13;&#10;but could not find the following element(s):&#13;&#10;  [&quot;KRW-N20C&quot;]&#13;&#10;" type="java.lang.AssertionError">java.lang.AssertionError: [A·C 는 이번 체결로 관측] 
+Expecting ArrayList:
+  [&quot;KRW-N20A&quot;]
+to contain:
+  [&quot;KRW-N20A&quot;, &quot;KRW-N20C&quot;]
+but could not find the following element(s):
+  [&quot;KRW-N20C&quot;]
+
+	at com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest.middleBadItemIsIsolated(N20HeldMarkItemIsolationTest.java:252)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="MARKET_NUM × 호가 FAIL" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.007">
+    <failure message="java.lang.AssertionError: [A·C 는 이번 체결로 관측] &#13;&#10;Expecting ArrayList:&#13;&#10;  [&quot;KRW-N20A&quot;]&#13;&#10;to contain:&#13;&#10;  [&quot;KRW-N20A&quot;, &quot;KRW-N20C&quot;]&#13;&#10;but could not find the following element(s):&#13;&#10;  [&quot;KRW-N20C&quot;]&#13;&#10;" type="java.lang.AssertionError">java.lang.AssertionError: [A·C 는 이번 체결로 관측] 
+Expecting ArrayList:
+  [&quot;KRW-N20A&quot;]
+to contain:
+  [&quot;KRW-N20A&quot;, &quot;KRW-N20C&quot;]
+but could not find the following element(s):
+  [&quot;KRW-N20C&quot;]
+
+	at com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest.middleBadItemIsIsolated(N20HeldMarkItemIsolationTest.java:252)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="PRICE_ZERO × 호가 DEEP" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.011">
+    <failure message="java.lang.AssertionError: &#13;&#10;Expecting any elements of:&#13;&#10;  [&quot;INFO [시세 보강] 체결이 조용한 보유 [KRW-N20B] — 보유량을 매수호가에 채운 평균 가격으로 관측&quot;]&#13;&#10;to match given predicate but none did." type="java.lang.AssertionError">java.lang.AssertionError: 
+Expecting any elements of:
+  [&quot;INFO [시세 보강] 체결이 조용한 보유 [KRW-N20B] — 보유량을 매수호가에 채운 평균 가격으로 관측&quot;]
+to match given predicate but none did.
+	at com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest.middleBadItemIsIsolated(N20HeldMarkItemIsolationTest.java:268)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="PRICE_ZERO × 호가 FAIL" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.013">
+    <failure message="org.opentest4j.AssertionFailedError: &#13;&#10;expected: &quot;KRW-N20B 호가 조회 실패; &quot;&#13;&#10; but was: &quot;KRW-N20B 호가 조회 실패: 호가 503 N20FORGED&#10;ERROR 가짜 줄; &quot;" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: 
+expected: &quot;KRW-N20B 호가 조회 실패; &quot;
+ but was: &quot;KRW-N20B 호가 조회 실패: 호가 503 N20FORGED
+ERROR 가짜 줄; &quot;
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base@17.0.12/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base@17.0.12/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+	at app//com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest.middleBadItemIsIsolated(N20HeldMarkItemIsolationTest.java:276)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="PRICE_NEG × 호가 DEEP" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.005">
+    <failure message="java.lang.AssertionError: &#13;&#10;Expecting any elements of:&#13;&#10;  [&quot;INFO [시세 보강] 체결이 조용한 보유 [KRW-N20B] — 보유량을 매수호가에 채운 평균 가격으로 관측&quot;]&#13;&#10;to match given predicate but none did." type="java.lang.AssertionError">java.lang.AssertionError: 
+Expecting any elements of:
+  [&quot;INFO [시세 보강] 체결이 조용한 보유 [KRW-N20B] — 보유량을 매수호가에 채운 평균 가격으로 관측&quot;]
+to match given predicate but none did.
+	at com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest.middleBadItemIsIsolated(N20HeldMarkItemIsolationTest.java:268)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="PRICE_NEG × 호가 FAIL" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.008">
+    <failure message="org.opentest4j.AssertionFailedError: &#13;&#10;expected: &quot;KRW-N20B 호가 조회 실패; &quot;&#13;&#10; but was: &quot;KRW-N20B 호가 조회 실패: 호가 503 N20FORGED&#10;ERROR 가짜 줄; &quot;" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: 
+expected: &quot;KRW-N20B 호가 조회 실패; &quot;
+ but was: &quot;KRW-N20B 호가 조회 실패: 호가 503 N20FORGED
+ERROR 가짜 줄; &quot;
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base@17.0.12/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base@17.0.12/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+	at app//com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest.middleBadItemIsIsolated(N20HeldMarkItemIsolationTest.java:276)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="PRICE_NULL × 호가 DEEP" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.005">
+    <failure message="java.lang.AssertionError: &#13;&#10;Expecting any elements of:&#13;&#10;  [&quot;INFO [시세 보강] 체결이 조용한 보유 [KRW-N20B] — 보유량을 매수호가에 채운 평균 가격으로 관측&quot;]&#13;&#10;to match given predicate but none did." type="java.lang.AssertionError">java.lang.AssertionError: 
+Expecting any elements of:
+  [&quot;INFO [시세 보강] 체결이 조용한 보유 [KRW-N20B] — 보유량을 매수호가에 채운 평균 가격으로 관측&quot;]
+to match given predicate but none did.
+	at com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest.middleBadItemIsIsolated(N20HeldMarkItemIsolationTest.java:268)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="PRICE_NULL × 호가 FAIL" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.008">
+    <failure message="org.opentest4j.AssertionFailedError: &#13;&#10;expected: &quot;KRW-N20B 호가 조회 실패; &quot;&#13;&#10; but was: &quot;KRW-N20B 호가 조회 실패: 호가 503 N20FORGED&#10;ERROR 가짜 줄; &quot;" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: 
+expected: &quot;KRW-N20B 호가 조회 실패; &quot;
+ but was: &quot;KRW-N20B 호가 조회 실패: 호가 503 N20FORGED
+ERROR 가짜 줄; &quot;
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base@17.0.12/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base@17.0.12/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+	at app//com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest.middleBadItemIsIsolated(N20HeldMarkItemIsolationTest.java:276)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="TS_BAD × 호가 DEEP" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.006">
+    <failure message="java.lang.AssertionError: &#13;&#10;Expecting any elements of:&#13;&#10;  [&quot;INFO [시세 보강] 체결이 조용한 보유 [KRW-N20B] — 보유량을 매수호가에 채운 평균 가격으로 관측&quot;]&#13;&#10;to match given predicate but none did." type="java.lang.AssertionError">java.lang.AssertionError: 
+Expecting any elements of:
+  [&quot;INFO [시세 보강] 체결이 조용한 보유 [KRW-N20B] — 보유량을 매수호가에 채운 평균 가격으로 관측&quot;]
+to match given predicate but none did.
+	at com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest.middleBadItemIsIsolated(N20HeldMarkItemIsolationTest.java:268)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="TS_BAD × 호가 FAIL" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.006">
+    <failure message="org.opentest4j.AssertionFailedError: &#13;&#10;expected: &quot;KRW-N20B 호가 조회 실패; &quot;&#13;&#10; but was: &quot;KRW-N20B 호가 조회 실패: 호가 503 N20FORGED&#10;ERROR 가짜 줄; &quot;" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: 
+expected: &quot;KRW-N20B 호가 조회 실패; &quot;
+ but was: &quot;KRW-N20B 호가 조회 실패: 호가 503 N20FORGED
+ERROR 가짜 줄; &quot;
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base@17.0.12/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base@17.0.12/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+	at app//com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest.middleBadItemIsIsolated(N20HeldMarkItemIsolationTest.java:276)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="⑦ 경보 전송 실패 — 원문 없는 고정 WARN, 실패 표시는 남는다(성공으로 바꾸지 않음)" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.007">
+    <failure message="org.opentest4j.AssertionFailedError: &#13;&#10;Expecting actual:&#13;&#10;  [&quot;KRW-N20B&quot;, &quot;KRW-N20C&quot;]&#13;&#10;to contain exactly (and in same order):&#13;&#10;  [&quot;KRW-N20B&quot;]&#13;&#10;but some elements were not expected:&#13;&#10;  [&quot;KRW-N20C&quot;]&#13;&#10;" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  [&quot;KRW-N20B&quot;, &quot;KRW-N20C&quot;]
+to contain exactly (and in same order):
+  [&quot;KRW-N20B&quot;]
+but some elements were not expected:
+  [&quot;KRW-N20C&quot;]
+
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base@17.0.12/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base@17.0.12/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+	at app//com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest.alertSendFailureTextIsNotPropagated(N20HeldMarkItemIsolationTest.java:402)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="⑥ 장부 내부 예외는 항목 건너뜀으로 삼키지 않는다 — 고정 '시세 처리 실패' 로 남고 뒤 코인은 호가 경로" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.062">
+    <failure message="java.lang.AssertionError: &#13;&#10;Expecting actual:&#13;&#10;  &quot;시세 조회 실패: 내부 N20FORGED&#10;ERROR 가짜 줄; KRW-N20B 호가 조회 실패: 호가 503 N20FORGED&#10;ERROR 가짜 줄; KRW-N20C 호가 조회 실패: 호가 503 N20FORGED&#10;ERROR 가짜 줄; &quot;&#13;&#10;to start with:&#13;&#10;  &quot;시세 처리 실패; &quot;&#13;&#10;" type="java.lang.AssertionError">java.lang.AssertionError: 
+Expecting actual:
+  &quot;시세 조회 실패: 내부 N20FORGED
+ERROR 가짜 줄; KRW-N20B 호가 조회 실패: 호가 503 N20FORGED
+ERROR 가짜 줄; KRW-N20C 호가 조회 실패: 호가 503 N20FORGED
+ERROR 가짜 줄; &quot;
+to start with:
+  &quot;시세 처리 실패; &quot;
+
+	at com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest.internalBookExceptionIsNotSwallowedAsItemSkip(N20HeldMarkItemIsolationTest.java:386)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <system-out><![CDATA[N20계약행|PRICE_ZERO+B기존90초×FAIL|byTrade=[N20A, N20B, N20C]|byBook=[]|unobserved=[]|장부=N20A:REST_TRADE/100 N20B:WS_TRADE/190 N20C:REST_TRADE/300|실패표시=false|경보=0|오류문=null|로그=
+N20계약행|PRICE_NEG+B기존90초×FAIL|byTrade=[N20A, N20B, N20C]|byBook=[]|unobserved=[]|장부=N20A:REST_TRADE/100 N20B:WS_TRADE/190 N20C:REST_TRADE/300|실패표시=false|경보=0|오류문=null|로그=
+N20계약행|PRICE_ZERO+B기존90초×DEEP|byTrade=[N20A, N20B, N20C]|byBook=[]|unobserved=[]|장부=N20A:REST_TRADE/100 N20B:WS_TRADE/190 N20C:REST_TRADE/300|실패표시=false|경보=0|오류문=null|로그=
+N20계약행|PRICE_NEG+B기존90초×DEEP|byTrade=[N20A, N20B, N20C]|byBook=[]|unobserved=[]|장부=N20A:REST_TRADE/100 N20B:WS_TRADE/190 N20C:REST_TRADE/300|실패표시=false|경보=0|오류문=null|로그=
+08:41:47.267 [Test worker] ERROR com.cryptoautotrader.api.service.HeldMarkRefresher -- ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: Character array is missing "e" notation exponential mark.; KRW-N20B 호가 조회 실패: Character array is missing "e" notation exponential mark.; 
+N20계약행|PRICE_FORGED+B호가형식이상|byTrade=[N20A]|byBook=[N20C]|unobserved=[N20B]|장부=N20A:REST_TRADE/100 N20B:- N20C:REST_ORDERBOOK_DEPTH/99.00000000|실패표시=true|경보=1|오류문=시세 조회 실패: Character array is missing "e" notation exponential mark.; KRW-N20B 호가 조회 실패: Character array is missing "e" notation exponential mark.; |로그=ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: Character array is missing "e" notation exponential mark.; KRW-N20B 호가 조회 실패: Character array is missing "e" notation exponential mark.; 
+08:41:47.286 [Test worker] ERROR com.cryptoautotrader.api.service.HeldMarkRefresher -- [시세 보강] 회차 오류: DB N20FORGED
+ERROR 가짜 줄
+N20계약행|회차오류|로그=ERROR [시세 보강] 회차 오류: DB N20FORGED\nERROR 가짜 줄
+08:41:47.313 [Test worker] ERROR com.cryptoautotrader.api.service.HeldMarkRefresher -- ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B, KRW-N20C] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: Character array is missing "e" notation exponential mark.; KRW-N20B 호가 조회 실패: 호가 503 N20FORGED
+ERROR 가짜 줄; KRW-N20C 호가 조회 실패: 호가 503 N20FORGED
+ERROR 가짜 줄; 
+08:41:47.327 [Test worker] ERROR com.cryptoautotrader.api.service.HeldMarkRefresher -- ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: Character array is missing "e" notation exponential mark.; KRW-N20B 호가 조회 실패: 호가 503 N20FORGED
+ERROR 가짜 줄; KRW-N20C 호가 조회 실패: 호가 503 N20FORGED
+ERROR 가짜 줄; 
+N20계약행|PRICE_FORGED+C기존90초|byTrade=[N20A]|byBook=[]|unobserved=[N20B]|장부=N20A:REST_TRADE/100 N20B:- N20C:WS_TRADE/290|실패표시=true|경보=1|오류문=시세 조회 실패: Character array is missing "e" notation exponential mark.; KRW-N20B 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; KRW-N20C 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; |로그=ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: Character array is missing "e" notation exponential mark.; KRW-N20B 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; KRW-N20C 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; 
+08:41:47.344 [Test worker] ERROR com.cryptoautotrader.api.service.HeldMarkRefresher -- ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B, KRW-N20C] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: Character array is missing "e" notation exponential mark.; KRW-N20B 호가 조회 실패: 호가 503 N20FORGED
+ERROR 가짜 줄; KRW-N20C 호가 조회 실패: 호가 503 N20FORGED
+ERROR 가짜 줄; 
+N20계약행|PRICE_FORGED+C기존130초|byTrade=[N20A]|byBook=[]|unobserved=[N20B, N20C]|장부=N20A:REST_TRADE/100 N20B:- N20C:WS_TRADE/null|실패표시=true|경보=1|오류문=시세 조회 실패: Character array is missing "e" notation exponential mark.; KRW-N20B 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; KRW-N20C 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; |로그=ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B, KRW-N20C] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: Character array is missing "e" notation exponential mark.; KRW-N20B 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; KRW-N20C 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; 
+08:41:47.356 [Test worker] ERROR com.cryptoautotrader.api.service.HeldMarkRefresher -- ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: class java.lang.Integer cannot be cast to class java.lang.String (java.lang.Integer and java.lang.String are in module java.base of loader 'bootstrap'); KRW-N20B 호가 조회 실패: 호가 503 N20FORGED
+ERROR 가짜 줄; KRW-N20C 호가 조회 실패: 호가 503 N20FORGED
+ERROR 가짜 줄; 
+N20계약행|MARKET_NUM+C기존90초|byTrade=[N20A]|byBook=[]|unobserved=[N20B]|장부=N20A:REST_TRADE/100 N20B:- N20C:WS_TRADE/290|실패표시=true|경보=1|오류문=시세 조회 실패: class java.lang.Integer cannot be cast to class java.lang.String (java.lang.Integer and java.lang.String are in module java.base of loader 'bootstrap'); KRW-N20B 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; KRW-N20C 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; |로그=ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: class java.lang.Integer cannot be cast to class java.lang.String (java.lang.Integer and java.lang.String are in module java.base of loader 'bootstrap'); KRW-N20B 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; KRW-N20C 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; 
+08:41:47.367 [Test worker] ERROR com.cryptoautotrader.api.service.HeldMarkRefresher -- ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B, KRW-N20C] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: class java.lang.Integer cannot be cast to class java.lang.String (java.lang.Integer and java.lang.String are in module java.base of loader 'bootstrap'); KRW-N20B 호가 조회 실패: 호가 503 N20FORGED
+ERROR 가짜 줄; KRW-N20C 호가 조회 실패: 호가 503 N20FORGED
+ERROR 가짜 줄; 
+N20계약행|MARKET_NUM+C기존130초|byTrade=[N20A]|byBook=[]|unobserved=[N20B, N20C]|장부=N20A:REST_TRADE/100 N20B:- N20C:WS_TRADE/null|실패표시=true|경보=1|오류문=시세 조회 실패: class java.lang.Integer cannot be cast to class java.lang.String (java.lang.Integer and java.lang.String are in module java.base of loader 'bootstrap'); KRW-N20B 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; KRW-N20C 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; |로그=ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B, KRW-N20C] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: class java.lang.Integer cannot be cast to class java.lang.String (java.lang.Integer and java.lang.String are in module java.base of loader 'bootstrap'); KRW-N20B 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; KRW-N20C 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; 
+08:41:47.377 [Test worker] ERROR com.cryptoautotrader.api.service.HeldMarkRefresher -- ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20A, KRW-N20B, KRW-N20C] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: ticker 500 N20FORGED
+ERROR 가짜 줄; KRW-N20A 호가 조회 실패: 호가 503 N20FORGED
+ERROR 가짜 줄; KRW-N20B 호가 조회 실패: 호가 503 N20FORGED
+ERROR 가짜 줄; KRW-N20C 호가 조회 실패: 호가 503 N20FORGED
+ERROR 가짜 줄; 
+N20계약행|시세예외+호가예외|byTrade=[]|byBook=[]|unobserved=[N20A, N20B, N20C]|장부=N20A:- N20B:- N20C:-|실패표시=true|경보=1|오류문=시세 조회 실패: ticker 500 N20FORGED\nERROR 가짜 줄; KRW-N20A 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; KRW-N20B 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; KRW-N20C 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; |로그=ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20A, KRW-N20B, KRW-N20C] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: ticker 500 N20FORGED\nERROR 가짜 줄; KRW-N20A 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; KRW-N20B 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; KRW-N20C 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; 
+N20계약행|CONTROL×DEEP|byTrade=[N20A, N20B, N20C]|byBook=[]|unobserved=[]|장부=N20A:REST_TRADE/100 N20B:REST_TRADE/200 N20C:REST_TRADE/300|실패표시=false|경보=0|오류문=null|로그=
+N20계약행|CONTROL×FAIL|byTrade=[N20A, N20B, N20C]|byBook=[]|unobserved=[]|장부=N20A:REST_TRADE/100 N20B:REST_TRADE/200 N20C:REST_TRADE/300|실패표시=false|경보=0|오류문=null|로그=
+08:41:47.447 [Test worker] INFO com.cryptoautotrader.api.service.HeldMarkRefresher -- [시세 보강] 체결이 조용한 보유 [KRW-N20B, KRW-N20C] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+N20계약행|PRICE_FORGED×DEEP|byTrade=[N20A]|byBook=[N20B, N20C]|unobserved=[]|장부=N20A:REST_TRADE/100 N20B:REST_ORDERBOOK_DEPTH/99.00000000 N20C:REST_ORDERBOOK_DEPTH/99.00000000|실패표시=false|경보=0|오류문=시세 조회 실패: Character array is missing "e" notation exponential mark.; |로그=INFO [시세 보강] 체결이 조용한 보유 [KRW-N20B, KRW-N20C] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+08:41:47.454 [Test worker] ERROR com.cryptoautotrader.api.service.HeldMarkRefresher -- ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B, KRW-N20C] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: Character array is missing "e" notation exponential mark.; KRW-N20B 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); KRW-N20C 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); 
+N20계약행|PRICE_FORGED×SHALLOW|byTrade=[N20A]|byBook=[]|unobserved=[N20B, N20C]|장부=N20A:REST_TRADE/100 N20B:REST_ORDERBOOK_DEPTH/null N20C:REST_ORDERBOOK_DEPTH/null|실패표시=true|경보=1|오류문=시세 조회 실패: Character array is missing "e" notation exponential mark.; KRW-N20B 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); KRW-N20C 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); |로그=ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B, KRW-N20C] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: Character array is missing "e" notation exponential mark.; KRW-N20B 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); KRW-N20C 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); 
+08:41:47.463 [Test worker] ERROR com.cryptoautotrader.api.service.HeldMarkRefresher -- ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B, KRW-N20C] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: Character array is missing "e" notation exponential mark.; KRW-N20B 호가 조회 실패: 호가 503 N20FORGED
+ERROR 가짜 줄; KRW-N20C 호가 조회 실패: 호가 503 N20FORGED
+ERROR 가짜 줄; 
+N20계약행|PRICE_FORGED×FAIL|byTrade=[N20A]|byBook=[]|unobserved=[N20B, N20C]|장부=N20A:REST_TRADE/100 N20B:- N20C:-|실패표시=true|경보=1|오류문=시세 조회 실패: Character array is missing "e" notation exponential mark.; KRW-N20B 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; KRW-N20C 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; |로그=ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B, KRW-N20C] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: Character array is missing "e" notation exponential mark.; KRW-N20B 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; KRW-N20C 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; 
+08:41:47.470 [Test worker] INFO com.cryptoautotrader.api.service.HeldMarkRefresher -- [시세 보강] 체결이 조용한 보유 [KRW-N20B, KRW-N20C] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+N20계약행|PRICE_ABC×DEEP|byTrade=[N20A]|byBook=[N20B, N20C]|unobserved=[]|장부=N20A:REST_TRADE/100 N20B:REST_ORDERBOOK_DEPTH/99.00000000 N20C:REST_ORDERBOOK_DEPTH/99.00000000|실패표시=false|경보=0|오류문=시세 조회 실패: Character a is neither a decimal digit number, decimal point, nor "e" notation exponential mark.; |로그=INFO [시세 보강] 체결이 조용한 보유 [KRW-N20B, KRW-N20C] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+08:41:47.476 [Test worker] ERROR com.cryptoautotrader.api.service.HeldMarkRefresher -- ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B, KRW-N20C] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: Character a is neither a decimal digit number, decimal point, nor "e" notation exponential mark.; KRW-N20B 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); KRW-N20C 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); 
+N20계약행|PRICE_ABC×SHALLOW|byTrade=[N20A]|byBook=[]|unobserved=[N20B, N20C]|장부=N20A:REST_TRADE/100 N20B:REST_ORDERBOOK_DEPTH/null N20C:REST_ORDERBOOK_DEPTH/null|실패표시=true|경보=1|오류문=시세 조회 실패: Character a is neither a decimal digit number, decimal point, nor "e" notation exponential mark.; KRW-N20B 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); KRW-N20C 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); |로그=ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B, KRW-N20C] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: Character a is neither a decimal digit number, decimal point, nor "e" notation exponential mark.; KRW-N20B 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); KRW-N20C 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); 
+08:41:47.486 [Test worker] ERROR com.cryptoautotrader.api.service.HeldMarkRefresher -- ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B, KRW-N20C] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: Character a is neither a decimal digit number, decimal point, nor "e" notation exponential mark.; KRW-N20B 호가 조회 실패: 호가 503 N20FORGED
+ERROR 가짜 줄; KRW-N20C 호가 조회 실패: 호가 503 N20FORGED
+ERROR 가짜 줄; 
+N20계약행|PRICE_ABC×FAIL|byTrade=[N20A]|byBook=[]|unobserved=[N20B, N20C]|장부=N20A:REST_TRADE/100 N20B:- N20C:-|실패표시=true|경보=1|오류문=시세 조회 실패: Character a is neither a decimal digit number, decimal point, nor "e" notation exponential mark.; KRW-N20B 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; KRW-N20C 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; |로그=ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B, KRW-N20C] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: Character a is neither a decimal digit number, decimal point, nor "e" notation exponential mark.; KRW-N20B 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; KRW-N20C 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; 
+08:41:47.492 [Test worker] INFO com.cryptoautotrader.api.service.HeldMarkRefresher -- [시세 보강] 체결이 조용한 보유 [KRW-N20B, KRW-N20C] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+N20계약행|MARKET_NUM×DEEP|byTrade=[N20A]|byBook=[N20B, N20C]|unobserved=[]|장부=N20A:REST_TRADE/100 N20B:REST_ORDERBOOK_DEPTH/99.00000000 N20C:REST_ORDERBOOK_DEPTH/99.00000000|실패표시=false|경보=0|오류문=시세 조회 실패: class java.lang.Integer cannot be cast to class java.lang.String (java.lang.Integer and java.lang.String are in module java.base of loader 'bootstrap'); |로그=INFO [시세 보강] 체결이 조용한 보유 [KRW-N20B, KRW-N20C] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+08:41:47.499 [Test worker] ERROR com.cryptoautotrader.api.service.HeldMarkRefresher -- ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B, KRW-N20C] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: class java.lang.Integer cannot be cast to class java.lang.String (java.lang.Integer and java.lang.String are in module java.base of loader 'bootstrap'); KRW-N20B 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); KRW-N20C 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); 
+N20계약행|MARKET_NUM×SHALLOW|byTrade=[N20A]|byBook=[]|unobserved=[N20B, N20C]|장부=N20A:REST_TRADE/100 N20B:REST_ORDERBOOK_DEPTH/null N20C:REST_ORDERBOOK_DEPTH/null|실패표시=true|경보=1|오류문=시세 조회 실패: class java.lang.Integer cannot be cast to class java.lang.String (java.lang.Integer and java.lang.String are in module java.base of loader 'bootstrap'); KRW-N20B 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); KRW-N20C 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); |로그=ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B, KRW-N20C] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: class java.lang.Integer cannot be cast to class java.lang.String (java.lang.Integer and java.lang.String are in module java.base of loader 'bootstrap'); KRW-N20B 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); KRW-N20C 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); 
+08:41:47.508 [Test worker] ERROR com.cryptoautotrader.api.service.HeldMarkRefresher -- ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B, KRW-N20C] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: class java.lang.Integer cannot be cast to class java.lang.String (java.lang.Integer and java.lang.String are in module java.base of loader 'bootstrap'); KRW-N20B 호가 조회 실패: 호가 503 N20FORGED
+ERROR 가짜 줄; KRW-N20C 호가 조회 실패: 호가 503 N20FORGED
+ERROR 가짜 줄; 
+N20계약행|MARKET_NUM×FAIL|byTrade=[N20A]|byBook=[]|unobserved=[N20B, N20C]|장부=N20A:REST_TRADE/100 N20B:- N20C:-|실패표시=true|경보=1|오류문=시세 조회 실패: class java.lang.Integer cannot be cast to class java.lang.String (java.lang.Integer and java.lang.String are in module java.base of loader 'bootstrap'); KRW-N20B 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; KRW-N20C 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; |로그=ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B, KRW-N20C] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: class java.lang.Integer cannot be cast to class java.lang.String (java.lang.Integer and java.lang.String are in module java.base of loader 'bootstrap'); KRW-N20B 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; KRW-N20C 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; 
+08:41:47.515 [Test worker] INFO com.cryptoautotrader.api.service.HeldMarkRefresher -- [시세 보강] 체결이 조용한 보유 [KRW-N20B] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+N20계약행|PRICE_ZERO×DEEP|byTrade=[N20A, N20C]|byBook=[N20B]|unobserved=[]|장부=N20A:REST_TRADE/100 N20B:REST_ORDERBOOK_DEPTH/99.00000000 N20C:REST_TRADE/300|실패표시=false|경보=0|오류문=null|로그=INFO [시세 보강] 체결이 조용한 보유 [KRW-N20B] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+08:41:47.527 [Test worker] ERROR com.cryptoautotrader.api.service.HeldMarkRefresher -- ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 조회 실패: 호가 503 N20FORGED
+ERROR 가짜 줄; 
+N20계약행|PRICE_ZERO×FAIL|byTrade=[N20A, N20C]|byBook=[]|unobserved=[N20B]|장부=N20A:REST_TRADE/100 N20B:- N20C:REST_TRADE/300|실패표시=true|경보=1|오류문=KRW-N20B 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; |로그=ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; 
+08:41:47.541 [Test worker] INFO com.cryptoautotrader.api.service.HeldMarkRefresher -- [시세 보강] 체결이 조용한 보유 [KRW-N20B] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+N20계약행|PRICE_NEG×DEEP|byTrade=[N20A, N20C]|byBook=[N20B]|unobserved=[]|장부=N20A:REST_TRADE/100 N20B:REST_ORDERBOOK_DEPTH/99.00000000 N20C:REST_TRADE/300|실패표시=false|경보=0|오류문=null|로그=INFO [시세 보강] 체결이 조용한 보유 [KRW-N20B] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+08:41:47.548 [Test worker] ERROR com.cryptoautotrader.api.service.HeldMarkRefresher -- ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 조회 실패: 호가 503 N20FORGED
+ERROR 가짜 줄; 
+N20계약행|PRICE_NEG×FAIL|byTrade=[N20A, N20C]|byBook=[]|unobserved=[N20B]|장부=N20A:REST_TRADE/100 N20B:- N20C:REST_TRADE/300|실패표시=true|경보=1|오류문=KRW-N20B 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; |로그=ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; 
+08:41:47.555 [Test worker] INFO com.cryptoautotrader.api.service.HeldMarkRefresher -- [시세 보강] 체결이 조용한 보유 [KRW-N20B] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+N20계약행|PRICE_NULL×DEEP|byTrade=[N20A, N20C]|byBook=[N20B]|unobserved=[]|장부=N20A:REST_TRADE/100 N20B:REST_ORDERBOOK_DEPTH/99.00000000 N20C:REST_TRADE/300|실패표시=false|경보=0|오류문=null|로그=INFO [시세 보강] 체결이 조용한 보유 [KRW-N20B] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+08:41:47.564 [Test worker] ERROR com.cryptoautotrader.api.service.HeldMarkRefresher -- ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 조회 실패: 호가 503 N20FORGED
+ERROR 가짜 줄; 
+N20계약행|PRICE_NULL×FAIL|byTrade=[N20A, N20C]|byBook=[]|unobserved=[N20B]|장부=N20A:REST_TRADE/100 N20B:- N20C:REST_TRADE/300|실패표시=true|경보=1|오류문=KRW-N20B 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; |로그=ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; 
+08:41:47.571 [Test worker] INFO com.cryptoautotrader.api.service.HeldMarkRefresher -- [시세 보강] 체결이 조용한 보유 [KRW-N20B] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+N20계약행|TS_BAD×DEEP|byTrade=[N20A, N20C]|byBook=[N20B]|unobserved=[]|장부=N20A:REST_TRADE/100 N20B:REST_ORDERBOOK_DEPTH/99.00000000 N20C:REST_TRADE/300|실패표시=false|경보=0|오류문=null|로그=INFO [시세 보강] 체결이 조용한 보유 [KRW-N20B] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+08:41:47.576 [Test worker] ERROR com.cryptoautotrader.api.service.HeldMarkRefresher -- ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 조회 실패: 호가 503 N20FORGED
+ERROR 가짜 줄; 
+N20계약행|TS_BAD×FAIL|byTrade=[N20A, N20C]|byBook=[]|unobserved=[N20B]|장부=N20A:REST_TRADE/100 N20B:- N20C:REST_TRADE/300|실패표시=true|경보=1|오류문=KRW-N20B 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; |로그=ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; 
+08:41:47.583 [Test worker] ERROR com.cryptoautotrader.api.service.HeldMarkRefresher -- ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B, KRW-N20C] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: Character array is missing "e" notation exponential mark.; KRW-N20B 호가 조회 실패: 호가 503 N20FORGED
+ERROR 가짜 줄; KRW-N20C 호가 조회 실패: 호가 503 N20FORGED
+ERROR 가짜 줄; 
+08:41:47.583 [Test worker] WARN com.cryptoautotrader.api.service.HeldMarkRefresher -- 시세 보강 경보 전송 실패: telegram 429 N20FORGED
+ERROR 가짜 줄
+N20계약행|경보전송실패|byTrade=[N20A]|byBook=[]|unobserved=[N20B, N20C]|장부=N20A:REST_TRADE/100 N20B:- N20C:-|실패표시=true|경보=1|오류문=시세 조회 실패: Character array is missing "e" notation exponential mark.; KRW-N20B 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; KRW-N20C 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; |로그=ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B, KRW-N20C] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: Character array is missing "e" notation exponential mark.; KRW-N20B 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; KRW-N20C 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄;  ? WARN 시세 보강 경보 전송 실패: telegram 429 N20FORGED\nERROR 가짜 줄
+08:41:47.645 [Test worker] ERROR com.cryptoautotrader.api.service.HeldMarkRefresher -- ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B, KRW-N20C] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: 내부 N20FORGED
+ERROR 가짜 줄; KRW-N20B 호가 조회 실패: 호가 503 N20FORGED
+ERROR 가짜 줄; KRW-N20C 호가 조회 실패: 호가 503 N20FORGED
+ERROR 가짜 줄; 
+N20계약행|장부내부예외|byTrade=[N20A]|byBook=[]|unobserved=[N20B, N20C]|장부=N20A:REST_TRADE/100 N20B:- N20C:-|실패표시=true|경보=1|오류문=시세 조회 실패: 내부 N20FORGED\nERROR 가짜 줄; KRW-N20B 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; KRW-N20C 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; |로그=ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B, KRW-N20C] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: 내부 N20FORGED\nERROR 가짜 줄; KRW-N20B 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; KRW-N20C 호가 조회 실패: 호가 503 N20FORGED\nERROR 가짜 줄; 
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

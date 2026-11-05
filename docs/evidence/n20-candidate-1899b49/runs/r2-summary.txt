@@ -1,0 +1,114 @@
+PASS ④d 호가 — 미래 호가 시각도 수신 시각으로 제한되어 후속 없으면 120초 기준 | 
+PASS ④e 생산 이벤트 경로 — 미래 관측 시각 이벤트(가격 정상)는 장부에 서버 수신 | 
+PASS ④c 체결 — 과거 관측은 수신 시각으로 올리지 않는다(낡은 체결가 재수신은 낡은 | 
+PASS ④a 체결 — 미래 100 뒤 정상 90 이 덮고, 장부 시각은 수신 시각이며 원 | 
+PASS LIVE 가격 0 | 
+PASS LIVE 가격 -1 | 
+PASS DYNAMIC 가격 0 | 
+PASS DYNAMIC 가격 -1 | 
+PASS LIVE | 
+PASS ⑤ 관측 시각 EPOCH·null — 장부는 신선한 값을 지키고(EPOCH 는 더 | 
+PASS ④b 체결 — 미래 값 뒤 후속 관측이 없으면 기존 120초 기준으로 낡고(120 | 
+PASS LIVE | 
+PASS DYNAMIC | 
+PASS LIVE fresh_positive | 
+PASS LIVE stale_positive | 
+PASS LIVE missing_price | 
+PASS LIVE null_price | 
+PASS LIVE malformed_price | 
+PASS LIVE empty_response | 
+PASS LIVE client_exception | 
+PASS DYNAMIC fresh_positive | 
+PASS DYNAMIC stale_positive | 
+PASS DYNAMIC missing_price | 
+PASS DYNAMIC null_price | 
+PASS DYNAMIC malformed_price | 
+PASS DYNAMIC empty_response | 
+PASS DYNAMIC client_exception | 
+PASS LIVE | 
+PASS DYNAMIC | 
+PASS LIVE trade_price=0 체결 1초 전 | 
+PASS LIVE trade_price=-1 체결 1초 전 | 
+PASS LIVE trade_price=0.00000000 체결 1초 전 | 
+PASS LIVE trade_price=0 체결 121초 전 | 
+PASS DYNAMIC trade_price=0 체결 1초 전 | 
+PASS DYNAMIC trade_price=-1 체결 1초 전 | 
+PASS DYNAMIC trade_price=0.00000000 체결 1초 전 | 
+PASS DYNAMIC trade_price=0 체결 121초 전 | 
+PASS ⑥-1 market 이 null — 기존처럼 WARN 없이 조용히 건너뜀, 앞뒤  | 
+PASS 가짜 market + 가격 0 | 
+PASS 가짜 market + 가격 -1 | 
+PASS 가짜 market + 가격 abc | 
+PASS ④ 혼합 응답(LIVE 정상 280 · 형식 이상 · DYNAMIC 정상 280  | 
+PASS ② 정상 2개 대조군 — 둘 다 한 번씩 발행, WARN·ERROR 없음 | 
+PASS 숫자 market 위치 first | 
+PASS 숫자 market 위치 middle | 
+PASS ③-2 발행기 내부 실행 예외 — 입력 이상 WARN 으로 삼키지 않고 기존 배치 | 
+PASS ③-1 외부 조회 예외 — 발행 0, 기존 ERROR 한 줄 그대로 | 
+PASS 이상 0 위치 first | 
+PASS 이상 0 위치 middle | 
+PASS 이상 -1 위치 first | 
+PASS 이상 -1 위치 middle | 
+PASS 이상 0.00000000 위치 middle | 
+PASS 이상 abc 위치 first | 
+PASS 이상 abc 위치 middle | 
+PASS 이상  위치 middle | 
+PASS 이상 1e 위치 middle | 
+PASS 이상 missing 위치 first | 
+PASS 이상 missing 위치 middle | 
+PASS 이상 null 위치 first | 
+PASS 이상 null 위치 middle | 
+PASS B 기존 WS 90초 전 190 + 이번 PRICE_ZERO × 호가 FAIL | 
+PASS B 기존 WS 90초 전 190 + 이번 PRICE_NEG × 호가 FAIL | 
+PASS B 기존 WS 90초 전 190 + 이번 PRICE_ZERO × 호가 DEEP | 
+PASS B 기존 WS 90초 전 190 + 이번 PRICE_NEG × 호가 DEEP | 
+PASS ④ B 호가만 형식 이상 — 그 코인의 호가 조회 실패(고정 문구), C 는 영향 | 
+PASS ⑨ 회차 오류(보유 조회 예외) — 고정 ERROR, 예외 원문 없음 | 
+PASS ⑧ 실패 시작 → 같은 사유 지속 → 사유 변경 → 회복 — 경보 1회·ERROR | 
+PASS PRICE_FORGED × C 기존 WS 90초 전 × 호가 FAIL | 
+PASS PRICE_FORGED × C 기존 WS 130초 전 × 호가 FAIL | 
+PASS MARKET_NUM × C 기존 WS 90초 전 × 호가 FAIL | 
+PASS MARKET_NUM × C 기존 WS 130초 전 × 호가 FAIL | 
+PASS ⑤ 시세 조회 예외·호가 예외 원문이 오류문·실패 표시·ERROR·경보에 실리지  | 
+PASS CONTROL × 호가 DEEP | 
+PASS CONTROL × 호가 FAIL | 
+PASS PRICE_FORGED × 호가 DEEP | 
+PASS PRICE_FORGED × 호가 SHALLOW | 
+PASS PRICE_FORGED × 호가 FAIL | 
+PASS PRICE_ABC × 호가 DEEP | 
+PASS PRICE_ABC × 호가 SHALLOW | 
+PASS PRICE_ABC × 호가 FAIL | 
+PASS MARKET_NUM × 호가 DEEP | 
+PASS MARKET_NUM × 호가 SHALLOW | 
+PASS MARKET_NUM × 호가 FAIL | 
+PASS PRICE_ZERO × 호가 DEEP | 
+PASS PRICE_ZERO × 호가 FAIL | 
+PASS PRICE_NEG × 호가 DEEP | 
+PASS PRICE_NEG × 호가 FAIL | 
+PASS PRICE_NULL × 호가 DEEP | 
+PASS PRICE_NULL × 호가 FAIL | 
+PASS TS_BAD × 호가 DEEP | 
+PASS TS_BAD × 호가 FAIL | 
+PASS ⑦ 경보 전송 실패 — 원문 없는 고정 WARN, 실패 표시는 남는다(성공으로 바 | 
+PASS ⑥ 장부 내부 예외는 항목 건너뜀으로 삼키지 않는다 — 고정 '시세 처리 실패'  | 
+PASS 세션 정지·재시작에도 한도 금액과 순자산 변화가 변하지 않는다 (종전 분모는 변한 | 
+PASS 반영값이 없는 체결 주문이 있으면 계산하지 않고 진입을 막는다 | 
+PASS 호가 채우기 — 매수호가를 위에서부터 보유량만큼 채운 평균(내림), 잔량이 모자라 | 
+PASS 시험 단계에서도 risk_config 한도 값이 없으면 진입을 막는다 | 
+PASS 호가를 조회하는 사이 보유량이 늘면 늘어난 수량으로 판정한다 | 
+PASS 시세 기록이 없으면 평가 루프가 남긴 평가손익으로 되돌린다(재기동 직후) | 
+PASS 기존 시세 경로도 체결 시각을 싣는다 — 웹소켓 틱(ttms)·LIVE·DYNAM | 
+PASS 누적: 총 자본 100,000 의 15% — −15,000 에서 막고 −14,99 | 
+PASS 🔴 신선한 호가 평균이 있는 동안 보유량이 늘면 이전 가격으로 승인하지 않는다 — | 
+PASS 등록 단계는 risk_config 가 사전 등록값(24시간 3.0 · 누적 15. | 
+PASS 순자산 변화에 매수·매도 수수료와 미실현손익이 들어간다 — 실현손익 열은 쓰지 않 | 
+PASS 24시간 전 기록에 공백이 있으면 더 엄격한 값으로 대신하고, 아무 기록도 없으면 | 
+PASS 단계의 첫 매수가 기준 시각을 만들어도 그 매수의 포지션이 평가 대상에 든다 (S | 
+PASS 한도 도달 시 LIVE 예약과 DYNAMIC 매수가 같은 사유로 거절되고 흔적이  | 
+PASS 대체 가격(평가 루프 값·평균단가·낡은 시세)이 섞이면 값은 계산돼도 풀 전체 신 | 
+PASS 최근 체결이 있으면 시세 조회의 체결가로 충분하다 — 호가를 부르지 않는다. 호가 | 
+PASS 재시작 직후(빈 장부)·REST 실패: 차단과 경보 한 번, 복구되면 보강이 장부 | 
+PASS 24시간: 지금 − 24시간 전 ≤ −3,000 에서 막는다 (누적은 한도 안) | 
+PASS 🔴 기존 호가 가격이 아직 신선해도 새 조회에서 깊이 부족이 확인되면 차단을 유지 | 
+PASS 단계 시작 후 24시간 미만이면 단계 시작(0)과 비교한다 | 
+PASS 웹소켓은 살아 있지만 체결이 조용한 보유: 낡은 체결가를 다시 받아도 신선하다고  | 

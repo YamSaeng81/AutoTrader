@@ -1,0 +1,9 @@
+CONTROL/DEEP Ccache=0 Bcache=0 byTrade=[KRW-N20A, KRW-N20B, KRW-N20C] byBook=[] unobserved=[] Csource=REST_TRADE alerts=0 raw_exception_in_alert=false
+PRICE_ABC/DEEP Ccache=0 Bcache=0 byTrade=[KRW-N20A] byBook=[KRW-N20B, KRW-N20C] unobserved=[] Csource=REST_ORDERBOOK_DEPTH alerts=0 raw_exception_in_alert=false
+MARKET_NUM/DEEP Ccache=0 Bcache=0 byTrade=[KRW-N20A] byBook=[KRW-N20B, KRW-N20C] unobserved=[] Csource=REST_ORDERBOOK_DEPTH alerts=0 raw_exception_in_alert=false
+PRICE_ABC/SHALLOW Ccache=0 Bcache=0 byTrade=[KRW-N20A] byBook=[] unobserved=[KRW-N20B, KRW-N20C] Csource=REST_ORDERBOOK_DEPTH alerts=1 raw_exception_in_alert=false
+MARKET_NUM/FAIL Ccache=0 Bcache=0 byTrade=[KRW-N20A] byBook=[] unobserved=[KRW-N20B, KRW-N20C] Csource=- alerts=1 raw_exception_in_alert=true
+PRICE_ABC/FAIL Ccache=90 Bcache=0 byTrade=[KRW-N20A] byBook=[] unobserved=[KRW-N20B] Csource=WS_TRADE alerts=1 raw_exception_in_alert=true
+PRICE_ABC/FAIL Ccache=130 Bcache=0 byTrade=[KRW-N20A] byBook=[] unobserved=[KRW-N20B, KRW-N20C] Csource=WS_TRADE alerts=1 raw_exception_in_alert=true
+ZERO/DEEP Ccache=0 Bcache=90 byTrade=[KRW-N20A, KRW-N20B, KRW-N20C] byBook=[] unobserved=[] Csource=REST_TRADE alerts=0 raw_exception_in_alert=false
+TRANSPORT/FAIL Ccache=0 Bcache=0 byTrade=[] byBook=[] unobserved=[KRW-N20A, KRW-N20B, KRW-N20C] Csource=- alerts=1 raw_exception_in_alert=true

@@ -1,0 +1,37 @@
+{
+  "review_ref": "9017d63d1e9376d9ad995aa7c9b55dbcced8b62d",
+  "candidate_not_deployed": "ee509cf855ffb8ebc1ed31f1c2bbe772d0545ce8",
+  "investigation_commit": "52114a32b6fb16021dcf977a742cbe6e519fc0e8",
+  "manifests_worktree_and_git": {
+    "n20-held-mark-repro-ee509cf": 16,
+    "k25-accept-342f461": 11
+  },
+  "preserved_JUnit": [
+    20,
+    0,
+    0,
+    0
+  ],
+  "preserved_rows": 20,
+  "source_snapshot_sha256": "9dba935fcf0f349973495bc6ba59e9894ace7068e1ac33cdce14ffbcfa704350",
+  "production_blobs_unchanged_7a_to_ee": {
+    "HeldMarkRefresher": "3278bef30774e5fa6cc16b6af0e63e87b89449ff",
+    "MarkPriceBook": "2c9f4771d5ac6c4f7d4b996846307e46a223a484",
+    "RealtimePriceEvent": "3c64ecd7d9b87bba4955e5d3c99f3272973b755b"
+  },
+  "root_original_class_body_stub_inputs": 9,
+  "new_boundaries": [
+    "zero-price with valid 90-second cached mark is mislabelled byTrade",
+    "controlled REST exception text reaches error/state/alert"
+  ],
+  "not_executed": [
+    "server",
+    "network",
+    "DB",
+    "Spring/Gradle",
+    "pool guard",
+    "reservation/order/sell",
+    "jar build",
+    "deployment"
+  ]
+}
