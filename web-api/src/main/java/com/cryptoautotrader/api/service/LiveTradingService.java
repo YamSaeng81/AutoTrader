@@ -3344,6 +3344,14 @@ public class LiveTradingService {
             return;
         }
 
+        // 🔴 N16 (2026-11-05): 가격이 아닌 값(null·0·음수)은 버린다 — 시세 장부와 같은 정의({@link MarkPriceBook#isPrice}).
+        //    0 은 '손절가 이하'로 읽혀 보호 매도를 냈고, null 은 이력·점검 시각을 오염시켜 다음 정상 가격의 점검을 막거나 가렸다.
+        //    운영 웹소켓 파서는 체결가가 없는 ticker 를 0 으로 메운다. 이력·점검 간격·SL 점검 시각을 남기기 전에 버린다.
+        if (!MarkPriceBook.isPrice(price)) {
+            log.warn("가격이 아닌 실시간 시세 무시: {} {} 관측 {} 출처 {}", coinCode, price, event.getObservedAt(), event.getSource());
+            return;
+        }
+
         // 1. 가격 이력 업데이트 (throttle 전 — 항상 기록)
         updatePriceHistory(coinCode, price, now);
 
