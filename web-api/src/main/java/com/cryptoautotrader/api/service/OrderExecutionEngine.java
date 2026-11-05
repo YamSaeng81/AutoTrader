@@ -508,7 +508,7 @@ public class OrderExecutionEngine {
             throw new IllegalStateException("예약 서비스가 없다 — 한도 확인 없이 승인하지 않는다");
         }
         CapitalReservationService.Decision decision = capitalReservationService.reserveForBuy(
-                sessionKind, request.getSessionId(), request.getQuantity(), request.getPositionId());
+                sessionKind, request.getSessionId(), request.getQuantity(), request.getPositionId(), request.getEntryExpiresAt());
         if (!decision.approved()) {
             // 🔴 **거절도 롤백한다.** 종전에는 null 을 돌려줘 호출자 트랜잭션이 그대로 커밋됐고,
             //    같은 트랜잭션에서 만든 슬롯(size=0 포지션)이 **차감 없이** 남았다. 그 포지션을

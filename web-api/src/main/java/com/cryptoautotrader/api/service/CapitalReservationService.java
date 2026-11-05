@@ -96,6 +96,8 @@ public class CapitalReservationService {
     public static final String ACCOUNT_HEADROOM = "ACCOUNT_HEADROOM";
     public static final String SESSION_FUNDS = "SESSION_FUNDS";
     public static final String INVALID_REQUEST = "INVALID_REQUEST";
+    /** 진입 승인 실행 만료(N15) — 잠금을 잡은 뒤 만료 시각이 지났다. */
+    public static final String ENTRY_EXPIRED = "ENTRY_EXPIRED";
 
     /**
      * 판정 결과.
@@ -122,6 +124,10 @@ public class CapitalReservationService {
 
     @Autowired(required = false)
     private DynamicSessionRepository dynamicSessionRepository;
+
+    /** 진입 승인 실행 만료 판정 시계 — 회차 처리와 같은 것(N15). 없으면(단위 생성) 시스템 시계. */
+    @Autowired(required = false)
+    private EntryClock entryClock;
 
     @PersistenceContext
     private EntityManager em;
@@ -165,6 +171,14 @@ public class CapitalReservationService {
      * 계좌 스냅숏의 공급원만 모의 계좌로 바꾼다(지금은 미구현이라 거절한다).</p>
      */
     public Decision reserveForBuy(String kind, Long sessionId, BigDecimal amount, Long selfPositionId) {
+        return reserveForBuy(kind, sessionId, amount, selfPositionId, null);
+    }
+
+    /**
+     * @param entryExpiresAt 회차 승인의 실행 만료 시각(N15) — 잠금을 잡은 <b>뒤</b> 이 시각 이상이면 아무것도 바꾸지 않고 거절한다
+     *                       ({@link #ENTRY_EXPIRED}). 엔진 관문·잠금 대기로 만료를 넘긴 후보가 여기서 걸린다. {@code null} 이면 보지 않는다.
+     */
+    public Decision reserveForBuy(String kind, Long sessionId, BigDecimal amount, Long selfPositionId, Instant entryExpiresAt) {
         requireTransaction("자금 예약 (" + kind + ", sessionId=" + sessionId + ")");
         if (amount == null || amount.signum() <= 0 || sessionId == null) {
             return Decision.reject(INVALID_REQUEST, "금액·세션이 없다");
@@ -175,6 +189,15 @@ public class CapitalReservationService {
 
         // ① 공유 잠금 — 이 트랜잭션이 끝날 때까지 다른 예약·배정은 여기서 기다린다.
         lockAccount();
+
+        // ①-2 진입 승인 실행 만료(N15) — 잠금 대기 뒤, 한도 확인·차감보다 먼저 본다.
+        if (entryExpiresAt != null) {
+            Instant now = entryClock != null ? entryClock.now() : Instant.now();
+            if (EntryPriorityRounds.isExpired(entryExpiresAt, now)) {
+                return logged(sessionId, Decision.reject(ENTRY_EXPIRED,
+                        "승인 실행 만료(만료 " + entryExpiresAt + ", 잠금 뒤 판정 " + now + ") — 새 예약·매수 의도 없음"));
+            }
+        }
 
         long exclude = selfPositionId != null ? selfPositionId : NO_ID;
 

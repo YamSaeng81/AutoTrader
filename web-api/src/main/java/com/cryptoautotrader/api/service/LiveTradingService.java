@@ -1359,11 +1359,14 @@ public class LiveTradingService {
                         //    사전 등록 순서로 승인한다 — 평가가 빨리 끝난 세션이 슬롯을 먼저 갖지 않게.
                         final String regimeAtSignal = regimeName;
                         final List<Candle> candlesAtSignal = evalCandles;
+                        final EntryPriorityRounds.RoundKey roundKey =
+                                new EntryPriorityRounds.RoundKey(timeframe, candlesAtSignal.get(candlesAtSignal.size() - 1).getTime());
+                        final Instant expiresAt = EntryPriorityRounds.expiry(roundKey);
                         String notQueued = entryPriorityRounds.submit(new EntryPriorityRounds.Candidate(
-                                "LIVE", sessionId, coinPair,
-                                new EntryPriorityRounds.RoundKey(timeframe, candlesAtSignal.get(candlesAtSignal.size() - 1).getTime()),
+                                "LIVE", sessionId, coinPair, roundKey,
                                 () -> approveQueuedEntry(sessionId, coinPair, buyReason, finalSignal,
-                                        regimeAtSignal, candlesAtSignal, signalLogRef)),
+                                        regimeAtSignal, candlesAtSignal, signalLogRef, expiresAt),
+                                expired -> saveSignalQuality(signalLogRef, false, expired)),
                                 Instant.now());
                         if (notQueued != null) {
                             saveSignalQuality(signalLogRef, false, notQueued);
@@ -1376,7 +1379,7 @@ public class LiveTradingService {
                         saveSignalQuality(signalLogRef, false, "리스크 한도: " + riskResult.getReason());
                         return;
                     }
-                    executeSessionBuy(session, coinPair, currentPrice, buyReason, finalSignal, regimeName, evalCandles);
+                    executeSessionBuy(session, coinPair, currentPrice, buyReason, finalSignal, regimeName, evalCandles, null);
                     saveSignalQuality(signalLogRef, true, null);
                 } else {
                     String reason;
@@ -1468,6 +1471,13 @@ public class LiveTradingService {
     String approveQueuedEntry(Long sessionId, String coinPair, String reason,
                               StrategySignal signal, String marketRegime, List<Candle> evalCandles,
                               StrategyLogEntity signalLog) {
+        return approveQueuedEntry(sessionId, coinPair, reason, signal, marketRegime, evalCandles, signalLog, null);
+    }
+
+    /** @param entryExpiresAt 승인 실행 만료(N15) — 계좌 잠금 안 예약 직전에 다시 본다. {@code null} 이면 보지 않는다. */
+    String approveQueuedEntry(Long sessionId, String coinPair, String reason,
+                              StrategySignal signal, String marketRegime, List<Candle> evalCandles,
+                              StrategyLogEntity signalLog, Instant entryExpiresAt) {
         String result;
         LiveTradingSessionEntity session = sessionRepository.findById(sessionId).orElse(null);
         if (session == null || !"RUNNING".equals(session.getStatus())) {
@@ -1480,7 +1490,7 @@ public class LiveTradingService {
             result = approvalTimeGate(session, coinPair, latest);
             if (result == null) {
                 BigDecimal priceNow = latest.get(latest.size() - 1).getClose();
-                result = executeSessionBuy(session, coinPair, priceNow, reason, signal, marketRegime, evalCandles);
+                result = executeSessionBuy(session, coinPair, priceNow, reason, signal, marketRegime, evalCandles, entryExpiresAt);
             }
         }
         saveSignalQuality(signalLog, result == null, result);
@@ -1515,7 +1525,7 @@ public class LiveTradingService {
     private String executeSessionBuy(LiveTradingSessionEntity session,
                                     String coinPair, BigDecimal price, String reason,
                                     StrategySignal signal, String marketRegime,
-                                    List<Candle> evalCandles) {
+                                    List<Candle> evalCandles, Instant entryExpiresAt) {
         // 사전 검증: 이미 이 세션에 활성 BUY 주문이 있으면 스킵 (orphan 포지션 방지)
         boolean hasPendingBuy = orderRepository.existsBySessionIdAndCoinPairAndSideAndStateIn(
                 session.getId(), coinPair, "BUY", ACTIVE_ORDER_STATES);
@@ -1605,6 +1615,7 @@ public class LiveTradingService {
         order.setSignalPrice(price);  // §14 drift 측정 기준가 — 신호 평가 시점 현재가
         order.setSessionId(session.getId());
         order.setSessionKind("LIVE");
+        order.setEntryExpiresAt(entryExpiresAt);   // N15 — 잠금 안 예약 직전 만료 재검사
 
         // 🔴 **한도 확인 · 자금 예약 · 슬롯 · 주문 의도를 한 트랜잭션으로** (V85).
         //

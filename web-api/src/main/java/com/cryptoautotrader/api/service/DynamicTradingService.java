@@ -867,6 +867,13 @@ public class DynamicTradingService {
     @Transactional
     public String approveQueuedEntry(Long sid, String coinPair, List<Candle> evalCandles, StrategySignal signal,
                                      BigDecimal sizeMultiplier, StrategyLogEntity signalLog) {
+        return approveQueuedEntry(sid, coinPair, evalCandles, signal, sizeMultiplier, signalLog, null);
+    }
+
+    /** @param entryExpiresAt 승인 실행 만료(N15) — 계좌 잠금 안 예약 직전에 다시 본다. {@code null} 이면 보지 않는다. */
+    @Transactional
+    public String approveQueuedEntry(Long sid, String coinPair, List<Candle> evalCandles, StrategySignal signal,
+                                     BigDecimal sizeMultiplier, StrategyLogEntity signalLog, Instant entryExpiresAt) {
         DynamicSessionEntity fresh = dynamicSessionRepo.findById(sid).orElse(null);
         String result;
         if (fresh == null || !"RUNNING".equals(fresh.getStatus())) {
@@ -877,7 +884,7 @@ public class DynamicTradingService {
         } else {
             result = approvalTimeGate(fresh, coinPair, evalCandles);
             if (result == null) {
-                result = executeBuy(fresh, coinPair, evalCandles, signal, sizeMultiplier);
+                result = executeBuy(fresh, coinPair, evalCandles, signal, sizeMultiplier, entryExpiresAt);
             }
         }
         updateSignalQuality(signalLog, result == null, result);
@@ -1244,11 +1251,13 @@ public class DynamicTradingService {
             //    🔴 갈림은 isPaper 가 아니라 **자본 모델**이다(동등성 시험의 규칙) — 슬롯 경합은 공유 풀에만 있다. 독립 자본
             //    페이퍼(검증 66세션)는 경합이 없으므로 대상이 아니고, 공유 풀 페이퍼를 만들면 같은 규칙을 탄다.
             Instant candleOpen = best.evalCandles().get(best.evalCandles().size() - 1).getTime();
+            EntryPriorityRounds.RoundKey roundKey = new EntryPriorityRounds.RoundKey(session.getTimeframe(), candleOpen);
+            Instant expiresAt = EntryPriorityRounds.expiry(roundKey);
             String notQueued = entryPriorityRounds.submit(new EntryPriorityRounds.Candidate(
-                    "DYNAMIC", sid, best.coinPair(),
-                    new EntryPriorityRounds.RoundKey(session.getTimeframe(), candleOpen),
+                    "DYNAMIC", sid, best.coinPair(), roundKey,
                     () -> self.approveQueuedEntry(sid, best.coinPair(), best.evalCandles(), best.signal(),
-                            best.sizeMultiplier(), best.signalLog())),
+                            best.sizeMultiplier(), best.signalLog(), expiresAt),
+                    expired -> updateSignalQuality(best.signalLog(), false, expired)),
                     Instant.now());
             if (notQueued != null) {
                 updateSignalQuality(best.signalLog(), false, notQueued);
@@ -1618,6 +1627,14 @@ public class DynamicTradingService {
     @Transactional
     public String executeBuy(DynamicSessionEntity session, String coinPair,
                             List<Candle> evalCandles, StrategySignal signal, BigDecimal sizeMultiplier) {
+        return executeBuy(session, coinPair, evalCandles, signal, sizeMultiplier, null);
+    }
+
+    /** @param entryExpiresAt 회차 승인의 실행 만료(N15) — 실자금 예약 경계가 잠금 안에서 다시 본다. 즉시 진입은 {@code null}. */
+    @Transactional
+    public String executeBuy(DynamicSessionEntity session, String coinPair,
+                            List<Candle> evalCandles, StrategySignal signal, BigDecimal sizeMultiplier,
+                            Instant entryExpiresAt) {
         Long sid = session.getId();
         String kind = sessionKind(session);
         BigDecimal currentPrice = evalCandles.get(evalCandles.size() - 1).getClose();
@@ -1723,6 +1740,7 @@ public class DynamicTradingService {
         order.setSessionId(sid);
         order.setSessionKind(kind);
         order.setPositionId(posId);
+        order.setEntryExpiresAt(entryExpiresAt);   // N15 — 잠금 안 예약 직전 만료 재검사
 
         Long preparedOrderId;
         try {

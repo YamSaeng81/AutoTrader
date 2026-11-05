@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
@@ -29,6 +30,11 @@ import java.util.function.Supplier;
  *   <li><b>후보 수집 완료</b> = 그 캔들 마감 + 마감 유예({@link #MAX_WINDOW}, 타임프레임이 짧으면 그 절반)의 <b>고정 시각</b>.
  *       그 전에 접수된 후보만 이 회차 후보다. 마감 뒤 도착(느린 평가·늦은 캔들)은 이 회차에 넣지 않고, 평가가 실패한 세션은
  *       후보가 없다. 🔴 먼저 도착한 후보부터 승인하지 않는다 — 마감 전에는 아무것도 승인하지 않는다.</li>
+ *   <li><b>승인 실행 만료</b>(N15, 2026-11-05) = 수집 완료 + 같은 길이의 유예. 캔들 마감 C, 유예 W = min(T/2, 5분)이면
+ *       수집 완료 D = C+W, 만료 E = D+W 다(H1: 09:00 마감 → 09:05 수집 완료 → 09:10 부터 금지). <b>실제 시각이 E 이상이면 새
+ *       자금 예약·매수 의도를 만들지 않는다.</b> 후보마다 승인 콜백 직전에 {@link EntryClock} 으로 보고, 엔진의 관문·계좌 잠금
+ *       대기 뒤에도 잠금 안 예약 직전에 같은 E 를 다시 본다({@link CapitalReservationService}). 만료는 원래 신호의 차단 사유로
+ *       남고 회차는 닫힌 채다. 이미 예약·의도가 확정된 주문은 기존 전송·정산 경로를 따른다.</li>
  *   <li><b>승인</b> = 마감 뒤 한 번, 확정된 후보를 {@link #REGISTERED_ORDER} 순서로(목록 밖 코인은 뒤에 코인 이름순, 같은 코인은
  *       LIVE → DYNAMIC, 세션 id 순) 하나씩 처리한다. 각 승인은 엔진의 매수 경로 — 즉 기존 원자적 예약 경계(계좌 잠금 안의
  *       한도 확인·예약·의도 저장)를 그대로 지난다. 슬롯·풀·손실 한도로 거절된 후보만 빠지고 다음 후보로 간다.</li>
@@ -68,20 +74,28 @@ public class EntryPriorityRounds {
      *
      * @param approve 승인 차례에 부른다 — 엔진의 매수 경로를 실행하고, 진입했으면 {@code null}, 아니면 사유를 돌려준다.
      *                예외는 그 후보의 실패로만 기록한다.
+     * @param expired 승인 실행 만료로 콜백을 부르지 않을 때 그 사유를 원래 신호에 남긴다(N15). 예외는 기록만 한다.
      */
     public record Candidate(String kind, Long sessionId, String coinPair, RoundKey round,
-                            Supplier<String> approve) {}
+                            Supplier<String> approve, Consumer<String> expired) {
+        /** 만료 기록처가 없는 후보(단위 시험) — 만료 사유는 결과에만 남는다. */
+        public Candidate(String kind, Long sessionId, String coinPair, RoundKey round, Supplier<String> approve) {
+            this(kind, sessionId, coinPair, round, approve, reason -> { });
+        }
+    }
 
     /** 승인 결과 — {@code reason} 이 {@code null} 이면 진입. */
     public record Outcome(Candidate candidate, int rank, String reason) {}
 
     private final CapitalPoolLimits limits;
+    private final EntryClock clock;
     private final Map<RoundKey, LinkedHashMap<String, Candidate>> open = new HashMap<>();
     private final Map<RoundKey, Instant> closed = new HashMap<>();
     private volatile boolean forcedForTest;
 
-    public EntryPriorityRounds(CapitalPoolLimits limits) {
+    public EntryPriorityRounds(CapitalPoolLimits limits, EntryClock clock) {
         this.limits = limits;
+        this.clock = clock;
     }
 
     /** 등록 단계면 켜진다. 시험 단계는 {@link #setForcedForTest} 로만. */
@@ -96,11 +110,32 @@ public class EntryPriorityRounds {
         this.forcedForTest = v;
     }
 
-    /** 이 회차의 후보 수집 마감 시각. */
+    /** 유예 W = min(T/2, 5분) — 수집 유예와 실행 유예가 같은 길이다. */
+    public static Duration window(String timeframe) {
+        Duration tf = Duration.ofMinutes(TimeframeUtils.toMinutes(timeframe));
+        return tf.dividedBy(2).compareTo(MAX_WINDOW) < 0 ? tf.dividedBy(2) : MAX_WINDOW;
+    }
+
+    /** 이 회차의 후보 수집 마감 시각 D = C+W. */
     public static Instant deadline(RoundKey round) {
         Duration tf = Duration.ofMinutes(TimeframeUtils.toMinutes(round.timeframe()));
-        Duration window = tf.dividedBy(2).compareTo(MAX_WINDOW) < 0 ? tf.dividedBy(2) : MAX_WINDOW;
-        return round.candleOpenTime().plus(tf).plus(window);
+        return round.candleOpenTime().plus(tf).plus(window(round.timeframe()));
+    }
+
+    /** 이 회차의 승인 실행 만료 시각 E = D+W — 이 시각 <b>이상</b>이면 새 예약·매수 의도를 만들지 않는다(N15). */
+    public static Instant expiry(RoundKey round) {
+        return deadline(round).plus(window(round.timeframe()));
+    }
+
+    /** 만료 판정 — 경계 E 는 허용하지 않는다. */
+    public static boolean isExpired(Instant expiresAt, Instant now) {
+        return expiresAt != null && !now.isBefore(expiresAt);
+    }
+
+    /** 원래 신호에 남기는 만료 사유. */
+    public static String expiredReason(RoundKey round, Instant now) {
+        return "승인 실행 만료(" + round.timeframe() + " " + round.candleOpenTime() + " 만료 " + expiry(round) + ", 판정 " + now
+                + ") — 새 예약·매수 의도 없음";
     }
 
     /** 등록 순서상 순위 — 목록 밖 코인은 목록 뒤. */
@@ -140,7 +175,7 @@ public class EntryPriorityRounds {
 
     @Scheduled(fixedDelay = 5_000, initialDelay = 20_000)
     public void processDueRounds() {
-        processDue(Instant.now());
+        processDue(clock.now());
     }
 
     /**
@@ -169,6 +204,20 @@ public class EntryPriorityRounds {
             for (Candidate c : ordered) {
                 rank++;
                 String reason;
+                // 🔴 후보마다 지금 시각으로 다시 본다(N15) — 회차를 꺼낸 시각 하나를 재사용하지 않는다. 앞 후보의 승인 지연도
+                //    여기서 걸린다. 만료면 콜백(엔진 관문·예약)을 부르지 않고 사유를 원래 신호에 남긴다.
+                Instant at = clock.now();
+                if (isExpired(expiry(c.round()), at)) {
+                    reason = expiredReason(c.round(), at);
+                    try {
+                        c.expired().accept(reason);
+                    } catch (RuntimeException ex) {
+                        log.error("[진입 우선순위] 만료 사유 기록 실패: {} {}#{} {}", e.getKey(), c.kind(), c.sessionId(), c.coinPair(), ex);
+                    }
+                    log.warn("[진입 우선순위] {}위 {} {}#{} → {}", rank, c.coinPair(), c.kind(), c.sessionId(), reason);
+                    out.add(new Outcome(c, rank, reason));
+                    continue;
+                }
                 try {
                     reason = c.approve().get();
                 } catch (RuntimeException ex) {
