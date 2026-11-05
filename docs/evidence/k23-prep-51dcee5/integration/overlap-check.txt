@@ -1,0 +1,18 @@
+# 통합 초안 파일별 대조 — 한쪽만 바꾼 파일은 그 후보 블롭과 같아야 하고, 양쪽이 바꾼 두 파일은 (통합 − 다른 쪽) = (이 쪽 변경) 이어야 한다
+N15만 · 블롭 동일: web-api/src/main/java/com/cryptoautotrader/api/dto/OrderRequest.java
+N15만 · 블롭 동일: web-api/src/main/java/com/cryptoautotrader/api/service/CapitalReservationService.java
+양쪽 · (통합−N15 d6f7e18) = (N16 fe01207→ac29ecf) 8줄: web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
+양쪽 · (통합−N16 ac29ecf) = (N15 fe01207→d6f7e18) 26줄: web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
+N15만 · 블롭 동일: web-api/src/main/java/com/cryptoautotrader/api/service/EntryClock.java
+N15만 · 블롭 동일: web-api/src/main/java/com/cryptoautotrader/api/service/EntryPriorityRounds.java
+양쪽 · (통합−N15 d6f7e18) = (N16 fe01207→ac29ecf) 8줄: web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
+양쪽 · (통합−N16 ac29ecf) = (N15 fe01207→d6f7e18) 23줄: web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
+N16만 · 블롭 동일: web-api/src/main/java/com/cryptoautotrader/api/service/MarkPriceBook.java
+N15만 · 블롭 동일: web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java
+N15만 · 블롭 동일: web-api/src/test/java/com/cryptoautotrader/api/service/N15EntryExpiryTest.java
+N15만 · 블롭 동일: web-api/src/test/java/com/cryptoautotrader/api/service/N15FinalApprovalBoundaryTest.java
+N16만 · 블롭 동일: web-api/src/test/java/com/cryptoautotrader/api/service/N16InvalidPriceReproTest.java
+
+# 두 파일의 가격 검사(N16 isPrice)·만료 전달(N15 entryExpiresAt/expiresAt) 줄 수
+LiveTradingService isPrice 2 · 만료 전달 7
+DynamicTradingService isPrice 2 · 만료 전달 8

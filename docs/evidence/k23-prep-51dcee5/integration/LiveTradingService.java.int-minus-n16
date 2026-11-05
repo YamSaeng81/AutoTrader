@@ -1,0 +1,23 @@
++                        final EntryPriorityRounds.RoundKey roundKey =
++                                new EntryPriorityRounds.RoundKey(timeframe, candlesAtSignal.get(candlesAtSignal.size() - 1).getTime());
++                        final Instant expiresAt = EntryPriorityRounds.expiry(roundKey);
+-                                "LIVE", sessionId, coinPair,
+-                                new EntryPriorityRounds.RoundKey(timeframe, candlesAtSignal.get(candlesAtSignal.size() - 1).getTime()),
++                                "LIVE", sessionId, coinPair, roundKey,
+-                                        regimeAtSignal, candlesAtSignal, signalLogRef)),
++                                        regimeAtSignal, candlesAtSignal, signalLogRef, expiresAt),
++                                expired -> saveSignalQuality(signalLogRef, false, expired)),
+-                    executeSessionBuy(session, coinPair, currentPrice, buyReason, finalSignal, regimeName, evalCandles);
++                    executeSessionBuy(session, coinPair, currentPrice, buyReason, finalSignal, regimeName, evalCandles, null);
++        return approveQueuedEntry(sessionId, coinPair, reason, signal, marketRegime, evalCandles, signalLog, null);
++    }
++
++    /** @param entryExpiresAt 승인 실행 만료(N15) — 계좌 잠금 안 예약 직전에 다시 본다. {@code null} 이면 보지 않는다. */
++    String approveQueuedEntry(Long sessionId, String coinPair, String reason,
++                              StrategySignal signal, String marketRegime, List<Candle> evalCandles,
++                              StrategyLogEntity signalLog, Instant entryExpiresAt) {
+-                result = executeSessionBuy(session, coinPair, priceNow, reason, signal, marketRegime, evalCandles);
++                result = executeSessionBuy(session, coinPair, priceNow, reason, signal, marketRegime, evalCandles, entryExpiresAt);
+-                                    List<Candle> evalCandles) {
++                                    List<Candle> evalCandles, Instant entryExpiresAt) {
++        order.setEntryExpiresAt(entryExpiresAt);   // N15 — 잠금 안 예약 직전 만료 재검사

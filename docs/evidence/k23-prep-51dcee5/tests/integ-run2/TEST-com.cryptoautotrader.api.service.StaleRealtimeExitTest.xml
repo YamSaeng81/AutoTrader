@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="N02 낡은 실시간 시세 — 관측 시각이 유효기간을 넘은 가격은 보호 매도를 내지 않는다" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-11-05T05:27:43" hostname="DESKTOP-SF1KUQ5" time="0.355">
+  <properties/>
+  <testcase name="LIVE" classname="com.cryptoautotrader.api.service.StaleRealtimeExitTest" time="0.18"/>
+  <testcase name="DYNAMIC" classname="com.cryptoautotrader.api.service.StaleRealtimeExitTest" time="0.174"/>
+  <system-out><![CDATA[14:27:43.703 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.StaleRealtimeExitTest
+14:27:43.706 [Test worker] INFO  o.a.c.c.C.[Tomcat-7].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+14:27:43.761 [market-data-1] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동 (WS): sessionId=213, KRW-STLL1, 손익=-6.666700%
+14:27:43.887 [Test worker] INFO  o.a.c.c.C.[Tomcat-7].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+14:27:43.944 [market-data-2] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절(WS): KRW-STLD2 @ 280 pnl=-6.666700% (id=54)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

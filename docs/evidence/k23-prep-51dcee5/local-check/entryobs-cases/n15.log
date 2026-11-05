@@ -1,0 +1,7 @@
+backend-1  | 07:40:00.000 [main] INFO  c.c.a.CryptoAutoTraderApplication - Started CryptoAutoTraderApplication
+backend-1  | 07:45:00.000 [scheduling-1] INFO  c.c.api.service.EntryPriorityRounds - [진입 우선순위] 1위 KRW-BTC LIVE#7 → 진입
+backend-1  | 14:27:36.363 [Test worker] WARN  c.c.api.service.EntryPriorityRounds - [진입 우선순위] 1위 KRW-IOTA LIVE#141 → 승인 실행 만료(H1 2026-11-05T04:26:01.371Z 만료 2026-11-05T05:36:01.371Z, 판정 2026-11-05T05:36:01.371Z) — 새 예약·매수 의도 없음
+backend-1  | 14:27:36.237 [Test worker] WARN  c.c.api.service.EntryPriorityRounds - [진입 우선순위] 1위 KRW-CRO DYNAMIC#39 → 승인 실행 만료(H1 2026-11-05T04:26:07.371Z 만료 2026-11-05T05:36:07.371Z, 판정 2026-11-05T05:36:07.371Z) — 새 예약·매수 의도 없음
+backend-1  | 14:27:36.151 [pool-17-thread-2] WARN  c.c.api.service.LiveTradingService - 매수 예약이 거절돼 롤백했다 (sessionId=138, KRW-CRO, 사유=ENTRY_EXPIRED): 승인 실행 만료(만료 2026-11-05T05:36:13.371Z, 잠금 뒤 판정 2026-11-05T05:36:13.371Z) — 새 예약·매수 의도 없음
+backend-1  | 14:27:36.487 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 매수 예약 거절 (id=40, KRW-IOTA, 사유=ENTRY_EXPIRED): 승인 실행 만료(만료 2026-11-05T05:35:57.371Z, 잠금 뒤 판정 2026-11-05T05:35:57.371Z) — 새 예약·매수 의도 없음
+backend-1  | 14:27:38.334 [Test worker] WARN  c.c.api.service.OrderExecutionEngine - 의도 저장 직전 승인 실행 만료 — 매수 의도를 만들지 않는다 (sessionKind=DYNAMIC, sessionId=41, KRW-IOTA): 승인 실행 만료(만료 2026-11-05T05:36:13.613Z, 의도 직전 판정 2026-11-05T05:36:13.613Z) — 새 예약·매수 의도 없음

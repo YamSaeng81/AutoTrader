@@ -1,0 +1,41 @@
+통합 초안 51dcee530721c0ab23f3f6f875a15b9416b751a3
+부모 5e4538048d2b38c3d3309e2440230c83bb9bd7f1 d6f7e18924bbef785c5628200a8101a807e4948a
+제목 통합 초안: N15 d6f7e18 병합
+작성 2026-11-05 14:23:12 +0900
+
+*   51dcee5 통합 초안: N15 d6f7e18 병합
+|\  
+| * d6f7e18 N15 최종 승인 경계 — 차감 직전·의도 저장 직전 만료 재판정
+| * 6f6a522 N15 진입 승인 실행 만료 — 수집 완료 D=C+W 뒤 같은 길이 W 의 실행 유예, E=D+W 이상 새 예약·매수 의도 금지
+* |   5e45380 통합 초안: N16 ac29ecf 병합
+|\ \  
+| |/  
+|/|   
+| * ac29ecf N16 보완 — 시세 장부 미래 관측 시각 제한: 장부 기준 시각 at = min(원래 관측 시각, 서버 수신 시각)
+| * 3385f70 N16 실시간 처리기 가격 입력 계약 — 운영 fe01207 기점, LIVE·DYNAMIC 실시간 시세 처리기가 시세 장부와 같은 정의(MarkPriceBook.isPrice: null·0·음수는 가격 아님)로 이력·점검 간격·SL 점검 시각 전에 버린다. 장부 observe 는 같은 판정을 함수로 묶었을 뿐 동작 같음. 운영 웹소켓 파서(체결가 없는 ticker → 0)·미래 관측 시각 정책·120초 기준·주문 경로 무변경, 마이그레이션 없음. 시험 N16InvalidPriceReproTest 9건(④ 미래 시각은 현재 동작 기록 — 정책 판단 대기).
+|/  
+* fe01207 N13 HOLD 기준선 두 질의 SQL 후보 — 운영 6995c52 기점, NOT EXISTS 안쪽만 "평가된 (coin_pair, 정시) DISTINCT 집합" 과의 등식 대조로 바꿈(범위 두 조건 → 두 키 결합). 바깥 선택 조건·DISTINCT ON·ORDER BY·LIMIT·e 조건(HOLD·같은 코인·평가됨만)·서비스·트랜잭션·예산·주기 무변경, 마이그레이션·인덱스 없음.
+
+fe01207 대비 운영 코드:
+ .../com/cryptoautotrader/api/dto/OrderRequest.java |  6 +++
+ .../api/service/CapitalReservationService.java     | 54 +++++++++++++++++++
+ .../api/service/DynamicTradingService.java         | 34 ++++++++++--
+ .../cryptoautotrader/api/service/EntryClock.java   | 28 ++++++++++
+ .../api/service/EntryPriorityRounds.java           | 61 +++++++++++++++++++---
+ .../api/service/LiveTradingService.java            | 31 ++++++++---
+ .../api/service/MarkPriceBook.java                 | 44 +++++++++++++---
+ .../api/service/OrderExecutionEngine.java          | 32 +++++++++++-
+ 8 files changed, 264 insertions(+), 26 deletions(-)
+
+fe01207 대비 전체 변경 경로:
+M	web-api/src/main/java/com/cryptoautotrader/api/dto/OrderRequest.java
+M	web-api/src/main/java/com/cryptoautotrader/api/service/CapitalReservationService.java
+M	web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
+A	web-api/src/main/java/com/cryptoautotrader/api/service/EntryClock.java
+M	web-api/src/main/java/com/cryptoautotrader/api/service/EntryPriorityRounds.java
+M	web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
+M	web-api/src/main/java/com/cryptoautotrader/api/service/MarkPriceBook.java
+M	web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java
+A	web-api/src/test/java/com/cryptoautotrader/api/service/N15EntryExpiryTest.java
+A	web-api/src/test/java/com/cryptoautotrader/api/service/N15FinalApprovalBoundaryTest.java
+A	web-api/src/test/java/com/cryptoautotrader/api/service/N16InvalidPriceReproTest.java

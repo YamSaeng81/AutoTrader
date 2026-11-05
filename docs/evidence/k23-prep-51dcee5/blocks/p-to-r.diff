@@ -1,0 +1,325 @@
+1c1
+< **P 변수** — 🔴 새 셸마다 §5-8 **F 변수** → §5-9 의 **G 변수** → 이 블록 순서로 실행한다. F 변수가 `BTCIN`·`PSQL`·`DC`·`sc`·`svc` 를, G 변수가 `qc`·`zero5`·`alertsok`·`sid203`·`REPO`·`QS`·`POOLX`·`NOT404` 를 준다. 이 블록이 `M`·`OLD`·`NEW` 를 덮어쓴다. H~L 변수는 넣지 않는다.
+---
+> **R 변수** — 🔴 새 셸마다 §5-8 **F 변수** → §5-9 의 **G 변수** → 이 블록 순서로 실행한다. F 변수가 `BTCIN`·`PSQL`·`DC`·`sc`·`svc` 를, G 변수가 `qc`·`zero5`·`alertsok`·`sid203`·`REPO`·`QS`·`POOLX`·`NOT404` 를 준다. 이 블록이 `M`·`OLD`·`NEW` 를 덮어쓴다. H~P 변수는 넣지 않는다.
+3,5c3,5
+< M=~/maint-n13; mkdir -p "$M"; OPS=~/ops-scripts; PV=70   # v1.102(§5-9 69 블록·§70 판정) 판 표지 — P 블록 전부가 확인한다
+< OLD=6995c52259e3de4c7c922a32f9fb2aa9ddd49f00; NEW=fe01207f3f60e97e308925157f84a1bb2da04388
+< IMGOLD=sha256:67294e80ada31d346e36caeb01a2c259b6b5514357c804977ba1d20fba6aec07   # #21 배포 이미지(지금 실행 중, ~/maint-n12/image-new.txt)
+---
+> M=~/maint-n15n16; mkdir -p "$M"; OPS=~/ops-scripts; RV=79   # v1.111(§5-9 79 블록) 판 표지 — R 블록 전부가 확인한다
+> OLD=fe01207f3f60e97e308925157f84a1bb2da04388; NEW=51dcee530721c0ab23f3f6f875a15b9416b751a3
+> IMGOLD=sha256:9cb5d84f0bfde5208f24f591ad291dacabdfa691a0b2e1f057c4f8c3e1720fb7   # #22 배포 이미지(지금 실행 중, ~/maint-n13/image-new.txt)
+7a8
+> IMGPREV3=sha256:67294e80ada31d346e36caeb01a2c259b6b5514357c804977ba1d20fba6aec07   # #21 이미지 — 이전 복구 태그 autotrader-backend:6995c52 가 가리킨다(#22 R1 이 만듦, 보존, 바꾸지 않는다)
+13,17c14,53
+< DIFFN="$(printf '%s\n' web-api/src/main/java/com/cryptoautotrader/api/repository/StrategyLogRepository.java \
+<   web-api/src/test/java/com/cryptoautotrader/api/n13/HoldBaselineLoopPgTest.java \
+<   web-api/src/test/java/com/cryptoautotrader/api/n13/HoldBaselinePgSupport.java \
+<   web-api/src/test/java/com/cryptoautotrader/api/n13/HoldBaselineSqlEquivalencePgTest.java)"
+< PARX="$(printf '%s\n' '변경 BOOT-INF/classes/com/cryptoautotrader/api/repository/StrategyLogRepository.class')"   # 실제 bootJar 대조(v1.101) — #21 기대값을 옮기지 않고 6995c52·fe01207 jar 에서 새로 셈
+---
+> DIFFN="$(printf '%s\n' web-api/src/main/java/com/cryptoautotrader/api/dto/OrderRequest.java \
+>   web-api/src/main/java/com/cryptoautotrader/api/service/CapitalReservationService.java \
+>   web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java \
+>   web-api/src/main/java/com/cryptoautotrader/api/service/EntryClock.java \
+>   web-api/src/main/java/com/cryptoautotrader/api/service/EntryPriorityRounds.java \
+>   web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java \
+>   web-api/src/main/java/com/cryptoautotrader/api/service/MarkPriceBook.java \
+>   web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java \
+>   web-api/src/test/java/com/cryptoautotrader/api/service/N15EntryExpiryTest.java \
+>   web-api/src/test/java/com/cryptoautotrader/api/service/N15FinalApprovalBoundaryTest.java \
+>   web-api/src/test/java/com/cryptoautotrader/api/service/N16InvalidPriceReproTest.java)"
+> RARX="$(printf '%s\n' '변경 BOOT-INF/classes/com/cryptoautotrader/api/dto/OrderRequest.class' \
+>   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/CapitalReservationService$Decision.class' \
+>   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/CapitalReservationService.class' \
+>   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$1.class' \
+>   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$2.class' \
+>   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$3.class' \
+>   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$BlackSwanGateDecision.class' \
+>   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$EmptyPositionOutcome.class' \
+>   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService.class' \
+>   '추가 BOOT-INF/classes/com/cryptoautotrader/api/service/EntryClock.class' \
+>   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/EntryPriorityRounds$Candidate.class' \
+>   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/EntryPriorityRounds$Outcome.class' \
+>   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/EntryPriorityRounds$RoundKey.class' \
+>   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/EntryPriorityRounds.class' \
+>   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$1.class' \
+>   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$EmptyPositionOutcome.class' \
+>   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$PriceSnapshot.class' \
+>   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService.class' \
+>   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/MarkPriceBook$BookQuote.class' \
+>   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/MarkPriceBook$Mark.class' \
+>   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/MarkPriceBook.class' \
+>   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$3.class' \
+>   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$4.class' \
+>   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$5.class' \
+>   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$CancelOutcome.class' \
+>   '추가 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$IntentExpired.class' \
+>   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$ReservationRejected.class' \
+>   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$SubmitRejection.class' \
+>   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine.class')"   # 실제 bootJar 대조(v1.111) — #22 기대값을 옮기지 않고 fe01207·51dcee5 jar 에서 새로 셈
+241a278,330
+> # N15·N16 줄 관측(v1.111). 인자: 앱 로그. 출력은 로그 머리 시각·엔진 종류·건수만(코인·세션 id·가격·사유 본문은 내지 않는다).
+> # 자연 발생만 본다 — 가격 이상·만료를 유도하지 않는다. 0건이면 "미관측" 이고 실패가 아니다.
+> # 종료 1 = 🔴 만료 사유 기록 실패 줄 있음(원래 신호에 사유가 남지 않았을 수 있다), 3 = ⚪ 인자 오류, 0 = 그 밖(관측·미관측 모두)
+> entryobs() { python3 - "$@" <<'PYEOF'
+> import re, sys
+> if len(sys.argv) != 2:
+>     print("⚪ entryobs 인자는 1개(앱 로그)"); sys.exit(3)
+> PRE = re.compile(r"^[A-Za-z0-9_.-]+-\d+\s+\| ?")
+> HEAD = re.compile(r"^(\d\d:\d\d:\d\d\.\d{3}) \[([^\]]*)\]")
+> CAT = [
+>     ("콜백 전 만료", re.compile(r"\[진입 우선순위\] \d+위 \S+ (LIVE|DYNAMIC)#\d+ → 승인 실행 만료\(")),
+>     ("의도 직전 만료", re.compile(r"의도 저장 직전 승인 실행 만료 — 매수 의도를 만들지 않는다 \(sessionKind=(LIVE|DYNAMIC),")),
+>     ("예약·의도 경계 거절", re.compile(r"(매수 예약이 거절돼 롤백했다|\[Dynamic\] 매수 예약 거절) \(.*사유=ENTRY_EXPIRED\)")),
+>     ("만료 사유 기록 실패", re.compile(r"\[진입 우선순위\] 만료 사유 기록 실패")),
+>     ("가격 아님 무시", re.compile(r"(\[Dynamic\] )?가격이 아닌 실시간 시세 무시: ")),
+> ]
+> def kind(name, m, line):
+>     if name == "예약·의도 경계 거절":
+>         return "DYNAMIC" if m.group(1).startswith("[Dynamic]") else "LIVE"
+>     if name == "가격 아님 무시":
+>         return "DYNAMIC" if m.group(1) else "LIVE"
+>     if name == "만료 사유 기록 실패":
+>         return "-"
+>     return m.group(1)
+> seen = {c[0]: [] for c in CAT}
+> for raw in open(sys.argv[1], encoding="utf-8", errors="replace"):
+>     r = PRE.sub("", raw.rstrip("\r\n"))
+>     h = HEAD.match(r)
+>     if not h:
+>         continue
+>     for name, pat in CAT:
+>         m = pat.search(r)
+>         if m:
+>             seen[name].append((h.group(1), kind(name, m, r)))
+>             break
+> cnt = lambda n, k: sum(1 for _, x in seen[n] if x == k)
+> n15 = sum(len(seen[n]) for n in ("콜백 전 만료", "의도 직전 만료", "예약·의도 경계 거절", "만료 사유 기록 실패"))
+> print("N15 승인 실행 만료 — 콜백 전 LIVE %d·DYNAMIC %d · 예약·의도 경계 거절(ENTRY_EXPIRED) LIVE %d·DYNAMIC %d(그중 의도 직전 LIVE %d·DYNAMIC %d) · 만료 사유 기록 실패 %d" % (
+>     cnt("콜백 전 만료", "LIVE"), cnt("콜백 전 만료", "DYNAMIC"), cnt("예약·의도 경계 거절", "LIVE"), cnt("예약·의도 경계 거절", "DYNAMIC"),
+>     cnt("의도 직전 만료", "LIVE"), cnt("의도 직전 만료", "DYNAMIC"), len(seen["만료 사유 기록 실패"])))
+> print("N16 가격이 아닌 실시간 시세 무시 — LIVE %d·DYNAMIC %d" % (cnt("가격 아님 무시", "LIVE"), cnt("가격 아님 무시", "DYNAMIC")))
+> for name, _ in CAT:
+>     for t, k in seen[name][:20]:
+>         print("  · %s%s %s %s" % ("🔴 " if name == "만료 사유 기록 실패" else "", name, t, k))
+>     if len(seen[name]) > 20:
+>         print("  · %s 그 밖 %d건(목록 생략)" % (name, len(seen[name]) - 20))
+> if not n15:
+>     print("N15: 미관측 — 이 구간에 자연 발생한 승인 실행 만료 없음(유도하지 않는다)")
+> if not seen["가격 아님 무시"]:
+>     print("N16: 미관측 — 이 구간에 자연 발생한 가격 아닌 실시간 시세 없음(유도하지 않는다)")
+> sys.exit(1 if seen["만료 사유 기록 실패"] else 0)
+> PYEOF
+> }
+244c333
+< **P0. ⏸ 직전 확인 — 읽기 전용, 재기동 없음** (총괄 실행 판단 뒤)
+---
+> **R0. ⏸ 직전 확인 — 읽기 전용, 재기동 없음** (총괄 실행 판단 뒤)
+249,250c338,339
+< [ "$M" = "$HOME/maint-n13" ] && [ "${PV:-}" = 70 ] && [ "$NEW" = fe01207f3f60e97e308925157f84a1bb2da04388 ] && [ -n "${BTCIN:-}" ] && type sid203 > /dev/null 2>&1 && type newsobs > /dev/null 2>&1 && type httpobs > /dev/null 2>&1 && type holdobs > /dev/null 2>&1 || stop "변수 순서 — F 변수 → G 변수 → §5-9 69 P 변수"
+< [ ! -e "$M/ok-P1" ] || stop "P1 을 이미 시작했다 — P0 를 다시 하지 않는다. ls -l $M 를 보고"
+---
+> [ "$M" = "$HOME/maint-n15n16" ] && [ "${RV:-}" = 79 ] && [ "$NEW" = 51dcee530721c0ab23f3f6f875a15b9416b751a3 ] && [ -n "${BTCIN:-}" ] && type sid203 > /dev/null 2>&1 && type newsobs > /dev/null 2>&1 && type httpobs > /dev/null 2>&1 && type holdobs > /dev/null 2>&1 && type entryobs > /dev/null 2>&1 || stop "변수 순서 — F 변수 → G 변수 → §5-9 79 R 변수"
+> [ ! -e "$M/ok-R1" ] || stop "R1 을 이미 시작했다 — R0 를 다시 하지 않는다. ls -l $M 를 보고"
+252c341
+< [ "$(git rev-parse HEAD)" = "$OLD" ] && [ -z "$(git status --porcelain --untracked-files=no)" ] || stop "HEAD 가 6995c52 가 아니거나 추적 파일 변경 있음"
+---
+> [ "$(git rev-parse HEAD)" = "$OLD" ] && [ -z "$(git status --porcelain --untracked-files=no)" ] || stop "HEAD 가 fe01207 가 아니거나 추적 파일 변경 있음"
+256,258c345,347
+< git cat-file -e "$NEW^{commit}" || stop "후보 fe01207 없음"
+< git merge-base --is-ancestor $OLD $NEW || stop "6995c52 가 후보의 조상이 아님"
+< [ "$(git diff --name-only $OLD $NEW)" = "$DIFFN" ] || stop "diff 가 정확히 N13 4개 파일이 아님(마이그레이션 포함 금지)"
+---
+> git cat-file -e "$NEW^{commit}" || stop "후보 51dcee5 없음"
+> git merge-base --is-ancestor $OLD $NEW || stop "fe01207 가 후보의 조상이 아님"
+> [ "$(git diff --name-only $OLD $NEW)" = "$DIFFN" ] || stop "diff 가 정확히 N15·N16 11개 파일이 아님(마이그레이션·설정 포함 금지)"
+261c350
+< [ "$IMG0" = "$IMGOLD" ] && [ "$IMGOLD" = "$(cat ~/maint-n12/image-new.txt)" ] || stop "실행 이미지가 #21 배포 이미지(67294e80…)와 다름"
+---
+> [ "$IMG0" = "$IMGOLD" ] && [ "$IMGOLD" = "$(cat ~/maint-n13/image-new.txt)" ] || stop "실행 이미지가 #22 배포 이미지(9cb5d84f…)와 다름"
+263a353
+> [ "$(docker image inspect --format '{{.Id}}' $REPO:6995c52)" = "$IMGPREV3" ] || stop "이전 복구 태그 $REPO:6995c52 이 #21 이미지(67294e80…)가 아님 — 보고"
+275c365
+< [ "$(cat "$OPS/INSTALLED_SHA")" = "$CK" ] && [ "$(h256 "$OPS/daily_check.sh")" = "$CKSH" ] && [ "$(h256 "$OPS/daily_checks.sql")" = "$CKSQL" ] || stop "정기 점검 설치본이 c669ccd 판이 아님(N14 먼저 설치)"
+---
+> [ "$(cat "$OPS/INSTALLED_SHA")" = "$CK" ] && [ "$(h256 "$OPS/daily_check.sh")" = "$CKSH" ] && [ "$(h256 "$OPS/daily_checks.sql")" = "$CKSQL" ] || stop "정기 점검 설치본이 c669ccd 판이 아님"
+296c386,388
+< echo "== 배포 전 기준선: HOLD 질의 장기 대여(holdobs 종료 $HD — 6995c52 는 HOLD 경고가 있으므로 3 이어도 멈추지 않는다, 기록만)"; cat "$M/hold-before.txt"
+---
+> echo "== 배포 전 기준선: HOLD 질의 장기 대여(holdobs 종료 $HD — 3 이어도 멈추지 않는다, 기록만)"; cat "$M/hold-before.txt"
+> entryobs "$M/backend-before.log" > "$M/entry-before.txt" && ED=0 || ED=$?
+> echo "== 배포 전 기준선: N15·N16 줄(entryobs 종료 $ED — fe01207 에는 이 줄들이 없으므로 미관측이 기대, 기록만)"; cat "$M/entry-before.txt"
+301c393
+< touch "$M/ok-P0"; echo "✅ P0 통과 — 30분 안에 P1"
+---
+> touch "$M/ok-R0"; echo "✅ R0 통과 — 30분 안에 R1"
+305c397
+< **P1. 새 이미지 빌드와 jar 대조 — 재기동 없음**
+---
+> **R1. 새 이미지 빌드와 jar 대조 — 재기동 없음**
+310,313c402,405
+< [ "${PV:-}" = 70 ] || stop "P 변수가 v1.102(§5-9 69 블록·§70 판정) 판이 아님 — F → G → §5-9 69 P 변수"
+< [ -e "$M/ok-P0" ] || stop "P0 미통과"
+< [ ! -e "$M/ok-P1" ] || stop "P1 을 이미 통과했다 — 바로 P2"
+< [ $(( $(date +%s) - $(stat -c %Y "$M/ok-P0") )) -le 1800 ] || stop "P0 가 30분보다 오래됨 — P0 부터(아직 바꾼 것 없음, P1-되돌림 하지 않는다)"
+---
+> [ "${RV:-}" = 79 ] || stop "R 변수가 v1.111(§5-9 79 블록) 판이 아님 — F → G → §5-9 79 R 변수"
+> [ -e "$M/ok-R0" ] || stop "R0 미통과"
+> [ ! -e "$M/ok-R1" ] || stop "R1 을 이미 통과했다 — 바로 R2"
+> [ $(( $(date +%s) - $(stat -c %Y "$M/ok-R0") )) -le 1800 ] || stop "R0 가 30분보다 오래됨 — R0 부터(아직 바꾼 것 없음, R1-되돌림 하지 않는다)"
+315,317c407,409
+< if docker image inspect $REPO:6995c52 > /dev/null 2>&1; then [ "$(docker image inspect --format '{{.Id}}' $REPO:6995c52)" = "$IMG0" ] || stop "$REPO:6995c52 태그가 이미 다른 이미지를 가리킨다(HEAD·latest 그대로, P1-되돌림 하지 않는다)"; fi
+< docker tag "$IMG0" $REPO:6995c52
+< [ "$(docker image inspect --format '{{.Id}}' $REPO:6995c52)" = "$IMG0" ] || stop "기존 이미지 보존 태그 실패(HEAD·latest 그대로, P1-되돌림 하지 않는다)"
+---
+> if docker image inspect $REPO:fe01207 > /dev/null 2>&1; then [ "$(docker image inspect --format '{{.Id}}' $REPO:fe01207)" = "$IMG0" ] || stop "$REPO:fe01207 태그가 이미 다른 이미지를 가리킨다(HEAD·latest 그대로, R1-되돌림 하지 않는다)"; fi
+> docker tag "$IMG0" $REPO:fe01207
+> [ "$(docker image inspect --format '{{.Id}}' $REPO:fe01207)" = "$IMG0" ] || stop "기존 이미지 보존 태그 실패(HEAD·latest 그대로, R1-되돌림 하지 않는다)"
+319c411
+< [ "$(git rev-parse HEAD)" = "$NEW" ] && [ -z "$(git status --porcelain --untracked-files=no)" ] || stop "체크아웃 결과가 NEW 가 아니거나 변경 있음 — P1-되돌림"
+---
+> [ "$(git rev-parse HEAD)" = "$NEW" ] && [ -z "$(git status --porcelain --untracked-files=no)" ] || stop "체크아웃 결과가 NEW 가 아니거나 변경 있음 — R1-되돌림"
+321c413
+< $DC build backend > "$M/build.log" 2>&1 || stop "빌드 실패 — build.log 를 보고. P1-되돌림"
+---
+> $DC build backend > "$M/build.log" 2>&1 || stop "빌드 실패 — build.log 를 보고. R1-되돌림"
+323c415
+< [ "$IMG1" != "$IMG0" ] || stop "새 이미지가 만들어지지 않음 — P1-되돌림"
+---
+> [ "$IMG1" != "$IMG0" ] || stop "새 이미지가 만들어지지 않음 — R1-되돌림"
+352,354c444,446
+< [ "$(grep -v '^(끝)' "$M/jar-diff.txt")" = "$PARX" ] || stop "jar 차이가 N13 1줄이 아님 — jar-diff.txt 를 보고(재기동 전). P1-되돌림"
+< grep -qx '(끝) 879 879' "$M/jar-diff.txt" || stop "항목 수가 879 → 879 가 아님 — jar-diff.txt 를 보고(재기동 전). P1-되돌림"
+< touch "$M/ok-P1"; echo "✅ P1 통과 — ⏸ 운영자 확인 1회 뒤 P2"
+---
+> [ "$(grep -v '^(끝)' "$M/jar-diff.txt")" = "$RARX" ] || stop "jar 차이가 N15·N16 29줄이 아님 — jar-diff.txt 를 보고(재기동 전). R1-되돌림"
+> grep -qx '(끝) 879 881' "$M/jar-diff.txt" || stop "항목 수가 879 → 881 가 아님 — jar-diff.txt 를 보고(재기동 전). R1-되돌림"
+> touch "$M/ok-R1"; echo "✅ R1 통과 — ⏸ 운영자 확인 1회 뒤 R2"
+358c450
+< - **P1-되돌림**: 멈춤 문구에 "P1-되돌림" 이 있을 때만 한다(`git checkout` 뒤). `git checkout --quiet $OLD; docker tag "$(cat "$M/image-before.txt")" $REPO:latest; git rev-parse HEAD; docker image inspect --format '{{.Id}}' $REPO:latest` → `6995c522…`·`image-before.txt` 와 같은 ID. 재기동하지 않는다. 그 밖의 P1 멈춤은 출력만 보고한다. 보존 태그 `autotrader-backend:6995c52` 는 지금 이미지를 가리키므로 남겨 둔다.
+---
+> - **R1-되돌림**: 멈춤 문구에 "R1-되돌림" 이 있을 때만 한다(`git checkout` 뒤). `git checkout --quiet $OLD; docker tag "$(cat "$M/image-before.txt")" $REPO:latest; git rev-parse HEAD; docker image inspect --format '{{.Id}}' $REPO:latest` → `fe01207f…`·`image-before.txt` 와 같은 ID. 재기동하지 않는다. 그 밖의 R1 멈춤은 출력만 보고한다. 보존 태그 `autotrader-backend:fe01207` 는 지금 이미지를 가리키므로 남겨 둔다.
+360c452
+< **P2. 재기동 (개입 #22) — P1 통과 뒤** (⏸ 바로 앞에서 운영자 확인을 한 번 받는다)
+---
+> **R2. 재기동 (개입 #23) — R1 통과 뒤** (⏸ 바로 앞에서 운영자 확인을 한 번 받는다)
+365,367c457,459
+< [ "${PV:-}" = 70 ] || stop "P 변수가 v1.102(§5-9 69 블록·§70 판정) 판이 아님 — F → G → §5-9 69 P 변수"
+< [ -e "$M/ok-P1" ] || stop "P1 미통과"
+< [ ! -e "$M/ok-P2" ] || stop "P2 를 이미 했다 — P3"
+---
+> [ "${RV:-}" = 79 ] || stop "R 변수가 v1.111(§5-9 79 블록) 판이 아님 — F → G → §5-9 79 R 변수"
+> [ -e "$M/ok-R1" ] || stop "R1 미통과"
+> [ ! -e "$M/ok-R2" ] || stop "R2 를 이미 했다 — R3"
+382c474
+< touch "$M/ok-P2"; echo "✅ P2 통과 — 5~10분 뒤 P3"
+---
+> touch "$M/ok-R2"; echo "✅ R2 통과 — 5~10분 뒤 R3"
+386c478
+< **P3. 기동·뉴스·HTTP 줄·HOLD 질의 확인 — P2 5~10분 뒤** (되돌림 뒤에도 같은 묶음을 쓴다. `t-rollback.utc` 가 있으면 그 시각과 기존 이미지로 보고, BTC·뉴스·HTTP 줄은 기록만 한다)
+---
+> **R3. 기동·뉴스·HTTP 줄·HOLD 질의·N15/N16 줄 확인 — R2 5~10분 뒤** (되돌림 뒤에도 같은 묶음을 쓴다. `t-rollback.utc` 가 있으면 그 시각과 기존 이미지로 보고, BTC·뉴스·HTTP 줄은 기록만 한다)
+391,393c483,485
+< [ "${PV:-}" = 70 ] || stop "P 변수가 v1.102(§5-9 69 블록·§70 판정) 판이 아님 — F → G → §5-9 69 P 변수"
+< if [ -e "$M/t-rollback.utc" ]; then S=$(cat "$M/t-rollback.utc"); EXP=$(cat "$M/image-before.txt"); T=rollback; else [ -e "$M/ok-P2" ] || stop "P2 미통과"; S=$(cat "$M/t-deploy.utc"); EXP=$(cat "$M/image-new.txt"); T=deploy; fi
+< [ $(( $(date +%s) - $(date -d "$S" +%s) )) -ge 300 ] || stop "기동 5분 전 — 5분이 지난 뒤 P3"
+---
+> [ "${RV:-}" = 79 ] || stop "R 변수가 v1.111(§5-9 79 블록) 판이 아님 — F → G → §5-9 79 R 변수"
+> if [ -e "$M/t-rollback.utc" ]; then S=$(cat "$M/t-rollback.utc"); EXP=$(cat "$M/image-before.txt"); T=rollback; else [ -e "$M/ok-R2" ] || stop "R2 미통과"; S=$(cat "$M/t-deploy.utc"); EXP=$(cat "$M/image-new.txt"); T=deploy; fi
+> [ $(( $(date +%s) - $(date -d "$S" +%s) )) -ge 300 ] || stop "기동 5분 전 — 5분이 지난 뒤 R3"
+396c488
+< $PSQL -At -c "$NEWSCFG" > "$M/news-$T.txt" || stop "뉴스 설정 조회 실패 — 1분 뒤 P3 를 다시"
+---
+> $PSQL -At -c "$NEWSCFG" > "$M/news-$T.txt" || stop "뉴스 설정 조회 실패 — 1분 뒤 R3 를 다시"
+420c512
+< $PSQL -At -c "$BTCIN" > "$M/btc-$T.txt" || stop "BTC 입력 조회 실패 — 1분 뒤 P3 를 다시"
+---
+> $PSQL -At -c "$BTCIN" > "$M/btc-$T.txt" || stop "BTC 입력 조회 실패 — 1분 뒤 R3 를 다시"
+422c514
+< if [ "$T" = deploy ]; then btcok "$M/btc-$T.txt" || stop "BTC 입력 미충족 — 바로 되돌리지 말고 위 출력을 보고(재기동 없이 P3 만 5분 뒤 한 번 다시)"; fi
+---
+> if [ "$T" = deploy ]; then btcok "$M/btc-$T.txt" || stop "BTC 입력 미충족 — 바로 되돌리지 말고 위 출력을 보고(재기동 없이 R3 만 5분 뒤 한 번 다시)"; fi
+432c524
+< [ "$HQ" != 1 ] || stop "🔴 P0 — 연결 획득 시간 초과 줄이 있다. 즉시 보고(되돌림 여부는 총괄 판단, P 되돌림 블록 준비됨)"
+---
+> [ "$HQ" != 1 ] || stop "🔴 P0 — 연결 획득 시간 초과 줄이 있다. 즉시 보고(되돌림 여부는 총괄 판단, R 되돌림 블록 준비됨)"
+434,435c526,530
+< touch "$M/ok-P3-$T"
+< if [ "$T" = deploy ]; then echo "✅ P3(deploy) 통과 — 기동 30분 뒤 P4"; else echo "✅ P3(rollback) 통과 — 6995c52 복귀 확인. P4 는 하지 않고 출력을 보고"; fi
+---
+> echo "== N15·N16 줄(기동 뒤 로그 · 자연 발생만, 미관측이면 그대로 기록)"
+> entryobs "$M/app-$T.log" | tee "$M/entryobs-$T.txt" && EQ=0 || EQ=$?
+> [ "$EQ" = 0 ] || [ "$T" = rollback ] || stop "🔴 N15 만료 사유 기록 실패 줄(종료 $EQ) — 바로 되돌리지 말고 위 출력과 원문 줄을 보고"
+> touch "$M/ok-R3-$T"
+> if [ "$T" = deploy ]; then echo "✅ R3(deploy) 통과 — 기동 30분 뒤 R4"; else echo "✅ R3(rollback) 통과 — fe01207 복귀 확인. R4 는 하지 않고 출력을 보고"; fi
+439c534
+< **P4. 30분 재점검 — 기동 30분 뒤**
+---
+> **R4. 30분 재점검 — 기동 30분 뒤**
+444,445c539,540
+< [ "${PV:-}" = 70 ] || stop "P 변수가 v1.102(§5-9 69 블록·§70 판정) 판이 아님 — F → G → §5-9 69 P 변수"
+< [ -e "$M/ok-P3-deploy" ] || stop "P3 미통과"
+---
+> [ "${RV:-}" = 79 ] || stop "R 변수가 v1.111(§5-9 79 블록) 판이 아님 — F → G → §5-9 79 R 변수"
+> [ -e "$M/ok-R3-deploy" ] || stop "R3 미통과"
+450c545
+< $PSQL -At -c "$NEWSCFG" > "$M/news-after30.txt" || stop "뉴스 설정 조회 실패 — 1분 뒤 P4 를 다시"
+---
+> $PSQL -At -c "$NEWSCFG" > "$M/news-after30.txt" || stop "뉴스 설정 조회 실패 — 1분 뒤 R4 를 다시"
+474c569
+< crontab -l | cmp -s - "$M/crontab-before.txt" || stop "cron 이 P0 때와 다름 — crontab -l 을 보고"
+---
+> crontab -l | cmp -s - "$M/crontab-before.txt" || stop "cron 이 R0 때와 다름 — crontab -l 을 보고"
+476,477c571,572
+< $PSQL -At -c "$BTCIN" > "$M/btc-after30.txt" || stop "BTC 입력 조회 실패 — 1분 뒤 P4 를 다시"
+< echo "== BTC H1 P3 $(cat "$M/btc-deploy.txt") · 지금 $(cat "$M/btc-after30.txt")"
+---
+> $PSQL -At -c "$BTCIN" > "$M/btc-after30.txt" || stop "BTC 입력 조회 실패 — 1분 뒤 R4 를 다시"
+> echo "== BTC H1 R3 $(cat "$M/btc-deploy.txt") · 지금 $(cat "$M/btc-after30.txt")"
+488c583
+< [ "$HQ" != 1 ] || stop "🔴 P0 — 연결 획득 시간 초과 줄이 있다. 즉시 보고(되돌림 여부는 총괄 판단, P 되돌림 블록 준비됨)"
+---
+> [ "$HQ" != 1 ] || stop "🔴 P0 — 연결 획득 시간 초과 줄이 있다. 즉시 보고(되돌림 여부는 총괄 판단, R 되돌림 블록 준비됨)"
+490a586,588
+> echo "== N15·N16 줄(기동 뒤 30분 로그 · 자연 발생만)"
+> entryobs "$M/app-after30.log" | tee "$M/entryobs-after30.txt" && EQ=0 || EQ=$?
+> [ "$EQ" = 0 ] || stop "🔴 N15 만료 사유 기록 실패 줄(종료 $EQ) — 바로 되돌리지 말고 위 출력과 원문 줄을 보고"
+496c594
+< touch "$M/ok-P4"; echo "✅ P4 통과 — P0~P4 출력을 보고(F 변수·F1 은 총괄 판단 뒤 개발 에이전트가 갱신)"
+---
+> touch "$M/ok-R4"; echo "✅ R4 통과 — R0~R4 출력을 보고(F 변수·F1 은 총괄 판단 뒤 개발 에이전트가 갱신)"
+499a598,599
+> grep -q "^N15: 미관측" "$M/entryobs-after30.txt" && echo "⚪ N15 만료 미관측 — 운영 반영은 HEAD·이미지·jar 로만 확인, 동작 관측은 미관측으로 보고(유도하지 않는다)" || true
+> grep -q "^N16: 미관측" "$M/entryobs-after30.txt" && echo "⚪ N16 가격 아닌 시세 미관측 — 동작 관측은 미관측으로 보고(유도하지 않는다). 미래 관측 시각 보정은 로그 줄이 없어 이 함수로 보지 않는다" || true
+503c603
+< **P 뒤 관측(뉴스·HTTP 줄·HOLD 질의) — 읽기 전용, 반복 가능** (P4 통과 뒤 다음 정기 보고 무렵 등. 수집 API·강제 재시도·주기 변경 없이 기존 주기의 로그만 읽는다)
+---
+> **R 뒤 관측(뉴스·HTTP 줄·HOLD 질의·N15/N16 줄) — 읽기 전용, 반복 가능** (R4 통과 뒤 다음 정기 보고 무렵 등. 수집 API·강제 재시도·주기 변경 없이 기존 주기의 로그만 읽는다)
+508,509c608,609
+< [ "${PV:-}" = 70 ] || stop "P 변수가 v1.102(§5-9 69 블록·§70 판정) 판이 아님 — F → G → §5-9 69 P 변수"
+< [ -e "$M/ok-P4" ] || stop "P4 미통과"
+---
+> [ "${RV:-}" = 79 ] || stop "R 변수가 v1.111(§5-9 79 블록) 판이 아님 — F → G → §5-9 79 R 변수"
+> [ -e "$M/ok-R4" ] || stop "R4 미통과"
+524a625,627
+> echo "== 기동 뒤 N15·N16 줄(자연 발생만)"
+> entryobs "$M/app-news-$TS.log" | tee "$M/entryobs-$TS.txt" && EQ=0 || EQ=$?
+> case "$EQ" in 0) ;; *) echo "🔴 N15 만료 사유 기록 실패 줄(종료 $EQ) — 위 출력과 원문 줄을 보고" ;; esac
+528c631
+< **P 되돌림 — backend (P2~P4 의 "되돌림 필요" 때, 또는 총괄 지시 뒤)** (DB 마이그레이션·장부 변경이 없으므로 데이터 작업은 없다. 구판으로 돌아가면 HOLD 질의 장기 대여는 다시 생길 수 있다)
+---
+> **R 되돌림 — backend (R2~R4 의 "되돌림 필요" 때, 또는 총괄 지시 뒤)** (DB 마이그레이션·장부 변경이 없으므로 데이터 작업은 없다. 구판으로 돌아가면 N15 승인 실행 만료와 N16 가격·관측 시각 방어가 다시 없어진다. 이미 커밋된 의도·주문은 기존 추적·정산 경로가 처리한다)
+533,534c636,637
+< [ "${PV:-}" = 70 ] || stop "P 변수가 v1.102(§5-9 69 블록·§70 판정) 판이 아님 — F → G → §5-9 69 P 변수"
+< IMG0=$(cat "$M/image-before.txt"); [ "$IMG0" = "$IMGOLD" ] || stop "image-before 가 #21 이미지(67294e80…)가 아님"
+---
+> [ "${RV:-}" = 79 ] || stop "R 변수가 v1.111(§5-9 79 블록) 판이 아님 — F → G → §5-9 79 R 변수"
+> IMG0=$(cat "$M/image-before.txt"); [ "$IMG0" = "$IMGOLD" ] || stop "image-before 가 #22 이미지(9cb5d84f…)가 아님"
+544c647
+< echo "✅ 6995c52 (67294e80…) 로 복귀 — 5분 뒤 P3 를 다시 실행(t-rollback.utc 기준으로 자동 전환, BTC·뉴스·HTTP 줄·HOLD 질의는 기록만)"
+---
+> echo "✅ fe01207 (9cb5d84f…) 로 복귀 — 5분 뒤 R3 를 다시 실행(t-rollback.utc 기준으로 자동 전환, BTC·뉴스·HTTP 줄·HOLD 질의·N15/N16 줄은 기록만)"
+547d649
+< 

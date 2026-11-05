@@ -1,0 +1,5 @@
+backend-1  | 07:40:00.000 [main] INFO  c.c.a.CryptoAutoTraderApplication - Started CryptoAutoTraderApplication
+backend-1  | 07:45:00.000 [scheduling-1] INFO  c.c.api.service.EntryPriorityRounds - [진입 우선순위] 1위 KRW-BTC LIVE#7 → 진입
+backend-1  | 14:27:38.782 [market-data-1] WARN  c.c.api.service.LiveTradingService - 가격이 아닌 실시간 시세 무시: KRW-N16L6 0 관측 2026-11-05T05:27:38.782658800Z 출처 WS_TRADE
+backend-1  | 14:27:39.026 [market-data-1] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 가격이 아닌 실시간 시세 무시: KRW-N16D8 0 관측 2026-11-05T05:27:39.026526200Z 출처 WS_TRADE
+backend-1  | 	at com.cryptoautotrader.api.service.LiveTradingService.onPrice(LiveTradingService.java:1)

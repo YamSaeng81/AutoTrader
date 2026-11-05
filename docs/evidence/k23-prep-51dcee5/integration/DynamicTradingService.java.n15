@@ -1,0 +1,26 @@
++        return approveQueuedEntry(sid, coinPair, evalCandles, signal, sizeMultiplier, signalLog, null);
++    }
++
++    /** @param entryExpiresAt 승인 실행 만료(N15) — 계좌 잠금 안 예약 직전에 다시 본다. {@code null} 이면 보지 않는다. */
++    @Transactional
++    public String approveQueuedEntry(Long sid, String coinPair, List<Candle> evalCandles, StrategySignal signal,
++                                     BigDecimal sizeMultiplier, StrategyLogEntity signalLog, Instant entryExpiresAt) {
+-                result = executeBuy(fresh, coinPair, evalCandles, signal, sizeMultiplier);
++                result = executeBuy(fresh, coinPair, evalCandles, signal, sizeMultiplier, entryExpiresAt);
++            EntryPriorityRounds.RoundKey roundKey = new EntryPriorityRounds.RoundKey(session.getTimeframe(), candleOpen);
++            Instant expiresAt = EntryPriorityRounds.expiry(roundKey);
+-                    "DYNAMIC", sid, best.coinPair(),
+-                    new EntryPriorityRounds.RoundKey(session.getTimeframe(), candleOpen),
++                    "DYNAMIC", sid, best.coinPair(), roundKey,
+-                            best.sizeMultiplier(), best.signalLog())),
++                            best.sizeMultiplier(), best.signalLog(), expiresAt),
++                    expired -> updateSignalQuality(best.signalLog(), false, expired)),
++        return executeBuy(session, coinPair, evalCandles, signal, sizeMultiplier, null);
++    }
++
++    /** @param entryExpiresAt 회차 승인의 실행 만료(N15) — 실자금 예약 경계가 잠금 안에서 다시 본다. 즉시 진입은 {@code null}. */
++    @Transactional
++    public String executeBuy(DynamicSessionEntity session, String coinPair,
++                            List<Candle> evalCandles, StrategySignal signal, BigDecimal sizeMultiplier,
++                            Instant entryExpiresAt) {
++        order.setEntryExpiresAt(entryExpiresAt);   // N15 — 잠금 안 예약 직전 만료 재검사

@@ -1,0 +1,18 @@
+PASS 판 표지 RV=79·M=~/maint-n15n16
+PASS OLD fe01207·NEW 51dcee5
+PASS IMGOLD = #22 이미지 9cb5d84f…
+PASS 이전 복구 태그 세 이미지(ea44900·b1d7664·6995c52)
+PASS DIFFN = git diff --name-only fe01207 51dcee5(11개)
+PASS 변경 경로가 모두 .java(마이그레이션·설정·의존성 없음)
+PASS RARX = 실제 jar 비교 출력(끝 줄 제외, 29줄)
+PASS jar 비교 끝 줄 (끝) 879 881
+PASS 장부·점검(c669ccd)·cron 기준값 그대로
+PASS 관측 함수 넷 정의
+PASS entryobs 없음 — 종료 0·N15/N16 미관측(→ 진입 줄은 세지 않음)
+PASS entryobs N15 실제 줄 5개 — 범주·엔진별 건수
+PASS entryobs N16 실제 줄 2개 — LIVE·DYNAMIC 구분
+PASS entryobs 만료 사유 기록 실패 — 종료 1
+PASS entryobs CRLF·머리 없는 연속 줄 — 같은 건수
+PASS entryobs 인자 없음 — ⚪ 종료 3
+PASS 출력에 코인·세션 id·가격·사유 본문 없음
+== 17 통과 / 0 실패
