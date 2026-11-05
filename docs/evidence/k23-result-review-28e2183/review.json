@@ -1,0 +1,478 @@
+{
+  "reviewed_submission": "28e21831bdd2b40b4735924682fe9b93ccfad417",
+  "execution_source": "86c41e11f70c6cc44ccabe8e9bed5b2a5275d21b",
+  "submitted_manifest": [
+    {
+      "file": "./.gitattributes",
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "file": "./README.md",
+      "sha256": "b603ad6927732a61abb79b9601888fbaf36223fe4913a3d21ab783543115af38"
+    },
+    {
+      "file": "./blocks/F.sh",
+      "sha256": "09a110994328b1de5f5c75f412e71a261e9608ba32c2236285f3d8815f6b8c2a"
+    },
+    {
+      "file": "./blocks/G.sh",
+      "sha256": "4d7ff02a94194fc17e11ed062b4c0fdb80a395aa282c941e7b624be95851c822"
+    },
+    {
+      "file": "./blocks/R0.sh",
+      "sha256": "5402dd46cd36060839a746f6e94e36f880838984aae5424ce32fad3fc872f99b"
+    },
+    {
+      "file": "./blocks/R1.sh",
+      "sha256": "9320342224cb2a278ef798980a47a74de14480f941d1890af480884190888b22"
+    },
+    {
+      "file": "./blocks/R2.sh",
+      "sha256": "4abd80a7d71a7f48be11c2dbfcc1c0a05badb0e00369429656fb220b458b4cef"
+    },
+    {
+      "file": "./blocks/R3.sh",
+      "sha256": "a4aaa334ea56cabef839edfd0b5e8a104b77603ad9dff2d8db8dcb4f6a0bf7e8"
+    },
+    {
+      "file": "./blocks/R4.sh",
+      "sha256": "ee36b9ec11c92edd8f854051f8c1d21794c4cf3dabe26e05ddf524f771f482a8"
+    },
+    {
+      "file": "./blocks/R되돌림.sh",
+      "sha256": "045573744733e61a9479edeeb4f7304e68e82552d953a32246921f5f1eb1eb86"
+    },
+    {
+      "file": "./blocks/R뒤관측.sh",
+      "sha256": "c1a0ad3084e3b57f35acfe37dae91d31fd8b7a924f7d199bce790dbfae94edcf"
+    },
+    {
+      "file": "./blocks/R변수.sh",
+      "sha256": "8eeeb4d35afa6f57d5d752583705756557b9b4552a599b41481ddc6059e2a3ba"
+    },
+    {
+      "file": "./blocks/blocks.json",
+      "sha256": "7d0f3236a9a17db5f7ed5711f2f87718048d0982b081b0a4d7dcf76a5946c9e9"
+    },
+    {
+      "file": "./blocks/run.sh",
+      "sha256": "4b371aa0a7b12cb4a094f3b1a1d404b74e67df32251346437ee0983b2e0c0a1a"
+    },
+    {
+      "file": "./maint-n15n16/alerts-after30.txt",
+      "sha256": "9efaa0e7b26ddc1625caf322682a0a135d7212535f1cb68711c420370d197d39"
+    },
+    {
+      "file": "./maint-n15n16/alerts-before.txt",
+      "sha256": "f1204884549a1dc8e2ce8a144ef88996238c8d5e69fbf0a375cdeffaaf35e0ce"
+    },
+    {
+      "file": "./maint-n15n16/btc-after30.txt",
+      "sha256": "8bbd3078c2d27309a3c34b86ff5af8da815f33bba5bcb7ce7480222e9a84975c"
+    },
+    {
+      "file": "./maint-n15n16/btc-before.txt",
+      "sha256": "9b9508e5fc7d3399a157cdfa174b480535e878380295b4a4357e01bec6215c26"
+    },
+    {
+      "file": "./maint-n15n16/btc-deploy.txt",
+      "sha256": "9b9508e5fc7d3399a157cdfa174b480535e878380295b4a4357e01bec6215c26"
+    },
+    {
+      "file": "./maint-n15n16/build.log",
+      "sha256": "52537e36b534dbb8ccbc4733db1ceccb5c158467420446c5223ab7e95ff4fa05"
+    },
+    {
+      "file": "./maint-n15n16/container-time-before.txt",
+      "sha256": "a473f9257869515f3efce5264d973bbe2b53d691e72c2438f3b1e30eee1b70c5"
+    },
+    {
+      "file": "./maint-n15n16/crontab-before.txt",
+      "sha256": "f2dce2809c09aa4466a95200caa19547118e444b4ac90b4363e20a158dee9b5b"
+    },
+    {
+      "file": "./maint-n15n16/entry-before.txt",
+      "sha256": "a09a4768b383b566e186cd6bbd8c084243d07539068b2820811e20d9337975fc"
+    },
+    {
+      "file": "./maint-n15n16/entryobs-20261105-1625.txt",
+      "sha256": "a09a4768b383b566e186cd6bbd8c084243d07539068b2820811e20d9337975fc"
+    },
+    {
+      "file": "./maint-n15n16/entryobs-after30.txt",
+      "sha256": "a09a4768b383b566e186cd6bbd8c084243d07539068b2820811e20d9337975fc"
+    },
+    {
+      "file": "./maint-n15n16/entryobs-deploy.txt",
+      "sha256": "a09a4768b383b566e186cd6bbd8c084243d07539068b2820811e20d9337975fc"
+    },
+    {
+      "file": "./maint-n15n16/errors-after30.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "./maint-n15n16/errors-all-after30.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "./maint-n15n16/errors-all-deploy.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "./maint-n15n16/errors-deploy.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "./maint-n15n16/errors-news-20261105-1625.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "./maint-n15n16/errors-news-after30.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "./maint-n15n16/errors-news-deploy.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "./maint-n15n16/git-before.txt",
+      "sha256": "680237221ac4019177b8a534acfa4043125beab8191dfdd2fa279d7d23b06fe5"
+    },
+    {
+      "file": "./maint-n15n16/git-deploy.txt",
+      "sha256": "3ce01467e8b0a2819de621bb836eb9a6c03cdc7e261aaccc7e466af6c411ccf4"
+    },
+    {
+      "file": "./maint-n15n16/hold-before.txt",
+      "sha256": "b6896dc34fe002ddc1af2535dc9a787234472b43cf44f30d2ff07565b81f5618"
+    },
+    {
+      "file": "./maint-n15n16/holdobs-20261105-1625.txt",
+      "sha256": "c2179c9c3c227878211e1683af1709664cec821f0064e16aa6e622412c787895"
+    },
+    {
+      "file": "./maint-n15n16/holdobs-after30.txt",
+      "sha256": "c2179c9c3c227878211e1683af1709664cec821f0064e16aa6e622412c787895"
+    },
+    {
+      "file": "./maint-n15n16/holdobs-deploy.txt",
+      "sha256": "c2179c9c3c227878211e1683af1709664cec821f0064e16aa6e622412c787895"
+    },
+    {
+      "file": "./maint-n15n16/http-before.txt",
+      "sha256": "e6f17c5a0d92c907f91982b85d50138e314830e220dc17cc0e563ccd23088fca"
+    },
+    {
+      "file": "./maint-n15n16/httpobs-20261105-1625.txt",
+      "sha256": "8dcb07b89fef42b204c34f512e890a22a89e111eb40fc426bfa5e4c77631f481"
+    },
+    {
+      "file": "./maint-n15n16/httpobs-after30.txt",
+      "sha256": "432c567eedb814f3bc4aaea0845a384014fad1b66300147d2d1b96db3eb320d0"
+    },
+    {
+      "file": "./maint-n15n16/httpobs-deploy.txt",
+      "sha256": "c89ab6ad7edd35c2f8db4e673380ed8c434aab7475515fdb5695175c26cd415d"
+    },
+    {
+      "file": "./maint-n15n16/image-before.txt",
+      "sha256": "20cd993cbb2693f29eb8705b40b77cb1d71869997246cb26e02b6cbb9ad5f1af"
+    },
+    {
+      "file": "./maint-n15n16/image-new.txt",
+      "sha256": "6738517bf571fd7b89518143e61e435620a7e968e12c44d26f2d039486dfc24b"
+    },
+    {
+      "file": "./maint-n15n16/jar-diff.txt",
+      "sha256": "c56bcff6f5396c8969f1fef1c2b97a615ce3930025752f0ef952689e6500d3cc"
+    },
+    {
+      "file": "./maint-n15n16/jar-sha.txt",
+      "sha256": "29b3d7b3664e6d7c866474640bbe989e5a0b42d56bcf7d5685138090eb2400fd"
+    },
+    {
+      "file": "./maint-n15n16/ledger-files-before.sha",
+      "sha256": "7d84f38246208f87202e65834b7af36cd82744386fa8fb05bce3df91ff53adf5"
+    },
+    {
+      "file": "./maint-n15n16/maint_start.txt",
+      "sha256": "55d1f95636e36441af074850b5e4d77af6b2bbe1c10506dec07f2e096157e490"
+    },
+    {
+      "file": "./maint-n15n16/maint_verify.py",
+      "sha256": "39e62884d096160e3ada3404ce013c381a14c837e9464c9131cc747dacf50f96"
+    },
+    {
+      "file": "./maint-n15n16/news-20261105-1625.txt",
+      "sha256": "23d59ba32aa66857300f8864285fcf5be04f0b94a7ab4563ac6d43d098a822dd"
+    },
+    {
+      "file": "./maint-n15n16/news-after30.txt",
+      "sha256": "39a02b698bd4e618a89dc744073cb97bf07a908970b67cd4f130dc18f53fdc8e"
+    },
+    {
+      "file": "./maint-n15n16/news-before.txt",
+      "sha256": "5c0aff1fb28ce4f693ec59862e19ce3edf981e6b9e6f844035c164d1b159029d"
+    },
+    {
+      "file": "./maint-n15n16/news-deploy.txt",
+      "sha256": "5c0aff1fb28ce4f693ec59862e19ce3edf981e6b9e6f844035c164d1b159029d"
+    },
+    {
+      "file": "./maint-n15n16/news-err-before.txt",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "./maint-n15n16/newsobs-20261105-1625.txt",
+      "sha256": "8b1807f4c3195fbf0a9f1ea53670b3890e1bf6ca36f19615f5b3d3d04a833b2d"
+    },
+    {
+      "file": "./maint-n15n16/newsobs-after30.txt",
+      "sha256": "29b6ac3465ccbd62b5a41f19a5bdf073423eaecd958a311df737defd2abe0eb8"
+    },
+    {
+      "file": "./maint-n15n16/newsobs-deploy.txt",
+      "sha256": "6ed4d228cf9c26669dcd2fbe28ae3b57689cb733d5d251f44a07d2668dc68554"
+    },
+    {
+      "file": "./maint-n15n16/obs-after30.txt",
+      "sha256": "36eeec616708bbbb6ce33b9fa1c5bf5b9a038a8ec534c1c8b6f7d8ab6989b055"
+    },
+    {
+      "file": "./maint-n15n16/obs-deploy.txt",
+      "sha256": "5466f9aa1578bb445137855ebf237e28b5c2f3d214ed922774b3b33561e6ce73"
+    },
+    {
+      "file": "./maint-n15n16/ok-R0",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "./maint-n15n16/ok-R1",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "./maint-n15n16/ok-R2",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "./maint-n15n16/ok-R3-deploy",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "./maint-n15n16/ok-R4",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "./maint-n15n16/q-after30.txt",
+      "sha256": "68d17bee17f0d31536b9bf0a5cb4a5b5ae4b27995ab95564674aa267acf14f4e"
+    },
+    {
+      "file": "./maint-n15n16/q-before.txt",
+      "sha256": "68d17bee17f0d31536b9bf0a5cb4a5b5ae4b27995ab95564674aa267acf14f4e"
+    },
+    {
+      "file": "./maint-n15n16/q-deploy.txt",
+      "sha256": "68d17bee17f0d31536b9bf0a5cb4a5b5ae4b27995ab95564674aa267acf14f4e"
+    },
+    {
+      "file": "./maint-n15n16/s-after30.txt",
+      "sha256": "7259e13e702439facb5bc02cfa8afd148fd5fdd03d79a80bb1d0ad366e55980a"
+    },
+    {
+      "file": "./maint-n15n16/s-before.txt",
+      "sha256": "7259e13e702439facb5bc02cfa8afd148fd5fdd03d79a80bb1d0ad366e55980a"
+    },
+    {
+      "file": "./maint-n15n16/s-deploy.txt",
+      "sha256": "7259e13e702439facb5bc02cfa8afd148fd5fdd03d79a80bb1d0ad366e55980a"
+    },
+    {
+      "file": "./maint-n15n16/svc-after30.txt",
+      "sha256": "561aaff12be130e479d3ad5c39753f00c4cc395c26dc2fb0462c30104c40d5dd"
+    },
+    {
+      "file": "./maint-n15n16/svc-before.txt",
+      "sha256": "3f13eead2cd27af03064d491be5d907afa3d303e36091ab96f52236c0c5452df"
+    },
+    {
+      "file": "./maint-n15n16/svc-deploy.txt",
+      "sha256": "561aaff12be130e479d3ad5c39753f00c4cc395c26dc2fb0462c30104c40d5dd"
+    },
+    {
+      "file": "./maint-n15n16/t-after30.txt",
+      "sha256": "a6632178c94d0f4262ba41b79e486af53829855066ca706b616f3b3cabcd79af"
+    },
+    {
+      "file": "./maint-n15n16/t-before.txt",
+      "sha256": "d1e7984353a45c7885aa40a3511f0a34a328735bbeb5741b56212d61010edefd"
+    },
+    {
+      "file": "./maint-n15n16/t-build.txt",
+      "sha256": "9e8661b88f771bee01c61a8970e71eb068f21c40635dd9bf2c031f8216f1d6fe"
+    },
+    {
+      "file": "./maint-n15n16/t-deploy.txt",
+      "sha256": "39cfec26f905e8c61695e1e7f9a70ed4f2e1b3b7c97c0cbebc012663809c4ce4"
+    },
+    {
+      "file": "./maint-n15n16/t-deploy.utc",
+      "sha256": "495ed6c3f5e4e1b91eed6b04560b648d4ee5592efa055902d192290a144b1bc8"
+    },
+    {
+      "file": "./maint-n15n16/timezone-before.txt",
+      "sha256": "a764065b3c0a4addb4a8483c912c637f239501b83f2931df45383831d19adfda"
+    },
+    {
+      "file": "./out-R0.txt",
+      "sha256": "86708a56e5829e4cc6b7089d817315a76bc2c3a62fbbcdd9cec8f981e4dad9ae"
+    },
+    {
+      "file": "./out-R1.txt",
+      "sha256": "2303c68997d376b4b7fe7037943d94333aa07e12d731dcf8b538a8f3fe324261"
+    },
+    {
+      "file": "./out-R2.txt",
+      "sha256": "236b006ca8ea5f9a3b05373f15b9390a04ff85c01f8dbac5783415ac31697c14"
+    },
+    {
+      "file": "./out-R3.txt",
+      "sha256": "2f106318a62a6ecce88798a52ceba64a1237e00735e2ba340ed0559b03c516bc"
+    },
+    {
+      "file": "./out-R4.txt",
+      "sha256": "cc69909c8f36708d824e17a7b1c2dd18d4710d5f166d68c95e407da0998a0b06"
+    },
+    {
+      "file": "./out-R뒤관측.txt",
+      "sha256": "592242732aa3d7600f27ad190c7325372d4830ad4e4b7c12da25692ea91a4c85"
+    },
+    {
+      "file": "./out-alerts-supp.txt",
+      "sha256": "65f8db6ae08372c90d65afe7c96f1751bfdffbf9e7f4e916a356e454bc002820"
+    },
+    {
+      "file": "./server-sha256.txt",
+      "sha256": "e91cef5fbf3d19da522d401bd98c0960d8922f7fe45076bd13a5619fb27b6b17"
+    }
+  ],
+  "previous_review_manifest": [
+    {
+      "file": ".gitattributes",
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "file": "README.md",
+      "sha256": "39599bdd3f88fdfd252d69eef69a3884981032ce0dc6ec61c163672788596611"
+    },
+    {
+      "file": "check-documents.py",
+      "sha256": "ee0d57929f5e6178cf8c2788d20e648f2a426e5e0b1546366facc959c5404c35"
+    },
+    {
+      "file": "doc-check.json",
+      "sha256": "1424fedae3eb1d27f50881f632fb1ad70e332e2719c8cc395d10cfa0c012c37e"
+    },
+    {
+      "file": "review.json",
+      "sha256": "324e7e5b16c1ff4bf9f07ce9f02dee3dc6fc00b33d795cc6ede56c7a69800a10"
+    },
+    {
+      "file": "review.py",
+      "sha256": "d47852b9927f801259f8c98d61504d4df48eb75861f64832593e2f81af4ca85d"
+    }
+  ],
+  "server_manifest_files": 72,
+  "copied_server_files_verified": 66,
+  "server_only_hashes_not_fetched": {
+    "app-after30.log": "63cfd86e186a04cce8fae49f0ba2899fe1a5056b1c61939445b45bf8472c5785",
+    "app-deploy.log": "fc5311da2680f89e45af11fec6a8ce48e6ae46111a999413f48961d3e0d44124",
+    "app-new.jar": "a6f4357e8a8b53085541896c90c7c7add4632897dff062e6fdd130b07fa60e7e",
+    "app-news-20261105-1625.log": "3caa46f1144571907909b2d2d5a946b37f70edf513b3e8013ae083fc2d939ead",
+    "app-old.jar": "0578ceb3e9afdde5f33e62098dcf62e5425f615922d840ae345d59f8c70ceb4e",
+    "backend-before.log": "12ae37d2e9fd6459b4ee46ebf4db5dab25db42aa0766214a94bf2593f264c2d2"
+  },
+  "reviewer_server_DB_build_app_test_execution": false,
+  "execution_blocks": {
+    "count": 8,
+    "source_and_final_submission_hashes_equal": true,
+    "F_G_source_equal": true,
+    "before_and_after_plan_commands_equal": 117,
+    "runner_captures_ssh_exit_status": true
+  },
+  "deployment": {
+    "ruling": "accepted",
+    "head": "1103f48505a1457029f6555547a87aa986535738",
+    "image": "sha256:9818254ca137a79245d1b30f07c0e193ca4d9a1ac028e0b26a16af6853616b62",
+    "previous_head": "fe01207f3f60e97e308925157f84a1bb2da04388",
+    "previous_image": "sha256:9cb5d84f0bfde5208f24f591ad291dacabdfa691a0b2e1f057c4f8c3e1720fb7",
+    "started_at_utc": "2026-11-05T06:29:37.799171873Z",
+    "container_Created_not_supplied_separately": true,
+    "actual_server_jar_diff_matches_approved_local_paths": true,
+    "changed": 27,
+    "added": 2,
+    "deleted": 0,
+    "entries_before_after": [
+      879,
+      881
+    ],
+    "server_jar_hashes": [
+      "0578ceb3e9afdde5f33e62098dcf62e5425f615922d840ae345d59f8c70ceb4e",
+      "a6f4357e8a8b53085541896c90c7c7add4632897dff062e6fdd130b07fa60e7e"
+    ],
+    "old_jar_equals_previous_deployed_new_jar": true,
+    "other_four_services_unchanged": true,
+    "backend_no_restart_through_R4": true,
+    "q_s_three_stages_byte_equal": true,
+    "flyway": 94,
+    "SID203": "CREATED/20200.00",
+    "seven_filtered_error_files_empty": true,
+    "R3_seconds_after_started": 431.200829,
+    "R4_seconds_after_started": 1866.200829,
+    "R0_R4_sid_baseline_EG_ledger_installed_ops_cron_guards": "accepted from unchanged reviewed blocks and successful outputs; original server files not read independently",
+    "operator_confirmation_once": "developer record, not independently observed"
+  },
+  "alerts": {
+    "R4_scheduled_observations": 0,
+    "R4_coverage_white_retained": true,
+    "supplement_read_kst": "2026-11-05 16:25",
+    "supplement_observation_kst": "2026-11-05 16:19",
+    "green_white_red": [
+      21,
+      0,
+      1
+    ],
+    "only_red": "KRW-BLAST",
+    "execution_missing": "none in reported interval"
+  },
+  "N15_N16": {
+    "ruling": "complete: local behavior validation and deployed artifact/safety verification accepted; runtime-unapplied P0 closed",
+    "local_validation": "previously reviewed 25 classes 173/173; not rerun",
+    "direct_runtime_guard_behavior": "unobserved natural events; no induced orders or prices",
+    "future_timestamp_correction": "not observable through entryobs; not claimed directly observed",
+    "profitability_and_Dec1_start_approval": "not established by this ruling"
+  },
+  "N13": {
+    "ruling": "deployment retained; regular HOLD improvement unconfirmed",
+    "long_leases_or_acquisition_timeouts": [
+      0,
+      0
+    ],
+    "observed_after_restart_minutes": 56,
+    "no_HOLD_completion_does_not_prove_query_skipped": true
+  },
+  "news": {
+    "RSS_four_CoinGecko_success_once": true,
+    "Upbit_success_twice": true,
+    "CryptoPanic_HTTP403_cumulative_count": 2,
+    "R4_one_is_subset_of_two": true,
+    "fixed_lines_and_upper_result_pairs": true,
+    "cause_recovery": "unresolved"
+  },
+  "logs": {
+    "current_22_report_nominal_window": "2026-11-05 10:00~22:00 KST",
+    "old_container_last_two_minutes": "15:27~15:29 not secured; retain as uncovered",
+    "current_StartedAt_is_not_Created": true,
+    "new_report_expected": "latest planned restart red; Created coverage white; actual values must be read"
+  },
+  "next": "update F variable/F1 head-image-record path and N06 hashes; keep final S unfixed until Nov30; next actual results commit includes ruling unchanged"
+}
