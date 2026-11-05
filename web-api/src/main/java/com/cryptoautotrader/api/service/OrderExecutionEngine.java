@@ -516,7 +516,16 @@ public class OrderExecutionEngine {
             throw new ReservationRejected(decision.code(), decision.message());
         }
 
-        Long orderId = prepareIntent(request);
+        Long orderId;
+        try {
+            orderId = prepareIntent(request);
+        } catch (IntentExpired expired) {
+            // 🔴 의도 저장 직전 만료(N15) — 차감은 이미 일어났다. INTENT_REJECTED 와 같은 방식으로 **같은 트랜잭션 안에서** 정확히
+            //    되돌린다(LIVE 는 호출자가 롤백, DYNAMIC 은 틱을 이어가므로 이 복원이 차감을 지운다). 의도·소유권은 만들지 않았다.
+            capitalReservationService.releaseWithinTransaction(
+                    sessionKind, request.getSessionId(), request.getQuantity());
+            throw new ReservationRejected(CapitalReservationService.ENTRY_EXPIRED, expired.getMessage());
+        }
         if (orderId == null) {
             // 🔴 의도가 거절되면 **예약도 되돌려야 한다.** LIVE 는 호출자가 트랜잭션을 롤백하고,
             //    DYNAMIC 은 틱 트랜잭션이라 롤백하면 신호 기록까지 사라지므로 차감을 같은 트랜잭션
@@ -567,6 +576,13 @@ public class OrderExecutionEngine {
      * <p>🔴 거절은 오류가 아니다. 그래서 호출자가 이것만 잡아 <b>조용히</b> 끝내고, 다른 예외는
      * 그대로 올라가게 한다.</p>
      */
+    /** 의도 저장 직전 만료(N15) — {@link #reserveAndPrepareIntent} 만 잡아 예약을 되돌리고 {@link ReservationRejected} 로 바꾼다. */
+    private static final class IntentExpired extends RuntimeException {
+        IntentExpired(String message) {
+            super(message);
+        }
+    }
+
     public static class ReservationRejected extends RuntimeException {
         private final String code;
 
@@ -674,6 +690,18 @@ public class OrderExecutionEngine {
         //    업비트 식별자는 재사용할 수 없다.
         if (!approveNewEntry(request, sessionKind)) {
             return null;
+        }
+
+        // 🔴 진입 승인 실행 만료 최종 판정(N15, 총괄 v1.109) — 세션 행 잠금·회계/미해결/위험 설정 조회를 모두 지난 **의도 저장 바로 앞**.
+        //    예약 서비스와 같은 시계·같은 만료 시각이다. 만료면 식별자를 소비하지 않고, 호출자가 예약을 되돌린다.
+        if (request.getEntryExpiresAt() != null && capitalReservationService != null) {
+            CapitalReservationService.Decision expired =
+                    capitalReservationService.entryExpiry(request.getEntryExpiresAt(), "의도 직전");
+            if (expired != null) {
+                log.warn("의도 저장 직전 승인 실행 만료 — 매수 의도를 만들지 않는다 (sessionKind={}, sessionId={}, {}): {}",
+                        sessionKind, request.getSessionId(), request.getCoinPair(), expired.message());
+                throw new IntentExpired(expired.message());
+            }
         }
 
         // 3. 주문 엔티티 생성 — 🔴 PENDING 이 아니라 INTENT_READY 다.
