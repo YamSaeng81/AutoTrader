@@ -106,12 +106,20 @@ public class MarkPriceBook {
     }
 
     /**
+     * 가격으로 볼 수 있는 값인가 — {@code null}·0·음수는 관측 가격이 아니다(N16, 2026-11-05). 장부({@link #observe})와 LIVE·DYNAMIC 실시간
+     * 처리기가 같은 정의를 쓴다. 🔴 운영 웹소켓 파서는 ticker 메시지에 체결가가 없으면 0 을 넣는다.
+     */
+    public static boolean isPrice(BigDecimal price) {
+        return price != null && price.signum() > 0;
+    }
+
+    /**
      * 관측 하나를 적는다 — 이미 있는 값보다 관측 시각이 이르면 버린다.
      *
      * @return 적었으면 참
      */
     public boolean observe(String coinPair, BigDecimal price, Instant at, Instant receivedAt, String source) {
-        if (coinPair == null || price == null || price.signum() <= 0 || at == null) return false;
+        if (coinPair == null || !isPrice(price) || at == null) return false;
         return put(coinPair, new Mark(price, at, receivedAt, source, null));
     }
 
