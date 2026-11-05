@@ -1,0 +1,17 @@
+commit ee509cf855ffb8ebc1ed31f1c2bbe772d0545ce8
+parent f6868a587a921dbc8b4985793582bc764b0896b1
+author-date Fri Nov 6 01:44:02 2026 +0900
+
+N19 보완(총괄 v1.123) — 폴백 건너뜀 WARN 에서 REST market 원문 제거, 문자열이 아닌 market 항목만 고정 WARN 후 건너뜀 (f6868a5 기점)
+
+- pollRestTickerFallback 반복문 안만 변경. 누락·null 의 조용한 건너뜀, 외부 조회 실패 ERROR, 내부 실행 예외의 배치 catch 경로는 그대로.
+- WARN 은 고정 사유·부호만: 가격 형식이 숫자가 아님 / 가격이 아님 (부호=0|음수) / 코인 형식이 문자열이 아님.
+- forceRefreshPrice(N17)·HeldMarkRefresher 는 바꾸지 않음(별도 관찰).
+- 시험: N19RestFallbackItemDefenseTest 에 ⑤ 가짜 표지·줄바꿈 market 3건, ⑥ 숫자 market 2건, ⑥-1 null market 1건 추가.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+
+ .../api/service/LiveTradingService.java            | 16 +++--
+ .../service/N19RestFallbackItemDefenseTest.java    | 84 ++++++++++++++++++++++
+ 2 files changed, 95 insertions(+), 5 deletions(-)

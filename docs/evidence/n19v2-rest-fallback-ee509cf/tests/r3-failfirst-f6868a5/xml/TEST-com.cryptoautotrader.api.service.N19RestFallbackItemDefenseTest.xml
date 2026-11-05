@@ -1,0 +1,373 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="N19 REST 전역 폴백 — 0·음수·형식 이상 항목만 건너뛰고 앞뒤 정상 코인은 발행·보호 매도 유지, 내부 예외는 숨기지 않음" tests="23" skipped="0" failures="5" errors="0" timestamp="2026-11-05T16:41:58" hostname="DESKTOP-SF1KUQ5" time="1.668">
+  <properties/>
+  <testcase name="⑥-1 market 이 null — 기존처럼 WARN 없이 조용히 건너뜀, 앞뒤 정상 코인 발행 1" classname="com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest" time="0.185"/>
+  <testcase name="가짜 market + 가격 0" classname="com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest" time="0.085">
+    <failure message="java.lang.AssertionError: [고정 사유·부호만] &#13;&#10;Expecting actual:&#13;&#10;  &quot;[§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (market=KRW-N19FORGED&#10;12:00:00.000 [main] ERROR c.c.a.s.LiveTradingService - [§9] REST ticker fallback 실패: 가짜표지, 부호=0)&quot;&#13;&#10;to be in:&#13;&#10;  [&quot;[§9] REST 폴백 시세 항목 건너뜀 — 가격 형식이 숫자가 아님&quot;,&#13;&#10;    &quot;[§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=0)&quot;,&#13;&#10;    &quot;[§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=음수)&quot;]&#13;&#10;" type="java.lang.AssertionError">java.lang.AssertionError: [고정 사유·부호만] 
+Expecting actual:
+  &quot;[§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (market=KRW-N19FORGED
+12:00:00.000 [main] ERROR c.c.a.s.LiveTradingService - [§9] REST ticker fallback 실패: 가짜표지, 부호=0)&quot;
+to be in:
+  [&quot;[§9] REST 폴백 시세 항목 건너뜀 — 가격 형식이 숫자가 아님&quot;,
+    &quot;[§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=0)&quot;,
+    &quot;[§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=음수)&quot;]
+
+	at com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest.skipWarnCarriesNoMarketText(N19RestFallbackItemDefenseTest.java:411)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="가짜 market + 가격 -1" classname="com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest" time="0.065">
+    <failure message="java.lang.AssertionError: [고정 사유·부호만] &#13;&#10;Expecting actual:&#13;&#10;  &quot;[§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (market=KRW-N19FORGED&#10;12:00:00.000 [main] ERROR c.c.a.s.LiveTradingService - [§9] REST ticker fallback 실패: 가짜표지, 부호=음수)&quot;&#13;&#10;to be in:&#13;&#10;  [&quot;[§9] REST 폴백 시세 항목 건너뜀 — 가격 형식이 숫자가 아님&quot;,&#13;&#10;    &quot;[§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=0)&quot;,&#13;&#10;    &quot;[§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=음수)&quot;]&#13;&#10;" type="java.lang.AssertionError">java.lang.AssertionError: [고정 사유·부호만] 
+Expecting actual:
+  &quot;[§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (market=KRW-N19FORGED
+12:00:00.000 [main] ERROR c.c.a.s.LiveTradingService - [§9] REST ticker fallback 실패: 가짜표지, 부호=음수)&quot;
+to be in:
+  [&quot;[§9] REST 폴백 시세 항목 건너뜀 — 가격 형식이 숫자가 아님&quot;,
+    &quot;[§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=0)&quot;,
+    &quot;[§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=음수)&quot;]
+
+	at com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest.skipWarnCarriesNoMarketText(N19RestFallbackItemDefenseTest.java:411)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="가짜 market + 가격 abc" classname="com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest" time="0.058">
+    <failure message="java.lang.AssertionError: [고정 사유·부호만] &#13;&#10;Expecting actual:&#13;&#10;  &quot;[§9] REST 폴백 시세 항목 건너뜀 — 가격 형식이 숫자가 아님 (market=KRW-N19FORGED&#10;12:00:00.000 [main] ERROR c.c.a.s.LiveTradingService - [§9] REST ticker fallback 실패: 가짜표지)&quot;&#13;&#10;to be in:&#13;&#10;  [&quot;[§9] REST 폴백 시세 항목 건너뜀 — 가격 형식이 숫자가 아님&quot;,&#13;&#10;    &quot;[§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=0)&quot;,&#13;&#10;    &quot;[§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=음수)&quot;]&#13;&#10;" type="java.lang.AssertionError">java.lang.AssertionError: [고정 사유·부호만] 
+Expecting actual:
+  &quot;[§9] REST 폴백 시세 항목 건너뜀 — 가격 형식이 숫자가 아님 (market=KRW-N19FORGED
+12:00:00.000 [main] ERROR c.c.a.s.LiveTradingService - [§9] REST ticker fallback 실패: 가짜표지)&quot;
+to be in:
+  [&quot;[§9] REST 폴백 시세 항목 건너뜀 — 가격 형식이 숫자가 아님&quot;,
+    &quot;[§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=0)&quot;,
+    &quot;[§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=음수)&quot;]
+
+	at com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest.skipWarnCarriesNoMarketText(N19RestFallbackItemDefenseTest.java:411)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="④ 혼합 응답(LIVE 정상 280 · 형식 이상 · DYNAMIC 정상 280 · LIVE 0) → 정상 둘 보호 매도 1회씩·점검 기록, 0 코인은 매도·점검·장부 0 → 다음 주기 280 이면 매도 1회" classname="com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest" time="0.227"/>
+  <testcase name="② 정상 2개 대조군 — 둘 다 한 번씩 발행, WARN·ERROR 없음" classname="com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest" time="0.058"/>
+  <testcase name="숫자 market 위치 first" classname="com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest" time="0.011">
+    <failure message="org.opentest4j.AssertionFailedError: &#13;&#10;expected: 1L&#13;&#10; but was: 0L" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: 
+expected: 1L
+ but was: 0L
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base@17.0.12/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base@17.0.12/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+	at app//com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest.nonStringMarketIsSkippedAndOthersPublished(N19RestFallbackItemDefenseTest.java:437)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="숫자 market 위치 middle" classname="com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest" time="0.075">
+    <failure message="org.opentest4j.AssertionFailedError: [숫자 market 뒤 정상 코인도 한 번] &#13;&#10;expected: 1L&#13;&#10; but was: 0L" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: [숫자 market 뒤 정상 코인도 한 번] 
+expected: 1L
+ but was: 0L
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base@17.0.12/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base@17.0.12/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+	at app//com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest.nonStringMarketIsSkippedAndOthersPublished(N19RestFallbackItemDefenseTest.java:438)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base@17.0.12/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base@17.0.12/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base@17.0.12/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base@17.0.12/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="③-2 발행기 내부 실행 예외 — 입력 이상 WARN 으로 삼키지 않고 기존 배치 실패 ERROR 경로(뒤 항목 미처리)" classname="com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest" time="0.06"/>
+  <testcase name="③-1 외부 조회 예외 — 발행 0, 기존 ERROR 한 줄 그대로" classname="com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest" time="0.005"/>
+  <testcase name="이상 0 위치 first" classname="com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest" time="0.059"/>
+  <testcase name="이상 0 위치 middle" classname="com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest" time="0.068"/>
+  <testcase name="이상 -1 위치 first" classname="com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest" time="0.06"/>
+  <testcase name="이상 -1 위치 middle" classname="com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest" time="0.058"/>
+  <testcase name="이상 0.00000000 위치 middle" classname="com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest" time="0.058"/>
+  <testcase name="이상 abc 위치 first" classname="com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest" time="0.059"/>
+  <testcase name="이상 abc 위치 middle" classname="com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest" time="0.058"/>
+  <testcase name="이상  위치 middle" classname="com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest" time="0.063"/>
+  <testcase name="이상 1e 위치 middle" classname="com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest" time="0.057"/>
+  <testcase name="이상 missing 위치 first" classname="com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest" time="0.062"/>
+  <testcase name="이상 missing 위치 middle" classname="com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest" time="0.058"/>
+  <testcase name="이상 null 위치 first" classname="com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest" time="0.061"/>
+  <testcase name="이상 null 위치 middle" classname="com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest" time="0.059"/>
+  <system-out><![CDATA[01:41:45.111 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.5)
+
+01:41:45.619 [background-preinit] INFO  o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.1.Final
+01:41:46.797 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Multiple Spring Data modules found, entering strict repository configuration mode
+01:41:46.799 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+01:41:47.005 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 194 ms. Found 39 JPA repository interfaces.
+01:41:47.019 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Multiple Spring Data modules found, entering strict repository configuration mode
+01:41:47.022 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+01:41:47.039 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.BacktestJobRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+01:41:47.040 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.BacktestMetricsRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+01:41:47.040 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.BacktestRunRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+01:41:47.040 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.BacktestTradeRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+01:41:47.041 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.CandleDataRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+01:41:47.042 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DailyHealthSnapshotRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+01:41:47.042 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DiscordChannelConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+01:41:47.042 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DiscordSendLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+01:41:47.043 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DynamicSellSettlementRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+01:41:47.043 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DynamicSessionRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+01:41:47.043 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.ExecutionDriftLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+01:41:47.043 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.KillCriteriaJudgmentRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+01:41:47.043 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.LiveTradingSessionRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+01:41:47.044 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.LlmCallLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+01:41:47.044 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.LlmProviderConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+01:41:47.045 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.LlmTaskConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+01:41:47.045 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.MarketDataCacheRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+01:41:47.046 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NewsItemCacheRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+01:41:47.047 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NewsSourceConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+01:41:47.047 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NightlySchedulerConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+01:41:47.047 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NotionReportConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+01:41:47.047 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NotionReportLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+01:41:47.048 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.OrderRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+01:41:47.048 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.OrderSettlementDiscrepancyRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+01:41:47.048 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.paper.PaperOrderRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+01:41:47.048 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.paper.PaperPositionRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+01:41:47.049 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.paper.VirtualBalanceRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+01:41:47.049 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.PositionCleanupRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+01:41:47.050 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.PositionRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+01:41:47.050 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.RegimeChangeLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+01:41:47.050 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.RiskConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+01:41:47.051 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.RulesetSnapshotRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+01:41:47.051 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.StrategyConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+01:41:47.051 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.StrategyLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+01:41:47.052 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.StrategyTimeframeEnabledRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+01:41:47.052 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.StrategyTypeEnabledRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+01:41:47.052 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.TelegramNotificationLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+01:41:47.052 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.TradeLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+01:41:47.053 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.WeightOptimizerSnapshotRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+01:41:47.053 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 24 ms. Found 0 Redis repository interfaces.
+01:41:49.494 [Test worker] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 0 (http)
+01:41:49.525 [Test worker] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-auto-1"]
+01:41:49.532 [Test worker] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+01:41:49.533 [Test worker] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.20]
+01:41:49.701 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+01:41:49.702 [Test worker] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 4035 ms
+01:41:50.142 [Test worker] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+01:41:50.385 [Test worker] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:testdb user=SA
+01:41:50.389 [Test worker] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+01:41:50.709 [Test worker] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+01:41:50.878 [Test worker] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.4.4.Final
+01:41:50.971 [Test worker] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
+01:41:51.083 [Test worker] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+01:41:51.121 [Test worker] WARN  org.hibernate.orm.deprecation - HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+01:41:52.382 [Test worker] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+01:41:52.385 [Test worker] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+01:41:52.449 [Test worker] WARN  c.c.api.config.SingleInstanceGuard - ? 단일 인스턴스 강제가 꺼져 있다(trading.single-instance.enabled=false) ? 시험 전용 설정이다
+01:41:53.011 [Test worker] INFO  o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
+01:41:55.769 [Test worker] WARN  c.c.api.service.DbResetService - DB_RESET_PASSWORD 미설정 ? DB 초기화 기능이 비활성화됩니다(모든 요청 거부).
+01:41:57.176 [Test worker] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 1 endpoint(s) beneath base path '/actuator'
+01:41:57.259 [Test worker] INFO  o.s.s.web.DefaultSecurityFilterChain - Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@28af1561, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@6736bdfb, org.springframework.security.web.context.SecurityContextHolderFilter@6cf32842, org.springframework.security.web.header.HeaderWriterFilter@2be8063f, org.springframework.web.filter.CorsFilter@4a31e9be, org.springframework.security.web.authentication.logout.LogoutFilter@1d3888b0, com.cryptoautotrader.api.config.ApiTokenAuthFilter@33a39d7e, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@45de0e5, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@307c048f, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@56b5368b, org.springframework.security.web.session.SessionManagementFilter@4c6bf20d, org.springframework.security.web.access.ExceptionTranslationFilter@28e9bf99, org.springframework.security.web.access.intercept.AuthorizationFilter@252f9e9f]
+01:41:57.749 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+01:41:57.930 [Test worker] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-auto-1"]
+01:41:57.941 [Test worker] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 3115 (http) with context path ''
+01:41:58.220 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+01:41:58.242 [Test worker] WARN  c.c.api.service.LiveTradingService - [§9] WS 이상(끊김/틱정지) >30초 지속 ? REST ticker fallback 활성화 (감시 코인 2개 [KRW-N19A1, KRW-N19B1])
+01:41:58.378 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+01:41:58.387 [Test worker] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 ? 가격이 아님 (market=KRW-N19FORGED
+12:00:00.000 [main] ERROR c.c.a.s.LiveTradingService - [§9] REST ticker fallback 실패: 가짜표지, 부호=0)
+01:41:58.466 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+01:41:58.469 [Test worker] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 ? 가격이 아님 (market=KRW-N19FORGED
+12:00:00.000 [main] ERROR c.c.a.s.LiveTradingService - [§9] REST ticker fallback 실패: 가짜표지, 부호=음수)
+01:41:58.532 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+01:41:58.535 [Test worker] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 ? 가격 형식이 숫자가 아님 (market=KRW-N19FORGED
+12:00:00.000 [main] ERROR c.c.a.s.LiveTradingService - [§9] REST ticker fallback 실패: 가짜표지)
+01:41:58.594 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+01:41:58.666 [Test worker] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 ? 가격 형식이 숫자가 아님 (market=KRW-N19J8)
+01:41:58.667 [Test worker] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 ? 가격이 아님 (market=KRW-N19HL7, 부호=0)
+01:41:58.670 [market-data-1] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동 (WS): sessionId=1, KRW-N19HL5, 손익=-6.666700%
+01:41:58.671 [market-data-2] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절(WS): KRW-N19HD6 @ 280 pnl=-6.666700% (id=1)
+01:41:58.729 [market-data-2] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동 (WS): sessionId=2, KRW-N19HL7, 손익=-6.666700%
+01:41:58.822 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+01:41:58.882 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+01:41:58.885 [Test worker] ERROR c.c.api.service.LiveTradingService - [§9] REST ticker fallback 실패: class java.lang.Integer cannot be cast to class java.lang.String (java.lang.Integer and java.lang.String are in module java.base of loader 'bootstrap')
+01:41:58.896 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+01:41:58.904 [Test worker] ERROR c.c.api.service.LiveTradingService - [§9] REST ticker fallback 실패: class java.lang.Integer cannot be cast to class java.lang.String (java.lang.Integer and java.lang.String are in module java.base of loader 'bootstrap')
+01:41:58.971 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+01:41:58.975 [Test worker] ERROR c.c.api.service.LiveTradingService - [§9] REST ticker fallback 실패: 시험 대역 처리기 내부 예외
+01:41:59.032 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+01:41:59.034 [Test worker] ERROR c.c.api.service.LiveTradingService - [§9] REST ticker fallback 실패: 시험 대역 조회 실패
+01:41:59.042 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+01:41:59.045 [Test worker] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 ? 가격이 아님 (market=KRW-N19X14, 부호=0)
+01:41:59.101 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+01:41:59.104 [Test worker] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 ? 가격이 아님 (market=KRW-N19X15, 부호=0)
+01:41:59.170 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+01:41:59.172 [Test worker] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 ? 가격이 아님 (market=KRW-N19X16, 부호=음수)
+01:41:59.232 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+01:41:59.234 [Test worker] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 ? 가격이 아님 (market=KRW-N19X17, 부호=음수)
+01:41:59.292 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+01:41:59.294 [Test worker] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 ? 가격이 아님 (market=KRW-N19X18, 부호=0)
+01:41:59.353 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+01:41:59.355 [Test worker] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 ? 가격 형식이 숫자가 아님 (market=KRW-N19X19)
+01:41:59.413 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+01:41:59.415 [Test worker] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 ? 가격 형식이 숫자가 아님 (market=KRW-N19X20)
+01:41:59.473 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+01:41:59.475 [Test worker] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 ? 가격 형식이 숫자가 아님 (market=KRW-N19X21)
+01:41:59.537 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+01:41:59.539 [Test worker] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 ? 가격 형식이 숫자가 아님 (market=KRW-N19X22)
+01:41:59.595 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+01:41:59.660 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+01:41:59.719 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+01:41:59.781 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

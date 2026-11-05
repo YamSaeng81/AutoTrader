@@ -1,0 +1,111 @@
+{
+  "review_ref": "303079b47666b9cee6e518337eb38487d39f57b6",
+  "manifests": {
+    "k24-result-7a94472": 100,
+    "n03-1105-2200": 11,
+    "n18-f1-install-check": 145,
+    "n19-rest-fallback-7a94472": 48,
+    "n06-handover-list-night": 2,
+    "n17-review-a1e38e7": 12,
+    "overnight-20261105-scope": 4
+  },
+  "k24": {
+    "server_records_verified": 71,
+    "server_manifest_entries": 77,
+    "operating_sha": "7a944723c2959898226c2ad80f6b079ab5678296",
+    "image": "sha256:e51b512a72cc3740313bb2a9e6f369d4f480554c588f322cff518c827f9c7be6",
+    "jar_changes": 6,
+    "jar_items": [
+      881,
+      881
+    ],
+    "queries_and_sessions_unchanged": true,
+    "other_services_unchanged": true,
+    "early_T3_refused_then_valid_retry": true,
+    "operator_confirmation_developer_record": true,
+    "overnight_preapproval_not_used_for_T2": true,
+    "rollback_not_performed": true
+  },
+  "n03": {
+    "server_file_hashes": 4,
+    "white_log_coverage": 1,
+    "red_planned_boot": 1,
+    "errors_listed404": 3,
+    "all_BLAST_observations": 12,
+    "server_send": "2026-11-05 22:00:07 KST",
+    "phone_receipt": "unconfirmed",
+    "coverage_before_19_41_not_secured": true,
+    "post_report_22_00_29_news_error": "developer_report_not_raw_artifact"
+  },
+  "n18": {
+    "preserved_old_passes": 9,
+    "preserved_proposal_valid": 1,
+    "preserved_proposal_rejections": 8,
+    "exact_insertion_only": true,
+    "trailing_newline_marker_semantics_accepted": true
+  },
+  "n19": {
+    "candidate": "f6868a587a921dbc8b4985793582bc764b0896b1",
+    "paths": [
+      "web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java",
+      "web-api/src/test/java/com/cryptoautotrader/api/service/N19RestFallbackItemDefenseTest.java"
+    ],
+    "XML_preserved_not_rerun": {
+      "r1-failfirst-7a94472": {
+        "classes": 1,
+        "tests_failures_errors_skipped": [
+          17,
+          10,
+          0,
+          0
+        ]
+      },
+      "r2-fix-related": {
+        "classes": 6,
+        "tests_failures_errors_skipped": [
+          67,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    "run_sources_match_candidate_LF_normalized": true,
+    "local_actual_jar_compare": {
+      "changed": 3,
+      "items": [
+        881,
+        881
+      ]
+    },
+    "U_blocks_syntax": [
+      "f7c7121d06643a8840a8d1f158f712a7efa75c183eef77a4ef13d134d196d60b",
+      "a892bb1f2e5d6d75c6c394bf9efaf81382dcaa3babd8ed61bc6f76eebce6ab7c",
+      "36af05121c70cc70488f857e3a1bcb42dbfc782f3c613eff8ab8e21bb6d934e4",
+      "35c310d5a0ae7ef136a2d349a4d8b74cd01d47eca5c92eb54db2697ee6194c5f",
+      "bdcfdce8a6a2408a8b1c0932d5d815682d17964efc47a14f1cd8dacac1d16dac",
+      "232bad1e3d393cffedd7ca78b5384745cd33f1dffbfa90edeeefa5670bfa84a5",
+      "644c4ace3a5a5b533f043eee1bab8137119e7c920d8f78d6f36328d4be571a79",
+      "04dcd725bfb008b199623bbe33d460cb7643dc62eb5f4394b6b823abac6f743d"
+    ],
+    "exact_method_local_execution": {
+      "operating": {
+        "cases": 5,
+        "compile": 0,
+        "run": 0,
+        "method_sha256": "02294777744ce676c12ac6d357e1b67601e9431338ec16aa91d8d489cf3f0e7f"
+      },
+      "candidate": {
+        "cases": 5,
+        "compile": 0,
+        "run": 0,
+        "method_sha256": "994e013905b7820344e14683a6c341aee326833408e14ccc012e588cd1f85a73"
+      }
+    },
+    "untrusted_market_WARN_argument_reproduced": true,
+    "non_string_market_aborts_later_good_reproduced_on_both": true,
+    "production_occurrence_not_established": true,
+    "candidate_and_U_blocks_not_approved_for_execution": true
+  },
+  "no_server_DB_network_Gradle_application_tests_or_jar_build": true
+}

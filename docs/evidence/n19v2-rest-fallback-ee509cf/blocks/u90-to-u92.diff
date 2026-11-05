@@ -1,0 +1,63 @@
+3,4c3,4
+< M=~/maint-n19; mkdir -p "$M"; OPS=~/ops-scripts; UB=90   # v1.122(§5-9 90 블록) 판 표지 — U 블록 전부가 확인한다. 후보 f6868a5(출처 candidate/n19-rest-fallback-7a94472). #24 기록 폴더 ~/maint-n17·#23 기록 폴더 ~/maint-n15n16 은 읽기만 하고 덮어쓰지 않는다
+< OLD=7a944723c2959898226c2ad80f6b079ab5678296; NEW=f6868a587a921dbc8b4985793582bc764b0896b1
+---
+> M=~/maint-n19; mkdir -p "$M"; OPS=~/ops-scripts; UB=92   # v1.124(§5-9 92 블록) 판 표지 — U 블록 전부가 확인한다. 후보 ee509cf(출처 candidate/n19v2-rest-fallback-7a94472). #24 기록 폴더 ~/maint-n17·#23 기록 폴더 ~/maint-n15n16 은 읽기만 하고 덮어쓰지 않는다
+> OLD=7a944723c2959898226c2ad80f6b079ab5678296; NEW=ee509cf855ffb8ebc1ed31f1c2bbe772d0545ce8
+20c20
+<   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService.class')"   # 실제 bootJar 대조(v1.122) — #24 기대값을 옮기지 않고 7a94472·f6868a5 jar 에서 새로 셈
+---
+>   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService.class')"   # 실제 bootJar 대조(v1.124) — #24 기대값을 옮기지 않고 7a94472·ee509cf jar 에서 새로 셈
+327c327
+< # N19 줄 관측(v1.122). 인자: 앱 로그. 출력은 로그 머리 시각·사유·건수만(코인·값은 내지 않는다).
+---
+> # N19 줄 관측(v1.124 — ee509cf 고정 문구). 인자: 앱 로그. 출력은 로그 머리 시각·사유·건수만(코인·값은 내지 않는다 — 문구에도 없다).
+335c335,336
+< PAT = re.compile(r"\[§9\] REST 폴백 시세 항목 건너뜀 . (가격 형식이 숫자가 아님|가격이 아님) \(")   # 가운데 한 글자(—)는 콘솔 인코딩에 따라 ? 로 찍힐 수 있다
+---
+> PAT = re.compile(r"\[§9\] REST 폴백 시세 항목 건너뜀 . (가격 형식이 숫자가 아님|가격이 아님 \(부호=(?:0|음수)\)|코인 형식이 문자열이 아님)\s*$")   # 가운데 한 글자(—)는 콘솔 인코딩에 따라 ? 로 찍힐 수 있다
+> KIND = {"가격 형식": "형식", "가격이 아": "가격 아님", "코인 형식": "코인 형식"}
+344,346c345,347
+<         seen.append((h.group(1), "형식" if m.group(1).startswith("가격 형식") else "가격 아님"))
+< print("N19 REST 전역 폴백 항목 건너뜀 — 형식 이상 %d·가격 아님 %d" % (
+<     sum(1 for _, k in seen if k == "형식"), sum(1 for _, k in seen if k == "가격 아님")))
+---
+>         seen.append((h.group(1), KIND[m.group(1)[:5]]))
+> c = lambda k: sum(1 for _, x in seen if x == k)
+> print("N19 REST 전역 폴백 항목 건너뜀 — 형식 이상 %d·가격 아님 %d·코인 형식 %d" % (c("형식"), c("가격 아님"), c("코인 형식")))
+363c364
+< [ "$M" = "$HOME/maint-n19" ] && [ "${UB:-}" = 90 ] && [ "$NEW" = f6868a587a921dbc8b4985793582bc764b0896b1 ] && [ -n "${BTCIN:-}" ] && type sid203 > /dev/null 2>&1 && type newsobs > /dev/null 2>&1 && type httpobs > /dev/null 2>&1 && type holdobs > /dev/null 2>&1 && type entryobs > /dev/null 2>&1 && type n17obs > /dev/null 2>&1 && type n19obs > /dev/null 2>&1 || stop "변수 순서 — F 변수 → G 변수 → §5-9 90 U 변수"
+---
+> [ "$M" = "$HOME/maint-n19" ] && [ "${UB:-}" = 92 ] && [ "$NEW" = ee509cf855ffb8ebc1ed31f1c2bbe772d0545ce8 ] && [ -n "${BTCIN:-}" ] && type sid203 > /dev/null 2>&1 && type newsobs > /dev/null 2>&1 && type httpobs > /dev/null 2>&1 && type holdobs > /dev/null 2>&1 && type entryobs > /dev/null 2>&1 && type n17obs > /dev/null 2>&1 && type n19obs > /dev/null 2>&1 || stop "변수 순서 — F 변수 → G 변수 → §5-9 92 U 변수"
+370c371
+< git cat-file -e "$NEW^{commit}" || stop "후보 f6868a5 없음"
+---
+> git cat-file -e "$NEW^{commit}" || stop "후보 ee509cf 없음"
+433c434
+< [ "${UB:-}" = 90 ] || stop "U 변수가 v1.122(§5-9 90 블록) 판이 아님 — F → G → §5-9 90 U 변수"
+---
+> [ "${UB:-}" = 92 ] || stop "U 변수가 v1.124(§5-9 92 블록) 판이 아님 — F → G → §5-9 92 U 변수"
+488c489
+< [ "${UB:-}" = 90 ] || stop "U 변수가 v1.122(§5-9 90 블록) 판이 아님 — F → G → §5-9 90 U 변수"
+---
+> [ "${UB:-}" = 92 ] || stop "U 변수가 v1.124(§5-9 92 블록) 판이 아님 — F → G → §5-9 92 U 변수"
+514c515
+< [ "${UB:-}" = 90 ] || stop "U 변수가 v1.122(§5-9 90 블록) 판이 아님 — F → G → §5-9 90 U 변수"
+---
+> [ "${UB:-}" = 92 ] || stop "U 변수가 v1.124(§5-9 92 블록) 판이 아님 — F → G → §5-9 92 U 변수"
+572c573
+< [ "${UB:-}" = 90 ] || stop "U 변수가 v1.122(§5-9 90 블록) 판이 아님 — F → G → §5-9 90 U 변수"
+---
+> [ "${UB:-}" = 92 ] || stop "U 변수가 v1.124(§5-9 92 블록) 판이 아님 — F → G → §5-9 92 U 변수"
+647c648
+< [ "${UB:-}" = 90 ] || stop "U 변수가 v1.122(§5-9 90 블록) 판이 아님 — F → G → §5-9 90 U 변수"
+---
+> [ "${UB:-}" = 92 ] || stop "U 변수가 v1.124(§5-9 92 블록) 판이 아님 — F → G → §5-9 92 U 변수"
+674c675
+< **U 되돌림 — backend (U2~U4 의 "되돌림 필요" 때, 또는 총괄 지시 뒤)** (DB 마이그레이션·장부 변경이 없으므로 데이터 작업은 없다. 7a94472 로 돌아가면 N19 보완(REST 전역 폴백의 0·음수·형식 이상 항목만 건너뛰기)이 다시 없어진다. N15·N16·N17 방어는 7a94472 에도 있으므로 유지된다)
+---
+> **U 되돌림 — backend (U2~U4 의 "되돌림 필요" 때, 또는 총괄 지시 뒤)** (DB 마이그레이션·장부 변경이 없으므로 데이터 작업은 없다. 7a94472 로 돌아가면 N19 보완(REST 전역 폴백의 0·음수·형식 이상·문자열이 아닌 market 항목만 건너뛰기, 고정 문구 WARN)이 다시 없어진다. N15·N16·N17 방어는 7a94472 에도 있으므로 유지된다)
+679c680
+< [ "${UB:-}" = 90 ] || stop "U 변수가 v1.122(§5-9 90 블록) 판이 아님 — F → G → §5-9 90 U 변수"
+---
+> [ "${UB:-}" = 92 ] || stop "U 변수가 v1.124(§5-9 92 블록) 판이 아님 — F → G → §5-9 92 U 변수"
