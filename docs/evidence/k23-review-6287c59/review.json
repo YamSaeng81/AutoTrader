@@ -1,0 +1,743 @@
+{
+  "reviewed_main": "6287c594906ecdfa9a80b9ac51886060e33c459a",
+  "base": "fe01207f3f60e97e308925157f84a1bb2da04388",
+  "N15": "d6f7e18924bbef785c5628200a8101a807e4948a",
+  "N16": "ac29ecf11da9529fd3d83a6b28ae8756c4e89c9a",
+  "integration_draft": "51dcee530721c0ab23f3f6f875a15b9416b751a3",
+  "manifests": {
+    "n15-final-boundary-d6f7e18": {
+      "raw_and_git_objects_match": 31
+    },
+    "k23-prep-51dcee5": {
+      "raw_and_git_objects_match": 117
+    }
+  },
+  "preserved_XML": {
+    "n15_before": {
+      "classes": 1,
+      "tests": 6,
+      "failures": 5,
+      "errors": 0,
+      "skipped": 0,
+      "suites": [
+        {
+          "class": "com.cryptoautotrader.api.service.N15FinalApprovalBoundaryTest",
+          "tests": 6,
+          "failures": 5,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": [
+            {
+              "test": "⑨b (c) DYNAMIC 차감 뒤 의도 승인 조회 중 E — 가용 원복·열린 슬롯·의도·거래소 0, 신호에 ENTRY_EXPIRED",
+              "message": "java.lang.AssertionError: [⑨ 만료 거절] \r\nExpecting actual not to be null"
+            },
+            {
+              "test": "⑧ (b) DYNAMIC 세션 행 잠금(refresh) 대기 중 E — 차감·슬롯·의도·거래소 0, 신호에 ENTRY_EXPIRED",
+              "message": "java.lang.AssertionError: [⑧ 만료 거절] \r\nExpecting actual not to be null"
+            },
+            {
+              "test": "⑨a (c) LIVE 차감 뒤 의도 승인 조회 중 E — 가용 원복·슬롯·의도·거래소 0, 신호에 ENTRY_EXPIRED",
+              "message": "java.lang.AssertionError: [⑨ 만료 거절] \r\nExpecting actual not to be null"
+            },
+            {
+              "test": "⑦b (a) DYNAMIC 잠금 직후 E−1ms·손실 한도 검사 중 E — 차감·슬롯·의도·거래소 0, 신호에 ENTRY_EXPIRED",
+              "message": "java.lang.AssertionError: [⑦ 만료 거절] \r\nExpecting actual not to be null"
+            },
+            {
+              "test": "⑦a (a) LIVE 잠금 직후 E−1ms·손실 한도 검사 중 E — 차감·슬롯·의도·거래소 0, 신호에 ENTRY_EXPIRED",
+              "message": "java.lang.AssertionError: [⑦ 만료 거절] \r\nExpecting actual not to be null"
+            }
+          ]
+        }
+      ]
+    },
+    "n15_after": {
+      "classes": 16,
+      "tests": 99,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": [
+        {
+          "class": "com.cryptoautotrader.api.service.BtcGateSupplyEndToEndTest",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.BtcGateUnknownEntryTest",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.CapitalPoolLimitTest",
+          "tests": 8,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.CapitalPoolRegistrationTest",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.ConcurrentEntryCapTest",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest",
+          "tests": 24,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.DynamicPoolReservationTest",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.DynamicUnlockedCapitalTest",
+          "tests": 7,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.EntryPriorityEndToEndTest",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.EntryPriorityRoundsTest",
+          "tests": 10,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.IntentPrecommitAndOnceOnlyTest",
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.N15EntryExpiryTest",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.N15FinalApprovalBoundaryTest",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.SessionCapitalGuardTest",
+          "tests": 5,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.SubmitResponseUnknownTest",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        }
+      ]
+    },
+    "integration": {
+      "classes": 25,
+      "tests": 173,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "suites": [
+        {
+          "class": "com.cryptoautotrader.api.service.BtcGateSupplyEndToEndTest",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.BtcGateUnknownEntryTest",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.CandleGapExitTest",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.CapitalPoolLimitTest",
+          "tests": 8,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.CapitalPoolRegistrationTest",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.ConcurrentEntryCapTest",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest",
+          "tests": 24,
+          "failures": 1,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": [
+            {
+              "test": "통합 ① 전량 체결 — 체결대금 19,980·수수료 9.99·BTC 0.0016, 미사용 10.01 복원 → 잔액 210.01",
+              "message": "java.lang.AssertionError: [BUY 주문 1건 — 회차 키 H1 2026-11-05T04:25:59Z · 신호 BUY / 접수 거절=회차 마감 뒤 도착(H1 2026-11-05T04:25:59Z) — 이번 회차 후보 아님 · 승인 []] \r\nExpected size: 1 but was: 0 in:\r\n[]"
+            }
+          ]
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.DynamicPoolReservationTest",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.DynamicTradingSlWatchdogRecoveryTest",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.DynamicUnlockedCapitalTest",
+          "tests": 7,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.EntryPriorityEndToEndTest",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.EntryPriorityRoundsTest",
+          "tests": 10,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.IntentPrecommitAndOnceOnlyTest",
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.LiveTradingSlWatchdogRecoveryTest",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.N15EntryExpiryTest",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.N15FinalApprovalBoundaryTest",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.N16InvalidPriceReproTest",
+          "tests": 13,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.PoolLossLimitTest",
+          "tests": 21,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.PositionLimitTest",
+          "tests": 13,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.SessionCapitalGuardTest",
+          "tests": 5,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.SlWatchdogFreshnessTest",
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.StaleRealtimeExitTest",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest",
+          "tests": 7,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.SubmitResponseUnknownTest",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        }
+      ]
+    },
+    "sma20_alone": {
+      "classes": 1,
+      "tests": 24,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": [
+        {
+          "class": "com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest",
+          "tests": 24,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        }
+      ]
+    },
+    "baseline_run1": {
+      "classes": 7,
+      "tests": 49,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": [
+        {
+          "class": "com.cryptoautotrader.api.service.BtcGateSupplyEndToEndTest",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.BtcGateUnknownEntryTest",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.CandleGapExitTest",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.CapitalPoolLimitTest",
+          "tests": 8,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.CapitalPoolRegistrationTest",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.ConcurrentEntryCapTest",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest",
+          "tests": 24,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        }
+      ]
+    },
+    "baseline_run2": {
+      "classes": 7,
+      "tests": 49,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "suites": [
+        {
+          "class": "com.cryptoautotrader.api.service.BtcGateSupplyEndToEndTest",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.BtcGateUnknownEntryTest",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.CandleGapExitTest",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.CapitalPoolLimitTest",
+          "tests": 8,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.CapitalPoolRegistrationTest",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.ConcurrentEntryCapTest",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest",
+          "tests": 24,
+          "failures": 1,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": [
+            {
+              "test": "통합 ⑥ 매수 체결 → 세션 정지 → 청산 매도 체결 — STOPPED·활성 주문 0·정리 대기 0·보유량 0 일치",
+              "message": "java.lang.AssertionError: [BUY 주문 1건 — 회차 키 H1 2026-11-05T04:31:30Z · 신호 BUY / 접수 거절=회차 마감 뒤 도착(H1 2026-11-05T04:31:30Z) — 이번 회차 후보 아님 · 승인 []] \r\nExpected size: 1 but was: 0 in:\r\n[]"
+            }
+          ]
+        }
+      ]
+    },
+    "baseline_run3": {
+      "classes": 7,
+      "tests": 49,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "suites": [
+        {
+          "class": "com.cryptoautotrader.api.service.BtcGateSupplyEndToEndTest",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.BtcGateUnknownEntryTest",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.CandleGapExitTest",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.CapitalPoolLimitTest",
+          "tests": 8,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.CapitalPoolRegistrationTest",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.ConcurrentEntryCapTest",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": []
+        },
+        {
+          "class": "com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest",
+          "tests": 24,
+          "failures": 1,
+          "errors": 0,
+          "skipped": 0,
+          "failure_details": [
+            {
+              "test": "통합 ⑥ 매수 체결 → 세션 정지 → 청산 매도 체결 — STOPPED·활성 주문 0·정리 대기 0·보유량 0 일치",
+              "message": "java.lang.AssertionError: [BUY 주문 1건 — 회차 키 H1 2026-11-05T04:32:29Z · 신호 BUY / 접수 거절=회차 마감 뒤 도착(H1 2026-11-05T04:32:29Z) — 이번 회차 후보 아님 · 승인 []] \r\nExpected size: 1 but was: 0 in:\r\n[]"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "paths": [
+    "web-api/src/main/java/com/cryptoautotrader/api/dto/OrderRequest.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/CapitalReservationService.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/EntryClock.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/EntryPriorityRounds.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/MarkPriceBook.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/N15EntryExpiryTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/N15FinalApprovalBoundaryTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/N16InvalidPriceReproTest.java"
+  ],
+  "nine_files_exact_from_candidates": [
+    "web-api/src/main/java/com/cryptoautotrader/api/dto/OrderRequest.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/CapitalReservationService.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/EntryClock.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/EntryPriorityRounds.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/MarkPriceBook.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/N15EntryExpiryTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/N15FinalApprovalBoundaryTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/N16InvalidPriceReproTest.java"
+  ],
+  "two_overlapping_files_preserve_both_diffs": true,
+  "N15_final_boundary_and_same_transaction_refund": "source and preserved H2 tests reviewed; no new DB execution",
+  "test_collision": "unchanged fixtures use second-resolution keys; shared closed-round retention is normal production behavior; baseline reproduces same failure",
+  "total": "172/173, not a completed integration pass; other 24 classes 149/149 and SMA20 23/24",
+  "R_blocks": [
+    {
+      "block": "R변수",
+      "sha256": "9aa072810375b6ca32c0278d2016ea9ac6ea2ceaf378e7efde9dc41adc485595",
+      "bash_n": 0
+    },
+    {
+      "block": "R0",
+      "sha256": "68541305d857b16a6a4f5f34a5f0319a6fa6abb8379b56d4fcef3d886efccbb0",
+      "bash_n": 0
+    },
+    {
+      "block": "R1",
+      "sha256": "50b4036fe149d516bdea6ec7ff402a95930a0164ffbaa4ecc23117e79194dac0",
+      "bash_n": 0
+    },
+    {
+      "block": "R2",
+      "sha256": "60304f76425df77556687515c6804e9690abd112a5fe60b767df865b632fa9a0",
+      "bash_n": 0
+    },
+    {
+      "block": "R3",
+      "sha256": "424bc38d7f3890738a1e62d059127a963d3e38ff50beecedcbcfaed7f68b1e42",
+      "bash_n": 0
+    },
+    {
+      "block": "R4",
+      "sha256": "748ed578b1a7ffe98d002a7126d82ae4b85191cef6103ba386e8f2a9558f0ed9",
+      "bash_n": 0
+    },
+    {
+      "block": "R뒤관측",
+      "sha256": "ab5bb4bdbff5be9f41b2566ad6c294227d4b31a8d1f97664abdd592be30ca032",
+      "bash_n": 0
+    },
+    {
+      "block": "R되돌림",
+      "sha256": "9ede786377a4488a269ce461649b62fd854dcd0afc0eeedc65bb6e2ac767911b",
+      "bash_n": 0
+    }
+  ],
+  "existing_local_jars": [
+    {
+      "file": "fe01207.jar",
+      "sha256": "14b55d0f44818ff20aedbcbe55053d37d15f16766b492fd1e0560596d8e93284",
+      "outer_duplicate_names": [],
+      "own_module_duplicate_names": {
+        "BOOT-INF/lib/exchange-adapter-0.1.0.jar": [],
+        "BOOT-INF/lib/core-engine-0.1.0.jar": [],
+        "BOOT-INF/lib/strategy-lib-0.1.0.jar": []
+      }
+    },
+    {
+      "file": "51dcee5.jar",
+      "sha256": "68465166a2a99b841647e6ce4667c9e0835dc968d0da34ce39bc1cde54f2b0b9",
+      "outer_duplicate_names": [],
+      "own_module_duplicate_names": {
+        "BOOT-INF/lib/exchange-adapter-0.1.0.jar": [],
+        "BOOT-INF/lib/core-engine-0.1.0.jar": [],
+        "BOOT-INF/lib/strategy-lib-0.1.0.jar": []
+      }
+    },
+    {
+      "file": "51dcee5-rerun.jar",
+      "sha256": "00914b0770d45a0f3f279b8f6bac1fa8da70792fc9d41f7d5ac5e92474c8e4a8",
+      "outer_duplicate_names": [],
+      "own_module_duplicate_names": {
+        "BOOT-INF/lib/exchange-adapter-0.1.0.jar": [],
+        "BOOT-INF/lib/core-engine-0.1.0.jar": [],
+        "BOOT-INF/lib/strategy-lib-0.1.0.jar": []
+      }
+    }
+  ],
+  "rerun_of_jar_item_comparison": [
+    {
+      "left": "fe01207.jar",
+      "right": "51dcee5.jar",
+      "output": "변경 BOOT-INF/classes/com/cryptoautotrader/api/dto/OrderRequest.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/CapitalReservationService$Decision.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/CapitalReservationService.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$1.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$2.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$3.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$BlackSwanGateDecision.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService$EmptyPositionOutcome.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService.class\n추가 BOOT-INF/classes/com/cryptoautotrader/api/service/EntryClock.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/EntryPriorityRounds$Candidate.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/EntryPriorityRounds$Outcome.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/EntryPriorityRounds$RoundKey.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/EntryPriorityRounds.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$1.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$EmptyPositionOutcome.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$PriceSnapshot.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/MarkPriceBook$BookQuote.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/MarkPriceBook$Mark.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/MarkPriceBook.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$3.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$4.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$5.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$CancelOutcome.class\n추가 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$IntentExpired.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$ReservationRejected.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine$SubmitRejection.class\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine.class\n(끝) 879 881\n"
+    },
+    {
+      "left": "51dcee5.jar",
+      "right": "51dcee5-rerun.jar",
+      "output": "(끝) 881 881\n"
+    }
+  ],
+  "no_Gradle_bootJar_server_database_network_or_deployment": true
+}

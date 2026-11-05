@@ -1,0 +1,19 @@
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/DailySma20LiveOrderPathTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/DailySma20LiveOrderPathTest.java
+index 621a700..10540cb 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/DailySma20LiveOrderPathTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/DailySma20LiveOrderPathTest.java
+@@ -55,6 +55,14 @@ import static org.mockito.Mockito.when;
+  * 일봉 경계만 옮긴 인스턴스({@code new DailySmaTrendStrategy(h)})를 같은 이름으로 잠시 등록한다 — 끝나면 운영 인스턴스로 되돌린다.</p>
+  */
+ @DisplayName("DAILY_SMA20 LIVE 주문 경로 — 마감 봉 진입·EMA200 차단·시간 청산·SELL 차단·재진입·매수금")
++// 🔴 시험 fixture 격리(2026-11-05, 계획 §5-9 80) — 이 클래스는 초 단위 H1 회차 키(지금−61분부터 1초씩 앞으로)를 쓴다.
++//    같은 @MockBean 묶음의 다른 클래스(예: BtcGateUnknownEntryTest 의 지금−61분·−5초 키)와 캐시 컨텍스트를 공유하면
++//    그 클래스가 정상 처리로 닫은 회차가 {@link EntryPriorityRounds} 빈에 남아 이 클래스의 접수가 "회차 마감 뒤 도착"으로
++//    거절됐다(통합 172/173, 운영 원본 7클래스 3회 중 2회). 운영의 닫힌 회차 보존·늦은 접수 거절은 그대로 두고,
++//    이 클래스만 고유 속성으로 자기 컨텍스트(자기 회차 빈)를 쓰게 한다. 끝나면 그 컨텍스트를 닫아 뒤 클래스에 남기지 않는다.
++//    시험 설정의 스케줄러는 꺼져 있어(application-test.yml scheduling.enabled=false) 두 컨텍스트가 공유 DB 를 따로 건드리지 않는다.
++@org.springframework.test.context.TestPropertySource(properties = "test.fixture.entry-rounds-context=DailySma20LiveOrderPathTest")
++@org.springframework.test.annotation.DirtiesContext(classMode = org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS)
+ class DailySma20LiveOrderPathTest extends IntegrationTestBase {
+ 
+     private static final String COIN = "KRW-BTC";

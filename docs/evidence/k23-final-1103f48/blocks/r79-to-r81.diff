@@ -1,0 +1,52 @@
+3,4c3,4
+< M=~/maint-n15n16; mkdir -p "$M"; OPS=~/ops-scripts; RV=79   # v1.111(§5-9 79 블록) 판 표지 — R 블록 전부가 확인한다
+< OLD=fe01207f3f60e97e308925157f84a1bb2da04388; NEW=51dcee530721c0ab23f3f6f875a15b9416b751a3
+---
+> M=~/maint-n15n16; mkdir -p "$M"; OPS=~/ops-scripts; RV=81   # v1.113(§5-9 81 블록) 판 표지 — R 블록 전부가 확인한다. 후보 1103f48(출처 candidate/n15-n16-integration-fe01207 의 시험 격리 커밋). 옛 §5-9 79 초안(RV=79)은 실행하지 않는다
+> OLD=fe01207f3f60e97e308925157f84a1bb2da04388; NEW=1103f48505a1457029f6555547a87aa986535738
+8c8
+< IMGPREV3=sha256:67294e80ada31d346e36caeb01a2c259b6b5514357c804977ba1d20fba6aec07   # #21 이미지 — 이전 복구 태그 autotrader-backend:6995c52 가 가리킨다(#22 R1 이 만듦, 보존, 바꾸지 않는다)
+---
+> IMGPREV3=sha256:67294e80ada31d346e36caeb01a2c259b6b5514357c804977ba1d20fba6aec07   # #21 이미지 — 이전 복구 태그 autotrader-backend:6995c52 가 가리킨다(#22 P1 이 만듦, 보존, 바꾸지 않는다)
+21a22
+>   web-api/src/test/java/com/cryptoautotrader/api/service/DailySma20LiveOrderPathTest.java \
+53c54
+<   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine.class')"   # 실제 bootJar 대조(v1.111) — #22 기대값을 옮기지 않고 fe01207·51dcee5 jar 에서 새로 셈
+---
+>   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/OrderExecutionEngine.class')"   # 실제 bootJar 대조(v1.113) — #22 기대값을 옮기지 않고 fe01207·1103f48 jar 에서 새로 셈
+338c339
+< [ "$M" = "$HOME/maint-n15n16" ] && [ "${RV:-}" = 79 ] && [ "$NEW" = 51dcee530721c0ab23f3f6f875a15b9416b751a3 ] && [ -n "${BTCIN:-}" ] && type sid203 > /dev/null 2>&1 && type newsobs > /dev/null 2>&1 && type httpobs > /dev/null 2>&1 && type holdobs > /dev/null 2>&1 && type entryobs > /dev/null 2>&1 || stop "변수 순서 — F 변수 → G 변수 → §5-9 79 R 변수"
+---
+> [ "$M" = "$HOME/maint-n15n16" ] && [ "${RV:-}" = 81 ] && [ "$NEW" = 1103f48505a1457029f6555547a87aa986535738 ] && [ -n "${BTCIN:-}" ] && type sid203 > /dev/null 2>&1 && type newsobs > /dev/null 2>&1 && type httpobs > /dev/null 2>&1 && type holdobs > /dev/null 2>&1 && type entryobs > /dev/null 2>&1 || stop "변수 순서 — F 변수 → G 변수 → §5-9 81 R 변수"
+345c346
+< git cat-file -e "$NEW^{commit}" || stop "후보 51dcee5 없음"
+---
+> git cat-file -e "$NEW^{commit}" || stop "후보 1103f48 없음"
+347c348
+< [ "$(git diff --name-only $OLD $NEW)" = "$DIFFN" ] || stop "diff 가 정확히 N15·N16 11개 파일이 아님(마이그레이션·설정 포함 금지)"
+---
+> [ "$(git diff --name-only $OLD $NEW)" = "$DIFFN" ] || stop "diff 가 정확히 N15·N16 12개 파일이 아님(마이그레이션·설정 포함 금지)"
+402c403
+< [ "${RV:-}" = 79 ] || stop "R 변수가 v1.111(§5-9 79 블록) 판이 아님 — F → G → §5-9 79 R 변수"
+---
+> [ "${RV:-}" = 81 ] || stop "R 변수가 v1.113(§5-9 81 블록) 판이 아님 — F → G → §5-9 81 R 변수"
+457c458
+< [ "${RV:-}" = 79 ] || stop "R 변수가 v1.111(§5-9 79 블록) 판이 아님 — F → G → §5-9 79 R 변수"
+---
+> [ "${RV:-}" = 81 ] || stop "R 변수가 v1.113(§5-9 81 블록) 판이 아님 — F → G → §5-9 81 R 변수"
+483c484
+< [ "${RV:-}" = 79 ] || stop "R 변수가 v1.111(§5-9 79 블록) 판이 아님 — F → G → §5-9 79 R 변수"
+---
+> [ "${RV:-}" = 81 ] || stop "R 변수가 v1.113(§5-9 81 블록) 판이 아님 — F → G → §5-9 81 R 변수"
+539c540
+< [ "${RV:-}" = 79 ] || stop "R 변수가 v1.111(§5-9 79 블록) 판이 아님 — F → G → §5-9 79 R 변수"
+---
+> [ "${RV:-}" = 81 ] || stop "R 변수가 v1.113(§5-9 81 블록) 판이 아님 — F → G → §5-9 81 R 변수"
+608c609
+< [ "${RV:-}" = 79 ] || stop "R 변수가 v1.111(§5-9 79 블록) 판이 아님 — F → G → §5-9 79 R 변수"
+---
+> [ "${RV:-}" = 81 ] || stop "R 변수가 v1.113(§5-9 81 블록) 판이 아님 — F → G → §5-9 81 R 변수"
+636c637
+< [ "${RV:-}" = 79 ] || stop "R 변수가 v1.111(§5-9 79 블록) 판이 아님 — F → G → §5-9 79 R 변수"
+---
+> [ "${RV:-}" = 81 ] || stop "R 변수가 v1.113(§5-9 81 블록) 판이 아님 — F → G → §5-9 81 R 변수"

@@ -1,0 +1,16 @@
+1a2,3
+> # v1.113 판(make_r2.py): k23-prep-51dcee5/blocks/make_r.py 에서 세 군데만 바꿨다 — ① 판 표지 줄 주석에 후보·출처와 옛 §79 초안 대체를 적는다,
+> # ② IMGPREV3 주석의 실제 단계명 '#22 P1' 이 P→R 일괄 바꾸기에 걸려 '#22 R1' 이 되던 것을 막는다(총괄 v1.112 지적), ③ 남은 옛 값 검사에 51dcee5 를 더한다.
+31c33
+<     'M=~/maint-n15n16; mkdir -p "$M"; OPS=~/ops-scripts; RV=%s   # v%s(§5-9 %s 블록) 판 표지 — R 블록 전부가 확인한다' % (RV, val['VER'], SEC))
+---
+>     'M=~/maint-n15n16; mkdir -p "$M"; OPS=~/ops-scripts; RV=%s   # v%s(§5-9 %s 블록) 판 표지 — R 블록 전부가 확인한다. 후보 %s(출처 %s). 옛 §5-9 79 초안(RV=79)은 실행하지 않는다' % (RV, val['VER'], SEC, NEW7, val['SRC']))
+51c53
+< SEV = [('🔴 P0 — ', '\x00SEV1\x00'), ('🔴 P0: ', '\x00SEV2\x00')]
+---
+> SEV = [('#22 P1 이 만듦', '@@STEP22@@'), ('🔴 P0 — ', '\x00SEV1\x00'), ('🔴 P0: ', '\x00SEV2\x00')]
+137c139,140
+< for bad in ['PV=', '${PV', 'maint-n12', 'PARX', 'ok-P', '§5-9 69', '#22) —', 'v1.102']:
+---
+> assert '#22 P1 이 만듦' in s and '#22 R1' not in s
+> for bad in ['PV=', '${PV', 'maint-n12', 'PARX', 'ok-P', '§5-9 69', '#22) —', 'v1.102', '51dcee5']:
