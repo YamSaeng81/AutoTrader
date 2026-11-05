@@ -3586,7 +3586,9 @@ public class DynamicTradingService {
             // 🔴 N02 보완 (2026-11-01 총괄): 조회·발행 결과(refresh)와 실제 점검(lastSlCheckAt 갱신)을 나눈다. 처리기는 비동기이고
             //    낡은 시세는 거절하므로 발행만으로 복구됐다고 보지 않는다 — streak 은 실제 점검 기록이 있어야 지워진다(위).
             ForceRefreshResult refresh = forceRefreshPrice(coin);
-            boolean fetched = refresh.outcome() != ForceRefreshResult.Outcome.FAILED;
+            // 🔴 N17 (2026-11-05): 가격 이상(INVALID_PRICE)은 유효한 조회·발행이 아니다 — 기존 복구 실패(FAILED)와 같은 경보 규칙을 탄다.
+            boolean invalidPrice = refresh.outcome() == ForceRefreshResult.Outcome.INVALID_PRICE;
+            boolean fetched = refresh.outcome() != ForceRefreshResult.Outcome.FAILED && !invalidPrice;
 
             log.warn("[Dynamic][§9] SL 미점검: sessionId={} coin={} 마지막체크={} ({}분 초과, "
                             + "연속 {}회, WS구독={}, REST강제갱신={} {})",
@@ -3599,6 +3601,10 @@ public class DynamicTradingService {
 
             String cause = !subscribed
                     ? "이 코인이 WS 구독 목록에 없습니다 — 구독 배선 확인 필요."
+                    : invalidPrice
+                    ? String.format("REST 시세가 가격으로 볼 수 없는 값(trade_price %s, %s)이라 SL 점검에 쓰지 않았습니다 "
+                            + "— 점검·매도 없음. 거래소 시세 응답을 확인하세요.",
+                            refresh.describePrice(), refresh.describeAge(Instant.now()))
                     : !fetched
                     ? "REST 강제 갱신도 실패 — 거래소 API 상태를 확인하세요."
                     : refresh.outcome() == ForceRefreshResult.Outcome.STALE
@@ -3608,10 +3614,11 @@ public class DynamicTradingService {
                     : String.format("REST 강제 갱신을 %d분 연속 시도했는데도 점검이 기록되지 않습니다 "
                             + "— 실시간 이벤트 경로가 죽었을 수 있습니다.", streak);
 
+            // 🔴 N17: 가격 이상일 때는 "손절 자체가 멈춘 것은 아닙니다"를 붙이지 않는다 — 받은 값으로는 손절 판정을 할 수 없다.
+            String tail = invalidPrice ? "" : " 60초 폴링은 계속 돌고 있으므로 손절 자체가 멈춘 것은 아닙니다.";
             telegramService.sendCustomNotification(String.format(
-                    "⚠️ [동적#%d] SL 실시간 감시 이상: %s (%d분 이상 미점검). %s "
-                            + "60초 폴링은 계속 돌고 있으므로 손절 자체가 멈춘 것은 아닙니다.",
-                    s.getId(), coin, SL_STALE_WARN_MINUTES, cause));
+                    "⚠️ [동적#%d] SL 실시간 감시 이상: %s (%d분 이상 미점검). %s%s",
+                    s.getId(), coin, SL_STALE_WARN_MINUTES, cause, tail));
 
             // 알림을 한 번 보냈으면 streak 을 다시 쌓게 해 같은 이상으로 매분 울리지 않도록 한다.
             slStaleStreak.put(s.getId(), 0);
@@ -3622,6 +3629,7 @@ public class DynamicTradingService {
      * 특정 코인 하나만 REST로 즉시 시세를 가져와 {@link RealtimePriceEvent}를 발행한다.
      * {@link #warnStaleSlCheck}가 개별 세션의 SL 미점검을 발견했을 때 즉시 복구를 시도하는 용도 —
      * LIVE {@link LiveTradingService#forceRefreshPrice}와 동일 패턴 — 결과는 조회·발행 결과다({@link ForceRefreshResult}, N02 보완).
+     * 🔴 N17 (2026-11-05): 체결가가 0·음수면 발행하지 않고 {@code INVALID_PRICE}(LIVE 와 같은 규칙).
      */
     ForceRefreshResult forceRefreshPrice(String coinPair) {
         if (upbitRestClient == null) return ForceRefreshResult.failed();
@@ -3634,6 +3642,13 @@ public class DynamicTradingService {
                 if (market == null || tradePriceObj == null) continue;
                 BigDecimal tradePrice = new BigDecimal(tradePriceObj.toString());
                 Instant observedAt = restTradeTime(ticker);
+                // 🔴 N17 (2026-11-05): 가격 검사 뒤에만 발행한다 — 0·음수는 처리기(N16)가 버릴 값이고, 발행하면 감시기가 "발행"으로 분류했다.
+                if (!MarkPriceBook.isPrice(tradePrice)) {
+                    log.warn("[Dynamic][§9] REST 강제 갱신 시세가 가격이 아님 — 발행하지 않음 (market={}, trade_price={})",
+                            market, tradePrice.toPlainString());
+                    result = ForceRefreshResult.invalidPrice(observedAt, tradePrice);
+                    continue;
+                }
                 eventPublisher.publishEvent(new RealtimePriceEvent(market, tradePrice, observedAt,
                         RealtimePriceEvent.REST_TRADE));
                 boolean stale = markPriceBook != null && markPriceBook.isStale(observedAt, Instant.now());

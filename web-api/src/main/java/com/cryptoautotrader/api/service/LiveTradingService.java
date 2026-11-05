@@ -2703,6 +2703,10 @@ public class LiveTradingService {
                     case STALE -> String.format("REST 시세도 %s 값이라(기준 %d초) SL 점검에 쓰지 않았습니다 — 점검·매도 없음.",
                             refresh.describeAge(now), markPriceBook.maxAgeSeconds());
                     case FAILED -> "자동 복구도 실패 — WS/거래소 상태를 직접 확인하세요.";
+                    // 🔴 N17: 가격 이상은 통신 실패·낡음과 다른 원인이다 — 이벤트를 내보내지 않았고 점검·매도도 없다.
+                    case INVALID_PRICE -> String.format("REST 시세가 가격으로 볼 수 없는 값(trade_price %s, %s)이라 "
+                            + "SL 점검에 쓰지 않았습니다 — 점검·매도 없음. 거래소 시세 응답을 확인하세요.",
+                            refresh.describePrice(), refresh.describeAge(now));
                 };
                 telegramService.sendCustomNotification(String.format(
                         "⚠️ SL 미점검 %d분 초과: 세션 %d (%s). %s",
@@ -2719,6 +2723,8 @@ public class LiveTradingService {
      *
      * <p>🔴 N02 보완 (2026-11-01): 결과는 조회·발행 결과다({@link ForceRefreshResult}) — 낡은 시세면 {@code STALE}(처리기가 거절),
      * 신선하면 {@code PUBLISHED}(점검은 비동기로, 아직 확인 전).</p>
+     *
+     * <p>🔴 N17 (2026-11-05): 체결가가 0·음수면 발행하지 않고 {@code INVALID_PRICE}. 누락·null·형식 이상은 기존대로 {@code FAILED}.</p>
      */
     ForceRefreshResult forceRefreshPrice(String coinPair) {
         if (upbitRestClient == null) return ForceRefreshResult.failed();
@@ -2731,6 +2737,13 @@ public class LiveTradingService {
                 if (market == null || tradePriceObj == null) continue;
                 BigDecimal tradePrice = new BigDecimal(tradePriceObj.toString());
                 Instant observedAt = restTradeTime(ticker);
+                // 🔴 N17 (2026-11-05): 가격 검사 뒤에만 발행한다 — 0·음수는 처리기(N16)가 버릴 값이고, 발행하면 감시기가 "발행"으로 분류했다.
+                if (!MarkPriceBook.isPrice(tradePrice)) {
+                    log.warn("[§9] REST 강제 갱신 시세가 가격이 아님 — 발행하지 않음 (market={}, trade_price={})",
+                            market, tradePrice.toPlainString());
+                    result = ForceRefreshResult.invalidPrice(observedAt, tradePrice);
+                    continue;
+                }
                 eventPublisher.publishEvent(new RealtimePriceEvent(market, tradePrice, observedAt,
                         RealtimePriceEvent.REST_TRADE));
                 boolean stale = markPriceBook != null && markPriceBook.isStale(observedAt, Instant.now());
