@@ -1,0 +1,31 @@
+D:\Claude Code\projects\crypto-auto-trader\core-engine\build\review-n15-n16-4445f36\CapitalReservationService.java:12: error: package lombok.extern.slf4j does not exist
+import lombok.extern.slf4j.Slf4j;
+                          ^
+D:\Claude Code\projects\crypto-auto-trader\core-engine\build\review-n15-n16-4445f36\CapitalReservationService.java:71: error: cannot find symbol
+@Slf4j
+ ^
+  symbol: class Slf4j
+D:\Claude Code\projects\crypto-auto-trader\core-engine\build\review-n15-n16-4445f36\EntryPriorityRounds.java:4: error: package lombok.extern.slf4j does not exist
+import lombok.extern.slf4j.Slf4j;
+                          ^
+D:\Claude Code\projects\crypto-auto-trader\core-engine\build\review-n15-n16-4445f36\EntryPriorityRounds.java:56: error: cannot find symbol
+@Slf4j
+ ^
+  symbol: class Slf4j
+4 errors
+An exception has occurred in the compiler (17.0.12). Please file a bug against the Java compiler via the Java bug reporting page (https://bugreport.java.com) after checking the Bug Database (https://bugs.java.com) for duplicates. Include your program, the following diagnostic, and the parameters passed to the Java compiler in your report. Thank you.
+java.nio.file.AccessDeniedException: C:\Users\SangJoon_Lee\.gradle\caches\modules-2\files-2.1\com.vaadin.external.google\android-json\0.0.20131108.vaadin1\fa26d351fe62a6a17f5cda1287c1c6110dec413f\android-json-0.0.20131108.vaadin1.jar
+	at java.base/sun.nio.fs.WindowsException.translateToIOException(WindowsException.java:89)
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:96)
+	at java.base/sun.nio.fs.WindowsLinkSupport.getRealPath(WindowsLinkSupport.java:258)
+	at java.base/sun.nio.fs.WindowsPath.toRealPath(WindowsPath.java:933)
+	at java.base/sun.nio.fs.WindowsPath.toRealPath(WindowsPath.java:42)
+	at jdk.zipfs/jdk.nio.zipfs.ZipFileSystemProvider.lambda$removeFileSystem$0(ZipFileSystemProvider.java:322)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at jdk.zipfs/jdk.nio.zipfs.ZipFileSystemProvider.removeFileSystem(ZipFileSystemProvider.java:324)
+	at jdk.zipfs/jdk.nio.zipfs.ZipFileSystem.close(ZipFileSystem.java:536)
+	at jdk.compiler/com.sun.tools.javac.file.JavacFileManager$ArchiveContainer.close(JavacFileManager.java:670)
+	at jdk.compiler/com.sun.tools.javac.file.JavacFileManager.close(JavacFileManager.java:748)
+	at jdk.compiler/com.sun.tools.javac.main.Main.compile(Main.java:180)
+	at jdk.compiler/com.sun.tools.javac.Main.compile(Main.java:64)
+	at jdk.compiler/com.sun.tools.javac.Main.main(Main.java:50)

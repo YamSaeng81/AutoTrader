@@ -1,0 +1,31 @@
+후보 d6f7e18924bbef785c5628200a8101a807e4948a
+부모 6f6a5220f7a19f381fa210a9c4a530e262a4fb04
+제목 N15 최종 승인 경계 — 차감 직전·의도 저장 직전 만료 재판정
+작성 2026-11-05 14:21:00 +0900
+
+6f6a522 대비:
+ .../api/service/CapitalReservationService.java     |  49 +-
+ .../api/service/OrderExecutionEngine.java          |  30 +-
+ .../api/service/N15FinalApprovalBoundaryTest.java  | 498 +++++++++++++++++++++
+ 3 files changed, 567 insertions(+), 10 deletions(-)
+
+fe01207 대비 운영 코드:
+ .../com/cryptoautotrader/api/dto/OrderRequest.java |  6 +++
+ .../api/service/CapitalReservationService.java     | 54 +++++++++++++++++++
+ .../api/service/DynamicTradingService.java         | 26 +++++++--
+ .../cryptoautotrader/api/service/EntryClock.java   | 28 ++++++++++
+ .../api/service/EntryPriorityRounds.java           | 61 +++++++++++++++++++---
+ .../api/service/LiveTradingService.java            | 23 +++++---
+ .../api/service/OrderExecutionEngine.java          | 32 +++++++++++-
+ 7 files changed, 212 insertions(+), 18 deletions(-)
+
+fe01207 대비 전체 변경 경로:
+M	web-api/src/main/java/com/cryptoautotrader/api/dto/OrderRequest.java
+M	web-api/src/main/java/com/cryptoautotrader/api/service/CapitalReservationService.java
+M	web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
+A	web-api/src/main/java/com/cryptoautotrader/api/service/EntryClock.java
+M	web-api/src/main/java/com/cryptoautotrader/api/service/EntryPriorityRounds.java
+M	web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
+M	web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java
+A	web-api/src/test/java/com/cryptoautotrader/api/service/N15EntryExpiryTest.java
+A	web-api/src/test/java/com/cryptoautotrader/api/service/N15FinalApprovalBoundaryTest.java

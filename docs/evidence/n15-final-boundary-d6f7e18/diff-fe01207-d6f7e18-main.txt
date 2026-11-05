@@ -1,0 +1,479 @@
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/dto/OrderRequest.java b/web-api/src/main/java/com/cryptoautotrader/api/dto/OrderRequest.java
+index 607e2a3..8d0e7a0 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/dto/OrderRequest.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/dto/OrderRequest.java
+@@ -54,4 +54,10 @@ public class OrderRequest {
+      * 호출자(LiveTradingService/DynamicTradingService)가 명시해야 한다.
+      */
+     private String sessionKind;
++
++    /**
++     * 진입 승인 실행 만료 시각(N15, 2026-11-05) — 회차 승인으로 온 매수만 싣는다. 계좌 잠금 안 예약 직전에 이 시각 이상이면
++     * 예약·의도를 만들지 않는다({@code ENTRY_EXPIRED}). {@code null} 이면 검사하지 않는다(즉시 진입·청산).
++     */
++    private java.time.Instant entryExpiresAt;
+ }
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/CapitalReservationService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/CapitalReservationService.java
+index eb0b264..6337f93 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/CapitalReservationService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/CapitalReservationService.java
+@@ -96,6 +96,8 @@ public class CapitalReservationService {
+     public static final String ACCOUNT_HEADROOM = "ACCOUNT_HEADROOM";
+     public static final String SESSION_FUNDS = "SESSION_FUNDS";
+     public static final String INVALID_REQUEST = "INVALID_REQUEST";
++    /** 진입 승인 실행 만료(N15) — 잠금을 잡은 뒤 만료 시각이 지났다. */
++    public static final String ENTRY_EXPIRED = "ENTRY_EXPIRED";
+ 
+     /**
+      * 판정 결과.
+@@ -123,6 +125,10 @@ public class CapitalReservationService {
+     @Autowired(required = false)
+     private DynamicSessionRepository dynamicSessionRepository;
+ 
++    /** 진입 승인 실행 만료 판정 시계 — 회차 처리와 같은 것(N15). 없으면(단위 생성) 시스템 시계. */
++    @Autowired(required = false)
++    private EntryClock entryClock;
++
+     @PersistenceContext
+     private EntityManager em;
+ 
+@@ -165,6 +171,16 @@ public class CapitalReservationService {
+      * 계좌 스냅숏의 공급원만 모의 계좌로 바꾼다(지금은 미구현이라 거절한다).</p>
+      */
+     public Decision reserveForBuy(String kind, Long sessionId, BigDecimal amount, Long selfPositionId) {
++        return reserveForBuy(kind, sessionId, amount, selfPositionId, null);
++    }
++
++    /**
++     * @param entryExpiresAt 회차 승인의 실행 만료 시각(N15) — 이 시각 이상이면 아무것도 바꾸지 않고 거절한다({@link #ENTRY_EXPIRED}).
++     *                       두 번 본다: 잠금을 잡은 직후(빠른 거절)와, 한도 조회·세션 행 잠금을 모두 지난 <b>차감 바로 앞</b>(최종 판정).
++     *                       🔴 잠금을 얻었다고 그 뒤 조회·잠금이 즉시 끝난다고 가정하지 않는다(총괄 v1.109 재현: 손실 한도 검사·세션
++     *                       refresh 중 E 도달 → 차감). {@code null} 이면 보지 않는다.
++     */
++    public Decision reserveForBuy(String kind, Long sessionId, BigDecimal amount, Long selfPositionId, Instant entryExpiresAt) {
+         requireTransaction("자금 예약 (" + kind + ", sessionId=" + sessionId + ")");
+         if (amount == null || amount.signum() <= 0 || sessionId == null) {
+             return Decision.reject(INVALID_REQUEST, "금액·세션이 없다");
+@@ -176,6 +192,12 @@ public class CapitalReservationService {
+         // ① 공유 잠금 — 이 트랜잭션이 끝날 때까지 다른 예약·배정은 여기서 기다린다.
+         lockAccount();
+ 
++        // ①-2 진입 승인 실행 만료(N15) — 잠금 대기 뒤, 한도 확인보다 먼저 본다(빠른 거절). 최종 판정은 ④ 차감 바로 앞이다.
++        Decision expiredAfterLock = entryExpiry(entryExpiresAt, "잠금 뒤");
++        if (expiredAfterLock != null) {
++            return logged(sessionId, expiredAfterLock);
++        }
++
+         long exclude = selfPositionId != null ? selfPositionId : NO_ID;
+ 
+         // ② 등록 풀 한도 — 계좌에 얼마가 있든 넘으면 안 된다.
+@@ -223,6 +245,11 @@ public class CapitalReservationService {
+             if (before.compareTo(amount) < 0) {
+                 return logged(sessionId, sessionFunds(before, amount));
+             }
++            // ④-0 최종 만료 판정(N15) — 한도 조회를 모두 지난 차감 바로 앞. 거절이면 아무것도 바꾸지 않았다.
++            Decision expiredBeforeDeduct = entryExpiry(entryExpiresAt, "차감 직전");
++            if (expiredBeforeDeduct != null) {
++                return logged(sessionId, expiredBeforeDeduct);
++            }
+             after = before.subtract(amount);
+             session.setAvailableKrw(after);
+             sessionRepository.save(session);
+@@ -248,6 +275,11 @@ public class CapitalReservationService {
+             if (before.compareTo(amount) < 0) {
+                 return logged(sessionId, sessionFunds(before, amount));
+             }
++            // ④-0 최종 만료 판정(N15) — 세션 행 잠금(refresh) 대기를 지난 차감 바로 앞. 거절이면 아무것도 바꾸지 않았다.
++            Decision expiredBeforeDeduct = entryExpiry(entryExpiresAt, "차감 직전");
++            if (expiredBeforeDeduct != null) {
++                return logged(sessionId, expiredBeforeDeduct);
++            }
+             after = before.subtract(amount);
+             // 🔴 같은 트랜잭션의 **관리 엔티티**를 바꾼다. 별도 트랜잭션(REQUIRES_NEW)으로 쓰면 이
+             //    트랜잭션이 커밋 전 롤백될 때 차감만 살아남는다 — 종전 구조가 그것을 보상으로 메웠다.
+@@ -284,6 +316,28 @@ public class CapitalReservationService {
+         em.flush();
+     }
+ 
++    /**
++     * 진입 승인 실행 만료 판정(N15) — 회차 처리와 <b>같은 시계</b>({@link EntryClock})로 {@code entryExpiresAt} 이상인지 본다.
++     *
++     * <p>🔴 "최종 승인" 은 애플리케이션이 필요한 잠금·조회를 모두 지난 뒤 하는 <b>마지막 만료 판정</b>이다(차감 직전, 의도 저장 직전).
++     * 그 판정 뒤 DB 커밋이 물리적으로 끝나는 시각까지 E 미만을 보장하는 기능은 아니다 — 대기 가능한 조회·잠금이 판정 <b>뒤에</b> 남아
++     * E 이후 새 예약·의도를 승인하는 경로를 없애는 것이 목적이다(총괄 v1.109).</p>
++     *
++     * @param stage 판정 위치(사유 문구에 남긴다)
++     * @return 만료면 {@link #ENTRY_EXPIRED} 거절, 아니거나 {@code entryExpiresAt} 이 {@code null} 이면 {@code null}
++     */
++    public Decision entryExpiry(Instant entryExpiresAt, String stage) {
++        if (entryExpiresAt == null) {
++            return null;
++        }
++        Instant now = entryClock != null ? entryClock.now() : Instant.now();
++        if (!EntryPriorityRounds.isExpired(entryExpiresAt, now)) {
++            return null;
++        }
++        return Decision.reject(ENTRY_EXPIRED,
++                "승인 실행 만료(만료 " + entryExpiresAt + ", " + stage + " 판정 " + now + ") — 새 예약·매수 의도 없음");
++    }
++
+     private static Decision sessionFunds(BigDecimal before, BigDecimal amount) {
+         return Decision.reject(SESSION_FUNDS, String.format(
+                 "세션 가용 KRW(%s) < 매수금(%s)", before.toPlainString(), amount.toPlainString()));
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
+index f6d1ae1..9f4aa3a 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
+@@ -867,6 +867,13 @@ public class DynamicTradingService {
+     @Transactional
+     public String approveQueuedEntry(Long sid, String coinPair, List<Candle> evalCandles, StrategySignal signal,
+                                      BigDecimal sizeMultiplier, StrategyLogEntity signalLog) {
++        return approveQueuedEntry(sid, coinPair, evalCandles, signal, sizeMultiplier, signalLog, null);
++    }
++
++    /** @param entryExpiresAt 승인 실행 만료(N15) — 계좌 잠금 안 예약 직전에 다시 본다. {@code null} 이면 보지 않는다. */
++    @Transactional
++    public String approveQueuedEntry(Long sid, String coinPair, List<Candle> evalCandles, StrategySignal signal,
++                                     BigDecimal sizeMultiplier, StrategyLogEntity signalLog, Instant entryExpiresAt) {
+         DynamicSessionEntity fresh = dynamicSessionRepo.findById(sid).orElse(null);
+         String result;
+         if (fresh == null || !"RUNNING".equals(fresh.getStatus())) {
+@@ -877,7 +884,7 @@ public class DynamicTradingService {
+         } else {
+             result = approvalTimeGate(fresh, coinPair, evalCandles);
+             if (result == null) {
+-                result = executeBuy(fresh, coinPair, evalCandles, signal, sizeMultiplier);
++                result = executeBuy(fresh, coinPair, evalCandles, signal, sizeMultiplier, entryExpiresAt);
+             }
+         }
+         updateSignalQuality(signalLog, result == null, result);
+@@ -1244,11 +1251,13 @@ public class DynamicTradingService {
+             //    🔴 갈림은 isPaper 가 아니라 **자본 모델**이다(동등성 시험의 규칙) — 슬롯 경합은 공유 풀에만 있다. 독립 자본
+             //    페이퍼(검증 66세션)는 경합이 없으므로 대상이 아니고, 공유 풀 페이퍼를 만들면 같은 규칙을 탄다.
+             Instant candleOpen = best.evalCandles().get(best.evalCandles().size() - 1).getTime();
++            EntryPriorityRounds.RoundKey roundKey = new EntryPriorityRounds.RoundKey(session.getTimeframe(), candleOpen);
++            Instant expiresAt = EntryPriorityRounds.expiry(roundKey);
+             String notQueued = entryPriorityRounds.submit(new EntryPriorityRounds.Candidate(
+-                    "DYNAMIC", sid, best.coinPair(),
+-                    new EntryPriorityRounds.RoundKey(session.getTimeframe(), candleOpen),
++                    "DYNAMIC", sid, best.coinPair(), roundKey,
+                     () -> self.approveQueuedEntry(sid, best.coinPair(), best.evalCandles(), best.signal(),
+-                            best.sizeMultiplier(), best.signalLog())),
++                            best.sizeMultiplier(), best.signalLog(), expiresAt),
++                    expired -> updateSignalQuality(best.signalLog(), false, expired)),
+                     Instant.now());
+             if (notQueued != null) {
+                 updateSignalQuality(best.signalLog(), false, notQueued);
+@@ -1618,6 +1627,14 @@ public class DynamicTradingService {
+     @Transactional
+     public String executeBuy(DynamicSessionEntity session, String coinPair,
+                             List<Candle> evalCandles, StrategySignal signal, BigDecimal sizeMultiplier) {
++        return executeBuy(session, coinPair, evalCandles, signal, sizeMultiplier, null);
++    }
++
++    /** @param entryExpiresAt 회차 승인의 실행 만료(N15) — 실자금 예약 경계가 잠금 안에서 다시 본다. 즉시 진입은 {@code null}. */
++    @Transactional
++    public String executeBuy(DynamicSessionEntity session, String coinPair,
++                            List<Candle> evalCandles, StrategySignal signal, BigDecimal sizeMultiplier,
++                            Instant entryExpiresAt) {
+         Long sid = session.getId();
+         String kind = sessionKind(session);
+         BigDecimal currentPrice = evalCandles.get(evalCandles.size() - 1).getClose();
+@@ -1723,6 +1740,7 @@ public class DynamicTradingService {
+         order.setSessionId(sid);
+         order.setSessionKind(kind);
+         order.setPositionId(posId);
++        order.setEntryExpiresAt(entryExpiresAt);   // N15 — 잠금 안 예약 직전 만료 재검사
+ 
+         Long preparedOrderId;
+         try {
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/EntryClock.java b/web-api/src/main/java/com/cryptoautotrader/api/service/EntryClock.java
+new file mode 100644
+index 0000000..f42e15a
+--- /dev/null
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/EntryClock.java
+@@ -0,0 +1,28 @@
++package com.cryptoautotrader.api.service;
++
++import org.springframework.stereotype.Component;
++
++import java.time.Clock;
++import java.time.Instant;
++
++/**
++ * 진입 승인 실행 만료(N15, 2026-11-05)를 판정하는 <b>하나의 시계</b>.
++ *
++ * <p>회차 처리({@link EntryPriorityRounds#processDue})의 후보별 검사와 계좌 잠금 안의 예약 직전 검사
++ * ({@link CapitalReservationService#reserveForBuy(String, Long, java.math.BigDecimal, Long, Instant)})가 같은 시계를 본다.
++ * 운영은 시스템 시계(UTC)다. 시험은 {@link #setForTest} 로 가짜 시계를 연결해 대기를 긴 sleep 없이 만든다.</p>
++ */
++@Component
++public class EntryClock {
++
++    private volatile Clock clock = Clock.systemUTC();
++
++    public Instant now() {
++        return clock.instant();
++    }
++
++    /** 시험용 — {@code null} 이면 시스템 시계로 되돌린다. */
++    public void setForTest(Clock c) {
++        this.clock = c != null ? c : Clock.systemUTC();
++    }
++}
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/EntryPriorityRounds.java b/web-api/src/main/java/com/cryptoautotrader/api/service/EntryPriorityRounds.java
+index 9386730..74a6e76 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/EntryPriorityRounds.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/EntryPriorityRounds.java
+@@ -13,6 +13,7 @@ import java.util.HashMap;
+ import java.util.LinkedHashMap;
+ import java.util.List;
+ import java.util.Map;
++import java.util.function.Consumer;
+ import java.util.function.Supplier;
+ 
+ /**
+@@ -29,6 +30,11 @@ import java.util.function.Supplier;
+  *   <li><b>후보 수집 완료</b> = 그 캔들 마감 + 마감 유예({@link #MAX_WINDOW}, 타임프레임이 짧으면 그 절반)의 <b>고정 시각</b>.
+  *       그 전에 접수된 후보만 이 회차 후보다. 마감 뒤 도착(느린 평가·늦은 캔들)은 이 회차에 넣지 않고, 평가가 실패한 세션은
+  *       후보가 없다. 🔴 먼저 도착한 후보부터 승인하지 않는다 — 마감 전에는 아무것도 승인하지 않는다.</li>
++ *   <li><b>승인 실행 만료</b>(N15, 2026-11-05) = 수집 완료 + 같은 길이의 유예. 캔들 마감 C, 유예 W = min(T/2, 5분)이면
++ *       수집 완료 D = C+W, 만료 E = D+W 다(H1: 09:00 마감 → 09:05 수집 완료 → 09:10 부터 금지). <b>실제 시각이 E 이상이면 새
++ *       자금 예약·매수 의도를 만들지 않는다.</b> 후보마다 승인 콜백 직전에 {@link EntryClock} 으로 보고, 엔진의 관문·계좌 잠금
++ *       대기 뒤에도 잠금 안 예약 직전에 같은 E 를 다시 본다({@link CapitalReservationService}). 만료는 원래 신호의 차단 사유로
++ *       남고 회차는 닫힌 채다. 이미 예약·의도가 확정된 주문은 기존 전송·정산 경로를 따른다.</li>
+  *   <li><b>승인</b> = 마감 뒤 한 번, 확정된 후보를 {@link #REGISTERED_ORDER} 순서로(목록 밖 코인은 뒤에 코인 이름순, 같은 코인은
+  *       LIVE → DYNAMIC, 세션 id 순) 하나씩 처리한다. 각 승인은 엔진의 매수 경로 — 즉 기존 원자적 예약 경계(계좌 잠금 안의
+  *       한도 확인·예약·의도 저장)를 그대로 지난다. 슬롯·풀·손실 한도로 거절된 후보만 빠지고 다음 후보로 간다.</li>
+@@ -68,20 +74,28 @@ public class EntryPriorityRounds {
+      *
+      * @param approve 승인 차례에 부른다 — 엔진의 매수 경로를 실행하고, 진입했으면 {@code null}, 아니면 사유를 돌려준다.
+      *                예외는 그 후보의 실패로만 기록한다.
++     * @param expired 승인 실행 만료로 콜백을 부르지 않을 때 그 사유를 원래 신호에 남긴다(N15). 예외는 기록만 한다.
+      */
+     public record Candidate(String kind, Long sessionId, String coinPair, RoundKey round,
+-                            Supplier<String> approve) {}
++                            Supplier<String> approve, Consumer<String> expired) {
++        /** 만료 기록처가 없는 후보(단위 시험) — 만료 사유는 결과에만 남는다. */
++        public Candidate(String kind, Long sessionId, String coinPair, RoundKey round, Supplier<String> approve) {
++            this(kind, sessionId, coinPair, round, approve, reason -> { });
++        }
++    }
+ 
+     /** 승인 결과 — {@code reason} 이 {@code null} 이면 진입. */
+     public record Outcome(Candidate candidate, int rank, String reason) {}
+ 
+     private final CapitalPoolLimits limits;
++    private final EntryClock clock;
+     private final Map<RoundKey, LinkedHashMap<String, Candidate>> open = new HashMap<>();
+     private final Map<RoundKey, Instant> closed = new HashMap<>();
+     private volatile boolean forcedForTest;
+ 
+-    public EntryPriorityRounds(CapitalPoolLimits limits) {
++    public EntryPriorityRounds(CapitalPoolLimits limits, EntryClock clock) {
+         this.limits = limits;
++        this.clock = clock;
+     }
+ 
+     /** 등록 단계면 켜진다. 시험 단계는 {@link #setForcedForTest} 로만. */
+@@ -96,11 +110,32 @@ public class EntryPriorityRounds {
+         this.forcedForTest = v;
+     }
+ 
+-    /** 이 회차의 후보 수집 마감 시각. */
++    /** 유예 W = min(T/2, 5분) — 수집 유예와 실행 유예가 같은 길이다. */
++    public static Duration window(String timeframe) {
++        Duration tf = Duration.ofMinutes(TimeframeUtils.toMinutes(timeframe));
++        return tf.dividedBy(2).compareTo(MAX_WINDOW) < 0 ? tf.dividedBy(2) : MAX_WINDOW;
++    }
++
++    /** 이 회차의 후보 수집 마감 시각 D = C+W. */
+     public static Instant deadline(RoundKey round) {
+         Duration tf = Duration.ofMinutes(TimeframeUtils.toMinutes(round.timeframe()));
+-        Duration window = tf.dividedBy(2).compareTo(MAX_WINDOW) < 0 ? tf.dividedBy(2) : MAX_WINDOW;
+-        return round.candleOpenTime().plus(tf).plus(window);
++        return round.candleOpenTime().plus(tf).plus(window(round.timeframe()));
++    }
++
++    /** 이 회차의 승인 실행 만료 시각 E = D+W — 이 시각 <b>이상</b>이면 새 예약·매수 의도를 만들지 않는다(N15). */
++    public static Instant expiry(RoundKey round) {
++        return deadline(round).plus(window(round.timeframe()));
++    }
++
++    /** 만료 판정 — 경계 E 는 허용하지 않는다. */
++    public static boolean isExpired(Instant expiresAt, Instant now) {
++        return expiresAt != null && !now.isBefore(expiresAt);
++    }
++
++    /** 원래 신호에 남기는 만료 사유. */
++    public static String expiredReason(RoundKey round, Instant now) {
++        return "승인 실행 만료(" + round.timeframe() + " " + round.candleOpenTime() + " 만료 " + expiry(round) + ", 판정 " + now
++                + ") — 새 예약·매수 의도 없음";
+     }
+ 
+     /** 등록 순서상 순위 — 목록 밖 코인은 목록 뒤. */
+@@ -140,7 +175,7 @@ public class EntryPriorityRounds {
+ 
+     @Scheduled(fixedDelay = 5_000, initialDelay = 20_000)
+     public void processDueRounds() {
+-        processDue(Instant.now());
++        processDue(clock.now());
+     }
+ 
+     /**
+@@ -169,6 +204,20 @@ public class EntryPriorityRounds {
+             for (Candidate c : ordered) {
+                 rank++;
+                 String reason;
++                // 🔴 후보마다 지금 시각으로 다시 본다(N15) — 회차를 꺼낸 시각 하나를 재사용하지 않는다. 앞 후보의 승인 지연도
++                //    여기서 걸린다. 만료면 콜백(엔진 관문·예약)을 부르지 않고 사유를 원래 신호에 남긴다.
++                Instant at = clock.now();
++                if (isExpired(expiry(c.round()), at)) {
++                    reason = expiredReason(c.round(), at);
++                    try {
++                        c.expired().accept(reason);
++                    } catch (RuntimeException ex) {
++                        log.error("[진입 우선순위] 만료 사유 기록 실패: {} {}#{} {}", e.getKey(), c.kind(), c.sessionId(), c.coinPair(), ex);
++                    }
++                    log.warn("[진입 우선순위] {}위 {} {}#{} → {}", rank, c.coinPair(), c.kind(), c.sessionId(), reason);
++                    out.add(new Outcome(c, rank, reason));
++                    continue;
++                }
+                 try {
+                     reason = c.approve().get();
+                 } catch (RuntimeException ex) {
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
+index 4214efb..07517bc 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
+@@ -1359,11 +1359,14 @@ public class LiveTradingService {
+                         //    사전 등록 순서로 승인한다 — 평가가 빨리 끝난 세션이 슬롯을 먼저 갖지 않게.
+                         final String regimeAtSignal = regimeName;
+                         final List<Candle> candlesAtSignal = evalCandles;
++                        final EntryPriorityRounds.RoundKey roundKey =
++                                new EntryPriorityRounds.RoundKey(timeframe, candlesAtSignal.get(candlesAtSignal.size() - 1).getTime());
++                        final Instant expiresAt = EntryPriorityRounds.expiry(roundKey);
+                         String notQueued = entryPriorityRounds.submit(new EntryPriorityRounds.Candidate(
+-                                "LIVE", sessionId, coinPair,
+-                                new EntryPriorityRounds.RoundKey(timeframe, candlesAtSignal.get(candlesAtSignal.size() - 1).getTime()),
++                                "LIVE", sessionId, coinPair, roundKey,
+                                 () -> approveQueuedEntry(sessionId, coinPair, buyReason, finalSignal,
+-                                        regimeAtSignal, candlesAtSignal, signalLogRef)),
++                                        regimeAtSignal, candlesAtSignal, signalLogRef, expiresAt),
++                                expired -> saveSignalQuality(signalLogRef, false, expired)),
+                                 Instant.now());
+                         if (notQueued != null) {
+                             saveSignalQuality(signalLogRef, false, notQueued);
+@@ -1376,7 +1379,7 @@ public class LiveTradingService {
+                         saveSignalQuality(signalLogRef, false, "리스크 한도: " + riskResult.getReason());
+                         return;
+                     }
+-                    executeSessionBuy(session, coinPair, currentPrice, buyReason, finalSignal, regimeName, evalCandles);
++                    executeSessionBuy(session, coinPair, currentPrice, buyReason, finalSignal, regimeName, evalCandles, null);
+                     saveSignalQuality(signalLogRef, true, null);
+                 } else {
+                     String reason;
+@@ -1468,6 +1471,13 @@ public class LiveTradingService {
+     String approveQueuedEntry(Long sessionId, String coinPair, String reason,
+                               StrategySignal signal, String marketRegime, List<Candle> evalCandles,
+                               StrategyLogEntity signalLog) {
++        return approveQueuedEntry(sessionId, coinPair, reason, signal, marketRegime, evalCandles, signalLog, null);
++    }
++
++    /** @param entryExpiresAt 승인 실행 만료(N15) — 계좌 잠금 안 예약 직전에 다시 본다. {@code null} 이면 보지 않는다. */
++    String approveQueuedEntry(Long sessionId, String coinPair, String reason,
++                              StrategySignal signal, String marketRegime, List<Candle> evalCandles,
++                              StrategyLogEntity signalLog, Instant entryExpiresAt) {
+         String result;
+         LiveTradingSessionEntity session = sessionRepository.findById(sessionId).orElse(null);
+         if (session == null || !"RUNNING".equals(session.getStatus())) {
+@@ -1480,7 +1490,7 @@ public class LiveTradingService {
+             result = approvalTimeGate(session, coinPair, latest);
+             if (result == null) {
+                 BigDecimal priceNow = latest.get(latest.size() - 1).getClose();
+-                result = executeSessionBuy(session, coinPair, priceNow, reason, signal, marketRegime, evalCandles);
++                result = executeSessionBuy(session, coinPair, priceNow, reason, signal, marketRegime, evalCandles, entryExpiresAt);
+             }
+         }
+         saveSignalQuality(signalLog, result == null, result);
+@@ -1515,7 +1525,7 @@ public class LiveTradingService {
+     private String executeSessionBuy(LiveTradingSessionEntity session,
+                                     String coinPair, BigDecimal price, String reason,
+                                     StrategySignal signal, String marketRegime,
+-                                    List<Candle> evalCandles) {
++                                    List<Candle> evalCandles, Instant entryExpiresAt) {
+         // 사전 검증: 이미 이 세션에 활성 BUY 주문이 있으면 스킵 (orphan 포지션 방지)
+         boolean hasPendingBuy = orderRepository.existsBySessionIdAndCoinPairAndSideAndStateIn(
+                 session.getId(), coinPair, "BUY", ACTIVE_ORDER_STATES);
+@@ -1605,6 +1615,7 @@ public class LiveTradingService {
+         order.setSignalPrice(price);  // §14 drift 측정 기준가 — 신호 평가 시점 현재가
+         order.setSessionId(session.getId());
+         order.setSessionKind("LIVE");
++        order.setEntryExpiresAt(entryExpiresAt);   // N15 — 잠금 안 예약 직전 만료 재검사
+ 
+         // 🔴 **한도 확인 · 자금 예약 · 슬롯 · 주문 의도를 한 트랜잭션으로** (V85).
+         //
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java b/web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java
+index c82bbca..3f53e04 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java
+@@ -508,7 +508,7 @@ public class OrderExecutionEngine {
+             throw new IllegalStateException("예약 서비스가 없다 — 한도 확인 없이 승인하지 않는다");
+         }
+         CapitalReservationService.Decision decision = capitalReservationService.reserveForBuy(
+-                sessionKind, request.getSessionId(), request.getQuantity(), request.getPositionId());
++                sessionKind, request.getSessionId(), request.getQuantity(), request.getPositionId(), request.getEntryExpiresAt());
+         if (!decision.approved()) {
+             // 🔴 **거절도 롤백한다.** 종전에는 null 을 돌려줘 호출자 트랜잭션이 그대로 커밋됐고,
+             //    같은 트랜잭션에서 만든 슬롯(size=0 포지션)이 **차감 없이** 남았다. 그 포지션을
+@@ -516,7 +516,16 @@ public class OrderExecutionEngine {
+             throw new ReservationRejected(decision.code(), decision.message());
+         }
+ 
+-        Long orderId = prepareIntent(request);
++        Long orderId;
++        try {
++            orderId = prepareIntent(request);
++        } catch (IntentExpired expired) {
++            // 🔴 의도 저장 직전 만료(N15) — 차감은 이미 일어났다. INTENT_REJECTED 와 같은 방식으로 **같은 트랜잭션 안에서** 정확히
++            //    되돌린다(LIVE 는 호출자가 롤백, DYNAMIC 은 틱을 이어가므로 이 복원이 차감을 지운다). 의도·소유권은 만들지 않았다.
++            capitalReservationService.releaseWithinTransaction(
++                    sessionKind, request.getSessionId(), request.getQuantity());
++            throw new ReservationRejected(CapitalReservationService.ENTRY_EXPIRED, expired.getMessage());
++        }
+         if (orderId == null) {
+             // 🔴 의도가 거절되면 **예약도 되돌려야 한다.** LIVE 는 호출자가 트랜잭션을 롤백하고,
+             //    DYNAMIC 은 틱 트랜잭션이라 롤백하면 신호 기록까지 사라지므로 차감을 같은 트랜잭션
+@@ -567,6 +576,13 @@ public class OrderExecutionEngine {
+      * <p>🔴 거절은 오류가 아니다. 그래서 호출자가 이것만 잡아 <b>조용히</b> 끝내고, 다른 예외는
+      * 그대로 올라가게 한다.</p>
+      */
++    /** 의도 저장 직전 만료(N15) — {@link #reserveAndPrepareIntent} 만 잡아 예약을 되돌리고 {@link ReservationRejected} 로 바꾼다. */
++    private static final class IntentExpired extends RuntimeException {
++        IntentExpired(String message) {
++            super(message);
++        }
++    }
++
+     public static class ReservationRejected extends RuntimeException {
+         private final String code;
+ 
+@@ -676,6 +692,18 @@ public class OrderExecutionEngine {
+             return null;
+         }
+ 
++        // 🔴 진입 승인 실행 만료 최종 판정(N15, 총괄 v1.109) — 세션 행 잠금·회계/미해결/위험 설정 조회를 모두 지난 **의도 저장 바로 앞**.
++        //    예약 서비스와 같은 시계·같은 만료 시각이다. 만료면 식별자를 소비하지 않고, 호출자가 예약을 되돌린다.
++        if (request.getEntryExpiresAt() != null && capitalReservationService != null) {
++            CapitalReservationService.Decision expired =
++                    capitalReservationService.entryExpiry(request.getEntryExpiresAt(), "의도 직전");
++            if (expired != null) {
++                log.warn("의도 저장 직전 승인 실행 만료 — 매수 의도를 만들지 않는다 (sessionKind={}, sessionId={}, {}): {}",
++                        sessionKind, request.getSessionId(), request.getCoinPair(), expired.message());
++                throw new IntentExpired(expired.message());
++            }
++        }
++
+         // 3. 주문 엔티티 생성 — 🔴 PENDING 이 아니라 INTENT_READY 다.
+         //
+         //    PENDING 은 "제출 전" 과 "제출했는지 모름" 을 구분하지 못했다. 재시작 복구가

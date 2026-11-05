@@ -1,0 +1,507 @@
+{
+  "reviewed_main": "4445f36192752636f5c47186c6e2fff3aab2ffcf",
+  "base": "fe01207f3f60e97e308925157f84a1bb2da04388",
+  "n15": "6f6a5220f7a19f381fa210a9c4a530e262a4fb04",
+  "n16": "ac29ecf11da9529fd3d83a6b28ae8756c4e89c9a",
+  "manifests_worktree_and_git": {
+    "n16": [
+      {
+        "path": "README.md",
+        "sha256": "09e703de150151d6b7e0d9f973701f16a9e3ecee835fdfaa752a74f741058d96"
+      },
+      {
+        "path": "after/TEST-com.cryptoautotrader.api.service.CandleGapExitTest.xml",
+        "sha256": "14fcd1b6ae5c2669d91928098788e0e86e8c357595653ae1da1377c79a8d652a"
+      },
+      {
+        "path": "after/TEST-com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest.xml",
+        "sha256": "af78c2a73ffeece6288f9961143b41c6d0f720f2fa6ffe43cc04e0800b4200f1"
+      },
+      {
+        "path": "after/TEST-com.cryptoautotrader.api.service.DynamicTradingSlWatchdogRecoveryTest.xml",
+        "sha256": "435f26bb68c017f118044035ce93a42b94220b2f44bdf3210cf9fc99b8b666e4"
+      },
+      {
+        "path": "after/TEST-com.cryptoautotrader.api.service.LiveTradingSlWatchdogRecoveryTest.xml",
+        "sha256": "b4e9d8ffeead9fb811c9033c2357f7da0e56168adaa948c7f1ec6a4d183b64f1"
+      },
+      {
+        "path": "after/TEST-com.cryptoautotrader.api.service.N16InvalidPriceReproTest.xml",
+        "sha256": "727eae9e9481cd4466c77fa53b4575e399c4dba8c2f18aa001b64fdd1c421d60"
+      },
+      {
+        "path": "after/TEST-com.cryptoautotrader.api.service.PoolLossLimitTest.xml",
+        "sha256": "4ed4e06d0b2d97d487ad55bb32a3f0453759a1be40eba68c057302fdd1a49590"
+      },
+      {
+        "path": "after/TEST-com.cryptoautotrader.api.service.PositionLimitTest.xml",
+        "sha256": "2a3cacb7dac368f4e0c1feede1e2ddf44037f1d594794b9f1663d40729bc3658"
+      },
+      {
+        "path": "after/TEST-com.cryptoautotrader.api.service.SlWatchdogFreshnessTest.xml",
+        "sha256": "cf894c943921170a7f142f5964fc8195542c076a9776f56a998a2dad596243a4"
+      },
+      {
+        "path": "after/TEST-com.cryptoautotrader.api.service.StaleRealtimeExitTest.xml",
+        "sha256": "be65cc945d54c54413acb42e2cb73ccc8d505cadbeabba632932d46f90d502ea"
+      },
+      {
+        "path": "after/TEST-com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest.xml",
+        "sha256": "bd52f77b2aa01aeac59e49dbb29d8efaae504f1ed7f9ccce7fae239f17c864c4"
+      },
+      {
+        "path": "after/gradle-after.log",
+        "sha256": "03aa77224900434a17315614758946b4e74b1aa8daf787512638da01e02df155"
+      },
+      {
+        "path": "after/summary.txt",
+        "sha256": "a069ce95de81bdb27c5daa18b3418e5a0ecd10594320b70a22424dde16c8440e"
+      },
+      {
+        "path": "before/TEST-com.cryptoautotrader.api.service.N16InvalidPriceReproTest.xml",
+        "sha256": "6e906ba94ea645457615415422a34a4c5ab12b30d682a08004f00f40ec577eb7"
+      },
+      {
+        "path": "before/failures.txt",
+        "sha256": "23c3caac9c61400f810a57c6bca1ef274fa6d71d038bbd3080d6255090f80275"
+      },
+      {
+        "path": "before/gradle-before.log",
+        "sha256": "b29daf23d1d22b6ad9dd4dc105662d7c26e6d813a82c52c7c81358aacb40db33"
+      },
+      {
+        "path": "before/summary.txt",
+        "sha256": "5142914142e204a8f918c986cbee8a8ccc605eab73dd9dc25bfde221dcee7b46"
+      },
+      {
+        "path": "candidate-sha.txt",
+        "sha256": "34d2db44c0e11377e26218b0fcfdaa6123d318e75265b704767ed570563c1e83"
+      },
+      {
+        "path": "diff-3385f70-ac29ecf-main.txt",
+        "sha256": "4f805426ac460b566ea22ac009bd92283c70ffef2a4a6bae089536878963cf91"
+      },
+      {
+        "path": "diff-fe01207-ac29ecf-main.txt",
+        "sha256": "1162c3947d7b32561d930f4789f22648c6c109ac10b6b2aa9117d6a820607915"
+      },
+      {
+        "path": "fail-runs/run1-event-path-design.log",
+        "sha256": "d92b0d547143ac80df571799b9db16239cd0018314d3c846e8df2f36c26eb298"
+      },
+      {
+        "path": "fail-runs/run3-valueof-overload.log",
+        "sha256": "0be19d6192e6280b1b3f1188cd32d0e42f623377a0b5bac341e9c9f6b35a19e6"
+      },
+      {
+        "path": "tests/N16InvalidPriceReproTest.java",
+        "sha256": "458b83d8389535ed882324fb7ddac77077778e138dfb4a074e1e05b8e1ce11dc"
+      }
+    ],
+    "n15": [
+      {
+        "path": "README.md",
+        "sha256": "3aef8acd316a1c22064c8c9401beb76a57ea25d6fbe0fb519ecb23bf6c78a96a"
+      },
+      {
+        "path": "after/TEST-com.cryptoautotrader.api.service.BtcGateSupplyEndToEndTest.xml",
+        "sha256": "1b538b5b9bfb6d806cfce93ace95be4f832ac29f91072f1852a6d80105cf9389"
+      },
+      {
+        "path": "after/TEST-com.cryptoautotrader.api.service.BtcGateUnknownEntryTest.xml",
+        "sha256": "b7bd1e8fe8a1c13e1db3ea76697f9f261050ff34b929ec0c9bdc79e28e11cd51"
+      },
+      {
+        "path": "after/TEST-com.cryptoautotrader.api.service.CapitalPoolLimitTest.xml",
+        "sha256": "634050204f2394b5c69351385cfb334840e9741596d5e50ead14581afe669bfc"
+      },
+      {
+        "path": "after/TEST-com.cryptoautotrader.api.service.CapitalPoolRegistrationTest.xml",
+        "sha256": "e6d0874ac752c57f228057f541b382aa48492b0e6ef278d90fdeb66f7fa11f9e"
+      },
+      {
+        "path": "after/TEST-com.cryptoautotrader.api.service.ConcurrentEntryCapTest.xml",
+        "sha256": "8c4b90deb5fe5071e0c487b2fb490f18a7ce5dc7dfd0f0e217b573a0bb29f195"
+      },
+      {
+        "path": "after/TEST-com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest.xml",
+        "sha256": "9521ad33dc1ae1c9d48ec31cf60f854f6f30349bb0800ca2a5ebc933538a1d56"
+      },
+      {
+        "path": "after/TEST-com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest.xml",
+        "sha256": "0f9ce3ddd6585f6a21fd5091bf0698d148c51155638b5b8b1bdf7d15ee640014"
+      },
+      {
+        "path": "after/TEST-com.cryptoautotrader.api.service.DynamicPoolReservationTest.xml",
+        "sha256": "ecf4adf1f40712da8cd6019f615f502fc5895738b12ab4140fc461fde8ec14a9"
+      },
+      {
+        "path": "after/TEST-com.cryptoautotrader.api.service.DynamicUnlockedCapitalTest.xml",
+        "sha256": "3bc719131c3e4f12a9dfb67e64f52471ab7e53f0f16cb141e8124c62d76bcb07"
+      },
+      {
+        "path": "after/TEST-com.cryptoautotrader.api.service.EntryPriorityEndToEndTest.xml",
+        "sha256": "1aed2ec25a54b7327e46793fd3cae3bcd82d362a639118a931beb195c978aa52"
+      },
+      {
+        "path": "after/TEST-com.cryptoautotrader.api.service.EntryPriorityRoundsTest.xml",
+        "sha256": "d25df02c6ca088ba78097c4dbc99e3b3a07c8722388e17955af471741c0f1f59"
+      },
+      {
+        "path": "after/TEST-com.cryptoautotrader.api.service.IntentPrecommitAndOnceOnlyTest.xml",
+        "sha256": "42d10af4ab1bbea9c2750fc6eb6e303979cc5b0ec3dc888cde5029ca060482eb"
+      },
+      {
+        "path": "after/TEST-com.cryptoautotrader.api.service.N15EntryExpiryTest.xml",
+        "sha256": "b2bb17cd3b92089de1586b43b6aa84e92eba6e31d91b863c1f408850217f4717"
+      },
+      {
+        "path": "after/TEST-com.cryptoautotrader.api.service.SessionCapitalGuardTest.xml",
+        "sha256": "eff50d4953392f988acc9a21eb8f8ea8c643b74e740d52f893fc3292f165eadd"
+      },
+      {
+        "path": "after/TEST-com.cryptoautotrader.api.service.SubmitResponseUnknownTest.xml",
+        "sha256": "7b2f3df7fad4274f0510e7db145af82275b8f9ab51102667bf5ad2edfc635b92"
+      },
+      {
+        "path": "after/gradle-after.log",
+        "sha256": "9d3bc1e172d8af93091934158027744841c30f7744180a793eea52ef286ee751"
+      },
+      {
+        "path": "after/summary.txt",
+        "sha256": "9b7374552077b19e6ad926ba8f25f81c8438ff176c1f3b8e17cbb4aca0bc7faf"
+      },
+      {
+        "path": "before/TEST-com.cryptoautotrader.api.service.N15EntryExpiryTest.xml",
+        "sha256": "150b1eb8f4ab362112b2dc8b6bd9f9a846271a66042f59fa7615d44c96a2d819"
+      },
+      {
+        "path": "before/failures.txt",
+        "sha256": "9b78961d6fc270d8342e2be53021085c5ccd2de39ce459ea3d14536b83a61b98"
+      },
+      {
+        "path": "before/gradle-before.log",
+        "sha256": "9b66fb3c7d1ac12f182feea1cd1ddb474c971be8de6b3c9db4cd7eae69a1078f"
+      },
+      {
+        "path": "before/summary.txt",
+        "sha256": "8e8dd5e81829913138e453646166a11f855d88302b900262817305e0423946d3"
+      },
+      {
+        "path": "candidate-sha.txt",
+        "sha256": "e878427e3b85527c9f860d830d7f44833de6ff364be2395dc4c2b000394b4dec"
+      },
+      {
+        "path": "diff-fe01207-6f6a522-main.txt",
+        "sha256": "d81cd87f596d5b701bb7a0abacc90e21daef9d22f22f62cf8405051f6965c4b3"
+      },
+      {
+        "path": "fail-runs/run1-before-roundkey-within-class.log",
+        "sha256": "6a0771a35e93ebc867b2bd50eebd19054a5b8737f1363eddcae3aa0426ad885d"
+      },
+      {
+        "path": "fail-runs/run3/TEST-com.cryptoautotrader.api.service.N15EntryExpiryTest.xml",
+        "sha256": "e8606286ab2602a13482e50fced307197f015a6de72b9c223361095d57ff0487"
+      },
+      {
+        "path": "fail-runs/run3/gradle-run3.log",
+        "sha256": "e6fdac70fd8d68db0b8b2c4653cfb61e7e95ff6f2328866b69dd919d07f80974"
+      },
+      {
+        "path": "fail-runs/run4/TEST-com.cryptoautotrader.api.service.N15EntryExpiryTest.xml",
+        "sha256": "a94aa381229fe0c3cd8e923565107ba616d2d0d131bd711ee9c3d05b2aa88107"
+      },
+      {
+        "path": "fail-runs/run4/gradle-run4.log",
+        "sha256": "230e6c0262a47893f02f3c79fdc3dc1303b56d8e47a054d624413eb3be2d6548"
+      },
+      {
+        "path": "fail-runs/run5-confirmed-state-assert.log",
+        "sha256": "598263e6ba94ff9ed5e2273a3f348a36d953da57e65487520a319c018f1f71a2"
+      },
+      {
+        "path": "tests/N15EntryExpiryTest.java",
+        "sha256": "6e2836dded46a2457ff232946482387bc86226c5c0bb86c473d1085e24f3eaf7"
+      }
+    ]
+  },
+  "preserved_xml": {
+    "n16-future-time-ac29ecf": {
+      "before": [
+        {
+          "file": "TEST-com.cryptoautotrader.api.service.N16InvalidPriceReproTest.xml",
+          "tests": 13,
+          "failures": 4,
+          "errors": 0,
+          "skipped": 0
+        }
+      ],
+      "after": [
+        {
+          "file": "TEST-com.cryptoautotrader.api.service.CandleGapExitTest.xml",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "TEST-com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest.xml",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "TEST-com.cryptoautotrader.api.service.DynamicTradingSlWatchdogRecoveryTest.xml",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "TEST-com.cryptoautotrader.api.service.LiveTradingSlWatchdogRecoveryTest.xml",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "TEST-com.cryptoautotrader.api.service.N16InvalidPriceReproTest.xml",
+          "tests": 13,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "TEST-com.cryptoautotrader.api.service.PoolLossLimitTest.xml",
+          "tests": 21,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "TEST-com.cryptoautotrader.api.service.PositionLimitTest.xml",
+          "tests": 13,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "TEST-com.cryptoautotrader.api.service.SlWatchdogFreshnessTest.xml",
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "TEST-com.cryptoautotrader.api.service.StaleRealtimeExitTest.xml",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "TEST-com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest.xml",
+          "tests": 7,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        }
+      ]
+    },
+    "n15-expiry-6f6a522": {
+      "before": [
+        {
+          "file": "TEST-com.cryptoautotrader.api.service.N15EntryExpiryTest.xml",
+          "tests": 6,
+          "failures": 6,
+          "errors": 0,
+          "skipped": 0
+        }
+      ],
+      "after": [
+        {
+          "file": "TEST-com.cryptoautotrader.api.service.BtcGateSupplyEndToEndTest.xml",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "TEST-com.cryptoautotrader.api.service.BtcGateUnknownEntryTest.xml",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "TEST-com.cryptoautotrader.api.service.CapitalPoolLimitTest.xml",
+          "tests": 8,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "TEST-com.cryptoautotrader.api.service.CapitalPoolRegistrationTest.xml",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "TEST-com.cryptoautotrader.api.service.ConcurrentEntryCapTest.xml",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "TEST-com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest.xml",
+          "tests": 24,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "TEST-com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest.xml",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "TEST-com.cryptoautotrader.api.service.DynamicPoolReservationTest.xml",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "TEST-com.cryptoautotrader.api.service.DynamicUnlockedCapitalTest.xml",
+          "tests": 7,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "TEST-com.cryptoautotrader.api.service.EntryPriorityEndToEndTest.xml",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "TEST-com.cryptoautotrader.api.service.EntryPriorityRoundsTest.xml",
+          "tests": 10,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "TEST-com.cryptoautotrader.api.service.IntentPrecommitAndOnceOnlyTest.xml",
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "TEST-com.cryptoautotrader.api.service.N15EntryExpiryTest.xml",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "TEST-com.cryptoautotrader.api.service.SessionCapitalGuardTest.xml",
+          "tests": 5,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "file": "TEST-com.cryptoautotrader.api.service.SubmitResponseUnknownTest.xml",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        }
+      ]
+    }
+  },
+  "changed_files_n15": [
+    "web-api/src/main/java/com/cryptoautotrader/api/dto/OrderRequest.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/CapitalReservationService.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/EntryClock.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/EntryPriorityRounds.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/N15EntryExpiryTest.java"
+  ],
+  "changed_files_n16": [
+    "web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/MarkPriceBook.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/N16InvalidPriceReproTest.java"
+  ],
+  "preserved_test_sources_and_production_diffs_match_git": true,
+  "candidate_source_anchors": {
+    "CapitalReservationService": {
+      "lockAccount();": [
+        191,
+        338,
+        476
+      ],
+      "if (EntryPriorityRounds.isExpired(entryExpiresAt, now))": [
+        196
+      ],
+      "Decision loss = poolLossGuard.checkForEntry": [
+        213
+      ],
+      "em.refresh(session, jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)": [
+        269
+      ],
+      "session.setAvailableKrw(after);": [
+        250,
+        277
+      ]
+    },
+    "OrderExecutionEngine": {
+      "Long orderId = prepareIntent(request);": [
+        519
+      ],
+      "if (!approveNewEntry(request, sessionKind))": [
+        675
+      ],
+      "OrderEntity order = OrderEntity.builder()": [
+        685
+      ]
+    }
+  },
+  "n16_ruling": "Accept local candidate; runtime not changed and N16 not completed.",
+  "n15_ruling": "Changes requested: post-check blocking guards and session locks can cross E before debit/intent.",
+  "fresh_reproduction": {
+    "candidate": "6f6a5220f7a19f381fa210a9c4a530e262a4fb04",
+    "exact_compiled_production_sources": {
+      "web-api/src/main/java/com/cryptoautotrader/api/service/CapitalReservationService.java": "5fc59e3d48abc13cca8b04a90d4a58bdf2c9623cdbc182665514416a751c3b7c",
+      "web-api/src/main/java/com/cryptoautotrader/api/service/EntryPriorityRounds.java": "4728d84f3934b4c810fa162549ac4a4d1b15c228a8c58aba5512c361f9c3226a",
+      "web-api/src/main/java/com/cryptoautotrader/api/service/EntryClock.java": "66038940d6437932ee769bc3d5c2f2b98d07ecd21a61d587b1ca3259d533e7ec"
+    },
+    "javac_exit": 0,
+    "java_exit": 0,
+    "method": "Actual candidate reservation method; Mockito persistence/guards; simulated E crossing after first check.",
+    "limits": [
+      "No real database transaction or persisted order intent is asserted.",
+      "Dependency classpath reused from preserved local Gradle worker; dependency classes are not rebuilt.",
+      "7/7 counts reproduced expectations, including 3 defects, not fixed product tests."
+    ],
+    "gradle_or_bootjar_build": false,
+    "server_db_or_external_access": false
+  },
+  "limits": [
+    "80 and 93 include N16 13 and N15 6 respectively; overlapping classes must not be summed as unique tests.",
+    "7/7 review reproduction expectations include three defects; not seven passing safety tests.",
+    "Focused reproduction compiles exact candidate methods with mocked dependencies, not an integrated DB/order commit.",
+    "No server, operational DB, external query, Gradle regression or bootJar build performed."
+  ]
+}

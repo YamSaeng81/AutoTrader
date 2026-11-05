@@ -1,0 +1,18 @@
+{
+  "candidate": "6f6a5220f7a19f381fa210a9c4a530e262a4fb04",
+  "exact_compiled_production_sources": {
+    "web-api/src/main/java/com/cryptoautotrader/api/service/CapitalReservationService.java": "5fc59e3d48abc13cca8b04a90d4a58bdf2c9623cdbc182665514416a751c3b7c",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/EntryPriorityRounds.java": "4728d84f3934b4c810fa162549ac4a4d1b15c228a8c58aba5512c361f9c3226a",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/EntryClock.java": "66038940d6437932ee769bc3d5c2f2b98d07ecd21a61d587b1ca3259d533e7ec"
+  },
+  "javac_exit": 0,
+  "java_exit": 0,
+  "method": "Actual candidate reservation method; Mockito persistence/guards; simulated E crossing after first check.",
+  "limits": [
+    "No real database transaction or persisted order intent is asserted.",
+    "Dependency classpath reused from preserved local Gradle worker; dependency classes are not rebuilt.",
+    "7/7 counts reproduced expectations, including 3 defects, not fixed product tests."
+  ],
+  "gradle_or_bootjar_build": false,
+  "server_db_or_external_access": false
+}
