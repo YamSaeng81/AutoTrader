@@ -1,0 +1,98 @@
+{
+  "review_source": "342f461359b9e3c9d5941f6df95b905b65dce9a7",
+  "manifests": {
+    "morning-1106": 8,
+    "n19v2-rest-fallback-ee509cf": 53,
+    "night-review-303079b": 10
+  },
+  "morning": {
+    "read_time": "2026-11-06 07:50 KST",
+    "runtime_unchanged": true,
+    "sid203_CREATED": true,
+    "BTC": [
+      "true",
+      "06:00",
+      "06:00",
+      "20/20"
+    ],
+    "raw_errors": 7,
+    "CryptoPanic_reset": 1,
+    "BLAST_404_related_errors": 6,
+    "helper_outside404_count_5_conservative_misclassification": true,
+    "reset_FAILED_IOException_and_next_upbit_success_matched": true,
+    "connection_acquisition_failure": 0,
+    "leak_warning": 0,
+    "original_runtime_logs_not_independently_downloaded_by_reviewer": true
+  },
+  "candidate": "ee509cf855ffb8ebc1ed31f1c2bbe772d0545ce8",
+  "operating_parent": "7a944723c2959898226c2ad80f6b079ab5678296",
+  "immediate_parent": "f6868a587a921dbc8b4985793582bc764b0896b1",
+  "paths": [
+    "web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/N19RestFallbackItemDefenseTest.java"
+  ],
+  "preserved_XML_not_rerun": {
+    "r3-failfirst-f6868a5": {
+      "classes": 1,
+      "tests_failures_errors_skipped": [
+        23,
+        5,
+        0,
+        0
+      ]
+    },
+    "r4-fix-related": {
+      "classes": 6,
+      "tests_failures_errors_skipped": [
+        73,
+        0,
+        0,
+        0
+      ]
+    }
+  },
+  "run_source_hashes_match_fixed_candidate_after_LF_normalization": true,
+  "only_fallback_method_changes_since_f6868a5": true,
+  "exact_method_stub_execution": {
+    "before": {
+      "cases": 5,
+      "compile": 0,
+      "run": 0,
+      "method_sha256": "994e013905b7820344e14683a6c341aee326833408e14ccc012e588cd1f85a73"
+    },
+    "candidate": {
+      "cases": 5,
+      "compile": 0,
+      "run": 0,
+      "method_sha256": "a9e4a72d0b2d8794e9e8625f7a46a782f4940ab1c6caedd0308388d6dc71bd28"
+    }
+  },
+  "untrusted_warning_and_non_string_market_findings_fixed": true,
+  "jar_hashes": {
+    "7a94472.jar": "ddb64359f330419a0a6e233e4c09a2f0f7f1568784858bf344bf607ef10422fe",
+    "ee509cf.jar": "4f4f42aa058c34a15e438ba9048a9f94c49b2963a8bd72c5eb1ca3d5fbd6f4ec"
+  },
+  "actual_preserved_jar_compare": [
+    3,
+    881,
+    881
+  ],
+  "fixed_U92_source_matches_plan": true,
+  "U_bash_n_sha256": [
+    "1c0f5e6139f07a2190866bd1a1795e5533a8236994f6171a1693db0f217ccc75",
+    "8930a01626cf757bf7949110bbec50fefb1f8eba881396e98536ef99792ae5cd",
+    "41870d97e0ca64b65022c27f73c3f61240e81d3295703db7489d7ca25f86fa37",
+    "376045fbd2f883ec757548bf732644b3f6a8c1a0029235c08dce2505f35480e8",
+    "095a0128e84636eff9b55bfc6100b20b35411e3c15e567d1fd8938d2511f323b",
+    "6681c5e4ba36953c1fb5d96093f8a54b3d88095f12374bd524c20eabd5ef5c7b",
+    "ff0242e1110aed97e45f56dc9dbe2cf60ea7376e5245e85322dbaa65f3582609",
+    "cc8ada0bf67a46647e2ad9cd32341c57e3872db5387dacc9316a5cbfb47452ff"
+  ],
+  "prior_safety_functions_and_comparator_unchanged": true,
+  "n19obs_preserved_log_counts": [
+    6,
+    8,
+    2
+  ],
+  "no_server_DB_network_Gradle_Spring_tests_or_jar_build": true
+}

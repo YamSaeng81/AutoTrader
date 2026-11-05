@@ -1,0 +1,399 @@
+Initialized native services in: C:\Users\SangJoon_Lee\.gradle\native
+Initialized jansi services in: C:\Users\SangJoon_Lee\.gradle\native
+Received JVM installation metadata from 'C:\Program Files\Java\jdk-17': {JAVA_HOME=C:\Program Files\Java\jdk-17, JAVA_VERSION=17.0.12, JAVA_VENDOR=Oracle Corporation, RUNTIME_NAME=Java(TM) SE Runtime Environment, RUNTIME_VERSION=17.0.12+8-LTS-286, VM_NAME=Java HotSpot(TM) 64-Bit Server VM, VM_VERSION=17.0.12+8-LTS-286, VM_VENDOR=Oracle Corporation, OS_ARCH=amd64}
+Found daemon DaemonInfo{pid=32216, address=[0e28fd3b-4516-43b8-af92-6059fe53c8b4 port:1878, addresses:[/127.0.0.1]], state=Canceled, lastBusy=1793660398320, context=DefaultDaemonContext[uid=036e40d9-dc2e-4175-9651-d7b52a701ba4,javaHome=C:\Program Files\Java\jdk-17,daemonRegistryDir=C:\Users\SangJoon_Lee\.gradle\daemon,pid=32216,idleTimeout=10800000,priority=NORMAL,applyInstrumentationAgent=true,daemonOpts=--add-opens=java.base/java.util=ALL-UNNAMED,--add-opens=java.base/java.lang=ALL-UNNAMED,--add-opens=java.base/java.lang.invoke=ALL-UNNAMED,--add-opens=java.prefs/java.util.prefs=ALL-UNNAMED,--add-opens=java.base/java.nio.charset=ALL-UNNAMED,--add-opens=java.base/java.net=ALL-UNNAMED,--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED,-XX:MaxMetaspaceSize=384m,-XX:+HeapDumpOnOutOfMemoryError,-Xms256m,-Xmx512m,-Dfile.encoding=UTF-8,-Duser.country=KR,-Duser.language=ko,-Duser.variant]} however its context does not match the desired criteria.
+At least one daemon option is different.
+Wanted: DefaultDaemonContext[uid=null,javaHome=C:\Program Files\Java\jdk-17,daemonRegistryDir=C:\Users\SangJoon_Lee\.gradle\daemon,pid=35808,idleTimeout=null,priority=NORMAL,applyInstrumentationAgent=true,daemonOpts=--add-opens=java.base/java.util=ALL-UNNAMED,--add-opens=java.base/java.lang=ALL-UNNAMED,--add-opens=java.base/java.lang.invoke=ALL-UNNAMED,--add-opens=java.prefs/java.util.prefs=ALL-UNNAMED,--add-opens=java.base/java.nio.charset=ALL-UNNAMED,--add-opens=java.base/java.net=ALL-UNNAMED,--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED,-XX:MaxMetaspaceSize=384m,-XX:+HeapDumpOnOutOfMemoryError,-Xms256m,-Xmx512m,-Dfile.encoding=x-windows-949,-Duser.country=KR,-Duser.language=ko,-Duser.variant]
+Actual: DefaultDaemonContext[uid=036e40d9-dc2e-4175-9651-d7b52a701ba4,javaHome=C:\Program Files\Java\jdk-17,daemonRegistryDir=C:\Users\SangJoon_Lee\.gradle\daemon,pid=32216,idleTimeout=10800000,priority=NORMAL,applyInstrumentationAgent=true,daemonOpts=--add-opens=java.base/java.util=ALL-UNNAMED,--add-opens=java.base/java.lang=ALL-UNNAMED,--add-opens=java.base/java.lang.invoke=ALL-UNNAMED,--add-opens=java.prefs/java.util.prefs=ALL-UNNAMED,--add-opens=java.base/java.nio.charset=ALL-UNNAMED,--add-opens=java.base/java.net=ALL-UNNAMED,--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED,-XX:MaxMetaspaceSize=384m,-XX:+HeapDumpOnOutOfMemoryError,-Xms256m,-Xmx512m,-Dfile.encoding=UTF-8,-Duser.country=KR,-Duser.language=ko,-Duser.variant]
+
+  Looking for a different daemon...
+Removing 0 daemon stop events from registry
+Starting a Gradle Daemon, 1 busy Daemon could not be reused, use --status for details
+Starting process 'Gradle build daemon'. Working directory: C:\Users\SangJoon_Lee\.gradle\daemon\8.7 Command: C:\Program Files\Java\jdk-17\bin\java.exe --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.prefs/java.util.prefs=ALL-UNNAMED --add-opens=java.base/java.nio.charset=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED -XX:MaxMetaspaceSize=384m -XX:+HeapDumpOnOutOfMemoryError -Xms256m -Xmx512m -Dfile.encoding=x-windows-949 -Duser.country=KR -Duser.language=ko -Duser.variant -cp C:\Users\SangJoon_Lee\.gradle\wrapper\dists\gradle-8.7-bin\bhs2wmbdwecv87pi65oeuq5iu\gradle-8.7\lib\gradle-launcher-8.7.jar -javaagent:C:\Users\SangJoon_Lee\.gradle\wrapper\dists\gradle-8.7-bin\bhs2wmbdwecv87pi65oeuq5iu\gradle-8.7\lib\agents\gradle-instrumentation-agent-8.7.jar org.gradle.launcher.daemon.bootstrap.GradleDaemon 8.7
+Successfully started process 'Gradle build daemon'
+An attempt to start the daemon took 0.999 secs.
+The client will now receive all logging from the daemon (pid: 20500). The daemon log file: C:\Users\SangJoon_Lee\.gradle\daemon\8.7\daemon-20500.out.log
+Starting build in new daemon [memory: 512 MiB]
+Closing daemon's stdin at end of input.
+The daemon will no longer process any standard input.
+Using 16 worker leases.
+Received JVM installation metadata from 'C:\Program Files\Java\jdk-17': {JAVA_HOME=C:\Program Files\Java\jdk-17, JAVA_VERSION=17.0.12, JAVA_VENDOR=Oracle Corporation, RUNTIME_NAME=Java(TM) SE Runtime Environment, RUNTIME_VERSION=17.0.12+8-LTS-286, VM_NAME=Java HotSpot(TM) 64-Bit Server VM, VM_VERSION=17.0.12+8-LTS-286, VM_VENDOR=Oracle Corporation, OS_ARCH=amd64}
+Watching the file system is configured to be enabled if available
+Now considering [D:\Claude Code\projects\cat-n20] as hierarchies to watch
+File system watching is active
+Starting Build
+Settings evaluated using settings file 'D:\Claude Code\projects\cat-n20\settings.gradle'.
+Projects loaded. Root project using build file 'D:\Claude Code\projects\cat-n20\build.gradle'.
+Included projects: [root project 'crypto-auto-trader', project ':core-engine', project ':exchange-adapter', project ':strategy-lib', project ':web-api']
+
+> Configure project :
+Evaluating root project 'crypto-auto-trader' using build file 'D:\Claude Code\projects\cat-n20\build.gradle'.
+Transforming spring-boot-gradle-plugin-3.2.5.jar (org.springframework.boot:spring-boot-gradle-plugin:3.2.5) with ExternalDependencyInstrumentingArtifactTransform
+Transforming dependency-management-plugin-1.1.4.jar (io.spring.gradle:dependency-management-plugin:1.1.4) with ExternalDependencyInstrumentingArtifactTransform
+Transforming spring-boot-buildpack-platform-3.2.5.jar (org.springframework.boot:spring-boot-buildpack-platform:3.2.5) with ExternalDependencyInstrumentingArtifactTransform
+Transforming spring-boot-loader-tools-3.2.5.jar (org.springframework.boot:spring-boot-loader-tools:3.2.5) with ExternalDependencyInstrumentingArtifactTransform
+Transforming commons-compress-1.21.jar (org.apache.commons:commons-compress:1.21) with ExternalDependencyInstrumentingArtifactTransform
+Transforming spring-core-6.0.10.jar (org.springframework:spring-core:6.0.10) with ExternalDependencyInstrumentingArtifactTransform
+Transforming jackson-annotations-2.14.2.jar (com.fasterxml.jackson.core:jackson-annotations:2.14.2) with ExternalDependencyInstrumentingArtifactTransform
+Transforming jackson-core-2.14.2.jar (com.fasterxml.jackson.core:jackson-core:2.14.2) with ExternalDependencyInstrumentingArtifactTransform
+Transforming jackson-module-parameter-names-2.14.2.jar (com.fasterxml.jackson.module:jackson-module-parameter-names:2.14.2) with ExternalDependencyInstrumentingArtifactTransform
+Transforming jackson-databind-2.14.2.jar (com.fasterxml.jackson.core:jackson-databind:2.14.2) with ExternalDependencyInstrumentingArtifactTransform
+Transforming jna-platform-5.13.0.jar (net.java.dev.jna:jna-platform:5.13.0) with ExternalDependencyInstrumentingArtifactTransform
+Transforming httpclient5-5.2.3.jar (org.apache.httpcomponents.client5:httpclient5:5.2.3) with ExternalDependencyInstrumentingArtifactTransform
+Transforming tomlj-1.0.0.jar (org.tomlj:tomlj:1.0.0) with ExternalDependencyInstrumentingArtifactTransform
+Transforming spring-jcl-6.0.10.jar (org.springframework:spring-jcl:6.0.10) with ExternalDependencyInstrumentingArtifactTransform
+Transforming jna-5.13.0.jar (net.java.dev.jna:jna:5.13.0) with ExternalDependencyInstrumentingArtifactTransform
+Transforming httpcore5-h2-5.2.4.jar (org.apache.httpcomponents.core5:httpcore5-h2:5.2.4) with ExternalDependencyInstrumentingArtifactTransform
+Transforming httpcore5-5.2.4.jar (org.apache.httpcomponents.core5:httpcore5:5.2.4) with ExternalDependencyInstrumentingArtifactTransform
+Transforming slf4j-api-1.7.36.jar (org.slf4j:slf4j-api:1.7.36) with ExternalDependencyInstrumentingArtifactTransform
+Transforming antlr4-runtime-4.7.2.jar (org.antlr:antlr4-runtime:4.7.2) with ExternalDependencyInstrumentingArtifactTransform
+Transforming jsr305-3.0.2.jar (com.google.code.findbugs:jsr305:3.0.2) with ExternalDependencyInstrumentingArtifactTransform
+
+> Configure project :core-engine
+Evaluating project ':core-engine' using build file 'D:\Claude Code\projects\cat-n20\core-engine\build.gradle'.
+
+> Configure project :exchange-adapter
+Evaluating project ':exchange-adapter' using build file 'D:\Claude Code\projects\cat-n20\exchange-adapter\build.gradle'.
+Applying dependency management to configuration 'annotationProcessor' in project 'exchange-adapter'
+Applying dependency management to configuration 'apiElements' in project 'exchange-adapter'
+Applying dependency management to configuration 'archives' in project 'exchange-adapter'
+Applying dependency management to configuration 'compileClasspath' in project 'exchange-adapter'
+Applying dependency management to configuration 'compileOnly' in project 'exchange-adapter'
+Applying dependency management to configuration 'default' in project 'exchange-adapter'
+Applying dependency management to configuration 'implementation' in project 'exchange-adapter'
+Applying dependency management to configuration 'mainSourceElements' in project 'exchange-adapter'
+Applying dependency management to configuration 'runtimeClasspath' in project 'exchange-adapter'
+Applying dependency management to configuration 'runtimeElements' in project 'exchange-adapter'
+Applying dependency management to configuration 'runtimeOnly' in project 'exchange-adapter'
+Applying dependency management to configuration 'testAnnotationProcessor' in project 'exchange-adapter'
+Applying dependency management to configuration 'testCompileClasspath' in project 'exchange-adapter'
+Applying dependency management to configuration 'testCompileOnly' in project 'exchange-adapter'
+Applying dependency management to configuration 'testImplementation' in project 'exchange-adapter'
+Applying dependency management to configuration 'testResultsElementsForTest' in project 'exchange-adapter'
+Applying dependency management to configuration 'testRuntimeClasspath' in project 'exchange-adapter'
+Applying dependency management to configuration 'testRuntimeOnly' in project 'exchange-adapter'
+
+> Configure project :strategy-lib
+Evaluating project ':strategy-lib' using build file 'D:\Claude Code\projects\cat-n20\strategy-lib\build.gradle'.
+
+> Configure project :web-api
+Evaluating project ':web-api' using build file 'D:\Claude Code\projects\cat-n20\web-api\build.gradle'.
+Applying dependency management to configuration 'annotationProcessor' in project 'web-api'
+Applying dependency management to configuration 'apiElements' in project 'web-api'
+Applying dependency management to configuration 'archives' in project 'web-api'
+Applying dependency management to configuration 'bootArchives' in project 'web-api'
+Applying dependency management to configuration 'compileClasspath' in project 'web-api'
+Applying dependency management to configuration 'compileOnly' in project 'web-api'
+Applying dependency management to configuration 'default' in project 'web-api'
+Applying dependency management to configuration 'developmentOnly' in project 'web-api'
+Applying dependency management to configuration 'implementation' in project 'web-api'
+Applying dependency management to configuration 'mainSourceElements' in project 'web-api'
+Applying dependency management to configuration 'productionRuntimeClasspath' in project 'web-api'
+Applying dependency management to configuration 'runtimeClasspath' in project 'web-api'
+Applying dependency management to configuration 'runtimeElements' in project 'web-api'
+Applying dependency management to configuration 'runtimeOnly' in project 'web-api'
+Applying dependency management to configuration 'testAndDevelopmentOnly' in project 'web-api'
+Applying dependency management to configuration 'testAnnotationProcessor' in project 'web-api'
+Applying dependency management to configuration 'testCompileClasspath' in project 'web-api'
+Applying dependency management to configuration 'testCompileOnly' in project 'web-api'
+Applying dependency management to configuration 'testImplementation' in project 'web-api'
+Applying dependency management to configuration 'testResultsElementsForTest' in project 'web-api'
+Applying dependency management to configuration 'testRuntimeClasspath' in project 'web-api'
+Applying dependency management to configuration 'testRuntimeOnly' in project 'web-api'
+Applying dependency management to configuration 'restartHarnessImplementation' in project 'web-api'
+Applying dependency management to configuration 'restartHarnessCompileOnly' in project 'web-api'
+Applying dependency management to configuration 'restartHarnessCompileClasspath' in project 'web-api'
+Applying dependency management to configuration 'restartHarnessAnnotationProcessor' in project 'web-api'
+Applying dependency management to configuration 'restartHarnessRuntimeOnly' in project 'web-api'
+Applying dependency management to configuration 'restartHarnessRuntimeClasspath' in project 'web-api'
+All projects evaluated.
+Task path ':web-api:cleanTest' matched project ':web-api'
+Task name matched 'cleanTest'
+Task path ':web-api:test' matched project ':web-api'
+Task name matched 'test'
+Selected primary task 'cleanTest' from project :web-api
+Selected primary task 'test' from project :web-api
+Tasks to be executed: [task ':web-api:cleanTest', task ':strategy-lib:compileJava', task ':strategy-lib:processResources', task ':strategy-lib:classes', task ':strategy-lib:jar', task ':core-engine:compileJava', task ':core-engine:processResources', task ':core-engine:classes', task ':core-engine:jar', task ':exchange-adapter:compileJava', task ':exchange-adapter:processResources', task ':exchange-adapter:classes', task ':exchange-adapter:jar', task ':web-api:compileJava', task ':web-api:processResources', task ':web-api:classes', task ':web-api:compileTestJava', task ':web-api:processTestResources', task ':web-api:testClasses', task ':web-api:test']
+Tasks that were excluded: []
+Resolve mutations for :web-api:cleanTest (Thread[Execution worker Thread 3,5,main]) started.
+:web-api:cleanTest (Thread[Execution worker Thread 3,5,main]) started.
+destroyer locations for task group 0 (Thread[included builds,5,main]) started.
+
+> Task :web-api:cleanTest UP-TO-DATE
+Caching disabled for task ':web-api:cleanTest' because:
+  Build cache is disabled
+Task ':web-api:cleanTest' is not up-to-date because:
+  Task has not declared any outputs despite executing actions.
+Resolve mutations for :strategy-lib:compileJava (Thread[Execution worker Thread 3,5,main]) started.
+:strategy-lib:compileJava (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :strategy-lib:compileJava
+Caching disabled for task ':strategy-lib:compileJava' because:
+  Build cache is disabled
+Task ':strategy-lib:compileJava' is not up-to-date because:
+  No history is available.
+The input changes require a full rebuild for incremental task ':strategy-lib:compileJava'.
+Full recompilation is required because no incremental change information is available. This is usually caused by clean builds or changing compiler arguments.
+Compiling with toolchain 'C:\Program Files\Java\jdk-17'.
+Compiling with JDK Java compiler API.
+Class dependency analysis for incremental compilation took 0.112 secs.
+Created classpath snapshot for incremental compilation in 0.023 secs.
+Resolve mutations for :strategy-lib:processResources (Thread[Execution worker Thread 3,5,main]) started.
+:strategy-lib:processResources (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :strategy-lib:processResources NO-SOURCE
+Skipping task ':strategy-lib:processResources' as it has no source files and no previous output files.
+Resolve mutations for :strategy-lib:classes (Thread[Execution worker Thread 3,5,main]) started.
+:strategy-lib:classes (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :strategy-lib:classes
+Skipping task ':strategy-lib:classes' as it has no actions.
+Resolve mutations for :strategy-lib:jar (Thread[Execution worker Thread 3,5,main]) started.
+:strategy-lib:jar (Thread[included builds,5,main]) started.
+
+> Task :strategy-lib:jar
+Caching disabled for task ':strategy-lib:jar' because:
+  Build cache is disabled
+  Not worth caching
+Task ':strategy-lib:jar' is not up-to-date because:
+  No history is available.
+file or directory 'D:\Claude Code\projects\cat-n20\strategy-lib\build\resources\main', not found
+work action resolve strategy-lib-0.1.0.jar (project :strategy-lib) (Thread[Execution worker Thread 3,5,main]) started.
+Resolve mutations for :core-engine:compileJava (Thread[Execution worker Thread 3,5,main]) started.
+:core-engine:compileJava (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :core-engine:compileJava
+Caching disabled for task ':core-engine:compileJava' because:
+  Build cache is disabled
+Task ':core-engine:compileJava' is not up-to-date because:
+  No history is available.
+The input changes require a full rebuild for incremental task ':core-engine:compileJava'.
+Full recompilation is required because no incremental change information is available. This is usually caused by clean builds or changing compiler arguments.
+Compiling with toolchain 'C:\Program Files\Java\jdk-17'.
+Compiling with JDK Java compiler API.
+Class dependency analysis for incremental compilation took 0.043 secs.
+Created classpath snapshot for incremental compilation in 0.05 secs.
+work action resolve main (project :core-engine) (Thread[Execution worker Thread 3,5,main]) started.
+Resolve mutations for :core-engine:processResources (Thread[Execution worker Thread 3,5,main]) started.
+:core-engine:processResources (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :core-engine:processResources NO-SOURCE
+Skipping task ':core-engine:processResources' as it has no source files and no previous output files.
+Resolve mutations for :core-engine:classes (Thread[Execution worker Thread 3,5,main]) started.
+:core-engine:classes (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :core-engine:classes
+Skipping task ':core-engine:classes' as it has no actions.
+Resolve mutations for :core-engine:jar (Thread[Execution worker Thread 3,5,main]) started.
+:core-engine:jar (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :core-engine:jar
+Caching disabled for task ':core-engine:jar' because:
+  Build cache is disabled
+  Not worth caching
+Task ':core-engine:jar' is not up-to-date because:
+  No history is available.
+file or directory 'D:\Claude Code\projects\cat-n20\core-engine\build\resources\main', not found
+work action resolve core-engine-0.1.0.jar (project :core-engine) (Thread[Execution worker Thread 3,5,main]) started.
+Resolve mutations for :exchange-adapter:compileJava (Thread[Execution worker Thread 3,5,main]) started.
+:exchange-adapter:compileJava (Thread[Execution worker Thread 3,5,main]) started.
+
+> Task :exchange-adapter:compileJava
+Resolving global dependency management for project 'exchange-adapter'
+Excluding []
+Excluding []
+Caching disabled for task ':exchange-adapter:compileJava' because:
+  Build cache is disabled
+Task ':exchange-adapter:compileJava' is not up-to-date because:
+  No history is available.
+The input changes require a full rebuild for incremental task ':exchange-adapter:compileJava'.
+Full recompilation is required because no incremental change information is available. This is usually caused by clean builds or changing compiler arguments.
+Compiling with toolchain 'C:\Program Files\Java\jdk-17'.
+Compiling with JDK Java compiler API.
+Class dependency analysis for incremental compilation took 0.018 secs.
+Created classpath snapshot for incremental compilation in 0.069 secs.
+Resolve mutations for :exchange-adapter:processResources (Thread[Execution worker,5,main]) started.
+:exchange-adapter:processResources (Thread[Execution worker,5,main]) started.
+
+> Task :exchange-adapter:processResources NO-SOURCE
+Skipping task ':exchange-adapter:processResources' as it has no source files and no previous output files.
+Resolve mutations for :exchange-adapter:classes (Thread[Execution worker,5,main]) started.
+:exchange-adapter:classes (Thread[Execution worker,5,main]) started.
+
+> Task :exchange-adapter:classes
+Skipping task ':exchange-adapter:classes' as it has no actions.
+Resolve mutations for :exchange-adapter:jar (Thread[Execution worker,5,main]) started.
+:exchange-adapter:jar (Thread[Execution worker,5,main]) started.
+
+> Task :exchange-adapter:jar
+Caching disabled for task ':exchange-adapter:jar' because:
+  Build cache is disabled
+  Not worth caching
+Task ':exchange-adapter:jar' is not up-to-date because:
+  No history is available.
+file or directory 'D:\Claude Code\projects\cat-n20\exchange-adapter\build\resources\main', not found
+work action resolve exchange-adapter-0.1.0.jar (project :exchange-adapter) (Thread[Execution worker,5,main]) started.
+Resolve mutations for :web-api:compileJava (Thread[Execution worker,5,main]) started.
+:web-api:compileJava (Thread[Execution worker,5,main]) started.
+
+> Task :web-api:compileJava
+Resolving global dependency management for project 'web-api'
+Excluding []
+Excluding []
+Custom actions are attached to task ':web-api:compileJava'.
+Caching disabled for task ':web-api:compileJava' because:
+  Build cache is disabled
+Task ':web-api:compileJava' is not up-to-date because:
+  No history is available.
+The input changes require a full rebuild for incremental task ':web-api:compileJava'.
+Full recompilation is required because no incremental change information is available. This is usually caused by clean builds or changing compiler arguments.
+Compiling with toolchain 'C:\Program Files\Java\jdk-17'.
+Compiling with JDK Java compiler API.
+Class dependency analysis for incremental compilation took 0.174 secs.
+Created classpath snapshot for incremental compilation in 0.09 secs.
+Resolve mutations for :web-api:processResources (Thread[Execution worker,5,main]) started.
+:web-api:processResources (Thread[Execution worker Thread 14,5,main]) started.
+
+> Task :web-api:processResources
+Caching disabled for task ':web-api:processResources' because:
+  Build cache is disabled
+  Not worth caching
+Task ':web-api:processResources' is not up-to-date because:
+  No history is available.
+Resolve mutations for :web-api:classes (Thread[Execution worker Thread 14,5,main]) started.
+:web-api:classes (Thread[Execution worker Thread 14,5,main]) started.
+
+> Task :web-api:classes
+Skipping task ':web-api:classes' as it has no actions.
+Resolve mutations for :web-api:compileTestJava (Thread[Execution worker Thread 14,5,main]) started.
+:web-api:compileTestJava (Thread[Execution worker Thread 14,5,main]) started.
+
+> Task :web-api:compileTestJava
+Excluding []
+Excluding []
+Custom actions are attached to task ':web-api:compileTestJava'.
+Caching disabled for task ':web-api:compileTestJava' because:
+  Build cache is disabled
+Task ':web-api:compileTestJava' is not up-to-date because:
+  No history is available.
+The input changes require a full rebuild for incremental task ':web-api:compileTestJava'.
+Full recompilation is required because no incremental change information is available. This is usually caused by clean builds or changing compiler arguments.
+Compiling with toolchain 'C:\Program Files\Java\jdk-17'.
+Compiling with JDK Java compiler API.
+Class dependency analysis for incremental compilation took 0.088 secs.
+Created classpath snapshot for incremental compilation in 0.035 secs.
+Resolve mutations for :web-api:processTestResources (Thread[Execution worker Thread 14,5,main]) started.
+:web-api:processTestResources (Thread[Execution worker Thread 14,5,main]) started.
+
+> Task :web-api:processTestResources
+Caching disabled for task ':web-api:processTestResources' because:
+  Build cache is disabled
+  Not worth caching
+Task ':web-api:processTestResources' is not up-to-date because:
+  No history is available.
+Resolve mutations for :web-api:testClasses (Thread[Execution worker Thread 14,5,main]) started.
+:web-api:testClasses (Thread[Execution worker Thread 14,5,main]) started.
+
+> Task :web-api:testClasses
+Skipping task ':web-api:testClasses' as it has no actions.
+Resolve mutations for :web-api:test (Thread[Execution worker Thread 14,5,main]) started.
+:web-api:test (Thread[Execution worker Thread 14,5,main]) started.
+Gradle Test Executor 1 started executing tests.
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+
+> Task :web-api:test
+Excluding []
+Caching disabled for task ':web-api:test' because:
+  Build cache is disabled
+Task ':web-api:test' is not up-to-date because:
+  No history is available.
+Starting process 'Gradle Test Executor 1'. Working directory: D:\Claude Code\projects\cat-n20\web-api Command: C:\Program Files\Java\jdk-17\bin\java.exe -Dorg.gradle.internal.worker.tmpdir=D:\Claude Code\projects\cat-n20\web-api\build\tmp\test\work -Dorg.gradle.native=false -XX:+ExitOnOutOfMemoryError @C:\Users\SangJoon_Lee\.gradle\.tmp\gradle-worker-classpath16466017324954373465txt -Xmx1g -Dfile.encoding=x-windows-949 -Duser.country=KR -Duser.language=ko -Duser.variant -ea worker.org.gradle.process.internal.worker.GradleWorkerMain 'Gradle Test Executor 1'
+Successfully started process 'Gradle Test Executor 1'
+
+N20 보유 시세 보강 ? 형식 이상 항목 뒤 체결 처리와 호가 대체 기록(운영 코드 무변경) > 호가 경로는 코인별 catch ? B 의 호가 형식 이상은 C 의 호가 대체를 끊지 않는다 > B 호가 형식 이상 × 시세 PRICE_FORGED STANDARD_OUT
+    08:10:59.495 [Test worker] ERROR com.cryptoautotrader.api.service.HeldMarkRefresher -- ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: Character array is missing "e" notation exponential mark.; KRW-N20B 호가 조회 실패: Character x is neither a decimal digit number, decimal point, nor "e" notation exponential mark.; 
+    N20행|PRICE_FORGED+B호가형식이상|호가=B=BADBOOK,C=DEEP|byTrade=[N20A]|byBook=[N20C]|unobserved=[N20B]|장부=N20A:REST_TRADE/100 N20B:- N20C:REST_ORDERBOOK_DEPTH/99.00000000|실패표시=true|경보=1|오류문=시세 조회 실패: Character array is missing "e" notation exponential mark.; KRW-N20B 호가 조회 실패: Character x is neither a decimal digit number, decimal point, nor "e" notation exponential mark.; |로그=ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: Character array is missing "e" notation exponential mark.; KRW-N20B 호가 조회 실패: Character x is neither a decimal digit number, decimal point, nor "e" notation exponential mark.; |오류문·경보·로그에_FORGED=false|오류문·경보·로그에_줄바꿈=false
+
+N20 보유 시세 보강 ? 형식 이상 항목 뒤 체결 처리와 호가 대체 기록(운영 코드 무변경) > 호가 경로는 코인별 catch ? B 의 호가 형식 이상은 C 의 호가 대체를 끊지 않는다 > B 호가 형식 이상 × 시세 CONTROL STANDARD_OUT
+    N20행|CONTROL+B호가형식이상|호가=B=BADBOOK,C=DEEP|byTrade=[N20A, N20B, N20C]|byBook=[]|unobserved=[]|장부=N20A:REST_TRADE/100 N20B:REST_TRADE/200 N20C:REST_TRADE/300|실패표시=false|경보=0|오류문=null|로그=|오류문·경보·로그에_FORGED=false|오류문·경보·로그에_줄바꿈=false
+
+N20 보유 시세 보강 ? 형식 이상 항목 뒤 체결 처리와 호가 대체 기록(운영 코드 무변경) > 시세 [정상 A, 비정상 B, 정상 C] × 호가 상황 > CONTROL × 호가 DEEP STANDARD_OUT
+    N20행|CONTROL|호가=DEEP|byTrade=[N20A, N20B, N20C]|byBook=[]|unobserved=[]|장부=N20A:REST_TRADE/100 N20B:REST_TRADE/200 N20C:REST_TRADE/300|실패표시=false|경보=0|오류문=null|로그=|오류문·경보·로그에_FORGED=false|오류문·경보·로그에_줄바꿈=false
+
+N20 보유 시세 보강 ? 형식 이상 항목 뒤 체결 처리와 호가 대체 기록(운영 코드 무변경) > 시세 [정상 A, 비정상 B, 정상 C] × 호가 상황 > CONTROL × 호가 FAIL STANDARD_OUT
+    N20행|CONTROL|호가=FAIL|byTrade=[N20A, N20B, N20C]|byBook=[]|unobserved=[]|장부=N20A:REST_TRADE/100 N20B:REST_TRADE/200 N20C:REST_TRADE/300|실패표시=false|경보=0|오류문=null|로그=|오류문·경보·로그에_FORGED=false|오류문·경보·로그에_줄바꿈=false
+
+N20 보유 시세 보강 ? 형식 이상 항목 뒤 체결 처리와 호가 대체 기록(운영 코드 무변경) > 시세 [정상 A, 비정상 B, 정상 C] × 호가 상황 > PRICE_FORGED × 호가 DEEP STANDARD_OUT
+    08:10:59.761 [Test worker] INFO com.cryptoautotrader.api.service.HeldMarkRefresher -- [시세 보강] 체결이 조용한 보유 [KRW-N20B, KRW-N20C] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+    N20행|PRICE_FORGED|호가=DEEP|byTrade=[N20A]|byBook=[N20B, N20C]|unobserved=[]|장부=N20A:REST_TRADE/100 N20B:REST_ORDERBOOK_DEPTH/99.00000000 N20C:REST_ORDERBOOK_DEPTH/99.00000000|실패표시=false|경보=0|오류문=시세 조회 실패: Character array is missing "e" notation exponential mark.; |로그=INFO [시세 보강] 체결이 조용한 보유 [KRW-N20B, KRW-N20C] ? 보유량을 매수호가에 채운 평균 가격으로 관측|오류문·경보·로그에_FORGED=false|오류문·경보·로그에_줄바꿈=false
+
+N20 보유 시세 보강 ? 형식 이상 항목 뒤 체결 처리와 호가 대체 기록(운영 코드 무변경) > 시세 [정상 A, 비정상 B, 정상 C] × 호가 상황 > PRICE_FORGED × 호가 SHALLOW STANDARD_OUT
+    08:10:59.772 [Test worker] ERROR com.cryptoautotrader.api.service.HeldMarkRefresher -- ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B, KRW-N20C] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: Character array is missing "e" notation exponential mark.; KRW-N20B 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); KRW-N20C 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); 
+    N20행|PRICE_FORGED|호가=SHALLOW|byTrade=[N20A]|byBook=[]|unobserved=[N20B, N20C]|장부=N20A:REST_TRADE/100 N20B:REST_ORDERBOOK_DEPTH/null N20C:REST_ORDERBOOK_DEPTH/null|실패표시=true|경보=1|오류문=시세 조회 실패: Character array is missing "e" notation exponential mark.; KRW-N20B 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); KRW-N20C 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); |로그=ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B, KRW-N20C] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: Character array is missing "e" notation exponential mark.; KRW-N20B 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); KRW-N20C 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); |오류문·경보·로그에_FORGED=false|오류문·경보·로그에_줄바꿈=false
+
+N20 보유 시세 보강 ? 형식 이상 항목 뒤 체결 처리와 호가 대체 기록(운영 코드 무변경) > 시세 [정상 A, 비정상 B, 정상 C] × 호가 상황 > PRICE_FORGED × 호가 FAIL STANDARD_OUT
+    08:10:59.782 [Test worker] ERROR com.cryptoautotrader.api.service.HeldMarkRefresher -- ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B, KRW-N20C] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: Character array is missing "e" notation exponential mark.; KRW-N20B 호가 조회 실패: 호가 503(시험); KRW-N20C 호가 조회 실패: 호가 503(시험); 
+    N20행|PRICE_FORGED|호가=FAIL|byTrade=[N20A]|byBook=[]|unobserved=[N20B, N20C]|장부=N20A:REST_TRADE/100 N20B:- N20C:-|실패표시=true|경보=1|오류문=시세 조회 실패: Character array is missing "e" notation exponential mark.; KRW-N20B 호가 조회 실패: 호가 503(시험); KRW-N20C 호가 조회 실패: 호가 503(시험); |로그=ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B, KRW-N20C] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: Character array is missing "e" notation exponential mark.; KRW-N20B 호가 조회 실패: 호가 503(시험); KRW-N20C 호가 조회 실패: 호가 503(시험); |오류문·경보·로그에_FORGED=false|오류문·경보·로그에_줄바꿈=false
+
+N20 보유 시세 보강 ? 형식 이상 항목 뒤 체결 처리와 호가 대체 기록(운영 코드 무변경) > 시세 [정상 A, 비정상 B, 정상 C] × 호가 상황 > PRICE_ABC × 호가 DEEP STANDARD_OUT
+    08:10:59.787 [Test worker] INFO com.cryptoautotrader.api.service.HeldMarkRefresher -- [시세 보강] 체결이 조용한 보유 [KRW-N20B, KRW-N20C] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+    N20행|PRICE_ABC|호가=DEEP|byTrade=[N20A]|byBook=[N20B, N20C]|unobserved=[]|장부=N20A:REST_TRADE/100 N20B:REST_ORDERBOOK_DEPTH/99.00000000 N20C:REST_ORDERBOOK_DEPTH/99.00000000|실패표시=false|경보=0|오류문=시세 조회 실패: Character a is neither a decimal digit number, decimal point, nor "e" notation exponential mark.; |로그=INFO [시세 보강] 체결이 조용한 보유 [KRW-N20B, KRW-N20C] ? 보유량을 매수호가에 채운 평균 가격으로 관측|오류문·경보·로그에_FORGED=false|오류문·경보·로그에_줄바꿈=false
+
+N20 보유 시세 보강 ? 형식 이상 항목 뒤 체결 처리와 호가 대체 기록(운영 코드 무변경) > 시세 [정상 A, 비정상 B, 정상 C] × 호가 상황 > PRICE_ABC × 호가 FAIL STANDARD_OUT
+    08:10:59.794 [Test worker] ERROR com.cryptoautotrader.api.service.HeldMarkRefresher -- ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B, KRW-N20C] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: Character a is neither a decimal digit number, decimal point, nor "e" notation exponential mark.; KRW-N20B 호가 조회 실패: 호가 503(시험); KRW-N20C 호가 조회 실패: 호가 503(시험); 
+    N20행|PRICE_ABC|호가=FAIL|byTrade=[N20A]|byBook=[]|unobserved=[N20B, N20C]|장부=N20A:REST_TRADE/100 N20B:- N20C:-|실패표시=true|경보=1|오류문=시세 조회 실패: Character a is neither a decimal digit number, decimal point, nor "e" notation exponential mark.; KRW-N20B 호가 조회 실패: 호가 503(시험); KRW-N20C 호가 조회 실패: 호가 503(시험); |로그=ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B, KRW-N20C] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: Character a is neither a decimal digit number, decimal point, nor "e" notation exponential mark.; KRW-N20B 호가 조회 실패: 호가 503(시험); KRW-N20C 호가 조회 실패: 호가 503(시험); |오류문·경보·로그에_FORGED=false|오류문·경보·로그에_줄바꿈=false
+
+N20 보유 시세 보강 ? 형식 이상 항목 뒤 체결 처리와 호가 대체 기록(운영 코드 무변경) > 시세 [정상 A, 비정상 B, 정상 C] × 호가 상황 > MARKET_NUM × 호가 DEEP STANDARD_OUT
+    08:10:59.799 [Test worker] INFO com.cryptoautotrader.api.service.HeldMarkRefresher -- [시세 보강] 체결이 조용한 보유 [KRW-N20B, KRW-N20C] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+    N20행|MARKET_NUM|호가=DEEP|byTrade=[N20A]|byBook=[N20B, N20C]|unobserved=[]|장부=N20A:REST_TRADE/100 N20B:REST_ORDERBOOK_DEPTH/99.00000000 N20C:REST_ORDERBOOK_DEPTH/99.00000000|실패표시=false|경보=0|오류문=시세 조회 실패: class java.lang.Integer cannot be cast to class java.lang.String (java.lang.Integer and java.lang.String are in module java.base of loader 'bootstrap'); |로그=INFO [시세 보강] 체결이 조용한 보유 [KRW-N20B, KRW-N20C] ? 보유량을 매수호가에 채운 평균 가격으로 관측|오류문·경보·로그에_FORGED=false|오류문·경보·로그에_줄바꿈=false
+
+N20 보유 시세 보강 ? 형식 이상 항목 뒤 체결 처리와 호가 대체 기록(운영 코드 무변경) > 시세 [정상 A, 비정상 B, 정상 C] × 호가 상황 > MARKET_NUM × 호가 SHALLOW STANDARD_OUT
+    08:10:59.803 [Test worker] ERROR com.cryptoautotrader.api.service.HeldMarkRefresher -- ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B, KRW-N20C] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: class java.lang.Integer cannot be cast to class java.lang.String (java.lang.Integer and java.lang.String are in module java.base of loader 'bootstrap'); KRW-N20B 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); KRW-N20C 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); 
+    N20행|MARKET_NUM|호가=SHALLOW|byTrade=[N20A]|byBook=[]|unobserved=[N20B, N20C]|장부=N20A:REST_TRADE/100 N20B:REST_ORDERBOOK_DEPTH/null N20C:REST_ORDERBOOK_DEPTH/null|실패표시=true|경보=1|오류문=시세 조회 실패: class java.lang.Integer cannot be cast to class java.lang.String (java.lang.Integer and java.lang.String are in module java.base of loader 'bootstrap'); KRW-N20B 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); KRW-N20C 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); |로그=ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B, KRW-N20C] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: class java.lang.Integer cannot be cast to class java.lang.String (java.lang.Integer and java.lang.String are in module java.base of loader 'bootstrap'); KRW-N20B 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); KRW-N20C 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); |오류문·경보·로그에_FORGED=false|오류문·경보·로그에_줄바꿈=false
+
+N20 보유 시세 보강 ? 형식 이상 항목 뒤 체결 처리와 호가 대체 기록(운영 코드 무변경) > 시세 [정상 A, 비정상 B, 정상 C] × 호가 상황 > MARKET_NUM × 호가 FAIL STANDARD_OUT
+    08:10:59.809 [Test worker] ERROR com.cryptoautotrader.api.service.HeldMarkRefresher -- ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B, KRW-N20C] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: class java.lang.Integer cannot be cast to class java.lang.String (java.lang.Integer and java.lang.String are in module java.base of loader 'bootstrap'); KRW-N20B 호가 조회 실패: 호가 503(시험); KRW-N20C 호가 조회 실패: 호가 503(시험); 
+    N20행|MARKET_NUM|호가=FAIL|byTrade=[N20A]|byBook=[]|unobserved=[N20B, N20C]|장부=N20A:REST_TRADE/100 N20B:- N20C:-|실패표시=true|경보=1|오류문=시세 조회 실패: class java.lang.Integer cannot be cast to class java.lang.String (java.lang.Integer and java.lang.String are in module java.base of loader 'bootstrap'); KRW-N20B 호가 조회 실패: 호가 503(시험); KRW-N20C 호가 조회 실패: 호가 503(시험); |로그=ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B, KRW-N20C] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: class java.lang.Integer cannot be cast to class java.lang.String (java.lang.Integer and java.lang.String are in module java.base of loader 'bootstrap'); KRW-N20B 호가 조회 실패: 호가 503(시험); KRW-N20C 호가 조회 실패: 호가 503(시험); |오류문·경보·로그에_FORGED=false|오류문·경보·로그에_줄바꿈=false
+
+N20 보유 시세 보강 ? 형식 이상 항목 뒤 체결 처리와 호가 대체 기록(운영 코드 무변경) > 시세 [정상 A, 비정상 B, 정상 C] × 호가 상황 > PRICE_ZERO × 호가 DEEP STANDARD_OUT
+    08:10:59.814 [Test worker] INFO com.cryptoautotrader.api.service.HeldMarkRefresher -- [시세 보강] 체결이 조용한 보유 [KRW-N20B] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+    N20행|PRICE_ZERO|호가=DEEP|byTrade=[N20A, N20C]|byBook=[N20B]|unobserved=[]|장부=N20A:REST_TRADE/100 N20B:REST_ORDERBOOK_DEPTH/99.00000000 N20C:REST_TRADE/300|실패표시=false|경보=0|오류문=null|로그=INFO [시세 보강] 체결이 조용한 보유 [KRW-N20B] ? 보유량을 매수호가에 채운 평균 가격으로 관측|오류문·경보·로그에_FORGED=false|오류문·경보·로그에_줄바꿈=false
+
+N20 보유 시세 보강 ? 형식 이상 항목 뒤 체결 처리와 호가 대체 기록(운영 코드 무변경) > 시세 [정상 A, 비정상 B, 정상 C] × 호가 상황 > PRICE_ZERO × 호가 FAIL STANDARD_OUT
+    08:10:59.819 [Test worker] ERROR com.cryptoautotrader.api.service.HeldMarkRefresher -- ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 조회 실패: 호가 503(시험); 
+    N20행|PRICE_ZERO|호가=FAIL|byTrade=[N20A, N20C]|byBook=[]|unobserved=[N20B]|장부=N20A:REST_TRADE/100 N20B:- N20C:REST_TRADE/300|실패표시=true|경보=1|오류문=KRW-N20B 호가 조회 실패: 호가 503(시험); |로그=ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 조회 실패: 호가 503(시험); |오류문·경보·로그에_FORGED=false|오류문·경보·로그에_줄바꿈=false
+
+N20 보유 시세 보강 ? 형식 이상 항목 뒤 체결 처리와 호가 대체 기록(운영 코드 무변경) > 시세 [정상 A, 비정상 B, 정상 C] × 호가 상황 > PRICE_NEG × 호가 DEEP STANDARD_OUT
+    08:10:59.821 [Test worker] INFO com.cryptoautotrader.api.service.HeldMarkRefresher -- [시세 보강] 체결이 조용한 보유 [KRW-N20B] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+    N20행|PRICE_NEG|호가=DEEP|byTrade=[N20A, N20C]|byBook=[N20B]|unobserved=[]|장부=N20A:REST_TRADE/100 N20B:REST_ORDERBOOK_DEPTH/99.00000000 N20C:REST_TRADE/300|실패표시=false|경보=0|오류문=null|로그=INFO [시세 보강] 체결이 조용한 보유 [KRW-N20B] ? 보유량을 매수호가에 채운 평균 가격으로 관측|오류문·경보·로그에_FORGED=false|오류문·경보·로그에_줄바꿈=false
+
+N20 보유 시세 보강 ? 형식 이상 항목 뒤 체결 처리와 호가 대체 기록(운영 코드 무변경) > 시세 [정상 A, 비정상 B, 정상 C] × 호가 상황 > PRICE_NULL × 호가 DEEP STANDARD_OUT
+    08:10:59.826 [Test worker] INFO com.cryptoautotrader.api.service.HeldMarkRefresher -- [시세 보강] 체결이 조용한 보유 [KRW-N20B] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+    N20행|PRICE_NULL|호가=DEEP|byTrade=[N20A, N20C]|byBook=[N20B]|unobserved=[]|장부=N20A:REST_TRADE/100 N20B:REST_ORDERBOOK_DEPTH/99.00000000 N20C:REST_TRADE/300|실패표시=false|경보=0|오류문=null|로그=INFO [시세 보강] 체결이 조용한 보유 [KRW-N20B] ? 보유량을 매수호가에 채운 평균 가격으로 관측|오류문·경보·로그에_FORGED=false|오류문·경보·로그에_줄바꿈=false
+
+N20 보유 시세 보강 ? 형식 이상 항목 뒤 체결 처리와 호가 대체 기록(운영 코드 무변경) > 시세 [정상 A, 비정상 B, 정상 C] × 호가 상황 > TS_BAD × 호가 DEEP STANDARD_OUT
+    08:10:59.833 [Test worker] INFO com.cryptoautotrader.api.service.HeldMarkRefresher -- [시세 보강] 체결이 조용한 보유 [KRW-N20B] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+    N20행|TS_BAD|호가=DEEP|byTrade=[N20A, N20C]|byBook=[N20B]|unobserved=[]|장부=N20A:REST_TRADE/100 N20B:REST_ORDERBOOK_DEPTH/99.00000000 N20C:REST_TRADE/300|실패표시=false|경보=0|오류문=null|로그=INFO [시세 보강] 체결이 조용한 보유 [KRW-N20B] ? 보유량을 매수호가에 채운 평균 가격으로 관측|오류문·경보·로그에_FORGED=false|오류문·경보·로그에_줄바꿈=false
+
+N20 보유 시세 보강 ? 형식 이상 항목 뒤 체결 처리와 호가 대체 기록(운영 코드 무변경) > C 에 기존 체결 관측이 있을 때 ? 끊김 뒤 호가 실패면 기존 관측의 남은 유효 시간만큼만 관측 유지 > PRICE_FORGED × C 기존 체결가 90초 전 × 호가 FAIL STANDARD_OUT
+    08:10:59.839 [Test worker] ERROR com.cryptoautotrader.api.service.HeldMarkRefresher -- ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: Character array is missing "e" notation exponential mark.; KRW-N20B 호가 조회 실패: 호가 503(시험); KRW-N20C 호가 조회 실패: 호가 503(시험); 
+    N20행|PRICE_FORGED+C기존90초|호가=FAIL|byTrade=[N20A]|byBook=[]|unobserved=[N20B]|장부=N20A:REST_TRADE/100 N20B:- N20C:WS_TRADE/290|실패표시=true|경보=1|오류문=시세 조회 실패: Character array is missing "e" notation exponential mark.; KRW-N20B 호가 조회 실패: 호가 503(시험); KRW-N20C 호가 조회 실패: 호가 503(시험); |로그=ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: Character array is missing "e" notation exponential mark.; KRW-N20B 호가 조회 실패: 호가 503(시험); KRW-N20C 호가 조회 실패: 호가 503(시험); |오류문·경보·로그에_FORGED=false|오류문·경보·로그에_줄바꿈=false
+
+N20 보유 시세 보강 ? 형식 이상 항목 뒤 체결 처리와 호가 대체 기록(운영 코드 무변경) > C 에 기존 체결 관측이 있을 때 ? 끊김 뒤 호가 실패면 기존 관측의 남은 유효 시간만큼만 관측 유지 > PRICE_FORGED × C 기존 체결가 130초 전 × 호가 FAIL STANDARD_OUT
+    08:10:59.849 [Test worker] ERROR com.cryptoautotrader.api.service.HeldMarkRefresher -- ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B, KRW-N20C] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: Character array is missing "e" notation exponential mark.; KRW-N20B 호가 조회 실패: 호가 503(시험); KRW-N20C 호가 조회 실패: 호가 503(시험); 
+    N20행|PRICE_FORGED+C기존130초|호가=FAIL|byTrade=[N20A]|byBook=[]|unobserved=[N20B, N20C]|장부=N20A:REST_TRADE/100 N20B:- N20C:WS_TRADE/null|실패표시=true|경보=1|오류문=시세 조회 실패: Character array is missing "e" notation exponential mark.; KRW-N20B 호가 조회 실패: 호가 503(시험); KRW-N20C 호가 조회 실패: 호가 503(시험); |로그=ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B, KRW-N20C] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: Character array is missing "e" notation exponential mark.; KRW-N20B 호가 조회 실패: 호가 503(시험); KRW-N20C 호가 조회 실패: 호가 503(시험); |오류문·경보·로그에_FORGED=false|오류문·경보·로그에_줄바꿈=false
+
+N20 보유 시세 보강 ? 형식 이상 항목 뒤 체결 처리와 호가 대체 기록(운영 코드 무변경) > C 에 기존 체결 관측이 있을 때 ? 끊김 뒤 호가 실패면 기존 관측의 남은 유효 시간만큼만 관측 유지 > MARKET_NUM × C 기존 체결가 90초 전 × 호가 FAIL STANDARD_OUT
+    08:10:59.854 [Test worker] ERROR com.cryptoautotrader.api.service.HeldMarkRefresher -- ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: class java.lang.Integer cannot be cast to class java.lang.String (java.lang.Integer and java.lang.String are in module java.base of loader 'bootstrap'); KRW-N20B 호가 조회 실패: 호가 503(시험); KRW-N20C 호가 조회 실패: 호가 503(시험); 
+    N20행|MARKET_NUM+C기존90초|호가=FAIL|byTrade=[N20A]|byBook=[]|unobserved=[N20B]|장부=N20A:REST_TRADE/100 N20B:- N20C:WS_TRADE/290|실패표시=true|경보=1|오류문=시세 조회 실패: class java.lang.Integer cannot be cast to class java.lang.String (java.lang.Integer and java.lang.String are in module java.base of loader 'bootstrap'); KRW-N20B 호가 조회 실패: 호가 503(시험); KRW-N20C 호가 조회 실패: 호가 503(시험); |로그=ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패: class java.lang.Integer cannot be cast to class java.lang.String (java.lang.Integer and java.lang.String are in module java.base of loader 'bootstrap'); KRW-N20B 호가 조회 실패: 호가 503(시험); KRW-N20C 호가 조회 실패: 호가 503(시험); |오류문·경보·로그에_FORGED=false|오류문·경보·로그에_줄바꿈=false
+
+Gradle Test Executor 1 finished executing tests.
+
+> Task :web-api:test
+Finished generating test XML results (0.029 secs) into: D:\Claude Code\projects\cat-n20\web-api\build\test-results\test
+Generating HTML test report...
+Finished generating test html results (0.023 secs) into: D:\Claude Code\projects\cat-n20\web-api\build\reports\tests\test
+
+BUILD SUCCESSFUL in 30s
+12 actionable tasks: 11 executed, 1 up-to-date
+Watched directory hierarchies: [D:\Claude Code\projects\cat-n20]

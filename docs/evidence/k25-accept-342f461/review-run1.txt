@@ -1,0 +1,9 @@
+Root review checker, first run:
+Traceback (most recent call last):
+  File "docs/evidence/k25-accept-342f461/review.py", line 152, in <module>
+    assert '형식 이상 6·가격 아님 8·코인 형식 2' in o
+AssertionError
+
+The checker used r4 gradle.log, which has no application stdout for passing tests.
+The submitted check_u.sh uses timestamped stdout preserved in the N19 JUnit XML.
+The review was corrected to use that same preserved input. No product/block changed.
