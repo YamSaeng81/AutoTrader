@@ -1,0 +1,11 @@
+6f6a5220f7a19f381fa210a9c4a530e262a4fb04 fe01207f3f60e97e308925157f84a1bb2da04388
+N15 진입 승인 실행 만료 — 수집 완료 D=C+W 뒤 같은 길이 W 의 실행 유예, E=D+W 이상 새 예약·매수 의도 금지
+ .../com/cryptoautotrader/api/dto/OrderRequest.java |   6 +
+ .../api/service/CapitalReservationService.java     |  23 +
+ .../api/service/DynamicTradingService.java         |  26 +-
+ .../cryptoautotrader/api/service/EntryClock.java   |  28 +
+ .../api/service/EntryPriorityRounds.java           |  61 +-
+ .../api/service/LiveTradingService.java            |  23 +-
+ .../api/service/OrderExecutionEngine.java          |   2 +-
+ .../api/service/N15EntryExpiryTest.java            | 615 +++++++++++++++++++++
+ 8 files changed, 767 insertions(+), 17 deletions(-)

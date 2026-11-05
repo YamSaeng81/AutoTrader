@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="DAILY_SMA20 LIVE 주문 경로 — 마감 봉 진입·EMA200 차단·시간 청산·SELL 차단·재진입·매수금" tests="24" skipped="0" failures="0" errors="0" timestamp="2026-11-05T04:57:44" hostname="DESKTOP-SF1KUQ5" time="3.0">
+  <properties/>
+  <testcase name="maxHoldHours=0 — 익절은 그대로 작동한다(보유 72시간, 저장된 익절가 도달)" classname="com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest" time="0.187"/>
+  <testcase name="보유 24시간 경과 → 시간 청산 매도, 같은 회차의 BUY 신호로 다시 사지 않는다" classname="com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest" time="0.189"/>
+  <testcase name="이전 포지션이 청산된 세션은 다음 마감 봉의 BUY 로 다시 들어간다(재진입)" classname="com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest" time="0.135"/>
+  <testcase name="일봉 마감 봉 + 종가 &gt; SMA20 + 관문 통과 → 매수 1건, 금액 = min(20,200 × 0.995, 20,000) = 20,000" classname="com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest" time="0.064"/>
+  <testcase name="통합 ③ 같은 응답 반복·수수료 정정 — 반복은 변화 없음, 수수료 9.00→9.99 는 차액 0.99 만 한 번" classname="com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest" time="0.176"/>
+  <testcase name="maxHoldHours=0 — 보유 72시간에도 시간 청산·추가 매수가 없다(일봉 BUY 유지 중)" classname="com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest" time="0.038"/>
+  <testcase name="UNKNOWN 매수가 남은 세션 — 다음 마감의 BUY 신호에도 새 매수를 내지 않는다" classname="com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest" time="0.043"/>
+  <testcase name="마감 종가 ≤ SMA20, 손실 −2% → 전략 SELL 체결(손실 탈출 −0.30% 아래)" classname="com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest" time="0.132"/>
+  <testcase name="maxHoldHours=0 — 마감 종가 ≤ SMA20 이면 전략 SELL 이 그대로 나간다(보유 72시간, −2%)" classname="com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest" time="0.052"/>
+  <testcase name="maxHoldHours=0 — 생성 요청(POST) → 저장 → 재조회(GET·DB)까지 0 이 유지되고 다른 설정도 그대로다" classname="com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest" time="0.432"/>
+  <testcase name="마감 종가 ≤ SMA20 이어도 손익 −0.30% ~ +0.30% 이면 본전 차단 — 매도 없음, 다음 회차로 미뤄진다" classname="com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest" time="0.053"/>
+  <testcase name="정지 — UNKNOWN 매수는 식별자 취소 요청만, 매도·자금 복원 없음, 포지션은 정리 대기로 열어 둔다" classname="com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest" time="0.101"/>
+  <testcase name="통합 ⑥ 매수 체결 → 세션 정지 → 청산 매도 체결 — STOPPED·활성 주문 0·정리 대기 0·보유량 0 일치" classname="com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest" time="0.162"/>
+  <testcase name="일봉 신호는 BUY 여도 H1 종가가 EMA200 아래면 EMA200 관문이 막는다 — 주문 없음, 사유 기록" classname="com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest" time="0.044"/>
+  <testcase name="정지 — UNKNOWN 매도가 남은 CLOSING 포지션은 다시 팔지 않는다(진행 중 매도는 취소도 하지 않는다)" classname="com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest" time="0.035"/>
+  <testcase name="통합 ② 부분 체결 뒤 잔량 취소 — 0.0008 BTC·10,000·수수료 5 반영, 미사용 9,995 복원(고아 정리 반복에도 한 번)" classname="com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest" time="0.127"/>
+  <testcase name="통합 ① 전량 체결 — 체결대금 19,980·수수료 9.99·BTC 0.0016, 미사용 10.01 복원 → 잔액 210.01" classname="com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest" time="0.121"/>
+  <testcase name="maxHoldHours=0 — 손절은 그대로 작동한다(보유 72시간, −10%)" classname="com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest" time="0.098"/>
+  <testcase name="같은 자료라도 마지막 닫힌 봉이 마감 봉이 아니면 HOLD — 주문 없음" classname="com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest" time="0.033"/>
+  <testcase name="통합 ④ 체결대금만 정정 — 수량 0.0016 그대로, 19,980→19,990 이면 평균단가·투입금·잔액이 함께 바뀌고 반복은 변화 없음" classname="com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest" time="0.386"/>
+  <testcase name="이익으로 잔액 25,000 — 1회 상한이 있으면 20,000 매수, 없으면 24,875 로 포지션당 한도에 걸려 매수 없음" classname="com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest" time="0.058"/>
+  <testcase name="보유 중 BUY 신호는 추가 매수하지 않는다(재조정 없음)" classname="com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest" time="0.03"/>
+  <testcase name="UNKNOWN 매도가 남은 CLOSING 포지션 — 손절 구간·SELL 신호여도 다시 팔지 않고 새로 사지도 않는다" classname="com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest" time="0.027"/>
+  <testcase name="통합 ⑤ 매수 체결 → 손절 → 매도 체결 — 포지션 CLOSED, 잔액 210.01 + 18,880 − 9.44, 보유량 0 일치, 반복 응답은 한 번만" classname="com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest" time="0.253"/>
+  <system-out><![CDATA[13:57:44.953 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest
+13:57:44.956 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+13:57:45.147 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+13:57:45.203 [Test worker] WARN  c.c.api.service.LiveTradingService - 시간 초과 청산 (sessionId=28): KRW-BTC 보유 25h ≥ 24h pnl=0.000000%
+13:57:45.336 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[SMA20 회차 승인] LIVE#29 → 진입
+13:57:45.473 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[SMA20 회차 승인] LIVE#30 → 진입
+[SMA20 진입] BUY / 일봉 2026-11-05 종가 12495000.00000000 > SMA20 11355000 — 보유
+13:57:45.537 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[SMA20 회차 승인] LIVE#31 → 진입
+[SMA20 통합 ③ 수수료 정정]
+  1회차: order{state=FILLED reported=done filled=0.00160000 funds=19980.00000000 fee=9.00000000 src=REPORTED ver=1} pos{status=OPEN size=0.00160000 avg=12487500.00000000 invested=19989.00000000} available=211.00
+  정정후: order{state=FILLED reported=done filled=0.00160000 funds=19980.00000000 fee=9.99000000 src=REPORTED ver=2} pos{status=OPEN size=0.00160000 avg=12487500.00000000 invested=19989.99000000} available=210.01
+13:57:45.713 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+13:57:45.752 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+13:57:45.799 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+13:57:45.932 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+13:57:45.985 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[SMA20 생성·재조회] "CREATED" maxHoldHours=0 maxInvestment=20000.0 investRatio=0.995 stopLossPct=5.0 initialCapital=20200.0
+13:57:46.418 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+13:57:46.472 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+13:57:46.530 [Test worker] WARN  c.c.api.service.OrderExecutionEngine - 식별자로 취소할 주문이 거래소에 없다 — 미접수로 단정하지 않고 상태를 유지한다 (orderId=25, 식별자=sma20-unknown-e6f08fe7-ec5c-47ac-bd53-8dac3611cd6c)
+13:57:46.549 [Test worker] WARN  c.c.api.service.LiveTradingService - 정지 — 매수 확인 전인 size=0 포지션은 열어 두고 정리 대기로 둔다 (posId=39, sessionId=38)
+13:57:46.561 [Test worker] WARN  c.c.api.service.LiveTradingService - ]]>&#x1f534;<![CDATA[ 정지했으나 **정리 미완료** — 미해결 제출 1건이 남았다 (sessionId=38). 그 주문은 접수됐을 수 있으므로 자금·슬롯을 점유한 것으로 두고 추적을 계속한다. 종결은 근거를 확인한 사람이 한다.
+13:57:46.574 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[SMA20 회차 승인] LIVE#39 → 진입
+[SMA20 보유량 매수 체결 뒤] 거래소 0.0016 · 포지션 0.00160000 · 주문 0.00160000
+13:57:46.687 [Test worker] WARN  c.c.api.service.LiveTradingService - ]]>&#x1f534;<![CDATA[ 정지했으나 **정리 미완료** — 미해결 제출 1건이 남았다 (sessionId=39). 그 주문은 접수됐을 수 있으므로 자금·슬롯을 점유한 것으로 두고 추적을 계속한다. 종결은 근거를 확인한 사람이 한다.
+[SMA20 통합 ⑥ 정지 청산] order{state=FILLED reported=done filled=0.00160000 funds=19980.00000000 fee=9.99000000 src=REPORTED ver=1} pos{status=CLOSED size=0.00160000 avg=12487500.00000000 invested=19989.99000000} available=20192.02 realized=2.01000000 정리 대기=0
+[SMA20 보유량 정지 청산 뒤] 거래소 0.0000 · 포지션 0 · 주문 0E-8
+13:57:46.738 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[SMA20 EMA200 관문] EMA200 레짐 필터 — 현재가 EMA200 이하
+13:57:46.782 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+13:57:46.805 [Test worker] WARN  c.c.api.service.LiveTradingService - ]]>&#x1f534;<![CDATA[ 정지했으나 **정리 미완료** — 미해결 제출 1건이 남았다 (sessionId=41). 그 주문은 접수됐을 수 있으므로 자금·슬롯을 점유한 것으로 두고 추적을 계속한다. 종결은 근거를 확인한 사람이 한다.
+13:57:46.820 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[SMA20 회차 승인] LIVE#42 → 진입
+[SMA20 통합 ② 부분 체결 뒤 취소] order{state=FILLED reported=cancel filled=0.00080000 funds=10000.00000000 fee=5.00000000 src=REPORTED ver=1} pos{status=OPEN size=0.00080000 avg=12500000.00000000 invested=10005.00000000} available=10195.00
+13:57:46.948 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[SMA20 회차 승인] LIVE#43 → 진입
+[SMA20 통합 ① 전량 체결] order{state=FILLED reported=done filled=0.00160000 funds=19980.00000000 fee=9.99000000 src=REPORTED ver=1} pos{status=OPEN size=0.00160000 avg=12487500.00000000 invested=19989.99000000} available=210.01
+13:57:47.068 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+13:57:47.092 [Test worker] WARN  c.c.api.service.LiveTradingService - 손절 발동 (sessionId=44): KRW-BTC 현재가=12495000.00000000 손익률=-10.000000% (손절가=pct/한도=5.00%)
+13:57:47.168 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+13:57:47.201 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[SMA20 회차 승인] LIVE#46 → 진입
+[SMA20 통합 ④ 체결대금 정정]
+  1회차: order{state=FILLED reported=done filled=0.00160000 funds=19980.00000000 fee=9.99000000 src=REPORTED ver=1} pos{status=OPEN size=0.00160000 avg=12487500.00000000 invested=19989.99000000} available=210.01
+  정정후: order{state=FILLED reported=done filled=0.00160000 funds=19990.00000000 fee=9.99000000 src=REPORTED ver=2} pos{status=OPEN size=0.00160000 avg=12493750.00000000 invested=19999.99000000} available=200.01
+13:57:47.588 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+13:57:47.633 [Test worker] WARN  c.c.a.s.CapitalReservationService - [공유 풀] 승인하지 않는다 (sessionId=48, 사유=PER_POSITION_CAP): 매수금 24875.00 > 포지션당 상한 20000 — ]]>&#x1f534;<![CDATA[ 거래소 거절을 기다리지 않는다
+13:57:47.634 [Test worker] WARN  c.c.api.service.LiveTradingService - 매수 예약이 거절돼 롤백했다 (sessionId=48, KRW-BTC, 사유=PER_POSITION_CAP): 매수금 24875.00 > 포지션당 상한 20000
+[SMA20 회차 승인] LIVE#47 → 진입
+[SMA20 회차 승인] LIVE#48 → 예약 거절(PER_POSITION_CAP): 매수금 24875.00 > 포지션당 상한 20000
+13:57:47.647 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+13:57:47.677 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+13:57:47.704 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[SMA20 회차 승인] LIVE#51 → 진입
+[SMA20 보유량 매수 체결 뒤] 거래소 0.0016 · 포지션 0.00160000 · 주문 0.00160000
+[SMA20 통합 ⑤ 진입] avg=12487500.00000000 손절가=11870250.00000000 익절가=13494600.00000000
+13:57:47.821 [Test worker] WARN  c.c.api.service.LiveTradingService - 손절 발동 (sessionId=51): KRW-BTC 현재가=11800000.00000000 손익률=-5.505500% (손절가=11870250.00000000/한도=5.00%)
+[SMA20 통합 ⑤ 청산] order{state=FILLED reported=done filled=0.00160000 funds=19980.00000000 fee=9.99000000 src=REPORTED ver=1} pos{status=CLOSED size=0.00160000 avg=12487500.00000000 invested=19989.99000000} available=19080.57 sell=FILLED realized=-1109.44000000
+[SMA20 보유량 청산 뒤] 거래소 0.0000 · 포지션 0 · 주문 0E-8
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
