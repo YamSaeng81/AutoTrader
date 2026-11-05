@@ -1,0 +1,117 @@
+{
+  "source": "a1e38e7f12690ea172fd015b7e8c143ceac9b449",
+  "candidate": "7a944723c2959898226c2ad80f6b079ab5678296",
+  "parent_operating": "1103f48505a1457029f6555547a87aa986535738",
+  "manifests": {
+    "n17-rest-price-1103f48": 48,
+    "n06-handover-list-draft": 1,
+    "n05-review-0bf874f": 11
+  },
+  "candidate_paths": [
+    "web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/ForceRefreshResult.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/N17RestInvalidPriceTest.java"
+  ],
+  "preserved_XML_not_rerun": {
+    "r1-failfirst-1103f48": {
+      "classes": 1,
+      "tests_failures_errors_skipped": [
+        24,
+        10,
+        0,
+        0
+      ]
+    },
+    "r2-fix-related": {
+      "classes": 8,
+      "tests_failures_errors_skipped": [
+        86,
+        0,
+        0,
+        0
+      ]
+    }
+  },
+  "runtime_run_patch_matches_candidate": true,
+  "test_run_source_snapshot_not_preserved_in_untracked_git_diff": true,
+  "local_original_method_execution": {
+    "before": {
+      "compile": 0,
+      "run": 0,
+      "force_inputs": 18,
+      "cause_controls": 4,
+      "age_control": 1
+    },
+    "candidate": {
+      "compile": 0,
+      "run": 0,
+      "force_inputs": 18,
+      "cause_controls": 4,
+      "age_control": 1
+    }
+  },
+  "deployment_blocks": [
+    {
+      "block": 0,
+      "sha256": "b4b8ed3b55632e5de7a52376b6c3efe7abdcb5f9048aba753fbfa6f42089ca27",
+      "bash_n": 0
+    },
+    {
+      "block": 1,
+      "sha256": "78240a36960f7f23058b554320e19f3e690bdc35e2bed917550d35faaa638735",
+      "bash_n": 0
+    },
+    {
+      "block": 2,
+      "sha256": "7266e83871ff82baa2f4b82bc095f024ea6c6746b3386c1dbdce62b8efe88f4c",
+      "bash_n": 0
+    },
+    {
+      "block": 3,
+      "sha256": "dd499de6a37b63fd719151f7189d33019c9f8b47a7c7ea870a4a96345e664f0d",
+      "bash_n": 0
+    },
+    {
+      "block": 4,
+      "sha256": "65cb6bc6a4eb9c82a0c1d4682a028c152a1979ad4cdd485831d7e8f43d16452b",
+      "bash_n": 0
+    },
+    {
+      "block": 5,
+      "sha256": "2b5c40e43e3796ea8d6b7b7ffaf2c56351cb4ce12c61debd2f00b3db1d9c5d6f",
+      "bash_n": 0
+    },
+    {
+      "block": 6,
+      "sha256": "6863447de0decc08ec2a577c3ec4d96ff53f3bb6bfd8018209bed2511053b4ec",
+      "bash_n": 0
+    },
+    {
+      "block": 7,
+      "sha256": "36cbbd477770bd8e4e675a0fcd5819be83edce7ae862f57ea7a37272745beee3",
+      "bash_n": 0
+    }
+  ],
+  "T1_actual_preserved_jar_compare": [
+    6,
+    881,
+    881
+  ],
+  "jar_file_hashes": {
+    "1103f48.jar": "f7ee2ef4bf822a6af4a6597892cb64739a7523be0aa1091c5c44f6f875ceacbe",
+    "7a94472.jar": "ddb64359f330419a0a6e233e4c09a2f0f7f1568784858bf344bf607ef10422fe"
+  },
+  "old_safety_functions_and_comparator_unchanged": true,
+  "global_REST_fallback_unchanged_without_price_guard": true,
+  "original_global_fallback_local_cases": {
+    "cases": 4,
+    "compile": 0,
+    "run": 0,
+    "zero_negative_published": true,
+    "malformed_row_aborts_later_valid_rows": true,
+    "method_sha256": "02294777744ce676c12ac6d357e1b67601e9431338ec16aa91d8d489cf3f0e7f",
+    "no_consumers_orders_or_watchdog_executed": true
+  },
+  "no_application_test_reexecution_Gradle_server_DB_network": true
+}

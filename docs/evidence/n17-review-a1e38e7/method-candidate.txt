@@ -1,0 +1,23 @@
+LIVE|zero|INVALID_PRICE|events=0
+LIVE|negative|INVALID_PRICE|events=0
+LIVE|old_zero|INVALID_PRICE|events=0
+LIVE|positive|PUBLISHED|events=1
+LIVE|old_positive|STALE|events=1
+LIVE|missing|FAILED|events=0
+LIVE|malformed|FAILED|events=0
+LIVE|empty|FAILED|events=0
+LIVE|exception|FAILED|events=0
+DYNAMIC|zero|INVALID_PRICE|events=0
+DYNAMIC|negative|INVALID_PRICE|events=0
+DYNAMIC|old_zero|INVALID_PRICE|events=0
+DYNAMIC|positive|PUBLISHED|events=1
+DYNAMIC|old_positive|STALE|events=1
+DYNAMIC|missing|FAILED|events=0
+DYNAMIC|malformed|FAILED|events=0
+DYNAMIC|empty|FAILED|events=0
+DYNAMIC|exception|FAILED|events=0
+cause|INVALID_PRICE|streak=1|human=true|REST 시세가 가격으로 볼 수 없는 값(trade_price 없음, 체결 0초 전)이라 SL 점검에 쓰지 않았습니다 — 점검·매도 없음. 거래소 시세 응답을 확인하세요.
+cause|FAILED|streak=1|human=true|REST 강제 갱신도 실패 — 거래소 API 상태를 확인하세요.
+cause|PUBLISHED|streak=1|human=false|REST 강제 갱신을 1분 연속 시도했는데도 점검이 기록되지 않습니다 — 실시간 이벤트 경로가 죽었을 수 있습니다.
+cause|PUBLISHED|streak=5|human=true|REST 강제 갱신을 5분 연속 시도했는데도 점검이 기록되지 않습니다 — 실시간 이벤트 경로가 죽었을 수 있습니다.
+age|120.999=fresh|121=stale

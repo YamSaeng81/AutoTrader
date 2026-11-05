@@ -1,0 +1,73 @@
+# com.cryptoautotrader.api.service.LiveTradingSlWatchdogRecoveryTest.xml 6 0 0 0
+PASS forceRefreshPrice: REST 시세 조회 성공(신선한 체결 시각) 시 PUBLISHED 반환 — ~~true~~  | 
+PASS forceRefreshPrice: 거래소 API 오류 시 false 반환 (예외를 삼키고 다음 주기로 넘김) | 
+PASS warnStaleSlCheck: 강제 복구 자체가 실패하면 사람 개입이 필요하다는 문구를 보낸다 | 
+PASS warnStaleSlCheck: 방금 점검된 세션은 건드리지 않는다 (오탐 방지 회귀) | 
+PASS forceRefreshPrice: 응답이 비어있으면 false 반환 | 
+PASS warnStaleSlCheck: SL 미점검 감지 시 강제 갱신을 시도하고 발행 문구를 보낸다 — ~~재개 성공 문구~~ (N | 
+# com.cryptoautotrader.api.service.N16InvalidPriceReproTest.xml 13 0 0 0
+PASS ④d 호가 — 미래 호가 시각도 수신 시각으로 제한되어 후속 없으면 120초 기준으로 낡고, 정상 호가가 덮는다 | 
+PASS ④e 생산 이벤트 경로 — 미래 관측 시각 이벤트(가격 정상)는 장부에 서버 수신 시각으로 적히고, 수신 시각 없는 직접 기록 | 
+PASS ④c 체결 — 과거 관측은 수신 시각으로 올리지 않는다(낡은 체결가 재수신은 낡은 채), 더 이른 정상 관측의 역순 보호와 같 | 
+PASS ④a 체결 — 미래 100 뒤 정상 90 이 덮고, 장부 시각은 수신 시각이며 원래 관측 시각은 따로 남는다 | 
+PASS LIVE 가격 0 | 
+PASS LIVE 가격 -1 | 
+PASS DYNAMIC 가격 0 | 
+PASS DYNAMIC 가격 -1 | 
+PASS LIVE | 
+PASS ⑤ 관측 시각 EPOCH·null — 장부는 신선한 값을 지키고(EPOCH 는 더 이르다, null 은 거절) EPOCH 이벤 | 
+PASS ④b 체결 — 미래 값 뒤 후속 관측이 없으면 기존 120초 기준으로 낡고(120.999초 허용·121초 거절), 23시간 뒤 | 
+PASS LIVE | 
+PASS DYNAMIC | 
+# com.cryptoautotrader.api.service.N17RestInvalidPriceTest.xml 24 0 0 0
+PASS LIVE fresh_positive | 
+PASS LIVE stale_positive | 
+PASS LIVE missing_price | 
+PASS LIVE null_price | 
+PASS LIVE malformed_price | 
+PASS LIVE empty_response | 
+PASS LIVE client_exception | 
+PASS DYNAMIC fresh_positive | 
+PASS DYNAMIC stale_positive | 
+PASS DYNAMIC missing_price | 
+PASS DYNAMIC null_price | 
+PASS DYNAMIC malformed_price | 
+PASS DYNAMIC empty_response | 
+PASS DYNAMIC client_exception | 
+PASS LIVE | 
+PASS DYNAMIC | 
+PASS LIVE trade_price=0 체결 1초 전 | 
+PASS LIVE trade_price=-1 체결 1초 전 | 
+PASS LIVE trade_price=0.00000000 체결 1초 전 | 
+PASS LIVE trade_price=0 체결 121초 전 | 
+PASS DYNAMIC trade_price=0 체결 1초 전 | 
+PASS DYNAMIC trade_price=-1 체결 1초 전 | 
+PASS DYNAMIC trade_price=0.00000000 체결 1초 전 | 
+PASS DYNAMIC trade_price=0 체결 121초 전 | 
+# com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest.xml 17 0 0 0
+PASS ④ 혼합 응답(LIVE 정상 280 · 형식 이상 · DYNAMIC 정상 280 · LIVE 0) → 정상 둘 보호 매도 1회 | 
+PASS ② 정상 2개 대조군 — 둘 다 한 번씩 발행, WARN·ERROR 없음 | 
+PASS ③-2 발행기 내부 실행 예외 — 입력 이상 WARN 으로 삼키지 않고 기존 배치 실패 ERROR 경로(뒤 항목 미처리) | 
+PASS ③-1 외부 조회 예외 — 발행 0, 기존 ERROR 한 줄 그대로 | 
+PASS 이상 0 위치 first | 
+PASS 이상 0 위치 middle | 
+PASS 이상 -1 위치 first | 
+PASS 이상 -1 위치 middle | 
+PASS 이상 0.00000000 위치 middle | 
+PASS 이상 abc 위치 first | 
+PASS 이상 abc 위치 middle | 
+PASS 이상  위치 middle | 
+PASS 이상 1e 위치 middle | 
+PASS 이상 missing 위치 first | 
+PASS 이상 missing 위치 middle | 
+PASS 이상 null 위치 first | 
+PASS 이상 null 위치 middle | 
+# com.cryptoautotrader.api.service.SlWatchdogFreshnessTest.xml 4 0 0 0
+PASS LIVE | 
+PASS DYNAMIC | 
+PASS LIVE | 
+PASS DYNAMIC | 
+# com.cryptoautotrader.api.service.WsSubscriptionUnionTest.xml 3 0 0 0
+PASS 소스가 비면 그 소스만 빠지고 나머지는 유지된다 | 
+PASS 구독이 하나도 없으면 빈 목록 — 폴백이 빈 markets로 REST를 때리지 않는다 | 
+PASS ★ LIVE와 DYNAMIC 코인이 모두 폴백 대상에 들어간다 — ELSA 누락 재발 방지 | 

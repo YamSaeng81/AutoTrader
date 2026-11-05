@@ -1,0 +1,18 @@
+# com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest.xml 17 10 0 0
+FAIL ④ 혼합 응답(LIVE 정상 280 · 형식 이상 · DYNAMIC 정상 280 · LIVE 0) → 정상 둘 보호 매도 1회 | org.opentest4j.AssertionFailedError: [형식 이상 뒤의 DYNAMIC 정상 280 → 보호 매도 1회]  expected: 1  but was: 0
+PASS ② 정상 2개 대조군 — 둘 다 한 번씩 발행, WARN·ERROR 없음 | 
+PASS ③-2 발행기 내부 실행 예외 — 입력 이상 WARN 으로 삼키지 않고 기존 배치 실패 ERROR 경로(뒤 항목 미처리) | 
+PASS ③-1 외부 조회 예외 — 발행 0, 기존 ERROR 한 줄 그대로 | 
+FAIL 이상 0 위치 first | org.opentest4j.AssertionFailedError: [이상 항목은 발행하지 않는다]  expected: 0L  but was: 1L
+FAIL 이상 0 위치 middle | org.opentest4j.AssertionFailedError: [이상 항목은 발행하지 않는다]  expected: 0L  but was: 1L
+FAIL 이상 -1 위치 first | org.opentest4j.AssertionFailedError: [이상 항목은 발행하지 않는다]  expected: 0L  but was: 1L
+FAIL 이상 -1 위치 middle | org.opentest4j.AssertionFailedError: [이상 항목은 발행하지 않는다]  expected: 0L  but was: 1L
+FAIL 이상 0.00000000 위치 middle | org.opentest4j.AssertionFailedError: [이상 항목은 발행하지 않는다]  expected: 0L  but was: 1L
+FAIL 이상 abc 위치 first | org.opentest4j.AssertionFailedError: [정상 코인 A 는 한 번]  expected: 1L  but was: 0L
+FAIL 이상 abc 위치 middle | org.opentest4j.AssertionFailedError: [이상 항목 뒤 정상 코인 B 도 한 번]  expected: 1L  but was: 0L
+FAIL 이상  위치 middle | org.opentest4j.AssertionFailedError: [이상 항목 뒤 정상 코인 B 도 한 번]  expected: 1L  but was: 0L
+FAIL 이상 1e 위치 middle | org.opentest4j.AssertionFailedError: [이상 항목 뒤 정상 코인 B 도 한 번]  expected: 1L  but was: 0L
+PASS 이상 missing 위치 first | 
+PASS 이상 missing 위치 middle | 
+PASS 이상 null 위치 first | 
+PASS 이상 null 위치 middle | 

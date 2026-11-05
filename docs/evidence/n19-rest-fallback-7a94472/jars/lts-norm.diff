@@ -1,0 +1,72 @@
+5847c5847
+<      147: ifeq          247
+---
+>      147: ifeq          309
+5872,5891c5872,5912
+<      216: aload_0
+<      217: getfield                     // Field eventPublisher:Lorg/springframework/context/ApplicationEventPublisher;
+<      220: new                          // class com/cryptoautotrader/api/service/RealtimePriceEvent
+<      223: dup
+<      224: aload         6
+<      226: aload         8
+<      228: aload         5
+<      230: invokestatic                 // Method restTradeTime:(Ljava/util/Map;)Ljava/time/Instant;
+<      233: ldc_w                        // String REST_TRADE
+<      236: invokespecial                // Method com/cryptoautotrader/api/service/RealtimePriceEvent."<init>":(Ljava/lang/String;Ljava/math/BigDecimal;Ljava/time/Instant;Ljava/lang/String;)V
+<      239: invokeinterface          // InterfaceMethod org/springframework/context/ApplicationEventPublisher.publishEvent:(Ljava/lang/Object;)V
+<      244: goto          140
+<      247: goto          266
+<      250: astore_3
+<      251: getstatic                      // Field log:Lorg/slf4j/Logger;
+<      254: ldc_w                        // String [§9] REST ticker fallback 실패: {}
+<      257: aload_3
+<      258: invokevirtual                 // Method java/lang/Exception.getMessage:()Ljava/lang/String;
+<      261: invokeinterface           // InterfaceMethod org/slf4j/Logger.error:(Ljava/lang/String;Ljava/lang/Object;)V
+<      266: return
+---
+>      216: goto          237
+>      219: astore        9
+>      221: getstatic                      // Field log:Lorg/slf4j/Logger;
+>      224: ldc_w                        // String [§9] REST 폴백 시세 항목 건너뜀 ? 가격 형식이 숫자가 아님 (market={})
+>      227: aload         6
+>      229: invokeinterface           // InterfaceMethod org/slf4j/Logger.warn:(Ljava/lang/String;Ljava/lang/Object;)V
+>      234: goto          140
+>      237: aload         8
+>      239: invokestatic                 // Method com/cryptoautotrader/api/service/MarkPriceBook.isPrice:(Ljava/math/BigDecimal;)Z
+>      242: ifne          278
+>      245: getstatic                      // Field log:Lorg/slf4j/Logger;
+>      248: ldc_w                        // String [§9] REST 폴백 시세 항목 건너뜀 ? 가격이 아님 (market={}, 부호={})
+>      251: aload         6
+>      253: aload         8
+>      255: invokevirtual                // Method java/math/BigDecimal.signum:()I
+>      258: ifne          267
+>      261: ldc_w                        // String 0
+>      264: goto          270
+>      267: ldc_w                        // String 음수
+>      270: invokeinterface           // InterfaceMethod org/slf4j/Logger.warn:(Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;)V
+>      275: goto          140
+>      278: aload_0
+>      279: getfield                     // Field eventPublisher:Lorg/springframework/context/ApplicationEventPublisher;
+>      282: new                          // class com/cryptoautotrader/api/service/RealtimePriceEvent
+>      285: dup
+>      286: aload         6
+>      288: aload         8
+>      290: aload         5
+>      292: invokestatic                 // Method restTradeTime:(Ljava/util/Map;)Ljava/time/Instant;
+>      295: ldc_w                        // String REST_TRADE
+>      298: invokespecial                // Method com/cryptoautotrader/api/service/RealtimePriceEvent."<init>":(Ljava/lang/String;Ljava/math/BigDecimal;Ljava/time/Instant;Ljava/lang/String;)V
+>      301: invokeinterface          // InterfaceMethod org/springframework/context/ApplicationEventPublisher.publishEvent:(Ljava/lang/Object;)V
+>      306: goto          140
+>      309: goto          328
+>      312: astore_3
+>      313: getstatic                      // Field log:Lorg/slf4j/Logger;
+>      316: ldc_w                        // String [§9] REST ticker fallback 실패: {}
+>      319: aload_3
+>      320: invokevirtual                 // Method java/lang/Exception.getMessage:()Ljava/lang/String;
+>      323: invokeinterface           // InterfaceMethod org/slf4j/Logger.error:(Ljava/lang/String;Ljava/lang/Object;)V
+>      328: return
+5894c5915,5916
+<          123   247   250   Class java/lang/Exception
+---
+>          202   216   219   Class java/lang/NumberFormatException
+>          123   309   312   Class java/lang/Exception
