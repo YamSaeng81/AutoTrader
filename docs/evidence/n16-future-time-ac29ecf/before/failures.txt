@@ -1,0 +1,25 @@
+N16 재현 — 비정상 가격·관측 시각 > ④d 호가 — 미래 호가 시각도 수신 시각으로 제한되어 후속 없으면 120초 기준으로 낡고, 정상 호가가 덮는다 FAILED
+    org.opentest4j.AssertionFailedError: 
+    expected: 2026-11-05T04:40:36.519587200Z
+     but was: 2026-11-06T04:40:36.519587200Z
+        at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+N16 재현 — 비정상 가격·관측 시각 > ④e 생산 이벤트 경로 — 미래 관측 시각 이벤트(가격 정상)는 장부에 서버 수신 시각으로 적히고, 수신 시각 없는 직접 기록은 한 번 읽은 서버 시각으로 제한된다 FAILED
+    java.lang.AssertionError: 
+    Expecting actual:
+      2026-11-06T04:40:36.665601700Z
+    to be between:
+N16 재현 — 비정상 가격·관측 시각 > ④a 체결 — 미래 100 뒤 정상 90 이 덮고, 장부 시각은 수신 시각이며 원래 관측 시각은 따로 남는다 FAILED
+    org.opentest4j.AssertionFailedError: [장부 시각 = min(관측, 수신)] 
+    expected: 2026-11-05T04:40:36.831171700Z
+     but was: 2026-11-06T04:40:36.831171700Z
+        at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+N16 재현 — 비정상 가격·관측 시각 > ④b 체결 — 미래 값 뒤 후속 관측이 없으면 기존 120초 기준으로 낡고(120.999초 허용·121초 거절), 23시간 뒤 풀·포지션 평가는 낡음, 보강이 다시 조회한다 FAILED
+    org.opentest4j.AssertionFailedError: 
+    expected: null
+     but was: 100
+        at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+> Task :web-api:test FAILED
+
+13 tests completed, 4 failed
+Finished generating test XML results (0.014 secs) into: D:\Claude Code\projects\cat-n15\web-api\build\test-results\test
+Generating HTML test report...
