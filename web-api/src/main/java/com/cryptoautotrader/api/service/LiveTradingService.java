@@ -2640,22 +2640,28 @@ public class LiveTradingService {
         try {
             List<Map<String, Object>> tickers = upbitRestClient.getTicker(markets);
             for (Map<String, Object> ticker : tickers) {
-                String market = (String) ticker.get("market");
+                Object marketObj = ticker.get("market");
                 Object tradePriceObj = ticker.get("trade_price");
-                if (market == null || tradePriceObj == null) continue;
+                if (marketObj == null || tradePriceObj == null) continue;
+                // 🔴 N19 보완 (총괄 v1.123): market 이 문자열이 아니면 이 항목만 건너뛴다(예전에는 형변환 예외로 배치 catch → 뒤 코인 발행 0).
+                // 건너뜀 WARN 에는 고정 사유·부호만 싣는다 — REST 응답의 market 원문·가격·예외 문구는 출력하지 않는다.
+                if (!(marketObj instanceof String market)) {
+                    log.warn("[§9] REST 폴백 시세 항목 건너뜀 — 코인 형식이 문자열이 아님");
+                    continue;
+                }
                 // 🔴 N19 (2026-11-05): 항목별 입력 방어 — 숫자 변환 실패는 이 항목의 입력 오류로만 건너뛴다. 예전에는 배치 전체의
                 // catch 로 넘어가 뒤의 다른 정상 코인 발행까지 막았다. 발행기 등 내부 예외는 여기서 잡지 않는다(아래 기존 catch).
                 BigDecimal tradePrice;
                 try {
                     tradePrice = new BigDecimal(tradePriceObj.toString());
                 } catch (NumberFormatException e) {
-                    log.warn("[§9] REST 폴백 시세 항목 건너뜀 — 가격 형식이 숫자가 아님 (market={})", market);
+                    log.warn("[§9] REST 폴백 시세 항목 건너뜀 — 가격 형식이 숫자가 아님");
                     continue;
                 }
                 // 🔴 N19: 가격(양수)만 발행한다 — 시세 장부·처리기(N16)·강제 갱신(N17)과 같은 정의. 원문 값은 싣지 않는다.
                 if (!MarkPriceBook.isPrice(tradePrice)) {
-                    log.warn("[§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (market={}, 부호={})",
-                            market, tradePrice.signum() == 0 ? "0" : "음수");
+                    log.warn("[§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호={})",
+                            tradePrice.signum() == 0 ? "0" : "음수");
                     continue;
                 }
                 eventPublisher.publishEvent(new RealtimePriceEvent(market, tradePrice, restTradeTime(ticker),
