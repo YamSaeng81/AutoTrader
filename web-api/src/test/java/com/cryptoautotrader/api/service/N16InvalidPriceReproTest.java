@@ -65,6 +65,9 @@ class N16InvalidPriceReproTest extends IntegrationTestBase {
     @Autowired private PositionCleanupRepository cleanupRepository;
     @Autowired private MarkPriceBook markPriceBook;
     @Autowired private HeldMarkRefresher heldMarkRefresher;
+    @Autowired private PoolLossGuard poolLossGuard;
+    @Autowired private org.springframework.context.ApplicationEventPublisher eventPublisher;
+    @Autowired private PositionLimitGuard positionLimitGuard;
     @Autowired @Qualifier("orderExecutor") private ThreadPoolTaskExecutor orderExecutor;
     @Autowired @Qualifier("marketDataExecutor") private ThreadPoolTaskExecutor marketDataExecutor;
 
@@ -291,31 +294,138 @@ class N16InvalidPriceReproTest extends IntegrationTestBase {
     }
 
     /**
-     * ④ 미래 관측 시각 — 판단 자료(정책 미정, 새 허용 오차를 만들지 않는다). 현재 동작을 그대로 기록한다: 장부가 미래 시각 값을 받으면
-     * 그 뒤 정상 시각 값은 더 이르다는 이유로 버려지고, 미래 값은 나이가 음수라 계속 신선하다. 보유 시세 보강도 그 코인을 다시 조회하지
-     * 않는다(조회 대상 선정이 나이로만 본다).
+     * ④ 미래 관측 시각 — 총괄 판정(4a4c225 검토): 장부가 정렬·최신성에 쓰는 시각은 {@code min(원래 관측 시각, 서버 수신 시각)}.
+     * 3385f70 까지는 이 자리의 시험({@code futureObservationFreezesBook})이 "미래 100 이 정상 90 을 막고 23시간 뒤에도 신선하다"는
+     * 현재 동작을 그대로 단언했다(그 원문은 근거 n16-invalid-price-fe01207 의 before/after XML). 새 계약은 그 결함을 고친 상태를 단언한다.
      */
     @Test
-    @DisplayName("④ (현재 동작 기록) 미래 시각 100 을 받은 뒤 정상 시각 90 은 버려지고, 100 이 하루 뒤에도 신선하며, 보유 시세 보강이 조회하지 않는다")
-    void futureObservationFreezesBook() {
+    @DisplayName("④a 체결 — 미래 100 뒤 정상 90 이 덮고, 장부 시각은 수신 시각이며 원래 관측 시각은 따로 남는다")
+    void futureTradeIsCappedAndRecovers() {
         Fx f = holding("LIVE");
         Instant now = Instant.now();
-        boolean first = markPriceBook.observe(f.coin(), new BigDecimal("100"), now.plus(1, ChronoUnit.DAYS), now, MarkPriceBook.WS_TRADE);
+        Instant future = now.plus(1, ChronoUnit.DAYS);
+        boolean first = markPriceBook.observe(f.coin(), new BigDecimal("100"), future, now, MarkPriceBook.WS_TRADE);
+        MarkPriceBook.Mark m1 = markPriceBook.get(f.coin());
         boolean second = markPriceBook.observe(f.coin(), new BigDecimal("90"), now.plusSeconds(1), now.plusSeconds(1), MarkPriceBook.WS_TRADE);
-        BigDecimal freshNow = markPriceBook.freshPrice(f.coin(), now.plusSeconds(2));
-        BigDecimal freshLater = markPriceBook.freshPrice(f.coin(), now.plus(23, ChronoUnit.HOURS));
-        Mockito.clearInvocations(upbitRestClient);
-        HeldMarkRefresher.Result r = heldMarkRefresher.refreshNow(now.plus(23, ChronoUnit.HOURS));
-        int tickerCalls = (int) Mockito.mockingDetails(upbitRestClient).getInvocations().stream()
-                .filter(i -> "getTicker".equals(i.getMethod().getName()) && String.valueOf(i.getArgument(0)).contains(f.coin())).count();
-        System.out.println("[N16 ④] 미래 100 기록 " + first + " · 정상 90 기록 " + second + " · 2초 뒤 신선한 가격 " + freshNow
-                + " · 23시간 뒤 신선한 가격 " + freshLater + " · 23시간 뒤 보강 대상 " + r.targets() + " · 시세 조회 " + tickerCalls + "회");
+        BigDecimal fresh = markPriceBook.freshPrice(f.coin(), now.plusSeconds(2));
+        System.out.println("[N16 ④a] 미래 100 기록 " + first + " · 장부 시각 " + m1.at() + " (수신 " + now + ", 원래 관측 "
+                + observedAtOf(m1) + ") · 정상 90 기록 " + second + " · 2초 뒤 신선한 가격 " + fresh);
         assertThat(first).isTrue();
-        assertThat(second).as("현재: 정상 시각 값이 버려진다").isFalse();
-        assertThat(freshNow).isEqualByComparingTo("100");
-        assertThat(freshLater).as("현재: 미래 값은 23시간 뒤에도 신선").isEqualByComparingTo("100");
-        assertThat(r.targets()).as("현재: 보강 대상에서 빠진다").doesNotContain(f.coin());
-        assertThat(tickerCalls).isZero();
+        assertThat(m1.at()).as("장부 시각 = min(관측, 수신)").isEqualTo(now);
+        assertThat(observedAtOf(m1)).as("원래 관측 시각은 바꾸지 않고 따로 둔다").isEqualTo(future);
+        assertThat(m1.receivedAt()).isEqualTo(now);
+        assertThat(second).as("정상 후속 관측이 덮는다").isTrue();
+        assertThat(fresh).isEqualByComparingTo("90");
+    }
+
+    /** 원래 관측 시각 — 수정 전 기록에는 이 필드가 없으므로 반사로 읽는다(없으면 null). */
+    private static Object observedAtOf(MarkPriceBook.Mark m) {
+        try {
+            return MarkPriceBook.Mark.class.getMethod("observedAt").invoke(m);
+        } catch (ReflectiveOperationException e) {
+            return null;
+        }
+    }
+
+    @Test
+    @DisplayName("④b 체결 — 미래 값 뒤 후속 관측이 없으면 기존 120초 기준으로 낡고(120.999초 허용·121초 거절), 23시간 뒤 풀·포지션 평가는 낡음, 보강이 다시 조회한다")
+    void futureTradeExpiresWithoutFollowUp() {
+        Fx f = holding("LIVE");
+        Instant now = Instant.now();
+        markPriceBook.observe(f.coin(), new BigDecimal("100"), now.plus(1, ChronoUnit.DAYS), now, MarkPriceBook.WS_TRADE);
+        BigDecimal at120999 = markPriceBook.freshPrice(f.coin(), now.plusMillis(120_999));
+        BigDecimal at121 = markPriceBook.freshPrice(f.coin(), now.plusSeconds(121));
+        Instant later = now.plus(23, ChronoUnit.HOURS);
+        BigDecimal at23h = markPriceBook.freshPrice(f.coin(), later);
+        PoolLossGuard.PriceMark pm = poolLossGuard.markFor(f.coin(), SIZE, new BigDecimal("300"), null);
+        String unjudged = positionLimitGuard.unjudgedCode(0, new BigDecimal("2940"), pm, later);
+        Mockito.clearInvocations(upbitRestClient);
+        HeldMarkRefresher.Result r = heldMarkRefresher.refreshNow(later);
+        int tickerCalls = (int) Mockito.mockingDetails(upbitRestClient).getInvocations().stream()
+                .filter(i -> "getTicker".equals(i.getMethod().getName()) && String.valueOf((Object) i.getArgument(0)).contains(f.coin())).count();
+        System.out.println("[N16 ④b] 120.999초 " + at120999 + " · 121초 " + at121 + " · 23시간 " + at23h + " · 풀 평가 시각 " + pm.at()
+                + " · 포지션 판정 " + unjudged + " · 23시간 뒤 보강 대상 " + r.targets() + " · 시세 조회 " + tickerCalls + "회");
+        assertThat(at120999).isEqualByComparingTo("100");
+        assertThat(at121).isNull();
+        assertThat(at23h).isNull();
+        assertThat(pm.at()).as("풀 평가가 보는 시각도 보정 시각").isEqualTo(now);
+        assertThat(unjudged).isEqualTo(PositionLimitGuard.MARK_STALE);
+        assertThat(r.targets()).contains(f.coin());
+        assertThat(tickerCalls).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("④c 체결 — 과거 관측은 수신 시각으로 올리지 않는다(낡은 체결가 재수신은 낡은 채), 더 이른 정상 관측의 역순 보호와 같은 유효 시각의 기존 동작은 그대로")
+    void pastAndOrderingUnchanged() {
+        Fx f = holding("LIVE");
+        Instant now = Instant.now();
+        boolean old = markPriceBook.observe(f.coin(), new BigDecimal("100"), now.minusSeconds(600), now, MarkPriceBook.REST_TRADE);
+        BigDecimal oldFresh = markPriceBook.freshPrice(f.coin(), now);
+        Instant oldAt = markPriceBook.get(f.coin()).at();
+        boolean normal = markPriceBook.observe(f.coin(), new BigDecimal("280"), now, now, MarkPriceBook.WS_TRADE);
+        boolean earlier = markPriceBook.observe(f.coin(), new BigDecimal("1"), now.minusSeconds(5), now.plusSeconds(1), MarkPriceBook.REST_TRADE);
+        boolean same = markPriceBook.observe(f.coin(), new BigDecimal("281"), now, now.plusSeconds(2), MarkPriceBook.WS_TRADE);
+        BigDecimal current = markPriceBook.freshPrice(f.coin(), now.plusSeconds(3));
+        System.out.println("[N16 ④c] 10분 전 체결 기록 " + old + " · 장부 시각 " + oldAt + " · 신선 " + oldFresh + " · 정상 280 " + normal
+                + " · 더 이른 1 " + earlier + " · 같은 유효 시각 281 " + same + " · 현재 " + current);
+        assertThat(old).isTrue();
+        assertThat(oldAt).isEqualTo(now.minusSeconds(600));
+        assertThat(oldFresh).isNull();
+        assertThat(normal).isTrue();
+        assertThat(earlier).isFalse();
+        assertThat(same).as("같은 유효 시각이면 기존처럼 나중 값").isTrue();
+        assertThat(current).isEqualByComparingTo("281");
+    }
+
+    @Test
+    @DisplayName("④d 호가 — 미래 호가 시각도 수신 시각으로 제한되어 후속 없으면 120초 기준으로 낡고, 정상 호가가 덮는다")
+    void futureBookIsCappedAndRecovers() {
+        Fx f = holding("LIVE");
+        Instant now = Instant.now();
+        List<BigDecimal[]> bidsA = new ArrayList<>();
+        bidsA.add(new BigDecimal[]{new BigDecimal("100"), new BigDecimal("100")});
+        List<BigDecimal[]> bidsB = new ArrayList<>();
+        bidsB.add(new BigDecimal[]{new BigDecimal("90"), new BigDecimal("100")});
+        boolean first = markPriceBook.observeBook(f.coin(), bidsA, now.plus(1, ChronoUnit.DAYS), now);
+        Instant bookAt = markPriceBook.get(f.coin()).at();
+        BigDecimal expired = markPriceBook.freshPriceFor(f.coin(), now.plusSeconds(121), SIZE);
+        boolean second = markPriceBook.observeBook(f.coin(), bidsB, now.plusSeconds(1), now.plusSeconds(1));
+        BigDecimal fresh = markPriceBook.freshPriceFor(f.coin(), now.plusSeconds(2), SIZE);
+        System.out.println("[N16 ④d] 미래 호가 기록 " + first + " · 장부 시각 " + bookAt + " · 121초 뒤 " + expired
+                + " · 정상 호가 기록 " + second + " · 2초 뒤 " + fresh);
+        assertThat(first).isTrue();
+        assertThat(bookAt).isEqualTo(now);
+        assertThat(expired).isNull();
+        assertThat(second).isTrue();
+        assertThat(fresh).isEqualByComparingTo("90");
+    }
+
+    @Test
+    @DisplayName("④e 생산 이벤트 경로 — 미래 관측 시각 이벤트(가격 정상)는 장부에 서버 수신 시각으로 적히고, 수신 시각 없는 직접 기록은 한 번 읽은 서버 시각으로 제한된다")
+    void eventPathAndMissingReceivedAt() {
+        Fx f = holding("LIVE");
+        Instant before = Instant.now();
+        // 운영 발행 지점처럼 애플리케이션 이벤트로 낸다 — 장부(onPrice)·LIVE·DYNAMIC 처리기가 모두 받는다
+        eventPublisher.publishEvent(new RealtimePriceEvent(f.coin(), new BigDecimal("290"), before.plus(1, ChronoUnit.DAYS),
+                RealtimePriceEvent.WS_TRADE));
+        drain(marketDataExecutor);
+        drain(orderExecutor);
+        Instant after = Instant.now();
+        MarkPriceBook.Mark m = markPriceBook.get(f.coin());
+        Fx g = holding("LIVE");
+        Instant before2 = Instant.now();
+        boolean direct = markPriceBook.observe(g.coin(), new BigDecimal("100"), before2.plus(1, ChronoUnit.DAYS), null, MarkPriceBook.REST_TRADE);
+        Instant after2 = Instant.now();
+        MarkPriceBook.Mark n = markPriceBook.get(g.coin());
+        System.out.println("[N16 ④e] 이벤트 장부 " + (m == null ? null : m.price() + "@" + m.at() + " 수신 " + m.receivedAt())
+                + " · 매도 " + exchangeSells(f) + " · 수신 없는 기록 " + direct + " " + (n == null ? null : n.at() + " 수신 " + n.receivedAt()));
+        assertThat(m).isNotNull();
+        assertThat(m.at()).isBetween(before, after);
+        assertThat(m.at()).isEqualTo(m.receivedAt());
+        assertThat(exchangeSells(f)).isZero();
+        assertThat(direct).isTrue();
+        assertThat(n.at()).isBetween(before2, after2);
+        assertThat(n.receivedAt()).isEqualTo(n.at());
     }
 
     /** ⑤ 관측 시각 EPOCH·null — 기존 계약대로 장부는 앞선 신선한 값을 지키고, 처리기는 EPOCH 를 낡은 값으로 버린다(N02 정의). */
