@@ -1,0 +1,33 @@
+✅ M=~/maint-n17·TB=87
+✅ OLD 1103f48·NEW 7a94472
+✅ IMGOLD=#23 9818254c
+✅ IMGPREV4=#22 9cb5d84f
+✅ DIFFN = git diff 1103f48 7a94472 (4)
+✅ RARX = 실제 jar 출력 6줄
+✅ 끝 줄 881 881
+✅ T1 검사식 문구
+✅ 음성: #23 jar 출력은 T1 에서 멈춘다
+Traceback (most recent call last):
+  File "<stdin>", line 16, in <module>
+UnicodeEncodeError: 'cp949' codec can't encode character '\u2014' in position 40: illegal multibyte sequence
+❌ n17obs 실제 로그
+Traceback (most recent call last):
+  File "<stdin>", line 16, in <module>
+UnicodeEncodeError: 'cp949' codec can't encode character '\u2014' in position 40: illegal multibyte sequence
+❌ n17obs UTF-8
+Traceback (most recent call last):
+  File "<stdin>", line 16, in <module>
+UnicodeEncodeError: 'cp949' codec can't encode character '\u2014' in position 40: illegal multibyte sequence
+❌ n17obs 0건
+Traceback (most recent call last):
+  File "<stdin>", line 3, in <module>
+UnicodeEncodeError: 'cp949' codec can't encode character '\u26aa' in position 0: illegal multibyte sequence
+❌ n17obs 인자
+✅ 블록 2: TB 없음 → 첫 줄에서 멈춤(바꾼 것 없음)
+✅ 블록 3: TB 없음 → 첫 줄에서 멈춤(바꾼 것 없음)
+✅ 블록 4: TB 없음 → 첫 줄에서 멈춤(바꾼 것 없음)
+✅ 블록 5: TB 없음 → 첫 줄에서 멈춤(바꾼 것 없음)
+✅ 블록 6: TB 없음 → 첫 줄에서 멈춤(바꾼 것 없음)
+✅ 블록 7: TB 없음 → 첫 줄에서 멈춤(바꾼 것 없음)
+✅ T0: M=~/maint-n15n16 이면 첫 줄에서 멈춤
+합계 통과 16 · 실패 4

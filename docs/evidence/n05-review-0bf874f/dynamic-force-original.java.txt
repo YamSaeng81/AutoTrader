@@ -1,0 +1,22 @@
+ForceRefreshResult forceRefreshPrice(String coinPair) {
+        if (upbitRestClient == null) return ForceRefreshResult.failed();
+        try {
+            List<Map<String, Object>> tickers = upbitRestClient.getTicker(coinPair);
+            ForceRefreshResult result = ForceRefreshResult.failed();
+            for (Map<String, Object> ticker : tickers) {
+                String market = (String) ticker.get("market");
+                Object tradePriceObj = ticker.get("trade_price");
+                if (market == null || tradePriceObj == null) continue;
+                BigDecimal tradePrice = new BigDecimal(tradePriceObj.toString());
+                Instant observedAt = restTradeTime(ticker);
+                eventPublisher.publishEvent(new RealtimePriceEvent(market, tradePrice, observedAt,
+                        RealtimePriceEvent.REST_TRADE));
+                boolean stale = markPriceBook != null && markPriceBook.isStale(observedAt, Instant.now());
+                result = new ForceRefreshResult(stale ? ForceRefreshResult.Outcome.STALE : ForceRefreshResult.Outcome.PUBLISHED, observedAt);
+            }
+            return result;
+        } catch (Exception e) {
+            log.error("[Dynamic][§9] SL 미점검 세션 강제 복구 실패 (coin={}): {}", coinPair, e.getMessage());
+            return ForceRefreshResult.failed();
+        }
+    }

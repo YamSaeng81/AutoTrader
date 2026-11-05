@@ -1,0 +1,55 @@
+{
+  "submitted_ref": "0bf874f3d0851440baffe5651f425b13e712e68d",
+  "operating_source": "1103f48505a1457029f6555547a87aa986535738",
+  "submitted_manifest": 1,
+  "previous_review_manifest": 7,
+  "preserved_XML_not_rerun": {
+    "classes": 25,
+    "tests_failures_errors_skipped": [
+      173,
+      0,
+      0,
+      0
+    ]
+  },
+  "source_checks": {
+    "K1_expiry_before_callback": true,
+    "LIVE_invalid_before_throttle_record": true,
+    "LIVE_only_one_expiry_setter": true,
+    "LIVE_K9_no_price_validation": true,
+    "DYNAMIC_invalid_before_throttle_record": true,
+    "DYNAMIC_only_one_expiry_setter": true,
+    "DYNAMIC_K9_no_price_validation": true,
+    "K3_stop_approval_before_final_expiry": true,
+    "K5_same_transaction_refund": true,
+    "K10_trade_and_book_clamped": true
+  },
+  "source_hashes": {
+    "LiveTradingService": "debf0e6a5faf90b39950d7e4452edfb70949cf6c6e777fabed6a758b50071058",
+    "DynamicTradingService": "1f05380d1f4150c94862be9719e73fe99ef661cbc7c4bab1117cc61022f59b64",
+    "MarkPriceBook": "c7f6cd410f3d473520314427478372d9420d95d8f3da9f2c62f5705663b95cde",
+    "ForceRefreshResult": "6ba6e981a9fba148097f7fad3c7c4c7e1357f48d58f957c6f1ec97310141e043",
+    "RealtimePriceEvent": "37abc667bcf49d7cd12a7aad9ecee7548c93616cd58551fb86f40df5142a063f",
+    "EntryPriorityRounds": "4728d84f3934b4c810fa162549ac4a4d1b15c228a8c58aba5512c361f9c3226a",
+    "CapitalReservationService": "c9bc02e8d1513a0b88ad2af46c6dd2f562bc9bdb37f1e13cc9b7054af336f66b",
+    "OrderExecutionEngine": "c73f07789766b290cef9bc3b509415601d32b30199d1c3dfc1eda2769a1dfbb5",
+    "PoolLossGuard": "3b1be41bc4f363a979c49e7c6f47e4485a2330cbd6caf0c1630131ed8f2ba750"
+  },
+  "force_method_hashes": {
+    "LIVE": "56c34381cb44249e7fb685a845f2692642edd4187abcefb7ce5aefcddef12b9b",
+    "DYNAMIC": "9ad860801fa6e9624067cff7ad184396bc9036eaa82d936782ca95b035c99e78"
+  },
+  "local_reproduction": {
+    "compile_exit": 0,
+    "run_exit": 0,
+    "force_input_cases": 12,
+    "dynamic_cause_control": 1,
+    "age_boundary_control": 1,
+    "original_methods_unchanged": true,
+    "dependencies_stubbed": true,
+    "Spring_async_dispatch_consumers_sales_not_executed": true
+  },
+  "no_Gradle_build_app_tests_network_server_DB": true,
+  "N05_static_links_accepted_not_full_rehearsal": true,
+  "K9_followup": "N17 local reproduction and minimal candidate authorized; no deployment approval"
+}

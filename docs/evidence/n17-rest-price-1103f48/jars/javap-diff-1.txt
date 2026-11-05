@@ -1,0 +1,164 @@
+1,3c1,3
+< Classfile /D:/tmp/n17/jars/x/a/BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$1.class
+<   Last modified 2026. 11. 5.; size 1456 bytes
+<   SHA-256 checksum a02ffe1e73dc5b3123572bc1cf6e49912af78bc4fb66254b66e14e683f1ebc37
+---
+> Classfile /D:/tmp/n17/jars/x/b/BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$1.class
+>   Last modified 2026. 11. 5.; size 1510 bytes
+>   SHA-256 checksum 2aad36ea7008cc0b629972a3b05160332119ecb74f37dd1491eac379cce781dd
+10c10
+<   super_class: #45                        // java/lang/Object
+---
+>   super_class: #48                        // java/lang/Object
+41,77c41,80
+<   #29 = Methodref          #30.#31        // com/cryptoautotrader/strategy/StrategySignal$Action.values:()[Lcom/cryptoautotrader/strategy/StrategySignal$Action;
+<   #30 = Class              #32            // com/cryptoautotrader/strategy/StrategySignal$Action
+<   #31 = NameAndType        #5:#33         // values:()[Lcom/cryptoautotrader/strategy/StrategySignal$Action;
+<   #32 = Utf8               com/cryptoautotrader/strategy/StrategySignal$Action
+<   #33 = Utf8               ()[Lcom/cryptoautotrader/strategy/StrategySignal$Action;
+<   #34 = Fieldref           #8.#35         // com/cryptoautotrader/api/service/LiveTradingService$1.$SwitchMap$com$cryptoautotrader$strategy$StrategySignal$Action:[I
+<   #35 = NameAndType        #36:#12        // $SwitchMap$com$cryptoautotrader$strategy$StrategySignal$Action:[I
+<   #36 = Utf8               $SwitchMap$com$cryptoautotrader$strategy$StrategySignal$Action
+<   #37 = Fieldref           #30.#38        // com/cryptoautotrader/strategy/StrategySignal$Action.BUY:Lcom/cryptoautotrader/strategy/StrategySignal$Action;
+<   #38 = NameAndType        #39:#40        // BUY:Lcom/cryptoautotrader/strategy/StrategySignal$Action;
+<   #39 = Utf8               BUY
+<   #40 = Utf8               Lcom/cryptoautotrader/strategy/StrategySignal$Action;
+<   #41 = Methodref          #30.#18        // com/cryptoautotrader/strategy/StrategySignal$Action.ordinal:()I
+<   #42 = Fieldref           #30.#43        // com/cryptoautotrader/strategy/StrategySignal$Action.SELL:Lcom/cryptoautotrader/strategy/StrategySignal$Action;
+<   #43 = NameAndType        #44:#40        // SELL:Lcom/cryptoautotrader/strategy/StrategySignal$Action;
+<   #44 = Utf8               SELL
+<   #45 = Class              #46            // java/lang/Object
+<   #46 = Utf8               java/lang/Object
+<   #47 = Utf8               <clinit>
+<   #48 = Utf8               ()V
+<   #49 = Utf8               Code
+<   #50 = Utf8               LineNumberTable
+<   #51 = Utf8               LocalVariableTable
+<   #52 = Utf8               StackMapTable
+<   #53 = Utf8               SourceFile
+<   #54 = Utf8               LiveTradingService.java
+<   #55 = Utf8               EnclosingMethod
+<   #56 = Class              #57            // com/cryptoautotrader/api/service/LiveTradingService
+<   #57 = Utf8               com/cryptoautotrader/api/service/LiveTradingService
+<   #58 = Utf8               NestHost
+<   #59 = Utf8               InnerClasses
+<   #60 = Class              #61            // com/cryptoautotrader/api/service/ForceRefreshResult
+<   #61 = Utf8               com/cryptoautotrader/api/service/ForceRefreshResult
+<   #62 = Utf8               Outcome
+<   #63 = Class              #64            // com/cryptoautotrader/strategy/StrategySignal
+<   #64 = Utf8               com/cryptoautotrader/strategy/StrategySignal
+<   #65 = Utf8               Action
+---
+>   #29 = Fieldref           #2.#30         // com/cryptoautotrader/api/service/ForceRefreshResult$Outcome.INVALID_PRICE:Lcom/cryptoautotrader/api/service/ForceRefreshResult$Outcome;
+>   #30 = NameAndType        #31:#16        // INVALID_PRICE:Lcom/cryptoautotrader/api/service/ForceRefreshResult$Outcome;
+>   #31 = Utf8               INVALID_PRICE
+>   #32 = Methodref          #33.#34        // com/cryptoautotrader/strategy/StrategySignal$Action.values:()[Lcom/cryptoautotrader/strategy/StrategySignal$Action;
+>   #33 = Class              #35            // com/cryptoautotrader/strategy/StrategySignal$Action
+>   #34 = NameAndType        #5:#36         // values:()[Lcom/cryptoautotrader/strategy/StrategySignal$Action;
+>   #35 = Utf8               com/cryptoautotrader/strategy/StrategySignal$Action
+>   #36 = Utf8               ()[Lcom/cryptoautotrader/strategy/StrategySignal$Action;
+>   #37 = Fieldref           #8.#38         // com/cryptoautotrader/api/service/LiveTradingService$1.$SwitchMap$com$cryptoautotrader$strategy$StrategySignal$Action:[I
+>   #38 = NameAndType        #39:#12        // $SwitchMap$com$cryptoautotrader$strategy$StrategySignal$Action:[I
+>   #39 = Utf8               $SwitchMap$com$cryptoautotrader$strategy$StrategySignal$Action
+>   #40 = Fieldref           #33.#41        // com/cryptoautotrader/strategy/StrategySignal$Action.BUY:Lcom/cryptoautotrader/strategy/StrategySignal$Action;
+>   #41 = NameAndType        #42:#43        // BUY:Lcom/cryptoautotrader/strategy/StrategySignal$Action;
+>   #42 = Utf8               BUY
+>   #43 = Utf8               Lcom/cryptoautotrader/strategy/StrategySignal$Action;
+>   #44 = Methodref          #33.#18        // com/cryptoautotrader/strategy/StrategySignal$Action.ordinal:()I
+>   #45 = Fieldref           #33.#46        // com/cryptoautotrader/strategy/StrategySignal$Action.SELL:Lcom/cryptoautotrader/strategy/StrategySignal$Action;
+>   #46 = NameAndType        #47:#43        // SELL:Lcom/cryptoautotrader/strategy/StrategySignal$Action;
+>   #47 = Utf8               SELL
+>   #48 = Class              #49            // java/lang/Object
+>   #49 = Utf8               java/lang/Object
+>   #50 = Utf8               <clinit>
+>   #51 = Utf8               ()V
+>   #52 = Utf8               Code
+>   #53 = Utf8               LineNumberTable
+>   #54 = Utf8               LocalVariableTable
+>   #55 = Utf8               StackMapTable
+>   #56 = Utf8               SourceFile
+>   #57 = Utf8               LiveTradingService.java
+>   #58 = Utf8               EnclosingMethod
+>   #59 = Class              #60            // com/cryptoautotrader/api/service/LiveTradingService
+>   #60 = Utf8               com/cryptoautotrader/api/service/LiveTradingService
+>   #61 = Utf8               NestHost
+>   #62 = Utf8               InnerClasses
+>   #63 = Class              #64            // com/cryptoautotrader/api/service/ForceRefreshResult
+>   #64 = Utf8               com/cryptoautotrader/api/service/ForceRefreshResult
+>   #65 = Utf8               Outcome
+>   #66 = Class              #67            // com/cryptoautotrader/strategy/StrategySignal
+>   #67 = Utf8               com/cryptoautotrader/strategy/StrategySignal
+>   #68 = Utf8               Action
+117,131c120,134
+<         54: invokestatic  #29                 // Method com/cryptoautotrader/strategy/StrategySignal$Action.values:()[Lcom/cryptoautotrader/strategy/StrategySignal$Action;
+<         57: arraylength
+<         58: newarray       int
+<         60: putstatic     #34                 // Field $SwitchMap$com$cryptoautotrader$strategy$StrategySignal$Action:[I
+<         63: getstatic     #34                 // Field $SwitchMap$com$cryptoautotrader$strategy$StrategySignal$Action:[I
+<         66: getstatic     #37                 // Field com/cryptoautotrader/strategy/StrategySignal$Action.BUY:Lcom/cryptoautotrader/strategy/StrategySignal$Action;
+<         69: invokevirtual #41                 // Method com/cryptoautotrader/strategy/StrategySignal$Action.ordinal:()I
+<         72: iconst_1
+<         73: iastore
+<         74: goto          78
+<         77: astore_0
+<         78: getstatic     #34                 // Field $SwitchMap$com$cryptoautotrader$strategy$StrategySignal$Action:[I
+<         81: getstatic     #42                 // Field com/cryptoautotrader/strategy/StrategySignal$Action.SELL:Lcom/cryptoautotrader/strategy/StrategySignal$Action;
+<         84: invokevirtual #41                 // Method com/cryptoautotrader/strategy/StrategySignal$Action.ordinal:()I
+<         87: iconst_2
+---
+>         54: getstatic     #7                  // Field $SwitchMap$com$cryptoautotrader$api$service$ForceRefreshResult$Outcome:[I
+>         57: getstatic     #29                 // Field com/cryptoautotrader/api/service/ForceRefreshResult$Outcome.INVALID_PRICE:Lcom/cryptoautotrader/api/service/ForceRefreshResult$Outcome;
+>         60: invokevirtual #17                 // Method com/cryptoautotrader/api/service/ForceRefreshResult$Outcome.ordinal:()I
+>         63: iconst_4
+>         64: iastore
+>         65: goto          69
+>         68: astore_0
+>         69: invokestatic  #32                 // Method com/cryptoautotrader/strategy/StrategySignal$Action.values:()[Lcom/cryptoautotrader/strategy/StrategySignal$Action;
+>         72: arraylength
+>         73: newarray       int
+>         75: putstatic     #37                 // Field $SwitchMap$com$cryptoautotrader$strategy$StrategySignal$Action:[I
+>         78: getstatic     #37                 // Field $SwitchMap$com$cryptoautotrader$strategy$StrategySignal$Action:[I
+>         81: getstatic     #40                 // Field com/cryptoautotrader/strategy/StrategySignal$Action.BUY:Lcom/cryptoautotrader/strategy/StrategySignal$Action;
+>         84: invokevirtual #44                 // Method com/cryptoautotrader/strategy/StrategySignal$Action.ordinal:()I
+>         87: iconst_1
+135c138,145
+<         93: return
+---
+>         93: getstatic     #37                 // Field $SwitchMap$com$cryptoautotrader$strategy$StrategySignal$Action:[I
+>         96: getstatic     #45                 // Field com/cryptoautotrader/strategy/StrategySignal$Action.SELL:Lcom/cryptoautotrader/strategy/StrategySignal$Action;
+>         99: invokevirtual #44                 // Method com/cryptoautotrader/strategy/StrategySignal$Action.ordinal:()I
+>        102: iconst_2
+>        103: iastore
+>        104: goto          108
+>        107: astore_0
+>        108: return
+141c151
+<             63    74    77   Class java/lang/NoSuchFieldError
+---
+>             54    65    68   Class java/lang/NoSuchFieldError
+142a153
+>             93   104   107   Class java/lang/NoSuchFieldError
+145c156
+<         line 1351: 54
+---
+>         line 1351: 69
+148c159
+<       StackMapTable: number_of_entries = 10
+---
+>       StackMapTable: number_of_entries = 12
+157a169,171
+>         frame_type = 77 /* same_locals_1_stack_item */
+>           stack = [ class java/lang/NoSuchFieldError ]
+>         frame_type = 0 /* same */
+166c180
+< EnclosingMethod: #56.#0                 // com.cryptoautotrader.api.service.LiveTradingService
+---
+> EnclosingMethod: #59.#0                 // com.cryptoautotrader.api.service.LiveTradingService
+169c183
+<   public static final #62= #2 of #60;     // Outcome=class com/cryptoautotrader/api/service/ForceRefreshResult$Outcome of class com/cryptoautotrader/api/service/ForceRefreshResult
+---
+>   public static final #65= #2 of #63;     // Outcome=class com/cryptoautotrader/api/service/ForceRefreshResult$Outcome of class com/cryptoautotrader/api/service/ForceRefreshResult
+171c185
+<   public static final #65= #30 of #63;    // Action=class com/cryptoautotrader/strategy/StrategySignal$Action of class com/cryptoautotrader/strategy/StrategySignal
+---
+>   public static final #68= #33 of #66;    // Action=class com/cryptoautotrader/strategy/StrategySignal$Action of class com/cryptoautotrader/strategy/StrategySignal
