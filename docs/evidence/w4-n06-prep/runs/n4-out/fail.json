@@ -1,0 +1,240 @@
+{
+ "source": "1aaea01d2c53a5f77e4017f5f53dc1e844c482bb",
+ "expected_file": "expected-v1.132.json",
+ "checks": [
+  {
+   "name": "출처 커밋이 저장소에 있다",
+   "ok": true,
+   "detail": "1aaea01d2c53a5f77e4017f5f53dc1e844c482bb"
+  },
+  {
+   "name": "계획 bash 블록 수 = 149",
+   "ok": true,
+   "detail": "149"
+  },
+  {
+   "name": "F 블록 F 변수(색인 12) = 승인 해시 eeab6c10…",
+   "ok": false,
+   "detail": "0975f7c0b42d8ebe"
+  },
+  {
+   "name": "F 블록 F1 첫 블록(색인 13) = 승인 해시 0ba30fa6…",
+   "ok": false,
+   "detail": "1b148ef959db38bb"
+  },
+  {
+   "name": "F 블록 F1 운영자 확인(색인 14) = 승인 해시 b105a495…",
+   "ok": true,
+   "detail": "b105a4951ce71895"
+  },
+  {
+   "name": "F 블록 F2 요청(색인 15) = 승인 해시 6df86890…",
+   "ok": true,
+   "detail": "6df86890ce9b438b"
+  },
+  {
+   "name": "F 블록 F2 확인(색인 16) = 승인 해시 2fc0a9cd…",
+   "ok": true,
+   "detail": "2fc0a9cd0e4e0d7c"
+  },
+  {
+   "name": "F 블록 F2-1(색인 17) = 승인 해시 8036c6ff…",
+   "ok": true,
+   "detail": "8036c6ffce422e79"
+  },
+  {
+   "name": "F 블록 F3(색인 18) = 승인 해시 bb86fb39…",
+   "ok": true,
+   "detail": "bb86fb397da00523"
+  },
+  {
+   "name": "F 블록 F3-2(색인 19) = 승인 해시 5d5b32ec…",
+   "ok": true,
+   "detail": "5d5b32ecd0383036"
+  },
+  {
+   "name": "F 블록 F5 변수(색인 20) = 승인 해시 fa7469b9…",
+   "ok": true,
+   "detail": "fa7469b973e8c1f5"
+  },
+  {
+   "name": "F 블록 F5-1(색인 21) = 승인 해시 c9d8fbf3…",
+   "ok": true,
+   "detail": "c9d8fbf367594fac"
+  },
+  {
+   "name": "F 블록 F5-2(색인 22) = 승인 해시 d74e1f2f…",
+   "ok": true,
+   "detail": "d74e1f2f90e03af0"
+  },
+  {
+   "name": "F 블록 F5-3(색인 23) = 승인 해시 9de0f09d…",
+   "ok": true,
+   "detail": "9de0f09db93740a0"
+  },
+  {
+   "name": "F 블록 F5-4(색인 24) = 승인 해시 3c72b275…",
+   "ok": true,
+   "detail": "3c72b27535791315"
+  },
+  {
+   "name": "F 블록 F6 사유(색인 25) = 승인 해시 3c0ddddd…",
+   "ok": true,
+   "detail": "3c0ddddda6675ea5"
+  },
+  {
+   "name": "F 블록 F6 요청(색인 26) = 승인 해시 5cba2c8f…",
+   "ok": true,
+   "detail": "5cba2c8fd093847f"
+  },
+  {
+   "name": "F 변수 NEW = 운영 HEAD",
+   "ok": false,
+   "detail": ""
+  },
+  {
+   "name": "F1 IMGF1 = 운영 이미지",
+   "ok": false,
+   "detail": ""
+  },
+  {
+   "name": "F1 이미지 기록 경로 = ~/maint-n20/image-new.txt",
+   "ok": false,
+   "detail": ""
+  },
+  {
+   "name": "F1 설치값 INSTALLED_SHA c669ccd",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "F1 설치값 daily_check.sh",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "F1 설치값 daily_checks.sql",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "F1 설치값 SID_LEDGER_SHA",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "F1 설치값 sid_ledger.sql",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "F2-1 원문 해시",
+   "ok": true,
+   "detail": "8036c6ffce422e79"
+  },
+  {
+   "name": "F5-3 원문 해시",
+   "ok": true,
+   "detail": "9de0f09db93740a0"
+  },
+  {
+   "name": "§3-1 cron 전환 추출 성공",
+   "ok": true,
+   "detail": "rc=0"
+  },
+  {
+   "name": "F3 추출 성공",
+   "ok": true,
+   "detail": "rc=0"
+  },
+  {
+   "name": "§3-1 = 승인 해시 d158e836…",
+   "ok": true,
+   "detail": "d158e8361761616a"
+  },
+  {
+   "name": "F3 ≠ 옛 리허설 F3 30b5e729…",
+   "ok": true,
+   "detail": "bb86fb397da00523"
+  },
+  {
+   "name": "F3 = 승인 해시 bb86fb39…",
+   "ok": true,
+   "detail": "bb86fb397da00523"
+  },
+  {
+   "name": "F3 추출본 = 계획 F3 블록(색인 18) 바이트",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "실행 사본 2개 — 첫 줄만 40자리로, 자리표시자 0",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "종료 cron 사본 2개 — 3행 FROM=RUNNING; TO=<최종 상태> 만",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "bash -n f21.orig.sh — 원문은 자리표시자 때문에 그대로 실행 불가",
+   "ok": true,
+   "detail": "rc=2"
+  },
+  {
+   "name": "bash -n f53.orig.sh — 원문은 자리표시자 때문에 그대로 실행 불가",
+   "ok": true,
+   "detail": "rc=2"
+  },
+  {
+   "name": "bash -n f21.exec.sh",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "bash -n f53.exec.sh",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "bash -n cron-switch.sh",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "bash -n f3-block.sh",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "bash -n cron-final.STOPPED.sh",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "bash -n cron-final.EMERGENCY_STOPPED.sh",
+   "ok": true,
+   "detail": ""
+  }
+ ],
+ "issued": false,
+ "note": "리허설·인계 준비물. 최종 S(11-30)·F1 통과·운영자 확인·운영 예약이 아니다",
+ "documents": {
+  "docs/LIMITED_LIVE_TEST_PLAN.md": {
+   "sha256": "5496c764955083573ff6247d0ffa5ef00dd58c722f520f64462e61fb10f2408a",
+   "bytes": 1431564
+  },
+  "docs/OPS_DAILY_CHECK.md": {
+   "sha256": "86d44138d39ba2fd022c82a926a9653601ceea35383d6a42194bb33efe5ded1e",
+   "bytes": 53099
+  }
+ },
+ "failed": [
+  "F 블록 F 변수(색인 12) = 승인 해시 eeab6c10…",
+  "F 블록 F1 첫 블록(색인 13) = 승인 해시 0ba30fa6…",
+  "F 변수 NEW = 운영 HEAD",
+  "F1 IMGF1 = 운영 이미지",
+  "F1 이미지 기록 경로 = ~/maint-n20/image-new.txt"
+ ]
+}

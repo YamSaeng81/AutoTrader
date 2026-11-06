@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\w4-n06-prep\n06_prepare.py", line 155, in <module>
+    main()
+    ~~~~^^
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\w4-n06-prep\n06_prepare.py", line 86, in main
+    chk('출처 커밋이 저장소에 있다', True, sha)
+    ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\w4-n06-prep\n06_prepare.py", line 79, in chk
+    print(('PASS ' if ok else 'FAIL ') + name + (' \u2014 ' + detail if detail else ''))
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'cp949' codec can't encode character '\u2014' in position 20: illegal multibyte sequence
+rc=1
