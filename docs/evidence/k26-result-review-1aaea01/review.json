@@ -1,0 +1,67 @@
+{
+  "review_ref": "1aaea01d2c53a5f77e4017f5f53dc1e844c482bb",
+  "manifests_worktree": {
+    "k26-result-1899b49": 107,
+    "k26-accept-de5a7e4": 11
+  },
+  "committed_blob_matches": {
+    "k26-result-1899b49": 102,
+    "k26-accept-de5a7e4": 11
+  },
+  "missing_in_result_commit": [
+    "out/final-state.txt",
+    "out/local-copy.sha256",
+    "out/operator-confirm.txt",
+    "out/server-list-sha.txt",
+    "out/u1-present.txt"
+  ],
+  "preserved_supplement": "preserved-out/; identical existing bytes, to be included with next actual result",
+  "server_copies": 77,
+  "server_only_hash_manifest_files": [
+    "app-after30.log",
+    "app-deploy.log",
+    "app-new.jar",
+    "app-news-20261106-1445.log",
+    "app-old.jar",
+    "backend-before.log",
+    "build.log"
+  ],
+  "server_only_jars": 2,
+  "fixed_execution_source": "de5a7e4d0d5d4f6ac6820c57ce5a5dce15e8642a",
+  "fixed_section": 98,
+  "UB": 98,
+  "execution_blocks": 10,
+  "production_changes": [
+    "web-api/src/main/java/com/cryptoautotrader/api/service/HeldMarkRefresher.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/N20HeldMarkItemIsolationTest.java"
+  ],
+  "operating_head": "1899b49f633f8aefdc66b15c42debdaba8b3852c",
+  "operating_image": "sha256:426a09a20afc9e16cff8b7a569d4e04f18ed47cefb9242f44e3b9ea9666153a1",
+  "created": "2026-11-06T04:36:36.916419403Z",
+  "started_at": "2026-11-06T04:36:38.159366843Z",
+  "image_record": "~/maint-n20/image-new.txt",
+  "server_jar_diff": [
+    "변경 BOOT-INF/classes/com/cryptoautotrader/api/service/HeldMarkRefresher$Book.class",
+    "변경 BOOT-INF/classes/com/cryptoautotrader/api/service/HeldMarkRefresher.class",
+    "(끝) 881 881"
+  ],
+  "N20_runtime_accepted": true,
+  "operator_reply": "developer-preserved note; root did not independently observe live user reply",
+  "P0_counts": "developer raw-log counts for 4 logs plus preserved holdobs outputs; raw logs remain server-only",
+  "Q_comparison": "Q3 through Q9 byte-equal; no assertion about all Q output or unprinted SID values",
+  "SID_install_ledger_checks": "fixed source assertions and successful stage completion; no root server reread",
+  "unsecured_old_container_interval_kst": "13:32 baseline capture through 13:36 recreation; do not claim full nominal 10:00-22:00 coverage",
+  "natural_N15_N16_N17_N19_N20": "unobserved; not induced; runtime code delivery verified independently of natural triggering",
+  "news_403": "2 fixed one-line HTTP403/FAILED pairs; existing unresolved condition, not recovery",
+  "APENFT_WARN": "developer report, existing UpbitRestClient outside two changed jar entries; full log stays server-only",
+  "N13_improvement": "zero lease/acquisition warnings within this short observed interval; no new speed ratio or final regular-cycle claim",
+  "F_pins": "update upon this acceptance; final S remains unfixed until 2026-11-30",
+  "phone_receipt": "unconfirmed",
+  "not_executed": [
+    "SSH/server/DB/Docker/network",
+    "deployment blocks/runner",
+    "product tests",
+    "Gradle",
+    "jar build"
+  ]
+}

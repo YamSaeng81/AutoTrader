@@ -1,0 +1,1585 @@
+{
+ "commit": "1aaea01d2c53a5f77e4017f5f53dc1e844c482bb",
+ "manifests": [
+  {
+   "dir": "docs/evidence/j19-result-f752ef4",
+   "entries": 27,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/j19-review-bce6362",
+   "entries": 3,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/k20-accept-b577f67",
+   "entries": 12,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/k20-fix-k1-newsobs",
+   "entries": 28,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/k20-prep-b1d7664",
+   "entries": 27,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/k20-result-b1d7664",
+   "entries": 58,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/k20-result-review-844fc63",
+   "entries": 7,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/k20-review-350efd1",
+   "entries": 14,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/k21-accept-95400d8",
+   "entries": 8,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/k21-fix-httpobs",
+   "entries": 34,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/k21-prep-6995c52",
+   "entries": 31,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/k21-result-6995c52",
+   "entries": 63,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/k21-result-review-4d8bd2f",
+   "entries": 8,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/k21-review-ea15998",
+   "entries": 20,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/k22-result-fe01207",
+   "entries": 71,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/k22-result-review-ed119aa",
+   "entries": 8,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/k23-accept-86c41e1",
+   "entries": 6,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/k23-final-1103f48",
+   "entries": 92,
+   "problems": [
+    {
+     "file": "isolation/after-1103f48/gradle.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "isolation/before-51dcee5/gradle.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "jars/build-1103f48.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "local-check/entryobs-cases/crlf.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "local-check/entryobs-cases/fail.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "local-check/entryobs-cases/n15.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "local-check/entryobs-cases/n16.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "local-check/entryobs-cases/none.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "tests/integ25-1103f48/gradle.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    }
+   ],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/k23-prep-51dcee5",
+   "entries": 117,
+   "problems": [
+    {
+     "file": "jars/build-51dcee5-rerun.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "jars/build-51dcee5.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "jars/build-fe01207.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "local-check/entryobs-cases/crlf.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "local-check/entryobs-cases/fail.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "local-check/entryobs-cases/n15.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "local-check/entryobs-cases/n16.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "local-check/entryobs-cases/none.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "tests/baseline-fe01207/run1/gradle.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "tests/baseline-fe01207/run2/gradle.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "tests/baseline-fe01207/run3/gradle.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "tests/fail-runs/integ-7classes.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "tests/fail-runs/integ-run1-25classes.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "tests/integ-dailysma20-alone/gradle.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "tests/integ-run2/gradle-integ-run2.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    }
+   ],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/k23-result-1103f48",
+   "entries": 88,
+   "problems": [
+    {
+     "file": "maint-n15n16/build.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    }
+   ],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/k23-result-review-28e2183",
+   "entries": 7,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/k23-review-6287c59",
+   "entries": 6,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/k24-result-7a94472",
+   "entries": 100,
+   "problems": [
+    {
+     "file": "maint-n17/build.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "out/local-copy.sha256",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "out/operator-confirm.txt",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "out/overnight-approval.txt",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "out/prev-report-1000.txt",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "out/server-list.txt",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "out/server-sha256.txt",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    }
+   ],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/k25-accept-342f461",
+   "entries": 11,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/k25-result-ee509cf",
+   "entries": 98,
+   "problems": [
+    {
+     "file": "out/local-copy.sha256",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "out/operator-confirm.txt",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "out/prev-report-1000.txt",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "out/server-list-sha.txt",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    }
+   ],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/k25-result-review-b7f90ce",
+   "entries": 9,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/k26-accept-de5a7e4",
+   "entries": 11,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/k26-result-1899b49",
+   "entries": 107,
+   "problems": [
+    {
+     "file": "out/final-state.txt",
+     "work": "ok",
+     "blob": "missing",
+     "ignored": true
+    },
+    {
+     "file": "out/local-copy.sha256",
+     "work": "ok",
+     "blob": "missing",
+     "ignored": true
+    },
+    {
+     "file": "out/operator-confirm.txt",
+     "work": "ok",
+     "blob": "missing",
+     "ignored": true
+    },
+    {
+     "file": "out/server-list-sha.txt",
+     "work": "ok",
+     "blob": "missing",
+     "ignored": true
+    },
+    {
+     "file": "out/u1-present.txt",
+     "work": "ok",
+     "blob": "missing",
+     "ignored": true
+    }
+   ],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/k26-result-review-1aaea01",
+   "entries": 13,
+   "problems": [
+    {
+     "file": ".gitattributes",
+     "work": "ok",
+     "blob": "missing",
+     "ignored": false
+    },
+    {
+     "file": "README.md",
+     "work": "ok",
+     "blob": "missing",
+     "ignored": false
+    },
+    {
+     "file": "check-documents.py",
+     "work": "ok",
+     "blob": "missing",
+     "ignored": false
+    },
+    {
+     "file": "check-history.txt",
+     "work": "ok",
+     "blob": "missing",
+     "ignored": false
+    },
+    {
+     "file": "doc-check.json",
+     "work": "ok",
+     "blob": "missing",
+     "ignored": false
+    },
+    {
+     "file": "n06-blocks.json",
+     "work": "ok",
+     "blob": "missing",
+     "ignored": false
+    },
+    {
+     "file": "preserved-out/final-state.txt",
+     "work": "ok",
+     "blob": "missing",
+     "ignored": false
+    },
+    {
+     "file": "preserved-out/local-copy.sha256",
+     "work": "ok",
+     "blob": "missing",
+     "ignored": false
+    },
+    {
+     "file": "preserved-out/operator-confirm.txt",
+     "work": "ok",
+     "blob": "missing",
+     "ignored": false
+    },
+    {
+     "file": "preserved-out/server-list-sha.txt",
+     "work": "ok",
+     "blob": "missing",
+     "ignored": false
+    },
+    {
+     "file": "preserved-out/u1-present.txt",
+     "work": "ok",
+     "blob": "missing",
+     "ignored": false
+    },
+    {
+     "file": "review.json",
+     "work": "ok",
+     "blob": "missing",
+     "ignored": false
+    },
+    {
+     "file": "review.py",
+     "work": "ok",
+     "blob": "missing",
+     "ignored": false
+    }
+   ],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/morning-1106",
+   "entries": 8,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n03-1103-1000",
+   "entries": 8,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n03-1104-1000",
+   "entries": 9,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n03-1104-2200",
+   "entries": 9,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n03-1105-2200",
+   "entries": 11,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n03-1106-1000",
+   "entries": 16,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n03-review-2000115",
+   "entries": 5,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n05-k23-links-1103f48",
+   "entries": 1,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n05-review-0bf874f",
+   "entries": 11,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n06-handover-list-draft",
+   "entries": 1,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n06-handover-list-night",
+   "entries": 2,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n06-rehearsal-cd71d6a",
+   "entries": 9,
+   "problems": [],
+   "unlisted": [
+    "README.md",
+    "manifest.json"
+   ]
+  },
+  {
+   "dir": "docs/evidence/n08-review-0de23ca",
+   "entries": 5,
+   "problems": [],
+   "unlisted": [
+    "README.md"
+   ]
+  },
+  {
+   "dir": "docs/evidence/n09-accept-8435935",
+   "entries": 42,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n09-first-report-8435935",
+   "entries": 7,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n09-fix-parser",
+   "entries": 3,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n09-install-8435935",
+   "entries": 3,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n09-review-333e968",
+   "entries": 30,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n10-accept-d491fd1",
+   "entries": 88,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n10-critical-fields-8435935",
+   "entries": 44,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n10-first-report-d491fd1",
+   "entries": 6,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n10-fix-empty-extra",
+   "entries": 89,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n10-fix-parser",
+   "entries": 48,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n10-install-d491fd1",
+   "entries": 3,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n10-review-dd41660",
+   "entries": 54,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n11-accept-b1d7664",
+   "entries": 10,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n11-fix-b1d7664",
+   "entries": 17,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n11-news-fetch-result",
+   "entries": 8,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n11-review-98bbeda",
+   "entries": 14,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n12-http-log-body",
+   "entries": 11,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n12-review-8e852f4",
+   "entries": 5,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n13-deploy-prep-fe01207",
+   "entries": 28,
+   "problems": [],
+   "unlisted": [
+    ".gitignore"
+   ]
+  },
+  {
+   "dir": "docs/evidence/n13-hikari-initial",
+   "entries": 7,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n13-next-scope",
+   "entries": 4,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n13-plan-6995c52",
+   "entries": 5,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n13-repro-6995c52",
+   "entries": 5,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n13-review-1aa77eb",
+   "entries": 6,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n13-sql-candidate-fe01207",
+   "entries": 53,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n14-log-coverage-c669ccd",
+   "entries": 20,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n15-entry-delay-fe01207",
+   "entries": 7,
+   "problems": [
+    {
+     "file": "run1-fail/gradle-run1-cp949.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    }
+   ],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n15-expiry-6f6a522",
+   "entries": 31,
+   "problems": [
+    {
+     "file": "after/gradle-after.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "before/gradle-before.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "fail-runs/run1-before-roundkey-within-class.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "fail-runs/run3/gradle-run3.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "fail-runs/run4/gradle-run4.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "fail-runs/run5-confirmed-state-assert.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    }
+   ],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n15-final-boundary-d6f7e18",
+   "entries": 31,
+   "problems": [
+    {
+     "file": "after-dailysma20-alone/gradle.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "after/gradle-after.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "before/gradle-before.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "fail-runs/after-run1-dailysma20-roundkey-collision.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "fail-runs/before-run1-combined-cases.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    }
+   ],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n15-n16-review-4445f36",
+   "entries": 13,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n15-n16-review-4a4c225",
+   "entries": 6,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n16-future-time-ac29ecf",
+   "entries": 23,
+   "problems": [
+    {
+     "file": "after/gradle-after.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "before/gradle-before.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "fail-runs/run1-event-path-design.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "fail-runs/run3-valueof-overload.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    }
+   ],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n16-invalid-price-fe01207",
+   "entries": 20,
+   "problems": [
+    {
+     "file": "after/gradle-after.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "before/gradle-before.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    }
+   ],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n17-rest-price-1103f48",
+   "entries": 48,
+   "problems": [
+    {
+     "file": "jars/build-7a94472.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "tests/r0-test-compile-error/gradle.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "tests/r1-failfirst-1103f48/gradle.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "tests/r2-fix-related/gradle.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    }
+   ],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n17-review-a1e38e7",
+   "entries": 12,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n18-f1-install-check",
+   "entries": 145,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n19-rest-fallback-7a94472",
+   "entries": 48,
+   "problems": [
+    {
+     "file": "jars/build.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "tests/r1-failfirst-7a94472/gradle.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "tests/r2-fix-related/gradle.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    }
+   ],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n19v2-rest-fallback-ee509cf",
+   "entries": 53,
+   "problems": [
+    {
+     "file": "jars/build.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "tests/r3-failfirst-f6868a5/gradle.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "tests/r4-fix-related/gradle.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    }
+   ],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n20-accept-614bd5e",
+   "entries": 12,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n20-candidate-1899b49",
+   "entries": 56,
+   "problems": [
+    {
+     "file": "jars/build.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "obs-bench/all.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "obs-bench/bookonly.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "obs-bench/none.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/r1-fail-first-ee509cf/gradle.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/r2-fix-related/gradle.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    }
+   ],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n20-d1-review-7542a62",
+   "entries": 8,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n20-d1-standin-1899b49",
+   "entries": 215,
+   "problems": [
+    {
+     "file": "harness/fixbase/log-before.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "harness/fixbase/log-n20seen.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "harness/fixbase/log-normal.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "harness/fixbase/log-p0.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/s1-normal/calls.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/s1-normal/forbidden.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/s1b-normal/calls.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/s1b-normal/forbidden.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/s2-imgold-unset/calls.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/s2-imgold-unset/forbidden.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/s3-jar-mismatch/calls.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/s3-jar-mismatch/forbidden.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/s4a-window/calls.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/s4a-window/forbidden.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/s4b-noreport/calls.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/s4b-noreport/forbidden.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/s4c-u1late/calls.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/s4c-u1late/forbidden.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/s5a-btc/calls.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/s5a-btc/forbidden.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/s5b-btc20/calls.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/s5b-btc20/forbidden.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/s5c-session/calls.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/s5c-session/forbidden.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/s5d-sid203/calls.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/s5d-sid203/forbidden.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/s5e-install/calls.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/s5e-install/forbidden.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/s5f-cron/calls.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/s5f-cron/forbidden.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/s6-rollback/calls.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/s6-rollback/forbidden.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/s7-p0/calls.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/s7-p0/forbidden.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/s7b-p0warn/calls.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/s7b-p0warn/forbidden.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/s8-n20seen/calls.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/s8-n20seen/forbidden.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    }
+   ],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n20-d2-standin-1899b49",
+   "entries": 808,
+   "problems": [
+    {
+     "file": "harness/fix/log-causedto.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "harness/fix/log-errto.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "harness/fix/log-lease.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "harness/fix/log-normal.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "harness/fix/log-othererr.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "harness/fix/log-warnto.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/d2-rollback-p0/calls.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/d2-rollback-p0/forbidden.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/d2-u3-causedto/calls.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/d2-u3-causedto/forbidden.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/d2-u3-errto/calls.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/d2-u3-errto/forbidden.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/d2-u3-lease/calls.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/d2-u3-lease/forbidden.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/d2-u3-normal/calls.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/d2-u3-normal/forbidden.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/d2-u3-othererr/calls.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/d2-u3-othererr/forbidden.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/d2-u3-warnto/calls.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/d2-u3-warnto/forbidden.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/d2-u4-causedto/calls.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/d2-u4-causedto/forbidden.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/d2-u4-errto/calls.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/d2-u4-errto/forbidden.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/d2-u4-lease/calls.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/d2-u4-lease/forbidden.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/d2-u4-normal/calls.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/d2-u4-normal/forbidden.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/d2-u4-othererr/calls.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/d2-u4-othererr/forbidden.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/d2-u4-warnto/calls.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    },
+    {
+     "file": "runs/d2-u4-warnto/forbidden.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    }
+   ],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n20-held-mark-repro-ee509cf",
+   "entries": 16,
+   "problems": [
+    {
+     "file": "run-r1/gradle.log",
+     "work": "ok",
+     "blob": "ok",
+     "ignored": true
+    }
+   ],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n20-k26-final-1899b49",
+   "entries": 24,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/n20-review-9017d63",
+   "entries": 8,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/night-review-303079b",
+   "entries": 10,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/overnight-20261105-scope",
+   "entries": 4,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/overnight-review-46f2c04",
+   "entries": 55,
+   "problems": [],
+   "unlisted": []
+  },
+  {
+   "dir": "docs/evidence/weekend-20261106-scope",
+   "entries": 6,
+   "problems": [
+    {
+     "file": ".gitattributes",
+     "work": "ok",
+     "blob": "missing",
+     "ignored": false
+    },
+    {
+     "file": "check-history.txt",
+     "work": "ok",
+     "blob": "missing",
+     "ignored": false
+    },
+    {
+     "file": "check.json",
+     "work": "ok",
+     "blob": "missing",
+     "ignored": false
+    },
+    {
+     "file": "check.py",
+     "work": "ok",
+     "blob": "missing",
+     "ignored": false
+    },
+    {
+     "file": "protected-blocks.json",
+     "work": "ok",
+     "blob": "missing",
+     "ignored": false
+    },
+    {
+     "file": "README.md",
+     "work": "ok",
+     "blob": "missing",
+     "ignored": false
+    }
+   ],
+   "unlisted": []
+  }
+ ],
+ "summary": {
+  "entries": 3448,
+  "work_ok": 3448,
+  "work_missing": 0,
+  "work_diff": 0,
+  "blob_ok": 3424,
+  "blob_missing": 24,
+  "blob_diff": 0,
+  "ignored_entries": 146,
+  "unlisted_files": 4
+ }
+}
