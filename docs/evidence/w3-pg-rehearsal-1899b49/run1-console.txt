@@ -1,0 +1,28 @@
+16:57:07 SMA20 격리 리허설 — 마감 봉 08:00:00Z 시작(마감 09:00:00Z), 회차 마감 09:05:00Z, 시작 요청 08:50:00Z 무렵
+16:57:11   DB 덤프: D:/tmp/w3-evidence/run1\dumps\20261106-165711-before-fresh.dump (189925 bytes)
+16:57:22 app #1 (:18081) exited during startup rc=1 (3s)
+16:57:22 🔴 실행기 예외로 중단:
+Traceback (most recent call last):
+  File "D:\tmp\w3-1899b49\scripts\restart-test\rehearse_sma20.py", line 318, in <module>
+    check('①  Flyway 적용(새 DB)', one('SELECT count(*) FROM flyway_schema_history WHERE NOT success') == '0',
+                                   ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\tmp\w3-1899b49\scripts\restart-test\rehearse_sma20.py", line 54, in one
+    return rt.one(sql)
+           ~~~~~~^^^^^
+  File "D:\tmp\w3-1899b49\scripts\restart-test\rt.py", line 68, in one
+    rows = psql(sql)
+  File "D:\tmp\w3-1899b49\scripts\restart-test\rt.py", line 42, in psql
+    raise RuntimeError(r.stderr)
+RuntimeError: ERROR:  relation "flyway_schema_history" does not exist
+LINE 1: SELECT count(*) FROM flyway_schema_history WHERE NOT success
+                             ^
+
+
+16:57:24 마지막 앱 로그 ERROR 1줄
+    16:57:21.394 [main] ERROR o.s.boot.SpringApplication - Application run failed
+16:57:24 결과 0/1 통과
+FAIL 실행기 예외 RuntimeError — ERROR:  relation "flyway_schema_history" does not exist
+LINE 1: SELECT count(*) FROM flyway_schema_history WHERE NOT success
+                             ^
+
+exit=1

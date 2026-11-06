@@ -1,0 +1,4 @@
+cd ~/crypto_trader/AutoTrader
+DC="docker compose -f docker-compose.prod.yml"; SID=203
+M=~/start-sid203; MS=~/maint-20261030-stage1; mkdir -p "$M"
+PSQL="$DC exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader"

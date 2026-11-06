@@ -1,0 +1,83 @@
+{
+ "orders": {
+  "20db03dd-2bf3-46eb-b098-a4960e563b64": {
+   "uuid": "20db03dd-2bf3-46eb-b098-a4960e563b64",
+   "side": "bid",
+   "ord_type": "price",
+   "market": "KRW-BTC",
+   "identifier": "cat-ffb595fa-ee3a-4dd2-9f94-e35144f4952b",
+   "created_at": "2026-11-06T18:05:00+09:00",
+   "price": "20000.00000000",
+   "volume": null,
+   "state": "done",
+   "executed_volume": "0.00160000",
+   "executed_funds": "19600.00000000",
+   "paid_fee": "9.80000000"
+  },
+  "add0829b-5765-44c2-8fe6-735d6f3783ad": {
+   "uuid": "add0829b-5765-44c2-8fe6-735d6f3783ad",
+   "side": "ask",
+   "ord_type": "market",
+   "market": "KRW-BTC",
+   "identifier": "cat-e7552a68-98eb-4ea5-ae9f-d85dd14c684d",
+   "created_at": "2026-11-06T18:07:40+09:00",
+   "price": null,
+   "volume": "0.00160000",
+   "state": "done",
+   "executed_volume": "0.00160000",
+   "executed_funds": "19600.00000000",
+   "paid_fee": "7.84000000",
+   "remaining_volume": "0E-8"
+  }
+ },
+ "plan": {},
+ "krw": "999982.36000000",
+ "coin": "0E-8",
+ "creates": [
+  {
+   "uuid": "20db03dd-2bf3-46eb-b098-a4960e563b64",
+   "identifier": "cat-ffb595fa-ee3a-4dd2-9f94-e35144f4952b",
+   "side": "bid",
+   "at": "2026-11-06T18:05:00+09:00"
+  },
+  {
+   "uuid": "add0829b-5765-44c2-8fe6-735d6f3783ad",
+   "identifier": "cat-e7552a68-98eb-4ea5-ae9f-d85dd14c684d",
+   "side": "ask",
+   "at": "2026-11-06T18:07:40+09:00"
+  }
+ ],
+ "market": {
+  "candles": {
+   "KRW-BTC": {
+    "close": "12250000",
+    "slope": "5000",
+    "anchor": 1793952000,
+    "spread": "1000"
+   }
+  },
+  "ticker": {
+   "KRW-BTC": {
+    "price": "12250000",
+    "trade_age_sec": 0
+   }
+  },
+  "orderbook": {
+   "KRW-BTC": {
+    "bid": "12249000",
+    "size": "100"
+   }
+  },
+  "fill_price": {
+   "KRW-BTC": "12250000"
+  },
+  "coin_currency": "BTC",
+  "markets": [
+   {
+    "market": "KRW-BTC",
+    "korean_name": "비트코인",
+    "english_name": "Bitcoin"
+   }
+  ]
+ }
+}

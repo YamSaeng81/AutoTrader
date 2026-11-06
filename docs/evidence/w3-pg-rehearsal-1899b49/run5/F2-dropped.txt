@@ -1,0 +1,5 @@
+[ -s "$M/operator-confirm.txt" ] && ! grep -q '<' "$M/operator-confirm.txt" && [ "$M/operator-confirm.txt" -nt "$M/ok-F1" ] || stop "운영자 확인 파일 없음·자리표시 남음·F1 보다 오래됨"
+! grep -q '다른 것 있음' "$M/operator-confirm.txt" || stop "경보에 기존 반복 밖의 것 있음 — 시작하지 않고 보고"
+[ "$(TZ=Asia/Seoul date +%F)" = "$START_DATE" ] || stop "오늘 $(TZ=Asia/Seoul date +%F) KST 는 시작 예정일 $START_DATE 이 아님 — 시작하지 않는다"
+HM=$(TZ=Asia/Seoul date +%H%M); [ $((10#$HM)) -ge 850 ] && [ $((10#$HM)) -le 855 ] || stop "지금 $HM KST — 08:50~08:55 밖이라 시작하지 않는다(다음 대응 가능한 날 08:50)"
+[ "$($PSQL -At -c "$EG")" = "$EGS" ] || stop "EG 가 EGS 와 다름"   → [ "$($PSQL -At -c "$EG")" = "$EGS_LOCAL" ] || stop "EG 가 EGS_LOCAL 과 다름"

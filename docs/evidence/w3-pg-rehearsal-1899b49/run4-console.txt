@@ -1,0 +1,9 @@
+19:05:58 W3 리허설 — 마감 봉 10:00:00Z 시작(마감 11:00:00Z), 회차 마감 11:05:00Z, 시작 요청 10:50:00Z 무렵
+19:06:02   PASS ⓪  W4 실행 사본 f53.exec.sh 해시 = 발급 manifest 2d5e5a9e905ec096
+19:06:02   PASS ⓪  장부 SQL 해시 = 운영 설치본 02a85850… 02a8585021fb2a1a
+19:06:03   DB 덤프: D:/tmp/w3-evidence/run4\dumps\20261106-190602-before-fresh.dump (187989 bytes)
+19:06:25 app #1 (:18081) ready (16s, crashpoint=None)
+19:06:25   PASS ①  Flyway 적용(새 DB) · 최고 V94 max V94
+19:06:26   생성 응답: {"success": true, "data": {"id": 203, "sessionType": "REAL", "strategyType": "DAILY_SMA20", "coinPair": "KRW-BTC", "timeframe": "H1", "initialCapital": 20200, "availableKrw": 20200, "totalAssetKrw": 20200, "status": "CREATED", "strategyParams": {}, "investRatio": 0.995, "maxInvestment": 20000, "stop
+19:06:26   PASS ①  세션 생성 — SID 203 · CREATED 
+(19:06 개발자가 중단 — ④ 새 ERROR 검사가 하네스 외부 차단 때문의 웹소켓·뉴스 ERROR 를 세어 반드시 실패할 것을 run3 로그로 확인, 고친 뒤 run5 로 재실행)

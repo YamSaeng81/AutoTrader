@@ -1,0 +1,703 @@
+exchange double on :18080, state=D:/tmp/w3-evidence/run5\exchange_state.json
+[double] "GET /_ctl/orders HTTP/1.1" 200 -
+[double] "POST /_ctl/market HTTP/1.1" 200 -
+[double] "GET /v1/accounts HTTP/1.1" 200 -
+[double] "GET /v1/accounts HTTP/1.1" 200 -
+[double] "GET /v1/accounts HTTP/1.1" 200 -
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 3515)
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 3514)
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socketserver.py", line 766, in __init__
+    self.handle()
+    ~~~~~~~~~~~^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socketserver.py", line 766, in __init__
+    self.handle()
+    ~~~~~~~~~~~^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\http\server.py", line 449, in handle
+    self.handle_one_request()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\http\server.py", line 449, in handle
+    self.handle_one_request()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\http\server.py", line 415, in handle_one_request
+    self.raw_requestline = self.rfile.readline(65537)
+                           ~~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socket.py", line 723, in readinto
+    return self._sock.recv_into(b)
+           ~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\http\server.py", line 415, in handle_one_request
+    self.raw_requestline = self.rfile.readline(65537)
+                           ~~~~~~~~~~~~~~~~~~~^^^^^^^
+ConnectionResetError: [WinError 10054] 현재 연결은 원격 호스트에 의해 강제로 끊겼습니다
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socket.py", line 723, in readinto
+    return self._sock.recv_into(b)
+           ~~~~~~~~~~~~~~~~~~~~^^^
+----------------------------------------
+ConnectionResetError: [WinError 10054] 현재 연결은 원격 호스트에 의해 강제로 끊겼습니다
+----------------------------------------
+[double] "GET /v1/accounts HTTP/1.1" 200 -
+[double] "GET /v1/accounts HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:07:53 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:08:54 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:09:54 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:10:54 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:11:54 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/accounts HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:12:54 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:13:54 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:14:54 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:15:55 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:16:55 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/accounts HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:17:55 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:18:55 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:19:55 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:20:55 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:21:55 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/accounts HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:22:56 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:23:56 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:24:56 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:25:56 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:26:56 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/accounts HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:27:56 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:28:56 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:29:57 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:30:57 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:31:57 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/accounts HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:32:57 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:33:57 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:34:57 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:35:57 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:36:58 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/accounts HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:37:58 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:38:58 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:39:58 HTTP/1.1" 200 -
+[double] "GET /v1/accounts HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:40:58 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:41:58 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/accounts HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:42:58 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:43:59 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:44:59 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:45:59 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:46:59 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/accounts HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:47:59 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:48:59 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:50:00 HTTP/1.1" 200 -
+[double] "GET /v1/accounts HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:51:00 HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:52:00 HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/accounts HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:53:00 HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:54:00 HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:55:00 HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:56:00 HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:57:00 HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/accounts HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:58:01 HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T10:59:01 HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T11:00:01 HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T11:01:01 HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T11:02:01 HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/accounts HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T11:03:01 HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T11:04:01 HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T11:05:02 HTTP/1.1" 200 -
+[double] "POST /v1/orders HTTP/1.1" 201 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/order?uuid=4f0f7f7a-39f6-4b06-81b7-83fa601d2f11 HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/accounts HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /_ctl/orders HTTP/1.1" 200 -
+[double] "GET /v1/accounts HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /_ctl/orders HTTP/1.1" 200 -
+[double] "POST /_ctl/market HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/accounts HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T11:06:02 HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/orderbook?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/accounts HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T11:07:02 HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/orderbook?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "POST /_ctl/market HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/accounts HTTP/1.1" 200 -
+[double] "GET /v1/accounts HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T11:08:02 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/orderbook?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/accounts HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T11:09:02 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/orderbook?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /_ctl/orders HTTP/1.1" 200 -
+[double] "POST /_ctl/market HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/accounts HTTP/1.1" 200 -
+[double] "POST /v1/orders HTTP/1.1" 201 -
+[double] "GET /v1/order?uuid=b15c2950-b83c-40bb-a0c6-24ace16bb84d HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/candles/minutes/60?market=KRW-BTC&count=200&to=2026-11-06T11:10:02 HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /_ctl/orders HTTP/1.1" 200 -
+[double] "GET /v1/ticker?markets=KRW-BTC HTTP/1.1" 200 -
+[double] "GET /v1/accounts HTTP/1.1" 200 -
+[double] "GET /_ctl/orders HTTP/1.1" 200 -
+[double] "GET /v1/accounts HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/accounts HTTP/1.1" 200 -
+[double] "GET /_ctl/orders HTTP/1.1" 200 -
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 2389)
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 2385)
+Traceback (most recent call last):
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socketserver.py", line 766, in __init__
+    self.handle()
+    ~~~~~~~~~~~^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\http\server.py", line 449, in handle
+    self.handle_one_request()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\http\server.py", line 415, in handle_one_request
+    self.raw_requestline = self.rfile.readline(65537)
+                           ~~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socket.py", line 723, in readinto
+    return self._sock.recv_into(b)
+           ~~~~~~~~~~~~~~~~~~~~^^^
+----------------------------------------
+ConnectionResetError: [WinError 10054] 현재 연결은 원격 호스트에 의해 강제로 끊겼습니다
+Exception occurred during processing of request from ('127.0.0.1', 2383)
+----------------------------------------
+----------------------------------------
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socketserver.py", line 766, in __init__
+    self.handle()
+    ~~~~~~~~~~~^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\http\server.py", line 449, in handle
+    self.handle_one_request()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+Exception occurred during processing of request from ('127.0.0.1', 2384)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\http\server.py", line 415, in handle_one_request
+    self.raw_requestline = self.rfile.readline(65537)
+                           ~~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socket.py", line 723, in readinto
+    return self._sock.recv_into(b)
+           ~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socketserver.py", line 766, in __init__
+    self.handle()
+    ~~~~~~~~~~~^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\http\server.py", line 449, in handle
+    self.handle_one_request()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\http\server.py", line 415, in handle_one_request
+    self.raw_requestline = self.rfile.readline(65537)
+                           ~~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socket.py", line 723, in readinto
+    return self._sock.recv_into(b)
+           ~~~~~~~~~~~~~~~~~~~~^^^
+ConnectionResetError: [WinError 10054] 현재 연결은 원격 호스트에 의해 강제로 끊겼습니다
+ConnectionResetError: [WinError 10054] 현재 연결은 원격 호스트에 의해 강제로 끊겼습니다
+----------------------------------------
+----------------------------------------
+Traceback (most recent call last):
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socketserver.py", line 766, in __init__
+    self.handle()
+    ~~~~~~~~~~~^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\http\server.py", line 449, in handle
+    self.handle_one_request()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\http\server.py", line 415, in handle_one_request
+    self.raw_requestline = self.rfile.readline(65537)
+                           ~~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socket.py", line 723, in readinto
+    return self._sock.recv_into(b)
+           ~~~~~~~~~~~~~~~~~~~~^^^
+ConnectionResetError: [WinError 10054] 현재 연결은 원격 호스트에 의해 강제로 끊겼습니다
+----------------------------------------
+[double] "GET /v1/accounts HTTP/1.1" 200 -
+[double] "GET /v1/accounts HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /v1/market/all HTTP/1.1" 200 -
+[double] "GET /_ctl/orders HTTP/1.1" 200 -
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 6184)
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 6179)
+Traceback (most recent call last):
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 6180)
+Traceback (most recent call last):
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socketserver.py", line 766, in __init__
+    self.handle()
+    ~~~~~~~~~~~^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\http\server.py", line 449, in handle
+    self.handle_one_request()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socketserver.py", line 766, in __init__
+    self.handle()
+    ~~~~~~~~~~~^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\http\server.py", line 415, in handle_one_request
+    self.raw_requestline = self.rfile.readline(65537)
+                           ~~~~~~~~~~~~~~~~~~~^^^^^^^
+Traceback (most recent call last):
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socket.py", line 723, in readinto
+    return self._sock.recv_into(b)
+           ~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\http\server.py", line 449, in handle
+    self.handle_one_request()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\http\server.py", line 415, in handle_one_request
+    self.raw_requestline = self.rfile.readline(65537)
+                           ~~~~~~~~~~~~~~~~~~~^^^^^^^
+ConnectionResetError: [WinError 10054] 현재 연결은 원격 호스트에 의해 강제로 끊겼습니다
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socket.py", line 723, in readinto
+    return self._sock.recv_into(b)
+           ~~~~~~~~~~~~~~~~~~~~^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socketserver.py", line 766, in __init__
+    self.handle()
+    ~~~~~~~~~~~^^
+----------------------------------------
+ConnectionResetError: [WinError 10054] 현재 연결은 원격 호스트에 의해 강제로 끊겼습니다
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\http\server.py", line 449, in handle
+    self.handle_one_request()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\http\server.py", line 415, in handle_one_request
+    self.raw_requestline = self.rfile.readline(65537)
+                           ~~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\socket.py", line 723, in readinto
+    return self._sock.recv_into(b)
+           ~~~~~~~~~~~~~~~~~~~~^^^
+----------------------------------------
+ConnectionResetError: [WinError 10054] 현재 연결은 원격 호스트에 의해 강제로 끊겼습니다
+----------------------------------------

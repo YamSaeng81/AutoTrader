@@ -1,0 +1,2 @@
+$PSQL -v sid=$SID -v init=20200 -f - < ~/ops-scripts/sid_ledger.sql | tee "$E/ledger-final.txt"   → (위치 치환) < ~/ops-scripts/sid_ledger.sql → < "D:/tmp/w3-evidence/sid_ledger.8bfe8a9.sql"
+sha256sum ~/ops-scripts/sid_ledger.sql | tee -a "$E/ledger-final.txt"   → (위치 치환) sha256sum ~/ops-scripts/sid_ledger.sql → sha256sum "D:/tmp/w3-evidence/sid_ledger.8bfe8a9.sql"

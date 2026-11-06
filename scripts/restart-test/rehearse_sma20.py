@@ -19,6 +19,7 @@ import subprocess
 import sys
 import time
 import traceback
+import urllib.error
 import urllib.request
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -79,7 +80,9 @@ def doc_block(marker):
 DROP_F_VARS = ('cd ~/crypto_trader', 'DC="docker compose', 'M=~/start-sid203', 'PSQL="$DC exec')
 DROP_F1 = ('{ git rev-parse HEAD', '[ "$(head -1 "$M/git-f1.txt")"', 'svc | tee', '[ "$(docker inspect',
            '$DC exec -T backend env', '[ "$(cat "$M/pool-f1.txt")"', 'sc | tee', 'python3 scripts/prospective/start_66.py',
-           'echo "경보 종료코드', '{ [ "$AE" -le 1 ]', 'echo "== 경보', "{ date '+%F %T %Z'; curl", '[ "$(tail -1 "$M/telegram-f1.txt")"')
+           'echo "경보 종료코드', '{ [ "$AE" -le 1 ]', 'echo "== 경보', "{ date '+%F %T %Z'; curl", '[ "$(tail -1 "$M/telegram-f1.txt")"',
+           # W3(2026-11-06): 10-31 4차 뒤 F1 에 들어온 운영 서버 설치본 대조 줄 — 로컬에는 ~/ops-scripts 가 없다(운영 전용, 값 출력 없이 뺀다)
+           '[ "$(cat ~/ops-scripts/SID_LEDGER_SHA)"', '{ echo "INSTALLED_SHA', '[ "$(cat "$M/install-f1.txt")"')
 DROP_F2 = ('[ -s "$M/operator-confirm.txt" ]', "! grep -q '다른 것 있음'", '[ "$(TZ=Asia/Seoul date +%F)" = "$START_DATE" ]',
            'HM=$(TZ=Asia/Seoul date +%H%M)', 'sc | tee')
 # 운영 기대값과 비교하는 줄. BASE 는 생성 시각이 달라 값만 출력한다. EG 는 로컬 기대값(EGS_LOCAL — 과거 비상 정지 목록만 운영과
@@ -408,6 +411,18 @@ try:
     # 🔴 (2026-10-31 4차 전 점검) F3 도 F1·F2 처럼 바꾼다 — 그대로면 토큰을 .env 에서, 계좌를 localhost:8080 에서 읽어 '조회 실패' 가 난다.
     rc, out = run_bash('F3-hold', localize(doc_block('**F3.'), (), 'F3-hold'), created_at)
     check('⑤  F3 판정 — ✅ 매수 1건 보유 중', '✅ 판정: 매수 1건 보유 중' in out)
+    # W3(2026-11-06): F3 의 입력 판정(v1.57, 4차 뒤 추가)은 정산 판정과 별개다 — 값을 그대로 남기고 멈춤 조건으로 쓰지 않는다
+    rt.log('  F3 입력 판정 줄: ' + ' / '.join(l for l in out.splitlines() if '입력 판정' in l or '현재 BTC H1' in l))
+    # W3: CREATED 최초 시작 1회 뒤 재시작 차단 — RUNNING 세션에 시작 요청을 다시 보내도 상태·주문·잔액이 바뀌지 않는다
+    before_restart_req = record()
+    try:
+        again = api_json('POST', f'/api/v1/trading/sessions/{SID}/start')
+        again_txt = '응답 ' + json.dumps(again, ensure_ascii=False)[:300]
+    except urllib.error.HTTPError as e:
+        again_txt = f'HTTP {e.code} ' + e.read().decode('utf-8', 'replace')[:300]
+    time.sleep(10)
+    d_again = differences(before_restart_req, record())
+    check('⑤  RUNNING 세션 재시작 요청 — 세션·주문·포지션·거래소 기록 변화 없음', d_again == [], again_txt + f' · 차이 {d_again[:5]}')
 
     # ⑥ 정지 1회 → 청산 매도 → 정리 완료 → 잔여량 대조
     before_stop = snapshot()

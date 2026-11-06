@@ -1,0 +1,117 @@
+diff --git a/scripts/restart-test/exchange_double.py b/scripts/restart-test/exchange_double.py
+index e9191ce..f1d6ff3 100644
+--- a/scripts/restart-test/exchange_double.py
++++ b/scripts/restart-test/exchange_double.py
+@@ -27,6 +27,9 @@
+         설정이 없으면(기본) /v1/ticker·/v1/orderbook·/v1/candles 는 503 — 외부 차단과 같은 실패. fail=true 도 503.
+         시세의 trade_timestamp 는 지금 − trade_age_sec(체결이 조용한 코인), 호가 timestamp 는 지금.
+         candles 의 "absent": [봉 시작 epoch 초, ...] — 그 봉은 대역(거래소)에도 없다(점검·무체결, 2026-10-19).
++        (2026-10-30, SMA20 리허설 — 설정이 없으면 종전과 같다) candles 의 "slope": 시간당 종가 변화, "anchor": 종가가 "close" 인
++        봉의 시작 epoch 초(없으면 지금 봉), "spread": 고가·저가 폭. "fill_price": {"KRW-BTC": "..."} 시장가 체결가(없으면 300),
++        "coin_currency": 계좌의 코인 이름(없으면 DOGE), "markets": [{"market":..,"korean_name":..,"english_name":..}] 상태 확인 목록.
+   POST /_ctl/health {"mode": "ok" | "fail" | "slow"}  상태 확인(/v1/market/all) 응답 — fail 은 503, slow 는 3.5초 뒤 200 (2026-10-19)
+ """
+ import calendar
+@@ -97,13 +100,19 @@ def apply_fill(o, volume, funds):
+         o['remaining_volume'] = str(Decimal(o['volume']) - v)
+ 
+ 
++def fill_price(o):
++    fp = ((state.get('market') or {}).get('fill_price') or {}).get(o.get('market'))
++    return Decimal(fp) if fp is not None else PRICE
++
++
+ def default_fill(o, mode):
++    price = fill_price(o)
+     if o['side'] == 'bid':
+         total = Decimal(o['price'])            # 시장가 매수: price = 총액
+         full_funds = (total * Decimal('0.98')).quantize(Decimal('0.00000001'))   # 2,940 / 3,000
+     else:
+-        full_funds = (Decimal(o['volume']) * PRICE).quantize(Decimal('0.00000001'))
+-    full_vol = full_funds / PRICE
++        full_funds = (Decimal(o['volume']) * price).quantize(Decimal('0.00000001'))
++    full_vol = full_funds / price
+     if mode == 'done':
+         apply_fill(o, str(full_vol), str(full_funds))
+         o['state'] = 'done'
+@@ -152,7 +161,8 @@ class H(BaseHTTPRequestHandler):
+                 return self.reply(503, {'error': {'name': 'server_maintenance', 'message': '시험 대역 — 점검'}})
+             if mode == 'slow':
+                 time.sleep(3.5)
+-            return self.reply(200, [{'market': 'KRW-DOGE', 'korean_name': '도지코인', 'english_name': 'Dogecoin'}])
++            markets = (state.get('market') or {}).get('markets')
++            return self.reply(200, markets or [{'market': 'KRW-DOGE', 'korean_name': '도지코인', 'english_name': 'Dogecoin'}])
+         with lock:
+             if u.path == '/v1/order':
+                 o = self.find(q)
+@@ -160,7 +170,8 @@ class H(BaseHTTPRequestHandler):
+             if u.path == '/v1/accounts':
+                 return self.reply(200, [
+                     {'currency': 'KRW', 'balance': state['krw'], 'locked': '0', 'avg_buy_price': '0', 'unit_currency': 'KRW'},
+-                    {'currency': 'DOGE', 'balance': state['coin'], 'locked': '0', 'avg_buy_price': '300', 'unit_currency': 'KRW'}])
++                    {'currency': (state.get('market') or {}).get('coin_currency', 'DOGE'), 'balance': state['coin'], 'locked': '0',
++                     'avg_buy_price': '300', 'unit_currency': 'KRW'}])
+             if u.path == '/v1/market/all':
+                 return self.reply(200, [{'market': 'KRW-DOGE', 'korean_name': '도지코인', 'english_name': 'Dogecoin'}])
+             if u.path == '/v1/orders/chance':
+@@ -208,13 +219,18 @@ class H(BaseHTTPRequestHandler):
+         to_s = calendar.timegm(time.strptime(to, '%Y-%m-%dT%H:%M:%S')) if to else now + 3600   # UTC
+         cur = now - now % 3600
+         close = Decimal(cfg['close'])
++        slope = Decimal(cfg.get('slope', '0'))
++        anchor = int(cfg.get('anchor', cur))
++        spread = Decimal(cfg.get('spread', '0'))
+         absent = set(int(x) for x in cfg.get('absent', []))
+         out = []
+         while len(out) < count and cur > now - 600 * 3600:
+             if cur < to_s and cur not in absent:
++                c = close + slope * (cur - anchor) // 3600
++                o_ = c - slope
+                 out.append({'market': coin, 'candle_date_time_utc': time.strftime('%Y-%m-%dT%H:%M:%S', time.gmtime(cur)),
+-                            'opening_price': float(close), 'high_price': float(close), 'low_price': float(close),
+-                            'trade_price': float(close), 'candle_acc_trade_volume': 10})
++                            'opening_price': float(o_), 'high_price': float(max(c, o_) + spread), 'low_price': float(min(c, o_) - spread),
++                            'trade_price': float(c), 'candle_acc_trade_volume': 10})
+             cur -= 3600
+         return self.reply(200, out)
+ 
+diff --git a/scripts/restart-test/rt.py b/scripts/restart-test/rt.py
+index f61501a..41151ae 100644
+--- a/scripts/restart-test/rt.py
++++ b/scripts/restart-test/rt.py
+@@ -43,6 +43,16 @@ def psql(sql):
+     return [line.split('|') for line in r.stdout.strip().splitlines() if line]
+ 
+ 
++def psql_json(sql):
++    """결과 한 칸(JSON)을 자르지 않고 읽는다 — psql() 은 '|' 로 칸을 나눠 문자열을 자른다(2026-10-31 리뷰)."""
++    r = subprocess.run(['docker', 'exec', '-i', 'cat-rt-pg', 'psql', '-U', 'trader', '-d', 'crypto_auto_trader',
++                        '-v', 'ON_ERROR_STOP=1', '-At', '-c', sql],
++                       capture_output=True, text=True, encoding='utf-8')
++    if r.returncode != 0:
++        raise RuntimeError(r.stderr)
++    return json.loads(r.stdout)
++
++
+ def psql_background(sql, label):
+     """별도 psql 연결로 SQL 을 백그라운드 실행한다(잠금을 쥐고 기다리는 용도). 프로세스를 돌려준다."""
+     out = open(os.path.join(WORK, f'psql-{label}.log'), 'w', encoding='utf-8')
+diff --git a/web-api/src/restartHarness/java/com/cryptoautotrader/api/restartharness/RestartHarnessController.java b/web-api/src/restartHarness/java/com/cryptoautotrader/api/restartharness/RestartHarnessController.java
+index 64668fa..63adfad 100644
+--- a/web-api/src/restartHarness/java/com/cryptoautotrader/api/restartharness/RestartHarnessController.java
++++ b/web-api/src/restartHarness/java/com/cryptoautotrader/api/restartharness/RestartHarnessController.java
+@@ -67,6 +67,14 @@ public class RestartHarnessController {
+         this.tx = new TransactionTemplate(txManager);
+         this.markPriceBook = markPriceBook;
+         StrategyRegistry.register(new HarnessSignal());
++        // 일봉 마감 시각 이동 (2026-10-30, SMA20 격리 리허설) — 규칙은 같고 하루의 경계만 옮긴 인스턴스를 같은 이름으로 등록한다
++        // (DailySma20LiveOrderPathTest 와 같은 방식). 스케줄러가 돌기 전(빈 생성 시점)에 등록해 재기동 직후 첫 평가부터 같은 경계를 쓴다.
++        String closeHour = System.getProperty("harness.daily-close-hour-utc");
++        if (closeHour != null) {
++            StrategyRegistry.register(new com.cryptoautotrader.strategy.dailysma.DailySmaTrendStrategy(Integer.parseInt(closeHour)));
++            org.slf4j.LoggerFactory.getLogger(RestartHarnessController.class)
++                    .warn("[재시작 시험] DAILY_SMA20 일봉 마감 시각 이동: 마감 봉 = {}:00 UTC 시작 H1 봉", closeHour);
++        }
+     }
+ 
+     /** 시험용 전략 이름 — 엔진 평가가 이 전략을 부르면 {@link #signal} 을 그대로 낸다(2026-10-15, 5-h 엔진 자체 청산 S16). */

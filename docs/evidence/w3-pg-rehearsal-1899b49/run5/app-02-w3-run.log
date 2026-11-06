@@ -1,0 +1,1619 @@
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.5)
+
+19:07:42.257 [background-preinit] INFO  o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.1.Final
+19:07:42.304 [main] INFO  c.c.api.CryptoAutoTraderApplication - Starting CryptoAutoTraderApplication using Java 17.0.12 with PID 23608 (D:\tmp\w3-1899b49\web-api\build\classes\java\main started by SangJoon_Lee in D:\tmp\w3-1899b49\scripts\restart-test)
+19:07:42.306 [main] INFO  c.c.api.CryptoAutoTraderApplication - The following 1 profile is active: "restart-harness"
+19:07:43.511 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Multiple Spring Data modules found, entering strict repository configuration mode
+19:07:43.512 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+19:07:43.690 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 168 ms. Found 39 JPA repository interfaces.
+19:07:43.701 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Multiple Spring Data modules found, entering strict repository configuration mode
+19:07:43.702 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+19:07:43.719 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.BacktestJobRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:07:43.720 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.BacktestMetricsRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:07:43.720 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.BacktestRunRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:07:43.720 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.BacktestTradeRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:07:43.722 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.CandleDataRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:07:43.722 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DailyHealthSnapshotRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:07:43.722 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DiscordChannelConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:07:43.722 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DiscordSendLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:07:43.723 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DynamicSellSettlementRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:07:43.723 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DynamicSessionRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:07:43.723 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.ExecutionDriftLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:07:43.723 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.KillCriteriaJudgmentRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:07:43.724 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.LiveTradingSessionRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:07:43.724 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.LlmCallLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:07:43.724 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.LlmProviderConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:07:43.726 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.LlmTaskConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:07:43.726 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.MarketDataCacheRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:07:43.727 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NewsItemCacheRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:07:43.727 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NewsSourceConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:07:43.727 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NightlySchedulerConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:07:43.727 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NotionReportConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:07:43.728 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NotionReportLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:07:43.728 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.OrderRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:07:43.728 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.OrderSettlementDiscrepancyRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:07:43.728 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.paper.PaperOrderRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:07:43.728 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.paper.PaperPositionRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:07:43.729 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.paper.VirtualBalanceRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:07:43.729 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.PositionCleanupRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:07:43.730 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.PositionRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:07:43.730 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.RegimeChangeLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:07:43.730 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.RiskConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:07:43.731 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.RulesetSnapshotRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:07:43.731 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.StrategyConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:07:43.731 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.StrategyLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:07:43.731 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.StrategyTimeframeEnabledRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:07:43.731 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.StrategyTypeEnabledRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:07:43.731 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.TelegramNotificationLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:07:43.731 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.TradeLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:07:43.732 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.WeightOptimizerSnapshotRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:07:43.732 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 23 ms. Found 0 Redis repository interfaces.
+19:07:44.864 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 18081 (http)
+19:07:44.878 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-18081"]
+19:07:44.880 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+19:07:44.881 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.20]
+19:07:45.021 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+19:07:45.023 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 2672 ms
+19:07:45.572 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+19:07:45.823 [main] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@185a0811
+19:07:45.825 [main] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+19:07:45.922 [main] INFO  o.f.c.i.license.VersionPrinter - Flyway Community Edition 9.22.3 by Redgate
+19:07:45.923 [main] INFO  o.f.c.i.license.VersionPrinter - See release notes here: https://rd.gt/416ObMi
+19:07:45.923 [main] INFO  o.f.c.i.license.VersionPrinter - 
+19:07:45.938 [main] INFO  org.flywaydb.core.FlywayExecutor - Database: jdbc:postgresql://localhost:15432/crypto_auto_trader (PostgreSQL 15.13)
+19:07:46.054 [main] INFO  o.f.core.internal.command.DbValidate - Successfully validated 94 migrations (execution time 00:00.085s)
+19:07:46.070 [main] INFO  o.f.core.internal.command.DbMigrate - Current version of schema "public": 94
+19:07:46.073 [main] INFO  o.f.core.internal.command.DbMigrate - Schema "public" is up to date. No migration necessary.
+19:07:46.219 [main] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+19:07:46.280 [main] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.4.4.Final
+19:07:46.308 [main] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
+19:07:46.513 [main] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+19:07:48.026 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+19:07:48.088 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+19:07:48.526 [main] INFO  o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
+19:07:49.858 [main] WARN  c.c.exchange.upbit.UpbitOrderClient - 🔴 업비트 주문 API 주소가 바뀌어 있다: http://127.0.0.1:18080/v1 — 시험 전용 설정이다
+19:07:49.886 [main] INFO  c.c.api.config.SingleInstanceGuard - 단일 인스턴스 잠금 획득 (key=1128354865)
+19:07:49.905 [main] INFO  c.c.api.service.CapitalPoolLimits - 공유 풀 한도 확인: 단계=STAGE_1 총상한=100000 포지션당=20000 동시보유=3
+19:07:50.185 [main] INFO  c.c.api.service.PoolLossGuard - 위험 한도 확인: 단계 STAGE_1 총 자본 100000 기준 누적 15.00%·24시간 3.00%
+19:07:50.426 [main] WARN  c.c.a.r.RestartHarnessController - [재시작 시험] DAILY_SMA20 일봉 마감 시각 이동: 마감 봉 = 10:00 UTC 시작 H1 봉
+19:07:50.804 [main] INFO  c.c.api.news.NewsSourceRegistry - [NewsSourceRegistry] 등록된 소스 타입: [RSS, UPBIT_NOTICE, COINGECKO, CRYPTOPANIC]
+19:07:50.862 [main] INFO  c.c.api.llm.LlmProviderRegistry - [LlmProviderRegistry] 등록된 프로바이더: [OPENAI, OLLAMA, CLAUDE, MOCK]
+19:07:51.317 [main] WARN  c.c.api.service.DbResetService - DB_RESET_PASSWORD 미설정 — DB 초기화 기능이 비활성화됩니다(모든 요청 거부).
+19:07:51.468 [main] INFO  c.c.api.discord.DiscordBotService - [DiscordBot] DISCORD_BOT_TOKEN 미설정 — 봇 비활성화
+19:07:52.846 [main] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 2 endpoint(s) beneath base path '/actuator'
+19:07:52.956 [main] INFO  o.s.s.web.DefaultSecurityFilterChain - Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@22b6ba19, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@7fd06fdd, org.springframework.security.web.context.SecurityContextHolderFilter@242bba82, org.springframework.security.web.header.HeaderWriterFilter@64b9e9ed, org.springframework.web.filter.CorsFilter@44f930bb, org.springframework.security.web.authentication.logout.LogoutFilter@5c607c76, com.cryptoautotrader.api.config.ApiTokenAuthFilter@4780341, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@4a3fb669, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@25878b20, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@70fba437, org.springframework.security.web.session.SessionManagementFilter@77398c28, org.springframework.security.web.access.ExceptionTranslationFilter@a98b4cf, org.springframework.security.web.access.intercept.AuthorizationFilter@2b74cd81]
+19:07:53.493 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-18081"]
+19:07:53.502 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 18081 (http) with context path ''
+19:07:53.585 [main] INFO  c.c.api.CryptoAutoTraderApplication - Started CryptoAutoTraderApplication in 11.73 seconds (process running for 12.038)
+19:07:53.712 [main] INFO  c.c.api.service.LiveTradingService - 서버 시작 복구: 미처리 주문 및 고아 포지션 정리 시작
+19:07:53.719 [main] INFO  c.c.api.service.LiveTradingService - 서버 시작 복구 완료: FAILED 처리 0건, 고아 포지션 복구 0건 / 검사 0건
+19:07:53.723 [main] INFO  c.c.api.service.LiveTradingService - WebSocket 실시간 시세 리스너 등록 완료
+19:07:53.790 [http-nio-18081-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+19:07:53.790 [http-nio-18081-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+19:07:53.791 [http-nio-18081-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 1 ms
+19:07:53.876 [scheduler-7] INFO  c.c.api.service.PortfolioSyncService - 더 최근 스냅숏이 이미 있어 이 응답을 버린다 (기준 시각 2026-11-06T10:07:53.541266Z)
+19:07:53.876 [main] INFO  c.c.api.service.PortfolioSyncService - PortfolioManager totalCapital 동기화: 0 → 1000000 KRW
+19:07:53.891 [main] INFO  c.c.api.service.SellQuarantineReport - 매도 격리 점검: 반영 표시 없이 체결된 매도가 있는 열린 실자금 포지션 없음
+19:07:53.894 [task-1] INFO  c.c.api.service.SignalQualityService - [SignalQuality] 시작 Catchup 시작
+19:07:53.900 [main] INFO  c.c.a.s.StrategyWeightOptimizer - [WeightOptimizer] DB 스냅샷 없음 — 기본값으로 시작
+19:07:53.900 [main] INFO  c.c.a.s.StrategyWeightOptimizer - [WeightOptimizer] 시작 최적화 실행
+19:07:53.987 [task-1] INFO  c.c.api.service.SignalQualityService - [SignalQuality] 시작 Catchup 완료 — 4h: 0건, 24h: 0건 (HOLD 기준선 0/0건)
+19:07:53.989 [main] INFO  c.c.a.s.StrategyWeightOptimizer - [WeightOptimizer] VOLATILITY 실현/신호 샘플 모두 부족 (realized=0, signals=0) — 기본값 유지
+19:07:53.990 [main] INFO  c.c.a.s.StrategyWeightOptimizer - [WeightOptimizer] RANGE 실현/신호 샘플 모두 부족 (realized=0, signals=0) — 기본값 유지
+19:07:53.990 [main] INFO  c.c.a.s.StrategyWeightOptimizer - [WeightOptimizer] TREND 실현/신호 샘플 모두 부족 (realized=0, signals=0) — 기본값 유지
+19:07:54.010 [scheduler-6] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 7 건
+19:08:53.542 [scheduler-5] INFO  c.c.a.s.MarketRegimeAwareScheduler - [RegimeScheduler] 시장 상태 감지 시작 (KRW-BTC H1)
+19:08:54.166 [scheduler-2] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:09:54.330 [scheduler-3] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:10:00.028 [scheduler-6] INFO  c.c.a.s.CandleDataFreshnessScheduler - [CandleFreshness] 대상 8코인 × 2타임프레임 · 수집 요청 0건 · 백필 필요 16건
+19:10:00.029 [scheduler-6] WARN  c.c.a.s.CandleDataFreshnessScheduler - [CandleFreshness] ⚠️ 캔들 수집 불가 16건 — 평가는 하는데 캔들 이력이 아예 없습니다.
+KRW-BTC H1 (이력 없음), KRW-ETH H1 (이력 없음), KRW-XRP H1 (이력 없음), KRW-SOL H1 (이력 없음), KRW-ADA H1 (이력 없음), KRW-DOGE H1 (이력 없음), KRW-LINK H1 (이력 없음), KRW-AVAX H1 (이력 없음), KRW-BTC M15 (이력 없음), KRW-ETH M15 (이력 없음), KRW-XRP M15 (이력 없음), KRW-SOL M15 (이력 없음), KRW-ADA M15 (이력 없음), KRW-DOGE M15 (이력 없음), KRW-LINK M15 (이력 없음), KRW-AVAX M15 (이력 없음)
+
+백테스트·WF 가 이 코인을 검증할 수 없습니다. 수동 백필이 필요합니다:
+bash scripts/backfill_candle_data.sh
+19:10:53.541 [scheduler-3] ERROR c.c.a.news.source.CryptoPanicSource - [CryptoPanicSource] 수집 실패: null
+19:10:53.543 [scheduler-3] WARN  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 미완료 — sourceId=cryptopanic 결과=FAILED 종류=ConnectException 판정=2026-11-06T10:10:53.542881900Z 받은=0건 신규=0건
+19:10:53.547 [scheduler-3] ERROR c.c.a.n.s.CoinGeckoTrendingSource - [CoinGeckoTrendingSource] 수집 실패: null
+19:10:53.548 [scheduler-3] WARN  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 미완료 — sourceId=coingecko_trending 결과=FAILED 종류=ConnectException 판정=2026-11-06T10:10:53.547609Z 받은=0건 신규=0건
+19:10:53.550 [scheduler-3] ERROR c.c.api.news.source.RssNewsSource - [RssNewsSource] 수집 실패 — sourceId=tokenpost_rss: null
+19:10:53.550 [scheduler-3] WARN  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 미완료 — sourceId=tokenpost_rss 결과=FAILED 종류=ConnectException 판정=2026-11-06T10:10:53.550206200Z 받은=0건 신규=0건
+19:10:53.551 [scheduler-3] ERROR c.c.api.news.source.RssNewsSource - [RssNewsSource] 수집 실패 — sourceId=blockmedia_rss: null
+19:10:53.551 [scheduler-3] WARN  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 미완료 — sourceId=blockmedia_rss 결과=FAILED 종류=ConnectException 판정=2026-11-06T10:10:53.551752Z 받은=0건 신규=0건
+19:10:53.553 [scheduler-3] ERROR c.c.a.news.source.UpbitNoticeSource - [UpbitNoticeSource] 수집 실패: null
+19:10:53.553 [scheduler-3] WARN  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 미완료 — sourceId=upbit_notice 결과=FAILED 종류=ConnectException 판정=2026-11-06T10:10:53.553820400Z 받은=0건 신규=0건
+19:10:54.489 [scheduler-8] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:11:54.644 [scheduler-1] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:12:53.887 [scheduler-5] INFO  c.c.api.service.PortfolioSyncService - PortfolioManager totalCapital 동기화: 1000000 → 1000000 KRW
+19:12:54.793 [scheduler-5] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:13:54.948 [scheduler-8] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:14:55.095 [scheduler-8] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:15:55.237 [scheduler-5] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:16:55.381 [scheduler-8] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:17:53.908 [scheduler-4] INFO  c.c.api.service.PortfolioSyncService - PortfolioManager totalCapital 동기화: 1000000 → 1000000 KRW
+19:17:55.520 [scheduler-4] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:18:55.652 [scheduler-5] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:19:55.800 [scheduler-4] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:20:55.940 [scheduler-7] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:21:56.090 [scheduler-5] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:22:53.919 [scheduler-4] INFO  c.c.api.service.PortfolioSyncService - PortfolioManager totalCapital 동기화: 1000000 → 1000000 KRW
+19:22:56.227 [scheduler-6] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:23:56.380 [scheduler-1] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:24:56.510 [scheduler-2] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:25:56.662 [scheduler-1] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:26:56.798 [scheduler-6] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:27:53.939 [scheduler-8] INFO  c.c.api.service.PortfolioSyncService - PortfolioManager totalCapital 동기화: 1000000 → 1000000 KRW
+19:27:56.940 [scheduler-2] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:28:57.087 [scheduler-6] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:29:57.228 [scheduler-7] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:30:57.364 [scheduler-4] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:31:57.500 [scheduler-6] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:32:53.959 [scheduler-3] INFO  c.c.api.service.PortfolioSyncService - PortfolioManager totalCapital 동기화: 1000000 → 1000000 KRW
+19:32:57.637 [scheduler-1] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:33:57.773 [scheduler-3] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:34:57.909 [scheduler-2] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:35:58.051 [scheduler-6] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:36:58.209 [scheduler-4] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:37:53.968 [scheduler-8] INFO  c.c.api.service.PortfolioSyncService - PortfolioManager totalCapital 동기화: 1000000 → 1000000 KRW
+19:37:58.358 [scheduler-4] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:38:58.504 [scheduler-1] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:39:58.645 [scheduler-3] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:40:53.582 [scheduler-1] ERROR c.c.a.news.source.CryptoPanicSource - [CryptoPanicSource] 수집 실패: null
+19:40:53.583 [scheduler-1] WARN  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 미완료 — sourceId=cryptopanic 결과=FAILED 종류=ConnectException 판정=2026-11-06T10:40:53.582722500Z 받은=0건 신규=0건
+19:40:53.584 [scheduler-1] ERROR c.c.a.news.source.UpbitNoticeSource - [UpbitNoticeSource] 수집 실패: null
+19:40:53.584 [scheduler-1] WARN  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 미완료 — sourceId=upbit_notice 결과=FAILED 종류=ConnectException 판정=2026-11-06T10:40:53.584816200Z 받은=0건 신규=0건
+19:40:58.787 [scheduler-1] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:41:58.937 [scheduler-1] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:42:53.984 [scheduler-4] INFO  c.c.api.service.PortfolioSyncService - PortfolioManager totalCapital 동기화: 1000000 → 1000000 KRW
+19:42:59.066 [scheduler-3] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:43:59.217 [scheduler-4] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:44:59.376 [scheduler-8] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:45:59.514 [scheduler-3] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:46:59.672 [scheduler-4] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:47:54.001 [scheduler-6] INFO  c.c.api.service.PortfolioSyncService - PortfolioManager totalCapital 동기화: 1000000 → 1000000 KRW
+19:47:59.828 [scheduler-3] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:48:59.984 [scheduler-6] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:50:00.118 [scheduler-3] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:50:00.628 [http-nio-18081-exec-6] INFO  c.c.api.service.PortfolioSyncService - PortfolioManager totalCapital 동기화: 1000000 → 1000000 KRW
+19:50:00.659 [http-nio-18081-exec-6] INFO  c.c.api.service.LiveTradingService - 실전매매 세션 시작: id=203 DAILY_SMA20 KRW-BTC H1
+19:50:00.664 [http-nio-18081-exec-6] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+19:50:00.670 [http-nio-18081-exec-6] INFO  c.c.a.service.WsSubscriptionManager - [WsSubscription] 구독 갱신: 1개 코인 [KRW-BTC] (소스별: {LIVE=[KRW-BTC]})
+19:50:00.672 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+19:50:00.674 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:50:00.674 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 1000ms 후 WebSocket 재연결 시도
+19:50:01.688 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+19:50:01.696 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+19:50:01.696 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:50:01.697 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 2000ms 후 WebSocket 재연결 시도
+19:50:02.428 [scheduler-4] WARN  c.c.api.service.LiveTradingService - [§9] WS 이상(끊김/틱정지) >30초 지속 — REST ticker fallback 활성화 (감시 코인 1개 [KRW-BTC])
+19:50:03.699 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+19:50:03.708 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+19:50:03.708 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:50:03.708 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 4000ms 후 WebSocket 재연결 시도
+19:50:07.712 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+19:50:07.722 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+19:50:07.722 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:50:07.722 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 8000ms 후 WebSocket 재연결 시도
+19:50:15.724 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+19:50:15.727 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+19:50:15.727 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:50:15.728 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 16000ms 후 WebSocket 재연결 시도
+19:50:31.742 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+19:50:31.746 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+19:50:31.746 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:50:31.746 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+19:50:39.071 [scheduler-4] INFO  c.c.api.service.RulesetRegistry - [Ruleset] 새 규칙 지문 등록: 7a87b94f9440 (LIVE)
+19:51:00.255 [scheduler-4] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:51:01.748 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+19:51:01.753 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+19:51:01.754 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:51:01.754 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+19:51:31.766 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+19:51:31.770 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+19:51:31.770 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:51:31.770 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+19:52:00.398 [scheduler-3] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:52:01.783 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+19:52:01.787 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+19:52:01.787 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:52:01.787 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+19:52:31.789 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+19:52:31.799 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+19:52:31.799 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:52:31.799 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+19:52:54.011 [scheduler-7] INFO  c.c.api.service.PortfolioSyncService - PortfolioManager totalCapital 동기화: 1000000 → 1000000 KRW
+19:53:00.556 [scheduler-7] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:53:01.800 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+19:53:01.805 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+19:53:01.805 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:53:01.805 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+19:53:31.810 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+19:53:31.816 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+19:53:31.817 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:53:31.817 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+19:54:00.686 [scheduler-3] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:54:01.831 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+19:54:01.835 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+19:54:01.835 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:54:01.835 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+19:54:31.847 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+19:54:31.852 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+19:54:31.853 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:54:31.853 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+19:55:00.817 [scheduler-2] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:55:01.859 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+19:55:01.867 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+19:55:01.867 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:55:01.867 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+19:55:31.880 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+19:55:31.885 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+19:55:31.885 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:55:31.885 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+19:56:00.953 [scheduler-8] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:56:01.898 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+19:56:01.904 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+19:56:01.905 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:56:01.905 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+19:56:31.912 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+19:56:31.919 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+19:56:31.919 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:56:31.919 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+19:57:01.089 [scheduler-8] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:57:01.934 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+19:57:01.941 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+19:57:01.942 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:57:01.942 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+19:57:31.954 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+19:57:31.957 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+19:57:31.957 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:57:31.957 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+19:57:54.020 [scheduler-1] INFO  c.c.api.service.PortfolioSyncService - PortfolioManager totalCapital 동기화: 1000000 → 1000000 KRW
+19:58:01.231 [scheduler-6] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:58:01.965 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+19:58:01.970 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+19:58:01.970 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:58:01.970 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+19:58:31.975 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+19:58:31.981 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+19:58:31.982 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:58:31.982 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+19:59:01.359 [scheduler-5] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+19:59:01.986 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+19:59:01.992 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+19:59:01.992 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:59:01.992 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+19:59:31.996 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+19:59:32.002 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+19:59:32.002 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:59:32.002 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+20:00:01.491 [scheduler-3] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 7 건
+20:00:02.011 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+20:00:02.014 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+20:00:02.014 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+20:00:02.015 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+20:00:32.026 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+20:00:32.032 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+20:00:32.032 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+20:00:32.032 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+20:00:39.348 [scheduler-5] INFO  c.c.api.service.EntryPriorityRounds - [진입 우선순위] 후보 접수 (마감 2026-11-06T11:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-06T10:00:00Z] LIVE#203 KRW-BTC (회차 후보 1건)
+20:01:01.639 [scheduler-6] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+20:01:02.036 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+20:01:02.041 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+20:01:02.041 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+20:01:02.041 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+20:01:32.053 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+20:01:32.058 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+20:01:32.058 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+20:01:32.058 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+20:02:01.781 [scheduler-4] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+20:02:02.062 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+20:02:02.066 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+20:02:02.066 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+20:02:02.066 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+20:02:32.080 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+20:02:32.084 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+20:02:32.084 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+20:02:32.084 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+20:02:54.026 [scheduler-8] INFO  c.c.api.service.PortfolioSyncService - PortfolioManager totalCapital 동기화: 1000000 → 1000000 KRW
+20:03:01.916 [scheduler-2] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+20:03:02.098 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+20:03:02.103 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+20:03:02.103 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+20:03:02.103 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+20:03:32.114 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+20:03:32.118 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+20:03:32.118 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+20:03:32.118 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+20:04:02.064 [scheduler-6] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+20:04:02.125 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+20:04:02.133 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+20:04:02.133 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+20:04:02.133 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+20:04:32.136 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+20:04:32.144 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+20:04:32.144 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+20:04:32.144 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+20:05:02.150 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+20:05:02.154 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+20:05:02.154 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+20:05:02.154 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+20:05:02.213 [scheduler-5] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+20:05:03.923 [scheduler-8] INFO  c.c.api.service.EntryPriorityRounds - [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-06T10:00:00Z] — 후보 1건, 승인 순서 [KRW-BTC(LIVE#203)]
+20:05:03.978 [scheduler-8] INFO  c.c.a.s.CapitalReservationService - 자금 예약 (sessionId=203): 예약(LIVE): 세션 20200.00 → 200.00, 풀: 슬롯 0+1≤3, 노출 0+20000.00≤100000 | 계좌: 총잔고 1000000 − 열린 매수 0 − 스냅숏 후 종결 0 − 세션 보유 0 = 여력 1000000 | 손실 한도: 단계 STAGE_1(시작 2026-11-06T10:07:36.830934Z) 순자산 변화 0.00 [현금 0.00 + 보유 0.00, 포지션 0] | 24시간 변화 0.00 (기준 0.00, 단계 시작) | 한도 누적 −15000.00 · 24시간 −3000.00 (총 자본 100000.00 고정)
+20:05:04.002 [scheduler-8] INFO  c.c.api.service.LiveTradingService - 실전 매수 주문 (sessionId=203): KRW-BTC 0.00163198개 @ 12255000.00000000 사유: 전략 신호: DAILY_SMA20 -- 일봉 2026-11-06 종가 12250000.00000000 > SMA20 11110000 — 보유
+20:05:04.008 [scheduler-8] INFO  c.c.api.service.EntryPriorityRounds - [진입 우선순위] 1위 KRW-BTC LIVE#203 → 진입
+20:05:04.029 [order-exec-1] INFO  c.c.exchange.upbit.UpbitOrderClient - 주문 생성 요청: market=KRW-BTC, side=bid, volume=null, price=20000.00000000, type=price, identifier=cat-8bc9a544-2587-44a3-9a91-24ca8717d098
+20:05:04.041 [order-exec-1] INFO  c.c.exchange.upbit.UpbitOrderClient - 주문 생성 성공: uuid=4f0f7f7a-39f6-4b06-81b7-83fa601d2f11, market=KRW-BTC, side=bid
+20:05:04.043 [order-exec-1] INFO  c.c.api.service.OrderExecutionEngine - 거래소 주문 제출 완료 (orderId=1, exchangeId=4f0f7f7a-39f6-4b06-81b7-83fa601d2f11, initialState=done)
+20:05:04.046 [order-exec-1] INFO  c.c.api.service.OrderExecutionEngine - 주문 상태 전이 (orderId=1): SUBMITTING → SUBMITTED
+20:05:08.273 [scheduler-1] INFO  c.c.a.service.OrderSettlementService - 정산 잔액 조정 (orderId=1): 미사용 복원 Δ390.20 (요청=20000.00000000 체결=19600.00000000 수수료=9.80000000)
+20:05:08.280 [scheduler-1] INFO  c.c.a.service.OrderSettlementService - 체결 회계 반영 (orderId=1): 수량 Δ0.00160000 체결금액 Δ19600.00000000 수수료 Δ9.80000000 평균단가=12250000.00000000 (출처=REPORTED)
+20:05:15.529 [http-nio-18081-exec-10] INFO  c.c.api.service.PortfolioSyncService - PortfolioManager totalCapital 동기화: 1000000 → 980390.20000000 KRW
+20:05:15.540 [http-nio-18081-exec-10] WARN  c.c.a.c.GlobalExceptionHandler - 세션 상태 오류: 세션이 이미 실행 중입니다: id=203
+20:05:29.428 [scheduler-8] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=0)
+20:05:32.167 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+20:05:32.176 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+20:05:32.176 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+20:05:32.176 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+20:05:34.432 [scheduler-7] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=0)
+20:05:39.440 [scheduler-7] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=0)
+20:05:44.449 [scheduler-7] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=0)
+20:05:49.455 [scheduler-7] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=0)
+20:05:54.470 [scheduler-8] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=0)
+20:05:59.474 [scheduler-1] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=0)
+20:06:02.188 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+20:06:02.192 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+20:06:02.192 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+20:06:02.192 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+20:06:02.341 [scheduler-4] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+20:06:04.483 [scheduler-1] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=0)
+20:06:09.494 [scheduler-1] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=0)
+20:06:14.509 [scheduler-2] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=0)
+20:06:19.517 [scheduler-7] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=0)
+20:06:24.524 [scheduler-2] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=0)
+20:06:29.537 [scheduler-3] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=0)
+20:06:31.045 [scheduler-6] WARN  c.c.api.service.HeldMarkRefresher - [시세 보강] 시세 항목 건너뜀 — 가격이 아님 (부호=0)
+20:06:31.185 [scheduler-6] INFO  c.c.api.service.HeldMarkRefresher - [시세 보강] 호가로 보강한 보유 [KRW-BTC] — 보유량을 매수호가에 채운 평균 가격으로 관측
+20:06:32.203 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+20:06:32.208 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+20:06:32.209 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+20:06:32.209 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+20:06:34.547 [scheduler-1] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=0)
+20:06:39.563 [scheduler-3] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=0)
+20:06:44.580 [scheduler-1] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=0)
+20:06:49.583 [scheduler-1] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=0)
+20:06:54.591 [scheduler-3] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=0)
+20:06:59.600 [scheduler-6] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=0)
+20:07:02.212 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+20:07:02.222 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+20:07:02.222 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+20:07:02.222 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+20:07:02.489 [scheduler-1] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+20:07:04.607 [scheduler-6] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=0)
+20:07:09.613 [scheduler-6] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=0)
+20:07:14.625 [scheduler-3] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=0)
+20:07:19.634 [scheduler-3] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=0)
+20:07:24.639 [scheduler-3] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=0)
+20:07:29.653 [scheduler-8] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=0)
+20:07:31.230 [scheduler-2] WARN  c.c.api.service.HeldMarkRefresher - [시세 보강] 시세 항목 건너뜀 — 가격이 아님 (부호=0)
+20:07:31.366 [scheduler-2] INFO  c.c.api.service.HeldMarkRefresher - [시세 보강] 호가로 보강한 보유 [KRW-BTC] — 보유량을 매수호가에 채운 평균 가격으로 관측
+20:07:32.233 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+20:07:32.238 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+20:07:32.238 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+20:07:32.240 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+20:07:34.665 [scheduler-8] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=0)
+20:07:39.680 [scheduler-8] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=음수)
+20:07:44.694 [scheduler-6] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=음수)
+20:07:49.702 [scheduler-6] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=음수)
+20:07:54.047 [scheduler-3] INFO  c.c.api.service.PortfolioSyncService - PortfolioManager totalCapital 동기화: 980390.20000000 → 980390.20000000 KRW
+20:07:54.710 [scheduler-2] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=음수)
+20:07:59.723 [scheduler-4] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=음수)
+20:08:02.253 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+20:08:02.257 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+20:08:02.257 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+20:08:02.257 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+20:08:02.641 [scheduler-8] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+20:08:04.731 [scheduler-1] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=음수)
+20:08:09.747 [scheduler-4] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=음수)
+20:08:14.756 [scheduler-2] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=음수)
+20:08:19.769 [scheduler-2] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=음수)
+20:08:24.782 [scheduler-2] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=음수)
+20:08:29.790 [scheduler-4] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=음수)
+20:08:31.403 [scheduler-5] WARN  c.c.api.service.HeldMarkRefresher - [시세 보강] 시세 항목 건너뜀 — 가격이 아님 (부호=음수)
+20:08:31.545 [scheduler-5] INFO  c.c.api.service.HeldMarkRefresher - [시세 보강] 호가로 보강한 보유 [KRW-BTC] — 보유량을 매수호가에 채운 평균 가격으로 관측
+20:08:32.265 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+20:08:32.270 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+20:08:32.270 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+20:08:32.270 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+20:08:34.804 [scheduler-4] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=음수)
+20:08:39.809 [scheduler-4] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=음수)
+20:08:44.825 [scheduler-3] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=음수)
+20:08:49.836 [scheduler-3] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=음수)
+20:08:53.566 [scheduler-8] INFO  c.c.a.s.MarketRegimeAwareScheduler - [RegimeScheduler] 시장 상태 감지 시작 (KRW-BTC H1)
+20:08:54.226 [scheduler-3] WARN  c.c.api.service.LiveTradingService - [§9] SL 미점검 경고: sessionId=203 coin=KRW-BTC 마지막체크=2026-11-06T11:05:24.423106100Z (3분 초과)
+20:08:54.228 [scheduler-3] WARN  c.c.api.service.LiveTradingService - [§9] REST 강제 갱신 시세가 가격이 아님 — 발행하지 않음 (market=KRW-BTC, trade_price=-5.0)
+20:08:54.847 [scheduler-1] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=음수)
+20:08:59.856 [scheduler-8] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=음수)
+20:09:02.283 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+20:09:02.286 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+20:09:02.286 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+20:09:02.286 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+20:09:02.790 [scheduler-4] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+20:09:04.860 [scheduler-7] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=음수)
+20:09:09.866 [scheduler-8] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=음수)
+20:09:14.871 [scheduler-1] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=음수)
+20:09:19.882 [scheduler-1] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=음수)
+20:09:24.886 [scheduler-1] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=음수)
+20:09:29.895 [scheduler-8] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=음수)
+20:09:31.589 [scheduler-5] WARN  c.c.api.service.HeldMarkRefresher - [시세 보강] 시세 항목 건너뜀 — 가격이 아님 (부호=음수)
+20:09:31.728 [scheduler-5] INFO  c.c.api.service.HeldMarkRefresher - [시세 보강] 호가로 보강한 보유 [KRW-BTC] — 보유량을 매수호가에 채운 평균 가격으로 관측
+20:09:32.293 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+20:09:32.299 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+20:09:32.299 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+20:09:32.299 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+20:09:34.899 [scheduler-8] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=음수)
+20:09:39.905 [scheduler-8] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=음수)
+20:09:44.919 [scheduler-6] WARN  c.c.api.service.LiveTradingService - [§9] REST 폴백 시세 항목 건너뜀 — 가격이 아님 (부호=음수)
+20:09:49.941 [market-data-2] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동 (WS): sessionId=203, KRW-BTC, 손익=-5.306100%
+20:09:49.945 [market-data-2] INFO  c.c.api.service.LiveTradingService - 실전 매도 주문 제출 (sessionId=203): KRW-BTC 0.00160000개 (CLOSING 상태, 체결 대기)
+20:09:49.945 [order-exec-2] INFO  c.c.api.service.OrderExecutionEngine - 주문 제출 요청: KRW-BTC SELL MARKET 수량=0.00160000
+20:09:49.967 [order-exec-2] INFO  c.c.api.service.OrderExecutionEngine - 매도 수량 결정: 포지션=0.00160000, 가용잔고=0.00160000, 잠금잔고=0, 사용=0.00160000 (BTC)
+20:09:49.967 [order-exec-2] INFO  c.c.exchange.upbit.UpbitOrderClient - 주문 생성 요청: market=KRW-BTC, side=ask, volume=0.00160000, price=null, type=market, identifier=cat-91a31ee1-ffc8-4c49-8a88-0332c55f14e8
+20:09:49.970 [order-exec-2] INFO  c.c.exchange.upbit.UpbitOrderClient - 주문 생성 성공: uuid=b15c2950-b83c-40bb-a0c6-24ace16bb84d, market=KRW-BTC, side=ask
+20:09:49.971 [order-exec-2] INFO  c.c.api.service.OrderExecutionEngine - 거래소 주문 제출 완료 (orderId=2, exchangeId=b15c2950-b83c-40bb-a0c6-24ace16bb84d, initialState=done)
+20:09:49.973 [order-exec-2] INFO  c.c.api.service.OrderExecutionEngine - 주문 상태 전이 (orderId=2): SUBMITTING → SUBMITTED
+20:09:52.243 [scheduler-2] INFO  c.c.api.service.LegacySellPolicy - [판별 불가 매도] 경계 = V87 설치 시각 2026-11-06T10:07:27.262072Z — 그 전에 만든 반영 표시 없는 매도는 자동 반영하지 않는다
+20:09:54.183 [scheduler-4] INFO  c.c.api.service.OrderExecutionEngine - 주문 상태 전이 (orderId=2): SUBMITTED → FILLED
+20:09:54.183 [scheduler-4] INFO  c.c.api.service.OrderExecutionEngine - 체결 처리 시작 (orderId=2, KRW-BTC SELL 0.00160000)
+20:09:57.264 [scheduler-6] INFO  c.c.api.service.LiveTradingService - 매도 체결 확정 (sessionId=203, posId=1, partial=false): KRW-BTC 0.00160000개 @ 11600000.00000000 손익=-1047.4240000000000000 수수료=7.42400000
+20:09:57.266 [scheduler-6] INFO  c.c.a.service.ExecutionDriftTracker - [DriftTracker] DAILY_SMA20 SELL 체결 — 신호가:11600000.00000000 체결가:11600000.00000000 slippage:0.000000%
+20:10:02.303 [upbit-ws-scheduler] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+20:10:02.308 [ForkJoinPool.commonPool-worker-1] ERROR c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 실패: java.net.ConnectException
+java.util.concurrent.CompletionException: java.net.ConnectException
+	at java.base/java.util.concurrent.CompletableFuture.encodeRelay(CompletableFuture.java:368)
+	at java.base/java.util.concurrent.CompletableFuture.completeRelay(CompletableFuture.java:377)
+	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1152)
+	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.ConnectException: null
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1055)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.checkRetryConnect(PlainHttpConnection.java:230)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:206)
+	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
+	at java.base/java.util.concurrent.CompletableFuture$UniHandle.tryFire(CompletableFuture.java:911)
+	... 5 common frames omitted
+Caused by: java.nio.channels.ClosedChannelException: null
+	at java.base/sun.nio.ch.SocketChannelImpl.ensureOpen(SocketChannelImpl.java:195)
+	at java.base/sun.nio.ch.SocketChannelImpl.beginConnect(SocketChannelImpl.java:760)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:848)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
+	... 9 common frames omitted
+20:10:02.308 [ForkJoinPool.commonPool-worker-1] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+20:10:02.308 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - 30000ms 후 WebSocket 재연결 시도
+20:10:02.947 [scheduler-2] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 6 건
+20:10:22.305 [http-nio-18081-exec-5] INFO  c.c.api.service.LiveTradingService - 실전매매 세션 정지: id=203 최종 자산: 19142.78 KRW
+20:10:22.308 [http-nio-18081-exec-5] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+20:10:22.308 [http-nio-18081-exec-5] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 종료 (scheduler 유지 — 재연결 가능)
+20:10:22.308 [http-nio-18081-exec-5] INFO  c.c.a.service.WsSubscriptionManager - [WsSubscription] 구독 해제 (모든 소스 비어 있음)
+20:10:53.633 [scheduler-6] ERROR c.c.a.n.s.CoinGeckoTrendingSource - [CoinGeckoTrendingSource] 수집 실패: null
+20:10:53.634 [scheduler-6] WARN  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 미완료 — sourceId=coingecko_trending 결과=FAILED 종류=ConnectException 판정=2026-11-06T11:10:53.633754800Z 받은=0건 신규=0건
+20:10:53.635 [scheduler-6] ERROR c.c.api.news.source.RssNewsSource - [RssNewsSource] 수집 실패 — sourceId=tokenpost_rss: null
+20:10:53.635 [scheduler-6] WARN  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 미완료 — sourceId=tokenpost_rss 결과=FAILED 종류=ConnectException 판정=2026-11-06T11:10:53.635341600Z 받은=0건 신규=0건
+20:10:53.636 [scheduler-6] ERROR c.c.api.news.source.RssNewsSource - [RssNewsSource] 수집 실패 — sourceId=blockmedia_rss: null
+20:10:53.636 [scheduler-6] WARN  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 미완료 — sourceId=blockmedia_rss 결과=FAILED 종류=ConnectException 판정=2026-11-06T11:10:53.636367800Z 받은=0건 신규=0건
+20:10:53.639 [scheduler-6] ERROR c.c.a.news.source.CryptoPanicSource - [CryptoPanicSource] 수집 실패: null
+20:10:53.639 [scheduler-6] WARN  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 미완료 — sourceId=cryptopanic 결과=FAILED 종류=ConnectException 판정=2026-11-06T11:10:53.639473Z 받은=0건 신규=0건
+20:10:53.640 [scheduler-6] ERROR c.c.a.news.source.UpbitNoticeSource - [UpbitNoticeSource] 수집 실패: null
+20:10:53.640 [scheduler-6] WARN  c.c.api.news.NewsAggregatorService - [NewsAggregator] 수집 미완료 — sourceId=upbit_notice 결과=FAILED 종류=ConnectException 판정=2026-11-06T11:10:53.640502Z 받은=0건 신규=0건
