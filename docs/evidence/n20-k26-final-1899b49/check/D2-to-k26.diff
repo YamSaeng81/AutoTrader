@@ -1,0 +1,54 @@
+diff -r blocks-d2/U0.sh blocks-k26/U0.sh
+4,5c4,5
+< [ "$M" = "$HOME/maint-n20" ] && [ "${UB:-}" = N20D2 ] && [ "$NEW" = 1899b49f633f8aefdc66b15c42debdaba8b3852c ] && [ -n "${BTCIN:-}" ] && type sid203 > /dev/null 2>&1 && type newsobs > /dev/null 2>&1 && type httpobs > /dev/null 2>&1 && type holdobs > /dev/null 2>&1 && type entryobs > /dev/null 2>&1 && type n17obs > /dev/null 2>&1 && type n19obs > /dev/null 2>&1 && type n20obs > /dev/null 2>&1 || stop "변수 순서 — F 변수 → G 변수 → N20 초안 U 변수"
+< case "$IMGOLD" in sha256:*) ;; *) stop "IMGOLD 미정 — #25 결과 수용 뒤 실제 #25 이미지로 채운 판이 아님(초안 D1·D2 는 실행하지 않는다)" ;; esac
+---
+> [ "$M" = "$HOME/maint-n20" ] && [ "${UB:-}" = 98 ] && [ "$NEW" = 1899b49f633f8aefdc66b15c42debdaba8b3852c ] && [ -n "${BTCIN:-}" ] && type sid203 > /dev/null 2>&1 && type newsobs > /dev/null 2>&1 && type httpobs > /dev/null 2>&1 && type holdobs > /dev/null 2>&1 && type entryobs > /dev/null 2>&1 && type n17obs > /dev/null 2>&1 && type n19obs > /dev/null 2>&1 && type n20obs > /dev/null 2>&1 || stop "변수 순서 — F 변수 → G 변수 → §5-9 98 U 변수"
+> case "$IMGOLD" in sha256:*) ;; *) stop "IMGOLD 가 sha256: 이미지 ID 가 아님 — §5-9 98 U 변수 원문이 아님(초안 D1·D2 는 실행하지 않는다)" ;; esac
+diff -r blocks-d2/U1.sh blocks-k26/U1.sh
+4c4
+< [ "${UB:-}" = N20D2 ] || stop "U 변수가 N20 초안 D2 판이 아님 — F → G → N20 초안 U 변수"
+---
+> [ "${UB:-}" = 98 ] || stop "U 변수가 v1.130(§5-9 98 블록) #26 최종안 판이 아님 — F → G → §5-9 98 U 변수"
+diff -r blocks-d2/U2.sh blocks-k26/U2.sh
+4c4
+< [ "${UB:-}" = N20D2 ] || stop "U 변수가 N20 초안 D2 판이 아님 — F → G → N20 초안 U 변수"
+---
+> [ "${UB:-}" = 98 ] || stop "U 변수가 v1.130(§5-9 98 블록) #26 최종안 판이 아님 — F → G → §5-9 98 U 변수"
+diff -r blocks-d2/U3.sh blocks-k26/U3.sh
+4c4
+< [ "${UB:-}" = N20D2 ] || stop "U 변수가 N20 초안 D2 판이 아님 — F → G → N20 초안 U 변수"
+---
+> [ "${UB:-}" = 98 ] || stop "U 변수가 v1.130(§5-9 98 블록) #26 최종안 판이 아님 — F → G → §5-9 98 U 변수"
+diff -r blocks-d2/U4.sh blocks-k26/U4.sh
+4c4
+< [ "${UB:-}" = N20D2 ] || stop "U 변수가 N20 초안 D2 판이 아님 — F → G → N20 초안 U 변수"
+---
+> [ "${UB:-}" = 98 ] || stop "U 변수가 v1.130(§5-9 98 블록) #26 최종안 판이 아님 — F → G → §5-9 98 U 변수"
+diff -r "blocks-d2/U�\220\230�\217\214림.sh" "blocks-k26/U�\220\230�\217\214림.sh"
+4c4
+< [ "${UB:-}" = N20D2 ] || stop "U 변수가 N20 초안 D2 판이 아님 — F → G → N20 초안 U 변수"
+---
+> [ "${UB:-}" = 98 ] || stop "U 변수가 v1.130(§5-9 98 블록) #26 최종안 판이 아님 — F → G → §5-9 98 U 변수"
+diff -r "blocks-d2/U�\222��\200측.sh" "blocks-k26/U�\222��\200측.sh"
+4c4
+< [ "${UB:-}" = N20D2 ] || stop "U 변수가 N20 초안 D2 판이 아님 — F → G → N20 초안 U 변수"
+---
+> [ "${UB:-}" = 98 ] || stop "U 변수가 v1.130(§5-9 98 블록) #26 최종안 판이 아님 — F → G → §5-9 98 U 변수"
+diff -r "blocks-d2/U�\200�\210\230.sh" "blocks-k26/U�\200�\210\230.sh"
+1c1
+< M=~/maint-n20; mkdir -p "$M"; OPS=~/ops-scripts; UB=N20D2   # N20 다음 배포 초안 D2(미승인·실행 금지) 판 표지 — U 블록 전부가 확인한다. 후보 1899b49(출처 candidate/n20-held-mark-ee509cf). #25 기록 폴더 ~/maint-n19·#24 ~/maint-n17·#23 ~/maint-n15n16 은 읽기만 하고 덮어쓰지 않는다
+---
+> M=~/maint-n20; mkdir -p "$M"; OPS=~/ops-scripts; UB=98   # v1.130(§5-9 98 블록) #26 최종안 판 표지 — U 블록 전부가 확인한다. 총괄 최종 출처 검토·실행 판정 전에는 실행하지 않는다. 후보 1899b49(출처 candidate/n20-held-mark-ee509cf). #25 기록 폴더 ~/maint-n19·#24 ~/maint-n17·#23 ~/maint-n15n16 은 읽기만 하고 덮어쓰지 않는다
+3c3
+< IMGOLD=미정   # #25 배포 이미지(~/maint-n19/image-new.txt) — #25 결과 수용 뒤 실제 값으로 채운다. sha256: 로 시작하지 않으면 U0 가 멈춘다
+---
+> IMGOLD=sha256:200f2f5727e90204574fd9965a5cc06dfc5d317e98c13b200de2ac7201378ae6   # #25 배포 이미지(~/maint-n19/image-new.txt, v1.129 수용 값) — U0 가 실행 이미지·기록 파일과 같은지 확인한다. sha256: 로 시작하지 않으면 U0 가 멈춘다
+18c18
+<   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/HeldMarkRefresher.class')"   # 실제 로컬 bootJar 대조(N20 초안) — ee509cf·1899b49 jar 에서 새로 셈($Book 은 줄 번호만 다름)
+---
+>   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/HeldMarkRefresher.class')"   # 실제 로컬 bootJar 대조(N20 후보 1899b49) — ee509cf·1899b49 jar 에서 새로 셈($Book 은 줄 번호만 다름)
+355c355
+< # N20 줄 관측(초안 D2 — 1899b49 고정 문구). 인자: 앱 로그. 출력은 로그 머리 시각·사유·건수만(코인·값은 내지 않는다 — 문구에도 없다).
+---
+> # N20 줄 관측(§5-9 98 — 1899b49 고정 문구). 인자: 앱 로그. 출력은 로그 머리 시각·사유·건수만(코인·값은 내지 않는다 — 문구에도 없다).

@@ -1,0 +1,80 @@
+[
+  {
+    "stage": "u3",
+    "input": "normal",
+    "exit": 0,
+    "P0": false
+  },
+  {
+    "stage": "u3",
+    "input": "errto",
+    "exit": 1,
+    "P0": true
+  },
+  {
+    "stage": "u3",
+    "input": "warnto",
+    "exit": 1,
+    "P0": true
+  },
+  {
+    "stage": "u3",
+    "input": "causedto",
+    "exit": 1,
+    "P0": true
+  },
+  {
+    "stage": "u3",
+    "input": "lease",
+    "exit": 0,
+    "P0": false
+  },
+  {
+    "stage": "u3",
+    "input": "othererr",
+    "exit": 1,
+    "P0": false
+  },
+  {
+    "stage": "u4",
+    "input": "normal",
+    "exit": 0,
+    "P0": false
+  },
+  {
+    "stage": "u4",
+    "input": "errto",
+    "exit": 1,
+    "P0": true
+  },
+  {
+    "stage": "u4",
+    "input": "warnto",
+    "exit": 1,
+    "P0": true
+  },
+  {
+    "stage": "u4",
+    "input": "causedto",
+    "exit": 1,
+    "P0": true
+  },
+  {
+    "stage": "u4",
+    "input": "lease",
+    "exit": 0,
+    "P0": false
+  },
+  {
+    "stage": "u4",
+    "input": "othererr",
+    "exit": 1,
+    "P0": false
+  },
+  {
+    "stage": "u3-rollback",
+    "input": "ERROR timeout after explicit rollback",
+    "exit": 1,
+    "P0": true
+  }
+]

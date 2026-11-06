@@ -1,0 +1,47 @@
+{
+  "review_ref": "b7f90cec7b8067bf5981212acf345f0e8f5adbb2",
+  "manifests_worktree_and_git": {
+    "k25-result-ee509cf": 98,
+    "n03-1106-1000": 16,
+    "n20-d2-standin-1899b49": 808,
+    "n20-d1-review-7542a62": 8
+  },
+  "server_small_file_copies": 73,
+  "server_only_manifest_files": [
+    "app-after30.log",
+    "app-deploy.log",
+    "app-news-20261106-1140.log",
+    "backend-before.log",
+    "build.log"
+  ],
+  "fixed_execution_source": "342f461359b9e3c9d5941f6df95b905b65dce9a7 §92 UB=92",
+  "execution_blocks": 10,
+  "operating_head": "ee509cf855ffb8ebc1ed31f1c2bbe772d0545ce8",
+  "operating_image": "sha256:200f2f5727e90204574fd9965a5cc06dfc5d317e98c13b200de2ac7201378ae6",
+  "image_record": "~/maint-n19/image-new.txt",
+  "started_at": "2026-11-06T01:32:41.140275884Z",
+  "server_jar_changed": 3,
+  "jar_items": [
+    881,
+    881
+  ],
+  "N19_runtime_accepted": true,
+  "natural_N15_N16_N17_N19": "unobserved; not induced",
+  "operator_reply": "developer-preserved confirmation note; root did not independently observe live reply",
+  "P0_raw_log_recount": "developer report; 3 full saved logs remain server-only, root checked saved holdobs outputs and manifests",
+  "N03_server_original_copies": 4,
+  "phone_receipt": "unconfirmed",
+  "D2_cases": 13,
+  "D2_input_hashes": 10,
+  "D2_syntax": 8,
+  "D2_accepted": "local verification; final #26 source still to be prepared",
+  "not_executed": [
+    "SSH/server",
+    "DB",
+    "network",
+    "full stand-in rerun",
+    "product tests",
+    "Gradle",
+    "jar build"
+  ]
+}
