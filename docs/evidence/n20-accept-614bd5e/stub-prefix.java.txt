@@ -1,0 +1,85 @@
+import java.math.*;
+import java.time.*;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
+public class N20Accept {
+static final String A="KRW-N20A", B="KRW-N20B", C="KRW-N20C", RAW="N20_RAW_SECRET\nERROR FORGED";
+static final Instant NOW=Instant.parse("2026-11-06T00:00:00Z");
+static final BigDecimal QTY=new BigDecimal("10");
+static class Log {
+ final List<String> lines=new ArrayList<>();
+ void add(String level,String fmt,Object...args){for(Object a:args){int i=fmt.indexOf("{}");if(i>=0)fmt=fmt.substring(0,i)+a+fmt.substring(i+2);}lines.add(level+" "+fmt);}
+ void info(String f,Object...a){add("INFO",f,a);} void warn(String f,Object...a){add("WARN",f,a);}
+ void error(String f,Object...a){add("ERROR",f,a);} void debug(String f,Object...a){add("DEBUG",f,a);}
+}
+record Row(String c,BigDecimal q){String getString(int n){return c;}BigDecimal getBigDecimal(int n){return q;}}
+interface RowCallbackHandler{void processRow(Row r);}
+static class JdbcTemplate {
+ final Map<String,BigDecimal> held=new TreeMap<>();boolean fail;
+ void query(String sql,RowCallbackHandler cb){if(fail)throw new IllegalStateException(RAW);held.forEach((c,q)->cb.processRow(new Row(c,q)));}
+ @SuppressWarnings("unchecked") <T>T queryForObject(String sql,Class<T> t,Object...a){return (T)held.get((String)a[0]);}
+}
+static class TelegramNotificationService {
+ final List<String> messages=new ArrayList<>();boolean fail;
+ void sendCustomNotification(String m){messages.add(m);if(fail)throw new IllegalStateException(RAW);}
+}
+static class UpbitRestClient {
+ List<Map<String,Object>> ticker;String mode="DEEP";boolean transport;
+ final List<String> booksCalled=new ArrayList<>();
+ List<Map<String,Object>> getTicker(String markets)throws Exception{if(transport)throw new Exception(RAW);return ticker;}
+ List<Map<String,Object>> getOrderbook(String coin)throws Exception{
+  booksCalled.add(coin);if(mode.equals("FAIL"))throw new Exception(RAW);
+  return List.of(Map.of("timestamp",NOW.toEpochMilli(),"orderbook_units",List.of(Map.of("bid_price",new BigDecimal("99"),"bid_size",new BigDecimal(mode.equals("SHALLOW")?"3":"50")))));
+ }
+}
+static Map<String,Object> ticker(Object c,Object p){Map<String,Object> m=new LinkedHashMap<>();m.put("market",c);m.put("trade_price",p);m.put("trade_timestamp",NOW.minusSeconds(5).toEpochMilli());return m;}
+static void ok(boolean b,String m){if(!b)throw new AssertionError(m);}
+static void noRaw(HeldMarkRefresher r,HeldMarkRefresher.Result x,TelegramNotificationService tg){
+ String s=HeldMarkRefresher.log.lines.toString()+tg.messages+(x==null?"":x.error())+r.failingSince();
+ ok(!s.contains("N20_RAW_SECRET")&&!s.contains("ERROR FORGED")&&!s.contains("\n")&&!s.contains("\r"),"raw message leaked");
+}
+static void run(String kind,String mode,int ageC,int ageB){
+ JdbcTemplate jdbc=new JdbcTemplate();for(String c:List.of(A,B,C))jdbc.held.put(c,QTY);
+ boolean internal=kind.equals("INTERNAL");
+ MarkPriceBook marks=internal?new MarkPriceBook(){@Override public boolean observe(String c,BigDecimal p,Instant a,Instant r,String s){if(B.equals(c))throw new IllegalStateException(RAW);return super.observe(c,p,a,r,s);}}:new MarkPriceBook();
+ marks.jdbc=jdbc;
+ HeldMarkRefresher r=new HeldMarkRefresher(marks,jdbc);UpbitRestClient rest=new UpbitRestClient();rest.mode=mode;r.setUpbitRestClient(rest);
+ TelegramNotificationService tg=new TelegramNotificationService();tg.fail=kind.equals("TGFAIL");r.telegram=tg;HeldMarkRefresher.log.lines.clear();
+ if(ageC>0)marks.observe(C,new BigDecimal("290"),NOW.minusSeconds(ageC),NOW.minusSeconds(ageC),MarkPriceBook.WS_TRADE);
+ if(ageB>0)marks.observe(B,new BigDecimal("190"),NOW.minusSeconds(ageB),NOW.minusSeconds(ageB),MarkPriceBook.WS_TRADE);
+ Object market=kind.equals("MARKET_NUM")?12345:B;
+ Object price=switch(kind){case "PRICE_ABC","TGFAIL"->"abc";case "ZERO"->BigDecimal.ZERO;case "NEG"->BigDecimal.ONE.negate();default->new BigDecimal("200");};
+ rest.ticker=List.of(ticker(A,new BigDecimal("100")),ticker(market,price),ticker(C,new BigDecimal("300")));
+ rest.transport=kind.equals("TRANSPORT");HeldMarkRefresher.Result x=r.refreshNow(NOW);
+ if(!rest.transport&&!internal){ok(x.byTrade().contains(C),"normal C missing");ok(marks.freshPrice(C,NOW).compareTo(new BigDecimal("300"))==0,"C trade price");ok(!rest.booksCalled.contains(C),"C book queried");}
+ if(kind.equals("CONTROL")){ok(x.byTrade().equals(List.of(A,B,C)),"control");ok(rest.booksCalled.isEmpty(),"control book");}
+ if(kind.equals("PRICE_ABC")||kind.equals("MARKET_NUM")){
+  ok(!x.byTrade().contains(B),"invalid B trade");
+  ok(HeldMarkRefresher.log.lines.stream().anyMatch(s->s.startsWith("WARN [시세 보강] 시세 항목 건너뜀")),"missing warning");
+  if(mode.equals("DEEP")){ok(x.byBook().equals(List.of(B)),"B book only");ok(x.unobserved().isEmpty()&&tg.messages.isEmpty(),"deep recovery");}
+  else ok(x.unobserved().equals(List.of(B)),"B unknown only");
+ }
+ if(kind.equals("ZERO")||kind.equals("NEG")){
+  ok(!x.byTrade().contains(B)&&rest.booksCalled.contains(B),"invalid price counted");
+  ok(marks.get(B).source().equals(mode.equals("FAIL")?MarkPriceBook.WS_TRADE:MarkPriceBook.REST_ORDERBOOK_DEPTH),"retained/book mark");
+  ok(x.unobserved().isEmpty(),"valid cache should remain valid");
+ }
+ if(internal){ok(x.byTrade().equals(List.of(A)),"internal failure swallowed");ok(x.error().startsWith("시세 처리 실패; "),"internal reason");ok(x.unobserved().equals(List.of(B,C)),"internal fallback");}
+ if(rest.transport){ok(x.unobserved().equals(List.of(A,B,C)),"transport not unknown");ok(tg.messages.size()==1,"failure alert");ok(x.error().startsWith("시세 조회 실패; "),"transport reason");}
+ if(tg.fail){ok(r.failingSince()!=null,"send failure cleared state");ok(HeldMarkRefresher.log.lines.stream().anyMatch(s->s.startsWith("WARN [시세 보강] 경보 전송 실패")),"send failure warning");}
+ noRaw(r,x,tg);
+ System.out.println("PASS "+kind+"/"+mode+" Ccache="+ageC+" Bcache="+ageB+" trade="+x.byTrade()+" book="+x.byBook()+" unknown="+x.unobserved()+" raw=false");
+}
+static void round(){
+ JdbcTemplate jdbc=new JdbcTemplate();jdbc.fail=true;MarkPriceBook b=new MarkPriceBook();HeldMarkRefresher r=new HeldMarkRefresher(b,jdbc);HeldMarkRefresher.log.lines.clear();r.refresh();
+ ok(HeldMarkRefresher.log.lines.equals(List.of("ERROR [시세 보강] 회차 오류 (종류=IllegalStateException)")),"round error");
+ System.out.println("PASS ROUND fixed ERROR raw=false");
+}
+public static void main(String[]args){
+ run("CONTROL","DEEP",0,0);run("PRICE_ABC","DEEP",0,0);run("MARKET_NUM","DEEP",0,0);
+ run("PRICE_ABC","SHALLOW",0,0);run("MARKET_NUM","FAIL",0,0);
+ run("PRICE_ABC","FAIL",90,0);run("PRICE_ABC","FAIL",130,0);
+ run("ZERO","DEEP",0,90);run("ZERO","FAIL",0,90);run("NEG","FAIL",0,90);
+ run("TRANSPORT","FAIL",0,0);run("INTERNAL","FAIL",0,0);run("TGFAIL","FAIL",0,0);round();
+}

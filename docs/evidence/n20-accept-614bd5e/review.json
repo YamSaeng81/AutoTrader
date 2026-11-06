@@ -1,0 +1,74 @@
+{
+  "review_ref": "614bd5ee3675cac867dc5ffd0d774027e9d7cad4",
+  "candidate": "1899b49f633f8aefdc66b15c42debdaba8b3852c",
+  "parent": "ee509cf855ffb8ebc1ed31f1c2bbe772d0545ce8",
+  "manifests_worktree_and_git": {
+    "n20-candidate-1899b49": 56,
+    "n20-review-9017d63": 8
+  },
+  "preserved_XML": {
+    "r1-fail-first-ee509cf": {
+      "totals": [
+        33,
+        31,
+        0,
+        0
+      ],
+      "classes": {
+        "com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest": 33
+      }
+    },
+    "r2-fix-related": {
+      "totals": [
+        114,
+        0,
+        0,
+        0
+      ],
+      "classes": {
+        "com.cryptoautotrader.api.service.N16InvalidPriceReproTest": 13,
+        "com.cryptoautotrader.api.service.N17RestInvalidPriceTest": 24,
+        "com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest": 23,
+        "com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest": 33,
+        "com.cryptoautotrader.api.service.PoolLossLimitTest": 21
+      }
+    }
+  },
+  "same_test_before_after_and_committed": true,
+  "production_paths": [
+    "web-api/src/main/java/com/cryptoautotrader/api/service/HeldMarkRefresher.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/N20HeldMarkItemIsolationTest.java"
+  ],
+  "root_original_class_body_stub_inputs": 14,
+  "actual_jar_hashes": [
+    "4f4f42aa058c34a15e438ba9048a9f94c49b2963a8bd72c5eb1ca3d5fbd6f4ec",
+    "74fd7c835ee7edf521496c2117522260b3d303f8aa6b6a18a59cce4901452091"
+  ],
+  "actual_jar_changed_items": 2,
+  "jar_counts": [
+    881,
+    881
+  ],
+  "Book_javap_code_equal": true,
+  "draft_bash_n": [
+    "U0.sh",
+    "U1.sh",
+    "U2.sh",
+    "U3.sh",
+    "U4.sh",
+    "U되돌림.sh",
+    "U뒤관측.sh",
+    "U변수.sh"
+  ],
+  "draft_approved": false,
+  "parser_from_preserved_XML": "N20 보유 시세 보강 — 항목 형식 14·항목 가격 아님 8·항목 코인 형식 5·시세 처리 실패 1·회차 오류 1·경보 전송 실패 1·호가 보강 10",
+  "not_executed": [
+    "server",
+    "DB",
+    "network",
+    "Gradle/Spring",
+    "reservation/order/sell",
+    "jar build",
+    "deployment"
+  ]
+}

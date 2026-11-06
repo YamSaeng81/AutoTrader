@@ -1,0 +1,25 @@
+총괄 확인기 실행 이력 — 제품 시험 실패가 아니다.
+
+사전 확인 명령: PowerShell python -c 인용 전달 오류
+  File "<string>", line 1
+    import pathlib,re,xml.etree.ElementTree as E; p=pathlib.Path(docs/evidence/n20-candidate-1899b49/runs/r2-fix-related/xml/TEST-com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest.xml); ...
+SyntaxError: invalid decimal literal
+판정: PowerShell에서 문자열의 따옴표가 전달되지 않았다. 이후 파일 기반 확인기 사용.
+
+확인기 실행 1:
+  File "docs/evidence/n20-accept-614bd5e/review.py", line 55, in <module>
+    n20 = next(s for s in suites if s.get('name').endswith('N20HeldMarkItemIsolationTest'))
+StopIteration
+판정: testsuite name은 한국어 표시 이름이다. testcase classname으로 클래스 식별만 수정.
+
+확인기 실행 2:
+  File "docs/evidence/n20-accept-614bd5e/review.py", line 57, in <module>
+    assert len(rows) == 33
+AssertionError
+판정: 실패 먼저의 수명주기 시험은 마지막 출력 전에 실패하므로 기록 32행, 시험은 33건. 수정 후는 33행.
+
+확인기 실행 3: 통과
+{"manifests": {"n20-candidate-1899b49": 56, "n20-review-9017d63": 8}, "XML": [33, 31, 114, 0], "root_stub_inputs": 14, "jar": [2, 881, 881], "draft_syntax": 8}
+
+확인기 실행 4: $Book javap 코드 동일성·관측기 인자 없음/호가만 대조군을 추가한 뒤 통과.
+같은 요약 결과. 새 제품 시험·빌드·서버 실행 없음.

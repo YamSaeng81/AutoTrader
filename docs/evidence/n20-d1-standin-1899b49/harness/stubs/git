@@ -1,0 +1,18 @@
+#!/bin/bash
+# 가짜 git — HEAD 는 $SIM/state/HEAD. 실제 git·원격 접속을 부르지 않는다.
+. "$(dirname "$0")/_lib.sh"; calllog git "$@"
+[ -f "$SIM/env.sh" ] && . "$SIM/env.sh"
+OLDC=ee509cf855ffb8ebc1ed31f1c2bbe772d0545ce8; NEWC=1899b49f633f8aefdc66b15c42debdaba8b3852c
+QSC=fa0691e647b61f6df4a85bdf796996f50470185e
+case "$1" in
+  rev-parse) [ "$2" = HEAD ] && cat "$ST/HEAD" || forbid git-rev-parse "$@" ;;
+  status) [ -n "${DIRTY:-}" ] && echo " M $DIRTY"; exit 0 ;;
+  fetch) echo "(대역) fetch 하지 않음" >&2 ;;
+  cat-file) case "$3" in "$NEWC^{commit}"|"$OLDC^{commit}") exit 0 ;; *) exit 1 ;; esac ;;
+  merge-base) [ "$2" = --is-ancestor ] && [ "$3" = "$OLDC" ] && [ "$4" = "$NEWC" ] ;;
+  diff) [ "$2" = --name-only ] && [ "$3" = "$OLDC" ] && [ "$4" = "$NEWC" ] || forbid git-diff "$@"
+        printf '%s\n' web-api/src/main/java/com/cryptoautotrader/api/service/HeldMarkRefresher.java web-api/src/test/java/com/cryptoautotrader/api/service/N20HeldMarkItemIsolationTest.java ${DIFF_EXTRA:-} ;;
+  checkout) [ "$2" = --quiet ] || forbid git-checkout "$@"; case "$3" in "$OLDC"|"$NEWC") echo "$3" > "$ST/HEAD" ;; *) echo "대역: 모르는 커밋 $3" >&2; exit 1 ;; esac ;;
+  show) case "$2" in "$QSC:scripts/ops/maint_checks.sql") cat "$SIM/fix/maint_checks.sql" ;; "$QSC:scripts/ops/maint_verify.py") cat "$SIM/fix/maint_verify.py" ;; *) forbid git-show "$@" ;; esac ;;
+  *) forbid "git-$1" "$@" ;;
+esac

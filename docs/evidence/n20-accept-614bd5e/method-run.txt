@@ -1,0 +1,14 @@
+PASS CONTROL/DEEP Ccache=0 Bcache=0 trade=[KRW-N20A, KRW-N20B, KRW-N20C] book=[] unknown=[] raw=false
+PASS PRICE_ABC/DEEP Ccache=0 Bcache=0 trade=[KRW-N20A, KRW-N20C] book=[KRW-N20B] unknown=[] raw=false
+PASS MARKET_NUM/DEEP Ccache=0 Bcache=0 trade=[KRW-N20A, KRW-N20C] book=[KRW-N20B] unknown=[] raw=false
+PASS PRICE_ABC/SHALLOW Ccache=0 Bcache=0 trade=[KRW-N20A, KRW-N20C] book=[] unknown=[KRW-N20B] raw=false
+PASS MARKET_NUM/FAIL Ccache=0 Bcache=0 trade=[KRW-N20A, KRW-N20C] book=[] unknown=[KRW-N20B] raw=false
+PASS PRICE_ABC/FAIL Ccache=90 Bcache=0 trade=[KRW-N20A, KRW-N20C] book=[] unknown=[KRW-N20B] raw=false
+PASS PRICE_ABC/FAIL Ccache=130 Bcache=0 trade=[KRW-N20A, KRW-N20C] book=[] unknown=[KRW-N20B] raw=false
+PASS ZERO/DEEP Ccache=0 Bcache=90 trade=[KRW-N20A, KRW-N20C] book=[KRW-N20B] unknown=[] raw=false
+PASS ZERO/FAIL Ccache=0 Bcache=90 trade=[KRW-N20A, KRW-N20C] book=[] unknown=[] raw=false
+PASS NEG/FAIL Ccache=0 Bcache=90 trade=[KRW-N20A, KRW-N20C] book=[] unknown=[] raw=false
+PASS TRANSPORT/FAIL Ccache=0 Bcache=0 trade=[] book=[] unknown=[KRW-N20A, KRW-N20B, KRW-N20C] raw=false
+PASS INTERNAL/FAIL Ccache=0 Bcache=0 trade=[KRW-N20A] book=[] unknown=[KRW-N20B, KRW-N20C] raw=false
+PASS TGFAIL/FAIL Ccache=0 Bcache=0 trade=[KRW-N20A, KRW-N20C] book=[] unknown=[KRW-N20B] raw=false
+PASS ROUND fixed ERROR raw=false

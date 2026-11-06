@@ -1,0 +1,16 @@
+--- [s6] U3 rollback (꼬리 rollback, 되돌림 뒤 345초)
+autotrader-backend-1 sha256:458a9c71e21d Up (대역)
+N20 보유 시세 보강 — 항목 형식 0·항목 가격 아님 0·항목 코인 형식 0·시세 처리 실패 0·회차 오류 0·경보 전송 실패 0·호가 보강 0
+N20: 미관측 — 이 구간에 자연 발생한 시세 보강 항목 건너뜀·처리 실패·회차 오류·경보 전송 실패 없음(유도하지 않는다)
+✅ U3(rollback) 통과 — ee509cf 복귀 확인. U4 는 하지 않고 출력을 보고
+[대역 끝] rc=0 · 가짜 시각 10:36:45
+app-rollback.log btc-rollback.txt entryobs-rollback.txt errors-all-rollback.txt errors-news-rollback.txt errors-rollback.txt git-rollback.txt holdobs-rollback.txt httpobs-rollback.txt n17obs-rollback.txt n19obs-rollback.txt n20obs-rollback.txt news-rollback.txt newsobs-rollback.txt obs-rollback.txt ok-U0 ok-U1 ok-U2 ok-U3-rollback q-rollback.txt s-rollback.txt svc-rollback.txt t-rollback.txt t-rollback.utc 
+✅ U0 통과 — 30분 안에 U1
+✅ U1 통과 — ⏸ 운영자 확인 1회 뒤 U2
+✅ U2 통과 — 5~10분 뒤 U3
+--- [s7b] U3(WARN 수준 연결 획득 시간 초과 줄)
+HOLD 기준선 질의 장기 대여 경고 0건(반환 0·반환 미관측 0) · 그 밖의 장기 대여 경고 0건 · 연결 획득 시간 초과 줄 1건
+  · 🔴 연결 획득 시간 초과 10:33:00.000 scheduling-N
+🔴 멈춤: 🔴 P0 — 연결 획득 시간 초과 줄이 있다. 즉시 보고(되돌림 여부는 총괄 판단, U 되돌림 블록 준비됨)
+[대역 끝] rc=1 · 가짜 시각 10:31:00
+=== 금지 명령 기록 합계: 0줄

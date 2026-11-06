@@ -1,0 +1,33 @@
+1794014400	git	rev-parse HEAD 
+1794014400	git	status --porcelain --untracked-files=no 
+1794014400	git	rev-parse HEAD 
+1794014400	git	status --porcelain --untracked-files=no 
+1794014400	git	fetch origin 
+1794014400	git	cat-file -e 1899b49f633f8aefdc66b15c42debdaba8b3852c^{commit} 
+1794014400	git	merge-base --is-ancestor ee509cf855ffb8ebc1ed31f1c2bbe772d0545ce8 1899b49f633f8aefdc66b15c42debdaba8b3852c 
+1794014400	git	diff --name-only ee509cf855ffb8ebc1ed31f1c2bbe772d0545ce8 1899b49f633f8aefdc66b15c42debdaba8b3852c 
+1794014400	docker	compose -f docker-compose.prod.yml ps -q backend 
+1794014400	docker	inspect --format backend {{.Image}} {{.State.StartedAt}} cid-backend 
+1794014400	docker	compose -f docker-compose.prod.yml ps -q db 
+1794014400	docker	inspect --format db {{.Image}} {{.State.StartedAt}} cid-db 
+1794014400	docker	compose -f docker-compose.prod.yml ps -q redis 
+1794014400	docker	inspect --format redis {{.Image}} {{.State.StartedAt}} cid-redis 
+1794014400	docker	compose -f docker-compose.prod.yml ps -q db-backup 
+1794014400	docker	inspect --format db-backup {{.Image}} {{.State.StartedAt}} cid-db-backup 
+1794014400	docker	compose -f docker-compose.prod.yml ps -q frontend 
+1794014400	docker	inspect --format frontend {{.Image}} {{.State.StartedAt}} cid-frontend 
+1794014400	docker	compose -f docker-compose.prod.yml ps -q backend 
+1794014400	docker	inspect --format {{.Image}} cid-backend 
+1794014400	docker	image inspect --format {{.Id}} autotrader-backend:ea44900 
+1794014400	docker	image inspect --format {{.Id}} autotrader-backend:b1d7664 
+1794014400	docker	image inspect --format {{.Id}} autotrader-backend:6995c52 
+1794014400	docker	image inspect --format {{.Id}} autotrader-backend:fe01207 
+1794014400	docker	image inspect --format {{.Id}} autotrader-backend:1103f48 
+1794014400	docker	image inspect --format {{.Id}} autotrader-backend:7a94472 
+1794014400	docker	image inspect --format {{.Id}} autotrader-backend:latest 
+1794014400	docker	compose -f docker-compose.prod.yml exec -T backend env 
+1794014400	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -c SELECT max(version::int) FROM flyway_schema_history WHERE success 
+1794014400	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -c SHOW TimeZone 
+1794014400	docker	compose -f docker-compose.prod.yml exec -T backend date +%Y-%m-%d %H:%M:%S %Z %z 
+1794014400	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -c SELECT (SELECT count(*) FROM live_trading_session WHERE session_type = 'REAL' AND status IN ('RUNNING','PAUSED','CREATED')) || '|' ||            (SELECT count(*) FROM dynamic_session WHERE
+1794014400	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -c SELECT coalesce(string_agg(id || ':' || status, ',' ORDER BY id), '-') FROM live_trading_session WHERE session_type = 'REAL' AND status IN ('RUNNING','PAUSED','CREATED') 

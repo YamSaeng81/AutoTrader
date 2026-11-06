@@ -1,0 +1,141 @@
+대역 /d/tmp/n20d1sim/runs/s2-imgold-unset · 가짜 시각 2026-11-07 10:20:00 KST · IMGOLD 채움 no
+--- [s2] U0(IMGOLD=미정)
+🔴 멈춤: IMGOLD 미정 — #25 결과 수용 뒤 실제 #25 이미지로 채운 판이 아님(초안 D1 은 실행하지 않는다)
+[대역 끝] rc=1 · 가짜 시각 10:20:00
+--- [s2] U1
+🔴 멈춤: U0 미통과
+[대역 끝] rc=1 · 가짜 시각 10:20:00
+  상태: HEAD=ee509cf backend=458a9c71e21d latest=458a9c71e21d img25=458a9c71e21d ok=[] 금지=0
+대역 /d/tmp/n20d1sim/runs/s3-jar-mismatch · 가짜 시각 2026-11-07 10:20:00 KST · IMGOLD 채움 yes
+sha256:458a9c71e21da2f8a855a7f58484a3e053cff1be5ab00261039d7516137365c3
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U0 통과 — 30분 안에 U1
+[대역 끝] rc=0 · 가짜 시각 10:20:00
+--- [s3] U1(빌드 jar=7a94472)
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$1.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$PriceSnapshot.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService.class
+(끝) 881 881
+🔴 멈춤: jar 차이가 N20 2줄이 아님 — jar-diff.txt 를 보고(재기동 전). U1-되돌림
+[대역 끝] rc=1 · 가짜 시각 10:25:00
+  상태: HEAD=1899b49 backend=458a9c71e21d latest=f97ea0fee088 img25=458a9c71e21d ok=[ok-U0 ] 금지=0
+--- [s3] U2
+🔴 멈춤: U1 미통과
+[대역 끝] rc=1 · 가짜 시각 10:25:00
+--- [s3] U1-되돌림
+ee509cf855ffb8ebc1ed31f1c2bbe772d0545ce8
+sha256:458a9c71e21da2f8a855a7f58484a3e053cff1be5ab00261039d7516137365c3
+[대역 끝] rc=0 · 가짜 시각 10:25:00
+  상태: HEAD=ee509cf backend=458a9c71e21d latest=458a9c71e21d img25=458a9c71e21d ok=[ok-U0 ] 금지=0
+대역 /d/tmp/n20d1sim/runs/s4a-window · 가짜 시각 2026-11-07 09:30:00 KST · IMGOLD 채움 yes
+--- [s4a] U0(KST 09:30)
+🔴 멈춤: 시작 시각·정기 보고 확인 — 위 줄
+[대역 끝] rc=1 · 가짜 시각 09:30:00
+대역 /d/tmp/n20d1sim/runs/s4b-noreport · 가짜 시각 2026-11-07 10:20:00 KST · IMGOLD 채움 yes
+--- [s4b] U0(10:00 보고 파일 없음)
+🔴 멈춤: 시작 시각·정기 보고 확인 — 위 줄
+[대역 끝] rc=1 · 가짜 시각 10:20:00
+대역 /d/tmp/n20d1sim/runs/s4c-u1late · 가짜 시각 2026-11-07 10:20:00 KST · IMGOLD 채움 yes
+sha256:458a9c71e21da2f8a855a7f58484a3e053cff1be5ab00261039d7516137365c3
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U0 통과 — 30분 안에 U1
+[대역 끝] rc=0 · 가짜 시각 10:20:00
+--- [s4c] U1(U0 뒤 30분 1초)
+🔴 멈춤: U0 가 30분보다 오래됨 — U0 부터(아직 바꾼 것 없음, U1-되돌림 하지 않는다)
+[대역 끝] rc=1 · 가짜 시각 10:50:01
+  상태: HEAD=ee509cf backend=458a9c71e21d latest=458a9c71e21d img25=458a9c71e21d ok=[ok-U0 ] 금지=0
+--- [s5a-btc] U0 (BTC_OUT='false|11-07 08:00|11-07 09:00|20/20')
+ee509cf855ffb8ebc1ed31f1c2bbe772d0545ce8
+sha256:458a9c71e21da2f8a855a7f58484a3e053cff1be5ab00261039d7516137365c3
+🔴 멈춤: BTC 입력 미충족 — 배포하지 않고 보고(N08 때의 정체 허용 예외는 이번에 없다)
+[대역 끝] rc=1 · 가짜 시각 10:20:00
+  상태: HEAD=ee509cf backend=458a9c71e21d latest=458a9c71e21d img25=458a9c71e21d ok=[] 금지=0
+--- [s5b-btc20] U0 (BTC_OUT='true|11-07 09:00|11-07 09:00|19/20')
+ee509cf855ffb8ebc1ed31f1c2bbe772d0545ce8
+sha256:458a9c71e21da2f8a855a7f58484a3e053cff1be5ab00261039d7516137365c3
+🔴 멈춤: BTC 입력 미충족 — 배포하지 않고 보고(N08 때의 정체 허용 예외는 이번에 없다)
+[대역 끝] rc=1 · 가짜 시각 10:20:00
+  상태: HEAD=ee509cf backend=458a9c71e21d latest=458a9c71e21d img25=458a9c71e21d ok=[] 금지=0
+--- [s5c-session] U0 (SC_OUT='66 | 62 | 4 | 530:STOPPED')
+ee509cf855ffb8ebc1ed31f1c2bbe772d0545ce8
+sha256:458a9c71e21da2f8a855a7f58484a3e053cff1be5ab00261039d7516137365c3
+🔴 멈춤: 검증 66세션 상태 다름
+[대역 끝] rc=1 · 가짜 시각 10:20:00
+  상태: HEAD=ee509cf backend=458a9c71e21d latest=458a9c71e21d img25=458a9c71e21d ok=[] 금지=0
+--- [s5d-sid203] U0 (LIVE1_OUT='203:RUNNING')
+ee509cf855ffb8ebc1ed31f1c2bbe772d0545ce8
+sha256:458a9c71e21da2f8a855a7f58484a3e053cff1be5ab00261039d7516137365c3
+🔴 멈춤: SID 203·기준 행·EG·0 확인 중 다른 것 있음 — F1 과 같은 조회로 보고
+[대역 끝] rc=1 · 가짜 시각 10:20:00
+  상태: HEAD=ee509cf backend=458a9c71e21d latest=458a9c71e21d img25=458a9c71e21d ok=[] 금지=0
+--- [s5e] U0(daily_check.sh 해시 다름)
+ee509cf855ffb8ebc1ed31f1c2bbe772d0545ce8
+sha256:458a9c71e21da2f8a855a7f58484a3e053cff1be5ab00261039d7516137365c3
+🔴 멈춤: 정기 점검 설치본이 c669ccd 판이 아님
+[대역 끝] rc=1 · 가짜 시각 10:20:00
+  상태: HEAD=ee509cf backend=458a9c71e21d latest=458a9c71e21d img25=458a9c71e21d ok=[] 금지=0
+--- [s5f] U0(crontab 해시 다름)
+ee509cf855ffb8ebc1ed31f1c2bbe772d0545ce8
+sha256:458a9c71e21da2f8a855a7f58484a3e053cff1be5ab00261039d7516137365c3
+🔴 멈춤: crontab 이 f2dce280… 과 다름
+[대역 끝] rc=1 · 가짜 시각 10:20:00
+  상태: HEAD=ee509cf backend=458a9c71e21d latest=458a9c71e21d img25=458a9c71e21d ok=[] 금지=0
+sha256:458a9c71e21da2f8a855a7f58484a3e053cff1be5ab00261039d7516137365c3
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U0 통과 — 30분 안에 U1
+[대역 끝] rc=0 · 가짜 시각 10:20:00
+sha256:f97ea0fee088272d97ac63ea28ccabf0073cc43c00998c68f29a4b01701bd0be
+✅ U1 통과 — ⏸ 운영자 확인 1회 뒤 U2
+[대역 끝] rc=0 · 가짜 시각 10:25:00
+✅ U2 통과 — 5~10분 뒤 U3
+[대역 끝] rc=0 · 가짜 시각 10:25:15
+--- [s6] U3(배포 뒤 세션 변화)
+< 66 | 63 | 3 | -
+> 66 | 62 | 4 | 530:STOPPED
+🔴 멈춤: 되돌림 필요: 검증 세션 상태 바뀜
+[대역 끝] rc=1 · 가짜 시각 10:31:00
+  상태: HEAD=1899b49 backend=f97ea0fee088 latest=f97ea0fee088 img25=458a9c71e21d ok=[ok-U0 ok-U1 ok-U2 ] 금지=0
+--- [s6] U되돌림
+ee509cf855ffb8ebc1ed31f1c2bbe772d0545ce8
+✅ ee509cf (#25 이미지) 로 복귀 — 5분 뒤 U3 를 다시 실행(t-rollback.utc 기준으로 자동 전환, BTC·뉴스·HTTP 줄·HOLD 질의·N15/N16·N17·N19·N20 줄은 기록만)
+[대역 끝] rc=0 · 가짜 시각 10:31:15
+  상태: HEAD=ee509cf backend=458a9c71e21d latest=458a9c71e21d img25=458a9c71e21d ok=[ok-U0 ok-U1 ok-U2 ] 금지=0
+--- [s6] U3(rollback 자동 전환)
+--- [s6] U4(되돌림 뒤)
+🔴 멈춤: U3 미통과
+[대역 끝] rc=1 · 가짜 시각 10:36:45
+  상태: HEAD=ee509cf backend=458a9c71e21d latest=458a9c71e21d img25=458a9c71e21d ok=[ok-U0 ok-U1 ok-U2 ] 금지=0
+sha256:458a9c71e21da2f8a855a7f58484a3e053cff1be5ab00261039d7516137365c3
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U0 통과 — 30분 안에 U1
+[대역 끝] rc=0 · 가짜 시각 10:20:00
+sha256:f97ea0fee088272d97ac63ea28ccabf0073cc43c00998c68f29a4b01701bd0be
+✅ U1 통과 — ⏸ 운영자 확인 1회 뒤 U2
+[대역 끝] rc=0 · 가짜 시각 10:25:00
+✅ U2 통과 — 5~10분 뒤 U3
+[대역 끝] rc=0 · 가짜 시각 10:25:15
+--- [s7] U3(P0 줄)
+🔴 멈춤: 세 마켓 캔들 404·뉴스 출처 ERROR 밖의 ERROR — errors-deploy.txt 를 보고
+[대역 끝] rc=1 · 가짜 시각 10:31:00
+  상태: HEAD=1899b49 backend=f97ea0fee088 latest=f97ea0fee088 img25=458a9c71e21d ok=[ok-U0 ok-U1 ok-U2 ] 금지=0
+sha256:458a9c71e21da2f8a855a7f58484a3e053cff1be5ab00261039d7516137365c3
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U0 통과 — 30분 안에 U1
+[대역 끝] rc=0 · 가짜 시각 10:20:00
+sha256:f97ea0fee088272d97ac63ea28ccabf0073cc43c00998c68f29a4b01701bd0be
+✅ U1 통과 — ⏸ 운영자 확인 1회 뒤 U2
+[대역 끝] rc=0 · 가짜 시각 10:25:00
+✅ U2 통과 — 5~10분 뒤 U3
+[대역 끝] rc=0 · 가짜 시각 10:25:15
+✅ U3(deploy) 통과 — 기동 30분 뒤 U4
+[대역 끝] rc=0 · 가짜 시각 10:31:00
+--- [s8] U4(N20 줄 자연 발생)
+== N20 줄(기동 뒤 30분 로그 · 자연 발생만)
+N20 보유 시세 보강 — 항목 형식 0·항목 가격 아님 1·항목 코인 형식 0·시세 처리 실패 0·회차 오류 0·경보 전송 실패 0·호가 보강 1
+경보 종료코드 0 (1 = 🔴 경보 있음 — 이것만으로 멈추지 않고 네 갈래로 대조)
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U4 통과 — U0~U4 출력을 보고(F 변수·F1·N06 핀은 총괄 판단 뒤 개발 에이전트가 갱신)
+[대역 끝] rc=0 · 가짜 시각 10:56:00
+  상태: HEAD=1899b49 backend=f97ea0fee088 latest=f97ea0fee088 img25=458a9c71e21d ok=[ok-U0 ok-U1 ok-U2 ok-U3-deploy ok-U4 ] 금지=0
+=== 금지 명령 기록 합계: 0줄

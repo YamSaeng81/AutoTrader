@@ -1,0 +1,1 @@
+NEWLOG=p0warn
