@@ -1,0 +1,127 @@
+1794014400	git	rev-parse HEAD 
+1794014400	git	status --porcelain --untracked-files=no 
+1794014400	git	rev-parse HEAD 
+1794014400	git	status --porcelain --untracked-files=no 
+1794014400	git	fetch origin 
+1794014400	git	cat-file -e 1899b49f633f8aefdc66b15c42debdaba8b3852c^{commit} 
+1794014400	git	merge-base --is-ancestor ee509cf855ffb8ebc1ed31f1c2bbe772d0545ce8 1899b49f633f8aefdc66b15c42debdaba8b3852c 
+1794014400	git	diff --name-only ee509cf855ffb8ebc1ed31f1c2bbe772d0545ce8 1899b49f633f8aefdc66b15c42debdaba8b3852c 
+1794014400	docker	compose -f docker-compose.prod.yml ps -q backend 
+1794014400	docker	inspect --format backend {{.Image}} {{.State.StartedAt}} cid-backend 
+1794014400	docker	compose -f docker-compose.prod.yml ps -q db 
+1794014400	docker	inspect --format db {{.Image}} {{.State.StartedAt}} cid-db 
+1794014400	docker	compose -f docker-compose.prod.yml ps -q redis 
+1794014400	docker	inspect --format redis {{.Image}} {{.State.StartedAt}} cid-redis 
+1794014400	docker	compose -f docker-compose.prod.yml ps -q db-backup 
+1794014400	docker	inspect --format db-backup {{.Image}} {{.State.StartedAt}} cid-db-backup 
+1794014400	docker	compose -f docker-compose.prod.yml ps -q frontend 
+1794014400	docker	inspect --format frontend {{.Image}} {{.State.StartedAt}} cid-frontend 
+1794014400	docker	compose -f docker-compose.prod.yml ps -q backend 
+1794014400	docker	inspect --format {{.Image}} cid-backend 
+1794014400	docker	image inspect --format {{.Id}} autotrader-backend:ea44900 
+1794014400	docker	image inspect --format {{.Id}} autotrader-backend:b1d7664 
+1794014400	docker	image inspect --format {{.Id}} autotrader-backend:6995c52 
+1794014400	docker	image inspect --format {{.Id}} autotrader-backend:fe01207 
+1794014400	docker	image inspect --format {{.Id}} autotrader-backend:1103f48 
+1794014400	docker	image inspect --format {{.Id}} autotrader-backend:7a94472 
+1794014400	docker	image inspect --format {{.Id}} autotrader-backend:latest 
+1794014400	docker	compose -f docker-compose.prod.yml exec -T backend env 
+1794014400	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -c SELECT max(version::int) FROM flyway_schema_history WHERE success 
+1794014400	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -c SHOW TimeZone 
+1794014400	docker	compose -f docker-compose.prod.yml exec -T backend date +%Y-%m-%d %H:%M:%S %Z %z 
+1794014400	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -c SELECT (SELECT count(*) FROM live_trading_session WHERE session_type = 'REAL' AND status IN ('RUNNING','PAUSED','CREATED')) || '|' ||            (SELECT count(*) FROM dynamic_session WHERE
+1794014400	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -c SELECT coalesce(string_agg(id || ':' || status, ',' ORDER BY id), '-') FROM live_trading_session WHERE session_type = 'REAL' AND status IN ('RUNNING','PAUSED','CREATED') 
+1794014400	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -c SELECT session_type = 'REAL' AND strategy_type = 'DAILY_SMA20' AND coin_pair = 'KRW-BTC' AND timeframe = 'H1'   AND initial_capital = 20200 AND invest_ratio = 0.995 AND max_investment = 20
+1794014400	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -c SELECT available_krw = 20200 AND started_at IS NULL FROM live_trading_session WHERE id = 203 
+1794014400	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -c SELECT stage || '|' || to_char(started_at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI:SS.US') || '|' || total_cap_krw FROM capital_stage_baseline 
+1794014400	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -F   -c SELECT 'real_open_positions', count(*) FROM position p LEFT JOIN live_trading_session l ON p.session_kind = 'LIVE' AND l.id = p.session_id LEFT JOIN dynamic_session d ON p.session_kin
+1794014400	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -F  |  -c    SELECT count(*) AS total,          count(*) FILTER (WHERE status = 'RUNNING' AND id NOT IN (576,577,578)) AS running_63,          count(*) FILTER (WHERE status = 'STOPPED' AND id
+1794014400	crontab	-l 
+1794014400	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -c WITH h AS (SELECT max(time) FILTER (WHERE time + interval '1 hour' <= now()) AS done, date_trunc('hour', now() - interval '2 minutes') - interval '1 hour' AS need FROM market_data_cache WH
+1794014400	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -c SELECT source_id || '|' || source_type || '|' || is_enabled || '|' || fetch_interval_min || '|' || coalesce(extract(epoch FROM last_fetched_at)::bigint::text, '-') FROM news_source_config 
+1794014400	git	show fa0691e647b61f6df4a85bdf796996f50470185e:scripts/ops/maint_checks.sql 
+1794014400	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -v maint_start=2026-11-07 10:20:00+09:00 -f - 
+1794014400	git	show fa0691e647b61f6df4a85bdf796996f50470185e:scripts/ops/maint_verify.py 
+1794014400	docker	compose -f docker-compose.prod.yml logs --no-color backend 
+1794014400	python3	- /d/tmp/n20d1sim/runs/d2-u4-othererr/home/maint-n20/backend-before.log 
+1794014400	python3	- /d/tmp/n20d1sim/runs/d2-u4-othererr/home/maint-n20/backend-before.log 
+1794014400	python3	- /d/tmp/n20d1sim/runs/d2-u4-othererr/home/maint-n20/backend-before.log 
+1794014400	python3	- /d/tmp/n20d1sim/runs/d2-u4-othererr/home/maint-n20/backend-before.log 
+1794014400	python3	- /d/tmp/n20d1sim/runs/d2-u4-othererr/home/maint-n20/backend-before.log 
+1794014400	python3	- /d/tmp/n20d1sim/runs/d2-u4-othererr/home/maint-n20/backend-before.log 
+1794014400	python3	scripts/prospective/start_66.py alerts --days 1 --no-mark 
+1794014400	touch	/d/tmp/n20d1sim/runs/d2-u4-othererr/home/maint-n20/ok-U0 
+1794014700	docker	image inspect autotrader-backend:ee509cf 
+1794014700	docker	tag sha256:458a9c71e21da2f8a855a7f58484a3e053cff1be5ab00261039d7516137365c3 autotrader-backend:ee509cf 
+1794014700	docker	image inspect --format {{.Id}} autotrader-backend:ee509cf 
+1794014700	git	checkout --quiet 1899b49f633f8aefdc66b15c42debdaba8b3852c 
+1794014700	git	rev-parse HEAD 
+1794014700	git	status --porcelain --untracked-files=no 
+1794014700	docker	compose -f docker-compose.prod.yml build backend 
+1794014700	docker	image inspect --format {{.Id}} autotrader-backend:latest 
+1794014700	docker	compose -f docker-compose.prod.yml ps -q backend 
+1794014700	docker	inspect --format {{.Image}} cid-backend 
+1794014700	docker	compose -f docker-compose.prod.yml ps -q backend 
+1794014700	docker	cp cid-backend:/app/app.jar /d/tmp/n20d1sim/runs/d2-u4-othererr/home/maint-n20/app-old.jar 
+1794014700	docker	create autotrader-backend:latest 
+1794014700	docker	cp cid-tmp:/app/app.jar /d/tmp/n20d1sim/runs/d2-u4-othererr/home/maint-n20/app-new.jar 
+1794014700	docker	rm cid-tmp 
+1794014700	python3	- /d/tmp/n20d1sim/runs/d2-u4-othererr/home/maint-n20/app-old.jar /d/tmp/n20d1sim/runs/d2-u4-othererr/home/maint-n20/app-new.jar 
+1794014700	touch	/d/tmp/n20d1sim/runs/d2-u4-othererr/home/maint-n20/ok-U1 
+1794014700	git	rev-parse HEAD 
+1794014700	docker	image inspect --format {{.Id}} autotrader-backend:latest 
+1794014700	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -c SELECT (SELECT count(*) FROM live_trading_session WHERE session_type = 'REAL' AND status IN ('RUNNING','PAUSED','CREATED')) || '|' ||            (SELECT count(*) FROM dynamic_session WHERE
+1794014700	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -c SELECT coalesce(string_agg(id || ':' || status, ',' ORDER BY id), '-') FROM live_trading_session WHERE session_type = 'REAL' AND status IN ('RUNNING','PAUSED','CREATED') 
+1794014700	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -c SELECT session_type = 'REAL' AND strategy_type = 'DAILY_SMA20' AND coin_pair = 'KRW-BTC' AND timeframe = 'H1'   AND initial_capital = 20200 AND invest_ratio = 0.995 AND max_investment = 20
+1794014700	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -c SELECT available_krw = 20200 AND started_at IS NULL FROM live_trading_session WHERE id = 203 
+1794014700	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -c SELECT stage || '|' || to_char(started_at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI:SS.US') || '|' || total_cap_krw FROM capital_stage_baseline 
+1794014700	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -F   -c SELECT 'real_open_positions', count(*) FROM position p LEFT JOIN live_trading_session l ON p.session_kind = 'LIVE' AND l.id = p.session_id LEFT JOIN dynamic_session d ON p.session_kin
+1794014700	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -F  |  -c    SELECT count(*) AS total,          count(*) FILTER (WHERE status = 'RUNNING' AND id NOT IN (576,577,578)) AS running_63,          count(*) FILTER (WHERE status = 'STOPPED' AND id
+1794014700	docker	compose -f docker-compose.prod.yml up -d --no-build --no-deps backend 
+1794014700	sleep	15 
+1794014715	docker	compose -f docker-compose.prod.yml ps -q backend 
+1794014715	docker	inspect --format {{.Image}} cid-backend 
+1794014715	docker	compose -f docker-compose.prod.yml exec -T backend env 
+1794014715	docker	compose -f docker-compose.prod.yml ps -q backend 
+1794014715	docker	inspect --format backend {{.Image}} {{.State.StartedAt}} cid-backend 
+1794014715	docker	compose -f docker-compose.prod.yml ps -q db 
+1794014715	docker	inspect --format db {{.Image}} {{.State.StartedAt}} cid-db 
+1794014715	docker	compose -f docker-compose.prod.yml ps -q redis 
+1794014715	docker	inspect --format redis {{.Image}} {{.State.StartedAt}} cid-redis 
+1794014715	docker	compose -f docker-compose.prod.yml ps -q db-backup 
+1794014715	docker	inspect --format db-backup {{.Image}} {{.State.StartedAt}} cid-db-backup 
+1794014715	docker	compose -f docker-compose.prod.yml ps -q frontend 
+1794014715	docker	inspect --format frontend {{.Image}} {{.State.StartedAt}} cid-frontend 
+1794014715	git	rev-parse HEAD 
+1794014715	git	status --porcelain --untracked-files=no 
+1794014715	touch	/d/tmp/n20d1sim/runs/d2-u4-othererr/home/maint-n20/ok-U2 
+1794015060	docker	compose -f docker-compose.prod.yml ps backend 
+1794015060	docker	compose -f docker-compose.prod.yml ps -q backend 
+1794015060	docker	inspect --format {{.Image}} cid-backend 
+1794015060	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -c SELECT source_id || '|' || source_type || '|' || is_enabled || '|' || fetch_interval_min || '|' || coalesce(extract(epoch FROM last_fetched_at)::bigint::text, '-') FROM news_source_config 
+1794015060	docker	compose -f docker-compose.prod.yml logs --no-color --since 2026-11-07T01:25:00Z backend 
+1794015060	python3	- /d/tmp/n20d1sim/runs/d2-u4-othererr/home/maint-n20/app-deploy.log 
+1794015060	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -c SELECT max(version::int) FROM flyway_schema_history WHERE success 
+1794015060	python3	- /d/tmp/n20d1sim/runs/d2-u4-othererr/home/maint-n20/app-deploy.log 
+1794015060	python3	/d/tmp/n20d1sim/runs/d2-u4-othererr/home/maint-n20/maint_verify.py candle /d/tmp/n20d1sim/runs/d2-u4-othererr/home/maint-n20/app-deploy.log /d/tmp/n20d1sim/runs/d2-u4-othererr/home/maint-n20/backend-before.log 
+1794015060	git	show fa0691e647b61f6df4a85bdf796996f50470185e:scripts/ops/maint_checks.sql 
+1794015060	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -v maint_start=2026-11-07 10:20:00+09:00 -f - 
+1794015060	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -F  |  -c    SELECT count(*) AS total,          count(*) FILTER (WHERE status = 'RUNNING' AND id NOT IN (576,577,578)) AS running_63,          count(*) FILTER (WHERE status = 'STOPPED' AND id
+1794015060	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -c SELECT (SELECT count(*) FROM live_trading_session WHERE session_type = 'REAL' AND status IN ('RUNNING','PAUSED','CREATED')) || '|' ||            (SELECT count(*) FROM dynamic_session WHERE
+1794015060	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -c SELECT coalesce(string_agg(id || ':' || status, ',' ORDER BY id), '-') FROM live_trading_session WHERE session_type = 'REAL' AND status IN ('RUNNING','PAUSED','CREATED') 
+1794015060	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -c SELECT session_type = 'REAL' AND strategy_type = 'DAILY_SMA20' AND coin_pair = 'KRW-BTC' AND timeframe = 'H1'   AND initial_capital = 20200 AND invest_ratio = 0.995 AND max_investment = 20
+1794015060	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -c SELECT available_krw = 20200 AND started_at IS NULL FROM live_trading_session WHERE id = 203 
+1794015060	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -c SELECT stage || '|' || to_char(started_at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI:SS.US') || '|' || total_cap_krw FROM capital_stage_baseline 
+1794015060	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -F   -c SELECT 'real_open_positions', count(*) FROM position p LEFT JOIN live_trading_session l ON p.session_kind = 'LIVE' AND l.id = p.session_id LEFT JOIN dynamic_session d ON p.session_kin
+1794015060	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -c WITH h AS (SELECT max(time) FILTER (WHERE time + interval '1 hour' <= now()) AS done, date_trunc('hour', now() - interval '2 minutes') - interval '1 hour' AS need FROM market_data_cache WH
+1794015060	python3	- /d/tmp/n20d1sim/runs/d2-u4-othererr/home/maint-n20/app-deploy.log /d/tmp/n20d1sim/runs/d2-u4-othererr/home/maint-n20/news-before.txt /d/tmp/n20d1sim/runs/d2-u4-othererr/home/maint-n20/news-deploy.txt 1794014700 1794015060 
+1794015060	python3	- /d/tmp/n20d1sim/runs/d2-u4-othererr/home/maint-n20/app-deploy.log 
+1794015060	python3	- /d/tmp/n20d1sim/runs/d2-u4-othererr/home/maint-n20/app-deploy.log 
+1794015060	python3	- /d/tmp/n20d1sim/runs/d2-u4-othererr/home/maint-n20/app-deploy.log 
+1794015060	python3	- /d/tmp/n20d1sim/runs/d2-u4-othererr/home/maint-n20/app-deploy.log 
+1794015060	python3	- /d/tmp/n20d1sim/runs/d2-u4-othererr/home/maint-n20/app-deploy.log 
+1794015060	touch	/d/tmp/n20d1sim/runs/d2-u4-othererr/home/maint-n20/ok-U3-deploy 
+1794016560	docker	compose -f docker-compose.prod.yml ps backend 
+1794016560	docker	compose -f docker-compose.prod.yml exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader -At -c SELECT source_id || '|' || source_type || '|' || is_enabled || '|' || fetch_interval_min || '|' || coalesce(extract(epoch FROM last_fetched_at)::bigint::text, '-') FROM news_source_config 
+1794016560	docker	compose -f docker-compose.prod.yml logs --no-color --since 2026-11-07T01:25:00Z backend 
+1794016560	python3	- /d/tmp/n20d1sim/runs/d2-u4-othererr/home/maint-n20/app-after30.log 

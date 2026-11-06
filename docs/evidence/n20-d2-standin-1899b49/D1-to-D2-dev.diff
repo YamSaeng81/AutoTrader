@@ -1,0 +1,144 @@
+diff -u blocks-draft/U0.sh blocks-d2/U0.sh
+--- blocks-draft/U0.sh	2026-11-06 08:47:01.239666000 +0900
++++ blocks-d2/U0.sh	2026-11-06 10:39:10.178574300 +0900
+@@ -1,8 +1,8 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "$M" = "$HOME/maint-n20" ] && [ "${UB:-}" = N20D1 ] && [ "$NEW" = 1899b49f633f8aefdc66b15c42debdaba8b3852c ] && [ -n "${BTCIN:-}" ] && type sid203 > /dev/null 2>&1 && type newsobs > /dev/null 2>&1 && type httpobs > /dev/null 2>&1 && type holdobs > /dev/null 2>&1 && type entryobs > /dev/null 2>&1 && type n17obs > /dev/null 2>&1 && type n19obs > /dev/null 2>&1 && type n20obs > /dev/null 2>&1 || stop "변수 순서 — F 변수 → G 변수 → N20 초안 U 변수"
+-case "$IMGOLD" in sha256:*) ;; *) stop "IMGOLD 미정 — #25 결과 수용 뒤 실제 #25 이미지로 채운 판이 아님(초안 D1 은 실행하지 않는다)" ;; esac
++[ "$M" = "$HOME/maint-n20" ] && [ "${UB:-}" = N20D2 ] && [ "$NEW" = 1899b49f633f8aefdc66b15c42debdaba8b3852c ] && [ -n "${BTCIN:-}" ] && type sid203 > /dev/null 2>&1 && type newsobs > /dev/null 2>&1 && type httpobs > /dev/null 2>&1 && type holdobs > /dev/null 2>&1 && type entryobs > /dev/null 2>&1 && type n17obs > /dev/null 2>&1 && type n19obs > /dev/null 2>&1 && type n20obs > /dev/null 2>&1 || stop "변수 순서 — F 변수 → G 변수 → N20 초안 U 변수"
++case "$IMGOLD" in sha256:*) ;; *) stop "IMGOLD 미정 — #25 결과 수용 뒤 실제 #25 이미지로 채운 판이 아님(초안 D1·D2 는 실행하지 않는다)" ;; esac
+ [ ! -e "$M/ok-U1" ] || stop "U1 을 이미 시작했다 — U0 를 다시 하지 않는다. ls -l $M 를 보고"
+ kwin "$(date +%s)" || stop "시작 시각·정기 보고 확인 — 위 줄"
+ [ "$(git rev-parse HEAD)" = "$OLD" ] && [ -z "$(git status --porcelain --untracked-files=no)" ] || stop "HEAD 가 ee509cf 가 아니거나 추적 파일 변경 있음"
+diff -u blocks-draft/U1.sh blocks-d2/U1.sh
+--- blocks-draft/U1.sh	2026-11-06 08:47:01.239666000 +0900
++++ blocks-d2/U1.sh	2026-11-06 10:39:10.195269500 +0900
+@@ -1,7 +1,7 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "${UB:-}" = N20D1 ] || stop "U 변수가 N20 초안 D1 판이 아님 — F → G → N20 초안 U 변수"
++[ "${UB:-}" = N20D2 ] || stop "U 변수가 N20 초안 D2 판이 아님 — F → G → N20 초안 U 변수"
+ [ -e "$M/ok-U0" ] || stop "U0 미통과"
+ [ ! -e "$M/ok-U1" ] || stop "U1 을 이미 통과했다 — 바로 U2"
+ [ $(( $(date +%s) - $(stat -c %Y "$M/ok-U0") )) -le 1800 ] || stop "U0 가 30분보다 오래됨 — U0 부터(아직 바꾼 것 없음, U1-되돌림 하지 않는다)"
+diff -u blocks-draft/U2.sh blocks-d2/U2.sh
+--- blocks-draft/U2.sh	2026-11-06 08:47:01.239666000 +0900
++++ blocks-d2/U2.sh	2026-11-06 10:39:10.205022900 +0900
+@@ -1,7 +1,7 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "${UB:-}" = N20D1 ] || stop "U 변수가 N20 초안 D1 판이 아님 — F → G → N20 초안 U 변수"
++[ "${UB:-}" = N20D2 ] || stop "U 변수가 N20 초안 D2 판이 아님 — F → G → N20 초안 U 변수"
+ [ -e "$M/ok-U1" ] || stop "U1 미통과"
+ [ ! -e "$M/ok-U2" ] || stop "U2 를 이미 했다 — U3"
+ IMG1=$(cat "$M/image-new.txt")
+diff -u blocks-draft/U3.sh blocks-d2/U3.sh
+--- blocks-draft/U3.sh	2026-11-06 08:47:01.239666000 +0900
++++ blocks-d2/U3.sh	2026-11-06 10:39:10.210550700 +0900
+@@ -1,7 +1,7 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "${UB:-}" = N20D1 ] || stop "U 변수가 N20 초안 D1 판이 아님 — F → G → N20 초안 U 변수"
++[ "${UB:-}" = N20D2 ] || stop "U 변수가 N20 초안 D2 판이 아님 — F → G → N20 초안 U 변수"
+ if [ -e "$M/t-rollback.utc" ]; then S=$(cat "$M/t-rollback.utc"); EXP=$(cat "$M/image-before.txt"); T=rollback; else [ -e "$M/ok-U2" ] || stop "U2 미통과"; S=$(cat "$M/t-deploy.utc"); EXP=$(cat "$M/image-new.txt"); T=deploy; fi
+ [ $(( $(date +%s) - $(date -d "$S" +%s) )) -ge 300 ] || stop "기동 5분 전 — 5분이 지난 뒤 U3"
+ $DC ps backend
+@@ -9,6 +9,9 @@
+ $PSQL -At -c "$NEWSCFG" > "$M/news-$T.txt" || stop "뉴스 설정 조회 실패 — 1분 뒤 U3 를 다시"
+ OBS=$(date +%s); echo "$OBS" > "$M/obs-$T.txt"   # 관측 시각 = 뉴스 설정을 읽은 시각(로그는 그 뒤에 읽는다)
+ $DC logs --no-color --since "$S" backend > "$M/app-$T.log"
++echo "== HOLD 질의 장기 대여·연결 획득(기동 뒤 로그 · 배포 전 기준선: $(head -1 "$M/hold-before.txt"))"
++holdobs "$M/app-$T.log" | tee "$M/holdobs-$T.txt" && HQ=0 || HQ=$?
++[ "$HQ" != 1 ] || stop "🔴 P0 — 연결 획득 시간 초과 줄이 있다. 즉시 보고(되돌림 여부는 총괄 판단, U 되돌림 블록 준비됨)"
+ grep -E "Schema .* is up to date|Migrating schema|Successfully applied|매도 격리 점검|Started CryptoAutoTrader" "$M/app-$T.log" | head -10
+ grep -q "Started CryptoAutoTrader" "$M/app-$T.log" || stop "되돌림 필요: 기동 완료 줄 없음"
+ ! grep -qE "Migrating schema|Successfully applied" "$M/app-$T.log" || stop "되돌림 필요: 마이그레이션이 돌았다(이번 배포에는 없어야 함)"
+@@ -40,9 +43,6 @@
+ httpobs "$M/app-$T.log" | tee "$M/httpobs-$T.txt" && HO=0 || HO=$?
+ [ "$HO" = 0 ] || [ "$HO" = 3 ] || [ "$T" = rollback ] || stop "출처 HTTP 비200 줄이 고정 한 줄이 아님(종료 $HO) — 되돌리지 말고 위 출력을 보고"
+ if [ "$HO" = 3 ]; then cp "$M/httpobs-$T.txt" "$M/http-check-$T.txt"; echo "⚪ HTTP 줄 확인 필요 — 되돌리지 않는다. 위 ⚪ 줄을 보고"; fi
+-echo "== HOLD 질의 장기 대여·연결 획득(기동 뒤 로그 · 배포 전 기준선: $(head -1 "$M/hold-before.txt"))"
+-holdobs "$M/app-$T.log" | tee "$M/holdobs-$T.txt" && HQ=0 || HQ=$?
+-[ "$HQ" != 1 ] || stop "🔴 P0 — 연결 획득 시간 초과 줄이 있다. 즉시 보고(되돌림 여부는 총괄 판단, U 되돌림 블록 준비됨)"
+ if [ "$HQ" = 3 ]; then cp "$M/holdobs-$T.txt" "$M/hold-check-$T.txt"; echo "⚪ 장기 대여 경고가 있다 — 개선 미확인. 되돌리지 않는다. 위 줄을 보고"; fi
+ echo "== N15·N16 줄(기동 뒤 로그 · 자연 발생만, 미관측이면 그대로 기록)"
+ entryobs "$M/app-$T.log" | tee "$M/entryobs-$T.txt" && EQ=0 || EQ=$?
+diff -u blocks-draft/U4.sh blocks-d2/U4.sh
+--- blocks-draft/U4.sh	2026-11-06 08:47:01.239666000 +0900
++++ blocks-d2/U4.sh	2026-11-06 10:39:10.220052100 +0900
+@@ -1,7 +1,7 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "${UB:-}" = N20D1 ] || stop "U 변수가 N20 초안 D1 판이 아님 — F → G → N20 초안 U 변수"
++[ "${UB:-}" = N20D2 ] || stop "U 변수가 N20 초안 D2 판이 아님 — F → G → N20 초안 U 변수"
+ [ -e "$M/ok-U3-deploy" ] || stop "U3 미통과"
+ S=$(cat "$M/t-deploy.utc")
+ [ $(( $(date +%s) - $(date -d "$S" +%s) )) -ge 1800 ] || stop "아직 30분 전 — 완료로 판정하지 않는다"
+@@ -10,6 +10,9 @@
+ $PSQL -At -c "$NEWSCFG" > "$M/news-after30.txt" || stop "뉴스 설정 조회 실패 — 1분 뒤 U4 를 다시"
+ OBS=$(date +%s); echo "$OBS" > "$M/obs-after30.txt"   # 관측 시각 = 뉴스 설정을 읽은 시각(로그는 그 뒤에 읽는다)
+ $DC logs --no-color --since "$S" backend > "$M/app-after30.log"
++echo "== HOLD 질의 장기 대여·연결 획득(기동 뒤 30분 로그 — 시작 catchup 과 5분 뒤 첫 정기 회차를 포함 · 배포 전 기준선: $(head -1 "$M/hold-before.txt"))"
++holdobs "$M/app-after30.log" | tee "$M/holdobs-after30.txt" && HQ=0 || HQ=$?
++[ "$HQ" != 1 ] || stop "🔴 P0 — 연결 획득 시간 초과 줄이 있다. 즉시 보고(되돌림 여부는 총괄 판단, U 되돌림 블록 준비됨)"
+ grep " ERROR " "$M/app-after30.log" | grep -v "캔들 최신성" | grep -v -E "$NOT404" > "$M/errors-all-after30.txt" || true
+ grep -E "$NEWSERR" "$M/errors-all-after30.txt" > "$M/errors-news-after30.txt" || true
+ grep -v -E "$NEWSERR" "$M/errors-all-after30.txt" > "$M/errors-after30.txt" || true
+@@ -43,9 +46,6 @@
+ httpobs "$M/app-after30.log" | tee "$M/httpobs-after30.txt" && HO=0 || HO=$?
+ [ "$HO" = 0 ] || [ "$HO" = 3 ] || stop "출처 HTTP 비200 줄이 고정 한 줄이 아님(종료 $HO) — 되돌리지 말고 위 출력을 보고"
+ if [ "$HO" = 3 ]; then cp "$M/httpobs-after30.txt" "$M/http-check-after30.txt"; echo "⚪ HTTP 줄 확인 필요 — 되돌리지 않는다. 위 ⚪ 줄을 보고"; fi
+-echo "== HOLD 질의 장기 대여·연결 획득(기동 뒤 30분 로그 — 시작 catchup 과 5분 뒤 첫 정기 회차를 포함 · 배포 전 기준선: $(head -1 "$M/hold-before.txt"))"
+-holdobs "$M/app-after30.log" | tee "$M/holdobs-after30.txt" && HQ=0 || HQ=$?
+-[ "$HQ" != 1 ] || stop "🔴 P0 — 연결 획득 시간 초과 줄이 있다. 즉시 보고(되돌림 여부는 총괄 판단, U 되돌림 블록 준비됨)"
+ grep -q "시작 Catchup 완료" "$M/app-after30.log" || echo "⚪ 시작 catchup 완료 줄이 아직 없다 — HOLD 질의 개선 관측 미완(되돌리지 않는다)"
+ if [ "$HQ" = 3 ]; then cp "$M/holdobs-after30.txt" "$M/hold-check-after30.txt"; echo "⚪ 장기 대여 경고가 있다 — 개선 미확인. 되돌리지 않는다. 위 줄을 보고"; fi
+ echo "== N15·N16 줄(기동 뒤 30분 로그 · 자연 발생만)"
+diff -u "blocks-draft/U�\220\230�\217\214림.sh" "blocks-d2/U�\220\230�\217\214림.sh"
+--- "blocks-draft/U�\220\230�\217\214림.sh"	2026-11-06 08:47:01.241180800 +0900
++++ "blocks-d2/U�\220\230�\217\214림.sh"	2026-11-06 10:39:10.228051800 +0900
+@@ -1,7 +1,7 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "${UB:-}" = N20D1 ] || stop "U 변수가 N20 초안 D1 판이 아님 — F → G → N20 초안 U 변수"
++[ "${UB:-}" = N20D2 ] || stop "U 변수가 N20 초안 D2 판이 아님 — F → G → N20 초안 U 변수"
+ IMG0=$(cat "$M/image-before.txt"); [ "$IMG0" = "$IMGOLD" ] || stop "image-before 가 #25 이미지(IMGOLD)가 아님"
+ date '+%F %T %Z' | tee "$M/t-rollback.txt"; date -u '+%Y-%m-%dT%H:%M:%SZ' > "$M/t-rollback.utc"
+ git checkout --quiet $OLD; [ "$(git rev-parse HEAD)" = "$OLD" ] || stop "체크아웃 실패"
+diff -u "blocks-draft/U�\222��\200측.sh" "blocks-d2/U�\222��\200측.sh"
+--- "blocks-draft/U�\222��\200측.sh"	2026-11-06 08:47:01.241180800 +0900
++++ "blocks-d2/U�\222��\200측.sh"	2026-11-06 10:39:10.233824600 +0900
+@@ -1,7 +1,7 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "${UB:-}" = N20D1 ] || stop "U 변수가 N20 초안 D1 판이 아님 — F → G → N20 초안 U 변수"
++[ "${UB:-}" = N20D2 ] || stop "U 변수가 N20 초안 D2 판이 아님 — F → G → N20 초안 U 변수"
+ [ -e "$M/ok-U4" ] || stop "U4 미통과"
+ S=$(cat "$M/t-deploy.utc"); TS=$(date '+%Y%m%d-%H%M')
+ [ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$(cat "$M/image-new.txt")" ] || stop "실행 이미지가 image-new 와 다름 — 보고"
+diff -u "blocks-draft/U�\200�\210\230.sh" "blocks-d2/U�\200�\210\230.sh"
+--- "blocks-draft/U�\200�\210\230.sh"	2026-11-06 08:47:01.239666000 +0900
++++ "blocks-d2/U�\200�\210\230.sh"	2026-11-06 10:39:10.239345000 +0900
+@@ -1,4 +1,4 @@
+-M=~/maint-n20; mkdir -p "$M"; OPS=~/ops-scripts; UB=N20D1   # N20 다음 배포 초안 D1(미승인·실행 금지) 판 표지 — U 블록 전부가 확인한다. 후보 1899b49(출처 candidate/n20-held-mark-ee509cf). #25 기록 폴더 ~/maint-n19·#24 ~/maint-n17·#23 ~/maint-n15n16 은 읽기만 하고 덮어쓰지 않는다
++M=~/maint-n20; mkdir -p "$M"; OPS=~/ops-scripts; UB=N20D2   # N20 다음 배포 초안 D2(미승인·실행 금지) 판 표지 — U 블록 전부가 확인한다. 후보 1899b49(출처 candidate/n20-held-mark-ee509cf). #25 기록 폴더 ~/maint-n19·#24 ~/maint-n17·#23 ~/maint-n15n16 은 읽기만 하고 덮어쓰지 않는다
+ OLD=ee509cf855ffb8ebc1ed31f1c2bbe772d0545ce8; NEW=1899b49f633f8aefdc66b15c42debdaba8b3852c
+ IMGOLD=미정   # #25 배포 이미지(~/maint-n19/image-new.txt) — #25 결과 수용 뒤 실제 값으로 채운다. sha256: 로 시작하지 않으면 U0 가 멈춘다
+ IMGPREV6=sha256:e51b512a72cc3740313bb2a9e6f369d4f480554c588f322cff518c827f9c7be6   # #24 이미지 — 이전 복구 태그 autotrader-backend:7a94472 가 가리킨다(#25 U1 이 만듦, 보존, 바꾸지 않는다)
+@@ -352,7 +352,7 @@
+ sys.exit(0)
+ PYEOF
+ }
+-# N20 줄 관측(초안 D1 — 1899b49 고정 문구). 인자: 앱 로그. 출력은 로그 머리 시각·사유·건수만(코인·값은 내지 않는다 — 문구에도 없다).
++# N20 줄 관측(초안 D2 — 1899b49 고정 문구). 인자: 앱 로그. 출력은 로그 머리 시각·사유·건수만(코인·값은 내지 않는다 — 문구에도 없다).
+ # 자연 발생만 본다 — 이상 응답·예외를 유도하지 않는다. 0건이면 "미관측" 이고 실패가 아니다. 종료 3 = ⚪ 인자 오류, 0 = 그 밖
+ n20obs() { python3 - "$@" <<'PYEOF'
+ import re, sys

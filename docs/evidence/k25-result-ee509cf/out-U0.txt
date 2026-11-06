@@ -1,0 +1,122 @@
+[로컬 시작] 2026-11-06 10:10:26 +0900
+직전 정기 보고 ~/daily-check/20261106-1000.txt (읽은 뒤 시작)
+2026-11-06 10:10:28 KST
+7a944723c2959898226c2ad80f6b079ab5678296
+(끝)
+From https://github.com/YamSaeng81/AutoTrader
+ * [new branch]        candidate/n19-rest-fallback-7a94472 -> origin/candidate/n19-rest-fallback-7a94472
+ * [new branch]        candidate/n19v2-rest-fallback-7a94472 -> origin/candidate/n19v2-rest-fallback-7a94472
+ * [new branch]        candidate/n20-held-mark-ee509cf -> origin/candidate/n20-held-mark-ee509cf
+ * [new branch]        investigate/n20-held-mark-ee509cf -> origin/investigate/n20-held-mark-ee509cf
+   a1e38e7f..7542a627  main       -> origin/main
+backend sha256:e51b512a72cc3740313bb2a9e6f369d4f480554c588f322cff518c827f9c7be6 2026-11-05T10:41:45.989275157Z
+db sha256:b26180320dea45a27190318903f63cc2839f190315663a53b6429a937dd02196 2026-10-21T04:45:59.107498608Z
+redis sha256:8b81dd37ff027bec4e516d41acfbe9fe2460070dc6d4a4570a2ac5b9d59df065 2026-10-21T04:45:59.097312922Z
+db-backup sha256:b26180320dea45a27190318903f63cc2839f190315663a53b6429a937dd02196 2026-10-28T23:35:34.179563141Z
+frontend sha256:d825a9f5b00d3dac93ee154f32f91b5a1474248fefaa3651f0d0c3b0cc2f7f66 2026-10-21T04:45:59.089630967Z
+sha256:e51b512a72cc3740313bb2a9e6f369d4f480554c588f322cff518c827f9c7be6
+DB 조회 세션 TimeZone: UTC
+2026-11-06 01:10:31 UTC +0000
+66 | 63 | 3 | -
+e7ccce5bd630f7cb9c28c5eaf606f0e09611175babb07f583c85b634ecc87b14  20261031.txt
+4ef3a1cd21f4dc9806ad99f2c1cedbe05eba4247d27db2052c5c989152c8c414  20261101.txt
+87dcd7817bfe6e2f9386c61919ff79910119255442c643a0bfa63032048953aa  20261102.txt
+d99efc7a157e44a9144690767a8bad6dbc47a2c63d022fca8e2cbf1d399cb1f1  20261103.txt
+1fb483c1b909f848c2c381659b1f3964f5d7ee01da805dcf61bc6ff40fa21dad  20261104.txt
+4493e5be2faf15230b25da67d33e0748e0aa2d5f7b75b7fba1a1422177937fe8  20261105.txt
+da1d26fde45569151c40b70f7d5cb81094215a9ccfdfafa059d0f83ff0e51ace  20261106.txt
+263cef69b61dce199a2dd2045e3ff465547ed89f30defe0a7e729ca23edabf53  install-check.txt
+== BTC H1 충족|최신 완료 봉|필요 봉|최근 20일 마감 봉: true|11-06 09:00|11-06 09:00|20/20
+== 뉴스 출처(종류|사용|간격 분|last_fetched_at epoch)
+blockmedia_rss|RSS|true|60|1793925096
+bloomberg_rss|RSS|true|60|1793925095
+coindesk_rss|RSS|true|60|1793925094
+coingecko_trending|COINGECKO|true|60|1793925094
+cryptopanic|CRYPTOPANIC|true|30|1793926897
+tokenpost_rss|RSS|true|60|1793925093
+upbit_notice|UPBIT_NOTICE|true|30|1793926897
+== Q3 실자금 보유 (OPEN·CLOSING) — 기대 0행
+ id | session_kind | session_id | coin_pair | status | size 
+(0 rows)
+== Q4 실자금 미결 주문 — 기대 0
+ real_unresolved_orders 
+                      0
+(1 row)
+== Q5 정리 대기 — 기대 0
+ cleanup_pending 
+               0
+(1 row)
+== Q6 격리 대조 대상 (§6.13 ⑤-1) — 기대 0행. 행이 나오면 정비 보류
+ position_id | session_kind | session_id | coin_pair | status | size | order_id | state | filled_quantity | created_at 
+(0 rows)
+== Q7 검증 66세션 상태 — 기대 RUNNING 66
+ status  | count 
+ RUNNING |    63
+ STOPPED |     3
+(2 rows)
+== Q8 정비 시작( '2026-11-06 10:10:28+09:00' ) 뒤 실자금 신규 매수 — 기대 0
+      maint_start       | real_buys_since_maint 
+ 2026-11-06 01:10:28+00 |                     0
+(1 row)
+== Q9 격리 해제 기록 (V94 뒤에만 존재) — 기대 0. V93 에서는 테이블이 없어 건너뛴다
+ quarantine_release_rows 
+                       0
+(1 row)
+== Q10 최근 7일 텔레그램 전송 기록 (참고 — 재기동 뒤에도 알림이 나가는가). queue_rejected = 큐 포화로 전송 못 한 중요 경보(재시도 보완 배포 뒤에만 생김)
+         type          | success | count | queue_rejected |           last_sent           
+ CANDLE_REFRESH_REPORT | t       |     8 |              0 | 2026-11-05 19:34:02.531134+00
+ CUSTOM                | t       |     2 |              0 | 2026-11-02 00:42:00.944251+00
+ STOP_LOSS             | t       |     1 |              0 | 2026-10-30 12:17:25.109498+00
+ TEST                  | t       |     1 |              0 | 2026-10-30 01:45:08.990262+00
+ TIME_STOP             | t       |     1 |              0 | 2026-11-01 07:00:38.373287+00
+ TRADE_SUMMARY         | t       |    14 |              0 | 2026-11-05 15:00:01.022624+00
+(6 rows)
+ROLLBACK
+== 배포 전 기준선: 실행 중 backend 로그의 뉴스 출처 ERROR 1줄(출처별)
+      1 [CryptoPanicSource] 수집 실패: 
+backend-1  | 13:00:29.675 [scheduler-2] ERROR c.c.a.news.source.CryptoPanicSource - [CryptoPanicSource] 수집 실패: Connection reset
+== 배포 전 기준선: 출처 HTTP 비200 줄(httpobs 종료 0 — 기록만)
+CryptoPanicSource HTTP 403 ×28 — 고정 한 줄 28 · 본문 형식/연속 줄 0 · 같은 스레드 상위 FAILED/HTTP_n/0건 짝 28 · 짝 미확인 0
+== 배포 전 기준선: HOLD 질의 장기 대여(holdobs 종료 0 — 3 이어도 멈추지 않는다, 기록만)
+HOLD 기준선 질의 장기 대여 경고 0건(반환 0·반환 미관측 0) · 그 밖의 장기 대여 경고 0건 · 연결 획득 시간 초과 줄 0건
+시작 Catchup: 시작 10:42:02.910 · 완료 10:42:14.455 (로그 머리 시각 UTC)
+== 배포 전 기준선: N15·N16 줄(entryobs 종료 0 — 7a94472 실행 중 로그, 기록만)
+N15 승인 실행 만료 — 콜백 전 LIVE 0·DYNAMIC 0 · 예약·의도 경계 거절(ENTRY_EXPIRED) LIVE 0·DYNAMIC 0(그중 의도 직전 LIVE 0·DYNAMIC 0) · 만료 사유 기록 실패 0
+N16 가격이 아닌 실시간 시세 무시 — LIVE 0·DYNAMIC 0
+N15: 미관측 — 이 구간에 자연 발생한 승인 실행 만료 없음(유도하지 않는다)
+N16: 미관측 — 이 구간에 자연 발생한 가격 아닌 실시간 시세 없음(유도하지 않는다)
+== 배포 전 기준선: N17 줄(7a94472 실행 중 로그, 기록만)
+N17 REST 강제 갱신 가격 아님(INVALID_PRICE·미발행) — LIVE 0·DYNAMIC 0
+N17: 미관측 — 이 구간에 자연 발생한 REST 강제 갱신 가격 이상 없음(유도하지 않는다)
+== 배포 전 기준선: N19 줄(7a94472 에는 이 줄이 없으므로 미관측이 기대, 기록만)
+N19 REST 전역 폴백 항목 건너뜀 — 형식 이상 0·가격 아님 0·코인 형식 0
+N19: 미관측 — 이 구간에 자연 발생한 REST 전역 폴백 이상 항목 없음(유도하지 않는다)
+경보 종료코드 1
+🔴 11-05 01:19  1종: KRW-BLAST
+🔴 11-05 02:19  1종: KRW-BLAST
+🔴 11-05 03:19  1종: KRW-BLAST
+🔴 11-05 04:19  1종: KRW-BLAST
+🔴 11-05 05:19  1종: KRW-BLAST
+🔴 11-05 06:19  1종: KRW-BLAST
+🔴 11-05 07:19  1종: KRW-BLAST
+🔴 11-05 08:19  1종: KRW-BLAST
+🔴 11-05 09:19  1종: KRW-BLAST
+🔴 11-05 10:19  1종: KRW-BLAST
+🔴 11-05 11:19  1종: KRW-BLAST
+🔴 11-05 12:19  1종: KRW-BLAST
+🔴 11-05 13:19  1종: KRW-BLAST
+🔴 11-05 14:19  1종: KRW-BLAST
+🔴 11-05 15:19  1종: KRW-BLAST
+🔴 11-05 16:19  1종: KRW-BLAST
+🔴 11-05 17:19  1종: KRW-BLAST
+🔴 11-05 18:19  1종: KRW-BLAST
+🔴 11-05 19:19  1종: KRW-BLAST
+🔴 11-05 20:19  1종: KRW-BLAST
+🔴 11-05 21:19  1종: KRW-BLAST
+🔴 11-05 22:19  1종: KRW-BLAST
+🔴 11-05 23:19  1종: KRW-BLAST
+🔴 11-06 00:19  1종: KRW-BLAST
+🔴 적재 뒤처짐 24회
+🔴 🔴 은 경보이고 확정이 아니다 — 분봉·같은 시각 수집/저장 로그·같은 회차 다른
+✅ U0 통과 — 30분 안에 U1
+[로컬 끝] 2026-11-06 10:10:34 +0900 rc=0
