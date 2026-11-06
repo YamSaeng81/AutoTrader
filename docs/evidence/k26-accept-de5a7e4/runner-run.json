@@ -1,0 +1,59 @@
+[
+  {
+    "args": [
+      "U3",
+      "deploy"
+    ],
+    "exit": 7,
+    "fake_ssh_calls": 1
+  },
+  {
+    "args": [
+      "U3",
+      "rollback"
+    ],
+    "exit": 7,
+    "fake_ssh_calls": 1
+  },
+  {
+    "args": [
+      "U3",
+      "deploy"
+    ],
+    "exit": 2,
+    "fake_ssh_calls": 0
+  },
+  {
+    "args": [
+      "U3",
+      "deploi"
+    ],
+    "exit": 2,
+    "fake_ssh_calls": 0
+  },
+  {
+    "args": [
+      "U9",
+      "deploy"
+    ],
+    "exit": 2,
+    "fake_ssh_calls": 0
+  },
+  {
+    "args": [
+      "U4",
+      "deploy"
+    ],
+    "exit": 2,
+    "fake_ssh_calls": 0
+  },
+  {
+    "args": [
+      "U3",
+      "deploy",
+      "retry1"
+    ],
+    "exit": 7,
+    "fake_ssh_calls": 1
+  }
+]

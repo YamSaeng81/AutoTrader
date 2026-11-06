@@ -1,0 +1,39 @@
+{
+  "source": "de5a7e4d0d5d4f6ac6820c57ce5a5dce15e8642a",
+  "manifests_worktree_and_git": {
+    "n20-k26-final-1899b49": 24,
+    "k25-result-review-b7f90ce": 9
+  },
+  "plan_blocks": 149,
+  "fixed_extraction_blocks": 10,
+  "D2_changed_lines": 12,
+  "candidate": "1899b49f633f8aefdc66b15c42debdaba8b3852c",
+  "base": "ee509cf855ffb8ebc1ed31f1c2bbe772d0545ce8",
+  "rollback_image": "sha256:200f2f5727e90204574fd9965a5cc06dfc5d317e98c13b200de2ac7201378ae6",
+  "jar_hashes": {
+    "ee509cf": "4f4f42aa058c34a15e438ba9048a9f94c49b2963a8bd72c5eb1ca3d5fbd6f4ec",
+    "1899b49": "74fd7c835ee7edf521496c2117522260b3d303f8aa6b6a18a59cce4901452091"
+  },
+  "reused_jar_diff": "HeldMarkRefresher + $Book; changed 2; 881 -> 881",
+  "syntax": 8,
+  "guard_cases": 30,
+  "runner_cases": 7,
+  "runner_substitutions": [
+    "workspace output root",
+    "absolute known Python",
+    "inert shell-function fake SSH, return 7, never evaluates command arguments"
+  ],
+  "N20_server_authorized_after_review": true,
+  "N20_runtime_complete": false,
+  "F_pins_S_unchanged": true,
+  "not_executed": [
+    "SSH/server",
+    "DB",
+    "Docker",
+    "network",
+    "product tests",
+    "Gradle",
+    "jar build",
+    "full deployment stand-in"
+  ]
+}

@@ -1,0 +1,6 @@
+#!/bin/bash
+# #26 직전 확인 — 읽기 전용. 서버에 쓰지 않는다. 재실행·재전송·수집 호출 없음.
+set -u
+L=/d/tmp/k26run/pre
+ssh -o BatchMode=yes cat-prod 'date "+서버 %F %T %Z"; cd ~/daily-check && echo "최근 보고 파일:"; ls -l --time-style=full-iso | grep -E "^-" | sort -k6,7 | tail -6; echo "last_send: $(cat last_send)"; sha256sum last_send 20261106-1000.txt; echo "crontab $(crontab -l | sha256sum | cut -d" " -f1)"; echo "INSTALLED_SHA $(cat ~/ops-scripts/INSTALLED_SHA)"; echo "daily_check.sh $(sha256sum < ~/ops-scripts/daily_check.sh | cut -d" " -f1)"; echo "daily_checks.sql $(sha256sum < ~/ops-scripts/daily_checks.sql | cut -d" " -f1)"; echo "SID_LEDGER_SHA $(cat ~/ops-scripts/SID_LEDGER_SHA) sid_ledger.sql $(sha256sum < ~/ops-scripts/sid_ledger.sql | cut -d" " -f1)"; cd ~/crypto_trader/AutoTrader && echo "HEAD $(git rev-parse HEAD)"; c=$(docker compose -f docker-compose.prod.yml ps -q backend); docker inspect --format "backend Image={{.Image}} Created={{.Created}} StartedAt={{.State.StartedAt}} RestartCount={{.RestartCount}} Status={{.State.Status}}" $c; echo "image-new(n19) $(cat ~/maint-n19/image-new.txt)"; ls -d ~/maint-n20 2>&1' </dev/null > $L/state.txt 2>&1
+grep -cE '[0-9]{8,10}:[A-Za-z0-9_-]{30,}' $L/state.txt > $L/token-check.txt
