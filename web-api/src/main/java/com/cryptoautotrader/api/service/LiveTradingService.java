@@ -2759,8 +2759,9 @@ public class LiveTradingService {
                 Instant observedAt = restTradeTime(ticker);
                 // 🔴 N17 (2026-11-05): 가격 검사 뒤에만 발행한다 — 0·음수는 처리기(N16)가 버릴 값이고, 발행하면 감시기가 "발행"으로 분류했다.
                 if (!MarkPriceBook.isPrice(tradePrice)) {
-                    log.warn("[§9] REST 강제 갱신 시세가 가격이 아님 — 발행하지 않음 (market={}, trade_price={})",
-                            market, tradePrice.toPlainString());
+                    // 🔴 O1 (2026-11-07 총괄 v1.134): REST market·가격 원문을 출력 인자로 넘기지 않는다 — 유한한 분류(0/음수)만.
+                    log.warn("[§9] REST 강제 갱신 시세가 가격이 아님 — 발행하지 않음 (가격 분류={})",
+                            tradePrice.signum() == 0 ? "0" : "음수");
                     result = ForceRefreshResult.invalidPrice(observedAt, tradePrice);
                     continue;
                 }
@@ -2771,7 +2772,8 @@ public class LiveTradingService {
             }
             return result;
         } catch (Exception e) {
-            log.error("[§9] SL 미점검 세션 강제 복구 실패 (coin={}): {}", coinPair, e.getMessage());
+            // 🔴 O1 (2026-11-07 총괄 v1.134): 예외 메시지·Throwable 을 넘기지 않는다(응답·URL 원문이 섞일 수 있다). 수준(ERROR)·건수는 그대로.
+            log.error("[§9] SL 미점검 세션 강제 복구 실패 — 조회·변환 예외(원문 생략)");
             return ForceRefreshResult.failed();
         }
     }
@@ -3444,10 +3446,11 @@ public class LiveTradingService {
                     : pnlPct.compareTo(stopLossPct.negate()) <= 0;
 
             if (slTriggered) {
-                log.warn("실시간 손절 발동 (WS): sessionId={}, {}, 손익={}%",
+                // O3 (2026-11-07 총괄 v1.134): REST 폴백 시세도 이 처리기를 지난다 — 출처를 단정하지 않는 '실시간 손절'.
+                log.warn("실시간 손절 발동: sessionId={}, {}, 손익={}%",
                         session.getId(), coinCode, pnlPct);
                 // 🔴 알림은 청산 성공 뒤에만 (2026-10-07) — 폴링 경로와 같은 이유다.
-                if (executeSessionSell(session, pos, price, "실시간 손절(WS) — 손익률 " + pnlPct + "%",
+                if (executeSessionSell(session, pos, price, "실시간 손절 — 손익률 " + pnlPct + "%",
                         ExitReason.STOP_LOSS)) {
                     telegramService.notifyStopLoss(coinCode, pnlPct.doubleValue(), session.getId());
                 }
