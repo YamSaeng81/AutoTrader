@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.MarketDataCacheCoverageTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-11-07T01:40:35" hostname="DESKTOP-SF1KUQ5" time="0.001">
+  <properties/>
+  <testcase name="캐시가 없으면 전체 구간을 받는다" classname="com.cryptoautotrader.api.service.MarketDataCacheCoverageTest" time="0.0"/>
+  <testcase name="쿨다운이 지나면 전량 재수집을 다시 시도한다" classname="com.cryptoautotrader.api.service.MarketDataCacheCoverageTest" time="0.0"/>
+  <testcase name="이력이 짧은 코인이라도 쿨다운 중이면 전량 재수집을 반복하지 않는다" classname="com.cryptoautotrader.api.service.MarketDataCacheCoverageTest" time="0.001"/>
+  <testcase name="캐시가 lookback 창을 덮으면 갭만 받는다" classname="com.cryptoautotrader.api.service.MarketDataCacheCoverageTest" time="0.0"/>
+  <testcase name="캐시가 창을 덮으면 쿨다운 이력과 무관하게 갭 경로다" classname="com.cryptoautotrader.api.service.MarketDataCacheCoverageTest" time="0.0"/>
+  <testcase name="&#x1f534; 캐시가 창 시작점을 못 덮으면 전체 구간을 다시 받는다 (KRW-LIT M15 180개 회귀)" classname="com.cryptoautotrader.api.service.MarketDataCacheCoverageTest" time="0.0"/>
+  <testcase name="캔들 2개분 여유 안쪽의 결측은 전량 재수집을 유발하지 않는다" classname="com.cryptoautotrader.api.service.MarketDataCacheCoverageTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

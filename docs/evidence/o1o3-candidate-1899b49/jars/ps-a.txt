@@ -1,0 +1,18 @@
+Compiled from "LiveTradingService.java"
+final class com.cryptoautotrader.api.service.LiveTradingService$PriceSnapshot {
+  final long timestampMs;
+
+  final java.math.BigDecimal price;
+
+  com.cryptoautotrader.api.service.LiveTradingService$PriceSnapshot(long, java.math.BigDecimal);
+    Code:
+       0: aload_0
+       1: invokespecial #                  // Method java/lang/Object."<init>":()V
+       4: aload_0
+       5: lload_1
+       6: putfield      #                  // Field timestampMs:J
+       9: aload_0
+      10: aload_3
+      11: putfield      #                 // Field price:Ljava/math/BigDecimal;
+      14: return
+}

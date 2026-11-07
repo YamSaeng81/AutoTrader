@@ -1,0 +1,966 @@
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
+index 2fab3d9c..ff5ebf73 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
+@@ -3485,10 +3485,11 @@ public class DynamicTradingService {
+                     ? price.compareTo(pos.getStopLossPrice()) <= 0
+                     : pnlPct.compareTo(slNeg) <= 0;
+             if (slTriggered) {
+-                log.warn("[Dynamic] 실시간 손절(WS): {} @ {} pnl={}% (id={})",
++                // O3 (2026-11-07 총괄 v1.134): REST 폴백 시세도 이 처리기를 지난다 — 출처를 단정하지 않는 '실시간 손절'.
++                log.warn("[Dynamic] 실시간 손절: {} @ {} pnl={}% (id={})",
+                         coinCode, price, pnlPct, session.getId());
+                 telegramService.notifyStopLoss(coinCode, pnlPct.doubleValue(), session.getId());
+-                executeSell(session, pos, price, "실시간 손절(WS) — pnl " + pnlPct + "%", ExitReason.STOP_LOSS);
++                executeSell(session, pos, price, "실시간 손절 — pnl " + pnlPct + "%", ExitReason.STOP_LOSS);
+             }
+         }
+     }
+@@ -3644,8 +3645,9 @@ public class DynamicTradingService {
+                 Instant observedAt = restTradeTime(ticker);
+                 // 🔴 N17 (2026-11-05): 가격 검사 뒤에만 발행한다 — 0·음수는 처리기(N16)가 버릴 값이고, 발행하면 감시기가 "발행"으로 분류했다.
+                 if (!MarkPriceBook.isPrice(tradePrice)) {
+-                    log.warn("[Dynamic][§9] REST 강제 갱신 시세가 가격이 아님 — 발행하지 않음 (market={}, trade_price={})",
+-                            market, tradePrice.toPlainString());
++                    // 🔴 O1 (2026-11-07 총괄 v1.134): REST market·가격 원문을 출력 인자로 넘기지 않는다 — 유한한 분류(0/음수)만.
++                    log.warn("[Dynamic][§9] REST 강제 갱신 시세가 가격이 아님 — 발행하지 않음 (가격 분류={})",
++                            tradePrice.signum() == 0 ? "0" : "음수");
+                     result = ForceRefreshResult.invalidPrice(observedAt, tradePrice);
+                     continue;
+                 }
+@@ -3656,7 +3658,8 @@ public class DynamicTradingService {
+             }
+             return result;
+         } catch (Exception e) {
+-            log.error("[Dynamic][§9] SL 미점검 세션 강제 복구 실패 (coin={}): {}", coinPair, e.getMessage());
++            // 🔴 O1 (2026-11-07 총괄 v1.134): 예외 메시지·Throwable 을 넘기지 않는다(응답·URL 원문이 섞일 수 있다). 수준(ERROR)·건수는 그대로.
++            log.error("[Dynamic][§9] SL 미점검 세션 강제 복구 실패 — 조회·변환 예외(원문 생략)");
+             return ForceRefreshResult.failed();
+         }
+     }
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
+index f0a80565..4c1bdd26 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
+@@ -2759,8 +2759,9 @@ public class LiveTradingService {
+                 Instant observedAt = restTradeTime(ticker);
+                 // 🔴 N17 (2026-11-05): 가격 검사 뒤에만 발행한다 — 0·음수는 처리기(N16)가 버릴 값이고, 발행하면 감시기가 "발행"으로 분류했다.
+                 if (!MarkPriceBook.isPrice(tradePrice)) {
+-                    log.warn("[§9] REST 강제 갱신 시세가 가격이 아님 — 발행하지 않음 (market={}, trade_price={})",
+-                            market, tradePrice.toPlainString());
++                    // 🔴 O1 (2026-11-07 총괄 v1.134): REST market·가격 원문을 출력 인자로 넘기지 않는다 — 유한한 분류(0/음수)만.
++                    log.warn("[§9] REST 강제 갱신 시세가 가격이 아님 — 발행하지 않음 (가격 분류={})",
++                            tradePrice.signum() == 0 ? "0" : "음수");
+                     result = ForceRefreshResult.invalidPrice(observedAt, tradePrice);
+                     continue;
+                 }
+@@ -2771,7 +2772,8 @@ public class LiveTradingService {
+             }
+             return result;
+         } catch (Exception e) {
+-            log.error("[§9] SL 미점검 세션 강제 복구 실패 (coin={}): {}", coinPair, e.getMessage());
++            // 🔴 O1 (2026-11-07 총괄 v1.134): 예외 메시지·Throwable 을 넘기지 않는다(응답·URL 원문이 섞일 수 있다). 수준(ERROR)·건수는 그대로.
++            log.error("[§9] SL 미점검 세션 강제 복구 실패 — 조회·변환 예외(원문 생략)");
+             return ForceRefreshResult.failed();
+         }
+     }
+@@ -3444,10 +3446,11 @@ public class LiveTradingService {
+                     : pnlPct.compareTo(stopLossPct.negate()) <= 0;
+ 
+             if (slTriggered) {
+-                log.warn("실시간 손절 발동 (WS): sessionId={}, {}, 손익={}%",
++                // O3 (2026-11-07 총괄 v1.134): REST 폴백 시세도 이 처리기를 지난다 — 출처를 단정하지 않는 '실시간 손절'.
++                log.warn("실시간 손절 발동: sessionId={}, {}, 손익={}%",
+                         session.getId(), coinCode, pnlPct);
+                 // 🔴 알림은 청산 성공 뒤에만 (2026-10-07) — 폴링 경로와 같은 이유다.
+-                if (executeSessionSell(session, pos, price, "실시간 손절(WS) — 손익률 " + pnlPct + "%",
++                if (executeSessionSell(session, pos, price, "실시간 손절 — 손익률 " + pnlPct + "%",
+                         ExitReason.STOP_LOSS)) {
+                     telegramService.notifyStopLoss(coinCode, pnlPct.doubleValue(), session.getId());
+                 }
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/N15PgLockWaitExpiryTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/N15PgLockWaitExpiryTest.java
+new file mode 100644
+index 00000000..cfbd946f
+--- /dev/null
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/N15PgLockWaitExpiryTest.java
+@@ -0,0 +1,487 @@
++package com.cryptoautotrader.api.service;
++
++import com.cryptoautotrader.api.entity.DynamicSessionEntity;
++import com.cryptoautotrader.api.entity.LiveTradingSessionEntity;
++import com.cryptoautotrader.api.entity.OrderEntity;
++import com.cryptoautotrader.api.repository.DynamicSessionRepository;
++import com.cryptoautotrader.api.repository.LiveTradingSessionRepository;
++import com.cryptoautotrader.api.repository.OrderRepository;
++import com.cryptoautotrader.api.repository.PositionRepository;
++import com.cryptoautotrader.api.support.TestRedisConfig;
++import com.cryptoautotrader.api.util.TimeframeUtils;
++import com.cryptoautotrader.exchange.upbit.UpbitRestClient;
++import com.cryptoautotrader.strategy.Candle;
++import com.cryptoautotrader.strategy.Strategy;
++import com.cryptoautotrader.strategy.StrategyRegistry;
++import com.cryptoautotrader.strategy.StrategySignal;
++import org.junit.jupiter.api.AfterEach;
++import org.junit.jupiter.api.BeforeEach;
++import org.junit.jupiter.api.DisplayName;
++import org.junit.jupiter.api.Test;
++import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
++import org.springframework.beans.factory.annotation.Autowired;
++import org.springframework.boot.test.context.SpringBootTest;
++import org.springframework.boot.test.mock.mockito.MockBean;
++import org.springframework.boot.test.mock.mockito.SpyBean;
++import org.springframework.context.ApplicationContext;
++import org.springframework.context.annotation.Import;
++import org.springframework.jdbc.core.JdbcTemplate;
++import org.springframework.test.context.ActiveProfiles;
++import org.springframework.test.util.AopTestUtils;
++import org.springframework.test.util.ReflectionTestUtils;
++import org.springframework.transaction.PlatformTransactionManager;
++import org.springframework.transaction.support.TransactionTemplate;
++
++import java.math.BigDecimal;
++import java.time.Clock;
++import java.time.Duration;
++import java.time.Instant;
++import java.time.ZoneId;
++import java.time.ZoneOffset;
++import java.time.temporal.ChronoUnit;
++import java.util.ArrayList;
++import java.util.Arrays;
++import java.util.List;
++import java.util.Map;
++import java.util.UUID;
++import java.util.concurrent.CountDownLatch;
++import java.util.concurrent.ExecutorService;
++import java.util.concurrent.Executors;
++import java.util.concurrent.Future;
++import java.util.concurrent.TimeUnit;
++import java.util.concurrent.atomic.AtomicInteger;
++import java.util.concurrent.atomic.AtomicLong;
++import java.util.concurrent.atomic.AtomicReference;
++
++import static org.assertj.core.api.Assertions.assertThat;
++import static org.mockito.ArgumentMatchers.anyInt;
++import static org.mockito.ArgumentMatchers.anyString;
++import static org.mockito.ArgumentMatchers.eq;
++import static org.mockito.Mockito.doReturn;
++import static org.mockito.Mockito.when;
++
++/**
++ * <b>N15 — 실제 PostgreSQL 잠금을 기다리다 E 에 닿는 경우</b> (총괄 v1.134 §3-6, 1899b49 제품 코드 그대로).
++ *
++ * <p>{@link N15FinalApprovalBoundaryTest} ⑧ 은 H2 행 잠금으로 "DYNAMIC 세션 refresh 대기 중 E" 순서만 확인했다. 여기서는 격리
++ * PostgreSQL(Flyway V1~V94)에서 다른 트랜잭션이 실제 행을 {@code FOR UPDATE} 로 쥐고 있는 동안 승인 스레드가 그 행 잠금을 기다리는지
++ * <b>DB 상태</b>({@code pg_stat_activity.wait_event_type = 'Lock'}, {@code pg_blocking_pids} 에 쥔 쪽 backend)와 스레드 스택으로 확인한 뒤,
++ * 기존 {@link EntryClock} 을 E 로 움직이고 잠금을 푼다.</p>
++ * <ul>
++ *   <li>① LIVE — 계좌 잠금 행 {@code account_capital_lock id=1}(예약 첫 단계 {@code lockAccount}) 대기 중 E → "잠금 뒤" 만료</li>
++ *   <li>② DYNAMIC — 세션 행 {@code dynamic_session}(차감 전 {@code em.refresh(PESSIMISTIC_WRITE)}) 대기 중 E → "차감 직전" 만료</li>
++ *   <li>③④ 대조군 — 같은 실제 잠금 대기를 거치되 시계를 E−1ms 로 두면 LIVE·DYNAMIC 정상 진입(대기 자체가 거절 사유가 아님)</li>
++ * </ul>
++ * <p>기대(①②): 원래 가용액·열린 슬롯 0·매수 의도(모든 상태) 0·거래소 0·원래 신호에 {@code ENTRY_EXPIRED}. 제품에 새 시계·트랜잭션·잠금
++ * 정책을 만들지 않는다. 환경 변수 {@code N15_PG_URL} 이 있을 때만 돈다(기본 H2 시험에서는 건너뜀). 대상은 격리 DB 여야 한다.</p>
++ */
++@EnabledIfEnvironmentVariable(named = "N15_PG_URL", matches = ".+")
++@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, properties = {
++        "spring.datasource.url=${N15_PG_URL}",
++        "spring.datasource.driver-class-name=org.postgresql.Driver",
++        "spring.datasource.username=${N15_PG_USER:trader}",
++        "spring.datasource.password=${N15_PG_PASSWORD:}",
++        "spring.datasource.hikari.connection-init-sql=SET lock_timeout = '20s'",
++        "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect",
++        "spring.sql.init.mode=never",
++        "spring.flyway.enabled=true",
++})
++@ActiveProfiles("test")
++@Import(TestRedisConfig.class)
++@DisplayName("N15 실제 PostgreSQL 잠금 대기 중 E — LIVE 계좌 잠금·DYNAMIC 세션 행 잠금, 차감·의도·슬롯·거래소 0 · 대조군 정상 진입")
++class N15PgLockWaitExpiryTest {
++
++    private static final String STRATEGY = "N15_PG_ALWAYS_BUY";
++    private static final String CODE = "ENTRY_EXPIRED";
++
++    @Autowired private ApplicationContext ctx;
++    @Autowired private EntryPriorityRounds rounds;
++    @Autowired private CapitalPoolLimits limits;
++    @Autowired private LiveTradingService liveTradingService;
++    @Autowired private DynamicTradingService dynamicTradingService;
++    @Autowired private LiveTradingSessionRepository liveRepo;
++    @Autowired private DynamicSessionRepository dynamicRepo;
++    @Autowired private PositionRepository positionRepository;
++    @Autowired private OrderRepository orderRepository;
++    @Autowired private PlatformTransactionManager txManager;
++    @Autowired private JdbcTemplate jdbc;
++    @Autowired private com.cryptoautotrader.api.repository.MarketDataCacheRepository candleDataRepository;
++    @Autowired(required = false) private com.cryptoautotrader.core.portfolio.PortfolioManager portfolioManager;
++    @Autowired @org.springframework.beans.factory.annotation.Qualifier("orderExecutor")
++    private org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor orderExecutor;
++    @Autowired @org.springframework.beans.factory.annotation.Qualifier("marketDataExecutor")
++    private org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor marketDataExecutor;
++
++    @MockBean private MarketDataSyncService marketDataSyncService;
++    @MockBean private UpbitRestClient upbitRestClient;
++    @MockBean private com.cryptoautotrader.exchange.upbit.UpbitOrderClient upbitOrderClient;
++    @MockBean private TelegramNotificationService telegramService;
++    @MockBean private PortfolioSyncService portfolioSyncService;
++    @SpyBean private RiskManagementService riskManagementService;
++    @SpyBean private PoolLossGuard poolLossGuard;
++
++    private String savedStage;
++    private BigDecimal savedTotal;
++    private BigDecimal savedPer;
++    private Integer savedSlots;
++    private final List<Long> liveIds = new ArrayList<>();
++    private final List<Long> dynIds = new ArrayList<>();
++    private final List<String> coins = List.of("KRW-CRO", "KRW-IOTA", "KRW-BTC");
++    private final MutableClock fake = new MutableClock(Instant.now());
++
++    static final class AlwaysBuy implements Strategy {
++        @Override public String getName() { return STRATEGY; }
++        @Override public StrategySignal evaluate(List<Candle> candles, Map<String, Object> params) {
++            return StrategySignal.buy(new BigDecimal("100"), "N15 PG 잠금 시험 신호");
++        }
++        @Override public int getMinimumCandleCount() { return 50; }
++    }
++
++    /** 등록한 스레드에만 가짜 시각을 준다 — {@link N15FinalApprovalBoundaryTest} 와 같은 방식. */
++    static final class MutableClock extends Clock {
++        private volatile Instant now;
++        private final java.util.Set<Thread> faked = java.util.concurrent.ConcurrentHashMap.newKeySet();
++        MutableClock(Instant start) { this.now = start; }
++        void set(Instant t) { this.now = t; }
++        void fakeFor(Thread t) { faked.add(t); }
++        @Override public ZoneId getZone() { return ZoneOffset.UTC; }
++        @Override public Clock withZone(ZoneId zone) { return this; }
++        @Override public Instant instant() { return faked.contains(Thread.currentThread()) ? now : Instant.now(); }
++    }
++
++    @BeforeEach
++    void setUp() throws Exception {
++        if (portfolioManager != null) portfolioManager.syncTotalCapital(new BigDecimal("1000000000000"));   // IntegrationTestBase 와 같다
++        assertThat(jdbc.queryForObject("SELECT version()", String.class)).as("실제 PostgreSQL").startsWith("PostgreSQL");
++        com.cryptoautotrader.api.support.OpenBuyLedger.quiesce(jdbc);
++        StrategyRegistry.register(new AlwaysBuy());
++        savedStage = limits.getStage();
++        savedTotal = limits.getTotalCapKrw();
++        savedPer = limits.getPerPositionCapKrw();
++        savedSlots = limits.getMaxConcurrentPositions();
++        limits.setStage("N15PG_" + UUID.randomUUID().toString().substring(0, 8));
++        poolLossGuard.setEnabledSetting(true);
++        rounds.setForcedForTest(true);
++        doReturn(com.cryptoautotrader.core.risk.RiskCheckResult.approve()).when(riskManagementService).checkRisk();
++        limits.setMaxConcurrentPositions((int) positionRepository.countPoolSlots(-1L) + 8);
++        limits.setPerPositionCapKrw(new BigDecimal("20000"));
++        limits.setTotalCapKrw(positionRepository.sumPoolExposureKrw(-1L).add(new BigDecimal("1000000")));
++        fake.fakeFor(Thread.currentThread());
++        wireClock(fake);
++    }
++
++    @AfterEach
++    void tearDown() throws Exception {
++        wireClock(null);
++        rounds.setForcedForTest(false);
++        drain(orderExecutor);       // 매수 의도 뒤 비동기 주문 처리(trade_log 기록)가 끝난 뒤 지운다
++        drain(marketDataExecutor);
++        for (Long id : liveIds) {
++            jdbc.update("DELETE FROM trade_log WHERE order_id IN (SELECT id FROM \"order\" WHERE session_kind = ? AND session_id = ?)", "LIVE", id);   // PG 외래키(H2 시험에는 없음)
++            orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc("LIVE", id).forEach(orderRepository::delete);
++            positionRepository.findBySessionKindAndSessionId("LIVE", id).forEach(positionRepository::delete);
++            liveRepo.findById(id).ifPresent(liveRepo::delete);
++        }
++        for (Long id : dynIds) {
++            jdbc.update("DELETE FROM trade_log WHERE order_id IN (SELECT id FROM \"order\" WHERE session_kind = ? AND session_id = ?)", "DYNAMIC", id);   // PG 외래키(H2 시험에는 없음)
++            orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc("DYNAMIC", id).forEach(orderRepository::delete);
++            positionRepository.findBySessionKindAndSessionId("DYNAMIC", id).forEach(positionRepository::delete);
++            dynamicRepo.findById(id).ifPresent(dynamicRepo::delete);
++        }
++        for (String c : coins) jdbc.update("DELETE FROM market_data_cache WHERE coin_pair = ? AND timeframe = 'H1'", c);
++        jdbc.update("DELETE FROM capital_stage_baseline WHERE stage = ?", limits.getStage());
++        limits.setStage(savedStage);
++        limits.setTotalCapKrw(savedTotal);
++        limits.setPerPositionCapKrw(savedPer);
++        limits.setMaxConcurrentPositions(savedSlots);
++    }
++
++    private static void drain(org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor executor) {
++        var pool = executor.getThreadPoolExecutor();
++        long deadline = System.currentTimeMillis() + 20_000;
++        while (System.currentTimeMillis() < deadline) {
++            if (pool.getQueue().isEmpty() && pool.getActiveCount() == 0
++                    && pool.getTaskCount() == pool.getCompletedTaskCount()) return;
++            try {
++                Thread.sleep(50);
++            } catch (InterruptedException e) {
++                Thread.currentThread().interrupt();
++                return;
++            }
++        }
++        throw new AssertionError("실행기가 20초 안에 비워지지 않았다");
++    }
++
++    private void wireClock(Clock c) throws Exception {
++        Class<?> k = Class.forName("com.cryptoautotrader.api.service.EntryClock");
++        k.getMethod("setForTest", Clock.class).invoke(ctx.getBean(k), c);
++    }
++
++    static Instant expiryOf(EntryPriorityRounds.RoundKey r) {
++        Duration t = Duration.ofMinutes(TimeframeUtils.toMinutes(r.timeframe()));
++        Duration w = t.dividedBy(2).compareTo(Duration.ofMinutes(5)) < 0 ? t.dividedBy(2) : Duration.ofMinutes(5);
++        return EntryPriorityRounds.deadline(r).plus(w);
++    }
++
++    private static List<Candle> candles(Instant lastOpen) {
++        List<Candle> out = new ArrayList<>();
++        for (int i = 299; i >= 0; i--) {
++            BigDecimal p = new BigDecimal(1000 + (299 - i));
++            out.add(Candle.builder().time(lastOpen.minus(i, ChronoUnit.HOURS))
++                    .open(p).high(p.add(BigDecimal.ONE)).low(p.subtract(BigDecimal.ONE)).close(p)
++                    .volume(new BigDecimal("1000")).build());
++        }
++        return out;
++    }
++
++    private void insertCandleData(String coin, List<Candle> cs) {
++        jdbc.update("DELETE FROM market_data_cache WHERE coin_pair = ? AND timeframe = 'H1'", coin);
++        candleDataRepository.saveAll(cs.stream().map(c -> com.cryptoautotrader.api.entity.MarketDataCacheEntity.builder()
++                .time(c.getTime()).coinPair(coin).timeframe("H1")
++                .open(c.getOpen()).high(c.getHigh()).low(c.getLow()).close(c.getClose()).volume(c.getVolume())
++                .build()).toList());
++    }
++
++    private static final AtomicInteger BASE_SEQ = new AtomicInteger();
++
++    /** 실제 현재 약 61분 전 시작한 봉이 마지막 닫힌 봉(E ≈ 지금 + 8분). 시험마다 다른 초·밀리초 오프셋으로 회차 키 충돌을 피한다. */
++    private static Instant base() {
++        return Instant.now().minus(61, ChronoUnit.MINUTES).truncatedTo(ChronoUnit.SECONDS)
++                .minusSeconds(23L + 7L * BASE_SEQ.incrementAndGet()).plusMillis(829);
++    }
++
++    private LiveTradingSessionEntity live(String coin) {
++        LiveTradingSessionEntity s = liveRepo.save(LiveTradingSessionEntity.builder()
++                .sessionType("REAL").strategyType(STRATEGY).coinPair(coin).timeframe("H1")
++                .initialCapital(new BigDecimal("20000")).availableKrw(new BigDecimal("20000"))
++                .totalAssetKrw(new BigDecimal("20000")).status("RUNNING").startedAt(Instant.now()).build());
++        liveIds.add(s.getId());
++        return s;
++    }
++
++    private DynamicSessionEntity dynamic(String coin) {
++        DynamicSessionEntity s = dynamicRepo.saveAndFlush(DynamicSessionEntity.builder()
++                .strategyType(STRATEGY).timeframe("H1")
++                .initialCapital(new BigDecimal("10000")).availableKrw(new BigDecimal("10000")).totalAssetKrw(new BigDecimal("10000"))
++                .investRatio(new BigDecimal("0.8000")).stopLossPct(new BigDecimal("5.00"))
++                .status("RUNNING").scanState("SCANNING").tradingMode("REAL")
++                .maxCandidateSize(30).targetWatchSize(10)
++                .minAtrPct(new BigDecimal("0.5000")).maxSpreadPct(new BigDecimal("0.1000")).watchlistRefreshMin(60)
++                .watchlistJson("[\"" + coin + "\"]").watchlistRefreshedAt(Instant.now())
++                .startedAt(Instant.now())
++                .build());
++        dynIds.add(s.getId());
++        return s;
++    }
++
++    /** 세션 하나를 접수하고 회차 E 를 돌려준다. */
++    private Instant enqueue(String kind, Long id, String coin, Instant lastOpen) {
++        List<Candle> cs = candles(lastOpen);
++        insertCandleData(coin, cs);
++        when(marketDataSyncService.fetchWithCache(eq(coin), anyString(), anyInt())).thenReturn(cs);
++        fake.set(Instant.now());
++        if ("LIVE".equals(kind)) {
++            Object target = AopTestUtils.getUltimateTargetObject(liveTradingService);
++            ReflectionTestUtils.invokeMethod(target, "evaluateAndExecuteSession",
++                    liveRepo.findById(id).orElseThrow());
++        } else {
++            dynamicTradingService.processTick(dynamicRepo.findById(id).orElseThrow());
++        }
++        assertThat(rounds.openRounds()).as(kind + " " + coin + " 접수").isEqualTo(1);
++        return expiryOf(new EntryPriorityRounds.RoundKey("H1", lastOpen));
++    }
++
++    private List<OrderEntity> buys(String kind, Long id) {
++        return orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc(kind, id).stream()
++                .filter(o -> "BUY".equals(o.getSide())).toList();
++    }
++
++    private long openPositions(String kind, Long id) {
++        return positionRepository.findBySessionKindAndSessionId(kind, id).stream()
++                .filter(p -> "OPEN".equals(p.getStatus()) || "CLOSING".equals(p.getStatus())).count();
++    }
++
++    private int exchangeCalls(String coin) {
++        return (int) org.mockito.Mockito.mockingDetails(upbitOrderClient).getInvocations().stream()
++                .filter(i -> "createOrder".equals(i.getMethod().getName()) && coin.equals(i.getArgument(0))).count();
++    }
++
++    private Object[] signal(String kind, Long id, String coin) {
++        List<Object[]> rows = jdbc.query("SELECT was_executed, blocked_reason FROM strategy_log WHERE session_type = ? "
++                        + "AND session_id = ? AND coin_pair = ? ORDER BY id DESC",
++                (rs, n) -> new Object[]{rs.getBoolean(1), rs.getString(2)}, kind, id, coin);
++        return rows.isEmpty() ? new Object[]{null, "(신호 기록 없음)"} : rows.get(0);
++    }
++
++    private BigDecimal funds(String kind, Long id) {
++        return "LIVE".equals(kind) ? liveRepo.findById(id).orElseThrow().getAvailableKrw()
++                : dynamicRepo.findById(id).orElseThrow().getAvailableKrw();
++    }
++
++    private static String reasons(List<EntryPriorityRounds.Outcome> out) {
++        return out.stream().map(o -> o.candidate().coinPair() + "=" + (o.reason() == null ? "진입" : o.reason())).toList().toString();
++    }
++
++    /** 실제 잠금 대기 관측 결과. */
++    record LockWait(boolean dbWaiting, boolean blockedByHolder, boolean threadWaiting, String dbDetail, String threadDetail) {
++        boolean confirmed() { return dbWaiting && blockedByHolder && threadWaiting; }
++    }
++
++    /**
++     * 승인 스레드가 {@code table} 행 잠금을 실제로 기다리는가 — DB({@code pg_stat_activity}·{@code pg_blocking_pids}) 와 스레드 스택 둘 다.
++     *
++     * @param frame 승인 스레드 스택에 있어야 할 메서드(LIVE {@code lockAccount}, DYNAMIC {@code refresh})
++     */
++    private LockWait awaitLockWait(String table, long holderPid, Thread approver, String frame) throws InterruptedException {
++        long until = System.currentTimeMillis() + 10_000;
++        String dbDetail = "";
++        String threadDetail = "";
++        boolean db = false, blocked = false, th = false;
++        while (System.currentTimeMillis() < until && !(db && blocked && th)) {
++            List<Map<String, Object>> rows = jdbc.queryForList("""
++                    SELECT pid, wait_event_type, wait_event, state, pg_blocking_pids(pid)::text AS blockers, left(query, 160) AS q
++                    FROM pg_stat_activity
++                    WHERE datname = current_database() AND pid <> pg_backend_pid()
++                      AND wait_event_type = 'Lock' AND query ILIKE ?
++                    """, "%" + table + "%");
++            db = rows.size() == 1;
++            blocked = db && String.valueOf(rows.get(0).get("blockers")).matches("\\{(.*,)?" + holderPid + "(,.*)?\\}");
++            dbDetail = rows.toString();
++            if (approver != null) {
++                StackTraceElement[] st = approver.getStackTrace();
++                boolean inReserve = Arrays.stream(st).anyMatch(f -> "reserveForBuy".equals(f.getMethodName())
++                        && f.getClassName().contains("CapitalReservationService"));
++                boolean inFrame = Arrays.stream(st).anyMatch(f -> frame.equals(f.getMethodName()));
++                th = inReserve && inFrame;
++                threadDetail = approver.getState() + " reserveForBuy=" + inReserve + " " + frame + "=" + inFrame;
++            }
++            if (!(db && blocked && th)) Thread.sleep(20);
++        }
++        return new LockWait(db, blocked, th, dbDetail, threadDetail);
++    }
++
++    /** 실행 결과 묶음. */
++    record Run(List<EntryPriorityRounds.Outcome> out, LockWait lockWait, Instant expiry) { }
++
++    /**
++     * 다른 트랜잭션이 {@code lockSql} 로 행을 쥔 동안 승인 스레드가 E−1ms 로 회차를 처리하게 하고, 실제 잠금 대기를 확인한 뒤
++     * {@code moveToE} 면 시계를 E 로 움직이고 잠금을 푼다.
++     */
++    private Run runWithHeldLock(String kind, Long id, String coin, Instant lastOpen, String lockSql, Object lockArg,
++                                String table, String frame, boolean moveToE) throws Exception {
++        Instant e = enqueue(kind, id, coin, lastOpen);
++        ExecutorService pool = Executors.newFixedThreadPool(2);
++        CountDownLatch held = new CountDownLatch(1);
++        CountDownLatch release = new CountDownLatch(1);
++        AtomicLong holderPid = new AtomicLong();
++        AtomicReference<Thread> approver = new AtomicReference<>();
++        try {
++            Future<?> holder = pool.submit(() -> new TransactionTemplate(txManager).executeWithoutResult(st -> {
++                holderPid.set(jdbc.queryForObject("SELECT pg_backend_pid()", Long.class));
++                if (lockArg == null) jdbc.queryForList(lockSql);
++                else jdbc.queryForList(lockSql, lockArg);
++                held.countDown();
++                try {
++                    release.await(20, TimeUnit.SECONDS);
++                } catch (InterruptedException ie) {
++                    Thread.currentThread().interrupt();
++                }
++            }));
++            assertThat(held.await(10, TimeUnit.SECONDS)).as("다른 트랜잭션이 행 잠금을 쥐었다").isTrue();
++            fake.set(e.minusMillis(1));
++            Future<List<EntryPriorityRounds.Outcome>> result = pool.submit(() -> {
++                fake.fakeFor(Thread.currentThread());
++                approver.set(Thread.currentThread());
++                return rounds.processDue(e.minusMillis(1));
++            });
++            while (approver.get() == null) Thread.sleep(1);
++            LockWait w = awaitLockWait(table, holderPid.get(), approver.get(), frame);
++            assertThat(result.isDone()).as("잠금을 쥔 동안 승인이 끝나지 않았다").isFalse();
++            if (moveToE) fake.set(e);   // 실제 행 잠금을 기다리는 동안 E 에 닿았다
++            release.countDown();
++            holder.get(20, TimeUnit.SECONDS);
++            List<EntryPriorityRounds.Outcome> out = result.get(30, TimeUnit.SECONDS);
++            System.out.println("[N15PG] " + kind + " " + coin + " " + table + " 대기 DB=" + w.dbWaiting() + " 쥔 쪽 pid " + holderPid.get()
++                    + " 막힘=" + w.blockedByHolder() + " " + w.dbDetail() + " · 스레드 " + w.threadDetail()
++                    + " · 시계 " + (moveToE ? "E " + e : "E−1ms 유지") + " → " + reasons(out) + " · 매수 의도 " + buys(kind, id).size()
++                    + " · 열린 슬롯 " + openPositions(kind, id) + " · 가용 " + funds(kind, id) + " · 거래소 " + exchangeCalls(coin)
++                    + " · 신호 " + Arrays.toString(signal(kind, id, coin)));
++            return new Run(out, w, e);
++        } finally {
++            release.countDown();
++            pool.shutdownNow();
++        }
++    }
++
++    private void assertExpired(String tag, String kind, Long id, String coin, Run r, String initial, String stage) {
++        assertThat(r.lockWait().confirmed()).as(tag + " 실제 잠금 대기 확인(DB·쥔 쪽 pid·스레드) " + r.lockWait()).isTrue();
++        assertThat(r.out()).hasSize(1);
++        assertThat(r.out().get(0).reason()).as(tag + " 만료 거절").contains(CODE).contains(stage);
++        assertThat(buys(kind, id)).as(tag + " 매수 의도 0(모든 상태)").isEmpty();
++        assertThat(openPositions(kind, id)).as(tag + " 열린 슬롯 0").isZero();
++        assertThat(funds(kind, id)).as(tag + " 원래 가용액").isEqualByComparingTo(initial);
++        assertThat(exchangeCalls(coin)).as(tag + " 거래소 0").isZero();
++        Object[] sig = signal(kind, id, coin);
++        assertThat(sig[0]).isEqualTo(false);
++        assertThat((String) sig[1]).as(tag + " 원래 신호에 만료 사유").contains(CODE);
++        assertThat(rounds.openRounds()).as("회차 닫힘").isZero();
++        assertThat(rounds.processDue(Instant.now().plus(2, ChronoUnit.HOURS))).as("재대기 없음").isEmpty();
++    }
++
++    private void assertEntered(String tag, String kind, Long id, String coin, Run r, String after) {
++        assertThat(r.lockWait().confirmed()).as(tag + " 실제 잠금 대기 확인(DB·쥔 쪽 pid·스레드) " + r.lockWait()).isTrue();
++        assertThat(r.out()).hasSize(1);
++        assertThat(r.out().get(0).reason()).as(tag + " 정상 진입").isNull();
++        assertThat(buys(kind, id)).as(tag + " 매수 의도 1").hasSize(1);
++        assertThat(openPositions(kind, id)).as(tag + " 열린 슬롯 1").isEqualTo(1);
++        assertThat(funds(kind, id)).as(tag + " 차감").isEqualByComparingTo(after);
++    }
++
++    private void btc(Instant base) {
++        insertCandleData("KRW-BTC", candles(base));
++        when(marketDataSyncService.fetchWithCache(anyString(), anyString(), anyInt())).thenReturn(candles(base));
++    }
++
++    private static final String ACCOUNT_LOCK = "SELECT id FROM account_capital_lock WHERE id = 1 FOR UPDATE";
++    private static final String SESSION_LOCK = "SELECT status FROM dynamic_session WHERE id = ? FOR UPDATE";
++
++    @Test
++    @DisplayName("① LIVE 계좌 잠금 행(account_capital_lock) 실제 대기 중 E — '잠금 뒤' ENTRY_EXPIRED, 가용 20000·슬롯·의도·거래소 0")
++    void liveAccountLockWaitCrossesExpiry() throws Exception {
++        Instant base = base();
++        btc(base);
++        Long id = live("KRW-CRO").getId();
++        Run r = runWithHeldLock("LIVE", id, "KRW-CRO", base.minusSeconds(1), ACCOUNT_LOCK, null, "account_capital_lock", "lockAccount", true);
++        assertExpired("①", "LIVE", id, "KRW-CRO", r, "20000", "잠금 뒤");
++    }
++
++    @Test
++    @DisplayName("② DYNAMIC 세션 행(dynamic_session) refresh 실제 대기 중 E — '차감 직전' ENTRY_EXPIRED, 가용 10000·슬롯·의도·거래소 0")
++    void dynamicSessionRowLockWaitCrossesExpiry() throws Exception {
++        Instant base = base();
++        btc(base);
++        Long id = dynamic("KRW-IOTA").getId();
++        Run r = runWithHeldLock("DYNAMIC", id, "KRW-IOTA", base.minusSeconds(1), SESSION_LOCK, id, "dynamic_session", "refresh", true);
++        assertExpired("②", "DYNAMIC", id, "KRW-IOTA", r, "10000", "차감 직전");
++    }
++
++    @Test
++    @DisplayName("③ 대조군 LIVE 같은 계좌 잠금 실제 대기, 시계 E−1ms 유지 → 정상 진입(차감 20000→15000·슬롯·매수 의도 1)")
++    void controlLiveAccountLockWaitEnters() throws Exception {
++        Instant base = base();
++        btc(base);
++        Long id = live("KRW-CRO").getId();
++        Run r = runWithHeldLock("LIVE", id, "KRW-CRO", base.minusSeconds(1), ACCOUNT_LOCK, null, "account_capital_lock", "lockAccount", false);
++        assertEntered("③", "LIVE", id, "KRW-CRO", r, "15000");
++    }
++
++    @Test
++    @DisplayName("④ 대조군 DYNAMIC 같은 세션 행 실제 대기, 시계 E−1ms 유지 → 정상 진입(차감 10000→2000·슬롯·매수 의도 1)")
++    void controlDynamicSessionRowLockWaitEnters() throws Exception {
++        Instant base = base();
++        btc(base);
++        Long id = dynamic("KRW-IOTA").getId();
++        Run r = runWithHeldLock("DYNAMIC", id, "KRW-IOTA", base.minusSeconds(1), SESSION_LOCK, id, "dynamic_session", "refresh", false);
++        assertEntered("④", "DYNAMIC", id, "KRW-IOTA", r, "2000");
++    }
++}
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/O1O3LogContractTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/O1O3LogContractTest.java
+new file mode 100644
+index 00000000..1c4be579
+--- /dev/null
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/O1O3LogContractTest.java
+@@ -0,0 +1,349 @@
++package com.cryptoautotrader.api.service;
++
++import ch.qos.logback.classic.Level;
++import ch.qos.logback.classic.Logger;
++import ch.qos.logback.classic.spi.ILoggingEvent;
++import ch.qos.logback.core.read.ListAppender;
++import com.cryptoautotrader.api.entity.DynamicSessionEntity;
++import com.cryptoautotrader.api.entity.LiveTradingSessionEntity;
++import com.cryptoautotrader.api.entity.OrderEntity;
++import com.cryptoautotrader.api.entity.PositionEntity;
++import com.cryptoautotrader.api.repository.DynamicSessionRepository;
++import com.cryptoautotrader.api.repository.LiveTradingSessionRepository;
++import com.cryptoautotrader.api.repository.OrderRepository;
++import com.cryptoautotrader.api.repository.PositionCleanupRepository;
++import com.cryptoautotrader.api.repository.PositionRepository;
++import com.cryptoautotrader.api.support.IntegrationTestBase;
++import com.cryptoautotrader.exchange.upbit.UpbitOrderClient;
++import com.cryptoautotrader.exchange.upbit.UpbitRestClient;
++import com.cryptoautotrader.exchange.upbit.dto.OrderResponse;
++import org.junit.jupiter.api.AfterEach;
++import org.junit.jupiter.api.BeforeEach;
++import org.junit.jupiter.api.DisplayName;
++import org.junit.jupiter.api.Test;
++import org.junit.jupiter.params.ParameterizedTest;
++import org.junit.jupiter.params.provider.CsvSource;
++import org.mockito.Mockito;
++import org.slf4j.LoggerFactory;
++import org.springframework.beans.factory.annotation.Autowired;
++import org.springframework.beans.factory.annotation.Qualifier;
++import org.springframework.boot.test.mock.mockito.MockBean;
++import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
++import org.springframework.test.context.event.ApplicationEvents;
++import org.springframework.test.context.event.RecordApplicationEvents;
++import org.springframework.test.util.AopTestUtils;
++
++import java.math.BigDecimal;
++import java.time.Instant;
++import java.util.ArrayList;
++import java.util.Arrays;
++import java.util.List;
++import java.util.Map;
++import java.util.Set;
++import java.util.concurrent.atomic.AtomicInteger;
++import java.util.regex.Pattern;
++
++import static org.assertj.core.api.Assertions.assertThat;
++
++/**
++ * <b>O1·O3 — 강제 갱신 로그 고정 문구 · 실시간 손절 문구 중립화</b> (총괄 v1.134 §2, 1899b49 기점).
++ *
++ * <p>O1: LIVE·DYNAMIC {@code forceRefreshPrice} 의 INVALID_PRICE WARN 은 REST market 문자열·가격 숫자 원문을, catch ERROR 는
++ * {@code e.getMessage()} 를 출력 인자로 넘겼다. 이 메서드 안의 두 줄만 고정 사유로 바꾼다 — 인자는 0/음수 같은 유한한 분류뿐이고
++ * Throwable 을 넘기지 않는다. 결과(INVALID_PRICE·FAILED·STALE·PUBLISHED)·이벤트 발행 수·로그 수준·건수는 그대로다.
++ * 승인된 관측 정규식 {@code \[(Dynamic\]\[)?§9\] REST 강제 갱신 시세가 가격이 아님 . 발행하지 않음 \(} 앞부분과 경계를 유지한다.</p>
++ *
++ * <p>O3: REST 폴백 시세로 발동한 손절도 같은 처리기를 지나 {@code 실시간 손절(WS)} 로 찍혔다. 새 로그·새 매도 사유를
++ * {@code 실시간 손절} 로 중립화한다. 조건·가격·ExitReason.STOP_LOSS·매도 수·텔레그램 조건은 그대로다. 과거 저장 사유
++ * {@code 실시간 손절(WS)} 의 분류 호환은 유지한다(대조군).</p>
++ *
++ * <p>준비 자료는 {@link N17RestInvalidPriceTest}·{@link StaleRealtimeExitTest} 와 같다(진입 300·손절가 285·수량 9.8).</p>
++ */
++@RecordApplicationEvents
++@DisplayName("O1·O3 로그 출력 계약 — 강제 갱신 WARN/ERROR 원문 없음·수준/건수/결과 유지, 실시간 손절 문구 중립(REST·WS 모두)")
++class O1O3LogContractTest extends IntegrationTestBase {
++
++    private static final BigDecimal SIZE = new BigDecimal("9.80000000");
++    private static final AtomicInteger COIN_SEQ = new AtomicInteger();
++    /** 승인된 관측 정규식(LIMITED_LIVE_TEST_PLAN 4곳) — 그대로 세어져야 한다. */
++    private static final Pattern APPROVED_N17 = Pattern.compile("\\[(Dynamic\\]\\[)?§9\\] REST 강제 갱신 시세가 가격이 아님 . 발행하지 않음 \\(");
++    /** 출력 인자로 허용하는 유한한 분류. */
++    private static final Set<String> FINITE_ARGS = Set.of("0", "음수");
++    private static final String MARK = "🔴 가짜 표지";
++
++    @Autowired private LiveTradingService liveTradingService;
++    @Autowired private DynamicTradingService dynamicTradingService;
++    @Autowired private LiveTradingSessionRepository liveRepo;
++    @Autowired private DynamicSessionRepository dynamicRepo;
++    @Autowired private PositionRepository positionRepository;
++    @Autowired private OrderRepository orderRepository;
++    @Autowired private PositionCleanupRepository cleanupRepository;
++    @Autowired private ApplicationEvents events;
++    @Autowired @Qualifier("orderExecutor") private ThreadPoolTaskExecutor orderExecutor;
++    @Autowired @Qualifier("marketDataExecutor") private ThreadPoolTaskExecutor marketDataExecutor;
++
++    @MockBean private UpbitOrderClient upbitOrderClient;
++    @MockBean private UpbitRestClient upbitRestClient;
++    @MockBean private TelegramNotificationService telegramService;
++
++    private final List<Long> liveSessions = new ArrayList<>();
++    private final List<Long> dynamicSessions = new ArrayList<>();
++    private final AtomicInteger sellSeq = new AtomicInteger();
++    private ListAppender<ILoggingEvent> logs;
++    private Logger liveLogger;
++    private Logger dynamicLogger;
++
++    private record Fx(String kind, Long sessionId, Long positionId, String coin) { }
++
++    @BeforeEach
++    void setUp() {
++        Mockito.when(upbitOrderClient.createOrder(Mockito.anyString(), Mockito.eq("ask"),
++                        Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
++                .thenAnswer(inv -> new UpbitOrderClient.ExchangeResult(
++                        report("uuid-o1o3-" + sellSeq.incrementAndGet() + "-" + System.nanoTime(), inv.getArgument(0)), "{}"));
++        Mockito.when(upbitOrderClient.getOrder(Mockito.anyString()))
++                .thenAnswer(inv -> report(inv.getArgument(0), null));
++        liveLogger = (Logger) LoggerFactory.getLogger(LiveTradingService.class);
++        dynamicLogger = (Logger) LoggerFactory.getLogger(DynamicTradingService.class);
++        logs = new ListAppender<>();
++        logs.start();
++        liveLogger.addAppender(logs);
++        dynamicLogger.addAppender(logs);
++    }
++
++    @AfterEach
++    void cleanUp() {
++        drain(marketDataExecutor);
++        drain(orderExecutor);
++        liveLogger.detachAppender(logs);
++        dynamicLogger.detachAppender(logs);
++        for (Long id : liveSessions) wipe("LIVE", id, () -> liveRepo.deleteById(id));
++        for (Long id : dynamicSessions) wipe("DYNAMIC", id, () -> dynamicRepo.deleteById(id));
++        liveSessions.clear();
++        dynamicSessions.clear();
++    }
++
++    private void wipe(String kind, Long sid, Runnable deleteSession) {
++        positionRepository.findBySessionKindAndSessionId(kind, sid).forEach(p -> cleanupRepository.deleteById(p.getId()));
++        orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc(kind, sid).forEach(orderRepository::delete);
++        positionRepository.findBySessionKindAndSessionId(kind, sid).forEach(positionRepository::delete);
++        deleteSession.run();
++    }
++
++    private static OrderResponse report(String uuid, String market) {
++        OrderResponse r = new OrderResponse();
++        r.setUuid(uuid);
++        r.setSide("ask");
++        r.setOrdType("market");
++        r.setState("wait");
++        r.setMarket(market);
++        r.setVolume(SIZE);
++        r.setExecutedVolume(BigDecimal.ZERO);
++        return r;
++    }
++
++    private Fx holding(String kind) {
++        String coin = "KRW-OLC" + kind.charAt(0) + COIN_SEQ.incrementAndGet();
++        Long sid;
++        if ("DYNAMIC".equals(kind)) {
++            sid = dynamicRepo.saveAndFlush(DynamicSessionEntity.builder()
++                    .strategyType("COMPOSITE_MOMENTUM_ICHIMOKU_V2").timeframe("H1")
++                    .initialCapital(new BigDecimal("10000")).availableKrw(new BigDecimal("7000"))
++                    .totalAssetKrw(new BigDecimal("10000"))
++                    .investRatio(new BigDecimal("0.3000")).stopLossPct(new BigDecimal("5.00"))
++                    .status("RUNNING").scanState("POSITION_MONITORING").tradingMode("REAL")
++                    .currentCoinPair(coin)
++                    .maxCandidateSize(30).targetWatchSize(10)
++                    .minAtrPct(new BigDecimal("0.5000")).maxSpreadPct(new BigDecimal("0.1000"))
++                    .watchlistRefreshMin(60)
++                    .build()).getId();
++            dynamicSessions.add(sid);
++        } else {
++            sid = liveRepo.saveAndFlush(LiveTradingSessionEntity.builder()
++                    .sessionType("REAL").strategyType("COMPOSITE_MOMENTUM_ICHIMOKU_V2")
++                    .coinPair(coin).timeframe("M5")
++                    .initialCapital(new BigDecimal("10000")).availableKrw(new BigDecimal("7000"))
++                    .totalAssetKrw(new BigDecimal("10000"))
++                    .status("RUNNING").startedAt(Instant.now()).build()).getId();
++            liveSessions.add(sid);
++        }
++        PositionEntity pos = positionRepository.saveAndFlush(PositionEntity.builder()
++                .coinPair(coin).side("BUY")
++                .entryPrice(new BigDecimal("300")).avgPrice(new BigDecimal("300"))
++                .size(SIZE).investedKrw(new BigDecimal("2940")).entryAllocationKrw(new BigDecimal("3000"))
++                .stopLossPrice(new BigDecimal("285"))
++                .status("OPEN").sessionKind(kind).sessionId(sid)
++                .openedAt(Instant.now()).build());
++        if ("DYNAMIC".equals(kind)) {
++            DynamicSessionEntity s = dynamicRepo.findById(sid).orElseThrow();
++            s.setCurrentPositionId(pos.getId());
++            dynamicRepo.saveAndFlush(s);
++        }
++        return new Fx(kind, sid, pos.getId(), coin);
++    }
++
++    private Object target(String kind) {
++        return AopTestUtils.getTargetObject("DYNAMIC".equals(kind) ? dynamicTradingService : liveTradingService);
++    }
++
++    private ForceRefreshResult refresh(String kind, String coin) {
++        return "DYNAMIC".equals(kind)
++                ? ((DynamicTradingService) target(kind)).forceRefreshPrice(coin)
++                : ((LiveTradingService) target(kind)).forceRefreshPrice(coin);
++    }
++
++    private long published(String coin, String market) {
++        return events.stream(RealtimePriceEvent.class)
++                .filter(e -> coin.equals(e.getCoinCode()) || market.equals(e.getCoinCode())).count();
++    }
++
++    private static void drain(ThreadPoolTaskExecutor executor) {
++        var pool = executor.getThreadPoolExecutor();
++        long deadline = System.currentTimeMillis() + 20_000;
++        while (System.currentTimeMillis() < deadline) {
++            if (pool.getQueue().isEmpty() && pool.getActiveCount() == 0
++                    && pool.getTaskCount() == pool.getCompletedTaskCount()) return;
++            try {
++                Thread.sleep(50);
++            } catch (InterruptedException e) {
++                Thread.currentThread().interrupt();
++                return;
++            }
++        }
++        throw new AssertionError("실행기가 20초 안에 비워지지 않았다");
++    }
++
++    /** 이 시험 스레드에서 두 서비스 로거가 남긴 WARN 이상 줄. */
++    private List<ILoggingEvent> myWarnOrAbove() {
++        String me = Thread.currentThread().getName();
++        return logs.list.stream()
++                .filter(e -> me.equals(e.getThreadName()))
++                .filter(e -> e.getLevel().isGreaterOrEqual(Level.WARN))
++                .toList();
++    }
++
++    /** 원문이 어떤 경로(메시지·인자·Throwable)로도 로그에 들어가지 않았는가. */
++    private static void assertNoRaw(ILoggingEvent e, String... raws) {
++        String msg = e.getFormattedMessage();
++        assertThat(e.getThrowableProxy()).as("Throwable 을 로그에 넘기지 않는다").isNull();
++        assertThat(msg).as("줄바꿈 없음").doesNotContain("\n").doesNotContain("\r");
++        assertThat(msg).doesNotContain(MARK).doesNotContain("api.upbit.com").doesNotContain("token");
++        for (String raw : raws) assertThat(msg).as("원문 %s 없음", raw).doesNotContain(raw);
++        Object[] args = e.getArgumentArray();
++        if (args != null) {
++            assertThat(Arrays.stream(args).map(String::valueOf).toList()).as("인자는 유한한 분류뿐").allMatch(FINITE_ARGS::contains);
++        }
++    }
++
++    // ── O1 ① 0·음수 + 줄바꿈/가짜 표지 market → INVALID_PRICE·발행 0·WARN 1(원문 없음, 승인 정규식 유지) ─────────
++
++    @ParameterizedTest(name = "{0} trade_price={1}")
++    @CsvSource({"LIVE,-5.125,음수", "LIVE,0.00000000,0", "DYNAMIC,-5.125,음수", "DYNAMIC,0.00000000,0"})
++    @DisplayName("O1① 0·음수 + 가짜 표지·줄바꿈 market → INVALID_PRICE·이벤트 0·WARN 1·ERROR 0, 원문(market·숫자) 없음, 분류만, 승인 정규식으로 셈")
++    void invalidPriceWarnHasNoRaw(String kind, String price, String category) throws Exception {
++        String coin = "KRW-OIP" + kind.charAt(0) + COIN_SEQ.incrementAndGet();
++        String market = "KRW-OMK" + COIN_SEQ.incrementAndGet() + "\n" + MARK + " ERROR [§9] 정상";
++        Mockito.when(upbitRestClient.getTicker(coin)).thenReturn(List.of(
++                Map.of("market", market, "trade_price", price, "trade_timestamp", Instant.now().minusSeconds(1).toEpochMilli())));
++
++        ForceRefreshResult r = refresh(kind, coin);
++
++        assertThat(r.outcome().name()).isEqualTo("INVALID_PRICE");
++        assertThat(published(coin, market)).isZero();
++        List<ILoggingEvent> lines = myWarnOrAbove();
++        assertThat(lines).as("WARN 1줄 · ERROR 0 — 수준·건수 유지").hasSize(1);
++        ILoggingEvent w = lines.get(0);
++        assertThat(w.getLevel()).isEqualTo(Level.WARN);
++        assertThat(APPROVED_N17.matcher(w.getFormattedMessage()).find()).as("승인 관측 정규식이 그대로 센다").isTrue();
++        assertThat(w.getFormattedMessage().startsWith("[Dynamic]")).isEqualTo("DYNAMIC".equals(kind));
++        assertThat(w.getFormattedMessage()).contains("분류=" + category);
++        assertNoRaw(w, "KRW-OMK", price, "5.125", "market=", "trade_price=");
++    }
++
++    // ── O1 ② 형식 이상 가격·조회 예외(가짜 표지·줄바꿈·URL) → FAILED·발행 0·ERROR 1(수준 유지, 원문·Throwable 없음) ──
++
++    @ParameterizedTest(name = "{0} {1}")
++    @CsvSource({"LIVE,malformed", "LIVE,exception", "DYNAMIC,malformed", "DYNAMIC,exception"})
++    @DisplayName("O1② 형식 이상 가격·예외 메시지의 가짜 표지·줄바꿈·URL → FAILED·이벤트 0·ERROR 1(WARN 으로 낮추지 않음)·원문/예외 메시지/Throwable 없음")
++    void failureErrorHasNoRaw(String kind, String input) throws Exception {
++        String coin = "KRW-OFE" + kind.charAt(0) + COIN_SEQ.incrementAndGet();
++        String hostile = "조회 실패\n" + MARK + " https://api.upbit.com/v1/ticker?markets=" + coin + "&token=abc";
++        if ("malformed".equals(input)) {
++            Mockito.when(upbitRestClient.getTicker(coin)).thenReturn(List.of(
++                    Map.of("market", coin, "trade_price", "1\n" + MARK, "trade_timestamp", Instant.now().toEpochMilli())));
++        } else {
++            Mockito.when(upbitRestClient.getTicker(coin)).thenThrow(new IllegalStateException(hostile));
++        }
++
++        ForceRefreshResult r = refresh(kind, coin);
++
++        assertThat(r.outcome().name()).isEqualTo("FAILED");
++        assertThat(published(coin, coin)).isZero();
++        List<ILoggingEvent> lines = myWarnOrAbove();
++        assertThat(lines).as("ERROR 1줄 — 수준·건수 유지").hasSize(1);
++        ILoggingEvent e = lines.get(0);
++        assertThat(e.getLevel()).isEqualTo(Level.ERROR);
++        assertThat(e.getFormattedMessage()).contains("강제 복구 실패");
++        assertThat(e.getFormattedMessage().startsWith("[Dynamic]")).isEqualTo("DYNAMIC".equals(kind));
++        assertNoRaw(e, "조회 실패", "Character", "neither", "IllegalStateException", "NumberFormatException", coin);
++    }
++
++    // ── O1 ③ 대조군: 정상·낡은 양수 → PUBLISHED·STALE, 이벤트 1, 이 메서드의 WARN/ERROR 0 ───────────────────
++
++    @ParameterizedTest(name = "{0} {1}초 전")
++    @CsvSource({"LIVE,1,PUBLISHED", "LIVE,121,STALE", "DYNAMIC,1,PUBLISHED", "DYNAMIC,121,STALE"})
++    @DisplayName("O1③ 대조군 — 정상 양수 PUBLISHED·1, 낡은 양수 STALE·1, 이 호출의 WARN/ERROR 0")
++    void validPricesUnchanged(String kind, long ageSeconds, String expected) throws Exception {
++        String coin = "KRW-OVP" + kind.charAt(0) + COIN_SEQ.incrementAndGet();
++        Mockito.when(upbitRestClient.getTicker(coin)).thenReturn(List.of(
++                Map.of("market", coin, "trade_price", "299", "trade_timestamp", Instant.now().minusSeconds(ageSeconds).toEpochMilli())));
++
++        ForceRefreshResult r = refresh(kind, coin);
++
++        assertThat(r.outcome().name()).isEqualTo(expected);
++        assertThat(published(coin, coin)).isEqualTo(1);
++        assertThat(myWarnOrAbove()).isEmpty();
++    }
++
++    // ── O3 실제 이벤트 처리기: REST·WS 신선한 280 → 손절 매도 1회, 새 사유·로그 '실시간 손절'(WS 없음), 텔레그램 1 ──
++
++    @ParameterizedTest(name = "{0} {1}")
++    @CsvSource({"LIVE,REST_TRADE", "LIVE,WS_TRADE", "DYNAMIC,REST_TRADE", "DYNAMIC,WS_TRADE"})
++    @DisplayName("O3 REST·WS 이벤트 손절 — 매도 1회·STOP_LOSS 분류·새 사유와 WARN 은 '실시간 손절'로 시작하고 '(WS)' 없음·손절 알림 1")
++    void realtimeStopLossTextIsNeutral(String kind, String source) {
++        Fx f = holding(kind);
++        RealtimePriceEvent ev = new RealtimePriceEvent(f.coin(), new BigDecimal("280"), Instant.now(), source);
++        if ("DYNAMIC".equals(kind)) dynamicTradingService.onRealtimePriceEvent(ev);
++        else liveTradingService.onRealtimePriceEvent(ev);
++        drain(marketDataExecutor);
++        drain(orderExecutor);
++
++        long sells = Mockito.mockingDetails(upbitOrderClient).getInvocations().stream()
++                .filter(i -> "createOrder".equals(i.getMethod().getName()) && f.coin().equals(i.getArgument(0))).count();
++        assertThat(sells).as("손절가 285 아래 280 → 보호 매도 1회").isEqualTo(1);
++        List<OrderEntity> sellOrders = orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc(kind, f.sessionId()).stream()
++                .filter(o -> "SELL".equalsIgnoreCase(o.getSide())).toList();
++        assertThat(sellOrders).hasSize(1);
++        String reason = sellOrders.get(0).getSignalReason();
++        assertThat(reason).as("새 사유 — 기대값 변경: '실시간 손절(WS) — …' → '실시간 손절 — …'").startsWith("실시간 손절 — ").doesNotContain("(WS)").doesNotContain("WS");
++        Mockito.verify(telegramService, Mockito.times(1)).notifyStopLoss(Mockito.eq(f.coin()), Mockito.anyDouble(), Mockito.eq(f.sessionId()));
++
++        List<String> slLines = logs.list.stream().map(ILoggingEvent::getFormattedMessage)
++                .filter(m -> m.contains("실시간 손절") && m.contains(f.coin())).toList();
++        assertThat(slLines).as("손절 WARN 1줄").hasSize(1);
++        assertThat(slLines.get(0)).doesNotContain("(WS)").doesNotContain("WS");
++    }
++
++    // ── O3 분류 호환: 새 사유와 과거 저장 사유 모두 STOP_LOSS ──────────────────────────────────────────
++
++    @Test
++    @DisplayName("O3 분류 — 새 사유 '실시간 손절 — …' 과 과거 '실시간 손절(WS) — …' 모두 STOP_LOSS(과거 조회 호환 유지)")
++    void classifierKeepsOldAndNewStopLossReasons() {
++        for (String reason : List.of("실시간 손절 — 손익률 -6.67%", "실시간 손절 — pnl -6.67%",
++                "실시간 손절(WS) — 손익률 -6.67%", "실시간 손절(WS) — pnl -6.67%")) {
++            OrderEntity sell = OrderEntity.builder().side("SELL").state("FILLED").signalReason(reason).createdAt(Instant.now()).build();
++            assertThat(ExitReasonClassifier.classify(new PositionEntity(), List.of(sell)))
++                    .as(reason).isEqualTo(ExitReasonClassifier.Category.STOP_LOSS);
++        }
++    }
++}
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/PoolLossLimitTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/PoolLossLimitTest.java
+index 5f8302b8..6f49a121 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/PoolLossLimitTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/PoolLossLimitTest.java
+@@ -291,6 +291,33 @@ class PoolLossLimitTest extends IntegrationTestBase {
+         assertThat(d.code()).isEqualTo(PoolLossGuard.POOL_VALUATION_UNKNOWN);
+     }
+ 
++    @Test
++    @DisplayName("O2 연결(총괄 v1.134): 반영 전 체결 주문은 계산 거절·진입 차단 → 같은 주문의 반영값이 들어오면 같은 시세로 정상 계산·승인 (유예·건너뛰기·0 메우기 없음)")
++    void unappliedFillThenAppliedValuatesNormally() {
++        Instant start = baseline();
++        Long s = liveSession("RUNNING");
++        PositionEntity held = position(s, "KRW-LOSSA", "OPEN", "30", "300");
++        order(held, "BUY", null, null, "30");
++        Long orderId = orders.get(orders.size() - 1);
++        Instant now = Instant.now();
++        marks.record("KRW-LOSSA", new BigDecimal("280"), now.minusSeconds(1));   // 신선한 관측 — 대체 가격 차단과 구분
++
++        // ① 반영 전: 순자산을 계산하지 않고(null) 신규 진입을 막는다
++        assertThat(tx(() -> guard.valuate(start, now))).as("반영값 없는 체결 → 계산 거절").isNull();
++        CapitalReservationService.Decision before = check(now);
++        assertThat(before.approved()).isFalse();
++        assertThat(before.code()).isEqualTo(PoolLossGuard.POOL_VALUATION_UNKNOWN);
++
++        // ② 정산 반영(대금 9,000 · 수수료 4.5) 뒤: 같은 시세로 정상 계산 — 현금 −9,004.5 + 30 × 280 × 0.9995 = 8,395.8 → −608.7
++        jdbc.update("UPDATE \"order\" SET applied_executed_funds = 9000, applied_paid_fee = 4.5 WHERE id = ?", orderId);
++        PoolLossGuard.Valuation v = tx(() -> guard.valuate(start, now));
++        assertThat(v).isNotNull();
++        assertThat(v.observed()).isTrue();
++        assertThat(v.net()).isEqualByComparingTo("-608.7");
++        CapitalReservationService.Decision after = check(now);
++        assertThat(after.approved()).as(after.message()).isTrue();
++    }
++
+     // ── 한도 ────────────────────────────────────────────────────────
+ 
+     @Test

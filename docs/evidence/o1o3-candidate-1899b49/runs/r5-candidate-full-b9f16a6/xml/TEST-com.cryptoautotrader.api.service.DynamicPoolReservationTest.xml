@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="DYNAMIC 매수 — 공유 풀 예약 통합" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-07T01:40:15" hostname="DESKTOP-SF1KUQ5" time="1.242">
+  <properties/>
+  <testcase name="슬롯이 없으면 DYNAMIC 매수도 거절되고 슬롯·차감·의도가 남지 않는다" classname="com.cryptoautotrader.api.service.DynamicPoolReservationTest" time="0.312"/>
+  <testcase name="&#x1f534; LIVE 와 DYNAMIC 이 마지막 슬롯 하나를 동시에 다투면 하나만 승인된다" classname="com.cryptoautotrader.api.service.DynamicPoolReservationTest" time="0.62"/>
+  <testcase name="포지션당 상한 — DYNAMIC 매수에도 같은 등록 한도가 걸린다" classname="com.cryptoautotrader.api.service.DynamicPoolReservationTest" time="0.309"/>
+  <system-out><![CDATA[10:40:15.117 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.DynamicPoolReservationTest
+10:40:15.119 [Test worker] INFO  o.a.c.c.C.[Tomcat-4].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+10:40:15.123 [Test worker] WARN  c.c.a.s.CapitalReservationService - [공유 풀] 승인하지 않는다 (sessionId=153, 사유=SLOT_LIMIT): 점유 슬롯 1 + 신규 1 > 동시 보유 상한 1 ? ? 거래소 거절을 기다리지 않는다
+10:40:15.123 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 매수 예약 거절 (id=153, KRW-BTC, 사유=SLOT_LIMIT): 점유 슬롯 1 + 신규 1 > 동시 보유 상한 1
+[DYNAMIC 슬롯 한도] 차단 사유=공유 풀 예약 거절(SLOT_LIMIT): 점유 슬롯 1 + 신규 1 > 동시 보유 상한 1
+10:40:15.432 [Test worker] INFO  o.a.c.c.C.[Tomcat-4].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+10:40:15.741 [Thread-55] WARN  c.c.a.s.CapitalReservationService - [공유 풀] 승인하지 않는다 (sessionId=154, 사유=SLOT_LIMIT): 점유 슬롯 1 + 신규 1 > 동시 보유 상한 1 ? ? 거래소 거절을 기다리지 않는다
+10:40:15.741 [Thread-55] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 매수 예약 거절 (id=154, KRW-BTC, 사유=SLOT_LIMIT): 점유 슬롯 1 + 신규 1 > 동시 보유 상한 1
+[LIVE·DYNAMIC 공유 슬롯] 결과=[LIVE:승인, DYNAMIC:공유 풀 예약 거절(SLOT_LIMIT): 점유 슬롯 1 + 신규 1 > 동시 보유 상한 1] 오류=[]
+10:40:16.053 [Test worker] INFO  o.a.c.c.C.[Tomcat-4].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+10:40:16.055 [Test worker] WARN  c.c.a.s.CapitalReservationService - [공유 풀] 승인하지 않는다 (sessionId=155, 사유=PER_POSITION_CAP): 매수금 8000.00 > 포지션당 상한 7999 ? ? 거래소 거절을 기다리지 않는다
+10:40:16.055 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 매수 예약 거절 (id=155, KRW-BTC, 사유=PER_POSITION_CAP): 매수금 8000.00 > 포지션당 상한 7999
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.llm.provider.ClaudeProviderHttpTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-11-07T01:57:59" hostname="DESKTOP-SF1KUQ5" time="0.317">
+  <properties/>
+  <testcase name="평범한 단일 텍스트 응답도 그대로 동작한다" classname="com.cryptoautotrader.api.llm.provider.ClaudeProviderHttpTest" time="0.28"/>
+  <testcase name="&#x1f534; thinking 블록이 앞에 온 응답에서 complete() 가 본문을 돌려준다" classname="com.cryptoautotrader.api.llm.provider.ClaudeProviderHttpTest" time="0.014"/>
+  <testcase name="HTTP 오류는 그대로 실패로 전달된다" classname="com.cryptoautotrader.api.llm.provider.ClaudeProviderHttpTest" time="0.014"/>
+  <testcase name="&#x1f534; 토큰은 썼는데 본문이 없으면 success=false — 빈 리포트를 발송하지 않는다" classname="com.cryptoautotrader.api.llm.provider.ClaudeProviderHttpTest" time="0.009"/>
+  <system-out><![CDATA[10:57:59.880 [Test worker] WARN  c.c.api.llm.provider.ClaudeProvider - [ClaudeProvider] 응답 오류: status=400 body={"error":{"message":"bad request"}}
+10:57:59.889 [Test worker] ERROR c.c.api.llm.provider.ClaudeProvider - [ClaudeProvider] 토큰은 생성됐는데 본문을 추출하지 못했다 ? model=claude-sonnet-5 outputTokens=900 stopReason=max_tokens blockTypes=thinking
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

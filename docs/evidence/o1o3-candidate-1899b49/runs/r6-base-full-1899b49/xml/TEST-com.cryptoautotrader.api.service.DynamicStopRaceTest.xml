@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="DYNAMIC 정지 경합 — 신규 claim 차단과 추적 지속" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-11-07T01:59:45" hostname="DESKTOP-SF1KUQ5" time="0.183">
+  <properties/>
+  <testcase name="② 정지 후 신규 매수 — 승인되지 않고 슬롯·차감·의도가 남지 않는다" classname="com.cryptoautotrader.api.service.DynamicStopRaceTest" time="0.011"/>
+  <testcase name="⑥ 응답 불명(UNKNOWN) 매수의 size=0 — 정지가 닫지도 복원하지도 않는다" classname="com.cryptoautotrader.api.service.DynamicStopRaceTest" time="0.012"/>
+  <testcase name="① 의도 커밋 → 정지 → claim: claim 이 정지를 보고 철회, 제출 0회, 예약은 고아 정리가 한 번 복원" classname="com.cryptoautotrader.api.service.DynamicStopRaceTest" time="0.064"/>
+  <testcase name="⑤ 확정된 미제출 철회가 있는 size=0 — 정지가 예약을 한 번 복원하고 닫는다, 고아 정리와 겹쳐도 한 번" classname="com.cryptoautotrader.api.service.DynamicStopRaceTest" time="0.014"/>
+  <testcase name="③ claim·제출 → 정지: 주문은 추적되고 늦은 체결이 열린 포지션에 원자 경로로 한 번 반영된다" classname="com.cryptoautotrader.api.service.DynamicStopRaceTest" time="0.068"/>
+  <testcase name="④ 회계 미반영 체결·미해결 제출이 있으면 DYNAMIC 신규 매수도 막힌다" classname="com.cryptoautotrader.api.service.DynamicStopRaceTest" time="0.013"/>
+  <system-out><![CDATA[10:59:45.977 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.DynamicStopRaceTest
+10:59:45.979 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+10:59:45.986 [Test worker] WARN  c.c.api.service.OrderExecutionEngine - 세션이 실행 중이 아니어서 신규 매수를 승인하지 않는다 (sessionId=178, status=STOPPED)
+[DYNAMIC 정지 후 신규 매수] 거절 코드=INTENT_REJECTED
+10:59:45.990 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+10:59:45.997 [Test worker] WARN  c.c.api.service.OrderExecutionEngine - 식별자로 취소할 주문이 거래소에 없다 ? 미접수로 단정하지 않고 상태를 유지한다 (orderId=314, 식별자=cat-aa795370-5301-4214-966e-0ad62b5bd3b0)
+10:59:45.999 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] ? 정지했으나 **정리 미완료** ? 미해결 제출 1건이 남았다 (sessionId=179). 자금·슬롯을 점유한 것으로 두고 추적을 계속한다.
+10:59:46.002 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+10:59:46.008 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] ? 정지했으나 **정리 미완료** ? 미해결 제출 1건이 남았다 (sessionId=180). 자금·슬롯을 점유한 것으로 두고 추적을 계속한다.
+10:59:46.014 [order-exec-2] WARN  c.c.api.service.OrderExecutionEngine - 의도 커밋과 claim 사이에 정지가 들어왔다 ? 철회한다 (orderId=315, sessionId=180, status=STOPPED)
+10:59:46.015 [order-exec-2] WARN  c.c.api.service.OrderExecutionEngine - 의도를 철회했다 ? 외부에 나간 적이 없다 (orderId=315, 사유=WITHDRAWN_STOPPED: claim 직전 정지 확인 ? 제출하지 않았다). ? 예약 해제는 고아 매수 정리가 담당한다(FAILED 매수 + size=0 포지션).
+[DYNAMIC 정지→claim] state=FAILED code=WITHDRAWN_STOPPED
+10:59:46.064 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 고아 포지션 정리 완료 (posId=314, coinPair=KRW-DOGE)
+10:59:46.068 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+10:59:46.073 [Test worker] WARN  c.c.api.service.OrderExecutionEngine - 의도를 철회했다 ? 외부에 나간 적이 없다 (orderId=316, 사유=WITHDRAWN_DISPATCH_LOST: 시험 ? 디스패치 실패). ? 예약 해제는 고아 매수 정리가 담당한다(FAILED 매수 + size=0 포지션).
+[DYNAMIC 철회 확정 → 정지] pos=CLOSED available=10000.00
+10:59:46.082 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+10:59:46.145 [Test worker] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 이미 등록됨 (posId=316, orderId=317)
+[DYNAMIC claim→정지→체결] order=FILLED pos=OPEN/9.80000000 available=7058.53
+10:59:46.150 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+10:59:46.153 [Test worker] WARN  c.c.api.service.OrderExecutionEngine - 회계 미반영 체결이 있어 신규 매수를 승인하지 않는다 (sessionId=183, 미반영=1건)
+[DYNAMIC 가드 PENDING_ACCOUNTING] 거절 코드=INTENT_REJECTED
+10:59:46.157 [Test worker] WARN  c.c.api.service.OrderExecutionEngine - 미해결 제출이 있어 신규 매수를 승인하지 않는다 (sessionId=184, 미해결=1건)
+[DYNAMIC 가드 UNKNOWN] 거절 코드=INTENT_REJECTED
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

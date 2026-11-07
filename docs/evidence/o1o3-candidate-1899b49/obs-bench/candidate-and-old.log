@@ -1,0 +1,5 @@
+backend-1  | 10:00:01.001 [scheduler-1] WARN  c.c.api.service.LiveTradingService - [§9] REST 강제 갱신 시세가 가격이 아님 — 발행하지 않음 (가격 분류=0)
+backend-1  | 10:00:02.002 [scheduler-2] WARN  c.c.api.service.DynamicTradingService - [Dynamic][§9] REST 강제 갱신 시세가 가격이 아님 — 발행하지 않음 (가격 분류=음수)
+backend-1  | 10:00:03.003 [scheduler-3] WARN  c.c.api.service.LiveTradingService - [§9] REST 강제 갱신 시세가 가격이 아님 — 발행하지 않음 (market=KRW-BTC, trade_price=-5.0)
+backend-1  | 10:00:04.004 [scheduler-4] ERROR c.c.api.service.LiveTradingService - [§9] SL 미점검 세션 강제 복구 실패 — 조회·변환 예외(원문 생략)
+backend-1  | 10:00:05.005 [market-1] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=1, KRW-BTC, 손익=-5.1%

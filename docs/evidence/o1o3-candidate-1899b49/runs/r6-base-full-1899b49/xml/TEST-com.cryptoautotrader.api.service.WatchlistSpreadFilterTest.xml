@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.WatchlistSpreadFilterTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-11-07T02:01:17" hostname="DESKTOP-SF1KUQ5" time="0.001">
+  <properties/>
+  <testcase name="틱 추론: 인접 호가 간 최소 양수 간격" classname="com.cryptoautotrader.api.service.WatchlistSpreadFilterTest" time="0.0"/>
+  <testcase name="저가·호가밀착 코인을 구제한다 — RED 129원 1틱(0.775%)" classname="com.cryptoautotrader.api.service.WatchlistSpreadFilterTest" time="0.0"/>
+  <testcase name="고가 코인은 퍼센트 기준이 그대로 유효하다 — BTC 6틱이어도 0.0066%" classname="com.cryptoautotrader.api.service.WatchlistSpreadFilterTest" time="0.0"/>
+  <testcase name="진짜로 넓은 호가는 저가여도 탈락한다 — XLM 217원 10틱(0.461%)" classname="com.cryptoautotrader.api.service.WatchlistSpreadFilterTest" time="0.0"/>
+  <testcase name="틱을 못 구하면 퍼센트 기준만 적용한다 (기존 동작 유지)" classname="com.cryptoautotrader.api.service.WatchlistSpreadFilterTest" time="0.0"/>
+  <testcase name="틱 추론: 호가 단계가 1개뿐이면 추론 불가 → null" classname="com.cryptoautotrader.api.service.WatchlistSpreadFilterTest" time="0.0"/>
+  <testcase name="틱 테이블을 하드코딩하지 않는다 — 실측에서 공개 표와 달랐다" classname="com.cryptoautotrader.api.service.WatchlistSpreadFilterTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

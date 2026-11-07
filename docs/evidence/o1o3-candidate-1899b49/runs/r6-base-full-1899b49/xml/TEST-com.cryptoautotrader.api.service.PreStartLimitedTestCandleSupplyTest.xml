@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="N08 — 제한시험 시작 전 BTC H1 수집: CREATED 유지·수집만, 일반 CREATED 제외, 시작 뒤 중복 없음·종료 뒤 제거" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-07T02:00:14" hostname="DESKTOP-SF1KUQ5" time="0.487">
+  <properties/>
+  <testcase name="CREATED→RUNNING 대상 1개(중복 없음), 시험 종료 뒤 제거, 다른 소비자가 있으면 유지" classname="com.cryptoautotrader.api.service.PreStartLimitedTestCandleSupplyTest" time="0.011"/>
+  <testcase name="모든 H1 매매 세션 정지·SID 203 만 CREATED: BTC H1 이 수집되고 다음 회차에 봉이 전진한다 — 세션은 CREATED·시각·잔액·주문 그대로" classname="com.cryptoautotrader.api.service.PreStartLimitedTestCandleSupplyTest" time="0.47"/>
+  <testcase name="일반 CREATED·모의·시작된 적 있는·다른 코인 SMA20 은 수집 대상이 아니다" classname="com.cryptoautotrader.api.service.PreStartLimitedTestCandleSupplyTest" time="0.005"/>
+  <system-out><![CDATA[11:00:14.921 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.PreStartLimitedTestCandleSupplyTest
+11:00:14.924 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:00:14.934 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:00:15.071 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+11:00:15.283 [Test worker] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 517 건
+11:00:15.325 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+11:00:15.361 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+11:00:15.400 [Test worker] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 7 건
+11:00:15.405 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

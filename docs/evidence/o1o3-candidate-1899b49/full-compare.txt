@@ -1,0 +1,8 @@
+기점 1899b49 시험 건수 1118 · 후보 b9f16a6 시험 건수 1136
+기점 {'PASS': 1098, 'SKIP': 19, 'FAIL': 1}
+후보 {'PASS': 1116, 'SKIP': 19, 'FAIL': 1}
+후보에만 있는 시험(이름 키) 18 건 → 18 실행: ['O1O3LogContractTest', 'PoolLossLimitTest']
+기점에만 있는 시험 0
+공통 시험 결과가 다른 것 0
+기점 실패 com.cryptoautotrader.api.service.ExecutionDriftTrackerTest#§14 record() — 음수 slippage (체결가 < 신호가)
+후보 실패 com.cryptoautotrader.api.service.ExecutionDriftTrackerTest#§14 record() — 음수 slippage (체결가 < 신호가)

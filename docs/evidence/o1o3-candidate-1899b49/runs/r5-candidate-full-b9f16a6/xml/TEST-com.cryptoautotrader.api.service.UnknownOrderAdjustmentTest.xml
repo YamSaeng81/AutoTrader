@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="장기 UNKNOWN 수동 조정 — 상태 유지 · 기록 보존 · 한 번 반환 · 자동 정산 차단" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-11-07T01:41:50" hostname="DESKTOP-SF1KUQ5" time="0.039">
+  <properties/>
+  <testcase name="거부: UNKNOWN 이 아님 · 30분 미만 · 책임자/근거/미해결 위험 공란 · 예약액 초과 — 기록·잔액 변화 없음" classname="com.cryptoautotrader.api.service.UnknownOrderAdjustmentTest" time="0.009"/>
+  <testcase name="조정: 주문은 UNKNOWN 그대로, 근거·금액·책임자·미해결 위험 보존, 잔액 한 번 반환, 공유 풀은 계속 미결로 센다" classname="com.cryptoautotrader.api.service.UnknownOrderAdjustmentTest" time="0.007"/>
+  <testcase name="&#x1f534; 조정은 회계 조정일 뿐 — 주문이 UNKNOWN 으로 남아 그 세션의 신규 매수는 계속 막힌다(대조: 불명 주문 없는 세션은 승인)" classname="com.cryptoautotrader.api.service.UnknownOrderAdjustmentTest" time="0.011"/>
+  <testcase name="조정 뒤 거래소가 그 주문을 체결로 보고하면 자동 정산하지 않고 관측·불일치로 남긴다(대조군: 조정 없으면 추적 경로로 넘어간다)" classname="com.cryptoautotrader.api.service.UnknownOrderAdjustmentTest" time="0.011"/>
+  <system-out><![CDATA[10:41:50.490 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.UnknownOrderAdjustmentTest
+10:41:50.493 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+10:41:50.502 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+10:41:50.504 [Test worker] WARN  c.c.a.s.UnknownOrderAdjustmentService - ? 장기 UNKNOWN 수동 조정 ? 주문 #568 는 UNKNOWN 그대로, 세션 LIVE#427 에 3000 반환. 책임자 운영자 본인, 근거: 업비트 주문 내역(웹)에 이 식별자의 주문이 없음을 확인, 미해결 위험: 거래소가 늦게 접수·체결했을 가능성 ? 그 경우 같은 3,000 이 두 번 잡힌다
+10:41:50.511 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+10:41:50.511 [Test worker] WARN  c.c.a.s.UnknownOrderAdjustmentService - ? 장기 UNKNOWN 수동 조정 ? 주문 #569 는 UNKNOWN 그대로, 세션 LIVE#428 에 3000 반환. 책임자 운영자 본인, 근거: 주문 내역에 없음, 미해결 위험: 늦은 체결 가능성
+10:41:50.515 [Test worker] WARN  c.c.api.service.OrderExecutionEngine - 미해결 제출이 있어 신규 매수를 승인하지 않는다 (sessionId=428, 미해결=1건)
+10:41:50.521 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+10:41:50.522 [Test worker] WARN  c.c.a.s.UnknownOrderAdjustmentService - ? 장기 UNKNOWN 수동 조정 ? 주문 #571 는 UNKNOWN 그대로, 세션 LIVE#430 에 3000 반환. 책임자 운영자 본인, 근거: 주문 내역에 없음, 미해결 위험: 늦은 체결 가능성
+10:41:50.524 [Test worker] ERROR c.c.a.s.UnknownOrderAdjustmentService - ? 수동 조정한 UNKNOWN 주문 #571 (LIVE#430) 를 거래소가 보고했다 ? 자동 정산하지 않는다. 사람이 처리하라. 관측: 거래소 보고: uuid=uuid-late-571 상태=done 체결수량=9.8 체결금액=2940 수수료=1.47 | 조정 책임자 운영자 본인, 반환 3000.00000000, 당시 미해결 위험: 늦은 체결 가능성
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

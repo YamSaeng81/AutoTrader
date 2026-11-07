@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="요청액보다 실제 사용액이 작은 시장가 매수 (회귀 사례)" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-07T02:00:01" hostname="DESKTOP-SF1KUQ5" time="0.021">
+  <properties/>
+  <testcase name="미사용 금액이 복원된다 — 원금 차이 60원이 아니라 58.53원이다" classname="com.cryptoautotrader.api.service.MarketBuyUnusedFundsTest" time="0.011"/>
+  <testcase name="거래소 보고 원본은 보존된다 — 요청액과 사용액의 차이가 기록에 남는다" classname="com.cryptoautotrader.api.service.MarketBuyUnusedFundsTest" time="0.004"/>
+  <testcase name="평균단가는 실제 사용액 기준이고 미사용 금액은 한 번만 복원된다" classname="com.cryptoautotrader.api.service.MarketBuyUnusedFundsTest" time="0.005"/>
+  <system-out><![CDATA[11:00:01.590 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.MarketBuyUnusedFundsTest
+11:00:01.591 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:00:01.603 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:00:01.608 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
