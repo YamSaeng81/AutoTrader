@@ -1,0 +1,157 @@
+diff --git a/scripts/restart-test/rehearse_sma20.py b/scripts/restart-test/rehearse_sma20.py
+index 031fd61c..4ca1761b 100644
+--- a/scripts/restart-test/rehearse_sma20.py
++++ b/scripts/restart-test/rehearse_sma20.py
+@@ -23,6 +23,7 @@ import urllib.error
+ import urllib.request
+ 
+ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
++import judge  # noqa: E402
+ import rt  # noqa: E402
+ 
+ # 🔴 (2026-10-30 리뷰) 비어 있지 않은 증거 폴더는 거부한다 — 1차 폴더 이름 바꾸기가 실패해 2차가 같은 폴더를 다시 써 1차 앱 로그가 덮였다.
+@@ -244,11 +245,11 @@ def final_restart(props, done):
+ def summary():
+     errs = [l for l in rt.app_log().splitlines() if ' ERROR ' in l] if rt._app is not None else []
+     rt.log(f'마지막 앱 로그 ERROR {len(errs)}줄' + ''.join('\n    ' + l[:220] for l in errs[:10]))
+-    passed = sum(1 for _, ok, _ in results if ok)
+-    rt.log(f'결과 {passed}/{len(results)} 통과')
++    passed, total, notes = judge.tally(results)   # v1.134 §3-3: 관측 메모는 단언 수와 분리(이 파일은 note() 없음)
++    rt.log(f'결과 단언 {passed}/{total} 통과 · 관측 {notes}')
+     for name, ok, detail in results:
+         print(('PASS ' if ok else 'FAIL ') + name + (' — ' + detail if detail else ''))
+-    sys.exit(0 if passed == len(results) else 1)
++    sys.exit(0 if passed == total else 1)
+ 
+ 
+ # ── ⑦ 만 다시(2026-10-31 리뷰) ─────────────────────────────────────────────
+@@ -415,14 +416,18 @@ try:
+     rt.log('  F3 입력 판정 줄: ' + ' / '.join(l for l in out.splitlines() if '입력 판정' in l or '현재 BTC H1' in l))
+     # W3: CREATED 최초 시작 1회 뒤 재시작 차단 — RUNNING 세션에 시작 요청을 다시 보내도 상태·주문·잔액이 바뀌지 않는다
+     before_restart_req = record()
++    req = urllib.request.Request(f'http://127.0.0.1:{rt.APP_PORT}/api/v1/trading/sessions/{SID}/start', method='POST', data=b'',
++                                 headers={'Authorization': f'Bearer {rt.TOKEN}', 'Content-Type': 'application/json'})
+     try:
+-        again = api_json('POST', f'/api/v1/trading/sessions/{SID}/start')
+-        again_txt = '응답 ' + json.dumps(again, ensure_ascii=False)[:300]
++        with urllib.request.urlopen(req, timeout=15) as r:
++            status, body = r.status, r.read().decode('utf-8', 'replace')
+     except urllib.error.HTTPError as e:
+-        again_txt = f'HTTP {e.code} ' + e.read().decode('utf-8', 'replace')[:300]
++        status, body = e.code, e.read().decode('utf-8', 'replace')
+     time.sleep(10)
+     d_again = differences(before_restart_req, record())
+-    check('⑤  RUNNING 세션 재시작 요청 — 세션·주문·포지션·거래소 기록 변화 없음', d_again == [], again_txt + f' · 차이 {d_again[:5]}')
++    # v1.134 §3-1: 기록 차이 0 만으로 통과시키지 않는다 — 실제 HTTP 409·거절 사유를 함께 단언
++    check('⑤  RUNNING 세션 재시작 요청 — HTTP 409 거절 · 세션·주문·포지션·거래소 기록 변화 없음', judge.restart_rejected(status, body, d_again),
++          f'HTTP {status} {body[:300]} · 차이 {d_again[:5]}')
+ 
+     # ⑥ 정지 1회 → 청산 매도 → 정리 완료 → 잔여량 대조
+     before_stop = snapshot()
+diff --git a/scripts/restart-test/rehearse_w3.py b/scripts/restart-test/rehearse_w3.py
+index b3bc4896..2c7ec816 100644
+--- a/scripts/restart-test/rehearse_w3.py
++++ b/scripts/restart-test/rehearse_w3.py
+@@ -25,6 +25,7 @@ import urllib.error
+ import urllib.request
+ 
+ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
++import judge  # noqa: E402
+ import rt  # noqa: E402
+ 
+ if os.listdir(rt.WORK):
+@@ -76,6 +77,17 @@ def sha_file(p):
+     return hashlib.sha256(open(p, 'rb').read()).hexdigest()
+ 
+ 
++def restart_request():
++    """RUNNING 세션에 시작 요청 — (HTTP 상태, 본문). 성공 응답도 상태 코드를 그대로 돌려준다."""
++    req = urllib.request.Request(f'http://127.0.0.1:{rt.APP_PORT}/api/v1/trading/sessions/{SID}/start', method='POST', data=b'',
++                                 headers={'Authorization': f'Bearer {rt.TOKEN}', 'Content-Type': 'application/json'})
++    try:
++        with urllib.request.urlopen(req, timeout=15) as r:
++            return r.status, r.read().decode('utf-8', 'replace')
++    except urllib.error.HTTPError as e:
++        return e.code, e.read().decode('utf-8', 'replace')
++
++
+ def api_json(method, path, body=None, timeout=15):
+     req = urllib.request.Request(f'http://127.0.0.1:{rt.APP_PORT}{path}', method=method,
+                                  headers={'Authorization': f'Bearer {rt.TOKEN}', 'Content-Type': 'application/json'},
+@@ -263,22 +275,18 @@ def errors_in(text):
+ 
+ # run3/run4: 하네스는 외부 인터넷을 막는다(rt.launch 프록시) — 업비트 웹소켓 재연결(분당 약 2줄)·뉴스 수집 실패 ERROR 는 이 환경 때문에 늘 생긴다.
+ # ④ 의 "새 ERROR 0줄" 은 이 두 종류만 따로 세어 기록하고, 그 밖의 ERROR 는 한 줄이라도 있으면 실패로 둔다.
+-ENV_ERRORS = (('UpbitWebSocketClient', 'Upbit WebSocket 연결 실패: java.net.ConnectException'),
+-              ('Source] 수집 실패', '수집 실패'))
+-
+-
+-def is_env_error(line):
+-    return any(a in line and b in line for a, b in ENV_ERRORS)
++# v1.134 §3-4: 공통 꼬리만으로 빼지 않고 실제 관측 원문만 뺀다 — judge.ENV_ERROR_PATTERNS(test_judge.py 가짜 입력 검증).
++is_env_error = judge.is_env_error
+ 
+ 
+ def summary():
+     errs = errors_in(rt.app_log()) if rt._app is not None else []
+     rt.log(f'마지막 앱 로그 ERROR {len(errs)}줄' + ''.join('\n    ' + l[:220] for l in errs[:10]))
+-    passed = sum(1 for _, ok, _ in results if ok)
+-    rt.log(f'결과 {passed}/{len(results)} 통과')
++    passed, total, notes = judge.tally(results)   # v1.134 §3-3: 관측 메모는 단언 수와 분리
++    rt.log(f'결과 단언 {passed}/{total} 통과 · 관측 {notes}')
+     for name, ok, detail in results:
+         print(('PASS ' if ok else 'FAIL ') + name + (' — ' + detail if detail else ''))
+-    sys.exit(0 if passed == len(results) else 1)
++    sys.exit(0 if passed == total else 1)
+ 
+ 
+ # ── 시작 ─────────────────────────────────────────────────────────────────
+@@ -363,18 +371,18 @@ try:
+     # ③ RUNNING 재시작 요청
+     # run3: 체결 직후 PositionLimitGuard 정기 평가가 최고 평가액(peak_value_*)을 처음 기록(늘어날 때만 갱신)하는 것이 비교 구간에 들어와
+     # 거짓 실패가 났다 — 첫 기록을 기다린 뒤 비교한다(대역 가격 고정이라 이후 변화 없음). 비교 항목은 줄이지 않는다.
+-    note('③  비교 전 최고 평가액 첫 기록 대기', str(rt.wait_until(lambda: one(
++    # v1.134 §3-3: 대기 실패면 NOTE 로 계속하지 않고 여기서 멈춘다.
++    check('③  비교 전 최고 평가액 첫 기록 대기', rt.wait_until(lambda: one(
+         f"SELECT (peak_value_krw IS NOT NULL)::text FROM position WHERE session_id = {SID} AND status = 'OPEN'") == 'true',
+-        120, 3, '최고 평가액 첫 기록')) + ' · ' + one(
++        120, 3, '최고 평가액 첫 기록'), one(
+         f"SELECT coalesce(peak_value_krw::text, '-') || ' @ ' || coalesce(peak_value_at::text, '-') FROM position WHERE session_id = {SID} AND status = 'OPEN'"))
+     before = record()
+-    try:
+-        again_txt = '응답 ' + json.dumps(api_json('POST', f'/api/v1/trading/sessions/{SID}/start'), ensure_ascii=False)[:300]
+-    except urllib.error.HTTPError as e:
+-        again_txt = f'HTTP {e.code} ' + e.read().decode('utf-8', 'replace')[:300]
++    status, body = restart_request()
+     time.sleep(10)
+     d = differences(before, record())
+-    check('③  RUNNING 재시작 요청 — 기록 변화 없음', d == [], again_txt + f' · 차이 {d[:5]}')
++    # v1.134 §3-1: 기록 차이 0 만으로 통과시키지 않는다 — 실제 HTTP 409·거절 사유를 함께 단언
++    check('③  RUNNING 재시작 요청 — HTTP 409 거절 · 기록 변화 없음', judge.restart_rejected(status, body, d),
++          f'HTTP {status} {body[:300]} · 차이 {d[:5]}')
+ 
+     # ④ 시세 이상(0 → -5)
+     log_before = rt.app_log()
+@@ -431,8 +439,10 @@ try:
+           and one(f'SELECT status FROM live_trading_session WHERE id = {SID}') == 'RUNNING', f'rc={rc}')
+     rc, out = run_bash('F5-1-shifted', f5v + f51, created_at, clock=True)
+     ends = [l.split('|')[-1].strip() for l in out.splitlines() if 'end_kst' in l]
+-    check('⑥  F5-1 주입 뒤 — due t · end_kst = F2 시작 확인 기록', xval(out, 'due') == 't' and len(set(ends)) == 1 and len(ends) >= 2,
+-          f'end_kst {ends}')
++    started_kst = one(f"SELECT to_char(started_at AT TIME ZONE 'Asia/Seoul', 'YYYY-MM-DD HH24:MI:SS.US') FROM live_trading_session WHERE id = {SID}")
++    # v1.134 §3-2: 종료값 0 과 실제 started_at + 56일 비교를 함께
++    check('⑥  F5-1 주입 뒤 — 종료 0 · due t · end_kst 모두 = 실제 started_at + 56일', judge.f51_shifted_ok(rc, xval(out, 'due'), ends, started_kst),
++          f'rc={rc} started {started_kst} end_kst {ends}')
+     before_stop = record()
+     rc, out = run_bash('F5-2-shifted', f5v + f52, created_at, clock=True)
+     check('⑥  F5-2 주입 뒤 — 정지 요청 1회(stop-sent)', rc == 0 and os.path.exists(os.path.join(E, 'stop-sent')), f'rc={rc}')
+@@ -447,8 +457,7 @@ try:
+         f.write('(삽입, 해시 출력 줄 다음) ' + f53[k + 1] + '\n')
+     rc, out = run_bash('F5-3-w4exec', f5v + f53, created_at)
+     check('⑥  F5-3(W4 실행 사본) — F3 추출 해시 bb86fb39 · ⛔ STOPPED · 거래소 BTC 증감 0 · DB 정리 조건 충족',
+-          'bb86fb397da00523f564a8f02a1960c98bb1ac03887629fe74372990929fa2bb' in out and '⛔ 판정: 세션 상태 STOPPED' in out
+-          and '거래소 BTC 증감 0' in out and 'DB 정리 조건 충족' in out, f'rc={rc}')
++          judge.f53_ok(rc, out, 'bb86fb397da00523f564a8f02a1960c98bb1ac03887629fe74372990929fa2bb'), f'rc={rc}')
+     krw_line = [l for l in out.splitlines() if l.startswith('거래소 KRW 증감')]
+     note('⑥  F5-3 KRW 대조 줄', ' / '.join(krw_line))
+     rc, out = run_bash('F5-4-ledger', f5v + localize(doc_block('**F5-4.'), (), 'F5-4'), created_at)

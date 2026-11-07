@@ -23,6 +23,7 @@ import urllib.error
 import urllib.request
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import judge  # noqa: E402
 import rt  # noqa: E402
 
 # 🔴 (2026-10-30 리뷰) 비어 있지 않은 증거 폴더는 거부한다 — 1차 폴더 이름 바꾸기가 실패해 2차가 같은 폴더를 다시 써 1차 앱 로그가 덮였다.
@@ -244,11 +245,11 @@ def final_restart(props, done):
 def summary():
     errs = [l for l in rt.app_log().splitlines() if ' ERROR ' in l] if rt._app is not None else []
     rt.log(f'마지막 앱 로그 ERROR {len(errs)}줄' + ''.join('\n    ' + l[:220] for l in errs[:10]))
-    passed = sum(1 for _, ok, _ in results if ok)
-    rt.log(f'결과 {passed}/{len(results)} 통과')
+    passed, total, notes = judge.tally(results)   # v1.134 §3-3: 관측 메모는 단언 수와 분리(이 파일은 note() 없음)
+    rt.log(f'결과 단언 {passed}/{total} 통과 · 관측 {notes}')
     for name, ok, detail in results:
         print(('PASS ' if ok else 'FAIL ') + name + (' — ' + detail if detail else ''))
-    sys.exit(0 if passed == len(results) else 1)
+    sys.exit(0 if passed == total else 1)
 
 
 # ── ⑦ 만 다시(2026-10-31 리뷰) ─────────────────────────────────────────────
@@ -415,14 +416,18 @@ try:
     rt.log('  F3 입력 판정 줄: ' + ' / '.join(l for l in out.splitlines() if '입력 판정' in l or '현재 BTC H1' in l))
     # W3: CREATED 최초 시작 1회 뒤 재시작 차단 — RUNNING 세션에 시작 요청을 다시 보내도 상태·주문·잔액이 바뀌지 않는다
     before_restart_req = record()
+    req = urllib.request.Request(f'http://127.0.0.1:{rt.APP_PORT}/api/v1/trading/sessions/{SID}/start', method='POST', data=b'',
+                                 headers={'Authorization': f'Bearer {rt.TOKEN}', 'Content-Type': 'application/json'})
     try:
-        again = api_json('POST', f'/api/v1/trading/sessions/{SID}/start')
-        again_txt = '응답 ' + json.dumps(again, ensure_ascii=False)[:300]
+        with urllib.request.urlopen(req, timeout=15) as r:
+            status, body = r.status, r.read().decode('utf-8', 'replace')
     except urllib.error.HTTPError as e:
-        again_txt = f'HTTP {e.code} ' + e.read().decode('utf-8', 'replace')[:300]
+        status, body = e.code, e.read().decode('utf-8', 'replace')
     time.sleep(10)
     d_again = differences(before_restart_req, record())
-    check('⑤  RUNNING 세션 재시작 요청 — 세션·주문·포지션·거래소 기록 변화 없음', d_again == [], again_txt + f' · 차이 {d_again[:5]}')
+    # v1.134 §3-1: 기록 차이 0 만으로 통과시키지 않는다 — 실제 HTTP 409·거절 사유를 함께 단언
+    check('⑤  RUNNING 세션 재시작 요청 — HTTP 409 거절 · 세션·주문·포지션·거래소 기록 변화 없음', judge.restart_rejected(status, body, d_again),
+          f'HTTP {status} {body[:300]} · 차이 {d_again[:5]}')
 
     # ⑥ 정지 1회 → 청산 매도 → 정리 완료 → 잔여량 대조
     before_stop = snapshot()
