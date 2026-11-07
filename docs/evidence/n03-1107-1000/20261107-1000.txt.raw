@@ -1,0 +1,59 @@
+
+===== 원자료 =====
+--- DB (종료 0)
+BEGIN
+flyway_version|94
+real_open_positions|0
+real_unresolved_orders|0
+cleanup_pending|0
+quarantine_targets|0
+s66_running|63
+s66_total|66
+s66_not_running|576:STOPPED 577:STOPPED 578:STOPPED
+s66_coins|KRW-ANKR KRW-BCH KRW-BLAST KRW-CRO KRW-CVC KRW-DKA KRW-ELF KRW-G KRW-GLM KRW-HIVE KRW-INJ KRW-IOTA KRW-JUP KRW-NEAR KRW-ONG KRW-POLYX KRW-POWR KRW-PUNDIX KRW-SC KRW-T KRW-WAVES KRW-WAXP
+real_buys_window|0
+sid_status|CREATED
+sid_available_krw|20200.00
+sid_open_positions|0
+sid_active_orders|0
+sid_stale_orders|0
+sid_unknown_orders|0
+sid_dup_buy_positions|0
+sid_filled_buys_window|0
+sid_orders_window|0 0
+sid_settle_unknown|0
+sid_settle_mismatch|0
+sid_settle_ids|-
+settlement_unresolved|0
+quarantine_release_rows|0
+tg_queue_rejected|0
+tg_ok_window|2
+tg_last_ok|2026-11-07 04:34
+btc_h1_ok|true
+btc_h1_done|11-07 09:00
+btc_h1_need|11-07 08:00
+btc_h1_daily|20
+btc_h1_at|11-07 10:00:02
+ROLLBACK
+END|ok
+--- 66세션 (종료 1)
+구간 2026-11-06T13:00:02+00:00 ~ 2026-11-07T01:00:03.147208+00:00  (지정 시각)
+관측 12회 (구간 지정 시각)
+🔴 11-06 13:19  1종: KRW-BLAST
+🔴 11-06 14:19  1종: KRW-BLAST
+🔴 11-06 15:19  1종: KRW-BLAST
+🔴 11-06 16:19  1종: KRW-BLAST
+🔴 11-06 17:19  1종: KRW-BLAST
+🔴 11-06 18:19  1종: KRW-BLAST
+🔴 11-06 19:19  1종: KRW-BLAST
+🔴 11-06 20:19  1종: KRW-BLAST
+🔴 11-06 21:19  1종: KRW-BLAST
+🔴 11-06 22:19  1종: KRW-BLAST
+🔴 11-06 23:19  1종: KRW-BLAST
+🔴 11-07 00:19  1종: KRW-BLAST
+현재 11-07 00:19: 🟢 21 / ⚪ 0 / 🔴 1
+
+🔴 적재 뒤처짐 12회
+
+🔴 🔴 은 경보이고 확정이 아니다 — 분봉·같은 시각 수집/저장 로그·같은 회차 다른
+   코인의 판정을 확인한 뒤 판단한다 (2026-09-28~30 의 🔴 16건은 전부 오판이었다).

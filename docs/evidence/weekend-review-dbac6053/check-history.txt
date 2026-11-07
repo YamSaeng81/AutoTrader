@@ -1,0 +1,9 @@
+v1.134 reviewer history
+
+1. Read fixed source dbac6053/current 1899b49 and submitted preserved evidence; no app/server/DB execution.
+2. First manifest review stopped on W4 __pycache__/n06_prepare.cpython-313.pyc missing from Git. This is a real evidence omission, not a hash mismatch. The original local file matches its original manifest. Subsequent review records missing blobs explicitly and continues checking other evidence.
+3. A checker assumption counted the separator blank line after the transmitted body as a second send-result line. Kept exact report/body prefix comparison and counted nonempty suffix lines. Source files unchanged.
+4. Another checker assumption counted END|ok as a DB key. It is the existing query-completion sentinel. Excluded the sentinel; all actual 32 DB keys remain tested for two fields and uniqueness. Source files unchanged.
+5. Final preserved-result review passed. Pure AST predicate reproduction: 3 positive controls and 3 current-harness false positives (HTTP status ignored; F5-3/F5-1 shifted return codes ignored). No rehearsal module import or product execution.
+6. W3 run2: 41 assertions. run5: 31 assertions + 10 observational notes, not 41 assertions. Both stored runs exit 0; actual stored HTTP status/command returns were checked separately.
+7. Original result files, old manifests and commits were not rewritten. W4 omitted cache bytes copied to an unignored .bin path without executing them. New document/evidence changes are left uncommitted for the next actual result.
