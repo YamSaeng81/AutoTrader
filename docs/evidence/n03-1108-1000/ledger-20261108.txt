@@ -1,0 +1,40 @@
+Null display is "-".
+BEGIN
+== L0 세션 (initial_capital = init 이어야 한다 · queried_kst = 이 기록을 재구성한 시각)
+        queried_kst         | id  | coin_pair | status  | initial_capital | init  | init_ok | available_krw | started_kst | stopped_kst | end_kst 
+----------------------------+-----+-----------+---------+-----------------+-------+---------+---------------+-------------+-------------+---------
+ 2026-11-08 09:30:01.248729 | 203 | KRW-BTC   | CREATED |        20200.00 | 20200 | t       |      20200.00 | -           | -           | -
+(1 row)
+
+== L1 날짜별 — 신호(B/S/H·실행) · 관문 차단 사유 · 주문(생성 B/S·체결 B/S) · 대금·수수료(반영/보고) · 슬리피지 · 날 끝 현금·BTC·평가 봉·평가액·자산·순손익
+ kst_date | signals | blocked | orders | fills | funds | fee_appl_rep | slippage | cash | btc | mark | holding_value | equity | net_pnl | note 
+----------+---------+---------+--------+-------+-------+--------------+----------+------+-----+------+---------------+--------+---------+------
+(0 rows)
+
+== L2 주문별 — 체결가 = 반영 대금 / 체결량 · 슬리피지(원·%, 양수 = 비용) · 수수료율 · 보고값과 반영값
+ id | pos | side | state | created_kst | fill_kst | filled | signal_price | avg_fill | slip_krw | slip_pct | funds_applied | funds_reported | fee_applied | fee_reported | fee_pct | pend | note 
+----+-----+------+-------+-------------+----------+--------+--------------+----------+----------+----------+---------------+----------------+-------------+--------------+---------+------+------
+(0 rows)
+
+== L3 왕복별 — 사전 등록 정의(LIVE_ENTRY_PREREG.md 비용의 정의): 왕복 실측 비용(%) = 불리(진입) + 불리(청산) + 0.10 · §6-2 > 0.40% 대조
+ pos | status | exit_reason | rt_status | buy_qty | sell_qty | buy_funds | sell_funds | entry_unf_pct | exit_unf_pct | cost_pct | cost_gt_040 | fees | fee_pct_actual | net_krw | realized_pnl_ref 
+-----+--------+-------------+-----------+---------+----------+-----------+------------+---------------+--------------+----------+-------------+------+----------------+---------+------------------
+(0 rows)
+
+== L4 지금 대조 — 세션 잔액 = 잔액 기대(주문별 두 자리, balance_diff 0) · 장부 현금(원시 8자리, raw_diff 참고) · 순체결량 = 열린 포지션 수량 · realized_pnl 합계(참고)
+ status  | available_krw | balance_expected | balance_diff | ledger_cash | raw_diff | unk_orders | net_btc | open_size |            last_mark            | realized_pnl_sum_ref | fees_total | slip_total 
+---------+---------------+------------------+--------------+-------------+----------+------------+---------+-----------+---------------------------------+----------------------+------------+------------
+ CREATED |      20200.00 |            20200 |         0.00 |       20200 |     0.00 |          0 |       0 |         0 | 103700000.00000000 @11-08 09:00 |                    - |          - |          -
+(1 row)
+
+== L5 중단 기능별 기록 — 서킷브레이커 · 포지션 한도 · 공유 풀 손실 한도(진입 차단 — 정지 아님) · 세션 최종 상태. 사람 판단 정지(§6-2)는 운영자 기록으로
+             kind             |    n    | first_kst | last_kst |  detail   
+------------------------------+---------+-----------+----------+-----------
+ 서킷브레이커                 | 0       | -         | -        | -
+ 포지션 한도 도달             | 0       | -         | -        | -
+ 공유 풀 손실 한도(진입 차단) | 0       | -         | -        | -
+ 세션 최종 상태               | CREATED | -         | -        | 정지 아님
+(4 rows)
+
+ROLLBACK
+== 끝
