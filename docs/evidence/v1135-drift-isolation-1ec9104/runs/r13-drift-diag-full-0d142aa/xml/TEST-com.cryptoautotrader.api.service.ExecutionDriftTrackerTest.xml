@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.ExecutionDriftTrackerTest" tests="6" skipped="0" failures="1" errors="0" timestamp="2026-11-08T14:50:50" hostname="DESKTOP-SF1KUQ5" time="0.03">
+  <properties/>
+  <testcase name="§14 record() — 음수 slippage (체결가 &lt; 신호가)" classname="com.cryptoautotrader.api.service.ExecutionDriftTrackerTest" time="0.011">
+    <failure message="java.lang.AssertionError: &#13;&#10;Expecting actual:&#13;&#10;  0.000000&#13;&#10;to be less than:&#13;&#10;  0 " type="java.lang.AssertionError">java.lang.AssertionError: 
+Expecting actual:
+  0.000000
+to be less than:
+  0 
+	at com.cryptoautotrader.api.service.ExecutionDriftTrackerTest.record_negativeSlippage(ExecutionDriftTrackerTest.java:85)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="§14 getRecentBySession() — 세션별 최근 기록 조회" classname="com.cryptoautotrader.api.service.ExecutionDriftTrackerTest" time="0.004"/>
+  <testcase name="§14 record() — slippage 계산 및 저장 정확성" classname="com.cryptoautotrader.api.service.ExecutionDriftTrackerTest" time="0.005"/>
+  <testcase name="§14 getWeeklyAvgSlippage() — 7일 평균 slippage 계산" classname="com.cryptoautotrader.api.service.ExecutionDriftTrackerTest" time="0.004"/>
+  <testcase name="§14 record() — signalPrice 0이면 저장 생략" classname="com.cryptoautotrader.api.service.ExecutionDriftTrackerTest" time="0.003"/>
+  <testcase name="§14 오래된 기록은 7일 평균에서 제외" classname="com.cryptoautotrader.api.service.ExecutionDriftTrackerTest" time="0.003"/>
+  <system-out><![CDATA[23:50:50.143 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.ExecutionDriftTrackerTest
+23:50:50.145 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[DRIFT-DIAG] before record_negativeSlippage rows=1
+[DRIFT-DIAG]   id=1 kind=LIVE sid=151 coin=KRW-BTC strat=DAILY_SMA20 side=SELL signal=11800000.00 fill=11800000.00 slip=0.000000 at=2026-11-08T14:50:29.295056Z
+[DRIFT-DIAG] after record (negative) rows=2
+[DRIFT-DIAG]   id=1 kind=LIVE sid=151 coin=KRW-BTC strat=DAILY_SMA20 side=SELL signal=11800000.00 fill=11800000.00 slip=0.000000 at=2026-11-08T14:50:29.295056Z
+[DRIFT-DIAG]   id=2 kind=LIVE sid=2 coin=KRW-ETH strat=COMPOSITE_MOMENTUM side=SELL signal=50000000.00 fill=49900000.00 slip=-0.200000 at=2026-11-08T14:50:50.148834Z
+[DRIFT-DIAG] get(0).id=1
+23:50:50.155 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[DRIFT-DIAG] before getRecentBySession_returnsSessionRecords rows=0
+23:50:50.159 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[DRIFT-DIAG] before record_calculatesSlippageCorrectly rows=0
+23:50:50.164 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[DRIFT-DIAG] before getWeeklyAvgSlippage_computesCorrectly rows=0
+23:50:50.168 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[DRIFT-DIAG] before record_skipsWhenSignalPriceIsZero rows=0
+23:50:50.171 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[DRIFT-DIAG] before getWeeklyAvgSlippage_excludesOldRecords rows=0
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,46 @@
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/ExecutionDriftTrackerTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/ExecutionDriftTrackerTest.java
+index bc1d2af6..c575dee7 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/ExecutionDriftTrackerTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/ExecutionDriftTrackerTest.java
+@@ -4,6 +4,8 @@ import com.cryptoautotrader.api.entity.ExecutionDriftLogEntity;
+ import com.cryptoautotrader.api.repository.ExecutionDriftLogRepository;
+ import com.cryptoautotrader.api.support.IntegrationTestBase;
+ import org.junit.jupiter.api.AfterEach;
++import org.junit.jupiter.api.BeforeEach;
++import org.junit.jupiter.api.TestInfo;
+ import org.junit.jupiter.api.DisplayName;
+ import org.junit.jupiter.api.Test;
+ import org.springframework.beans.factory.annotation.Autowired;
+@@ -26,6 +28,23 @@ class ExecutionDriftTrackerTest extends IntegrationTestBase {
+     @Autowired
+     private ExecutionDriftLogRepository driftRepo;
+ 
++    // [DRIFT-DIAG] 진단 전용 — 커밋하지 않음
++    @BeforeEach
++    void diagBefore(TestInfo info) {
++        diagDump("before " + info.getTestMethod().map(m -> m.getName()).orElse("?"));
++    }
++
++    private void diagDump(String label) {
++        List<ExecutionDriftLogEntity> rows = driftRepo.findAll();
++        System.out.println("[DRIFT-DIAG] " + label + " rows=" + rows.size());
++        for (ExecutionDriftLogEntity e : rows) {
++            System.out.println("[DRIFT-DIAG]   id=" + e.getId() + " kind=" + e.getSessionKind() + " sid=" + e.getSessionId()
++                    + " coin=" + e.getCoinPair() + " strat=" + e.getStrategyType() + " side=" + e.getSide()
++                    + " signal=" + e.getSignalPrice() + " fill=" + e.getFillPrice() + " slip=" + e.getSlippagePct()
++                    + " at=" + e.getExecutedAt());
++        }
++    }
++
+     @AfterEach
+     void cleanup() {
+         driftRepo.deleteAll();
+@@ -60,6 +79,8 @@ class ExecutionDriftTrackerTest extends IntegrationTestBase {
+         tracker.record(2L, "LIVE", "KRW-ETH", "COMPOSITE_MOMENTUM", "SELL",
+                 signalPrice, fillPrice, Instant.now());
+ 
++        diagDump("after record (negative)");
++        System.out.println("[DRIFT-DIAG] get(0).id=" + driftRepo.findAll().get(0).getId());
+         BigDecimal slippage = driftRepo.findAll().get(0).getSlippagePct();
+         assertThat(slippage).isLessThan(BigDecimal.ZERO);
+     }

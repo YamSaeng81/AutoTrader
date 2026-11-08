@@ -1,0 +1,7 @@
+backend-1  | 10:20:01.100 [main] INFO  c.c.a.CryptoAutoTraderApplication - Started CryptoAutoTraderApplication in 31.2 seconds (대역)
+backend-1  | 10:20:01.200 [main] INFO  c.c.a.s.CapitalPool - 공유 풀 한도 확인: 단계=STAGE_1 총상한=100000 포지션당=20000 동시보유=3
+backend-1  | 10:20:01.300 [main] INFO  c.c.a.s.RiskLimit - 위험 한도 확인: 단계 STAGE_1 총 자본 100000 기준 누적 15.00%·24시간 3.00%
+backend-1  | 10:20:20.000 [catchup-1] INFO  c.c.a.s.Catchup - 시작 Catchup 완료 (대역)
+backend-1  | 10:23:05.000 [news-1] INFO  c.c.a.n.NewsAggregator - [NewsAggregator] 수집 완료 — sourceId=rss-1 결과=OK 받은=3건 신규=0건
+backend-1  | 10:31:15.001 [scheduling-1] WARN  c.c.a.s.HeldMarkRefresher - [시세 보강] 시세 항목 건너뜀 — 가격이 아님 (부호=0)
+backend-1  | 10:31:15.002 [scheduling-1] INFO  c.c.a.s.HeldMarkRefresher - [시세 보강] 호가로 보강한 보유 1 — 보유량을 매수호가에 채운 평균 가격으로 관측

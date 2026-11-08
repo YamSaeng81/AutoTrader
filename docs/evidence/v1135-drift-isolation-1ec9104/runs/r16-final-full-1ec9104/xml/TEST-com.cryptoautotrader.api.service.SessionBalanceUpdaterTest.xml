@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.SessionBalanceUpdaterTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-11-08T15:13:50" hostname="DESKTOP-SF1KUQ5" time="0.034">
+  <properties/>
+  <testcase name="단일 스레드 mutation: version 증가 + 값 반영" classname="com.cryptoautotrader.api.service.SessionBalanceUpdaterTest" time="0.003"/>
+  <testcase name="동시 increment 10회 → 모든 증분이 보존된다 (last-write-wins 없음)" classname="com.cryptoautotrader.api.service.SessionBalanceUpdaterTest" time="0.031"/>
+  <system-out><![CDATA[00:13:50.910 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.SessionBalanceUpdaterTest
+00:13:50.911 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+00:13:50.914 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+00:13:50.917 [pool-24-thread-5] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=371 attempt=1 backoff=6ms
+00:13:50.917 [pool-24-thread-1] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=371 attempt=1 backoff=5ms
+00:13:50.918 [pool-24-thread-3] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=371 attempt=1 backoff=6ms
+00:13:50.918 [pool-24-thread-6] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=371 attempt=1 backoff=5ms
+00:13:50.918 [pool-24-thread-2] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=371 attempt=1 backoff=10ms
+00:13:50.925 [pool-24-thread-5] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=371 attempt=2 backoff=16ms
+00:13:50.925 [pool-24-thread-6] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=371 attempt=2 backoff=13ms
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

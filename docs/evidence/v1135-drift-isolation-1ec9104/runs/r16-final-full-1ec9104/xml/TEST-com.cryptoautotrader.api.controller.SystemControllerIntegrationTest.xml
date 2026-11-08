@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="SystemController 통합 테스트" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-11-08T15:10:43" hostname="DESKTOP-SF1KUQ5" time="0.01">
+  <properties/>
+  <testcase name="전략 타입 목록 — 200 OK, type/name 필드 포함" classname="com.cryptoautotrader.api.controller.SystemControllerIntegrationTest" time="0.006"/>
+  <testcase name="헬스체크 — 200 OK, status=UP" classname="com.cryptoautotrader.api.controller.SystemControllerIntegrationTest" time="0.004"/>
+  <system-out><![CDATA[00:10:43.447 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.controller.SystemControllerIntegrationTest
+00:10:43.451 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+00:10:43.455 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

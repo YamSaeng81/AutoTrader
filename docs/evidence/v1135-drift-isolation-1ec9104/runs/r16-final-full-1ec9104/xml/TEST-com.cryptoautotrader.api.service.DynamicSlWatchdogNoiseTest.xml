@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.DynamicSlWatchdogNoiseTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-11-08T15:12:30" hostname="DESKTOP-SF1KUQ5" time="0.047">
+  <properties/>
+  <testcase name="자가복구를 계속 시도했는데도 점검이 안 잡힐 때는 알린다 — 진짜 고장 신호" classname="com.cryptoautotrader.api.service.DynamicSlWatchdogNoiseTest" time="0.016"/>
+  <testcase name="&#x1f534; REST 자가복구가 되는 동안은 알리지 않는다 — 거래 뜸한 코인의 정상적인 틱 공백" classname="com.cryptoautotrader.api.service.DynamicSlWatchdogNoiseTest" time="0.007"/>
+  <testcase name="실전 세션도 마찬가지다 — 상태 불일치는 자가복구 가드가 다음 틱에 되돌린다" classname="com.cryptoautotrader.api.service.DynamicSlWatchdogNoiseTest" time="0.008"/>
+  <testcase name="&#x1f534; POSITION_MONITORING 인데 OPEN 포지션이 없으면 알리지 않는다 — 이게 무한 반복의 원인이었다" classname="com.cryptoautotrader.api.service.DynamicSlWatchdogNoiseTest" time="0.005"/>
+  <testcase name="포지션이 없으면 거래소 장애 중이어도 조용하다 — 감시 대상이 아니기 때문" classname="com.cryptoautotrader.api.service.DynamicSlWatchdogNoiseTest" time="0.006"/>
+  <testcase name="REST 강제 갱신 자체가 실패하면 즉시 알린다 — 거래소 장애는 기다릴 일이 아니다" classname="com.cryptoautotrader.api.service.DynamicSlWatchdogNoiseTest" time="0.004"/>
+  <system-out><![CDATA[00:12:30.239 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.DynamicSlWatchdogNoiseTest
+00:12:30.241 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+00:12:30.245 [Test worker] WARN  c.c.e.upbit.UpbitWebSocketClient - 이미 WebSocket에 연결되어 있음. 기존 연결 종료 후 재연결합니다.
+00:12:30.245 [Test worker] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+00:12:30.247 [Test worker] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+00:12:30.249 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=165 coin=KRW-XRP 마지막체크=기록없음 (3분 초과, 연속 1회, WS구독=있음, REST강제갱신=PUBLISHED 체결 0초 전)
+00:12:30.251 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=165 coin=KRW-XRP 마지막체크=기록없음 (3분 초과, 연속 2회, WS구독=있음, REST강제갱신=PUBLISHED 체결 0초 전)
+00:12:30.251 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=165 coin=KRW-XRP 마지막체크=기록없음 (3분 초과, 연속 3회, WS구독=있음, REST강제갱신=PUBLISHED 체결 0초 전)
+00:12:30.253 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=165 coin=KRW-XRP 마지막체크=기록없음 (3분 초과, 연속 4회, WS구독=있음, REST강제갱신=PUBLISHED 체결 0초 전)
+00:12:30.254 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=165 coin=KRW-XRP 마지막체크=기록없음 (3분 초과, 연속 5회, WS구독=있음, REST강제갱신=PUBLISHED 체결 0초 전)
+00:12:30.257 [HttpClient-512-Worker-0] WARN  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 종료: code=1000, reason=정상 종료
+00:12:30.257 [HttpClient-512-Worker-0] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+00:12:30.257 [HttpClient-512-Worker-0] INFO  c.c.e.upbit.UpbitWebSocketClient - 1000ms 후 WebSocket 재연결 시도
+00:12:30.258 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+00:12:30.261 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=166 coin=KRW-XRP 마지막체크=기록없음 (3분 초과, 연속 1회, WS구독=있음, REST강제갱신=PUBLISHED 체결 0초 전)
+00:12:30.261 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=166 coin=KRW-XRP 마지막체크=기록없음 (3분 초과, 연속 2회, WS구독=있음, REST강제갱신=PUBLISHED 체결 0초 전)
+00:12:30.266 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+00:12:30.274 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+00:12:30.279 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+00:12:30.283 [ForkJoinPool.commonPool-worker-2] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 성공
+00:12:30.283 [ForkJoinPool.commonPool-worker-2] INFO  c.c.e.upbit.UpbitWebSocketClient - WebSocket 구독 메시지 전송: coins=[KRW-XRP]
+00:12:30.284 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+00:12:30.287 [Test worker] ERROR c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검 세션 강제 복구 실패 ? 조회·변환 예외(원문 생략)
+00:12:30.287 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=170 coin=KRW-XRP 마지막체크=기록없음 (3분 초과, 연속 1회, WS구독=있음, REST강제갱신=FAILED 체결 시각 없음)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

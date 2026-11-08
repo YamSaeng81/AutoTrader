@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.LiveTradingReliabilityTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-11-08T15:12:45" hostname="DESKTOP-SF1KUQ5" time="0.043">
+  <properties/>
+  <testcase name="closeIfOpen: 첫 번째 호출은 1 반환(성공), 두 번째 호출은 0 반환(이미 CLOSED)" classname="com.cryptoautotrader.api.service.LiveTradingReliabilityTest" time="0.005"/>
+  <testcase name="countRealPositionsByStatus: size=0 고아 포지션은 카운팅에서 제외된다" classname="com.cryptoautotrader.api.service.LiveTradingReliabilityTest" time="0.004"/>
+  <testcase name="리스크 체크: size=0 고아 포지션 2개는 maxPositions=2 한도를 차지하지 않는다" classname="com.cryptoautotrader.api.service.LiveTradingReliabilityTest" time="0.008"/>
+  <testcase name="reconcileOrphanBuyPositions: FAILED 매수 후 30초 reconcile 시 KRW 복원 + 포지션 CLOSED" classname="com.cryptoautotrader.api.service.LiveTradingReliabilityTest" time="0.01"/>
+  <testcase name="reconcileOrphanBuyPositions: closeIfOpen 원자성으로 이중 KRW 복원이 방지된다" classname="com.cryptoautotrader.api.service.LiveTradingReliabilityTest" time="0.006"/>
+  <testcase name="리스크 체크: size&gt;0 실 포지션이 maxPositions=2에 도달하면 차단된다" classname="com.cryptoautotrader.api.service.LiveTradingReliabilityTest" time="0.007"/>
+  <system-out><![CDATA[00:12:45.627 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.LiveTradingReliabilityTest
+00:12:45.630 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+00:12:45.636 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+00:12:45.641 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+00:12:45.649 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+00:12:45.655 [Test worker] WARN  c.c.api.service.LiveTradingService - 고아 포지션 정리 완료 (posId=439, coinPair=KRW-BTC)
+00:12:45.659 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+00:12:45.666 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+00:12:45.670 [Test worker] WARN  c.c.a.service.RiskManagementService - 리스크 체크 거부: 최대 포지션 수 초과: 2 >= 2 (안전망) (일일=0%, 주간=0%, 월간=0%, 포지션=2, 자본사용률=0%, 드로우다운=0%)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

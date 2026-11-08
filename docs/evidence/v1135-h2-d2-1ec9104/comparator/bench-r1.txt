@@ -1,0 +1,86 @@
+PASS 대조군: 같은 내용 → 차이 0
+   v2: 종료 0 · (끝) 8 8
+   v1: 종료 0 · (끝) 8 8
+PASS 시각·압축 방식만 다른 재포장 → 차이 0(정상)
+   v2: 종료 0 · (끝) 8 8
+   v1: 종료 0 · (끝) 8 8
+PASS 자체 모듈 내부 중복(다른 내용, 새 쪽) → 거절
+   v2: 종료 3 · 🔴 jar 비교 거절: D:\tmp\o13d2\bench-r1\inner-dup-diff.jar: 자체 모듈 내부 이름 중복 BOOT-INF/lib/core-engine-1.0-SNAPSHOT.jar!p/A.class ×2 ⏎ (거절) 중복·형식 이상 1건 — 차이를 내지 않는다
+   v1: 종료 0 · (끝) 8 8
+   v1 비고: v1 은 차이 0 으로 놓친다(총괄 재현과 같음)
+PASS 자체 모듈 내부 중복(같은 바이트, 새 쪽) → 거절
+   v2: 종료 3 · 🔴 jar 비교 거절: D:\tmp\o13d2\bench-r1\inner-dup-same.jar: 자체 모듈 내부 이름 중복 BOOT-INF/lib/core-engine-1.0-SNAPSHOT.jar!p/A.class ×2 ⏎ (거절) 중복·형식 이상 1건 — 차이를 내지 않는다
+   v1: 종료 0 · (끝) 8 8
+PASS 자체 모듈 내부 중복(옛 쪽만) → 거절
+   v2: 종료 3 · 🔴 jar 비교 거절: D:\tmp\o13d2\bench-r1\inner-dup-diff.jar: 자체 모듈 내부 이름 중복 BOOT-INF/lib/core-engine-1.0-SNAPSHOT.jar!p/A.class ×2 ⏎ (거절) 중복·형식 이상 1건 — 차이를 내지 않는다
+   v1: 종료 0 · (끝) 8 8
+PASS 자체 모듈 내부 중복(양쪽 같은 중복) → 상쇄하지 않고 거절
+   v2: 종료 3 · 🔴 jar 비교 거절: D:\tmp\o13d2\bench-r1\inner-dup-diff.jar: 자체 모듈 내부 이름 중복 BOOT-INF/lib/core-engine-1.0-SNAPSHOT.jar!p/A.class ×2 ⏎ 🔴 jar 비교 거절: D:\tmp\o13d2\bench-r1\inner-dup-diff-2.jar: 자체 모듈 내부 이름 중복 BOOT-INF/lib/core-engine-1.0-SNAPSHOT.jar!p/A.class ×2 ⏎ (거절) 중복·형식 이상 2건 — 차이를 내지 않는다
+   v1: 종료 0 · (끝) 8 8
+PASS 바깥 중복(다른 내용, 새 쪽) → 거절
+   v2: 종료 3 · 🔴 jar 비교 거절: D:\tmp\o13d2\bench-r1\outer-dup-diff.jar: 바깥 항목 이름 중복 BOOT-INF/classes/application.yml ×2 ⏎ (거절) 중복·형식 이상 1건 — 차이를 내지 않는다
+   v1: 종료 0 · 추가 (중복 항목 이름 있음) ⏎ (끝) 8 9
+   v1 비고: v1 은 "(중복 항목 이름 있음)" 차이 줄로 간접 표시
+PASS 바깥 중복(같은 바이트, 새 쪽) → 거절
+   v2: 종료 3 · 🔴 jar 비교 거절: D:\tmp\o13d2\bench-r1\outer-dup-same.jar: 바깥 항목 이름 중복 BOOT-INF/classes/c/S.class ×2 ⏎ (거절) 중복·형식 이상 1건 — 차이를 내지 않는다
+   v1: 종료 0 · 추가 (중복 항목 이름 있음) ⏎ (끝) 8 9
+PASS 바깥 중복(옛 쪽만) → 거절
+   v2: 종료 3 · 🔴 jar 비교 거절: D:\tmp\o13d2\bench-r1\outer-dup-diff.jar: 바깥 항목 이름 중복 BOOT-INF/classes/application.yml ×2 ⏎ (거절) 중복·형식 이상 1건 — 차이를 내지 않는다
+   v1: 종료 0 · 삭제 (중복 항목 이름 있음) ⏎ (끝) 9 8
+PASS 바깥 중복(양쪽) → 거절
+   v2: 종료 3 · 🔴 jar 비교 거절: D:\tmp\o13d2\bench-r1\outer-dup-diff.jar: 바깥 항목 이름 중복 BOOT-INF/classes/application.yml ×2 ⏎ 🔴 jar 비교 거절: D:\tmp\o13d2\bench-r1\outer-dup-diff-2.jar: 바깥 항목 이름 중복 BOOT-INF/classes/application.yml ×2 ⏎ (거절) 중복·형식 이상 2건 — 차이를 내지 않는다
+   v1: 종료 0 · 변경 (중복 항목 이름 있음) ⏎ (끝) 9 9
+PASS 바깥 디렉터리 항목 중복 → 거절
+   v2: 종료 3 · 🔴 jar 비교 거절: D:\tmp\o13d2\bench-r1\outer-dup-dir.jar: 바깥 항목 이름 중복 BOOT-INF/ ×2 ⏎ (거절) 중복·형식 이상 1건 — 차이를 내지 않는다
+   v1: 종료 0 · 추가 (중복 항목 이름 있음) ⏎ (끝) 8 9
+PASS 자체 모듈 jar 두 판이 같은 이름으로 겹침 → 거절
+   v2: 종료 3 · 🔴 jar 비교 거절: D:\tmp\o13d2\bench-r1\own-collide.jar: 자체 모듈 jar 가 같은 이름으로 겹침 BOOT-INF/lib/core-engine-1.0-SNAPSHOT.jar · BOOT-INF/lib/core-engine-1.1.jar ⏎ (거절) 중복·형식 이상 1건 — 차이를 내지 않는다
+   v1: 종료 0 · 변경 BOOT-INF/lib/core-engine.jar!p/A.class ⏎ (끝) 8 8
+   v1 비고: v1 은 뒤의 판이 앞을 덮어써 일부 항목만 비교한다
+PASS 자체 모듈 판 번호만 바뀜(내용 같음) → 차이 0
+   v2: 종료 0 · (끝) 8 8
+   v1: 종료 0 · (끝) 8 8
+PASS 자체 모듈 내부 클래스 변경 → 변경 줄
+   v2: 종료 0 · 변경 BOOT-INF/lib/core-engine.jar!p/A.class ⏎ (끝) 8 8
+   v1: 종료 0 · 변경 BOOT-INF/lib/core-engine.jar!p/A.class ⏎ (끝) 8 8
+PASS 자체 모듈 내부 리소스 누락 → 삭제 줄
+   v2: 종료 0 · 삭제 BOOT-INF/lib/core-engine.jar!p/B.class ⏎ (끝) 8 7
+   v1: 종료 0 · 삭제 BOOT-INF/lib/core-engine.jar!p/B.class ⏎ (끝) 8 7
+PASS 리소스 추가 → 추가 줄
+   v2: 종료 0 · 추가 BOOT-INF/classes/c/T.class ⏎ (끝) 8 9
+   v1: 종료 0 · 추가 BOOT-INF/classes/c/T.class ⏎ (끝) 8 9
+PASS 리소스 누락 → 삭제 줄
+   v2: 종료 0 · 삭제 BOOT-INF/classes/c/S.class ⏎ (끝) 8 7
+   v1: 종료 0 · 삭제 BOOT-INF/classes/c/S.class ⏎ (끝) 8 7
+PASS 설정 변경 → 변경 줄
+   v2: 종료 0 · 변경 BOOT-INF/classes/application.yml ⏎ (끝) 8 8
+   v1: 종료 0 · 변경 BOOT-INF/classes/application.yml ⏎ (끝) 8 8
+PASS 마이그레이션 추가 → 추가 줄
+   v2: 종료 0 · 추가 BOOT-INF/classes/db/migration/V95__y.sql ⏎ (끝) 8 9
+   v1: 종료 0 · 추가 BOOT-INF/classes/db/migration/V95__y.sql ⏎ (끝) 8 9
+FAIL 외부 라이브러리 판 변경 → 삭제·추가 줄
+   v2: 종료 0 · 삭제 BOOT-INF/lib/foo-1.0.jar ⏎ 추가 BOOT-INF/lib/foo-1.1.jar ⏎ (끝) 8 8
+   v1: 종료 0 · 삭제 BOOT-INF/lib/foo-1.0.jar ⏎ 추가 BOOT-INF/lib/foo-1.1.jar ⏎ (끝) 8 8
+PASS 로더·META-INF 변경 → 변경 줄
+   v2: 종료 0 · 변경 META-INF/MANIFEST.MF ⏎ 변경 org/springframework/boot/loader/L.class ⏎ (끝) 8 8
+   v1: 종료 0 · 변경 META-INF/MANIFEST.MF ⏎ 변경 org/springframework/boot/loader/L.class ⏎ (끝) 8 8
+PASS jar 형식 아님 → 거절
+   v2: 종료 3 · 🔴 jar 비교 거절: D:\tmp\o13d2\bench-r1\broken.jar: 바깥 jar 를 열 수 없음(BadZipFile) ⏎ (거절) 중복·형식 이상 1건 — 차이를 내지 않는다
+   v1: 종료 1 · 
+PASS 총괄 fixture base ↔ base
+   v2: 종료 0 · (끝) 2 2
+   v1: 종료 0 · (끝) 2 2
+PASS 총괄 fixture base ↔ inner-duplicate → 거절
+   v2: 종료 3 · 🔴 jar 비교 거절: D:\Claude Code\projects\crypto-auto-trader\docs\evidence\weekend-review-a762b8cb\fixtures\inner-duplicate.jar.bin: 자체 모듈 내부 이름 중복 BOOT-INF/lib/core-engine-1.0-SNAPSHOT.jar!p/A.class ×2 ⏎ (거절) 중복·형식 이상 1건 — 차이를 내지 않는다
+   v1: 종료 0 · (끝) 2 2
+   v1 비고: v1 은 차이 0
+PASS 총괄 fixture base ↔ outer-duplicate → 거절
+   v2: 종료 3 · 🔴 jar 비교 거절: D:\Claude Code\projects\crypto-auto-trader\docs\evidence\weekend-review-a762b8cb\fixtures\outer-duplicate.jar.bin: 바깥 항목 이름 중복 load.txt ×2 ⏎ (거절) 중복·형식 이상 1건 — 차이를 내지 않는다
+   v1: 종료 0 · 추가 (중복 항목 이름 있음) ⏎ (끝) 2 3
+실제 jar sha256: 1899b49 a4fd4e343e6c48d7c5aa4a844f33c431eed10eff0757681d7c3bf262d554bdac · 0d142aa dc26fe4b2d0ee9772be8143f05fa50c928ed0a4f28e1522e4efeaa0ba99f4dd0
+PASS 실제 보존 jar 1899b49 → 0d142aa: v1 과 v2 출력 같음·3항목·(끝) 881 881
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$PriceSnapshot.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService.class
+(끝) 881 881
+결과 25/26

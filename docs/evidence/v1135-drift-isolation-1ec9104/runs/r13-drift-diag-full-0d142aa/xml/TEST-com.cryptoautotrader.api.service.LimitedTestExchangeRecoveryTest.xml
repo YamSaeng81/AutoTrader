@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="N01 거래소 DOWN → UP — 제한시험(SMA20)은 재개하지 않고 최초 started_at 을 보존한다" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-11-08T14:50:54" hostname="DESKTOP-SF1KUQ5" time="0.503">
+  <properties/>
+  <testcase name="보유 없이 DOWN → UP — 제한시험은 비상정지 유지·started_at 보존, 주문 0" classname="com.cryptoautotrader.api.service.LimitedTestExchangeRecoveryTest" time="0.119"/>
+  <testcase name="보유 중 DOWN → UP → 반복 UP → DOWN·UP — 비상정지 유지, 최초 started_at·종료 시각 보존, 추가 매수 0, 청산 매도 1회" classname="com.cryptoautotrader.api.service.LimitedTestExchangeRecoveryTest" time="0.297"/>
+  <testcase name="수동 시작 — 보유 중 DOWN 비상정지(매도 접수·대기) 뒤 수동 시작 거절·불변, CREATED 이지만 started_at 이 있으면 거절" classname="com.cryptoautotrader.api.service.LimitedTestExchangeRecoveryTest" time="0.068"/>
+  <testcase name="수동 시작 — CREATED·started_at 없음은 최초 시작으로 허용, 정지 뒤 다시 부르면 거절·불변, 일반 전략의 정지 세션은 그대로 시작된다" classname="com.cryptoautotrader.api.service.LimitedTestExchangeRecoveryTest" time="0.017"/>
+  <system-out><![CDATA[23:50:54.471 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.LimitedTestExchangeRecoveryTest
+23:50:54.474 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+23:50:54.477 [Test worker] ERROR c.c.a.service.ExchangeHealthMonitor - 거래소 DOWN 감지 ? ExchangeDownEvent 발행 (Upbit API 연속 0회 연결 실패)
+23:50:54.477 [Test worker] ERROR c.c.api.service.LiveTradingService - 거래소 DOWN 이벤트 수신 -- 모든 실전매매 세션을 비상 정지합니다.
+23:50:54.479 [Test worker] ERROR c.c.api.service.LiveTradingService - 전체 비상 정지 실행! (dryRun=false)
+23:50:54.482 [Test worker] ERROR c.c.api.service.LiveTradingService - 전체 비상 정지 완료: 1개 세션 정지 (dryRun=false)
+23:50:54.485 [market-data-2] WARN  c.c.api.service.LiveTradingService - 거래소 복구 ? 세션 #246 (DAILY_SMA20) 는 제한시험이다 ? 자동 재시작하지 않는다(EMERGENCY_STOPPED·started_at 2026-10-29T14:50:54Z 유지)
+23:50:54.593 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+23:50:54.596 [Test worker] ERROR c.c.a.service.ExchangeHealthMonitor - 거래소 DOWN 감지 ? ExchangeDownEvent 발행 (Upbit API 연속 0회 연결 실패)
+23:50:54.596 [Test worker] ERROR c.c.api.service.LiveTradingService - 거래소 DOWN 이벤트 수신 -- 모든 실전매매 세션을 비상 정지합니다.
+23:50:54.597 [Test worker] ERROR c.c.api.service.LiveTradingService - 전체 비상 정지 실행! (dryRun=false)
+23:50:54.599 [Test worker] ERROR c.c.api.service.LiveTradingService - 전체 비상 정지 완료: 2개 세션 정지 (dryRun=false)
+23:50:54.658 [market-data-2] WARN  c.c.api.service.LiveTradingService - 거래소 복구 ? 세션 #247 (DAILY_SMA20) 는 제한시험이다 ? 자동 재시작하지 않는다(EMERGENCY_STOPPED·started_at 2026-11-05T14:50:54Z 유지)
+23:50:54.660 [market-data-2] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+23:50:54.690 [ForkJoinPool.commonPool-worker-2] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 성공
+23:50:54.691 [ForkJoinPool.commonPool-worker-2] INFO  c.c.e.upbit.UpbitWebSocketClient - WebSocket 구독 메시지 전송: coins=[KRW-DOGE]
+23:50:54.764 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+23:50:54.764 [telegram-1] ERROR c.c.a.s.TelegramNotificationService - [Telegram] ? EXCHANGE_DOWN 알림 3회 시도 ? 최종 실패: 전달되지 않음(마지막 REJECTED HTTP 404)(이력 success=false): ? *거래소 연결 끊김*
+
+? 사유: `시험 ? 연속 실패`
+? 모든 실전매매 세션이 비상 정지됩니다.
+? 시각: `2026-11-08 23:50:46`
+23:50:54.829 [Test worker] ERROR c.c.a.service.ExchangeHealthMonitor - 거래소 DOWN 감지 ? ExchangeDownEvent 발행 (Upbit API 연속 0회 연결 실패)
+23:50:54.829 [Test worker] ERROR c.c.api.service.LiveTradingService - 거래소 DOWN 이벤트 수신 -- 모든 실전매매 세션을 비상 정지합니다.
+23:50:54.830 [Test worker] ERROR c.c.api.service.LiveTradingService - 전체 비상 정지 실행! (dryRun=false)
+23:50:54.832 [Test worker] ERROR c.c.api.service.LiveTradingService - 전체 비상 정지 완료: 1개 세션 정지 (dryRun=false)
+23:50:54.832 [Test worker] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+23:50:54.832 [Test worker] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 종료 (scheduler 유지 ? 재연결 가능)
+23:50:54.836 [market-data-1] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+23:50:54.841 [HttpClient-587-Worker-0] WARN  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 종료: code=1000, reason=정상 종료
+23:50:54.841 [HttpClient-587-Worker-0] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+23:50:54.841 [HttpClient-587-Worker-0] INFO  c.c.e.upbit.UpbitWebSocketClient - 1000ms 후 WebSocket 재연결 시도
+23:50:54.868 [ForkJoinPool.commonPool-worker-2] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 성공
+23:50:54.868 [ForkJoinPool.commonPool-worker-2] INFO  c.c.e.upbit.UpbitWebSocketClient - WebSocket 구독 메시지 전송: coins=[KRW-DOGE]
+23:50:54.891 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+23:50:54.893 [Test worker] ERROR c.c.a.service.ExchangeHealthMonitor - 거래소 DOWN 감지 ? ExchangeDownEvent 발행 (Upbit API 연속 0회 연결 실패)
+23:50:54.893 [Test worker] ERROR c.c.api.service.LiveTradingService - 거래소 DOWN 이벤트 수신 -- 모든 실전매매 세션을 비상 정지합니다.
+23:50:54.894 [Test worker] ERROR c.c.api.service.LiveTradingService - 전체 비상 정지 실행! (dryRun=false)
+23:50:54.895 [Test worker] ERROR c.c.api.service.LiveTradingService - 전체 비상 정지 완료: 1개 세션 정지 (dryRun=false)
+23:50:54.895 [Test worker] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+23:50:54.896 [Test worker] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 종료 (scheduler 유지 ? 재연결 가능)
+23:50:54.897 [Test worker] WARN  c.c.api.service.LiveTradingService - 제한시험 세션 #249 (DAILY_SMA20) 재시작 거절 ? 상태 EMERGENCY_STOPPED·started_at 2026-11-05T14:50:54Z (최초 시작만 허용)
+23:50:54.898 [market-data-2] WARN  c.c.api.service.LiveTradingService - 거래소 복구 ? 세션 #249 (DAILY_SMA20) 는 제한시험이다 ? 자동 재시작하지 않는다(EMERGENCY_STOPPED·started_at 2026-11-05T14:50:54Z 유지)
+23:50:54.906 [HttpClient-588-Worker-0] WARN  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 종료: code=1000, reason=정상 종료
+23:50:54.906 [HttpClient-588-Worker-0] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+23:50:54.906 [HttpClient-588-Worker-0] INFO  c.c.e.upbit.UpbitWebSocketClient - 종료 요청됨. 재연결 스킵.
+23:50:54.953 [Test worker] WARN  c.c.api.service.LiveTradingService - 제한시험 세션 #249 (DAILY_SMA20) 재시작 거절 ? 상태 EMERGENCY_STOPPED·started_at 2026-11-05T14:50:54Z (최초 시작만 허용)
+23:50:54.955 [Test worker] WARN  c.c.api.service.LiveTradingService - 제한시험 세션 #250 (DAILY_SMA20) 재시작 거절 ? 상태 CREATED·started_at 2026-11-05T14:50:54Z (최초 시작만 허용)
+23:50:54.959 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+23:50:54.962 [Test worker] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+23:50:54.966 [Test worker] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+23:50:54.966 [Test worker] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 종료 (scheduler 유지 ? 재연결 가능)
+23:50:54.967 [Test worker] WARN  c.c.api.service.LiveTradingService - 제한시험 세션 #251 (DAILY_SMA20) 재시작 거절 ? 상태 STOPPED·started_at 2026-11-08T14:50:54.962557Z (최초 시작만 허용)
+23:50:54.971 [Test worker] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,89 @@
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/ExecutionDriftTrackerTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/ExecutionDriftTrackerTest.java
+index bc1d2af6..3ef562a7 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/ExecutionDriftTrackerTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/ExecutionDriftTrackerTest.java
+@@ -4,6 +4,7 @@ import com.cryptoautotrader.api.entity.ExecutionDriftLogEntity;
+ import com.cryptoautotrader.api.repository.ExecutionDriftLogRepository;
+ import com.cryptoautotrader.api.support.IntegrationTestBase;
+ import org.junit.jupiter.api.AfterEach;
++import org.junit.jupiter.api.BeforeEach;
+ import org.junit.jupiter.api.DisplayName;
+ import org.junit.jupiter.api.Test;
+ import org.springframework.beans.factory.annotation.Autowired;
+@@ -17,6 +18,10 @@ import static org.assertj.core.api.Assertions.assertThat;
+ 
+ /**
+  * 20260415_analy.md Tier 3 §14 — 실전/백테스트 drift 트래커.
++ *
++ * <p>🔴 시험 격리(총괄 v1.135 §3): 같은 Spring 컨텍스트·H2 를 쓰는 앞선 시험 클래스가 남긴 drift 행이 있으면
++ * 이 클래스의 첫 시험이 {@code findAll().get(0)} 으로 그 행을 읽었다(전체 실행에서 음수 slippage 시험이 0.000000 을 읽은 원인).
++ * 각 시험 전에도 비우고, 기록 시험은 방금 기록한 세션·코인의 행만 골라 읽는다. 단언(음수·양수·크기)은 바꾸지 않았다.</p>
+  */
+ class ExecutionDriftTrackerTest extends IntegrationTestBase {
+ 
+@@ -26,11 +31,25 @@ class ExecutionDriftTrackerTest extends IntegrationTestBase {
+     @Autowired
+     private ExecutionDriftLogRepository driftRepo;
+ 
++    @BeforeEach
++    void isolate() {
++        driftRepo.deleteAll();
++    }
++
+     @AfterEach
+     void cleanup() {
+         driftRepo.deleteAll();
+     }
+ 
++    /** 방금 기록한 세션·코인의 행 — 정확히 1개여야 한다(다른 행을 고르지 않는다). */
++    private ExecutionDriftLogEntity recorded(long sessionId, String coinPair) {
++        List<ExecutionDriftLogEntity> rows = driftRepo.findAll().stream()
++                .filter(e -> e.getSessionId() == sessionId && coinPair.equals(e.getCoinPair()))
++                .toList();
++        assertThat(rows).hasSize(1);
++        return rows.get(0);
++    }
++
+     @Test
+     @DisplayName("§14 record() — slippage 계산 및 저장 정확성")
+     void record_calculatesSlippageCorrectly() {
+@@ -43,7 +62,7 @@ class ExecutionDriftTrackerTest extends IntegrationTestBase {
+         List<ExecutionDriftLogEntity> all = driftRepo.findAll();
+         assertThat(all).hasSize(1);
+ 
+-        ExecutionDriftLogEntity saved = all.get(0);
++        ExecutionDriftLogEntity saved = recorded(1L, "KRW-BTC");
+         assertThat(saved.getSlippagePct())
+                 .isGreaterThan(BigDecimal.ZERO)         // 양수 slippage
+                 .isLessThan(new BigDecimal("1"));       // 1% 미만
+@@ -60,10 +79,29 @@ class ExecutionDriftTrackerTest extends IntegrationTestBase {
+         tracker.record(2L, "LIVE", "KRW-ETH", "COMPOSITE_MOMENTUM", "SELL",
+                 signalPrice, fillPrice, Instant.now());
+ 
+-        BigDecimal slippage = driftRepo.findAll().get(0).getSlippagePct();
++        BigDecimal slippage = recorded(2L, "KRW-ETH").getSlippagePct();
+         assertThat(slippage).isLessThan(BigDecimal.ZERO);
+     }
+ 
++    @Test
++    @DisplayName("§14 record() — 다른 세션의 slippage 0 행이 먼저 있어도 방금 기록한 음수 행을 읽는다(고정 오염 탐침)")
++    void record_negativeSlippage_withEarlierZeroRow() {
++        driftRepo.save(ExecutionDriftLogEntity.builder()
++                .sessionId(900L).sessionKind("LIVE").coinPair("KRW-BTC").strategyType("COMPOSITE_BREAKOUT")
++                .side("BUY")
++                .signalPrice(new BigDecimal("50000000"))
++                .fillPrice(new BigDecimal("50000000"))
++                .slippagePct(new BigDecimal("0.000000"))
++                .executedAt(Instant.now())
++                .build());
++
++        tracker.record(2L, "LIVE", "KRW-ETH", "COMPOSITE_MOMENTUM", "SELL",
++                new BigDecimal("50000000"), new BigDecimal("49900000"), Instant.now());
++
++        assertThat(driftRepo.findAll()).hasSize(2);   // 오염 행은 그대로 있다 — 행 선택으로 구분한다
++        assertThat(recorded(2L, "KRW-ETH").getSlippagePct()).isLessThan(BigDecimal.ZERO);
++    }
++
+     @Test
+     @DisplayName("§14 record() — signalPrice 0이면 저장 생략")
+     void record_skipsWhenSignalPriceIsZero() {

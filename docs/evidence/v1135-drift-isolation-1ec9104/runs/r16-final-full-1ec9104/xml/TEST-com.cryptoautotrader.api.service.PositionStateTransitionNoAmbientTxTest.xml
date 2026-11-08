@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="포지션 원자적 전환은 트랜잭션 없는 호출부에서도 동작한다" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-11-08T15:12:59" hostname="DESKTOP-SF1KUQ5" time="0.015">
+  <properties/>
+  <testcase name="리포지토리 직접 호출은 트랜잭션 없이 실패한다 — 헬퍼를 거쳐야 하는 이유" classname="com.cryptoautotrader.api.service.PositionStateTransitionNoAmbientTxTest" time="0.004"/>
+  <testcase name="markClosingIfOpen — 트랜잭션 없이 불러도 CLOSING 으로 전환되고 사유가 남는다" classname="com.cryptoautotrader.api.service.PositionStateTransitionNoAmbientTxTest" time="0.003"/>
+  <testcase name="두 번째 호출은 0 을 돌려준다 — 시장가 이중 매도를 막는 보장이 유지된다" classname="com.cryptoautotrader.api.service.PositionStateTransitionNoAmbientTxTest" time="0.003"/>
+  <testcase name="closeIfOpen — 트랜잭션 없이 불러도 CLOSED 로 전환된다" classname="com.cryptoautotrader.api.service.PositionStateTransitionNoAmbientTxTest" time="0.004"/>
+  <system-out><![CDATA[00:12:59.775 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.PositionStateTransitionNoAmbientTxTest
+00:12:59.777 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+00:12:59.783 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+00:12:59.786 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+00:12:59.789 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

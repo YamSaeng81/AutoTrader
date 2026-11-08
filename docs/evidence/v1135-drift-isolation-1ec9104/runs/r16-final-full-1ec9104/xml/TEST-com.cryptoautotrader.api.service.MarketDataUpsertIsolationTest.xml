@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.MarketDataUpsertIsolationTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-08T15:12:45" hostname="DESKTOP-SF1KUQ5" time="0.013">
+  <properties/>
+  <testcase name="&#x1f534; 한 코인의 저장 실패가 먼저 커밋된 다른 코인을 되돌리지 않는다" classname="com.cryptoautotrader.api.service.MarketDataUpsertIsolationTest" time="0.009"/>
+  <testcase name="&#x1f534; syncMarketData 에 @Transactional 이 붙어 있으면 안 된다 — 코인별 격리의 전제" classname="com.cryptoautotrader.api.service.MarketDataUpsertIsolationTest" time="0.001"/>
+  <testcase name="실패 이후에도 다음 코인은 정상 저장된다 — 루프가 이어질 수 있다" classname="com.cryptoautotrader.api.service.MarketDataUpsertIsolationTest" time="0.002"/>
+  <system-out><![CDATA[00:12:45.744 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.MarketDataUpsertIsolationTest
+00:12:45.746 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+00:12:45.755 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+00:12:45.756 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,320 @@
+--- [s01] U0
+sha256:426a09a20afc9e16cff8b7a569d4e04f18ed47cefb9242f44e3b9ea9666153a1
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U0 통과 — 30분 안에 U1
+[대역 끝] rc=0 · 가짜 시각 10:20:00
+--- [s01] U1(실제 jar, 비교기 v2)
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$PriceSnapshot.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService.class
+(끝) 881 881
+✅ U1 통과 — ⏸ 운영자 확인 1회 뒤 U2
+[대역 끝] rc=0 · 가짜 시각 10:25:00
+--- [s01] U2
+1ec91046bf2bf0b7af0e6f05c04267a6c78efc21
+✅ U2 통과 — 5~10분 뒤 U3
+[대역 끝] rc=0 · 가짜 시각 10:25:15
+--- [s01] U3 조기(기동 1분 뒤)
+🔴 멈춤: 기동 5분 전 — 5분이 지난 뒤 U3
+[대역 끝] rc=1 · 가짜 시각 10:26:15
+--- [s01] U3
+✅ U3(deploy) 통과 — 기동 30분 뒤 U4
+[대역 끝] rc=0 · 가짜 시각 10:31:00
+--- [s01] U4 조기
+🔴 멈춤: 아직 30분 전 — 완료로 판정하지 않는다
+[대역 끝] rc=1 · 가짜 시각 10:37:00
+--- [s01] U4
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U4 통과 — U0~U4 출력을 보고(F 변수·F1·N06 핀은 총괄 판단 뒤 개발 에이전트가 갱신)
+[대역 끝] rc=0 · 가짜 시각 10:56:00
+--- [s01] U뒤관측
+[대역 끝] rc=0 · 가짜 시각 10:56:00
+  상태: HEAD=1ec9104 backend=3268933de18b latest=3268933de18b ok=[ok-U0 ok-U1 ok-U2 ok-U3-deploy ok-U4 ] 호출=171 금지=0
+--- [s02] U0(D1 U변수)
+🔴 멈춤: 변수 순서 — F 변수 → G 변수 → O1·O3 초안 D2 U 변수
+[대역 끝] rc=1 · 가짜 시각 10:20:00
+--- [s02] U1(D1 U변수)
+🔴 멈춤: U 변수가 O1·O3 초안 D2 판이 아님 — F → G → O1·O3 초안 D2 U 변수(초안은 실행하지 않는다)
+[대역 끝] rc=1 · 가짜 시각 10:20:00
+  상태: HEAD=1899b49 backend=426a09a20afc latest=426a09a20afc ok=[] 호출=0 금지=0
+--- [s03] U0(IMGOLD=미정)
+🔴 멈춤: IMGOLD 가 sha256: 이미지 ID 가 아님 — §5-9 98 U 변수 원문이 아님(초안 D1·D2 는 실행하지 않는다)
+[대역 끝] rc=1 · 가짜 시각 10:20:00
+  상태: HEAD=1899b49 backend=426a09a20afc latest=426a09a20afc ok=[] 호출=0 금지=0
+--- [s04a] U0(KST 09:30)
+🔴 멈춤: 시작 시각·정기 보고 확인 — 위 줄
+[대역 끝] rc=1 · 가짜 시각 09:30:00
+  상태: HEAD=1899b49 backend=426a09a20afc latest=426a09a20afc ok=[] 호출=0 금지=0
+--- [s04b] U0(10:00 보고 파일 없음)
+🔴 멈춤: 시작 시각·정기 보고 확인 — 위 줄
+[대역 끝] rc=1 · 가짜 시각 10:20:00
+sha256:426a09a20afc9e16cff8b7a569d4e04f18ed47cefb9242f44e3b9ea9666153a1
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U0 통과 — 30분 안에 U1
+[대역 끝] rc=0 · 가짜 시각 10:20:00
+--- [s04c] U1(U0 뒤 30분 1초 — checkout 전 멈춤)
+🔴 멈춤: U0 가 30분보다 오래됨 — U0 부터(아직 바꾼 것 없음, U1-되돌림 하지 않는다)
+[대역 끝] rc=1 · 가짜 시각 10:50:01
+  상태: HEAD=1899b49 backend=426a09a20afc latest=426a09a20afc ok=[ok-U0 ] 호출=54 금지=0
+--- [s05a-btc] U0 (BTC_OUT='false|11-10 08:00|11-10 09:00|20/20')
+1899b49f633f8aefdc66b15c42debdaba8b3852c
+sha256:426a09a20afc9e16cff8b7a569d4e04f18ed47cefb9242f44e3b9ea9666153a1
+🔴 멈춤: BTC 입력 미충족 — 배포하지 않고 보고(N08 때의 정체 허용 예외는 이번에 없다)
+[대역 끝] rc=1 · 가짜 시각 10:20:00
+  상태: HEAD=1899b49 backend=426a09a20afc latest=426a09a20afc ok=[] 호출=41 금지=0
+--- [s05b-btc20] U0 (BTC_OUT='true|11-10 09:00|11-10 09:00|19/20')
+1899b49f633f8aefdc66b15c42debdaba8b3852c
+sha256:426a09a20afc9e16cff8b7a569d4e04f18ed47cefb9242f44e3b9ea9666153a1
+🔴 멈춤: BTC 입력 미충족 — 배포하지 않고 보고(N08 때의 정체 허용 예외는 이번에 없다)
+[대역 끝] rc=1 · 가짜 시각 10:20:00
+  상태: HEAD=1899b49 backend=426a09a20afc latest=426a09a20afc ok=[] 호출=41 금지=0
+--- [s05c-session] U0 (SC_OUT='66 | 62 | 4 | 530:STOPPED')
+1899b49f633f8aefdc66b15c42debdaba8b3852c
+sha256:426a09a20afc9e16cff8b7a569d4e04f18ed47cefb9242f44e3b9ea9666153a1
+🔴 멈춤: 검증 66세션 상태 다름
+[대역 끝] rc=1 · 가짜 시각 10:20:00
+  상태: HEAD=1899b49 backend=426a09a20afc latest=426a09a20afc ok=[] 호출=39 금지=0
+--- [s05d-sid203] U0 (LIVE1_OUT='203:RUNNING')
+1899b49f633f8aefdc66b15c42debdaba8b3852c
+sha256:426a09a20afc9e16cff8b7a569d4e04f18ed47cefb9242f44e3b9ea9666153a1
+🔴 멈춤: SID 203·기준 행·EG·0 확인 중 다른 것 있음 — F1 과 같은 조회로 보고
+[대역 끝] rc=1 · 가짜 시각 10:20:00
+  상태: HEAD=1899b49 backend=426a09a20afc latest=426a09a20afc ok=[] 호출=34 금지=0
+--- [s05g-diff] U0 (DIFF_EXTRA=web-api/src/main/resources/db/migration/V95__x.sql)
+1899b49f633f8aefdc66b15c42debdaba8b3852c
+🔴 멈춤: diff 가 정확히 O1·O3 6개 파일이 아님(마이그레이션·설정 포함 금지)
+[대역 끝] rc=1 · 가짜 시각 10:20:00
+  상태: HEAD=1899b49 backend=426a09a20afc latest=426a09a20afc ok=[] 호출=8 금지=0
+--- [s05h-dirty] U0 (DIRTY=web-api/src/main/resources/application.yml)
+🔴 멈춤: HEAD 가 1899b49 가 아니거나 추적 파일 변경 있음
+[대역 끝] rc=1 · 가짜 시각 10:20:00
+  상태: HEAD=1899b49 backend=426a09a20afc latest=426a09a20afc ok=[] 호출=2 금지=0
+--- [s05e] U0(daily_check.sh 해시 다름)
+1899b49f633f8aefdc66b15c42debdaba8b3852c
+sha256:426a09a20afc9e16cff8b7a569d4e04f18ed47cefb9242f44e3b9ea9666153a1
+🔴 멈춤: 정기 점검 설치본이 c669ccd 판이 아님
+[대역 끝] rc=1 · 가짜 시각 10:20:00
+  상태: HEAD=1899b49 backend=426a09a20afc latest=426a09a20afc ok=[] 호출=39 금지=0
+--- [s05f] U0(crontab 해시 다름)
+1899b49f633f8aefdc66b15c42debdaba8b3852c
+sha256:426a09a20afc9e16cff8b7a569d4e04f18ed47cefb9242f44e3b9ea9666153a1
+🔴 멈춤: crontab 이 f2dce280… 과 다름
+[대역 끝] rc=1 · 가짜 시각 10:20:00
+  상태: HEAD=1899b49 backend=426a09a20afc latest=426a09a20afc ok=[] 호출=40 금지=0
+sha256:426a09a20afc9e16cff8b7a569d4e04f18ed47cefb9242f44e3b9ea9666153a1
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U0 통과 — 30분 안에 U1
+[대역 끝] rc=0 · 가짜 시각 10:20:00
+--- [s06] U1(빌드 jar=1899b49)
+(끝) 881 881
+🔴 멈춤: jar 차이가 O1·O3 3줄이 아님 — jar-diff.txt 를 보고(재기동 전). U1-되돌림
+[대역 끝] rc=1 · 가짜 시각 10:25:00
+  상태: HEAD=1ec9104 backend=426a09a20afc latest=3268933de18b ok=[ok-U0 ] 호출=70 금지=0
+--- [s06] U2
+🔴 멈춤: U1 미통과
+[대역 끝] rc=1 · 가짜 시각 10:25:00
+--- [s06] U1-되돌림
+1899b49f633f8aefdc66b15c42debdaba8b3852c
+sha256:426a09a20afc9e16cff8b7a569d4e04f18ed47cefb9242f44e3b9ea9666153a1
+[대역 끝] rc=0 · 가짜 시각 10:25:00
+  상태: HEAD=1899b49 backend=426a09a20afc latest=426a09a20afc ok=[ok-U0 ] 호출=74 금지=0
+sha256:426a09a20afc9e16cff8b7a569d4e04f18ed47cefb9242f44e3b9ea9666153a1
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U0 통과 — 30분 안에 U1
+[대역 끝] rc=0 · 가짜 시각 10:20:00
+--- [s07a-new-inner-diff] U1(BUILD_JAR=/d/tmp/o13d2/sim/jars/new-inner-diff-dup.jar)
+🔴 jar 비교 거절: D:/tmp/o13d2/sim/runs/d2-s07a-new-inner-diff/home/maint-o13/app-new.jar: 자체 모듈 내부 이름 중복 BOOT-INF/lib/core-engine-0.1.0.jar!com/cryptoautotrader/core/backtest/BacktestConfig$BacktestConfigBuilder.class ×2
+(거절) 중복·형식 이상 1건 — 차이를 내지 않는다
+🔴 멈춤: jar 비교기 v2 거절(종료 3) — 중복 항목·형식 이상. jar-diff.txt 를 보고(재기동 전). U1-되돌림
+[대역 끝] rc=1 · 가짜 시각 10:25:00
+  상태: HEAD=1ec9104 backend=426a09a20afc latest=3268933de18b ok=[ok-U0 ] 호출=70 금지=0
+--- [s07a-new-inner-diff] U2
+🔴 멈춤: U1 미통과
+[대역 끝] rc=1 · 가짜 시각 10:25:00
+--- [s07a-new-inner-diff] U1-되돌림
+1899b49f633f8aefdc66b15c42debdaba8b3852c
+sha256:426a09a20afc9e16cff8b7a569d4e04f18ed47cefb9242f44e3b9ea9666153a1
+[대역 끝] rc=0 · 가짜 시각 10:25:00
+  상태: HEAD=1899b49 backend=426a09a20afc latest=426a09a20afc ok=[ok-U0 ] 호출=74 금지=0
+sha256:426a09a20afc9e16cff8b7a569d4e04f18ed47cefb9242f44e3b9ea9666153a1
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U0 통과 — 30분 안에 U1
+[대역 끝] rc=0 · 가짜 시각 10:20:00
+--- [s07b-new-inner-same] U1(BUILD_JAR=/d/tmp/o13d2/sim/jars/new-inner-same-dup.jar)
+🔴 jar 비교 거절: D:/tmp/o13d2/sim/runs/d2-s07b-new-inner-same/home/maint-o13/app-new.jar: 자체 모듈 내부 이름 중복 BOOT-INF/lib/core-engine-0.1.0.jar!com/cryptoautotrader/core/backtest/BacktestConfig$BacktestConfigBuilder.class ×2
+(거절) 중복·형식 이상 1건 — 차이를 내지 않는다
+🔴 멈춤: jar 비교기 v2 거절(종료 3) — 중복 항목·형식 이상. jar-diff.txt 를 보고(재기동 전). U1-되돌림
+[대역 끝] rc=1 · 가짜 시각 10:25:00
+  상태: HEAD=1ec9104 backend=426a09a20afc latest=3268933de18b ok=[ok-U0 ] 호출=70 금지=0
+--- [s07b-new-inner-same] U2
+🔴 멈춤: U1 미통과
+[대역 끝] rc=1 · 가짜 시각 10:25:00
+--- [s07b-new-inner-same] U1-되돌림
+1899b49f633f8aefdc66b15c42debdaba8b3852c
+sha256:426a09a20afc9e16cff8b7a569d4e04f18ed47cefb9242f44e3b9ea9666153a1
+[대역 끝] rc=0 · 가짜 시각 10:25:00
+  상태: HEAD=1899b49 backend=426a09a20afc latest=426a09a20afc ok=[ok-U0 ] 호출=74 금지=0
+sha256:426a09a20afc9e16cff8b7a569d4e04f18ed47cefb9242f44e3b9ea9666153a1
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U0 통과 — 30분 안에 U1
+[대역 끝] rc=0 · 가짜 시각 10:20:00
+--- [s07c-new-outer-same] U1(BUILD_JAR=/d/tmp/o13d2/sim/jars/new-outer-same-dup.jar)
+🔴 jar 비교 거절: D:/tmp/o13d2/sim/runs/d2-s07c-new-outer-same/home/maint-o13/app-new.jar: 바깥 항목 이름 중복 BOOT-INF/classes/com/cryptoautotrader/api/config/ApiTokenAuthFilter.class ×2
+(거절) 중복·형식 이상 1건 — 차이를 내지 않는다
+🔴 멈춤: jar 비교기 v2 거절(종료 3) — 중복 항목·형식 이상. jar-diff.txt 를 보고(재기동 전). U1-되돌림
+[대역 끝] rc=1 · 가짜 시각 10:25:00
+  상태: HEAD=1ec9104 backend=426a09a20afc latest=3268933de18b ok=[ok-U0 ] 호출=70 금지=0
+--- [s07c-new-outer-same] U2
+🔴 멈춤: U1 미통과
+[대역 끝] rc=1 · 가짜 시각 10:25:00
+--- [s07c-new-outer-same] U1-되돌림
+1899b49f633f8aefdc66b15c42debdaba8b3852c
+sha256:426a09a20afc9e16cff8b7a569d4e04f18ed47cefb9242f44e3b9ea9666153a1
+[대역 끝] rc=0 · 가짜 시각 10:25:00
+  상태: HEAD=1899b49 backend=426a09a20afc latest=426a09a20afc ok=[ok-U0 ] 호출=74 금지=0
+sha256:426a09a20afc9e16cff8b7a569d4e04f18ed47cefb9242f44e3b9ea9666153a1
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U0 통과 — 30분 안에 U1
+[대역 끝] rc=0 · 가짜 시각 10:20:00
+--- [s07d-old-inner] U1(OLDJAR=/d/tmp/o13d2/sim/jars/old-inner-diff-dup.jar)
+🔴 jar 비교 거절: D:/tmp/o13d2/sim/runs/d2-s07d-old-inner/home/maint-o13/app-old.jar: 자체 모듈 내부 이름 중복 BOOT-INF/lib/core-engine-0.1.0.jar!com/cryptoautotrader/core/backtest/BacktestConfig$BacktestConfigBuilder.class ×2
+(거절) 중복·형식 이상 1건 — 차이를 내지 않는다
+🔴 멈춤: jar 비교기 v2 거절(종료 3) — 중복 항목·형식 이상. jar-diff.txt 를 보고(재기동 전). U1-되돌림
+[대역 끝] rc=1 · 가짜 시각 10:25:00
+  상태: HEAD=1ec9104 backend=426a09a20afc latest=3268933de18b ok=[ok-U0 ] 호출=70 금지=0
+--- [s07d-old-inner] U2
+🔴 멈춤: U1 미통과
+[대역 끝] rc=1 · 가짜 시각 10:25:00
+--- [s07d-old-inner] U1-되돌림
+1899b49f633f8aefdc66b15c42debdaba8b3852c
+sha256:426a09a20afc9e16cff8b7a569d4e04f18ed47cefb9242f44e3b9ea9666153a1
+[대역 끝] rc=0 · 가짜 시각 10:25:00
+  상태: HEAD=1899b49 backend=426a09a20afc latest=426a09a20afc ok=[ok-U0 ] 호출=74 금지=0
+sha256:426a09a20afc9e16cff8b7a569d4e04f18ed47cefb9242f44e3b9ea9666153a1
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U0 통과 — 30분 안에 U1
+[대역 끝] rc=0 · 가짜 시각 10:20:00
+--- [s07e-both-inner] U1(OLDJAR=/d/tmp/o13d2/sim/jars/old-inner-diff-dup.jar BUILD_JAR=/d/tmp/o13d2/sim/jars/new-inner-diff-dup.jar)
+🔴 jar 비교 거절: D:/tmp/o13d2/sim/runs/d2-s07e-both-inner/home/maint-o13/app-old.jar: 자체 모듈 내부 이름 중복 BOOT-INF/lib/core-engine-0.1.0.jar!com/cryptoautotrader/core/backtest/BacktestConfig$BacktestConfigBuilder.class ×2
+🔴 jar 비교 거절: D:/tmp/o13d2/sim/runs/d2-s07e-both-inner/home/maint-o13/app-new.jar: 자체 모듈 내부 이름 중복 BOOT-INF/lib/core-engine-0.1.0.jar!com/cryptoautotrader/core/backtest/BacktestConfig$BacktestConfigBuilder.class ×2
+(거절) 중복·형식 이상 2건 — 차이를 내지 않는다
+🔴 멈춤: jar 비교기 v2 거절(종료 3) — 중복 항목·형식 이상. jar-diff.txt 를 보고(재기동 전). U1-되돌림
+[대역 끝] rc=1 · 가짜 시각 10:25:00
+  상태: HEAD=1ec9104 backend=426a09a20afc latest=3268933de18b ok=[ok-U0 ] 호출=70 금지=0
+--- [s07e-both-inner] U2
+🔴 멈춤: U1 미통과
+[대역 끝] rc=1 · 가짜 시각 10:25:00
+--- [s07e-both-inner] U1-되돌림
+1899b49f633f8aefdc66b15c42debdaba8b3852c
+sha256:426a09a20afc9e16cff8b7a569d4e04f18ed47cefb9242f44e3b9ea9666153a1
+[대역 끝] rc=0 · 가짜 시각 10:25:00
+  상태: HEAD=1899b49 backend=426a09a20afc latest=426a09a20afc ok=[ok-U0 ] 호출=74 금지=0
+sha256:426a09a20afc9e16cff8b7a569d4e04f18ed47cefb9242f44e3b9ea9666153a1
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U0 통과 — 30분 안에 U1
+[대역 끝] rc=0 · 가짜 시각 10:20:00
+--- [s08] 같은 U0 출력 이름으로 다시
+🔴 대역 거절(종료 2): 이미 있는 출력 /d/tmp/o13d2/sim/runs/d2-s08-rerun/out/out-U0.txt — 블록을 돌리지 않았다
+  sim 종료 2
+sha256:3268933de18b8d66f3cb57909e782a67d051cbcb8f0448d374d5c155fa337238
+✅ U1 통과 — ⏸ 운영자 확인 1회 뒤 U2
+[대역 끝] rc=0 · 가짜 시각 10:25:00
+--- [s08] U1 통과 뒤 U0 다시(꼬리 again)
+🔴 멈춤: U1 을 이미 시작했다 — U0 를 다시 하지 않는다. ls -l /d/tmp/o13d2/sim/runs/d2-s08-rerun/home/maint-o13 를 보고
+[대역 끝] rc=1 · 가짜 시각 10:25:00
+--- [s08] U1 다시(꼬리 again)
+🔴 멈춤: U1 을 이미 통과했다 — 바로 U2
+[대역 끝] rc=1 · 가짜 시각 10:25:00
+  상태: HEAD=1ec9104 backend=426a09a20afc latest=3268933de18b ok=[ok-U0 ok-U1 ] 호출=71 금지=0
+--- [s09-u3-normal] U3(기동 로그 normal)
+✅ U3(deploy) 통과 — 기동 30분 뒤 U4
+[대역 끝] rc=0 · 가짜 시각 10:31:00
+  상태: HEAD=1ec9104 backend=3268933de18b latest=3268933de18b ok=[ok-U0 ok-U1 ok-U2 ok-U3-deploy ] 호출=124 금지=0
+--- [s09-u3-errto] U3(기동 로그 errto)
+  · 🔴 연결 획득 시간 초과 10:33:00.000 scheduling-N
+🔴 멈춤: 🔴 P0 — 연결 획득 시간 초과 줄이 있다. 즉시 보고(되돌림 여부는 총괄 판단, U 되돌림 블록 준비됨)
+[대역 끝] rc=1 · 가짜 시각 10:31:00
+  상태: HEAD=1ec9104 backend=3268933de18b latest=3268933de18b ok=[ok-U0 ok-U1 ok-U2 ] 호출=104 금지=0
+--- [s09-u3-warnto] U3(기동 로그 warnto)
+  · 🔴 연결 획득 시간 초과 10:33:00.000 scheduling-N
+🔴 멈춤: 🔴 P0 — 연결 획득 시간 초과 줄이 있다. 즉시 보고(되돌림 여부는 총괄 판단, U 되돌림 블록 준비됨)
+[대역 끝] rc=1 · 가짜 시각 10:31:00
+  상태: HEAD=1ec9104 backend=3268933de18b latest=3268933de18b ok=[ok-U0 ok-U1 ok-U2 ] 호출=104 금지=0
+--- [s09-u3-causedto] U3(기동 로그 causedto)
+  · 🔴 연결 획득 시간 초과 10:23:05.000 news-N
+🔴 멈춤: 🔴 P0 — 연결 획득 시간 초과 줄이 있다. 즉시 보고(되돌림 여부는 총괄 판단, U 되돌림 블록 준비됨)
+[대역 끝] rc=1 · 가짜 시각 10:31:00
+  상태: HEAD=1ec9104 backend=3268933de18b latest=3268933de18b ok=[ok-U0 ok-U1 ok-U2 ] 호출=104 금지=0
+--- [s09-u3-lease] U3(기동 로그 lease)
+⚪ 장기 대여 경고가 있다 — 개선 미확인. 되돌리지 않는다. 위 줄을 보고
+✅ U3(deploy) 통과 — 기동 30분 뒤 U4
+[대역 끝] rc=0 · 가짜 시각 10:31:00
+  상태: HEAD=1ec9104 backend=3268933de18b latest=3268933de18b ok=[ok-U0 ok-U1 ok-U2 ok-U3-deploy ] 호출=124 금지=0
+--- [s09-u3-othererr] U3(기동 로그 othererr)
+🔴 멈춤: 세 마켓 캔들 404·뉴스 출처 ERROR 밖의 ERROR — errors-deploy.txt 를 보고
+[대역 끝] rc=1 · 가짜 시각 10:31:00
+  상태: HEAD=1ec9104 backend=3268933de18b latest=3268933de18b ok=[ok-U0 ok-U1 ok-U2 ] 호출=105 금지=0
+--- [s09-u4-normal] U4(30분 로그 normal)
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U4 통과 — U0~U4 출력을 보고(F 변수·F1·N06 핀은 총괄 판단 뒤 개발 에이전트가 갱신)
+[대역 끝] rc=0 · 가짜 시각 10:56:00
+  상태: HEAD=1ec9104 backend=3268933de18b latest=3268933de18b ok=[ok-U0 ok-U1 ok-U2 ok-U3-deploy ok-U4 ] 호출=160 금지=0
+--- [s09-u4-errto] U4(30분 로그 errto)
+  · 🔴 연결 획득 시간 초과 10:33:00.000 scheduling-N
+🔴 멈춤: 🔴 P0 — 연결 획득 시간 초과 줄이 있다. 즉시 보고(되돌림 여부는 총괄 판단, U 되돌림 블록 준비됨)
+[대역 끝] rc=1 · 가짜 시각 10:56:00
+  상태: HEAD=1ec9104 backend=3268933de18b latest=3268933de18b ok=[ok-U0 ok-U1 ok-U2 ok-U3-deploy ] 호출=128 금지=0
+--- [s09-u4-warnto] U4(30분 로그 warnto)
+  · 🔴 연결 획득 시간 초과 10:33:00.000 scheduling-N
+🔴 멈춤: 🔴 P0 — 연결 획득 시간 초과 줄이 있다. 즉시 보고(되돌림 여부는 총괄 판단, U 되돌림 블록 준비됨)
+[대역 끝] rc=1 · 가짜 시각 10:56:00
+  상태: HEAD=1ec9104 backend=3268933de18b latest=3268933de18b ok=[ok-U0 ok-U1 ok-U2 ok-U3-deploy ] 호출=128 금지=0
+--- [s09-u4-causedto] U4(30분 로그 causedto)
+  · 🔴 연결 획득 시간 초과 10:23:05.000 news-N
+🔴 멈춤: 🔴 P0 — 연결 획득 시간 초과 줄이 있다. 즉시 보고(되돌림 여부는 총괄 판단, U 되돌림 블록 준비됨)
+[대역 끝] rc=1 · 가짜 시각 10:56:00
+  상태: HEAD=1ec9104 backend=3268933de18b latest=3268933de18b ok=[ok-U0 ok-U1 ok-U2 ok-U3-deploy ] 호출=128 금지=0
+--- [s09-u4-lease] U4(30분 로그 lease)
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U4 통과 — U0~U4 출력을 보고(F 변수·F1·N06 핀은 총괄 판단 뒤 개발 에이전트가 갱신)
+[대역 끝] rc=0 · 가짜 시각 10:56:00
+  상태: HEAD=1ec9104 backend=3268933de18b latest=3268933de18b ok=[ok-U0 ok-U1 ok-U2 ok-U3-deploy ok-U4 ] 호출=160 금지=0
+--- [s09-u4-othererr] U4(30분 로그 othererr)
+🔴 멈춤: 세 마켓 캔들 404·뉴스 출처 ERROR 밖의 ERROR — errors-after30.txt 를 보고
+[대역 끝] rc=1 · 가짜 시각 10:56:00
+  상태: HEAD=1ec9104 backend=3268933de18b latest=3268933de18b ok=[ok-U0 ok-U1 ok-U2 ok-U3-deploy ] 호출=128 금지=0
+--- [s10-normal] U3(배포 뒤 세션 변화)
+🔴 멈춤: 되돌림 필요: 검증 세션 상태 바뀜
+[대역 끝] rc=1 · 가짜 시각 10:31:00
+  상태: HEAD=1ec9104 backend=3268933de18b latest=3268933de18b ok=[ok-U0 ok-U1 ok-U2 ] 호출=110 금지=0
+--- [s10-normal] U되돌림
+1899b49f633f8aefdc66b15c42debdaba8b3852c
+✅ 1899b49 (#26 이미지) 로 복귀 — 5분 뒤 U3 를 다시 실행(t-rollback.utc 기준으로 자동 전환, BTC·뉴스·HTTP 줄·HOLD 질의·N15/N16·N17·N19·N20 줄은 기록만)
+[대역 끝] rc=0 · 가짜 시각 10:31:15
+  상태: HEAD=1899b49 backend=426a09a20afc latest=426a09a20afc ok=[ok-U0 ok-U1 ok-U2 ] 호출=130 금지=0
+--- [s10-normal] U3(rollback, 복귀 로그 normal)
+✅ U3(rollback) 통과 — 1899b49 복귀 확인. U4 는 하지 않고 출력을 보고
+[대역 끝] rc=0 · 가짜 시각 10:37:00
+--- [s10-normal] U4(되돌림 뒤 — 하지 않는 단계)
+🔴 멈춤: U3 미통과
+[대역 끝] rc=1 · 가짜 시각 10:37:00
+  상태: HEAD=1899b49 backend=426a09a20afc latest=426a09a20afc ok=[ok-U0 ok-U1 ok-U2 ok-U3-rollback ] 호출=156 금지=0
+--- [s10-errto] U3(배포 뒤 세션 변화)
+🔴 멈춤: 되돌림 필요: 검증 세션 상태 바뀜
+[대역 끝] rc=1 · 가짜 시각 10:31:00
+  상태: HEAD=1ec9104 backend=3268933de18b latest=3268933de18b ok=[ok-U0 ok-U1 ok-U2 ] 호출=110 금지=0
+--- [s10-errto] U되돌림
+1899b49f633f8aefdc66b15c42debdaba8b3852c
+✅ 1899b49 (#26 이미지) 로 복귀 — 5분 뒤 U3 를 다시 실행(t-rollback.utc 기준으로 자동 전환, BTC·뉴스·HTTP 줄·HOLD 질의·N15/N16·N17·N19·N20 줄은 기록만)
+[대역 끝] rc=0 · 가짜 시각 10:31:15
+  상태: HEAD=1899b49 backend=426a09a20afc latest=426a09a20afc ok=[ok-U0 ok-U1 ok-U2 ] 호출=130 금지=0
+--- [s10-errto] U3(rollback, 복귀 로그 errto)
+  · 🔴 연결 획득 시간 초과 10:33:00.000 scheduling-N
+🔴 멈춤: 🔴 P0 — 연결 획득 시간 초과 줄이 있다. 즉시 보고(되돌림 여부는 총괄 판단, U 되돌림 블록 준비됨)
+[대역 끝] rc=1 · 가짜 시각 10:37:00
+--- [s10-errto] U4(되돌림 뒤 — 하지 않는 단계)
+🔴 멈춤: U3 미통과
+[대역 끝] rc=1 · 가짜 시각 10:37:00
+  상태: HEAD=1899b49 backend=426a09a20afc latest=426a09a20afc ok=[ok-U0 ok-U1 ok-U2 ] 호출=136 금지=0
+=== 금지 명령 기록 합계(접두어 d2): 0줄 · 대역 35개

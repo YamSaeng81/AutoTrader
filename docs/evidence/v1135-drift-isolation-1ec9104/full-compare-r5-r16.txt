@@ -1,0 +1,16 @@
+# r5(b9f16a6 깨끗한 사본, 기존 실패 원문 유지) 대 r16(1ec9104 깨끗한 사본) — XML testsuite 합계(tests/skipped/failures/errors)
+r5  [1136, 19, 1, 0] 통과 1116
+r16 [1141, 23, 0, 0] 통과 1118
+# 이름(클래스::표시 이름) 기준 결과가 다른 것 — 매개변수 시험은 같은 이름으로 합쳐짐
+None -> SKIP | N15 실제 PostgreSQL 잠금 대기 중 E — LIVE 계좌 잠금·DYNAMIC 세션 행 잠금, 차감·의도·슬롯·거래소 0 · 대조군 정상 진입 :: ① LIVE 계좌 잠금 행(account_capital_lock) 실제 대기 중 E — '잠금 뒤' ENTRY_EXPIRED, 가용 20000·슬롯·의도·거래소 0
+None -> SKIP | N15 실제 PostgreSQL 잠금 대기 중 E — LIVE 계좌 잠금·DYNAMIC 세션 행 잠금, 차감·의도·슬롯·거래소 0 · 대조군 정상 진입 :: ② DYNAMIC 세션 행(dynamic_session) refresh 실제 대기 중 E — '차감 직전' ENTRY_EXPIRED, 가용 10000·슬롯·의도·거래소 0
+None -> SKIP | N15 실제 PostgreSQL 잠금 대기 중 E — LIVE 계좌 잠금·DYNAMIC 세션 행 잠금, 차감·의도·슬롯·거래소 0 · 대조군 정상 진입 :: ③ 대조군 LIVE 같은 계좌 잠금 실제 대기, 시계 E−1ms 유지 → 정상 진입(차감 20000→15000·슬롯·매수 의도 1)
+None -> SKIP | N15 실제 PostgreSQL 잠금 대기 중 E — LIVE 계좌 잠금·DYNAMIC 세션 행 잠금, 차감·의도·슬롯·거래소 0 · 대조군 정상 진입 :: ④ 대조군 DYNAMIC 같은 세션 행 실제 대기, 시계 E−1ms 유지 → 정상 진입(차감 10000→2000·슬롯·매수 의도 1)
+None -> PASS | com.cryptoautotrader.api.service.ExecutionDriftTrackerTest :: §14 record() — 다른 세션의 slippage 0 행이 먼저 있어도 방금 기록한 음수 행을 읽는다(고정 오염 탐침)
+FAIL -> PASS | com.cryptoautotrader.api.service.ExecutionDriftTrackerTest :: §14 record() — 음수 slippage (체결가 &lt; 신호가)
+# r16 건너뜀 클래스별
+1 PullbackMtfBacktestRunner
+4 HoldBaselineLoopPgTest
+6 HoldBaselineSqlEquivalencePgTest
+4 N15 실제 PostgreSQL 잠금 대기 중 E — LIVE 계좌 잠금·DYNAMIC 세션 행 잠금, 차감·의도·슬롯·거래소 0 · 대조군 정상 진입
+8 SettlementRoundingPgTest

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.OrderExecutionEngineSellPriceTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-08T14:51:06" hostname="DESKTOP-SF1KUQ5" time="0.215">
+  <properties/>
+  <testcase name="매도_체결가_정산되면_평균가_확정하고_FILLED_전이()" classname="com.cryptoautotrader.api.service.OrderExecutionEngineSellPriceTest" time="0.213"/>
+  <testcase name="매도_체결가_미정산이면_FILLED_보류하고_SUBMITTED_유지()" classname="com.cryptoautotrader.api.service.OrderExecutionEngineSellPriceTest" time="0.001"/>
+  <testcase name="최상위_funds_없어도_trades_합산으로_평균가_확정하고_FILLED_전이()" classname="com.cryptoautotrader.api.service.OrderExecutionEngineSellPriceTest" time="0.0"/>
+  <system-out><![CDATA[23:51:06.075 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+23:51:06.075 [telegram-1] ERROR c.c.a.s.TelegramNotificationService - [Telegram] ? SESSION_STOP 알림 3회 시도 ? 최종 실패: 전달되지 않음(마지막 REJECTED HTTP 404)(이력 success=false): ? *실전매매 세션 종료*
+
+? 세션 ID: `259`
+? 코인: `KRW-DOGE`
+? 총 자산: `10,000 KRW`
+? 수익률: `+0.00%`
+? 시각: `2026-11-08 23:50:57`
+23:51:06.272 [Test worker] WARN  c.c.api.service.OrderExecutionEngine - 매도 체결(done)이나 체결가 미정산 ? FILLED 보류, 폴러 재조회 (orderId=1, uuid=uuid-1)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

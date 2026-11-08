@@ -1,0 +1,512 @@
+Initialized native services in: C:\Users\SangJoon_Lee\.gradle\native
+Initialized jansi services in: C:\Users\SangJoon_Lee\.gradle\native
+Received JVM installation metadata from 'C:\Program Files\Java\jdk-17': {JAVA_HOME=C:\Program Files\Java\jdk-17, JAVA_VERSION=17.0.12, JAVA_VENDOR=Oracle Corporation, RUNTIME_NAME=Java(TM) SE Runtime Environment, RUNTIME_VERSION=17.0.12+8-LTS-286, VM_NAME=Java HotSpot(TM) 64-Bit Server VM, VM_VERSION=17.0.12+8-LTS-286, VM_VENDOR=Oracle Corporation, OS_ARCH=amd64}
+The client will now receive all logging from the daemon (pid: 33316). The daemon log file: C:\Users\SangJoon_Lee\.gradle\daemon\8.7\daemon-33316.out.log
+Starting 3rd build in daemon [uptime: 20 mins 56.251 secs, performance: 100%, GC rate: 0.00/s, heap usage: 0% of 512 MiB, non-heap usage: 19% of 384 MiB]
+Closing daemon's stdin at end of input.
+Using 16 worker leases.
+The daemon will no longer process any standard input.
+Now considering [D:\tmp\o1o3-1899b49] as hierarchies to watch
+Watching the file system is configured to be enabled if available
+File system watching is active
+Starting Build
+Settings evaluated using settings file 'D:\tmp\o1o3-1899b49\settings.gradle'.
+Projects loaded. Root project using build file 'D:\tmp\o1o3-1899b49\build.gradle'.
+Included projects: [root project 'crypto-auto-trader', project ':core-engine', project ':exchange-adapter', project ':strategy-lib', project ':web-api']
+
+> Configure project :
+Evaluating root project 'crypto-auto-trader' using build file 'D:\tmp\o1o3-1899b49\build.gradle'.
+Transforming spring-boot-gradle-plugin-3.2.5.jar (org.springframework.boot:spring-boot-gradle-plugin:3.2.5) with ExternalDependencyInstrumentingArtifactTransform
+Transforming dependency-management-plugin-1.1.4.jar (io.spring.gradle:dependency-management-plugin:1.1.4) with ExternalDependencyInstrumentingArtifactTransform
+Transforming spring-boot-buildpack-platform-3.2.5.jar (org.springframework.boot:spring-boot-buildpack-platform:3.2.5) with ExternalDependencyInstrumentingArtifactTransform
+Transforming spring-boot-loader-tools-3.2.5.jar (org.springframework.boot:spring-boot-loader-tools:3.2.5) with ExternalDependencyInstrumentingArtifactTransform
+Transforming commons-compress-1.21.jar (org.apache.commons:commons-compress:1.21) with ExternalDependencyInstrumentingArtifactTransform
+Transforming spring-core-6.0.10.jar (org.springframework:spring-core:6.0.10) with ExternalDependencyInstrumentingArtifactTransform
+Transforming jackson-annotations-2.14.2.jar (com.fasterxml.jackson.core:jackson-annotations:2.14.2) with ExternalDependencyInstrumentingArtifactTransform
+Transforming jackson-core-2.14.2.jar (com.fasterxml.jackson.core:jackson-core:2.14.2) with ExternalDependencyInstrumentingArtifactTransform
+Transforming jackson-module-parameter-names-2.14.2.jar (com.fasterxml.jackson.module:jackson-module-parameter-names:2.14.2) with ExternalDependencyInstrumentingArtifactTransform
+Transforming jackson-databind-2.14.2.jar (com.fasterxml.jackson.core:jackson-databind:2.14.2) with ExternalDependencyInstrumentingArtifactTransform
+Transforming jna-platform-5.13.0.jar (net.java.dev.jna:jna-platform:5.13.0) with ExternalDependencyInstrumentingArtifactTransform
+Transforming httpclient5-5.2.3.jar (org.apache.httpcomponents.client5:httpclient5:5.2.3) with ExternalDependencyInstrumentingArtifactTransform
+Transforming tomlj-1.0.0.jar (org.tomlj:tomlj:1.0.0) with ExternalDependencyInstrumentingArtifactTransform
+Transforming spring-jcl-6.0.10.jar (org.springframework:spring-jcl:6.0.10) with ExternalDependencyInstrumentingArtifactTransform
+Transforming jna-5.13.0.jar (net.java.dev.jna:jna:5.13.0) with ExternalDependencyInstrumentingArtifactTransform
+Transforming httpcore5-h2-5.2.4.jar (org.apache.httpcomponents.core5:httpcore5-h2:5.2.4) with ExternalDependencyInstrumentingArtifactTransform
+Transforming httpcore5-5.2.4.jar (org.apache.httpcomponents.core5:httpcore5:5.2.4) with ExternalDependencyInstrumentingArtifactTransform
+Transforming slf4j-api-1.7.36.jar (org.slf4j:slf4j-api:1.7.36) with ExternalDependencyInstrumentingArtifactTransform
+Transforming antlr4-runtime-4.7.2.jar (org.antlr:antlr4-runtime:4.7.2) with ExternalDependencyInstrumentingArtifactTransform
+Transforming jsr305-3.0.2.jar (com.google.code.findbugs:jsr305:3.0.2) with ExternalDependencyInstrumentingArtifactTransform
+
+> Configure project :core-engine
+Evaluating project ':core-engine' using build file 'D:\tmp\o1o3-1899b49\core-engine\build.gradle'.
+
+> Configure project :exchange-adapter
+Evaluating project ':exchange-adapter' using build file 'D:\tmp\o1o3-1899b49\exchange-adapter\build.gradle'.
+Applying dependency management to configuration 'annotationProcessor' in project 'exchange-adapter'
+Applying dependency management to configuration 'apiElements' in project 'exchange-adapter'
+Applying dependency management to configuration 'archives' in project 'exchange-adapter'
+Applying dependency management to configuration 'compileClasspath' in project 'exchange-adapter'
+Applying dependency management to configuration 'compileOnly' in project 'exchange-adapter'
+Applying dependency management to configuration 'default' in project 'exchange-adapter'
+Applying dependency management to configuration 'implementation' in project 'exchange-adapter'
+Applying dependency management to configuration 'mainSourceElements' in project 'exchange-adapter'
+Applying dependency management to configuration 'runtimeClasspath' in project 'exchange-adapter'
+Applying dependency management to configuration 'runtimeElements' in project 'exchange-adapter'
+Applying dependency management to configuration 'runtimeOnly' in project 'exchange-adapter'
+Applying dependency management to configuration 'testAnnotationProcessor' in project 'exchange-adapter'
+Applying dependency management to configuration 'testCompileClasspath' in project 'exchange-adapter'
+Applying dependency management to configuration 'testCompileOnly' in project 'exchange-adapter'
+Applying dependency management to configuration 'testImplementation' in project 'exchange-adapter'
+Applying dependency management to configuration 'testResultsElementsForTest' in project 'exchange-adapter'
+Applying dependency management to configuration 'testRuntimeClasspath' in project 'exchange-adapter'
+Applying dependency management to configuration 'testRuntimeOnly' in project 'exchange-adapter'
+
+> Configure project :strategy-lib
+Evaluating project ':strategy-lib' using build file 'D:\tmp\o1o3-1899b49\strategy-lib\build.gradle'.
+
+> Configure project :web-api
+Evaluating project ':web-api' using build file 'D:\tmp\o1o3-1899b49\web-api\build.gradle'.
+Applying dependency management to configuration 'annotationProcessor' in project 'web-api'
+Applying dependency management to configuration 'apiElements' in project 'web-api'
+Applying dependency management to configuration 'archives' in project 'web-api'
+Applying dependency management to configuration 'bootArchives' in project 'web-api'
+Applying dependency management to configuration 'compileClasspath' in project 'web-api'
+Applying dependency management to configuration 'compileOnly' in project 'web-api'
+Applying dependency management to configuration 'default' in project 'web-api'
+Applying dependency management to configuration 'developmentOnly' in project 'web-api'
+Applying dependency management to configuration 'implementation' in project 'web-api'
+Applying dependency management to configuration 'mainSourceElements' in project 'web-api'
+Applying dependency management to configuration 'productionRuntimeClasspath' in project 'web-api'
+Applying dependency management to configuration 'runtimeClasspath' in project 'web-api'
+Applying dependency management to configuration 'runtimeElements' in project 'web-api'
+Applying dependency management to configuration 'runtimeOnly' in project 'web-api'
+Applying dependency management to configuration 'testAndDevelopmentOnly' in project 'web-api'
+Applying dependency management to configuration 'testAnnotationProcessor' in project 'web-api'
+Applying dependency management to configuration 'testCompileClasspath' in project 'web-api'
+Applying dependency management to configuration 'testCompileOnly' in project 'web-api'
+Applying dependency management to configuration 'testImplementation' in project 'web-api'
+Applying dependency management to configuration 'testResultsElementsForTest' in project 'web-api'
+Applying dependency management to configuration 'testRuntimeClasspath' in project 'web-api'
+Applying dependency management to configuration 'testRuntimeOnly' in project 'web-api'
+Applying dependency management to configuration 'restartHarnessImplementation' in project 'web-api'
+Applying dependency management to configuration 'restartHarnessCompileOnly' in project 'web-api'
+Applying dependency management to configuration 'restartHarnessCompileClasspath' in project 'web-api'
+Applying dependency management to configuration 'restartHarnessAnnotationProcessor' in project 'web-api'
+Applying dependency management to configuration 'restartHarnessRuntimeOnly' in project 'web-api'
+Applying dependency management to configuration 'restartHarnessRuntimeClasspath' in project 'web-api'
+All projects evaluated.
+Task path ':web-api:cleanTest' matched project ':web-api'
+Task name matched 'cleanTest'
+Task path ':web-api:test' matched project ':web-api'
+Task name matched 'test'
+Selected primary task 'cleanTest' from project :web-api
+Selected primary task 'test' from project :web-api
+Tasks to be executed: [task ':web-api:cleanTest', task ':strategy-lib:compileJava', task ':strategy-lib:processResources', task ':strategy-lib:classes', task ':strategy-lib:jar', task ':core-engine:compileJava', task ':core-engine:processResources', task ':core-engine:classes', task ':core-engine:jar', task ':exchange-adapter:compileJava', task ':exchange-adapter:processResources', task ':exchange-adapter:classes', task ':exchange-adapter:jar', task ':web-api:compileJava', task ':web-api:processResources', task ':web-api:classes', task ':web-api:compileTestJava', task ':web-api:processTestResources', task ':web-api:testClasses', task ':web-api:test']
+Tasks that were excluded: []
+Resolve mutations for :web-api:cleanTest (Thread[Execution worker,5,main]) started.
+:web-api:cleanTest (Thread[Execution worker,5,main]) started.
+destroyer locations for task group 0 (Thread[Execution worker Thread 2,5,main]) started.
+
+> Task :web-api:cleanTest
+Caching disabled for task ':web-api:cleanTest' because:
+  Build cache is disabled
+Task ':web-api:cleanTest' is not up-to-date because:
+  Task has not declared any outputs despite executing actions.
+Resolve mutations for :strategy-lib:compileJava (Thread[Execution worker,5,main]) started.
+:strategy-lib:compileJava (Thread[Execution worker,5,main]) started.
+
+> Task :strategy-lib:compileJava UP-TO-DATE
+Caching disabled for task ':strategy-lib:compileJava' because:
+  Build cache is disabled
+Skipping task ':strategy-lib:compileJava' as it is up-to-date.
+Resolve mutations for :strategy-lib:processResources (Thread[Execution worker,5,main]) started.
+:strategy-lib:processResources (Thread[Execution worker,5,main]) started.
+
+> Task :strategy-lib:processResources NO-SOURCE
+Skipping task ':strategy-lib:processResources' as it has no source files and no previous output files.
+Resolve mutations for :strategy-lib:classes (Thread[Execution worker,5,main]) started.
+:strategy-lib:classes (Thread[Execution worker,5,main]) started.
+
+> Task :strategy-lib:classes UP-TO-DATE
+Skipping task ':strategy-lib:classes' as it has no actions.
+Resolve mutations for :strategy-lib:jar (Thread[Execution worker,5,main]) started.
+:strategy-lib:jar (Thread[Execution worker,5,main]) started.
+
+> Task :strategy-lib:jar UP-TO-DATE
+Caching disabled for task ':strategy-lib:jar' because:
+  Build cache is disabled
+  Not worth caching
+Skipping task ':strategy-lib:jar' as it is up-to-date.
+work action resolve strategy-lib-0.1.0.jar (project :strategy-lib) (Thread[Execution worker,5,main]) started.
+Resolve mutations for :core-engine:compileJava (Thread[Execution worker Thread 2,5,main]) started.
+:core-engine:compileJava (Thread[Execution worker Thread 2,5,main]) started.
+
+> Task :core-engine:compileJava UP-TO-DATE
+Caching disabled for task ':core-engine:compileJava' because:
+  Build cache is disabled
+Skipping task ':core-engine:compileJava' as it is up-to-date.
+work action resolve main (project :core-engine) (Thread[Execution worker Thread 2,5,main]) started.
+Resolve mutations for :core-engine:processResources (Thread[Execution worker Thread 2,5,main]) started.
+:core-engine:processResources (Thread[included builds,5,main]) started.
+
+> Task :core-engine:processResources NO-SOURCE
+Skipping task ':core-engine:processResources' as it has no source files and no previous output files.
+Resolve mutations for :core-engine:classes (Thread[included builds,5,main]) started.
+:core-engine:classes (Thread[included builds,5,main]) started.
+
+> Task :core-engine:classes UP-TO-DATE
+Skipping task ':core-engine:classes' as it has no actions.
+Resolve mutations for :core-engine:jar (Thread[included builds,5,main]) started.
+:core-engine:jar (Thread[included builds,5,main]) started.
+
+> Task :core-engine:jar UP-TO-DATE
+Caching disabled for task ':core-engine:jar' because:
+  Build cache is disabled
+  Not worth caching
+Skipping task ':core-engine:jar' as it is up-to-date.
+work action resolve core-engine-0.1.0.jar (project :core-engine) (Thread[included builds,5,main]) started.
+Resolve mutations for :exchange-adapter:compileJava (Thread[included builds,5,main]) started.
+:exchange-adapter:compileJava (Thread[included builds,5,main]) started.
+
+> Task :exchange-adapter:compileJava UP-TO-DATE
+Resolving global dependency management for project 'exchange-adapter'
+Excluding []
+Excluding []
+Caching disabled for task ':exchange-adapter:compileJava' because:
+  Build cache is disabled
+Skipping task ':exchange-adapter:compileJava' as it is up-to-date.
+Resolve mutations for :exchange-adapter:processResources (Thread[included builds,5,main]) started.
+:exchange-adapter:processResources (Thread[included builds,5,main]) started.
+
+> Task :exchange-adapter:processResources NO-SOURCE
+Skipping task ':exchange-adapter:processResources' as it has no source files and no previous output files.
+Resolve mutations for :exchange-adapter:classes (Thread[included builds,5,main]) started.
+:exchange-adapter:classes (Thread[included builds,5,main]) started.
+
+> Task :exchange-adapter:classes UP-TO-DATE
+Skipping task ':exchange-adapter:classes' as it has no actions.
+Resolve mutations for :exchange-adapter:jar (Thread[included builds,5,main]) started.
+:exchange-adapter:jar (Thread[included builds,5,main]) started.
+
+> Task :exchange-adapter:jar UP-TO-DATE
+Caching disabled for task ':exchange-adapter:jar' because:
+  Build cache is disabled
+  Not worth caching
+Skipping task ':exchange-adapter:jar' as it is up-to-date.
+work action resolve exchange-adapter-0.1.0.jar (project :exchange-adapter) (Thread[included builds,5,main]) started.
+Resolve mutations for :web-api:compileJava (Thread[Execution worker Thread 15,5,main]) started.
+:web-api:compileJava (Thread[Execution worker Thread 15,5,main]) started.
+
+> Task :web-api:compileJava UP-TO-DATE
+Resolving global dependency management for project 'web-api'
+Excluding []
+Excluding []
+Custom actions are attached to task ':web-api:compileJava'.
+Caching disabled for task ':web-api:compileJava' because:
+  Build cache is disabled
+Skipping task ':web-api:compileJava' as it is up-to-date.
+Resolve mutations for :web-api:processResources (Thread[Execution worker,5,main]) started.
+:web-api:processResources (Thread[Execution worker,5,main]) started.
+
+> Task :web-api:processResources UP-TO-DATE
+Caching disabled for task ':web-api:processResources' because:
+  Build cache is disabled
+  Not worth caching
+Skipping task ':web-api:processResources' as it is up-to-date.
+Resolve mutations for :web-api:classes (Thread[Execution worker Thread 15,5,main]) started.
+:web-api:classes (Thread[Execution worker Thread 15,5,main]) started.
+
+> Task :web-api:classes UP-TO-DATE
+Skipping task ':web-api:classes' as it has no actions.
+Resolve mutations for :web-api:compileTestJava (Thread[Execution worker Thread 15,5,main]) started.
+:web-api:compileTestJava (Thread[Execution worker Thread 15,5,main]) started.
+
+> Task :web-api:compileTestJava
+Excluding []
+Excluding []
+Custom actions are attached to task ':web-api:compileTestJava'.
+Caching disabled for task ':web-api:compileTestJava' because:
+  Build cache is disabled
+Task ':web-api:compileTestJava' is not up-to-date because:
+  Input property 'stableSources' file D:\tmp\o1o3-1899b49\web-api\src\test\java\com\cryptoautotrader\api\service\ExecutionDriftTrackerTest.java has changed.
+Created classpath snapshot for incremental compilation in 0.021 secs.
+Compiling with toolchain 'C:\Program Files\Java\jdk-17'.
+Compiling with JDK Java compiler API.
+Incremental compilation of 1 classes completed in 0.452 secs.
+Class dependency analysis for incremental compilation took 0.004 secs.
+Resolve mutations for :web-api:processTestResources (Thread[Execution worker Thread 15,5,main]) started.
+:web-api:processTestResources (Thread[Execution worker Thread 15,5,main]) started.
+
+> Task :web-api:processTestResources UP-TO-DATE
+Caching disabled for task ':web-api:processTestResources' because:
+  Build cache is disabled
+  Not worth caching
+Skipping task ':web-api:processTestResources' as it is up-to-date.
+Resolve mutations for :web-api:testClasses (Thread[Execution worker Thread 15,5,main]) started.
+:web-api:testClasses (Thread[Execution worker Thread 15,5,main]) started.
+
+> Task :web-api:testClasses
+Skipping task ':web-api:testClasses' as it has no actions.
+Resolve mutations for :web-api:test (Thread[Execution worker Thread 15,5,main]) started.
+:web-api:test (Thread[Execution worker Thread 15,5,main]) started.
+Gradle Test Executor 3 started executing tests.
+
+> Task :web-api:test
+Excluding []
+Caching disabled for task ':web-api:test' because:
+  Build cache is disabled
+Task ':web-api:test' is not up-to-date because:
+  Task has failed previously.
+Starting process 'Gradle Test Executor 3'. Working directory: D:\tmp\o1o3-1899b49\web-api Command: C:\Program Files\Java\jdk-17\bin\java.exe -Dorg.gradle.internal.worker.tmpdir=D:\tmp\o1o3-1899b49\web-api\build\tmp\test\work -Dorg.gradle.native=false -XX:+ExitOnOutOfMemoryError @C:\Users\SangJoon_Lee\.gradle\.tmp\gradle-worker-classpath16028563679600327369txt -Xmx1g -Dfile.encoding=x-windows-949 -Duser.country=KR -Duser.language=ko -Duser.variant -ea worker.org.gradle.process.internal.worker.GradleWorkerMain 'Gradle Test Executor 3'
+Successfully started process 'Gradle Test Executor 3'
+
+ExecutionDriftTrackerTest STANDARD_OUT
+    23:54:27.126 [Test worker] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.cryptoautotrader.api.service.ExecutionDriftTrackerTest]: ExecutionDriftTrackerTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+    23:54:27.334 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.ExecutionDriftTrackerTest
+
+      .   ____          _            __ _ _
+     /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+    ( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+     \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+      '  |____| .__|_| |_|_| |_\__, | / / / /
+     =========|_|==============|___/=/_/_/_/
+     :: Spring Boot ::                (v3.2.5)
+
+    23:54:27.782 [background-preinit] INFO  o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.1.Final
+    23:54:28.958 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Multiple Spring Data modules found, entering strict repository configuration mode
+    23:54:28.959 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+    23:54:29.159 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 186 ms. Found 39 JPA repository interfaces.
+    23:54:29.179 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Multiple Spring Data modules found, entering strict repository configuration mode
+    23:54:29.180 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+    23:54:29.196 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.BacktestJobRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+    23:54:29.197 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.BacktestMetricsRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+    23:54:29.197 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.BacktestRunRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+    23:54:29.197 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.BacktestTradeRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+    23:54:29.198 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.CandleDataRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+    23:54:29.199 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DailyHealthSnapshotRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+    23:54:29.200 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DiscordChannelConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+    23:54:29.200 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DiscordSendLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+    23:54:29.201 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DynamicSellSettlementRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+    23:54:29.201 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DynamicSessionRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+    23:54:29.201 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.ExecutionDriftLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+    23:54:29.201 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.KillCriteriaJudgmentRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+    23:54:29.201 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.LiveTradingSessionRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+    23:54:29.201 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.LlmCallLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+    23:54:29.202 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.LlmProviderConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+    23:54:29.203 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.LlmTaskConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+    23:54:29.203 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.MarketDataCacheRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+    23:54:29.204 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NewsItemCacheRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+    23:54:29.205 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NewsSourceConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+    23:54:29.205 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NightlySchedulerConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+    23:54:29.205 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NotionReportConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+    23:54:29.205 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NotionReportLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+    23:54:29.206 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.OrderRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+    23:54:29.206 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.OrderSettlementDiscrepancyRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+    23:54:29.206 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.paper.PaperOrderRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+    23:54:29.207 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.paper.PaperPositionRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+    23:54:29.207 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.paper.VirtualBalanceRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+    23:54:29.207 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.PositionCleanupRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+    23:54:29.208 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.PositionRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+    23:54:29.208 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.RegimeChangeLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+    23:54:29.208 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.RiskConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+    23:54:29.209 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.RulesetSnapshotRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+    23:54:29.209 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.StrategyConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+    23:54:29.209 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.StrategyLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+    23:54:29.210 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.StrategyTimeframeEnabledRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+    23:54:29.210 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.StrategyTypeEnabledRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+    23:54:29.210 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.TelegramNotificationLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+    23:54:29.210 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.TradeLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+    23:54:29.210 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.WeightOptimizerSnapshotRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+    23:54:29.210 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 23 ms. Found 0 Redis repository interfaces.
+    23:54:30.259 [Test worker] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 0 (http)
+    23:54:30.283 [Test worker] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-auto-1"]
+    23:54:30.290 [Test worker] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+    23:54:30.291 [Test worker] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.20]
+    23:54:30.425 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+    23:54:30.427 [Test worker] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 2593 ms
+    23:54:30.810 [Test worker] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+    23:54:30.989 [Test worker] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:testdb user=SA
+    23:54:30.990 [Test worker] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+    23:54:31.240 [Test worker] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+    23:54:31.378 [Test worker] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.4.4.Final
+    23:54:31.469 [Test worker] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
+    23:54:31.745 [Test worker] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+    23:54:31.775 [Test worker] WARN  org.hibernate.orm.deprecation - HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+    23:54:33.045 [Test worker] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+    23:54:33.047 [Test worker] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+    23:54:33.106 [Test worker] WARN  c.c.api.config.SingleInstanceGuard - ? 단일 인스턴스 강제가 꺼져 있다(trading.single-instance.enabled=false) ? 시험 전용 설정이다
+    23:54:33.849 [Test worker] INFO  o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
+    23:54:36.359 [Test worker] WARN  c.c.api.service.DbResetService - DB_RESET_PASSWORD 미설정 ? DB 초기화 기능이 비활성화됩니다(모든 요청 거부).
+
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+
+> Task :web-api:test
+    23:54:38.505 [Test worker] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 1 endpoint(s) beneath base path '/actuator'
+    23:54:38.631 [Test worker] INFO  o.s.s.web.DefaultSecurityFilterChain - Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@1dfb5ebb, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@7586d2fa, org.springframework.security.web.context.SecurityContextHolderFilter@55d87846, org.springframework.security.web.header.HeaderWriterFilter@48518a36, org.springframework.web.filter.CorsFilter@19a7e35a, org.springframework.security.web.authentication.logout.LogoutFilter@6f02bb60, com.cryptoautotrader.api.config.ApiTokenAuthFilter@ff1a5a0, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@6fdbe339, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@7de39569, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@62bd6ac1, org.springframework.security.web.session.SessionManagementFilter@22ff3247, org.springframework.security.web.access.ExceptionTranslationFilter@6cc785e, org.springframework.security.web.access.intercept.AuthorizationFilter@1e50d191]
+    23:54:40.073 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+    23:54:40.743 [Test worker] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-auto-1"]
+    23:54:40.773 [Test worker] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 11577 (http) with context path ''
+    23:54:40.984 [Test worker] ERROR c.c.exchange.upbit.UpbitOrderClient - 계좌 조회 실패: JWT 생성 실패
+    java.lang.RuntimeException: JWT 생성 실패
+    	at com.cryptoautotrader.exchange.upbit.UpbitOrderClient.generateJwtWithoutQuery(UpbitOrderClient.java:500)
+    	at com.cryptoautotrader.exchange.upbit.UpbitOrderClient.getAccounts(UpbitOrderClient.java:354)
+    	at com.cryptoautotrader.api.service.PortfolioSyncService.syncBalance(PortfolioSyncService.java:67)
+    	at com.cryptoautotrader.api.service.PortfolioSyncService.syncOnStartup(PortfolioSyncService.java:45)
+    	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+    	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+    	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+    	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+    	at org.springframework.context.event.ApplicationListenerMethodAdapter.doInvoke(ApplicationListenerMethodAdapter.java:365)
+    	at org.springframework.context.event.ApplicationListenerMethodAdapter.processEvent(ApplicationListenerMethodAdapter.java:237)
+    	at org.springframework.context.event.ApplicationListenerMethodAdapter.onApplicationEvent(ApplicationListenerMethodAdapter.java:168)
+    	at org.springframework.context.event.SimpleApplicationEventMulticaster.doInvokeListener(SimpleApplicationEventMulticaster.java:185)
+    	at org.springframework.context.event.SimpleApplicationEventMulticaster.invokeListener(SimpleApplicationEventMulticaster.java:178)
+    	at org.springframework.context.event.SimpleApplicationEventMulticaster.multicastEvent(SimpleApplicationEventMulticaster.java:156)
+    	at org.springframework.context.support.AbstractApplicationContext.publishEvent(AbstractApplicationContext.java:451)
+    	at org.springframework.context.support.AbstractApplicationContext.publishEvent(AbstractApplicationContext.java:384)
+    	at org.springframework.boot.context.event.EventPublishingRunListener.ready(EventPublishingRunListener.java:109)
+    	at org.springframework.boot.SpringApplicationRunListeners.lambda$ready$6(SpringApplicationRunListeners.java:80)
+    	at java.base/java.lang.Iterable.forEach(Iterable.java:75)
+    	at org.springframework.boot.SpringApplicationRunListeners.doWithListeners(SpringApplicationRunListeners.java:118)
+    	at org.springframework.boot.SpringApplicationRunListeners.doWithListeners(SpringApplicationRunListeners.java:112)
+    	at org.springframework.boot.SpringApplicationRunListeners.ready(SpringApplicationRunListeners.java:80)
+    	at org.springframework.boot.SpringApplication.run(SpringApplication.java:348)
+    	at org.springframework.boot.test.context.SpringBootContextLoader.lambda$loadContext$3(SpringBootContextLoader.java:137)
+    	at org.springframework.util.function.ThrowingSupplier.get(ThrowingSupplier.java:58)
+    	at org.springframework.util.function.ThrowingSupplier.get(ThrowingSupplier.java:46)
+    	at org.springframework.boot.SpringApplication.withHook(SpringApplication.java:1454)
+    	at org.springframework.boot.test.context.SpringBootContextLoader$ContextLoaderHook.run(SpringBootContextLoader.java:553)
+    	at org.springframework.boot.test.context.SpringBootContextLoader.loadContext(SpringBootContextLoader.java:137)
+    	at org.springframework.boot.test.context.SpringBootContextLoader.loadContext(SpringBootContextLoader.java:108)
+    	at org.springframework.test.context.cache.DefaultCacheAwareContextLoaderDelegate.loadContextInternal(DefaultCacheAwareContextLoaderDelegate.java:225)
+    	at org.springframework.test.context.cache.DefaultCacheAwareContextLoaderDelegate.loadContext(DefaultCacheAwareContextLoaderDelegate.java:152)
+    	at org.springframework.test.context.support.DefaultTestContext.getApplicationContext(DefaultTestContext.java:130)
+    	at org.springframework.test.context.support.DependencyInjectionTestExecutionListener.injectDependencies(DependencyInjectionTestExecutionListener.java:142)
+    	at org.springframework.test.context.support.DependencyInjectionTestExecutionListener.prepareTestInstance(DependencyInjectionTestExecutionListener.java:98)
+    	at org.springframework.test.context.TestContextManager.prepareTestInstance(TestContextManager.java:260)
+    	at org.springframework.test.context.junit.jupiter.SpringExtension.postProcessTestInstance(SpringExtension.java:163)
+    	at org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.lambda$invokeTestInstancePostProcessors$10(ClassBasedTestDescriptor.java:378)
+    	at org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.executeAndMaskThrowable(ClassBasedTestDescriptor.java:383)
+    	at org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.lambda$invokeTestInstancePostProcessors$11(ClassBasedTestDescriptor.java:378)
+    	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+    	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+    	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+    	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+    	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+    	at java.base/java.util.stream.StreamSpliterators$WrappingSpliterator.forEachRemaining(StreamSpliterators.java:310)
+    	at java.base/java.util.stream.Streams$ConcatSpliterator.forEachRemaining(Streams.java:735)
+    	at java.base/java.util.stream.Streams$ConcatSpliterator.forEachRemaining(Streams.java:734)
+    	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+    	at org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.invokeTestInstancePostProcessors(ClassBasedTestDescriptor.java:377)
+    	at org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.lambda$instantiateAndPostProcessTestInstance$6(ClassBasedTestDescriptor.java:290)
+    	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+    	at org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.instantiateAndPostProcessTestInstance(ClassBasedTestDescriptor.java:289)
+    	at org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.lambda$testInstancesProvider$4(ClassBasedTestDescriptor.java:279)
+    	at java.base/java.util.Optional.orElseGet(Optional.java:364)
+    	at org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.lambda$testInstancesProvider$5(ClassBasedTestDescriptor.java:278)
+    	at org.junit.jupiter.engine.execution.TestInstancesProvider.getTestInstances(TestInstancesProvider.java:31)
+    	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$prepare$0(TestMethodTestDescriptor.java:106)
+    	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+    	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.prepare(TestMethodTestDescriptor.java:105)
+    	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.prepare(TestMethodTestDescriptor.java:69)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$prepare$2(NodeTestTask.java:123)
+    	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.prepare(NodeTestTask.java:123)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:90)
+    	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+    	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:155)
+    	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+    	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+    	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+    	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+    	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:155)
+    	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+    	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+    	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+    	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+    	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+    	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+    	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+    	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:198)
+    	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:169)
+    	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:93)
+    	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:58)
+    	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:141)
+    	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:57)
+    	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+    	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+    	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+    	at org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestClassProcessor$CollectAllTestClassesExecutor.processAllTestClasses(JUnitPlatformTestClassProcessor.java:119)
+    	at org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestClassProcessor$CollectAllTestClassesExecutor.access$000(JUnitPlatformTestClassProcessor.java:94)
+    	at org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestClassProcessor.stop(JUnitPlatformTestClassProcessor.java:89)
+    	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.stop(SuiteTestClassProcessor.java:62)
+    	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+    	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+    	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+    	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+    	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)
+    	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+    	at org.gradle.internal.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:33)
+    	at org.gradle.internal.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:94)
+    	at jdk.proxy1/jdk.proxy1.$Proxy2.stop(Unknown Source)
+    	at org.gradle.api.internal.tasks.testing.worker.TestWorker$3.run(TestWorker.java:193)
+    	at org.gradle.api.internal.tasks.testing.worker.TestWorker.executeAndMaintainThreadName(TestWorker.java:129)
+    	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:100)
+    	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:60)
+    	at org.gradle.process.internal.worker.child.ActionExecutionWorker.execute(ActionExecutionWorker.java:56)
+    	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:113)
+    	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:65)
+    	at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69)
+    	at worker.org.gradle.process.internal.worker.GradleWorkerMain.main(GradleWorkerMain.java:74)
+    Caused by: java.lang.IllegalArgumentException: Empty key
+    	at java.base/javax.crypto.spec.SecretKeySpec.<init>(SecretKeySpec.java:114)
+    	at com.cryptoautotrader.exchange.upbit.UpbitOrderClient.buildSecretKeySpec(UpbitOrderClient.java:512)
+    	at com.cryptoautotrader.exchange.upbit.UpbitOrderClient.generateJwtWithoutQuery(UpbitOrderClient.java:492)
+    	... 118 common frames omitted
+    23:54:41.002 [Test worker] WARN  c.c.api.service.PortfolioSyncService - PortfolioManager 잔고 동기화 실패 (이전 값 유지): 계좌 조회 실패
+
+ExecutionDriftTrackerTest > §14 record() ? 음수 slippage (체결가 < 신호가) STANDARD_OUT
+    23:54:41.243 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+
+ExecutionDriftTrackerTest > §14 getRecentBySession() ? 세션별 최근 기록 조회 STANDARD_OUT
+    23:54:41.591 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+
+ExecutionDriftTrackerTest > §14 record() ? slippage 계산 및 저장 정확성 STANDARD_OUT
+    23:54:41.612 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+
+ExecutionDriftTrackerTest > §14 record() ? 다른 세션의 slippage 0 행이 먼저 있어도 방금 기록한 음수 행을 읽는다(고정 오염 탐침) STANDARD_OUT
+    23:54:41.638 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+
+ExecutionDriftTrackerTest > §14 getWeeklyAvgSlippage() ? 7일 평균 slippage 계산 STANDARD_OUT
+    23:54:41.650 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+
+ExecutionDriftTrackerTest > §14 record() ? signalPrice 0이면 저장 생략 STANDARD_OUT
+    23:54:41.682 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+
+ExecutionDriftTrackerTest > §14 오래된 기록은 7일 평균에서 제외 STANDARD_OUT
+    23:54:41.693 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+
+Gradle Test Executor 3 finished executing tests.
+23:54:41.856 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+23:54:41.858 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+23:54:41.861 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+23:54:41.865 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+23:54:41.869 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+
+> Task :web-api:test
+Finished generating test XML results (0.011 secs) into: D:\tmp\o1o3-1899b49\web-api\build\test-results\test
+Generating HTML test report...
+Finished generating test html results (0.003 secs) into: D:\tmp\o1o3-1899b49\web-api\build\reports\tests\test
+
+BUILD SUCCESSFUL in 18s
+12 actionable tasks: 3 executed, 9 up-to-date
+Watched directory hierarchies: [D:\tmp\o1o3-1899b49]

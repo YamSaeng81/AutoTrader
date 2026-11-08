@@ -1,0 +1,11 @@
+[DRIFT-DIAG] before record_negativeSlippage rows=1
+[DRIFT-DIAG]   id=1 kind=LIVE sid=151 coin=KRW-BTC strat=DAILY_SMA20 side=SELL signal=11800000.00 fill=11800000.00 slip=0.000000 at=2026-11-08T14:50:29.295056Z
+[DRIFT-DIAG] after record (negative) rows=2
+[DRIFT-DIAG]   id=1 kind=LIVE sid=151 coin=KRW-BTC strat=DAILY_SMA20 side=SELL signal=11800000.00 fill=11800000.00 slip=0.000000 at=2026-11-08T14:50:29.295056Z
+[DRIFT-DIAG]   id=2 kind=LIVE sid=2 coin=KRW-ETH strat=COMPOSITE_MOMENTUM side=SELL signal=50000000.00 fill=49900000.00 slip=-0.200000 at=2026-11-08T14:50:50.148834Z
+[DRIFT-DIAG] get(0).id=1
+[DRIFT-DIAG] before getRecentBySession_returnsSessionRecords rows=0
+[DRIFT-DIAG] before record_calculatesSlippageCorrectly rows=0
+[DRIFT-DIAG] before getWeeklyAvgSlippage_computesCorrectly rows=0
+[DRIFT-DIAG] before record_skipsWhenSignalPriceIsZero rows=0
+[DRIFT-DIAG] before getWeeklyAvgSlippage_excludesOldRecords rows=0

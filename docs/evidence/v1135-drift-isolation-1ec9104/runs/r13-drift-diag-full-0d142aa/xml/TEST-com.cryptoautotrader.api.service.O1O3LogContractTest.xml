@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="O1·O3 로그 출력 계약 — 강제 갱신 WARN/ERROR 원문 없음·수준/건수/결과 유지, 실시간 손절 문구 중립(REST·WS 모두)" tests="17" skipped="0" failures="0" errors="0" timestamp="2026-11-08T14:51:05" hostname="DESKTOP-SF1KUQ5" time="0.422">
+  <properties/>
+  <testcase name="O3 분류 — 새 사유 '실시간 손절 — …' 과 과거 '실시간 손절(WS) — …' 모두 STOP_LOSS(과거 조회 호환 유지)" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.012"/>
+  <testcase name="LIVE 1초 전" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.003"/>
+  <testcase name="LIVE 121초 전" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.064"/>
+  <testcase name="DYNAMIC 1초 전" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.06"/>
+  <testcase name="DYNAMIC 121초 전" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.002"/>
+  <testcase name="LIVE malformed" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.003"/>
+  <testcase name="LIVE exception" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.002"/>
+  <testcase name="DYNAMIC malformed" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.002"/>
+  <testcase name="DYNAMIC exception" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.002"/>
+  <testcase name="LIVE REST_TRADE" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.059"/>
+  <testcase name="LIVE WS_TRADE" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.065"/>
+  <testcase name="DYNAMIC REST_TRADE" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.064"/>
+  <testcase name="DYNAMIC WS_TRADE" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.06"/>
+  <testcase name="LIVE trade_price=-5.125" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.003"/>
+  <testcase name="LIVE trade_price=0.00000000" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.003"/>
+  <testcase name="DYNAMIC trade_price=-5.125" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.003"/>
+  <testcase name="DYNAMIC trade_price=0.00000000" classname="com.cryptoautotrader.api.service.O1O3LogContractTest" time="0.003"/>
+  <system-out><![CDATA[23:51:05.569 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.O1O3LogContractTest
+23:51:05.571 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+23:51:05.583 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+23:51:05.587 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+23:51:05.651 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+23:51:05.666 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+23:51:05.666 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] EXCHANGE_DOWN 전송 실패(REJECTED) ? 5000ms 후 재시도 (2/3)
+23:51:05.712 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+23:51:05.716 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+23:51:05.718 [Test worker] ERROR c.c.api.service.LiveTradingService - [§9] SL 미점검 세션 강제 복구 실패 ? 조회·변환 예외(원문 생략)
+23:51:05.719 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+23:51:05.720 [Test worker] ERROR c.c.api.service.LiveTradingService - [§9] SL 미점검 세션 강제 복구 실패 ? 조회·변환 예외(원문 생략)
+23:51:05.722 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+23:51:05.722 [Test worker] ERROR c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검 세션 강제 복구 실패 ? 조회·변환 예외(원문 생략)
+23:51:05.724 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+23:51:05.724 [Test worker] ERROR c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검 세션 강제 복구 실패 ? 조회·변환 예외(원문 생략)
+23:51:05.727 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+23:51:05.729 [market-data-2] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=297, KRW-OLCL9, 손익=-6.666700%
+23:51:05.787 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+23:51:05.788 [market-data-1] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=298, KRW-OLCL10, 손익=-6.666700%
+23:51:05.852 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+23:51:05.854 [market-data-2] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-OLCD11 @ 280 pnl=-6.666700% (id=221)
+23:51:05.917 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+23:51:05.919 [market-data-1] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-OLCD12 @ 280 pnl=-6.666700% (id=222)
+23:51:05.979 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+23:51:05.980 [Test worker] WARN  c.c.api.service.LiveTradingService - [§9] REST 강제 갱신 시세가 가격이 아님 ? 발행하지 않음 (가격 분류=음수)
+23:51:05.983 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+23:51:05.983 [Test worker] WARN  c.c.api.service.LiveTradingService - [§9] REST 강제 갱신 시세가 가격이 아님 ? 발행하지 않음 (가격 분류=0)
+23:51:05.986 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+23:51:05.987 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] REST 강제 갱신 시세가 가격이 아님 ? 발행하지 않음 (가격 분류=음수)
+23:51:05.990 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+23:51:05.990 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] REST 강제 갱신 시세가 가격이 아님 ? 발행하지 않음 (가격 분류=0)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

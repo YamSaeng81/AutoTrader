@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="늦은 체결 정정 — CLOSED 재개방 금지·기준가 보존" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-11-08T15:12:40" hostname="DESKTOP-SF1KUQ5" time="0.008">
+  <properties/>
+  <testcase name="CLOSED 포지션에는 손익·수수료만 반영하고 수량을 되살리지 않는다" classname="com.cryptoautotrader.api.service.LateFillCorrectionTest" time="0.008"/>
+  <system-out><![CDATA[00:12:40.344 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.LateFillCorrectionTest
+00:12:40.345 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+00:12:40.347 [Test worker] WARN  c.c.a.service.OrderSettlementService - ? CLOSED 포지션에 수량 정정이 도착했다 ? 재개방하지 않고 수량을 바꾸지 않는다 (posId=419, 수량차=0.20000000)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

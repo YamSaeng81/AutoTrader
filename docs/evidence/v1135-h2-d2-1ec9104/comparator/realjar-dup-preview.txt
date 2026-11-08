@@ -1,0 +1,38 @@
+# 실제 보존 jar(0d142aa dc26fe4b…)에 중복 한 항목만 더한 대역 jar — v1(D1 U1 과 같은 entries)·v2 비교. 기준 쪽은 보존 1899b49 jar(a4fd4e34…)
+중복 1항목: BOOT-INF/lib/core-engine-0.1.0.jar!com/cryptoautotrader/core/backtest/BacktestConfig$BacktestConfigBuilder.class → D:\tmp\o13d2\tryjar\new-inner-diff.jar
+sha256 25ff3941f0cd3998796f14ed00b009ec76c33a05262394ef0e7e881cc39b1966
+== inner-diff · v1
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$PriceSnapshot.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService.class
+(끝) 881 881
+(v1 종료 0)
+== inner-diff · v2
+🔴 jar 비교 거절: tryjar/new-inner-diff.jar: 자체 모듈 내부 이름 중복 BOOT-INF/lib/core-engine-0.1.0.jar!com/cryptoautotrader/core/backtest/BacktestConfig$BacktestConfigBuilder.class ×2
+(거절) 중복·형식 이상 1건 — 차이를 내지 않는다
+(v2 종료 3)
+중복 1항목: BOOT-INF/lib/core-engine-0.1.0.jar!com/cryptoautotrader/core/backtest/BacktestConfig$BacktestConfigBuilder.class → D:\tmp\o13d2\tryjar\new-inner-same.jar
+sha256 10fabd320a8732e038a94ea7255224dffec8500d13dc3c7304207c62f3846f3c
+== inner-same · v1
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$PriceSnapshot.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService.class
+(끝) 881 881
+(v1 종료 0)
+== inner-same · v2
+🔴 jar 비교 거절: tryjar/new-inner-same.jar: 자체 모듈 내부 이름 중복 BOOT-INF/lib/core-engine-0.1.0.jar!com/cryptoautotrader/core/backtest/BacktestConfig$BacktestConfigBuilder.class ×2
+(거절) 중복·형식 이상 1건 — 차이를 내지 않는다
+(v2 종료 3)
+중복 1항목: BOOT-INF/classes/com/cryptoautotrader/api/config/ApiTokenAuthFilter.class → D:\tmp\o13d2\tryjar\new-outer-same.jar
+sha256 f659d811af775664b412726dd71b1f78f29d6c9526883afcc1c4fcc1e2ac0043
+== outer-same · v1
+추가 (중복 항목 이름 있음)
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$PriceSnapshot.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService.class
+(끝) 881 882
+(v1 종료 0)
+== outer-same · v2
+🔴 jar 비교 거절: tryjar/new-outer-same.jar: 바깥 항목 이름 중복 BOOT-INF/classes/com/cryptoautotrader/api/config/ApiTokenAuthFilter.class ×2
+(거절) 중복·형식 이상 1건 — 차이를 내지 않는다
+(v2 종료 3)

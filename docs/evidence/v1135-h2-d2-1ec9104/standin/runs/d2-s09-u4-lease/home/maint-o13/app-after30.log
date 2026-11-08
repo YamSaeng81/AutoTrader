@@ -1,0 +1,7 @@
+backend-1  | 10:20:01.100 [main] INFO  c.c.a.CryptoAutoTraderApplication - Started CryptoAutoTraderApplication in 31.2 seconds (대역)
+backend-1  | 10:20:01.200 [main] INFO  c.c.a.s.CapitalPool - 공유 풀 한도 확인: 단계=STAGE_1 총상한=100000 포지션당=20000 동시보유=3
+backend-1  | 10:20:01.300 [main] INFO  c.c.a.s.RiskLimit - 위험 한도 확인: 단계 STAGE_1 총 자본 100000 기준 누적 15.00%·24시간 3.00%
+backend-1  | 10:20:20.000 [catchup-1] INFO  c.c.a.s.Catchup - 시작 Catchup 완료 (대역)
+backend-1  | 10:23:05.000 [news-1] INFO  c.c.a.n.NewsAggregator - [NewsAggregator] 수집 완료 — sourceId=rss-1 결과=OK 받은=3건 신규=0건
+backend-1  | 10:33:00.000 [HikariPool-1 housekeeper] WARN  c.z.h.p.ProxyLeakTask - Connection leak detection triggered for conn1 on thread scheduling-1, stack trace follows
+backend-1  | 	at com.cryptoautotrader.api.service.SignalQualityService.evaluateHoldBaselineLoop(SignalQualityService.java:200)
