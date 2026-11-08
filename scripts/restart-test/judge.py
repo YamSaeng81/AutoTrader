@@ -1,6 +1,7 @@
 # 리허설 판정 순수 함수(총괄 v1.134 §3) — 앱·DB·외부 명령 없이 가짜 입력으로 검증한다(test_judge.py).
 # 🔴 리허설 전용. 운영 N03 분류에 쓰지 않는다.
 import datetime
+import decimal
 import re
 
 RESTART_REJECT_REASON = '세션이 이미 실행 중입니다'
@@ -30,12 +31,34 @@ def f51_shifted_ok(rc, due, ends, started_kst, days=56):
         return False
 
 
-F53_MARKS = ('⛔ 판정: 세션 상태 STOPPED', '거래소 BTC 증감 0', 'DB 정리 조건 충족')
+F53_MARKS = ('⛔ 판정: 세션 상태 STOPPED', 'DB 정리 조건 충족')
+
+# 총괄 v1.135 H1: '거래소 BTC 증감 0' 부분 문자열은 '0.0016' 도 맞았다. BTC 줄을 행 구조로 읽고 세 값 모두 Decimal 0 을 요구한다.
+BTC_KEY = '거래소 BTC 증감'
+BTC_LINE = re.compile(r'^거래소 BTC 증감 (\S+) · 주문 순체결량 (\S+) · 열린 포지션 수량 (\S+)$')
+
+
+def _dec_zero(s):
+    try:
+        d = decimal.Decimal(s)
+    except decimal.InvalidOperation:
+        return False
+    return d.is_finite() and d == 0
+
+
+def f53_btc_zero(out):
+    """BTC 대조 줄: 1개 이상 · 모두 형식 일치 · 서로 다른 행 없음 · 거래소 증감·주문 순체결량·열린 수량 모두 0.
+    0·0E-8·-0 같은 동등한 0 은 허용, 0.0016·-0.0016·누락·형식 이상·서로 다른 중복 행은 거절. 임의의 한 행만 고르지 않는다."""
+    lines = [l.rstrip('\r') for l in (out or '').split('\n') if BTC_KEY in l]
+    if not lines or len(set(lines)) != 1:
+        return False
+    m = BTC_LINE.match(lines[0])
+    return bool(m) and all(_dec_zero(v) for v in m.groups())
 
 
 def f53_ok(rc, out, f3_sha):
-    """F5-3: 기대 텍스트를 다 출력해도 종료값이 0 이 아니면 거절."""
-    return rc == 0 and f3_sha in out and all(m in out for m in F53_MARKS)
+    """F5-3: 종료 0 · F3 해시 · 기대 상태/DB 정리 문구 · BTC 대조 줄 세 값 모두 0."""
+    return rc == 0 and f3_sha in out and all(m in out for m in F53_MARKS) and f53_btc_zero(out)
 
 
 # 로컬 하네스가 외부 인터넷을 막아 생기는 ERROR — W3 run2~run5 실제 로그에서 관측한 원문 그대로만(줄 끝까지 고정).

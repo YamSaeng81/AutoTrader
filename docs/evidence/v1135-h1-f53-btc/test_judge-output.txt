@@ -1,0 +1,49 @@
+PASS 409·사유·차이0 → 통과(대조군, run2/run5 실제 응답)
+PASS 200 성공·차이0 → 거절(허위 통과 1)
+PASS 500 실패·차이0 → 거절
+PASS 409 다른 사유 → 거절
+PASS 409·사유·차이 있음 → 거절
+PASS 응답 없음(None) → 거절
+PASS F5-1 rc0·due t·같은 3줄·started+56일 → 통과(대조군, run5 원문)
+PASS F5-1 rc1 → 거절(허위 통과 2)
+PASS F5-1 같은 3줄이지만 started+56일 아님 → 거절
+PASS F5-1 줄 서로 다름 → 거절
+PASS F5-1 due f → 거절
+PASS F5-1 줄 1개 → 거절
+PASS F5-1 started 없음 → 거절
+PASS F5-1 소수 초 없는 시각도 비교
+PASS F5-3 rc0·기대 텍스트 → 통과(대조군)
+PASS F5-3 기대 텍스트 출력 뒤 rc1 → 거절(허위 통과 3)
+PASS F5-3 F3 해시 다름 → 거절
+PASS F5-3 정리 조건 줄 없음 → 거절
+PASS F5-3 W3 run5 실제 원문 → 통과(대조군)
+PASS F5-3 총괄 가짜 입력(BTC 증감 0.0016, 한 곳 차이) → 거절(허위 통과 4)
+PASS F5-3 BTC 증감 -0.0016 → 거절
+PASS F5-3 BTC 증감 0E-8·-0 등 동등한 0 → 통과
+PASS F5-3 주문 순체결량 0.0016 → 거절
+PASS F5-3 열린 포지션 수량 0.0016 → 거절
+PASS F5-3 BTC 줄 누락 → 거절
+PASS F5-3 BTC 줄 형식 이상(항목 빠짐) → 거절
+PASS F5-3 BTC 값 숫자 아님(NaN) → 거절
+PASS F5-3 BTC 값 뒤 덧붙은 문자 → 거절
+PASS F5-3 서로 다른 BTC 줄 두 개(0 줄 + 0.0016 줄) → 거절
+PASS F5-3 같은 BTC 0 줄 중복·CRLF → 통과
+PASS 환경 ERROR 대조 1 → 환경
+PASS 환경 ERROR 대조 2 → 환경
+PASS 환경 ERROR 대조 3 → 환경
+PASS 환경 ERROR 대조 4 → 환경
+PASS 환경 ERROR 대조 5 → 환경
+PASS 환경 ERROR 대조 6 → 환경
+PASS 환경 아님: 뉴스 파싱 오류(null 아님) → 새 ERROR
+PASS 환경 아님: 운영 CryptoPanic Connection reset → 새 ERROR
+PASS 환경 아님: 다른 sourceId → 새 ERROR
+PASS 환경 아님: 클래스·꼬리 불일치 → 새 ERROR
+PASS 환경 아님: 뉴스 처리 오류(다른 문구) → 새 ERROR
+PASS 환경 아님: 꼬리 뒤 덧붙은 문자 → 새 ERROR
+PASS 환경 아님: 웹소켓 다른 예외 → 새 ERROR
+PASS 환경 아님: 같은 문구의 WARN → 새 ERROR
+PASS 환경 아님: PoolLossGuard ERROR → 새 ERROR
+PASS 집계: 단언 2/2 · 관측 2
+PASS 집계: 실패 단언 반영
+결과 47/47
+종료코드 0

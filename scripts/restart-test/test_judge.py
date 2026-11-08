@@ -36,11 +36,36 @@ t('F5-1 줄 1개 → 거절', judge.f51_shifted_ok(0, 't', [E], S), False)
 t('F5-1 started 없음 → 거절', judge.f51_shifted_ok(0, 't', [E, E], ''), False)
 t('F5-1 소수 초 없는 시각도 비교', judge.f51_shifted_ok(0, 't', ['2027-01-01 19:50:00'] * 2, '2026-11-06 19:50:00'), True)
 F3 = 'bb86fb397da00523f564a8f02a1960c98bb1ac03887629fe74372990929fa2bb'
-OUT = f'{F3}  f3-block.sh\n⛔ 판정: 세션 상태 STOPPED\n거래소 BTC 증감 0\nDB 정리 조건 충족\n'
+BTC0 = '거래소 BTC 증감 0 · 주문 순체결량 0E-8 · 열린 포지션 수량 0'   # run5 F5-3 실제 행(v1.135 H1: 행 구조로 판정)
+OUT = f'{F3}  f3-block.sh\n⛔ 판정: 세션 상태 STOPPED\n{BTC0}\nDB 정리 조건 충족\n'
 t('F5-3 rc0·기대 텍스트 → 통과(대조군)', judge.f53_ok(0, OUT, F3), True)
 t('F5-3 기대 텍스트 출력 뒤 rc1 → 거절(허위 통과 3)', judge.f53_ok(1, OUT, F3), False)
 t('F5-3 F3 해시 다름 → 거절', judge.f53_ok(0, OUT.replace(F3, '30b5e729'), F3), False)
 t('F5-3 정리 조건 줄 없음 → 거절', judge.f53_ok(0, OUT.replace('DB 정리 조건 충족', ''), F3), False)
+
+# 2-b. v1.135 H1 — BTC 대조 줄은 숫자로 판정(부분 문자열 아님)
+HERE = os.path.dirname(os.path.abspath(__file__))
+EV = os.path.join(HERE, '..', '..', 'docs', 'evidence')
+RUN5 = open(os.path.join(EV, 'w3-pg-rehearsal-1899b49', 'run5', 'F5-3-w4exec.out'), encoding='utf-8').read()
+FAKE = open(os.path.join(EV, 'v1135-h1-f53-btc', 'f53-nonzero-btc.input.txt'), encoding='utf-8').read()
+t('F5-3 W3 run5 실제 원문 → 통과(대조군)', judge.f53_ok(0, RUN5, F3), True)
+t('F5-3 총괄 가짜 입력(BTC 증감 0.0016, 한 곳 차이) → 거절(허위 통과 4)', judge.f53_ok(0, FAKE, F3), False)
+
+
+def btc(a, b, c):
+    return OUT.replace(BTC0, f'거래소 BTC 증감 {a} · 주문 순체결량 {b} · 열린 포지션 수량 {c}')
+
+
+t('F5-3 BTC 증감 -0.0016 → 거절', judge.f53_ok(0, btc('-0.0016', '0E-8', '0'), F3), False)
+t('F5-3 BTC 증감 0E-8·-0 등 동등한 0 → 통과', judge.f53_ok(0, btc('0E-8', '-0', '0.00000000'), F3), True)
+t('F5-3 주문 순체결량 0.0016 → 거절', judge.f53_ok(0, btc('0', '0.00160000', '0'), F3), False)
+t('F5-3 열린 포지션 수량 0.0016 → 거절', judge.f53_ok(0, btc('0', '0E-8', '0.0016'), F3), False)
+t('F5-3 BTC 줄 누락 → 거절', judge.f53_ok(0, OUT.replace(BTC0 + '\n', ''), F3), False)
+t('F5-3 BTC 줄 형식 이상(항목 빠짐) → 거절', judge.f53_ok(0, OUT.replace(BTC0, '거래소 BTC 증감 0 · 주문 순체결량 0E-8'), F3), False)
+t('F5-3 BTC 값 숫자 아님(NaN) → 거절', judge.f53_ok(0, btc('NaN', '0E-8', '0'), F3), False)
+t('F5-3 BTC 값 뒤 덧붙은 문자 → 거절', judge.f53_ok(0, OUT.replace(BTC0, BTC0 + ' 원'), F3), False)
+t('F5-3 서로 다른 BTC 줄 두 개(0 줄 + 0.0016 줄) → 거절', judge.f53_ok(0, OUT.replace(BTC0, BTC0 + '\n거래소 BTC 증감 0.0016 · 주문 순체결량 0E-8 · 열린 포지션 수량 0'), F3), False)
+t('F5-3 같은 BTC 0 줄 중복·CRLF → 통과', judge.f53_ok(0, OUT.replace(BTC0, BTC0 + '\n' + BTC0).replace('\n', '\r\n'), F3), True)
 
 # 4. 환경 ERROR(로컬 차단) — 실제 관측 원문만
 P = '20:05:21.123 [scheduler-7]'

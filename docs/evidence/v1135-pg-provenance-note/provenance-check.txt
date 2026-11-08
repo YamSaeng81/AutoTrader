@@ -1,0 +1,21 @@
+# r11·r12 출처 대조 (총괄 v1.135 §4) — 로컬 읽기만, PG 재실행 없음
+== r11-n15pg-candidate
+head.txt: b9f16a62a1d81689595c6c2bd828aba51c148f2b
+status.txt: ?? web-api/src/test/java/com/cryptoautotrader/api/service/N15PgLockWaitExpiryTest.java
+worktree.diff 바이트: 0
+시작 2026-11-07 11:04:12
+끝 2026-11-07 11:04:31
+시험 사본 sha256(CRLF→LF): 080e328739a3d3f09944ebe8333a8005d6a3c75191320a4a22e8556e121fa147
+== r12-n15pg-noenv-candidate
+head.txt: b9f16a62a1d81689595c6c2bd828aba51c148f2b
+status.txt: ?? web-api/src/test/java/com/cryptoautotrader/api/service/N15PgLockWaitExpiryTest.java
+worktree.diff 바이트: 0
+시작 2026-11-07 11:04:31
+끝 2026-11-07 11:04:34
+시험 사본 sha256(CRLF→LF): 080e328739a3d3f09944ebe8333a8005d6a3c75191320a4a22e8556e121fa147
+== 0d142aa 커밋
+0d142aa213bb7049fa942e73aa4b652a35e2ed90 2026-11-07 11:04:43 +0900
+0d142aa:web-api/src/test/java/com/cryptoautotrader/api/service/N15PgLockWaitExpiryTest.java sha256(LF): 080e328739a3d3f09944ebe8333a8005d6a3c75191320a4a22e8556e121fa147
+== b9f16a6 → 0d142aa 변경
+ .../api/service/N15PgLockWaitExpiryTest.java       | 487 +++++++++++++++++++++
+ 1 file changed, 487 insertions(+)

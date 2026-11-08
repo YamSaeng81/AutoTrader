@@ -1,0 +1,9 @@
+v1.135 review history (2026-11-08, fixed main a762b8cb)
+
+1. Reviewed current handoff/commits/protected instructions, candidate code, preserved XML/source snapshots and four N03 reports. No server/DB/Gradle/app execution.
+2. Initial XML reader assumed display names were unique within a class. Existing parameterized methods legitimately share display names (e.g. LIVE). Changed only the reader to retain each occurrence, without collapsing cases. Final counts match suite totals: related149, candidate1136, base1118, O2 22, PG4/4.
+3. Verified all nine submitted manifests: 708 working files and committed blobs match. Existing W4 and #26 omissions have been repaired. No source manifests changed.
+4. Ran pure test_judge.py with -B:35/35. Additional one-line mutation of preserved F5-3 output (BTC delta0→0.0016) is incorrectly accepted by current f53_ok. Original run5 BTC delta remains0.
+5. Generated tiny ZIP fixtures (no application code) containing normal, inner duplicate and outer duplicate entries. Deliberate duplicate-name warnings were suppressed only while constructing these fixtures. Existing comparator misses inner duplicate but catches outer duplicate. Draft U1 uses the same entries function. Preserved actual jars contain no outer/own-module duplicates and have expected hashes/3 changed entries/881→881.
+6. Read the exact r11/r12 HEAD/status and compared preserved PG test source with final candidate after CRLF/LF normalization. Actual execution was b9f16a6 + untracked test subsequently committed as0d142aa; product bytes match. No PG rerun required to correct this provenance description.
+7. Coin removal accepted per v1.134. Existing full-suite failure remains unclassified (same zero read in base/candidate); authorized deterministic investigation/fixture correction, not a waiver. Draft D1 remains production-prohibited.

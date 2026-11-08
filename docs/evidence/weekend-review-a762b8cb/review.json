@@ -1,0 +1,198 @@
+{
+  "review_head": "a762b8cbdd20283331efacc70067b787bf4351ee",
+  "runtime": "1899b49f633f8aefdc66b15c42debdaba8b3852c",
+  "candidate": "0d142aa213bb7049fa942e73aa4b652a35e2ed90",
+  "evidence": {
+    "weekend-review-dbac6053": {
+      "local": 8,
+      "committed_match": 8,
+      "missing": []
+    },
+    "v1134-harness-judge": {
+      "local": 7,
+      "committed_match": 7,
+      "missing": []
+    },
+    "o1o3-candidate-1899b49": {
+      "local": 500,
+      "committed_match": 500,
+      "missing": []
+    },
+    "w4-n06-prep": {
+      "local": 28,
+      "committed_match": 28,
+      "missing": []
+    },
+    "k26-result-1899b49": {
+      "local": 107,
+      "committed_match": 107,
+      "missing": []
+    },
+    "n03-1107-1000": {
+      "local": 16,
+      "committed_match": 16,
+      "missing": []
+    },
+    "n03-1107-2200": {
+      "local": 13,
+      "committed_match": 13,
+      "missing": []
+    },
+    "n03-1108-1000": {
+      "local": 16,
+      "committed_match": 16,
+      "missing": []
+    },
+    "n03-1108-2200": {
+      "local": 13,
+      "committed_match": 13,
+      "missing": []
+    }
+  },
+  "tests": {
+    "r2-fail-first-1899b49": {
+      "total": 17,
+      "PASS": 5,
+      "FAIL": 12
+    },
+    "r3-candidate-related": {
+      "total": 149,
+      "PASS": 149
+    },
+    "r4-o2-link": {
+      "total": 22,
+      "PASS": 22
+    },
+    "r5-candidate-full-b9f16a6": {
+      "total": 1136,
+      "PASS": 1116,
+      "SKIP": 19,
+      "FAIL": 1
+    },
+    "r6-base-full-1899b49": {
+      "total": 1118,
+      "PASS": 1098,
+      "SKIP": 19,
+      "FAIL": 1
+    },
+    "r10-n15pg-base": {
+      "total": 4,
+      "PASS": 4
+    },
+    "r11-n15pg-candidate": {
+      "total": 4,
+      "PASS": 4
+    },
+    "r12-n15pg-noenv-candidate": {
+      "total": 4,
+      "SKIP": 4
+    }
+  },
+  "full_comparison": {
+    "common_tests": 1118,
+    "changed_results": 0,
+    "new_tests": 18,
+    "candidate_failures": [
+      "com.cryptoautotrader.api.service.ExecutionDriftTrackerTest#§14 record() — 음수 slippage (체결가 < 신호가)"
+    ]
+  },
+  "pg_provenance": {
+    "r10-n15pg-base": {
+      "actual_head": "1899b49f633f8aefdc66b15c42debdaba8b3852c",
+      "status": "?? web-api/src/test/java/com/cryptoautotrader/api/service/N15PgLockWaitExpiryTest.java",
+      "test_source_matches_final_commit_after_crlf_normalization": true
+    },
+    "r11-n15pg-candidate": {
+      "actual_head": "b9f16a62a1d81689595c6c2bd828aba51c148f2b",
+      "status": "?? web-api/src/test/java/com/cryptoautotrader/api/service/N15PgLockWaitExpiryTest.java",
+      "test_source_matches_final_commit_after_crlf_normalization": true
+    },
+    "r12-n15pg-noenv-candidate": {
+      "actual_head": "b9f16a62a1d81689595c6c2bd828aba51c148f2b",
+      "status": "?? web-api/src/test/java/com/cryptoautotrader/api/service/N15PgLockWaitExpiryTest.java",
+      "test_source_matches_final_commit_after_crlf_normalization": true
+    }
+  },
+  "harness": {
+    "existing_local_tests": "35/35",
+    "additional_f53_zero_control": true,
+    "nonzero_00016_btc_false_positive_reproduced": true,
+    "old_run5_actual_btc_delta_still_zero": true
+  },
+  "comparator_reproduction": {
+    "baseline_and_inner_duplicate_compare_equal": true,
+    "outer_duplicate_detected_control": true,
+    "fixture_does_not_represent_operating_jar": true,
+    "draft_U1_uses_same_entries_function": true
+  },
+  "actual_jar": {
+    "sha256": [
+      "a4fd4e343e6c48d7c5aa4a844f33c431eed10eff0757681d7c3bf262d554bdac",
+      "dc26fe4b2d0ee9772be8143f05fa50c928ed0a4f28e1522e4efeaa0ba99f4dd0"
+    ],
+    "diff": [
+      "변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService.class",
+      "변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$PriceSnapshot.class",
+      "변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService.class"
+    ],
+    "counts": [
+      881,
+      881
+    ],
+    "duplicates_in_outer_or_own_modules": 0
+  },
+  "draft": {
+    "syntax_pass": [
+      "U0.sh",
+      "U1.sh",
+      "U2.sh",
+      "U3.sh",
+      "U4.sh",
+      "U되돌림.sh",
+      "U뒤관측.sh",
+      "U변수.sh"
+    ],
+    "full_standin_not_run_by_reviewer": true,
+    "production_authorized": false
+  },
+  "reports": {
+    "1107-1000": {
+      "report_sha256": "ee6de3315d8f7d4c1841da58e5c0823a156d1cc33b9756a0240139cb06997519",
+      "header_green": true,
+      "server_log_full_copy_recounted": false,
+      "phone_received": "unconfirmed"
+    },
+    "1107-2200": {
+      "report_sha256": "46f24c4ea28fdc72b976990263fb701c844884aa1ae03d28f697fd6be8e40ae1",
+      "header_green": true,
+      "server_log_full_copy_recounted": false,
+      "phone_received": "unconfirmed"
+    },
+    "1108-1000": {
+      "report_sha256": "22302d6145f2ce70836b27ed95e3a7c3c5c44766a61a3c38c92581be23182574",
+      "header_green": true,
+      "server_log_full_copy_recounted": false,
+      "phone_received": "unconfirmed"
+    },
+    "1108-2200": {
+      "report_sha256": "ae61bb558f7dbe365956643946b0c35821011a6f0c35a8af9dd8aa602da58e38",
+      "header_green": true,
+      "server_log_full_copy_recounted": false,
+      "phone_received": "unconfirmed"
+    }
+  },
+  "protected_before": {
+    "LIMITED_LIVE_TEST_PLAN.md": "67f7fd48e460b99ad9067c5f43450bd043dbd2af219ba803274434c5b19e4309",
+    "OPS_DAILY_CHECK.md": "1cff84ac2a1207ddd38c43721b53a85c7c03e22fb0c85f99383d626abe1ee048",
+    "LIVE_ENTRY_PREREG.md": "d879eb2e3e6370995f7072ef417ea82c6cc8f21024cbcfed7a82b33575975c5a"
+  },
+  "operations": {
+    "server": false,
+    "database": false,
+    "docker": false,
+    "gradle": false,
+    "jar_build": false,
+    "product_tests": false,
+    "commit_push": false
+  }
+}
