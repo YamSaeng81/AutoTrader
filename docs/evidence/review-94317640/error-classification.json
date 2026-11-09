@@ -1,0 +1,49 @@
+{
+  "total": 2715,
+  "categories": {
+    "P_POOL": 0,
+    "P_CANDLE": 0,
+    "P_404": 0,
+    "P_IO": 2335,
+    "P_NEWS": 0,
+    "P_BLAST": 3
+  },
+  "unclassified": 377,
+  "unclassified_groups": [
+    {
+      "logger": "c.c.a.service.ExchangeHealthMonitor",
+      "message": "거래소 연속 N회 실패 — DOWN 선언",
+      "count": 332
+    },
+    {
+      "logger": "c.c.a.service.DataCollectionService",
+      "message": "캔들 수집 실패: KRW-X — 캔들 데이터 수집 실패",
+      "count": 31
+    },
+    {
+      "logger": "c.c.api.service.AccountService",
+      "message": "계좌 정보 조회 실패: 계좌 조회 실패",
+      "count": 6
+    },
+    {
+      "logger": "c.c.a.service.ExchangeHealthMonitor",
+      "message": "거래소 DOWN 감지 — ExchangeDownEvent 발행 (Upbit API 연속 N회 연결 실패)",
+      "count": 2
+    },
+    {
+      "logger": "c.c.api.service.LiveTradingService",
+      "message": "거래소 DOWN 이벤트 수신 -- 모든 실전매매 세션을 비상 정지합니다.",
+      "count": 2
+    },
+    {
+      "logger": "c.c.api.service.LiveTradingService",
+      "message": "전체 비상 정지 실행! (dryRun=false)",
+      "count": 2
+    },
+    {
+      "logger": "c.c.api.service.LiveTradingService",
+      "message": "전체 비상 정지 완료: 0개 세션 정지 (dryRun=false)",
+      "count": 2
+    }
+  ]
+}

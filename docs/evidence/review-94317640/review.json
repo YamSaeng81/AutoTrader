@@ -1,0 +1,329 @@
+{
+  "head": "94317640c6f5f0019a98ce85d8d5b8db2c277510",
+  "runtime": "1899b49f633f8aefdc66b15c42debdaba8b3852c",
+  "candidate": "1ec91046bf2bf0b7af0e6f05c04267a6c78efc21",
+  "evidence": {
+    "weekend-review-a762b8cb": {
+      "files": 12,
+      "committed_matches": 12,
+      "missing": []
+    },
+    "v1135-h1-f53-btc": {
+      "files": 9,
+      "committed_matches": 9,
+      "missing": []
+    },
+    "v1135-pg-provenance-note": {
+      "files": 2,
+      "committed_matches": 2,
+      "missing": []
+    },
+    "v1135-drift-isolation-1ec9104": {
+      "files": 383,
+      "committed_matches": 383,
+      "missing": []
+    },
+    "v1135-h2-d2-1ec9104": {
+      "files": 3450,
+      "committed_matches": 3450,
+      "missing": []
+    },
+    "n03-1109-1000": {
+      "files": 18,
+      "committed_matches": 18,
+      "missing": []
+    },
+    "n03-1109-2200": {
+      "files": 13,
+      "committed_matches": 13,
+      "missing": []
+    }
+  },
+  "full_suite": {
+    "total": 1141,
+    "pass": 1118,
+    "skipped": 23,
+    "selected": {
+      "ExchangeHealthRecoveryEventTest": [
+        {
+          "name": "DOWN → UP 직행 — 복구 1회",
+          "state": "pass"
+        },
+        {
+          "name": "🔴 DOWN → DEGRADED → UP — 종전에는 복구 이벤트가 나지 않았다(점검 재개 직후의 느린 응답)",
+          "state": "pass"
+        },
+        {
+          "name": "DOWN 이 없었으면 DEGRADED → UP 은 복구가 아니고, 복구 뒤 다시 UP 이어도 한 번뿐",
+          "state": "pass"
+        }
+      ],
+      "ExchangeRecoveryRestartTest": [
+        {
+          "name": "① 등록된 정상 세션 — DOWN 에 비상 정지, 복구에 RUNNING",
+          "state": "pass"
+        },
+        {
+          "name": "③ 비상 정지 뒤 사람이 정지한 세션 — 복구가 다시 켜지 않는다",
+          "state": "pass"
+        },
+        {
+          "name": "⑤ 실제 경로 — HTTP 실패 3회 → DOWN(비상 정지) → 느린 응답 DEGRADED(재시작 안 함) → 빠른 응답 UP → 재시작",
+          "state": "pass"
+        },
+        {
+          "name": "④ 보유 중 DOWN — 비상 정지가 커밋되고 청산 매도는 정확히 1회",
+          "state": "pass"
+        },
+        {
+          "name": "② 공유 풀 미등록 — 재시작도 자본 검사에서 거절되고, 상태는 EMERGENCY_STOPPED 로 남는다",
+          "state": "pass"
+        }
+      ],
+      "ExecutionDriftTrackerTest": [
+        {
+          "name": "§14 record() — 음수 slippage (체결가 < 신호가)",
+          "state": "pass"
+        },
+        {
+          "name": "§14 getRecentBySession() — 세션별 최근 기록 조회",
+          "state": "pass"
+        },
+        {
+          "name": "§14 record() — slippage 계산 및 저장 정확성",
+          "state": "pass"
+        },
+        {
+          "name": "§14 record() — 다른 세션의 slippage 0 행이 먼저 있어도 방금 기록한 음수 행을 읽는다(고정 오염 탐침)",
+          "state": "pass"
+        },
+        {
+          "name": "§14 getWeeklyAvgSlippage() — 7일 평균 slippage 계산",
+          "state": "pass"
+        },
+        {
+          "name": "§14 record() — signalPrice 0이면 저장 생략",
+          "state": "pass"
+        },
+        {
+          "name": "§14 오래된 기록은 7일 평균에서 제외",
+          "state": "pass"
+        }
+      ],
+      "LimitedTestExchangeRecoveryTest": [
+        {
+          "name": "보유 없이 DOWN → UP — 제한시험은 비상정지 유지·started_at 보존, 주문 0",
+          "state": "pass"
+        },
+        {
+          "name": "보유 중 DOWN → UP → 반복 UP → DOWN·UP — 비상정지 유지, 최초 started_at·종료 시각 보존, 추가 매수 0, 청산 매도 1회",
+          "state": "pass"
+        },
+        {
+          "name": "수동 시작 — 보유 중 DOWN 비상정지(매도 접수·대기) 뒤 수동 시작 거절·불변, CREATED 이지만 started_at 이 있으면 거절",
+          "state": "pass"
+        },
+        {
+          "name": "수동 시작 — CREATED·started_at 없음은 최초 시작으로 허용, 정지 뒤 다시 부르면 거절·불변, 일반 전략의 정지 세션은 그대로 시작된다",
+          "state": "pass"
+        }
+      ]
+    }
+  },
+  "fixed_class": {
+    "total": 7,
+    "pass": 7,
+    "selected": {
+      "ExecutionDriftTrackerTest": [
+        {
+          "name": "§14 record() — 음수 slippage (체결가 < 신호가)",
+          "state": "pass"
+        },
+        {
+          "name": "§14 getRecentBySession() — 세션별 최근 기록 조회",
+          "state": "pass"
+        },
+        {
+          "name": "§14 record() — slippage 계산 및 저장 정확성",
+          "state": "pass"
+        },
+        {
+          "name": "§14 record() — 다른 세션의 slippage 0 행이 먼저 있어도 방금 기록한 음수 행을 읽는다(고정 오염 탐침)",
+          "state": "pass"
+        },
+        {
+          "name": "§14 getWeeklyAvgSlippage() — 7일 평균 slippage 계산",
+          "state": "pass"
+        },
+        {
+          "name": "§14 record() — signalPrice 0이면 저장 생략",
+          "state": "pass"
+        },
+        {
+          "name": "§14 오래된 기록은 7일 평균에서 제외",
+          "state": "pass"
+        }
+      ]
+    }
+  },
+  "failing_probe": {
+    "total": 7,
+    "pass": 6,
+    "failure": 1,
+    "selected": {
+      "ExecutionDriftTrackerTest": [
+        {
+          "name": "§14 record() — 음수 slippage (체결가 < 신호가)",
+          "state": "pass"
+        },
+        {
+          "name": "§14 getRecentBySession() — 세션별 최근 기록 조회",
+          "state": "pass"
+        },
+        {
+          "name": "§14 record() — slippage 계산 및 저장 정확성",
+          "state": "pass"
+        },
+        {
+          "name": "§14 getWeeklyAvgSlippage() — 7일 평균 slippage 계산",
+          "state": "pass"
+        },
+        {
+          "name": "§14 record() — signalPrice 0이면 저장 생략",
+          "state": "pass"
+        },
+        {
+          "name": "§14 오래된 기록은 7일 평균에서 제외",
+          "state": "pass"
+        },
+        {
+          "name": "탐침(수정 전 조회) — 다른 세션의 slippage 0 행이 먼저 있으면 findAll().get(0) 은 무엇을 읽나",
+          "state": "failure"
+        }
+      ]
+    }
+  },
+  "candidate_paths": [
+    "web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java",
+    "web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/ExecutionDriftTrackerTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/N15PgLockWaitExpiryTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/O1O3LogContractTest.java",
+    "web-api/src/test/java/com/cryptoautotrader/api/service/PoolLossLimitTest.java"
+  ],
+  "since_previous_candidate": [
+    "web-api/src/test/java/com/cryptoautotrader/api/service/ExecutionDriftTrackerTest.java"
+  ],
+  "morning_error_classification": {
+    "total": 2715,
+    "categories": {
+      "P_POOL": 0,
+      "P_CANDLE": 0,
+      "P_404": 0,
+      "P_IO": 2335,
+      "P_NEWS": 0,
+      "P_BLAST": 3
+    },
+    "unclassified": 377,
+    "unclassified_groups": [
+      {
+        "logger": "c.c.a.service.ExchangeHealthMonitor",
+        "message": "거래소 연속 N회 실패 — DOWN 선언",
+        "count": 332
+      },
+      {
+        "logger": "c.c.a.service.DataCollectionService",
+        "message": "캔들 수집 실패: KRW-X — 캔들 데이터 수집 실패",
+        "count": 31
+      },
+      {
+        "logger": "c.c.api.service.AccountService",
+        "message": "계좌 정보 조회 실패: 계좌 조회 실패",
+        "count": 6
+      },
+      {
+        "logger": "c.c.a.service.ExchangeHealthMonitor",
+        "message": "거래소 DOWN 감지 — ExchangeDownEvent 발행 (Upbit API 연속 N회 연결 실패)",
+        "count": 2
+      },
+      {
+        "logger": "c.c.api.service.LiveTradingService",
+        "message": "거래소 DOWN 이벤트 수신 -- 모든 실전매매 세션을 비상 정지합니다.",
+        "count": 2
+      },
+      {
+        "logger": "c.c.api.service.LiveTradingService",
+        "message": "전체 비상 정지 실행! (dryRun=false)",
+        "count": 2
+      },
+      {
+        "logger": "c.c.api.service.LiveTradingService",
+        "message": "전체 비상 정지 완료: 0개 세션 정지 (dryRun=false)",
+        "count": 2
+      }
+    ]
+  },
+  "limited_trial_recovery_guard": {
+    "runtime_guard": true,
+    "candidate_identical": true,
+    "xml": [
+      {
+        "name": "보유 없이 DOWN → UP — 제한시험은 비상정지 유지·started_at 보존, 주문 0",
+        "state": "pass"
+      },
+      {
+        "name": "보유 중 DOWN → UP → 반복 UP → DOWN·UP — 비상정지 유지, 최초 started_at·종료 시각 보존, 추가 매수 0, 청산 매도 1회",
+        "state": "pass"
+      },
+      {
+        "name": "수동 시작 — 보유 중 DOWN 비상정지(매도 접수·대기) 뒤 수동 시작 거절·불변, CREATED 이지만 started_at 이 있으면 거절",
+        "state": "pass"
+      },
+      {
+        "name": "수동 시작 — CREATED·started_at 없음은 최초 시작으로 허용, 정지 뒤 다시 부르면 거절·불변, 일반 전략의 정지 세션은 그대로 시작된다",
+        "state": "pass"
+      }
+    ]
+  },
+  "judge_exit": 0,
+  "jarcmp_exit": 0,
+  "stored_jars": [
+    {
+      "old": "0d142aa",
+      "output": "(끝) 881 881"
+    },
+    {
+      "old": "1899b49",
+      "output": "변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService.class\r\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$PriceSnapshot.class\r\n변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService.class\r\n(끝) 881 881"
+    }
+  ],
+  "d2_syntax": 8,
+  "d2_standin_preserved": {
+    "cases": 35,
+    "forbidden_calls": 0,
+    "rerun": false
+  },
+  "reports": {
+    "1000": {
+      "20261109-1000.txt": "d5c9dc0e743caccd7864abb07c5bc7215d5cedfa12c4548731bc8fb9f4c8f4a0",
+      "20261109-1000.txt.msg": "0627110ab06e49f6ed052d4b803bb0157d9ad813646dc06316cbe38fb7c47eea",
+      "20261109-1000.txt.raw": "7f264327da309136c44af80962f05fc3fd18efeadde863f01d233970d34961f3",
+      "last_send": "e98b84bf5f85b9f986f81b4d594686cd50e19f343ee66977ed7b76445c97dd37"
+    },
+    "2200": {
+      "20261109-2200.txt": "c42718214be3fe58bb6057509737d95ba3bab7b72634ec2fc7cd43e41b061597",
+      "20261109-2200.txt.msg": "39a4a1f1b6f31c5b9a62df2913fa57aa3cc11dca0614235755ed1f9885e3e583",
+      "20261109-2200.txt.raw": "60c2d0591b9defd6fedb00b017d33e29dc260702cf5766fb774da2b409e1c5cc",
+      "last_send": "02065b6c39f4c1375745766b818e51d2f86da451c3b936e6ce473d2ac888a4c0"
+    }
+  },
+  "root_actions": {
+    "server": false,
+    "db": false,
+    "gradle": false,
+    "bootjar_build": false,
+    "product_mutation": false,
+    "deployment_authorized": false,
+    "git_commit_push": false
+  }
+}

@@ -1,0 +1,14 @@
+HEAD 1899b49f633f8aefdc66b15c42debdaba8b3852c
+start_66.py blob 460031d30ce488f4604be6eb6aea78c10db50caf · HEAD blob 460031d30ce488f4604be6eb6aea78c10db50caf
+crontab start_66 줄:
+1:19 * * * * cd ~/crypto_trader/AutoTrader && /usr/bin/python3 scripts/prospective/start_66.py freshness --save >> scripts/prospective/freshness_runs.log 2>&1
+2:25 0 * * * cd ~/crypto_trader/AutoTrader && /usr/bin/python3 scripts/prospective/start_66.py watch --notify >> scripts/prospective/watch_runs.log 2>&1
+TZ KST Asia/Seoul
+-rw-rw-r-- 1 manicstr manicstr      52 2026-11-10 00:25:03.059874519 +0900 alerts_last_check.json
+-rw-rw-r-- 1 manicstr manicstr 3047218 2026-11-10 08:19:25.018297166 +0900 freshness_log.jsonl
+-rw-rw-r-- 1 manicstr manicstr 3913321 2026-11-10 08:19:25.018297166 +0900 freshness_runs.log
+-rw-rw-r-- 1 manicstr manicstr 3047218 2026-11-10 08:19:25.018297166 +0900 freshness_log.jsonl
+-rw-rw-r-- 1 manicstr manicstr 3913321 2026-11-10 08:19:25.018297166 +0900 freshness_runs.log
+-rw-rw-r-- 1 manicstr manicstr    1609 2026-11-10 08:19:25.018297166 +0900 freshness_snap.json
+-rw-rw-r-- 1 manicstr manicstr     123 2026-11-10 08:19:25.018297166 +0900 freshness_streak.json
+-rw-rw-r-- 1 manicstr manicstr    5336 2026-10-27 10:27:55.446659754 +0900 test_freshness_spacing.py

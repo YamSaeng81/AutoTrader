@@ -1,0 +1,29 @@
+Source 1899b49f633f8aefdc66b15c42debdaba8b3852c:web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
+
+public LiveTradingSessionEntity restartAfterExchangeRecovery(Long sessionId) {
+        if (portfolioSyncService != null) {
+            portfolioSyncService.syncBalance();
+        }
+        capitalReservationService.lockAccountBeforeSession("LIVE 세션 복구 재시작 #" + sessionId);
+        if (sessionRepository.lockAndReadStatus(sessionId).isEmpty()) {
+            log.warn("재시작 대상 세션 없음: id={}", sessionId);
+            return null;
+        }
+        LiveTradingSessionEntity session = getSessionOrThrow(sessionId);
+        if (!"EMERGENCY_STOPPED".equals(session.getStatus())) {
+            log.warn("거래소 복구 — 세션 #{} 는 비상 정지 뒤 상태가 {} 로 바뀌었다(사람의 조작) — 자동 재시작하지 않는다",
+                    sessionId, session.getStatus());
+            return null;
+        }
+        // 🔴 N01 (2026-11-01): 제한시험은 중단 뒤 재개하지 않고 종료는 최초 started_at + 56일이다(LIMITED_LIVE_TEST_PLAN §5-8 F4·F5·§6-2).
+        //    startLocked 는 started_at 을 지금으로 덮으므로 다시 켜면 재개 금지와 기산점이 함께 깨진다. 일반 세션의 자동 복구는 그대로다.
+        if (LIMITED_TEST_STRATEGIES.contains(session.getStrategyType())) {
+            log.warn("거래소 복구 — 세션 #{} ({}) 는 제한시험이다 — 자동 재시작하지 않는다(EMERGENCY_STOPPED·started_at {} 유지)",
+                    sessionId, session.getStrategyType(), session.getStartedAt());
+            return null;
+        }
+        return startLocked(sessionId, session);
+    }
+
+    /** 계좌·세션 잠금을 쥔 뒤의 시작 본체 — 수동 시작과 복구 재시작이 같은 검사를 지난다. */
+    

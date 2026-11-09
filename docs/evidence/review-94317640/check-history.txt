@@ -1,0 +1,8 @@
+v1.136 local review only.
+Initial inventory found no AGENTS.md in repository/ancestors checked; .agents/.codex search paths absent.
+Production source in the working main differs from the deployment candidate. Rechecked all recovery conclusions against git show 1899b49 and 1ec9104 before accepting findings.
+review.py first execution completed successfully: 3887 manifest entries match local and committed blobs; no omitted files.
+Stored ERROR lines were classified using exact c669ccd patterns with local Git Bash grep, not a server script rerun.
+47 pure judge cases and 26 pure ZIP comparator cases passed. Full app/PG/stand-in suites were read from existing evidence, not rerun.
+No server, DB, Gradle, image build, commit or push by reviewer.
+Document update first validation stopped before any file write: it incorrectly assumed PROGRESS had just one historical "last updated" label. Corrected to target only the current 344 entry; confirmed all six files still matched saved original bytes before resuming. No history removed.
