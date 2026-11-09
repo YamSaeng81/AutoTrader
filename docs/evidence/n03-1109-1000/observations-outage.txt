@@ -1,0 +1,65 @@
+복구·UP 계열 줄:
+backend-1  | 15:00:55.350 [scheduler-7] WARN  c.c.a.service.ExchangeHealthMonitor - 거래소 연결 실패 (1/3회): request timed out (10002ms)
+backend-1  | 15:00:55.350 [scheduler-7] INFO  c.c.a.service.ExchangeHealthMonitor - 거래소 상태 변경: UP → DEGRADED
+backend-1  | 15:01:25.374 [scheduler-6] INFO  c.c.a.service.ExchangeHealthMonitor - 거래소 상태 변경: DEGRADED → UP
+backend-1  | 17:02:09.109 [scheduler-6] WARN  c.c.a.service.ExchangeHealthMonitor - 거래소 연결 실패 (1/3회): request timed out (10001ms)
+backend-1  | 17:02:09.109 [scheduler-6] INFO  c.c.a.service.ExchangeHealthMonitor - 거래소 상태 변경: UP → DEGRADED
+backend-1  | 17:02:49.111 [scheduler-4] WARN  c.c.a.service.ExchangeHealthMonitor - 거래소 연결 실패 (2/3회): request timed out (10002ms)
+backend-1  | 17:03:39.108 [scheduler-8] WARN  c.c.a.service.ExchangeHealthMonitor - 거래소 연결 실패 (3/3회): request timed out (19997ms)
+backend-1  | 17:03:39.108 [scheduler-8] INFO  c.c.a.service.ExchangeHealthMonitor - 거래소 상태 변경: DEGRADED → DOWN
+backend-1  | 17:04:19.605 [scheduler-1] WARN  c.c.a.service.ExchangeHealthMonitor - 거래소 연결 실패 (4/3회): HTTP connect timed out (10002ms)
+backend-1  | 17:04:59.606 [scheduler-6] WARN  c.c.a.service.ExchangeHealthMonitor - 거래소 연결 실패 (5/3회): HTTP connect timed out (10001ms)
+backend-1  | 17:05:39.608 [scheduler-5] WARN  c.c.a.service.ExchangeHealthMonitor - 거래소 연결 실패 (6/3회): HTTP connect timed out (10001ms)
+backend-1  | 17:06:19.609 [scheduler-6] WARN  c.c.a.service.ExchangeHealthMonitor - 거래소 연결 실패 (7/3회): HTTP connect timed out (10001ms)
+backend-1  | 17:06:59.610 [scheduler-6] WARN  c.c.a.service.ExchangeHealthMonitor - 거래소 연결 실패 (8/3회): HTTP connect timed out (10001ms)
+backend-1  | 17:07:39.612 [scheduler-5] WARN  c.c.a.service.ExchangeHealthMonitor - 거래소 연결 실패 (9/3회): HTTP connect timed out (10001ms)
+backend-1  | 17:08:19.614 [scheduler-2] WARN  c.c.a.service.ExchangeHealthMonitor - 거래소 연결 실패 (10/3회): HTTP connect timed out (10001ms)
+backend-1  | 17:08:59.617 [scheduler-1] WARN  c.c.a.service.ExchangeHealthMonitor - 거래소 연결 실패 (11/3회): HTTP connect timed out (10002ms)
+backend-1  | 17:09:39.618 [scheduler-1] WARN  c.c.a.service.ExchangeHealthMonitor - 거래소 연결 실패 (12/3회): HTTP connect timed out (10001ms)
+backend-1  | 17:10:19.621 [scheduler-4] WARN  c.c.a.service.ExchangeHealthMonitor - 거래소 연결 실패 (13/3회): HTTP connect timed out (10002ms)
+backend-1  | 17:10:59.623 [scheduler-1] WARN  c.c.a.service.ExchangeHealthMonitor - 거래소 연결 실패 (14/3회): HTTP connect timed out (10002ms)
+backend-1  | 17:11:39.624 [scheduler-1] WARN  c.c.a.service.ExchangeHealthMonitor - 거래소 연결 실패 (15/3회): HTTP connect timed out (10001ms)
+시간별 WARN:
+     70 | 00:
+      5 | 13:
+      5 | 14:
+     11 | 15:
+      5 | 16:
+    114 | 17:
+    115 | 18:
+    115 | 19:
+     97 | 20:
+      5 | 21:
+      5 | 22:
+      6 | 23:
+17~20시 WARN 로거:
+      8  WARN  c.c.a.news.source.CryptoPanicSource
+      8  WARN  c.c.a.news.source.UpbitNoticeSource
+     16  WARN  c.c.api.news.NewsAggregatorService
+      1  WARN  c.c.api.report.MarketTrendScanner
+     44  WARN  c.c.api.service.PortfolioSyncService
+      1  WARN  c.c.a.s.CandleDataFreshnessScheduler
+     23  WARN  c.c.a.s.CandleGapBackfillService
+    337  WARN  c.c.a.service.ExchangeHealthMonitor
+      1  WARN  c.c.a.s.TelegramNotificationService
+      2  WARN  c.c.exchange.upbit.UpbitRestClient
+텔레그램 INFO 성공 시각:
+| 15:00:00.989 | 17:03:42.503 | 17:03:42.503 | 19:35:32.361 | 20:00:25.119 | 20:00:40.114 | 20:00:40.573 | 20:00:45.719 상태 변경 줄 전부:
+backend-1  | 15:00:55.350 [scheduler-7] INFO  c.c.a.service.ExchangeHealthMonitor - 거래소 상태 변경: UP → DEGRADED
+backend-1  | 15:01:25.374 [scheduler-6] INFO  c.c.a.service.ExchangeHealthMonitor - 거래소 상태 변경: DEGRADED → UP
+backend-1  | 17:02:09.109 [scheduler-6] INFO  c.c.a.service.ExchangeHealthMonitor - 거래소 상태 변경: UP → DEGRADED
+backend-1  | 17:03:39.108 [scheduler-8] INFO  c.c.a.service.ExchangeHealthMonitor - 거래소 상태 변경: DEGRADED → DOWN
+backend-1  | 19:56:13.133 [scheduler-8] INFO  c.c.a.service.ExchangeHealthMonitor - 거래소 상태 변경: DOWN → DEGRADED
+backend-1  | 19:56:43.153 [scheduler-8] INFO  c.c.a.service.ExchangeHealthMonitor - 거래소 상태 변경: DEGRADED → UP
+backend-1  | 19:58:53.204 [scheduler-5] INFO  c.c.a.service.ExchangeHealthMonitor - 거래소 상태 변경: UP → DEGRADED
+backend-1  | 20:00:23.201 [scheduler-1] INFO  c.c.a.service.ExchangeHealthMonitor - 거래소 상태 변경: DEGRADED → DOWN
+backend-1  | 20:48:53.943 [scheduler-4] INFO  c.c.a.service.ExchangeHealthMonitor - 거래소 상태 변경: DOWN → UP
+00시 WARN 로거:
+      2  WARN  c.c.a.news.source.CryptoPanicSource
+      2  WARN  c.c.api.news.NewsAggregatorService
+     65  WARN  c.c.a.s.StrategyKillCriteriaService
+      1  WARN  c.c.exchange.upbit.UpbitRestClient
+00시 WARN 예:
+backend-1  | 00:00:00.266 [scheduler-4] WARN  c.c.a.s.StrategyKillCriteriaService - [KillCriteria] PAPER#374 COMPOSITE_MOMENTUM_ICHIMOKU_V2 KRW-ETH@M15 → KILL(NEGATIVE_EV) — 자동정지 OFF 라 �
+backend-1  | 00:00:00.266 [scheduler-4] WARN  c.c.a.s.StrategyKillCriteriaService - [KillCriteria] PAPER#375 COMPOSITE_MOMENTUM_ICHIMOKU_V2 KRW-XRP@M15 → KILL(NEGATIVE_EV) — 자동정지 OFF 라 �
+backend-1  | 00:00:00.266 [scheduler-4] WARN  c.c.a.s.StrategyKillCriteriaService - [KillCriteria] PAPER#522 COMPOSITE_MOMENTUM_ICHIMOKU_V2 KRW-IOTA@H1 → KILL(NEGATIVE_EV) — 자동정지 OFF 라 �

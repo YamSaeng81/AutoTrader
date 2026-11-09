@@ -1,0 +1,7 @@
+비상 정지·복구 INFO/WARN 줄:
+backend-1  | 17:03:39.601 [scheduler-8] INFO  c.c.api.service.LiveTradingService - 전체 비상 정지: 0건 주문 취소
+backend-1  | 19:56:43.153 [scheduler-8] INFO  c.c.a.service.ExchangeHealthMonitor - 거래소 DOWN → UP 복구 감지 (직전 DEGRADED) — ExchangeRecoveredEvent 발행
+backend-1  | 19:56:43.154 [market-data-1] INFO  c.c.api.service.LiveTradingService - 거래소 복구 감지 — 재시작 대상 세션 없음
+backend-1  | 20:00:23.781 [scheduler-1] INFO  c.c.api.service.LiveTradingService - 전체 비상 정지: 0건 주문 취소
+backend-1  | 20:48:53.943 [scheduler-4] INFO  c.c.a.service.ExchangeHealthMonitor - 거래소 DOWN → UP 복구 감지 (직전 DOWN) — ExchangeRecoveredEvent 발행
+backend-1  | 20:48:53.944 [market-data-2] INFO  c.c.api.service.LiveTradingService - 거래소 복구 감지 — 재시작 대상 세션 없음
