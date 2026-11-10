@@ -18,6 +18,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.util.AopTestUtils;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
@@ -27,6 +28,10 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -124,20 +129,33 @@ class DynamicStopRaceTest extends IntegrationTestBase {
         return dynamicRepo.findById(id).orElseThrow().getAvailableKrw();
     }
 
-    private void awaitDrained() {
-        var pool = orderExecutor.getThreadPoolExecutor();
-        long deadline = System.currentTimeMillis() + 20_000;
-        while (System.currentTimeMillis() < deadline) {
-            if (pool.getQueue().isEmpty() && pool.getActiveCount() == 0
-                    && pool.getTaskCount() == pool.getCompletedTaskCount()) return;
-            try {
-                Thread.sleep(50);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                return;
-            }
+    /**
+     * 제출 작업을 운영과 같은 {@code orderExecutor} 에 넘기고 <b>그 작업의 실제 종료</b>를 기다린다 (2026-11-11, v1.145 §3-1).
+     *
+     * <p>종전 {@code awaitDrained()} 는 "큐 비었음·active 0·taskCount == completedTaskCount" 를 기다렸다. 놀고 있는
+     * 작업자가 큐에서 작업을 꺼낸 뒤 실행 표시를 잡기 전에는 세 조건이 모두 참이라, 전체 시험 1회차에서 ①이
+     * {@code INTENT_READY} 를 읽은 뒤에야 {@code order-exec-2} 가 철회를 기록했다
+     * ({@link OrderExecutorDrainPredicateGapTest} 가 그 창을 고정 재현한다). 단독 실행은 새 작업자 경로라 창이 없었다.</p>
+     *
+     * <p>{@code @Async} 프록시는 같은 실행기에 다시 넘기기만 하므로, 프록시를 벗긴 대상의 {@code submitPreparedOrder} 를
+     * 직접 작업으로 제출해 Future 를 받는다. 시간 초과·예외는 실패다. sleep 도, 조건 완화도 없다.</p>
+     */
+    private void dispatchAndAwait(Intent intent) {
+        OrderExecutionEngine target = AopTestUtils.getUltimateTargetObject(engine);
+        // 전체 시험처럼 작업자가 이미 놀고 있는 경로(큐에서 꺼내는 쪽)로 들어가게 한다 — 단독 실행의 새 작업자 경로만 검사하지 않도록.
+        orderExecutor.getThreadPoolExecutor().prestartAllCoreThreads();
+        Future<?> done = orderExecutor.submit(() -> target.submitPreparedOrder(intent.orderId(), intent.request()));
+        try {
+            done.get(20, TimeUnit.SECONDS);
+        } catch (TimeoutException e) {
+            done.cancel(true);
+            throw new AssertionError("제출 작업이 20초 안에 끝나지 않았다 — 미완료를 정상 종료로 보지 않는다", e);
+        } catch (ExecutionException e) {
+            throw new AssertionError("제출 작업이 예외로 끝났다: " + e.getCause(), e.getCause());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new AssertionError("대기 중 인터럽트", e);
         }
-        throw new AssertionError("orderExecutor 가 비워지지 않았다");
     }
 
     private static OrderResponse exchange(String uuid, String state) {
@@ -168,8 +186,7 @@ class DynamicStopRaceTest extends IntegrationTestBase {
                 .as("🔴 정지가 size=0 을 닫으면 고아 정리가 보지 못해 예약 3,000 이 영영 복원되지 않는다")
                 .isEqualTo("OPEN");
 
-        engine.submitPreparedOrder(intent.orderId(), intent.request());
-        awaitDrained();
+        dispatchAndAwait(intent);
 
         OrderEntity o = orderRepository.findById(intent.orderId()).orElseThrow();
         System.out.println("[DYNAMIC 정지→claim] state=" + o.getState() + " code=" + o.getFailureCode());
@@ -210,8 +227,7 @@ class DynamicStopRaceTest extends IntegrationTestBase {
                 .when(upbitOrderClient).createOrder(Mockito.any(), Mockito.any(), Mockito.any(),
                         Mockito.any(), Mockito.any(), Mockito.any());
 
-        engine.submitPreparedOrder(intent.orderId(), intent.request());
-        awaitDrained();
+        dispatchAndAwait(intent);
         assertThat(orderRepository.findById(intent.orderId()).orElseThrow().getState()).isEqualTo("SUBMITTED");
 
         dynamicTradingService.stopSession(id);
