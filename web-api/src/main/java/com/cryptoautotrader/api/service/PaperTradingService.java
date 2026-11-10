@@ -185,6 +185,11 @@ public class PaperTradingService {
         if (capitalViolation != null) {
             throw new IllegalStateException(capitalViolation);
         }
+        // 실행 모드(2026-11-10, PaperExecutionMode) — 잘못된 값은 만들지 않는다.
+        String modeViolation = PaperExecutionMode.violation(req.getStrategyParams());
+        if (modeViolation != null) {
+            throw new IllegalStateException(modeViolation);
+        }
 
         VirtualBalanceEntity session = VirtualBalanceEntity.builder()
                 .totalKrw(req.getInitialCapital())
@@ -642,7 +647,15 @@ public class PaperTradingService {
         try {
             for (VirtualBalanceEntity session : runningSessions) {
                 try {
-                    runSessionStrategy(session);
+                    if (isAligned(session)) {
+                        // LIVE_ALIGNED — 실시간 처리기·회차 승인과 같은 세션 잠금 안에서, 잠금 뒤 다시 읽은 행으로 평가한다.
+                        synchronized (alignedLock(session.getId())) {
+                            VirtualBalanceEntity fresh = balanceRepo.findById(session.getId()).orElse(null);
+                            if (fresh != null && "RUNNING".equals(fresh.getStatus())) runSessionStrategy(fresh);
+                        }
+                    } else {
+                        runSessionStrategy(session);
+                    }
                 } catch (Exception e) {
                     log.error("모의투자 전략 실행 오류 (sessionId={}): {}", session.getId(), e.getMessage(), e);
                 }
@@ -650,6 +663,7 @@ public class PaperTradingService {
         } finally {
             TickCandleCache.end();
         }
+        refreshAlignedCoins(runningSessions);
     }
 
     /** 틱 캐시를 경유한 캔들 조회 — 같은 (코인, 타임프레임)은 틱당 1회만 DB를 친다. */
@@ -679,10 +693,21 @@ public class PaperTradingService {
         String strategyName = session.getStrategyName();
 
         List<Candle> candles = candlesFor(coinPair, timeframe);
+        final boolean aligned = PaperExecutionMode.isLiveAligned(session.getStrategyParams());
+        if (aligned) {
+            // LIVE freshCandles 와 같은 판정(최신 완료 봉·결측·공식 점검 공백). LIVE 의 공유 상태(stale 지도·경보)는 건드리지 않는다.
+            String problem = alignedCandleProblem(coinPair, timeframe, candles);
+            if (problem != null) {
+                log.warn("모의투자[LIVE_ALIGNED] 캔들 판정 불가 — 진입·캔들 기반 청산 안 함 (sessionId={}, {} {}): {}",
+                        sessionId, coinPair, timeframe, problem);
+                candles = List.of();
+            }
+        }
 
         // 🔴 절대 하한 — 현재가조차 못 잡으면 청산 판정도 불가하므로 사이클을 건너뛴다.
         if (candles.size() < 10) {
             log.warn("모의투자 캔들 부족: {} {}건 (sessionId={})", coinPair, candles.size(), sessionId);
+            if (aligned) alignedExitsWithoutCandles(session, coinPair);
             return;
         }
 
@@ -721,7 +746,9 @@ public class PaperTradingService {
         BlackSwanGuard.Result blackSwanGuard = BlackSwanGuard.check(candles);
         List<Candle> btcCandles = "KRW-BTC".equals(coinPair)
                 ? candles : candlesFor("KRW-BTC", timeframe);
-        BtcMarketGuard.Result btcMarketGuard = BtcMarketGuard.check(btcCandles);
+        BtcMarketGuard.Result btcMarketGuard = aligned
+                ? alignedBtcGate(coinPair, timeframe, candles)
+                : BtcMarketGuard.check(btcCandles);
 
         // ── 닫힌 캔들 게이팅 ──────────────────────────────────────────────────
         long periodMin = TimeframeUtils.toMinutes(timeframe);
@@ -786,7 +813,13 @@ public class PaperTradingService {
                 signal = StrategySignal.hold("BLACK_SWAN_GUARD 발동 — " + blackSwanGuard.reason());
             }
 
-            if (signal.getAction() == StrategySignal.Action.BUY && btcMarketGuard.triggered()) {
+            if (aligned) {
+                // LIVE 와 같다 — 판정 불가도 진입을 막는다(blocksEntry).
+                if (signal.getAction() == StrategySignal.Action.BUY && btcMarketGuard.blocksEntry()) {
+                    String what = btcMarketGuard.unknown() ? "판정 불가" : "발동";
+                    signal = StrategySignal.hold("BTC_MARKET_GUARD " + what + " — " + btcMarketGuard.reason());
+                }
+            } else if (signal.getAction() == StrategySignal.Action.BUY && btcMarketGuard.triggered()) {
                 signal = StrategySignal.hold("BTC_MARKET_GUARD 발동 — " + btcMarketGuard.reason());
             }
 
@@ -823,7 +856,10 @@ public class PaperTradingService {
                 .findBySessionIdAndCoinPairAndStatus(sessionId, coinPair, "OPEN");
 
         // ── 손절/익절/타임스톱 (전략 신호보다 우선) ──────────────────────────
-        if (openPos.isPresent()) {
+        if (openPos.isPresent() && aligned) {
+            // LIVE 평가 회차와 같은 순서·조건 — 익절 → 시간 초과 → 손절. 트레일링은 실시간 처리기에서만(LIVE 와 같다).
+            if (alignedPriceExits(session, openPos.get(), currentPrice, "")) return;
+        } else if (openPos.isPresent()) {
             PaperPositionEntity pos = openPos.get();
 
             // 트레일링 스탑 갱신 (ExitRuleChecker 공통 로직)
@@ -866,7 +902,22 @@ public class PaperTradingService {
         final StrategySignal finalSignal = signal;
         switch (signal.getAction()) {
             case BUY -> {
-                if (openPos.isEmpty()) {
+                if (openPos.isEmpty() && aligned && entryPriorityRounds != null && entryPriorityRounds.isActive()) {
+                    // LIVE 와 같은 회차 — 접수만 하고, 마감 D 뒤 승인 차례에 다시 확인해 그 시각 가격으로 체결한다(만료 E 이상이면 없음).
+                    final String regimeAtSignal = preEvalRegime != null ? preEvalRegime.name() : null;
+                    final List<Candle> candlesAtSignal = evalCandles;
+                    final StrategyLogEntity logRef = savedSignalLog;
+                    final EntryPriorityRounds.RoundKey roundKey = new EntryPriorityRounds.RoundKey(
+                            timeframe, candlesAtSignal.get(candlesAtSignal.size() - 1).getTime());
+                    final Instant expiresAt = EntryPriorityRounds.expiry(roundKey);
+                    String notQueued = entryPriorityRounds.submit(new EntryPriorityRounds.Candidate(
+                            EntryPriorityRounds.KIND_PAPER, sessionId, coinPair, roundKey,
+                            () -> approveAlignedEntry(sessionId, coinPair, finalSignal, regimeAtSignal, candlesAtSignal, logRef, expiresAt),
+                            expired -> saveSignalQuality(logRef, false, expired)),
+                            Instant.now());
+                    if (notQueued != null) saveSignalQuality(savedSignalLog, false, notQueued);
+                    return;
+                } else if (openPos.isEmpty()) {
                     boolean bought = executeBuy(sessionId, coinPair, currentPrice, session, finalSignal, evalCandles,
                             preEvalRegime != null ? preEvalRegime.name() : null);
                     saveSignalQuality(savedSignalLog, bought, bought ? null : "매수 실행 실패(최소주문/잔고 미달)");
@@ -911,6 +962,227 @@ public class PaperTradingService {
         }
 
         updateUnrealizedPnl(sessionId, coinPair, currentPrice, session);
+    }
+
+    // ── LIVE_ALIGNED 실행 모드 (2026-11-10, PaperExecutionMode) ─────────────────────
+    //
+    // 선택한 새 검증 세션만 쓴다. 공통 판단(전략·관문·회차·만료·청산 조건)은 LIVE 와 같은 함수/빈을 쓰고, 모의 잔액·포지션·체결
+    // (슬리피지·수수료)만 PAPER 어댑터다. REAL 계좌 단위 관문(전역 위험 한도 checkRisk·세션 서킷 브레이커·공유 풀 한도·§8 예약)은
+    // 모의 계좌에 대응물이 없어 적용하지 않는다 — 비교 실행기 S09 와 문서에 남은 차이로 적는다.
+
+    @Autowired(required = false)
+    private CandleFreshnessGuard candleFreshnessGuard;
+
+    @Autowired(required = false)
+    private MarkPriceBook markPriceBook;
+
+    @Autowired(required = false)
+    private EntryPriorityRounds entryPriorityRounds;
+
+    @Autowired(required = false)
+    private EntryClock entryClock;
+
+    @Autowired(required = false)
+    private WsSubscriptionManager wsSubscriptionManager;
+
+    /** WebSocket 구독 출처 이름 — LIVE·DYNAMIC 과 합집합으로 구독한다. LIVE_ALIGNED 세션이 없으면 출처 자체가 없다. */
+    static final String WS_SOURCE = "PAPER_ALIGNED";
+
+    private final Map<Long, Object> alignedLocks = new ConcurrentHashMap<>();
+    private final Map<String, Long> alignedRtLastCheckMs = new ConcurrentHashMap<>();
+    /** LIVE_ALIGNED RUNNING 세션의 코인 — 실시간 처리기가 해당 없는 시세를 DB 조회 없이 버리는 데 쓴다. */
+    private volatile java.util.Set<String> alignedCoins = java.util.Set.of();
+
+    private static final long ALIGNED_RT_CHECK_INTERVAL_MS = 5_000;   // LIVE RT_STOPLOSS_CHECK_INTERVAL_MS 와 같다
+
+    private Object alignedLock(Long sessionId) {
+        return alignedLocks.computeIfAbsent(sessionId, k -> new Object());
+    }
+
+    private static boolean isAligned(VirtualBalanceEntity s) {
+        try {
+            return PaperExecutionMode.isLiveAligned(s.getStrategyParams());
+        } catch (IllegalStateException e) {
+            return false;   // 평가 경로가 같은 예외로 그 세션만 실패시킨다(루프의 오류 로그)
+        }
+    }
+
+    /** LIVE {@code freshCandles} 와 같은 판정 — 판정 불가면 사유, 쓸 수 있으면 {@code null}. 공유 stale 지도·경보는 건드리지 않는다. */
+    private String alignedCandleProblem(String coinPair, String timeframe, List<Candle> candles) {
+        Instant now = Instant.now();
+        return CandleFreshnessGuard.problem(candles, timeframe, now,
+                candleFreshnessGuard == null ? null : candleFreshnessGuard.maintenanceExemption(coinPair, timeframe, now));
+    }
+
+    /** LIVE {@code btcMarketGate} 와 같은 판정 — BTC 세션은 최신성을 거른 자기 캔들, 아니면 BTC 캔들(진행 중 봉 포함). */
+    private BtcMarketGuard.Result alignedBtcGate(String coinPair, String timeframe, List<Candle> ownCandles) {
+        List<Candle> btc = "KRW-BTC".equals(coinPair) ? ownCandles : candlesFor("KRW-BTC", timeframe);
+        Instant now = Instant.now();
+        return CandleFreshnessGuard.btcGate(timeframe, btc, btc, now,
+                candleFreshnessGuard == null ? null : candleFreshnessGuard.maintenanceExemption("KRW-BTC", timeframe, now));
+    }
+
+    /**
+     * LIVE 평가 회차의 가격 청산과 같은 순서·조건(익절 → 시간 초과 → 손절). 손절가가 없으면 세션 손절률로 본다.
+     *
+     * @return 청산했으면 true
+     */
+    private boolean alignedPriceExits(VirtualBalanceEntity session, PaperPositionEntity pos, BigDecimal price, String note) {
+        if (pos.getTakeProfitPrice() != null && price.compareTo(pos.getTakeProfitPrice()) >= 0) {
+            closePosition(pos, price, session, "익절 발동" + note + " — 현재가 " + price.toPlainString() + " ≥ 익절가 "
+                    + pos.getTakeProfitPrice().toPlainString(), ExitReason.TAKE_PROFIT);
+            return true;
+        }
+        if (ExitRuleCalculator.shouldTimeStop(session.getMaxHoldHours(), pos.getOpenedAt(), Instant.now())) {
+            long heldHours = Duration.between(pos.getOpenedAt(), Instant.now()).toHours();
+            closePosition(pos, price, session, String.format("시간 초과 청산%s — 보유 %d시간 ≥ %d시간",
+                    note, heldHours, session.getMaxHoldHours()), ExitReason.TIME_STOP);
+            return true;
+        }
+        BigDecimal pnlPct = price.subtract(pos.getAvgPrice()).divide(pos.getAvgPrice(), 6, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(100));
+        BigDecimal rawStopLoss = session.getStopLossPct() != null
+                ? session.getStopLossPct() : exitChecker().getConfig().getStopLossPct();
+        boolean sl = pos.getStopLossPrice() != null
+                ? price.compareTo(pos.getStopLossPrice()) <= 0
+                : pnlPct.compareTo(rawStopLoss.negate()) <= 0;
+        if (sl) {
+            closePosition(pos, price, session, "손절 발동" + note + " -- 손익률 " + pnlPct + "%", ExitReason.STOP_LOSS);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 캔들을 쓸 수 없는 회차 — LIVE {@code exitsWithoutCandles} 와 같이 받은 지 기준 이내의 실시간 현재가만 쓴다. 없으면 가격 청산을
+     * 판정하지 않는다. LIVE 는 가격 없이 시간 초과 시장가 매도를 내지만 모의 체결에는 가격이 필요해 그 경우만 다음 회차로 미룬다(남은 차이).
+     */
+    private void alignedExitsWithoutCandles(VirtualBalanceEntity session, String coinPair) {
+        Optional<PaperPositionEntity> open = positionRepo.findBySessionIdAndCoinPairAndStatus(session.getId(), coinPair, "OPEN");
+        if (open.isEmpty()) return;
+        BigDecimal price = markPriceBook == null ? null : markPriceBook.freshPrice(coinPair, Instant.now());
+        if (price == null) {
+            log.warn("모의투자[LIVE_ALIGNED] 캔들 판정 불가 + 유효한 현재가 없음 — 가격 청산 판정 안 함 (sessionId={}, {})",
+                    session.getId(), coinPair);
+            return;
+        }
+        alignedPriceExits(session, open.get(), price, "(캔들 판정 불가 회차, 실시간 현재가 " + price.toPlainString() + ")");
+    }
+
+    /**
+     * 회차 승인 차례 — LIVE {@code approveQueuedEntry}·{@code approvalTimeGate} 와 같은 재확인(실행 중·보유·최신 캔들·블랙스완·BTC),
+     * 그 시각 최신 종가로 체결, 만료 E 이상이면 체결하지 않는다.
+     *
+     * @return 진입했으면 {@code null}, 아니면 사유
+     */
+    String approveAlignedEntry(Long sessionId, String coinPair, StrategySignal signal, String marketRegime,
+                               List<Candle> evalCandles, StrategyLogEntity signalLog, Instant expiresAt) {
+        synchronized (alignedLock(sessionId)) {
+            String result;
+            VirtualBalanceEntity session = balanceRepo.findById(sessionId).orElse(null);
+            if (session == null || !"RUNNING".equals(session.getStatus())) {
+                result = "승인 차례에 세션이 실행 중이 아니다";
+            } else if (positionRepo.findBySessionIdAndCoinPairAndStatus(sessionId, coinPair, "OPEN").isPresent()) {
+                result = "승인 차례에 이미 포지션이 있다";
+            } else {
+                List<Candle> latest = fetchRecentCandles(coinPair, session.getTimeframe());
+                if (alignedCandleProblem(coinPair, session.getTimeframe(), latest) != null) latest = List.of();
+                result = alignedApprovalGate(coinPair, session.getTimeframe(), latest);
+                if (result == null && expiresAt != null && entryClock != null
+                        && EntryPriorityRounds.isExpired(expiresAt, entryClock.now())) {
+                    result = "승인 실행 만료(만료 " + expiresAt + ") — 모의 매수 없음";
+                }
+                if (result == null) {
+                    BigDecimal priceNow = latest.get(latest.size() - 1).getClose();
+                    boolean bought = executeBuy(sessionId, coinPair, priceNow, session, signal, evalCandles, marketRegime);
+                    result = bought ? null : "매수 실행 실패(최소주문/잔고 미달)";
+                }
+            }
+            saveSignalQuality(signalLog, result == null, result);
+            return result;
+        }
+    }
+
+    private String alignedApprovalGate(String coinPair, String timeframe, List<Candle> latest) {
+        if (latest.size() < 10) {
+            return "승인 차례에 최신 캔들을 못 읽었다(" + latest.size() + "건)";
+        }
+        BlackSwanGuard.Result blackSwan = BlackSwanGuard.check(latest);
+        if (blackSwan.triggered()) {
+            return "승인 차례에 BLACK_SWAN_GUARD 발동 — " + blackSwan.reason();
+        }
+        BtcMarketGuard.Result btc = alignedBtcGate(coinPair, timeframe, latest);
+        if (btc.blocksEntry()) {
+            return "승인 차례에 BTC_MARKET_GUARD " + (btc.unknown() ? "판정 불가" : "발동") + " — " + btc.reason();
+        }
+        return null;
+    }
+
+    /** RUNNING LIVE_ALIGNED 세션의 코인을 실시간 처리기·WebSocket 구독에 반영한다. 없으면 출처를 지운다(변화 없으면 아무것도 안 함). */
+    private void refreshAlignedCoins(List<VirtualBalanceEntity> running) {
+        java.util.Set<String> coins = running.stream().filter(PaperTradingService::isAligned)
+                .map(VirtualBalanceEntity::getCoinPair)
+                .collect(java.util.stream.Collectors.toCollection(java.util.TreeSet::new));
+        if (coins.equals(alignedCoins)) return;
+        alignedCoins = java.util.Set.copyOf(coins);
+        if (wsSubscriptionManager != null) wsSubscriptionManager.updateSource(WS_SOURCE, List.copyOf(coins));
+    }
+
+    /**
+     * 실시간 시세 — LIVE {@code onRealtimePriceEvent} 와 같은 조건(낡은 시세·가격 아님 무시, 코인별 5초 간격, 손절가 이하면 손절,
+     * 아니면 익절 트레일링). LIVE_ALIGNED 세션이 없는 코인은 DB 를 보지 않고 버린다. LIVE 의 급변 시 1초 간격 예외는 옮기지 않았다(남은 차이).
+     */
+    @org.springframework.context.event.EventListener
+    @org.springframework.scheduling.annotation.Async("marketDataExecutor")
+    public void onRealtimePriceEvent(RealtimePriceEvent event) {
+        try {
+            doOnAlignedRealtimePrice(event);
+        } catch (Exception e) {
+            log.error("모의투자[LIVE_ALIGNED] 실시간 처리 오류 — coin={}", event.getCoinCode(), e);
+        }
+    }
+
+    void doOnAlignedRealtimePrice(RealtimePriceEvent event) {
+        String coin = event.getCoinCode();
+        if (!alignedCoins.contains(coin)) return;
+        BigDecimal price = event.getPrice();
+        if (markPriceBook != null && markPriceBook.isStale(event.getObservedAt(), Instant.now())) return;
+        if (!MarkPriceBook.isPrice(price)) return;
+        long now = System.currentTimeMillis();
+        Long last = alignedRtLastCheckMs.get(coin);
+        if (last != null && now - last < ALIGNED_RT_CHECK_INTERVAL_MS) return;
+        alignedRtLastCheckMs.put(coin, now);
+
+        for (VirtualBalanceEntity s : balanceRepo.findByStatusOrderByStartedAtAsc("RUNNING")) {
+            if (!coin.equals(s.getCoinPair()) || !isAligned(s)) continue;
+            synchronized (alignedLock(s.getId())) {
+                VirtualBalanceEntity session = balanceRepo.findById(s.getId()).orElse(null);
+                if (session == null || !"RUNNING".equals(session.getStatus())) continue;
+                Optional<PaperPositionEntity> open = positionRepo.findBySessionIdAndCoinPairAndStatus(session.getId(), coin, "OPEN");
+                if (open.isEmpty()) continue;
+                PaperPositionEntity pos = open.get();
+                if (pos.getAvgPrice() == null || pos.getAvgPrice().signum() <= 0) continue;
+                BigDecimal pnlPct = price.subtract(pos.getAvgPrice()).divide(pos.getAvgPrice(), 6, RoundingMode.HALF_UP)
+                        .multiply(BigDecimal.valueOf(100));
+                BigDecimal rawStopLoss = session.getStopLossPct() != null
+                        ? session.getStopLossPct() : exitChecker().getConfig().getStopLossPct();
+                boolean sl = pos.getStopLossPrice() != null
+                        ? price.compareTo(pos.getStopLossPrice()) <= 0
+                        : pnlPct.compareTo(rawStopLoss.negate()) <= 0;
+                if (sl) {
+                    closePosition(pos, price, session, "실시간 손절 — 손익률 " + pnlPct + "%", ExitReason.STOP_LOSS);
+                    continue;
+                }
+                if (pos.getEntryPrice() != null && pos.getTakeProfitPrice() != null) {
+                    var updated = exitChecker().updateTrailingStops(price, pos.getEntryPrice(),
+                            pos.getStopLossPrice(), pos.getTakeProfitPrice());
+                    if (updated.getTakeProfitPrice().compareTo(pos.getTakeProfitPrice()) != 0) {
+                        pos.setTakeProfitPrice(updated.getTakeProfitPrice());
+                        positionRepo.save(pos);
+                    }
+                }
+            }
+        }
     }
 
     /** 신호 품질(실행 여부/차단 사유) 기록 — LIVE의 동명 메서드와 동일 목적. */

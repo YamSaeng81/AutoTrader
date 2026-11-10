@@ -52,4 +52,10 @@ public class PaperTradingStartRequest {
     public boolean isCapitalWithinPaperFloor() {
         return com.cryptoautotrader.api.service.PaperMaxInvestment.capitalViolation(initialCapital, strategyParams) == null;
     }
+
+    @AssertTrue(message = "strategyParams.paperExecutionMode 의 허용 값은 LIVE_ALIGNED 뿐이다 (종전 모드는 키를 뺀다)")
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public boolean isExecutionModeValid() {
+        return com.cryptoautotrader.api.service.PaperExecutionMode.violation(strategyParams) == null;
+    }
 }

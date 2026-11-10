@@ -144,8 +144,16 @@ public class EntryPriorityRounds {
         return i >= 0 ? i : REGISTERED_ORDER.size();
     }
 
+    /** 모의투자 LIVE_ALIGNED 후보의 kind (2026-11-10, PaperExecutionMode) — 실자금 후보를 모두 승인한 뒤에 차례가 온다. */
+    public static final String KIND_PAPER = "PAPER";
+
+    /**
+     * 승인 순서 — PAPER 후보는 맨 뒤(2026-11-10). 실자금(LIVE·DYNAMIC) 후보끼리의 순서는 종전과 같다: PAPER 가 없는 회차에서 첫 키는
+     * 모두 0 이다.
+     */
     static final Comparator<Candidate> ORDER = Comparator
-            .comparingInt((Candidate c) -> registeredRank(c.coinPair()))
+            .comparingInt((Candidate c) -> KIND_PAPER.equals(c.kind()) ? 1 : 0)
+            .thenComparingInt((Candidate c) -> registeredRank(c.coinPair()))
             .thenComparing(Candidate::coinPair)
             .thenComparing(c -> "LIVE".equals(c.kind()) ? 0 : 1)
             .thenComparing(Candidate::sessionId);
