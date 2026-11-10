@@ -1,0 +1,33 @@
+통합 b5cd1d0d47ea68ffe6ff476b89cf9fca5bef1b88 부모 1899b49f633f8aefdc66b15c42debdaba8b3852c
+== git diff --name-status 1899b49 통합
+M	scripts/prospective/start_66.py
+A	scripts/prospective/test_freshness_recheck_fail.py
+M	web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
+M	web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
+M	web-api/src/test/java/com/cryptoautotrader/api/service/ExecutionDriftTrackerTest.java
+A	web-api/src/test/java/com/cryptoautotrader/api/service/N15PgLockWaitExpiryTest.java
+A	web-api/src/test/java/com/cryptoautotrader/api/service/O1O3LogContractTest.java
+M	web-api/src/test/java/com/cryptoautotrader/api/service/PoolLossLimitTest.java
+== git diff --name-status 1ec9104 통합(N21 두 경로뿐이어야 함)
+M	scripts/prospective/start_66.py
+A	scripts/prospective/test_freshness_recheck_fail.py
+== git diff --name-status 6379ee0b 통합(O1·O3 여섯 경로뿐이어야 함)
+M	web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
+M	web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
+M	web-api/src/test/java/com/cryptoautotrader/api/service/ExecutionDriftTrackerTest.java
+A	web-api/src/test/java/com/cryptoautotrader/api/service/N15PgLockWaitExpiryTest.java
+A	web-api/src/test/java/com/cryptoautotrader/api/service/O1O3LogContractTest.java
+M	web-api/src/test/java/com/cryptoautotrader/api/service/PoolLossLimitTest.java
+== 경로별 블롭(원 후보 = 통합)
+같음 1ec9104 ff5ebf7331a48c4d8d80b90be2d0c82958cd0fdb web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
+같음 1ec9104 4c1bdd26176ab4db935b3b71d742ffb3a20edfee web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
+같음 1ec9104 3ef562a73fb47737b32b635aa83e309abd6c74e1 web-api/src/test/java/com/cryptoautotrader/api/service/ExecutionDriftTrackerTest.java
+같음 1ec9104 cfbd946fd1396aa4cab2baf5a33e59ae94800df8 web-api/src/test/java/com/cryptoautotrader/api/service/N15PgLockWaitExpiryTest.java
+같음 1ec9104 1c4be579772f457eb916332f57d160ab62919d0d web-api/src/test/java/com/cryptoautotrader/api/service/O1O3LogContractTest.java
+같음 1ec9104 6f49a121cc49e265da201caf0eb7b80324f01ee1 web-api/src/test/java/com/cryptoautotrader/api/service/PoolLossLimitTest.java
+같음 6379ee0b 6305e512f88e0e9e6f0ec32ec99a28c48bc3fc8d scripts/prospective/start_66.py
+같음 6379ee0b 15166c0e7d66bcb078579b18a3e3699f6a91bb0a scripts/prospective/test_freshness_recheck_fail.py
+== 스키마·설정·의존성 경로 변경(1899b49→통합)
+(끝)
+== 원격 브랜치
+b5cd1d0d47ea68ffe6ff476b89cf9fca5bef1b88	refs/heads/candidate/o1o3-n21-1899b49

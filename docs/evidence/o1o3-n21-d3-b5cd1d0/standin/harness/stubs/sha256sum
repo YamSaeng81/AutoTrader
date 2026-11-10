@@ -1,0 +1,6 @@
+#!/bin/bash
+# 표준 입력 첫 줄이 '#STANDIN-SHA256=<hex>' 인 대역 설치본만 그 값을 낸다(h256). 그 밖은 실제 sha256sum.
+. "$(dirname "$0")/_lib.sh"
+if [ $# -eq 0 ]; then t=$(mktemp); cat > "$t"; h=$(head -1 "$t" | sed -n 's/^#STANDIN-SHA256=\([0-9a-f]\{64\}\)$/\1/p')
+  if [ -n "$h" ]; then echo "$h  -"; else /usr/bin/sha256sum < "$t"; fi; rm -f "$t"; exit 0; fi
+exec /usr/bin/sha256sum "$@"

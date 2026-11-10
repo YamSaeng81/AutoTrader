@@ -1,0 +1,392 @@
+== d01 정상: U0→U1→U2→U3→U4→U5(회차 전 미확인→회차 뒤 통과)→U뒤관측
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d01 U0 — 종료 0(기대 0) · '✅ U0 통과' · checkout (기대 0)
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U0 통과 — 30분 안에 U1(매시 :14~:24 는 피한다)
+[대역 끝] rc=0 · 가짜 시각 10:30:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d01 U1 — 종료 0(기대 0) · '✅ U1 통과' · checkout (기대 1)
+✅ U1 통과 — ⏸ 운영자 확인 1회 뒤 U2. 감시 스크립트는 이미 새 판이다: 다음 :19 회차가 끝난 뒤 U5
+[대역 끝] rc=0 · 가짜 시각 10:35:00
+PASS d01 — U0 프로세스 조회 결과(블록 원문 bash -c 를 회차로 잡지 않음) = 
+PASS d01 — HEAD = b5cd1d0d47ea68ffe6f
+PASS d01 — start_66.py sha256 = 68d441ce0ed66d0a654
+PASS d01 — 새 시험 파일 = 있음
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d01 U2 — 종료 0(기대 0) · '✅ U2 통과' · checkout (기대 1)
+✅ U2 통과 — 5~10분 뒤 U3
+[대역 끝] rc=0 · 가짜 시각 10:35:15
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d01 U3 — 종료 0(기대 0) · '✅ U3(deploy) 통과' · checkout (기대 1)
+✅ U3(deploy) 통과 — 기동 30분 뒤 U4
+[대역 끝] rc=0 · 가짜 시각 10:40:15
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d01 U4 — 종료 0(기대 0) · '✅ U4 통과' · checkout (기대 1)
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U4 통과 — U0~U4 출력을 보고(F 변수·F1·N06 핀은 총괄 판단 뒤 개발 에이전트가 갱신)
+[대역 끝] rc=0 · 가짜 시각 11:05:15
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d01 U5(before) — 종료 1(기대 1) · '미확인: 적용 뒤 cron 시작 줄이 없다' · checkout (기대 1)
+🔴 멈춤: N21 적용 뒤 근거 미확인 또는 이상(종료 1) — n21after-u5.txt 를 보고(회차를 손으로 돌리지 않는다)
+[대역 끝] rc=1 · 가짜 시각 11:05:15
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d01 U5 — 종료 0(기대 0) · '✅ U5' · checkout (기대 1)
+2026-11-10T02:19:30+00:00 🟢21 ⚪1 🔴0 재확인 1 칸 같음 N21 상태 0
+✅ U5 — 적용 뒤 cron 시작 줄·새 관측 행·새 Traceback 0 확인(시작 줄과 행의 1:1 짝은 미확정). 재조회 실패 경로(net·404)는 자연 발생 전까지 미관측이다
+[대역 끝] rc=0 · 가짜 시각 11:05:15
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d01 U뒤관측 — 종료 0(기대 0) · '' · checkout (기대 1)
+[대역 끝] rc=0 · 가짜 시각 11:05:15
+== U0·U1 경계(바꾸기 전 멈춤)
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d02 U0 — 종료 0(기대 0) · '✅ U0 통과' · checkout (기대 0)
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U0 통과 — 30분 안에 U1(매시 :14~:24 는 피한다)
+[대역 끝] rc=0 · 가짜 시각 10:30:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d02 U1 — 종료 1(기대 1) · 'freshness 회차가 돌고 있다(아직 바꾼 것 없음, U1-되돌림 하지 않는다)' · checkout (기대 0)
+🔴 멈춤: freshness 회차가 돌고 있다(아직 바꾼 것 없음, U1-되돌림 하지 않는다) — 끝난 뒤 U0 부터(끊지 않는다)
+[대역 끝] rc=1 · 가짜 시각 10:35:00
+PASS d02 — HEAD = 1899b49f633f8aefdc6
+PASS d02 — latest = sha256:426a09a20afc
+PASS d02 — 보존 태그 1899b49 = 없음
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d03 U0 — 종료 0(기대 0) · '✅ U0 통과' · checkout (기대 0)
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U0 통과 — 30분 안에 U1(매시 :14~:24 는 피한다)
+[대역 끝] rc=0 · 가짜 시각 10:30:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d03 U1 — 종료 1(기대 1) · '프로세스 조회 실패(아직 바꾼 것 없음, U1-되돌림 하지 않는다)' · checkout (기대 0)
+🔴 멈춤: 프로세스 조회 실패(아직 바꾼 것 없음, U1-되돌림 하지 않는다) — 회차 없음으로 보지 않는다. pgrep-u1.* 를 보고
+[대역 끝] rc=1 · 가짜 시각 10:35:00
+PASS d03 — HEAD = 1899b49f633f8aefdc6
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d04 U0 — 종료 0(기대 0) · '✅ U0 통과' · checkout (기대 0)
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U0 통과 — 30분 안에 U1(매시 :14~:24 는 피한다)
+[대역 끝] rc=0 · 가짜 시각 10:50:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d04 U1 — 종료 1(기대 1) · '매시 :14~:24' · checkout (기대 0)
+🔴 멈춤: 매시 :14~:24 는 freshness 회차 직전·직후다 — :25 이후 U0 부터(아직 바꾼 것 없음, U1-되돌림 하지 않는다)
+[대역 끝] rc=1 · 가짜 시각 11:19:00
+PASS d04 — HEAD = 1899b49f633f8aefdc6
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d05 U0 — 종료 1(기대 1) · '프로세스 조회 실패 — 회차 없음으로 보지 않는다' · checkout (기대 0)
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+🔴 멈춤: 프로세스 조회 실패 — 회차 없음으로 보지 않는다. pgrep-u0.* 를 보고
+[대역 끝] rc=1 · 가짜 시각 10:30:00
+PASS d05 — ok-U0 = 없음
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d06 U0 — 종료 1(기대 1) · '읽을 수 없다 — 배포하지 않고 보고' · checkout (기대 0)
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+🔴 멈춤: N21 뒤 확인에 쓸 기록(시스템 기록·실행 기록·관측 행)을 읽을 수 없다 — 배포하지 않고 보고
+[대역 끝] rc=1 · 가짜 시각 10:30:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d07 U0 — 종료 1(기대 1) · 'freshness 회차가 돌고 있다 — 끝난 뒤 U0 부터' · checkout (기대 0)
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+🔴 멈춤: freshness 회차가 돌고 있다 — 끝난 뒤 U0 부터(끊지 않는다)
+[대역 끝] rc=1 · 가짜 시각 10:30:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d08 U0 — 종료 1(기대 1) · '8개 파일이 아님' · checkout (기대 0)
+🔴 멈춤: diff 가 정확히 O1·O3 6개·N21 2개, 8개 파일이 아님(마이그레이션·설정 포함 금지)
+[대역 끝] rc=1 · 가짜 시각 10:30:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d09 U0 — 종료 1(기대 1) · 'start_66.py 가 1899b49 원문(460031d3…)과 다름' · checkout (기대 0)
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+🔴 멈춤: start_66.py 가 1899b49 원문(460031d3…)과 다름
+[대역 끝] rc=1 · 가짜 시각 10:30:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d10 U0 — 종료 1(기대 1) · '변수 순서' · checkout (기대 0)
+🔴 멈춤: 변수 순서 — F 변수 → G 변수 → O1·O3+N21 초안 D3 U 변수
+[대역 끝] rc=1 · 가짜 시각 10:30:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d10 U1 — 종료 1(기대 1) · 'D3 판이 아님' · checkout (기대 0)
+🔴 멈춤: U 변수가 O1·O3+N21 초안 D3 판이 아님 — F → G → O1·O3+N21 초안 D3 U 변수(초안은 실행하지 않는다)
+[대역 끝] rc=1 · 가짜 시각 10:30:00
+== U5 구간 판정(U2 전, 이미지 = image-before)
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d11 U0 — 종료 0(기대 0) · '✅ U0 통과' · checkout (기대 0)
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U0 통과 — 30분 안에 U1(매시 :14~:24 는 피한다)
+[대역 끝] rc=0 · 가짜 시각 10:30:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d11 U1 — 종료 0(기대 0) · '✅ U1 통과' · checkout (기대 1)
+✅ U1 통과 — ⏸ 운영자 확인 1회 뒤 U2. 감시 스크립트는 이미 새 판이다: 다음 :19 회차가 끝난 뒤 U5
+[대역 끝] rc=0 · 가짜 시각 10:35:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d11 U5 — 종료 1(기대 1) · '미확인: 적용 뒤 cron 시작 줄이 없다' · checkout (기대 1)
+2026-11-10T02:19:30+00:00 🟢21 ⚪1 🔴0 재확인 1 칸 같음 N21 상태 0
+🔴 멈춤: N21 적용 뒤 근거 미확인 또는 이상(종료 1) — n21after-u5.txt 를 보고(회차를 손으로 돌리지 않는다)
+[대역 끝] rc=1 · 가짜 시각 10:35:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d12 U0 — 종료 0(기대 0) · '✅ U0 통과' · checkout (기대 0)
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U0 통과 — 30분 안에 U1(매시 :14~:24 는 피한다)
+[대역 끝] rc=0 · 가짜 시각 10:30:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d12 U1 — 종료 0(기대 0) · '✅ U1 통과' · checkout (기대 1)
+✅ U1 통과 — ⏸ 운영자 확인 1회 뒤 U2. 감시 스크립트는 이미 새 판이다: 다음 :19 회차가 끝난 뒤 U5
+[대역 끝] rc=0 · 가짜 시각 10:35:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d12 U5 — 종료 1(기대 1) · '이상: 적용 뒤 실행 기록에 새 Traceback' · checkout (기대 1)
+2026-11-10T02:19:30+00:00 🟢21 ⚪1 🔴0 재확인 1 칸 같음 N21 상태 0
+🔴 멈춤: N21 적용 뒤 근거 미확인 또는 이상(종료 1) — n21after-u5.txt 를 보고(회차를 손으로 돌리지 않는다)
+[대역 끝] rc=1 · 가짜 시각 10:35:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d13 U0 — 종료 0(기대 0) · '✅ U0 통과' · checkout (기대 0)
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U0 통과 — 30분 안에 U1(매시 :14~:24 는 피한다)
+[대역 끝] rc=0 · 가짜 시각 10:30:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d13 U1 — 종료 0(기대 0) · '✅ U1 통과' · checkout (기대 1)
+✅ U1 통과 — ⏸ 운영자 확인 1회 뒤 U2. 감시 스크립트는 이미 새 판이다: 다음 :19 회차가 끝난 뒤 U5
+[대역 끝] rc=0 · 가짜 시각 10:35:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d13 U5 — 종료 1(기대 1) · '이상: 적용 뒤 실행 기록에 새 Traceback' · checkout (기대 1)
+2026-11-10T02:19:30+00:00 🟢21 ⚪1 🔴0 재확인 1 칸 같음 N21 상태 0
+🔴 멈춤: N21 적용 뒤 근거 미확인 또는 이상(종료 1) — n21after-u5.txt 를 보고(회차를 손으로 돌리지 않는다)
+[대역 끝] rc=1 · 가짜 시각 10:35:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d14 U0 — 종료 0(기대 0) · '✅ U0 통과' · checkout (기대 0)
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U0 통과 — 30분 안에 U1(매시 :14~:24 는 피한다)
+[대역 끝] rc=0 · 가짜 시각 10:30:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d14 U1 — 종료 0(기대 0) · '✅ U1 통과' · checkout (기대 1)
+✅ U1 통과 — ⏸ 운영자 확인 1회 뒤 U2. 감시 스크립트는 이미 새 판이다: 다음 :19 회차가 끝난 뒤 U5
+[대역 끝] rc=0 · 가짜 시각 10:35:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d14 U5 — 종료 0(기대 0) · '✅ U5' · checkout (기대 1)
+2026-11-10T02:19:30+00:00 🟢21 ⚪1 🔴0 재확인 1 칸 같음 N21 상태 0
+✅ U5 — 적용 뒤 cron 시작 줄·새 관측 행·새 Traceback 0 확인(시작 줄과 행의 1:1 짝은 미확정). 재조회 실패 경로(net·404)는 자연 발생 전까지 미관측이다
+[대역 끝] rc=0 · 가짜 시각 10:35:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d15 U0 — 종료 0(기대 0) · '✅ U0 통과' · checkout (기대 0)
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U0 통과 — 30분 안에 U1(매시 :14~:24 는 피한다)
+[대역 끝] rc=0 · 가짜 시각 10:30:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d15 U1 — 종료 0(기대 0) · '✅ U1 통과' · checkout (기대 1)
+✅ U1 통과 — ⏸ 운영자 확인 1회 뒤 U2. 감시 스크립트는 이미 새 판이다: 다음 :19 회차가 끝난 뒤 U5
+[대역 끝] rc=0 · 가짜 시각 10:35:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d15 U5 — 종료 1(기대 1) · '프로세스 조회 실패' · checkout (기대 1)
+🔴 멈춤: 프로세스 조회 실패 — 회차 없음으로 보지 않는다. pgrep-u5.* 를 보고
+[대역 끝] rc=1 · 가짜 시각 10:35:00
+== U1-되돌림(재기동 전)
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d16 U0 — 종료 0(기대 0) · '✅ U0 통과' · checkout (기대 0)
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U0 통과 — 30분 안에 U1(매시 :14~:24 는 피한다)
+[대역 끝] rc=0 · 가짜 시각 10:30:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d16 U1 — 종료 1(기대 1) · 'jar 차이가 O1·O3 3줄이 아님' · checkout (기대 1)
+🔴 멈춤: jar 차이가 O1·O3 3줄이 아님 — jar-diff.txt 를 보고(재기동 전). U1-되돌림
+[대역 끝] rc=1 · 가짜 시각 10:35:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d16 U1되돌림 — 종료 0(기대 0) · '↩ U1-되돌림 끝' · checkout (기대 2)
+[대역 끝] rc=0 · 가짜 시각 10:35:00
+PASS d16 — HEAD = 1899b49f633f8aefdc6
+PASS d16 — latest = sha256:426a09a20afc
+PASS d16 — backend = sha256:426a09a20afc
+PASS d16 — start_66.py sha256 = adca8829b9fb6b4c699
+PASS d16 — 새 시험 파일 = 없음
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d16 U2 — 종료 1(기대 1) · 'U1 미통과' · checkout (기대 2)
+🔴 멈춤: U1 미통과
+[대역 끝] rc=1 · 가짜 시각 10:35:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d16 U5 — 종료 1(기대 1) · 'U1 미통과' · checkout (기대 2)
+🔴 멈춤: U1 미통과(또는 U1-되돌림 함)
+[대역 끝] rc=1 · 가짜 시각 10:35:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d17 U0 — 종료 0(기대 0) · '✅ U0 통과' · checkout (기대 0)
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U0 통과 — 30분 안에 U1(매시 :14~:24 는 피한다)
+[대역 끝] rc=0 · 가짜 시각 10:30:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d17 U1 — 종료 1(기대 1) · 'jar 차이가 O1·O3 3줄이 아님' · checkout (기대 1)
+🔴 멈춤: jar 차이가 O1·O3 3줄이 아님 — jar-diff.txt 를 보고(재기동 전). U1-되돌림
+[대역 끝] rc=1 · 가짜 시각 10:35:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d17 U1되돌림 — 종료 1(기대 1) · '어느 것도 아님' · checkout (기대 1)
+🔴 멈춤: HEAD 가 통합 후보·1899b49 어느 것도 아님(99bd4eaadb0ff3037518c3cacbf6bb98de91bf4e) — 다른 작업 상태일 수 있다. 바꾸지 않고 보고
+[대역 끝] rc=1 · 가짜 시각 10:35:00
+PASS d17 — HEAD = 99bd4eaadb0ff303751
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d18 U0 — 종료 0(기대 0) · '✅ U0 통과' · checkout (기대 0)
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U0 통과 — 30분 안에 U1(매시 :14~:24 는 피한다)
+[대역 끝] rc=0 · 가짜 시각 10:30:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d18 U1 — 종료 1(기대 1) · 'jar 차이가 O1·O3 3줄이 아님' · checkout (기대 1)
+🔴 멈춤: jar 차이가 O1·O3 3줄이 아님 — jar-diff.txt 를 보고(재기동 전). U1-되돌림
+[대역 끝] rc=1 · 가짜 시각 10:35:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d18 U1되돌림 — 종료 1(기대 1) · '프로세스 조회 실패(아직 바꾼 것 없음)' · checkout (기대 1)
+🔴 멈춤: 프로세스 조회 실패(아직 바꾼 것 없음) — 회차 없음으로 보지 않는다. pgrep-u1rb.* 를 보고
+[대역 끝] rc=1 · 가짜 시각 10:35:00
+PASS d18 — HEAD = b5cd1d0d47ea68ffe6f
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d19 U0 — 종료 0(기대 0) · '✅ U0 통과' · checkout (기대 0)
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U0 통과 — 30분 안에 U1(매시 :14~:24 는 피한다)
+[대역 끝] rc=0 · 가짜 시각 10:30:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d19 U1 — 종료 0(기대 0) · '✅ U1 통과' · checkout (기대 1)
+✅ U1 통과 — ⏸ 운영자 확인 1회 뒤 U2. 감시 스크립트는 이미 새 판이다: 다음 :19 회차가 끝난 뒤 U5
+[대역 끝] rc=0 · 가짜 시각 10:35:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d19 U2 — 종료 0(기대 0) · '✅ U2 통과' · checkout (기대 1)
+✅ U2 통과 — 5~10분 뒤 U3
+[대역 끝] rc=0 · 가짜 시각 10:35:15
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d19 U1되돌림 — 종료 1(기대 1) · 'U2(재기동)를 시작했다' · checkout (기대 1)
+🔴 멈춤: U2(재기동)를 시작했다 — U1-되돌림이 아니라 U되돌림
+[대역 끝] rc=1 · 가짜 시각 10:35:15
+== U되돌림(재기동 뒤)
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d20 U0 — 종료 0(기대 0) · '✅ U0 통과' · checkout (기대 0)
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U0 통과 — 30분 안에 U1(매시 :14~:24 는 피한다)
+[대역 끝] rc=0 · 가짜 시각 10:30:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d20 U1 — 종료 0(기대 0) · '✅ U1 통과' · checkout (기대 1)
+✅ U1 통과 — ⏸ 운영자 확인 1회 뒤 U2. 감시 스크립트는 이미 새 판이다: 다음 :19 회차가 끝난 뒤 U5
+[대역 끝] rc=0 · 가짜 시각 10:35:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d20 U2 — 종료 0(기대 0) · '✅ U2 통과' · checkout (기대 1)
+✅ U2 통과 — 5~10분 뒤 U3
+[대역 끝] rc=0 · 가짜 시각 10:35:15
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d20 U되돌림 — 종료 0(기대 0) · '로 복귀' · checkout (기대 2)
+✅ 1899b49 (#26 이미지) 로 복귀 — 5분 뒤 U3 를 다시 실행(t-rollback.utc 기준으로 자동 전환, BTC·뉴스·HTTP 줄·HOLD 질의·N15/N16·N17·N19·N20 줄은 기록만)
+[대역 끝] rc=0 · 가짜 시각 10:35:30
+PASS d20 — HEAD = 1899b49f633f8aefdc6
+PASS d20 — backend = sha256:426a09a20afc
+PASS d20 — start_66.py sha256 = adca8829b9fb6b4c699
+PASS d20 — 새 시험 파일 = 없음
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d20 U3(rollback) — 종료 0(기대 0) · '✅ U3(rollback) 통과' · checkout (기대 2)
+✅ U3(rollback) 통과 — 1899b49 복귀 확인. U4 는 하지 않고 출력을 보고
+[대역 끝] rc=0 · 가짜 시각 10:40:30
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d20 U5 — 종료 1(기대 1) · 'U되돌림을 했다' · checkout (기대 2)
+🔴 멈춤: U되돌림을 했다 — U5 는 하지 않는다
+[대역 끝] rc=1 · 가짜 시각 10:40:30
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d21 U0 — 종료 0(기대 0) · '✅ U0 통과' · checkout (기대 0)
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U0 통과 — 30분 안에 U1(매시 :14~:24 는 피한다)
+[대역 끝] rc=0 · 가짜 시각 10:30:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d21 U1 — 종료 0(기대 0) · '✅ U1 통과' · checkout (기대 1)
+✅ U1 통과 — ⏸ 운영자 확인 1회 뒤 U2. 감시 스크립트는 이미 새 판이다: 다음 :19 회차가 끝난 뒤 U5
+[대역 끝] rc=0 · 가짜 시각 10:35:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d21 U2 — 종료 0(기대 0) · '✅ U2 통과' · checkout (기대 1)
+✅ U2 통과 — 5~10분 뒤 U3
+[대역 끝] rc=0 · 가짜 시각 10:35:15
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d21 U되돌림 — 종료 1(기대 1) · '어느 것도 아님' · checkout (기대 1)
+🔴 멈춤: HEAD 가 통합 후보·1899b49 어느 것도 아님(99bd4eaadb0ff3037518c3cacbf6bb98de91bf4e) — 다른 작업 상태일 수 있다. 바꾸지 않고 보고
+[대역 끝] rc=1 · 가짜 시각 10:35:15
+PASS d21 — t-rollback.utc(만들지 않음) = 없음
+PASS d21 — backend 그대로 = sha256:11ee53f1c07e
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d22 U0 — 종료 0(기대 0) · '✅ U0 통과' · checkout (기대 0)
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U0 통과 — 30분 안에 U1(매시 :14~:24 는 피한다)
+[대역 끝] rc=0 · 가짜 시각 10:30:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d22 U1 — 종료 0(기대 0) · '✅ U1 통과' · checkout (기대 1)
+✅ U1 통과 — ⏸ 운영자 확인 1회 뒤 U2. 감시 스크립트는 이미 새 판이다: 다음 :19 회차가 끝난 뒤 U5
+[대역 끝] rc=0 · 가짜 시각 10:35:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d22 U2 — 종료 0(기대 0) · '✅ U2 통과' · checkout (기대 1)
+✅ U2 통과 — 5~10분 뒤 U3
+[대역 끝] rc=0 · 가짜 시각 10:35:15
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d22 U되돌림 — 종료 1(기대 1) · 'freshness 회차가 돌고 있다(아직 바꾼 것 없음)' · checkout (기대 1)
+🔴 멈춤: freshness 회차가 돌고 있다(아직 바꾼 것 없음) — 끝난 뒤 다시(끊지 않는다)
+[대역 끝] rc=1 · 가짜 시각 10:35:15
+PASS d22 — t-rollback.utc(만들지 않음) = 없음
+PASS d22 — backend 그대로 = sha256:11ee53f1c07e
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d23 U0 — 종료 0(기대 0) · '✅ U0 통과' · checkout (기대 0)
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U0 통과 — 30분 안에 U1(매시 :14~:24 는 피한다)
+[대역 끝] rc=0 · 가짜 시각 10:30:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d23 U1 — 종료 0(기대 0) · '✅ U1 통과' · checkout (기대 1)
+✅ U1 통과 — ⏸ 운영자 확인 1회 뒤 U2. 감시 스크립트는 이미 새 판이다: 다음 :19 회차가 끝난 뒤 U5
+[대역 끝] rc=0 · 가짜 시각 10:35:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d23 U2 — 종료 0(기대 0) · '✅ U2 통과' · checkout (기대 1)
+✅ U2 통과 — 5~10분 뒤 U3
+[대역 끝] rc=0 · 가짜 시각 10:35:15
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d23 U되돌림 — 종료 1(기대 1) · '프로세스 조회 실패(아직 바꾼 것 없음)' · checkout (기대 1)
+🔴 멈춤: 프로세스 조회 실패(아직 바꾼 것 없음) — 회차 없음으로 보지 않는다. pgrep-rb.* 를 보고
+[대역 끝] rc=1 · 가짜 시각 10:35:15
+PASS d23 — t-rollback.utc(만들지 않음) = 없음
+PASS d23 — backend 그대로 = sha256:11ee53f1c07e
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d24 U0 — 종료 0(기대 0) · '✅ U0 통과' · checkout (기대 0)
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U0 통과 — 30분 안에 U1(매시 :14~:24 는 피한다)
+[대역 끝] rc=0 · 가짜 시각 10:30:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d24 U1 — 종료 0(기대 0) · '✅ U1 통과' · checkout (기대 1)
+✅ U1 통과 — ⏸ 운영자 확인 1회 뒤 U2. 감시 스크립트는 이미 새 판이다: 다음 :19 회차가 끝난 뒤 U5
+[대역 끝] rc=0 · 가짜 시각 10:35:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d24 U2 — 종료 0(기대 0) · '✅ U2 통과' · checkout (기대 1)
+✅ U2 통과 — 5~10분 뒤 U3
+[대역 끝] rc=0 · 가짜 시각 10:35:15
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d24 U되돌림 — 종료 1(기대 1) · 'crontab 이 f2dce280… 과 다름 — 바꾸지 않고 보고' · checkout (기대 1)
+🔴 멈춤: crontab 이 f2dce280… 과 다름 — 바꾸지 않고 보고
+[대역 끝] rc=1 · 가짜 시각 10:35:15
+PASS d24 — t-rollback.utc(만들지 않음) = 없음
+PASS d24 — backend 그대로 = sha256:11ee53f1c07e
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d25 U0 — 종료 0(기대 0) · '✅ U0 통과' · checkout (기대 0)
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U0 통과 — 30분 안에 U1(매시 :14~:24 는 피한다)
+[대역 끝] rc=0 · 가짜 시각 10:30:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d25 U1 — 종료 0(기대 0) · '✅ U1 통과' · checkout (기대 1)
+✅ U1 통과 — ⏸ 운영자 확인 1회 뒤 U2. 감시 스크립트는 이미 새 판이다: 다음 :19 회차가 끝난 뒤 U5
+[대역 끝] rc=0 · 가짜 시각 10:35:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d25 U2 — 종료 0(기대 0) · '✅ U2 통과' · checkout (기대 1)
+✅ U2 통과 — 5~10분 뒤 U3
+[대역 끝] rc=0 · 가짜 시각 10:35:15
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d25 U되돌림 — 종료 1(기대 1) · '어느 것도 아님 — 다른 작업이 있었을 수 있다' · checkout (기대 1)
+🔴 멈춤: 실행 이미지가 image-before·image-new 어느 것도 아님 — 다른 작업이 있었을 수 있다. 바꾸지 않고 보고
+[대역 끝] rc=1 · 가짜 시각 10:35:15
+PASS d25 — t-rollback.utc(만들지 않음) = 없음
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d26 U0 — 종료 0(기대 0) · '✅ U0 통과' · checkout (기대 0)
+🔴 🔴 은 경보이고 확정이 아니다 — (대역 고정 출력, 경보 조회를 실제로 하지 않음)
+✅ U0 통과 — 30분 안에 U1(매시 :14~:24 는 피한다)
+[대역 끝] rc=0 · 가짜 시각 10:30:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d26 U1 — 종료 0(기대 0) · '✅ U1 통과' · checkout (기대 1)
+✅ U1 통과 — ⏸ 운영자 확인 1회 뒤 U2. 감시 스크립트는 이미 새 판이다: 다음 :19 회차가 끝난 뒤 U5
+[대역 끝] rc=0 · 가짜 시각 10:35:00
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d26 U2 — 종료 0(기대 0) · '✅ U2 통과' · checkout (기대 1)
+✅ U2 통과 — 5~10분 뒤 U3
+[대역 끝] rc=0 · 가짜 시각 10:35:15
+grep: -P supports only unibyte and UTF-8 locales
+FAIL d26 U되돌림 — 종료 1(기대 1) · '덮어쓰지 않고 보고' · checkout (기대 1)
+🔴 멈춤: 추적 파일 변경이 있다 — 덮어쓰지 않고 보고
+[대역 끝] rc=1 · 가짜 시각 10:35:15
+PASS d26 — t-rollback.utc(만들지 않음) = 없음
+PASS d26 — backend 그대로 = sha256:11ee53f1c07e
+== 금지 명령 기록(전 사례)
+PASS 전체 — forbidden.log 줄 수 합 = 0
+대역 단언 33/114 통과

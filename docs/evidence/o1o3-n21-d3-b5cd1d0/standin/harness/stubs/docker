@@ -1,0 +1,73 @@
+#!/bin/bash
+# 가짜 docker — 상태는 $SIM/state 파일. 실제 docker 를 부르지 않는다.
+. "$(dirname "$0")/_lib.sh"; calllog docker "$@"
+[ -f "$SIM/env.sh" ] && . "$SIM/env.sh"
+idof() {   # 참조(태그 또는 sha256:id) → id, 없으면 1
+  case "$1" in
+    sha256:*) [ -e "$ST/img/${1#sha256:}" ] && echo "$1" ;;
+    autotrader-backend:*) [ -e "$ST/tag/${1#autotrader-backend:}" ] && cat "$ST/tag/${1#autotrader-backend:}" ;;
+    *) return 1 ;;
+  esac
+}
+imgofcid() { case "$1" in cid-tmp) cat "$ST/tmpcid" ;; cid-backend) cat "$ST/backend.image" ;; cid-*) cat "$ST/svc/${1#cid-}" ;; esac; }
+startofcid() { case "$1" in cid-backend) cat "$ST/backend.started" ;; *) echo 2026-11-01T00:00:00.000000000Z ;; esac; }
+sql() {
+  case "$1" in
+    *"count(*) AS total"*) echo "${SC_OUT:-66 | 63 | 3 | -}" ;;
+    *"capital_stage_baseline) || '|' ||"*) echo "${EG_OUT:-1|0|1|true|157,161,166,167,168,183,184,185,186,187,188,189,190,191,192,193,194,195,196,200|92|0}" ;;
+    *"strategy_type = 'DAILY_SMA20'"*) echo t ;;
+    *"available_krw = 20200"*) echo t ;;
+    *"string_agg(id || ':' || status, ','"*) echo "${LIVE1_OUT:-203:CREATED}" ;;
+    *"SELECT stage || '|'"*) echo 'STAGE_1|2026-10-30 04:16:57.997762|100000.00' ;;
+    *real_open_positions*) printf '%s 0\n' real_open_positions real_unresolved_orders cleanup_pending sid_orders sid_positions ;;
+    *flyway_schema_history*) echo "${V_OUT:-94}" ;;
+    *"SHOW TimeZone"*) echo Etc/UTC ;;
+    *market_data_cache*) echo "${BTC_OUT:-true|11-07 09:00|11-07 09:00|20/20}" ;;
+    *news_source_config*) printf '%s\n' 'rss-1|RSS|t|15|1793927000' 'cp-1|CRYPTOPANIC|f|30|-' ;;
+    *) echo "대역 SQL 미정의: ${1:0:80}" >&2; return 3 ;;
+  esac
+}
+if [ "$1" = compose ]; then
+  shift; [ "$1" = -f ] && shift 2
+  sub=$1; shift
+  case "$sub" in
+    ps) if [ "$1" = -q ]; then echo "cid-$2"; else echo "NAME IMAGE STATUS"; echo "autotrader-backend-1 $(cat "$ST/backend.image" | cut -c1-19) Up (대역)"; fi ;;
+    exec)
+      [ "$1" = -T ] && shift; svc=$1; shift
+      if [ "$svc" = db ]; then
+        q=""; for ((i=1; i<=$#; i++)); do [ "${!i}" = -c ] && { j=$((i+1)); q=${!j}; }; done
+        if [ -n "$q" ]; then sql "$q"; exit $?; fi
+        cat > /dev/null; cat "$SIM/fix/qc.txt"; exit 0
+      fi
+      case "$1" in
+        env) printf '%s\n' TRADING_CAPITALPOOL_STAGE=STAGE_1 TRADING_CAPITALPOOL_TOTALCAPKRW=100000 TRADING_CAPITALPOOL_PERPOSITIONCAPKRW=${POOL_PER:-20000} TRADING_CAPITALPOOL_MAXCONCURRENTPOSITIONS=3 SPRING_PROFILES_ACTIVE=prod ;;
+        date) shift; date "$@" ;;
+        *) forbid "docker-exec-$1" "$@" ;;
+      esac ;;
+    build)
+      h=$(cat "$ST/HEAD"); jar=${BUILD_JAR:-$(cat "$SIM/fix/jar-$h" 2>/dev/null)}
+      [ -n "$jar" ] || { echo "대역: HEAD $h 의 jar 없음"; exit 1; }
+      id=$(printf 'standin-build-%s-%s' "$h" "$(now)" | sha256sum | cut -c1-64)
+      echo "$jar" > "$ST/img/$id"; echo "sha256:$id" > "$ST/tag/latest"
+      echo "(대역) building backend from HEAD ${h:0:7} → sha256:${id:0:12}" ;;
+    up)
+      img=$(cat "$ST/tag/latest"); echo "$img" > "$ST/backend.image"
+      date -u -d "@$(now)" '+%Y-%m-%dT%H:%M:%S.000000000Z' > "$ST/backend.started"
+      if [ "$img" = "$(cat "$SIM/fix/img26")" ]; then cp "$SIM/fix/log-${ROLLLOG:-normal}.log" "$ST/backend.log"; else cp "$SIM/fix/log-${NEWLOG:-normal}.log" "$ST/backend.log"; fi
+      echo " Container autotrader-backend-1  Started (대역)" ;;
+    logs) cat "$ST/backend.log" ;;
+    *) forbid "docker-compose-$sub" "$@" ;;
+  esac
+  exit 0
+fi
+case "$1" in
+  inspect) [ "$2" = --format ] || forbid docker-inspect "$@"; f=$3; c=$4
+    i=$(imgofcid "$c") || exit 1; s=$(startofcid "$c"); f=${f//\{\{.Image\}\}/$i}; echo "${f//\{\{.State.StartedAt\}\}/$s}" ;;
+  image) [ "$2" = inspect ] || forbid docker-image "$@"
+    if [ "$3" = --format ]; then idof "$5" || { echo "Error: No such image: $5" >&2; exit 1; }; else idof "$3" > /dev/null || { echo "Error: No such image: $3" >&2; exit 1; }; echo '[{"대역":1}]'; fi ;;
+  tag) id=$(idof "$2") || { echo "Error: No such image: $2" >&2; exit 1; }; echo "$id" > "$ST/tag/${3#autotrader-backend:}" ;;
+  cp) c=${2%%:*}; i=$(imgofcid "$c") || exit 1; cp "$(cat "$ST/img/${i#sha256:}")" "$3" ;;
+  create) idof "$2" > "$ST/tmpcid" || exit 1; echo cid-tmp ;;
+  rm) echo "$2" ;;
+  *) forbid "docker-$1" "$@" ;;
+esac

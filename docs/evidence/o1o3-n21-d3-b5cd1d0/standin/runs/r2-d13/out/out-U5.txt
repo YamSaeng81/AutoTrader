@@ -1,0 +1,17 @@
+[대역 시작] U5 · 가짜 시각 2026-11-10 10:35:00 KST · 실제 11:16:35
+freshness 회차 없음(pgrep 종료 1)
+2026-11-10 10:35:00 KST
+b5cd1d0d47ea68ffe6ff476b89cf9fca5bef1b88
+(끝)
+기준 → 지금: 시스템 기록 inode 281474977599033→281474977599033 줄 1→2 · 실행 기록 줄 1→4 · 관측 행 1→2
+== 적용 뒤 cron 시작 줄 1개
+Nov 10 11:19:01 yhdeabba CRON[2297465]: (manicstr) CMD (cd ~/crypto_trader/AutoTrader && /usr/bin/python3 scripts/prospective/start_66.py freshness --save >> scripts/prospective/freshness_runs.log 2>&1)
+== 적용 뒤 실행 기록 3줄 · 그중 Traceback 1줄
+== 적용 뒤 관측 행 1개
+1:Traceback (most recent call last):
+2-OLD 적용 전
+3-freshness 저장
+이상: 적용 뒤 실행 기록에 새 Traceback
+2026-11-10T02:19:30+00:00 🟢21 ⚪1 🔴0 재확인 1 칸 같음 N21 상태 0
+🔴 멈춤: N21 적용 뒤 근거 미확인 또는 이상(종료 1) — n21after-u5.txt 를 보고(회차를 손으로 돌리지 않는다)
+[대역 끝] rc=1 · 가짜 시각 10:35:00

@@ -1,0 +1,121 @@
+== d01 정상: U0→U1→U2→U3→U4→U5(회차 전 미확인→회차 뒤 통과)→U뒤관측
+PASS d01 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS d01 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS d01 — U0 프로세스 조회 결과(블록 원문 bash -c 를 회차로 잡지 않음) = 
+PASS d01 — HEAD = b5cd1d0d47ea68ffe6f
+PASS d01 — start_66.py sha256 = 68d441ce0ed66d0a654
+PASS d01 — 새 시험 파일 = 있음
+PASS d01 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS d01 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS d01 U4 — 종료 0 · '✅ U4 통과' · checkout 1
+PASS d01 U5(before) — 종료 1 · '미확인: 적용 뒤 cron 시작 줄이 없다' · checkout 1
+PASS d01 U5 — 종료 0 · '✅ U5' · checkout 1
+PASS d01 U뒤관측 — 종료 0 · '' · checkout 1
+== U0·U1 경계(바꾸기 전 멈춤)
+PASS d02 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS d02 U1 — 종료 1 · 'freshness 회차가 돌고 있다(아직 바꾼 것 없음, U1-되돌림 하지 않는다)' · checkout 0
+PASS d02 — HEAD = 1899b49f633f8aefdc6
+PASS d02 — latest = sha256:426a09a20afc
+PASS d02 — 보존 태그 1899b49 = 없음
+PASS d03 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS d03 U1 — 종료 1 · '프로세스 조회 실패(아직 바꾼 것 없음, U1-되돌림 하지 않는다)' · checkout 0
+PASS d03 — HEAD = 1899b49f633f8aefdc6
+PASS d04 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS d04 U1 — 종료 1 · '매시 :14~:24' · checkout 0
+PASS d04 — HEAD = 1899b49f633f8aefdc6
+PASS d05 U0 — 종료 1 · '프로세스 조회 실패 — 회차 없음으로 보지 않는다' · checkout 0
+PASS d05 — ok-U0 = 없음
+PASS d06 U0 — 종료 1 · '읽을 수 없다 — 배포하지 않고 보고' · checkout 0
+PASS d07 U0 — 종료 1 · 'freshness 회차가 돌고 있다 — 끝난 뒤 U0 부터' · checkout 0
+PASS d08 U0 — 종료 1 · '8개 파일이 아님' · checkout 0
+PASS d09 U0 — 종료 1 · 'start_66.py 가 1899b49 원문(460031d3…)과 다름' · checkout 0
+PASS d10 U0 — 종료 1 · '변수 순서' · checkout 0
+PASS d10 U1 — 종료 1 · 'D3 판이 아님' · checkout 0
+== U5 구간 판정(U2 전, 이미지 = image-before)
+PASS d11 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS d11 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS d11 U5 — 종료 1 · '미확인: 적용 뒤 cron 시작 줄이 없다' · checkout 1
+PASS d12 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS d12 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS d12 U5 — 종료 1 · '이상: 적용 뒤 실행 기록에 새 Traceback' · checkout 1
+PASS d13 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS d13 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS d13 U5 — 종료 1 · '이상: 적용 뒤 실행 기록에 새 Traceback' · checkout 1
+PASS d14 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS d14 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS d14 U5 — 종료 0 · '✅ U5' · checkout 1
+PASS d15 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS d15 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS d15 U5 — 종료 1 · '프로세스 조회 실패' · checkout 1
+== U1-되돌림(재기동 전)
+PASS d16 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS d16 U1 — 종료 1 · 'jar 차이가 O1·O3 3줄이 아님' · checkout 1
+PASS d16 U1되돌림 — 종료 0 · '↩ U1-되돌림 끝' · checkout 2
+PASS d16 — HEAD = 1899b49f633f8aefdc6
+PASS d16 — latest = sha256:426a09a20afc
+PASS d16 — backend = sha256:426a09a20afc
+PASS d16 — start_66.py sha256 = adca8829b9fb6b4c699
+PASS d16 — 새 시험 파일 = 없음
+PASS d16 U2 — 종료 1 · 'U1 미통과' · checkout 2
+PASS d16 U5 — 종료 1 · 'U1 미통과' · checkout 2
+PASS d17 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS d17 U1 — 종료 1 · 'jar 차이가 O1·O3 3줄이 아님' · checkout 1
+PASS d17 U1되돌림 — 종료 1 · '어느 것도 아님' · checkout 1
+PASS d17 — HEAD = 99bd4eaadb0ff303751
+PASS d18 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS d18 U1 — 종료 1 · 'jar 차이가 O1·O3 3줄이 아님' · checkout 1
+PASS d18 U1되돌림 — 종료 1 · '프로세스 조회 실패(아직 바꾼 것 없음)' · checkout 1
+PASS d18 — HEAD = b5cd1d0d47ea68ffe6f
+PASS d19 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS d19 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS d19 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS d19 U1되돌림 — 종료 1 · 'U2(재기동)를 시작했다' · checkout 1
+== U되돌림(재기동 뒤)
+PASS d20 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS d20 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS d20 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS d20 U되돌림 — 종료 0 · '로 복귀' · checkout 2
+PASS d20 — HEAD = 1899b49f633f8aefdc6
+PASS d20 — backend = sha256:426a09a20afc
+PASS d20 — start_66.py sha256 = adca8829b9fb6b4c699
+PASS d20 — 새 시험 파일 = 없음
+PASS d20 U3(rollback) — 종료 0 · '✅ U3(rollback) 통과' · checkout 2
+PASS d20 U5 — 종료 1 · 'U되돌림을 했다' · checkout 2
+PASS d21 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS d21 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS d21 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS d21 U되돌림 — 종료 1 · '어느 것도 아님' · checkout 1
+PASS d21 — t-rollback.utc(만들지 않음) = 없음
+PASS d21 — backend 그대로 = sha256:11ee53f1c07e
+PASS d22 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS d22 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS d22 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS d22 U되돌림 — 종료 1 · 'freshness 회차가 돌고 있다(아직 바꾼 것 없음)' · checkout 1
+PASS d22 — t-rollback.utc(만들지 않음) = 없음
+PASS d22 — backend 그대로 = sha256:11ee53f1c07e
+PASS d23 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS d23 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS d23 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS d23 U되돌림 — 종료 1 · '프로세스 조회 실패(아직 바꾼 것 없음)' · checkout 1
+PASS d23 — t-rollback.utc(만들지 않음) = 없음
+PASS d23 — backend 그대로 = sha256:11ee53f1c07e
+PASS d24 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS d24 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS d24 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS d24 U되돌림 — 종료 1 · 'crontab 이 f2dce280… 과 다름 — 바꾸지 않고 보고' · checkout 1
+PASS d24 — t-rollback.utc(만들지 않음) = 없음
+PASS d24 — backend 그대로 = sha256:11ee53f1c07e
+PASS d25 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS d25 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS d25 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS d25 U되돌림 — 종료 1 · '어느 것도 아님 — 다른 작업이 있었을 수 있다' · checkout 1
+PASS d25 — t-rollback.utc(만들지 않음) = 없음
+PASS d26 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS d26 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS d26 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS d26 U되돌림 — 종료 1 · '덮어쓰지 않고 보고' · checkout 1
+PASS d26 — t-rollback.utc(만들지 않음) = 없음
+PASS d26 — backend 그대로 = sha256:11ee53f1c07e
+== 금지 명령 기록(전 사례)
+PASS 전체 — forbidden.log 줄 수 합 = 0
+대역 단언 114/114 통과

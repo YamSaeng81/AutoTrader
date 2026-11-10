@@ -1,0 +1,251 @@
+--- D2/U변수.sh
++++ D3/U변수.sh
+@@ -1,5 +1,5 @@
+-M=~/maint-o13; mkdir -p "$M"; OPS=~/ops-scripts; UB=O13D2   # O1·O3 다음 배포 초안 D2(미승인·실행 금지, D1 대체 — jar 비교기 v2·최종 SHA) 판 표지 — U 블록 전부가 확인한다. 후보 1ec9104(출처 candidate/o1o3-log-1899b49). #26 기록 폴더 ~/maint-n20·#25 ~/maint-n19·#24 ~/maint-n17·#23 ~/maint-n15n16 은 읽기만 하고 덮어쓰지 않는다
+-OLD=1899b49f633f8aefdc66b15c42debdaba8b3852c; NEW=1ec91046bf2bf0b7af0e6f05c04267a6c78efc21
++M=~/maint-o13n21; mkdir -p "$M"; OPS=~/ops-scripts; UB=O13N21D3   # O1·O3+N21 통합 배포 초안 D3(미승인·실행 금지, D2 대체 — 통합 SHA·N21 경계) 판 표지 — U 블록 전부가 확인한다. 후보 b5cd1d0(출처 candidate/o1o3-n21-1899b49). D2 기록 폴더 ~/maint-o13 은 쓰지 않는다. #26 기록 폴더 ~/maint-n20·#25 ~/maint-n19·#24 ~/maint-n17·#23 ~/maint-n15n16 은 읽기만 하고 덮어쓰지 않는다
++OLD=1899b49f633f8aefdc66b15c42debdaba8b3852c; NEW=b5cd1d0d47ea68ffe6ff476b89cf9fca5bef1b88
+ IMGOLD=sha256:426a09a20afc9e16cff8b7a569d4e04f18ed47cefb9242f44e3b9ea9666153a1   # #26 배포 이미지(~/maint-n20/image-new.txt, v1.132 수용 값) — U0 가 실행 이미지·기록 파일과 같은지 확인한다. sha256: 로 시작하지 않으면 U0 가 멈춘다
+ IMGPREV7=sha256:200f2f5727e90204574fd9965a5cc06dfc5d317e98c13b200de2ac7201378ae6   # #25 이미지 — 이전 복구 태그 autotrader-backend:ee509cf 가 가리킨다(#26 U1 이 만듦, 보존, 바꾸지 않는다)
+ IMGPREV6=sha256:e51b512a72cc3740313bb2a9e6f369d4f480554c588f322cff518c827f9c7be6   # #24 이미지 — 이전 복구 태그 autotrader-backend:7a94472 가 가리킨다(#25 U1 이 만듦, 보존, 바꾸지 않는다)
+@@ -13,7 +13,9 @@
+ CRON=f2dce2809c09aa4466a95200caa19547118e444b4ac90b4363e20a158dee9b5b   # crontab — 바꾸지 않는다
+ h256() { sha256sum < "$1" | cut -d' ' -f1 ; }
+ v94() { [ "$($PSQL -At -c "SELECT max(version::int) FROM flyway_schema_history WHERE success")" = "94" ] ; }
+-DIFFN="$(printf '%s\n' web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java \
++DIFFN="$(printf '%s\n' scripts/prospective/start_66.py \
++  scripts/prospective/test_freshness_recheck_fail.py \
++  web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java \
+   web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java \
+   web-api/src/test/java/com/cryptoautotrader/api/service/ExecutionDriftTrackerTest.java \
+   web-api/src/test/java/com/cryptoautotrader/api/service/N15PgLockWaitExpiryTest.java \
+@@ -21,7 +23,7 @@
+   web-api/src/test/java/com/cryptoautotrader/api/service/PoolLossLimitTest.java)"
+ RARX="$(printf '%s\n' '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService.class' \
+   '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$PriceSnapshot.class' \
+-  '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService.class')"   # 실제 로컬 bootJar 대조(O1·O3 최종 1ec9104) — 1899b49 보존 jar·1ec9104 로컬 bootJar 에서 jar 비교기 v2 로 새로 셈($PriceSnapshot 은 줄 번호만 다름)
++  '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService.class')"   # 실제 로컬 bootJar 대조(O1·O3+N21 통합 b5cd1d0) — 1899b49 보존 jar·b5cd1d0 로컬 bootJar 에서 jar 비교기 v2 로 새로 셈($PriceSnapshot 은 줄 번호만 다름). 1ec9104 jar 와 항목 차이 0
+ # 기존 뉴스 출처 ERROR 원문 4개(후보에서도 바뀌지 않음). 정기 점검에서는 미분류 🔴 그대로다
+ NEWSERR='\[(RssNewsSource\] 수집 실패 — sourceId=|(UpbitNoticeSource|CryptoPanicSource|CoinGeckoTrendingSource)\] 수집 실패: )'
+ NEWSCFG="SELECT source_id || '|' || source_type || '|' || is_enabled || '|' || fetch_interval_min || '|' || coalesce(extract(epoch FROM last_fetched_at)::bigint::text, '-') FROM news_source_config ORDER BY source_id"
+@@ -396,3 +398,71 @@
+ sys.exit(0)
+ PYEOF
+ }
++# ── N21(감시 스크립트) 고정값 — 통합 후보의 start_66.py 는 6379ee0b 와 같은 블롭이다
++NF=scripts/prospective/start_66.py; NT=scripts/prospective/test_freshness_recheck_fail.py   # NT 는 새로 추적되는 시험 파일 — 서버에서 실행하지 않는다
++NBOLD=460031d30ce488f4604be6eb6aea78c10db50caf; NBNEW=6305e512f88e0e9e6f0ec32ec99a28c48bc3fc8d   # start_66.py 블롭(1899b49 · 통합 후보)
++NHOLD=adca8829b9fb6b4c6996dc853fadade58d685d9c0c044135eb6f92665dba337d; NHNEW=68d441ce0ed66d0a654d9ec7ca485d0a69a5bb8bacf4de48b5d61d0ef813b56b   # 파일 sha256
++# ── N21 공통 함수 시작(통합 초안 D3 U변수에 같은 원문으로 들어간다) ──
++JLOG=scripts/prospective/freshness_log.jsonl      # 관측 행(회차마다 한 행)
++RUNLOG=scripts/prospective/freshness_runs.log     # cron 회차의 표준 출력·오류(>> 덧붙임)
++SYSLOG=/var/log/syslog                            # cron 시작 줄(CRON[pid]: (사용자) CMD (…))
++# freshness 회차 프로세스 패턴 — 명령줄 맨 앞이 python 실행 파일인 프로세스만 잡는다.
++# cron 의 /bin/sh -c 껍데기, 이 블록을 담은 bash(대화형·bash -c·bash 파일) 명령줄은 맨 앞이 python 이 아니라서 잡히지 않는다.
++FPAT='^[^ ]*python[0-9.]* +([^ ]+ +)*[^ ]*start_66[.]py +freshness'
++# 회차 조회. 인자: 기록 이름. 종료 0 = 회차 없음(pgrep 종료 1·출력 없음), 1 = 회차 있음(pgrep 종료 0), 2 = 조회 실패(그 밖 전부)
++fresh_idle() { local rc=0
++  pgrep -af "$FPAT" > "$M/pgrep-$1.txt" 2> "$M/pgrep-$1.err" || rc=$?
++  case "$rc" in
++    1) if [ -s "$M/pgrep-$1.txt" ] || [ -s "$M/pgrep-$1.err" ]; then cat "$M/pgrep-$1.txt" "$M/pgrep-$1.err"; echo "프로세스 조회 이상: pgrep 종료 1 인데 출력 있음"; return 2; fi
++       echo "freshness 회차 없음(pgrep 종료 1)"; return 0 ;;
++    0) cat "$M/pgrep-$1.txt"; echo "freshness 회차가 돌고 있다(pgrep 종료 0)"; return 1 ;;
++    *) cat "$M/pgrep-$1.txt" "$M/pgrep-$1.err"; echo "프로세스 조회 실패(pgrep 종료 $rc)"; return 2 ;;
++  esac; }
++# 적용 직전 기준 위치. 인자: 표지 이름. 시스템 기록 inode·줄 수, 실행 기록 줄 수, 관측 행 수. 하나라도 못 읽으면 종료 1
++n21mark() {
++  [ -r "$SYSLOG" ] || { echo "시스템 기록 $SYSLOG 를 읽을 수 없음"; return 1; }
++  [ -f "$RUNLOG" ] && [ -r "$RUNLOG" ] || { echo "실행 기록 $RUNLOG 를 읽을 수 없음"; return 1; }
++  [ -f "$JLOG" ] && [ -r "$JLOG" ] || { echo "관측 행 $JLOG 를 읽을 수 없음"; return 1; }
++  printf '%s %s %s %s\n' "$(stat -c %i "$SYSLOG")" "$(wc -l < "$SYSLOG")" "$(wc -l < "$RUNLOG")" "$(wc -l < "$JLOG")" > "$M/mark-$1.txt"
++  echo "기준 위치(시스템 기록 inode·줄, 실행 기록 줄, 관측 행): $(cat "$M/mark-$1.txt")"; }
++# 적용 뒤 확인. 인자: 표지 이름. 구간 = 표지 위치 뒤에 덧붙은 줄. 종료 0 = 세 근거 모두 확인, 1 = 미확인 또는 이상(이유 출력)
++# PID·완료 식별자가 없어 시작 줄과 관측 행의 1:1 짝은 확정하지 않는다. at 은 재확인 회차면 재확인 뒤, 아니면 1차 조회 전 시각이다
++n21after() { local ino s0 r0 j0 ino1 s1 r1 j1 bad=0
++  read -r ino s0 r0 j0 < "$M/mark-$1.txt" || { echo "미확인: 기준 위치 기록 없음"; return 1; }
++  [ -r "$SYSLOG" ] || { echo "미확인: 시스템 기록 $SYSLOG 를 읽을 수 없음"; return 1; }
++  [ -f "$RUNLOG" ] && [ -r "$RUNLOG" ] && [ -f "$JLOG" ] && [ -r "$JLOG" ] || { echo "미확인: 실행 기록·관측 행 파일을 읽을 수 없음"; return 1; }
++  ino1=$(stat -c %i "$SYSLOG"); s1=$(wc -l < "$SYSLOG"); r1=$(wc -l < "$RUNLOG"); j1=$(wc -l < "$JLOG")
++  echo "기준 → 지금: 시스템 기록 inode $ino→$ino1 줄 $s0→$s1 · 실행 기록 줄 $r0→$r1 · 관측 행 $j0→$j1"
++  [ "$ino1" = "$ino" ] && [ "$s1" -ge "$s0" ] || { echo "미확인: 시스템 기록이 교체·축소됨(회전 등) — 회전된 파일을 찾지 않고 보고"; return 1; }
++  [ "$r1" -ge "$r0" ] && [ "$j1" -ge "$j0" ] || { echo "미확인: 실행 기록 또는 관측 행이 줄었다 — 보고"; return 1; }
++  sed -n "$((s0 + 1)),${s1}p" "$SYSLOG" | grep -E 'CRON\[[0-9]+\]: (\([^)]*\) )?CMD \(.*start_66[.]py freshness' > "$M/cron-after-$1.txt" || true
++  sed -n "$((r0 + 1)),${r1}p" "$RUNLOG" > "$M/runlog-after-$1.txt"
++  sed -n "$((j0 + 1)),${j1}p" "$JLOG" > "$M/log-after-$1.jsonl"
++  echo "== 적용 뒤 cron 시작 줄 $(wc -l < "$M/cron-after-$1.txt")개"; tail -3 "$M/cron-after-$1.txt"
++  echo "== 적용 뒤 실행 기록 $(wc -l < "$M/runlog-after-$1.txt")줄 · 그중 Traceback $(grep -c 'Traceback' "$M/runlog-after-$1.txt" || true)줄"
++  echo "== 적용 뒤 관측 행 $(wc -l < "$M/log-after-$1.jsonl")개"
++  [ -s "$M/cron-after-$1.txt" ] || { echo "미확인: 적용 뒤 cron 시작 줄이 없다 — 새 판이 cron 으로 시작됐다는 근거 없음"; bad=1; }
++  [ -s "$M/log-after-$1.jsonl" ] || { echo "미확인: 적용 뒤 새 관측 행이 없다 — 회차가 아직 안 끝났거나 실패(손으로 돌리지 않는다)"; bad=1; }
++  if grep -q 'Traceback' "$M/runlog-after-$1.txt"; then grep -n -A3 'Traceback' "$M/runlog-after-$1.txt" | tail -20; echo "이상: 적용 뒤 실행 기록에 새 Traceback"; bad=1; fi
++  local py=0; [ ! -s "$M/log-after-$1.jsonl" ] || python3 -c '
++import json, sys
++sys.stdout.reconfigure(encoding="utf-8")
++keys = ["at", "green", "rechecked", "red", "redCoins", "rows", "unknown", "unknownCoins"]
++rk = ["count", "dbTo", "exErr", "exTo", "rechecked"]
++bad = 0
++for line in open(sys.argv[1], encoding="utf-8"):
++    try:
++        r = json.loads(line)
++        ok = sorted(r) == keys and all(sorted(v) == rk for v in r["rows"].values())
++        stale = [p for p, v in r["rows"].items() if v["exErr"] and v["exTo"]]
++    except Exception as e:
++        print("행 해석 실패:", type(e).__name__); bad += 1; continue
++    print(r["at"], "🟢%d ⚪%d 🔴%d 재확인 %d" % (r["green"], r["unknown"], r["red"], len(r["rechecked"])),
++          "칸 같음" if ok else "칸 다름", "N21 상태 %d" % len(stale))
++    bad += (not ok) or bool(stale)
++sys.exit(1 if bad else 0)
++' "$M/log-after-$1.jsonl" > "$M/rows-after-$1.txt" 2>&1 || py=$?
++  [ ! -s "$M/rows-after-$1.txt" ] || cat "$M/rows-after-$1.txt"
++  [ "$py" = 0 ] || { echo "이상: JSON 칸이 다르거나 N21 상태 행(실패 종류가 있는데 exTo 가 남음)·해석 실패(종료 $py)"; bad=1; }
++  return "$bad"; }
++# ── N21 공통 함수 끝 ──
+--- D2/U0.sh
++++ D3/U0.sh
+@@ -1,17 +1,17 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "$M" = "$HOME/maint-o13" ] && [ "${UB:-}" = O13D2 ] && [ "$NEW" = 1ec91046bf2bf0b7af0e6f05c04267a6c78efc21 ] && [ -n "${BTCIN:-}" ] && type sid203 > /dev/null 2>&1 && type newsobs > /dev/null 2>&1 && type httpobs > /dev/null 2>&1 && type holdobs > /dev/null 2>&1 && type entryobs > /dev/null 2>&1 && type n17obs > /dev/null 2>&1 && type n19obs > /dev/null 2>&1 && type n20obs > /dev/null 2>&1 || stop "변수 순서 — F 변수 → G 변수 → O1·O3 초안 D2 U 변수"
+-case "$IMGOLD" in sha256:*) ;; *) stop "IMGOLD 가 sha256: 이미지 ID 가 아님 — §5-9 98 U 변수 원문이 아님(초안 D1·D2 는 실행하지 않는다)" ;; esac
++[ "$M" = "$HOME/maint-o13n21" ] && [ "${UB:-}" = O13N21D3 ] && [ "$NEW" = b5cd1d0d47ea68ffe6ff476b89cf9fca5bef1b88 ] && type fresh_idle > /dev/null 2>&1 && type n21mark > /dev/null 2>&1 && type n21after > /dev/null 2>&1 && [ -n "${BTCIN:-}" ] && type sid203 > /dev/null 2>&1 && type newsobs > /dev/null 2>&1 && type httpobs > /dev/null 2>&1 && type holdobs > /dev/null 2>&1 && type entryobs > /dev/null 2>&1 && type n17obs > /dev/null 2>&1 && type n19obs > /dev/null 2>&1 && type n20obs > /dev/null 2>&1 || stop "변수 순서 — F 변수 → G 변수 → O1·O3+N21 초안 D3 U 변수"
++case "$IMGOLD" in sha256:*) ;; *) stop "IMGOLD 가 sha256: 이미지 ID 가 아님 — 승인된 U 변수 원문이 아님(초안 D1·D2·D3 는 실행하지 않는다)" ;; esac
+ [ ! -e "$M/ok-U1" ] || stop "U1 을 이미 시작했다 — U0 를 다시 하지 않는다. ls -l $M 를 보고"
+ kwin "$(date +%s)" || stop "시작 시각·정기 보고 확인 — 위 줄"
+ [ "$(git rev-parse HEAD)" = "$OLD" ] && [ -z "$(git status --porcelain --untracked-files=no)" ] || stop "HEAD 가 1899b49 가 아니거나 추적 파일 변경 있음"
+ date '+%F %T %Z' | tee "$M/t-before.txt"; date '+%F %T%:z' > "$M/maint_start.txt"
+ { git rev-parse HEAD; git status --porcelain --untracked-files=no; echo "(끝)"; } | tee "$M/git-before.txt"
+ git fetch origin
+-git cat-file -e "$NEW^{commit}" || stop "후보 1ec9104 없음"
++git cat-file -e "$NEW^{commit}" || stop "후보 b5cd1d0 없음"
+ git merge-base --is-ancestor $OLD $NEW || stop "1899b49 가 후보의 조상이 아님"
+-[ "$(git diff --name-only $OLD $NEW)" = "$DIFFN" ] || stop "diff 가 정확히 O1·O3 6개 파일이 아님(마이그레이션·설정 포함 금지)"
++[ "$(git diff --name-only $OLD $NEW)" = "$DIFFN" ] || stop "diff 가 정확히 O1·O3 6개·N21 2개, 8개 파일이 아님(마이그레이션·설정 포함 금지)"
+ svc | tee "$M/svc-before.txt"
+ IMG0=$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)"); echo "$IMG0" | tee "$M/image-before.txt"
+ [ "$IMG0" = "$IMGOLD" ] && [ "$IMGOLD" = "$(cat ~/maint-n20/image-new.txt)" ] || stop "실행 이미지가 #26 배포 이미지(~/maint-n20/image-new.txt)와 다름"
+@@ -67,5 +67,14 @@
+ echo "경보 종료코드 $AE"
+ alertsok "$AE" "$M/alerts-before.txt" || stop "경보 조회가 끝까지 돌지 않음 — alerts-before.txt 를 보고"
+ grep -E '^(🔴|⚪)' "$M/alerts-before.txt" || true
+-touch "$M/ok-U0"; echo "✅ U0 통과 — 30분 안에 U1"
++echo "== N21 감시 스크립트 사전 확인"
++[ "$(git rev-parse "HEAD:$NF")" = "$NBOLD" ] && [ "$(h256 "$NF")" = "$NHOLD" ] || stop "start_66.py 가 1899b49 원문(460031d3…)과 다름"
++[ ! -e "$NT" ] || stop "$NT 가 이미 있다(추적 안 된 파일) — 체크아웃이 덮어쓰지 않도록 보고"
++[ "$(git rev-parse "$NEW:$NF")" = "$NBNEW" ] || stop "후보 start_66.py 블롭이 6305e512… 가 아님"
++FI=0; fresh_idle u0 || FI=$?
++[ "$FI" = 0 ] || { [ "$FI" = 1 ] && stop "freshness 회차가 돌고 있다 — 끝난 뒤 U0 부터(끊지 않는다)"; stop "프로세스 조회 실패 — 회차 없음으로 보지 않는다. pgrep-u0.* 를 보고"; }
++n21mark u0 || stop "N21 뒤 확인에 쓸 기록(시스템 기록·실행 기록·관측 행)을 읽을 수 없다 — 배포하지 않고 보고"
++cp -p "$NF" "$M/start_66.py.before"
++for s in freshness_streak.json freshness_snap.json; do [ ! -f "scripts/prospective/$s" ] || cp -p "scripts/prospective/$s" "$M/$s.before"; done
++touch "$M/ok-U0"; echo "✅ U0 통과 — 30분 안에 U1(매시 :14~:24 는 피한다)"
+ )
+--- D2/U1.sh
++++ D3/U1.sh
+@@ -1,16 +1,25 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "${UB:-}" = O13D2 ] || stop "U 변수가 O1·O3 초안 D2 판이 아님 — F → G → O1·O3 초안 D2 U 변수(초안은 실행하지 않는다)"
++[ "${UB:-}" = O13N21D3 ] || stop "U 변수가 O1·O3+N21 초안 D3 판이 아님 — F → G → O1·O3+N21 초안 D3 U 변수(초안은 실행하지 않는다)"
+ [ -e "$M/ok-U0" ] || stop "U0 미통과"
+ [ ! -e "$M/ok-U1" ] || stop "U1 을 이미 통과했다 — 바로 U2"
+ [ $(( $(date +%s) - $(stat -c %Y "$M/ok-U0") )) -le 1800 ] || stop "U0 가 30분보다 오래됨 — U0 부터(아직 바꾼 것 없음, U1-되돌림 하지 않는다)"
++MIN=$((10#$(date +%M)))
++[ "$MIN" -ge 25 ] || [ "$MIN" -lt 14 ] || stop "매시 :14~:24 는 freshness 회차 직전·직후다 — :25 이후 U0 부터(아직 바꾼 것 없음, U1-되돌림 하지 않는다)"
++[ "$(git rev-parse HEAD)" = "$OLD" ] && [ -z "$(git status --porcelain --untracked-files=no)" ] || stop "HEAD·작업 트리가 U0 때와 다름(아직 바꾼 것 없음, U1-되돌림 하지 않는다) — 보고"
++FI=0; fresh_idle u1 || FI=$?
++[ "$FI" = 0 ] || { [ "$FI" = 1 ] && stop "freshness 회차가 돌고 있다(아직 바꾼 것 없음, U1-되돌림 하지 않는다) — 끝난 뒤 U0 부터(끊지 않는다)"; stop "프로세스 조회 실패(아직 바꾼 것 없음, U1-되돌림 하지 않는다) — 회차 없음으로 보지 않는다. pgrep-u1.* 를 보고"; }
++n21mark apply || stop "N21 기준 위치를 기록하지 못했다(아직 바꾼 것 없음, U1-되돌림 하지 않는다) — 보고"
++date -u '+%Y-%m-%dT%H:%M:%SZ' > "$M/t-apply.utc"
+ IMG0=$(cat "$M/image-before.txt")
+ if docker image inspect $REPO:1899b49 > /dev/null 2>&1; then [ "$(docker image inspect --format '{{.Id}}' $REPO:1899b49)" = "$IMG0" ] || stop "$REPO:1899b49 태그가 이미 다른 이미지를 가리킨다(HEAD·latest 그대로, U1-되돌림 하지 않는다)"; fi
+ docker tag "$IMG0" $REPO:1899b49
+ [ "$(docker image inspect --format '{{.Id}}' $REPO:1899b49)" = "$IMG0" ] || stop "기존 이미지 보존 태그 실패(HEAD·latest 그대로, U1-되돌림 하지 않는다)"
+ git checkout --quiet $NEW
+ [ "$(git rev-parse HEAD)" = "$NEW" ] && [ -z "$(git status --porcelain --untracked-files=no)" ] || stop "체크아웃 결과가 NEW 가 아니거나 변경 있음 — U1-되돌림"
++[ "$(h256 "$NF")" = "$NHNEW" ] && [ -e "$NT" ] || stop "start_66.py 가 통합 후보 원문(68d441ce…)과 다르거나 새 시험 파일 없음 — U1-되돌림"
++python3 -c 'import ast,sys; ast.parse(open(sys.argv[1], encoding="utf-8").read())' "$NF" > "$M/syntax.txt" 2>&1 || { cat "$M/syntax.txt"; stop "start_66.py 문법 확인 실패 — U1-되돌림"; }   # 캐시 파일을 쓰지 않는 문법 확인
+ date '+%F %T %Z' | tee "$M/t-build.txt"
+ $DC build backend > "$M/build.log" 2>&1 || stop "빌드 실패 — build.log 를 보고. U1-되돌림"
+ IMG1=$(docker image inspect --format '{{.Id}}' $REPO:latest); echo "$IMG1" | tee "$M/image-new.txt"
+@@ -72,5 +81,5 @@
+ [ "$JC" = 0 ] || stop "jar 비교기 v2 거절(종료 $JC) — 중복 항목·형식 이상. jar-diff.txt 를 보고(재기동 전). U1-되돌림"
+ [ "$(grep -v '^(끝)' "$M/jar-diff.txt")" = "$RARX" ] || stop "jar 차이가 O1·O3 3줄이 아님 — jar-diff.txt 를 보고(재기동 전). U1-되돌림"
+ grep -qx '(끝) 881 881' "$M/jar-diff.txt" || stop "항목 수가 881 → 881 가 아님 — jar-diff.txt 를 보고(재기동 전). U1-되돌림"
+-touch "$M/ok-U1"; echo "✅ U1 통과 — ⏸ 운영자 확인 1회 뒤 U2"
++touch "$M/ok-U1"; echo "✅ U1 통과 — ⏸ 운영자 확인 1회 뒤 U2. 감시 스크립트는 이미 새 판이다: 다음 :19 회차가 끝난 뒤 U5"
+ )
+--- D2/U2.sh
++++ D3/U2.sh
+@@ -1,7 +1,7 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "${UB:-}" = O13D2 ] || stop "U 변수가 O1·O3 초안 D2 판이 아님 — F → G → O1·O3 초안 D2 U 변수(초안은 실행하지 않는다)"
++[ "${UB:-}" = O13N21D3 ] || stop "U 변수가 O1·O3+N21 초안 D3 판이 아님 — F → G → O1·O3+N21 초안 D3 U 변수(초안은 실행하지 않는다)"
+ [ -e "$M/ok-U1" ] || stop "U1 미통과"
+ [ ! -e "$M/ok-U2" ] || stop "U2 를 이미 했다 — U3"
+ IMG1=$(cat "$M/image-new.txt")
+--- D2/U3.sh
++++ D3/U3.sh
+@@ -1,7 +1,7 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "${UB:-}" = O13D2 ] || stop "U 변수가 O1·O3 초안 D2 판이 아님 — F → G → O1·O3 초안 D2 U 변수(초안은 실행하지 않는다)"
++[ "${UB:-}" = O13N21D3 ] || stop "U 변수가 O1·O3+N21 초안 D3 판이 아님 — F → G → O1·O3+N21 초안 D3 U 변수(초안은 실행하지 않는다)"
+ if [ -e "$M/t-rollback.utc" ]; then S=$(cat "$M/t-rollback.utc"); EXP=$(cat "$M/image-before.txt"); T=rollback; else [ -e "$M/ok-U2" ] || stop "U2 미통과"; S=$(cat "$M/t-deploy.utc"); EXP=$(cat "$M/image-new.txt"); T=deploy; fi
+ [ $(( $(date +%s) - $(date -d "$S" +%s) )) -ge 300 ] || stop "기동 5분 전 — 5분이 지난 뒤 U3"
+ $DC ps backend
+--- D2/U4.sh
++++ D3/U4.sh
+@@ -1,7 +1,7 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "${UB:-}" = O13D2 ] || stop "U 변수가 O1·O3 초안 D2 판이 아님 — F → G → O1·O3 초안 D2 U 변수(초안은 실행하지 않는다)"
++[ "${UB:-}" = O13N21D3 ] || stop "U 변수가 O1·O3+N21 초안 D3 판이 아님 — F → G → O1·O3+N21 초안 D3 U 변수(초안은 실행하지 않는다)"
+ [ -e "$M/ok-U3-deploy" ] || stop "U3 미통과"
+ S=$(cat "$M/t-deploy.utc")
+ [ $(( $(date +%s) - $(date -d "$S" +%s) )) -ge 1800 ] || stop "아직 30분 전 — 완료로 판정하지 않는다"
+--- D2/U되돌림.sh
++++ D3/U되돌림.sh
+@@ -1,10 +1,23 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "${UB:-}" = O13D2 ] || stop "U 변수가 O1·O3 초안 D2 판이 아님 — F → G → O1·O3 초안 D2 U 변수(초안은 실행하지 않는다)"
++[ "${UB:-}" = O13N21D3 ] || stop "U 변수가 O1·O3+N21 초안 D3 판이 아님 — F → G → O1·O3+N21 초안 D3 U 변수(초안은 실행하지 않는다)"
+ IMG0=$(cat "$M/image-before.txt"); [ "$IMG0" = "$IMGOLD" ] || stop "image-before 가 #26 이미지(IMGOLD)가 아님"
++[ -e "$M/start_66.py.before" ] || stop "U0 보존본이 없다 — 보고"
++{ git rev-parse HEAD; git status --porcelain --untracked-files=no; echo "(끝)"; } | tee "$M/git-pre-rollback.txt"
++H=$(head -1 "$M/git-pre-rollback.txt")
++[ "$H" = "$NEW" ] || [ "$H" = "$OLD" ] || stop "HEAD 가 통합 후보·1899b49 어느 것도 아님($H) — 다른 작업 상태일 수 있다. 바꾸지 않고 보고"
++[ "$(sed -n 2p "$M/git-pre-rollback.txt")" = "(끝)" ] || stop "추적 파일 변경이 있다 — 덮어쓰지 않고 보고"
++IMGR=$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)") || stop "실행 이미지 조회 실패 — 바꾸지 않고 보고"
++[ "$IMGR" = "$IMG0" ] || { [ -s "$M/image-new.txt" ] && [ "$IMGR" = "$(cat "$M/image-new.txt")" ]; } || stop "실행 이미지가 image-before·image-new 어느 것도 아님 — 다른 작업이 있었을 수 있다. 바꾸지 않고 보고"
++crontab -l > "$M/crontab-rollback.txt" || stop "crontab 조회 실패 — 바꾸지 않고 보고"
++[ "$(h256 "$M/crontab-rollback.txt")" = "$CRON" ] || stop "crontab 이 f2dce280… 과 다름 — 바꾸지 않고 보고"
++FI=0; fresh_idle rb || FI=$?
++[ "$FI" = 0 ] || { [ "$FI" = 1 ] && stop "freshness 회차가 돌고 있다(아직 바꾼 것 없음) — 끝난 뒤 다시(끊지 않는다)"; stop "프로세스 조회 실패(아직 바꾼 것 없음) — 회차 없음으로 보지 않는다. pgrep-rb.* 를 보고"; }
+ date '+%F %T %Z' | tee "$M/t-rollback.txt"; date -u '+%Y-%m-%dT%H:%M:%SZ' > "$M/t-rollback.utc"
+-git checkout --quiet $OLD; [ "$(git rev-parse HEAD)" = "$OLD" ] || stop "체크아웃 실패"
++if [ "$H" = "$NEW" ]; then git checkout --quiet $OLD; else echo "HEAD 가 이미 1899b49 — 체크아웃하지 않는다"; fi
++[ "$(git rev-parse HEAD)" = "$OLD" ] && [ -z "$(git status --porcelain --untracked-files=no)" ] || stop "체크아웃 실패"
++[ "$(h256 "$NF")" = "$NHOLD" ] && cmp -s "$NF" "$M/start_66.py.before" && [ ! -e "$NT" ] || stop "start_66.py 가 U0 보존본과 다르거나 새 시험 파일이 남음 — 보고"
+ docker tag "$IMG0" $REPO:latest
+ $DC up -d --no-build --no-deps --force-recreate backend
+ sleep 15
+--- D2/U뒤관측.sh
++++ D3/U뒤관측.sh
+@@ -1,7 +1,7 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "${UB:-}" = O13D2 ] || stop "U 변수가 O1·O3 초안 D2 판이 아님 — F → G → O1·O3 초안 D2 U 변수(초안은 실행하지 않는다)"
++[ "${UB:-}" = O13N21D3 ] || stop "U 변수가 O1·O3+N21 초안 D3 판이 아님 — F → G → O1·O3+N21 초안 D3 U 변수(초안은 실행하지 않는다)"
+ [ -e "$M/ok-U4" ] || stop "U4 미통과"
+ S=$(cat "$M/t-deploy.utc"); TS=$(date '+%Y%m%d-%H%M')
+ [ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$(cat "$M/image-new.txt")" ] || stop "실행 이미지가 image-new 와 다름 — 보고"
+(새 블록 U1되돌림.sh·U5.sh 는 D2 에 없다. D2 의 U1-되돌림은 계획서 §98 한 줄이었다)

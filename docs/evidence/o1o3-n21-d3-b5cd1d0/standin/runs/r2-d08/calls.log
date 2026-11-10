@@ -1,0 +1,8 @@
+1794274200	git	rev-parse HEAD 
+1794274200	git	status --porcelain --untracked-files=no 
+1794274200	git	rev-parse HEAD 
+1794274200	git	status --porcelain --untracked-files=no 
+1794274200	git	fetch origin 
+1794274200	git	cat-file -e b5cd1d0d47ea68ffe6ff476b89cf9fca5bef1b88^{commit} 
+1794274200	git	merge-base --is-ancestor 1899b49f633f8aefdc66b15c42debdaba8b3852c b5cd1d0d47ea68ffe6ff476b89cf9fca5bef1b88 
+1794274200	git	diff --name-only 1899b49f633f8aefdc66b15c42debdaba8b3852c b5cd1d0d47ea68ffe6ff476b89cf9fca5bef1b88 

@@ -1,0 +1,12 @@
+freshness 회차 없음(pgrep 종료 1)
+2026-11-10 10:49:25    
+6379ee0b2a7527b8136d7fba27e83881980d8555
+(끝)
+기준 → 지금: 시스템 기록 inode 281474978377014→281474978377014 줄 2→3 · 실행 기록 줄 1→2 · 관측 행 1→2
+== 적용 뒤 cron 시작 줄 1개
+Nov 10 12:19:01 yhdeabba CRON[2297465]: (manicstr) CMD (cd ~/crypto_trader/AutoTrader && /usr/bin/python3 scripts/prospective/start_66.py freshness --save >> scripts/prospective/freshness_runs.log 2>&1)
+== 적용 뒤 실행 기록 1줄 · 그중 Traceback 0줄
+== 적용 뒤 관측 행 1개
+2099-01-01T00:19:30+00:00 🟢21 ⚪1 🔴0 재확인 1 칸 같음 N21 상태 0
+✅ A2 — 적용 뒤 cron 시작 줄·새 관측 행·새 Traceback 0 확인(시작 줄과 행의 1:1 짝은 미확정). 재조회 실패 경로(net·404)는 자연 발생 전까지 미관측이다
+[대역] 블록 A2 · 종료 0 · 누적 checkout 1 · HEAD 6379ee0b2a7527b8136d7fba27e83881980d8555

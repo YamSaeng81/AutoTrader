@@ -1,0 +1,16 @@
+freshness 회차 없음(pgrep 종료 1)
+2026-11-10 10:50:37    
+6379ee0b2a7527b8136d7fba27e83881980d8555
+(끝)
+기준 → 지금: 시스템 기록 inode 2251799815351623→2251799815351623 줄 2→3 · 실행 기록 줄 1→4 · 관측 행 1→2
+== 적용 뒤 cron 시작 줄 1개
+Nov 10 12:19:01 yhdeabba CRON[2297465]: (manicstr) CMD (cd ~/crypto_trader/AutoTrader && /usr/bin/python3 scripts/prospective/start_66.py freshness --save >> scripts/prospective/freshness_runs.log 2>&1)
+== 적용 뒤 실행 기록 3줄 · 그중 Traceback 1줄
+== 적용 뒤 관측 행 1개
+1:Traceback (most recent call last):
+2-  File "start_66.py"
+3-ValueError: 대역
+이상: 적용 뒤 실행 기록에 새 Traceback
+2099-01-01T00:19:30+00:00 🟢21 ⚪1 🔴0 재확인 1 칸 같음 N21 상태 0
+🔴 멈춤: 적용 뒤 근거 미확인 또는 이상(종료 1) — n21after-a2.txt 를 보고(회차를 손으로 돌리지 않는다)
+[대역] 블록 A2 · 종료 1 · 누적 checkout 1 · HEAD 6379ee0b2a7527b8136d7fba27e83881980d8555

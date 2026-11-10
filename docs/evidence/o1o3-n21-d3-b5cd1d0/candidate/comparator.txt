@@ -1,0 +1,4 @@
+비교기: docs/evidence/v1135-h2-d2-1ec9104/comparator/jarcmp_v2.py (sha256 56f5d3bab560f064ccec049fb92563b3d2a3ddfde06908da4e31a51b33383046, 고치지 않음)
+실행: python -I -X utf8 jarcmp_v2.py <옛 jar> <새 jar> — 두 대조 모두 종료 0
+옛 jar: 보존 1899b49.jar(a4fd4e34…)·1ec9104.jar(76a8e403…), 새 jar: 통합 b5cd1d0 로컬 bootJar(a7ef759f…)
+1ec9104.jar 와 통합 jar 는 파일 sha256 이 다르지만(빌드 시각 등 포장 차이) 항목 내용 차이는 0 이다

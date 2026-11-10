@@ -1,0 +1,9 @@
+#!/bin/bash
+# 가짜 pgrep -af <패턴> (D3) — $SIM/state/procs.txt 의 각 줄('PID 명령줄')에서 명령줄 부분에 패턴을 grep -E 로 적용한다.
+# procs.txt 에는 F·G·D3 블록 원문을 한 줄로 담은 bash -c 명령줄이 들어 있다. $SIM/state/pgrep.rc 가 있으면 그 종료값(조회 실패)을 낸다.
+. "$(dirname "$0")/_lib.sh"; calllog pgrep "$@"
+if [ -e "$ST/pgrep.rc" ]; then echo "pgrep: 대역 조회 실패" >&2; exit "$(cat "$ST/pgrep.rc")"; fi
+[ "$1" = -af ] && [ $# = 2 ] || forbid pgrep "$@"
+hit=0
+while IFS= read -r l; do printf '%s\n' "${l#* }" | /usr/bin/grep -qE -- "$2" && { printf '%s\n' "$l" | cut -c1-120; hit=1; }; done < "$ST/procs.txt"
+[ $hit = 1 ] && exit 0 || exit 1
