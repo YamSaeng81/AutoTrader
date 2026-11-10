@@ -1,0 +1,615 @@
+{
+  "reviewed_commit": "9aa617d134e7bd51c2f97d16d0815cbdc6623a4e",
+  "candidate": "b5cd1d0d47ea68ffe6ff476b89cf9fca5bef1b88",
+  "manifests": {
+    "n21-apply-draft-v2-6379ee0b": {
+      "manifest_entries": 40,
+      "files_including_manifest": 41
+    },
+    "o1o3-n21-d3-b5cd1d0": {
+      "manifest_entries": 234,
+      "files_including_manifest": 235
+    },
+    "review-da7977d4": {
+      "manifest_entries": 12,
+      "files_including_manifest": 13
+    }
+  },
+  "matched_local_and_committed_payloads": 286,
+  "committed_manifest_files": {
+    "n21-apply-draft-v2-6379ee0b": "0d5cdaa991b54281af3b0e78b43f01b2ab2eceb70da5f2f5af9642ff01623f83",
+    "o1o3-n21-d3-b5cd1d0": "a994ecfc945d99add59ad302bb84bb3173f635730cf9c05a47e616a370901726",
+    "review-da7977d4": "62312734e21943051e4e66f31acbca3311df4196fb30b0ffab8603e190d97778"
+  },
+  "eight_blob_identities": [
+    {
+      "path": "scripts/prospective/start_66.py",
+      "source": "6379ee0b2a7527b8136d7fba27e83881980d8555",
+      "blob": "6305e512f88e0e9e6f0ec32ec99a28c48bc3fc8d"
+    },
+    {
+      "path": "scripts/prospective/test_freshness_recheck_fail.py",
+      "source": "6379ee0b2a7527b8136d7fba27e83881980d8555",
+      "blob": "15166c0e7d66bcb078579b18a3e3699f6a91bb0a"
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java",
+      "source": "1ec91046bf2bf0b7af0e6f05c04267a6c78efc21",
+      "blob": "ff5ebf7331a48c4d8d80b90be2d0c82958cd0fdb"
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java",
+      "source": "1ec91046bf2bf0b7af0e6f05c04267a6c78efc21",
+      "blob": "4c1bdd26176ab4db935b3b71d742ffb3a20edfee"
+    },
+    {
+      "path": "web-api/src/test/java/com/cryptoautotrader/api/service/ExecutionDriftTrackerTest.java",
+      "source": "1ec91046bf2bf0b7af0e6f05c04267a6c78efc21",
+      "blob": "3ef562a73fb47737b32b635aa83e309abd6c74e1"
+    },
+    {
+      "path": "web-api/src/test/java/com/cryptoautotrader/api/service/N15PgLockWaitExpiryTest.java",
+      "source": "1ec91046bf2bf0b7af0e6f05c04267a6c78efc21",
+      "blob": "cfbd946fd1396aa4cab2baf5a33e59ae94800df8"
+    },
+    {
+      "path": "web-api/src/test/java/com/cryptoautotrader/api/service/O1O3LogContractTest.java",
+      "source": "1ec91046bf2bf0b7af0e6f05c04267a6c78efc21",
+      "blob": "1c4be579772f457eb916332f57d160ab62919d0d"
+    },
+    {
+      "path": "web-api/src/test/java/com/cryptoautotrader/api/service/PoolLossLimitTest.java",
+      "source": "1ec91046bf2bf0b7af0e6f05c04267a6c78efc21",
+      "blob": "6f49a121cc49e265da201caf0eb7b80324f01ee1"
+    }
+  ],
+  "syntax": {
+    "U0.sh": 0,
+    "U1.sh": 0,
+    "U1되돌림.sh": 0,
+    "U2.sh": 0,
+    "U3.sh": 0,
+    "U4.sh": 0,
+    "U5.sh": 0,
+    "U되돌림.sh": 0,
+    "U뒤관측.sh": 0,
+    "U변수.sh": 0
+  },
+  "fixed_block_sha256": {
+    "U0.sh": "7874a44eaad03efcf721bceda853bfeb18b3f216043f7f09af6e49efae1760b8",
+    "U1.sh": "3df3e166f9d41da14caad0f6bbd471648680652c544b8823f46115ef94c07fc4",
+    "U1되돌림.sh": "73b7c46f76a765ec4de175d38f44525569e1017363e076db2996bb3dffe17d75",
+    "U2.sh": "7ad3574f433e2660cc91ef8d10b2a41e2e6d3fc3d823b12cfcc563e971d9b962",
+    "U3.sh": "5a53c33a8c4e88c71e638c611d7cde2aed3ce4149f8b67fd3b7343191d7490c0",
+    "U4.sh": "abf0fc55e2a9a5283f16c8dc198b805acacd8d7d91b99aaefbf2b01a8e4a1666",
+    "U5.sh": "889fe3f681947aaa2f20eca639b6a882a71587f3461c0fba3a5cdbed8383a419",
+    "U되돌림.sh": "72adacd2c132c4e49189ae42865839cc27c085e1082e4b1c0e8b92060ee71400",
+    "U뒤관측.sh": "01c93d25c113ddcad4b721a5c1df63e3f7574d376525dbe6688980feb18bb9c1",
+    "U변수.sh": "0072c305731c94bec43922d5ec2402ae3592ee70dcddfa9fc31b28c0fbc57a54"
+  },
+  "jar_sha256": {
+    "1899b49": "a4fd4e343e6c48d7c5aa4a844f33c431eed10eff0757681d7c3bf262d554bdac",
+    "1ec9104": "76a8e403b7527a7c7ec9f32b0d439f008d226a77127e1ce5e394d51fbe976a03",
+    "b5cd1d0": "a7ef759f86c6048b442b1fe37019ed2560fd87453fbea8991a67f49d8d28c79f"
+  },
+  "jar_comparator_embedded_exact": true,
+  "stored_standin": {
+    "r2_assertions": 114,
+    "r2_cases": 26,
+    "forbidden_lines": 0,
+    "individual_block_exit_and_reason_matches": 81,
+    "r1_failures": 81,
+    "r1_exit_mismatches": 0,
+    "r2_traces": {
+      "r2-d01": {
+        "checkout_calls": 1,
+        "outputs": [
+          {
+            "name": "out-U0.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U1.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U2.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U3.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U4.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U5-before.txt",
+            "exit": 1
+          },
+          {
+            "name": "out-U5.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U뒤관측.txt",
+            "exit": 0
+          }
+        ]
+      },
+      "r2-d02": {
+        "checkout_calls": 0,
+        "outputs": [
+          {
+            "name": "out-U0.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U1.txt",
+            "exit": 1
+          }
+        ]
+      },
+      "r2-d03": {
+        "checkout_calls": 0,
+        "outputs": [
+          {
+            "name": "out-U0.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U1.txt",
+            "exit": 1
+          }
+        ]
+      },
+      "r2-d04": {
+        "checkout_calls": 0,
+        "outputs": [
+          {
+            "name": "out-U0.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U1.txt",
+            "exit": 1
+          }
+        ]
+      },
+      "r2-d05": {
+        "checkout_calls": 0,
+        "outputs": [
+          {
+            "name": "out-U0.txt",
+            "exit": 1
+          }
+        ]
+      },
+      "r2-d06": {
+        "checkout_calls": 0,
+        "outputs": [
+          {
+            "name": "out-U0.txt",
+            "exit": 1
+          }
+        ]
+      },
+      "r2-d07": {
+        "checkout_calls": 0,
+        "outputs": [
+          {
+            "name": "out-U0.txt",
+            "exit": 1
+          }
+        ]
+      },
+      "r2-d08": {
+        "checkout_calls": 0,
+        "outputs": [
+          {
+            "name": "out-U0.txt",
+            "exit": 1
+          }
+        ]
+      },
+      "r2-d09": {
+        "checkout_calls": 0,
+        "outputs": [
+          {
+            "name": "out-U0.txt",
+            "exit": 1
+          }
+        ]
+      },
+      "r2-d10": {
+        "checkout_calls": 0,
+        "outputs": [
+          {
+            "name": "out-U0.txt",
+            "exit": 1
+          },
+          {
+            "name": "out-U1.txt",
+            "exit": 1
+          }
+        ]
+      },
+      "r2-d11": {
+        "checkout_calls": 1,
+        "outputs": [
+          {
+            "name": "out-U0.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U1.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U5.txt",
+            "exit": 1
+          }
+        ]
+      },
+      "r2-d12": {
+        "checkout_calls": 1,
+        "outputs": [
+          {
+            "name": "out-U0.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U1.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U5.txt",
+            "exit": 1
+          }
+        ]
+      },
+      "r2-d13": {
+        "checkout_calls": 1,
+        "outputs": [
+          {
+            "name": "out-U0.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U1.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U5.txt",
+            "exit": 1
+          }
+        ]
+      },
+      "r2-d14": {
+        "checkout_calls": 1,
+        "outputs": [
+          {
+            "name": "out-U0.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U1.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U5.txt",
+            "exit": 0
+          }
+        ]
+      },
+      "r2-d15": {
+        "checkout_calls": 1,
+        "outputs": [
+          {
+            "name": "out-U0.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U1.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U5.txt",
+            "exit": 1
+          }
+        ]
+      },
+      "r2-d16": {
+        "checkout_calls": 2,
+        "outputs": [
+          {
+            "name": "out-U0.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U1.txt",
+            "exit": 1
+          },
+          {
+            "name": "out-U1되돌림.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U2.txt",
+            "exit": 1
+          },
+          {
+            "name": "out-U5.txt",
+            "exit": 1
+          }
+        ]
+      },
+      "r2-d17": {
+        "checkout_calls": 1,
+        "outputs": [
+          {
+            "name": "out-U0.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U1.txt",
+            "exit": 1
+          },
+          {
+            "name": "out-U1되돌림.txt",
+            "exit": 1
+          }
+        ]
+      },
+      "r2-d18": {
+        "checkout_calls": 1,
+        "outputs": [
+          {
+            "name": "out-U0.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U1.txt",
+            "exit": 1
+          },
+          {
+            "name": "out-U1되돌림.txt",
+            "exit": 1
+          }
+        ]
+      },
+      "r2-d19": {
+        "checkout_calls": 1,
+        "outputs": [
+          {
+            "name": "out-U0.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U1.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U1되돌림.txt",
+            "exit": 1
+          },
+          {
+            "name": "out-U2.txt",
+            "exit": 0
+          }
+        ]
+      },
+      "r2-d20": {
+        "checkout_calls": 2,
+        "outputs": [
+          {
+            "name": "out-U0.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U1.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U2.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U3-rollback.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U5.txt",
+            "exit": 1
+          },
+          {
+            "name": "out-U되돌림.txt",
+            "exit": 0
+          }
+        ]
+      },
+      "r2-d21": {
+        "checkout_calls": 1,
+        "outputs": [
+          {
+            "name": "out-U0.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U1.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U2.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U되돌림.txt",
+            "exit": 1
+          }
+        ]
+      },
+      "r2-d22": {
+        "checkout_calls": 1,
+        "outputs": [
+          {
+            "name": "out-U0.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U1.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U2.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U되돌림.txt",
+            "exit": 1
+          }
+        ]
+      },
+      "r2-d23": {
+        "checkout_calls": 1,
+        "outputs": [
+          {
+            "name": "out-U0.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U1.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U2.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U되돌림.txt",
+            "exit": 1
+          }
+        ]
+      },
+      "r2-d24": {
+        "checkout_calls": 1,
+        "outputs": [
+          {
+            "name": "out-U0.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U1.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U2.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U되돌림.txt",
+            "exit": 1
+          }
+        ]
+      },
+      "r2-d25": {
+        "checkout_calls": 1,
+        "outputs": [
+          {
+            "name": "out-U0.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U1.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U2.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U되돌림.txt",
+            "exit": 1
+          }
+        ]
+      },
+      "r2-d26": {
+        "checkout_calls": 1,
+        "outputs": [
+          {
+            "name": "out-U0.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U1.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U2.txt",
+            "exit": 0
+          },
+          {
+            "name": "out-U되돌림.txt",
+            "exit": 1
+          }
+        ]
+      }
+    },
+    "concurrency_assessment": "Per-case SIM/state/output files; shared stubs/config/blocks/source/jars read only. No blanket rerun."
+  },
+  "root_common_boundary_checks": [
+    {
+      "name": "process-idle",
+      "result": 0
+    },
+    {
+      "name": "process-busy",
+      "result": 1
+    },
+    {
+      "name": "process-lookup-error",
+      "result": 2
+    },
+    {
+      "name": "process-missing-command",
+      "result": 2
+    },
+    {
+      "name": "process-contradictory-none",
+      "result": 2
+    },
+    {
+      "name": "after-normal",
+      "result": 0
+    },
+    {
+      "name": "after-no-cron",
+      "result": 1
+    },
+    {
+      "name": "after-new-traceback",
+      "result": 1
+    },
+    {
+      "name": "after-old-traceback",
+      "result": 0
+    },
+    {
+      "name": "after-no-row",
+      "result": 1
+    },
+    {
+      "name": "after-retained-exTo",
+      "result": 1
+    }
+  ],
+  "not_executed": [
+    "SSH/server/DB/HTTP",
+    "actual pgrep/Linux race",
+    "product/PG/full regression",
+    "Gradle/bootJar",
+    "full standin repeat",
+    "git checkout/commit/push"
+  ]
+}

@@ -1,0 +1,90 @@
+2026-11-10 12:45:05 KST
+HEAD b5cd1d0d47ea68ffe6ff476b89cf9fca5bef1b88
+추적 변경 0줄
+autotrader-backend:latest sha256:52e12428a60df5413d6e495024220bbd4c8fa07830549556f0b47bbe6ad39055
+autotrader-backend:1899b49 sha256:426a09a20afc9e16cff8b7a569d4e04f18ed47cefb9242f44e3b9ea9666153a1
+autotrader-backend:ee509cf sha256:200f2f5727e90204574fd9965a5cc06dfc5d317e98c13b200de2ac7201378ae6
+autotrader-backend:7a94472 sha256:e51b512a72cc3740313bb2a9e6f369d4f480554c588f322cff518c827f9c7be6
+autotrader-backend:1103f48 sha256:9818254ca137a79245d1b30f07c0e193ca4d9a1ac028e0b26a16af6853616b62
+autotrader-backend:fe01207 sha256:9cb5d84f0bfde5208f24f591ad291dacabdfa691a0b2e1f057c4f8c3e1720fb7
+autotrader-backend:6995c52 sha256:67294e80ada31d346e36caeb01a2c259b6b5514357c804977ba1d20fba6aec07
+autotrader-backend:b1d7664 sha256:fd3ac351bcf508d465b9c2f6024ba978273603729f3e6cecba40a639a2f4dcb6
+autotrader-backend:ea44900 sha256:618046540764e49aa40efef7ec950f28cd5882e8bf7d6bdfdc3da0ed1f0112f9
+실행 backend Image=sha256:426a09a20afc9e16cff8b7a569d4e04f18ed47cefb9242f44e3b9ea9666153a1 StartedAt=2026-11-06T04:36:38.159366843Z RestartCount=0 Status=running
+== image-before.txt
+sha256:426a09a20afc9e16cff8b7a569d4e04f18ed47cefb9242f44e3b9ea9666153a1
+== image-new.txt
+sha256:52e12428a60df5413d6e495024220bbd4c8fa07830549556f0b47bbe6ad39055
+== t-apply.utc
+2026-11-10T03:43:21Z
+== t-build.txt
+2026-11-10 12:43:21 KST
+== git-before.txt
+1899b49f633f8aefdc66b15c42debdaba8b3852c
+(끝)
+== mark-apply.txt
+1573827 136852 38306 1039
+== syntax.txt
+== jar-sha.txt
+10bf86285c6e5eaf7cbe740f060eff852cc943128e521eb3e2c0a42bd2db69a5  /home/manicstr/maint-o13n21/app-old.jar
+4a6853689be9c36a984b41e80b8c36b8885cd894707768bfd3ad336c6376239b  /home/manicstr/maint-o13n21/app-new.jar
+== jar-diff.txt
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$PriceSnapshot.class
+변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService.class
+(끝) 881 881
+== build.log 끝 5줄
+#14 DONE 9.8s
+
+#15 resolving provenance for metadata file
+#15 DONE 0.0s
+ Image autotrader-backend Built 
+== /home/manicstr/maint-o13n21 목록
+alerts-before.txt
+app-new.jar
+app-old.jar
+backend-before.log
+btc-before.txt
+build.log
+container-time-before.txt
+crontab-before.txt
+entry-before.txt
+freshness_snap.json.before
+freshness_streak.json.before
+git-before.txt
+hold-before.txt
+http-before.txt
+image-before.txt
+image-new.txt
+jar-diff.txt
+jar-sha.txt
+ledger-files-before.sha
+maint_start.txt
+maint_verify.py
+mark-apply.txt
+mark-u0.txt
+n17-before.txt
+n19-before.txt
+n20-before.txt
+news-before.txt
+news-err-before.txt
+ok-U0
+ok-U1
+pgrep-u0.err
+pgrep-u0.txt
+pgrep-u1.err
+pgrep-u1.txt
+q-before.txt
+s-before.txt
+start_66.py.before
+svc-before.txt
+syntax.txt
+t-apply.utc
+t-before.txt
+t-build.txt
+timezone-before.txt
+== 새 시험 파일
+-rw-rw-r-- 1 manicstr manicstr 9120 Nov 10 12:43 scripts/prospective/test_freshness_recheck_fail.py
+68d441ce0ed66d0a654d9ec7ca485d0a69a5bb8bacf4de48b5d61d0ef813b56b  scripts/prospective/start_66.py
+crontab f2dce2809c09aa44
+3309043 bash -c cd ~/crypto_trader/AutoTrader; M=~/maint-o13n21; R=autotrader-backend; TZ=Asia/Seoul date "+%F %T %Z"; echo "HEAD $(git rev-parse HEAD)"; echo "추적 변경 $(git status --porcelain --untracked-files=no | wc -l)줄"; git status --porcelain --untracked-files=no; for t in latest 1899b49 ee509cf 7a94472 1103f48 fe01207 6995c52 b1d7664 ea44900; do echo "$R:$t $(docker image inspect --format "{{.Id}}" $R:$t 2>&1)"; done; c=$(docker compose -f docker-compose.prod.yml ps -q backend); docker inspect --format "실행 backend Image={{.Image}} StartedAt={{.State.StartedAt}} RestartCount={{.RestartCount}} Status={{.State.Status}}" $c; for f in image-before.txt image-new.txt t-apply.utc t-build.txt git-before.txt mark-apply.txt syntax.txt jar-sha.txt jar-diff.txt; do echo "== $f"; cat $M/$f; done; echo "== build.log 끝 5줄"; tail -5 $M/build.log; echo "== $M 목록"; ls $M; echo "== 새 시험 파일"; ls -l scripts/prospective/test_freshness_recheck_fail.py; sha256sum scripts/prospective/start_66.py; echo "crontab $(crontab -l | sha256sum | cut -c1-16)"; pgrep -af "start_66.py freshness" || echo "freshness 회차 없음(pgrep $?)"

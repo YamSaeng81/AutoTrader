@@ -1,0 +1,11 @@
+Root review harness failure (not product or submitted block failure):
+review.py globbed every *.txt in a stand-in out directory and required one block exit footer.
+standin/runs/r2-d01/out/clock.txt is a clock snapshot, not a block output.
+AssertionError at review.py line 127, len(rc) == 1, clock.txt.
+The selector was narrowed to out-*.txt; the exit-footer assertion was not weakened.
+No source, submitted evidence, or submitted expected value was changed.
+
+Control-document updater first attempt (before any write) incorrectly assumed
+that PROGRESS contained only one historical 'last updated' marker. It has more
+than one. The selector was restricted to the unique current 350th entry;
+historical entries were retained. The failed attempt wrote no document.

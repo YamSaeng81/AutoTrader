@@ -1,0 +1,13 @@
+[로컬 시작] 2026-11-10 14:05:15 +0900 블록=U5 구분=deploy 출처=9aa617d134e7bd51c2f97d16d0815cbdc6623a4e
+freshness 회차 없음(pgrep 종료 1)
+2026-11-10 14:05:17 KST
+b5cd1d0d47ea68ffe6ff476b89cf9fca5bef1b88
+(끝)
+기준 → 지금: 시스템 기록 inode 1573827→1573827 줄 136852→140004 · 실행 기록 줄 38306→38347 · 관측 행 1039→1040
+== 적용 뒤 cron 시작 줄 1개
+Nov 10 13:19:01 yhdeabba CRON[3324685]: (manicstr) CMD (cd ~/crypto_trader/AutoTrader && /usr/bin/python3 scripts/prospective/start_66.py freshness --save >> scripts/prospective/freshness_runs.log 2>&1)
+== 적용 뒤 실행 기록 41줄 · 그중 Traceback 0줄
+== 적용 뒤 관측 행 1개
+2026-11-10T04:20:36.331905+00:00 🟢21 ⚪0 🔴1 재확인 1 칸 같음 N21 상태 0
+✅ U5 — 적용 뒤 cron 시작 줄·새 관측 행·새 Traceback 0 확인(시작 줄과 행의 1:1 짝은 미확정). 재조회 실패 경로(net·404)는 자연 발생 전까지 미관측이다
+[로컬 끝] 2026-11-10 14:05:16 +0900 rc=0
