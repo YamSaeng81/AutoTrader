@@ -47,7 +47,7 @@ public class PaperTradingStartRequest {
 
     private boolean enableTelegram = false;
 
-    @AssertTrue(message = "초기 자본은 100,000원 이상이어야 한다 (strategyParams.paperMaxInvestment 를 지정한 세션만 5,000원부터 허용, 상한은 5,000원 이상의 숫자)")
+    @AssertTrue(message = "초기 자본은 100,000원 이상이어야 한다 (strategyParams.paperMaxInvestment 를 지정한 세션만 5,000원부터 허용, 상한은 5,000원 이상의 숫자, 명시적 null 불가)")
     @com.fasterxml.jackson.annotation.JsonIgnore
     public boolean isCapitalWithinPaperFloor() {
         return com.cryptoautotrader.api.service.PaperMaxInvestment.capitalViolation(initialCapital, strategyParams) == null;

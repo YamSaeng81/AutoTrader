@@ -20,7 +20,7 @@ import java.util.Map;
  * </ul>
  *
  * <p>키가 없으면 종전과 완전히 같다 — 최소 원금 100,000원, 매수금 = 가용 × 투자 비율.
- * 키가 있는데 숫자가 아니거나 업비트 최소 주문(5,000원) 미만이면 <b>세션을 만들지 않는다</b>.
+ * 키가 있는데 값이 null 이거나 숫자가 아니거나 업비트 최소 주문(5,000원) 미만이면 <b>세션을 만들지 않는다</b>.
  * 조용히 무시하면 2026-08-24 파라미터 유실 사고처럼 실험군이 대조군과 같아진 채 아무도 모르게 된다.</p>
  */
 public final class PaperMaxInvestment {
@@ -37,21 +37,30 @@ public final class PaperMaxInvestment {
     }
 
     /**
+     * 키 없음과 명시적 {@code null} 을 구분한다 (2026-11-10 총괄 v1.143 — {@code get(KEY) == null} 은 둘을 같게 봐서
+     * {@code "paperMaxInvestment": null} 세션이 상한 없는 세션으로 통과했다).
+     * 오류 문구에 입력 원문을 붙이지 않는다.
+     *
      * @return 상한. 키가 없으면 {@code null}
-     * @throws IllegalStateException 키가 있는데 숫자가 아니거나 {@link #MIN} 미만
+     * @throws IllegalStateException 키가 있는데 값이 null·숫자 아님(불리언·객체 포함)·{@link #MIN} 미만
      */
     public static BigDecimal from(Map<String, Object> strategyParams) {
-        if (strategyParams == null) return null;
+        if (strategyParams == null || !strategyParams.containsKey(KEY)) return null;
         Object raw = strategyParams.get(KEY);
-        if (raw == null) return null;
+        if (raw == null) {
+            throw new IllegalStateException(KEY + " 가 null 이다 — 상한을 두지 않으려면 키 자체를 빼야 한다");
+        }
+        if (!(raw instanceof Number) && !(raw instanceof CharSequence)) {
+            throw new IllegalStateException(KEY + " 는 숫자여야 한다");
+        }
         BigDecimal v;
         try {
             v = new BigDecimal(raw.toString().trim());
         } catch (NumberFormatException e) {
-            throw new IllegalStateException(KEY + " 가 숫자가 아니다: " + raw);
+            throw new IllegalStateException(KEY + " 는 숫자여야 한다");
         }
         if (v.compareTo(MIN) < 0) {
-            throw new IllegalStateException(KEY + " 는 " + MIN.toPlainString() + "원 이상이어야 한다: " + v.toPlainString());
+            throw new IllegalStateException(KEY + " 는 " + MIN.toPlainString() + "원 이상이어야 한다");
         }
         return v;
     }

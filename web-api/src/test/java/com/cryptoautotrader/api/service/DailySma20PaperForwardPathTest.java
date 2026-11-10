@@ -134,6 +134,15 @@ class DailySma20PaperForwardPathTest extends IntegrationTestBase {
         return req;
     }
 
+    /** 상한 키를 값 그대로(명시적 null 포함) 넣는다. */
+    private static PaperTradingStartRequest requestWithKey(String initialCapital, Object maxInvestment) {
+        PaperTradingStartRequest req = request(initialCapital, null);
+        Map<String, Object> p = new HashMap<>();
+        p.put(PaperMaxInvestment.KEY, maxInvestment);
+        req.setStrategyParams(p);
+        return req;
+    }
+
     private VirtualBalanceEntity startAndEvaluate(PaperTradingStartRequest req) {
         VirtualBalanceEntity s = paperTradingService.start(req);
         sessionIds.add(s.getId());
@@ -190,30 +199,84 @@ class DailySma20PaperForwardPathTest extends IntegrationTestBase {
         assertThat(onlyOpenPosition(s.getId()).getInvestedKrw()).isEqualByComparingTo("99500.00");
     }
 
-    @Test
-    @DisplayName("서비스 생성 경로 — 키 없이 10만원 미만이거나 상한이 잘못되면 세션을 만들지 않는다")
-    void serviceRejectsWithoutCreating() {
-        long before = balanceRepo.count();
-        assertThatThrownBy(() -> paperTradingService.start(request("20200", null)))
-                .isInstanceOf(IllegalStateException.class).hasMessageContaining("100000");
-        assertThatThrownBy(() -> paperTradingService.start(request("20200", "4999")))
-                .isInstanceOf(IllegalStateException.class).hasMessageContaining(PaperMaxInvestment.KEY);
-        assertThatThrownBy(() -> paperTradingService.start(request("20200", "abc")))
-                .isInstanceOf(IllegalStateException.class).hasMessageContaining(PaperMaxInvestment.KEY);
-        assertThat(balanceRepo.count()).isEqualTo(before);
+    /** 키 값별 기대 — 통과(null 사유)면 세션이 생겨야 하고, 거절이면 세션이 생기지 않아야 한다. */
+    private static Object[][] capMatrix() {
+        return new Object[][]{
+                // 원금, 키 값(ABSENT = 키 없음), 통과 여부
+                {"100000", ABSENT, true},     // 키 없음 — 종전
+                {"20200", ABSENT, false},     // 키 없음 — 종전 최소 원금 100,000
+                {"20200", 20000, true},       // 정상 숫자
+                {"20200", "20000", true},     // 숫자 문자열
+                {"20200", 0, false},          // 0
+                {"20200", -20000, false},     // 음수
+                {"20200", "4999", false},     // 최소 주문 미만
+                {"20200", "abc", false},      // 형식 이상
+                {"20200", true, false},       // 불리언
+                {"20200", Map.of("v", 20000), false}, // 객체
+                {"100000", null, false},      // 명시적 null — 키 없음과 다르다
+                {"20200", null, false},       // 명시적 null
+                {"4999", 20000, false},       // 상한이 있어도 원금 5,000 미만
+        };
+    }
+
+    private static final Object ABSENT = new Object();
+
+    private static PaperTradingStartRequest matrixRequest(Object[] row) {
+        return row[1] == ABSENT ? request((String) row[0], null) : requestWithKey((String) row[0], row[1]);
     }
 
     @Test
-    @DisplayName("요청 검증 — 키 없으면 최소 100,000, 키가 있으면 5,000 이상의 숫자 상한과 원금 5,000 이상")
-    void requestValidation() {
+    @DisplayName("서비스 생성 경로 — 키 없음/정상/숫자 문자열/0/음수/미만/형식 이상/불리언/객체/명시적 null, 거절이면 세션 없음·문구에 입력 원문 없음")
+    void serviceMatrix() {
+        for (Object[] row : capMatrix()) {
+            String label = row[0] + " / " + (row[1] == ABSENT ? "키 없음" : String.valueOf(row[1]));
+            long before = balanceRepo.count();
+            if ((boolean) row[2]) {
+                VirtualBalanceEntity s = paperTradingService.start(matrixRequest(row));
+                sessionIds.add(s.getId());
+                assertThat(balanceRepo.count()).as(label).isEqualTo(before + 1);
+            } else {
+                assertThatThrownBy(() -> paperTradingService.start(matrixRequest(row))).as(label)
+                        .isInstanceOf(IllegalStateException.class)
+                        .satisfies(e -> assertThat(e.getMessage()).doesNotContain("abc", "true", "{v="));
+                assertThat(balanceRepo.count()).as(label).isEqualTo(before);
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("요청 검증 — 서비스와 같은 표로 통과/거절이 같다")
+    void requestValidationMatrix() {
         Validator v = Validation.buildDefaultValidatorFactory().getValidator();
-        assertThat(v.validate(request("100000", null))).isEmpty();
-        assertThat(v.validate(request("99999", null))).isNotEmpty();
-        assertThat(v.validate(request("20200", null))).isNotEmpty();
-        assertThat(v.validate(request("20200", 20000))).isEmpty();
-        assertThat(v.validate(request("20200", "4999"))).isNotEmpty();
-        assertThat(v.validate(request("20200", "abc"))).isNotEmpty();
-        assertThat(v.validate(request("4999", 20000))).isNotEmpty();
+        for (Object[] row : capMatrix()) {
+            String label = row[0] + " / " + (row[1] == ABSENT ? "키 없음" : String.valueOf(row[1]));
+            assertThat(v.validate(matrixRequest(row)).isEmpty()).as(label).isEqualTo((boolean) row[2]);
+        }
+    }
+
+    @Test
+    @DisplayName("명시적 null 세션은 평가 경로까지 가지 않는다 — 생성 전에 거절")
+    void explicitNullHelper() {
+        Map<String, Object> p = new HashMap<>();
+        p.put(PaperMaxInvestment.KEY, null);
+        assertThatThrownBy(() -> PaperMaxInvestment.from(p)).isInstanceOf(IllegalStateException.class);
+        assertThat(PaperMaxInvestment.capitalViolation(new BigDecimal("100000"), p)).isNotNull();
+        assertThat(PaperMaxInvestment.from(new HashMap<>())).isNull();
+        assertThat(PaperMaxInvestment.from(null)).isNull();
+    }
+
+    @Test
+    @DisplayName("HTTP 생성 경로 — JSON 명시적 null 상한은 400, 세션 없음")
+    void httpRejectsExplicitNull() throws Exception {
+        long before = balanceRepo.count();
+        String body = "{\"strategyType\":\"" + DailySmaTrendStrategy.NAME + "\",\"coinPair\":\"" + COIN
+                + "\",\"timeframe\":\"H1\",\"initialCapital\":100000,\"investRatio\":0.995,\"stopLossPct\":5.00,"
+                + "\"maxHoldHours\":0,\"strategyParams\":{\"" + PaperMaxInvestment.KEY + "\":null}}";
+        int status = mockMvc.perform(post("/api/v1/paper-trading/sessions")
+                        .contentType(MediaType.APPLICATION_JSON).content(body))
+                .andReturn().getResponse().getStatus();
+        assertThat(status).isEqualTo(400);
+        assertThat(balanceRepo.count()).isEqualTo(before);
     }
 
     @Test
