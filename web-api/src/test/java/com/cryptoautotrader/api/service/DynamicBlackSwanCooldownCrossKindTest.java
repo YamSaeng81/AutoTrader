@@ -190,4 +190,36 @@ class DynamicBlackSwanCooldownCrossKindTest extends IntegrationTestBase {
         assertThat(realLog).doesNotContain("BLACK_SWAN");
         assertThat(realLog).isNotEqualTo("로그 없음");
     }
+
+    /** 재기동 흉내 — 서비스 전역 지도를 비우고 운영 기동 처리기 restoreBlackSwanCooldown 을 그대로 부른다. */
+    private Map<String, java.time.Instant> restartAndRestore() {
+        DynamicTradingService t = AopTestUtils.getUltimateTargetObject(dynamicTradingService);
+        globalMaps().forEach(Map::clear);
+        t.restoreBlackSwanCooldown();
+        return t.blackSwanBlockedAt;
+    }
+
+    @Test
+    @DisplayName("기동 복원 비대칭 — PAPER 가 만든 쿨다운은 재기동 뒤 복원되지 않는다(재기동 전에는 REAL 을 막았다)")
+    void paperOriginatedCooldownNotRestored() {
+        insert(BTC, 100_000_000L, false);
+        insert(COIN, 1_000_000L, true);
+        Long paper = session("PAPER");
+        tick(paper);
+        DynamicTradingService t = AopTestUtils.getUltimateTargetObject(dynamicTradingService);
+        assertThat(t.blackSwanBlockedAt).as("재기동 전 — PAPER 평가가 기록").containsKey(COIN);
+        System.out.println("[복원] PAPER 차단 로그: " + lastLog(paper));
+        assertThat(restartAndRestore()).as("재기동 뒤 — PAPER 기록은 복원 대상(DYNAMIC 로그) 밖").doesNotContainKey(COIN);
+    }
+
+    @Test
+    @DisplayName("기동 복원 대조 — REAL 이 만든 쿨다운은 재기동 뒤 복원된다")
+    void realOriginatedCooldownRestored() {
+        insert(BTC, 100_000_000L, false);
+        insert(COIN, 1_000_000L, true);
+        Long real = session(DynamicSessionEntity.DEFAULT_TRADING_MODE);
+        tick(real);
+        System.out.println("[복원] REAL 차단 로그: " + lastLog(real));
+        assertThat(restartAndRestore()).as("재기동 뒤 — REAL 기록 복원").containsKey(COIN);
+    }
 }
