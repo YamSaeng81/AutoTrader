@@ -291,6 +291,33 @@ class PoolLossLimitTest extends IntegrationTestBase {
         assertThat(d.code()).isEqualTo(PoolLossGuard.POOL_VALUATION_UNKNOWN);
     }
 
+    @Test
+    @DisplayName("O2 연결(총괄 v1.134): 반영 전 체결 주문은 계산 거절·진입 차단 → 같은 주문의 반영값이 들어오면 같은 시세로 정상 계산·승인 (유예·건너뛰기·0 메우기 없음)")
+    void unappliedFillThenAppliedValuatesNormally() {
+        Instant start = baseline();
+        Long s = liveSession("RUNNING");
+        PositionEntity held = position(s, "KRW-LOSSA", "OPEN", "30", "300");
+        order(held, "BUY", null, null, "30");
+        Long orderId = orders.get(orders.size() - 1);
+        Instant now = Instant.now();
+        marks.record("KRW-LOSSA", new BigDecimal("280"), now.minusSeconds(1));   // 신선한 관측 — 대체 가격 차단과 구분
+
+        // ① 반영 전: 순자산을 계산하지 않고(null) 신규 진입을 막는다
+        assertThat(tx(() -> guard.valuate(start, now))).as("반영값 없는 체결 → 계산 거절").isNull();
+        CapitalReservationService.Decision before = check(now);
+        assertThat(before.approved()).isFalse();
+        assertThat(before.code()).isEqualTo(PoolLossGuard.POOL_VALUATION_UNKNOWN);
+
+        // ② 정산 반영(대금 9,000 · 수수료 4.5) 뒤: 같은 시세로 정상 계산 — 현금 −9,004.5 + 30 × 280 × 0.9995 = 8,395.8 → −608.7
+        jdbc.update("UPDATE \"order\" SET applied_executed_funds = 9000, applied_paid_fee = 4.5 WHERE id = ?", orderId);
+        PoolLossGuard.Valuation v = tx(() -> guard.valuate(start, now));
+        assertThat(v).isNotNull();
+        assertThat(v.observed()).isTrue();
+        assertThat(v.net()).isEqualByComparingTo("-608.7");
+        CapitalReservationService.Decision after = check(now);
+        assertThat(after.approved()).as(after.message()).isTrue();
+    }
+
     // ── 한도 ────────────────────────────────────────────────────────
 
     @Test

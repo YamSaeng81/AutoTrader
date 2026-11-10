@@ -1114,9 +1114,10 @@ def cmd_freshness(save=False):
                 state[pair]["cnt"] = r2.get("count")
                 state[pair]["dbTo"] = _parse_iso(r2.get("to"))
             ex2, err2 = _upbit_latest_h1(pair)
+            # 🔴 N21(총괄 v1.137 §105): 판정은 **마지막 거래소 조회** 결과로만 한다. 재조회가 net·404 로 실패했는데
+            #    1차 값(exTo)을 남기면 아래 판정이 그 값으로 🟢 를 냈다. 실패하면 비워서 ⚪(net)·🔴(404) 로 간다.
             state[pair]["exErr"] = err2
-            if ex2:
-                state[pair]["exTo"] = ex2
+            state[pair]["exTo"] = ex2
             rechecked.append(pair)
             # 🔴 2026-10-23 리뷰: 이 줄이 0.5s 로 남아 있었다(895a471) — 재확인도 1차 조회와 같은 간격이다
             time.sleep(UPBIT_GAP_S)   # 위와 같은 이유 — 재확인도 같은 한도를 쓴다

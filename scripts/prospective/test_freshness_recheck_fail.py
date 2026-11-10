@@ -1,0 +1,168 @@
+"""start_66.py freshness 재조회 실패 판정 시험 (N21, 총괄 v1.137 §105) — 로컬에서만, 네트워크·운영 API 를 쓰지 않는다.
+실행: python scripts/prospective/test_freshness_recheck_fail.py
+
+결함(N21): 1차 조회가 성공한 뒤 재조회가 `net`·`404` 로 실패해도 이전 `exTo` 가 남아 🟢 로 셌다.
+기존 계약: **마지막 거래소 조회**가 `net` 이면 ⚪ 판정 불가, `404` 면 🔴 마켓 없음. 이전 성공값은 성공 판정에 쓰지 않는다.
+경계는 모두 가짜다 — 시계·대기·DB 조회·거래소 조회·기록 파일·연속 구간 기록. 실제 업비트·앱 API·DNS 호출 0.
+"""
+import contextlib
+import io
+import json
+import os
+import shutil
+import sys
+import tempfile
+import types
+from datetime import datetime, timedelta, timezone
+
+sys.stdout.reconfigure(encoding="utf-8")
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+import start_66 as s66  # noqa: E402
+
+results = []
+
+
+def check(name, ok, detail=""):
+    results.append(ok)
+    print(("PASS " if ok else "FAIL ") + name + ("" if ok else "  " + str(detail)))
+
+
+T0 = datetime(2026, 11, 8, 19, 19, 1, tzinfo=timezone.utc)   # cron :19 시작
+OLD = datetime(2026, 11, 8, 16, 0, tzinfo=timezone.utc)
+NEW = OLD + timedelta(hours=1)
+PAIRS = ["KRW-" + c for c in s66.COINS]
+A, B, C, D = PAIRS[:4]
+
+
+def run(spec):
+    """spec: pair → (1차 거래소, 재조회 거래소, 1차 DB to, 재조회 DB to). 나머지 코인은 모두 OLD 로 일치.
+    거래소 값은 (봉 시각, 오류종류) — 실제 `_upbit_latest_h1` 의 반환 모양과 같다."""
+    clock = {"t": 0.0}
+    phase = {"p": "first"}
+    calls, streak = [], []
+
+    def fake_sleep(sec):
+        if sec >= 60:
+            phase["p"] = "recheck"
+        clock["t"] += sec
+
+    class FakeDT(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return T0 + timedelta(seconds=clock["t"])
+
+    def fake_upbit(pair):
+        calls.append((clock["t"], phase["p"], pair))
+        clock["t"] += 0.05
+        first, second, _, _ = spec.get(pair, ((OLD, None), (OLD, None), OLD, OLD))
+        return first if phase["p"] == "first" else second
+
+    def fake_db():
+        i = 2 if phase["p"] == "first" else 3
+        return {p: {"coinPair": p, "timeframe": "H1", "count": 500,
+                    "to": spec.get(p, (None, None, OLD, OLD))[i].isoformat()} for p in PAIRS}
+
+    work = tempfile.mkdtemp()
+    keys = ("time", "datetime", "need_env", "_db_latest", "_upbit_latest_h1", "_streak_reset", "_streak_update",
+            "FRESH_LOG", "STREAK", "FRESH")
+    saved = {k: getattr(s66, k) for k in keys}
+    try:
+        s66.time = types.SimpleNamespace(sleep=fake_sleep)
+        s66.datetime = FakeDT
+        s66.need_env = lambda: None
+        s66._db_latest = fake_db
+        s66._upbit_latest_h1 = fake_upbit
+        s66._streak_reset = lambda why: streak.append(("reset", why))
+        s66._streak_update = lambda now, red: streak.append(("update", list(red)))
+        s66.FRESH_LOG = os.path.join(work, "freshness_log.jsonl")
+        s66.STREAK = os.path.join(work, "freshness_streak.json")
+        s66.FRESH = os.path.join(work, "freshness_snap.json")
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            rc = s66.cmd_freshness(save=True)
+        row = json.loads(open(s66.FRESH_LOG, encoding="utf-8").read().splitlines()[-1])
+        snap = json.load(open(s66.FRESH, encoding="utf-8"))
+        alerts = s66._alerts_report(T0 - timedelta(minutes=1), T0 + timedelta(minutes=10), "시험 구간")
+    finally:
+        for k, v in saved.items():
+            setattr(s66, k, v)
+        shutil.rmtree(work, ignore_errors=True)
+    return {"rc": rc, "row": row, "snap": snap, "calls": calls, "streak": streak, "alerts": alerts, "out": out.getvalue()}
+
+
+def verdict(row, pair):
+    if pair in row["unknownCoins"]:
+        return "unknown"
+    if pair in row["redCoins"]:
+        return "red"
+    return "green"
+
+
+# ── 같은 7입력 (총괄 review.py 와 같은 값) — 한 코인만 바꾸고 나머지 21종은 일치 ─────────────
+SEVEN = [
+    # 이름, 1차 거래소, 재조회 거래소, 1차 DB, 재조회 DB, 기대, 재조회 여부
+    ("recheck-net", (NEW, None), (None, "net"), OLD, NEW, "unknown", True),
+    ("recheck-404", (NEW, None), (None, "404"), OLD, NEW, "red", True),
+    ("recheck-success", (NEW, None), (NEW, None), OLD, NEW, "green", True),
+    ("no-recheck-success", (OLD, None), (OLD, None), OLD, OLD, "green", False),
+    ("initial-net-recovered", (None, "net"), (NEW, None), OLD, NEW, "green", True),
+    ("both-net", (None, "net"), (None, "net"), OLD, OLD, "unknown", True),
+    ("both-404", (None, "404"), (None, "404"), OLD, OLD, "red", False),
+]
+for name, ex1, ex2, db1, db2, want, rechk in SEVEN:
+    r = run({A: (ex1, ex2, db1, db2)})
+    row = r["row"]
+    got = verdict(row, A)
+    n_other_green = row["green"] - (1 if got == "green" else 0)
+    ok = (got == want and (A in row["rechecked"]) == rechk and n_other_green == len(PAIRS) - 1
+          and r["rc"] == (0 if want == "green" else 1))
+    check("%-22s 기대 %-7s → %-7s 종료 %d · 재조회 %s" % (name, want, got, r["rc"], A in row["rechecked"]), ok,
+          {"row_A": row["rows"][A], "green": row["green"], "unknown": row["unknown"], "red": row["red"]})
+
+# 실패한 재조회는 저장 행에도 이전 성공값을 판정 근거로 남기지 않는다
+r = run({A: ((NEW, None), (None, "net"), OLD, NEW)})
+ra = r["row"]["rows"][A]
+check("재조회 net — 저장 행 exErr=net·exTo 비움(이전 17:00 을 남기지 않음)", ra["exErr"] == "net" and ra["exTo"] is None, ra)
+check("재조회 net — ⚪ 만 있으면 연속 구간을 끊는다(_streak_reset)", r["streak"] and r["streak"][0][0] == "reset", r["streak"])
+r = run({A: ((NEW, None), (None, "404"), OLD, NEW)})
+ra = r["row"]["rows"][A]
+check("재조회 404 — 저장 행 exErr=404·exTo 비움, 판정 문구 '마켓이 없다'",
+      ra["exErr"] == "404" and ra["exTo"] is None and "거래소에 마켓이 없다" in r["out"], ra)
+
+# ── 재확인 뒤에도 DB 가 뒤처진 정상 🔴 ─────────────────────────────────────────
+r = run({A: ((NEW, None), (NEW, None), OLD, OLD)})
+check("재확인 뒤에도 DB 뒤처짐 → 🔴 '(재확인 후)' 유지",
+      verdict(r["row"], A) == "red" and "뒤처짐 (재확인 후)" in r["out"] and r["rc"] == 1, r["row"]["rows"][A])
+
+# ── 여러 코인: 실패 항목만 분류, 다른 정상 유지 ─────────────────────────────────
+spec = {A: ((NEW, None), (None, "net"), OLD, NEW),     # 재조회 net → ⚪
+        B: ((NEW, None), (None, "404"), OLD, NEW),     # 재조회 404 → 🔴
+        C: ((NEW, None), (NEW, None), OLD, NEW),       # 재조회 성공 → 🟢
+        D: ((NEW, None), (NEW, None), OLD, OLD)}       # 재조회 뒤에도 뒤처짐 → 🔴
+r = run(spec)
+row = r["row"]
+check("여러 코인 — ⚪ [A] · 🔴 [B, D] · 🟢 %d · 종료 1" % (len(PAIRS) - 3),
+      row["unknownCoins"] == [A] and row["redCoins"] == [B, D] and row["green"] == len(PAIRS) - 3 and r["rc"] == 1,
+      {k: row[k] for k in ("green", "unknown", "red", "redCoins", "unknownCoins")})
+check("여러 코인 — 재조회 목록은 뒤처진 4종 그대로", row["rechecked"] == [A, B, C, D], row["rechecked"])
+check("여러 코인 — 저장 행: A net/None · B 404/None · C None/17:00 · D None/17:00",
+      [(row["rows"][p]["exErr"], row["rows"][p]["exTo"]) for p in (A, B, C, D)]
+      == [("net", None), ("404", None), (None, NEW.isoformat()), (None, NEW.isoformat())],
+      [(row["rows"][p]["exErr"], row["rows"][p]["exTo"]) for p in (A, B, C, D)])
+check("여러 코인 — 스냅샷 22종 저장", len(r["snap"]["rows"]) == len(PAIRS), len(r["snap"]["rows"]))
+check("여러 코인 — 🔴 가 있으면 연속 구간 갱신에 🔴 목록 전달", r["streak"] == [("update", [B, D])], r["streak"])
+lines, bad, n = r["alerts"]
+check("alerts 집계 — 관측 1회·적재 뒤처짐 1회·판정 불가 1회, 줄에 코인 이름",
+      n == 1 and bad == ["적재 뒤처짐 1회", "판정 불가 1회"]
+      and any(l.startswith("🔴") and B in l and D in l for l in lines) and any(l.startswith("⚪") and A in l for l in lines),
+      (n, bad, lines))
+g = [b[0] - a[0] for a, b in zip(r["calls"], r["calls"][1:])]
+check("여러 코인 — 1차·재조회 연속 요청 사이 모두 1초 이상 (최소 %.2fs, 요청 %d건)" % (min(g), len(r["calls"])),
+      min(g) >= 1.0 and len(r["calls"]) == len(PAIRS) + 4, g)
+check("JSON 칸 이름은 그대로 — 새 시각 칸 없음",
+      sorted(row) == ["at", "green", "rechecked", "red", "redCoins", "rows", "unknown", "unknownCoins"]
+      and sorted(row["rows"][A]) == ["count", "dbTo", "exErr", "exTo", "rechecked"], sorted(row))
+
+print("\nfreshness 재조회 실패 판정 시험 %d/%d 통과" % (sum(results), len(results)))
+sys.exit(0 if all(results) else 1)
