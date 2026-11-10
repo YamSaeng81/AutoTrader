@@ -406,4 +406,52 @@ class Sma20LiveAlignedPaperSameInputTest extends AbstractSma20SameInputFixture {
         row("A11 같은 체결가", "4 매수 수수료", orderRepository.findById(buy.getId()).orElseThrow().getAppliedPaidFee(), pp.getPositionFee(), false);
         row("A11 같은 체결가", "5 주문 상태", orderRepository.findById(buy.getId()).orElseThrow().getState(), "FILLED", false);
     }
+
+    @Test
+    @DisplayName("A12 같은 체결가 대역(매도) — 전략 SELL 뒤 LIVE 매도 주문을 PAPER 매도 체결가로 정산(운영 폴러): 가용 잔액 같음")
+    void a12SameFillPriceSellSettlement() {
+        List<Candle> cs = downtrend(lastOpen);
+        insertCache(BTC, cs);
+        BigDecimal close = lastClose(cs);
+        BigDecimal entry = close.multiply(new BigDecimal("0.99")).setScale(0, RoundingMode.HALF_UP);
+        BigDecimal sl = entry.multiply(new BigDecimal("0.95"));
+        BigDecimal tp = entry.multiply(new BigDecimal("1.10"));
+        Instant opened = Instant.now().minus(20, ChronoUnit.HOURS);
+        LiveTradingSessionEntity l = live(BTC);
+        VirtualBalanceEntity p = paper(BTC);
+        PositionEntity lpos = livePos(l, entry, sl, tp, opened);
+        PaperPositionEntity ppos = paperPos(p, entry, sl, tp, opened);
+        evaluateLive(l);
+        runPaper(p);
+        PaperPositionEntity pa = paperPositionRepo.findById(ppos.getId()).orElseThrow();
+        assertThat(pa.getStatus()).isEqualTo("CLOSED");
+        BigDecimal fill = close.multiply(BigDecimal.ONE.subtract(new BigDecimal("0.001"))).setScale(8, RoundingMode.HALF_DOWN);
+        OrderEntity sell = liveOrders(l, "SELL").get(0);
+        BigDecimal volume = lpos.getSize();
+        BigDecimal funds = volume.multiply(fill).setScale(8, RoundingMode.HALF_UP);
+        BigDecimal fee = funds.multiply(new BigDecimal("0.0005")).setScale(8, RoundingMode.HALF_UP);
+        OrderResponse r = new OrderResponse();
+        r.setUuid(sell.getExchangeOrderId());
+        r.setSide("ask");
+        r.setOrdType("market");
+        r.setState("done");
+        r.setMarket(BTC);
+        r.setVolume(volume);
+        r.setExecutedVolume(volume);
+        r.setExecutedFunds(funds);
+        r.setPaidFee(fee);
+        Mockito.doReturn(r).when(upbitOrderClient).getOrder(sell.getExchangeOrderId());
+        orderExecutionEngine.checkOrderStatus(sell.getId());
+        awaitDrained();
+        // 운영은 체결된 매도를 5초 주기 reconcileClosingPositions 가 포지션에 반영한다 — 그 두 번째 단계를 같은 메서드로 부른다
+        // (1회차는 이 단계를 빠뜨려 CLOSING 그대로였다 — 하네스 누락, 기대 불변).
+        liveTradingService.reconcileClosingPositions();
+        PositionEntity la = positionRepository.findById(lpos.getId()).orElseThrow();
+        VirtualBalanceEntity pb = balanceRepo.findById(p.getId()).orElseThrow();
+        LiveTradingSessionEntity lb = liveRepo.findById(l.getId()).orElseThrow();
+        row("A12 같은 체결가(매도)", "0 정산 뒤 상태", la.getStatus(), pa.getStatus(), true);
+        expect(row("A12 같은 체결가(매도)", "1 체결 뒤 가용 잔액", lb.getAvailableKrw(), pb.getAvailableKrw(), true), "매도 뒤 잔액");
+        row("A12 같은 체결가(매도)", "2 실현 손익", la.getRealizedPnl(), pa.getRealizedPnl(), false);
+        row("A12 같은 체결가(매도)", "3 청산 사유", la.getExitReason(), pa.getExitReason(), true);
+    }
 }
