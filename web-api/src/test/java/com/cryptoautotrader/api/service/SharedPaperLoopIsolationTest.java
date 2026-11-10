@@ -167,10 +167,13 @@ class SharedPaperLoopIsolationTest extends IntegrationTestBase {
             List<StrategyLogEntity> logs = strategyLogRepository.findAllBySessionTypeAndSessionIdOrderByCreatedAtDesc("PAPER", id);
             List<PaperPositionEntity> pos = positionRepo.findBySessionId(id);
             VirtualBalanceEntity v = balanceRepo.findById(id).orElseThrow();
-            out.put(s.key(), String.format("logs=%d last=%s pos=%d entry=%s avail=%s", logs.size(),
+            out.put(s.key(), String.format("logs=%d last=%s pos=%d entry=%s status=%s exit=%s realized=%s avail=%s total=%s", logs.size(),
                     logs.isEmpty() ? "-" : logs.get(0).getSignal() + ":" + logs.get(0).getReason(),
                     pos.size(), pos.isEmpty() ? "-" : pos.get(0).getEntryPrice().stripTrailingZeros().toPlainString(),
-                    v.getAvailableKrw().stripTrailingZeros().toPlainString()));
+                    pos.isEmpty() ? "-" : pos.get(0).getStatus(), pos.isEmpty() ? "-" : pos.get(0).getExitReason(),
+                    pos.isEmpty() || pos.get(0).getRealizedPnl() == null ? "-" : pos.get(0).getRealizedPnl().stripTrailingZeros().toPlainString(),
+                    v.getAvailableKrw().stripTrailingZeros().toPlainString(),
+                    v.getTotalKrw() == null ? "-" : v.getTotalKrw().stripTrailingZeros().toPlainString()));
         }
         return out;
     }
@@ -266,6 +269,83 @@ class SharedPaperLoopIsolationTest extends IntegrationTestBase {
 
             assertThat(changed).as("기존 세션 결정 변화 수").isZero();
             assertThat(minNewLog == null || maxExistingLog == null || minNewLog > maxExistingLog).as("새 세션이 기존 뒤에 평가").isTrue();
+            assertThat(realAfter).as("REAL 표 불변").isEqualTo(realBefore);
+        } finally {
+            StrategyRegistry.register(new DailySmaTrendStrategy());
+            jdbc.update("DELETE FROM market_data_cache WHERE timeframe IN ('H1','M15') AND coin_pair IN ("
+                    + String.join(",", java.util.stream.Stream.concat(coinsH1.stream(), OTHER_M15.keySet().stream())
+                    .distinct().map(c -> "'" + c + "'").toList()) + ")");
+        }
+    }
+
+    /**
+     * 기존 세션 셋 중 하나에 손절가가 현재 종가 위인 열린 포지션(이 틱에 손절), 셋 중 하나에 먼 손절·익절의 열린 포지션(유지·평가손익 갱신)을
+     * 넣는다 — 포지션·청산·잔액 경로를 실제로 타게 한다. 두 실행에 같은 값을 넣는다.
+     */
+    private int seedPositions(Map<String, Long> ids, List<Spec> which) {
+        int n = 0, i = 0;
+        for (Spec s : which) {
+            int k = i++ % 3;
+            if (k == 2) continue;
+            BigDecimal close = jdbc.queryForObject("SELECT close FROM market_data_cache WHERE coin_pair = ? AND timeframe = ? ORDER BY time DESC LIMIT 1",
+                    BigDecimal.class, s.coin(), s.tf());
+            BigDecimal invest = new BigDecimal("100000");
+            BigDecimal size = invest.divide(close, 8, java.math.RoundingMode.DOWN);
+            BigDecimal sl = close.multiply(k == 0 ? new BigDecimal("1.01") : new BigDecimal("0.80"));
+            BigDecimal tp = close.multiply(new BigDecimal("1.20"));
+            Long id = ids.get(s.key());
+            positionRepo.save(PaperPositionEntity.builder().sessionKind("PAPER").sessionId(id).coinPair(s.coin()).side("BUY")
+                    .entryPrice(close).avgPrice(close).size(size).positionFee(BigDecimal.ZERO).investedKrw(invest)
+                    .stopLossPrice(sl).takeProfitPrice(tp).status("OPEN").openedAt(Instant.now().minus(5, ChronoUnit.HOURS)).build());
+            VirtualBalanceEntity v = balanceRepo.findById(id).orElseThrow();
+            v.setAvailableKrw(v.getAvailableKrw().subtract(invest));
+            balanceRepo.save(v);
+            n++;
+        }
+        return n;
+    }
+
+    @Test
+    @DisplayName("포지션 경로 — 기존 세션 2/3 에 열린 포지션(1/3 은 이 틱에 손절)을 넣어도 기존 76 의 청산·잔액·평가손익은 새 9 와 무관하다")
+    void existingPositionPathsUnchangedByNewSessions() throws IOException {
+        assertThat(balanceRepo.findByStatusOrderByStartedAtAsc("RUNNING")).as("시작 전 RUNNING PAPER").isEmpty();
+        h1Last = Instant.now().minus(61, ChronoUnit.MINUTES).truncatedTo(ChronoUnit.SECONDS);
+        m15Last = Instant.now().minus(16, ChronoUnit.MINUTES).truncatedTo(ChronoUnit.SECONDS);
+        StrategyRegistry.register(new DailySmaTrendStrategy(h1Last.atZone(ZoneOffset.UTC).getHour()));
+        List<String> coinsH1 = new ArrayList<>(PREREG_COINS);
+        coinsH1.add("KRW-BTC");
+        try {
+            for (String c : coinsH1) insertCandles(c, "H1", h1Last, 60);
+            for (String c : OTHER_M15.keySet()) insertCandles(c, "M15", m15Last, 15);
+            Map<String, Long> realBefore = realTables();
+            Map<String, Long> ids1 = createAll(existing());
+            int seeded1 = seedPositions(ids1, existing());
+            tick();
+            Map<String, String> snap1 = snapshot(ids1, existing());
+            cleanup(ids1);
+            List<Spec> all = new ArrayList<>(existing());
+            all.addAll(fresh());
+            Map<String, Long> ids2 = createAll(all);
+            int seeded2 = seedPositions(ids2, existing());
+            tick();
+            Map<String, String> snap2 = snapshot(ids2, existing());
+            Map<String, Long> realAfter = realTables();
+            cleanup(ids2);
+            long changed = snap1.keySet().stream().filter(k -> !snap1.get(k).equals(snap2.get(k))).count();
+            long slExits = snap1.values().stream().filter(v -> v.contains("exit=STOP_LOSS")).count();
+            long open = snap1.values().stream().filter(v -> v.contains("status=OPEN")).count();
+            StringBuilder sb = new StringBuilder();
+            sb.append("seeded=").append(seeded1).append('/').append(seeded2).append(" changed=").append(changed)
+                    .append(" stop_loss_exits=").append(slExits).append(" still_open=").append(open).append('\n');
+            sb.append("real_tables_before=").append(realBefore).append(" after=").append(realAfter).append('\n');
+            for (String k : snap1.keySet()) sb.append(k).append('\t').append(snap1.get(k)).append('\t').append(snap2.get(k)).append('\n');
+            Path out = Path.of("build", "shared-loop", "report-positions.txt");
+            Files.createDirectories(out.getParent());
+            Files.writeString(out, sb.toString(), StandardCharsets.UTF_8);
+            System.out.println("[공유 루프·포지션]\n" + sb);
+            assertThat(slExits).as("손절 경로가 실제로 돌았다").isGreaterThan(0);
+            assertThat(open).as("유지 경로가 실제로 돌았다").isGreaterThan(0);
+            assertThat(changed).as("기존 세션 결정·잔액 변화 수").isZero();
             assertThat(realAfter).as("REAL 표 불변").isEqualTo(realBefore);
         } finally {
             StrategyRegistry.register(new DailySmaTrendStrategy());
