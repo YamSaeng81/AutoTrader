@@ -1,0 +1,3 @@
+backend-1  | 04:49:07.402 [task-1] ERROR c.c.exchange.upbit.UpbitRestClient - Upbit API 오류: status=404, url=https://api.upbit.com/v1/candles/minutes/60?market=KRW-BLAST&count=1&to=2026-10-26T03:00:52, body={"error":{"name":404,"message":"Code not found"}}
+backend-1  | 04:49:07.525 [task-1] ERROR c.c.exchange.upbit.UpbitRestClient - Upbit API 오류: status=404, url=https://api.upbit.com/v1/candles/minutes/60?market=KRW-BONK&count=1&to=2026-07-18T04:30:43, body={"error":{"name":404,"message":"Code not found"}}
+backend-1  | 04:49:07.652 [task-1] ERROR c.c.exchange.upbit.UpbitRestClient - Upbit API 오류: status=404, url=https://api.upbit.com/v1/candles/minutes/60?market=KRW-STORJ&count=1&to=2026-07-27T12:44:10, body={"error":{"name":404,"message":"Code not found"}}
