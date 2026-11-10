@@ -1,0 +1,9 @@
+gate_hold {"LIVE/미연결": {"EMA200": 30}, "LIVE/연결": {"BLACK_SWAN": 1, "EMA200": 53}, "PAPER/세션 있음·포지션 0": {"BLACK_SWAN": 2}, "PAPER/연결": {"BLACK_SWAN": 81, "BTC_GUARD": 26, "EMA200": 60, "RANGE": 1}}
+gate_vs_executed {"LIVE": {"executed_buy": 82, "gated_buy_as_hold": 54}, "PAPER": {"executed_buy": 1060, "gated_buy_as_hold": 168}}
+signal_link PAPER/BUY {"미연결: 세션이 추출 표에 없음": 4103, "연결: 손익 표와 같은 세션": 1433}
+DYN_PAPER 쿨다운 미실행 행 [21, 11, 9, 9, 8]
+snapshot meta {'snapshot_ts': '2026-11-10T06:36:56.579332Z'}
+paper_positions rows 1060 not CLOSED 0
+latest ended_at (UTC, transaction_timestamp) 2026-11-10 07:38:36.121649 rows 14
+hold rows ending at tx 14 usable [('PAPER', '356', '0.49', '-5.015')]
+PAPER usable 149 beat_hold 16 in_market median 2.5
