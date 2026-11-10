@@ -1,0 +1,366 @@
+{
+  "submitted_commit": "1aa890f2fdf0ba4df2f70453f62e5c4425c23722",
+  "submitted_manifest": [
+    {
+      "path": ".gitattributes",
+      "expected": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+      "local": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+      "blob": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "EXIT_EXPERIMENT_PLAN.md",
+      "expected": "1fb091acd6fa8f8d596d5b30b0aad6fce6b9da5adee3f9e91e526a86c7d406db",
+      "local": "1fb091acd6fa8f8d596d5b30b0aad6fce6b9da5adee3f9e91e526a86c7d406db",
+      "blob": "1fb091acd6fa8f8d596d5b30b0aad6fce6b9da5adee3f9e91e526a86c7d406db"
+    },
+    {
+      "path": "README.md",
+      "expected": "738417e9839ee601dafe7cbfaf54f32fc619923e3a6add1045f0797c02a86e1e",
+      "local": "738417e9839ee601dafe7cbfaf54f32fc619923e3a6add1045f0797c02a86e1e",
+      "blob": "738417e9839ee601dafe7cbfaf54f32fc619923e3a6add1045f0797c02a86e1e"
+    },
+    {
+      "path": "SMA20_FORWARD_PAPER.md",
+      "expected": "f730f85b790d21961ebfba61b4d1247c6b1f6f754bd463bfc6ae8bd2f4439655",
+      "local": "f730f85b790d21961ebfba61b4d1247c6b1f6f754bd463bfc6ae8bd2f4439655",
+      "blob": "f730f85b790d21961ebfba61b4d1247c6b1f6f754bd463bfc6ae8bd2f4439655"
+    },
+    {
+      "path": "candidate/commit.txt",
+      "expected": "b7db1b01d12cf87f7a7fe1c57714d3e8e4e4eaeffb34af0213dd5fb04ef31549",
+      "local": "b7db1b01d12cf87f7a7fe1c57714d3e8e4e4eaeffb34af0213dd5fb04ef31549",
+      "blob": "b7db1b01d12cf87f7a7fe1c57714d3e8e4e4eaeffb34af0213dd5fb04ef31549"
+    },
+    {
+      "path": "candidate/diff-b5cd1d0-2aa2a498.patch",
+      "expected": "82965082ef3525def74a33fca87e6ec19a1af8393d9b6c8a8aeb581813fd5035",
+      "local": "82965082ef3525def74a33fca87e6ec19a1af8393d9b6c8a8aeb581813fd5035",
+      "blob": "82965082ef3525def74a33fca87e6ec19a1af8393d9b6c8a8aeb581813fd5035"
+    },
+    {
+      "path": "candidate/mutation/TEST-DailySma20PaperForwardPathTest.xml",
+      "expected": "596fdb344e6131cf6fffe042e7bf3c346675836a7fb83b4e287f5abd64fd8f0e",
+      "local": "596fdb344e6131cf6fffe042e7bf3c346675836a7fb83b4e287f5abd64fd8f0e",
+      "blob": "596fdb344e6131cf6fffe042e7bf3c346675836a7fb83b4e287f5abd64fd8f0e"
+    },
+    {
+      "path": "candidate/mutation/gradle.log",
+      "expected": "b98d8c84abdbc1d87c99a53e37fe1fdb18d00444bef089f29c048e06a5dd4b8b",
+      "local": "b98d8c84abdbc1d87c99a53e37fe1fdb18d00444bef089f29c048e06a5dd4b8b",
+      "blob": "b98d8c84abdbc1d87c99a53e37fe1fdb18d00444bef089f29c048e06a5dd4b8b"
+    },
+    {
+      "path": "candidate/mutation/mutation.patch",
+      "expected": "ca6a31d4742e92493c0d883cb758c6a85054b515983af8cd57e849be8d1d3895",
+      "local": "ca6a31d4742e92493c0d883cb758c6a85054b515983af8cd57e849be8d1d3895",
+      "blob": "ca6a31d4742e92493c0d883cb758c6a85054b515983af8cd57e849be8d1d3895"
+    },
+    {
+      "path": "candidate/pass/TEST-com.cryptoautotrader.api.service.DailySma20PaperForwardPathTest.xml",
+      "expected": "0f80caf785b69a7a894cbfb594c944273c2523d75f39a7e6c66d30cf06545aee",
+      "local": "0f80caf785b69a7a894cbfb594c944273c2523d75f39a7e6c66d30cf06545aee",
+      "blob": "0f80caf785b69a7a894cbfb594c944273c2523d75f39a7e6c66d30cf06545aee"
+    },
+    {
+      "path": "candidate/pass/TEST-com.cryptoautotrader.api.service.PaperLiveAlignmentTest.xml",
+      "expected": "ec79cf1e944e9c441b7340186df7bd0e37564df128ef7e6f6dcc62931dceb6c8",
+      "local": "ec79cf1e944e9c441b7340186df7bd0e37564df128ef7e6f6dcc62931dceb6c8",
+      "blob": "ec79cf1e944e9c441b7340186df7bd0e37564df128ef7e6f6dcc62931dceb6c8"
+    },
+    {
+      "path": "candidate/pass/TEST-com.cryptoautotrader.api.service.PaperSessionStrategyParamsTest.xml",
+      "expected": "022dc89cddf591039db758de1194d8670a7b4161c76d9e719cf2a1f4aae1e9b5",
+      "local": "022dc89cddf591039db758de1194d8670a7b4161c76d9e719cf2a1f4aae1e9b5",
+      "blob": "022dc89cddf591039db758de1194d8670a7b4161c76d9e719cf2a1f4aae1e9b5"
+    },
+    {
+      "path": "candidate/pass/gradle.log",
+      "expected": "5e0eeb352c90b1e88fc31d3e739fefa3af321df6522c8d5f963e4ed09bc424e0",
+      "local": "5e0eeb352c90b1e88fc31d3e739fefa3af321df6522c8d5f963e4ed09bc424e0",
+      "blob": "5e0eeb352c90b1e88fc31d3e739fefa3af321df6522c8d5f963e4ed09bc424e0"
+    },
+    {
+      "path": "extract4.sql",
+      "expected": "fa21b34259cef8a4357f5368132cca4972927c137239c2d2afcc63c22a90d30c",
+      "local": "fa21b34259cef8a4357f5368132cca4972927c137239c2d2afcc63c22a90d30c",
+      "blob": "fa21b34259cef8a4357f5368132cca4972927c137239c2d2afcc63c22a90d30c"
+    },
+    {
+      "path": "extract5.sql",
+      "expected": "96b4776e851ee7e4683fada0a4e99446db7cdf1ff3fdbfe92acf2013a1cccc04",
+      "local": "96b4776e851ee7e4683fada0a4e99446db7cdf1ff3fdbfe92acf2013a1cccc04",
+      "blob": "96b4776e851ee7e4683fada0a4e99446db7cdf1ff3fdbfe92acf2013a1cccc04"
+    },
+    {
+      "path": "out/hold_compare_v2.csv",
+      "expected": "ebd651dd5c50399da33ab09ca60a08769ab02be1634e309cd99cb0add7c14b5c",
+      "local": "ebd651dd5c50399da33ab09ca60a08769ab02be1634e309cd99cb0add7c14b5c",
+      "blob": "ebd651dd5c50399da33ab09ca60a08769ab02be1634e309cd99cb0add7c14b5c"
+    },
+    {
+      "path": "out/positions_v2.csv",
+      "expected": "65a8c68f37a7fcf798ac0d5025e430c9f94eb44ac9843b3fb1600db2d5bbcfaa",
+      "local": "65a8c68f37a7fcf798ac0d5025e430c9f94eb44ac9843b3fb1600db2d5bbcfaa",
+      "blob": "65a8c68f37a7fcf798ac0d5025e430c9f94eb44ac9843b3fb1600db2d5bbcfaa"
+    },
+    {
+      "path": "out/run-stdout.txt",
+      "expected": "96213a7a84ff6a59dd2314aeeb6b3b2b66072704ab23d230aa5f49c3032965cc",
+      "local": "96213a7a84ff6a59dd2314aeeb6b3b2b66072704ab23d230aa5f49c3032965cc",
+      "blob": "96213a7a84ff6a59dd2314aeeb6b3b2b66072704ab23d230aa5f49c3032965cc"
+    },
+    {
+      "path": "out/scorecard_v2.json",
+      "expected": "9ef62d06968d282d741d7111f7e828fa69e642833f10f4239bd808167d89b791",
+      "local": "9ef62d06968d282d741d7111f7e828fa69e642833f10f4239bd808167d89b791",
+      "blob": "9ef62d06968d282d741d7111f7e828fa69e642833f10f4239bd808167d89b791"
+    },
+    {
+      "path": "raw/raw4.txt",
+      "expected": "331e2074ff3045af58d58614ffb1342d9695fee65c63ae3d66d21eccde906a93",
+      "local": "331e2074ff3045af58d58614ffb1342d9695fee65c63ae3d66d21eccde906a93",
+      "blob": "331e2074ff3045af58d58614ffb1342d9695fee65c63ae3d66d21eccde906a93"
+    },
+    {
+      "path": "raw/raw5.txt",
+      "expected": "7da5231b2420246309b071ac180edbddac356ee0fc063afe23869ea834608fe0",
+      "local": "7da5231b2420246309b071ac180edbddac356ee0fc063afe23869ea834608fe0",
+      "blob": "7da5231b2420246309b071ac180edbddac356ee0fc063afe23869ea834608fe0"
+    },
+    {
+      "path": "score_v2.py",
+      "expected": "d3b0cd743291758c87bb1795162ff19e646a28cdddee6d0133433cc0707ad76f",
+      "local": "d3b0cd743291758c87bb1795162ff19e646a28cdddee6d0133433cc0707ad76f",
+      "blob": "d3b0cd743291758c87bb1795162ff19e646a28cdddee6d0133433cc0707ad76f"
+    }
+  ],
+  "previous_manifest": [
+    {
+      "path": ".gitattributes",
+      "expected": "8b9c3028d6467ff3be7c793141927841d70f47f52d0590677438f488ca154992",
+      "local": "8b9c3028d6467ff3be7c793141927841d70f47f52d0590677438f488ca154992",
+      "blob": "8b9c3028d6467ff3be7c793141927841d70f47f52d0590677438f488ca154992"
+    },
+    {
+      "path": "doc-check.json",
+      "expected": "21e33e7150f184fd5de7ba60342012118df13e5eb1efbdcb5252c61d649c8744",
+      "local": "21e33e7150f184fd5de7ba60342012118df13e5eb1efbdcb5252c61d649c8744",
+      "blob": "21e33e7150f184fd5de7ba60342012118df13e5eb1efbdcb5252c61d649c8744"
+    },
+    {
+      "path": "historical-trailing-fix.patch",
+      "expected": "09fcb8e9cf31dcbd102f6327163327aa3ff4ac279425e1a277b60b0a1ad2cf88",
+      "local": "09fcb8e9cf31dcbd102f6327163327aa3ff4ac279425e1a277b60b0a1ad2cf88",
+      "blob": "09fcb8e9cf31dcbd102f6327163327aa3ff4ac279425e1a277b60b0a1ad2cf88"
+    },
+    {
+      "path": "README.md",
+      "expected": "995d0e868656a637459458b63e7ad07547cac5bbedb2f91372a6b29a95b1e2ae",
+      "local": "995d0e868656a637459458b63e7ad07547cac5bbedb2f91372a6b29a95b1e2ae",
+      "blob": "995d0e868656a637459458b63e7ad07547cac5bbedb2f91372a6b29a95b1e2ae"
+    },
+    {
+      "path": "review-history.txt",
+      "expected": "89f1e5168a5dfbad69a36bdbc09d5294349171053823b9eda1b203dd0b68ca08",
+      "local": "89f1e5168a5dfbad69a36bdbc09d5294349171053823b9eda1b203dd0b68ca08",
+      "blob": "89f1e5168a5dfbad69a36bdbc09d5294349171053823b9eda1b203dd0b68ca08"
+    },
+    {
+      "path": "review.json",
+      "expected": "6679fcf82c88b22886291e5d7249b85dcbb3fc7231d6155059e52222fae5cb4f",
+      "local": "6679fcf82c88b22886291e5d7249b85dcbb3fc7231d6155059e52222fae5cb4f",
+      "blob": "6679fcf82c88b22886291e5d7249b85dcbb3fc7231d6155059e52222fae5cb4f"
+    },
+    {
+      "path": "review.py",
+      "expected": "b21965c2726424b25ed2ea321342594966a0c335d745d7f7efeb29fa783418f2",
+      "local": "b21965c2726424b25ed2ea321342594966a0c335d745d7f7efeb29fa783418f2",
+      "blob": "b21965c2726424b25ed2ea321342594966a0c335d745d7f7efeb29fa783418f2"
+    }
+  ],
+  "replay": [
+    {
+      "path": "hold_compare_v2.csv",
+      "equal": true
+    },
+    {
+      "path": "positions_v2.csv",
+      "equal": true
+    },
+    {
+      "path": "run-stdout.txt",
+      "equal": true
+    },
+    {
+      "path": "scorecard_v2.json",
+      "equal": true
+    }
+  ],
+  "sl_cohorts": {
+    "missing": {
+      "n": 58,
+      "median_stored_sl_pct": "0.3077602980420506935252653867",
+      "ret_on_repeated_invested_pct": "-0.4826131860351964979782793362",
+      "exit_counts": {
+        "": 57,
+        "TAKE_PROFIT": 1
+      }
+    },
+    "pre": {
+      "n": 755,
+      "median_stored_sl_pct": "0.3996003996003996003996003996",
+      "ret_on_repeated_invested_pct": "-0.3122499985010338719398039129",
+      "exit_counts": {
+        "": 3,
+        "STOP_LOSS": 642,
+        "TAKE_PROFIT": 98,
+        "STRATEGY_SIGNAL": 2,
+        "FORCED_STOP": 3,
+        "TIME_STOP": 7
+      }
+    },
+    "post": {
+      "n": 247,
+      "median_stored_sl_pct": "5.00",
+      "ret_on_repeated_invested_pct": "-0.1126270431348638797469999830",
+      "exit_counts": {
+        "TIME_STOP": 78,
+        "STRATEGY_SIGNAL": 40,
+        "STOP_LOSS": 82,
+        "FORCED_STOP": 12,
+        "TAKE_PROFIT": 35
+      }
+    }
+  },
+  "clusters": {
+    "minute_groups": 660,
+    "multi_groups": 218,
+    "exact_return_different": 163,
+    "max_spread_pp": "0.0000120980969433393719292990",
+    "over_0_001pp": 0
+  },
+  "submitted_junit": [
+    {
+      "path": "TEST-com.cryptoautotrader.api.service.DailySma20PaperForwardPathTest.xml",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "TEST-com.cryptoautotrader.api.service.PaperLiveAlignmentTest.xml",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "path": "TEST-com.cryptoautotrader.api.service.PaperSessionStrategyParamsTest.xml",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "mutation": {
+    "tests": 6,
+    "failures": 1
+  },
+  "sources": {
+    "helper": {
+      "ref": "2aa2a498",
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/PaperMaxInvestment.java",
+      "sha256": "924791eb38207791984266d3a98eee560d918223a4c445e7b351d21f47f4f7fd"
+    },
+    "paper": {
+      "ref": "2aa2a498",
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java",
+      "sha256": "4c7c6badcc2b251319c9e1cbe24c0242c912acdda0267e1c752cddf2f758b988"
+    },
+    "live": {
+      "ref": "b5cd1d0",
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java",
+      "sha256": "4f705a794d214f52bac50158e07cba6edbe1831ccd1b5941c7b43a92f25668c2"
+    },
+    "checker": {
+      "ref": "b5cd1d0",
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/risk/ExitRuleChecker.java",
+      "sha256": "06d2915efd85d0c1bd132c8aa4ecf0250d4489b17843438329943f68bff81f00"
+    },
+    "fingerprint": {
+      "ref": "b5cd1d0",
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/risk/RulesetFingerprint.java",
+      "sha256": "8dbaba55dc432afdbd9e7152db77e42f0edf0290b7dd60d651f06c225fe276c9"
+    }
+  },
+  "helper_smoke": [
+    "present-null cap=null",
+    "present-null capital100000=null",
+    "valid cap=20000",
+    "valid capital20200=null",
+    "invalid rejected=true"
+  ],
+  "bootstrap": {
+    "PAPER": {
+      "weeks": 14,
+      "point_pct": -0.279,
+      "p05": -0.456,
+      "p95": -0.119
+    },
+    "DYN_PAPER": {
+      "weeks": 13,
+      "point_pct": -0.629,
+      "p05": -1.12,
+      "p95": -0.274
+    },
+    "DYN_REAL": {
+      "weeks": 9,
+      "point_pct": -1.239,
+      "p05": -1.965,
+      "p95": -0.525
+    },
+    "LIVE": {
+      "weeks": 11,
+      "point_pct": -1.258,
+      "p05": -2.368,
+      "p95": -0.713
+    },
+    "PAPER_POST": {
+      "weeks": 9,
+      "point_pct": -0.113,
+      "p05": -0.629,
+      "p95": 0.218
+    },
+    "PAPER_PRE": {
+      "weeks": 4,
+      "point_pct": -0.312,
+      "p05": -0.498,
+      "p95": -0.123
+    }
+  },
+  "gate_counts": {
+    "PAPER": {
+      "executed_buy": 1060,
+      "gated_buy_as_hold": 168
+    },
+    "LIVE": {
+      "executed_buy": 82,
+      "gated_buy_as_hold": 54
+    }
+  },
+  "snapshot_times": {
+    "positions": "2026-11-10T06:36:56.579332Z",
+    "hold_bars": "2026-11-10T07:38:36.121649Z",
+    "gate_holds": "2026-11-10T07:47:59.132775Z"
+  },
+  "findings": [
+    "PAPER cap is supported, but decision/expiry/price-observation parity is not established",
+    "Present-null cap is treated as absent",
+    "Gate HOLD counts and executed closed positions are not matched order counts",
+    "A/B proposal lacks a single family-level estimand and terminal mark treatment; eight pair-wise selections are not one test",
+    "Six calendar weeks with no-trade weeks retained are a pilot, not eight independent replications"
+  ],
+  "runtime_changes": false,
+  "full_product_tests_rerun": false,
+  "main_source_modified": false
+}

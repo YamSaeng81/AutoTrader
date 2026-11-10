@@ -1,0 +1,11 @@
+--- fixed/web-api/src/main/java/com/cryptoautotrader/api/service/PaperMaxInvestment.java
++++ mutated/web-api/src/main/java/com/cryptoautotrader/api/service/PaperMaxInvestment.java
+@@ -45,7 +45,7 @@
+      * @throws IllegalStateException 키가 있는데 값이 null·숫자 아님(불리언·객체 포함)·{@link #MIN} 미만
+      */
+     public static BigDecimal from(Map<String, Object> strategyParams) {
+-        if (strategyParams == null || !strategyParams.containsKey(KEY)) return null;
++        if (strategyParams == null || strategyParams.get(KEY) == null) return null;
+         Object raw = strategyParams.get(KEY);
+         if (raw == null) {
+             throw new IllegalStateException(KEY + " 가 null 이다 — 상한을 두지 않으려면 키 자체를 빼야 한다");

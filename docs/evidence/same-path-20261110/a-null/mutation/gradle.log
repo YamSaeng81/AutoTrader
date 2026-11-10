@@ -1,0 +1,55 @@
+> Task :strategy-lib:compileJava UP-TO-DATE
+> Task :strategy-lib:processResources NO-SOURCE
+> Task :strategy-lib:classes UP-TO-DATE
+> Task :strategy-lib:jar UP-TO-DATE
+> Task :core-engine:compileJava UP-TO-DATE
+> Task :core-engine:processResources NO-SOURCE
+> Task :core-engine:classes UP-TO-DATE
+> Task :core-engine:jar UP-TO-DATE
+> Task :exchange-adapter:compileJava UP-TO-DATE
+> Task :exchange-adapter:processResources NO-SOURCE
+> Task :exchange-adapter:classes UP-TO-DATE
+> Task :exchange-adapter:jar UP-TO-DATE
+> Task :web-api:compileJava
+> Task :web-api:processResources UP-TO-DATE
+> Task :web-api:classes
+> Task :web-api:compileTestJava UP-TO-DATE
+> Task :web-api:processTestResources UP-TO-DATE
+> Task :web-api:testClasses UP-TO-DATE
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+
+> Task :web-api:test
+
+DAILY_SMA20 전향 모의 ? PAPER 1회 매수 상한·최소 원금 > 요청 검증 ? 서비스와 같은 표로 통과/거절이 같다 FAILED
+    org.opentest4j.AssertionFailedError at DailySma20PaperForwardPathTest.java:253
+
+DAILY_SMA20 전향 모의 ? PAPER 1회 매수 상한·최소 원금 > HTTP 생성 경로 ? JSON 명시적 null 상한은 400, 세션 없음 FAILED
+    org.opentest4j.AssertionFailedError at DailySma20PaperForwardPathTest.java:278
+
+DAILY_SMA20 전향 모의 ? PAPER 1회 매수 상한·최소 원금 > 명시적 null 세션은 평가 경로까지 가지 않는다 ? 생성 전에 거절 FAILED
+    java.lang.AssertionError at DailySma20PaperForwardPathTest.java:262
+
+DAILY_SMA20 전향 모의 ? PAPER 1회 매수 상한·최소 원금 > 서비스 생성 경로 ? 키 없음/정상/숫자 문자열/0/음수/미만/형식 이상/불리언/객체/명시적 null, 거절이면 세션 없음·문구에 입력 원문 없음 FAILED
+    java.lang.AssertionError at DailySma20PaperForwardPathTest.java:239
+
+17:13:13.357 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+17:13:13.357 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+17:13:13.360 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+17:13:13.362 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+17:13:13.365 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+
+> Task :web-api:test FAILED
+
+8 tests completed, 4 failed
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':web-api:test'.
+> There were failing tests. See the report at: file:///D:/tmp/sma20p-b5cd1d0/web-api/build/reports/tests/test/index.html
+
+* Try:
+> Run with --scan to get full insights.
+
+BUILD FAILED in 19s
+11 actionable tasks: 2 executed, 9 up-to-date

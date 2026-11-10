@@ -1,0 +1,11 @@
+--- fixed/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java
++++ mutated/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java
+@@ -815,7 +815,7 @@
+ 
+             if (aligned) {
+                 // LIVE 와 같다 — 판정 불가도 진입을 막는다(blocksEntry).
+-                if (signal.getAction() == StrategySignal.Action.BUY && btcMarketGuard.blocksEntry()) {
++                if (signal.getAction() == StrategySignal.Action.BUY && btcMarketGuard.triggered()) {
+                     String what = btcMarketGuard.unknown() ? "판정 불가" : "발동";
+                     signal = StrategySignal.hold("BTC_MARKET_GUARD " + what + " — " + btcMarketGuard.reason());
+                 }
