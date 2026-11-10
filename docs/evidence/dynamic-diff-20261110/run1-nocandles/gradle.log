@@ -1,0 +1,43 @@
+> Task :strategy-lib:compileJava UP-TO-DATE
+> Task :strategy-lib:processResources NO-SOURCE
+> Task :strategy-lib:classes UP-TO-DATE
+> Task :strategy-lib:jar UP-TO-DATE
+> Task :core-engine:compileJava UP-TO-DATE
+> Task :core-engine:processResources NO-SOURCE
+> Task :core-engine:classes UP-TO-DATE
+> Task :core-engine:jar UP-TO-DATE
+> Task :exchange-adapter:compileJava UP-TO-DATE
+> Task :exchange-adapter:processResources NO-SOURCE
+> Task :exchange-adapter:classes UP-TO-DATE
+> Task :exchange-adapter:jar UP-TO-DATE
+> Task :web-api:compileJava
+> Task :web-api:processResources UP-TO-DATE
+> Task :web-api:classes
+> Task :web-api:compileTestJava
+> Task :web-api:processTestResources UP-TO-DATE
+> Task :web-api:testClasses
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+
+> Task :web-api:test
+
+DYNAMIC BLACK_SWAN 쿨다운 ? PAPER 평가가 REAL 진입을 막는가(세션 종류 간 공유 상태) > 대조 ? PAPER 틱 없이 같은 회복 캔들의 REAL 틱은 BLACK_SWAN 쿨다운으로 막히지 않는다 FAILED
+    java.lang.AssertionError at DynamicBlackSwanCooldownCrossKindTest.java:187
+
+DYNAMIC BLACK_SWAN 쿨다운 ? PAPER 평가가 REAL 진입을 막는가(세션 종류 간 공유 상태) > 간섭 ? PAPER 가 급락 봉을 평가해 쿨다운을 기록하면, 회복 뒤 REAL 의 BUY 가 'BLACK_SWAN 쿨다운'으로 막힌다 FAILED
+    java.lang.AssertionError at DynamicBlackSwanCooldownCrossKindTest.java:165
+
+2 tests completed, 2 failed
+
+> Task :web-api:test FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':web-api:test'.
+> There were failing tests. See the report at: file:///D:/tmp/sma20p-b5cd1d0/web-api/build/reports/tests/test/index.html
+
+* Try:
+> Run with --scan to get full insights.
+
+BUILD FAILED in 20s
+11 actionable tasks: 3 executed, 8 up-to-date
