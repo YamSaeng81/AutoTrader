@@ -1,0 +1,4 @@
+220c220
+<     primary = None if undecidable else str((sum(diffs) / len(diffs)).quantize(q, ROUND_HALF_UP))
+---
+>     primary = None if not diffs else str((sum(diffs) / len(diffs)).quantize(q, ROUND_HALF_UP))

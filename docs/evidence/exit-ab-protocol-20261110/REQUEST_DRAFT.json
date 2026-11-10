@@ -1,0 +1,131 @@
+{
+  "_status": "실행 금지 — 초안. 운영 생성은 동작 정렬·부하 검토 뒤 별도 결정(총괄 v1.144 §3)",
+  "_endpoint": "POST /api/v1/paper-trading/sessions (본문마다 1회)",
+  "_mode_decision": "두 팔 모두 같은 실행 모드여야 한다. LIVE_ALIGNED 후보(581312ff)가 배포되고 쓰기로 정하면 8개 모두 strategyParams.paperExecutionMode=LIVE_ALIGNED 를 더한다. 한쪽만 넣으면 집계기가 설정 거절한다",
+  "sessions": [
+    {
+      "pair": "COMPOSITE_MEANREV_BB|KRW-BTC",
+      "arm": "A",
+      "body": {
+        "strategyType": "COMPOSITE_MEANREV_BB",
+        "coinPair": "KRW-BTC",
+        "timeframe": "M15",
+        "initialCapital": 100000,
+        "investRatio": 0.8,
+        "maxHoldHours": 24,
+        "strategyParams": {
+          "paperMaxInvestment": 20000
+        }
+      }
+    },
+    {
+      "pair": "COMPOSITE_MEANREV_BB|KRW-BTC",
+      "arm": "B",
+      "body": {
+        "strategyType": "COMPOSITE_MEANREV_BB",
+        "coinPair": "KRW-BTC",
+        "timeframe": "M15",
+        "initialCapital": 100000,
+        "investRatio": 0.8,
+        "maxHoldHours": 24,
+        "stopLossPct": 5,
+        "strategyParams": {
+          "paperMaxInvestment": 20000
+        }
+      }
+    },
+    {
+      "pair": "COMPOSITE_MEANREV_BB|KRW-ETH",
+      "arm": "A",
+      "body": {
+        "strategyType": "COMPOSITE_MEANREV_BB",
+        "coinPair": "KRW-ETH",
+        "timeframe": "M15",
+        "initialCapital": 100000,
+        "investRatio": 0.8,
+        "maxHoldHours": 24,
+        "strategyParams": {
+          "paperMaxInvestment": 20000
+        }
+      }
+    },
+    {
+      "pair": "COMPOSITE_MEANREV_BB|KRW-ETH",
+      "arm": "B",
+      "body": {
+        "strategyType": "COMPOSITE_MEANREV_BB",
+        "coinPair": "KRW-ETH",
+        "timeframe": "M15",
+        "initialCapital": 100000,
+        "investRatio": 0.8,
+        "maxHoldHours": 24,
+        "stopLossPct": 5,
+        "strategyParams": {
+          "paperMaxInvestment": 20000
+        }
+      }
+    },
+    {
+      "pair": "COMPOSITE_MTF_CONFIRMED|KRW-BTC",
+      "arm": "A",
+      "body": {
+        "strategyType": "COMPOSITE_MTF_CONFIRMED",
+        "coinPair": "KRW-BTC",
+        "timeframe": "M15",
+        "initialCapital": 100000,
+        "investRatio": 0.8,
+        "maxHoldHours": 24,
+        "strategyParams": {
+          "paperMaxInvestment": 20000
+        }
+      }
+    },
+    {
+      "pair": "COMPOSITE_MTF_CONFIRMED|KRW-BTC",
+      "arm": "B",
+      "body": {
+        "strategyType": "COMPOSITE_MTF_CONFIRMED",
+        "coinPair": "KRW-BTC",
+        "timeframe": "M15",
+        "initialCapital": 100000,
+        "investRatio": 0.8,
+        "maxHoldHours": 24,
+        "stopLossPct": 5,
+        "strategyParams": {
+          "paperMaxInvestment": 20000
+        }
+      }
+    },
+    {
+      "pair": "COMPOSITE_MTF_CONFIRMED|KRW-ETH",
+      "arm": "A",
+      "body": {
+        "strategyType": "COMPOSITE_MTF_CONFIRMED",
+        "coinPair": "KRW-ETH",
+        "timeframe": "M15",
+        "initialCapital": 100000,
+        "investRatio": 0.8,
+        "maxHoldHours": 24,
+        "strategyParams": {
+          "paperMaxInvestment": 20000
+        }
+      }
+    },
+    {
+      "pair": "COMPOSITE_MTF_CONFIRMED|KRW-ETH",
+      "arm": "B",
+      "body": {
+        "strategyType": "COMPOSITE_MTF_CONFIRMED",
+        "coinPair": "KRW-ETH",
+        "timeframe": "M15",
+        "initialCapital": 100000,
+        "investRatio": 0.8,
+        "maxHoldHours": 24,
+        "stopLossPct": 5,
+        "strategyParams": {
+          "paperMaxInvestment": 20000
+        }
+      }
+    }
+  ]
+}
