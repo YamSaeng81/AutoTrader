@@ -1,0 +1,118 @@
+{
+  "base": "1899b49f633f8aefdc66b15c42debdaba8b3852c",
+  "test_first": "99bd4eaadb0ff3037518c3cacbf6bb98de91bf4e",
+  "candidate": "6379ee0b2a7527b8136d7fba27e83881980d8555",
+  "local_remote_tracking_ref": "6379ee0b2a7527b8136d7fba27e83881980d8555",
+  "remote_queried": false,
+  "submitted_manifest_present": false,
+  "submitted_file_sha256_at_review": {
+    ".gitattributes": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+    "after.txt": "255777d72b62a06d06c19a1fb81a4dfb004640a9899341ab0cf31fea5dc9d504",
+    "before-1899b49.txt": "375299859d51b5031e21cb47f96fb5d85b4d857918f9d2ebc74137c472e86d2e",
+    "candidate.diff": "4655d7648c45ee2358e8058faa892d30cc1f01f5084006b6902ad8f39e4b9547",
+    "README.md": "0bb974977c977f0e6d99a8307b70e85ce56c624084654d561ab2254ab357fd15",
+    "spacing-after.txt": "0992adb30a1d436a78a1bd8860b68de337ddff032af9b9abb388dbcd2fd2493e",
+    "spacing-before-1899b49.txt": "0992adb30a1d436a78a1bd8860b68de337ddff032af9b9abb388dbcd2fd2493e",
+    "start_66.1899b49.py": "adca8829b9fb6b4c6996dc853fadade58d685d9c0c044135eb6f92665dba337d",
+    "start_66.candidate.py": "68d441ce0ed66d0a654d9ec7ca485d0a69a5bb8bacf4de48b5d61d0ef813b56b",
+    "test_freshness_recheck_fail.py": "4eb42264f97430614b25263aa95ad1f6325db3a08ed332f5469adca3434f566f",
+    "test_freshness_spacing.py": "e599875273874d341dfa10fe9321eccde7806b8e1a44e95c91a417abd786157c"
+  },
+  "provenance": {
+    "start_66.1899b49.py": {
+      "submitted_sha256": "adca8829b9fb6b4c6996dc853fadade58d685d9c0c044135eb6f92665dba337d",
+      "git_sha256": "adca8829b9fb6b4c6996dc853fadade58d685d9c0c044135eb6f92665dba337d",
+      "lf_equal": true,
+      "byte_equal": true
+    },
+    "start_66.candidate.py": {
+      "submitted_sha256": "68d441ce0ed66d0a654d9ec7ca485d0a69a5bb8bacf4de48b5d61d0ef813b56b",
+      "git_sha256": "68d441ce0ed66d0a654d9ec7ca485d0a69a5bb8bacf4de48b5d61d0ef813b56b",
+      "lf_equal": true,
+      "byte_equal": true
+    },
+    "test_freshness_recheck_fail.py": {
+      "submitted_sha256": "4eb42264f97430614b25263aa95ad1f6325db3a08ed332f5469adca3434f566f",
+      "git_sha256": "4eb42264f97430614b25263aa95ad1f6325db3a08ed332f5469adca3434f566f",
+      "lf_equal": true,
+      "byte_equal": true
+    },
+    "test_freshness_spacing.py": {
+      "submitted_sha256": "e599875273874d341dfa10fe9321eccde7806b8e1a44e95c91a417abd786157c",
+      "git_sha256": "e599875273874d341dfa10fe9321eccde7806b8e1a44e95c91a417abd786157c",
+      "lf_equal": true,
+      "byte_equal": true
+    },
+    "candidate.diff": {
+      "submitted_sha256": "4655d7648c45ee2358e8058faa892d30cc1f01f5084006b6902ad8f39e4b9547",
+      "git_sha256": "4655d7648c45ee2358e8058faa892d30cc1f01f5084006b6902ad8f39e4b9547",
+      "lf_equal": true,
+      "byte_equal": true
+    }
+  },
+  "source_semantics_change": "one exTo assignment; all other functions unchanged",
+  "tests": {
+    "base19": {
+      "rc": 1,
+      "pass": 10,
+      "fail": 9,
+      "output_sha256": "7f9a8e6f96570b4026b851d57da596a748c969bf977bf2790facca628d0b5b1d",
+      "matches_submitted_lf": true
+    },
+    "candidate19": {
+      "rc": 0,
+      "pass": 19,
+      "fail": 0,
+      "output_sha256": "3f64a103ff73b9db6734a9298e3686a799ab2edd7029ca9c8ff4cc29c1f2f64b",
+      "matches_submitted_lf": true
+    },
+    "base_spacing": {
+      "rc": 0,
+      "pass": 6,
+      "fail": 0,
+      "output_sha256": "6b858c9e26564e092b8b2ee1f5b8448e0fd0540830b027bbb2b6fa01fda94238",
+      "matches_submitted_lf": true
+    },
+    "candidate_spacing": {
+      "rc": 0,
+      "pass": 6,
+      "fail": 0,
+      "output_sha256": "6b858c9e26564e092b8b2ee1f5b8448e0fd0540830b027bbb2b6fa01fda94238",
+      "matches_submitted_lf": true
+    }
+  },
+  "actual_persisted_streak": [
+    {
+      "case": "net actual persisted reset",
+      "pass": true
+    },
+    {
+      "case": "net recovery starts new streak",
+      "pass": true
+    },
+    {
+      "case": "net history alert retained after recovery",
+      "pass": true
+    },
+    {
+      "case": "404 actual persisted reset",
+      "pass": true
+    },
+    {
+      "case": "404 recovery starts new streak",
+      "pass": true
+    },
+    {
+      "case": "404 history alert retained after recovery",
+      "pass": true
+    }
+  ],
+  "denied_boundary_calls": 0,
+  "not_run": [
+    "server/DB/HTTP",
+    "actual module top-level/.env",
+    "Gradle/PG/rehearsal/jar/Docker",
+    "git commit/push"
+  ],
+  "scope": "local AST function verification; submitted test bodies unchanged; not an actual module import"
+}

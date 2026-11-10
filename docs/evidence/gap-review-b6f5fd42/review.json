@@ -1,0 +1,349 @@
+{
+  "head": "b6f5fd42ab533f345825835fe7bf7cc5596639fb",
+  "source": "1899b49f633f8aefdc66b15c42debdaba8b3852c",
+  "source_sha256_lf": "adca8829b9fb6b4c6996dc853fadade58d685d9c0c044135eb6f92665dba337d",
+  "manifests": {
+    "v1136-gap-1109": 20,
+    "review-94317640": 11
+  },
+  "cron_launches_kst": {
+    "02": 1,
+    "03": 1,
+    "04": 1,
+    "05": 1
+  },
+  "stored_rows": [
+    {
+      "at": "2026-11-08T14:19:01.591184+00:00",
+      "rechecked": 0,
+      "green": 21,
+      "unknown": 0,
+      "red": 1,
+      "ex_errors": {
+        "None": 21,
+        "404": 1
+      },
+      "retained_error_value": []
+    },
+    {
+      "at": "2026-11-08T15:19:01.743724+00:00",
+      "rechecked": 0,
+      "green": 21,
+      "unknown": 0,
+      "red": 1,
+      "ex_errors": {
+        "None": 21,
+        "404": 1
+      },
+      "retained_error_value": []
+    },
+    {
+      "at": "2026-11-08T16:19:01.846131+00:00",
+      "rechecked": 0,
+      "green": 21,
+      "unknown": 0,
+      "red": 1,
+      "ex_errors": {
+        "None": 21,
+        "404": 1
+      },
+      "retained_error_value": []
+    },
+    {
+      "at": "2026-11-08T19:56:42.590344+00:00",
+      "rechecked": 22,
+      "green": 5,
+      "unknown": 16,
+      "red": 1,
+      "ex_errors": {
+        "net": 16,
+        "None": 5,
+        "404": 1
+      },
+      "retained_error_value": []
+    },
+    {
+      "at": "2026-11-08T19:57:08.695078+00:00",
+      "rechecked": 22,
+      "green": 20,
+      "unknown": 1,
+      "red": 1,
+      "ex_errors": {
+        "net": 1,
+        "None": 20,
+        "404": 1
+      },
+      "retained_error_value": []
+    },
+    {
+      "at": "2026-11-08T19:58:12.847958+00:00",
+      "rechecked": 9,
+      "green": 21,
+      "unknown": 0,
+      "red": 1,
+      "ex_errors": {
+        "None": 21,
+        "404": 1
+      },
+      "retained_error_value": []
+    },
+    {
+      "at": "2026-11-08T20:50:12.710469+00:00",
+      "rechecked": 7,
+      "green": 21,
+      "unknown": 0,
+      "red": 1,
+      "ex_errors": {
+        "None": 21,
+        "404": 1
+      },
+      "retained_error_value": []
+    },
+    {
+      "at": "2026-11-08T21:19:02.174680+00:00",
+      "rechecked": 0,
+      "green": 21,
+      "unknown": 0,
+      "red": 1,
+      "ex_errors": {
+        "None": 21,
+        "404": 1
+      },
+      "retained_error_value": []
+    },
+    {
+      "at": "2026-11-08T22:19:02.367418+00:00",
+      "rechecked": 0,
+      "green": 21,
+      "unknown": 0,
+      "red": 1,
+      "ex_errors": {
+        "None": 21,
+        "404": 1
+      },
+      "retained_error_value": []
+    }
+  ],
+  "local_cases": [
+    {
+      "name": "recheck-net",
+      "expected": "unknown",
+      "actual": "green",
+      "contract_matches": false,
+      "exit": 0,
+      "entry": {
+        "at": "2026-11-08T19:20:13+00:00",
+        "green": 1,
+        "unknown": 0,
+        "red": 0,
+        "redCoins": [],
+        "unknownCoins": [],
+        "rechecked": [
+          "KRW-A"
+        ],
+        "rows": {
+          "KRW-A": {
+            "dbTo": "2026-11-08T17:00:00+00:00",
+            "exTo": "2026-11-08T17:00:00+00:00",
+            "exErr": "net",
+            "count": 1,
+            "rechecked": true
+          }
+        }
+      },
+      "first_lookup_at": "2026-11-08T19:19:01+00:00",
+      "finished_at": "2026-11-08T19:20:13+00:00",
+      "db_calls": 2,
+      "exchange_calls": 2
+    },
+    {
+      "name": "recheck-404",
+      "expected": "red",
+      "actual": "green",
+      "contract_matches": false,
+      "exit": 0,
+      "entry": {
+        "at": "2026-11-08T19:20:13+00:00",
+        "green": 1,
+        "unknown": 0,
+        "red": 0,
+        "redCoins": [],
+        "unknownCoins": [],
+        "rechecked": [
+          "KRW-A"
+        ],
+        "rows": {
+          "KRW-A": {
+            "dbTo": "2026-11-08T17:00:00+00:00",
+            "exTo": "2026-11-08T17:00:00+00:00",
+            "exErr": "404",
+            "count": 1,
+            "rechecked": true
+          }
+        }
+      },
+      "first_lookup_at": "2026-11-08T19:19:01+00:00",
+      "finished_at": "2026-11-08T19:20:13+00:00",
+      "db_calls": 2,
+      "exchange_calls": 2
+    },
+    {
+      "name": "recheck-success",
+      "expected": "green",
+      "actual": "green",
+      "contract_matches": true,
+      "exit": 0,
+      "entry": {
+        "at": "2026-11-08T19:20:13+00:00",
+        "green": 1,
+        "unknown": 0,
+        "red": 0,
+        "redCoins": [],
+        "unknownCoins": [],
+        "rechecked": [
+          "KRW-A"
+        ],
+        "rows": {
+          "KRW-A": {
+            "dbTo": "2026-11-08T17:00:00+00:00",
+            "exTo": "2026-11-08T17:00:00+00:00",
+            "exErr": null,
+            "count": 1,
+            "rechecked": true
+          }
+        }
+      },
+      "first_lookup_at": "2026-11-08T19:19:01+00:00",
+      "finished_at": "2026-11-08T19:20:13+00:00",
+      "db_calls": 2,
+      "exchange_calls": 2
+    },
+    {
+      "name": "no-recheck-success",
+      "expected": "green",
+      "actual": "green",
+      "contract_matches": true,
+      "exit": 0,
+      "entry": {
+        "at": "2026-11-08T19:19:01+00:00",
+        "green": 1,
+        "unknown": 0,
+        "red": 0,
+        "redCoins": [],
+        "unknownCoins": [],
+        "rechecked": [],
+        "rows": {
+          "KRW-A": {
+            "dbTo": "2026-11-08T16:00:00+00:00",
+            "exTo": "2026-11-08T16:00:00+00:00",
+            "exErr": null,
+            "count": 1,
+            "rechecked": false
+          }
+        }
+      },
+      "first_lookup_at": "2026-11-08T19:19:01+00:00",
+      "finished_at": "2026-11-08T19:19:02+00:00",
+      "db_calls": 1,
+      "exchange_calls": 1
+    },
+    {
+      "name": "initial-net-recovered",
+      "expected": "green",
+      "actual": "green",
+      "contract_matches": true,
+      "exit": 0,
+      "entry": {
+        "at": "2026-11-08T19:20:13+00:00",
+        "green": 1,
+        "unknown": 0,
+        "red": 0,
+        "redCoins": [],
+        "unknownCoins": [],
+        "rechecked": [
+          "KRW-A"
+        ],
+        "rows": {
+          "KRW-A": {
+            "dbTo": "2026-11-08T17:00:00+00:00",
+            "exTo": "2026-11-08T17:00:00+00:00",
+            "exErr": null,
+            "count": 1,
+            "rechecked": true
+          }
+        }
+      },
+      "first_lookup_at": "2026-11-08T19:19:01+00:00",
+      "finished_at": "2026-11-08T19:20:13+00:00",
+      "db_calls": 2,
+      "exchange_calls": 2
+    },
+    {
+      "name": "both-net",
+      "expected": "unknown",
+      "actual": "unknown",
+      "contract_matches": true,
+      "exit": 1,
+      "entry": {
+        "at": "2026-11-08T19:20:13+00:00",
+        "green": 0,
+        "unknown": 1,
+        "red": 0,
+        "redCoins": [],
+        "unknownCoins": [
+          "KRW-A"
+        ],
+        "rechecked": [
+          "KRW-A"
+        ],
+        "rows": {
+          "KRW-A": {
+            "dbTo": "2026-11-08T16:00:00+00:00",
+            "exTo": null,
+            "exErr": "net",
+            "count": 1,
+            "rechecked": true
+          }
+        }
+      },
+      "first_lookup_at": "2026-11-08T19:19:01+00:00",
+      "finished_at": "2026-11-08T19:20:13+00:00",
+      "db_calls": 2,
+      "exchange_calls": 2
+    },
+    {
+      "name": "both-404",
+      "expected": "red",
+      "actual": "red",
+      "contract_matches": true,
+      "exit": 1,
+      "entry": {
+        "at": "2026-11-08T19:19:01+00:00",
+        "green": 0,
+        "unknown": 0,
+        "red": 1,
+        "redCoins": [
+          "KRW-A"
+        ],
+        "unknownCoins": [],
+        "rechecked": [],
+        "rows": {
+          "KRW-A": {
+            "dbTo": "2026-11-08T16:00:00+00:00",
+            "exTo": null,
+            "exErr": "404",
+            "count": 1,
+            "rechecked": false
+          }
+        }
+      },
+      "first_lookup_at": "2026-11-08T19:19:01+00:00",
+      "finished_at": "2026-11-08T19:19:02+00:00",
+      "db_calls": 1,
+      "exchange_calls": 1
+    }
+  ],
+  "network_calls": 0,
+  "prior_incident_contains_new_case": false,
+  "deployment_authorized": false
+}

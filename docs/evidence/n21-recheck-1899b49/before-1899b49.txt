@@ -1,0 +1,21 @@
+FAIL recheck-net            기대 unknown → green   종료 0 · 재조회 True  {'row_A': {'dbTo': '2026-11-08T17:00:00+00:00', 'exTo': '2026-11-08T17:00:00+00:00', 'exErr': 'net', 'count': 500, 'rechecked': True}, 'green': 22, 'unknown': 0, 'red': 0}
+FAIL recheck-404            기대 red     → green   종료 0 · 재조회 True  {'row_A': {'dbTo': '2026-11-08T17:00:00+00:00', 'exTo': '2026-11-08T17:00:00+00:00', 'exErr': '404', 'count': 500, 'rechecked': True}, 'green': 22, 'unknown': 0, 'red': 0}
+PASS recheck-success        기대 green   → green   종료 0 · 재조회 True
+PASS no-recheck-success     기대 green   → green   종료 0 · 재조회 False
+PASS initial-net-recovered  기대 green   → green   종료 0 · 재조회 True
+PASS both-net               기대 unknown → unknown 종료 1 · 재조회 True
+PASS both-404               기대 red     → red     종료 1 · 재조회 False
+FAIL 재조회 net — 저장 행 exErr=net·exTo 비움(이전 17:00 을 남기지 않음)  {'dbTo': '2026-11-08T17:00:00+00:00', 'exTo': '2026-11-08T17:00:00+00:00', 'exErr': 'net', 'count': 500, 'rechecked': True}
+FAIL 재조회 net — ⚪ 만 있으면 연속 구간을 끊는다(_streak_reset)  [('update', [])]
+FAIL 재조회 404 — 저장 행 exErr=404·exTo 비움, 판정 문구 '마켓이 없다'  {'dbTo': '2026-11-08T17:00:00+00:00', 'exTo': '2026-11-08T17:00:00+00:00', 'exErr': '404', 'count': 500, 'rechecked': True}
+PASS 재확인 뒤에도 DB 뒤처짐 → 🔴 '(재확인 후)' 유지
+FAIL 여러 코인 — ⚪ [A] · 🔴 [B, D] · 🟢 19 · 종료 1  {'green': 21, 'unknown': 0, 'red': 1, 'redCoins': ['KRW-ONG'], 'unknownCoins': []}
+PASS 여러 코인 — 재조회 목록은 뒤처진 4종 그대로
+FAIL 여러 코인 — 저장 행: A net/None · B 404/None · C None/17:00 · D None/17:00  [('net', '2026-11-08T17:00:00+00:00'), ('404', '2026-11-08T17:00:00+00:00'), (None, '2026-11-08T17:00:00+00:00'), (None, '2026-11-08T17:00:00+00:00')]
+PASS 여러 코인 — 스냅샷 22종 저장
+FAIL 여러 코인 — 🔴 가 있으면 연속 구간 갱신에 🔴 목록 전달  [('update', ['KRW-ONG'])]
+FAIL alerts 집계 — 관측 1회·적재 뒤처짐 1회·판정 불가 1회, 줄에 코인 이름  (1, ['적재 뒤처짐 1회'], ['관측 1회 (구간 시험 구간)', '🔴 11-08 19:20  1종: KRW-ONG', '현재 11-08 19:20: 🟢 21 / ⚪ 0 / 🔴 1'])
+PASS 여러 코인 — 1차·재조회 연속 요청 사이 모두 1초 이상 (최소 1.05s, 요청 26건)
+PASS JSON 칸 이름은 그대로 — 새 시각 칸 없음
+
+freshness 재조회 실패 판정 시험 10/19 통과
