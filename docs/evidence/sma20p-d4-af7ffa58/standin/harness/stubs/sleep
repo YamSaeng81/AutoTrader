@@ -1,0 +1,4 @@
+#!/bin/bash
+# 가짜 sleep — 기다리지 않고 시계만 민다
+. "$(dirname "$0")/_lib.sh"; calllog sleep "$@"
+echo $(( $(now) + ${1%s} )) > "$ST/clock"

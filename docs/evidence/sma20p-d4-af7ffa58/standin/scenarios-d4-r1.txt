@@ -1,0 +1,15 @@
+scenarios-d4.sh: line 7: ./conf.sh: No such file or directory
+== e01 정상: U0→U1→U2→U3→U4→U뒤관측, 감시 스크립트·시험 파일 불변, 보존 태그 b5cd1d0 = #27
+./init.sh: line 5: /d/tmp/sma20pd4/sim/conf.sh: No such file or directory
+grep: runs/r1-e01/calls.log: No such file or directory
+FAIL e01 U0 — 종료 1(기대 0) · '✅ U0 통과' · checkout (기대 0)
+grep: runs/r1-e01/out/out-U0.txt: No such file or directory
+cat: /d/tmp/sma20pd4/sim/runs/r1-e01/state/clock: No such file or directory
+./adv.sh: line 3: /d/tmp/sma20pd4/sim/runs/r1-e01/state/clock: No such file or directory
+tee: /d/tmp/sma20pd4/sim/runs/r1-e01/out/clock.txt: No such file or directory
+cat: /d/tmp/sma20pd4/sim/runs/r1-e01/state/clock: No such file or directory
+/usr/bin/date: invalid date '@'
+grep: runs/r1-e01/calls.log: No such file or directory
+FAIL e01 U1 — 종료 1(기대 0) · '✅ U1 통과' · checkout (기대 1)
+grep: runs/r1-e01/out/out-U1.txt: No such file or directory
+scenarios-d4.sh: line 28: NEWC: unbound variable

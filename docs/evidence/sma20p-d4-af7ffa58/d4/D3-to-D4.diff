@@ -1,0 +1,313 @@
+diff -ru o1o3-n21-d3-b5cd1d0/d3/blocks-d3/U0.sh sma20p-d4-af7ffa58/d4/blocks-d4/U0.sh
+--- o1o3-n21-d3-b5cd1d0/d3/blocks-d3/U0.sh	2026-11-10 10:55:54.176222100 +0900
++++ sma20p-d4-af7ffa58/d4/blocks-d4/U0.sh	2026-11-10 22:43:53.579585200 +0900
+@@ -1,20 +1,20 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "$M" = "$HOME/maint-o13n21" ] && [ "${UB:-}" = O13N21D3 ] && [ "$NEW" = b5cd1d0d47ea68ffe6ff476b89cf9fca5bef1b88 ] && type fresh_idle > /dev/null 2>&1 && type n21mark > /dev/null 2>&1 && type n21after > /dev/null 2>&1 && [ -n "${BTCIN:-}" ] && type sid203 > /dev/null 2>&1 && type newsobs > /dev/null 2>&1 && type httpobs > /dev/null 2>&1 && type holdobs > /dev/null 2>&1 && type entryobs > /dev/null 2>&1 && type n17obs > /dev/null 2>&1 && type n19obs > /dev/null 2>&1 && type n20obs > /dev/null 2>&1 || stop "변수 순서 — F 변수 → G 변수 → O1·O3+N21 초안 D3 U 변수"
+-case "$IMGOLD" in sha256:*) ;; *) stop "IMGOLD 가 sha256: 이미지 ID 가 아님 — 승인된 U 변수 원문이 아님(초안 D1·D2·D3 는 실행하지 않는다)" ;; esac
++[ "$M" = "$HOME/maint-sma20p" ] && [ "${UB:-}" = SMA20PD4 ] && [ "$NEW" = af7ffa58960fa1392dee00397924827b4e4e6cd5 ] && [ -n "${JARN:-}" ] && type fresh_idle > /dev/null 2>&1 && type n21mark > /dev/null 2>&1 && type n21after > /dev/null 2>&1 && [ -n "${BTCIN:-}" ] && type sid203 > /dev/null 2>&1 && type newsobs > /dev/null 2>&1 && type httpobs > /dev/null 2>&1 && type holdobs > /dev/null 2>&1 && type entryobs > /dev/null 2>&1 && type n17obs > /dev/null 2>&1 && type n19obs > /dev/null 2>&1 && type n20obs > /dev/null 2>&1 || stop "변수 순서 — F 변수 → G 변수 → SMA20 PAPER 후보 초안 D4 U 변수"
++case "$IMGOLD" in sha256:*) ;; *) stop "IMGOLD 가 sha256: 이미지 ID 가 아님 — 승인된 U 변수 원문이 아님(초안 D1~D4 는 실행하지 않는다)" ;; esac
+ [ ! -e "$M/ok-U1" ] || stop "U1 을 이미 시작했다 — U0 를 다시 하지 않는다. ls -l $M 를 보고"
+ kwin "$(date +%s)" || stop "시작 시각·정기 보고 확인 — 위 줄"
+-[ "$(git rev-parse HEAD)" = "$OLD" ] && [ -z "$(git status --porcelain --untracked-files=no)" ] || stop "HEAD 가 1899b49 가 아니거나 추적 파일 변경 있음"
++[ "$(git rev-parse HEAD)" = "$OLD" ] && [ -z "$(git status --porcelain --untracked-files=no)" ] || stop "HEAD 가 b5cd1d0 가 아니거나 추적 파일 변경 있음"
+ date '+%F %T %Z' | tee "$M/t-before.txt"; date '+%F %T%:z' > "$M/maint_start.txt"
+ { git rev-parse HEAD; git status --porcelain --untracked-files=no; echo "(끝)"; } | tee "$M/git-before.txt"
+ git fetch origin
+-git cat-file -e "$NEW^{commit}" || stop "후보 b5cd1d0 없음"
+-git merge-base --is-ancestor $OLD $NEW || stop "1899b49 가 후보의 조상이 아님"
+-[ "$(git diff --name-only $OLD $NEW)" = "$DIFFN" ] || stop "diff 가 정확히 O1·O3 6개·N21 2개, 8개 파일이 아님(마이그레이션·설정 포함 금지)"
++git cat-file -e "$NEW^{commit}" || stop "후보 af7ffa5 없음"
++git merge-base --is-ancestor $OLD $NEW || stop "b5cd1d0 가 후보의 조상이 아님"
++[ "$(git diff --name-only $OLD $NEW)" = "$DIFFN" ] || stop "diff 가 정확히 제품 Java 5·시험 Java 7, 12개 파일이 아님(마이그레이션·설정 포함 금지)"
+ svc | tee "$M/svc-before.txt"
+ IMG0=$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)"); echo "$IMG0" | tee "$M/image-before.txt"
+-[ "$IMG0" = "$IMGOLD" ] && [ "$IMGOLD" = "$(cat ~/maint-n20/image-new.txt)" ] || stop "실행 이미지가 #26 배포 이미지(~/maint-n20/image-new.txt)와 다름"
++[ "$IMG0" = "$IMGOLD" ] && [ "$IMGOLD" = "$(cat ~/maint-o13n21/image-new.txt)" ] || stop "실행 이미지가 #27 배포 이미지(~/maint-o13n21/image-new.txt)와 다름"
+ [ "$(docker image inspect --format '{{.Id}}' $REPO:ea44900)" = "$IMGPREV" ] || stop "이전 복구 태그 $REPO:ea44900 이 #19 이미지(61804654…)가 아님 — 보고"
+ [ "$(docker image inspect --format '{{.Id}}' $REPO:b1d7664)" = "$IMGPREV2" ] || stop "이전 복구 태그 $REPO:b1d7664 이 #20 이미지(fd3ac351…)가 아님 — 보고"
+ [ "$(docker image inspect --format '{{.Id}}' $REPO:6995c52)" = "$IMGPREV3" ] || stop "이전 복구 태그 $REPO:6995c52 이 #21 이미지(67294e80…)가 아님 — 보고"
+@@ -22,6 +22,7 @@
+ [ "$(docker image inspect --format '{{.Id}}' $REPO:1103f48)" = "$IMGPREV5" ] || stop "이전 복구 태그 $REPO:1103f48 이 #23 이미지(9818254c…)가 아님 — 보고"
+ [ "$(docker image inspect --format '{{.Id}}' $REPO:7a94472)" = "$IMGPREV6" ] || stop "이전 복구 태그 $REPO:7a94472 이 #24 이미지(e51b512a…)가 아님 — 보고"
+ [ "$(docker image inspect --format '{{.Id}}' $REPO:ee509cf)" = "$IMGPREV7" ] || stop "이전 복구 태그 $REPO:ee509cf 이 #25 이미지(200f2f57…)가 아님 — 보고"
++[ "$(docker image inspect --format '{{.Id}}' $REPO:1899b49)" = "$IMGPREV8" ] || stop "이전 복구 태그 $REPO:1899b49 이 #26 이미지(426a09a2…)가 아님 — 보고"
+ [ "$(docker image inspect --format '{{.Id}}' $REPO:latest)" = "$IMG0" ] || stop "$REPO:latest 가 실행 이미지와 다름"
+ [ "$($DC exec -T backend env | grep '^TRADING_CAPITALPOOL_' | sort)" = "$POOLX" ] || stop "공유 풀 등록값이 STAGE_1·100000·20000·3 과 다름"
+ v94 || stop "Flyway 최고 버전이 94 가 아님"
+@@ -56,24 +57,22 @@
+ [ "$HD" != 1 ] || stop "🔴 P0 — 배포 전 로그에 연결 획득 시간 초과 줄이 있다. 배포하지 않고 hold-before.txt 를 즉시 보고"
+ echo "== 배포 전 기준선: HOLD 질의 장기 대여(holdobs 종료 $HD — 3 이어도 멈추지 않는다, 기록만)"; cat "$M/hold-before.txt"
+ entryobs "$M/backend-before.log" > "$M/entry-before.txt" && ED=0 || ED=$?
+-echo "== 배포 전 기준선: N15·N16 줄(entryobs 종료 $ED — 1899b49 실행 중 로그, 기록만)"; cat "$M/entry-before.txt"
++echo "== 배포 전 기준선: N15·N16 줄(entryobs 종료 $ED — b5cd1d0 실행 중 로그, 기록만)"; cat "$M/entry-before.txt"
+ n17obs "$M/backend-before.log" > "$M/n17-before.txt" || stop "n17obs 인자 오류 — n17-before.txt 를 보고"
+-echo "== 배포 전 기준선: N17 줄(1899b49 실행 중 로그 — 옛 문구도 같은 정규식으로 센다, 기록만)"; cat "$M/n17-before.txt"
++echo "== 배포 전 기준선: N17 줄(b5cd1d0 실행 중 로그 — 옛 문구도 같은 정규식으로 센다, 기록만)"; cat "$M/n17-before.txt"
+ n19obs "$M/backend-before.log" > "$M/n19-before.txt" || stop "n19obs 인자 오류 — n19-before.txt 를 보고"
+-echo "== 배포 전 기준선: N19 줄(1899b49 실행 중 로그, 자연 발생만, 기록만)"; cat "$M/n19-before.txt"
++echo "== 배포 전 기준선: N19 줄(b5cd1d0 실행 중 로그, 자연 발생만, 기록만)"; cat "$M/n19-before.txt"
+ n20obs "$M/backend-before.log" > "$M/n20-before.txt" || stop "n20obs 인자 오류 — n20-before.txt 를 보고"
+-echo "== 배포 전 기준선: N20 줄(1899b49 실행 중 로그, 자연 발생만, 기록만)"; cat "$M/n20-before.txt"
++echo "== 배포 전 기준선: N20 줄(b5cd1d0 실행 중 로그, 자연 발생만, 기록만)"; cat "$M/n20-before.txt"
+ python3 scripts/prospective/start_66.py alerts --days 1 --no-mark > "$M/alerts-before.txt" 2>&1 && AE=0 || AE=$?
+ echo "경보 종료코드 $AE"
+ alertsok "$AE" "$M/alerts-before.txt" || stop "경보 조회가 끝까지 돌지 않음 — alerts-before.txt 를 보고"
+ grep -E '^(🔴|⚪)' "$M/alerts-before.txt" || true
+-echo "== N21 감시 스크립트 사전 확인"
+-[ "$(git rev-parse "HEAD:$NF")" = "$NBOLD" ] && [ "$(h256 "$NF")" = "$NHOLD" ] || stop "start_66.py 가 1899b49 원문(460031d3…)과 다름"
+-[ ! -e "$NT" ] || stop "$NT 가 이미 있다(추적 안 된 파일) — 체크아웃이 덮어쓰지 않도록 보고"
+-[ "$(git rev-parse "$NEW:$NF")" = "$NBNEW" ] || stop "후보 start_66.py 블롭이 6305e512… 가 아님"
++echo "== 감시 스크립트 불변 확인(D4 는 start_66.py·시험 파일을 바꾸지 않는다)"
++[ "$(git rev-parse "HEAD:$NF")" = "$NBOLD" ] && [ "$(h256 "$NF")" = "$NHOLD" ] || stop "start_66.py 가 b5cd1d0 원문(68d441ce…)과 다름"
++[ -e "$NT" ] && [ "$(git rev-parse "HEAD:$NT")" = "$(git rev-parse "$NEW:$NT")" ] && [ "$(git rev-parse "$NEW:$NF")" = "$NBNEW" ] || stop "후보의 start_66.py·시험 파일 블롭이 운영과 다름"
+ FI=0; fresh_idle u0 || FI=$?
+ [ "$FI" = 0 ] || { [ "$FI" = 1 ] && stop "freshness 회차가 돌고 있다 — 끝난 뒤 U0 부터(끊지 않는다)"; stop "프로세스 조회 실패 — 회차 없음으로 보지 않는다. pgrep-u0.* 를 보고"; }
+-n21mark u0 || stop "N21 뒤 확인에 쓸 기록(시스템 기록·실행 기록·관측 행)을 읽을 수 없다 — 배포하지 않고 보고"
+ cp -p "$NF" "$M/start_66.py.before"
+ for s in freshness_streak.json freshness_snap.json; do [ ! -f "scripts/prospective/$s" ] || cp -p "scripts/prospective/$s" "$M/$s.before"; done
+ touch "$M/ok-U0"; echo "✅ U0 통과 — 30분 안에 U1(매시 :14~:24 는 피한다)"
+diff -ru o1o3-n21-d3-b5cd1d0/d3/blocks-d3/U1.sh sma20p-d4-af7ffa58/d4/blocks-d4/U1.sh
+--- o1o3-n21-d3-b5cd1d0/d3/blocks-d3/U1.sh	2026-11-10 10:55:54.177678900 +0900
++++ sma20p-d4-af7ffa58/d4/blocks-d4/U1.sh	2026-11-10 22:43:53.579585200 +0900
+@@ -1,7 +1,7 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "${UB:-}" = O13N21D3 ] || stop "U 변수가 O1·O3+N21 초안 D3 판이 아님 — F → G → O1·O3+N21 초안 D3 U 변수(초안은 실행하지 않는다)"
++[ "${UB:-}" = SMA20PD4 ] || stop "U 변수가 SMA20 PAPER 후보 초안 D4 판이 아님 — F → G → SMA20 PAPER 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+ [ -e "$M/ok-U0" ] || stop "U0 미통과"
+ [ ! -e "$M/ok-U1" ] || stop "U1 을 이미 통과했다 — 바로 U2"
+ [ $(( $(date +%s) - $(stat -c %Y "$M/ok-U0") )) -le 1800 ] || stop "U0 가 30분보다 오래됨 — U0 부터(아직 바꾼 것 없음, U1-되돌림 하지 않는다)"
+@@ -10,15 +10,14 @@
+ [ "$(git rev-parse HEAD)" = "$OLD" ] && [ -z "$(git status --porcelain --untracked-files=no)" ] || stop "HEAD·작업 트리가 U0 때와 다름(아직 바꾼 것 없음, U1-되돌림 하지 않는다) — 보고"
+ FI=0; fresh_idle u1 || FI=$?
+ [ "$FI" = 0 ] || { [ "$FI" = 1 ] && stop "freshness 회차가 돌고 있다(아직 바꾼 것 없음, U1-되돌림 하지 않는다) — 끝난 뒤 U0 부터(끊지 않는다)"; stop "프로세스 조회 실패(아직 바꾼 것 없음, U1-되돌림 하지 않는다) — 회차 없음으로 보지 않는다. pgrep-u1.* 를 보고"; }
+-n21mark apply || stop "N21 기준 위치를 기록하지 못했다(아직 바꾼 것 없음, U1-되돌림 하지 않는다) — 보고"
+ date -u '+%Y-%m-%dT%H:%M:%SZ' > "$M/t-apply.utc"
+ IMG0=$(cat "$M/image-before.txt")
+-if docker image inspect $REPO:1899b49 > /dev/null 2>&1; then [ "$(docker image inspect --format '{{.Id}}' $REPO:1899b49)" = "$IMG0" ] || stop "$REPO:1899b49 태그가 이미 다른 이미지를 가리킨다(HEAD·latest 그대로, U1-되돌림 하지 않는다)"; fi
+-docker tag "$IMG0" $REPO:1899b49
+-[ "$(docker image inspect --format '{{.Id}}' $REPO:1899b49)" = "$IMG0" ] || stop "기존 이미지 보존 태그 실패(HEAD·latest 그대로, U1-되돌림 하지 않는다)"
++if docker image inspect $REPO:b5cd1d0 > /dev/null 2>&1; then [ "$(docker image inspect --format '{{.Id}}' $REPO:b5cd1d0)" = "$IMG0" ] || stop "$REPO:b5cd1d0 태그가 이미 다른 이미지를 가리킨다(HEAD·latest 그대로, U1-되돌림 하지 않는다)"; fi
++docker tag "$IMG0" $REPO:b5cd1d0
++[ "$(docker image inspect --format '{{.Id}}' $REPO:b5cd1d0)" = "$IMG0" ] || stop "기존 이미지 보존 태그 실패(HEAD·latest 그대로, U1-되돌림 하지 않는다)"
+ git checkout --quiet $NEW
+ [ "$(git rev-parse HEAD)" = "$NEW" ] && [ -z "$(git status --porcelain --untracked-files=no)" ] || stop "체크아웃 결과가 NEW 가 아니거나 변경 있음 — U1-되돌림"
+-[ "$(h256 "$NF")" = "$NHNEW" ] && [ -e "$NT" ] || stop "start_66.py 가 통합 후보 원문(68d441ce…)과 다르거나 새 시험 파일 없음 — U1-되돌림"
++[ "$(h256 "$NF")" = "$NHNEW" ] && [ -e "$NT" ] || stop "start_66.py 가 운영·후보 같은 원문(68d441ce…)과 다르거나 시험 파일 없음 — U1-되돌림"
+ python3 -c 'import ast,sys; ast.parse(open(sys.argv[1], encoding="utf-8").read())' "$NF" > "$M/syntax.txt" 2>&1 || { cat "$M/syntax.txt"; stop "start_66.py 문법 확인 실패 — U1-되돌림"; }   # 캐시 파일을 쓰지 않는 문법 확인
+ date '+%F %T %Z' | tee "$M/t-build.txt"
+ $DC build backend > "$M/build.log" 2>&1 || stop "빌드 실패 — build.log 를 보고. U1-되돌림"
+@@ -79,7 +78,7 @@
+ EOF
+ cat "$M/jar-diff.txt"
+ [ "$JC" = 0 ] || stop "jar 비교기 v2 거절(종료 $JC) — 중복 항목·형식 이상. jar-diff.txt 를 보고(재기동 전). U1-되돌림"
+-[ "$(grep -v '^(끝)' "$M/jar-diff.txt")" = "$RARX" ] || stop "jar 차이가 O1·O3 3줄이 아님 — jar-diff.txt 를 보고(재기동 전). U1-되돌림"
+-grep -qx '(끝) 881 881' "$M/jar-diff.txt" || stop "항목 수가 881 → 881 가 아님 — jar-diff.txt 를 보고(재기동 전). U1-되돌림"
+-touch "$M/ok-U1"; echo "✅ U1 통과 — ⏸ 운영자 확인 1회 뒤 U2. 감시 스크립트는 이미 새 판이다: 다음 :19 회차가 끝난 뒤 U5"
++[ "$(grep -v '^(끝)' "$M/jar-diff.txt")" = "$RARX" ] || stop "jar 차이가 기대 7줄(PAPER 상한·LIVE_ALIGNED)이 아님 — jar-diff.txt 를 보고(재기동 전). U1-되돌림"
++grep -qxF "$JARN" "$M/jar-diff.txt" || stop "항목 수가 881 → 883 가 아님 — jar-diff.txt 를 보고(재기동 전). U1-되돌림"
++touch "$M/ok-U1"; echo "✅ U1 통과 — ⏸ 운영자 확인 1회 뒤 U2(감시 스크립트는 바뀌지 않았다)"
+ )
+diff -ru "o1o3-n21-d3-b5cd1d0/d3/blocks-d3/U1�\220\230�\217\214림.sh" "sma20p-d4-af7ffa58/d4/blocks-d4/U1�\220\230�\217\214림.sh"
+--- "o1o3-n21-d3-b5cd1d0/d3/blocks-d3/U1�\220\230�\217\214림.sh"	2026-11-10 10:55:54.181671900 +0900
++++ "sma20p-d4-af7ffa58/d4/blocks-d4/U1�\220\230�\217\214림.sh"	2026-11-10 22:43:53.582196300 +0900
+@@ -1,27 +1,27 @@
+-# U1-되돌림(D3) — U1 이 '… U1-되돌림' 으로 멈췄거나, U1 통과 뒤 운영자가 U2 를 하지 않기로 했을 때만 쓴다(자동 실행 없음). 재기동하지 않는다.
++# U1-되돌림(D4) — U1 이 '… U1-되돌림' 으로 멈췄거나, U1 통과 뒤 운영자가 U2 를 하지 않기로 했을 때만 쓴다(자동 실행 없음). 재기동하지 않는다.
+ # 대상은 HEAD=NEW 뿐이다(이미 OLD 이면 체크아웃 없이 latest·원문만 맞춘다). 그 밖 HEAD·추적 변경·실행 이미지/cron 불일치·프로세스 조회 실패는 바꾸지 않고 멈춘다.
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "${UB:-}" = O13N21D3 ] || stop "U 변수가 O1·O3+N21 초안 D3 판이 아님 — F → G → O1·O3+N21 초안 D3 U 변수(초안은 실행하지 않는다)"
++[ "${UB:-}" = SMA20PD4 ] || stop "U 변수가 SMA20 PAPER 후보 초안 D4 판이 아님 — F → G → SMA20 PAPER 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+ [ ! -e "$M/ok-U2" ] && [ ! -e "$M/t-deploy.utc" ] || stop "U2(재기동)를 시작했다 — U1-되돌림이 아니라 U되돌림"
+-IMG0=$(cat "$M/image-before.txt"); [ "$IMG0" = "$IMGOLD" ] || stop "image-before 가 #26 이미지(IMGOLD)가 아님"
++IMG0=$(cat "$M/image-before.txt"); [ "$IMG0" = "$IMGOLD" ] || stop "image-before 가 #27 이미지(IMGOLD)가 아님"
+ [ -e "$M/start_66.py.before" ] || stop "U0 보존본이 없다 — 보고"
+ date '+%F %T %Z' | tee "$M/t-u1rollback.txt"
+ { git rev-parse HEAD; git status --porcelain --untracked-files=no; echo "(끝)"; } | tee "$M/git-pre-u1rollback.txt"
+ H=$(head -1 "$M/git-pre-u1rollback.txt")
+-[ "$H" = "$NEW" ] || [ "$H" = "$OLD" ] || stop "HEAD 가 통합 후보·1899b49 어느 것도 아님($H) — 다른 작업 상태일 수 있다. 바꾸지 않고 보고"
++[ "$H" = "$NEW" ] || [ "$H" = "$OLD" ] || stop "HEAD 가 후보·b5cd1d0 어느 것도 아님($H) — 다른 작업 상태일 수 있다. 바꾸지 않고 보고"
+ [ "$(sed -n 2p "$M/git-pre-u1rollback.txt")" = "(끝)" ] || stop "추적 파일 변경이 있다 — 덮어쓰지 않고 보고"
+ [ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$IMG0" ] || stop "실행 중 backend 가 image-before 가 아님 — 재기동이 있었을 수 있다. 바꾸지 않고 보고"
+ crontab -l > "$M/crontab-u1rollback.txt" || stop "crontab 조회 실패 — 바꾸지 않고 보고"
+ [ "$(h256 "$M/crontab-u1rollback.txt")" = "$CRON" ] || stop "crontab 이 f2dce280… 과 다름 — 바꾸지 않고 보고"
+ FI=0; fresh_idle u1rb || FI=$?
+ [ "$FI" = 0 ] || { [ "$FI" = 1 ] && stop "freshness 회차가 돌고 있다(아직 바꾼 것 없음) — 끝난 뒤 다시(끊지 않는다)"; stop "프로세스 조회 실패(아직 바꾼 것 없음) — 회차 없음으로 보지 않는다. pgrep-u1rb.* 를 보고"; }
+-if [ "$H" = "$NEW" ]; then git checkout --quiet $OLD; else echo "HEAD 가 이미 1899b49 — 체크아웃하지 않는다"; fi
++if [ "$H" = "$NEW" ]; then git checkout --quiet $OLD; else echo "HEAD 가 이미 b5cd1d0 — 체크아웃하지 않는다"; fi
+ docker tag "$IMG0" $REPO:latest
+ { git rev-parse HEAD; git status --porcelain --untracked-files=no; echo "(끝)"; docker image inspect --format '{{.Id}}' $REPO:latest; } | tee "$M/git-u1rollback.txt"
+-[ "$(head -1 "$M/git-u1rollback.txt")" = "$OLD" ] && [ "$(sed -n 2p "$M/git-u1rollback.txt")" = "(끝)" ] && [ "$(sed -n 3p "$M/git-u1rollback.txt")" = "$IMG0" ] || stop "되돌림 결과가 1899b49·latest=image-before 가 아님 — 보고"
+-[ "$(h256 "$NF")" = "$NHOLD" ] && cmp -s "$NF" "$M/start_66.py.before" && [ ! -e "$NT" ] || stop "start_66.py 가 U0 보존본과 다르거나 새 시험 파일이 남음 — 보고"
++[ "$(head -1 "$M/git-u1rollback.txt")" = "$OLD" ] && [ "$(sed -n 2p "$M/git-u1rollback.txt")" = "(끝)" ] && [ "$(sed -n 3p "$M/git-u1rollback.txt")" = "$IMG0" ] || stop "되돌림 결과가 b5cd1d0·latest=image-before 가 아님 — 보고"
++[ "$(h256 "$NF")" = "$NHOLD" ] && cmp -s "$NF" "$M/start_66.py.before" && [ -e "$NT" ] || stop "start_66.py 가 U0 보존본과 다르거나 시험 파일이 없다 — 보고"
+ [ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$IMG0" ] || stop "실행 중 backend 가 바뀌었다 — 보고"
+-rm -f "$M/ok-U1"; echo "↩ U1-되돌림 끝 — HEAD 1899b49·latest = image-before, 재기동 없음. 상태 파일(streak·snap·log)은 되감지 않았다"
++rm -f "$M/ok-U1"; echo "↩ U1-되돌림 끝 — HEAD b5cd1d0·latest = image-before, 재기동 없음. 상태 파일(streak·snap·log)은 되감지 않았다"
+ )
+diff -ru o1o3-n21-d3-b5cd1d0/d3/blocks-d3/U2.sh sma20p-d4-af7ffa58/d4/blocks-d4/U2.sh
+--- o1o3-n21-d3-b5cd1d0/d3/blocks-d3/U2.sh	2026-11-10 10:55:54.179184200 +0900
++++ sma20p-d4-af7ffa58/d4/blocks-d4/U2.sh	2026-11-10 22:43:53.579585200 +0900
+@@ -1,7 +1,7 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "${UB:-}" = O13N21D3 ] || stop "U 변수가 O1·O3+N21 초안 D3 판이 아님 — F → G → O1·O3+N21 초안 D3 U 변수(초안은 실행하지 않는다)"
++[ "${UB:-}" = SMA20PD4 ] || stop "U 변수가 SMA20 PAPER 후보 초안 D4 판이 아님 — F → G → SMA20 PAPER 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+ [ -e "$M/ok-U1" ] || stop "U1 미통과"
+ [ ! -e "$M/ok-U2" ] || stop "U2 를 이미 했다 — U3"
+ IMG1=$(cat "$M/image-new.txt")
+diff -ru o1o3-n21-d3-b5cd1d0/d3/blocks-d3/U3.sh sma20p-d4-af7ffa58/d4/blocks-d4/U3.sh
+--- o1o3-n21-d3-b5cd1d0/d3/blocks-d3/U3.sh	2026-11-10 10:55:54.180198500 +0900
++++ sma20p-d4-af7ffa58/d4/blocks-d4/U3.sh	2026-11-10 22:43:53.580828700 +0900
+@@ -1,7 +1,7 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "${UB:-}" = O13N21D3 ] || stop "U 변수가 O1·O3+N21 초안 D3 판이 아님 — F → G → O1·O3+N21 초안 D3 U 변수(초안은 실행하지 않는다)"
++[ "${UB:-}" = SMA20PD4 ] || stop "U 변수가 SMA20 PAPER 후보 초안 D4 판이 아님 — F → G → SMA20 PAPER 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+ if [ -e "$M/t-rollback.utc" ]; then S=$(cat "$M/t-rollback.utc"); EXP=$(cat "$M/image-before.txt"); T=rollback; else [ -e "$M/ok-U2" ] || stop "U2 미통과"; S=$(cat "$M/t-deploy.utc"); EXP=$(cat "$M/image-new.txt"); T=deploy; fi
+ [ $(( $(date +%s) - $(date -d "$S" +%s) )) -ge 300 ] || stop "기동 5분 전 — 5분이 지난 뒤 U3"
+ $DC ps backend
+@@ -51,5 +51,5 @@
+ n19obs "$M/app-$T.log" | tee "$M/n19obs-$T.txt" || stop "n19obs 인자 오류 — 위 출력을 보고"
+ n20obs "$M/app-$T.log" | tee "$M/n20obs-$T.txt" || stop "n20obs 인자 오류 — 위 출력을 보고"
+ touch "$M/ok-U3-$T"
+-if [ "$T" = deploy ]; then echo "✅ U3(deploy) 통과 — 기동 30분 뒤 U4"; else echo "✅ U3(rollback) 통과 — 1899b49 복귀 확인. U4 는 하지 않고 출력을 보고"; fi
++if [ "$T" = deploy ]; then echo "✅ U3(deploy) 통과 — 기동 30분 뒤 U4"; else echo "✅ U3(rollback) 통과 — b5cd1d0 복귀 확인. U4 는 하지 않고 출력을 보고"; fi
+ )
+diff -ru o1o3-n21-d3-b5cd1d0/d3/blocks-d3/U4.sh sma20p-d4-af7ffa58/d4/blocks-d4/U4.sh
+--- o1o3-n21-d3-b5cd1d0/d3/blocks-d3/U4.sh	2026-11-10 10:55:54.180198500 +0900
++++ sma20p-d4-af7ffa58/d4/blocks-d4/U4.sh	2026-11-10 22:43:53.580828700 +0900
+@@ -1,7 +1,7 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "${UB:-}" = O13N21D3 ] || stop "U 변수가 O1·O3+N21 초안 D3 판이 아님 — F → G → O1·O3+N21 초안 D3 U 변수(초안은 실행하지 않는다)"
++[ "${UB:-}" = SMA20PD4 ] || stop "U 변수가 SMA20 PAPER 후보 초안 D4 판이 아님 — F → G → SMA20 PAPER 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+ [ -e "$M/ok-U3-deploy" ] || stop "U3 미통과"
+ S=$(cat "$M/t-deploy.utc")
+ [ $(( $(date +%s) - $(date -d "$S" +%s) )) -ge 1800 ] || stop "아직 30분 전 — 완료로 판정하지 않는다"
+Only in o1o3-n21-d3-b5cd1d0/d3/blocks-d3: U5.sh
+diff -ru "o1o3-n21-d3-b5cd1d0/d3/blocks-d3/U�\220\230�\217\214림.sh" "sma20p-d4-af7ffa58/d4/blocks-d4/U�\220\230�\217\214림.sh"
+--- "o1o3-n21-d3-b5cd1d0/d3/blocks-d3/U�\220\230�\217\214림.sh"	2026-11-10 10:55:54.181671900 +0900
++++ "sma20p-d4-af7ffa58/d4/blocks-d4/U�\220\230�\217\214림.sh"	2026-11-10 22:43:53.582196300 +0900
+@@ -1,12 +1,12 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "${UB:-}" = O13N21D3 ] || stop "U 변수가 O1·O3+N21 초안 D3 판이 아님 — F → G → O1·O3+N21 초안 D3 U 변수(초안은 실행하지 않는다)"
+-IMG0=$(cat "$M/image-before.txt"); [ "$IMG0" = "$IMGOLD" ] || stop "image-before 가 #26 이미지(IMGOLD)가 아님"
++[ "${UB:-}" = SMA20PD4 ] || stop "U 변수가 SMA20 PAPER 후보 초안 D4 판이 아님 — F → G → SMA20 PAPER 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
++IMG0=$(cat "$M/image-before.txt"); [ "$IMG0" = "$IMGOLD" ] || stop "image-before 가 #27 이미지(IMGOLD)가 아님"
+ [ -e "$M/start_66.py.before" ] || stop "U0 보존본이 없다 — 보고"
+ { git rev-parse HEAD; git status --porcelain --untracked-files=no; echo "(끝)"; } | tee "$M/git-pre-rollback.txt"
+ H=$(head -1 "$M/git-pre-rollback.txt")
+-[ "$H" = "$NEW" ] || [ "$H" = "$OLD" ] || stop "HEAD 가 통합 후보·1899b49 어느 것도 아님($H) — 다른 작업 상태일 수 있다. 바꾸지 않고 보고"
++[ "$H" = "$NEW" ] || [ "$H" = "$OLD" ] || stop "HEAD 가 후보·b5cd1d0 어느 것도 아님($H) — 다른 작업 상태일 수 있다. 바꾸지 않고 보고"
+ [ "$(sed -n 2p "$M/git-pre-rollback.txt")" = "(끝)" ] || stop "추적 파일 변경이 있다 — 덮어쓰지 않고 보고"
+ IMGR=$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)") || stop "실행 이미지 조회 실패 — 바꾸지 않고 보고"
+ [ "$IMGR" = "$IMG0" ] || { [ -s "$M/image-new.txt" ] && [ "$IMGR" = "$(cat "$M/image-new.txt")" ]; } || stop "실행 이미지가 image-before·image-new 어느 것도 아님 — 다른 작업이 있었을 수 있다. 바꾸지 않고 보고"
+@@ -15,9 +15,9 @@
+ FI=0; fresh_idle rb || FI=$?
+ [ "$FI" = 0 ] || { [ "$FI" = 1 ] && stop "freshness 회차가 돌고 있다(아직 바꾼 것 없음) — 끝난 뒤 다시(끊지 않는다)"; stop "프로세스 조회 실패(아직 바꾼 것 없음) — 회차 없음으로 보지 않는다. pgrep-rb.* 를 보고"; }
+ date '+%F %T %Z' | tee "$M/t-rollback.txt"; date -u '+%Y-%m-%dT%H:%M:%SZ' > "$M/t-rollback.utc"
+-if [ "$H" = "$NEW" ]; then git checkout --quiet $OLD; else echo "HEAD 가 이미 1899b49 — 체크아웃하지 않는다"; fi
++if [ "$H" = "$NEW" ]; then git checkout --quiet $OLD; else echo "HEAD 가 이미 b5cd1d0 — 체크아웃하지 않는다"; fi
+ [ "$(git rev-parse HEAD)" = "$OLD" ] && [ -z "$(git status --porcelain --untracked-files=no)" ] || stop "체크아웃 실패"
+-[ "$(h256 "$NF")" = "$NHOLD" ] && cmp -s "$NF" "$M/start_66.py.before" && [ ! -e "$NT" ] || stop "start_66.py 가 U0 보존본과 다르거나 새 시험 파일이 남음 — 보고"
++[ "$(h256 "$NF")" = "$NHOLD" ] && cmp -s "$NF" "$M/start_66.py.before" && [ -e "$NT" ] || stop "start_66.py 가 U0 보존본과 다르거나 시험 파일이 없다 — 보고"
+ docker tag "$IMG0" $REPO:latest
+ $DC up -d --no-build --no-deps --force-recreate backend
+ sleep 15
+@@ -25,5 +25,5 @@
+ [ "$($DC exec -T backend env | grep '^TRADING_CAPITALPOOL_' | sort)" = "$POOLX" ] || stop "공유 풀 등록값 다름"
+ svc | tee "$M/svc-rollback.txt"
+ { git rev-parse HEAD; git status --porcelain --untracked-files=no; echo "(끝)"; } | tee "$M/git-rollback.txt"
+-echo "✅ 1899b49 (#26 이미지) 로 복귀 — 5분 뒤 U3 를 다시 실행(t-rollback.utc 기준으로 자동 전환, BTC·뉴스·HTTP 줄·HOLD 질의·N15/N16·N17·N19·N20 줄은 기록만)"
++echo "✅ b5cd1d0 (#27 이미지) 로 복귀 — 5분 뒤 U3 를 다시 실행(t-rollback.utc 기준으로 자동 전환, BTC·뉴스·HTTP 줄·HOLD 질의·N15/N16·N17·N19·N20 줄은 기록만)"
+ )
+diff -ru "o1o3-n21-d3-b5cd1d0/d3/blocks-d3/U�\222��\200측.sh" "sma20p-d4-af7ffa58/d4/blocks-d4/U�\222��\200측.sh"
+--- "o1o3-n21-d3-b5cd1d0/d3/blocks-d3/U�\222��\200측.sh"	2026-11-10 10:55:54.181244700 +0900
++++ "sma20p-d4-af7ffa58/d4/blocks-d4/U�\222��\200측.sh"	2026-11-10 22:43:53.580828700 +0900
+@@ -1,7 +1,7 @@
+ (
+ set -euo pipefail
+ stop() { echo "🔴 멈춤: $*"; exit 1; }
+-[ "${UB:-}" = O13N21D3 ] || stop "U 변수가 O1·O3+N21 초안 D3 판이 아님 — F → G → O1·O3+N21 초안 D3 U 변수(초안은 실행하지 않는다)"
++[ "${UB:-}" = SMA20PD4 ] || stop "U 변수가 SMA20 PAPER 후보 초안 D4 판이 아님 — F → G → SMA20 PAPER 후보 초안 D4 U 변수(초안은 실행하지 않는다)"
+ [ -e "$M/ok-U4" ] || stop "U4 미통과"
+ S=$(cat "$M/t-deploy.utc"); TS=$(date '+%Y%m%d-%H%M')
+ [ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$(cat "$M/image-new.txt")" ] || stop "실행 이미지가 image-new 와 다름 — 보고"
+diff -ru "o1o3-n21-d3-b5cd1d0/d3/blocks-d3/U�\200�\210\230.sh" "sma20p-d4-af7ffa58/d4/blocks-d4/U�\200�\210\230.sh"
+--- "o1o3-n21-d3-b5cd1d0/d3/blocks-d3/U�\200�\210\230.sh"	2026-11-10 10:55:54.176222100 +0900
++++ "sma20p-d4-af7ffa58/d4/blocks-d4/U�\200�\210\230.sh"	2026-11-10 22:43:53.579585200 +0900
+@@ -1,6 +1,7 @@
+-M=~/maint-o13n21; mkdir -p "$M"; OPS=~/ops-scripts; UB=O13N21D3   # O1·O3+N21 통합 배포 초안 D3(미승인·실행 금지, D2 대체 — 통합 SHA·N21 경계) 판 표지 — U 블록 전부가 확인한다. 후보 b5cd1d0(출처 candidate/o1o3-n21-1899b49). D2 기록 폴더 ~/maint-o13 은 쓰지 않는다. #26 기록 폴더 ~/maint-n20·#25 ~/maint-n19·#24 ~/maint-n17·#23 ~/maint-n15n16 은 읽기만 하고 덮어쓰지 않는다
+-OLD=1899b49f633f8aefdc66b15c42debdaba8b3852c; NEW=b5cd1d0d47ea68ffe6ff476b89cf9fca5bef1b88
+-IMGOLD=sha256:426a09a20afc9e16cff8b7a569d4e04f18ed47cefb9242f44e3b9ea9666153a1   # #26 배포 이미지(~/maint-n20/image-new.txt, v1.132 수용 값) — U0 가 실행 이미지·기록 파일과 같은지 확인한다. sha256: 로 시작하지 않으면 U0 가 멈춘다
++M=~/maint-sma20p; mkdir -p "$M"; OPS=~/ops-scripts; UB=SMA20PD4   # SMA20 PAPER 1회 상한·LIVE_ALIGNED 선택 모드 후보 배포 초안 D4(미승인·실행 금지) 판 표지 — U 블록 전부가 확인한다. 후보 af7ffa5(출처 candidate/sma20-paper-fwd-b5cd1d0). 복구 기준은 지금 운영 b5cd1d0·#27 이미지. D3 기록 폴더 ~/maint-o13n21·#26 ~/maint-n20 등 이전 폴더는 읽기만 하고 덮어쓰지 않는다
++OLD=b5cd1d0d47ea68ffe6ff476b89cf9fca5bef1b88; NEW=af7ffa58960fa1392dee00397924827b4e4e6cd5
++IMGOLD=sha256:52e12428a60df5413d6e495024220bbd4c8fa07830549556f0b47bbe6ad39055   # #27 O1·O3+N21 통합 배포 이미지(~/maint-o13n21/image-new.txt, v1.140 수용 값) — U0 가 실행 이미지·기록 파일과 같은지 확인한다. sha256: 로 시작하지 않으면 U0 가 멈춘다
++IMGPREV8=sha256:426a09a20afc9e16cff8b7a569d4e04f18ed47cefb9242f44e3b9ea9666153a1   # #26 이미지 — 이전 복구 태그 autotrader-backend:1899b49 가 가리킨다(D3 U1 이 만듦, 보존, 바꾸지 않는다)
+ IMGPREV7=sha256:200f2f5727e90204574fd9965a5cc06dfc5d317e98c13b200de2ac7201378ae6   # #25 이미지 — 이전 복구 태그 autotrader-backend:ee509cf 가 가리킨다(#26 U1 이 만듦, 보존, 바꾸지 않는다)
+ IMGPREV6=sha256:e51b512a72cc3740313bb2a9e6f369d4f480554c588f322cff518c827f9c7be6   # #24 이미지 — 이전 복구 태그 autotrader-backend:7a94472 가 가리킨다(#25 U1 이 만듦, 보존, 바꾸지 않는다)
+ IMGPREV=sha256:618046540764e49aa40efef7ec950f28cd5882e8bf7d6bdfdc3da0ed1f0112f9   # #19 이미지 — 이전 복구 태그 autotrader-backend:ea44900 가 가리킨다(보존, 바꾸지 않는다)
+@@ -13,17 +14,26 @@
+ CRON=f2dce2809c09aa4466a95200caa19547118e444b4ac90b4363e20a158dee9b5b   # crontab — 바꾸지 않는다
+ h256() { sha256sum < "$1" | cut -d' ' -f1 ; }
+ v94() { [ "$($PSQL -At -c "SELECT max(version::int) FROM flyway_schema_history WHERE success")" = "94" ] ; }
+-DIFFN="$(printf '%s\n' scripts/prospective/start_66.py \
+-  scripts/prospective/test_freshness_recheck_fail.py \
+-  web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java \
+-  web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java \
+-  web-api/src/test/java/com/cryptoautotrader/api/service/ExecutionDriftTrackerTest.java \
+-  web-api/src/test/java/com/cryptoautotrader/api/service/N15PgLockWaitExpiryTest.java \
+-  web-api/src/test/java/com/cryptoautotrader/api/service/O1O3LogContractTest.java \
+-  web-api/src/test/java/com/cryptoautotrader/api/service/PoolLossLimitTest.java)"
+-RARX="$(printf '%s\n' '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/DynamicTradingService.class' \
+-  '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService$PriceSnapshot.class' \
+-  '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/LiveTradingService.class')"   # 실제 로컬 bootJar 대조(O1·O3+N21 통합 b5cd1d0) — 1899b49 보존 jar·b5cd1d0 로컬 bootJar 에서 jar 비교기 v2 로 새로 셈($PriceSnapshot 은 줄 번호만 다름). 1ec9104 jar 와 항목 차이 0
++DIFFN="$(printf '%s\n' web-api/src/main/java/com/cryptoautotrader/api/dto/PaperTradingStartRequest.java \
++  web-api/src/main/java/com/cryptoautotrader/api/service/EntryPriorityRounds.java \
++  web-api/src/main/java/com/cryptoautotrader/api/service/PaperExecutionMode.java \
++  web-api/src/main/java/com/cryptoautotrader/api/service/PaperMaxInvestment.java \
++  web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java \
++  web-api/src/test/java/com/cryptoautotrader/api/service/AbstractSma20SameInputFixture.java \
++  web-api/src/test/java/com/cryptoautotrader/api/service/DailySma20PaperForwardPathTest.java \
++  web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBlackSwanCooldownCrossKindTest.java \
++  web-api/src/test/java/com/cryptoautotrader/api/service/ExitAbArmContractTest.java \
++  web-api/src/test/java/com/cryptoautotrader/api/service/SharedPaperLoopIsolationTest.java \
++  web-api/src/test/java/com/cryptoautotrader/api/service/Sma20LiveAlignedPaperSameInputTest.java \
++  web-api/src/test/java/com/cryptoautotrader/api/service/Sma20LivePaperSameInputTest.java)"
++RARX="$(printf '%s\n' '변경 BOOT-INF/classes/com/cryptoautotrader/api/dto/PaperTradingStartRequest.class' \
++  '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/EntryPriorityRounds.class' \
++  '추가 BOOT-INF/classes/com/cryptoautotrader/api/service/PaperExecutionMode.class' \
++  '추가 BOOT-INF/classes/com/cryptoautotrader/api/service/PaperMaxInvestment.class' \
++  '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/PaperTradingService$1.class' \
++  '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/PaperTradingService$RiskMetrics.class' \
++  '변경 BOOT-INF/classes/com/cryptoautotrader/api/service/PaperTradingService.class')"   # 실제 로컬 bootJar 대조(후보 af7ffa5) — 보존 b5cd1d0 jar(a7ef759f…) 대비 jar 비교기 v2 로 셈. 항목 881 → 883
++JARN="(끝) 881 883"
+ # 기존 뉴스 출처 ERROR 원문 4개(후보에서도 바뀌지 않음). 정기 점검에서는 미분류 🔴 그대로다
+ NEWSERR='\[(RssNewsSource\] 수집 실패 — sourceId=|(UpbitNoticeSource|CryptoPanicSource|CoinGeckoTrendingSource)\] 수집 실패: )'
+ NEWSCFG="SELECT source_id || '|' || source_type || '|' || is_enabled || '|' || fetch_interval_min || '|' || coalesce(extract(epoch FROM last_fetched_at)::bigint::text, '-') FROM news_source_config ORDER BY source_id"
+@@ -398,10 +408,10 @@
+ sys.exit(0)
+ PYEOF
+ }
+-# ── N21(감시 스크립트) 고정값 — 통합 후보의 start_66.py 는 6379ee0b 와 같은 블롭이다
++# ── 감시 스크립트 고정값 — 운영 b5cd1d0 과 후보의 start_66.py·시험 파일은 같은 블롭이다(D4 는 감시 스크립트를 바꾸지 않는다)
+ NF=scripts/prospective/start_66.py; NT=scripts/prospective/test_freshness_recheck_fail.py   # NT 는 새로 추적되는 시험 파일 — 서버에서 실행하지 않는다
+-NBOLD=460031d30ce488f4604be6eb6aea78c10db50caf; NBNEW=6305e512f88e0e9e6f0ec32ec99a28c48bc3fc8d   # start_66.py 블롭(1899b49 · 통합 후보)
+-NHOLD=adca8829b9fb6b4c6996dc853fadade58d685d9c0c044135eb6f92665dba337d; NHNEW=68d441ce0ed66d0a654d9ec7ca485d0a69a5bb8bacf4de48b5d61d0ef813b56b   # 파일 sha256
++NBOLD=6305e512f88e0e9e6f0ec32ec99a28c48bc3fc8d; NBNEW=6305e512f88e0e9e6f0ec32ec99a28c48bc3fc8d   # start_66.py 블롭(운영 b5cd1d0 · 후보 — 같다)
++NHOLD=68d441ce0ed66d0a654d9ec7ca485d0a69a5bb8bacf4de48b5d61d0ef813b56b; NHNEW=68d441ce0ed66d0a654d9ec7ca485d0a69a5bb8bacf4de48b5d61d0ef813b56b   # 파일 sha256
+ # ── N21 공통 함수 시작(통합 초안 D3 U변수에 같은 원문으로 들어간다) ──
+ JLOG=scripts/prospective/freshness_log.jsonl      # 관측 행(회차마다 한 행)
+ RUNLOG=scripts/prospective/freshness_runs.log     # cron 회차의 표준 출력·오류(>> 덧붙임)

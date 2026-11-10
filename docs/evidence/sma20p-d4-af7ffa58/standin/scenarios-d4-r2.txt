@@ -1,0 +1,57 @@
+== e01 정상: U0→U1→U2→U3→U4→U뒤관측, 감시 스크립트·시험 파일 불변, 보존 태그 b5cd1d0 = #27
+PASS e01 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS e01 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS e01 — HEAD = af7ffa58960fa1392de
+PASS e01 — start_66.py sha256 = 68d441ce0ed66d0a654
+PASS e01 — 시험 파일 = 있음
+PASS e01 — 보존 태그 b5cd1d0 = sha256:52e12428a60d
+PASS e01 — 복구 태그 1899b49(손대지 않음) = sha256:426a09a20afc
+PASS e01 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS e01 U3 — 종료 0 · '✅ U3(deploy) 통과' · checkout 1
+PASS e01 U4 — 종료 0 · '✅ U4 통과' · checkout 1
+PASS e01 U뒤관측 — 종료 0 · '' · checkout 1
+== U0 의 바뀐 확인(바꾸기 전 멈춤)
+PASS e02 U0 — 종료 1 · '#27 배포 이미지(~/maint-o13n21/image-new.txt)와 다름' · checkout 0
+PASS e03 U0 — 종료 1 · '1899b49 이 #26 이미지(426a09a2…)가 아님' · checkout 0
+PASS e04 U0 — 종료 1 · '12개 파일이 아님' · checkout 0
+PASS e05 U0 — 종료 1 · 'start_66.py 가 b5cd1d0 원문(68d441ce…)과 다름' · checkout 0
+PASS e06 U0 — 종료 1 · '후보의 start_66.py·시험 파일 블롭이 운영과 다름' · checkout 0
+PASS e07 U0 — 종료 1 · '변수 순서' · checkout 0
+PASS e07 U1 — 종료 1 · 'D4 판이 아님' · checkout 0
+PASS e08 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS e08 U1 — 종료 1 · '매시 :14~:24' · checkout 0
+PASS e08 — HEAD = b5cd1d0d47ea68ffe6f
+== U1 jar 기대 불일치 → U1-되돌림(재기동 전)
+PASS e09 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS e09 U1 — 종료 1 · 'jar 차이가 기대' · checkout 1
+PASS e09 U1되돌림 — 종료 0 · '↩ U1-되돌림 끝' · checkout 2
+PASS e09 — HEAD = b5cd1d0d47ea68ffe6f
+PASS e09 — latest = sha256:52e12428a60d
+PASS e09 — backend = sha256:52e12428a60d
+PASS e09 — start_66.py sha256 = 68d441ce0ed66d0a654
+PASS e09 — 시험 파일 = 있음
+PASS e09 U2 — 종료 1 · 'U1 미통과' · checkout 2
+PASS e10 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS e10 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS e10 U1되돌림 — 종료 1 · '어느 것도 아님' · checkout 1
+PASS e10 — HEAD = 99bd4eaadb0ff303751
+PASS e11 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS e11 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS e11 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS e11 U1되돌림 — 종료 1 · 'U2(재기동)를 시작했다' · checkout 1
+== U되돌림(재기동 뒤)
+PASS e12 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS e12 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS e12 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS e12 U되돌림 — 종료 0 · 'b5cd1d0 (#27 이미지) 로 복귀' · checkout 2
+PASS e12 — HEAD = b5cd1d0d47ea68ffe6f
+PASS e12 — backend = sha256:52e12428a60d
+PASS e12 — start_66.py sha256 = 68d441ce0ed66d0a654
+PASS e12 — 시험 파일 = 있음
+PASS e12 U3 — 종료 0 · 'b5cd1d0 복귀 확인' · checkout 2
+PASS e13 U0 — 종료 0 · '✅ U0 통과' · checkout 0
+PASS e13 U1 — 종료 0 · '✅ U1 통과' · checkout 1
+PASS e13 U2 — 종료 0 · '✅ U2 통과' · checkout 1
+PASS e13 U되돌림 — 종료 1 · 'image-before·image-new 어느 것도 아님' · checkout 1
+PASS 전체 — 금지 명령 기록 줄 수 합 = 0
+== 결과: PASS 52 · FAIL 0
