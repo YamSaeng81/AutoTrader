@@ -180,6 +180,11 @@ public class PaperTradingService {
         // 페이퍼에도 거는 이유: 페이퍼에서 죽은 전략을 페이퍼로 다시 돌릴 이유가 없다.
         // 타임프레임까지 확인한다 (2026-09-08 V80) — 폐기된 (전략, 타임프레임) 재생성 차단.
         strategyEnablementGate.assertEnabled(req.getStrategyType(), req.getTimeframe());
+        // 1회 매수 상한·최소 원금 (2026-11-10, PaperMaxInvestment) — DTO 검증을 거치지 않는 호출도 같은 조건으로 막는다.
+        String capitalViolation = PaperMaxInvestment.capitalViolation(req.getInitialCapital(), req.getStrategyParams());
+        if (capitalViolation != null) {
+            throw new IllegalStateException(capitalViolation);
+        }
 
         VirtualBalanceEntity session = VirtualBalanceEntity.builder()
                 .totalKrw(req.getInitialCapital())
@@ -936,7 +941,11 @@ public class PaperTradingService {
         // 투자금: LIVE와 동일하게 availableKrw × investRatio (세션값 우선, 없으면 risk_config 기본값)
         BigDecimal ratio = session.getInvestRatio() != null
                 ? session.getInvestRatio() : exitChecker().getConfig().getInvestRatio();
-        BigDecimal investAmount = session.getAvailableKrw().multiply(ratio)
+        // 1회 매수 상한 (2026-11-10, PaperMaxInvestment) — LIVE executeSessionBuy 와 같은 min(가용 × 비율, 상한) 뒤 둘째 자리 버림.
+        //   키가 없는 세션은 종전과 같은 식이다.
+        BigDecimal baseAmount = session.getAvailableKrw().multiply(ratio);
+        BigDecimal maxInvestment = PaperMaxInvestment.from(session.getStrategyParams());
+        BigDecimal investAmount = (maxInvestment != null ? baseAmount.min(maxInvestment) : baseAmount)
                 .setScale(2, RoundingMode.DOWN);
 
         // 업비트 최소 주문금액 — 실거래에서 못 넣는 주문은 페이퍼도 넣지 않는다.

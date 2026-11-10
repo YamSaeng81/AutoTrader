@@ -1,5 +1,6 @@
 package com.cryptoautotrader.api.dto;
 
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -22,8 +23,12 @@ public class PaperTradingStartRequest {
     @NotBlank
     private String timeframe;
 
+    /**
+     * 최소 원금은 {@link com.cryptoautotrader.api.service.PaperMaxInvestment#capitalViolation} 이 정한다 —
+     * 종전과 같이 100,000원, {@code strategyParams.paperMaxInvestment} 를 지정한 세션만 5,000원부터 (2026-11-10).
+     */
     @NotNull
-    @DecimalMin("100000")
+    @DecimalMin("5000")
     private BigDecimal initialCapital;
 
     private Map<String, Object> strategyParams;
@@ -41,4 +46,10 @@ public class PaperTradingStartRequest {
     private Integer maxHoldHours;
 
     private boolean enableTelegram = false;
+
+    @AssertTrue(message = "초기 자본은 100,000원 이상이어야 한다 (strategyParams.paperMaxInvestment 를 지정한 세션만 5,000원부터 허용, 상한은 5,000원 이상의 숫자)")
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public boolean isCapitalWithinPaperFloor() {
+        return com.cryptoautotrader.api.service.PaperMaxInvestment.capitalViolation(initialCapital, strategyParams) == null;
+    }
 }
