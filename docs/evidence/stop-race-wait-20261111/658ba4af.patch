@@ -1,0 +1,303 @@
+From 658ba4afeeaed83c2b44aa713bb732cc0c6f2189 Mon Sep 17 00:00:00 2001
+From: YamSaeng81 <manicstr81@gmail.com>
+Date: Wed, 11 Nov 2026 08:34:43 +0900
+Subject: [PATCH] =?UTF-8?q?DynamicStopRaceTest=20=EB=8C=80=EA=B8=B0=20?=
+ =?UTF-8?q?=EB=B3=B4=EC=99=84(=EC=8B=9C=ED=97=98=EB=A7=8C,=20=EC=8B=9C?=
+ =?UTF-8?q?=ED=97=98=20=EA=B0=80=EC=A7=80)=20=E2=80=94=20=EC=A0=9C?=
+ =?UTF-8?q?=EC=B6=9C=20=EC=9E=91=EC=97=85=EC=9D=98=20Future=20=EC=99=84?=
+ =?UTF-8?q?=EB=A3=8C=EB=A5=BC=20=EA=B8=B0=EB=8B=A4=EB=A6=AC=EA=B3=A0=20?=
+ =?UTF-8?q?=EC=8B=9C=EA=B0=84=20=EC=B4=88=EA=B3=BC=EB=8A=94=20=EC=8B=A4?=
+ =?UTF-8?q?=ED=8C=A8,=20=EC=98=9B=20"=EB=B9=84=EC=9B=8C=EC=A7=90"=20?=
+ =?UTF-8?q?=EC=A1=B0=EA=B1=B4=EC=9D=98=20=EA=B3=B5=EB=B0=B1=EC=9D=84=20lat?=
+ =?UTF-8?q?ch=20=EB=A1=9C=20=EA=B3=A0=EC=A0=95=20=EC=9E=AC=ED=98=84?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- 종전 awaitDrained(큐 비었음·active 0·taskCount==completed)는 놀고 있는 작업자가 큐에서 꺼낸 뒤 실행 표시 전에 참이 된다.
+  전체 시험 1회차 ①은 그 창에서 INTENT_READY 를 읽었고(작업자 order-exec-2 가 뒤에 철회 기록), 단독 실행은 새 작업자 경로라 창이 없었다(order-exec-1).
+- 보완: 프록시를 벗긴 submitPreparedOrder 를 같은 orderExecutor 에 submit 해 Future.get(20s) 로 실제 종료를 기다린다. 핵심 작업자를 미리 띄워 전체 시험과 같은 경로를 쓴다.
+  sleep·기대값 완화·반복·제외 없음. 기존 정지/예약 복원/제출 0 단언은 그대로다.
+- OrderExecutorDrainPredicateGapTest: 같은 Spring 실행기 종류·같은 설정에서 ① 놀고 있는 작업자 창(drained=true, executed=false) ② 새 작업자(active 1, 거짓) ③ Future 미완료를 고정 재현.
+- 제품 코드 변경 없음. 배포 후보 af7ffa58 불변.
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ .../api/service/DynamicStopRaceTest.java      |  50 +++--
+ .../OrderExecutorDrainPredicateGapTest.java   | 174 ++++++++++++++++++
+ 2 files changed, 207 insertions(+), 17 deletions(-)
+ create mode 100644 web-api/src/test/java/com/cryptoautotrader/api/service/OrderExecutorDrainPredicateGapTest.java
+
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicStopRaceTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicStopRaceTest.java
+index 2d2be8c8..8d5fc0ca 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicStopRaceTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicStopRaceTest.java
+@@ -18,6 +18,7 @@ import org.mockito.Mockito;
+ import org.springframework.beans.factory.annotation.Autowired;
+ import org.springframework.beans.factory.annotation.Qualifier;
+ import org.springframework.boot.test.mock.mockito.MockBean;
++import org.springframework.test.util.AopTestUtils;
+ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+ import org.springframework.transaction.PlatformTransactionManager;
+ import org.springframework.transaction.TransactionDefinition;
+@@ -27,6 +28,10 @@ import java.math.BigDecimal;
+ import java.time.Instant;
+ import java.util.ArrayList;
+ import java.util.List;
++import java.util.concurrent.ExecutionException;
++import java.util.concurrent.Future;
++import java.util.concurrent.TimeUnit;
++import java.util.concurrent.TimeoutException;
+ 
+ import static org.assertj.core.api.Assertions.assertThat;
+ 
+@@ -124,20 +129,33 @@ class DynamicStopRaceTest extends IntegrationTestBase {
+         return dynamicRepo.findById(id).orElseThrow().getAvailableKrw();
+     }
+ 
+-    private void awaitDrained() {
+-        var pool = orderExecutor.getThreadPoolExecutor();
+-        long deadline = System.currentTimeMillis() + 20_000;
+-        while (System.currentTimeMillis() < deadline) {
+-            if (pool.getQueue().isEmpty() && pool.getActiveCount() == 0
+-                    && pool.getTaskCount() == pool.getCompletedTaskCount()) return;
+-            try {
+-                Thread.sleep(50);
+-            } catch (InterruptedException e) {
+-                Thread.currentThread().interrupt();
+-                return;
+-            }
++    /**
++     * 제출 작업을 운영과 같은 {@code orderExecutor} 에 넘기고 <b>그 작업의 실제 종료</b>를 기다린다 (2026-11-11, v1.145 §3-1).
++     *
++     * <p>종전 {@code awaitDrained()} 는 "큐 비었음·active 0·taskCount == completedTaskCount" 를 기다렸다. 놀고 있는
++     * 작업자가 큐에서 작업을 꺼낸 뒤 실행 표시를 잡기 전에는 세 조건이 모두 참이라, 전체 시험 1회차에서 ①이
++     * {@code INTENT_READY} 를 읽은 뒤에야 {@code order-exec-2} 가 철회를 기록했다
++     * ({@link OrderExecutorDrainPredicateGapTest} 가 그 창을 고정 재현한다). 단독 실행은 새 작업자 경로라 창이 없었다.</p>
++     *
++     * <p>{@code @Async} 프록시는 같은 실행기에 다시 넘기기만 하므로, 프록시를 벗긴 대상의 {@code submitPreparedOrder} 를
++     * 직접 작업으로 제출해 Future 를 받는다. 시간 초과·예외는 실패다. sleep 도, 조건 완화도 없다.</p>
++     */
++    private void dispatchAndAwait(Intent intent) {
++        OrderExecutionEngine target = AopTestUtils.getUltimateTargetObject(engine);
++        // 전체 시험처럼 작업자가 이미 놀고 있는 경로(큐에서 꺼내는 쪽)로 들어가게 한다 — 단독 실행의 새 작업자 경로만 검사하지 않도록.
++        orderExecutor.getThreadPoolExecutor().prestartAllCoreThreads();
++        Future<?> done = orderExecutor.submit(() -> target.submitPreparedOrder(intent.orderId(), intent.request()));
++        try {
++            done.get(20, TimeUnit.SECONDS);
++        } catch (TimeoutException e) {
++            done.cancel(true);
++            throw new AssertionError("제출 작업이 20초 안에 끝나지 않았다 — 미완료를 정상 종료로 보지 않는다", e);
++        } catch (ExecutionException e) {
++            throw new AssertionError("제출 작업이 예외로 끝났다: " + e.getCause(), e.getCause());
++        } catch (InterruptedException e) {
++            Thread.currentThread().interrupt();
++            throw new AssertionError("대기 중 인터럽트", e);
+         }
+-        throw new AssertionError("orderExecutor 가 비워지지 않았다");
+     }
+ 
+     private static OrderResponse exchange(String uuid, String state) {
+@@ -168,8 +186,7 @@ class DynamicStopRaceTest extends IntegrationTestBase {
+                 .as("🔴 정지가 size=0 을 닫으면 고아 정리가 보지 못해 예약 3,000 이 영영 복원되지 않는다")
+                 .isEqualTo("OPEN");
+ 
+-        engine.submitPreparedOrder(intent.orderId(), intent.request());
+-        awaitDrained();
++        dispatchAndAwait(intent);
+ 
+         OrderEntity o = orderRepository.findById(intent.orderId()).orElseThrow();
+         System.out.println("[DYNAMIC 정지→claim] state=" + o.getState() + " code=" + o.getFailureCode());
+@@ -210,8 +227,7 @@ class DynamicStopRaceTest extends IntegrationTestBase {
+                 .when(upbitOrderClient).createOrder(Mockito.any(), Mockito.any(), Mockito.any(),
+                         Mockito.any(), Mockito.any(), Mockito.any());
+ 
+-        engine.submitPreparedOrder(intent.orderId(), intent.request());
+-        awaitDrained();
++        dispatchAndAwait(intent);
+         assertThat(orderRepository.findById(intent.orderId()).orElseThrow().getState()).isEqualTo("SUBMITTED");
+ 
+         dynamicTradingService.stopSession(id);
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/OrderExecutorDrainPredicateGapTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/OrderExecutorDrainPredicateGapTest.java
+new file mode 100644
+index 00000000..9cd6f04a
+--- /dev/null
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/OrderExecutorDrainPredicateGapTest.java
+@@ -0,0 +1,174 @@
++package com.cryptoautotrader.api.service;
++
++import org.junit.jupiter.api.DisplayName;
++import org.junit.jupiter.api.Test;
++import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
++
++import java.util.concurrent.BlockingQueue;
++import java.util.concurrent.CountDownLatch;
++import java.util.concurrent.Future;
++import java.util.concurrent.LinkedBlockingQueue;
++import java.util.concurrent.ThreadPoolExecutor;
++import java.util.concurrent.TimeUnit;
++import java.util.concurrent.atomic.AtomicBoolean;
++
++import static org.assertj.core.api.Assertions.assertThat;
++
++/**
++ * 고정 재현 — <b>"큐 비었음·active 0·taskCount == completedTaskCount" 대기 조건은 작업 완료를 뜻하지 않는다</b>
++ * (2026-11-11, 총괄 v1.145 §3-1).
++ *
++ * <p>{@code DynamicStopRaceTest} ①이 전체 시험 1회차에서 {@code INTENT_READY} 를 읽은 뒤에야 작업자
++ * {@code order-exec-2} 가 철회를 기록했다. 그 시험의 {@code awaitDrained()} 는 위 세 조건을 썼다. 이 시험은
++ * 운영 {@code orderExecutor} 와 같은 Spring 실행기 종류·같은 설정(core 2, max 4, queue 50)에서 그 조건이
++ * 언제 참이 되는지를 latch 로 고정해 보인다. Spring 컨텍스트·DB·거래소는 쓰지 않는다.</p>
++ *
++ * <ul>
++ *   <li>① 이미 만들어져 <b>놀고 있는 작업자</b>가 큐에서 작업을 꺼낸 뒤, 실행 표시(lock)를 잡기 전:
++ *       세 조건이 모두 참인데 작업은 아직 실행되지 않았다. 전체 시험에서는 앞선 시험 클래스가 같은
++ *       컨텍스트의 실행기에 작업자 2개를 이미 만들어 두었으므로 이 경로다.</li>
++ *   <li>② 작업자가 없어 <b>새 작업자</b>가 첫 작업으로 받는 경우: 작업자 생성 상태(-1)가 active 로 세어져
++ *       조건이 거짓이다. 단독 실행(작업자 {@code order-exec-1} 신규)에서 ①이 통과한 이유다.</li>
++ *   <li>③ 같은 실행기의 {@code submit()} 이 돌려주는 Future 는 작업 종료 전에는 완료가 아니다 — 보완한
++ *       대기가 기대는 신호다.</li>
++ * </ul>
++ */
++@DisplayName("orderExecutor 대기 조건 공백 — 놀고 있는 작업자 경로에서 비워짐 ≠ 완료")
++class OrderExecutorDrainPredicateGapTest {
++
++    /** 큐에서 꺼낸 직후(작업자가 실행 표시를 잡기 전)를 latch 로 붙잡는 실행기. 설정은 AsyncConfig.orderExecutor 와 같다. */
++    private static final class GatedTakeExecutor extends ThreadPoolTaskExecutor {
++        final CountDownLatch dequeued = new CountDownLatch(1);
++        final CountDownLatch allowWorker = new CountDownLatch(1);
++
++        GatedTakeExecutor() {
++            setCorePoolSize(2);
++            setMaxPoolSize(4);
++            setQueueCapacity(50);
++            setThreadNamePrefix("gap-exec-");
++            initialize();
++        }
++
++        @Override
++        protected BlockingQueue<Runnable> createQueue(int queueCapacity) {
++            return new LinkedBlockingQueue<>(queueCapacity) {
++                @Override
++                public Runnable take() throws InterruptedException {
++                    Runnable task = super.take();
++                    dequeued.countDown();
++                    allowWorker.await();
++                    return task;
++                }
++            };
++        }
++    }
++
++    /** 새 작업자가 첫 작업을 실행하기 직전을 latch 로 붙잡는 실행기(스레드 본체 앞에서 대기). */
++    private static final class GatedNewWorkerExecutor extends ThreadPoolTaskExecutor {
++        final CountDownLatch workerStarted = new CountDownLatch(1);
++        final CountDownLatch allowWorker = new CountDownLatch(1);
++
++        GatedNewWorkerExecutor() {
++            setCorePoolSize(2);
++            setMaxPoolSize(4);
++            setQueueCapacity(50);
++            setThreadNamePrefix("gap-new-");
++            setThreadFactory(r -> new Thread(() -> {
++                workerStarted.countDown();
++                try {
++                    allowWorker.await();
++                } catch (InterruptedException e) {
++                    Thread.currentThread().interrupt();
++                    return;
++                }
++                r.run();
++            }, "gap-new-" + System.nanoTime()));
++            initialize();
++        }
++    }
++
++    private static boolean oldPredicate(ThreadPoolExecutor pool) {
++        return pool.getQueue().isEmpty() && pool.getActiveCount() == 0
++                && pool.getTaskCount() == pool.getCompletedTaskCount();
++    }
++
++    @Test
++    @DisplayName("① 놀고 있는 작업자가 꺼낸 뒤·실행 전 — 옛 조건은 비워짐이라 답하지만 작업은 실행 전이다")
++    void idleWorkerWindowSaysDrainedBeforeExecution() throws Exception {
++        GatedTakeExecutor ex = new GatedTakeExecutor();
++        try {
++            ThreadPoolExecutor pool = ex.getThreadPoolExecutor();
++            assertThat(pool.prestartAllCoreThreads()).as("전체 시험처럼 작업자 2개가 미리 있다").isEqualTo(2);
++            AtomicBoolean executed = new AtomicBoolean(false);
++            CountDownLatch completed = new CountDownLatch(1);
++            ex.execute(() -> { executed.set(true); completed.countDown(); });
++            assertThat(ex.dequeued.await(5, TimeUnit.SECONDS)).as("작업자가 큐에서 꺼냈다").isTrue();
++
++            boolean drained = oldPredicate(pool);
++            System.out.println("[① 꺼낸 뒤·실행 전] drained=" + drained + " executed=" + executed.get()
++                    + " queue=" + pool.getQueue().size() + " active=" + pool.getActiveCount()
++                    + " tasks=" + pool.getTaskCount() + " completed=" + pool.getCompletedTaskCount());
++            assertThat(drained).as("옛 대기 조건이 이 창에서 참이다 — 그래서 INTENT_READY 를 읽을 수 있었다").isTrue();
++            assertThat(executed.get()).as("그런데 작업은 아직 실행되지 않았다").isFalse();
++
++            ex.allowWorker.countDown();
++            assertThat(completed.await(5, TimeUnit.SECONDS)).isTrue();
++            assertThat(executed.get()).isTrue();
++        } finally {
++            ex.allowWorker.countDown();
++            ex.shutdown();
++        }
++    }
++
++    @Test
++    @DisplayName("② 작업자가 없어 새 작업자가 첫 작업으로 받으면 — 옛 조건은 거짓이다(단독 실행이 통과한 이유)")
++    void freshWorkerIsCountedActiveBeforeRunning() throws Exception {
++        GatedNewWorkerExecutor ex = new GatedNewWorkerExecutor();
++        try {
++            ThreadPoolExecutor pool = ex.getThreadPoolExecutor();
++            assertThat(pool.getPoolSize()).as("작업자 0개에서 시작").isZero();
++            AtomicBoolean executed = new AtomicBoolean(false);
++            CountDownLatch completed = new CountDownLatch(1);
++            ex.execute(() -> { executed.set(true); completed.countDown(); });
++            assertThat(ex.workerStarted.await(5, TimeUnit.SECONDS)).isTrue();
++
++            boolean drained = oldPredicate(pool);
++            System.out.println("[② 새 작업자·실행 전] drained=" + drained + " executed=" + executed.get()
++                    + " queue=" + pool.getQueue().size() + " active=" + pool.getActiveCount()
++                    + " tasks=" + pool.getTaskCount() + " completed=" + pool.getCompletedTaskCount());
++            assertThat(executed.get()).isFalse();
++            assertThat(drained).as("새 작업자는 생성 상태부터 active 로 세어져 옛 조건이 거짓이다").isFalse();
++
++            ex.allowWorker.countDown();
++            assertThat(completed.await(5, TimeUnit.SECONDS)).isTrue();
++        } finally {
++            ex.allowWorker.countDown();
++            ex.shutdown();
++        }
++    }
++
++    @Test
++    @DisplayName("③ 같은 창에서 submit() 의 Future 는 완료가 아니다 — 보완한 대기는 이 신호를 기다린다")
++    void futureIsNotDoneInsideTheWindow() throws Exception {
++        GatedTakeExecutor ex = new GatedTakeExecutor();
++        try {
++            ThreadPoolExecutor pool = ex.getThreadPoolExecutor();
++            pool.prestartAllCoreThreads();
++            AtomicBoolean executed = new AtomicBoolean(false);
++            Future<?> done = ex.submit(() -> executed.set(true));
++            assertThat(ex.dequeued.await(5, TimeUnit.SECONDS)).isTrue();
++
++            System.out.println("[③ 꺼낸 뒤·실행 전] oldPredicate=" + oldPredicate(pool)
++                    + " future.isDone=" + done.isDone() + " executed=" + executed.get());
++            assertThat(oldPredicate(pool)).isTrue();
++            assertThat(done.isDone()).as("Future 는 작업 종료 전에 완료가 아니다").isFalse();
++
++            ex.allowWorker.countDown();
++            done.get(5, TimeUnit.SECONDS);
++            assertThat(executed.get()).isTrue();
++        } finally {
++            ex.allowWorker.countDown();
++            ex.shutdown();
++        }
++    }
++}
+-- 
+2.51.1.windows.1
+
