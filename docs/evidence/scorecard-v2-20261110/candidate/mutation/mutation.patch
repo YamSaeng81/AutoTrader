@@ -1,0 +1,13 @@
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java
+index c95c47af..3e571239 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java
+@@ -945,7 +945,7 @@ public class PaperTradingService {
+         //   키가 없는 세션은 종전과 같은 식이다.
+         BigDecimal baseAmount = session.getAvailableKrw().multiply(ratio);
+         BigDecimal maxInvestment = PaperMaxInvestment.from(session.getStrategyParams());
+-        BigDecimal investAmount = (maxInvestment != null ? baseAmount.min(maxInvestment) : baseAmount)
++        BigDecimal investAmount = (baseAmount) // 변이 확인: 상한 제거
+                 .setScale(2, RoundingMode.DOWN);
+ 
+         // 업비트 최소 주문금액 — 실거래에서 못 넣는 주문은 페이퍼도 넣지 않는다.

@@ -1,0 +1,579 @@
+{
+  "source_commit": "ca762315fb2e9fb613a0f19254cbfff852535294",
+  "manifest": [
+    {
+      "path": ".gitattributes",
+      "expected": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+      "local": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+      "blob": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "README.md",
+      "expected": "ad6037fe4d77701dfadab091e437c06944bbd7ee0c4af843ddc02339438bbbf5",
+      "local": "ad6037fe4d77701dfadab091e437c06944bbd7ee0c4af843ddc02339438bbbf5",
+      "blob": "ad6037fe4d77701dfadab091e437c06944bbd7ee0c4af843ddc02339438bbbf5"
+    },
+    {
+      "path": "extract.sql",
+      "expected": "a778fc91d162bdf3a4434776b9ecdf2f1ab44188cf5f3839cc2a1d708ea9bfd4",
+      "local": "a778fc91d162bdf3a4434776b9ecdf2f1ab44188cf5f3839cc2a1d708ea9bfd4",
+      "blob": "a778fc91d162bdf3a4434776b9ecdf2f1ab44188cf5f3839cc2a1d708ea9bfd4"
+    },
+    {
+      "path": "extract2.sql",
+      "expected": "da697ec48b8dd8516074f5f70637130111d8d4e533b0822e7cff95a3b0ed808f",
+      "local": "da697ec48b8dd8516074f5f70637130111d8d4e533b0822e7cff95a3b0ed808f",
+      "blob": "da697ec48b8dd8516074f5f70637130111d8d4e533b0822e7cff95a3b0ed808f"
+    },
+    {
+      "path": "extract3.sql",
+      "expected": "3a59fcd92b6cb56b1273119f5168c3ad3f9c94eddd9ca9da567e78b4654a7b6a",
+      "local": "3a59fcd92b6cb56b1273119f5168c3ad3f9c94eddd9ca9da567e78b4654a7b6a",
+      "blob": "3a59fcd92b6cb56b1273119f5168c3ad3f9c94eddd9ca9da567e78b4654a7b6a"
+    },
+    {
+      "path": "out/dynamic_sessions.csv",
+      "expected": "06fd222bddedc2af4576a04e54bcbd97ce4a9a1d69268a0e68435c09c9a9ee64",
+      "local": "06fd222bddedc2af4576a04e54bcbd97ce4a9a1d69268a0e68435c09c9a9ee64",
+      "blob": "06fd222bddedc2af4576a04e54bcbd97ce4a9a1d69268a0e68435c09c9a9ee64"
+    },
+    {
+      "path": "out/live_sessions.csv",
+      "expected": "6617d55474c0a6963363c0f517e15e1c781eb6bb3487030ae8e1f2ed1483cd7d",
+      "local": "6617d55474c0a6963363c0f517e15e1c781eb6bb3487030ae8e1f2ed1483cd7d",
+      "blob": "6617d55474c0a6963363c0f517e15e1c781eb6bb3487030ae8e1f2ed1483cd7d"
+    },
+    {
+      "path": "out/meta.csv",
+      "expected": "ebbc5b762a8d7df9ee1b81ab2d685f5a3d29316d3a45232449fe0d9df1c3bcd4",
+      "local": "ebbc5b762a8d7df9ee1b81ab2d685f5a3d29316d3a45232449fe0d9df1c3bcd4",
+      "blob": "ebbc5b762a8d7df9ee1b81ab2d685f5a3d29316d3a45232449fe0d9df1c3bcd4"
+    },
+    {
+      "path": "out/paper_positions.csv",
+      "expected": "2706e3d5f180e5d2d6e3ba4fb22bf160ecd852178208bdc8ead5593e08140f6d",
+      "local": "2706e3d5f180e5d2d6e3ba4fb22bf160ecd852178208bdc8ead5593e08140f6d",
+      "blob": "2706e3d5f180e5d2d6e3ba4fb22bf160ecd852178208bdc8ead5593e08140f6d"
+    },
+    {
+      "path": "out/paper_sessions.csv",
+      "expected": "7e80c3686b70a07a6d28cdab926b9552f1a6da2dc6aa785243e9c6c39446a294",
+      "local": "7e80c3686b70a07a6d28cdab926b9552f1a6da2dc6aa785243e9c6c39446a294",
+      "blob": "7e80c3686b70a07a6d28cdab926b9552f1a6da2dc6aa785243e9c6c39446a294"
+    },
+    {
+      "path": "out/per_session.csv",
+      "expected": "2b1104ee9ad0df2241e55a023a61af74d5e8ca3893cc237a5751d99cd9b1b100",
+      "local": "2b1104ee9ad0df2241e55a023a61af74d5e8ca3893cc237a5751d99cd9b1b100",
+      "blob": "2b1104ee9ad0df2241e55a023a61af74d5e8ca3893cc237a5751d99cd9b1b100"
+    },
+    {
+      "path": "out/public_positions.csv",
+      "expected": "70ce91202e8694721dac3d2e0ca1766a6227b6009fefa4ad371ccf6b9de8e9fb",
+      "local": "70ce91202e8694721dac3d2e0ca1766a6227b6009fefa4ad371ccf6b9de8e9fb",
+      "blob": "70ce91202e8694721dac3d2e0ca1766a6227b6009fefa4ad371ccf6b9de8e9fb"
+    },
+    {
+      "path": "out/scorecard.json",
+      "expected": "9597561fb26dfad3c95aa84066701a055d07a4e6b3665beaae950cf6fe96fcfb",
+      "local": "9597561fb26dfad3c95aa84066701a055d07a4e6b3665beaae950cf6fe96fcfb",
+      "blob": "9597561fb26dfad3c95aa84066701a055d07a4e6b3665beaae950cf6fe96fcfb"
+    },
+    {
+      "path": "out/signal_summary.csv",
+      "expected": "9642446661913df93b95ae7b73ea28f534c4a194af5e7feadcd79a1ac7f741cc",
+      "local": "9642446661913df93b95ae7b73ea28f534c4a194af5e7feadcd79a1ac7f741cc",
+      "blob": "9642446661913df93b95ae7b73ea28f534c4a194af5e7feadcd79a1ac7f741cc"
+    },
+    {
+      "path": "raw/raw.txt",
+      "expected": "27165c5c9573d294f181dbb52d7bd9b3f55a0f352ac23378ce50220d977dcd79",
+      "local": "27165c5c9573d294f181dbb52d7bd9b3f55a0f352ac23378ce50220d977dcd79",
+      "blob": "27165c5c9573d294f181dbb52d7bd9b3f55a0f352ac23378ce50220d977dcd79"
+    },
+    {
+      "path": "raw/raw2.txt",
+      "expected": "b47779e1971f3a66d21a7ec17df52f6015f05be384b1076db10cf4398ec933c8",
+      "local": "b47779e1971f3a66d21a7ec17df52f6015f05be384b1076db10cf4398ec933c8",
+      "blob": "b47779e1971f3a66d21a7ec17df52f6015f05be384b1076db10cf4398ec933c8"
+    },
+    {
+      "path": "raw/raw3.txt",
+      "expected": "21307f60d60dc0eebc90038b41998d74cd0b9063c251c91b02cdfec0b0ab03a0",
+      "local": "21307f60d60dc0eebc90038b41998d74cd0b9063c251c91b02cdfec0b0ab03a0",
+      "blob": "21307f60d60dc0eebc90038b41998d74cd0b9063c251c91b02cdfec0b0ab03a0"
+    },
+    {
+      "path": "score.py",
+      "expected": "59adddfa941def1560064edaa83d95cdcff292b8fecbf1a098f1fbeebfe3466a",
+      "local": "59adddfa941def1560064edaa83d95cdcff292b8fecbf1a098f1fbeebfe3466a",
+      "blob": "59adddfa941def1560064edaa83d95cdcff292b8fecbf1a098f1fbeebfe3466a"
+    }
+  ],
+  "replay": {
+    "rc": 0,
+    "outputs": [
+      {
+        "path": "dynamic_sessions.csv",
+        "equal": true
+      },
+      {
+        "path": "live_sessions.csv",
+        "equal": true
+      },
+      {
+        "path": "meta.csv",
+        "equal": true
+      },
+      {
+        "path": "paper_positions.csv",
+        "equal": true
+      },
+      {
+        "path": "paper_sessions.csv",
+        "equal": true
+      },
+      {
+        "path": "per_session.csv",
+        "equal": true
+      },
+      {
+        "path": "public_positions.csv",
+        "equal": true
+      },
+      {
+        "path": "scorecard.json",
+        "equal": true
+      },
+      {
+        "path": "signal_summary.csv",
+        "equal": true
+      }
+    ],
+    "stderr_bytes": 0
+  },
+  "blind_protection": {
+    "sessions": 66,
+    "financial_columns_empty": true,
+    "positions_absent": true,
+    "signals_absent": true,
+    "disclosed_count": "79 closed positions aggregate was seen once; not recomputed or used"
+  },
+  "position_totals": {
+    "DYN_PAPER": {
+      "n": 473,
+      "states": {
+        "CLOSED": 473
+      },
+      "net": "-23423.14749586",
+      "fees": "2348.99",
+      "null_pnl": 0,
+      "null_fee": 0
+    },
+    "DYN_REAL": {
+      "n": 79,
+      "states": {
+        "CLOSED": 79
+      },
+      "net": "-7420.92253168",
+      "fees": "241.32",
+      "null_pnl": 0,
+      "null_fee": 0
+    },
+    "LIVE": {
+      "n": 82,
+      "states": {
+        "CLOSED": 82
+      },
+      "net": "-17149.19557857",
+      "fees": "653.53",
+      "null_pnl": 0,
+      "null_fee": 0
+    },
+    "PAPER": {
+      "n": 1060,
+      "states": {
+        "CLOSED": 1060
+      },
+      "net": "-22760570.09839436",
+      "fees": "8143439.56",
+      "null_pnl": 0,
+      "null_fee": 0
+    }
+  },
+  "stop_fields": {
+    "PAPER": {
+      "n": 1060,
+      "current_stored_width_median": "0.3996003996003996003996003996",
+      "min": "0.1388999997884966127732535637",
+      "max": "5.00",
+      "above_entry": 0,
+      "at_entry": 0,
+      "definition": "current persisted stop, not reconstructed initial stop"
+    },
+    "DYN_PAPER": {
+      "n": 473,
+      "current_stored_width_median": "5.094905094905094905094905095",
+      "min": "5.094905094905094905094905095",
+      "max": "8.410945450229691761355973433",
+      "above_entry": 0,
+      "at_entry": 0,
+      "definition": "current persisted stop, not reconstructed initial stop"
+    }
+  },
+  "minute_clusters": {
+    "PAPER": {
+      "minute_buckets": 660,
+      "multi_row_buckets": 218,
+      "different_returns": 163,
+      "different_exit_reasons": 0,
+      "different_timeframes": 5,
+      "first_return_dependence": "setdefault selects first input row; not a statistical independence estimator"
+    },
+    "DYN_PAPER": {
+      "minute_buckets": 424,
+      "multi_row_buckets": 40,
+      "different_returns": 32,
+      "different_exit_reasons": 0,
+      "different_timeframes": 0,
+      "first_return_dependence": "setdefault selects first input row; not a statistical independence estimator"
+    }
+  },
+  "funnel": {
+    "linked": {
+      "DYN_REAL": {
+        "HOLD": 152126,
+        "SELL": 14276,
+        "BUY": 252
+      },
+      "DYN_PAPER": {
+        "HOLD": 133035,
+        "BUY": 1728,
+        "SELL": 11330
+      },
+      "LIVE": {
+        "HOLD": 164216,
+        "BUY": 346,
+        "SELL": 1513
+      },
+      "PAPER": {
+        "HOLD": 332845,
+        "BUY": 1433,
+        "SELL": 5154
+      }
+    },
+    "unlinked": {
+      "LIVE": {
+        "BUY": 2321,
+        "HOLD": 544831,
+        "SELL": 11069
+      },
+      "PAPER": {
+        "HOLD": 1137364,
+        "BUY": 4103,
+        "SELL": 20717
+      }
+    },
+    "buy_by_strategy": [
+      {
+        "engine": "DYN_PAPER",
+        "strategy": "COMPOSITE_MEANREV_BB",
+        "linked": 132
+      },
+      {
+        "engine": "DYN_PAPER",
+        "strategy": "COMPOSITE_MOMENTUM_ICHIMOKU",
+        "linked": 195
+      },
+      {
+        "engine": "DYN_PAPER",
+        "strategy": "COMPOSITE_MOMENTUM_ICHIMOKU_V2",
+        "linked": 113
+      },
+      {
+        "engine": "DYN_PAPER",
+        "strategy": "COMPOSITE_MTF_BTC",
+        "linked": 192
+      },
+      {
+        "engine": "DYN_PAPER",
+        "strategy": "COMPOSITE_MTF_BTC_STRICT",
+        "linked": 78
+      },
+      {
+        "engine": "DYN_PAPER",
+        "strategy": "COMPOSITE_MTF_CONFIRMED",
+        "linked": 279
+      },
+      {
+        "engine": "DYN_PAPER",
+        "strategy": "COMPOSITE_PULLBACK_MTF",
+        "linked": 739
+      },
+      {
+        "engine": "DYN_REAL",
+        "strategy": "COMPOSITE_MEANREV_BB",
+        "linked": 9
+      },
+      {
+        "engine": "DYN_REAL",
+        "strategy": "COMPOSITE_MOMENTUM_ICHIMOKU",
+        "linked": 61
+      },
+      {
+        "engine": "DYN_REAL",
+        "strategy": "COMPOSITE_MOMENTUM_ICHIMOKU_V2",
+        "linked": 32
+      },
+      {
+        "engine": "DYN_REAL",
+        "strategy": "COMPOSITE_MTF_BTC",
+        "linked": 15
+      },
+      {
+        "engine": "DYN_REAL",
+        "strategy": "COMPOSITE_MTF_BTC_STRICT",
+        "linked": 14
+      },
+      {
+        "engine": "DYN_REAL",
+        "strategy": "COMPOSITE_MTF_CONFIRMED",
+        "linked": 70
+      },
+      {
+        "engine": "DYN_REAL",
+        "strategy": "COMPOSITE_PULLBACK_MTF",
+        "linked": 51
+      },
+      {
+        "engine": "LIVE",
+        "strategy": "COMPOSITE",
+        "unlinked": 13
+      },
+      {
+        "engine": "LIVE",
+        "strategy": "COMPOSITE_BREAKOUT",
+        "unlinked": 109,
+        "linked": 46
+      },
+      {
+        "engine": "LIVE",
+        "strategy": "COMPOSITE_BREAKOUT_ICHIMOKU",
+        "unlinked": 14
+      },
+      {
+        "engine": "LIVE",
+        "strategy": "COMPOSITE_BTC",
+        "unlinked": 176
+      },
+      {
+        "engine": "LIVE",
+        "strategy": "COMPOSITE_ETH",
+        "unlinked": 11
+      },
+      {
+        "engine": "LIVE",
+        "strategy": "COMPOSITE_ETH_VD",
+        "unlinked": 92
+      },
+      {
+        "engine": "LIVE",
+        "strategy": "COMPOSITE_MEANREV_BB",
+        "linked": 4
+      },
+      {
+        "engine": "LIVE",
+        "strategy": "COMPOSITE_MOMENTUM",
+        "unlinked": 30
+      },
+      {
+        "engine": "LIVE",
+        "strategy": "COMPOSITE_MOMENTUM_ICHIMOKU",
+        "unlinked": 98,
+        "linked": 18
+      },
+      {
+        "engine": "LIVE",
+        "strategy": "COMPOSITE_MOMENTUM_ICHIMOKU_V2",
+        "unlinked": 815,
+        "linked": 36
+      },
+      {
+        "engine": "LIVE",
+        "strategy": "COMPOSITE_MTF_BTC",
+        "unlinked": 28,
+        "linked": 27
+      },
+      {
+        "engine": "LIVE",
+        "strategy": "COMPOSITE_MTF_BTC_STRICT",
+        "linked": 39
+      },
+      {
+        "engine": "LIVE",
+        "strategy": "COMPOSITE_MTF_CONFIRMED",
+        "unlinked": 50,
+        "linked": 8
+      },
+      {
+        "engine": "LIVE",
+        "strategy": "COMPOSITE_MTF_MOMENTUM",
+        "linked": 10
+      },
+      {
+        "engine": "LIVE",
+        "strategy": "COMPOSITE_PULLBACK_MTF",
+        "linked": 11
+      },
+      {
+        "engine": "LIVE",
+        "strategy": "COMPOSITE_REGIME_ROUTER",
+        "unlinked": 243,
+        "linked": 117
+      },
+      {
+        "engine": "LIVE",
+        "strategy": "GRID",
+        "unlinked": 58
+      },
+      {
+        "engine": "LIVE",
+        "strategy": "HEIKIN_ASHI_STOCH",
+        "linked": 30
+      },
+      {
+        "engine": "LIVE",
+        "strategy": "MACD_STOCH_BB",
+        "unlinked": 2
+      },
+      {
+        "engine": "LIVE",
+        "strategy": "ORDERBOOK_IMBALANCE",
+        "unlinked": 582
+      },
+      {
+        "engine": "PAPER",
+        "strategy": "COMPOSITE",
+        "unlinked": 51
+      },
+      {
+        "engine": "PAPER",
+        "strategy": "COMPOSITE_BREAKOUT",
+        "unlinked": 433
+      },
+      {
+        "engine": "PAPER",
+        "strategy": "COMPOSITE_BTC",
+        "unlinked": 124
+      },
+      {
+        "engine": "PAPER",
+        "strategy": "COMPOSITE_ETH_VD",
+        "unlinked": 66
+      },
+      {
+        "engine": "PAPER",
+        "strategy": "COMPOSITE_MEANREV_BB",
+        "linked": 257
+      },
+      {
+        "engine": "PAPER",
+        "strategy": "COMPOSITE_MOMENTUM",
+        "unlinked": 148
+      },
+      {
+        "engine": "PAPER",
+        "strategy": "COMPOSITE_MOMENTUM_ICHIMOKU",
+        "unlinked": 2,
+        "linked": 135
+      },
+      {
+        "engine": "PAPER",
+        "strategy": "COMPOSITE_MOMENTUM_ICHIMOKU_V2",
+        "unlinked": 156,
+        "linked": 237
+      },
+      {
+        "engine": "PAPER",
+        "strategy": "COMPOSITE_MTF_BTC",
+        "linked": 319
+      },
+      {
+        "engine": "PAPER",
+        "strategy": "COMPOSITE_MTF_BTC_STRICT",
+        "linked": 71
+      },
+      {
+        "engine": "PAPER",
+        "strategy": "COMPOSITE_MTF_CONFIRMED",
+        "unlinked": 464,
+        "linked": 114
+      },
+      {
+        "engine": "PAPER",
+        "strategy": "COMPOSITE_MTF_MOMENTUM",
+        "unlinked": 2,
+        "linked": 8
+      },
+      {
+        "engine": "PAPER",
+        "strategy": "COMPOSITE_MTF_MOMENTUM_CLOSED",
+        "linked": 8
+      },
+      {
+        "engine": "PAPER",
+        "strategy": "COMPOSITE_PULLBACK_MTF",
+        "linked": 284
+      },
+      {
+        "engine": "PAPER",
+        "strategy": "COMPOSITE_REGIME_ROUTER",
+        "unlinked": 464
+      },
+      {
+        "engine": "PAPER",
+        "strategy": "GRID",
+        "unlinked": 11
+      },
+      {
+        "engine": "PAPER",
+        "strategy": "MACD_STOCH_BB",
+        "unlinked": 3
+      },
+      {
+        "engine": "PAPER",
+        "strategy": "ORDERBOOK_IMBALANCE",
+        "unlinked": 2179
+      }
+    ]
+  },
+  "conditional_winrate": {
+    "all_n": 473,
+    "all_winners": 158,
+    "sltp_n": 220,
+    "sltp_winners": 84,
+    "exits": {
+      "": 7,
+      "STOP_LOSS": 136,
+      "TIME_STOP": 116,
+      "STRATEGY_SIGNAL": 110,
+      "TAKE_PROFIT": 84,
+      "FORCED_STOP": 20
+    },
+    "warning": "42% illustration uses two conditional exit means; 33% uses all exits, not the same population"
+  },
+  "benchmark_close_after_stop_lower_bound": {
+    "DYN_PAPER": 40,
+    "DYN_REAL": 17,
+    "LIVE": 8,
+    "PAPER": 150
+  },
+  "source_checks": {
+    "mutable_stop": "825:             if (pos.getStopLossPrice() != null && pos.getTakeProfitPrice() != null && pos.getEntryPrice() != null) {\n826:                 var updatedLevels = exitChecker().updateTrailingStops(\n827:                         currentPrice, pos.getEntryPrice(),\n828:                         pos.getStopLossPrice(), pos.getTakeProfitPrice());\n829:                 if (updatedLevels.getStopLossPrice().compareTo(pos.getStopLossPrice()) != 0\n830:                         || updatedLevels.getTakeProfitPrice().compareTo(pos.getTakeProfitPrice()) != 0) {\n831:                     pos.setStopLossPrice(updatedLevels.getStopLossPrice());\n832:                     pos.setTakeProfitPrice(updatedLevels.getTakeProfitPrice());\n833:                     positionRepo.save(pos);\n834:                 }",
+    "paper_request_min_initial_capital": "100000; no maxInvestment field at b5cd1d0",
+    "paper_request_sha256": "5fba26f932afe86b3fe14a2b1bb63dbee0159f6273063e2d96b2d3a3419013cb",
+    "current_stop_helper": "336:     public StopLevels updateTrailingStops(BigDecimal candleHigh, BigDecimal entryPrice,\n337:                                            BigDecimal currentSl, BigDecimal currentTp) {\n338:         if (!config.isTrailingEnabled()) {\n339:             return new StopLevels(currentSl, currentTp);\n340:         }\n341: \n342:         BigDecimal newTp = currentTp;\n343: \n344:         // 수익 구간: 고가가 진입가를 넘으면 TP 래칫 상향 (단방향)\n345:         if (candleHigh.compareTo(entryPrice) > 0) {\n346:             BigDecimal trailedTp = candleHigh.multiply(\n347:                     BigDecimal.ONE.subtract(config.getTrailingTpMargin()))\n348:                     .setScale(SCALE, RoundingMode.HALF_UP);\n349:             if (trailedTp.compareTo(newTp) > 0) {\n350:                 newTp = trailedTp;\n351:             }\n352:         }\n353: \n354:         // 손실 구간 SL 조임 — 2026-09-08 제거 (위 javadoc 참조). SL은 손대지 않는다.\n355:         return new StopLevels(currentSl, newTp);\n356:     }",
+    "historic_fix_commit": "ddc6de2c85a83a5df3ee382018805ffff5bd345a (2026-09-08); commit time is not a verified production deployment boundary",
+    "historic_fix_diff_sha256": "1276555a160781b05a91c68ba310e838eca10799848b5e159d173c90c1f3eef7"
+  }
+}

@@ -1,0 +1,386 @@
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/dto/PaperTradingStartRequest.java b/web-api/src/main/java/com/cryptoautotrader/api/dto/PaperTradingStartRequest.java
+index 9f171974..aeb2f50a 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/dto/PaperTradingStartRequest.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/dto/PaperTradingStartRequest.java
+@@ -1,5 +1,6 @@
+ package com.cryptoautotrader.api.dto;
+ 
++import jakarta.validation.constraints.AssertTrue;
+ import jakarta.validation.constraints.DecimalMin;
+ import jakarta.validation.constraints.NotBlank;
+ import jakarta.validation.constraints.NotNull;
+@@ -22,8 +23,12 @@ public class PaperTradingStartRequest {
+     @NotBlank
+     private String timeframe;
+ 
++    /**
++     * 최소 원금은 {@link com.cryptoautotrader.api.service.PaperMaxInvestment#capitalViolation} 이 정한다 —
++     * 종전과 같이 100,000원, {@code strategyParams.paperMaxInvestment} 를 지정한 세션만 5,000원부터 (2026-11-10).
++     */
+     @NotNull
+-    @DecimalMin("100000")
++    @DecimalMin("5000")
+     private BigDecimal initialCapital;
+ 
+     private Map<String, Object> strategyParams;
+@@ -41,4 +46,10 @@ public class PaperTradingStartRequest {
+     private Integer maxHoldHours;
+ 
+     private boolean enableTelegram = false;
++
++    @AssertTrue(message = "초기 자본은 100,000원 이상이어야 한다 (strategyParams.paperMaxInvestment 를 지정한 세션만 5,000원부터 허용, 상한은 5,000원 이상의 숫자)")
++    @com.fasterxml.jackson.annotation.JsonIgnore
++    public boolean isCapitalWithinPaperFloor() {
++        return com.cryptoautotrader.api.service.PaperMaxInvestment.capitalViolation(initialCapital, strategyParams) == null;
++    }
+ }
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/PaperMaxInvestment.java b/web-api/src/main/java/com/cryptoautotrader/api/service/PaperMaxInvestment.java
+new file mode 100644
+index 00000000..6b2fd8a4
+--- /dev/null
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/PaperMaxInvestment.java
+@@ -0,0 +1,79 @@
++package com.cryptoautotrader.api.service;
++
++import java.math.BigDecimal;
++import java.util.Map;
++
++/**
++ * 모의투자 세션의 1회 매수 상한 — {@code strategy_params.paperMaxInvestment} (2026-11-10, 총괄 v1.142 §110 판단 2).
++ *
++ * <h3>왜 있나</h3>
++ * <p>12-01 제한 실거래(SID 203: DAILY_SMA20·KRW-BTC·H1·초기 20,200원·투자 비율 0.995·<b>1회 상한 20,000원</b>)와
++ * 같은 조건의 전향 모의 세션을 나란히 돌리려면 PAPER 에도 실전의 {@code maxInvestment} 가 있어야 한다.
++ * 종전 PAPER 는 최소 원금 100,000원에 상한 필드가 없어, 10만원에 투자 비율만 낮춘 세션을 "같은 2만원 조건"이라 부를 수 없었다.</p>
++ *
++ * <h3>왜 새 열이 아닌 {@code strategy_params} 인가</h3>
++ * <ul>
++ *   <li>DDL 이 없다 — {@code virtual_balance.strategy_params}(jsonb, V74)가 이미 있고 세션 생성이 그대로 옮긴다.</li>
++ *   <li>규칙 지문({@code strategy.params})에 그대로 실린다 — 이 키가 있는 세션은 다른 지문이 되어 기존 PAPER 표본과 섞이지 않는다.</li>
++ *   <li>청산 오버라이드({@link ExitRuleOverrides})는 모르는 키를 무시하므로 손절·익절 해석이 바뀌지 않는다
++ *       ({@code isPresent()} 가 거짓으로 남아 전략 제안 SL 과의 {@code min()} 도 LIVE 와 같다).</li>
++ * </ul>
++ *
++ * <p>키가 없으면 종전과 완전히 같다 — 최소 원금 100,000원, 매수금 = 가용 × 투자 비율.
++ * 키가 있는데 숫자가 아니거나 업비트 최소 주문(5,000원) 미만이면 <b>세션을 만들지 않는다</b>.
++ * 조용히 무시하면 2026-08-24 파라미터 유실 사고처럼 실험군이 대조군과 같아진 채 아무도 모르게 된다.</p>
++ */
++public final class PaperMaxInvestment {
++
++    public static final String KEY = "paperMaxInvestment";
++
++    /** 업비트 최소 주문금액 — 상한이 이보다 작으면 매수가 영원히 불가하다. */
++    public static final BigDecimal MIN = new BigDecimal("5000");
++
++    /** 키가 없을 때의 최소 원금(종전 DTO 의 {@code @DecimalMin("100000")}). */
++    public static final BigDecimal DEFAULT_MIN_CAPITAL = new BigDecimal("100000");
++
++    private PaperMaxInvestment() {
++    }
++
++    /**
++     * @return 상한. 키가 없으면 {@code null}
++     * @throws IllegalStateException 키가 있는데 숫자가 아니거나 {@link #MIN} 미만
++     */
++    public static BigDecimal from(Map<String, Object> strategyParams) {
++        if (strategyParams == null) return null;
++        Object raw = strategyParams.get(KEY);
++        if (raw == null) return null;
++        BigDecimal v;
++        try {
++            v = new BigDecimal(raw.toString().trim());
++        } catch (NumberFormatException e) {
++            throw new IllegalStateException(KEY + " 가 숫자가 아니다: " + raw);
++        }
++        if (v.compareTo(MIN) < 0) {
++            throw new IllegalStateException(KEY + " 는 " + MIN.toPlainString() + "원 이상이어야 한다: " + v.toPlainString());
++        }
++        return v;
++    }
++
++    /**
++     * 세션 생성 조건 — 상한이 없으면 원금 100,000원 이상, 있으면 원금 5,000원 이상.
++     *
++     * @return 위반 사유. 통과면 {@code null}
++     */
++    public static String capitalViolation(BigDecimal initialCapital, Map<String, Object> strategyParams) {
++        BigDecimal cap;
++        try {
++            cap = from(strategyParams);
++        } catch (IllegalStateException e) {
++            return e.getMessage();
++        }
++        if (initialCapital == null) return null; // @NotNull 이 따로 막는다
++        BigDecimal floor = cap == null ? DEFAULT_MIN_CAPITAL : MIN;
++        if (initialCapital.compareTo(floor) < 0) {
++            return "초기 자본은 " + floor.toPlainString() + "원 이상이어야 한다"
++                    + (cap == null ? " (" + KEY + " 를 지정한 세션만 5,000원부터 허용)" : "");
++        }
++        return null;
++    }
++}
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java
+index f31d5565..c95c47af 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java
+@@ -180,6 +180,11 @@ public class PaperTradingService {
+         // 페이퍼에도 거는 이유: 페이퍼에서 죽은 전략을 페이퍼로 다시 돌릴 이유가 없다.
+         // 타임프레임까지 확인한다 (2026-09-08 V80) — 폐기된 (전략, 타임프레임) 재생성 차단.
+         strategyEnablementGate.assertEnabled(req.getStrategyType(), req.getTimeframe());
++        // 1회 매수 상한·최소 원금 (2026-11-10, PaperMaxInvestment) — DTO 검증을 거치지 않는 호출도 같은 조건으로 막는다.
++        String capitalViolation = PaperMaxInvestment.capitalViolation(req.getInitialCapital(), req.getStrategyParams());
++        if (capitalViolation != null) {
++            throw new IllegalStateException(capitalViolation);
++        }
+ 
+         VirtualBalanceEntity session = VirtualBalanceEntity.builder()
+                 .totalKrw(req.getInitialCapital())
+@@ -936,7 +941,11 @@ public class PaperTradingService {
+         // 투자금: LIVE와 동일하게 availableKrw × investRatio (세션값 우선, 없으면 risk_config 기본값)
+         BigDecimal ratio = session.getInvestRatio() != null
+                 ? session.getInvestRatio() : exitChecker().getConfig().getInvestRatio();
+-        BigDecimal investAmount = session.getAvailableKrw().multiply(ratio)
++        // 1회 매수 상한 (2026-11-10, PaperMaxInvestment) — LIVE executeSessionBuy 와 같은 min(가용 × 비율, 상한) 뒤 둘째 자리 버림.
++        //   키가 없는 세션은 종전과 같은 식이다.
++        BigDecimal baseAmount = session.getAvailableKrw().multiply(ratio);
++        BigDecimal maxInvestment = PaperMaxInvestment.from(session.getStrategyParams());
++        BigDecimal investAmount = (maxInvestment != null ? baseAmount.min(maxInvestment) : baseAmount)
+                 .setScale(2, RoundingMode.DOWN);
+ 
+         // 업비트 최소 주문금액 — 실거래에서 못 넣는 주문은 페이퍼도 넣지 않는다.
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/DailySma20PaperForwardPathTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/DailySma20PaperForwardPathTest.java
+new file mode 100644
+index 00000000..ac548cad
+--- /dev/null
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/DailySma20PaperForwardPathTest.java
+@@ -0,0 +1,230 @@
++package com.cryptoautotrader.api.service;
++
++import com.cryptoautotrader.api.dto.PaperTradingStartRequest;
++import com.cryptoautotrader.api.entity.StrategyLogEntity;
++import com.cryptoautotrader.api.entity.paper.PaperPositionEntity;
++import com.cryptoautotrader.api.entity.paper.VirtualBalanceEntity;
++import com.cryptoautotrader.api.repository.StrategyLogRepository;
++import com.cryptoautotrader.api.repository.paper.PaperOrderRepository;
++import com.cryptoautotrader.api.repository.paper.PaperPositionRepository;
++import com.cryptoautotrader.api.repository.paper.VirtualBalanceRepository;
++import com.cryptoautotrader.api.support.IntegrationTestBase;
++import com.cryptoautotrader.exchange.upbit.UpbitRestClient;
++import com.cryptoautotrader.strategy.Candle;
++import com.cryptoautotrader.strategy.StrategyRegistry;
++import com.cryptoautotrader.strategy.dailysma.DailySmaTrendStrategy;
++import jakarta.validation.Validation;
++import jakarta.validation.Validator;
++import org.junit.jupiter.api.AfterEach;
++import org.junit.jupiter.api.BeforeEach;
++import org.junit.jupiter.api.DisplayName;
++import org.junit.jupiter.api.Test;
++import org.springframework.beans.factory.annotation.Autowired;
++import org.springframework.boot.test.mock.mockito.MockBean;
++import org.springframework.http.MediaType;
++import org.springframework.jdbc.core.JdbcTemplate;
++import org.springframework.transaction.PlatformTransactionManager;
++import org.springframework.transaction.support.TransactionTemplate;
++
++import java.math.BigDecimal;
++import java.time.Instant;
++import java.time.ZoneOffset;
++import java.time.temporal.ChronoUnit;
++import java.util.ArrayList;
++import java.util.HashMap;
++import java.util.List;
++import java.util.Map;
++
++import static org.assertj.core.api.Assertions.assertThat;
++import static org.assertj.core.api.Assertions.assertThatThrownBy;
++import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
++
++/**
++ * DAILY_SMA20 전향 모의 — PAPER 의 1회 매수 상한({@code strategyParams.paperMaxInvestment})이 운영 평가 경로에서 실제로 걸리는지
++ * (2026-11-10, 총괄 v1.142 §110 판단 2).
++ *
++ * <p>세션은 {@link PaperTradingService#start} 로 만들고(운영 생성 경로·전략 활성 관문 포함), 평가는 운영 스케줄러가 부르는
++ * {@link PaperTradingService#runStrategy} 를 그대로 부른다. 캔들은 {@code market_data_cache} H1 행이며, 엔진이 벽시계로
++ * "닫힌 최신 봉"을 판단하므로 일봉 경계만 옮긴 같은 규칙의 전략 인스턴스를 같은 이름으로 잠시 등록한다
++ * ({@code DailySma20LiveOrderPathTest} 와 같은 방식). 끝나면 운영 인스턴스로 되돌린다.</p>
++ *
++ * <p>세션 조건은 SID 203 과 같은 숫자다 — 초기 20,200 · 투자 비율 0.995 · 1회 상한 20,000 · 손절 하한 5% · 시간 청산 0(끔).</p>
++ */
++@DisplayName("DAILY_SMA20 전향 모의 — PAPER 1회 매수 상한·최소 원금")
++class DailySma20PaperForwardPathTest extends IntegrationTestBase {
++
++    private static final String COIN = "KRW-BTC";
++
++    @Autowired private PaperTradingService paperTradingService;
++    @Autowired private VirtualBalanceRepository balanceRepo;
++    @Autowired private PaperPositionRepository positionRepo;
++    @Autowired private PaperOrderRepository orderRepo;
++    @Autowired private StrategyLogRepository strategyLogRepository;
++    @Autowired private RulesetRegistry rulesetRegistry;
++    @Autowired private JdbcTemplate jdbc;
++    @Autowired private PlatformTransactionManager txManager;
++    @Autowired private com.cryptoautotrader.api.repository.MarketDataCacheRepository cacheRepository;
++
++    @MockBean private MarketDataSyncService marketDataSyncService;
++    @MockBean private UpbitRestClient upbitRestClient;
++    @MockBean private TelegramNotificationService telegramService;
++
++    private final List<Long> sessionIds = new ArrayList<>();
++    private Instant lastOpen;
++
++    @BeforeEach
++    void setUp() {
++        jdbc.update("DELETE FROM market_data_cache WHERE coin_pair = ? AND timeframe = 'H1'", COIN);
++        // 닫힌 최신 봉 = 61분 전에 시작한 봉. 그 봉을 일봉 마감 봉으로 둔다.
++        lastOpen = Instant.now().minus(61, ChronoUnit.MINUTES).truncatedTo(ChronoUnit.SECONDS);
++        StrategyRegistry.register(new DailySmaTrendStrategy(lastOpen.atZone(ZoneOffset.UTC).getHour()));
++        insertCache(uptrend());
++    }
++
++    @AfterEach
++    void tearDown() {
++        StrategyRegistry.register(new DailySmaTrendStrategy());
++        TransactionTemplate tx = new TransactionTemplate(txManager);
++        for (Long id : sessionIds) {
++            tx.executeWithoutResult(st -> orderRepo.deleteBySessionId(id));
++            positionRepo.findBySessionId(id).forEach(positionRepo::delete);
++            strategyLogRepository.findAllBySessionTypeAndSessionIdOrderByCreatedAtDesc("PAPER", id).forEach(strategyLogRepository::delete);
++            balanceRepo.findById(id).ifPresent(balanceRepo::delete);
++        }
++        sessionIds.clear();
++        jdbc.update("DELETE FROM market_data_cache WHERE coin_pair = ? AND timeframe = 'H1'", COIN);
++    }
++
++    // ── 자료 ────────────────────────────────────────────────────────
++
++    /** 완만한 상승(시간당 +5,000원) 닫힌 H1 500봉 — 마감 종가 > SMA20, EMA200 위, 급락 없음. */
++    private List<Candle> uptrend() {
++        List<Candle> out = new ArrayList<>();
++        for (int i = 0; i < 500; i++) {
++            BigDecimal c = BigDecimal.valueOf(10_000_000L + 5_000L * i);
++            BigDecimal o = BigDecimal.valueOf(10_000_000L + 5_000L * Math.max(0, i - 1));
++            out.add(Candle.builder().time(lastOpen.minus(499 - i, ChronoUnit.HOURS))
++                    .open(o).high(c.max(o).add(BigDecimal.valueOf(1000))).low(c.min(o).subtract(BigDecimal.valueOf(1000)))
++                    .close(c).volume(new BigDecimal("100")).build());
++        }
++        return out;
++    }
++
++    private void insertCache(List<Candle> cs) {
++        cacheRepository.saveAll(cs.stream().map(c -> com.cryptoautotrader.api.entity.MarketDataCacheEntity.builder()
++                .time(c.getTime()).coinPair(COIN).timeframe("H1")
++                .open(c.getOpen()).high(c.getHigh()).low(c.getLow()).close(c.getClose()).volume(c.getVolume())
++                .build()).toList());
++    }
++
++    private static PaperTradingStartRequest request(String initialCapital, Object maxInvestment) {
++        PaperTradingStartRequest req = new PaperTradingStartRequest();
++        req.setStrategyType(DailySmaTrendStrategy.NAME);
++        req.setCoinPair(COIN);
++        req.setTimeframe("H1");
++        req.setInitialCapital(new BigDecimal(initialCapital));
++        req.setInvestRatio(new BigDecimal("0.995"));
++        req.setStopLossPct(new BigDecimal("5.00"));
++        req.setMaxHoldHours(0);
++        if (maxInvestment != null) {
++            Map<String, Object> p = new HashMap<>();
++            p.put(PaperMaxInvestment.KEY, maxInvestment);
++            req.setStrategyParams(p);
++        }
++        return req;
++    }
++
++    private VirtualBalanceEntity startAndEvaluate(PaperTradingStartRequest req) {
++        VirtualBalanceEntity s = paperTradingService.start(req);
++        sessionIds.add(s.getId());
++        paperTradingService.runStrategy();
++        return balanceRepo.findById(s.getId()).orElseThrow();
++    }
++
++    private PaperPositionEntity onlyOpenPosition(Long sessionId) {
++        List<PaperPositionEntity> open = positionRepo.findBySessionIdAndStatus(sessionId, "OPEN");
++        assertThat(open).as("일봉 마감 봉 상승 추세에서 매수 1건이어야 한다").hasSize(1);
++        return open.get(0);
++    }
++
++    // ── 시험 ────────────────────────────────────────────────────────
++
++    @Test
++    @DisplayName("SID 203 조건(20,200·0.995·상한 20,000) — 매수금은 20,099 가 아니라 20,000, 남는 현금 200")
++    void capLimitsBuyAmount() {
++        VirtualBalanceEntity s = startAndEvaluate(request("20200", 20000));
++
++        PaperPositionEntity p = onlyOpenPosition(s.getId());
++        assertThat(p.getInvestedKrw()).isEqualByComparingTo("20000.00");
++        assertThat(s.getAvailableKrw()).isEqualByComparingTo("200.00");
++        // 손절 하한 5% — 진입가 × 0.95 이하(전략 제안이 더 넓으면 그쪽). 상한 키는 청산 해석을 바꾸지 않는다.
++        assertThat(p.getStopLossPrice()).isLessThanOrEqualTo(
++                p.getEntryPrice().multiply(new BigDecimal("0.95")).setScale(8, java.math.RoundingMode.HALF_DOWN));
++        assertThat(ExitRuleOverrides.from(s.getStrategyParams()).isPresent()).isFalse();
++        // 신호 기록 — 실행됨
++        List<StrategyLogEntity> logs = strategyLogRepository.findAllBySessionTypeAndSessionIdOrderByCreatedAtDesc("PAPER", s.getId());
++        assertThat(logs).anySatisfy(l -> {
++            assertThat(l.getSignal()).isEqualTo("BUY");
++            assertThat(l.isWasExecuted()).isTrue();
++        });
++        // 규칙 지문 — 상한 키가 strategy.params 로 실려 키 없는 세션과 다른 표본이 된다.
++        assertThat(p.getRulesetHash()).isNotBlank();
++        VirtualBalanceEntity noKey = VirtualBalanceEntity.builder()
++                .strategyName(s.getStrategyName()).coinPair(COIN).timeframe("H1")
++                .initialCapital(s.getInitialCapital()).investRatio(s.getInvestRatio())
++                .stopLossPct(s.getStopLossPct()).maxHoldHours(s.getMaxHoldHours()).build();
++        assertThat(rulesetRegistry.hashFor(noKey)).isNotEqualTo(p.getRulesetHash());
++    }
++
++    @Test
++    @DisplayName("상한이 가용 × 비율보다 크면 상한은 걸리지 않는다 — 20,200 × 0.995 = 20,099")
++    void capAboveBaseIsInert() {
++        VirtualBalanceEntity s = startAndEvaluate(request("20200", "50000"));
++        assertThat(onlyOpenPosition(s.getId()).getInvestedKrw()).isEqualByComparingTo("20099.00");
++    }
++
++    @Test
++    @DisplayName("키가 없는 세션은 종전과 같다 — 100,000 × 0.995 = 99,500")
++    void noKeyUnchanged() {
++        VirtualBalanceEntity s = startAndEvaluate(request("100000", null));
++        assertThat(onlyOpenPosition(s.getId()).getInvestedKrw()).isEqualByComparingTo("99500.00");
++    }
++
++    @Test
++    @DisplayName("서비스 생성 경로 — 키 없이 10만원 미만이거나 상한이 잘못되면 세션을 만들지 않는다")
++    void serviceRejectsWithoutCreating() {
++        long before = balanceRepo.count();
++        assertThatThrownBy(() -> paperTradingService.start(request("20200", null)))
++                .isInstanceOf(IllegalStateException.class).hasMessageContaining("100000");
++        assertThatThrownBy(() -> paperTradingService.start(request("20200", "4999")))
++                .isInstanceOf(IllegalStateException.class).hasMessageContaining(PaperMaxInvestment.KEY);
++        assertThatThrownBy(() -> paperTradingService.start(request("20200", "abc")))
++                .isInstanceOf(IllegalStateException.class).hasMessageContaining(PaperMaxInvestment.KEY);
++        assertThat(balanceRepo.count()).isEqualTo(before);
++    }
++
++    @Test
++    @DisplayName("요청 검증 — 키 없으면 최소 100,000, 키가 있으면 5,000 이상의 숫자 상한과 원금 5,000 이상")
++    void requestValidation() {
++        Validator v = Validation.buildDefaultValidatorFactory().getValidator();
++        assertThat(v.validate(request("100000", null))).isEmpty();
++        assertThat(v.validate(request("99999", null))).isNotEmpty();
++        assertThat(v.validate(request("20200", null))).isNotEmpty();
++        assertThat(v.validate(request("20200", 20000))).isEmpty();
++        assertThat(v.validate(request("20200", "4999"))).isNotEmpty();
++        assertThat(v.validate(request("20200", "abc"))).isNotEmpty();
++        assertThat(v.validate(request("4999", 20000))).isNotEmpty();
++    }
++
++    @Test
++    @DisplayName("HTTP 생성 경로 — 키 없는 20,200 요청은 검증 오류로 거절되고 세션이 생기지 않는다")
++    void httpRejectsSmallCapitalWithoutKey() throws Exception {
++        long before = balanceRepo.count();
++        String body = objectMapper.writeValueAsString(request("20200", null));
++        int status = mockMvc.perform(post("/api/v1/paper-trading/sessions")
++                        .contentType(MediaType.APPLICATION_JSON).content(body))
++                .andReturn().getResponse().getStatus();
++        assertThat(status).isEqualTo(400);
++        assertThat(balanceRepo.count()).isEqualTo(before);
++    }
++}
