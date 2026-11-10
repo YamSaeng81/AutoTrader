@@ -1,0 +1,5 @@
+JDK 17, isolated reviewer witness; no Spring application, external connection, DB, or order.
+before_worker: drained=true executed=false queue=0 active=0 tasks=0 completed=0
+after_worker: executed=true
+This proves a wait-predicate gap, not the cause of the original Spring test failure.
+Exit code: 0

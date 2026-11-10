@@ -1,0 +1,7 @@
+First reviewer harness attempt, not an application test.
+The first design gated the new worker before runWorker. Worker state -1 was already counted as active, so it did not reproduce the target window.
+before_worker: drained=false executed=false queue=0 active=1 tasks=1 completed=0
+Exception in thread "main" java.lang.AssertionError: witness failed
+    at DrainWitness.main(DrainWitness.java:23)
+Exit code: 1
+Correction: gate after an idle worker removes the queued task, before its active lock. Predicate and intended assertion unchanged. No product or submitted evidence changed.
