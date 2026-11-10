@@ -1,0 +1,157 @@
+{
+  "ref": "a02b2914e7ec727b9aeaeb7683d0e2dcd213b365",
+  "source": "9aa617d134e7bd51c2f97d16d0815cbdc6623a4e",
+  "candidate": "b5cd1d0d47ea68ffe6ff476b89cf9fca5bef1b88",
+  "image": "sha256:52e12428a60df5413d6e495024220bbd4c8fa07830549556f0b47bbe6ad39055",
+  "manifests": {
+    "o13n21-d3-result-b5cd1d0": {
+      "payload": 132,
+      "including_manifest": 133,
+      "local_and_git_match": true
+    },
+    "o13n21-accept-9aa617d": {
+      "payload": 19,
+      "including_manifest": 20,
+      "local_and_git_match": true
+    }
+  },
+  "blocks": {
+    "F": "eeab6c104eb7368298b87fe834a60534f36f2fd12bc2acc98ef7dedbd91bc76e",
+    "G": "4d7ff02a94194fc17e11ed062b4c0fdb80a395aa282c941e7b624be95851c822",
+    "U변수": "0072c305731c94bec43922d5ec2402ae3592ee70dcddfa9fc31b28c0fbc57a54",
+    "U0": "7874a44eaad03efcf721bceda853bfeb18b3f216043f7f09af6e49efae1760b8",
+    "U1": "3df3e166f9d41da14caad0f6bbd471648680652c544b8823f46115ef94c07fc4",
+    "U1되돌림": "73b7c46f76a765ec4de175d38f44525569e1017363e076db2996bb3dffe17d75",
+    "U2": "7ad3574f433e2660cc91ef8d10b2a41e2e6d3fc3d823b12cfcc563e971d9b962",
+    "U3": "5a53c33a8c4e88c71e638c611d7cde2aed3ce4149f8b67fd3b7343191d7490c0",
+    "U4": "abf0fc55e2a9a5283f16c8dc198b805acacd8d7d91b99aaefbf2b01a8e4a1666",
+    "U5": "889fe3f681947aaa2f20eca639b6a882a71587f3461c0fba3a5cdbed8383a419",
+    "U되돌림": "72adacd2c132c4e49189ae42865839cc27c085e1082e4b1c0e8b92060ee71400",
+    "U뒤관측": "01c93d25c113ddcad4b721a5c1df63e3f7574d376525dbe6688980feb18bb9c1"
+  },
+  "server_copies": {
+    "matched": 98,
+    "server_only_hashes": {
+      "app-after30.log": "cd238b079a13779d8b86b10a9909c25664e6cd6e8c27072c7816b7d9bb982fb8",
+      "app-deploy.log": "0fd90001b3968a28981e5872e3bdeef6aa95cd80e0373c68ce65cd9a3e2a79da",
+      "app-new.jar": "4a6853689be9c36a984b41e80b8c36b8885cd894707768bfd3ad336c6376239b",
+      "app-news-20261110-1500.log": "b4bdc8ac69a8948b8236269acbdcac33b74e72598a2159c29d435c4fd6a327be",
+      "app-old.jar": "10bf86285c6e5eaf7cbe740f060eff852cc943128e521eb3e2c0a42bd2db69a5",
+      "backend-before.log": "7d309cea89e961fb3dd85ffd7543dacf098c1752e99e30c0112d73f48407899c",
+      "build.log": "64bcff9e37564221e033cd0138fdd28b7bf4afc9244aad422740e8cb803ebfd8"
+    },
+    "root_did_not_read_server_or_large_files": true
+  },
+  "phase_outputs": {
+    "U0": {
+      "local_start_kst": "2026-11-10 12:42:43",
+      "local_end_kst": "2026-11-10 12:42:58",
+      "exit": 0
+    },
+    "U1": {
+      "local_start_kst": "2026-11-10 12:43:19",
+      "local_end_kst": "2026-11-10 12:44:47",
+      "exit": 0
+    },
+    "U2": {
+      "local_start_kst": "2026-11-10 13:48:38",
+      "local_end_kst": "2026-11-10 13:48:59",
+      "exit": 0
+    },
+    "U3": {
+      "local_start_kst": "2026-11-10 14:04:58",
+      "local_end_kst": "2026-11-10 14:05:03",
+      "exit": 0
+    },
+    "U4": {
+      "local_start_kst": "2026-11-10 14:19:41",
+      "local_end_kst": "2026-11-10 14:19:47",
+      "exit": 0
+    },
+    "U5": {
+      "local_start_kst": "2026-11-10 14:05:15",
+      "local_end_kst": "2026-11-10 14:05:16",
+      "exit": 0
+    },
+    "U뒤관측": {
+      "local_start_kst": "2026-11-10 15:00:10",
+      "local_end_kst": "2026-11-10 15:00:12",
+      "exit": 0
+    }
+  },
+  "timing": {
+    "started_at_utc": "2026-11-10T04:48:44.119959397Z",
+    "u3_after_started_seconds": 973.88,
+    "u3_5_to_10_minute_window_met": false,
+    "u4_after_started_seconds": 1856.88,
+    "time_rule_is_not_replaced_by_later_log_review": true
+  },
+  "safety": {
+    "q_three_way_equal": true,
+    "session_three_way_equal": true,
+    "other_services_unchanged": true,
+    "jar_changed_entries": 3,
+    "jar_entries": [
+      881,
+      881
+    ],
+    "btc": "true|13:00|13:00|20/20",
+    "error_files_empty": true,
+    "cron_unchanged": true
+  },
+  "n21": {
+    "cron_start_rows": 1,
+    "new_json_rows": 1,
+    "traceback": 0,
+    "rechecked": [
+      "KRW-CVC"
+    ],
+    "retry_failure_net_404_observed": false,
+    "cron_start_and_observation_one_to_one_pid_proven": false,
+    "failure_404_BLAST_was_not_rechecked": true
+  },
+  "p0": {
+    "submitted_server_raw_counts": [
+      [
+        "app-after30.log",
+        "1188",
+        "0",
+        "0"
+      ],
+      [
+        "app-deploy.log",
+        "779",
+        "0",
+        "0"
+      ],
+      [
+        "app-news-20261110-1500.log",
+        "2393",
+        "0",
+        "0"
+      ],
+      [
+        "backend-before.log",
+        "222909",
+        "0",
+        "0"
+      ],
+      [
+        "build.log",
+        "89",
+        "0",
+        "0"
+      ]
+    ],
+    "root_recounted_raw_large_logs": false
+  },
+  "limits": [
+    "U3 timing missed; later logs cannot prove state at the missed point.",
+    "Server jars and large logs were not downloaded or reread by this review.",
+    "Server/local jar hash difference cause is not proven to be only metadata.",
+    "U3 extra permission added around 13:51 in this conversation; full delay cause remains unproven.",
+    "Prior container tail after ~12:42:53 to recreation 13:48:42 is not in submitted app logs.",
+    "N15-N20 and O1/O3 abnormal input natural behavior remains unobserved.",
+    "11-09 outage/218-minute record gap cause, CryptoPanic incident and phone receipt remain open."
+  ]
+}

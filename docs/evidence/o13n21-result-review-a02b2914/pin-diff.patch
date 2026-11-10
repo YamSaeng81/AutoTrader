@@ -1,0 +1,25 @@
+--- F-vars-F1-before
++++ F-vars-F1-v1.141
+@@ -2,7 +2,7 @@
+ DC="docker compose -f docker-compose.prod.yml"; SID=203
+ START_DATE=2026-12-01   # 시작 예정일(KST). 연기하면 이 줄을 문서에서 고쳐 커밋한 뒤 그 값으로 쓴다
+ M=~/start-sid203; MS=~/maint-20261030-stage1; mkdir -p "$M"
+-NEW=1899b49f633f8aefdc66b15c42debdaba8b3852c   # v1.132: #26(11-06 13:36 KST) 결과 수용. 이전 값 ee509cf855ffb8ebc1ed31f1c2bbe772d0545ce8(#25). v1.129: #25(11-06 10:32 KST) 결과 수용. 이전 값 7a944723c2959898226c2ad80f6b079ab5678296(#24). v1.123: #24(11-05 19:41 KST) 결과 수용. 이전 값 1103f48505a1457029f6555547a87aa986535738(#23). v1.116: 개입 #23(2026-11-05 15:29 KST) 운영 결과 수용 뒤 기대 HEAD. 이전 값 fe01207f3f60e97e308925157f84a1bb2da04388(#22). 이전 값 6995c52259e3de4c7c922a32f9fb2aa9ddd49f00(#21). 이전 값 b1d7664db73222aec5d86f2e9137debef0ff4df3(#20). 이전 값 ea4490099f0fa6b614fe71102534b0ba84c0eb7f(#19). 이전 값 5bb0544926a694832e75234670bb8f99dfe33bb0(#18), cad393956e131c257195fcd08fcac18c83802788(#17), f0872e2547c918a7b5146f027d325bd441ddf0d7(#16), 82d15d42fa22bb7d0f24a8243ebc888a2a7f071c
++NEW=b5cd1d0d47ea68ffe6ff476b89cf9fca5bef1b88   # v1.141: O1·O3+N21 운영 결과 수용. 이전 값 1899b49f633f8aefdc66b15c42debdaba8b3852c(#26). v1.132: #26(11-06 13:36 KST) 결과 수용. 이전 값 ee509cf855ffb8ebc1ed31f1c2bbe772d0545ce8(#25). v1.129: #25(11-06 10:32 KST) 결과 수용. 이전 값 7a944723c2959898226c2ad80f6b079ab5678296(#24). v1.123: #24(11-05 19:41 KST) 결과 수용. 이전 값 1103f48505a1457029f6555547a87aa986535738(#23). v1.116: 개입 #23(2026-11-05 15:29 KST) 운영 결과 수용 뒤 기대 HEAD. 이전 값 fe01207f3f60e97e308925157f84a1bb2da04388(#22). 이전 값 6995c52259e3de4c7c922a32f9fb2aa9ddd49f00(#21). 이전 값 b1d7664db73222aec5d86f2e9137debef0ff4df3(#20). 이전 값 ea4490099f0fa6b614fe71102534b0ba84c0eb7f(#19). 이전 값 5bb0544926a694832e75234670bb8f99dfe33bb0(#18), cad393956e131c257195fcd08fcac18c83802788(#17), f0872e2547c918a7b5146f027d325bd441ddf0d7(#16), 82d15d42fa22bb7d0f24a8243ebc888a2a7f071c
+ PSQL="$DC exec -T db psql -X -v ON_ERROR_STOP=1 -U trader -d crypto_auto_trader"
+ sc() { $PSQL -At -F ' | ' -c "
+   SELECT count(*) AS total,
+@@ -48,10 +48,10 @@
+ rm -f "$M/ok-F1" "$M/operator-confirm.txt"             # 이전 통과·확인으로 새 실패를 우회하지 않는다(사본은 위 폴더 보존)
+ date '+%F %T %Z' | tee "$M/t-f1.txt"; date -u '+%Y-%m-%dT%H:%M:%SZ' > "$M/t-f1.utc"
+ { git rev-parse HEAD; git status --porcelain --untracked-files=no; echo "(끝)"; } | tee "$M/git-f1.txt"
+-[ "$(head -1 "$M/git-f1.txt")" = "$NEW" ] && [ "$(sed -n 2p "$M/git-f1.txt")" = "(끝)" ] || stop "HEAD 가 1899b49 가 아니거나 추적 파일 변경 있음 — 보고"
++[ "$(head -1 "$M/git-f1.txt")" = "$NEW" ] && [ "$(sed -n 2p "$M/git-f1.txt")" = "(끝)" ] || stop "HEAD 가 b5cd1d0 가 아니거나 추적 파일 변경 있음 — 보고"
+ svc | tee "$M/svc-f1.txt"
+-IMGF1=sha256:426a09a20afc9e16cff8b7a569d4e04f18ed47cefb9242f44e3b9ea9666153a1   # v1.132: #26 배포 이미지. 이전 기대 ~/maint-n19/image-new.txt(#25, 200f2f57…). v1.129: #25 배포 이미지. 이전 기대 ~/maint-n17/image-new.txt(#24, e51b512a…). v1.123: #24 배포 이미지. 이전 기대 ~/maint-n15n16/image-new.txt(#23, 9818254c…). v1.116: #23 배포 이미지. 이전 기대 ~/maint-n13/image-new.txt(#22, 9cb5d84f…). 이전 기대 ~/maint-n12/image-new.txt(#21, 67294e80…). 이전 기대 ~/maint-n11/image-new.txt(#20, fd3ac351…). 이전 기대 ~/maint-n08/image-new.txt(#19, 61804654…). 이전 기대 ~/maint-n04/image-new.txt(#18, 39875d5f…), ~/maint-rounding/image-new.txt(#17, a747a8e6…)
+-[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$IMGF1" ] && [ "$(cat ~/maint-n20/image-new.txt)" = "$IMGF1" ] || stop "backend 이미지가 #26 배포 이미지(426a09a2…)와 다름 — 보고"
++IMGF1=sha256:52e12428a60df5413d6e495024220bbd4c8fa07830549556f0b47bbe6ad39055   # v1.141: O1·O3+N21 배포 이미지. 이전 기대 ~/maint-n20/image-new.txt(#26, 426a09a2…). v1.132: #26 배포 이미지. 이전 기대 ~/maint-n19/image-new.txt(#25, 200f2f57…). v1.129: #25 배포 이미지. 이전 기대 ~/maint-n17/image-new.txt(#24, e51b512a…). v1.123: #24 배포 이미지. 이전 기대 ~/maint-n15n16/image-new.txt(#23, 9818254c…). v1.116: #23 배포 이미지. 이전 기대 ~/maint-n13/image-new.txt(#22, 9cb5d84f…). 이전 기대 ~/maint-n12/image-new.txt(#21, 67294e80…). 이전 기대 ~/maint-n11/image-new.txt(#20, fd3ac351…). 이전 기대 ~/maint-n08/image-new.txt(#19, 61804654…). 이전 기대 ~/maint-n04/image-new.txt(#18, 39875d5f…), ~/maint-rounding/image-new.txt(#17, a747a8e6…)
++[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$IMGF1" ] && [ "$(cat ~/maint-o13n21/image-new.txt)" = "$IMGF1" ] || stop "backend 이미지가 O1·O3+N21 배포 이미지(52e12428…)와 다름 — 보고"
+ [ "$(cat ~/ops-scripts/SID_LEDGER_SHA)" = 8bfe8a9fa896f400b3fb6681fef021c99d6ba43b ] && [ "$(sha256sum < ~/ops-scripts/sid_ledger.sql | cut -d' ' -f1)" = 02a8585021fb2a1a52d9b3b56b60e957cb71b9ca3c11bf819595df15cf334f1c ] || stop "설치 장부가 8bfe8a9 판(02a85850…)이 아님 — 보고"
+ # N18 제안: 정기 점검 설치판 대조(읽기 전용) — 누락·읽기 실패·불일치면 위 trap 의 당일 실패 표지로 끝나고 ok-F1 을 만들지 않는다. 설치·복구·chmod·수동 점검 실행으로 고치지 않는다
+ INSX="$(printf 'INSTALLED_SHA c669ccdc6e248ce8e55e9a7ac7405197d266fa18\ndaily_check.sh ff0a5d7dbc9e250d364a7f32f80106454b6f4b939d37c578f8192e8206e7c1cc\ndaily_checks.sql 653b22bab04b68c50bf9daf2a54f2c281f9c57eaf6795076225ed39d62d48fa8')"
