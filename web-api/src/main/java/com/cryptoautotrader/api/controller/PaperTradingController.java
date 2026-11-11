@@ -127,11 +127,15 @@ public class PaperTradingController {
     public ApiResponse<Map<String, Object>> stop(@PathVariable Long sessionId) {
         try {
             VirtualBalanceEntity session = paperTradingService.stop(sessionId);
+            // 청산 대기(LIVE_ALIGNED, 유효 가격 없음)가 남았으면 정산 완료가 아니다 — 수와 함께 알린다 (2026-11-11). 종전 세션은 늘 0.
+            long pendingCloses = paperTradingService.pendingCloseCount(sessionId);
             return ApiResponse.ok(Map.of(
                     "id", session.getId(),
                     "status", session.getStatus(),
                     "finalAsset", session.getTotalKrw(),
-                    "stoppedAt", session.getStoppedAt().toString()
+                    "stoppedAt", session.getStoppedAt().toString(),
+                    "pendingCloseCount", pendingCloses,
+                    "settlement", pendingCloses == 0 ? "완료" : "청산 대기 — 첫 유효 시세에 정산"
             ));
         } catch (IllegalStateException e) {
             return ApiResponse.error("INVALID_REQUEST", e.getMessage());

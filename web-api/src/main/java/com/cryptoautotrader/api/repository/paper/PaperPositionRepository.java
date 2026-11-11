@@ -15,6 +15,9 @@ public interface PaperPositionRepository extends JpaRepository<PaperPositionEnti
 
     List<PaperPositionEntity> findBySessionIdAndStatus(Long sessionId, String status);
 
+    /** 청산 대기(CLOSING) 복원용 — LIVE_ALIGNED 정지/시간 청산 판단 뒤 유효 가격을 기다리는 포지션 (2026-11-11). */
+    List<PaperPositionEntity> findByStatus(String status);
+
     Optional<PaperPositionEntity> findBySessionIdAndCoinPairAndStatus(Long sessionId, String coinPair, String status);
 
     @Modifying

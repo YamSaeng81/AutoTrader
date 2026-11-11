@@ -225,18 +225,21 @@ public class RiskManagementService {
     private CircuitBreakerResult checkCircuitBreaker(String sessionKind, Long sessionId,
                                                      BigDecimal mddPeak, BigDecimal initialCapital,
                                                      BigDecimal totalAssetKrw, Instant countLossesAfter) {
-        // 연속 손실 입력 — 종전 루프와 같은 순서·같은 중단 조건(이번 가동 이전 청산분에서 끊는다). 판정은 아래 순수 함수와 같다.
-        List<PositionEntity> closedPositions = positionRepository
-                .findBySessionKindAndSessionIdAndStatusOrderByClosedAtDesc(sessionKind, sessionId, "CLOSED");
-        List<BigDecimal> pnlNewestFirst = new java.util.ArrayList<>();
-        for (PositionEntity pos : closedPositions) {
-            if (countLossesAfter != null
-                    && (pos.getClosedAt() == null || !pos.getClosedAt().isAfter(countLossesAfter))) {
-                break; // 이번 가동 이전 청산분 — 집계 중단
+        // 🔴 종전 순서 그대로 (2026-11-11, 총괄 v1.147 R6): 설정 → 비활성이면 조회 없이 통과 → MDD 초과면 조회 없이 발동 → 그 뒤에만
+        //    CLOSED 조회. 9491166f 는 조회를 앞에 둬 비활성·MDD 경로에서도 조회(와 그 예외)가 일어났다. 연속 손실 입력은 지연 공급한다.
+        return evaluateCircuitBreaker(getRiskConfig(), mddPeak, initialCapital, totalAssetKrw, () -> {
+            List<PositionEntity> closedPositions = positionRepository
+                    .findBySessionKindAndSessionIdAndStatusOrderByClosedAtDesc(sessionKind, sessionId, "CLOSED");
+            List<BigDecimal> pnlNewestFirst = new java.util.ArrayList<>();
+            for (PositionEntity pos : closedPositions) {
+                if (countLossesAfter != null
+                        && (pos.getClosedAt() == null || !pos.getClosedAt().isAfter(countLossesAfter))) {
+                    break; // 이번 가동 이전 청산분 — 집계 중단
+                }
+                pnlNewestFirst.add(pos.getRealizedPnl());
             }
-            pnlNewestFirst.add(pos.getRealizedPnl());
-        }
-        return evaluateCircuitBreaker(getRiskConfig(), mddPeak, initialCapital, totalAssetKrw, pnlNewestFirst);
+            return pnlNewestFirst;
+        });
     }
 
     /**
@@ -250,7 +253,7 @@ public class RiskManagementService {
     public CircuitBreakerResult checkCircuitBreakerFromValues(BigDecimal mddPeak, BigDecimal initialCapital,
                                                               BigDecimal totalAssetKrw,
                                                               List<BigDecimal> closedPnlNewestFirst) {
-        return evaluateCircuitBreaker(getRiskConfig(), mddPeak, initialCapital, totalAssetKrw, closedPnlNewestFirst);
+        return evaluateCircuitBreaker(getRiskConfig(), mddPeak, initialCapital, totalAssetKrw, () -> closedPnlNewestFirst);
     }
 
     /** 모의 계좌 입력으로 같은 한도({@code risk_config})를 판단하는 엔진 (LIVE_ALIGNED). REAL 계좌·풀을 읽지 않는다. */
@@ -262,7 +265,7 @@ public class RiskManagementService {
     /** 순수 판정 — REAL·DYNAMIC·모의 계좌가 같은 식을 쓴다. 입력만 다르다. */
     private static CircuitBreakerResult evaluateCircuitBreaker(RiskConfigEntity config, BigDecimal mddPeak,
                                                                BigDecimal initialCapital, BigDecimal totalAssetKrw,
-                                                               List<BigDecimal> closedPnlNewestFirst) {
+                                                               java.util.function.Supplier<List<BigDecimal>> closedPnlNewestFirst) {
         if (!Boolean.TRUE.equals(config.getCircuitBreakerEnabled())) {
             return CircuitBreakerResult.pass();
         }
@@ -290,7 +293,7 @@ public class RiskManagementService {
 
         // ── 연속 손실 체크 ────────────────────────────────────
         int consecutiveLosses = 0;
-        for (BigDecimal pnl : closedPnlNewestFirst) {
+        for (BigDecimal pnl : closedPnlNewestFirst.get()) {
             if (pnl != null && pnl.compareTo(BigDecimal.ZERO) < 0) {
                 consecutiveLosses++;
             } else {

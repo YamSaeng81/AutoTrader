@@ -431,14 +431,16 @@ class Sma20LiveAlignedGapsTest extends AbstractSma20SameInputFixture {
         PaperPositionEntity pAfter = paperPositionRepo.findById(ppos.getId()).orElseThrow();
         List<OrderEntity> sells = liveOrders(l, "SELL");
         @SuppressWarnings("unchecked")
-        Map<Long, Instant> pending = (Map<Long, Instant>) ReflectionTestUtils.getField(paperTarget(), "alignedPendingTimeExit");
+        Map<Long, Instant> pending = (Map<Long, Instant>) ReflectionTestUtils.getField(paperTarget(), "alignedClosingDecidedAt");
         Instant decided = pending.get(ppos.getId());
         System.out.println("[B04] T1 LIVE=" + lAfter.getStatus() + " 매도 " + sells.size() + "건(가격 " + (sells.isEmpty() ? "-" : sells.get(0).getPrice())
                 + ") / PAPER=" + pAfter.getStatus() + " 판단 시각=" + decided);
         row("B04 가격 없는 시간 청산", "1 T1 청산 판단", sells.isEmpty() ? "없음" : "시장가 매도 의도", decided == null ? "없음" : "판단 기록", false);
         assertThat(sells).as("LIVE 는 가격 없이 시간 초과 시장가 매도").hasSize(1);
         assertThat(lAfter.getStatus()).isEqualTo("CLOSING");
-        assertThat(pAfter.getStatus()).as("PAPER 는 체결가가 없어 아직 열려 있다").isEqualTo("OPEN");
+        // v1.147 (총괄 R2~R4 지시로 계약 변경): 가격 없는 시간 초과 판단은 LIVE 의 CLOSING 처럼 청산 대기로 남는다(종전 기대 OPEN).
+        assertThat(pAfter.getStatus()).as("PAPER 는 청산 대기(체결가 없음)").isEqualTo("CLOSING");
+        assertThat(pAfter.getExitReason()).as("결정한 사유가 저장된다").isEqualTo(ExitReason.TIME_STOP);
         assertThat(decided).as("청산 판단 시각이 T1 안에 기록된다").isNotNull().isBetween(t1Start, t1End);
         assertThat(sells.get(0).getCreatedAt()).isBetween(t1Start.minusSeconds(1), t1End.plusSeconds(1));
 
@@ -476,7 +478,7 @@ class Sma20LiveAlignedGapsTest extends AbstractSma20SameInputFixture {
     void b05StopBetweenApprovalCheckAndBuy() {
         List<Candle> cs = uptrend(lastOpen);
         insertCache(BTC, cs);
-        markPriceBook.remove(BTC);   // 실시간 현재가 없음 → M1/REST 없음(대역) → 최근 봉 종가가 정지 청산 가격
+        markPriceBook.remove(BTC);   // 실시간 현재가(시세 장부) 없음 → 정지는 청산 대기
         VirtualBalanceEntity p = paper(BTC);
         runPaper(p);   // 회차 접수(LIVE 와 같은 회차 — 승인 차례에 체결)
 
@@ -527,22 +529,35 @@ class Sma20LiveAlignedGapsTest extends AbstractSma20SameInputFixture {
             assertThat(after.getStatus()).isEqualTo("STOPPED");
             assertThat(positions).as("🔴 정지된 세션에 열린 포지션이 남으면 아무도 청산하지 않는다")
                     .noneMatch(x -> "OPEN".equals(x.getStatus()));
-            // 매수가 있었으면 정지의 강제 청산 매도가 짝으로 있고, 잔액은 초기 − 투입 + 매도 순수익으로 정확히 맞는다.
-            assertThat(sells.size()).as("매수 %d건에 매도 %d건", buys.size(), sells.size()).isEqualTo(buys.size());
-            BigDecimal expected = new BigDecimal("20200");
-            for (PaperPositionEntity pos : positions) {
-                BigDecimal proceeds = pos.getSize().multiply(sells.get(0).getPrice());
-                expected = expected.subtract(pos.getInvestedKrw()).add(proceeds.subtract(proceeds.multiply(FEE)));
-            }
-            assertThat(after.getAvailableKrw().setScale(2, RoundingMode.HALF_UP))
-                    .as("부분 반영(포지션·주문은 있는데 차감이 없거나, 차감만 있는 상태)이 없다")
-                    .isEqualByComparingTo(expected.setScale(2, RoundingMode.HALF_UP));
-            assertThat(after.getTotalKrw()).isEqualByComparingTo(after.getAvailableKrw());
-            // 1회차(보완 전 정지 경로)는 M1·REST 가 없어 0 원에 강제 청산했다(가용 200). 선택 모드는 최근 봉 종가에 슬리피지.
-            assertThat(sells).hasSize(1);
-            assertThat(sells.get(0).getPrice()).as("정지 강제 청산 가격이 0 이면 포지션 가치 전부가 손실로 기록된다")
-                    .isEqualByComparingTo(lastClose(cs).multiply(BigDecimal.ONE.subtract(SLIP)).setScale(8, RoundingMode.HALF_DOWN));
-            assertThat(sells.get(0).getSignalReason()).contains("가격 출처: 최근 H1 봉 종가");
+            // v1.147 (총괄 R2 지시로 계약 변경): 유효 시세가 없으면 정지는 0원·최근 봉 종가로 정산하지 않고 청산 대기(CLOSING, FORCED_STOP)로 둔다.
+            // 종전(9491166f) 기대는 "최근 H1 봉 종가로 매도 1건"이었다. 정산은 첫 유효 시세에서 한 번이다.
+            assertThat(buys).hasSize(1);
+            assertThat(sells).as("유효 시세 없이 매도를 만들지 않는다").isEmpty();
+            assertThat(positions).hasSize(1);
+            assertThat(positions.get(0).getStatus()).isEqualTo("CLOSING");
+            assertThat(positions.get(0).getExitReason()).isEqualTo(ExitReason.FORCED_STOP);
+            assertThat(paperTradingService.pendingCloseCount(p.getId())).isEqualTo(1);
+            assertThat(after.getAvailableKrw()).as("매수 차감만 반영 — 부분 반영 아님(포지션·주문·차감 함께)")
+                    .isEqualByComparingTo(new BigDecimal("20200").subtract(positions.get(0).getInvestedKrw()));
+
+            // 첫 유효 시세 → 한 번 정산
+            BigDecimal px = lastClose(cs);
+            paperTarget().doOnAlignedRealtimePrice(new RealtimePriceEvent(BTC, px, Instant.now(), RealtimePriceEvent.WS_TRADE));
+            paperTarget().doOnAlignedRealtimePrice(new RealtimePriceEvent(BTC, px, Instant.now(), RealtimePriceEvent.WS_TRADE));
+            PaperPositionEntity settled = paperPositionRepo.findById(positions.get(0).getId()).orElseThrow();
+            List<PaperOrderEntity> sells2 = paperOrders(p.getId(), "SELL");
+            VirtualBalanceEntity after2 = balanceRepo.findById(p.getId()).orElseThrow();
+            BigDecimal fill = px.multiply(BigDecimal.ONE.subtract(SLIP)).setScale(8, RoundingMode.HALF_DOWN);
+            BigDecimal proceeds = settled.getSize().multiply(fill);
+            System.out.println("[B05] 정산 뒤 " + settled.getStatus() + " " + settled.getExitReason() + " 매도=" + sells2.size()
+                    + " 가용=" + after2.getAvailableKrw() + " 대기=" + paperTradingService.pendingCloseCount(p.getId()));
+            assertThat(settled.getStatus()).isEqualTo("CLOSED");
+            assertThat(settled.getExitReason()).isEqualTo(ExitReason.FORCED_STOP);
+            assertThat(sells2).as("두 번째 시세에 다시 정산하지 않는다").hasSize(1);
+            assertThat(sells2.get(0).getPrice()).isEqualByComparingTo(fill);
+            assertThat(after2.getAvailableKrw().setScale(2, RoundingMode.HALF_UP)).isEqualByComparingTo(
+                    new BigDecimal("20200").subtract(settled.getInvestedKrw()).add(proceeds.subtract(proceeds.multiply(FEE))).setScale(2, RoundingMode.HALF_UP));
+            assertThat(paperTradingService.pendingCloseCount(p.getId())).isZero();
         } finally {
             release.countDown();
             ex.shutdownNow();
