@@ -99,6 +99,13 @@ public class PaperPositionEntity {
     @Column(name = "exit_reason", length = 20)
     private com.cryptoautotrader.api.entity.ExitReason exitReason;
 
+    /**
+     * 청산 판단 시각 — 선택 모드 청산 대기(CLOSING) 때 사유와 같은 트랜잭션에 적는다 (2026-11-11, v1.148 §3-3, V96). 재기동 뒤에도 판단 시각을
+     * 보존한다. 종전 행·키 없는 세션은 NULL 이며 과거 값을 추정해 채우지 않는다.
+     */
+    @Column(name = "exit_decided_at")
+    private Instant exitDecidedAt;
+
     /** 진입 시점 시장 레짐 — 이게 없으면 "이 전략은 횡보장에서만 되는가" 를 물을 수 없다. */
     @Column(name = "market_regime", length = 20)
     private String marketRegime;

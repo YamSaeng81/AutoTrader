@@ -129,14 +129,19 @@ public class PaperTradingController {
             VirtualBalanceEntity session = paperTradingService.stop(sessionId);
             // 청산 대기(LIVE_ALIGNED, 유효 가격 없음)가 남았으면 정산 완료가 아니다 — 수와 함께 알린다 (2026-11-11). 종전 세션은 늘 0.
             long pendingCloses = paperTradingService.pendingCloseCount(sessionId);
-            return ApiResponse.ok(Map.of(
-                    "id", session.getId(),
-                    "status", session.getStatus(),
-                    "finalAsset", session.getTotalKrw(),
-                    "stoppedAt", session.getStoppedAt().toString(),
-                    "pendingCloseCount", pendingCloses,
-                    "settlement", pendingCloses == 0 ? "완료" : "청산 대기 — 첫 유효 시세에 정산"
-            ));
+            // v1.148 W4: 청산 대기가 있으면 최종 자산이 아니다 — finalAsset 을 비우고 마지막 기록 총자산을 따로 표시한다.
+            java.util.Map<String, Object> body = new java.util.LinkedHashMap<>();
+            body.put("id", session.getId());
+            body.put("status", session.getStatus());
+            body.put("finalAsset", pendingCloses == 0 ? session.getTotalKrw() : null);
+            if (pendingCloses > 0) {
+                body.put("lastRecordedTotalKrw", session.getTotalKrw());
+                body.put("assetStatus", "확정 아님 — 청산 대기 포지션 미정산(마지막 기록 총자산, 현재 평가 아님)");
+            }
+            body.put("stoppedAt", session.getStoppedAt().toString());
+            body.put("pendingCloseCount", pendingCloses);
+            body.put("settlement", pendingCloses == 0 ? "완료" : "청산 대기 — 첫 유효 시세에 정산");
+            return ApiResponse.ok(body);
         } catch (IllegalStateException e) {
             return ApiResponse.error("INVALID_REQUEST", e.getMessage());
         }
@@ -149,7 +154,10 @@ public class PaperTradingController {
     @PostMapping("/sessions/stop-all")
     public ApiResponse<Map<String, Object>> stopAll() {
         List<VirtualBalanceEntity> stopped = paperTradingService.stopAll();
-        return ApiResponse.ok(Map.of("stoppedCount", stopped.size()));
+        // v1.148 W4: 일괄 정지도 청산 대기 수를 함께 알린다(0 이면 전부 정산).
+        long pending = stopped.stream().mapToLong(s -> paperTradingService.pendingCloseCount(s.getId())).sum();
+        return ApiResponse.ok(Map.of("stoppedCount", stopped.size(), "pendingCloseCount", pending,
+                "settlement", pending == 0 ? "완료" : "청산 대기 " + pending + "건 — 첫 유효 시세에 정산")); 
     }
 
     /**
@@ -249,6 +257,7 @@ public class PaperTradingController {
     }
 
     private Map<String, Object> toPositionMap(PaperPositionEntity p) {
+        if ("CLOSING".equals(p.getStatus())) return toPendingPositionMap(p);
         BigDecimal unrealizedPnlPct = p.getAvgPrice().compareTo(BigDecimal.ZERO) > 0
                 ? p.getUnrealizedPnl()
                         .divide(p.getAvgPrice().multiply(p.getSize()), 4, RoundingMode.HALF_UP)
@@ -268,6 +277,32 @@ public class PaperTradingController {
         map.put("status", p.getStatus());
         map.put("openedAt", p.getOpenedAt().toString());
         map.put("closedAt", p.getClosedAt() != null ? p.getClosedAt().toString() : null);
+        return map;
+    }
+
+    /**
+     * 청산 대기(LIVE_ALIGNED, 미정산 보유) 표시 (2026-11-11, v1.148 W4). 유효 시세가 없어 평가할 수 없으므로 미실현손익을 0 으로 채우지 않고
+     * null 로 두며, 표에 남은 마지막 기록값은 시각을 알 수 없다는 표시와 함께 따로 준다. 결정한 청산 사유와 판단 시각을 함께 준다.
+     */
+    private Map<String, Object> toPendingPositionMap(PaperPositionEntity p) {
+        java.util.Map<String, Object> map = new java.util.HashMap<>();
+        map.put("id", p.getId());
+        map.put("coinPair", p.getCoinPair());
+        map.put("side", p.getSide());
+        map.put("quantity", p.getSize());
+        map.put("avgEntryPrice", p.getAvgPrice());
+        map.put("entryPrice", p.getEntryPrice());
+        map.put("unrealizedPnl", null);
+        map.put("unrealizedPnlPct", null);
+        map.put("valuationStatus", "평가 불가 — 청산 대기(유효 시세 없음)");
+        map.put("lastRecordedUnrealizedPnl", p.getUnrealizedPnl());
+        map.put("lastRecordedUnrealizedPnlNote", "청산 판단 이전 마지막 기록값 — 기록 시각 미상, 현재 평가 아님");
+        map.put("pendingExitReason", p.getExitReason() != null ? p.getExitReason().name() : null);
+        map.put("exitDecidedAt", p.getExitDecidedAt() != null ? p.getExitDecidedAt().toString() : null);
+        map.put("realizedPnl", null);
+        map.put("status", p.getStatus());
+        map.put("openedAt", p.getOpenedAt().toString());
+        map.put("closedAt", null);
         return map;
     }
 

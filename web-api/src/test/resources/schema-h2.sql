@@ -792,3 +792,7 @@ CREATE TABLE IF NOT EXISTS sell_quarantine_release (
     evidence                TEXT            NOT NULL,
     released_at             TIMESTAMP WITH TIME ZONE NOT NULL
 );
+
+-- V96 (2026-11-11, 총괄 v1.148 §3-3) — 선택 모드 런타임 상태 2열. NULL 허용·기본값 없음·기존 행 채우지 않음.
+ALTER TABLE paper_trading.position        ADD COLUMN IF NOT EXISTS exit_decided_at TIMESTAMP;
+ALTER TABLE paper_trading.virtual_balance ADD COLUMN IF NOT EXISTS mdd_peak_krw    DECIMAL(20, 2);

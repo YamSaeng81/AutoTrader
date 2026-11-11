@@ -238,6 +238,19 @@ public class TelegramNotificationService {
         sendMarkdownAndLog(msg, "SESSION_STOP", "[모의투자] 세션#" + sessionId);
     }
 
+    /**
+     * 모의투자 세션 정지 — 청산 대기가 남은 경우 (2026-11-11, v1.148 W4). "최종 자산"·수익률을 적지 않는다: 유효 시세가 없어 미정산 보유가
+     * 남았고, 첫 유효 시세에 정산된다.
+     */
+    public void notifyPaperSessionStoppedPendingClose(Long sessionId, String strategyName, String coinPair, long pendingCount) {
+        String msg = String.format(
+                "🛑 *\\[모의투자\\] 세션 정지 — 청산 대기*\n\n" +
+                "• 세션 ID: `%d`\n• 전략: `%s`\n• 코인: `%s`\n" +
+                "• 청산 대기: `%d건` (유효 시세 없음, 첫 유효 시세에 정산)\n• 최종 자산: `미확정`",
+                sessionId, strategyName, coinPair, pendingCount);
+        sendMarkdownAndLog(msg, "SESSION_STOP", "[모의투자] 세션#" + sessionId);
+    }
+
     /** 낙폭 경고 알림 — 손절 임박 시 즉시 전송 (스팸 방지: 세션당 30분 쿨다운은 호출부에서 관리) */
     public void notifyDrawdownWarning(long sessionId, String coinPair, double pnlPct, double stopLossPct) {
         String msg = String.format(

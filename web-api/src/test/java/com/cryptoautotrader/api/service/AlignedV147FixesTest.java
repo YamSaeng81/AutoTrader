@@ -163,6 +163,11 @@ class AlignedV147FixesTest extends AbstractSma20SameInputFixture {
         markPriceBook.remove(BTC);
         ReflectionTestUtils.invokeMethod(target(), "alignedExitsWithoutCandles", p, BTC);
         assertThat(reload(pp).getStatus()).isEqualTo("CLOSING");
+        // v1.148 W1 (2026-11-11): 대기 정산은 넘어온 가격(봉 종가일 수 있음)을 쓰지 않고 시세 장부의 유효 가격만 쓴다. 시세 장부가 비면 계속 CLOSING.
+        ReflectionTestUtils.invokeMethod(target(), "alignedPriceExits", p, pp, new BigDecimal("120"), "review periodic price");
+        assertThat(reload(pp).getStatus()).isEqualTo("CLOSING");
+        assertThat(sells(p.getId())).isEmpty();
+        markPriceBook.record(BTC, new BigDecimal("120"), Instant.now());   // 익절선(110) 위의 유효 시세
         ReflectionTestUtils.invokeMethod(target(), "alignedPriceExits", p, pp, new BigDecimal("120"), "review periodic price");
         PaperPositionEntity after = reload(pp);
         System.out.println("[R3 보완] " + after.getStatus() + "/" + after.getExitReason() + " 매도=" + sells(p.getId()).size());
@@ -195,7 +200,7 @@ class AlignedV147FixesTest extends AbstractSma20SameInputFixture {
     }
 
     @Test
-    @DisplayName("재기동 복원 — 메모리 표시를 지운 뒤 복원하면 DB 의 청산 대기를 첫 유효 시세에 정산(판단 시각 미상)")
+    @DisplayName("재기동 복원 — 메모리 표시를 지운 뒤 복원하면 DB 의 청산 대기를 첫 유효 시세에 정산(판단 시각은 저장 열, v1.148 §3-3)")
     void restoreAfterRestart() {
         VirtualBalanceEntity p = paper(BTC);
         PaperPositionEntity pp = pos(p);
@@ -211,7 +216,9 @@ class AlignedV147FixesTest extends AbstractSma20SameInputFixture {
         PaperPositionEntity after = reload(pp);
         assertThat(after.getStatus()).isEqualTo("CLOSED");
         assertThat(after.getExitReason()).isEqualTo(ExitReason.FORCED_STOP);
-        assertThat(sells(p.getId()).get(0).getSignalReason()).contains("청산 판단 미상(재기동 전)");
+        // v1.148 §3-3 (2026-11-11): 판단 시각이 position.exit_decided_at 에 저장돼 재기동 뒤에도 그 값이 사유에 남는다(종전 기대 "미상(재기동 전)").
+        assertThat(reload(pp).getExitDecidedAt()).isNotNull();
+        assertThat(sells(p.getId()).get(0).getSignalReason()).contains("청산 판단 " + reload(pp).getExitDecidedAt());
     }
 
     @Test

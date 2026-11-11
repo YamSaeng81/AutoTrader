@@ -47,6 +47,10 @@ public class PerformanceSummaryResponse {
 
     private List<SessionPerformance> sessions;
 
+    /** 청산 대기(미정산 보유) 수 — 0 보다 크면 미실현·총손익·수익률은 null(평가 불가)이다 (2026-11-11, v1.148 W4). */
+    private int pendingCloseCount;
+    private String valuationStatus;
+
     /** 레짐별 집계 통계 */
     @Data
     @Builder
@@ -77,6 +81,9 @@ public class PerformanceSummaryResponse {
         private BigDecimal winRatePct;
         private String startedAt;
         private String stoppedAt;
+        /** 청산 대기 수 — 0 보다 크면 unrealizedPnl·totalPnl·returnRatePct 는 null(평가 불가) (v1.148 W4). */
+        private int pendingCloseCount;
+        private String valuationStatus;
 
         // 리스크 조정 지표
         private BigDecimal mddPct;

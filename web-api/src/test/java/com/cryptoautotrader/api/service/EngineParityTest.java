@@ -167,12 +167,14 @@ class EngineParityTest {
         String paper = source("Paper").replace("checkCircuitBreakerFromValues(", "");
         assertThat(paper.contains("checkCircuitBreaker(")).as("PAPER 가 REAL/DYNAMIC 세션 판정을 부른다").isFalse();
         assertThat(source("Paper").contains("checkCircuitBreakerFromValues(")).as("LIVE_ALIGNED 값 입력형 판정 누락").isTrue();
-        // 즉시 알림 — PAPER 의 텔레그램 호출은 일일 다이제스트 적재와 세션 시작·정지 알림뿐이다(af7ffa58 과 같은 집합).
+        // 즉시 알림 — PAPER 의 텔레그램 호출은 일일 다이제스트 적재와 세션 시작·정지 알림뿐이다(af7ffa58 집합 + v1.148 청산 대기 정지 알림).
         java.util.Set<String> calls = new java.util.TreeSet<>();
         java.util.regex.Matcher m = java.util.regex.Pattern.compile("telegramService\\.(\\w+)").matcher(source("Paper"));
         while (m.find()) calls.add(m.group(1));
         assertThat(calls).as("PAPER 에 즉시 알림이 생겼다")
-                .containsExactly("bufferTradeEvent", "notifyPaperSessionStarted", "notifyPaperSessionStopped");
+                // v1.148 W4 (2026-11-11): 청산 대기가 남은 정지는 "최종 자산" 대신 대기 알림을 보낸다 — 정지 알림의 변형이며 서킷 브레이커 즉시 알림이 아니다.
+                .containsExactly("bufferTradeEvent", "notifyPaperSessionStarted", "notifyPaperSessionStopped",
+                        "notifyPaperSessionStoppedPendingClose");
     }
 
     // ── 의도적 비대칭 — 사유와 함께 고정 ──────────────────────────────────────

@@ -91,6 +91,14 @@ public class VirtualBalanceEntity {
     @Column(name = "updated_at")
     private Instant updatedAt;
 
+    /**
+     * 선택 모드(LIVE_ALIGNED) MDD 피크 — 런타임 상태 (2026-11-11, v1.148 §3-3, V96). LIVE {@code mdd_peak_capital} 대응. 엔티티 저장으로는
+     * 쓰지 않는다(insertable/updatable=false) — 묵은 엔티티 저장이 피크를 내리지 못하게 {@code raiseMddPeakKrw} 조건부 갱신만 쓴다.
+     * 키 없는 세션은 늘 NULL. 규칙 지문·strategy_params 에 넣지 않는다.
+     */
+    @Column(name = "mdd_peak_krw", precision = 20, scale = 2, insertable = false, updatable = false)
+    private BigDecimal mddPeakKrw;
+
     @PrePersist
     @PreUpdate
     void touch() {
