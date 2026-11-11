@@ -376,6 +376,23 @@ public class DynamicTradingService {
      */
     final Map<String, BigDecimal> blackSwanBlockedPrice = new ConcurrentHashMap<>();
 
+    /**
+     * 종류별 격리 (2026-11-11, 총괄 v1.145 결정 3) — 위 두 지도는 <b>REAL(DYNAMIC) 전용</b>이고, PAPER(DYN_PAPER) 세션은 아래 두 지도를
+     * 쓴다. 기록·조회·만료 삭제·재기동 복원이 모두 같은 종류의 지도와 같은 종류의 로그만 쓴다. 종전에는 코인 하나에 지도 하나라 PAPER 평가의
+     * 차단이 REAL 진입을 막았고(3f6afb90 재현), 재기동 복원은 REAL 로그만 읽어 PAPER 차단은 사라졌다(0f3a4b55 재현).
+     * REAL 의 쿨다운 길이·진입가 가드·차단 기준·복원 경로는 그대로다(PAPER 로그를 REAL 복원에 넣지 않는다).
+     */
+    final Map<String, Instant> paperBlackSwanBlockedAt = new ConcurrentHashMap<>();
+    final Map<String, BigDecimal> paperBlackSwanBlockedPrice = new ConcurrentHashMap<>();
+
+    private Map<String, Instant> blackSwanAt(String kind) {
+        return SESSION_KIND_PAPER.equals(kind) ? paperBlackSwanBlockedAt : blackSwanBlockedAt;
+    }
+
+    private Map<String, BigDecimal> blackSwanPrice(String kind) {
+        return SESSION_KIND_PAPER.equals(kind) ? paperBlackSwanBlockedPrice : blackSwanBlockedPrice;
+    }
+
     /** 쿨다운 복원 대상을 가려내는 blocked_reason 접두어 (가드 발동분만 — 아래 주석 참조) */
     private static final String BLACK_SWAN_BLOCK_PREFIX = "BLACK_SWAN_GUARD 발동";
 
@@ -401,25 +418,29 @@ public class DynamicTradingService {
             // 진입가 가드(24시간)가 쿨다운(4시간)보다 길므로 더 긴 쪽을 조회 구간으로 잡는다.
             Instant from = Instant.now().minus(
                     Math.max(BLACK_SWAN_COOLDOWN_MIN, BLACK_SWAN_PRICE_GUARD_MIN), ChronoUnit.MINUTES);
-            List<Object[]> rows = strategyLogRepository.findRecentBlockedCoins(
-                    SESSION_KIND, from, BLACK_SWAN_BLOCK_PREFIX);
-            // 오래된 순으로 오므로 순서대로 덮어쓰면 코인별 가장 최근 차단이 남는다.
-            for (Object[] row : rows) {
-                if (row[0] == null || row[1] == null) continue;
-                String coinPair = (String) row[0];
-                blackSwanBlockedAt.put(coinPair, (Instant) row[1]);
-                // signalPrice는 과거 로그에 없을 수 있다 — 그 경우 쿨다운만 복원하고
-                // 진입가 가드는 기준가가 없으므로 자동으로 비활성이 된다.
-                if (row[2] != null) {
-                    blackSwanBlockedPrice.put(coinPair, (BigDecimal) row[2]);
-                } else {
-                    blackSwanBlockedPrice.remove(coinPair);
+            // 종류마다 자기 로그 → 자기 지도 (2026-11-11). REAL 은 종전과 같은 질의·같은 지도다.
+            for (String kind : List.of(SESSION_KIND, SESSION_KIND_PAPER)) {
+                Map<String, Instant> at = blackSwanAt(kind);
+                Map<String, BigDecimal> price = blackSwanPrice(kind);
+                List<Object[]> rows = strategyLogRepository.findRecentBlockedCoins(
+                        kind, from, BLACK_SWAN_BLOCK_PREFIX);
+                // 오래된 순으로 오므로 순서대로 덮어쓰면 코인별 가장 최근 차단이 남는다.
+                for (Object[] row : rows) {
+                    if (row[0] == null || row[1] == null) continue;
+                    String coinPair = (String) row[0];
+                    at.put(coinPair, (Instant) row[1]);
+                    // signalPrice는 과거 로그에 없을 수 있다 — 그 경우 쿨다운만 복원하고
+                    // 진입가 가드는 기준가가 없으므로 자동으로 비활성이 된다.
+                    if (row[2] != null) {
+                        price.put(coinPair, (BigDecimal) row[2]);
+                    } else {
+                        price.remove(coinPair);
+                    }
                 }
-            }
-            if (!rows.isEmpty()) {
-                log.info("[Dynamic] BLACK_SWAN 쿨다운 복원: {}종 {} (진입가 가드 기준가 {}종)",
-                        blackSwanBlockedAt.size(), blackSwanBlockedAt.keySet(),
-                        blackSwanBlockedPrice.size());
+                if (!rows.isEmpty()) {
+                    log.info("[Dynamic] BLACK_SWAN 쿨다운 복원({}): {}종 {} (진입가 가드 기준가 {}종)",
+                            kind, at.size(), at.keySet(), price.size());
+                }
             }
         } catch (Exception e) {
             log.warn("[Dynamic] BLACK_SWAN 쿨다운 복원 실패 — 가드 본체로 진행: {}", e.getMessage());
@@ -917,7 +938,7 @@ public class DynamicTradingService {
         }
         BigDecimal evalPrice = evalCandles.isEmpty() ? null : evalCandles.get(evalCandles.size() - 1).getClose();
         BlackSwanGateDecision blackSwan = evaluateBlackSwanGate(
-                blackSwanBlockedAt.get(coinPair), blackSwanBlockedPrice.get(coinPair), evalPrice, Instant.now());
+                blackSwanAt(kind).get(coinPair), blackSwanPrice(kind).get(coinPair), evalPrice, Instant.now());
         if (blackSwan.blockReason() != null) {
             return "승인 차례에 " + blackSwan.blockReason();
         }
@@ -1136,16 +1157,17 @@ public class DynamicTradingService {
             // 쿨다운 — 가드가 한 번 차단한 코인은 해제 직후가 가장 위험하다 (2026-08-03 실측).
             // 가드는 판단이 옳았고 **유지 시간이 짧았을 뿐**이므로, 해제 후에도 일정 시간 막는다.
             if (gateBlockReason == null && signal.getAction() == StrategySignal.Action.BUY) {
+                String bsKind = sessionKind(session);
                 BlackSwanGateDecision decision = evaluateBlackSwanGate(
-                        blackSwanBlockedAt.get(coinPair), blackSwanBlockedPrice.get(coinPair),
+                        blackSwanAt(bsKind).get(coinPair), blackSwanPrice(bsKind).get(coinPair),
                         evalPrice, Instant.now());
                 if (decision.blockReason() != null) {
                     blackSwanBlocked++;
                     gateBlockReason = decision.blockReason();
                     log.warn("[Dynamic] BUY 차단: {} (id={}) — {}", coinPair, sid, gateBlockReason);
                 } else if (decision.expired()) {
-                    blackSwanBlockedAt.remove(coinPair);
-                    blackSwanBlockedPrice.remove(coinPair);
+                    blackSwanAt(bsKind).remove(coinPair);
+                    blackSwanPrice(bsKind).remove(coinPair);
                 }
             }
 
@@ -1154,8 +1176,8 @@ public class DynamicTradingService {
                 BlackSwanGuard.EntryGate guard = BlackSwanGuard.entryGate(evalCandles);
                 if (guard.blocked()) {
                     blackSwanBlocked++;
-                    blackSwanBlockedAt.put(coinPair, Instant.now());   // 쿨다운 시작
-                    blackSwanBlockedPrice.put(coinPair, evalPrice);    // 진입가 가드 기준가
+                    blackSwanAt(sessionKind(session)).put(coinPair, Instant.now());   // 쿨다운 시작(이 세션 종류만)
+                    blackSwanPrice(sessionKind(session)).put(coinPair, evalPrice);    // 진입가 가드 기준가
                     log.warn("[Dynamic] BLACK_SWAN_GUARD 발동 — BUY 차단: {} (id={}): {}",
                             coinPair, sid, guard.reason());
                     gateBlockReason = "BLACK_SWAN_GUARD 발동 — " + guard.reason();
