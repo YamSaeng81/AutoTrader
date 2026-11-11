@@ -1,0 +1,14 @@
+{
+  "name": "exit-ab-v1 고정 설계 (총괄 v1.143 판단 3 · v1.144 §3 · v1.145 모드 결정)",
+  "pairs": {
+    "P1": {"strategy": "COMPOSITE_MEANREV_BB", "coin": "KRW-BTC"},
+    "P2": {"strategy": "COMPOSITE_MEANREV_BB", "coin": "KRW-ETH"},
+    "P3": {"strategy": "COMPOSITE_MTF_CONFIRMED", "coin": "KRW-BTC"},
+    "P4": {"strategy": "COMPOSITE_MTF_CONFIRMED", "coin": "KRW-ETH"}
+  },
+  "timeframe": "M15",
+  "common": {"initial_capital": "100000", "invest_ratio": "0.8", "max_investment": "20000", "max_hold_hours": "24"},
+  "params": {"paperMaxInvestment": 20000, "paperExecutionMode": "LIVE_ALIGNED"},
+  "arms": {"A": {"stop_loss_pct": null}, "B": {"stop_loss_pct": "5"}},
+  "days": 42
+}

@@ -1,0 +1,26 @@
+[
+  {
+    "case": "control",
+    "result": "ACCEPTED"
+  },
+  {
+    "case": "all_four_pairs_same_strategy_coin",
+    "result": "REJECTED",
+    "reason": "쌍 P2 의 전략·코인이 프로토콜과 다르다"
+  },
+  {
+    "case": "all_capital_200000",
+    "result": "REJECTED",
+    "reason": "쌍 P1A 의 initial_capital 가 프로토콜 값 100000 와 다르다"
+  },
+  {
+    "case": "all_timeframe_H1",
+    "result": "REJECTED",
+    "reason": "쌍 P1A 주기가 프로토콜과 다르다"
+  },
+  {
+    "case": "different_sha_between_pairs",
+    "result": "REJECTED",
+    "reason": "8세션의 code_sha 가 모두 같아야 한다"
+  }
+]
