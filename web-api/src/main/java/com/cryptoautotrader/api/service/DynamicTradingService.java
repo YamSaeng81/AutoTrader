@@ -37,7 +37,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -3408,9 +3407,10 @@ public class DynamicTradingService {
      * WebSocket 실시간 시세 이벤트 핸들러 — 동적 세션 보유 포지션의 손절/익절을 폴링(60초)보다
      * 즉시 반응하도록 처리한다. 라이브 매매의 급등락 SL/TP 트레일링(ratchet)은 이번 범위에
      * 포함하지 않고, 기본 SL/TP 트리거만 실시간화한다.
+     *
+     * <p>2026-11-12 (총괄 v1.153 F): 이벤트 수신·실행기 접수는 {@link RealtimeProtectionDispatcher} 가 한다(같은 marketDataExecutor 스레드에서
+     * 이 메서드를 프록시로 부른다). 처리 내용·트랜잭션은 그대로다.</p>
      */
-    @EventListener
-    @Async("marketDataExecutor")
     @Transactional
     public void onRealtimePriceEvent(RealtimePriceEvent event) {
         try {

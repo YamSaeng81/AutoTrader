@@ -3366,9 +3366,10 @@ public class LiveTradingService {
      *
      * WS 콜백 스레드(upbit-ws-scheduler)에서 직접 DB 접근하면 ping/pong 스케줄링이 지연될 수 있으므로
      * ApplicationEventPublisher → @Async("marketDataExecutor") 패턴으로 디커플링.
+     *
+     * <p>2026-11-12 (총괄 v1.153 F): 이벤트 수신·실행기 접수는 {@link RealtimeProtectionDispatcher} 가 한다(같은 marketDataExecutor 스레드에서
+     * 이 메서드를 프록시로 부른다). 실행기 포화의 접수 거절이 발행 쪽·다른 리스너로 번지지 않게 하려는 것이다. 처리 내용·트랜잭션은 그대로다.</p>
      */
-    @EventListener
-    @Async("marketDataExecutor")
     @Transactional
     public void onRealtimePriceEvent(RealtimePriceEvent event) {
         try {
