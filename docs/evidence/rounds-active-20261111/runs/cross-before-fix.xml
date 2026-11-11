@@ -1,0 +1,858 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="진입 회차 — 다른 회차의 느린 PAPER 승인이 실자금 후보를 늦추지 않는다" tests="1" skipped="0" failures="1" errors="0" timestamp="2026-11-11T00:18:49" hostname="DESKTOP-SF1KUQ5" time="4.016">
+  <properties/>
+  <testcase name="PAPER 만 있는 회차가 먼저 꺼내져도, 그 PAPER 승인이 끝나기 전에 다른 회차의 LIVE 후보가 승인된다" classname="com.cryptoautotrader.api.service.EntryRoundsCrossRoundPaperDelayTest" time="4.016">
+    <failure message="org.opentest4j.AssertionFailedError: [&#x1f534; 다른 회차의 PAPER 승인이 끝날 때까지 실자금 후보가 기다렸다] &#13;&#10;Expecting value to be true but was false" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: [&#x1f534; 다른 회차의 PAPER 승인이 끝날 때까지 실자금 후보가 기다렸다] 
+Expecting value to be true but was false
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base@17.0.12/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base@17.0.12/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+	at app//com.cryptoautotrader.api.service.EntryRoundsCrossRoundPaperDelayTest.realCandidateIsNotHeldBehindPaperOfAnotherRound(EntryRoundsCrossRoundPaperDelayTest.java:114)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <system-out><![CDATA[09:18:50.039 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-11T01:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-11T00:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.065 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-11T01:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-11T00:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.075 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-11T00:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.075 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.076 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-11T00:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.076 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.076 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-11T00:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-10T23:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.077 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-11T00:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-10T23:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.077 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-10T23:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.077 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.077 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-10T23:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.077 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.078 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T23:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-10T22:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.078 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T23:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-10T22:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.078 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-10T22:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.078 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.078 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-10T22:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.079 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.080 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T22:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-10T21:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.080 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T22:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-10T21:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.080 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-10T21:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.080 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.080 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-10T21:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.080 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.081 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T21:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-10T20:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.081 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T21:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-10T20:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.081 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-10T20:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.081 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.081 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-10T20:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.082 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.082 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T20:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-10T19:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.082 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T20:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-10T19:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.083 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-10T19:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.083 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.083 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-10T19:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.083 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.083 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T19:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-10T18:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.083 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T19:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-10T18:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.083 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-10T18:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.084 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.084 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-10T18:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.084 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.084 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T18:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-10T17:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.084 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T18:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-10T17:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.085 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-10T17:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.085 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.085 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-10T17:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.085 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.085 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T17:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-10T16:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.086 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T17:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-10T16:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.086 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-10T16:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.086 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.086 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-10T16:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.086 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.086 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T16:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-10T15:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.087 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T16:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-10T15:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.087 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-10T15:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.087 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.087 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-10T15:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.087 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.088 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T15:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-10T14:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.088 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T15:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-10T14:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.088 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-10T14:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.088 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.088 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-10T14:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.088 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.089 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T14:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-10T13:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.089 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T14:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-10T13:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.089 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-10T13:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.089 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.089 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-10T13:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.089 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.089 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T13:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-10T12:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.089 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T13:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-10T12:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.090 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-10T12:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.090 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.090 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-10T12:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.090 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.090 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T12:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-10T11:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.090 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T12:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-10T11:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.090 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-10T11:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.091 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.091 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-10T11:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.091 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.091 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T11:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-10T10:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.091 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T11:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-10T10:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.091 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-10T10:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.092 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.092 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-10T10:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.092 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.092 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T10:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-10T09:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.092 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T10:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-10T09:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.092 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-10T09:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.093 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.093 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-10T09:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.093 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.093 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T09:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-10T08:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.093 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T09:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-10T08:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.093 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-10T08:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.093 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.093 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-10T08:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.094 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.094 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T08:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-10T07:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.094 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T08:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-10T07:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.094 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-10T07:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.094 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.094 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-10T07:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.094 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.095 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T07:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-10T06:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.095 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T07:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-10T06:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.095 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-10T06:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.095 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.095 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-10T06:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.095 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.096 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T06:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-10T05:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.096 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T06:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-10T05:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.096 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-10T05:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.096 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.096 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-10T05:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.097 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.097 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T05:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-10T04:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.097 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T05:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-10T04:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.097 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-10T04:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.097 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.098 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-10T04:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.098 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.098 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T04:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-10T03:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.098 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T04:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-10T03:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.098 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-10T03:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.098 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.098 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-10T03:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.099 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.099 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T03:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-10T02:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.099 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T03:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-10T02:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.099 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-10T02:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.099 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.099 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-10T02:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.099 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.100 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T02:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-10T01:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.100 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T02:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-10T01:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.100 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-10T01:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.100 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.100 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-10T01:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.100 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.101 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T01:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-10T00:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.101 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T01:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-10T00:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.101 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-10T00:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.101 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.101 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-10T00:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.101 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.101 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T00:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-09T23:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.102 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-10T00:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-09T23:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.102 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-09T23:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.102 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.102 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-09T23:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.102 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.102 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T23:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-09T22:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.102 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T23:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-09T22:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.102 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-09T22:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.103 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.103 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-09T22:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.103 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.103 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T22:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-09T21:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.103 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T22:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-09T21:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.103 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-09T21:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.103 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.104 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-09T21:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.104 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.104 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T21:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-09T20:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.104 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T21:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-09T20:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.104 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-09T20:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.104 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.104 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-09T20:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.104 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.105 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T20:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-09T19:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.105 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T20:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-09T19:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.105 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-09T19:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.105 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.105 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-09T19:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.105 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.105 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T19:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-09T18:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.106 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T19:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-09T18:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.106 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-09T18:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.106 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.106 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-09T18:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.106 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.106 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T18:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-09T17:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.106 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T18:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-09T17:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.107 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-09T17:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.107 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.107 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-09T17:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.107 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.107 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T17:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-09T16:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.107 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T17:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-09T16:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.107 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-09T16:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.107 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.107 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-09T16:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.108 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.108 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T16:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-09T15:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.108 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T16:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-09T15:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.108 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-09T15:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.108 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.108 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-09T15:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.109 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.109 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T15:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-09T14:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.109 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T15:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-09T14:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.109 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-09T14:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.109 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.109 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-09T14:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.110 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.110 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T14:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-09T13:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.110 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T14:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-09T13:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.110 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-09T13:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.110 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.110 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-09T13:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.110 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.111 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T13:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-09T12:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.111 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T13:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-09T12:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.111 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-09T12:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.112 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.112 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-09T12:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.112 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.112 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T12:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-09T11:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.112 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T12:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-09T11:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.112 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-09T11:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.112 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.112 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-09T11:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.113 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.113 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T11:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-09T10:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.113 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T11:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-09T10:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.113 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-09T10:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.113 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.113 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-09T10:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.114 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.114 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T10:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-09T09:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.114 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T10:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-09T09:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.114 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-09T09:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.114 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.114 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-09T09:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.115 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.115 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T09:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-09T08:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.115 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T09:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-09T08:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.115 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-09T08:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.116 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.116 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-09T08:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.116 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.116 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T08:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-09T07:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.116 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T08:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-09T07:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.117 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-09T07:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.117 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.117 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-09T07:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.117 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.117 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T07:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-09T06:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.117 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T07:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-09T06:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.118 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-09T06:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.118 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.118 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-09T06:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.118 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.119 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T06:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-09T05:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.119 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T06:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-09T05:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.119 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-09T05:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.119 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.119 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-09T05:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.119 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.120 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T05:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-09T04:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.120 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T05:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-09T04:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.120 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-09T04:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.120 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.120 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-09T04:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.120 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.121 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T04:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-09T03:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.121 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T04:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-09T03:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.121 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-09T03:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.121 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.121 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-09T03:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.121 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.121 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T03:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-09T02:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.121 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T03:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-09T02:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.122 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-09T02:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.122 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.122 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-09T02:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.122 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.122 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T02:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-09T01:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.122 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T02:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-09T01:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.123 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-09T01:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.123 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.123 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-09T01:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.123 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.123 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T01:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-09T00:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.123 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T01:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-09T00:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.124 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-09T00:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.124 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.124 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-09T00:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.124 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.124 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T00:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-08T23:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.124 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-09T00:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-08T23:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.125 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-08T23:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.125 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.125 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-08T23:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.125 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.125 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T23:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-08T22:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.125 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T23:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-08T22:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.125 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-08T22:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.126 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.126 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-08T22:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.126 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.126 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T22:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-08T21:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.126 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T22:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-08T21:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.126 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-08T21:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.126 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.127 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-08T21:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.127 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.127 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T21:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-08T20:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.127 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T21:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-08T20:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.128 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-08T20:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.128 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.128 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-08T20:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.128 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.128 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T20:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-08T19:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.128 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T20:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-08T19:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.128 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-08T19:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.128 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.128 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-08T19:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.129 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.129 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T19:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-08T18:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.129 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T19:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-08T18:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.129 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-08T18:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.129 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.129 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-08T18:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.130 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.130 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T18:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-08T17:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.130 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T18:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-08T17:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.130 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-08T17:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.131 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.131 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-08T17:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.131 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.131 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T17:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-08T16:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.131 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T17:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-08T16:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.131 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-08T16:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.132 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.132 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-08T16:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.132 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.132 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T16:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-08T15:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.132 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T16:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-08T15:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.132 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-08T15:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.132 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.132 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-08T15:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.132 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.133 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T15:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-08T14:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.133 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T15:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-08T14:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.133 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-08T14:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.133 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.133 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-08T14:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.133 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.133 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T14:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-08T13:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.133 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T14:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-08T13:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.133 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-08T13:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.134 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.134 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-08T13:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.134 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.134 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T13:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-08T12:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.134 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T13:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-08T12:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.134 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-08T12:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.134 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.135 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-08T12:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.135 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.135 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T12:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-08T11:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.135 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T12:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-08T11:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.135 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-08T11:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.135 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.135 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-08T11:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.136 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.136 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T11:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-08T10:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.136 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T11:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-08T10:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.136 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-08T10:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.136 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.136 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-08T10:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.136 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.137 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T10:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-08T09:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.137 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T10:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-08T09:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.137 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-08T09:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.137 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.137 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-08T09:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.137 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.137 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T09:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-08T08:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.138 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T09:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-08T08:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.138 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-08T08:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.138 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.138 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-08T08:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.138 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.138 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T08:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-08T07:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.138 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T08:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-08T07:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.139 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-08T07:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.139 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.139 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-08T07:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.139 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.139 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T07:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-08T06:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.139 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T07:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-08T06:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.140 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-08T06:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.140 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.140 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-08T06:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.140 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.140 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T06:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-08T05:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.140 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T06:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-08T05:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.140 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-08T05:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.140 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.140 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-08T05:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.140 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.141 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T05:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-08T04:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.141 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T05:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-08T04:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.141 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-08T04:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.141 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.141 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-08T04:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.141 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.141 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T04:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-08T03:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.141 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T04:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-08T03:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.141 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-08T03:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.142 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.142 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-08T03:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.142 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.142 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T03:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-08T02:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.142 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T03:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-08T02:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.142 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-08T02:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.142 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.142 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-08T02:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.142 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.142 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T02:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-08T01:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.143 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T02:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-08T01:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.143 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-08T01:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.143 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.143 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-08T01:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.143 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.143 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T01:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-08T00:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.143 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T01:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-08T00:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.143 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-08T00:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.144 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.144 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-08T00:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.144 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.144 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T00:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-07T23:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.144 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-08T00:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-07T23:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.144 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-07T23:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.144 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.144 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-07T23:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.144 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.145 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T23:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-07T22:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.145 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T23:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-07T22:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.145 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-07T22:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.145 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.145 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-07T22:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.145 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.145 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T22:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-07T21:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.145 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T22:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-07T21:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.145 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-07T21:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.145 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.145 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-07T21:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.145 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.145 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T21:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-07T20:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.146 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T21:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-07T20:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.146 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-07T20:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.146 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.146 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-07T20:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.146 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.146 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T20:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-07T19:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.146 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T20:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-07T19:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.146 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-07T19:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.146 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.146 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-07T19:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.146 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.147 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T19:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-07T18:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.147 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T19:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-07T18:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.147 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-07T18:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.147 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.147 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-07T18:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.147 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.147 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T18:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-07T17:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.147 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T18:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-07T17:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.147 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-07T17:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.147 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.148 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-07T17:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.148 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.148 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T17:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-07T16:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.148 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T17:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-07T16:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.148 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-07T16:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.148 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.148 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-07T16:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.148 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.149 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T16:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-07T15:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.149 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T16:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-07T15:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.149 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-07T15:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.149 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.149 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-07T15:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.149 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.149 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T15:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-07T14:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.149 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T15:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-07T14:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.150 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-07T14:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.150 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.150 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-07T14:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.150 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.150 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T14:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-07T13:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.150 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T14:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-07T13:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.150 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-07T13:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.150 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.150 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-07T13:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.151 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.151 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T13:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-07T12:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.151 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T13:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-07T12:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.151 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-07T12:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.151 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.151 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-07T12:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.151 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.151 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T12:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-07T11:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.152 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T12:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-07T11:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.152 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-07T11:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.152 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.152 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-07T11:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.152 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.152 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T11:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-07T10:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.152 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T11:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-07T10:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.152 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-07T10:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.153 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.153 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-07T10:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.153 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.153 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T10:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-07T09:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.153 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T10:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-07T09:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.153 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-07T09:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.153 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.153 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-07T09:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.153 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.153 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T09:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-07T08:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.153 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T09:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-07T08:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.154 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-07T08:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.154 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.154 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-07T08:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.154 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.154 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T08:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-07T07:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.154 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T08:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-07T07:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.154 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-07T07:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.154 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.154 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-07T07:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.154 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.154 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T07:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-07T06:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.154 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T07:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-07T06:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.155 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-07T06:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.155 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.155 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-07T06:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.155 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.155 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T06:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-07T05:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.155 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T06:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-07T05:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.155 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-07T05:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.155 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.155 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-07T05:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.155 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.155 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T05:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-07T04:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.155 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T05:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-07T04:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.155 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-07T04:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.155 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.156 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-07T04:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.156 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.156 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T04:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-07T03:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.156 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T04:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-07T03:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.156 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-07T03:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.156 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.156 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-07T03:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.156 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.156 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T03:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-07T02:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.156 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T03:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-07T02:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.156 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-07T02:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.157 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.157 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-07T02:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.157 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.157 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T02:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-07T01:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.157 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T02:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-07T01:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.157 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-07T01:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.157 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.157 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-07T01:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.157 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.157 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T01:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-07T00:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.157 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T01:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-07T00:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.157 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-07T00:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.157 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.157 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-07T00:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.157 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.158 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T00:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-06T23:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.158 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-07T00:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-06T23:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.158 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-06T23:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.158 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.158 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-06T23:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.158 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.158 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T23:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-06T22:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.158 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T23:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-06T22:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.158 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-06T22:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.158 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.158 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-06T22:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.158 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.159 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T22:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-06T21:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.159 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T22:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-06T21:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.159 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-06T21:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.159 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.159 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-06T21:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.159 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.159 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T21:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-06T20:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.159 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T21:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-06T20:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.159 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-06T20:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.159 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.160 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-06T20:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.160 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.160 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T20:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-06T19:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.160 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T20:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-06T19:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.160 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-06T19:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.160 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.160 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-06T19:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.160 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.161 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T19:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-06T18:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.161 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T19:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-06T18:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.161 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-06T18:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.161 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.161 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-06T18:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.161 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.161 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T18:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-06T17:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.162 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T18:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-06T17:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.162 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-06T17:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.162 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.162 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-06T17:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.162 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.162 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T17:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-06T16:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.162 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T17:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-06T16:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.162 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-06T16:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.162 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.162 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-06T16:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.162 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.162 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T16:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-06T15:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.163 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T16:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-06T15:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.163 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-06T15:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.163 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.163 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-06T15:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.163 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.163 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T15:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-06T14:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.163 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T15:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-06T14:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.163 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-06T14:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.163 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.163 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-06T14:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.163 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.163 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T14:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-06T13:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.163 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T14:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-06T13:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.164 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-06T13:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.164 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.164 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-06T13:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.164 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.164 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T13:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-06T12:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.164 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T13:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-06T12:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.164 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-06T12:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.164 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.164 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-06T12:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.164 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.165 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T12:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-06T11:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.165 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T12:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-06T11:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.165 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-06T11:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.165 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.165 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-06T11:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.165 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.165 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T11:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-06T10:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.165 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T11:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-06T10:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.165 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-06T10:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.165 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.165 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-06T10:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.165 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.166 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T10:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-06T09:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.166 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T10:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-06T09:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.166 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-06T09:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.166 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.166 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-06T09:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.166 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.166 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T09:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-06T08:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.166 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T09:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-06T08:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.166 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-06T08:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.166 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.166 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-06T08:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.166 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.166 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T08:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-06T07:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.166 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T08:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-06T07:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.167 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-06T07:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.167 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.167 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-06T07:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.167 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.167 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T07:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-06T06:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.167 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T07:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-06T06:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.167 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-06T06:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.167 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.167 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-06T06:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.167 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.167 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T06:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-06T05:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.167 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T06:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-06T05:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.167 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-06T05:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.167 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.167 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-06T05:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.167 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.167 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T05:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-06T04:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.168 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T05:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-06T04:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.168 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-06T04:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.168 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.168 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-06T04:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.168 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.168 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T04:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-06T03:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.168 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T04:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-06T03:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.168 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-06T03:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.168 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.168 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-06T03:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.168 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.168 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T03:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-06T02:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.168 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T03:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-06T02:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.168 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-06T02:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.168 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.169 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-06T02:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.169 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.169 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T02:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-06T01:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.169 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T02:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-06T01:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.169 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-06T01:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.169 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.169 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-06T01:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.169 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.169 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T01:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-06T00:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.169 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T01:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-06T00:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.169 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-06T00:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.169 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.169 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-06T00:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.169 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.170 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T00:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-05T23:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.170 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-06T00:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-05T23:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.170 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-05T23:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.170 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.170 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-05T23:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.170 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.170 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-05T23:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-05T22:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.170 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-05T23:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-05T22:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.170 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-05T22:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.170 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.170 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-05T22:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.170 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.170 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-05T22:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-05T21:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.170 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-05T22:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-05T21:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.171 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-05T21:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.171 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.171 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-05T21:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.171 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.171 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-05T21:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-05T20:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.171 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-05T21:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-05T20:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.171 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-05T20:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.171 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.171 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-05T20:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.171 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.171 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-05T20:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-05T19:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.171 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-05T20:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-05T19:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.171 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-05T19:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.171 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.171 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-05T19:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.171 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.171 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-05T19:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-05T18:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.171 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-05T19:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-05T18:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.171 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-05T18:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.171 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.171 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-05T18:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.171 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.173 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-05T18:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-05T17:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.173 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-05T18:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-05T17:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.174 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-05T17:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.174 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.174 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-05T17:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.174 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.174 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-05T17:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-05T16:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.174 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-05T17:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-05T16:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.174 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-05T16:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.174 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.174 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-05T16:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.174 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.175 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-05T16:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-05T15:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.175 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-05T16:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-05T15:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.175 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-05T15:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.175 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.175 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-05T15:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.175 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.175 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-05T15:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-05T14:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.175 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-05T15:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-05T14:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.175 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-05T14:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.175 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.175 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-05T14:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.175 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.175 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-05T14:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-05T13:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.175 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-05T14:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-05T13:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.175 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-05T13:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.177 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.177 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-05T13:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.177 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.177 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-05T13:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-05T12:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.177 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-05T13:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-05T12:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.177 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-05T12:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.177 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.177 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-05T12:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.177 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.177 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-05T12:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-05T11:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.177 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-05T12:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-05T11:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.177 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-05T11:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.177 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.177 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-05T11:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.177 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.177 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-05T11:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-05T10:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.177 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-05T11:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-05T10:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.177 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-05T10:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.177 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.177 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-05T10:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.177 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.178 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-05T10:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-05T09:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.178 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-05T10:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-05T09:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.178 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-05T09:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.178 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.178 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-05T09:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.178 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.178 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-05T09:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-05T08:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.178 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-05T09:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-05T08:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.178 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-05T08:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.178 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.178 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-05T08:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.178 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.178 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-05T08:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-05T07:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.178 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-05T08:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-05T07:45:00Z] PAPER#2 KRW-ETH (회차 후보 1건)
+09:18:50.178 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-05T07:45:00Z] ? 후보 1건, 승인 순서 [KRW-ETH(PAPER#2)]
+09:18:50.178 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#2 → 진입 안 함: probe
+09:18:50.179 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-05T07:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:50.179 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입 안 함: probe
+09:18:50.183 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-05T08:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-05T07:45:00Z] PAPER#11 KRW-ETH (회차 후보 1건)
+09:18:50.183 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-05T08:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-05T07:45:00Z] PAPER#12 KRW-ETH (회차 후보 2건)
+09:18:50.183 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-05T08:05:00Z): RoundKey[timeframe=M15, candleOpenTime=2026-11-05T07:45:00Z] PAPER#13 KRW-ETH (회차 후보 3건)
+09:18:50.184 [Test worker] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 후보 접수 (마감 2026-11-05T08:05:00Z): RoundKey[timeframe=H1, candleOpenTime=2026-11-05T07:00:00Z] LIVE#1 KRW-BTC (회차 후보 1건)
+09:18:50.187 [pool-1-thread-1] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=M15, candleOpenTime=2026-11-05T07:45:00Z] ? 후보 3건, 승인 순서 [KRW-ETH(PAPER#11), KRW-ETH(PAPER#12), KRW-ETH(PAPER#13)]
+09:18:53.197 [pool-1-thread-1] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-ETH PAPER#11 → 진입
+09:18:53.198 [pool-1-thread-1] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 2위 KRW-ETH PAPER#12 → 진입
+09:18:53.198 [pool-1-thread-1] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 3위 KRW-ETH PAPER#13 → 진입
+09:18:53.198 [pool-1-thread-1] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 회차 확정 RoundKey[timeframe=H1, candleOpenTime=2026-11-05T07:00:00Z] ? 후보 1건, 승인 순서 [KRW-BTC(LIVE#1)]
+09:18:53.198 [pool-1-thread-1] INFO com.cryptoautotrader.api.service.EntryPriorityRounds -- [진입 우선순위] 1위 KRW-BTC LIVE#1 → 진입
+[회차 간 지연] H1=2026-11-05T07:00:00Z M15=2026-11-05T07:45:00Z PAPER 붙잡힘 중 LIVE 승인=false PAPER 가 먼저 붙잡힘=true 사건=[PAPER#11 시작, PAPER#11 끝, PAPER#12 시작, PAPER#12 끝, PAPER#13 시작, PAPER#13 끝, LIVE#1 승인] 결과=[PAPER#11, PAPER#12, PAPER#13, LIVE#1]
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
