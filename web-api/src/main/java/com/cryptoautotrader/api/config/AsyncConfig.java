@@ -25,9 +25,22 @@ public class AsyncConfig {
         executor.setThreadNamePrefix("market-data-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(10);
+        // 🔴 (2026-11-12, 총괄 v1.152 F — 조사 후보, 미승인) 포화 시 거절을 발행 쪽으로 던지지 않는다. 시세 이벤트는 리스너를 차례로 부르므로
+        //    @Async 리스너 하나(실측: DYNAMIC)의 TaskRejectedException 이 같은 이벤트의 LIVE 실시간 손절 처리기·PAPER·시세 장부 전달을 끊었다
+        //    (SharedMarketDataExecutorSaturationTest). 크기·대기열은 그대로 두고, 거절된 그 작업만 버리고 건수·경고를 남긴다.
+        executor.setRejectedExecutionHandler((r, e) -> {
+            long n = MARKET_DATA_REJECTED.incrementAndGet();
+            if (n == 1 || n % 100 == 0) {
+                log.warn("marketDataExecutor 포화 — 작업 1건 버림(다른 리스너·발행 쪽은 계속), 누적 {}건 (active={}, queue={})",
+                        n, e.getActiveCount(), e.getQueue().size());
+            }
+        });
         executor.initialize();
         return executor;
     }
+
+    /** marketDataExecutor 가 포화로 버린 작업 누적 수(관측용). */
+    public static final java.util.concurrent.atomic.AtomicLong MARKET_DATA_REJECTED = new java.util.concurrent.atomic.AtomicLong();
 
     // 주문 실행 전용 (Risk 체크 → Upbit API 호출)
     // 재시작 시 진행 중 주문이 강제 종료되지 않도록 graceful shutdown
