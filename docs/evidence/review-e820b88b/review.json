@@ -1,0 +1,3148 @@
+{
+  "submission": "e820b88b83a1547f52b011b4627c497b264c717a",
+  "candidate": "72bbde46cd9bac1441605e9ad89ff00960fde5d9",
+  "java": {
+    "selected_candidate_tests": 14,
+    "review_witness_tests": 4,
+    "success": 18,
+    "skipped": 0,
+    "failed": 0,
+    "environment": "JDK17; actual Spring/H2; mocks for exchange/order/Telegram; no PostgreSQL or bootJar build"
+  },
+  "python": {
+    "aggregate": 18,
+    "mock_creator": 13,
+    "synthetic_chain": 7,
+    "success": 38,
+    "real_http_requests": 0,
+    "not_rerun": [
+      "loopback HTTP creator9",
+      "mutation8"
+    ]
+  },
+  "source_checks": [
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/backtest/BacktestConfig.java",
+      "git_sha256": "46b6602fc652a402384677ebbab867a1eae4d117cb4a45eb4b7d18b39936fd6c",
+      "compiled_copy_sha256": "d4adc6a75eec3ff4abdf0d08d26b24dfe5a1b5f9010c961c7dd99f77e588a606",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/backtest/BacktestEngine.java",
+      "git_sha256": "ce2cdf6c6ae18728ec2c8831453dc6d00c3ea8c4ed305204c2b47f3577613508",
+      "compiled_copy_sha256": "876c5a6bdd785ce172d11fb3dee4d79db4a72b01a7ca3b1d6460c40ea5f87906",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/backtest/BacktestResult.java",
+      "git_sha256": "ad98e705bead075aedb91cb54b212d502ae8cb4de8742c648dcdff45cd5e3ecf",
+      "compiled_copy_sha256": "bd12d4f7f7f209ef183dc4b231426915e3f54c69a694b9fb6a9adf0e4bdab0d6",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/backtest/FillSimulator.java",
+      "git_sha256": "4a80cc26483b1b29ab7111be939408e668ff77c87791121b3b01844902f0f423",
+      "compiled_copy_sha256": "cb76131caf6b74e16a8eabd3cb7fb9387261003298d159ac775de8a761b68b43",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/backtest/WalkForwardTestRunner.java",
+      "git_sha256": "217937c6a7b9c13f0679505a9d703a9a9fe03eb44195e7d42d922fe40d10924a",
+      "compiled_copy_sha256": "28f6463919a53d5cdfe9539ef1fdd787c1e0abaee870609590ba89399bb0b48f",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/metrics/MetricsCalculator.java",
+      "git_sha256": "bc0c26072f7983cf9d04ade1f0462a5665526ebfee0f02acea6a3843a94d2ede",
+      "compiled_copy_sha256": "40ae40cdccef325d0d19ca3c08c7fec37b27b92b600dc6f0fee7895b3c929699",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/metrics/PerformanceReport.java",
+      "git_sha256": "c22e1fcdee0144878b84c2b74fb7ec421adb38e341bd2dd6890806f687d26b20",
+      "compiled_copy_sha256": "b4f34024880ca76116e5fbb045a78f1c46e8611016f67a55c5ff32fade8c2796",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/model/CoinPair.java",
+      "git_sha256": "400aacde4cf304282c6c32080a23c961a0f472f8c7b3893871691fd67c1121a0",
+      "compiled_copy_sha256": "47d2a9b2efbb44f5497656f3b9ad371c8a65e1861bca15ca6c118a771a9c2903",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/model/OrderSide.java",
+      "git_sha256": "fcfb87a89dcf3ff264bc3706e0724dd61ee6169f403d00a551ba65047c94b52e",
+      "compiled_copy_sha256": "f0535f274e6fb30ae1fd03c0fa7e5f1dc8dbf94d75c44b151c7658707b360d73",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/model/TimeFrame.java",
+      "git_sha256": "9588038684ee7b40ddb13673f1f8639a19ff3e3d81b180442c5d62b5c2d76eb6",
+      "compiled_copy_sha256": "575841a141a2861f64be7a766a34d2e8359988ad9afd58ac328b1558d152d7fc",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/model/TradeRecord.java",
+      "git_sha256": "3213f83e8d4079e1a5f8e63807a1b005b98ef58e551f52d4e7e236e2f535a4b8",
+      "compiled_copy_sha256": "76cfef1e501d73cbaf31bd17ee2fbd6c215311bdbf3c11e57e4ffa1115a6930b",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/portfolio/PortfolioManager.java",
+      "git_sha256": "921b8a1d2d2ce0317d1fc1920605128d7d905b0314873702bad82df1173e0b3d",
+      "compiled_copy_sha256": "b24268e8d98e6a862eefa32984def93921059cd7f4ae23f41a7fea1a28c639b7",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/regime/MarketRegime.java",
+      "git_sha256": "f993650dc81ae9d4821e5acbd68289362b83e70f7b9287756eae93e0469b3265",
+      "compiled_copy_sha256": "b11a530329f6d49fb7878c6b20bce64356185e8e302c0c025fd77a9ca7f09d57",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/regime/MarketRegimeDetector.java",
+      "git_sha256": "637b626e99cbb54dc754db2cd0943cb01a96e49754b3d7afa582dd5f718c5844",
+      "compiled_copy_sha256": "f099252de62b45176d4984150c64a9cc3a3b7977781f7ec5b531a8f4f9be9311",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/regime/MarketRegimeFilter.java",
+      "git_sha256": "8b51d2cda856f98c7d343f52c98d9431588552f245621d4e1e44e687d5c52a09",
+      "compiled_copy_sha256": "8f33006feccf7448435f5b257a0105fd156c64b9dae82c5acdfd059024a40eb8",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/risk/ExitRuleChecker.java",
+      "git_sha256": "06d2915efd85d0c1bd132c8aa4ecf0250d4489b17843438329943f68bff81f00",
+      "compiled_copy_sha256": "39bf76c16ffd56076a13ecaa996dc04d0a01921592a0151b3892c3e91cb795d5",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/risk/ExitRuleConfig.java",
+      "git_sha256": "fc5f141eb4cc9485777c1653e6cfb0ed786c6b27cb6380fc57fa88e7f96563dc",
+      "compiled_copy_sha256": "b892fef67182826a88a514b98aebab861841ae208756d68d6c0c9354cd022dd8",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/risk/ExitRuleFormula.java",
+      "git_sha256": "47e4f06512b40a560bf0215e5950df555ff2187f9669b0444ef254fc0796922a",
+      "compiled_copy_sha256": "9474ffc44b8e9ae27bd5995c0760125140fd706b46501102047584bfd3d73e28",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/risk/KillCriteriaConfig.java",
+      "git_sha256": "d119dfdbdecc0601ab8ba49c28115279bd8d2a1d03c6493a4f5978d90b96df5b",
+      "compiled_copy_sha256": "4e5d2524aa4de6b0a1bac8db96032fad4b6f25cc8d5535fbfb81c12da6c8004e",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/risk/RiskCheckResult.java",
+      "git_sha256": "6d5ad0fb5fca65f754f068dc4d3b07d0a6ac03af9d74adb6f06ff9be58bce296",
+      "compiled_copy_sha256": "bcc6f8b013715178a327234a2eb5fa3ccad6b97485a44e87bc7faea5a28edfe2",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/risk/RiskConfig.java",
+      "git_sha256": "aebe5feb9e4a8b3bd52120aa3d05451b47bdd744b8a56e14986e1951e4f0f5ca",
+      "compiled_copy_sha256": "8ef72a55ef5b1e98fa8388b63af6bd45fdd72a48cb279f91e90f8dec954f455f",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/risk/RiskEngine.java",
+      "git_sha256": "d09e5d167a56fb656376be6a218e7229dd4df3b4e477ffc764407d0698a973a9",
+      "compiled_copy_sha256": "03d1a2b5d7e0c83d1ee7f798987373345873e1791ece07f9c8ce8319522d53f3",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/risk/RulesetFingerprint.java",
+      "git_sha256": "8dbaba55dc432afdbd9e7152db77e42f0edf0290b7dd60d651f06c225fe276c9",
+      "compiled_copy_sha256": "6ba628aa0ada77f37ce1f1607b48b2463b34127f7267cb726713dc45725c8850",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/risk/SignalExitGate.java",
+      "git_sha256": "13c82f9a43b1e8e41b10e23b996114d213574d6470971b3d94db6001c7c0eddd",
+      "compiled_copy_sha256": "c4cb59ce79c3847feeabf28761ac88ee7c319102c6c0ff041cae47f82f1fd45f",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/selector/BlackSwanGuard.java",
+      "git_sha256": "6e97f8892d36313041e105906e3c809e2fd2e7d22064157e84823f0ce5476dc2",
+      "compiled_copy_sha256": "ea3c5672a44db160e033755ea1abf2dedf120b82a8ba0a6c007ab5273874229d",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/selector/BtcMarketGuard.java",
+      "git_sha256": "f186ab0c051de5d2a4d725a191cd881f2088fb675fa82545a7ad1d3c76ab273b",
+      "compiled_copy_sha256": "bec0c351b42f6d48aad5cd4fc85a5c6049ea3fdf3b47eddac34351f1e2f915d1",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/selector/CandleDownsampler.java",
+      "git_sha256": "8fe290f7e4f7c181a79a9051cba3bfae00cb5241d144aa746587aa8202bd1a74",
+      "compiled_copy_sha256": "4073551f89ccc86d897b9341f51384ca386f639255e7130c584c7cc4e3debde8",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/selector/CompositePresets.java",
+      "git_sha256": "a7b62379d097a72ae56570ef05bf5c490cd3e4263069f07a7d9b6adf4ca4c97b",
+      "compiled_copy_sha256": "569865485d6be5256ac9bb628bea7002bcc4793a09cb047d9c5b498f4a679660",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/selector/CompositePullbackMtfStrategy.java",
+      "git_sha256": "ce6195b610b87ed3bf015595f0b8798faf159f5b3172d7d5662097f88b848b8a",
+      "compiled_copy_sha256": "14d10eb075ce89be8c49b1d649cf3329f9ba49fccb9d04aacaf4160706039a77",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/selector/CompositeRegimeRouter.java",
+      "git_sha256": "00bc5195f04f2b0bf299b15ea09ca07baa0113bdb52e9b1aa22ce4949f6fc83d",
+      "compiled_copy_sha256": "aef43b6a11933b89b7476046c2b39a726c4342509b6dce1bad278501751c549b",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/selector/CompositeStrategy.java",
+      "git_sha256": "5f8328f2ff1be246ee42477ae2547929b343a010e8472ac45142e5602f3b388a",
+      "compiled_copy_sha256": "77d56f25287c07eace9c3bd4b17330466b3736e122fa5bca3cbe46be697f4719",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/selector/Ema200RegimeGate.java",
+      "git_sha256": "f0cc9f3be32811fd32683798ffcc812a812c581f15f3ab09bc3e6a86aea7b6e5",
+      "compiled_copy_sha256": "413733e37bf6948fc6225caaacce04f2735638a5a027c9618cb8208a788053ef",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/selector/IchimokuFilteredStrategy.java",
+      "git_sha256": "fa58be6eda0db7e77e8341ffbf2eac119c5b13f903abeda9e90ecc7121242f72",
+      "compiled_copy_sha256": "0e63da7f7fc88e5f4259de3f59e7454657b3e74d1650ec8b2b33359e7d6fc4f8",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/selector/MtfConfirmedStrategy.java",
+      "git_sha256": "36f250d23cfe448d92fd5b348f31f5b2ef1fd90ca8e49506adc3e3faf3e8dab3",
+      "compiled_copy_sha256": "cabbbc16bcd6e6e41292161dd2a928a6af23035bb952bf7bcc566b18126e8fd3",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/selector/MultiTimeframeFilter.java",
+      "git_sha256": "30b0ea9a2cf327991b496b71b6da9f35ba2a2fe572fdd14268c988eb96fae911",
+      "compiled_copy_sha256": "53828167fa31b50b026667afa255839d6af785e291d132cfc673c9f8fc78bed0",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/selector/RangeRegimeGate.java",
+      "git_sha256": "52e2eeed1f3dfb9794ab604c8b321c4e9b31f2f98d91ca15dfd1f9797b46a6bb",
+      "compiled_copy_sha256": "3f527dfd86819c392e8f3b5f094745280ffb8443425a646be07db3715ab1216b",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/selector/RegimeAdaptiveStrategy.java",
+      "git_sha256": "a91bec3d18c99a84083ce04bd0e906a5f5067b34c38da7a4a88cbc921d908d47",
+      "compiled_copy_sha256": "5443cf035c42bcbeb02e54121299d76ffad5bf55470d787f1ccd11c88ddf9596",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/selector/RsiVetoStrategy.java",
+      "git_sha256": "64af1b2b69c15eaf1f2fe5928656f542c4f2ff34064366318760af8cd6b67d29",
+      "compiled_copy_sha256": "e30d9adf447d9022f3e4bf7ef560f8e67a7faf05427dbab93a980f0a74bc329e",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/selector/SignalQualityDampenGate.java",
+      "git_sha256": "1af1b6e5642eb8794c611d172277e245cdf8b895333d089b0f4e0fc786032f9b",
+      "compiled_copy_sha256": "d48263bd64337f0d439769c95fc5599e52c70b5fbfb634bd6b460a8aa1a728cd",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/selector/StrategySelector.java",
+      "git_sha256": "53d82efdaa74885f0b1e9ba79cd4c66047dec11484e543716eb37566667dc64e",
+      "compiled_copy_sha256": "ea3d6ccecb817718b64afbaa6fef64ec1c4578615c078e4d00680d19479c87df",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/selector/TimeframePreset.java",
+      "git_sha256": "d2a085020d197429388791e734b0a696e8ecc77b922519ee8d2c98f92aa69279",
+      "compiled_copy_sha256": "87ec2585e53704a57986daf64e9799e681639060161e6c0fd9292fc991c9abe5",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/selector/WatchlistQualityGate.java",
+      "git_sha256": "fba29855480f59e1a4f2e0daaa56c1d406314208fe64a88368f77c93982b0757",
+      "compiled_copy_sha256": "78cdcb46bc4757ca785f23e531464c8133fc2666768bc971c6ee3c173a42c76d",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/selector/WeightOverrideStore.java",
+      "git_sha256": "35440c04d70ff931602c7b6e0facdf452dfc45f22c4a8c5a30ffb995b8de3be4",
+      "compiled_copy_sha256": "b42f0fa502f48362676445c233353a95b396305a1b17c012045b860df28783ea",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "core-engine/src/main/java/com/cryptoautotrader/core/selector/WeightedStrategy.java",
+      "git_sha256": "bfee569a073fd6b814747bf44c5a8af7046bb86c0d3e2e1a0df1bb941b69c917",
+      "compiled_copy_sha256": "fd772f6cb89a6ee8f1f3260f376bc1119692419aba076052bff3268cbb5798fd",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "exchange-adapter/src/main/java/com/cryptoautotrader/exchange/TestHooks.java",
+      "git_sha256": "981c9cdd505e6e1ce5857bddf8bc639073334ef79da1699b88017a065f63777f",
+      "compiled_copy_sha256": "dea198a2506e2ade5971c9ee46956d6f0c717ac955ea49af9cda939b2800c425",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "exchange-adapter/src/main/java/com/cryptoautotrader/exchange/adapter/ExchangeAdapter.java",
+      "git_sha256": "92ecf756f786fd724d3df9e08a2e20b22a61d3802fbf1ce6fca782b5a273dc6a",
+      "compiled_copy_sha256": "d03d1c10993f1c1e08fb7c582040698cdabec9a8e0aa0fd73ddcb516e0364636",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "exchange-adapter/src/main/java/com/cryptoautotrader/exchange/upbit/UpbitApiException.java",
+      "git_sha256": "3967b50635c10118cab8cdfbfd83556a7f608fbdee5f6e7217e749a3b29ee111",
+      "compiled_copy_sha256": "7878119121d5816a157d855c414088a2032f7b4f77024901914ae23d55bdb803",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "exchange-adapter/src/main/java/com/cryptoautotrader/exchange/upbit/UpbitCandleCollector.java",
+      "git_sha256": "e86a535f06605c897a229d859c4f59034a2496d94bc8308376b31436d9cfcc30",
+      "compiled_copy_sha256": "ced004d4a96972ea5471a0e96aecde891fdb9e42cfd22ad8e60cc626313cc42a",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "exchange-adapter/src/main/java/com/cryptoautotrader/exchange/upbit/UpbitOrderClient.java",
+      "git_sha256": "61ccefe98c9454a24a084d7fcae4be3cf17407585f51f5c6e55b183e1309eab1",
+      "compiled_copy_sha256": "6b8b35776858298164a7284c2567b4e8418c0c167dc9c9075b83e3efb1adab6b",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "exchange-adapter/src/main/java/com/cryptoautotrader/exchange/upbit/UpbitRequestLimiter.java",
+      "git_sha256": "e065c2dc1f9c0681ccffc7f9e04e4ec7bd62e0acbf2a82217aed863d64c12cdc",
+      "compiled_copy_sha256": "2a6a832ca7761dc80a99dc75ed427e9ff98c470bacaac16132d0dddc52b2ac75",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "exchange-adapter/src/main/java/com/cryptoautotrader/exchange/upbit/UpbitRestClient.java",
+      "git_sha256": "a30f8f3adfdbd3a6b36cf0b365d647079da5ef2cc7ef74d07b72292ff1f364f2",
+      "compiled_copy_sha256": "a1c9e255f94131fb30c19320333348a074c7ff7a7d83308037aa078e599d87c2",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "exchange-adapter/src/main/java/com/cryptoautotrader/exchange/upbit/UpbitWebSocketClient.java",
+      "git_sha256": "f242a831cb585c336f11d74e59e5c6d8fcfa1d2d2ddfd35ece935135771cfcf7",
+      "compiled_copy_sha256": "9d07d1919f9cf3941d326f7e166f6dcfed541f9bb9f3ee7d7f4ccd89cd8a20b4",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "exchange-adapter/src/main/java/com/cryptoautotrader/exchange/upbit/dto/AccountResponse.java",
+      "git_sha256": "6f5441004df0417894403c3ec12bb05ba09825108fbcaf93012aaef2bcf52ec5",
+      "compiled_copy_sha256": "9c6573fcaf2b545605b8d12b178a0e5a4fe2f7a60b296c4278f0d5c7bb365086",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "exchange-adapter/src/main/java/com/cryptoautotrader/exchange/upbit/dto/OrderResponse.java",
+      "git_sha256": "0b1c053f2bef0de169ad488d07d1b0b32ff803487ede660353a64c96a2f90319",
+      "compiled_copy_sha256": "27d0c915ea06921247bd569659e5d47a02cf0c75e7de2e90af519e67236943cc",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "exchange-adapter/src/main/java/com/cryptoautotrader/exchange/upbit/dto/TickerData.java",
+      "git_sha256": "536e9d40db1c60340a357bc6f3f627a913b5d9d83b96ca2e808b338a335175bd",
+      "compiled_copy_sha256": "12fe5408ab730da2c2a74206f015c714325f8d791338632cf8899811f9d1f7f3",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "exchange-adapter/src/main/java/com/cryptoautotrader/exchange/upbit/dto/TradeData.java",
+      "git_sha256": "ad6f6244d12ddcb9eeb76d8299b27084c632d2079f00dfca2aa574c2e5b1a7aa",
+      "compiled_copy_sha256": "721f0955fe969fd2ac5ed736e74f3845595440b7d374cea31cf0cc198556c27b",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "exchange-adapter/src/main/java/com/cryptoautotrader/exchange/upbit/dto/UpbitCandleResponse.java",
+      "git_sha256": "810c9b16ffd8fc75cbba2493f9d71ea0df75b4bba7cd931485c41f5441528ffa",
+      "compiled_copy_sha256": "3373e1b2797a50d9450564d330726e20aeb0317d2d70da3e3c54c9ac3ab93ae0",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "strategy-lib/src/main/java/com/cryptoautotrader/strategy/Candle.java",
+      "git_sha256": "371a1b2170b715c87f4beb70a0bd62c7ec92c6fb8b695be9c57660f1e7b0da31",
+      "compiled_copy_sha256": "d49b56d56330caaaf9c18a4df9073b02f38e31fcaacfc5022a4d4317778908ef",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "strategy-lib/src/main/java/com/cryptoautotrader/strategy/IndicatorUtils.java",
+      "git_sha256": "b805b9bb9f79c8b1d0bc20e24938fd77c8501827c254bc4c3858f4036e8ec8d4",
+      "compiled_copy_sha256": "9212d361a94129644c2283ce15235606dae2e0ccc9d65d2d5d8e900bd443381f",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "strategy-lib/src/main/java/com/cryptoautotrader/strategy/StatefulStrategy.java",
+      "git_sha256": "650afdd0171b41dd20169634bc7c77c515908bfaf70c64efea168180b281f65d",
+      "compiled_copy_sha256": "11762d105691682aacc8c5446d3153362e7dbc3910e8d37935b3d695b16bc2a0",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "strategy-lib/src/main/java/com/cryptoautotrader/strategy/Strategy.java",
+      "git_sha256": "bc836705c934d77afae152658f982fd55dd50bb6097749b6f620ce267f3d90fc",
+      "compiled_copy_sha256": "e2f5de26fad5f93d188d5cee3390e501054b3ad7066aeddfdf694f1332221188",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "strategy-lib/src/main/java/com/cryptoautotrader/strategy/StrategyConfig.java",
+      "git_sha256": "e3b9489851219a2f8c8e41e9aa93c58c7fe4423c785e257ea81f7cf68e2f98b7",
+      "compiled_copy_sha256": "06c62301d8d120e07ca6877901f0ee93da14f0915a034dae93263a955359159c",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "strategy-lib/src/main/java/com/cryptoautotrader/strategy/StrategyParamSchema.java",
+      "git_sha256": "4f49120adce3b9fcc3d2aad2d06eade84f8c3bea0be50cc177bf496b5cc21e37",
+      "compiled_copy_sha256": "c532c25e7aef88341a0e1b1f38b7c5e0179beabeb2b327ed6c2cd87dc85e9924",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "strategy-lib/src/main/java/com/cryptoautotrader/strategy/StrategyParamUtils.java",
+      "git_sha256": "431b8d2d9d6243c76377609bac6ce4526b1a328f5b5a21a3b3ae7b18fbedc4ae",
+      "compiled_copy_sha256": "9e1d66ff413ebc60d89ca02bdc737e07e16f0a4f1f1bdad250c8d731a8ea8449",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "strategy-lib/src/main/java/com/cryptoautotrader/strategy/StrategyRegistry.java",
+      "git_sha256": "e20128e407990ee2aab1a7e8e73b4adda1abe048ed005295482357f300176048",
+      "compiled_copy_sha256": "38a7508d22a1a260121d814d939fca8b5f73e809b16237ee90ea5ba201e383c8",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "strategy-lib/src/main/java/com/cryptoautotrader/strategy/StrategySignal.java",
+      "git_sha256": "0f8db56f1d9833a8fdc3a085f85c121cb967baa0cbbefaec2504be279978b5da",
+      "compiled_copy_sha256": "11d5416b1bbedf153e7708f931c495a5daee0e4ab60c7af5fa7a420f5291e5c6",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "strategy-lib/src/main/java/com/cryptoautotrader/strategy/atrbreakout/AtrBreakoutConfig.java",
+      "git_sha256": "b327957fbc8cbafc89915290e1f413b91d9cfec4e3586bfcdc1922159101c466",
+      "compiled_copy_sha256": "b4127caf33bc7bc83f1501483e42e16450dab4e7272319122e3184378d3d948d",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "strategy-lib/src/main/java/com/cryptoautotrader/strategy/atrbreakout/AtrBreakoutStrategy.java",
+      "git_sha256": "c3c34f9436ec94ffa6e148f6e54372677226cfe378efcce74fadfea08407adf0",
+      "compiled_copy_sha256": "1eabad0164f5e39e2db62bc127950c691bb6827fd95a8f7445f3658a27977432",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "strategy-lib/src/main/java/com/cryptoautotrader/strategy/bollinger/BollingerConfig.java",
+      "git_sha256": "ac411b5e5ec17dcb1c42b7932fe58d9fbd15ef4621de71b27d9e7fd36b4cad31",
+      "compiled_copy_sha256": "fc9c9533cd50c072a7065baca3748a9a541e51883437cb115459513f165bbb2e",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "strategy-lib/src/main/java/com/cryptoautotrader/strategy/bollinger/BollingerStrategy.java",
+      "git_sha256": "7f9d003ee08c47529d65772b826ee6c012603b23bea32a824735d2aab896d15e",
+      "compiled_copy_sha256": "50b66935d33dbb85bc3e01e7b8ef32365ccb0cb10b610b4aefa3114084e7d445",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "strategy-lib/src/main/java/com/cryptoautotrader/strategy/dailysma/DailySmaTrendStrategy.java",
+      "git_sha256": "0092a2b50a057b6c6cee7aeae02075570f1591a59f9d18e882d7cf2327909eee",
+      "compiled_copy_sha256": "b170178bbe34bfa03352c00d287758b472a4bbb4ba20b6ee4ed37b37ffb48f3c",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "strategy-lib/src/main/java/com/cryptoautotrader/strategy/ema/EmaCrossConfig.java",
+      "git_sha256": "147570c83cb7284481ead023e5dba07692cf12796b13de0ec3f9bcac91d5e75e",
+      "compiled_copy_sha256": "1c92b0ca112191bccd1051c8c63922676d692603d65e7bb7f87751ef20f39d91",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "strategy-lib/src/main/java/com/cryptoautotrader/strategy/ema/EmaCrossStrategy.java",
+      "git_sha256": "df93af6e6dccceeddb9e38d5690d2c31cbaba805939f75ab2793d226ed6f3a2b",
+      "compiled_copy_sha256": "da4cb6fd10649de209bda447a839719f7966db82d4313f3035e7f312bc8c25e7",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "strategy-lib/src/main/java/com/cryptoautotrader/strategy/fvg/FairValueGapConfig.java",
+      "git_sha256": "bedea8d9a5556d7035297ffd155710dba880b3e4fb5020a927090fef79fa26bf",
+      "compiled_copy_sha256": "6eb3dc5c67df34e997445678758ddcbae23b4fab237e2b0447681b69993fe146",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "strategy-lib/src/main/java/com/cryptoautotrader/strategy/fvg/FairValueGapStrategy.java",
+      "git_sha256": "fd5142852c498abe92670af3a740c8a2d4219f1a413fadc36390a1a6ff183f90",
+      "compiled_copy_sha256": "7afc3bd67af1dbd4529a10ec34153933092f3a5f2449e9a8c72d4ae75a77801e",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "strategy-lib/src/main/java/com/cryptoautotrader/strategy/grid/GridConfig.java",
+      "git_sha256": "083206448ed43e9c79a281dc9f81be4570a4c9f380cb6aa70727804808fc0b5c",
+      "compiled_copy_sha256": "ee66c2b6dd079e7aa52d905b3ae3a7c234436da60e6fc2268223ad26a40420b2",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "strategy-lib/src/main/java/com/cryptoautotrader/strategy/grid/GridStrategy.java",
+      "git_sha256": "b6c70b9c0b78bf1d9bdd50d05e4f4099f67147c3cf687f61a9949c24149370e4",
+      "compiled_copy_sha256": "ca5380e985e088241039cf5735688b6644e78bfa8eeb7e408c01cbd2438b0042",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "strategy-lib/src/main/java/com/cryptoautotrader/strategy/heikinashi/HeikinAshiStochConfig.java",
+      "git_sha256": "5b83c645d9ac7a250a046048a8f37452514a278978bfd91ab4c69ceb4083304a",
+      "compiled_copy_sha256": "17b217e2027abf4a3761c48725c1dacc2a14b6a00f706ca607e73392a7f8c6aa",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "strategy-lib/src/main/java/com/cryptoautotrader/strategy/heikinashi/HeikinAshiStochStrategy.java",
+      "git_sha256": "e2e4ccf6962c05d4586cc528abf9201cb29ed12072c459d28b535e04237e86f8",
+      "compiled_copy_sha256": "e3715e62293abac4ce185b9282dcb6d913da0a53b9cb3f88d28a9acb465c55f7",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "strategy-lib/src/main/java/com/cryptoautotrader/strategy/macd/MacdConfig.java",
+      "git_sha256": "5029aee5f4bb33ff0338ca5277be81eecb88dc65508ea5396edb8feb5bcb81d2",
+      "compiled_copy_sha256": "2c8aaf461fbd501ab56576f007ff110bb4a2e7eaea91ef257df4a96b4d13d584",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "strategy-lib/src/main/java/com/cryptoautotrader/strategy/macd/MacdStrategy.java",
+      "git_sha256": "b088c7e744d150bc52c3267298b375ccccf205481b5e41da1e519c4435ecca46",
+      "compiled_copy_sha256": "df4a85d537a72b288bab7735fba1b729ad353a182689088d295b9419f10dd977",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "strategy-lib/src/main/java/com/cryptoautotrader/strategy/macdstochbb/MacdStochBbConfig.java",
+      "git_sha256": "9e424356e28a9dd4bd20baf8529b97246a8cb964a8fe52c1481d6eca43b3adf6",
+      "compiled_copy_sha256": "08733727d44b5acc998cd855120fbd242ae46221ebe18d319109e8ae165c2396",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "strategy-lib/src/main/java/com/cryptoautotrader/strategy/macdstochbb/MacdStochBbStrategy.java",
+      "git_sha256": "cc13891001f2bf6e41a19bc949a6bd16eda4c7946c6ef5de7db99847e62b2818",
+      "compiled_copy_sha256": "0c5c77ef6a8686d31f2a48f060dca999ed8e01aa5e14bcfb34e98743dcd6d749",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "strategy-lib/src/main/java/com/cryptoautotrader/strategy/orderbook/OrderbookImbalanceConfig.java",
+      "git_sha256": "ed8636056879a3508d342eae9c2366176ec1564e22b42381b07cf5e2a26aa5c1",
+      "compiled_copy_sha256": "182a6f37376bc0eb528a3e53b8e8c319518783585dbfbb17a91d8124b1d976a8",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "strategy-lib/src/main/java/com/cryptoautotrader/strategy/orderbook/OrderbookImbalanceStrategy.java",
+      "git_sha256": "652c8c86f7de58812cbf7323854fc2ca2681e32ccb19be3d525e4e265884a53e",
+      "compiled_copy_sha256": "586c3652044aa2f766310aae3d84f294d94c1af465a689c3d693fe519545bb9d",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "strategy-lib/src/main/java/com/cryptoautotrader/strategy/rsi/RsiConfig.java",
+      "git_sha256": "176bcdec364b7ae59799453125726703316fd307b6977d3141b76afb80ed6c01",
+      "compiled_copy_sha256": "b6ec315e0e5851836bbde6c7651588cdd7abd0b6f11c5f7f0cd7ac39a8c33dde",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "strategy-lib/src/main/java/com/cryptoautotrader/strategy/rsi/RsiStrategy.java",
+      "git_sha256": "967547cb5d5863d14bf628adf9be8a3dfa8b55d0aa80c75b8f173a8e92c7acf3",
+      "compiled_copy_sha256": "497ed424e43a9c6d68584fc0c607b01ccf2aa8e4872a806bea9866af60bd8d25",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "strategy-lib/src/main/java/com/cryptoautotrader/strategy/stochasticrsi/StochasticRsiConfig.java",
+      "git_sha256": "47f83668dc6129bc679f10cb224e4471a3df90330012cdd17449708daa10070e",
+      "compiled_copy_sha256": "7410c096814a4677a8ed9fde1f08084e66d6d6573964bd1d6ffbc8eda01afb9d",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "strategy-lib/src/main/java/com/cryptoautotrader/strategy/stochasticrsi/StochasticRsiStrategy.java",
+      "git_sha256": "ef137ac60c02aed917f338132ba29de11685769c3e312103e4e06a55869a6704",
+      "compiled_copy_sha256": "1410b491ff8ed3f94ef52079d5e0f060f48b3a2621f6daec18053c5381f9ee68",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "strategy-lib/src/main/java/com/cryptoautotrader/strategy/supertrend/SupertrendConfig.java",
+      "git_sha256": "15a00e3622feffba973cfcb6706755ac03a130b3a8f1fdb0c3ead0274f8e4a46",
+      "compiled_copy_sha256": "1fa71e39efacada52776246983535db259955e5ec7bccce443a02370e776e731",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "strategy-lib/src/main/java/com/cryptoautotrader/strategy/supertrend/SupertrendStrategy.java",
+      "git_sha256": "36f519ee3f6d33d9949955ff763d4ffc170ea0ec8aa704cd136b4545df31b20d",
+      "compiled_copy_sha256": "a8d0f633904512fd8b30b43040346c62baaaef53f9ac18957d130f6ff963b501",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "strategy-lib/src/main/java/com/cryptoautotrader/strategy/testtraded/TestTimedStrategy.java",
+      "git_sha256": "d454e3488735abcf9fe3b536e0d57359b6b95fde60dd477fef4e627f46bfd853",
+      "compiled_copy_sha256": "b4aafbfbc76039ab725ae6578e26c113c9ca877ad0dbb69f7355c94f5fb391ab",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "strategy-lib/src/main/java/com/cryptoautotrader/strategy/volumedelta/VolumeDeltaConfig.java",
+      "git_sha256": "56c8a952191e930adcbc954b52cc6b1418e96c0436597407d90ebcb385c4b534",
+      "compiled_copy_sha256": "6f57b49ab756fa9e87d434420867cf2e786d8b57e6f5f1e20f1c0b17d71e2ba0",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "strategy-lib/src/main/java/com/cryptoautotrader/strategy/volumedelta/VolumeDeltaStrategy.java",
+      "git_sha256": "ae6662c85a3dffbb1ba793a0ab986731c4a468c574c57a236a8ab83e0ecbc5da",
+      "compiled_copy_sha256": "be2845fa9d51a22bf3e6223f85479838c9aa9765937399fe26e4c5845189c014",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "strategy-lib/src/main/java/com/cryptoautotrader/strategy/vwap/VwapConfig.java",
+      "git_sha256": "1e280cc110886cdb704222786d368b3d379781eb00cb8d257bedb9d6ac450de1",
+      "compiled_copy_sha256": "0c782779b71749bf78a8b055917812a8bdc5971acce60398b9a0743cc677bcf0",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "strategy-lib/src/main/java/com/cryptoautotrader/strategy/vwap/VwapStrategy.java",
+      "git_sha256": "35e05b625ac626860e929ecfffc3735f6587984881a22717680948b4eee9dff1",
+      "compiled_copy_sha256": "525479876d4f8c9a1db2e5fb0f57412acf37cccc5ba827ba0337a03db03eb64c",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/CryptoAutoTraderApplication.java",
+      "git_sha256": "43abcd3fc5cb783f6c62f2a9937737d09ac4c8de6921637f5d82a22d0e8ccb89",
+      "compiled_copy_sha256": "66bd409806b78c2e04e539807d86bd61ff970fcf93c0053449f70c5c7e3625bf",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/config/ApiTokenAuthFilter.java",
+      "git_sha256": "bedc54192ceb0b8eb1613d67c9db5844e6c7a143edd9f72c8b2e616d1a8dd855",
+      "compiled_copy_sha256": "494826ec8f81b6c21bd921cabde7fa096ad04054f76c58c3573d049c04ec7b15",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/config/AsyncConfig.java",
+      "git_sha256": "3ddfcb992b24e129f60595d7eb5d0265ed7ed391e0678ad8f3c95807d92197ec",
+      "compiled_copy_sha256": "791fccb138a7e3efcfb51e98c22e5dead72915d3391b5be19d527e9794bfb169",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/config/CompositePresetRegistrar.java",
+      "git_sha256": "82a3d8ebd168c35f97e7e334ea3a99af51b55f9278acee02536a8ec8d22715fb",
+      "compiled_copy_sha256": "fd245ed9470b5e465793eec6986f9541a60caf5ae548b120846d0e86da639d84",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/config/EngineConfig.java",
+      "git_sha256": "1ce281677467f857fe3ffdac19f6317405bff6ab1c351d891fea86b2344ed403",
+      "compiled_copy_sha256": "9aa28a46b2b6d57aa2b349d2a3ceee51ae56993cb0a71f00eda0e99734a60f2a",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/config/RedisConfig.java",
+      "git_sha256": "8b03130819ce9b7c091ef66336811d4846cc739baad924bb549421077074e5aa",
+      "compiled_copy_sha256": "d79f33342e68a97638c09e84d35fb7b92c3c15061982dbf67b0483c97e72cf84",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/config/SchedulerConfig.java",
+      "git_sha256": "79a5288f9b4057f08ec62fb02ea4c814c08545e7115fb5a0bbc8ffef38845b53",
+      "compiled_copy_sha256": "d620192a09c610c1a9787d899aa55d27465a62f39cf19d0dbafd780cb446641c",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/config/SecurityConfig.java",
+      "git_sha256": "cf760306d59a354af65f6a9989f0c283d74a6a4cb265e11a30ef38d70d84e187",
+      "compiled_copy_sha256": "c74c2818f8eb9e17ad8743fe26d38804524e43fe827e1eb4ee6df30a4a2044a8",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/config/SingleInstanceGuard.java",
+      "git_sha256": "1b22d4249fbd3246dfa0f3b2879b7e14df9bd88171fb95f26789cb96eb8a5b4a",
+      "compiled_copy_sha256": "4cbec2ff917c822777514ce1a838766154083cd62233621e84ae8364a370eda2",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/config/SwaggerConfig.java",
+      "git_sha256": "6f5b9029002da0bf81f888ccb4789c4c642c501a5f5c60628559d1a2d535ab7f",
+      "compiled_copy_sha256": "bd1d56bdaa85e7fd3f47e3f79f53f6a09ac472c22657b4b6d6b5403e3b7de415",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/config/WebConfig.java",
+      "git_sha256": "e13b88abe0164403da640346a7fabd780d57e2f82382d8baf437a1424479d004",
+      "compiled_copy_sha256": "2ae925d3b42d10e5820c6352b3ffdae37aaeae55d3419de757129c1ffc2ccf3f",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/controller/AccountController.java",
+      "git_sha256": "ddb6106fe8ae827b998212468b4fca063ea604f9d25de384e8be039c47c71c66",
+      "compiled_copy_sha256": "09d876772015eddf70b5bc3cb5b40e0ab5cd39a890868319f1f2ab2790e716ea",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/controller/BacktestController.java",
+      "git_sha256": "32a6c5ff0fdc8bfdd0b336e8ddddd3f0cb593c327e4446e57cc0fec460d2aafc",
+      "compiled_copy_sha256": "b5bb730da9b2ed3374d020b0fac5006b7fef950011ddecad5f0f979d9d39b0b2",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/controller/BriefingController.java",
+      "git_sha256": "33047fdefc9e670f5de89eb016ba65a09ec7b096d847e7c77b620bcfdc6a0a42",
+      "compiled_copy_sha256": "aaedf1ae16280b2ad0a8a5f79b03e46c6ec070ecacdd613e55af2b38183ed210",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/controller/CsvExportController.java",
+      "git_sha256": "bb12077b4d4566847422f7efae923cbbf474ea72e417b6ab221a7208c5007a8d",
+      "compiled_copy_sha256": "37c344edbfd11cebdb6975f182ac97cc5a41cb37a282b0afd10b54e2aebe0c1c",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/controller/DataController.java",
+      "git_sha256": "9c5318a712897ac053a623a58e5aaaa0278460caf461743f84711cade4bc6333",
+      "compiled_copy_sha256": "71bbc5beea2187f6347a8be95f5886ea239e9702e2b256430136d8bba157af1a",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/controller/DiscordController.java",
+      "git_sha256": "278fc18806ccd6a4ff743d84b96b52a89161543a9e845a115f3a93d55f06d9ae",
+      "compiled_copy_sha256": "7ca4b2a0b8aabdbbe156be9d1449e1a3ebb296305ccb2493d6d1d7998308ffb9",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/controller/DynamicSessionController.java",
+      "git_sha256": "785561837f6ca8d3c74aeb69bcb481b998399a237ee4f356ceaf7d32f1c02aa4",
+      "compiled_copy_sha256": "25182b24e90b12430bcca5f8238c65b27e161ca3f1b02464e74db225a9431330",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/controller/GlobalExceptionHandler.java",
+      "git_sha256": "54c1b0eff652609e0c2a8b72e177b62b5175de38aca5a9d4f365e9169bcdb6e3",
+      "compiled_copy_sha256": "e630d3bb9eae80153e99a50b7c9ae832a885b453083330ccbc620ea102d857cd",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/controller/HealthCheckController.java",
+      "git_sha256": "af24b7c0acee9780c6644f598e4ce6e242317e11768b7f100478c99a96bb8bf5",
+      "compiled_copy_sha256": "8088acfff9958a483e846588339acbd74b8f42d2aef52dddb99cd2f8066e756d",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/controller/LlmConfigController.java",
+      "git_sha256": "3f582a67934be63f2ed998af558ed71b081cd18991950702623af2261afb41e3",
+      "compiled_copy_sha256": "19982ef26eeddf0b76aff978ca6a7d02673ce8147e0341d65c315ce166881289",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/controller/LogController.java",
+      "git_sha256": "d496f100ddd81a313aefd9786788f2da5c7d1c651c59e923e0e97cad81d3ca35",
+      "compiled_copy_sha256": "5be73b306a741c6637541addf1a3841bbe6fbf50d2c4a93147b0f2bb860c4855",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/controller/NewsSourceController.java",
+      "git_sha256": "396097c7786bd9edb4f9a40cbb66dcd2b1e475c7a374a72e356a619df8583d08",
+      "compiled_copy_sha256": "d630645163c1164818a93df3d3066e0b3b58c6e2b0d6665ebae42b21b9207ffd",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/controller/NightlySchedulerController.java",
+      "git_sha256": "0f29b72fd765b95b7ad892e67998778f9a7ddd9d3ac8e042e20e20e07c636953",
+      "compiled_copy_sha256": "c945a3c50f2837bde09be2677ce4ecf1f8039ee04af68db4b5b8b598e4a53b5b",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/controller/PaperTradingController.java",
+      "git_sha256": "8f84bf20f9d820ed696d98c7a25e720b009884835bd14b0b8f2d07ab96d51717",
+      "compiled_copy_sha256": "4a50e59fcc582f39759245c80ee9522605dafc6cb7a856b369727808ed04fee8",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/controller/ReportController.java",
+      "git_sha256": "ce0de814c6cc8f66d782794453b4356a9a554f120e66faf644f255362d14d7ef",
+      "compiled_copy_sha256": "23bc7c472e9a42ffa0009bfc328eda05e2db524e7979e5632bcf377df0b94a10",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/controller/SettingsController.java",
+      "git_sha256": "0d33177a4572f1be63527e48c5df7e7240b0217635ece55d8aab9778954e9c6c",
+      "compiled_copy_sha256": "ee16b5e58db444009fc9c83f7f197da840f1c1cc9b2876ddb7c1a683e3c2d43e",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/controller/StrategyController.java",
+      "git_sha256": "53c5b99cbece97d9fd30b051c224b96e07f27db0be5c5bf3486d71822acb1ccd",
+      "compiled_copy_sha256": "45e88a4f9e15200aa3696d566597cd6e4c36f502200d60e6d4baecc1222b5c09",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/controller/SystemController.java",
+      "git_sha256": "b40bd7ea8ed75b7b7af411836854a13acba3508e4fe824ea86432e3f6ddadd84",
+      "compiled_copy_sha256": "106c6e717479983a4f95df27245584e28e9502e5ae1e522b455bf555caa3b992",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/controller/TradingController.java",
+      "git_sha256": "45a724f394c422ee5a7dddc214584d0c38af64452d4a7c92f509ecf69fa12736",
+      "compiled_copy_sha256": "e904ee0613dd6dcf648521b968ff431daf224462a67c317c50009c8cfe7a5a84",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/discord/DiscordBotService.java",
+      "git_sha256": "5c0bd7a1a230fcfd02f3638af9775c08a918b56b5b1e47bbbd9f6530e23ae5b9",
+      "compiled_copy_sha256": "b77bcd2c1e10f6764bd3d01a4b7174e81e8b5fe00a4c1b8996b4625fc21b0fa8",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/discord/DiscordCommandHandler.java",
+      "git_sha256": "2d9213b3c6545e694781ff44fb56921c72d539563dba0edba6cbb6ce5a997bb1",
+      "compiled_copy_sha256": "3a03f68494c45e90bb4f8138a421c5f12a052758f321be74973be71c234c94a8",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/discord/DiscordWebhookClient.java",
+      "git_sha256": "457115e80d8eae0e9a1cb8b760a95856ac67eb66a84c5e92a2512221ee98e04b",
+      "compiled_copy_sha256": "9d5e86da5efe037bfd858d91363f579f60b82c5e20e3633b1198f3c51c0f9135",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/discord/MorningBriefingComposer.java",
+      "git_sha256": "05db0a1921c0a8f3451400ecd761f36dfde43ebeb5711888eb8094fd8d6d55cb",
+      "compiled_copy_sha256": "edadc4500aba388f26d696e4afd9cf96076ff2b614bf793f0500379a023286e0",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/discord/MorningBriefingScheduler.java",
+      "git_sha256": "19d331cf0d723ea732ac0d046e903410090838fe0374f58709c0111675404472",
+      "compiled_copy_sha256": "6b764f10fd53aca8a656bdc3997222ab6b7fa3e653411eaa717aacfd42e26c22",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/dto/ApiResponse.java",
+      "git_sha256": "51b59330a1e98857c1a73eab21314b3a443daf6867dc95ed76e7b19336aaad39",
+      "compiled_copy_sha256": "cdbf1be8381418a22ce6724406986ada06aff79c20455ec660bd5d993994e729",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/dto/BacktestRequest.java",
+      "git_sha256": "0103110ce962351c4a2817fc955f1e80216938d87de363de764a8bdf93fa5a66",
+      "compiled_copy_sha256": "0cea248f2b4b7173ce65c8c5799e07e6aeac7524baa711944dc2cf2d7fbb482b",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/dto/BatchBacktestRequest.java",
+      "git_sha256": "42bb700223b8cd55582332f62aa3b4e6445efefa71b7133d9369d50ffc9444e3",
+      "compiled_copy_sha256": "e12418393b8096a272b41ba0b2df6b617c6947780c47cff9d39cb63c23ac61df",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/dto/BulkBacktestRequest.java",
+      "git_sha256": "64b8d8ca772a3437a31abfe2648a7373669db3309e4344895e612b6748a7f4ca",
+      "compiled_copy_sha256": "0a62e3b47319847bcbf41c8a2936ff08cf1a86c950ea0a930de5688224cf6f16",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/dto/BulkDeleteRequest.java",
+      "git_sha256": "ea3f57b0657fe6fb86a53b8cb56a9392ccf9f0ef8b38decb84cd5b54c46a47f4",
+      "compiled_copy_sha256": "ab1da4625a199cb23b254d1eb37ebac376063bcafadf84afcbc68ca9b95762b2",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/dto/CoinCollectResult.java",
+      "git_sha256": "fb4967478256530a3cc12f05d787fb84ce48549a63edeaa2e08aa708c917225b",
+      "compiled_copy_sha256": "08430a0fd08f60486bc8ebd873458bf4f509e1be312c3178ffaad78f5b323558",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/dto/DataBatchCollectRequest.java",
+      "git_sha256": "9d959c60611a92ccc37027892e83592b313b2cdd5dd3f3576eefee8d262b15f7",
+      "compiled_copy_sha256": "1861797e871eda3cf910c60ac22e51f4842395305476fb245d6261e1300632e8",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/dto/DataCollectRequest.java",
+      "git_sha256": "743a0947f08e858bd32ee6981ea694a57edd9e0a0d7771570c5157e318b5c9fd",
+      "compiled_copy_sha256": "7b89dff7c18da36dece307ba3ba52d3e60e8b238d9cc9c6bfe3a4355cf5b2f57",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/dto/DynamicSessionRequest.java",
+      "git_sha256": "49ef6f869207de4be5638a8f0c1949c6778ed80790bd18d9d840ed0db80767d5",
+      "compiled_copy_sha256": "fd354efb6530001097bb0c45311ee91af1663242fce0e7412231afbf434862db",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/dto/ExchangeHealthResponse.java",
+      "git_sha256": "6cb5cb465981621bf77f4f271afec7da4512f5a133d3d2e25e4bc185e752cfaf",
+      "compiled_copy_sha256": "b5921625420e7908b142cd62451392203d27d09787abbb7915ace02a53026a49",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/dto/LiveTradingStartRequest.java",
+      "git_sha256": "07529a686b71217805de8dcdf5b73bd406947673a8535b1ce7a150331103b3a4",
+      "compiled_copy_sha256": "1c6e3ff9ff99d2a98c0f2eb831f681399368e36d759377eee0a8a164f8ad36bf",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/dto/MacdGridSearchRequest.java",
+      "git_sha256": "9947018328c6717011af2f1f7ca2609844e20812865d0a03b8f3e3496fff1d48",
+      "compiled_copy_sha256": "16ea5bd41bd45c597ff560c5c222488891256f2fc26143f4ac17d7b6b8bfab23",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/dto/MultiStrategyBacktestRequest.java",
+      "git_sha256": "b00f9c8260747591657754c2bbf3b05c42c277e83fd286d1d7c82269d41f14d4",
+      "compiled_copy_sha256": "1a1b4dde9c3077177be821b29f78daadce5ba89e029c413f095f8f9c07309223",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/dto/MultiStrategyLiveTradingRequest.java",
+      "git_sha256": "25812c406130d862348121b4ebb50700ce2784ab42d343ed2492ec0608350750",
+      "compiled_copy_sha256": "87f56c6681d0b1b2e98a94acfedc60ae60336fce3fd302270b43eca6290fca4e",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/dto/MultiStrategyPaperRequest.java",
+      "git_sha256": "1b8c5e68096ef2fda3bd96b5df45abc7219647cd15195657d900d6c07df5f9b6",
+      "compiled_copy_sha256": "dbeea174900a1f79f16358521009186d8cb98af960e8a1a2b4d9808e2b8c1410",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/dto/MultiTimeframeBatchRequest.java",
+      "git_sha256": "8397a0d65b81be350e47096c655849613d7d1d5192f9ec81c34dc935ef27082c",
+      "compiled_copy_sha256": "4f31b9f96417d584a9e977ee058794ecca0f963d827a731096bb10564ca80549",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/dto/NightlySchedulerConfigDto.java",
+      "git_sha256": "9af738bede3f7f2085bb4ea2610170f0934ea0907bbd6a302b068b7c1b9dbce0",
+      "compiled_copy_sha256": "45486ad1570e79a4328320dc6e061658ab172eefc93ddf1913f1f97cd38d6fb3",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/dto/OrderRequest.java",
+      "git_sha256": "11679c53757eac6fa5feddd764563463a6cb05fe1e1b6b051839bef5247cd602",
+      "compiled_copy_sha256": "c5a4a3a7d87a922987e12665ae9839ce9c8faddcb7015e1418470709758105bd",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/dto/PaperTradingStartRequest.java",
+      "git_sha256": "b502f3690109f30a7526143ab38fc68c3a45ac8b8bfc4d61f65014daede174a1",
+      "compiled_copy_sha256": "d7d108604550f1b9c1e7839d7f63672afe823da313f7cb9fa42acd6f2908d0e5",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/dto/PerformanceSummaryResponse.java",
+      "git_sha256": "64974f410426733c8a0461dc4649660a68cccaaa364a227ac6ae3c8c566cb096",
+      "compiled_copy_sha256": "13b58ee3de61e3672930d34628dc06dc9208c42bfe54b83de46bb19222ec0d4b",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/dto/StrategyConfigCreateRequest.java",
+      "git_sha256": "2482ecf83ad9e1e6bcda67d348d8ea9eb6aef6b238e44cfae71e28e05a1575d8",
+      "compiled_copy_sha256": "be8ef334a28eec60d8075d517fec8025e8f7ef6ec3644d38325341a4b5c3d018",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/dto/StrategyConfigUpdateRequest.java",
+      "git_sha256": "c7dbf1076452969646580308bbe07e61a6aef37baa5773e87dd94f0b9999679c",
+      "compiled_copy_sha256": "003e3b4a592eeb837bf6d23f34e4edbc5cb6302ba766ec389a10d0e0c8ca12e7",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/dto/TradingStatusResponse.java",
+      "git_sha256": "747543abaf2d44ee048588b940c093355cee516c102d8636569ed7282714bb47",
+      "compiled_copy_sha256": "e1dfe28593bf6ee6023fa9e10c3289b0b99f9c710085c1be61183c0abc3f2808",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/dto/WalkForwardBatchRequest.java",
+      "git_sha256": "82c6f93cc0c41b96ceb57bff7240b7511a917b49e22270bfef5c637763a7e5e5",
+      "compiled_copy_sha256": "f45bca0415b614ebdfe8b29bd4d21a884af735046f79e020f503094dfd260845",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/dto/WalkForwardRequest.java",
+      "git_sha256": "c7fe8dcfc9716b59d486f0ef5a14f064cb38349b6864cd5ec6a61fd870b817fd",
+      "compiled_copy_sha256": "592cccd4ff442b4dda29d71d60cd793fa6f003c32aa9e993948387b0a1d49869",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/BacktestJobEntity.java",
+      "git_sha256": "3cf839578feba73251457b4499b31122b6debd4700d812e8c6333d3dbbd94d49",
+      "compiled_copy_sha256": "352449287808ce50120ff8814f752622e2128f73a462287eb2e26b9c65b9ecae",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/BacktestMetricsEntity.java",
+      "git_sha256": "e80cf71bd2290fbd73f47c28346fdc1eefe753d446d4ac977c802014efef4814",
+      "compiled_copy_sha256": "725934d2d215b5133823b0a955f049385798c6177165cafd167afb98c2c0773e",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/BacktestRunEntity.java",
+      "git_sha256": "c0b96ecd751da475d7c281d140a325aff2f085d98a4784253003ccfbf94ffc5a",
+      "compiled_copy_sha256": "2221ac3377edd502336d003878dea5807d6f52facb8d024651aa3af15107d569",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/BacktestTradeEntity.java",
+      "git_sha256": "1fbf4c7e9088919eba0fca6b359acf118a9c5a7ba267879d600713267c269f72",
+      "compiled_copy_sha256": "08825de4f0d2e8e2d3e7916df0ac072a630895a1d3b3eddf163e13478e0540d6",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/CandleDataEntity.java",
+      "git_sha256": "1f9352ebb88b0bf5d85a2caa3de8063402c0ebe60208e58f63b7f276e03b622d",
+      "compiled_copy_sha256": "132652fe113b3582a4af019d6fb73889a1ad86948253cb44b07e4f212be60fda",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/CandleDataId.java",
+      "git_sha256": "39595c5252c81957eb6f1223449f2eb502c6b203d0fb66765a293ca051d00364",
+      "compiled_copy_sha256": "775353f681e4ed19762b059317f2f87e2d89ddaa0ae27bef12e2baa0cfd4827f",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/DailyHealthSnapshotEntity.java",
+      "git_sha256": "9726ae6582269744d21db93319663ec15115b653fbf9f52754601d563c204fb2",
+      "compiled_copy_sha256": "0caf2add10d2f6c3ae68508612b150bdc19d6aec35403b53f4cae9971d28d0ef",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/DiscordChannelConfigEntity.java",
+      "git_sha256": "97bf5224d3fb0e04a955fc5e9823a34d264d1b99b550ca3070498639ceef91a5",
+      "compiled_copy_sha256": "58cc39ac0ba83ea5c1594741a57ebd5bfc8f49bb6893de3948f1765b0ce725aa",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/DiscordSendLogEntity.java",
+      "git_sha256": "88a6eb71e0317e5f8648ef6aa21ca8bad90815af48ea7413aa4aea2afd9ad841",
+      "compiled_copy_sha256": "a658d577ce2e00e680497518e47901cdf28f8f880057a01369dba684ad421fee",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/DynamicSellSettlementEntity.java",
+      "git_sha256": "a1b9d2e471a9b8c549722fb2869a52b473dfd7408c79ea0894c720fb3aeb07b1",
+      "compiled_copy_sha256": "9d8e5d1de33b7889438749ca4a15174e80b5f316b4806c8e3e0a302ba25aa50e",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/DynamicSessionEntity.java",
+      "git_sha256": "eac89e022db4f846ae25e925d0c0186d36c0c9036311a96fdd1a08ebca18a337",
+      "compiled_copy_sha256": "d357cf8cb3720428320fcbabf0be3883bb87a7b95aff75bc50e7844e03bb8f28",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/ExecutionDriftLogEntity.java",
+      "git_sha256": "2939771d9a7f6219b87bdbef0395d660b034bec4247723104ea88761e223c3f8",
+      "compiled_copy_sha256": "3eb088ed7c7ec80ce1d6d2fd2dc4cbde2bce64fa3ea944bca1f7dc913185b6a9",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/ExitReason.java",
+      "git_sha256": "213ca3bd5c1e4f1fbbef0c63f8c72e4c128bd8001e2905207519fb5b901438b4",
+      "compiled_copy_sha256": "09086d98863b1da5285ba11d369a598916c6874529758f5fe9ae45571690f725",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/KillCriteriaJudgmentEntity.java",
+      "git_sha256": "ed4418841db27566c2d9da905ced80d96b7ba8befc839c8e9fdf5255ec64bf64",
+      "compiled_copy_sha256": "86bad2ab578dd41f3cba5712f20070232311de2955184b921444d34a90144163",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/LiveTradingSessionEntity.java",
+      "git_sha256": "4dac9a4ecfeffd002e4bf3e6b57296a0970e9b80f8a39dd6f2851243f2937e37",
+      "compiled_copy_sha256": "13869f2283088dbd2977e76d19a37edc51c2d55bc0bdb455d2aa2c4766eeb155",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/LlmCallLogEntity.java",
+      "git_sha256": "43444a63e0fb5f5049e00833021ea14aeb97840e367de83d66bf7f81f1ad90b9",
+      "compiled_copy_sha256": "bcbad0a33116c60766fc7f11dd87459346b404a7f5d7915c5dac933d4afe145e",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/LlmProviderConfigEntity.java",
+      "git_sha256": "8850cb5f0761e930fb94ae952732e9fc385de4f0d24e2c6f9e560f6503c8d7f7",
+      "compiled_copy_sha256": "89a88db37e3fb65703c8e40e83160ae618e9486771b0145074e48df37482db36",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/LlmTaskConfigEntity.java",
+      "git_sha256": "d4cb758a700d7f02948295e51d47b425c0c10404136c3f8f0eb0a206bda27108",
+      "compiled_copy_sha256": "1c1fcc07e37a74af96a8a9b3f7d0d67f17d74e6d724198bd0e21e54e7f08040c",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/MarketDataCacheEntity.java",
+      "git_sha256": "93fc6ec9f656403fcc5fb3af339c5560194bb6a346bcb1271c1973790d939fb6",
+      "compiled_copy_sha256": "eb8b9194f5a2118c63249a89f055111a384cad241a16399553f3d5a36068d4a7",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/NewsItemCacheEntity.java",
+      "git_sha256": "975f4cb3817c56ce5975586037dc55788dfb8f24336c5f2ced074404c94dcaff",
+      "compiled_copy_sha256": "bc50441454c0a69c4fcdca883a917395e12c7e374586ba582c4d61a837676696",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/NewsSourceConfigEntity.java",
+      "git_sha256": "986b6c75fdbdbffb257efbc8c9536c174b012b7732cac970c8509f4a12344d0c",
+      "compiled_copy_sha256": "dc3916117acdeb8b8fd10e2bf1d95276e10f0383da62f06192a880bc98465bdc",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/NightlySchedulerConfigEntity.java",
+      "git_sha256": "5b1a4205b9697e3f9e37cf4aa466a55eb98702c1251af0aa292a123834f6c34e",
+      "compiled_copy_sha256": "218ea0ca97c7ef7aa7258c44795606b0a2b660f2950cc3fe87e3ba53cfe73a39",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/NotionReportConfigEntity.java",
+      "git_sha256": "7e5d6a0a937d0a2226b6c3ca46ac0e0e0fa7813822addbc0cf083c1c5b235a73",
+      "compiled_copy_sha256": "932015e896326d921b5d2fb261b795b7281a2226773e4a04ed2889058f6ae6a9",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/NotionReportLogEntity.java",
+      "git_sha256": "491279b6f5bf5222eac19c8c11d2800b9ea79f354f7fb7675fb74307058065e7",
+      "compiled_copy_sha256": "39781a7279ef2d571a58624bfe5878358ce2bcb00f386331a327cc18c5aade53",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/OrderEntity.java",
+      "git_sha256": "45014cfcfdf762efeec26f997bed9f09fa953a5884bb6e22d05c0f800e432cdd",
+      "compiled_copy_sha256": "029f5d82c44c8472875fc6a60b66e9916198826803ceaaa795629b81febac109",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/OrderSettlementDiscrepancyEntity.java",
+      "git_sha256": "ca74f440bc581b330642fadd69a39735cb1bcad6ef9859c56523b00ca908073a",
+      "compiled_copy_sha256": "1e31fc320f6d7d3d43ca27430ee9375dec2cd02b2586242f509c1f841a243127",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/PositionCleanupEntity.java",
+      "git_sha256": "31a084e66486a789fdb1c0aee2faae2c77f8ce711d455b269c1c0a234613df96",
+      "compiled_copy_sha256": "21b6054999b22520fdd0372bb9946e8bbe300a0acd41080211010132f905ba96",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/PositionEntity.java",
+      "git_sha256": "a087d46479192d961b3e619b11f7bba59f6a5f837a1fb4887112ee9973dbad4a",
+      "compiled_copy_sha256": "81c812fad2622252a8dc519b20b7ebd7ef0c82b57d3dd5a2e3c30b6af498eee6",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/RegimeChangeLogEntity.java",
+      "git_sha256": "9ec17df7a3c310f135c916e57f7ad04e81f0afa616e0c4c84ddbc24423888166",
+      "compiled_copy_sha256": "1d9934ac5ec4d945704fe8376d8e783746a792cb2e55192d3c8ac5cacadbd453",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/RiskConfigEntity.java",
+      "git_sha256": "9952bcdcc803bdd9e1f75fc2de45c486d91403a0a6cda19ee529f1fe13be3af3",
+      "compiled_copy_sha256": "71d897ad62dbd814eeddda12196e9e2c0104747d4f21f5a8257bb0dc52a1af1b",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/RulesetSnapshotEntity.java",
+      "git_sha256": "620a9705154db9b0a0ed670e91591d3ece794bb3eace48a3f919cc687b55c31e",
+      "compiled_copy_sha256": "e3b95fd7fcca3b657d80d25893c23cbce08ffb9ff5a01cf599b635500044357a",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/StrategyConfigEntity.java",
+      "git_sha256": "d880695e08e1bd4b65dee101b7dad9671da8edf8b4bfd3ccb3a6ff0f14ed4357",
+      "compiled_copy_sha256": "86ecf7c8b0e514a019f948339952bc5ca25cc4b35b3a461b01761672129aa387",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/StrategyLogEntity.java",
+      "git_sha256": "7395b834400a3e2ca0af185379397f509d428f9b425d66f11ffc5769e2b21b5f",
+      "compiled_copy_sha256": "b0793723c404645fa7ca8173c17ed8f5f9618f62d54958c4711342e1b93ac273",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/StrategyTimeframeEnabledEntity.java",
+      "git_sha256": "00dc877bcca024b96fc497ab4b4ce57cdb83d4e6ec0ad1211253265803eb55e4",
+      "compiled_copy_sha256": "9ca4d3c590e0332784c8cc8aba5d28e9e8022e57e021b85a8f443d47148ef9b1",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/StrategyTypeEnabledEntity.java",
+      "git_sha256": "b009fc2c864770ccaf2e33606ae3d723d90957333c02b2d2f778ab7a958455ea",
+      "compiled_copy_sha256": "fe8ba09a19fbb7ffcf77eb884f92229145b323242051cbee2c0d9dcbd8fc8dc9",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/TelegramNotificationLogEntity.java",
+      "git_sha256": "d909f77f3ff87b26a83b6a30b8ad22f31edd49397791acca4eba5e353f81682e",
+      "compiled_copy_sha256": "91815b71e46c2d1416f08fc7bc676f8738ae2302cfddb97d7ed6bef7a4240242",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/TradeLogEntity.java",
+      "git_sha256": "b8f215d4d35e12651e951b1d403d2e19c3eb99e66e1876bec450ffa0ecce67d8",
+      "compiled_copy_sha256": "dd67830257ddbbd134e3a082a20af03f6e8b1aa5737886d4d84c3f94e14b7c50",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/WeightOptimizerSnapshotEntity.java",
+      "git_sha256": "88a19a1a62f5ed66dbefe21815e7429e273dfb14fc134d9ba3efb5e00dbe246b",
+      "compiled_copy_sha256": "524b7f32a2c6c1c7f4e860d5c9129afa78135e1e608c8b6ee015884609ce5d8d",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/paper/PaperOrderEntity.java",
+      "git_sha256": "da78e5b0bab30fa8f1a9d1db8b2dd2e774abfd1f458606a55fea1aeee8ed1202",
+      "compiled_copy_sha256": "d62a33f9089f0d39650ec15d689e07db4bacbb916359215b9b5c148643710589",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/paper/PaperPositionEntity.java",
+      "git_sha256": "a049f8fa3d892c244b53ce3c6f1bbcce360faf01aec26a29b508092b748b808a",
+      "compiled_copy_sha256": "862be3be046017f3d1e844e0e51a0bd1ea897c92d231e07086c1c1f7a3b40de1",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/entity/paper/VirtualBalanceEntity.java",
+      "git_sha256": "8e6ad7db54663cd3699e361efcc0fc765f698868255dc4c10bf11f44cd68d848",
+      "compiled_copy_sha256": "2099814d88be5016724b7b6b03d1884b58f33e4562074672748f6083906a0c32",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/exception/SessionNotFoundException.java",
+      "git_sha256": "9bc3ef3213efe8620fe7f8c055379b45d0bed13648c91aacc4074b7150b768d0",
+      "compiled_copy_sha256": "fcd05bf4867c7b590a8ac4553619fb1a5c7d1af62decc3fda6a876c08f6d4aba",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/exception/SessionStateException.java",
+      "git_sha256": "d21fe2e9bec330627d8598aa85d05c048d55afef0714edc3354ccc9bb3c69d2d",
+      "compiled_copy_sha256": "5fdc64b8af2ddcb80d1c1aab2f8237783653828fd8fe175fffc9ae785bbbb5d5",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/llm/LlmProvider.java",
+      "git_sha256": "8a51b5d3e3bc1bf3345e495782521a6f642257e212904d34dd7cca203867c126",
+      "compiled_copy_sha256": "68e0d7a47eb6dc8810b1824dbe54700889094a977914be2c6abcb4d27b8e4c26",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/llm/LlmProviderRegistry.java",
+      "git_sha256": "b4192162e966eb39bb7c2b1f69a4edf70a4b21008c373f17e1c7b8a432aaf5a2",
+      "compiled_copy_sha256": "724739e27b6676116c20dc67ef86e6311bd7e1eca1d474205bb1277892347343",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/llm/LlmRequest.java",
+      "git_sha256": "e6a0168866108e107a28337f18c8fc86ae173007b6d230319afdff402ae502d8",
+      "compiled_copy_sha256": "332231c49fef5df601316637bcaa661250a437bb5eeac9f4accc53cff9650b77",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/llm/LlmResponse.java",
+      "git_sha256": "c4371e6fcf95e78d58706ee690eca771cd6ed0650ac1265276f484884e3a12f6",
+      "compiled_copy_sha256": "a09768c92d99d8740a3a9424fdbb85e55013ff35df8465a5895187ad33b8e0e8",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/llm/LlmTask.java",
+      "git_sha256": "2fd0db8a07afc033f465cf9cfb1fafd35c46a1c0bfdb60eab856a365fa66fa34",
+      "compiled_copy_sha256": "ea264dd4e70a350a59a00e635cf4d0c7ff0a365874879caef42f54d010a50539",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/llm/LlmTaskRouter.java",
+      "git_sha256": "e91653a433a6c281ab2f2979fafb9eb3a02c145edaced37d8122b0c8845af938",
+      "compiled_copy_sha256": "5c7e0de4fd81509e151f10db7f47f275c36c5f8d172d53aae023d8e1edb2c645",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/llm/provider/ClaudeProvider.java",
+      "git_sha256": "0cad4e35f6d0cc8c54052cc340aac3c391b078e463b7da266becc9916e5ffeaa",
+      "compiled_copy_sha256": "15f4dd2000c70bd2cc18a1ade5c0de65c346add6e665d4f34ac8490d0cd1c094",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/llm/provider/MockProvider.java",
+      "git_sha256": "87a91c3cbef9b31ec79a61c0ed65631bbbfe97c90aaa414115e90143c002c5c5",
+      "compiled_copy_sha256": "4ef9eb153fb1edbbf7ec565dd1123244c94ced3d1c672ff66983c52c9dc2d849",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/llm/provider/OllamaProvider.java",
+      "git_sha256": "05eb115cdfff582e1888b1fffd5ad918ad6f0a7748cd00f134b42530027a413f",
+      "compiled_copy_sha256": "5b02846f897356f3fe48d77314d92a3a2faf7dab63211525e3e2d55fc027ef89",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/llm/provider/OpenAiProvider.java",
+      "git_sha256": "3e25775f591ca1b679d78bd63eb6253b2feff862408ebe6833bac7217ff9b35e",
+      "compiled_copy_sha256": "38328d0ee9640afe86f0a907f1afb8fadf50ff487641a0bc972c382a4f7ab833",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/log/InMemoryLogAppender.java",
+      "git_sha256": "b2bd026a0c6461cf1309c781b18f4d8466f9963135363410f66cce3772b118c4",
+      "compiled_copy_sha256": "8cfc5c375b60c43187ef443a19cdc32b37b9e27bc98cd00272634df9dfbc9a55",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/log/InMemoryLogBuffer.java",
+      "git_sha256": "c7ece272a0dfdfb45dc707230c26d62935f16beb0054182612bb6348c55d247f",
+      "compiled_copy_sha256": "e35f80dc583cb17fb2bedeaf0db4056ff4bfcc299e139f0ee48f1de76392bda2",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/news/NewsAggregatorService.java",
+      "git_sha256": "324c3e14b80343f29dc466452bbc5a05ff9923354f479467a784a3c0684a7f46",
+      "compiled_copy_sha256": "6869063bb8ee4e89ae2364a7efb1870e646cc6a2e34dd48b2733843698afdbf1",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/news/NewsFetchResult.java",
+      "git_sha256": "2ea9d666266e2615ed1a968542fa5366914fd9af6a9a7b17995662abace94fcb",
+      "compiled_copy_sha256": "0111f000726a437241accfefd70c82d26be181d4b07b6fd575ed01f90c41f9fa",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/news/NewsItem.java",
+      "git_sha256": "842c21007405c599a9ba85271345c8a11c9258592be81cec21bc179eed9437d9",
+      "compiled_copy_sha256": "53776e0bf9d092158a1618e5490f7b8e878669f317a460aa07da06911830568f",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/news/NewsSource.java",
+      "git_sha256": "e6dba02466b173f5b59a31d217f46b05f898e135150f45bf992c3c6e3fb483da",
+      "compiled_copy_sha256": "d3d2a2aba31a6115c9f888e48b0537b55735adab74c734ca4bddaea27207fab7",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/news/NewsSourceRegistry.java",
+      "git_sha256": "dcdb41a55a13f671a8491b91268da204370452c6795cc8f3e61d61c4aa80c455",
+      "compiled_copy_sha256": "5de1ca407480d2b34ac0bae37018a551e6b6fb8e7a21994e04e1b5788d81022a",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/news/source/CoinGeckoTrendingSource.java",
+      "git_sha256": "395c25e231a1c94fca2b2e663668e3e35c6ae3aa8c800eb4b6b1da04ca8d35da",
+      "compiled_copy_sha256": "795e597b64ba5843f45106e8b0edb3cf2d8e59fcb12530c7dc5906c861666cd6",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/news/source/CryptoPanicSource.java",
+      "git_sha256": "0c446d069362d8a038dc87493f2b686494c36be612af0e3cff678398da20d0c2",
+      "compiled_copy_sha256": "92040a31e66252f32ff2e1cefcc760265a6e015837b0b743241058561234fa36",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/news/source/RssNewsSource.java",
+      "git_sha256": "c4d2525315b2b47d23b397622ebe6969dba79a87dfb54f7036ed61780471d93d",
+      "compiled_copy_sha256": "a925c103db9ee1b1213178cb602e71857cd115b363917012ddec10d153120384",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/news/source/UpbitNoticeSource.java",
+      "git_sha256": "c1bc5ff381ec7de0d65209daf93ff04cf68f6ae89f3f8198bbb91ab7e00632a8",
+      "compiled_copy_sha256": "30fd992c587e413bec7712a853a48d8fe90c94def032d7fc6c5c6b19e59d4126",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/report/AnalysisReport.java",
+      "git_sha256": "ea7bd115b066bf1a099fd893c6e7b72ef4564717306dd2ed7af81fb60933cb55",
+      "compiled_copy_sha256": "eb202d734f16402f9aa7f9834e83b70dd59172916622caa99aa0c23ec974f79b",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/report/AnalysisReportScheduler.java",
+      "git_sha256": "c4a8e68310ccf4eec1bcfdf79632963868e3e2e10925a40272c8128f87575835",
+      "compiled_copy_sha256": "198756270486995fe973c28a6dcbc8ed90d524be523aa4c5f78acd67576f20d0",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/report/BlockedReasonNormalizer.java",
+      "git_sha256": "f251425ab72b98620de7878651e548bb79976bc6335b607f4d809cf135d0ceec",
+      "compiled_copy_sha256": "ca58654e5d48ed49320127ece3dd2b7bfafa5b0991b4dd5917a5f14cb0ad08a8",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/report/FilterTagClassifier.java",
+      "git_sha256": "3f914f86618fcd1581f9250606cf055cc99fb0f5529821c87446457ff4fcc34f",
+      "compiled_copy_sha256": "72f33705b0c0ec3bf6194ef722e31df5aff666d3545f8f6f4dc8a734ac905917",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/report/LogAnalyzerService.java",
+      "git_sha256": "7d349b1ae29841fa97f578dccd750b0591385fcb1520b1c9bf02b545ea38c505",
+      "compiled_copy_sha256": "ad5730a330497db9d76ae1afcc4ac5b89e5f69eb9e769f33d3dd0023ad478341",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/report/MarketTrendScanner.java",
+      "git_sha256": "14b76d21fa27549c40dedcfebc700f9f125b15bfc7c8b57c20bbce90ab64c38e",
+      "compiled_copy_sha256": "50033385e601b23791ff3c54f64c6ada27a6b750d895e6b3ca2e2763505397ac",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/report/NotionApiClient.java",
+      "git_sha256": "99d23c43186a5e9df290cef45dbf83a6775074fcf8b19a231b0210239e48aa30",
+      "compiled_copy_sha256": "a371d780693270b8bdba0379d67b15acb3cc37183f2f7eb8061104920787ead1",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/report/ReportComposer.java",
+      "git_sha256": "d6b5dec3a134e4738b4a541a456e3808b301f7117d041a5dd640fdb8900e3040",
+      "compiled_copy_sha256": "070a51cd619f5928c632d681685bd37ac0e149beb090b8fa8bc0adb1103c0895",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/report/TelegramBriefingComposer.java",
+      "git_sha256": "b345a038c5d0e4b0ef1853eddb4953d9cd48182484d01b98918ccf88229da900",
+      "compiled_copy_sha256": "491474c1888802f31ca68afd8085d69cdb4e55a9ca523eadc47da013bc8193d9",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/report/TelegramBriefingScheduler.java",
+      "git_sha256": "178a4cd7851a75d5fac3e12cd490d926bdcd1761218d0c25f29d7c8b32ae3a75",
+      "compiled_copy_sha256": "ac36ce471a24cfe8956f43b326406398912f4ba7d4c33717d7a0ce51923e32ef",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/repository/BacktestJobRepository.java",
+      "git_sha256": "6462cd4e537086a1331b413994d6d2ebf919c0488f4962ff1351ed0829842c4c",
+      "compiled_copy_sha256": "2c3e63d2fbbc9152c364ee1f5ddde8cc72fe13b0bc6921bd7446a3acd45b57cc",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/repository/BacktestMetricsRepository.java",
+      "git_sha256": "7bcbd79eee7b69daee3cef1e4cfce975d698a45ca6dc7205f08edb09d8c685f5",
+      "compiled_copy_sha256": "5f38b75891df4d484fd97b984b7b86030fc3a2b7908341b738f1ea7ae86df883",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/repository/BacktestRunRepository.java",
+      "git_sha256": "2c4e570b5b2ffaa108f7d569957943380eea83fb82868c92ab85f7a0ca117923",
+      "compiled_copy_sha256": "f1d878604c32d48a8bf5e2bc3da00db3913cc72f804adae3e66784c29fd02199",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/repository/BacktestTradeRepository.java",
+      "git_sha256": "e0ae2afcf5468e09129f040e2c948edf4cc5d77af9c5470b6295625cdeec7322",
+      "compiled_copy_sha256": "306ca3cb2bc03ce6657b0a4ac8774a1f5af131bf86966167d429318fa07a65d7",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/repository/CandleDataRepository.java",
+      "git_sha256": "991fce5582e01167c26d70b4097106c9e084748a09a592ca6add109e848e2f66",
+      "compiled_copy_sha256": "0289be2cc1d7cb4335c0def6ad3b5511e81468cba7a9fa96aba97f50156f18bf",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/repository/DailyHealthSnapshotRepository.java",
+      "git_sha256": "f458c99413a7a7a53aa7b5b2f733c4a7e1436c6887fbd2d8269b6b85a942a08a",
+      "compiled_copy_sha256": "288ef6b9a161dee356b9fd062bd6e5e0ec068fe9c08679f536dcf2afff8dc7a2",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/repository/DiscordChannelConfigRepository.java",
+      "git_sha256": "ac55715f3e818865710495cda6fa31d366d65b398a6273f0c5ecb9e96693dfe4",
+      "compiled_copy_sha256": "c0c549fa54e30a4967f2d49741dd7c765b26152e0ae8e82a47ce58ed9b19f1a7",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/repository/DiscordSendLogRepository.java",
+      "git_sha256": "cb97c4cf3ea4a70fa016c79b73756d8021b9f69b640b5d6cab7549dcfb412850",
+      "compiled_copy_sha256": "28e91a874b5090c9b4369ddca2ecaf666b445581e68805b4d2319e72fdfd743c",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/repository/DynamicSellSettlementRepository.java",
+      "git_sha256": "905c5227e42c0c07468bb542ad4d482c1781e592b5adc5190d82034d6183359d",
+      "compiled_copy_sha256": "820bb6d07cd729f652f0a720731ea57f2e199f34f39be8434950c4eae29e5917",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/repository/DynamicSessionRepository.java",
+      "git_sha256": "8ceb706122b5ae5d37191182e1279456eab2ec2858f648c16388e1294d116118",
+      "compiled_copy_sha256": "da81137989d2b4ff1c8019cb7b89d33d8213bca671482279ea5c5a12bc0fca7d",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/repository/ExecutionDriftLogRepository.java",
+      "git_sha256": "0d25d565ebae569582b11dc908d0afd2850d478514a896cd5c2e99e574159c7c",
+      "compiled_copy_sha256": "5885966bb09f4c589c2b8f559c5e8540bc41546bae287e58f8a9e763c45e10c3",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/repository/KillCriteriaJudgmentRepository.java",
+      "git_sha256": "bd40a3a604ecb66e30fa5bc3418357c80a8c768d5db4637f1c1e1c24bc97cb6d",
+      "compiled_copy_sha256": "7ec55dae16724484873284897ce93d126eba2d74a23fb21f0e5af9bd1881aef0",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/repository/LiveTradingSessionRepository.java",
+      "git_sha256": "230d48b2dc8d88c6f8a2e3b767374af4b8dfcff59d2ff386bf2b8574bd9d53a3",
+      "compiled_copy_sha256": "a6e115a00f650d026acc63f1d92d881ace911d922299d23f776c44d76657207d",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/repository/LlmCallLogRepository.java",
+      "git_sha256": "47227fa760cb6287ead617d9456160d09283e1a726308e08288c03982b950712",
+      "compiled_copy_sha256": "03d83e647b3ebae16fb546ab1ae5059950fe1612feec5834fe3df23c72708c2a",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/repository/LlmProviderConfigRepository.java",
+      "git_sha256": "ed3ac6b6553fd5c04716961e0fdb8ca723af71dd198a737475c2fb4841eb046c",
+      "compiled_copy_sha256": "a0dc4600573e94a29ee75f836d2e5d79699f6a9ebe9baabe3d5c98d26d054835",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/repository/LlmTaskConfigRepository.java",
+      "git_sha256": "ab97a397386fe01301ba44c6677601a740bcf422f07a712ab0410085e80be17e",
+      "compiled_copy_sha256": "457e90613508fb99cafbc732bb861f53ed3668e575c7e2c093a3274806b5115f",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/repository/MarketDataCacheRepository.java",
+      "git_sha256": "1de7a6fedca9daf52344bf6d36fed82bd1e91b8f543ae087b5081cf554f70694",
+      "compiled_copy_sha256": "caf290a90794d008c964ce0612aa7dfaec87ed6904f5bb1e6bd14cb1c733815a",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/repository/NewsItemCacheRepository.java",
+      "git_sha256": "d3b6ad8d78a0a005317b51dbf1350f8f5f26a8c34c56f6e478613207f0963a89",
+      "compiled_copy_sha256": "e53b41ea0623507a38409f1774a19d64d964b78752a9ff3e2d6209de8930c838",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/repository/NewsSourceConfigRepository.java",
+      "git_sha256": "f1db7af5d0a35ca706949e7342212efd21275049bdf9d551ca39b57ba239d185",
+      "compiled_copy_sha256": "44784d7ba21ef564348ba7db02c3b93497915cd0995d4af6dae4222c564b0454",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/repository/NightlySchedulerConfigRepository.java",
+      "git_sha256": "342844ca96ca82253211281fd9fd509abc801ab79a318351293471db7dfbc429",
+      "compiled_copy_sha256": "83d6609d03c1513f90a3ee0b97a358541d2fff61a3e7de9905dc6a615710cecb",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/repository/NotionReportConfigRepository.java",
+      "git_sha256": "062028fcec9eb3a25cb0e728aa2392fbe59ab3d85382e20cff54010247860241",
+      "compiled_copy_sha256": "f5deb2b8964026c98c8c96c772f88fadce3c145d8f4b136fb67c66b57144d1fb",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/repository/NotionReportLogRepository.java",
+      "git_sha256": "2e5df1208aaf735b8de33f9ca407b61f319798dd32dd106b760fac9be7934191",
+      "compiled_copy_sha256": "8eb1b13bdf93a5dec9ce4c6cafda4d7fe8e6924b154a3f463f76cfa8b00f9373",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/repository/OrderRepository.java",
+      "git_sha256": "d553f1ac014f344da4fe1fb0cc3fc42ecf65835b99d121579eef986d7afbbce2",
+      "compiled_copy_sha256": "f1611a494d72b3433b23eba7c8362afc7ae10b8b1a0b706e593c92fd7ee5e6d2",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/repository/OrderSettlementDiscrepancyRepository.java",
+      "git_sha256": "b19e9c916b9eca3f200eca17f534855213eb94097852d3b4b713c50277d6694d",
+      "compiled_copy_sha256": "5741a74a87e9337d63960e37253b6093e7b57298100a8ec7bdfe73f34b94e701",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/repository/PositionCleanupRepository.java",
+      "git_sha256": "aac25179d849e3b69a43af8f988aba185dae48fbb1b0d2c81c938d6c94f5759d",
+      "compiled_copy_sha256": "e956ac112808c13cca159e29d0393727fae9a0318d90ae078d4c1e3507b09df4",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/repository/PositionRepository.java",
+      "git_sha256": "4facaf5813a05f1b15679d7b3c44ed3b39256c66af83997e9ee2ff5ef9ce89a6",
+      "compiled_copy_sha256": "e129fecfb9c6f92b1e763fae262065904b3dcab6e222c0ab020b17ae725400ae",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/repository/RegimeChangeLogRepository.java",
+      "git_sha256": "2204cbe6ffa383b2feb6653e09d1967a152384b81421022d30296b4b781f995f",
+      "compiled_copy_sha256": "dd9fc7f073e5f8f672957a88e29b3832453aee51e2ac02338a355435ab28de9c",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/repository/RiskConfigRepository.java",
+      "git_sha256": "44d24d1151be18962b95184d7b35d91654d575a008214f301edd0b47f647e283",
+      "compiled_copy_sha256": "b97cb6897bafad4b3331bea14ea7ee46a1ff9c13846343dd8947c2bb856f46da",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/repository/RulesetSnapshotRepository.java",
+      "git_sha256": "b4dc47b44c355546cc72938cb1144e2c5bc4dd5dac4745fb133def7632aa7f4f",
+      "compiled_copy_sha256": "9968416dace3baa2f557ff127584a1e771172f091220edbe5b84e1802fc67c84",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/repository/StrategyConfigRepository.java",
+      "git_sha256": "f5d44cc925a1beb7aff9d77a781fdadb6b8937b52c85baecc8d4687f6f8add8c",
+      "compiled_copy_sha256": "8fa395166bfa5b52cbc065292665ca0aad3319a17d252b605fc5f177c9ff1fe5",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/repository/StrategyLogRepository.java",
+      "git_sha256": "26f4424143e2e84a4e2639ce1804955f3bf0ddf5c0d6304577793dd441a7ea97",
+      "compiled_copy_sha256": "2bf10a6e588e7a84642ba79035bf1211b4ed8c5a7af80f07eebe33e223f20547",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/repository/StrategyTimeframeEnabledRepository.java",
+      "git_sha256": "a7a003e25977f06cba2d33d5b2d456d5418a592896ede515a21612786c35eec7",
+      "compiled_copy_sha256": "5c2afcccbb4ff100606c1528233b62db030b4834c0fdae6b64d82f46b729d9ff",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/repository/StrategyTypeEnabledRepository.java",
+      "git_sha256": "f66ca4146707c82b96fab9ddb93ee379fde96326577e5e369cc245f2ef89f0c1",
+      "compiled_copy_sha256": "61b9930943ba4f9fcb47ea78c62ff059413f9c02a7de1a2ce9c02a019a3f00ef",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/repository/TelegramNotificationLogRepository.java",
+      "git_sha256": "8158b4e32cd13ba9dfaab03d71ebda08dac9904a936af86ecf9d95a39465274c",
+      "compiled_copy_sha256": "d69f106b32244dc8217fb9b23736b8eb7db78093314f3341664754ca1b02ed4f",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/repository/TradeLogRepository.java",
+      "git_sha256": "18e83bcc9c26bd1b80b721cad81a443dbcbfedb59e14a423dc99f9693d317020",
+      "compiled_copy_sha256": "eacb12ea951e0fb39a7b6e2dd4c271851ddcaf79d7b42ef1dbbe71c4f2f734f5",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/repository/WeightOptimizerSnapshotRepository.java",
+      "git_sha256": "8e1b305758b8141ce1b730d014dc44e9d06163481b5c91fdad17798dfe0cb29f",
+      "compiled_copy_sha256": "d2e850560fd2e0e4e8f581e7caf116488c9d0f2cead4ad86d9b74458f8c7d403",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/repository/paper/PaperOrderRepository.java",
+      "git_sha256": "7d175757726ab16cb961bdb673c09882098ae3e3e5b2e977d3e43c7c2a25830e",
+      "compiled_copy_sha256": "75506a53976cdc45115d438672400384085f12d838b2af4394967d441e0a34f3",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/repository/paper/PaperPositionRepository.java",
+      "git_sha256": "8cced35a4a907f91fd2802cc47dbe34700a759a2e500b379dc7ae93392d40911",
+      "compiled_copy_sha256": "bdd3fac01ea684af3702db83d3df8415f1078e7fac57635dd81f059bb3bf9d35",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/repository/paper/VirtualBalanceRepository.java",
+      "git_sha256": "5e49e83e8c74cc1b7d585777fe2e7ab3f8fe294134a62a194e4dd7473e2baf6a",
+      "compiled_copy_sha256": "ebb48040c1e425cf57dc814953c417ac83562af07fcbb5ee44fd2c184e3bdf34",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/AccountService.java",
+      "git_sha256": "bdd5a50afb664fabcbf53368d60de175f42aaa546d45732197689ffdedce25f6",
+      "compiled_copy_sha256": "3fb077ba4781821893d5635e1257418aa240d37016c0f5b220328c9989f38b35",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/BacktestAutoSchedulerService.java",
+      "git_sha256": "fb424c0c65114294146be4b2196be4d39d0d51379f986212c8628ce9e1e768f0",
+      "compiled_copy_sha256": "81319b6db05d6f136b79275f617bc27a746445e10a320579298a8c0d780450d2",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/BacktestJobService.java",
+      "git_sha256": "d19e9de530a05bb64b6f0fd732de75167ab666f5e5635523056bf9339ebaf3a0",
+      "compiled_copy_sha256": "68b170a7b940c69517403aa764840743b6dcc10a12c2edb62aac1bf511ba0c8c",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/BacktestService.java",
+      "git_sha256": "170c59b2f7b19419df230c377817dc6739a83b1df1c18ca69164ae187569d6c8",
+      "compiled_copy_sha256": "656b609dd0b83399509891649472f1ce6d77e9bd4ecb3edc1066740a6e2420c3",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/BalanceAmounts.java",
+      "git_sha256": "35644eeada5a029ce1f1689331b79e98f5ef91e9cfacff9aada012fc1b5244d0",
+      "compiled_copy_sha256": "1ad825a4628f6ccb04fa03b234915a857fdc1beb924c6861507af0bb5e2259b0",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/BenchmarkAlphaService.java",
+      "git_sha256": "bbc7454a543b9319c2c20eedb4ec64005030f33a318a0901883cd18882edb242",
+      "compiled_copy_sha256": "9eeb7b7dca75b443d5f5aa0cec26f1d7604c64f62ec75b66dded84bb8495ce73",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/CandleDataFreshnessScheduler.java",
+      "git_sha256": "6e2b231aaed7f58ede3e16dd55ad50bb1573d14f536cbc3d572fa99b35bd25dd",
+      "compiled_copy_sha256": "f7dbcabed804092ddbef7ec5ef189762c466d5ea71eb3c67989e884c008447be",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/CandleFreshnessGuard.java",
+      "git_sha256": "eaa90987ab440e5e55d74dd49a58681e0882c791457ec3b29bd5fbeb1f55049c",
+      "compiled_copy_sha256": "61cc6301d5536efad39350720cd454c57329134c70acee4e2537af9e6a57970b",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/CandleGapBackfillService.java",
+      "git_sha256": "5c8279c1481fea6dea6b70a277b73ac7657c13676e0e0a71dc8714c071b829b0",
+      "compiled_copy_sha256": "5007dfae9bebc6481ffbd66e6b9cecead9c86d102d4e7fa30ddf073567097bb2",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/CapitalPoolLimits.java",
+      "git_sha256": "179f4e565f198e12f7031407f84cb5f007afd2367822f5d6b7496b97ffd0d023",
+      "compiled_copy_sha256": "8cb653fb4cd4a12a328ff26647d2d3dfebe2eafd19c2e518f2915111255c3bf8",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/CapitalReservationService.java",
+      "git_sha256": "c9bc02e8d1513a0b88ad2af46c6dd2f562bc9bdb37f1e13cc9b7054af336f66b",
+      "compiled_copy_sha256": "315b86a78092b41b3663992bd12a9aec4c65fc364fc0bab1bf5c5550b182e486",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/CircuitBreakerResult.java",
+      "git_sha256": "8cbb9a8e649060dac7e47f9cb56b527268984818aada8046a398ef14860cadc1",
+      "compiled_copy_sha256": "af6632a596c72c37b408ae5deab0f2731ee4f40529e398d97ba934a1d5a506bb",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/CsvExportService.java",
+      "git_sha256": "f6b109c2e92f87288e22160870001f4669b16d0f52e8de92dd3b93ee41be2115",
+      "compiled_copy_sha256": "f454121d23bc7a6b8748fa8963ef74bde15c7f006ccbcf9930a5a66953902c0b",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/DataCollectionService.java",
+      "git_sha256": "c7bcaf43cf445b0a577f7ded9cd7ef35515974e564d34e583b92b516b86fb38e",
+      "compiled_copy_sha256": "2b70032f44f07102941fd2204003b6bba590fe498390fb542d62e2d2ef08cc25",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/DbResetService.java",
+      "git_sha256": "e961c90c838aed79c0c9a6925073b208910b97b10dfd4778c6211c54e366b3b0",
+      "compiled_copy_sha256": "3e2de26d4d69f15f3c3971d7ab047de85d218ca089becb8a1dc007017f76fa25",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/DynamicSessionBalanceUpdater.java",
+      "git_sha256": "32f744f732a0c8afba4d4edc7cc64fe95da1ae7d1af3bd8718b506f34ac9b7af",
+      "compiled_copy_sha256": "7f98947f0648272795717dd46eb65f2a0d59f724d9d4b75a6b3f6ba734ec2af0",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java",
+      "git_sha256": "02e1e00585fb62ce10a14591eac49432442b0e38120f3383c7166aa44b0638f6",
+      "compiled_copy_sha256": "fbc457fec3e4cb7a7467fb8368e39ff39ae0aa8780128e81c3fb315503f033e6",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/EntryClock.java",
+      "git_sha256": "66038940d6437932ee769bc3d5c2f2b98d07ecd21a61d587b1ca3259d533e7ec",
+      "compiled_copy_sha256": "18cc9af4677c51c7ac2dfd6fb9fd09075cafd633979d4561a0d13444ccb7eb0e",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/EntryPriorityRounds.java",
+      "git_sha256": "db06fea8c3ef22c4073525ba7d3e7eb5db21c4498776bc2ffc8be0114846082f",
+      "compiled_copy_sha256": "6e6451de4d59ac67dba07847d6d69d097def33f6d68521bc000c231cfc3820d9",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/ExchangeDownEvent.java",
+      "git_sha256": "0e8e19ab3d8a629ef9d5eab353b44074bcdc7b32cbbf1fa1228adb492a70571d",
+      "compiled_copy_sha256": "45c3e37ad42e56c70360eb44d9be2bea4dbb943dd7cad0c5259a8e501fd1e167",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/ExchangeHealthMonitor.java",
+      "git_sha256": "9a992352ac89872c1b12adf207366126228a58b321dc60c8184db4298da56440",
+      "compiled_copy_sha256": "e57c96842230e7044014a351cd8086db321bb4c150144cf4a5f14d8af0c7bb82",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/ExchangeMaintenanceWindows.java",
+      "git_sha256": "35cd20947e17159d256f65d1b38d4e56b6811b62a06c4563e9685541d644e261",
+      "compiled_copy_sha256": "b5d4a1a4100a130563acbe0c47fad3b75a857935598b1d7a5f2751509dcd87f5",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/ExchangeRecoveredEvent.java",
+      "git_sha256": "4ec19271ca52985861fa0350cf2939446b537786d4b419c8641dcfb75f3ca76a",
+      "compiled_copy_sha256": "157c53b961e1ac6fd15d10f68824e4df3253cac12d6ceeda952de19176203e84",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/ExecutionDriftTracker.java",
+      "git_sha256": "92f13a6a5b29dbca2d54f5daf0f2fd16913622e87c777dd8de1d059878bba9aa",
+      "compiled_copy_sha256": "8aed5dac55af94eab6712bdb7124e01ba21730f09b6323d410df9214bdb5a5b1",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/ExitReasonClassifier.java",
+      "git_sha256": "19aaab6c85d785b42feae12dcb8762a14f5f3fdeedea08cb42881a1e825c40f9",
+      "compiled_copy_sha256": "b15b9efb769dee2e976610068da77811517008cdedf08ee5acdf88c41e041537",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/ExitRuleCalculator.java",
+      "git_sha256": "7b1f6fbc627b9c11e0d26d5756e1d251c758e9df1a80af34dcf3fab7e9b4e836",
+      "compiled_copy_sha256": "340bc1c85252c3e1e3e4732b0c20f707bc059dc5fccd444ddd268dde5e2f10d2",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/ExitRuleOverrides.java",
+      "git_sha256": "5f034167521a6e8e82369bb64b3b71b6d531cceaca41782e4fed98c9fd577ffb",
+      "compiled_copy_sha256": "d4c710230cb010e61934b5ba7893a71b5d722ddff7ed539c66fc61088caad80d",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/ForceRefreshResult.java",
+      "git_sha256": "f1b3d1fe9c2ee6585541355bb1f1929fcc8338d0f16d1ebf407ad878516160e7",
+      "compiled_copy_sha256": "28280a94548d477a66d8625ee4ddaa3d6c50ab052113e4bba83cfdd894987abf",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/HeldMarkRefresher.java",
+      "git_sha256": "644a7abfa3da7d87f248043bc1175202b0e980c4cd5e01ead8d0d86bd934d03f",
+      "compiled_copy_sha256": "b6d5c645b6fae17995d6306f8c0ed1b5b6af32d7e26d2dc734ab34a294b8fa3e",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/LegacySellPolicy.java",
+      "git_sha256": "59878f77ee733e3e81809714cc256e5c6c0fc7b62db2c749f5642e6cd4b72ffa",
+      "compiled_copy_sha256": "7b6f7af28bc4d41188821d77a61d1a295102171aa7cf1fe815c4817787c5cb14",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java",
+      "git_sha256": "4f705a794d214f52bac50158e07cba6edbe1831ccd1b5941c7b43a92f25668c2",
+      "compiled_copy_sha256": "b880b356583500066fc005d09539293800b392026b13c6999684d1703c96d07a",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/MarkPriceBook.java",
+      "git_sha256": "c7f6cd410f3d473520314427478372d9420d95d8f3da9f2c62f5705663b95cde",
+      "compiled_copy_sha256": "b1482c619ec7d01eb6c46d8b5a9a95883b18edc4e6a8549c9427f53e49aed839",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/MarketDataSyncService.java",
+      "git_sha256": "4ff378a996d620ab9ce4c02aa26c79b2959ec0311551ceeadd222adb40997db9",
+      "compiled_copy_sha256": "f2310e9fe3abb07acbe873493352807a7a4f74dfb84c97a4be09b17df14fd594",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/MarketDataUpsertService.java",
+      "git_sha256": "e1fe7cc0fdba022b062b6bf88a75b99133d10dab9c5785f2b7c0ff4659fc44e6",
+      "compiled_copy_sha256": "4d69a574c5994b6e82694c63ba9a6f65dbe19086053363f051c4e6e9d6a7ca3b",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/MarketRegimeAwareScheduler.java",
+      "git_sha256": "dac2fe984a37d1ce4ab9300567f60f476d3249e0ccc90b72400b25aafed55d7c",
+      "compiled_copy_sha256": "a03f3236af678b3329d80f5452d0b4b89eabb3f205643ab266c6ef7523afd824",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/NightlySchedulerConfigService.java",
+      "git_sha256": "462816a9d980ade7b979af4d2b497d2b48257a4069540d55e1b374f7c7a90c2f",
+      "compiled_copy_sha256": "d6d451a006936a522fcfaaa2a450333efc7ea57386e44db5f918bf2e516ce4b0",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/OperationalHealthCheckService.java",
+      "git_sha256": "d0079ad632ebf385a382f17850fec96f2a700587ac77f75786984b9433436042",
+      "compiled_copy_sha256": "4f7a5e7eaf30e972b61f0185356892315b13d45530462223f47803568f4928be",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/OptimisticRetry.java",
+      "git_sha256": "3f1ef0a294806b2c9b27e9a52feabde748645ed76652b19ef9fc35665857c962",
+      "compiled_copy_sha256": "a5a131a4eac3f9c558818b4af4a3f00568e88d49d83f8df8b3ed1b94e7326508",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java",
+      "git_sha256": "c73f07789766b290cef9bc3b509415601d32b30199d1c3dfc1eda2769a1dfbb5",
+      "compiled_copy_sha256": "96b629324481444f674ecb0f28f0a77b15c23aac260608e5883135b51a35be22",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/OrderSettlementService.java",
+      "git_sha256": "70fdff7818b572f075799157e33647da800ff15c22fefc6abc874fab5bfdf27a",
+      "compiled_copy_sha256": "24ec8785f9b2abbc305ffb0a0b276e014d284061b57485a810a7de4da612a52b",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/PaperExecutionMode.java",
+      "git_sha256": "4192c02553c632dd6acd65c42dbab5d85c7e2c869e8a22e172a3b8804b540f13",
+      "compiled_copy_sha256": "826f4889b62e3541144bcd0626e1ca8d821fda333035ae2b38ee174d0b54ba47",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/PaperMaxInvestment.java",
+      "git_sha256": "2cb120720161f441bff3e9afcbd0983d77247693d6389a8e8890c44e907f51a9",
+      "compiled_copy_sha256": "5278d47e44ffe51a0dbb8a3af5baf7bc2c08b738d03fced86b4fc6c067f550c1",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/PaperSessionPromotionService.java",
+      "git_sha256": "55768007d0e003d3577d1fffba3d19a7fa87e2cf0005e5caae1cd1cbe5298ce3",
+      "compiled_copy_sha256": "1f4bd3f48eadea3292430729feb4e7a4de9b0824bc04fddc7b4d46a3eb0e442e",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java",
+      "git_sha256": "343af430223114954c2a78603234e72e14df861e4c91fc8f9690525f9f0f7871",
+      "compiled_copy_sha256": "f9399884efd1b795f28d95a743ac1f0b4edcd9f937e4d4cd7c0eef0693c9e1b9",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/PoolLossGuard.java",
+      "git_sha256": "3b1be41bc4f363a979c49e7c6f47e4485a2330cbd6caf0c1630131ed8f2ba750",
+      "compiled_copy_sha256": "70e7a28399cebf998429cfd8b888a6cff8db060ee7e3435b4a0f478ce4cd644d",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/PortfolioSyncService.java",
+      "git_sha256": "015aa09079213919b9f488964a726e1af4e3c5026bf562c5e872b5319b2cedd7",
+      "compiled_copy_sha256": "14b5a09650aa5a607e7e120c418b4b1bbf4ebe58a243070bef6c16cf45dc01db",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/PositionCleanupRegistrar.java",
+      "git_sha256": "eb9c29df3572c3da51dd4a9195df436de3c58cf5e9a7825e441c2292503999c3",
+      "compiled_copy_sha256": "28baef3d3a8a97c02abd79e55e5f13751add773d95e5c4186e680c9e74482ed2",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/PositionLimitGuard.java",
+      "git_sha256": "9a705a763a0ee0e5ce1b704548c6db985c4bfb2a99da1441d88bfad6bb2cd2dc",
+      "compiled_copy_sha256": "4a1e1d8002e2b6bde359798c7acf7e9d4d02d3bb78edc2b7104dc130ef45a6fb",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/PositionLimitMonitor.java",
+      "git_sha256": "146e98ff5da711a644c0c7842fdda19c29bad7d1733e21a90ff625836f30df99",
+      "compiled_copy_sha256": "16f8441002e6c5e0cf7df1c6f6a7fb54ff1c80f67217c75c8a8e39f28911c404",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/PositionService.java",
+      "git_sha256": "fc8c1ac32a849cecc1dceb5f5f815bc99d0d51deaf63c5ce285008eefd935d17",
+      "compiled_copy_sha256": "48c9189862c141073750c97dfc98dfbabe12214c111c164ffcfce748791654a9",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/PositionStateTransition.java",
+      "git_sha256": "b8846d13a89e91c93552f95aab42c059a28d6fbf4a24e6b038e9dd745a9056d2",
+      "compiled_copy_sha256": "bd9da1643a15edf071f4aa771f1478aa06cd25510f690918e5ba151216aecaa0",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/RealtimePriceEvent.java",
+      "git_sha256": "37abc667bcf49d7cd12a7aad9ecee7548c93616cd58551fb86f40df5142a063f",
+      "compiled_copy_sha256": "a01ce528147754b4d3990072b5e1e7ea68c6a46762a580c72867fc301d9452f7",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/RiskGateDataRequirements.java",
+      "git_sha256": "19c3e6de87b02fac0d5f50172277819b904c51da3c62e777c1c1254d96e20ea3",
+      "compiled_copy_sha256": "08ce4a8156527eeb2e9449213397e7123d7ab3546f2388ef676409f6fdf680b2",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/RiskManagementService.java",
+      "git_sha256": "851bbd15a68a6337134ff2d414398efdf88131d45b024117405b04a2e06be920",
+      "compiled_copy_sha256": "92175cb770391a5f44c03a614631f190bd94a71cbc40cc2317adaf973b355026",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/RulesetRegistry.java",
+      "git_sha256": "e16b93ec330af785661e741d54f0f7962c40267e7f9f0ad35493e04c1bf2a053",
+      "compiled_copy_sha256": "fc71cc5743ea52a0d886e91119d261a6bd00c2c9142918b1f0ab0f96512041ea",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/SellQuarantineReleaseService.java",
+      "git_sha256": "d8d9a9270a0c870c6421505be6d6b79b40c4cb32aa3a24604ff24835545476e2",
+      "compiled_copy_sha256": "54f48226c36f7c9310bd31bf2f002a7d6eaca9b6e17f1e21b1b7e597ccf855f6",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/SellQuarantineReport.java",
+      "git_sha256": "0d04d97712f5aa6d99bb4aeb876b8336372ef27b2f876658cef4e0a6d3f20e79",
+      "compiled_copy_sha256": "e0a3c14810196f18364eb1ead8479f50a98f52adc93356da84c73f7729518743",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/SessionBalanceUpdater.java",
+      "git_sha256": "fcc4ec791e8699a537451432798256b39cbdb33c678585f301b9a5c363779dc0",
+      "compiled_copy_sha256": "5322065d8ecc4c0f373d3a873c5943bbd4b8a2d06f451d70b55202c1b3d69d41",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/SessionLlmAnalysisService.java",
+      "git_sha256": "8f30429246bee8f8054b27f5d2c7b9c3bff95e8e92b8f36da9afdf864c48c3fe",
+      "compiled_copy_sha256": "057d34772701930986492de4c2beed05491cc14a7f9962586044856653ef086f",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/SharedUniverseService.java",
+      "git_sha256": "3eeea769dd1037677f65b615fc925f32f8e66bb4b8c9222afda6f9056848dbbc",
+      "compiled_copy_sha256": "b9d9e3520e82a51b029215f7dbd8ce2b1970dcbd0a8ad646891953a4560308be",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/SignalQualityService.java",
+      "git_sha256": "cd56ea80b311001dd73fe947bcaf07d0860258dd5d2fa33fc698ae159ae23a42",
+      "compiled_copy_sha256": "9cc859506b317fe0d31705e4b5d2f3974735d905ccefd098f693218407b72abf",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/StrategyDegradationWatchdog.java",
+      "git_sha256": "c7bc3e3ab540696c66fe3cb55e0e15f54941238be11a2d140bf3e736c24a03bb",
+      "compiled_copy_sha256": "66e40e0d322067c18083bad20bd1b67f1b939f10067f024166ba6dea91ca4616",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/StrategyEnablementGate.java",
+      "git_sha256": "52b6704f019b81b71ee0dd72527e1661cee80a4fcea239e731a030e94109a6fb",
+      "compiled_copy_sha256": "498335f9c2ad4a859b2568e996d794d72438f9448c5adc1a0f1c0217b013bfab",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/StrategyKillCriteriaService.java",
+      "git_sha256": "527633575d9f33f4e4a53407ca18640621e0b4f7421b069fc4e6d3efd65c7280",
+      "compiled_copy_sha256": "8a4599f19c1fec55826114e9de3b898a2a7d6afe1d00c08aa243a09d7876a7a8",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/StrategyLiveStatusRegistry.java",
+      "git_sha256": "4d76ce59b216730fa0519b4465cc9458061fabf69dbc4e48f8be09f28a06eee1",
+      "compiled_copy_sha256": "71e036d6b71fea321002c9a9e9917ae9529558ad1aaca8a9a065b3cd06256cb3",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/StrategyWeightOptimizer.java",
+      "git_sha256": "2f835c09eaa1ff92174d53c62f32a3bb1c08d76c910145ad7c4bf47d568fb9cc",
+      "compiled_copy_sha256": "2f835c09eaa1ff92174d53c62f32a3bb1c08d76c910145ad7c4bf47d568fb9cc",
+      "exact": true,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/TelegramNotificationService.java",
+      "git_sha256": "ddc9e7ee11b66b22ecef358cd602a4652a928a99d136a5f8f422236c92a1956c",
+      "compiled_copy_sha256": "bea4882448ac1dce0e285518e0703846204cb63a31d481627d017829acf9047c",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/UnknownOrderAdjustmentService.java",
+      "git_sha256": "1d2653682fbeb40f05da3ba198e7f9596442fe5dfbf75db83bc35f78fa248f33",
+      "compiled_copy_sha256": "ab1d9bd3227058298508ee37f9ab2595555b57e204663a22c281e1230e0971ae",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/UpbitApiRateLimiter.java",
+      "git_sha256": "eed26bb130a74034f277ee6f39a6027e1eb30895c95d6e14418ef2a4404530e5",
+      "compiled_copy_sha256": "e377421e2b0498591fa8dce7913e0c963d24baba971454e7badb576fad18ffef",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/WalkForwardValidationGate.java",
+      "git_sha256": "15523ef63fda68900f0f1a2048dd7fce431646321b6586626300d2c80c459204",
+      "compiled_copy_sha256": "230170df324bb74367c8a5f891daa651e2af622134edb2ccd1ccd66679c421fb",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/WatchlistFilterService.java",
+      "git_sha256": "9b7a93918ab625404aae11329f85797b5e44c76999cda32c5f6b8c1872dadb81",
+      "compiled_copy_sha256": "c64dc72101aee15b81f41e7adebfc1d8b082cdb2c98e8d198474cf05b1aa1e8e",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/WsSubscriptionManager.java",
+      "git_sha256": "b2713be5c5e547db6f7dbd76907e3c4e8953339e3fe8f044a1eb92ab8667f7d1",
+      "compiled_copy_sha256": "d93006661daa62b2680542955332ba7fd077f7bd003a16225cfa6a27f05c238e",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/support/CrashPoint.java",
+      "git_sha256": "c8f09eb1b29571df6cea4e628c2ace61b8505736025a34ab1f699bdd301c508d",
+      "compiled_copy_sha256": "cd7a3971e1ee8ed7871c06d7caadad9e168765238b79b159bf69cf5a1962c9c0",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/util/IndicatorSnapshot.java",
+      "git_sha256": "d6778a64713991f321744902e829f5282c8f11fc10a4c4c2388f2fe9d1b69664",
+      "compiled_copy_sha256": "f757752cbd3e17fa3a92330177ad3ee591ad384c3fe791f8154671ba4c435389",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/util/OrderAmounts.java",
+      "git_sha256": "d60681e0d9ef7aaa14f6ad2bd60f9fa63a87aaf5bda921968cf29c9b9d3e5b4b",
+      "compiled_copy_sha256": "6f582c3dc793ce7f42cc530990359bd9c786f3f0d6118485a6b8ce7d3607c3ec",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/util/TickCandleCache.java",
+      "git_sha256": "14626736f84347265ba002b5f44653332ebef35671a89bdb522fe69dcd1ef18b",
+      "compiled_copy_sha256": "6dfb17a7871eed4b5e32b6828affcbf4d33a47f3cc98221a1db73db68498bb43",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/util/TimeframeUtils.java",
+      "git_sha256": "21c0fa5122a57b7e87f5cef029025159edc05955acebeacc70592e5cfe0b6934",
+      "compiled_copy_sha256": "2b7fc00f73fcc4aca12e5d964850f0a2472078bf27bfcab223c7082279021460",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/util/TradingConstants.java",
+      "git_sha256": "77d31eb3c64bb551cb1d994068b6952d89589aa7acebfb9ee46ca3f9896e83ce",
+      "compiled_copy_sha256": "664f95466afb98081a3eb1f6cb3e6f335949145cd67696082482f54e1833c817",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/application.yml",
+      "git_sha256": "57f9a47c3a94a9b33bf97c7a8cd1b070a2ecba7bc7642267111ed05bacdb5afb",
+      "compiled_copy_sha256": "b7ab428ca96894187ffacc6b0fc5cc957cb96f0ad751309fa3c4052a05ebb54d",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V10__paper_trading_multi_session.sql",
+      "git_sha256": "4b7a64257d9dfcf2d5211e5796e21f54a2bf424cd5f89a54427e9e15a8f46c4b",
+      "compiled_copy_sha256": "5caa2929ef0067cc9cff7b315a042b24e353c3e6b31654d821e564b949cc3b42",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V11__add_manual_override_to_strategy_config.sql",
+      "git_sha256": "1b66ea300e14544fd64bae3d8231959a2b55460c23e1ae2589b1518d877503f0",
+      "compiled_copy_sha256": "e23d22b9b9f55fcc03bc302e634d50f99733a3649c2a50debe3af0902c0fe6b2",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V12__create_live_trading_session.sql",
+      "git_sha256": "2737dc32f4f65ea59748d6ee3345c76ac35a9b0db532330df733069d546a0568",
+      "compiled_copy_sha256": "c155deb5dfead12c10f2179a6f27c1eb337ace5a1d5e431043d88c9ea9247eb3",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V13__create_market_data_cache.sql",
+      "git_sha256": "808e8d2b862fd43307a91468e3b5b554f5b39f9243de8f8bb7e820317e3799ee",
+      "compiled_copy_sha256": "1782e14c6ccfe5438ed569abe16233022db876b99dff1f61d046ea7967276398",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V14__create_strategy_type_enabled.sql",
+      "git_sha256": "9e36ff9797e42ac7ab1a4821fb02e6f350c84b402949c44222bcae1a6520e3b7",
+      "compiled_copy_sha256": "c4b5b688373c36758643041b37711b4a439e01896b25f1c6137a188c714dcb4c",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V15__add_telegram_to_paper_trading.sql",
+      "git_sha256": "6efcfbeb879d736add72b97217a9da5e14ac4fee2adf55f56db6def2889ecce2",
+      "compiled_copy_sha256": "1c1636e7bec558369b09e0afe08546fb8fe58a536a4d16aeae314215c6fb1884",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V16__create_telegram_notification_log.sql",
+      "git_sha256": "1364e50e127498bebe0e434a6c2565a63a0234e03935d5dbf3c08930e4ecd057",
+      "compiled_copy_sha256": "493e733af43d07ee08e341d2e9518ad3ce52c66d9ee96311de49643c64f43956",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V17__add_session_type_to_strategy_log.sql",
+      "git_sha256": "98b5f929b10b7e30f858ca254667e9b454556ea6cab78d98ed9a41c4903e528d",
+      "compiled_copy_sha256": "abaa026e2bcbb1871a895608f9dd55a3162e4f3639c8508a0a05a27e1d1ee186",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V18__add_pnl_fee_to_virtual_balance.sql",
+      "git_sha256": "3d26ee9a414314fc6300ea4238239758e679d99d7ccc9f34fd18e9d35be50b47",
+      "compiled_copy_sha256": "855af459b1331db1ec93a61f033428e91ce4131ff01f0c516e5ddbe4b758e153",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V19__add_invest_ratio_to_live_trading_session.sql",
+      "git_sha256": "7a804e1a51c8e4897a53af794351b6549ce0f1c9bef3d89423b9fdd00ac2fff4",
+      "compiled_copy_sha256": "26694bb8ec0218a30912b6ded93b4bc3bacab2ed14ad03d4c14bc3930a257f2f",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V1__create_candle_data.sql",
+      "git_sha256": "80481f1cfb552cb3e17e20f4bcf683356c95342b5e074abb67febb440e086c80",
+      "compiled_copy_sha256": "3acf1f69c92dd584ded989138455211236c27ba34479f93ee933b716c67144e1",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V20__add_position_fee_to_paper_position.sql",
+      "git_sha256": "b4afb6e058333ff58e74a643493e4a9062cff444ef44c67e80a1365da2164f45",
+      "compiled_copy_sha256": "7c90be85af0af39421b99afaf959bda61c7f72f3a8c3fcaff6017942e94f7df9",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V21__add_version_to_virtual_balance.sql",
+      "git_sha256": "4791831f2bcbb0af8fd0c65dcc4bf12f33e699b51be089422213c50d8b3caef5",
+      "compiled_copy_sha256": "46bf11be451f559674e3b0d49fca87f97d9b87c8c2b9535420e1580d9f63093c",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V22__add_position_fee_to_position.sql",
+      "git_sha256": "ed69812d3a971baab7c9a20be49540e6eceb5146ac571c96bf61abea0b388b88",
+      "compiled_copy_sha256": "1b72256e19d5d5e7edaf3d2be37f9fb7b21530bbc41f046a16ec31fe5b813358",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V23__add_closing_at_to_position.sql",
+      "git_sha256": "8f250d5a995601c8f0ce51aff39a9c162443437fae4803ee2ae17029b6f399c5",
+      "compiled_copy_sha256": "cb4ceb332f5431d791e1f1e05daaf0be7d9f46b31367f42decb8872ce175f6bb",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V24__add_circuit_breaker.sql",
+      "git_sha256": "2fd8b62c8a390ac9a003f86523546675ca990e2a2369371d3bfcf442dd64bc09",
+      "compiled_copy_sha256": "adf5903e3a6bea86fc937de7a832cd4d169ff4af2e17469f258c7215321b76ae",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V25__fix_market_regime_varchar_length.sql",
+      "git_sha256": "87af313dc1341f39a95c10078120e0fbc41cf0eeeea9eb7cb08fe0dfb11f0c7f",
+      "compiled_copy_sha256": "a1f4c2a54ccaf341186ce82bc6233688a8963d58ff763190415da27dc2b210da",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V26__add_sl_tp_to_positions.sql",
+      "git_sha256": "2c142bc042217c522a69bc2d95bad866586db90fd4808d24abc5ad8fc9196bed",
+      "compiled_copy_sha256": "cb3d1faf3f40ff9052cfcf7f13683a65f33216f40e22852a7d6daf9fa0abd4d0",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V27__add_response_json_to_order.sql",
+      "git_sha256": "77d5b09a671557922563599e9cf0e02fd22c823a427d5f9a8b6da96328648af7",
+      "compiled_copy_sha256": "3e7977bb70b19daed9bdd8e82fea01f51703b28047f71c250a7586cf55842aaa",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V28__add_executed_funds_to_order.sql",
+      "git_sha256": "b8bfc644d5ac4f00b3d2c92648fdbea6c6712a1f73a64d83392a8439c034c73f",
+      "compiled_copy_sha256": "2715cfa85dfe66e57778629ffdaac0a4984c8b48b8876afc0a768f69f0b8aa13",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V29__add_invested_krw_to_position.sql",
+      "git_sha256": "e1bf3b21afb1dfeedf7f7d5a98af21911f4651ef9c3cb4e372fffc50e85be0e0",
+      "compiled_copy_sha256": "db14cadac3ca4174cc162716088a1c0c30a6ca734830b137f22cb3566d654855",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V2__create_backtest_tables.sql",
+      "git_sha256": "6af4657e6bc49c15f249c58af4147459c47e6cafef4b8bd19139fdf623104d7c",
+      "compiled_copy_sha256": "91737d1259eedf6ef627111903120309f6da9c4f1ca7231027eb9528c2f6c47c",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V30__add_backtest_job.sql",
+      "git_sha256": "f5d18be353bd79d76f68cefaad871993f2fde960376659933e711a55cbe5925d",
+      "compiled_copy_sha256": "73d45030638aadb09cf3023403e01b3562e600c4cfce8db0dfa0ce1746d6b864",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V31__add_signal_quality_to_strategy_log.sql",
+      "git_sha256": "6dcb36b4793b1160b2f1a7083c0c4857861f12ffe6f0d22c00d71e3dbebc5091",
+      "compiled_copy_sha256": "37994965b82167087e6fe05cca22a573993afe44322e64fe3cb7367509707fa4",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V32__add_market_regime_to_position.sql",
+      "git_sha256": "79e583f7785601fc5776a10c625eb07907beb8614d550646e236fb1471b55ec1",
+      "compiled_copy_sha256": "4c65ee8f755b808855852222b9281c7b434c7530b00ef59e67c22b6242a59914",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V33__create_regime_change_log.sql",
+      "git_sha256": "630aa07bc008cd524c4a346f5e875e3c4213f0068e38e77e989e7cff37227c4b",
+      "compiled_copy_sha256": "39e1de6c30f4a5455567dcb5921544ed620ef06a9c76f48974ddfc6aa703b3b4",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V34__create_llm_config.sql",
+      "git_sha256": "c1279a8cadb1a24d74179f4387670538f1e6d83b87f39ea8af43f5c6fd19c40a",
+      "compiled_copy_sha256": "28bdff5868d112deb3611d742d0beba1e919cd41026dee0c9169fd957d768e86",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V35__create_news_source_config.sql",
+      "git_sha256": "4af08648881c54116c4a1d60fb22bce9cb31316fc1439c2b690344abda4b9466",
+      "compiled_copy_sha256": "3ad1544b9f81ca5a0ad6d859a9c733f4ca7c7b4ab802d172a0276e3a758f214a",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V36__create_notion_report.sql",
+      "git_sha256": "dccb45d5d6e7ffaeabacaa16d274b6d342d1192f9f7739d956b843485519bce2",
+      "compiled_copy_sha256": "4a94b8b61462fe15c2c6cbb2e72b9c2f3666d46889df435456b48b0acfed65ab",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V37__create_discord_config.sql",
+      "git_sha256": "d47e3afe279dfe9d98294747b3815d9ac463b123be044b4f836bdfec71eef925",
+      "compiled_copy_sha256": "b4cb3029c3f262af26abd00ffc98cbd9732a391fb7dbeed401e393e506259f8a",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V38__add_wf_result_json.sql",
+      "git_sha256": "ba7b4b28e88f7d62652f433a42671e27d1c73d7e19191ce53136de90078247a8",
+      "compiled_copy_sha256": "67c162ae90bf8628c3736fb32af5b6ee548772ae23f5281b29efcc8b60023351",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V39__add_exit_rule_to_risk_config.sql",
+      "git_sha256": "ea71efd99a6833af7e583b4586da5fc16cfd87f46c5c5d37f5cdb8b312508a80",
+      "compiled_copy_sha256": "557ce4b7b2a275612e599ccbd704d6b7e821a0a0d8afe91f70acac9537a39740",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V3__create_strategy_config.sql",
+      "git_sha256": "13559b7a69a7ef17379605b7e8da6829e4e0fd5bc3f097e50dca9987c852eeec",
+      "compiled_copy_sha256": "5f6edd57a8f08a46482b5407b9eec254d08039612ffa46cb6b7c10a6adbfbbaf",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V40__create_llm_call_log.sql",
+      "git_sha256": "8eaea96e7a49f7be53702d5f9f647554048797b8a53e7768803b70a966fadeef",
+      "compiled_copy_sha256": "3ba02c6ccec4a0f4f2cf07820a7973251d1cb5d02dda623102d1b3c9043f5c0c",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V41__create_nightly_scheduler_config.sql",
+      "git_sha256": "a4790659f885a0bee3c4a3726e630c3d5382a7ec68441e61d1c703441ce7b04e",
+      "compiled_copy_sha256": "3929404625eb7f7474654057c9c28ed6989663e60d632a8f42c617a1eede862a",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V42__fix_scheduler_config_column_types.sql",
+      "git_sha256": "f47c0228950b51169ab67ed1167cdcc62287d774e0f182e99b0b0d47e893ac6a",
+      "compiled_copy_sha256": "1a9019340e94b612a221ebca8aac5f3e22066b9b4ba4247a054a19acf93c8b4a",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V43__add_version_to_live_trading_session.sql",
+      "git_sha256": "0ba5ba371f072fdaf3ed26ca79f2b501b79216f3989fbaa3414961f97c8bd026",
+      "compiled_copy_sha256": "a563db9fa08daae94592894c144ea7ebb4b86dd77f889b0b3da11c67507a9e8f",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V44__create_execution_drift_log.sql",
+      "git_sha256": "d2d43e9f0513644d52525c813ab79ee9cbbc101a54b0dacb9e41da2c04a4dc29",
+      "compiled_copy_sha256": "c6c8e465513c6093fc835fc49236be404dc4e2c8018e8df4e6a1a10f46ac2886",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V45__add_capital_utilization_to_risk_config.sql",
+      "git_sha256": "36e81e03337a92042c17b3ed74afd6ac4b2ee00114a136ba62e4430d49d3050d",
+      "compiled_copy_sha256": "ade0f51827658374300927e85ec3f9ae9eaa65a9cd5c99a0c6b2dd7521ce6158",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V46__add_session_type_to_live_trading_session.sql",
+      "git_sha256": "b80043925d780bd5419e8a4ca2ea69bbc8dbade1791723787f72d86d37b2b91b",
+      "compiled_copy_sha256": "909f0e240c9635b7a24d97c34de35f0da30784d913346ec310219314b5b12a31",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V47__add_confidence_score_to_strategy_log.sql",
+      "git_sha256": "495c05d61b5af0673dd5f261b9f055bab028a2684f2a75f1c206ad7c33be5db9",
+      "compiled_copy_sha256": "dcfa37d828a290e66546859e77c9a9554f76d7c933f19c458068d8f46c11c8bf",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V48__add_portfolio_drawdown_to_risk_config.sql",
+      "git_sha256": "295e121f8b88f030f100fb862513969c4e64f160976245c92334f6960a286948",
+      "compiled_copy_sha256": "d60f9667e7194f3b827c9163be1438742a247ca8aa47b9b8db7e38818db9eda9",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V49__create_weight_optimizer_snapshot.sql",
+      "git_sha256": "8374a5718297990a33961c5d94e98cdebe993cdacd42157f29d5f812cbb92f9a",
+      "compiled_copy_sha256": "2f5dbeef71242aa8457052fc355198e6710d68ed470bb32e150b11348f33a652",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V4__create_position_order.sql",
+      "git_sha256": "ba329f9e454bff3bd5ae25c2d8ceade96d64c8fc9e7efed93c8a1957e988cdd4",
+      "compiled_copy_sha256": "0ebfe16366f7f4fbf42cf7d4be642e6f19746529ae02021e2fcf6fc690d36025",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V50__create_dynamic_session.sql",
+      "git_sha256": "b165e849c355f57d475f96b83e1063946f8892ad28a199688c0a84b4dfb0e82b",
+      "compiled_copy_sha256": "d1791e7c7850a3e89171bdc023b5b839a73f3f2276d6f51562a0649edc7df707",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V51__add_session_kind_to_position.sql",
+      "git_sha256": "da5144eda70b4c682e0a568d46e766a6b7169892398fbff70cae598cd5efd5b8",
+      "compiled_copy_sha256": "73a520e2517de8dad4d4178a1f02917df06ff4bdc0274828e89de4e8a45e647b",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V52__add_session_kind_to_order.sql",
+      "git_sha256": "23f0e27e6ef818c2a0cafa89263fea7826794bbf8f5b8d20f802cafdb4d4f89f",
+      "compiled_copy_sha256": "444757359db99ff62a5df8847a16c9f0369f1fa3bf096323904a2114fce0ef68",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V53__add_profit_factor_expectancy_to_backtest_metrics.sql",
+      "git_sha256": "05448abd6eef091b22091ce330f5495b99bc7c1de6fd641ded71e368c9a3748b",
+      "compiled_copy_sha256": "89b893cdf2d4bceb38dec06c33f2187119db95c1fbdb2c30827b0e3c29f06efa",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V54__add_signal_price_to_order.sql",
+      "git_sha256": "49444851f3101196385e371a996d9a1dceb69ba0198817005e28f386bfa83855",
+      "compiled_copy_sha256": "3029ff3db3abf98b4b7d220976ea365b63dabd9dce7e86f0f4f2dafde46fc2c0",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V55__add_circuit_breaker_to_dynamic_session.sql",
+      "git_sha256": "986ff8e32607b3f1e467812a1390c09b830e15d8aa822f91c644706db249a9fd",
+      "compiled_copy_sha256": "4f9ea80f17b0f49f11511cd6176f44b35acb36a040e9cc7e7c0d96c2bda425d9",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V56__add_dynamic_scan_tuning_to_risk_config.sql",
+      "git_sha256": "4b285a9738280d611d464c7e47e44245ce7e7c0c0b508ada08bb1e2cbafef322",
+      "compiled_copy_sha256": "0349936842d1ee22d96fba36ec201be2f689602cc73f2d1a00235bed63441c6a",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V57__add_watchlist_quality_to_risk_config.sql",
+      "git_sha256": "4859190f76c6285da4ada537261fa7cc4449f7798ed94580c942c9df7aa0d3b7",
+      "compiled_copy_sha256": "f00f1faf52db0b1e4382c23df98d1435e0502d944073c05523a26ba973962be6",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V58__switch_llm_to_claude.sql",
+      "git_sha256": "a745b40ca1479342bc9d15c5fe36c1c5adfad9d6553056e9fedc9c71d805360f",
+      "compiled_copy_sha256": "42fd3154f9c46aada692107ba33667d8e9dc015dde9e36b36a49a07daaafd1c0",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V59__set_llm_model_sonnet.sql",
+      "git_sha256": "178fc7fe0db7e550fbac47b039b97e3e5c2d321a5bfaa336a7bc2e8ccc0d7013",
+      "compiled_copy_sha256": "7c84d8dbf1791cc840636718fd15db49293c8818e57290dff351c518807c1b61",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V5__create_risk_config.sql",
+      "git_sha256": "af6f7cc1a6c538398ab37b0b22516ed1ef6d563d4e63ad1d24077c5f4860fb6c",
+      "compiled_copy_sha256": "714a5cee27fde4ce7efb0ddbc982e93758fdbe4b1f137ce5a49533ad826c8e00",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V60__expand_news_sources.sql",
+      "git_sha256": "4b6667ce6ca260f3f51666dea7553476ee60f0515f13eac01707060107f94963",
+      "compiled_copy_sha256": "410d0e5624be6ee3a6e541eddac00aa231eb017692f63c4272f64a34322ccf5f",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V61__drop_polymorphic_session_id_fk.sql",
+      "git_sha256": "ad9e66d02a2e120d768fbf8272372f40a7c85edf696ce570d2a8c132167bcc11",
+      "compiled_copy_sha256": "c966a33562a37f9cfff2728fec6746197942d06a82ba0b90487161f1071b72da",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V62__add_max_hold_hours.sql",
+      "git_sha256": "a5211a6d8daefbcedc9e8c0136515bdc51cf2c0f8e1bf0293ec716fc9fdbd21b",
+      "compiled_copy_sha256": "d3d6dec70ac770e8e8081955372f23ba3b70ec05d25bfbd27d55404da83cfea7",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V63__default_max_hold_hours_off.sql",
+      "git_sha256": "538f88d7d26fe9f2e81994a2b5f29a458b5ab8b97edafd3677fd808ff6718a90",
+      "compiled_copy_sha256": "03a29b5a20ed6498bd1396387f3d774cc245ded18403697e47f2ee2564dff293",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V64__add_max_hold_hours_to_live_trading_session.sql",
+      "git_sha256": "6ae97382c5c09fd69c0d28349df94cf1899d78f32418b0b0bdcaa2d5edca461f",
+      "compiled_copy_sha256": "cd52af64cb0266855cd2423b93ad7173a67e06957f8c243daca193f4c0142913",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V65__create_daily_health_snapshot.sql",
+      "git_sha256": "404fb2be4eebe3f5bc261b11d20cc1cfefe4da8e8c580ec4803c7b1aeac4b75b",
+      "compiled_copy_sha256": "31855f3edcd6466c715b861f77a1ad9c5beda81dbf864a5c6c60bfeb7b9e2b1c",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V66__align_paper_trading_with_live.sql",
+      "git_sha256": "0f13c177ecf8988c32e1c97c029ec6c0663a77aaa1dfcdd69ca431f262fcd089",
+      "compiled_copy_sha256": "d6003dbebf540b7b151f97222c818448609360daa1db4484d0bc5bdf1ac43baf",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V67__add_trading_mode_to_dynamic_session.sql",
+      "git_sha256": "2bb593fc9ac0c30b1716607b725e3cb24fdde925d1a7e858f00c1aceee51f0f9",
+      "compiled_copy_sha256": "72963985bd06d6e82ae7b71ac4ffc01e1e6b7e0fb7b1a190870cb618ef40ba99",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V68__default_max_hold_hours_on.sql",
+      "git_sha256": "a0fb164bd7c03fc064431a76ad383a5f699f2adbfb237d65c64fe995ae7f6bad",
+      "compiled_copy_sha256": "829921c25f4d9c1926e7bb0e8ba29b4a5bf1d950c2f00482c9d748edb9cae190",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V69__add_circuit_breaker_trip_count.sql",
+      "git_sha256": "e97eed018bb86bdde9fa8951ed9b85f3fcf5a591810c7405374adfde4c5f0971",
+      "compiled_copy_sha256": "3ddeeecb75b78f0b47adc738b30f3211275d609c5510773e3f39ed0d4d577710",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V6__create_log_tables.sql",
+      "git_sha256": "c16d59edc86291bd21a43c8100972820d3d9a5ae3d36980801ae0a9278af6849",
+      "compiled_copy_sha256": "23ca8d22cd63acb659021f17763d6e699a398e006ccc7a17489448132eab9a0c",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V70__create_kill_criteria_judgment.sql",
+      "git_sha256": "0d493b75b977da7f42ccd721fe365e9f3022dc5c3677a2cf5f6d9e52c87dc4b9",
+      "compiled_copy_sha256": "cee382d8cb773e6ccd2097e07034a71418f1f2d7073d79eabef00f2164cc5b38",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V71__add_ruleset_fingerprint.sql",
+      "git_sha256": "fd3963e35a0e87837dfda0a51b77698525ca7448a5979f408555a27407023cce",
+      "compiled_copy_sha256": "5c1e54e0c5dcb64450d69d44fe87a47e0a01f871e8587681fdb8c17fd9cd1d80",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V72__create_dynamic_sell_settlement.sql",
+      "git_sha256": "e8db3b1af55e1d22886989921efddfbadceab5b5dd840e5df6984ccc41b08660",
+      "compiled_copy_sha256": "b75f89b46e2b4b1924551d709599ef1586c144cfc17961665f6a18c49ff19a03",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V73__add_exit_reason_and_analysis_columns.sql",
+      "git_sha256": "7b2af52e7dd90b5c5a6def7e3d4267807cf2127260660abfa17b8d7a206cdbaa",
+      "compiled_copy_sha256": "a00c91ca135185804d36b55711456f751ac767b79c376c002e71429533b085ac",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V74__add_session_strategy_params.sql",
+      "git_sha256": "684a0375ae4a916b9119748893d2de33c55630720f3c98aa484bd77592b3713a",
+      "compiled_copy_sha256": "c457d03c4d1dd51de45a1a06cdbdecee118380dd01f7c2bdfbebd88b132b4888",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V75__hold_baseline_index.sql",
+      "git_sha256": "8c9719a942dfb726e4dc759d42cfeb70aed2d657d0b5e3ada517bb59e47a9f3b",
+      "compiled_copy_sha256": "eb0c501a5d3add2051488149d33a835362ae18f9a9f0e8c998c62547133bafa3",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V76__add_timeframe_to_strategy_log.sql",
+      "git_sha256": "541172e0bf9d079189c8619bf20659213d77ba038fe415a540eed98a5c05eb46",
+      "compiled_copy_sha256": "943544d82a99da2ba1db2f380fda7b3aa807c307d22bccae5a9a4f734b8f1a91",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V77__timestamptz_for_naive_tables.sql",
+      "git_sha256": "744cf7074017f48f3a705de1dc3a3b3122fc8103398b35df85fe14aaab416f36",
+      "compiled_copy_sha256": "b19ec04683a9f718b183df84e3ad9474a476650110a22b4f961d579e8ddb8d94",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V78__add_exit_rules_version_to_backtest_run.sql",
+      "git_sha256": "638f8d161314ad54fd39244d9fda6bcd9cddfbee88011a6746e9ac639f81a5f9",
+      "compiled_copy_sha256": "2e9461ebc2ad3aa6ca3a5dbf8cadf03c759fa7d8ffc03b585b71dab137cb1cfa",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V79__add_timeframe_to_weight_optimizer_snapshot.sql",
+      "git_sha256": "c3a780e1109d1bf0e8695f2a1f6dd4711550f65e759ce2a919d06fa0f55268cd",
+      "compiled_copy_sha256": "a08749e608da81aa47dcc6adbae458bd05853a742e8766f9a95f3f28b0acfafd",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V7__create_strategy_signal.sql",
+      "git_sha256": "b60628501a2d360e1ddfe774761a07490c9b9152e390f3fef8cd59bbd16e1406",
+      "compiled_copy_sha256": "5db7c7b9bfb8a4d6c089233d60869c7425b0c3434e1f9d0c671e3918391b895c",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V80__create_strategy_timeframe_enabled.sql",
+      "git_sha256": "58777e1794dce44db3430c4136596f032b4f193d16eda056cae0a21540d4b4c5",
+      "compiled_copy_sha256": "5b25b227be1050d779058f36d2dcc7ed044175d2a8cbf604b8751b9c7e7dd5cd",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V81__order_reported_vs_applied_settlement.sql",
+      "git_sha256": "9b346edb9de5aedf761a0f16ca2b8331e598aab16fa635a7d7b5319d0903c506",
+      "compiled_copy_sha256": "02d329e566a85a5e696b7a9b33c6285a43e17d2f6886c179024f0cfb7ab4aec8",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V82__order_settlement_tracking_and_discrepancy.sql",
+      "git_sha256": "428abb56a44684ee8e22997a889c5d50c949c49157ee76c73992c5212a84dc41",
+      "compiled_copy_sha256": "d717a53cd1b724bba200adaae0e6d2fe8adbbb2913281ec1e69f63e4fc667e59",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V83__order_fill_observation_and_pending.sql",
+      "git_sha256": "f3d6b8fb78fe1922caa3692781b08ea126883dfe68efa697f3c3db8d2e4512d9",
+      "compiled_copy_sha256": "0429666298f1d452d0893339f259f4e42f244b874ce71d28227d48ebd888c4e8",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V84__order_intent_claim_and_unknown.sql",
+      "git_sha256": "c60b212412c51883b7d6e65c19f438c3af78c61ebb001e4a221cd89c086fea1a",
+      "compiled_copy_sha256": "8a34c64674131ff7e5b9bf5308266bd73b62891bdfe1206bc0da23bc6f781bf8",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V85__account_capital_lock_and_reservation.sql",
+      "git_sha256": "a7ad8acc097b50751f9ac662f72bd703abff3375de02f4ebf3427d97bb3de221",
+      "compiled_copy_sha256": "d357e6c92f715bff5809c9bf146a21fe40102845f3788201adabb5dc5b42b40e",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V86__failure_code_and_intent_owner.sql",
+      "git_sha256": "f823b6436fac5259ed799cf250666e5d7991e95fb9ba1ba0ee703ef5dfeb9630",
+      "compiled_copy_sha256": "cce27578f8fc32ab1dab53d6a707a0019d853b713aae892e5f7b9f73ed9c7496",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V87__cancel_confirmation_and_stop_cleanup.sql",
+      "git_sha256": "35751dc314ee6fe845d0b13b7edec1b899096d86fb363270b7701ca8b6b40734",
+      "compiled_copy_sha256": "d1db9e3c31119110e457b8c8d065eb6d690f85bab9aa58f1dbd78d37ff646f77",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V88__seed_default_risk_config.sql",
+      "git_sha256": "561fcad63c838c28dc00f8140621e448c61d9eddbacbf4b01d72ce83354c176f",
+      "compiled_copy_sha256": "c0e9efc79042e8f94485a30dad940e3381569208d872199d58d4ef16f901a5c8",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V89__pool_loss_limit_baseline_and_snapshot.sql",
+      "git_sha256": "3fd49d138fde0ce715952e04b81ff3bec23411e22e47383159022a7d3b2b985f",
+      "compiled_copy_sha256": "802e204dbc9143b79217dfc1c83f47e372a1cbc08a3e7eeb311748299663459d",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V8__create_paper_trading_schema.sql",
+      "git_sha256": "7cd72da4d60189b38b4a5f477b91d9cf8e816275a3f230dc4765a7b558043fb7",
+      "compiled_copy_sha256": "1d5f959cff4c31b62b97bed39f1fcf6a8cf009852409696fca4fd9631c735304",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V90__position_limit_allocation_peak_breach.sql",
+      "git_sha256": "ba7eef749720d53e3a944659ca6541f6ec7cd7db72042e7a7b4daebc40ebb8a8",
+      "compiled_copy_sha256": "9a2f0df646e6c972ab7e0171b6b98e7b6a226efac51504bb2066f73129aa79ff",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V91__order_manual_adjustment.sql",
+      "git_sha256": "b3232d495f9e2741ea069306f7a5d784119eb0fed763e092c0c6df415f3ffd09",
+      "compiled_copy_sha256": "d61d4f65d2b06c903425fc24af59eedfa31eefcf696a236e595da7a52911869f",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V92__order_fill_price_source.sql",
+      "git_sha256": "9c52c89deefd7c03c473c66e2dd1c98b2fb557c4f1259cbf7da75505453e91e7",
+      "compiled_copy_sha256": "7056d764ed3ccaabb9f227de0d5aa85a1db9ac8bcd874102e9ae3ecf8202636a",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V93__exchange_maintenance_window.sql",
+      "git_sha256": "c87b8896c761b6bfc8733796a9892dc1662b07b32fec4571a1866a269ed7da5e",
+      "compiled_copy_sha256": "b6af016a686f1bc0580caecd46dee82dc0656a4ec978209149dd556bbb17d3ea",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V94__sell_quarantine_release.sql",
+      "git_sha256": "322caf1af0285fb1aa604c40940ab3821da2d4441858b3971b903b9c2aeb202b",
+      "compiled_copy_sha256": "1c3ad52088cf9e8ff410c705baf21af35b928096c9ba5e90db0a2e5537e212e1",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V96__paper_aligned_runtime_state.sql",
+      "git_sha256": "9a5ad0737ac03a5a5ef4267b2b4e2eeb0a981195bbf5b9340c6646a7fd4ae4db",
+      "compiled_copy_sha256": "5c2d89b646fdea489abf58eeb89d0feb1c72aec72c69da30598d112eba3cd877",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/db/migration/V9__enhance_paper_trading.sql",
+      "git_sha256": "3887b4550f564c6de74a7092b44f3b014a9d2619a499ac3edfc2c0d9dee477c3",
+      "compiled_copy_sha256": "9c25e419bdf3798dc0ec366543826e2456dcffd7afd62053979ce036101ebe05",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    },
+    {
+      "path": "web-api/src/main/resources/logback-spring.xml",
+      "git_sha256": "f5464c7b3ed5d5cd1bc74b86f183fe1fc538357f20be23a0f3dee549f3cd8103",
+      "compiled_copy_sha256": "fb56781d1f8fb5b5500c113b8dd5201329aec9e8650bc184cebe7473bc6857e8",
+      "exact": false,
+      "content_equal_ignoring_eol": true
+    }
+  ],
+  "root_operations": {
+    "server": false,
+    "production_db": false,
+    "docker_start": false,
+    "git_commit": false,
+    "git_push": false
+  },
+  "observations": {
+    "S1": "injected pending stop notification failure escapes after STOPPED/CLOSING commit",
+    "S2": "same fault yields stopAll response stopped0/pending0/complete while DB pending1",
+    "S3": "mock repository interleaving returns same ID twice; not actual PG concurrency",
+    "S4": "actual pending position but balance API reports recorded asset/return without pending metadata",
+    "jar": "expanded881/881 and7 changed; submitted comparator ignores duplicate-name synthetic control"
+  },
+  "product_code_changed_by_reviewer": false
+}

@@ -1,0 +1,87 @@
+package com.cryptoautotrader.api.service;
+
+import com.cryptoautotrader.api.entity.paper.PaperPositionEntity;
+import com.cryptoautotrader.api.entity.paper.VirtualBalanceEntity;
+import com.cryptoautotrader.api.repository.paper.PaperPositionRepository;
+import com.cryptoautotrader.api.repository.paper.VirtualBalanceRepository;
+import com.cryptoautotrader.api.support.IntegrationTestBase;
+import com.cryptoautotrader.exchange.upbit.UpbitRestClient;
+import com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient;
+import org.flywaydb.core.Flyway;
+import org.flywaydb.core.api.MigrationInfo;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+/**
+ * 임시 로컬 확인(커밋하지 않음, 총괄 v1.150 §4) — 옛 바이너리 b5cd1d0 이 V96 두 열이 남은 PG 에서 기동·읽기·저장되는지, 두 열 값을 지우지
+ * 않는지. 환경 변수 OLD_V96_PG_URL 이 있을 때만.
+ */
+@EnabledIfEnvironmentVariable(named = "OLD_V96_PG_URL", matches = "jdbc:postgresql://(localhost|127\\.0\\.0\\.1):\\d+/.+")
+@org.springframework.test.context.TestPropertySource(properties = {
+        "spring.datasource.url=${OLD_V96_PG_URL}",
+        "spring.datasource.driver-class-name=org.postgresql.Driver",
+        "spring.datasource.username=trader",
+        "spring.datasource.password=",
+        "spring.datasource.hikari.connection-init-sql=SET lock_timeout = '20s'",
+        "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect",
+        "spring.jpa.hibernate.ddl-auto=validate",
+        "spring.sql.init.mode=never",
+        "spring.flyway.enabled=true",
+})
+class OldBinaryOnV96SchemaPgTest extends IntegrationTestBase {
+
+    @MockBean private UpbitWebSocketClient ws;
+    @MockBean private UpbitRestClient rest;
+    @MockBean private com.cryptoautotrader.exchange.upbit.UpbitOrderClient orders;
+    @MockBean private TelegramNotificationService telegram;
+    @MockBean private PortfolioSyncService portfolioSync;
+    @MockBean private MarketDataSyncService marketDataSync;
+
+    @Autowired private Flyway flyway;
+    @Autowired private VirtualBalanceRepository balanceRepo;
+    @Autowired private PaperPositionRepository positionRepo;
+    @Autowired private JdbcTemplate jdbc;
+
+    @Test
+    void oldBinaryBootsReadsAndSavesWithoutTouchingV96Columns() throws Exception {
+        MigrationInfo[] all = flyway.info().all();
+        String infoTail = Arrays.stream(all).skip(Math.max(0, all.length - 3))
+                .map(m -> m.getVersion() + ":" + m.getState()).toList().toString();
+        String localMax = Arrays.stream(flyway.info().pending()).map(m -> m.getVersion().toString()).toList().toString();
+        flyway.validate();
+
+        VirtualBalanceEntity s = balanceRepo.findById(2L).orElseThrow();
+        s.setTotalKrw(new BigDecimal("20100.00"));
+        balanceRepo.save(s);
+        PaperPositionEntity p = positionRepo.findById(1L).orElseThrow();
+        String oldSeesStatus = p.getStatus();
+        p.setUnrealizedPnl(new BigDecimal("1.00"));
+        positionRepo.save(p);
+        int oldOpenView = positionRepo.findBySessionIdAndStatus(2L, "OPEN").size();
+
+        Map<String, Object> bal = jdbc.queryForMap("SELECT total_krw, mdd_peak_krw, version FROM paper_trading.virtual_balance WHERE id = 2");
+        Map<String, Object> pos = jdbc.queryForMap("SELECT status, unrealized_pnl, exit_reason, exit_decided_at FROM paper_trading.position WHERE id = 1");
+        String body = mockMvc.perform(authGet("/api/v1/paper-trading/sessions/2")).andReturn().getResponse().getContentAsString();
+        System.out.println("[옛 바이너리 b5cd1d0 / V96 스키마] flyway 끝 3개=" + infoTail + " 대기=" + localMax + " validate=통과"
+                + " | 저장 뒤 세션=" + bal + " 포지션=" + pos + " | 옛 코드가 본 상태=" + oldSeesStatus + " 옛 OPEN 조회 수=" + oldOpenView
+                + " | 옛 잔고 API=" + body);
+
+        assertThat(bal.get("mdd_peak_krw").toString()).isEqualTo("30000.00");
+        assertThat(pos.get("exit_decided_at")).isNotNull();
+        assertThat(pos.get("status")).isEqualTo("CLOSING");
+        assertThat(bal.get("total_krw").toString()).isEqualTo("20100.00");
+    }
+
+    private org.springframework.test.web.servlet.RequestBuilder authGet(String url) {
+        return org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(url).header("Authorization", "Bearer " + TEST_TOKEN);
+    }
+}

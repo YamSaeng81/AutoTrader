@@ -1,0 +1,23 @@
+$ chain_driver create --port 10898 --code-sha eec97be0fa7a60b85821cdc2c74a2a689d57b9cf → rc=0
+{"done": "8개 OK · API 대조 성공(DB 확인 전 초안)", "t0": "2026-11-11T07:30:00+00:00"}
+{"stage": "create", "rc": 0, "real_now": "2026-11-11T07:21:24.446315+00:00", "clock_shift_s": 0.0}
+
+첫 평가 지문=[{session_id=2, n=1, h=141c4dfd6822}, {session_id=3, n=1, h=282d280b8014}, {session_id=4, n=1, h=141c4dfd6822}, {session_id=5, n=1, h=282d280b8014}, {session_id=6, n=1, h=141c4dfd6822}, {session_id=7, n=1, h=282d280b8014}, {session_id=8, n=1, h=141c4dfd6822}, {session_id=9, n=1, h=282d280b8014}]
+
+$ chain_driver check --tag ok → rc=0
+{"stage": "check", "tag": "ok", "psql_rc": 0, "complete_rc": 0, "complete_out": "{\"done\": \"완성본 작성\", \"sessions\": 8, \"db_output_sha256\": \"23322411d3d031ed65fffa2f5a752650c298d146fa2bc2c1668a25f9499b6232\"}"}
+
+$ chain_driver check --tag neg_fp_missing → rc=0
+{"stage": "check", "tag": "neg_fp_missing", "psql_rc": 0, "complete_rc": 0, "complete_out": "{\"done\": \"완성본 작성\", \"sessions\": 8, \"db_output_sha256\": \"1b45d8783ae5c1bf62a20b62d2bb26db69d40003bdc000cd0e98bd6edd3b0264\"}"}
+
+$ chain_driver check --tag neg_fp_multiple → rc=0
+{"stage": "check", "tag": "neg_fp_multiple", "psql_rc": 0, "complete_rc": 0, "complete_out": "{\"done\": \"완성본 작성\", \"sessions\": 8, \"db_output_sha256\": \"3200888b80d4dc1f8254e59cd752eab2547de362f725f546a43a386759621dda\"}"}
+
+$ chain_driver check --tag neg_trade_before_t0 → rc=0
+{"stage": "check", "tag": "neg_trade_before_t0", "psql_rc": 0, "complete_rc": 0, "complete_out": "{\"done\": \"완성본 작성\", \"sessions\": 8, \"db_output_sha256\": \"9aa8c2cc415a207f595c202720d61cad83f04cc4d2b1f6665bbcb8d78adb7c00\"}"}
+
+$ chain_driver check --tag neg_stored_ratio → rc=0
+{"stage": "check", "tag": "neg_stored_ratio", "psql_rc": 0, "complete_rc": 0, "complete_out": "{\"done\": \"완성본 작성\", \"sessions\": 8, \"db_output_sha256\": \"a7780cccb1337d7978f07ebd84db553213e9949fb57f627f1692420d487aa841\"}"}
+
+$ chain_driver extract --tag ok → rc=0
+{"stage": "extract", "tag": "ok", "rows": 3, "statuses": ["CLOSED", "CLOSING", "OPEN"], "primary": "-0.000475", "primary_status": "계산됨(탐색 결과 — 승격 판단 아님)"}

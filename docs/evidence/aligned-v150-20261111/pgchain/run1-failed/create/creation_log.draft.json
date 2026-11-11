@@ -1,0 +1,87 @@
+{
+  "status": "API 초안 — DB 확인 전(ab_complete.py 로 완성)",
+  "protocol_sha256": "8d787fe9d8c6d6bec00a588e38c6d638a97be9faf3709875b1670d71eae5d3db",
+  "code_sha": "72bbde46cd9bac1441605e9ad89ff00960fde5d9",
+  "t0": "2026-11-11T07:15:00+00:00",
+  "db_verified": false,
+  "api_reconcile_ok": false,
+  "sessions": [
+    {
+      "pair_id": "P1",
+      "arm": "A",
+      "session_id": "2",
+      "created_at": "2026-11-11T07:04:15.491146+00:00",
+      "ruleset_hash": null,
+      "stored": null
+    },
+    {
+      "pair_id": "P1",
+      "arm": "B",
+      "session_id": "3",
+      "created_at": "2026-11-11T07:04:15.532088+00:00",
+      "ruleset_hash": null,
+      "stored": null
+    },
+    {
+      "pair_id": "P2",
+      "arm": "A",
+      "session_id": "4",
+      "created_at": "2026-11-11T07:04:15.566388+00:00",
+      "ruleset_hash": null,
+      "stored": null
+    },
+    {
+      "pair_id": "P2",
+      "arm": "B",
+      "session_id": "5",
+      "created_at": "2026-11-11T07:04:15.611191+00:00",
+      "ruleset_hash": null,
+      "stored": null
+    },
+    {
+      "pair_id": "P3",
+      "arm": "A",
+      "session_id": "6",
+      "created_at": "2026-11-11T07:04:15.656026+00:00",
+      "ruleset_hash": null,
+      "stored": null
+    },
+    {
+      "pair_id": "P3",
+      "arm": "B",
+      "session_id": "7",
+      "created_at": "2026-11-11T07:04:15.674789+00:00",
+      "ruleset_hash": null,
+      "stored": null
+    },
+    {
+      "pair_id": "P4",
+      "arm": "A",
+      "session_id": "8",
+      "created_at": "2026-11-11T07:04:15.718940+00:00",
+      "ruleset_hash": null,
+      "stored": null
+    },
+    {
+      "pair_id": "P4",
+      "arm": "B",
+      "session_id": "9",
+      "created_at": "2026-11-11T07:04:15.740951+00:00",
+      "ruleset_hash": null,
+      "stored": null
+    }
+  ],
+  "checks": {
+    "api_reconcile_problems": [
+      "P1A",
+      "P1B",
+      "P2A",
+      "P2B",
+      "P3A",
+      "P3B",
+      "P4A",
+      "P4B"
+    ],
+    "created_at_not_before_t0": []
+  }
+}

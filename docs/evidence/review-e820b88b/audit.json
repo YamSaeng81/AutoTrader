@@ -1,0 +1,1291 @@
+{
+  "submission": "e820b88b83a1547f52b011b4627c497b264c717a",
+  "candidate": "72bbde46cd9bac1441605e9ad89ff00960fde5d9",
+  "checks": {
+    "aligned-v148-20261111": [
+      {
+        "path": "72bbde46.patch",
+        "expected": "f7b997d4a91f55438c24a695a490035c6bea3c222406e5c8fedcc879185468f3",
+        "blob": "f7b997d4a91f55438c24a695a490035c6bea3c222406e5c8fedcc879185468f3",
+        "local": "f7b997d4a91f55438c24a695a490035c6bea3c222406e5c8fedcc879185468f3",
+        "ok": true
+      },
+      {
+        "path": "README.md",
+        "expected": "6622b358d801fc3c1c620e752d410499cb55a00badcf4ae254e2b7d11a61f68d",
+        "blob": "6622b358d801fc3c1c620e752d410499cb55a00badcf4ae254e2b7d11a61f68d",
+        "local": "6622b358d801fc3c1c620e752d410499cb55a00badcf4ae254e2b7d11a61f68d",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.AlignedRestartContextTest.xml",
+        "expected": "f2a2bb86eb4a6b891955c0e057f7768410e55dac8ea671a426d9feecc98cdedd",
+        "blob": "f2a2bb86eb4a6b891955c0e057f7768410e55dac8ea671a426d9feecc98cdedd",
+        "local": "f2a2bb86eb4a6b891955c0e057f7768410e55dac8ea671a426d9feecc98cdedd",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.AlignedV147FixesTest.xml",
+        "expected": "a4fb1b945c92ef6f3c6896feffb1462a434ee5e3180d2cbf84c8d7e3fe1857ee",
+        "blob": "a4fb1b945c92ef6f3c6896feffb1462a434ee5e3180d2cbf84c8d7e3fe1857ee",
+        "local": "a4fb1b945c92ef6f3c6896feffb1462a434ee5e3180d2cbf84c8d7e3fe1857ee",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.AlignedV148FixesTest.xml",
+        "expected": "70e0c858197633446f5ac2d27475195bbef9c0aac7119f7ea0a2c774b9cc1e71",
+        "blob": "70e0c858197633446f5ac2d27475195bbef9c0aac7119f7ea0a2c774b9cc1e71",
+        "local": "70e0c858197633446f5ac2d27475195bbef9c0aac7119f7ea0a2c774b9cc1e71",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.BtcGateSupplyEndToEndTest.xml",
+        "expected": "e06ce7161f9d03ba863185bb9dc9284b551fe1f602fc79fff1c9f6625581c5d8",
+        "blob": "e06ce7161f9d03ba863185bb9dc9284b551fe1f602fc79fff1c9f6625581c5d8",
+        "local": "e06ce7161f9d03ba863185bb9dc9284b551fe1f602fc79fff1c9f6625581c5d8",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.BtcGateUnknownEntryTest.xml",
+        "expected": "d57c7f6a15b879756dd3f179555cd7f0a41b860c27b0284414418cff28b16688",
+        "blob": "d57c7f6a15b879756dd3f179555cd7f0a41b860c27b0284414418cff28b16688",
+        "local": "d57c7f6a15b879756dd3f179555cd7f0a41b860c27b0284414418cff28b16688",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.CandleDataFreshnessSchedulerTest.xml",
+        "expected": "fb5f2e5b8aa763b072e5af012fa5b19218a9d05d42e220d55489275efca90562",
+        "blob": "fb5f2e5b8aa763b072e5af012fa5b19218a9d05d42e220d55489275efca90562",
+        "local": "fb5f2e5b8aa763b072e5af012fa5b19218a9d05d42e220d55489275efca90562",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.CandleFreshnessGuardTest.xml",
+        "expected": "b3683d80d59b16c556bdcdea3c2a4215cdc8d77c8329e71fd27419286acff889",
+        "blob": "b3683d80d59b16c556bdcdea3c2a4215cdc8d77c8329e71fd27419286acff889",
+        "local": "b3683d80d59b16c556bdcdea3c2a4215cdc8d77c8329e71fd27419286acff889",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.CandleRefreshReportRetryTest.xml",
+        "expected": "80f536e3ec1df991ded5b1f8b8d8f4b711096802a4e5dd7f40cc7d5be055d3e4",
+        "blob": "80f536e3ec1df991ded5b1f8b8d8f4b711096802a4e5dd7f40cc7d5be055d3e4",
+        "local": "80f536e3ec1df991ded5b1f8b8d8f4b711096802a4e5dd7f40cc7d5be055d3e4",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest.xml",
+        "expected": "25efdd6fc366330f319348db2eb9196876d9a2ca4f962f12c60bbce8a082062e",
+        "blob": "25efdd6fc366330f319348db2eb9196876d9a2ca4f962f12c60bbce8a082062e",
+        "local": "25efdd6fc366330f319348db2eb9196876d9a2ca4f962f12c60bbce8a082062e",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.DailySma20PaperForwardPathTest.xml",
+        "expected": "c4713e76d1399415e051fc3cbf44aafde351f9501f5a56640ad3ae8c407eacaf",
+        "blob": "c4713e76d1399415e051fc3cbf44aafde351f9501f5a56640ad3ae8c407eacaf",
+        "local": "c4713e76d1399415e051fc3cbf44aafde351f9501f5a56640ad3ae8c407eacaf",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.DynamicBlackSwanCooldownCrossKindTest.xml",
+        "expected": "4b70c89da91ce1c7c35d9b40ceebdeb5d16b9cf69716e652d5012e0816bbaf17",
+        "blob": "4b70c89da91ce1c7c35d9b40ceebdeb5d16b9cf69716e652d5012e0816bbaf17",
+        "local": "4b70c89da91ce1c7c35d9b40ceebdeb5d16b9cf69716e652d5012e0816bbaf17",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.DynamicBlackSwanCooldownRestoreTest.xml",
+        "expected": "de2a7bb71c50e7de33daac6b80d9c88b63bd47e4efa1198717a10d81fb87222c",
+        "blob": "de2a7bb71c50e7de33daac6b80d9c88b63bd47e4efa1198717a10d81fb87222c",
+        "local": "de2a7bb71c50e7de33daac6b80d9c88b63bd47e4efa1198717a10d81fb87222c",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.DynamicCircuitBreakerTest.xml",
+        "expected": "013977e8c741401a7d24f1b5958ebaa24b1468e5aebea884bc8273572fc6cd4f",
+        "blob": "013977e8c741401a7d24f1b5958ebaa24b1468e5aebea884bc8273572fc6cd4f",
+        "local": "013977e8c741401a7d24f1b5958ebaa24b1468e5aebea884bc8273572fc6cd4f",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.DynamicMinimumCandleGuardTest.xml",
+        "expected": "ea26e57f8d6cb86bff57a5099a20d5c96bbf9b74d65c3ee19a157c13de5fa447",
+        "blob": "ea26e57f8d6cb86bff57a5099a20d5c96bbf9b74d65c3ee19a157c13de5fa447",
+        "local": "ea26e57f8d6cb86bff57a5099a20d5c96bbf9b74d65c3ee19a157c13de5fa447",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.DynamicPaperTradingTest.xml",
+        "expected": "12461a6c44d0e19b7a691d432ac0d8dd12725440079faea07051529ad2323c89",
+        "blob": "12461a6c44d0e19b7a691d432ac0d8dd12725440079faea07051529ad2323c89",
+        "local": "12461a6c44d0e19b7a691d432ac0d8dd12725440079faea07051529ad2323c89",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.DynamicScanTransitionGuardTest.xml",
+        "expected": "2fc939be617af0139a1fb3d822a76bf341fca25fed2549ea5422cbf1e65acddb",
+        "blob": "2fc939be617af0139a1fb3d822a76bf341fca25fed2549ea5422cbf1e65acddb",
+        "local": "2fc939be617af0139a1fb3d822a76bf341fca25fed2549ea5422cbf1e65acddb",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.DynamicSlWatchdogNoiseTest.xml",
+        "expected": "f85be9d711a6bd4b85dda8f1b249d3af159d165e6f84d53950ae95c630451434",
+        "blob": "f85be9d711a6bd4b85dda8f1b249d3af159d165e6f84d53950ae95c630451434",
+        "local": "f85be9d711a6bd4b85dda8f1b249d3af159d165e6f84d53950ae95c630451434",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.DynamicTradingSlWatchdogRecoveryTest.xml",
+        "expected": "7d96f375155c823430c2fab5870564db0c478eef03d8a17704f68dfda5584e64",
+        "blob": "7d96f375155c823430c2fab5870564db0c478eef03d8a17704f68dfda5584e64",
+        "local": "7d96f375155c823430c2fab5870564db0c478eef03d8a17704f68dfda5584e64",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.DynamicUnlockedCapitalTest.xml",
+        "expected": "34ca1622b020257f49ee0b32110104dd09012712f90ef443ee04cceed1433956",
+        "blob": "34ca1622b020257f49ee0b32110104dd09012712f90ef443ee04cceed1433956",
+        "local": "34ca1622b020257f49ee0b32110104dd09012712f90ef443ee04cceed1433956",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.EngineConstantParityTest.xml",
+        "expected": "78b36977f44af68785de1c20c1a3f59f6bf529efb56e6c179944fd368425aca4",
+        "blob": "78b36977f44af68785de1c20c1a3f59f6bf529efb56e6c179944fd368425aca4",
+        "local": "78b36977f44af68785de1c20c1a3f59f6bf529efb56e6c179944fd368425aca4",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.EngineParityTest.xml",
+        "expected": "32ef8ca8a88d5e66fd31c7f70f578894be6526385d117369b2e1ceffb05edc37",
+        "blob": "32ef8ca8a88d5e66fd31c7f70f578894be6526385d117369b2e1ceffb05edc37",
+        "local": "32ef8ca8a88d5e66fd31c7f70f578894be6526385d117369b2e1ceffb05edc37",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.EntryPriorityEndToEndTest.xml",
+        "expected": "a129e23739c5e362eb6b72d5e32e93e6eed9599ec80889c2332fe8dd09a2bba3",
+        "blob": "a129e23739c5e362eb6b72d5e32e93e6eed9599ec80889c2332fe8dd09a2bba3",
+        "local": "a129e23739c5e362eb6b72d5e32e93e6eed9599ec80889c2332fe8dd09a2bba3",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.EntryPriorityRoundsTest.xml",
+        "expected": "01539b882536cfd493d7b623d51827a8bf8c00e427dc5b56928bb6a8c04090bf",
+        "blob": "01539b882536cfd493d7b623d51827a8bf8c00e427dc5b56928bb6a8c04090bf",
+        "local": "01539b882536cfd493d7b623d51827a8bf8c00e427dc5b56928bb6a8c04090bf",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.EntryRoundsCrossRoundPaperDelayTest.xml",
+        "expected": "03ba284fd850de8e393ab0add93994e0b736d578c4261520bdaa8f0ed01b7c65",
+        "blob": "03ba284fd850de8e393ab0add93994e0b736d578c4261520bdaa8f0ed01b7c65",
+        "local": "03ba284fd850de8e393ab0add93994e0b736d578c4261520bdaa8f0ed01b7c65",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.ExitAbArmContractTest.xml",
+        "expected": "1973d4f77347c8beaddd1d5ecb9f942a5a0a940a5bf192d5b2645215d8bf4915",
+        "blob": "1973d4f77347c8beaddd1d5ecb9f942a5a0a940a5bf192d5b2645215d8bf4915",
+        "local": "1973d4f77347c8beaddd1d5ecb9f942a5a0a940a5bf192d5b2645215d8bf4915",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.KillCriteriaPaperVisibilityTest.xml",
+        "expected": "0737b4fe32f0fd0be85c14c96579cba2b93ac0b43e6bb0acd075163e9fc3e5b5",
+        "blob": "0737b4fe32f0fd0be85c14c96579cba2b93ac0b43e6bb0acd075163e9fc3e5b5",
+        "local": "0737b4fe32f0fd0be85c14c96579cba2b93ac0b43e6bb0acd075163e9fc3e5b5",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.LegacySellPolicyTest.xml",
+        "expected": "fda3e85d3739e4d19e0cd9d4cccfea232f0797d09c9a8e48db9790c033dda953",
+        "blob": "fda3e85d3739e4d19e0cd9d4cccfea232f0797d09c9a8e48db9790c033dda953",
+        "local": "fda3e85d3739e4d19e0cd9d4cccfea232f0797d09c9a8e48db9790c033dda953",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.LiveEmergencyStopUnderConcurrentWriteTest.xml",
+        "expected": "abd800fd0aa80692dba1fe5af4cc1521f598b11b26d8461990f3ed1630305987",
+        "blob": "abd800fd0aa80692dba1fe5af4cc1521f598b11b26d8461990f3ed1630305987",
+        "local": "abd800fd0aa80692dba1fe5af4cc1521f598b11b26d8461990f3ed1630305987",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.LiveTradingReliabilityTest.xml",
+        "expected": "988fc7fe71f9ecf91dbd27f19234dae180b4876604f29b3a2ee42e90907f4ee4",
+        "blob": "988fc7fe71f9ecf91dbd27f19234dae180b4876604f29b3a2ee42e90907f4ee4",
+        "local": "988fc7fe71f9ecf91dbd27f19234dae180b4876604f29b3a2ee42e90907f4ee4",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.LiveTradingSlWatchdogRecoveryTest.xml",
+        "expected": "7895c95934635b34434dbec886b28ab3a6fbd2bf2b8daad6e45f1e18fa3bc2a2",
+        "blob": "7895c95934635b34434dbec886b28ab3a6fbd2bf2b8daad6e45f1e18fa3bc2a2",
+        "local": "7895c95934635b34434dbec886b28ab3a6fbd2bf2b8daad6e45f1e18fa3bc2a2",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.N15EntryExpiryTest.xml",
+        "expected": "c7c3182902ceb669d8f9922cad80562cd3936d99f6e50b88fed85ef15dccd18e",
+        "blob": "c7c3182902ceb669d8f9922cad80562cd3936d99f6e50b88fed85ef15dccd18e",
+        "local": "c7c3182902ceb669d8f9922cad80562cd3936d99f6e50b88fed85ef15dccd18e",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.N15FinalApprovalBoundaryTest.xml",
+        "expected": "9d0152b3f0c692ee85200bff65f584ef84a5d28e9a983d97f93dd5ed0e0845d7",
+        "blob": "9d0152b3f0c692ee85200bff65f584ef84a5d28e9a983d97f93dd5ed0e0845d7",
+        "local": "9d0152b3f0c692ee85200bff65f584ef84a5d28e9a983d97f93dd5ed0e0845d7",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.N15PgLockWaitExpiryTest.xml",
+        "expected": "476c2e96b2f3af2544d7d0c1190a63c31ca8fc320057db7df5ef7426e2e4bf1a",
+        "blob": "476c2e96b2f3af2544d7d0c1190a63c31ca8fc320057db7df5ef7426e2e4bf1a",
+        "local": "476c2e96b2f3af2544d7d0c1190a63c31ca8fc320057db7df5ef7426e2e4bf1a",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.N17RestInvalidPriceTest.xml",
+        "expected": "11a6b60fca9b50b2c21990e3911d35127954c28c94c873aab34de92f14c0b36b",
+        "blob": "11a6b60fca9b50b2c21990e3911d35127954c28c94c873aab34de92f14c0b36b",
+        "local": "11a6b60fca9b50b2c21990e3911d35127954c28c94c873aab34de92f14c0b36b",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest.xml",
+        "expected": "e355237e07cf5377d3dfdf0fdc388ef19ac3a3e2afff008fe2677a88a70db092",
+        "blob": "e355237e07cf5377d3dfdf0fdc388ef19ac3a3e2afff008fe2677a88a70db092",
+        "local": "e355237e07cf5377d3dfdf0fdc388ef19ac3a3e2afff008fe2677a88a70db092",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest.xml",
+        "expected": "f0a68709f851affaa34e9fc811de5c4b2d485b29c4a0d7cc252cd3e19a0a3064",
+        "blob": "f0a68709f851affaa34e9fc811de5c4b2d485b29c4a0d7cc252cd3e19a0a3064",
+        "local": "f0a68709f851affaa34e9fc811de5c4b2d485b29c4a0d7cc252cd3e19a0a3064",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.O1O3LogContractTest.xml",
+        "expected": "4f7ac50eb8c1c732f3825c7edbadbd284299de23c1c0f4a8b55778b44453ba6a",
+        "blob": "4f7ac50eb8c1c732f3825c7edbadbd284299de23c1c0f4a8b55778b44453ba6a",
+        "local": "4f7ac50eb8c1c732f3825c7edbadbd284299de23c1c0f4a8b55778b44453ba6a",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.OrderExecutionEngineSellPriceTest.xml",
+        "expected": "33963feac7ed5b8683e3b4b6cf11f269044819dcad976dbe2d4e9cf4925d26ce",
+        "blob": "33963feac7ed5b8683e3b4b6cf11f269044819dcad976dbe2d4e9cf4925d26ce",
+        "local": "33963feac7ed5b8683e3b4b6cf11f269044819dcad976dbe2d4e9cf4925d26ce",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.PaperLiveAlignmentTest.xml",
+        "expected": "b06061cafbcf118ae7319fc3e6513c62900916fa6c165bec3cc0785f0f9a0fb9",
+        "blob": "b06061cafbcf118ae7319fc3e6513c62900916fa6c165bec3cc0785f0f9a0fb9",
+        "local": "b06061cafbcf118ae7319fc3e6513c62900916fa6c165bec3cc0785f0f9a0fb9",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.PaperSessionStrategyParamsTest.xml",
+        "expected": "39eae2570bfb0dd566c97d496d7fb9c2e4e74ec0e3d21e3cfed757fae3d6871b",
+        "blob": "39eae2570bfb0dd566c97d496d7fb9c2e4e74ec0e3d21e3cfed757fae3d6871b",
+        "local": "39eae2570bfb0dd566c97d496d7fb9c2e4e74ec0e3d21e3cfed757fae3d6871b",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.PaperStopUnderConcurrentWriteTest.xml",
+        "expected": "7c892d5a09d8e3a019fff855fda61959f821eb2e9c73a87ef008b5ac3e1c9204",
+        "blob": "7c892d5a09d8e3a019fff855fda61959f821eb2e9c73a87ef008b5ac3e1c9204",
+        "local": "7c892d5a09d8e3a019fff855fda61959f821eb2e9c73a87ef008b5ac3e1c9204",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.PoolLossLimitTest.xml",
+        "expected": "70b8227f3b543f4e8023e9f204f0d4f231d2ce396e3c5093e51c6c371068bace",
+        "blob": "70b8227f3b543f4e8023e9f204f0d4f231d2ce396e3c5093e51c6c371068bace",
+        "local": "70b8227f3b543f4e8023e9f204f0d4f231d2ce396e3c5093e51c6c371068bace",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.PreStartLimitedTestCandleSupplyTest.xml",
+        "expected": "632f0a1f46a457980163d88d9234d6ae38550417690e630563452cb4505a35de",
+        "blob": "632f0a1f46a457980163d88d9234d6ae38550417690e630563452cb4505a35de",
+        "local": "632f0a1f46a457980163d88d9234d6ae38550417690e630563452cb4505a35de",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.RiskCircuitBreakerOrderTest.xml",
+        "expected": "1bc0e27bbeab61f3fcf77a21c77773db0fe1d8a31f5fd6fbf9a422d9c1bca5a3",
+        "blob": "1bc0e27bbeab61f3fcf77a21c77773db0fe1d8a31f5fd6fbf9a422d9c1bca5a3",
+        "local": "1bc0e27bbeab61f3fcf77a21c77773db0fe1d8a31f5fd6fbf9a422d9c1bca5a3",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.RiskConfigMissingTest.xml",
+        "expected": "26a314d38266a77de11f2de41517cc64037cb67a835decfcdc53beece6d85ea1",
+        "blob": "26a314d38266a77de11f2de41517cc64037cb67a835decfcdc53beece6d85ea1",
+        "local": "26a314d38266a77de11f2de41517cc64037cb67a835decfcdc53beece6d85ea1",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.RiskManagementServiceTest.xml",
+        "expected": "af4bc33e25e22b7aa9f6f5a64c166739c78667b98bcd5680573e5fae5af511f0",
+        "blob": "af4bc33e25e22b7aa9f6f5a64c166739c78667b98bcd5680573e5fae5af511f0",
+        "local": "af4bc33e25e22b7aa9f6f5a64c166739c78667b98bcd5680573e5fae5af511f0",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.RulesetRegistryCompositionTest.xml",
+        "expected": "48e767a6e6958360c4f72015cbf9f3cf13bec0dfa96ca5445ad91ea69b642702",
+        "blob": "48e767a6e6958360c4f72015cbf9f3cf13bec0dfa96ca5445ad91ea69b642702",
+        "local": "48e767a6e6958360c4f72015cbf9f3cf13bec0dfa96ca5445ad91ea69b642702",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.SellQuarantineReleaseTest.xml",
+        "expected": "f61b996a12c487b605f1a3f8bba674b0cf5dd4d28f5b327d21a78b1777251f0e",
+        "blob": "f61b996a12c487b605f1a3f8bba674b0cf5dd4d28f5b327d21a78b1777251f0e",
+        "local": "f61b996a12c487b605f1a3f8bba674b0cf5dd4d28f5b327d21a78b1777251f0e",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.SessionLlmTelegramDeliveryTest.xml",
+        "expected": "37e4a4ef4727df1890bcf5a1e542116ea4f3156ed23024709dac85fe7c6548cb",
+        "blob": "37e4a4ef4727df1890bcf5a1e542116ea4f3156ed23024709dac85fe7c6548cb",
+        "local": "37e4a4ef4727df1890bcf5a1e542116ea4f3156ed23024709dac85fe7c6548cb",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.SharedLoopRoundsActiveTest.xml",
+        "expected": "ed2c40f4a008dc14a28f2d8cdd37d9f3b10c1dd67618b6950828b96348cfb136",
+        "blob": "ed2c40f4a008dc14a28f2d8cdd37d9f3b10c1dd67618b6950828b96348cfb136",
+        "local": "ed2c40f4a008dc14a28f2d8cdd37d9f3b10c1dd67618b6950828b96348cfb136",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.SharedPaperLoopIsolationTest.xml",
+        "expected": "dc60dd35e280a86c845b4e84f7430395230fd24345da094968742dd691f453bd",
+        "blob": "dc60dd35e280a86c845b4e84f7430395230fd24345da094968742dd691f453bd",
+        "local": "dc60dd35e280a86c845b4e84f7430395230fd24345da094968742dd691f453bd",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.SlWatchdogFreshnessTest.xml",
+        "expected": "cd57dc921850dea41c2a07256e905bc7bd1970d46fe849e8d18abd46b291cd2f",
+        "blob": "cd57dc921850dea41c2a07256e905bc7bd1970d46fe849e8d18abd46b291cd2f",
+        "local": "cd57dc921850dea41c2a07256e905bc7bd1970d46fe849e8d18abd46b291cd2f",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedGapsTest.xml",
+        "expected": "7184f885fd6bb5d6fa16b0700eebd4716fe837ce20f6de78c1e07a6d61ce13d3",
+        "blob": "7184f885fd6bb5d6fa16b0700eebd4716fe837ce20f6de78c1e07a6d61ce13d3",
+        "local": "7184f885fd6bb5d6fa16b0700eebd4716fe837ce20f6de78c1e07a6d61ce13d3",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedPaperSameInputTest.xml",
+        "expected": "bae14d515e0b5e3287cc5d91ad4bb250ad17245d67d28d404492154c7a58edcc",
+        "blob": "bae14d515e0b5e3287cc5d91ad4bb250ad17245d67d28d404492154c7a58edcc",
+        "local": "bae14d515e0b5e3287cc5d91ad4bb250ad17245d67d28d404492154c7a58edcc",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.Sma20LivePaperSameInputTest.xml",
+        "expected": "8a32f06d50997994dc337476243482835b6ec742ba96c53f1fc1d1708965d6ff",
+        "blob": "8a32f06d50997994dc337476243482835b6ec742ba96c53f1fc1d1708965d6ff",
+        "local": "8a32f06d50997994dc337476243482835b6ec742ba96c53f1fc1d1708965d6ff",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.StrategyEnablementGateTest.xml",
+        "expected": "7369d5ac25c563419806e248ca088849141c1140c431ed680f8d7db1b588be56",
+        "blob": "7369d5ac25c563419806e248ca088849141c1140c431ed680f8d7db1b588be56",
+        "local": "7369d5ac25c563419806e248ca088849141c1140c431ed680f8d7db1b588be56",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.TelegramCriticalRetryTest.xml",
+        "expected": "eb4d61e152e1ece1ba8c621da49afb99e5aa4ec01498eccbde46de0895f551b0",
+        "blob": "eb4d61e152e1ece1ba8c621da49afb99e5aa4ec01498eccbde46de0895f551b0",
+        "local": "eb4d61e152e1ece1ba8c621da49afb99e5aa4ec01498eccbde46de0895f551b0",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.TelegramMarkdownFallbackTest.xml",
+        "expected": "3a17cb586407cb1c0d31c4862aac2e0ce87559e0270292636a4b84112a5ddec7",
+        "blob": "3a17cb586407cb1c0d31c4862aac2e0ce87559e0270292636a4b84112a5ddec7",
+        "local": "3a17cb586407cb1c0d31c4862aac2e0ce87559e0270292636a4b84112a5ddec7",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.TelegramQueueRejectTxIntegrationTest.xml",
+        "expected": "0a4a0e170378cdf88796e01ce6321fc7dd6ba25b94e92e2abf4109c0e5a2c86f",
+        "blob": "0a4a0e170378cdf88796e01ce6321fc7dd6ba25b94e92e2abf4109c0e5a2c86f",
+        "local": "0a4a0e170378cdf88796e01ce6321fc7dd6ba25b94e92e2abf4109c0e5a2c86f",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.TelegramQueueSaturationTest.xml",
+        "expected": "592b5c4629e10023aac7964f9531e03d56c9408f567ee3f8614b4f0c243c7dfc",
+        "blob": "592b5c4629e10023aac7964f9531e03d56c9408f567ee3f8614b4f0c243c7dfc",
+        "local": "592b5c4629e10023aac7964f9531e03d56c9408f567ee3f8614b4f0c243c7dfc",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.TelegramRiskLimitRetryHttpTest.xml",
+        "expected": "f335a72399fac67f0cdb49f8c3fa00ad99d8ed9a7e64db479ff67451bf82f2e1",
+        "blob": "f335a72399fac67f0cdb49f8c3fa00ad99d8ed9a7e64db479ff67451bf82f2e1",
+        "local": "f335a72399fac67f0cdb49f8c3fa00ad99d8ed9a7e64db479ff67451bf82f2e1",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.service.UnknownOrderAdjustmentTest.xml",
+        "expected": "46c8e24453e08ee5a1e9b279800c832492376ac8cbba0e86b4cc09c28777598d",
+        "blob": "46c8e24453e08ee5a1e9b279800c832492376ac8cbba0e86b4cc09c28777598d",
+        "local": "46c8e24453e08ee5a1e9b279800c832492376ac8cbba0e86b4cc09c28777598d",
+        "ok": true
+      },
+      {
+        "path": "related/TEST-com.cryptoautotrader.api.support.ExecutorBarrierTest.xml",
+        "expected": "208f8fe67c4aeeaff66f520e62740851cd83fe3ba84e16cfe2a043797c22877d",
+        "blob": "208f8fe67c4aeeaff66f520e62740851cd83fe3ba84e16cfe2a043797c22877d",
+        "local": "208f8fe67c4aeeaff66f520e62740851cd83fe3ba84e16cfe2a043797c22877d",
+        "ok": true
+      },
+      {
+        "path": "related/gradle.log",
+        "expected": "ffc3f16cff924aa2bcd78ffa0b62db1a4de155b5d2ff997bf4d8c61430eb7abc",
+        "blob": null,
+        "local": "ffc3f16cff924aa2bcd78ffa0b62db1a4de155b5d2ff997bf4d8c61430eb7abc",
+        "ok": false
+      },
+      {
+        "path": "witness/TEST-com.cryptoautotrader.api.service.AlignedReview864Test.xml",
+        "expected": "2ac1a36dc694f8784eb1d8f09d30348a1c09fe07e60b15345f2d427e70750000",
+        "blob": "2ac1a36dc694f8784eb1d8f09d30348a1c09fe07e60b15345f2d427e70750000",
+        "local": "2ac1a36dc694f8784eb1d8f09d30348a1c09fe07e60b15345f2d427e70750000",
+        "ok": true
+      }
+    ],
+    "ab-create-v3-20261111": [
+      {
+        "path": "README.md",
+        "expected": "4001cdd417b8b83ac41e73b426b920685d83ec54d1bc232efd5220eb7d9b3660",
+        "blob": "4001cdd417b8b83ac41e73b426b920685d83ec54d1bc232efd5220eb7d9b3660",
+        "local": "4001cdd417b8b83ac41e73b426b920685d83ec54d1bc232efd5220eb7d9b3660",
+        "ok": true
+      },
+      {
+        "path": "create/ab_complete.py",
+        "expected": "4b8cbcee060927047337dc3e71fb4ed4d388929f579de757c8cc72fb9f3046a8",
+        "blob": "4b8cbcee060927047337dc3e71fb4ed4d388929f579de757c8cc72fb9f3046a8",
+        "local": "4b8cbcee060927047337dc3e71fb4ed4d388929f579de757c8cc72fb9f3046a8",
+        "ok": true
+      },
+      {
+        "path": "create/ab_create.py",
+        "expected": "ac716f17a73d1e2ba9f6423fc738e4cc40bfaf54e7668bc58e2ed7eba41c1b93",
+        "blob": "ac716f17a73d1e2ba9f6423fc738e4cc40bfaf54e7668bc58e2ed7eba41c1b93",
+        "local": "ac716f17a73d1e2ba9f6423fc738e4cc40bfaf54e7668bc58e2ed7eba41c1b93",
+        "ok": true
+      },
+      {
+        "path": "create/chain-run.txt",
+        "expected": "853f52193d82e7f444e5fea64056be642c05b0787ab063e06e222ccb8d9b6d9d",
+        "blob": "853f52193d82e7f444e5fea64056be642c05b0787ab063e06e222ccb8d9b6d9d",
+        "local": "853f52193d82e7f444e5fea64056be642c05b0787ab063e06e222ccb8d9b6d9d",
+        "ok": true
+      },
+      {
+        "path": "create/extract_positions.sql",
+        "expected": "6ba15afce089a9cdb6a445ba0e45b6ebdbeba795b27784c30e309d75cc678700",
+        "blob": "6ba15afce089a9cdb6a445ba0e45b6ebdbeba795b27784c30e309d75cc678700",
+        "local": "6ba15afce089a9cdb6a445ba0e45b6ebdbeba795b27784c30e309d75cc678700",
+        "ok": true
+      },
+      {
+        "path": "create/post_creation_check.sql",
+        "expected": "f936412c56dfd0fe42ec3696028a5a15559fdbb895837043d887e4884eb31907",
+        "blob": "f936412c56dfd0fe42ec3696028a5a15559fdbb895837043d887e4884eb31907",
+        "local": "f936412c56dfd0fe42ec3696028a5a15559fdbb895837043d887e4884eb31907",
+        "ok": true
+      },
+      {
+        "path": "create/standin_server.py",
+        "expected": "c7238feaebe89b148bafb187cc54de052f1eb865856eb2544c38a17b9f4092d8",
+        "blob": "c7238feaebe89b148bafb187cc54de052f1eb865856eb2544c38a17b9f4092d8",
+        "local": "c7238feaebe89b148bafb187cc54de052f1eb865856eb2544c38a17b9f4092d8",
+        "ok": true
+      },
+      {
+        "path": "create/test-run.txt",
+        "expected": "70bd513807d7b5be697ce7653b33771de3e63a9f60d06ccad32f19bce83539bd",
+        "blob": "70bd513807d7b5be697ce7653b33771de3e63a9f60d06ccad32f19bce83539bd",
+        "local": "70bd513807d7b5be697ce7653b33771de3e63a9f60d06ccad32f19bce83539bd",
+        "ok": true
+      },
+      {
+        "path": "create/test_ab_create.py",
+        "expected": "cf9e056aa01510e41cb48a3e5aea6db26cdee9b629d7d040ea4c1196c3729f9c",
+        "blob": "cf9e056aa01510e41cb48a3e5aea6db26cdee9b629d7d040ea4c1196c3729f9c",
+        "local": "cf9e056aa01510e41cb48a3e5aea6db26cdee9b629d7d040ea4c1196c3729f9c",
+        "ok": true
+      },
+      {
+        "path": "create/test_chain.py",
+        "expected": "b546fdb652f611448956f1006fdab78a7a49d6030f3d103060b4d0d3696ed8e9",
+        "blob": "b546fdb652f611448956f1006fdab78a7a49d6030f3d103060b4d0d3696ed8e9",
+        "local": "b546fdb652f611448956f1006fdab78a7a49d6030f3d103060b4d0d3696ed8e9",
+        "ok": true
+      },
+      {
+        "path": "mutation.py",
+        "expected": "e8a35fe9702b8bd30740888220d9663056905462a04a1c53341a955331c14870",
+        "blob": "e8a35fe9702b8bd30740888220d9663056905462a04a1c53341a955331c14870",
+        "local": "e8a35fe9702b8bd30740888220d9663056905462a04a1c53341a955331c14870",
+        "ok": true
+      },
+      {
+        "path": "mutation.txt",
+        "expected": "8831b99622b0a5612419c7dc3033c34fd7182bc14e9ad1c0d7b0bab907dad9bd",
+        "blob": "8831b99622b0a5612419c7dc3033c34fd7182bc14e9ad1c0d7b0bab907dad9bd",
+        "local": "8831b99622b0a5612419c7dc3033c34fd7182bc14e9ad1c0d7b0bab907dad9bd",
+        "ok": true
+      },
+      {
+        "path": "overseer_cases_v2_v3.py",
+        "expected": "8e0fc7e11f5534bb58f49f6153a1621c3040c4cd6f385d9d9192e856327d99f9",
+        "blob": "8e0fc7e11f5534bb58f49f6153a1621c3040c4cd6f385d9d9192e856327d99f9",
+        "local": "8e0fc7e11f5534bb58f49f6153a1621c3040c4cd6f385d9d9192e856327d99f9",
+        "ok": true
+      },
+      {
+        "path": "overseer_cases_v2_v3.txt",
+        "expected": "7f762e5bab368412b00e2c9e0fa0474d57d3814a364f66ec04f11e5663e5fcd1",
+        "blob": "7f762e5bab368412b00e2c9e0fa0474d57d3814a364f66ec04f11e5663e5fcd1",
+        "local": "7f762e5bab368412b00e2c9e0fa0474d57d3814a364f66ec04f11e5663e5fcd1",
+        "ok": true
+      },
+      {
+        "path": "tool/ab_aggregate.py",
+        "expected": "01737beb42511b7c28d8c1fae9fa59ad5341914bc01bd66a63b7cbebfb5ce012",
+        "blob": "01737beb42511b7c28d8c1fae9fa59ad5341914bc01bd66a63b7cbebfb5ce012",
+        "local": "01737beb42511b7c28d8c1fae9fa59ad5341914bc01bd66a63b7cbebfb5ce012",
+        "ok": true
+      },
+      {
+        "path": "tool/protocol.json",
+        "expected": "8d787fe9d8c6d6bec00a588e38c6d638a97be9faf3709875b1670d71eae5d3db",
+        "blob": "8d787fe9d8c6d6bec00a588e38c6d638a97be9faf3709875b1670d71eae5d3db",
+        "local": "8d787fe9d8c6d6bec00a588e38c6d638a97be9faf3709875b1670d71eae5d3db",
+        "ok": true
+      },
+      {
+        "path": "tool/test-run.txt",
+        "expected": "8fa1d5ad17a5c5709f748ae5e0f7e6435cd2b8e60aeaad3d81cc2e6d369f0154",
+        "blob": "8fa1d5ad17a5c5709f748ae5e0f7e6435cd2b8e60aeaad3d81cc2e6d369f0154",
+        "local": "8fa1d5ad17a5c5709f748ae5e0f7e6435cd2b8e60aeaad3d81cc2e6d369f0154",
+        "ok": true
+      },
+      {
+        "path": "tool/test_ab_aggregate.py",
+        "expected": "6317d7f5e54ae529efdab93813338698f9246c436b4eed3ae2b47aeee2ea1a95",
+        "blob": "6317d7f5e54ae529efdab93813338698f9246c436b4eed3ae2b47aeee2ea1a95",
+        "local": "6317d7f5e54ae529efdab93813338698f9246c436b4eed3ae2b47aeee2ea1a95",
+        "ok": true
+      }
+    ],
+    "dynamic-jar-81b0e7a7": [
+      {
+        "path": "README.md",
+        "expected": "ca624e505b8506b7e1a59886b57aab97e773977077289d24852027f8d02a1cfb",
+        "blob": "ca624e505b8506b7e1a59886b57aab97e773977077289d24852027f8d02a1cfb",
+        "local": "ca624e505b8506b7e1a59886b57aab97e773977077289d24852027f8d02a1cfb",
+        "ok": true
+      },
+      {
+        "path": "inner-classes.txt",
+        "expected": "3f7569de045b6455d736646ba5dc596adca7724e7484ccbd32101a73a1417640",
+        "blob": "3f7569de045b6455d736646ba5dc596adca7724e7484ccbd32101a73a1417640",
+        "local": "3f7569de045b6455d736646ba5dc596adca7724e7484ccbd32101a73a1417640",
+        "ok": true
+      },
+      {
+        "path": "jar-compare.json",
+        "expected": "803a75a8a68df8e1cf31e3874ec0733f383bcdcf53e7ada58d14b19a188e4682",
+        "blob": "803a75a8a68df8e1cf31e3874ec0733f383bcdcf53e7ada58d14b19a188e4682",
+        "local": "803a75a8a68df8e1cf31e3874ec0733f383bcdcf53e7ada58d14b19a188e4682",
+        "ok": true
+      },
+      {
+        "path": "jar_compare.py",
+        "expected": "811ac0bb0ee8e8e840f72fd701c3edca8182dd0fa042bfed73c7c896d8170cad",
+        "blob": "811ac0bb0ee8e8e840f72fd701c3edca8182dd0fa042bfed73c7c896d8170cad",
+        "local": "811ac0bb0ee8e8e840f72fd701c3edca8182dd0fa042bfed73c7c896d8170cad",
+        "ok": true
+      },
+      {
+        "path": "nested-compare.json",
+        "expected": "0a0c80e2d349034548e2d7d34c54fc11a701c562772e6216be2a0b1729e732b5",
+        "blob": "0a0c80e2d349034548e2d7d34c54fc11a701c562772e6216be2a0b1729e732b5",
+        "local": "0a0c80e2d349034548e2d7d34c54fc11a701c562772e6216be2a0b1729e732b5",
+        "ok": true
+      },
+      {
+        "path": "nested_compare.py",
+        "expected": "ab4cc23e1f4f41e6f3cbb06e51bcfe0eedb1006464f151093b46b8d655a56a04",
+        "blob": "ab4cc23e1f4f41e6f3cbb06e51bcfe0eedb1006464f151093b46b8d655a56a04",
+        "local": "ab4cc23e1f4f41e6f3cbb06e51bcfe0eedb1006464f151093b46b8d655a56a04",
+        "ok": true
+      },
+      {
+        "path": "outer-members-diff.txt",
+        "expected": "fb9e41c48e5a62e43d3565b506e11487a2af2ad2a981c7aa169d310e8b7e596f",
+        "blob": "fb9e41c48e5a62e43d3565b506e11487a2af2ad2a981c7aa169d310e8b7e596f",
+        "local": "fb9e41c48e5a62e43d3565b506e11487a2af2ad2a981c7aa169d310e8b7e596f",
+        "ok": true
+      }
+    ],
+    "aligned-v148-review-864f070d": [
+      {
+        "path": ".gitattributes",
+        "expected": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+        "blob": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+        "local": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+        "ok": true
+      },
+      {
+        "path": "AlignedReview864Test.java",
+        "expected": "3a4b26bdfb948b2e0e00e90e55a2cc28b24976ec425eeaff34e6bd6f869bae42",
+        "blob": "3a4b26bdfb948b2e0e00e90e55a2cc28b24976ec425eeaff34e6bd6f869bae42",
+        "local": "3a4b26bdfb948b2e0e00e90e55a2cc28b24976ec425eeaff34e6bd6f869bae42",
+        "ok": true
+      },
+      {
+        "path": "audit.json",
+        "expected": "7dc561bebebf76232b57146b8e3d2715bf2015390975ac638c357e96082a8461",
+        "blob": "7dc561bebebf76232b57146b8e3d2715bf2015390975ac638c357e96082a8461",
+        "local": "7dc561bebebf76232b57146b8e3d2715bf2015390975ac638c357e96082a8461",
+        "ok": true
+      },
+      {
+        "path": "doc-check.json",
+        "expected": "3b9d5f6d6028225e11b8f5d7e8e29df34784c1bc5fd42c24ab267eb669017561",
+        "blob": "3b9d5f6d6028225e11b8f5d7e8e29df34784c1bc5fd42c24ab267eb669017561",
+        "local": "3b9d5f6d6028225e11b8f5d7e8e29df34784c1bc5fd42c24ab267eb669017561",
+        "ok": true
+      },
+      {
+        "path": "finish_audit.py",
+        "expected": "62ce283802aeb3a3478cb64531b0fd387791c89251ec9d262858d9eb784b884e",
+        "blob": "62ce283802aeb3a3478cb64531b0fd387791c89251ec9d262858d9eb784b884e",
+        "local": "62ce283802aeb3a3478cb64531b0fd387791c89251ec9d262858d9eb784b884e",
+        "ok": true
+      },
+      {
+        "path": "javac-harness-error.txt",
+        "expected": "1242ca30dd1b0042cd802e30fd746a5d546434553517c671743f24837ed09247",
+        "blob": "1242ca30dd1b0042cd802e30fd746a5d546434553517c671743f24837ed09247",
+        "local": "1242ca30dd1b0042cd802e30fd746a5d546434553517c671743f24837ed09247",
+        "ok": true
+      },
+      {
+        "path": "javac.txt",
+        "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "blob": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "local": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "ok": true
+      },
+      {
+        "path": "libraries.json",
+        "expected": "2730759722d504c4749a5d4b611d56a5e3c227d70ecb54918cd8879b40c477a1",
+        "blob": "2730759722d504c4749a5d4b611d56a5e3c227d70ecb54918cd8879b40c477a1",
+        "local": "2730759722d504c4749a5d4b611d56a5e3c227d70ecb54918cd8879b40c477a1",
+        "ok": true
+      },
+      {
+        "path": "manual_run.py",
+        "expected": "92edff1a1cf2f0e0f09daa0c74c6cb1be37f1261a8fb444524c3a9826c6c5726",
+        "blob": "92edff1a1cf2f0e0f09daa0c74c6cb1be37f1261a8fb444524c3a9826c6c5726",
+        "local": "92edff1a1cf2f0e0f09daa0c74c6cb1be37f1261a8fb444524c3a9826c6c5726",
+        "ok": true
+      },
+      {
+        "path": "prepare.py",
+        "expected": "f133fad4cc217fb0fcf391da9648d34422cccad983fddaf7e532e8f1504e0537",
+        "blob": "f133fad4cc217fb0fcf391da9648d34422cccad983fddaf7e532e8f1504e0537",
+        "local": "f133fad4cc217fb0fcf391da9648d34422cccad983fddaf7e532e8f1504e0537",
+        "ok": true
+      },
+      {
+        "path": "README.md",
+        "expected": "bb71ac91aad3d672d0f925bb34c94d65d4a5ee5fb242235be95beb4829c4c90d",
+        "blob": "bb71ac91aad3d672d0f925bb34c94d65d4a5ee5fb242235be95beb4829c4c90d",
+        "local": "bb71ac91aad3d672d0f925bb34c94d65d4a5ee5fb242235be95beb4829c4c90d",
+        "ok": true
+      },
+      {
+        "path": "review.json",
+        "expected": "38fb59fb10f12f38405c94b80eee9347bf751503ebc50723ad075e12bd3e8cbb",
+        "blob": "38fb59fb10f12f38405c94b80eee9347bf751503ebc50723ad075e12bd3e8cbb",
+        "local": "38fb59fb10f12f38405c94b80eee9347bf751503ebc50723ad075e12bd3e8cbb",
+        "ok": true
+      },
+      {
+        "path": "ReviewLauncher.java",
+        "expected": "5b4918a296e35b552ef8a201eec29906714bc26934421c881769e9f615f7da3d",
+        "blob": "5b4918a296e35b552ef8a201eec29906714bc26934421c881769e9f615f7da3d",
+        "local": "5b4918a296e35b552ef8a201eec29906714bc26934421c881769e9f615f7da3d",
+        "ok": true
+      },
+      {
+        "path": "spring-witness.txt",
+        "expected": "cae3bd31205e1cd951264e3816726f4a69e2e1cc05965d22fd6860570f48785c",
+        "blob": "cae3bd31205e1cd951264e3816726f4a69e2e1cc05965d22fd6860570f48785c",
+        "local": "cae3bd31205e1cd951264e3816726f4a69e2e1cc05965d22fd6860570f48785c",
+        "ok": true
+      }
+    ],
+    "remaining-review-5624bd05": [
+      {
+        "path": ".gitattributes",
+        "expected": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+        "blob": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+        "local": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
+        "ok": true
+      },
+      {
+        "path": "aggregate-tests.txt",
+        "expected": "fa72fbb1a5a023b62b322f58e1a473d5fbf9f326efc1caed97e65ebafc7e00c3",
+        "blob": "fa72fbb1a5a023b62b322f58e1a473d5fbf9f326efc1caed97e65ebafc7e00c3",
+        "local": "fa72fbb1a5a023b62b322f58e1a473d5fbf9f326efc1caed97e65ebafc7e00c3",
+        "ok": true
+      },
+      {
+        "path": "audit.json",
+        "expected": "b5a960d289292fdf30bb9bd36e1dfab64f05ff0697874207bb8a6823759ece0c",
+        "blob": "b5a960d289292fdf30bb9bd36e1dfab64f05ff0697874207bb8a6823759ece0c",
+        "local": "b5a960d289292fdf30bb9bd36e1dfab64f05ff0697874207bb8a6823759ece0c",
+        "ok": true
+      },
+      {
+        "path": "C0-control/creation_log.draft.json",
+        "expected": "8bf1ceaf042844cacd10d87cbbccbb759a43708e2166b4b81b656cd88f41f295",
+        "blob": "8bf1ceaf042844cacd10d87cbbccbb759a43708e2166b4b81b656cd88f41f295",
+        "local": "8bf1ceaf042844cacd10d87cbbccbb759a43708e2166b4b81b656cd88f41f295",
+        "ok": true
+      },
+      {
+        "path": "C0-control/journal.jsonl",
+        "expected": "1844dd81fe6c06ed8e1308d4393c9c8c002ebec0384e22bb6d992113ca61674f",
+        "blob": "1844dd81fe6c06ed8e1308d4393c9c8c002ebec0384e22bb6d992113ca61674f",
+        "local": "1844dd81fe6c06ed8e1308d4393c9c8c002ebec0384e22bb6d992113ca61674f",
+        "ok": true
+      },
+      {
+        "path": "C0-control/plan.json",
+        "expected": "fe9c1045306927f02e8680eaa428cc6283534fcc79a3419f4bc87b3b3c8ba1a5",
+        "blob": "fe9c1045306927f02e8680eaa428cc6283534fcc79a3419f4bc87b3b3c8ba1a5",
+        "local": "fe9c1045306927f02e8680eaa428cc6283534fcc79a3419f4bc87b3b3c8ba1a5",
+        "ok": true
+      },
+      {
+        "path": "C0-control/stdout.txt",
+        "expected": "d17e24b47611fcc452eae6c7380123a933a39fbf10cc9675a672cca020ede99e",
+        "blob": "d17e24b47611fcc452eae6c7380123a933a39fbf10cc9675a672cca020ede99e",
+        "local": "d17e24b47611fcc452eae6c7380123a933a39fbf10cc9675a672cca020ede99e",
+        "ok": true
+      },
+      {
+        "path": "C1-reconcile-failed/creation_log.draft.json",
+        "expected": "8bf1ceaf042844cacd10d87cbbccbb759a43708e2166b4b81b656cd88f41f295",
+        "blob": "8bf1ceaf042844cacd10d87cbbccbb759a43708e2166b4b81b656cd88f41f295",
+        "local": "8bf1ceaf042844cacd10d87cbbccbb759a43708e2166b4b81b656cd88f41f295",
+        "ok": true
+      },
+      {
+        "path": "C1-reconcile-failed/journal.jsonl",
+        "expected": "920a190eb060bd7f092655e24767590184a52427753c8aa3e2950a51e8168136",
+        "blob": "920a190eb060bd7f092655e24767590184a52427753c8aa3e2950a51e8168136",
+        "local": "920a190eb060bd7f092655e24767590184a52427753c8aa3e2950a51e8168136",
+        "ok": true
+      },
+      {
+        "path": "C1-reconcile-failed/plan.json",
+        "expected": "fe9c1045306927f02e8680eaa428cc6283534fcc79a3419f4bc87b3b3c8ba1a5",
+        "blob": "fe9c1045306927f02e8680eaa428cc6283534fcc79a3419f4bc87b3b3c8ba1a5",
+        "local": "fe9c1045306927f02e8680eaa428cc6283534fcc79a3419f4bc87b3b3c8ba1a5",
+        "ok": true
+      },
+      {
+        "path": "C1-reconcile-failed/stdout.txt",
+        "expected": "d17e24b47611fcc452eae6c7380123a933a39fbf10cc9675a672cca020ede99e",
+        "blob": "d17e24b47611fcc452eae6c7380123a933a39fbf10cc9675a672cca020ede99e",
+        "local": "d17e24b47611fcc452eae6c7380123a933a39fbf10cc9675a672cca020ede99e",
+        "ok": true
+      },
+      {
+        "path": "C2-intent-without-result/creation_log.draft.json",
+        "expected": "8bf1ceaf042844cacd10d87cbbccbb759a43708e2166b4b81b656cd88f41f295",
+        "blob": "8bf1ceaf042844cacd10d87cbbccbb759a43708e2166b4b81b656cd88f41f295",
+        "local": "8bf1ceaf042844cacd10d87cbbccbb759a43708e2166b4b81b656cd88f41f295",
+        "ok": true
+      },
+      {
+        "path": "C2-intent-without-result/journal.jsonl",
+        "expected": "ca0f75224fe5dd96df4284c79927bcc5a3014f870e162ef4a9a570beabe11b5b",
+        "blob": "ca0f75224fe5dd96df4284c79927bcc5a3014f870e162ef4a9a570beabe11b5b",
+        "local": "ca0f75224fe5dd96df4284c79927bcc5a3014f870e162ef4a9a570beabe11b5b",
+        "ok": true
+      },
+      {
+        "path": "C2-intent-without-result/plan.json",
+        "expected": "fe9c1045306927f02e8680eaa428cc6283534fcc79a3419f4bc87b3b3c8ba1a5",
+        "blob": "fe9c1045306927f02e8680eaa428cc6283534fcc79a3419f4bc87b3b3c8ba1a5",
+        "local": "fe9c1045306927f02e8680eaa428cc6283534fcc79a3419f4bc87b3b3c8ba1a5",
+        "ok": true
+      },
+      {
+        "path": "C2-intent-without-result/stdout.txt",
+        "expected": "d17e24b47611fcc452eae6c7380123a933a39fbf10cc9675a672cca020ede99e",
+        "blob": "d17e24b47611fcc452eae6c7380123a933a39fbf10cc9675a672cca020ede99e",
+        "local": "d17e24b47611fcc452eae6c7380123a933a39fbf10cc9675a672cca020ede99e",
+        "ok": true
+      },
+      {
+        "path": "doc-check.json",
+        "expected": "d3acbe7cd96eaa85fb37c23f3c88750edd61b8a2ea65ce00af84186cf8549aa3",
+        "blob": "d3acbe7cd96eaa85fb37c23f3c88750edd61b8a2ea65ce00af84186cf8549aa3",
+        "local": "d3acbe7cd96eaa85fb37c23f3c88750edd61b8a2ea65ce00af84186cf8549aa3",
+        "ok": true
+      },
+      {
+        "path": "README.md",
+        "expected": "bc80930044e5edcd2ea9593a238c91ad3f1525475c467ea659dd5f88da79680a",
+        "blob": "bc80930044e5edcd2ea9593a238c91ad3f1525475c467ea659dd5f88da79680a",
+        "local": "bc80930044e5edcd2ea9593a238c91ad3f1525475c467ea659dd5f88da79680a",
+        "ok": true
+      },
+      {
+        "path": "results.json",
+        "expected": "4c308b4320e131862d36ad4fa8faa472445985fcb0f3943f8c9dda81aa718b42",
+        "blob": "4c308b4320e131862d36ad4fa8faa472445985fcb0f3943f8c9dda81aa718b42",
+        "local": "4c308b4320e131862d36ad4fa8faa472445985fcb0f3943f8c9dda81aa718b42",
+        "ok": true
+      },
+      {
+        "path": "review.json",
+        "expected": "b60942628d0f5d38759175724607ea80eb08f2b653b20850c22f9dcb12fa9635",
+        "blob": "b60942628d0f5d38759175724607ea80eb08f2b653b20850c22f9dcb12fa9635",
+        "local": "b60942628d0f5d38759175724607ea80eb08f2b653b20850c22f9dcb12fa9635",
+        "ok": true
+      },
+      {
+        "path": "review.py",
+        "expected": "eac2d11fef1ae69054387e27559e59aaff90fe1b4630d4e71c2a713ebe9c070e",
+        "blob": "eac2d11fef1ae69054387e27559e59aaff90fe1b4630d4e71c2a713ebe9c070e",
+        "local": "eac2d11fef1ae69054387e27559e59aaff90fe1b4630d4e71c2a713ebe9c070e",
+        "ok": true
+      },
+      {
+        "path": "run_tests.py",
+        "expected": "43372bc1f0ec3d2b2fb714dff5a7b50f6aaac51e02d1fcb8fae4f8d96ad69a6d",
+        "blob": "43372bc1f0ec3d2b2fb714dff5a7b50f6aaac51e02d1fcb8fae4f8d96ad69a6d",
+        "local": "43372bc1f0ec3d2b2fb714dff5a7b50f6aaac51e02d1fcb8fae4f8d96ad69a6d",
+        "ok": true
+      }
+    ]
+  },
+  "xml": {
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.AlignedRestartContextTest.xml": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.AlignedV147FixesTest.xml": {
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.AlignedV148FixesTest.xml": {
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.BtcGateSupplyEndToEndTest.xml": {
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.BtcGateUnknownEntryTest.xml": {
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.CandleDataFreshnessSchedulerTest.xml": {
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.CandleFreshnessGuardTest.xml": {
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.CandleRefreshReportRetryTest.xml": {
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest.xml": {
+      "tests": 24,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.DailySma20PaperForwardPathTest.xml": {
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.DynamicBlackSwanCooldownCrossKindTest.xml": {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.DynamicBlackSwanCooldownRestoreTest.xml": {
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.DynamicCircuitBreakerTest.xml": {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.DynamicMinimumCandleGuardTest.xml": {
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.DynamicPaperTradingTest.xml": {
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.DynamicScanTransitionGuardTest.xml": {
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.DynamicSlWatchdogNoiseTest.xml": {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.DynamicTradingSlWatchdogRecoveryTest.xml": {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.DynamicUnlockedCapitalTest.xml": {
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.EngineConstantParityTest.xml": {
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.EngineParityTest.xml": {
+      "tests": 27,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.EntryPriorityEndToEndTest.xml": {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.EntryPriorityRoundsTest.xml": {
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.EntryRoundsCrossRoundPaperDelayTest.xml": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.ExitAbArmContractTest.xml": {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.KillCriteriaPaperVisibilityTest.xml": {
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.LegacySellPolicyTest.xml": {
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.LiveEmergencyStopUnderConcurrentWriteTest.xml": {
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.LiveTradingReliabilityTest.xml": {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.LiveTradingSlWatchdogRecoveryTest.xml": {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.N15EntryExpiryTest.xml": {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.N15FinalApprovalBoundaryTest.xml": {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.N15PgLockWaitExpiryTest.xml": {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 4
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.N17RestInvalidPriceTest.xml": {
+      "tests": 24,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest.xml": {
+      "tests": 23,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest.xml": {
+      "tests": 33,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.O1O3LogContractTest.xml": {
+      "tests": 17,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.OrderExecutionEngineSellPriceTest.xml": {
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.PaperLiveAlignmentTest.xml": {
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.PaperSessionStrategyParamsTest.xml": {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.PaperStopUnderConcurrentWriteTest.xml": {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.PoolLossLimitTest.xml": {
+      "tests": 22,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.PreStartLimitedTestCandleSupplyTest.xml": {
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.RiskCircuitBreakerOrderTest.xml": {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.RiskConfigMissingTest.xml": {
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.RiskManagementServiceTest.xml": {
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.RulesetRegistryCompositionTest.xml": {
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.SellQuarantineReleaseTest.xml": {
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.SessionLlmTelegramDeliveryTest.xml": {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.SharedLoopRoundsActiveTest.xml": {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.SharedPaperLoopIsolationTest.xml": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.SlWatchdogFreshnessTest.xml": {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedGapsTest.xml": {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedPaperSameInputTest.xml": {
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.Sma20LivePaperSameInputTest.xml": {
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.StrategyEnablementGateTest.xml": {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.TelegramCriticalRetryTest.xml": {
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.TelegramMarkdownFallbackTest.xml": {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.TelegramQueueRejectTxIntegrationTest.xml": {
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.TelegramQueueSaturationTest.xml": {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.TelegramRiskLimitRetryHttpTest.xml": {
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.service.UnknownOrderAdjustmentTest.xml": {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/related/TEST-com.cryptoautotrader.api.support.ExecutorBarrierTest.xml": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "aligned-v148-20261111/witness/TEST-com.cryptoautotrader.api.service.AlignedReview864Test.xml": {
+      "tests": 6,
+      "failures": 6,
+      "errors": 0,
+      "skipped": 0
+    }
+  }
+}

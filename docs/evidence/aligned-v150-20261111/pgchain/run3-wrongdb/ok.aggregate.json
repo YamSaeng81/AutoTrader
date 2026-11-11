@@ -1,0 +1,99 @@
+{
+  "diagnostic_week_block_90ci": [
+    "-0.001425",
+    "0.000000"
+  ],
+  "interval_flags": [],
+  "pairs": {
+    "P1": {
+      "A": {
+        "closed_trades": 1,
+        "days_unvalued": 0,
+        "end_nav": "100190.00",
+        "open_at_end": 0,
+        "return": "0.001900",
+        "session_id": "2"
+      },
+      "B": {
+        "closed_trades": 0,
+        "days_unvalued": 0,
+        "end_nav": "99960.00",
+        "open_at_end": 1,
+        "return": "-0.000400",
+        "session_id": "3"
+      },
+      "B_minus_A": "-0.002300"
+    },
+    "P2": {
+      "A": {
+        "closed_trades": 0,
+        "days_unvalued": 0,
+        "end_nav": "99960.00",
+        "open_at_end": 1,
+        "return": "-0.000400",
+        "session_id": "4"
+      },
+      "B": {
+        "closed_trades": 0,
+        "days_unvalued": 0,
+        "end_nav": "100000.00",
+        "open_at_end": 0,
+        "return": "0.000000",
+        "session_id": "5"
+      },
+      "B_minus_A": "0.000400"
+    },
+    "P3": {
+      "A": {
+        "closed_trades": 0,
+        "days_unvalued": 0,
+        "end_nav": "100000.00",
+        "open_at_end": 0,
+        "return": "0.000000",
+        "session_id": "6"
+      },
+      "B": {
+        "closed_trades": 0,
+        "days_unvalued": 0,
+        "end_nav": "100000.00",
+        "open_at_end": 0,
+        "return": "0.000000",
+        "session_id": "7"
+      },
+      "B_minus_A": "0.000000"
+    },
+    "P4": {
+      "A": {
+        "closed_trades": 0,
+        "days_unvalued": 0,
+        "end_nav": "100000.00",
+        "open_at_end": 0,
+        "return": "0.000000",
+        "session_id": "8"
+      },
+      "B": {
+        "closed_trades": 0,
+        "days_unvalued": 0,
+        "end_nav": "100000.00",
+        "open_at_end": 0,
+        "return": "0.000000",
+        "session_id": "9"
+      },
+      "B_minus_A": "0.000000"
+    }
+  },
+  "primary_mean_B_minus_A": "-0.000475",
+  "primary_status": "계산됨(탐색 결과 — 승격 판단 아님)",
+  "protocol_sha256": "8d787fe9d8c6d6bec00a588e38c6d638a97be9faf3709875b1670d71eae5d3db",
+  "rules": {
+    "exit_cost": "0.0015",
+    "reps": 2000,
+    "seed": 20261110
+  },
+  "t0": "2026-11-11T07:30:00+00:00",
+  "window": {
+    "days": 42,
+    "end": "2026-12-23T07:30:00+00:00",
+    "start": "2026-11-11T07:30:00+00:00"
+  }
+}

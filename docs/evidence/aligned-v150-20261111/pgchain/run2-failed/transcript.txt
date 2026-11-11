@@ -1,0 +1,42 @@
+$ chain_driver create --port 5319 --code-sha 5b17018bc54cf0a7fe41040edbe7b66c321c0690 → rc=0
+{"done": "8개 OK · API 대조 성공(DB 확인 전 초안)", "t0": "2026-11-11T07:15:00+00:00"}
+{"stage": "create", "rc": 0, "real_now": "2026-11-11T07:06:21.415318+00:00", "clock_shift_s": 0.0}
+
+첫 평가 지문=[{session_id=2, n=1, h=141c4dfd6822}, {session_id=3, n=1, h=282d280b8014}, {session_id=4, n=1, h=141c4dfd6822}, {session_id=5, n=1, h=282d280b8014}, {session_id=6, n=1, h=141c4dfd6822}, {session_id=7, n=1, h=282d280b8014}, {session_id=8, n=1, h=141c4dfd6822}, {session_id=9, n=1, h=282d280b8014}]
+
+$ chain_driver check --tag ok → rc=0
+{"stage": "check", "tag": "ok", "psql_rc": 0, "complete_rc": 0, "complete_out": "{\"done\": \"완성본 작성\", \"sessions\": 8, \"db_output_sha256\": \"e05703d26ac713c3ba648b500c285370fff02860c6313754efc9680da634794e\"}"}
+
+$ chain_driver check --tag neg_fp_missing → rc=3
+{"stage": "check", "tag": "neg_fp_missing", "psql_rc": 0, "complete_rc": 3, "complete_out": "{\"rejected\": \"P2A: 규칙 지문이 없거나 복수이거나 형식이 다르다\"}"}
+
+$ chain_driver check --tag neg_fp_multiple → rc=3
+{"stage": "check", "tag": "neg_fp_multiple", "psql_rc": 0, "complete_rc": 3, "complete_out": "{\"rejected\": \"P2A: 규칙 지문이 없거나 복수이거나 형식이 다르다\"}"}
+
+$ chain_driver check --tag neg_trade_before_t0 → rc=3
+{"stage": "check", "tag": "neg_trade_before_t0", "psql_rc": 0, "complete_rc": 3, "complete_out": "{\"rejected\": \"T0 이전 주문·포지션이 있다 — 동시 시작이 성립하지 않는다\"}"}
+
+$ chain_driver check --tag neg_stored_ratio → rc=3
+{"stage": "check", "tag": "neg_stored_ratio", "psql_rc": 0, "complete_rc": 3, "complete_out": "{\"rejected\": \"P2A: DB 저장값 불일치 — 투자 비율\"}"}
+
+$ chain_driver extract --tag ok → rc=1
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\aligned-v150-20261111\pgchain\chain_driver.py", line 147, in <module>
+    raise SystemExit(main(sys.argv[1:]))
+                     ~~~~^^^^^^^^^^^^^^
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\aligned-v150-20261111\pgchain\chain_driver.py", line 143, in main
+    return {"create": stage_create, "check": stage_check, "extract": stage_extract}[a.stage](a)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\aligned-v150-20261111\pgchain\chain_driver.py", line 124, in stage_extract
+    res = ag.aggregate(arms, positions, marks, [], creation_log=log)
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v3-20261111\tool\ab_aggregate.py", line 360, in aggregate
+    pairs = check_config(arms_rows, creation_log, protocol_path)
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v3-20261111\tool\ab_aggregate.py", line 244, in check_config
+    pairs = _check_pairs(arms_rows)
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v3-20261111\tool\ab_aggregate.py", line 285, in _check_pairs
+    av, bv = json.loads(av or "{}"), json.loads(bv or "{}")
+             ~~~~~~~~~~^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\json\__init__.py", line 345, in loads
+    raise TypeError(f'the JSON object must be str, bytes or bytearray, '
+                    f'not {s.__class__.__name__}')
+TypeError: the JSON object must be str, bytes or bytearray, not dict

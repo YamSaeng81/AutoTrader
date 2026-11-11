@@ -1,0 +1,52 @@
+test_a1_unverified_or_unproven_log_rejected (test_ab_aggregate.Aggregate.test_a1_unverified_or_unproven_log_rejected) ... ok
+test_a2_empty_or_unconfirmed_fingerprints_rejected (test_ab_aggregate.Aggregate.test_a2_empty_or_unconfirmed_fingerprints_rejected) ... ok
+test_closing_is_unsettled_holding (test_ab_aggregate.Aggregate.test_closing_is_unsettled_holding)
+CLOSING(청산 대기)은 보유로 평가한다 — 끝 평가가가 있으면 OPEN 과 같은 값, 없으면 판정 불가. ... ok
+test_config_rejections (test_ab_aggregate.Aggregate.test_config_rejections) ... ok
+test_deterministic (test_ab_aggregate.Aggregate.test_deterministic) ... ok
+test_different_fingerprints_per_arm_are_fine_when_logged (test_ab_aggregate.Aggregate.test_different_fingerprints_per_arm_are_fine_when_logged) ... ok
+test_end_price_missing_makes_primary_undecidable_not_dropped (test_ab_aggregate.Aggregate.test_end_price_missing_makes_primary_undecidable_not_dropped) ... ok
+test_hand_computed_costs_and_unrealized (test_ab_aggregate.Aggregate.test_hand_computed_costs_and_unrealized) ... ok
+test_interval_flags (test_ab_aggregate.Aggregate.test_interval_flags) ... ok
+test_log_reconciliation_rejections (test_ab_aggregate.Aggregate.test_log_reconciliation_rejections) ... ok
+test_mid_period_mark_missing_while_holding (test_ab_aggregate.Aggregate.test_mid_period_mark_missing_while_holding) ... ok
+test_no_trade_days_are_capital (test_ab_aggregate.Aggregate.test_no_trade_days_are_capital) ... ok
+test_one_side_holding_only_b (test_ab_aggregate.Aggregate.test_one_side_holding_only_b) ... ok
+test_overseer_negatives_rejected_by_aggregate_with_true_log (test_ab_aggregate.Aggregate.test_overseer_negatives_rejected_by_aggregate_with_true_log) ... ok
+test_overseer_negatives_rejected_even_if_log_forged_to_match (test_ab_aggregate.Aggregate.test_overseer_negatives_rejected_even_if_log_forged_to_match)
+기록부를 변형된 행에 맞춰 만들어도 프로토콜이 거절한다. ... ok
+test_overseer_negatives_rejected_without_log (test_ab_aggregate.Aggregate.test_overseer_negatives_rejected_without_log)
+총괄 하네스처럼 check_config(rows) 만 불러도 거절된다(기록부 없이 강제하는 고정 설계). ... ok
+test_position_status_contract (test_ab_aggregate.Aggregate.test_position_status_contract) ... ok
+test_trade_before_t0_rejected (test_ab_aggregate.Aggregate.test_trade_before_t0_rejected) ... ok
+test_c1_malformed_or_incomplete_reconcile_list (test_ab_create.CreateMock.test_c1_malformed_or_incomplete_reconcile_list) ... ok
+test_c1_reconcile_failure_after_8_ok_is_not_success (test_ab_create.CreateMock.test_c1_reconcile_failure_after_8_ok_is_not_success) ... ok
+test_c2_overseer_form_unknown_body_sha_also_blocks (test_ab_create.CreateMock.test_c2_overseer_form_unknown_body_sha_also_blocks)
+총괄 review.py 의 입력(본문 sha 가 'unresolved-prior-send')도 보내기 전에 거절. ... ok
+test_c2_unresolved_intent_blocks_all_sends (test_ab_create.CreateMock.test_c2_unresolved_intent_blocks_all_sends) ... ok
+test_concurrent_run_lock (test_ab_create.CreateMock.test_concurrent_run_lock) ... ok
+test_corrupt_or_foreign_journal_rejected_before_send (test_ab_create.CreateMock.test_corrupt_or_foreign_journal_rejected_before_send) ... ok
+test_crash_after_post_before_result_write_then_rerun_sends_nothing (test_ab_create.CreateMock.test_crash_after_post_before_result_write_then_rerun_sends_nothing) ... ok
+test_intent_write_failure_sends_nothing_for_that_body (test_ab_create.CreateMock.test_intent_write_failure_sends_nothing_for_that_body) ... ok
+test_killed_process_leaves_lock_and_intent (test_ab_create.CreateMock.test_killed_process_leaves_lock_and_intent)
+프로세스가 POST 뒤 응답 전에 죽은 흔적: 잠금 + 결과 없는 의도. 잠금이 있으면 거절, 사람이 잠금을 지워도 의도 때문에 거절. ... ok
+test_malformed_post_responses_are_fixed_unknown (test_ab_create.CreateMock.test_malformed_post_responses_are_fixed_unknown) ... ok
+test_unknown_then_list_candidate_is_provisional_not_attributed (test_ab_create.CreateMock.test_unknown_then_list_candidate_is_provisional_not_attributed) ... ok
+test_window_only_preflight_journal_can_rerun (test_ab_create.CreateMock.test_window_only_preflight_journal_can_rerun)
+창 밖으로 보낸 것 없이 끝난 기록부(같은 프로토콜·코드)는 다음 창에 다시 실행할 수 있다. ... ok
+test_window_rechecked_before_each_request (test_ab_create.CreateMock.test_window_rechecked_before_each_request)
+시작은 창 안(C+11:58)이지만 4번째 요청 직전 C+12:01 — 더 보내지 않고 부분 결과(종료 3). ... ok
+test_closing_holding_flows_through (test_chain.Chain.test_closing_holding_flows_through) ... ok
+test_control_chain_computes (test_chain.Chain.test_control_chain_computes) ... [연결 대조] 주지표=0.000000 상태=계산됨(탐색 결과 — 승격 판단 아님)
+ok
+test_db_check_failure_truncated_output (test_chain.Chain.test_db_check_failure_truncated_output) ... ok
+test_draft_with_failed_api_reconcile_not_completed (test_chain.Chain.test_draft_with_failed_api_reconcile_not_completed) ... ok
+test_manual_flag_without_db_reading_rejected_by_aggregator (test_chain.Chain.test_manual_flag_without_db_reading_rejected_by_aggregator)
+DB 를 읽지 않고 초안에 db_verified=true 만 붙이고 지문을 손으로 채운 파일 — 집계기가 거절(db_check 없음). ... ok
+test_rejections (test_chain.Chain.test_rejections) ... ok
+test_trade_before_t0_rejected_by_aggregator_after_completion (test_chain.Chain.test_trade_before_t0_rejected_by_aggregator_after_completion) ... ok
+
+----------------------------------------------------------------------
+Ran 38 tests in 0.554s
+
+OK
