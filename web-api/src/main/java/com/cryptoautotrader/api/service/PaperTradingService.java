@@ -518,9 +518,15 @@ public class PaperTradingService {
 
     // ── 성과 요약 ────────────────────────────────────────────────
 
-    @Transactional(readOnly = true)
+    /**
+     * 성과 요약 — 세션 금액·포지션 상태/건수·전체 합계를 한 읽기 전용 트랜잭션·한 스냅샷(REPEATABLE READ)에서 만든다
+     * (2026-11-11, 총괄 v1.151 S5). 종전 READ COMMITTED 는 세션을 먼저 읽고 포지션을 나중에 읽어, 그 사이 정산이 커밋되면
+     * 정산 전 금액과 정산 뒤 완료 표시가 섞였다. 읽기 잠금은 새로 걸지 않는다. 전체 위험 지표도 같은 스냅샷의 완료 목록을 쓴다.
+     */
+    @Transactional(readOnly = true, isolation = org.springframework.transaction.annotation.Isolation.REPEATABLE_READ)
     public PerformanceSummaryResponse getOverallPerformance() {
         List<VirtualBalanceEntity> sessions = balanceRepo.findAllByOrderByIdDesc();
+        List<PaperPositionEntity> allClosed = new java.util.ArrayList<>();
 
         BigDecimal totalRealizedPnl = BigDecimal.ZERO;
         BigDecimal totalUnrealizedPnl = BigDecimal.ZERO;
@@ -535,6 +541,7 @@ public class PaperTradingService {
         for (VirtualBalanceEntity session : sessions) {
             List<PaperPositionEntity> positions = positionRepo.findBySessionId(session.getId());
             List<PaperPositionEntity> closed = positions.stream().filter(p -> "CLOSED".equals(p.getStatus())).toList();
+            allClosed.addAll(closed);
             List<PaperPositionEntity> open   = positions.stream().filter(p -> "OPEN".equals(p.getStatus())).toList();
             // v1.148 W4: 청산 대기는 미정산 보유다 — 완료 거래(closed)에 넣지 않고, 유효 시세가 없으니 미실현손익을 0 으로 메우지 않는다.
             int pending = (int) positions.stream().filter(p -> "CLOSING".equals(p.getStatus())).count();
@@ -610,10 +617,6 @@ public class PaperTradingService {
                 : BigDecimal.ZERO;
 
         // 전체 포트폴리오 리스크 지표: 모든 세션 거래를 합산
-        List<PaperPositionEntity> allClosed = sessions.stream()
-                .flatMap(s -> positionRepo.findBySessionId(s.getId()).stream())
-                .filter(p -> "CLOSED".equals(p.getStatus()))
-                .toList();
         RiskMetrics overallRisk = computeRiskMetrics(allClosed, totalInitialCapital);
 
         return PerformanceSummaryResponse.builder()
