@@ -1,0 +1,14 @@
+test_closing_holding_flows_through (test_chain.Chain.test_closing_holding_flows_through) ... ok
+test_control_chain_computes (test_chain.Chain.test_control_chain_computes) ... ok
+test_db_check_failure_truncated_output (test_chain.Chain.test_db_check_failure_truncated_output) ... ok
+test_draft_with_failed_api_reconcile_not_completed (test_chain.Chain.test_draft_with_failed_api_reconcile_not_completed) ... ok
+test_manual_flag_without_db_reading_rejected_by_aggregator (test_chain.Chain.test_manual_flag_without_db_reading_rejected_by_aggregator)
+DB 를 읽지 않고 초안에 db_verified=true 만 붙이고 지문을 손으로 채운 파일 — 집계기가 거절(db_check 없음). ... ok
+test_rejections (test_chain.Chain.test_rejections) ... ok
+test_trade_before_t0_rejected_by_aggregator_after_completion (test_chain.Chain.test_trade_before_t0_rejected_by_aggregator_after_completion) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.055s
+
+OK
+[연결 대조] 주지표=0.000000 상태=계산됨(탐색 결과 — 승격 판단 아님)

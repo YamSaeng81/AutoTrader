@@ -1,0 +1,62 @@
+[
+  {
+    "version": "v2",
+    "case": "C0 대조",
+    "rc": 0,
+    "posts": 8
+  },
+  {
+    "version": "v2",
+    "case": "C1 사후 목록 503",
+    "rc": 0,
+    "posts": 8
+  },
+  {
+    "version": "v2",
+    "case": "C2 결과 없는 의도",
+    "rc": 0,
+    "posts": 8
+  },
+  {
+    "version": "v2",
+    "case": "A1 db_verified=false",
+    "result": "계산됨",
+    "primary": "0.001896"
+  },
+  {
+    "version": "v2",
+    "case": "A2 빈 지문(서로 같음)",
+    "result": "계산됨",
+    "primary": "0.001896"
+  },
+  {
+    "version": "v3",
+    "case": "C0 대조",
+    "rc": 0,
+    "posts": 8
+  },
+  {
+    "version": "v3",
+    "case": "C1 사후 목록 503",
+    "rc": 3,
+    "posts": 8
+  },
+  {
+    "version": "v3",
+    "case": "C2 결과 없는 의도",
+    "rc": 4,
+    "posts": 0
+  },
+  {
+    "version": "v3",
+    "case": "A1 db_verified=false",
+    "result": "거절",
+    "reason": "생성 기록부가 DB 확인 전 초안이다(db_verified≠true) — 주지표를 계산하지 않는다"
+  },
+  {
+    "version": "v3",
+    "case": "A2 빈 지문(서로 같음)",
+    "result": "거절",
+    "reason": "생성 기록부 항목에 ruleset_hash 가 없다"
+  }
+]

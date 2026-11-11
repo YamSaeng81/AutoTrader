@@ -1,0 +1,19 @@
+{
+  "fixed_main": "5624bd05",
+  "rounds_candidate": "acbfe5a03b41b99e2e5b5bd5d5ea715f05f7f90c",
+  "dynamic_candidate": "81b0e7a7ead1e0ab856b639f143f824b8f105de8",
+  "java_validation": "source diff and submitted XML review; no new Spring/Gradle execution",
+  "python_validation": "original aggregate14 and five witness assertions; Client replaced with in-memory FakeClient; no HTTP/network calls",
+  "findings": [
+    "C1 final list failure returns0",
+    "C2 unresolved intent does not prevent new calls",
+    "A1 db_verified=false accepted",
+    "A2 empty ruleset hashes accepted"
+  ],
+  "not_claimed": [
+    "actual duplicate session creation",
+    "operational occurrence",
+    "production load/performance",
+    "DYNAMIC deployment success"
+  ]
+}

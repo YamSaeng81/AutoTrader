@@ -1,0 +1,146 @@
+{
+  "protocol_sha256": "8d787fe9d8c6d6bec00a588e38c6d638a97be9faf3709875b1670d71eae5d3db",
+  "endpoint": "POST /api/v1/paper-trading/sessions",
+  "bodies": [
+    {
+      "pair_id": "P1",
+      "arm": "A",
+      "body": {
+        "strategyType": "COMPOSITE_MEANREV_BB",
+        "coinPair": "KRW-BTC",
+        "timeframe": "M15",
+        "initialCapital": 100000,
+        "investRatio": 0.8,
+        "maxHoldHours": 24,
+        "strategyParams": {
+          "paperMaxInvestment": 20000,
+          "paperExecutionMode": "LIVE_ALIGNED"
+        }
+      },
+      "body_sha256": "52fc7693238a2bac03a0ee50619a6a7ae76ea5555bdd688e82db10a0eb949ab0"
+    },
+    {
+      "pair_id": "P1",
+      "arm": "B",
+      "body": {
+        "strategyType": "COMPOSITE_MEANREV_BB",
+        "coinPair": "KRW-BTC",
+        "timeframe": "M15",
+        "initialCapital": 100000,
+        "investRatio": 0.8,
+        "maxHoldHours": 24,
+        "strategyParams": {
+          "paperMaxInvestment": 20000,
+          "paperExecutionMode": "LIVE_ALIGNED"
+        },
+        "stopLossPct": 5
+      },
+      "body_sha256": "274ad2ee8c935eb7b222418b3979c58570fa1fa2bba1f7e6e9cd5a6d96bacaa4"
+    },
+    {
+      "pair_id": "P2",
+      "arm": "A",
+      "body": {
+        "strategyType": "COMPOSITE_MEANREV_BB",
+        "coinPair": "KRW-ETH",
+        "timeframe": "M15",
+        "initialCapital": 100000,
+        "investRatio": 0.8,
+        "maxHoldHours": 24,
+        "strategyParams": {
+          "paperMaxInvestment": 20000,
+          "paperExecutionMode": "LIVE_ALIGNED"
+        }
+      },
+      "body_sha256": "a68f3b62896d4e9aba33a9a009f07be4de9a6955cd8cd5873325c2b71a665fa2"
+    },
+    {
+      "pair_id": "P2",
+      "arm": "B",
+      "body": {
+        "strategyType": "COMPOSITE_MEANREV_BB",
+        "coinPair": "KRW-ETH",
+        "timeframe": "M15",
+        "initialCapital": 100000,
+        "investRatio": 0.8,
+        "maxHoldHours": 24,
+        "strategyParams": {
+          "paperMaxInvestment": 20000,
+          "paperExecutionMode": "LIVE_ALIGNED"
+        },
+        "stopLossPct": 5
+      },
+      "body_sha256": "dd38156866590ec9ced9fbbcedc323d6371b4c69af05a9fc1683618581d8a6ed"
+    },
+    {
+      "pair_id": "P3",
+      "arm": "A",
+      "body": {
+        "strategyType": "COMPOSITE_MTF_CONFIRMED",
+        "coinPair": "KRW-BTC",
+        "timeframe": "M15",
+        "initialCapital": 100000,
+        "investRatio": 0.8,
+        "maxHoldHours": 24,
+        "strategyParams": {
+          "paperMaxInvestment": 20000,
+          "paperExecutionMode": "LIVE_ALIGNED"
+        }
+      },
+      "body_sha256": "9b8fe4b52ecd41abc41ce65bc7778d0aee2a88910370aded2d415aba771a28ae"
+    },
+    {
+      "pair_id": "P3",
+      "arm": "B",
+      "body": {
+        "strategyType": "COMPOSITE_MTF_CONFIRMED",
+        "coinPair": "KRW-BTC",
+        "timeframe": "M15",
+        "initialCapital": 100000,
+        "investRatio": 0.8,
+        "maxHoldHours": 24,
+        "strategyParams": {
+          "paperMaxInvestment": 20000,
+          "paperExecutionMode": "LIVE_ALIGNED"
+        },
+        "stopLossPct": 5
+      },
+      "body_sha256": "86cefa69379dc6a1d8d4f922386ca30d16b9f8e715780ebfdebe1bcc25da43c8"
+    },
+    {
+      "pair_id": "P4",
+      "arm": "A",
+      "body": {
+        "strategyType": "COMPOSITE_MTF_CONFIRMED",
+        "coinPair": "KRW-ETH",
+        "timeframe": "M15",
+        "initialCapital": 100000,
+        "investRatio": 0.8,
+        "maxHoldHours": 24,
+        "strategyParams": {
+          "paperMaxInvestment": 20000,
+          "paperExecutionMode": "LIVE_ALIGNED"
+        }
+      },
+      "body_sha256": "45b45fd14a3f0f04ac31bb91cd2ac5d184ca9a61f3a31ff5b0e3ff05aa4c39ae"
+    },
+    {
+      "pair_id": "P4",
+      "arm": "B",
+      "body": {
+        "strategyType": "COMPOSITE_MTF_CONFIRMED",
+        "coinPair": "KRW-ETH",
+        "timeframe": "M15",
+        "initialCapital": 100000,
+        "investRatio": 0.8,
+        "maxHoldHours": 24,
+        "strategyParams": {
+          "paperMaxInvestment": 20000,
+          "paperExecutionMode": "LIVE_ALIGNED"
+        },
+        "stopLossPct": 5
+      },
+      "body_sha256": "4f40cacc82b52018e525479a844f4584a1706d891b671a00c014dbef2d31e07e"
+    }
+  ]
+}

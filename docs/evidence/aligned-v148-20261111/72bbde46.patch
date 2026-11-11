@@ -1,0 +1,1265 @@
+From 72bbde46cd9bac1441605e9ad89ff00960fde5d9 Mon Sep 17 00:00:00 2001
+From: YamSaeng81 <manicstr81@gmail.com>
+Date: Wed, 11 Nov 2026 15:16:55 +0900
+Subject: [PATCH] =?UTF-8?q?=EC=B4=9D=EA=B4=84=20v1.148=20=EB=B3=B4?=
+ =?UTF-8?q?=EC=99=84(=ED=9B=84=EB=B3=B4)=20=E2=80=94=20=EC=B2=AD=EC=82=B0?=
+ =?UTF-8?q?=20=EB=8C=80=EA=B8=B0=20=EA=B0=80=EA=B2=A9=C2=B7=EC=86=8C?=
+ =?UTF-8?q?=EC=9C=A0=20=EC=83=81=ED=83=9C=20=EC=97=B0=EA=B2=B0,=20?=
+ =?UTF-8?q?=EC=BB=A4=EB=B0=8B=20=EB=92=A4=20=EB=B3=B4=EA=B3=A0=20=EA=B2=A9?=
+ =?UTF-8?q?=EB=A6=AC,=20=EB=9F=B0=ED=83=80=EC=9E=84=20=EC=83=81=ED=83=9C?=
+ =?UTF-8?q?=20=EC=97=B4=20V96?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- W1: 대기 정산은 시세 장부의 기존 유효기간 가격만 쓴다. 주기 회차에서 완성 봉 종가(판단 이전 가격)로 정산하지 않고, 없으면 CLOSING 유지
+- W2/W3: 청산 대기가 남은 세션은 단건 삭제 거절·일괄 삭제 건너뜀(같은 트랜잭션의 커밋된 상태로 판정, 정산 경합 확인)
+- W4: CLOSING 을 미정산 보유로 노출 — 보유 조회 포함, 성과 요약 미실현·총손익·수익률 null+평가 불가 상태·대기 수, 정지/일괄 정지 응답과
+  정지 알림에서 최종 자산 미확정 표시
+- W5: 커밋 뒤 보고(알림 적재) 예외가 확정 매매를 승인 실패로 바꾸지 않게 격리(고정 경고·수)
+- §3-1.5: 한 포지션 정산 실패가 다른 세션 대기 정산을 막지 않음
+- §3-3/W6: position.exit_decided_at·virtual_balance.mdd_peak_krw(V96, NULL 허용·기존 행 불변). 판단 시각은 CLOSING 과 같은 트랜잭션,
+  피크는 조건부 갱신(올리기만, 엔티티 저장으로 쓰지 않음). 별도 컨텍스트 기동 시험 포함
+- 기존 시험 3건 기대를 새 계약으로 갱신(R3 유효 시세, 복원 판단 시각 저장값, PAPER 알림 집합)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .../controller/PaperTradingController.java    |  53 +-
+ .../api/dto/PerformanceSummaryResponse.java   |   7 +
+ .../api/entity/paper/PaperPositionEntity.java |   7 +
+ .../entity/paper/VirtualBalanceEntity.java    |   8 +
+ .../paper/VirtualBalanceRepository.java       |  20 +
+ .../api/service/PaperTradingService.java      | 145 +++++-
+ .../service/TelegramNotificationService.java  |  13 +
+ .../V96__paper_aligned_runtime_state.sql      |  19 +
+ .../service/AlignedRestartContextTest.java    | 139 ++++++
+ .../api/service/AlignedV147FixesTest.java     |  11 +-
+ .../api/service/AlignedV148FixesTest.java     | 459 ++++++++++++++++++
+ .../api/service/EngineParityTest.java         |   6 +-
+ web-api/src/test/resources/schema-h2.sql      |   4 +
+ 13 files changed, 854 insertions(+), 37 deletions(-)
+ create mode 100644 web-api/src/main/resources/db/migration/V96__paper_aligned_runtime_state.sql
+ create mode 100644 web-api/src/test/java/com/cryptoautotrader/api/service/AlignedRestartContextTest.java
+ create mode 100644 web-api/src/test/java/com/cryptoautotrader/api/service/AlignedV148FixesTest.java
+
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/controller/PaperTradingController.java b/web-api/src/main/java/com/cryptoautotrader/api/controller/PaperTradingController.java
+index 30aab389..c95156a9 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/controller/PaperTradingController.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/controller/PaperTradingController.java
+@@ -129,14 +129,19 @@ public class PaperTradingController {
+             VirtualBalanceEntity session = paperTradingService.stop(sessionId);
+             // 청산 대기(LIVE_ALIGNED, 유효 가격 없음)가 남았으면 정산 완료가 아니다 — 수와 함께 알린다 (2026-11-11). 종전 세션은 늘 0.
+             long pendingCloses = paperTradingService.pendingCloseCount(sessionId);
+-            return ApiResponse.ok(Map.of(
+-                    "id", session.getId(),
+-                    "status", session.getStatus(),
+-                    "finalAsset", session.getTotalKrw(),
+-                    "stoppedAt", session.getStoppedAt().toString(),
+-                    "pendingCloseCount", pendingCloses,
+-                    "settlement", pendingCloses == 0 ? "완료" : "청산 대기 — 첫 유효 시세에 정산"
+-            ));
++            // v1.148 W4: 청산 대기가 있으면 최종 자산이 아니다 — finalAsset 을 비우고 마지막 기록 총자산을 따로 표시한다.
++            java.util.Map<String, Object> body = new java.util.LinkedHashMap<>();
++            body.put("id", session.getId());
++            body.put("status", session.getStatus());
++            body.put("finalAsset", pendingCloses == 0 ? session.getTotalKrw() : null);
++            if (pendingCloses > 0) {
++                body.put("lastRecordedTotalKrw", session.getTotalKrw());
++                body.put("assetStatus", "확정 아님 — 청산 대기 포지션 미정산(마지막 기록 총자산, 현재 평가 아님)");
++            }
++            body.put("stoppedAt", session.getStoppedAt().toString());
++            body.put("pendingCloseCount", pendingCloses);
++            body.put("settlement", pendingCloses == 0 ? "완료" : "청산 대기 — 첫 유효 시세에 정산");
++            return ApiResponse.ok(body);
+         } catch (IllegalStateException e) {
+             return ApiResponse.error("INVALID_REQUEST", e.getMessage());
+         }
+@@ -149,7 +154,10 @@ public class PaperTradingController {
+     @PostMapping("/sessions/stop-all")
+     public ApiResponse<Map<String, Object>> stopAll() {
+         List<VirtualBalanceEntity> stopped = paperTradingService.stopAll();
+-        return ApiResponse.ok(Map.of("stoppedCount", stopped.size()));
++        // v1.148 W4: 일괄 정지도 청산 대기 수를 함께 알린다(0 이면 전부 정산).
++        long pending = stopped.stream().mapToLong(s -> paperTradingService.pendingCloseCount(s.getId())).sum();
++        return ApiResponse.ok(Map.of("stoppedCount", stopped.size(), "pendingCloseCount", pending,
++                "settlement", pending == 0 ? "완료" : "청산 대기 " + pending + "건 — 첫 유효 시세에 정산")); 
+     }
+ 
+     /**
+@@ -249,6 +257,7 @@ public class PaperTradingController {
+     }
+ 
+     private Map<String, Object> toPositionMap(PaperPositionEntity p) {
++        if ("CLOSING".equals(p.getStatus())) return toPendingPositionMap(p);
+         BigDecimal unrealizedPnlPct = p.getAvgPrice().compareTo(BigDecimal.ZERO) > 0
+                 ? p.getUnrealizedPnl()
+                         .divide(p.getAvgPrice().multiply(p.getSize()), 4, RoundingMode.HALF_UP)
+@@ -271,6 +280,32 @@ public class PaperTradingController {
+         return map;
+     }
+ 
++    /**
++     * 청산 대기(LIVE_ALIGNED, 미정산 보유) 표시 (2026-11-11, v1.148 W4). 유효 시세가 없어 평가할 수 없으므로 미실현손익을 0 으로 채우지 않고
++     * null 로 두며, 표에 남은 마지막 기록값은 시각을 알 수 없다는 표시와 함께 따로 준다. 결정한 청산 사유와 판단 시각을 함께 준다.
++     */
++    private Map<String, Object> toPendingPositionMap(PaperPositionEntity p) {
++        java.util.Map<String, Object> map = new java.util.HashMap<>();
++        map.put("id", p.getId());
++        map.put("coinPair", p.getCoinPair());
++        map.put("side", p.getSide());
++        map.put("quantity", p.getSize());
++        map.put("avgEntryPrice", p.getAvgPrice());
++        map.put("entryPrice", p.getEntryPrice());
++        map.put("unrealizedPnl", null);
++        map.put("unrealizedPnlPct", null);
++        map.put("valuationStatus", "평가 불가 — 청산 대기(유효 시세 없음)");
++        map.put("lastRecordedUnrealizedPnl", p.getUnrealizedPnl());
++        map.put("lastRecordedUnrealizedPnlNote", "청산 판단 이전 마지막 기록값 — 기록 시각 미상, 현재 평가 아님");
++        map.put("pendingExitReason", p.getExitReason() != null ? p.getExitReason().name() : null);
++        map.put("exitDecidedAt", p.getExitDecidedAt() != null ? p.getExitDecidedAt().toString() : null);
++        map.put("realizedPnl", null);
++        map.put("status", p.getStatus());
++        map.put("openedAt", p.getOpenedAt().toString());
++        map.put("closedAt", null);
++        return map;
++    }
++
+     private static final BigDecimal FEE_RATE = new BigDecimal("0.0005");
+ 
+     private Map<String, Object> toOrderMap(PaperOrderEntity o) {
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/dto/PerformanceSummaryResponse.java b/web-api/src/main/java/com/cryptoautotrader/api/dto/PerformanceSummaryResponse.java
+index 92d021fb..f73bfb5d 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/dto/PerformanceSummaryResponse.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/dto/PerformanceSummaryResponse.java
+@@ -47,6 +47,10 @@ public class PerformanceSummaryResponse {
+ 
+     private List<SessionPerformance> sessions;
+ 
++    /** 청산 대기(미정산 보유) 수 — 0 보다 크면 미실현·총손익·수익률은 null(평가 불가)이다 (2026-11-11, v1.148 W4). */
++    private int pendingCloseCount;
++    private String valuationStatus;
++
+     /** 레짐별 집계 통계 */
+     @Data
+     @Builder
+@@ -77,6 +81,9 @@ public class PerformanceSummaryResponse {
+         private BigDecimal winRatePct;
+         private String startedAt;
+         private String stoppedAt;
++        /** 청산 대기 수 — 0 보다 크면 unrealizedPnl·totalPnl·returnRatePct 는 null(평가 불가) (v1.148 W4). */
++        private int pendingCloseCount;
++        private String valuationStatus;
+ 
+         // 리스크 조정 지표
+         private BigDecimal mddPct;
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/entity/paper/PaperPositionEntity.java b/web-api/src/main/java/com/cryptoautotrader/api/entity/paper/PaperPositionEntity.java
+index c4f7e632..e95dcb6f 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/entity/paper/PaperPositionEntity.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/entity/paper/PaperPositionEntity.java
+@@ -99,6 +99,13 @@ public class PaperPositionEntity {
+     @Column(name = "exit_reason", length = 20)
+     private com.cryptoautotrader.api.entity.ExitReason exitReason;
+ 
++    /**
++     * 청산 판단 시각 — 선택 모드 청산 대기(CLOSING) 때 사유와 같은 트랜잭션에 적는다 (2026-11-11, v1.148 §3-3, V96). 재기동 뒤에도 판단 시각을
++     * 보존한다. 종전 행·키 없는 세션은 NULL 이며 과거 값을 추정해 채우지 않는다.
++     */
++    @Column(name = "exit_decided_at")
++    private Instant exitDecidedAt;
++
+     /** 진입 시점 시장 레짐 — 이게 없으면 "이 전략은 횡보장에서만 되는가" 를 물을 수 없다. */
+     @Column(name = "market_regime", length = 20)
+     private String marketRegime;
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/entity/paper/VirtualBalanceEntity.java b/web-api/src/main/java/com/cryptoautotrader/api/entity/paper/VirtualBalanceEntity.java
+index 3daa59c4..02607649 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/entity/paper/VirtualBalanceEntity.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/entity/paper/VirtualBalanceEntity.java
+@@ -91,6 +91,14 @@ public class VirtualBalanceEntity {
+     @Column(name = "updated_at")
+     private Instant updatedAt;
+ 
++    /**
++     * 선택 모드(LIVE_ALIGNED) MDD 피크 — 런타임 상태 (2026-11-11, v1.148 §3-3, V96). LIVE {@code mdd_peak_capital} 대응. 엔티티 저장으로는
++     * 쓰지 않는다(insertable/updatable=false) — 묵은 엔티티 저장이 피크를 내리지 못하게 {@code raiseMddPeakKrw} 조건부 갱신만 쓴다.
++     * 키 없는 세션은 늘 NULL. 규칙 지문·strategy_params 에 넣지 않는다.
++     */
++    @Column(name = "mdd_peak_krw", precision = 20, scale = 2, insertable = false, updatable = false)
++    private BigDecimal mddPeakKrw;
++
+     @PrePersist
+     @PreUpdate
+     void touch() {
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/repository/paper/VirtualBalanceRepository.java b/web-api/src/main/java/com/cryptoautotrader/api/repository/paper/VirtualBalanceRepository.java
+index 2f380665..11e3beec 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/repository/paper/VirtualBalanceRepository.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/repository/paper/VirtualBalanceRepository.java
+@@ -2,6 +2,12 @@ package com.cryptoautotrader.api.repository.paper;
+ 
+ import com.cryptoautotrader.api.entity.paper.VirtualBalanceEntity;
+ import org.springframework.data.jpa.repository.JpaRepository;
++import org.springframework.data.jpa.repository.Modifying;
++import org.springframework.data.jpa.repository.Query;
++import org.springframework.data.repository.query.Param;
++import org.springframework.transaction.annotation.Transactional;
++
++import java.math.BigDecimal;
+ 
+ import java.util.List;
+ 
+@@ -12,4 +18,18 @@ public interface VirtualBalanceRepository extends JpaRepository<VirtualBalanceEn
+     long countByStatus(String status);
+ 
+     List<VirtualBalanceEntity> findByStatusOrderByStartedAtAsc(String status);
++
++    /** 저장된 MDD 피크(선택 모드 런타임 상태, V96) — 엔티티 캐시를 거치지 않고 커밋된 값을 읽는다. 없으면 null. */
++    @Query(value = "SELECT mdd_peak_krw FROM paper_trading.virtual_balance WHERE id = :id", nativeQuery = true)
++    BigDecimal findMddPeakKrw(@Param("id") Long id);
++
++    /**
++     * MDD 피크를 올리기만 한다 — 저장값보다 클 때만 쓴다(동시 갱신·늦은 낮은 값이 피크를 내리지 못한다). version 은 건드리지 않는다
++     * (세션 행의 낙관적 잠금과 무관한 단조 증가 열). 별도 트랜잭션 — 호출자의 롤백이 이미 관측한 피크를 되돌리지 않는다.
++     */
++    @Modifying
++    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
++    @Query(value = "UPDATE paper_trading.virtual_balance SET mdd_peak_krw = :peak "
++            + "WHERE id = :id AND (mdd_peak_krw IS NULL OR mdd_peak_krw < :peak)", nativeQuery = true)
++    int raiseMddPeakKrw(@Param("id") Long id, @Param("peak") BigDecimal peak);
+ }
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java
+index 3c9fe049..1bbaacaa 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java
+@@ -277,9 +277,15 @@ public class PaperTradingService {
+         }
+         // 청산 대기(CLOSING)는 지우지 않는다 — 첫 유효 시세에 정산한다(v1.147 R2).
+         alignedPeakTotalKrw.remove(sessionId);
++        alignedPeakPersisted.remove(sessionId);
+ 
+         // 🔴 트랜잭션 밖 — 커밋이 끝난 뒤에만 알린다. 재시도가 있어도 한 번만 나간다.
+-        if (Boolean.TRUE.equals(stopped.getTelegramEnabled())) {
++        long pendingAfterStop = isAligned(stopped) ? pendingCloseCount(sessionId) : 0;
++        if (Boolean.TRUE.equals(stopped.getTelegramEnabled()) && pendingAfterStop > 0) {
++            // v1.148 W4: 청산 대기가 남았으면 "최종 자산"으로 알리지 않는다.
++            telegramService.notifyPaperSessionStoppedPendingClose(
++                    sessionId, stopped.getStrategyName(), stopped.getCoinPair(), pendingAfterStop);
++        } else if (Boolean.TRUE.equals(stopped.getTelegramEnabled())) {
+             BigDecimal initial = stopped.getInitialCapital() != null
+                     ? stopped.getInitialCapital() : stopped.getTotalKrw();
+             double returnPct = initial.compareTo(BigDecimal.ZERO) > 0
+@@ -378,7 +384,11 @@ public class PaperTradingService {
+ 
+     @Transactional(readOnly = true)
+     public List<PaperPositionEntity> getOpenPositions(Long sessionId) {
+-        return positionRepo.findBySessionIdAndStatus(sessionId, "OPEN");
++        // v1.148 W4: 청산 대기(CLOSING)도 아직 소유한 미정산 자산이다 — 상태 값 그대로 함께 돌려준다(OPEN 의 뜻은 바꾸지 않음).
++        //    종전 PAPER 는 CLOSING 이 생기지 않으므로 결과가 같다.
++        List<PaperPositionEntity> held = new ArrayList<>(positionRepo.findBySessionIdAndStatus(sessionId, "OPEN"));
++        held.addAll(positionRepo.findBySessionIdAndStatus(sessionId, "CLOSING"));
++        return held;
+     }
+ 
+     @Transactional(readOnly = true)
+@@ -403,6 +413,11 @@ public class PaperTradingService {
+         if ("RUNNING".equals(session.getStatus())) {
+             throw new IllegalStateException("진행 중인 세션은 삭제할 수 없습니다. 먼저 중단하세요.");
+         }
++        // v1.148 W2: 청산 대기(미정산 보유)가 남은 세션은 정지됐어도 삭제하지 않는다. 같은 트랜잭션에서 커밋된 상태를 읽는다 —
++        //    정산이 진행 중이면 커밋 전 값(CLOSING)을 보므로 거절되고, 정산 커밋 뒤에는 CLOSED 라 종전대로 삭제된다.
++        if (!positionRepo.findBySessionIdAndStatus(sessionId, "CLOSING").isEmpty()) {
++            throw new IllegalStateException("청산 대기 포지션이 있어 삭제할 수 없습니다 — 첫 유효 시세에 정산된 뒤 삭제하세요.");
++        }
+         orderRepo.deleteBySessionId(sessionId);
+         positionRepo.deleteBySessionId(sessionId);
+         balanceRepo.deleteById(sessionId);
+@@ -419,9 +434,11 @@ public class PaperTradingService {
+         List<Long> deletableIds = balanceRepo.findAllById(ids).stream()
+                 .filter(s -> !"RUNNING".equals(s.getStatus()))
+                 .map(VirtualBalanceEntity::getId)
++                // v1.148 W3: 청산 대기가 남은 세션은 건너뛴다(단건 삭제와 같은 판정)
++                .filter(id -> positionRepo.findBySessionIdAndStatus(id, "CLOSING").isEmpty())
+                 .toList();
+         if (deletableIds.isEmpty()) {
+-            log.info("다건 삭제 대상 없음 (모두 RUNNING 이거나 존재하지 않는 ID): ids={}", ids);
++            log.info("다건 삭제 대상 없음 (모두 RUNNING·청산 대기이거나 존재하지 않는 ID): ids={}", ids);
+             return;
+         }
+         orderRepo.deleteBySessionIdIn(deletableIds);
+@@ -442,6 +459,7 @@ public class PaperTradingService {
+         BigDecimal totalFee = BigDecimal.ZERO;
+         int totalTrades = 0;
+         int totalWins = 0;
++        int totalPending = 0;
+ 
+         List<PerformanceSummaryResponse.SessionPerformance> sessionPerfs = new java.util.ArrayList<>();
+ 
+@@ -449,6 +467,8 @@ public class PaperTradingService {
+             List<PaperPositionEntity> positions = positionRepo.findBySessionId(session.getId());
+             List<PaperPositionEntity> closed = positions.stream().filter(p -> "CLOSED".equals(p.getStatus())).toList();
+             List<PaperPositionEntity> open   = positions.stream().filter(p -> "OPEN".equals(p.getStatus())).toList();
++            // v1.148 W4: 청산 대기는 미정산 보유다 — 완료 거래(closed)에 넣지 않고, 유효 시세가 없으니 미실현손익을 0 으로 메우지 않는다.
++            int pending = (int) positions.stream().filter(p -> "CLOSING".equals(p.getStatus())).count();
+ 
+             BigDecimal sessionUnrealized = open.stream()
+                     .map(p -> p.getUnrealizedPnl() != null ? p.getUnrealizedPnl() : BigDecimal.ZERO)
+@@ -479,9 +499,11 @@ public class PaperTradingService {
+                     .initialCapital(session.getInitialCapital())
+                     .currentAsset(session.getTotalKrw())
+                     .realizedPnl(sessionRealized)
+-                    .unrealizedPnl(sessionUnrealized)
+-                    .totalPnl(sessionPnl)
+-                    .returnRatePct(sessionReturn)
++                    .unrealizedPnl(pending > 0 ? null : sessionUnrealized)
++                    .totalPnl(pending > 0 ? null : sessionPnl)
++                    .returnRatePct(pending > 0 ? null : sessionReturn)
++                    .pendingCloseCount(pending)
++                    .valuationStatus(pending > 0 ? PENDING_VALUATION : "평가 완료")
+                     .totalFee(sessionFee)
+                     .totalTrades(closed.size())
+                     .winCount(wins)
+@@ -499,6 +521,7 @@ public class PaperTradingService {
+ 
+             totalRealizedPnl = totalRealizedPnl.add(sessionRealized);
+             totalUnrealizedPnl = totalUnrealizedPnl.add(sessionUnrealized);
++            totalPending += pending;
+             totalInitialCapital = totalInitialCapital.add(session.getInitialCapital());
+             totalFee = totalFee.add(sessionFee);
+             totalTrades += closed.size();
+@@ -524,10 +547,12 @@ public class PaperTradingService {
+ 
+         return PerformanceSummaryResponse.builder()
+                 .totalRealizedPnl(totalRealizedPnl)
+-                .totalUnrealizedPnl(totalUnrealizedPnl)
+-                .totalPnl(totalPnl)
++                .totalUnrealizedPnl(totalPending > 0 ? null : totalUnrealizedPnl)
++                .totalPnl(totalPending > 0 ? null : totalPnl)
+                 .totalInitialCapital(totalInitialCapital)
+-                .returnRatePct(returnRate)
++                .returnRatePct(totalPending > 0 ? null : returnRate)
++                .pendingCloseCount(totalPending)
++                .valuationStatus(totalPending > 0 ? PENDING_VALUATION : "평가 완료")
+                 .totalFee(totalFee)
+                 .totalTrades(totalTrades)
+                 .winCount(totalWins)
+@@ -760,7 +785,9 @@ public class PaperTradingService {
+             // 대기 중에는 새 진입·새 청산 판단을 하지 않는다(LIVE 의 CLOSING 과 같다).
+             Optional<PaperPositionEntity> closing = positionRepo.findBySessionIdAndCoinPairAndStatus(sessionId, coinPair, "CLOSING");
+             if (closing.isPresent()) {
+-                settleClosing(closing.get(), candles.get(candles.size() - 1).getClose(), "주기 회차 현재가");
++                // 🔴 v1.148 W1: 완성 봉 종가(판단 이전 가격)로 정산하지 않는다. 봉 최신성 통과와 현재 시세 유효기간은 다른 계약이다 —
++                //    시세 장부의 기존 유효기간 안 가격만 쓰고, 없으면 계속 CLOSING(매도·정산 0)이다.
++                settleClosingFresh(closing.get(), "주기 회차 시세 장부 유효 현재가");
+                 return;
+             }
+         }
+@@ -1096,14 +1123,16 @@ public class PaperTradingService {
+ 
+     /**
+      * 청산 대기(포지션 status=CLOSING, exit_reason=결정한 사유)의 판단 시각과 코인 (2026-11-11, 총괄 v1.147 R2~R4). 대기 자체는 DB 에 있고
+-     * 재기동 때 {@link #restoreAlignedClosing} 이 코인·포지션을 다시 올린다. 판단 시각은 표에 열이 없어 메모리에만 있다 — 재기동 뒤에는
+-     * "판단 시각 미상(재기동 전)"으로 적는다(DDL 안은 별도 제출).
++     * 재기동 때 {@link #restoreAlignedClosing} 이 코인·포지션을 다시 올린다. 판단 시각은 position.exit_decided_at(V96)에 저장한다 — 이 지도는
++     * 같은 프로세스 안의 보조 표시일 뿐이고, 정산 사유의 판단 시각은 저장 열을 먼저 쓴다(v1.148 §3-3).
+      */
+     private final Map<Long, Instant> alignedClosingDecidedAt = new ConcurrentHashMap<>();
+     private final Map<String, java.util.Set<Long>> alignedClosingByCoin = new ConcurrentHashMap<>();
+ 
+-    /** 세션 총자산 피크 (MDD 분모) — LIVE mddPeakCapital 대응. 모의 세션 표에는 열이 없어 메모리에만 두고, 재기동 뒤에는 초기 자본부터 다시 본다. */
++    /** 세션 총자산 피크 (MDD 분모) — LIVE mddPeakCapital 대응. 메모리는 캐시이고 원본은 virtual_balance.mdd_peak_krw(V96)다(v1.148 §3-3). */
+     private final Map<Long, BigDecimal> alignedPeakTotalKrw = new ConcurrentHashMap<>();
++    /** 이 프로세스가 저장 열에 이미 올린 피크 — 같은 값 반복 쓰기를 줄일 뿐, 원본은 저장 열이다. */
++    private final Map<Long, BigDecimal> alignedPeakPersisted = new ConcurrentHashMap<>();
+ 
+     private Object alignedLock(Long sessionId) {
+         return alignedLocks.computeIfAbsent(sessionId, k -> new Object());
+@@ -1141,7 +1170,7 @@ public class PaperTradingService {
+         // 이미 내린 청산 판단(청산 대기)은 이후 가격으로 사유를 다시 고르지 않는다(v1.147 R3).
+         PaperPositionEntity current = positionRepo.findById(pos.getId()).orElse(pos);
+         if ("CLOSING".equals(current.getStatus())) {
+-            settleClosing(current, price, "현재가" + note);
++            settleClosingFresh(current, "시세 장부 유효 현재가" + note);   // v1.148 W1: 넘어온 가격(봉 종가일 수 있음)은 쓰지 않는다
+             return true;
+         }
+         if (pos.getTakeProfitPrice() != null && price.compareTo(pos.getTakeProfitPrice()) >= 0) {
+@@ -1178,11 +1207,31 @@ public class PaperTradingService {
+                     new org.springframework.transaction.support.TransactionSynchronization() {
+                         @Override
+                         public void afterCommit() {
+-                            r.run();
++                            runReport(r);
+                         }
+                     });
+         } else {
++            runReport(r);
++        }
++    }
++
++    /** 청산 대기가 있을 때의 평가 상태 — 미실현·총손익·수익률을 0 으로 메우지 않고 비운다(v1.148 W4). */
++    static final String PENDING_VALUATION = "평가 불가 — 청산 대기(미정산 보유, 유효 시세 없음)";
++
++    /** 커밋 뒤 보고(알림 적재·로그) 실패 수 — 관측용 (v1.148 W5). */
++    static final java.util.concurrent.atomic.AtomicLong alignedReportFailures = new java.util.concurrent.atomic.AtomicLong();
++
++    /**
++     * 🔴 v1.148 W5: 커밋 뒤 보고의 예외는 이미 확정된 매매를 실패로 바꾸지 않는다. 종전에는 afterCommit 예외가 트랜잭션 호출자까지 올라가
++     * 커밋된 매수가 "승인 중 오류"로 보고됐다. 확정 결과는 DB 커밋이 정하고, 보고 실패는 고정 경고와 수로만 남긴다(예외 종류만 적는다).
++     * 재시도·외부 재전송은 하지 않는다.
++     */
++    private static void runReport(Runnable r) {
++        try {
+             r.run();
++        } catch (RuntimeException e) {
++            alignedReportFailures.incrementAndGet();
++            log.warn("모의투자[LIVE_ALIGNED] 커밋 뒤 보고 실패 — 확정된 매매·상태는 그대로 ({})", e.getClass().getSimpleName());
+         }
+     }
+ 
+@@ -1190,10 +1239,12 @@ public class PaperTradingService {
+     private void markClosingInTx(PaperPositionEntity pos, ExitReason reason, String why) {
+         PaperPositionEntity fresh = positionRepo.findById(pos.getId()).orElse(null);
+         if (fresh == null || !"OPEN".equals(fresh.getStatus())) return;
++        // DB(TIMESTAMP/TIMESTAMPTZ)가 마이크로초까지 저장하므로 같은 정밀도로 잘라 메모리·로그·저장값을 맞춘다.
++        Instant decided = Instant.now().truncatedTo(ChronoUnit.MICROS);
+         fresh.setStatus("CLOSING");
+         fresh.setExitReason(reason);
++        fresh.setExitDecidedAt(decided);   // v1.148 §3-3: 판단 시각을 사유·상태와 같은 트랜잭션에 저장(재기동 보존)
+         positionRepo.save(fresh);
+-        Instant decided = Instant.now();
+         Long posId = fresh.getId();
+         String coin = fresh.getCoinPair();
+         afterCommit(() -> {
+@@ -1223,16 +1274,40 @@ public class PaperTradingService {
+                 PaperPositionEntity fresh = positionRepo.findById(posId).orElse(null);
+                 VirtualBalanceEntity s = fresh == null ? null : balanceRepo.findById(fresh.getSessionId()).orElse(null);
+                 if (fresh == null || s == null || !"CLOSING".equals(fresh.getStatus())) return null;
+-                Instant decided = alignedClosingDecidedAt.get(posId);
++                alignedRaceHook.accept("SETTLE_BEFORE_CLOSE#" + posId);
++                Instant decided = fresh.getExitDecidedAt() != null ? fresh.getExitDecidedAt() : alignedClosingDecidedAt.get(posId);
+                 ExitReason reason = fresh.getExitReason() != null ? fresh.getExitReason() : ExitReason.UNKNOWN;
+                 closePosition(fresh, price, s, "청산 대기 정산(" + reason + ", " + source + " " + price.toPlainString() + ") [청산 판단 "
+-                        + (decided == null ? "미상(재기동 전)" : decided.toString()) + " / 체결가 시각 " + Instant.now() + "]", reason);
++                        + (decided == null ? "미상(V96 이전 기록)" : decided.toString()) + " / 체결가 시각 " + Instant.now() + "]", reason);
+                 return null;
+             });
+             afterClosed(posId, pos.getCoinPair());
+         }
+     }
+ 
++    /**
++     * 한 포지션의 정산 실패가 다른 세션·포지션의 청산 대기 정산을 막지 않게 한다(v1.148 §3-1.5). 실패한 포지션은 CLOSING 으로 남아
++     * 다음 유효 시세에 다시 시도된다.
++     */
++    private void settleIsolated(Long posId, BigDecimal price, String source) {
++        try {
++            positionRepo.findById(posId).ifPresent(pos -> settleClosing(pos, price, source));
++        } catch (RuntimeException ex) {
++            log.error("모의투자[LIVE_ALIGNED] 청산 대기 정산 실패 — 대기 유지, 다른 포지션은 계속 (posId={}, {})",
++                    posId, ex.getClass().getSimpleName());
++        }
++    }
++
++    /** 시세 장부의 기존 유효기간 안 가격으로만 정산한다(v1.148 W1). 없으면 아무것도 하지 않는다 — 계속 CLOSING. */
++    private void settleClosingFresh(PaperPositionEntity pos, String source) {
++        BigDecimal p = markPriceBook == null ? null : markPriceBook.freshPrice(pos.getCoinPair(), Instant.now());
++        if (!MarkPriceBook.isPrice(p)) {
++            log.info("모의투자[LIVE_ALIGNED] 청산 대기 유지 — 유효 시세 없음 (posId={}, {})", pos.getId(), pos.getCoinPair());
++            return;
++        }
++        settleClosing(pos, p, source);
++    }
++
+     /** 닫힌 뒤(커밋된 뒤) 메모리 표시를 지운다. DB 가 CLOSING 이 아니면 지운다 — 정산이 실패했으면 남는다. */
+     private void afterClosed(Long posId, String coin) {
+         boolean stillClosing = positionRepo.findById(posId).map(x -> "CLOSING".equals(x.getStatus())).orElse(false);
+@@ -1270,7 +1345,7 @@ public class PaperTradingService {
+             BigDecimal p = markPriceBook.freshPrice(e.getKey(), Instant.now());
+             if (!MarkPriceBook.isPrice(p)) continue;
+             for (Long posId : new java.util.ArrayList<>(e.getValue())) {
+-                positionRepo.findById(posId).ifPresent(pos -> settleClosing(pos, p, "시세 장부 유효 현재가"));
++                settleIsolated(posId, p, "시세 장부 유효 현재가");
+             }
+         }
+     }
+@@ -1333,10 +1408,17 @@ public class PaperTradingService {
+     private CircuitBreakerResult alignedCircuitBreaker(VirtualBalanceEntity s) {
+         BigDecimal total = nz(s.getTotalKrw());
+         List<PaperPositionEntity> closed = positionRepo.findBySessionIdAndStatus(s.getId(), "CLOSED");
+-        // MDD 피크 — 메모리에 없으면(재기동 뒤) 청산 이력의 실현 자산 경로에서 복원한다(v1.147 3-2c 임시안). 미실현 고점은 복원되지 않는다
+-        // (LIVE 는 mdd_peak_capital 열에 저장 — 모의 표 열 추가 DDL 안은 별도 제출).
+-        BigDecimal peak = alignedPeakTotalKrw.computeIfAbsent(s.getId(), k -> realizedEquityPeak(s, closed));
+-        peak = alignedPeakTotalKrw.merge(s.getId(), total.max(peak), BigDecimal::max);
++        // MDD 피크 — v1.148 §3-3: 저장 열(mdd_peak_krw, V96)이 원본이다. 메모리에 없으면(재기동 뒤) 저장값과 실현 자산 경로 중 큰 값에서
++        // 시작하고, 새 고점은 조건부 갱신(올리기만)으로 저장한다. 저장값이 없던 과거 세션은 실현 경로만 쓴다 — 알 수 없는 미실현 고점은 추정하지 않는다.
++        final Long sid = s.getId();
++        BigDecimal peak = alignedPeakTotalKrw.computeIfAbsent(sid, k -> {
++            BigDecimal stored = balanceRepo.findMddPeakKrw(sid);
++            BigDecimal realized = realizedEquityPeak(s, closed);
++            return stored == null ? realized : stored.max(realized);
++        });
++        BigDecimal newPeak = total.max(peak);
++        peak = alignedPeakTotalKrw.merge(sid, newPeak, BigDecimal::max);
++        persistMddPeak(sid, peak);
+         List<BigDecimal> pnlNewestFirst = closed.stream()
+                 .sorted(java.util.Comparator.comparing((PaperPositionEntity p) -> p.getClosedAt() == null ? Instant.EPOCH : p.getClosedAt())
+                         .reversed())
+@@ -1345,6 +1427,21 @@ public class PaperTradingService {
+         return riskManagementService.checkCircuitBreakerFromValues(peak, s.getInitialCapital(), total, pnlNewestFirst);
+     }
+ 
++    /** 피크를 저장 열에 올린다(내리지 않음). 저장 실패는 판정을 바꾸지 않고 경고만 — 다음 회차에 다시 올린다. */
++    private void persistMddPeak(Long sessionId, BigDecimal peak) {
++        if (peak == null || peak.signum() <= 0) return;
++        BigDecimal scaled = peak.setScale(2, RoundingMode.DOWN);
++        BigDecimal last = alignedPeakPersisted.get(sessionId);
++        if (last != null && last.compareTo(scaled) >= 0) return;   // 이미 저장한 값 이하 — 쓰기 없음
++        try {
++            balanceRepo.raiseMddPeakKrw(sessionId, scaled);
++            alignedPeakPersisted.merge(sessionId, scaled, BigDecimal::max);
++        } catch (RuntimeException e) {
++            log.warn("모의투자[LIVE_ALIGNED] MDD 피크 저장 실패 — 이번 판정은 메모리 피크로 (sessionId={}, {})",
++                    sessionId, e.getClass().getSimpleName());
++        }
++    }
++
+     /**
+      * LIVE 전역 위험 한도 {@code checkRisk} 와 같은 식(일/주/월 총손실률·열린 포지션 수·자본 사용률·드로우다운)을 **이 모의 세션 하나**를
+      * 포트폴리오로 보고 판단한다. 분모는 세션 초기 자본, 손실은 이 세션의 청산 손익 중 손실만 합산(LIVE 와 같은 gross loss).
+@@ -1536,7 +1633,7 @@ public class PaperTradingService {
+         // 이미 내린 청산 판단(청산 대기)은 손절 확인 간격과 무관하게 **첫 유효 현재가**에 정산한다(v1.147 R4). 정지된 세션도 포함.
+         if (closingHere != null && !closingHere.isEmpty()) {
+             for (Long posId : new java.util.ArrayList<>(closingHere)) {
+-                positionRepo.findById(posId).ifPresent(pos -> settleClosing(pos, price, "실시간 현재가"));
++                settleIsolated(posId, price, "실시간 현재가");
+             }
+         }
+         if (!alignedCoins.contains(coin)) return;
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/TelegramNotificationService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/TelegramNotificationService.java
+index 6ea23711..2b1a0121 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/TelegramNotificationService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/TelegramNotificationService.java
+@@ -238,6 +238,19 @@ public class TelegramNotificationService {
+         sendMarkdownAndLog(msg, "SESSION_STOP", "[모의투자] 세션#" + sessionId);
+     }
+ 
++    /**
++     * 모의투자 세션 정지 — 청산 대기가 남은 경우 (2026-11-11, v1.148 W4). "최종 자산"·수익률을 적지 않는다: 유효 시세가 없어 미정산 보유가
++     * 남았고, 첫 유효 시세에 정산된다.
++     */
++    public void notifyPaperSessionStoppedPendingClose(Long sessionId, String strategyName, String coinPair, long pendingCount) {
++        String msg = String.format(
++                "🛑 *\\[모의투자\\] 세션 정지 — 청산 대기*\n\n" +
++                "• 세션 ID: `%d`\n• 전략: `%s`\n• 코인: `%s`\n" +
++                "• 청산 대기: `%d건` (유효 시세 없음, 첫 유효 시세에 정산)\n• 최종 자산: `미확정`",
++                sessionId, strategyName, coinPair, pendingCount);
++        sendMarkdownAndLog(msg, "SESSION_STOP", "[모의투자] 세션#" + sessionId);
++    }
++
+     /** 낙폭 경고 알림 — 손절 임박 시 즉시 전송 (스팸 방지: 세션당 30분 쿨다운은 호출부에서 관리) */
+     public void notifyDrawdownWarning(long sessionId, String coinPair, double pnlPct, double stopLossPct) {
+         String msg = String.format(
+diff --git a/web-api/src/main/resources/db/migration/V96__paper_aligned_runtime_state.sql b/web-api/src/main/resources/db/migration/V96__paper_aligned_runtime_state.sql
+new file mode 100644
+index 00000000..17ab0b8e
+--- /dev/null
++++ b/web-api/src/main/resources/db/migration/V96__paper_aligned_runtime_state.sql
+@@ -0,0 +1,19 @@
++-- 모의투자 선택 모드(LIVE_ALIGNED) 런타임 상태 2열 (2026-11-11, 총괄 v1.148 §3-3 — 로컬 후보·PostgreSQL 시험까지만 승인, 서버 DDL 승인 아님)
++--
++-- position.exit_decided_at   청산 대기(CLOSING)로 바꾼 판단 시각. 사유(exit_reason)·상태와 같은 트랜잭션에 쓴다. 재기동 뒤에도 보존된다.
++-- virtual_balance.mdd_peak_krw  MDD 피크(총자산 고점). LIVE public.live_trading_session.mdd_peak_capital 대응. 코드는 "저장값보다 클 때만"
++--                               조건부 UPDATE 로 올리기만 하며(version 불변), 엔티티 저장으로는 쓰지 않는다.
++--
++-- 🔴 NULL 허용, 기본값 없음, 기존 행을 채우지 않는다. 과거 판단 시각·미실현 고점은 알 수 없으므로 추정해 넣지 않는다.
++--    키 없는 세션(종전 PAPER·사전 등록 66)은 코드가 두 열을 읽지도 쓰지도 않는다 — 운영 장부 행에 쓰기가 생기지 않는다.
++--
++-- 번호: 운영은 V94 까지 적용. main 의 미배포 V95__paper_session_slippage.sql 과 번호가 겹치지 않게 V96 으로 둔다.
++--       최종 통합 때 V95 를 함께 내보내지 않으면 V95 를 V96 보다 뒤 번호로 옮겨야 한다(V95 를 나중에 적용하면 Flyway 순서 위반).
++--       자세한 순서·충돌 해결은 docs/evidence 의 제출 README 에 적는다. 이 파일은 이미 적용된 SQL 을 바꾸지 않는다.
++ALTER TABLE paper_trading.position ADD COLUMN exit_decided_at TIMESTAMPTZ;
++ALTER TABLE paper_trading.virtual_balance ADD COLUMN mdd_peak_krw NUMERIC(20, 2);
++
++COMMENT ON COLUMN paper_trading.position.exit_decided_at IS
++    '선택 모드 청산 대기 판단 시각(CLOSING 전환과 같은 트랜잭션). NULL = 판단 없음 또는 V96 이전';
++COMMENT ON COLUMN paper_trading.virtual_balance.mdd_peak_krw IS
++    '선택 모드 MDD 피크(올리기만). NULL = 키 없는 세션 또는 아직 판정 전';
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/AlignedRestartContextTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/AlignedRestartContextTest.java
+new file mode 100644
+index 00000000..a5035944
+--- /dev/null
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/AlignedRestartContextTest.java
+@@ -0,0 +1,139 @@
++package com.cryptoautotrader.api.service;
++
++import com.cryptoautotrader.api.CryptoAutoTraderApplication;
++import com.cryptoautotrader.api.entity.ExitReason;
++import com.cryptoautotrader.api.entity.paper.PaperOrderEntity;
++import com.cryptoautotrader.api.entity.paper.PaperPositionEntity;
++import com.cryptoautotrader.api.entity.paper.VirtualBalanceEntity;
++import com.cryptoautotrader.api.repository.paper.PaperOrderRepository;
++import com.cryptoautotrader.api.repository.paper.PaperPositionRepository;
++import com.cryptoautotrader.api.repository.paper.VirtualBalanceRepository;
++import com.cryptoautotrader.api.support.TestRedisConfig;
++import com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient;
++import org.junit.jupiter.api.DisplayName;
++import org.junit.jupiter.api.Test;
++import org.springframework.boot.WebApplicationType;
++import org.springframework.boot.builder.SpringApplicationBuilder;
++import org.springframework.boot.test.mock.mockito.MockBean;
++import org.springframework.context.ConfigurableApplicationContext;
++import org.springframework.test.util.AopTestUtils;
++import org.springframework.test.util.ReflectionTestUtils;
++
++import java.math.BigDecimal;
++import java.time.Instant;
++import java.time.temporal.ChronoUnit;
++import java.util.List;
++import java.util.Map;
++import java.util.Set;
++
++import static org.assertj.core.api.Assertions.assertThat;
++
++/**
++ * 총괄 v1.148 §3-3 — <b>실제 별도 컨텍스트 기동</b>에서 런타임 상태(청산 사유·판단 시각·MDD 피크)가 보존되는지 (2026-11-11).
++ *
++ * <p>1번 컨텍스트(시험 fixture)가 상태를 만들고, 같은 H2 메모리 DB 를 쓰는 <b>2번 Spring 컨텍스트를 새로 기동</b>한다. 2번의
++ * {@code ApplicationReadyEvent} 는 실제 기동 흐름에서 발생한다(복원 메서드를 시험이 부르지 않는다). 2번의 서비스 인스턴스는 메모리 지도가
++ * 비어 있는 새 객체다. 한계: 같은 JVM·같은 H2 메모리 DB 이며 프로세스 재시작·PostgreSQL 이 아니다. 스케줄러는 시험 프로필에서 꺼져 있다.</p>
++ */
++@DisplayName("LIVE_ALIGNED v1.148 §3-3 — 별도 컨텍스트 기동 뒤 청산 대기·판단 시각·MDD 피크 보존")
++@org.springframework.test.context.TestPropertySource(properties = "test.fixture.entry-rounds-context=AlignedRestartContextTest")
++@org.springframework.test.annotation.DirtiesContext(classMode = org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS)
++class AlignedRestartContextTest extends AbstractSma20SameInputFixture {
++
++    @MockBean private UpbitWebSocketClient ws;
++
++    @Override
++    protected Map<String, Object> paperParams() {
++        return Map.of(PaperMaxInvestment.KEY, 20000, PaperExecutionMode.KEY, PaperExecutionMode.LIVE_ALIGNED);
++    }
++
++    @Override
++    protected String reportName() {
++        return "v148-restart";
++    }
++
++    private PaperTradingService target(PaperTradingService s) {
++        return AopTestUtils.getUltimateTargetObject(s);
++    }
++
++    @Test
++    @DisplayName("재기동 전후 — 피크 30,000→현재 25,000 발동 유지, 대기 포지션 복원·첫 유효 시세에 한 번 정산(판단 시각은 저장값)")
++    void runtimeStateSurvivesSecondContext() {
++        // ── 1번 컨텍스트: 상태 만들기 ──
++        VirtualBalanceEntity p = paper(BTC);
++        p.setTotalKrw(new BigDecimal("30000"));
++        p.setAvailableKrw(new BigDecimal("30000"));
++        p = balanceRepo.save(p);
++        CircuitBreakerResult warm = ReflectionTestUtils.invokeMethod(target(paperTradingService), "alignedCircuitBreaker", p);
++        p.setTotalKrw(new BigDecimal("25000"));
++        p.setAvailableKrw(new BigDecimal("25000"));
++        p = balanceRepo.save(p);
++        CircuitBreakerResult beforeRestart = ReflectionTestUtils.invokeMethod(target(paperTradingService), "alignedCircuitBreaker", p);
++
++        VirtualBalanceEntity q = paper(ETH);
++        PaperPositionEntity qp = paperPos(q, new BigDecimal("100"), new BigDecimal("95"), new BigDecimal("110"),
++                Instant.now().minus(2, ChronoUnit.HOURS));
++        markPriceBook.remove(ETH);
++        paperTradingService.stop(q.getId());
++        PaperPositionEntity pending = paperPositionRepo.findById(qp.getId()).orElseThrow();
++        Instant decided = pending.getExitDecidedAt();
++        assertThat(pending.getStatus()).isEqualTo("CLOSING");
++        assertThat(decided).isNotNull();
++
++        // ── 2번 컨텍스트 기동(같은 DB) ──
++        ConfigurableApplicationContext second = new SpringApplicationBuilder(CryptoAutoTraderApplication.class, TestRedisConfig.class)
++                .profiles("test")
++                .web(WebApplicationType.NONE)
++                .properties("spring.main.allow-bean-definition-overriding=true",
++                        "test.fixture.entry-rounds-context=AlignedRestartContextTest-second",
++                        "spring.data.redis.repositories.enabled=false")
++                .run();
++        try {
++            PaperTradingService svc2 = target(second.getBean(PaperTradingService.class));
++            assertThat(svc2).isNotSameAs(target(paperTradingService));
++            @SuppressWarnings("unchecked")
++            Map<String, Set<Long>> restored = (Map<String, Set<Long>>) ReflectionTestUtils.getField(svc2, "alignedClosingByCoin");
++            @SuppressWarnings("unchecked")
++            Map<Long, BigDecimal> peakMem = (Map<Long, BigDecimal>) ReflectionTestUtils.getField(svc2, "alignedPeakTotalKrw");
++            boolean peakMemEmptyAtStart = !peakMem.containsKey(p.getId());
++            Set<Long> restoredAtBoot = new java.util.HashSet<>(restored.getOrDefault(ETH, Set.of()));
++
++            VirtualBalanceRepository repo2 = second.getBean(VirtualBalanceRepository.class);
++            CircuitBreakerResult afterRestart = ReflectionTestUtils.invokeMethod(svc2, "alignedCircuitBreaker",
++                    repo2.findById(p.getId()).orElseThrow());
++
++            // 첫 유효 시세 — 2번 컨텍스트의 시세 장부·실시간 처리기
++            MarkPriceBook book2 = second.getBean(MarkPriceBook.class);
++            book2.record(ETH, new BigDecimal("101"), Instant.now());
++            svc2.doOnAlignedRealtimePrice(new RealtimePriceEvent(ETH, new BigDecimal("101"), Instant.now(), RealtimePriceEvent.WS_TRADE));
++            svc2.doOnAlignedRealtimePrice(new RealtimePriceEvent(ETH, new BigDecimal("102"), Instant.now(), RealtimePriceEvent.WS_TRADE));
++
++            PaperPositionRepository pos2 = second.getBean(PaperPositionRepository.class);
++            PaperOrderRepository ord2 = second.getBean(PaperOrderRepository.class);
++            PaperPositionEntity settled = pos2.findById(qp.getId()).orElseThrow();
++            List<PaperOrderEntity> sells = ord2.findBySessionIdOrderByCreatedAtDesc(q.getId(), org.springframework.data.domain.Pageable.unpaged())
++                    .getContent().stream().filter(x -> "SELL".equals(x.getSide())).toList();
++
++            System.out.println("[재기동] 1번 발동(피크 전/후)=" + warm.isTriggered() + "/" + beforeRestart.isTriggered()
++                    + " 2번 메모리 피크 비어 시작=" + peakMemEmptyAtStart + " 2번 발동=" + afterRestart.isTriggered()
++                    + " 저장 피크=" + repo2.findMddPeakKrw(p.getId())
++                    + " | 기동 직후 복원=" + restoredAtBoot + " 정산 뒤 지도=" + restored + " 정산=" + settled.getStatus() + "/" + settled.getExitReason() + " 매도=" + sells.size()
++                    + " 판단 시각 저장=" + decided + " 사유=" + (sells.isEmpty() ? "" : sells.get(0).getSignalReason()));
++
++            assertThat(warm.isTriggered()).isFalse();
++            assertThat(beforeRestart.isTriggered()).isTrue();
++            assertThat(peakMemEmptyAtStart).isTrue();
++            assertThat(afterRestart.isTriggered()).isTrue();
++            assertThat(repo2.findMddPeakKrw(p.getId())).isEqualByComparingTo("30000");
++            assertThat(restoredAtBoot).contains(qp.getId());   // 실제 기동의 ApplicationReadyEvent 가 복원
++            assertThat(restored.getOrDefault(ETH, Set.of())).doesNotContain(qp.getId());   // 정산 뒤 지도에서 빠짐
++            assertThat(settled.getStatus()).isEqualTo("CLOSED");
++            assertThat(settled.getExitReason()).isEqualTo(ExitReason.FORCED_STOP);
++            assertThat(settled.getExitDecidedAt()).isEqualTo(decided);
++            assertThat(sells).hasSize(1);
++            assertThat(sells.get(0).getSignalReason()).contains("청산 판단 " + decided);
++        } finally {
++            second.close();
++        }
++    }
++}
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/AlignedV147FixesTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/AlignedV147FixesTest.java
+index ff9437a8..a9fcae17 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/AlignedV147FixesTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/AlignedV147FixesTest.java
+@@ -163,6 +163,11 @@ class AlignedV147FixesTest extends AbstractSma20SameInputFixture {
+         markPriceBook.remove(BTC);
+         ReflectionTestUtils.invokeMethod(target(), "alignedExitsWithoutCandles", p, BTC);
+         assertThat(reload(pp).getStatus()).isEqualTo("CLOSING");
++        // v1.148 W1 (2026-11-11): 대기 정산은 넘어온 가격(봉 종가일 수 있음)을 쓰지 않고 시세 장부의 유효 가격만 쓴다. 시세 장부가 비면 계속 CLOSING.
++        ReflectionTestUtils.invokeMethod(target(), "alignedPriceExits", p, pp, new BigDecimal("120"), "review periodic price");
++        assertThat(reload(pp).getStatus()).isEqualTo("CLOSING");
++        assertThat(sells(p.getId())).isEmpty();
++        markPriceBook.record(BTC, new BigDecimal("120"), Instant.now());   // 익절선(110) 위의 유효 시세
+         ReflectionTestUtils.invokeMethod(target(), "alignedPriceExits", p, pp, new BigDecimal("120"), "review periodic price");
+         PaperPositionEntity after = reload(pp);
+         System.out.println("[R3 보완] " + after.getStatus() + "/" + after.getExitReason() + " 매도=" + sells(p.getId()).size());
+@@ -195,7 +200,7 @@ class AlignedV147FixesTest extends AbstractSma20SameInputFixture {
+     }
+ 
+     @Test
+-    @DisplayName("재기동 복원 — 메모리 표시를 지운 뒤 복원하면 DB 의 청산 대기를 첫 유효 시세에 정산(판단 시각 미상)")
++    @DisplayName("재기동 복원 — 메모리 표시를 지운 뒤 복원하면 DB 의 청산 대기를 첫 유효 시세에 정산(판단 시각은 저장 열, v1.148 §3-3)")
+     void restoreAfterRestart() {
+         VirtualBalanceEntity p = paper(BTC);
+         PaperPositionEntity pp = pos(p);
+@@ -211,7 +216,9 @@ class AlignedV147FixesTest extends AbstractSma20SameInputFixture {
+         PaperPositionEntity after = reload(pp);
+         assertThat(after.getStatus()).isEqualTo("CLOSED");
+         assertThat(after.getExitReason()).isEqualTo(ExitReason.FORCED_STOP);
+-        assertThat(sells(p.getId()).get(0).getSignalReason()).contains("청산 판단 미상(재기동 전)");
++        // v1.148 §3-3 (2026-11-11): 판단 시각이 position.exit_decided_at 에 저장돼 재기동 뒤에도 그 값이 사유에 남는다(종전 기대 "미상(재기동 전)").
++        assertThat(reload(pp).getExitDecidedAt()).isNotNull();
++        assertThat(sells(p.getId()).get(0).getSignalReason()).contains("청산 판단 " + reload(pp).getExitDecidedAt());
+     }
+ 
+     @Test
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/AlignedV148FixesTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/AlignedV148FixesTest.java
+new file mode 100644
+index 00000000..dec7fc7a
+--- /dev/null
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/AlignedV148FixesTest.java
+@@ -0,0 +1,459 @@
++package com.cryptoautotrader.api.service;
++
++import com.cryptoautotrader.api.controller.PaperTradingController;
++import com.cryptoautotrader.api.dto.PerformanceSummaryResponse;
++import com.cryptoautotrader.api.entity.ExitReason;
++import com.cryptoautotrader.api.entity.paper.PaperOrderEntity;
++import com.cryptoautotrader.api.entity.paper.PaperPositionEntity;
++import com.cryptoautotrader.api.entity.paper.VirtualBalanceEntity;
++import com.cryptoautotrader.strategy.Candle;
++import com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient;
++import org.junit.jupiter.api.AfterEach;
++import org.junit.jupiter.api.DisplayName;
++import org.junit.jupiter.api.Test;
++import org.mockito.Mockito;
++import org.springframework.beans.factory.annotation.Autowired;
++import org.springframework.boot.test.mock.mockito.MockBean;
++import org.springframework.test.util.AopTestUtils;
++import org.springframework.test.util.ReflectionTestUtils;
++
++import java.math.BigDecimal;
++import java.time.Instant;
++import java.time.temporal.ChronoUnit;
++import java.util.List;
++import java.util.Map;
++import java.util.concurrent.CompletableFuture;
++import java.util.concurrent.TimeUnit;
++import java.util.concurrent.atomic.AtomicReference;
++
++import static org.assertj.core.api.Assertions.assertThat;
++import static org.assertj.core.api.Assertions.assertThatThrownBy;
++import static org.mockito.ArgumentMatchers.any;
++import static org.mockito.ArgumentMatchers.anyLong;
++import static org.mockito.ArgumentMatchers.eq;
++
++/**
++ * 총괄 v1.148 관측 W1~W6 의 보완 확인 (2026-11-11). 총괄 관측 시험({@code AlignedReview864Test})과 같은 입력·호출부에 <b>바라는 동작</b>을
++ * 단언한다. 시세 장부는 진짜 빈이고 시험이 값을 넣거나 지운다. sleep·반복 없음. 경합 시험은 훅 안에서 다른 스레드의 완료를 Future 로 기다린다.
++ */
++@DisplayName("LIVE_ALIGNED v1.148 보완 — 대기 정산 가격·삭제 거절·미정산 보유 노출·커밋 뒤 보고 격리·런타임 상태 열")
++@org.springframework.test.context.TestPropertySource(properties = "test.fixture.entry-rounds-context=AlignedV148FixesTest")
++@org.springframework.test.annotation.DirtiesContext(classMode = org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS)
++class AlignedV148FixesTest extends AbstractSma20SameInputFixture {
++
++    @MockBean private UpbitWebSocketClient ws;
++    @Autowired private PaperTradingController controller;
++
++    @Override
++    protected Map<String, Object> paperParams() {
++        return Map.of(PaperMaxInvestment.KEY, 20000, PaperExecutionMode.KEY, PaperExecutionMode.LIVE_ALIGNED);
++    }
++
++    @Override
++    protected String reportName() {
++        return "v148-fixes";
++    }
++
++    private PaperTradingService target() {
++        return AopTestUtils.getUltimateTargetObject(paperTradingService);
++    }
++
++    @AfterEach
++    void resetHooks() {
++        PaperTradingService.alignedRaceHook = n -> { };
++        markPriceBook.remove(BTC);
++        markPriceBook.remove(ETH);
++        Mockito.reset(telegramService);
++    }
++
++    private VirtualBalanceEntity timed(String coin) {
++        VirtualBalanceEntity p = paper(coin);
++        p.setMaxHoldHours(1);
++        return balanceRepo.save(p);
++    }
++
++    private PaperPositionEntity pos(VirtualBalanceEntity p) {
++        return paperPos(p, new BigDecimal("100"), new BigDecimal("95"), new BigDecimal("110"), Instant.now().minus(2, ChronoUnit.HOURS));
++    }
++
++    private List<PaperOrderEntity> sells(Long sid) {
++        return paperOrderRepo.findBySessionIdOrderByCreatedAtDesc(sid, org.springframework.data.domain.Pageable.unpaged())
++                .getContent().stream().filter(x -> "SELL".equals(x.getSide())).toList();
++    }
++
++    private PaperPositionEntity reload(PaperPositionEntity p) {
++        return paperPositionRepo.findById(p.getId()).orElseThrow();
++    }
++
++    /** 유효 시세 없이 정지 → CLOSING(FORCED_STOP). */
++    private PaperPositionEntity stopIntoPending(VirtualBalanceEntity p) {
++        PaperPositionEntity pp = pos(p);
++        markPriceBook.remove(p.getCoinPair());
++        paperTradingService.stop(p.getId());
++        assertThat(reload(pp).getStatus()).isEqualTo("CLOSING");
++        return pp;
++    }
++
++    private PerformanceSummaryResponse.SessionPerformance perf(Long sid) {
++        return paperTradingService.getOverallPerformance().getSessions().stream()
++                .filter(x -> x.getSessionId().equals(sid)).findFirst().orElseThrow();
++    }
++
++    // ── W1 ─────────────────────────────────────────────────────────
++
++    @Test
++    @DisplayName("W1 — 대기 중 주기 회차: 신선한 시세가 있으면 그 가격(봉 종가 아님)으로 한 번, 사유 TIME_STOP 유지")
++    void w1PeriodicSettlesAtFreshQuoteNotPreDecisionClose() {
++        VirtualBalanceEntity p = timed(BTC);
++        PaperPositionEntity pp = pos(p);
++        ReflectionTestUtils.invokeMethod(target(), "alignedExitsWithoutCandles", p, BTC);   // 캔들·시세 없음 → 대기
++        assertThat(reload(pp).getStatus()).isEqualTo("CLOSING");
++        assertThat(reload(pp).getExitDecidedAt()).isNotNull();
++
++        List<Candle> cs = uptrend(lastOpen);
++        insertCache(BTC, cs);
++        BigDecimal oldClose = lastClose(cs);
++        BigDecimal fresh = oldClose.multiply(new BigDecimal("1.1"));
++        markPriceBook.record(BTC, fresh, Instant.now());
++        paperTradingService.runStrategy();
++
++        List<PaperOrderEntity> s = sells(p.getId());
++        System.out.println("[W1 보완] 봉 종가=" + oldClose + " 신선 시세=" + fresh + " 체결=" + (s.isEmpty() ? "없음" : s.get(0).getPrice())
++                + " 사유=" + reload(pp).getExitReason());
++        assertThat(s).hasSize(1);
++        assertThat(s.get(0).getPrice()).isEqualByComparingTo(fresh.multiply(new BigDecimal("0.999")));
++        assertThat(s.get(0).getPrice()).isNotEqualByComparingTo(oldClose.multiply(new BigDecimal("0.999")));
++        assertThat(reload(pp).getStatus()).isEqualTo("CLOSED");
++        assertThat(reload(pp).getExitReason()).isEqualTo(ExitReason.TIME_STOP);
++
++        paperTradingService.runStrategy();   // 두 번째 회차 — 추가 매도 없음
++        assertThat(sells(p.getId())).hasSize(1);
++    }
++
++    @Test
++    @DisplayName("W1b — 대기 중 주기 회차: 봉은 신선하지만 시세가 없으면 계속 CLOSING, 매도·정산 0")
++    void w1bPeriodicWithFreshCandlesButNoQuoteStaysPending() {
++        VirtualBalanceEntity p = timed(BTC);
++        PaperPositionEntity pp = pos(p);
++        ReflectionTestUtils.invokeMethod(target(), "alignedExitsWithoutCandles", p, BTC);
++        insertCache(BTC, uptrend(lastOpen));
++        markPriceBook.remove(BTC);
++        paperTradingService.runStrategy();
++        System.out.println("[W1b 보완] 상태=" + reload(pp).getStatus() + " 매도=" + sells(p.getId()).size()
++                + " 가용=" + balanceRepo.findById(p.getId()).orElseThrow().getAvailableKrw());
++        assertThat(reload(pp).getStatus()).isEqualTo("CLOSING");
++        assertThat(sells(p.getId())).isEmpty();
++        assertThat(balanceRepo.findById(p.getId()).orElseThrow().getAvailableKrw()).isEqualByComparingTo("200");
++    }
++
++    // ── W2·W3 ──────────────────────────────────────────────────────
++
++    @Test
++    @DisplayName("W2 — 청산 대기가 남은 STOPPED 세션 단건 삭제 거절(세션·포지션 보존), 정산 뒤에는 종전대로 삭제")
++    void w2SingleDeleteRejectedWhilePending() {
++        VirtualBalanceEntity p = paper(BTC);
++        PaperPositionEntity pp = stopIntoPending(p);
++        assertThatThrownBy(() -> paperTradingService.deleteSession(p.getId()))
++                .isInstanceOf(IllegalStateException.class).hasMessageContaining("청산 대기");
++        System.out.println("[W2 보완] 삭제 시도 뒤 세션=" + balanceRepo.existsById(p.getId()) + " 포지션=" + paperPositionRepo.existsById(pp.getId()));
++        assertThat(balanceRepo.existsById(p.getId())).isTrue();
++        assertThat(paperPositionRepo.existsById(pp.getId())).isTrue();
++
++        target().doOnAlignedRealtimePrice(new RealtimePriceEvent(BTC, new BigDecimal("101"), Instant.now(), RealtimePriceEvent.WS_TRADE));
++        assertThat(reload(pp).getStatus()).isEqualTo("CLOSED");
++        paperTradingService.deleteSession(p.getId());
++        assertThat(balanceRepo.existsById(p.getId())).isFalse();
++    }
++
++    @Test
++    @DisplayName("W3 — 일괄 삭제는 청산 대기 세션을 건너뛰고, 다 정산된 정지 세션만 지운다")
++    void w3BulkDeleteSkipsPending() {
++        VirtualBalanceEntity pending = paper(BTC);
++        PaperPositionEntity pp = stopIntoPending(pending);
++        VirtualBalanceEntity done = paper(ETH);
++        paperTradingService.stop(done.getId());   // 포지션 없음 — 정산 완료 상태
++        paperTradingService.bulkDeleteSessions(List.of(pending.getId(), done.getId()));
++        System.out.println("[W3 보완] 대기 세션=" + balanceRepo.existsById(pending.getId()) + " 포지션=" + paperPositionRepo.existsById(pp.getId())
++                + " 완료 세션=" + balanceRepo.existsById(done.getId()));
++        assertThat(balanceRepo.existsById(pending.getId())).isTrue();
++        assertThat(paperPositionRepo.existsById(pp.getId())).isTrue();
++        assertThat(balanceRepo.existsById(done.getId())).isFalse();
++    }
++
++    @Test
++    @DisplayName("W2c — 삭제와 정산 경합: 정산 트랜잭션이 커밋 전이면 삭제는 커밋된 CLOSING 을 보고 거절, 정산 커밋 뒤 삭제는 성공")
++    void w2cDeleteRacingSettlement() throws Exception {
++        VirtualBalanceEntity p = paper(BTC);
++        PaperPositionEntity pp = stopIntoPending(p);
++        AtomicReference<String> during = new AtomicReference<>("실행 안 됨");
++        PaperTradingService.alignedRaceHook = n -> {
++            if (("SETTLE_BEFORE_CLOSE#" + pp.getId()).equals(n) || ("WRITE_AFTER_POSITION").equals(n)) {
++                if (!"실행 안 됨".equals(during.get())) return;
++                try {
++                    during.set(CompletableFuture.supplyAsync(() -> {
++                        try {
++                            paperTradingService.deleteSession(p.getId());
++                            return "삭제됨";
++                        } catch (IllegalStateException e) {
++                            return "거절: " + e.getMessage();
++                        }
++                    }).get(20, TimeUnit.SECONDS));
++                } catch (Exception e) {
++                    during.set("오류: " + e.getClass().getSimpleName());
++                }
++            }
++        };
++        target().doOnAlignedRealtimePrice(new RealtimePriceEvent(BTC, new BigDecimal("101"), Instant.now(), RealtimePriceEvent.WS_TRADE));
++        PaperTradingService.alignedRaceHook = n -> { };
++        System.out.println("[W2c 보완] 정산 중 삭제=" + during.get() + " 정산 뒤 포지션=" + reload(pp).getStatus() + " 매도=" + sells(p.getId()).size());
++        assertThat(during.get()).startsWith("거절: 청산 대기");
++        assertThat(reload(pp).getStatus()).isEqualTo("CLOSED");
++        assertThat(sells(p.getId())).hasSize(1);
++        paperTradingService.deleteSession(p.getId());
++        assertThat(balanceRepo.existsById(p.getId())).isFalse();
++    }
++
++    // ── W4 ─────────────────────────────────────────────────────────
++
++    @Test
++    @DisplayName("W4 — CLOSING 은 보유 조회에 남고, 성과 요약은 미실현을 0 으로 메우지 않음(평가 불가·대기 수), 완료 거래에 넣지 않음")
++    void w4PendingStaysVisibleAsUnsettledHolding() {
++        VirtualBalanceEntity p = paper(BTC);
++        PaperPositionEntity pp = pos(p);
++        pp.setUnrealizedPnl(new BigDecimal("500"));
++        paperPositionRepo.save(pp);
++        PerformanceSummaryResponse.SessionPerformance before = perf(p.getId());
++        markPriceBook.remove(BTC);
++        paperTradingService.stop(p.getId());
++        PerformanceSummaryResponse.SessionPerformance after = perf(p.getId());
++        List<PaperPositionEntity> held = paperTradingService.getOpenPositions(p.getId());
++        @SuppressWarnings("unchecked")
++        Map<String, Object> view = (Map<String, Object>) controller.getPositions(p.getId(), "OPEN").getData().get(0);
++        System.out.println("[W4 보완] DB=" + reload(pp).getStatus() + " 보유 조회=" + held.size() + "(" + held.get(0).getStatus() + ")"
++                + " 요약 미실현 전=" + before.getUnrealizedPnl() + " 후=" + after.getUnrealizedPnl() + " 대기=" + after.getPendingCloseCount()
++                + " 상태=" + after.getValuationStatus() + " 완료 거래=" + after.getTotalTrades() + " 화면=" + view.get("valuationStatus")
++                + "/" + view.get("unrealizedPnl") + "/기록값 " + view.get("lastRecordedUnrealizedPnl"));
++        assertThat(before.getUnrealizedPnl()).isEqualByComparingTo("500");
++        assertThat(before.getPendingCloseCount()).isZero();
++        assertThat(held).hasSize(1);
++        assertThat(held.get(0).getStatus()).isEqualTo("CLOSING");
++        assertThat(after.getUnrealizedPnl()).isNull();
++        assertThat(after.getTotalPnl()).isNull();
++        assertThat(after.getReturnRatePct()).isNull();
++        assertThat(after.getPendingCloseCount()).isEqualTo(1);
++        assertThat(after.getValuationStatus()).startsWith("평가 불가");
++        assertThat(after.getTotalTrades()).isZero();
++        assertThat(paperTradingService.getOverallPerformance().getTotalUnrealizedPnl()).isNull();
++        assertThat(view.get("status")).isEqualTo("CLOSING");
++        assertThat(view.get("unrealizedPnl")).isNull();
++        assertThat((String) view.get("valuationStatus")).startsWith("평가 불가");
++        assertThat(view.get("pendingExitReason")).isEqualTo("FORCED_STOP");
++        assertThat(view.get("exitDecidedAt")).isNotNull();
++
++        target().doOnAlignedRealtimePrice(new RealtimePriceEvent(BTC, new BigDecimal("101"), Instant.now(), RealtimePriceEvent.WS_TRADE));
++        PerformanceSummaryResponse.SessionPerformance settled = perf(p.getId());
++        assertThat(settled.getPendingCloseCount()).isZero();
++        assertThat(settled.getTotalTrades()).isEqualTo(1);
++        assertThat(settled.getUnrealizedPnl()).isEqualByComparingTo("0");
++        assertThat(paperTradingService.getOpenPositions(p.getId())).isEmpty();
++    }
++
++    @Test
++    @DisplayName("W4b — 정지 응답·정지 알림·일괄 정지가 대기를 반영: 최종 자산 비움, '최종 자산' 알림 대신 청산 대기 알림")
++    void w4bStopResponseAndNotificationReflectPending() {
++        VirtualBalanceEntity p = paper(BTC);
++        p.setTelegramEnabled(true);
++        balanceRepo.save(p);
++        pos(p);
++        markPriceBook.remove(BTC);
++        Map<String, Object> body = controller.stop(p.getId()).getData();
++        System.out.println("[W4b 보완] 정지 응답=" + body);
++        assertThat(body.get("finalAsset")).isNull();
++        assertThat(body.get("pendingCloseCount")).isEqualTo(1L);
++        assertThat((String) body.get("assetStatus")).startsWith("확정 아님");
++        Mockito.verify(telegramService, Mockito.never()).notifyPaperSessionStopped(any(), any(), any(), any(), Mockito.anyDouble());
++        Mockito.verify(telegramService, Mockito.times(1)).notifyPaperSessionStoppedPendingClose(eq(p.getId()), any(), eq(BTC), eq(1L));
++
++        VirtualBalanceEntity q = paper(ETH);
++        pos(q);
++        markPriceBook.remove(ETH);
++        Map<String, Object> all = controller.stopAll().getData();
++        System.out.println("[W4b 보완] 일괄 정지 응답=" + all);
++        assertThat(((Number) all.get("pendingCloseCount")).longValue()).isGreaterThanOrEqualTo(1L);
++        assertThat((String) all.get("settlement")).startsWith("청산 대기");
++    }
++
++    // ── §3-1.5 실패 격리 ───────────────────────────────────────────
++
++    @Test
++    @DisplayName("§3-1.5 — 한 포지션의 정산 실패가 다른 세션의 대기 정산을 막지 않음(실패한 쪽은 CLOSING 유지, 다음 시세에 정산)")
++    void settleFailureIsIsolatedPerPosition() {
++        VirtualBalanceEntity a = paper(BTC);
++        PaperPositionEntity pa = stopIntoPending(a);
++        VirtualBalanceEntity b = paper(BTC);
++        PaperPositionEntity pb = stopIntoPending(b);
++        PaperTradingService.alignedRaceHook = n -> {
++            if (("SETTLE_BEFORE_CLOSE#" + pa.getId()).equals(n)) throw new IllegalStateException("주입 — A 정산 실패");
++        };
++        markPriceBook.record(BTC, new BigDecimal("101"), Instant.now());
++        paperTradingService.runStrategy();   // 주기 정산(세션 RUNNING 없음도 포함)
++        System.out.println("[§3-1.5] A=" + reload(pa).getStatus() + " B=" + reload(pb).getStatus());
++        assertThat(reload(pa).getStatus()).isEqualTo("CLOSING");
++        assertThat(sells(a.getId())).isEmpty();
++        assertThat(reload(pb).getStatus()).isEqualTo("CLOSED");
++
++        PaperTradingService.alignedRaceHook = n -> { };
++        target().doOnAlignedRealtimePrice(new RealtimePriceEvent(BTC, new BigDecimal("102"), Instant.now(), RealtimePriceEvent.WS_TRADE));
++        assertThat(reload(pa).getStatus()).isEqualTo("CLOSED");
++        assertThat(sells(a.getId())).hasSize(1);
++        assertThat(sells(b.getId())).hasSize(1);
++    }
++
++    // ── W5 ─────────────────────────────────────────────────────────
++
++    @Test
++    @DisplayName("W5 — 커밋 뒤 BUY 알림 예외: 확정 매수는 진입으로 보고, 같은 회차 다음 세션도 진입, 보고 실패 수만 증가")
++    void w5AfterCommitBuyNotificationFailureDoesNotFailApproval() {
++        insertCache(BTC, uptrend(lastOpen));
++        VirtualBalanceEntity p = paper(BTC);
++        p.setTelegramEnabled(true);
++        balanceRepo.save(p);
++        VirtualBalanceEntity q = paper(BTC);
++        q.setTelegramEnabled(true);
++        balanceRepo.save(q);
++        Mockito.doThrow(new IllegalStateException("주입 — 커밋 뒤 알림 실패")).when(telegramService)
++                .bufferTradeEvent(any(), any(), eq("BUY"), any(), any(), any(), any(), any());
++        long failuresBefore = PaperTradingService.alignedReportFailures.get();
++        runPaper(p);
++        runPaper(q);
++        List<EntryPriorityRounds.Outcome> out = approveRound();
++        List<String> reasons = out.stream().filter(o -> "PAPER".equals(o.candidate().kind())).map(EntryPriorityRounds.Outcome::reason).toList();
++        System.out.println("[W5 보완] 결과=" + reasons + " 포지션 p=" + paperPositions(p).size() + " q=" + paperPositions(q).size()
++                + " 보고 실패 증가=" + (PaperTradingService.alignedReportFailures.get() - failuresBefore));
++        assertThat(reasons).hasSize(2).containsOnlyNulls();
++        assertThat(paperPositions(p)).hasSize(1);
++        assertThat(paperPositions(q)).hasSize(1);
++        assertThat(balanceRepo.findById(p.getId()).orElseThrow().getAvailableKrw()).isEqualByComparingTo("200");
++        assertThat(PaperTradingService.alignedReportFailures.get() - failuresBefore).isEqualTo(2);
++        Mockito.verify(telegramService, Mockito.times(2)).bufferTradeEvent(any(), any(), eq("BUY"), any(), any(), any(), any(), any());
++    }
++
++    @Test
++    @DisplayName("W5b — 커밋 뒤 SELL 알림 예외: 청산은 확정(CLOSED·매도1), 대기 정산 알림 예외도 같다")
++    void w5bAfterCommitSellNotificationFailure() {
++        VirtualBalanceEntity p = paper(BTC);
++        p.setTelegramEnabled(true);
++        balanceRepo.save(p);
++        PaperPositionEntity pp = stopIntoPending(p);
++        Mockito.doThrow(new IllegalStateException("주입 — 커밋 뒤 알림 실패")).when(telegramService)
++                .bufferTradeEvent(any(), any(), eq("SELL"), any(), any(), any(), any(), any());
++        target().doOnAlignedRealtimePrice(new RealtimePriceEvent(BTC, new BigDecimal("101"), Instant.now(), RealtimePriceEvent.WS_TRADE));
++        System.out.println("[W5b 보완] 포지션=" + reload(pp).getStatus() + " 매도=" + sells(p.getId()).size());
++        assertThat(reload(pp).getStatus()).isEqualTo("CLOSED");
++        assertThat(sells(p.getId())).hasSize(1);
++
++        VirtualBalanceEntity q = paper(BTC);
++        q.setTelegramEnabled(true);
++        balanceRepo.save(q);
++        PaperPositionEntity qp = pos(q);
++        markPriceBook.record(BTC, new BigDecimal("101"), Instant.now());
++        paperTradingService.stop(q.getId());   // 유효 시세로 바로 청산 — 알림 예외가 정지를 실패시키지 않는다
++        assertThat(reload(qp).getStatus()).isEqualTo("CLOSED");
++        assertThat(balanceRepo.findById(q.getId()).orElseThrow().getStatus()).isEqualTo("STOPPED");
++    }
++
++    // ── W6·§3-3 ────────────────────────────────────────────────────
++
++    @Test
++    @DisplayName("W6 — 미실현 피크 30,000 → 현재 25,000: 메모리를 지워도(같은 DB) 저장 피크로 발동 유지, 피크는 낮아지지 않음")
++    void w6MddPeakSurvivesMemoryReset() {
++        VirtualBalanceEntity p = paper(BTC);
++        p.setTotalKrw(new BigDecimal("30000"));
++        p.setAvailableKrw(new BigDecimal("30000"));
++        p = balanceRepo.save(p);
++        CircuitBreakerResult warm = ReflectionTestUtils.invokeMethod(target(), "alignedCircuitBreaker", p);
++        BigDecimal stored = balanceRepo.findMddPeakKrw(p.getId());
++        p.setTotalKrw(new BigDecimal("25000"));
++        p.setAvailableKrw(new BigDecimal("25000"));
++        p = balanceRepo.save(p);   // 묵은 엔티티 저장 — 피크 열은 엔티티로 쓰지 않으므로 그대로여야 한다
++        CircuitBreakerResult before = ReflectionTestUtils.invokeMethod(target(), "alignedCircuitBreaker", p);
++        ((Map<?, ?>) ReflectionTestUtils.getField(target(), "alignedPeakTotalKrw")).clear();
++        ((Map<?, ?>) ReflectionTestUtils.getField(target(), "alignedPeakPersisted")).clear();
++        CircuitBreakerResult after = ReflectionTestUtils.invokeMethod(target(), "alignedCircuitBreaker", p);
++        BigDecimal storedAfter = balanceRepo.findMddPeakKrw(p.getId());
++        System.out.println("[W6 보완] 저장 피크=" + stored + " → " + storedAfter + " 발동 전/초기화 전/초기화 뒤=" + warm.isTriggered() + "/"
++                + before.isTriggered() + "/" + after.isTriggered());
++        assertThat(stored).isEqualByComparingTo("30000");
++        assertThat(warm.isTriggered()).isFalse();
++        assertThat(before.isTriggered()).isTrue();
++        assertThat(after.isTriggered()).isTrue();
++        assertThat(storedAfter).isEqualByComparingTo("30000");
++    }
++
++    @Test
++    @DisplayName("§3-3 — 피크 조건부 갱신: 낮은 값·늦은 값은 피크를 내리지 못함, 높은 값만 올림")
++    void mddPeakOnlyRises() {
++        VirtualBalanceEntity p = paper(BTC);
++        assertThat(balanceRepo.findMddPeakKrw(p.getId())).isNull();
++        assertThat(balanceRepo.raiseMddPeakKrw(p.getId(), new BigDecimal("30000"))).isEqualTo(1);
++        assertThat(balanceRepo.raiseMddPeakKrw(p.getId(), new BigDecimal("25000"))).isZero();
++        assertThat(balanceRepo.raiseMddPeakKrw(p.getId(), new BigDecimal("30000"))).isZero();
++        assertThat(balanceRepo.findMddPeakKrw(p.getId())).isEqualByComparingTo("30000");
++        assertThat(balanceRepo.raiseMddPeakKrw(p.getId(), new BigDecimal("30001"))).isEqualTo(1);
++        long version = balanceRepo.findById(p.getId()).orElseThrow().getVersion();
++        VirtualBalanceEntity stale = balanceRepo.findById(p.getId()).orElseThrow();
++        stale.setRealizedPnl(BigDecimal.ONE);
++        balanceRepo.save(stale);   // 엔티티 저장이 피크 열을 덮지 않는다
++        System.out.println("[§3-3 피크] 저장=" + balanceRepo.findMddPeakKrw(p.getId()) + " version " + version + "→"
++                + balanceRepo.findById(p.getId()).orElseThrow().getVersion());
++        assertThat(balanceRepo.findMddPeakKrw(p.getId())).isEqualByComparingTo("30001");
++    }
++
++    @Test
++    @DisplayName("§3-3 — 호출자 트랜잭션이 롤백돼도 이미 관측한 피크는 내려가지 않음(별도 트랜잭션 조건부 갱신)")
++    void mddPeakNotLoweredByCallerRollback() {
++        VirtualBalanceEntity p = paper(BTC);
++        balanceRepo.raiseMddPeakKrw(p.getId(), new BigDecimal("30000"));
++        org.springframework.transaction.support.TransactionTemplate tt = new org.springframework.transaction.support.TransactionTemplate(txManager);
++        tt.executeWithoutResult(st -> {
++            balanceRepo.raiseMddPeakKrw(p.getId(), new BigDecimal("31000"));
++            jdbc.update("UPDATE paper_trading.virtual_balance SET realized_pnl = 7 WHERE id = ?", p.getId());
++            st.setRollbackOnly();
++        });
++        VirtualBalanceEntity after = balanceRepo.findById(p.getId()).orElseThrow();
++        System.out.println("[§3-3 롤백] 저장 피크=" + balanceRepo.findMddPeakKrw(p.getId()) + " 롤백된 실현손익=" + after.getRealizedPnl());
++        assertThat(balanceRepo.findMddPeakKrw(p.getId())).isEqualByComparingTo("31000");
++        assertThat(after.getRealizedPnl()).isNotEqualByComparingTo("7");
++    }
++
++    @Test
++    @DisplayName("§3-3 — 키 없는 세션(종전 PAPER)은 런타임 열을 쓰지 않음: 피크 NULL, 판단 시각 NULL")
++    void legacyPaperLeavesRuntimeColumnsNull() {
++        VirtualBalanceEntity legacy = legacyPaper();
++        PaperPositionEntity lp = pos(legacy);
++        insertCache(BTC, uptrend(lastOpen));
++        runPaper(legacy);
++        paperTradingService.stop(legacy.getId());
++        System.out.println("[§3-3 종전] 피크=" + balanceRepo.findMddPeakKrw(legacy.getId()) + " 판단 시각=" + reload(lp).getExitDecidedAt()
++                + " 상태=" + reload(lp).getStatus());
++        assertThat(balanceRepo.findMddPeakKrw(legacy.getId())).isNull();
++        assertThat(reload(lp).getExitDecidedAt()).isNull();
++        assertThat(reload(lp).getStatus()).isNotEqualTo("CLOSING");
++    }
++
++    /** 키 없는(종전) PAPER 세션 하나 — 같은 입력이지만 strategy_params 에 실행 모드 키가 없다. */
++    private VirtualBalanceEntity legacyPaper() {
++        com.cryptoautotrader.api.dto.PaperTradingStartRequest req = new com.cryptoautotrader.api.dto.PaperTradingStartRequest();
++        req.setStrategyType(com.cryptoautotrader.strategy.dailysma.DailySmaTrendStrategy.NAME);
++        req.setCoinPair(BTC);
++        req.setTimeframe("H1");
++        req.setInitialCapital(new BigDecimal("20200"));
++        req.setInvestRatio(new BigDecimal("0.995"));
++        req.setStopLossPct(new BigDecimal("5.00"));
++        req.setMaxHoldHours(0);
++        req.setStrategyParams(new java.util.HashMap<>(Map.of(PaperMaxInvestment.KEY, 20000)));
++        VirtualBalanceEntity s = paperTradingService.start(req);
++        paperIds.add(s.getId());
++        return s;
++    }
++}
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/EngineParityTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/EngineParityTest.java
+index 6300f63a..8f16201c 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/EngineParityTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/EngineParityTest.java
+@@ -167,12 +167,14 @@ class EngineParityTest {
+         String paper = source("Paper").replace("checkCircuitBreakerFromValues(", "");
+         assertThat(paper.contains("checkCircuitBreaker(")).as("PAPER 가 REAL/DYNAMIC 세션 판정을 부른다").isFalse();
+         assertThat(source("Paper").contains("checkCircuitBreakerFromValues(")).as("LIVE_ALIGNED 값 입력형 판정 누락").isTrue();
+-        // 즉시 알림 — PAPER 의 텔레그램 호출은 일일 다이제스트 적재와 세션 시작·정지 알림뿐이다(af7ffa58 과 같은 집합).
++        // 즉시 알림 — PAPER 의 텔레그램 호출은 일일 다이제스트 적재와 세션 시작·정지 알림뿐이다(af7ffa58 집합 + v1.148 청산 대기 정지 알림).
+         java.util.Set<String> calls = new java.util.TreeSet<>();
+         java.util.regex.Matcher m = java.util.regex.Pattern.compile("telegramService\\.(\\w+)").matcher(source("Paper"));
+         while (m.find()) calls.add(m.group(1));
+         assertThat(calls).as("PAPER 에 즉시 알림이 생겼다")
+-                .containsExactly("bufferTradeEvent", "notifyPaperSessionStarted", "notifyPaperSessionStopped");
++                // v1.148 W4 (2026-11-11): 청산 대기가 남은 정지는 "최종 자산" 대신 대기 알림을 보낸다 — 정지 알림의 변형이며 서킷 브레이커 즉시 알림이 아니다.
++                .containsExactly("bufferTradeEvent", "notifyPaperSessionStarted", "notifyPaperSessionStopped",
++                        "notifyPaperSessionStoppedPendingClose");
+     }
+ 
+     // ── 의도적 비대칭 — 사유와 함께 고정 ──────────────────────────────────────
+diff --git a/web-api/src/test/resources/schema-h2.sql b/web-api/src/test/resources/schema-h2.sql
+index f74fe5c7..f36c7c88 100644
+--- a/web-api/src/test/resources/schema-h2.sql
++++ b/web-api/src/test/resources/schema-h2.sql
+@@ -792,3 +792,7 @@ CREATE TABLE IF NOT EXISTS sell_quarantine_release (
+     evidence                TEXT            NOT NULL,
+     released_at             TIMESTAMP WITH TIME ZONE NOT NULL
+ );
++
++-- V96 (2026-11-11, 총괄 v1.148 §3-3) — 선택 모드 런타임 상태 2열. NULL 허용·기본값 없음·기존 행 채우지 않음.
++ALTER TABLE paper_trading.position        ADD COLUMN IF NOT EXISTS exit_decided_at TIMESTAMP;
++ALTER TABLE paper_trading.virtual_balance ADD COLUMN IF NOT EXISTS mdd_peak_krw    DECIMAL(20, 2);
+-- 
+2.51.1.windows.1
+

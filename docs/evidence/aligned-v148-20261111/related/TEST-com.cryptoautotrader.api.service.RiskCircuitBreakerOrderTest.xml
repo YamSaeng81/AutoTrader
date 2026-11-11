@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="서킷 브레이커 순서 — 비활성·MDD 는 CLOSED 조회 0, 연속 손실 경로는 종전 결과" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-11-11T06:16:01" hostname="DESKTOP-SF1KUQ5" time="0.001">
+  <properties/>
+  <testcase name="정상 연속 손실 경로 — 조회 1회, 5연속 손실이면 발동, 이익이 끼면 끊긴다" classname="com.cryptoautotrader.api.service.RiskCircuitBreakerOrderTest" time="0.001"/>
+  <testcase name="비활성 — 조회 없이 통과 / MDD 초과 — 조회 없이 발동 (조회가 예외여도)" classname="com.cryptoautotrader.api.service.RiskCircuitBreakerOrderTest" time="0.0"/>
+  <system-out><![CDATA[15:16:01.191 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
