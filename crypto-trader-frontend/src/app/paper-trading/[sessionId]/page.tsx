@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { Loader2, Square, TrendingUp, TrendingDown, Clock, Briefcase, ArrowLeft, Activity, ShoppingCart, DollarSign, Receipt, Trophy, ChevronDown, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { isPendingValuation, krwOrDash, pctOrNull, positionStatusLabel, PENDING_VALUATION_LABEL } from '@/lib/paperValuation';
 import { format } from 'date-fns';
 import {
     ComposedChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
@@ -207,7 +208,8 @@ export default function SessionDetailPage() {
 
     const balance = balanceRes?.data as unknown as PaperTradingBalance & { id: number; timeframe?: string };
     const allPositions = (positionsRes?.data as unknown as (PaperPosition & { status?: string; realizedPnl?: number; closedAt?: string; entryPrice?: number })[]) || [];
-    const positions = allPositions.filter(p => !p.status || p.status === 'OPEN');
+    // v1.150 §3-4: 청산 대기(CLOSING)는 아직 소유한 미정산 보유다 — 보유 표에 남기고 상태를 표시한다(종전에는 OPEN 만 걸러 사라졌다).
+    const positions = allPositions.filter(p => !p.status || p.status === 'OPEN' || p.status === 'CLOSING');
     const closedPositions = allPositions.filter(p => p.status === 'CLOSED');
     const orders = ordersRes?.data as unknown as PageResponse<PaperOrder> | undefined;
     const isRunning = balance?.status === 'RUNNING';
@@ -274,8 +276,9 @@ export default function SessionDetailPage() {
         );
     }
 
-    const returnPct = Number(balance.totalReturnPct);
-    const isPositive = returnPct >= 0;
+    const pending = isPendingValuation(balance);
+    const returnPct = pctOrNull(balance.totalReturnPct);
+    const isPositive = (returnPct ?? 0) >= 0;
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
@@ -331,19 +334,33 @@ export default function SessionDetailPage() {
                     <div className="p-6 md:p-8">
                         <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">총 평가 자산</div>
                         <div className="text-3xl md:text-4xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">
-                            {Number(balance.totalAssetKrw).toLocaleString()}
-                            <span className="text-lg md:text-2xl text-slate-400 dark:text-slate-500 font-bold ml-1">KRW</span>
+                            {pending || balance.totalAssetKrw === null ? PENDING_VALUATION_LABEL : krwOrDash(balance.totalAssetKrw)}
+                            {!pending && balance.totalAssetKrw !== null && (
+                                <span className="text-lg md:text-2xl text-slate-400 dark:text-slate-500 font-bold ml-1">KRW</span>
+                            )}
                         </div>
+                        {pending && (
+                            <div className="mt-2 text-xs text-amber-700 dark:text-amber-400">
+                                청산 대기 {balance.pendingCloseCount}건 — 유효 시세가 없어 현재 평가를 할 수 없습니다.
+                                {balance.lastRecordedTotalKrw != null && (
+                                    <> 마지막 기록 총자산 {krwOrDash(balance.lastRecordedTotalKrw)} KRW ({balance.lastRecordedNote ?? '기록 시각 미상, 현재 평가 아님'})</>
+                                )}
+                            </div>
+                        )}
                         <div className="flex items-center gap-2 mt-4 text-sm font-medium">
-                            <span className={cn(
-                                'px-2 py-0.5 rounded-full flex items-center gap-1',
-                                isPositive ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
-                            )}>
-                                {isPositive ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
-                                {isPositive ? '+' : ''}{returnPct.toFixed(2)}%
-                            </span>
+                            {returnPct === null ? (
+                                <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">수익률 평가 불가</span>
+                            ) : (
+                                <span className={cn(
+                                    'px-2 py-0.5 rounded-full flex items-center gap-1',
+                                    isPositive ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
+                                )}>
+                                    {isPositive ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
+                                    {isPositive ? '+' : ''}{returnPct.toFixed(2)}%
+                                </span>
+                            )}
                             <span className="text-slate-400 dark:text-slate-500">
-                                (수익금: {Number(balance.unrealizedPnl) > 0 ? '+' : ''}{Number(balance.unrealizedPnl).toLocaleString()} KRW)
+                                (수익금: {balance.unrealizedPnl === null ? '-' : `${Number(balance.unrealizedPnl) > 0 ? '+' : ''}${krwOrDash(balance.unrealizedPnl)} KRW`})
                             </span>
                         </div>
                     </div>
@@ -354,8 +371,8 @@ export default function SessionDetailPage() {
                                     <Briefcase className="w-3.5 h-3.5" /> 보유 자산 가치
                                 </div>
                                 <div className="text-lg font-bold text-slate-700 dark:text-slate-200">
-                                    {Number(balance.positionValueKrw).toLocaleString()}
-                                    <span className="text-xs text-slate-400 dark:text-slate-500 ml-1">KRW</span>
+                                    {krwOrDash(balance.positionValueKrw)}
+                                    {balance.positionValueKrw !== null && <span className="text-xs text-slate-400 dark:text-slate-500 ml-1">KRW</span>}
                                 </div>
                             </div>
                             <div>
@@ -624,19 +641,31 @@ export default function SessionDetailPage() {
                                 </tr>
                             ) : positions.map(pos => (
                                 <tr key={pos.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
-                                    <td className="px-6 py-4 font-bold text-slate-800 dark:text-slate-100">{pos.coinPair.replace('KRW-', '')}</td>
+                                    <td className="px-6 py-4 font-bold text-slate-800 dark:text-slate-100">
+                                        {pos.coinPair.replace('KRW-', '')}
+                                        {pos.status === 'CLOSING' && (
+                                            <div className="text-[11px] font-medium text-amber-700 dark:text-amber-400">
+                                                {positionStatusLabel(pos.status, pos.pendingExitReason)}
+                                                {pos.exitDecidedAt ? ` · 판단 ${format(new Date(pos.exitDecidedAt), 'MM.dd HH:mm')}` : ' · 판단 시각 미상'}
+                                            </div>
+                                        )}
+                                    </td>
                                     <td className="px-6 py-4 text-right font-medium">{Number(pos.quantity).toFixed(8)}</td>
                                     <td className="px-6 py-4 text-right font-medium">{Number(pos.avgEntryPrice).toLocaleString()}</td>
-                                    <td className="px-6 py-4 text-right font-medium">{Number(pos.unrealizedPnl).toLocaleString()}</td>
+                                    <td className="px-6 py-4 text-right font-medium">{krwOrDash(pos.unrealizedPnl)}</td>
                                     <td className="px-6 py-4 text-right">
-                                        <span className={cn(
-                                            'inline-flex items-center gap-1 font-semibold px-2 py-0.5 rounded-full text-xs',
-                                            Number(pos.unrealizedPnlPct) >= 0
-                                                ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
-                                                : 'bg-rose-50 text-rose-600 border border-rose-100'
-                                        )}>
-                                            {Number(pos.unrealizedPnlPct) > 0 ? '+' : ''}{Number(pos.unrealizedPnlPct).toFixed(2)}%
-                                        </span>
+                                        {pos.unrealizedPnlPct === null || pos.unrealizedPnlPct === undefined ? (
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">평가 불가</span>
+                                        ) : (
+                                            <span className={cn(
+                                                'inline-flex items-center gap-1 font-semibold px-2 py-0.5 rounded-full text-xs',
+                                                Number(pos.unrealizedPnlPct) >= 0
+                                                    ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
+                                                    : 'bg-rose-50 text-rose-600 border border-rose-100'
+                                            )}>
+                                                {Number(pos.unrealizedPnlPct) > 0 ? '+' : ''}{Number(pos.unrealizedPnlPct).toFixed(2)}%
+                                            </span>
+                                        )}
                                     </td>
                                 </tr>
                             ))}

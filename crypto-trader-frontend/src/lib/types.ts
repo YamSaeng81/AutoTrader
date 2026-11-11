@@ -192,11 +192,16 @@ export interface WalkForwardResult {
 }
 
 export interface PaperTradingBalance {
-  totalAssetKrw: number;
+  // v1.150 §3-4: 청산 대기(평가 불가)면 서버가 null 을 준다 — 0 으로 표시하지 않는다.
+  totalAssetKrw: number | null;
   availableKrw: number;
-  positionValueKrw: number;
-  unrealizedPnl: number;
-  totalReturnPct: number;
+  positionValueKrw: number | null;
+  unrealizedPnl: number | null;
+  totalReturnPct: number | null;
+  pendingCloseCount?: number;
+  valuationStatus?: string;
+  lastRecordedTotalKrw?: number | null;
+  lastRecordedNote?: string;
   realizedPnl: number;
   totalFee: number;
   initialCapital: number;
@@ -212,9 +217,16 @@ export interface PaperPosition {
   side: 'BUY' | 'SELL';
   quantity: number;
   avgEntryPrice: number;
-  unrealizedPnl: number;
-  unrealizedPnlPct: number;
+  // v1.150 §3-4: 청산 대기(CLOSING)는 평가 불가 — null.
+  unrealizedPnl: number | null;
+  unrealizedPnlPct: number | null;
   openedAt: string;
+  status?: 'OPEN' | 'CLOSING' | 'CLOSED';
+  valuationStatus?: string;
+  pendingExitReason?: string | null;
+  exitDecidedAt?: string | null;
+  lastRecordedUnrealizedPnl?: number | null;
+  lastRecordedUnrealizedPnlNote?: string;
 }
 
 export interface PaperOrder {
@@ -270,10 +282,15 @@ export interface PaperSession {
   coinPair: string;
   timeframe: string;
   status: 'RUNNING' | 'STOPPED';
-  totalAssetKrw: number;
+  // v1.150 §3-4: 청산 대기면 null(평가 불가).
+  totalAssetKrw: number | null;
   availableKrw: number;
   initialCapital: number;
-  totalReturnPct: number;
+  totalReturnPct: number | null;
+  pendingCloseCount?: number;
+  valuationStatus?: string;
+  lastRecordedTotalKrw?: number | null;
+  lastRecordedNote?: string;
   realizedPnl: number;
   totalFee: number;
   startedAt: string | null;

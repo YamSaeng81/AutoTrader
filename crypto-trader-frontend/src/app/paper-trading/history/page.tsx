@@ -8,6 +8,7 @@ import { PaperSession } from '@/lib/types';
 import Link from 'next/link';
 import { Loader2, History, TrendingUp, TrendingDown, ArrowLeft, Plus, Trash2, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { isPendingValuation, krwOrDash, pctOrNull, positionStatusLabel, PENDING_VALUATION_LABEL } from '@/lib/paperValuation';
 import { format } from 'date-fns';
 
 export default function PaperTradingHistoryPage() {
@@ -200,8 +201,9 @@ export default function PaperTradingHistoryPage() {
                             </thead>
                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                                 {sessions.map(session => {
-                                    const returnPct = Number(session.totalReturnPct);
-                                    const isPositive = returnPct >= 0;
+                                    const pending = isPendingValuation(session);
+                                    const returnPct = pctOrNull(session.totalReturnPct);
+                                    const isPositive = (returnPct ?? 0) >= 0;
                                     const isRunning = session.status === 'RUNNING';
                                     return (
                                         <tr key={session.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors text-slate-700 dark:text-slate-300 group">
@@ -228,7 +230,12 @@ export default function PaperTradingHistoryPage() {
                                                 {Number(session.initialCapital).toLocaleString()}
                                             </td>
                                             <td className="px-5 py-4 text-right font-medium">
-                                                {Number(session.totalAssetKrw).toLocaleString()}
+                                                {pending || session.totalAssetKrw === null ? PENDING_VALUATION_LABEL : krwOrDash(session.totalAssetKrw)}
+                                                {pending && (
+                                                    <div className="text-[11px] text-amber-700 dark:text-amber-400">
+                                                        청산 대기 {session.pendingCloseCount}건 · 마지막 기록 {krwOrDash(session.lastRecordedTotalKrw)}(현재 평가 아님)
+                                                    </div>
+                                                )}
                                             </td>
                                             <td className="px-5 py-4 text-right">
                                                 <span className={cn(
@@ -237,8 +244,10 @@ export default function PaperTradingHistoryPage() {
                                                         ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
                                                         : 'bg-rose-50 text-rose-700 border border-rose-100'
                                                 )}>
-                                                    {isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                                                    {isPositive ? '+' : ''}{returnPct.toFixed(2)}%
+                                                    {returnPct === null ? '평가 불가' : <>
+                                                        {isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                                                        {isPositive ? '+' : ''}{returnPct.toFixed(2)}%
+                                                    </>}
                                                 </span>
                                             </td>
                                             <td className="px-5 py-4 text-slate-500 dark:text-slate-400 text-xs">

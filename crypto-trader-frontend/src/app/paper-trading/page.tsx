@@ -8,6 +8,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { Loader2, Play, Square, Plus, TrendingUp, TrendingDown, Activity, Settings, History, Bell } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { isPendingValuation, krwOrDash, pctOrNull, positionStatusLabel, PENDING_VALUATION_LABEL } from '@/lib/paperValuation';
 import { format } from 'date-fns';
 
 const TIMEFRAMES = [
@@ -369,8 +370,9 @@ function SessionCard({ session, onStop, isStopping }: {
     onStop: () => void;
     isStopping: boolean;
 }) {
-    const returnPct = Number(session.totalReturnPct);
-    const isPositive = returnPct >= 0;
+    const pending = isPendingValuation(session);
+    const returnPct = pctOrNull(session.totalReturnPct);
+    const isPositive = (returnPct ?? 0) >= 0;
 
     return (
         <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col">
@@ -392,8 +394,8 @@ function SessionCard({ session, onStop, isStopping }: {
                 <div>
                     <div className="text-xs text-slate-500 dark:text-slate-400 mb-0.5">총 평가 자산</div>
                     <div className="text-xl font-extrabold text-slate-800 dark:text-slate-100">
-                        {Number(session.totalAssetKrw).toLocaleString()}
-                        <span className="text-sm font-bold text-slate-400 dark:text-slate-500 ml-1">KRW</span>
+                        {pending || session.totalAssetKrw === null ? PENDING_VALUATION_LABEL : krwOrDash(session.totalAssetKrw)}
+                        {!pending && session.totalAssetKrw !== null && <span className="text-sm font-bold text-slate-400 dark:text-slate-500 ml-1">KRW</span>}
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -401,8 +403,10 @@ function SessionCard({ session, onStop, isStopping }: {
                         'flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold',
                         isPositive ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'
                     )}>
-                        {isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                        {isPositive ? '+' : ''}{returnPct.toFixed(2)}%
+                        {returnPct === null ? '수익률 평가 불가' : <>
+                            {isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                            {isPositive ? '+' : ''}{returnPct.toFixed(2)}%
+                        </>}
                     </span>
                     <span className="text-xs text-slate-400 dark:text-slate-500">
                         초기 {Number(session.initialCapital).toLocaleString()}원
