@@ -141,7 +141,6 @@ class EngineParityTest {
     @ParameterizedTest(name = "[{0}] {1} 은 LIVE·DYNAMIC 에만")
     @CsvSource({
             "원자적 CLOSING 전환, markClosingIfOpen",
-            "서킷 브레이커,       checkCircuitBreaker",
             "시간초과 즉시 알림,  notifyTimeStop",
             "손절 즉시 알림,      notifyStopLoss",
     })
@@ -153,6 +152,27 @@ class EngineParityTest {
                 .as("%s — PAPER 에 생겼다. 페이퍼는 일일 다이제스트로 보고하므로 즉시 알림을 "
                         + "붙이면 112세션이 알림 폭탄이 된다. 의도한 변경이면 이 테스트도 고칠 것.", label)
                 .isFalse();
+    }
+
+    /**
+     * 서킷 브레이커 (2026-11-11, 총괄 v1.145 §3-2 로 고침). 종전에는 위 "실거래 전용" 표에서 PAPER 소스에 {@code checkCircuitBreaker} 글자가
+     * 없을 것을 요구했다. LIVE_ALIGNED 선택 모드가 <b>모의 계좌 값</b>을 입력으로 같은 기준을 쓰게 되면서 그 조건은 깨진다(의도한 변경).
+     * 지키려던 것은 그대로 고정한다 — PAPER 는 세션 엔티티를 받는 REAL/DYNAMIC 판정을 부르지 않고 값 입력형만 쓰며, 즉시 알림은 없다.
+     */
+    @Test
+    @DisplayName("서킷 브레이커 — LIVE·DYNAMIC 은 세션 판정, PAPER 는 값 입력형만(즉시 알림 없음)")
+    void circuitBreakerPaperUsesValueFormOnly() {
+        assertThat(has("Live", "checkCircuitBreaker(session)")).as("LIVE 세션 판정 누락").isTrue();
+        assertThat(has("Dynamic", "checkCircuitBreaker(")).as("DYNAMIC 세션 판정 누락").isTrue();
+        String paper = source("Paper").replace("checkCircuitBreakerFromValues(", "");
+        assertThat(paper.contains("checkCircuitBreaker(")).as("PAPER 가 REAL/DYNAMIC 세션 판정을 부른다").isFalse();
+        assertThat(source("Paper").contains("checkCircuitBreakerFromValues(")).as("LIVE_ALIGNED 값 입력형 판정 누락").isTrue();
+        // 즉시 알림 — PAPER 의 텔레그램 호출은 일일 다이제스트 적재와 세션 시작·정지 알림뿐이다(af7ffa58 과 같은 집합).
+        java.util.Set<String> calls = new java.util.TreeSet<>();
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("telegramService\\.(\\w+)").matcher(source("Paper"));
+        while (m.find()) calls.add(m.group(1));
+        assertThat(calls).as("PAPER 에 즉시 알림이 생겼다")
+                .containsExactly("bufferTradeEvent", "notifyPaperSessionStarted", "notifyPaperSessionStopped");
     }
 
     // ── 의도적 비대칭 — 사유와 함께 고정 ──────────────────────────────────────
