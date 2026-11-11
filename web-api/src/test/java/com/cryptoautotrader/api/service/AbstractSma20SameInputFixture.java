@@ -201,20 +201,12 @@ abstract class AbstractSma20SameInputFixture extends IntegrationTestBase {
         return r;
     }
 
+    /**
+     * 주문 실행기의 앞선 작업이 모두 끝날 때까지 — 확정 신호(실행기 장벽)로 기다린다 (2026-11-11, 총괄 v1.147 3-2d). 종전 "큐 비었음·active 0·
+     * taskCount == completed" 조건은 꺼낸 뒤·실행 전 창에서 참이었다. 시간 초과는 실패다.
+     */
     protected void awaitDrained() {
-        var pool = orderExecutor.getThreadPoolExecutor();
-        long deadline = System.currentTimeMillis() + 15_000;
-        while (System.currentTimeMillis() < deadline) {
-            if (pool.getQueue().isEmpty() && pool.getActiveCount() == 0
-                    && pool.getTaskCount() == pool.getCompletedTaskCount()) return;
-            try {
-                Thread.sleep(50);
-            } catch (InterruptedException ie) {
-                Thread.currentThread().interrupt();
-                return;
-            }
-        }
-        throw new AssertionError("orderExecutor 가 비워지지 않았다");
+        com.cryptoautotrader.api.support.ExecutorBarrier.awaitPriorTasks(orderExecutor.getThreadPoolExecutor(), 15_000);
     }
 
     protected void deleteCache() {
