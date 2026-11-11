@@ -1,0 +1,112 @@
+From 4be651b072403637d4e93c1053c685d94480102f Mon Sep 17 00:00:00 2001
+From: YamSaeng81 <manicstr81@gmail.com>
+Date: Wed, 11 Nov 2026 09:55:57 +0900
+Subject: [PATCH] =?UTF-8?q?=ED=9A=8C=EC=B0=A8=20=ED=99=9C=EC=84=B1=2076+9?=
+ =?UTF-8?q?=20=EC=8B=9C=ED=97=98=EC=97=90=20=EA=B8=B0=EC=A1=B4=20=EB=B3=B4?=
+ =?UTF-8?q?=EC=9C=A0=2051=EA=B0=9C=20=EC=B6=94=EA=B0=80(=EC=B4=9D=EA=B4=84?=
+ =?UTF-8?q?=20v1.147=20=C2=A74,=20=EC=8B=9C=ED=97=98=EB=A7=8C)=20=E2=80=94?=
+ =?UTF-8?q?=20=EC=9D=B4=20=ED=8B=B1=20=EC=86=90=EC=A0=88=2026=C2=B7?=
+ =?UTF-8?q?=EC=9C=A0=EC=A7=80=2025,=20=EB=8C=80=EC=A1=B0=E2=86=92=EC=B2=98?=
+ =?UTF-8?q?=EB=A6=AC=E2=86=92=EB=8C=80=EC=A1=B0=20=EA=B8=B0=EC=A1=B4=2076?=
+ =?UTF-8?q?=20=EB=B3=80=ED=99=94=200,=20REAL=20=ED=9B=84=EB=B3=B4=C2=B7?=
+ =?UTF-8?q?=EC=A3=BC=EB=AC=B8=C2=B7=EC=9E=94=EC=95=A1=C2=B7=ED=8F=AC?=
+ =?UTF-8?q?=EC=A7=80=EC=85=98=20=EA=B0=99=EC=9D=8C?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- cfef638b 와 같은 방식으로 기존 세션 2/3 에 열린 포지션(1/3 은 손절가가 종가 위). 스냅숏에 상태·청산 사유·실현 손익·총자산 추가.
+- 864f070d 위에서 2/2. 한계: M15 A/B 실제 승인 후보는 여전히 0(합성 캔들에서 BUY 없음).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .../service/SharedLoopRoundsActiveTest.java   | 42 +++++++++++++++++--
+ 1 file changed, 39 insertions(+), 3 deletions(-)
+
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/SharedLoopRoundsActiveTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/SharedLoopRoundsActiveTest.java
+index 3592012a..526d8ead 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/SharedLoopRoundsActiveTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/SharedLoopRoundsActiveTest.java
+@@ -159,14 +159,44 @@ class SharedLoopRoundsActiveTest extends AbstractSma20SameInputFixture {
+             List<StrategyLogEntity> logs = strategyLogRepository.findAllBySessionTypeAndSessionIdOrderByCreatedAtDesc("PAPER", id);
+             List<PaperPositionEntity> pos = paperPositionRepo.findBySessionId(id);
+             VirtualBalanceEntity v = balanceRepo.findById(id).orElseThrow();
+-            out.put(s.key(), String.format("logs=%d last=%s pos=%d entry=%s avail=%s", logs.size(),
++            out.put(s.key(), String.format("logs=%d last=%s pos=%d entry=%s status=%s exit=%s realized=%s avail=%s total=%s", logs.size(),
+                     logs.isEmpty() ? "-" : logs.get(0).getSignal() + ":" + logs.get(0).getReason() + ":" + logs.get(0).getBlockedReason(),
+                     pos.size(), pos.isEmpty() ? "-" : pos.get(0).getEntryPrice().stripTrailingZeros().toPlainString(),
+-                    v.getAvailableKrw().stripTrailingZeros().toPlainString()));
++                    pos.isEmpty() ? "-" : pos.get(0).getStatus(), pos.isEmpty() ? "-" : pos.get(0).getExitReason(),
++                    pos.isEmpty() || pos.get(0).getRealizedPnl() == null ? "-" : pos.get(0).getRealizedPnl().stripTrailingZeros().toPlainString(),
++                    v.getAvailableKrw().stripTrailingZeros().toPlainString(),
++                    v.getTotalKrw() == null ? "-" : v.getTotalKrw().stripTrailingZeros().toPlainString()));
+         }
+         return out;
+     }
+ 
++    /**
++     * 기존 세션 셋 중 하나에 손절가가 현재 종가 위인 열린 포지션(이 틱에 손절), 셋 중 하나에 먼 손절·익절의 열린 포지션(유지)을 넣는다
++     * (시험 가지 cfef638b 와 같은 방식, 총괄 v1.147 §4 — 기존 보유의 보호 청산을 회차 활성 실행에 넣음). 세 실행에 같은 값.
++     */
++    private int seedPositions(Map<String, Long> ids, List<Spec> which) {
++        int n = 0, i = 0;
++        for (Spec s : which) {
++            int k = i++ % 3;
++            if (k == 2) continue;
++            BigDecimal close = jdbc.queryForObject("SELECT close FROM market_data_cache WHERE coin_pair = ? AND timeframe = ? ORDER BY time DESC LIMIT 1",
++                    BigDecimal.class, s.coin(), s.tf());
++            BigDecimal invest = new BigDecimal("100000");
++            BigDecimal size = invest.divide(close, 8, RoundingMode.DOWN);
++            BigDecimal sl = close.multiply(k == 0 ? new BigDecimal("1.01") : new BigDecimal("0.80"));
++            BigDecimal tp = close.multiply(new BigDecimal("1.20"));
++            Long id = ids.get(s.key());
++            paperPositionRepo.save(PaperPositionEntity.builder().sessionKind("PAPER").sessionId(id).coinPair(s.coin()).side("BUY")
++                    .entryPrice(close).avgPrice(close).size(size).positionFee(BigDecimal.ZERO).investedKrw(invest)
++                    .stopLossPrice(sl).takeProfitPrice(tp).status("OPEN").openedAt(Instant.now().minus(5, ChronoUnit.HOURS)).build());
++            VirtualBalanceEntity v = balanceRepo.findById(id).orElseThrow();
++            v.setAvailableKrw(v.getAvailableKrw().subtract(invest));
++            balanceRepo.save(v);
++            n++;
++        }
++        return n;
++    }
++
+     /** 실행 사이에만 — 같은 회차 키로 다시 비교하려고 회차 객체의 열린·닫힌 회차를 비운다. */
+     @SuppressWarnings("unchecked")
+     private void resetRoundsBetweenRuns() {
+@@ -193,6 +223,7 @@ class SharedLoopRoundsActiveTest extends AbstractSma20SameInputFixture {
+         var ethPos = livePos(le, ethEntry, ethEntry.multiply(new BigDecimal("0.90")), ethEntry.multiply(new BigDecimal("1.20")),
+                 Instant.now().minus(10, ChronoUnit.HOURS));
+         Map<String, Long> ids = createAll(specs);
++        seedPositions(ids, existing());
+ 
+         long t0 = System.nanoTime();
+         evaluateLive(l);
+@@ -289,11 +320,14 @@ class SharedLoopRoundsActiveTest extends AbstractSma20SameInputFixture {
+             long changedC2 = c1.existing().keySet().stream().filter(k -> !c1.existing().get(k).equals(c2.existing().get(k))).count();
+             long withSignal = c1.existing().values().stream().filter(v -> !v.contains("last=-")).count();
+             long withPos = c1.existing().values().stream().filter(v -> !v.contains("pos=0")).count();
++            long stopped = c1.existing().values().stream().filter(v -> v.contains("status=CLOSED")).count();
++            long held = c1.existing().values().stream().filter(v -> v.contains("status=OPEN")).count();
+ 
+             StringBuilder sb = new StringBuilder();
+             sb.append("environment=H2 · 합성 캔들 · Spring 시험 컨텍스트 · 실행당 표본 1 · 시간은 상대 비교용(운영 부하 근거 아님)\n");
+             sb.append("existing_sessions=").append(c1.existing().size()).append(" with_signal_log=").append(withSignal)
+-                    .append(" with_position=").append(withPos).append(" changed(treatment)=").append(changedT)
++                    .append(" with_position=").append(withPos).append(" (CLOSED ").append(stopped).append(", OPEN ").append(held).append(")")
++                    .append(" changed(treatment)=").append(changedT)
+                     .append(" changed(control2)=").append(changedC2).append('\n');
+             for (RunResult r : List.of(c1, t, c2)) {
+                 sb.append("--- ").append(r.name()).append('\n');
+@@ -319,6 +353,8 @@ class SharedLoopRoundsActiveTest extends AbstractSma20SameInputFixture {
+             Files.writeString(outFile, sb.toString(), StandardCharsets.UTF_8);
+             System.out.println("[회차 활성 공유 루프]\n" + sb);
+ 
++            assertThat(withPos).as("기존 보유가 실제로 들어갔다").isGreaterThan(0);
++            assertThat(stopped).as("이 틱에 손절된 기존 보유가 있다(보호 청산 경로)").isGreaterThan(0);
+             assertThat(changedT).as("기존 76 결정 변화(처리 대 대조1)").isZero();
+             assertThat(changedC2).as("기존 76 결정 변화(대조2 대 대조1)").isZero();
+             for (RunResult r : List.of(c1, t, c2)) {
+-- 
+2.51.1.windows.1
+

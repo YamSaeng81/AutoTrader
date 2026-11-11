@@ -1,0 +1,80 @@
+From dcca1a3f5aa4d1c67026340503c7ed17b893be59 Mon Sep 17 00:00:00 2001
+From: YamSaeng81 <manicstr81@gmail.com>
+Date: Wed, 11 Nov 2026 09:58:05 +0900
+Subject: [PATCH] =?UTF-8?q?=ED=9A=8C=EC=B0=A8=20=ED=99=9C=EC=84=B1=20?=
+ =?UTF-8?q?=EC=8B=9C=ED=97=98=EC=97=90=20A/B=20M15=20=EC=8B=A4=EC=A0=9C=20?=
+ =?UTF-8?q?=EC=8A=B9=EC=9D=B8=20=ED=9B=84=EB=B3=B4=20=EC=B6=94=EA=B0=80(?=
+ =?UTF-8?q?=EC=8B=9C=ED=97=98=EB=A7=8C)=20=E2=80=94=20ETH=20M15=20?=
+ =?UTF-8?q?=ED=8F=89=ED=83=84+=EB=A7=88=EC=A7=80=EB=A7=89=20=EB=B4=89=20?=
+ =?UTF-8?q?=E2=88=922%=20=EC=9E=85=EB=A0=A5=EC=9C=BC=EB=A1=9C=20MEANREV=20?=
+ =?UTF-8?q?A=C2=B7B=20=ED=8C=94=EC=9D=B4=20M15=20=ED=9A=8C=EC=B0=A8=20?=
+ =?UTF-8?q?=ED=9B=84=EB=B3=B4,=20=EA=B0=99=EC=9D=80=20processDue=20?=
+ =?UTF-8?q?=EC=97=90=EC=84=9C=20REAL=201=EC=9C=84=C2=B7PAPER=203=EA=B1=B4?=
+ =?UTF-8?q?=20=EB=92=A4?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- 입력 모양은 전략 함수 직접 탐색으로 고름(COMPOSITE_MEANREV_BB 만 BUY, COMPOSITE_MTF_CONFIRMED 는 시험한 모양에서 BUY 없음).
+- 기존 76(보유 52) 변화 0(대조·재대조), REAL 후보·주문·잔액·포지션 같음.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .../service/SharedLoopRoundsActiveTest.java   | 27 ++++++++++++++++++-
+ 1 file changed, 26 insertions(+), 1 deletion(-)
+
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/SharedLoopRoundsActiveTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/SharedLoopRoundsActiveTest.java
+index 526d8ead..8eee8803 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/SharedLoopRoundsActiveTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/SharedLoopRoundsActiveTest.java
+@@ -133,6 +133,27 @@ class SharedLoopRoundsActiveTest extends AbstractSma20SameInputFixture {
+         cacheRepository.saveAll(rows);
+     }
+ 
++    /**
++     * 평탄한 흐름 끝에 마지막 봉만 drop 만큼 하락(거래량 3배) — COMPOSITE_MEANREV_BB 가 BUY 를 내는 모양(전략 함수 직접 탐색으로 확인, 근거 probe.xml).
++     * A/B 의 M15 PAPER 팔이 실제 회차 후보가 되게 하려고 ETH M15 에만 쓴다. 세 실행에 같은 값.
++     */
++    private void flatDropCandles(String coin, String tf, Instant last, long stepMin, double drop) {
++        double base = 3_000_000;
++        List<com.cryptoautotrader.api.entity.MarketDataCacheEntity> rows = new ArrayList<>();
++        double prev = base;
++        for (int i = 0; i < 500; i++) {
++            double c = base * (1 + 0.002 * Math.sin(i / 3.0)) * (i == 499 ? (1 - drop) : 1);
++            double o = i == 0 ? c : prev;
++            rows.add(com.cryptoautotrader.api.entity.MarketDataCacheEntity.builder()
++                    .time(last.minus((499 - i) * stepMin, ChronoUnit.MINUTES)).coinPair(coin).timeframe(tf)
++                    .open(BigDecimal.valueOf(Math.round(o))).high(BigDecimal.valueOf(Math.round(Math.max(o, c) * 1.001)))
++                    .low(BigDecimal.valueOf(Math.round(Math.min(o, c) * 0.999))).close(BigDecimal.valueOf(Math.round(c)))
++                    .volume(new BigDecimal(i == 499 ? "3000" : "1000")).build());
++            prev = c;
++        }
++        cacheRepository.saveAll(rows);
++    }
++
+     private Map<String, Long> createAll(List<Spec> specs) {
+         Map<String, Long> ids = new LinkedHashMap<>();
+         Instant base = Instant.now().minus(30, ChronoUnit.DAYS);
+@@ -308,7 +329,10 @@ class SharedLoopRoundsActiveTest extends AbstractSma20SameInputFixture {
+         try {
+             for (String c : h1Coins) waveCandles(c, "H1", lastOpen, 60);
+             insertCache(BTC, uptrend(lastOpen));   // REAL·새 SMA20 같은 BUY 입력
+-            for (String c : m15Coins) waveCandles(c, "M15", m15Last, 15);
++            for (String c : m15Coins) {
++                if (ETH.equals(c)) flatDropCandles(c, "M15", m15Last, 15, 0.02);   // A/B MEANREV ETH 팔이 실제 M15 후보가 되도록
++                else waveCandles(c, "M15", m15Last, 15);
++            }
+             assertThat(EntryPriorityRounds.deadline(new EntryPriorityRounds.RoundKey("M15", m15Last)))
+                     .as("H1·M15 회차 마감이 같다").isEqualTo(EntryPriorityRounds.deadline(new EntryPriorityRounds.RoundKey("H1", lastOpen)));
+ 
+@@ -366,6 +390,7 @@ class SharedLoopRoundsActiveTest extends AbstractSma20SameInputFixture {
+             assertThat(c1.paperCandidates()).isZero();
+             assertThat(c2.paperCandidates()).isZero();
+             assertThat(t.paperH1()).as("새 SMA20(LIVE_ALIGNED) 이 같은 H1 회차 후보").isEqualTo(1);
++            assertThat(t.paperM15()).as("A/B M15 팔이 실제 다른 마감 회차 후보(같은 processDue)").isGreaterThan(0);
+             assertThat(t.firstPaperIndex()).as("PAPER 후보가 REAL 후보 뒤").isGreaterThan(t.realIndex());
+             for (int i = 0; i < t.outcomes().size(); i++) {
+                 if (t.outcomes().get(i).startsWith("PAPER")) {
+-- 
+2.51.1.windows.1
+
