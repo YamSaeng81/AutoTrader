@@ -1,0 +1,81 @@
+U1:4:[ "${UB:-}" = SMA20PD4 ] || stop "U 변수가 SMA20 PAPER 후보 초안 D4 판이 아님 — F → G → SMA20 PAPER 후보 초안 D4 U 변수(초안은 실행하지
+U1:5:[ -e "$M/ok-U0" ] || stop "U0 미통과"
+U1:6:[ ! -e "$M/ok-U1" ] || stop "U1 을 이미 통과했다 — 바로 U2"
+U1:7:[ $(( $(date +%s) - $(stat -c %Y "$M/ok-U0") )) -le 1800 ] || stop "U0 가 30분보다 오래됨 — U0 부터(아직 바꾼 것 없음, U1-되돌림 하지 않는�
+U1:9:[ "$MIN" -ge 25 ] || [ "$MIN" -lt 14 ] || stop "매시 :14~:24 는 freshness 회차 직전·직후다 — :25 이후 U0 부터(아직 바꾼 것 없음, U1-되돌림
+U1:10:[ "$(git rev-parse HEAD)" = "$OLD" ] && [ -z "$(git status --porcelain --untracked-files=no)" ] || stop "HEAD·작업 트리가 U0 때와 다름(아직 바꾼 것 �
+U1:12:[ "$FI" = 0 ] || { [ "$FI" = 1 ] && stop "freshness 회차가 돌고 있다(아직 바꾼 것 없음, U1-되돌림 하지 않는다) — 끝난 뒤 U0 부터(끊지
+U1:15:if docker image inspect $REPO:b5cd1d0 > /dev/null 2>&1; then [ "$(docker image inspect --format '{{.Id}}' $REPO:b5cd1d0)" = "$IMG0" ] || stop "$REPO:b5cd1d0 태그�
+U1:17:[ "$(docker image inspect --format '{{.Id}}' $REPO:b5cd1d0)" = "$IMG0" ] || stop "기존 이미지 보존 태그 실패(HEAD·latest 그대로, U1-되돌림 하지 
+U1:19:[ "$(git rev-parse HEAD)" = "$NEW" ] && [ -z "$(git status --porcelain --untracked-files=no)" ] || stop "체크아웃 결과가 NEW 가 아니거나 변경 있음 �
+U1:20:[ "$(h256 "$NF")" = "$NHNEW" ] && [ -e "$NT" ] || stop "start_66.py 가 운영·후보 같은 원문(68d441ce…)과 다르거나 시험 파일 없음 — U1-되돌
+U1:21:python3 -c 'import ast,sys; ast.parse(open(sys.argv[1], encoding="utf-8").read())' "$NF" > "$M/syntax.txt" 2>&1 || { cat "$M/syntax.txt"; stop "start_66.py 문법 �
+U1:23:$DC build backend > "$M/build.log" 2>&1 || stop "빌드 실패 — build.log 를 보고. U1-되돌림"
+U1:25:[ "$IMG1" != "$IMG0" ] || stop "새 이미지가 만들어지지 않음 — U1-되돌림"
+U1:26:[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$IMG0" ] || stop "🔴 실행 중 backend 가 바뀌었다 — 보고"
+U1:80:[ "$JC" = 0 ] || stop "jar 비교기 v2 거절(종료 $JC) — 중복 항목·형식 이상. jar-diff.txt 를 보고(재기동 전). U1-되돌림"
+U1:81:[ "$(grep -v '^(끝)' "$M/jar-diff.txt")" = "$RARX" ] || stop "jar 차이가 기대 7줄(PAPER 상한·LIVE_ALIGNED)이 아님 — jar-diff.txt 를 보고(재기동
+U1:82:grep -qxF "$JARN" "$M/jar-diff.txt" || stop "항목 수가 881 → 883 가 아님 — jar-diff.txt 를 보고(재기동 전). U1-되돌림"
+U2:4:[ "${UB:-}" = SMA20PD4 ] || stop "U 변수가 SMA20 PAPER 후보 초안 D4 판이 아님 — F → G → SMA20 PAPER 후보 초안 D4 U 변수(초안은 실행하지
+U2:5:[ -e "$M/ok-U1" ] || stop "U1 미통과"
+U2:6:[ ! -e "$M/ok-U2" ] || stop "U2 를 이미 했다 — U3"
+U2:8:[ "$(git rev-parse HEAD)" = "$NEW" ] || stop "HEAD 가 NEW 가 아님"
+U2:9:[ "$(docker image inspect --format '{{.Id}}' $REPO:latest)" = "$IMG1" ] || stop "latest 가 image-new 와 다름"
+U2:10:sid203 || stop "SID 203·기준 행·EG·0 확인 중 다른 것 있음"
+U2:11:[ "$(sc)" = "66 | 63 | 3 | -" ] || stop "검증 66세션 상태 다름"
+U2:14:$DC up -d --no-build --no-deps backend || stop "되돌림 필요: 재생성 실패"
+U2:16:[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$IMG1" ] || stop "되돌림 필요: 새 컨테이너 이미지가 image-new 와 다름"
+U2:17:[ "$($DC exec -T backend env | grep '^TRADING_CAPITALPOOL_' | sort)" = "$POOLX" ] || stop "되돌림 필요: 공유 풀 등록값 다름"
+U2:19:diff <(grep -v '^backend ' "$M/svc-before.txt") <(grep -v '^backend ' "$M/svc-deploy.txt") || stop "되돌림 필요: backend 외 서비스가 바뀜"
+U3:4:[ "${UB:-}" = SMA20PD4 ] || stop "U 변수가 SMA20 PAPER 후보 초안 D4 판이 아님 — F → G → SMA20 PAPER 후보 초안 D4 U 변수(초안은 실행하지
+U3:5:if [ -e "$M/t-rollback.utc" ]; then S=$(cat "$M/t-rollback.utc"); EXP=$(cat "$M/image-before.txt"); T=rollback; else [ -e "$M/ok-U2" ] || stop "U2 미통과"; S=$(ca
+U3:6:[ $(( $(date +%s) - $(date -d "$S" +%s) )) -ge 300 ] || stop "기동 5분 전 — 5분이 지난 뒤 U3"
+U3:8:[ "$(docker inspect --format '{{.Image}}' "$($DC ps -q backend)")" = "$EXP" ] || stop "실행 이미지가 기대와 다름"
+U3:9:$PSQL -At -c "$NEWSCFG" > "$M/news-$T.txt" || stop "뉴스 설정 조회 실패 — 1분 뒤 U3 를 다시"
+U3:14:[ "$HQ" != 1 ] || stop "🔴 P0 — 연결 획득 시간 초과 줄이 있다. 즉시 보고(되돌림 여부는 총괄 판단, U 되돌림 블록 준비됨)"
+U3:16:grep -q "Started CryptoAutoTrader" "$M/app-$T.log" || stop "되돌림 필요: 기동 완료 줄 없음"
+U3:17:! grep -qE "Migrating schema|Successfully applied" "$M/app-$T.log" || stop "되돌림 필요: 마이그레이션이 돌았다(이번 배포에는 없어야 함)"
+U3:18:v94 || stop "되돌림 필요: Flyway 최고 버전이 94 가 아님"
+U3:19:grep -qF "공유 풀 한도 확인: 단계=STAGE_1 총상한=100000 포지션당=20000 동시보유=3" "$M/app-$T.log" || stop "되돌림 필요: 공유 풀 등록 
+U3:20:grep -qF "위험 한도 확인: 단계 STAGE_1 총 자본 100000 기준 누적 15.00%·24시간 3.00%" "$M/app-$T.log" || stop "되돌림 필요: 위험 한도 로�
+U3:21:! grep -qE "🔴 (공유 풀 한도|위험 한도)" "$M/app-$T.log" || stop "되돌림 필요: 🔴 공유 풀/위험 한도 줄"
+U3:25:[ ! -s "$M/errors-$T.txt" ] || stop "세 마켓 캔들 404·뉴스 출처 ERROR 밖의 ERROR — errors-$T.txt 를 보고"
+U3:31:btcgate "$M/app-$T.log" || stop "BTC 관문 마지막 상태가 판정 불가 — 바로 되돌리지 말고 위 출력을 보고"
+U3:32:python3 "$M/maint_verify.py" candle "$M/app-$T.log" "$M/backend-before.log" || stop "기동 뒤 판정 불가 대상이 아직 재개되지 않음 — 위 출력을
+U3:34:sc | tee "$M/s-$T.txt"; diff "$M/s-before.txt" "$M/s-$T.txt" || stop "되돌림 필요: 검증 세션 상태 바뀜"
+U3:35:sid203 || stop "SID 203·기준 행·EG·0 확인 중 바뀐 것 있음 — 보고"
+U3:36:$PSQL -At -c "$BTCIN" > "$M/btc-$T.txt" || stop "BTC 입력 조회 실패 — 1분 뒤 U3 를 다시"
+U3:38:if [ "$T" = deploy ]; then btcok "$M/btc-$T.txt" || stop "BTC 입력 미충족 — 바로 되돌리지 말고 위 출력을 보고(재기동 없이 U3 만 5분 뒤 
+U3:41:[ "$NO" = 0 ] || [ "$NO" = 3 ] || [ "$T" = rollback ] || stop "뉴스 관측 이상(종료 $NO) — 되돌리지 말고 위 출력을 보고"
+U3:44:[ "$HO" = 0 ] || [ "$HO" = 3 ] || [ "$T" = rollback ] || stop "출처 HTTP 비200 줄이 고정 한 줄이 아님(종료 $HO) — 되돌리지 말고 위 출력을 
+U3:49:[ "$EQ" = 0 ] || [ "$T" = rollback ] || stop "🔴 N15 만료 사유 기록 실패 줄(종료 $EQ) — 바로 되돌리지 말고 위 출력과 원문 줄을 보고
+U3:50:n17obs "$M/app-$T.log" | tee "$M/n17obs-$T.txt" || stop "n17obs 인자 오류 — 위 출력을 보고"
+U3:51:n19obs "$M/app-$T.log" | tee "$M/n19obs-$T.txt" || stop "n19obs 인자 오류 — 위 출력을 보고"
+U3:52:n20obs "$M/app-$T.log" | tee "$M/n20obs-$T.txt" || stop "n20obs 인자 오류 — 위 출력을 보고"
+U4:4:[ "${UB:-}" = SMA20PD4 ] || stop "U 변수가 SMA20 PAPER 후보 초안 D4 판이 아님 — F → G → SMA20 PAPER 후보 초안 D4 U 변수(초안은 실행하지
+U4:5:[ -e "$M/ok-U3-deploy" ] || stop "U3 미통과"
+U4:7:[ $(( $(date +%s) - $(date -d "$S" +%s) )) -ge 1800 ] || stop "아직 30분 전 — 완료로 판정하지 않는다"
+U4:10:$PSQL -At -c "$NEWSCFG" > "$M/news-after30.txt" || stop "뉴스 설정 조회 실패 — 1분 뒤 U4 를 다시"
+U4:15:[ "$HQ" != 1 ] || stop "🔴 P0 — 연결 획득 시간 초과 줄이 있다. 즉시 보고(되돌림 여부는 총괄 판단, U 되돌림 블록 준비됨)"
+U4:19:[ ! -s "$M/errors-after30.txt" ] || stop "세 마켓 캔들 404·뉴스 출처 ERROR 밖의 ERROR — errors-after30.txt 를 보고"
+U4:24:! grep -qE "🔴 (공유 풀 한도|위험 한도)" "$M/app-after30.log" || stop "되돌림 필요: 🔴 공유 풀/위험 한도 줄"
+U4:25:v94 || stop "되돌림 필요: Flyway 최고 버전이 94 가 아님"
+U4:27:btcgate "$M/app-after30.log" || stop "BTC 관문 마지막 상태가 판정 불가 — 바로 되돌리지 말고 위 출력을 보고"
+U4:28:python3 "$M/maint_verify.py" candle "$M/app-after30.log" "$M/backend-before.log" || stop "판정 불가 대상이 남아 있음 — 위 출력을 보고"
+U4:30:sc | tee "$M/s-after30.txt"; diff "$M/s-before.txt" "$M/s-after30.txt" || stop "되돌림 필요: 검증 세션 상태 바뀜"
+U4:32:diff <(grep -v '^backend ' "$M/svc-before.txt") <(grep -v '^backend ' "$M/svc-after30.txt") || stop "되돌림 필요: backend 외 서비스가 바뀜"
+U4:33:[ "$(grep '^backend ' "$M/svc-deploy.txt")" = "$(grep '^backend ' "$M/svc-after30.txt")" ] || stop "되돌림 필요: backend 재시작 있음"
+U4:34:sid203 || stop "SID 203·기준 행·EG·0 확인 중 바뀐 것 있음 — 보고"
+U4:35:[ "$(h256 "$OPS/sid_ledger.sql")" = "$LSUM" ] && [ "$(cat "$OPS/SID_LEDGER_SHA")" = "$LS" ] || stop "설치 장부가 바뀜 — 보고"
+U4:36:[ "$(cat "$OPS/INSTALLED_SHA")" = "$CK" ] && [ "$(h256 "$OPS/daily_check.sh")" = "$CKSH" ] && [ "$(h256 "$OPS/daily_checks.sql")" = "$CKSQL" ] || stop "정기 점�
+U4:37:crontab -l | cmp -s - "$M/crontab-before.txt" || stop "cron 이 U0 때와 다름 — crontab -l 을 보고"
+U4:38:( cd ~/sid203-ledger && sha256sum --quiet -c "$M/ledger-files-before.sha" ) || stop "과거 장부 기록 파일이 바뀜 — 보고"
+U4:39:$PSQL -At -c "$BTCIN" > "$M/btc-after30.txt" || stop "BTC 입력 조회 실패 — 1분 뒤 U4 를 다시"
+U4:41:btcok "$M/btc-after30.txt" || stop "BTC 입력 미충족 — 바로 되돌리지 말고 위 출력을 보고"
+U4:44:[ "$NO" = 0 ] || [ "$NO" = 3 ] || stop "뉴스 관측 이상(종료 $NO) — 되돌리지 말고 위 출력을 보고"
+U4:47:[ "$HO" = 0 ] || [ "$HO" = 3 ] || stop "출처 HTTP 비200 줄이 고정 한 줄이 아님(종료 $HO) — 되돌리지 말고 위 출력을 보고"
+U4:53:[ "$EQ" = 0 ] || stop "🔴 N15 만료 사유 기록 실패 줄(종료 $EQ) — 바로 되돌리지 말고 위 출력과 원문 줄을 보고"
+U4:55:n17obs "$M/app-after30.log" | tee "$M/n17obs-after30.txt" || stop "n17obs 인자 오류 — 위 출력을 보고"
+U4:57:n19obs "$M/app-after30.log" | tee "$M/n19obs-after30.txt" || stop "n19obs 인자 오류 — 위 출력을 보고"
+U4:59:n20obs "$M/app-after30.log" | tee "$M/n20obs-after30.txt" || stop "n20obs 인자 오류 — 위 출력을 보고"
+U4:62:alertsok "$AE" "$M/alerts-after30.txt" || stop "경보 조회가 끝까지 돌지 않음 — alerts-after30.txt 를 보고"

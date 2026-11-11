@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.DynamicGhostPositionTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-11-11T00:52:35" hostname="DESKTOP-SF1KUQ5" time="0.065">
+  <properties/>
+  <testcase name="② 부분 체결로 정산된 포지션을 다시 정산하지 않는다 (KRW 이중 복원 방지)" classname="com.cryptoautotrader.api.service.DynamicGhostPositionTest" time="0.011"/>
+  <testcase name="② 유령 포지션: 매도 FILLED인데 OPEN으로 남은 포지션을 자동 정산한다 (07-31 P0)" classname="com.cryptoautotrader.api.service.DynamicGhostPositionTest" time="0.025"/>
+  <testcase name="② 방금 체결된 매도는 유예 시간 안이라 건드리지 않는다 (정상 경로 침범 방지)" classname="com.cryptoautotrader.api.service.DynamicGhostPositionTest" time="0.009"/>
+  <testcase name="① CLOSING 포지션: FAILED 재시도가 뒤에 쌓여도 FILLED 주문으로 정산한다" classname="com.cryptoautotrader.api.service.DynamicGhostPositionTest" time="0.017"/>
+  <system-out><![CDATA[09:52:35.015 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.DynamicGhostPositionTest
+09:52:35.017 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:52:35.028 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:52:35.038 [Test worker] ERROR c.c.a.service.DynamicTradingService - [Dynamic] ? 유령 포지션 감지: 매도 FILLED인데 포지션 OPEN ? 자동 정산 (posId=39, sessionId=40, KRW-RLUSD, orderId=31). 매도 후처리 tx 롤백 의심.
+09:52:35.055 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:52:35.064 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+09:52:35.072 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 매도 주문 다건 ? FAILED 재시도 뒤의 FILLED를 채택 (posId=41, 채택 orderId=33, 후속 주문 2건)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

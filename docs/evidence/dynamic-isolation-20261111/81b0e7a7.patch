@@ -1,0 +1,450 @@
+From 81b0e7a7ead1e0ab856b639f143f824b8f105de8 Mon Sep 17 00:00:00 2001
+From: YamSaeng81 <manicstr81@gmail.com>
+Date: Wed, 11 Nov 2026 09:53:04 +0900
+Subject: [PATCH] =?UTF-8?q?DYNAMIC=20BLACK=5FSWAN=20=EC=BF=A8=EB=8B=A4?=
+ =?UTF-8?q?=EC=9A=B4=20=EC=A2=85=EB=A5=98=EB=B3=84=20=EA=B2=A9=EB=A6=AC=20?=
+ =?UTF-8?q?=ED=9B=84=EB=B3=B4(=EC=B4=9D=EA=B4=84=20v1.145=20=EA=B2=B0?=
+ =?UTF-8?q?=EC=A0=95=203,=20b5cd1d0=20=EA=B8=B0=EC=A0=90,=20=EA=B3=A0?=
+ =?UTF-8?q?=EC=A0=95=EC=BD=94=EC=9D=B8=20=ED=9B=84=EB=B3=B4=EC=99=80=20?=
+ =?UTF-8?q?=EB=B3=84=EB=8F=84)=20=E2=80=94=20REAL=C2=B7PAPER=20=EC=A7=80?=
+ =?UTF-8?q?=EB=8F=84=20=EB=B6=84=EB=A6=AC,=20=EA=B8=B0=EB=A1=9D=C2=B7?=
+ =?UTF-8?q?=EC=A1=B0=ED=9A=8C=C2=B7=EB=A7=8C=EB=A3=8C=C2=B7=EC=9E=AC?=
+ =?UTF-8?q?=EA=B8=B0=EB=8F=99=20=EB=B3=B5=EC=9B=90=EC=9D=84=20=EA=B0=99?=
+ =?UTF-8?q?=EC=9D=80=20=EC=A2=85=EB=A5=98=EB=A1=9C?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- 기존 blackSwanBlockedAt/Price 는 REAL(DYNAMIC) 전용으로 그대로(키·쿨다운 240분·진입가 가드·차단 기준·REAL 복원 질의 불변).
+- PAPER(DYN_PAPER) 는 paperBlackSwanBlockedAt/Price. 차단 기록·관문 조회·만료 삭제는 세션 종류로 지도를 고른다.
+- 재기동 복원: DYNAMIC 로그 → REAL 지도(종전과 같음), DYN_PAPER 로그 → PAPER 지도(신규). PAPER 로그를 REAL 복원에 넣지 않는다.
+- DynamicBlackSwanCooldownCrossKindTest(0f3a4b55 에서 가져와 격리 계약으로 바꿈) 6/6: PAPER→REAL 무간섭, REAL 자체 쿨다운 유지·REAL→PAPER 무간섭,
+  종류별 복원, 재기동 전후 같은 결과. 같은 시험을 b5cd1d0 제품 코드로 돌리면 5/6 실패(1건 의미상, 4건 PAPER 지도 없음).
+- Dynamic*Test 27클래스 + 엔진 패리티 2클래스 167건 통과.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .../api/service/DynamicTradingService.java    |  70 +++--
+ ...DynamicBlackSwanCooldownCrossKindTest.java | 293 ++++++++++++++++++
+ 2 files changed, 339 insertions(+), 24 deletions(-)
+ create mode 100644 web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBlackSwanCooldownCrossKindTest.java
+
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
+index ff5ebf73..40c71f83 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
+@@ -376,6 +376,23 @@ public class DynamicTradingService {
+      */
+     final Map<String, BigDecimal> blackSwanBlockedPrice = new ConcurrentHashMap<>();
+ 
++    /**
++     * 종류별 격리 (2026-11-11, 총괄 v1.145 결정 3) — 위 두 지도는 <b>REAL(DYNAMIC) 전용</b>이고, PAPER(DYN_PAPER) 세션은 아래 두 지도를
++     * 쓴다. 기록·조회·만료 삭제·재기동 복원이 모두 같은 종류의 지도와 같은 종류의 로그만 쓴다. 종전에는 코인 하나에 지도 하나라 PAPER 평가의
++     * 차단이 REAL 진입을 막았고(3f6afb90 재현), 재기동 복원은 REAL 로그만 읽어 PAPER 차단은 사라졌다(0f3a4b55 재현).
++     * REAL 의 쿨다운 길이·진입가 가드·차단 기준·복원 경로는 그대로다(PAPER 로그를 REAL 복원에 넣지 않는다).
++     */
++    final Map<String, Instant> paperBlackSwanBlockedAt = new ConcurrentHashMap<>();
++    final Map<String, BigDecimal> paperBlackSwanBlockedPrice = new ConcurrentHashMap<>();
++
++    private Map<String, Instant> blackSwanAt(String kind) {
++        return SESSION_KIND_PAPER.equals(kind) ? paperBlackSwanBlockedAt : blackSwanBlockedAt;
++    }
++
++    private Map<String, BigDecimal> blackSwanPrice(String kind) {
++        return SESSION_KIND_PAPER.equals(kind) ? paperBlackSwanBlockedPrice : blackSwanBlockedPrice;
++    }
++
+     /** 쿨다운 복원 대상을 가려내는 blocked_reason 접두어 (가드 발동분만 — 아래 주석 참조) */
+     private static final String BLACK_SWAN_BLOCK_PREFIX = "BLACK_SWAN_GUARD 발동";
+ 
+@@ -401,25 +418,29 @@ public class DynamicTradingService {
+             // 진입가 가드(24시간)가 쿨다운(4시간)보다 길므로 더 긴 쪽을 조회 구간으로 잡는다.
+             Instant from = Instant.now().minus(
+                     Math.max(BLACK_SWAN_COOLDOWN_MIN, BLACK_SWAN_PRICE_GUARD_MIN), ChronoUnit.MINUTES);
+-            List<Object[]> rows = strategyLogRepository.findRecentBlockedCoins(
+-                    SESSION_KIND, from, BLACK_SWAN_BLOCK_PREFIX);
+-            // 오래된 순으로 오므로 순서대로 덮어쓰면 코인별 가장 최근 차단이 남는다.
+-            for (Object[] row : rows) {
+-                if (row[0] == null || row[1] == null) continue;
+-                String coinPair = (String) row[0];
+-                blackSwanBlockedAt.put(coinPair, (Instant) row[1]);
+-                // signalPrice는 과거 로그에 없을 수 있다 — 그 경우 쿨다운만 복원하고
+-                // 진입가 가드는 기준가가 없으므로 자동으로 비활성이 된다.
+-                if (row[2] != null) {
+-                    blackSwanBlockedPrice.put(coinPair, (BigDecimal) row[2]);
+-                } else {
+-                    blackSwanBlockedPrice.remove(coinPair);
++            // 종류마다 자기 로그 → 자기 지도 (2026-11-11). REAL 은 종전과 같은 질의·같은 지도다.
++            for (String kind : List.of(SESSION_KIND, SESSION_KIND_PAPER)) {
++                Map<String, Instant> at = blackSwanAt(kind);
++                Map<String, BigDecimal> price = blackSwanPrice(kind);
++                List<Object[]> rows = strategyLogRepository.findRecentBlockedCoins(
++                        kind, from, BLACK_SWAN_BLOCK_PREFIX);
++                // 오래된 순으로 오므로 순서대로 덮어쓰면 코인별 가장 최근 차단이 남는다.
++                for (Object[] row : rows) {
++                    if (row[0] == null || row[1] == null) continue;
++                    String coinPair = (String) row[0];
++                    at.put(coinPair, (Instant) row[1]);
++                    // signalPrice는 과거 로그에 없을 수 있다 — 그 경우 쿨다운만 복원하고
++                    // 진입가 가드는 기준가가 없으므로 자동으로 비활성이 된다.
++                    if (row[2] != null) {
++                        price.put(coinPair, (BigDecimal) row[2]);
++                    } else {
++                        price.remove(coinPair);
++                    }
++                }
++                if (!rows.isEmpty()) {
++                    log.info("[Dynamic] BLACK_SWAN 쿨다운 복원({}): {}종 {} (진입가 가드 기준가 {}종)",
++                            kind, at.size(), at.keySet(), price.size());
+                 }
+-            }
+-            if (!rows.isEmpty()) {
+-                log.info("[Dynamic] BLACK_SWAN 쿨다운 복원: {}종 {} (진입가 가드 기준가 {}종)",
+-                        blackSwanBlockedAt.size(), blackSwanBlockedAt.keySet(),
+-                        blackSwanBlockedPrice.size());
+             }
+         } catch (Exception e) {
+             log.warn("[Dynamic] BLACK_SWAN 쿨다운 복원 실패 — 가드 본체로 진행: {}", e.getMessage());
+@@ -917,7 +938,7 @@ public class DynamicTradingService {
+         }
+         BigDecimal evalPrice = evalCandles.isEmpty() ? null : evalCandles.get(evalCandles.size() - 1).getClose();
+         BlackSwanGateDecision blackSwan = evaluateBlackSwanGate(
+-                blackSwanBlockedAt.get(coinPair), blackSwanBlockedPrice.get(coinPair), evalPrice, Instant.now());
++                blackSwanAt(kind).get(coinPair), blackSwanPrice(kind).get(coinPair), evalPrice, Instant.now());
+         if (blackSwan.blockReason() != null) {
+             return "승인 차례에 " + blackSwan.blockReason();
+         }
+@@ -1136,16 +1157,17 @@ public class DynamicTradingService {
+             // 쿨다운 — 가드가 한 번 차단한 코인은 해제 직후가 가장 위험하다 (2026-08-03 실측).
+             // 가드는 판단이 옳았고 **유지 시간이 짧았을 뿐**이므로, 해제 후에도 일정 시간 막는다.
+             if (gateBlockReason == null && signal.getAction() == StrategySignal.Action.BUY) {
++                String bsKind = sessionKind(session);
+                 BlackSwanGateDecision decision = evaluateBlackSwanGate(
+-                        blackSwanBlockedAt.get(coinPair), blackSwanBlockedPrice.get(coinPair),
++                        blackSwanAt(bsKind).get(coinPair), blackSwanPrice(bsKind).get(coinPair),
+                         evalPrice, Instant.now());
+                 if (decision.blockReason() != null) {
+                     blackSwanBlocked++;
+                     gateBlockReason = decision.blockReason();
+                     log.warn("[Dynamic] BUY 차단: {} (id={}) — {}", coinPair, sid, gateBlockReason);
+                 } else if (decision.expired()) {
+-                    blackSwanBlockedAt.remove(coinPair);
+-                    blackSwanBlockedPrice.remove(coinPair);
++                    blackSwanAt(bsKind).remove(coinPair);
++                    blackSwanPrice(bsKind).remove(coinPair);
+                 }
+             }
+ 
+@@ -1154,8 +1176,8 @@ public class DynamicTradingService {
+                 BlackSwanGuard.EntryGate guard = BlackSwanGuard.entryGate(evalCandles);
+                 if (guard.blocked()) {
+                     blackSwanBlocked++;
+-                    blackSwanBlockedAt.put(coinPair, Instant.now());   // 쿨다운 시작
+-                    blackSwanBlockedPrice.put(coinPair, evalPrice);    // 진입가 가드 기준가
++                    blackSwanAt(sessionKind(session)).put(coinPair, Instant.now());   // 쿨다운 시작(이 세션 종류만)
++                    blackSwanPrice(sessionKind(session)).put(coinPair, evalPrice);    // 진입가 가드 기준가
+                     log.warn("[Dynamic] BLACK_SWAN_GUARD 발동 — BUY 차단: {} (id={}): {}",
+                             coinPair, sid, guard.reason());
+                     gateBlockReason = "BLACK_SWAN_GUARD 발동 — " + guard.reason();
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBlackSwanCooldownCrossKindTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBlackSwanCooldownCrossKindTest.java
+new file mode 100644
+index 00000000..79a8acf1
+--- /dev/null
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBlackSwanCooldownCrossKindTest.java
+@@ -0,0 +1,293 @@
++package com.cryptoautotrader.api.service;
++
++import com.cryptoautotrader.api.entity.DynamicSessionEntity;
++import com.cryptoautotrader.api.entity.StrategyLogEntity;
++import com.cryptoautotrader.api.repository.DynamicSessionRepository;
++import com.cryptoautotrader.api.repository.OrderRepository;
++import com.cryptoautotrader.api.repository.PositionRepository;
++import com.cryptoautotrader.api.repository.StrategyLogRepository;
++import com.cryptoautotrader.api.support.IntegrationTestBase;
++import com.cryptoautotrader.exchange.upbit.UpbitRestClient;
++import com.cryptoautotrader.strategy.Candle;
++import com.cryptoautotrader.strategy.Strategy;
++import com.cryptoautotrader.strategy.StrategyRegistry;
++import com.cryptoautotrader.strategy.StrategySignal;
++import org.junit.jupiter.api.AfterEach;
++import org.junit.jupiter.api.BeforeEach;
++import org.junit.jupiter.api.DisplayName;
++import org.junit.jupiter.api.Test;
++import org.springframework.beans.factory.annotation.Autowired;
++import org.springframework.boot.test.mock.mockito.MockBean;
++import org.springframework.jdbc.core.JdbcTemplate;
++import org.springframework.test.util.AopTestUtils;
++
++import java.math.BigDecimal;
++import java.time.Instant;
++import java.time.temporal.ChronoUnit;
++import java.util.ArrayList;
++import java.util.List;
++import java.util.Map;
++
++import static org.assertj.core.api.Assertions.assertThat;
++
++/**
++ * DYNAMIC PAPER ↔ REAL 상태 간섭 최소 재현 (2026-11-10, 총괄 v1.144 D) — 코인별 BLACK_SWAN 쿨다운 기록
++ * ({@code blackSwanBlockedAt}·{@code blackSwanBlockedPrice})이 세션 종류를 가리지 않는 서비스 전역 지도다.
++ *
++ * <p>운영 호출부 {@link DynamicTradingService#processTick}(스케줄러가 세션마다 부르는 틱)을 그대로 부른다. 전략은 매번 BUY 를 내는
++ * 시험 전략 하나(두 세션 같음)라 관문 효과만 남는다. 거래소 주문·시세·텔레그램·공용 유니버스는 목이다(외부 호출 0).</p>
++ *
++ * <p>기대(실행 전 기록): PAPER 세션이 급락 마감 봉에서 BUY 를 평가하면 쿨다운이 기록되고, 회복된 캔들에서 REAL 세션의 BUY 가
++ * "BLACK_SWAN 쿨다운"으로 막힌다. PAPER 틱이 없으면(대조) 같은 REAL 틱은 그 사유로 막히지 않는다 — 즉 PAPER 활동이 REAL 판단을 바꾼다.
++ * 2026-11-11 (총괄 v1.145 결정 3): 종류별 격리 후보에서 기대를 격리 계약으로 바꿨다. 종전 재현(3f6afb90·0f3a4b55)은 시험 가지에 남는다.</p>
++ */
++@DisplayName("DYNAMIC BLACK_SWAN 쿨다운 — PAPER 평가가 REAL 진입을 막는가(세션 종류 간 공유 상태)")
++@org.springframework.test.context.TestPropertySource(properties = "test.fixture.entry-rounds-context=DynamicBlackSwanCooldownCrossKindTest")
++@org.springframework.test.annotation.DirtiesContext(classMode = org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS)
++class DynamicBlackSwanCooldownCrossKindTest extends IntegrationTestBase {
++
++    private static final String COIN = "KRW-XRP";
++    private static final String BTC = "KRW-BTC";
++    private static final String STRATEGY = "TEST_DYN_ALWAYS_BUY";
++
++    @Autowired private DynamicTradingService dynamicTradingService;
++    @Autowired private DynamicSessionRepository sessionRepo;
++    @Autowired private PositionRepository positionRepository;
++    @Autowired private OrderRepository orderRepository;
++    @Autowired private StrategyLogRepository strategyLogRepository;
++    @Autowired private JdbcTemplate jdbc;
++    @Autowired private com.cryptoautotrader.api.repository.MarketDataCacheRepository cacheRepository;
++
++    @MockBean private MarketDataSyncService marketDataSyncService;
++    @MockBean private UpbitRestClient upbitRestClient;
++    @MockBean private com.cryptoautotrader.exchange.upbit.UpbitOrderClient upbitOrderClient;
++    @MockBean private TelegramNotificationService telegramService;
++    @MockBean private PortfolioSyncService portfolioSyncService;
++    @MockBean private SharedUniverseService sharedUniverseService;
++    @MockBean private com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient upbitWebSocketClient;
++
++    private final List<Long> ids = new ArrayList<>();
++    private Instant lastOpen;
++
++    @BeforeEach
++    void setUp() {
++        StrategyRegistry.register(new Strategy() {
++            @Override public String getName() { return STRATEGY; }
++            @Override public StrategySignal evaluate(List<Candle> candles, Map<String, Object> params) {
++                return StrategySignal.buy(new BigDecimal("80"), "시험 — 항상 BUY");
++            }
++            @Override public int getMinimumCandleCount() { return 210; }
++        });
++        lastOpen = Instant.now().minus(61, ChronoUnit.MINUTES).truncatedTo(ChronoUnit.SECONDS);
++        deleteCache();
++        globalMaps().forEach(Map::clear);
++    }
++
++    @AfterEach
++    void tearDown() {
++        for (Long id : ids) {
++            String kind = DynamicTradingService.sessionKind(sessionRepo.findById(id).orElseThrow());
++            orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc(kind, id).forEach(orderRepository::delete);
++            positionRepository.findBySessionKindAndSessionId(kind, id).forEach(positionRepository::delete);
++            strategyLogRepository.findAllBySessionTypeAndSessionIdOrderByCreatedAtDesc(kind, id).forEach(strategyLogRepository::delete);
++            sessionRepo.deleteById(id);
++        }
++        ids.clear();
++        deleteCache();
++        globalMaps().forEach(Map::clear);
++    }
++
++    private List<Map<String, ?>> globalMaps() {
++        DynamicTradingService t = AopTestUtils.getUltimateTargetObject(dynamicTradingService);
++        return List.of(t.blackSwanBlockedAt, t.blackSwanBlockedPrice, t.paperBlackSwanBlockedAt, t.paperBlackSwanBlockedPrice);
++    }
++
++    private void deleteCache() {
++        jdbc.update("DELETE FROM market_data_cache WHERE coin_pair IN (?, ?) AND timeframe = 'H1'", COIN, BTC);
++    }
++
++    /**
++     * 닫힌 H1 500봉 상승(시간당 +0.2% — EMA200 이 충분히 아래라 −10% 급락 봉도 EMA200 관문을 지난다. 2회차는 +0.05% 라 EMA200 관문이 먼저 막았다). crash 면 마지막 봉 종가가 앞 봉 고가보다 10% 낮다.
++     * DYNAMIC 은 캔들을 {@code MarketDataSyncService.fetchWithCache}(캐시 + 부족분 거래소 수집)로 읽는다 — 목이 그 응답을 정한다.
++     */
++    private void insert(String coin, long base, boolean crash) {
++        List<Candle> rows = new ArrayList<>();
++        for (int i = 0; i < 500; i++) {
++            BigDecimal c = BigDecimal.valueOf(base + base / 500 * i);
++            BigDecimal o = BigDecimal.valueOf(base + base / 500 * Math.max(0, i - 1));
++            BigDecimal h = c.max(o).add(BigDecimal.valueOf(base / 10000));
++            BigDecimal l = c.min(o).subtract(BigDecimal.valueOf(base / 10000));
++            if (crash && i == 499) {
++                c = o.multiply(new BigDecimal("0.90"));
++                l = c;
++                h = o;
++            }
++            rows.add(Candle.builder().time(lastOpen.minus(499 - i, ChronoUnit.HOURS))
++                    .open(o).high(h).low(l).close(c).volume(new BigDecimal("1000")).build());
++        }
++        org.mockito.Mockito.when(marketDataSyncService.fetchWithCache(
++                org.mockito.ArgumentMatchers.eq(coin), org.mockito.ArgumentMatchers.eq("H1"), org.mockito.ArgumentMatchers.anyInt()))
++                .thenReturn(rows);
++    }
++
++    private Long session(String mode) {
++        Long id = sessionRepo.saveAndFlush(DynamicSessionEntity.builder()
++                .strategyType(STRATEGY).timeframe("H1")
++                .initialCapital(new BigDecimal("100000")).availableKrw(new BigDecimal("100000")).totalAssetKrw(new BigDecimal("100000"))
++                .investRatio(new BigDecimal("0.2000")).stopLossPct(new BigDecimal("5.00"))
++                .status("RUNNING").scanState("SCANNING").tradingMode(mode)
++                .maxCandidateSize(30).targetWatchSize(10)
++                .minAtrPct(new BigDecimal("0.5000")).maxSpreadPct(new BigDecimal("0.1000"))
++                .watchlistRefreshMin(600).watchlistJson("[\"" + COIN + "\"]").watchlistRefreshedAt(Instant.now())
++                .startedAt(Instant.now().minus(1, ChronoUnit.DAYS))
++                .build()).getId();
++        ids.add(id);
++        return id;
++    }
++
++    private void tick(Long id) {
++        dynamicTradingService.processTick(sessionRepo.findById(id).orElseThrow());
++    }
++
++    private String lastLog(Long id) {
++        String kind = DynamicTradingService.sessionKind(sessionRepo.findById(id).orElseThrow());
++        List<StrategyLogEntity> logs = strategyLogRepository.findAllBySessionTypeAndSessionIdOrderByCreatedAtDesc(kind, id);
++        return logs.isEmpty() ? "로그 없음" : logs.get(0).getSignal() + " / " + logs.get(0).getReason()
++                + (logs.get(0).getBlockedReason() != null ? " / 차단=" + logs.get(0).getBlockedReason() : "");
++    }
++
++    private DynamicTradingService t() {
++        return AopTestUtils.getUltimateTargetObject(dynamicTradingService);
++    }
++
++    @Test
++    @DisplayName("격리 — PAPER 가 급락 봉을 평가해 쿨다운을 기록해도 PAPER 지도에만 남고, 회복 뒤 REAL 의 BUY 는 그 사유로 막히지 않는다")
++    void paperCooldownDoesNotBlockReal() {
++        insert(BTC, 100_000_000L, false);
++        insert(COIN, 1_000_000L, true);
++        Long paper = session("PAPER");
++        tick(paper);
++        System.out.println("[격리] PAPER 틱: " + lastLog(paper));
++        assertThat(t().paperBlackSwanBlockedAt).as("PAPER 평가는 PAPER 지도에 기록").containsKey(COIN);
++        assertThat(t().blackSwanBlockedAt).as("REAL 지도에는 없다").doesNotContainKey(COIN);
++
++        deleteCache();
++        insert(BTC, 100_000_000L, false);
++        insert(COIN, 1_000_000L, false);
++        Long real = session(DynamicSessionEntity.DEFAULT_TRADING_MODE);
++        tick(real);
++        String realLog = lastLog(real);
++        System.out.println("[격리] REAL 틱(회복 캔들): " + realLog);
++        assertThat(realLog).doesNotContain("BLACK_SWAN");
++        assertThat(realLog).isNotEqualTo("로그 없음");
++
++        // 같은 회복 캔들에서 PAPER 는 자기 쿨다운으로 막힌다(PAPER 자체 보호는 유지)
++        Long paper2 = session("PAPER");
++        tick(paper2);
++        assertThat(lastLog(paper2)).contains("BLACK_SWAN 쿨다운");
++    }
++
++    @Test
++    @DisplayName("REAL 자체 보호 유지 · REAL→PAPER 무간섭 — REAL 급락 차단 뒤 REAL 은 쿨다운으로 막히고 PAPER 는 막히지 않는다")
++    void realSelfCooldownKeptAndDoesNotBlockPaper() {
++        insert(BTC, 100_000_000L, false);
++        insert(COIN, 1_000_000L, true);
++        Long real = session(DynamicSessionEntity.DEFAULT_TRADING_MODE);
++        tick(real);
++        assertThat(lastLog(real)).contains("BLACK_SWAN_GUARD 발동");
++        assertThat(t().blackSwanBlockedAt).containsKey(COIN);
++        assertThat(t().blackSwanBlockedPrice).containsKey(COIN);
++        assertThat(t().paperBlackSwanBlockedAt).doesNotContainKey(COIN);
++
++        deleteCache();
++        insert(BTC, 100_000_000L, false);
++        insert(COIN, 1_000_000L, false);
++        Long real2 = session(DynamicSessionEntity.DEFAULT_TRADING_MODE);
++        tick(real2);
++        String real2Log = lastLog(real2);
++        Long paper = session("PAPER");
++        tick(paper);
++        String paperLog = lastLog(paper);
++        System.out.println("[자체 보호] REAL 회복 틱: " + real2Log + " / PAPER 회복 틱: " + paperLog);
++        assertThat(real2Log).as("REAL 쿨다운(길이·기준 그대로)").contains("BLACK_SWAN 쿨다운");
++        assertThat(paperLog).doesNotContain("BLACK_SWAN");
++    }
++
++    @Test
++    @DisplayName("대조 — PAPER 틱 없이 같은 회복 캔들의 REAL 틱은 BLACK_SWAN 쿨다운으로 막히지 않는다")
++    void realWithoutPaperIsNotBlocked() {
++        insert(BTC, 100_000_000L, false);
++        insert(COIN, 1_000_000L, false);
++        Long real = session(DynamicSessionEntity.DEFAULT_TRADING_MODE);
++        tick(real);
++        String realLog = lastLog(real);
++        System.out.println("[대조] REAL 틱(회복 캔들): " + realLog);
++        assertThat(realLog).doesNotContain("BLACK_SWAN");
++        assertThat(realLog).isNotEqualTo("로그 없음");
++    }
++
++    /** 재기동 흉내 — 서비스 전역 지도를 비우고 운영 기동 처리기 restoreBlackSwanCooldown 을 그대로 부른다. */
++    private Map<String, java.time.Instant> restartAndRestore() {
++        DynamicTradingService t = AopTestUtils.getUltimateTargetObject(dynamicTradingService);
++        globalMaps().forEach(Map::clear);
++        t.restoreBlackSwanCooldown();
++        return t.blackSwanBlockedAt;
++    }
++
++    @Test
++    @DisplayName("기동 복원 — PAPER 가 만든 쿨다운은 재기동 뒤 PAPER 지도에 복원되고 REAL 지도에는 들어가지 않는다")
++    void paperOriginatedCooldownRestoredToPaperOnly() {
++        insert(BTC, 100_000_000L, false);
++        insert(COIN, 1_000_000L, true);
++        Long paper = session("PAPER");
++        tick(paper);
++        assertThat(t().paperBlackSwanBlockedAt).as("재기동 전 — PAPER 지도").containsKey(COIN);
++        System.out.println("[복원] PAPER 차단 로그: " + lastLog(paper));
++        restartAndRestore();
++        assertThat(t().paperBlackSwanBlockedAt).as("재기동 뒤 — PAPER 지도 복원").containsKey(COIN);
++        assertThat(t().paperBlackSwanBlockedPrice).containsKey(COIN);
++        assertThat(t().blackSwanBlockedAt).as("REAL 복원에 PAPER 로그를 넣지 않는다").doesNotContainKey(COIN);
++    }
++
++    @Test
++    @DisplayName("기동 복원 — REAL 이 만든 쿨다운은 재기동 뒤 REAL 지도에 복원되고 PAPER 지도에는 들어가지 않는다")
++    void realOriginatedCooldownRestoredToRealOnly() {
++        insert(BTC, 100_000_000L, false);
++        insert(COIN, 1_000_000L, true);
++        Long real = session(DynamicSessionEntity.DEFAULT_TRADING_MODE);
++        tick(real);
++        System.out.println("[복원] REAL 차단 로그: " + lastLog(real));
++        restartAndRestore();
++        assertThat(t().blackSwanBlockedAt).as("재기동 뒤 — REAL 기록 복원").containsKey(COIN);
++        assertThat(t().paperBlackSwanBlockedAt).doesNotContainKey(COIN);
++    }
++
++    @Test
++    @DisplayName("재기동 전후 같은 결과 — 종류마다 회복 틱의 차단 여부가 재기동 전과 같다")
++    void sameDecisionBeforeAndAfterRestartPerKind() {
++        insert(BTC, 100_000_000L, false);
++        insert(COIN, 1_000_000L, true);
++        tick(session("PAPER"));
++        deleteCache();
++        insert(BTC, 100_000_000L, false);
++        insert(COIN, 1_000_000L, false);
++        Long pBefore = session("PAPER");
++        Long rBefore = session(DynamicSessionEntity.DEFAULT_TRADING_MODE);
++        tick(pBefore);
++        tick(rBefore);
++        boolean paperBlockedBefore = lastLog(pBefore).contains("BLACK_SWAN 쿨다운");
++        boolean realBlockedBefore = lastLog(rBefore).contains("BLACK_SWAN");
++        restartAndRestore();
++        Long pAfter = session("PAPER");
++        Long rAfter = session(DynamicSessionEntity.DEFAULT_TRADING_MODE);
++        tick(pAfter);
++        tick(rAfter);
++        boolean paperBlockedAfter = lastLog(pAfter).contains("BLACK_SWAN 쿨다운");
++        boolean realBlockedAfter = lastLog(rAfter).contains("BLACK_SWAN");
++        System.out.println("[재기동 전후] PAPER " + paperBlockedBefore + "→" + paperBlockedAfter + " / REAL " + realBlockedBefore + "→" + realBlockedAfter);
++        assertThat(paperBlockedBefore).isTrue();
++        assertThat(paperBlockedAfter).isEqualTo(paperBlockedBefore);
++        assertThat(realBlockedBefore).isFalse();
++        assertThat(realBlockedAfter).isEqualTo(realBlockedBefore);
++    }
++}
+-- 
+2.51.1.windows.1
+
