@@ -1,0 +1,55 @@
+test_401_stops (test_ab_create.Create.test_401_stops) ... ok
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\unittest\suite.py:107: ResourceWarning: unclosed <socket.socket fd=1044, family=2, type=1, proto=0, laddr=('127.0.0.1', 11818)>
+  for index, test in enumerate(self):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+test_500_stops (test_ab_create.Create.test_500_stops) ... ok
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\unittest\suite.py:107: ResourceWarning: unclosed <socket.socket fd=1044, family=2, type=1, proto=0, laddr=('127.0.0.1', 11824)>
+  for index, test in enumerate(self):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+test_all_ok (test_ab_create.Create.test_all_ok) ... ok
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\unittest\suite.py:107: ResourceWarning: unclosed <socket.socket fd=1044, family=2, type=1, proto=0, laddr=('127.0.0.1', 11829)>
+  for index, test in enumerate(self):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+test_outside_window_sends_nothing (test_ab_create.Create.test_outside_window_sends_nothing) ... ok
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\unittest\suite.py:107: ResourceWarning: unclosed <socket.socket fd=1160, family=2, type=1, proto=0, laddr=('127.0.0.1', 11842)>
+  for index, test in enumerate(self):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+test_plan_only_sends_nothing (test_ab_create.Create.test_plan_only_sends_nothing) ... ok
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\unittest\suite.py:107: ResourceWarning: unclosed <socket.socket fd=1160, family=2, type=1, proto=0, laddr=('127.0.0.1', 11843)>
+  for index, test in enumerate(self):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+test_preexisting_same_signature_sends_nothing (test_ab_create.Create.test_preexisting_same_signature_sends_nothing) ... ok
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\unittest\suite.py:107: ResourceWarning: unclosed <socket.socket fd=1160, family=2, type=1, proto=0, laddr=('127.0.0.1', 11845)>
+  for index, test in enumerate(self):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+test_stored_value_mismatch_stops (test_ab_create.Create.test_stored_value_mismatch_stops) ... ok
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\unittest\suite.py:107: ResourceWarning: unclosed <socket.socket fd=1160, family=2, type=1, proto=0, laddr=('127.0.0.1', 11847)>
+  for index, test in enumerate(self):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+test_success_false_with_http_200_stops (test_ab_create.Create.test_success_false_with_http_200_stops) ... ok
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\unittest\suite.py:107: ResourceWarning: unclosed <socket.socket fd=1264, family=2, type=1, proto=0, laddr=('127.0.0.1', 11856)>
+  for index, test in enumerate(self):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+test_unknown_response_but_created_is_provisional_only_and_not_resent (test_ab_create.Create.test_unknown_response_but_created_is_provisional_only_and_not_resent) ... ok
+test_c1_malformed_or_incomplete_reconcile_list (test_ab_create.CreateMock.test_c1_malformed_or_incomplete_reconcile_list) ... ok
+test_c1_reconcile_failure_after_8_ok_is_not_success (test_ab_create.CreateMock.test_c1_reconcile_failure_after_8_ok_is_not_success) ... ok
+test_c2_overseer_form_unknown_body_sha_also_blocks (test_ab_create.CreateMock.test_c2_overseer_form_unknown_body_sha_also_blocks)
+총괄 review.py 의 입력(본문 sha 가 'unresolved-prior-send')도 보내기 전에 거절. ... ok
+test_c2_unresolved_intent_blocks_all_sends (test_ab_create.CreateMock.test_c2_unresolved_intent_blocks_all_sends) ... ok
+test_concurrent_run_lock (test_ab_create.CreateMock.test_concurrent_run_lock) ... ok
+test_corrupt_or_foreign_journal_rejected_before_send (test_ab_create.CreateMock.test_corrupt_or_foreign_journal_rejected_before_send) ... ok
+test_crash_after_post_before_result_write_then_rerun_sends_nothing (test_ab_create.CreateMock.test_crash_after_post_before_result_write_then_rerun_sends_nothing) ... ok
+test_intent_write_failure_sends_nothing_for_that_body (test_ab_create.CreateMock.test_intent_write_failure_sends_nothing_for_that_body) ... ok
+test_killed_process_leaves_lock_and_intent (test_ab_create.CreateMock.test_killed_process_leaves_lock_and_intent)
+프로세스가 POST 뒤 응답 전에 죽은 흔적: 잠금 + 결과 없는 의도. 잠금이 있으면 거절, 사람이 잠금을 지워도 의도 때문에 거절. ... ok
+test_malformed_post_responses_are_fixed_unknown (test_ab_create.CreateMock.test_malformed_post_responses_are_fixed_unknown) ... ok
+test_unknown_then_list_candidate_is_provisional_not_attributed (test_ab_create.CreateMock.test_unknown_then_list_candidate_is_provisional_not_attributed) ... ok
+test_window_only_preflight_journal_can_rerun (test_ab_create.CreateMock.test_window_only_preflight_journal_can_rerun)
+창 밖으로 보낸 것 없이 끝난 기록부(같은 프로토콜·코드)는 다음 창에 다시 실행할 수 있다. ... ok
+test_window_rechecked_before_each_request (test_ab_create.CreateMock.test_window_rechecked_before_each_request)
+시작은 창 안(C+11:58)이지만 4번째 요청 직전 C+12:01 — 더 보내지 않고 부분 결과(종료 3). ... ok
+
+----------------------------------------------------------------------
+Ran 22 tests in 6.551s
+
+OK

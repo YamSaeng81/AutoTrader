@@ -1,0 +1,139 @@
+{
+  "cases": [
+    {
+      "case": "run-final-19dbad3a",
+      "completed": true,
+      "matched_started_at": 4,
+      "sessions": [
+        {
+          "id": "2",
+          "api_started_at": "2026-11-11T07:36:29.025229+00:00",
+          "db_started_at": "2026-11-11 07:36:29.025229+00",
+          "same_instant": true
+        },
+        {
+          "id": "3",
+          "api_started_at": "2026-11-11T07:36:29.062285+00:00",
+          "db_started_at": "2026-11-11 07:36:29.062285+00",
+          "same_instant": true
+        },
+        {
+          "id": "4",
+          "api_started_at": "2026-11-11T07:36:29.080737+00:00",
+          "db_started_at": "2026-11-11 07:36:29.080738+00",
+          "same_instant": false
+        },
+        {
+          "id": "5",
+          "api_started_at": "2026-11-11T07:36:29.099007+00:00",
+          "db_started_at": "2026-11-11 07:36:29.099007+00",
+          "same_instant": true
+        },
+        {
+          "id": "6",
+          "api_started_at": "2026-11-11T07:36:29.135019+00:00",
+          "db_started_at": "2026-11-11 07:36:29.135019+00",
+          "same_instant": true
+        },
+        {
+          "id": "7",
+          "api_started_at": "2026-11-11T07:36:29.165357+00:00",
+          "db_started_at": "2026-11-11 07:36:29.165358+00",
+          "same_instant": false
+        },
+        {
+          "id": "8",
+          "api_started_at": "2026-11-11T07:36:29.193521+00:00",
+          "db_started_at": "2026-11-11 07:36:29.193522+00",
+          "same_instant": false
+        },
+        {
+          "id": "9",
+          "api_started_at": "2026-11-11T07:36:29.225385+00:00",
+          "db_started_at": "2026-11-11 07:36:29.225386+00",
+          "same_instant": false
+        }
+      ]
+    },
+    {
+      "case": "run3-wrongdb",
+      "completed": true,
+      "matched_started_at": 0,
+      "sessions": [
+        {
+          "id": "2",
+          "api_started_at": "2026-11-11T07:21:24.682894+00:00",
+          "db_started_at": "2026-11-11 07:07:27.673792+00",
+          "same_instant": false
+        },
+        {
+          "id": "3",
+          "api_started_at": "2026-11-11T07:21:24.733099+00:00",
+          "db_started_at": "2026-11-11 07:07:27.719958+00",
+          "same_instant": false
+        },
+        {
+          "id": "4",
+          "api_started_at": "2026-11-11T07:21:24.778823+00:00",
+          "db_started_at": "2026-11-11 07:07:27.742607+00",
+          "same_instant": false
+        },
+        {
+          "id": "5",
+          "api_started_at": "2026-11-11T07:21:24.800491+00:00",
+          "db_started_at": "2026-11-11 07:07:27.785709+00",
+          "same_instant": false
+        },
+        {
+          "id": "6",
+          "api_started_at": "2026-11-11T07:21:24.822704+00:00",
+          "db_started_at": "2026-11-11 07:07:27.809841+00",
+          "same_instant": false
+        },
+        {
+          "id": "7",
+          "api_started_at": "2026-11-11T07:21:24.840914+00:00",
+          "db_started_at": "2026-11-11 07:07:27.834087+00",
+          "same_instant": false
+        },
+        {
+          "id": "8",
+          "api_started_at": "2026-11-11T07:21:24.881883+00:00",
+          "db_started_at": "2026-11-11 07:07:27.856806+00",
+          "same_instant": false
+        },
+        {
+          "id": "9",
+          "api_started_at": "2026-11-11T07:21:24.901329+00:00",
+          "db_started_at": "2026-11-11 07:07:27.879997+00",
+          "same_instant": false
+        }
+      ]
+    },
+    {
+      "case": "missing-fingerprint",
+      "rejected": true,
+      "reason": "P2A: 규칙 지문이 없거나 복수이거나 형식이 다르다"
+    },
+    {
+      "case": "multiple-fingerprint",
+      "rejected": true,
+      "reason": "P2A: 규칙 지문이 없거나 복수이거나 형식이 다르다"
+    },
+    {
+      "case": "trade-before-T0",
+      "rejected": true,
+      "reason": "T0 이전 주문·포지션이 있다 — 동시 시작이 성립하지 않는다"
+    },
+    {
+      "case": "stored-mismatch",
+      "rejected": true,
+      "reason": "P2A: DB 저장값 불일치 — 투자 비율"
+    }
+  ],
+  "tool": {
+    "ab_complete_sha256": "4b8cbcee060927047337dc3e71fb4ed4d388929f579de757c8cc72fb9f3046a8",
+    "protocol_sha256": "8d787fe9d8c6d6bec00a588e38c6d638a97be9faf3709875b1670d71eae5d3db"
+  },
+  "external_calls": 0
+}

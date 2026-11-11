@@ -1,0 +1,229 @@
+..FFFFFFFFFFFFFF.................
+======================================================================
+FAIL: test_rejections_write_nothing (test_ab_v4.Arms.test_rejections_write_nothing) [old_v3]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 283, in test_rejections_write_nothing
+    self._mutated(fn, fn.__name__)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 254, in _mutated
+    log = json.loads(self.complete_ok().read_text(encoding="utf-8"))
+                     ~~~~~~~~~~~~~~~~^^
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 211, in complete_ok
+    self.assertEqual(rc, 0, out)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: 3 != 0 : {"rejected": "완성본 경로에 파일이 이미 있다 — 덮어쓰지 않는다"}
+
+
+======================================================================
+FAIL: test_rejections_write_nothing (test_ab_v4.Arms.test_rejections_write_nothing) [no_match]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 283, in test_rejections_write_nothing
+    self._mutated(fn, fn.__name__)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 254, in _mutated
+    log = json.loads(self.complete_ok().read_text(encoding="utf-8"))
+                     ~~~~~~~~~~~~~~~~^^
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 211, in complete_ok
+    self.assertEqual(rc, 0, out)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: 3 != 0 : {"rejected": "완성본 경로에 파일이 이미 있다 — 덮어쓰지 않는다"}
+
+
+======================================================================
+FAIL: test_rejections_write_nothing (test_ab_v4.Arms.test_rejections_write_nothing) [seven]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 283, in test_rejections_write_nothing
+    self._mutated(fn, fn.__name__)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 254, in _mutated
+    log = json.loads(self.complete_ok().read_text(encoding="utf-8"))
+                     ~~~~~~~~~~~~~~~~^^
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 211, in complete_ok
+    self.assertEqual(rc, 0, out)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: 3 != 0 : {"rejected": "완성본 경로에 파일이 이미 있다 — 덮어쓰지 않는다"}
+
+
+======================================================================
+FAIL: test_rejections_write_nothing (test_ab_v4.Arms.test_rejections_write_nothing) [dup_arm]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 283, in test_rejections_write_nothing
+    self._mutated(fn, fn.__name__)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 254, in _mutated
+    log = json.loads(self.complete_ok().read_text(encoding="utf-8"))
+                     ~~~~~~~~~~~~~~~~^^
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 211, in complete_ok
+    self.assertEqual(rc, 0, out)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: 3 != 0 : {"rejected": "완성본 경로에 파일이 이미 있다 — 덮어쓰지 않는다"}
+
+
+======================================================================
+FAIL: test_rejections_write_nothing (test_ab_v4.Arms.test_rejections_write_nothing) [swap_ids]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 283, in test_rejections_write_nothing
+    self._mutated(fn, fn.__name__)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 254, in _mutated
+    log = json.loads(self.complete_ok().read_text(encoding="utf-8"))
+                     ~~~~~~~~~~~~~~~~^^
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 211, in complete_ok
+    self.assertEqual(rc, 0, out)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: 3 != 0 : {"rejected": "완성본 경로에 파일이 이미 있다 — 덮어쓰지 않는다"}
+
+
+======================================================================
+FAIL: test_rejections_write_nothing (test_ab_v4.Arms.test_rejections_write_nothing) [swap_arm]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 283, in test_rejections_write_nothing
+    self._mutated(fn, fn.__name__)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 254, in _mutated
+    log = json.loads(self.complete_ok().read_text(encoding="utf-8"))
+                     ~~~~~~~~~~~~~~~~^^
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 211, in complete_ok
+    self.assertEqual(rc, 0, out)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: 3 != 0 : {"rejected": "완성본 경로에 파일이 이미 있다 — 덮어쓰지 않는다"}
+
+
+======================================================================
+FAIL: test_rejections_write_nothing (test_ab_v4.Arms.test_rejections_write_nothing) [missing_value]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 283, in test_rejections_write_nothing
+    self._mutated(fn, fn.__name__)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 254, in _mutated
+    log = json.loads(self.complete_ok().read_text(encoding="utf-8"))
+                     ~~~~~~~~~~~~~~~~^^
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 211, in complete_ok
+    self.assertEqual(rc, 0, out)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: 3 != 0 : {"rejected": "완성본 경로에 파일이 이미 있다 — 덮어쓰지 않는다"}
+
+
+======================================================================
+FAIL: test_rejections_write_nothing (test_ab_v4.Arms.test_rejections_write_nothing) [missing_key]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 283, in test_rejections_write_nothing
+    self._mutated(fn, fn.__name__)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 254, in _mutated
+    log = json.loads(self.complete_ok().read_text(encoding="utf-8"))
+                     ~~~~~~~~~~~~~~~~^^
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 211, in complete_ok
+    self.assertEqual(rc, 0, out)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: 3 != 0 : {"rejected": "완성본 경로에 파일이 이미 있다 — 덮어쓰지 않는다"}
+
+
+======================================================================
+FAIL: test_rejections_write_nothing (test_ab_v4.Arms.test_rejections_write_nothing) [params_string]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 283, in test_rejections_write_nothing
+    self._mutated(fn, fn.__name__)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 254, in _mutated
+    log = json.loads(self.complete_ok().read_text(encoding="utf-8"))
+                     ~~~~~~~~~~~~~~~~^^
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 211, in complete_ok
+    self.assertEqual(rc, 0, out)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: 3 != 0 : {"rejected": "완성본 경로에 파일이 이미 있다 — 덮어쓰지 않는다"}
+
+
+======================================================================
+FAIL: test_rejections_write_nothing (test_ab_v4.Arms.test_rejections_write_nothing) [bad_code]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 283, in test_rejections_write_nothing
+    self._mutated(fn, fn.__name__)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 254, in _mutated
+    log = json.loads(self.complete_ok().read_text(encoding="utf-8"))
+                     ~~~~~~~~~~~~~~~~^^
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 211, in complete_ok
+    self.assertEqual(rc, 0, out)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: 3 != 0 : {"rejected": "완성본 경로에 파일이 이미 있다 — 덮어쓰지 않는다"}
+
+
+======================================================================
+FAIL: test_rejections_write_nothing (test_ab_v4.Arms.test_rejections_write_nothing) [t0_naive]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 283, in test_rejections_write_nothing
+    self._mutated(fn, fn.__name__)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 254, in _mutated
+    log = json.loads(self.complete_ok().read_text(encoding="utf-8"))
+                     ~~~~~~~~~~~~~~~~^^
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 211, in complete_ok
+    self.assertEqual(rc, 0, out)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: 3 != 0 : {"rejected": "완성본 경로에 파일이 이미 있다 — 덮어쓰지 않는다"}
+
+
+======================================================================
+FAIL: test_rejections_write_nothing (test_ab_v4.Arms.test_rejections_write_nothing) [start_evidence]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 283, in test_rejections_write_nothing
+    self._mutated(fn, fn.__name__)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 254, in _mutated
+    log = json.loads(self.complete_ok().read_text(encoding="utf-8"))
+                     ~~~~~~~~~~~~~~~~^^
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 211, in complete_ok
+    self.assertEqual(rc, 0, out)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: 3 != 0 : {"rejected": "완성본 경로에 파일이 이미 있다 — 덮어쓰지 않는다"}
+
+
+======================================================================
+FAIL: test_rejections_write_nothing (test_ab_v4.Arms.test_rejections_write_nothing) [protocol_sha]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 283, in test_rejections_write_nothing
+    self._mutated(fn, fn.__name__)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 254, in _mutated
+    log = json.loads(self.complete_ok().read_text(encoding="utf-8"))
+                     ~~~~~~~~~~~~~~~~^^
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 211, in complete_ok
+    self.assertEqual(rc, 0, out)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: 3 != 0 : {"rejected": "완성본 경로에 파일이 이미 있다 — 덮어쓰지 않는다"}
+
+
+======================================================================
+FAIL: test_rejections_write_nothing (test_ab_v4.Arms.test_rejections_write_nothing) [params_value]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 283, in test_rejections_write_nothing
+    self._mutated(fn, fn.__name__)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 254, in _mutated
+    log = json.loads(self.complete_ok().read_text(encoding="utf-8"))
+                     ~~~~~~~~~~~~~~~~^^
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 211, in complete_ok
+    self.assertEqual(rc, 0, out)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: 3 != 0 : {"rejected": "완성본 경로에 파일이 이미 있다 — 덮어쓰지 않는다"}
+
+
+----------------------------------------------------------------------
+Ran 20 tests in 0.136s
+
+FAILED (failures=14)

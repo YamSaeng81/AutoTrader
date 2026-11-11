@@ -1,0 +1,26 @@
+test_existing_output_rejected_and_untouched (test_ab_v4.Arms.test_existing_output_rejected_and_untouched) ... ok
+test_normal_eight_arms_and_aggregator_accepts (test_ab_v4.Arms.test_normal_eight_arms_and_aggregator_accepts) ... ok
+test_other_db_output_rejected (test_ab_v4.Arms.test_other_db_output_rejected) ... ok
+test_rejections_write_nothing (test_ab_v4.Arms.test_rejections_write_nothing) ... ok
+test_same_input_same_bytes (test_ab_v4.Arms.test_same_input_same_bytes) ... ok
+test_created_at_must_equal_post_raw (test_ab_v4.Complete.test_created_at_must_equal_post_raw) ... ok
+test_db_without_timezone_rejected (test_ab_v4.Complete.test_db_without_timezone_rejected) ... ok
+test_draft_precision_contract_broken_rejected (test_ab_v4.Complete.test_draft_precision_contract_broken_rejected) ... ok
+test_empty_db_source_rejected (test_ab_v4.Complete.test_empty_db_source_rejected) ... ok
+test_existing_output_not_overwritten (test_ab_v4.Complete.test_existing_output_not_overwritten) ... ok
+test_missing_field_rejected (test_ab_v4.Complete.test_missing_field_rejected) ... ok
+test_normal_with_notation_difference_completes (test_ab_v4.Complete.test_normal_with_notation_difference_completes) ... ok
+test_old_v3_draft_rejected_not_filled (test_ab_v4.Complete.test_old_v3_draft_rejected_not_filled) ... ok
+test_one_row_off_by_one_micro_rejected (test_ab_v4.Complete.test_one_row_off_by_one_micro_rejected) ... ok
+test_other_db_same_ids_rejected_no_file (test_ab_v4.Complete.test_other_db_same_ids_rejected_no_file) ... ok
+test_v3_rejections_kept (test_ab_v4.Complete.test_v3_rejections_kept) ... ok
+test_one_stored_time_off_fails_reconcile (test_ab_v4.CreatorV4.test_one_stored_time_off_fails_reconcile) ... ok
+test_raw_post_and_stored_list_preserved (test_ab_v4.CreatorV4.test_raw_post_and_stored_list_preserved) ... ok
+test_parse_notation_equivalence (test_ab_v4.Precision.test_parse_notation_equivalence) ... ok
+test_parse_rejects_no_timezone_and_garbage (test_ab_v4.Precision.test_parse_rejects_no_timezone_and_garbage) ... ok
+test_round_half_up_boundaries (test_ab_v4.Precision.test_round_half_up_boundaries) ... ok
+
+----------------------------------------------------------------------
+Ran 21 tests in 0.176s
+
+OK

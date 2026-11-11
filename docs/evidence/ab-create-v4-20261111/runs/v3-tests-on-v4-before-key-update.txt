@@ -1,0 +1,39 @@
+.C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\unittest\suite.py:107: ResourceWarning: unclosed <socket.socket fd=1032, family=2, type=1, proto=0, laddr=('127.0.0.1', 3785)>
+  for index, test in enumerate(self):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\unittest\suite.py:107: ResourceWarning: unclosed <socket.socket fd=1032, family=2, type=1, proto=0, laddr=('127.0.0.1', 3795)>
+  for index, test in enumerate(self):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+F.C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\unittest\suite.py:107: ResourceWarning: unclosed <socket.socket fd=1244, family=2, type=1, proto=0, laddr=('127.0.0.1', 3826)>
+  for index, test in enumerate(self):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\unittest\suite.py:107: ResourceWarning: unclosed <socket.socket fd=1208, family=2, type=1, proto=0, laddr=('127.0.0.1', 3829)>
+  for index, test in enumerate(self):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\unittest\suite.py:107: ResourceWarning: unclosed <socket.socket fd=1208, family=2, type=1, proto=0, laddr=('127.0.0.1', 3833)>
+  for index, test in enumerate(self):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\unittest\suite.py:107: ResourceWarning: unclosed <socket.socket fd=1152, family=2, type=1, proto=0, laddr=('127.0.0.1', 4208)>
+  for index, test in enumerate(self):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3824.0_x64__qbz5n2kfra8p0\Lib\unittest\suite.py:107: ResourceWarning: unclosed <socket.socket fd=1152, family=2, type=1, proto=0, laddr=('127.0.0.1', 3558)>
+  for index, test in enumerate(self):
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+..............
+======================================================================
+FAIL: test_all_ok (test_ab_create.Create.test_all_ok)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\create\test_ab_create.py", line 103, in test_all_ok
+    self.assertEqual(draft["checks"], {"api_reconcile_problems": [], "created_at_not_before_t0": []})
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'api[27 chars]created_at_not_before_t0': [], 'precision_contract_failed': []} != {'api[27 chars]created_at_not_before_t0': []}
++ {'api_reconcile_problems': [], 'created_at_not_before_t0': []}
+- {'api_reconcile_problems': [],
+-  'created_at_not_before_t0': [],
+-  'precision_contract_failed': []}
+
+----------------------------------------------------------------------
+Ran 22 tests in 7.024s
+
+FAILED (failures=1)

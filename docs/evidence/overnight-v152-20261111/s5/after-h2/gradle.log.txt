@@ -1,0 +1,40 @@
+> Task :strategy-lib:compileJava UP-TO-DATE
+> Task :strategy-lib:processResources NO-SOURCE
+> Task :strategy-lib:classes UP-TO-DATE
+> Task :strategy-lib:jar UP-TO-DATE
+> Task :core-engine:compileJava UP-TO-DATE
+> Task :core-engine:processResources NO-SOURCE
+> Task :core-engine:classes UP-TO-DATE
+> Task :core-engine:jar UP-TO-DATE
+> Task :exchange-adapter:compileJava UP-TO-DATE
+> Task :exchange-adapter:processResources NO-SOURCE
+> Task :exchange-adapter:classes UP-TO-DATE
+> Task :exchange-adapter:jar UP-TO-DATE
+> Task :web-api:compileJava
+> Task :web-api:processResources UP-TO-DATE
+> Task :web-api:classes
+> Task :web-api:compileTestJava
+> Task :web-api:processTestResources UP-TO-DATE
+> Task :web-api:testClasses
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+
+> Task :web-api:test
+
+PerformanceSnapshotS5Test > S5 ? 조회 도중 다른 스레드 정산이 커밋돼도 응답은 정산 전 스냅샷 하나(금액·대기·완료·합계 일관) FAILED
+    org.opentest4j.AssertionFailedError at Constructor.java:499
+
+10 tests completed, 1 failed
+
+> Task :web-api:test FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':web-api:test'.
+> There were failing tests. See the report at: file:///D:/tmp/sma20p-b5cd1d0/web-api/build/reports/tests/test/index.html
+
+* Try:
+> Run with --scan to get full insights.
+
+BUILD FAILED in 28s
+11 actionable tasks: 3 executed, 8 up-to-date

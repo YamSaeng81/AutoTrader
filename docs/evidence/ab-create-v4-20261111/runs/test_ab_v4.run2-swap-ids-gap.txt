@@ -1,0 +1,18 @@
+..F.................
+======================================================================
+FAIL: test_rejections_write_nothing (test_ab_v4.Arms.test_rejections_write_nothing) [swap_ids]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 285, in test_rejections_write_nothing
+    self._mutated(fn, fn.__name__)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Claude Code\projects\crypto-auto-trader\docs\evidence\ab-create-v4-20261111\tool\test_ab_v4.py", line 261, in _mutated
+    self.assertEqual(rc, 3, name + out)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 3 : swap_ids{"done": "arms.csv 작성", "tool": "ab_arms.py (ab-create-v4-20261111)", "complete_sha256": "7a751fed260787af9338e07076cb26b87f6194310b044bf976e550ea73ed9b0a", "protocol_sha256": "8d787fe9d8c6d6bec00a588e38c6d638a97be9faf3709875b1670d71eae5d3db", "arms_csv_sha256": "348e1f5454d2a436018c46f4806719a535ad5685f5dcac01f2c37eda0a959449", "rows": 8, "t0": "2026-11-11T07:45:00+00:00", "end": "2026-12-23T07:45:00+00:00", "code_sha": "cccccccccccccccccccccccccccccccccccccccc"}
+
+
+----------------------------------------------------------------------
+Ran 20 tests in 0.146s
+
+FAILED (failures=1)

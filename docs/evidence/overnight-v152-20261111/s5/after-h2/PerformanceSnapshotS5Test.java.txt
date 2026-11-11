@@ -1,0 +1,16 @@
+package com.cryptoautotrader.api.service;
+
+import com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient;
+import org.springframework.boot.test.mock.mockito.MockBean;
+
+/** S5 스냅샷 — 시험 기본 DB(H2). 실제 PG 판은 {@link PerformanceSnapshotS5PgTest}. */
+@org.springframework.test.context.TestPropertySource(properties = "test.fixture.entry-rounds-context=PerformanceSnapshotS5Test")
+@org.springframework.test.annotation.DirtiesContext(classMode = org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS)
+class PerformanceSnapshotS5Test extends AbstractPerformanceSnapshotS5 {
+    @MockBean private UpbitWebSocketClient ws;
+
+    @Override
+    protected String reportName() {
+        return "s5-h2";
+    }
+}
