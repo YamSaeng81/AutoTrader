@@ -1,0 +1,197 @@
+From 8e6ba39db2d7ccee19acecf41812ca407967d96c Mon Sep 17 00:00:00 2001
+From: YamSaeng81 <manicstr81@gmail.com>
+Date: Thu, 12 Nov 2026 08:10:47 +0900
+Subject: [PATCH 3/5] =?UTF-8?q?D=20=EB=8B=AB=ED=9E=8C=20=EB=B4=89=20?=
+ =?UTF-8?q?=ED=8C=90=EC=A0=95=EC=9D=84=20=EA=B3=B5=ED=86=B5=20=EC=8B=9C?=
+ =?UTF-8?q?=EA=B3=84(EntryClock)=EB=A1=9C=20=E2=80=94=20LIVE=C2=B7PAPER=20?=
+ =?UTF-8?q?(=EC=9A=B4=EC=98=81=20=EA=B8=B0=EB=B3=B8=20=EC=8B=9C=EC=8A=A4?=
+ =?UTF-8?q?=ED=85=9C=20UTC=20=EA=B7=B8=EB=8C=80=EB=A1=9C),=20=EC=8B=A4?=
+ =?UTF-8?q?=EC=A0=9C=20=EB=8B=A4=EC=9D=8C=20=EB=B4=89=20=EC=8B=9C=ED=97=98?=
+ =?UTF-8?q?(=EB=A7=88=EA=B0=90=201=C2=B5s=20=EC=A0=84=20=ED=98=95=EC=84=B1?=
+ =?UTF-8?q?=20=EC=A4=91=C2=B7=EB=A7=88=EA=B0=90=20=EC=A0=95=EA=B0=81=20?=
+ =?UTF-8?q?=EC=83=88=20=EB=B4=89=C2=B7=EC=9E=AC=EC=B2=98=EB=A6=AC=20?=
+ =?UTF-8?q?=EC=97=86=EC=9D=8C,=20=EB=A7=88=EC=A7=80=EB=A7=89=20=ED=8F=89?=
+ =?UTF-8?q?=EA=B0=80=20=ED=91=9C=EC=8B=9C=EB=A5=BC=20=EC=A7=80=EC=9A=B0?=
+ =?UTF-8?q?=EC=A7=80=20=EC=95=8A=EC=9D=8C)=20(=EC=B4=9D=EA=B4=84=20v1.152?=
+ =?UTF-8?q?=20D)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+수정 전: 공통 시계가 형성 중이어도 실제 시각으로 마지막 봉을 닫힌 봉으로 보고 ① 에서 매수(실패 고정).
+DYNAMIC 은 독립 후보 범위라 바꾸지 않음.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .../api/service/LiveTradingService.java       |   7 +-
+ .../api/service/PaperTradingService.java      |   3 +-
+ .../api/service/RealNextBarClockTest.java     | 118 ++++++++++++++++++
+ 3 files changed, 126 insertions(+), 2 deletions(-)
+ create mode 100644 web-api/src/test/java/com/cryptoautotrader/api/service/RealNextBarClockTest.java
+
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
+index 4c1bdd26..3e3ae599 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
+@@ -144,6 +144,10 @@ public class LiveTradingService {
+      */
+     private final Map<Long, Instant> lastEvaluatedClosedCandle = new ConcurrentHashMap<>();
+ 
++    /** v1.152 D: 닫힌 봉 판정용 공통 시계(PAPER·회차와 같은 EntryClock). 없으면 시스템 시각. */
++    @org.springframework.beans.factory.annotation.Autowired(required = false)
++    private EntryClock entryClock;
++
+     /** 낙폭 경고 쿨다운: 세션별 마지막 DRAWDOWN_WARNING 전송 시각 (30분 쿨다운) */
+     private final Map<Long, Instant> lastDrawdownWarning = new ConcurrentHashMap<>();
+     private static final long DRAWDOWN_WARNING_COOLDOWN_MIN = 30;
+@@ -1157,7 +1161,8 @@ public class LiveTradingService {
+         // 이 게이트와 무관하게 매 tick(60초) 그대로 수행된다.
+         long periodMin = TimeframeUtils.toMinutes(timeframe);
+         Instant lastCandleTime = candles.get(candles.size() - 1).getTime();
+-        boolean lastCandleClosed = !lastCandleTime.plus(periodMin, ChronoUnit.MINUTES).isAfter(Instant.now());
++        // v1.152 D: 닫힌 봉 판정은 공통 시계(EntryClock — 운영 기본 시스템 UTC, 회차 마감 E 와 같은 시계)로 본다.
++        boolean lastCandleClosed = !lastCandleTime.plus(periodMin, ChronoUnit.MINUTES).isAfter(entryClock != null ? entryClock.now() : Instant.now());
+         // 마지막 캔들이 아직 형성 중이면 직전(닫힌) 캔들 기준으로 평가한다 — 백테스트와 동일 의미.
+         List<Candle> evalCandles = (lastCandleClosed || candles.size() < 2)
+                 ? candles : candles.subList(0, candles.size() - 1);
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java
+index f6079ab3..b460b572 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java
+@@ -908,7 +908,8 @@ public class PaperTradingService {
+         // ── 닫힌 캔들 게이팅 ──────────────────────────────────────────────────
+         long periodMin = TimeframeUtils.toMinutes(timeframe);
+         Instant lastCandleTime = candles.get(candles.size() - 1).getTime();
+-        boolean lastCandleClosed = !lastCandleTime.plus(periodMin, ChronoUnit.MINUTES).isAfter(Instant.now());
++        // v1.152 D: 닫힌 봉 판정은 공통 시계(EntryClock — 운영 기본 시스템 UTC, 회차 마감 E 와 같은 시계)로 본다.
++        boolean lastCandleClosed = !lastCandleTime.plus(periodMin, ChronoUnit.MINUTES).isAfter(entryClock != null ? entryClock.now() : Instant.now());
+         List<Candle> evalCandles = (lastCandleClosed || candles.size() < 2)
+                 ? candles : candles.subList(0, candles.size() - 1);
+         Instant closedCandleTime = evalCandles.get(evalCandles.size() - 1).getTime();
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/RealNextBarClockTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/RealNextBarClockTest.java
+new file mode 100644
+index 00000000..97fea929
+--- /dev/null
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/RealNextBarClockTest.java
+@@ -0,0 +1,118 @@
++package com.cryptoautotrader.api.service;
++
++import com.cryptoautotrader.api.entity.LiveTradingSessionEntity;
++import com.cryptoautotrader.api.entity.paper.VirtualBalanceEntity;
++import com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient;
++import com.cryptoautotrader.strategy.Candle;
++import org.junit.jupiter.api.DisplayName;
++import org.junit.jupiter.api.Test;
++import org.springframework.boot.test.mock.mockito.MockBean;
++import org.springframework.test.util.AopTestUtils;
++import org.springframework.test.util.ReflectionTestUtils;
++
++import java.time.Clock;
++import java.time.Instant;
++import java.time.ZoneOffset;
++import java.time.temporal.ChronoUnit;
++import java.util.List;
++import java.util.Map;
++
++import static org.assertj.core.api.Assertions.assertThat;
++
++/**
++ * 총괄 v1.152 D — <b>실제 다음 닫힌 봉 도착</b>을 공통 시계(EntryClock)로 만든다 (2026-11-12).
++ * 종전 시험은 다음 봉을 기다릴 수 없어 두 엔진의 마지막 평가 봉 표시(lastEvaluatedClosedCandle)를 지워 대신했다(Sma20LiveAlignedGapsTest B01).
++ * 이 시험은 표시를 건드리지 않는다. 같은 봉 자료에서 시계만 마지막 봉 마감 1µs 전 → 마감 정각으로 옮긴다.
++ * <ol>
++ *   <li>마감 1µs 전: 마지막 봉은 형성 중 — 직전 닫힌 봉을 평가(종가 시각이 아니라 HOLD), 주문·포지션 0, 표시 = 직전 봉</li>
++ *   <li>같은 시계로 다시: 닫힌 봉 미갱신 — 재평가 없음, 표시 그대로</li>
++ *   <li>마감 정각: 새 닫힌 봉 도착 — 실제 평가 → BUY → 회차 승인 → LIVE 매수 접수 1·PAPER 포지션 1, 표시 = 마지막 봉</li>
++ *   <li>같은 시계로 다시: 같은 봉 재처리 없음 — 주문·포지션 그대로 1</li>
++ * </ol>
++ * 운영 기본 시계는 시스템 UTC 그대로다(시험만 setForTest). PC/서버 시각은 바꾸지 않는다.
++ */
++@org.springframework.test.context.TestPropertySource(properties = "test.fixture.entry-rounds-context=RealNextBarClockTest")
++@org.springframework.test.annotation.DirtiesContext(classMode = org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS)
++@DisplayName("D 실제 다음 봉 — 공통 시계로 마감 1µs 전(형성 중)·마감 정각(새 닫힌 봉), 마지막 평가 표시를 지우지 않음")
++class RealNextBarClockTest extends AbstractSma20SameInputFixture {
++
++    @MockBean private UpbitWebSocketClient upbitWebSocketClient;
++
++    @Override
++    protected Map<String, Object> paperParams() {
++        return Map.of(PaperMaxInvestment.KEY, 20000, PaperExecutionMode.KEY, PaperExecutionMode.LIVE_ALIGNED);
++    }
++
++    @Override
++    protected String reportName() {
++        return "real-next-bar";
++    }
++
++    @SuppressWarnings("unchecked")
++    private Instant marker(Object service, Long id) {
++        Object target = AopTestUtils.getUltimateTargetObject(service);
++        return ((Map<Long, Instant>) ReflectionTestUtils.getField(target, "lastEvaluatedClosedCandle")).get(id);
++    }
++
++    private void at(Instant t) {
++        entryClock.setForTest(Clock.fixed(t, ZoneOffset.UTC));
++    }
++
++    @Test
++    void nextClosedBarArrivesByCommonClock() {
++        List<Candle> cs = uptrend(lastOpen);
++        insertCache(BTC, cs);
++        LiveTradingSessionEntity l = live(BTC);
++        VirtualBalanceEntity p = paper(BTC);
++        Instant close = lastOpen.plus(1, ChronoUnit.HOURS);
++        Instant prevBar = lastOpen.minus(1, ChronoUnit.HOURS);
++
++        // ① 마감 1µs 전 — 마지막 봉은 형성 중
++        at(close.minus(1, ChronoUnit.MICROS));
++        evaluateLive(l);
++        runPaper(p);
++        approveRound();
++        System.out.println("[D] ① live marker=" + marker(liveTradingService, l.getId()) + " paper marker=" + marker(paperTradingService, p.getId())
++                + " liveBuys=" + liveOrders(l, "BUY").size() + " paperPos=" + paperPositions(p).size());
++        assertThat(marker(liveTradingService, l.getId())).as("LIVE 는 직전 닫힌 봉을 평가").isEqualTo(prevBar);
++        assertThat(marker(paperTradingService, p.getId())).as("PAPER 는 직전 닫힌 봉을 평가").isEqualTo(prevBar);
++        assertThat(liveOrders(l, "BUY")).isEmpty();
++        assertThat(paperPositions(p)).isEmpty();
++
++        // ② 같은 시계 — 재평가 없음(평가하면 신호 로그가 한 줄 늘어난다; 건너뜀은 로그를 남기지 않는다)
++        int liveLogs = strategyLogRepository.findAllBySessionTypeAndSessionIdOrderByCreatedAtDesc("LIVE", l.getId()).size();
++        int paperLogs = strategyLogRepository.findAllBySessionTypeAndSessionIdOrderByCreatedAtDesc("PAPER", p.getId()).size();
++        assertThat(liveLogs).as("① 에서 LIVE 평가 1회").isEqualTo(1);
++        assertThat(paperLogs).as("① 에서 PAPER 평가 1회").isEqualTo(1);
++        evaluateLive(l);
++        runPaper(p);
++        assertThat(marker(liveTradingService, l.getId())).isEqualTo(prevBar);
++        assertThat(marker(paperTradingService, p.getId())).isEqualTo(prevBar);
++        assertThat(strategyLogRepository.findAllBySessionTypeAndSessionIdOrderByCreatedAtDesc("LIVE", l.getId())).hasSize(liveLogs);
++        assertThat(strategyLogRepository.findAllBySessionTypeAndSessionIdOrderByCreatedAtDesc("PAPER", p.getId())).hasSize(paperLogs);
++
++        // ③ 마감 정각 — 새 닫힌 봉 도착(표시를 지우지 않음)
++        at(close);
++        evaluateLive(l);
++        runPaper(p);
++        List<EntryPriorityRounds.Outcome> outcomes = approveRound();
++        awaitDrained();
++        System.out.println("[D] ③ outcomes=" + outcomes + " live marker=" + marker(liveTradingService, l.getId())
++                + " paper marker=" + marker(paperTradingService, p.getId())
++                + " liveBuys=" + liveOrders(l, "BUY").size() + " paperPos=" + paperPositions(p).size());
++        assertThat(marker(liveTradingService, l.getId())).isEqualTo(lastOpen);
++        assertThat(marker(paperTradingService, p.getId())).isEqualTo(lastOpen);
++        assertThat(liveOrders(l, "BUY")).as("LIVE 매수 접수").hasSize(1);
++        assertThat(paperPositions(p)).as("PAPER 포지션").hasSize(1);
++
++        // ④ 같은 시계로 다시 — 같은 봉 재처리 없음
++        evaluateLive(l);
++        runPaper(p);
++        approveRound();
++        awaitDrained();
++        assertThat(liveOrders(l, "BUY")).hasSize(1);
++        assertThat(paperPositions(p)).hasSize(1);
++        assertThat(marker(liveTradingService, l.getId())).isEqualTo(lastOpen);
++        assertThat(marker(paperTradingService, p.getId())).isEqualTo(lastOpen);
++    }
++}
+-- 
+2.51.1.windows.1
+

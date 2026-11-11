@@ -1,0 +1,219 @@
+From 560d13c5d21d46388f4b68a1c3bcdb220fbb846f Mon Sep 17 00:00:00 2001
+From: YamSaeng81 <manicstr81@gmail.com>
+Date: Wed, 11 Nov 2026 17:15:47 +0900
+Subject: [PATCH 1/5] =?UTF-8?q?S5=20=EC=84=B1=EA=B3=BC=20=EC=A1=B0?=
+ =?UTF-8?q?=ED=9A=8C=20=ED=95=9C=20=EC=8A=A4=EB=83=85=EC=83=B7(REPEATABLE?=
+ =?UTF-8?q?=20READ=20=EC=9D=BD=EA=B8=B0=20=EC=A0=84=EC=9A=A9)=20=E2=80=94?=
+ =?UTF-8?q?=20=EC=84=B8=EC=85=98=20=EA=B8=88=EC=95=A1=C2=B7=ED=8F=AC?=
+ =?UTF-8?q?=EC=A7=80=EC=85=98=20=EC=83=81=ED=83=9C/=EA=B1=B4=EC=88=98?=
+ =?UTF-8?q?=C2=B7=EC=A0=84=EC=B2=B4=20=ED=95=A9=EA=B3=84=C2=B7=EC=A0=84?=
+ =?UTF-8?q?=EC=B2=B4=20=EC=9C=84=ED=97=98=20=EC=A7=80=ED=91=9C=EB=A5=BC=20?=
+ =?UTF-8?q?=EA=B0=99=EC=9D=80=20=EC=9D=BD=EA=B8=B0=EC=97=90=EC=84=9C=20(?=
+ =?UTF-8?q?=EC=B4=9D=EA=B4=84=20v1.151=20=C2=A72)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- getOverallPerformance: 기본 READ COMMITTED → readOnly REPEATABLE READ, 전체 완료 목록은 같은 루프에서 모음(재조회 제거)
+- 실제 PG 시험 PerformanceSnapshotS5PgTest: 다른 스레드 정산이 조회 도중 커밋돼도 응답은 정산 전 스냅샷 하나, 이후 조회는 정산 뒤 하나
+- 수정 전 코드에서 같은 시험 PG 실패(20,200/완료1 혼합) 확인. H2 의 REPEATABLE READ 는 스냅샷이 아니어서 H2 판은 두지 않음
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .../api/service/PaperTradingService.java      |  13 ++-
+ .../AbstractPerformanceSnapshotS5.java        | 107 ++++++++++++++++++
+ .../service/PerformanceSnapshotS5PgTest.java  |  28 +++++
+ 3 files changed, 143 insertions(+), 5 deletions(-)
+ create mode 100644 web-api/src/test/java/com/cryptoautotrader/api/service/AbstractPerformanceSnapshotS5.java
+ create mode 100644 web-api/src/test/java/com/cryptoautotrader/api/service/PerformanceSnapshotS5PgTest.java
+
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java
+index debea066..f6079ab3 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java
+@@ -518,9 +518,15 @@ public class PaperTradingService {
+ 
+     // ── 성과 요약 ────────────────────────────────────────────────
+ 
+-    @Transactional(readOnly = true)
++    /**
++     * 성과 요약 — 세션 금액·포지션 상태/건수·전체 합계를 한 읽기 전용 트랜잭션·한 스냅샷(REPEATABLE READ)에서 만든다
++     * (2026-11-11, 총괄 v1.151 S5). 종전 READ COMMITTED 는 세션을 먼저 읽고 포지션을 나중에 읽어, 그 사이 정산이 커밋되면
++     * 정산 전 금액과 정산 뒤 완료 표시가 섞였다. 읽기 잠금은 새로 걸지 않는다. 전체 위험 지표도 같은 스냅샷의 완료 목록을 쓴다.
++     */
++    @Transactional(readOnly = true, isolation = org.springframework.transaction.annotation.Isolation.REPEATABLE_READ)
+     public PerformanceSummaryResponse getOverallPerformance() {
+         List<VirtualBalanceEntity> sessions = balanceRepo.findAllByOrderByIdDesc();
++        List<PaperPositionEntity> allClosed = new java.util.ArrayList<>();
+ 
+         BigDecimal totalRealizedPnl = BigDecimal.ZERO;
+         BigDecimal totalUnrealizedPnl = BigDecimal.ZERO;
+@@ -535,6 +541,7 @@ public class PaperTradingService {
+         for (VirtualBalanceEntity session : sessions) {
+             List<PaperPositionEntity> positions = positionRepo.findBySessionId(session.getId());
+             List<PaperPositionEntity> closed = positions.stream().filter(p -> "CLOSED".equals(p.getStatus())).toList();
++            allClosed.addAll(closed);
+             List<PaperPositionEntity> open   = positions.stream().filter(p -> "OPEN".equals(p.getStatus())).toList();
+             // v1.148 W4: 청산 대기는 미정산 보유다 — 완료 거래(closed)에 넣지 않고, 유효 시세가 없으니 미실현손익을 0 으로 메우지 않는다.
+             int pending = (int) positions.stream().filter(p -> "CLOSING".equals(p.getStatus())).count();
+@@ -610,10 +617,6 @@ public class PaperTradingService {
+                 : BigDecimal.ZERO;
+ 
+         // 전체 포트폴리오 리스크 지표: 모든 세션 거래를 합산
+-        List<PaperPositionEntity> allClosed = sessions.stream()
+-                .flatMap(s -> positionRepo.findBySessionId(s.getId()).stream())
+-                .filter(p -> "CLOSED".equals(p.getStatus()))
+-                .toList();
+         RiskMetrics overallRisk = computeRiskMetrics(allClosed, totalInitialCapital);
+ 
+         return PerformanceSummaryResponse.builder()
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/AbstractPerformanceSnapshotS5.java b/web-api/src/test/java/com/cryptoautotrader/api/service/AbstractPerformanceSnapshotS5.java
+new file mode 100644
+index 00000000..eed92b1b
+--- /dev/null
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/AbstractPerformanceSnapshotS5.java
+@@ -0,0 +1,107 @@
++package com.cryptoautotrader.api.service;
++
++import com.cryptoautotrader.api.dto.PerformanceSummaryResponse;
++import com.cryptoautotrader.api.entity.paper.PaperPositionEntity;
++import com.cryptoautotrader.api.entity.paper.VirtualBalanceEntity;
++import com.cryptoautotrader.api.repository.paper.PaperPositionRepository;
++import org.junit.jupiter.api.DisplayName;
++import org.junit.jupiter.api.Test;
++import org.springframework.test.util.AopTestUtils;
++import org.springframework.test.util.ReflectionTestUtils;
++
++import java.math.BigDecimal;
++import java.time.Instant;
++import java.time.temporal.ChronoUnit;
++import java.util.Map;
++import java.util.concurrent.CompletableFuture;
++import java.util.concurrent.TimeUnit;
++import java.util.concurrent.atomic.AtomicBoolean;
++
++import static org.assertj.core.api.Assertions.assertThat;
++import static org.mockito.ArgumentMatchers.anyLong;
++import static org.mockito.Mockito.doAnswer;
++import static org.mockito.Mockito.mock;
++
++/**
++ * 총괄 v1.151 S5 — 성과 조회가 세션 금액과 포지션 상태를 <b>한 스냅샷</b>에서 만드는지 (2026-11-11).
++ * 총괄 재현(Review19Test)과 같은 순서: 성과 조회가 세션을 읽은 뒤 포지션을 읽기 직전에 <b>다른 스레드</b>(자기 영속성 컨텍스트)가
++ * 실제 제품 정산 경로로 청산 대기를 정산·커밋하고, 그 완료(Future.get)를 기다린 뒤 조회를 잇는다. sleep 없음.
++ * 기대: 응답은 정산 전 스냅샷 전체(대기1·완료0·현재 자산 null·마지막 기록=정산 전 금액)이고, 정산 뒤 완료 표시와 섞이지 않는다.
++ * 정산 커밋 뒤 새 조회는 정산 뒤 스냅샷 전체(대기0·완료1·현재 자산=DB 금액·실현손익=DB)다.
++ */
++abstract class AbstractPerformanceSnapshotS5 extends AbstractSma20SameInputFixture {
++
++    @Override
++    protected Map<String, Object> paperParams() {
++        return Map.of(PaperMaxInvestment.KEY, 20000, PaperExecutionMode.KEY, PaperExecutionMode.LIVE_ALIGNED);
++    }
++
++    private PerformanceSummaryResponse.SessionPerformance perf(PerformanceSummaryResponse r, Long id) {
++        return r.getSessions().stream().filter(s -> s.getSessionId().equals(id)).findFirst().orElseThrow();
++    }
++
++    @Test
++    @DisplayName("S5 — 조회 도중 다른 스레드 정산이 커밋돼도 응답은 정산 전 스냅샷 하나(금액·대기·완료·합계 일관)")
++    void settlementCommittedMidReadDoesNotMix() throws Exception {
++        VirtualBalanceEntity session = paper(BTC);
++        PaperPositionEntity pos = paperPos(session, new BigDecimal("100"), new BigDecimal("95"), new BigDecimal("110"),
++                Instant.now().minus(2, ChronoUnit.HOURS));
++        markPriceBook.remove(BTC);
++        paperTradingService.stop(session.getId());
++        assertThat(paperTradingService.pendingCloseCount(session.getId())).isEqualTo(1);
++        VirtualBalanceEntity pre = balanceRepo.findById(session.getId()).orElseThrow();
++        BigDecimal before = pre.getTotalKrw();
++        BigDecimal realizedBefore = pre.getRealizedPnl();
++
++        PaperTradingService target = AopTestUtils.getUltimateTargetObject(paperTradingService);
++        PaperPositionRepository original = (PaperPositionRepository) ReflectionTestUtils.getField(target, "positionRepo");
++        AtomicBoolean injected = new AtomicBoolean(false);
++        PaperPositionRepository decorated = mock(PaperPositionRepository.class, org.mockito.AdditionalAnswers.delegatesTo(original));
++        doAnswer(inv -> {
++            Long sid = inv.getArgument(0);
++            if (sid.equals(session.getId()) && injected.compareAndSet(false, true)) {
++                CompletableFuture.runAsync(() -> target.doOnAlignedRealtimePrice(
++                        new RealtimePriceEvent(BTC, new BigDecimal("101"), Instant.now(), RealtimePriceEvent.WS_TRADE)))
++                        .get(20, TimeUnit.SECONDS);
++            }
++            return original.findBySessionId(sid);
++        }).when(decorated).findBySessionId(anyLong());
++        ReflectionTestUtils.setField(target, "positionRepo", decorated);
++        PerformanceSummaryResponse response;
++        try {
++            response = paperTradingService.getOverallPerformance();
++        } finally {
++            ReflectionTestUtils.setField(target, "positionRepo", original);
++        }
++        VirtualBalanceEntity actual = balanceRepo.findById(session.getId()).orElseThrow();
++        String stored = original.findById(pos.getId()).orElseThrow().getStatus();
++        var p = perf(response, session.getId());
++        System.out.println("[S5-fixed] " + reportName() + " status=" + p.getValuationStatus() + " pending=" + p.getPendingCloseCount()
++                + " trades=" + p.getTotalTrades() + " currentAsset=" + p.getCurrentAsset() + " lastRecorded=" + p.getLastRecordedTotalKrw()
++                + " responseRealized=" + p.getRealizedPnl() + " dbAsset=" + actual.getTotalKrw() + " dbRealized=" + actual.getRealizedPnl()
++                + " position=" + stored + " overallPending=" + response.getPendingCloseCount() + " overallTrades=" + response.getTotalTrades());
++
++        // 경합이 실제로 일어났다: 조회 도중 정산이 커밋됨
++        assertThat(injected.get()).isTrue();
++        assertThat(stored).isEqualTo("CLOSED");
++        assertThat(actual.getTotalKrw()).isNotEqualByComparingTo(before);
++        // 응답은 정산 전 스냅샷 하나
++        assertThat(p.getPendingCloseCount()).isEqualTo(1);
++        assertThat(p.getValuationStatus()).isNotEqualTo("평가 완료");
++        assertThat(p.getTotalTrades()).isZero();
++        assertThat(p.getCurrentAsset()).isNull();
++        assertThat(p.getLastRecordedTotalKrw()).isEqualByComparingTo(before);
++        assertThat(p.getRealizedPnl()).isEqualByComparingTo(realizedBefore);
++        assertThat(response.getPendingCloseCount()).isGreaterThanOrEqualTo(1);
++        assertThat(response.getTotalPnl()).isNull();
++
++        // 정산 커밋 뒤 새 조회는 정산 뒤 스냅샷 하나
++        var after = perf(paperTradingService.getOverallPerformance(), session.getId());
++        assertThat(after.getPendingCloseCount()).isZero();
++        assertThat(after.getValuationStatus()).isEqualTo("평가 완료");
++        assertThat(after.getTotalTrades()).isEqualTo(1);
++        assertThat(after.getCurrentAsset()).isEqualByComparingTo(actual.getTotalKrw());
++        assertThat(after.getRealizedPnl()).isEqualByComparingTo(actual.getRealizedPnl());
++        assertThat(after.getLastRecordedTotalKrw()).isNull();
++    }
++}
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/PerformanceSnapshotS5PgTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/PerformanceSnapshotS5PgTest.java
+new file mode 100644
+index 00000000..72d6ecff
+--- /dev/null
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/PerformanceSnapshotS5PgTest.java
+@@ -0,0 +1,28 @@
++package com.cryptoautotrader.api.service;
++
++import com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient;
++import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
++import org.springframework.boot.test.mock.mockito.MockBean;
++
++/** S5 스냅샷 — 격리 로컬 <b>실제 PostgreSQL</b>(환경 변수 {@code V96_PG_URL} 이 있을 때만). */
++@EnabledIfEnvironmentVariable(named = "V96_PG_URL", matches = "jdbc:postgresql://(localhost|127\\.0\\.0\\.1):\\d+/.+")
++@org.springframework.test.context.TestPropertySource(properties = {
++        "test.fixture.entry-rounds-context=PerformanceSnapshotS5PgTest",
++        "spring.datasource.url=${V96_PG_URL}",
++        "spring.datasource.driver-class-name=org.postgresql.Driver",
++        "spring.datasource.username=${V96_PG_USER:trader}",
++        "spring.datasource.password=",
++        "spring.datasource.hikari.connection-init-sql=SET lock_timeout = '20s'",
++        "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect",
++        "spring.sql.init.mode=never",
++        "spring.flyway.enabled=true",
++})
++@org.springframework.test.annotation.DirtiesContext(classMode = org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS)
++class PerformanceSnapshotS5PgTest extends AbstractPerformanceSnapshotS5 {
++    @MockBean private UpbitWebSocketClient ws;
++
++    @Override
++    protected String reportName() {
++        return "s5-pg";
++    }
++}
+-- 
+2.51.1.windows.1
+

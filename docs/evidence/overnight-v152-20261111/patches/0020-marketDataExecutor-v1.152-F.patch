@@ -1,0 +1,159 @@
+From 03cfd9eb68e6cc62cb73a313379e5a1b8659c9f0 Mon Sep 17 00:00:00 2001
+From: YamSaeng81 <manicstr81@gmail.com>
+Date: Thu, 12 Nov 2026 08:19:48 +0900
+Subject: [PATCH] =?UTF-8?q?=EC=A1=B0=EC=82=AC=20=ED=9B=84=EB=B3=B4(?=
+ =?UTF-8?q?=EB=AF=B8=EC=8A=B9=EC=9D=B8)=20=E2=80=94=20marketDataExecutor?=
+ =?UTF-8?q?=20=ED=8F=AC=ED=99=94=20=EA=B1=B0=EC=A0=88=EC=9D=84=20=EB=B0=9C?=
+ =?UTF-8?q?=ED=96=89=20=EC=AA=BD=EC=9C=BC=EB=A1=9C=20=EB=8D=98=EC=A7=80?=
+ =?UTF-8?q?=EC=A7=80=20=EC=95=8A=EA=B3=A0=20=EA=B7=B8=20=EC=9E=91=EC=97=85?=
+ =?UTF-8?q?=EB=A7=8C=20=EB=B2=84=EB=A6=BC=C2=B7=EA=B1=B4=EC=88=98=20?=
+ =?UTF-8?q?=EA=B8=B0=EB=A1=9D=20(=EC=B4=9D=EA=B4=84=20v1.152=20F)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+기점 aligned2 0298628b. 크기·대기열 그대로. 포화 중 시세 1건: 발행 예외 없음, 시세 장부 수신, 버린 @Async 작업 3. 정책 판단 필요 — aligned2 에 합치지 않음.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .../api/config/AsyncConfig.java               | 13 +++
+ .../MarketDataRejectIsolationTest.java        | 99 +++++++++++++++++++
+ 2 files changed, 112 insertions(+)
+ create mode 100644 web-api/src/test/java/com/cryptoautotrader/api/service/MarketDataRejectIsolationTest.java
+
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/config/AsyncConfig.java b/web-api/src/main/java/com/cryptoautotrader/api/config/AsyncConfig.java
+index ee5461a4..8707a2f9 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/config/AsyncConfig.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/config/AsyncConfig.java
+@@ -25,10 +25,23 @@ public class AsyncConfig {
+         executor.setThreadNamePrefix("market-data-");
+         executor.setWaitForTasksToCompleteOnShutdown(true);
+         executor.setAwaitTerminationSeconds(10);
++        // 🔴 (2026-11-12, 총괄 v1.152 F — 조사 후보, 미승인) 포화 시 거절을 발행 쪽으로 던지지 않는다. 시세 이벤트는 리스너를 차례로 부르므로
++        //    @Async 리스너 하나(실측: DYNAMIC)의 TaskRejectedException 이 같은 이벤트의 LIVE 실시간 손절 처리기·PAPER·시세 장부 전달을 끊었다
++        //    (SharedMarketDataExecutorSaturationTest). 크기·대기열은 그대로 두고, 거절된 그 작업만 버리고 건수·경고를 남긴다.
++        executor.setRejectedExecutionHandler((r, e) -> {
++            long n = MARKET_DATA_REJECTED.incrementAndGet();
++            if (n == 1 || n % 100 == 0) {
++                log.warn("marketDataExecutor 포화 — 작업 1건 버림(다른 리스너·발행 쪽은 계속), 누적 {}건 (active={}, queue={})",
++                        n, e.getActiveCount(), e.getQueue().size());
++            }
++        });
+         executor.initialize();
+         return executor;
+     }
+ 
++    /** marketDataExecutor 가 포화로 버린 작업 누적 수(관측용). */
++    public static final java.util.concurrent.atomic.AtomicLong MARKET_DATA_REJECTED = new java.util.concurrent.atomic.AtomicLong();
++
+     // 주문 실행 전용 (Risk 체크 → Upbit API 호출)
+     // 재시작 시 진행 중 주문이 강제 종료되지 않도록 graceful shutdown
+     @Bean("orderExecutor")
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/MarketDataRejectIsolationTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/MarketDataRejectIsolationTest.java
+new file mode 100644
+index 00000000..fbab2e7b
+--- /dev/null
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/MarketDataRejectIsolationTest.java
+@@ -0,0 +1,99 @@
++package com.cryptoautotrader.api.service;
++
++import com.cryptoautotrader.api.config.AsyncConfig;
++import com.cryptoautotrader.api.support.ExecutorBarrier;
++import com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient;
++import org.junit.jupiter.api.DisplayName;
++import org.junit.jupiter.api.Test;
++import org.springframework.beans.factory.annotation.Autowired;
++import org.springframework.beans.factory.annotation.Qualifier;
++import org.springframework.boot.test.mock.mockito.MockBean;
++import org.springframework.context.ApplicationEventPublisher;
++import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
++import org.springframework.test.util.AopTestUtils;
++import org.springframework.test.util.ReflectionTestUtils;
++
++import java.math.BigDecimal;
++import java.time.Instant;
++import java.util.ArrayList;
++import java.util.List;
++import java.util.Map;
++import java.util.concurrent.CountDownLatch;
++import java.util.concurrent.Future;
++import java.util.concurrent.ThreadPoolExecutor;
++import java.util.concurrent.TimeUnit;
++
++import static org.assertj.core.api.Assertions.assertThat;
++
++/**
++ * 조사 후보(미승인) — marketDataExecutor 포화 거절 격리 (2026-11-12, 총괄 v1.152 F). {@link SharedMarketDataExecutorSaturationTest} ① 과 같은
++ * 실제 포화(래치)에서 발행 1건: 발행 쪽 예외 없음, 동기 시세 장부는 그 가격을 받음, PAPER 선택 모드 리스너도 호출됨(그 작업은 거절 수로 셈),
++ * 거절된 @Async 작업은 버린 수로 셈. 해제 뒤 정상 처리.
++ */
++@org.springframework.test.context.TestPropertySource(properties = "test.fixture.entry-rounds-context=MarketDataRejectIsolationTest")
++@org.springframework.test.annotation.DirtiesContext(classMode = org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS)
++@DisplayName("조사 후보 — 포화 거절이 같은 시세 이벤트의 다른 리스너(시세 장부·PAPER)와 발행 쪽을 끊지 않음")
++class MarketDataRejectIsolationTest extends AbstractSma20SameInputFixture {
++
++    @MockBean private UpbitWebSocketClient upbitWebSocketClient;
++    @Autowired @Qualifier("marketDataExecutor") private java.util.concurrent.Executor marketDataExecutor;
++    @Autowired private ApplicationEventPublisher eventPublisher;
++
++    @Override
++    protected Map<String, Object> paperParams() {
++        return Map.of(PaperMaxInvestment.KEY, 20000, PaperExecutionMode.KEY, PaperExecutionMode.LIVE_ALIGNED);
++    }
++
++    @Override
++    protected String reportName() {
++        return "md-reject-isolation";
++    }
++
++    @Test
++    void rejectionDoesNotCutOtherListeners() throws Exception {
++        ThreadPoolExecutor pool = ((ThreadPoolTaskExecutor) marketDataExecutor).getThreadPoolExecutor();
++        int core = pool.getCorePoolSize(), max = pool.getMaximumPoolSize();
++        int qcap = pool.getQueue().size() + pool.getQueue().remainingCapacity();
++        insertCache(BTC, uptrend(lastOpen));
++        paper(BTC);
++        PaperTradingService paperTarget = AopTestUtils.getUltimateTargetObject(paperTradingService);
++        ReflectionTestUtils.invokeMethod(paperTarget, "refreshAlignedCoins", balanceRepo.findByStatusOrderByStartedAtAsc("RUNNING"));
++        ExecutorBarrier.awaitPriorTasks(pool, 15_000);
++
++        CountDownLatch release = new CountDownLatch(1);
++        CountDownLatch running = new CountDownLatch(max);
++        List<Future<?>> blocked = new ArrayList<>();
++        Runnable blocker = () -> {
++            running.countDown();
++            try { release.await(60, TimeUnit.SECONDS); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
++        };
++        for (int i = 0; i < core; i++) blocked.add(pool.submit(blocker));
++        for (int i = 0; i < qcap; i++) blocked.add(pool.submit(() -> { }));
++        for (int i = core; i < max; i++) blocked.add(pool.submit(blocker));
++        assertThat(running.await(20, TimeUnit.SECONDS)).isTrue();
++        assertThat(pool.getQueue().remainingCapacity()).isZero();
++
++        long droppedBefore = AsyncConfig.MARKET_DATA_REJECTED.get();
++        long paperRejBefore = paperTarget.alignedRtRejected.get();
++        Throwable thrown = null;
++        try {
++            eventPublisher.publishEvent(new RealtimePriceEvent(BTC, new BigDecimal("12000000"), Instant.now(), RealtimePriceEvent.WS_TRADE));
++        } catch (Throwable t) {
++            thrown = t;
++        }
++        BigDecimal mark = markPriceBook.freshPrice(BTC, Instant.now());
++        long dropped = AsyncConfig.MARKET_DATA_REJECTED.get() - droppedBefore;
++        long paperRej = paperTarget.alignedRtRejected.get() - paperRejBefore;
++        System.out.println("[F-격리] 발행 예외=" + thrown + " 시세 장부=" + mark + " 버린 @Async 작업=" + dropped + " PAPER 작업(버림)=" + paperRej);
++
++        release.countDown();
++        for (Future<?> f : blocked) f.get(20, TimeUnit.SECONDS);
++        ExecutorBarrier.awaitPriorTasks(pool, 15_000);
++
++        assertThat(thrown).as("발행 쪽 예외 없음").isNull();
++        assertThat(mark).as("동기 시세 장부는 같은 이벤트를 받음").isEqualByComparingTo("12000000");
++        assertThat(dropped).as("거절된 @Async 리스너 작업(LIVE·DYNAMIC 등)은 버린 수로 셈").isGreaterThanOrEqualTo(2);
++        // PAPER 는 자기 거절 경로(alignedRtRejected)로 셈하거나, 실행기 버림 수에 들어간다 — 어느 쪽이든 호출됐다는 뜻
++        assertThat(paperRej + dropped).as("PAPER 선택 모드 리스너도 호출됨").isGreaterThanOrEqualTo(3);
++    }
++}
+-- 
+2.51.1.windows.1
+
