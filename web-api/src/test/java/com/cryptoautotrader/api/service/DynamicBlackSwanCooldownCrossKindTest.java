@@ -39,7 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * <p>기대(실행 전 기록): PAPER 세션이 급락 마감 봉에서 BUY 를 평가하면 쿨다운이 기록되고, 회복된 캔들에서 REAL 세션의 BUY 가
  * "BLACK_SWAN 쿨다운"으로 막힌다. PAPER 틱이 없으면(대조) 같은 REAL 틱은 그 사유로 막히지 않는다 — 즉 PAPER 활동이 REAL 판단을 바꾼다.
- * 이 시험은 현재 동작을 기록할 뿐이며 고치지 않는다(운영 계약 변경은 총괄 판단).</p>
+ * 2026-11-11 (총괄 v1.145 결정 3): 종류별 격리 후보에서 기대를 격리 계약으로 바꿨다. 종전 재현(3f6afb90·0f3a4b55)은 시험 가지에 남는다.</p>
  */
 @DisplayName("DYNAMIC BLACK_SWAN 쿨다운 — PAPER 평가가 REAL 진입을 막는가(세션 종류 간 공유 상태)")
 @org.springframework.test.context.TestPropertySource(properties = "test.fixture.entry-rounds-context=DynamicBlackSwanCooldownCrossKindTest")
@@ -108,7 +108,7 @@ class DynamicBlackSwanCooldownCrossKindTest extends IntegrationTestBase {
 
     private List<Map<String, ?>> globalMaps() {
         DynamicTradingService t = AopTestUtils.getUltimateTargetObject(dynamicTradingService);
-        return List.of(t.blackSwanBlockedAt, t.blackSwanBlockedPrice);
+        return List.of(t.blackSwanBlockedAt, t.blackSwanBlockedPrice, t.paperBlackSwanBlockedAt, t.paperBlackSwanBlockedPrice);
     }
 
     private void deleteCache() {
@@ -165,17 +165,20 @@ class DynamicBlackSwanCooldownCrossKindTest extends IntegrationTestBase {
                 + (logs.get(0).getBlockedReason() != null ? " / 차단=" + logs.get(0).getBlockedReason() : "");
     }
 
+    private DynamicTradingService t() {
+        return AopTestUtils.getUltimateTargetObject(dynamicTradingService);
+    }
+
     @Test
-    @DisplayName("간섭 — PAPER 가 급락 봉을 평가해 쿨다운을 기록하면, 회복 뒤 REAL 의 BUY 가 'BLACK_SWAN 쿨다운'으로 막힌다")
-    void paperCooldownBlocksReal() {
+    @DisplayName("격리 — PAPER 가 급락 봉을 평가해 쿨다운을 기록해도 PAPER 지도에만 남고, 회복 뒤 REAL 의 BUY 는 그 사유로 막히지 않는다")
+    void paperCooldownDoesNotBlockReal() {
         insert(BTC, 100_000_000L, false);
         insert(COIN, 1_000_000L, true);
         Long paper = session("PAPER");
         tick(paper);
-        String paperLog = lastLog(paper);
-        System.out.println("[간섭] PAPER 틱: " + paperLog);
-        DynamicTradingService t = AopTestUtils.getUltimateTargetObject(dynamicTradingService);
-        assertThat(t.blackSwanBlockedAt).as("PAPER 평가가 전역 쿨다운을 기록").containsKey(COIN);
+        System.out.println("[격리] PAPER 틱: " + lastLog(paper));
+        assertThat(t().paperBlackSwanBlockedAt).as("PAPER 평가는 PAPER 지도에 기록").containsKey(COIN);
+        assertThat(t().blackSwanBlockedAt).as("REAL 지도에는 없다").doesNotContainKey(COIN);
 
         deleteCache();
         insert(BTC, 100_000_000L, false);
@@ -183,8 +186,40 @@ class DynamicBlackSwanCooldownCrossKindTest extends IntegrationTestBase {
         Long real = session(DynamicSessionEntity.DEFAULT_TRADING_MODE);
         tick(real);
         String realLog = lastLog(real);
-        System.out.println("[간섭] REAL 틱(회복 캔들): " + realLog);
-        assertThat(realLog).contains("BLACK_SWAN 쿨다운");
+        System.out.println("[격리] REAL 틱(회복 캔들): " + realLog);
+        assertThat(realLog).doesNotContain("BLACK_SWAN");
+        assertThat(realLog).isNotEqualTo("로그 없음");
+
+        // 같은 회복 캔들에서 PAPER 는 자기 쿨다운으로 막힌다(PAPER 자체 보호는 유지)
+        Long paper2 = session("PAPER");
+        tick(paper2);
+        assertThat(lastLog(paper2)).contains("BLACK_SWAN 쿨다운");
+    }
+
+    @Test
+    @DisplayName("REAL 자체 보호 유지 · REAL→PAPER 무간섭 — REAL 급락 차단 뒤 REAL 은 쿨다운으로 막히고 PAPER 는 막히지 않는다")
+    void realSelfCooldownKeptAndDoesNotBlockPaper() {
+        insert(BTC, 100_000_000L, false);
+        insert(COIN, 1_000_000L, true);
+        Long real = session(DynamicSessionEntity.DEFAULT_TRADING_MODE);
+        tick(real);
+        assertThat(lastLog(real)).contains("BLACK_SWAN_GUARD 발동");
+        assertThat(t().blackSwanBlockedAt).containsKey(COIN);
+        assertThat(t().blackSwanBlockedPrice).containsKey(COIN);
+        assertThat(t().paperBlackSwanBlockedAt).doesNotContainKey(COIN);
+
+        deleteCache();
+        insert(BTC, 100_000_000L, false);
+        insert(COIN, 1_000_000L, false);
+        Long real2 = session(DynamicSessionEntity.DEFAULT_TRADING_MODE);
+        tick(real2);
+        String real2Log = lastLog(real2);
+        Long paper = session("PAPER");
+        tick(paper);
+        String paperLog = lastLog(paper);
+        System.out.println("[자체 보호] REAL 회복 틱: " + real2Log + " / PAPER 회복 틱: " + paperLog);
+        assertThat(real2Log).as("REAL 쿨다운(길이·기준 그대로)").contains("BLACK_SWAN 쿨다운");
+        assertThat(paperLog).doesNotContain("BLACK_SWAN");
     }
 
     @Test
@@ -209,26 +244,59 @@ class DynamicBlackSwanCooldownCrossKindTest extends IntegrationTestBase {
     }
 
     @Test
-    @DisplayName("기동 복원 비대칭 — PAPER 가 만든 쿨다운은 재기동 뒤 복원되지 않는다(재기동 전에는 REAL 을 막았다)")
-    void paperOriginatedCooldownNotRestored() {
+    @DisplayName("기동 복원 — PAPER 가 만든 쿨다운은 재기동 뒤 PAPER 지도에 복원되고 REAL 지도에는 들어가지 않는다")
+    void paperOriginatedCooldownRestoredToPaperOnly() {
         insert(BTC, 100_000_000L, false);
         insert(COIN, 1_000_000L, true);
         Long paper = session("PAPER");
         tick(paper);
-        DynamicTradingService t = AopTestUtils.getUltimateTargetObject(dynamicTradingService);
-        assertThat(t.blackSwanBlockedAt).as("재기동 전 — PAPER 평가가 기록").containsKey(COIN);
+        assertThat(t().paperBlackSwanBlockedAt).as("재기동 전 — PAPER 지도").containsKey(COIN);
         System.out.println("[복원] PAPER 차단 로그: " + lastLog(paper));
-        assertThat(restartAndRestore()).as("재기동 뒤 — PAPER 기록은 복원 대상(DYNAMIC 로그) 밖").doesNotContainKey(COIN);
+        restartAndRestore();
+        assertThat(t().paperBlackSwanBlockedAt).as("재기동 뒤 — PAPER 지도 복원").containsKey(COIN);
+        assertThat(t().paperBlackSwanBlockedPrice).containsKey(COIN);
+        assertThat(t().blackSwanBlockedAt).as("REAL 복원에 PAPER 로그를 넣지 않는다").doesNotContainKey(COIN);
     }
 
     @Test
-    @DisplayName("기동 복원 대조 — REAL 이 만든 쿨다운은 재기동 뒤 복원된다")
-    void realOriginatedCooldownRestored() {
+    @DisplayName("기동 복원 — REAL 이 만든 쿨다운은 재기동 뒤 REAL 지도에 복원되고 PAPER 지도에는 들어가지 않는다")
+    void realOriginatedCooldownRestoredToRealOnly() {
         insert(BTC, 100_000_000L, false);
         insert(COIN, 1_000_000L, true);
         Long real = session(DynamicSessionEntity.DEFAULT_TRADING_MODE);
         tick(real);
         System.out.println("[복원] REAL 차단 로그: " + lastLog(real));
-        assertThat(restartAndRestore()).as("재기동 뒤 — REAL 기록 복원").containsKey(COIN);
+        restartAndRestore();
+        assertThat(t().blackSwanBlockedAt).as("재기동 뒤 — REAL 기록 복원").containsKey(COIN);
+        assertThat(t().paperBlackSwanBlockedAt).doesNotContainKey(COIN);
+    }
+
+    @Test
+    @DisplayName("재기동 전후 같은 결과 — 종류마다 회복 틱의 차단 여부가 재기동 전과 같다")
+    void sameDecisionBeforeAndAfterRestartPerKind() {
+        insert(BTC, 100_000_000L, false);
+        insert(COIN, 1_000_000L, true);
+        tick(session("PAPER"));
+        deleteCache();
+        insert(BTC, 100_000_000L, false);
+        insert(COIN, 1_000_000L, false);
+        Long pBefore = session("PAPER");
+        Long rBefore = session(DynamicSessionEntity.DEFAULT_TRADING_MODE);
+        tick(pBefore);
+        tick(rBefore);
+        boolean paperBlockedBefore = lastLog(pBefore).contains("BLACK_SWAN 쿨다운");
+        boolean realBlockedBefore = lastLog(rBefore).contains("BLACK_SWAN");
+        restartAndRestore();
+        Long pAfter = session("PAPER");
+        Long rAfter = session(DynamicSessionEntity.DEFAULT_TRADING_MODE);
+        tick(pAfter);
+        tick(rAfter);
+        boolean paperBlockedAfter = lastLog(pAfter).contains("BLACK_SWAN 쿨다운");
+        boolean realBlockedAfter = lastLog(rAfter).contains("BLACK_SWAN");
+        System.out.println("[재기동 전후] PAPER " + paperBlockedBefore + "→" + paperBlockedAfter + " / REAL " + realBlockedBefore + "→" + realBlockedAfter);
+        assertThat(paperBlockedBefore).isTrue();
+        assertThat(paperBlockedAfter).isEqualTo(paperBlockedBefore);
+        assertThat(realBlockedBefore).isFalse();
+        assertThat(realBlockedAfter).isEqualTo(realBlockedBefore);
     }
 }
