@@ -144,6 +144,10 @@ public class LiveTradingService {
      */
     private final Map<Long, Instant> lastEvaluatedClosedCandle = new ConcurrentHashMap<>();
 
+    /** v1.152 D: 닫힌 봉 판정용 공통 시계(PAPER·회차와 같은 EntryClock). 없으면 시스템 시각. */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private EntryClock entryClock;
+
     /** 낙폭 경고 쿨다운: 세션별 마지막 DRAWDOWN_WARNING 전송 시각 (30분 쿨다운) */
     private final Map<Long, Instant> lastDrawdownWarning = new ConcurrentHashMap<>();
     private static final long DRAWDOWN_WARNING_COOLDOWN_MIN = 30;
@@ -1157,7 +1161,8 @@ public class LiveTradingService {
         // 이 게이트와 무관하게 매 tick(60초) 그대로 수행된다.
         long periodMin = TimeframeUtils.toMinutes(timeframe);
         Instant lastCandleTime = candles.get(candles.size() - 1).getTime();
-        boolean lastCandleClosed = !lastCandleTime.plus(periodMin, ChronoUnit.MINUTES).isAfter(Instant.now());
+        // v1.152 D: 닫힌 봉 판정은 공통 시계(EntryClock — 운영 기본 시스템 UTC, 회차 마감 E 와 같은 시계)로 본다.
+        boolean lastCandleClosed = !lastCandleTime.plus(periodMin, ChronoUnit.MINUTES).isAfter(entryClock != null ? entryClock.now() : Instant.now());
         // 마지막 캔들이 아직 형성 중이면 직전(닫힌) 캔들 기준으로 평가한다 — 백테스트와 동일 의미.
         List<Candle> evalCandles = (lastCandleClosed || candles.size() < 2)
                 ? candles : candles.subList(0, candles.size() - 1);

@@ -908,7 +908,8 @@ public class PaperTradingService {
         // ── 닫힌 캔들 게이팅 ──────────────────────────────────────────────────
         long periodMin = TimeframeUtils.toMinutes(timeframe);
         Instant lastCandleTime = candles.get(candles.size() - 1).getTime();
-        boolean lastCandleClosed = !lastCandleTime.plus(periodMin, ChronoUnit.MINUTES).isAfter(Instant.now());
+        // v1.152 D: 닫힌 봉 판정은 공통 시계(EntryClock — 운영 기본 시스템 UTC, 회차 마감 E 와 같은 시계)로 본다.
+        boolean lastCandleClosed = !lastCandleTime.plus(periodMin, ChronoUnit.MINUTES).isAfter(entryClock != null ? entryClock.now() : Instant.now());
         List<Candle> evalCandles = (lastCandleClosed || candles.size() < 2)
                 ? candles : candles.subList(0, candles.size() - 1);
         Instant closedCandleTime = evalCandles.get(evalCandles.size() - 1).getTime();
