@@ -1,0 +1,28 @@
+구간 2026-11-11T13:00Z(22:00 KST) ~ 지금
+줄 수 18575
+ERROR 23
+획득 실패 0
+Hikari 누수 경고 0 · unleaked 0
+N17 0 · N19 0 · N20 0
+ERROR 로거별:
+      1  ERROR c.c.a.news.source.CryptoPanicSource -
+      1  ERROR c.c.a.news.source.UpbitNoticeSource -
+      1  ERROR c.c.a.n.s.CoinGeckoTrendingSource -
+      1  ERROR c.c.api.llm.provider.ClaudeProvider -
+      2  ERROR c.c.api.news.source.RssNewsSource -
+      3  ERROR c.c.a.service.DataCollectionService -
+      3  ERROR c.c.a.service.MarketDataSyncService -
+      1  ERROR c.c.a.s.TelegramNotificationService -
+      6  ERROR c.c.e.upbit.UpbitCandleCollector -
+      1  ERROR c.c.exchange.upbit.UpbitOrderClient -
+ERROR 줄 머리(최대 5):
+15:00:56.938 [scheduler-8] ERROR c.c.e.upbit.UpbitCandleCollector - 캔들 수집 실패: request timed out
+15:00:56.939 [scheduler-8] ERROR c.c.a.service.MarketDataSyncService - 시장 데이터 동기화 실패: KRW-ADA M15 - 캔들 데이터 수집 실패
+15:01:11.943 [scheduler-8] ERROR c.c.e.upbit.UpbitCandleCollector - 캔들 수집 실패: request timed out
+15:01:11.944 [scheduler-8] ERROR c.c.a.service.MarketDataSyncService - 시장 데이터 동기화 실패: KRW-AVAX M15 - 캔들 데이터 수집 실패
+15:01:26.948 [scheduler-8] ERROR c.c.e.upbit.UpbitCandleCollector - 캔들 수집 실패: request timed out
+-rw-rw-r-- 1 manicstr manicstr    868 2026-10-31 13:57:48.994591566 +0900 crontab.new-ledger
+-rw-rw-r-- 1 manicstr manicstr    585 2026-10-31 13:31:47.417191385 +0900 crontab.new-sidok
+-rw-rw-r-- 1 manicstr manicstr     74 2026-11-11 22:00:03.702929782 +0900 last_send
+-rw-rw-r-- 1 manicstr manicstr 3735 2026-11-11 09:30:01.813937524 +0900 20261111.txt
+-rw-rw-r-- 1 manicstr manicstr 3540 2026-10-31 13:57:32.315543380 +0900 install-check.txt
