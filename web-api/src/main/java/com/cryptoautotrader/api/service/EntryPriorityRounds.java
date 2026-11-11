@@ -203,38 +203,47 @@ public class EntryPriorityRounds {
             closed.entrySet().removeIf(e -> e.getValue().isBefore(now.minus(CLOSED_RETENTION)));
         }
         List<Outcome> out = new ArrayList<>();
-        for (var e : due) {
-            List<Candidate> ordered = new ArrayList<>(e.getValue());
-            ordered.sort(ORDER);
-            log.info("[진입 우선순위] 회차 확정 {} — 후보 {}건, 승인 순서 {}", e.getKey(), ordered.size(),
-                    ordered.stream().map(c -> c.coinPair() + "(" + c.kind() + "#" + c.sessionId() + ")").toList());
-            int rank = 0;
-            for (Candidate c : ordered) {
-                rank++;
-                String reason;
-                // 🔴 후보마다 지금 시각으로 다시 본다(N15) — 회차를 꺼낸 시각 하나를 재사용하지 않는다. 앞 후보의 승인 지연도
-                //    여기서 걸린다. 만료면 콜백(엔진 관문·예약)을 부르지 않고 사유를 원래 신호에 남긴다.
-                Instant at = clock.now();
-                if (isExpired(expiry(c.round()), at)) {
-                    reason = expiredReason(c.round(), at);
-                    try {
-                        c.expired().accept(reason);
-                    } catch (RuntimeException ex) {
-                        log.error("[진입 우선순위] 만료 사유 기록 실패: {} {}#{} {}", e.getKey(), c.kind(), c.sessionId(), c.coinPair(), ex);
+        // 🔴 두 단계 (2026-11-11, 총괄 v1.145 §3-3): 마감된 **모든 회차의 실자금 후보를 먼저**, PAPER(LIVE_ALIGNED) 후보는 그 뒤에 승인한다.
+        //    회차 안의 PAPER 후순위(ORDER)만으로는 부족했다 — 마감이 같은 회차(H1 09:00 봉·M15 09:45 봉은 둘 다 10:05)가 한 번에 꺼내지면
+        //    회차는 지도 순서로 처리되고, PAPER 만 있는 회차가 먼저면 다른 회차의 실자금 후보가 그 PAPER 승인을 기다렸다
+        //    (EntryRoundsCrossRoundPaperDelayTest, 1년 정시 시각의 약 33%). PAPER 후보가 없으면 순서·순위·로그가 종전과 같다.
+        for (int phase = 0; phase < 2; phase++) {
+            for (var e : due) {
+                List<Candidate> ordered = new ArrayList<>(e.getValue());
+                ordered.sort(ORDER);
+                if (phase == 0) {
+                    log.info("[진입 우선순위] 회차 확정 {} — 후보 {}건, 승인 순서 {}", e.getKey(), ordered.size(),
+                            ordered.stream().map(c -> c.coinPair() + "(" + c.kind() + "#" + c.sessionId() + ")").toList());
+                }
+                int rank = 0;
+                for (Candidate c : ordered) {
+                    rank++;
+                    if (KIND_PAPER.equals(c.kind()) != (phase == 1)) continue;
+                    String reason;
+                    // 🔴 후보마다 지금 시각으로 다시 본다(N15) — 회차를 꺼낸 시각 하나를 재사용하지 않는다. 앞 후보의 승인 지연도
+                    //    여기서 걸린다. 만료면 콜백(엔진 관문·예약)을 부르지 않고 사유를 원래 신호에 남긴다.
+                    Instant at = clock.now();
+                    if (isExpired(expiry(c.round()), at)) {
+                        reason = expiredReason(c.round(), at);
+                        try {
+                            c.expired().accept(reason);
+                        } catch (RuntimeException ex) {
+                            log.error("[진입 우선순위] 만료 사유 기록 실패: {} {}#{} {}", e.getKey(), c.kind(), c.sessionId(), c.coinPair(), ex);
+                        }
+                        log.warn("[진입 우선순위] {}위 {} {}#{} → {}", rank, c.coinPair(), c.kind(), c.sessionId(), reason);
+                        out.add(new Outcome(c, rank, reason));
+                        continue;
                     }
-                    log.warn("[진입 우선순위] {}위 {} {}#{} → {}", rank, c.coinPair(), c.kind(), c.sessionId(), reason);
+                    try {
+                        reason = c.approve().get();
+                    } catch (RuntimeException ex) {
+                        reason = "승인 중 오류: " + ex.getClass().getSimpleName() + ": " + ex.getMessage();
+                        log.error("[진입 우선순위] 승인 중 오류 — 다음 후보로 간다: {} {}#{} {}", e.getKey(), c.kind(), c.sessionId(), c.coinPair(), ex);
+                    }
+                    log.info("[진입 우선순위] {}위 {} {}#{} → {}", rank, c.coinPair(), c.kind(), c.sessionId(),
+                            reason == null ? "진입" : "진입 안 함: " + reason);
                     out.add(new Outcome(c, rank, reason));
-                    continue;
                 }
-                try {
-                    reason = c.approve().get();
-                } catch (RuntimeException ex) {
-                    reason = "승인 중 오류: " + ex.getClass().getSimpleName() + ": " + ex.getMessage();
-                    log.error("[진입 우선순위] 승인 중 오류 — 다음 후보로 간다: {} {}#{} {}", e.getKey(), c.kind(), c.sessionId(), c.coinPair(), ex);
-                }
-                log.info("[진입 우선순위] {}위 {} {}#{} → {}", rank, c.coinPair(), c.kind(), c.sessionId(),
-                        reason == null ? "진입" : "진입 안 함: " + reason);
-                out.add(new Outcome(c, rank, reason));
             }
         }
         return out;

@@ -1330,14 +1330,41 @@ public class PaperTradingService {
      * 여기 첫 유효 현재가에 체결한다.
      */
     @org.springframework.context.event.EventListener
-    @org.springframework.scheduling.annotation.Async("marketDataExecutor")
     public void onRealtimePriceEvent(RealtimePriceEvent event) {
+        // 🔴 (2026-11-11, 총괄 v1.145 §3-3) 발행 스레드에서 먼저 거른다. 종전 @Async 리스너는 코인과 무관하게 시세 이벤트마다
+        //    marketDataExecutor 에 작업을 하나 더했다(LIVE·DYNAMIC 2 → 3). 그 실행기는 거절 시 예외를 던지고(AbortPolicy), 이벤트
+        //    리스너는 차례로 불리므로 거절 예외가 다른 리스너의 그 이벤트 수신을 끊을 수 있다. 선택 모드 코인이 아니면 작업을 만들지 않고,
+        //    거절되면 이 PAPER 작업만 버린다 — 예외를 발행 쪽으로 올리지 않는다.
+        if (!alignedCoins.contains(event.getCoinCode())) return;
+        Runnable task = () -> {
+            try {
+                doOnAlignedRealtimePrice(event);
+            } catch (Exception e) {
+                log.error("모의투자[LIVE_ALIGNED] 실시간 처리 오류 — coin={}", event.getCoinCode(), e);
+            }
+        };
+        if (alignedRtExecutor == null) {
+            task.run();
+            return;
+        }
         try {
-            doOnAlignedRealtimePrice(event);
-        } catch (Exception e) {
-            log.error("모의투자[LIVE_ALIGNED] 실시간 처리 오류 — coin={}", event.getCoinCode(), e);
+            alignedRtExecutor.execute(task);
+        } catch (java.util.concurrent.RejectedExecutionException rejected) {
+            long n = alignedRtRejected.incrementAndGet();
+            if (n == 1 || n % 100 == 0) {
+                log.warn("모의투자[LIVE_ALIGNED] 실시간 작업 거절 — 이 시세는 버린다(실자금 처리기에 영향 없음), 누적 {}건 coin={}",
+                        n, event.getCoinCode());
+            }
         }
     }
+
+    /** 선택 모드 실시간 작업의 실행기 — LIVE·DYNAMIC 과 같은 marketDataExecutor. 없으면(단위 시험) 호출 스레드에서 처리한다. */
+    @Autowired(required = false)
+    @org.springframework.beans.factory.annotation.Qualifier("marketDataExecutor")
+    private java.util.concurrent.Executor alignedRtExecutor;
+
+    /** 거절로 버린 선택 모드 실시간 작업 수 (관측용). */
+    final java.util.concurrent.atomic.AtomicLong alignedRtRejected = new java.util.concurrent.atomic.AtomicLong();
 
     void doOnAlignedRealtimePrice(RealtimePriceEvent event) {
         String coin = event.getCoinCode();
