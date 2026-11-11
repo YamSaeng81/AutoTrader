@@ -70,7 +70,10 @@ public class PerformanceSummaryResponse {
         private String timeframe;
         private String status;
         private BigDecimal initialCapital;
+        /** 현재 총자산 — 청산 대기가 있으면 null(평가 불가). 그때 마지막 기록 총자산은 lastRecordedTotalKrw (v1.150 §3-3). */
         private BigDecimal currentAsset;
+        /** 청산 대기가 있을 때만 — 기록된 총자산(기록 시각 미상, 현재 평가 아님). 대기가 없으면 null. */
+        private BigDecimal lastRecordedTotalKrw;
         private BigDecimal realizedPnl;
         private BigDecimal unrealizedPnl;
         private BigDecimal totalPnl;

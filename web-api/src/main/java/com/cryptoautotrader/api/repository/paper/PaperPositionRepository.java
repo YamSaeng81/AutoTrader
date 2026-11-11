@@ -15,6 +15,17 @@ public interface PaperPositionRepository extends JpaRepository<PaperPositionEnti
 
     List<PaperPositionEntity> findBySessionIdAndStatus(Long sessionId, String status);
 
+    /**
+     * 보유(OPEN)와 청산 대기(CLOSING)를 <b>한 SQL·한 스냅샷</b>으로 읽는다 (2026-11-11, 총괄 v1.150 S3). 두 상태를 따로 읽어 합치면 그 사이
+     * 커밋된 OPEN→CLOSING 전환 하나가 두 번 나올 수 있다. id 순으로 정렬한다.
+     */
+    @Query("SELECT p FROM PaperPositionEntity p WHERE p.sessionId = :sessionId AND p.status IN ('OPEN', 'CLOSING') ORDER BY p.id")
+    List<PaperPositionEntity> findHeldBySessionId(@Param("sessionId") Long sessionId);
+
+    /** 세션별 청산 대기 수 — 목록 응답의 평가 상태를 한 질의로 채운다(v1.150 §3-3). 행: [sessionId, count]. */
+    @Query("SELECT p.sessionId, COUNT(p) FROM PaperPositionEntity p WHERE p.status = 'CLOSING' GROUP BY p.sessionId")
+    List<Object[]> countClosingPerSession();
+
     /** 청산 대기(CLOSING) 복원용 — LIVE_ALIGNED 정지/시간 청산 판단 뒤 유효 가격을 기다리는 포지션 (2026-11-11). */
     List<PaperPositionEntity> findByStatus(String status);
 

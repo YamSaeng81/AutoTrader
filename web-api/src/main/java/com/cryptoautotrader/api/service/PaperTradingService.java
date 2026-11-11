@@ -265,26 +265,48 @@ public class PaperTradingService {
      * 행이며, 버퍼는 사람에게 알리는 용도로만 쓴다.</p>
      */
     public VirtualBalanceEntity stop(Long sessionId) {
-        VirtualBalanceEntity stopped;
+        return stopWithOutcome(sessionId).session();
+    }
+
+    /**
+     * 세션과 그 시점의 청산 대기 수 — <b>같은 트랜잭션·같은 시점</b>에서 읽은 한 쌍 (2026-11-11, 총괄 v1.150 §3-1·§3-3).
+     * 대기 수를 응답 직전에 따로 다시 세면 그 사이 정산이 끝나 0 이 되고, 정산 전의 옛 엔티티 총액을 "최종 자산"으로 내보낼 수 있다.
+     */
+    public record SessionValuation(VirtualBalanceEntity session, long pendingCloseCount) {
+        public boolean pending() {
+            return pendingCloseCount > 0;
+        }
+    }
+
+    /**
+     * 정지 — 결과는 DB 커밋으로 정한다 (2026-11-11, 총괄 v1.150 §3-1). 대기 수는 정지를 커밋하는 같은 트랜잭션 안에서 센다.
+     *
+     * <p>🔴 LIVE_ALIGNED 의 정지 알림(대기·완료)은 커밋 뒤 보고다 — 예외는 {@link #runReport} 로 고정 경고·실패 수로만 남기고, 이미 커밋된
+     * 정지를 실패로 바꾸지 않는다(종전에는 예외가 호출자로 올라가 단건은 예외, 일괄은 확정된 세션을 결과에서 뺐다). 정지를 다시 실행하지
+     * 않는다. 종전 PAPER 의 알림 호출은 그대로다.</p>
+     */
+    public SessionValuation stopWithOutcome(Long sessionId) {
+        SessionValuation outcome;
         if (balanceRepo.findById(sessionId).map(PaperTradingService::isAligned).orElse(false)) {
             // LIVE_ALIGNED — 평가·승인·실시간 처리기와 같은 세션 잠금 안에서 정지한다 (2026-11-11, §3-2). 승인이 매수를 쓰는 중이면
             // 그 트랜잭션이 끝난 뒤 정지가 그 포지션까지 강제 청산한다. 종전 PAPER 는 잠금 없이 그대로다.
             synchronized (alignedLock(sessionId)) {
-                stopped = optimisticRetry.inNewTransaction("모의투자 정지 #" + sessionId, st -> stopOnce(sessionId));
+                outcome = optimisticRetry.inNewTransaction("모의투자 정지 #" + sessionId, st -> stopOnceWithCount(sessionId));
             }
         } else {
-            stopped = optimisticRetry.inNewTransaction("모의투자 정지 #" + sessionId, st -> stopOnce(sessionId));
+            outcome = optimisticRetry.inNewTransaction("모의투자 정지 #" + sessionId, st -> stopOnceWithCount(sessionId));
         }
+        VirtualBalanceEntity stopped = outcome.session();
         // 청산 대기(CLOSING)는 지우지 않는다 — 첫 유효 시세에 정산한다(v1.147 R2).
         alignedPeakTotalKrw.remove(sessionId);
         alignedPeakPersisted.remove(sessionId);
 
         // 🔴 트랜잭션 밖 — 커밋이 끝난 뒤에만 알린다. 재시도가 있어도 한 번만 나간다.
-        long pendingAfterStop = isAligned(stopped) ? pendingCloseCount(sessionId) : 0;
+        long pendingAfterStop = outcome.pendingCloseCount();
         if (Boolean.TRUE.equals(stopped.getTelegramEnabled()) && pendingAfterStop > 0) {
-            // v1.148 W4: 청산 대기가 남았으면 "최종 자산"으로 알리지 않는다.
-            telegramService.notifyPaperSessionStoppedPendingClose(
-                    sessionId, stopped.getStrategyName(), stopped.getCoinPair(), pendingAfterStop);
+            // v1.148 W4: 청산 대기가 남았으면 "최종 자산"으로 알리지 않는다. 대기는 LIVE_ALIGNED 에만 생긴다.
+            runReport(() -> telegramService.notifyPaperSessionStoppedPendingClose(
+                    sessionId, stopped.getStrategyName(), stopped.getCoinPair(), pendingAfterStop));
         } else if (Boolean.TRUE.equals(stopped.getTelegramEnabled())) {
             BigDecimal initial = stopped.getInitialCapital() != null
                     ? stopped.getInitialCapital() : stopped.getTotalKrw();
@@ -293,11 +315,23 @@ public class PaperTradingService {
                               .divide(initial, 4, RoundingMode.HALF_UP)
                               .multiply(BigDecimal.valueOf(100)).doubleValue()
                     : 0;
-            telegramService.notifyPaperSessionStopped(
+            Runnable notify = () -> telegramService.notifyPaperSessionStopped(
                     sessionId, stopped.getStrategyName(), stopped.getCoinPair(),
                     stopped.getTotalKrw(), returnPct);
+            if (isAligned(stopped)) {
+                runReport(notify);
+            } else {
+                notify.run();
+            }
         }
-        return stopped;
+        return outcome;
+    }
+
+    /** 정지 1회 시도 + 같은 트랜잭션 안의 청산 대기 수(LIVE_ALIGNED 만, 종전은 늘 0). */
+    private SessionValuation stopOnceWithCount(Long sessionId) {
+        VirtualBalanceEntity e = stopOnce(sessionId);
+        long pending = isAligned(e) ? positionRepo.findBySessionIdAndStatus(sessionId, "CLOSING").size() : 0;
+        return new SessionValuation(e, pending);
     }
 
     /**
@@ -342,17 +376,32 @@ public class PaperTradingService {
         return balanceRepo.save(session);
     }
 
-    @Transactional
-    public List<VirtualBalanceEntity> stopAll() {
+    /**
+     * 일괄 정지 — 세션마다 {@link #stopWithOutcome} 의 독립 트랜잭션이다 (2026-11-11, 총괄 v1.150 §3-1).
+     *
+     * <p>🔴 바깥 트랜잭션을 두지 않는다. 종전의 바깥 {@code @Transactional} 은 각 정지가 이미 새 트랜잭션으로 커밋되므로 원자성을 주지 않고,
+     * 1차 캐시에 옛 RUNNING 엔티티를 붙잡아 실패 뒤 DB 재확인을 가렸다. 정지 호출이 예외로 끝나도 DB 에 이번 시도 뒤 STOPPED 로 커밋됐으면
+     * 정지 성공으로 결과에 넣고(대기 수는 다시 센다), 다음 세션 처리를 계속한다. 정지를 다시 실행하지 않는다.</p>
+     */
+    public List<SessionValuation> stopAll() {
         List<VirtualBalanceEntity> runningSessions = balanceRepo.findAllByOrderByIdDesc().stream()
                 .filter(s -> "RUNNING".equals(s.getStatus()))
                 .toList();
-        List<VirtualBalanceEntity> stopped = new ArrayList<>();
+        List<SessionValuation> stopped = new ArrayList<>();
         for (VirtualBalanceEntity session : runningSessions) {
+            Instant attemptAt = Instant.now().truncatedTo(ChronoUnit.MILLIS);
             try {
-                stopped.add(stop(session.getId()));
+                stopped.add(stopWithOutcome(session.getId()));
             } catch (Exception e) {
-                log.warn("세션 일괄 정지 중 오류 (id={}): {}", session.getId(), e.getMessage());
+                VirtualBalanceEntity now = balanceRepo.findById(session.getId()).orElse(null);
+                if (now != null && "STOPPED".equals(now.getStatus()) && now.getStoppedAt() != null
+                        && !now.getStoppedAt().isBefore(attemptAt)) {
+                    long pending = isAligned(now) ? pendingCloseCount(now.getId()) : 0;
+                    stopped.add(new SessionValuation(now, pending));
+                    log.warn("세션 일괄 정지 — 정지는 DB 에 확정됨, 정지 뒤 처리 실패 (id={}, {})", session.getId(), e.getClass().getSimpleName());
+                } else {
+                    log.warn("세션 일괄 정지 중 오류 (id={}): {}", session.getId(), e.getMessage());
+                }
             }
         }
         log.info("모의투자 일괄 정지 완료. 정지된 세션 수: {}", stopped.size());
@@ -362,6 +411,27 @@ public class PaperTradingService {
     @Transactional(readOnly = true)
     public VirtualBalanceEntity getSessionBalance(Long sessionId) {
         return getSession(sessionId);
+    }
+
+    /**
+     * 잔고 + 청산 대기 수를 한 읽기 전용 트랜잭션·한 스냅샷(REPEATABLE READ)에서 읽는다 (2026-11-11, 총괄 v1.150 §3-3).
+     * 대기가 있으면 응답은 기록된 총자산을 현재 평가로 내보내지 않는다(컨트롤러).
+     */
+    @Transactional(readOnly = true, isolation = org.springframework.transaction.annotation.Isolation.REPEATABLE_READ)
+    public SessionValuation getSessionValuation(Long sessionId) {
+        VirtualBalanceEntity s = getSession(sessionId);
+        return new SessionValuation(s, positionRepo.findBySessionIdAndStatus(sessionId, "CLOSING").size());
+    }
+
+    /** 세션 목록 + 세션별 청산 대기 수 — 한 스냅샷(REPEATABLE READ), 대기 수는 묶음 질의 1회 (v1.150 §3-3). */
+    @Transactional(readOnly = true, isolation = org.springframework.transaction.annotation.Isolation.REPEATABLE_READ)
+    public List<SessionValuation> listSessionValuations() {
+        List<VirtualBalanceEntity> sessions = balanceRepo.findAllByOrderByIdDesc();
+        java.util.Map<Long, Long> pending = new java.util.HashMap<>();
+        for (Object[] row : positionRepo.countClosingPerSession()) {
+            pending.put(((Number) row[0]).longValue(), ((Number) row[1]).longValue());
+        }
+        return sessions.stream().map(s -> new SessionValuation(s, pending.getOrDefault(s.getId(), 0L))).toList();
     }
 
     @Transactional(readOnly = true)
@@ -386,9 +456,8 @@ public class PaperTradingService {
     public List<PaperPositionEntity> getOpenPositions(Long sessionId) {
         // v1.148 W4: 청산 대기(CLOSING)도 아직 소유한 미정산 자산이다 — 상태 값 그대로 함께 돌려준다(OPEN 의 뜻은 바꾸지 않음).
         //    종전 PAPER 는 CLOSING 이 생기지 않으므로 결과가 같다.
-        List<PaperPositionEntity> held = new ArrayList<>(positionRepo.findBySessionIdAndStatus(sessionId, "OPEN"));
-        held.addAll(positionRepo.findBySessionIdAndStatus(sessionId, "CLOSING"));
-        return held;
+        // v1.150 S3: 두 상태를 따로 읽어 합치지 않는다 — 한 SQL(status IN OPEN·CLOSING)로 한 스냅샷을 읽는다.
+        return positionRepo.findHeldBySessionId(sessionId);
     }
 
     @Transactional(readOnly = true)
@@ -497,7 +566,9 @@ public class PaperTradingService {
                     .timeframe(session.getTimeframe())
                     .status(session.getStatus())
                     .initialCapital(session.getInitialCapital())
-                    .currentAsset(session.getTotalKrw())
+                    // v1.150 §3-3: 청산 대기가 있으면 기록 총자산은 현재 평가가 아니다 — currentAsset 을 비우고 마지막 기록값을 따로 준다.
+                    .currentAsset(pending > 0 ? null : session.getTotalKrw())
+                    .lastRecordedTotalKrw(pending > 0 ? session.getTotalKrw() : null)
                     .realizedPnl(sessionRealized)
                     .unrealizedPnl(pending > 0 ? null : sessionUnrealized)
                     .totalPnl(pending > 0 ? null : sessionPnl)
