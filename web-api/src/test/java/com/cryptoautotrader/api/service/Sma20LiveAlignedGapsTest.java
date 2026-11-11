@@ -441,7 +441,9 @@ class Sma20LiveAlignedGapsTest extends AbstractSma20SameInputFixture {
         // v1.147 (총괄 R2~R4 지시로 계약 변경): 가격 없는 시간 초과 판단은 LIVE 의 CLOSING 처럼 청산 대기로 남는다(종전 기대 OPEN).
         assertThat(pAfter.getStatus()).as("PAPER 는 청산 대기(체결가 없음)").isEqualTo("CLOSING");
         assertThat(pAfter.getExitReason()).as("결정한 사유가 저장된다").isEqualTo(ExitReason.TIME_STOP);
-        assertThat(decided).as("청산 판단 시각이 T1 안에 기록된다").isNotNull().isBetween(t1Start, t1End);
+        // 하한은 저장 정밀도(마이크로초)로 맞춘다 (2026-11-11, v1.150 재실행에서 같은 성질의 457행 실패 — 판단 시각은 제품이 MICROS 로 자르고,
+        // Windows Instant.now() 는 100ns 단위라 같은 마이크로초 안이면 잘린 값이 시작 시각보다 수백 ns 앞선다). 상한·범위는 그대로다.
+        assertThat(decided).as("청산 판단 시각이 T1 안에 기록된다").isNotNull().isBetween(t1Start.truncatedTo(ChronoUnit.MICROS), t1End);
         assertThat(sells.get(0).getCreatedAt()).isBetween(t1Start.minusSeconds(1), t1End.plusSeconds(1));
 
         // T2 — 첫 유효 현재가(실시간). PAPER 는 여기서 체결, 사유에 판단 시각과 체결가 시각이 따로 남는다.
@@ -454,7 +456,8 @@ class Sma20LiveAlignedGapsTest extends AbstractSma20SameInputFixture {
         assertThat(pClosed.getStatus()).isEqualTo("CLOSED");
         assertThat(pClosed.getExitReason()).isEqualTo(ExitReason.TIME_STOP);
         assertThat(pSell.getSignalReason()).contains("청산 판단 " + decided).contains("체결가 시각 ");
-        assertThat(pClosed.getClosedAt()).isAfterOrEqualTo(t2Start);
+        // closedAt 은 DB(마이크로초)에서 다시 읽은 값 — 하한을 같은 정밀도로 맞춘다(v1.150 재실행 실패 원문: 07:11:38.311612Z < 07:11:38.311612400Z).
+        assertThat(pClosed.getClosedAt()).isAfterOrEqualTo(t2Start.truncatedTo(ChronoUnit.MICROS));
         assertThat(pending).doesNotContainKey(ppos.getId());
         row("B04 가격 없는 시간 청산", "2 체결가 시각", "정산 시(폴러)", pClosed.getClosedAt(), false);
 
