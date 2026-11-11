@@ -69,6 +69,9 @@ class AbChainPgTest extends IntegrationTestBase {
         List<String> cmd = new ArrayList<>(List.of("python", "-X", "utf8", System.getenv("AB_CHAIN_DRIVER")));
         cmd.addAll(List.of(args));
         cmd.addAll(List.of("--out", out.toAbsolutePath().toString()));
+        // psql 이 읽을 DB 는 이 시험의 datasource 와 같아야 한다(3회차: 구동기 고정 이름으로 이전 DB 를 읽음).
+        String url = System.getenv("AB_CHAIN_PG_URL");
+        cmd.addAll(List.of("--db", url.substring(url.lastIndexOf('/') + 1)));
         Process p = new ProcessBuilder(cmd).redirectErrorStream(true).start();
         String text = new String(p.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
         assertThat(p.waitFor(120, TimeUnit.SECONDS)).isTrue();
