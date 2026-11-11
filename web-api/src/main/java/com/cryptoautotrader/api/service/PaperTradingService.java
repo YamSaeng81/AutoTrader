@@ -1530,7 +1530,8 @@ public class PaperTradingService {
             return RiskCheckResult.reject("초기 자본이 0 — 신규 진입 차단");
         }
         List<PaperPositionEntity> closed = positionRepo.findBySessionIdAndStatus(s.getId(), "CLOSED");
-        Instant now = Instant.now();
+        // 창의 기준 시각은 공통 시계(운영 기본 시스템 UTC — 동작 같음). 시험이 일/주/월 경계를 시계로 옮길 수 있게 한다 (2026-11-12, 총괄 v1.153 E).
+        Instant now = entryClock != null ? entryClock.now() : Instant.now();
         BigDecimal daily = alignedGrossLossPct(closed, now.minus(1, ChronoUnit.DAYS), cap);
         BigDecimal weekly = alignedGrossLossPct(closed, now.minus(7, ChronoUnit.DAYS), cap);
         BigDecimal monthly = alignedGrossLossPct(closed, now.minus(30, ChronoUnit.DAYS), cap);
