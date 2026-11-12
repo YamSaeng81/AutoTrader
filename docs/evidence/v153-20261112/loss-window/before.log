@@ -1,0 +1,61 @@
+> Task :strategy-lib:compileJava
+> Task :strategy-lib:processResources NO-SOURCE
+> Task :strategy-lib:classes
+> Task :strategy-lib:jar
+> Task :core-engine:compileJava
+> Task :core-engine:processResources NO-SOURCE
+> Task :core-engine:classes
+> Task :core-engine:jar
+> Task :exchange-adapter:compileJava
+> Task :exchange-adapter:processResources NO-SOURCE
+> Task :exchange-adapter:classes
+> Task :exchange-adapter:jar
+> Task :web-api:compileJava
+> Task :web-api:processResources
+> Task :web-api:classes
+> Task :web-api:compileTestJava
+> Task :web-api:processTestResources
+> Task :web-api:testClasses
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+
+> Task :web-api:test
+
+v1.154 §3 LIVE 일/주/월 손실 합산 ? 세션 매도 확정 손실 (로컬 PostgreSQL) > ① 실제 LIVE 손실 체결→확정 뒤 checkRisk ? 일일 한도(1.5%)를 넘는 세션 손실(2.00%)이면 진입 승인이 거절된다 FAILED
+    org.opentest4j.AssertionFailedError at LiveLossWindowPgTest.java:214
+
+v1.154 §3 LIVE 일/주/월 손실 합산 ? 세션 매도 확정 손실 (로컬 PostgreSQL) > ② 확정 전 0 · 확정 뒤 정확히 한 번(재확정·재시도에도) · 늦은 정정은 차분만 · FILL 행은 만들지 않는다 FAILED
+    org.opentest4j.AssertionFailedError at LiveLossWindowPgTest.java:240
+
+v1.154 §3 LIVE 일/주/월 손실 합산 ? 세션 매도 확정 손실 (로컬 PostgreSQL) > ③ 부분 매도 뒤 나머지 매도 ? 두 매도의 손실이 각각 한 번씩(1,000.50 + 2,000.00) FAILED
+    org.opentest4j.AssertionFailedError at LiveLossWindowPgTest.java:275
+
+v1.154 §3 LIVE 일/주/월 손실 합산 ? 세션 매도 확정 손실 (로컬 PostgreSQL) > ④ 확정 롤백(세션 갱신 실패) ? 합산 0, 실패 해소 뒤 재확정에서 한 번 FAILED
+    org.opentest4j.AssertionFailedError at LiveLossWindowPgTest.java:312
+
+v1.154 §3 LIVE 일/주/월 손실 합산 ? 세션 매도 확정 손실 (로컬 PostgreSQL) > ⑤ 이익 매도와 손실 매도 ? 손실만 합산(이익과 상쇄하지 않음) FAILED
+    org.opentest4j.AssertionFailedError at LiveLossWindowPgTest.java:332
+
+v1.154 §3 LIVE 일/주/월 손실 합산 ? 세션 매도 확정 손실 (로컬 PostgreSQL) > ⑦ 창 경계 ? 반영 시각 T 에서 since=T 포함(≥), since=T+1?s 제외 FAILED
+    org.opentest4j.AssertionFailedError at LiveLossWindowPgTest.java:385
+
+09:40:49.296 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+09:40:49.296 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+09:40:49.298 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+09:40:49.299 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+09:40:49.301 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+
+> Task :web-api:test FAILED
+
+7 tests completed, 6 failed
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':web-api:test'.
+> There were failing tests. See the report at: file:///D:/tmp/lossw-b5cd1d0/web-api/build/reports/tests/test/index.html
+
+* Try:
+> Run with --scan to get full insights.
+
+BUILD FAILED in 29s
+11 actionable tasks: 11 executed
