@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.DrainGapLateWorkerDiagTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-11-12T07:38:39" hostname="DESKTOP-SF1KUQ5" time="0.04">
+  <properties/>
+  <testcase name="waitingForBothPollersRestoresWindow()" classname="com.cryptoautotrader.api.service.DrainGapLateWorkerDiagTest" time="0.038"/>
+  <testcase name="lateSecondWorkerMakesActiveOne()" classname="com.cryptoautotrader.api.service.DrainGapLateWorkerDiagTest" time="0.002"/>
+  <system-out><![CDATA[[DIAG157-GAP] (b) 두 작업자 take 진입 확인 뒤 drained=true executed=false queue=0 active=0 tasks=0 completed=0 pool=2
+[DIAG157-GAP] (a) 두 번째 작업자 출발 전 drained=false executed=false queue=0 active=1 tasks=1 completed=0 pool=2
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,35 @@
+web-api tests 21 fail 6 err 0 skip 0 pass 15
+FAIL com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest # P6 LIVE 같은 코인 두 보호선(백분율 5%·절대 280) — 285.00025 점검 없음, 284 백분율 손절, 279 절대 손절: 매도 2
+    org.opentest4j.AssertionFailedError: [어느 보호선도 실제 발동하지 않는 시세 — 점검 없음] 
+Expecting actual:
+  [true, true]
+to contain exactly (and in same order):
+  [false, false]
+but some elements were not found:
+  [false, false]
+and others were not expected:
+  [true, true]
+
+FAIL com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest # P2 LIVE 백분율 손절(절대가 없음) — 286→285.00025→284(간격 안): 중간 미발동 시세는 점검하지 않고 284 점검·손절 1, 뒤 283 중복 0
+    org.opentest4j.AssertionFailedError: [285.00025 는 실제 판정(−4.9999%)상 미발동 — 판정 규칙과 같은 기준이면 조기 점검하지 않는다] 
+Expecting value to be false but was true
+FAIL com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest # P8 LIVE 백분율 — 0·낡은 280·285.00025 뒤 284: 앞 셋 점검·매도 없음, 284 점검·손절 1
+    org.opentest4j.AssertionFailedError: 
+Expecting value to be false but was true
+FAIL com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest # P7 DYNAMIC 백분율 — 0·낡은 280·285.00025 뒤 284: 앞 셋 점검·매도 없음, 284 점검·손절 1
+    org.opentest4j.AssertionFailedError: 
+Expecting value to be false but was true
+FAIL com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest # P1 DYNAMIC 백분율 손절(절대가 없음) — 286→285.00025→284(간격 안): 중간 미발동 시세는 점검하지 않고 284 점검·손절 1, 뒤 283 중복 0
+    org.opentest4j.AssertionFailedError: [285.00025 는 실제 판정(−4.9999%)상 미발동 — 판정 규칙과 같은 기준이면 조기 점검하지 않는다] 
+Expecting value to be false but was true
+FAIL com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest # P5 DYNAMIC 같은 코인 두 보호선(백분율 5%·절대 280) — 285.00025 점검 없음, 284 백분율 손절, 279 절대 손절: 매도 2
+    org.opentest4j.AssertionFailedError: [어느 보호선도 실제 발동하지 않는 시세 — 점검 없음] 
+Expecting actual:
+  [true, true]
+to contain exactly (and in same order):
+  [false, false]
+but some elements were not found:
+  [false, false]
+and others were not expected:
+  [true, true]
+

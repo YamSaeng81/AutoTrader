@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="A/B 실제 연결 v4 — HTTP 생성 8 → 지문 → psql 확인 → 완성 → psql 추출 → 집계, 음성(지문 없음·복수·T0 전 거래·저장값 불일치)" tests="1" skipped="0" failures="1" errors="0" timestamp="2026-11-12T07:36:32" hostname="DESKTOP-SF1KUQ5" time="0.001">
+  <properties/>
+  <testcase name="initializationError" classname="com.cryptoautotrader.api.service.AbChainV4PgTest" time="0.001">
+    <failure message="java.lang.AssertionError: [AB_CHAIN_ROLE=main 은 AB_CHAIN_OTHER_DB(같은 ID 를 가진 다른 실제 DB) 필요] &#13;&#10;Expecting not blank but was: null" type="java.lang.AssertionError">java.lang.AssertionError: [AB_CHAIN_ROLE=main 은 AB_CHAIN_OTHER_DB(같은 ID 를 가진 다른 실제 DB) 필요] 
+Expecting not blank but was: null
+	at com.cryptoautotrader.api.service.AbChainV4PgTest.preflight(AbChainV4PgTest.java:100)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <system-out><![CDATA[16:36:31.853 [Test worker] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.cryptoautotrader.api.service.AbChainV4PgTest]: AbChainV4PgTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+16:36:32.097 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.AbChainV4PgTest
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

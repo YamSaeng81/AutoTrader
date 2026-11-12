@@ -1,0 +1,113 @@
+package com.cryptoautotrader.api.service;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+/**
+ * v1.157 §125-4 진단(커밋 안 함) — OrderExecutorDrainPredicateGapTest ① 의 int155-full 실패(active=1·tasks=1·completed=0·queue=0)를
+ * 결정적으로 재현한다. prestartAllCoreThreads 로 만든 두 작업자 중 <b>두 번째의 출발</b>만 붙잡는다(부하로 늦게 스케줄된 상황).
+ * (a) 그 상태에서 ① 순서 그대로 → 옛 조건 거짓·active=1. (b) 두 작업자 모두 대기열 앞(take 진입)에 온 것을 확인한 뒤 같은 순서 → 옛 조건 참.
+ */
+class DrainGapLateWorkerDiagTest {
+
+    private static final class Ex extends ThreadPoolTaskExecutor {
+        final CountDownLatch dequeued = new CountDownLatch(1);
+        final CountDownLatch allowWorker = new CountDownLatch(1);
+        final CountDownLatch polling = new CountDownLatch(2);
+        final CountDownLatch secondStart = new CountDownLatch(1);
+        final AtomicInteger made = new AtomicInteger();
+        private final ThreadLocal<Boolean> seen = ThreadLocal.withInitial(() -> false);
+
+        Ex() {
+            setCorePoolSize(2);
+            setMaxPoolSize(4);
+            setQueueCapacity(50);
+            setThreadFactory(r -> {
+                int n = made.incrementAndGet();
+                return new Thread(() -> {
+                    if (n == 2) {
+                        try { secondStart.await(); } catch (InterruptedException e) { Thread.currentThread().interrupt(); return; }
+                    }
+                    r.run();
+                }, "late-" + n);
+            });
+            initialize();
+        }
+
+        @Override
+        protected BlockingQueue<Runnable> createQueue(int queueCapacity) {
+            return new LinkedBlockingQueue<>(queueCapacity) {
+                @Override
+                public Runnable take() throws InterruptedException {
+                    if (!seen.get()) { seen.set(true); polling.countDown(); }
+                    Runnable task = super.take();
+                    dequeued.countDown();
+                    allowWorker.await();
+                    return task;
+                }
+            };
+        }
+    }
+
+    private static boolean oldPredicate(ThreadPoolExecutor pool) {
+        return pool.getQueue().isEmpty() && pool.getActiveCount() == 0 && pool.getTaskCount() == pool.getCompletedTaskCount();
+    }
+
+    private static String line(String at, ThreadPoolExecutor pool, boolean drained, AtomicBoolean executed) {
+        return "[DIAG157-GAP] " + at + " drained=" + drained + " executed=" + executed.get() + " queue=" + pool.getQueue().size()
+                + " active=" + pool.getActiveCount() + " tasks=" + pool.getTaskCount() + " completed=" + pool.getCompletedTaskCount()
+                + " pool=" + pool.getPoolSize();
+    }
+
+    @Test
+    void lateSecondWorkerMakesActiveOne() throws Exception {
+        Ex ex = new Ex();
+        try {
+            ThreadPoolExecutor pool = ex.getThreadPoolExecutor();
+            assertThat(pool.prestartAllCoreThreads()).isEqualTo(2);
+            AtomicBoolean executed = new AtomicBoolean();
+            ex.execute(() -> executed.set(true));
+            assertThat(ex.dequeued.await(5, TimeUnit.SECONDS)).isTrue();
+            boolean drained = oldPredicate(pool);
+            System.out.println(line("(a) 두 번째 작업자 출발 전", pool, drained, executed));
+            assertThat(drained).isFalse();
+            assertThat(pool.getActiveCount()).isEqualTo(1);
+        } finally {
+            ex.secondStart.countDown();
+            ex.allowWorker.countDown();
+            ex.shutdown();
+        }
+    }
+
+    @Test
+    void waitingForBothPollersRestoresWindow() throws Exception {
+        Ex ex = new Ex();
+        try {
+            ThreadPoolExecutor pool = ex.getThreadPoolExecutor();
+            assertThat(pool.prestartAllCoreThreads()).isEqualTo(2);
+            ex.secondStart.countDown();   // 늦게라도 출발 — 보완 대기는 두 작업자의 take 진입을 확인한다(시간 대기 아님)
+            assertThat(ex.polling.await(5, TimeUnit.SECONDS)).as("두 작업자 모두 대기열 앞").isTrue();
+            AtomicBoolean executed = new AtomicBoolean();
+            ex.execute(() -> executed.set(true));
+            assertThat(ex.dequeued.await(5, TimeUnit.SECONDS)).isTrue();
+            boolean drained = oldPredicate(pool);
+            System.out.println(line("(b) 두 작업자 take 진입 확인 뒤", pool, drained, executed));
+            assertThat(drained).isTrue();
+            assertThat(executed.get()).isFalse();
+        } finally {
+            ex.secondStart.countDown();
+            ex.allowWorker.countDown();
+            ex.shutdown();
+        }
+    }
+}

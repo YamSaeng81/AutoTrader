@@ -1,0 +1,28 @@
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
+index 9a39e37b..4181f86e 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
+@@ -3085,7 +3085,10 @@ public class LiveTradingService {
+         // closeIfOpen 은 status/closedAt 만 변경했으므로 나머지 손익 필드를 반영
+         pos.setStatus("CLOSED");
+         pos.setClosedAt(Instant.now());
+-        pos.setRealizedPnl(realizedPnl);
++        // 🔴 누적한다 (총괄 v1.157 §125-7) — 부분 매도로 이미 확정한 실현손익(주문 행 원천에도 있다)을 덮어 지우지 않는다.
++        //    이 값은 확정분 + 남은 수량의 추정분이다. 추정분은 주문 행이 없어 전역 확정 손실 합(주문 원천)에 들어가지 않는다.
++        final BigDecimal confirmedBefore = nzFee(pos.getRealizedPnl());
++        pos.setRealizedPnl(confirmedBefore.add(realizedPnl));
+         pos.setPositionFee(nzFee(pos.getPositionFee()).add(fee));   // 누적 (2026-10-14, 매도 확정과 같은 규칙)
+         pos.setUnrealizedPnl(BigDecimal.ZERO);
+         positionRepository.save(pos);
+@@ -3106,9 +3109,9 @@ public class LiveTradingService {
+             }
+         });
+ 
+-        log.warn("[§15] 팬텀 포지션 청산 확정 (추정가 기반): posId={} {} {}개 추정체결가={} 추정손익={} 수수료={} (거래소보유={}). "
++        log.warn("[§15] 팬텀 포지션 청산 확정 (추정가 기반): posId={} {} {}개 추정체결가={} 추정손익={} 수수료={} (거래소보유={}, 앞선 확정 실현손익={}). "
+                         + "실제 체결가는 알 수 없어 추정값으로 기록 — 수동 확인 권장.",
+-                pos.getId(), pos.getCoinPair(), soldQty, exitPrice, realizedPnl, fee, exchangeHeld);
++                pos.getId(), pos.getCoinPair(), soldQty, exitPrice, realizedPnl, fee, exchangeHeld, confirmedBefore);
+ 
+         telegramService.sendCustomNotification(String.format(
+                 "🔧 팬텀 포지션 자동 정리: 세션 %d %s%n" +

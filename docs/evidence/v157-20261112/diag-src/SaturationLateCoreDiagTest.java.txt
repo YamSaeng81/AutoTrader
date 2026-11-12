@@ -1,0 +1,81 @@
+package com.cryptoautotrader.api.service;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+/**
+ * v1.157 §125-4 진단(커밋 안 함) — SharedMarketDataExecutorSaturationTest "대기열 가득 expected 0 but 100" 재현.
+ * marketDataExecutor 와 같은 설정(코어 2·최대 4·대기열 100). 장벽이 코어 작업자를 미리 띄운 상태에서, 코어 작업자가 대기열의 차단 작업을
+ * 늦게 꺼내면(부하) 빈 작업이 대기열을 넘쳐 비코어 작업자가 빈 작업을 처리하고, 차단 작업 3·4 는 대기열을 거쳐 실행된다.
+ * (a) 코어 꺼냄을 빈 작업 제출 뒤까지 붙잡기 → 대기열 남은 용량 100. (b) 코어 차단 작업 실행을 확인한 뒤 빈 작업 제출 → 0.
+ */
+class SaturationLateCoreDiagTest {
+
+    private static final class Ex extends ThreadPoolTaskExecutor {
+        final CountDownLatch allowCoreTake = new CountDownLatch(1);
+        Ex(boolean gate) {
+            setCorePoolSize(2); setMaxPoolSize(4); setQueueCapacity(100);
+            if (!gate) allowCoreTake.countDown();
+            initialize();
+        }
+        @Override
+        protected BlockingQueue<Runnable> createQueue(int queueCapacity) {
+            return new LinkedBlockingQueue<>(queueCapacity) {
+                @Override public Runnable take() throws InterruptedException {
+                    allowCoreTake.await();   // take() 는 코어 작업자만 쓴다(비코어는 poll(keepAlive))
+                    return super.take();
+                }
+            };
+        }
+    }
+
+    private int run(boolean gate, boolean awaitCoreRunning) throws Exception {
+        Ex ex = new Ex(gate);
+        ThreadPoolExecutor pool = ex.getThreadPoolExecutor();
+        CountDownLatch release = new CountDownLatch(1);
+        try {
+            pool.prestartAllCoreThreads();                 // ExecutorBarrier.awaitPriorTasks 와 같은 상태
+            int core = pool.getCorePoolSize(), max = pool.getMaximumPoolSize();
+            int qcap = pool.getQueue().remainingCapacity();
+            CountDownLatch running = new CountDownLatch(max);
+            CountDownLatch coreRunning = new CountDownLatch(core);
+            Runnable blocker = () -> { running.countDown(); coreRunning.countDown();
+                try { release.await(60, TimeUnit.SECONDS); } catch (InterruptedException e) { Thread.currentThread().interrupt(); } };
+            for (int i = 0; i < core; i++) pool.submit(blocker);
+            if (awaitCoreRunning) {
+                if (gate) ex.allowCoreTake.countDown();
+                assertThat(coreRunning.await(10, TimeUnit.SECONDS)).isTrue();
+            }
+            for (int i = 0; i < qcap; i++) pool.submit(() -> { });
+            if (gate && !awaitCoreRunning) ex.allowCoreTake.countDown();   // 부하로 늦게 깨어난 코어 작업자
+            for (int i = core; i < max; i++) pool.submit(blocker);
+            assertThat(running.await(10, TimeUnit.SECONDS)).isTrue();
+            int remaining = pool.getQueue().remainingCapacity();
+            System.out.println("[DIAG157-SAT] gate=" + gate + " awaitCoreRunning=" + awaitCoreRunning + " pool=" + pool.getPoolSize()
+                    + " active=" + pool.getActiveCount() + " queue=" + pool.getQueue().size() + " remaining=" + remaining);
+            return remaining;
+        } finally {
+            release.countDown();
+            ex.allowCoreTake.countDown();
+            ex.shutdown();
+        }
+    }
+
+    @Test
+    void lateCoreTakeLeavesQueueEmpty() throws Exception {
+        assertThat(run(true, false)).isEqualTo(100);
+    }
+
+    @Test
+    void awaitingCoreBlockersFillsQueue() throws Exception {
+        assertThat(run(true, true)).isZero();
+    }
+}

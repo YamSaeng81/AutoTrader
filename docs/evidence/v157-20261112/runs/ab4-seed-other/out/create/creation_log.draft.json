@@ -1,0 +1,99 @@
+{
+  "status": "API 초안 — DB 확인 전(ab_complete.py v4 로 완성)",
+  "tool_version": "v4",
+  "protocol_sha256": "8d787fe9d8c6d6bec00a588e38c6d638a97be9faf3709875b1670d71eae5d3db",
+  "code_sha": "5f19554245404ed471470eb6bd544d1066b2a5d0",
+  "t0": "2026-11-12T07:45:00+00:00",
+  "db_verified": false,
+  "api_reconcile_ok": true,
+  "created_at_source": "POST 응답 data.startedAt 원문(정밀도 보존)",
+  "api_stored_started_at_source": "생성 뒤 GET 목록의 같은 ID startedAt 원문(DB 재조회 값)",
+  "precision_contract": "round_half_up(나노초→마이크로초)(post_started_at_raw) == api_stored_started_at",
+  "sessions": [
+    {
+      "pair_id": "P1",
+      "arm": "A",
+      "session_id": "2",
+      "created_at": "2026-11-12T07:36:58.204089Z",
+      "post_started_at_raw": "2026-11-12T07:36:58.204089Z",
+      "api_stored_started_at": "2026-11-12T07:36:58.204089Z",
+      "ruleset_hash": null,
+      "stored": null
+    },
+    {
+      "pair_id": "P1",
+      "arm": "B",
+      "session_id": "3",
+      "created_at": "2026-11-12T07:36:58.247367100Z",
+      "post_started_at_raw": "2026-11-12T07:36:58.247367100Z",
+      "api_stored_started_at": "2026-11-12T07:36:58.247367Z",
+      "ruleset_hash": null,
+      "stored": null
+    },
+    {
+      "pair_id": "P2",
+      "arm": "A",
+      "session_id": "4",
+      "created_at": "2026-11-12T07:36:58.293415Z",
+      "post_started_at_raw": "2026-11-12T07:36:58.293415Z",
+      "api_stored_started_at": "2026-11-12T07:36:58.293415Z",
+      "ruleset_hash": null,
+      "stored": null
+    },
+    {
+      "pair_id": "P2",
+      "arm": "B",
+      "session_id": "5",
+      "created_at": "2026-11-12T07:36:58.314464100Z",
+      "post_started_at_raw": "2026-11-12T07:36:58.314464100Z",
+      "api_stored_started_at": "2026-11-12T07:36:58.314464Z",
+      "ruleset_hash": null,
+      "stored": null
+    },
+    {
+      "pair_id": "P3",
+      "arm": "A",
+      "session_id": "6",
+      "created_at": "2026-11-12T07:36:58.352965100Z",
+      "post_started_at_raw": "2026-11-12T07:36:58.352965100Z",
+      "api_stored_started_at": "2026-11-12T07:36:58.352965Z",
+      "ruleset_hash": null,
+      "stored": null
+    },
+    {
+      "pair_id": "P3",
+      "arm": "B",
+      "session_id": "7",
+      "created_at": "2026-11-12T07:36:58.382809Z",
+      "post_started_at_raw": "2026-11-12T07:36:58.382809Z",
+      "api_stored_started_at": "2026-11-12T07:36:58.382809Z",
+      "ruleset_hash": null,
+      "stored": null
+    },
+    {
+      "pair_id": "P4",
+      "arm": "A",
+      "session_id": "8",
+      "created_at": "2026-11-12T07:36:58.400392400Z",
+      "post_started_at_raw": "2026-11-12T07:36:58.400392400Z",
+      "api_stored_started_at": "2026-11-12T07:36:58.400392Z",
+      "ruleset_hash": null,
+      "stored": null
+    },
+    {
+      "pair_id": "P4",
+      "arm": "B",
+      "session_id": "9",
+      "created_at": "2026-11-12T07:36:58.419972500Z",
+      "post_started_at_raw": "2026-11-12T07:36:58.419972500Z",
+      "api_stored_started_at": "2026-11-12T07:36:58.419973Z",
+      "ruleset_hash": null,
+      "stored": null
+    }
+  ],
+  "checks": {
+    "api_reconcile_problems": [],
+    "created_at_not_before_t0": [],
+    "precision_contract_failed": []
+  }
+}

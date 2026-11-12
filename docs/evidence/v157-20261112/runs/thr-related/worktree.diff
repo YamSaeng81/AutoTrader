@@ -1,0 +1,229 @@
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
+index 24313c46..56e8ba1e 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
+@@ -328,14 +328,11 @@ public class DynamicTradingService {
+     private static final long RT_CHECK_INTERVAL_MS = 5_000;
+ 
+     /**
+-     * 보호선 첫 통과 (총괄 v1.155 §4-2, 2026-11-12, LIVE 처리기와 같은 규칙) — 코인별로 마지막 전체 점검이 본 OPEN 포지션의
+-     * 손절 발동가 최댓값(floor)·익절가 최솟값(ceiling). 5초 간격 안이라도 유효 시세가 floor 를 위에서 아래로, 또는 ceiling 을
+-     * 아래에서 위로 처음 넘으면 그 한 번은 점검한다. 매 틱 DB 조회 없음 — 그 뒤 새로 열린 포지션은 다음 정기 점검부터(한계).
++     * 보호선 첫 발동 (총괄 v1.155 §4-2 → v1.157 §125, LIVE 처리기와 같은 규칙) — 마지막 전체 점검 뒤 OPEN 으로 남은 포지션의 실제 판정
++     * 입력. 5초 간격 안이라도 어떤 보호선을 실제 판정 규칙대로 처음 발동하는 유효 시세는 한 번 점검한다. 매 틱 DB 조회 없음 —
++     * 그 뒤 새로 열린 포지션은 다음 정기 점검부터(한계). {@link RealtimeProtectLines}
+      */
+-    private final Map<String, BigDecimal> rtProtectFloor = new ConcurrentHashMap<>();
+-    private final Map<String, BigDecimal> rtProtectCeiling = new ConcurrentHashMap<>();
+-    private final Map<String, BigDecimal> rtLastValidPrice = new ConcurrentHashMap<>();
+-    private static final BigDecimal PROTECT_FLOOR_SLACK = new BigDecimal("1.000001");
++    private final RealtimeProtectLines rtProtect = new RealtimeProtectLines();
+ 
+     /**
+      * 세션별 마지막 실시간(WS) SL/TP 점검 시각 — {@link #warnStaleSlCheck} 미점검 경고용.
+@@ -3456,7 +3453,7 @@ public class DynamicTradingService {
+         if (!firstCross && lastMs != null && now - lastMs < RT_CHECK_INTERVAL_MS) return;
+         rtCheckLastMs.put(coinCode, now);
+ 
+-        ProtectBounds next = new ProtectBounds();
++        RealtimeProtectLines.Collector next = rtProtect.collector();
+         List<DynamicSessionEntity> sessions = dynamicSessionRepo.findByStatus("RUNNING");
+         for (DynamicSessionEntity session : sessions) {
+             // 2026-08-31: PAPER 도 여기 들어온다 — LIVE 와 같은 5초 주기로 SL/TP 를 본다.
+@@ -3477,12 +3474,10 @@ public class DynamicTradingService {
+ 
+             recordSlCheck(session.getId());
+ 
+-            BigDecimal pnlPct = price.subtract(pos.getAvgPrice())
+-                    .divide(pos.getAvgPrice(), 6, RoundingMode.HALF_UP)
+-                    .multiply(BigDecimal.valueOf(100));
++            BigDecimal pnlPct = RealtimeProtectLines.pnlPct(price, pos.getAvgPrice());
+ 
+             // 익절
+-            if (pos.getTakeProfitPrice() != null && price.compareTo(pos.getTakeProfitPrice()) >= 0) {
++            if (RealtimeProtectLines.takeProfitHit(price, pos.getTakeProfitPrice())) {
+                 log.info("[Dynamic] 실시간 익절(WS): {} @ {} pnl={}% (id={})",
+                         coinCode, price, pnlPct, session.getId());
+                 executeSell(session, pos, price,
+@@ -3492,10 +3487,9 @@ public class DynamicTradingService {
+             }
+ 
+             // 손절
+-            BigDecimal slNeg = session.getStopLossPct().negate();
+-            boolean slTriggered = pos.getStopLossPrice() != null
+-                    ? price.compareTo(pos.getStopLossPrice()) <= 0
+-                    : pnlPct.compareTo(slNeg) <= 0;
++            // 절대 손절가 우선, 없으면 손익률 ≤ −손절% — 판정 규칙은 첫 발동 판단과 같은 메서드다(v1.157 §125).
++            boolean slTriggered = RealtimeProtectLines.stopHit(
++                    price, pos.getAvgPrice(), pos.getStopLossPrice(), session.getStopLossPct());
+             if (slTriggered) {
+                 // O3 (2026-11-07 총괄 v1.134): REST 폴백 시세도 이 처리기를 지난다 — 출처를 단정하지 않는 '실시간 손절'.
+                 log.warn("[Dynamic] 실시간 손절: {} @ {} pnl={}% (id={})",
+@@ -3504,47 +3498,20 @@ public class DynamicTradingService {
+                 executeSell(session, pos, price, "실시간 손절 — pnl " + pnlPct + "%", ExitReason.STOP_LOSS);
+                 continue;
+             }
+-            next.add(pos, session.getStopLossPct());   // 이번 점검 뒤에도 보유 — 다음 첫 통과 판정의 기준
++            // 이번 점검 뒤에도 보유 — 다음 첫 발동 판단의 기준(실제 판정 입력 그대로)
++            next.add(pos.getAvgPrice(), pos.getStopLossPrice(), session.getStopLossPct(), pos.getTakeProfitPrice());
+         }
+         next.store(coinCode);
+     }
+ 
+     /**
+-     * v1.155 §4-2 — 직전 유효 시세에서 이번 유효 시세로 손절 발동가(floor)를 위→아래, 또는 익절가(ceiling)를 아래→위로 처음 넘었는가.
++     * v1.157 §125 — 이번 유효 시세가 남아 있는 보호선 중 하나를 실제 판정 규칙대로 처음 발동하는가(직전 유효 시세에서는 미발동).
+      * 직전 유효 시세를 갱신한다(낡은·비가격 시세는 이 앞에서 버려져 여기 오지 않는다).
+      */
+     private boolean protectFirstCross(String coinCode, BigDecimal price) {
+-        BigDecimal prevValid = rtLastValidPrice.put(coinCode, price);
+-        BigDecimal floor = rtProtectFloor.get(coinCode);
+-        BigDecimal ceiling = rtProtectCeiling.get(coinCode);
+-        boolean cross = (floor != null && price.compareTo(floor) <= 0 && (prevValid == null || prevValid.compareTo(floor) > 0))
+-                || (ceiling != null && price.compareTo(ceiling) >= 0 && (prevValid == null || prevValid.compareTo(ceiling) < 0));
+-        if (cross) {
+-            log.info("[Dynamic] 보호선 첫 통과 — 점검 간격과 무관하게 점검: {} {} (손절 발동가 {}, 익절가 {}, 직전 {})",
+-                    coinCode, price, floor, ceiling, prevValid);
+-        }
+-        return cross;
+-    }
+-
+-    /** 한 번의 전체 점검 뒤에도 OPEN 으로 남는 포지션의 손절 발동가 최댓값·익절가 최솟값. */
+-    private final class ProtectBounds {
+-        private BigDecimal floor;
+-        private BigDecimal ceiling;
+-
+-        void add(PositionEntity pos, BigDecimal stopLossPct) {
+-            BigDecimal trigger = pos.getStopLossPrice() != null ? pos.getStopLossPrice()
+-                    : (stopLossPct == null || pos.getAvgPrice() == null ? null
+-                        : pos.getAvgPrice().multiply(BigDecimal.ONE.subtract(stopLossPct.movePointLeft(2))).multiply(PROTECT_FLOOR_SLACK));
+-            if (trigger != null) floor = floor == null ? trigger : floor.max(trigger);
+-            if (pos.getTakeProfitPrice() != null) {
+-                ceiling = ceiling == null ? pos.getTakeProfitPrice() : ceiling.min(pos.getTakeProfitPrice());
+-            }
+-        }
+-
+-        void store(String coinCode) {
+-            if (floor != null) rtProtectFloor.put(coinCode, floor); else rtProtectFloor.remove(coinCode);
+-            if (ceiling != null) rtProtectCeiling.put(coinCode, ceiling); else rtProtectCeiling.remove(coinCode);
+-        }
++        boolean hit = rtProtect.firstHit(coinCode, price);
++        if (hit) log.info("[Dynamic] 보호선 첫 발동 — 점검 간격과 무관하게 점검: {} {}", coinCode, price);
++        return hit;
+     }
+ 
+     /** §9 — SL 점검 시각 기록 ({@link #doOnRealtimePriceEvent} 내부에서만 호출). */
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
+index cbf3d413..6a9b2183 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
+@@ -196,15 +196,11 @@ public class LiveTradingService {
+     private final Map<String, Long> spikeCheckLastMs = new ConcurrentHashMap<>();
+ 
+     /**
+-     * 보호선 첫 통과 (총괄 v1.155 §4-2, 2026-11-12) — 코인별로 마지막 전체 점검이 본 OPEN 포지션 손절 발동가 중 가장 높은 값.
+-     * 점검 간격(5초/1초) 안이라도 유효 시세가 이 값을 위에서 아래로 처음 넘으면 그 한 번은 점검한다. 매 틱 DB 조회를 하지 않고
+-     * 마지막 점검 결과만 쓴다 — 그 뒤 새로 열린 포지션은 다음 정기 점검(최대 5초)부터 반영된다(한계).
++     * 보호선 첫 발동 (총괄 v1.155 §4-2 → v1.157 §125) — 마지막 전체 점검 뒤 OPEN 으로 남은 포지션의 실제 손절 판정 입력.
++     * 점검 간격(5초/1초) 안이라도 어떤 보호선을 실제 판정 규칙대로 처음 발동하는 유효 시세는 한 번 점검한다. 매 틱 DB 조회를 하지 않고
++     * 마지막 점검 결과만 쓴다 — 그 뒤 새로 열린 포지션은 다음 정기 점검(최대 5초)부터 반영된다(한계). {@link RealtimeProtectLines}
+      */
+-    private final Map<String, BigDecimal> rtProtectFloor = new ConcurrentHashMap<>();
+-    /** 코인별 직전 유효 시세(낡은·비가격 시세는 넣지 않는다) — 첫 통과 판정용. */
+-    private final Map<String, BigDecimal> rtLastValidPrice = new ConcurrentHashMap<>();
+-    /** 백분율 손절의 발동가 근사 여유 — 판정 자체는 기존 규칙이 한다. 이 값은 점검을 부를지만 정한다(조금 일찍 불러도 무해). */
+-    private static final BigDecimal PROTECT_FLOOR_SLACK = new BigDecimal("1.000001");
++    private final RealtimeProtectLines rtProtect = new RealtimeProtectLines();
+     private static final long SPIKE_WINDOW_MS        = 30_000;   // 감지 윈도우 30초
+     private static final long SPIKE_HISTORY_TTL_MS   = 60_000;   // 버퍼 보존 60초
+     private static final long SPIKE_CHECK_INTERVAL_MS = 1_000;   // 급등락 시 1초 throttle
+@@ -3417,13 +3413,11 @@ public class LiveTradingService {
+         boolean spikeDown = spikeRate.compareTo(SPIKE_DOWN_THRESHOLD) <= 0;
+         boolean spikeUp   = spikeRate.compareTo(SPIKE_UP_THRESHOLD) >= 0;
+ 
+-        // 3. throttle — 급등락 시 1초, 평상시 5초. 단, 손절 발동가를 처음 넘은 유효 시세는 간격과 무관하게 한 번 점검한다(v1.155 §4-2).
+-        BigDecimal prevValid = rtLastValidPrice.put(coinCode, price);
+-        BigDecimal floor = rtProtectFloor.get(coinCode);
+-        boolean firstCross = floor != null && price.compareTo(floor) <= 0
+-                && (prevValid == null || prevValid.compareTo(floor) > 0);
++        // 3. throttle — 급등락 시 1초, 평상시 5초. 단, 남은 보호선을 실제 손절 판정 규칙대로 처음 발동하는 유효 시세는
++        //    간격과 무관하게 한 번 점검한다(v1.155 §4-2 → v1.157 §125: 근사선 조기 점검이 실제 첫 발동을 소비하지 않는다).
++        boolean firstCross = rtProtect.firstHit(coinCode, price);
+         if (firstCross) {
+-            log.info("보호선 첫 통과 — 점검 간격과 무관하게 점검: {} {} (발동가 {}, 직전 {})", coinCode, price, floor, prevValid);
++            log.info("보호선 첫 발동 — 점검 간격과 무관하게 점검: {} {}", coinCode, price);
+         } else if (spikeDown || spikeUp) {
+             Long lastSpike = spikeCheckLastMs.get(coinCode);
+             if (lastSpike != null && now - lastSpike < SPIKE_CHECK_INTERVAL_MS) return;
+@@ -3437,7 +3431,7 @@ public class LiveTradingService {
+         rtStopLossLastCheckMs.put(coinCode, now);
+ 
+         List<LiveTradingSessionEntity> sessions = sessionRepository.findByStatus("RUNNING");
+-        BigDecimal nextFloor = null;   // 이번 점검 뒤에도 OPEN 으로 남는 포지션의 손절 발동가 최댓값
++        RealtimeProtectLines.Collector nextLines = rtProtect.collector();   // 이번 점검 뒤에도 OPEN 으로 남는 포지션의 손절 판정 입력
+         for (LiveTradingSessionEntity session : sessions) {
+             if (!coinCode.equals(session.getCoinPair())) continue;
+ 
+@@ -3448,9 +3442,7 @@ public class LiveTradingService {
+             PositionEntity pos = openPos.get();
+             if (pos.getAvgPrice() == null || pos.getAvgPrice().compareTo(BigDecimal.ZERO) <= 0) continue;
+ 
+-            BigDecimal pnlPct = price.subtract(pos.getAvgPrice())
+-                    .divide(pos.getAvgPrice(), 6, RoundingMode.HALF_UP)
+-                    .multiply(BigDecimal.valueOf(100));
++            BigDecimal pnlPct = RealtimeProtectLines.pnlPct(price, pos.getAvgPrice());
+ 
+             BigDecimal stopLossPct = session.getStopLossPct() != null
+                     ? session.getStopLossPct() : exitConfig().getStopLossPct();
+@@ -3458,10 +3450,8 @@ public class LiveTradingService {
+             // §9 SL 점검 시각 기록
+             recordSlCheck(session.getId());
+ 
+-            // 기존 손절 체크 (stopLossPrice 절대가 우선, 없으면 stopLossPct %)
+-            boolean slTriggered = (pos.getStopLossPrice() != null)
+-                    ? price.compareTo(pos.getStopLossPrice()) <= 0
+-                    : pnlPct.compareTo(stopLossPct.negate()) <= 0;
++            // 기존 손절 체크 (stopLossPrice 절대가 우선, 없으면 stopLossPct %) — 첫 발동 판단과 같은 메서드(v1.157 §125)
++            boolean slTriggered = RealtimeProtectLines.stopHit(price, pos.getAvgPrice(), pos.getStopLossPrice(), stopLossPct);
+ 
+             if (slTriggered) {
+                 // O3 (2026-11-07 총괄 v1.134): REST 폴백 시세도 이 처리기를 지난다 — 출처를 단정하지 않는 '실시간 손절'.
+@@ -3472,11 +3462,13 @@ public class LiveTradingService {
+                         ExitReason.STOP_LOSS)) {
+                     telegramService.notifyStopLoss(coinCode, pnlPct.doubleValue(), session.getId());
+                 } else {
+-                    nextFloor = maxFloor(nextFloor, stopTriggerPrice(pos, stopLossPct));   // 매도 실패 — 계속 보유
++                    // 매도 실패 — 계속 보유. 이미 발동 구간이라 다음 시세는 첫 발동이 아니고 종전 간격대로 다시 점검한다(유계).
++                    nextLines.add(pos.getAvgPrice(), pos.getStopLossPrice(), stopLossPct, null);
+                 }
+                 continue;
+             }
+-            nextFloor = maxFloor(nextFloor, stopTriggerPrice(pos, stopLossPct));
++            // LIVE 실시간 처리기는 익절로 매도하지 않는다(익절가는 아래 트레일링만) — 손절 판정 입력만 남긴다.
++            nextLines.add(pos.getAvgPrice(), pos.getStopLossPrice(), stopLossPct, null);
+ 
+             // 급락 처리 — 2026-08-06 제거. SL을 좁히지 않는다.
+             //
+@@ -3512,21 +3504,7 @@ public class LiveTradingService {
+                 }
+             }
+         }
+-        if (nextFloor != null) rtProtectFloor.put(coinCode, nextFloor);
+-        else rtProtectFloor.remove(coinCode);
+-    }
+-
+-    /** 손절 발동가 — 절대가가 있으면 그것, 없으면 평균가 × (1 − 손절%) 에 근사 여유(점검을 부를지만 정한다). */
+-    private static BigDecimal stopTriggerPrice(PositionEntity pos, BigDecimal stopLossPct) {
+-        if (pos.getStopLossPrice() != null) return pos.getStopLossPrice();
+-        if (stopLossPct == null || pos.getAvgPrice() == null) return null;
+-        return pos.getAvgPrice().multiply(BigDecimal.ONE.subtract(stopLossPct.movePointLeft(2))).multiply(PROTECT_FLOOR_SLACK);
+-    }
+-
+-    private static BigDecimal maxFloor(BigDecimal a, BigDecimal b) {
+-        if (a == null) return b;
+-        if (b == null) return a;
+-        return a.max(b);
++        nextLines.store(coinCode);
+     }
+ 
+     private void updatePriceHistory(String coin, BigDecimal price, long nowMs) {

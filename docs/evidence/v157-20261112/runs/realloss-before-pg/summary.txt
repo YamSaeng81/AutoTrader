@@ -1,0 +1,4 @@
+web-api tests 3 fail 1 err 0 skip 0 pass 2
+FAIL com.cryptoautotrader.api.service.RealLossGlobalPgTest # ① 실패 재현 — LIVE 10만·DYNAMIC REAL 10만 RUNNING, DYNAMIC REAL 확정 손실 2건(−4,002 = 초안 분모 20만의 2.0%) > 일일 1.5% 인데 checkRisk 승인
+    org.opentest4j.AssertionFailedError: [초안: DYNAMIC REAL 확정 손실 4,002 / (10만+10만) = 2.0% > 1.5% — 거절이어야 한다] 
+Expecting value to be false but was true

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.SaturationLateCoreDiagTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-11-12T07:48:46" hostname="DESKTOP-SF1KUQ5" time="0.122">
+  <properties/>
+  <testcase name="awaitingCoreBlockersFillsQueue()" classname="com.cryptoautotrader.api.service.SaturationLateCoreDiagTest" time="0.12"/>
+  <testcase name="lateCoreTakeLeavesQueueEmpty()" classname="com.cryptoautotrader.api.service.SaturationLateCoreDiagTest" time="0.001"/>
+  <system-out><![CDATA[[DIAG157-SAT] gate=true awaitCoreRunning=true pool=4 active=4 queue=100 remaining=0
+[DIAG157-SAT] gate=true awaitCoreRunning=false pool=4 active=4 queue=0 remaining=100
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,231 @@
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/RealtimeThrottleCrossingTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/RealtimeThrottleCrossingTest.java
+index 933fd06e..402586d1 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/RealtimeThrottleCrossingTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/RealtimeThrottleCrossingTest.java
+@@ -113,7 +113,18 @@ class RealtimeThrottleCrossingTest extends IntegrationTestBase {
+ 
+     /** 실행 중 실자금 세션 + 수량 9.8·진입 300·손절가 285(익절가 tp, null 이면 없음) OPEN 포지션. */
+     private Fx holding(String kind, BigDecimal tp) {
+-        String coin = "KRW-T" + COIN_SEQ.incrementAndGet() + "X" + (System.nanoTime() % 100000);
++        return holding(kind, tp, new BigDecimal("285"), newCoin());
++    }
++
++    private static String newCoin() {
++        return "KRW-T" + COIN_SEQ.incrementAndGet() + "X" + (System.nanoTime() % 100000);
++    }
++
++    /**
++     * 실행 중 실자금 세션(손절 5%) + 수량 9.8·진입/평균 300 OPEN 포지션. 절대 손절가 absStop 이 null 이면 세션 백분율 손절(5%)만 판정한다
++     * (총괄 v1.157 §125 반례). coin 을 같게 주면 같은 코인의 여러 세션·보호선을 만든다.
++     */
++    private Fx holding(String kind, BigDecimal tp, BigDecimal absStop, String coin) {
+         Long sid;
+         if ("DYNAMIC".equals(kind)) {
+             sid = dynamicRepo.saveAndFlush(DynamicSessionEntity.builder()
+@@ -133,7 +144,7 @@ class RealtimeThrottleCrossingTest extends IntegrationTestBase {
+                     .sessionType("REAL").strategyType("COMPOSITE_MOMENTUM_ICHIMOKU_V2")
+                     .coinPair(coin).timeframe("M5")
+                     .initialCapital(new BigDecimal("10000")).availableKrw(new BigDecimal("7000"))
+-                    .totalAssetKrw(new BigDecimal("10000"))
++                    .totalAssetKrw(new BigDecimal("10000")).stopLossPct(new BigDecimal("5.0"))
+                     .status("RUNNING").startedAt(Instant.now()).build()).getId();
+             liveSessions.add(sid);
+         }
+@@ -141,7 +152,7 @@ class RealtimeThrottleCrossingTest extends IntegrationTestBase {
+                 .coinPair(coin).side("BUY")
+                 .entryPrice(new BigDecimal("300")).avgPrice(new BigDecimal("300"))
+                 .size(SIZE).investedKrw(new BigDecimal("2940")).entryAllocationKrw(new BigDecimal("3000"))
+-                .stopLossPrice(new BigDecimal("285")).takeProfitPrice(tp)
++                .stopLossPrice(absStop).takeProfitPrice(tp)
+                 .status("OPEN").sessionKind(kind).sessionId(sid)
+                 .openedAt(Instant.now()).build());
+         if ("DYNAMIC".equals(kind)) {
+@@ -358,4 +369,188 @@ class RealtimeThrottleCrossingTest extends IntegrationTestBase {
+         assertThat(List.of(c1, c2, c3)).containsExactly(true, false, false);
+         assertThat(sells(f)).isZero();
+     }
++
++    // ── 총괄 v1.157 §125 — 판정에 이르지 못한 조기 점검이 실제 첫 통과를 소비하는가 ─────────────────────────────
++    //
++    // 평균 300·손절 5%·절대 손절가 없음이면 실제 판정은 손익률(6자리 HALF_UP 반올림 뒤 ×100) ≤ −5 다.
++    //   285.00025 → −0.049999(…167 반올림) → −4.9999 : 미발동
++    //   285.0001  → −0.050000(…667 반올림) → −5.0000 : 발동
++    //   284       → −5.3333                          : 발동
++    // 모든 시세는 직전 점검 뒤 0.5초 경과(간격 안)로 둔다. LIVE 는 평상시·급등락 두 간격 지도를 모두 0.5초로 둔다 — 급락 경로가
++    // 우연히 점검을 불러 결과를 가리지 않게 한다(이 시험은 첫 통과 규칙만 본다).
++
++    private static final long WITHIN_MS = 500;
++
++    private void within(Fx f) {
++        if ("LIVE".equals(f.kind())) {
++            elapsed(f, LIVE_NORMAL, WITHIN_MS);
++            elapsed(f, LIVE_SPIKE, WITHIN_MS);
++        } else {
++            elapsed(f, DYN, WITHIN_MS);
++        }
++    }
++
++    /** 같은 코인 여러 세션 — 모두에 점검 표지를 넣고 한 시세를 첫 세션 엔진에 넣는다. 반환: 세션별 점검 여부. */
++    private List<Boolean> tickAll(String price, Fx... fs) {
++        Map<Object, Instant> slCheck = field(fs[0], "lastSlCheckAt");
++        for (Fx f : fs) slCheck.put(f.sessionId(), Instant.EPOCH);
++        RealtimePriceEvent e = new RealtimePriceEvent(fs[0].coin(), new BigDecimal(price), Instant.now(), RealtimePriceEvent.WS_TRADE);
++        if ("LIVE".equals(fs[0].kind())) liveTradingService.onRealtimePriceEvent(e);
++        else dynamicTradingService.onRealtimePriceEvent(e);
++        barrier();
++        List<Boolean> out = new ArrayList<>();
++        for (Fx f : fs) out.add(!Instant.EPOCH.equals(slCheck.get(f.sessionId())));
++        return out;
++    }
++
++    private void percentStopCrossingAfterNearMiss(String kind, String name) {
++        Fx f = holding(kind, null, null, newCoin());
++        boolean initial = tick(f, "286");
++        within(f);
++        boolean near = tick(f, "285.00025");
++        int sellsNear = sells(f);
++        within(f);
++        boolean crossed = tick(f, "284");
++        int sellsCrossed = sells(f);
++        within(f);
++        boolean again = tick(f, "283");
++        trace(name, f, "286 점검=" + initial, "285.00025 점검=" + near, "그때 매도=" + sellsNear,
++                "284 점검=" + crossed, "그때 매도=" + sellsCrossed, "283 점검=" + again);
++        assertThat(initial).isTrue();
++        assertThat(near).as("285.00025 는 실제 판정(−4.9999%)상 미발동 — 판정 규칙과 같은 기준이면 조기 점검하지 않는다").isFalse();
++        assertThat(sellsNear).isZero();
++        assertThat(crossed).as("284 는 실제 판정상 처음 발동하는 유효 시세 — 간격 안이어도 점검").isTrue();
++        assertThat(sellsCrossed).isEqualTo(1);
++        assertThat(again).as("청산 뒤 계속 아래 — 보호선 없음, 간격 안이면 점검 없음").isFalse();
++        assertThat(sells(f)).as("한 번 청산 뒤 중복 매도 없음").isEqualTo(1);
++        assertThat(status(f)).isEqualTo("CLOSING");
++    }
++
++    @Test
++    @DisplayName("P1 DYNAMIC 백분율 손절(절대가 없음) — 286→285.00025→284(간격 안): 중간 미발동 시세는 점검하지 않고 284 점검·손절 1, 뒤 283 중복 0")
++    void dynamicPercentStopNearMissDoesNotConsumeCrossing() {
++        percentStopCrossingAfterNearMiss("DYNAMIC", "P1");
++    }
++
++    @Test
++    @DisplayName("P2 LIVE 백분율 손절(절대가 없음) — 286→285.00025→284(간격 안): 중간 미발동 시세는 점검하지 않고 284 점검·손절 1, 뒤 283 중복 0")
++    void livePercentStopNearMissDoesNotConsumeCrossing() {
++        percentStopCrossingAfterNearMiss("LIVE", "P2");
++    }
++
++    private void absoluteStopControl(String kind, String name) {
++        Fx f = holding(kind, null, new BigDecimal("285"), newCoin());
++        tick(f, "286");
++        within(f);
++        boolean near = tick(f, "285.00025");
++        within(f);
++        boolean crossed = tick(f, "284");
++        trace(name, f, "285.00025 점검=" + near, "284 점검=" + crossed);
++        assertThat(near).isFalse();
++        assertThat(crossed).isTrue();
++        assertThat(sells(f)).isEqualTo(1);
++        assertThat(status(f)).isEqualTo("CLOSING");
++    }
++
++    @Test
++    @DisplayName("P3 DYNAMIC 절대 손절가 285 대조 — 같은 입력: 중간 점검 없음, 284 점검·손절 1")
++    void dynamicAbsoluteStopControl() {
++        absoluteStopControl("DYNAMIC", "P3");
++    }
++
++    @Test
++    @DisplayName("P4 LIVE 절대 손절가 285 대조 — 같은 입력: 중간 점검 없음, 284 점검·손절 1")
++    void liveAbsoluteStopControl() {
++        absoluteStopControl("LIVE", "P4");
++    }
++
++    private void twoLinesSameCoin(String kind, String name) {
++        String coin = newCoin();
++        Fx pct = holding(kind, null, null, coin);                    // 백분율 5% (실제 발동 285.0001 이하)
++        Fx abs = holding(kind, null, new BigDecimal("280"), coin);   // 절대 280
++        List<Boolean> c0 = tickAll("286", pct, abs);
++        within(pct);
++        List<Boolean> c1 = tickAll("285.00025", pct, abs);
++        within(pct);
++        List<Boolean> c2 = tickAll("284", pct, abs);
++        int sellsAfter284 = sells(pct);
++        within(pct);
++        List<Boolean> c3 = tickAll("279", pct, abs);
++        String pctStatus = status(pct);
++        trace(name, abs, "286=" + c0, "285.00025=" + c1, "284=" + c2, "284뒤 매도=" + sellsAfter284, "279=" + c3,
++                "백분율 포지션=" + pctStatus);
++        assertThat(c1).as("어느 보호선도 실제 발동하지 않는 시세 — 점검 없음").containsExactly(false, false);
++        assertThat(c2.get(0)).as("백분율 보호선 첫 발동 — 점검").isTrue();
++        assertThat(sellsAfter284).isEqualTo(1);
++        assertThat(c3.get(1)).as("남은 절대 280 보호선 첫 발동 — 간격 안이어도 점검").isTrue();
++        assertThat(sells(pct)).as("코인 매도 = 두 포지션 각 1").isEqualTo(2);
++        assertThat(pctStatus).isEqualTo("CLOSING");
++        assertThat(status(abs)).isEqualTo("CLOSING");
++    }
++
++    @Test
++    @DisplayName("P5 DYNAMIC 같은 코인 두 보호선(백분율 5%·절대 280) — 285.00025 점검 없음, 284 백분율 손절, 279 절대 손절: 매도 2")
++    void dynamicTwoLinesSameCoin() {
++        twoLinesSameCoin("DYNAMIC", "P5");
++    }
++
++    @Test
++    @DisplayName("P6 LIVE 같은 코인 두 보호선(백분율 5%·절대 280) — 285.00025 점검 없음, 284 백분율 손절, 279 절대 손절: 매도 2")
++    void liveTwoLinesSameCoin() {
++        twoLinesSameCoin("LIVE", "P6");
++    }
++
++    private void percentInvalidAndStale(String kind, String name) {
++        Fx f = holding(kind, null, null, newCoin());
++        tick(f, "286");
++        within(f);
++        boolean zero = tick(f, "0");
++        boolean stale = tick(f, "280", Instant.now().minus(10, ChronoUnit.MINUTES));
++        within(f);
++        boolean near = tick(f, "285.00025");
++        int sellsBefore = sells(f);
++        within(f);
++        boolean crossed = tick(f, "284");
++        trace(name, f, "0=" + zero, "낡은280=" + stale, "285.00025=" + near, "앞 매도=" + sellsBefore, "284=" + crossed);
++        assertThat(zero).isFalse();
++        assertThat(stale).isFalse();
++        assertThat(near).isFalse();
++        assertThat(sellsBefore).isZero();
++        assertThat(crossed).isTrue();
++        assertThat(sells(f)).isEqualTo(1);
++    }
++
++    @Test
++    @DisplayName("P7 DYNAMIC 백분율 — 0·낡은 280·285.00025 뒤 284: 앞 셋 점검·매도 없음, 284 점검·손절 1")
++    void dynamicPercentInvalidAndStale() {
++        percentInvalidAndStale("DYNAMIC", "P7");
++    }
++
++    @Test
++    @DisplayName("P8 LIVE 백분율 — 0·낡은 280·285.00025 뒤 284: 앞 셋 점검·매도 없음, 284 점검·손절 1")
++    void livePercentInvalidAndStale() {
++        percentInvalidAndStale("LIVE", "P8");
++    }
++
++    private void roundingBoundaryTriggers(String kind, String name) {
++        Fx f = holding(kind, null, null, newCoin());
++        tick(f, "286");
++        within(f);
++        boolean edge = tick(f, "285.0001");
++        trace(name, f, "285.0001 점검=" + edge);
++        assertThat(edge).as("285.0001 은 반올림 뒤 −5.0000% — 실제 판정 발동, 간격 안이어도 점검").isTrue();
++        assertThat(sells(f)).isEqualTo(1);
++    }
++
++    @Test
++    @DisplayName("P9 DYNAMIC 반올림 경계 — 286 뒤 간격 안 285.0001(반올림 −5.0000%): 점검·손절 1")
++    void dynamicRoundingBoundary() {
++        roundingBoundaryTriggers("DYNAMIC", "P9");
++    }
++
++    @Test
++    @DisplayName("P10 LIVE 반올림 경계 — 286 뒤 간격 안 285.0001(반올림 −5.0000%): 점검·손절 1")
++    void liveRoundingBoundary() {
++        roundingBoundaryTriggers("LIVE", "P10");
++    }
+ }

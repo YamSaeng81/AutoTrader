@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="v1.157 §125 RealtimeProtectLines — 실제 판정 규칙과 첫 발동" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-11-12T07:25:48" hostname="DESKTOP-SF1KUQ5" time="0.002">
+  <properties/>
+  <testcase name="백분율 손절 반올림 경계 — 평균300·5%: 285.00025 미발동, 285.0001·285 발동" classname="com.cryptoautotrader.api.service.RealtimeProtectLinesTest" time="0.001"/>
+  <testcase name="첫 발동 — 미발동 근접값은 첫 발동이 아니고 소비하지도 않는다, 이어진 발동 구간은 첫 발동 아님" classname="com.cryptoautotrader.api.service.RealtimeProtectLinesTest" time="0.0"/>
+  <testcase name="익절 — 익절가 이상이면 발동, 없으면 미발동" classname="com.cryptoautotrader.api.service.RealtimeProtectLinesTest" time="0.0"/>
+  <testcase name="절대 손절가가 있으면 백분율을 보지 않는다 — 절대 280: 284 미발동(백분율로는 발동), 280 발동" classname="com.cryptoautotrader.api.service.RealtimeProtectLinesTest" time="0.0"/>
+  <testcase name="여러 보호선 — 높은 선이 이미 발동 구간이어도 낮은 선의 첫 발동은 점검을 부른다" classname="com.cryptoautotrader.api.service.RealtimeProtectLinesTest" time="0.0"/>
+  <testcase name="직전 유효 시세 없음·보호선 없음 — 첫 시세가 발동이면 첫 발동, 빈 점검 결과는 보호선을 지운다" classname="com.cryptoautotrader.api.service.RealtimeProtectLinesTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
