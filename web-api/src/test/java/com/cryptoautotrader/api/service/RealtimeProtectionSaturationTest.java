@@ -476,4 +476,250 @@ class RealtimeProtectionSaturationTest extends IntegrationTestBase {
             return new long[]{elapsed, exchangeSells(coin)};
         }
     }
+
+    // ── 5. 전달 계약(v1.154 §2) — 같은 시세 열이 처리기에 도달하는가 ─────────────────────────────────────────
+
+    /**
+     * 같은 시세 열을 (가) 기준 실행 — 시세 장부에 적고 LIVE·DYNAMIC 처리기(프록시)를 이 스레드에서 도착 순서대로 직접 부른다 —
+     * 와 (나) 실제 경계 — 실행기 작업자를 모두 붙잡은(대기열 여유) 채 발행하고 풀어 처리 — 로 돌려 코인·엔진별 결과(포지션 상태·매도 주문 수)를
+     * 비교한다. 코인·보유는 실행마다 새로 만든다(처리기 throttle·가격 이력은 코인별이다). seq 원소: {코인키, 가격(null=가격 없음), 관측 시각 초 오프셋}.
+     */
+    private Map<String, String> runSequence(boolean viaBoundary, List<String[]> seq) throws Exception {
+        Map<String, String> coins = new java.util.LinkedHashMap<>();
+        Map<String, Fx[]> fx = new java.util.LinkedHashMap<>();
+        for (String[] s : seq) coins.computeIfAbsent(s[0], k -> newCoin());
+        for (Map.Entry<String, String> c : coins.entrySet()) {
+            fx.put(c.getKey(), new Fx[]{holding("LIVE", c.getValue()), holding("DYNAMIC", c.getValue())});
+            clearThrottle(c.getValue());
+        }
+        Instant t = Instant.now();
+        List<RealtimePriceEvent> evs = new ArrayList<>();
+        for (String[] s : seq) {
+            evs.add(new RealtimePriceEvent(coins.get(s[0]), s[1] == null ? null : new BigDecimal(s[1]),
+                    t.plusSeconds(Long.parseLong(s[2])), RealtimePriceEvent.WS_TRADE));
+        }
+        if (viaBoundary) {
+            try (Saturation busy = new Saturation(false)) {
+                for (RealtimePriceEvent e : evs) assertThat(publish(e.getCoinCode(), e.getPrice(), e.getObservedAt())).isNull();
+            }
+            ExecutorBarrier.awaitPriorTasks(marketDataExecutor.getThreadPoolExecutor(), 15_000);
+            retryPending();
+            barrier();
+        } else {
+            for (RealtimePriceEvent e : evs) markPriceBook.onPrice(e);
+            for (RealtimePriceEvent e : evs) liveTradingService.onRealtimePriceEvent(e);
+            for (RealtimePriceEvent e : evs) dynamicTradingService.onRealtimePriceEvent(e);
+            barrier();
+        }
+        Map<String, String> out = new java.util.LinkedHashMap<>();
+        for (Map.Entry<String, String> c : coins.entrySet()) {
+            Fx[] f = fx.get(c.getKey());
+            out.put(c.getKey(), "LIVE=" + status(f[0]) + " DYNAMIC=" + status(f[1]) + " 매도=" + exchangeSells(c.getValue()));
+        }
+        return out;
+    }
+
+    private Map<String, String> sameAsReference(String name, List<String[]> seq) throws Exception {
+        Map<String, String> ref = runSequence(false, seq);
+        Map<String, String> got = runSequence(true, seq);
+        System.out.println("[F154] " + name + " | 기준 " + ref + " | 경계 " + got + " | " + snap("LIVE") + " | " + snap("DYNAMIC"));
+        assertThat(got).as(name + " — 경계 결과 = 기준 실행 결과").isEqualTo(ref);
+        return got;
+    }
+
+    private static String[] ev(String coin, String price, long offsetSec) {
+        return new String[]{coin, price, String.valueOf(offsetSec)};
+    }
+
+    @Test
+    @DisplayName("계약 — 대기 중 280→300(손절가 285): 기준과 같고 두 엔진 손절(총괄 탐침 ①의 반대 결과)")
+    void contractDipThenRebound() throws Exception {
+        if (!ctx.containsBean(DISPATCHER)) return;
+        Map<String, String> got = sameAsReference("280→300", List.of(ev("A", "280", 0), ev("A", "300", 0)));
+        assertThat(got.get("A")).isEqualTo("LIVE=CLOSING DYNAMIC=CLOSING 매도=2");
+    }
+
+    @Test
+    @DisplayName("계약 — 급등 뒤 반락(310→290→280), 정상 300 뒤 280, 미래 관측(+24h) 300 뒤 정상 280: 각 기준 실행과 같다")
+    void contractOrderedSequences() throws Exception {
+        if (!ctx.containsBean(DISPATCHER)) return;
+        sameAsReference("310→290→280", List.of(ev("A", "310", 0), ev("A", "290", 0), ev("A", "280", 0)));
+        sameAsReference("300→280", List.of(ev("A", "300", 0), ev("A", "280", 0)));
+        sameAsReference("미래300→280", List.of(ev("A", "300", 86_400), ev("A", "280", 0)));
+    }
+
+    @Test
+    @DisplayName("계약 — 비가격(0·null)·낡은 값(관측 −200초) 뒤 유효 280, 역순 관측: 각 기준 실행과 같다(경계는 거르거나 덮지 않는다)")
+    void contractInvalidStaleReversed() throws Exception {
+        if (!ctx.containsBean(DISPATCHER)) return;
+        sameAsReference("0→280", List.of(ev("A", "0", 0), ev("A", "280", 0)));
+        sameAsReference("null→280", List.of(ev("A", null, 0), ev("A", "280", 0)));
+        sameAsReference("낡은280→300", List.of(ev("A", "280", -200), ev("A", "300", 0)));
+        sameAsReference("역순 관측 280(−10초) 뒤 300(−20초)", List.of(ev("A", "280", -10), ev("A", "300", -20)));
+    }
+
+    @Test
+    @DisplayName("계약 — 서로 다른 코인 교차(A280·B300·A300·B280): 코인별로 기준 실행과 같다")
+    void contractInterleavedCoins() throws Exception {
+        if (!ctx.containsBean(DISPATCHER)) return;
+        sameAsReference("A/B 교차", List.of(ev("A", "280", 0), ev("B", "300", 0), ev("A", "300", 0), ev("B", "280", 0)));
+    }
+
+    @Test
+    @DisplayName("지연 — 같은 엔진 코인 A 포지션 행 잠금(400ms) 중 코인 B 손절은 A 를 기다리지 않는다(작업자 여유일 때)")
+    void coinBNotBlockedByCoinALock() throws Exception {
+        if (!ctx.containsBean(DISPATCHER)) return;
+        String a = newCoin(), b = newCoin();
+        Fx fa = holding("LIVE", a);
+        holding("LIVE", b);
+        clearThrottle(a);
+        clearThrottle(b);
+        ExecutorBarrier.awaitPriorTasks(marketDataExecutor.getThreadPoolExecutor(), 15_000);
+        Map<String, Long> orderAt = new java.util.concurrent.ConcurrentHashMap<>();
+        Mockito.when(upbitOrderClient.createOrder(Mockito.anyString(), Mockito.eq("ask"),
+                        Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+                .thenAnswer(inv -> {
+                    orderAt.putIfAbsent(inv.getArgument(0), System.nanoTime());
+                    return new UpbitOrderClient.ExchangeResult(
+                            report("uuid-f154-" + sellSeq.incrementAndGet() + "-" + System.nanoTime(), inv.getArgument(0)), "{}");
+                });
+        long holdMs = 400;
+        CountDownLatch locked = new CountDownLatch(1);
+        CountDownLatch unlock = new CountDownLatch(1);
+        java.util.concurrent.ExecutorService lockerPool = Executors.newSingleThreadExecutor();
+        Future<?> locker = lockerPool.submit(() -> new TransactionTemplate(txManager).executeWithoutResult(st -> {
+            new org.springframework.jdbc.core.JdbcTemplate(ctx.getBean(javax.sql.DataSource.class))
+                    .queryForList("SELECT id FROM position WHERE id = ? FOR UPDATE", fa.positionId());
+            locked.countDown();
+            try {
+                unlock.await(10, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }));
+        assertThat(locked.await(10, TimeUnit.SECONDS)).isTrue();
+        ScheduledExecutorService ses = Executors.newSingleThreadScheduledExecutor();
+        long t0 = System.nanoTime();
+        ses.schedule(unlock::countDown, holdMs, TimeUnit.MILLISECONDS);
+        assertThat(publish(a, new BigDecimal("280"), Instant.now())).isNull();
+        assertThat(publish(b, new BigDecimal("280"), Instant.now())).isNull();
+        locker.get(10, TimeUnit.SECONDS);
+        ExecutorBarrier.awaitPriorTasks(marketDataExecutor.getThreadPoolExecutor(), 15_000);
+        barrier();
+        ses.shutdownNow();
+        lockerPool.shutdownNow();
+        long aMs = (orderAt.getOrDefault(a, Long.MAX_VALUE) - t0) / 1_000_000;
+        long bMs = (orderAt.getOrDefault(b, Long.MAX_VALUE) - t0) / 1_000_000;
+        System.out.println("[F154] 코인 잠금 지연(잠금 " + holdMs + "ms): A 매도 주문 " + aMs + "ms · B 매도 주문 " + bMs + "ms | " + snap("LIVE"));
+        assertThat(orderAt).containsKeys(a, b);
+        assertThat(aMs).as("A 는 잠금 해제 뒤").isGreaterThanOrEqualTo(holdMs - 20);
+        assertThat(bMs).as("B 는 A 의 잠금을 기다리지 않는다").isLessThan(holdMs / 2);
+    }
+
+    // ── 6. 경계 단위(대역 처리기) — 순서·관측 시각 보존·상한 초과·처리기 예외 ─────────────────────────────────────
+
+    private static Object newDispatcher(java.util.concurrent.Executor ex, LiveTradingService live, DynamicTradingService dyn) throws Exception {
+        Class<?> cls = Class.forName("com.cryptoautotrader.api.service.RealtimeProtectionDispatcher");
+        return cls.getConstructor(java.util.concurrent.Executor.class, LiveTradingService.class, DynamicTradingService.class)
+                .newInstance(ex, live, dyn);
+    }
+
+    private static long snapOf(Object d, String engine, String accessor) {
+        Object s = ReflectionTestUtils.invokeMethod(d, "snapshot", engine);
+        return ((Number) ReflectionTestUtils.invokeMethod(s, accessor)).longValue();
+    }
+
+    private static ThreadPoolTaskExecutor heldSingleWorker(CountDownLatch hold) throws InterruptedException {
+        ThreadPoolTaskExecutor one = new ThreadPoolTaskExecutor();
+        one.setCorePoolSize(1);
+        one.setMaxPoolSize(1);
+        one.setQueueCapacity(10);
+        one.initialize();
+        CountDownLatch started = new CountDownLatch(1);
+        one.execute(() -> {
+            started.countDown();
+            try {
+                hold.await(10, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        });
+        assertThat(started.await(10, TimeUnit.SECONDS)).isTrue();
+        return one;
+    }
+
+    @Test
+    @DisplayName("단위 — 작업자를 붙잡은 동안 쌓인 시세가 같은 객체·같은 순서(관측 시각 원문 그대로)로 처리기에 간다, 상한 초과는 새 시세만 버리고 센다")
+    void unitOrderPreservedAndOverflowCounted() throws Exception {
+        if (!ctx.containsBean(DISPATCHER)) return;
+        CountDownLatch hold = new CountDownLatch(1);
+        ThreadPoolTaskExecutor one = heldSingleWorker(hold);
+        List<RealtimePriceEvent> seen = java.util.Collections.synchronizedList(new ArrayList<>());
+        LiveTradingService live = Mockito.mock(LiveTradingService.class);
+        Mockito.doAnswer(inv -> seen.add(inv.getArgument(0))).when(live).onRealtimePriceEvent(Mockito.any());
+        Object d = newDispatcher(one, live, Mockito.mock(DynamicTradingService.class));
+        Instant t = Instant.now();
+        int cap = (int) ReflectionTestUtils.getField(d.getClass(), "LANE_CAPACITY");
+        List<RealtimePriceEvent> sent = new ArrayList<>();
+        sent.add(new RealtimePriceEvent("KRW-U", new BigDecimal("280"), t, RealtimePriceEvent.WS_TRADE));
+        sent.add(new RealtimePriceEvent("KRW-U", new BigDecimal("300"), t.plusSeconds(86_400), RealtimePriceEvent.WS_TRADE));
+        sent.add(new RealtimePriceEvent("KRW-U", BigDecimal.ZERO, t.minusSeconds(5), RealtimePriceEvent.WS_TRADE));
+        sent.add(new RealtimePriceEvent("KRW-U", null, t.minusSeconds(500), RealtimePriceEvent.WS_TRADE));
+        while (sent.size() < cap) sent.add(new RealtimePriceEvent("KRW-U", new BigDecimal(290 + sent.size() % 7), t, RealtimePriceEvent.WS_TRADE));
+        for (RealtimePriceEvent e : sent) ReflectionTestUtils.invokeMethod(d, "onPrice", e);
+        ReflectionTestUtils.invokeMethod(d, "onPrice", new RealtimePriceEvent("KRW-U", new BigDecimal("1"), t, RealtimePriceEvent.WS_TRADE));
+        long overflow = snapOf(d, "LIVE", "overflow");
+        long pendingEvents = snapOf(d, "LIVE", "pendingEvents");
+        hold.countDown();
+        ExecutorBarrier.awaitPriorTasks(one.getThreadPoolExecutor(), 15_000);
+        ReflectionTestUtils.invokeMethod(d, "retryPending");
+        ExecutorBarrier.awaitPriorTasks(one.getThreadPoolExecutor(), 15_000);
+        System.out.println("[F154] 단위 순서: 보냄 " + sent.size() + " · 초과 " + overflow + " · 대기 " + pendingEvents + " · 처리 " + seen.size()
+                + " | " + ReflectionTestUtils.invokeMethod(d, "snapshot", "LIVE"));
+        one.shutdown();
+        assertThat(overflow).isEqualTo(1);
+        assertThat(pendingEvents).isEqualTo(cap);
+        assertThat(seen).as("같은 객체·같은 순서 — 상한 초과분(1원)만 없음").containsExactlyElementsOf(sent);
+        assertThat(seen.get(1).getObservedAt()).isEqualTo(t.plusSeconds(86_400));
+        assertThat(snapOf(d, "LIVE", "pendingEvents")).isZero();
+        // 1회차: 바깥 invokeMethod 가 Class 오버로드로 해석돼 ClassCastException(시험 코드 결함, 원문 보존) — 스냅샷을 Object 로 받는다.
+        Object lastSnap = ReflectionTestUtils.invokeMethod(d, "snapshot", "LIVE");
+        assertThat((String) ReflectionTestUtils.invokeMethod(lastSnap, "lastOverflowReason"))
+                .isEqualTo("코인별 보호 대기열 초과 — 새 시세 버림");
+    }
+
+    @Test
+    @DisplayName("단위 — 처리기 예외는 그 시세 하나만 실패로 세고 같은 코인의 다음 시세를 계속 처리, 발행 쪽 예외 없음")
+    void unitHandlerExceptionCountedAndContinues() throws Exception {
+        if (!ctx.containsBean(DISPATCHER)) return;
+        CountDownLatch hold = new CountDownLatch(1);
+        ThreadPoolTaskExecutor one = heldSingleWorker(hold);
+        List<BigDecimal> seen = java.util.Collections.synchronizedList(new ArrayList<>());
+        LiveTradingService live = Mockito.mock(LiveTradingService.class);
+        Mockito.doAnswer(inv -> {
+            RealtimePriceEvent e = inv.getArgument(0);
+            seen.add(e.getPrice());
+            if (new BigDecimal("281").compareTo(e.getPrice()) == 0) throw new IllegalStateException("시험 처리기 예외");
+            return null;
+        }).when(live).onRealtimePriceEvent(Mockito.any());
+        Object d = newDispatcher(one, live, Mockito.mock(DynamicTradingService.class));
+        Throwable thrown = null;
+        try {
+            for (String p : List.of("280", "281", "282")) {
+                ReflectionTestUtils.invokeMethod(d, "onPrice", new RealtimePriceEvent("KRW-E", new BigDecimal(p), Instant.now(), RealtimePriceEvent.WS_TRADE));
+            }
+        } catch (Throwable t) {
+            thrown = t;
+        }
+        hold.countDown();
+        ExecutorBarrier.awaitPriorTasks(one.getThreadPoolExecutor(), 15_000);
+        ReflectionTestUtils.invokeMethod(d, "retryPending");
+        ExecutorBarrier.awaitPriorTasks(one.getThreadPoolExecutor(), 15_000);
+        one.shutdown();
+        System.out.println("[F154] 단위 예외: 처리 " + seen + " | " + ReflectionTestUtils.invokeMethod(d, "snapshot", "LIVE"));
+        assertThat(thrown).isNull();
+        assertThat(seen).extracting(BigDecimal::toPlainString).containsExactly("280", "281", "282");
+        assertThat(snapOf(d, "LIVE", "failures")).isEqualTo(1);
+        assertThat(snapOf(d, "LIVE", "processed")).isEqualTo(3);
+    }
 }
