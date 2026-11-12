@@ -1,0 +1,18 @@
+from pathlib import Path
+import json,subprocess,os
+O=Path(__file__).resolve().parent;S=O/'source';L=O.parent/'review-aligned-9491166f/lib';C=O/'classes';C.mkdir();J=Path('C:/Program Files/Java/jdk-17/bin')
+src=[]
+for m in ['core-engine','strategy-lib','exchange-adapter','web-api']:src+=list((S/m/'src/main/java').rglob('*.java'))
+src+=list((S/'web-api/src/test/java/com/cryptoautotrader/api/support').glob('*.java'))
+src.append(O/'ReviewClosingSubmissionRaceTest.java')
+runner=O/'ReviewLauncher.java';runner.write_text('import org.junit.platform.launcher.core.*;import org.junit.platform.launcher.listeners.*;import static org.junit.platform.engine.discovery.DiscoverySelectors.*;public class ReviewLauncher{public static void main(String[]a){var l=new SummaryGeneratingListener();var b=LauncherDiscoveryRequestBuilder.request().selectors(selectClass("com.cryptoautotrader.api.service.ReviewClosingSubmissionRaceTest"));var x=LauncherFactory.create();x.registerTestExecutionListeners(l);x.execute(b.build());l.getSummary().printTo(new java.io.PrintWriter(System.out,true));l.getSummary().printFailuresTo(new java.io.PrintWriter(System.out,true));System.exit(l.getSummary().getTestsFailedCount()+l.getSummary().getContainersFailedCount()>0?1:0);}}',encoding='utf8');src.append(runner)
+args=['-encoding','UTF-8','-cp',';'.join(str(p) for p in L.glob('*.jar')),'-d',str(C)]+[str(p) for p in src]
+(O/'javac.args').write_text('\n'.join('"'+s.replace('\\','/')+'"' for s in args),encoding='utf8')
+with (O/'javac.txt').open('wb') as f:r=subprocess.run([str(J/'javac.exe'),'@'+str(O/'javac.args')],stdout=f,stderr=subprocess.STDOUT)
+print('javac',r.returncode,flush=True);assert r.returncode==0
+env=os.environ.copy()
+for n in ['TELEGRAM_BOT_TOKEN','TELEGRAM_CHAT_ID','DISCORD_BOT_TOKEN','DISCORD_CHANNEL_ID','UPBIT_ACCESS_KEY','UPBIT_SECRET_KEY']:env.pop(n,None)
+cp=';'.join([str(C),str(L/'*'),str(S/'web-api/src/test/resources'),str(S/'web-api/src/main/resources')])
+with (O/'closing-race.txt').open('wb') as f:r=subprocess.run([str(J/'java.exe'),'-Xmx768m','-Dfile.encoding=UTF-8','-cp',cp,'ReviewLauncher'],cwd=S/'web-api',env=env,stdout=f,stderr=subprocess.STDOUT,timeout=180)
+result={'sha':'84fb03d6','scope':'Spring/H2 fixed submit/reconcile race, actual order poller mocked exchange fill, normal reconciliation and stopped-session cleanup; Telegram/websocket mocked; no PG/prod/full regression','exit_code':r.returncode}
+(O/'probe-result.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf8');print(json.dumps(result,ensure_ascii=False));assert r.returncode==0

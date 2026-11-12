@@ -1,0 +1,3078 @@
+{
+  "refs": {
+    "main": "60777286f9b03750204c0ccfb785ee25f33c2edd",
+    "baseline": "84fb03d6f42cf2616f98ec39339e9d5bd8362956",
+    "throttle": "49d485f02cf218b31ad5430e97ade8d562c64133",
+    "phantom": "76ea30506cd7f570652116b2eabcb1baad83087e",
+    "barriers": "0a807cbb15490a73305b5f8b2fb3bfb73fe4ba03",
+    "AB": "5f19554245404ed471470eb6bd544d1066b2a5d0",
+    "risk_probe": "92aa871274da7d0cc9ff4be4fb33915dd4653284"
+  },
+  "manifests": {
+    "v157-20261112": {
+      "files": 302,
+      "mismatch_count": 200,
+      "bad": [
+        {
+          "file": "./runs/ab4-main/gradle.log",
+          "listed": "b9ea45b9994802450c30480cc5b6a6d77ef407ffd5ae1372be629206f82ae74d",
+          "blob": "8fff278ce59aa3d5a17d89d4d6f2e95a4f46fe2ddb686ff8a5dc644711707d55",
+          "local": "b9ea45b9994802450c30480cc5b6a6d77ef407ffd5ae1372be629206f82ae74d",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/ab4-main/out/arms.csv.meta.json",
+          "listed": "f66fcea81e91578cc39b7a3f6b5ea232929a86b422e3eb1fff0e5a63597b06ea",
+          "blob": "7c964a391a50b94ad2b7f00802b9f84bb279e7ac661344d597da99f03e8fe4d8",
+          "local": "f66fcea81e91578cc39b7a3f6b5ea232929a86b422e3eb1fff0e5a63597b06ea",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/ab4-main/out/arms.txt",
+          "listed": "7b439d92521779d9da275e0c3cd540857204e5282aa90e793c94677fb40ec8cf",
+          "blob": "2669cbb5d179b4cf1d6d2d7f474563116285cc349154c4c8b7cb733ac1d0ca9c",
+          "local": "7b439d92521779d9da275e0c3cd540857204e5282aa90e793c94677fb40ec8cf",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/ab4-main/out/create/creation_log.draft.json",
+          "listed": "57d5026fb1475b9261dd7bff23c6ef9fbac4dee897f586ee1ff8078cbfa831f5",
+          "blob": "85da01ebe3a8107336b8bd9568efbd548ab7a8294073fd04dd5404bea73e4f9c",
+          "local": "57d5026fb1475b9261dd7bff23c6ef9fbac4dee897f586ee1ff8078cbfa831f5",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/ab4-main/out/create/journal.jsonl",
+          "listed": "93999516c1b66c7645d037c9bc71e8d1ca52d7745b129fc8824595dcdce7ddcd",
+          "blob": "fd5d4bc89906d40f658bf62cf1110f1d5bc8825ad3fc41f9fb738ba66b18fa5f",
+          "local": "93999516c1b66c7645d037c9bc71e8d1ca52d7745b129fc8824595dcdce7ddcd",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/ab4-main/out/create/plan.json",
+          "listed": "77ce9574fd7870bc2ff1a8123c7334272bd8ff7f1011957dd2a1a762d2e27ad3",
+          "blob": "dc7cf64758778c5708868a202a3367928af2670e8ceb2813478c7bab3a7f200b",
+          "local": "77ce9574fd7870bc2ff1a8123c7334272bd8ff7f1011957dd2a1a762d2e27ad3",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/ab4-main/out/marks.csv",
+          "listed": "be3c21267ce46520b83229d2faf847a2d43bb46ae879832d10cfd8eca2d8c19c",
+          "blob": "519b0153087682f8a8e1ddbbdc79e02dc0e901bc8f82bca674c4d9f0a72c52b0",
+          "local": "be3c21267ce46520b83229d2faf847a2d43bb46ae879832d10cfd8eca2d8c19c",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/ab4-main/out/neg_fp_missing.complete.txt",
+          "listed": "c25d4ae5bef33268fdc3ed2bf56071134f111139a12dcc12c2a5b7c298f05b92",
+          "blob": "3e6a7a260a3cd1dda042b9f70280479501c3bf260dc2987f3bfeba6aa42c4c37",
+          "local": "c25d4ae5bef33268fdc3ed2bf56071134f111139a12dcc12c2a5b7c298f05b92",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/ab4-main/out/neg_fp_multiple.complete.txt",
+          "listed": "c25d4ae5bef33268fdc3ed2bf56071134f111139a12dcc12c2a5b7c298f05b92",
+          "blob": "3e6a7a260a3cd1dda042b9f70280479501c3bf260dc2987f3bfeba6aa42c4c37",
+          "local": "c25d4ae5bef33268fdc3ed2bf56071134f111139a12dcc12c2a5b7c298f05b92",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/ab4-main/out/neg_one_row_1us.complete.txt",
+          "listed": "13d8e14812ee3498e6ca905ff3bce7eb42a22d31033a0f67f877f3ed13173c31",
+          "blob": "6a14b3931984b6ea0783fc636845011aa0904c06e8350fd10d347935794edada",
+          "local": "13d8e14812ee3498e6ca905ff3bce7eb42a22d31033a0f67f877f3ed13173c31",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/ab4-main/out/neg_other_db.complete.txt",
+          "listed": "b36db342f167006dea1229b6208764a723709516b64d6c7a385e555c1075e441",
+          "blob": "8cf0244f3449a512ef01d2ac26605647d8abd561af93024379e98ad329475a70",
+          "local": "b36db342f167006dea1229b6208764a723709516b64d6c7a385e555c1075e441",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/ab4-main/out/neg_stored_ratio.complete.txt",
+          "listed": "2b9064cba1d37696e643423bffe3ab9daf10c393c9f3b11a256bd4170bc0c470",
+          "blob": "67789dd2d63428c8b34d3cd07fd1938a1f3825e0ea31e2ebd0233e4172bf4de0",
+          "local": "2b9064cba1d37696e643423bffe3ab9daf10c393c9f3b11a256bd4170bc0c470",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/ab4-main/out/neg_trade_before_t0.complete.txt",
+          "listed": "a30f28c0d9fcd8a79a540b4c577410a6ccdfe54d5cc602d10644d7796b926be1",
+          "blob": "8d92b929502870346941bfc3939d8b0db1c82bc8f3edde7284425bc94f01b962",
+          "local": "a30f28c0d9fcd8a79a540b4c577410a6ccdfe54d5cc602d10644d7796b926be1",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/ab4-main/out/ok.aggregate.json",
+          "listed": "41fecfe58522fae57818d7fffe7326531c322fc5743ca6baab1aeeb750efa42e",
+          "blob": "aef1aff6438bde14a499ad1bfdd2ca7a4456afa8d9bac0275187ea3656a318e6",
+          "local": "41fecfe58522fae57818d7fffe7326531c322fc5743ca6baab1aeeb750efa42e",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/ab4-main/out/ok.complete.txt",
+          "listed": "25bec9e604392973ac622829eff6df3f78cc66eabca5eea4c2fff64cd584185f",
+          "blob": "5906744e5f19b9c1063003f6669a52084434f0872d2a45cf048731d81307cc9d",
+          "local": "25bec9e604392973ac622829eff6df3f78cc66eabca5eea4c2fff64cd584185f",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/ab4-main/out/ok.creation_log.json",
+          "listed": "5e00c959f788094d4e8753454b8215acf6b6236cb71d04b1aa3449073b7515c7",
+          "blob": "350fbe046ebcbdd74be9a0c847b8c74cc9b4b7a1123822ceb8098ede5ccb5eb8",
+          "local": "5e00c959f788094d4e8753454b8215acf6b6236cb71d04b1aa3449073b7515c7",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/ab4-main/out/transcript.txt",
+          "listed": "b072cd66b15640b88789572bf7fcb7e831799a639ef4b7b7015298fd7d2c01a0",
+          "blob": "212bd87cb8812017d8b01a68915f90cc3c93b4e5c282a7cc6ce1a7de2c0aa9fa",
+          "local": "b072cd66b15640b88789572bf7fcb7e831799a639ef4b7b7015298fd7d2c01a0",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/ab4-main/summary.txt",
+          "listed": "4b65baeb6d65b0ca8d955da396d16a90659d5dbc915aef7fae9f4fac14ae9cc6",
+          "blob": "a43386378561222a96901a5e9a4baa3062b78822c573eca2abdb8df0c3e0d56a",
+          "local": "4b65baeb6d65b0ca8d955da396d16a90659d5dbc915aef7fae9f4fac14ae9cc6",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/ab4-main/xml/web-api/TEST-com.cryptoautotrader.api.service.AbChainV4PgTest.xml",
+          "listed": "a1dbdc6c4f92b1d71c4f073e9003da6913ee2f939d80a611eff43e199d701add",
+          "blob": "4c135ff0be75f47bd1315a6efd2316a06d88f0ab461492c4a7c47ff3c7866ae9",
+          "local": "a1dbdc6c4f92b1d71c4f073e9003da6913ee2f939d80a611eff43e199d701add",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/ab4-preflight-missing-other/gradle.log",
+          "listed": "859faee1eb4ea3a401b45d3a7a07175bce92cb98cd122815da5323e0ca10b14c",
+          "blob": "2b2c49e1a6343eba4e2bb9e717d84aa3aceb039fd897e2be2482135e8d69a87f",
+          "local": "859faee1eb4ea3a401b45d3a7a07175bce92cb98cd122815da5323e0ca10b14c",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/ab4-preflight-missing-other/summary.txt",
+          "listed": "5a2dfec35214ce7896acb6f52d718254cc922863187484a24195af7c6ede4c1d",
+          "blob": "36b6aacaccfa73ec59dec05759d86b744a063b3ebb1cb99487d6cb263b0380d8",
+          "local": "5a2dfec35214ce7896acb6f52d718254cc922863187484a24195af7c6ede4c1d",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/ab4-preflight-missing-other/xml/web-api/TEST-com.cryptoautotrader.api.service.AbChainV4PgTest.xml",
+          "listed": "c6a12d2132ce55cbfe2fe69e3b62a1f644f7f7bd6dde832849d125a4e73e7bd7",
+          "blob": "ab4c1cb7f984926f2d70e63ffc018af05e08a2114dd57c876e1cac596a082414",
+          "local": "c6a12d2132ce55cbfe2fe69e3b62a1f644f7f7bd6dde832849d125a4e73e7bd7",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/ab4-seed-other/gradle.log",
+          "listed": "0458fe95fd1883985d32a74dc0540480998b4963e28a9c7c7ce834b654b62740",
+          "blob": "16e0a34306bcc457c105cc4d4cbe6a030c1fbebfd94890dba5b15784a79f7ad9",
+          "local": "0458fe95fd1883985d32a74dc0540480998b4963e28a9c7c7ce834b654b62740",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/ab4-seed-other/out/arms.csv.meta.json",
+          "listed": "fd66912f7ce4bb6855841382b7924c2cdf35666d0260469166d7d6864922dd8a",
+          "blob": "fc8e416f6e69cc1855e6e3834e796e5eacc6c6fa1e6ee451f11364201049a9ea",
+          "local": "fd66912f7ce4bb6855841382b7924c2cdf35666d0260469166d7d6864922dd8a",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/ab4-seed-other/out/arms.txt",
+          "listed": "fc7d1e6dd38ea58ada9a64fcc6eec70f2bfe85d08b1316ea19322ce4d5dfb42c",
+          "blob": "032a39d820a86610df8aaab12cfca5596ecbfde857b2a0cc1f02a7fc046ed16d",
+          "local": "fc7d1e6dd38ea58ada9a64fcc6eec70f2bfe85d08b1316ea19322ce4d5dfb42c",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/ab4-seed-other/out/create/creation_log.draft.json",
+          "listed": "9c1cc8df265ffb887ce108adc8ebba32febd6941a755e13f8b292c7a2317132f",
+          "blob": "c98681b4c8b5bd96977b0464c8eaaa306b55ba50b468af5505ef9f746de8c0d8",
+          "local": "9c1cc8df265ffb887ce108adc8ebba32febd6941a755e13f8b292c7a2317132f",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/ab4-seed-other/out/create/journal.jsonl",
+          "listed": "a7f1124c3d4e8bfb63aaaa487c0daffa47f7feba863270effcd2ab0bd6579558",
+          "blob": "f09cb6651eaa42f4193d52ece7c65c0cac8a399bec425fbc55ab04111bcc3668",
+          "local": "a7f1124c3d4e8bfb63aaaa487c0daffa47f7feba863270effcd2ab0bd6579558",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/ab4-seed-other/out/create/plan.json",
+          "listed": "77ce9574fd7870bc2ff1a8123c7334272bd8ff7f1011957dd2a1a762d2e27ad3",
+          "blob": "dc7cf64758778c5708868a202a3367928af2670e8ceb2813478c7bab3a7f200b",
+          "local": "77ce9574fd7870bc2ff1a8123c7334272bd8ff7f1011957dd2a1a762d2e27ad3",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/ab4-seed-other/out/marks.csv",
+          "listed": "be3c21267ce46520b83229d2faf847a2d43bb46ae879832d10cfd8eca2d8c19c",
+          "blob": "519b0153087682f8a8e1ddbbdc79e02dc0e901bc8f82bca674c4d9f0a72c52b0",
+          "local": "be3c21267ce46520b83229d2faf847a2d43bb46ae879832d10cfd8eca2d8c19c",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/ab4-seed-other/out/neg_fp_missing.complete.txt",
+          "listed": "c25d4ae5bef33268fdc3ed2bf56071134f111139a12dcc12c2a5b7c298f05b92",
+          "blob": "3e6a7a260a3cd1dda042b9f70280479501c3bf260dc2987f3bfeba6aa42c4c37",
+          "local": "c25d4ae5bef33268fdc3ed2bf56071134f111139a12dcc12c2a5b7c298f05b92",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/ab4-seed-other/out/neg_fp_multiple.complete.txt",
+          "listed": "c25d4ae5bef33268fdc3ed2bf56071134f111139a12dcc12c2a5b7c298f05b92",
+          "blob": "3e6a7a260a3cd1dda042b9f70280479501c3bf260dc2987f3bfeba6aa42c4c37",
+          "local": "c25d4ae5bef33268fdc3ed2bf56071134f111139a12dcc12c2a5b7c298f05b92",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/ab4-seed-other/out/neg_one_row_1us.complete.txt",
+          "listed": "13d8e14812ee3498e6ca905ff3bce7eb42a22d31033a0f67f877f3ed13173c31",
+          "blob": "6a14b3931984b6ea0783fc636845011aa0904c06e8350fd10d347935794edada",
+          "local": "13d8e14812ee3498e6ca905ff3bce7eb42a22d31033a0f67f877f3ed13173c31",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/ab4-seed-other/out/neg_stored_ratio.complete.txt",
+          "listed": "2b9064cba1d37696e643423bffe3ab9daf10c393c9f3b11a256bd4170bc0c470",
+          "blob": "67789dd2d63428c8b34d3cd07fd1938a1f3825e0ea31e2ebd0233e4172bf4de0",
+          "local": "2b9064cba1d37696e643423bffe3ab9daf10c393c9f3b11a256bd4170bc0c470",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/ab4-seed-other/out/neg_trade_before_t0.complete.txt",
+          "listed": "a30f28c0d9fcd8a79a540b4c577410a6ccdfe54d5cc602d10644d7796b926be1",
+          "blob": "8d92b929502870346941bfc3939d8b0db1c82bc8f3edde7284425bc94f01b962",
+          "local": "a30f28c0d9fcd8a79a540b4c577410a6ccdfe54d5cc602d10644d7796b926be1",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/ab4-seed-other/out/ok.aggregate.json",
+          "listed": "41fecfe58522fae57818d7fffe7326531c322fc5743ca6baab1aeeb750efa42e",
+          "blob": "aef1aff6438bde14a499ad1bfdd2ca7a4456afa8d9bac0275187ea3656a318e6",
+          "local": "41fecfe58522fae57818d7fffe7326531c322fc5743ca6baab1aeeb750efa42e",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/ab4-seed-other/out/ok.complete.txt",
+          "listed": "2f9dd1ea6b12db46be7c53fd823584605b957ec76e8bd1b9b3e092c5b79e6057",
+          "blob": "a2692448fc97905e1eff9191f16e0ee2600c7f510855250f0c5944e968d872a8",
+          "local": "2f9dd1ea6b12db46be7c53fd823584605b957ec76e8bd1b9b3e092c5b79e6057",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/ab4-seed-other/out/ok.creation_log.json",
+          "listed": "df27630c05fd0fb55134afcca558fa37a89824234d7e53960a4186f9a9a30590",
+          "blob": "ed8076db722e4de50008bf83181d15317adfe16643001ef0de990eba93d08709",
+          "local": "df27630c05fd0fb55134afcca558fa37a89824234d7e53960a4186f9a9a30590",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/ab4-seed-other/out/transcript.txt",
+          "listed": "4c4810faa2f0a72a9e93d242f30d11c99ced739a2b6ff84d426568aa08347849",
+          "blob": "018654c828e2f839c9be51c56f9c3878af3d766c3c5cc88e40f4e62c56a9ffb3",
+          "local": "4c4810faa2f0a72a9e93d242f30d11c99ced739a2b6ff84d426568aa08347849",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/ab4-seed-other/summary.txt",
+          "listed": "4b65baeb6d65b0ca8d955da396d16a90659d5dbc915aef7fae9f4fac14ae9cc6",
+          "blob": "a43386378561222a96901a5e9a4baa3062b78822c573eca2abdb8df0c3e0d56a",
+          "local": "4b65baeb6d65b0ca8d955da396d16a90659d5dbc915aef7fae9f4fac14ae9cc6",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/ab4-seed-other/xml/web-api/TEST-com.cryptoautotrader.api.service.AbChainV4PgTest.xml",
+          "listed": "dcbcb197fd173d49a1c098352961b40bb62bf970a57e38aa87c5877076efb8eb",
+          "blob": "025e95ee783563d43639252bfb502fab4917288814a954c4c8fd865af760f474",
+          "local": "dcbcb197fd173d49a1c098352961b40bb62bf970a57e38aa87c5877076efb8eb",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/gradle.log",
+          "listed": "df65eb78113c23d97b9e798a8f5e865c3bbccf188b0f5d53a598fd9836498dfe",
+          "blob": "584cc5321137ed3d200e52fe9aab35814a1916347bd4fad2c31a407ed75a2f3b",
+          "local": "df65eb78113c23d97b9e798a8f5e865c3bbccf188b0f5d53a598fd9836498dfe",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/summary.txt",
+          "listed": "5921d976649e8f67e244d3edc40df0788267b4c27b3dd9e05e5055abb0094555",
+          "blob": "6dedbbe7e86e1a899c708f4eba152ebeb0ba87259ba1fec1844407780fbdf744",
+          "local": "5921d976649e8f67e244d3edc40df0788267b4c27b3dd9e05e5055abb0094555",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.R5RealCashflowRiskTest.xml",
+          "listed": "2cac9fb78f92cb2814e79da40392d0fae54549f3f405ca8eec15085dd8760cec",
+          "blob": "700f2bcf63dcac27b3b3e3c88c33e01838e6d15a693bfbfb7f5df04263e01728",
+          "local": "2cac9fb78f92cb2814e79da40392d0fae54549f3f405ca8eec15085dd8760cec",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.RateLimiterEmergencyStopTest.xml",
+          "listed": "d2e05367230219018eb915b6c82405b3c13f01731f74ad41a8cd832a6093a3e3",
+          "blob": "f5463d9430a8eb5813d45e0b187bf743bdaaca16449b4e505816fe6a3bc81c4a",
+          "local": "d2e05367230219018eb915b6c82405b3c13f01731f74ad41a8cd832a6093a3e3",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.RealNextBarClockTest.xml",
+          "listed": "e7fbfd9f5d01660ef40df1311d819ecfc84953af4d8c136516d734eefa9485c5",
+          "blob": "ae7a8fa660fec84489b956f6614d6a5701927a0db1c535b60282cbec6d8cb8df",
+          "local": "e7fbfd9f5d01660ef40df1311d819ecfc84953af4d8c136516d734eefa9485c5",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.RealtimeProtectionFairnessTest.xml",
+          "listed": "f484c60a3fa66d7ad92b8cb4fd4a87a2b7fb55d12bd2ce11e9465640037f5d25",
+          "blob": "a05bd52bd947ba1ee7062deffde93846ad1b52aa5ff86af5b37c958759e2f1c3",
+          "local": "f484c60a3fa66d7ad92b8cb4fd4a87a2b7fb55d12bd2ce11e9465640037f5d25",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest.xml",
+          "listed": "20f4d428c6cd3e4b9939775462979d105b5317a8bea6d3be69ec08851f320785",
+          "blob": "d3e360f7dc1e93786409990a751aaed114d322e2119f73af28831dffff89c6a5",
+          "local": "20f4d428c6cd3e4b9939775462979d105b5317a8bea6d3be69ec08851f320785",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.RequestedFundsFallbackImpactTest.xml",
+          "listed": "761e86b26865561564a6305af34ef709d2004bbf9ba1822db6cfe70e4c5c47a9",
+          "blob": "7c879db670127d9c9871b0c45bdd7ebb80653e391e24270afd10afc3b18b6543",
+          "local": "761e86b26865561564a6305af34ef709d2004bbf9ba1822db6cfe70e4c5c47a9",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.RiskCircuitBreakerOrderTest.xml",
+          "listed": "4d7e7dd7c7c7cb92023dc8cfc82c365bb781476de3d3fe4ee7623616a6824eaf",
+          "blob": "09c4355a21d8e2d8e442f166d9332e111b3d2eae48c2ef56afc1e8ad20f1ca34",
+          "local": "4d7e7dd7c7c7cb92023dc8cfc82c365bb781476de3d3fe4ee7623616a6824eaf",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.RiskConfigMissingTest.xml",
+          "listed": "22518c022f814e9a514cfcf64e20f0571601ec70fe7ac6aef11954e036da68c1",
+          "blob": "11e141d37e795de5822f23777eb10ea28c6ba1576aac00537bced17a425c48a3",
+          "local": "22518c022f814e9a514cfcf64e20f0571601ec70fe7ac6aef11954e036da68c1",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.RiskManagementServiceTest.xml",
+          "listed": "a358c9442a406c9ec9990ebca5caf4a3cb620afae7a3baded6742dff7a47756a",
+          "blob": "0260ae8d0afe952f38f5684f24d836ea8f63d418723101c233147e72cd8f70c6",
+          "local": "a358c9442a406c9ec9990ebca5caf4a3cb620afae7a3baded6742dff7a47756a",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.RulesetFingerprintTest.xml",
+          "listed": "1a2c1aab146734f7f78ad980878c31d906f3d6e6e5d90bb7fce1114d5fef69f2",
+          "blob": "bccebda6c4ec4fb10ba8966b0f0757eeb7402d696d38997f4dda9d49b4243407",
+          "local": "1a2c1aab146734f7f78ad980878c31d906f3d6e6e5d90bb7fce1114d5fef69f2",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.RulesetRegistryCompositionTest.xml",
+          "listed": "fa4926948a8062b7d03fe367529b1d4239293c3e9c6368c2bc0461a14ba7e9cd",
+          "blob": "33aa91da72d8af8302f88efed299d194f5ab7b9b14282534e0112e93e04b8210",
+          "local": "fa4926948a8062b7d03fe367529b1d4239293c3e9c6368c2bc0461a14ba7e9cd",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SchedulerProfileCleanupTest.xml",
+          "listed": "88ec6e63161a851fa7e7f88a9d98fab564ff93b669ea674ce7b44360defce65b",
+          "blob": "6e392494b10dd68bac57884a8d0869c060e7dc55d7bcf817c3d7729b9dec8237",
+          "local": "88ec6e63161a851fa7e7f88a9d98fab564ff93b669ea674ce7b44360defce65b",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SellQuarantineReleaseTest.xml",
+          "listed": "cc30b44d479a696f713be091311d01f964c27a11373ce4cf20c78854d6e67f5a",
+          "blob": "9dd009a5cc251f6cc0660d1ed37ae3f0f9a37076c2503802b9d77baaffd175f1",
+          "local": "cc30b44d479a696f713be091311d01f964c27a11373ce4cf20c78854d6e67f5a",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SessionBalanceUpdaterTest.xml",
+          "listed": "d98519b49bf3f8152321af796b5fd6ed448c613cb7cbc557074bd068551866ea",
+          "blob": "558ab209bb7bdfeb5144d42306b2ccffbed1d70029c7c685313c7f5c1abca575",
+          "local": "d98519b49bf3f8152321af796b5fd6ed448c613cb7cbc557074bd068551866ea",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SessionCapitalGuardTest.xml",
+          "listed": "33deeb85fb63f4b0694f8d37f5dd43ae1d89f4eb1d4fddbae9a7767c18bdfbd3",
+          "blob": "d8b6c46420f5009343892d56ebaf9411581df547019bf89b702466e4e3559593",
+          "local": "33deeb85fb63f4b0694f8d37f5dd43ae1d89f4eb1d4fddbae9a7767c18bdfbd3",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SessionKindIsolationTest.xml",
+          "listed": "817bf6dfc018d3068434aa3b3e0aba2efc38a310548ea012f742f9511a4bfa02",
+          "blob": "016f5a6ed503b26fa1b78fcd66c954e0ed5bd3c7c603e27f9e30b03377b1a6fe",
+          "local": "817bf6dfc018d3068434aa3b3e0aba2efc38a310548ea012f742f9511a4bfa02",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SessionLlmTelegramDeliveryTest.xml",
+          "listed": "e12401d9a392188039d3d8c8942214664c27482c02716451d820cdcf43e2e733",
+          "blob": "b5757aca6c58062140cbb9a6798dc7375c716b289497e4c31ca997900ff23eaa",
+          "local": "e12401d9a392188039d3d8c8942214664c27482c02716451d820cdcf43e2e733",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SettlementAtomicityTest.xml",
+          "listed": "fc69011b20d57672151dc650e89532c9fb77a240c5c7e59a1e0c945ba881b3fb",
+          "blob": "85d80da48da485b6fe4bd56f7ed336687c555b9d59125fc08d2d54f13aaf9a5c",
+          "local": "fc69011b20d57672151dc650e89532c9fb77a240c5c7e59a1e0c945ba881b3fb",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SettlementIdempotencyTest.xml",
+          "listed": "764ca67fd61ef163d0aa9fc4bc4d6d268ed1e5303558df6a5456f67f3b3407f9",
+          "blob": "77f40546f58602af38529180d2fd11d6aa2b622cb8687a09fdf34dfd6c2a1ff4",
+          "local": "764ca67fd61ef163d0aa9fc4bc4d6d268ed1e5303558df6a5456f67f3b3407f9",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SettlementRoundingPgTest.xml",
+          "listed": "fb164d7491aca8383de43e9da456aa9da7d8b046d58273aea323be3c1a7c2345",
+          "blob": "e8da8f4058fc16be4b37e6c1ea27a604a427c04abab14440b97a4fc914ba7bba",
+          "local": "fb164d7491aca8383de43e9da456aa9da7d8b046d58273aea323be3c1a7c2345",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SharedLoopRoundsActiveTest.xml",
+          "listed": "e0a3f6355e23bf383f2ffcd8e27a04e6d3fe0d33a5548a9bac5ff43ab6006466",
+          "blob": "d5791c64139e29357eaf3ec74b4f367ce5c0cd741670c985e92ed818fb955e5d",
+          "local": "e0a3f6355e23bf383f2ffcd8e27a04e6d3fe0d33a5548a9bac5ff43ab6006466",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SharedMarketDataExecutorSaturationTest.xml",
+          "listed": "b042d78dd695744c5ce54f9e41a3a13ed18aeb953d2676483e962625fe91c366",
+          "blob": "30f93cc4d8254495bcf5a1415ba0705b332ded7fe1f1d36416b578d960dcfaba",
+          "local": "b042d78dd695744c5ce54f9e41a3a13ed18aeb953d2676483e962625fe91c366",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SharedPaperLoopIsolationTest.xml",
+          "listed": "0f6fecbc8ba400d7c0028424d175634eda897acc396bc69ceb9312e3f8292a56",
+          "blob": "6cfe81a98369a679fdadf8808087cd0ea109c54872a7eb0b44a1663c51669b34",
+          "local": "0f6fecbc8ba400d7c0028424d175634eda897acc396bc69ceb9312e3f8292a56",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SharedUniverseServiceTest.xml",
+          "listed": "6b6affcc7d0820b457ef1607eb9882eaf130c5355fd299d065d8f7b2d016a4b3",
+          "blob": "d2fcbf60e5fe55faecfe3f304823a76852ba79e887698881337de4363d103c4f",
+          "local": "6b6affcc7d0820b457ef1607eb9882eaf130c5355fd299d065d8f7b2d016a4b3",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SignalQualityDelistedMarketTest.xml",
+          "listed": "24d5ee735732aa56f5d4cd47fa4d2462439b79c49b2639591fcd07c8f290daff",
+          "blob": "e5c8a1fdef9bed0f8e5f8445f0b0eebbe9f22e2b101f0d4a829dcf1ccff96cb0",
+          "local": "24d5ee735732aa56f5d4cd47fa4d2462439b79c49b2639591fcd07c8f290daff",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SignalQualityHoldBaselineTest.xml",
+          "listed": "df815754494b97f7f069c8fd62cc349eae24ad984c4a1a2f7d7f1b5161eaec67",
+          "blob": "a642bc43598116fb389d00ba1d17a4b1353c042e1cf6c5521ca2c9b2b32b04ef",
+          "local": "df815754494b97f7f069c8fd62cc349eae24ad984c4a1a2f7d7f1b5161eaec67",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SlWatchdogFreshnessTest.xml",
+          "listed": "0e60eb733962e89045d291875502bcb65b798491cbd1b9ac3b27efa9e8363016",
+          "blob": "a150333ffe3df24b7a6a527320ba1c832a3c80b9fb59f29fabe60bb8ad11a6b2",
+          "local": "0e60eb733962e89045d291875502bcb65b798491cbd1b9ac3b27efa9e8363016",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedGapsTest.xml",
+          "listed": "be73c5d94a61c4d318e9c02ba172bc613bb32c6cf0ed7c40bcdc3ef49ae3fd45",
+          "blob": "82ff1e86a3fb24f5be23edb12f8344285086884186b17e596d394bd36a80a98b",
+          "local": "be73c5d94a61c4d318e9c02ba172bc613bb32c6cf0ed7c40bcdc3ef49ae3fd45",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedPaperSameInputTest.xml",
+          "listed": "926a3255c883de434187b0da621b6a80782c1b1d221d51dc6675c0e3ee962374",
+          "blob": "c10483bbab52abafe874e63cf6776352f1f44005ff9768ba489bf75debec24db",
+          "local": "926a3255c883de434187b0da621b6a80782c1b1d221d51dc6675c0e3ee962374",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.Sma20LivePaperSameInputTest.xml",
+          "listed": "fc0867097df4869784d31253ca4645621154e6d187d463bd59870708f075079f",
+          "blob": "90b59c90e31d34aa1d95608069008c2d43bc626b17fb9f5acdebaa03ac10c1ff",
+          "local": "fc0867097df4869784d31253ca4645621154e6d187d463bd59870708f075079f",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SnapshotBoundaryRaceTest.xml",
+          "listed": "34009e31b01e2eb95330c34198c388bdad8a2005ccc9c67d6cb00757b613e4f6",
+          "blob": "35f12bc7092298d4c64394b824432bc2e9f54f5a3a7fe0e42a2fefa2a06a167d",
+          "local": "34009e31b01e2eb95330c34198c388bdad8a2005ccc9c67d6cb00757b613e4f6",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.StaleRealtimeExitTest.xml",
+          "listed": "1756c60e37199218052e07adf131832ffa59d50daca8bcb8f21f54bc26a522a8",
+          "blob": "605ec8cea1a25554be7b4d436b3097937d5a5541e038391b97d1375b7005f140",
+          "local": "1756c60e37199218052e07adf131832ffa59d50daca8bcb8f21f54bc26a522a8",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.StartedAtPrecisionPgTest.xml",
+          "listed": "b8589a81164b6e48f3f288cd3959e51cf33a1013cc6478db2564f54218f34273",
+          "blob": "4ab129090946bb75a22f3ada8538312d4c786628cd99b157e172002f5162759e",
+          "local": "b8589a81164b6e48f3f288cd3959e51cf33a1013cc6478db2564f54218f34273",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest.xml",
+          "listed": "9ffc94ff39200cec723f37912efe791ab1dd5803994d98527046e55421ca1bc5",
+          "blob": "6e6f8b26e55c703728c12db6bdf49a2b374132580e230527f995ba18b475c973",
+          "local": "9ffc94ff39200cec723f37912efe791ab1dd5803994d98527046e55421ca1bc5",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyEnablementGateTest.xml",
+          "listed": "7dde713c37d63e5b9bc5c925bf5d0d73eea90acbf227c9f76fe2e8c60c0f8425",
+          "blob": "81a9960f7489cc24aaaf84a266d0b53edd72cf2caf09aca89d3a2dbbc6f76df0",
+          "local": "7dde713c37d63e5b9bc5c925bf5d0d73eea90acbf227c9f76fe2e8c60c0f8425",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest$CapitalProtection.xml",
+          "listed": "d696b1719365fb37161a15a45100dddb2e7330a30f22a0ebfc4a9dbe98288649",
+          "blob": "942cc02b3018f8b7496cbbd237ae653e56e317b104787ed38fbc531b32bd4027",
+          "local": "d696b1719365fb37161a15a45100dddb2e7330a30f22a0ebfc4a9dbe98288649",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest$EdgeSafetyNet.xml",
+          "listed": "19410a0825a660c903dc60e632f6ea57d7a070b03066b3dacd9520f458228cf2",
+          "blob": "8a42ede55cafd5fbbc946c89295fd930731d1eb93cf1451832b234820d7f9fde",
+          "local": "19410a0825a660c903dc60e632f6ea57d7a070b03066b3dacd9520f458228cf2",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest.xml",
+          "listed": "1ae1a007ba11e35dc85afbb102d9a7b9e1d11c98e4e35c8dfdb58a5fee4b0568",
+          "blob": "3fc2292e607a666fb893fd2beb221aea745083de446b5cdeb77ffdb68701221c",
+          "local": "1ae1a007ba11e35dc85afbb102d9a7b9e1d11c98e4e35c8dfdb58a5fee4b0568",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyLiveStatusRegistryTest.xml",
+          "listed": "f38a24eaff481e0b112dc0d3fe1e00eecf3d4a0ed38eba3f48fe53ed8cede095",
+          "blob": "26e5cc00dacf0075be153c1b07e6fd66a3891f19f833454f4425eedb70de3e21",
+          "local": "f38a24eaff481e0b112dc0d3fe1e00eecf3d4a0ed38eba3f48fe53ed8cede095",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyLogTimeframeTest.xml",
+          "listed": "fcaf58a32d48024db5545ce47d1e03e6d18138a960268c92370c3abd098e7aab",
+          "blob": "4b45b23ab2bf36818c27c927bd01c60437a6c5602cff53f5e8debeac0e83d431",
+          "local": "fcaf58a32d48024db5545ce47d1e03e6d18138a960268c92370c3abd098e7aab",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyWeightOptimizerTest.xml",
+          "listed": "af9c0f7c52623a08d7a1fd3432b7fc652d1a7518801c6ef25edebb574d91cad6",
+          "blob": "564714b178e7d502e4cefcab92ae79cca0f71e8d06131f66b3d72f66164956e3",
+          "local": "af9c0f7c52623a08d7a1fd3432b7fc652d1a7518801c6ef25edebb574d91cad6",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SubmitOrderBoundaryProbeTest.xml",
+          "listed": "0cf09b297c3965df240b86cf43faa16ac3b2ac259c35d430f7050173bbfc808c",
+          "blob": "b1c93a8e89dfe308740baf7f729902db947db153394c85b2fd36709bb238e646",
+          "local": "0cf09b297c3965df240b86cf43faa16ac3b2ac259c35d430f7050173bbfc808c",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SubmitRejectionClassificationTest.xml",
+          "listed": "468e7d722fdb99386e3a90b8b29a0b260f8169e0701a505808826a319438ea99",
+          "blob": "3c81f29e8549f764259acf012c8a7d9880e8c3fb711c8f3ca431ca3ce40dcd84",
+          "local": "468e7d722fdb99386e3a90b8b29a0b260f8169e0701a505808826a319438ea99",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SubmitResponseUnknownTest.xml",
+          "listed": "34f9bbf075d85d5205a53e183fb84e68d891d8cb58ef7c8b8ef5771ddc04a783",
+          "blob": "6c7e7a012c73dacc4a5ba806ef0908cab0555de0409aa73c7891722ca8883ffd",
+          "local": "34f9bbf075d85d5205a53e183fb84e68d891d8cb58ef7c8b8ef5771ddc04a783",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-race-gap/gradle.log",
+          "listed": "f9b2f9a6ef83c03666b4a43956099b326b17d04059f76ee47f8e308b2c4e2b87",
+          "blob": "cf39532a632a723387be5114cfe6f5c63fea0b3b4bf0f38d194571519acdd844",
+          "local": "f9b2f9a6ef83c03666b4a43956099b326b17d04059f76ee47f8e308b2c4e2b87",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-race-gap/summary.txt",
+          "listed": "44ae2376ef4c051ecf67ac09e6d98653145c0e99a8d989a164a75ed8f2751b2d",
+          "blob": "5c8ee288557e1460f1d6f7bbef182b8a25aae3c98ec3340c657e7aa17844ecb6",
+          "local": "44ae2376ef4c051ecf67ac09e6d98653145c0e99a8d989a164a75ed8f2751b2d",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-race-gap/xml/web-api/TEST-com.cryptoautotrader.api.service.CleanupReconcileRaceDiagTest.xml",
+          "listed": "290c3f5d87a7e3517d00038c94da207490505f5b26600e027c208d04c889a567",
+          "blob": "9bbde80e69c070c4bd3172a461e633f30cb9a07b3c36f039cf01bc1022bcfe15",
+          "local": "290c3f5d87a7e3517d00038c94da207490505f5b26600e027c208d04c889a567",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-race-gap/xml/web-api/TEST-com.cryptoautotrader.api.service.DrainGapLateWorkerDiagTest.xml",
+          "listed": "62e7b26abd7b368443b33a2ebc109715d8b3d6ad0cb1a4143cf80341fa67c05e",
+          "blob": "b8e964417b5a8007079276c7c3b1bca1ffca5c1159620ca7a7aefbf795f25324",
+          "local": "62e7b26abd7b368443b33a2ebc109715d8b3d6ad0cb1a4143cf80341fa67c05e",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-saturation-latecore/gradle.log",
+          "listed": "a6ebc91f037ba2b2ce2c1f9e0b06591380c3543998c130a6a8fc7cee332f002e",
+          "blob": "b746fdba76023936913e019b2cdcdd00d3ca3326adb05e6905739845ccc440aa",
+          "local": "a6ebc91f037ba2b2ce2c1f9e0b06591380c3543998c130a6a8fc7cee332f002e",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-saturation-latecore/summary.txt",
+          "listed": "0b1ee436fdeea9c38deb3f745d52fba2d8f62d23aa75b7164560010d16f8a91f",
+          "blob": "6e5159e2e07b93be8fd7b18bb0d23674931b1bef9e29fd596c2b21383540316c",
+          "local": "0b1ee436fdeea9c38deb3f745d52fba2d8f62d23aa75b7164560010d16f8a91f",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/diag-saturation-latecore/xml/web-api/TEST-com.cryptoautotrader.api.service.SaturationLateCoreDiagTest.xml",
+          "listed": "a361e324f2db08f4449e47b612a84425266f1383a9d31d9c08428f1863591963",
+          "blob": "98e59f7de9b4a8c55cea71aa34b8ab9d2795d7ad685efe5d22e7b96f58d66945",
+          "local": "a361e324f2db08f4449e47b612a84425266f1383a9d31d9c08428f1863591963",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/draingap-fix/gradle.log",
+          "listed": "ad33a3ebd5df933f906bf14d20aea4d295a9962c6394d6e422aad3bd9da5bc5d",
+          "blob": "625816763a7dc8eeb408269246f2203cbb9c1fdafa5d15d57a8d7887eb152547",
+          "local": "ad33a3ebd5df933f906bf14d20aea4d295a9962c6394d6e422aad3bd9da5bc5d",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/draingap-fix/summary.txt",
+          "listed": "44ae2376ef4c051ecf67ac09e6d98653145c0e99a8d989a164a75ed8f2751b2d",
+          "blob": "5c8ee288557e1460f1d6f7bbef182b8a25aae3c98ec3340c657e7aa17844ecb6",
+          "local": "44ae2376ef4c051ecf67ac09e6d98653145c0e99a8d989a164a75ed8f2751b2d",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/draingap-fix/xml/web-api/TEST-com.cryptoautotrader.api.service.OrderExecutorDrainPredicateGapTest.xml",
+          "listed": "b32bc1e503ff785236d51a4593b1c22c91523df133dcedf6fb70ca3d726dd07c",
+          "blob": "e778e6b2d88660c39c9e2e36b309c44e416f1beddc5341e476c27804d802a61d",
+          "local": "b32bc1e503ff785236d51a4593b1c22c91523df133dcedf6fb70ca3d726dd07c",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/phantom-before-pg-run2/gradle.log",
+          "listed": "2683560311c0e1b47efa8ad8b44588e7f028b2701e8cde1494007e95be89d7e1",
+          "blob": "61f94d58316c504bbe4cd6c261d6edd0e4ef3927410425b9b58a0642a99be3ee",
+          "local": "2683560311c0e1b47efa8ad8b44588e7f028b2701e8cde1494007e95be89d7e1",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/phantom-before-pg-run2/summary.txt",
+          "listed": "7e84c70dfec82a9c4f2887e2dfdb313f6596b9b9a16c170498d76e42b4b30bd7",
+          "blob": "fd63fd675beb176a5d45df24f3669cb8c9af91a1d72f4ff36d9cfeaabd43039d",
+          "local": "7e84c70dfec82a9c4f2887e2dfdb313f6596b9b9a16c170498d76e42b4b30bd7",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/phantom-before-pg-run2/xml/web-api/TEST-com.cryptoautotrader.api.service.PhantomKeepsConfirmedPnlPgTest.xml",
+          "listed": "2b5c5a022faac9bd8183c015e1699848075fcb07fdbe8bd3ca42f767709faae5",
+          "blob": "be89775ac7e188a2b9ce76a32f0a239a8949c9913bfa326fb0ee2604f5d1e509",
+          "local": "2b5c5a022faac9bd8183c015e1699848075fcb07fdbe8bd3ca42f767709faae5",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/phantom-before-pg/gradle.log",
+          "listed": "eb2ba79b77630ebdd1662e98f602548ddab070e71b0a807cf1abe07e2781c7dc",
+          "blob": "8428d3f1873f0da866a0c0db43725d56542504f1df9a5f0d95040a4c17ef17d8",
+          "local": "eb2ba79b77630ebdd1662e98f602548ddab070e71b0a807cf1abe07e2781c7dc",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/phantom-before-pg/summary.txt",
+          "listed": "12054a8b3f145603d50d0c6ce7dcc7e24ea0704556a982c7c3d8b95d95b6709a",
+          "blob": "bca3dee8c7cd89e376a9ec5e68ad2a9a20cefbf2724a07aa921140d3030b74bc",
+          "local": "12054a8b3f145603d50d0c6ce7dcc7e24ea0704556a982c7c3d8b95d95b6709a",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/phantom-before-pg/xml/web-api/TEST-com.cryptoautotrader.api.service.PhantomKeepsConfirmedPnlPgTest.xml",
+          "listed": "da4105c834d7e021233c511e519251bd7a7814fedb329406e440447db0d97074",
+          "blob": "76b8170bb8c40a7a661d53bc56d267b848ca7d46af15d8422fd89f95499a3c78",
+          "local": "da4105c834d7e021233c511e519251bd7a7814fedb329406e440447db0d97074",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/phantom-rel-h2/gradle.log",
+          "listed": "740480d1b08c41459ac919ce9174b0ebc447fe2e9bcccc4a67f0a9edf403ee00",
+          "blob": "6532821f50207c8f3e4ecd09512f82ebe4754a769278c00371c0a1261702fc56",
+          "local": "740480d1b08c41459ac919ce9174b0ebc447fe2e9bcccc4a67f0a9edf403ee00",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/phantom-rel-h2/summary.txt",
+          "listed": "82d2c1692db6be4868caf4574c99607ce82da62d517f3691ba529a658e9fba84",
+          "blob": "30395e124caaf304ec851aa02f4f6ab4f72d900f1e5929701a153595bbecd51e",
+          "local": "82d2c1692db6be4868caf4574c99607ce82da62d517f3691ba529a658e9fba84",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/phantom-rel-h2/xml/web-api/TEST-com.cryptoautotrader.api.service.ExchangeRecoveryRestartTest.xml",
+          "listed": "a934e8cd61237fcdcd32ca146661305d5653aa00af4028947c90da1a994169a6",
+          "blob": "12455f4b3be644942b2ddc3a4e635c958256f6c59d5b10c84c351d9a604c12a3",
+          "local": "a934e8cd61237fcdcd32ca146661305d5653aa00af4028947c90da1a994169a6",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/phantom-rel-h2/xml/web-api/TEST-com.cryptoautotrader.api.service.LiveSellIdempotencyTest.xml",
+          "listed": "c90d68869d5013507d13e1bb13add4f27305aa482133dc25369528744ffc4180",
+          "blob": "ccd43764921b777cc9042247c41616e8ed6d409f939c47885f46f91350f4b4fa",
+          "local": "c90d68869d5013507d13e1bb13add4f27305aa482133dc25369528744ffc4180",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/phantom-rel-h2/xml/web-api/TEST-com.cryptoautotrader.api.service.LiveTradingSlWatchdogRecoveryTest.xml",
+          "listed": "2590319aa208130dd7d8c81f603ba39a431b38e14125c58e398502af15f12493",
+          "blob": "2976ab9076f7fc2e5ed1bff534b66ccc004d28707f33d5de2af4165c5a9bc5c0",
+          "local": "2590319aa208130dd7d8c81f603ba39a431b38e14125c58e398502af15f12493",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/phantom-rel-h2/xml/web-api/TEST-com.cryptoautotrader.api.service.SessionBalanceUpdaterTest.xml",
+          "listed": "184ba79133466d231f328ebf534626f3f6b90b2321ccecd456811c894f55d271",
+          "blob": "ac23aa73ab254fea894488e4f211a3328677cb82d48be5f8b6c6136bb4ae1985",
+          "local": "184ba79133466d231f328ebf534626f3f6b90b2321ccecd456811c894f55d271",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/phantom-rel-h2/xml/web-api/TEST-com.cryptoautotrader.api.service.SettlementAtomicityTest.xml",
+          "listed": "ed10399c62233d38a20cefebaff136694266f69db97ab22c6cd62c00f526b0b4",
+          "blob": "12c18a388d7a584f73bdb9e6dcd28a18a6a3de25fb20ccd48ac4b0fd2979c6b7",
+          "local": "ed10399c62233d38a20cefebaff136694266f69db97ab22c6cd62c00f526b0b4",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/phantom-rel-h2/xml/web-api/TEST-com.cryptoautotrader.api.service.SettlementIdempotencyTest.xml",
+          "listed": "f55f178845e413542621ac86f1216485101c3158fb4e5b4efba6236c75494c72",
+          "blob": "e9741ffcbcd782b385319773974f4f68fb819e0033a6cc454b4d6c6356f905a5",
+          "local": "f55f178845e413542621ac86f1216485101c3158fb4e5b4efba6236c75494c72",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/phantom-rel-h2/xml/web-api/TEST-com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest.xml",
+          "listed": "4d40c8d9906500b0f3223379daad8a7c939d4806119cf59bedcc34b5e3c3a0c5",
+          "blob": "a358fd2c38c1eade9d508b853adecdfe75efe949c90c3fd8386903f3887e337a",
+          "local": "4d40c8d9906500b0f3223379daad8a7c939d4806119cf59bedcc34b5e3c3a0c5",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/phantom-rel-losswin-pg/gradle.log",
+          "listed": "7708e7cee5a03c20a3d53bd7e7212ab29a8241388d3b25a1f67773f636549100",
+          "blob": "82cf2ef95f4a82f7bc920a1437fd70b7635c6f791c8a3ceb139dbfa7f35d3fab",
+          "local": "7708e7cee5a03c20a3d53bd7e7212ab29a8241388d3b25a1f67773f636549100",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/phantom-rel-losswin-pg/summary.txt",
+          "listed": "c8fd0ea72d3a149936c6d90b903da155b4774c0e1dfea445c9323aa0c78bfada",
+          "blob": "694896fa4ae636fe7eca6103883d9594c5290fbdbd2114759244671271736974",
+          "local": "c8fd0ea72d3a149936c6d90b903da155b4774c0e1dfea445c9323aa0c78bfada",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/phantom-rel-losswin-pg/xml/web-api/TEST-com.cryptoautotrader.api.service.LiveLossWindowPgTest.xml",
+          "listed": "8e56237c823490b9709209c049f8692595f094b999b323178f998ff3303fb888",
+          "blob": "700de50f9e8bd6e1fafc50d1425cb748a42759baf8e659bb948a19108ab75a0f",
+          "local": "8e56237c823490b9709209c049f8692595f094b999b323178f998ff3303fb888",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/phantom-rel-partial-pg/gradle.log",
+          "listed": "bffc758ac3c4c32ec8eca68358e89f01b43ac2062fdc2b077d89ebf912b979fe",
+          "blob": "6ea46cbc4c3ee7921646918ae2fcba1a6f58610aa272b149ffb0aedb2758d98d",
+          "local": "bffc758ac3c4c32ec8eca68358e89f01b43ac2062fdc2b077d89ebf912b979fe",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/phantom-rel-partial-pg/summary.txt",
+          "listed": "c8fd0ea72d3a149936c6d90b903da155b4774c0e1dfea445c9323aa0c78bfada",
+          "blob": "694896fa4ae636fe7eca6103883d9594c5290fbdbd2114759244671271736974",
+          "local": "c8fd0ea72d3a149936c6d90b903da155b4774c0e1dfea445c9323aa0c78bfada",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/phantom-rel-partial-pg/xml/web-api/TEST-com.cryptoautotrader.api.service.PartialSellRealizedPnlPgTest.xml",
+          "listed": "9def34a0f88ace265133886b773ab3fe81c4dfa3bf7ee697a31f8e2704d3e194",
+          "blob": "780b8ae8fd8d45d39b40e34f52ba162e00ecdb22812079b60d7a7fc699058aa8",
+          "local": "9def34a0f88ace265133886b773ab3fe81c4dfa3bf7ee697a31f8e2704d3e194",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/phantom-step1-accumulate-pg/gradle.log",
+          "listed": "314d0a6ee857ffd099383dc739596bb74ffe9efd42f5f45ca150246b668bc79a",
+          "blob": "15a5bc6cfc4d486141acb7b3868e33398235c1345916c240c71d8b900a50bfcc",
+          "local": "314d0a6ee857ffd099383dc739596bb74ffe9efd42f5f45ca150246b668bc79a",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/phantom-step1-accumulate-pg/summary.txt",
+          "listed": "e749aae73ef11112e109b89b15a3369d4f4f8008eb91702d28399c79502760a8",
+          "blob": "9d5c7dac2894d5a8ff91ea5ff98be2f94a3c2fc041b770981d74d456231f46b5",
+          "local": "e749aae73ef11112e109b89b15a3369d4f4f8008eb91702d28399c79502760a8",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/phantom-step1-accumulate-pg/xml/web-api/TEST-com.cryptoautotrader.api.service.PhantomKeepsConfirmedPnlPgTest.xml",
+          "listed": "03e8fc1c09353d1afe25df153be026b585f4c12fb05cfc952478f7bde592b856",
+          "blob": "7909ca3e487b4f696bcd2db5b4c40f4ba6fdba42215fd826be2aa1eda24c982a",
+          "local": "03e8fc1c09353d1afe25df153be026b585f4c12fb05cfc952478f7bde592b856",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/phantom-step2-within-pg/gradle.log",
+          "listed": "4fb2c9e4e99d4aa06fa4df715037589a3f200ada3552b861013bcb94012e0083",
+          "blob": "bd826186bcc2e8d28d465787a6415ac5cc9d0dc9b786295a39061c9b2a64b3fc",
+          "local": "4fb2c9e4e99d4aa06fa4df715037589a3f200ada3552b861013bcb94012e0083",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/phantom-step2-within-pg/summary.txt",
+          "listed": "5a1f30451cab8a9eea8b8bd700c08906e5094bd27e80cd399724e48806a20bf5",
+          "blob": "1c31ffd9d2e9490347d3cf7363c2d8f4af4e1ebbfe5f7692fb9a2d29de0719e5",
+          "local": "5a1f30451cab8a9eea8b8bd700c08906e5094bd27e80cd399724e48806a20bf5",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/phantom-step2-within-pg/xml/web-api/TEST-com.cryptoautotrader.api.service.PhantomKeepsConfirmedPnlPgTest.xml",
+          "listed": "af56e96fe5808b779250a19c41547f71c5e37f6ce8205a7f08d237a46532714b",
+          "blob": "0b12f6be29e133a04dd30e6437ba07d8c5955a642da4dd64cedb1bb56cb4e284",
+          "local": "af56e96fe5808b779250a19c41547f71c5e37f6ce8205a7f08d237a46532714b",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/realloss-before-pg/gradle.log",
+          "listed": "3950f25b3142b5b2438d5f944e868f6b3f54576ca8a95d2d97a081bc0817ecd9",
+          "blob": "edd2b73ea734f104d498a8a33ffa05bedf5a2aeb427228794d536a2082fa236b",
+          "local": "3950f25b3142b5b2438d5f944e868f6b3f54576ca8a95d2d97a081bc0817ecd9",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/realloss-before-pg/summary.txt",
+          "listed": "be95c4a9e648c35c7b42d892feb9a614234d8838a41a71a2606d6cb13c0bfad4",
+          "blob": "5b8e7faab526e2685e08aadd5b9420a13f155d143fc5c47bc0204b584c27933a",
+          "local": "be95c4a9e648c35c7b42d892feb9a614234d8838a41a71a2606d6cb13c0bfad4",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/realloss-before-pg/xml/web-api/TEST-com.cryptoautotrader.api.service.RealLossGlobalPgTest.xml",
+          "listed": "0b0badb2d24d45664df56ebfe78705018d4331b9fab63e0b38578fe8186a29a4",
+          "blob": "c125674bae7b04abedbcd60406f2f3f0129abb9f7d1ebe235fe49585dff102fa",
+          "local": "0b0badb2d24d45664df56ebfe78705018d4331b9fab63e0b38578fe8186a29a4",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/saturation-fix/gradle.log",
+          "listed": "f0b8f9be8abeca4eaf095edd29e62673dec60c3f3c352774a1b583ae1e5284af",
+          "blob": "a93c5b4a90f782476151959d3b6acfb5da5e4ca3ac43f2a7535cf635f407992c",
+          "local": "f0b8f9be8abeca4eaf095edd29e62673dec60c3f3c352774a1b583ae1e5284af",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/saturation-fix/summary.txt",
+          "listed": "5a1f30451cab8a9eea8b8bd700c08906e5094bd27e80cd399724e48806a20bf5",
+          "blob": "1c31ffd9d2e9490347d3cf7363c2d8f4af4e1ebbfe5f7692fb9a2d29de0719e5",
+          "local": "5a1f30451cab8a9eea8b8bd700c08906e5094bd27e80cd399724e48806a20bf5",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/saturation-fix/xml/web-api/TEST-com.cryptoautotrader.api.service.OrderExecutorDrainPredicateGapTest.xml",
+          "listed": "d279519383c17339343fe742cc1d12ff83c7b55c3e4a1be99b3ab582baabb666",
+          "blob": "99fd94e53c38a084f55f9b65fa1aff4a01ac126f386c8146dbbc0416386a4855",
+          "local": "d279519383c17339343fe742cc1d12ff83c7b55c3e4a1be99b3ab582baabb666",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/saturation-fix/xml/web-api/TEST-com.cryptoautotrader.api.service.SharedMarketDataExecutorSaturationTest.xml",
+          "listed": "6e573da3ba627e8c24dc775832b64dfa423998084998685305a91c466a9cc26a",
+          "blob": "9b3ac9cca00147ea93cfd7494f5c6922b2b85e96d0ba10c4042f9ea9cd42e322",
+          "local": "6e573da3ba627e8c24dc775832b64dfa423998084998685305a91c466a9cc26a",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/gradle.log",
+          "listed": "ee2803cdf25c80d010cd3b5547551de49cec604e46331b6e42f6513a1c2f0b2a",
+          "blob": "8cbfff48945ab81c82e9911dd21f2ea7f6c30eedf70fb13554d9079f89299353",
+          "local": "ee2803cdf25c80d010cd3b5547551de49cec604e46331b6e42f6513a1c2f0b2a",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/summary.txt",
+          "listed": "5921d976649e8f67e244d3edc40df0788267b4c27b3dd9e05e5055abb0094555",
+          "blob": "6dedbbe7e86e1a899c708f4eba152ebeb0ba87259ba1fec1844407780fbdf744",
+          "local": "5921d976649e8f67e244d3edc40df0788267b4c27b3dd9e05e5055abb0094555",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.R5RealCashflowRiskTest.xml",
+          "listed": "6f5347ae9077b5429826046dafa8270f981eb6eabda2a43e1944dc26745072ab",
+          "blob": "5dff3340973edf370176c56de194585f74e0295c16003a07ea74a85d4d12eb78",
+          "local": "6f5347ae9077b5429826046dafa8270f981eb6eabda2a43e1944dc26745072ab",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.RateLimiterEmergencyStopTest.xml",
+          "listed": "4c8cae605ac81c2477e513f3a1454790063b779ee420fde7e96b0188cac2a37c",
+          "blob": "6334f839c62b4743a641c06dcc9a212675a58554fcc5fb3fdc42033668659f58",
+          "local": "4c8cae605ac81c2477e513f3a1454790063b779ee420fde7e96b0188cac2a37c",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.RealNextBarClockTest.xml",
+          "listed": "2aa54094763732f0a171e704c251c56152d15b14b0d8ec814e141db47ac4ca60",
+          "blob": "f4fd3a1153aca62f0af189bdb265f871ee04b150821d877dce26b4bf89fdfe20",
+          "local": "2aa54094763732f0a171e704c251c56152d15b14b0d8ec814e141db47ac4ca60",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.RealtimeProtectionFairnessTest.xml",
+          "listed": "daffd4d2de635bc7fc8c23a357224c1b10ea73343c903596c2bba44190b0f6ed",
+          "blob": "c2a97806a6b91d755beb42c91b74e76cfce8bb03dba0442bf260a592b089350a",
+          "local": "daffd4d2de635bc7fc8c23a357224c1b10ea73343c903596c2bba44190b0f6ed",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest.xml",
+          "listed": "a64f43f1c4111760448910da7b8e667a33c9fa3cba0e4ac80a3ed57434e60a73",
+          "blob": "792d5c7230d30de4d46a571c802db2d7fc1269fe04aa797481d5d5ca256b5352",
+          "local": "a64f43f1c4111760448910da7b8e667a33c9fa3cba0e4ac80a3ed57434e60a73",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.RequestedFundsFallbackImpactTest.xml",
+          "listed": "605242099b39b016afd8a38a4fcee780034ece9c231aefcc1bb9ed30b6775516",
+          "blob": "4b4ccf06df7f3494207c1368b79ed719344d6320f16cc6a68619b98d3b57abef",
+          "local": "605242099b39b016afd8a38a4fcee780034ece9c231aefcc1bb9ed30b6775516",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.RiskCircuitBreakerOrderTest.xml",
+          "listed": "a6e502bece3bdf806ec3728e29e3c47a0ce3dd45ff9cc164a17be917d1ebf2a9",
+          "blob": "db500891b7cbc6cd38305bcca99c16fd29f44daf3334bd3b8ec841ae8f9c088b",
+          "local": "a6e502bece3bdf806ec3728e29e3c47a0ce3dd45ff9cc164a17be917d1ebf2a9",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.RiskConfigMissingTest.xml",
+          "listed": "903baf5351a764288a87405f3433d04af4a75e7c2987672be7f2ee6ade56ad34",
+          "blob": "bc1baf2dc66aa6fbf6330102c05c97c09f09b992af536a19bcdcd4bef0a41c17",
+          "local": "903baf5351a764288a87405f3433d04af4a75e7c2987672be7f2ee6ade56ad34",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.RiskManagementServiceTest.xml",
+          "listed": "183337ffae6991262ff61d1ca5158fb8e95ab4bf9b7f1f73edd137af24da2c41",
+          "blob": "e87f029d89db034e2c3ba0dd8f6eae8623031a97a9dcaf69277ae76c6efa84ff",
+          "local": "183337ffae6991262ff61d1ca5158fb8e95ab4bf9b7f1f73edd137af24da2c41",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.RulesetFingerprintTest.xml",
+          "listed": "c10c9e7d9deb4d7518cbd4ee0d1adabeabca19f22c84e94fa74ccd256d56f8b2",
+          "blob": "70233a7ebe5ab1ac94e1f8cbfb0c0902a61e18e3ab9e25d985f73c72c65086af",
+          "local": "c10c9e7d9deb4d7518cbd4ee0d1adabeabca19f22c84e94fa74ccd256d56f8b2",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.RulesetRegistryCompositionTest.xml",
+          "listed": "6d31e77eb3be7d5e1391000e93a22c8f1bfb294752e82b18cd3ed895f2e0833a",
+          "blob": "e48d4756ed81df93585b1d02448bd07485dea0af57b0f4c3d148dfc52250ad65",
+          "local": "6d31e77eb3be7d5e1391000e93a22c8f1bfb294752e82b18cd3ed895f2e0833a",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SchedulerProfileCleanupTest.xml",
+          "listed": "482c6db4133b7e8258fe354abfab520b4eb8fcbead83836467d4f657002b7454",
+          "blob": "4273ee5df06435844f41543cc5eb71d489185f2f839ea7f40201416f57699132",
+          "local": "482c6db4133b7e8258fe354abfab520b4eb8fcbead83836467d4f657002b7454",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SellQuarantineReleaseTest.xml",
+          "listed": "ddf1e25a537d8b0343c471436611ad5c699ff2ab65af007833af622f23d3ea47",
+          "blob": "ad2aa7717c08a3f6d3e1fbd19b64366a332536c872dc0bbdbaf31fd0552b3ab7",
+          "local": "ddf1e25a537d8b0343c471436611ad5c699ff2ab65af007833af622f23d3ea47",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SessionBalanceUpdaterTest.xml",
+          "listed": "acc9f20e0479fd9ead477ab46bd06e29a55fbd975ec5b82d4ac7d2fdac2dc5e0",
+          "blob": "7eb3b0a0a38a805f2290571fad557f2a75a22b59d0a0a84c2d8bc7ae2375588f",
+          "local": "acc9f20e0479fd9ead477ab46bd06e29a55fbd975ec5b82d4ac7d2fdac2dc5e0",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SessionCapitalGuardTest.xml",
+          "listed": "cda494e6c785b533cbb26736201f1bb3e02d22c1eb6e0292d6bb5eacfd7259c7",
+          "blob": "f0db32491f61d7f75b772267defa90347216fa49994a1d1ef04eb7ee78c34886",
+          "local": "cda494e6c785b533cbb26736201f1bb3e02d22c1eb6e0292d6bb5eacfd7259c7",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SessionKindIsolationTest.xml",
+          "listed": "60d64e1199b2ec2686dcea5c6a3b8ff30a37942c5ffcdb56847cb8f0aa491278",
+          "blob": "2bec4ddc8c980abc37e73fadb4a4f837cf62bf39fae6343959819530a3c15ace",
+          "local": "60d64e1199b2ec2686dcea5c6a3b8ff30a37942c5ffcdb56847cb8f0aa491278",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SessionLlmTelegramDeliveryTest.xml",
+          "listed": "bf16252e7a28501702d1244a0528f8facf015312dfe5a26ff4896f7a53140c79",
+          "blob": "105e9f9500d1facbb0c5bea67ef50e3aa8e389aa10cafd08eee06bb01de3ecf0",
+          "local": "bf16252e7a28501702d1244a0528f8facf015312dfe5a26ff4896f7a53140c79",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SettlementAtomicityTest.xml",
+          "listed": "9144a0fcb05eb65e120ed9e360ea136ad7a614395cc1867871fd02638a128508",
+          "blob": "3943b02d3a875c2643aa7fd3d975ac39fddc86ddf21e16176886945436d0f031",
+          "local": "9144a0fcb05eb65e120ed9e360ea136ad7a614395cc1867871fd02638a128508",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SettlementIdempotencyTest.xml",
+          "listed": "4d8b1e5d319f5c608230c54bfaf7d35727ceae7472d6c008fba14e109ac72aee",
+          "blob": "9dcf5f6ff316f02fc99b3817dca3f597ea7fcd5dae02065bd65198fe13d72fda",
+          "local": "4d8b1e5d319f5c608230c54bfaf7d35727ceae7472d6c008fba14e109ac72aee",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SettlementRoundingPgTest.xml",
+          "listed": "c1b2a491fcfac041193effe0debafd7d21abb1f4867351511e24d0e439b59246",
+          "blob": "ca2807b096bb801c895542b0756ace5bbee9c96a27d917857e72aa6b991342ed",
+          "local": "c1b2a491fcfac041193effe0debafd7d21abb1f4867351511e24d0e439b59246",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SharedLoopRoundsActiveTest.xml",
+          "listed": "51678321b11c1e6e0819588333d0f28089dee9001db12614a74580f7e2f998b3",
+          "blob": "4f9c008f47028be40d859226103590c9f7103896ff189c074f509923ce7e13e9",
+          "local": "51678321b11c1e6e0819588333d0f28089dee9001db12614a74580f7e2f998b3",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SharedMarketDataExecutorSaturationTest.xml",
+          "listed": "59b6f7a1b007d64539c73853ab64e8c2d883706eeec17a0e5b498e314ff37b85",
+          "blob": "80b2c5750dfd5048dc293f947c56d681ca7cf460493f7ffbd609f300be064e7b",
+          "local": "59b6f7a1b007d64539c73853ab64e8c2d883706eeec17a0e5b498e314ff37b85",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SharedPaperLoopIsolationTest.xml",
+          "listed": "38141ceb1491298334863e709faa4ed92cca521dc2b8081afa24cbc8312ce695",
+          "blob": "58171b95f716e4bdc7d8f32dec254cd46c3d5959233858ecbb18dee61adf9f09",
+          "local": "38141ceb1491298334863e709faa4ed92cca521dc2b8081afa24cbc8312ce695",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SharedUniverseServiceTest.xml",
+          "listed": "e839a335c30a39084ff2a89464ec937b20339895d9cec148b8ee5032c12322f6",
+          "blob": "9cec4a24cccf0a2d587b0d4fd1073944718313f2e05f34cfcd65c8f6f8fc80c9",
+          "local": "e839a335c30a39084ff2a89464ec937b20339895d9cec148b8ee5032c12322f6",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SignalQualityDelistedMarketTest.xml",
+          "listed": "b153e9d1c31efbb5edaf7bfe7f8c85c5580da37b0c8744bc0b44bf0cf392f9f9",
+          "blob": "b3467760fcd93017b41b5a51d4e7af6567f06cca787815224e4090718151f0ea",
+          "local": "b153e9d1c31efbb5edaf7bfe7f8c85c5580da37b0c8744bc0b44bf0cf392f9f9",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SignalQualityHoldBaselineTest.xml",
+          "listed": "34742edf2cc82b83414e6603a7f00fef972f1c139fa03d919769108a0ae3c330",
+          "blob": "248772862b67f0c1c5775a979407d8f6dfe9737d3a07fa63c6f3871cf0abe532",
+          "local": "34742edf2cc82b83414e6603a7f00fef972f1c139fa03d919769108a0ae3c330",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SlWatchdogFreshnessTest.xml",
+          "listed": "78145a0329ffd3171ceb629097826067e16f57c1d7d2de9c7971d2deddecc9ce",
+          "blob": "ceb775e2aa6e5b0ecd3e3a3063be4c10ee363da504fb6521c8504d73a9e96c75",
+          "local": "78145a0329ffd3171ceb629097826067e16f57c1d7d2de9c7971d2deddecc9ce",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedGapsTest.xml",
+          "listed": "1fa0aa43592340f2cd4afacaa9b9035cad2bff1169cb45d5744b0178ee539f18",
+          "blob": "998e647bc89c4dae1da9f5c1b1f34340c1db8195681dd338e21fb4ae2d6b5135",
+          "local": "1fa0aa43592340f2cd4afacaa9b9035cad2bff1169cb45d5744b0178ee539f18",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedPaperSameInputTest.xml",
+          "listed": "16b8571e71ec1dfc52b30e6521ec07fc81c2828cb0aedc1008af13485d3408b3",
+          "blob": "52ccad5a0c143e74179aa794bf61f292dd1c4bf62722b09843392bdbbf9a1305",
+          "local": "16b8571e71ec1dfc52b30e6521ec07fc81c2828cb0aedc1008af13485d3408b3",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.Sma20LivePaperSameInputTest.xml",
+          "listed": "aaff109ec5c80cfaa320c21ed56bf87231cc1dbab4fdc778fbe96db3cd93afe2",
+          "blob": "b4e8c07598c3188715e9188675cf239415711587913c34f068088af35b57598d",
+          "local": "aaff109ec5c80cfaa320c21ed56bf87231cc1dbab4fdc778fbe96db3cd93afe2",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SnapshotBoundaryRaceTest.xml",
+          "listed": "1b82bccd1e3b8bded395f532bc68ce8c69524f69baccf705c34bc10422f99d31",
+          "blob": "7ab6e32291b33b59cb6288817355b637879162bd871e4ec598c67c3657402eba",
+          "local": "1b82bccd1e3b8bded395f532bc68ce8c69524f69baccf705c34bc10422f99d31",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.StaleRealtimeExitTest.xml",
+          "listed": "aca77b46a44a56f3120c478858ea2d207d2360f6a3c82d2e53e0c8b6674c7bd4",
+          "blob": "9662176e4972de8f275a41b85cf805a39f54432914c8086e48c670cb3007e1c7",
+          "local": "aca77b46a44a56f3120c478858ea2d207d2360f6a3c82d2e53e0c8b6674c7bd4",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.StartedAtPrecisionPgTest.xml",
+          "listed": "4f709d723c8ee7cf34e7ae9a1cc57448c010eed9622690d46222ef258cc20834",
+          "blob": "576f8ee23f7ace186d0686cd78c553df3c8fc557cf3042e5338e27bce94512d5",
+          "local": "4f709d723c8ee7cf34e7ae9a1cc57448c010eed9622690d46222ef258cc20834",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest.xml",
+          "listed": "4f7cae8f4f217c9345a4ca1b103283a3aa78b9ebe65746769596085b0ecf301b",
+          "blob": "9f698e32070835075f19753a43171266e7581266382150a4b213f50a3e7bc8f5",
+          "local": "4f7cae8f4f217c9345a4ca1b103283a3aa78b9ebe65746769596085b0ecf301b",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyEnablementGateTest.xml",
+          "listed": "82fe7e884a5783e40e42db7bcdd919a40d1f52083a18a52872061c4b91e1d6c8",
+          "blob": "dfb658392047e18836a03a2a0243f3adea0c11843e979a997ee05298b2e7c9b2",
+          "local": "82fe7e884a5783e40e42db7bcdd919a40d1f52083a18a52872061c4b91e1d6c8",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest$CapitalProtection.xml",
+          "listed": "2f60b3dfbb7c7d3c94b70f2aa20a4add4e9e438dbf379032ee173c8087405768",
+          "blob": "888e7deae1da3864d1d6a32028b384d9fc3887533b56252bbd6c220e8bb35f34",
+          "local": "2f60b3dfbb7c7d3c94b70f2aa20a4add4e9e438dbf379032ee173c8087405768",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest$EdgeSafetyNet.xml",
+          "listed": "d339697de38152f400af964d3efd1d5eec1c16e43af7a5df7da97da0a1805787",
+          "blob": "5ff6dfb0631281c83a239f27c7516085c90300f176bfe7b1271a698eaf5b58bd",
+          "local": "d339697de38152f400af964d3efd1d5eec1c16e43af7a5df7da97da0a1805787",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest.xml",
+          "listed": "f4138af16500f919f519cef944de31d99fa0cc82e219ef63e905072b5bc5361e",
+          "blob": "0b52474b1a993701e14fadbbf5590326224ea565399abaa740df05f8574a61fd",
+          "local": "f4138af16500f919f519cef944de31d99fa0cc82e219ef63e905072b5bc5361e",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyLiveStatusRegistryTest.xml",
+          "listed": "2554ce8de9dfe584e1b407d35554d4b7e8fed1f9e83274e6bd7a5d0795c7d7bf",
+          "blob": "908dced5bf54d36f5ede83653d7d385689e2aad941b7e0be0c9e038809c7b789",
+          "local": "2554ce8de9dfe584e1b407d35554d4b7e8fed1f9e83274e6bd7a5d0795c7d7bf",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyLogTimeframeTest.xml",
+          "listed": "4f5e52a6189603b14250c6b8e91d63362d63f593e5291d6ef771a207fbeec3a2",
+          "blob": "a517cb2eb2910320367a1393af1b0de6a9dacf47b58d46edd7dc8bc2c254df1f",
+          "local": "4f5e52a6189603b14250c6b8e91d63362d63f593e5291d6ef771a207fbeec3a2",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyWeightOptimizerTest.xml",
+          "listed": "6973c6e559811d758180210115ccedf3fa014b7f19f74b0a457abb953dc399bd",
+          "blob": "680f5cdca107a0bb57431659c7e41e65f348d1a4549956a7c244d35d5f88fa72",
+          "local": "6973c6e559811d758180210115ccedf3fa014b7f19f74b0a457abb953dc399bd",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SubmitOrderBoundaryProbeTest.xml",
+          "listed": "b460d8add3a23fb70fc8ac27b57723ee1ca1192deb8e17892fce6eb6b18656fd",
+          "blob": "f3b4e7f6348575f81d5238319d8daf70e3dc1e80cbe5826b3400c2339ffd8546",
+          "local": "b460d8add3a23fb70fc8ac27b57723ee1ca1192deb8e17892fce6eb6b18656fd",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SubmitRejectionClassificationTest.xml",
+          "listed": "70d9c1386d535eb66f2de6d3d51f3132f47cd9ba4308dcdce26f89abdd5692c8",
+          "blob": "2ae5b30977a843a2de0252e923aff2cc99a772fff89a9e524a5a6feeb88e8c8f",
+          "local": "70d9c1386d535eb66f2de6d3d51f3132f47cd9ba4308dcdce26f89abdd5692c8",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SubmitResponseUnknownTest.xml",
+          "listed": "9c6841e0c1269b65fb549f60b1b6c15d329ef1425fbe4cd90e1c46cc10cc0662",
+          "blob": "cfa2a5709c0f4ee371948ca61cb5f668d087bf02dc34959654693e118596855c",
+          "local": "9c6841e0c1269b65fb549f60b1b6c15d329ef1425fbe4cd90e1c46cc10cc0662",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/thr-after-fix/gradle.log",
+          "listed": "be7986ac407ac8ecdd87c3c2a98174edf82dc5dc1a121022d04bd78a0e7f3a48",
+          "blob": "7d89eb3d1639fdafb22d24f2d55a75e47f66de271268592bf40fe32cd329ccc3",
+          "local": "be7986ac407ac8ecdd87c3c2a98174edf82dc5dc1a121022d04bd78a0e7f3a48",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/thr-after-fix/summary.txt",
+          "listed": "0519827b0768be69826c8e7f8fdf32d7dc9676d46399e586c1a21706ccd8f7a9",
+          "blob": "d3f3d7539c42a2a9dcc92d7a10a91932683835075b3c97563e68634218e01c0b",
+          "local": "0519827b0768be69826c8e7f8fdf32d7dc9676d46399e586c1a21706ccd8f7a9",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/thr-after-fix/xml/web-api/TEST-com.cryptoautotrader.api.service.RealtimeProtectLinesTest.xml",
+          "listed": "e209651b7bf4173988227a2b5a0e98136c7b1b846ffac124009fc65c296860c1",
+          "blob": "d56784f68fa58c7b6bc7181a257a3ed84e744888c0cf3664aedebb16c321c465",
+          "local": "e209651b7bf4173988227a2b5a0e98136c7b1b846ffac124009fc65c296860c1",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/thr-after-fix/xml/web-api/TEST-com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest.xml",
+          "listed": "2b50d1f7204283894fe99b79679e294a89a61e2f381903097978eac7d1669525",
+          "blob": "81a2ad4daf8fc919d0e2bde51ee20037b161ca1c7492acbb716267da5eca5fd7",
+          "local": "2b50d1f7204283894fe99b79679e294a89a61e2f381903097978eac7d1669525",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/thr-before-fix/gradle.log",
+          "listed": "bc3aad56e7551c55fd6d927b1163117efbc580a46d75afd9e85f3b33f806ccdf",
+          "blob": "7be758fd5229402db02dabf4654c788c7c1ebc5a4fb9e60bd48fb5cad78aa4f8",
+          "local": "bc3aad56e7551c55fd6d927b1163117efbc580a46d75afd9e85f3b33f806ccdf",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/thr-before-fix/summary.txt",
+          "listed": "9dbe347c1f6ad49ed1de31a08fd4a92b6bbb5664038f54b262a14545f6b0f313",
+          "blob": "0d0656383bb1aa04bc083154464fd213ca95bf7c6d199fa701ab3e206870edb9",
+          "local": "9dbe347c1f6ad49ed1de31a08fd4a92b6bbb5664038f54b262a14545f6b0f313",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/thr-before-fix/xml/web-api/TEST-com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest.xml",
+          "listed": "7c9dc5415ff1c12c759e31c072adaf3417328cbcb5ad6d3c2910439986c035c2",
+          "blob": "cda79b69bdbca328457dd3697086a7e3386d4b5f69741faeb98f7b480a9d6cd7",
+          "local": "7c9dc5415ff1c12c759e31c072adaf3417328cbcb5ad6d3c2910439986c035c2",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/thr-related/gradle.log",
+          "listed": "cd7974287d4f9250cb1a5a3246c285afa0e13752456625a8cad9bfe476c6cf27",
+          "blob": "bb573654b3f2ddab733a080e40f9ad929740bb77511fd992fabd2aaa3fdb5c1e",
+          "local": "cd7974287d4f9250cb1a5a3246c285afa0e13752456625a8cad9bfe476c6cf27",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/thr-related/summary.txt",
+          "listed": "a7240a5e9e410c3f895025ff6a7c12fccdba85683641286c9fd819e9e4a8ab73",
+          "blob": "7bac19c0190078f4e24d27bf72c876f12a58b75881dc74f50ca7be611a74d723",
+          "local": "a7240a5e9e410c3f895025ff6a7c12fccdba85683641286c9fd819e9e4a8ab73",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/thr-related/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest.xml",
+          "listed": "27bf128c4d8764b69c330a7ed81a8eb95ae5909238441dfb8c0cb796bf526efa",
+          "blob": "5866795153a2a4f78458bd85624bdd7aede02b6fd20b1d63610fe77733763eff",
+          "local": "27bf128c4d8764b69c330a7ed81a8eb95ae5909238441dfb8c0cb796bf526efa",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/thr-related/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicStopOptimisticLockTest.xml",
+          "listed": "668e79e9bfd814b0e75126233cf886f3cfef0c6f6bdfcf3549fc13b310bc00b3",
+          "blob": "ba44ed6bffb703f413ef399f2492814d1c74fd8564a26e004d08f66a422fe3b9",
+          "local": "668e79e9bfd814b0e75126233cf886f3cfef0c6f6bdfcf3549fc13b310bc00b3",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/thr-related/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicTradingSlWatchdogRecoveryTest.xml",
+          "listed": "40fdedf0ecd2f25acc1e8dcbcbfa9c0a38de68a9b182875866543cce34176d22",
+          "blob": "360087f61553901d44bdc4d622d71150c65384bf24f6b59c04a36ad5c2fed252",
+          "local": "40fdedf0ecd2f25acc1e8dcbcbfa9c0a38de68a9b182875866543cce34176d22",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/thr-related/xml/web-api/TEST-com.cryptoautotrader.api.service.LiveSellIdempotencyTest.xml",
+          "listed": "e3147de8dca3f5904897b63c08df17238847fb0c1dffebc5d207b216985efddb",
+          "blob": "55da3e1dcffa687f4db9badfdb43cac35cedcea514e95cd1849a3783397b55e7",
+          "local": "e3147de8dca3f5904897b63c08df17238847fb0c1dffebc5d207b216985efddb",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/thr-related/xml/web-api/TEST-com.cryptoautotrader.api.service.LiveTradingSlWatchdogRecoveryTest.xml",
+          "listed": "497aa96976fa0688a4149a6bd83bdd4345d552f591fee5b7078da694ac935ab4",
+          "blob": "5aed2666e8cee3a2504e7cb34f8ac2c010d6033a910603edab4a9cd29c6e8973",
+          "local": "497aa96976fa0688a4149a6bd83bdd4345d552f591fee5b7078da694ac935ab4",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/thr-related/xml/web-api/TEST-com.cryptoautotrader.api.service.N16InvalidPriceReproTest.xml",
+          "listed": "ffb656469ccd20d69fa5dde74b62b9fdf81fcacb3a63da31f6f8cd68c20f624a",
+          "blob": "66c81f5636649fe29f86480205f446b0bb4ff714356183b2d6224c442c2168dc",
+          "local": "ffb656469ccd20d69fa5dde74b62b9fdf81fcacb3a63da31f6f8cd68c20f624a",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/thr-related/xml/web-api/TEST-com.cryptoautotrader.api.service.N17RestInvalidPriceTest.xml",
+          "listed": "08b84803f12da1ee67c3e3b5df97b3ae722e880e9d5889ba9952b74a75bf31ec",
+          "blob": "91ef8b737e95511ff882d0501a64d2de68d10b2a53b236f02929b0558b1da11a",
+          "local": "08b84803f12da1ee67c3e3b5df97b3ae722e880e9d5889ba9952b74a75bf31ec",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/thr-related/xml/web-api/TEST-com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest.xml",
+          "listed": "58864a543c2fa4947fa0f7429088b186ba2574e58ac718a7a8f97a5508a40bbe",
+          "blob": "64d186e978da572441fd2342066d66f9812ae01cf464acfde9c5e4379895c1ad",
+          "local": "58864a543c2fa4947fa0f7429088b186ba2574e58ac718a7a8f97a5508a40bbe",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/thr-related/xml/web-api/TEST-com.cryptoautotrader.api.service.O1O3LogContractTest.xml",
+          "listed": "936c085f546e815a1ffda6003af4aebb2594f054d573db2671d34d46be6c6e51",
+          "blob": "371383f82675a4bd929a2b94d3ea8f2f6910b3cfcaba6d08c89ff44788d389f9",
+          "local": "936c085f546e815a1ffda6003af4aebb2594f054d573db2671d34d46be6c6e51",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/thr-related/xml/web-api/TEST-com.cryptoautotrader.api.service.PoolLossLimitTest.xml",
+          "listed": "b08abb18a7b94bb9f62f09e08ad2cca71ff5e64f99e2779f1b06e0c7e420f434",
+          "blob": "be55f1a408bfe844fdca5f6bc7680b8eea081a8abbafbd454f374e42adbe4616",
+          "local": "b08abb18a7b94bb9f62f09e08ad2cca71ff5e64f99e2779f1b06e0c7e420f434",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/thr-related/xml/web-api/TEST-com.cryptoautotrader.api.service.RealtimeProtectLinesTest.xml",
+          "listed": "a0ded69ea9ba0ce2dac7c31907e44fca9248b3dfd173c910cd8fb6b307db4fbc",
+          "blob": "cc18efd4643939398d2be3659a28c8858d527725c8f939c9086c07d10ae5cf33",
+          "local": "a0ded69ea9ba0ce2dac7c31907e44fca9248b3dfd173c910cd8fb6b307db4fbc",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/thr-related/xml/web-api/TEST-com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest.xml",
+          "listed": "8be9242b92d04c91cbbbb8871c1affbdf724fe977b808449d0fdb1c9a04a9a76",
+          "blob": "e9aa9a9372b61a475994f2e46bfe8207345086f361f6ca68085392a6148550cb",
+          "local": "8be9242b92d04c91cbbbb8871c1affbdf724fe977b808449d0fdb1c9a04a9a76",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/thr-related/xml/web-api/TEST-com.cryptoautotrader.api.service.SlWatchdogFreshnessTest.xml",
+          "listed": "dae72e202984fb5a35b27519061a3b03111780c34aabbfb5d80dcc0ac3e6f462",
+          "blob": "1816777cb22cbee94302c5863bbe9aeaefa6e23356b4764d8385dda70e66a084",
+          "local": "dae72e202984fb5a35b27519061a3b03111780c34aabbfb5d80dcc0ac3e6f462",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/thr-related/xml/web-api/TEST-com.cryptoautotrader.api.service.StaleRealtimeExitTest.xml",
+          "listed": "da7952add61e2b37d28d60e3da717870ac4a3f3eac0b814e96678ba7f74372ab",
+          "blob": "742da525637357deaf0c9120237e84de31655c97fe347d96d4a88d1f11fa445d",
+          "local": "da7952add61e2b37d28d60e3da717870ac4a3f3eac0b814e96678ba7f74372ab",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        },
+        {
+          "file": "./runs/thr-related/xml/web-api/TEST-com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest.xml",
+          "listed": "9589f8be1ca8451412863840125e818ec8594e4940334a72752b33684f7cfc3d",
+          "blob": "ec8bdbef444c0b8fab1c754ae45dac4a69a286aee59e152fa4e345d5f72dccb1",
+          "local": "9589f8be1ca8451412863840125e818ec8594e4940334a72752b33684f7cfc3d",
+          "local_matches_list": true,
+          "blob_is_local_with_crlf_to_lf": true
+        }
+      ]
+    },
+    "review-ade6cc28": {
+      "files": 38,
+      "mismatch_count": 0,
+      "bad": []
+    }
+  },
+  "runs": {
+    "ab4-main": {
+      "xml_files": 1,
+      "counts": {
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "suites": [
+        {
+          "path": "ab4-main/xml/web-api/TEST-com.cryptoautotrader.api.service.AbChainV4PgTest.xml",
+          "name": "A/B 실제 연결 v4 — HTTP 생성 8 → 지문 → psql 확인 → 완성 → psql 추출 → 집계, 음성(지문 없음·복수·T0 전 거래·저장값 불일치)",
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        }
+      ]
+    },
+    "ab4-preflight-missing-other": {
+      "xml_files": 1,
+      "counts": {
+        "tests": 1,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0
+      },
+      "suites": [
+        {
+          "path": "ab4-preflight-missing-other/xml/web-api/TEST-com.cryptoautotrader.api.service.AbChainV4PgTest.xml",
+          "name": "A/B 실제 연결 v4 — HTTP 생성 8 → 지문 → psql 확인 → 완성 → psql 추출 → 집계, 음성(지문 없음·복수·T0 전 거래·저장값 불일치)",
+          "tests": 1,
+          "failures": 1,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": [
+            {
+              "name": "initializationError",
+              "message": "java.lang.AssertionError: [AB_CHAIN_ROLE=main 은 AB_CHAIN_OTHER_DB(같은 ID 를 가진 다른 실제 DB) 필요] \r\nExpecting not blank but was: null"
+            }
+          ]
+        }
+      ]
+    },
+    "ab4-seed-other": {
+      "xml_files": 1,
+      "counts": {
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "suites": [
+        {
+          "path": "ab4-seed-other/xml/web-api/TEST-com.cryptoautotrader.api.service.AbChainV4PgTest.xml",
+          "name": "A/B 실제 연결 v4 — HTTP 생성 8 → 지문 → psql 확인 → 완성 → psql 추출 → 집계, 음성(지문 없음·복수·T0 전 거래·저장값 불일치)",
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        }
+      ]
+    },
+    "diag-race-gap": {
+      "xml_files": 2,
+      "counts": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "suites": [
+        {
+          "path": "diag-race-gap/xml/web-api/TEST-com.cryptoautotrader.api.service.CleanupReconcileRaceDiagTest.xml",
+          "name": "com.cryptoautotrader.api.service.CleanupReconcileRaceDiagTest",
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-race-gap/xml/web-api/TEST-com.cryptoautotrader.api.service.DrainGapLateWorkerDiagTest.xml",
+          "name": "com.cryptoautotrader.api.service.DrainGapLateWorkerDiagTest",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        }
+      ]
+    },
+    "diag-RS-1": {
+      "xml_files": 44,
+      "counts": {
+        "tests": 242,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 9
+      },
+      "suites": [
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.R5RealCashflowRiskTest.xml",
+          "name": "E R5 — 실제 매수→매도 커밋 뒤 위험 입력: 이익·수수료 경계·손실에서 LIVE 관례 손익과 PAPER 위험 손익 부호 일치, 연속 손실·일 손실 판정",
+          "tests": 7,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.RateLimiterEmergencyStopTest.xml",
+          "name": "com.cryptoautotrader.api.service.RateLimiterEmergencyStopTest",
+          "tests": 5,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.RealNextBarClockTest.xml",
+          "name": "D 실제 다음 봉 — 공통 시계로 마감 1µs 전(형성 중)·마감 정각(새 닫힌 봉), 마지막 평가 표시를 지우지 않음",
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.RealtimeProtectionFairnessTest.xml",
+          "name": "v1.155 §2 F 전달 경계 — 유계 묶음·재접수 공정성 (단위)",
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest.xml",
+          "name": "F 실시간 보호 전달 — 실행기 포화 중 발행 지속·시세 장부·LIVE/DYNAMIC 손절 주문 의도·중복 없음·비가격 방어·해제 후 처리",
+          "tests": 13,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.RequestedFundsFallbackImpactTest.xml",
+          "name": "요청액 폴백의 전달 범위 — 평균단가·손절·익절·실현손익",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.RiskCircuitBreakerOrderTest.xml",
+          "name": "서킷 브레이커 순서 — 비활성·MDD 는 CLOSED 조회 0, 연속 손실 경로는 종전 결과",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.RiskConfigMissingTest.xml",
+          "name": "com.cryptoautotrader.api.service.RiskConfigMissingTest",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.RiskManagementServiceTest.xml",
+          "name": "com.cryptoautotrader.api.service.RiskManagementServiceTest",
+          "tests": 8,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.RulesetFingerprintTest.xml",
+          "name": "com.cryptoautotrader.api.service.RulesetFingerprintTest",
+          "tests": 9,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.RulesetRegistryCompositionTest.xml",
+          "name": "com.cryptoautotrader.api.service.RulesetRegistryCompositionTest",
+          "tests": 8,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SchedulerProfileCleanupTest.xml",
+          "name": "scheduler 프로필 — 정리 작업이 대기 행을 가져간다",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SellQuarantineReleaseTest.xml",
+          "name": "매도 격리 해제 — 기록을 남기는 반영 표시",
+          "tests": 15,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SessionBalanceUpdaterTest.xml",
+          "name": "com.cryptoautotrader.api.service.SessionBalanceUpdaterTest",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SessionCapitalGuardTest.xml",
+          "name": "com.cryptoautotrader.api.service.SessionCapitalGuardTest",
+          "tests": 5,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SessionKindIsolationTest.xml",
+          "name": "com.cryptoautotrader.api.service.SessionKindIsolationTest",
+          "tests": 8,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SessionLlmTelegramDeliveryTest.xml",
+          "name": "com.cryptoautotrader.api.service.SessionLlmTelegramDeliveryTest",
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SettlementAtomicityTest.xml",
+          "name": "정산 원자성 — 중간 실패와 재처리 (주문·잔액 범위)",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SettlementIdempotencyTest.xml",
+          "name": "정산 멱등성 — 반복·역행·수수료 변경 (설계안 §5.1)",
+          "tests": 5,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SettlementRoundingPgTest.xml",
+          "name": "com.cryptoautotrader.api.service.SettlementRoundingPgTest",
+          "tests": 8,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 8,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SharedLoopRoundsActiveTest.xml",
+          "name": "회차 활성 공유 루프 — 기존 76 + 새 9(LIVE_ALIGNED) + REAL 후보·포지션: 기존 결정·REAL 불변, PAPER 는 REAL 뒤",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SharedMarketDataExecutorSaturationTest.xml",
+          "name": "F 공유 marketDataExecutor 실제 포화 — 포화 중 발행·해제 회복·대기열 지연 (래치·Future·장벽)",
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SharedPaperLoopIsolationTest.xml",
+          "name": "공유 PAPER 루프 — 기존 76 + 새 9: 기존 결정 불변·순서·REAL 표 불변·틱 시간",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SharedUniverseServiceTest.xml",
+          "name": "com.cryptoautotrader.api.service.SharedUniverseServiceTest",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SignalQualityDelistedMarketTest.xml",
+          "name": "com.cryptoautotrader.api.service.SignalQualityDelistedMarketTest",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SignalQualityHoldBaselineTest.xml",
+          "name": "com.cryptoautotrader.api.service.SignalQualityHoldBaselineTest",
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SlWatchdogFreshnessTest.xml",
+          "name": "N02 보완 SL 감시기 — 낡은 REST 응답은 점검·매도·재개 문구 없음, 신선한 응답은 실제 점검 기록",
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedGapsTest.xml",
+          "name": "SMA20 LIVE_ALIGNED 남은 차이 — 평균가·급변 간격·위험 관문·가격 없는 시간 청산·정지/청산 경합",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedPaperSameInputTest.xml",
+          "name": "SMA20 같은 입력 LIVE↔PAPER(LIVE_ALIGNED) — 판단 흐름 정렬 확인",
+          "tests": 15,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.Sma20LivePaperSameInputTest.xml",
+          "name": "SMA20 같은 입력 LIVE↔PAPER 비교 — 진입·관문·회차·가격·장중 SL/TP·시세 무효·위험/한도·청산",
+          "tests": 12,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SnapshotBoundaryRaceTest.xml",
+          "name": "잔고 스냅숏 · 로컬 약정의 시간 경계",
+          "tests": 8,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.StaleRealtimeExitTest.xml",
+          "name": "N02 낡은 실시간 시세 — 관측 시각이 유효기간을 넘은 가격은 보호 매도를 내지 않는다",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.StartedAtPrecisionPgTest.xml",
+          "name": "시작 시각 저장 정밀도 — 실제 PG 에서 나노초 → 마이크로초 반올림(0.5 올림·초 경계), API 목록 = DB 값",
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 1,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest.xml",
+          "name": "#5 정지 ∥ 진행 중 청산 — 매도 1회, 정지 후에도 포지션 추적 유지",
+          "tests": 7,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyEnablementGateTest.xml",
+          "name": "com.cryptoautotrader.api.service.StrategyEnablementGateTest",
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest$CapitalProtection.xml",
+          "name": "A. 자본 보호는 세션 단위이고 거래 0건이어도 발동한다",
+          "tests": 5,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest$EdgeSafetyNet.xml",
+          "name": "B. 엣지 판정은 코인을 가로질러 합산한 그룹에서만 본다",
+          "tests": 8,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest.xml",
+          "name": "com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest",
+          "tests": 9,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyLiveStatusRegistryTest.xml",
+          "name": "com.cryptoautotrader.api.service.StrategyLiveStatusRegistryTest",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyLogTimeframeTest.xml",
+          "name": "com.cryptoautotrader.api.service.StrategyLogTimeframeTest",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyWeightOptimizerTest.xml",
+          "name": "com.cryptoautotrader.api.service.StrategyWeightOptimizerTest",
+          "tests": 5,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SubmitOrderBoundaryProbeTest.xml",
+          "name": "진단 — submitOrder 의 스레드·트랜잭션 경계를 측정한다",
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SubmitRejectionClassificationTest.xml",
+          "name": "com.cryptoautotrader.api.service.SubmitRejectionClassificationTest",
+          "tests": 10,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "diag-RS-1/xml/web-api/TEST-com.cryptoautotrader.api.service.SubmitResponseUnknownTest.xml",
+          "name": "거래소가 접수했는데 응답이 없을 때 (선행 조건 5)",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        }
+      ]
+    },
+    "diag-saturation-latecore": {
+      "xml_files": 1,
+      "counts": {
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "suites": [
+        {
+          "path": "diag-saturation-latecore/xml/web-api/TEST-com.cryptoautotrader.api.service.SaturationLateCoreDiagTest.xml",
+          "name": "com.cryptoautotrader.api.service.SaturationLateCoreDiagTest",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        }
+      ]
+    },
+    "draingap-fix": {
+      "xml_files": 1,
+      "counts": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "suites": [
+        {
+          "path": "draingap-fix/xml/web-api/TEST-com.cryptoautotrader.api.service.OrderExecutorDrainPredicateGapTest.xml",
+          "name": "orderExecutor 대기 조건 공백 — 놀고 있는 작업자 경로에서 비워짐 ≠ 완료",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        }
+      ]
+    },
+    "phantom-before-pg": {
+      "xml_files": 1,
+      "counts": {
+        "tests": 4,
+        "failures": 3,
+        "errors": 0,
+        "skipped": 0
+      },
+      "suites": [
+        {
+          "path": "phantom-before-pg/xml/web-api/TEST-com.cryptoautotrader.api.service.PhantomKeepsConfirmedPnlPgTest.xml",
+          "name": "v1.157 §125-7 phantom 추정 청산 — 부분 매도 확정 손익 보존 (로컬 PostgreSQL)",
+          "tests": 4,
+          "failures": 3,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": [
+            {
+              "name": "① 손실 첫 다리(−1,000.50) 뒤 남은 반이 phantom 확정 — 최종 실현손익 = 확정분 + 추정분, 잔액·수수료·주문 원천 손실은 그대로",
+              "message": "org.opentest4j.AssertionFailedError: [확정분 −1,000.50 + 추정분 — 기점은 추정분만 남긴다] \r\nexpected: -2001.0000000000000000\r\n but was: -1000.50000000"
+            },
+            {
+              "name": "③ 롤백 — phantom 확정 트랜잭션이 롤백되면 포지션 OPEN·확정분만·잔액 그대로, 다음 확정에서 한 번만 반영",
+              "message": "org.opentest4j.AssertionFailedError: \r\nexpected: 89003.50\r\n but was: 97999.00"
+            },
+            {
+              "name": "② 반복·재기동 — 확정 뒤 phantom 주기 3회 더·기동 복구 본체를 불러도 실현손익·잔액이 다시 더해지지 않는다",
+              "message": "java.lang.ClassCastException: class com.cryptoautotrader.api.service.LiveTradingService cannot be cast to class java.lang.Class (com.cryptoautotrader.api.service.LiveTradingService is in unnamed module of loader 'app'; java.lang.Class is in module java.base of loader 'bootstrap')"
+            }
+          ]
+        }
+      ]
+    },
+    "phantom-before-pg-run2": {
+      "xml_files": 1,
+      "counts": {
+        "tests": 4,
+        "failures": 3,
+        "errors": 0,
+        "skipped": 0
+      },
+      "suites": [
+        {
+          "path": "phantom-before-pg-run2/xml/web-api/TEST-com.cryptoautotrader.api.service.PhantomKeepsConfirmedPnlPgTest.xml",
+          "name": "v1.157 §125-7 phantom 추정 청산 — 부분 매도 확정 손익 보존 (로컬 PostgreSQL)",
+          "tests": 4,
+          "failures": 3,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": [
+            {
+              "name": "① 손실 첫 다리(−1,000.50) 뒤 남은 반이 phantom 확정 — 최종 실현손익 = 확정분 + 추정분, 잔액·수수료·주문 원천 손실은 그대로",
+              "message": "org.opentest4j.AssertionFailedError: [확정분 −1,000.50 + 추정분 — 기점은 추정분만 남긴다] \r\nexpected: -2001.0000000000000000\r\n but was: -1000.50000000"
+            },
+            {
+              "name": "③ 롤백 — phantom 확정 트랜잭션이 롤백되면 포지션 OPEN·확정분만·잔액 그대로, 다음 확정에서 한 번만 반영",
+              "message": "org.opentest4j.AssertionFailedError: \r\nexpected: 89003.50\r\n but was: 97999.00"
+            },
+            {
+              "name": "② 반복·재기동 — 확정 뒤 phantom 주기 3회 더·기동 복구 본체를 불러도 실현손익·잔액이 다시 더해지지 않는다",
+              "message": "org.opentest4j.AssertionFailedError: [확정분 보존] \r\nexpected: -2001.0000000000000000\r\n but was: -1000.50000000"
+            }
+          ]
+        }
+      ]
+    },
+    "phantom-rel-h2": {
+      "xml_files": 7,
+      "counts": {
+        "tests": 30,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "suites": [
+        {
+          "path": "phantom-rel-h2/xml/web-api/TEST-com.cryptoautotrader.api.service.ExchangeRecoveryRestartTest.xml",
+          "name": "거래소 DOWN → 복구 자동 재시작",
+          "tests": 5,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "phantom-rel-h2/xml/web-api/TEST-com.cryptoautotrader.api.service.LiveSellIdempotencyTest.xml",
+          "name": "com.cryptoautotrader.api.service.LiveSellIdempotencyTest",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "phantom-rel-h2/xml/web-api/TEST-com.cryptoautotrader.api.service.LiveTradingSlWatchdogRecoveryTest.xml",
+          "name": "com.cryptoautotrader.api.service.LiveTradingSlWatchdogRecoveryTest",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "phantom-rel-h2/xml/web-api/TEST-com.cryptoautotrader.api.service.SessionBalanceUpdaterTest.xml",
+          "name": "com.cryptoautotrader.api.service.SessionBalanceUpdaterTest",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "phantom-rel-h2/xml/web-api/TEST-com.cryptoautotrader.api.service.SettlementAtomicityTest.xml",
+          "name": "정산 원자성 — 중간 실패와 재처리 (주문·잔액 범위)",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "phantom-rel-h2/xml/web-api/TEST-com.cryptoautotrader.api.service.SettlementIdempotencyTest.xml",
+          "name": "정산 멱등성 — 반복·역행·수수료 변경 (설계안 §5.1)",
+          "tests": 5,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "phantom-rel-h2/xml/web-api/TEST-com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest.xml",
+          "name": "#5 정지 ∥ 진행 중 청산 — 매도 1회, 정지 후에도 포지션 추적 유지",
+          "tests": 7,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        }
+      ]
+    },
+    "phantom-rel-losswin-pg": {
+      "xml_files": 1,
+      "counts": {
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "suites": [
+        {
+          "path": "phantom-rel-losswin-pg/xml/web-api/TEST-com.cryptoautotrader.api.service.LiveLossWindowPgTest.xml",
+          "name": "v1.154 §3 LIVE 일/주/월 손실 합산 — 세션 매도 확정 손실 (로컬 PostgreSQL)",
+          "tests": 7,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        }
+      ]
+    },
+    "phantom-rel-partial-pg": {
+      "xml_files": 1,
+      "counts": {
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "suites": [
+        {
+          "path": "phantom-rel-partial-pg/xml/web-api/TEST-com.cryptoautotrader.api.service.PartialSellRealizedPnlPgTest.xml",
+          "name": "v1.155 §4-1 부분 매도 뒤 실현손익 — 덮어쓰기 없이 다리별 합 (로컬 PostgreSQL)",
+          "tests": 7,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        }
+      ]
+    },
+    "phantom-step1-accumulate-pg": {
+      "xml_files": 1,
+      "counts": {
+        "tests": 4,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0
+      },
+      "suites": [
+        {
+          "path": "phantom-step1-accumulate-pg/xml/web-api/TEST-com.cryptoautotrader.api.service.PhantomKeepsConfirmedPnlPgTest.xml",
+          "name": "v1.157 §125-7 phantom 추정 청산 — 부분 매도 확정 손익 보존 (로컬 PostgreSQL)",
+          "tests": 4,
+          "failures": 1,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": [
+            {
+              "name": "③ 롤백 — phantom 확정 트랜잭션이 롤백되면 포지션 OPEN·확정분만·잔액 그대로, 다음 확정에서 한 번만 반영",
+              "message": "org.opentest4j.AssertionFailedError: \r\nexpected: 89003.50\r\n but was: 97999.00"
+            }
+          ]
+        }
+      ]
+    },
+    "phantom-step2-within-pg": {
+      "xml_files": 1,
+      "counts": {
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "suites": [
+        {
+          "path": "phantom-step2-within-pg/xml/web-api/TEST-com.cryptoautotrader.api.service.PhantomKeepsConfirmedPnlPgTest.xml",
+          "name": "v1.157 §125-7 phantom 추정 청산 — 부분 매도 확정 손익 보존 (로컬 PostgreSQL)",
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        }
+      ]
+    },
+    "realloss-before-pg": {
+      "xml_files": 1,
+      "counts": {
+        "tests": 3,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0
+      },
+      "suites": [
+        {
+          "path": "realloss-before-pg/xml/web-api/TEST-com.cryptoautotrader.api.service.RealLossGlobalPgTest.xml",
+          "name": "v1.157 §125-6 전역 REAL 확정 손실 — DYNAMIC REAL 손실 실패 재현·판정 변화 (로컬 PostgreSQL)",
+          "tests": 3,
+          "failures": 1,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": [
+            {
+              "name": "① 실패 재현 — LIVE 10만·DYNAMIC REAL 10만 RUNNING, DYNAMIC REAL 확정 손실 2건(−4,002 = 초안 분모 20만의 2.0%) > 일일 1.5% 인데 checkRisk 승인",
+              "message": "org.opentest4j.AssertionFailedError: [초안: DYNAMIC REAL 확정 손실 4,002 / (10만+10만) = 2.0% > 1.5% — 거절이어야 한다] \r\nExpecting value to be false but was true"
+            }
+          ]
+        }
+      ]
+    },
+    "saturation-fix": {
+      "xml_files": 2,
+      "counts": {
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "suites": [
+        {
+          "path": "saturation-fix/xml/web-api/TEST-com.cryptoautotrader.api.service.OrderExecutorDrainPredicateGapTest.xml",
+          "name": "orderExecutor 대기 조건 공백 — 놀고 있는 작업자 경로에서 비워짐 ≠ 완료",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "saturation-fix/xml/web-api/TEST-com.cryptoautotrader.api.service.SharedMarketDataExecutorSaturationTest.xml",
+          "name": "F 공유 marketDataExecutor 실제 포화 — 포화 중 발행·해제 회복·대기열 지연 (래치·Future·장벽)",
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        }
+      ]
+    },
+    "tb-RS": {
+      "xml_files": 44,
+      "counts": {
+        "tests": 242,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 9
+      },
+      "suites": [
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.R5RealCashflowRiskTest.xml",
+          "name": "E R5 — 실제 매수→매도 커밋 뒤 위험 입력: 이익·수수료 경계·손실에서 LIVE 관례 손익과 PAPER 위험 손익 부호 일치, 연속 손실·일 손실 판정",
+          "tests": 7,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.RateLimiterEmergencyStopTest.xml",
+          "name": "com.cryptoautotrader.api.service.RateLimiterEmergencyStopTest",
+          "tests": 5,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.RealNextBarClockTest.xml",
+          "name": "D 실제 다음 봉 — 공통 시계로 마감 1µs 전(형성 중)·마감 정각(새 닫힌 봉), 마지막 평가 표시를 지우지 않음",
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.RealtimeProtectionFairnessTest.xml",
+          "name": "v1.155 §2 F 전달 경계 — 유계 묶음·재접수 공정성 (단위)",
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest.xml",
+          "name": "F 실시간 보호 전달 — 실행기 포화 중 발행 지속·시세 장부·LIVE/DYNAMIC 손절 주문 의도·중복 없음·비가격 방어·해제 후 처리",
+          "tests": 13,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.RequestedFundsFallbackImpactTest.xml",
+          "name": "요청액 폴백의 전달 범위 — 평균단가·손절·익절·실현손익",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.RiskCircuitBreakerOrderTest.xml",
+          "name": "서킷 브레이커 순서 — 비활성·MDD 는 CLOSED 조회 0, 연속 손실 경로는 종전 결과",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.RiskConfigMissingTest.xml",
+          "name": "com.cryptoautotrader.api.service.RiskConfigMissingTest",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.RiskManagementServiceTest.xml",
+          "name": "com.cryptoautotrader.api.service.RiskManagementServiceTest",
+          "tests": 8,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.RulesetFingerprintTest.xml",
+          "name": "com.cryptoautotrader.api.service.RulesetFingerprintTest",
+          "tests": 9,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.RulesetRegistryCompositionTest.xml",
+          "name": "com.cryptoautotrader.api.service.RulesetRegistryCompositionTest",
+          "tests": 8,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SchedulerProfileCleanupTest.xml",
+          "name": "scheduler 프로필 — 정리 작업이 대기 행을 가져간다",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SellQuarantineReleaseTest.xml",
+          "name": "매도 격리 해제 — 기록을 남기는 반영 표시",
+          "tests": 15,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SessionBalanceUpdaterTest.xml",
+          "name": "com.cryptoautotrader.api.service.SessionBalanceUpdaterTest",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SessionCapitalGuardTest.xml",
+          "name": "com.cryptoautotrader.api.service.SessionCapitalGuardTest",
+          "tests": 5,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SessionKindIsolationTest.xml",
+          "name": "com.cryptoautotrader.api.service.SessionKindIsolationTest",
+          "tests": 8,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SessionLlmTelegramDeliveryTest.xml",
+          "name": "com.cryptoautotrader.api.service.SessionLlmTelegramDeliveryTest",
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SettlementAtomicityTest.xml",
+          "name": "정산 원자성 — 중간 실패와 재처리 (주문·잔액 범위)",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SettlementIdempotencyTest.xml",
+          "name": "정산 멱등성 — 반복·역행·수수료 변경 (설계안 §5.1)",
+          "tests": 5,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SettlementRoundingPgTest.xml",
+          "name": "com.cryptoautotrader.api.service.SettlementRoundingPgTest",
+          "tests": 8,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 8,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SharedLoopRoundsActiveTest.xml",
+          "name": "회차 활성 공유 루프 — 기존 76 + 새 9(LIVE_ALIGNED) + REAL 후보·포지션: 기존 결정·REAL 불변, PAPER 는 REAL 뒤",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SharedMarketDataExecutorSaturationTest.xml",
+          "name": "F 공유 marketDataExecutor 실제 포화 — 포화 중 발행·해제 회복·대기열 지연 (래치·Future·장벽)",
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SharedPaperLoopIsolationTest.xml",
+          "name": "공유 PAPER 루프 — 기존 76 + 새 9: 기존 결정 불변·순서·REAL 표 불변·틱 시간",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SharedUniverseServiceTest.xml",
+          "name": "com.cryptoautotrader.api.service.SharedUniverseServiceTest",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SignalQualityDelistedMarketTest.xml",
+          "name": "com.cryptoautotrader.api.service.SignalQualityDelistedMarketTest",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SignalQualityHoldBaselineTest.xml",
+          "name": "com.cryptoautotrader.api.service.SignalQualityHoldBaselineTest",
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SlWatchdogFreshnessTest.xml",
+          "name": "N02 보완 SL 감시기 — 낡은 REST 응답은 점검·매도·재개 문구 없음, 신선한 응답은 실제 점검 기록",
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedGapsTest.xml",
+          "name": "SMA20 LIVE_ALIGNED 남은 차이 — 평균가·급변 간격·위험 관문·가격 없는 시간 청산·정지/청산 경합",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.Sma20LiveAlignedPaperSameInputTest.xml",
+          "name": "SMA20 같은 입력 LIVE↔PAPER(LIVE_ALIGNED) — 판단 흐름 정렬 확인",
+          "tests": 15,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.Sma20LivePaperSameInputTest.xml",
+          "name": "SMA20 같은 입력 LIVE↔PAPER 비교 — 진입·관문·회차·가격·장중 SL/TP·시세 무효·위험/한도·청산",
+          "tests": 12,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SnapshotBoundaryRaceTest.xml",
+          "name": "잔고 스냅숏 · 로컬 약정의 시간 경계",
+          "tests": 8,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.StaleRealtimeExitTest.xml",
+          "name": "N02 낡은 실시간 시세 — 관측 시각이 유효기간을 넘은 가격은 보호 매도를 내지 않는다",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.StartedAtPrecisionPgTest.xml",
+          "name": "시작 시각 저장 정밀도 — 실제 PG 에서 나노초 → 마이크로초 반올림(0.5 올림·초 경계), API 목록 = DB 값",
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 1,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest.xml",
+          "name": "#5 정지 ∥ 진행 중 청산 — 매도 1회, 정지 후에도 포지션 추적 유지",
+          "tests": 7,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyEnablementGateTest.xml",
+          "name": "com.cryptoautotrader.api.service.StrategyEnablementGateTest",
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest$CapitalProtection.xml",
+          "name": "A. 자본 보호는 세션 단위이고 거래 0건이어도 발동한다",
+          "tests": 5,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest$EdgeSafetyNet.xml",
+          "name": "B. 엣지 판정은 코인을 가로질러 합산한 그룹에서만 본다",
+          "tests": 8,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest.xml",
+          "name": "com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest",
+          "tests": 9,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyLiveStatusRegistryTest.xml",
+          "name": "com.cryptoautotrader.api.service.StrategyLiveStatusRegistryTest",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyLogTimeframeTest.xml",
+          "name": "com.cryptoautotrader.api.service.StrategyLogTimeframeTest",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.StrategyWeightOptimizerTest.xml",
+          "name": "com.cryptoautotrader.api.service.StrategyWeightOptimizerTest",
+          "tests": 5,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SubmitOrderBoundaryProbeTest.xml",
+          "name": "진단 — submitOrder 의 스레드·트랜잭션 경계를 측정한다",
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SubmitRejectionClassificationTest.xml",
+          "name": "com.cryptoautotrader.api.service.SubmitRejectionClassificationTest",
+          "tests": 10,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "tb-RS/xml/web-api/TEST-com.cryptoautotrader.api.service.SubmitResponseUnknownTest.xml",
+          "name": "거래소가 접수했는데 응답이 없을 때 (선행 조건 5)",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        }
+      ]
+    },
+    "thr-after-fix": {
+      "xml_files": 2,
+      "counts": {
+        "tests": 27,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "suites": [
+        {
+          "path": "thr-after-fix/xml/web-api/TEST-com.cryptoautotrader.api.service.RealtimeProtectLinesTest.xml",
+          "name": "v1.157 §125 RealtimeProtectLines — 실제 판정 규칙과 첫 발동",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "thr-after-fix/xml/web-api/TEST-com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest.xml",
+          "name": "v1.155 §4-2 실시간 점검 간격 — 보호 가격 첫 통과 시세 (LIVE/DYNAMIC 직접 처리기)",
+          "tests": 21,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        }
+      ]
+    },
+    "thr-before-fix": {
+      "xml_files": 1,
+      "counts": {
+        "tests": 21,
+        "failures": 6,
+        "errors": 0,
+        "skipped": 0
+      },
+      "suites": [
+        {
+          "path": "thr-before-fix/xml/web-api/TEST-com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest.xml",
+          "name": "v1.155 §4-2 실시간 점검 간격 — 보호 가격 첫 통과 시세 (LIVE/DYNAMIC 직접 처리기)",
+          "tests": 21,
+          "failures": 6,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": [
+            {
+              "name": "P6 LIVE 같은 코인 두 보호선(백분율 5%·절대 280) — 285.00025 점검 없음, 284 백분율 손절, 279 절대 손절: 매도 2",
+              "message": "org.opentest4j.AssertionFailedError: [어느 보호선도 실제 발동하지 않는 시세 — 점검 없음] \r\nExpecting actual:\r\n  [true, true]\r\nto contain exactly (and in same order):\r\n  [false, false]\r\nbut some elements were not found:\r\n  [false, false]\r\nand others were not expected:\r\n  [true, true]\r\n"
+            },
+            {
+              "name": "P2 LIVE 백분율 손절(절대가 없음) — 286→285.00025→284(간격 안): 중간 미발동 시세는 점검하지 않고 284 점검·손절 1, 뒤 283 중복 0",
+              "message": "org.opentest4j.AssertionFailedError: [285.00025 는 실제 판정(−4.9999%)상 미발동 — 판정 규칙과 같은 기준이면 조기 점검하지 않는다] \r\nExpecting value to be false but was true"
+            },
+            {
+              "name": "P8 LIVE 백분율 — 0·낡은 280·285.00025 뒤 284: 앞 셋 점검·매도 없음, 284 점검·손절 1",
+              "message": "org.opentest4j.AssertionFailedError: \r\nExpecting value to be false but was true"
+            },
+            {
+              "name": "P7 DYNAMIC 백분율 — 0·낡은 280·285.00025 뒤 284: 앞 셋 점검·매도 없음, 284 점검·손절 1",
+              "message": "org.opentest4j.AssertionFailedError: \r\nExpecting value to be false but was true"
+            },
+            {
+              "name": "P1 DYNAMIC 백분율 손절(절대가 없음) — 286→285.00025→284(간격 안): 중간 미발동 시세는 점검하지 않고 284 점검·손절 1, 뒤 283 중복 0",
+              "message": "org.opentest4j.AssertionFailedError: [285.00025 는 실제 판정(−4.9999%)상 미발동 — 판정 규칙과 같은 기준이면 조기 점검하지 않는다] \r\nExpecting value to be false but was true"
+            },
+            {
+              "name": "P5 DYNAMIC 같은 코인 두 보호선(백분율 5%·절대 280) — 285.00025 점검 없음, 284 백분율 손절, 279 절대 손절: 매도 2",
+              "message": "org.opentest4j.AssertionFailedError: [어느 보호선도 실제 발동하지 않는 시세 — 점검 없음] \r\nExpecting actual:\r\n  [true, true]\r\nto contain exactly (and in same order):\r\n  [false, false]\r\nbut some elements were not found:\r\n  [false, false]\r\nand others were not expected:\r\n  [true, true]\r\n"
+            }
+          ]
+        }
+      ]
+    },
+    "thr-related": {
+      "xml_files": 15,
+      "counts": {
+        "tests": 167,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "suites": [
+        {
+          "path": "thr-related/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest.xml",
+          "name": "com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "thr-related/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicStopOptimisticLockTest.xml",
+          "name": "com.cryptoautotrader.api.service.DynamicStopOptimisticLockTest",
+          "tests": 7,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "thr-related/xml/web-api/TEST-com.cryptoautotrader.api.service.DynamicTradingSlWatchdogRecoveryTest.xml",
+          "name": "com.cryptoautotrader.api.service.DynamicTradingSlWatchdogRecoveryTest",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "thr-related/xml/web-api/TEST-com.cryptoautotrader.api.service.LiveSellIdempotencyTest.xml",
+          "name": "com.cryptoautotrader.api.service.LiveSellIdempotencyTest",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "thr-related/xml/web-api/TEST-com.cryptoautotrader.api.service.LiveTradingSlWatchdogRecoveryTest.xml",
+          "name": "com.cryptoautotrader.api.service.LiveTradingSlWatchdogRecoveryTest",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "thr-related/xml/web-api/TEST-com.cryptoautotrader.api.service.N16InvalidPriceReproTest.xml",
+          "name": "N16 재현 — 비정상 가격·관측 시각",
+          "tests": 13,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "thr-related/xml/web-api/TEST-com.cryptoautotrader.api.service.N17RestInvalidPriceTest.xml",
+          "name": "N17 SL 감시기 REST 강제 갱신 — 0·음수는 INVALID_PRICE·발행 0·가격 이상 문구, 정상 값 뒤 회복",
+          "tests": 24,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "thr-related/xml/web-api/TEST-com.cryptoautotrader.api.service.N19RestFallbackItemDefenseTest.xml",
+          "name": "N19 REST 전역 폴백 — 0·음수·형식 이상 항목만 건너뛰고 앞뒤 정상 코인은 발행·보호 매도 유지, 내부 예외는 숨기지 않음",
+          "tests": 23,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "thr-related/xml/web-api/TEST-com.cryptoautotrader.api.service.O1O3LogContractTest.xml",
+          "name": "O1·O3 로그 출력 계약 — 강제 갱신 WARN/ERROR 원문 없음·수준/건수/결과 유지, 실시간 손절 문구 중립(REST·WS 모두)",
+          "tests": 17,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "thr-related/xml/web-api/TEST-com.cryptoautotrader.api.service.PoolLossLimitTest.xml",
+          "name": "공유 풀 손실 한도 — 고정 분모 · 순자산 · 24시간",
+          "tests": 22,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "thr-related/xml/web-api/TEST-com.cryptoautotrader.api.service.RealtimeProtectLinesTest.xml",
+          "name": "v1.157 §125 RealtimeProtectLines — 실제 판정 규칙과 첫 발동",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "thr-related/xml/web-api/TEST-com.cryptoautotrader.api.service.RealtimeThrottleCrossingTest.xml",
+          "name": "v1.155 §4-2 실시간 점검 간격 — 보호 가격 첫 통과 시세 (LIVE/DYNAMIC 직접 처리기)",
+          "tests": 21,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "thr-related/xml/web-api/TEST-com.cryptoautotrader.api.service.SlWatchdogFreshnessTest.xml",
+          "name": "N02 보완 SL 감시기 — 낡은 REST 응답은 점검·매도·재개 문구 없음, 신선한 응답은 실제 점검 기록",
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "thr-related/xml/web-api/TEST-com.cryptoautotrader.api.service.StaleRealtimeExitTest.xml",
+          "name": "N02 낡은 실시간 시세 — 관측 시각이 유효기간을 넘은 가격은 보호 매도를 내지 않는다",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        },
+        {
+          "path": "thr-related/xml/web-api/TEST-com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest.xml",
+          "name": "#5 정지 ∥ 진행 중 청산 — 매도 1회, 정지 후에도 포지션 추적 유지",
+          "tests": 7,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "failures_detail": []
+        }
+      ]
+    }
+  },
+  "all_local_hashes": {
+    "listed": 302,
+    "matches": 302,
+    "bad": []
+  }
+}

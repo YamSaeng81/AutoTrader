@@ -1,0 +1,60 @@
+from pathlib import Path
+import hashlib,json,re,shutil,subprocess
+O=Path(__file__).resolve().parent;R=O.parents[2];E=R/'docs/evidence/review-60777286'
+assert sorted(p.name for p in E.iterdir())==['README.md'],'one-shot recorder; do not rerun'
+def sha(b):return hashlib.sha256(b).hexdigest()
+def git(*a):return subprocess.check_output(['git',*a],cwd=R)
+assert git('rev-parse','HEAD').decode().strip().startswith('60777286')
+(E/'.gitattributes').write_bytes(b'* -text\n')
+for n in ['prepare.py','run.py','retry_probe.py','ReviewLauncher.java','ReviewClosingSubmissionRaceTest.java','attempt1-ReviewClosingSubmissionRaceTest.java','audit.json','probe-result.json','attempt1-probe-result.json','closing-race.txt','attempt1-closing-race.txt','javac.txt','javac-retry.txt']:
+ shutil.copyfile(O/n,E/(n+'.txt' if n.endswith('.py') else n))
+(E/'record.py.txt').write_bytes(Path(__file__).read_bytes())
+base=R/'docs/evidence/v157-20261112'
+for run in ['thr-before-fix','thr-after-fix','thr-related','ab4-main','draingap-fix','saturation-fix','tb-RS','phantom-before-pg-run2','phantom-step1-accumulate-pg','phantom-step2-within-pg','phantom-rel-h2','phantom-rel-losswin-pg','phantom-rel-partial-pg','realloss-before-pg']:
+ p=base/'runs'/run/'summary.txt';target=E/'submitted'/run/'summary.txt';target.parent.mkdir(parents=True);shutil.copyfile(p,target)
+for run,fragment in [('phantom-step2-within-pg','PhantomKeepsConfirmedPnl'),('realloss-before-pg','RealLossGlobalPg'),('tb-RS','SchedulerProfileCleanup')]:
+ for p in (base/'runs'/run).rglob('*.xml'):
+  if fragment in p.name:shutil.copyfile(p,E/'submitted'/run/p.name)
+source=E/'source';source.mkdir()
+(source/'CleanupReconcileRaceDiagTest.java.txt').write_bytes((base/'diag-src/CleanupReconcileRaceDiagTest.java.txt').read_bytes())
+for a,b,name in [('b5f8a8fd','49d485f0','throttle'),('84fb03d6','76ea3050','phantom'),('84fb03d6','0a807cbb','barriers'),('84fb03d6','5f195542','AB-preflight')]:
+ (source/(name+'.diff')).write_bytes(git('diff',a,b))
+(source/'RealtimeProtectLines.java').write_bytes(git('show','49d485f0:web-api/src/main/java/com/cryptoautotrader/api/service/RealtimeProtectLines.java'))
+audit=json.loads((O/'audit.json').read_text(encoding='utf8'))
+review={'version':'v1.158','main':audit['refs']['main'],'local_acceptance':['49d485f0 throttle exact trigger','76ea3050 phantom PnL+balance atomicity','ee5beb18/0a807cbb test latches','5f195542 ABv4 preflight and chain'],'production_approval':False,'evidence':{'v157_local':302,'v157_blob_match':102,'v157_blob_crlf_differences':200,'prior_review_blob_match':38},'root_probe':json.loads((O/'probe-result.json').read_text(encoding='utf8')),'decisions':['test-only Telegram default disabled, explicit loopback HTTP for send contracts','preserve legacy loss ratio, add DYNAMIC REAL and combined ratios, reject if any exceeds existing limit','separate minimal CLOSING/async SELL-intent race candidate','restore exact 302 evidence bytes in a new commit without rewriting history','continue dynamic judgment clock, 20 waits, inclusion list and concrete unapproved D4'],'remote':'no fetch/push by reviewer; two commits ahead of locally recorded origin/main'}
+(E/'review.json').write_text(json.dumps(review,ensure_ascii=False,indent=2)+'\n',encoding='utf8')
+names=['LIMITED_LIVE_TEST_PLAN.md','LIVE_READINESS.md','NOVEMBER_LIVE_UPGRADE.md','OPS_DAILY_CHECK.md','OVERNIGHT_20261111_HANDOFF.md','PROGRESS.md']
+before={n:(R/'docs'/n).read_bytes() for n in names}
+banner='> **총괄 v1.158(2026-11-12): throttle/phantom 로컬 수용·손실 보호식 결정·정리 경합 보완**: 49d485f0·76ea3050/시험래치/ABv4 연결을 로컬 통합 범위로 수용한다(운영 승인 아님). 시험 Telegram 기본 비활성/명시적 전송시험은 로컬 HTTP 대역. 손실은 기존 LIVE/비세션 식을 유지하고 DYNAMIC REAL·전체 REAL 식을 병행해 하나라도 기존 한도 초과면 차단하며 자본 추가로 기존 거절을 승인으로 바꾸지 않는다. CLOSING→의도 전 OPEN 복귀 경합은 별도 제품 후보로 보완. 근거 로컬302/302지만 커밋블롭102/302, 나머지200은 CRLF→LF뿐이므로 원본/원목록 보존 후 새 커밋으로 바이트 보존 복구. 시계/대기20·포함표/실제검증/D4는 추가 착수 확인 없이 계속, 운영/F/S 변경 미승인. [판정·직접 관측·계속할 지시](evidence/review-60777286/README.md) · 계획§126.'
+section='''**126. v1.157 결과 부분 수용·남은 정책/제품 경합 보완 (2026-11-12, v1.158)**
+
+- **검토/수용**: throttle49d485f0(21중6실패→27성공/관련167), phantom76ea3050(PG3/4실패→4/4·관련PG7+7/H2 30), 시험래치ee5beb18/0a807cbb, ABv4 사전확인/실제연결5f195542를 근거 범위의 로컬 통합으로 수용한다. R*+S*는 전체242/성공233/건너뜀9/실패0. 운영 승인·새 통합 전체회귀 완료 아님/84기준점 유지.
+- **즉시 보완**: 일반 test/scheduler 프로필은 기존 telegram.enabled=false, 전송계약 시험만 명시적true+127.0.0.1 HTTP대역. 운영토큰/기본대상 상속 제거·생산자/커밋뒤/롤백/재시도 단언 유지. 새근거302개 로컬은 모두원목록일치지만60777286 블롭은102일치/200 CRLF→LF변환으로불일치. 원본별도보존→폴더한정* -text→새커밋원바이트반영→블롭302대조, 원커밋/목록/amend/rebase변경없음. 이전검토38일치.
+- **손실 정책 후보 결정**: 합산자본 하나로 기존분모를 대체하지 않는다. 각일/주/월에 기존LIVE+비세션 보호식/기존분모·폴백 유지 + DYNAMIC REAL 자체손실/자체RUNNING자본 + 전체REAL손실/합산자본을 병행, 하나라도 기존한도비교상 초과면 신규실자금매수거절. PAPER/추정 제외·이익비상쇄·정산1회/정정/롤백/실제승인 확인. DYN손실있는데자체분모없음/조회불가면판정불가차단, 자체손실0인비활성엔진때문에차단하지않음. 기존LIVE2.00거절이자본추가로1.00승인되지않는단언/중지재개영향표 포함. 로컬 후보 계약/운영정책반영 미승인.
+- **정리 경합 제품 후보**: 주문부재만으로 CLOSING을OPEN으로되돌리지않는최소후보/실제PG를 준비한다. 총괄84실제SpringH2관측1/1: CLOSING/주문0→확인에서OPEN→실제매도1→폴러FILLED여도일반확인미반영/가용7000→정리에서CLOSING복원→다음확인CLOSED/9742.63→재확인입금중복0. 과거60초지연원인전체는미입증. 정리/실시간SL·의도소유권·거절/예외/롤백/불명/지연체결/재기동·정지·중복방어를확인. 임의대기/자동재매도/영구대기로덮지않는다.
+- **계속/유지**: 시험알림/바이트보존→경합·손실후보→DYN판단시계/옛대기20→포함표/통합·F+throttle·정산/위험PG→고정SHA관련/필요전체1회/jar·프런트/의미상복구·구체D4를 추가착수확인없이 잇는다. b5기점throttle파일통째덮기/처리기@Async·EventListener복원/F·B01·V96손실금지. D4초안은지금작성/미정표시/실행금지. 로컬두커밋과다음실제결과·문서6/근거를일반커밋push, 설정제외. 총괄396차. 운영b5/52/V94/c669·F/F1/N06/S·한도풀장부cron/66비열람/203CREATED/12-01목표 유지. [상세 결정·근거](evidence/review-60777286/README.md).
+
+'''
+progress='> **마지막 갱신**: 2026-11-12 (396차, 총괄v1.158/계획§126) — [60777286 검토](evidence/review-60777286/README.md). throttle49d/phantom76ea/시험래치/ABv4를 로컬 통합으로 수용·운영미승인. R*+S* 전체242/성공233/skip9. 근거 로컬302일치/블롭102일치·200CRLF→LF변환, 원본보존+새커밋바이트복구 지시(이전검토38일치). 시험Telegram기본false·명시적전송은로컬HTTP, 기존알림단언보존. 손실은기존LIVE+비세션식/분모유지+DYN자체+전체REAL식/어느하나초과차단(기존거절희석없음). 총괄84SpringH2정리경합1/1: 의도전OPEN복귀→FILLED일반미반영→정리CLOSING복원→다음확인9742.63입금1회; 과거60초원인은미확정/별도제품후보지시. DYN시계/대기20·포함표/D4를확인대기없이계속. 운영SSH/PG/Gradle전체/jar빌드/커밋push없음·F/S/203불변.'
+checks={}
+for n,b in before.items():
+ s=b.decode('utf8');nl='\r\n' if '\r\n' in s else '\n'
+ if n=='PROGRESS.md':
+  at=s.index('> **마지막 갱신**:');s=s[:at]+progress+nl+s[at:].replace('> **마지막 갱신**:','> **이전 갱신**:',1)
+ else:
+  at=s.index(nl+nl)+len(nl+nl);s=s[:at]+banner+nl+nl+s[at:]
+  if n=='LIMITED_LIVE_TEST_PLAN.md':
+   marker='## 6. 시작·중단·종료 조건';assert s.count(marker)==1;s=s.replace(marker,section.replace('\n',nl)+marker)
+ after=s.encode('utf8');(R/'docs'/n).write_bytes(after)
+ def blocks(x):return re.findall(rb'^```bash[^\r\n]*\r?\n(.*?)^```',x,re.M|re.S)
+ assert blocks(b)==blocks(after),n
+ checks[n]={'before_sha256':sha(b),'after_sha256':sha(after),'bash_blocks_unchanged':len(blocks(b))}
+(E/'doc-check.json').write_text(json.dumps(checks,ensure_ascii=False,indent=2)+'\n',encoding='utf8')
+files=sorted(p for p in E.rglob('*') if p.is_file() and p.name not in ['SHA256SUMS','.gitattributes'])
+(E/'SHA256SUMS').write_text(''.join(sha(p.read_bytes())+'  '+p.relative_to(E).as_posix()+'\n' for p in files),encoding='utf8')
+for l in (E/'SHA256SUMS').read_text().splitlines():
+ h,n=l.split('  ',1);assert sha((E/n).read_bytes())==h
+for n,c in checks.items():assert sha((R/'docs'/n).read_bytes())==c['after_sha256']
+r=subprocess.run(['git','check-ignore','--stdin'],cwd=R,input=''.join(p.relative_to(R).as_posix()+'\n' for p in files).encode(),capture_output=True);assert r.returncode==1,r.stdout
+r=subprocess.run(['git','diff','--check','--','docs'],cwd=R,capture_output=True);assert r.returncode==0,r.stdout+r.stderr
+print(json.dumps({'review_payloads':len(files),'review_bytes':sum(p.stat().st_size for p in files),'docs':checks,'ignored':0,'diff_check':0},ensure_ascii=False,indent=2))

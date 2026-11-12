@@ -1,0 +1,31 @@
+{
+  "version": "v1.158",
+  "main": "60777286f9b03750204c0ccfb785ee25f33c2edd",
+  "local_acceptance": [
+    "49d485f0 throttle exact trigger",
+    "76ea3050 phantom PnL+balance atomicity",
+    "ee5beb18/0a807cbb test latches",
+    "5f195542 ABv4 preflight and chain"
+  ],
+  "production_approval": false,
+  "evidence": {
+    "v157_local": 302,
+    "v157_blob_match": 102,
+    "v157_blob_crlf_differences": 200,
+    "prior_review_blob_match": 38
+  },
+  "root_probe": {
+    "sha": "84fb03d6",
+    "scope": "actual Spring/H2 held async submission/reconcile race + mocked fill through actual order poller; stopped-session cleanup restores CLOSING, then normal reconcile settles; no PG/production",
+    "exit_code": 0,
+    "attempt1": "Initial reviewer expectation that cleanup immediately settles was incorrect. It restores CLOSING and a subsequent normal reconciliation settles. Original source/log/result preserved. No product code changed; Telegram/websocket mocked on both runs."
+  },
+  "decisions": [
+    "test-only Telegram default disabled, explicit loopback HTTP for send contracts",
+    "preserve legacy loss ratio, add DYNAMIC REAL and combined ratios, reject if any exceeds existing limit",
+    "separate minimal CLOSING/async SELL-intent race candidate",
+    "restore exact 302 evidence bytes in a new commit without rewriting history",
+    "continue dynamic judgment clock, 20 waits, inclusion list and concrete unapproved D4"
+  ],
+  "remote": "no fetch/push by reviewer; two commits ahead of locally recorded origin/main"
+}

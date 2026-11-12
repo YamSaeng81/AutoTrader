@@ -1,0 +1,57 @@
+from pathlib import Path
+import hashlib,io,json,re,subprocess,zipfile,xml.etree.ElementTree as ET
+O=Path(__file__).resolve().parent;R=O.parents[2]
+def git(*a):return subprocess.check_output(['git',*a],cwd=R)
+def sha(b):return hashlib.sha256(b).hexdigest()
+refs={n:git('rev-parse',v).decode().strip() for n,v in {'main':'60777286','baseline':'84fb03d6','throttle':'49d485f0','phantom':'76ea3050','barriers':'0a807cbb','AB':'5f195542','risk_probe':'92aa8712'}.items()}
+result={'refs':refs,'manifests':{},'runs':{}}
+for folder in ['v157-20261112','review-ade6cc28']:
+ root='docs/evidence/'+folder;lines=git('show',refs['main']+':'+root+'/SHA256SUMS').decode().splitlines();parsed=[]
+ for l in lines:
+  m=re.fullmatch(r'([a-f0-9]{64}) [ *](.+)',l);assert m,l
+  h,n=m.groups();parsed.append((h,n,refs['main']+':'+(Path(root)/n).as_posix()))
+ p=subprocess.run(['git','cat-file','--batch'],cwd=R,input=('\n'.join(s for h,n,s in parsed)+'\n').encode(),stdout=subprocess.PIPE,check=True);stream=io.BytesIO(p.stdout);bad=[]
+ for h,n,s in parsed:
+  header=stream.readline().decode().strip().split();assert len(header)==3 and header[1]=='blob',(s,header)
+  b=stream.read(int(header[2]));assert stream.read(1)==b'\n'
+  if sha(b)!=h:
+   local=(R/root/n).read_bytes()
+   bad.append({'file':n,'listed':h,'blob':sha(b),'local':sha(local),'local_matches_list':sha(local)==h,'blob_is_local_with_crlf_to_lf':b==local.replace(b'\r\n',b'\n')})
+ result['manifests'][folder]={'files':len(parsed),'mismatch_count':len(bad),'bad':bad}
+root=R/'docs/evidence/v157-20261112/runs'
+for run in sorted(p for p in root.iterdir() if p.is_dir()):
+ rows=[]
+ for p in run.rglob('*.xml'):
+  x=ET.fromstring(p.read_bytes());rows.append({'path':p.relative_to(root).as_posix(),'name':x.get('name'),**{k:int(x.get(k,'0')) for k in ['tests','failures','errors','skipped']},'failures_detail':[{'name':t.get('name'),'message':f.get('message')} for t in x.findall('testcase') for f in list(t.findall('failure'))+list(t.findall('error'))]})
+ result['runs'][run.name]={'xml_files':len(rows),'counts':{k:sum(x[k] for x in rows) for k in ['tests','failures','errors','skipped']},'suites':rows}
+(O/'audit.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf8')
+S=O/'source';assert not S.exists();S.mkdir();zipfile.ZipFile(io.BytesIO(git('archive','--format=zip',refs['baseline'],'core-engine','strategy-lib','exchange-adapter','web-api'))).extractall(S)
+p=R/'docs/evidence/v157-20261112/diag-src/CleanupReconcileRaceDiagTest.java.txt';s=p.read_text(encoding='utf8').replace('class CleanupReconcileRaceDiagTest','class ReviewClosingSubmissionRaceTest')
+s=s.replace('    @MockBean private UpbitRestClient upbitRestClient;','    @MockBean private UpbitRestClient upbitRestClient;\n    @MockBean private TelegramNotificationService telegramService;\n    @MockBean private com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient ws;\n    @Autowired private OrderExecutionEngine orderEngine;')
+s=s.replace('Mockito.timeout(20_000).atLeast(0)','Mockito.timeout(20_000).times(1)')
+mark='        out("⑤ 정리 1회 더(+장벽): " + state(pos.getId()));';assert s.count(mark)==1
+s=s.replace(mark,mark+'''
+        OrderEntity submitted = orderRepository.findByPositionIdOrderByCreatedAtDesc(pos.getId()).get(0);
+        org.assertj.core.api.Assertions.assertThat(positionRepository.findById(pos.getId()).orElseThrow().getStatus()).isEqualTo("OPEN");
+        org.assertj.core.api.Assertions.assertThat(submitted.getState()).isEqualTo("SUBMITTED");
+        BigDecimal before = liveRepo.findById(sid).orElseThrow().getAvailableKrw();
+        OrderResponse fill = new OrderResponse(); fill.setUuid(submitted.getExchangeOrderId());
+        fill.setState("done"); fill.setSide("ask"); fill.setOrdType("market"); fill.setMarket("KRW-DOGE");
+        fill.setVolume(new BigDecimal("9.8")); fill.setExecutedVolume(new BigDecimal("9.8"));
+        fill.setExecutedFunds(new BigDecimal("2744")); fill.setPaidFee(new BigDecimal("1.372"));
+        Mockito.when(upbitOrderClient.getOrder(submitted.getExchangeOrderId())).thenReturn(fill);
+        orderEngine.checkOrderStatus(submitted.getId());
+        org.assertj.core.api.Assertions.assertThat(orderRepository.findById(submitted.getId()).orElseThrow().getState()).isEqualTo("FILLED");
+        liveTradingService.reconcileClosingPositions();
+        out("⑥ 실제 폴러 FILLED 뒤 일반 청산 확인: " + state(pos.getId()) + " · 가용=" + liveRepo.findById(sid).orElseThrow().getAvailableKrw());
+        org.assertj.core.api.Assertions.assertThat(positionRepository.findById(pos.getId()).orElseThrow().getStatus()).isEqualTo("OPEN");
+        org.assertj.core.api.Assertions.assertThat(orderRepository.findById(submitted.getId()).orElseThrow().getSellAppliedAt()).isNull();
+        org.assertj.core.api.Assertions.assertThat(liveRepo.findById(sid).orElseThrow().getAvailableKrw()).isEqualByComparingTo(before);
+        liveTradingService.cleanupStoppedSessionPositions();
+        out("⑦ 정리 작업이 확정 체결을 반영한 뒤: " + state(pos.getId()) + " · 가용=" + liveRepo.findById(sid).orElseThrow().getAvailableKrw());
+        org.assertj.core.api.Assertions.assertThat(positionRepository.findById(pos.getId()).orElseThrow().getStatus()).isEqualTo("CLOSED");
+        org.assertj.core.api.Assertions.assertThat(orderRepository.findById(submitted.getId()).orElseThrow().getSellAppliedAt()).isNotNull();
+        org.assertj.core.api.Assertions.assertThat(liveRepo.findById(sid).orElseThrow().getAvailableKrw()).isGreaterThan(before);
+''')
+(O/'ReviewClosingSubmissionRaceTest.java').write_text(s,encoding='utf8')
+print(json.dumps({'refs':refs,'manifests':result['manifests'],'runs':{k:v['counts'] for k,v in result['runs'].items()}},ensure_ascii=False,indent=2))

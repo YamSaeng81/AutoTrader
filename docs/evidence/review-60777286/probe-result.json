@@ -1,0 +1,6 @@
+{
+  "sha": "84fb03d6",
+  "scope": "actual Spring/H2 held async submission/reconcile race + mocked fill through actual order poller; stopped-session cleanup restores CLOSING, then normal reconcile settles; no PG/production",
+  "exit_code": 0,
+  "attempt1": "Initial reviewer expectation that cleanup immediately settles was incorrect. It restores CLOSING and a subsequent normal reconciliation settles. Original source/log/result preserved. No product code changed; Telegram/websocket mocked on both runs."
+}

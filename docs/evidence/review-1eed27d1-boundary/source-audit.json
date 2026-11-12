@@ -1,0 +1,56 @@
+{
+  "reviewed_at": "2026-11-12T21:17:55.179374+09:00",
+  "source_commit": "1eed27d18d0d09ea001e21963d1609d25dccbcc7",
+  "scope": "Source comparison only; no Gradle/PG/production execution; final full regression and diagnostic raw copy pending.",
+  "source_files": [
+    {
+      "role": "engine",
+      "path": "web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java",
+      "git_blob": "ebd2b2ba2c2ec25415f59ed3708afee89f234040",
+      "sha256": "ea6c727f1081750fa55c414c5f0d476c646dd36e2fcaafb950105896926e7cff",
+      "bytes": 157414
+    },
+    {
+      "role": "probe",
+      "path": "web-api/src/test/java/com/cryptoautotrader/api/service/SubmitOrderBoundaryProbeTest.java",
+      "git_blob": "da817a810e02c8eb3469cca98c17bcad41060004",
+      "sha256": "d58c8719fb2e339b14ba3bcea3d92f6aa7a95524f54ac844209a16e3fc175050",
+      "bytes": 12537
+    },
+    {
+      "role": "position_limit",
+      "path": "web-api/src/test/java/com/cryptoautotrader/api/service/PositionLimitTest.java",
+      "git_blob": "11d31f76bd8d8c62f8ec0a2932755786bbf1a5a1",
+      "sha256": "97f048986972604291c4e7f4483f0ad642520a4f6a5b21d347483bf28a40ee06",
+      "bytes": 43709
+    },
+    {
+      "role": "closing_atomicity_pg",
+      "path": "web-api/src/test/java/com/cryptoautotrader/api/service/ClosingIntentAtomicityPgTest.java",
+      "git_blob": "723176fb411f2be9dabb365cac0a5cbd554a21a0",
+      "sha256": "b0a9a41e056007444f01b47fc7548b00554f993314cf9be85e60b4f209f4238e",
+      "bytes": 21910
+    },
+    {
+      "role": "closing_rollback_pg",
+      "path": "web-api/src/test/java/com/cryptoautotrader/api/service/ClosingIntentRollbackPgTest.java",
+      "git_blob": "e98638a2606d6bac08c8d33b9b165f397e9c8935",
+      "sha256": "ce9b09aa182690d9df2327d46446da0b0961d79b95265713f0cc89a011fed433",
+      "bytes": 6323
+    }
+  ],
+  "structural_checks": {
+    "probe_unchanged_from_84fb03d6": true,
+    "probe_observes_first_save": true,
+    "old_probe_rejects_stop_tx_for_first_save": true,
+    "submit_template_required": true,
+    "closing_and_prepare_in_one_template": true,
+    "dispatch_routes_outer_tx_to_after_commit": true,
+    "prepared_submission_async": true,
+    "claim_uses_template": true,
+    "external_call_then_result_template": true,
+    "position_limit_stubs_only_guard_call": true,
+    "existing_pg_caller_rollback_asserts_zero_external": true
+  },
+  "interpretation": "First save now creates INTENT_READY with CLOSING in caller transaction; claim/result use executor transaction boundaries; exchange HTTP call is outside DB transaction. Structural checks do not replace runtime transaction assertions."
+}
