@@ -351,6 +351,72 @@ class RealtimeProtectionSaturationTest extends IntegrationTestBase {
         assertThat(snapLong("DYNAMIC", "pendingCoins")).isZero();
     }
 
+    // ── v1.155 §2-3 경계 ───────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("v1.155 §2-3 — 포화 중 대기한 시세가 유효기간(120초)을 넘으면 처리기가 버리고(매도 0), 다음 신선 시세에서 LIVE·DYNAMIC 손절 1회씩 회복")
+    void staleAfterWaitDroppedThenFreshRecovers() throws Exception {
+        if (!ctx.containsBean(DISPATCHER)) return;
+        String a = newCoin();
+        Fx la = holding("LIVE", a), da = holding("DYNAMIC", a);
+        clearThrottle(a);
+        Throwable e1;
+        try (Saturation s = new Saturation(true)) {
+            // 대기 시간을 기다리지 않는다 — 관측 시각이 이미 121초 전인 시세로 "120초 넘게 대기한 시세"를 만든다.
+            e1 = publish(a, new BigDecimal("280"), Instant.now().minusSeconds(121));
+            s.release();
+        }
+        ExecutorBarrier.awaitPriorTasks(marketDataExecutor.getThreadPoolExecutor(), 15_000);
+        retryPending();
+        barrier();
+        int sellsAfterStale = exchangeSells(a);
+        String afterStale = "LIVE=" + status(la) + " DYNAMIC=" + status(da) + " | " + snap("LIVE") + " | " + snap("DYNAMIC");
+        Throwable e2 = publish(a, new BigDecimal("284"), Instant.now());
+        barrier();
+        System.out.println("[F155] 낡은 대기 시세: 발행 예외 " + e1 + " · 낡은 시세 뒤 매도 " + sellsAfterStale + " " + afterStale
+                + " · 신선 284 뒤 매도 " + exchangeSells(a) + " LIVE=" + status(la) + " DYNAMIC=" + status(da) + " 발행 예외 " + e2);
+        assertThat(e1).isNull();
+        assertThat(sellsAfterStale).as("120초 넘은 시세로는 매도하지 않는다(처리기 N02)").isZero();
+        assertThat(status(la)).isEqualTo("CLOSING");
+        assertThat(status(da)).isEqualTo("CLOSING");
+        assertThat(exchangeSells(a)).as("다음 신선 시세에서 두 엔진 손절 각 1회").isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("v1.155 §2-3 — 포화 중 거래소 복구 이벤트(@Async marketDataExecutor)는 종전대로 발행 쪽에 접수 거절이 드러난다(경계가 삼키지 않음), 같은 포화의 보호 시세는 대기·해제 뒤 처리")
+    void exchangeRecoveryEventRejectionUnchanged() throws Exception {
+        if (!ctx.containsBean(DISPATCHER)) return;
+        String a = newCoin();
+        Fx la = holding("LIVE", a);
+        clearThrottle(a);
+        Throwable rec, prot;
+        try (Saturation s = new Saturation(true)) {
+            rec = publishRecovery();
+            prot = publish(a, new BigDecimal("280"), Instant.now());
+            s.release();
+        }
+        ExecutorBarrier.awaitPriorTasks(marketDataExecutor.getThreadPoolExecutor(), 15_000);
+        retryPending();
+        barrier();
+        Throwable recAfter = publishRecovery();
+        barrier();
+        System.out.println("[F155] 복구 이벤트: 포화 중 " + (rec == null ? null : rec.getClass().getName()) + " · 보호 시세 발행 예외 " + prot
+                + " · 해제 뒤 복구 이벤트 " + recAfter + " · 매도 " + exchangeSells(a) + " LIVE=" + status(la));
+        assertThat(rec).as("다른 @Async 작업의 접수 거절 계약은 그대로 — 발행 쪽에 드러난다").isInstanceOf(java.util.concurrent.RejectedExecutionException.class);
+        assertThat(prot).as("보호 시세는 경계가 받아 대기").isNull();
+        assertThat(recAfter).isNull();
+        assertThat(exchangeSells(a)).isEqualTo(1);
+    }
+
+    private Throwable publishRecovery() {
+        try {
+            publisher.publishEvent(new ExchangeRecoveredEvent(this, "DOWN"));
+            return null;
+        } catch (Throwable t) {
+            return t;
+        }
+    }
+
     // ── 2. 작업자만 바쁨(대기열 여유) ───────────────────────────────────────────
 
     @Test
