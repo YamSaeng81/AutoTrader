@@ -77,3 +77,14 @@ logging:
     com.cryptoautotrader: WARN
     org.springframework.web: WARN
     org.springframework.test: WARN
+
+# 🔴 시험 외부 알림 차단 (총괄 v1.158 결정 1, 2026-11-12) — 일반 시험은 Telegram 으로 아무것도 보내지 않는다.
+#    종전엔 이 프로필에 값이 없어 운영 기본값(enabled=true·운영 chat-id)이 그대로 쓰였고, 빈 토큰으로
+#    api.telegram.org 에 실제 요청이 나가 404 로 거절됐다(빈 토큰/404 는 차단 장치가 아니다).
+#    전송 계약 시험은 서비스 필드에 enabled=true 와 127.0.0.1 HTTP 대역을 직접 명시한다
+#    (TelegramMarkdownFallbackTest·TelegramRiskLimitRetryHttpTest·CandleRefreshReportRetryTest).
+#    운영 설정(application.yml)·알림 사유/재시도/큐 계약은 바꾸지 않는다. 검증: TelegramTestIsolationTest.
+telegram:
+  enabled: false
+  bot-token: ""
+  chat-id: "test-isolated-no-chat"

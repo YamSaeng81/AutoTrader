@@ -41,6 +41,9 @@ subprojects {
         //    멈춤 대신 실패로 드러나도록 메모리 부족 시 즉시 종료한다. 아래 측정용 러너는 자기 값을 다시 정한다.
         maxHeapSize = '1g'
         jvmArgs '-XX:+ExitOnOutOfMemoryError'
+        // 🔴 시험 프로세스는 운영 알림 자격/대상/켜짐 환경 변수를 상속하지 않는다 (총괄 v1.158 결정 1).
+        //    환경 변수(TELEGRAM_ENABLED 등)는 application-test.yml 보다 우선하므로 여기서 지운다.
+        environment.keySet().removeAll(environment.keySet().findAll { it.toString().startsWith('TELEGRAM_') })
         // 임시 백테스트 러너 활성화용: -Dha.backtest.csv 가 주어졌을 때만 테스트 JVM으로 전달
         if (System.getProperty('ha.backtest.csv')) {
             systemProperty 'ha.backtest.csv', System.getProperty('ha.backtest.csv')
