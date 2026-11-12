@@ -40,6 +40,10 @@ class OrderExecutorDrainPredicateGapTest {
     private static final class GatedTakeExecutor extends ThreadPoolTaskExecutor {
         final CountDownLatch dequeued = new CountDownLatch(1);
         final CountDownLatch allowWorker = new CountDownLatch(1);
+        /** v1.157 §125-4 — 미리 만든 작업자 2개가 모두 대기열 앞(take 진입)에 왔는가. 막 만들어져 아직 출발하지 않은 작업자는
+         *  생성 상태(-1)라 active 로 세어진다(②와 같은 성질) — 부하로 한 작업자가 늦으면 ① 관측이 active=1 이 됐다(int155-full). */
+        final CountDownLatch polling = new CountDownLatch(2);
+        private final ThreadLocal<Boolean> polled = ThreadLocal.withInitial(() -> false);
 
         GatedTakeExecutor() {
             setCorePoolSize(2);
@@ -54,6 +58,7 @@ class OrderExecutorDrainPredicateGapTest {
             return new LinkedBlockingQueue<>(queueCapacity) {
                 @Override
                 public Runnable take() throws InterruptedException {
+                    if (!polled.get()) { polled.set(true); polling.countDown(); }
                     Runnable task = super.take();
                     dequeued.countDown();
                     allowWorker.await();
@@ -99,6 +104,7 @@ class OrderExecutorDrainPredicateGapTest {
         try {
             ThreadPoolExecutor pool = ex.getThreadPoolExecutor();
             assertThat(pool.prestartAllCoreThreads()).as("전체 시험처럼 작업자 2개가 미리 있다").isEqualTo(2);
+            assertThat(ex.polling.await(5, TimeUnit.SECONDS)).as("두 작업자 모두 출발해 대기열 앞에 있다(시간 대기 아님)").isTrue();
             AtomicBoolean executed = new AtomicBoolean(false);
             CountDownLatch completed = new CountDownLatch(1);
             ex.execute(() -> { executed.set(true); completed.countDown(); });
