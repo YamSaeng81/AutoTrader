@@ -316,6 +316,12 @@ class O1O3LogContractTest extends IntegrationTestBase {
         if ("DYNAMIC".equals(kind)) dynamicTradingService.onRealtimePriceEvent(ev);
         else liveTradingService.onRealtimePriceEvent(ev);
         drain(marketDataExecutor);
+        // 🔴 (총괄 v1.156 §124-4, 2026-11-12) 매도는 @Async orderExecutor 작업이다. 옛 대기 조건(큐 비었음·active 0·taskCount ==
+        //    completed)은 놀고 있는 작업자가 작업을 꺼낸 뒤 실행 표시 전이면 참이다 — 전체 실행 12:54 LIVE REST_TRADE 매도 0 은 이
+        //    경계였다(같은 SHA 고정 경합 진단: 꺼낸 채 붙잡으면 옛 조건 참·매도 0·주문 행 0, 풀면 매도 1). 작업 결과(거래소 호출)를
+        //    기다린다 — 오지 않으면 20초 뒤 실패. 기대값(1회)은 아래 그대로 센다.
+        Mockito.verify(upbitOrderClient, Mockito.timeout(20_000).atLeastOnce()).createOrder(Mockito.eq(f.coin()), Mockito.eq("ask"),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
         drain(orderExecutor);
 
         long sells = Mockito.mockingDetails(upbitOrderClient).getInvocations().stream()
