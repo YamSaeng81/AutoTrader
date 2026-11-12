@@ -1416,7 +1416,7 @@ public class LiveTradingService {
                     PositionEntity pos = openPos.get();
                     Instant openedAt = pos.getOpenedAt();
                     long heldMinutes = openedAt != null
-                            ? Duration.between(openedAt, Instant.now()).toMinutes()
+                            ? Duration.between(openedAt, judgeNow()).toMinutes()   // B01 접점 ③ 최소 보유 시간 (v1.154 §5)
                             : Long.MAX_VALUE;
                     BigDecimal heldPnlPctSell = (pos.getAvgPrice() != null
                             && pos.getAvgPrice().compareTo(BigDecimal.ZERO) > 0)
@@ -3618,7 +3618,16 @@ public class LiveTradingService {
 
     /** 세션 거래 코인의 캔들 — 최신 완료 봉·결측 조건을 어기면 빈 목록(판정 불가). BTC 관문 캔들에는 쓰지 않는다. */
     private List<Candle> freshCandles(String coinPair, String timeframe, List<Candle> candles) {
-        return candleFreshnessGuard == null ? candles : candleFreshnessGuard.filter("LIVE", coinPair, timeframe, candles);
+        return candleFreshnessGuard == null ? candles : candleFreshnessGuard.filter("LIVE", coinPair, timeframe, candles, judgeNow());
+    }
+
+    /**
+     * LIVE 판단 시각 (총괄 v1.154 §5 B01, 2026-11-12) — 공통 시계({@link EntryClock}), 운영 기본은 시스템 UTC 라 동작 같다.
+     * 쓰는 곳은 세 접점뿐: 캔들 조회 상한({@link #loadRecentCandles}), 캔들 최신성 관문({@link #freshCandles}), 신호 매도 최소 보유 시간.
+     * DB 감사·주문·체결 시각, 실시간 손절 throttle, 시간 손절·DYNAMIC 은 실제 시각 그대로다.
+     */
+    private Instant judgeNow() {
+        return entryClock != null ? entryClock.now() : Instant.now();
     }
 
     /**
@@ -3639,7 +3648,7 @@ public class LiveTradingService {
     }
 
     private List<Candle> loadRecentCandles(String coinPair, String timeframe) {
-        Instant to = Instant.now();
+        Instant to = judgeNow();   // B01 접점 ① 캔들 조회 상한 (v1.154 §5)
         Instant from = to.minus(CANDLE_LOOKBACK * TimeframeUtils.toMinutes(timeframe), ChronoUnit.MINUTES);
 
         return candleDataRepository.findCandles(coinPair, timeframe, from, to).stream()
