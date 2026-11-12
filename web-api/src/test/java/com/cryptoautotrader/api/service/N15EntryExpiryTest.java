@@ -153,6 +153,9 @@ class N15EntryExpiryTest extends IntegrationTestBase {
         poolLossGuard.setEnabledSetting(true);
         rounds.setForcedForTest(true);
         doReturn(com.cryptoautotrader.core.risk.RiskCheckResult.approve()).when(riskManagementService).checkRisk();
+        // v1.158 결정 2: 실자금 손실 관문(checkRealLossGuard)의 기존 손실 원천은 PostgreSQL 전용 구문이라 H2 에서 실행할 수 없다 —
+        //    checkRisk 와 같은 관례로 승인으로 둔다. 관문 자체는 실제 PG RealLossThreeFormulaPgTest 가 검증한다.
+        doReturn(com.cryptoautotrader.core.risk.RiskCheckResult.approve()).when(riskManagementService).checkRealLossGuard();
         limits.setMaxConcurrentPositions((int) positionRepository.countPoolSlots(-1L) + 8);
         limits.setPerPositionCapKrw(new BigDecimal("20000"));
         limits.setTotalCapKrw(positionRepository.sumPoolExposureKrw(-1L).add(new BigDecimal("1000000")));
