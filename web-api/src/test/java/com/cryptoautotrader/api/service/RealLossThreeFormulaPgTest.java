@@ -214,7 +214,7 @@ class RealLossThreeFormulaPgTest extends IntegrationTestBase {
         String dyn = dynamicEntry(did, c);
         trace("②", "checkRisk=" + r.isApproved() + " " + r.getReason(), "DYNAMIC 진입=" + dyn);
         assertThat(r.isApproved()).isFalse();
-        assertThat(r.getReason()).contains("기존 보호식");
+        assertThat(r.getReason()).as("기존 보호식(종전 문구 그대로)").startsWith("일일 손실 한도 초과: 2.00%").doesNotContain("REAL 보호식");
         assertThat(dyn).as("실자금 매수 전체 — DYNAMIC REAL 진입도 같은 관문").isNotNull();
     }
 
