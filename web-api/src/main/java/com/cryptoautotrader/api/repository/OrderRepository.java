@@ -451,6 +451,24 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
     int markSellApplied(@Param("id") Long id, @Param("now") Instant now);
 
     /**
+     * LIVE 세션 매도의 확정 실현 손실 합 — 손실 매도만(0 또는 음수) (총괄 v1.154 §3, 2026-11-12).
+     *
+     * <p>🔴 세션 매도는 {@code OrderExecutionEngine.handleSellFill} 이 trade_log FILL 을 쓰기 전에 반환하고 청산 확정
+     * ({@code LiveTradingService.finalizeSellPosition})이 반영하므로, FILL 만 읽는 전역 일/주/월 손실 합산에 빠져 있었다.
+     * 여기서는 확정이 남긴 주문 행 값으로 매도 한 건의 실현 손익을 다시 계산한다: 반영 대금 − 반영 수수료 − 체결 수량 × 포지션 평균단가
+     * (확정·정정과 같은 식). 매도 한 건 = 한 행이라 재확정·재시도에도 한 번이고({@code sell_applied_at} 조건부 표시), 늦은 정정은
+     * 반영값이 바뀌어 차분만 반영되며, 롤백된 확정은 표시도 함께 되돌아가 빠진다. 추정 청산(팬텀)·취소(체결 0)는 반영 행이 없어 빠진다.
+     * 비세션 체결(FILL 기록)과는 {@code session_id IS NOT NULL} 로 겹치지 않는다. DYNAMIC REAL·DYN_PAPER 는 범위 밖이다(판단 대기).</p>
+     */
+    @Query(value = "SELECT COALESCE(SUM(pnl), 0) FROM ("
+            + " SELECT o.applied_executed_funds - COALESCE(o.applied_paid_fee, 0) - o.filled_quantity * p.avg_price AS pnl"
+            + " FROM \"order\" o JOIN position p ON p.id = o.position_id"
+            + " WHERE o.side = 'SELL' AND o.session_id IS NOT NULL AND o.session_kind = 'LIVE'"
+            + " AND o.sell_applied_at IS NOT NULL AND o.sell_applied_at >= :since AND o.applied_executed_funds IS NOT NULL"
+            + ") t WHERE pnl < 0", nativeQuery = true)
+    java.math.BigDecimal sumLiveSessionRealizedLossSince(@Param("since") Instant since);
+
+    /**
      * 매도 확정이 포지션·잔액에 반영한 대금·수수료를 기록한다 (2026-10-14) — 뒤늦은 정정은 이 값과의 차이만 반영한다.
      * 영속성 컨텍스트를 비우지 않는다(확정 반복문의 포지션 엔티티를 떼어내지 않는다).
      */

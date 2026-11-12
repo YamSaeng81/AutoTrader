@@ -32,6 +32,7 @@ class RiskManagementServiceTest {
     private PositionRepository positionRepository;
     private TradeLogRepository tradeLogRepository;
     private LiveTradingSessionRepository sessionRepository;
+    private com.cryptoautotrader.api.repository.OrderRepository orderRepository;
     private RiskManagementService service;
 
     @BeforeEach
@@ -40,9 +41,10 @@ class RiskManagementServiceTest {
         positionRepository   = mock(PositionRepository.class);
         tradeLogRepository   = mock(TradeLogRepository.class);
         sessionRepository    = mock(LiveTradingSessionRepository.class);
+        orderRepository      = mock(com.cryptoautotrader.api.repository.OrderRepository.class);
 
         service = new RiskManagementService(
-                riskConfigRepository, positionRepository, tradeLogRepository, sessionRepository);
+                riskConfigRepository, positionRepository, tradeLogRepository, sessionRepository, orderRepository);
 
         RiskConfigEntity config = RiskConfigEntity.builder()
                 .maxDailyLossPct(new BigDecimal("3.0"))
@@ -57,6 +59,7 @@ class RiskManagementServiceTest {
         when(positionRepository.countRealPositionsByStatus("OPEN")).thenReturn(0L);
         when(tradeLogRepository.sumRealizedPnlSince(any())).thenReturn(BigDecimal.ZERO);
         when(tradeLogRepository.sumRealizedLossSince(any())).thenReturn(BigDecimal.ZERO);
+        when(orderRepository.sumLiveSessionRealizedLossSince(any())).thenReturn(BigDecimal.ZERO);
         // 자본 사용률 계산용 — 기본값: 사용률 0% (차단 안 됨)
         when(sessionRepository.sumInitialCapitalByStatusIn(any())).thenReturn(new BigDecimal("10000000"));
         when(sessionRepository.sumAvailableKrwByStatusIn(any())).thenReturn(new BigDecimal("10000000"));
@@ -142,6 +145,51 @@ class RiskManagementServiceTest {
         assertThat(result.isApproved())
                 .as("자본 사용률 70%는 한도 80% 이하이므로 통과되어야 한다")
                 .isTrue();
+    }
+
+    @Test
+    @DisplayName("v1.155 §4 필수 원천 — FILL 손실 0 이어도 LIVE 세션 확정 매도 손실(주문 원천)이 한도를 넘으면 차단")
+    void liveSessionLossFromOrders_breachesDailyLimit() {
+        when(sessionRepository.findByStatus("RUNNING")).thenReturn(List.of(flatSession(new BigDecimal("10000000"))));
+        when(tradeLogRepository.sumRealizedLossSince(any())).thenReturn(BigDecimal.ZERO);
+        when(orderRepository.sumLiveSessionRealizedLossSince(any())).thenReturn(new BigDecimal("-400000"));
+
+        RiskCheckResult result = service.checkRisk();
+
+        // 400k / 10M = 4% > 일일 3%
+        assertThat(result.isApproved()).isFalse();
+        assertThat(result.getReason()).contains("일일 손실 한도 초과");
+    }
+
+    @Test
+    @DisplayName("v1.155 §4 두 원천 합 — FILL 손실 −200k + 세션 손실 −150k = 3.5% 로 차단, 각각만으로는 한도 아래")
+    void fillAndSessionLossesAddedOnce() {
+        when(sessionRepository.findByStatus("RUNNING")).thenReturn(List.of(flatSession(new BigDecimal("10000000"))));
+        when(tradeLogRepository.sumRealizedLossSince(any())).thenReturn(new BigDecimal("-200000"));
+        when(orderRepository.sumLiveSessionRealizedLossSince(any())).thenReturn(new BigDecimal("-150000"));
+
+        RiskCheckResult result = service.checkRisk();
+
+        assertThat(result.isApproved()).isFalse();
+        assertThat(result.getReason()).contains("3.50%");
+    }
+
+    @Test
+    @DisplayName("v1.155 §4 세션 원천이 0·null 이면 FILL 만 — 한도 아래면 통과")
+    void sessionSourceZeroOrNull_fillOnly() {
+        when(sessionRepository.findByStatus("RUNNING")).thenReturn(List.of(flatSession(new BigDecimal("10000000"))));
+        when(tradeLogRepository.sumRealizedLossSince(any())).thenReturn(new BigDecimal("-200000"));
+        when(orderRepository.sumLiveSessionRealizedLossSince(any())).thenReturn(null);
+        assertThat(service.checkRisk().isApproved()).isTrue();
+        when(orderRepository.sumLiveSessionRealizedLossSince(any())).thenReturn(BigDecimal.ZERO);
+        assertThat(service.checkRisk().isApproved()).isTrue();
+    }
+
+    /** 총자산 = 초기자본(드로우다운 0) — 손실 창만 판정에 남긴다. buildRunningSession 은 총자산이 없어 드로우다운 100% 가 된다(1회차 원문 보존). */
+    private LiveTradingSessionEntity flatSession(BigDecimal initialCapital) {
+        LiveTradingSessionEntity session = buildRunningSession(initialCapital);
+        session.setTotalAssetKrw(initialCapital);
+        return session;
     }
 
     private LiveTradingSessionEntity buildRunningSession(BigDecimal initialCapital) {

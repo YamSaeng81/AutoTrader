@@ -38,6 +38,11 @@ public class RiskManagementService {
     private final PositionRepository positionRepository;
     private final TradeLogRepository tradeLogRepository;
     private final LiveTradingSessionRepository sessionRepository;
+    /**
+     * LIVE 세션 매도의 확정 손실 원천 (총괄 v1.154 §3, 2026-11-12). 필수 의존성이다(v1.155 §4) — 없으면 문맥이 뜨지 않는다.
+     * 선택 주입으로 두면 이 원천이 빠진 채 과거 FILL 만 보는 판정이 조용히 남을 수 있다.
+     */
+    private final com.cryptoautotrader.api.repository.OrderRepository orderRepository;
 
     /**
      * 현재 리스크 설정 조회. 설정이 없으면 기본값으로 신규 생성.
@@ -321,6 +326,12 @@ public class RiskManagementService {
             return BigDecimal.ZERO;
         }
         BigDecimal grossLoss = tradeLogRepository.sumRealizedLossSince(since);
+        // 🔴 LIVE 세션 매도는 trade_log FILL 을 남기지 않는다(handleSellFill 조기 반환) — 확정된 매도 손실을 주문 행에서 더한다 (v1.154 §3).
+        //    두 원천은 겹치지 않는다(FILL = 비세션 매도, 주문 원천 = 세션 매도). 매도 한 건당 손실 행만이라 이익과 상쇄하지 않는다.
+        BigDecimal sessionLoss = orderRepository.sumLiveSessionRealizedLossSince(since);
+        if (sessionLoss != null && sessionLoss.signum() < 0) {
+            grossLoss = (grossLoss == null ? BigDecimal.ZERO : grossLoss).add(sessionLoss);
+        }
         if (grossLoss == null || grossLoss.compareTo(BigDecimal.ZERO) >= 0) {
             return BigDecimal.ZERO;
         }

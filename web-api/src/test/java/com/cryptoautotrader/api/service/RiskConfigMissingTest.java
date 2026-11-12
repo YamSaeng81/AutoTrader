@@ -22,7 +22,8 @@ class RiskConfigMissingTest {
 
     private final RiskConfigRepository repo = mock(RiskConfigRepository.class);
     private final RiskManagementService service = new RiskManagementService(repo, mock(PositionRepository.class),
-            mock(TradeLogRepository.class), mock(LiveTradingSessionRepository.class));
+            mock(TradeLogRepository.class), mock(LiveTradingSessionRepository.class),
+            mock(com.cryptoautotrader.api.repository.OrderRepository.class));
 
     @Test
     void 행이_없으면_INSERT_하지_않고_코드_기본값을_돌려준다() {
