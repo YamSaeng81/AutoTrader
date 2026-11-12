@@ -129,9 +129,16 @@ public class CandleFreshnessGuard {
      * @param engine 로그용(LIVE·DYNAMIC)
      */
     public List<Candle> filter(String engine, String coinPair, String timeframe, List<Candle> candles) {
+        return filter(engine, coinPair, timeframe, candles, Instant.now());
+    }
+
+    /**
+     * 판단 시각을 호출자가 준다 (총괄 v1.154 §5 B01, 2026-11-12) — LIVE 는 공통 시계({@link EntryClock}, 운영 기본 시스템 UTC)를 준다.
+     * 다른 호출자는 위 4인자 판(실제 시각) 그대로다. 판정 규칙은 같다.
+     */
+    public List<Candle> filter(String engine, String coinPair, String timeframe, List<Candle> candles, Instant now) {
         if (candles == null || candles.isEmpty()) return candles == null ? List.of() : candles;
         String key = coinPair + ":" + timeframe;
-        Instant now = Instant.now();
         String p = problem(candles, timeframe, now, maintenanceExemption(coinPair, timeframe, now));
         if (p == null) {
             String prev = stale.remove(key);
