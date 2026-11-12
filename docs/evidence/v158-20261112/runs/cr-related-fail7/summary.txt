@@ -1,0 +1,9 @@
+web-api tests 87 fail 3 err 0 skip 0 pass 84
+FAIL com.cryptoautotrader.api.service.CancelConfirmAndLateFillCleanupTest # LIVE
+    java.lang.AssertionError: 매도 2건이 접수 상태가 되지 않았다: [FILLED/uuid-sell-1-89286745750700]
+FAIL com.cryptoautotrader.api.service.CancelConfirmAndLateFillCleanupTest # DYNAMIC
+    java.lang.AssertionError: 매도 2건이 기대 상태가 되지 않았다: [FAILED/null]
+FAIL com.cryptoautotrader.api.service.CancelConfirmAndLateFillCleanupTest # DYNAMIC EXCHANGE_REJECTED
+    org.opentest4j.AssertionFailedError: 
+expected: 2L
+ but was: 1L

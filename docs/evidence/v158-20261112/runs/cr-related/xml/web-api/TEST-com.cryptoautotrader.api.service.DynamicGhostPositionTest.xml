@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.DynamicGhostPositionTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-11-12T10:17:24" hostname="DESKTOP-SF1KUQ5" time="0.02">
+  <properties/>
+  <testcase name="② 유령 포지션: 매도 FILLED인데 OPEN으로 남은 포지션을 자동 정산한다 (07-31 P0)" classname="com.cryptoautotrader.api.service.DynamicGhostPositionTest" time="0.02"/>
+  <system-out><![CDATA[19:17:24.748 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.DynamicGhostPositionTest
+19:17:24.751 [Test worker] INFO  o.a.c.c.C.[Tomcat-3].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+19:17:24.760 [Test worker] ERROR c.c.a.service.DynamicTradingService - [Dynamic] ? 유령 포지션 감지: 매도 FILLED인데 포지션 OPEN ? 자동 정산 (posId=169, sessionId=79, KRW-RLUSD, orderId=212). 매도 후처리 tx 롤백 의심.
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,7 @@
+web-api tests 2 fail 2 err 0 skip 0 pass 0
+FAIL com.cryptoautotrader.api.service.TelegramTestIsolationTest$SchedulerProfile # 스케줄러_프로필도_알림을_보내지_않는다()
+    org.opentest4j.AssertionFailedError: [시험 프로필 유효 telegram.enabled] 
+Expecting value to be false but was true
+FAIL com.cryptoautotrader.api.service.TelegramTestIsolationTest$TestProfile # 시험_프로필은_알림을_보내지_않는다()
+    org.opentest4j.AssertionFailedError: [시험 프로필 유효 telegram.enabled] 
+Expecting value to be false but was true

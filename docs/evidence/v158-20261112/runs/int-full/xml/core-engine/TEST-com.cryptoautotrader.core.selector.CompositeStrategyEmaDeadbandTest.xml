@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.core.selector.CompositeStrategyEmaDeadbandTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-11-12T11:45:26" hostname="DESKTOP-SF1KUQ5" time="0.004">
+  <properties/>
+  <testcase name="데드밴드를 0으로 주면 수정 전 동작으로 되돌아간다 — A/B 의 대조군이 된다" classname="com.cryptoautotrader.core.selector.CompositeStrategyEmaDeadbandTest" time="0.002"/>
+  <testcase name="가드: CompositeStrategy 의 모든 동작 상수가 지문에 실린다 (리플렉션)" classname="com.cryptoautotrader.core.selector.CompositeStrategyEmaDeadbandTest" time="0.0"/>
+  <testcase name="확실한 하락 구간에서는 여전히 필터가 동작한다 — 데드밴드가 역추세 보호를 무력화하면 안 된다" classname="com.cryptoautotrader.core.selector.CompositeStrategyEmaDeadbandTest" time="0.001"/>
+  <testcase name="평탄 구간에서는 감쇠하지 않는다 — 방향 없음으로 판정한다" classname="com.cryptoautotrader.core.selector.CompositeStrategyEmaDeadbandTest" time="0.001"/>
+  <testcase name="가드: 데드밴드 기본값이 0보다 크다 — 0이면 수정 전 동작(단순 대소 비교)으로 되돌아간다" classname="com.cryptoautotrader.core.selector.CompositeStrategyEmaDeadbandTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

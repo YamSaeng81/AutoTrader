@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.BenchmarkAlphaServiceTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-11-12T12:01:24" hostname="DESKTOP-SF1KUQ5" time="0.054">
+  <properties/>
+  <testcase name="PAPER 세션은 실자본 성과가 아니므로 알파 집계에서 제외된다" classname="com.cryptoautotrader.api.service.BenchmarkAlphaServiceTest" time="0.016"/>
+  <testcase name="시세 데이터가 없는 코인은 0%가 아니라 판정 불가(null)로 구분된다" classname="com.cryptoautotrader.api.service.BenchmarkAlphaServiceTest" time="0.01"/>
+  <testcase name="실자본 세션이 없으면 판정 불가로 응답한다 — 0%로 왜곡하지 않는다" classname="com.cryptoautotrader.api.service.BenchmarkAlphaServiceTest" time="0.005"/>
+  <testcase name="알파 = 시스템 수익률 − 알트 평균 보유 수익률로 계산된다" classname="com.cryptoautotrader.api.service.BenchmarkAlphaServiceTest" time="0.011"/>
+  <testcase name="시장보다 못하면 알파가 음수로 나온다 — 절대수익이 양수여도 마찬가지" classname="com.cryptoautotrader.api.service.BenchmarkAlphaServiceTest" time="0.01"/>
+  <system-out><![CDATA[21:01:24.998 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.BenchmarkAlphaServiceTest
+21:01:25.002 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:01:25.019 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:01:25.029 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:01:25.034 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:01:25.046 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,622 @@
+From 06add62772a4b717b11cd9d886beda4413e74e1f Mon Sep 17 00:00:00 2001
+From: YamSaeng81 <manicstr81@gmail.com>
+Date: Thu, 12 Nov 2026 19:26:13 +0900
+Subject: [PATCH 10/20] =?UTF-8?q?=EC=A0=84=EC=97=AD=20=EC=8B=A4=EC=9E=90?=
+ =?UTF-8?q?=EA=B8=88=20=EC=86=90=EC=8B=A4=20=EC=84=B8=20=EB=B3=B4=ED=98=B8?=
+ =?UTF-8?q?=EC=8B=9D(=EC=B4=9D=EA=B4=84=20v1.158=20=EA=B2=B0=EC=A0=95=202)?=
+ =?UTF-8?q?=20=E2=80=94=20=EA=B8=B0=EC=A1=B4=20=EB=B3=B4=ED=98=B8=EC=8B=9D?=
+ =?UTF-8?q?=20=EC=9C=A0=EC=A7=80=20+=20DYNAMIC=20REAL(=EC=9E=90=EC=B2=B4?=
+ =?UTF-8?q?=20=EC=9E=90=EB=B3=B8)=C2=B7=EC=A0=84=EC=B2=B4=20REAL(LIVE+DYNA?=
+ =?UTF-8?q?MIC=20REAL=20=EC=9E=90=EB=B3=B8)=20=EB=B3=B4=ED=98=B8=EC=8B=9D,?=
+ =?UTF-8?q?=20=ED=95=98=EB=82=98=EB=9D=BC=EB=8F=84=20=EA=B8=B0=EC=A1=B4=20?=
+ =?UTF-8?q?=ED=95=9C=EB=8F=84=20=EC=B4=88=EA=B3=BC=C2=B7=ED=8C=90=EC=A0=95?=
+ =?UTF-8?q?=20=EB=B6=88=EA=B0=80=EB=A9=B4=20=EC=8B=A0=EA=B7=9C=20=EC=8B=A4?=
+ =?UTF-8?q?=EC=9E=90=EA=B8=88=20=EB=A7=A4=EC=88=98=20=EA=B1=B0=EC=A0=88,?=
+ =?UTF-8?q?=20DYNAMIC=20REAL=20executeBuy(=EC=A6=89=EC=8B=9C=C2=B7?=
+ =?UTF-8?q?=ED=9A=8C=EC=B0=A8=20=EC=8A=B9=EC=9D=B8)=20=EC=97=B0=EA=B2=B0,?=
+ =?UTF-8?q?=20PAPER=20=EA=B3=84=EC=95=BD=20=EB=B6=88=EB=B3=80=20=E2=80=94?=
+ =?UTF-8?q?=20RealLossThreeFormulaPgTest=20=EC=88=98=EC=A0=95=20=EC=A0=84?=
+ =?UTF-8?q?=206/8=20=EC=8B=A4=ED=8C=A8=20=E2=86=92=208/8?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+(cherry picked from commit 12b94ce3bb7f41d7705995fd7d052c8d6c13b272)
+---
+ .../api/repository/OrderRepository.java       |  14 +
+ .../api/service/DynamicTradingService.java    |  10 +
+ .../api/service/RiskManagementService.java    | 138 ++++++-
+ .../service/RealLossThreeFormulaPgTest.java   | 362 ++++++++++++++++++
+ 4 files changed, 520 insertions(+), 4 deletions(-)
+ create mode 100644 web-api/src/test/java/com/cryptoautotrader/api/service/RealLossThreeFormulaPgTest.java
+
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/repository/OrderRepository.java b/web-api/src/main/java/com/cryptoautotrader/api/repository/OrderRepository.java
+index 11af86b1..60cc6dde 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/repository/OrderRepository.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/repository/OrderRepository.java
+@@ -468,6 +468,20 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
+             + ") t WHERE pnl < 0", nativeQuery = true)
+     java.math.BigDecimal sumLiveSessionRealizedLossSince(@Param("since") Instant since);
+ 
++    /**
++     * 확정된 DYNAMIC REAL 세션 매도의 실현 손실 합(음수, 없으면 0) — 총괄 v1.158 결정 2 의 DYNAMIC REAL·전체 REAL 보호식 분자.
++     *
++     * <p>{@link #sumLiveSessionRealizedLossSince} 와 같은 식·같은 조건이고 세션 종류만 {@code DYNAMIC}(실자금)이다. DYN_PAPER 는 주문 행이
++     * 없고 세션 종류도 달라 빠진다. 매도 한 건 = 한 행(재확정에도 한 번), 늦은 정정은 반영값 차분, 롤백은 표시가 함께 되돌아가 빠진다.</p>
++     */
++    @Query(value = "SELECT COALESCE(SUM(pnl), 0) FROM ("
++            + " SELECT o.applied_executed_funds - COALESCE(o.applied_paid_fee, 0) - o.filled_quantity * p.avg_price AS pnl"
++            + " FROM \"order\" o JOIN position p ON p.id = o.position_id"
++            + " WHERE o.side = 'SELL' AND o.session_id IS NOT NULL AND o.session_kind = 'DYNAMIC'"
++            + " AND o.sell_applied_at IS NOT NULL AND o.sell_applied_at >= :since AND o.applied_executed_funds IS NOT NULL"
++            + ") t WHERE pnl < 0", nativeQuery = true)
++    java.math.BigDecimal sumDynamicRealSessionRealizedLossSince(@Param("since") Instant since);
++
+     /**
+      * 매도 확정이 포지션·잔액에 반영한 대금·수수료를 기록한다 (2026-10-14) — 뒤늦은 정정은 이 값과의 차이만 반영한다.
+      * 영속성 컨텍스트를 비우지 않는다(확정 반복문의 포지션 엔티티를 떼어내지 않는다).
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
+index faa53f2d..821c456a 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
+@@ -1638,6 +1638,16 @@ public class DynamicTradingService {
+         String kind = sessionKind(session);
+         BigDecimal currentPrice = evalCandles.get(evalCandles.size() - 1).getClose();
+ 
++        // 🔴 실자금 손실 관문 (총괄 v1.158 결정 2) — DYNAMIC REAL 즉시 진입·회차 승인이 모두 여기를 지난다. 기존·DYNAMIC REAL·전체 REAL
++        //    세 보호식 중 하나라도 기존 한도를 넘거나 판정 불가면 신규 매수를 거절한다. PAPER 는 모의 한도 계약 그대로(REAL 자료로 막지 않는다).
++        if (!session.isPaper()) {
++            com.cryptoautotrader.core.risk.RiskCheckResult realLoss = riskManagementService.checkRealLossGuard();
++            if (!realLoss.isApproved()) {
++                log.warn("[Dynamic] 실자금 손실 보호식으로 매수 차단 (id={}, {}): {}", sid, coinPair, realLoss.getReason());
++                return "실자금 손실 보호식: " + realLoss.getReason();
++            }
++        }
++
+         // EMA200 게이트 사이즈 배수 적용 — 정상 1.0, 근접 하회 감액 0.5. null은 방어적으로 1.0 취급.
+         BigDecimal effectiveRatio = session.getInvestRatio()
+                 .multiply(sizeMultiplier != null ? sizeMultiplier : BigDecimal.ONE);
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/RiskManagementService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/RiskManagementService.java
+index 9abfcb0c..eda24db1 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/RiskManagementService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/RiskManagementService.java
+@@ -44,6 +44,13 @@ public class RiskManagementService {
+      */
+     private final com.cryptoautotrader.api.repository.OrderRepository orderRepository;
+ 
++    /**
++     * DYNAMIC REAL 보호식·전체 REAL 보호식의 자본 기준(RUNNING DYNAMIC REAL 초기자본) — 총괄 v1.158 결정 2. 스프링 문맥에서는 항상 주입된다.
++     * 생성자를 바꾸지 않으려고 필드 주입이다(생성자로 만드는 단위 시험은 DYNAMIC 손실 원천도 대역이라 0 이다).
++     */
++    @org.springframework.beans.factory.annotation.Autowired
++    private com.cryptoautotrader.api.repository.DynamicSessionRepository dynamicSessionRepository;
++
+     /**
+      * 현재 리스크 설정 조회. 설정이 없으면 기본값으로 신규 생성.
+      */
+@@ -185,9 +192,123 @@ public class RiskManagementService {
+             log.warn("리스크 체크 거부: {} (일일={}%, 주간={}%, 월간={}%, 포지션={}, 자본사용률={}%, 드로우다운={}%)",
+                     result.getReason(), dailyLoss, weeklyLoss, monthlyLoss,
+                     currentPositions, capitalUtilizationPct, portfolioDrawdownPct);
++            // 🔴 v1.158 결정 2: 손실 거절이면 어느 보호식인지 붙인다. 기존 식의 판정·비교는 그대로다.
++            if (result.getReason() != null && result.getReason().contains("손실 한도")) {
++                return RiskCheckResult.reject("[기존 보호식] " + result.getReason());
++            }
++            return result;
+         }
+ 
+-        return result;
++        // 🔴 v1.158 결정 2: 기존 보호식을 통과해도 DYNAMIC REAL·전체 REAL 보호식을 같은 한도로 본다(하나라도 넘으면 거절).
++        return checkAddedRealLossFormulas(engine, configEntity, now);
++    }
++
++    /**
++     * 실자금 신규 매수의 손실 관문 — 기존·DYNAMIC REAL·전체 REAL 세 보호식 (총괄 v1.158 결정 2, 2026-11-12).
++     *
++     * <p>DYNAMIC REAL 진입(즉시·회차 승인 공통 {@code executeBuy})이 부른다. LIVE 즉시·회차 승인과 비세션 BUY 는 {@link #checkRisk()} 가
++     * 같은 세 식을 본다. 포지션 수·자본 사용률·포트폴리오 낙폭은 이 관문에 넣지 않는다 — DYNAMIC 에 새 비손실 한도를 얹지 않기 위해서다.
++     * 비교는 기존 {@link RiskEngine} 규칙(손실률 &gt; 한도면 거절, 동률 승인)과 기존 한도 값을 그대로 쓴다.</p>
++     */
++    @Transactional(readOnly = true)
++    public RiskCheckResult checkRealLossGuard() {
++        if (!hasRiskConfig()) {
++            return RiskCheckResult.reject("risk_config 행이 없다 — 신규 진입 차단(V88 기본 행 확인 필요)");
++        }
++        RiskConfigEntity configEntity = getRiskConfig();
++        RiskEngine engine = new RiskEngine(toRiskConfig(configEntity));
++        Instant now = Instant.now();
++        BigDecimal legacyDenom = resolvePortfolioLimit(configEntity);
++        RiskCheckResult legacy = engine.check(
++                calculateLossPct(now.minus(1, ChronoUnit.DAYS), legacyDenom),
++                calculateLossPct(now.minus(7, ChronoUnit.DAYS), legacyDenom),
++                calculateLossPct(now.minus(30, ChronoUnit.DAYS), legacyDenom), 0, null, null);
++        if (!legacy.isApproved()) {
++            return RiskCheckResult.reject("[기존 보호식] " + legacy.getReason());
++        }
++        return checkAddedRealLossFormulas(engine, configEntity, now);
++    }
++
++    /**
++     * DYNAMIC REAL 보호식과 전체 REAL 보호식 (v1.158 결정 2).
++     *
++     * <pre>
++     * DYNAMIC REAL : 확정 DYNAMIC REAL 세션 매도 손실 / RUNNING DYNAMIC REAL 초기자본
++     *                손실이 있는데 자본이 0 이면 판정 불가 → 거절(손실 0·무한 자본으로 보지 않는다). 손실 0 이면 0%.
++     * 전체 REAL    : (기존 손실 원천 + DYNAMIC REAL 손실, 각 한 번) / (RUNNING LIVE + RUNNING DYNAMIC REAL 초기자본)
++     *                둘 다 0(비세션만)이면 종전 설정/최종 폴백.
++     * </pre>
++     * 이익으로 상쇄하지 않는다(손실 행만). PAPER·DYN_PAPER·추정 청산은 분자·분모에 없다. 자료를 읽지 못하면 판정 불가로 거절한다.
++     */
++    private RiskCheckResult checkAddedRealLossFormulas(RiskEngine engine, RiskConfigEntity configEntity, Instant now) {
++        BigDecimal[] dynPct = new BigDecimal[3];
++        BigDecimal[] totalPct = new BigDecimal[3];
++        Instant[] since = {now.minus(1, ChronoUnit.DAYS), now.minus(7, ChronoUnit.DAYS), now.minus(30, ChronoUnit.DAYS)};
++        try {
++            BigDecimal liveCap = runningLiveCapital();
++            BigDecimal dynCap = runningDynamicRealCapital();
++            BigDecimal totalCap = liveCap.add(dynCap);
++            if (totalCap.signum() <= 0) {
++                totalCap = configuredOrFallbackLimit(configEntity);
++            }
++            for (int i = 0; i < 3; i++) {
++                BigDecimal dynLoss = negOrZero(orderRepository.sumDynamicRealSessionRealizedLossSince(since[i]));
++                BigDecimal legacyLoss = legacyLossKrw(since[i]);
++                if (dynLoss.signum() < 0 && dynCap.signum() <= 0) {
++                    String msg = String.format("[DYNAMIC REAL 보호식] 판정 불가 — 확정 DYNAMIC REAL 손실 %s원이 있는데 유효한 RUNNING DYNAMIC REAL "
++                            + "자본이 없다(손실 0·무한 자본으로 보지 않는다)", dynLoss.abs().stripTrailingZeros().toPlainString());
++                    log.warn("리스크 체크 거부: {}", msg);
++                    return RiskCheckResult.reject(msg);
++                }
++                dynPct[i] = dynLoss.signum() < 0 ? pct(dynLoss, dynCap) : BigDecimal.ZERO;
++                totalPct[i] = pct(legacyLoss.add(dynLoss), totalCap);
++            }
++        } catch (org.springframework.dao.DataAccessException e) {
++            String msg = "[실자금 손실 보호식] 판정 불가 — 손실·자본 자료를 읽지 못했다(" + e.getClass().getSimpleName() + ")";
++            log.warn("리스크 체크 거부: {}", msg);
++            return RiskCheckResult.reject(msg);
++        }
++        RiskCheckResult dyn = engine.check(dynPct[0], dynPct[1], dynPct[2], 0, null, null);
++        if (!dyn.isApproved()) {
++            log.warn("리스크 체크 거부: [DYNAMIC REAL 보호식] {} (일={}%, 주={}%, 월={}%)", dyn.getReason(), dynPct[0], dynPct[1], dynPct[2]);
++            return RiskCheckResult.reject("[DYNAMIC REAL 보호식] " + dyn.getReason());
++        }
++        RiskCheckResult total = engine.check(totalPct[0], totalPct[1], totalPct[2], 0, null, null);
++        if (!total.isApproved()) {
++            log.warn("리스크 체크 거부: [전체 REAL 보호식] {} (일={}%, 주={}%, 월={}%)", total.getReason(), totalPct[0], totalPct[1], totalPct[2]);
++            return RiskCheckResult.reject("[전체 REAL 보호식] " + total.getReason());
++        }
++        return RiskCheckResult.approve();
++    }
++
++    private static BigDecimal negOrZero(BigDecimal v) {
++        return v == null || v.signum() >= 0 ? BigDecimal.ZERO : v;
++    }
++
++    private static BigDecimal pct(BigDecimal loss, BigDecimal denom) {
++        if (loss.signum() >= 0 || denom == null || denom.signum() <= 0) return BigDecimal.ZERO;
++        return loss.abs().divide(denom, 4, RoundingMode.HALF_UP).multiply(new BigDecimal("100"));
++    }
++
++    private BigDecimal runningLiveCapital() {
++        return sessionRepository.findByStatus("RUNNING").stream()
++                .map(LiveTradingSessionEntity::getInitialCapital)
++                .filter(c -> c != null && c.compareTo(BigDecimal.ZERO) > 0)
++                .reduce(BigDecimal.ZERO, BigDecimal::add);
++    }
++
++    private BigDecimal runningDynamicRealCapital() {
++        if (dynamicSessionRepository == null) return BigDecimal.ZERO;
++        return dynamicSessionRepository.findByStatus("RUNNING").stream()
++                .filter(s -> !s.isPaper())
++                .map(com.cryptoautotrader.api.entity.DynamicSessionEntity::getInitialCapital)
++                .filter(c -> c != null && c.compareTo(BigDecimal.ZERO) > 0)
++                .reduce(BigDecimal.ZERO, BigDecimal::add);
++    }
++
++    private static BigDecimal configuredOrFallbackLimit(RiskConfigEntity config) {
++        BigDecimal limit = config.getPortfolioLimitKrw();
++        return (limit == null || limit.compareTo(BigDecimal.ZERO) <= 0) ? new BigDecimal("10000000") : limit;
+     }
+ 
+     /**
+@@ -325,6 +446,17 @@ public class RiskManagementService {
+         if (portfolioLimit == null || portfolioLimit.compareTo(BigDecimal.ZERO) <= 0) {
+             return BigDecimal.ZERO;
+         }
++        BigDecimal grossLoss = legacyLossKrw(since);
++        if (grossLoss.compareTo(BigDecimal.ZERO) >= 0) {
++            return BigDecimal.ZERO;
++        }
++        return grossLoss.abs()
++                .divide(portfolioLimit, 4, RoundingMode.HALF_UP)
++                .multiply(new BigDecimal("100"));
++    }
++
++    /** 기존 보호식의 손실 원천(음수, 없으면 0) — 비세션 FILL + 확정 LIVE 세션 매도. 식은 종전과 같다(v1.158 에서 메서드로만 분리). */
++    private BigDecimal legacyLossKrw(Instant since) {
+         BigDecimal grossLoss = tradeLogRepository.sumRealizedLossSince(since);
+         // 🔴 LIVE 세션 매도는 trade_log FILL 을 남기지 않는다(handleSellFill 조기 반환) — 확정된 매도 손실을 주문 행에서 더한다 (v1.154 §3).
+         //    두 원천은 겹치지 않는다(FILL = 비세션 매도, 주문 원천 = 세션 매도). 매도 한 건당 손실 행만이라 이익과 상쇄하지 않는다.
+@@ -335,9 +467,7 @@ public class RiskManagementService {
+         if (grossLoss == null || grossLoss.compareTo(BigDecimal.ZERO) >= 0) {
+             return BigDecimal.ZERO;
+         }
+-        return grossLoss.abs()
+-                .divide(portfolioLimit, 4, RoundingMode.HALF_UP)
+-                .multiply(new BigDecimal("100"));
++        return grossLoss;
+     }
+ 
+     /**
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/RealLossThreeFormulaPgTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/RealLossThreeFormulaPgTest.java
+new file mode 100644
+index 00000000..3ecc00db
+--- /dev/null
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/RealLossThreeFormulaPgTest.java
+@@ -0,0 +1,362 @@
++package com.cryptoautotrader.api.service;
++
++import com.cryptoautotrader.api.entity.DynamicSessionEntity;
++import com.cryptoautotrader.api.entity.LiveTradingSessionEntity;
++import com.cryptoautotrader.api.entity.OrderEntity;
++import com.cryptoautotrader.api.entity.PositionEntity;
++import com.cryptoautotrader.api.repository.DynamicSessionRepository;
++import com.cryptoautotrader.api.repository.LiveTradingSessionRepository;
++import com.cryptoautotrader.api.repository.OrderRepository;
++import com.cryptoautotrader.api.repository.PositionRepository;
++import com.cryptoautotrader.api.support.IntegrationTestBase;
++import com.cryptoautotrader.core.risk.RiskCheckResult;
++import com.cryptoautotrader.exchange.upbit.UpbitOrderClient;
++import com.cryptoautotrader.exchange.upbit.dto.OrderResponse;
++import com.cryptoautotrader.strategy.Candle;
++import com.cryptoautotrader.strategy.StrategySignal;
++import org.junit.jupiter.api.AfterEach;
++import org.junit.jupiter.api.BeforeEach;
++import org.junit.jupiter.api.DisplayName;
++import org.junit.jupiter.api.MethodOrderer;
++import org.junit.jupiter.api.Order;
++import org.junit.jupiter.api.Test;
++import org.junit.jupiter.api.TestMethodOrder;
++import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
++import org.mockito.Mockito;
++import org.springframework.beans.factory.annotation.Autowired;
++import org.springframework.boot.test.mock.mockito.MockBean;
++import org.springframework.jdbc.core.JdbcTemplate;
++import org.springframework.test.context.TestPropertySource;
++
++import java.math.BigDecimal;
++import java.time.Instant;
++import java.time.temporal.ChronoUnit;
++import java.util.List;
++import java.util.Map;
++import java.util.UUID;
++
++import static org.assertj.core.api.Assertions.assertThat;
++
++/**
++ * 총괄 v1.158 결정 2 — 전역 REAL 손실: 기존 보호식 유지 + DYNAMIC REAL 보호식 + 전체 REAL 보호식, 어느 하나라도 기존 한도를 넘으면 신규
++ * 실자금 매수 거절 (로컬 실제 PostgreSQL, 92aa8712 기점, 2026-11-12). <b>정책 운영 적용 승인이 아니다.</b>
++ *
++ * <p>손실은 실제 경로로만 만든다 — 매도 SUBMITTED → 폴러 {@code checkOrderStatus}(거래소 응답만 대역) → 엔진 청산 확정. 가상 체결·현금 보정 없음.
++ * 판정은 실제 승인 경로({@code checkRisk}: LIVE 즉시·회차 승인·비세션 BUY / DYNAMIC REAL {@code executeBuy}: 즉시·회차 승인 공통)로 본다.
++ * 비교 규칙은 기존 {@code RiskEngine}(손실률 &gt; 한도면 거절, 동률 승인) 그대로다. risk_config 는 NUMERIC(5,2).</p>
++ *
++ * <pre>
++ * docker exec v152-pg psql -U trader -d postgres -c "CREATE DATABASE rl3_x"
++ * RL_PG_URL=jdbc:postgresql://127.0.0.1:15437/rl3_x ./gradlew :web-api:test --rerun --tests '*RealLossThreeFormulaPgTest'
++ * </pre>
++ */
++@TestPropertySource(properties = {
++        "spring.datasource.url=${RL_PG_URL}",
++        "spring.datasource.username=${RL_PG_USER:trader}",
++        "spring.datasource.password=",
++        "spring.datasource.driver-class-name=org.postgresql.Driver",
++        "spring.flyway.enabled=true",
++        "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect",
++        "spring.sql.init.mode=never"
++})
++@EnabledIfEnvironmentVariable(named = "RL_PG_URL", matches = "jdbc:postgresql://(localhost|127\\.0\\.0\\.1):\\d+/.+")
++@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
++@DisplayName("v1.158 결정 2 — 실자금 손실 세 보호식 (로컬 PostgreSQL)")
++class RealLossThreeFormulaPgTest extends IntegrationTestBase {
++
++    @Autowired private OrderExecutionEngine orderExecutionEngine;
++    @Autowired private OrderSettlementService settlement;
++    @Autowired private LiveTradingService liveTradingService;
++    @Autowired private DynamicTradingService dynamicTradingService;
++    @Autowired private RiskManagementService riskManagementService;
++    @Autowired private LiveTradingSessionRepository liveRepo;
++    @Autowired private DynamicSessionRepository dynamicRepo;
++    @Autowired private OrderRepository orderRepository;
++    @Autowired private PositionRepository positionRepository;
++    @Autowired private JdbcTemplate jdbc;
++
++    @MockBean private UpbitOrderClient upbitOrderClient;
++    @MockBean private com.cryptoautotrader.exchange.upbit.UpbitRestClient upbitRestClient;
++
++    private static final BigDecimal AVG = new BigDecimal("12495000");
++    private static final BigDecimal QTY = new BigDecimal("0.0016");   // 원가 19,992 → 18,000 체결·수수료 9 = 손실 2,001
++
++    private Map<String, Object> savedRisk;
++
++    @BeforeEach
++    void isolate() {
++        savedRisk = jdbc.queryForMap("SELECT max_daily_loss_pct, max_weekly_loss_pct, max_monthly_loss_pct, max_portfolio_drawdown_pct, "
++                + "max_capital_utilization_pct FROM risk_config ORDER BY id LIMIT 1");
++        // 이전 사례의 RUNNING 세션·손실이 섞이지 않게 정지·창 밖으로 민다(시험 DB 에서만).
++        jdbc.update("UPDATE live_trading_session SET status = 'STOPPED' WHERE status = 'RUNNING'");
++        jdbc.update("UPDATE dynamic_session SET status = 'STOPPED' WHERE status = 'RUNNING'");
++        jdbc.update("UPDATE \"order\" SET sell_applied_at = sell_applied_at - interval '400 days' WHERE sell_applied_at IS NOT NULL");
++        jdbc.update("UPDATE trade_log SET created_at = created_at - interval '400 days'");
++        limits("1.50", "50", "50");
++    }
++
++    @AfterEach
++    void restore() {
++        jdbc.update("UPDATE risk_config SET max_daily_loss_pct = ?, max_weekly_loss_pct = ?, max_monthly_loss_pct = ?, "
++                        + "max_portfolio_drawdown_pct = ?, max_capital_utilization_pct = ?",
++                savedRisk.get("max_daily_loss_pct"), savedRisk.get("max_weekly_loss_pct"), savedRisk.get("max_monthly_loss_pct"),
++                savedRisk.get("max_portfolio_drawdown_pct"), savedRisk.get("max_capital_utilization_pct"));
++        jdbc.execute("DROP TRIGGER IF EXISTS rl3_fail ON dynamic_session");
++    }
++
++    private void limits(String d, String w, String m) {
++        jdbc.update("UPDATE risk_config SET max_daily_loss_pct = ?::numeric, max_weekly_loss_pct = ?::numeric, max_monthly_loss_pct = ?::numeric, "
++                + "max_portfolio_drawdown_pct = 50, max_capital_utilization_pct = 90", d, w, m);
++    }
++
++    private String coin() { return "KRW-RL3" + (System.nanoTime() % 100000); }
++
++    private Long live(String coin, String initial) {
++        return liveRepo.save(LiveTradingSessionEntity.builder()
++                .sessionType("REAL").strategyType("COMPOSITE_BREAKOUT").coinPair(coin).timeframe("H1")
++                .initialCapital(new BigDecimal(initial)).availableKrw(new BigDecimal(initial))
++                .totalAssetKrw(new BigDecimal(initial)).status("RUNNING").startedAt(Instant.now()).build()).getId();
++    }
++
++    private Long dynamic(String mode, String initial) {
++        return dynamicRepo.saveAndFlush(DynamicSessionEntity.builder()
++                .strategyType("COMPOSITE_MOMENTUM_ICHIMOKU_V2").timeframe("H1")
++                .initialCapital(new BigDecimal(initial)).availableKrw(new BigDecimal(initial))
++                .totalAssetKrw(new BigDecimal(initial))
++                .investRatio(new BigDecimal("0.3000")).stopLossPct(new BigDecimal("5.00"))
++                .status("RUNNING").scanState("SCANNING").tradingMode(mode)
++                .maxCandidateSize(30).targetWatchSize(10)
++                .minAtrPct(new BigDecimal("0.5000")).maxSpreadPct(new BigDecimal("0.1000"))
++                .watchlistRefreshMin(60).build()).getId();
++    }
++
++    private void stopDynamic(Long id) { jdbc.update("UPDATE dynamic_session SET status = 'STOPPED' WHERE id = ?", id); }
++
++    private static OrderResponse done(String uuid, String coin, String funds, String fee) {
++        OrderResponse r = new OrderResponse();
++        r.setUuid(uuid); r.setSide("ask"); r.setOrdType("market"); r.setState("done"); r.setMarket(coin);
++        r.setExecutedVolume(QTY); r.setExecutedFunds(new BigDecimal(funds)); r.setPaidFee(new BigDecimal(fee));
++        return r;
++    }
++
++    /** 청산 중 포지션 → 매도 SUBMITTED → 폴러 체결(18,000·수수료 9). confirm 이면 엔진 확정까지. */
++    private OrderEntity lossSell(String kind, Long sid, String coin, boolean confirm) throws Exception {
++        PositionEntity p = positionRepository.save(PositionEntity.builder()
++                .coinPair(coin).side("BUY").entryPrice(AVG).avgPrice(AVG)
++                .size(QTY).investedKrw(QTY.multiply(AVG)).entryAllocationKrw(QTY.multiply(AVG))
++                .positionFee(BigDecimal.ZERO).realizedPnl(BigDecimal.ZERO)
++                .status("CLOSING").closingAt(Instant.now())
++                .sessionKind(kind).sessionId(sid).openedAt(Instant.now().minus(2, ChronoUnit.HOURS)).build());
++        OrderEntity o = orderRepository.save(OrderEntity.builder()
++                .coinPair(coin).side("SELL").orderType("MARKET").quantity(QTY).state("SUBMITTED")
++                .sessionKind(kind).sessionId(sid).positionId(p.getId())
++                .exchangeOrderId("rl3-" + UUID.randomUUID()).clientOrderId("rl3-" + UUID.randomUUID())
++                .feeSource(OrderExecutionEngine.FEE_SOURCE_PENDING).createdAt(Instant.now()).submittedAt(Instant.now()).build());
++        Mockito.doReturn(done(o.getExchangeOrderId(), coin, "18000", "9")).when(upbitOrderClient).getOrder(o.getExchangeOrderId());
++        orderExecutionEngine.checkOrderStatus(o.getId());
++        if (confirm) {
++            confirm(kind);
++            assertThat(positionRepository.findById(p.getId()).orElseThrow().getStatus()).isEqualTo("CLOSED");
++        }
++        return orderRepository.findById(o.getId()).orElseThrow();
++    }
++
++    private void confirm(String kind) {
++        if ("LIVE".equals(kind)) liveTradingService.reconcileClosingPositions();
++        else dynamicTradingService.reconcileDynamicClosingPositions();
++    }
++
++    /** DYNAMIC REAL 실제 진입 경로(즉시 진입·회차 승인 공통 {@code executeBuy}) — 손실 보호식 거절 사유, 통과면 null. */
++    private String dynamicEntry(Long did, String coin) {
++        DynamicSessionEntity s = dynamicRepo.findById(did).orElseThrow();
++        List<Candle> candles = List.of(Candle.builder().time(Instant.now().truncatedTo(ChronoUnit.HOURS).minus(1, ChronoUnit.HOURS))
++                .open(new BigDecimal("1000")).high(new BigDecimal("1010")).low(new BigDecimal("990")).close(new BigDecimal("1000"))
++                .volume(new BigDecimal("100")).build());
++        try {
++            String r = dynamicTradingService.executeBuy(s, coin, candles, StrategySignal.buy(BigDecimal.ONE, "시험"), BigDecimal.ONE);
++            return r != null && r.contains("실자금 손실 보호식") ? r : null;
++        } catch (RuntimeException e) {
++            return null;   // 보호식 뒤의 단계에서 난 예외 — 보호식은 통과했다
++        }
++    }
++
++    private static void trace(String name, Object... cols) {
++        StringBuilder b = new StringBuilder("[RL158] ").append(name);
++        for (Object c : cols) b.append(" | ").append(c);
++        System.out.println(b);
++    }
++
++    @Test @Order(1)
++    @DisplayName("① DYNAMIC REAL −4,002 (LIVE 10만·DYN 10만): DYNAMIC 4.00%·전체 2.00% > 1.50% — checkRisk·DYNAMIC 진입 모두 거절")
++    void dynamicLossBlocks() throws Exception {
++        String c = coin();
++        live(c, "100000");
++        Long did = dynamic("REAL", "100000");
++        assertThat(riskManagementService.checkRisk().isApproved()).isTrue();
++        lossSell("DYNAMIC", did, c, true);
++        lossSell("DYNAMIC", did, c, true);
++        RiskCheckResult r = riskManagementService.checkRisk();
++        String dyn = dynamicEntry(did, c);
++        trace("①", "checkRisk=" + r.isApproved() + " " + r.getReason(), "DYNAMIC 진입=" + dyn);
++        assertThat(r.isApproved()).isFalse();
++        assertThat(r.getReason()).contains("DYNAMIC REAL 보호식");
++        assertThat(dyn).isNotNull();
++    }
++
++    @Test @Order(2)
++    @DisplayName("② LIVE −2,001 (LIVE 10만·DYN 10만): 기존 2.00% 거절 유지 — DYNAMIC 자본을 더한 전체 1.00% 로 완화되지 않음")
++    void liveLossNotDiluted() throws Exception {
++        String c = coin();
++        Long lid = live(c, "100000");
++        Long did = dynamic("REAL", "100000");
++        lossSell("LIVE", lid, c, true);
++        RiskCheckResult r = riskManagementService.checkRisk();
++        String dyn = dynamicEntry(did, c);
++        trace("②", "checkRisk=" + r.isApproved() + " " + r.getReason(), "DYNAMIC 진입=" + dyn);
++        assertThat(r.isApproved()).isFalse();
++        assertThat(r.getReason()).contains("기존 보호식");
++        assertThat(dyn).as("실자금 매수 전체 — DYNAMIC REAL 진입도 같은 관문").isNotNull();
++    }
++
++    @Test @Order(3)
++    @DisplayName("③ 판정 불가 — DYNAMIC REAL 손실이 있는데 RUNNING DYNAMIC REAL 자본이 없으면 거절, 손실 0 이면 자본 없음만으로 막지 않음")
++    void undetermined() throws Exception {
++        limits("50", "50", "50");
++        String c = coin();
++        live(c, "100000");
++        RiskCheckResult zero = riskManagementService.checkRisk();
++        Long did = dynamic("REAL", "100000");
++        lossSell("DYNAMIC", did, c, true);
++        stopDynamic(did);
++        RiskCheckResult r = riskManagementService.checkRisk();
++        trace("③", "손실0·DYN자본0=" + zero.isApproved(), "손실 있음·DYN 정지=" + r.isApproved() + " " + r.getReason());
++        assertThat(zero.isApproved()).as("자체 손실 0 — 비활성 엔진 때문에 자동 차단하지 않는다").isTrue();
++        assertThat(r.isApproved()).isFalse();
++        assertThat(r.getReason()).contains("판정 불가");
++    }
++
++    @Test @Order(4)
++    @DisplayName("④ 동률 비교 — 손실률 = 한도(2.00%) 승인, 한도 1.99% 거절 (기존·DYNAMIC 각각)")
++    void boundaryEquality() throws Exception {
++        String c = coin();
++        Long lid = live(c, "100050");          // 2,001 / 100,050 = 2.0000%
++        lossSell("LIVE", lid, c, true);
++        limits("2.00", "50", "50");
++        boolean liveEq = riskManagementService.checkRisk().isApproved();
++        limits("1.99", "50", "50");
++        RiskCheckResult liveOver = riskManagementService.checkRisk();
++        // DYNAMIC: LIVE 손실을 창 밖으로 밀고 DYNAMIC 만 본다.
++        jdbc.update("UPDATE \"order\" SET sell_applied_at = sell_applied_at - interval '400 days' WHERE sell_applied_at IS NOT NULL");
++        Long did = dynamic("REAL", "100050");
++        lossSell("DYNAMIC", did, c, true);    // DYN 2.0000%, 전체 2,001/200,100 = 1.0000%
++        limits("2.00", "50", "50");
++        boolean dynEq = riskManagementService.checkRisk().isApproved();
++        limits("1.99", "50", "50");
++        RiskCheckResult dynOver = riskManagementService.checkRisk();
++        trace("④", "기존 동률=" + liveEq, "기존 초과=" + liveOver.getReason(), "DYN 동률=" + dynEq, "DYN 초과=" + dynOver.getReason());
++        assertThat(liveEq).isTrue();
++        assertThat(liveOver.isApproved()).isFalse();
++        assertThat(dynEq).isTrue();
++        assertThat(dynOver.isApproved()).isFalse();
++        assertThat(dynOver.getReason()).contains("DYNAMIC REAL 보호식");
++    }
++
++    @Test @Order(5)
++    @DisplayName("⑤ 창 경계 — 2일 전 DYNAMIC 손실은 일일 밖·주간 안")
++    void windows() throws Exception {
++        String c = coin();
++        live(c, "100000");
++        Long did = dynamic("REAL", "100000");
++        OrderEntity o = lossSell("DYNAMIC", did, c, true);
++        jdbc.update("UPDATE \"order\" SET sell_applied_at = now() - interval '2 days' WHERE id = ?", o.getId());
++        boolean daily = riskManagementService.checkRisk().isApproved();
++        limits("50", "1.50", "50");
++        RiskCheckResult weekly = riskManagementService.checkRisk();
++        trace("⑤", "일일 한도 1.5=" + daily, "주간 한도 1.5=" + weekly.getReason());
++        assertThat(daily).isTrue();
++        assertThat(weekly.isApproved()).isFalse();
++        assertThat(weekly.getReason()).contains("주간");
++    }
++
++    @Test @Order(6)
++    @DisplayName("⑥ 반복 확정·늦은 정정·롤백 — DYNAMIC 손실은 확정 한 번, 정정은 차분만, 롤백은 합산 0")
++    void repeatCorrectionRollback() throws Exception {
++        limits("50", "50", "50");
++        String c = coin();
++        live(c, "100000");
++        Long did = dynamic("REAL", "100000");
++        // 롤백: 세션 갱신 실패 → 확정 롤백
++        OrderEntity o = lossSell("DYNAMIC", did, c, false);
++        jdbc.execute("CREATE OR REPLACE FUNCTION rl3_fail_session() RETURNS trigger AS $$ BEGIN "
++                + "IF NEW.id = " + did + " THEN RAISE EXCEPTION 'rl3: 세션 갱신 실패(시험)'; END IF; RETURN NEW; END $$ LANGUAGE plpgsql");
++        jdbc.execute("CREATE TRIGGER rl3_fail BEFORE UPDATE ON dynamic_session FOR EACH ROW EXECUTE FUNCTION rl3_fail_session()");
++        try { confirm("DYNAMIC"); } catch (RuntimeException ignored) { }
++        jdbc.execute("DROP TRIGGER IF EXISTS rl3_fail ON dynamic_session");
++        BigDecimal rolled = dynLoss();
++        Instant appliedAfterRollback = orderRepository.findById(o.getId()).orElseThrow().getSellAppliedAt();
++        confirm("DYNAMIC");
++        BigDecimal once = dynLoss();
++        confirm("DYNAMIC");
++        orderExecutionEngine.checkOrderStatus(o.getId());
++        BigDecimal twice = dynLoss();
++        OrderSettlementService.Outcome corr = settlement.settle(o.getId(), done(o.getExchangeOrderId(), c, "18000", "10"));
++        BigDecimal corrected = dynLoss();
++        trace("⑥", "롤백 뒤=" + rolled + " 반영표시=" + appliedAfterRollback, "확정=" + once, "재확정=" + twice, "정정(" + corr + ")=" + corrected);
++        assertThat(appliedAfterRollback).isNull();
++        assertThat(rolled).isEqualByComparingTo("0");
++        assertThat(once).isEqualByComparingTo("-2001");
++        assertThat(twice).isEqualByComparingTo("-2001");
++        assertThat(corrected).isEqualByComparingTo("-2002");
++    }
++
++    private BigDecimal dynLoss() {
++        BigDecimal v = orderRepository.sumDynamicRealSessionRealizedLossSince(Instant.now().minus(1, ChronoUnit.DAYS));
++        return v == null ? BigDecimal.ZERO : v;
++    }
++
++    @Test @Order(7)
++    @DisplayName("⑦ DYN_PAPER 손실 제외 — 분자·분모 모두 REAL 만")
++    void paperExcluded() throws Exception {
++        String c = coin();
++        live(c, "100000");
++        Long pid = dynamic("PAPER", "100000");
++        positionRepository.save(PositionEntity.builder()
++                .coinPair(c).side("BUY").entryPrice(AVG).avgPrice(AVG).size(QTY).investedKrw(QTY.multiply(AVG))
++                .realizedPnl(new BigDecimal("-5000")).status("CLOSED").closedAt(Instant.now())
++                .sessionKind("DYN_PAPER").sessionId(pid).openedAt(Instant.now().minus(2, ChronoUnit.HOURS)).build());
++        RiskCheckResult r = riskManagementService.checkRisk();
++        trace("⑦", "DYN_PAPER 손실 −5,000 → checkRisk=" + r.isApproved() + " DYN REAL 손실=" + dynLoss());
++        assertThat(r.isApproved()).isTrue();
++        assertThat(dynLoss()).isEqualByComparingTo("0");
++    }
++
++    @Test @Order(8)
++    @DisplayName("⑧ 자본 추가·정지 판정 표 (관측 + 단언)")
++    void capitalTable() throws Exception {
++        String c = coin();
++        Long lid = live(c, "100000");
++        lossSell("LIVE", lid, c, true);                       // LIVE −2,001
++        boolean a = riskManagementService.checkRisk().isApproved();      // 기존 2.00% > 1.5 → 거절
++        Long d1 = dynamic("REAL", "100000");
++        boolean b = riskManagementService.checkRisk().isApproved();      // DYN 자본 추가 — 기존 식 그대로 거절
++        stopDynamic(d1);
++        boolean cc = riskManagementService.checkRisk().isApproved();     // DYN 정지 — 거절
++        // LIVE 손실을 창 밖으로, DYNAMIC 손실 사례
++        jdbc.update("UPDATE \"order\" SET sell_applied_at = sell_applied_at - interval '400 days' WHERE sell_applied_at IS NOT NULL");
++        Long d2 = dynamic("REAL", "100000");
++        lossSell("DYNAMIC", d2, c, true);                     // DYN −2,001: DYN 2.00%, 전체 1.00%
++        boolean d = riskManagementService.checkRisk().isApproved();      // 거절(DYN)
++        Long d3 = dynamic("REAL", "100000");
++        boolean e = riskManagementService.checkRisk().isApproved();      // DYN 자본 20만 → DYN 1.00%, 전체 0.67% → 승인(자체 자본 추가)
++        stopDynamic(d2); stopDynamic(d3);
++        RiskCheckResult f = riskManagementService.checkRisk();           // DYN 전부 정지 — 손실 남음 → 판정 불가 거절(더 엄격)
++        trace("⑧", "LIVE손실·LIVE만=" + a, "+DYN자본=" + b, "DYN정지=" + cc, "DYN손실·DYN1개=" + d, "+DYN자본=" + e, "DYN전부정지=" + f.isApproved() + " " + f.getReason());
++        assertThat(a).isFalse();
++        assertThat(b).isFalse();
++        assertThat(cc).isFalse();
++        assertThat(d).isFalse();
++        assertThat(e).isTrue();
++        assertThat(f.isApproved()).isFalse();
++        assertThat(f.getReason()).contains("판정 불가");
++    }
++}
+-- 
+2.51.1.windows.1
+

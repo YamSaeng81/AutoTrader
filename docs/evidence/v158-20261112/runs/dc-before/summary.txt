@@ -1,0 +1,21 @@
+web-api tests 5 fail 4 err 0 skip 0 pass 1
+FAIL com.cryptoautotrader.api.service.DynamicJudgeClockTest # 캔들 조회 상한 — 판단 시각 뒤의 봉은 넣지 않는다
+    java.lang.AssertionError: 
+Expected size: 9 but was: 10 in:
+[com.cryptoautotrader.strategy.Candle@4b8a079f,
+    com.cryptoautotrader.strategy.Candle@2a1c6c38,
+    com.cryptoautotrader.strategy.Candle@44b88983,
+    com.cryptoautotrader.strategy.Candle@5be8aa3d,
+    com.cryptoautotrader.strategy
+FAIL com.cryptoautotrader.api.service.DynamicJudgeClockTest # 캔들 최신성 — 판단 시계 기준으로 최신이면 통과(시스템 시각 기준이면 낡음)
+    java.lang.AssertionError: [판단 시계 기준 최신] 
+Expecting actual not to be empty
+FAIL com.cryptoautotrader.api.service.DynamicJudgeClockTest # BTC 관문 — 판단 시계 기준 최신 BTC 캔들이면 판정 가능
+    org.opentest4j.AssertionFailedError: [판단 시계 기준 BTC 캔들 최신 — 판정 가능] 
+Expecting value to be false but was true
+FAIL com.cryptoautotrader.api.service.DynamicJudgeClockTest # 닫힌 봉 판정 — 판단 시계 T+59분은 진행 중 봉 제외, T+60분은 포함
+    java.lang.AssertionError: 
+Expected size: 2 but was: 3 in:
+[com.cryptoautotrader.strategy.Candle@301dd801,
+    com.cryptoautotrader.strategy.Candle@5c2f35bb,
+    com.cryptoautotrader.strategy.Candle@3cee49b1]

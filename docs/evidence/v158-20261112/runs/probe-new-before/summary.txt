@@ -1,0 +1,3 @@
+web-api tests 1 fail 1 err 0 skip 0 pass 0
+FAIL com.cryptoautotrader.api.service.SubmitOrderBoundaryProbeTest # CLOSING·의도=호출자 트랜잭션, claim=커밋 뒤 작업 스레드 트랜잭션, 거래소 호출=트랜잭션 밖, 결과=별도 트랜잭션
+    org.opentest4j.AssertionFailedError: [의도는 호출자 스레드: 관측={1-callerCommitted=#6 thread=Test worker txActive=true resource=adcc76b txName=com.cryptoautotrader.api.service.LiveTradingService.stopSession, 1-intent=#2 thread=order-exec-1 txActive=true resource=28096d1c txName=null, 1-markClosing=#1 thread=T

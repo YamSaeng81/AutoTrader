@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="GridStrategy — 레벨 해제" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-11-12T11:46:05" hostname="DESKTOP-SF1KUQ5" time="0.005">
+  <properties/>
+  <testcase name="상단에서 매도하면 하단에서 잡아둔 레벨이 풀린다" classname="com.cryptoautotrader.strategy.grid.GridStrategyLevelReleaseTest" time="0.002"/>
+  <testcase name="여러 레벨을 잡아뒀어도 상단 매도 한 번에 모두 풀린다" classname="com.cryptoautotrader.strategy.grid.GridStrategyLevelReleaseTest" time="0.001"/>
+  <testcase name="resetState 는 잡아둔 레벨을 전부 비운다" classname="com.cryptoautotrader.strategy.grid.GridStrategyLevelReleaseTest" time="0.001"/>
+  <testcase name="levelDedupEnabled=false 면 상태 추적 없이 순수 위치 신호만 낸다" classname="com.cryptoautotrader.strategy.grid.GridStrategyLevelReleaseTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.RiskManagementServiceTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-11-12T12:25:56" hostname="DESKTOP-SF1KUQ5" time="0.004">
+  <properties/>
+  <testcase name="v1.155 §4 세션 원천이 0·null 이면 FILL 만 — 한도 아래면 통과" classname="com.cryptoautotrader.api.service.RiskManagementServiceTest" time="0.001"/>
+  <testcase name="v1.155 §4 두 원천 합 — FILL 손실 −200k + 세션 손실 −150k = 3.5% 로 차단, 각각만으로는 한도 아래" classname="com.cryptoautotrader.api.service.RiskManagementServiceTest" time="0.001"/>
+  <testcase name="소액 세션(1만원) 30만원 손실 — 기존 버그: 3% 미만, 수정 후: 명백히 한도 초과" classname="com.cryptoautotrader.api.service.RiskManagementServiceTest" time="0.0"/>
+  <testcase name="이익이 손실을 상쇄해도 총손실 기준으로 판정 — net=+50k여도 gross loss=200k 이면 한도 평가" classname="com.cryptoautotrader.api.service.RiskManagementServiceTest" time="0.001"/>
+  <testcase name="RUNNING 세션 없으면 config.portfolioLimitKrw 로 폴백" classname="com.cryptoautotrader.api.service.RiskManagementServiceTest" time="0.0"/>
+  <testcase name="자본 사용률 80% 이하이고 손실 없으면 통과" classname="com.cryptoautotrader.api.service.RiskManagementServiceTest" time="0.0"/>
+  <testcase name="자본 사용률 80% 초과 시 신규 매수 차단" classname="com.cryptoautotrader.api.service.RiskManagementServiceTest" time="0.001"/>
+  <testcase name="v1.155 §4 필수 원천 — FILL 손실 0 이어도 LIVE 세션 확정 매도 손실(주문 원천)이 한도를 넘으면 차단" classname="com.cryptoautotrader.api.service.RiskManagementServiceTest" time="0.0"/>
+  <system-out><![CDATA[21:25:56.018 [Test worker] WARN  c.c.a.service.RiskManagementService - 리스크 체크 거부: 일일 손실 한도 초과: 3.50% > 3.00% (일일=3.5000%, 주간=3.5000%, 월간=3.5000%, 포지션=0, 자본사용률=0.00%, 드로우다운=0%)
+21:25:56.019 [Test worker] WARN  c.c.a.service.RiskManagementService - 리스크 체크 거부: 일일 손실 한도 초과: 3000.00% > 3.00% (일일=3000.0000%, 주간=3000.0000%, 월간=3000.0000%, 포지션=0, 자본사용률=0.00%, 드로우다운=100.00%)
+21:25:56.019 [Test worker] WARN  c.c.a.service.RiskManagementService - 리스크 체크 거부: 일일 손실 한도 초과: 5.00% > 3.00% (일일=5.0000%, 주간=5.0000%, 월간=5.0000%, 포지션=0, 자본사용률=0.00%, 드로우다운=100.00%)
+21:25:56.021 [Test worker] WARN  c.c.a.service.RiskManagementService - 리스크 체크 거부: 자본 사용률 한도 초과: 90.0% > 80.0% (추가 진입 시 과투자 위험) (일일=0%, 주간=0%, 월간=0%, 포지션=0, 자본사용률=90.00%, 드로우다운=0%)
+21:25:56.021 [Test worker] WARN  c.c.a.service.RiskManagementService - 리스크 체크 거부: 일일 손실 한도 초과: 4.00% > 3.00% (일일=4.0000%, 주간=4.0000%, 월간=4.0000%, 포지션=0, 자본사용률=0.00%, 드로우다운=0%)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

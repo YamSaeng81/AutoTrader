@@ -1,0 +1,56 @@
+> Task :strategy-lib:compileJava UP-TO-DATE
+> Task :strategy-lib:processResources NO-SOURCE
+> Task :strategy-lib:classes UP-TO-DATE
+> Task :strategy-lib:jar UP-TO-DATE
+> Task :core-engine:compileJava UP-TO-DATE
+> Task :core-engine:processResources NO-SOURCE
+> Task :core-engine:classes UP-TO-DATE
+> Task :core-engine:jar UP-TO-DATE
+> Task :exchange-adapter:compileJava UP-TO-DATE
+> Task :exchange-adapter:processResources NO-SOURCE
+> Task :exchange-adapter:classes UP-TO-DATE
+> Task :exchange-adapter:jar UP-TO-DATE
+> Task :web-api:compileJava UP-TO-DATE
+> Task :web-api:processResources UP-TO-DATE
+> Task :web-api:classes UP-TO-DATE
+> Task :web-api:compileTestJava
+> Task :web-api:processTestResources UP-TO-DATE
+> Task :web-api:testClasses
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+
+> Task :web-api:test
+
+v1.158 결정 3 ? CLOSING 과 매도 의도 원자성 (로컬 PostgreSQL) > ① LIVE 정리 작업: 의도 생성 전 청산 확인이 와도 CLOSING·의도 유지 → 매도1·입금1 FAILED
+    org.opentest4j.AssertionFailedError at ClosingIntentAtomicityPgTest.java:195
+
+v1.158 결정 3 ? CLOSING 과 매도 의도 원자성 (로컬 PostgreSQL) > ⑤ 응답 불명: CLOSING 유지·재매도 0 FAILED
+    org.opentest4j.AssertionFailedError at ClosingIntentAtomicityPgTest.java:332
+
+v1.158 결정 3 ? CLOSING 과 매도 의도 원자성 (로컬 PostgreSQL) > ③ DYNAMIC REAL 매도: 의도 생성 전 청산 확인이 와도 CLOSING·의도 유지 → 매도1 FAILED
+    org.opentest4j.AssertionFailedError at ClosingIntentAtomicityPgTest.java:273
+
+v1.158 결정 3 ? CLOSING 과 매도 의도 원자성 (로컬 PostgreSQL) > ④ 실행기 거절: 의도 철회(외부 호출 0) → 청산 확인이 근거(철회 FAILED)로 OPEN 복귀 FAILED
+    java.lang.AssertionError at ClosingIntentAtomicityPgTest.java:308
+
+v1.158 결정 3 ? CLOSING 과 매도 의도 원자성 (로컬 PostgreSQL) > ② LIVE 실시간 손절: 의도 생성 전 청산 확인이 와도 CLOSING·의도 유지 → 매도1·입금1 FAILED
+    org.opentest4j.AssertionFailedError at ClosingIntentAtomicityPgTest.java:234
+
+19:10:44.229 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+19:10:44.230 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+19:10:44.232 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+
+> Task :web-api:test FAILED
+
+5 tests completed, 5 failed
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':web-api:test'.
+> There were failing tests. See the report at: file:///D:/tmp/cr158-84fb03d6/web-api/build/reports/tests/test/index.html
+
+* Try:
+> Run with --scan to get full insights.
+
+BUILD FAILED in 19s
+11 actionable tasks: 2 executed, 9 up-to-date

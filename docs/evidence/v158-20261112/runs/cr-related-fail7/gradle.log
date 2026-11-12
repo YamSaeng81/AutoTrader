@@ -1,0 +1,133 @@
+> Task :strategy-lib:compileJava UP-TO-DATE
+> Task :strategy-lib:processResources NO-SOURCE
+> Task :strategy-lib:classes UP-TO-DATE
+> Task :strategy-lib:jar UP-TO-DATE
+> Task :core-engine:compileJava UP-TO-DATE
+> Task :core-engine:processResources NO-SOURCE
+> Task :core-engine:classes UP-TO-DATE
+> Task :core-engine:jar UP-TO-DATE
+> Task :exchange-adapter:compileJava UP-TO-DATE
+> Task :exchange-adapter:processResources NO-SOURCE
+> Task :exchange-adapter:classes UP-TO-DATE
+> Task :exchange-adapter:jar UP-TO-DATE
+> Task :web-api:compileJava
+> Task :web-api:processResources UP-TO-DATE
+> Task :web-api:classes
+> Task :web-api:compileTestJava UP-TO-DATE
+> Task :web-api:processTestResources UP-TO-DATE
+> Task :web-api:testClasses UP-TO-DATE
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+> Task :web-api:test
+
+식별자 취소·취소 확인·늦은 체결 정리 > D5 청산 매도 부분 체결 ? 정리 대기 유지, 남은 수량만 한 번 더, 대금은 매도마다 한 번, 전량 확인 뒤 CLOSED > LIVE FAILED
+    java.lang.AssertionError at CancelConfirmAndLateFillCleanupTest.java:798
+
+식별자 취소·취소 확인·늦은 체결 정리 > I5 정리 매도가 거래소에서 거절을 반복 ? 거절 2회에서 멈추고 사람 확인으로 둔다 > DYNAMIC FAILED
+    java.lang.AssertionError at CancelConfirmAndLateFillCleanupTest.java:778
+
+식별자 취소·취소 확인·늦은 체결 정리 > D2 청산 매도가 체결 없이 끝났다 ? 근거가 있을 때만 다시 내고, 그동안 완료가 아니다 > DYNAMIC EXCHANGE_REJECTED FAILED
+    org.opentest4j.AssertionFailedError at CancelConfirmAndLateFillCleanupTest.java:722
+
+19:21:28.410 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+19:21:28.411 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] SESSION_STOP 전송 실패(REJECTED) ? 2000ms 후 재시도 (1/3)
+19:21:30.394 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+19:21:30.394 [telegram-1] ERROR c.c.a.s.TelegramNotificationService - [Telegram] ? CLEANUP_INCOMPLETE 알림 3회 시도 ? 최종 실패: 전달되지 않음(마지막 REJECTED HTTP 404)(이력 success=false): ? *세션 #41 정지 ? 정리 미완료*
+
+? 미해결 제출: `1건` (제출 결과 불명)
+? 접수 가능성이 있어 자금·슬롯을 유지하고 식별자로 추적을 계속합니다.
+? 자동 종결하지 않으므로 확인이 필요합니다
+19:21:30.695 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+19:21:30.695 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] SESSION_STOP 전송 실패(REJECTED) ? 2000ms 후 재시도 (1/3)
+19:21:30.703 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+19:21:30.703 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] SESSION_STOP 전송 실패(REJECTED) ? 5000ms 후 재시도 (2/3)
+19:21:32.673 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+19:21:32.673 [telegram-1] ERROR c.c.a.s.TelegramNotificationService - [Telegram] ? STOP_LOSS 알림 3회 시도 ? 최종 실패: 전달되지 않음(마지막 REJECTED HTTP 404)(이력 success=false): ?? *손절 실행*
+
+? 세션 ID: `44`
+? 코인: `KRW-SVRL1`
+? 손실률: `6.67%`
+? 시각: `2026-11-12 19:21:24`
+19:21:33.004 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+19:21:33.004 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] STOP_LOSS 전송 실패(REJECTED) ? 2000ms 후 재시도 (1/3)
+19:21:33.009 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+19:21:33.009 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] SESSION_STOP 전송 실패(REJECTED) ? 5000ms 후 재시도 (2/3)
+19:21:33.192 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+19:21:33.192 [telegram-1] ERROR c.c.a.s.TelegramNotificationService - [Telegram] ? CLEANUP_INCOMPLETE 알림 3회 시도 ? 최종 실패: 전달되지 않음(마지막 REJECTED HTTP 404)(이력 success=false): ? *세션 #17 정지 ? 정리 미완료*
+
+? 미해결 제출: `1건` (제출 결과 불명)
+? 접수 가능성이 있어 자금·슬롯을 유지하고 식별자로 추적을 계속합니다.
+? 자동 종결하지 않으므로 확인이 필요합니다
+19:21:33.216 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:21:33.216 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+19:21:33.217 [telegram-1] ERROR c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 중 오류(응답 미수신): null
+19:21:33.218 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+19:21:33.219 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+19:21:33.220 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+19:21:35.326 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+19:21:35.327 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] STOP_LOSS 전송 실패(REJECTED) ? 5000ms 후 재시도 (2/3)
+19:21:35.988 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+19:21:35.988 [telegram-1] ERROR c.c.a.s.TelegramNotificationService - [Telegram] ? SESSION_STOP 알림 3회 시도 ? 최종 실패: 전달되지 않음(마지막 REJECTED HTTP 404)(이력 success=false): ? *실전매매 비상 정지*
+
+? 세션 ID: `39`
+? 코인: `KRW-DOGE`
+? 총 자산: `10,001 KRW`
+? 수익률: `+0.01%`
+? 시각: `2026-11-12 19:21:19`
+19:21:36.002 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:21:36.002 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+19:21:36.003 [telegram-1] ERROR c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 중 오류(응답 미수신): null
+19:21:36.003 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] SESSION_STOP 전송 실패(NO_RESPONSE) ? 2000ms 후 재시도 (1/3)
+19:21:36.003 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+19:21:36.003 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-2 - Shutdown initiated...
+19:21:36.005 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-2 - Shutdown completed.
+19:21:38.288 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+19:21:38.288 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] SESSION_STOP 전송 실패(REJECTED) ? 5000ms 후 재시도 (2/3)
+19:21:38.316 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+19:21:38.316 [telegram-1] ERROR c.c.a.s.TelegramNotificationService - [Telegram] ? SESSION_STOP 알림 3회 시도 ? 최종 실패: 전달되지 않음(마지막 REJECTED HTTP 404)(이력 success=false): ? *실전매매 세션 종료*
+
+? 세션 ID: `41`
+? 코인: `KRW-DOGE`
+? 총 자산: `10,000 KRW`
+? 수익률: `+0.00%`
+? 시각: `2026-11-12 19:21:21`
+19:21:38.330 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:21:38.331 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+19:21:38.331 [telegram-1] ERROR c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 중 오류(응답 미수신): null
+19:21:38.331 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] CLEANUP_INCOMPLETE 전송 실패(NO_RESPONSE) ? 2000ms 후 재시도 (1/3)
+19:21:38.332 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+19:21:38.332 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-3 - Shutdown initiated...
+19:21:38.332 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-3 - Shutdown completed.
+19:21:40.656 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+19:21:40.656 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] CLEANUP_INCOMPLETE 전송 실패(REJECTED) ? 5000ms 후 재시도 (2/3)
+19:21:40.661 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+19:21:40.662 [telegram-1] ERROR c.c.a.s.TelegramNotificationService - [Telegram] ? STOP_LOSS 알림 3회 시도 ? 최종 실패: 전달되지 않음(마지막 REJECTED HTTP 404)(이력 success=false): ?? *손절 실행*
+
+? 세션 ID: `44`
+? 코인: `KRW-SVRL1`
+? 손실률: `6.67%`
+? 시각: `2026-11-12 19:21:24`
+19:21:40.674 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:21:40.675 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+19:21:40.676 [telegram-1] ERROR c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 중 오류(응답 미수신): null
+19:21:40.676 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] SESSION_STOP 전송 실패(NO_RESPONSE) ? 2000ms 후 재시도 (1/3)
+19:21:40.677 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+19:21:40.677 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-4 - Shutdown initiated...
+19:21:40.677 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-4 - Shutdown completed.
+
+> Task :web-api:test
+
+87 tests completed, 3 failed
+
+> Task :web-api:test FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':web-api:test'.
+> There were failing tests. See the report at: file:///D:/tmp/cr158-84fb03d6/web-api/build/reports/tests/test/index.html
+
+* Try:
+> Run with --scan to get full insights.
+
+BUILD FAILED in 1m 58s
+11 actionable tasks: 2 executed, 9 up-to-date

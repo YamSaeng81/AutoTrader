@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="진단 — submitOrder 의 스레드·트랜잭션 경계를 측정한다" tests="1" skipped="0" failures="1" errors="0" timestamp="2026-11-12T12:06:53" hostname="DESKTOP-SF1KUQ5" time="0.129">
+  <properties/>
+  <testcase name="정지 경로와 제출 경로의 스레드·트랜잭션을 수집한다" classname="com.cryptoautotrader.api.service.SubmitOrderBoundaryProbeTest" time="0.129">
+    <failure message="java.lang.AssertionError: [&#x1f534; 호출자(정지)의 트랜잭션에 **합류하지 않았다** — 합류했다면 거기서 거는 잠금의 수명이 달라져 ③-1 수정이 조용히 무너진다:  || 0-test: thread=Test worker txActive=false txName=null roTx=false || 1-markClosing: thread=Test worker txActive=true txName=com.cryptoautotrader.api.service.LiveTradingService.stopSession roTx=false || 2-recordTradeLog: thread=Test worker txActive=true txName=com.cryptoautotrader.api.service.LiveTradingService.stopSession roTx=false || 3-visibleOrders: 같은 스레드 조회로 보이는 활성 주문 수=1 || 4-finalRows: 주문 행 수=1] &#13;&#10;Expecting actual:&#13;&#10;  &quot;thread=Test worker txActive=true txName=com.cryptoautotrader.api.service.LiveTradingService.stopSession roTx=false&quot;&#13;&#10;not to contain:&#13;&#10;  &quot;LiveTradingService.stopSession&quot;&#13;&#10;" type="java.lang.AssertionError">java.lang.AssertionError: [&#x1f534; 호출자(정지)의 트랜잭션에 **합류하지 않았다** — 합류했다면 거기서 거는 잠금의 수명이 달라져 ③-1 수정이 조용히 무너진다:  || 0-test: thread=Test worker txActive=false txName=null roTx=false || 1-markClosing: thread=Test worker txActive=true txName=com.cryptoautotrader.api.service.LiveTradingService.stopSession roTx=false || 2-recordTradeLog: thread=Test worker txActive=true txName=com.cryptoautotrader.api.service.LiveTradingService.stopSession roTx=false || 3-visibleOrders: 같은 스레드 조회로 보이는 활성 주문 수=1 || 4-finalRows: 주문 행 수=1] 
+Expecting actual:
+  &quot;thread=Test worker txActive=true txName=com.cryptoautotrader.api.service.LiveTradingService.stopSession roTx=false&quot;
+not to contain:
+  &quot;LiveTradingService.stopSession&quot;
+
+	at com.cryptoautotrader.api.service.SubmitOrderBoundaryProbeTest.probeBoundaries(SubmitOrderBoundaryProbeTest.java:223)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <system-out><![CDATA[21:06:53.434 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.SubmitOrderBoundaryProbeTest
+21:06:53.440 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:06:53.466 [Test worker] WARN  c.c.api.service.LiveTradingService - ? 정지했으나 **정리 미완료** ? 미해결 제출 1건이 남았다 (sessionId=2). 그 주문은 접수됐을 수 있으므로 자금·슬롯을 점유한 것으로 두고 추적을 계속한다. 종결은 근거를 확인한 사람이 한다.
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.SignalQualityDelistedMarketTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-11-12T12:04:07" hostname="DESKTOP-SF1KUQ5" time="0.003">
+  <properties/>
+  <testcase name="429 는 일시 실패다 — 건너뛰지 않고 행마다 다시 시도한다" classname="com.cryptoautotrader.api.service.SignalQualityDelistedMarketTest" time="0.002"/>
+  <testcase name="&#x1f534; 404 마켓은 같은 실행에서 한 번만 호출한다 — 행이 몇 개든" classname="com.cryptoautotrader.api.service.SignalQualityDelistedMarketTest" time="0.001"/>
+  <system-out><![CDATA[21:04:07.411 [Test worker] WARN  c.c.api.service.SignalQualityService - [SignalQuality] KRW-GONE 는 거래소에 없다(404) ? 이 프로세스에서 더 조회하지 않는다. 이 코인의 미평가 행은 남는다(별도 처리 필요).
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

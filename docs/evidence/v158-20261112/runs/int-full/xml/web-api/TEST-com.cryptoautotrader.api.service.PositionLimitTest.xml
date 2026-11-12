@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="포지션별 한도 — 진입 배정액 · 포지션 고점 · 차단 · 정지" tests="13" skipped="0" failures="2" errors="0" timestamp="2026-11-12T12:02:53" hostname="DESKTOP-SF1KUQ5" time="0.162">
+  <properties/>
+  <testcase name="일일 폐기 판정은 실자금 LIVE 세션에 세션 단위 CAPITAL_LOSS 를 걸지 않는다 — 같은 이름의 기준이 두 개가 되지 않게" classname="com.cryptoautotrader.api.service.PositionLimitTest" time="0.006"/>
+  <testcase name="반영값 없는 체결 주문이 있으면 평가하지 않고 고점도 올리지 않는다" classname="com.cryptoautotrader.api.service.PositionLimitTest" time="0.006"/>
+  <testcase name="부분 청산 — 판 몫의 순대금이 평가액에 남아 고점·낙폭이 그대로다. 고점 대비 −20% 경계" classname="com.cryptoautotrader.api.service.PositionLimitTest" time="0.006"/>
+  <testcase name="추가 정산 — 부분 체결·잔여 체결·수수료 정정이 원가를 바꿔도 배정액은 그대로, 고점은 체결분만큼 오른다" classname="com.cryptoautotrader.api.service.PositionLimitTest" time="0.012"/>
+  <testcase name="엔진이 먼저 읽어 둔 포지션을 저장해도 고점·배정액이 되돌아가지 않는다" classname="com.cryptoautotrader.api.service.PositionLimitTest" time="0.004"/>
+  <testcase name="재시작 — 메모리 없는 새 판정기가 DB 의 고점·도달 기록으로 판정, 실시간 시세 전에는 대체 시세로 도달을 남기지 않는다" classname="com.cryptoautotrader.api.service.PositionLimitTest" time="0.007"/>
+  <testcase name="도달한 세션은 LIVE·DYNAMIC 모두 공유 예약 지점에서 거절되고, 포지션이 닫힌 뒤에도 유지된다 — 다른 세션은 통과" classname="com.cryptoautotrader.api.service.PositionLimitTest" time="0.028">
+    <failure message="org.springframework.dao.InvalidDataAccessResourceUsageException: could not prepare statement [Syntax error in SQL statement &quot;SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0&quot;; SQL statement:&#10;SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0 [42000-224]] [SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0]; SQL [SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0]" type="org.springframework.dao.InvalidDataAccessResourceUsageException">org.springframework.dao.InvalidDataAccessResourceUsageException: could not prepare statement [Syntax error in SQL statement &quot;SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0&quot;; SQL statement:
+SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0 [42000-224]] [SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0]; SQL [SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0]
+	at app//org.springframework.orm.jpa.vendor.HibernateJpaDialect.convertHibernateAccessException(HibernateJpaDialect.java:277)
+	at app//org.springframework.orm.jpa.vendor.HibernateJpaDialect.translateExceptionIfPossible(HibernateJpaDialect.java:241)
+	at app//org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.translateExceptionIfPossible(AbstractEntityManagerFactoryBean.java:550)
+	at app//org.springframework.dao.support.ChainedPersistenceExceptionTranslator.translateExceptionIfPossible(ChainedPersistenceExceptionTranslator.java:61)
+	at app//org.springframework.dao.support.DataAccessUtils.translateIfNecessary(DataAccessUtils.java:335)
+	at app//org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:152)
+	at app//org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at app//org.springframework.data.jpa.repository.support.CrudMethodMetadataPostProcessor$CrudMethodMetadataPopulatingMethodInterceptor.invoke(CrudMethodMetadataPostProcessor.java:135)
+	at app//org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at app//org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97)
+	at app//org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at app//org.springframework.aop.framework.JdkDynamicAopProxy.invoke(JdkDynamicAopProxy.java:223)
+	at app/jdk.proxy3/jdk.proxy3.$Proxy219.sumRealizedLossSince(Unknown Source)
+	at app//com.cryptoautotrader.api.service.RiskManagementService.legacyLossKrw(RiskManagementService.java:455)
+	at app//com.cryptoautotrader.api.service.RiskManagementService.calculateLossPct(RiskManagementService.java:444)
+	at app//com.cryptoautotrader.api.service.RiskManagementService.checkRealLossGuard(RiskManagementService.java:220)
+	at jdk.internal.reflect.GeneratedMethodAccessor602.invoke(Unknown Source)
+	at java.base@17.0.12/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at app//org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at app//org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at app//org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at app//org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at app//org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:123)
+	at app//org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:392)
+	at app//org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119)
+	at app//org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at app//org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at app//org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:720)
+	at app//com.cryptoautotrader.api.service.RiskManagementService$$SpringCGLIB$$0.checkRealLossGuard(&lt;generated&gt;)
+	at app//com.cryptoautotrader.api.service.DynamicTradingService.executeBuy(DynamicTradingService.java:1651)
+	at app//com.cryptoautotrader.api.service.DynamicTradingService.executeBuy(DynamicTradingService.java:1636)
+	at jdk.internal.reflect.GeneratedMethodAccessor648.invoke(Unknown Source)
+	at java.base@17.0.12/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at app//org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at app//org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at app//org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at app//org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at app//org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:123)
+	at app//org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:392)
+	at app//org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119)
+	at app//org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at app//org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at app//org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:720)
+	at app//com.cryptoautotrader.api.service.DynamicTradingService$$SpringCGLIB$$1.executeBuy(&lt;generated&gt;)
+	at app//com.cryptoautotrader.api.service.PositionLimitTest.lambda$dynamicBuy$17(PositionLimitTest.java:528)
+	at app//com.cryptoautotrader.api.service.PositionLimitTest.lambda$tx$2(PositionLimitTest.java:124)
+	at app//org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:140)
+	at app//com.cryptoautotrader.api.service.PositionLimitTest.tx(PositionLimitTest.java:124)
+	at app//com.cryptoautotrader.api.service.PositionLimitTest.dynamicBuy(PositionLimitTest.java:528)
+	at app//com.cryptoautotrader.api.service.PositionLimitTest.breachBlocksEntryForThatSessionOnly(PositionLimitTest.java:556)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+Caused by: org.hibernate.exception.SQLGrammarException: could not prepare statement [Syntax error in SQL statement &quot;SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0&quot;; SQL statement:
+SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0 [42000-224]] [SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0]
+	at app//org.hibernate.exception.internal.SQLExceptionTypeDelegate.convert(SQLExceptionTypeDelegate.java:66)
+	at app//org.hibernate.exception.internal.StandardSQLExceptionConverter.convert(StandardSQLExceptionConverter.java:58)
+	at app//org.hibernate.engine.jdbc.spi.SqlExceptionHelper.convert(SqlExceptionHelper.java:108)
+	at app//org.hibernate.engine.jdbc.internal.StatementPreparerImpl$StatementPreparationTemplate.prepareStatement(StatementPreparerImpl.java:194)
+	at app//org.hibernate.engine.jdbc.internal.StatementPreparerImpl.prepareQueryStatement(StatementPreparerImpl.java:155)
+	at app//org.hibernate.sql.exec.spi.JdbcSelectExecutor.lambda$list$0(JdbcSelectExecutor.java:85)
+	at app//org.hibernate.sql.results.jdbc.internal.DeferredResultSetAccess.executeQuery(DeferredResultSetAccess.java:231)
+	at app//org.hibernate.sql.results.jdbc.internal.DeferredResultSetAccess.getResultSet(DeferredResultSetAccess.java:167)
+	at app//org.hibernate.sql.results.jdbc.internal.AbstractResultSetAccess.getMetaData(AbstractResultSetAccess.java:36)
+	at app//org.hibernate.sql.results.jdbc.internal.AbstractResultSetAccess.getColumnCount(AbstractResultSetAccess.java:52)
+	at app//org.hibernate.query.results.ResultSetMappingImpl.resolve(ResultSetMappingImpl.java:193)
+	at app//org.hibernate.sql.exec.internal.JdbcSelectExecutorStandardImpl.resolveJdbcValuesSource(JdbcSelectExecutorStandardImpl.java:325)
+	at app//org.hibernate.sql.exec.internal.JdbcSelectExecutorStandardImpl.doExecuteQuery(JdbcSelectExecutorStandardImpl.java:115)
+	at app//org.hibernate.sql.exec.internal.JdbcSelectExecutorStandardImpl.executeQuery(JdbcSelectExecutorStandardImpl.java:83)
+	at app//org.hibernate.sql.exec.spi.JdbcSelectExecutor.list(JdbcSelectExecutor.java:76)
+	at app//org.hibernate.sql.exec.spi.JdbcSelectExecutor.list(JdbcSelectExecutor.java:65)
+	at app//org.hibernate.query.sql.internal.NativeSelectQueryPlanImpl.performList(NativeSelectQueryPlanImpl.java:138)
+	at app//org.hibernate.query.sql.internal.NativeQueryImpl.doList(NativeQueryImpl.java:621)
+	at app//org.hibernate.query.spi.AbstractSelectionQuery.list(AbstractSelectionQuery.java:427)
+	at app//org.hibernate.query.spi.AbstractSelectionQuery.getSingleResult(AbstractSelectionQuery.java:564)
+	at app//org.springframework.data.jpa.repository.query.JpaQueryExecution$SingleEntityExecution.doExecute(JpaQueryExecution.java:223)
+	at app//org.springframework.data.jpa.repository.query.JpaQueryExecution.execute(JpaQueryExecution.java:92)
+	at app//org.springframework.data.jpa.repository.query.AbstractJpaQuery.doExecute(AbstractJpaQuery.java:149)
+	at app//org.springframework.data.jpa.repository.query.AbstractJpaQuery.execute(AbstractJpaQuery.java:137)
+	at app//org.springframework.data.repository.core.support.RepositoryMethodInvoker.doInvoke(RepositoryMethodInvoker.java:170)
+	at app//org.springframework.data.repository.core.support.RepositoryMethodInvoker.invoke(RepositoryMethodInvoker.java:158)
+	at app//org.springframework.data.repository.core.support.QueryExecutorMethodInterceptor.doInvoke(QueryExecutorMethodInterceptor.java:164)
+	at app//org.springframework.data.repository.core.support.QueryExecutorMethodInterceptor.invoke(QueryExecutorMethodInterceptor.java:143)
+	at app//org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at app//org.springframework.data.projection.DefaultMethodInvokingMethodInterceptor.invoke(DefaultMethodInvokingMethodInterceptor.java:70)
+	at app//org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at app//org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:123)
+	at app//org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:392)
+	at app//org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119)
+	at app//org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at app//org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:137)
+	... 49 more
+Caused by: org.h2.jdbc.JdbcSQLSyntaxErrorException: Syntax error in SQL statement &quot;SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0&quot;; SQL statement:
+SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0 [42000-224]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:514)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:489)
+	at org.h2.message.DbException.get(DbException.java:223)
+	at org.h2.message.DbException.get(DbException.java:199)
+	at org.h2.message.DbException.getSyntaxError(DbException.java:247)
+	at org.h2.command.ParserBase.getSyntaxError(ParserBase.java:748)
+	at org.h2.command.Parser.readTermWithoutIdentifier(Parser.java:5134)
+	at org.h2.command.Parser.readTerm(Parser.java:4834)
+	at org.h2.command.Parser.readFactor(Parser.java:3337)
+	at org.h2.command.Parser.readSum(Parser.java:3329)
+	at org.h2.command.Parser.readConcat(Parser.java:3289)
+	at org.h2.command.Parser.readCondition(Parser.java:3079)
+	at org.h2.command.Parser.readExpression(Parser.java:2999)
+	at org.h2.command.Parser.readTermWithoutIdentifier(Parser.java:5041)
+	at org.h2.command.Parser.readTerm(Parser.java:4834)
+	at org.h2.command.Parser.readFactor(Parser.java:3337)
+	at org.h2.command.Parser.readSum(Parser.java:3324)
+	at org.h2.command.Parser.readConcat(Parser.java:3289)
+	at org.h2.command.Parser.readCondition(Parser.java:3079)
+	at org.h2.command.Parser.readExpression(Parser.java:2999)
+	at org.h2.command.Parser.parseSelectExpressions(Parser.java:2799)
+	at org.h2.command.Parser.parseSelect(Parser.java:2817)
+	at org.h2.command.Parser.parseQueryPrimary(Parser.java:2708)
+	at org.h2.command.Parser.parseQueryTerm(Parser.java:2564)
+	at org.h2.command.Parser.parseQueryExpressionBody(Parser.java:2543)
+	at org.h2.command.Parser.parseQueryExpressionBodyAndEndOfQuery(Parser.java:2536)
+	at org.h2.command.Parser.parseQueryExpression(Parser.java:2529)
+	at org.h2.command.Parser.readDerivedTableWithCorrelation(Parser.java:1821)
+	at org.h2.command.Parser.readTablePrimary(Parser.java:1720)
+	at org.h2.command.Parser.readTableReference(Parser.java:2268)
+	at org.h2.command.Parser.parseSelectFromPart(Parser.java:2718)
+	at org.h2.command.Parser.parseSelect(Parser.java:2824)
+	at org.h2.command.Parser.parseQueryPrimary(Parser.java:2708)
+	at org.h2.command.Parser.parseQueryTerm(Parser.java:2564)
+	at org.h2.command.Parser.parseQueryExpressionBody(Parser.java:2543)
+	at org.h2.command.Parser.parseQueryExpressionBodyAndEndOfQuery(Parser.java:2536)
+	at org.h2.command.Parser.parseQueryExpression(Parser.java:2529)
+	at org.h2.command.Parser.parseQuery(Parser.java:2498)
+	at org.h2.command.Parser.parsePrepared(Parser.java:627)
+	at org.h2.command.Parser.parse(Parser.java:592)
+	at org.h2.command.Parser.parse(Parser.java:569)
+	at org.h2.command.Parser.prepareCommand(Parser.java:483)
+	at org.h2.engine.SessionLocal.prepareLocal(SessionLocal.java:639)
+	at org.h2.engine.SessionLocal.prepareCommand(SessionLocal.java:559)
+	at org.h2.jdbc.JdbcConnection.prepareCommand(JdbcConnection.java:1166)
+	at org.h2.jdbc.JdbcPreparedStatement.&lt;init&gt;(JdbcPreparedStatement.java:93)
+	at org.h2.jdbc.JdbcConnection.prepareStatement(JdbcConnection.java:316)
+	at com.zaxxer.hikari.pool.ProxyConnection.prepareStatement(ProxyConnection.java:327)
+	at com.zaxxer.hikari.pool.HikariProxyConnection.prepareStatement(HikariProxyConnection.java)
+	at org.hibernate.engine.jdbc.internal.StatementPreparerImpl$5.doPrepare(StatementPreparerImpl.java:153)
+	at org.hibernate.engine.jdbc.internal.StatementPreparerImpl$StatementPreparationTemplate.prepareStatement(StatementPreparerImpl.java:183)
+	... 81 more
+</failure>
+  </testcase>
+  <testcase name="CAPITAL_LOSS 의 분모는 진입 배정액 — 20,000 이면 −3,000 경계, 투입금·세션 초기자본이 아니다" classname="com.cryptoautotrader.api.service.PositionLimitTest" time="0.009"/>
+  <testcase name="판정 불가가 이어지면 정상으로 두지 않는다 — 180초 넘게 이어지면 경보 한 번, 판정이 돌아오면 해제" classname="com.cryptoautotrader.api.service.PositionLimitTest" time="0.015"/>
+  <testcase name="&#x1f534; 판정 불가(시세 없음·120초 초과·반영값 없는 체결)인 포지션이 있는 세션은 그 순간부터 신규 진입 거절 — 감시·경보를 기다리지 않는다. 다른 세션은 통과, 그 포지션의 청산은 나간다" classname="com.cryptoautotrader.api.service.PositionLimitTest" time="0.033">
+    <failure message="org.springframework.dao.InvalidDataAccessResourceUsageException: could not prepare statement [Syntax error in SQL statement &quot;SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0&quot;; SQL statement:&#10;SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0 [42000-224]] [SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0]; SQL [SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0]" type="org.springframework.dao.InvalidDataAccessResourceUsageException">org.springframework.dao.InvalidDataAccessResourceUsageException: could not prepare statement [Syntax error in SQL statement &quot;SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0&quot;; SQL statement:
+SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0 [42000-224]] [SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0]; SQL [SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0]
+	at app//org.springframework.orm.jpa.vendor.HibernateJpaDialect.convertHibernateAccessException(HibernateJpaDialect.java:277)
+	at app//org.springframework.orm.jpa.vendor.HibernateJpaDialect.translateExceptionIfPossible(HibernateJpaDialect.java:241)
+	at app//org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.translateExceptionIfPossible(AbstractEntityManagerFactoryBean.java:550)
+	at app//org.springframework.dao.support.ChainedPersistenceExceptionTranslator.translateExceptionIfPossible(ChainedPersistenceExceptionTranslator.java:61)
+	at app//org.springframework.dao.support.DataAccessUtils.translateIfNecessary(DataAccessUtils.java:335)
+	at app//org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:152)
+	at app//org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at app//org.springframework.data.jpa.repository.support.CrudMethodMetadataPostProcessor$CrudMethodMetadataPopulatingMethodInterceptor.invoke(CrudMethodMetadataPostProcessor.java:135)
+	at app//org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at app//org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97)
+	at app//org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at app//org.springframework.aop.framework.JdkDynamicAopProxy.invoke(JdkDynamicAopProxy.java:223)
+	at app/jdk.proxy3/jdk.proxy3.$Proxy219.sumRealizedLossSince(Unknown Source)
+	at app//com.cryptoautotrader.api.service.RiskManagementService.legacyLossKrw(RiskManagementService.java:455)
+	at app//com.cryptoautotrader.api.service.RiskManagementService.calculateLossPct(RiskManagementService.java:444)
+	at app//com.cryptoautotrader.api.service.RiskManagementService.checkRealLossGuard(RiskManagementService.java:220)
+	at jdk.internal.reflect.GeneratedMethodAccessor602.invoke(Unknown Source)
+	at java.base@17.0.12/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at app//org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at app//org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at app//org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at app//org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at app//org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:123)
+	at app//org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:392)
+	at app//org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119)
+	at app//org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at app//org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at app//org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:720)
+	at app//com.cryptoautotrader.api.service.RiskManagementService$$SpringCGLIB$$0.checkRealLossGuard(&lt;generated&gt;)
+	at app//com.cryptoautotrader.api.service.DynamicTradingService.executeBuy(DynamicTradingService.java:1651)
+	at app//com.cryptoautotrader.api.service.DynamicTradingService.executeBuy(DynamicTradingService.java:1636)
+	at jdk.internal.reflect.GeneratedMethodAccessor648.invoke(Unknown Source)
+	at java.base@17.0.12/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at app//org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at app//org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at app//org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at app//org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at app//org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:123)
+	at app//org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:392)
+	at app//org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119)
+	at app//org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at app//org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at app//org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:720)
+	at app//com.cryptoautotrader.api.service.DynamicTradingService$$SpringCGLIB$$1.executeBuy(&lt;generated&gt;)
+	at app//com.cryptoautotrader.api.service.PositionLimitTest.lambda$dynamicBuy$17(PositionLimitTest.java:528)
+	at app//com.cryptoautotrader.api.service.PositionLimitTest.lambda$tx$2(PositionLimitTest.java:124)
+	at app//org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:140)
+	at app//com.cryptoautotrader.api.service.PositionLimitTest.tx(PositionLimitTest.java:124)
+	at app//com.cryptoautotrader.api.service.PositionLimitTest.dynamicBuy(PositionLimitTest.java:528)
+	at app//com.cryptoautotrader.api.service.PositionLimitTest.unjudgedBlocksEntryImmediately(PositionLimitTest.java:647)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+Caused by: org.hibernate.exception.SQLGrammarException: could not prepare statement [Syntax error in SQL statement &quot;SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0&quot;; SQL statement:
+SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0 [42000-224]] [SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0]
+	at app//org.hibernate.exception.internal.SQLExceptionTypeDelegate.convert(SQLExceptionTypeDelegate.java:66)
+	at app//org.hibernate.exception.internal.StandardSQLExceptionConverter.convert(StandardSQLExceptionConverter.java:58)
+	at app//org.hibernate.engine.jdbc.spi.SqlExceptionHelper.convert(SqlExceptionHelper.java:108)
+	at app//org.hibernate.engine.jdbc.internal.StatementPreparerImpl$StatementPreparationTemplate.prepareStatement(StatementPreparerImpl.java:194)
+	at app//org.hibernate.engine.jdbc.internal.StatementPreparerImpl.prepareQueryStatement(StatementPreparerImpl.java:155)
+	at app//org.hibernate.sql.exec.spi.JdbcSelectExecutor.lambda$list$0(JdbcSelectExecutor.java:85)
+	at app//org.hibernate.sql.results.jdbc.internal.DeferredResultSetAccess.executeQuery(DeferredResultSetAccess.java:231)
+	at app//org.hibernate.sql.results.jdbc.internal.DeferredResultSetAccess.getResultSet(DeferredResultSetAccess.java:167)
+	at app//org.hibernate.sql.results.jdbc.internal.AbstractResultSetAccess.getMetaData(AbstractResultSetAccess.java:36)
+	at app//org.hibernate.sql.results.jdbc.internal.AbstractResultSetAccess.getColumnCount(AbstractResultSetAccess.java:52)
+	at app//org.hibernate.query.results.ResultSetMappingImpl.resolve(ResultSetMappingImpl.java:193)
+	at app//org.hibernate.sql.exec.internal.JdbcSelectExecutorStandardImpl.resolveJdbcValuesSource(JdbcSelectExecutorStandardImpl.java:325)
+	at app//org.hibernate.sql.exec.internal.JdbcSelectExecutorStandardImpl.doExecuteQuery(JdbcSelectExecutorStandardImpl.java:115)
+	at app//org.hibernate.sql.exec.internal.JdbcSelectExecutorStandardImpl.executeQuery(JdbcSelectExecutorStandardImpl.java:83)
+	at app//org.hibernate.sql.exec.spi.JdbcSelectExecutor.list(JdbcSelectExecutor.java:76)
+	at app//org.hibernate.sql.exec.spi.JdbcSelectExecutor.list(JdbcSelectExecutor.java:65)
+	at app//org.hibernate.query.sql.internal.NativeSelectQueryPlanImpl.performList(NativeSelectQueryPlanImpl.java:138)
+	at app//org.hibernate.query.sql.internal.NativeQueryImpl.doList(NativeQueryImpl.java:621)
+	at app//org.hibernate.query.spi.AbstractSelectionQuery.list(AbstractSelectionQuery.java:427)
+	at app//org.hibernate.query.spi.AbstractSelectionQuery.getSingleResult(AbstractSelectionQuery.java:564)
+	at app//org.springframework.data.jpa.repository.query.JpaQueryExecution$SingleEntityExecution.doExecute(JpaQueryExecution.java:223)
+	at app//org.springframework.data.jpa.repository.query.JpaQueryExecution.execute(JpaQueryExecution.java:92)
+	at app//org.springframework.data.jpa.repository.query.AbstractJpaQuery.doExecute(AbstractJpaQuery.java:149)
+	at app//org.springframework.data.jpa.repository.query.AbstractJpaQuery.execute(AbstractJpaQuery.java:137)
+	at app//org.springframework.data.repository.core.support.RepositoryMethodInvoker.doInvoke(RepositoryMethodInvoker.java:170)
+	at app//org.springframework.data.repository.core.support.RepositoryMethodInvoker.invoke(RepositoryMethodInvoker.java:158)
+	at app//org.springframework.data.repository.core.support.QueryExecutorMethodInterceptor.doInvoke(QueryExecutorMethodInterceptor.java:164)
+	at app//org.springframework.data.repository.core.support.QueryExecutorMethodInterceptor.invoke(QueryExecutorMethodInterceptor.java:143)
+	at app//org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at app//org.springframework.data.projection.DefaultMethodInvokingMethodInterceptor.invoke(DefaultMethodInvokingMethodInterceptor.java:70)
+	at app//org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at app//org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:123)
+	at app//org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:392)
+	at app//org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119)
+	at app//org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at app//org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:137)
+	... 49 more
+Caused by: org.h2.jdbc.JdbcSQLSyntaxErrorException: Syntax error in SQL statement &quot;SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0&quot;; SQL statement:
+SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0 [42000-224]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:514)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:489)
+	at org.h2.message.DbException.get(DbException.java:223)
+	at org.h2.message.DbException.get(DbException.java:199)
+	at org.h2.message.DbException.getSyntaxError(DbException.java:247)
+	at org.h2.command.ParserBase.getSyntaxError(ParserBase.java:748)
+	at org.h2.command.Parser.readTermWithoutIdentifier(Parser.java:5134)
+	at org.h2.command.Parser.readTerm(Parser.java:4834)
+	at org.h2.command.Parser.readFactor(Parser.java:3337)
+	at org.h2.command.Parser.readSum(Parser.java:3329)
+	at org.h2.command.Parser.readConcat(Parser.java:3289)
+	at org.h2.command.Parser.readCondition(Parser.java:3079)
+	at org.h2.command.Parser.readExpression(Parser.java:2999)
+	at org.h2.command.Parser.readTermWithoutIdentifier(Parser.java:5041)
+	at org.h2.command.Parser.readTerm(Parser.java:4834)
+	at org.h2.command.Parser.readFactor(Parser.java:3337)
+	at org.h2.command.Parser.readSum(Parser.java:3324)
+	at org.h2.command.Parser.readConcat(Parser.java:3289)
+	at org.h2.command.Parser.readCondition(Parser.java:3079)
+	at org.h2.command.Parser.readExpression(Parser.java:2999)
+	at org.h2.command.Parser.parseSelectExpressions(Parser.java:2799)
+	at org.h2.command.Parser.parseSelect(Parser.java:2817)
+	at org.h2.command.Parser.parseQueryPrimary(Parser.java:2708)
+	at org.h2.command.Parser.parseQueryTerm(Parser.java:2564)
+	at org.h2.command.Parser.parseQueryExpressionBody(Parser.java:2543)
+	at org.h2.command.Parser.parseQueryExpressionBodyAndEndOfQuery(Parser.java:2536)
+	at org.h2.command.Parser.parseQueryExpression(Parser.java:2529)
+	at org.h2.command.Parser.readDerivedTableWithCorrelation(Parser.java:1821)
+	at org.h2.command.Parser.readTablePrimary(Parser.java:1720)
+	at org.h2.command.Parser.readTableReference(Parser.java:2268)
+	at org.h2.command.Parser.parseSelectFromPart(Parser.java:2718)
+	at org.h2.command.Parser.parseSelect(Parser.java:2824)
+	at org.h2.command.Parser.parseQueryPrimary(Parser.java:2708)
+	at org.h2.command.Parser.parseQueryTerm(Parser.java:2564)
+	at org.h2.command.Parser.parseQueryExpressionBody(Parser.java:2543)
+	at org.h2.command.Parser.parseQueryExpressionBodyAndEndOfQuery(Parser.java:2536)
+	at org.h2.command.Parser.parseQueryExpression(Parser.java:2529)
+	at org.h2.command.Parser.parseQuery(Parser.java:2498)
+	at org.h2.command.Parser.parsePrepared(Parser.java:627)
+	at org.h2.command.Parser.parse(Parser.java:592)
+	at org.h2.command.Parser.parse(Parser.java:569)
+	at org.h2.command.Parser.prepareCommand(Parser.java:483)
+	at org.h2.engine.SessionLocal.prepareLocal(SessionLocal.java:639)
+	at org.h2.engine.SessionLocal.prepareCommand(SessionLocal.java:559)
+	at org.h2.jdbc.JdbcConnection.prepareCommand(JdbcConnection.java:1166)
+	at org.h2.jdbc.JdbcPreparedStatement.&lt;init&gt;(JdbcPreparedStatement.java:93)
+	at org.h2.jdbc.JdbcConnection.prepareStatement(JdbcConnection.java:316)
+	at com.zaxxer.hikari.pool.ProxyConnection.prepareStatement(ProxyConnection.java:327)
+	at com.zaxxer.hikari.pool.HikariProxyConnection.prepareStatement(HikariProxyConnection.java)
+	at org.hibernate.engine.jdbc.internal.StatementPreparerImpl$5.doPrepare(StatementPreparerImpl.java:153)
+	at org.hibernate.engine.jdbc.internal.StatementPreparerImpl$StatementPreparationTemplate.prepareStatement(StatementPreparerImpl.java:183)
+	... 81 more
+</failure>
+  </testcase>
+  <testcase name="자동 정지 ON — LIVE·DYNAMIC 세션을 일반 정지로 멈추고(청산 매도 제출) 결과를 기록한다" classname="com.cryptoautotrader.api.service.PositionLimitTest" time="0.017"/>
+  <testcase name="자동 정지 OFF — 경보로 한 번 처리하고 세션은 그대로, 진입은 막힌다" classname="com.cryptoautotrader.api.service.PositionLimitTest" time="0.007"/>
+  <testcase name="오래된 실시간 시세 — 기준(120초)을 넘으면 판정하지 않는다: 고점·도달 기록 없음, 새 시세가 오면 판정" classname="com.cryptoautotrader.api.service.PositionLimitTest" time="0.006"/>
+  <system-out><![CDATA[21:02:53.898 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.PositionLimitTest
+21:02:53.900 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:02:53.906 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:02:53.909 [Test worker] WARN  c.c.api.service.PositionLimitGuard - [포지션 한도] 포지션 #534 KRW-PLIMF LIVE#341 ? 반영값 없는 체결 주문 1건(매수 원가 20010.00): 평가하지 않는다(고점 유지)
+21:02:53.913 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:02:53.915 [Test worker] ERROR c.c.api.service.PositionLimitGuard - ? [포지션 한도] 도달 ? 이 세션의 실자금 신규 진입을 막는다: MAX_DRAWDOWN 고점 대비 -4997.50 ≤ -4997.50 (-20.0% × 고점 24987.50) ? 포지션 #535 KRW-PLIMB LIVE#342 평가액 19990.00(매도 순대금 12493.75 + 잔량 50 × 150(RECORDED@2026-11-12T12:02:53.915933600Z)) 매수 원가 20010.00 손익 -20.00 | 진입 배정액 20010.00 · 고점 24987.50
+21:02:53.921 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:02:53.930 [Test worker] ERROR c.c.api.service.PositionLimitGuard - ? [포지션 한도] 도달 ? 이 세션의 실자금 신규 진입을 막는다: CAPITAL_LOSS 손익 -454.04 ≤ -450.00 (-15.0% × 진입 배정액 3000.00) ? 포지션 #536 KRW-PLIMC LIVE#343 평가액 2487.96(매도 순대금 0.00 + 잔량 9.8 × 254(RECORDED@2026-11-12T12:02:53.929579600Z)) 매수 원가 2942.00 손익 -454.04 | 진입 배정액 3000.00 · 고점 2938.53
+21:02:53.933 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:02:53.938 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:02:53.940 [Test worker] WARN  c.c.api.service.PositionLimitGuard - [포지션 한도] 포지션 #538 KRW-PLIME LIVE#345 ? 실시간 시세 없음, 대체 시세 200(평가루프) 로는 판정하지 않는다(고점 29985.00 유지, 평가액 참고 19990.00)
+21:02:53.941 [Test worker] ERROR c.c.api.service.PositionLimitGuard - ? [포지션 한도] 도달 ? 이 세션의 실자금 신규 진입을 막는다: MAX_DRAWDOWN 고점 대비 -6096.95 ≤ -5997.00 (-20.0% × 고점 29985.00) ? 포지션 #538 KRW-PLIME LIVE#345 평가액 23888.05(매도 순대금 0.00 + 잔량 100 × 239(RECORDED@2026-11-12T12:02:53.941447400Z)) 매수 원가 20010.00 손익 3878.05 | 진입 배정액 20010.00 · 고점 29985.00
+21:02:53.945 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:02:53.947 [Test worker] ERROR c.c.api.service.PositionLimitGuard - ? [포지션 한도] 도달 ? 이 세션의 실자금 신규 진입을 막는다: CAPITAL_LOSS 손익 -5007.50 ≤ -3000.00 (-15.0% × 진입 배정액 20000.00) ? 포지션 #539 KRW-PLIMG LIVE#346 평가액 14992.50(매도 순대금 0.00 + 잔량 100 × 150(RECORDED@2026-11-12T12:02:53.947525700Z)) 매수 원가 20000.00 손익 -5007.50 | 진입 배정액 20000.00 · 고점 14992.50
+21:02:53.950 [Test worker] WARN  c.c.a.s.CapitalReservationService - [공유 풀] 승인하지 않는다 (sessionId=346, 사유=POSITION_LIMIT): 포지션별 한도 도달 기록이 있는 세션 ? 신규 진입을 승인하지 않는다(LIVE#346, 포지션 #539 CAPITAL_LOSS, 2026-11-12T21:02:53.947526+09:00, 기록 1건) ? ? 거래소 거절을 기다리지 않는다
+21:02:53.952 [Test worker] ERROR c.c.api.service.PositionLimitGuard - ? [포지션 한도] 도달 ? 이 세션의 실자금 신규 진입을 막는다: CAPITAL_LOSS 손익 -5007.50 ≤ -3000.00 (-15.0% × 진입 배정액 20000.00) ? 포지션 #541 KRW-PLIMH DYNAMIC#232 평가액 14992.50(매도 순대금 0.00 + 잔량 100 × 150(RECORDED@2026-11-12T12:02:53.952118400Z)) 매수 원가 20000.00 손익 -5007.50 | 진입 배정액 20000.00 · 고점 14992.50
+21:02:53.961 [Test worker] WARN  o.h.e.jdbc.spi.SqlExceptionHelper - SQL Error: 42000, SQLState: 42000
+21:02:53.961 [Test worker] ERROR o.h.e.jdbc.spi.SqlExceptionHelper - Syntax error in SQL statement "SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]>>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at >= ?) t WHERE pnl < 0"; SQL statement:
+SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json->>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at >= ?) t WHERE pnl < 0 [42000-224]
+21:02:53.973 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:02:53.976 [Test worker] ERROR c.c.api.service.PositionLimitGuard - ? [포지션 한도] 도달 ? 이 세션의 실자금 신규 진입을 막는다: CAPITAL_LOSS 손익 -3000.50 ≤ -3000.00 (-15.0% × 진입 배정액 20000.00) ? 포지션 #542 KRW-PLIMA LIVE#347 평가액 16999.50(매도 순대금 0.00 + 잔량 100 × 170.08(RECORDED@2026-11-12T12:02:53.976608100Z)) 매수 원가 20000.00 손익 -3000.50 | 진입 배정액 20000.00 · 고점 17000.50
+21:02:53.983 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:02:53.985 [Test worker] WARN  c.c.api.service.PositionLimitGuard - [포지션 한도] 포지션 #544 KRW-PLIMU LIVE#349 ? 실시간 시세 없음, 대체 시세 200(평가루프) 로는 판정하지 않는다(고점 N/A 유지, 평가액 참고 19990.00)
+21:02:53.993 [Test worker] WARN  c.c.api.service.PositionLimitGuard - [포지션 한도] 포지션 #544 KRW-PLIMU LIVE#349 ? 시세 210(RECORDED@2026-11-12T12:02:53.984560900Z) 가 179초 전 값(기준 120초 초과): 판정하지 않는다(고점 N/A 유지, 평가액 참고 20989.50)
+21:02:53.994 [Test worker] WARN  c.c.api.service.PositionLimitGuard - [포지션 한도] 포지션 #544 KRW-PLIMU LIVE#349 ? 시세 210(RECORDED@2026-11-12T12:02:53.984560900Z) 가 181초 전 값(기준 120초 초과): 판정하지 않는다(고점 N/A 유지, 평가액 참고 20989.50)
+21:02:53.994 [Test worker] ERROR c.c.api.service.PositionLimitMonitor - ? [포지션 한도] 포지션별 한도 판정 불가 181초 ? LIVE#349 포지션 #544 KRW-PLIMU (MARK_STALE). 이 포지션은 한도 안으로 보지 않는다 ? 시세 경로를 확인하라. 이 세션의 신규 진입은 판정 불가가 확인된 순간부터 막혀 있다(정지는 걸려 있지 않다) | 포지션 #544 KRW-PLIMU LIVE#349 ? 시세 210(RECORDED@2026-11-12T12:02:53.984560900Z) 가 181초 전 값(기준 120초 초과): 판정하지 않는다(고점 N/A 유지, 평가액 참고 20989.50)
+21:02:53.994 [Test worker] WARN  c.c.api.service.PositionLimitMonitor - [포지션 한도] 포지션별 한도 판정 재개 ? LIVE#349 포지션 #544 KRW-PLIMU (판정 불가 190초, 사유 MARK_STALE)
+21:02:53.998 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:02:54.002 [Test worker] WARN  c.c.api.service.PoolLossGuard - [공유 풀 손실 한도] 유효한 실시간 시세 없이 대체 가격으로만 평가되는 보유 1건 [KRW-PLIMQ=200(평가루프)[대체]] ? 대체 가격이 손실을 과소평가하지 않는다는 근거가 없어 손실 한도를 판정할 수 없다. 풀 전체 신규 진입을 승인하지 않는다(주문 추적·청산은 계속)
+21:02:54.002 [Test worker] WARN  c.c.a.s.CapitalReservationService - [공유 풀] 승인하지 않는다 (sessionId=350, 사유=POOL_VALUATION_UNKNOWN): 유효한 실시간 시세 없이 대체 가격으로만 평가되는 보유 1건 [KRW-PLIMQ=200(평가루프)[대체]] ? 대체 가격이 손실을 과소평가하지 않는다는 근거가 없어 손실 한도를 판정할 수 없다. 풀 전체 신규 진입을 승인하지 않는다(주문 추적·청산은 계속) ? ? 거래소 거절을 기다리지 않는다
+21:02:54.004 [Test worker] WARN  c.c.api.service.PoolLossGuard - [공유 풀 손실 한도] 유효한 실시간 시세 없이 대체 가격으로만 평가되는 보유 1건 [KRW-PLIMQ=200(평가루프)[대체]] ? 대체 가격이 손실을 과소평가하지 않는다는 근거가 없어 손실 한도를 판정할 수 없다. 풀 전체 신규 진입을 승인하지 않는다(주문 추적·청산은 계속)
+21:02:54.004 [Test worker] WARN  c.c.a.s.CapitalReservationService - [공유 풀] 승인하지 않는다 (sessionId=351, 사유=POOL_VALUATION_UNKNOWN): 유효한 실시간 시세 없이 대체 가격으로만 평가되는 보유 1건 [KRW-PLIMQ=200(평가루프)[대체]] ? 대체 가격이 손실을 과소평가하지 않는다는 근거가 없어 손실 한도를 판정할 수 없다. 풀 전체 신규 진입을 승인하지 않는다(주문 추적·청산은 계속) ? ? 거래소 거절을 기다리지 않는다
+21:02:54.005 [Test worker] WARN  c.c.api.service.PoolLossGuard - [공유 풀 손실 한도] 유효한 실시간 시세 없이 대체 가격으로만 평가되는 보유 1건 [KRW-PLIMQ=250(RECORDED@2026-11-12T12:00:53.004164200Z)[대체]] ? 대체 가격이 손실을 과소평가하지 않는다는 근거가 없어 손실 한도를 판정할 수 없다. 풀 전체 신규 진입을 승인하지 않는다(주문 추적·청산은 계속)
+21:02:54.005 [Test worker] WARN  c.c.a.s.CapitalReservationService - [공유 풀] 승인하지 않는다 (sessionId=351, 사유=POOL_VALUATION_UNKNOWN): 유효한 실시간 시세 없이 대체 가격으로만 평가되는 보유 1건 [KRW-PLIMQ=250(RECORDED@2026-11-12T12:00:53.004164200Z)[대체]] ? 대체 가격이 손실을 과소평가하지 않는다는 근거가 없어 손실 한도를 판정할 수 없다. 풀 전체 신규 진입을 승인하지 않는다(주문 추적·청산은 계속) ? ? 거래소 거절을 기다리지 않는다
+21:02:54.006 [Test worker] WARN  c.c.a.s.CapitalReservationService - [공유 풀] 승인하지 않는다 (sessionId=350, 사유=POSITION_LIMIT_UNJUDGED): 포지션별 한도를 판정할 수 없는 포지션이 있는 세션 ? 신규 진입을 승인하지 않는다(LIVE#350, 포지션 #545 KRW-PLIMQ, MARK_UNAVAILABLE: 실시간 시세 없음, 반영값 없는 체결 0건). 청산·주문 추적은 계속된다 ? ? 거래소 거절을 기다리지 않는다
+21:02:54.007 [Test worker] WARN  c.c.a.s.CapitalReservationService - [공유 풀] 승인하지 않는다 (sessionId=350, 사유=POSITION_LIMIT_UNJUDGED): 포지션별 한도를 판정할 수 없는 포지션이 있는 세션 ? 신규 진입을 승인하지 않는다(LIVE#350, 포지션 #545 KRW-PLIMQ, MARK_STALE: 121초 전 시세, 반영값 없는 체결 0건). 청산·주문 추적은 계속된다 ? ? 거래소 거절을 기다리지 않는다
+21:02:54.021 [Test worker] ERROR c.c.api.service.PoolLossGuard - ? 체결 수량이 있는데 반영값이 없는 실자금 주문 1건 ? 순자산을 계산하지 않는다
+21:02:54.021 [Test worker] WARN  c.c.a.s.CapitalReservationService - [공유 풀] 승인하지 않는다 (sessionId=352, 사유=POOL_VALUATION_UNKNOWN): 순자산을 계산할 수 없다(반영값 없는 체결 주문) ? 손실 한도를 확인할 수 없으므로 승인하지 않는다 ? ? 거래소 거절을 기다리지 않는다
+21:02:54.022 [Test worker] ERROR c.c.api.service.PoolLossGuard - ? 체결 수량이 있는데 반영값이 없는 실자금 주문 1건 ? 순자산을 계산하지 않는다
+21:02:54.022 [Test worker] WARN  c.c.a.s.CapitalReservationService - [공유 풀] 승인하지 않는다 (sessionId=351, 사유=POOL_VALUATION_UNKNOWN): 순자산을 계산할 수 없다(반영값 없는 체결 주문) ? 손실 한도를 확인할 수 없으므로 승인하지 않는다 ? ? 거래소 거절을 기다리지 않는다
+21:02:54.025 [Test worker] WARN  o.h.e.jdbc.spi.SqlExceptionHelper - SQL Error: 42000, SQLState: 42000
+21:02:54.025 [Test worker] ERROR o.h.e.jdbc.spi.SqlExceptionHelper - Syntax error in SQL statement "SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]>>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at >= ?) t WHERE pnl < 0"; SQL statement:
+SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json->>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at >= ?) t WHERE pnl < 0 [42000-224]
+21:02:54.032 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:02:54.034 [Test worker] ERROR c.c.api.service.PositionLimitGuard - ? [포지션 한도] 도달 ? 이 세션의 실자금 신규 진입을 막는다: CAPITAL_LOSS 손익 -5007.50 ≤ -3000.00 (-15.0% × 진입 배정액 20000.00) ? 포지션 #557 KRW-PLIMM LIVE#353 평가액 14992.50(매도 순대금 0.00 + 잔량 100 × 150(RECORDED@2026-11-12T12:02:54.033083Z)) 매수 원가 20000.00 손익 -5007.50 | 진입 배정액 20000.00 · 고점 14992.50
+21:02:54.034 [Test worker] ERROR c.c.api.service.PositionLimitGuard - ? [포지션 한도] 도달 ? 이 세션의 실자금 신규 진입을 막는다: CAPITAL_LOSS 손익 -5007.50 ≤ -3000.00 (-15.0% × 진입 배정액 20000.00) ? 포지션 #558 KRW-PLIMN DYNAMIC#234 평가액 14992.50(매도 순대금 0.00 + 잔량 100 × 150(RECORDED@2026-11-12T12:02:54.033083Z)) 매수 원가 20000.00 손익 -5007.50 | 진입 배정액 20000.00 · 고점 14992.50
+21:02:54.038 [Test worker] WARN  c.c.api.service.LiveTradingService - ? 정지했으나 **정리 미완료** ? 미해결 제출 1건이 남았다 (sessionId=353). 그 주문은 접수됐을 수 있으므로 자금·슬롯을 점유한 것으로 두고 추적을 계속한다. 종결은 근거를 확인한 사람이 한다.
+21:02:54.039 [Test worker] ERROR c.c.api.service.PositionLimitMonitor - ? [포지션 한도] CAPITAL_LOSS LIVE#353 포지션 #557 → AUTO_STOPPED: 일반 정지 호출 성공(세션 STOPPED) ? 청산 체결·정리 대기는 별도 추적 | CAPITAL_LOSS 손익 -5007.50 ≤ -3000.00 (-15.0% × 진입 배정액 20000.00) ? 포지션 #557 KRW-PLIMM LIVE#353 평가액 14992.50(매도 순대금 0.00 + 잔량 100 × 150(RECORDED@2026-11-12T12:02:54.033083Z)) 매수 원가 20000.00 손익 -5007.50 | 진입 배정액 20000.00 · 고점 14992.50
+21:02:54.042 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] ? 정지했으나 **정리 미완료** ? 미해결 제출 1건이 남았다 (sessionId=234). 자금·슬롯을 점유한 것으로 두고 추적을 계속한다.
+21:02:54.043 [Test worker] ERROR c.c.api.service.PositionLimitMonitor - ? [포지션 한도] CAPITAL_LOSS DYNAMIC#234 포지션 #558 → AUTO_STOPPED: 일반 정지 호출 성공(세션 STOPPED) ? 청산 체결·정리 대기는 별도 추적 | CAPITAL_LOSS 손익 -5007.50 ≤ -3000.00 (-15.0% × 진입 배정액 20000.00) ? 포지션 #558 KRW-PLIMN DYNAMIC#234 평가액 14992.50(매도 순대금 0.00 + 잔량 100 × 150(RECORDED@2026-11-12T12:02:54.033083Z)) 매수 원가 20000.00 손익 -5007.50 | 진입 배정액 20000.00 · 고점 14992.50
+21:02:54.049 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:02:54.051 [Test worker] ERROR c.c.api.service.PositionLimitGuard - ? [포지션 한도] 도달 ? 이 세션의 실자금 신규 진입을 막는다: CAPITAL_LOSS 손익 -5007.50 ≤ -3000.00 (-15.0% × 진입 배정액 20000.00) ? 포지션 #559 KRW-PLIML LIVE#354 평가액 14992.50(매도 순대금 0.00 + 잔량 100 × 150(RECORDED@2026-11-12T12:02:54.050665600Z)) 매수 원가 20000.00 손익 -5007.50 | 진입 배정액 20000.00 · 고점 14992.50
+21:02:54.051 [Test worker] ERROR c.c.api.service.PositionLimitMonitor - ? [포지션 한도] CAPITAL_LOSS LIVE#354 포지션 #559 → ALERTED: 자동 정지 OFF ? 신규 진입은 차단됨, 정지·정리는 운영자 (세션 상태 RUNNING) | CAPITAL_LOSS 손익 -5007.50 ≤ -3000.00 (-15.0% × 진입 배정액 20000.00) ? 포지션 #559 KRW-PLIML LIVE#354 평가액 14992.50(매도 순대금 0.00 + 잔량 100 × 150(RECORDED@2026-11-12T12:02:54.050665600Z)) 매수 원가 20000.00 손익 -5007.50 | 진입 배정액 20000.00 · 고점 14992.50
+21:02:54.056 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:02:54.058 [Test worker] WARN  c.c.api.service.PositionLimitGuard - [포지션 한도] 포지션 #560 KRW-PLIMS LIVE#355 ? 시세 400(RECORDED@2026-11-12T12:00:53.058072400Z) 가 121초 전 값(기준 120초 초과): 판정하지 않는다(고점 N/A 유지, 평가액 참고 39980.00)
+21:02:54.059 [Test worker] WARN  c.c.api.service.PositionLimitGuard - [포지션 한도] 포지션 #560 KRW-PLIMS LIVE#355 ? 시세 100(RECORDED@2026-11-12T12:00:53.058072400Z) 가 121초 전 값(기준 120초 초과): 판정하지 않는다(고점 N/A 유지, 평가액 참고 9995.00)
+21:02:54.059 [Test worker] ERROR c.c.api.service.PositionLimitGuard - ? [포지션 한도] 도달 ? 이 세션의 실자금 신규 진입을 막는다: CAPITAL_LOSS 손익 -10015.00 ≤ -3001.50 (-15.0% × 진입 배정액 20010.00) ? 포지션 #560 KRW-PLIMS LIVE#355 평가액 9995.00(매도 순대금 0.00 + 잔량 100 × 100(RECORDED@2026-11-12T12:02:54.058072400Z)) 매수 원가 20010.00 손익 -10015.00 | 진입 배정액 20010.00 · 고점 24987.50
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.EngineParityTest" tests="27" skipped="0" failures="0" errors="0" timestamp="2026-11-12T12:02:24" hostname="DESKTOP-SF1KUQ5" time="0.042">
+  <properties/>
+  <testcase name="[청산 규칙 산정] ExitRuleCalculator 은 LIVE·DYNAMIC·PAPER 모두에 있어야 한다" classname="com.cryptoautotrader.api.service.EngineParityTest" time="0.003"/>
+  <testcase name="[시간 초과 청산] shouldTimeStop 은 LIVE·DYNAMIC·PAPER 모두에 있어야 한다" classname="com.cryptoautotrader.api.service.EngineParityTest" time="0.0"/>
+  <testcase name="[블랙스완 가드] BlackSwanGuard 은 LIVE·DYNAMIC·PAPER 모두에 있어야 한다" classname="com.cryptoautotrader.api.service.EngineParityTest" time="0.0"/>
+  <testcase name="[BTC 시장 가드] BtcMarketGuard 은 LIVE·DYNAMIC·PAPER 모두에 있어야 한다" classname="com.cryptoautotrader.api.service.EngineParityTest" time="0.0"/>
+  <testcase name="[시장 레짐 감지] MarketRegimeDetector 은 LIVE·DYNAMIC·PAPER 모두에 있어야 한다" classname="com.cryptoautotrader.api.service.EngineParityTest" time="0.0"/>
+  <testcase name="[닫힌 캔들 게이팅] lastEvaluatedCandle;lastEvaluatedClosedCandle 은 LIVE·DYNAMIC·PAPER 모두에 있어야 한다" classname="com.cryptoautotrader.api.service.EngineParityTest" time="0.0"/>
+  <testcase name="[비활성 전략 차단] strategyEnablementGate 은 LIVE·DYNAMIC·PAPER 모두에 있어야 한다" classname="com.cryptoautotrader.api.service.EngineParityTest" time="0.0"/>
+  <testcase name="BACKTEST 가 세 엔진과 같은 SL/TP 공식을 쓴다 (주석 제외, 실제 호출 검사)" classname="com.cryptoautotrader.api.service.EngineParityTest" time="0.002"/>
+  <testcase name="세 엔진의 CANDLE_LOOKBACK 이 실제로 같은 값이다" classname="com.cryptoautotrader.api.service.EngineParityTest" time="0.001"/>
+  <testcase name="BACKTEST 에 시간 초과 청산이 있다 — 운영 청산의 47%를 차지하는 경로" classname="com.cryptoautotrader.api.service.EngineParityTest" time="0.001"/>
+  <testcase name="LIVE·PAPER 는 캔들 미달 시 평가만 건너뛰고 청산은 계속한다 (Wave 4-N)" classname="com.cryptoautotrader.api.service.EngineParityTest" time="0.005"/>
+  <testcase name="TP 트레일링은 세 엔진이 같은 함수를 쓴다 (2026-09-08 결함 #1 해소)" classname="com.cryptoautotrader.api.service.EngineParityTest" time="0.0"/>
+  <testcase name="[캔들 조회 개수] 리터럴 하드코딩 금지 — TradingConstants 참조" classname="com.cryptoautotrader.api.service.EngineParityTest" time="0.0"/>
+  <testcase name="[모의 슬리피지] 리터럴 하드코딩 금지 — TradingConstants 참조" classname="com.cryptoautotrader.api.service.EngineParityTest" time="0.001"/>
+  <testcase name="N/A 고정: 교차 세션 노출 한도는 DYNAMIC 전용" classname="com.cryptoautotrader.api.service.EngineParityTest" time="0.0"/>
+  <testcase name="전략 SELL 게이트를 네 경로가 공유한다 (주석 제외, 실제 호출 검사)" classname="com.cryptoautotrader.api.service.EngineParityTest" time="0.003"/>
+  <testcase name="서킷 브레이커 — LIVE·DYNAMIC 은 세션 판정, PAPER 는 값 입력형만(즉시 알림 없음)" classname="com.cryptoautotrader.api.service.EngineParityTest" time="0.001"/>
+  <testcase name="어느 엔진도 손실 구간에서 SL 을 조이지 않는다 (2026-09-08 회귀 방지)" classname="com.cryptoautotrader.api.service.EngineParityTest" time="0.0"/>
+  <testcase name="N/A 고정: 자본 배정 게이트 2종은 PAPER 에 걸지 않는다" classname="com.cryptoautotrader.api.service.EngineParityTest" time="0.0"/>
+  <testcase name="세 엔진이 전략 선언 최소 캔들 수를 같은 출처로 묻는다 (Wave 4-N)" classname="com.cryptoautotrader.api.service.EngineParityTest" time="0.01"/>
+  <testcase name="틱 캔들 캐시를 세 엔진이 공유한다 (2026-09-08 해소)" classname="com.cryptoautotrader.api.service.EngineParityTest" time="0.005"/>
+  <testcase name="SELL 판정 조건식이 엔진에 남아 있지 않다" classname="com.cryptoautotrader.api.service.EngineParityTest" time="0.002"/>
+  <testcase name="[원자적 CLOSING 전환] markClosingIfOpen 은 LIVE·DYNAMIC 에만" classname="com.cryptoautotrader.api.service.EngineParityTest" time="0.0"/>
+  <testcase name="[시간초과 즉시 알림] notifyTimeStop 은 LIVE·DYNAMIC 에만" classname="com.cryptoautotrader.api.service.EngineParityTest" time="0.0"/>
+  <testcase name="[손절 즉시 알림] notifyStopLoss 은 LIVE·DYNAMIC 에만" classname="com.cryptoautotrader.api.service.EngineParityTest" time="0.0"/>
+  <testcase name="닫힌 캔들 게이트를 세 엔진이 같은 이름으로 부른다 (2026-09-08 결함 #3 해소)" classname="com.cryptoautotrader.api.service.EngineParityTest" time="0.0"/>
+  <testcase name="BACKTEST 도 매매 엔진과 같은 청산 규칙 모듈을 쓴다" classname="com.cryptoautotrader.api.service.EngineParityTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.RateLimiterEmergencyStopTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-11-12T10:25:29" hostname="DESKTOP-SF1KUQ5" time="5.72">
+  <properties/>
+  <testcase name="§10 시간이 지나도 PERMITS_PER_SECOND 이상으로 permit 이 늘지 않음" classname="com.cryptoautotrader.api.service.RateLimiterEmergencyStopTest" time="2.502"/>
+  <testcase name="§10 동시 acquire — 첫 1초 안에 돌아온 발급은 7건 이하, 나머지는 창이 열린 뒤" classname="com.cryptoautotrader.api.service.RateLimiterEmergencyStopTest" time="1.014"/>
+  <testcase name="§10 초기 permit = PERMITS_PER_SECOND" classname="com.cryptoautotrader.api.service.RateLimiterEmergencyStopTest" time="0.001"/>
+  <testcase name="§10 permit 소진 후 acquire 실패 (timeout=0 모의)" classname="com.cryptoautotrader.api.service.RateLimiterEmergencyStopTest" time="1.201"/>
+  <testcase name="§10 여덟 번째 발급은 첫 발급으로부터 1초가 지나야 돌아온다" classname="com.cryptoautotrader.api.service.RateLimiterEmergencyStopTest" time="1.001"/>
+  <system-out><![CDATA[19:25:30.898 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+19:25:30.899 [telegram-1] ERROR c.c.a.s.TelegramNotificationService - [Telegram] ? SESSION_STOP 알림 3회 시도 ? 최종 실패: 전달되지 않음(마지막 REJECTED HTTP 404)(이력 success=false): ? *실전매매 세션 종료*
+
+? 세션 ID: `29`
+? 코인: `KRW-DOGE`
+? 총 자산: `10,000 KRW`
+? 수익률: `+0.00%`
+? 시각: `2026-11-12 19:24:59`
+19:25:31.389 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+19:25:31.389 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] SESSION_STOP 전송 실패(REJECTED) ? 2000ms 후 재시도 (1/3)
+19:25:32.012 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+19:25:32.012 [telegram-1] ERROR c.c.a.s.TelegramNotificationService - [Telegram] ? SESSION_STOP 알림 3회 시도 ? 최종 실패: 전달되지 않음(마지막 REJECTED HTTP 404)(이력 success=false): ? *실전매매 세션 종료*
+
+? 세션 ID: `102`
+? 코인: `KRW-DOGE`
+? 총 자산: `10,000 KRW`
+? 수익률: `+0.00%`
+? 시각: `2026-11-12 19:25:22`
+19:25:33.851 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+19:25:33.852 [telegram-1] ERROR c.c.a.s.TelegramNotificationService - [Telegram] ? SESSION_STOP 알림 3회 시도 ? 최종 실패: 전달되지 않음(마지막 REJECTED HTTP 404)(이력 success=false): ? *실전매매 비상 정지*
+
+? 세션 ID: `103`
+? 코인: `KRW-DOGE`
+? 총 자산: `10,001 KRW`
+? 수익률: `+0.01%`
+? 시각: `2026-11-12 19:25:24`
+19:25:33.882 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+19:25:33.882 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] SESSION_STOP 전송 실패(REJECTED) ? 5000ms 후 재시도 (2/3)
+19:25:34.336 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+19:25:34.337 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] SESSION_STOP 전송 실패(REJECTED) ? 2000ms 후 재시도 (1/3)
+19:25:34.387 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+19:25:34.387 [telegram-1] ERROR c.c.a.s.TelegramNotificationService - [Telegram] ? CLEANUP_INCOMPLETE 알림 3회 시도 ? 최종 실패: 전달되지 않음(마지막 REJECTED HTTP 404)(이력 success=false): ? *세션 #109 정지 ? 정리 미완료*
+
+? 미해결 제출: `1건` (제출 결과 불명)
+? 접수 가능성이 있어 자금·슬롯을 유지하고 식별자로 추적을 계속합니다.
+? 자동 종결하지 않으므로 확인이 필요합니
+19:25:34.678 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+19:25:34.678 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] SESSION_STOP 전송 실패(REJECTED) ? 2000ms 후 재시도 (1/3)
+19:25:35.002 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+19:25:35.002 [telegram-1] ERROR c.c.a.s.TelegramNotificationService - [Telegram] ? SESSION_STOP 알림 3회 시도 ? 최종 실패: 전달되지 않음(마지막 REJECTED HTTP 404)(이력 success=false): ? *실전매매 비상 정지*
+
+? 세션 ID: `93`
+? 코인: `KRW-DOGE`
+? 총 자산: `10,000 KRW`
+? 수익률: `+0.00%`
+? 시각: `2026-11-12 19:25:17`
+19:25:35.483 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

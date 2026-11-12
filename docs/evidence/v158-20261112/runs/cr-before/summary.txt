@@ -1,0 +1,17 @@
+web-api tests 5 fail 4 err 0 skip 0 pass 1
+FAIL com.cryptoautotrader.api.service.ClosingIntentAtomicityPgTest # ① LIVE 정리 작업: 의도 생성 전 청산 확인이 와도 CLOSING·의도 유지 → 매도1·입금1
+    org.opentest4j.AssertionFailedError: [주문 부재로 OPEN 되돌림 금지 — 의도는 CLOSING 과 함께 확정] 
+expected: "CLOSING"
+ but was: "OPEN"
+FAIL com.cryptoautotrader.api.service.ClosingIntentAtomicityPgTest # ⑤ 응답 불명: CLOSING 유지·재매도 0
+    org.opentest4j.AssertionFailedError: 
+expected: "CLOSING"
+ but was: "OPEN"
+FAIL com.cryptoautotrader.api.service.ClosingIntentAtomicityPgTest # ③ DYNAMIC REAL 매도: 의도 생성 전 청산 확인이 와도 CLOSING·의도 유지 → 매도1
+    org.opentest4j.AssertionFailedError: 
+expected: "CLOSING"
+ but was: "OPEN"
+FAIL com.cryptoautotrader.api.service.ClosingIntentAtomicityPgTest # ④ 실행기 거절: 의도 철회(외부 호출 0) → 청산 확인이 근거(철회 FAILED)로 OPEN 복귀
+    java.lang.AssertionError: [철회된 의도가 근거로 남는다] 
+Expected size: 1 but was: 0 in:
+[]

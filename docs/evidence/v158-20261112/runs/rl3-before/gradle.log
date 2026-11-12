@@ -1,0 +1,65 @@
+Starting a Gradle Daemon, 2 busy Daemons could not be reused, use --status for details
+> Task :strategy-lib:compileJava
+> Task :strategy-lib:processResources NO-SOURCE
+> Task :strategy-lib:classes
+> Task :strategy-lib:jar
+> Task :core-engine:compileJava
+> Task :core-engine:processResources NO-SOURCE
+> Task :core-engine:classes
+> Task :core-engine:jar
+> Task :exchange-adapter:compileJava
+> Task :exchange-adapter:processResources NO-SOURCE
+> Task :exchange-adapter:classes
+> Task :exchange-adapter:jar
+> Task :web-api:compileJava
+> Task :web-api:processResources
+> Task :web-api:classes
+> Task :web-api:compileTestJava
+> Task :web-api:processTestResources
+> Task :web-api:testClasses
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+
+> Task :web-api:test
+
+v1.158 결정 2 ? 실자금 손실 세 보호식 (로컬 PostgreSQL) > ① DYNAMIC REAL ?4,002 (LIVE 10만·DYN 10만): DYNAMIC 4.00%·전체 2.00% > 1.50% ? checkRisk·DYNAMIC 진입 모두 거절 FAILED
+    org.opentest4j.AssertionFailedError at RealLossThreeFormulaPgTest.java:201
+
+v1.158 결정 2 ? 실자금 손실 세 보호식 (로컬 PostgreSQL) > ② LIVE ?2,001 (LIVE 10만·DYN 10만): 기존 2.00% 거절 유지 ? DYNAMIC 자본을 더한 전체 1.00% 로 완화되지 않음 FAILED
+    java.lang.AssertionError at RealLossThreeFormulaPgTest.java:217
+
+v1.158 결정 2 ? 실자금 손실 세 보호식 (로컬 PostgreSQL) > ③ 판정 불가 ? DYNAMIC REAL 손실이 있는데 RUNNING DYNAMIC REAL 자본이 없으면 거절, 손실 0 이면 자본 없음만으로 막지 않음 FAILED
+    org.opentest4j.AssertionFailedError at RealLossThreeFormulaPgTest.java:234
+
+v1.158 결정 2 ? 실자금 손실 세 보호식 (로컬 PostgreSQL) > ④ 동률 비교 ? 손실률 = 한도(2.00%) 승인, 한도 1.99% 거절 (기존·DYNAMIC 각각) FAILED
+    org.opentest4j.AssertionFailedError at RealLossThreeFormulaPgTest.java:260
+
+v1.158 결정 2 ? 실자금 손실 세 보호식 (로컬 PostgreSQL) > ⑤ 창 경계 ? 2일 전 DYNAMIC 손실은 일일 밖·주간 안 FAILED
+    org.opentest4j.AssertionFailedError at RealLossThreeFormulaPgTest.java:277
+
+v1.158 결정 2 ? 실자금 손실 세 보호식 (로컬 PostgreSQL) > ⑧ 자본 추가·정지 판정 표 (관측 + 단언) FAILED
+    org.opentest4j.AssertionFailedError at RealLossThreeFormulaPgTest.java:357
+
+19:24:27.460 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:24:27.461 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+19:24:27.463 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+19:24:27.465 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+19:24:27.467 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+19:24:27.468 [HttpClient-14-Worker-0] WARN  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 종료: code=1000, reason=정상 종료
+19:24:27.468 [HttpClient-14-Worker-0] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:24:27.469 [HttpClient-14-Worker-0] INFO  c.c.e.upbit.UpbitWebSocketClient - 종료 요청됨. 재연결 스킵.
+
+> Task :web-api:test FAILED
+
+8 tests completed, 6 failed
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':web-api:test'.
+> There were failing tests. See the report at: file:///D:/tmp/rl158-92aa8712/web-api/build/reports/tests/test/index.html
+
+* Try:
+> Run with --scan to get full insights.
+
+BUILD FAILED in 48s
+11 actionable tasks: 11 executed

@@ -1,0 +1,39 @@
+From 280d7f540860723ebab11f6292277035f009bc34 Mon Sep 17 00:00:00 2001
+From: YamSaeng81 <manicstr81@gmail.com>
+Date: Thu, 12 Nov 2026 16:45:56 +0900
+Subject: [PATCH 07/20] =?UTF-8?q?phantom=20=ED=99=95=EC=A0=95=EC=9D=98=20?=
+ =?UTF-8?q?=EC=84=B8=EC=85=98=20=EC=9E=85=EA=B8=88=EC=9D=84=20=EA=B0=99?=
+ =?UTF-8?q?=EC=9D=80=20=ED=8A=B8=EB=9E=9C=EC=9E=AD=EC=85=98=EC=9C=BC?=
+ =?UTF-8?q?=EB=A1=9C(=EC=B4=9D=EA=B4=84=20v1.157=20=C2=A7125-7,=200c980619?=
+ =?UTF-8?q?=20=EC=9C=84,=20=EB=AF=B8=EC=8A=B9=EC=9D=B8)=20=E2=80=94=20appl?=
+ =?UTF-8?q?y(REQUIRES=5FNEW)=20=E2=86=92=20applyWithin?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+종전에는 phantom 확정이 롤백돼도 추정 순입금만 독립 커밋돼 포지션 OPEN·잔액 +8,995.50 이 남고, 다음 주기 재확정에서 두 번 들어갔다(실제 PG ③, SessionBalanceUpdater 주석이 금지한 구조). reconcilePhantomPositions 는 @Transactional 이라 같은 트랜잭션에서 갱신된다. 낙관적 잠금 충돌은 그 주기 전체 롤백 → 다음 주기 재시도(감지 횟수 유지). 금액·반올림·총자산 규칙 그대로. 실제 PG 4/4.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+(cherry picked from commit 76ea30506cd7f570652116b2eabcb1baad83087e)
+---
+ .../com/cryptoautotrader/api/service/LiveTradingService.java  | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
+index 4181f86e..19155062 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
+@@ -3099,7 +3099,9 @@ public class LiveTradingService {
+                 .isPresent();
+         // 잔액에는 추정 순입금을 두 자리로 반올림해 넣는다 (리뷰 2026-10-31, {@link BalanceAmounts}) — 매도 확정과 같은 규칙.
+         final BigDecimal balanceCredit = BalanceAmounts.toBalance(netProceeds);
+-        balanceUpdater.apply(sessionId, s -> {
++        // 🔴 같은 트랜잭션 안에서 갱신한다 (총괄 v1.157 §125-7) — 종전 apply(REQUIRES_NEW)는 입금만 독립 커밋돼, 이 확정이 롤백되면
++        //    포지션은 OPEN 으로 남고 다음 주기 재확정에서 같은 추정 순입금이 두 번 들어갔다(실제 PG ③). 정산과 같은 applyWithin 규칙.
++        balanceUpdater.applyWithin(sessionId, s -> {
+             BigDecimal newAvailableKrw = s.getAvailableKrw().add(balanceCredit);
+             s.setAvailableKrw(newAvailableKrw);
+             if (!hasOpenPosition) {
+-- 
+2.51.1.windows.1
+

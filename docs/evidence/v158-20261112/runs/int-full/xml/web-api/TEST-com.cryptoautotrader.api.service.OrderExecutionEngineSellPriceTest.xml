@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.OrderExecutionEngineSellPriceTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-12T12:02:47" hostname="DESKTOP-SF1KUQ5" time="0.247">
+  <properties/>
+  <testcase name="매도_체결가_정산되면_평균가_확정하고_FILLED_전이()" classname="com.cryptoautotrader.api.service.OrderExecutionEngineSellPriceTest" time="0.243"/>
+  <testcase name="매도_체결가_미정산이면_FILLED_보류하고_SUBMITTED_유지()" classname="com.cryptoautotrader.api.service.OrderExecutionEngineSellPriceTest" time="0.002"/>
+  <testcase name="최상위_funds_없어도_trades_합산으로_평균가_확정하고_FILLED_전이()" classname="com.cryptoautotrader.api.service.OrderExecutionEngineSellPriceTest" time="0.002"/>
+  <system-out><![CDATA[21:02:47.887 [Test worker] WARN  c.c.api.service.OrderExecutionEngine - 매도 체결(done)이나 체결가 미정산 ? FILLED 보류, 폴러 재조회 (orderId=1, uuid=uuid-1)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

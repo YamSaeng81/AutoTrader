@@ -1,0 +1,58 @@
+From 7297b67f988ccea1f2d95aaf2e6e5fdca0b19148 Mon Sep 17 00:00:00 2001
+From: YamSaeng81 <manicstr81@gmail.com>
+Date: Thu, 12 Nov 2026 16:44:07 +0900
+Subject: [PATCH 02/20] =?UTF-8?q?=EB=8C=80=EA=B8=B0=20=EA=B2=BD=EA=B3=84?=
+ =?UTF-8?q?=20=EC=8B=9C=ED=97=98=20=E2=91=A0=20=EC=9D=B4=20=EB=AF=B8?=
+ =?UTF-8?q?=EB=A6=AC=20=EB=A7=8C=EB=93=A0=20=EB=91=90=20=EC=9E=91=EC=97=85?=
+ =?UTF-8?q?=EC=9E=90=EC=9D=98=20=EC=B6=9C=EB=B0=9C(=EB=8C=80=EA=B8=B0?=
+ =?UTF-8?q?=EC=97=B4=20=EC=95=9E=20=EB=8F=84=EC=B0=A9)=EC=9D=84=20?=
+ =?UTF-8?q?=ED=99=95=EC=9D=B8=ED=95=9C=20=EB=92=A4=20=EA=B4=80=EC=B8=A1?=
+ =?UTF-8?q?=ED=95=98=EA=B2=8C(=EC=8B=9C=ED=97=98=EB=A7=8C,=20=EC=B4=9D?=
+ =?UTF-8?q?=EA=B4=84=20v1.157=20=C2=A7125-4,=2084fb03d6=20=EA=B8=B0?=
+ =?UTF-8?q?=EC=A0=90)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+int155-full 실패(queue=0 active=1 tasks=1 completed=0 executed=false) 원인 입증: prestartAllCoreThreads 는 작업자를 만들기만 하고, 아직 출발하지 않은 작업자는 생성 상태(-1)라 active 로 세어진다. 진단 탐침(커밋 안 함, 두 번째 작업자 출발만 붙잡기)에서 같은 수치를 결정적으로 재현했고, 두 작업자 take 진입 확인 뒤에는 drained=true. 보완: take 진입 래치(2) 대기 — sleep·기대 완화 없음, ①②③ 단언 그대로. 3/3.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+(cherry picked from commit ee5beb18196646a3fa562ba6a939e06c86f6cccf)
+---
+ .../api/service/OrderExecutorDrainPredicateGapTest.java     | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/OrderExecutorDrainPredicateGapTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/OrderExecutorDrainPredicateGapTest.java
+index 9cd6f04a..57a5c0e4 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/OrderExecutorDrainPredicateGapTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/OrderExecutorDrainPredicateGapTest.java
+@@ -40,6 +40,10 @@ class OrderExecutorDrainPredicateGapTest {
+     private static final class GatedTakeExecutor extends ThreadPoolTaskExecutor {
+         final CountDownLatch dequeued = new CountDownLatch(1);
+         final CountDownLatch allowWorker = new CountDownLatch(1);
++        /** v1.157 §125-4 — 미리 만든 작업자 2개가 모두 대기열 앞(take 진입)에 왔는가. 막 만들어져 아직 출발하지 않은 작업자는
++         *  생성 상태(-1)라 active 로 세어진다(②와 같은 성질) — 부하로 한 작업자가 늦으면 ① 관측이 active=1 이 됐다(int155-full). */
++        final CountDownLatch polling = new CountDownLatch(2);
++        private final ThreadLocal<Boolean> polled = ThreadLocal.withInitial(() -> false);
+ 
+         GatedTakeExecutor() {
+             setCorePoolSize(2);
+@@ -54,6 +58,7 @@ class OrderExecutorDrainPredicateGapTest {
+             return new LinkedBlockingQueue<>(queueCapacity) {
+                 @Override
+                 public Runnable take() throws InterruptedException {
++                    if (!polled.get()) { polled.set(true); polling.countDown(); }
+                     Runnable task = super.take();
+                     dequeued.countDown();
+                     allowWorker.await();
+@@ -99,6 +104,7 @@ class OrderExecutorDrainPredicateGapTest {
+         try {
+             ThreadPoolExecutor pool = ex.getThreadPoolExecutor();
+             assertThat(pool.prestartAllCoreThreads()).as("전체 시험처럼 작업자 2개가 미리 있다").isEqualTo(2);
++            assertThat(ex.polling.await(5, TimeUnit.SECONDS)).as("두 작업자 모두 출발해 대기열 앞에 있다(시간 대기 아님)").isTrue();
+             AtomicBoolean executed = new AtomicBoolean(false);
+             CountDownLatch completed = new CountDownLatch(1);
+             ex.execute(() -> { executed.set(true); completed.countDown(); });
+-- 
+2.51.1.windows.1
+

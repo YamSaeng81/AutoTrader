@@ -1,0 +1,45 @@
+From 1eed27d18d0d09ea001e21963d1609d25dccbcc7 Mon Sep 17 00:00:00 2001
+From: YamSaeng81 <manicstr81@gmail.com>
+Date: Thu, 12 Nov 2026 21:07:37 +0900
+Subject: [PATCH 19/20] =?UTF-8?q?v1.158=20=EA=B2=B0=EC=A0=95=202=20?=
+ =?UTF-8?q?=EC=8B=9C=ED=97=98=20=EB=8C=80=EC=97=AD=20=EB=B3=B4=EC=B6=A9=20?=
+ =?UTF-8?q?=E2=80=94=20PositionLimitTest=20=EB=8F=84=20H2=20=EC=97=90?=
+ =?UTF-8?q?=EC=84=9C=20=EC=8B=A4=EC=9E=90=EA=B8=88=20=EC=86=90=EC=8B=A4=20?=
+ =?UTF-8?q?=EA=B4=80=EB=AC=B8=EB=A7=8C=20=EC=8A=B9=EC=9D=B8=EC=9C=BC?=
+ =?UTF-8?q?=EB=A1=9C=20=EB=91=94=EB=8B=A4(=EC=A0=84=EC=B2=B4=20=ED=9A=8C?=
+ =?UTF-8?q?=EA=B7=80=EC=97=90=EC=84=9C=20PG=20=EC=A0=84=EC=9A=A9=20?=
+ =?UTF-8?q?=EC=86=90=EC=8B=A4=20=EC=A1=B0=ED=9A=8C=20=EA=B5=AC=EB=AC=B8=20?=
+ =?UTF-8?q?=EC=98=A4=EB=A5=98=202=EA=B1=B4,=20=EA=B0=99=EC=9D=80=20?=
+ =?UTF-8?q?=EA=B7=9C=EC=95=BD;=20=EA=B4=80=EB=AC=B8=EC=9D=80=20PG=20?=
+ =?UTF-8?q?=EC=8B=9C=ED=97=98=EC=9D=B4=20=EA=B2=80=EC=A6=9D)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .../cryptoautotrader/api/service/PositionLimitTest.java   | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/PositionLimitTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/PositionLimitTest.java
+index d8c5483b..11d31f76 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/PositionLimitTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/PositionLimitTest.java
+@@ -73,6 +73,14 @@ class PositionLimitTest extends IntegrationTestBase {
+ 
+     @MockBean private UpbitOrderClient upbitOrderClient;
+ 
++    /** v1.158 결정 2 — H2 에서 실자금 손실 관문을 승인으로 둔다(기존 손실 원천이 PostgreSQL 전용 구문). 관문은 실제 PG 시험이 검증한다. */
++    @org.springframework.boot.test.mock.mockito.SpyBean private RiskManagementService realLossGuardSpy;
++
++    @BeforeEach
++    void approveRealLossGuardOnH2() {
++        org.mockito.Mockito.doReturn(com.cryptoautotrader.core.risk.RiskCheckResult.approve()).when(realLossGuardSpy).checkRealLossGuard();
++    }
++
+     private Instant testStart;
+     private BigDecimal savedTotal;
+     private BigDecimal savedPer;
+-- 
+2.51.1.windows.1
+

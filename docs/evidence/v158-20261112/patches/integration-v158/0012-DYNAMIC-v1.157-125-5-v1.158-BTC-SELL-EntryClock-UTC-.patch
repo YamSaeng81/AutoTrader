@@ -1,0 +1,264 @@
+From 7e1bbaf3968203dc27b38a3df945a8bfaf72c761 Mon Sep 17 00:00:00 2001
+From: YamSaeng81 <manicstr81@gmail.com>
+Date: Thu, 12 Nov 2026 20:37:05 +0900
+Subject: [PATCH 12/20] =?UTF-8?q?DYNAMIC=20=ED=8C=90=EB=8B=A8=20=EC=8B=9C?=
+ =?UTF-8?q?=EA=B3=84(=EC=B4=9D=EA=B4=84=20v1.157=20=C2=A7125-5/v1.158)=20?=
+ =?UTF-8?q?=E2=80=94=20=EB=8B=AB=ED=9E=8C=20=EB=B4=89=C2=B7=EC=BA=94?=
+ =?UTF-8?q?=EB=93=A4=20=EC=B5=9C=EC=8B=A0=EC=84=B1=C2=B7=EC=A1=B0=ED=9A=8C?=
+ =?UTF-8?q?=20=EC=83=81=ED=95=9C=C2=B7BTC=20=EA=B4=80=EB=AC=B8=C2=B7?=
+ =?UTF-8?q?=ED=9A=8C=EC=B0=A8=20=EC=A0=91=EC=88=98=20=EC=8B=9C=EA=B0=81?=
+ =?UTF-8?q?=C2=B7=EC=A0=84=EB=9E=B5=20SELL=20=EC=B5=9C=EC=86=8C=20?=
+ =?UTF-8?q?=EB=B3=B4=EC=9C=A0=EB=A5=BC=20EntryClock(=EA=B8=B0=EB=B3=B8=20?=
+ =?UTF-8?q?=EC=8B=9C=EC=8A=A4=ED=85=9C=20UTC,=20LIVE=20B01=20=EA=B3=BC=20?=
+ =?UTF-8?q?=EA=B0=99=EC=9D=80=20=EC=A0=95=EC=9D=98)=EC=97=90=20=EC=97=B0?=
+ =?UTF-8?q?=EA=B2=B0,=20=EA=B0=80=EB=93=9C=EC=97=90=20=ED=8C=90=EB=8B=A8?=
+ =?UTF-8?q?=20=EC=8B=9C=EA=B0=81=20BTC=20=EC=A7=84=EC=9E=85=EC=A0=90=20?=
+ =?UTF-8?q?=EC=B6=94=EA=B0=80(4=EC=9D=B8=EC=9E=90=20=EB=B6=88=EB=B3=80)=20?=
+ =?UTF-8?q?=E2=80=94=20DynamicJudgeClockTest=20=EC=88=98=EC=A0=95=20?=
+ =?UTF-8?q?=EC=A0=84=204/5=20=EC=8B=A4=ED=8C=A8=20=E2=86=92=205/5,=20?=
+ =?UTF-8?q?=EA=B4=80=EB=A0=A8=20279(=EC=84=B1=EA=B3=B5275=C2=B7=EA=B1=B4?=
+ =?UTF-8?q?=EB=84=88=EB=9C=804)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+(cherry picked from commit c4b09e5dcdb8b81c34cdb5fd921b62ffc730d446)
+---
+ .../api/service/CandleFreshnessGuard.java     |   6 +-
+ .../api/service/DynamicTradingService.java    |  30 ++++-
+ .../api/service/DynamicJudgeClockTest.java    | 122 ++++++++++++++++++
+ 3 files changed, 150 insertions(+), 8 deletions(-)
+ create mode 100644 web-api/src/test/java/com/cryptoautotrader/api/service/DynamicJudgeClockTest.java
+
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/CandleFreshnessGuard.java b/web-api/src/main/java/com/cryptoautotrader/api/service/CandleFreshnessGuard.java
+index 5562aa70..27605080 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/CandleFreshnessGuard.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/CandleFreshnessGuard.java
+@@ -165,7 +165,11 @@ public class CandleFreshnessGuard {
+      * @param forCheck 관문 계산에 넣을 캔들(엔진이 닫힌 봉만 넣는다면 그 목록)
+      */
+     public BtcMarketGuard.Result btcGate(String engine, String timeframe, List<Candle> raw, List<Candle> forCheck) {
+-        Instant now = Instant.now();
++        return btcGate(engine, timeframe, raw, forCheck, Instant.now());
++    }
++
++    /** 판단 시각을 받는 BTC 관문 (v1.158, DYNAMIC 판단 시계) — 판정·로그는 4인자와 같다. */
++    public BtcMarketGuard.Result btcGate(String engine, String timeframe, List<Candle> raw, List<Candle> forCheck, Instant now) {
+         BtcMarketGuard.Result r = btcGate(timeframe, raw, forCheck, now, maintenanceExemption("KRW-BTC", timeframe, now));
+         String key = "BTC관문:" + timeframe;
+         if (!r.unknown()) {
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
+index 821c456a..b2976cad 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
+@@ -1257,7 +1257,7 @@ public class DynamicTradingService {
+                     () -> self.approveQueuedEntry(sid, best.coinPair(), best.evalCandles(), best.signal(),
+                             best.sizeMultiplier(), best.signalLog(), expiresAt),
+                     expired -> updateSignalQuality(best.signalLog(), false, expired)),
+-                    Instant.now());
++                    judgeNow());   // 후보 접수 판단 시각 — 회차 마감과 같은 판단 시계(LIVE v1.155 §3 과 같다)
+             if (notQueued != null) {
+                 updateSignalQuality(best.signalLog(), false, notQueued);
+             }
+@@ -1515,7 +1515,7 @@ public class DynamicTradingService {
+             }
+ 
+             long heldMin = pos.getOpenedAt() != null
+-                    ? Duration.between(pos.getOpenedAt(), Instant.now()).toMinutes() : Long.MAX_VALUE;
++                    ? Duration.between(pos.getOpenedAt(), judgeNow()).toMinutes() : Long.MAX_VALUE;   // LIVE B01 접점 ③ 과 같다
+             // 세션 strategy_params 오버라이드 적용 — 전략 SELL 청산 A/B (2026-08-26).
+             // 기본값은 코드 상수 그대로라 오버라이드가 없는 세션의 동작은 바뀌지 않는다.
+             ExitRuleOverrides sellGateOverrides = ExitRuleOverrides.from(session.getStrategyParams());
+@@ -2326,6 +2326,18 @@ public class DynamicTradingService {
+     @Autowired(required = false)
+     private CandleFreshnessGuard candleFreshnessGuard;
+ 
++    /** 판단 시계 (총괄 v1.157 §125-5 / v1.158 결정 4, 2026-11-12) — LIVE·회차와 같은 {@link EntryClock}. 없으면 시스템 시각. */
++    @Autowired(required = false)
++    private EntryClock entryClock;
++
++    /**
++     * DYNAMIC 판단 시각 — 공통 시계({@link EntryClock}). 운영 기본은 시스템 UTC 라 동작이 같다. LIVE {@code judgeNow()}(B01) 와 같은 정의다.
++     * 쓰는 곳: 닫힌 봉 판정·캔들 최신성·캔들 조회 상한·BTC 관문·회차 접수 시각·전략 SELL 최소 보유 시간. 회차 C/D/E 계약은 바꾸지 않는다.
++     */
++    private Instant judgeNow() {
++        return entryClock != null ? entryClock.now() : Instant.now();
++    }
++
+     @Autowired(required = false)
+     private MarkPriceBook markPriceBook;
+ 
+@@ -2387,16 +2399,17 @@ public class DynamicTradingService {
+ 
+     /** 세션 거래 코인의 캔들 — 최신 완료 봉·결측 조건을 어기면 빈 목록(판정 불가). BTC 관문 캔들에는 쓰지 않는다. LIVE 와 같다. */
+     private List<Candle> freshCandles(String coinPair, String timeframe, List<Candle> candles) {
+-        return candleFreshnessGuard == null ? candles : candleFreshnessGuard.filter("DYNAMIC", coinPair, timeframe, candles);
++        return candleFreshnessGuard == null ? candles : candleFreshnessGuard.filter("DYNAMIC", coinPair, timeframe, candles, judgeNow());
+     }
+ 
+     /** BTC 급락 관문 — BTC 캔들이 없거나 낡으면 판정 불가({@link BtcMarketGuard.Result#unknown}). 관문 계산에는 닫힌 봉만 넣는다. LIVE 와 같다. */
+     private BtcMarketGuard.Result btcMarketGate(String timeframe) {
+         List<Candle> btc = fetchCandles("KRW-BTC", timeframe);
+         List<Candle> closed = closedCandleSlice(btc, timeframe);
++        Instant now = judgeNow();
+         return candleFreshnessGuard == null
+-                ? CandleFreshnessGuard.btcGate(timeframe, btc, closed, Instant.now())
+-                : candleFreshnessGuard.btcGate("DYNAMIC", timeframe, btc, closed);
++                ? CandleFreshnessGuard.btcGate(timeframe, btc, closed, now)
++                : candleFreshnessGuard.btcGate("DYNAMIC", timeframe, btc, closed, now);
+     }
+ 
+     private List<Candle> fetchCandles(String coinPair, String timeframe) {
+@@ -2409,7 +2422,10 @@ public class DynamicTradingService {
+         try {
+             // 2026-08-26: 매 틱(코인 수만큼)마다 Upbit REST로 500개 전량을 직접 재요청하던 것을
+             // market_data_cache 경유(갭만 REST)로 축소 — MarketDataSyncService.fetchWithCache 참조.
+-            return marketDataSyncService.fetchWithCache(coinPair, timeframe, CANDLE_LOOKBACK);
++            List<Candle> all = marketDataSyncService.fetchWithCache(coinPair, timeframe, CANDLE_LOOKBACK);
++            // 조회 상한 = 판단 시각 (LIVE B01 접점 ① 과 같은 정의). 시스템 시계에서는 판단 시각 뒤의 봉이 없어 결과가 같다.
++            Instant to = judgeNow();
++            return all.stream().filter(c -> c.getTime() == null || !c.getTime().isAfter(to)).toList();
+         } catch (Exception e) {
+             log.warn("[Dynamic] 캔들 조회 실패 ({} {}): {}", coinPair, timeframe, e.getMessage());
+             return List.of();
+@@ -2420,7 +2436,7 @@ public class DynamicTradingService {
+         if (candles.size() < 2) return candles;
+         long periodMin = TimeframeUtils.toMinutes(timeframe);
+         Instant lastTime = candles.get(candles.size() - 1).getTime();
+-        boolean closed = !lastTime.plus(periodMin, ChronoUnit.MINUTES).isAfter(Instant.now());
++        boolean closed = !lastTime.plus(periodMin, ChronoUnit.MINUTES).isAfter(judgeNow());
+         return closed ? candles : candles.subList(0, candles.size() - 1);
+     }
+ 
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicJudgeClockTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicJudgeClockTest.java
+new file mode 100644
+index 00000000..ab0657a8
+--- /dev/null
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicJudgeClockTest.java
+@@ -0,0 +1,122 @@
++package com.cryptoautotrader.api.service;
++
++import com.cryptoautotrader.api.support.IntegrationTestBase;
++import com.cryptoautotrader.core.selector.BtcMarketGuard;
++import com.cryptoautotrader.exchange.upbit.UpbitRestClient;
++import com.cryptoautotrader.strategy.Candle;
++import org.junit.jupiter.api.AfterEach;
++import org.junit.jupiter.api.DisplayName;
++import org.junit.jupiter.api.Test;
++import org.mockito.Mockito;
++import org.springframework.beans.factory.annotation.Autowired;
++import org.springframework.boot.test.mock.mockito.MockBean;
++import org.springframework.test.util.AopTestUtils;
++import org.springframework.test.util.ReflectionTestUtils;
++
++import java.math.BigDecimal;
++import java.time.Clock;
++import java.time.Instant;
++import java.time.ZoneOffset;
++import java.time.temporal.ChronoUnit;
++import java.util.ArrayList;
++import java.util.List;
++
++import static org.assertj.core.api.Assertions.assertThat;
++
++/**
++ * 총괄 v1.157 §125-5 / v1.158 결정 4 — DYNAMIC 판단 시계 (H2, 84fb03d6 기점, 2026-11-12).
++ *
++ * <p>DYNAMIC 의 닫힌 봉 판정·캔들 최신성·캔들 조회 상한·BTC 관문이 LIVE(B01)·회차와 같은 {@link EntryClock} 을 보는지 확인한다. 시험 시계를
++ * 과거(2020-01-01)에 두면 시스템 시계와 판정이 갈린다 — 기점은 시스템 시각을 보므로 실패해야 한다. 기본(시스템 UTC)에서는 결과가 같다.
++ * 시험 시계는 매 시험 뒤 원래(시스템 UTC)로 되돌린다.</p>
++ */
++@DisplayName("v1.158 DYNAMIC 판단 시계")
++class DynamicJudgeClockTest extends IntegrationTestBase {
++
++    @Autowired private DynamicTradingService dynamicTradingService;
++    @Autowired private EntryClock entryClock;
++    @MockBean private MarketDataSyncService marketDataSyncService;
++    @MockBean private UpbitRestClient upbitRestClient;
++
++    private static final Instant T = Instant.parse("2020-01-01T00:00:00Z");
++
++    @AfterEach
++    void restoreClock() {
++        entryClock.setForTest(null);
++    }
++
++    private void judgeAt(Instant at) {
++        entryClock.setForTest(Clock.fixed(at, ZoneOffset.UTC));
++    }
++
++    private Object target() {
++        return AopTestUtils.getUltimateTargetObject(dynamicTradingService);
++    }
++
++    /** last 를 마지막 봉 시작으로 하는 연속 H1 봉 n 개. */
++    private static List<Candle> h1(Instant last, int n) {
++        List<Candle> out = new ArrayList<>();
++        for (int i = n - 1; i >= 0; i--) {
++            BigDecimal p = BigDecimal.valueOf(1000 + i);
++            out.add(Candle.builder().time(last.minus(i, ChronoUnit.HOURS)).open(p).high(p.add(BigDecimal.TEN))
++                    .low(p.subtract(BigDecimal.TEN)).close(p).volume(new BigDecimal("100")).build());
++        }
++        return out;
++    }
++
++    @Test
++    @DisplayName("닫힌 봉 판정 — 판단 시계 T+59분은 진행 중 봉 제외, T+60분은 포함")
++    void closedCandleUsesJudgeClock() {
++        List<Candle> c = h1(T, 3);
++        judgeAt(T.plus(59, ChronoUnit.MINUTES));
++        List<?> open = ReflectionTestUtils.invokeMethod(target(), "closedCandleSlice", c, "H1");
++        judgeAt(T.plus(60, ChronoUnit.MINUTES));
++        List<?> closed = ReflectionTestUtils.invokeMethod(target(), "closedCandleSlice", c, "H1");
++        System.out.println("[DC158] 닫힌 봉 T+59=" + open.size() + " T+60=" + closed.size());
++        assertThat(open).hasSize(2);
++        assertThat(closed).hasSize(3);
++    }
++
++    @Test
++    @DisplayName("캔들 최신성 — 판단 시계 기준으로 최신이면 통과(시스템 시각 기준이면 낡음)")
++    void freshnessUsesJudgeClock() {
++        List<Candle> c = h1(T, 200);
++        judgeAt(T.plus(61, ChronoUnit.MINUTES));   // 마지막 봉 T 가 막 완료된 시각
++        List<?> fresh = ReflectionTestUtils.invokeMethod(target(), "freshCandles", "KRW-DCX", "H1", c);
++        System.out.println("[DC158] 최신성 판단시계=T+61분 → " + fresh.size() + "개");
++        assertThat(fresh).as("판단 시계 기준 최신").isNotEmpty();
++    }
++
++    @Test
++    @DisplayName("캔들 조회 상한 — 판단 시각 뒤의 봉은 넣지 않는다")
++    void queryUpperBound() {
++        List<Candle> c = h1(T.plus(2, ChronoUnit.HOURS), 10);
++        Mockito.when(marketDataSyncService.fetchWithCache(Mockito.eq("KRW-DCQ"), Mockito.eq("H1"), Mockito.anyInt())).thenReturn(c);
++        judgeAt(T.plus(61, ChronoUnit.MINUTES));
++        List<Candle> got = ReflectionTestUtils.invokeMethod(target(), "loadCandles", "KRW-DCQ", "H1");
++        System.out.println("[DC158] 조회 상한 T+61분 → " + got.size() + "개, 마지막=" + got.get(got.size() - 1).getTime());
++        assertThat(got).hasSize(9);   // T+2h 봉 제외(T+1h 는 T+61분 이전 시작)
++        assertThat(got.get(got.size() - 1).getTime()).isEqualTo(T.plus(1, ChronoUnit.HOURS));
++    }
++
++    @Test
++    @DisplayName("BTC 관문 — 판단 시계 기준 최신 BTC 캔들이면 판정 가능")
++    void btcGateUsesJudgeClock() {
++        List<Candle> btc = h1(T, 200);
++        Mockito.when(marketDataSyncService.fetchWithCache(Mockito.eq("KRW-BTC"), Mockito.eq("H1"), Mockito.anyInt())).thenReturn(btc);
++        judgeAt(T.plus(61, ChronoUnit.MINUTES));
++        BtcMarketGuard.Result r = ReflectionTestUtils.invokeMethod(target(), "btcMarketGate", "H1");
++        System.out.println("[DC158] BTC 관문 판단시계=T+61분 → unknown=" + r.unknown() + " " + r.reason());
++        assertThat(r.unknown()).as("판단 시계 기준 BTC 캔들 최신 — 판정 가능").isFalse();
++    }
++
++    @Test
++    @DisplayName("기본 시계(시스템 UTC) — 진행 중 봉 제외가 종전과 같다")
++    void defaultSystemClockUnchanged() {
++        entryClock.setForTest(null);
++        Instant lastOpen = Instant.now().truncatedTo(ChronoUnit.HOURS);
++        List<?> slice = ReflectionTestUtils.invokeMethod(target(), "closedCandleSlice", h1(lastOpen, 3), "H1");
++        System.out.println("[DC158] 기본 시계 진행 중 봉 → " + slice.size());
++        assertThat(slice).hasSize(2);
++    }
++}
+-- 
+2.51.1.windows.1
+

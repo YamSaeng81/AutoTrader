@@ -1,0 +1,52 @@
+From 8f9423f51709970a2006d1a844f866683174efc6 Mon Sep 17 00:00:00 2001
+From: YamSaeng81 <manicstr81@gmail.com>
+Date: Thu, 12 Nov 2026 16:45:05 +0900
+Subject: [PATCH 06/20] =?UTF-8?q?phantom=20=EC=B6=94=EC=A0=95=20=EC=B2=AD?=
+ =?UTF-8?q?=EC=82=B0=EC=9D=B4=20=EC=95=9E=EC=84=A0=20=ED=99=95=EC=A0=95=20?=
+ =?UTF-8?q?=EC=8B=A4=ED=98=84=EC=86=90=EC=9D=B5=EC=9D=84=20=EB=8D=AE?=
+ =?UTF-8?q?=EC=A7=80=20=EC=95=8A=EA=B3=A0=20=EB=88=84=EC=A0=81(=EC=B4=9D?=
+ =?UTF-8?q?=EA=B4=84=20v1.157=20=C2=A7125-7,=205ddc5cbe=20=EC=9C=84,=20?=
+ =?UTF-8?q?=EB=AF=B8=EC=8A=B9=EC=9D=B8)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+LiveTradingService.reconcilePhantomPosition: setRealizedPnl(추정분) → 앞선 확정분 + 추정분. 추정 표시·추정가 규칙·수수료 누적·잔액·수량 처리 그대로, 로그에 앞선 확정분을 함께 적는다. 추정분은 주문 행이 없어 전역 확정 손실(주문 원천) 합에 들어가지 않는다(시험 ① 전후 같음). 실제 PG 4건 중 3통과(①②④) — ③ 롤백 시 잔액 독립 커밋은 다음 커밋에서 따로 다룬다.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+(cherry picked from commit 0c980619a639543aaca1aec04bb0c86b62ccfc04)
+---
+ .../cryptoautotrader/api/service/LiveTradingService.java | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
+index 9a39e37b..4181f86e 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
+@@ -3085,7 +3085,10 @@ public class LiveTradingService {
+         // closeIfOpen 은 status/closedAt 만 변경했으므로 나머지 손익 필드를 반영
+         pos.setStatus("CLOSED");
+         pos.setClosedAt(Instant.now());
+-        pos.setRealizedPnl(realizedPnl);
++        // 🔴 누적한다 (총괄 v1.157 §125-7) — 부분 매도로 이미 확정한 실현손익(주문 행 원천에도 있다)을 덮어 지우지 않는다.
++        //    이 값은 확정분 + 남은 수량의 추정분이다. 추정분은 주문 행이 없어 전역 확정 손실 합(주문 원천)에 들어가지 않는다.
++        final BigDecimal confirmedBefore = nzFee(pos.getRealizedPnl());
++        pos.setRealizedPnl(confirmedBefore.add(realizedPnl));
+         pos.setPositionFee(nzFee(pos.getPositionFee()).add(fee));   // 누적 (2026-10-14, 매도 확정과 같은 규칙)
+         pos.setUnrealizedPnl(BigDecimal.ZERO);
+         positionRepository.save(pos);
+@@ -3106,9 +3109,9 @@ public class LiveTradingService {
+             }
+         });
+ 
+-        log.warn("[§15] 팬텀 포지션 청산 확정 (추정가 기반): posId={} {} {}개 추정체결가={} 추정손익={} 수수료={} (거래소보유={}). "
++        log.warn("[§15] 팬텀 포지션 청산 확정 (추정가 기반): posId={} {} {}개 추정체결가={} 추정손익={} 수수료={} (거래소보유={}, 앞선 확정 실현손익={}). "
+                         + "실제 체결가는 알 수 없어 추정값으로 기록 — 수동 확인 권장.",
+-                pos.getId(), pos.getCoinPair(), soldQty, exitPrice, realizedPnl, fee, exchangeHeld);
++                pos.getId(), pos.getCoinPair(), soldQty, exitPrice, realizedPnl, fee, exchangeHeld, confirmedBefore);
+ 
+         telegramService.sendCustomNotification(String.format(
+                 "🔧 팬텀 포지션 자동 정리: 세션 %d %s%n" +
+-- 
+2.51.1.windows.1
+

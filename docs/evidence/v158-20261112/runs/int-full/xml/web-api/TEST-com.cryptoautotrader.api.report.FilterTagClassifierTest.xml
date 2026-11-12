@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="FilterTagClassifier — reason 문자열 필터 태그 분류" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-11-12T12:01:06" hostname="DESKTOP-SF1KUQ5" time="0.002">
+  <properties/>
+  <testcase name="passTag — 필터 무관 신호/널은 null" classname="com.cryptoautotrader.api.report.FilterTagClassifierTest" time="0.002"/>
+  <testcase name="blockTag — 필터 차단 사유 분류" classname="com.cryptoautotrader.api.report.FilterTagClassifierTest" time="0.0"/>
+  <testcase name="blockTag — strict 차단은 RANGE보다 우선해 별도 분류" classname="com.cryptoautotrader.api.report.FilterTagClassifierTest" time="0.0"/>
+  <testcase name="passTag — H4 통과 태그 분류" classname="com.cryptoautotrader.api.report.FilterTagClassifierTest" time="0.0"/>
+  <testcase name="blockTag — 필터 무관 HOLD/널은 null" classname="com.cryptoautotrader.api.report.FilterTagClassifierTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

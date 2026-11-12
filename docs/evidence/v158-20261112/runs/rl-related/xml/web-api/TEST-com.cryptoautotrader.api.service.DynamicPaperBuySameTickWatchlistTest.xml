@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.DynamicPaperBuySameTickWatchlistTest" tests="7" skipped="0" failures="1" errors="0" timestamp="2026-11-12T10:28:25" hostname="DESKTOP-SF1KUQ5" time="0.093">
+  <properties/>
+  <testcase name="최신 상태 확인 ② — 틱이 읽은 뒤 가용 자금이 줄어 투자금보다 적으면 매수하지 않는다" classname="com.cryptoautotrader.api.service.DynamicPaperBuySameTickWatchlistTest" time="0.03"/>
+  <testcase name="대조 — PAPER 도 같은 틱에 워치리스트 갱신이 없으면 매수가 완료된다" classname="com.cryptoautotrader.api.service.DynamicPaperBuySameTickWatchlistTest" time="0.01"/>
+  <testcase name="&#x1f534; 틱이 롤백되면 '매수 체결' 로그가 남지 않는다(종전엔 커밋 전에 찍혀 롤백된 매수도 체결로 남았다)" classname="com.cryptoautotrader.api.service.DynamicPaperBuySameTickWatchlistTest" time="0.012"/>
+  <testcase name="최신 상태 확인 ① — 틱이 읽은 뒤 세션이 정지됐으면 매수하지 않는다" classname="com.cryptoautotrader.api.service.DynamicPaperBuySameTickWatchlistTest" time="0.009"/>
+  <testcase name="&#x1f534; PAPER — 같은 틱 워치리스트 갱신 뒤에도 매수가 완료된다(잠근 채 최신으로 다시 읽기) · 체결 로그 1건" classname="com.cryptoautotrader.api.service.DynamicPaperBuySameTickWatchlistTest" time="0.011"/>
+  <testcase name="대조 — REAL 은 같은 순서에서도 매수가 완료된다(2026-10-12 잠근 채 다시 읽기)" classname="com.cryptoautotrader.api.service.DynamicPaperBuySameTickWatchlistTest" time="0.008">
+    <failure message="org.opentest4j.AssertionFailedError: [실자금 경로는 깨지지 않아야 한다] &#13;&#10;expected: &#13;&#10;  null&#13;&#10; but was: &#13;&#10;  org.springframework.dao.InvalidDataAccessResourceUsageException: could not prepare statement [Syntax error in SQL statement &quot;SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0&quot;; SQL statement:&#10;SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0 [42000-224]] [SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0]; SQL [SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0]&#13;&#10;  &#9;at org.springframework.orm.jpa.vendor.HibernateJpaDialect.convertHibernateAccessException(HibernateJpaDialect.java:277)&#13;&#10;  &#9;at org.springframework.orm.jpa.vendor.HibernateJpaDialect.translateExceptionIfPossible(HibernateJpaDialect.java:241)&#13;&#10;  &#9;at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.translateExceptionIfPossible(AbstractEntityManagerFactoryBean.java:550)&#13;&#10;  &#9;...(134 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: [실자금 경로는 깨지지 않아야 한다] 
+expected: 
+  null
+ but was: 
+  org.springframework.dao.InvalidDataAccessResourceUsageException: could not prepare statement [Syntax error in SQL statement &quot;SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0&quot;; SQL statement:
+SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0 [42000-224]] [SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0]; SQL [SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0]
+  	at org.springframework.orm.jpa.vendor.HibernateJpaDialect.convertHibernateAccessException(HibernateJpaDialect.java:277)
+  	at org.springframework.orm.jpa.vendor.HibernateJpaDialect.translateExceptionIfPossible(HibernateJpaDialect.java:241)
+  	at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.translateExceptionIfPossible(AbstractEntityManagerFactoryBean.java:550)
+  	...(134 remaining lines not displayed - this can be changed with Assertions.setMaxStackTraceElementsDisplayed)
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base@17.0.12/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base@17.0.12/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+	at app//com.cryptoautotrader.api.service.DynamicPaperBuySameTickWatchlistTest.realBuyAfterSameTickWatchlist_completes(DynamicPaperBuySameTickWatchlistTest.java:274)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="최신 상태 확인 ③ — 틱이 읽은 뒤 이미 보유 상태가 됐으면 중복 매수하지 않는다" classname="com.cryptoautotrader.api.service.DynamicPaperBuySameTickWatchlistTest" time="0.009"/>
+  <system-out><![CDATA[19:28:25.089 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.DynamicPaperBuySameTickWatchlistTest
+19:28:25.096 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+19:28:25.121 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][PAPER] 매수 취소 ? 최신 가용 6000.00 < 투자금 8000.00 (id=13, KRW-BTC)
+19:28:25.126 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+19:28:25.133 [Test worker] INFO  c.c.a.service.DynamicTradingService - [Dynamic][PAPER] 매수 체결: id=14 KRW-BTC 6.14935487개 @ 1300.29900000 SL=1234.05000000 TP=1402.92000000 (수수료=4.000000, 포지션 29)
+19:28:25.138 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+19:28:25.151 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+19:28:25.156 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][PAPER] 매수 취소 ? 최신 상태가 STOPPED (id=16, KRW-BTC)
+19:28:25.161 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+19:28:25.165 [Test worker] INFO  c.c.a.service.DynamicTradingService - [Dynamic][PAPER] 매수 체결: id=17 KRW-BTC 6.14935487개 @ 1300.29900000 SL=1234.05000000 TP=1402.92000000 (수수료=4.000000, 포지션 31)
+19:28:25.172 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+19:28:25.175 [Test worker] WARN  o.h.e.jdbc.spi.SqlExceptionHelper - SQL Error: 42000, SQLState: 42000
+19:28:25.175 [Test worker] ERROR o.h.e.jdbc.spi.SqlExceptionHelper - Syntax error in SQL statement "SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]>>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at >= ?) t WHERE pnl < 0"; SQL statement:
+SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json->>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at >= ?) t WHERE pnl < 0 [42000-224]
+19:28:25.181 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+19:28:25.186 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][PAPER] 매수 취소 ? 이미 보유 중(최신 상태 scanState=POSITION_MONITORING) (id=19, KRW-BTC)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

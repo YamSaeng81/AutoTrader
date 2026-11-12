@@ -1,0 +1,36 @@
+web-api tests 205 fail 7 err 0 skip 0 pass 198
+FAIL com.cryptoautotrader.api.service.CancelConfirmAndLateFillCleanupTest # LIVE
+    java.lang.AssertionError: 매도 2건이 접수 상태가 되지 않았다: [FILLED/uuid-sell-1-89054034596800]
+FAIL com.cryptoautotrader.api.service.CancelConfirmAndLateFillCleanupTest # DYNAMIC EXCHANGE_REJECTED
+    org.opentest4j.AssertionFailedError: 
+expected: 2L
+ but was: 1L
+FAIL com.cryptoautotrader.api.service.LiveEmergencyStopUnderConcurrentWriteTest # 비상 정지(단건) — 청산 중 같은 세션 행에 쓰기가 들어와도 EMERGENCY_STOPPED·매도 1회·체결 후 CLOSED
+    java.lang.AssertionError: [충돌을 실제로 심었다] 
+Expecting actual:
+  0
+to be greater than:
+  0
+
+FAIL com.cryptoautotrader.api.service.LiveEmergencyStopUnderConcurrentWriteTest # 전체 비상 정지 — 청산 중 같은 세션 행에 쓰기가 들어와도 EMERGENCY_STOPPED·매도 1회·체결 후 CLOSED
+    java.lang.AssertionError: [충돌을 실제로 심었다] 
+Expecting actual:
+  0
+to be greater than:
+  0
+
+FAIL com.cryptoautotrader.api.service.LiveStopUnderConcurrentWriteTest # 상태 전환 중 같은 행에 쓰기가 들어와도 정지되고, 매도 제출은 최대 1회다
+    java.lang.AssertionError: [충돌을 실제로 심었는지 — 0 이면 재현 실패이므로 테스트가 무의미하다] 
+Expecting actual:
+  0
+to be greater than:
+  0
+
+FAIL com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest # LIVE
+    org.opentest4j.AssertionFailedError: [끼어들기가 실제로 일어났다] 
+expected: 1
+ but was: 0
+FAIL com.cryptoautotrader.api.service.StopVersusInFlightExitRaceTest # DYNAMIC
+    org.opentest4j.AssertionFailedError: [끼어들기가 실제로 일어났다] 
+expected: 1
+ but was: 0

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="포지션 갱신 유실 — 낡은 엔티티 저장·평가손익 기록이 다른 경로가 커밋한 청산을 되돌리지 않는다" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-11-12T12:25:35" hostname="DESKTOP-SF1KUQ5" time="0.01">
+  <properties/>
+  <testcase name="평가 루프의 평가손익 기록은 그 열만, OPEN 일 때만 쓴다 — 닫힌 포지션은 건드리지 않는다" classname="com.cryptoautotrader.api.service.PositionLostUpdateTest" time="0.006"/>
+  <testcase name="&#x1f534; 관리 중인 낡은 엔티티의 다른 열만 바꿔 저장해도 그 사이 커밋된 CLOSED·청산 시각·실현손익은 그대로다(@DynamicUpdate — 보조 방어)" classname="com.cryptoautotrader.api.service.PositionLostUpdateTest" time="0.004"/>
+  <system-out><![CDATA[21:25:35.935 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.PositionLostUpdateTest
+21:25:35.937 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:25:35.944 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

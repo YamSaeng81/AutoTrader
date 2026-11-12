@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.DynamicStopOptimisticLockTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-11-12T10:36:57" hostname="DESKTOP-SF1KUQ5" time="0.084">
+  <properties/>
+  <testcase name="바깥 트랜잭션이 롤백돼도 매도대금은 정확히 한 번만 남는다 — 재시도해도 더 붙지 않는다" classname="com.cryptoautotrader.api.service.DynamicStopOptimisticLockTest" time="0.01"/>
+  <testcase name="보유 포지션이 있는 PAPER 세션의 정지가 성공하고, 매도대금은 정확히 한 번만 지급된다" classname="com.cryptoautotrader.api.service.DynamicStopOptimisticLockTest" time="0.013"/>
+  <testcase name="비상 정지도 같은 경로를 쓴다 — 정지가 막혔을 때의 탈출구가 같은 버그로 막히면 안 된다" classname="com.cryptoautotrader.api.service.DynamicStopOptimisticLockTest" time="0.013"/>
+  <testcase name="페이퍼 매도의 멱등 키는 포지션에서 결정된다 — 주문 행이 롤백돼도 같은 값이 나온다" classname="com.cryptoautotrader.api.service.DynamicStopOptimisticLockTest" time="0.015"/>
+  <testcase name="21회 재시도해도 대금은 1회분만 남는다 — 운영 세션 49 시나리오 그대로" classname="com.cryptoautotrader.api.service.DynamicStopOptimisticLockTest" time="0.011"/>
+  <testcase name="멱등 키가 없으면 정산을 거부한다 — 보장 못 하는 채로 돈을 움직이지 않는다" classname="com.cryptoautotrader.api.service.DynamicStopOptimisticLockTest" time="0.006"/>
+  <testcase name="정지된 세션은 다시 정지되지 않는다 — 재시도로 대금이 또 지급될 여지를 없앤다" classname="com.cryptoautotrader.api.service.DynamicStopOptimisticLockTest" time="0.011"/>
+  <system-out><![CDATA[19:36:57.296 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.DynamicStopOptimisticLockTest
+19:36:57.299 [Test worker] INFO  o.a.c.c.C.[Tomcat-3].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+19:36:57.305 [Test worker] WARN  c.c.a.s.DynamicSessionBalanceUpdater - [DynamicSessionBalanceUpdater] 이미 정산된 매도 ? 잔고 반영 생략 (orderRef=PAPER-DYNAMIC-SELL-175, posId=175). 바깥 트랜잭션이 롤백된 뒤의 재시도로 보인다.
+19:36:57.307 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+19:36:57.308 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] RISK_LIMIT 전송 실패(REJECTED) ? 5000ms 후 재시도 (2/3)
+19:36:57.310 [Test worker] INFO  o.a.c.c.C.[Tomcat-3].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+19:36:57.323 [Test worker] INFO  o.a.c.c.C.[Tomcat-3].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+19:36:57.331 [Test worker] ERROR c.c.a.service.DynamicTradingService - [Dynamic] 세션 비상 정지 완료: id=84
+19:36:57.338 [Test worker] INFO  o.a.c.c.C.[Tomcat-3].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+19:36:57.353 [Test worker] INFO  o.a.c.c.C.[Tomcat-3].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+19:36:57.358 [Test worker] WARN  c.c.a.s.DynamicSessionBalanceUpdater - [DynamicSessionBalanceUpdater] 이미 정산된 매도 ? 잔고 반영 생략 (orderRef=PAPER-DYNAMIC-SELL-179, posId=179). 바깥 트랜잭션이 롤백된 뒤의 재시도로 보인다.
+19:36:57.358 [Test worker] WARN  c.c.a.s.DynamicSessionBalanceUpdater - [DynamicSessionBalanceUpdater] 이미 정산된 매도 ? 잔고 반영 생략 (orderRef=PAPER-DYNAMIC-SELL-179, posId=179). 바깥 트랜잭션이 롤백된 뒤의 재시도로 보인다.
+19:36:57.358 [Test worker] WARN  c.c.a.s.DynamicSessionBalanceUpdater - [DynamicSessionBalanceUpdater] 이미 정산된 매도 ? 잔고 반영 생략 (orderRef=PAPER-DYNAMIC-SELL-179, posId=179). 바깥 트랜잭션이 롤백된 뒤의 재시도로 보인다.
+19:36:57.358 [Test worker] WARN  c.c.a.s.DynamicSessionBalanceUpdater - [DynamicSessionBalanceUpdater] 이미 정산된 매도 ? 잔고 반영 생략 (orderRef=PAPER-DYNAMIC-SELL-179, posId=179). 바깥 트랜잭션이 롤백된 뒤의 재시도로 보인다.
+19:36:57.358 [Test worker] WARN  c.c.a.s.DynamicSessionBalanceUpdater - [DynamicSessionBalanceUpdater] 이미 정산된 매도 ? 잔고 반영 생략 (orderRef=PAPER-DYNAMIC-SELL-179, posId=179). 바깥 트랜잭션이 롤백된 뒤의 재시도로 보인다.
+19:36:57.358 [Test worker] WARN  c.c.a.s.DynamicSessionBalanceUpdater - [DynamicSessionBalanceUpdater] 이미 정산된 매도 ? 잔고 반영 생략 (orderRef=PAPER-DYNAMIC-SELL-179, posId=179). 바깥 트랜잭션이 롤백된 뒤의 재시도로 보인다.
+19:36:57.359 [Test worker] WARN  c.c.a.s.DynamicSessionBalanceUpdater - [DynamicSessionBalanceUpdater] 이미 정산된 매도 ? 잔고 반영 생략 (orderRef=PAPER-DYNAMIC-SELL-179, posId=179). 바깥 트랜잭션이 롤백된 뒤의 재시도로 보인다.
+19:36:57.359 [Test worker] WARN  c.c.a.s.DynamicSessionBalanceUpdater - [DynamicSessionBalanceUpdater] 이미 정산된 매도 ? 잔고 반영 생략 (orderRef=PAPER-DYNAMIC-SELL-179, posId=179). 바깥 트랜잭션이 롤백된 뒤의 재시도로 보인다.
+19:36:57.359 [Test worker] WARN  c.c.a.s.DynamicSessionBalanceUpdater - [DynamicSessionBalanceUpdater] 이미 정산된 매도 ? 잔고 반영 생략 (orderRef=PAPER-DYNAMIC-SELL-179, posId=179). 바깥 트랜잭션이 롤백된 뒤의 재시도로 보인다.
+19:36:57.359 [Test worker] WARN  c.c.a.s.DynamicSessionBalanceUpdater - [DynamicSessionBalanceUpdater] 이미 정산된 매도 ? 잔고 반영 생략 (orderRef=PAPER-DYNAMIC-SELL-179, posId=179). 바깥 트랜잭션이 롤백된 뒤의 재시도로 보인다.
+19:36:57.359 [Test worker] WARN  c.c.a.s.DynamicSessionBalanceUpdater - [DynamicSessionBalanceUpdater] 이미 정산된 매도 ? 잔고 반영 생략 (orderRef=PAPER-DYNAMIC-SELL-179, posId=179). 바깥 트랜잭션이 롤백된 뒤의 재시도로 보인다.
+19:36:57.359 [Test worker] WARN  c.c.a.s.DynamicSessionBalanceUpdater - [DynamicSessionBalanceUpdater] 이미 정산된 매도 ? 잔고 반영 생략 (orderRef=PAPER-DYNAMIC-SELL-179, posId=179). 바깥 트랜잭션이 롤백된 뒤의 재시도로 보인다.
+19:36:57.359 [Test worker] WARN  c.c.a.s.DynamicSessionBalanceUpdater - [DynamicSessionBalanceUpdater] 이미 정산된 매도 ? 잔고 반영 생략 (orderRef=PAPER-DYNAMIC-SELL-179, posId=179). 바깥 트랜잭션이 롤백된 뒤의 재시도로 보인다.
+19:36:57.359 [Test worker] WARN  c.c.a.s.DynamicSessionBalanceUpdater - [DynamicSessionBalanceUpdater] 이미 정산된 매도 ? 잔고 반영 생략 (orderRef=PAPER-DYNAMIC-SELL-179, posId=179). 바깥 트랜잭션이 롤백된 뒤의 재시도로 보인다.
+19:36:57.359 [Test worker] WARN  c.c.a.s.DynamicSessionBalanceUpdater - [DynamicSessionBalanceUpdater] 이미 정산된 매도 ? 잔고 반영 생략 (orderRef=PAPER-DYNAMIC-SELL-179, posId=179). 바깥 트랜잭션이 롤백된 뒤의 재시도로 보인다.
+19:36:57.360 [Test worker] WARN  c.c.a.s.DynamicSessionBalanceUpdater - [DynamicSessionBalanceUpdater] 이미 정산된 매도 ? 잔고 반영 생략 (orderRef=PAPER-DYNAMIC-SELL-179, posId=179). 바깥 트랜잭션이 롤백된 뒤의 재시도로 보인다.
+19:36:57.360 [Test worker] WARN  c.c.a.s.DynamicSessionBalanceUpdater - [DynamicSessionBalanceUpdater] 이미 정산된 매도 ? 잔고 반영 생략 (orderRef=PAPER-DYNAMIC-SELL-179, posId=179). 바깥 트랜잭션이 롤백된 뒤의 재시도로 보인다.
+19:36:57.360 [Test worker] WARN  c.c.a.s.DynamicSessionBalanceUpdater - [DynamicSessionBalanceUpdater] 이미 정산된 매도 ? 잔고 반영 생략 (orderRef=PAPER-DYNAMIC-SELL-179, posId=179). 바깥 트랜잭션이 롤백된 뒤의 재시도로 보인다.
+19:36:57.360 [Test worker] WARN  c.c.a.s.DynamicSessionBalanceUpdater - [DynamicSessionBalanceUpdater] 이미 정산된 매도 ? 잔고 반영 생략 (orderRef=PAPER-DYNAMIC-SELL-179, posId=179). 바깥 트랜잭션이 롤백된 뒤의 재시도로 보인다.
+19:36:57.360 [Test worker] WARN  c.c.a.s.DynamicSessionBalanceUpdater - [DynamicSessionBalanceUpdater] 이미 정산된 매도 ? 잔고 반영 생략 (orderRef=PAPER-DYNAMIC-SELL-179, posId=179). 바깥 트랜잭션이 롤백된 뒤의 재시도로 보인다.
+19:36:57.365 [Test worker] INFO  o.a.c.c.C.[Tomcat-3].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+19:36:57.372 [Test worker] INFO  o.a.c.c.C.[Tomcat-3].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

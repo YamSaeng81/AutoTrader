@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.SessionKindIsolationTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-11-12T11:40:48" hostname="DESKTOP-SF1KUQ5" time="0.028">
+  <properties/>
+  <testcase name="실전매매 전역 요약은 DYNAMIC 포지션/주문/손익을 집계하지 않는다" classname="com.cryptoautotrader.api.service.SessionKindIsolationTest" time="0.008"/>
+  <testcase name="N-1: 같은 sessionId를 가진 LIVE/DYNAMIC 포지션은 kind-aware 조회로 서로 격리된다" classname="com.cryptoautotrader.api.service.SessionKindIsolationTest" time="0.005"/>
+  <testcase name="실전매매 초기화는 DYNAMIC 포지션/주문을 지우지 않는다" classname="com.cryptoautotrader.api.service.SessionKindIsolationTest" time="0.007"/>
+  <testcase name="N-2: BLOCKED 전략은 동적 멀티코인 세션 생성도 거부된다" classname="com.cryptoautotrader.api.service.SessionKindIsolationTest" time="0.006"/>
+  <system-out><![CDATA[20:40:48.324 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.SessionKindIsolationTest
+20:40:48.328 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+20:40:48.337 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+20:40:48.342 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+20:40:48.344 [Test worker] WARN  c.c.api.service.DbResetService - 실전매매 데이터 초기화 시작
+20:40:48.346 [Test worker] WARN  c.c.api.service.DbResetService - 실전매매 데이터 초기화 완료: {strategy_log=24, trade_log=0, order=0, position_limit_breach=0, order_manual_adjustment=0, sell_quarantine_release=0, position=1, live_trading_session=0}
+20:40:48.350 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

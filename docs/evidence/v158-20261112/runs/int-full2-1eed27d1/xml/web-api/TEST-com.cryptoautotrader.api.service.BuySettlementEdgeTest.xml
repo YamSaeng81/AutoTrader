@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="매수 정산 — 부분 체결 재폴링 · 체결량 감소 · 수수료 감소" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-11-12T12:24:12" hostname="DESKTOP-SF1KUQ5" time="0.084">
+  <properties/>
+  <testcase name="22 — 활성 주문에 누적 체결이 줄어든 응답이 오면 반영하지 않고 불일치로 남긴다(수량·잔액 역행 0)" classname="com.cryptoautotrader.api.service.BuySettlementEdgeTest" time="0.019"/>
+  <testcase name="12 — 부분 체결이 늘어나는 동안 같은 응답을 반복해 폴링해도 차분만 반영된다(누적이 두 번 더해지지 않는다)" classname="com.cryptoautotrader.api.service.BuySettlementEdgeTest" time="0.017"/>
+  <testcase name="22-c — 매수: 같은 주문의 수수료를 0.001원씩 10번 정정해도 저장 잔액은 회차마다 주문별 두 자리 기대와 같고 차이가 쌓이지 않는다" classname="com.cryptoautotrader.api.service.BuySettlementEdgeTest" time="0.032"/>
+  <testcase name="22-b — 매수: 수량 같은데 보고 수수료가 줄어든 응답은 자동 반영하지 않고, 폐기하지도 않고 불일치로 보존한다" classname="com.cryptoautotrader.api.service.BuySettlementEdgeTest" time="0.014"/>
+  <system-out><![CDATA[21:24:12.647 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.BuySettlementEdgeTest
+21:24:12.651 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:24:12.657 [Test worker] ERROR c.c.a.service.OrderSettlementService - ? 정산 불일치 ? 자동 반영하지 않고 보존한다 (orderId=31, kind=FUNDS_DECREASE, 이전=2100.00000000, 수신=1500). 사람이 확인해야 한다.
+21:24:12.671 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:24:12.689 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[22-c 반올림 누적]
+회차 | 반영 수수료 | 원시 장부 | 저장 잔액 | 주문별 두 자리 기대 | 차이(저장 ? 원시)
+1 | 1.471 | 7058.52900000 | 7058.53 | 7058.53 | 0.00100000
+2 | 1.472 | 7058.52800000 | 7058.53 | 7058.53 | 0.00200000
+3 | 1.473 | 7058.52700000 | 7058.53 | 7058.53 | 0.00300000
+4 | 1.474 | 7058.52600000 | 7058.53 | 7058.53 | 0.00400000
+5 | 1.475 | 7058.52500000 | 7058.53 | 7058.53 | 0.00500000
+6 | 1.476 | 7058.52400000 | 7058.52 | 7058.52 | -0.00400000
+7 | 1.477 | 7058.52300000 | 7058.52 | 7058.52 | -0.00300000
+8 | 1.478 | 7058.52200000 | 7058.52 | 7058.52 | -0.00200000
+9 | 1.479 | 7058.52100000 | 7058.52 | 7058.52 | -0.00100000
+10 | 1.480 | 7058.52000000 | 7058.52 | 7058.52 | 0.00000000
+
+21:24:12.721 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:24:12.726 [Test worker] ERROR c.c.a.service.OrderSettlementService - ? 정산 불일치 ? 자동 반영하지 않고 보존한다 (orderId=35, kind=FEE_DECREASE, 이전=1.47000000, 수신=1.20). 사람이 확인해야 한다.
+21:24:12.727 [Test worker] ERROR c.c.a.service.OrderSettlementService - ? 정산 불일치 ? 자동 반영하지 않고 보존한다 (orderId=35, kind=FEE_DECREASE, 이전=1.47000000, 수신=1.20000000). 사람이 확인해야 한다.
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

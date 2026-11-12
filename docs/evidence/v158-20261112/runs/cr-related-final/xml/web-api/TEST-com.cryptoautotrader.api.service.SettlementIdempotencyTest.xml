@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="정산 멱등성 — 반복·역행·수수료 변경 (설계안 §5.1)" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-11-12T10:26:22" hostname="DESKTOP-SF1KUQ5" time="0.04">
+  <properties/>
+  <testcase name="18 — 종결 뒤 도착한 활성 응답이 상태·수량을 되돌리지 않는다" classname="com.cryptoautotrader.api.service.SettlementIdempotencyTest" time="0.01"/>
+  <testcase name="확정 회귀 — 동일 응답을 거쳐도 늦게 도착한 수수료 증가가 반영된다" classname="com.cryptoautotrader.api.service.SettlementIdempotencyTest" time="0.008"/>
+  <testcase name="원본 보존 — 정상 전량 체결에서도 거래소 보고 체결금액·수수료가 저장된다" classname="com.cryptoautotrader.api.service.SettlementIdempotencyTest" time="0.006"/>
+  <testcase name="19 — 수량은 같고 체결금액·수수료만 늘어난 응답이 정확히 한 번 반영된다" classname="com.cryptoautotrader.api.service.SettlementIdempotencyTest" time="0.006"/>
+  <testcase name="17 — 같은 응답을 반복 반영해도 추가 정산이 없다" classname="com.cryptoautotrader.api.service.SettlementIdempotencyTest" time="0.007"/>
+  <system-out><![CDATA[19:26:22.187 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.SettlementIdempotencyTest
+19:26:22.188 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+19:26:22.194 [Test worker] ERROR c.c.a.service.OrderSettlementService - ? 정산 불일치 ? 자동 반영하지 않고 보존한다 (orderId=283, kind=VOLUME_DECREASE, 이전=10.00000000, 수신=0). 사람이 확인해야 한다.
+19:26:22.199 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+19:26:22.208 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+19:26:22.215 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+19:26:22.222 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

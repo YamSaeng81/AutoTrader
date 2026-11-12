@@ -1,0 +1,55 @@
+> Task :strategy-lib:compileJava UP-TO-DATE
+> Task :strategy-lib:processResources NO-SOURCE
+> Task :strategy-lib:classes UP-TO-DATE
+> Task :strategy-lib:jar UP-TO-DATE
+> Task :core-engine:compileJava UP-TO-DATE
+> Task :core-engine:processResources NO-SOURCE
+> Task :core-engine:classes UP-TO-DATE
+> Task :core-engine:jar UP-TO-DATE
+> Task :exchange-adapter:compileJava UP-TO-DATE
+> Task :exchange-adapter:processResources NO-SOURCE
+> Task :exchange-adapter:classes UP-TO-DATE
+> Task :exchange-adapter:jar UP-TO-DATE
+> Task :web-api:compileJava UP-TO-DATE
+> Task :web-api:processResources UP-TO-DATE
+> Task :web-api:classes UP-TO-DATE
+> Task :web-api:compileTestJava
+> Task :web-api:processTestResources
+> Task :web-api:testClasses
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+
+> Task :web-api:test
+
+v1.158 DYNAMIC 판단 시계 > 캔들 조회 상한 ? 판단 시각 뒤의 봉은 넣지 않는다 FAILED
+    java.lang.AssertionError at DynamicJudgeClockTest.java:98
+
+v1.158 DYNAMIC 판단 시계 > 캔들 최신성 ? 판단 시계 기준으로 최신이면 통과(시스템 시각 기준이면 낡음) FAILED
+    java.lang.AssertionError at DynamicJudgeClockTest.java:87
+
+v1.158 DYNAMIC 판단 시계 > BTC 관문 ? 판단 시계 기준 최신 BTC 캔들이면 판정 가능 FAILED
+    org.opentest4j.AssertionFailedError at DynamicJudgeClockTest.java:110
+
+v1.158 DYNAMIC 판단 시계 > 닫힌 봉 판정 ? 판단 시계 T+59분은 진행 중 봉 제외, T+60분은 포함 FAILED
+    java.lang.AssertionError at DynamicJudgeClockTest.java:76
+
+20:35:08.472 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+20:35:08.473 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+20:35:08.475 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+20:35:08.477 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+20:35:08.479 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+
+> Task :web-api:test FAILED
+
+5 tests completed, 4 failed
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':web-api:test'.
+> There were failing tests. See the report at: file:///D:/tmp/dc158-84fb03d6/web-api/build/reports/tests/test/index.html
+
+* Try:
+> Run with --scan to get full insights.
+
+BUILD FAILED in 20s
+11 actionable tasks: 3 executed, 8 up-to-date

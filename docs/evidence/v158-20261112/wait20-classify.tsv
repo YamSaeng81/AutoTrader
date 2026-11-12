@@ -1,0 +1,20 @@
+파일	대기함수	호출수	정리(@After/@Before)	시험본문_뒤에단언	시험본문_단언없음	예: 뒤 단언
+CancelConfirmAndLateFillCleanupTest	awaitDrained	18	1	11	6	 List<OrderEntity> sells = awaitSubmittedSells(f, 1);
+ClaimAndUnknownTrackingTest	awaitDrained	3	0	2	1	 OrderEntity o = theOrder(f);
+DailySma20LiveOrderPathTest	awaitDrained	3	1	1	1	List<OrderEntity> found = orders(s, side); assertThat(found).as(side + " 주문 1건 — " + lastT
+ExchangeRecoveryRestartTest	awaitDrained	5	0	3	2	assertThat(healthMonitor.getStatus()).isEqualTo("DOWN"); assertThat(status(id)).as("DOWN 이
+IntentPrecommitAndOnceOnlyTest	awaitDrained	2	0	2	0	 OrderEntity finalOrder = theOrder(f);
+LateOrderSubmissionAfterStopTest	awaitOrderExecutorDrained	1	0	1	0	 assertThat(sessionRepository.findById(sessionId).orElseThrow().getStatus())
+LimitedTestExchangeRecoveryTest	awaitDrained	6	2	0	4	
+LiveEmergencyStopUnderConcurrentWriteTest	awaitDrained	1	0	0	1	
+LiveStopUnderConcurrentWriteTest	awaitOrderExecutorDrained	4	0	2	2	int sellsAfterFirstStop = Mockito.mockingDetails(upbitOrderClient).getInvocations().size()
+N15PgLockWaitExpiryTest	drain	2	2	0	0	
+N16InvalidPriceReproTest	drain	8	2	2	4	drain(orderExecutor); System.out.println("[N16 ③] 처리 뒤 거래소 매도 " + exchangeSells(f) + " · 포
+N17RestInvalidPriceTest	drain	4	2	0	2	
+N19RestFallbackItemDefenseTest	drain	4	2	0	2	
+O1O3LogContractTest	drain	4	2	2	0	// 🔴 (총괄 v1.156 §124-4, 2026-11-12) 매도는 @Async orderExecutor 작업이다. 옛 대기 조건(큐 비었음·active 0·
+SlWatchdogFreshnessTest	drain	4	2	0	2	
+StaleRealtimeExitTest	drain	4	2	0	2	
+StopVersusInFlightExitRaceTest	drain	10	2	6	2	List<OrderEntity> first = awaitSells(f, 1); System.out.println("[" + label + "] 세션=" + ses
+SubmitOrderBoundaryProbeTest	awaitOrderExecutorDrained	1	0	0	1	
+SubmitResponseUnknownTest	awaitDrained	4	0	4	0	 String v1 = sessionSnapshot(f.sessionId());

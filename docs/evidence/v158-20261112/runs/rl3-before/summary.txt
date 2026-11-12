@@ -1,0 +1,22 @@
+web-api tests 8 fail 6 err 0 skip 0 pass 2
+FAIL com.cryptoautotrader.api.service.RealLossThreeFormulaPgTest # ① DYNAMIC REAL −4,002 (LIVE 10만·DYN 10만): DYNAMIC 4.00%·전체 2.00% > 1.50% — checkRisk·DYNAMIC 진입 모두 거절
+    org.opentest4j.AssertionFailedError: 
+Expecting value to be false but was true
+FAIL com.cryptoautotrader.api.service.RealLossThreeFormulaPgTest # ② LIVE −2,001 (LIVE 10만·DYN 10만): 기존 2.00% 거절 유지 — DYNAMIC 자본을 더한 전체 1.00% 로 완화되지 않음
+    java.lang.AssertionError: 
+Expecting actual:
+  "일일 손실 한도 초과: 2.00% > 1.50%"
+to contain:
+  "기존 보호식" 
+FAIL com.cryptoautotrader.api.service.RealLossThreeFormulaPgTest # ③ 판정 불가 — DYNAMIC REAL 손실이 있는데 RUNNING DYNAMIC REAL 자본이 없으면 거절, 손실 0 이면 자본 없음만으로 막지 않음
+    org.opentest4j.AssertionFailedError: 
+Expecting value to be false but was true
+FAIL com.cryptoautotrader.api.service.RealLossThreeFormulaPgTest # ④ 동률 비교 — 손실률 = 한도(2.00%) 승인, 한도 1.99% 거절 (기존·DYNAMIC 각각)
+    org.opentest4j.AssertionFailedError: 
+Expecting value to be false but was true
+FAIL com.cryptoautotrader.api.service.RealLossThreeFormulaPgTest # ⑤ 창 경계 — 2일 전 DYNAMIC 손실은 일일 밖·주간 안
+    org.opentest4j.AssertionFailedError: 
+Expecting value to be false but was true
+FAIL com.cryptoautotrader.api.service.RealLossThreeFormulaPgTest # ⑧ 자본 추가·정지 판정 표 (관측 + 단언)
+    org.opentest4j.AssertionFailedError: 
+Expecting value to be false but was true

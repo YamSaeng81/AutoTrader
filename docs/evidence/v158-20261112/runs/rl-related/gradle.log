@@ -1,0 +1,153 @@
+> Task :strategy-lib:compileJava UP-TO-DATE
+> Task :strategy-lib:processResources NO-SOURCE
+> Task :strategy-lib:classes UP-TO-DATE
+> Task :strategy-lib:jar UP-TO-DATE
+> Task :core-engine:compileJava UP-TO-DATE
+> Task :core-engine:processResources NO-SOURCE
+> Task :core-engine:classes UP-TO-DATE
+> Task :core-engine:jar UP-TO-DATE
+> Task :exchange-adapter:compileJava UP-TO-DATE
+> Task :exchange-adapter:processResources NO-SOURCE
+> Task :exchange-adapter:classes UP-TO-DATE
+> Task :exchange-adapter:jar UP-TO-DATE
+> Task :web-api:compileJava
+> Task :web-api:processResources UP-TO-DATE
+> Task :web-api:classes
+> Task :web-api:compileTestJava UP-TO-DATE
+> Task :web-api:processTestResources UP-TO-DATE
+> Task :web-api:testClasses UP-TO-DATE
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+
+> Task :web-api:test
+
+BTC 관문 데이터 공급 ? BTC 세션 없는 LIVE·DYNAMIC: 수집 실패면 차단, 수집되면 진입 > DYNAMIC(BTC 세션 없음): BTC REST 실패 → 매수 0, 복구 → 엔진 자체 조회가 BTC 를 받아 매수 1 FAILED
+    org.springframework.dao.InvalidDataAccessResourceUsageException at BtcGateSupplyEndToEndTest.java:237
+        Caused by: org.hibernate.exception.SQLGrammarException at BtcGateSupplyEndToEndTest.java:237
+            Caused by: org.h2.jdbc.JdbcSQLSyntaxErrorException at BtcGateSupplyEndToEndTest.java:237
+
+BTC 급락 관문 판정 불가 ? 캔들이 없거나 낡으면 LIVE·DYNAMIC 의 평가·승인 시점 매수를 막고, 최신이면 나간다 > 승인 시점: 평가 때 최신이던 BTC 캔들이 승인 전에 사라지면 LIVE·DYNAMIC 모두 '판정 불가' 로 거절, 다시 오면 승인 FAILED
+    java.lang.AssertionError at BtcGateUnknownEntryTest.java:287
+
+BTC 급락 관문 판정 불가 ? 캔들이 없거나 낡으면 LIVE·DYNAMIC 의 평가·승인 시점 매수를 막고, 최신이면 나간다 > DYNAMIC 평가 회차: BTC 캔들 없음·낡음 → 매수 없음, 최신 → 매수 (즉시 진입) FAILED
+    org.springframework.dao.InvalidDataAccessResourceUsageException at BtcGateUnknownEntryTest.java:188
+        Caused by: org.hibernate.exception.SQLGrammarException at BtcGateUnknownEntryTest.java:188
+            Caused by: org.h2.jdbc.JdbcSQLSyntaxErrorException at BtcGateUnknownEntryTest.java:188
+
+DynamicBuyCompletesConsistentlyTest > ? 정상 매수는 완료되고 워치리스트·잔액·포지션·세션 상태가 일관되게 저장된다 FAILED
+    org.opentest4j.AssertionFailedError at DynamicBuyCompletesConsistentlyTest.java:165
+
+DynamicBuyExternalSubmissionBoundaryTest > ? 롤백분 0회 · 정상분 1회 ? 비동기 실행기가 빈 것을 확인한 뒤 식별자로 구분해 검사한다 FAILED
+    org.opentest4j.AssertionFailedError at DynamicBuyExternalSubmissionBoundaryTest.java:131
+
+DynamicBuyOuterWriteOrderingTest > ? 매수 경로에 별도 연결의 세션 행 갱신이 없다 ? 차감이 예약과 같은 트랜잭션이다 FAILED
+    org.opentest4j.AssertionFailedError at DynamicBuyOuterWriteOrderingTest.java:218
+
+DynamicPaperBuySameTickWatchlistTest > 대조 ? REAL 은 같은 순서에서도 매수가 완료된다(2026-10-12 잠근 채 다시 읽기) FAILED
+    org.opentest4j.AssertionFailedError at DynamicPaperBuySameTickWatchlistTest.java:274
+
+코인 우선순위 종단 간 ? 엔진 평가 → 회차 접수 → 마감 뒤 등록 순서 승인 → 주문 의도 > 등록 순서의 반대로 평가해도 마감 뒤 IOTA(DYNAMIC)·CRO(LIVE)가 승인되고, 마감 전에는 주문이 없다 FAILED
+    org.opentest4j.AssertionFailedError at EntryPriorityEndToEndTest.java:235
+
+코인 우선순위 종단 간 ? 엔진 평가 → 회차 접수 → 마감 뒤 등록 순서 승인 → 주문 의도 > 대조 ? 회차를 끄면(즉시 진입, 종전 동작) 같은 평가 순서에서 먼저 평가된 INJ·G 가 슬롯을 가져간다 FAILED
+    org.springframework.dao.InvalidDataAccessResourceUsageException at EntryPriorityEndToEndTest.java:273
+        Caused by: org.hibernate.exception.SQLGrammarException at EntryPriorityEndToEndTest.java:273
+            Caused by: org.h2.jdbc.JdbcSQLSyntaxErrorException at EntryPriorityEndToEndTest.java:273
+
+N15 최종 승인 경계 ? 한도 조회·세션 잠금·의도 승인 중 E 도달 시 차감·의도 없음 > ⑨b (c) DYNAMIC 차감 뒤 의도 승인 조회 중 E ? 가용 원복·열린 슬롯·의도·거래소 0, 신호에 ENTRY_EXPIRED FAILED
+    org.opentest4j.AssertionFailedError at N15FinalApprovalBoundaryTest.java:475
+
+N15 최종 승인 경계 ? 한도 조회·세션 잠금·의도 승인 중 E 도달 시 차감·의도 없음 > ⑧ (b) DYNAMIC 세션 행 잠금(refresh) 대기 중 E ? 차감·슬롯·의도·거래소 0, 신호에 ENTRY_EXPIRED FAILED
+    org.opentest4j.AssertionFailedError at N15FinalApprovalBoundaryTest.java:447
+
+N15 최종 승인 경계 ? 한도 조회·세션 잠금·의도 승인 중 E 도달 시 차감·의도 없음 > ⑦b (a) DYNAMIC 잠금 직후 E?1ms·손실 한도 검사 중 E ? 차감·슬롯·의도·거래소 0, 신호에 ENTRY_EXPIRED FAILED
+    org.opentest4j.AssertionFailedError at N15FinalApprovalBoundaryTest.java:380
+
+N15 최종 승인 경계 ? 한도 조회·세션 잠금·의도 승인 중 E 도달 시 차감·의도 없음 > ⑩ 대조군: 갈고리 지점을 지나도 시계가 E?1ms 면 LIVE·DYNAMIC 정상 진입 ? 차감·슬롯·매수 의도 1 > LIVE 접수 EARLY FAILED
+    org.opentest4j.AssertionFailedError at N15FinalApprovalBoundaryTest.java:523
+
+N15 최종 승인 경계 ? 한도 조회·세션 잠금·의도 승인 중 E 도달 시 차감·의도 없음 > ⑩ 대조군: 갈고리 지점을 지나도 시계가 E?1ms 면 LIVE·DYNAMIC 정상 진입 ? 차감·슬롯·매수 의도 1 > LIVE 접수 LATE FAILED
+    org.opentest4j.AssertionFailedError at N15FinalApprovalBoundaryTest.java:523
+
+공유 풀 손실 한도 ? 고정 분모 · 순자산 · 24시간 > 한도 도달 시 LIVE 예약과 DYNAMIC 매수가 같은 사유로 거절되고 흔적이 없다 FAILED
+    org.springframework.dao.InvalidDataAccessResourceUsageException at PoolLossLimitTest.java:497
+        Caused by: org.hibernate.exception.SQLGrammarException at PoolLossLimitTest.java:497
+            Caused by: org.h2.jdbc.JdbcSQLSyntaxErrorException at PoolLossLimitTest.java:497
+
+19:28:57.794 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:28:57.796 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+19:28:57.796 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+19:28:57.797 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+19:28:57.797 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+19:28:57.818 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:28:57.818 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+19:28:57.818 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+19:28:57.818 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-2 - Shutdown initiated...
+19:28:57.820 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-2 - Shutdown completed.
+19:28:57.842 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:28:57.842 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+19:28:57.843 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+19:28:57.843 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-3 - Shutdown initiated...
+19:28:57.844 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-3 - Shutdown completed.
+19:28:57.864 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:28:57.864 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+19:28:57.865 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+19:28:57.865 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-5 - Shutdown initiated...
+19:28:57.866 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-5 - Shutdown completed.
+19:28:57.886 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:28:57.886 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+19:28:57.887 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+19:28:57.888 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-6 - Shutdown initiated...
+19:28:57.889 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-6 - Shutdown completed.
+19:28:57.907 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:28:57.907 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+19:28:57.908 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+19:28:57.908 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-7 - Shutdown initiated...
+19:28:57.909 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-7 - Shutdown completed.
+19:28:57.931 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:28:57.931 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+19:28:57.932 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+19:28:57.933 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-8 - Shutdown initiated...
+19:28:57.933 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-8 - Shutdown completed.
+19:28:57.952 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:28:57.953 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+19:28:57.953 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+19:28:57.954 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-9 - Shutdown initiated...
+19:28:57.954 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-9 - Shutdown completed.
+19:28:57.974 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:28:57.974 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+19:28:57.974 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+19:28:57.975 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-10 - Shutdown initiated...
+19:28:57.975 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-10 - Shutdown completed.
+19:28:57.996 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:28:57.996 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+19:28:57.997 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+19:28:57.997 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-11 - Shutdown initiated...
+19:28:57.997 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-11 - Shutdown completed.
+19:29:01.904 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+19:29:01.904 [telegram-1] ERROR c.c.a.s.TelegramNotificationService - [Telegram] ? RISK_LIMIT 알림 3회 시도 ? 최종 실패: 전달되지 않음(마지막 REJECTED HTTP 404)(이력 success=false): ? *리스크 한도 초과*
+
+? 사유: `공유 풀 누적 손실 한도 도달 ? 단계 LOSS_daea3e74(시작 2026-11-12T10:28:36.887305Z) 순자산 변화 -15000.00 [현금 -15000.00
+19:29:01.922 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:29:01.923 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+19:29:01.923 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+19:29:01.924 [telegram-1] ERROR c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 중 오류(응답 미수신): null
+19:29:01.924 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-12 - Shutdown initiated...
+19:29:01.925 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-12 - Shutdown completed.
+
+> Task :web-api:test
+
+157 tests completed, 15 failed
+
+> Task :web-api:test FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':web-api:test'.
+> There were failing tests. See the report at: file:///D:/tmp/rl158-92aa8712/web-api/build/reports/tests/test/index.html
+
+* Try:
+> Run with --scan to get full insights.
+
+BUILD FAILED in 1m 16s
+11 actionable tasks: 2 executed, 9 up-to-date

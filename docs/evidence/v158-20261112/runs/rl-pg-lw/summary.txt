@@ -1,0 +1,8 @@
+web-api tests 7 fail 1 err 0 skip 0 pass 6
+FAIL com.cryptoautotrader.api.service.LiveLossWindowPgTest # ① 실제 LIVE 손실 체결→확정 뒤 checkRisk — 일일 한도(1.5%)를 넘는 세션 손실(2.00%)이면 진입 승인이 거절된다
+    java.lang.AssertionError: 
+Expecting actual:
+  "[기존 보호식] 일일 손실 한도 초과: 2.00% > 1.50%"
+to start with:
+  "일일 손실 한도 초과: 2.00%"
+

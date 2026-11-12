@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.KillCriteriaTimeframeDisableTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-11-12T12:25:15" hostname="DESKTOP-SF1KUQ5" time="0.017">
+  <properties/>
+  <testcase name="폐기된 타임프레임이 차단된다 — 세션 정지만으로는 재생성을 못 막는다 (핵심 회귀)" classname="com.cryptoautotrader.api.service.KillCriteriaTimeframeDisableTest" time="0.005"/>
+  <testcase name="게이트가 차단된 조합의 세션 생성을 거부한다" classname="com.cryptoautotrader.api.service.KillCriteriaTimeframeDisableTest" time="0.003"/>
+  <testcase name="KILL 이 아닌 판정은 차단하지 않는다 — WARN 은 경보이지 폐기가 아니다" classname="com.cryptoautotrader.api.service.KillCriteriaTimeframeDisableTest" time="0.001"/>
+  <testcase name="다른 타임프레임은 영향받지 않는다 — 보수적 우회의 취지는 그대로 지킨다" classname="com.cryptoautotrader.api.service.KillCriteriaTimeframeDisableTest" time="0.002"/>
+  <testcase name="타임프레임 차단은 전략 전체를 막지 않는다 — 두 층은 독립이다" classname="com.cryptoautotrader.api.service.KillCriteriaTimeframeDisableTest" time="0.002"/>
+  <testcase name="타임프레임을 모르는 판정은 건너뛴다 — 전 조합을 실수로 막지 않는다" classname="com.cryptoautotrader.api.service.KillCriteriaTimeframeDisableTest" time="0.002"/>
+  <system-out><![CDATA[21:25:15.425 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.KillCriteriaTimeframeDisableTest
+21:25:15.427 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:25:15.430 [Test worker] WARN  c.c.a.s.StrategyKillCriteriaService - [KillCriteria] 타임프레임 비활성화: COMPOSITE_MEANREV_BB@M15 ? CAPITAL_LOSS. 다른 타임프레임은 유지. 부활은 Walk Forward 재검증 필요
+21:25:15.432 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:25:15.433 [Test worker] WARN  c.c.a.s.StrategyKillCriteriaService - [KillCriteria] 타임프레임 비활성화: COMPOSITE_MEANREV_BB@M15 ? CAPITAL_LOSS. 다른 타임프레임은 유지. 부활은 Walk Forward 재검증 필요
+21:25:15.436 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:25:15.437 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:25:15.438 [Test worker] WARN  c.c.a.s.StrategyKillCriteriaService - [KillCriteria] 타임프레임 비활성화: COMPOSITE_MEANREV_BB@M15 ? CAPITAL_LOSS. 다른 타임프레임은 유지. 부활은 Walk Forward 재검증 필요
+21:25:15.439 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:25:15.440 [Test worker] WARN  c.c.a.s.StrategyKillCriteriaService - [KillCriteria] 타임프레임 비활성화: COMPOSITE_MEANREV_BB@M15 ? CAPITAL_LOSS. 다른 타임프레임은 유지. 부활은 Walk Forward 재검증 필요
+21:25:15.441 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

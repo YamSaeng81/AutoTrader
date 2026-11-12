@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="이중 매도 차단 — 반영되지 않은 매도가 있는 포지션에는 새 매도를 내지 않는다" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-11-12T12:02:08" hostname="DESKTOP-SF1KUQ5" time="0.042">
+  <properties/>
+  <testcase name="&#x1f534; 다른 경로가 매도를 반영하고 포지션을 닫은 뒤 늦게 온 매도는 내지 않는다 (리뷰 8회차 재시작 시험 S18b — 정지 재호출과 유령 정산의 경쟁)" classname="com.cryptoautotrader.api.service.DoubleSellGuardTest" time="0.006"/>
+  <testcase name="&#x1f534; 같은 포지션의 동시 청산 요청 8개 — 제출 권한은 하나만 얻는다: 거래소 생성 1건, 매도 주문 1행" classname="com.cryptoautotrader.api.service.DoubleSellGuardTest" time="0.012"/>
+  <testcase name="&#x1f534; 체결됐지만 포지션에 반영되지 않은 매도가 있으면 새 매도는 거래소로 나가지 않고 주문 행도 생기지 않는다" classname="com.cryptoautotrader.api.service.DoubleSellGuardTest" time="0.007"/>
+  <testcase name="반영된 뒤에는 막지 않는다 — 남은 수량을 다시 팔 수 있다(부분 체결 규칙). 대조군: 매도 이력 없는 포지션도 통과" classname="com.cryptoautotrader.api.service.DoubleSellGuardTest" time="0.009"/>
+  <testcase name="&#x1f534; V87 이전 매도도 판별 불가로 센다 — 반영 표시 없이 체결된 오래된 매도가 열린 포지션에 있으면 새 매도를 내지 않는다(격리)" classname="com.cryptoautotrader.api.service.DoubleSellGuardTest" time="0.008"/>
+  <system-out><![CDATA[21:02:08.277 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.DoubleSellGuardTest
+21:02:08.279 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:02:08.281 [Test worker] ERROR c.c.api.service.OrderExecutionEngine - ? 이중 매도 차단 (sessionKind=LIVE, sessionId=154, posId=247, KRW-DSG): 포지션이 이미 CLOSED·수량 9.80000000 ? 다른 경로가 정산을 끝냈다. 새 매도를 내지 않는다
+21:02:08.287 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:02:08.290 [pool-8-thread-1] ERROR c.c.api.service.OrderExecutionEngine - ? 이중 매도 차단 (sessionKind=LIVE, sessionId=155, posId=248, KRW-DSG): 이 포지션에 반영되지 않은 매도 1건 (미결 또는 체결·미반영) ? 새 매도를 내지 않는다
+21:02:08.291 [pool-8-thread-2] ERROR c.c.api.service.OrderExecutionEngine - ? 이중 매도 차단 (sessionKind=LIVE, sessionId=155, posId=248, KRW-DSG): 이 포지션에 반영되지 않은 매도 1건 (미결 또는 체결·미반영) ? 새 매도를 내지 않는다
+21:02:08.291 [pool-8-thread-7] ERROR c.c.api.service.OrderExecutionEngine - ? 이중 매도 차단 (sessionKind=LIVE, sessionId=155, posId=248, KRW-DSG): 이 포지션에 반영되지 않은 매도 1건 (미결 또는 체결·미반영) ? 새 매도를 내지 않는다
+21:02:08.291 [pool-8-thread-5] ERROR c.c.api.service.OrderExecutionEngine - ? 이중 매도 차단 (sessionKind=LIVE, sessionId=155, posId=248, KRW-DSG): 이 포지션에 반영되지 않은 매도 1건 (미결 또는 체결·미반영) ? 새 매도를 내지 않는다
+21:02:08.291 [pool-8-thread-6] ERROR c.c.api.service.OrderExecutionEngine - ? 이중 매도 차단 (sessionKind=LIVE, sessionId=155, posId=248, KRW-DSG): 이 포지션에 반영되지 않은 매도 1건 (미결 또는 체결·미반영) ? 새 매도를 내지 않는다
+21:02:08.292 [pool-8-thread-4] WARN  c.c.api.service.OrderExecutionEngine - 중복 주문 거부 (sessionKind=LIVE, sessionId=155, KRW-DSG SELL): 이미 활성 주문이 있습니다
+21:02:08.292 [pool-8-thread-3] WARN  c.c.api.service.OrderExecutionEngine - 중복 주문 거부 (sessionKind=LIVE, sessionId=155, KRW-DSG SELL): 이미 활성 주문이 있습니다
+21:02:08.298 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:02:08.301 [Test worker] ERROR c.c.api.service.OrderExecutionEngine - ? 이중 매도 차단 (sessionKind=LIVE, sessionId=156, posId=249, KRW-DSG): 이 포지션에 반영되지 않은 매도 1건 (미결 또는 체결·미반영) ? 새 매도를 내지 않는다
+21:02:08.304 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:02:08.314 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:02:08.316 [Test worker] ERROR c.c.api.service.OrderExecutionEngine - ? 이중 매도 차단 (sessionKind=LIVE, sessionId=159, posId=252, KRW-DSG): 이 포지션에 반영되지 않은 매도 1건 (미결 또는 체결·미반영) ? 새 매도를 내지 않는다
+21:02:08.319 [Test worker] ERROR c.c.api.service.SellQuarantineReport - ? 매도가 막힌 실자금 포지션 1개 ? 반영 표시 없이 체결된 매도가 있어 새 매도(손절 포함)를 내지 않는다. 사람이 판정하라: [{POSITION_ID=252, SESSION_KIND=LIVE, SESSION_ID=159, COIN_PAIR=KRW-DSG, STATUS=OPEN, SIZE=9.80000000, ORDER_ID=290, STATE=FILLED, FILLED_QUANTITY=9.80000000, CREATED_AT=2026-10-13 21:02:08.315855}]
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,54 @@
+> Task :strategy-lib:compileJava
+> Task :strategy-lib:processResources NO-SOURCE
+> Task :strategy-lib:classes
+> Task :strategy-lib:jar
+> Task :core-engine:compileJava
+> Task :core-engine:processResources NO-SOURCE
+> Task :core-engine:classes
+> Task :core-engine:jar
+> Task :exchange-adapter:compileJava
+> Task :exchange-adapter:processResources NO-SOURCE
+> Task :exchange-adapter:classes
+> Task :exchange-adapter:jar
+> Task :web-api:compileJava
+> Task :web-api:processResources
+> Task :web-api:classes
+> Task :web-api:compileTestJava
+> Task :web-api:processTestResources
+> Task :web-api:testClasses
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+
+> Task :web-api:test
+
+TelegramTestIsolationTest > SchedulerProfile > 스케줄러_프로필도_알림을_보내지_않는다() FAILED
+    org.opentest4j.AssertionFailedError at TelegramTestIsolationTest.java:77
+
+TelegramTestIsolationTest > TestProfile > 시험_프로필은_알림을_보내지_않는다() FAILED
+    org.opentest4j.AssertionFailedError at TelegramTestIsolationTest.java:66
+
+19:01:31.697 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:01:31.697 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+19:01:31.699 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+19:01:31.703 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+19:01:31.706 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+19:01:31.732 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+19:01:31.732 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+19:01:31.734 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+19:01:31.734 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-2 - Shutdown initiated...
+19:01:31.735 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-2 - Shutdown completed.
+
+> Task :web-api:test FAILED
+
+2 tests completed, 2 failed
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':web-api:test'.
+> There were failing tests. See the report at: file:///D:/tmp/tg158-84fb03d6/web-api/build/reports/tests/test/index.html
+
+* Try:
+> Run with --scan to get full insights.
+
+BUILD FAILED in 31s
+11 actionable tasks: 11 executed

@@ -1,0 +1,222 @@
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/RiskManagementService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/RiskManagementService.java
+index eda24db1..c047489b 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/RiskManagementService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/RiskManagementService.java
+@@ -192,10 +192,7 @@ public class RiskManagementService {
+             log.warn("리스크 체크 거부: {} (일일={}%, 주간={}%, 월간={}%, 포지션={}, 자본사용률={}%, 드로우다운={}%)",
+                     result.getReason(), dailyLoss, weeklyLoss, monthlyLoss,
+                     currentPositions, capitalUtilizationPct, portfolioDrawdownPct);
+-            // 🔴 v1.158 결정 2: 손실 거절이면 어느 보호식인지 붙인다. 기존 식의 판정·비교는 그대로다.
+-            if (result.getReason() != null && result.getReason().contains("손실 한도")) {
+-                return RiskCheckResult.reject("[기존 보호식] " + result.getReason());
+-            }
++            // v1.158 결정 2: 기존 보호식의 거절 사유 문구는 종전 그대로 둔다(새 두 식만 [이름] 접두를 붙인다).
+             return result;
+         }
+ 
+@@ -224,7 +221,7 @@ public class RiskManagementService {
+                 calculateLossPct(now.minus(7, ChronoUnit.DAYS), legacyDenom),
+                 calculateLossPct(now.minus(30, ChronoUnit.DAYS), legacyDenom), 0, null, null);
+         if (!legacy.isApproved()) {
+-            return RiskCheckResult.reject("[기존 보호식] " + legacy.getReason());
++            return legacy;   // 기존 보호식 — 종전 사유 문구 그대로
+         }
+         return checkAddedRealLossFormulas(engine, configEntity, now);
+     }
+@@ -238,13 +235,15 @@ public class RiskManagementService {
+      * 전체 REAL    : (기존 손실 원천 + DYNAMIC REAL 손실, 각 한 번) / (RUNNING LIVE + RUNNING DYNAMIC REAL 초기자본)
+      *                둘 다 0(비세션만)이면 종전 설정/최종 폴백.
+      * </pre>
+-     * 이익으로 상쇄하지 않는다(손실 행만). PAPER·DYN_PAPER·추정 청산은 분자·분모에 없다. 자료를 읽지 못하면 판정 불가로 거절한다.
++     * 이익으로 상쇄하지 않는다(손실 행만). PAPER·DYN_PAPER·추정 청산은 분자·분모에 없다. 자료를 읽지 못하면 예외로 진입을 중단한다(fail-closed).
+      */
+     private RiskCheckResult checkAddedRealLossFormulas(RiskEngine engine, RiskConfigEntity configEntity, Instant now) {
+         BigDecimal[] dynPct = new BigDecimal[3];
+         BigDecimal[] totalPct = new BigDecimal[3];
+         Instant[] since = {now.minus(1, ChronoUnit.DAYS), now.minus(7, ChronoUnit.DAYS), now.minus(30, ChronoUnit.DAYS)};
+-        try {
++        // 🔴 조회 실패는 잡지 않는다 — 예외로 이 진입을 중단한다(fail-closed). 참여 중인 트랜잭션은 이미 롤백 전용이 되어, 잡고 거절을
++        //    돌려줘도 호출자 커밋에서 다시 실패하기 때문이다. 손실 0·무한 자본으로 보고 통과시키는 경로는 없다.
++        {
+             BigDecimal liveCap = runningLiveCapital();
+             BigDecimal dynCap = runningDynamicRealCapital();
+             BigDecimal totalCap = liveCap.add(dynCap);
+@@ -263,10 +262,6 @@ public class RiskManagementService {
+                 dynPct[i] = dynLoss.signum() < 0 ? pct(dynLoss, dynCap) : BigDecimal.ZERO;
+                 totalPct[i] = pct(legacyLoss.add(dynLoss), totalCap);
+             }
+-        } catch (org.springframework.dao.DataAccessException e) {
+-            String msg = "[실자금 손실 보호식] 판정 불가 — 손실·자본 자료를 읽지 못했다(" + e.getClass().getSimpleName() + ")";
+-            log.warn("리스크 체크 거부: {}", msg);
+-            return RiskCheckResult.reject(msg);
+         }
+         RiskCheckResult dyn = engine.check(dynPct[0], dynPct[1], dynPct[2], 0, null, null);
+         if (!dyn.isApproved()) {
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/BtcGateSupplyEndToEndTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/BtcGateSupplyEndToEndTest.java
+index 807028f4..8442bfcc 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/BtcGateSupplyEndToEndTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/BtcGateSupplyEndToEndTest.java
+@@ -113,6 +113,9 @@ class BtcGateSupplyEndToEndTest extends IntegrationTestBase {
+         poolLossGuard.setEnabledSetting(true);
+         rounds.setForcedForTest(false);
+         doReturn(com.cryptoautotrader.core.risk.RiskCheckResult.approve()).when(riskManagementService).checkRisk();
++        // v1.158 결정 2: 실자금 손실 관문(checkRealLossGuard)의 기존 손실 원천은 PostgreSQL 전용 구문이라 H2 에서 실행할 수 없다 —
++        //    checkRisk 와 같은 관례로 승인으로 둔다. 관문 자체는 실제 PG RealLossThreeFormulaPgTest 가 검증한다.
++        doReturn(com.cryptoautotrader.core.risk.RiskCheckResult.approve()).when(riskManagementService).checkRealLossGuard();
+         for (String c : coins) jdbc.update("DELETE FROM market_data_cache WHERE coin_pair = ? AND timeframe = 'H1'", c);
+         // 🔴 KRW-BTC 세션이 없어야 한다 — 다른 시험이 남긴 실행 중 BTC 세션은 이 시험 동안 멈춘다(관문 데이터가 세션 구성에 기대지 않음을 본다)
+         jdbc.update("UPDATE live_trading_session SET status = 'STOPPED' WHERE status = 'RUNNING' AND coin_pair = 'KRW-BTC'");
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/BtcGateUnknownEntryTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/BtcGateUnknownEntryTest.java
+index 4b3c39c4..ac8aefca 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/BtcGateUnknownEntryTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/BtcGateUnknownEntryTest.java
+@@ -103,6 +103,9 @@ class BtcGateUnknownEntryTest extends IntegrationTestBase {
+         limits.setTotalCapKrw(positionRepository.sumPoolExposureKrw(-1L).add(new BigDecimal("1000000")));
+         poolLossGuard.setEnabledSetting(true);
+         doReturn(com.cryptoautotrader.core.risk.RiskCheckResult.approve()).when(riskManagementService).checkRisk();
++        // v1.158 결정 2: 실자금 손실 관문(checkRealLossGuard)의 기존 손실 원천은 PostgreSQL 전용 구문이라 H2 에서 실행할 수 없다 —
++        //    checkRisk 와 같은 관례로 승인으로 둔다. 관문 자체는 실제 PG RealLossThreeFormulaPgTest 가 검증한다.
++        doReturn(com.cryptoautotrader.core.risk.RiskCheckResult.approve()).when(riskManagementService).checkRealLossGuard();
+         for (String c : coins) jdbc.update("DELETE FROM market_data_cache WHERE coin_pair = ? AND timeframe = 'H1'", c);
+     }
+ 
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBuyCompletesConsistentlyTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBuyCompletesConsistentlyTest.java
+index 8541afe9..116001e0 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBuyCompletesConsistentlyTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBuyCompletesConsistentlyTest.java
+@@ -70,6 +70,15 @@ import static org.mockito.Mockito.verify;
+ @Import(SqlTraceConfig.class)
+ class DynamicBuyCompletesConsistentlyTest extends IntegrationTestBase {
+ 
++    /** v1.158 결정 2 — H2 에서 실자금 손실 관문을 승인으로 둔다(기존 손실 원천이 PostgreSQL 전용 구문). 관문은 실제 PG 시험이 검증한다. */
++    @org.springframework.boot.test.mock.mockito.SpyBean private RiskManagementService realLossGuardSpy;
++
++    @org.junit.jupiter.api.BeforeEach
++    void approveRealLossGuardOnH2() {
++        org.mockito.Mockito.doReturn(com.cryptoautotrader.core.risk.RiskCheckResult.approve()).when(realLossGuardSpy).checkRealLossGuard();
++    }
++
++
+     private static final BigDecimal CAPITAL = new BigDecimal("10000.00");
+ 
+     @Autowired
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBuyExternalSubmissionBoundaryTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBuyExternalSubmissionBoundaryTest.java
+index c349bef2..8a61b42b 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBuyExternalSubmissionBoundaryTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBuyExternalSubmissionBoundaryTest.java
+@@ -46,6 +46,15 @@ import static org.mockito.Mockito.verify;
+  */
+ class DynamicBuyExternalSubmissionBoundaryTest extends IntegrationTestBase {
+ 
++    /** v1.158 결정 2 — H2 에서 실자금 손실 관문을 승인으로 둔다(기존 손실 원천이 PostgreSQL 전용 구문). 관문은 실제 PG 시험이 검증한다. */
++    @org.springframework.boot.test.mock.mockito.SpyBean private RiskManagementService realLossGuardSpy;
++
++    @org.junit.jupiter.api.BeforeEach
++    void approveRealLossGuardOnH2() {
++        org.mockito.Mockito.doReturn(com.cryptoautotrader.core.risk.RiskCheckResult.approve()).when(realLossGuardSpy).checkRealLossGuard();
++    }
++
++
+     private static final BigDecimal CAPITAL = new BigDecimal("10000.00");
+ 
+     @Autowired
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBuyOuterWriteOrderingTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBuyOuterWriteOrderingTest.java
+index 7d091419..144f7fc6 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBuyOuterWriteOrderingTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBuyOuterWriteOrderingTest.java
+@@ -71,6 +71,15 @@ import static org.assertj.core.api.Assertions.assertThat;
+ @Import(SqlTraceConfig.class)
+ class DynamicBuyOuterWriteOrderingTest extends IntegrationTestBase {
+ 
++    /** v1.158 결정 2 — H2 에서 실자금 손실 관문을 승인으로 둔다(기존 손실 원천이 PostgreSQL 전용 구문). 관문은 실제 PG 시험이 검증한다. */
++    @org.springframework.boot.test.mock.mockito.SpyBean private RiskManagementService realLossGuardSpy;
++
++    @org.junit.jupiter.api.BeforeEach
++    void approveRealLossGuardOnH2() {
++        org.mockito.Mockito.doReturn(com.cryptoautotrader.core.risk.RiskCheckResult.approve()).when(realLossGuardSpy).checkRealLossGuard();
++    }
++
++
+     @Autowired
+     private DynamicTradingService dynamicTradingService;
+ 
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicPaperBuySameTickWatchlistTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicPaperBuySameTickWatchlistTest.java
+index 7f08ce17..e011d0dd 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicPaperBuySameTickWatchlistTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicPaperBuySameTickWatchlistTest.java
+@@ -61,6 +61,15 @@ import static org.assertj.core.api.Assertions.assertThat;
+  */
+ class DynamicPaperBuySameTickWatchlistTest extends IntegrationTestBase {
+ 
++    /** v1.158 결정 2 — H2 에서 실자금 손실 관문을 승인으로 둔다(기존 손실 원천이 PostgreSQL 전용 구문). 관문은 실제 PG 시험이 검증한다. */
++    @org.springframework.boot.test.mock.mockito.SpyBean private RiskManagementService realLossGuardSpy;
++
++    @org.junit.jupiter.api.BeforeEach
++    void approveRealLossGuardOnH2() {
++        org.mockito.Mockito.doReturn(com.cryptoautotrader.core.risk.RiskCheckResult.approve()).when(realLossGuardSpy).checkRealLossGuard();
++    }
++
++
+     private static final BigDecimal CAPITAL = new BigDecimal("10000.00");
+     private static final String FILLED_LOG = "[Dynamic][PAPER] 매수 체결";
+ 
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/EntryPriorityEndToEndTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/EntryPriorityEndToEndTest.java
+index faf2a427..37bc4322 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/EntryPriorityEndToEndTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/EntryPriorityEndToEndTest.java
+@@ -109,6 +109,9 @@ class EntryPriorityEndToEndTest extends IntegrationTestBase {
+         poolLossGuard.setEnabledSetting(true);
+         rounds.setForcedForTest(true);
+         doReturn(com.cryptoautotrader.core.risk.RiskCheckResult.approve()).when(riskManagementService).checkRisk();
++        // v1.158 결정 2: 실자금 손실 관문(checkRealLossGuard)의 기존 손실 원천은 PostgreSQL 전용 구문이라 H2 에서 실행할 수 없다 —
++        //    checkRisk 와 같은 관례로 승인으로 둔다. 관문 자체는 실제 PG RealLossThreeFormulaPgTest 가 검증한다.
++        doReturn(com.cryptoautotrader.core.risk.RiskCheckResult.approve()).when(riskManagementService).checkRealLossGuard();
+     }
+ 
+     @AfterEach
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/N15FinalApprovalBoundaryTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/N15FinalApprovalBoundaryTest.java
+index efb943d1..1e049752 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/N15FinalApprovalBoundaryTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/N15FinalApprovalBoundaryTest.java
+@@ -152,6 +152,9 @@ class N15FinalApprovalBoundaryTest extends IntegrationTestBase {
+         poolLossGuard.setEnabledSetting(true);
+         rounds.setForcedForTest(true);
+         doReturn(com.cryptoautotrader.core.risk.RiskCheckResult.approve()).when(riskManagementService).checkRisk();
++        // v1.158 결정 2: 실자금 손실 관문(checkRealLossGuard)의 기존 손실 원천은 PostgreSQL 전용 구문이라 H2 에서 실행할 수 없다 —
++        //    checkRisk 와 같은 관례로 승인으로 둔다. 관문 자체는 실제 PG RealLossThreeFormulaPgTest 가 검증한다.
++        doReturn(com.cryptoautotrader.core.risk.RiskCheckResult.approve()).when(riskManagementService).checkRealLossGuard();
+         limits.setMaxConcurrentPositions((int) positionRepository.countPoolSlots(-1L) + 8);
+         limits.setPerPositionCapKrw(new BigDecimal("20000"));
+         limits.setTotalCapKrw(positionRepository.sumPoolExposureKrw(-1L).add(new BigDecimal("1000000")));
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/PoolLossLimitTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/PoolLossLimitTest.java
+index 6f49a121..8f855385 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/PoolLossLimitTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/PoolLossLimitTest.java
+@@ -56,7 +56,13 @@ class PoolLossLimitTest extends IntegrationTestBase {
+     @Autowired private PoolLossGuard guard;
+     @Autowired private MarkPriceBook marks;
+     @Autowired private CapitalPoolLimits limits;
+-    @Autowired private RiskManagementService riskManagementService;
++    /** v1.158 결정 2 — 스파이(실제 메서드 그대로). H2 에서 실자금 손실 관문만 승인으로 둔다(기존 손실 원천이 PostgreSQL 전용 구문). */
++    @org.springframework.boot.test.mock.mockito.SpyBean private RiskManagementService riskManagementService;
++
++    @org.junit.jupiter.api.BeforeEach
++    void approveRealLossGuardOnH2() {
++        org.mockito.Mockito.doReturn(com.cryptoautotrader.core.risk.RiskCheckResult.approve()).when(riskManagementService).checkRealLossGuard();
++    }
+     @Autowired private OrderExecutionEngine orderExecutionEngine;
+     @Autowired private DynamicTradingService dynamicTradingService;
+     @Autowired private PortfolioManager portfolioManager;
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/RealLossThreeFormulaPgTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/RealLossThreeFormulaPgTest.java
+index 3ecc00db..3a1a5be4 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/RealLossThreeFormulaPgTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/RealLossThreeFormulaPgTest.java
+@@ -214,7 +214,7 @@ class RealLossThreeFormulaPgTest extends IntegrationTestBase {
+         String dyn = dynamicEntry(did, c);
+         trace("②", "checkRisk=" + r.isApproved() + " " + r.getReason(), "DYNAMIC 진입=" + dyn);
+         assertThat(r.isApproved()).isFalse();
+-        assertThat(r.getReason()).contains("기존 보호식");
++        assertThat(r.getReason()).as("기존 보호식(종전 문구 그대로)").startsWith("일일 손실 한도 초과: 2.00%").doesNotContain("REAL 보호식");
+         assertThat(dyn).as("실자금 매수 전체 — DYNAMIC REAL 진입도 같은 관문").isNotNull();
+     }
+ 

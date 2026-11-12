@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.ExecutionDriftTrackerTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-11-12T12:02:31" hostname="DESKTOP-SF1KUQ5" time="0.034">
+  <properties/>
+  <testcase name="§14 record() — 음수 slippage (체결가 &lt; 신호가)" classname="com.cryptoautotrader.api.service.ExecutionDriftTrackerTest" time="0.005"/>
+  <testcase name="§14 getRecentBySession() — 세션별 최근 기록 조회" classname="com.cryptoautotrader.api.service.ExecutionDriftTrackerTest" time="0.005"/>
+  <testcase name="§14 record() — slippage 계산 및 저장 정확성" classname="com.cryptoautotrader.api.service.ExecutionDriftTrackerTest" time="0.006"/>
+  <testcase name="§14 record() — 다른 세션의 slippage 0 행이 먼저 있어도 방금 기록한 음수 행을 읽는다(고정 오염 탐침)" classname="com.cryptoautotrader.api.service.ExecutionDriftTrackerTest" time="0.005"/>
+  <testcase name="§14 getWeeklyAvgSlippage() — 7일 평균 slippage 계산" classname="com.cryptoautotrader.api.service.ExecutionDriftTrackerTest" time="0.005"/>
+  <testcase name="§14 record() — signalPrice 0이면 저장 생략" classname="com.cryptoautotrader.api.service.ExecutionDriftTrackerTest" time="0.002"/>
+  <testcase name="§14 오래된 기록은 7일 평균에서 제외" classname="com.cryptoautotrader.api.service.ExecutionDriftTrackerTest" time="0.003"/>
+  <system-out><![CDATA[21:02:31.584 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.ExecutionDriftTrackerTest
+21:02:31.587 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:02:31.591 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:02:31.598 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:02:31.604 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:02:31.609 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:02:31.615 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:02:31.617 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

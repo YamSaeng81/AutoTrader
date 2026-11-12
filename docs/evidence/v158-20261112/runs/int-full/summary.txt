@@ -1,0 +1,10 @@
+core-engine tests 298 fail 0 err 0 skip 7 pass 291
+exchange-adapter tests 11 fail 0 err 0 skip 0 pass 11
+strategy-lib tests 113 fail 0 err 0 skip 0 pass 113
+web-api tests 1354 fail 3 err 0 skip 71 pass 1280
+FAIL com.cryptoautotrader.api.service.PositionLimitTest # 도달한 세션은 LIVE·DYNAMIC 모두 공유 예약 지점에서 거절되고, 포지션이 닫힌 뒤에도 유지된다 — 다른 세션은 통과
+    org.springframework.dao.InvalidDataAccessResourceUsageException: could not prepare statement [Syntax error in SQL statement "SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]>>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at >= ?) t WHERE pn
+FAIL com.cryptoautotrader.api.service.PositionLimitTest # 🔴 판정 불가(시세 없음·120초 초과·반영값 없는 체결)인 포지션이 있는 세션은 그 순간부터 신규 진입 거절 — 감시·경보를 기다리지 않는다. 다른 세션은 통과, 그 포지션의 청산은 나간다
+    org.springframework.dao.InvalidDataAccessResourceUsageException: could not prepare statement [Syntax error in SQL statement "SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]>>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at >= ?) t WHERE pn
+FAIL com.cryptoautotrader.api.service.SubmitOrderBoundaryProbeTest # 정지 경로와 제출 경로의 스레드·트랜잭션을 수집한다
+    java.lang.AssertionError: [🔴 호출자(정지)의 트랜잭션에 **합류하지 않았다** — 합류했다면 거기서 거는 잠금의 수명이 달라져 ③-1 수정이 조용히 무너진다:  || 0-test: thread=Test worker txActive=false txName=null roTx=false || 1-markClosing: thread=Test worker txActive=true txName=com.cryptoautotrader.api.service.LiveTradingService.stopSession roTx=fa

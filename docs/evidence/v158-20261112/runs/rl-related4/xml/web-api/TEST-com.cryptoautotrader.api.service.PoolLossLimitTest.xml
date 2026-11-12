@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="공유 풀 손실 한도 — 고정 분모 · 순자산 · 24시간" tests="22" skipped="0" failures="0" errors="0" timestamp="2026-11-12T11:34:15" hostname="DESKTOP-SF1KUQ5" time="0.266">
+  <properties/>
+  <testcase name="세션 정지·재시작에도 한도 금액과 순자산 변화가 변하지 않는다 (종전 분모는 변한다)" classname="com.cryptoautotrader.api.service.PoolLossLimitTest" time="0.02"/>
+  <testcase name="반영값이 없는 체결 주문이 있으면 계산하지 않고 진입을 막는다" classname="com.cryptoautotrader.api.service.PoolLossLimitTest" time="0.009"/>
+  <testcase name="호가 채우기 — 매수호가를 위에서부터 보유량만큼 채운 평균(내림), 잔량이 모자라거나 잔량 정보가 없으면 가격 없음" classname="com.cryptoautotrader.api.service.PoolLossLimitTest" time="0.004"/>
+  <testcase name="시험 단계에서도 risk_config 한도 값이 없으면 진입을 막는다" classname="com.cryptoautotrader.api.service.PoolLossLimitTest" time="0.003"/>
+  <testcase name="호가를 조회하는 사이 보유량이 늘면 늘어난 수량으로 판정한다" classname="com.cryptoautotrader.api.service.PoolLossLimitTest" time="0.01"/>
+  <testcase name="시세 기록이 없으면 평가 루프가 남긴 평가손익으로 되돌린다(재기동 직후)" classname="com.cryptoautotrader.api.service.PoolLossLimitTest" time="0.008"/>
+  <testcase name="기존 시세 경로도 체결 시각을 싣는다 — 웹소켓 틱(ttms)·LIVE·DYNAMIC REST 강제 갱신(trade_timestamp, 없으면 신선하지 않음)" classname="com.cryptoautotrader.api.service.PoolLossLimitTest" time="0.005"/>
+  <testcase name="누적: 총 자본 100,000 의 15% — −15,000 에서 막고 −14,999.99 는 통과" classname="com.cryptoautotrader.api.service.PoolLossLimitTest" time="0.009"/>
+  <testcase name="&#x1f534; 신선한 호가 평균이 있는 동안 보유량이 늘면 이전 가격으로 승인하지 않는다 — 호가 단계로 지금 보유량을 다시 채운다(리뷰 지적)" classname="com.cryptoautotrader.api.service.PoolLossLimitTest" time="0.012"/>
+  <testcase name="등록 단계는 risk_config 가 사전 등록값(24시간 3.0 · 누적 15.0)과 정확히 같아야 한다" classname="com.cryptoautotrader.api.service.PoolLossLimitTest" time="0.003"/>
+  <testcase name="순자산 변화에 매수·매도 수수료와 미실현손익이 들어간다 — 실현손익 열은 쓰지 않는다" classname="com.cryptoautotrader.api.service.PoolLossLimitTest" time="0.008"/>
+  <testcase name="24시간 전 기록에 공백이 있으면 더 엄격한 값으로 대신하고, 아무 기록도 없으면 막는다" classname="com.cryptoautotrader.api.service.PoolLossLimitTest" time="0.01"/>
+  <testcase name="O2 연결(총괄 v1.134): 반영 전 체결 주문은 계산 거절·진입 차단 → 같은 주문의 반영값이 들어오면 같은 시세로 정상 계산·승인 (유예·건너뛰기·0 메우기 없음)" classname="com.cryptoautotrader.api.service.PoolLossLimitTest" time="0.011"/>
+  <testcase name="단계의 첫 매수가 기준 시각을 만들어도 그 매수의 포지션이 평가 대상에 든다 (S14 에서 발견)" classname="com.cryptoautotrader.api.service.PoolLossLimitTest" time="0.014"/>
+  <testcase name="한도 도달 시 LIVE 예약과 DYNAMIC 매수가 같은 사유로 거절되고 흔적이 없다" classname="com.cryptoautotrader.api.service.PoolLossLimitTest" time="0.029"/>
+  <testcase name="대체 가격(평가 루프 값·평균단가·낡은 시세)이 섞이면 값은 계산돼도 풀 전체 신규 진입을 막고 기준 기록도 남기지 않는다 (리뷰 8회차)" classname="com.cryptoautotrader.api.service.PoolLossLimitTest" time="0.021"/>
+  <testcase name="최근 체결이 있으면 시세 조회의 체결가로 충분하다 — 호가를 부르지 않는다. 호가 시각이 낡았으면 인정하지 않는다" classname="com.cryptoautotrader.api.service.PoolLossLimitTest" time="0.012"/>
+  <testcase name="재시작 직후(빈 장부)·REST 실패: 차단과 경보 한 번, 복구되면 보강이 장부를 채워 승인" classname="com.cryptoautotrader.api.service.PoolLossLimitTest" time="0.018"/>
+  <testcase name="24시간: 지금 − 24시간 전 ≤ −3,000 에서 막는다 (누적은 한도 안)" classname="com.cryptoautotrader.api.service.PoolLossLimitTest" time="0.009"/>
+  <testcase name="&#x1f534; 기존 호가 가격이 아직 신선해도 새 조회에서 깊이 부족이 확인되면 차단을 유지한다 — 깊이 부족 호가도 최신 관측으로 적는다(리뷰 지적)" classname="com.cryptoautotrader.api.service.PoolLossLimitTest" time="0.011"/>
+  <testcase name="단계 시작 후 24시간 미만이면 단계 시작(0)과 비교한다" classname="com.cryptoautotrader.api.service.PoolLossLimitTest" time="0.01"/>
+  <testcase name="웹소켓은 살아 있지만 체결이 조용한 보유: 낡은 체결가를 다시 받아도 신선하다고 보지 않는다. 호가 깊이가 보유량보다 얕으면 차단 유지, 충분하면 보유량을 매수호가에 채운 평균 가격으로 관측해 승인" classname="com.cryptoautotrader.api.service.PoolLossLimitTest" time="0.015"/>
+  <system-out><![CDATA[20:34:15.023 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.PoolLossLimitTest
+20:34:15.026 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+20:34:15.046 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+20:34:15.050 [Test worker] ERROR c.c.api.service.PoolLossGuard - ? 체결 수량이 있는데 반영값이 없는 실자금 주문 1건 ? 순자산을 계산하지 않는다
+20:34:15.055 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+20:34:15.059 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+20:34:15.063 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+20:34:15.067 [Test worker] ERROR c.c.api.service.HeldMarkRefresher - ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-MID] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-MID 호가 깊이 부족(보이는 매수 잔량 15 < 보유 30.00000000); 
+20:34:15.069 [Test worker] WARN  c.c.api.service.PoolLossGuard - [공유 풀 손실 한도] 유효한 실시간 시세 없이 대체 가격으로만 평가되는 보유 2건 [KRW-MID=300(호가 깊이 부족·평가루프)[대체], KRW-MID=300(호가 깊이 부족·평가루프)[대체]] ? 대체 가격이 손실을 과소평가하지 않는다는 근거가 없어 손실 한도를 판정할 수 없다. 풀 전체 신규 진입을 승인하지 않는다(주문 추적·청산은 계속)
+20:34:15.075 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+20:34:15.083 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+20:34:15.089 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+20:34:15.094 [Test worker] ERROR c.c.api.service.PoolLossGuard - ? [공유 풀 손실 한도] 신규 진입 차단: 누적 손실 한도 도달 ? 단계 LOSS_783c78d9(시작 2026-11-12T11:34:15.090483Z) 순자산 변화 -15000.00 [현금 -15000.00 + 보유 0.00, 포지션 0] | 24시간 변화 -1000.00 (기준 -14000.00, 기록 2026-11-12T17:34:15.090483Z) | 한도 누적 ?15000.00 · 24시간 ?3000.00 (총 자본 100000.00 고정)
+20:34:15.099 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+20:34:15.105 [Test worker] WARN  c.c.api.service.PoolLossGuard - [공유 풀 손실 한도] 유효한 실시간 시세 없이 대체 가격으로만 평가되는 보유 2건 [KRW-GROW=300(호가 깊이 부족·평가루프)[대체], KRW-GROW=300(호가 깊이 부족·평가루프)[대체]] ? 대체 가격이 손실을 과소평가하지 않는다는 근거가 없어 손실 한도를 판정할 수 없다. 풀 전체 신규 진입을 승인하지 않는다(주문 추적·청산은 계속)
+20:34:15.112 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+20:34:15.115 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+20:34:15.124 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+20:34:15.128 [Test worker] WARN  c.c.api.service.PoolLossGuard - 24시간 전 순자산 기록에 공백이 있다 ? 기준을 구간 최댓값 0E-8 로 대신한다(더 엄격한 쪽)
+20:34:15.128 [Test worker] ERROR c.c.api.service.PoolLossGuard - ? [공유 풀 손실 한도] 신규 진입 차단: 최근 24시간 순자산 감소 한도 도달 ? 단계 LOSS_23c3aaf3(시작 2026-11-12T11:34:15.126088Z) 순자산 변화 -3000.00 [현금 -3000.00 + 보유 0.00, 포지션 0] | 24시간 변화 -3000.00 (기준 0.00, 공백 대체(구간 최댓값)) | 한도 누적 ?15000.00 · 24시간 ?3000.00 (총 자본 100000.00 고정)
+20:34:15.134 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+20:34:15.139 [Test worker] ERROR c.c.api.service.PoolLossGuard - ? 체결 수량이 있는데 반영값이 없는 실자금 주문 1건 ? 순자산을 계산하지 않는다
+20:34:15.139 [Test worker] ERROR c.c.api.service.PoolLossGuard - ? 체결 수량이 있는데 반영값이 없는 실자금 주문 1건 ? 순자산을 계산하지 않는다
+20:34:15.146 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+20:34:15.160 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+20:34:15.167 [Test worker] ERROR c.c.api.service.PoolLossGuard - ? [공유 풀 손실 한도] 신규 진입 차단: 누적 손실 한도 도달 ? 단계 LOSS_9bfb4c8b(시작 2026-11-12T11:34:15.164071Z) 순자산 변화 -19800.00 [현금 -19800.00 + 보유 0.00, 포지션 0] | 24시간 변화 -19800.00 (기준 0.00, 단계 시작) | 한도 누적 ?19800.00 · 24시간 ?3960.00 (총 자본 132000.00 고정)
+20:34:15.167 [Test worker] WARN  c.c.a.s.CapitalReservationService - [공유 풀] 승인하지 않는다 (sessionId=127, 사유=POOL_LOSS_LIMIT): 누적 손실 한도 도달 ? 단계 LOSS_9bfb4c8b(시작 2026-11-12T11:34:15.164071Z) 순자산 변화 -19800.00 [현금 -19800.00 + 보유 0.00, 포지션 0] | 24시간 변화 -19800.00 (기준 0.00, 단계 시작) | 한도 누적 ?19800.00 · 24시간 ?3960.00 (총 자본 132000.00 고정) ? ? 거래소 거절을 기다리지 않는다
+20:34:15.174 [Test worker] ERROR c.c.api.service.PoolLossGuard - ? [공유 풀 손실 한도] 신규 진입 차단: 누적 손실 한도 도달 ? 단계 LOSS_9bfb4c8b(시작 2026-11-12T11:34:15.164071Z) 순자산 변화 -19800.00 [현금 -19800.00 + 보유 0.00, 포지션 0] | 24시간 변화 -19800.00 (기준 0.00, 단계 시작) | 한도 누적 ?19800.00 · 24시간 ?3960.00 (총 자본 132000.00 고정)
+20:34:15.174 [Test worker] WARN  c.c.a.s.CapitalReservationService - [공유 풀] 승인하지 않는다 (sessionId=34, 사유=POOL_LOSS_LIMIT): 누적 손실 한도 도달 ? 단계 LOSS_9bfb4c8b(시작 2026-11-12T11:34:15.164071Z) 순자산 변화 -19800.00 [현금 -19800.00 + 보유 0.00, 포지션 0] | 24시간 변화 -19800.00 (기준 0.00, 단계 시작) | 한도 누적 ?19800.00 · 24시간 ?3960.00 (총 자본 132000.00 고정) ? ? 거래소 거절을 기다리지 않는다
+20:34:15.174 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 매수 예약 거절 (id=34, KRW-LOSSB, 사유=POOL_LOSS_LIMIT): 누적 손실 한도 도달 ? 단계 LOSS_9bfb4c8b(시작 2026-11-12T11:34:15.164071Z) 순자산 변화 -19800.00 [현금 -19800.00 + 보유 0.00, 포지션 0] | 24시간 변화 -19800.00 (기준 0.00, 단계 시작) | 한도 누적 ?19800.00 · 24시간 ?3960.00 (총 자본 132000.00 고정)
+20:34:15.190 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+20:34:15.196 [Test worker] WARN  c.c.api.service.PoolLossGuard - [공유 풀 손실 한도] 유효한 실시간 시세 없이 대체 가격으로만 평가되는 보유 1건 [KRW-LOSSA=300(평가루프)[대체]] ? 대체 가격이 손실을 과소평가하지 않는다는 근거가 없어 손실 한도를 판정할 수 없다. 풀 전체 신규 진입을 승인하지 않는다(주문 추적·청산은 계속)
+20:34:15.200 [Test worker] WARN  c.c.api.service.PoolLossGuard - [공유 풀 손실 한도] 유효한 실시간 시세 없이 대체 가격으로만 평가되는 보유 1건 [KRW-LOSSA=280(평가루프)[대체]] ? 대체 가격이 손실을 과소평가하지 않는다는 근거가 없어 손실 한도를 판정할 수 없다. 풀 전체 신규 진입을 승인하지 않는다(주문 추적·청산은 계속)
+20:34:15.202 [market-data-2] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 매도 건너뜀: size=0 (posId=32, id=9)
+20:34:15.202 [Test worker] WARN  c.c.api.service.PoolLossGuard - [공유 풀 손실 한도] 유효한 실시간 시세 없이 대체 가격으로만 평가되는 보유 1건 [KRW-LOSSA=280(RECORDED@2026-11-12T11:32:14.194210200Z)[대체]] ? 대체 가격이 손실을 과소평가하지 않는다는 근거가 없어 손실 한도를 판정할 수 없다. 풀 전체 신규 진입을 승인하지 않는다(주문 추적·청산은 계속)
+20:34:15.202 [market-data-2] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 매도 건너뜀: size=0 (posId=34, id=11)
+20:34:15.202 [market-data-2] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 매도 건너뜀: size=0 (posId=35, id=12)
+20:34:15.202 [market-data-2] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 매도 건너뜀: size=0 (posId=39, id=18)
+20:34:15.212 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+20:34:15.217 [Test worker] ERROR c.c.api.service.HeldMarkRefresher - ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-STALEBOOK] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-STALEBOOK 호가 시각 낡음(2026-11-12T11:29:15.215Z); 
+20:34:15.219 [Test worker] WARN  c.c.api.service.PoolLossGuard - [공유 풀 손실 한도] 유효한 실시간 시세 없이 대체 가격으로만 평가되는 보유 1건 [KRW-STALEBOOK=300(REST_TRADE@2026-11-12T11:19:15.215Z)[대체]] ? 대체 가격이 손실을 과소평가하지 않는다는 근거가 없어 손실 한도를 판정할 수 없다. 풀 전체 신규 진입을 승인하지 않는다(주문 추적·청산은 계속)
+20:34:15.224 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+20:34:15.230 [Test worker] WARN  c.c.api.service.PoolLossGuard - [공유 풀 손실 한도] 유효한 실시간 시세 없이 대체 가격으로만 평가되는 보유 1건 [KRW-RESTART=300(평가루프)[대체]] ? 대체 가격이 손실을 과소평가하지 않는다는 근거가 없어 손실 한도를 판정할 수 없다. 풀 전체 신규 진입을 승인하지 않는다(주문 추적·청산은 계속)
+20:34:15.233 [Test worker] ERROR c.c.api.service.HeldMarkRefresher - ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-RESTART] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패; KRW-RESTART 호가 조회 실패; 
+20:34:15.234 [Test worker] WARN  c.c.api.service.PoolLossGuard - [공유 풀 손실 한도] 유효한 실시간 시세 없이 대체 가격으로만 평가되는 보유 1건 [KRW-RESTART=300(평가루프)[대체]] ? 대체 가격이 손실을 과소평가하지 않는다는 근거가 없어 손실 한도를 판정할 수 없다. 풀 전체 신규 진입을 승인하지 않는다(주문 추적·청산은 계속)
+20:34:15.235 [Test worker] WARN  c.c.api.service.HeldMarkRefresher - [시세 보강] 회복 ? 보유 코인 관측 가격 공급 재개 (종전: 2026-11-12T11:34:15.233352700Z 관측 가격 없음 [KRW-RESTART] ? 시세 조회 실패; KRW-RESTART 호가 조회 실패; )
+20:34:15.244 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+20:34:15.249 [Test worker] ERROR c.c.api.service.PoolLossGuard - ? [공유 풀 손실 한도] 신규 진입 차단: 최근 24시간 순자산 감소 한도 도달 ? 단계 LOSS_b13c891f(시작 2026-11-12T11:34:15.246004Z) 순자산 변화 -4000.00 [현금 -4000.00 + 보유 0.00, 포지션 0] | 24시간 변화 -3000.00 (기준 -1000.00, 기록 2026-11-12T17:33:15.246004Z) | 한도 누적 ?15000.00 · 24시간 ?3000.00 (총 자본 100000.00 고정)
+20:34:15.253 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+20:34:15.259 [Test worker] ERROR c.c.api.service.HeldMarkRefresher - ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-THIN] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-THIN 호가 깊이 부족(보이는 매수 잔량 15 < 보유 30.00000000); 
+20:34:15.260 [Test worker] WARN  c.c.api.service.PoolLossGuard - [공유 풀 손실 한도] 유효한 실시간 시세 없이 대체 가격으로만 평가되는 보유 1건 [KRW-THIN=300(호가 깊이 부족·평가루프)[대체]] ? 대체 가격이 손실을 과소평가하지 않는다는 근거가 없어 손실 한도를 판정할 수 없다. 풀 전체 신규 진입을 승인하지 않는다(주문 추적·청산은 계속)
+20:34:15.266 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+20:34:15.271 [Test worker] ERROR c.c.api.service.PoolLossGuard - ? [공유 풀 손실 한도] 신규 진입 차단: 최근 24시간 순자산 감소 한도 도달 ? 단계 LOSS_e67661fb(시작 2026-11-12T11:34:15.269107Z) 순자산 변화 -3000.00 [현금 -3000.00 + 보유 0.00, 포지션 0] | 24시간 변화 -3000.00 (기준 0.00, 단계 시작) | 한도 누적 ?15000.00 · 24시간 ?3000.00 (총 자본 100000.00 고정)
+20:34:15.277 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+20:34:15.280 [Test worker] WARN  c.c.api.service.PoolLossGuard - [공유 풀 손실 한도] 유효한 실시간 시세 없이 대체 가격으로만 평가되는 보유 1건 [KRW-QUIET=290(WS_TRADE@2026-11-12T11:24:15.279Z)[대체]] ? 대체 가격이 손실을 과소평가하지 않는다는 근거가 없어 손실 한도를 판정할 수 없다. 풀 전체 신규 진입을 승인하지 않는다(주문 추적·청산은 계속)
+20:34:15.282 [Test worker] ERROR c.c.api.service.HeldMarkRefresher - ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-QUIET] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-QUIET 호가 조회 실패; 
+20:34:15.283 [Test worker] WARN  c.c.api.service.PoolLossGuard - [공유 풀 손실 한도] 유효한 실시간 시세 없이 대체 가격으로만 평가되는 보유 1건 [KRW-QUIET=290(REST_TRADE@2026-11-12T11:24:15.279Z)[대체]] ? 대체 가격이 손실을 과소평가하지 않는다는 근거가 없어 손실 한도를 판정할 수 없다. 풀 전체 신규 진입을 승인하지 않는다(주문 추적·청산은 계속)
+20:34:15.284 [Test worker] WARN  c.c.api.service.HeldMarkRefresher - [시세 보강] 관측 가격 없음 지속 ? 사유 변경 [KRW-QUIET]: KRW-QUIET 호가 깊이 부족(보이는 매수 잔량 20 < 보유 30.00000000); 
+20:34:15.284 [Test worker] WARN  c.c.api.service.PoolLossGuard - [공유 풀 손실 한도] 유효한 실시간 시세 없이 대체 가격으로만 평가되는 보유 1건 [KRW-QUIET=300(호가 깊이 부족·평가루프)[대체]] ? 대체 가격이 손실을 과소평가하지 않는다는 근거가 없어 손실 한도를 판정할 수 없다. 풀 전체 신규 진입을 승인하지 않는다(주문 추적·청산은 계속)
+20:34:15.285 [Test worker] WARN  c.c.api.service.HeldMarkRefresher - [시세 보강] 회복 ? 보유 코인 관측 가격 공급 재개 (종전: 2026-11-12T11:34:15.282843100Z 관측 가격 없음 [KRW-QUIET] ? KRW-QUIET 호가 조회 실패; )
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

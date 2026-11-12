@@ -1,0 +1,3 @@
+web-api tests 5 fail 1 err 0 skip 0 pass 4
+FAIL com.cryptoautotrader.api.service.ClosingIntentAtomicityPgTest # ④ 실행기 거절: 의도 철회(외부 호출 0) → 청산 확인이 근거(철회 FAILED)로 OPEN 복귀
+    java.util.concurrent.RejectedExecutionException: Task java.util.concurrent.FutureTask@1b0fd4d3[Not completed, task = java.util.concurrent.Executors$RunnableAdapter@3526ddb[Wrapped task = com.cryptoautotrader.api.support.ExecutorBarrier$$Lambda$2924/0x000001c8c404ecb8@2483db22]] rejected from org.spr

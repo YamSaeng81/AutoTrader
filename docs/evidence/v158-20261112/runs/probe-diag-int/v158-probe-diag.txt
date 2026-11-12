@@ -1,0 +1,11 @@
+V158DIAG
+
+0-test: thread=Test worker txActive=false txName=null roTx=false
+1-markClosing: thread=Test worker txActive=true txName=com.cryptoautotrader.api.service.LiveTradingService.stopSession roTx=false
+2-recordTradeLog: thread=Test worker txActive=true txName=com.cryptoautotrader.api.service.LiveTradingService.stopSession roTx=false
+3-visibleOrders: 같은 스레드 조회로 보이는 활성 주문 수=1
+4-finalRows: 주문 행 수=1
+-- all trade logs --
+STATE_CHANGE null->INTENT_READY | thread=Test worker txActive=true txName=com.cryptoautotrader.api.service.LiveTradingService.stopSession roTx=false
+STATE_CHANGE INTENT_READY->SUBMITTING | thread=order-exec-1 txActive=true txName=null roTx=false
+STATE_CHANGE SUBMITTING->SUBMITTED | thread=order-exec-1 txActive=true txName=null roTx=false

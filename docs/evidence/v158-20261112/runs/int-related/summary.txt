@@ -1,0 +1,27 @@
+web-api tests 615 fail 9 err 0 skip 31 pass 575
+FAIL com.cryptoautotrader.api.service.DynamicBlackSwanCooldownCrossKindTest # 대조 — PAPER 틱 없이 같은 회복 캔들의 REAL 틱은 BLACK_SWAN 쿨다운으로 막히지 않는다
+    org.springframework.dao.InvalidDataAccessResourceUsageException: could not prepare statement [Syntax error in SQL statement "SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]>>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at >= ?) t WHERE pn
+FAIL com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest # 페이퍼 분기가 허용 목록 밖으로 늘어나지 않는다 — 새 분기는 사람이 판단할 것
+    java.lang.AssertionError: [허용되지 않은 페이퍼 분기가 생겼다. 체결 시뮬레이션/집계 분리면 ALLOWED 에 추가하고, 매수·매도 여부를 가르는 규칙이면 제거할 것 — 규칙이 다르면 페이퍼가 실전을 예측하지 못한다] 
+Expecting empty but was: ["line 1650", "line 2005", "line 2532"]
+FAIL com.cryptoautotrader.api.service.DynamicPaperTradingTest # REAL 매수는 여전히 OrderExecutionEngine을 호출한다 (회귀 방지)
+    org.springframework.dao.InvalidDataAccessResourceUsageException: could not prepare statement [Syntax error in SQL statement "SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]>>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at >= ?) t WHERE pn
+FAIL com.cryptoautotrader.api.service.DynamicPoolReservationTest # 슬롯이 없으면 DYNAMIC 매수도 거절되고 슬롯·차감·의도가 남지 않는다
+    org.springframework.dao.InvalidDataAccessResourceUsageException: could not prepare statement [Syntax error in SQL statement "SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]>>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at >= ?) t WHERE pn
+FAIL com.cryptoautotrader.api.service.DynamicPoolReservationTest # 🔴 LIVE 와 DYNAMIC 이 마지막 슬롯 하나를 동시에 다투면 하나만 승인된다
+    java.lang.AssertionError: 
+Expecting empty but was: [org.springframework.dao.InvalidDataAccessResourceUsageException: could not prepare statement [Syntax error in SQL statement "SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]>>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHE
+FAIL com.cryptoautotrader.api.service.DynamicPoolReservationTest # 포지션당 상한 — DYNAMIC 매수에도 같은 등록 한도가 걸린다
+    org.springframework.dao.InvalidDataAccessResourceUsageException: could not prepare statement [Syntax error in SQL statement "SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]>>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at >= ?) t WHERE pn
+FAIL com.cryptoautotrader.api.service.N15EntryExpiryTest # ② DYNAMIC: E−1ms 진입, E 만료 — 예약·의도·거래소 0, 원래 신호에 만료 사유
+    org.opentest4j.AssertionFailedError: 
+expected: null
+ but was: "승인 중 오류: InvalidDataAccessResourceUsageException: could not prepare statement [Syntax error in SQL statement "SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]>>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE 
+FAIL com.cryptoautotrader.api.service.N15EntryExpiryTest # LIVE 접수 EARLY
+    java.lang.AssertionError: 
+Expecting actual:
+  "승인 중 오류: InvalidDataAccessResourceUsageException: could not prepare statement [Syntax error in SQL statement "SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]>>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FI
+FAIL com.cryptoautotrader.api.service.N15EntryExpiryTest # LIVE 접수 LATE
+    java.lang.AssertionError: 
+Expecting actual:
+  "승인 중 오류: InvalidDataAccessResourceUsageException: could not prepare statement [Syntax error in SQL statement "SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]>>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FI

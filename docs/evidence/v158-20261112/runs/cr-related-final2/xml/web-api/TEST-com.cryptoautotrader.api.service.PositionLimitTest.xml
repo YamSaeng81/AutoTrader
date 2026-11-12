@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="포지션별 한도 — 진입 배정액 · 포지션 고점 · 차단 · 정지" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-11-12T10:37:11" hostname="DESKTOP-SF1KUQ5" time="0.016">
+  <properties/>
+  <testcase name="오래된 실시간 시세 — 기준(120초)을 넘으면 판정하지 않는다: 고점·도달 기록 없음, 새 시세가 오면 판정" classname="com.cryptoautotrader.api.service.PositionLimitTest" time="0.016"/>
+  <system-out><![CDATA[19:37:11.063 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.PositionLimitTest
+19:37:11.067 [Test worker] INFO  o.a.c.c.C.[Tomcat-2].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+19:37:11.069 [Test worker] WARN  c.c.api.service.PositionLimitGuard - [포지션 한도] 포지션 #211 KRW-PLIMS LIVE#116 ? 시세 400(RECORDED@2026-11-12T10:35:10.068366900Z) 가 121초 전 값(기준 120초 초과): 판정하지 않는다(고점 N/A 유지, 평가액 참고 39980.00)
+19:37:11.070 [Test worker] WARN  c.c.api.service.PositionLimitGuard - [포지션 한도] 포지션 #211 KRW-PLIMS LIVE#116 ? 시세 100(RECORDED@2026-11-12T10:35:10.068366900Z) 가 121초 전 값(기준 120초 초과): 판정하지 않는다(고점 N/A 유지, 평가액 참고 9995.00)
+19:37:11.077 [Test worker] ERROR c.c.api.service.PositionLimitGuard - ? [포지션 한도] 도달 ? 이 세션의 실자금 신규 진입을 막는다: CAPITAL_LOSS 손익 -10015.00 ≤ -3001.50 (-15.0% × 진입 배정액 20010.00) ? 포지션 #211 KRW-PLIMS LIVE#116 평가액 9995.00(매도 순대금 0.00 + 잔량 100 × 100(RECORDED@2026-11-12T10:37:11.068366900Z)) 매수 원가 20010.00 손익 -10015.00 | 진입 배정액 20010.00 · 고점 24987.50
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

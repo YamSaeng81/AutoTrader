@@ -1,0 +1,81 @@
+From 7ac9f25b4c58a1d21d7ca226a0398270b80a02b3 Mon Sep 17 00:00:00 2001
+From: YamSaeng81 <manicstr81@gmail.com>
+Date: Thu, 12 Nov 2026 20:44:08 +0900
+Subject: [PATCH 17/20] =?UTF-8?q?=EC=A0=95=EB=A6=AC=20=EA=B2=BD=ED=95=A9?=
+ =?UTF-8?q?=20=ED=9B=84=EB=B3=B4=20=EB=B3=B4=EC=99=84=20=E2=80=94=20PAPER?=
+ =?UTF-8?q?=20=EB=A7=A4=EB=8F=84=EC=9D=98=20CLOSING=20=EC=A0=84=ED=99=98+?=
+ =?UTF-8?q?=EC=8B=9C=EB=AE=AC=EB=A0=88=EC=9D=B4=EC=85=98=EC=9D=84=20execut?=
+ =?UTF-8?q?ePaperSellIfOpen=20=EC=9C=BC=EB=A1=9C=20=EB=AC=B6=EC=9D=8C(?=
+ =?UTF-8?q?=EB=8F=99=EC=9E=91=20=EB=8F=99=EC=9D=BC),=20DynamicPaperLiveRul?=
+ =?UTF-8?q?eParityTest=20=ED=97=88=EC=9A=A9=20=EB=AC=B8=EB=A7=A5(=EC=B2=B4?=
+ =?UTF-8?q?=EA=B2=B0=20=EC=8B=9C=EB=AE=AC=EB=A0=88=EC=9D=B4=EC=85=98)=20?=
+ =?UTF-8?q?=EA=B1=B0=EB=A6=AC=20=EB=B3=B5=EC=9B=90?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+(cherry picked from commit e1e76d6cc99a4906e91a79c78b4620c9035f4137)
+---
+ .../api/service/DynamicTradingService.java    | 29 +++++++++++--------
+ 1 file changed, 17 insertions(+), 12 deletions(-)
+
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
+index 3bb0ab81..972555bd 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
+@@ -2003,13 +2003,7 @@ public class DynamicTradingService {
+         // 원자적 CLOSING 전환 — WS 실시간 SL/TP와 60초 tick이 동시에 같은 포지션을 팔려는
+         // race에서 한쪽만 매도 주문을 제출하도록 보장 (시장가 이중 매도 방지)
+         if (session.isPaper()) {
+-            int marked = positionStateTransition.markClosingIfOpen(pos.getId(), Instant.now(), exitReason);
+-            if (marked == 0) {
+-                log.debug("[Dynamic] 매도 건너뜀: 이미 CLOSING/CLOSED (posId={}, id={})", pos.getId(), sid);
+-                return false;
+-            }
+-            executePaperSell(session, pos, currentPrice, reason, exitReason, null);
+-            return true;
++            return executePaperSellIfOpen(session, pos, currentPrice, reason, exitReason, null);
+         }
+ 
+         OrderRequest order = new OrderRequest();
+@@ -2046,6 +2040,21 @@ public class DynamicTradingService {
+      * @param priceSource 체결가 출처(V92) — {@code null} 이면 신호가가 있을 때 {@link #PAPER_FILL_SIGNAL}, 없을 때 아래 대체 규칙으로 정한다.
+      *                    🔴 정지 청산은 평균 단가를 신호가 자리에 넣으므로 신호가로는 가정 체결을 가려낼 수 없다 — {@link #PAPER_FILL_AVG_PRICE} 를 준다.
+      */
++    /**
++     * PAPER 매도의 원자적 CLOSING 전환 + 체결 시뮬레이션 (v1.158 결정 3 에서 REAL 경로를 의도 원자화로 분리하며 묶었다 — PAPER 는 종전과 같다).
++     *
++     * @return CLOSING 전환에 성공해 시뮬레이션했으면 {@code true}, 이미 CLOSING/CLOSED 면 {@code false}
++     */
++    private boolean executePaperSellIfOpen(DynamicSessionEntity session, PositionEntity pos, BigDecimal price,
++                                           String reason, ExitReason exitReason, String fillPriceNote) {
++        if (positionStateTransition.markClosingIfOpen(pos.getId(), Instant.now(), exitReason) == 0) {
++            log.debug("[Dynamic] 매도 건너뜀: 이미 CLOSING/CLOSED (posId={}, id={})", pos.getId(), session.getId());
++            return false;
++        }
++        executePaperSell(session, pos, price, reason, exitReason, fillPriceNote);
++        return true;
++    }
++
+     private void executePaperSell(DynamicSessionEntity session, PositionEntity pos,
+                                    BigDecimal signalPrice, String reason, ExitReason exitReason, String priceSource) {
+         // 신호가 없음 (2026-10-15 리뷰 7회차) — 캔들도 유효한 현재가도 없는 회차의 시간 초과 청산. 실전은 시장가로 그대로
+@@ -2530,13 +2539,9 @@ public class DynamicTradingService {
+             // WS 실시간 SL/TP 매도와의 race 방지 — 이미 CLOSING이면 매도 주문 중복 제출 스킵
+             // 운영자 개입 청산 — 청산가가 시장이 아니라 정지 시각으로 정해지므로 전략 성과와 섞으면 안 된다.
+             if (session.isPaper()) {
+-                if (positionStateTransition.markClosingIfOpen(pos.getId(), Instant.now(),
+-                        ExitReason.FORCED_STOP) == 0) {
+-                    continue;
+-                }
+                 // 현재가 정보가 없는 강제 정지 경로 — 진입가를 신호가로 대체(슬리피지만 반영).
+                 // 정지/비상정지는 드문 경로이고, 정확한 청산가보다 "확실히 닫힌다"가 중요하다.
+-                executePaperSell(session, pos, pos.getAvgPrice(), reason, ExitReason.FORCED_STOP, PAPER_FILL_AVG_PRICE);
++                executePaperSellIfOpen(session, pos, pos.getAvgPrice(), reason, ExitReason.FORCED_STOP, PAPER_FILL_AVG_PRICE);
+                 continue;
+             }
+ 
+-- 
+2.51.1.windows.1
+

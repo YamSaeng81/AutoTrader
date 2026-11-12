@@ -1,0 +1,7 @@
+web-api tests 3 fail 3 err 0 skip 0 pass 0
+FAIL com.cryptoautotrader.api.service.RealLossGlobalPgTest # ① 실패 재현 — LIVE 10만·DYNAMIC REAL 10만 RUNNING, DYNAMIC REAL 확정 손실 2건(−4,002 = 초안 분모 20만의 2.0%) > 일일 1.5% 인데 checkRisk 승인
+    java.lang.IllegalStateException: Failed to load ApplicationContext for [WebMergedContextConfiguration@43300e64 testClass = com.cryptoautotrader.api.service.RealLossGlobalPgTest, locations = [], classes = [com.cryptoautotrader.api.CryptoAutoTraderApplication], contextInitializerClasses = [], activePr
+FAIL com.cryptoautotrader.api.service.RealLossGlobalPgTest # ② 판정 변화 관측 — LIVE 손실 −2,001 만: 현재 분모 10만(2.00% 거절), 초안 분모 20만이면 1.00%(승인) — 초안이 LIVE 판정을 완화하는 경우
+    java.lang.IllegalStateException: ApplicationContext failure threshold (1) exceeded: skipping repeated attempt to load context for [WebMergedContextConfiguration@43300e64 testClass = com.cryptoautotrader.api.service.RealLossGlobalPgTest, locations = [], classes = [com.cryptoautotrader.api.CryptoAutoT
+FAIL com.cryptoautotrader.api.service.RealLossGlobalPgTest # ③ 대조 — DYN_PAPER 손실은 현재·초안 모두 합산하지 않는다
+    java.lang.IllegalStateException: ApplicationContext failure threshold (1) exceeded: skipping repeated attempt to load context for [WebMergedContextConfiguration@43300e64 testClass = com.cryptoautotrader.api.service.RealLossGlobalPgTest, locations = [], classes = [com.cryptoautotrader.api.CryptoAutoT

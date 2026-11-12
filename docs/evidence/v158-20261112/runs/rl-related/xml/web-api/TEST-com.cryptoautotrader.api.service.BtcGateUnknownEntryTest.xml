@@ -1,0 +1,620 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="BTC 급락 관문 판정 불가 — 캔들이 없거나 낡으면 LIVE·DYNAMIC 의 평가·승인 시점 매수를 막고, 최신이면 나간다" tests="3" skipped="0" failures="2" errors="0" timestamp="2026-11-12T10:28:10" hostname="DESKTOP-SF1KUQ5" time="0.651">
+  <properties/>
+  <testcase name="승인 시점: 평가 때 최신이던 BTC 캔들이 승인 전에 사라지면 LIVE·DYNAMIC 모두 '판정 불가' 로 거절, 다시 오면 승인" classname="com.cryptoautotrader.api.service.BtcGateUnknownEntryTest" time="0.431">
+    <failure message="java.lang.AssertionError: &#13;&#10;Expecting all elements of:&#13;&#10;  [Outcome[candidate=Candidate[kind=DYNAMIC, sessionId=5, coinPair=KRW-IOTA, round=RoundKey[timeframe=H1, candleOpenTime=2026-11-12T09:27:05Z], approve=com.cryptoautotrader.api.service.DynamicTradingService$$Lambda$3023/0x000001a8820e14d0@1c8bd36d, expired=com.cryptoautotrader.api.service.DynamicTradingService$$Lambda$3024/0x000001a8820e16f0@29081d31], rank=1, reason=승인 중 오류: InvalidDataAccessResourceUsageException: could not prepare statement [Syntax error in SQL statement &quot;SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0&quot;; SQL statement:&#10;SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0 [42000-224]] [SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0]; SQL [SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0]],&#13;&#10;    Outcome[candidate=Candidate[kind=LIVE, sessionId=5, coinPair=KRW-CRO, round=RoundKey[timeframe=H1, candleOpenTime=2026-11-12T09:27:05Z], approve=com.cryptoautotrader.api.service.LiveTradingService$$Lambda$3020/0x000001a8820e0e48@1e971092, expired=com.cryptoautotrader.api.service.LiveTradingService$$Lambda$3021/0x000001a8820e1068@45fbe6bf], rank=2, reason=null]]&#13;&#10;to satisfy given requirements, but these elements did not:&#13;&#10;&#13;&#10;Outcome[candidate=Candidate[kind=DYNAMIC, sessionId=5, coinPair=KRW-IOTA, round=RoundKey[timeframe=H1, candleOpenTime=2026-11-12T09:27:05Z], approve=com.cryptoautotrader.api.service.DynamicTradingService$$Lambda$3023/0x000001a8820e14d0@1c8bd36d, expired=com.cryptoautotrader.api.service.DynamicTradingService$$Lambda$3024/0x000001a8820e16f0@29081d31], rank=1, reason=승인 중 오류: InvalidDataAccessResourceUsageException: could not prepare statement [Syntax error in SQL statement &quot;SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0&quot;; SQL statement:&#10;SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0 [42000-224]] [SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0]; SQL [SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0]]&#13;&#10;error: &#13;&#10;expected: null&#13;&#10; but was: &quot;승인 중 오류: InvalidDataAccessResourceUsageException: could not prepare statement [Syntax error in SQL statement &quot;SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0&quot;; SQL statement:&#10;SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0 [42000-224]] [SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0]; SQL [SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0]&quot;" type="java.lang.AssertionError">java.lang.AssertionError: 
+Expecting all elements of:
+  [Outcome[candidate=Candidate[kind=DYNAMIC, sessionId=5, coinPair=KRW-IOTA, round=RoundKey[timeframe=H1, candleOpenTime=2026-11-12T09:27:05Z], approve=com.cryptoautotrader.api.service.DynamicTradingService$$Lambda$3023/0x000001a8820e14d0@1c8bd36d, expired=com.cryptoautotrader.api.service.DynamicTradingService$$Lambda$3024/0x000001a8820e16f0@29081d31], rank=1, reason=승인 중 오류: InvalidDataAccessResourceUsageException: could not prepare statement [Syntax error in SQL statement &quot;SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0&quot;; SQL statement:
+SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0 [42000-224]] [SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0]; SQL [SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0]],
+    Outcome[candidate=Candidate[kind=LIVE, sessionId=5, coinPair=KRW-CRO, round=RoundKey[timeframe=H1, candleOpenTime=2026-11-12T09:27:05Z], approve=com.cryptoautotrader.api.service.LiveTradingService$$Lambda$3020/0x000001a8820e0e48@1e971092, expired=com.cryptoautotrader.api.service.LiveTradingService$$Lambda$3021/0x000001a8820e1068@45fbe6bf], rank=2, reason=null]]
+to satisfy given requirements, but these elements did not:
+
+Outcome[candidate=Candidate[kind=DYNAMIC, sessionId=5, coinPair=KRW-IOTA, round=RoundKey[timeframe=H1, candleOpenTime=2026-11-12T09:27:05Z], approve=com.cryptoautotrader.api.service.DynamicTradingService$$Lambda$3023/0x000001a8820e14d0@1c8bd36d, expired=com.cryptoautotrader.api.service.DynamicTradingService$$Lambda$3024/0x000001a8820e16f0@29081d31], rank=1, reason=승인 중 오류: InvalidDataAccessResourceUsageException: could not prepare statement [Syntax error in SQL statement &quot;SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0&quot;; SQL statement:
+SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0 [42000-224]] [SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0]; SQL [SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0]]
+error: 
+expected: null
+ but was: &quot;승인 중 오류: InvalidDataAccessResourceUsageException: could not prepare statement [Syntax error in SQL statement &quot;SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0&quot;; SQL statement:
+SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0 [42000-224]] [SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0]; SQL [SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0]&quot;
+	at com.cryptoautotrader.api.service.BtcGateUnknownEntryTest.approvalTime(BtcGateUnknownEntryTest.java:287)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="LIVE 평가 회차: BTC 캔들 없음·낡음 → 매수 없음, 최신 → 매수 (즉시 진입)" classname="com.cryptoautotrader.api.service.BtcGateUnknownEntryTest" time="0.147"/>
+  <testcase name="DYNAMIC 평가 회차: BTC 캔들 없음·낡음 → 매수 없음, 최신 → 매수 (즉시 진입)" classname="com.cryptoautotrader.api.service.BtcGateUnknownEntryTest" time="0.071">
+    <failure message="org.springframework.dao.InvalidDataAccessResourceUsageException: could not prepare statement [Syntax error in SQL statement &quot;SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0&quot;; SQL statement:&#10;SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0 [42000-224]] [SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0]; SQL [SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0]" type="org.springframework.dao.InvalidDataAccessResourceUsageException">org.springframework.dao.InvalidDataAccessResourceUsageException: could not prepare statement [Syntax error in SQL statement &quot;SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0&quot;; SQL statement:
+SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0 [42000-224]] [SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0]; SQL [SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0]
+	at app//org.springframework.orm.jpa.vendor.HibernateJpaDialect.convertHibernateAccessException(HibernateJpaDialect.java:277)
+	at app//org.springframework.orm.jpa.vendor.HibernateJpaDialect.translateExceptionIfPossible(HibernateJpaDialect.java:241)
+	at app//org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.translateExceptionIfPossible(AbstractEntityManagerFactoryBean.java:550)
+	at app//org.springframework.dao.support.ChainedPersistenceExceptionTranslator.translateExceptionIfPossible(ChainedPersistenceExceptionTranslator.java:61)
+	at app//org.springframework.dao.support.DataAccessUtils.translateIfNecessary(DataAccessUtils.java:335)
+	at app//org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:152)
+	at app//org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at app//org.springframework.data.jpa.repository.support.CrudMethodMetadataPostProcessor$CrudMethodMetadataPopulatingMethodInterceptor.invoke(CrudMethodMetadataPostProcessor.java:135)
+	at app//org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at app//org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97)
+	at app//org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at app//org.springframework.aop.framework.JdkDynamicAopProxy.invoke(JdkDynamicAopProxy.java:223)
+	at app/jdk.proxy3/jdk.proxy3.$Proxy250.sumRealizedLossSince(Unknown Source)
+	at app//com.cryptoautotrader.api.service.RiskManagementService.legacyLossKrw(RiskManagementService.java:460)
+	at app//com.cryptoautotrader.api.service.RiskManagementService.calculateLossPct(RiskManagementService.java:449)
+	at app//com.cryptoautotrader.api.service.RiskManagementService.checkRealLossGuard(RiskManagementService.java:223)
+	at app//com.cryptoautotrader.api.service.RiskManagementService.checkRealLossGuard(RiskManagementService.java:215)
+	at java.base@17.0.12/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base@17.0.12/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base@17.0.12/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at app//org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at app//org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at app//org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at app//org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at app//org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:123)
+	at app//org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:392)
+	at app//org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119)
+	at app//org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at app//org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at app//org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:720)
+	at app//com.cryptoautotrader.api.service.RiskManagementService$$SpringCGLIB$$0.checkRealLossGuard(&lt;generated&gt;)
+	at app//com.cryptoautotrader.api.service.DynamicTradingService.executeBuy(DynamicTradingService.java:1644)
+	at app//com.cryptoautotrader.api.service.DynamicTradingService.executeBuy(DynamicTradingService.java:1629)
+	at app//com.cryptoautotrader.api.service.DynamicTradingService.processScanningTick(DynamicTradingService.java:1265)
+	at app//com.cryptoautotrader.api.service.DynamicTradingService.processTick(DynamicTradingService.java:845)
+	at java.base@17.0.12/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base@17.0.12/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base@17.0.12/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at app//org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at app//org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at app//org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at app//org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at app//org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:123)
+	at app//org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:392)
+	at app//org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119)
+	at app//org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at app//org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at app//org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:720)
+	at app//com.cryptoautotrader.api.service.DynamicTradingService$$SpringCGLIB$$1.processTick(&lt;generated&gt;)
+	at app//com.cryptoautotrader.api.service.BtcGateUnknownEntryTest.tickDynamic(BtcGateUnknownEntryTest.java:188)
+	at app//com.cryptoautotrader.api.service.BtcGateUnknownEntryTest.dynamicEvaluation(BtcGateUnknownEntryTest.java:242)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+Caused by: org.hibernate.exception.SQLGrammarException: could not prepare statement [Syntax error in SQL statement &quot;SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0&quot;; SQL statement:
+SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0 [42000-224]] [SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0]
+	at app//org.hibernate.exception.internal.SQLExceptionTypeDelegate.convert(SQLExceptionTypeDelegate.java:66)
+	at app//org.hibernate.exception.internal.StandardSQLExceptionConverter.convert(StandardSQLExceptionConverter.java:58)
+	at app//org.hibernate.engine.jdbc.spi.SqlExceptionHelper.convert(SqlExceptionHelper.java:108)
+	at app//org.hibernate.engine.jdbc.internal.StatementPreparerImpl$StatementPreparationTemplate.prepareStatement(StatementPreparerImpl.java:194)
+	at app//org.hibernate.engine.jdbc.internal.StatementPreparerImpl.prepareQueryStatement(StatementPreparerImpl.java:155)
+	at app//org.hibernate.sql.exec.spi.JdbcSelectExecutor.lambda$list$0(JdbcSelectExecutor.java:85)
+	at app//org.hibernate.sql.results.jdbc.internal.DeferredResultSetAccess.executeQuery(DeferredResultSetAccess.java:231)
+	at app//org.hibernate.sql.results.jdbc.internal.DeferredResultSetAccess.getResultSet(DeferredResultSetAccess.java:167)
+	at app//org.hibernate.sql.results.jdbc.internal.AbstractResultSetAccess.getMetaData(AbstractResultSetAccess.java:36)
+	at app//org.hibernate.sql.results.jdbc.internal.AbstractResultSetAccess.getColumnCount(AbstractResultSetAccess.java:52)
+	at app//org.hibernate.query.results.ResultSetMappingImpl.resolve(ResultSetMappingImpl.java:193)
+	at app//org.hibernate.sql.exec.internal.JdbcSelectExecutorStandardImpl.resolveJdbcValuesSource(JdbcSelectExecutorStandardImpl.java:325)
+	at app//org.hibernate.sql.exec.internal.JdbcSelectExecutorStandardImpl.doExecuteQuery(JdbcSelectExecutorStandardImpl.java:115)
+	at app//org.hibernate.sql.exec.internal.JdbcSelectExecutorStandardImpl.executeQuery(JdbcSelectExecutorStandardImpl.java:83)
+	at app//org.hibernate.sql.exec.spi.JdbcSelectExecutor.list(JdbcSelectExecutor.java:76)
+	at app//org.hibernate.sql.exec.spi.JdbcSelectExecutor.list(JdbcSelectExecutor.java:65)
+	at app//org.hibernate.query.sql.internal.NativeSelectQueryPlanImpl.performList(NativeSelectQueryPlanImpl.java:138)
+	at app//org.hibernate.query.sql.internal.NativeQueryImpl.doList(NativeQueryImpl.java:621)
+	at app//org.hibernate.query.spi.AbstractSelectionQuery.list(AbstractSelectionQuery.java:427)
+	at app//org.hibernate.query.spi.AbstractSelectionQuery.getSingleResult(AbstractSelectionQuery.java:564)
+	at app//org.springframework.data.jpa.repository.query.JpaQueryExecution$SingleEntityExecution.doExecute(JpaQueryExecution.java:223)
+	at app//org.springframework.data.jpa.repository.query.JpaQueryExecution.execute(JpaQueryExecution.java:92)
+	at app//org.springframework.data.jpa.repository.query.AbstractJpaQuery.doExecute(AbstractJpaQuery.java:149)
+	at app//org.springframework.data.jpa.repository.query.AbstractJpaQuery.execute(AbstractJpaQuery.java:137)
+	at app//org.springframework.data.repository.core.support.RepositoryMethodInvoker.doInvoke(RepositoryMethodInvoker.java:170)
+	at app//org.springframework.data.repository.core.support.RepositoryMethodInvoker.invoke(RepositoryMethodInvoker.java:158)
+	at app//org.springframework.data.repository.core.support.QueryExecutorMethodInterceptor.doInvoke(QueryExecutorMethodInterceptor.java:164)
+	at app//org.springframework.data.repository.core.support.QueryExecutorMethodInterceptor.invoke(QueryExecutorMethodInterceptor.java:143)
+	at app//org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at app//org.springframework.data.projection.DefaultMethodInvokingMethodInterceptor.invoke(DefaultMethodInvokingMethodInterceptor.java:70)
+	at app//org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at app//org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:123)
+	at app//org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:392)
+	at app//org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119)
+	at app//org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at app//org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:137)
+	at app//org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at app//org.springframework.data.jpa.repository.support.CrudMethodMetadataPostProcessor$CrudMethodMetadataPopulatingMethodInterceptor.invoke(CrudMethodMetadataPostProcessor.java:135)
+	at app//org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at app//org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97)
+	at app//org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at app//org.springframework.aop.framework.JdkDynamicAopProxy.invoke(JdkDynamicAopProxy.java:223)
+	at app/jdk.proxy3/jdk.proxy3.$Proxy250.sumRealizedLossSince(Unknown Source)
+	at app//com.cryptoautotrader.api.service.RiskManagementService.legacyLossKrw(RiskManagementService.java:460)
+	at app//com.cryptoautotrader.api.service.RiskManagementService.calculateLossPct(RiskManagementService.java:449)
+	at app//com.cryptoautotrader.api.service.RiskManagementService.checkRealLossGuard(RiskManagementService.java:223)
+	at java.base@17.0.12/java.lang.invoke.MethodHandle.invokeWithArguments(MethodHandle.java:732)
+	at org.mockito.internal.util.reflection.InstrumentationMemberAccessor$Dispatcher$ByteBuddy$o8UErrkv.invokeWithArguments(Unknown Source)
+	at app//org.mockito.internal.util.reflection.InstrumentationMemberAccessor.invoke(InstrumentationMemberAccessor.java:251)
+	at app//org.mockito.internal.util.reflection.ModuleMemberAccessor.invoke(ModuleMemberAccessor.java:55)
+	at app//org.mockito.internal.creation.bytebuddy.MockMethodAdvice.tryInvoke(MockMethodAdvice.java:314)
+	at app//org.mockito.internal.creation.bytebuddy.MockMethodAdvice$RealMethodCall.invoke(MockMethodAdvice.java:234)
+	at app//org.mockito.internal.invocation.InterceptedInvocation.callRealMethod(InterceptedInvocation.java:142)
+	at app//org.mockito.internal.stubbing.answers.CallsRealMethods.answer(CallsRealMethods.java:45)
+	at app//org.mockito.Answers.answer(Answers.java:90)
+	at app//org.mockito.internal.handler.MockHandlerImpl.handle(MockHandlerImpl.java:111)
+	at app//org.mockito.internal.handler.NullResultGuardian.handle(NullResultGuardian.java:29)
+	at app//org.mockito.internal.handler.InvocationNotifierHandler.handle(InvocationNotifierHandler.java:34)
+	at app//org.mockito.internal.creation.bytebuddy.MockMethodInterceptor.doIntercept(MockMethodInterceptor.java:82)
+	at app//org.mockito.internal.creation.bytebuddy.MockMethodAdvice.handle(MockMethodAdvice.java:134)
+	... 40 more
+Caused by: org.h2.jdbc.JdbcSQLSyntaxErrorException: Syntax error in SQL statement &quot;SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0&quot;; SQL statement:
+SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-&gt;&gt;'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at &gt;= ?) t WHERE pnl &lt; 0 [42000-224]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:514)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:489)
+	at org.h2.message.DbException.get(DbException.java:223)
+	at org.h2.message.DbException.get(DbException.java:199)
+	at org.h2.message.DbException.getSyntaxError(DbException.java:247)
+	at org.h2.command.ParserBase.getSyntaxError(ParserBase.java:748)
+	at org.h2.command.Parser.readTermWithoutIdentifier(Parser.java:5134)
+	at org.h2.command.Parser.readTerm(Parser.java:4834)
+	at org.h2.command.Parser.readFactor(Parser.java:3337)
+	at org.h2.command.Parser.readSum(Parser.java:3329)
+	at org.h2.command.Parser.readConcat(Parser.java:3289)
+	at org.h2.command.Parser.readCondition(Parser.java:3079)
+	at org.h2.command.Parser.readExpression(Parser.java:2999)
+	at org.h2.command.Parser.readTermWithoutIdentifier(Parser.java:5041)
+	at org.h2.command.Parser.readTerm(Parser.java:4834)
+	at org.h2.command.Parser.readFactor(Parser.java:3337)
+	at org.h2.command.Parser.readSum(Parser.java:3324)
+	at org.h2.command.Parser.readConcat(Parser.java:3289)
+	at org.h2.command.Parser.readCondition(Parser.java:3079)
+	at org.h2.command.Parser.readExpression(Parser.java:2999)
+	at org.h2.command.Parser.parseSelectExpressions(Parser.java:2799)
+	at org.h2.command.Parser.parseSelect(Parser.java:2817)
+	at org.h2.command.Parser.parseQueryPrimary(Parser.java:2708)
+	at org.h2.command.Parser.parseQueryTerm(Parser.java:2564)
+	at org.h2.command.Parser.parseQueryExpressionBody(Parser.java:2543)
+	at org.h2.command.Parser.parseQueryExpressionBodyAndEndOfQuery(Parser.java:2536)
+	at org.h2.command.Parser.parseQueryExpression(Parser.java:2529)
+	at org.h2.command.Parser.readDerivedTableWithCorrelation(Parser.java:1821)
+	at org.h2.command.Parser.readTablePrimary(Parser.java:1720)
+	at org.h2.command.Parser.readTableReference(Parser.java:2268)
+	at org.h2.command.Parser.parseSelectFromPart(Parser.java:2718)
+	at org.h2.command.Parser.parseSelect(Parser.java:2824)
+	at org.h2.command.Parser.parseQueryPrimary(Parser.java:2708)
+	at org.h2.command.Parser.parseQueryTerm(Parser.java:2564)
+	at org.h2.command.Parser.parseQueryExpressionBody(Parser.java:2543)
+	at org.h2.command.Parser.parseQueryExpressionBodyAndEndOfQuery(Parser.java:2536)
+	at org.h2.command.Parser.parseQueryExpression(Parser.java:2529)
+	at org.h2.command.Parser.parseQuery(Parser.java:2498)
+	at org.h2.command.Parser.parsePrepared(Parser.java:627)
+	at org.h2.command.Parser.parse(Parser.java:592)
+	at org.h2.command.Parser.parse(Parser.java:569)
+	at org.h2.command.Parser.prepareCommand(Parser.java:483)
+	at org.h2.engine.SessionLocal.prepareLocal(SessionLocal.java:639)
+	at org.h2.engine.SessionLocal.prepareCommand(SessionLocal.java:559)
+	at org.h2.jdbc.JdbcConnection.prepareCommand(JdbcConnection.java:1166)
+	at org.h2.jdbc.JdbcPreparedStatement.&lt;init&gt;(JdbcPreparedStatement.java:93)
+	at org.h2.jdbc.JdbcConnection.prepareStatement(JdbcConnection.java:316)
+	at com.zaxxer.hikari.pool.ProxyConnection.prepareStatement(ProxyConnection.java:327)
+	at com.zaxxer.hikari.pool.HikariProxyConnection.prepareStatement(HikariProxyConnection.java)
+	at org.hibernate.engine.jdbc.internal.StatementPreparerImpl$5.doPrepare(StatementPreparerImpl.java:153)
+	at org.hibernate.engine.jdbc.internal.StatementPreparerImpl$StatementPreparationTemplate.prepareStatement(StatementPreparerImpl.java:183)
+	... 96 more
+</failure>
+  </testcase>
+  <system-out><![CDATA[19:28:07.517 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.BtcGateUnknownEntryTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.5)
+
+19:28:08.175 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Multiple Spring Data modules found, entering strict repository configuration mode
+19:28:08.176 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+19:28:08.240 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 64 ms. Found 39 JPA repository interfaces.
+19:28:08.243 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Multiple Spring Data modules found, entering strict repository configuration mode
+19:28:08.243 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+19:28:08.247 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.BacktestJobRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:28:08.247 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.BacktestMetricsRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:28:08.247 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.BacktestRunRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:28:08.247 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.BacktestTradeRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:28:08.247 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.CandleDataRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:28:08.247 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DailyHealthSnapshotRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:28:08.247 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DiscordChannelConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:28:08.247 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DiscordSendLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:28:08.247 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DynamicSellSettlementRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:28:08.247 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.DynamicSessionRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:28:08.247 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.ExecutionDriftLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:28:08.248 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.KillCriteriaJudgmentRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:28:08.248 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.LiveTradingSessionRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:28:08.248 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.LlmCallLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:28:08.248 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.LlmProviderConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:28:08.248 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.LlmTaskConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:28:08.248 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.MarketDataCacheRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:28:08.248 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NewsItemCacheRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:28:08.248 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NewsSourceConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:28:08.248 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NightlySchedulerConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:28:08.248 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NotionReportConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:28:08.248 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.NotionReportLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:28:08.248 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.OrderRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:28:08.248 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.OrderSettlementDiscrepancyRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:28:08.248 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.paper.PaperOrderRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:28:08.249 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.paper.PaperPositionRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:28:08.249 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.paper.VirtualBalanceRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:28:08.249 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.PositionCleanupRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:28:08.249 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.PositionRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:28:08.249 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.RegimeChangeLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:28:08.249 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.RiskConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:28:08.249 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.RulesetSnapshotRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:28:08.249 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.StrategyConfigRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:28:08.249 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.StrategyLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:28:08.249 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.StrategyTimeframeEnabledRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:28:08.249 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.StrategyTypeEnabledRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:28:08.249 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.TelegramNotificationLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:28:08.249 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.TradeLogRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:28:08.249 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.cryptoautotrader.api.repository.WeightOptimizerSnapshotRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+19:28:08.249 [Test worker] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 6 ms. Found 0 Redis repository interfaces.
+19:28:08.421 [Test worker] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 0 (http)
+19:28:08.422 [Test worker] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-auto-2"]
+19:28:08.423 [Test worker] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+19:28:08.424 [Test worker] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.20]
+19:28:08.455 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+19:28:08.455 [Test worker] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 893 ms
+19:28:08.514 [Test worker] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-2 - Starting...
+19:28:08.515 [Test worker] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-2 - Added connection conn5: url=jdbc:h2:mem:testdb user=SA
+19:28:08.515 [Test worker] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-2 - Start completed.
+19:28:08.543 [Test worker] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+19:28:08.544 [Test worker] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
+19:28:08.551 [Test worker] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+19:28:08.553 [Test worker] WARN  org.hibernate.orm.deprecation - HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+19:28:09.020 [Test worker] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+19:28:09.021 [Test worker] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+19:28:09.031 [Test worker] WARN  c.c.api.config.SingleInstanceGuard - ? 단일 인스턴스 강제가 꺼져 있다(trading.single-instance.enabled=false) ? 시험 전용 설정이다
+19:28:09.727 [Test worker] WARN  c.c.api.service.DbResetService - DB_RESET_PASSWORD 미설정 ? DB 초기화 기능이 비활성화됩니다(모든 요청 거부).
+19:28:09.954 [Test worker] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 1 endpoint(s) beneath base path '/actuator'
+19:28:09.969 [Test worker] INFO  o.s.s.web.DefaultSecurityFilterChain - Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@1a5076b6, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@4e5f2af6, org.springframework.security.web.context.SecurityContextHolderFilter@654b804c, org.springframework.security.web.header.HeaderWriterFilter@8be506d, org.springframework.web.filter.CorsFilter@88f5632, org.springframework.security.web.authentication.logout.LogoutFilter@2991373, com.cryptoautotrader.api.config.ApiTokenAuthFilter@5d008c13, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@5126936b, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@2263cc8, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@3d4ff6a5, org.springframework.security.web.session.SessionManagementFilter@4596e076, org.springframework.security.web.access.ExceptionTranslationFilter@3a2a7509, org.springframework.security.web.access.intercept.AuthorizationFilter@b7be41e]
+19:28:10.154 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+19:28:10.179 [Test worker] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-auto-2"]
+19:28:10.184 [Test worker] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 10213 (http) with context path ''
+19:28:10.237 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+19:28:10.395 [Test worker] WARN  c.c.a.service.WatchlistFilterService - [Watchlist] KRW 마켓 목록 없음
+19:28:10.396 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 공용 유니버스 비어 있음 ? 직전 목록 유지 (id=4, 1종목)
+19:28:10.421 [Test worker] ERROR c.c.api.service.CandleFreshnessGuard - ? [캔들 최신성] BTC 급락 관문 H1 판정 불가 (DYNAMIC) ? 이 관문을 요구하는 신규 진입을 막는다: BTC 캔들 판정 불가(캔들 없음) ? 급락 여부를 모른다
+[BTC 관문 승인] DYNAMIC KRW-IOTA → 승인 차례에 BTC_MARKET_GUARD 판정 불가 ? BTC 캔들 판정 불가(캔들 없음) ? 급락 여부를 모른다
+[BTC 관문 승인] LIVE KRW-CRO → 승인 차례에 BTC_MARKET_GUARD 판정 불가 ? BTC 캔들 판정 불가(캔들 없음) ? 급락 여부를 모른다
+19:28:10.520 [Test worker] WARN  c.c.api.service.CandleFreshnessGuard - [캔들 최신성] BTC 급락 관문 H1 판정 재개 (LIVE): 종전 2026-11-12T10:28:10.421210100Z BTC 캔들 판정 불가(캔들 없음) ? 급락 여부를 모른다
+19:28:10.532 [Test worker] WARN  c.c.a.service.WatchlistFilterService - [Watchlist] KRW 마켓 목록 없음
+19:28:10.532 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 공용 유니버스 비어 있음 ? 직전 목록 유지 (id=5, 1종목)
+19:28:10.549 [Test worker] WARN  o.h.e.jdbc.spi.SqlExceptionHelper - SQL Error: 42000, SQLState: 42000
+19:28:10.550 [Test worker] ERROR o.h.e.jdbc.spi.SqlExceptionHelper - Syntax error in SQL statement "SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]>>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at >= ?) t WHERE pnl < 0"; SQL statement:
+SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json->>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at >= ?) t WHERE pnl < 0 [42000-224]
+19:28:10.552 [Test worker] ERROR c.c.api.service.EntryPriorityRounds - [진입 우선순위] 승인 중 오류 ? 다음 후보로 간다: RoundKey[timeframe=H1, candleOpenTime=2026-11-12T09:27:05Z] DYNAMIC#5 KRW-IOTA
+org.springframework.dao.InvalidDataAccessResourceUsageException: could not prepare statement [Syntax error in SQL statement "SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]>>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at >= ?) t WHERE pnl < 0"; SQL statement:
+SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json->>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at >= ?) t WHERE pnl < 0 [42000-224]] [SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json->>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at >= ?) t WHERE pnl < 0]; SQL [SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json->>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at >= ?) t WHERE pnl < 0]
+	at org.springframework.orm.jpa.vendor.HibernateJpaDialect.convertHibernateAccessException(HibernateJpaDialect.java:277)
+	at org.springframework.orm.jpa.vendor.HibernateJpaDialect.translateExceptionIfPossible(HibernateJpaDialect.java:241)
+	at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.translateExceptionIfPossible(AbstractEntityManagerFactoryBean.java:550)
+	at org.springframework.dao.support.ChainedPersistenceExceptionTranslator.translateExceptionIfPossible(ChainedPersistenceExceptionTranslator.java:61)
+	at org.springframework.dao.support.DataAccessUtils.translateIfNecessary(DataAccessUtils.java:335)
+	at org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:152)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.data.jpa.repository.support.CrudMethodMetadataPostProcessor$CrudMethodMetadataPopulatingMethodInterceptor.invoke(CrudMethodMetadataPostProcessor.java:135)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.JdkDynamicAopProxy.invoke(JdkDynamicAopProxy.java:223)
+	at jdk.proxy3/jdk.proxy3.$Proxy250.sumRealizedLossSince(Unknown Source)
+	at com.cryptoautotrader.api.service.RiskManagementService.legacyLossKrw(RiskManagementService.java:460)
+	at com.cryptoautotrader.api.service.RiskManagementService.calculateLossPct(RiskManagementService.java:449)
+	at com.cryptoautotrader.api.service.RiskManagementService.checkRealLossGuard(RiskManagementService.java:223)
+	at com.cryptoautotrader.api.service.RiskManagementService.checkRealLossGuard(RiskManagementService.java:215)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:123)
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:392)
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:720)
+	at com.cryptoautotrader.api.service.RiskManagementService$$SpringCGLIB$$0.checkRealLossGuard(<generated>)
+	at com.cryptoautotrader.api.service.DynamicTradingService.executeBuy(DynamicTradingService.java:1644)
+	at com.cryptoautotrader.api.service.DynamicTradingService.approveQueuedEntry(DynamicTradingService.java:886)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:123)
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:392)
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:720)
+	at com.cryptoautotrader.api.service.DynamicTradingService$$SpringCGLIB$$1.approveQueuedEntry(<generated>)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:716)
+	at com.cryptoautotrader.api.service.DynamicTradingService$$SpringCGLIB$$0.approveQueuedEntry(<generated>)
+	at com.cryptoautotrader.api.service.DynamicTradingService.lambda$processScanningTick$8(DynamicTradingService.java:1257)
+	at com.cryptoautotrader.api.service.EntryPriorityRounds.processDue(EntryPriorityRounds.java:238)
+	at com.cryptoautotrader.api.service.BtcGateUnknownEntryTest.approvalTime(BtcGateUnknownEntryTest.java:285)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:728)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:156)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:147)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:103)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:92)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:86)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$7(TestMethodTestDescriptor.java:218)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:214)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:139)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:69)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:151)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:155)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:155)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:198)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:169)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:93)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:141)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:57)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestClassProcessor$CollectAllTestClassesExecutor.processAllTestClasses(JUnitPlatformTestClassProcessor.java:119)
+	at org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestClassProcessor$CollectAllTestClassesExecutor.access$000(JUnitPlatformTestClassProcessor.java:94)
+	at org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestClassProcessor.stop(JUnitPlatformTestClassProcessor.java:89)
+	at org.gradle.api.internal.tasks.testing.SuiteTestClassProcessor.stop(SuiteTestClassProcessor.java:62)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:36)
+	at org.gradle.internal.dispatch.ReflectionDispatch.dispatch(ReflectionDispatch.java:24)
+	at org.gradle.internal.dispatch.ContextClassLoaderDispatch.dispatch(ContextClassLoaderDispatch.java:33)
+	at org.gradle.internal.dispatch.ProxyDispatchAdapter$DispatchingInvocationHandler.invoke(ProxyDispatchAdapter.java:94)
+	at jdk.proxy1/jdk.proxy1.$Proxy2.stop(Unknown Source)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker$3.run(TestWorker.java:193)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.executeAndMaintainThreadName(TestWorker.java:129)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:100)
+	at org.gradle.api.internal.tasks.testing.worker.TestWorker.execute(TestWorker.java:60)
+	at org.gradle.process.internal.worker.child.ActionExecutionWorker.execute(ActionExecutionWorker.java:56)
+	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:113)
+	at org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker.call(SystemApplicationClassLoaderWorker.java:65)
+	at worker.org.gradle.process.internal.worker.GradleWorkerMain.run(GradleWorkerMain.java:69)
+	at worker.org.gradle.process.internal.worker.GradleWorkerMain.main(GradleWorkerMain.java:74)
+Caused by: org.hibernate.exception.SQLGrammarException: could not prepare statement [Syntax error in SQL statement "SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]>>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at >= ?) t WHERE pnl < 0"; SQL statement:
+SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json->>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at >= ?) t WHERE pnl < 0 [42000-224]] [SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json->>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at >= ?) t WHERE pnl < 0]
+	at org.hibernate.exception.internal.SQLExceptionTypeDelegate.convert(SQLExceptionTypeDelegate.java:66)
+	at org.hibernate.exception.internal.StandardSQLExceptionConverter.convert(StandardSQLExceptionConverter.java:58)
+	at org.hibernate.engine.jdbc.spi.SqlExceptionHelper.convert(SqlExceptionHelper.java:108)
+	at org.hibernate.engine.jdbc.internal.StatementPreparerImpl$StatementPreparationTemplate.prepareStatement(StatementPreparerImpl.java:194)
+	at org.hibernate.engine.jdbc.internal.StatementPreparerImpl.prepareQueryStatement(StatementPreparerImpl.java:155)
+	at org.hibernate.sql.exec.spi.JdbcSelectExecutor.lambda$list$0(JdbcSelectExecutor.java:85)
+	at org.hibernate.sql.results.jdbc.internal.DeferredResultSetAccess.executeQuery(DeferredResultSetAccess.java:231)
+	at org.hibernate.sql.results.jdbc.internal.DeferredResultSetAccess.getResultSet(DeferredResultSetAccess.java:167)
+	at org.hibernate.sql.results.jdbc.internal.AbstractResultSetAccess.getMetaData(AbstractResultSetAccess.java:36)
+	at org.hibernate.sql.results.jdbc.internal.AbstractResultSetAccess.getColumnCount(AbstractResultSetAccess.java:52)
+	at org.hibernate.query.results.ResultSetMappingImpl.resolve(ResultSetMappingImpl.java:193)
+	at org.hibernate.sql.exec.internal.JdbcSelectExecutorStandardImpl.resolveJdbcValuesSource(JdbcSelectExecutorStandardImpl.java:325)
+	at org.hibernate.sql.exec.internal.JdbcSelectExecutorStandardImpl.doExecuteQuery(JdbcSelectExecutorStandardImpl.java:115)
+	at org.hibernate.sql.exec.internal.JdbcSelectExecutorStandardImpl.executeQuery(JdbcSelectExecutorStandardImpl.java:83)
+	at org.hibernate.sql.exec.spi.JdbcSelectExecutor.list(JdbcSelectExecutor.java:76)
+	at org.hibernate.sql.exec.spi.JdbcSelectExecutor.list(JdbcSelectExecutor.java:65)
+	at org.hibernate.query.sql.internal.NativeSelectQueryPlanImpl.performList(NativeSelectQueryPlanImpl.java:138)
+	at org.hibernate.query.sql.internal.NativeQueryImpl.doList(NativeQueryImpl.java:621)
+	at org.hibernate.query.spi.AbstractSelectionQuery.list(AbstractSelectionQuery.java:427)
+	at org.hibernate.query.spi.AbstractSelectionQuery.getSingleResult(AbstractSelectionQuery.java:564)
+	at org.springframework.data.jpa.repository.query.JpaQueryExecution$SingleEntityExecution.doExecute(JpaQueryExecution.java:223)
+	at org.springframework.data.jpa.repository.query.JpaQueryExecution.execute(JpaQueryExecution.java:92)
+	at org.springframework.data.jpa.repository.query.AbstractJpaQuery.doExecute(AbstractJpaQuery.java:149)
+	at org.springframework.data.jpa.repository.query.AbstractJpaQuery.execute(AbstractJpaQuery.java:137)
+	at org.springframework.data.repository.core.support.RepositoryMethodInvoker.doInvoke(RepositoryMethodInvoker.java:170)
+	at org.springframework.data.repository.core.support.RepositoryMethodInvoker.invoke(RepositoryMethodInvoker.java:158)
+	at org.springframework.data.repository.core.support.QueryExecutorMethodInterceptor.doInvoke(QueryExecutorMethodInterceptor.java:164)
+	at org.springframework.data.repository.core.support.QueryExecutorMethodInterceptor.invoke(QueryExecutorMethodInterceptor.java:143)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.data.projection.DefaultMethodInvokingMethodInterceptor.invoke(DefaultMethodInvokingMethodInterceptor.java:70)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:123)
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:392)
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:119)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:137)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.data.jpa.repository.support.CrudMethodMetadataPostProcessor$CrudMethodMetadataPopulatingMethodInterceptor.invoke(CrudMethodMetadataPostProcessor.java:135)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.interceptor.ExposeInvocationInterceptor.invoke(ExposeInvocationInterceptor.java:97)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184)
+	at org.springframework.aop.framework.JdkDynamicAopProxy.invoke(JdkDynamicAopProxy.java:223)
+	at jdk.proxy3/jdk.proxy3.$Proxy250.sumRealizedLossSince(Unknown Source)
+	at com.cryptoautotrader.api.service.RiskManagementService.legacyLossKrw(RiskManagementService.java:460)
+	at com.cryptoautotrader.api.service.RiskManagementService.calculateLossPct(RiskManagementService.java:449)
+	at com.cryptoautotrader.api.service.RiskManagementService.checkRealLossGuard(RiskManagementService.java:223)
+	at java.base/java.lang.invoke.MethodHandle.invokeWithArguments(MethodHandle.java:732)
+	at org.mockito.internal.util.reflection.InstrumentationMemberAccessor$Dispatcher$ByteBuddy$o8UErrkv.invokeWithArguments(Unknown Source)
+	at org.mockito.internal.util.reflection.InstrumentationMemberAccessor.invoke(InstrumentationMemberAccessor.java:251)
+	at org.mockito.internal.util.reflection.ModuleMemberAccessor.invoke(ModuleMemberAccessor.java:55)
+	at org.mockito.internal.creation.bytebuddy.MockMethodAdvice.tryInvoke(MockMethodAdvice.java:314)
+	at org.mockito.internal.creation.bytebuddy.MockMethodAdvice$RealMethodCall.invoke(MockMethodAdvice.java:234)
+	at org.mockito.internal.invocation.InterceptedInvocation.callRealMethod(InterceptedInvocation.java:142)
+	at org.mockito.internal.stubbing.answers.CallsRealMethods.answer(CallsRealMethods.java:45)
+	at org.mockito.Answers.answer(Answers.java:90)
+	at org.mockito.internal.handler.MockHandlerImpl.handle(MockHandlerImpl.java:111)
+	at org.mockito.internal.handler.NullResultGuardian.handle(NullResultGuardian.java:29)
+	at org.mockito.internal.handler.InvocationNotifierHandler.handle(InvocationNotifierHandler.java:34)
+	at org.mockito.internal.creation.bytebuddy.MockMethodInterceptor.doIntercept(MockMethodInterceptor.java:82)
+	at org.mockito.internal.creation.bytebuddy.MockMethodAdvice.handle(MockMethodAdvice.java:134)
+	... 128 common frames omitted
+Caused by: org.h2.jdbc.JdbcSQLSyntaxErrorException: Syntax error in SQL statement "SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]>>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at >= ?) t WHERE pnl < 0"; SQL statement:
+SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json->>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at >= ?) t WHERE pnl < 0 [42000-224]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:514)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:489)
+	at org.h2.message.DbException.get(DbException.java:223)
+	at org.h2.message.DbException.get(DbException.java:199)
+	at org.h2.message.DbException.getSyntaxError(DbException.java:247)
+	at org.h2.command.ParserBase.getSyntaxError(ParserBase.java:748)
+	at org.h2.command.Parser.readTermWithoutIdentifier(Parser.java:5134)
+	at org.h2.command.Parser.readTerm(Parser.java:4834)
+	at org.h2.command.Parser.readFactor(Parser.java:3337)
+	at org.h2.command.Parser.readSum(Parser.java:3329)
+	at org.h2.command.Parser.readConcat(Parser.java:3289)
+	at org.h2.command.Parser.readCondition(Parser.java:3079)
+	at org.h2.command.Parser.readExpression(Parser.java:2999)
+	at org.h2.command.Parser.readTermWithoutIdentifier(Parser.java:5041)
+	at org.h2.command.Parser.readTerm(Parser.java:4834)
+	at org.h2.command.Parser.readFactor(Parser.java:3337)
+	at org.h2.command.Parser.readSum(Parser.java:3324)
+	at org.h2.command.Parser.readConcat(Parser.java:3289)
+	at org.h2.command.Parser.readCondition(Parser.java:3079)
+	at org.h2.command.Parser.readExpression(Parser.java:2999)
+	at org.h2.command.Parser.parseSelectExpressions(Parser.java:2799)
+	at org.h2.command.Parser.parseSelect(Parser.java:2817)
+	at org.h2.command.Parser.parseQueryPrimary(Parser.java:2708)
+	at org.h2.command.Parser.parseQueryTerm(Parser.java:2564)
+	at org.h2.command.Parser.parseQueryExpressionBody(Parser.java:2543)
+	at org.h2.command.Parser.parseQueryExpressionBodyAndEndOfQuery(Parser.java:2536)
+	at org.h2.command.Parser.parseQueryExpression(Parser.java:2529)
+	at org.h2.command.Parser.readDerivedTableWithCorrelation(Parser.java:1821)
+	at org.h2.command.Parser.readTablePrimary(Parser.java:1720)
+	at org.h2.command.Parser.readTableReference(Parser.java:2268)
+	at org.h2.command.Parser.parseSelectFromPart(Parser.java:2718)
+	at org.h2.command.Parser.parseSelect(Parser.java:2824)
+	at org.h2.command.Parser.parseQueryPrimary(Parser.java:2708)
+	at org.h2.command.Parser.parseQueryTerm(Parser.java:2564)
+	at org.h2.command.Parser.parseQueryExpressionBody(Parser.java:2543)
+	at org.h2.command.Parser.parseQueryExpressionBodyAndEndOfQuery(Parser.java:2536)
+	at org.h2.command.Parser.parseQueryExpression(Parser.java:2529)
+	at org.h2.command.Parser.parseQuery(Parser.java:2498)
+	at org.h2.command.Parser.parsePrepared(Parser.java:627)
+	at org.h2.command.Parser.parse(Parser.java:592)
+	at org.h2.command.Parser.parse(Parser.java:569)
+	at org.h2.command.Parser.prepareCommand(Parser.java:483)
+	at org.h2.engine.SessionLocal.prepareLocal(SessionLocal.java:639)
+	at org.h2.engine.SessionLocal.prepareCommand(SessionLocal.java:559)
+	at org.h2.jdbc.JdbcConnection.prepareCommand(JdbcConnection.java:1166)
+	at org.h2.jdbc.JdbcPreparedStatement.<init>(JdbcPreparedStatement.java:93)
+	at org.h2.jdbc.JdbcConnection.prepareStatement(JdbcConnection.java:316)
+	at com.zaxxer.hikari.pool.ProxyConnection.prepareStatement(ProxyConnection.java:327)
+	at com.zaxxer.hikari.pool.HikariProxyConnection.prepareStatement(HikariProxyConnection.java)
+	at org.hibernate.engine.jdbc.internal.StatementPreparerImpl$5.doPrepare(StatementPreparerImpl.java:153)
+	at org.hibernate.engine.jdbc.internal.StatementPreparerImpl$StatementPreparationTemplate.prepareStatement(StatementPreparerImpl.java:183)
+	... 184 common frames omitted
+[BTC 관문 승인 대조] DYNAMIC KRW-IOTA → 승인 중 오류: InvalidDataAccessResourceUsageException: could not prepare statement [Syntax error in SQL statement "SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]>>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at >= ?) t WHERE pnl < 0"; SQL statement:
+SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json->>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at >= ?) t WHERE pnl < 0 [42000-224]] [SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json->>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at >= ?) t WHERE pnl < 0]; SQL [SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json->>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at >= ?) t WHERE pnl < 0]
+[BTC 관문 승인 대조] LIVE KRW-CRO → null
+19:28:10.597 [order-exec-1] ERROR o.s.a.i.SimpleAsyncUncaughtExceptionHandler - Unexpected exception occurred invoking async method: public void com.cryptoautotrader.api.service.OrderExecutionEngine.submitPreparedOrder(java.lang.Long,com.cryptoautotrader.api.dto.OrderRequest)
+java.lang.NullPointerException: Cannot invoke "com.cryptoautotrader.exchange.upbit.UpbitOrderClient$ExchangeResult.response()" because "exchangeResult" is null
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.recordSubmitOutcome(OrderExecutionEngine.java:1066)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.lambda$callExchangeAndRecord$10(OrderExecutionEngine.java:981)
+	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:140)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.callExchangeAndRecord(OrderExecutionEngine.java:980)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.submitPreparedOrder(OrderExecutionEngine.java:612)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at org.springframework.aop.interceptor.AsyncExecutionInterceptor.lambda$invoke$0(AsyncExecutionInterceptor.java:113)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+19:28:10.660 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+19:28:10.685 [Test worker] ERROR c.c.api.service.CandleFreshnessGuard - ? [캔들 최신성] BTC 급락 관문 H1 판정 불가 (LIVE) ? 이 관문을 요구하는 신규 진입을 막는다: BTC 캔들 판정 불가(캔들 없음) ? 급락 여부를 모른다
+19:28:10.686 [Test worker] WARN  c.c.api.service.LiveTradingService - BTC_MARKET_GUARD 판정 불가 ? BUY 차단 (sessionId=6, KRW-CRO): BTC 캔들 판정 불가(캔들 없음) ? 급락 여부를 모른다
+19:28:10.715 [Test worker] WARN  c.c.api.service.LiveTradingService - BTC_MARKET_GUARD 판정 불가 ? BUY 차단 (sessionId=7, KRW-CRO): BTC 캔들 판정 불가(최신 완료 봉 없음 ? 마지막 완료 봉 2026-11-12T05:28:10Z, 필요 2026-11-12T09:00:00Z 이후(211분 늦음)) ? 급락 여부를 모른다
+19:28:10.748 [Test worker] WARN  c.c.api.service.CandleFreshnessGuard - [캔들 최신성] BTC 급락 관문 H1 판정 재개 (LIVE): 종전 2026-11-12T10:28:10.685235700Z BTC 캔들 판정 불가(캔들 없음) ? 급락 여부를 모른다
+19:28:10.788 [order-exec-2] ERROR o.s.a.i.SimpleAsyncUncaughtExceptionHandler - Unexpected exception occurred invoking async method: public void com.cryptoautotrader.api.service.OrderExecutionEngine.submitPreparedOrder(java.lang.Long,com.cryptoautotrader.api.dto.OrderRequest)
+java.lang.NullPointerException: Cannot invoke "com.cryptoautotrader.exchange.upbit.UpbitOrderClient$ExchangeResult.response()" because "exchangeResult" is null
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.recordSubmitOutcome(OrderExecutionEngine.java:1066)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.lambda$callExchangeAndRecord$10(OrderExecutionEngine.java:981)
+	at org.springframework.transaction.support.TransactionTemplate.execute(TransactionTemplate.java:140)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.callExchangeAndRecord(OrderExecutionEngine.java:980)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.submitPreparedOrder(OrderExecutionEngine.java:612)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at org.springframework.aop.interceptor.AsyncExecutionInterceptor.lambda$invoke$0(AsyncExecutionInterceptor.java:113)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+19:28:10.808 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+19:28:10.821 [Test worker] WARN  c.c.a.service.WatchlistFilterService - [Watchlist] KRW 마켓 목록 없음
+19:28:10.821 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 공용 유니버스 비어 있음 ? 직전 목록 유지 (id=6, 1종목)
+19:28:10.821 [Test worker] ERROR c.c.api.service.CandleFreshnessGuard - ? [캔들 최신성] BTC 급락 관문 H1 판정 불가 (DYNAMIC) ? 이 관문을 요구하는 신규 진입을 막는다: BTC 캔들 판정 불가(캔들 없음) ? 급락 여부를 모른다
+19:28:10.822 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] BTC_MARKET_GUARD 판정 불가 ? BUY 차단: KRW-IOTA (id=6): BTC 캔들 판정 불가(캔들 없음) ? 급락 여부를 모른다
+19:28:10.835 [Test worker] WARN  c.c.a.service.WatchlistFilterService - [Watchlist] KRW 마켓 목록 없음
+19:28:10.835 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 공용 유니버스 비어 있음 ? 직전 목록 유지 (id=7, 1종목)
+19:28:10.837 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] BTC_MARKET_GUARD 판정 불가 ? BUY 차단: KRW-IOTA (id=7): BTC 캔들 판정 불가(최신 완료 봉 없음 ? 마지막 완료 봉 2026-11-12T05:28:10Z, 필요 2026-11-12T09:00:00Z 이후(211분 늦음)) ? 급락 여부를 모른다
+19:28:10.849 [Test worker] WARN  c.c.a.service.WatchlistFilterService - [Watchlist] KRW 마켓 목록 없음
+19:28:10.849 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 공용 유니버스 비어 있음 ? 직전 목록 유지 (id=8, 1종목)
+19:28:10.850 [Test worker] WARN  c.c.api.service.CandleFreshnessGuard - [캔들 최신성] BTC 급락 관문 H1 판정 재개 (DYNAMIC): 종전 2026-11-12T10:28:10.821899100Z BTC 캔들 판정 불가(캔들 없음) ? 급락 여부를 모른다
+19:28:10.861 [Test worker] WARN  o.h.e.jdbc.spi.SqlExceptionHelper - SQL Error: 42000, SQLState: 42000
+19:28:10.862 [Test worker] ERROR o.h.e.jdbc.spi.SqlExceptionHelper - Syntax error in SQL statement "SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]>>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at >= ?) t WHERE pnl < 0"; SQL statement:
+SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json->>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at >= ?) t WHERE pnl < 0 [42000-224]
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

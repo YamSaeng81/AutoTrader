@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.core.selector.WatchlistQualityGateTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-11-12T12:07:59" hostname="DESKTOP-SF1KUQ5" time="0.004">
+  <properties/>
+  <testcase name="종가가 EMA200 아래(하락추세)면 탈락" classname="com.cryptoautotrader.core.selector.WatchlistQualityGateTest" time="0.002"/>
+  <testcase name="ATR%가 변동성 상한을 초과하면 탈락" classname="com.cryptoautotrader.core.selector.WatchlistQualityGateTest" time="0.0"/>
+  <testcase name="유동성·변동성·상승추세·비급락 모두 충족하면 통과" classname="com.cryptoautotrader.core.selector.WatchlistQualityGateTest" time="0.001"/>
+  <testcase name="모든 기준을 끄면(null/false) 급락·하락추세 코인도 통과" classname="com.cryptoautotrader.core.selector.WatchlistQualityGateTest" time="0.0"/>
+  <testcase name="유동성 → 변동성 → 추세 → 급락 순으로 첫 위반 사유를 반환" classname="com.cryptoautotrader.core.selector.WatchlistQualityGateTest" time="0.0"/>
+  <testcase name="24h 거래대금이 유동성 하한 미만이면 탈락" classname="com.cryptoautotrader.core.selector.WatchlistQualityGateTest" time="0.0"/>
+  <testcase name="1시간 내 급락(-5% 초과) 중이면 탈락 — 상승추세여도 급락 배제" classname="com.cryptoautotrader.core.selector.WatchlistQualityGateTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

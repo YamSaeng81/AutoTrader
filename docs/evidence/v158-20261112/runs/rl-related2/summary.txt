@@ -1,0 +1,23 @@
+web-api tests 81 fail 11 err 0 skip 0 pass 70
+FAIL com.cryptoautotrader.api.service.BtcGateSupplyEndToEndTest # initializationError
+    java.lang.IllegalStateException: Duplicate spy definition [SpyDefinition@1d01dfa5 name = '', typeToSpy = com.cryptoautotrader.api.service.RiskManagementService, reset = AFTER]
+FAIL com.cryptoautotrader.api.service.BtcGateUnknownEntryTest # initializationError
+    java.lang.IllegalStateException: Duplicate spy definition [SpyDefinition@7c9b78e3 name = '', typeToSpy = com.cryptoautotrader.api.service.RiskManagementService, reset = AFTER]
+FAIL com.cryptoautotrader.api.service.DailySma20LiveOrderPathTest # initializationError
+    java.lang.IllegalStateException: Duplicate spy definition [SpyDefinition@640ef093 name = '', typeToSpy = com.cryptoautotrader.api.service.RiskManagementService, reset = AFTER]
+FAIL com.cryptoautotrader.api.service.EntryPriorityEndToEndTest # initializationError
+    java.lang.IllegalStateException: Duplicate spy definition [SpyDefinition@71d273c4 name = '', typeToSpy = com.cryptoautotrader.api.service.RiskManagementService, reset = AFTER]
+FAIL com.cryptoautotrader.api.service.EntryPriorityRoundsTest # initializationError
+    java.lang.IllegalStateException: Duplicate spy definition [SpyDefinition@3fb7446e name = '', typeToSpy = com.cryptoautotrader.api.service.RiskManagementService, reset = AFTER]
+FAIL com.cryptoautotrader.api.service.N15FinalApprovalBoundaryTest # initializationError
+    java.lang.IllegalStateException: Duplicate spy definition [SpyDefinition@5cb287f name = '', typeToSpy = com.cryptoautotrader.api.service.RiskManagementService, reset = AFTER]
+FAIL com.cryptoautotrader.api.service.SharedLoopRoundsActiveTest # initializationError
+    java.lang.IllegalStateException: Duplicate spy definition [SpyDefinition@2653adc name = '', typeToSpy = com.cryptoautotrader.api.service.RiskManagementService, reset = AFTER]
+FAIL com.cryptoautotrader.api.service.SharedMarketDataExecutorSaturationTest # initializationError
+    java.lang.IllegalStateException: Duplicate spy definition [SpyDefinition@24b6648a name = '', typeToSpy = com.cryptoautotrader.api.service.RiskManagementService, reset = AFTER]
+FAIL com.cryptoautotrader.api.service.Sma20LiveAlignedGapsTest # initializationError
+    java.lang.IllegalStateException: Duplicate spy definition [SpyDefinition@64bb0a39 name = '', typeToSpy = com.cryptoautotrader.api.service.RiskManagementService, reset = AFTER]
+FAIL com.cryptoautotrader.api.service.Sma20LiveAlignedPaperSameInputTest # initializationError
+    java.lang.IllegalStateException: Duplicate spy definition [SpyDefinition@3446b286 name = '', typeToSpy = com.cryptoautotrader.api.service.RiskManagementService, reset = AFTER]
+FAIL com.cryptoautotrader.api.service.Sma20LivePaperSameInputTest # initializationError
+    java.lang.IllegalStateException: Duplicate spy definition [SpyDefinition@464119f5 name = '', typeToSpy = com.cryptoautotrader.api.service.RiskManagementService, reset = AFTER]

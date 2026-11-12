@@ -1,0 +1,65 @@
+web-api tests 157 fail 15 err 0 skip 0 pass 142
+FAIL com.cryptoautotrader.api.service.BtcGateSupplyEndToEndTest # DYNAMIC(BTC 세션 없음): BTC REST 실패 → 매수 0, 복구 → 엔진 자체 조회가 BTC 를 받아 매수 1
+    org.springframework.dao.InvalidDataAccessResourceUsageException: could not prepare statement [Syntax error in SQL statement "SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]>>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at >= ?) t WHERE pn
+FAIL com.cryptoautotrader.api.service.BtcGateUnknownEntryTest # 승인 시점: 평가 때 최신이던 BTC 캔들이 승인 전에 사라지면 LIVE·DYNAMIC 모두 '판정 불가' 로 거절, 다시 오면 승인
+    java.lang.AssertionError: 
+Expecting all elements of:
+  [Outcome[candidate=Candidate[kind=DYNAMIC, sessionId=5, coinPair=KRW-IOTA, round=RoundKey[timeframe=H1, candleOpenTime=2026-11-12T09:27:05Z], approve=com.cryptoautotrader.api.service.DynamicTradingService$$Lambda$3023/0x000001a8820e14d0@1c8bd
+FAIL com.cryptoautotrader.api.service.BtcGateUnknownEntryTest # DYNAMIC 평가 회차: BTC 캔들 없음·낡음 → 매수 없음, 최신 → 매수 (즉시 진입)
+    org.springframework.dao.InvalidDataAccessResourceUsageException: could not prepare statement [Syntax error in SQL statement "SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]>>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at >= ?) t WHERE pn
+FAIL com.cryptoautotrader.api.service.DynamicBuyCompletesConsistentlyTest # 🔴 정상 매수는 완료되고 워치리스트·잔액·포지션·세션 상태가 일관되게 저장된다
+    org.opentest4j.AssertionFailedError: [🔴 진입 신호가 있었는데 커밋이 깨지면 매수가 완료되지 않는다 (관측된 결함: 안쪽 차감 커밋 → 바깥 @Version 충돌 → 매수 기록 롤백)] 
+expected: 
+  null
+ but was: 
+  org.springframework.dao.InvalidDataAccessResourceUsageException: could not prepare statement [Syntax error in SQL statement "SELECT COALESCE(SU
+FAIL com.cryptoautotrader.api.service.DynamicBuyExternalSubmissionBoundaryTest # 🔴 롤백분 0회 · 정상분 1회 — 비동기 실행기가 빈 것을 확인한 뒤 식별자로 구분해 검사한다
+    org.opentest4j.AssertionFailedError: [정상 시나리오는 커밋돼야 한다] 
+expected: 
+  null
+ but was: 
+  org.springframework.dao.InvalidDataAccessResourceUsageException: could not prepare statement [Syntax error in SQL statement "SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]>>'realizedPnl' AS 
+FAIL com.cryptoautotrader.api.service.DynamicBuyOuterWriteOrderingTest # 🔴 매수 경로에 별도 연결의 세션 행 갱신이 없다 — 차감이 예약과 같은 트랜잭션이다
+    org.opentest4j.AssertionFailedError: [매수가 예외 없이 끝난다] 
+expected: null
+ but was: "InvalidDataAccessResourceUsageException: could not prepare statement [Syntax error in SQL statement "SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]>>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log  
+FAIL com.cryptoautotrader.api.service.DynamicPaperBuySameTickWatchlistTest # 대조 — REAL 은 같은 순서에서도 매수가 완료된다(2026-10-12 잠근 채 다시 읽기)
+    org.opentest4j.AssertionFailedError: [실자금 경로는 깨지지 않아야 한다] 
+expected: 
+  null
+ but was: 
+  org.springframework.dao.InvalidDataAccessResourceUsageException: could not prepare statement [Syntax error in SQL statement "SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]>>'realizedPnl' A
+FAIL com.cryptoautotrader.api.service.EntryPriorityEndToEndTest # 등록 순서의 반대로 평가해도 마감 뒤 IOTA(DYNAMIC)·CRO(LIVE)가 승인되고, 마감 전에는 주문이 없다
+    org.opentest4j.AssertionFailedError: 
+Expecting actual:
+  ["KRW-CRO", "KRW-INJ"]
+to contain exactly (and in same order):
+  ["KRW-IOTA", "KRW-CRO"]
+but some elements were not found:
+  ["KRW-IOTA"]
+and others were not expected:
+  ["KRW-INJ"]
+
+FAIL com.cryptoautotrader.api.service.EntryPriorityEndToEndTest # 대조 — 회차를 끄면(즉시 진입, 종전 동작) 같은 평가 순서에서 먼저 평가된 INJ·G 가 슬롯을 가져간다
+    org.springframework.dao.InvalidDataAccessResourceUsageException: could not prepare statement [Syntax error in SQL statement "SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]>>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at >= ?) t WHERE pn
+FAIL com.cryptoautotrader.api.service.N15FinalApprovalBoundaryTest # ⑨b (c) DYNAMIC 차감 뒤 의도 승인 조회 중 E — 가용 원복·열린 슬롯·의도·거래소 0, 신호에 ENTRY_EXPIRED
+    org.opentest4j.AssertionFailedError: [갈고리가 의도 승인 안에서 불렸다] 
+expected: 1
+ but was: 0
+FAIL com.cryptoautotrader.api.service.N15FinalApprovalBoundaryTest # ⑧ (b) DYNAMIC 세션 행 잠금(refresh) 대기 중 E — 차감·슬롯·의도·거래소 0, 신호에 ENTRY_EXPIRED
+    org.opentest4j.AssertionFailedError: [승인 스레드가 예약의 세션 refresh 에서 기다렸다] 
+Expecting value to be true but was false
+FAIL com.cryptoautotrader.api.service.N15FinalApprovalBoundaryTest # ⑦b (a) DYNAMIC 잠금 직후 E−1ms·손실 한도 검사 중 E — 차감·슬롯·의도·거래소 0, 신호에 ENTRY_EXPIRED
+    org.opentest4j.AssertionFailedError: [갈고리가 예약 경로 안에서 불렸다] 
+expected: 1
+ but was: 0
+FAIL com.cryptoautotrader.api.service.N15FinalApprovalBoundaryTest # LIVE 접수 EARLY
+    org.opentest4j.AssertionFailedError: 
+expected: 1
+ but was: 0
+FAIL com.cryptoautotrader.api.service.N15FinalApprovalBoundaryTest # LIVE 접수 LATE
+    org.opentest4j.AssertionFailedError: 
+expected: 1
+ but was: 0
+FAIL com.cryptoautotrader.api.service.PoolLossLimitTest # 한도 도달 시 LIVE 예약과 DYNAMIC 매수가 같은 사유로 거절되고 흔적이 없다
+    org.springframework.dao.InvalidDataAccessResourceUsageException: could not prepare statement [Syntax error in SQL statement "SELECT COALESCE(SUM(pnl), 0) FROM (  SELECT CAST(detail_json-[*]>>'realizedPnl' AS NUMERIC) AS pnl   FROM trade_log   WHERE event_type = 'FILL' AND created_at >= ?) t WHERE pn

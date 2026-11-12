@@ -1,0 +1,213 @@
+From a2266114888650e9f609b4fe9e611a8ee4d7a121 Mon Sep 17 00:00:00 2001
+From: YamSaeng81 <manicstr81@gmail.com>
+Date: Thu, 12 Nov 2026 11:30:00 +0900
+Subject: [PATCH 14/20] =?UTF-8?q?=EC=8B=A4=EC=8B=9C=EA=B0=84=20=EC=A0=90?=
+ =?UTF-8?q?=EA=B2=80=20=EA=B0=84=EA=B2=A9=20=EC=95=88=EC=9D=B4=EB=9D=BC?=
+ =?UTF-8?q?=EB=8F=84=20=EB=B3=B4=ED=98=B8=EC=84=A0=EC=9D=84=20=EC=B2=98?=
+ =?UTF-8?q?=EC=9D=8C=20=EB=84=98=EC=9D=80=20=EC=9C=A0=ED=9A=A8=20=EC=8B=9C?=
+ =?UTF-8?q?=EC=84=B8=EB=8A=94=20=ED=95=9C=20=EB=B2=88=20=EC=A0=90=EA=B2=80?=
+ =?UTF-8?q?(=EC=B4=9D=EA=B4=84=20v1.155=20=C2=A74-2,=20b5cd1d0=20=EA=B8=B0?=
+ =?UTF-8?q?=EC=A0=90,=20=EB=AF=B8=EC=8A=B9=EC=9D=B8)=20=E2=80=94=20LIVE=20?=
+ =?UTF-8?q?=EC=86=90=EC=A0=88=20=EB=B0=9C=EB=8F=99=EA=B0=80=C2=B7DYNAMIC?=
+ =?UTF-8?q?=20=EC=86=90=EC=A0=88=20=EB=B0=9C=EB=8F=99=EA=B0=80/=EC=9D=B5?=
+ =?UTF-8?q?=EC=A0=88=EA=B0=80=EB=A5=BC=20=EB=A7=88=EC=A7=80=EB=A7=89=20?=
+ =?UTF-8?q?=EC=A0=84=EC=B2=B4=20=EC=A0=90=EA=B2=80=20=EA=B2=B0=EA=B3=BC?=
+ =?UTF-8?q?=EB=A1=9C=20=EA=B8=B0=EC=96=B5(=EB=A7=A4=20=ED=8B=B1=20DB=20?=
+ =?UTF-8?q?=EC=A1=B0=ED=9A=8C=C2=B7=EC=8B=A4=ED=96=89=EA=B8=B0=20=ED=99=95?=
+ =?UTF-8?q?=EB=8C=80=20=EC=97=86=EC=9D=8C),=20=EC=B2=AB=20=ED=86=B5?=
+ =?UTF-8?q?=EA=B3=BC=20=EB=92=A4=20=EA=B3=84=EC=86=8D=20=EC=95=84=EB=9E=98?=
+ =?UTF-8?q?=EB=8A=94=20=EC=A2=85=EC=A0=84=205=EC=B4=88/1=EC=B4=88=20?=
+ =?UTF-8?q?=EA=B0=84=EA=B2=A9(=EC=9C=A0=EA=B3=84),=20=EB=82=A1=EC=9D=80?=
+ =?UTF-8?q?=C2=B7=EB=B9=84=EA=B0=80=EA=B2=A9=20=EC=8B=9C=EC=84=B8=EB=8A=94?=
+ =?UTF-8?q?=20=EC=A2=85=EC=A0=84=EB=8C=80=EB=A1=9C=20=EC=95=9E=EC=97=90?=
+ =?UTF-8?q?=EC=84=9C=20=EB=B2=84=EB=A6=BC.=20=EC=8B=9C=ED=97=98=2011/11(?=
+ =?UTF-8?q?=EA=B8=B0=EC=A0=90=205/11),=20=EA=B4=80=EB=A0=A8=2014=ED=81=B4?=
+ =?UTF-8?q?=EB=9E=98=EC=8A=A4=20151/151=20=E2=80=94=201=ED=9A=8C=EC=B0=A8?=
+ =?UTF-8?q?=20=EA=B4=80=EB=A0=A8=EC=9D=80=20DynamicPaperLiveRuleParityTest?=
+ =?UTF-8?q?=20=EC=86=8C=EC=8A=A4=20=EC=B0=BD(2600=EC=9E=90)=20=EB=B0=96?=
+ =?UTF-8?q?=EC=9C=BC=EB=A1=9C=20=EB=B0=80=EB=A0=A4=201=EC=8B=A4=ED=8C=A8,?=
+ =?UTF-8?q?=20=EC=8B=9C=ED=97=98=EC=9D=80=20=EA=B7=B8=EB=8C=80=EB=A1=9C=20?=
+ =?UTF-8?q?=EB=91=90=EA=B3=A0=20=EC=B2=98=EB=A6=AC=EA=B8=B0=20=EB=B3=B8?=
+ =?UTF-8?q?=EB=AC=B8=EC=9D=84=20=EB=8F=84=EC=9A=B0=EB=AF=B8=EB=A1=9C=20?=
+ =?UTF-8?q?=EB=B6=84=EB=A6=AC?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+(cherry picked from commit b5f8a8fd4f480e3871521d14ab122ffd21356abf)
+---
+ .../api/service/DynamicTradingService.java    | 55 ++++++++++++++++++-
+ .../api/service/LiveTradingService.java       | 40 +++++++++++++-
+ 2 files changed, 92 insertions(+), 3 deletions(-)
+
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
+index b2976cad..39d11839 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
+@@ -326,6 +326,16 @@ public class DynamicTradingService {
+     private final Map<String, Long> rtCheckLastMs = new ConcurrentHashMap<>();
+     private static final long RT_CHECK_INTERVAL_MS = 5_000;
+ 
++    /**
++     * 보호선 첫 통과 (총괄 v1.155 §4-2, 2026-11-12, LIVE 처리기와 같은 규칙) — 코인별로 마지막 전체 점검이 본 OPEN 포지션의
++     * 손절 발동가 최댓값(floor)·익절가 최솟값(ceiling). 5초 간격 안이라도 유효 시세가 floor 를 위에서 아래로, 또는 ceiling 을
++     * 아래에서 위로 처음 넘으면 그 한 번은 점검한다. 매 틱 DB 조회 없음 — 그 뒤 새로 열린 포지션은 다음 정기 점검부터(한계).
++     */
++    private final Map<String, BigDecimal> rtProtectFloor = new ConcurrentHashMap<>();
++    private final Map<String, BigDecimal> rtProtectCeiling = new ConcurrentHashMap<>();
++    private final Map<String, BigDecimal> rtLastValidPrice = new ConcurrentHashMap<>();
++    private static final BigDecimal PROTECT_FLOOR_SLACK = new BigDecimal("1.000001");
++
+     /**
+      * 세션별 마지막 실시간(WS) SL/TP 점검 시각 — {@link #warnStaleSlCheck} 미점검 경고용.
+      * LIVE의 {@code §9 warnStaleSlCheck}와 동일 목적이나, 2026-08-06 이전엔 DYNAMIC에
+@@ -3478,10 +3488,12 @@ public class DynamicTradingService {
+             return;
+         }
+ 
++        boolean firstCross = protectFirstCross(coinCode, price);   // v1.155 §4-2
+         Long lastMs = rtCheckLastMs.get(coinCode);
+-        if (lastMs != null && now - lastMs < RT_CHECK_INTERVAL_MS) return;
++        if (!firstCross && lastMs != null && now - lastMs < RT_CHECK_INTERVAL_MS) return;
+         rtCheckLastMs.put(coinCode, now);
+ 
++        ProtectBounds next = new ProtectBounds();
+         List<DynamicSessionEntity> sessions = dynamicSessionRepo.findByStatus("RUNNING");
+         for (DynamicSessionEntity session : sessions) {
+             // 2026-08-31: PAPER 도 여기 들어온다 — LIVE 와 같은 5초 주기로 SL/TP 를 본다.
+@@ -3527,8 +3539,49 @@ public class DynamicTradingService {
+                         coinCode, price, pnlPct, session.getId());
+                 telegramService.notifyStopLoss(coinCode, pnlPct.doubleValue(), session.getId());
+                 executeSell(session, pos, price, "실시간 손절 — pnl " + pnlPct + "%", ExitReason.STOP_LOSS);
++                continue;
++            }
++            next.add(pos, session.getStopLossPct());   // 이번 점검 뒤에도 보유 — 다음 첫 통과 판정의 기준
++        }
++        next.store(coinCode);
++    }
++
++    /**
++     * v1.155 §4-2 — 직전 유효 시세에서 이번 유효 시세로 손절 발동가(floor)를 위→아래, 또는 익절가(ceiling)를 아래→위로 처음 넘었는가.
++     * 직전 유효 시세를 갱신한다(낡은·비가격 시세는 이 앞에서 버려져 여기 오지 않는다).
++     */
++    private boolean protectFirstCross(String coinCode, BigDecimal price) {
++        BigDecimal prevValid = rtLastValidPrice.put(coinCode, price);
++        BigDecimal floor = rtProtectFloor.get(coinCode);
++        BigDecimal ceiling = rtProtectCeiling.get(coinCode);
++        boolean cross = (floor != null && price.compareTo(floor) <= 0 && (prevValid == null || prevValid.compareTo(floor) > 0))
++                || (ceiling != null && price.compareTo(ceiling) >= 0 && (prevValid == null || prevValid.compareTo(ceiling) < 0));
++        if (cross) {
++            log.info("[Dynamic] 보호선 첫 통과 — 점검 간격과 무관하게 점검: {} {} (손절 발동가 {}, 익절가 {}, 직전 {})",
++                    coinCode, price, floor, ceiling, prevValid);
++        }
++        return cross;
++    }
++
++    /** 한 번의 전체 점검 뒤에도 OPEN 으로 남는 포지션의 손절 발동가 최댓값·익절가 최솟값. */
++    private final class ProtectBounds {
++        private BigDecimal floor;
++        private BigDecimal ceiling;
++
++        void add(PositionEntity pos, BigDecimal stopLossPct) {
++            BigDecimal trigger = pos.getStopLossPrice() != null ? pos.getStopLossPrice()
++                    : (stopLossPct == null || pos.getAvgPrice() == null ? null
++                        : pos.getAvgPrice().multiply(BigDecimal.ONE.subtract(stopLossPct.movePointLeft(2))).multiply(PROTECT_FLOOR_SLACK));
++            if (trigger != null) floor = floor == null ? trigger : floor.max(trigger);
++            if (pos.getTakeProfitPrice() != null) {
++                ceiling = ceiling == null ? pos.getTakeProfitPrice() : ceiling.min(pos.getTakeProfitPrice());
+             }
+         }
++
++        void store(String coinCode) {
++            if (floor != null) rtProtectFloor.put(coinCode, floor); else rtProtectFloor.remove(coinCode);
++            if (ceiling != null) rtProtectCeiling.put(coinCode, ceiling); else rtProtectCeiling.remove(coinCode);
++        }
+     }
+ 
+     /** §9 — SL 점검 시각 기록 ({@link #doOnRealtimePriceEvent} 내부에서만 호출). */
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
+index 53442176..883024f1 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
+@@ -198,6 +198,17 @@ public class LiveTradingService {
+     private final Map<String, Deque<PriceSnapshot>> priceHistory = new ConcurrentHashMap<>();
+     /** 급등/급락 감지 시 단축 throttle (1초) */
+     private final Map<String, Long> spikeCheckLastMs = new ConcurrentHashMap<>();
++
++    /**
++     * 보호선 첫 통과 (총괄 v1.155 §4-2, 2026-11-12) — 코인별로 마지막 전체 점검이 본 OPEN 포지션 손절 발동가 중 가장 높은 값.
++     * 점검 간격(5초/1초) 안이라도 유효 시세가 이 값을 위에서 아래로 처음 넘으면 그 한 번은 점검한다. 매 틱 DB 조회를 하지 않고
++     * 마지막 점검 결과만 쓴다 — 그 뒤 새로 열린 포지션은 다음 정기 점검(최대 5초)부터 반영된다(한계).
++     */
++    private final Map<String, BigDecimal> rtProtectFloor = new ConcurrentHashMap<>();
++    /** 코인별 직전 유효 시세(낡은·비가격 시세는 넣지 않는다) — 첫 통과 판정용. */
++    private final Map<String, BigDecimal> rtLastValidPrice = new ConcurrentHashMap<>();
++    /** 백분율 손절의 발동가 근사 여유 — 판정 자체는 기존 규칙이 한다. 이 값은 점검을 부를지만 정한다(조금 일찍 불러도 무해). */
++    private static final BigDecimal PROTECT_FLOOR_SLACK = new BigDecimal("1.000001");
+     private static final long SPIKE_WINDOW_MS        = 30_000;   // 감지 윈도우 30초
+     private static final long SPIKE_HISTORY_TTL_MS   = 60_000;   // 버퍼 보존 60초
+     private static final long SPIKE_CHECK_INTERVAL_MS = 1_000;   // 급등락 시 1초 throttle
+@@ -3419,8 +3430,14 @@ public class LiveTradingService {
+         boolean spikeDown = spikeRate.compareTo(SPIKE_DOWN_THRESHOLD) <= 0;
+         boolean spikeUp   = spikeRate.compareTo(SPIKE_UP_THRESHOLD) >= 0;
+ 
+-        // 3. throttle — 급등락 시 1초, 평상시 5초
+-        if (spikeDown || spikeUp) {
++        // 3. throttle — 급등락 시 1초, 평상시 5초. 단, 손절 발동가를 처음 넘은 유효 시세는 간격과 무관하게 한 번 점검한다(v1.155 §4-2).
++        BigDecimal prevValid = rtLastValidPrice.put(coinCode, price);
++        BigDecimal floor = rtProtectFloor.get(coinCode);
++        boolean firstCross = floor != null && price.compareTo(floor) <= 0
++                && (prevValid == null || prevValid.compareTo(floor) > 0);
++        if (firstCross) {
++            log.info("보호선 첫 통과 — 점검 간격과 무관하게 점검: {} {} (발동가 {}, 직전 {})", coinCode, price, floor, prevValid);
++        } else if (spikeDown || spikeUp) {
+             Long lastSpike = spikeCheckLastMs.get(coinCode);
+             if (lastSpike != null && now - lastSpike < SPIKE_CHECK_INTERVAL_MS) return;
+             spikeCheckLastMs.put(coinCode, now);
+@@ -3433,6 +3450,7 @@ public class LiveTradingService {
+         rtStopLossLastCheckMs.put(coinCode, now);
+ 
+         List<LiveTradingSessionEntity> sessions = sessionRepository.findByStatus("RUNNING");
++        BigDecimal nextFloor = null;   // 이번 점검 뒤에도 OPEN 으로 남는 포지션의 손절 발동가 최댓값
+         for (LiveTradingSessionEntity session : sessions) {
+             if (!coinCode.equals(session.getCoinPair())) continue;
+ 
+@@ -3466,9 +3484,12 @@ public class LiveTradingService {
+                 if (executeSessionSell(session, pos, price, "실시간 손절 — 손익률 " + pnlPct + "%",
+                         ExitReason.STOP_LOSS)) {
+                     telegramService.notifyStopLoss(coinCode, pnlPct.doubleValue(), session.getId());
++                } else {
++                    nextFloor = maxFloor(nextFloor, stopTriggerPrice(pos, stopLossPct));   // 매도 실패 — 계속 보유
+                 }
+                 continue;
+             }
++            nextFloor = maxFloor(nextFloor, stopTriggerPrice(pos, stopLossPct));
+ 
+             // 급락 처리 — 2026-08-06 제거. SL을 좁히지 않는다.
+             //
+@@ -3504,6 +3525,21 @@ public class LiveTradingService {
+                 }
+             }
+         }
++        if (nextFloor != null) rtProtectFloor.put(coinCode, nextFloor);
++        else rtProtectFloor.remove(coinCode);
++    }
++
++    /** 손절 발동가 — 절대가가 있으면 그것, 없으면 평균가 × (1 − 손절%) 에 근사 여유(점검을 부를지만 정한다). */
++    private static BigDecimal stopTriggerPrice(PositionEntity pos, BigDecimal stopLossPct) {
++        if (pos.getStopLossPrice() != null) return pos.getStopLossPrice();
++        if (stopLossPct == null || pos.getAvgPrice() == null) return null;
++        return pos.getAvgPrice().multiply(BigDecimal.ONE.subtract(stopLossPct.movePointLeft(2))).multiply(PROTECT_FLOOR_SLACK);
++    }
++
++    private static BigDecimal maxFloor(BigDecimal a, BigDecimal b) {
++        if (a == null) return b;
++        if (b == null) return a;
++        return a.max(b);
+     }
+ 
+     private void updatePriceHistory(String coin, BigDecimal price, long nowMs) {
+-- 
+2.51.1.windows.1
+

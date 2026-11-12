@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-11-12T11:36:27" hostname="DESKTOP-SF1KUQ5" time="0.016">
+  <properties/>
+  <testcase name="페이퍼 분기가 허용 목록 밖으로 늘어나지 않는다 — 새 분기는 사람이 판단할 것" classname="com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest" time="0.007"/>
+  <testcase name="&#x1f534; 노출 상한에 페이퍼 예외가 없다 — 08-25 면제를 08-30 철회했다" classname="com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest" time="0.003"/>
+  <testcase name="&#x1f534; WF 게이트에 페이퍼 예외가 없다 — 08-25 면제를 08-31 철회했다" classname="com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest" time="0.001"/>
+  <testcase name="SL 미점검 워치독이 페이퍼도 감시한다 — 감시가 멈추면 실전 예측력이 사라진다" classname="com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest" time="0.001"/>
+  <testcase name="&#x1f534; WS 실시간 SL/TP 감시가 페이퍼에도 열려 있다 — 08-31 해소" classname="com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest" time="0.001"/>
+  <testcase name="실계좌 배정 예외는 계좌 동기화와 배정 검사만 한다 — 매매 규칙이 끼어들지 않는다" classname="com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

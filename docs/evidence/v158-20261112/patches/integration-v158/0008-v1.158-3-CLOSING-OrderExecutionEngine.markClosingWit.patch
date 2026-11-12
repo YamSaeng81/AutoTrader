@@ -1,0 +1,810 @@
+From e0469187dc285e90bd50beee8c63cfa29a06da81 Mon Sep 17 00:00:00 2001
+From: YamSaeng81 <manicstr81@gmail.com>
+Date: Thu, 12 Nov 2026 19:27:37 +0900
+Subject: [PATCH 08/20] =?UTF-8?q?=EC=A0=95=EB=A6=AC=20=EA=B2=BD=ED=95=A9?=
+ =?UTF-8?q?=20=EB=B3=B4=EC=99=84(=EC=B4=9D=EA=B4=84=20v1.158=20=EA=B2=B0?=
+ =?UTF-8?q?=EC=A0=95=203)=20=E2=80=94=20CLOSING=20=EC=A0=84=ED=99=98?=
+ =?UTF-8?q?=EA=B3=BC=20=EB=A7=A4=EB=8F=84=20=EC=9D=98=EB=8F=84=EB=A5=BC=20?=
+ =?UTF-8?q?=ED=95=9C=20=ED=8A=B8=EB=9E=9C=EC=9E=AD=EC=85=98=EC=9C=BC?=
+ =?UTF-8?q?=EB=A1=9C(OrderExecutionEngine.markClosingWithSellIntent,=20?=
+ =?UTF-8?q?=EC=A0=84=ED=99=98=EC=9D=80=20PositionStateTransition=20?=
+ =?UTF-8?q?=EA=B4=80=EB=AC=B8=20=EC=9C=A0=EC=A7=80,=20=EC=BB=A4=EB=B0=8B?=
+ =?UTF-8?q?=20=EB=92=A4=20=EC=A0=9C=EC=B6=9C=C2=B7=EC=8B=A4=ED=96=89?=
+ =?UTF-8?q?=EA=B8=B0=20=EA=B1=B0=EC=A0=88=20=EC=8B=9C=20=EC=B2=A0=ED=9A=8C?=
+ =?UTF-8?q?),=20LIVE=203=C2=B7DYNAMIC=203=20=EB=A7=A4=EB=8F=84=20=EA=B2=BD?=
+ =?UTF-8?q?=EB=A1=9C=20=EC=A0=81=EC=9A=A9,=20=EC=A0=95=EB=A6=AC=20?=
+ =?UTF-8?q?=EC=9E=91=EC=97=85=20=EC=8B=9C=EB=8F=84=20=EC=8B=9C=EA=B0=81?=
+ =?UTF-8?q?=EC=9D=84=20=EC=9D=98=EB=8F=84=20=EC=A0=80=EC=9E=A5=20=EC=A0=84?=
+ =?UTF-8?q?=EC=97=90=20=EA=B8=B0=EB=A1=9D=20=E2=80=94=20ClosingIntentAtomi?=
+ =?UTF-8?q?cityPgTest=20=EC=88=98=EC=A0=95=20=EC=A0=84=205/5=20=EC=8B=A4?=
+ =?UTF-8?q?=ED=8C=A8=20=E2=86=92=205/5,=20=EB=A1=A4=EB=B0=B1=20=EA=B3=84?=
+ =?UTF-8?q?=EC=95=BD=202/2,=20=EA=B4=80=EB=A0=A8=20205/205?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+(cherry picked from commit 78324572c84d26cf2bfc96a1c86df636b84a48fe)
+---
+ .../api/service/DynamicTradingService.java    |  55 +--
+ .../api/service/LiveTradingService.java       |  56 +--
+ .../api/service/OrderExecutionEngine.java     |  58 +++
+ .../service/ClosingIntentAtomicityPgTest.java | 356 ++++++++++++++++++
+ .../service/ClosingIntentRollbackPgTest.java  | 108 ++++++
+ 5 files changed, 582 insertions(+), 51 deletions(-)
+ create mode 100644 web-api/src/test/java/com/cryptoautotrader/api/service/ClosingIntentAtomicityPgTest.java
+ create mode 100644 web-api/src/test/java/com/cryptoautotrader/api/service/ClosingIntentRollbackPgTest.java
+
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
+index 46a71fb4..faa53f2d 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/DynamicTradingService.java
+@@ -1985,13 +1985,12 @@ public class DynamicTradingService {
+ 
+         // 원자적 CLOSING 전환 — WS 실시간 SL/TP와 60초 tick이 동시에 같은 포지션을 팔려는
+         // race에서 한쪽만 매도 주문을 제출하도록 보장 (시장가 이중 매도 방지)
+-        int marked = positionStateTransition.markClosingIfOpen(pos.getId(), Instant.now(), exitReason);
+-        if (marked == 0) {
+-            log.debug("[Dynamic] 매도 건너뜀: 이미 CLOSING/CLOSED (posId={}, id={})", pos.getId(), sid);
+-            return false;
+-        }
+-
+         if (session.isPaper()) {
++            int marked = positionStateTransition.markClosingIfOpen(pos.getId(), Instant.now(), exitReason);
++            if (marked == 0) {
++                log.debug("[Dynamic] 매도 건너뜀: 이미 CLOSING/CLOSED (posId={}, id={})", pos.getId(), sid);
++                return false;
++            }
+             executePaperSell(session, pos, currentPrice, reason, exitReason, null);
+             return true;
+         }
+@@ -2006,7 +2005,11 @@ public class DynamicTradingService {
+         order.setSessionId(sid);
+         order.setSessionKind(sessionKind(session));
+         order.setPositionId(pos.getId());
+-        orderExecutionEngine.submitOrder(order);
++        // 🔴 v1.158 결정 3: CLOSING 전환과 매도 의도를 한 트랜잭션으로 — 의도 생성 전 청산 확인이 주문 부재로 OPEN 되돌리는 경합 제거.
++        if (!orderExecutionEngine.markClosingWithSellIntent(pos.getId(), Instant.now(), exitReason, order).marked()) {
++            log.debug("[Dynamic] 매도 건너뜀: 이미 CLOSING/CLOSED (posId={}, id={})", pos.getId(), sid);
++            return false;
++        }
+ 
+         // KRW 복원은 reconcile 에서 처리 — 여기서는 상태만 전환
+         transitionToScanning(sid);
+@@ -2493,21 +2496,17 @@ public class DynamicTradingService {
+             }
+             // WS 실시간 SL/TP 매도와의 race 방지 — 이미 CLOSING이면 매도 주문 중복 제출 스킵
+             // 운영자 개입 청산 — 청산가가 시장이 아니라 정지 시각으로 정해지므로 전략 성과와 섞으면 안 된다.
+-            if (positionStateTransition.markClosingIfOpen(pos.getId(), Instant.now(),
+-                    ExitReason.FORCED_STOP) == 0) {
+-                continue;
+-            }
+-
+             if (session.isPaper()) {
++                if (positionStateTransition.markClosingIfOpen(pos.getId(), Instant.now(),
++                        ExitReason.FORCED_STOP) == 0) {
++                    continue;
++                }
+                 // 현재가 정보가 없는 강제 정지 경로 — 진입가를 신호가로 대체(슬리피지만 반영).
+                 // 정지/비상정지는 드문 경로이고, 정확한 청산가보다 "확실히 닫힌다"가 중요하다.
+                 executePaperSell(session, pos, pos.getAvgPrice(), reason, ExitReason.FORCED_STOP, PAPER_FILL_AVG_PRICE);
+                 continue;
+             }
+ 
+-            // 🔴 정리 대기로 등록한다 (V87) — 이 매도가 실패해 OPEN 으로 되돌아가도 정리 작업이 다시 낸다.
+-            registerStopCleanup(pos, session.getId());
+-
+             OrderRequest order = new OrderRequest();
+             order.setCoinPair(pos.getCoinPair());
+             order.setSide("SELL");
+@@ -2517,7 +2516,14 @@ public class DynamicTradingService {
+             order.setSessionId(session.getId());
+             order.setSessionKind(sessionKind(session));
+             order.setPositionId(pos.getId());
+-            orderExecutionEngine.submitOrder(order);
++            // 🔴 v1.158 결정 3: CLOSING 전환과 매도 의도를 한 트랜잭션으로 — 의도 생성 전 청산 확인이 주문 부재로 OPEN 되돌리는 경합 제거.
++            if (!orderExecutionEngine.markClosingWithSellIntent(pos.getId(), Instant.now(),
++                    ExitReason.FORCED_STOP, order).marked()) {
++                continue;
++            }
++
++            // 🔴 정리 대기로 등록한다 (V87) — 이 매도가 실패해 OPEN 으로 되돌아가도 정리 작업이 다시 낸다.
++            registerStopCleanup(pos, session.getId());
+         }
+         // 🔴 닫히지 않은 포지션은 **모두** 정리 대기로 등록한다 — 위 처리가 끝난 **뒤에** 다시 읽는다 (2026-10-29, #5, LIVE 와 같은 규칙).
+         //    종전에는 CLOSING 을 위 처리 전에 한 번 읽고, OPEN 은 CLOSING 전환에 성공한 것만 등록했다 — 그 사이 WS 손절·평가 틱이
+@@ -2692,10 +2698,6 @@ public class DynamicTradingService {
+                 return;
+             }
+         }
+-        if (positionStateTransition.markClosingIfOpen(posId, Instant.now(), ExitReason.FORCED_STOP) == 0) {
+-            positionCleanupRepository.note(posId, "다른 경로가 먼저 청산을 시작했다");
+-            return;
+-        }
+         OrderRequest order = new OrderRequest();
+         order.setCoinPair(pos.getCoinPair());
+         order.setSide("SELL");
+@@ -2705,9 +2707,16 @@ public class DynamicTradingService {
+         order.setSessionId(c.getSessionId());
+         order.setSessionKind(SESSION_KIND);
+         order.setPositionId(posId);
+-        // 🔴 커밋 뒤에 낸다 — CLOSING 전환이 롤백되면 매도도 나가지 않는다.
+-        orderExecutionEngine.submitOrderAfterCommit(order);
+-        positionCleanupRepository.recordAttempt(posId, Instant.now(), "정지 청산 매도 제출 (수량 " + pos.getSize() + ")");
++        // 🔴 커밋 뒤에 낸다 — CLOSING 전환이 롤백되면 의도도 매도도 없다.
++        // 🔴 v1.158 결정 3: CLOSING 전환과 매도 의도를 한 트랜잭션으로 — 의도 생성 전 청산 확인이 주문 부재로 OPEN 되돌리는 경합 제거.
++        // 🔴 시도 시각은 의도 저장 **전에** 잡는다 — 의도가 CLOSING 과 같은 트랜잭션에서 생기므로, 위 "직전 제출이 주문으로 나타났나"
++        //    대조(생성 시각 ≥ 시도 시각)가 이 시도의 의도를 자기 것으로 알아보게 한다(v1.158 결정 3).
++        Instant attemptAt = Instant.now();
++        if (!orderExecutionEngine.markClosingWithSellIntent(posId, attemptAt, ExitReason.FORCED_STOP, order).marked()) {
++            positionCleanupRepository.note(posId, "다른 경로가 먼저 청산을 시작했다");
++            return;
++        }
++        positionCleanupRepository.recordAttempt(posId, attemptAt, "정지 청산 매도 제출 (수량 " + pos.getSize() + ")");
+         log.warn("[Dynamic] 정지 후 정리 — 청산 매도 제출 (posId={}, sessionId={}, 수량={}, 사유={})",
+                 posId, c.getSessionId(), pos.getSize(), c.getReason());
+     }
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
+index 19155062..53442176 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
+@@ -1735,14 +1735,7 @@ public class LiveTradingService {
+         // DYNAMIC은 2026-07-02 감사(#2 시장가 이중 매도 race)에서 이미 markClosingIfOpen으로
+         // 전환했는데 LIVE에는 이식되지 않았다 — 같은 계정을 공유하므로 LIVE의 중복 매도가
+         // 다른 세션 포지션의 코인을 팔 수 있어 위험은 오히려 LIVE 쪽이 크다.
+-        int marked = positionStateTransition.markClosingIfOpen(pos.getId(), Instant.now(), exitReason);
+-        if (marked == 0) {
+-            log.debug("매도 건너뜀: 이미 CLOSING/CLOSED (posId={}, sessionId={})",
+-                    pos.getId(), session.getId());
+-            return false;
+-        }
+-
+-        // 주문 제출 — sessionId/positionId를 request에 미리 설정 (@Async 리턴값 의존 회피)
++        // 주문 요청 — sessionId/positionId를 request에 미리 설정 (@Async 리턴값 의존 회피)
+         OrderRequest order = new OrderRequest();
+         order.setCoinPair(pos.getCoinPair());
+         order.setSide("SELL");
+@@ -1753,7 +1746,12 @@ public class LiveTradingService {
+         order.setSessionId(session.getId());
+         order.setSessionKind("LIVE");
+         order.setPositionId(pos.getId());
+-        orderExecutionEngine.submitOrder(order);
++        // 🔴 v1.158 결정 3: CLOSING 전환과 매도 의도를 한 트랜잭션으로 — 의도 생성 전 청산 확인이 주문 부재로 OPEN 되돌리는 경합 제거.
++        if (!orderExecutionEngine.markClosingWithSellIntent(pos.getId(), Instant.now(), exitReason, order).marked()) {
++            log.debug("매도 건너뜀: 이미 CLOSING/CLOSED (posId={}, sessionId={})",
++                    pos.getId(), session.getId());
++            return false;
++        }
+ 
+         // KRW 복원·손익 확정은 reconcileClosingPositions()에서 실제 체결가 기반으로 처리
+         log.info("실전 매도 주문 제출 (sessionId={}): {} {}개 (CLOSING 상태, 체결 대기)",
+@@ -1804,17 +1802,6 @@ public class LiveTradingService {
+                 // 원자적 CLOSING 전환 — executeSessionSell과 동일 이유(중복 매도 방지, 2026-08-18).
+                 // 정지/비상정지 경로가 tick의 매도와 겹칠 수 있다.
+                 // 운영자 개입 청산 — 청산가가 시장이 아니라 정지 시각으로 정해진다.
+-                if (positionStateTransition.markClosingIfOpen(pos.getId(), Instant.now(),
+-                        ExitReason.FORCED_STOP) == 0) {
+-                    log.debug("세션 청산 건너뜀: 이미 CLOSING/CLOSED (posId={}, sessionId={})",
+-                            pos.getId(), session.getId());
+-                    continue;
+-                }
+-
+-                // 🔴 정리 대기로 등록한다 (V87) — 이 매도가 실패해 OPEN 으로 되돌아가도 정리 작업이 다시 낸다.
+-                //    완료는 포지션이 CLOSED 로 확인될 때만이다.
+-                registerStopCleanup(pos, session.getId());
+-
+                 OrderRequest sellOrder = new OrderRequest();
+                 sellOrder.setCoinPair(pos.getCoinPair());
+                 sellOrder.setSide("SELL");
+@@ -1824,7 +1811,17 @@ public class LiveTradingService {
+                 sellOrder.setSessionId(session.getId());
+                 sellOrder.setSessionKind("LIVE");
+                 sellOrder.setPositionId(pos.getId());
+-                orderExecutionEngine.submitOrder(sellOrder);
++                // 🔴 v1.158 결정 3: CLOSING 전환과 매도 의도를 한 트랜잭션으로 — 의도 생성 전 청산 확인이 주문 부재로 OPEN 되돌리는 경합 제거.
++                if (!orderExecutionEngine.markClosingWithSellIntent(pos.getId(), Instant.now(),
++                        ExitReason.FORCED_STOP, sellOrder).marked()) {
++                    log.debug("세션 청산 건너뜀: 이미 CLOSING/CLOSED (posId={}, sessionId={})",
++                            pos.getId(), session.getId());
++                    continue;
++                }
++
++                // 🔴 정리 대기로 등록한다 (V87) — 이 매도가 실패해 OPEN 으로 되돌아가도 정리 작업이 다시 낸다.
++                //    완료는 포지션이 CLOSED 로 확인될 때만이다.
++                registerStopCleanup(pos, session.getId());
+ 
+                 log.info("세션 포지션 청산 주문: sessionId={} {} 수량={}",
+                         session.getId(), pos.getCoinPair(), pos.getSize());
+@@ -2121,10 +2118,6 @@ public class LiveTradingService {
+                 return;
+             }
+         }
+-        if (positionStateTransition.markClosingIfOpen(posId, Instant.now(), ExitReason.FORCED_STOP) == 0) {
+-            positionCleanupRepository.note(posId, "다른 경로가 먼저 청산을 시작했다");
+-            return;
+-        }
+         OrderRequest sellOrder = new OrderRequest();
+         sellOrder.setCoinPair(pos.getCoinPair());
+         sellOrder.setSide("SELL");
+@@ -2134,9 +2127,16 @@ public class LiveTradingService {
+         sellOrder.setSessionId(c.getSessionId());
+         sellOrder.setSessionKind("LIVE");
+         sellOrder.setPositionId(posId);
+-        // 🔴 커밋 뒤에 낸다 — CLOSING 전환이 롤백되면 매도도 나가지 않는다.
+-        orderExecutionEngine.submitOrderAfterCommit(sellOrder);
+-        positionCleanupRepository.recordAttempt(posId, Instant.now(), "정지 청산 매도 제출 (수량 " + pos.getSize() + ")");
++        // 🔴 커밋 뒤에 낸다 — CLOSING 전환이 롤백되면 의도도 매도도 없다.
++        // 🔴 v1.158 결정 3: CLOSING 전환과 매도 의도를 한 트랜잭션으로 — 의도 생성 전 청산 확인이 주문 부재로 OPEN 되돌리는 경합 제거.
++        // 🔴 시도 시각은 의도 저장 **전에** 잡는다 — 의도가 CLOSING 과 같은 트랜잭션에서 생기므로, 위 "직전 제출이 주문으로 나타났나"
++        //    대조(생성 시각 ≥ 시도 시각)가 이 시도의 의도를 자기 것으로 알아보게 한다(v1.158 결정 3).
++        Instant attemptAt = Instant.now();
++        if (!orderExecutionEngine.markClosingWithSellIntent(posId, attemptAt, ExitReason.FORCED_STOP, sellOrder).marked()) {
++            positionCleanupRepository.note(posId, "다른 경로가 먼저 청산을 시작했다");
++            return;
++        }
++        positionCleanupRepository.recordAttempt(posId, attemptAt, "정지 청산 매도 제출 (수량 " + pos.getSize() + ")");
+         log.warn("정지 후 정리 — 청산 매도 제출 (posId={}, sessionId={}, 수량={}, 사유={})",
+                 posId, c.getSessionId(), pos.getSize(), c.getReason());
+     }
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java b/web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java
+index 3f53e048..ebd2b2ba 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/OrderExecutionEngine.java
+@@ -1,6 +1,7 @@
+ package com.cryptoautotrader.api.service;
+ 
+ import com.cryptoautotrader.api.dto.OrderRequest;
++import com.cryptoautotrader.api.entity.ExitReason;
+ import com.cryptoautotrader.api.entity.OrderEntity;
+ import com.cryptoautotrader.api.entity.PositionEntity;
+ import com.cryptoautotrader.api.entity.TradeLogEntity;
+@@ -261,6 +262,14 @@ public class OrderExecutionEngine {
+     @Lazy
+     private OrderExecutionEngine self;
+ 
++    /**
++     * CLOSING 전환의 단일 관문 (v1.158 결정 3) — {@link #markClosingWithSellIntent} 도 전환은 이 헬퍼로 한다. 헬퍼의 트랜잭션은
++     * REQUIRED 라 여기서 연 트랜잭션에 참여하고, 전환·의도가 함께 커밋된다.
++     */
++    @Autowired
++    @Lazy
++    private PositionStateTransition positionStateTransition;
++
+     /**
+      * 제출 단계의 트랜잭션 경계 (V84).
+      *
+@@ -570,6 +579,55 @@ public class OrderExecutionEngine {
+         });
+     }
+ 
++    /** {@link #markClosingWithSellIntent} 의 결과 — CLOSING 전환 여부와 같은 트랜잭션에서 저장된 매도 의도 id(거절이면 null). */
++    public record ClosingSellIntent(boolean marked, Long orderId) { }
++
++    /**
++     * 🔴 CLOSING 전환과 매도 의도 저장을 <b>한 트랜잭션으로</b> 묶고, 커밋 뒤에 제출을 넘긴다 (총괄 v1.158 결정 3, 2026-11-12).
++     *
++     * <p>종전에는 CLOSING 을 먼저 커밋하고 매도 의도({@code INTENT_READY})는 {@code @Async} 제출 작업 안에서 만들었다. 실행기가
++     * 밀리면 그 사이에 청산 확인(5초)이 "CLOSING 인데 SELL 주문 없음" 만 보고 OPEN 으로 되돌렸고, 그 뒤 의도가 생겨 실제 매도가
++     * 나갔다 — OPEN 포지션의 체결은 청산 확인이 보지 않아 정산이 다음 CLOSING 전환까지 미뤄졌다(총괄 관측 1/1, 84fb03d6 H2·PG).</p>
++     *
++     * <p>이제 "CLOSING 인데 의도 행이 없다" 는 <b>의도가 만들어지지 않았다</b>(중복·미반영 매도·형식 거절)는 뜻이 되어, 청산 확인의
++     * 기존 롤백이 근거 있는 회복이 된다. 시간 유예는 두지 않는다. 의도 저장이 예외로 끝나면 CLOSING 도 함께 롤백된다.
++     * 호출자가 트랜잭션을 들고 있으면 거기에 참여하고(그 커밋 뒤 제출), 없으면 여기서 커밋한 뒤 바로 넘긴다. 실행기가 받지 못하면
++     * 의도를 철회한다(외부 호출 0, 기존 계약) — 청산 확인은 그 FAILED 를 보고 OPEN 으로 되돌린다.</p>
++     */
++    public ClosingSellIntent markClosingWithSellIntent(Long positionId, Instant now, ExitReason reason, OrderRequest sell) {
++        if (!"SELL".equalsIgnoreCase(sell.getSide()) || sell.getPositionId() == null
++                || !sell.getPositionId().equals(positionId)) {
++            throw new IllegalArgumentException("markClosingWithSellIntent 는 같은 포지션의 매도 전용이다: "
++                    + sell.getSide() + " pos=" + sell.getPositionId() + "/" + positionId);
++        }
++        ClosingSellIntent r = submitTx.execute(st -> {
++            int marked = positionStateTransition.markClosingIfOpen(positionId, now, reason);
++            if (marked != 1) {
++                return new ClosingSellIntent(false, null);
++            }
++            return new ClosingSellIntent(true, prepareIntent(sell));
++        });
++        if (r != null && r.orderId() != null) {
++            dispatchPreparedIntent(r.orderId(), sell);
++        }
++        return r != null ? r : new ClosingSellIntent(false, null);
++    }
++
++    /** 커밋된(또는 호출자 트랜잭션 안에서 저장된) 의도를 실행기에 넘긴다. 받지 못하면 철회한다. */
++    private void dispatchPreparedIntent(Long orderId, OrderRequest request) {
++        if (TransactionSynchronizationManager.isSynchronizationActive()) {
++            submitPreparedOrderAfterCommit(orderId, request);
++            return;
++        }
++        try {
++            self.submitPreparedOrder(orderId, request);
++        } catch (RuntimeException dispatchFailed) {
++            log.error("의도를 실행기에 넘기지 못했다 — 철회한다 (orderId={}): {}", orderId, dispatchFailed.getMessage());
++            withdrawUndispatchedIntent(orderId,
++                    "실행기 디스패치 실패 — 제출하지 않았다: " + dispatchFailed.getClass().getSimpleName());
++        }
++    }
++
+     /**
+      * 예약 트랜잭션을 되돌리기 위한 신호.
+      *
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/ClosingIntentAtomicityPgTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/ClosingIntentAtomicityPgTest.java
+new file mode 100644
+index 00000000..723176fb
+--- /dev/null
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/ClosingIntentAtomicityPgTest.java
+@@ -0,0 +1,356 @@
++package com.cryptoautotrader.api.service;
++
++import com.cryptoautotrader.api.entity.DynamicSessionEntity;
++import com.cryptoautotrader.api.entity.ExitReason;
++import com.cryptoautotrader.api.entity.LiveTradingSessionEntity;
++import com.cryptoautotrader.api.entity.OrderEntity;
++import com.cryptoautotrader.api.entity.PositionCleanupEntity;
++import com.cryptoautotrader.api.entity.PositionEntity;
++import com.cryptoautotrader.api.repository.DynamicSessionRepository;
++import com.cryptoautotrader.api.repository.LiveTradingSessionRepository;
++import com.cryptoautotrader.api.repository.OrderRepository;
++import com.cryptoautotrader.api.repository.PositionRepository;
++import com.cryptoautotrader.api.support.ExecutorBarrier;
++import com.cryptoautotrader.api.support.IntegrationTestBase;
++import com.cryptoautotrader.exchange.upbit.UpbitOrderClient;
++import com.cryptoautotrader.exchange.upbit.UpbitRestClient;
++import com.cryptoautotrader.exchange.upbit.dto.OrderResponse;
++import org.junit.jupiter.api.AfterEach;
++import org.junit.jupiter.api.BeforeEach;
++import org.junit.jupiter.api.DisplayName;
++import org.junit.jupiter.api.Test;
++import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
++import org.mockito.Mockito;
++import org.springframework.beans.factory.annotation.Autowired;
++import org.springframework.beans.factory.annotation.Qualifier;
++import org.springframework.boot.test.mock.mockito.MockBean;
++import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
++import org.springframework.test.context.TestPropertySource;
++
++import java.math.BigDecimal;
++import java.time.Instant;
++import java.time.temporal.ChronoUnit;
++import java.util.List;
++import java.util.concurrent.CountDownLatch;
++import java.util.concurrent.ThreadPoolExecutor;
++import java.util.concurrent.TimeUnit;
++
++import static org.assertj.core.api.Assertions.assertThat;
++
++/**
++ * 총괄 v1.158 결정 3 — CLOSING 커밋 뒤 비동기 매도 의도가 만들어지기 전에 청산 확인이 "SELL 주문 없음" 만 보고 OPEN 으로 되돌리는 경합
++ * (로컬 실제 PostgreSQL, 84fb03d6 기점, 2026-11-12).
++ *
++ * <p>주문 실행기 작업자를 래치로 붙잡아 커밋 뒤 제출을 대기열에 둔 상태에서 청산 확인을 부른다. 계약: <b>CLOSING 과 식별 가능한 SELL 의도가
++ * 함께 확정되므로</b> 그 시점에도 CLOSING 이 유지되고 의도 1행이 보인다. 풀어 준 뒤 거래소 호출 1회·실제 폴러 체결·청산 확정으로 CLOSED,
++ * 입금 1회·매도 1건. 실행기 거절은 의도 철회(외부 호출 0) 뒤 기존 롤백, 응답 불명은 CLOSING 유지·재매도 0.</p>
++ *
++ * <p>거래소 응답만 대역이다. 가상 체결·현금 보정은 만들지 않는다 — 체결은 {@code checkOrderStatus} 폴러가 대역 응답을 읽어 반영한다.
++ * 시간만 기다렸다 OPEN 으로 바꾸는 유예는 쓰지 않는다.</p>
++ *
++ * <pre>
++ * docker exec v152-pg psql -U trader -d postgres -c "CREATE DATABASE cr_x"
++ * CR_PG_URL=jdbc:postgresql://127.0.0.1:15437/cr_x ./gradlew :web-api:test --rerun --tests '*ClosingIntentAtomicityPgTest'
++ * </pre>
++ */
++@TestPropertySource(properties = {
++        "spring.datasource.url=${CR_PG_URL}",
++        "spring.datasource.username=${CR_PG_USER:trader}",
++        "spring.datasource.password=",
++        "spring.datasource.driver-class-name=org.postgresql.Driver",
++        "spring.flyway.enabled=true",
++        "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect",
++        "spring.sql.init.mode=never"
++})
++@EnabledIfEnvironmentVariable(named = "CR_PG_URL", matches = "jdbc:postgresql://(localhost|127\\.0\\.0\\.1):\\d+/.+")
++@DisplayName("v1.158 결정 3 — CLOSING 과 매도 의도 원자성 (로컬 PostgreSQL)")
++class ClosingIntentAtomicityPgTest extends IntegrationTestBase {
++
++    @Autowired private LiveTradingService liveTradingService;
++    @Autowired private DynamicTradingService dynamicTradingService;
++    @Autowired private OrderExecutionEngine orderEngine;
++    @Autowired private OrderRepository orderRepository;
++    @Autowired private PositionRepository positionRepository;
++    @Autowired private PositionCleanupRegistrar cleanupRegistrar;
++    @Autowired private LiveTradingSessionRepository liveRepo;
++    @Autowired private DynamicSessionRepository dynamicRepo;
++    @Autowired @Qualifier("orderExecutor") private ThreadPoolTaskExecutor orderExecutor;
++
++    @MockBean private UpbitOrderClient upbitOrderClient;
++    @MockBean private UpbitRestClient upbitRestClient;
++    @MockBean private TelegramNotificationService telegramService;
++    @MockBean private com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient ws;
++
++    private CountDownLatch release;
++    /** 붙잡은 작업이 모두 끝났는지 — 대기열을 가득 채운 경우 장벽 작업을 넣기 전에 비워져야 한다. */
++    private CountDownLatch blockersDone = new CountDownLatch(0);
++
++    private void out(String s) { System.out.println("[CR158] " + s); }
++
++    @BeforeEach
++    void exchange() {
++        Mockito.when(upbitOrderClient.getOrder(Mockito.anyString())).thenAnswer(inv -> {
++            OrderResponse r = new OrderResponse(); r.setUuid(inv.getArgument(0)); r.setState("wait"); return r; });
++        Mockito.when(upbitOrderClient.createOrder(Mockito.any(), Mockito.eq("ask"), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
++                .thenAnswer(inv -> { OrderResponse r = new OrderResponse(); r.setUuid("uuid-cr158-" + System.nanoTime());
++                    r.setState("wait"); r.setSide("ask"); return new UpbitOrderClient.ExchangeResult(r, "{}"); });
++    }
++
++    @AfterEach
++    void releaseWorkers() throws InterruptedException {
++        if (release != null) release.countDown();
++        blockersDone.await(20, TimeUnit.SECONDS);
++        ExecutorBarrier.awaitPriorTasks(orderExecutor.getThreadPoolExecutor(), 20_000);
++    }
++
++    /** 실행기 작업자를 모두 붙잡는다. fillQueue 면 최대 작업자·대기열까지 채워 다음 접수가 거절되게 한다. */
++    private void holdWorkers(boolean fillQueue) throws Exception {
++        ThreadPoolExecutor pool = orderExecutor.getThreadPoolExecutor();
++        ExecutorBarrier.awaitPriorTasks(pool, 15_000);
++        release = new CountDownLatch(1);
++        final CountDownLatch r = release;
++        // 🔴 살아 있는 작업자 전부(앞 시험이 남긴 비코어 작업자 포함)를 붙잡는다 — 코어 수만 붙잡으면 쉬는 비코어 작업자가 제출을 가져간다
++        //    (수정 전 1회차 ② 가 pool=4 active=2 로 창을 만들지 못했다).
++        pool.prestartAllCoreThreads();
++        int workers = Math.max(pool.getCorePoolSize(), pool.getPoolSize());
++        // 붙잡을 작업 수를 미리 정해 모두 끝났음을 센다 — 대기열을 가득 채운 ④ 에서 장벽 작업이 거절되지 않게 한다.
++        int total = workers + (fillQueue ? pool.getQueue().remainingCapacity() + (pool.getMaximumPoolSize() - workers) : 0);
++        blockersDone = new CountDownLatch(total);
++        final CountDownLatch done = blockersDone;
++        Runnable blocker = () -> {
++            try { r.await(60, TimeUnit.SECONDS); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
++            finally { done.countDown(); } };
++        CountDownLatch running = new CountDownLatch(workers);
++        for (int i = 0; i < workers; i++) pool.submit(() -> { running.countDown(); blocker.run(); });
++        assertThat(running.await(10, TimeUnit.SECONDS)).isTrue();
++        if (fillQueue) {
++            int cap = pool.getQueue().remainingCapacity();
++            for (int i = 0; i < cap; i++) pool.submit(blocker);
++            int extra = pool.getMaximumPoolSize() - pool.getPoolSize();
++            for (int i = 0; i < extra; i++) pool.submit(blocker);
++            assertThat(pool.getQueue().remainingCapacity()).isZero();
++            assertThat(pool.getPoolSize()).isEqualTo(pool.getMaximumPoolSize());
++        }
++        assertThat(pool.getActiveCount()).as("모든 작업자가 붙잡혔다").isEqualTo(pool.getPoolSize());
++        out("작업자 붙잡음 pool=" + pool.getPoolSize() + " active=" + pool.getActiveCount() + " queue=" + pool.getQueue().size());
++    }
++
++    private void releaseAndDrain() throws InterruptedException {
++        release.countDown();
++        // 대기열을 가득 채운 경우(④) 장벽 작업이 거절되지 않도록 붙잡은 작업이 모두 끝난 뒤 장벽을 넣는다
++        assertThat(blockersDone.await(20, TimeUnit.SECONDS)).isTrue();
++        ExecutorBarrier.awaitPriorTasks(orderExecutor.getThreadPoolExecutor(), 20_000);
++    }
++
++    private long exchangeCalls() {
++        return Mockito.mockingDetails(upbitOrderClient).getInvocations().stream()
++                .filter(i -> "createOrder".equals(i.getMethod().getName())).count();
++    }
++
++    private List<OrderEntity> sells(Long posId) {
++        return orderRepository.findByPositionIdOrderByCreatedAtDesc(posId).stream()
++                .filter(o -> "SELL".equalsIgnoreCase(o.getSide())).toList();
++    }
++
++    private String state(Long posId) {
++        PositionEntity p = positionRepository.findById(posId).orElseThrow();
++        StringBuilder b = new StringBuilder("포지션=" + p.getStatus() + " 매도=" + sells(posId).size());
++        for (OrderEntity o : sells(posId)) b.append(" [#").append(o.getId()).append(' ').append(o.getState())
++                .append(" 실패=").append(o.getFailureCode()).append(" 반영=").append(o.getSellAppliedAt() != null).append(']');
++        return b.append(" 거래소createOrder=").append(exchangeCalls()).toString();
++    }
++
++    private Long liveSession(String coin, String status) {
++        return liveRepo.save(LiveTradingSessionEntity.builder().sessionType("REAL").strategyType("COMPOSITE_MOMENTUM_ICHIMOKU_V2")
++                .coinPair(coin).timeframe("M5").initialCapital(new BigDecimal("10000")).availableKrw(new BigDecimal("7000"))
++                .totalAssetKrw(new BigDecimal("10000")).stopLossPct(new BigDecimal("5.0"))
++                .status(status).startedAt(Instant.now()).build()).getId();
++    }
++
++    private PositionEntity openPos(String kind, Long sid, String coin) {
++        return positionRepository.save(PositionEntity.builder().coinPair(coin).side("BUY")
++                .entryPrice(new BigDecimal("300")).avgPrice(new BigDecimal("300")).size(new BigDecimal("9.8"))
++                .investedKrw(new BigDecimal("2940")).entryAllocationKrw(new BigDecimal("3000"))
++                .positionFee(BigDecimal.ZERO).realizedPnl(BigDecimal.ZERO)
++                .status("OPEN").sessionKind(kind).sessionId(sid).openedAt(Instant.now().minus(1, ChronoUnit.HOURS)).build());
++    }
++
++    /** 실제 폴러가 대역 응답(done)을 읽어 FILLED 로 반영한다. */
++    private void fillViaPoller(OrderEntity sell, String coin) {
++        OrderResponse fill = new OrderResponse(); fill.setUuid(sell.getExchangeOrderId());
++        fill.setState("done"); fill.setSide("ask"); fill.setOrdType("market"); fill.setMarket(coin);
++        fill.setVolume(new BigDecimal("9.8")); fill.setExecutedVolume(new BigDecimal("9.8"));
++        fill.setExecutedFunds(new BigDecimal("2744")); fill.setPaidFee(new BigDecimal("1.372"));
++        Mockito.doReturn(fill).when(upbitOrderClient).getOrder(sell.getExchangeOrderId());
++        orderEngine.checkOrderStatus(sell.getId());
++        assertThat(orderRepository.findById(sell.getId()).orElseThrow().getState()).isEqualTo("FILLED");
++    }
++
++    private static String coin(String p) { return "KRW-" + p + (System.nanoTime() % 100000); }
++
++    // ── ① 정지 후 정리 작업의 창 ──────────────────────────────────────────────
++    @Test
++    @DisplayName("① LIVE 정리 작업: 의도 생성 전 청산 확인이 와도 CLOSING·의도 유지 → 매도1·입금1")
++    void cleanupWindow() throws Exception {
++        String c = coin("CRA");
++        Long sid = liveSession(c, "STOPPED");
++        PositionEntity pos = openPos("LIVE", sid, c);
++        cleanupRegistrar.register(pos.getId(), "LIVE", sid, PositionCleanupEntity.REASON_LATE_FILL);
++        holdWorkers(false);
++
++        liveTradingService.cleanupStoppedSessionPositions();
++        out("① 정리 직후: " + state(pos.getId()));
++        liveTradingService.reconcileClosingPositions();
++        out("① 청산 확인(실행기 대기 중): " + state(pos.getId()));
++        assertThat(positionRepository.findById(pos.getId()).orElseThrow().getStatus())
++                .as("주문 부재로 OPEN 되돌림 금지 — 의도는 CLOSING 과 함께 확정").isEqualTo("CLOSING");
++        assertThat(sells(pos.getId())).as("CLOSING 과 함께 확정된 매도 의도").hasSize(1);
++        assertThat(exchangeCalls()).isZero();
++
++        releaseAndDrain();
++        out("① 실행기 해제 뒤: " + state(pos.getId()));
++        assertThat(exchangeCalls()).isEqualTo(1);
++        OrderEntity sell = sells(pos.getId()).get(0);
++        assertThat(sell.getState()).isEqualTo("SUBMITTED");
++
++        BigDecimal before = liveRepo.findById(sid).orElseThrow().getAvailableKrw();
++        fillViaPoller(sell, c);
++        liveTradingService.reconcileClosingPositions();
++        BigDecimal settled = liveRepo.findById(sid).orElseThrow().getAvailableKrw();
++        out("① 체결·청산 확인 뒤: " + state(pos.getId()) + " 가용 " + before + "→" + settled);
++        assertThat(positionRepository.findById(pos.getId()).orElseThrow().getStatus()).isEqualTo("CLOSED");
++        assertThat(settled).isGreaterThan(before);
++
++        liveTradingService.reconcileClosingPositions();
++        liveTradingService.cleanupStoppedSessionPositions();
++        ExecutorBarrier.awaitPriorTasks(orderExecutor.getThreadPoolExecutor(), 20_000);
++        assertThat(liveRepo.findById(sid).orElseThrow().getAvailableKrw()).as("입금 1회").isEqualByComparingTo(settled);
++        assertThat(sells(pos.getId())).as("중복 매도 0").hasSize(1);
++        assertThat(exchangeCalls()).isEqualTo(1);
++    }
++
++    // ── ② LIVE 실시간 손절의 창 ───────────────────────────────────────────────
++    @Test
++    @DisplayName("② LIVE 실시간 손절: 의도 생성 전 청산 확인이 와도 CLOSING·의도 유지 → 매도1·입금1")
++    void liveRealtimeStopWindow() throws Exception {
++        String c = coin("CRB");
++        Long sid = liveSession(c, "RUNNING");
++        PositionEntity pos = openPos("LIVE", sid, c);
++        holdWorkers(false);
++
++        liveTradingService.onRealtimePriceEvent(new RealtimePriceEvent(c, new BigDecimal("280")));
++        out("② 실시간 손절 직후: " + state(pos.getId()));
++        liveTradingService.reconcileClosingPositions();
++        out("② 청산 확인(실행기 대기 중): " + state(pos.getId()));
++        assertThat(positionRepository.findById(pos.getId()).orElseThrow().getStatus()).isEqualTo("CLOSING");
++        assertThat(sells(pos.getId())).hasSize(1);
++
++        releaseAndDrain();
++        assertThat(exchangeCalls()).isEqualTo(1);
++        OrderEntity sell = sells(pos.getId()).get(0);
++        BigDecimal before = liveRepo.findById(sid).orElseThrow().getAvailableKrw();
++        fillViaPoller(sell, c);
++        liveTradingService.reconcileClosingPositions();
++        BigDecimal settled = liveRepo.findById(sid).orElseThrow().getAvailableKrw();
++        out("② 체결·청산 확인 뒤: " + state(pos.getId()) + " 가용 " + before + "→" + settled);
++        assertThat(positionRepository.findById(pos.getId()).orElseThrow().getStatus()).isEqualTo("CLOSED");
++        assertThat(settled).isGreaterThan(before);
++        liveTradingService.reconcileClosingPositions();
++        assertThat(liveRepo.findById(sid).orElseThrow().getAvailableKrw()).isEqualByComparingTo(settled);
++        assertThat(sells(pos.getId())).hasSize(1);
++    }
++
++    // ── ③ DYNAMIC REAL 손절 매도의 창 ─────────────────────────────────────────
++    @Test
++    @DisplayName("③ DYNAMIC REAL 매도: 의도 생성 전 청산 확인이 와도 CLOSING·의도 유지 → 매도1")
++    void dynamicSellWindow() throws Exception {
++        String c = coin("CRC");
++        DynamicSessionEntity s = dynamicRepo.saveAndFlush(DynamicSessionEntity.builder()
++                .strategyType("COMPOSITE_MOMENTUM_ICHIMOKU_V2").timeframe("H1")
++                .initialCapital(new BigDecimal("10000.00")).availableKrw(new BigDecimal("7000.00"))
++                .totalAssetKrw(new BigDecimal("10000.00"))
++                .investRatio(new BigDecimal("0.3000")).stopLossPct(new BigDecimal("5.00"))
++                .status("RUNNING").scanState("POSITION_MONITORING").tradingMode("REAL")
++                .maxCandidateSize(30).targetWatchSize(10)
++                .minAtrPct(new BigDecimal("0.5000")).maxSpreadPct(new BigDecimal("0.1000"))
++                .watchlistRefreshMin(60).build());
++        PositionEntity pos = openPos("DYNAMIC", s.getId(), c);
++        holdWorkers(false);
++
++        boolean sold = dynamicTradingService.executeSell(s, pos, new BigDecimal("280"), "손절(시험)", ExitReason.STOP_LOSS);
++        assertThat(sold).isTrue();
++        dynamicTradingService.reconcileDynamicClosingPositions();
++        out("③ 청산 확인(실행기 대기 중): " + state(pos.getId()));
++        assertThat(positionRepository.findById(pos.getId()).orElseThrow().getStatus()).isEqualTo("CLOSING");
++        assertThat(sells(pos.getId())).hasSize(1);
++
++        releaseAndDrain();
++        assertThat(exchangeCalls()).isEqualTo(1);
++        OrderEntity sell = sells(pos.getId()).get(0);
++        BigDecimal before = dynamicRepo.findById(s.getId()).orElseThrow().getAvailableKrw();
++        fillViaPoller(sell, c);
++        dynamicTradingService.reconcileDynamicClosingPositions();
++        BigDecimal settled = dynamicRepo.findById(s.getId()).orElseThrow().getAvailableKrw();
++        out("③ 체결·청산 확인 뒤: " + state(pos.getId()) + " 가용 " + before + "→" + settled);
++        assertThat(positionRepository.findById(pos.getId()).orElseThrow().getStatus()).isEqualTo("CLOSED");
++        assertThat(settled).isGreaterThan(before);
++        dynamicTradingService.reconcileDynamicClosingPositions();
++        assertThat(dynamicRepo.findById(s.getId()).orElseThrow().getAvailableKrw()).isEqualByComparingTo(settled);
++        assertThat(sells(pos.getId())).hasSize(1);
++    }
++
++    // ── ④ 실행기 거절 ─────────────────────────────────────────────────────────
++    @Test
++    @DisplayName("④ 실행기 거절: 의도 철회(외부 호출 0) → 청산 확인이 근거(철회 FAILED)로 OPEN 복귀")
++    void executorRejection() throws Exception {
++        String c = coin("CRD");
++        Long sid = liveSession(c, "STOPPED");
++        PositionEntity pos = openPos("LIVE", sid, c);
++        cleanupRegistrar.register(pos.getId(), "LIVE", sid, PositionCleanupEntity.REASON_LATE_FILL);
++        holdWorkers(true);
++
++        try {
++            liveTradingService.cleanupStoppedSessionPositions();
++        } catch (RuntimeException e) {
++            out("④ 정리 호출 예외: " + e.getClass().getSimpleName());
++        }
++        out("④ 거절 직후: " + state(pos.getId()));
++        List<OrderEntity> ss = sells(pos.getId());
++        assertThat(ss).as("철회된 의도가 근거로 남는다").hasSize(1);
++        assertThat(ss.get(0).getState()).isEqualTo("FAILED");
++        assertThat(ss.get(0).getFailureCode()).isEqualTo(OrderExecutionEngine.WITHDRAWN_DISPATCH_LOST);
++        liveTradingService.reconcileClosingPositions();
++        out("④ 청산 확인 뒤: " + state(pos.getId()));
++        assertThat(positionRepository.findById(pos.getId()).orElseThrow().getStatus()).isEqualTo("OPEN");
++        releaseAndDrain();
++        assertThat(exchangeCalls()).as("거절된 제출은 외부로 나가지 않는다").isZero();
++    }
++
++    // ── ⑤ 의도 확정 뒤 응답 불명 ──────────────────────────────────────────────
++    @Test
++    @DisplayName("⑤ 응답 불명: CLOSING 유지·재매도 0")
++    void unknownAfterIntent() throws Exception {
++        String c = coin("CRE");
++        Long sid = liveSession(c, "STOPPED");
++        PositionEntity pos = openPos("LIVE", sid, c);
++        cleanupRegistrar.register(pos.getId(), "LIVE", sid, PositionCleanupEntity.REASON_LATE_FILL);
++        Mockito.when(upbitOrderClient.createOrder(Mockito.any(), Mockito.eq("ask"), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
++                .thenThrow(new RuntimeException("read timed out (시험 대역)"));
++        holdWorkers(false);
++        liveTradingService.cleanupStoppedSessionPositions();
++        liveTradingService.reconcileClosingPositions();
++        out("⑤ 청산 확인(실행기 대기 중): " + state(pos.getId()));
++        assertThat(positionRepository.findById(pos.getId()).orElseThrow().getStatus()).isEqualTo("CLOSING");
++        releaseAndDrain();
++        out("⑤ 제출 뒤: " + state(pos.getId()));
++        assertThat(sells(pos.getId())).hasSize(1);
++        assertThat(sells(pos.getId()).get(0).getState()).isEqualTo("UNKNOWN");
++        liveTradingService.reconcileClosingPositions();
++        liveTradingService.cleanupStoppedSessionPositions();
++        ExecutorBarrier.awaitPriorTasks(orderExecutor.getThreadPoolExecutor(), 20_000);
++        out("⑤ 재확인 뒤: " + state(pos.getId()));
++        assertThat(positionRepository.findById(pos.getId()).orElseThrow().getStatus()).isEqualTo("CLOSING");
++        assertThat(sells(pos.getId())).as("응답 불명 뒤 재매도 0").hasSize(1);
++        assertThat(exchangeCalls()).isEqualTo(1);
++    }
++}
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/ClosingIntentRollbackPgTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/ClosingIntentRollbackPgTest.java
+new file mode 100644
+index 00000000..e98638a2
+--- /dev/null
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/ClosingIntentRollbackPgTest.java
+@@ -0,0 +1,108 @@
++package com.cryptoautotrader.api.service;
++
++import com.cryptoautotrader.api.dto.OrderRequest;
++import com.cryptoautotrader.api.entity.ExitReason;
++import com.cryptoautotrader.api.entity.LiveTradingSessionEntity;
++import com.cryptoautotrader.api.entity.PositionEntity;
++import com.cryptoautotrader.api.repository.LiveTradingSessionRepository;
++import com.cryptoautotrader.api.repository.OrderRepository;
++import com.cryptoautotrader.api.repository.PositionRepository;
++import com.cryptoautotrader.api.support.ExecutorBarrier;
++import com.cryptoautotrader.api.support.IntegrationTestBase;
++import com.cryptoautotrader.exchange.upbit.UpbitOrderClient;
++import com.cryptoautotrader.exchange.upbit.UpbitRestClient;
++import org.junit.jupiter.api.DisplayName;
++import org.junit.jupiter.api.Test;
++import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
++import org.mockito.Mockito;
++import org.springframework.beans.factory.annotation.Autowired;
++import org.springframework.beans.factory.annotation.Qualifier;
++import org.springframework.boot.test.mock.mockito.MockBean;
++import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
++import org.springframework.test.context.TestPropertySource;
++import org.springframework.transaction.support.TransactionTemplate;
++
++import java.math.BigDecimal;
++import java.time.Instant;
++import java.time.temporal.ChronoUnit;
++
++import static org.assertj.core.api.Assertions.assertThat;
++
++/**
++ * 총괄 v1.158 결정 3 — {@link OrderExecutionEngine#markClosingWithSellIntent} 의 롤백 계약 (로컬 실제 PostgreSQL).
++ * 호출자 트랜잭션이 롤백되면 CLOSING·의도가 함께 사라지고 제출은 0회다. 이미 CLOSING 이면 의도를 만들지 않는다.
++ */
++@TestPropertySource(properties = {
++        "spring.datasource.url=${CR_PG_URL}",
++        "spring.datasource.username=${CR_PG_USER:trader}",
++        "spring.datasource.password=",
++        "spring.datasource.driver-class-name=org.postgresql.Driver",
++        "spring.flyway.enabled=true",
++        "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect",
++        "spring.sql.init.mode=never"
++})
++@EnabledIfEnvironmentVariable(named = "CR_PG_URL", matches = "jdbc:postgresql://(localhost|127\\.0\\.0\\.1):\\d+/.+")
++@DisplayName("v1.158 결정 3 — CLOSING+의도 롤백 계약 (로컬 PostgreSQL)")
++class ClosingIntentRollbackPgTest extends IntegrationTestBase {
++
++    @Autowired private OrderExecutionEngine orderEngine;
++    @Autowired private OrderRepository orderRepository;
++    @Autowired private PositionRepository positionRepository;
++    @Autowired private LiveTradingSessionRepository liveRepo;
++    @Autowired private TransactionTemplate tx;
++    @Autowired @Qualifier("orderExecutor") private ThreadPoolTaskExecutor orderExecutor;
++
++    @MockBean private UpbitOrderClient upbitOrderClient;
++    @MockBean private UpbitRestClient upbitRestClient;
++    @MockBean private TelegramNotificationService telegramService;
++
++    private PositionEntity pos(String status) {
++        String coin = "KRW-CRR" + (System.nanoTime() % 100000);
++        Long sid = liveRepo.save(LiveTradingSessionEntity.builder().sessionType("REAL").strategyType("COMPOSITE_MOMENTUM_ICHIMOKU_V2")
++                .coinPair(coin).timeframe("M5").initialCapital(new BigDecimal("10000")).availableKrw(new BigDecimal("7000"))
++                .totalAssetKrw(new BigDecimal("10000")).status("RUNNING").startedAt(Instant.now()).build()).getId();
++        return positionRepository.save(PositionEntity.builder().coinPair(coin).side("BUY")
++                .entryPrice(new BigDecimal("300")).avgPrice(new BigDecimal("300")).size(new BigDecimal("9.8"))
++                .investedKrw(new BigDecimal("2940")).positionFee(BigDecimal.ZERO).realizedPnl(BigDecimal.ZERO)
++                .status(status).closingAt("CLOSING".equals(status) ? Instant.now() : null)
++                .sessionKind("LIVE").sessionId(sid).openedAt(Instant.now().minus(1, ChronoUnit.HOURS)).build());
++    }
++
++    private OrderRequest sell(PositionEntity p) {
++        OrderRequest o = new OrderRequest();
++        o.setCoinPair(p.getCoinPair()); o.setSide("SELL"); o.setOrderType("MARKET"); o.setQuantity(p.getSize());
++        o.setReason("롤백 시험"); o.setSessionId(p.getSessionId()); o.setSessionKind("LIVE"); o.setPositionId(p.getId());
++        return o;
++    }
++
++    @Test
++    @DisplayName("⑥ 호출자 트랜잭션 롤백: CLOSING·의도 함께 사라짐, 제출 0")
++    void callerRollback() {
++        PositionEntity p = pos("OPEN");
++        OrderExecutionEngine.ClosingSellIntent r = tx.execute(st -> {
++            OrderExecutionEngine.ClosingSellIntent in = orderEngine.markClosingWithSellIntent(p.getId(), Instant.now(), ExitReason.STOP_LOSS, sell(p));
++            st.setRollbackOnly();
++            return in;
++        });
++        ExecutorBarrier.awaitPriorTasks(orderExecutor.getThreadPoolExecutor(), 20_000);
++        System.out.println("[CR158] ⑥ 트랜잭션 안 결과=" + r + " 롤백 뒤 상태=" + positionRepository.findById(p.getId()).orElseThrow().getStatus()
++                + " 주문=" + orderRepository.findByPositionIdOrderByCreatedAtDesc(p.getId()).size());
++        assertThat(r.marked()).isTrue();
++        assertThat(r.orderId()).isNotNull();
++        assertThat(positionRepository.findById(p.getId()).orElseThrow().getStatus()).isEqualTo("OPEN");
++        assertThat(orderRepository.findByPositionIdOrderByCreatedAtDesc(p.getId())).isEmpty();
++        Mockito.verify(upbitOrderClient, Mockito.never()).createOrder(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
++    }
++
++    @Test
++    @DisplayName("⑦ 이미 CLOSING: 전환 0·의도 0·제출 0")
++    void alreadyClosing() {
++        PositionEntity p = pos("CLOSING");
++        OrderExecutionEngine.ClosingSellIntent r = orderEngine.markClosingWithSellIntent(p.getId(), Instant.now(), ExitReason.STOP_LOSS, sell(p));
++        ExecutorBarrier.awaitPriorTasks(orderExecutor.getThreadPoolExecutor(), 20_000);
++        assertThat(r.marked()).isFalse();
++        assertThat(r.orderId()).isNull();
++        assertThat(orderRepository.findByPositionIdOrderByCreatedAtDesc(p.getId())).isEmpty();
++        Mockito.verify(upbitOrderClient, Mockito.never()).createOrder(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
++    }
++}
+-- 
+2.51.1.windows.1
+

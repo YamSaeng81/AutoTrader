@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.backtest.P1ChangesBacktestVerification" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-11-12T11:46:06" hostname="DESKTOP-SF1KUQ5" time="880.104">
+  <properties/>
+  <testcase name="p1a_transitional_adx_정합화_효과_측정()" classname="com.cryptoautotrader.api.backtest.P1ChangesBacktestVerification" time="175.764"/>
+  <testcase name="p1b_doge_ema200_예외_효과_측정()" classname="com.cryptoautotrader.api.backtest.P1ChangesBacktestVerification" time="704.34"/>
+  <system-out><![CDATA[
+========== P1-A: TRANSITIONAL MACD adxThreshold 25→20 ==========
+coin       | 변경前(adxTh=25 고정)       | 변경後(TRANSITIONAL=20)  
+--------------------------------------------------------------
+KRW-BTC    | R+54.4% W46% T46 MDD-20.7% | R+54.4% W46% T46 MDD-20.7%
+KRW-ETH    | R+48.9% W38% T61 MDD-25.3% | R+48.9% W38% T61 MDD-25.3%
+KRW-SOL    | R+148.4% W50% T70 MDD-14.8% | R+148.4% W50% T70 MDD-14.8%
+KRW-XRP    | R+18.7% W38% T47 MDD-25.1% | R+31.6% W40% T47 MDD-23.4%
+KRW-DOGE   | R+38.2% W38% T76 MDD-29.2% | R+38.2% W38% T76 MDD-29.2%
+==============================================================
+
+========== P1-B: EMA200 게이트 ? DOGE 예외 효과 ==========
+coin       | 게이트적용          | 게이트면제          | BUY신호 변화
+--------------------------------------------------------------
+KRW-BTC    | 14672/26009   | 14672/26009   | 동일(예외 대상 아님)
+KRW-ETH    | 12788/26007   | 12788/26007   | 동일(예외 대상 아님)
+KRW-SOL    | 13414/26007   | 13414/26007   | 동일(예외 대상 아님)
+KRW-XRP    | 11984/26006   | 11984/26006   | 동일(예외 대상 아님)
+KRW-DOGE   | 11336/26006   | 11336/26006   | DOGE예외 +0캔들(0.0%p)
+==============================================================
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

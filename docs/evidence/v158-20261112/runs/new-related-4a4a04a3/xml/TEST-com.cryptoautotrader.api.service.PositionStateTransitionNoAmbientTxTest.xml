@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="포지션 원자적 전환은 트랜잭션 없는 호출부에서도 동작한다" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-11-12T12:30:52" hostname="DESKTOP-SF1KUQ5" time="0.009">
+  <properties/>
+  <testcase name="markClosingIfOpen — 트랜잭션 없이 불러도 CLOSING 으로 전환되고 사유가 남는다" classname="com.cryptoautotrader.api.service.PositionStateTransitionNoAmbientTxTest" time="0.004"/>
+  <testcase name="두 번째 호출은 0 을 돌려준다 — 시장가 이중 매도를 막는 보장이 유지된다" classname="com.cryptoautotrader.api.service.PositionStateTransitionNoAmbientTxTest" time="0.005"/>
+  <system-out><![CDATA[21:30:52.531 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.PositionStateTransitionNoAmbientTxTest
+21:30:52.534 [Test worker] INFO  o.a.c.c.C.[Tomcat-3].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:30:52.538 [Test worker] INFO  o.a.c.c.C.[Tomcat-3].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

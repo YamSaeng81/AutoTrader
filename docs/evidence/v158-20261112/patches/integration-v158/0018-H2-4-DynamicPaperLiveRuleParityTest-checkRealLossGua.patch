@@ -1,0 +1,120 @@
+From c95b74e6050ff4ac4e9e757c19cea8017f61c6cb Mon Sep 17 00:00:00 2001
+From: YamSaeng81 <manicstr81@gmail.com>
+Date: Thu, 12 Nov 2026 20:44:59 +0900
+Subject: [PATCH 18/20] =?UTF-8?q?=EC=86=90=EC=8B=A4=20=EA=B4=80=EB=AC=B8?=
+ =?UTF-8?q?=20H2=20=EB=8C=80=EC=97=AD=204=ED=81=B4=EB=9E=98=EC=8A=A4=20?=
+ =?UTF-8?q?=EC=B6=94=EA=B0=80(=EA=B0=99=EC=9D=80=20=EA=B4=80=EB=A1=80)=20+?=
+ =?UTF-8?q?=20DynamicPaperLiveRuleParityTest=20=ED=97=88=EC=9A=A9=20?=
+ =?UTF-8?q?=EB=AA=A9=EB=A1=9D=EC=97=90=20checkRealLossGuard(=EC=A7=80?=
+ =?UTF-8?q?=EC=8B=9C=EA=B0=80=20PAPER=20=EC=A0=9C=EC=99=B8=EB=A5=BC=20?=
+ =?UTF-8?q?=EB=AA=85=EC=8B=9C=ED=95=9C=20=EC=82=AC=EB=9E=8C=20=ED=8C=90?=
+ =?UTF-8?q?=EB=8B=A8=20=EC=98=88=EC=99=B8,=20=EA=B7=BC=EA=B1=B0=20?=
+ =?UTF-8?q?=EA=B3=B5=EA=B0=9C)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+(cherry picked from commit 86fdf3b744cb3719aa04750899c747601d1a999e)
+---
+ .../service/DynamicBlackSwanCooldownCrossKindTest.java   | 9 +++++++++
+ .../api/service/DynamicPaperLiveRuleParityTest.java      | 6 +++++-
+ .../api/service/DynamicPaperTradingTest.java             | 9 +++++++++
+ .../api/service/DynamicPoolReservationTest.java          | 9 +++++++++
+ .../cryptoautotrader/api/service/N15EntryExpiryTest.java | 3 +++
+ 5 files changed, 35 insertions(+), 1 deletion(-)
+
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBlackSwanCooldownCrossKindTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBlackSwanCooldownCrossKindTest.java
+index 39c81648..b7943114 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBlackSwanCooldownCrossKindTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicBlackSwanCooldownCrossKindTest.java
+@@ -46,6 +46,15 @@ import static org.assertj.core.api.Assertions.assertThat;
+ @org.springframework.test.annotation.DirtiesContext(classMode = org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS)
+ class DynamicBlackSwanCooldownCrossKindTest extends IntegrationTestBase {
+ 
++    /** v1.158 결정 2 — H2 에서 실자금 손실 관문을 승인으로 둔다(기존 손실 원천이 PostgreSQL 전용 구문). 관문은 실제 PG 시험이 검증한다. */
++    @org.springframework.boot.test.mock.mockito.SpyBean private RiskManagementService realLossGuardSpy;
++
++    @org.junit.jupiter.api.BeforeEach
++    void approveRealLossGuardOnH2() {
++        org.mockito.Mockito.doReturn(com.cryptoautotrader.core.risk.RiskCheckResult.approve()).when(realLossGuardSpy).checkRealLossGuard();
++    }
++
++
+     private static final String COIN = "KRW-XRP";
+     private static final String BTC = "KRW-BTC";
+     private static final String STRATEGY = "TEST_DYN_ALWAYS_BUY";
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicPaperLiveRuleParityTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicPaperLiveRuleParityTest.java
+index a63f95f4..ffee5fbb 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicPaperLiveRuleParityTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicPaperLiveRuleParityTest.java
+@@ -60,7 +60,11 @@ class DynamicPaperLiveRuleParityTest {
+     private static final List<String> ALLOWED = List.of(
+             "executePaperBuy",          // 체결 시뮬레이션 (매수)
+             "executePaperSell",         // 체결 시뮬레이션 (매도) — 일반·강제정지 경로
+-            "SESSION_KIND_PAPER");      // position/order 저장 분리 (sessionKind 헬퍼)
++            "SESSION_KIND_PAPER",       // position/order 저장 분리 (sessionKind 헬퍼)
++            // 실자금 손실 관문 (총괄 v1.158 결정 2, 2026-11-12) — 사람이 판단한 예외: 실계좌 손실(LIVE·DYNAMIC REAL 확정 매도)로
++            // 신규 실자금 매수를 막는 관문이다. 지시가 "PAPER 모의 한도는 기존 계약을 보존하고 REAL 자료로 오염시키지 않는다" 로
++            // PAPER 제외를 명시했다. 매수 여부를 가르므로 페이퍼가 이 관문의 차단을 예측하지 못한다는 한계는 근거 문서에 적는다.
++            "checkRealLossGuard");
+ 
+     /**
+      * 실계좌 배정 검사 예외 (2026-10-12) — <b>문맥이 아니라 형태로</b> 허용한다.
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicPaperTradingTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicPaperTradingTest.java
+index d5921349..8623b0c9 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicPaperTradingTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicPaperTradingTest.java
+@@ -45,6 +45,15 @@ import static org.mockito.Mockito.verify;
+  */
+ class DynamicPaperTradingTest extends IntegrationTestBase {
+ 
++    /** v1.158 결정 2 — H2 에서 실자금 손실 관문을 승인으로 둔다(기존 손실 원천이 PostgreSQL 전용 구문). 관문은 실제 PG 시험이 검증한다. */
++    @org.springframework.boot.test.mock.mockito.SpyBean private RiskManagementService realLossGuardSpy;
++
++    @org.junit.jupiter.api.BeforeEach
++    void approveRealLossGuardOnH2() {
++        org.mockito.Mockito.doReturn(com.cryptoautotrader.core.risk.RiskCheckResult.approve()).when(realLossGuardSpy).checkRealLossGuard();
++    }
++
++
+     @Autowired
+     private DynamicTradingService dynamicTradingService;
+ 
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicPoolReservationTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicPoolReservationTest.java
+index d168dd12..38a456f3 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicPoolReservationTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/DynamicPoolReservationTest.java
+@@ -44,6 +44,15 @@ import static org.assertj.core.api.Assertions.assertThat;
+ @DisplayName("DYNAMIC 매수 — 공유 풀 예약 통합")
+ class DynamicPoolReservationTest extends IntegrationTestBase {
+ 
++    /** v1.158 결정 2 — H2 에서 실자금 손실 관문을 승인으로 둔다(기존 손실 원천이 PostgreSQL 전용 구문). 관문은 실제 PG 시험이 검증한다. */
++    @org.springframework.boot.test.mock.mockito.SpyBean private RiskManagementService realLossGuardSpy;
++
++    @org.junit.jupiter.api.BeforeEach
++    void approveRealLossGuardOnH2() {
++        org.mockito.Mockito.doReturn(com.cryptoautotrader.core.risk.RiskCheckResult.approve()).when(realLossGuardSpy).checkRealLossGuard();
++    }
++
++
+     private static final BigDecimal CAPITAL = new BigDecimal("10000.00");
+ 
+     @Autowired private DynamicTradingService dynamicTradingService;
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/N15EntryExpiryTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/N15EntryExpiryTest.java
+index a8098c48..7b8dbf26 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/N15EntryExpiryTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/N15EntryExpiryTest.java
+@@ -153,6 +153,9 @@ class N15EntryExpiryTest extends IntegrationTestBase {
+         poolLossGuard.setEnabledSetting(true);
+         rounds.setForcedForTest(true);
+         doReturn(com.cryptoautotrader.core.risk.RiskCheckResult.approve()).when(riskManagementService).checkRisk();
++        // v1.158 결정 2: 실자금 손실 관문(checkRealLossGuard)의 기존 손실 원천은 PostgreSQL 전용 구문이라 H2 에서 실행할 수 없다 —
++        //    checkRisk 와 같은 관례로 승인으로 둔다. 관문 자체는 실제 PG RealLossThreeFormulaPgTest 가 검증한다.
++        doReturn(com.cryptoautotrader.core.risk.RiskCheckResult.approve()).when(riskManagementService).checkRealLossGuard();
+         limits.setMaxConcurrentPositions((int) positionRepository.countPoolSlots(-1L) + 8);
+         limits.setPerPositionCapKrw(new BigDecimal("20000"));
+         limits.setTotalCapKrw(positionRepository.sumPoolExposureKrw(-1L).add(new BigDecimal("1000000")));
+-- 
+2.51.1.windows.1
+

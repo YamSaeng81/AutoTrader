@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="DataController 통합 테스트" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-11-12T12:23:44" hostname="DESKTOP-SF1KUQ5" time="0.159">
+  <properties/>
+  <testcase name="POST /api/v1/data/collect — 모든 필수 필드 정상 요청 시 202 Accepted" classname="com.cryptoautotrader.api.controller.DataControllerIntegrationTest" time="0.021"/>
+  <testcase name="POST /api/v1/data/collect — endDate 누락 시 400" classname="com.cryptoautotrader.api.controller.DataControllerIntegrationTest" time="0.008"/>
+  <testcase name="데이터 요약 조회 — 200 OK, 빈 배열 반환" classname="com.cryptoautotrader.api.controller.DataControllerIntegrationTest" time="0.019"/>
+  <testcase name="수집 현황 조회 — DB 비어있을 때 EMPTY 상태 반환" classname="com.cryptoautotrader.api.controller.DataControllerIntegrationTest" time="0.031"/>
+  <testcase name="POST /api/v1/data/collect — startDate 누락 시 400" classname="com.cryptoautotrader.api.controller.DataControllerIntegrationTest" time="0.012"/>
+  <testcase name="수집 현황 조회 — 200 OK, 필수 필드 포함" classname="com.cryptoautotrader.api.controller.DataControllerIntegrationTest" time="0.008"/>
+  <testcase name="POST /api/v1/data/collect — timeframe 누락 시 400" classname="com.cryptoautotrader.api.controller.DataControllerIntegrationTest" time="0.008"/>
+  <testcase name="GET /api/v1/data/candles — coinPair 파라미터 없으면 400" classname="com.cryptoautotrader.api.controller.DataControllerIntegrationTest" time="0.01"/>
+  <testcase name="POST /api/v1/data/collect — coinPair 누락 시 400" classname="com.cryptoautotrader.api.controller.DataControllerIntegrationTest" time="0.011"/>
+  <testcase name="GET /api/v1/data/candles — DB 비어있을 때 빈 배열 반환" classname="com.cryptoautotrader.api.controller.DataControllerIntegrationTest" time="0.022"/>
+  <system-out><![CDATA[21:23:44.392 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.controller.DataControllerIntegrationTest
+21:23:44.398 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:23:44.419 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:23:44.423 [Test worker] WARN  c.c.a.c.GlobalExceptionHandler - 유효성 검사 실패: endDate: must not be null
+21:23:44.428 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:23:44.449 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:23:44.482 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:23:44.486 [Test worker] WARN  c.c.a.c.GlobalExceptionHandler - 유효성 검사 실패: startDate: must not be null
+21:23:44.494 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:23:44.504 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:23:44.506 [Test worker] WARN  c.c.a.c.GlobalExceptionHandler - 유효성 검사 실패: timeframe: must not be blank
+21:23:44.513 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:23:44.517 [Test worker] WARN  c.c.a.c.GlobalExceptionHandler - 필수 파라미터 누락: Required request parameter 'coinPair' for method parameter type String is not present
+21:23:44.523 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:23:44.526 [Test worker] WARN  c.c.a.c.GlobalExceptionHandler - 유효성 검사 실패: coinPair: must not be blank
+21:23:44.535 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

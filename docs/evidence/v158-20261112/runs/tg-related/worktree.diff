@@ -1,0 +1,33 @@
+diff --git a/build.gradle b/build.gradle
+index eb841bc1..44e1ddc5 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -41,6 +41,9 @@ subprojects {
+         //    멈춤 대신 실패로 드러나도록 메모리 부족 시 즉시 종료한다. 아래 측정용 러너는 자기 값을 다시 정한다.
+         maxHeapSize = '1g'
+         jvmArgs '-XX:+ExitOnOutOfMemoryError'
++        // 🔴 시험 프로세스는 운영 알림 자격/대상/켜짐 환경 변수를 상속하지 않는다 (총괄 v1.158 결정 1).
++        //    환경 변수(TELEGRAM_ENABLED 등)는 application-test.yml 보다 우선하므로 여기서 지운다.
++        environment.keySet().removeAll(environment.keySet().findAll { it.toString().startsWith('TELEGRAM_') })
+         // 임시 백테스트 러너 활성화용: -Dha.backtest.csv 가 주어졌을 때만 테스트 JVM으로 전달
+         if (System.getProperty('ha.backtest.csv')) {
+             systemProperty 'ha.backtest.csv', System.getProperty('ha.backtest.csv')
+diff --git a/web-api/src/test/resources/application-test.yml b/web-api/src/test/resources/application-test.yml
+index 1e3363e4..9719a389 100644
+--- a/web-api/src/test/resources/application-test.yml
++++ b/web-api/src/test/resources/application-test.yml
+@@ -77,3 +77,14 @@ logging:
+     com.cryptoautotrader: WARN
+     org.springframework.web: WARN
+     org.springframework.test: WARN
++
++# 🔴 시험 외부 알림 차단 (총괄 v1.158 결정 1, 2026-11-12) — 일반 시험은 Telegram 으로 아무것도 보내지 않는다.
++#    종전엔 이 프로필에 값이 없어 운영 기본값(enabled=true·운영 chat-id)이 그대로 쓰였고, 빈 토큰으로
++#    api.telegram.org 에 실제 요청이 나가 404 로 거절됐다(빈 토큰/404 는 차단 장치가 아니다).
++#    전송 계약 시험은 서비스 필드에 enabled=true 와 127.0.0.1 HTTP 대역을 직접 명시한다
++#    (TelegramMarkdownFallbackTest·TelegramRiskLimitRetryHttpTest·CandleRefreshReportRetryTest).
++#    운영 설정(application.yml)·알림 사유/재시도/큐 계약은 바꾸지 않는다. 검증: TelegramTestIsolationTest.
++telegram:
++  enabled: false
++  bot-token: ""
++  chat-id: "test-isolated-no-chat"

@@ -1,0 +1,12 @@
+web-api classes 52 tests 312 fail 0 err 0 skip 11 pass 301
+SKIP com.cryptoautotrader.api.service.ClosingIntentAtomicityPgTest # ① LIVE 정리 작업: 의도 생성 전 청산 확인이 와도 CLOSING·의도 유지 → 매도1·입금1
+SKIP com.cryptoautotrader.api.service.ClosingIntentAtomicityPgTest # ⑤ 응답 불명: CLOSING 유지·재매도 0
+SKIP com.cryptoautotrader.api.service.ClosingIntentAtomicityPgTest # ③ DYNAMIC REAL 매도: 의도 생성 전 청산 확인이 와도 CLOSING·의도 유지 → 매도1
+SKIP com.cryptoautotrader.api.service.ClosingIntentAtomicityPgTest # ④ 실행기 거절: 의도 철회(외부 호출 0) → 청산 확인이 근거(철회 FAILED)로 OPEN 복귀
+SKIP com.cryptoautotrader.api.service.ClosingIntentAtomicityPgTest # ② LIVE 실시간 손절: 의도 생성 전 청산 확인이 와도 CLOSING·의도 유지 → 매도1·입금1
+SKIP com.cryptoautotrader.api.service.ClosingIntentRollbackPgTest # ⑦ 이미 CLOSING: 전환 0·의도 0·제출 0
+SKIP com.cryptoautotrader.api.service.ClosingIntentRollbackPgTest # ⑥ 호출자 트랜잭션 롤백: CLOSING·의도 함께 사라짐, 제출 0
+SKIP com.cryptoautotrader.api.service.PhantomKeepsConfirmedPnlPgTest # ① 손실 첫 다리(−1,000.50) 뒤 남은 반이 phantom 확정 — 최종 실현손익 = 확정분 + 추정분, 잔액·수수료·주문 원천 손실은 그대로
+SKIP com.cryptoautotrader.api.service.PhantomKeepsConfirmedPnlPgTest # ③ 롤백 — phantom 확정 트랜잭션이 롤백되면 포지션 OPEN·확정분만·잔액 그대로, 다음 확정에서 한 번만 반영
+SKIP com.cryptoautotrader.api.service.PhantomKeepsConfirmedPnlPgTest # ② 반복·재기동 — 확정 뒤 phantom 주기 3회 더·기동 복구 본체를 불러도 실현손익·잔액이 다시 더해지지 않는다
+SKIP com.cryptoautotrader.api.service.PhantomKeepsConfirmedPnlPgTest # ④ 대조 — 부분 매도 없이 전량 phantom: 실현손익 = 추정분(종전과 같다)

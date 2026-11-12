@@ -1,0 +1,149 @@
+From f13171eff50de0a3246183e3e0c873d54acb84e4 Mon Sep 17 00:00:00 2001
+From: YamSaeng81 <manicstr81@gmail.com>
+Date: Thu, 12 Nov 2026 19:04:30 +0900
+Subject: [PATCH 01/20] =?UTF-8?q?=EC=8B=9C=ED=97=98=20=EC=99=B8=EB=B6=80?=
+ =?UTF-8?q?=20=EC=95=8C=EB=A6=BC=20=EC=B0=A8=EB=8B=A8(=EC=B4=9D=EA=B4=84?=
+ =?UTF-8?q?=20v1.158=20=EA=B2=B0=EC=A0=95=201)=20=E2=80=94=20=EC=8B=9C?=
+ =?UTF-8?q?=ED=97=98=20=ED=94=84=EB=A1=9C=ED=95=84=20telegram.enabled=3Dfa?=
+ =?UTF-8?q?lse=C2=B7=EB=B9=88=20=ED=86=A0=ED=81=B0=C2=B7=EB=B9=84=EC=9A=B4?=
+ =?UTF-8?q?=EC=98=81=20chat-id,=20=EC=8B=9C=ED=97=98=20JVM=20=EC=9D=98=20T?=
+ =?UTF-8?q?ELEGRAM=5F*=20=ED=99=98=EA=B2=BD=20=EC=83=81=EC=86=8D=20?=
+ =?UTF-8?q?=EC=A0=9C=EA=B1=B0,=20TelegramTestIsolationTest(=EC=88=98?=
+ =?UTF-8?q?=EC=A0=95=20=EC=A0=84=202/2=20=EC=8B=A4=ED=8C=A8=C2=B7=EB=A1=9C?=
+ =?UTF-8?q?=EC=BB=AC=20=EA=B3=84=EC=88=98=203=ED=9A=8C=20=E2=86=92=20?=
+ =?UTF-8?q?=EC=88=98=EC=A0=95=20=ED=9B=84=202/2=C2=B70=ED=9A=8C)?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+(cherry picked from commit d32244e56e396cc3424c02c6576e5ca56fb1caa7)
+---
+ build.gradle                                  |  3 +
+ .../service/TelegramTestIsolationTest.java    | 80 +++++++++++++++++++
+ .../src/test/resources/application-test.yml   | 11 +++
+ 3 files changed, 94 insertions(+)
+ create mode 100644 web-api/src/test/java/com/cryptoautotrader/api/service/TelegramTestIsolationTest.java
+
+diff --git a/build.gradle b/build.gradle
+index eb841bc1..44e1ddc5 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -41,6 +41,9 @@ subprojects {
+         //    멈춤 대신 실패로 드러나도록 메모리 부족 시 즉시 종료한다. 아래 측정용 러너는 자기 값을 다시 정한다.
+         maxHeapSize = '1g'
+         jvmArgs '-XX:+ExitOnOutOfMemoryError'
++        // 🔴 시험 프로세스는 운영 알림 자격/대상/켜짐 환경 변수를 상속하지 않는다 (총괄 v1.158 결정 1).
++        //    환경 변수(TELEGRAM_ENABLED 등)는 application-test.yml 보다 우선하므로 여기서 지운다.
++        environment.keySet().removeAll(environment.keySet().findAll { it.toString().startsWith('TELEGRAM_') })
+         // 임시 백테스트 러너 활성화용: -Dha.backtest.csv 가 주어졌을 때만 테스트 JVM으로 전달
+         if (System.getProperty('ha.backtest.csv')) {
+             systemProperty 'ha.backtest.csv', System.getProperty('ha.backtest.csv')
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/TelegramTestIsolationTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/TelegramTestIsolationTest.java
+new file mode 100644
+index 00000000..d01fed38
+--- /dev/null
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/TelegramTestIsolationTest.java
+@@ -0,0 +1,80 @@
++package com.cryptoautotrader.api.service;
++
++import com.cryptoautotrader.api.support.IntegrationTestBase;
++import com.sun.net.httpserver.HttpServer;
++import org.junit.jupiter.api.Nested;
++import org.junit.jupiter.api.Test;
++import org.springframework.beans.factory.annotation.Autowired;
++import org.springframework.test.context.ActiveProfiles;
++import org.springframework.test.util.AopTestUtils;
++import org.springframework.test.util.ReflectionTestUtils;
++
++import java.net.InetSocketAddress;
++import java.util.concurrent.atomic.AtomicInteger;
++
++import static org.assertj.core.api.Assertions.assertThat;
++
++/**
++ * 총괄 v1.158 결정 1 — 일반 시험은 실제 Telegram 으로 아무것도 보내지 않는다.
++ *
++ * <p>시험 프로필(test, test+scheduler)의 유효 설정이 {@code telegram.enabled=false} 이고, 운영 기본 chat-id 나
++ * 시험 프로세스에 상속된 토큰을 쓰지 않는지 본다. 빈 토큰/404 는 차단 장치가 아니다 — 목적지를 로컬 HTTP 계수기로
++ * 돌려 놓고 실제 알림 경로를 불러 요청 0 을 센다(비활성화가 아니면 계수기가 받는다). 전송 계약 시험은 따로
++ * {@code enabled=true}·127.0.0.1 대역을 명시한다(TelegramMarkdownFallbackTest·TelegramRiskLimitRetryHttpTest).</p>
++ */
++class TelegramTestIsolationTest {
++
++    static final String PROD_DEFAULT_CHAT_ID = "855008981";
++
++    static void assertIsolated(TelegramNotificationService bean, String label) throws Exception {
++        Object target = AopTestUtils.getUltimateTargetObject(bean);
++        boolean enabled = (boolean) ReflectionTestUtils.getField(target, "enabled");
++        String chatId = (String) ReflectionTestUtils.getField(target, "chatId");
++        String token = (String) ReflectionTestUtils.getField(target, "botToken");
++        String api = (String) ReflectionTestUtils.getField(target, "telegramApi");
++
++        HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
++        AtomicInteger hits = new AtomicInteger();
++        server.createContext("/", ex -> { hits.incrementAndGet(); ex.sendResponseHeaders(200, -1); ex.close(); });
++        server.start();
++        try {
++            ReflectionTestUtils.setField(target, "telegramApi", "http://127.0.0.1:" + server.getAddress().getPort() + "/bot");
++            bean.sendMarkdown("TG-ISOLATION 시험 메시지");
++            bean.notifyStopLoss("KRW-ISO", -5.0, -1L);
++            ((TelegramNotificationService) target).sendPlain("TG-ISOLATION 평문");
++            Thread.sleep(300);   // 비동기 전송 실행기가 있다면 도달 시간 — 단언은 0 이므로 기다림이 결과를 바꾸지 않는다
++        } finally {
++            ReflectionTestUtils.setField(target, "telegramApi", api);
++            server.stop(0);
++        }
++        System.out.println("[TG-ISOLATION] profile=" + label + " enabled=" + enabled + " chatIdIsProdDefault="
++                + PROD_DEFAULT_CHAT_ID.equals(chatId) + " tokenBlank=" + (token == null || token.isBlank())
++                + " envTelegramVars=" + System.getenv().keySet().stream().filter(k -> k.startsWith("TELEGRAM_")).toList()
++                + " localHttpHits=" + hits.get());
++        assertThat(enabled).as("시험 프로필 유효 telegram.enabled").isFalse();
++        assertThat(chatId).as("운영 기본 chat-id 를 시험 대상으로 쓰지 않는다").isNotEqualTo(PROD_DEFAULT_CHAT_ID);
++        assertThat(token).as("시험 프로세스는 운영 토큰을 상속하지 않는다").isNullOrEmpty();
++        assertThat(hits.get()).as("일반 시험의 실제 전송 시도").isZero();
++    }
++
++    @Nested
++    class TestProfile extends IntegrationTestBase {
++        @Autowired TelegramNotificationService telegram;
++
++        @Test
++        void 시험_프로필은_알림을_보내지_않는다() throws Exception {
++            assertIsolated(telegram, "test");
++        }
++    }
++
++    @Nested
++    @ActiveProfiles("scheduler")
++    class SchedulerProfile extends IntegrationTestBase {
++        @Autowired TelegramNotificationService telegram;
++
++        @Test
++        void 스케줄러_프로필도_알림을_보내지_않는다() throws Exception {
++            assertIsolated(telegram, "test+scheduler");
++        }
++    }
++}
+diff --git a/web-api/src/test/resources/application-test.yml b/web-api/src/test/resources/application-test.yml
+index 1e3363e4..9719a389 100644
+--- a/web-api/src/test/resources/application-test.yml
++++ b/web-api/src/test/resources/application-test.yml
+@@ -77,3 +77,14 @@ logging:
+     com.cryptoautotrader: WARN
+     org.springframework.web: WARN
+     org.springframework.test: WARN
++
++# 🔴 시험 외부 알림 차단 (총괄 v1.158 결정 1, 2026-11-12) — 일반 시험은 Telegram 으로 아무것도 보내지 않는다.
++#    종전엔 이 프로필에 값이 없어 운영 기본값(enabled=true·운영 chat-id)이 그대로 쓰였고, 빈 토큰으로
++#    api.telegram.org 에 실제 요청이 나가 404 로 거절됐다(빈 토큰/404 는 차단 장치가 아니다).
++#    전송 계약 시험은 서비스 필드에 enabled=true 와 127.0.0.1 HTTP 대역을 직접 명시한다
++#    (TelegramMarkdownFallbackTest·TelegramRiskLimitRetryHttpTest·CandleRefreshReportRetryTest).
++#    운영 설정(application.yml)·알림 사유/재시도/큐 계약은 바꾸지 않는다. 검증: TelegramTestIsolationTest.
++telegram:
++  enabled: false
++  bot-token: ""
++  chat-id: "test-isolated-no-chat"
+-- 
+2.51.1.windows.1
+

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="N02 낡은 실시간 시세 — 관측 시각이 유효기간을 넘은 가격은 보호 매도를 내지 않는다" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-11-12T10:18:32" hostname="DESKTOP-SF1KUQ5" time="0.146">
+  <properties/>
+  <testcase name="LIVE" classname="com.cryptoautotrader.api.service.StaleRealtimeExitTest" time="0.07"/>
+  <testcase name="DYNAMIC" classname="com.cryptoautotrader.api.service.StaleRealtimeExitTest" time="0.075"/>
+  <system-out><![CDATA[19:18:32.884 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.StaleRealtimeExitTest
+19:18:32.891 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+19:18:32.894 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=133, KRW-STLL1, 손익=-6.666700%
+19:18:32.960 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+19:18:32.963 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-STLD2 @ 280 pnl=-6.666700% (id=106)
+19:18:33.003 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+19:18:33.003 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] EXCHANGE_DOWN 전송 실패(REJECTED) ? 2000ms 후 재시도 (1/3)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

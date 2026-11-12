@@ -1,0 +1,49 @@
+> Task :strategy-lib:compileJava UP-TO-DATE
+> Task :strategy-lib:processResources NO-SOURCE
+> Task :strategy-lib:classes UP-TO-DATE
+> Task :strategy-lib:jar UP-TO-DATE
+> Task :core-engine:compileJava UP-TO-DATE
+> Task :core-engine:processResources NO-SOURCE
+> Task :core-engine:classes UP-TO-DATE
+> Task :core-engine:jar UP-TO-DATE
+> Task :exchange-adapter:compileJava UP-TO-DATE
+> Task :exchange-adapter:processResources NO-SOURCE
+> Task :exchange-adapter:classes UP-TO-DATE
+> Task :exchange-adapter:jar UP-TO-DATE
+> Task :web-api:compileJava UP-TO-DATE
+> Task :web-api:processResources UP-TO-DATE
+> Task :web-api:classes UP-TO-DATE
+> Task :web-api:compileTestJava UP-TO-DATE
+> Task :web-api:processTestResources UP-TO-DATE
+> Task :web-api:testClasses UP-TO-DATE
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+
+> Task :web-api:test
+
+v1.157 §125-6 전역 REAL 확정 손실 ? DYNAMIC REAL 손실 실패 재현·판정 변화 (로컬 PostgreSQL) > ① 실패 재현 ? LIVE 10만·DYNAMIC REAL 10만 RUNNING, DYNAMIC REAL 확정 손실 2건(?4,002 = 초안 분모 20만의 2.0%) > 일일 1.5% 인데 checkRisk 승인 FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:180
+        Caused by: org.springframework.beans.factory.BeanCreationException at AbstractAutowireCapableBeanFactory.java:1786
+            Caused by: org.flywaydb.core.internal.exception.FlywaySqlException at JdbcUtils.java:60
+                Caused by: org.postgresql.util.PSQLException at QueryExecutorImpl.java:2713
+
+v1.157 §125-6 전역 REAL 확정 손실 ? DYNAMIC REAL 손실 실패 재현·판정 변화 (로컬 PostgreSQL) > ② 판정 변화 관측 ? LIVE 손실 ?2,001 만: 현재 분모 10만(2.00% 거절), 초안 분모 20만이면 1.00%(승인) ? 초안이 LIVE 판정을 완화하는 경우 FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:145
+
+v1.157 §125-6 전역 REAL 확정 손실 ? DYNAMIC REAL 손실 실패 재현·판정 변화 (로컬 PostgreSQL) > ③ 대조 ? DYN_PAPER 손실은 현재·초안 모두 합산하지 않는다 FAILED
+    java.lang.IllegalStateException at DefaultCacheAwareContextLoaderDelegate.java:145
+
+3 tests completed, 3 failed
+
+> Task :web-api:test FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':web-api:test'.
+> There were failing tests. See the report at: file:///D:/tmp/rl158-92aa8712/web-api/build/reports/tests/test/index.html
+
+* Try:
+> Run with --scan to get full insights.
+
+BUILD FAILED in 11s
+11 actionable tasks: 1 executed, 10 up-to-date

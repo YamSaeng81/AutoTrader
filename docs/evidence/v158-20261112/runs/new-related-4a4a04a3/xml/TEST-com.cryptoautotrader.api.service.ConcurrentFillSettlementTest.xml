@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="시험 10 — 같은 주문의 동시 반영에서 정산은 한 번" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-11-12T12:30:22" hostname="DESKTOP-SF1KUQ5" time="5.405">
+  <properties/>
+  <testcase name="① LIVE — 폴러 둘이 같은 체결을 동시에 반영해도 한 번" classname="com.cryptoautotrader.api.service.ConcurrentFillSettlementTest" time="0.13"/>
+  <testcase name="② LIVE — 폴러와 복구가 같은 주문을 동시에 처리해도 한 번" classname="com.cryptoautotrader.api.service.ConcurrentFillSettlementTest" time="2.777"/>
+  <testcase name="① DYNAMIC — 폴러 둘이 같은 체결을 동시에 반영해도 한 번" classname="com.cryptoautotrader.api.service.ConcurrentFillSettlementTest" time="0.104"/>
+  <testcase name="② DYNAMIC — 폴러와 복구가 같은 주문을 동시에 처리해도 한 번" classname="com.cryptoautotrader.api.service.ConcurrentFillSettlementTest" time="2.393"/>
+  <system-out><![CDATA[21:30:22.194 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.ConcurrentFillSettlementTest
+21:30:22.198 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:30:22.206 [t10-b] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=83, orderId=126)
+[시험 10 LIVE 폴러×2 #0] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:22.211 [t10-b] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=84, orderId=127)
+[시험 10 LIVE 폴러×2 #1] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:22.215 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=85, orderId=128)
+[시험 10 LIVE 폴러×2 #2] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:22.219 [t10-b] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=86, orderId=129)
+[시험 10 LIVE 폴러×2 #3] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:22.224 [t10-b] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=87, orderId=130)
+[시험 10 LIVE 폴러×2 #4] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:22.229 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=88, orderId=131)
+[시험 10 LIVE 폴러×2 #5] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:22.234 [t10-b] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=89, orderId=132)
+[시험 10 LIVE 폴러×2 #6] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:22.239 [t10-b] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=90, orderId=133)
+[시험 10 LIVE 폴러×2 #7] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:22.244 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=91, orderId=134)
+[시험 10 LIVE 폴러×2 #8] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:22.248 [t10-b] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=92, orderId=135)
+[시험 10 LIVE 폴러×2 #9] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:22.253 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=93, orderId=136)
+[시험 10 LIVE 폴러×2 #10] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:22.257 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=94, orderId=137)
+[시험 10 LIVE 폴러×2 #11] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:22.265 [t10-b] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=95, orderId=138)
+[시험 10 LIVE 폴러×2 #12] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:22.269 [t10-b] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=96, orderId=139)
+[시험 10 LIVE 폴러×2 #13] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:22.276 [t10-b] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=97, orderId=140)
+[시험 10 LIVE 폴러×2 #14] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:22.281 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=98, orderId=141)
+[시험 10 LIVE 폴러×2 #15] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:22.284 [t10-b] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=99, orderId=142)
+[시험 10 LIVE 폴러×2 #16] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:22.291 [t10-b] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=100, orderId=143)
+[시험 10 LIVE 폴러×2 #17] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:22.297 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=101, orderId=144)
+[시험 10 LIVE 폴러×2 #18] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:22.302 [t10-b] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=102, orderId=145)
+[시험 10 LIVE 폴러×2 #19] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:22.329 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:30:22.335 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=103, orderId=146)
+[시험 10 LIVE 폴러+복구 #0] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:22.340 [t10-b] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=104, orderId=147)
+[시험 10 LIVE 폴러+복구 #1] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:22.395 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=105, orderId=148)
+[시험 10 LIVE 폴러+복구 #2] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:22.470 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=106, orderId=149)
+[시험 10 LIVE 폴러+복구 #3] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:22.588 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=107, orderId=150)
+[시험 10 LIVE 폴러+복구 #4] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:23.089 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=108, orderId=151)
+[시험 10 LIVE 폴러+복구 #5] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:23.175 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=109, orderId=152)
+[시험 10 LIVE 폴러+복구 #6] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:23.337 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=110, orderId=153)
+[시험 10 LIVE 폴러+복구 #7] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:23.343 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=111, orderId=154)
+[시험 10 LIVE 폴러+복구 #8] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:23.393 [t10-b] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=112, orderId=155)
+[시험 10 LIVE 폴러+복구 #9] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:23.483 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=113, orderId=156)
+[시험 10 LIVE 폴러+복구 #10] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:23.588 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=114, orderId=157)
+[시험 10 LIVE 폴러+복구 #11] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:24.088 [t10-b] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=115, orderId=158)
+[시험 10 LIVE 폴러+복구 #12] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:24.175 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=116, orderId=159)
+[시험 10 LIVE 폴러+복구 #13] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:24.336 [t10-b] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=117, orderId=160)
+[시험 10 LIVE 폴러+복구 #14] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:24.343 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=118, orderId=161)
+[시험 10 LIVE 폴러+복구 #15] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:24.394 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=119, orderId=162)
+[시험 10 LIVE 폴러+복구 #16] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:24.483 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=120, orderId=163)
+[시험 10 LIVE 폴러+복구 #17] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:24.586 [t10-b] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=121, orderId=164)
+[시험 10 LIVE 폴러+복구 #18] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:25.088 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=122, orderId=165)
+[시험 10 LIVE 폴러+복구 #19] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:25.105 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:30:25.109 [t10-b] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=123, orderId=166)
+[시험 10 DYNAMIC 폴러×2 #0] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:25.112 [t10-b] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=124, orderId=167)
+[시험 10 DYNAMIC 폴러×2 #1] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:25.116 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=125, orderId=168)
+[시험 10 DYNAMIC 폴러×2 #2] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:25.120 [t10-b] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=126, orderId=169)
+[시험 10 DYNAMIC 폴러×2 #3] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:25.124 [t10-b] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=127, orderId=170)
+[시험 10 DYNAMIC 폴러×2 #4] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:25.129 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=128, orderId=171)
+[시험 10 DYNAMIC 폴러×2 #5] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:25.134 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=129, orderId=172)
+[시험 10 DYNAMIC 폴러×2 #6] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:25.140 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=130, orderId=173)
+[시험 10 DYNAMIC 폴러×2 #7] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:25.145 [t10-b] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=131, orderId=174)
+[시험 10 DYNAMIC 폴러×2 #8] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:25.149 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=132, orderId=175)
+[시험 10 DYNAMIC 폴러×2 #9] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:25.153 [t10-b] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=133, orderId=176)
+[시험 10 DYNAMIC 폴러×2 #10] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:25.157 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=134, orderId=177)
+[시험 10 DYNAMIC 폴러×2 #11] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:25.162 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=135, orderId=178)
+[시험 10 DYNAMIC 폴러×2 #12] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:25.166 [t10-b] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=136, orderId=179)
+[시험 10 DYNAMIC 폴러×2 #13] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:25.171 [t10-b] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=137, orderId=180)
+[시험 10 DYNAMIC 폴러×2 #14] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:25.174 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=138, orderId=181)
+[시험 10 DYNAMIC 폴러×2 #15] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:25.179 [t10-b] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=139, orderId=182)
+[시험 10 DYNAMIC 폴러×2 #16] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:25.182 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=140, orderId=183)
+[시험 10 DYNAMIC 폴러×2 #17] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:25.186 [t10-b] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=141, orderId=184)
+[시험 10 DYNAMIC 폴러×2 #18] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:25.190 [t10-b] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=142, orderId=185)
+[시험 10 DYNAMIC 폴러×2 #19] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:25.209 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+21:30:25.214 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=143, orderId=186)
+[시험 10 DYNAMIC 폴러+복구 #0] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:25.336 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=144, orderId=187)
+[시험 10 DYNAMIC 폴러+복구 #1] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:25.343 [t10-b] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=145, orderId=188)
+[시험 10 DYNAMIC 폴러+복구 #2] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:25.395 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=146, orderId=189)
+[시험 10 DYNAMIC 폴러+복구 #3] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:25.484 [t10-b] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=147, orderId=190)
+[시험 10 DYNAMIC 폴러+복구 #4] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:25.586 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=148, orderId=191)
+[시험 10 DYNAMIC 폴러+복구 #5] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:26.088 [t10-b] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=149, orderId=192)
+[시험 10 DYNAMIC 폴러+복구 #6] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:26.216 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=150, orderId=193)
+[시험 10 DYNAMIC 폴러+복구 #7] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:26.337 [t10-b] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=151, orderId=194)
+[시험 10 DYNAMIC 폴러+복구 #8] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:26.344 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=152, orderId=195)
+[시험 10 DYNAMIC 폴러+복구 #9] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:26.395 [t10-b] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=153, orderId=196)
+[시험 10 DYNAMIC 폴러+복구 #10] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:26.484 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=154, orderId=197)
+[시험 10 DYNAMIC 폴러+복구 #11] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:26.587 [t10-b] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=155, orderId=198)
+[시험 10 DYNAMIC 폴러+복구 #12] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:27.090 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=156, orderId=199)
+[시험 10 DYNAMIC 폴러+복구 #13] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:27.215 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=157, orderId=200)
+[시험 10 DYNAMIC 폴러+복구 #14] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:27.338 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=158, orderId=201)
+[시험 10 DYNAMIC 폴러+복구 #15] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:27.345 [t10-b] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=159, orderId=202)
+[시험 10 DYNAMIC 폴러+복구 #16] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:27.396 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=160, orderId=203)
+[시험 10 DYNAMIC 폴러+복구 #17] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:27.485 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=161, orderId=204)
+[시험 10 DYNAMIC 폴러+복구 #18] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+21:30:27.588 [t10-a] WARN  c.c.a.service.OrderSettlementService - ? 정지된 세션(status=STOPPED)의 포지션에 늦은 체결이 반영된다 ? 정리 대기로 등록 (posId=162, orderId=205)
+[시험 10 DYNAMIC 폴러+복구 #19] order{state=FILLED filled=9.80000000 appFunds=2940.00000000 appFee=1.47000000 ver=1 pending=false} pos{size=9.80000000 fee=1.47} available=7058.53
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

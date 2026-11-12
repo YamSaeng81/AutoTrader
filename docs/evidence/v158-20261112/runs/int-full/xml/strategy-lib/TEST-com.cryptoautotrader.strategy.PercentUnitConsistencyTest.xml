@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.strategy.PercentUnitConsistencyTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-11-12T11:46:04" hostname="DESKTOP-SF1KUQ5" time="0.06">
+  <properties/>
+  <testcase name="getPercentAsRatio 는 퍼센트를 비율로 바꾼다 — double·BigDecimal 양쪽" classname="com.cryptoautotrader.strategy.PercentUnitConsistencyTest" time="0.003"/>
+  <testcase name="MACD_STOCH_BB 는 stopLossPct 를 퍼센트로 읽는다 — 2.0 이면 손절 −2%" classname="com.cryptoautotrader.strategy.PercentUnitConsistencyTest" time="0.022"/>
+  <testcase name="퍼센트 파라미터는 전부 스키마에 PERCENT 로 등록돼 있다" classname="com.cryptoautotrader.strategy.PercentUnitConsistencyTest" time="0.015"/>
+  <testcase name="기본값 거동은 이전과 같다 — 0.02 비율 ≡ 2.0 퍼센트" classname="com.cryptoautotrader.strategy.PercentUnitConsistencyTest" time="0.017"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

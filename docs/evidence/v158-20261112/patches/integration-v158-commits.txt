@@ -1,0 +1,20 @@
+f13171eff50de0a3246183e3e0c873d54acb84e4 시험 외부 알림 차단(총괄 v1.158 결정 1) — 시험 프로필 telegram.enabled=false·빈 토큰·비운영 chat-id, 시험 JVM 의 TELEGRAM_* 환경 상속 제거, TelegramTestIsolationTest(수정 전 2/2 실패·로컬 계수 3회 → 수정 후 2/2·0회)
+7297b67f988ccea1f2d95aaf2e6e5fdca0b19148 대기 경계 시험 ① 이 미리 만든 두 작업자의 출발(대기열 앞 도착)을 확인한 뒤 관측하게(시험만, 총괄 v1.157 §125-4, 84fb03d6 기점)
+adfaa88b53c78a24b264152733a7e50f27d0bfe4 포화 시험이 코어 차단 작업 실행을 확인한 뒤 대기열을 채우게(시험만, 총괄 v1.157 §125-4, ee5beb18 위)
+cdf9be99e041443901ea66dbb38bcf7acb547bf2 A/B v4 실제 연결 시험 실행 전 필수 환경 확인(시험만, 총괄 v1.157 §125-3, 84fb03d6 위) — 구동기·코드 SHA·역할/다른 DB·컨테이너 포트/DB 일치를 서버 기동 전에 확인, 다른 DB 의 같은 ID 8개를 음성 전에 확인
+0ce3783c00fbfc327e12ed653df864ff527959fb phantom 추정 청산이 부분 매도 확정 손익을 지우는 실패 시험(시험만, 실제 PG, 총괄 v1.157 §125-7, 84fb03d6 기점)
+8f9423f51709970a2006d1a844f866683174efc6 phantom 추정 청산이 앞선 확정 실현손익을 덮지 않고 누적(총괄 v1.157 §125-7, 5ddc5cbe 위, 미승인)
+280d7f540860723ebab11f6292277035f009bc34 phantom 확정의 세션 입금을 같은 트랜잭션으로(총괄 v1.157 §125-7, 0c980619 위, 미승인) — apply(REQUIRES_NEW) → applyWithin
+e0469187dc285e90bd50beee8c63cfa29a06da81 정리 경합 보완(총괄 v1.158 결정 3) — CLOSING 전환과 매도 의도를 한 트랜잭션으로(OrderExecutionEngine.markClosingWithSellIntent, 전환은 PositionStateTransition 관문 유지, 커밋 뒤 제출·실행기 거절 시 철회), LIVE 3·DYNAMIC 3 매도 경로 적용, 정리 작업 시도 시각을 의도 저장 전에 기록 — ClosingIntentAtomicityPgTest 수정 전 5/5 실패 → 5/5, 롤백 계약 2/2, 관련 205/205
+bf491087d39801351ec4cc0c298bfedd3df602b7 전역 REAL 확정 손실 실패 재현 시험(시험만, 실제 PG, 총괄 v1.157 §125-6, 84fb03d6 기점, 정책 미승인)
+06add62772a4b717b11cd9d886beda4413e74e1f 전역 실자금 손실 세 보호식(총괄 v1.158 결정 2) — 기존 보호식 유지 + DYNAMIC REAL(자체 자본)·전체 REAL(LIVE+DYNAMIC REAL 자본) 보호식, 하나라도 기존 한도 초과·판정 불가면 신규 실자금 매수 거절, DYNAMIC REAL executeBuy(즉시·회차 승인) 연결, PAPER 계약 불변 — RealLossThreeFormulaPgTest 수정 전 6/8 실패 → 8/8
+dbe1a7c82d4d37f4c1a291af8c45103b5e1ef8a4 손실 세 보호식 보완 — 조회 실패는 예외로 진입 중단(fail-closed), 기존 보호식 사유 문구 종전 유지, H2 시험 9개 클래스에 checkRisk 와 같은 관례로 checkRealLossGuard 승인 대역(기존 손실 원천이 PG 전용 구문) — PG 8/8·LiveLossWindow 7/7·RealLossGlobal 3/3
+7e1bbaf3968203dc27b38a3df945a8bfaf72c761 DYNAMIC 판단 시계(총괄 v1.157 §125-5/v1.158) — 닫힌 봉·캔들 최신성·조회 상한·BTC 관문·회차 접수 시각·전략 SELL 최소 보유를 EntryClock(기본 시스템 UTC, LIVE B01 과 같은 정의)에 연결, 가드에 판단 시각 BTC 진입점 추가(4인자 불변) — DynamicJudgeClockTest 수정 전 4/5 실패 → 5/5, 관련 279(성공275·건너뜀4)
+f5c6aaffc15060831612b1312f1b268494b287e9 실시간 점검 간격의 보호선 첫 통과 시세 생략 시험(시험만, 총괄 v1.155 §4-2, b5cd1d0 기점) — 직접 처리기 경로, 기점 11건 중 6실패(LIVE 평상시 4초·급락 0.5초 안 첫 통과, 무효/낡은 시세 뒤 유효 첫 통과, DYNAMIC 손절·익절 첫 통과), 경계·반복 대조 5 통과. ExecutorBarrier 시험 지원은 ec7d33ef 와 같은 내용
+a2266114888650e9f609b4fe9e611a8ee4d7a121 실시간 점검 간격 안이라도 보호선을 처음 넘은 유효 시세는 한 번 점검(총괄 v1.155 §4-2, b5cd1d0 기점, 미승인) — LIVE 손절 발동가·DYNAMIC 손절 발동가/익절가를 마지막 전체 점검 결과로 기억(매 틱 DB 조회·실행기 확대 없음), 첫 통과 뒤 계속 아래는 종전 5초/1초 간격(유계), 낡은·비가격 시세는 종전대로 앞에서 버림. 시험 11/11(기점 5/11), 관련 14클래스 151/151 — 1회차 관련은 DynamicPaperLiveRuleParityTest 소스 창(2600자) 밖으로 밀려 1실패, 시험은 그대로 두고 처리기 본문을 도우미로 분리
+90bea7b1b91058b58be5e335c70d2b230bb40dd9 throttle 조기 점검이 실제 첫 통과를 소비하는 반례 시험(시험만, 총괄 v1.157 §125, b5f8a8fd 기점) — 평균300·손절5%·절대가 없음 286→285.00025→284(간격 안)
+666619ce0d3135a2b3927be7b90292adbf3a8d57 throttle 첫 통과를 실제 판정 규칙으로 판단(총괄 v1.157 §125, 9c0b16cf 위, 미승인) — 근사선(×1.000001) 대신 남은 포지션의 판정 입력을 기억
+7ac9f25b4c58a1d21d7ca226a0398270b80a02b3 정리 경합 후보 보완 — PAPER 매도의 CLOSING 전환+시뮬레이션을 executePaperSellIfOpen 으로 묶음(동작 동일), DynamicPaperLiveRuleParityTest 허용 문맥(체결 시뮬레이션) 거리 복원
+c95b74e6050ff4ac4e9e757c19cea8017f61c6cb 손실 관문 H2 대역 4클래스 추가(같은 관례) + DynamicPaperLiveRuleParityTest 허용 목록에 checkRealLossGuard(지시가 PAPER 제외를 명시한 사람 판단 예외, 근거 공개)
+1eed27d18d0d09ea001e21963d1609d25dccbcc7 v1.158 결정 2 시험 대역 보충 — PositionLimitTest 도 H2 에서 실자금 손실 관문만 승인으로 둔다(전체 회귀에서 PG 전용 손실 조회 구문 오류 2건, 같은 규약; 관문은 PG 시험이 검증)
+4a4a04a304fe22555fbeacd904175a84598af015 SubmitOrderBoundaryProbeTest 를 v1.158 결정 3 계약의 네 경계로 보완(시험만, review-1eed27d1-boundary 승인)

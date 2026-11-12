@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.RiskConfigMissingTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-12T12:03:14" hostname="DESKTOP-SF1KUQ5" time="0.001">
+  <properties/>
+  <testcase name="코드_기본값은_V88_기본_행과_같다()" classname="com.cryptoautotrader.api.service.RiskConfigMissingTest" time="0.0"/>
+  <testcase name="행이_없으면_INSERT_하지_않고_코드_기본값을_돌려준다()" classname="com.cryptoautotrader.api.service.RiskConfigMissingTest" time="0.001"/>
+  <testcase name="행이_없으면_신규_진입_위험_판단을_거부한다()" classname="com.cryptoautotrader.api.service.RiskConfigMissingTest" time="0.0"/>
+  <system-out><![CDATA[21:03:14.269 [Test worker] ERROR c.c.a.service.RiskManagementService - ? risk_config 행이 없다 ? V88 미적용 또는 삭제. 코드 기본값으로 판단하고 신규 진입은 막는다
+21:03:14.270 [Test worker] ERROR c.c.a.service.RiskManagementService - ? risk_config 행이 없다 ? V88 미적용 또는 삭제. 코드 기본값으로 판단하고 신규 진입은 막는다
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
