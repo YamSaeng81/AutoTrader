@@ -1735,14 +1735,7 @@ public class LiveTradingService {
         // DYNAMIC은 2026-07-02 감사(#2 시장가 이중 매도 race)에서 이미 markClosingIfOpen으로
         // 전환했는데 LIVE에는 이식되지 않았다 — 같은 계정을 공유하므로 LIVE의 중복 매도가
         // 다른 세션 포지션의 코인을 팔 수 있어 위험은 오히려 LIVE 쪽이 크다.
-        int marked = positionStateTransition.markClosingIfOpen(pos.getId(), Instant.now(), exitReason);
-        if (marked == 0) {
-            log.debug("매도 건너뜀: 이미 CLOSING/CLOSED (posId={}, sessionId={})",
-                    pos.getId(), session.getId());
-            return false;
-        }
-
-        // 주문 제출 — sessionId/positionId를 request에 미리 설정 (@Async 리턴값 의존 회피)
+        // 주문 요청 — sessionId/positionId를 request에 미리 설정 (@Async 리턴값 의존 회피)
         OrderRequest order = new OrderRequest();
         order.setCoinPair(pos.getCoinPair());
         order.setSide("SELL");
@@ -1753,7 +1746,12 @@ public class LiveTradingService {
         order.setSessionId(session.getId());
         order.setSessionKind("LIVE");
         order.setPositionId(pos.getId());
-        orderExecutionEngine.submitOrder(order);
+        // 🔴 v1.158 결정 3: CLOSING 전환과 매도 의도를 한 트랜잭션으로 — 의도 생성 전 청산 확인이 주문 부재로 OPEN 되돌리는 경합 제거.
+        if (!orderExecutionEngine.markClosingWithSellIntent(pos.getId(), Instant.now(), exitReason, order).marked()) {
+            log.debug("매도 건너뜀: 이미 CLOSING/CLOSED (posId={}, sessionId={})",
+                    pos.getId(), session.getId());
+            return false;
+        }
 
         // KRW 복원·손익 확정은 reconcileClosingPositions()에서 실제 체결가 기반으로 처리
         log.info("실전 매도 주문 제출 (sessionId={}): {} {}개 (CLOSING 상태, 체결 대기)",
@@ -1804,17 +1802,6 @@ public class LiveTradingService {
                 // 원자적 CLOSING 전환 — executeSessionSell과 동일 이유(중복 매도 방지, 2026-08-18).
                 // 정지/비상정지 경로가 tick의 매도와 겹칠 수 있다.
                 // 운영자 개입 청산 — 청산가가 시장이 아니라 정지 시각으로 정해진다.
-                if (positionStateTransition.markClosingIfOpen(pos.getId(), Instant.now(),
-                        ExitReason.FORCED_STOP) == 0) {
-                    log.debug("세션 청산 건너뜀: 이미 CLOSING/CLOSED (posId={}, sessionId={})",
-                            pos.getId(), session.getId());
-                    continue;
-                }
-
-                // 🔴 정리 대기로 등록한다 (V87) — 이 매도가 실패해 OPEN 으로 되돌아가도 정리 작업이 다시 낸다.
-                //    완료는 포지션이 CLOSED 로 확인될 때만이다.
-                registerStopCleanup(pos, session.getId());
-
                 OrderRequest sellOrder = new OrderRequest();
                 sellOrder.setCoinPair(pos.getCoinPair());
                 sellOrder.setSide("SELL");
@@ -1824,7 +1811,17 @@ public class LiveTradingService {
                 sellOrder.setSessionId(session.getId());
                 sellOrder.setSessionKind("LIVE");
                 sellOrder.setPositionId(pos.getId());
-                orderExecutionEngine.submitOrder(sellOrder);
+                // 🔴 v1.158 결정 3: CLOSING 전환과 매도 의도를 한 트랜잭션으로 — 의도 생성 전 청산 확인이 주문 부재로 OPEN 되돌리는 경합 제거.
+                if (!orderExecutionEngine.markClosingWithSellIntent(pos.getId(), Instant.now(),
+                        ExitReason.FORCED_STOP, sellOrder).marked()) {
+                    log.debug("세션 청산 건너뜀: 이미 CLOSING/CLOSED (posId={}, sessionId={})",
+                            pos.getId(), session.getId());
+                    continue;
+                }
+
+                // 🔴 정리 대기로 등록한다 (V87) — 이 매도가 실패해 OPEN 으로 되돌아가도 정리 작업이 다시 낸다.
+                //    완료는 포지션이 CLOSED 로 확인될 때만이다.
+                registerStopCleanup(pos, session.getId());
 
                 log.info("세션 포지션 청산 주문: sessionId={} {} 수량={}",
                         session.getId(), pos.getCoinPair(), pos.getSize());
@@ -2121,10 +2118,6 @@ public class LiveTradingService {
                 return;
             }
         }
-        if (positionStateTransition.markClosingIfOpen(posId, Instant.now(), ExitReason.FORCED_STOP) == 0) {
-            positionCleanupRepository.note(posId, "다른 경로가 먼저 청산을 시작했다");
-            return;
-        }
         OrderRequest sellOrder = new OrderRequest();
         sellOrder.setCoinPair(pos.getCoinPair());
         sellOrder.setSide("SELL");
@@ -2134,9 +2127,16 @@ public class LiveTradingService {
         sellOrder.setSessionId(c.getSessionId());
         sellOrder.setSessionKind("LIVE");
         sellOrder.setPositionId(posId);
-        // 🔴 커밋 뒤에 낸다 — CLOSING 전환이 롤백되면 매도도 나가지 않는다.
-        orderExecutionEngine.submitOrderAfterCommit(sellOrder);
-        positionCleanupRepository.recordAttempt(posId, Instant.now(), "정지 청산 매도 제출 (수량 " + pos.getSize() + ")");
+        // 🔴 커밋 뒤에 낸다 — CLOSING 전환이 롤백되면 의도도 매도도 없다.
+        // 🔴 v1.158 결정 3: CLOSING 전환과 매도 의도를 한 트랜잭션으로 — 의도 생성 전 청산 확인이 주문 부재로 OPEN 되돌리는 경합 제거.
+        // 🔴 시도 시각은 의도 저장 **전에** 잡는다 — 의도가 CLOSING 과 같은 트랜잭션에서 생기므로, 위 "직전 제출이 주문으로 나타났나"
+        //    대조(생성 시각 ≥ 시도 시각)가 이 시도의 의도를 자기 것으로 알아보게 한다(v1.158 결정 3).
+        Instant attemptAt = Instant.now();
+        if (!orderExecutionEngine.markClosingWithSellIntent(posId, attemptAt, ExitReason.FORCED_STOP, sellOrder).marked()) {
+            positionCleanupRepository.note(posId, "다른 경로가 먼저 청산을 시작했다");
+            return;
+        }
+        positionCleanupRepository.recordAttempt(posId, attemptAt, "정지 청산 매도 제출 (수량 " + pos.getSize() + ")");
         log.warn("정지 후 정리 — 청산 매도 제출 (posId={}, sessionId={}, 수량={}, 사유={})",
                 posId, c.getSessionId(), pos.getSize(), c.getReason());
     }
