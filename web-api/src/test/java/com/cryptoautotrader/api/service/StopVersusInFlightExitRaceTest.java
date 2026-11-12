@@ -187,11 +187,16 @@ class StopVersusInFlightExitRaceTest extends IntegrationTestBase {
         return new Fx(kind, sid, pos.getId(), coin);
     }
 
-    /** WS 손절 — 손절가 290 아래 280. 생산 진입점(프록시, {@code @Async}·{@code @Transactional})으로 부른다. */
+    @Autowired private RealtimeProtectionDispatcher realtimeProtectionDispatcher;
+
+    /**
+     * WS 손절 — 손절가 290 아래 280. 생산 진입점으로 부른다. 2026-11-12(총괄 v1.153 F): 처리기의 {@code @Async} 가 실시간 보호 경계로
+     * 옮겨져, 처리기를 직접 부르면 호출 스레드(여기서는 정지 트랜잭션 안)에서 돈다 — 1회차가 그래서 4건 실패했다(원문 보존). 운영과 같이
+     * 경계({@code marketDataExecutor} 스레드·처리기 프록시의 별도 트랜잭션)로 보낸다. 단언은 그대로다.
+     */
     private void wsStopLoss(Fx f) {
         RealtimePriceEvent e = new RealtimePriceEvent(f.coin(), new BigDecimal("280"), Instant.now(), RealtimePriceEvent.WS_TRADE);
-        if ("DYNAMIC".equals(f.kind())) dynamicTradingService.onRealtimePriceEvent(e);
-        else liveTradingService.onRealtimePriceEvent(e);
+        realtimeProtectionDispatcher.onPrice(e);
     }
 
     private void stop(Fx f) {
