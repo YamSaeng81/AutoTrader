@@ -1638,6 +1638,16 @@ public class DynamicTradingService {
         String kind = sessionKind(session);
         BigDecimal currentPrice = evalCandles.get(evalCandles.size() - 1).getClose();
 
+        // 🔴 실자금 손실 관문 (총괄 v1.158 결정 2) — DYNAMIC REAL 즉시 진입·회차 승인이 모두 여기를 지난다. 기존·DYNAMIC REAL·전체 REAL
+        //    세 보호식 중 하나라도 기존 한도를 넘거나 판정 불가면 신규 매수를 거절한다. PAPER 는 모의 한도 계약 그대로(REAL 자료로 막지 않는다).
+        if (!session.isPaper()) {
+            com.cryptoautotrader.core.risk.RiskCheckResult realLoss = riskManagementService.checkRealLossGuard();
+            if (!realLoss.isApproved()) {
+                log.warn("[Dynamic] 실자금 손실 보호식으로 매수 차단 (id={}, {}): {}", sid, coinPair, realLoss.getReason());
+                return "실자금 손실 보호식: " + realLoss.getReason();
+            }
+        }
+
         // EMA200 게이트 사이즈 배수 적용 — 정상 1.0, 근접 하회 감액 0.5. null은 방어적으로 1.0 취급.
         BigDecimal effectiveRatio = session.getInvestRatio()
                 .multiply(sizeMultiplier != null ? sizeMultiplier : BigDecimal.ONE);
