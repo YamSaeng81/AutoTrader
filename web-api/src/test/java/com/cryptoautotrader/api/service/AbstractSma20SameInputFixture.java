@@ -142,8 +142,12 @@ abstract class AbstractSma20SameInputFixture extends IntegrationTestBase {
                 .thenAnswer(inv -> new com.cryptoautotrader.exchange.upbit.UpbitOrderClient.ExchangeResult(
                         accepted(inv.getArgument(0), inv.getArgument(1), inv.getArgument(4)), "{}"));
         deleteCache();
+        // 🔴 (총괄 v1.155 §5 회귀 조사) 종전 "앞 시험보다 1초 이르게"는 JVM 하나에서 누적돼, 첫 fixture 시험 뒤 실행 시간이 4분쯤 지나면
+        //    봉 마감 + 유예(D = 시작 + 60분 + 5분)가 실제 시각보다 앞서 LIVE 회차 접수가 "회차 마감 뒤 도착"이 됐다(전체 회귀에서만 실패 16건,
+        //    탐침: 이 값 재설정만으로 A~H+S 666/666). 키는 처리된 같은 키만 거절되므로, 유일성은 지키되 앞으로 1ms 씩만 움직인다 —
+        //    지금 −61분 근처(마감 뒤·유예 안)를 벗어나지 않는다.
         Instant base = Instant.now().minus(61, ChronoUnit.MINUTES).truncatedTo(ChronoUnit.SECONDS);
-        lastOpen = LAST_ROUND.updateAndGet(prev -> base.isBefore(prev) ? base : prev.minusSeconds(1));
+        lastOpen = LAST_ROUND.updateAndGet(prev -> prev.equals(Instant.MAX) || base.isAfter(prev) ? base : prev.plusMillis(1));
         useCloseHour(lastOpen);
         clearRealtimeThrottle();
     }
