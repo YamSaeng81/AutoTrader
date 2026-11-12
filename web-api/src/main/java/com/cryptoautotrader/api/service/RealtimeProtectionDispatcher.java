@@ -175,10 +175,16 @@ public class RealtimeProtectionDispatcher {
             }
         }
 
+        /**
+         * 🔴 유계 묶음 (총괄 v1.155 §2) — 이 작업은 <b>시작 때 이미 있던 시세 수</b>(≤ {@link #LANE_CAPACITY})까지만 처리한다. 그 사이 들어온
+         * 같은 코인 시세는 플래그를 내린 뒤 실행기 뒤에 다시 접수된다 — 같은 코인 순서는 그대로이고, 이미 대기 중인 다른 코인·다른 작업이
+         * 먼저 차례를 얻는다. 종전(9d92a0f7)은 빌 때까지 돌아 계속 들어오는 코인 하나가 작업자를 붙잡았다(총괄 탐침: 250건 동안 B 0건).
+         */
         void drain() {
             try {
+                int budget = size();
                 RealtimePriceEvent ev;
-                while ((ev = poll()) != null) {
+                while (budget-- > 0 && (ev = poll()) != null) {
                     try {
                         engine.handler.accept(ev);
                     } catch (RuntimeException ex) {
@@ -190,7 +196,7 @@ public class RealtimeProtectionDispatcher {
             } finally {
                 scheduled.set(false);
             }
-            // 비운 뒤·플래그를 내리기 전 사이에 들어온 시세 — 다시 접수한다(접수 거절이면 대기열에 남는다).
+            // 묶음 뒤 남은 시세·플래그를 내리기 전 사이에 들어온 시세 — 실행기 뒤에 다시 접수한다(접수 거절이면 대기열에 남고 거절 수가 는다).
             if (size() > 0) schedule();
         }
     }
