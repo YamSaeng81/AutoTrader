@@ -1,0 +1,6 @@
+{
+  "candidate": "b5f8a8fd",
+  "scope": "two Spring H2 observation/control cases, real handler and order engine, mocked exchange, mocked Telegram and websocket; not final-SHA regression",
+  "exit_code": 0,
+  "first_attempt": "test expectation overlooked existing six-decimal PnL rounding: 285.0001 already triggers actual 5% stop. Corrected only near-price input to 285.00025. Notification mock was also omitted; first attempt tried Telegram and received HTTP404/retries, no successful delivery shown. Raw attempt preserved. Rerun mocks notification/websocket and clears external credential env entries."
+}

@@ -1,0 +1,13 @@
+from pathlib import Path
+import json
+O=Path(__file__).resolve().parent;R=O.parents[2];out={}
+for name,short in [('production','b5cd1d0'),('investigation','9bce7dc1')]:
+ p=O/('jarcmp-'+name+'.txt');b=p.read_bytes()
+ # Initial child Python used the Windows default stdout encoding. Preserve it, then expose a UTF-8 review copy.
+ raw=p.with_name('jarcmp-'+name+'-raw.cp949.txt');assert not raw.exists();p.rename(raw)
+ s=b.decode('cp949');p.write_text(s,encoding='utf8')
+ expected=(R/('docs/evidence/v156-20261112/final-jar/jarcmp-'+short+'-vs-84fb03d6.txt')).read_text(encoding='utf8')
+ out[name]={'same_lines':s.splitlines()==expected.splitlines(),'raw_encoding':'cp949','changes':sum(l.startswith('변경 ') for l in s.splitlines()),'added':sum(l.startswith('추가 ') for l in s.splitlines()),'deleted':sum(l.startswith('삭제 ') for l in s.splitlines()),'last':s.splitlines()[-1]}
+ assert out[name]['same_lines'],out[name]
+(O/'jar-recheck.json').write_text(json.dumps(out,ensure_ascii=False,indent=2)+'\n',encoding='utf8')
+print(json.dumps(out,ensure_ascii=False,indent=2))

@@ -1,0 +1,3788 @@
+package com.cryptoautotrader.api.service;
+
+import com.cryptoautotrader.api.dto.DynamicSessionRequest;
+import com.cryptoautotrader.api.dto.OrderRequest;
+import com.cryptoautotrader.api.entity.DynamicSellSettlementEntity;
+import com.cryptoautotrader.api.entity.ExitReason;
+import com.cryptoautotrader.api.util.IndicatorSnapshot;
+import com.cryptoautotrader.api.entity.DynamicSessionEntity;
+import com.cryptoautotrader.api.entity.PositionEntity;
+import com.cryptoautotrader.api.entity.StrategyLogEntity;
+import com.cryptoautotrader.api.repository.DynamicSessionRepository;
+import com.cryptoautotrader.api.repository.OrderRepository;
+import com.cryptoautotrader.api.repository.PositionRepository;
+import com.cryptoautotrader.api.repository.StrategyLogRepository;
+import com.cryptoautotrader.api.repository.StrategyTypeEnabledRepository;
+import com.cryptoautotrader.api.util.TimeframeUtils;
+import com.cryptoautotrader.core.regime.MarketRegime;
+import com.cryptoautotrader.core.risk.ExitRuleConfig;
+import com.cryptoautotrader.core.regime.MarketRegimeDetector;
+import com.cryptoautotrader.core.selector.BlackSwanGuard;
+import com.cryptoautotrader.core.selector.BtcMarketGuard;
+import com.cryptoautotrader.core.selector.Ema200RegimeGate;
+import com.cryptoautotrader.core.selector.RangeRegimeGate;
+import com.cryptoautotrader.exchange.upbit.UpbitCandleCollector;
+import com.cryptoautotrader.exchange.upbit.UpbitRestClient;
+import com.cryptoautotrader.strategy.Candle;
+import com.cryptoautotrader.strategy.Strategy;
+import com.cryptoautotrader.strategy.StrategyRegistry;
+import com.cryptoautotrader.strategy.StrategySignal;
+import com.cryptoautotrader.api.entity.OrderEntity;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.cryptoautotrader.api.util.TradingConstants;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
+import com.cryptoautotrader.core.risk.SignalExitGate;
+import com.cryptoautotrader.api.util.TickCandleCache;
+
+/**
+ * 동적 멀티코인 세션 서비스.
+ *
+ * <h3>동작 흐름</h3>
+ * <pre>
+ * [SCANNING]
+ *   매 60초: 워치리스트 코인들에 전략 평가 → BUY 신호 첫 번째 코인 매수
+ *   → scanState = POSITION_MONITORING, currentCoinPair = 매수 코인
+ *
+ * [POSITION_MONITORING]
+ *   매 60초: currentCoinPair만 평가 → SL/TP/SELL 신호 시 매도
+ *   → scanState = SCANNING, currentCoinPair = null
+ * </pre>
+ */
+@Service
+@Slf4j
+public class DynamicTradingService {
+
+    // HEIKIN_ASHI_STOCH 등 EMA(200) 기반 전략은 최소 201개 닫힌 캔들이 필요하다. 200개만 가져오면
+    // closedCandleSlice()가 미마감 캔들을 하나 더 잘라내 최대 199개만 남아 구조적으로 절대 신호를
+    // 낼 수 없었다(2026-07-01 실전 로그 분석 — 해당 전략 세션 100% "데이터 부족"). 라이브 매매
+    // (LiveTradingService.CANDLE_LOOKBACK)·백테스트(BacktestEngine.MAX_LOOKBACK)와 동일하게
+    // 500으로 맞춰 백테스트·실거래 신호 괴리를 줄인다.
+    private static final int CANDLE_LOOKBACK = TradingConstants.CANDLE_LOOKBACK;
+    private static final List<String> ACTIVE_ORDER_STATES = TradingConstants.ACTIVE_ORDER_STATES;
+    private static final long MIN_HOLD_MINUTES = 180;
+
+    /**
+     * {@link #reconcileDynamicSessionBalance} 유예 시간(분) — 매수 KRW 차감(선커밋)과
+     * 포지션 커밋 사이의 정상 구간을 오탐하지 않기 위한 최소 경과 시간.
+     * 매수 1회는 초 단위로 끝나므로 3분이면 정상 매매를 절대 건드리지 않는다.
+     */
+    private static final long BALANCE_RECONCILE_GRACE_MIN = 3;
+
+    /**
+     * {@link #reconcileDynamicGhostPositions} 유예 시간(분) — 매도 체결 후 정상 후처리가
+     * 끝날 시간을 준다. 정상 경로는 CLOSING reconcile(5초 주기)이 즉시 처리하므로,
+     * 2분이 지나도 OPEN이면 후처리가 롤백된 것으로 본다.
+     */
+    private static final long SELL_FINALIZE_GRACE_MIN = 2;
+
+    /**
+     * BLACK_SWAN_GUARD 차단 후 해당 코인의 신규 진입을 계속 막는 시간(분).
+     *
+     * <p><b>근거 (2026-08-03 실측)</b>: KRW-ELSA가 01:00·01:14·01:42·01:45 <b>4회 차단</b>
+     * (거래량 11.2배 급증 + 1시간 −2.13%)됐는데, <b>02:00에 가드가 풀리자마자</b> 세션 43이
+     * 매수해 2.6시간 만에 <b>−8.33%</b>로 손절됐다. 가드의 판단은 정확했고 유지 시간만 짧았다.
+     * 급등락 종목은 가드 해제 직후가 가장 위험한 구간이다.</p>
+     *
+     * <p>4시간 근거: 손실 확정까지 2.6시간이 걸렸고, 실측 평균 보유가 7.6시간이므로
+     * 4시간이면 급등락 여진 구간을 덮으면서 정상 종목의 기회를 과하게 빼앗지 않는다.</p>
+     */
+    private static final long BLACK_SWAN_COOLDOWN_MIN = 240;
+
+    /**
+     * BLACK_SWAN_GUARD 차단가 초과 진입을 막는 기간(분) — 쿨다운이 끝난 뒤에도 유지된다.
+     *
+     * <p><b>왜 필요한가 (2026-08-05 실측, 동일 패턴 2건)</b>: 쿨다운은 진입을 <b>지연</b>시킬 뿐
+     * 가격을 보지 않는다. 그 결과 "차단 가격에 안 사고 기다렸다가 더 비싸게 사서 차단 가격
+     * 아래로 손절"이 그대로 재현됐다.</p>
+     * <ul>
+     *   <li>KRW-META2: 08-04 01:06 가드 차단 시점가 <b>8,630</b> → 06:00 <b>9,150</b>(+6.0%)
+     *       진입 → 18:32 <b>8,495</b> 손절. 차단가보다 낮은 값에 팔았다.</li>
+     *   <li>KRW-ELSA: 08-03 01:00~01:45 4회 차단 → 02:00 80.90 진입 → 04:33 74.20 손절.</li>
+     * </ul>
+     * <p>가드가 "이 가격은 위험하다"고 판단했다면 <b>그보다 비싼 가격은 더 위험하다</b>.
+     * 쿨다운 해제 후에도 차단 시점가 이하로 내려온 경우에만 재진입을 허용한다.
+     * 24시간이 지나면 가드 판단의 유효기간이 끝난 것으로 보고 기준가를 폐기한다 —
+     * 그렇지 않으면 상승 추세로 전환된 종목이 영구 차단된다.</p>
+     */
+    private static final long BLACK_SWAN_PRICE_GUARD_MIN = 1440;
+
+    /**
+     * 한 코인을 동시에 보유할 수 있는 동적 세션 수의 상한.
+     *
+     * <p><b>왜 필요한가 (2026-08-06 운영 DB 실측)</b>: 세션 39와 45가 <b>4초 간격</b>으로
+     * 같은 가격(101)·같은 수량의 KRW-DOGE를 매수해 단일 코인에 16,000원 — <b>동적 자본의
+     * 23%</b> — 가 몰렸다. 두 세션은 전략이 다른데도(ICHIMOKU_V2 / ICHIMOKU) 워치리스트가
+     * 겹치면 같은 tick·같은 신호에 동시에 반응한다. 24시간 평가 기준 DOGE는 6세션, XRP는
+     * 5세션이 동시에 보고 있어 수렴은 예외가 아니라 상시 조건이다.</p>
+     *
+     * <p>7세션을 분산 운용하는 목적 자체가 전략·종목 분산인데, 노출 상한이 없으면 분산된
+     * 것은 세션 수뿐이고 리스크는 한 종목에 합쳐진다. 1로 두면 "한 코인은 한 세션만"이라
+     * 세션 수만큼의 종목 분산이 실제로 보장된다.</p>
+     *
+     * <h3>2026-08-25 → 08-30: 면제했다가 실현손익으로 되돌렸다</h3>
+     *
+     * <p>08-25 에 <b>PAPER 를 이 상한에서 면제</b>했다. 근거는 차단된 BUY 의 24시간
+     * <b>사후수익률</b>이었다 — 막힌 303건이 +4.51%·승률 69.3%였고, 실행된 BUY(−0.96%)보다
+     * 나아서 "게이트가 역선택을 한다"고 판단했다.</p>
+     *
+     * <p><b>그 판단은 틀렸다.</b> 면제 후 실제 실현손익을 세션 동시진입 수로 갈라보니
+     * 정반대였다(08-30, DYN_PAPER 전체):</p>
+     * <pre>
+     *   단독 진입      61건  승률 37.7%   −0.35%/건
+     *   2세션 동시     21건  승률 47.6%   <b>+1.75%</b>/건   ← 여기까지는 오히려 좋다
+     *   3세션 동시     30건  승률 20.0%   <b>−1.33%</b>/건
+     *   4세션 동시     16건  승률  6.3%   <b>−2.13%</b>/건
+     * </pre>
+     *
+     * <p><b>왜 사후수익률과 실현손익이 반대로 나왔나</b>: 사후수익률은 "24시간 뒤 가격"일 뿐
+     * 그사이 경로를 무시한다. 여러 세션이 한 코인에 몰리는 시점은 변동성이 큰 구간이라
+     * <b>24시간 뒤엔 올라 있어도 그 전에 SL 을 맞는다</b>. 실현손익에는 그 손절이 그대로
+     * 찍히지만 사후수익률에는 안 찍힌다. 신호 품질 지표로 진입 규칙을 정하면 이런 괴리가 난다.</p>
+     *
+     * <p>그래서 <b>면제를 되돌리고 상한을 1 → 2 로 올린다</b>. 데이터가 가리키는 값이 2다 —
+     * 1은 과하고(2세션 구간이 +1.75%로 가장 좋다), 3 이상은 명확히 해롭다. PAPER·REAL 모두
+     * 같은 값을 쓴다. 2세션까지 허용하면 08-25 에 지적한 "스캔 순서가 기회를 정한다"는 문제도
+     * 절반은 완화된다.</p>
+     *
+     * <p><b>지문 등재</b>: 이 상수는 08-25 면제 당시 지문에 실려 있지 않아, 면제 전후 거래가
+     * 같은 해시로 섞였다(사후 분리가 진입 시각으로만 가능했다). "동작을 바꾸는 코드 상수는
+     * 지문에 싣는다"는 이 코드베이스의 규칙을 어긴 것이라, 이번에 {@code scan.maxSessionsPerCoin}
+     * 으로 등재한다. 모든 해시가 다시 갈린다.</p>
+     */
+    static final long MAX_SESSIONS_PER_COIN = 2;
+
+    // ── 손절폭/익절가 — 2026-08-06, ExitRuleCalculator로 이전 ───────────────────
+    // 2026-07-31 ATR 기반 개편 + 2026-08-05 재조정 이력은 그 클래스 javadoc 참조.
+    // LIVE(LiveTradingService)도 이제 같은 계산을 호출한다 — 전엔 LIVE만 고정
+    // stopLossPct를 쓰고 있어 07-31 개편이 반쪽만 적용된 상태였다(LIVE 세션 194 BTC
+    // 136시간 고착의 원인).
+    private static final BigDecimal MIN_PNL_PCT_FOR_SELL = new BigDecimal("0.30");
+    /**
+     * 손실 탈출 임계(%) — 2026-08-18 −1.00 → −0.30. 단일 출처는 {@link ExitRuleConfig}
+     * (근거는 그 필드 javadoc — 운영 실측 4/4 게이트 손해, 평균 0.797%p).
+     */
+    private static final BigDecimal LOSS_ESCAPE_THRESHOLD =
+            ExitRuleConfig.defaults().getLossEscapeThresholdPct();
+    /** 거래소 수수료율. 조회 API(DynamicSessionController)도 수수료 환산에 이 값을 쓴다. */
+    public static final BigDecimal FEE_RATE = TradingConstants.FEE_RATE;
+    /**
+     * CLOSING 상태 진입 시각 — 이 시간 초과 시 reconcileClosingPositions()에서 OPEN 롤백.
+     * OrderExecutionEngine.ORDER_TIMEOUT(5분)보다 반드시 길어야 한다 — LiveTradingService와
+     * 동일한 race 방지 이유 (2026-07-02 감사 D-5).
+     */
+    private static final long CLOSING_TIMEOUT_MINUTES = TradingConstants.CLOSING_TIMEOUT_MINUTES;
+    private static final String SESSION_KIND = "DYNAMIC";
+
+    /**
+     * PAPER(모의) 동적 세션의 session_kind (2026-08-06, V67).
+     *
+     * <p>{@code position}/{@code "order"}.session_kind 컬럼이 VARCHAR(10)이라 "DYNAMIC_PAPER"(13자)는
+     * 들어가지 않는다 — 이 값으로 실거래("DYNAMIC")와 완전히 분리해, 실거래 reconcile 스케줄러 4종
+     * ({@link #reconcileDynamicClosingPositions}·{@link #reconcileDynamicGhostPositions}·
+     * {@link #reconcileDynamicOrphanBuyPositions}·{@link #reconcileDynamicSessionBalance})이
+     * PAPER 데이터를 절대 건드리지 않게 한다(전부 {@code SESSION_KIND} 상수로 하드필터돼 있음).</p>
+     */
+    private static final String SESSION_KIND_PAPER = "DYN_PAPER";
+
+    /**
+     * PAPER 체결 슬리피지(0.1%) — {@code PaperTradingService}와 동일 값으로 세 엔진
+     * (백테스트·페이퍼·실전)의 체결 가정을 통일한다. 매수는 불리하게 높게, 매도는 낮게 체결시킨다.
+     */
+    private static final BigDecimal PAPER_SLIPPAGE_PCT = TradingConstants.PAPER_SLIPPAGE_PCT;
+    /** 페이퍼 체결가 출처 (V92 {@code order.fill_price_source}) — 모두 가정 체결이다. */
+    static final String PAPER_FILL_SIGNAL = "PAPER_SIGNAL";
+    static final String PAPER_FILL_LAST_MARK = "PAPER_LAST_MARK";
+    static final String PAPER_FILL_AVG_PRICE = "PAPER_AVG_PRICE";
+
+    /**
+     * 진입(SCANNING) 완화 파라미터 — SCANNING(신규 진입) 경로에만 적용하고,
+     * POSITION_MONITORING(청산) 경로는 기본 임계값을 유지한다.
+     *
+     * <p>1차 완화(2026-07-09, weak 0.25 + EMA200 마진 1%)로도 6일간 매수 0건
+     * (2026-07-15 운영 DB 분석, 평가 35,456건 분해): CompositeStrategy 내부 EMA20/50
+     * 역추세 필터가 BUY 점수를 완전 소멸(5,218건, VWAP:BUY(100) 0.30→0.00 패턴 다수)시키고,
+     * 이를 통과해 BUY로 확정된 ~323건도 EMA200 게이트(283)·BLACK_SWAN(40)이 전량 차단.
+     * 2차 완화(2026-07-15, 사용자 결정 — 관망 대신 거래 빈도 확보):</p>
+     * <ul>
+     *   <li>weak 0.25→0.20 (strong 0.40 유지)</li>
+     *   <li>EMA 역추세 감쇠 0.0(완전 소멸)→0.7 — VWAP:BUY(100) 단독 0.30→0.21로 임계 통과
+     *       가능해지되, 약신호(SUPERTREND:BUY(50)=0.15→0.105)는 여전히 걸러진다</li>
+     *   <li>EMA200 마진 1%→3% — 마진 1%에도 하락장에서 일 23~71건씩 전량 차단됐음</li>
+     * </ul>
+     * <p>ADX 필터는 건드리지 않는다 — adxThreshold 완화(15.0)는 횡보장 손실 확대로
+     * 2026-06-30 제거된 전력 (LiveTradingService 주석 참조).</p>
+     *
+     * <p><b>설정화 (2026-07-15)</b>: 아래 상수는 코드 기본값(폴백)이다. risk_config의
+     * scan_weak_threshold / scan_strong_threshold / scan_ema_dampen_factor /
+     * scan_ema200_buy_margin_pct 가 NOT NULL이면 그 값이 우선한다 (V56) — 재빌드 없이
+     * SQL/API(PUT /api/v1/trading/risk/config)로 조정 가능.</p>
+     */
+    private static final BigDecimal EMA200_BUY_MARGIN_PCT = new BigDecimal("3.0");
+    private static final double SCAN_WEAK_THRESHOLD   = 0.20;  // CompositeStrategy 기본 0.3
+    private static final double SCAN_STRONG_THRESHOLD = 0.40;  // CompositeStrategy 기본 0.5
+    private static final double SCAN_EMA_DAMPEN_FACTOR = 0.7;  // CompositeStrategy 기본 0.0(완전 소멸)
+
+    /**
+     * 워치리스트 품질 큐레이션 기본값 (2026-07-24) — risk_config의 scan_min_trade_value_krw /
+     * scan_max_atr_pct / scan_require_uptrend / scan_exclude_crashing가 NOT NULL이면 그 값이
+     * 우선한다(V57). "거래대금 상위" 원시 유니버스가 펌프-덤프 잡코인으로 채워져 진입 게이트와
+     * 신호가 상쇄되던(2주 실거래 0건) 문제 대응. {@link WatchlistQualityGate} 참조.
+     */
+    private static final BigDecimal SCAN_MIN_TRADE_VALUE_KRW = new BigDecimal("5000000000"); // 50억
+    private static final BigDecimal SCAN_MAX_ATR_PCT = new BigDecimal("4.0");  // H1 기준 ATR% 상한
+    private static final boolean SCAN_REQUIRE_UPTREND = true;
+    private static final boolean SCAN_EXCLUDE_CRASHING = true;
+
+    private final DynamicSessionRepository dynamicSessionRepo;
+    private final PositionRepository positionRepository;
+    private final OrderRepository orderRepository;
+    private final WatchlistFilterService watchlistFilterService;
+    private final SharedUniverseService sharedUniverseService;
+
+    /**
+     * 전략 SELL 청산 사용 여부. 기본 false — 근거는 processMonitoringTick 의 차단 지점 주석 참조.
+     * {@code trading.strategy-signal-exit.enabled: true} 한 줄로 되돌린다.
+     */
+    @org.springframework.beans.factory.annotation.Value("${trading.strategy-signal-exit.enabled:false}")
+    private boolean strategySignalExitEnabled;
+    private final OrderExecutionEngine orderExecutionEngine;
+    private final TelegramNotificationService telegramService;
+    private final RulesetRegistry rulesetRegistry;
+    private final ObjectMapper objectMapper;
+    private final DynamicSessionBalanceUpdater balanceUpdater;
+    /** 포지션 원자적 전환 — 트랜잭션 없는 tick() 에서도 안전하다 (2026-10-07). */
+    private final PositionStateTransition positionStateTransition;
+    private final StrategyLogRepository strategyLogRepository;
+    private final WsSubscriptionManager wsSubscriptionManager;
+    private final StrategyLiveStatusRegistry strategyLiveStatusRegistry;
+    private final StrategyEnablementGate strategyEnablementGate;
+    private final RiskManagementService riskManagementService;
+
+    /** DB에서 ExitRuleChecker를 동적 로드하는 헬퍼 — LIVE·PAPER 와 동일 방식 (2026-09-08) */
+    private com.cryptoautotrader.core.risk.ExitRuleChecker exitChecker() {
+        return riskManagementService.getExitRuleChecker();
+    }
+    private final WalkForwardValidationGate walkForwardValidationGate;
+    private final ApplicationEventPublisher eventPublisher;
+    private final MarketDataSyncService marketDataSyncService;
+
+    @Autowired(required = false)
+    private UpbitRestClient upbitRestClient;
+
+    /**
+     * 배정의 직렬화 지점 (2026-10-12). 🔴 실자금 동적 세션의 생성·재시작은 종전에 **자본 검사가
+     * 전혀 없었다** — LIVE 에만 있었다. 같은 계좌·같은 공유 풀을 쓰므로 같은 잠금·같은 규칙을 지난다.
+     * 🔴 동적 세션의 **매수**는 아직 이 잠금을 지나지 않는다(다음 작업).
+     */
+    @Autowired(required = false)
+    private CapitalReservationService capitalReservationService;
+
+    /** 정지 시 미체결 매수의 닫기·복원을 한 트랜잭션으로 (2026-10-13). */
+    @Autowired
+    private OptimisticRetry optimisticRetry;
+
+    /** 신규 진입의 코인 우선순위 — 등록 단계에서는 같은 평가 회차 후보를 사전 순서로 승인한다 (2026-10-14). */
+    @Autowired
+    private EntryPriorityRounds entryPriorityRounds;
+
+    /** 정지 후 정리 대기 (V87) — 정지가 남긴 포지션을 닫힐 때까지 맡는다. */
+    @Autowired
+    private com.cryptoautotrader.api.repository.PositionCleanupRepository positionCleanupRepository;
+
+    @Autowired
+    private PositionCleanupRegistrar positionCleanupRegistrar;
+
+    @jakarta.persistence.PersistenceContext
+    private jakarta.persistence.EntityManager entityManager;
+
+    @Autowired(required = false)
+    private PortfolioSyncService portfolioSyncService;
+
+    /** 코인별 마지막 실시간(WS) SL/TP 점검 시각 — 5초 throttle */
+    private final Map<String, Long> rtCheckLastMs = new ConcurrentHashMap<>();
+    private static final long RT_CHECK_INTERVAL_MS = 5_000;
+
+    /**
+     * 보호선 첫 통과 (총괄 v1.155 §4-2, 2026-11-12, LIVE 처리기와 같은 규칙) — 코인별로 마지막 전체 점검이 본 OPEN 포지션의
+     * 손절 발동가 최댓값(floor)·익절가 최솟값(ceiling). 5초 간격 안이라도 유효 시세가 floor 를 위에서 아래로, 또는 ceiling 을
+     * 아래에서 위로 처음 넘으면 그 한 번은 점검한다. 매 틱 DB 조회 없음 — 그 뒤 새로 열린 포지션은 다음 정기 점검부터(한계).
+     */
+    private final Map<String, BigDecimal> rtProtectFloor = new ConcurrentHashMap<>();
+    private final Map<String, BigDecimal> rtProtectCeiling = new ConcurrentHashMap<>();
+    private final Map<String, BigDecimal> rtLastValidPrice = new ConcurrentHashMap<>();
+    private static final BigDecimal PROTECT_FLOOR_SLACK = new BigDecimal("1.000001");
+
+    /**
+     * 세션별 마지막 실시간(WS) SL/TP 점검 시각 — {@link #warnStaleSlCheck} 미점검 경고용.
+     * LIVE의 {@code §9 warnStaleSlCheck}와 동일 목적이나, 2026-08-06 이전엔 DYNAMIC에
+     * 대응물 자체가 없었다(2026-08-05 ELSA 2.1%p SL 이탈 사고 당시에도 감시 공백을
+     * 아무도 알아채지 못한 원인). {@link #doOnRealtimePriceEvent}에서만 갱신한다 — 60초
+     * 폴링(processMonitoringTick)은 항상 돌므로 이 워치독의 관심사가 아니다.
+     */
+    private final Map<Long, Instant> lastSlCheckAt = new ConcurrentHashMap<>();
+    private static final long SL_STALE_WARN_MINUTES = TradingConstants.SL_STALE_WARN_MINUTES;
+
+    /**
+     * self-invocation 문제 해결용 — tick()이 @Scheduled(비-프록시 경유)로 직접 호출되면
+     * processTick() 내부의 @Transactional이 Spring 프록시를 우회해 무시된다.
+     * @Lazy 자기 참조로 프록시를 경유시켜 트랜잭션이 실제로 적용되도록 한다.
+     */
+    @Lazy
+    @Autowired
+    private DynamicTradingService self;
+
+    /** 세션+코인 조합별 stateful 전략 인스턴스 (MarketRegimeDetector 상태 격리) */
+    private final Map<String, Strategy> strategyInstances = new ConcurrentHashMap<>();
+
+    /**
+     * 세션+코인 조합별 마지막으로 평가한 <b>닫힌</b> 캔들 시각 — LIVE·PAPER 와 같은 이름을 쓴다.
+     *
+     * <p>2026-09-08 이름 통일. 그전까지 DYNAMIC 만 {@code lastEvaluatedCandle} 이라
+     * "닫힌" 이 빠져 있었다. 순수 리네이밍이지만 방치하면 <b>grep 기반 감사가 오탐을 낸다</b> —
+     * {@code ENGINE_PARITY.md} 를 쓰는 중에 실제로 두 번 틀렸고, 그 문서가 잡으려던 결함이
+     * 바로 "규칙이 한 엔진에만 적용됐는지" 를 사람이 확인하는 일이다. 감사 도구가 못 믿을
+     * 이름을 남겨 두면 감사 자체가 헛돈다.</p>
+     */
+    private final Map<String, Instant> lastEvaluatedClosedCandle = new ConcurrentHashMap<>();
+
+    /**
+     * BLACK_SWAN_GUARD가 진입을 차단한 코인의 마지막 차단 시각 — 코인 단위(세션 무관).
+     * 급등락은 종목의 성질이지 세션의 성질이 아니므로 전 세션이 쿨다운을 공유한다.
+     *
+     * <p>인메모리지만 재기동 시 {@link #restoreBlackSwanCooldown()}이 {@code strategy_log}에서
+     * 복원한다 — 차단 사실 자체는 DB에 남으므로 별도 저장소가 필요 없다.</p>
+     */
+    // 복원 결과를 검증하기 위해 package-private (resolveStopLossPct·pickBestBuyCandidate와 동일 방침)
+    final Map<String, Instant> blackSwanBlockedAt = new ConcurrentHashMap<>();
+
+    /**
+     * BLACK_SWAN_GUARD가 차단한 시점의 가격 — {@link #BLACK_SWAN_PRICE_GUARD_MIN} 진입가 가드 기준.
+     * {@link #blackSwanBlockedAt}와 같은 생애주기로 넣고 지운다.
+     */
+    final Map<String, BigDecimal> blackSwanBlockedPrice = new ConcurrentHashMap<>();
+
+    /** 쿨다운 복원 대상을 가려내는 blocked_reason 접두어 (가드 발동분만 — 아래 주석 참조) */
+    private static final String BLACK_SWAN_BLOCK_PREFIX = "BLACK_SWAN_GUARD 발동";
+
+    /**
+     * 재기동 시 BLACK_SWAN 쿨다운을 {@code strategy_log}에서 복원한다.
+     *
+     * <p><b>왜 필요한가 (2026-08-04 실측)</b>: 쿨다운 맵은 인메모리라 재기동으로 사라진다.
+     * 08-04 13:0x 배포 재기동 때 KRW-META2가 10:00에 가드로 차단돼 쿨다운이 약 40분 남아
+     * 있었는데, 그 잔여분이 통째로 소실됐다. 하필 재기동 직후는 급락이 이미 지나가
+     * <b>가드 본체는 안 걸리고 쿨다운만 필요한 구간</b>이라, 1차 방어가 있으니 괜찮다는
+     * 기존 판단(위 필드 주석)이 실제로는 성립하지 않는다. 08-03 ELSA 사고(가드 4회 차단 →
+     * 해제 직후 진입 → −8.33%)와 같은 창이 재기동마다 다시 열린다.</p>
+     *
+     * <p>복원 대상을 {@code BLACK_SWAN_GUARD 발동}으로 한정하는 것이 핵심이다. 쿨다운이
+     * 남긴 차단 로그({@code BLACK_SWAN 쿨다운 …})까지 포함하면 쿨다운이 스스로를 갱신해
+     * <b>영구 차단으로 굳는다</b>.</p>
+     *
+     * <p>실패해도 기동을 막지 않는다 — 복원은 2차 방어의 연장이고, 가드 본체는 독립적으로 돈다.</p>
+     */
+    @EventListener(ApplicationReadyEvent.class)
+    public void restoreBlackSwanCooldown() {
+        try {
+            // 진입가 가드(24시간)가 쿨다운(4시간)보다 길므로 더 긴 쪽을 조회 구간으로 잡는다.
+            Instant from = Instant.now().minus(
+                    Math.max(BLACK_SWAN_COOLDOWN_MIN, BLACK_SWAN_PRICE_GUARD_MIN), ChronoUnit.MINUTES);
+            List<Object[]> rows = strategyLogRepository.findRecentBlockedCoins(
+                    SESSION_KIND, from, BLACK_SWAN_BLOCK_PREFIX);
+            // 오래된 순으로 오므로 순서대로 덮어쓰면 코인별 가장 최근 차단이 남는다.
+            for (Object[] row : rows) {
+                if (row[0] == null || row[1] == null) continue;
+                String coinPair = (String) row[0];
+                blackSwanBlockedAt.put(coinPair, (Instant) row[1]);
+                // signalPrice는 과거 로그에 없을 수 있다 — 그 경우 쿨다운만 복원하고
+                // 진입가 가드는 기준가가 없으므로 자동으로 비활성이 된다.
+                if (row[2] != null) {
+                    blackSwanBlockedPrice.put(coinPair, (BigDecimal) row[2]);
+                } else {
+                    blackSwanBlockedPrice.remove(coinPair);
+                }
+            }
+            if (!rows.isEmpty()) {
+                log.info("[Dynamic] BLACK_SWAN 쿨다운 복원: {}종 {} (진입가 가드 기준가 {}종)",
+                        blackSwanBlockedAt.size(), blackSwanBlockedAt.keySet(),
+                        blackSwanBlockedPrice.size());
+            }
+        } catch (Exception e) {
+            log.warn("[Dynamic] BLACK_SWAN 쿨다운 복원 실패 — 가드 본체로 진행: {}", e.getMessage());
+        }
+    }
+
+    public DynamicTradingService(DynamicSessionRepository dynamicSessionRepo,
+                                  PositionRepository positionRepository,
+                                  OrderRepository orderRepository,
+                                  WatchlistFilterService watchlistFilterService,
+                                  SharedUniverseService sharedUniverseService,
+                                  OrderExecutionEngine orderExecutionEngine,
+                                  TelegramNotificationService telegramService,
+                                  RulesetRegistry rulesetRegistry,
+                                  ObjectMapper objectMapper,
+                                  DynamicSessionBalanceUpdater balanceUpdater,
+                                  PositionStateTransition positionStateTransition,
+                                  StrategyLogRepository strategyLogRepository,
+                                  WsSubscriptionManager wsSubscriptionManager,
+                                  StrategyLiveStatusRegistry strategyLiveStatusRegistry,
+                                  StrategyEnablementGate strategyEnablementGate,
+                                  RiskManagementService riskManagementService,
+                                  WalkForwardValidationGate walkForwardValidationGate,
+                                  ApplicationEventPublisher eventPublisher,
+                                  MarketDataSyncService marketDataSyncService) {
+        this.dynamicSessionRepo   = dynamicSessionRepo;
+        this.positionRepository   = positionRepository;
+        this.orderRepository      = orderRepository;
+        this.watchlistFilterService = watchlistFilterService;
+        this.sharedUniverseService = sharedUniverseService;
+        this.orderExecutionEngine = orderExecutionEngine;
+        this.telegramService      = telegramService;
+        this.rulesetRegistry      = rulesetRegistry;
+        this.objectMapper         = objectMapper;
+        this.balanceUpdater       = balanceUpdater;
+        this.positionStateTransition = positionStateTransition;
+        this.strategyLogRepository = strategyLogRepository;
+        this.wsSubscriptionManager = wsSubscriptionManager;
+        this.strategyLiveStatusRegistry = strategyLiveStatusRegistry;
+        this.strategyEnablementGate = strategyEnablementGate;
+        this.riskManagementService = riskManagementService;
+        this.walkForwardValidationGate = walkForwardValidationGate;
+        this.eventPublisher = eventPublisher;
+        this.marketDataSyncService = marketDataSyncService;
+    }
+
+    // ── 세션 생성 ──────────────────────────────────────────────────
+
+    @Transactional
+    public DynamicSessionEntity createSession(DynamicSessionRequest req) {
+        StrategyRegistry.get(req.getStrategyType()); // 유효성 검증
+
+        boolean isPaper = "PAPER".equals(req.getTradingMode());
+
+        // 비활성 전략 차단 — strategy_type_enabled에서 꺼진 전략은 세션 생성 거부.
+        // (UI 드롭다운 필터만으로는 select 표시/상태 불일치 등으로 우회될 수 있어 서버에서 강제)
+        // 2026-08-18: 규칙을 StrategyEnablementGate로 추출 — LIVE·PAPER 경로도 같은 검사를 받는다.
+        // 타임프레임까지 확인한다 (2026-09-08 V80) — 그전에는 MEANREV_BB@M15 가 폐기돼도
+        // 같은 조합으로 새 세션을 만드는 것을 아무도 막지 않았다.
+        strategyEnablementGate.assertEnabled(req.getStrategyType(), req.getTimeframe());
+
+        // 자본 배정 게이트 2종은 PAPER에 적용하지 않는다 — 이 두 게이트는 "실자본을 쓸 자격이
+        // 있는가"를 묻는 것이고, 페이퍼는 정확히 그 자격을 얻기 전에 검증하는 도구다.
+        // (2026-08-06, PaperTradingService LIVE 정렬 때와 동일한 판단)
+        if (!isPaper) {
+            // 전략 거버넌스 검증 — BLOCKED/DEPRECATED 전략은 동적 세션 생성도 차단한다.
+            // 기존에는 이 검사가 라이브 세션에도 동적 세션에도 강제되지 않아, 두 경로 모두
+            // StrategyLiveStatusRegistry 라벨을 우회해 BLOCKED 전략으로 실돈 세션 생성이 가능했다.
+            if (strategyLiveStatusRegistry.isBlocked(req.getStrategyType())) {
+                StrategyLiveStatusRegistry.StatusEntry status = strategyLiveStatusRegistry.getStatus(req.getStrategyType());
+                throw new IllegalArgumentException(String.format(
+                        "전략 '%s'은(는) 동적 세션 생성이 차단되었습니다 (%s): %s",
+                        req.getStrategyType(), status.readiness(), status.reason()));
+            }
+
+            // 신호 기대값 검증 게이트 — Walk Forward로 out-of-sample 기대값>0이 증명된 전략만 통과.
+            // 기본은 비활성(플래그 off)이라 당장은 강제하지 않는다.
+            // 코인은 스캔 후 정해지지만 타임프레임은 생성 시점에 확정이다 (2026-09-08).
+            walkForwardValidationGate.throwIfBlockedByTimeframe(
+                    req.getStrategyType(), req.getTimeframe());
+        }
+
+        BigDecimal investRatio = normalizeRatio(req.getInvestRatio(), new BigDecimal("0.80"));
+        BigDecimal stopLoss    = req.getStopLossPct() != null ? req.getStopLossPct() : new BigDecimal("5.0");
+
+        DynamicSessionEntity session = DynamicSessionEntity.builder()
+                .strategyType(req.getStrategyType())
+                .timeframe(req.getTimeframe())
+                .initialCapital(req.getInitialCapital())
+                .availableKrw(req.getInitialCapital())
+                .totalAssetKrw(req.getInitialCapital())
+                .investRatio(investRatio)
+                .stopLossPct(stopLoss)
+                .strategyParams(req.getStrategyParams())
+                .status("CREATED")
+                .scanState("SCANNING")
+                .tradingMode(isPaper ? "PAPER" : DynamicSessionEntity.DEFAULT_TRADING_MODE)
+                                .maxCandidateSize(firstNonNull(req.getMaxCandidateSize(),
+                        scanDefaults().getScanMaxCandidateSize(), 30))
+                .targetWatchSize(req.getTargetWatchSize() != null ? req.getTargetWatchSize() : 10)
+                // 워치리스트 필터 기본값: 요청 > risk_config > 코드 하드코딩 (V71).
+                // risk_config 를 중간에 둔 이유 — 08-07 세션 재생성 때 7월의 튜닝
+                // (ATR 0.30 / 스프레드 0.15)이 코드 기본값으로 조용히 되돌아가 감시 코인이
+                // 주당 62종 → 10종으로 붕괴했다. 전역 설정은 재생성에도 살아남는다.
+                .minAtrPct(firstNonNull(req.getMinAtrPct(),
+                        scanDefaults().getScanMinAtrPct(), new BigDecimal("0.5")))
+                .maxSpreadPct(firstNonNull(req.getMaxSpreadPct(),
+                        scanDefaults().getScanMaxSpreadPct(), new BigDecimal("0.1")))
+                .watchlistRefreshMin(req.getWatchlistRefreshMin() != null ? req.getWatchlistRefreshMin() : 60)
+                .maxHoldHours(req.getMaxHoldHours() != null
+                        ? req.getMaxHoldHours()
+                        : DynamicSessionEntity.DEFAULT_MAX_HOLD_HOURS)
+                .build();
+
+        if (!isPaper) {
+            requireAllocation(null, req.getInitialCapital(), req.getInitialCapital());
+        }
+
+        session = dynamicSessionRepo.save(session);
+        log.info("[Dynamic] 세션 생성: id={} strategy={} timeframe={} capital={} mode={}",
+                session.getId(), session.getStrategyType(), session.getTimeframe(),
+                session.getInitialCapital(), session.getTradingMode());
+        return session;
+    }
+
+    /**
+     * 실자금 동적 세션의 배정 검사 — LIVE 와 같은 잠금·같은 규칙 (2026-10-12).
+     *
+     * <p>🔴 예약 서비스가 없으면 <b>거절한다</b>. 검사 없이 실자금 배정을 통과시키지 않는다.</p>
+     */
+    private void requireAllocation(Long sessionId, BigDecimal allocation, BigDecimal krwToHold) {
+        if (capitalReservationService == null) {
+            throw new IllegalStateException("배정 검사 서비스가 없다 — 실자금 동적 세션을 배정하지 않는다");
+        }
+        if (portfolioSyncService != null) {
+            portfolioSyncService.syncBalance();   // 🔴 잠금 밖에서 스냅숏을 갱신한다
+        }
+        CapitalReservationService.Decision d = capitalReservationService.checkSessionAllocation(
+                "DYNAMIC", sessionId, allocation, krwToHold);
+        if (!d.approved()) {
+            throw new IllegalStateException("자본 초과 배정 (" + d.code() + "): " + d.message());
+        }
+    }
+
+    /**
+     * 실자금 동적 세션 <b>시작</b>의 배정 검사 — LIVE 와 같은 잠금 순서 계좌 → 세션 (2026-10-14).
+     *
+     * <p>스냅숏(거래소 호출)은 잠금 <b>전에</b> 갱신하고, 계좌 → 세션 순으로 잠근 뒤 세션을 다시 읽는다. 잠그기 전에 읽은
+     * 사본을 저장하면 그 사이 늦은 체결 반영(주문 → 포지션 → 세션)이 바꾼 행과 버전이 엇갈려 시작이 실패한다. 같은 세션의
+     * 동시 시작은 잠근 뒤 다시 본 상태로 하나만 통과한다. 계좌 동기화·잠금·배정 검사 외의 일은 하지 않는다.</p>
+     */
+    private void requireAllocation(DynamicSessionEntity session) {
+        if (capitalReservationService == null) {
+            throw new IllegalStateException("배정 검사 서비스가 없다 — 실자금 동적 세션을 배정하지 않는다");
+        }
+        Long sessionId = session.getId();
+        if (portfolioSyncService != null) {
+            portfolioSyncService.syncBalance();   // 🔴 잠금 밖에서 스냅숏을 갱신한다
+        }
+        capitalReservationService.lockAccountBeforeSession("DYNAMIC 세션 시작 #" + sessionId);
+        dynamicSessionRepo.lockAndReadStatus(sessionId);
+        entityManager.refresh(session);
+        if ("RUNNING".equals(session.getStatus())) {
+            throw new IllegalStateException("이미 실행 중입니다: id=" + sessionId);
+        }
+        CapitalReservationService.Decision d = capitalReservationService.checkSessionAllocation(
+                "DYNAMIC", sessionId, session.getInitialCapital(), session.getAvailableKrw());
+        if (!d.approved()) {
+            throw new IllegalStateException("자본 초과 배정 (" + d.code() + "): " + d.message());
+        }
+    }
+
+    // ── 세션 시작 ──────────────────────────────────────────────────
+
+    @Transactional
+    public DynamicSessionEntity startSession(Long sessionId) {
+        DynamicSessionEntity session = getOrThrow(sessionId);
+        if ("RUNNING".equals(session.getStatus())) {
+            throw new IllegalStateException("이미 실행 중입니다: id=" + sessionId);
+        }
+        if (!session.isPaper()) {
+            requireAllocation(session);
+        }
+        session.setStatus("RUNNING");
+        session.setStartedAt(Instant.now());
+        session.setStoppedAt(null);
+        session = dynamicSessionRepo.save(session);
+        log.info("[Dynamic] 세션 시작: id={} {} {}", sessionId, session.getStrategyType(), session.getTimeframe());
+        telegramService.notifySessionStarted(sessionId, session.getStrategyType(),
+                "멀티코인-동적", session.getTimeframe(), session.getInitialCapital().longValue());
+        refreshWsSubscription();
+        return session;
+    }
+
+    // ── 세션 정지 ──────────────────────────────────────────────────
+
+    @Transactional
+    public DynamicSessionEntity stopSession(Long sessionId) {
+        DynamicSessionEntity session = getOrThrow(sessionId);
+        if (!"RUNNING".equals(session.getStatus())) {
+            throw new IllegalStateException("실행 중이 아닙니다: id=" + sessionId);
+        }
+        // 🔴 미종결 매수에 취소를 요청한다 (2026-10-13, LIVE `cancelSessionActiveOrders` 와 같은 규칙).
+        //    종전 DYNAMIC 정지는 취소를 하지 않았다 — 나간 매수가 정지 후에 그대로 체결됐다.
+        cancelSessionActiveBuys(session);
+        closeOpenPositions(session, "세션 정지 — 포지션 청산");
+        clearSessionState(sessionId);
+        // ⚠️ 2026-08-19 P0: closeOpenPositions() 안에서 balanceUpdater(REQUIRES_NEW)가 세션을
+        //    이미 두 번 커밋했다 — 매도대금 반영(finalizeDynamicSell)과 SCANNING 복귀
+        //    (transitionToScanning). 여기서 위에서 읽은 **낡은 엔티티**를 save() 하면 @Version 이
+        //    어긋나 OptimisticLockingFailure 가 나고 **바깥 트랜잭션만** 롤백된다. 별도 트랜잭션으로
+        //    커밋된 매도대금은 롤백되지 않으므로, 정지를 누를 때마다 대금이 중복 지급되고
+        //    포지션은 OPEN 으로 되돌아온다 → 정지가 영구히 실패하는 무한 증식 루프.
+        //    (세션 49: 21회 시도로 available_krw 10,000 → 174,752, 포지션 2458 은 OPEN 잔존)
+        //    반드시 재조회+낙관적 락 재시도 경로(balanceUpdater)로 상태를 바꾼다.
+        session = balanceUpdater.apply(sessionId, s -> {
+            s.setStatus("STOPPED");
+            s.setStoppedAt(Instant.now());
+        });
+        log.info("[Dynamic] 세션 정지: id={}", sessionId);
+        // 🔴 정지는 신규 승인·claim 만 막는다 (2026-10-13, LIVE stopSession 과 같은 규칙). 이미 claim 된
+        //    주문은 접수됐을 수 있으므로 미해결 제출이 남은 세션을 **정리 완료로 보지 않는다.**
+        //    추적은 세션 상태와 무관하게 계속되고, 종결은 근거를 확인한 사람이 한다.
+        long unresolved = orderRepository.countUnresolvedSubmissions(SESSION_KIND, sessionId);
+        if (unresolved > 0) {
+            log.warn("[Dynamic] 🔴 정지했으나 **정리 미완료** — 미해결 제출 {}건이 남았다 (sessionId={}). "
+                    + "자금·슬롯을 점유한 것으로 두고 추적을 계속한다.", unresolved, sessionId);
+            try {
+                telegramService.notifyCleanupIncomplete(sessionId, unresolved);
+            } catch (Exception e) {
+                log.warn("[Dynamic] 정리 미완료 알림 실패 (sessionId={}): {}", sessionId, e.getMessage());
+            }
+        }
+        refreshWsSubscription();
+        return session;
+    }
+
+    // ── 세션 비상 정지 ─────────────────────────────────────────────
+
+    @Transactional
+    public DynamicSessionEntity emergencyStop(Long sessionId) {
+        return emergencyStop(sessionId, s -> {});
+    }
+
+    /**
+     * 비상 정지 — 서킷 브레이커 필드처럼 상태 전환과 <b>같은 행에 같이 써야 하는</b> 추가
+     * 필드가 있을 때 쓴다.
+     *
+     * <p><b>2026-08-25 P0 — 자기 자신과의 데드락</b>: 서킷 브레이커 발동 시 {@code processTick()}이
+     * 바깥 트랜잭션에서 {@code dynamicSessionRepo.save(fresh)}로 이 세션 행을 먼저 UPDATE하고
+     * (커밋 전), 곧바로 이 메서드를 호출해 {@code balanceUpdater}(REQUIRES_NEW)가 <b>같은 행</b>을
+     * 다시 UPDATE하려 했다. REQUIRES_NEW는 새 커넥션을 쓰지만 같은 스레드에서 동기 호출이라,
+     * 바깥 트랜잭션(커밋 대기 중)이 쥔 행 잠금을 안쪽 트랜잭션이 기다리고, 바깥은 안쪽 호출이
+     * 끝나야 다음으로 진행해 커밋하는 순환 대기 — 타임아웃 없는 Postgres에서 영원히 멈춘다
+     * (동적 세션 16개 전부 29시간 무응답 사고의 원인). 바깥 트랜잭션은 이 행을 <b>절대 직접
+     * 쓰지 않고</b>, 모든 필드 변경을 이 REQUIRES_NEW 갱신 하나로 모아야 한다.</p>
+     */
+    @Transactional
+    public DynamicSessionEntity emergencyStop(Long sessionId, Consumer<DynamicSessionEntity> extraMutations) {
+        DynamicSessionEntity session = getOrThrow(sessionId);
+        cancelSessionActiveBuys(session);
+        closeOpenPositions(session, "비상 정지 — 강제 청산");
+        clearSessionState(sessionId);
+        // stopSession() 과 동일한 이유로 재조회 경로를 쓴다 — 위 stopSession() 주석 참조.
+        session = balanceUpdater.apply(sessionId, s -> {
+            extraMutations.accept(s);
+            s.setStatus("EMERGENCY_STOPPED");
+            s.setStoppedAt(Instant.now());
+        });
+        log.error("[Dynamic] 세션 비상 정지 완료: id={}", sessionId);
+        refreshWsSubscription();
+        return session;
+    }
+
+    // ── 세션 삭제 (soft) ───────────────────────────────────────────
+
+    @Transactional
+    public void deleteSession(Long sessionId) {
+        DynamicSessionEntity session = getOrThrow(sessionId);
+        if ("RUNNING".equals(session.getStatus())) {
+            throw new IllegalStateException("실행 중인 세션은 삭제할 수 없습니다. 먼저 정지하세요.");
+        }
+
+        // 정지 시 청산이 누락된 orphan OPEN 포지션 정리 (LiveTradingService.deleteSession과 동일 정책)
+        List<PositionEntity> openPositions =
+                positionRepository.findBySessionKindAndSessionIdAndStatus(sessionKind(session), sessionId, "OPEN");
+        for (PositionEntity pos : openPositions) {
+            pos.setStatus("CLOSED");
+            pos.setClosedAt(Instant.now());
+            positionRepository.save(pos);
+            log.warn("[Dynamic] 세션 삭제 시 미청산 포지션 강제 종료: posId={} {} (sessionId={})",
+                    pos.getId(), pos.getCoinPair(), sessionId);
+        }
+
+        // soft-delete — 행/링크 보존, 상태만 DELETED (전략로그/주문로그 조회 유지)
+        session.setStatus("DELETED");
+        if (session.getStoppedAt() == null) session.setStoppedAt(Instant.now());
+        dynamicSessionRepo.save(session);
+        clearSessionState(sessionId);
+        log.info("[Dynamic] 세션 삭제(soft) 완료: id={} → status=DELETED", sessionId);
+    }
+
+    // ── 조회 ───────────────────────────────────────────────────────
+
+    @Transactional(readOnly = true)
+    public List<DynamicSessionEntity> listSessions() {
+        // DELETED 세션은 목록에서 제외 (로그 조회용 getSessionIndex()에는 유지)
+        return dynamicSessionRepo.findAllByOrderByCreatedAtDesc().stream()
+                .filter(s -> !"DELETED".equals(s.getStatus()))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public DynamicSessionEntity getSession(Long sessionId) {
+        return getOrThrow(sessionId);
+    }
+
+    /**
+     * 세션 인덱스 — 전략로그/주문로그 선택 UI용. {@code TradingController.sessionIndex()}가
+     * 라이브 세션 인덱스에 이 목록을 합쳐 반환한다. dynamic_session 은 hard/soft delete가 없으므로
+     * 테이블 전체를 그대로 반환한다.
+     */
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getSessionIndex() {
+        return dynamicSessionRepo.findAllByOrderByCreatedAtDesc().stream()
+                .map(s -> {
+                    Map<String, Object> m = new java.util.LinkedHashMap<>();
+                    m.put("sessionId", s.getId());
+                    m.put("strategyType", s.getStrategyType());
+                    m.put("coinPair", s.getCurrentCoinPair() != null ? s.getCurrentCoinPair() : "멀티코인");
+                    m.put("status", s.getStatus());
+                    m.put("sessionType", sessionKind(s));
+                    return m;
+                })
+                .toList();
+    }
+
+    // ── 스케줄: 60초마다 실행 ─────────────────────────────────────
+
+    @Scheduled(fixedDelay = 60_000, initialDelay = 50_000)
+    public void tick() {
+        List<DynamicSessionEntity> running = dynamicSessionRepo.findByStatus("RUNNING");
+        if (running.isEmpty()) return;
+
+        // 틱 캔들 캐시 (2026-09-08) — 동적 세션은 워치리스트를 세션마다 통째로 훑으므로
+        // 같은 (코인, 타임프레임) 조회가 세션 수만큼 반복됐다. PAPER 에만 있던 캐시를 공용으로
+        // 올려 틱당 1회로 줄인다. processTick 이 @Transactional 프록시 경유라 인자로 넘길 수 없어
+        // 스레드 스코프를 쓴다(TickCandleCache javadoc 참조).
+        TickCandleCache.begin();
+        try {
+            for (DynamicSessionEntity session : running) {
+                try {
+                    // self 프록시를 경유해야 @Transactional이 실제로 적용된다 (self-invocation 우회 방지)
+                    self.processTick(session);
+                } catch (Exception e) {
+                    log.error("[Dynamic] 세션 tick 오류 (id={}): {}", session.getId(), e.getMessage(), e);
+                }
+            }
+        } finally {
+            TickCandleCache.end();
+        }
+    }
+
+    // ── 내부: tick 분기 ────────────────────────────────────────────
+
+    @Transactional
+    public void processTick(DynamicSessionEntity session) {
+        Long sid = session.getId();
+        // tick()에서 넘어온 엔티티는 트랜잭션 밖에서 읽은 스냅샷 — 그 사이 WS 매도 등으로
+        // scanState가 바뀌었을 수 있으므로 최신 상태를 다시 읽어 분기한다.
+        DynamicSessionEntity fresh = dynamicSessionRepo.findById(sid).orElse(null);
+        if (fresh == null || !"RUNNING".equals(fresh.getStatus())) return;
+
+        // ── 서킷 브레이커 — MDD 초과 / 연속 손실 한도 초과 시 비상 정지 ──
+        // LiveTradingService와 동일 정책. 2026-07-15 진입 2차 완화로 동적 세션이 실제 매매를
+        // 시작하므로, 라이브 191(-208원, 5연속 손절)을 멈춰준 안전장치를 동적 경로에도 적용한다.
+        // 연속 손실은 이번 가동(startedAt) 이후 청산분만 집계 — 재시작 시 즉시 재발동 방지.
+        CircuitBreakerResult cbResult = riskManagementService.checkCircuitBreaker(fresh);
+        if (cbResult.isTriggered()) {
+            log.error("[Dynamic] 서킷 브레이커 발동 (id={}): {}", sid, cbResult.getReason());
+            // ⚠️ 2026-08-25 P0: 여기서 dynamicSessionRepo.save(fresh)로 이 행을 먼저 커밋 전에
+            // 써두고 emergencyStop()을 부르면, emergencyStop 내부 REQUIRES_NEW 갱신이 같은 행의
+            // 잠금을 기다리며 자기 자신과 데드락한다(emergencyStop 문서 참조). 서킷 브레이커
+            // 필드는 emergencyStop의 단일 REQUIRES_NEW 갱신에 실어 보낸다 — 이 트랜잭션은
+            // 세션 행을 절대 직접 쓰지 않는다.
+            int tripCount = fresh.getCircuitBreakerTripCount() + 1;
+            emergencyStop(sid, s -> {
+                s.setCircuitBreakerTriggeredAt(Instant.now());
+                s.setCircuitBreakerReason(cbResult.getReason());
+                s.setCircuitBreakerTripCount(tripCount);
+            });
+            telegramService.sendCustomNotification(String.format(
+                    "🚨 [동적#%d] 서킷 브레이커 발동 — 비상 정지: %s", sid, cbResult.getReason()));
+            return;
+        }
+
+        if ("SCANNING".equals(fresh.getScanState())) {
+            // ⚠️ 2026-08-27 P0: SCANNING 인데 이미 OPEN 포지션이 있으면 스캔하지 않고 감시로 돌린다.
+            // 운영 실측(세션 60) — 포지션 2852(KRW-STX, 08-23 진입)를 든 채 scanState 가 SCANNING
+            // 으로 어긋나 있었고, 그 결과 ① 그 포지션이 SL/TP/time stop 감시에서 통째로 빠져
+            // 59시간+ 방치됐으며(maxHoldHours=24 인데도), ② 08-26 03:00 같은 코인을 **또** 매수해
+            // (60, KRW-STX, OPEN) 이 2건이 됐고, ③ processMonitoringTick 의 Optional 조회가
+            // IncorrectResultSizeDataAccessException 으로 터지면서 **세션이 21시간 영구 정지**했다.
+            //
+            // 불일치가 어느 경로에서 생기든(여러 reconcile 이 transitionToScanning 을 부른다) 다음
+            // 틱에 스스로 복구시키는 것이 목적이다. PAPER 는 reconcileDynamicSessionBalance /
+            // reconcileDynamicOrphanBuyPositions 가 둘 다 REAL 만 보므로 이 불일치를 잡는 안전망이
+            // 아예 없었다 — 그래서 이 가드는 PAPER·REAL 공통이다.
+            List<PositionEntity> openPositions = positionRepository
+                    .findBySessionKindAndSessionIdAndStatus(sessionKind(fresh), sid, "OPEN");
+            if (!openPositions.isEmpty()) {
+                PositionEntity resume = openPositions.get(0);
+                log.error("[Dynamic] 🔴 상태 불일치 자가복구: SCANNING 인데 OPEN 포지션 {}건 존재 "
+                                + "— POSITION_MONITORING 복귀 (id={}, {} posId={})",
+                        openPositions.size(), sid, resume.getCoinPair(), resume.getId());
+                balanceUpdater.apply(sid, s -> {
+                    s.setScanState("POSITION_MONITORING");
+                    s.setCurrentCoinPair(resume.getCoinPair());
+                    s.setCurrentPositionId(resume.getId());
+                });
+                refreshWsSubscription();
+                return;
+            }
+            processScanningTick(fresh);
+        } else {
+            processMonitoringTick(fresh);
+        }
+    }
+
+    /**
+     * SCANNING 단계에서 BUY 신호를 낸 코인 후보 — 전체 워치리스트 평가 후 최고 강도 신호를
+     * 선택하기 위해 즉시 실행하지 않고 임시 보관한다.
+     */
+    // package-private (private 아님) — DynamicScanSelectionTest에서 선택 로직 단위 테스트를 위해 필요
+    record BuyCandidate(String coinPair, List<Candle> evalCandles,
+                         StrategySignal signal, StrategyLogEntity signalLog,
+                         BigDecimal sizeMultiplier) {}
+
+    /**
+     * 회차 승인 차례에 부른다 (2026-10-14) — 자기 트랜잭션에서 세션을 다시 읽고, 평가 때와 지금 사이에 바뀐 것(정지·보유)을
+     * 확인한 뒤 같은 매수 경로({@link #executeBuy})를 탄다. {@code self} 프록시로 불러야 트랜잭션이 걸린다.
+     *
+     * @return 진입했으면 {@code null}, 아니면 사유
+     */
+    @Transactional
+    public String approveQueuedEntry(Long sid, String coinPair, List<Candle> evalCandles, StrategySignal signal,
+                                     BigDecimal sizeMultiplier, StrategyLogEntity signalLog) {
+        return approveQueuedEntry(sid, coinPair, evalCandles, signal, sizeMultiplier, signalLog, null);
+    }
+
+    /** @param entryExpiresAt 승인 실행 만료(N15) — 계좌 잠금 안 예약 직전에 다시 본다. {@code null} 이면 보지 않는다. */
+    @Transactional
+    public String approveQueuedEntry(Long sid, String coinPair, List<Candle> evalCandles, StrategySignal signal,
+                                     BigDecimal sizeMultiplier, StrategyLogEntity signalLog, Instant entryExpiresAt) {
+        DynamicSessionEntity fresh = dynamicSessionRepo.findById(sid).orElse(null);
+        String result;
+        if (fresh == null || !"RUNNING".equals(fresh.getStatus())) {
+            result = "승인 차례에 세션이 실행 중이 아니다";
+        } else if (!"SCANNING".equals(fresh.getScanState())
+                || !positionRepository.findBySessionKindAndSessionIdAndStatus(sessionKind(fresh), sid, "OPEN").isEmpty()) {
+            result = "승인 차례에 이미 포지션이 있다";
+        } else {
+            result = approvalTimeGate(fresh, coinPair, evalCandles);
+            if (result == null) {
+                result = executeBuy(fresh, coinPair, evalCandles, signal, sizeMultiplier, entryExpiresAt);
+            }
+        }
+        updateSignalQuality(signalLog, result == null, result);
+        return result;
+    }
+
+    /**
+     * 승인 시점 관문 (2026-10-15) — 통과면 {@code null}.
+     *
+     * <p>승인은 평가보다 최대 마감 유예(5분)만큼 늦다. 평가 관문 중 <b>그 사이에 바뀔 수 있는 것</b>만 다시 본다 — 세션 서킷
+     * 브레이커, 손실 청산 쿨다운, 블랙스완 쿨다운(다른 세션의 차단 기록이 쌓인다), 세션 간 동일 코인 노출 상한(🔴 같은 회차에
+     * 같은 코인 후보가 여럿이면 평가 때는 모두 통과한다 — 앞 순위가 승인되면 여기서 상한에 걸린다). 마감 캔들만 입력으로 받는
+     * 관문(EMA200·횡보·블랙스완 낙폭·BTC 급락·Walk Forward)은 승인 마감이 다음 캔들 마감보다 앞서므로 결과가 같아 다시 보지
+     * 않는다. 서킷 브레이커가 걸렸으면 진입만 막는다(정지는 다음 틱의 평가가 한다).</p>
+     *
+     * <p>🔴 단 BTC 급락 관문의 <b>판정 가능 여부</b>는 시각에 따라 바뀐다(수집이 멎으면 평가 뒤에 낡는다) — 승인 시점에 다시 보고,
+     * 판정 불가면 막는다(2026-10-15 리뷰 8회차). 발동 여부는 같은 마감 봉이므로 평가 때와 같다.</p>
+     */
+    private String approvalTimeGate(DynamicSessionEntity session, String coinPair, List<Candle> evalCandles) {
+        Long sid = session.getId();
+        String kind = sessionKind(session);
+        CircuitBreakerResult cb = riskManagementService.checkCircuitBreaker(session);
+        if (cb.isTriggered()) {
+            return "승인 차례에 서킷 브레이커 조건: " + cb.getReason();
+        }
+        com.cryptoautotrader.api.entity.RiskConfigEntity riskConfig = riskManagementService.getRiskConfig();
+        int lossCooldownMinutes = riskConfig.getCooldownMinutes() != null ? riskConfig.getCooldownMinutes() : 60;
+        if (isInLossCooldown(kind, sid, coinPair, lossCooldownMinutes)) {
+            return String.format("승인 차례에 손실 청산 쿨다운 — 직전 손실 청산 후 %d분 내 동일 코인 재진입 차단", lossCooldownMinutes);
+        }
+        BigDecimal evalPrice = evalCandles.isEmpty() ? null : evalCandles.get(evalCandles.size() - 1).getClose();
+        BlackSwanGateDecision blackSwan = evaluateBlackSwanGate(
+                blackSwanBlockedAt.get(coinPair), blackSwanBlockedPrice.get(coinPair), evalPrice, Instant.now());
+        if (blackSwan.blockReason() != null) {
+            return "승인 차례에 " + blackSwan.blockReason();
+        }
+        long heldElsewhere = positionRepository.countBySessionKindAndCoinPairAndStatusAndSessionIdNot(kind, coinPair, "OPEN", sid);
+        String crossReason = crossSessionExposureBlockReason(heldElsewhere);
+        if (crossReason != null) {
+            return "승인 차례에 " + crossReason;
+        }
+        BtcMarketGuard.Result btc = btcMarketGate(session.getTimeframe());
+        if (btc.unknown()) {
+            return "승인 차례에 BTC_MARKET_GUARD 판정 불가 — " + btc.reason();
+        }
+        return null;
+    }
+
+    /**
+     * BUY 후보 중 신호 강도(strength)가 가장 높은 것을 선택한다. 동률이면 먼저 평가된(워치리스트
+     * 순서상 앞선) 코인을 유지한다(스트림 max()는 첫 최댓값을 보존).
+     */
+    static BuyCandidate pickBestBuyCandidate(List<BuyCandidate> candidates) {
+        return candidates.stream()
+                .max(java.util.Comparator.comparing(c -> c.signal().getStrength()))
+                .orElseThrow();
+    }
+
+    /**
+     * SCANNING: 워치리스트 전체 코인을 평가한 뒤, BUY 신호를 낸 코인 중 신호 강도(strength)가
+     * 가장 높은 코인 하나에만 진입한다.
+     *
+     * <p>이전에는 워치리스트를 거래대금 내림차순으로 순회하다 첫 BUY 신호에서 즉시 진입해,
+     * 실제로는 신호 품질이 아니라 "거래대금 순위"가 진입 코인을 결정하고 있었다
+     * (2026-07-02 종합분석 DM-1). 전체 평가 후 최고 confidence 선택으로 개선.</p>
+     */
+    @Transactional
+    public void processScanningTick(DynamicSessionEntity session) {
+        Long sid = session.getId();
+        List<String> watchlist = resolveWatchlist(session);
+
+        if (watchlist.isEmpty()) {
+            // 진단용 — 워치리스트가 비는 것은 ATR/스프레드 필터가 너무 빡빡하거나 거래소 응답
+            // 문제일 수 있다. 어떤 설정으로 비었는지 바로 알 수 있도록 INFO 로 남긴다.
+            log.info("[Dynamic] 워치리스트 비어 있음 — 이번 틱 스킵 (id={}, maxCandidate={} target={} "
+                            + "minAtrPct={}% maxSpreadPct={} timeframe={})",
+                    sid, session.getMaxCandidateSize(), session.getTargetWatchSize(),
+                    session.getMinAtrPct(), session.getMaxSpreadPct(), session.getTimeframe());
+            return;
+        }
+
+        log.info("[Dynamic] SCANNING 시작: id={} 감시목록({})={}", sid, watchlist.size(), watchlist);
+
+        // 진단용 게이트 차단 집계 — 매수가 막힐 때 어느 단계에서 막히는지 한눈에 보기 위함
+        int insufficientCandles = 0;
+        int staleCandle = 0;
+        int holdCount = 0;
+        int sellCount = 0;
+        int ema200Blocked = 0;
+        int rangeBlocked = 0;
+        int blackSwanBlocked = 0;
+        int btcMarketGuardBlocked = 0;
+        int lossCooldownBlocked = 0;
+        int crossSessionBlocked = 0;
+        int walkForwardBlocked = 0;
+        List<BuyCandidate> buyCandidates = new java.util.ArrayList<>();
+
+        // SCANNING 진입 파라미터 — risk_config에서 읽고, NULL이면 코드 기본값(상수) 사용.
+        // 2026-07-15 설정화: 완화 폭 튜닝 반복 중이라 재빌드 없이 SQL/API로 조정 가능해야 한다.
+        com.cryptoautotrader.api.entity.RiskConfigEntity riskConfig = riskManagementService.getRiskConfig();
+        // 손실 청산 쿨다운(분) — 라이브 191 패턴(같은 코인 반복 진입→손절 5연속) 방지:
+        // 직전 청산이 손실이면 쿨다운 동안 같은 코인 재진입을 차단한다.
+        int lossCooldownMinutes = riskConfig.getCooldownMinutes() != null
+                ? riskConfig.getCooldownMinutes() : 60;
+        double scanWeakThreshold = riskConfig.getScanWeakThreshold() != null
+                ? riskConfig.getScanWeakThreshold().doubleValue() : SCAN_WEAK_THRESHOLD;
+        double scanStrongThreshold = riskConfig.getScanStrongThreshold() != null
+                ? riskConfig.getScanStrongThreshold().doubleValue() : SCAN_STRONG_THRESHOLD;
+        double scanEmaDampenFactor = riskConfig.getScanEmaDampenFactor() != null
+                ? riskConfig.getScanEmaDampenFactor().doubleValue() : SCAN_EMA_DAMPEN_FACTOR;
+        BigDecimal ema200BuyMarginPct = riskConfig.getScanEma200BuyMarginPct() != null
+                ? riskConfig.getScanEma200BuyMarginPct() : EMA200_BUY_MARGIN_PCT;
+
+        // BTC_MARKET_GUARD — 워치리스트 전체가 같은 timeframe을 쓰므로 틱당 한 번만 조회한다
+        // (2026-07-02 codex 분석 §6, BTC 1시간 -1.5% 급락 시 코인 무관 신규 진입 차단).
+        // 🔴 2026-10-15 리뷰 8회차: BTC 캔들이 없거나 낡으면 "미발동" 이 아니라 판정 불가 — 매수 후보를 막는다(LIVE 와 같다).
+        BtcMarketGuard.Result btcMarketGuard = btcMarketGate(session.getTimeframe());
+
+        for (String coinPair : watchlist) {
+            Strategy strategy = resolveStrategy(sid, coinPair, session.getStrategyType());
+            // 🔴 (2026-10-15 리뷰 7회차) 최신 완료 봉·결측 조건 — 어기면 빈 목록이라 아래 요구량 미달로 이 코인을 건너뛴다.
+            List<Candle> candles = freshCandles(coinPair, session.getTimeframe(), fetchCandles(coinPair, session.getTimeframe()));
+
+            // ⚠️ 2026-08-31: 하드코딩된 15 를 **전략이 선언한 최소 캔들 수**로 교체.
+            //
+            // 15 는 어떤 전략의 요구량도 아니었다. COMPOSITE_PULLBACK_MTF 는
+            // getMinimumCandleCount()=200 (EMA200 산출에 H1 200개 필요)인데, 15개만 있어도
+            // 평가에 들어갔다. 그러면 전략 내부의 자체 가드가 "데이터 부족"으로 HOLD 를
+            // 돌려주므로 잘못된 신호가 나오진 않지만, **장기 지표가 조용히 비활성된 채로
+            // 도는 것을 아무도 모른다** — 백테스트(BacktestEngine)는 진작부터 같은 값을
+            // 쓰고 있었으니 실거래 경로만 기준이 달랐던 셈이다.
+            //
+            // 운영 실측(08-31 캔들 수집): 워치리스트에 이력이 아예 없는 신규 상장 코인이
+            // 계속 들어온다 — KRW-META2 770개 · KRW-PROM 276개 · KRW-LIT 155개 · KRW-NCT 99개.
+            // 이들은 WF 로 검증할 수도 없다(2,000행 미만). 그리고 08-30 손익 분석에서
+            // 손실 상위가 정확히 이 부류였다 — KRW-RE −5.85% · KRW-ONT −5.74% · KRW-BEAM −5.48%.
+            //
+            // 즉 "지표를 못 채우는 코인"과 "돈을 잃는 코인"이 같은 집합이었다. 평가 자체를
+            // 건너뛰어 워치리스트에서 자연히 빠지게 한다.
+            int minCandles = strategy.getMinimumCandleCount();
+            if (candles.size() < minCandles) {
+                insufficientCandles++;
+                log.debug("[Dynamic] 캔들 부족 스킵: {} ({}개 < 전략 요구 {}개)",
+                        coinPair, candles.size(), minCandles);
+                continue;
+            }
+
+            List<Candle> evalCandles = closedCandleSlice(candles, session.getTimeframe());
+            String candleKey = sid + ":" + coinPair;
+            Instant closedTime = evalCandles.get(evalCandles.size() - 1).getTime();
+            Instant prevEval = lastEvaluatedClosedCandle.get(candleKey);
+            if (prevEval != null && !closedTime.isAfter(prevEval)) {
+                staleCandle++;
+                log.debug("[Dynamic] 닫힌 캔들 미갱신 스킵: {}", coinPair);
+                continue;
+            }
+            lastEvaluatedClosedCandle.put(candleKey, closedTime);
+
+            // 전역 risk_config 값을 깔고, 세션 오버라이드(V74)가 있으면 덮는다.
+            // 세션값이 지문에 실리므로 같은 시간대에 두 파라미터를 나란히 돌려 비교할 수 있다.
+            Map<String, Object> evalParams = new HashMap<>();
+            evalParams.put("coinPair", coinPair);
+            // 타임프레임도 전략에 알린다 (2026-09-08) — COMPOSITE 계열이 레짐별 가중치를
+            // 조회할 때 이 값으로 키를 좁힌다. 같은 전략·코인·레짐이라도 H1/M15 성적은
+            // 부호가 반대인 경우가 있어, 합치면 가중치가 서로 상쇄된다.
+            evalParams.put("timeframe", session.getTimeframe());
+            evalParams.put("weakThreshold", scanWeakThreshold);
+            evalParams.put("strongThreshold", scanStrongThreshold);
+            evalParams.put("emaFilterDampenFactor", scanEmaDampenFactor);
+            if (session.getStrategyParams() != null) {
+                evalParams.putAll(session.getStrategyParams());
+            }
+            StrategySignal signal = strategy.evaluate(evalCandles, evalParams);
+            BigDecimal evalPrice = evalCandles.get(evalCandles.size() - 1).getClose();
+
+            // ── 진입 게이트 — BUY 실행만 차단하고 신호는 BUY로 보존한다 ─────────
+            // 이전에는 게이트가 signal 자체를 HOLD로 덮어써서, 차단된 BUY가 사후수익률
+            // 평가(SignalQualityService — BUY/SELL만 대상)에서 영구 제외됐다. 신호는 BUY로
+            // 저장하고 blockedReason에 게이트 사유를 남겨 "차단이 방어였는지(하락) 기회비용
+            // 이었는지(상승)"를 4h/24h 수익률로 측정 가능하게 한다 (2026-07-15).
+            String gateBlockReason = null;
+            // EMA200 게이트 사이즈 배수 — 1.0(정상)/0.5(감액)/0.0(차단). 하드 차단 대신
+            // 근접 하회 구간을 감액 진입으로 살린다 (2026-07-21, "너무 보수적이지 않은 거래").
+            BigDecimal ema200SizeMultiplier = BigDecimal.ONE;
+
+            // Walk Forward 게이트 — 이 (전략, 코인) 조합이 OOS 검증을 통과했는지 (2026-08-25).
+            // 세션 생성 시점(createSession)의 게이트는 코인을 몰라서 "검증된 코인이 하나라도
+            // 있으면 PASS"로만 판정했다 — 실제로 어떤 코인을 살지는 여기, 워치리스트 스캔에서
+            // 정해진다. 전략은 코인마다 성적이 크게 갈리므로(Tier1/Tier2 표), 여기서 코인별로
+            // 다시 걸러야 "검증된 전략이니 아무 코인이나 사도 된다"는 착시를 막을 수 있다.
+            // 세션 생성 게이트와 마찬가지로 gateEnabled=false 면 차단하지 않는다.
+            //
+            // ⚠️ 2026-08-31: PAPER 면제를 **철회**했다. PAPER·REAL 모두 동일하게 적용된다.
+            //
+            // 08-25 에 "페이퍼는 검증된 코인만 사는 도구가 아니라 아직 검증 안 된 코인을 안전하게
+            // 테스트해 새 조합을 찾아내는 탐색 도구"라는 이유로 면제했다. 그 전제가 두 방향에서
+            // 무너졌다:
+            //
+            //   ① 실측 — 미검증 코인은 탐색이 아니라 그냥 손실이었다(08-30 실현손익:
+            //      KRW-RE −5.85% · KRW-ONT −5.74% · KRW-BEAM −5.48%).
+            //   ② 역할 혼동 — **탐색은 Walk Forward 가 하는 일이다.** 페이퍼는 실전 리허설이지
+            //      탐색 도구가 아니다. 페이퍼를 돌리는 이유는 "실전에서 어떨지 비용 없이 미리
+            //      보는 것"인데, 매매 규칙이 하나라도 다르면 그 예측력이 사라진다.
+            //
+            // 이 원칙은 이 코드베이스에 이미 있다 — PaperLiveAlignmentTest 가 LIVE↔PAPER 규칙
+            // 일치를 강제하고, 2026-08-06 에 "페이퍼를 LIVE 와 동일 로직으로 정렬 완료 — 이제
+            // 페이퍼 결과가 실전 예측에 유효하다"고 기록했다. 08-25 면제가 그 원칙을 깼던 것이다.
+            if (walkForwardValidationGate.isEnabled()
+                    && signal.getAction() == StrategySignal.Action.BUY) {
+                WalkForwardValidationGate.GateDecision wfDecision =
+                        walkForwardValidationGate.evaluate(
+                                session.getStrategyType(), coinPair, session.getTimeframe());
+                if (!wfDecision.passed()) {
+                    walkForwardBlocked++;
+                    log.info("[Dynamic] WF 미검증 BUY 차단: {} (id={}): {}", coinPair, sid, wfDecision.reason());
+                    gateBlockReason = "Walk Forward 미검증 — " + wfDecision.reason();
+                }
+            }
+
+            if (gateBlockReason == null && signal.getAction() == StrategySignal.Action.BUY
+                    && !Ema200RegimeGate.isExempt(session.getStrategyType())) {
+                ema200SizeMultiplier = Ema200RegimeGate.buySizeMultiplier(evalCandles, ema200BuyMarginPct);
+                if (ema200SizeMultiplier.signum() == 0) {
+                    ema200Blocked++;
+                    log.info("[Dynamic] EMA200 BUY 차단(딥 하회): {} (id={})", coinPair, sid);
+                    gateBlockReason = String.format(
+                            "EMA200 레짐 필터 — 현재가 EMA200(-%s%%×2) 이하 딥 하락", ema200BuyMarginPct);
+                } else if (ema200SizeMultiplier.compareTo(BigDecimal.ONE) < 0) {
+                    log.info("[Dynamic] EMA200 근접 하회 — 감액 진입({}배): {} (id={})",
+                            ema200SizeMultiplier, coinPair, sid);
+                }
+            }
+
+            if (gateBlockReason == null && signal.getAction() == StrategySignal.Action.BUY
+                    && RangeRegimeGate.isBlocked(session.getStrategyType())) {
+                try {
+                    MarketRegime regime = new MarketRegimeDetector().detectRaw(evalCandles);
+                    if (regime == MarketRegime.RANGE) {
+                        rangeBlocked++;
+                        log.info("[Dynamic] RANGE 레짐 BUY 차단: {} (id={})", coinPair, sid);
+                        gateBlockReason = "RANGE 레짐 — 추세 추종 전략 횡보장 신규 진입 차단";
+                    }
+                } catch (Exception ignored) {}
+            }
+
+            // BLACK_SWAN_GUARD: 코인별 서킷 브레이커 — 3단계 진입 게이트 (2026-07-22 완화).
+            // 1시간 낙폭 -5%~-8%는 감액 진입, -8% 이하·거래량 급증 조기경보는 하드 차단 유지.
+            // 이전 하드 차단(check)은 BUY 63건 중 46건을 전량 차단해 13일간 실거래 0건의 주 원인이었다.
+            // 쿨다운 — 가드가 한 번 차단한 코인은 해제 직후가 가장 위험하다 (2026-08-03 실측).
+            // 가드는 판단이 옳았고 **유지 시간이 짧았을 뿐**이므로, 해제 후에도 일정 시간 막는다.
+            if (gateBlockReason == null && signal.getAction() == StrategySignal.Action.BUY) {
+                BlackSwanGateDecision decision = evaluateBlackSwanGate(
+                        blackSwanBlockedAt.get(coinPair), blackSwanBlockedPrice.get(coinPair),
+                        evalPrice, Instant.now());
+                if (decision.blockReason() != null) {
+                    blackSwanBlocked++;
+                    gateBlockReason = decision.blockReason();
+                    log.warn("[Dynamic] BUY 차단: {} (id={}) — {}", coinPair, sid, gateBlockReason);
+                } else if (decision.expired()) {
+                    blackSwanBlockedAt.remove(coinPair);
+                    blackSwanBlockedPrice.remove(coinPair);
+                }
+            }
+
+            BigDecimal blackSwanSizeMultiplier = BigDecimal.ONE;
+            if (gateBlockReason == null && signal.getAction() == StrategySignal.Action.BUY) {
+                BlackSwanGuard.EntryGate guard = BlackSwanGuard.entryGate(evalCandles);
+                if (guard.blocked()) {
+                    blackSwanBlocked++;
+                    blackSwanBlockedAt.put(coinPair, Instant.now());   // 쿨다운 시작
+                    blackSwanBlockedPrice.put(coinPair, evalPrice);    // 진입가 가드 기준가
+                    log.warn("[Dynamic] BLACK_SWAN_GUARD 발동 — BUY 차단: {} (id={}): {}",
+                            coinPair, sid, guard.reason());
+                    gateBlockReason = "BLACK_SWAN_GUARD 발동 — " + guard.reason();
+                } else if (guard.reduced()) {
+                    blackSwanSizeMultiplier = guard.sizeMultiplier();
+                    log.info("[Dynamic] BLACK_SWAN 완충 구간 — 감액 진입({}배): {} (id={}): {}",
+                            blackSwanSizeMultiplier, coinPair, sid, guard.reason());
+                }
+            }
+
+            // BTC_MARKET_GUARD: BTC 1시간 -1.5% 급락 시 코인 무관 전체 신규 진입 차단.
+            if (gateBlockReason == null && signal.getAction() == StrategySignal.Action.BUY
+                    && btcMarketGuard.blocksEntry()) {
+                btcMarketGuardBlocked++;
+                String what = btcMarketGuard.unknown() ? "판정 불가" : "발동";
+                log.warn("[Dynamic] BTC_MARKET_GUARD {} — BUY 차단: {} (id={}): {}",
+                        what, coinPair, sid, btcMarketGuard.reason());
+                gateBlockReason = "BTC_MARKET_GUARD " + what + " — " + btcMarketGuard.reason();
+            }
+
+            // 손실 청산 쿨다운: 이 세션에서 직전에 손실로 청산한 코인은 쿨다운 동안 재진입 차단.
+            if (gateBlockReason == null && signal.getAction() == StrategySignal.Action.BUY
+                    && isInLossCooldown(sessionKind(session), sid, coinPair, lossCooldownMinutes)) {
+                lossCooldownBlocked++;
+                log.info("[Dynamic] 손실 쿨다운 BUY 차단: {} (id={}, 쿨다운 {}분)",
+                        coinPair, sid, lossCooldownMinutes);
+                gateBlockReason = String.format(
+                        "손실 청산 쿨다운 — 직전 손실 청산 후 %d분 내 동일 코인 재진입 차단", lossCooldownMinutes);
+            }
+
+            // 세션 간 동일코인 노출 상한: 다른 동적 세션이 이미 상한만큼 들고 있으면 차단.
+            // 2026-08-30: PAPER 면제를 되돌리고 상한을 2로 올렸다 — 실현손익 실측 근거는
+            // MAX_SESSIONS_PER_COIN javadoc 참조(3세션 이상 집중이 −1.33~−2.13%).
+            if (gateBlockReason == null && signal.getAction() == StrategySignal.Action.BUY) {
+                long heldElsewhere = positionRepository
+                        .countBySessionKindAndCoinPairAndStatusAndSessionIdNot(
+                                sessionKind(session), coinPair, "OPEN", sid);
+                String crossReason = crossSessionExposureBlockReason(heldElsewhere);
+                if (crossReason != null) {
+                    crossSessionBlocked++;
+                    log.info("[Dynamic] 동일코인 노출 상한 BUY 차단: {} (id={}, 타 세션 보유 {}건)",
+                            coinPair, sid, heldElsewhere);
+                    gateBlockReason = crossReason;
+                }
+            }
+
+            // 코인별 평가 결과 로그 (BUY/SELL은 INFO, HOLD는 DEBUG) — 전략로그 페이지 노출용으로 DB에도 저장
+            if (signal.getAction() != StrategySignal.Action.HOLD) {
+                log.info("[Dynamic] 평가결과: {} → {}{} ({})", coinPair, signal.getAction(),
+                        gateBlockReason != null ? "(차단)" : "", signal.getReason());
+            } else {
+                holdCount++;
+                log.debug("[Dynamic] 평가결과: {} → HOLD ({})", coinPair, signal.getReason());
+            }
+            if (signal.getAction() == StrategySignal.Action.SELL) sellCount++;
+
+            StrategyLogEntity signalLog = saveStrategyLog(session, session.getStrategyType(), coinPair, signal, evalPrice, evalCandles);
+
+            if (signal.getAction() == StrategySignal.Action.BUY) {
+                if (gateBlockReason != null) {
+                    // 게이트 차단 — 실행 후보에서 제외하되 신호품질 기록은 남긴다
+                    updateSignalQuality(signalLog, false, gateBlockReason);
+                } else {
+                    // EMA200·블랙스완 감액이 겹치면 곱으로 중첩 적용 (0.5×0.5=0.25) — 최소주문
+                    // 미달 시 executeBuy의 최소주문액 보정이 진입을 살린다.
+                    BigDecimal sizeMultiplier = ema200SizeMultiplier.multiply(blackSwanSizeMultiplier);
+                    buyCandidates.add(new BuyCandidate(coinPair, evalCandles, signal, signalLog, sizeMultiplier));
+                }
+            } else if (signal.getAction() == StrategySignal.Action.SELL) {
+                // SCANNING 중 SELL은 실행 대상이 아님(보유 포지션 없음) — blockedReason 없이 쌓이면
+                // 신호품질 통계가 "실행 안 된 SELL"로 오염된다 (2026-07-15 운영 DB 분석: 3,391건).
+                updateSignalQuality(signalLog, false, "SCANNING — 보유 포지션 없음(청산 대상 아님)");
+            }
+        }
+
+        if (buyCandidates.isEmpty()) {
+            log.info("[Dynamic] SCANNING 완료: 진입 조건 없음 (id={}, 감시 {}개) — "
+                            + "HOLD={} SELL={} EMA200차단={} RANGE차단={} 블랙스완차단={} BTC급락차단={} 손실쿨다운차단={} 동일코인차단={} WF미검증차단={} 캔들부족={} 캔들미갱신={}",
+                    sid, watchlist.size(), holdCount, sellCount, ema200Blocked, rangeBlocked,
+                    blackSwanBlocked, btcMarketGuardBlocked, lossCooldownBlocked, crossSessionBlocked,
+                    walkForwardBlocked, insufficientCandles, staleCandle);
+            return;
+        }
+
+        // 전체 워치리스트 평가 완료 — BUY 후보 중 신호 강도(strength)가 가장 높은 코인 하나만 진입.
+        BuyCandidate best = pickBestBuyCandidate(buyCandidates);
+
+        log.info("[Dynamic] BUY 신호 진입: {} {} strength={} (id={}, 후보 {}개 중 최고)",
+                best.coinPair(), best.signal().getReason(), best.signal().getStrength(), sid, buyCandidates.size());
+        if (OrderSettlementService.isSharedPoolKind(sessionKind(session)) && entryPriorityRounds.isActive()) {
+            // 🔴 등록 단계의 공유 풀 세션 (2026-10-14, 선행 조건 3-e): 세션 안의 코인 선택(신호 강도)은 전략 규칙이라 그대로 두고,
+            //    공유 풀 진입은 같은 마감 캔들의 다른 세션 후보와 함께 마감 뒤 사전 등록 순서로 승인한다. 여기서는 사지 않는다.
+            //    🔴 갈림은 isPaper 가 아니라 **자본 모델**이다(동등성 시험의 규칙) — 슬롯 경합은 공유 풀에만 있다. 독립 자본
+            //    페이퍼(검증 66세션)는 경합이 없으므로 대상이 아니고, 공유 풀 페이퍼를 만들면 같은 규칙을 탄다.
+            Instant candleOpen = best.evalCandles().get(best.evalCandles().size() - 1).getTime();
+            EntryPriorityRounds.RoundKey roundKey = new EntryPriorityRounds.RoundKey(session.getTimeframe(), candleOpen);
+            Instant expiresAt = EntryPriorityRounds.expiry(roundKey);
+            String notQueued = entryPriorityRounds.submit(new EntryPriorityRounds.Candidate(
+                    "DYNAMIC", sid, best.coinPair(), roundKey,
+                    () -> self.approveQueuedEntry(sid, best.coinPair(), best.evalCandles(), best.signal(),
+                            best.sizeMultiplier(), best.signalLog(), expiresAt),
+                    expired -> updateSignalQuality(best.signalLog(), false, expired)),
+                    Instant.now());
+            if (notQueued != null) {
+                updateSignalQuality(best.signalLog(), false, notQueued);
+            }
+        } else {
+            String blockedReason = executeBuy(session, best.coinPair(), best.evalCandles(), best.signal(), best.sizeMultiplier());
+            updateSignalQuality(best.signalLog(), blockedReason == null, blockedReason);
+        }
+
+        for (BuyCandidate other : buyCandidates) {
+            if (other == best) continue;
+            String reason = String.format("다른 코인 신호가 더 강함 — %s(strength=%s) 선택, 본 신호(strength=%s) 미선택",
+                    best.coinPair(), best.signal().getStrength(), other.signal().getStrength());
+            updateSignalQuality(other.signalLog(), false, reason);
+        }
+    }
+
+    /**
+     * 감시 대상 포지션 하나를 고른다 — 중복이 있어도 <b>예외 없이</b> 진행시키기 위한 선택 규칙.
+     *
+     * <p>세션이 가리키는 {@code currentPositionId} 를 최우선으로 채택한다(세션의 회계·상태가 그
+     * 포지션 기준으로 맞춰져 있기 때문). 그것이 목록에 없으면 <b>가장 오래된</b> 포지션을 쓴다 —
+     * 오래된 쪽이 time stop·손절 관점에서 더 급하고, 방치되면 위험이 커지는 쪽이다.</p>
+     *
+     * <p>중복 자체는 정상이 아니므로 ERROR 로 남긴다. 자동 병합·청산은 하지 않는다 — 어느 쪽이
+     * 진짜인지는 주문 이력을 봐야 알 수 있고, 잘못 청산하면 되돌릴 수 없다.</p>
+     */
+    static Optional<PositionEntity> pickMonitoredPosition(Long sessionId, Long currentPositionId,
+                                                          List<PositionEntity> openPositions) {
+        if (openPositions.isEmpty()) return Optional.empty();
+        if (openPositions.size() == 1) return Optional.of(openPositions.get(0));
+
+        log.error("[Dynamic] 🔴 중복 OPEN 포지션 {}건 — 감시는 계속하되 수동 확인 필요 (id={}, posIds={})",
+                openPositions.size(), sessionId,
+                openPositions.stream().map(PositionEntity::getId).toList());
+
+        return openPositions.stream()
+                .filter(p -> currentPositionId != null && currentPositionId.equals(p.getId()))
+                .findFirst()
+                .or(() -> Optional.of(openPositions.get(0)));   // 목록은 openedAt ASC
+    }
+
+    /** POSITION_MONITORING: 보유 코인만 평가 → SL/TP/SELL 처리 */
+    @Transactional
+    public void processMonitoringTick(DynamicSessionEntity session) {
+        Long sid = session.getId();
+        String coinPair = session.getCurrentCoinPair();
+
+        if (coinPair == null) {
+            transitionToScanning(sid);
+            return;
+        }
+
+        // 🔴 (2026-10-15 리뷰 7회차) 수집 실패로 읽은 캐시가 낡았으면 빈 목록 — 낡은 종가로 손절·익절을 내지 않는다.
+        List<Candle> candles = freshCandles(coinPair, session.getTimeframe(), fetchCandles(coinPair, session.getTimeframe()));
+        if (candles.isEmpty()) {
+            // 🔴 (2026-10-15 리뷰 7회차) 건너뛰는 것은 캔들이 필요한 판정뿐 — 시간 초과와 유효한 실시간 현재가의 손절·익절은 계속한다.
+            monitorWithoutCandles(session, coinPair);
+            return;
+        }
+
+        BigDecimal currentPrice = candles.get(candles.size() - 1).getClose();
+
+        // ⚠️ 2026-08-27 P0: Optional 조회는 같은 (세션, 코인) 에 OPEN 포지션이 2건이면
+        // IncorrectResultSizeDataAccessException 을 던진다. tick() 이 세션별로 예외를 삼키므로
+        // 앱은 살아 있지만 **그 세션만 매 틱 실패해 영구 정지**한다 — 세션 60이 21시간 그렇게
+        // 멈춰 있었고, 그동안 SL/TP/time stop 이 전부 무효였다. 중복은 위 자가복구 가드가 새로
+        // 생기는 것을 막지만, 이미 생긴 중복에서도 세션이 죽지 않아야 한다.
+        List<PositionEntity> openPositions = positionRepository
+                .findBySessionKindAndSessionIdAndCoinPairAndStatusList(
+                        sessionKind(session), sid, coinPair, "OPEN");
+        Optional<PositionEntity> posOpt = pickMonitoredPosition(
+                sid, session.getCurrentPositionId(), openPositions);
+
+        if (posOpt.isEmpty()) {
+            // ⚠️ 2026-08-03 P0: 이 분기가 무증상으로 지나가면서 세션 39·40·44의 KRW 누수를
+            //    3일간 가렸다. 매수 tx가 롤백되면 포지션은 사라지고 KRW 차감만 남는데,
+            //    여기서 상태만 SCANNING으로 되돌리고 잔고는 손대지 않기 때문이다.
+            //    복원은 reconcileDynamicSessionBalance 가 맡고, 여기서는 흔적을 남긴다.
+            if (session.getAvailableKrw() != null && session.getTotalAssetKrw() != null
+                    && session.getAvailableKrw().compareTo(session.getTotalAssetKrw()) < 0) {
+                log.error("[Dynamic] 🔴 포지션 없음인데 KRW가 묶여 있음 — 매수 tx 롤백 의심 "
+                                + "(id={}, {}, available={}, total={}). reconcile 대기.",
+                        sid, coinPair, session.getAvailableKrw(), session.getTotalAssetKrw());
+            } else {
+                log.info("[Dynamic] 포지션 없음 — SCANNING 복귀 (id={}, {})", sid, coinPair);
+            }
+            transitionToScanning(sid);
+            return;
+        }
+
+        PositionEntity pos = posOpt.get();
+
+        BigDecimal pnlPct = currentPrice.subtract(pos.getAvgPrice())
+                .divide(pos.getAvgPrice(), 6, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(100));
+
+        // 미실현손익 갱신 — 2026-08-03: 동적 포지션의 unrealized_pnl 이 전 이력 0이었다.
+        // PositionService.updateUnrealizedPnl 은 호출부가 없는 죽은 코드였고, 비-0 값을 쓰는 곳은
+        // LiveTradingService 하나뿐(LIVE 전용)이라 동적 세션 화면은 보유 중 항상 0을 표시했다.
+        // SL/TP 판정은 아래에서 currentPrice 로 직접 하므로 매매 안전성과는 무관한 표시용 값이다.
+        BigDecimal unrealized = currentPrice.subtract(pos.getAvgPrice()).multiply(pos.getSize());
+        if (pos.getUnrealizedPnl() == null || pos.getUnrealizedPnl().compareTo(unrealized) != 0) {
+            // 🔴 엔티티 저장이 아니라 한 열만 — 회차 시작에 읽은 낡은 엔티티로 행 전체를 덮으면 그 사이 다른 경로가 커밋한 CLOSED 가
+            //    OPEN 으로 되돌아간다(재시작 시험 S18b 이중 매도, 2026-10-16). LIVE 와 같다.
+            positionRepository.updateUnrealizedPnlIfOpen(pos.getId(), unrealized);
+        }
+
+        // 세션 총자산 시가 평가 — 2026-08-06 신설 (LiveTradingService.updateSessionUnrealizedPnl 이식).
+        //
+        // <b>왜 필요한가 (2026-08-06 운영 DB 실측)</b>: 동적 세션의 totalAssetKrw 는 매도 시에만
+        // 갱신돼 보유 중에는 <b>취득원가</b>에 고정돼 있었다. 세션 39·40·45가 각각 −1.3~−2.3%
+        // 평가손 상태인데 셋 다 정확히 10,000.00 으로 기록됐다. 그 결과 {@link #updateMddPeak}가
+        // 읽는 값도 원가라 <b>mddPeakCapital 이 절대 내려가지 않고</b>, risk_config 의
+        // mdd_threshold_pct(20%)·max_portfolio_drawdown_pct(15%) 서킷 브레이커가
+        // <b>포지션을 들고 있는 동안에는 원리상 발동할 수 없었다</b> — 손실이 실현되는 순간에만
+        // 인식된다. 대시보드 총자산도 같은 이유로 실제보다 낙관적으로 표시됐다.
+        //
+        // size=0(매수 미체결)일 때 건드리지 않는 것은 LIVE와 동일하다 — 아직 코인이 없는데
+        // 평가액을 더하면 KRW가 이중 계상된다.
+        if (pos.getSize() != null && pos.getSize().compareTo(BigDecimal.ZERO) > 0) {
+            final BigDecimal posValue = pos.getSize().multiply(currentPrice);
+            // 넘어온 엔티티를 직접 save() 하지 않는다 — reconcile(5초)과의 @Version 충돌 회피.
+            balanceUpdater.apply(sid, s -> s.setTotalAssetKrw(s.getAvailableKrw().add(posValue)));
+            // 갱신된 총자산을 다시 읽어 MDD 피크가 시가 기준으로 움직이게 한다.
+            session = dynamicSessionRepo.findById(sid).orElse(session);
+        }
+
+        // MDD 피크 갱신 — 위 시가 평가 이후에 호출해야 의미가 있다.
+        updateMddPeak(session);
+
+        // BLACK_SWAN_GUARD — 발동 시 알림만 보내고 **SL은 건드리지 않는다**.
+        //
+        // 2026-07-31 개편: 이전에는 발동 시 현재가 기준 1×ATR로 SL을 단방향 조임(ratchet)했다.
+        // 이는 방향이 정반대인 구조적 오류였다 — 변동성이 폭증할 때 SL을 **좁히면** 정상 등락에
+        // 확실히 걸린다. 실측으로 확인된 피해: pos 2368(KAITO, 조임 후 SL -3.54%)과
+        // 2375(EDGE, -2.96%)가 둘 다 강제청산됐고, KAITO는 4시간 뒤 **+1.23%**로 회복했다.
+        // 즉 조임이 없었다면 이익이었을 포지션을 조임이 손실로 확정시켰다.
+        //
+        // 블랙스완 방어는 신규 진입 차단(SCANNING 게이트)이 담당하며 그쪽은 실제로 유효하다
+        // (차단된 신호의 사후 24h -7.04% — 차단이 옳았음). 보유 포지션의 변동성 방어는
+        // 이제 진입 시점의 ATR 기반 SL(2 ATR)이 담당한다.
+        BlackSwanGuard.Result blackSwanGuard = BlackSwanGuard.check(candles);
+        if (blackSwanGuard.triggered()) {
+            log.warn("[Dynamic] BLACK_SWAN_GUARD 발동 (id={}, {}): {} — SL 유지 {} (조임 없음)",
+                    sid, coinPair, blackSwanGuard.reason(), pos.getStopLossPrice());
+        }
+
+        // TP 트레일링 (단방향 ratchet, 고점 추적) — 2026-09-08 신설.
+        //
+        // 그 전까지 DYNAMIC 만 트레일링이 아예 없어 진입 시 TP 를 한 번 정하고 끝이었다
+        // (ENGINE_PARITY.md 미해소 결함 #1). LIVE·PAPER 와 같은 전략이라도 이익 구간에서
+        // 동적 세션만 다르게 행동했다. 이제 셋 다 ExitRuleChecker.updateTrailingStops 를 쓴다.
+        //
+        // 익절 판정보다 **먼저** 갱신해야 같은 틱에 새 TP 가 반영된다(PAPER 와 동일한 순서).
+        // SL 은 이 함수가 손대지 않는다 — 하락 방어는 진입 시 확정된 ATR 기반 SL 이 담당한다.
+        if (pos.getEntryPrice() != null && pos.getTakeProfitPrice() != null) {
+            var updatedLevels = exitChecker().updateTrailingStops(
+                    currentPrice, pos.getEntryPrice(),
+                    pos.getStopLossPrice(), pos.getTakeProfitPrice());
+            if (updatedLevels.getTakeProfitPrice().compareTo(pos.getTakeProfitPrice()) != 0) {
+                log.info("[Dynamic] TP 트레일링: {} TP {} → {} (id={})",
+                        coinPair, pos.getTakeProfitPrice(),
+                        updatedLevels.getTakeProfitPrice(), sid);
+                pos.setTakeProfitPrice(updatedLevels.getTakeProfitPrice());
+                pos = positionRepository.save(pos);
+            }
+        }
+
+        // 익절
+        if (pos.getTakeProfitPrice() != null
+                && currentPrice.compareTo(pos.getTakeProfitPrice()) >= 0) {
+            log.info("[Dynamic] 익절: {} @ {} pnl={}% (id={})", coinPair, currentPrice, pnlPct, sid);
+            executeSell(session, pos, currentPrice,
+                    "익절 — 현재가 " + currentPrice + " ≥ " + pos.getTakeProfitPrice(),
+                    ExitReason.TAKE_PROFIT);
+            return;
+        }
+
+        // 손절
+        BigDecimal slNeg = session.getStopLossPct().negate();
+        boolean slTriggered = pos.getStopLossPrice() != null
+                ? currentPrice.compareTo(pos.getStopLossPrice()) <= 0
+                : pnlPct.compareTo(slNeg) <= 0;
+        if (slTriggered) {
+            // SL 이탈폭 계측 — 2026-08-03 ELSA 건에서 SL −5.82%인데 −7.911%에 잡혔다(2.1%p 초과).
+            // 07-29~31 청산 6건은 초과폭이 수수료 수준(0.07~0.24%p)이었으므로 양상이 다르다.
+            // 갭(60초 안에 뚫림)인지 감시 지연(WS 미구독 등)인지는 표본이 쌓여야 판정할 수 있어,
+            // 여기서는 **고치지 않고 재기만 한다**. 초과폭이 반복적으로 크면 감시 경로를 손봐야 한다.
+            if (pos.getStopLossPrice() != null && pos.getStopLossPrice().compareTo(BigDecimal.ZERO) > 0) {
+                BigDecimal overshootPct = pos.getStopLossPrice().subtract(currentPrice)
+                        .divide(pos.getStopLossPrice(), 6, RoundingMode.HALF_UP)
+                        .multiply(BigDecimal.valueOf(100));
+                log.warn("[Dynamic] SL 이탈폭: {} SL={} 감지가={} 초과={}%p (id={}, posId={}) "
+                                + "— 0에 가까우면 정상, 1%p 이상 반복되면 감시 지연 의심",
+                        coinPair, pos.getStopLossPrice(), currentPrice,
+                        overshootPct.setScale(3, RoundingMode.HALF_UP), sid, pos.getId());
+            }
+            log.warn("[Dynamic] 손절: {} @ {} pnl={}% (id={})", coinPair, currentPrice, pnlPct, sid);
+            // 🔴 알림은 청산 성공 뒤에만 (2026-10-07) — 순서를 뒤집으면 청산 실패 시 매 틱 알림만 나간다.
+            if (executeSell(session, pos, currentPrice, "손절 — pnl " + pnlPct + "%", ExitReason.STOP_LOSS)) {
+                telegramService.notifyStopLoss(coinPair, pnlPct.doubleValue(), sid);
+            }
+            return;
+        }
+
+        // 시간 초과 청산 (time stop) — SL/TP 는 가격 기반이라 저변동 종목에서는 영원히 도달하지
+        // 않는다. 2026-07-31 세션 38 KRW-RLUSD(스테이블코인)가 42시간 고착돼 자본이 잠긴 사례.
+        // 전략 SELL 경로도 "수익 0.3% 이상" 조건 때문에 구제책이 되지 못한다.
+        // 손익과 무관하게 청산하며, 자본 회전을 되찾는 것이 목적이다.
+        // 판정 로직은 ExitRuleCalculator로 이전(2026-08-06) — LIVE와 동일한 함수를 쓴다.
+        Integer maxHoldHours = session.getMaxHoldHours();
+        if (ExitRuleCalculator.shouldTimeStop(maxHoldHours, pos.getOpenedAt(), Instant.now())) {
+            long heldHours = Duration.between(pos.getOpenedAt(), Instant.now()).toHours();
+            log.warn("[Dynamic] 시간 초과 청산: {} 보유 {}h ≥ {}h pnl={}% (id={})",
+                    coinPair, heldHours, maxHoldHours, pnlPct, sid);
+            // 🔴 알림은 청산 성공 뒤에만 (2026-10-07) — 위 손절과 같은 이유다.
+            if (executeSell(session, pos, currentPrice, String.format(
+                    "시간 초과 청산 — 보유 %d시간 ≥ %d시간 (pnl %s%%)",
+                    heldHours, maxHoldHours, pnlPct.setScale(2, RoundingMode.HALF_UP)),
+                    ExitReason.TIME_STOP)) {
+                telegramService.notifyTimeStop(coinPair, heldHours, maxHoldHours, pnlPct.doubleValue(), sid);
+            }
+            return;
+        }
+
+        // 닫힌 캔들 게이팅 후 전략 SELL 평가
+        List<Candle> evalCandles = closedCandleSlice(candles, session.getTimeframe());
+        String candleKey = sid + ":" + coinPair;
+        Instant closedTime = evalCandles.get(evalCandles.size() - 1).getTime();
+        Instant prevEval = lastEvaluatedClosedCandle.get(candleKey);
+        if (prevEval != null && !closedTime.isAfter(prevEval)) return;
+        lastEvaluatedClosedCandle.put(candleKey, closedTime);
+
+        Strategy strategy = resolveStrategy(sid, coinPair, session.getStrategyType());
+        StrategySignal signal = strategy.evaluate(evalCandles,
+                buildEvalParams(coinPair, session.getTimeframe()));
+        StrategyLogEntity signalLog = saveStrategyLog(session, session.getStrategyType(), coinPair, signal, currentPrice, evalCandles);
+
+        if (signal.getAction() == StrategySignal.Action.SELL) {
+            // 전략 SELL 청산 차단 — 2026-09-07 운영 DB 실측 기반 기본 OFF.
+            //
+            // DYN_PAPER 청산 335건을 사유별로 가르면 TP(+39,924)와 SL(−38,973)이 거의 상쇄되고,
+            // <b>적자 전액이 STRATEGY_SIGNAL 청산 110건(−10,298, 평균 −1.15%)</b>에서 나온다.
+            // 같은 거래 모집단 안에서 청산 방식만 다른 비교라 코인 선정 편차가 양쪽에 똑같이
+            // 걸린다 — 유니버스 교란과 무관하게 성립하는 몇 안 되는 비교다. 그냥 24시간 기다린
+            // TIME_STOP 66건은 +0.28% 였고, 이 경로를 빼면 나머지 합이 +2,609원이 된다.
+            //
+            // <b>기록은 계속 남긴다</b>: 신호 자체는 saveStrategyLog 로 이미 저장됐고 여기서
+            // blocked_reason 만 붙인다. 차단하지 않았다면 어떻게 됐을지(반사실)를 사후수익으로
+            // 계속 측정할 수 있어야 이 결정을 나중에 뒤집을 근거가 생긴다.
+            if (!strategySignalExitEnabled) {
+                updateSignalQuality(signalLog, false,
+                        String.format("전략 SELL 청산 비활성화 (pnl=%s%%) — TP/SL/TIME_STOP 만 사용", pnlPct));
+                return;
+            }
+
+            long heldMin = pos.getOpenedAt() != null
+                    ? Duration.between(pos.getOpenedAt(), Instant.now()).toMinutes() : Long.MAX_VALUE;
+            // 세션 strategy_params 오버라이드 적용 — 전략 SELL 청산 A/B (2026-08-26).
+            // 기본값은 코드 상수 그대로라 오버라이드가 없는 세션의 동작은 바뀌지 않는다.
+            ExitRuleOverrides sellGateOverrides = ExitRuleOverrides.from(session.getStrategyParams());
+            BigDecimal minPnlForSell = sellGateOverrides.minPnlPctForSignalExitOr(MIN_PNL_PCT_FOR_SELL);
+            BigDecimal lossEscape = sellGateOverrides.lossEscapeThresholdPctOr(LOSS_ESCAPE_THRESHOLD);
+
+            // 판정은 SignalExitGate 공용 (2026-09-08) — LIVE·PAPER·BACKTEST 와 같은 함수다.
+            // 그 전에는 같은 조건식이 네 벌이었고, 한쪽 부등호만 바뀌어도 아무도 몰랐다.
+            // 차단 사유 문구도 이때 통일했다 — 종전 DYNAMIC 문구("본전 근처 pnl=...")는 임계값을
+            // 담지 않아, 나중에 로그만 보고 어느 설정에서 막혔는지 복원할 수 없었다.
+            SignalExitGate.Decision sellGate = SignalExitGate.decide(
+                    heldMin, pnlPct, MIN_HOLD_MINUTES, minPnlForSell, lossEscape);
+            if (!sellGate.allowed()) {
+                log.debug("[Dynamic] SELL 차단: {} ({})", sellGate.reason(), coinPair);
+                updateSignalQuality(signalLog, false, sellGate.reason());
+                return;
+            }
+            executeSell(session, pos, currentPrice,
+                    String.format("전략 SELL — %s (pnl=%s%%)", signal.getReason(), pnlPct),
+                    ExitReason.STRATEGY_SIGNAL);
+            updateSignalQuality(signalLog, true, null);
+        } else if (signal.getAction() == StrategySignal.Action.BUY) {
+            // 보유 중 BUY는 실행 대상이 아니다(추가 매수 미지원) — 그런데 여기서 기록을 남기지
+            // 않으면 `was_executed=false, blocked_reason=null` 로 저장돼, "차단된 신호"인지
+            // "그냥 평가만 된 신호"인지 DB만으로 구분할 수 없다.
+            //
+            // 2026-08-04 운영 확인: 세션 44가 KRW-SHIB 보유 중이던 08-04 01:00에 BUY 신호
+            // (strategy_log 2038997)를 냈는데 사유가 비어 있어, 분석 시 "보유 중엔 신호가
+            // 산출되지 않는다"는 잘못된 결론으로 이어졌다. 실제로는 산출됐고 조용히 버려졌다.
+            // SCANNING 쪽 SELL 처리("SCANNING — 보유 포지션 없음")와 대칭을 맞춘다.
+            updateSignalQuality(signalLog, false,
+                    "POSITION_MONITORING — 이미 보유 중(신규 진입 대상 아님)");
+        }
+    }
+
+    // ── 내부: 매수 실행 ────────────────────────────────────────────
+
+    /**
+     * BLACK_SWAN 재진입 게이트 판정 결과.
+     *
+     * @param blockReason 차단 사유 — {@code null}이면 통과
+     * @param expired     가드 이력의 유효기간이 끝나 기록을 폐기해도 되는지
+     */
+    /**
+     * 세션 간 동일코인 노출 상한 판정 — {@link #MAX_SESSIONS_PER_COIN} 이상이면 차단 사유를 준다.
+     *
+     * <p>PAPER·REAL 모두 같은 상한을 쓴다. 08-25 에 PAPER 를 면제했다가 08-30 실현손익
+     * 실측으로 되돌렸다 — 근거는 {@link #MAX_SESSIONS_PER_COIN} javadoc 참조.</p>
+     *
+     * @param heldElsewhere 같은 코인을 들고 있는 <b>다른</b> 동적 세션 수
+     * @return 차단 사유, 통과면 {@code null}
+     */
+    static String crossSessionExposureBlockReason(long heldElsewhere) {
+        if (heldElsewhere < MAX_SESSIONS_PER_COIN) return null;
+        return String.format("동일코인 노출 상한 — 다른 동적 세션이 이미 %d건 보유(상한 %d)",
+                heldElsewhere, MAX_SESSIONS_PER_COIN);
+    }
+
+    record BlackSwanGateDecision(String blockReason, boolean expired) {}
+
+    private static final BlackSwanGateDecision GATE_PASS = new BlackSwanGateDecision(null, false);
+    private static final BlackSwanGateDecision GATE_EXPIRED = new BlackSwanGateDecision(null, true);
+
+    /**
+     * BLACK_SWAN_GUARD 차단 이력이 있는 코인의 재진입 가부를 판정한다 — 2단 게이트.
+     *
+     * <ol>
+     *   <li><b>쿨다운</b>({@link #BLACK_SWAN_COOLDOWN_MIN}): 차단 직후는 무조건 막는다.
+     *       가드 해제 직후가 가장 위험하다는 08-03 ELSA 실측 근거.</li>
+     *   <li><b>진입가 가드</b>({@link #BLACK_SWAN_PRICE_GUARD_MIN}): 쿨다운이 끝나도
+     *       <b>차단 시점가보다 비싸면</b> 계속 막는다. 가드가 위험하다고 본 가격보다 높은
+     *       가격은 더 위험하다. 08-04 META2(차단가 8,630 → 9,150 진입 → 8,495 손절) 재발 방지.</li>
+     * </ol>
+     *
+     * <p>기준가가 없으면(구 로그 복원 등) 진입가 가드는 자동으로 비활성이며 쿨다운만 작동한다.
+     * 두 기간이 모두 지나면 {@code expired=true}로 알려 호출부가 이력을 지우게 한다 — 그래야
+     * 상승 추세로 돌아선 종목이 영구 차단되지 않는다.</p>
+     */
+    static BlackSwanGateDecision evaluateBlackSwanGate(Instant blockedAt, BigDecimal blockedPrice,
+                                                       BigDecimal currentPrice, Instant now) {
+        if (blockedAt == null) return GATE_PASS;
+
+        long elapsedMin = Duration.between(blockedAt, now).toMinutes();
+        if (elapsedMin < BLACK_SWAN_COOLDOWN_MIN) {
+            return new BlackSwanGateDecision(String.format(
+                    "BLACK_SWAN 쿨다운 — %d분 전 차단된 종목 (해제까지 %d분)",
+                    elapsedMin, BLACK_SWAN_COOLDOWN_MIN - elapsedMin), false);
+        }
+        if (elapsedMin >= BLACK_SWAN_PRICE_GUARD_MIN) {
+            return GATE_EXPIRED;   // 가드 판단의 유효기간 종료 — 이력 폐기
+        }
+        boolean priceGuardActive = blockedPrice != null
+                && blockedPrice.compareTo(BigDecimal.ZERO) > 0
+                && currentPrice != null
+                && currentPrice.compareTo(blockedPrice) > 0;
+        if (priceGuardActive) {
+            return new BlackSwanGateDecision(String.format(
+                    "BLACK_SWAN 진입가 가드 — 차단 시점가 %s 초과 (현재 %s, 경과 %d분)",
+                    blockedPrice.toPlainString(), currentPrice.toPlainString(), elapsedMin), false);
+        }
+        // 쿨다운은 끝났고 가격도 차단가 이하로 내려왔다 — 진입 허용하고 이력도 폐기한다.
+        return GATE_EXPIRED;
+    }
+
+    /**
+     * @return {@code null}이면 매수 성공(REAL은 주문 제출, PAPER는 즉시 체결), 아니면 차단 사유(신호품질 로그용)
+     */
+    @Transactional
+    public String executeBuy(DynamicSessionEntity session, String coinPair,
+                            List<Candle> evalCandles, StrategySignal signal, BigDecimal sizeMultiplier) {
+        return executeBuy(session, coinPair, evalCandles, signal, sizeMultiplier, null);
+    }
+
+    /** @param entryExpiresAt 회차 승인의 실행 만료(N15) — 실자금 예약 경계가 잠금 안에서 다시 본다. 즉시 진입은 {@code null}. */
+    @Transactional
+    public String executeBuy(DynamicSessionEntity session, String coinPair,
+                            List<Candle> evalCandles, StrategySignal signal, BigDecimal sizeMultiplier,
+                            Instant entryExpiresAt) {
+        Long sid = session.getId();
+        String kind = sessionKind(session);
+        BigDecimal currentPrice = evalCandles.get(evalCandles.size() - 1).getClose();
+
+        // EMA200 게이트 사이즈 배수 적용 — 정상 1.0, 근접 하회 감액 0.5. null은 방어적으로 1.0 취급.
+        BigDecimal effectiveRatio = session.getInvestRatio()
+                .multiply(sizeMultiplier != null ? sizeMultiplier : BigDecimal.ONE);
+        // 🔴 요청액은 예약 전에 둘째 자리 버림 — 이 금액으로 최소 주문·한도를 보고 예약한다 (리뷰 2026-10-31, {@link BalanceAmounts}).
+        //    REAL·PAPER 모드가 같은 금액을 쓴다(엔진 동등).
+        BigDecimal investAmount = BalanceAmounts.buyRequest(session.getAvailableKrw().multiply(effectiveRatio));
+        BigDecimal minOrder = BigDecimal.valueOf(5000);
+        // 감액 진입이 최소주문(5,000원) 미만이면, 정상 사이즈로는 최소주문을 넘는 한 최소주문액으로
+        // 올려 진입을 살린다 — 소액 세션(자본 1만원)에서 절반 사이즈(4,000원)가 최소주문에 걸려
+        // "가용 KRW 부족"으로 헛차단되는 것을 막는다 (2026-07-21).
+        if (investAmount.compareTo(minOrder) < 0
+                && session.getAvailableKrw().multiply(session.getInvestRatio()).compareTo(minOrder) >= 0
+                && session.getAvailableKrw().compareTo(minOrder) >= 0) {
+            investAmount = minOrder;
+        }
+        if (investAmount.compareTo(minOrder) < 0) {
+            log.warn("[Dynamic] 매수 불가: 가용 KRW 부족 (id={})", sid);
+            return String.format("가용 KRW 부족: 투자가능 %s원 < 최소 5,000원", investAmount.setScale(0, RoundingMode.DOWN));
+        }
+
+        boolean hasPendingBuy = orderRepository.existsBySessionKindAndSessionIdAndCoinPairAndSideAndStateIn(
+                kind, sid, coinPair, "BUY", ACTIVE_ORDER_STATES);
+        if (hasPendingBuy) return "미체결 BUY 주문 존재 — 중복 매수 차단";
+
+        // SL / TP 계산 — ATR 기반 (2026-07-31 개편, 상단 상수 주석 참조). REAL/PAPER 100% 공유.
+        // 세션 strategy_params 의 slAtrMultiplier/tpRrMultiplier 오버라이드를 적용한다(손절폭 A/B).
+        ExitRuleOverrides exitOverrides = ExitRuleOverrides.from(session.getStrategyParams());
+        BigDecimal slPct = ExitRuleCalculator.resolveStopLossPct(
+                session.getStopLossPct(), evalCandles, currentPrice, exitOverrides);
+        BigDecimal atrStopLossPrice = currentPrice.multiply(BigDecimal.ONE.subtract(
+                        slPct.divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP)))
+                .setScale(8, RoundingMode.HALF_DOWN);
+
+        // 전략 제안 SL은 존중하되 **더 넓은 쪽을 채택**한다. 제안값이 ATR 기준보다 타이트하면
+        // 그대로 휩쏘로 이어지므로(개편 전 실패 패턴), 전략의 의도는 방향에만 반영한다.
+        // exitOverrides 가 걸린 세션(손절폭 A/B)은 예외 — suggestedStopLoss 가 세션 오버라이드를
+        // 모른 채 arm 과 무관하게 동일해서, min() 을 타면 오버라이드가 조용히 무효화된다(2026-08-24).
+        BigDecimal stopLossPrice = (!exitOverrides.isPresent() && signal.getSuggestedStopLoss() != null)
+                ? signal.getSuggestedStopLoss().min(atrStopLossPrice)
+                : atrStopLossPrice;
+
+        BigDecimal takeProfitPrice = ExitRuleCalculator.resolveTakeProfitPrice(
+                currentPrice, stopLossPrice, signal.getSuggestedTakeProfit(), exitOverrides);
+
+        String rulesetHash = rulesetRegistry.hashFor(session);
+        // V73: 진입 시점 레짐 — 이게 없으면 "이 전략은 횡보장에서만 되는가" 를 물을 수 없다.
+        // 그동안 동적 세션 포지션은 레짐이 전부 NULL 이었다(0/36). 실패해도 진입은 막지 않는다.
+        String entryRegime = null;
+        try {
+            MarketRegime detected = new MarketRegimeDetector().detectRaw(evalCandles);
+            entryRegime = detected != null ? detected.name() : null;
+        } catch (Exception e) {
+            log.debug("[Dynamic] 레짐 판정 실패 — 레짐 없이 진입 (coin={}): {}", coinPair, e.toString());
+        }
+        PositionEntity posTemplate = PositionEntity.builder()
+                .rulesetHash(rulesetHash)
+                .marketRegime(entryRegime)
+                .coinPair(coinPair)
+                .side("BUY")
+                .entryPrice(currentPrice)
+                .avgPrice(currentPrice)
+                .size(BigDecimal.ZERO)
+                .investedKrw(investAmount)
+                .status("OPEN")
+                .sessionId(sid)
+                .sessionKind(kind)
+                .stopLossPrice(stopLossPrice)
+                .takeProfitPrice(takeProfitPrice)
+                .build();
+
+        if (session.isPaper()) {
+            return executePaperBuy(session, posTemplate, investAmount, coinPair, signal, kind);
+        }
+        // 진입 배정액 — 포지션별 CAPITAL_LOSS 의 분모, 바뀌지 않는다 (V90). 공유 풀(실자금)만 — 독립 자본 페이퍼는 대상이 아니다.
+        posTemplate.setEntryAllocationKrw(investAmount);
+
+        // 🔴 **실자금 공유 풀 — LIVE 와 같은 예약 경계를 지난다** (2026-10-12).
+        //
+        //    종전에는 포지션을 만들고 `submitOrderAfterCommit` 로 제출을 걸고, 차감은 별도 트랜잭션
+        //    (REQUIRES_NEW)으로 먼저 커밋한 뒤 롤백 보상을 등록했다. 한도 확인도 잠금도 없어서 **세션
+        //    생성·재시작만 검사하고 실제 매수는 공유 풀 한도를 우회했다** — 전체 한도가 강제되지 않았다.
+        //
+        //    이제 이 틱 트랜잭션 안에서 계좌 잠금을 쥐고 **등록 풀(포지션당·동시 보유·총 자본) → 계좌
+        //    여력 → 세션 자금 → 슬롯 → 주문 의도**를 함께 쓴다. 틱이 롤백되면 전부 함께 사라지고 제출은
+        //    0회다(종전 계약 유지). 차감이 같은 트랜잭션이므로 롤백 보상이 필요 없다.
+        //
+        //    🔴 자본 모델이 공유 풀인 실자금 세션만 여기로 온다. 현재 페이퍼(검증 66세션)는 독립 자본으로
+        //    사전 등록됐으므로 위에서 `executePaperBuy` 로 갈라졌다 — 공유 풀 규칙을 소급하지 않는다.
+        PositionEntity pos = positionRepository.save(posTemplate);
+        Long posId = pos.getId();
+
+        OrderRequest order = new OrderRequest();
+        order.setCoinPair(coinPair);
+        order.setSide("BUY");
+        order.setOrderType("MARKET");
+        order.setQuantity(investAmount);
+        order.setReason("동적 세션 BUY — " + signal.getReason());
+        order.setSignalPrice(currentPrice);  // §14 drift 측정 기준가 보존
+        order.setSessionId(sid);
+        order.setSessionKind(kind);
+        order.setPositionId(posId);
+        order.setEntryExpiresAt(entryExpiresAt);   // N15 — 잠금 안 예약 직전 만료 재검사
+
+        Long preparedOrderId;
+        try {
+            preparedOrderId = orderExecutionEngine.reserveAndPrepareIntent(order);
+        } catch (OrderExecutionEngine.ReservationRejected rejected) {
+            // 🔴 차감은 일어나지 않았거나 같은 트랜잭션 안에서 되돌려졌다. 슬롯도 닫는다 — 열린 size=0
+            //    포지션으로 남기면 슬롯을 점유하고, 고아 정리가 배정액을 "복원" 해 없던 돈을 만든다.
+            //    틱 트랜잭션은 롤백하지 않는다(신호 기록을 남긴다).
+            pos.setStatus("CLOSED");
+            pos.setClosedAt(Instant.now());
+            positionRepository.save(pos);
+            log.warn("[Dynamic] 매수 예약 거절 (id={}, {}, 사유={}): {}",
+                    sid, coinPair, rejected.getCode(), rejected.getMessage());
+            return "공유 풀 예약 거절(" + rejected.getCode() + "): " + rejected.getMessage();
+        }
+
+        // 상태 전환 — 예약과 **같은 트랜잭션**의 관리 엔티티에 쓴다. 🔴 REQUIRES_NEW 로 쓰면 이
+        // 트랜잭션이 방금 차감하며 잡은 세션 행 잠금을 기다려 스스로 막힌다
+        // (DynamicSessionRowLockContentionTest 가 고정한 순서다).
+        DynamicSessionEntity managed = dynamicSessionRepo.findById(sid).orElseThrow();
+        // 🔴 잠근 채 최신으로 다시 읽는다 — 같은 틱의 워치리스트 기록(별도 트랜잭션)이 @Version 을 올려
+        //    두었을 수 있다. 예약이 이미 같은 일을 했어도 여기서 다시 하는 것이 결합을 줄인다.
+        entityManager.flush();
+        entityManager.refresh(managed, jakarta.persistence.LockModeType.PESSIMISTIC_WRITE);
+        managed.setScanState("POSITION_MONITORING");
+        managed.setCurrentCoinPair(coinPair);
+        managed.setCurrentPositionId(posId);
+        dynamicSessionRepo.save(managed);
+
+        // ⚠️ 커밋 이후 제출 — 틱이 롤백되면 제출 0회. 실행기 거절이면 그 자리에서 철회한다.
+        orderExecutionEngine.submitPreparedOrderAfterCommit(preparedOrderId, order);
+
+        log.info("[Dynamic] 매수: id={} {} amount={} SL={} TP={}",
+                sid, coinPair, investAmount, stopLossPrice, takeProfitPrice);
+
+        // 실시간(WS) 손절/익절 감시 대상에 즉시 반영 — 폴링(60초) 대기 없이 다음 tick 전에도 방어
+        refreshWsSubscription();
+        return null;
+    }
+
+    /**
+     * PAPER 매수 — 실거래소(OrderExecutionEngine)를 전혀 거치지 않고, 슬리피지·수수료를 반영해
+     * 같은 트랜잭션 안에서 동기적으로 체결을 시뮬레이션한다.
+     *
+     * <p>REAL 경로가 async 제출 + 별도 콜백(체결 시 size/avgPrice 갱신) + REQUIRES_NEW 잔고
+     * 차감 + 롤백 보상을 쓰는 이유는 전부 "실거래소 응답을 기다려야 한다"는 제약 때문이다.
+     * PAPER는 그 제약이 없으므로 이 비동기 기계장치 전체를 우회한다 — REAL의 회귀 위험을
+     * 조금도 늘리지 않으면서, 07-29/07-31/08-03 P0(주문 롤백·유령 포지션·잔고 누수)가 났던
+     * 바로 그 경로 자체를 PAPER가 절대 타지 않게 하는 설계다.</p>
+     */
+    private String executePaperBuy(DynamicSessionEntity session, PositionEntity posTemplate,
+                                    BigDecimal investAmount, String coinPair,
+                                    StrategySignal signal, String kind) {
+        Long sid = session.getId();
+        BigDecimal signalPrice = posTemplate.getEntryPrice();
+
+        // 🔴 잠근 채 최신으로 다시 읽고, **그 최신 상태에서 확인한 뒤에만** 반영한다 (2026-10-23, 리뷰).
+        //    같은 틱의 워치리스트 기록(persistWatchlist — 별도 트랜잭션)이 세션 행 @Version 을 먼저 올려 두면, 종전처럼
+        //    틱이 읽은 낡은 엔티티에 쓰고 저장할 때 커밋에서 낙관적 잠금 실패로 포지션·주문·세션 변경이 전부 롤백됐다
+        //    (운영 DYNAMIC 85, 10-16 부터 하루 0~9건 — DynamicPaperBuySameTickWatchlistTest). 실자금 경로(executeBuy 의
+        //    예약 뒤 refresh)와 같은 다시 읽기다. 낡은 엔티티를 고친 다음 다시 읽는 순서는 쓰지 않는다 — 고치기 전에 읽는다.
+        //    flush 는 실자금 경로와 같게 둔다: 이 틱이 세션 행을 이미 더럽혔다면 다시 읽기가 그 변경을 조용히 버리지 않고 여기서 드러난다.
+        //    평가 전체를 재시도하지 않는다. 공유 풀 규칙은 PAPER 에 적용하지 않는다(독립 자본).
+        entityManager.flush();
+        DynamicSessionEntity managed = dynamicSessionRepo.findById(sid).orElseThrow();
+        entityManager.refresh(managed, jakarta.persistence.LockModeType.PESSIMISTIC_WRITE);
+        if (!"RUNNING".equals(managed.getStatus())) {
+            log.warn("[Dynamic][PAPER] 매수 취소 — 최신 상태가 {} (id={}, {})", managed.getStatus(), sid, coinPair);
+            return "세션이 실행 중이 아님(최신 상태 " + managed.getStatus() + ") — 매수 취소";
+        }
+        if (managed.getAvailableKrw().compareTo(investAmount) < 0) {
+            log.warn("[Dynamic][PAPER] 매수 취소 — 최신 가용 {} < 투자금 {} (id={}, {})",
+                    managed.getAvailableKrw(), investAmount, sid, coinPair);
+            return String.format("가용 KRW 부족(최신 상태): 가용 %s원 < 투자금 %s원",
+                    managed.getAvailableKrw().setScale(0, RoundingMode.DOWN), investAmount.setScale(0, RoundingMode.DOWN));
+        }
+        if (!positionRepository.findBySessionKindAndSessionIdAndStatus(kind, sid, "OPEN").isEmpty()
+                || !"SCANNING".equals(managed.getScanState())) {
+            log.warn("[Dynamic][PAPER] 매수 취소 — 이미 보유 중(최신 상태 scanState={}) (id={}, {})",
+                    managed.getScanState(), sid, coinPair);
+            return "이미 보유 중(최신 상태) — 중복 매수 차단";
+        }
+
+        // 슬리피지 — 매수는 신호가보다 불리하게(높게) 체결된다 (PaperTradingService와 동일 값).
+        BigDecimal fillPrice = signalPrice.multiply(BigDecimal.ONE.add(PAPER_SLIPPAGE_PCT))
+                .setScale(8, RoundingMode.HALF_UP);
+        BigDecimal fee = investAmount.multiply(FEE_RATE);
+        BigDecimal netAmount = investAmount.subtract(fee);
+        BigDecimal quantity = netAmount.divide(fillPrice, 8, RoundingMode.DOWN);
+        if (quantity.compareTo(BigDecimal.ZERO) <= 0) {
+            return "체결 수량 0 — 투자금 대비 가격 과다";
+        }
+        // avgPrice = 수수료 포함 실제 취득단가 (investAmount / quantity) — costBasis = investAmount가
+        // 되어 청산 시(finalizeDynamicSell) 실현손익이 정확히 계산된다. LIVE 정렬 PaperTradingService와 동일 공식.
+        BigDecimal avgPriceWithFee = investAmount.divide(quantity, 8, RoundingMode.HALF_UP);
+
+        posTemplate.setEntryPrice(fillPrice);
+        posTemplate.setAvgPrice(avgPriceWithFee);
+        posTemplate.setSize(quantity);
+        posTemplate.setPositionFee(fee);
+        PositionEntity pos = positionRepository.save(posTemplate);
+
+        OrderEntity order = OrderEntity.builder()
+                .positionId(pos.getId())
+                .coinPair(coinPair)
+                .side("BUY")
+                .orderType("MARKET")
+                .price(fillPrice)
+                .quantity(investAmount)
+                .filledQuantity(quantity)
+                // executedFunds 를 명시한다 — 2026-09-07.
+                // quantity 는 시장가 매수에서만 KRW 총액이고 그 외엔 코인 수량이라(Upbit price
+                // 타입 제약) 읽는 쪽이 side/orderType 을 보고 단위를 되짚어야 했다. 페이퍼 주문은
+                // 거래소 응답이 없어 이 컬럼이 전 행 NULL 이었고, OrderAmounts.krwAmount() 가
+                // 매번 폴백 분기를 타야 했다. 실체결 KRW 를 있는 그대로 남긴다.
+                .executedFunds(investAmount)
+                .state("FILLED")
+                .exchangeOrderId("PAPER-DYNAMIC-" + pos.getId())
+                .signalReason("동적 세션 BUY(PAPER) — " + signal.getReason())
+                .signalPrice(signalPrice)
+                .fillPriceSource(PAPER_FILL_SIGNAL)
+                .sessionId(sid)
+                .sessionKind(kind)
+                .filledAt(Instant.now())
+                .build();
+        orderRepository.save(order);
+
+        // 비동기 갭이 없으므로 REQUIRES_NEW·롤백 보상 없이 세션을 직접 갱신한다 — 트랜잭션이
+        // 롤백되면 position/order/session 변경 전부가 함께 롤백되어 REAL이 겪던 "차감만
+        // 살아남는" 부분 롤백 자체가 구조적으로 발생할 수 없다.
+        // 위에서 잠그고 다시 읽은 최신 엔티티에 쓴다.
+        managed.setAvailableKrw(managed.getAvailableKrw().subtract(investAmount));
+        managed.setScanState("POSITION_MONITORING");
+        managed.setCurrentCoinPair(coinPair);
+        managed.setCurrentPositionId(pos.getId());
+        dynamicSessionRepo.save(managed);
+
+        // 🔴 체결 완료 로그는 **커밋이 성공한 뒤에만** 남긴다 (2026-10-23, 리뷰). 종전에는 커밋 전에 찍혀,
+        //    커밋이 깨져 전부 롤백된 매수도 "매수 체결" 로 남았다(운영 #85 — 로그와 DB 가 어긋났다).
+        Long posId = pos.getId();
+        BigDecimal sl = pos.getStopLossPrice();
+        BigDecimal tp = pos.getTakeProfitPrice();
+        runAfterCommit(() -> log.info("[Dynamic][PAPER] 매수 체결: id={} {} {}개 @ {} SL={} TP={} (수수료={}, 포지션 {})",
+                sid, coinPair, quantity, fillPrice, sl, tp, fee, posId));
+        return null;
+    }
+
+    /** 트랜잭션이 커밋된 뒤에 실행한다. 트랜잭션 밖이면 곧바로 — 롤백될 것이 없다. */
+    private static void runAfterCommit(Runnable r) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            r.run();
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                r.run();
+            }
+        });
+    }
+
+    /**
+     * 매수 KRW 차감의 <b>롤백 보상</b>을 등록한다 — 부모 트랜잭션이 롤백되면 차감을 되돌린다.
+     *
+     * <p><b>왜 필요한가 (2026-08-03 P0)</b>: {@link #executeBuy}의 KRW 차감은
+     * {@link DynamicSessionBalanceUpdater#apply}를 통하는데, 이는 낙관적 락 재시도를 위해
+     * {@code REQUIRES_NEW} 별도 트랜잭션이라 <b>부모보다 먼저 커밋</b>된다. 이후 부모 tx
+     * ({@code processScanningTick})가 롤백되면:</p>
+     * <ul>
+     *   <li>position INSERT 소멸 → 포지션 없음</li>
+     *   <li>{@code submitOrderAfterCommit}는 afterCommit 훅이라 미발화 → 주문 행조차 없음</li>
+     *   <li>{@code strategy_log} 신호 로그도 같은 tx라 함께 소멸 → <b>흔적이 전혀 남지 않는다</b></li>
+     *   <li>그런데 <b>KRW 차감만 살아남는다</b></li>
+     * </ul>
+     *
+     * <p>운영 증거(2026-08-03): 동적 세션 39·40·44가 포지션·주문·신호로그 0건인 채
+     * {@code available_krw}만 10,000 → 2,000으로 줄어 있었다(각 8,000원, 합 24,000원).
+     * 투자가능액이 {@code 2,000 × 0.8 = 1,600원}이 되어 최소주문 5,000원에 걸려
+     * <b>세 세션이 영구 매수 불능</b>이 됐다(세션 44는 07-31 12:00 유일한 BUY 신호를
+     * "가용 KRW 부족"으로 차단당함).</p>
+     *
+     * <p>{@link #reconcileDynamicOrphanBuyPositions}가 못 잡는 이유: 그 안전망은
+     * {@code position} 행을 기준으로 순회하는데, 이 경우 포지션 자체가 롤백돼 없다.
+     * 세션 기준 안전망은 {@link #reconcileDynamicSessionBalance}가 담당한다(2차 방어).</p>
+     *
+     * <p>차감을 afterCommit으로 미루지 <b>않은</b> 이유: 그러면 커밋 후 차감이 실패했을 때
+     * 포지션·주문은 살아있는데 KRW가 안 줄어 <b>이중 매수</b>가 가능해진다. 미차감(과투자)보다
+     * 과차감(보상 가능)이 안전하므로, 선차감 + 롤백 보상 구조를 택했다.</p>
+     */
+    // 🔴 2026-10-12: **매수 경로는 더 이상 이것을 쓰지 않는다.** 차감이 공유 풀 예약 경계 안에서 틱과
+    //    같은 트랜잭션으로 일어나므로 롤백이 차감을 함께 되돌린다 — 보상할 "살아남은 차감" 이 없다.
+    //    기록과 그 시험(DynamicBalanceLeakTest ①)은 남겨 둔다. 새 경로에 다시 쓰지 말 것.
+    // 테스트에서 롤백 시나리오를 직접 구동하기 위해 package-private (resolveStopLossPct와 동일 방침)
+    void registerBuyDeductionCompensation(Long sessionId, BigDecimal deductAmount) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            return;   // 트랜잭션 밖 호출 — 롤백될 부모가 없으므로 보상 대상도 없다
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCompletion(int status) {
+                if (status != STATUS_ROLLED_BACK) return;
+                try {
+                    balanceUpdater.apply(sessionId, s -> {
+                        s.setAvailableKrw(s.getAvailableKrw().add(deductAmount));
+                        s.setScanState("SCANNING");
+                        s.setCurrentCoinPair(null);
+                        s.setCurrentPositionId(null);
+                    });
+                    log.error("[Dynamic] 매수 tx 롤백 — KRW 차감 보상 완료 (id={}, 복원금액={})",
+                            sessionId, deductAmount);
+                } catch (Exception e) {
+                    // 보상까지 실패하면 reconcileDynamicSessionBalance 가 다음 주기에 잡는다
+                    log.error("[Dynamic] 🔴 매수 tx 롤백 보상 실패 — 세션 잔고 누수 (id={}, 금액={})",
+                            sessionId, deductAmount, e);
+                }
+            }
+        });
+    }
+
+    // ── 내부: 매도 실행 ────────────────────────────────────────────
+
+    @Transactional
+    /**
+     * @param exitReason 집계용 청산 사유 (V73). CLOSING 전환과 같은 UPDATE 로 기록되므로
+     *                   실거래의 비동기 매도에서도 reconcile 시점까지 보존된다.
+     */
+    /**
+     * 동적 세션 포지션 청산. <b>CLOSING 전환에 성공했을 때만 {@code true}</b> (2026-10-07).
+     *
+     * <p>{@code tick()} 은 {@code @Transactional} 이 없어 {@code markClosingIfOpen}
+     * ({@code @Modifying(flushAutomatically=true)})을 직접 부르면 실패한다 —
+     * {@link PositionStateTransition} 에 사고 경위를 적었다. 전환을 그 헬퍼로 돌리고,
+     * 반환값으로 <b>알림을 청산 성공 뒤에만</b> 보내도록 호출부를 바꿨다.</p>
+     */
+    public boolean executeSell(DynamicSessionEntity session, PositionEntity pos,
+                             BigDecimal currentPrice, String reason, ExitReason exitReason) {
+        Long sid = session.getId();
+
+        if (pos.getSize() == null || pos.getSize().compareTo(BigDecimal.ZERO) <= 0) {
+            log.warn("[Dynamic] 매도 건너뜀: size=0 (posId={}, id={})", pos.getId(), sid);
+            return false;
+        }
+
+        // 원자적 CLOSING 전환 — WS 실시간 SL/TP와 60초 tick이 동시에 같은 포지션을 팔려는
+        // race에서 한쪽만 매도 주문을 제출하도록 보장 (시장가 이중 매도 방지)
+        int marked = positionStateTransition.markClosingIfOpen(pos.getId(), Instant.now(), exitReason);
+        if (marked == 0) {
+            log.debug("[Dynamic] 매도 건너뜀: 이미 CLOSING/CLOSED (posId={}, id={})", pos.getId(), sid);
+            return false;
+        }
+
+        if (session.isPaper()) {
+            executePaperSell(session, pos, currentPrice, reason, exitReason, null);
+            return true;
+        }
+
+        OrderRequest order = new OrderRequest();
+        order.setCoinPair(pos.getCoinPair());
+        order.setSide("SELL");
+        order.setOrderType("MARKET");
+        order.setQuantity(pos.getSize());
+        order.setReason(reason);
+        order.setSignalPrice(currentPrice);  // §14 drift 측정 기준가 보존
+        order.setSessionId(sid);
+        order.setSessionKind(sessionKind(session));
+        order.setPositionId(pos.getId());
+        orderExecutionEngine.submitOrder(order);
+
+        // KRW 복원은 reconcile 에서 처리 — 여기서는 상태만 전환
+        transitionToScanning(sid);
+        log.info("[Dynamic] 매도 주문: id={} {} size={}", sid, pos.getCoinPair(), pos.getSize());
+        return true;
+    }
+
+    /**
+     * PAPER 매도 — {@code markClosingIfOpen}까지는 REAL과 동일하게 거친 뒤, 실거래소 제출 대신
+     * 슬리피지를 반영한 체결 주문을 즉시 만들어 {@link #finalizeDynamicSell}에 넘긴다.
+     *
+     * <p>{@code finalizeDynamicSell}을 그대로 재사용하는 것이 핵심이다 — 손익·수수료·부분체결·
+     * 세션 노출(hasRemainingExposure) 계산 로직을 중복 구현하지 않고, REAL과 <b>완전히 같은
+     * 코드로</b> 검증한다(이번 정렬 작업의 목적 그 자체).</p>
+     */
+    /**
+     * @param priceSource 체결가 출처(V92) — {@code null} 이면 신호가가 있을 때 {@link #PAPER_FILL_SIGNAL}, 없을 때 아래 대체 규칙으로 정한다.
+     *                    🔴 정지 청산은 평균 단가를 신호가 자리에 넣으므로 신호가로는 가정 체결을 가려낼 수 없다 — {@link #PAPER_FILL_AVG_PRICE} 를 준다.
+     */
+    private void executePaperSell(DynamicSessionEntity session, PositionEntity pos,
+                                   BigDecimal signalPrice, String reason, ExitReason exitReason, String priceSource) {
+        // 신호가 없음 (2026-10-15 리뷰 7회차) — 캔들도 유효한 현재가도 없는 회차의 시간 초과 청산. 실전은 시장가로 그대로
+        // 나가므로 페이퍼도 같이 나가고, 체결가만 마지막으로 받은 시세(나이 무관) → 없으면 평균 단가로 시뮬레이션한다.
+        // 🔴 이 체결가는 관측 가격이 아니라 가정이다 — 특히 평균 단가 체결은 그 값에 팔 수 있었다는 근거가 아니다. 출처를 열로
+        //    남기고(V92) 사유에도 적는다(2026-10-15 리뷰 8회차).
+        BigDecimal basePrice = signalPrice;
+        String source = priceSource != null ? priceSource : PAPER_FILL_SIGNAL;
+        String recordedReason = reason;
+        if (basePrice == null) {
+            MarkPriceBook.Mark last = markPriceBook == null ? null : markPriceBook.get(pos.getCoinPair());
+            basePrice = last != null ? last.price() : pos.getAvgPrice();
+            source = last != null ? PAPER_FILL_LAST_MARK : PAPER_FILL_AVG_PRICE;
+            String basis = last != null ? "마지막 시세(" + last.at() + ")" : "평균 단가";
+            recordedReason = reason + " [페이퍼 체결가 가정: " + basis + " " + basePrice.stripTrailingZeros().toPlainString() + " — 관측 가격 아님]";
+            log.warn("[Dynamic][PAPER] 신호가 없는 매도 — 체결가를 {} {} 로 시뮬레이션한다 (posId={})",
+                    basis, basePrice, pos.getId());
+        }
+        // 슬리피지 — 매도는 신호가보다 불리하게(낮게) 체결된다.
+        BigDecimal fillPrice = basePrice.multiply(BigDecimal.ONE.subtract(PAPER_SLIPPAGE_PCT))
+                .setScale(8, RoundingMode.HALF_DOWN);
+
+        OrderEntity order = OrderEntity.builder()
+                .positionId(pos.getId())
+                .coinPair(pos.getCoinPair())
+                .side("SELL")
+                .orderType("MARKET")
+                .price(fillPrice)
+                .quantity(pos.getSize())
+                .filledQuantity(pos.getSize())
+                // 매도 대금(수수료 차감 전) — 매수 쪽과 같은 이유로 명시한다.
+                .executedFunds(pos.getSize().multiply(fillPrice))
+                .state("FILLED")
+                .exchangeOrderId("PAPER-DYNAMIC-SELL-" + pos.getId())
+                .signalReason(recordedReason)
+                .signalPrice(signalPrice)
+                .fillPriceSource(source)
+                .sessionId(session.getId())
+                .sessionKind(sessionKind(session))
+                .filledAt(Instant.now())
+                .build();
+        order = orderRepository.save(order);
+
+        pos.setExitReason(exitReason != null ? exitReason : ExitReason.UNKNOWN);
+        finalizeDynamicSell(pos, order);
+        transitionToScanning(session.getId());
+        log.info("[Dynamic][PAPER] 매도 체결: id={} {} size={} @ {}",
+                session.getId(), pos.getCoinPair(), pos.getSize(), fillPrice);
+    }
+
+    // ── 내부: 손실 청산 쿨다운 ────────────────────────────────────
+
+    /**
+    /**
+     * 워치리스트 기록을 <b>호출자 트랜잭션과 분리해</b> 저장한다 (2026-09-28 신설).
+     *
+     * <p><b>왜 필요한가 — 관측된 결함</b>: 종전에는 두 곳에서
+     * {@code getOrThrow(id)} 로 <b>바깥 트랜잭션의 관리 엔티티</b>를 꺼내 필드를 바꿨다.
+     * 그러면 {@code save()} 호출 여부와 무관하게 그 엔티티가 dirty 가 되고, 같은 틱에서
+     * {@link #executeBuy} 가 {@code balanceUpdater}(REQUIRES_NEW, 별도 커넥션·별도 컨텍스트)로
+     * <b>같은 행</b>의 버전을 올려 커밋한 뒤, 바깥이 커밋 시점에 {@code where version=?} 로
+     * 자기 사본을 쓰려다 <b>0행</b>을 맞아 {@code StaleObjectStateException} 이 났다.
+     * 결과는 <b>매수 기록(포지션·주문·워치리스트) 전부 롤백 + 보상으로 차감 복원</b> —
+     * 잔액은 맞았지만 <b>진입 신호가 있었는데 매수가 완료되지 않았다.</b>
+     * (`DynamicBuyOuterWriteOrderingTest` 가 SQL 순서로 관측, 2026-09-26.)
+     *
+     * <p><b>무엇이 달라지는가</b>: 이 메서드는 {@code balanceUpdater.apply} 를 쓰므로 변경이
+     * <b>새 트랜잭션의 자체 컨텍스트에서 재조회한 엔티티</b>에 적용된다 — 바깥의 관리 엔티티를
+     * 건드리지 않아 <b>바깥은 이 행을 쓰지 않는다</b>. 낙관적 락 재시도도 그대로 얻는다.
+     *
+     * <p>⚠️ <b>의미 변화 — "화면·감사용이라 무해하다"는 틀렸다. 정정한다.</b>
+     * {@code watchlistRefreshedAt} 은 <b>다음 틱의 갱신 생략 판단</b>에 쓰이고
+     * ({@code resolveWatchlist} 의 {@code needsRefresh}), {@code watchlistJson} 은 그때
+     * <b>종목 선택에 그대로 사용</b>된다. 따라서 이 필드는 표시용만이 아니다.
+     *
+     * <p>이 변경으로 달라지는 것은 이렇다. 종전에는 틱이 롤백되면 워치리스트 갱신도 함께
+     * 사라져 <b>다음 틱이 다시 계산</b>했다. 이제는 갱신이 독립적으로 커밋되므로
+     * <b>갱신 주기(기본 60분) 동안 그 목록을 계속 쓴다.</b> 두 필드는 같은 트랜잭션에서
+     * 함께 커밋되므로 목록과 시각이 <b>어긋나지는 않는다</b> — 정당하게 계산된 목록을
+     * 유지하는 쪽이며, 재계산(네트워크 조회)을 아끼는 효과도 있다.
+     * 🔴 그러나 "무해"가 아니라 <b>의도적으로 받아들인 거동 변화</b>로 기록한다.
+     *
+     * <p>📌 확인한 것: 같은 틱 안에서 <b>쓰기 이후에 이 필드를 다시 읽는 경로는 없다</b>
+     * (`:1813-1818` · `:1858-1859` · `:1874` 는 모두 쓰기 전이다). 따라서 바깥이 들고 있는
+     * 낡은 사본의 값·버전을 이후에 사용하지 않는다.
+     *
+     * <p>🔴 <b>이 수정은 운영에서 관측한 장기 잠금 사고의 원인을 해결하지 않는다.</b>
+     * 잠금 대기 가설은 test B 에서 지지되지 않았고, 그 추적은 따로 남아 있다.
+     * 여기서 고치는 것은 <b>재현된 버전 충돌로 정상 매수가 유실되는 것</b>뿐이다.
+     */
+    public void persistWatchlist(Long sessionId, String watchlistJson) {
+        try {
+            balanceUpdater.apply(sessionId, s -> {
+                s.setWatchlistJson(watchlistJson);
+                s.setWatchlistRefreshedAt(Instant.now());
+            });
+        } catch (Exception e) {
+            log.warn("[Dynamic] 워치리스트 저장 실패 (sessionId={}): {}", sessionId, e.getMessage());
+        }
+    }
+
+    /**
+     * 이 세션에서 해당 코인의 가장 최근 청산이 손실이고, 청산 후 {@code cooldownMinutes}가
+     * 지나지 않았으면 true — SCANNING 재진입을 차단한다 (라이브 191 반복 손절 패턴 방지).
+     */
+    private boolean isInLossCooldown(String kind, Long sessionId, String coinPair, int cooldownMinutes) {
+        if (cooldownMinutes <= 0) return false;
+        return positionRepository
+                .findTopBySessionKindAndSessionIdAndCoinPairAndStatusOrderByClosedAtDesc(
+                        kind, sessionId, coinPair, "CLOSED")
+                .filter(p -> p.getRealizedPnl() != null
+                        && p.getRealizedPnl().compareTo(BigDecimal.ZERO) < 0)
+                .filter(p -> p.getClosedAt() != null
+                        && Duration.between(p.getClosedAt(), Instant.now()).toMinutes() < cooldownMinutes)
+                .isPresent();
+    }
+
+    // ── 내부: 워치리스트 관리 ─────────────────────────────────────
+
+    @Transactional
+    public List<String> resolveWatchlist(DynamicSessionEntity session) {
+        // 공용 유니버스가 켜져 있으면 세션별 갱신 시계를 타지 않는다 — 세션마다 다른 시각에
+        // 갱신하면 같은 전략끼리도 서로 다른 코인을 보게 되어 성적 비교가 성립하지 않는다.
+        // 캐싱은 SharedUniverseService 의 벽시계 버킷이 담당한다. 세션의 watchlistJson 은
+        // 화면·감사용으로 계속 기록한다. 자세한 근거는 SharedUniverseService 참조.
+        if (sharedUniverseService.isEnabled()) {
+            return resolveSharedWatchlist(session);
+        }
+
+        boolean needsRefresh = session.getWatchlistRefreshedAt() == null
+                || Duration.between(session.getWatchlistRefreshedAt(), Instant.now()).toMinutes()
+                        >= session.getWatchlistRefreshMin();
+
+        if (!needsRefresh && session.getWatchlistJson() != null) {
+            return parseWatchlistJson(session.getWatchlistJson());
+        }
+
+        log.info("[Dynamic] 워치리스트 갱신 (id={})", session.getId());
+
+        // 품질 큐레이션 기준 — risk_config override 우선, NULL이면 코드 기본값. 원시 유니버스
+        // (거래대금 상위)를 유동성·변동성 상한·상승추세·비급락으로 걸러 진입 게이트와 상쇄되는
+        // 잡코인을 앞단에서 배제한다 (2026-07-24). WatchlistQualityGate 참조.
+        WatchlistFilterService.QualityCriteria criteria = buildQualityCriteria();
+
+        List<String> fresh = watchlistFilterService.buildWatchlist(
+                session.getMaxCandidateSize(),
+                session.getTargetWatchSize(),
+                session.getMinAtrPct(),
+                session.getMaxSpreadPct(),
+                session.getTimeframe(),
+                criteria);
+
+        try {
+            persistWatchlist(session.getId(), objectMapper.writeValueAsString(fresh));
+        } catch (Exception e) {
+            log.warn("[Dynamic] 워치리스트 지롌화 실패: {}", e.getMessage());
+        }
+
+        return fresh;
+    }
+
+    /** 공용 유니버스 경로 — 유니버스는 SharedUniverseService 가, 세션 기록은 여기가 맡는다. */
+    private List<String> resolveSharedWatchlist(DynamicSessionEntity session) {
+        List<String> fresh = sharedUniverseService.resolve(
+                session.getMaxCandidateSize(),
+                session.getTargetWatchSize(),
+                session.getMinAtrPct(),
+                session.getMaxSpreadPct(),
+                session.getTimeframe(),
+                buildQualityCriteria());
+
+        if (fresh.isEmpty()) {
+            // 구성 실패(Upbit 일시 장애 등) — 직전에 쓰던 목록으로 버틴다. 빈 목록을 그대로
+            // 돌려주면 그 tick 의 스캔이 통째로 비어 진입 기회를 놓친다.
+            List<String> cached = session.getWatchlistJson() != null
+                    ? parseWatchlistJson(session.getWatchlistJson()) : List.of();
+            if (!cached.isEmpty()) {
+                log.warn("[Dynamic] 공용 유니버스 비어 있음 — 직전 목록 유지 (id={}, {}종목)",
+                        session.getId(), cached.size());
+            }
+            return cached;
+        }
+
+        // 내용이 그대로면 쓰지 않는다 — 세션 14개가 매 tick 같은 값을 다시 쓰면 @Version 충돌만 는다.
+        String freshJson;
+        try {
+            freshJson = objectMapper.writeValueAsString(fresh);
+        } catch (Exception e) {
+            return fresh;
+        }
+        if (!freshJson.equals(session.getWatchlistJson())) {
+            persistWatchlist(session.getId(), freshJson);
+        }
+        return fresh;
+    }
+
+    /** risk_config override 우선, NULL 이면 코드 기본값. 세션별 경로·공용 경로가 함께 쓴다. */
+    private WatchlistFilterService.QualityCriteria buildQualityCriteria() {
+        com.cryptoautotrader.api.entity.RiskConfigEntity riskConfig = riskManagementService.getRiskConfig();
+        BigDecimal minTradeValueKrw = riskConfig.getScanMinTradeValueKrw() != null
+                ? riskConfig.getScanMinTradeValueKrw() : SCAN_MIN_TRADE_VALUE_KRW;
+        BigDecimal maxAtrPct = riskConfig.getScanMaxAtrPct() != null
+                ? riskConfig.getScanMaxAtrPct() : SCAN_MAX_ATR_PCT;
+        boolean requireUptrend = riskConfig.getScanRequireUptrend() != null
+                ? riskConfig.getScanRequireUptrend() : SCAN_REQUIRE_UPTREND;
+        boolean excludeCrashing = riskConfig.getScanExcludeCrashing() != null
+                ? riskConfig.getScanExcludeCrashing() : SCAN_EXCLUDE_CRASHING;
+        return new WatchlistFilterService.QualityCriteria(
+                minTradeValueKrw, maxAtrPct, requireUptrend, excludeCrashing);
+    }
+
+    private List<String> parseWatchlistJson(String json) {
+        try {
+            return objectMapper.readValue(json, new TypeReference<>() {});
+        } catch (Exception e) {
+            return List.of();
+        }
+    }
+
+    // ── 내부: 전략 인스턴스 ────────────────────────────────────────
+
+    private Strategy resolveStrategy(Long sessionId, String coinPair, String strategyType) {
+        if (!StrategyRegistry.hasFactory(strategyType)) {
+            return StrategyRegistry.get(strategyType);
+        }
+        String key = sessionId + ":" + coinPair;
+        return strategyInstances.computeIfAbsent(key, k -> StrategyRegistry.createNew(strategyType));
+    }
+
+    // ── 내부: 전략 로그 (전략로그 페이지 노출용) ──────────────────
+
+    /**
+     * 평가된 신호를 {@code strategy_log} 테이블에 저장한다 — {@code sessionType="DYNAMIC"}.
+     * 라이브 매매({@link LiveTradingService})와 동일하게 모든 평가(HOLD 포함)를 저장해야
+     * 전략로그 화면과 신호 품질 통계(/api/v1/logs/signal-stats)에서 동적 세션도 보인다.
+     * 이전까지는 application log 에만 남고 DB에는 전혀 기록되지 않아 전략로그 화면이 비어 있었다.
+     */
+    private StrategyLogEntity saveStrategyLog(DynamicSessionEntity session, String strategyName, String coinPair,
+                                               StrategySignal signal, BigDecimal signalPrice,
+                                               List<Candle> evalCandles) {
+        try {
+            BigDecimal conf = (signal.getAction() != StrategySignal.Action.HOLD && signal.getStrength() != null)
+                    ? signal.getStrength().divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP)
+                    : null;
+            StrategyLogEntity entity = StrategyLogEntity.builder()
+                    .rulesetHash(rulesetRegistry.hashFor(session))
+                    .strategyName(strategyName)
+                    .coinPair(coinPair)
+                    .timeframe(session.getTimeframe())
+                    .signal(signal.getAction().name())
+                    .reason(signal.getReason())
+                    .sessionType(sessionKind(session))
+                    .sessionId(session.getId())
+                    .signalPrice(signalPrice)
+                    .confidenceScore(conf)
+                    // 2026-08-19: DYNAMIC 은 레짐도 지표 스냅샷도 안 남기고 있었다.
+                    // 사후 분석이 reason 문자열 파싱에 의존하던 원인이다.
+                    .marketRegime(detectRegimeQuietly(evalCandles))
+                    .indicatorsJson(IndicatorSnapshot.of(evalCandles, true,
+                            evalCandles != null && !evalCandles.isEmpty()
+                                    ? evalCandles.get(evalCandles.size() - 1).getTime() : null,
+                            null))
+                    .build();
+            return strategyLogRepository.save(entity);
+        } catch (Exception e) {
+            log.warn("[Dynamic] 전략 로그 저장 실패: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    /** 신호 품질 로그 실행 결과 업데이트 (null-safe) */
+    private void updateSignalQuality(StrategyLogEntity logEntity, boolean wasExecuted, String blockedReason) {
+        if (logEntity == null) return;
+        try {
+            logEntity.setWasExecuted(wasExecuted);
+            logEntity.setBlockedReason(blockedReason);
+            strategyLogRepository.save(logEntity);
+        } catch (Exception e) {
+            log.warn("[Dynamic] 신호 품질 로그 업데이트 실패: {}", e.getMessage());
+        }
+    }
+
+    // ── 내부: 캔들 조회 ────────────────────────────────────────────
+
+    @Autowired(required = false)
+    private CandleFreshnessGuard candleFreshnessGuard;
+
+    @Autowired(required = false)
+    private MarkPriceBook markPriceBook;
+
+    /**
+     * 캔들을 쓸 수 없는 회차의 보유 감시 (2026-10-15 리뷰 7회차) — 정상 경로와 같은 순서(익절 → 손절 → 시간 초과), 같은 조건. LIVE 와 같다.
+     * 현재가는 받은 지 기준(120초) 이내의 실시간 시세만 쓴다. 없으면 가격 기반 판정은 하지 않고 시간 초과만 판정한다(실자금은 시장가 매도라
+     * 가격이 필요 없다. 페이퍼는 체결가를 만들 가격이 없으므로 그 회차에는 내지 않는다 — 체결 모의의 차이). TP 트레일링은 하지 않는다.
+     *
+     * @return 청산 매도를 시도했으면 true
+     */
+    boolean monitorWithoutCandles(DynamicSessionEntity session, String coinPair) {
+        Long sid = session.getId();
+        List<PositionEntity> openPositions = positionRepository
+                .findBySessionKindAndSessionIdAndCoinPairAndStatusList(sessionKind(session), sid, coinPair, "OPEN");
+        Optional<PositionEntity> posOpt = pickMonitoredPosition(sid, session.getCurrentPositionId(), openPositions);
+        if (posOpt.isEmpty()) return false;
+        PositionEntity pos = posOpt.get();
+        BigDecimal price = markPriceBook == null ? null : markPriceBook.freshPrice(coinPair, Instant.now());
+        BigDecimal pnlPct = price == null ? null : price.subtract(pos.getAvgPrice())
+                .divide(pos.getAvgPrice(), 6, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100));
+        String priceNote = price == null ? "유효한 현재가 없음" : "실시간 현재가 " + price;
+
+        if (price != null) {
+            if (pos.getTakeProfitPrice() != null && price.compareTo(pos.getTakeProfitPrice()) >= 0) {
+                log.info("[Dynamic] 익절 — 캔들 없음, {} (id={}, {})", priceNote, sid, coinPair);
+                executeSell(session, pos, price, "익절(캔들 판정 불가 회차, " + priceNote + ") — 익절가 " + pos.getTakeProfitPrice(),
+                        ExitReason.TAKE_PROFIT);
+                return true;
+            }
+            boolean slTriggered = pos.getStopLossPrice() != null
+                    ? price.compareTo(pos.getStopLossPrice()) <= 0
+                    : pnlPct.compareTo(session.getStopLossPct().negate()) <= 0;
+            if (slTriggered) {
+                log.warn("[Dynamic] 손절 — 캔들 없음, {} pnl={}% (id={}, {})", priceNote, pnlPct, sid, coinPair);
+                if (executeSell(session, pos, price, "손절(캔들 판정 불가 회차, " + priceNote + ") — pnl " + pnlPct + "%",
+                        ExitReason.STOP_LOSS)) {
+                    telegramService.notifyStopLoss(coinPair, pnlPct.doubleValue(), sid);
+                }
+                return true;
+            }
+        }
+        Integer maxHoldHours = session.getMaxHoldHours();
+        if (ExitRuleCalculator.shouldTimeStop(maxHoldHours, pos.getOpenedAt(), Instant.now())) {
+            long heldHours = Duration.between(pos.getOpenedAt(), Instant.now()).toHours();
+            // 페이퍼·실전 같은 판정 — 현재가가 없을 때 페이퍼의 차이는 체결가 시뮬레이션(executePaperSell)에서만 생긴다.
+            log.warn("[Dynamic] 시간 초과 청산 — 캔들 없음, {} 보유 {}h ≥ {}h (id={}, {})", priceNote, heldHours, maxHoldHours, sid, coinPair);
+            if (executeSell(session, pos, price, String.format("시간 초과 청산(캔들 판정 불가 회차, %s) — 보유 %d시간 ≥ %d시간",
+                    priceNote, heldHours, maxHoldHours), ExitReason.TIME_STOP)) {
+                telegramService.notifyTimeStop(coinPair, heldHours, maxHoldHours, pnlPct == null ? Double.NaN : pnlPct.doubleValue(), sid);
+            }
+            return true;
+        }
+        if (price == null) {
+            log.warn("[Dynamic] 캔들 판정 불가 + 유효한 현재가 없음 — 가격 기반 손절·익절을 이 회차에 판정하지 못했다 (id={}, {}, posId={})",
+                    sid, coinPair, pos.getId());
+        }
+        return false;
+    }
+
+    /** 세션 거래 코인의 캔들 — 최신 완료 봉·결측 조건을 어기면 빈 목록(판정 불가). BTC 관문 캔들에는 쓰지 않는다. LIVE 와 같다. */
+    private List<Candle> freshCandles(String coinPair, String timeframe, List<Candle> candles) {
+        return candleFreshnessGuard == null ? candles : candleFreshnessGuard.filter("DYNAMIC", coinPair, timeframe, candles);
+    }
+
+    /** BTC 급락 관문 — BTC 캔들이 없거나 낡으면 판정 불가({@link BtcMarketGuard.Result#unknown}). 관문 계산에는 닫힌 봉만 넣는다. LIVE 와 같다. */
+    private BtcMarketGuard.Result btcMarketGate(String timeframe) {
+        List<Candle> btc = fetchCandles("KRW-BTC", timeframe);
+        List<Candle> closed = closedCandleSlice(btc, timeframe);
+        return candleFreshnessGuard == null
+                ? CandleFreshnessGuard.btcGate(timeframe, btc, closed, Instant.now())
+                : candleFreshnessGuard.btcGate("DYNAMIC", timeframe, btc, closed);
+    }
+
+    private List<Candle> fetchCandles(String coinPair, String timeframe) {
+        // 틱 스코프가 열려 있으면 같은 (코인, 타임프레임) 은 틱당 1회만 실제 조회한다.
+        return TickCandleCache.get(coinPair, timeframe, () -> loadCandles(coinPair, timeframe));
+    }
+
+    private List<Candle> loadCandles(String coinPair, String timeframe) {
+        if (upbitRestClient == null) return List.of();
+        try {
+            // 2026-08-26: 매 틱(코인 수만큼)마다 Upbit REST로 500개 전량을 직접 재요청하던 것을
+            // market_data_cache 경유(갭만 REST)로 축소 — MarketDataSyncService.fetchWithCache 참조.
+            return marketDataSyncService.fetchWithCache(coinPair, timeframe, CANDLE_LOOKBACK);
+        } catch (Exception e) {
+            log.warn("[Dynamic] 캔들 조회 실패 ({} {}): {}", coinPair, timeframe, e.getMessage());
+            return List.of();
+        }
+    }
+
+    private List<Candle> closedCandleSlice(List<Candle> candles, String timeframe) {
+        if (candles.size() < 2) return candles;
+        long periodMin = TimeframeUtils.toMinutes(timeframe);
+        Instant lastTime = candles.get(candles.size() - 1).getTime();
+        boolean closed = !lastTime.plus(periodMin, ChronoUnit.MINUTES).isAfter(Instant.now());
+        return closed ? candles : candles.subList(0, candles.size() - 1);
+    }
+
+    // ── 내부: 상태 전환 ────────────────────────────────────────────
+
+    public void transitionToScanning(Long sessionId) {
+        // ⚠️ 2026-08-27: 남은 OPEN 포지션이 있으면 SCANNING 으로 보내지 않는다.
+        //
+        // 이 메서드는 호출부가 9곳(청산 완료·고아 정리·reconcile 등)인데 전부 "이 세션은 이제
+        // 빈손"이라고 가정하고 무조건 SCANNING 으로 보냈다. 세션에 포지션이 하나만 있다는 전제가
+        // 깨지는 순간(중복 진입·정리 누락) **남은 포지션이 감시에서 통째로 빠진다** — SL·TP·
+        // time stop 이 전부 monitoring tick 에서만 돌기 때문이다.
+        //
+        // 운영 실측(2026-08-27 00:58~00:59, 세션 60): 포지션 2997 을 손절 청산하면서 이 메서드가
+        // SCANNING 으로 보냈고, 같은 세션의 포지션 2852 가 그 순간 고아가 됐다. 08-23 에 처음
+        // 불일치가 생긴 것도 같은 경로로 추정된다 — 그때 2852 는 **83시간** 방치됐고
+        // (maxHoldHours=24 인데도) 그사이 세션이 같은 코인을 재매수해 중복까지 만들었다.
+        //
+        // processTick 의 자가복구 가드가 다음 틱에 되돌리지만, 애초에 어긋나지 않는 편이 낫다.
+        DynamicSessionEntity owner = dynamicSessionRepo.findById(sessionId).orElse(null);
+        List<PositionEntity> remaining = owner == null ? List.of()
+                : positionRepository.findBySessionKindAndSessionIdAndStatus(
+                        sessionKind(owner), sessionId, "OPEN");
+        if (!remaining.isEmpty()) {
+            PositionEntity keep = remaining.get(0);
+            log.warn("[Dynamic] SCANNING 복귀 보류 — OPEN 포지션 {}건 잔존, 감시 유지 "
+                            + "(id={}, {} posId={})",
+                    remaining.size(), sessionId, keep.getCoinPair(), keep.getId());
+            balanceUpdater.apply(sessionId, s -> {
+                s.setScanState("POSITION_MONITORING");
+                s.setCurrentCoinPair(keep.getCoinPair());
+                s.setCurrentPositionId(keep.getId());
+            });
+            refreshWsSubscription();
+            return;
+        }
+
+        balanceUpdater.apply(sessionId, s -> {
+            s.setScanState("SCANNING");
+            s.setCurrentCoinPair(null);
+            s.setCurrentPositionId(null);
+            s.setWatchlistRefreshedAt(null); // 다음 스캔에서 즉시 재필터링
+        });
+        log.info("[Dynamic] SCANNING 복귀 (id={})", sessionId);
+        refreshWsSubscription();
+    }
+
+    private void updateMddPeak(DynamicSessionEntity session) {
+        if (session.getMddPeakCapital() == null
+                || session.getTotalAssetKrw().compareTo(session.getMddPeakCapital()) > 0) {
+            // 넘어온 엔티티를 직접 save()하면 reconcile(5초)과의 @Version 충돌로
+            // 같은 tick의 후속 SL/TP 검사까지 통째로 실패할 수 있다 — 낙관적 락 재시도 경유
+            balanceUpdater.apply(session.getId(), s -> {
+                if (s.getMddPeakCapital() == null
+                        || s.getTotalAssetKrw().compareTo(s.getMddPeakCapital()) > 0) {
+                    s.setMddPeakCapital(s.getTotalAssetKrw());
+                }
+            });
+        }
+    }
+
+    // ── 내부: 청산 / 정리 ──────────────────────────────────────────
+
+    private void closeOpenPositions(DynamicSessionEntity session, String reason) {
+        List<PositionEntity> opens = positionRepository
+                .findBySessionKindAndSessionIdAndStatus(sessionKind(session), session.getId(), "OPEN");
+        for (PositionEntity pos : opens) {
+            if (pos.getSize() == null || pos.getSize().compareTo(BigDecimal.ZERO) <= 0) {
+                // 🔴 **size=0 은 매수 주문의 상태로 가른다** (2026-10-13, LIVE `closeSessionPositions` 와 같은 규칙).
+                //
+                //    종전에는 무조건 CLOSED 로 바꿨다 — 진행 중 매수의 늦은 체결이 반영될 곳이 없어지고
+                //    (재개방 금지), 철회된 매수의 예약은 고아 정리가 열린 포지션만 보므로 **복원되지 않았다.**
+                //    🔴 V87: 확인되지 않은 취소도 진행 중과 같이 본다 — 체결됐을 수 있다.
+                EmptyPositionOutcome outcome = settleEmptyPosition(pos, session.getId());
+                if (outcome == EmptyPositionOutcome.WAITING) {
+                    // 열어 두고 정리 대기로 등록한다 — 늦은 체결이 오면 정리 작업이 정지의 청산 정책으로 닫는다.
+                    // (페이퍼는 매수 주문이 없어 WAITING 이 나오지 않는다 — 페이퍼 분기를 두지 않는다.)
+                    registerStopCleanup(pos, session.getId());
+                    log.info("[Dynamic] 정지 — 매수 확인 전인 size=0 포지션은 열어 두고 정리 대기로 둔다 "
+                            + "(posId={}, sessionId={})", pos.getId(), session.getId());
+                }
+                continue;
+            }
+            // WS 실시간 SL/TP 매도와의 race 방지 — 이미 CLOSING이면 매도 주문 중복 제출 스킵
+            // 운영자 개입 청산 — 청산가가 시장이 아니라 정지 시각으로 정해지므로 전략 성과와 섞으면 안 된다.
+            if (positionStateTransition.markClosingIfOpen(pos.getId(), Instant.now(),
+                    ExitReason.FORCED_STOP) == 0) {
+                continue;
+            }
+
+            if (session.isPaper()) {
+                // 현재가 정보가 없는 강제 정지 경로 — 진입가를 신호가로 대체(슬리피지만 반영).
+                // 정지/비상정지는 드문 경로이고, 정확한 청산가보다 "확실히 닫힌다"가 중요하다.
+                executePaperSell(session, pos, pos.getAvgPrice(), reason, ExitReason.FORCED_STOP, PAPER_FILL_AVG_PRICE);
+                continue;
+            }
+
+            // 🔴 정리 대기로 등록한다 (V87) — 이 매도가 실패해 OPEN 으로 되돌아가도 정리 작업이 다시 낸다.
+            registerStopCleanup(pos, session.getId());
+
+            OrderRequest order = new OrderRequest();
+            order.setCoinPair(pos.getCoinPair());
+            order.setSide("SELL");
+            order.setOrderType("MARKET");
+            order.setQuantity(pos.getSize());
+            order.setReason(reason);
+            order.setSessionId(session.getId());
+            order.setSessionKind(sessionKind(session));
+            order.setPositionId(pos.getId());
+            orderExecutionEngine.submitOrder(order);
+        }
+        // 🔴 닫히지 않은 포지션은 **모두** 정리 대기로 등록한다 — 위 처리가 끝난 **뒤에** 다시 읽는다 (2026-10-29, #5, LIVE 와 같은 규칙).
+        //    종전에는 CLOSING 을 위 처리 전에 한 번 읽고, OPEN 은 CLOSING 전환에 성공한 것만 등록했다 — 그 사이 WS 손절·평가 틱이
+        //    먼저 CLOSING 으로 바꾸면 등록 없이 건너뛰어, 그 매도가 체결 없이 끝나 OPEN 으로 되돌아가면 정지된 세션에서 아무도 팔지 않았다
+        //    (`StopVersusInFlightExitRaceTest`). 페이퍼·실전에 같은 규칙이다 — 등록은 포지션 자신의 종류로 하므로(아래 registerStopCleanup)
+        //    페이퍼 포지션이 실자금 정리 작업(DYNAMIC)에 오르지 않는다.
+        //    🔴 두 상태를 **한 SQL** 로 읽는다 (리뷰 29차, LIVE 와 같은 이유) — 상태별로 따로 읽으면 그 사이 OPEN↔CLOSING 이 바뀐 포지션을 놓쳤다.
+        positionRepository.findBySessionKindAndSessionIdAndStatusIn(sessionKind(session), session.getId(), List.of("OPEN", "CLOSING"))
+                .forEach(p -> registerStopCleanup(p, session.getId()));
+    }
+
+    /**
+     * 정지 — 세션의 미종결 매수에 <b>취소를 요청한다</b> (2026-10-13). LIVE 와 같은 규칙이다.
+     *
+     * <p>🔴 응답을 잃은 주문은 식별자로 취소한다. 요청은 확정이 아니다 — 확인되지 않은 주문은 활성으로
+     * 남아 폴러가 계속 조회·재요청한다. 예외를 던지지 않는 {@code requestCancel} 이다(정지 트랜잭션을
+     * 롤백 전용으로 만들지 않는다).</p>
+     */
+    private void cancelSessionActiveBuys(DynamicSessionEntity session) {
+        // 페이퍼 주문은 session_kind 가 DYN_PAPER 라 아래 종류 조건에서 빠진다 — 페이퍼 분기를 두지 않는다.
+        List<OrderEntity> active = orderRepository.findBySessionIdAndStateIn(session.getId(), ACTIVE_ORDER_STATES);
+        for (OrderEntity o : active) {
+            if (!SESSION_KIND.equals(o.getSessionKind()) || !"BUY".equalsIgnoreCase(o.getSide())) {
+                continue;
+            }
+            OrderExecutionEngine.CancelOutcome outcome = orderExecutionEngine.requestCancel(o.getId());
+            log.info("[Dynamic] 정지 — 매수 취소 요청: sessionId={} orderId={} state={} → {}",
+                    session.getId(), o.getId(), o.getState(), outcome);
+        }
+    }
+
+    /** size=0 포지션 처리 결과 (V87) — LIVE 와 같은 분류. */
+    private enum EmptyPositionOutcome { WAITING, RESTORED, CLOSED_ONLY, ALREADY_CLOSED }
+
+    /**
+     * size=0 포지션을 매수 주문의 상태로 가른다 — 정지와 정리 작업이 같은 규칙을 쓴다 (V87).
+     *
+     * <ul>
+     *   <li>진행 중·회계 대기·<b>확인되지 않은 취소</b> — 열어 둔다.</li>
+     *   <li>체결 없음이 확인된 매수 — 닫기와 예약 복원을 한 트랜잭션으로, 닫기에 성공한 쪽만 복원한다.</li>
+     *   <li>복원할 차감이 없다 — 닫기만 한다.</li>
+     * </ul>
+     */
+    private EmptyPositionOutcome settleEmptyPosition(PositionEntity pos, Long sessionId) {
+        List<OrderEntity> buys = orderRepository.findByPositionIdOrderByCreatedAtDesc(pos.getId())
+                .stream().filter(o -> "BUY".equalsIgnoreCase(o.getSide())).toList();
+        boolean waiting = buys.stream().anyMatch(o -> ACTIVE_ORDER_STATES.contains(o.getState())
+                || "FILLED".equals(o.getState())
+                || OrderExecutionEngine.isUnconfirmedCancelledBuy(o));
+        if (waiting) {
+            return EmptyPositionOutcome.WAITING;
+        }
+        OrderEntity unfilled = buys.stream()
+                .filter(OrderExecutionEngine::isConfirmedUnfilledBuy).findFirst().orElse(null);
+        BigDecimal restore = unfilled == null ? null : restorableKrw(unfilled);
+        if (restore != null) {
+            boolean restored = restoreUnfilledBuyAtomically(pos.getId(), sessionId, restore);
+            log.info("[Dynamic] size=0 포지션 — 체결 없는 매수 예약 {} (posId={}, 복원={})",
+                    restored ? "복원·종료" : "이미 정리됨", pos.getId(), restore);
+            return restored ? EmptyPositionOutcome.RESTORED : EmptyPositionOutcome.ALREADY_CLOSED;
+        }
+        return positionStateTransition.closeIfOpen(pos.getId(), Instant.now()) == 1
+                ? EmptyPositionOutcome.CLOSED_ONLY : EmptyPositionOutcome.ALREADY_CLOSED;
+    }
+
+    /**
+     * 정리 대기 등록 — 🔴 자기 트랜잭션에서 바로 커밋한다 (LIVE {@code registerStopCleanup} 과 같은 이유:
+     * 정지의 바깥 트랜잭션이 이 행 잠금을 쥐면 체결 회계·정지의 안쪽 갱신과 교착한다, §8).
+     */
+    private void registerStopCleanup(PositionEntity pos, Long sessionId) {
+        // 🔴 포지션 자신의 종류로 등록한다 (2026-10-29, #5). 정리 작업은 DYNAMIC 행만 보고 실거래소로 매도를 낸다 — 종전처럼 늘
+        //    DYNAMIC 으로 등록하면 페이퍼(DYN_PAPER) 포지션도 그 작업에 올라, OPEN 으로 남으면 실제 매도를 낼 수 있는 구조였다(코드 확인, 재현 아님).
+        positionCleanupRegistrar.register(pos.getId(), pos.getSessionKind(), sessionId,
+                com.cryptoautotrader.api.entity.PositionCleanupEntity.REASON_STOPPED_OPEN);
+    }
+
+    /**
+     * 정지가 남긴 포지션의 <b>정리 작업</b> (V87, 10초 주기) — LIVE {@code cleanupStoppedSessionPositions} 와
+     * 같은 규칙: 중복 청산 제출을 막고, 포지션이 CLOSED 로 확인될 때만 완료한다.
+     */
+    @Scheduled(fixedDelay = 10_000)
+    public void cleanupStoppedSessionPositions() {
+        // 🔴 행마다 자기 트랜잭션이다 — 한 행의 저장소 예외가 묶음 트랜잭션을 롤백 전용으로 만들면, 그 회차의 다른 행의
+        //    CLOSING 전환·매도 제출까지 롤백되고 같은 행이 매 회차 다시 막는다(한 행이 정리 전체를 멈춘다).
+        List<com.cryptoautotrader.api.entity.PositionCleanupEntity> pending =
+                positionCleanupRepository.findPending(SESSION_KIND);
+        for (com.cryptoautotrader.api.entity.PositionCleanupEntity c : pending) {
+            try {
+                optimisticRetry.inNewTransaction("정지 정리 pos#" + c.getPositionId(), st -> {
+                    cleanupOne(c);
+                    return null;
+                });
+            } catch (Exception e) {
+                log.error("[Dynamic] 정지 정리 실패 — 다음 회차에 다시 시도한다 (posId={}): {}",
+                        c.getPositionId(), e.getMessage(), e);
+            }
+        }
+    }
+
+    private void cleanupOne(com.cryptoautotrader.api.entity.PositionCleanupEntity c) {
+        Long posId = c.getPositionId();
+        PositionEntity pos = positionRepository.findById(posId).orElse(null);
+        if (pos == null || "CLOSED".equals(pos.getStatus())) {
+            completeCleanup(c, "포지션 CLOSED 확인");
+            return;
+        }
+        String status = dynamicSessionRepo.findById(c.getSessionId())
+                .map(DynamicSessionEntity::getStatus).orElse("MISSING");
+        if ("RUNNING".equals(status)) {
+            positionCleanupRepository.note(posId, "세션 실행 중 — 전략이 관리한다");
+            return;
+        }
+        if ("CLOSING".equals(pos.getStatus())) {
+            positionCleanupRepository.note(posId, "청산 매도 체결 대기");
+            return;
+        }
+        if (pos.getSize() == null || pos.getSize().compareTo(BigDecimal.ZERO) <= 0) {
+            EmptyPositionOutcome outcome = settleEmptyPosition(pos, c.getSessionId());
+            if (outcome == EmptyPositionOutcome.WAITING) {
+                positionCleanupRepository.note(posId, "매수 확인 대기 — 진행 중·회계 대기·취소 미확인");
+            } else {
+                completeCleanup(c, "size=0 정리: " + outcome);
+            }
+            return;
+        }
+        // 🔴 체결됐지만 아직 포지션에 반영되지 않은 매도가 있으면 **다시 팔지 않는다.** 응답을 잃은 매도가 나중에
+        //    체결로 확인되는 경우다(그동안 CLOSING 이 시간 초과로 OPEN 으로 되돌아갔을 수 있다). CLOSING 으로만
+        //    돌려 청산 확정이 그 체결을 반영하게 한다.
+        boolean unappliedFill = orderRepository.findByPositionIdOrderByCreatedAtDesc(posId).stream()
+                .anyMatch(o -> "FILLED".equals(o.getState()) && autoApplicableSell(o));
+        if (unappliedFill) {
+            positionStateTransition.markClosingIfOpen(posId, Instant.now(), ExitReason.FORCED_STOP);
+            positionCleanupRepository.note(posId, "체결된 매도 반영 대기 — 다시 팔지 않는다");
+            return;
+        }
+        boolean sellInFlight = orderRepository.findByPositionIdOrderByCreatedAtDesc(posId).stream()
+                .anyMatch(o -> "SELL".equalsIgnoreCase(o.getSide()) && ACTIVE_ORDER_STATES.contains(o.getState()));
+        if (sellInFlight) {
+            positionCleanupRepository.note(posId, "매도 진행 중 — 다시 내지 않는다");
+            return;
+        }
+        // 🔴 다시 내는 것은 앞선 매도가 **체결 없이 끝났다는 근거**가 있을 때만이다 (2026-10-13). 근거 없는 FAILED·
+        //    확인 없는 CANCELLED 는 나갔다가 체결됐을 수 있다 — 다시 팔면 이중 매도다. 사람이 확인할 때까지 대기한다.
+        OrderEntity unproven = orderRepository.findByPositionIdOrderByCreatedAtDesc(posId).stream()
+                .filter(o -> "SELL".equalsIgnoreCase(o.getSide()) && OrderExecutionEngine.isTerminalWithoutNoFillProof(o))
+                .findFirst().orElse(null);
+        if (unproven != null) {
+            needsHuman(c, "앞선 매도(orderId=" + unproven.getId() + ", " + unproven.getState()
+                    + ")가 체결 없이 끝났다는 근거가 없다 — 다시 내지 않는다. 사람 확인 필요");
+            return;
+        }
+        // 🔴 거래소가 매도를 명시적으로 거절한 것이 상한만큼 쌓이면 다시 내지 않는다 (2026-10-14) — 잔고 부족·최소 금액 미달
+        //    같은 거절은 같은 요청을 다시 내도 반복된다. 사람이 원인을 확인할 때까지 대기로 둔다.
+        long rejected = orderRepository.findByPositionIdOrderByCreatedAtDesc(posId).stream()
+                .filter(o -> "SELL".equalsIgnoreCase(o.getSide())
+                        && OrderExecutionEngine.EXCHANGE_REJECTED.equals(o.getFailureCode()))
+                .count();
+        if (rejected >= CLEANUP_MAX_REJECTED_SELLS) {
+            needsHuman(c, "매도가 거래소에서 " + rejected + "회 거절됐다 — 다시 내지 않는다. 사람 확인 필요");
+            return;
+        }
+        // 🔴 직전 제출이 아직 주문으로 나타나지 않았으면 기다린다. 제출은 커밋 뒤 비동기라, 실행기 적체 중에는
+        //    청산 확정이 "매도 주문 없음" 으로 CLOSING 을 OPEN 으로 되돌린 뒤에야 의도가 생길 수 있다. 그 사이에
+        //    다시 내면 매도가 두 번 나간다. 유예가 지나도 나타나지 않으면(재시작으로 제출 전에 사라짐) 다시 낸다.
+        if (c.getLastAttemptAt() != null
+                && Duration.between(c.getLastAttemptAt(), Instant.now()).compareTo(CLEANUP_SUBMIT_GRACE) < 0) {
+            boolean appeared = orderRepository.findByPositionIdOrderByCreatedAtDesc(posId).stream()
+                    .anyMatch(o -> "SELL".equalsIgnoreCase(o.getSide()) && o.getCreatedAt() != null
+                            && !o.getCreatedAt().isBefore(c.getLastAttemptAt()));
+            if (!appeared) {
+                positionCleanupRepository.note(posId, "직전 제출이 아직 주문으로 나타나지 않았다 — 유예 중");
+                return;
+            }
+        }
+        if (positionStateTransition.markClosingIfOpen(posId, Instant.now(), ExitReason.FORCED_STOP) == 0) {
+            positionCleanupRepository.note(posId, "다른 경로가 먼저 청산을 시작했다");
+            return;
+        }
+        OrderRequest order = new OrderRequest();
+        order.setCoinPair(pos.getCoinPair());
+        order.setSide("SELL");
+        order.setOrderType("MARKET");
+        order.setQuantity(pos.getSize());
+        order.setReason("정지 후 정리 — 포지션 청산");
+        order.setSessionId(c.getSessionId());
+        order.setSessionKind(SESSION_KIND);
+        order.setPositionId(posId);
+        // 🔴 커밋 뒤에 낸다 — CLOSING 전환이 롤백되면 매도도 나가지 않는다.
+        orderExecutionEngine.submitOrderAfterCommit(order);
+        positionCleanupRepository.recordAttempt(posId, Instant.now(), "정지 청산 매도 제출 (수량 " + pos.getSize() + ")");
+        log.warn("[Dynamic] 정지 후 정리 — 청산 매도 제출 (posId={}, sessionId={}, 수량={}, 사유={})",
+                posId, c.getSessionId(), pos.getSize(), c.getReason());
+    }
+
+    /** 정리 작업이 거래소 거절 뒤 매도를 다시 내는 상한 (2026-10-14). */
+    private static final int CLEANUP_MAX_REJECTED_SELLS = 2;
+
+    /** 정리 작업의 직전 제출이 주문으로 나타나기를 기다리는 시간 (V87). */
+    private static final Duration CLEANUP_SUBMIT_GRACE = Duration.ofMinutes(2);
+
+    /**
+     * 사람 확인이 필요한 상태로 둔다 — 메모를 남기고, 이 상태에 **처음 들어갈 때만** 경보를 보낸다(매 회차 보내지 않는다).
+     * 포지션과 정리 대기는 그대로 둔다(완료 아님).
+     */
+    private void needsHuman(com.cryptoautotrader.api.entity.PositionCleanupEntity c, String note) {
+        positionCleanupRepository.note(c.getPositionId(), note);
+        if (!note.equals(c.getLastNote())) {
+            log.error("🔴 정지 후 정리가 사람 확인을 기다린다 (posId={}, sessionId={}): {}", c.getPositionId(), c.getSessionId(), note);
+            try {
+                telegramService.notifyCleanupNeedsHuman(SESSION_KIND, c.getSessionId(), c.getPositionId(), note);
+            } catch (Exception e) {
+                log.warn("정리 중단 경보 실패 (posId={}): {}", c.getPositionId(), e.getMessage());
+            }
+        }
+    }
+
+    private void completeCleanup(com.cryptoautotrader.api.entity.PositionCleanupEntity c, String note) {
+        if (positionCleanupRepository.markDone(c.getPositionId(), Instant.now(), note) == 1) {
+            long remaining = positionCleanupRepository.countPending(SESSION_KIND, c.getSessionId());
+            long unresolved = orderRepository.countUnresolvedSubmissions(SESSION_KIND, c.getSessionId());
+            log.info("[Dynamic] 정지 정리 완료 (posId={}, sessionId={}, {}) — 세션 정리 대기 {}건, 미해결 제출 {}건",
+                    c.getPositionId(), c.getSessionId(), note, remaining, unresolved);
+        }
+    }
+
+    /**
+     * 복원할 금액 — <b>실제로 차감한 값</b>만 (LIVE {@code restorableKrw} 와 같은 규칙, V85).
+     * V84 이후 주문인데 예약액이 없으면 차감된 적이 없으므로 복원하지 않는다.
+     */
+    private static BigDecimal restorableKrw(OrderEntity buyOrder) {
+        if (buyOrder.getReservedKrw() != null) return buyOrder.getReservedKrw();
+        if (buyOrder.getClientOrderId() != null) return null;
+        return buyOrder.getQuantity();
+    }
+
+    /**
+     * 닫기와 예약 복원을 <b>한 트랜잭션</b>에서 — 닫기({@code closeIfOpen})에 성공한 쪽만 복원한다.
+     *
+     * <p>🔴 별도 트랜잭션이다. 정지의 바깥 트랜잭션은 이 시점까지 세션 행·이 포지션 행을 쓰지 않는다
+     * (§8 중첩 잠금 규칙). 바깥이 그 행을 먼저 쓰도록 바뀌면 자기 대기가 된다.</p>
+     */
+    private boolean restoreUnfilledBuyAtomically(Long positionId, Long sessionId, BigDecimal restore) {
+        return Boolean.TRUE.equals(optimisticRetry.inNewTransaction(
+                "동적 미체결 매수 예약 복원 pos#" + positionId, st -> {
+                    if (positionStateTransition.closeIfOpen(positionId, Instant.now()) == 0) {
+                        return Boolean.FALSE;
+                    }
+                    balanceUpdater.applyWithin(sessionId,
+                            s -> s.setAvailableKrw(s.getAvailableKrw().add(restore)));
+                    return Boolean.TRUE;
+                }));
+    }
+
+    // ── 스케줄: CLOSING 포지션 정리 (5초 주기) ──────────────────────
+
+    /**
+     * CLOSING 상태의 동적 포지션을 SELL 주문 체결/실패 결과에 따라 확정/롤백한다.
+     *
+     * <p>{@link #executeSell}은 포지션을 CLOSING으로만 표시하고 비동기 주문을 제출한 뒤
+     * 즉시 SCANNING으로 전환한다. 실제 KRW 복원과 손익 확정은 이 스케줄러가 전담한다.
+     * 이 처리가 없으면 동적 세션은 매도할 때마다 {@code availableKrw}가 복원되지 않아
+     * 몇 차례 매매 후 투자 가능 금액이 5,000원 미만으로 줄어 영구적으로 매수가 멈춘다
+     * (2026-07-01 동적 멀티코인 로직 분석 — session_kind 컬럼 부재로 라이브 reconcile이
+     * 동적 세션 KRW를 복원하지 못하던 근본 원인).</p>
+     */
+    @Scheduled(fixedDelay = 5_000)
+    @Transactional
+    public void reconcileDynamicClosingPositions() {
+        List<PositionEntity> closingPositions =
+                positionRepository.findBySessionKindAndStatus(SESSION_KIND, "CLOSING");
+        if (closingPositions.isEmpty()) return;
+
+        for (PositionEntity pos : closingPositions) {
+            // 🔴 이미 포지션에 반영한 매도는 빼고 본다 (V87, LIVE 와 같은 규칙).
+            List<OrderEntity> sellOrders = orderRepository
+                    .findByPositionIdOrderByCreatedAtDesc(pos.getId())
+                    .stream()
+                    .filter(this::autoApplicableSell)
+                    .toList();
+
+            if (sellOrders.isEmpty()) {
+                log.warn("[Dynamic] CLOSING 포지션에 SELL 주문 없음 — OPEN 롤백 (posId={})", pos.getId());
+                pos.setStatus("OPEN");
+                pos.setClosingAt(null);
+                positionRepository.save(pos);
+                reattachRolledBackPosition(pos);
+                continue;
+            }
+
+            // ⚠️ 2026-08-03: 최신 주문이 아니라 **FILLED 주문을 먼저 본다**.
+            //    07-31 P0에서 매도 8610이 FILLED된 뒤 후처리가 롤백돼 8611~8613이 연속 FAILED로
+            //    쌓였는데, `sellOrders.get(0)`(최신순)이 FAILED를 집어 **OPEN 롤백 분기**를 탔다.
+            //    코인은 이미 팔렸으므로 이 롤백은 유령 포지션을 만들고 매도 재시도 루프를 낳는다.
+            //    체결은 되돌릴 수 없는 사실이므로, FILLED가 하나라도 있으면 그것이 진실이다.
+            OrderEntity filledSell = sellOrders.stream()
+                    .filter(o -> "FILLED".equals(o.getState()))
+                    .findFirst()   // sellOrders는 createdAt DESC — 가장 최근 체결분
+                    .orElse(null);
+            if (filledSell != null) {
+                if (sellOrders.indexOf(filledSell) > 0) {
+                    log.warn("[Dynamic] 매도 주문 다건 — FAILED 재시도 뒤의 FILLED를 채택 "
+                                    + "(posId={}, 채택 orderId={}, 후속 주문 {}건)",
+                            pos.getId(), filledSell.getId(), sellOrders.indexOf(filledSell));
+                }
+                finalizeDynamicSell(pos, filledSell);
+                continue;
+            }
+
+            OrderEntity latestSell = sellOrders.get(0);
+            switch (latestSell.getState()) {
+                case "FILLED" -> finalizeDynamicSell(pos, latestSell);
+                case "FAILED", "CANCELLED" -> {
+                    log.warn("[Dynamic] 매도 주문 {} — 포지션 OPEN 롤백 (orderId={}, posId={}, sessionId={})",
+                            latestSell.getState(), latestSell.getId(), pos.getId(), pos.getSessionId());
+                    pos.setStatus("OPEN");
+                    pos.setClosingAt(null);
+                    positionRepository.save(pos);
+                    reattachRolledBackPosition(pos);
+                }
+                default -> {
+                    Instant closingAt = pos.getClosingAt();
+                    if (closingAt != null
+                            && Duration.between(closingAt, Instant.now()).toMinutes() >= CLOSING_TIMEOUT_MINUTES) {
+                        log.warn("[Dynamic] CLOSING 타임아웃 ({}분 초과) — OPEN 롤백 (posId={}, sessionId={})",
+                                CLOSING_TIMEOUT_MINUTES, pos.getId(), pos.getSessionId());
+                        pos.setStatus("OPEN");
+                        pos.setClosingAt(null);
+                        positionRepository.save(pos);
+                        reattachRolledBackPosition(pos);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * <b>유령 포지션 안전망</b> — 매도가 FILLED인데 포지션이 여전히 {@code OPEN}인 상태를 정리한다.
+     *
+     * <p><b>왜 필요한가 (2026-07-31 P0)</b>: {@code executeSell}은
+     * {@code markClosingIfOpen}(CLOSING 전환) → {@code submitOrder}(@Async, 별도 tx) →
+     * {@code transitionToScanning} 순서다. 부모 tx가 롤백되면 <b>주문만 살아남고</b>
+     * CLOSING 전환이 사라져 포지션이 OPEN으로 되돌아간다. 코인은 이미 팔렸는데 DB는 보유 중이다.</p>
+     *
+     * <p>운영 피해(07-31): 세션 38 KRW-RLUSD가 이 상태에 빠져 매 틱 time stop이 재발동,
+     * 주문 8611·8612·8613이 <b>69초 간격으로 FAILED</b>(업비트 HTTP 400 — 이미 판 코인)를
+     * 4분간 반복했다. 결국 손으로 2행을 UPDATE해 정리해야 했다.</p>
+     *
+     * <p>{@link #reconcileDynamicClosingPositions}가 못 잡는 이유: 그쪽은 <b>CLOSING</b> 상태만
+     * 순회한다. 롤백으로 OPEN이 되어버린 포지션은 그 그물에 애초에 걸리지 않는다.</p>
+     *
+     * <p><b>부분 체결과의 구분</b>: 부분 체결분을 정산하면 포지션은 {@code OPEN}으로 남고
+     * FILLED 주문도 그대로 남는다 — 이를 다시 정산하면 KRW가 이중 복원된다. 그래서
+     * ①{@code realizedPnl == 0}(한 번도 정산된 적 없음) ②{@code filledQuantity == size}(전량 체결)
+     * 두 조건을 모두 요구한다. 부분 정산 후에는 두 조건이 <b>동시에</b> 깨지므로 재진입이 불가능하다.</p>
+     */
+    @Scheduled(fixedDelay = 30_000)
+    @Transactional
+    public void reconcileDynamicGhostPositions() {
+        for (PositionEntity pos : positionRepository.findBySessionKindAndStatus(SESSION_KIND, "OPEN")) {
+            if (pos.getSize() == null || pos.getSize().compareTo(BigDecimal.ZERO) <= 0) {
+                continue;   // 매수 고아 — reconcileDynamicOrphanBuyPositions 담당
+            }
+            BigDecimal realized = pos.getRealizedPnl();
+            if (realized != null && realized.compareTo(BigDecimal.ZERO) != 0) {
+                continue;   // 이미 한 번 정산됨(부분 체결) — 이중 복원 방지
+            }
+
+            OrderEntity filledSell = orderRepository
+                    .findByPositionIdOrderByCreatedAtDesc(pos.getId())
+                    .stream()
+                    .filter(o -> "FILLED".equals(o.getState()) && autoApplicableSell(o))
+                    .findFirst()
+                    .orElse(null);
+            if (filledSell == null) continue;   // 정상 보유 중
+
+            if (filledSell.getFilledQuantity() == null
+                    || filledSell.getFilledQuantity().compareTo(pos.getSize()) != 0) {
+                continue;   // 전량 체결이 아님 — 부분 체결 경로가 처리
+            }
+            if (filledSell.getFilledAt() == null
+                    || Duration.between(filledSell.getFilledAt(), Instant.now()).toMinutes()
+                       < SELL_FINALIZE_GRACE_MIN) {
+                continue;   // 정상 매도 진행 중일 수 있는 구간 — 건드리지 않는다
+            }
+
+            log.error("[Dynamic] 🔴 유령 포지션 감지: 매도 FILLED인데 포지션 OPEN — 자동 정산 "
+                            + "(posId={}, sessionId={}, {}, orderId={}). 매도 후처리 tx 롤백 의심.",
+                    pos.getId(), pos.getSessionId(), pos.getCoinPair(), filledSell.getId());
+
+            finalizeDynamicSell(pos, filledSell);
+
+            // 롤백으로 세션이 POSITION_MONITORING에 고착됐을 수 있다 — executeSell의
+            // transitionToScanning도 같은 tx에서 함께 사라졌기 때문. 이 포지션을 보고 있으면 풀어준다.
+            Long sessionId = pos.getSessionId();
+            if (sessionId != null) {
+                DynamicSessionEntity session = dynamicSessionRepo.findById(sessionId).orElse(null);
+                boolean watchingThisPosition = session != null
+                        && pos.getId().equals(session.getCurrentPositionId());
+                // currentPositionId 까지 유실된 경우(롤백 범위가 더 넓었던 경우)에도 풀어준다.
+                // 단 코인만 같고 positionId 가 **다른** 값이면 그 사이 재매수한 것이므로 건드리지 않는다.
+                boolean watchingThisCoinOrphaned = session != null
+                        && session.getCurrentPositionId() == null
+                        && pos.getCoinPair().equals(session.getCurrentCoinPair());
+                if (watchingThisPosition || watchingThisCoinOrphaned) {
+                    transitionToScanning(sessionId);
+                }
+            }
+        }
+    }
+
+    /**
+     * 매도 실패/타임아웃으로 OPEN 롤백된 포지션을 세션 감시 대상에 재결속한다.
+     *
+     * <p>{@link #executeSell}은 매도 주문 제출과 동시에 세션을 SCANNING으로 전환하므로,
+     * 매도가 FAILED/CANCELLED로 끝나 포지션이 OPEN으로 돌아와도 세션은 이미 다른 곳을
+     * 보고 있다. 이 재결속이 없으면 롤백된 포지션은 SL/TP 감시·매도 재시도 없이 영구
+     * 방치되고(WS 구독에서도 빠짐), 세션이 남은 KRW로 두 번째 코인을 사버릴 수도 있다.</p>
+     */
+    private void reattachRolledBackPosition(PositionEntity pos) {
+        Long sessionId = pos.getSessionId();
+        if (sessionId == null) return;
+
+        DynamicSessionEntity session = dynamicSessionRepo.findById(sessionId).orElse(null);
+        if (session == null) return;
+
+        if (!"RUNNING".equals(session.getStatus())) {
+            log.error("[Dynamic] 매도 롤백 포지션 재결속 불가 — 세션 비가동 (posId={}, sessionId={}, status={}). 수동 조치 필요",
+                    pos.getId(), sessionId, session.getStatus());
+            telegramService.sendCustomNotification(String.format(
+                    "⚠️ [동적#%d] 매도 실패 포지션 방치 위험: %s (posId=%d) — 세션이 %s 상태라 자동 재결속 불가. 수동 청산 필요",
+                    sessionId, pos.getCoinPair(), pos.getId(), session.getStatus()));
+            return;
+        }
+
+        if (pos.getCoinPair().equals(session.getCurrentCoinPair())) {
+            return; // 이미 이 코인을 감시 중 — 다음 tick에서 SL/TP·매도 재시도됨
+        }
+
+        if ("SCANNING".equals(session.getScanState()) && session.getCurrentCoinPair() == null) {
+            balanceUpdater.apply(sessionId, s -> {
+                s.setScanState("POSITION_MONITORING");
+                s.setCurrentCoinPair(pos.getCoinPair());
+                s.setCurrentPositionId(pos.getId());
+            });
+            refreshWsSubscription();
+            log.warn("[Dynamic] 매도 롤백 포지션 재결속: {} → POSITION_MONITORING 복귀 (posId={}, sessionId={})",
+                    pos.getCoinPair(), pos.getId(), sessionId);
+        } else {
+            // 세션이 이미 다른 코인을 매수한 경우 — 단일 포지션 상태 머신으로는 자동 복구 불가
+            log.error("[Dynamic] 매도 롤백 포지션 재결속 불가 — 세션이 다른 코인 감시 중 (posId={}, coin={}, sessionId={}, current={})",
+                    pos.getId(), pos.getCoinPair(), sessionId, session.getCurrentCoinPair());
+            telegramService.sendCustomNotification(String.format(
+                    "🚨 [동적#%d] 매도 실패 포지션 방치: %s (posId=%d) — 세션은 이미 %s 감시 중이라 자동 재결속 불가. 수동 청산 필요",
+                    sessionId, pos.getCoinPair(), pos.getId(), session.getCurrentCoinPair()));
+        }
+    }
+
+    /**
+     * 매도 체결 확정 — 실제 체결가 기반 손익/수수료 계산 + 동적 세션 KRW 복원.
+     * 멱등성 보장: 이미 CLOSED인 포지션은 중복 처리하지 않음.
+     */
+    /**
+     * 매도 정산 멱등 키. <b>롤백 후 재시도해도 같은 값이어야</b> 중복 지급을 막을 수 있다.
+     *
+     * <p>거래소 주문 ID 를 쓴다. 페이퍼는 {@code executePaperSell} 이
+     * {@code "PAPER-DYNAMIC-SELL-{positionId}"} 로 포지션에서 결정해 붙이므로 재시도에도 동일하다.
+     * 실거래는 거래소가 준 ID 라 부분체결 건마다 달라 각각 한 번씩 정산된다.</p>
+     *
+     * <p>{@code order.id} 로 폴백하는 경우는 실거래 경로뿐이다 — 거기서는 주문이
+     * {@code OrderExecutionEngine} 의 별도 트랜잭션에서 이미 커밋된 뒤라 ID 가 안정적이다.
+     * (페이퍼 경로에서 폴백하면 주문 행이 롤백에 휩쓸려 사라진 뒤 재시도마다 새 시퀀스 값이
+     * 나오므로 멱등성이 깨진다. 그래서 페이퍼는 항상 exchangeOrderId 를 채운다.)</p>
+     */
+    /** 로그용 레짐 판정 — 실패해도 매매를 막지 않는다. */
+    private String detectRegimeQuietly(List<Candle> candles) {
+        if (candles == null || candles.isEmpty()) return null;
+        try {
+            MarketRegime r = new MarketRegimeDetector().detectRaw(candles);
+            return r != null ? r.name() : null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private static String settlementRef(PositionEntity pos, OrderEntity filledOrder) {
+        String exchangeRef = filledOrder.getExchangeOrderId();
+        if (exchangeRef != null && !exchangeRef.isBlank()) return exchangeRef;
+        return "ORD-" + filledOrder.getId() + "-POS-" + pos.getId();
+    }
+
+    /** 판별 불가 매도(V87 이전, 반영 표시 없음)를 가리는 정책 — 없으면(단위 시험) 종전대로 반영 표시만 본다. */
+    @Autowired(required = false)
+    private LegacySellPolicy legacySellPolicy;
+
+    /**
+     * 자동 반영 후보인 미반영 매도인가 (2026-10-19). 🔴 V87 이전의 반영 표시 없는 매도는 반영됐는지 판별할 수 없다 — 자동 반영하면 이미 반영된
+     * 대금을 두 번 넣고 수량을 줄인다(격리 포지션이 CLOSING 이 될 때 재현). 사람이 격리 해제로 판정할 때까지 후보에서 뺀다.
+     */
+    private boolean autoApplicableSell(OrderEntity o) {
+        if (!"SELL".equalsIgnoreCase(o.getSide()) || o.getSellAppliedAt() != null) return false;
+        return legacySellPolicy == null || !legacySellPolicy.isUnverifiableLegacy(o);
+    }
+
+    private void finalizeDynamicSell(PositionEntity pos, OrderEntity filledOrder) {
+        if ("CLOSED".equals(pos.getStatus())) {
+            log.debug("[Dynamic] finalizeDynamicSell 스킵: 이미 CLOSED (posId={})", pos.getId());
+            return;
+        }
+        // 🔴 마지막 방어선 (2026-10-19) — 판별 불가 매도는 자동 반영하지 않는다(대금 이중 반영 방지). 사람의 격리 해제를 기다린다.
+        if (legacySellPolicy != null && legacySellPolicy.isUnverifiableLegacy(filledOrder)) {
+            log.error("[Dynamic] 매도 확정 보류 — 판별 불가 매도(V87 이전·반영 표시 없음)는 자동 반영하지 않는다 — 격리 해제로 판정하라 (posId={}, orderId={})",
+                    pos.getId(), filledOrder.getId());
+            return;
+        }
+        // 체결가 미확정 시 보류 — 다음 reconcile(5초)에서 재시도 (가짜 본전 방지)
+        BigDecimal fillPrice = filledOrder.getPrice();
+        if (fillPrice == null) {
+            log.warn("[Dynamic] 매도 체결가 미확정 — finalize 보류, 다음 reconcile 재시도 (posId={}, orderId={})",
+                    pos.getId(), filledOrder.getId());
+            return;
+        }
+        // 🔴 **이 매도를 반영할 권한을 먼저 얻는다** (2026-10-13, 실제 재시작 시험 S7 에서 발견). 재기동 직후 기동 복구와
+        //    5초 청산 확정이 같은 CLOSING 포지션을 50ms 간격으로 각각 확정해 LIVE 대금이 두 번 들어갔다 — DYNAMIC 은 대금은 정산 표식이 막지만 포지션 확정이 두 번 일어날 수 있다
+        //    (잔액 12,935.59, 맞는 값 9,997.06). 조건부 표시(sell_applied_at IS NULL → now)를 먼저 쓰고 1행을 받은 쪽만
+        //    확정한다 — 상대는 이 행 잠금을 기다렸다가 0행을 받는다. 포지션·대금과 같은 트랜잭션이라 함께 롤백된다.
+        if (orderRepository.markSellApplied(filledOrder.getId(), Instant.now()) == 0) {
+            log.info("매도 확정 건너뜀 — 다른 경로가 이 매도를 이미 반영했다 (posId={}, orderId={})",
+                    pos.getId(), filledOrder.getId());
+            return;
+        }
+        BigDecimal soldQty = filledOrder.getFilledQuantity() != null
+                ? filledOrder.getFilledQuantity() : pos.getSize();
+
+        // 🔴 거래소 보고 대금·수수료를 쓴다 (2026-10-14) — 없으면 추정하고 출처를 남긴다. 쓴 값은 주문의 반영값으로
+        //    기록해, 뒤늦은 보고·정정은 정산이 그 차이만 반영한다.
+        OrderSettlementService.SellAmounts amounts =
+                OrderSettlementService.SellAmounts.of(filledOrder, soldQty, fillPrice, FEE_RATE);
+        BigDecimal proceeds = amounts.funds();
+        BigDecimal fee = amounts.fee();
+        BigDecimal netProceeds = amounts.net();
+        BigDecimal realizedPnl = netProceeds.subtract(soldQty.multiply(pos.getAvgPrice()));
+        OrderSettlementService.recordSellApplied(orderRepository, filledOrder, amounts);
+
+        // 부분 체결 후 취소(D-3) — 판 수량이 전체보다 적으면 잔여분은 여전히 보유 중이므로
+        // 전체 CLOSED 대신 잔여 수량만 남기고 OPEN 유지한다 (LiveTradingService.finalizeSellPosition 동일 원칙).
+        boolean isPartial = soldQty.compareTo(pos.getSize()) < 0;
+        if (isPartial) {
+            pos.setSize(pos.getSize().subtract(soldQty));
+            pos.setRealizedPnl(pos.getRealizedPnl().add(realizedPnl));
+            pos.setPositionFee(pos.getPositionFee().add(fee));
+            pos.setStatus("OPEN");
+            pos.setClosingAt(null);
+        } else {
+            pos.setRealizedPnl(realizedPnl);
+            // 2026-09-07: set → add. 여기서 덮어쓰면 매수 시 기록한 수수료가 사라져
+            // position_fee 가 <b>매도분만</b> 담게 된다(운영 DB 실측: DYN_PAPER 청산 335건의
+            // position_fee 가 전부 매도대금×0.05% 였다). 실현손익은 매수 수수료가 avgPrice 에
+            // 녹아 있어 정확했지만, 컬럼을 왕복 총액으로 읽는 쪽은 전부 절반으로 봤다.
+            pos.setPositionFee(pos.getPositionFee().add(fee));
+            pos.setUnrealizedPnl(BigDecimal.ZERO);
+            pos.setStatus("CLOSED");
+            pos.setClosedAt(Instant.now());
+        }
+        positionRepository.save(pos);
+
+        if (pos.getSessionId() != null) {
+            Long sessionId = pos.getSessionId();
+            // 같은 코인만이 아니라 세션 전체 노출을 확인 — 이전 매도 정산 지연 중 세션이 다른
+            // 코인을 이미 매수했을 수 있고, 그때 totalAssetKrw=availableKrw로 덮으면 그 코인의
+            // 평가액이 총자산에서 통째로 사라진다.
+            final Long finalizedPosId = pos.getId();
+            boolean hasRemainingExposure = isPartial || positionRepository
+                    .findBySessionKindAndSessionId(pos.getSessionKind(), sessionId).stream()
+                    .anyMatch(p -> !p.getId().equals(finalizedPosId)
+                            && ("OPEN".equals(p.getStatus()) || "CLOSING".equals(p.getStatus())));
+
+            // ⚠️ 2026-08-19 P0: 이 잔고 반영은 REQUIRES_NEW 라 **바깥 트랜잭션이 롤백돼도
+            //    살아남는다**. 반면 위의 포지션 CLOSED 저장은 바깥 트랜잭션에 있어 롤백과 함께
+            //    사라진다. 그 비대칭 때문에 "대금은 남고 포지션은 OPEN 으로 복귀" 하는 상태가
+            //    만들어지고, 다음 시도가 대금을 또 지급한다 (세션 49: 21회, 10,000 → 174,752).
+            //    → 정산 표식을 대금과 **같은 트랜잭션**에 써서 포지션당 한 번만 반영한다.
+            DynamicSellSettlementEntity settlement = DynamicSellSettlementEntity.builder()
+                    .orderRef(settlementRef(pos, filledOrder))
+                    .positionId(pos.getId())
+                    .sessionId(sessionId)
+                    .sessionKind(pos.getSessionKind())
+                    .soldQty(soldQty)
+                    .netProceeds(netProceeds)
+                    .realizedPnl(realizedPnl)
+                    .build();
+
+            // 🔴 잔액에는 순입금을 두 자리로 반올림해 넣는다 (리뷰 2026-10-31, {@link BalanceAmounts}) — 정산 표식·실현손익은 8자리 그대로.
+            final BigDecimal balanceCredit = amounts.balanceCredit();
+            boolean credited = balanceUpdater.applySettlementOnce(settlement, s -> {
+                BigDecimal newAvailableKrw = s.getAvailableKrw().add(balanceCredit);
+                s.setAvailableKrw(newAvailableKrw);
+                if (!hasRemainingExposure) {
+                    s.setTotalAssetKrw(newAvailableKrw);
+                } else {
+                    s.setTotalAssetKrw(s.getTotalAssetKrw().subtract(fee));
+                }
+            });
+            if (!credited) {
+                // 대금은 이전 시도에서 이미 반영됐다. 포지션 CLOSED 확정은 그 시도에서 롤백됐을
+                // 수 있으므로 위의 저장은 그대로 진행한다 — 돈은 한 번, 청산은 성공할 때까지.
+                log.warn("[Dynamic] 매도대금 중복 지급 차단 (sessionId={}, posId={}) — "
+                                + "이전 시도의 잔고 반영이 이미 커밋돼 있다. 포지션 청산만 확정한다.",
+                        sessionId, pos.getId());
+            }
+            if (isPartial) {
+                // executeSell()이 매도 제출과 동시에 세션을 이미 SCANNING으로 돌려놓았으므로,
+                // 팔리지 않은 잔여분을 계속 감시하도록 재결속한다 (전체 롤백과 동일 원칙).
+                reattachRolledBackPosition(pos);
+            }
+            log.info("[Dynamic] 매도 체결 확정 (sessionId={}, posId={}, partial={}): {} {}개 @ {} 손익={} 수수료={}",
+                    sessionId, pos.getId(), isPartial, pos.getCoinPair(), soldQty, fillPrice, realizedPnl, fee);
+            if (credited) {
+                telegramService.bufferTradeEvent(
+                        "동적#" + sessionId, pos.getCoinPair(), "SELL",
+                        fillPrice, soldQty, fee, realizedPnl, "동적 세션 매도");
+            }
+        }
+    }
+
+    // ── 스케줄: 고아 매수 포지션 정리 (30초 주기) ───────────────────
+
+    /**
+     * OPEN + size=0 포지션 중 BUY 주문이 FAILED/CANCELLED로 확정된 경우를 정리한다.
+     *
+     * <p>이 처리가 없으면 거래소 오류 등으로 BUY가 실패했을 때 포지션이 size=0 OPEN 상태로
+     * 영구 고착되고, {@link #executeSell}의 size&le;0 가드 때문에 세션이 POSITION_MONITORING에
+     * 멈춰 다시는 스캔/매수하지 않는다.</p>
+     */
+    @Scheduled(fixedDelay = 30_000)
+    @Transactional
+    public void reconcileDynamicOrphanBuyPositions() {
+        List<PositionEntity> orphanPositions = positionRepository
+                .findBySessionKindAndStatus(SESSION_KIND, "OPEN")
+                .stream()
+                .filter(pos -> pos.getSize() != null && pos.getSize().compareTo(BigDecimal.ZERO) <= 0)
+                .toList();
+        if (orphanPositions.isEmpty()) return;
+
+        for (PositionEntity pos : orphanPositions) {
+            List<OrderEntity> buyOrders = orderRepository
+                    .findByPositionIdOrderByCreatedAtDesc(pos.getId())
+                    .stream()
+                    .filter(o -> "BUY".equalsIgnoreCase(o.getSide()))
+                    .toList();
+
+            // 🔴 체결 없음이 확인된 매수만 전액 복원한다 (V87). 확인되지 않은 CANCELLED 는 체결됐을 수
+            //    있으므로 진행 중과 같이 본다 — 재조회(OrderExecutionEngine)가 확인하면 다음 회차에 정리된다.
+            boolean hasCancelledBuy = buyOrders.stream()
+                    .anyMatch(OrderExecutionEngine::isConfirmedUnfilledBuy);
+            boolean hasActiveBuy = buyOrders.stream()
+                    .anyMatch(o -> ACTIVE_ORDER_STATES.contains(o.getState())
+                            || OrderExecutionEngine.isUnconfirmedCancelledBuy(o));
+
+            if (hasCancelledBuy && !hasActiveBuy) {
+                // 원자적 CLOSE — 동시 실행 시 이중 KRW 복원 방지
+                int closed = positionStateTransition.closeIfOpen(pos.getId(), Instant.now());
+                if (closed == 0) {
+                    log.debug("[Dynamic] 고아 포지션 이미 정리됨, KRW 복원 스킵 (posId={})", pos.getId());
+                    continue;
+                }
+
+                if (pos.getSessionId() != null) {
+                    Long sessionId = pos.getSessionId();
+                    // 🔴 실제로 차감한 값만 (V85 `restorableKrw`) — 종전에는 `quantity` 를 그대로 썼다.
+                    OrderEntity unfilledBuy = buyOrders.stream()
+                            .filter(OrderExecutionEngine::isConfirmedUnfilledBuy)
+                            .findFirst().orElse(null);
+                    BigDecimal toRestore = unfilledBuy != null ? restorableKrw(unfilledBuy) : pos.getInvestedKrw();
+                    if (toRestore != null) {
+                        final BigDecimal restoreAmount = toRestore;
+                        balanceUpdater.apply(sessionId, s -> s.setAvailableKrw(s.getAvailableKrw().add(restoreAmount)));
+                        log.info("[Dynamic] 고아 포지션 정리: KRW 복원 (posId={}, sessionId={}, 복원금액={})",
+                                pos.getId(), sessionId, restoreAmount);
+                    }
+                    // 세션이 POSITION_MONITORING에 고착되지 않도록 SCANNING 복귀
+                    transitionToScanning(sessionId);
+                }
+                log.warn("[Dynamic] 고아 포지션 정리 완료 (posId={}, coinPair={})", pos.getId(), pos.getCoinPair());
+
+            } else if (!hasActiveBuy && buyOrders.isEmpty() && pos.getSessionId() != null) {
+                // 예외 경로: 주문 엔티티가 아예 없는 경우 (async 스레드 DB 오류 등)
+                boolean isOldEnough = pos.getOpenedAt() != null
+                        && Duration.between(pos.getOpenedAt(), Instant.now()).toMinutes() >= 5;
+                if (isOldEnough) {
+                    int closed = positionStateTransition.closeIfOpen(pos.getId(), Instant.now());
+                    if (closed == 0) continue;
+
+                    Long sessionId = pos.getSessionId();
+                    if (pos.getInvestedKrw() != null) {
+                        final BigDecimal investedKrw = pos.getInvestedKrw();
+                        balanceUpdater.apply(sessionId, s -> s.setAvailableKrw(s.getAvailableKrw().add(investedKrw)));
+                        log.warn("[Dynamic] 고아 포지션 정리(주문 없음): KRW 복원 (posId={}, sessionId={}, 복원금액={})",
+                                pos.getId(), sessionId, investedKrw);
+                    } else {
+                        log.error("[Dynamic] 고아 포지션 정리 실패: investedKrw 없음 — 수동 확인 필요 (posId={})", pos.getId());
+                    }
+                    transitionToScanning(sessionId);
+                }
+            }
+        }
+    }
+
+    /**
+     * <b>세션 기준</b> 잔고 정합성 안전망 — 포지션이 없는데 KRW가 묶여 있는 세션을 복원한다.
+     *
+     * <p><b>왜 별도로 필요한가 (2026-08-03 P0)</b>: {@link #reconcileDynamicOrphanBuyPositions}는
+     * {@code position} 행을 기준으로 순회하므로, <b>포지션 자체가 롤백돼 사라진</b> 누수를
+     * 구조적으로 발견할 수 없다. 실제로 세션 39·40·44가 3일간 이 사각지대에 방치돼
+     * 각 8,000원(합 24,000원)이 묶인 채 영구 매수 불능 상태였다.</p>
+     *
+     * <p><b>불변식</b>: 보유 포지션이 없는 동적 세션은 {@code available_krw == total_asset_krw}.
+     * (매도 완료 시 {@code finalizeDynamicSell}이 둘을 같이 맞춘다) 이 등식이 깨졌는데
+     * 열린 포지션도 활성 주문도 없다면 그 차액은 <b>어디에도 대응물이 없는 묶인 돈</b>이다.</p>
+     *
+     * <p><b>오탐 방지</b>: 매수 경로는 KRW 차감(REQUIRES_NEW, 선커밋) → 부모 커밋 순서라,
+     * 그 사이 짧은 구간에는 "차감됐지만 포지션이 아직 안 보이는" 정상 상태가 존재한다.
+     * {@code updated_at}이 {@link #BALANCE_RECONCILE_GRACE_MIN}분 이상 지난 세션만 손대
+     * 이 구간을 건드리지 않는다(차감이 {@code updated_at}을 갱신하므로 유효한 가드).</p>
+     *
+     * <p>복원 방향은 <b>항상 available를 total에 맞추는 쪽</b>(증액)뿐이다. 반대 방향(감액)은
+     * 실제 코인 보유를 DB가 놓친 경우일 수 있어 자동 처리하지 않고 경고만 남긴다.</p>
+     */
+    @Scheduled(fixedDelay = 60_000)
+    @Transactional
+    public void reconcileDynamicSessionBalance() {
+        for (DynamicSessionEntity session : dynamicSessionRepo.findByStatus("RUNNING")) {
+            // ⚠️ 2026-08-27: PAPER 제외를 풀었다. 2026-08-07 당시 "PAPER는 REQUIRES_NEW·비동기
+            // 갭이 없어 이런 사후 안전망 자체가 필요하지 않다"고 판단해 제외했으나, 세션 60이
+            // 그 전제를 깼다 — 포지션 2852(7,108원)를 든 채 available == total 로 계산돼 있었고,
+            // 그 돈으로 같은 코인을 재매수해 중복 포지션 → 세션 21시간 정지까지 갔다.
+            // 08-07 의 오판 사유(포지션을 SESSION_KIND(REAL)로만 조회)는 아래에서 세션의 실제
+            // session_kind 를 쓰도록 고쳐 해소했다.
+            Long sid = session.getId();
+            String kind = sessionKind(session);
+            BigDecimal available = session.getAvailableKrw();
+            BigDecimal total = session.getTotalAssetKrw();
+            if (available == null || total == null) continue;
+
+            if (session.getUpdatedAt() == null
+                    || Duration.between(session.getUpdatedAt(), Instant.now()).toMinutes()
+                       < BALANCE_RECONCILE_GRACE_MIN) {
+                continue;   // 매수 진행 중일 수 있는 구간 — 건드리지 않는다
+            }
+
+            // ── 불변식 ②(2026-08-27 신설): 포지션이 있으면 원금만큼은 묶여 있어야 한다 ──
+            //
+            // 기존 코드는 `if (cmp == 0) continue;` 로 시작해 **available == total 을 항상 정상으로
+            // 취급**했다. 그런데 세션 60의 실제 사고 상태가 정확히 그것이었다(8,875 == 8,875 인데
+            // 포지션 보유). 즉 PAPER 제외가 없었더라도 이 안전망은 세션 60을 못 잡았다 —
+            // 불변식이 "포지션 없으면 available == total" 한쪽만 검사하고 있었기 때문이다.
+            //
+            // 자동 복원은 하지 않는다. 이 방향의 교정은 available 을 **깎는** 것이라, 판단이 틀리면
+            // 멀쩡한 세션의 매수 여력을 없앤다(기존 available>total 분기가 감액을 피한 것과 같은 이유).
+            // 지금 없는 것은 교정이 아니라 **감지**다 — 세션 60은 아무 경고도 없이 나흘을 갔다.
+            List<PositionEntity> openPositions = positionRepository
+                    .findBySessionKindAndSessionIdAndStatus(kind, sid, "OPEN");
+            if (!openPositions.isEmpty()) {
+                if (available.compareTo(total) >= 0) {
+                    BigDecimal invested = openPositions.stream()
+                            .map(PositionEntity::getInvestedKrw)
+                            .filter(Objects::nonNull)
+                            .reduce(BigDecimal.ZERO, BigDecimal::add);
+                    warnUnlockedPositionCapital(sid, kind, available, total, openPositions, invested);
+                } else {
+                    unlockedCapitalWarned.remove(sid);   // 정상 복귀 — 다음 이상 때 다시 알린다
+                }
+                continue;   // 보유 중 — 아래 고아 잔고 복원은 대상이 아니다
+            }
+            unlockedCapitalWarned.remove(sid);
+
+            int cmp = available.compareTo(total);
+            if (cmp == 0) continue;
+
+            boolean hasActiveOrder = orderRepository
+                    .findBySessionKindAndSessionIdOrderByCreatedAtDesc(
+                            kind, sid, org.springframework.data.domain.PageRequest.of(0, 20))
+                    .stream()
+                    .anyMatch(o -> ACTIVE_ORDER_STATES.contains(o.getState()));
+            if (hasActiveOrder) continue;    // 체결 대기 중 — 아직 결론 낼 수 없다
+
+            if (cmp > 0) {
+                // available > total: 코인을 들고 있는데 DB가 놓쳤을 수 있어 자동 조정하지 않는다
+                log.warn("[Dynamic] 잔고 정합성 이상(available>total) — 수동 확인 필요 "
+                                + "(id={}, available={}, total={})", sid, available, total);
+                continue;
+            }
+
+            final BigDecimal restoreAmount = total.subtract(available);
+            balanceUpdater.apply(sid, s -> {
+                // 재확인 — 스케줄러 중복 실행/동시 매수와의 race에서 이중 복원 방지
+                if (s.getAvailableKrw().compareTo(s.getTotalAssetKrw()) >= 0) return;
+                if (s.getCurrentPositionId() != null) return;
+                s.setAvailableKrw(s.getTotalAssetKrw());
+                s.setScanState("SCANNING");
+                s.setCurrentCoinPair(null);
+            });
+            log.error("[Dynamic] 🔴 고아 잔고 복원: 포지션·활성주문 없이 KRW가 묶여 있었음 "
+                            + "(id={}, {}원 복원 → available={}). 매수 tx 롤백 의심 — 서버 로그 확인 필요.",
+                    sid, restoreAmount, total);
+        }
+    }
+
+    /**
+     * 이미 경고를 보낸 세션 — 60초마다 도는 스케줄러가 같은 이상을 반복 알림하지 않도록 한다.
+     * 정상으로 돌아오면 제거해, 재발 시 다시 알린다.
+     */
+    private final java.util.Set<Long> unlockedCapitalWarned = ConcurrentHashMap.newKeySet();
+
+    /**
+     * <b>불변식 ② 위반</b> — 포지션을 보유 중인데 그 원금이 가용 잔고에서 빠져 있지 않다.
+     *
+     * <p>이 상태는 <b>같은 돈을 두 번 쓰게 만든다</b>. 세션 60이 실제로 그랬다 — 포지션
+     * 2852(7,108원)를 든 채 available == total 이라, 그 7,108원으로 같은 코인을 다시 사서
+     * 중복 포지션을 만들었고 그것이 세션을 21시간 정지시켰다.</p>
+     *
+     * <p>자동 교정은 하지 않는다 — 이 방향은 available 을 깎는 것이라 판단이 틀리면 멀쩡한
+     * 세션의 매수 여력을 없앤다. 대신 <b>반드시 사람이 보게</b> 한다: 세션 60은 나흘간
+     * 아무 경고 없이 지나갔고, A/B 점검을 하다 우연히 발견됐다.</p>
+     */
+    private void warnUnlockedPositionCapital(Long sid, String kind,
+                                             BigDecimal available, BigDecimal total,
+                                             List<PositionEntity> openPositions, BigDecimal invested) {
+        if (!unlockedCapitalWarned.add(sid)) return;   // 이미 알림 — 정상 복귀 전까지 침묵
+
+        String coins = openPositions.stream()
+                .map(p -> p.getCoinPair() + "#" + p.getId())
+                .collect(java.util.stream.Collectors.joining(", "));
+        log.error("[Dynamic] 🔴 잔고 정합성 이상 — 포지션 보유 중인데 원금이 안 묶여 있음 "
+                        + "(id={}, kind={}, available={}, total={}, 포지션 {}건 원금={} [{}]). "
+                        + "같은 돈으로 재매수 가능 상태 — 중복 포지션 위험. 자동 교정 안 함, 수동 확인 필요.",
+                sid, kind, available, total, openPositions.size(), invested, coins);
+
+        try {
+            telegramService.sendCustomNotification(String.format(
+                    "🔴 [동적#%d] 잔고 정합성 이상\n"
+                            + "포지션 %d건(%s)을 들고 있는데 원금 %s원이 가용 잔고에 그대로 있습니다.\n"
+                            + "가용 %s / 평가 %s — 같은 돈으로 재매수될 수 있어 중복 포지션 위험이 있습니다.\n"
+                            + "자동 교정은 하지 않았습니다. 수동 확인이 필요합니다.",
+                    sid, openPositions.size(), coins, invested, available, total));
+        } catch (Exception e) {
+            log.warn("[Dynamic] 잔고 정합성 이상 알림 실패 (id={}): {}", sid, e.getMessage());
+        }
+    }
+
+    // ── 실시간(WS) 손절/익절 ────────────────────────────────────────
+
+    /**
+     * 현재 RUNNING 중인 동적 세션들의 보유 코인(POSITION_MONITORING 상태) 목록을 다시 계산해
+     * {@link WsSubscriptionManager}에 반영한다. LIVE 세션과 구독을 공유하므로 직접
+     * {@code UpbitWebSocketClient}를 호출하지 않는다.
+     *
+     * <p>매수/매도/세션 시작·정지 시점에 호출해 지연 없이 구독을 갱신한다 — 60초 폴링(tick)을
+     * 기다리면 그사이 실시간 손절/익절 보호가 비는 구간이 생긴다.</p>
+     */
+    private void refreshWsSubscription() {
+        // ⚠️ 2026-08-31: PAPER 제외를 철회했다. 이전에는 "실거래에 없는 새 구독 경로를 열지
+        // 않기 위한 의도적 제외"로 PAPER 를 빼고 60초 폴링(processMonitoringTick)만 썼는데,
+        // 그러면 **LIVE 는 5초마다 SL/TP 를 보고 PAPER 는 최대 60초 늦게 본다** — 급락장에서
+        // 손절 체결가가 갈린다(페이퍼가 더 나쁘게 나오는 보수적 방향이지만, 어쨌든 규칙이
+        // 다르다). 페이퍼를 돌리는 이유가 "실전에서 어떨지 비용 없이 미리 보는 것"인데
+        // 매매 규칙이 다르면 그 예측력이 사라진다.
+        //
+        // 페이퍼 매도는 executePaperSell(시뮬레이션)로 가므로 실주문 위험은 없다. 구독 코인은
+        // distinct() 로 합쳐지고 WsSubscriptionManager 가 LIVE 와 공유하므로 부하도 제한적이다.
+        //
+        // 2026-09-01: 기준을 {@code scanState} 에서 <b>실제 OPEN 포지션</b>으로 바꿈.
+        // scanState 는 세션 필드라 실제 보유와 어긋날 수 있고(08-25 세션 60), 그때
+        // 들고 있는 코인이 구독에서 통째로 빠져 실시간 SL 감시가 조용히 사라졌다.
+        // SL 워치독({@link #warnStaleSlCheck})도 같은 기준을 쓴다 — 둘이 달라지면
+        // "구독도 안 됐는데 워치독은 감시 중이라고 믿는" 사각지대가 생긴다.
+        List<String> coins = dynamicSessionRepo.findByStatus("RUNNING").stream()
+                .flatMap(s -> positionRepository
+                        .findBySessionKindAndSessionIdAndStatus(sessionKind(s), s.getId(), "OPEN").stream())
+                .map(PositionEntity::getCoinPair)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+        wsSubscriptionManager.updateSource(SESSION_KIND, coins);
+    }
+
+    /**
+     * WebSocket 실시간 시세 이벤트 핸들러 — 동적 세션 보유 포지션의 손절/익절을 폴링(60초)보다
+     * 즉시 반응하도록 처리한다. 라이브 매매의 급등락 SL/TP 트레일링(ratchet)은 이번 범위에
+     * 포함하지 않고, 기본 SL/TP 트리거만 실시간화한다.
+     */
+    @EventListener
+    @Async("marketDataExecutor")
+    @Transactional
+    public void onRealtimePriceEvent(RealtimePriceEvent event) {
+        try {
+            doOnRealtimePriceEvent(event);
+        } catch (Exception e) {
+            log.error("[Dynamic] 실시간 시세 이벤트 처리 오류 — coinCode={}, price={}",
+                    event.getCoinCode(), event.getPrice(), e);
+        }
+    }
+
+    private void doOnRealtimePriceEvent(RealtimePriceEvent event) {
+        String coinCode = event.getCoinCode();
+        BigDecimal price = event.getPrice();
+        long now = System.currentTimeMillis();
+
+        // 🔴 N02 (2026-11-01): 관측 시각이 유효기간을 넘은 가격은 현재가가 아니다 — LIVE 처리기·시세 장부와 같은 정의.
+        //    점검 간격·SL 점검 시각을 남기기 전에 버린다.
+        if (markPriceBook != null && markPriceBook.isStale(event.getObservedAt(), Instant.now())) {
+            log.debug("[Dynamic] 낡은 실시간 시세 무시: {} {} 관측 {}", coinCode, price, event.getObservedAt());
+            return;
+        }
+
+        // 🔴 N16 (2026-11-05): 가격이 아닌 값(null·0·음수)은 버린다 — 시세 장부와 같은 정의({@link MarkPriceBook#isPrice}).
+        //    0 은 '손절가 이하'로 읽혀 보호 매도를 냈고, null 은 이력·점검 시각을 오염시켜 다음 정상 가격의 점검을 막거나 가렸다.
+        //    운영 웹소켓 파서는 체결가가 없는 ticker 를 0 으로 메운다. 이력·점검 간격·SL 점검 시각을 남기기 전에 버린다.
+        if (!MarkPriceBook.isPrice(price)) {
+            log.warn("[Dynamic] 가격이 아닌 실시간 시세 무시: {} {} 관측 {} 출처 {}", coinCode, price, event.getObservedAt(), event.getSource());
+            return;
+        }
+
+        boolean firstCross = protectFirstCross(coinCode, price);   // v1.155 §4-2
+        Long lastMs = rtCheckLastMs.get(coinCode);
+        if (!firstCross && lastMs != null && now - lastMs < RT_CHECK_INTERVAL_MS) return;
+        rtCheckLastMs.put(coinCode, now);
+
+        ProtectBounds next = new ProtectBounds();
+        List<DynamicSessionEntity> sessions = dynamicSessionRepo.findByStatus("RUNNING");
+        for (DynamicSessionEntity session : sessions) {
+            // 2026-08-31: PAPER 도 여기 들어온다 — LIVE 와 같은 5초 주기로 SL/TP 를 본다.
+            // 매도는 executeSell 이 세션 종류에 따라 갈라 페이퍼는 시뮬레이션으로 처리된다.
+            if (!coinCode.equals(session.getCurrentCoinPair())) continue;
+
+            // 세션의 실제 kind 로 조회해야 REAL/PAPER 포지션이 섞이지 않는다.
+            // List 변형을 쓰는 이유는 processMonitoringTick 과 같다 — 중복 OPEN 이 있어도
+            // 예외로 죽지 않아야 한다(여기는 @Async 라 세션을 멈추진 않지만 감시가 건너뛰어진다).
+            Optional<PositionEntity> openPos = pickMonitoredPosition(
+                    session.getId(), session.getCurrentPositionId(),
+                    positionRepository.findBySessionKindAndSessionIdAndCoinPairAndStatusList(
+                            sessionKind(session), session.getId(), coinCode, "OPEN"));
+            if (openPos.isEmpty()) continue;
+
+            PositionEntity pos = openPos.get();
+            if (pos.getAvgPrice() == null || pos.getAvgPrice().compareTo(BigDecimal.ZERO) <= 0) continue;
+
+            recordSlCheck(session.getId());
+
+            BigDecimal pnlPct = price.subtract(pos.getAvgPrice())
+                    .divide(pos.getAvgPrice(), 6, RoundingMode.HALF_UP)
+                    .multiply(BigDecimal.valueOf(100));
+
+            // 익절
+            if (pos.getTakeProfitPrice() != null && price.compareTo(pos.getTakeProfitPrice()) >= 0) {
+                log.info("[Dynamic] 실시간 익절(WS): {} @ {} pnl={}% (id={})",
+                        coinCode, price, pnlPct, session.getId());
+                executeSell(session, pos, price,
+                        "실시간 익절(WS) — 현재가 " + price + " ≥ " + pos.getTakeProfitPrice(),
+                        ExitReason.TAKE_PROFIT);
+                continue;
+            }
+
+            // 손절
+            BigDecimal slNeg = session.getStopLossPct().negate();
+            boolean slTriggered = pos.getStopLossPrice() != null
+                    ? price.compareTo(pos.getStopLossPrice()) <= 0
+                    : pnlPct.compareTo(slNeg) <= 0;
+            if (slTriggered) {
+                // O3 (2026-11-07 총괄 v1.134): REST 폴백 시세도 이 처리기를 지난다 — 출처를 단정하지 않는 '실시간 손절'.
+                log.warn("[Dynamic] 실시간 손절: {} @ {} pnl={}% (id={})",
+                        coinCode, price, pnlPct, session.getId());
+                telegramService.notifyStopLoss(coinCode, pnlPct.doubleValue(), session.getId());
+                executeSell(session, pos, price, "실시간 손절 — pnl " + pnlPct + "%", ExitReason.STOP_LOSS);
+                continue;
+            }
+            next.add(pos, session.getStopLossPct());   // 이번 점검 뒤에도 보유 — 다음 첫 통과 판정의 기준
+        }
+        next.store(coinCode);
+    }
+
+    /**
+     * v1.155 §4-2 — 직전 유효 시세에서 이번 유효 시세로 손절 발동가(floor)를 위→아래, 또는 익절가(ceiling)를 아래→위로 처음 넘었는가.
+     * 직전 유효 시세를 갱신한다(낡은·비가격 시세는 이 앞에서 버려져 여기 오지 않는다).
+     */
+    private boolean protectFirstCross(String coinCode, BigDecimal price) {
+        BigDecimal prevValid = rtLastValidPrice.put(coinCode, price);
+        BigDecimal floor = rtProtectFloor.get(coinCode);
+        BigDecimal ceiling = rtProtectCeiling.get(coinCode);
+        boolean cross = (floor != null && price.compareTo(floor) <= 0 && (prevValid == null || prevValid.compareTo(floor) > 0))
+                || (ceiling != null && price.compareTo(ceiling) >= 0 && (prevValid == null || prevValid.compareTo(ceiling) < 0));
+        if (cross) {
+            log.info("[Dynamic] 보호선 첫 통과 — 점검 간격과 무관하게 점검: {} {} (손절 발동가 {}, 익절가 {}, 직전 {})",
+                    coinCode, price, floor, ceiling, prevValid);
+        }
+        return cross;
+    }
+
+    /** 한 번의 전체 점검 뒤에도 OPEN 으로 남는 포지션의 손절 발동가 최댓값·익절가 최솟값. */
+    private final class ProtectBounds {
+        private BigDecimal floor;
+        private BigDecimal ceiling;
+
+        void add(PositionEntity pos, BigDecimal stopLossPct) {
+            BigDecimal trigger = pos.getStopLossPrice() != null ? pos.getStopLossPrice()
+                    : (stopLossPct == null || pos.getAvgPrice() == null ? null
+                        : pos.getAvgPrice().multiply(BigDecimal.ONE.subtract(stopLossPct.movePointLeft(2))).multiply(PROTECT_FLOOR_SLACK));
+            if (trigger != null) floor = floor == null ? trigger : floor.max(trigger);
+            if (pos.getTakeProfitPrice() != null) {
+                ceiling = ceiling == null ? pos.getTakeProfitPrice() : ceiling.min(pos.getTakeProfitPrice());
+            }
+        }
+
+        void store(String coinCode) {
+            if (floor != null) rtProtectFloor.put(coinCode, floor); else rtProtectFloor.remove(coinCode);
+            if (ceiling != null) rtProtectCeiling.put(coinCode, ceiling); else rtProtectCeiling.remove(coinCode);
+        }
+    }
+
+    /** §9 — SL 점검 시각 기록 ({@link #doOnRealtimePriceEvent} 내부에서만 호출). */
+    private void recordSlCheck(Long sessionId) {
+        lastSlCheckAt.put(sessionId, Instant.now());
+    }
+
+    /**
+     * 연속으로 SL 미점검이 관측된 횟수 (세션별). 정상 점검이 한 번이라도 기록되면 지워진다.
+     *
+     * <p><b>왜 필요한가 (2026-09-01)</b>: 이 워치독은 미점검을 발견하면 {@link #forceRefreshPrice}로
+     * 그 코인 시세를 REST로 한 번 끌어와 이벤트를 발행한다 — 즉 <b>대부분의 경우 스스로 복구된다</b>.
+     * 그런데 복구 여부와 무관하게 매번 텔레그램을 보내고 있었다. 거래가 뜸한 알트코인은
+     * WS ticker 틱이 3분 넘게 안 오는 일이 흔하므로, 그때마다
+     * "미점검 3분 초과 → 복구했습니다"가 무한 반복됐다. 알림이 상시 울리면 진짜 고장이 왔을 때
+     * 아무도 그것을 구별하지 못한다.</p>
+     *
+     * <p>이제 알림은 <b>자가복구가 실제로 실패했을 때만</b> 나간다 — 아래 세 경우다:
+     * ① REST 강제 갱신 자체가 실패(거래소 API 오류), ② 그 코인이 WS 구독 목록에 아예 없음
+     * (구독 배선이 깨진 것 — 이건 진짜 버그다), ③ 강제 갱신을 계속 했는데도
+     * {@value #SL_STALE_NOTIFY_STREAK}회 연속으로 점검이 기록되지 않음(이벤트 경로가 죽어 있다 — 또는 N02 보완 뒤에는
+     * REST 시세도 낡아 처리기가 거절한 것이다. 이 경우 문구가 따로 나간다).</p>
+     */
+    private final Map<Long, Integer> slStaleStreak = new ConcurrentHashMap<>();
+
+    /** 자가복구가 계속 실패할 때 알림을 보내기 시작하는 연속 관측 횟수 (1회 = 60초). */
+    private static final int SL_STALE_NOTIFY_STREAK = 5;
+
+    /**
+     * §9 — SL 미점검 세션 감시 (2026-08-06 신규, LIVE {@code warnStaleSlCheck}와 동일 패턴).
+     *
+     * <p>DYNAMIC은 이제껏 이런 워치독 자체가 없었다. WS 실시간 SL/TP 판정({@link #doOnRealtimePriceEvent})이
+     * 조용히 멈춰도 아무도 알아채지 못한 채 60초 폴링만 남는 상태가 될 수 있었다 — 2026-08-03
+     * ELSA가 SL을 2.1%p 지나쳐서야 체결된 사고가 이 사각지대와 무관하지 않다. 미점검 발견 시
+     * 그 코인 하나만 REST로 즉시 강제 갱신을 시도한다.</p>
+     *
+     * <p><b>2026-08-31: PAPER 제외를 철회했다.</b> 08-24 에 제외한 이유는
+     * {@link #doOnRealtimePriceEvent}가 PAPER 에는 {@link #recordSlCheck}를 아예 호출하지 않아
+     * {@code lastSlCheckAt}이 영원히 비고, 그래서 매 실행마다 오탐 알림이 무한 반복됐기
+     * 때문이다 — 실제 감시 공백이 아니라 워치독이 대상 범위를 잘못 잡은 것이었다.
+     * 이제 PAPER 도 WS 실시간 감시를 받으므로 {@code lastSlCheckAt}이 정상적으로 채워진다.</p>
+     *
+     * <h3>2026-09-01 — 오탐 알림이 다시 쏟아져 두 가지를 고쳤다</h3>
+     * <ol>
+     *   <li><b>대상 선정이 LIVE와 달랐다.</b> LIVE는 "OPEN 포지션이 실제로 있는 세션"만 보는데
+     *       DYNAMIC은 {@code scanState == POSITION_MONITORING} 이라는 <b>세션 필드</b>만 봤다.
+     *       상태 필드와 실제 포지션이 어긋나면(08-25 세션 60이 그랬다) — 감시할 포지션이 없으니
+     *       {@link #doOnRealtimePriceEvent}는 {@code recordSlCheck}에 도달하지 못하고,
+     *       워치독은 그걸 "미점검"으로 읽어 <b>60초마다 영원히</b> 경고를 보낸다. 게다가
+     *       {@code forceRefreshPrice}는 시세를 가져오는 데 성공하므로 알림은 매번
+     *       "감시를 재개했습니다"라고 <b>사실이 아닌 말</b>을 한다. 이제 실제 OPEN 포지션에서
+     *       코인을 얻으므로 세션 필드가 어긋나 있어도 오탐이 나지 않는다(상태 불일치 자체는
+     *       {@code processTick}의 자가복구 가드가 다음 틱에 되돌린다).</li>
+     *   <li><b>"체결이 없는 것"과 "감시가 고장난 것"을 구별하지 않았다.</b> 자세한 내용은
+     *       {@link #slStaleStreak} 참조 — 자가복구가 실패했을 때만 알린다.</li>
+     * </ol>
+     */
+    @Scheduled(fixedDelay = 60_000)
+    public void warnStaleSlCheck() {
+        List<DynamicSessionEntity> sessions = dynamicSessionRepo.findByStatus("RUNNING");
+        if (sessions.isEmpty()) {
+            slStaleStreak.clear();
+            return;
+        }
+
+        Instant threshold = Instant.now().minus(SL_STALE_WARN_MINUTES, ChronoUnit.MINUTES);
+        for (DynamicSessionEntity s : sessions) {
+            // LIVE와 동일하게 "실제 OPEN 포지션"을 기준으로 삼는다 — 세션 상태 필드가 아니라.
+            Optional<PositionEntity> open = pickMonitoredPosition(
+                    s.getId(), s.getCurrentPositionId(),
+                    positionRepository.findBySessionKindAndSessionIdAndStatus(
+                            sessionKind(s), s.getId(), "OPEN"));
+            if (open.isEmpty()) {
+                slStaleStreak.remove(s.getId());
+                continue;   // 감시할 포지션이 없다 — SL 점검 대상이 아니다
+            }
+
+            Instant last = lastSlCheckAt.get(s.getId());
+            if (last != null && !last.isBefore(threshold)) {
+                slStaleStreak.remove(s.getId());
+                continue;   // 정상 점검 중
+            }
+
+            String coin = open.get().getCoinPair();
+            int streak = slStaleStreak.merge(s.getId(), 1, Integer::sum);
+
+            // 구독 목록에 없으면 먼저 구독을 다시 산정해 스스로 고쳐본다 — 사람을 부르기 전에
+            // 할 수 있는 일을 먼저 한다. 그래도 안 들어오면 배선이 진짜로 깨진 것이다.
+            if (!wsSubscriptionManager.getSubscribedCoins().contains(coin)) {
+                refreshWsSubscription();
+            }
+            boolean subscribed = wsSubscriptionManager.getSubscribedCoins().contains(coin);
+            // 🔴 N02 보완 (2026-11-01 총괄): 조회·발행 결과(refresh)와 실제 점검(lastSlCheckAt 갱신)을 나눈다. 처리기는 비동기이고
+            //    낡은 시세는 거절하므로 발행만으로 복구됐다고 보지 않는다 — streak 은 실제 점검 기록이 있어야 지워진다(위).
+            ForceRefreshResult refresh = forceRefreshPrice(coin);
+            // 🔴 N17 (2026-11-05): 가격 이상(INVALID_PRICE)은 유효한 조회·발행이 아니다 — 기존 복구 실패(FAILED)와 같은 경보 규칙을 탄다.
+            boolean invalidPrice = refresh.outcome() == ForceRefreshResult.Outcome.INVALID_PRICE;
+            boolean fetched = refresh.outcome() != ForceRefreshResult.Outcome.FAILED && !invalidPrice;
+
+            log.warn("[Dynamic][§9] SL 미점검: sessionId={} coin={} 마지막체크={} ({}분 초과, "
+                            + "연속 {}회, WS구독={}, REST강제갱신={} {})",
+                    s.getId(), coin, last != null ? last : "기록없음", SL_STALE_WARN_MINUTES,
+                    streak, subscribed ? "있음" : "없음", refresh.outcome(), refresh.describeAge(Instant.now()));
+
+            // 자가복구가 먹히는 동안은 알리지 않는다 — 거래가 뜸한 코인의 정상적인 틱 공백이다.
+            boolean needsHuman = !fetched || !subscribed || streak >= SL_STALE_NOTIFY_STREAK;
+            if (!needsHuman) continue;
+
+            String cause = !subscribed
+                    ? "이 코인이 WS 구독 목록에 없습니다 — 구독 배선 확인 필요."
+                    : invalidPrice
+                    ? String.format("REST 시세가 가격으로 볼 수 없는 값(trade_price %s, %s)이라 SL 점검에 쓰지 않았습니다 "
+                            + "— 점검·매도 없음. 거래소 시세 응답을 확인하세요.",
+                            refresh.describePrice(), refresh.describeAge(Instant.now()))
+                    : !fetched
+                    ? "REST 강제 갱신도 실패 — 거래소 API 상태를 확인하세요."
+                    : refresh.outcome() == ForceRefreshResult.Outcome.STALE
+                    ? String.format("REST 시세도 %s 값이라(기준 %d초) %d분 연속 실시간 SL 점검에 쓰지 못했습니다 "
+                            + "— 낡은 시세로는 점검·매도하지 않습니다.",
+                            refresh.describeAge(Instant.now()), markPriceBook.maxAgeSeconds(), streak)
+                    : String.format("REST 강제 갱신을 %d분 연속 시도했는데도 점검이 기록되지 않습니다 "
+                            + "— 실시간 이벤트 경로가 죽었을 수 있습니다.", streak);
+
+            // 🔴 N17: 가격 이상일 때는 "손절 자체가 멈춘 것은 아닙니다"를 붙이지 않는다 — 받은 값으로는 손절 판정을 할 수 없다.
+            String tail = invalidPrice ? "" : " 60초 폴링은 계속 돌고 있으므로 손절 자체가 멈춘 것은 아닙니다.";
+            telegramService.sendCustomNotification(String.format(
+                    "⚠️ [동적#%d] SL 실시간 감시 이상: %s (%d분 이상 미점검). %s%s",
+                    s.getId(), coin, SL_STALE_WARN_MINUTES, cause, tail));
+
+            // 알림을 한 번 보냈으면 streak 을 다시 쌓게 해 같은 이상으로 매분 울리지 않도록 한다.
+            slStaleStreak.put(s.getId(), 0);
+        }
+    }
+
+    /**
+     * 특정 코인 하나만 REST로 즉시 시세를 가져와 {@link RealtimePriceEvent}를 발행한다.
+     * {@link #warnStaleSlCheck}가 개별 세션의 SL 미점검을 발견했을 때 즉시 복구를 시도하는 용도 —
+     * LIVE {@link LiveTradingService#forceRefreshPrice}와 동일 패턴 — 결과는 조회·발행 결과다({@link ForceRefreshResult}, N02 보완).
+     * 🔴 N17 (2026-11-05): 체결가가 0·음수면 발행하지 않고 {@code INVALID_PRICE}(LIVE 와 같은 규칙).
+     */
+    ForceRefreshResult forceRefreshPrice(String coinPair) {
+        if (upbitRestClient == null) return ForceRefreshResult.failed();
+        try {
+            List<Map<String, Object>> tickers = upbitRestClient.getTicker(coinPair);
+            ForceRefreshResult result = ForceRefreshResult.failed();
+            for (Map<String, Object> ticker : tickers) {
+                String market = (String) ticker.get("market");
+                Object tradePriceObj = ticker.get("trade_price");
+                if (market == null || tradePriceObj == null) continue;
+                BigDecimal tradePrice = new BigDecimal(tradePriceObj.toString());
+                Instant observedAt = restTradeTime(ticker);
+                // 🔴 N17 (2026-11-05): 가격 검사 뒤에만 발행한다 — 0·음수는 처리기(N16)가 버릴 값이고, 발행하면 감시기가 "발행"으로 분류했다.
+                if (!MarkPriceBook.isPrice(tradePrice)) {
+                    // 🔴 O1 (2026-11-07 총괄 v1.134): REST market·가격 원문을 출력 인자로 넘기지 않는다 — 유한한 분류(0/음수)만.
+                    log.warn("[Dynamic][§9] REST 강제 갱신 시세가 가격이 아님 — 발행하지 않음 (가격 분류={})",
+                            tradePrice.signum() == 0 ? "0" : "음수");
+                    result = ForceRefreshResult.invalidPrice(observedAt, tradePrice);
+                    continue;
+                }
+                eventPublisher.publishEvent(new RealtimePriceEvent(market, tradePrice, observedAt,
+                        RealtimePriceEvent.REST_TRADE));
+                boolean stale = markPriceBook != null && markPriceBook.isStale(observedAt, Instant.now());
+                result = new ForceRefreshResult(stale ? ForceRefreshResult.Outcome.STALE : ForceRefreshResult.Outcome.PUBLISHED, observedAt);
+            }
+            return result;
+        } catch (Exception e) {
+            // 🔴 O1 (2026-11-07 총괄 v1.134): 예외 메시지·Throwable 을 넘기지 않는다(응답·URL 원문이 섞일 수 있다). 수준(ERROR)·건수는 그대로.
+            log.error("[Dynamic][§9] SL 미점검 세션 강제 복구 실패 — 조회·변환 예외(원문 생략)");
+            return ForceRefreshResult.failed();
+        }
+    }
+
+    private void clearSessionState(Long sessionId) {
+        strategyInstances.entrySet().removeIf(e -> e.getKey().startsWith(sessionId + ":"));
+        lastEvaluatedClosedCandle.entrySet().removeIf(e -> e.getKey().startsWith(sessionId + ":"));
+    }
+
+    private DynamicSessionEntity getOrThrow(Long sessionId) {
+        return dynamicSessionRepo.findById(sessionId)
+                .orElseThrow(() -> new IllegalArgumentException("동적 세션 없음: id=" + sessionId));
+    }
+
+    /**
+     * 세션의 실제 session_kind — REAL이면 {@code "DYNAMIC"}, PAPER면 {@code "DYN_PAPER"}.
+     * position/order 저장·조회는 전부 이 값을 써야 REAL/PAPER 데이터가 섞이지 않는다.
+     */
+    // 테스트와 조회 API(DynamicSessionController)가 같은 값을 써야 하므로 public —
+    // 이 메서드를 안 거치고 "DYNAMIC" 을 직접 쓰면 PAPER 세션의 데이터가 통째로 안 보인다.
+    public static String sessionKind(DynamicSessionEntity session) {
+        return session.isPaper() ? SESSION_KIND_PAPER : SESSION_KIND;
+    }
+
+    private static BigDecimal normalizeRatio(BigDecimal raw, BigDecimal defaultVal) {
+        if (raw == null) return defaultVal;
+        if (raw.compareTo(BigDecimal.ONE) > 0) {
+            raw = raw.divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP);
+        }
+        return raw.max(new BigDecimal("0.01")).min(BigDecimal.ONE);
+    }
+
+    /** 워치리스트 기본값 조회용 — risk_config 가 없으면 빈 엔티티(전부 null)를 돌려준다. */
+    private com.cryptoautotrader.api.entity.RiskConfigEntity scanDefaults() {
+        try {
+            return riskManagementService.getRiskConfig();
+        } catch (Exception e) {
+            log.debug("[Dynamic] risk_config 조회 실패, 코드 기본값 사용: {}", e.getMessage());
+            return new com.cryptoautotrader.api.entity.RiskConfigEntity();
+        }
+    }
+
+    @SafeVarargs
+    private static <T> T firstNonNull(T... values) {
+        for (T v : values) if (v != null) return v;
+        return null;
+    }
+
+
+    /**
+     * 전략 평가 파라미터 — 코인과 타임프레임을 함께 넘긴다 (2026-09-08).
+     *
+     * <p>COMPOSITE 계열({@code RegimeAdaptiveStrategy})이 레짐별 가중치를 조회할 때 이 두 값으로
+     * 키를 좁힌다. 타임프레임이 빠지면 같은 전략·코인·레짐의 H1 과 M15 성적이 한 가중치로
+     * 합쳐지는데, 둘의 부호가 반대인 경우가 실제로 있어 서로 상쇄된다
+     * ({@code COMPOSITE_MTF_BTC} H1 −1.428% / M15 +0.046%).</p>
+     */
+    private static Map<String, Object> buildEvalParams(String coinPair, String timeframe) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("coinPair", coinPair);
+        params.put("timeframe", timeframe);
+        return params;
+    }
+
+    /**
+     * REST 시세의 체결 시각 — 응답에 없으면 {@link Instant#EPOCH}(신선하지 않음). 🔴 받은 시각으로 메우지 않는다: 체결이 드문 코인의
+     * 낡은 체결가를 다시 받은 것을 신선한 가격으로 인정하게 된다(2026-10-15 리뷰 8회차 후속).
+     */
+    private static Instant restTradeTime(Map<String, Object> ticker) {
+        Instant t = RealtimePriceEvent.tradeTime(ticker);
+        return t != null ? t : Instant.EPOCH;
+    }
+}

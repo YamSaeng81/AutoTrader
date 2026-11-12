@@ -1,0 +1,25 @@
+from pathlib import Path
+import hashlib,json,subprocess
+O=Path(__file__).resolve().parent;R=O.parents[2];S=O/'throttle-source';L=O.parent/'review-aligned-9491166f/lib';C=O/'classes';C.mkdir(exist_ok=True)
+J=Path('C:/Program Files/Java/jdk-17/bin');P=R/'docs/evidence/v1135-h2-d2-1ec9104/comparator/jarcmp_v2.py'
+for name,old in [('production','D:/tmp/v153-runs/i/jars/b5cd1d0-base.jar'),('investigation','D:/tmp/v153-runs/i154/jar/9bce7dc1.jar')]:
+ with (O/('jarcmp-'+name+'.txt')).open('wb') as f:r=subprocess.run([str(Path(__import__('sys').executable)),str(P),old,'D:/tmp/v153-runs/v156/final-jar/84fb03d6.jar'],stdout=f,stderr=subprocess.STDOUT)
+ print('jarcmp',name,r.returncode,flush=True)
+ assert r.returncode==0
+src=[]
+for module in ['core-engine','strategy-lib','exchange-adapter','web-api']:src+=list((S/module/'src/main/java').rglob('*.java'))
+src+=list((S/'web-api/src/test/java/com/cryptoautotrader/api/support').glob('*.java'))
+src.append(O/'ThrottleReviewWitnessTest.java')
+launcher=O/'ReviewLauncher.java'
+launcher.write_text('import org.junit.platform.launcher.core.*;import org.junit.platform.launcher.listeners.*;import static org.junit.platform.engine.discovery.DiscoverySelectors.*;public class ReviewLauncher{public static void main(String[]a){var l=new SummaryGeneratingListener();var b=LauncherDiscoveryRequestBuilder.request();for(String s:a)b.selectors(selectMethod("com.cryptoautotrader.api.service.ThrottleReviewWitnessTest",s));var x=LauncherFactory.create();x.registerTestExecutionListeners(l);x.execute(b.build());l.getSummary().printTo(new java.io.PrintWriter(System.out,true));l.getSummary().printFailuresTo(new java.io.PrintWriter(System.out,true));System.exit(l.getSummary().getTestsFailedCount()+l.getSummary().getContainersFailedCount()>0?1:0);}}',encoding='utf8')
+src.append(launcher)
+args=['-encoding','UTF-8','-cp',';'.join([str(p) for p in L.glob('*.jar')]),'-d',str(C)]+[str(p) for p in src]
+(O/'javac.args').write_text('\n'.join('"'+s.replace('\\','/')+'"' for s in args),encoding='utf8')
+with (O/'javac.txt').open('wb') as f:r=subprocess.run([str(J/'javac.exe'),'@'+str(O/'javac.args')],stdout=f,stderr=subprocess.STDOUT)
+print('javac',r.returncode,flush=True);assert r.returncode==0
+cp=';'.join([str(C),str(L/'*'),str(S/'web-api/src/test/resources'),str(S/'web-api/src/main/resources')])
+methods=['relativeStopEarlyCheckConsumesActualCrossing','absoluteStopControlDoesNotConsumeActualCrossing']
+with (O/'throttle-witness.txt').open('wb') as f:r=subprocess.run([str(J/'java.exe'),'-Xmx768m','-Dfile.encoding=UTF-8','-cp',cp,'ReviewLauncher']+methods,cwd=S/'web-api',stdout=f,stderr=subprocess.STDOUT,timeout=180)
+print('witness',r.returncode,flush=True)
+(O/'probe-result.json').write_text(json.dumps({'candidate':'b5f8a8fd','scope':'Spring H2 actual handler and actual order path with mocked exchange; two observation/control cases, not the final integration full regression','return_code':r.returncode,'methods':methods,'libraries':{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in L.glob('*.jar')}},ensure_ascii=False,indent=2)+'\n',encoding='utf8')
+assert r.returncode==0

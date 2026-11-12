@@ -1,0 +1,89 @@
+from pathlib import Path
+import hashlib,io,json,re,subprocess,zipfile,xml.etree.ElementTree as ET
+O=Path(__file__).resolve().parent;R=O.parents[2]
+def git(*a):return subprocess.check_output(['git',*a],cwd=R)
+def blobs(specs):
+ p=subprocess.run(['git','cat-file','--batch'],input=('\n'.join(specs)+'\n').encode(),cwd=R,stdout=subprocess.PIPE,check=True)
+ stream=io.BytesIO(p.stdout);out={}
+ for spec in specs:
+  header=stream.readline().decode().strip().split();assert len(header)==3 and header[1]=='blob',(spec,header)
+  data=stream.read(int(header[2]));assert stream.read(1)==b'\n';out[spec]=data
+ assert stream.read()==b''
+ return out
+def sha(b):return hashlib.sha256(b).hexdigest()
+refs={n:git('rev-parse',s).decode().strip() for n,s in {'main':'ade6cc28','final':'84fb03d6','previous':'ee02b346','throttle':'b5f8a8fd','production':'b5cd1d0','investigation':'9bce7dc1'}.items()}
+report={'refs':refs,'manifests':{},'xml':{},'inputs':{}}
+for folder in ['v156-20261112','v155-20261112','review-v155-progress']:
+ rel='docs/evidence/'+folder;lines=git('show',refs['main']+':'+rel+'/SHA256SUMS').decode('utf8').splitlines();bad=[]
+ parsed=[]
+ for line in lines:
+  if not line.strip():continue
+  m=re.fullmatch(r'([0-9a-f]{64}) [ *](.+)',line);assert m,line
+  h,n=m.groups();parsed.append((h,n,rel+'/'+n))
+ contents=blobs([refs['main']+':'+p for h,n,p in parsed])
+ for h,n,p in parsed:
+  b=contents[refs['main']+':'+p]
+  if sha(b)!=h:bad.append({'file':n,'expected':h,'actual':sha(b)})
+  report['inputs'][p]=sha(b)
+ report['manifests'][folder]={'listed':len(lines),'bad':bad};assert not bad,bad
+root=R/'docs/evidence/v156-20261112'
+for run in ['final-full','final-related','final-pg','final-pg-extra','n15-h2-run2','n15-pg-run1','o1o3-fix-run1','o1o3-diag-run1']:
+ rows=[]
+ for p in (root/run).rglob('*.xml'):
+  x=ET.fromstring(p.read_bytes());row={'path':p.relative_to(root).as_posix(),'name':x.get('name'),**{k:int(x.get(k,'0')) for k in ['tests','failures','errors','skipped']}}
+  row['failed']=[{'name':t.get('name'),'message':f.get('message')} for t in x.findall('testcase') for f in list(t.findall('failure'))+list(t.findall('error'))]
+  rows.append(row)
+ report['xml'][run]={'files':len(rows),'counts':{k:sum(r[k] for r in rows) for k in ['tests','failures','errors','skipped']},'suites':rows}
+bad=[]
+for line in (root/'final-full/hashes.sha256').read_text(encoding='utf8').splitlines():
+ m=re.fullmatch(r'([0-9a-f]{64}) [ *](.+)',line);assert m,line
+ h,n=m.groups();p=root/'final-full'/n
+ if sha(p.read_bytes())!=h:bad.append(n)
+report['full_inner_hashes']={'listed':len((root/'final-full/hashes.sha256').read_text().splitlines()),'bad':bad};assert not bad
+report['final_test_only_diff']=git('diff','--name-only',refs['previous'],refs['final']).decode().splitlines()
+assert all('/src/test/' in p for p in report['final_test_only_diff'])
+report['product_diff_paths']=git('diff','--name-only',refs['production'],refs['final'],'--','*/src/main/*').decode().splitlines()
+report['frontend_diff']=git('diff','--name-only','5f9ef2ad',refs['final'],'--','frontend/').decode().splitlines();assert not report['frontend_diff']
+report['jar_inputs']={}
+jars={'final':Path('D:/tmp/v153-runs/v156/final-jar/84fb03d6.jar'),'production':Path('D:/tmp/v153-runs/i/jars/b5cd1d0-base.jar'),'investigation':Path('D:/tmp/v153-runs/i154/jar/9bce7dc1.jar')}
+for n,p in jars.items():report['jar_inputs'][n]={'path':str(p),'sha256':sha(p.read_bytes())}
+(O/'audit.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf8')
+S=O/'throttle-source';assert not S.exists();S.mkdir()
+zipfile.ZipFile(io.BytesIO(git('archive','--format=zip',refs['throttle'],'core-engine','strategy-lib','exchange-adapter','web-api'))).extractall(S)
+src=S/'web-api/src/test/java/com/cryptoautotrader/api/service/RealtimeThrottleCrossingTest.java'
+s=src.read_text(encoding='utf8').replace('class RealtimeThrottleCrossingTest','class ThrottleReviewWitnessTest')
+extra='''
+    @Test
+    void relativeStopEarlyCheckConsumesActualCrossing() {
+        Fx f = holding("DYNAMIC", null);
+        PositionEntity p = positionRepository.findById(f.positionId()).orElseThrow();
+        p.setStopLossPrice(null); positionRepository.saveAndFlush(p);
+        boolean initial = tick(f, "286");
+        elapsed(f, DYN, 500);
+        boolean near = tick(f, "285.0001");
+        int sellsNear = sells(f);
+        elapsed(f, DYN, 500);
+        boolean crossed = tick(f, "284");
+        trace("REVIEW-relative", f, "initial="+initial, "near="+near, "nearSells="+sellsNear, "crossed="+crossed,
+              "floor="+field(f, "rtProtectFloor").get(f.coin()));
+        assertThat(initial).isTrue(); assertThat(near).isTrue(); assertThat(sellsNear).isZero();
+        assertThat(crossed).as("observation: actual crossing gets skipped after approximate early wakeup").isFalse();
+        assertThat(sells(f)).isZero(); assertThat(status(f)).isEqualTo("OPEN");
+    }
+
+    @Test
+    void absoluteStopControlDoesNotConsumeActualCrossing() {
+        Fx f = holding("DYNAMIC", null);
+        boolean initial = tick(f, "286");
+        elapsed(f, DYN, 500);
+        boolean near = tick(f, "285.0001");
+        elapsed(f, DYN, 500);
+        boolean crossed = tick(f, "284");
+        trace("REVIEW-absolute", f, "initial="+initial, "near="+near, "crossed="+crossed);
+        assertThat(initial).isTrue(); assertThat(near).isFalse(); assertThat(crossed).isTrue();
+        assertThat(sells(f)).isEqualTo(1); assertThat(status(f)).isEqualTo("CLOSING");
+    }
+'''
+s=s[:s.rfind('}')]+extra+'\n}\n'
+(O/'ThrottleReviewWitnessTest.java').write_text(s,encoding='utf8')
+print(json.dumps({'manifests':report['manifests'],'runs':{k:v['counts'] for k,v in report['xml'].items()},'full_hashes':report['full_inner_hashes'],'test_only_paths':report['final_test_only_diff'],'jars':report['jar_inputs']},ensure_ascii=False,indent=2))

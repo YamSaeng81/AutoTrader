@@ -1,0 +1,21 @@
+from pathlib import Path
+import json,subprocess,hashlib,os
+O=Path(__file__).resolve().parent;S=O/'throttle-source';C=O/'classes';L=O.parent/'review-aligned-9491166f/lib';J=Path('C:/Program Files/Java/jdk-17/bin')
+for n in ['ThrottleReviewWitnessTest.java','throttle-witness.txt','probe-result.json']:
+ p=O/n;p.rename(O/('attempt1-'+n))
+s=(O/'attempt1-ThrottleReviewWitnessTest.java').read_text(encoding='utf8')
+s=s.replace('"285.0001"','"285.00025"')
+mark='    private final List<Long> liveSessions = new ArrayList<>();'
+assert s.count(mark)==1
+s=s.replace(mark,'    @MockBean private TelegramNotificationService telegramService;\n    @MockBean private com.cryptoautotrader.exchange.upbit.UpbitWebSocketClient upbitWebSocketClient;\n\n'+mark)
+(O/'ThrottleReviewWitnessTest.java').write_text(s,encoding='utf8')
+args=['-encoding','UTF-8','-cp',';'.join([str(C)]+[str(p) for p in L.glob('*.jar')]),'-d',str(C),str(O/'ThrottleReviewWitnessTest.java')]
+with (O/'javac-retry.txt').open('wb') as f:r=subprocess.run([str(J/'javac.exe'),*args],stdout=f,stderr=subprocess.STDOUT)
+assert r.returncode==0
+cp=';'.join([str(C),str(L/'*'),str(S/'web-api/src/test/resources'),str(S/'web-api/src/main/resources')])
+env=os.environ.copy()
+for n in ['TELEGRAM_BOT_TOKEN','TELEGRAM_CHAT_ID','DISCORD_BOT_TOKEN','DISCORD_CHANNEL_ID','UPBIT_ACCESS_KEY','UPBIT_SECRET_KEY']:env.pop(n,None)
+with (O/'throttle-witness.txt').open('wb') as f:r=subprocess.run([str(J/'java.exe'),'-Xmx768m','-Dfile.encoding=UTF-8','-cp',cp,'ReviewLauncher','relativeStopEarlyCheckConsumesActualCrossing','absoluteStopControlDoesNotConsumeActualCrossing'],cwd=S/'web-api',env=env,stdout=f,stderr=subprocess.STDOUT,timeout=180)
+result={'candidate':'b5f8a8fd','scope':'two Spring H2 observation/control cases, real handler and order engine, mocked exchange, mocked Telegram and websocket; not final-SHA regression','exit_code':r.returncode,'first_attempt':'test expectation overlooked existing six-decimal PnL rounding: 285.0001 already triggers actual 5% stop. Corrected only near-price input to 285.00025. Notification mock was also omitted; first attempt tried Telegram and received HTTP404/retries, no successful delivery shown. Raw attempt preserved. Rerun mocks notification/websocket and clears external credential env entries.'}
+(O/'probe-result.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf8')
+print(json.dumps(result,ensure_ascii=False,indent=2));assert r.returncode==0
