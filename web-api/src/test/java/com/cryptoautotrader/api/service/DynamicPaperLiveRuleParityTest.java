@@ -60,7 +60,11 @@ class DynamicPaperLiveRuleParityTest {
     private static final List<String> ALLOWED = List.of(
             "executePaperBuy",          // 체결 시뮬레이션 (매수)
             "executePaperSell",         // 체결 시뮬레이션 (매도) — 일반·강제정지 경로
-            "SESSION_KIND_PAPER");      // position/order 저장 분리 (sessionKind 헬퍼)
+            "SESSION_KIND_PAPER",       // position/order 저장 분리 (sessionKind 헬퍼)
+            // 실자금 손실 관문 (총괄 v1.158 결정 2, 2026-11-12) — 사람이 판단한 예외: 실계좌 손실(LIVE·DYNAMIC REAL 확정 매도)로
+            // 신규 실자금 매수를 막는 관문이다. 지시가 "PAPER 모의 한도는 기존 계약을 보존하고 REAL 자료로 오염시키지 않는다" 로
+            // PAPER 제외를 명시했다. 매수 여부를 가르므로 페이퍼가 이 관문의 차단을 예측하지 못한다는 한계는 근거 문서에 적는다.
+            "checkRealLossGuard");
 
     /**
      * 실계좌 배정 검사 예외 (2026-10-12) — <b>문맥이 아니라 형태로</b> 허용한다.
