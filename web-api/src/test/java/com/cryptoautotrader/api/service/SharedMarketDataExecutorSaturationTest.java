@@ -89,12 +89,18 @@ class SharedMarketDataExecutorSaturationTest extends AbstractSma20SameInputFixtu
         // ── ① 포화 ──
         CountDownLatch release = new CountDownLatch(1);
         CountDownLatch running = new CountDownLatch(max);
+        CountDownLatch coreRunning = new CountDownLatch(core);
         List<Future<?>> blocked = new ArrayList<>();
         Runnable blocker = () -> {
             running.countDown();
+            coreRunning.countDown();
             try { release.await(60, TimeUnit.SECONDS); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
         };
         for (int i = 0; i < core; i++) blocked.add(pool.submit(blocker));
+        // v1.157 §125-4 — 장벽이 코어 작업자를 미리 띄워 두므로 코어 차단 작업은 대기열을 거친다. 부하로 코어 작업자가 늦게 꺼내면 빈 작업이
+        //    대기열을 넘쳐 비코어 작업자가 빈 작업을 처리하고 "대기열 가득"이 남은 용량 100 으로 실패했다(9bce·int155 R*+S*, 진단 탐침 재현).
+        //    코어 차단 작업이 실제로 실행 중임을 확인한 뒤 채운다(sleep 아님).
+        assertThat(coreRunning.await(20, TimeUnit.SECONDS)).as("코어 작업자 " + core + "개 막힘(실제 실행 신호)").isTrue();
         for (int i = 0; i < qcap; i++) blocked.add(pool.submit(() -> { }));   // 대기열 채움(해제 뒤 바로 끝남)
         for (int i = core; i < max; i++) blocked.add(pool.submit(blocker));    // 대기열이 차야 작업자가 최대까지 는다
         assertThat(running.await(20, TimeUnit.SECONDS)).as("작업자 " + max + "개 모두 막힘(실제 실행 신호)").isTrue();
