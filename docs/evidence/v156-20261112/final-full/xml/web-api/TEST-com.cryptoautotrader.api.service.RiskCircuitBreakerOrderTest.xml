@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="서킷 브레이커 순서 — 비활성·MDD 는 CLOSED 조회 0, 연속 손실 경로는 종전 결과" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-11-12T06:51:22" hostname="DESKTOP-SF1KUQ5" time="0.001">
+  <properties/>
+  <testcase name="정상 연속 손실 경로 — 조회 1회, 5연속 손실이면 발동, 이익이 끼면 끊긴다" classname="com.cryptoautotrader.api.service.RiskCircuitBreakerOrderTest" time="0.0"/>
+  <testcase name="비활성 — 조회 없이 통과 / MDD 초과 — 조회 없이 발동 (조회가 예외여도)" classname="com.cryptoautotrader.api.service.RiskCircuitBreakerOrderTest" time="0.0"/>
+  <system-out><![CDATA[15:51:22.004 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+15:51:22.004 [telegram-1] ERROR c.c.a.s.TelegramNotificationService - [Telegram] ? RISK_LIMIT 알림 3회 시도 ? 최종 실패: 전달되지 않음(마지막 REJECTED HTTP 404)(이력 success=false): ? *리스크 한도 초과*
+
+? 사유: `공유 풀 최근 24시간 순자산 감소 한도 도달 ? 단계 LOSS_1d2f190e(시작 2026-11-12T06:51:05.750924Z) 순자산 변화 -3000.00 [현금 -
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="N08 — 제한시험 시작 전 BTC H1 수집: CREATED 유지·수집만, 일반 CREATED 제외, 시작 뒤 중복 없음·종료 뒤 제거" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-12T02:50:00" hostname="DESKTOP-SF1KUQ5" time="0.533">
+  <properties/>
+  <testcase name="CREATED→RUNNING 대상 1개(중복 없음), 시험 종료 뒤 제거, 다른 소비자가 있으면 유지" classname="com.cryptoautotrader.api.service.PreStartLimitedTestCandleSupplyTest" time="0.022"/>
+  <testcase name="모든 H1 매매 세션 정지·SID 203 만 CREATED: BTC H1 이 수집되고 다음 회차에 봉이 전진한다 — 세션은 CREATED·시각·잔액·주문 그대로" classname="com.cryptoautotrader.api.service.PreStartLimitedTestCandleSupplyTest" time="0.497"/>
+  <testcase name="일반 CREATED·모의·시작된 적 있는·다른 코인 SMA20 은 수집 대상이 아니다" classname="com.cryptoautotrader.api.service.PreStartLimitedTestCandleSupplyTest" time="0.013"/>
+  <system-out><![CDATA[11:50:00.761 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.PreStartLimitedTestCandleSupplyTest
+11:50:00.766 [Test worker] INFO  o.a.c.c.C.[Tomcat-9].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:50:00.788 [Test worker] INFO  o.a.c.c.C.[Tomcat-9].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:50:01.155 [Test worker] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 518 건
+11:50:01.190 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+11:50:01.190 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] STOP_LOSS 전송 실패(REJECTED) ? 5000ms 후 재시도 (2/3)
+11:50:01.276 [Test worker] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC H1 7 건
+11:50:01.287 [Test worker] INFO  o.a.c.c.C.[Tomcat-9].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

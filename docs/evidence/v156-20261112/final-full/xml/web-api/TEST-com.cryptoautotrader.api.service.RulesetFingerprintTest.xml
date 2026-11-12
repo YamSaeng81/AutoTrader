@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.RulesetFingerprintTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-11-12T06:51:22" hostname="DESKTOP-SF1KUQ5" time="0.001">
+  <properties/>
+  <testcase name="08-07 회귀를 지문이 잡아낸다 — 워치리스트 필터가 바뀌면 다른 규칙" classname="com.cryptoautotrader.api.service.RulesetFingerprintTest" time="0.0"/>
+  <testcase name="가드: ExitRuleFormula 의 모든 상수가 지문에 실린다 (리플렉션)" classname="com.cryptoautotrader.api.service.RulesetFingerprintTest" time="0.0"/>
+  <testcase name="지문에서 파라미터 원문을 역참조할 수 있다" classname="com.cryptoautotrader.api.service.RulesetFingerprintTest" time="0.0"/>
+  <testcase name="청산 규칙이 바뀌면 지문이 갈린다 — 08-18 lossEscapeThreshold 변경 같은 것" classname="com.cryptoautotrader.api.service.RulesetFingerprintTest" time="0.0"/>
+  <testcase name="null 값도 지문에 반영된다 — 미설정과 설정을 구분한다" classname="com.cryptoautotrader.api.service.RulesetFingerprintTest" time="0.0"/>
+  <testcase name="스케일 차이로 지문이 갈리지 않는다 (0.30 == 0.3)" classname="com.cryptoautotrader.api.service.RulesetFingerprintTest" time="0.0"/>
+  <testcase name="가드: ExitRuleConfig 의 모든 필드가 지문에 담긴다 — 새 필드를 빠뜨리면 여기서 깨진다" classname="com.cryptoautotrader.api.service.RulesetFingerprintTest" time="0.0"/>
+  <testcase name="같은 파라미터는 항상 같은 지문 — 순서와 무관" classname="com.cryptoautotrader.api.service.RulesetFingerprintTest" time="0.0"/>
+  <testcase name="엔진이 다르면 파라미터가 같아도 다른 규칙이다" classname="com.cryptoautotrader.api.service.RulesetFingerprintTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

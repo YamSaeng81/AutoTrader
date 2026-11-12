@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.DynamicTradingSlWatchdogRecoveryTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-11-12T03:19:08" hostname="DESKTOP-SF1KUQ5" time="0.04">
+  <properties/>
+  <testcase name="warnStaleSlCheck: SCANNING 상태(보유 없음) 세션은 대상이 아니다" classname="com.cryptoautotrader.api.service.DynamicTradingSlWatchdogRecoveryTest" time="0.006"/>
+  <testcase name="forceRefreshPrice: REST 시세 조회 성공(신선한 체결 시각) 시 PUBLISHED 반환 — ~~true~~ (N02 보완)" classname="com.cryptoautotrader.api.service.DynamicTradingSlWatchdogRecoveryTest" time="0.004"/>
+  <testcase name="forceRefreshPrice: 거래소 API 오류 시 false 반환" classname="com.cryptoautotrader.api.service.DynamicTradingSlWatchdogRecoveryTest" time="0.006"/>
+  <testcase name="warnStaleSlCheck: 강제 복구 자체가 실패하면 사람 개입이 필요하다는 문구를 보낸다" classname="com.cryptoautotrader.api.service.DynamicTradingSlWatchdogRecoveryTest" time="0.013"/>
+  <testcase name="warnStaleSlCheck: 복구가 성공하면 시도만 하고 알리지 않는다 (2026-09-01 변경)" classname="com.cryptoautotrader.api.service.DynamicTradingSlWatchdogRecoveryTest" time="0.006"/>
+  <testcase name="warnStaleSlCheck: 방금 점검된 세션은 건드리지 않는다" classname="com.cryptoautotrader.api.service.DynamicTradingSlWatchdogRecoveryTest" time="0.003"/>
+  <system-out><![CDATA[12:19:08.481 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.DynamicTradingSlWatchdogRecoveryTest
+12:19:08.484 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+12:19:08.491 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+12:19:08.496 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+12:19:08.497 [Test worker] ERROR c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검 세션 강제 복구 실패 ? 조회·변환 예외(원문 생략)
+12:19:08.503 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+12:19:08.509 [Test worker] ERROR c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검 세션 강제 복구 실패 ? 조회·변환 예외(원문 생략)
+12:19:08.509 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=183 coin=KRW-XRP 마지막체크=2026-11-12T03:09:08.507316600Z (3분 초과, 연속 1회, WS구독=있음, REST강제갱신=FAILED 체결 시각 없음)
+12:19:08.515 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+12:19:08.518 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic][§9] SL 미점검: sessionId=184 coin=KRW-XRP 마지막체크=2026-11-12T03:09:08.517503800Z (3분 초과, 연속 1회, WS구독=있음, REST강제갱신=PUBLISHED 체결 0초 전)
+12:19:08.520 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

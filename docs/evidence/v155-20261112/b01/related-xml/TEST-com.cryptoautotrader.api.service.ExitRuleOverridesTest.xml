@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.ExitRuleOverridesTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-11-12T02:40:16" hostname="DESKTOP-SF1KUQ5" time="0.005">
+  <properties/>
+  <testcase name="숫자가 아니거나 범위를 벗어난 값은 그 항목만 무시하고 기본값을 쓴다" classname="com.cryptoautotrader.api.service.ExitRuleOverridesTest" time="0.001"/>
+  <testcase name="⚠️ SL 만 넓히면 TP 도 따라 멀어진다 (2026-07-31 실패 패턴 고정)" classname="com.cryptoautotrader.api.service.ExitRuleOverridesTest" time="0.001"/>
+  <testcase name="SL 상한(8%)은 오버라이드로도 못 넘는다 — 초저유동 종목 안전판 유지" classname="com.cryptoautotrader.api.service.ExitRuleOverridesTest" time="0.0"/>
+  <testcase name="범위를 벗어난 청산 게이트 값은 무시하고 기본값을 쓴다" classname="com.cryptoautotrader.api.service.ExitRuleOverridesTest" time="0.0"/>
+  <testcase name="minPnlPctForSignalExit 로 익절 쪽 문턱도 따로 움직일 수 있다" classname="com.cryptoautotrader.api.service.ExitRuleOverridesTest" time="0.001"/>
+  <testcase name="✅ tpRrMultiplier 를 함께 낮추면 TP 절대거리를 유지할 수 있다 (실험군 설계)" classname="com.cryptoautotrader.api.service.ExitRuleOverridesTest" time="0.0"/>
+  <testcase name="오버라이드가 없으면 기존 3인자 메서드와 완전히 같은 값을 낸다" classname="com.cryptoautotrader.api.service.ExitRuleOverridesTest" time="0.0"/>
+  <testcase name="SL/TP 오버라이드와 청산 게이트 오버라이드를 한 세션에 같이 걸 수 있다" classname="com.cryptoautotrader.api.service.ExitRuleOverridesTest" time="0.001"/>
+  <testcase name="청산 게이트 오버라이드는 isPresent() 를 켜지 않는다 — 대조군 SL 이 이유 없이 달라지면 안 된다" classname="com.cryptoautotrader.api.service.ExitRuleOverridesTest" time="0.0"/>
+  <testcase name="청산 게이트 키가 없으면 기본 데드밴드(−0.30 ~ +0.30)가 그대로다" classname="com.cryptoautotrader.api.service.ExitRuleOverridesTest" time="0.0"/>
+  <testcase name="slAtrMultiplier 를 1.5 → 2.5 로 올리면 손절폭이 정확히 비례해 넓어진다" classname="com.cryptoautotrader.api.service.ExitRuleOverridesTest" time="0.0"/>
+  <testcase name="null·빈 맵·관련 키 없는 맵은 모두 NONE 으로 수렴한다" classname="com.cryptoautotrader.api.service.ExitRuleOverridesTest" time="0.001"/>
+  <testcase name="&#x1f534; lossEscapeThresholdPct=−100 이면 손실 구간에서 전략 SELL 이 전부 막힌다 (실험군)" classname="com.cryptoautotrader.api.service.ExitRuleOverridesTest" time="0.0"/>
+  <testcase name="JSONB 역직렬화가 Integer/Double/String 무엇으로 주든 같게 읽는다" classname="com.cryptoautotrader.api.service.ExitRuleOverridesTest" time="0.0"/>
+  <system-out><![CDATA[11:40:16.337 [Test worker] WARN  c.c.api.service.ExitRuleOverrides - [ExitRule] slAtrMultiplier 가 숫자가 아니라 무시한다 ? 기본값 사용 (값=abc)
+11:40:16.338 [Test worker] WARN  c.c.api.service.ExitRuleOverrides - [ExitRule] slAtrMultiplier=0.1 가 허용 범위 [0.5, 6.0] 를 벗어나 무시한다 ? 기본값 사용
+11:40:16.338 [Test worker] WARN  c.c.api.service.ExitRuleOverrides - [ExitRule] slAtrMultiplier=99 가 허용 범위 [0.5, 6.0] 를 벗어나 무시한다 ? 기본값 사용
+11:40:16.338 [Test worker] WARN  c.c.api.service.ExitRuleOverrides - [ExitRule] tpRrMultiplier=0.5 가 허용 범위 [1, 5.0] 를 벗어나 무시한다 ? 기본값 사용
+11:40:16.338 [Test worker] WARN  c.c.api.service.ExitRuleOverrides - [ExitRule] slAtrMultiplier 가 숫자가 아니라 무시한다 ? 기본값 사용 (값=bad)
+11:40:16.338 [Test worker] WARN  c.c.api.service.ExitRuleOverrides - [ExitRule] lossEscapeThresholdPct=-200.0 가 허용 범위 [-100.0, 0] 를 벗어나 무시한다 ? 기본값 사용
+11:40:16.339 [Test worker] WARN  c.c.api.service.ExitRuleOverrides - [ExitRule] lossEscapeThresholdPct=1.0 가 허용 범위 [-100.0, 0] 를 벗어나 무시한다 ? 기본값 사용
+11:40:16.339 [Test worker] WARN  c.c.api.service.ExitRuleOverrides - [ExitRule] minPnlPctForSignalExit=9.0 가 허용 범위 [0, 5.0] 를 벗어나 무시한다 ? 기본값 사용
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

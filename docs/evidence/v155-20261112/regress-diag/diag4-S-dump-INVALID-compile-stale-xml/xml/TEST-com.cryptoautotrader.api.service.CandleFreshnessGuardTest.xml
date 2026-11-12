@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="캔들 최신성 — 최신 완료 봉 · 결측 · 진행 중 봉" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-11-12T02:55:06" hostname="DESKTOP-SF1KUQ5" time="0.154">
+  <properties/>
+  <testcase name="BTC 관문 판정 불가는 시작·회복 때 한 번씩 기록하고, 데이터가 돌아오면 다시 판정한다" classname="com.cryptoautotrader.api.service.CandleFreshnessGuardTest" time="0.001"/>
+  <testcase name="&#x1f534; 봉 수가 충분해도 마지막 완료 봉이 오래되면 판정 불가 — 수집이 멎은 캐시" classname="com.cryptoautotrader.api.service.CandleFreshnessGuardTest" time="0.0"/>
+  <testcase name="BTC 관문: 캔들 없음·낡은 캔들·결측이면 판정 불가 — 진입을 막고, 최신이면 발동/미발동을 그대로 판정한다" classname="com.cryptoautotrader.api.service.CandleFreshnessGuardTest" time="0.001"/>
+  <testcase name="직전 완료 봉(09:00)이 있으면 판정 가능 — 진행 중 봉(10:00)은 있든 없든 같다" classname="com.cryptoautotrader.api.service.CandleFreshnessGuardTest" time="0.0"/>
+  <testcase name="M15 도 같은 규칙 — 10:05 에는 09:45 봉이 있어야 한다" classname="com.cryptoautotrader.api.service.CandleFreshnessGuardTest" time="0.0"/>
+  <testcase name="결측 2칸까지 허용, 3칸이면 판정 불가" classname="com.cryptoautotrader.api.service.CandleFreshnessGuardTest" time="0.0"/>
+  <testcase name="판정 불가면 빈 목록 — 시작 때 한 번만 기록·경보(보유 코인일 때), 회복되면 목록에서 빠진다" classname="com.cryptoautotrader.api.service.CandleFreshnessGuardTest" time="0.151"/>
+  <testcase name="경계 직후 2분 유예 — 10:01 에는 08:00 봉까지 허용, 10:03 에는 09:00 봉이 있어야 한다" classname="com.cryptoautotrader.api.service.CandleFreshnessGuardTest" time="0.0"/>
+  <system-out><![CDATA[11:55:06.333 [Test worker] ERROR c.c.api.service.CandleFreshnessGuard - ? [캔들 최신성] BTC 급락 관문 H1 판정 불가 (LIVE) ? 이 관문을 요구하는 신규 진입을 막는다: BTC 캔들 판정 불가(최신 완료 봉 없음 ? 마지막 완료 봉 2026-11-11T21:00:00Z, 필요 2026-11-12T01:00:00Z 이후(240분 늦음)) ? 급락 여부를 모른다
+11:55:06.334 [Test worker] WARN  c.c.api.service.CandleFreshnessGuard - [캔들 최신성] BTC 급락 관문 H1 판정 재개 (LIVE): 종전 2026-11-12T02:55:06.333882900Z BTC 캔들 판정 불가(최신 완료 봉 없음 ? 마지막 완료 봉 2026-11-11T21:00:00Z, 필요 2026-11-12T01:00:00Z 이후(240분 늦음)) ? 급락 여부를 모른다
+11:55:06.485 [Test worker] ERROR c.c.api.service.CandleFreshnessGuard - ? [캔들 최신성] KRW-FRS:H1 판정 불가 (DYNAMIC) ? 이 회차의 진입·캔들 기반 청산을 하지 않는다: 최신 완료 봉 없음 ? 마지막 완료 봉 2026-11-11T21:00:00Z, 필요 2026-11-12T01:00:00Z 이후(240분 늦음)
+11:55:06.486 [Test worker] WARN  c.c.api.service.CandleFreshnessGuard - [캔들 최신성] KRW-FRS:H1 판정 재개 (DYNAMIC): 종전 2026-11-12T02:55:06.485758200Z 최신 완료 봉 없음 ? 마지막 완료 봉 2026-11-11T21:00:00Z, 필요 2026-11-12T01:00:00Z 이후(240분 늦음)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

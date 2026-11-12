@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.DynamicUnlockedCapitalTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-11-12T02:55:48" hostname="DESKTOP-SF1KUQ5" time="0.052">
+  <properties/>
+  <testcase name="&#x1f534; 세션 60 재현 — 포지션 보유 중 available == total 이면 감지·알림한다 (PAPER)" classname="com.cryptoautotrader.api.service.DynamicUnlockedCapitalTest" time="0.009"/>
+  <testcase name="REAL 세션에도 같은 불변식이 적용된다" classname="com.cryptoautotrader.api.service.DynamicUnlockedCapitalTest" time="0.006"/>
+  <testcase name="포지션이 없으면 이 불변식의 대상이 아니다 — 기존 고아 잔고 경로가 담당" classname="com.cryptoautotrader.api.service.DynamicUnlockedCapitalTest" time="0.005"/>
+  <testcase name="available &gt; total 이어도(더 심한 경우) 감지한다" classname="com.cryptoautotrader.api.service.DynamicUnlockedCapitalTest" time="0.006"/>
+  <testcase name="같은 이상을 60초마다 반복 알리지 않는다 — 스케줄러 스팸 방지" classname="com.cryptoautotrader.api.service.DynamicUnlockedCapitalTest" time="0.008"/>
+  <testcase name="PAPER 세션은 REAL 포지션(DYNAMIC)을 자기 것으로 세지 않는다 — 08-07 오판 재발 방지" classname="com.cryptoautotrader.api.service.DynamicUnlockedCapitalTest" time="0.009"/>
+  <testcase name="정상 보유(available &lt; total)는 알리지 않는다 — 오탐 없음" classname="com.cryptoautotrader.api.service.DynamicUnlockedCapitalTest" time="0.007"/>
+  <system-out><![CDATA[11:55:48.955 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.DynamicUnlockedCapitalTest
+11:55:48.959 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:55:48.962 [Test worker] ERROR c.c.a.service.DynamicTradingService - [Dynamic] ? 잔고 정합성 이상 ? 포지션 보유 중인데 원금이 안 묶여 있음 (id=186, kind=DYN_PAPER, available=8875.00, total=8875.00, 포지션 1건 원금=7108.00000000 [KRW-STX#333]). 같은 돈으로 재매수 가능 상태 ? 중복 포지션 위험. 자동 교정 안 함, 수동 확인 필요.
+11:55:48.968 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:55:48.970 [Test worker] ERROR c.c.a.service.DynamicTradingService - [Dynamic] ? 잔고 정합성 이상 ? 포지션 보유 중인데 원금이 안 묶여 있음 (id=187, kind=DYNAMIC, available=8875.00, total=8875.00, 포지션 1건 원금=7108.00000000 [KRW-STX#334]). 같은 돈으로 재매수 가능 상태 ? 중복 포지션 위험. 자동 교정 안 함, 수동 확인 필요.
+11:55:48.975 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:55:48.981 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:55:48.983 [Test worker] ERROR c.c.a.service.DynamicTradingService - [Dynamic] ? 잔고 정합성 이상 ? 포지션 보유 중인데 원금이 안 묶여 있음 (id=189, kind=DYN_PAPER, available=9000.00, total=8875.00, 포지션 1건 원금=7108.00000000 [KRW-STX#335]). 같은 돈으로 재매수 가능 상태 ? 중복 포지션 위험. 자동 교정 안 함, 수동 확인 필요.
+11:55:48.987 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:55:48.989 [Test worker] ERROR c.c.a.service.DynamicTradingService - [Dynamic] ? 잔고 정합성 이상 ? 포지션 보유 중인데 원금이 안 묶여 있음 (id=190, kind=DYN_PAPER, available=8875.00, total=8875.00, 포지션 1건 원금=7108.00000000 [KRW-STX#336]). 같은 돈으로 재매수 가능 상태 ? 중복 포지션 위험. 자동 교정 안 함, 수동 확인 필요.
+11:55:48.995 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:55:49.000 [Test worker] ERROR c.c.a.service.DynamicTradingService - [Dynamic] ? 고아 잔고 복원: 포지션·활성주문 없이 KRW가 묶여 있었음 (id=191, 7100.00원 복원 → available=8875.00). 매수 tx 롤백 의심 ? 서버 로그 확인 필요.
+11:55:49.004 [Test worker] INFO  o.a.c.c.C.[.[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="CompositeStrategy — Weighted Voting 신호 조합" tests="15" skipped="0" failures="0" errors="0" timestamp="2026-11-12T03:31:38" hostname="DESKTOP-SF1KUQ5" time="0.008">
+  <properties/>
+  <testcase name="KST 22시(야간): weak 임계 근접 BUY가 감쇠로 HOLD 전환" classname="com.cryptoautotrader.core.selector.CompositeStrategyTest" time="0.001"/>
+  <testcase name="KST 10시(주간): 동일 입력이면 감쇠 없이 BUY 유지" classname="com.cryptoautotrader.core.selector.CompositeStrategyTest" time="0.001"/>
+  <testcase name="모든 전략 HOLD → HOLD 반환" classname="com.cryptoautotrader.core.selector.CompositeStrategyTest" time="0.0"/>
+  <testcase name="모든 전략 SELL(100) + 가중치 합 &gt; 0.6 → SELL 반환" classname="com.cryptoautotrader.core.selector.CompositeStrategyTest" time="0.001"/>
+  <testcase name="getMinimumCandleCount — 전략 중 최대값 반환" classname="com.cryptoautotrader.core.selector.CompositeStrategyTest" time="0.002"/>
+  <testcase name="모든 전략 BUY(100) + 가중치 합 &gt; 0.6 → BUY 반환" classname="com.cryptoautotrader.core.selector.CompositeStrategyTest" time="0.0"/>
+  <testcase name="getConfidence: strength 100 → 1.0, strength 50 → 0.5, HOLD → 0.0" classname="com.cryptoautotrader.core.selector.CompositeStrategyTest" time="0.001"/>
+  <testcase name="MEANREV 가중: BOLLINGER(40)+RSI(30) 합의 → 0.31로 weak 임계 통과 BUY" classname="com.cryptoautotrader.core.selector.CompositeStrategyTest" time="0.0"/>
+  <testcase name="MEANREV 가중: VWAP(0.15) 단독 만점 BUY로는 weak 임계(0.19) 미달 → HOLD" classname="com.cryptoautotrader.core.selector.CompositeStrategyTest" time="0.0"/>
+  <testcase name="야간 감쇠 계수는 nightDampenFactor params로 override 가능 (1.0 = 무감쇠)" classname="com.cryptoautotrader.core.selector.CompositeStrategyTest" time="0.0"/>
+  <testcase name="BUY score가 정확히 weak 임계값 → BUY 반환 (경계값 포함, 2026-07-16)" classname="com.cryptoautotrader.core.selector.CompositeStrategyTest" time="0.0"/>
+  <testcase name="BUY score 0.4~0.6 구간 → BUY (weak) 반환" classname="com.cryptoautotrader.core.selector.CompositeStrategyTest" time="0.0"/>
+  <testcase name="BUY + SELL 상충(양쪽 &gt; 0.4) → HOLD 반환" classname="com.cryptoautotrader.core.selector.CompositeStrategyTest" time="0.0"/>
+  <testcase name="BUY score &lt; 0.4 → HOLD (점수 미달)" classname="com.cryptoautotrader.core.selector.CompositeStrategyTest" time="0.0"/>
+  <testcase name="STRONG BUY(≥0.5) + weak SELL → 상충 아님, BUY 우세 (2026-07-16)" classname="com.cryptoautotrader.core.selector.CompositeStrategyTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

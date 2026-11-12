@@ -1,0 +1,24 @@
+from pathlib import Path
+import json,hashlib,subprocess
+O=Path(__file__).resolve().parent;R=O.parents[2];E=R/'docs/evidence/review-v155-progress'
+def sha(b):return hashlib.sha256(b).hexdigest()
+p=R/'docs/PROGRESS.md';s=p.read_bytes().decode('utf8');assert s.count('ee02全1713')==1
+p.write_bytes(s.replace('ee02全1713','ee02 전체 1,713건').encode('utf8'))
+renames=[]
+for p in E.rglob('*.log'):
+ target=p.with_name(p.name+'.txt');assert not target.exists()
+ renames.append({'original_preserved_path':p.relative_to(E).as_posix(),'review_copy':target.relative_to(E).as_posix(),'sha256':sha(p.read_bytes())})
+ p.rename(target)
+(E/'log-copy-names.json').write_text(json.dumps(renames,ensure_ascii=False,indent=2)+'\n',encoding='utf8')
+p=E/'README.md';b=p.read_bytes();b+= '\n실행 로그 사본은 Git의 `*.log` 무시 규칙을 피하도록 검토 폴더에서만 `.log.txt`로 이름을 붙였다. 내용은 원문 그대로이며 `log-copy-names.json`에 원래 경로와 해시를 남겼다.\n'.encode('utf8');p.write_bytes(b)
+p=E/'doc-check.json';d=json.loads(p.read_text(encoding='utf8'));d['PROGRESS.md']['after_sha256']=sha((R/'docs/PROGRESS.md').read_bytes());p.write_text(json.dumps(d,ensure_ascii=False,indent=2)+'\n',encoding='utf8')
+(E/'finish.py.txt').write_bytes(Path(__file__).read_bytes())
+files=sorted(p for p in E.rglob('*') if p.is_file() and p.name not in ['SHA256SUMS','.gitattributes'])
+(E/'SHA256SUMS').write_text(''.join(sha(p.read_bytes())+'  '+p.relative_to(E).as_posix()+'\n' for p in files),encoding='utf8')
+for line in (E/'SHA256SUMS').read_text(encoding='utf8').splitlines():
+ h,n=line.split('  ',1);assert sha((E/n).read_bytes())==h,n
+for n,v in d.items():assert sha((R/'docs'/n).read_bytes())==v['after_sha256'],n
+r=subprocess.run(['git','check-ignore','--stdin'],input=''.join(p.relative_to(R).as_posix()+'\n' for p in files).encode(),cwd=R,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+assert r.returncode==1,(r.returncode,r.stdout.decode(errors='replace'))
+r=subprocess.run(['git','diff','--check','--','docs'],cwd=R,capture_output=True);assert r.returncode==0,r.stdout+r.stderr
+print(json.dumps({'checksum_payloads':len(files),'docs_verified':len(d),'ignored_payloads':0,'diff_check':0,'production_changes':0,'git_commit':False},indent=2))

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.SessionBalanceUpdaterTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-11-12T02:54:44" hostname="DESKTOP-SF1KUQ5" time="0.28">
+  <properties/>
+  <testcase name="단일 스레드 mutation: version 증가 + 값 반영" classname="com.cryptoautotrader.api.service.SessionBalanceUpdaterTest" time="0.008"/>
+  <testcase name="동시 increment 10회 → 모든 증분이 보존된다 (last-write-wins 없음)" classname="com.cryptoautotrader.api.service.SessionBalanceUpdaterTest" time="0.271"/>
+  <system-out><![CDATA[11:54:44.187 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.SessionBalanceUpdaterTest
+11:54:44.192 [Test worker] INFO  o.a.c.c.C.[Tomcat-3].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:54:44.201 [Test worker] INFO  o.a.c.c.C.[Tomcat-3].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:54:44.215 [pool-18-thread-5] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=95 attempt=1 backoff=10ms
+11:54:44.215 [pool-18-thread-3] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=95 attempt=1 backoff=9ms
+11:54:44.216 [pool-18-thread-4] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=95 attempt=1 backoff=7ms
+11:54:44.217 [pool-18-thread-1] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=95 attempt=1 backoff=8ms
+11:54:44.221 [pool-18-thread-2] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=95 attempt=1 backoff=8ms
+11:54:44.235 [pool-18-thread-4] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=95 attempt=2 backoff=20ms
+11:54:44.235 [pool-18-thread-2] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=95 attempt=2 backoff=19ms
+11:54:44.236 [pool-18-thread-1] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=95 attempt=2 backoff=18ms
+11:54:44.236 [pool-18-thread-5] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=95 attempt=2 backoff=16ms
+11:54:44.268 [pool-18-thread-2] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=95 attempt=3 backoff=24ms
+11:54:44.268 [pool-18-thread-1] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=95 attempt=3 backoff=27ms
+11:54:44.268 [pool-18-thread-4] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=95 attempt=3 backoff=25ms
+11:54:44.299 [pool-18-thread-4] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=95 attempt=4 backoff=40ms
+11:54:44.299 [pool-18-thread-2] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=95 attempt=4 backoff=43ms
+11:54:44.345 [pool-18-thread-2] WARN  c.c.a.service.SessionBalanceUpdater - [SessionBalanceUpdater] 낙관적 락 충돌 ? sessionId=95 attempt=5 backoff=106ms
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

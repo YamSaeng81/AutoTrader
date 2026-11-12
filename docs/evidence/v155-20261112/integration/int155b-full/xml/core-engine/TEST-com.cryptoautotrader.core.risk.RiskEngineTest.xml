@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="RiskEngine — 포지션 사이징 + 상관관계 슬롯" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-11-12T03:31:35" hostname="DESKTOP-SF1KUQ5" time="0.004">
+  <properties/>
+  <testcase name="상관 없는 자산 쌍 → 패널티 없음" classname="com.cryptoautotrader.core.risk.RiskEngineTest" time="0.0"/>
+  <testcase name="잔고 10,000,000 × 1% ÷ 2% 스탑 = 5,000,000" classname="com.cryptoautotrader.core.risk.RiskEngineTest" time="0.0"/>
+  <testcase name="단일 자산 → 슬롯 1" classname="com.cryptoautotrader.core.risk.RiskEngineTest" time="0.0"/>
+  <testcase name="BTC + ETH (corr=0.85 &gt; 0.7) → 슬롯 3 (2 + 패널티 1)" classname="com.cryptoautotrader.core.risk.RiskEngineTest" time="0.001"/>
+  <testcase name="최대 포지션 수 초과 → reject" classname="com.cryptoautotrader.core.risk.RiskEngineTest" time="0.001"/>
+  <testcase name="모든 조건 충족 → approve" classname="com.cryptoautotrader.core.risk.RiskEngineTest" time="0.0"/>
+  <testcase name="스탑 거리 0 → IllegalArgumentException" classname="com.cryptoautotrader.core.risk.RiskEngineTest" time="0.001"/>
+  <testcase name="BTC + ETH + BNB (3쌍 모두 고상관) → 슬롯 6 (3 + 패널티 3)" classname="com.cryptoautotrader.core.risk.RiskEngineTest" time="0.0"/>
+  <testcase name="일일 손실 한도 초과 → reject" classname="com.cryptoautotrader.core.risk.RiskEngineTest" time="0.0"/>
+  <testcase name="자산 없음 → 슬롯 0" classname="com.cryptoautotrader.core.risk.RiskEngineTest" time="0.0"/>
+  <testcase name="riskPercentage 커스텀(2%) 적용 시 결과 2배" classname="com.cryptoautotrader.core.risk.RiskEngineTest" time="0.0"/>
+  <testcase name="잔고 5,000,000 × 1% ÷ 5% 스탑 = 1,000,000" classname="com.cryptoautotrader.core.risk.RiskEngineTest" time="0.0"/>
+  <testcase name="correlationThreshold 상향(0.9) 시 BTC+ETH 패널티 미적용" classname="com.cryptoautotrader.core.risk.RiskEngineTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

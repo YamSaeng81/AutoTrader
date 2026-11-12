@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.SubmitRejectionClassificationTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-11-12T03:15:09" hostname="DESKTOP-SF1KUQ5" time="0.004">
+  <properties/>
+  <testcase name="HTTP 400 {&quot;error&quot;:{&quot;name&quot;:&quot;create_bid_error&quot;}}" classname="com.cryptoautotrader.api.service.SubmitRejectionClassificationTest" time="0.001"/>
+  <testcase name="HTTP 400 {&quot;error&quot;:{&quot;name&quot;:&quot;create_ask_error&quot;}}" classname="com.cryptoautotrader.api.service.SubmitRejectionClassificationTest" time="0.0"/>
+  <testcase name="HTTP 400 {&quot;error&quot;:{&quot;name&quot;:&quot;some_new_error&quot;}}" classname="com.cryptoautotrader.api.service.SubmitRejectionClassificationTest" time="0.0"/>
+  <testcase name="HTTP 400 {&quot;error&quot;:{}}" classname="com.cryptoautotrader.api.service.SubmitRejectionClassificationTest" time="0.0"/>
+  <testcase name="HTTP 400 Bad Request" classname="com.cryptoautotrader.api.service.SubmitRejectionClassificationTest" time="0.0"/>
+  <testcase name="HTTP 429 {&quot;error&quot;:{&quot;name&quot;:&quot;too_many_requests&quot;}}" classname="com.cryptoautotrader.api.service.SubmitRejectionClassificationTest" time="0.001"/>
+  <testcase name="HTTP 500 {&quot;error&quot;:{&quot;name&quot;:&quot;insufficient_funds_bid&quot;}}" classname="com.cryptoautotrader.api.service.SubmitRejectionClassificationTest" time="0.0"/>
+  <testcase name="HTTP 503 Service Unavailable" classname="com.cryptoautotrader.api.service.SubmitRejectionClassificationTest" time="0.0"/>
+  <testcase name="명시적_거절_목록은_고정돼_있다()" classname="com.cryptoautotrader.api.service.SubmitRejectionClassificationTest" time="0.001"/>
+  <testcase name="업비트_예외가_아닌_실패는_명시적_거절이_아니다()" classname="com.cryptoautotrader.api.service.SubmitRejectionClassificationTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

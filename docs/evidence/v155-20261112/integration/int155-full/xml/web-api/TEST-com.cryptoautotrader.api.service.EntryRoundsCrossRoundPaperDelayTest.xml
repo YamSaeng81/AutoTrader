@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="진입 회차 — 다른 회차의 느린 PAPER 승인이 실자금 후보를 늦추지 않는다" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-11-12T03:22:41" hostname="DESKTOP-SF1KUQ5" time="0.156">
+  <properties/>
+  <testcase name="PAPER 만 있는 회차가 먼저 꺼내져도, 그 PAPER 승인이 끝나기 전에 다른 회차의 LIVE 후보가 승인된다" classname="com.cryptoautotrader.api.service.EntryRoundsCrossRoundPaperDelayTest" time="0.156"/>
+  <system-out><![CDATA[[회차 간 지연] H1=2026-11-05T07:00:00Z M15=2026-11-05T07:45:00Z PAPER 붙잡힘 중 LIVE 승인=true PAPER 가 먼저 붙잡힘=false 사건=[LIVE#1 승인, PAPER#11 시작, PAPER#11 끝, PAPER#12 시작, PAPER#12 끝, PAPER#13 시작, PAPER#13 끝] 결과=[LIVE#1, PAPER#11, PAPER#12, PAPER#13]
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

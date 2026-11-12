@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="orderExecutor 대기 조건 공백 — 놀고 있는 작업자 경로에서 비워짐 ≠ 완료" tests="3" skipped="0" failures="1" errors="0" timestamp="2026-11-12T03:23:09" hostname="DESKTOP-SF1KUQ5" time="0.024">
+  <properties/>
+  <testcase name="② 작업자가 없어 새 작업자가 첫 작업으로 받으면 — 옛 조건은 거짓이다(단독 실행이 통과한 이유)" classname="com.cryptoautotrader.api.service.OrderExecutorDrainPredicateGapTest" time="0.006"/>
+  <testcase name="③ 같은 창에서 submit() 의 Future 는 완료가 아니다 — 보완한 대기는 이 신호를 기다린다" classname="com.cryptoautotrader.api.service.OrderExecutorDrainPredicateGapTest" time="0.009"/>
+  <testcase name="① 놀고 있는 작업자가 꺼낸 뒤·실행 전 — 옛 조건은 비워짐이라 답하지만 작업은 실행 전이다" classname="com.cryptoautotrader.api.service.OrderExecutorDrainPredicateGapTest" time="0.009">
+    <failure message="org.opentest4j.AssertionFailedError: [옛 대기 조건이 이 창에서 참이다 — 그래서 INTENT_READY 를 읽을 수 있었다] &#13;&#10;Expecting value to be true but was false" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: [옛 대기 조건이 이 창에서 참이다 — 그래서 INTENT_READY 를 읽을 수 있었다] 
+Expecting value to be true but was false
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base@17.0.12/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base@17.0.12/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base@17.0.12/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:499)
+	at app//com.cryptoautotrader.api.service.OrderExecutorDrainPredicateGapTest.idleWorkerWindowSaysDrainedBeforeExecution(OrderExecutorDrainPredicateGapTest.java:111)
+	at java.base@17.0.12/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base@17.0.12/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <system-out><![CDATA[[② 새 작업자·실행 전] drained=false executed=false queue=0 active=1 tasks=1 completed=0
+[③ 꺼낸 뒤·실행 전] oldPredicate=true future.isDone=false executed=false
+[① 꺼낸 뒤·실행 전] drained=false executed=false queue=0 active=1 tasks=1 completed=0
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.DynamicMinimumCandleGuardTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-11-12T06:50:29" hostname="DESKTOP-SF1KUQ5" time="0.035">
+  <properties/>
+  <testcase name="&#x1f534; 전략 요구량 미만이면 평가조차 하지 않는다 — 100개 &lt; PULLBACK_MTF 200개" classname="com.cryptoautotrader.api.service.DynamicMinimumCandleGuardTest" time="0.007"/>
+  <testcase name="운영 실측 재현 — KRW-NCT(99) · KRW-LIT(155) 수준이면 평가 대상이 아니다" classname="com.cryptoautotrader.api.service.DynamicMinimumCandleGuardTest" time="0.007"/>
+  <testcase name="전략 요구량을 넘으면 정상 평가된다 — 250개 ≥ 200개" classname="com.cryptoautotrader.api.service.DynamicMinimumCandleGuardTest" time="0.008"/>
+  <testcase name="경계 — 요구량 바로 아래(199)는 막히고 딱 맞으면(200) 통과한다" classname="com.cryptoautotrader.api.service.DynamicMinimumCandleGuardTest" time="0.009"/>
+  <testcase name="모든 운영 전략이 옛 하드코딩 값(15)보다 많은 캔들을 요구한다" classname="com.cryptoautotrader.api.service.DynamicMinimumCandleGuardTest" time="0.003"/>
+  <system-out><![CDATA[15:50:29.912 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.DynamicMinimumCandleGuardTest
+15:50:29.914 [Test worker] INFO  o.a.c.c.C.[Tomcat-9].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+15:50:29.917 [Test worker] WARN  c.c.a.service.WatchlistFilterService - [Watchlist] KRW 마켓 목록 없음
+15:50:29.917 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 공용 유니버스 비어 있음 ? 직전 목록 유지 (id=136, 1종목)
+15:50:29.920 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+15:50:29.920 [telegram-1] ERROR c.c.a.s.TelegramNotificationService - [Telegram] ? STOP_LOSS 알림 3회 시도 ? 최종 실패: 전달되지 않음(마지막 REJECTED HTTP 404)(이력 success=false): ?? *손절 실행*
+
+? 세션 ID: `69`
+? 코인: `KRW-GAPK`
+? 손실률: `5.00%`
+? 시각: `2026-11-12 15:50:05`
+15:50:29.922 [Test worker] INFO  o.a.c.c.C.[Tomcat-9].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+15:50:29.925 [Test worker] WARN  c.c.a.service.WatchlistFilterService - [Watchlist] KRW 마켓 목록 없음
+15:50:29.925 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 공용 유니버스 비어 있음 ? 직전 목록 유지 (id=137, 1종목)
+15:50:29.925 [Test worker] WARN  c.c.a.service.WatchlistFilterService - [Watchlist] KRW 마켓 목록 없음
+15:50:29.926 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 공용 유니버스 비어 있음 ? 직전 목록 유지 (id=138, 1종목)
+15:50:29.929 [Test worker] INFO  o.a.c.c.C.[Tomcat-9].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+15:50:29.931 [Test worker] WARN  c.c.a.service.WatchlistFilterService - [Watchlist] KRW 마켓 목록 없음
+15:50:29.931 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 공용 유니버스 비어 있음 ? 직전 목록 유지 (id=139, 1종목)
+15:50:29.937 [Test worker] INFO  o.a.c.c.C.[Tomcat-9].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+15:50:29.939 [Test worker] WARN  c.c.a.service.WatchlistFilterService - [Watchlist] KRW 마켓 목록 없음
+15:50:29.939 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 공용 유니버스 비어 있음 ? 직전 목록 유지 (id=140, 1종목)
+15:50:29.941 [Test worker] WARN  c.c.a.service.WatchlistFilterService - [Watchlist] KRW 마켓 목록 없음
+15:50:29.941 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 공용 유니버스 비어 있음 ? 직전 목록 유지 (id=141, 1종목)
+15:50:29.945 [Test worker] INFO  o.a.c.c.C.[Tomcat-9].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

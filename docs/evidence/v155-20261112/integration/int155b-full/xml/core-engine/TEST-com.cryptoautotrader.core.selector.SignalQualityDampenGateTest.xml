@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="SignalQualityDampenGate — 야간·TRANSITIONAL 감쇠 계수" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-11-12T03:31:38" hostname="DESKTOP-SF1KUQ5" time="0.001">
+  <properties/>
+  <testcase name="TRANSITIONAL 레짐이면 감쇠 계수 적용" classname="com.cryptoautotrader.core.selector.SignalQualityDampenGateTest" time="0.0"/>
+  <testcase name="TREND/RANGE/VOLATILITY/null 레짐은 무감쇠" classname="com.cryptoautotrader.core.selector.SignalQualityDampenGateTest" time="0.0"/>
+  <testcase name="KST 19시 59분(직전)은 무감쇠" classname="com.cryptoautotrader.core.selector.SignalQualityDampenGateTest" time="0.0"/>
+  <testcase name="KST 23시대는 감쇠, 자정 이후(0시)는 무감쇠" classname="com.cryptoautotrader.core.selector.SignalQualityDampenGateTest" time="0.0"/>
+  <testcase name="빈 캔들 리스트는 무감쇠(예외 없이 1.0)" classname="com.cryptoautotrader.core.selector.SignalQualityDampenGateTest" time="0.0"/>
+  <testcase name="KST 20시 정각부터 감쇠 계수 적용" classname="com.cryptoautotrader.core.selector.SignalQualityDampenGateTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

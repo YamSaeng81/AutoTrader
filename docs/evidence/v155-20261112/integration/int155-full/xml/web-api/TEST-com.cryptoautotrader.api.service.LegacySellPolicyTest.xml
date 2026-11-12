@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="판별 불가 매도 — 경계 시각과 경계 불명 시 보류" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-11-12T03:22:53" hostname="DESKTOP-SF1KUQ5" time="0.01">
+  <properties/>
+  <testcase name="시험 기반(경계 없음 허용)에서 설정이 없으면 종전 동작 — 모두 자동 반영 후보" classname="com.cryptoautotrader.api.service.LegacySellPolicyTest" time="0.001"/>
+  <testcase name="이력을 읽지 못해도 설정 trading.sell-quarantine.legacy-before 가 있으면 그것이 경계" classname="com.cryptoautotrader.api.service.LegacySellPolicyTest" time="0.0"/>
+  <testcase name="반영 표시가 있거나 매수면 판별 대상이 아니다" classname="com.cryptoautotrader.api.service.LegacySellPolicyTest" time="0.0"/>
+  <testcase name="경계 불명 뒤 다시 읽히면 풀린다 — 재시도 간격이 지난 다음 호출에서" classname="com.cryptoautotrader.api.service.LegacySellPolicyTest" time="0.001"/>
+  <testcase name="&#x1f534; 이력 조회 실패 + 설정 없음 → 경계 불명: 최근 매도까지 모두 보류, ERROR·경보 한 번" classname="com.cryptoautotrader.api.service.LegacySellPolicyTest" time="0.001"/>
+  <testcase name="&#x1f534; V87 행이 없음(이력은 읽힘) + 설정 없음 → 경계 불명: 보류" classname="com.cryptoautotrader.api.service.LegacySellPolicyTest" time="0.001"/>
+  <testcase name="Flyway 이력의 V87 설치 시각이 경계 — 그 전 매도만 판별 불가" classname="com.cryptoautotrader.api.service.LegacySellPolicyTest" time="0.001"/>
+  <testcase name="&#x1f534; 설정값을 읽지 못하면(형식 오류) 경계 불명 — 보류" classname="com.cryptoautotrader.api.service.LegacySellPolicyTest" time="0.002"/>
+  <system-out><![CDATA[12:22:53.786 [Test worker] ERROR c.c.api.service.LegacySellPolicy - ? [판별 불가 매도] 경계 시각을 정하지 못했다(Flyway 이력 V87 없음·설정 trading.sell-quarantine.legacy-before 없음) ? 반영 표시 없는 매도를 모두 판별 불가로 보고 자동 반영을 보류한다(청산 확정이 대금을 넣지 않아 CLOSING 이 남을 수 있다). 1분마다 다시 읽는다
+12:22:53.786 [Test worker] WARN  c.c.api.service.LegacySellPolicy - [판별 불가 매도] 경계를 다시 읽었다(2026-10-16T05:07:54Z) ? 자동 반영 보류를 푼다
+12:22:53.787 [Test worker] ERROR c.c.api.service.LegacySellPolicy - ? [판별 불가 매도] 경계 시각을 정하지 못했다(Flyway 이력 V87 없음·설정 trading.sell-quarantine.legacy-before 없음) ? 반영 표시 없는 매도를 모두 판별 불가로 보고 자동 반영을 보류한다(청산 확정이 대금을 넣지 않아 CLOSING 이 남을 수 있다). 1분마다 다시 읽는다
+12:22:53.788 [Test worker] ERROR c.c.api.service.LegacySellPolicy - ? [판별 불가 매도] 경계 시각을 정하지 못했다(Flyway 이력 V87 없음·설정 trading.sell-quarantine.legacy-before 없음) ? 반영 표시 없는 매도를 모두 판별 불가로 보고 자동 반영을 보류한다(청산 확정이 대금을 넣지 않아 CLOSING 이 남을 수 있다). 1분마다 다시 읽는다
+12:22:53.792 [Test worker] ERROR c.c.api.service.LegacySellPolicy - [판별 불가 매도] 설정 trading.sell-quarantine.legacy-before 를 읽지 못했다(어제): Text '어제' could not be parsed at index 0
+12:22:53.792 [Test worker] ERROR c.c.api.service.LegacySellPolicy - ? [판별 불가 매도] 경계 시각을 정하지 못했다(Flyway 이력 V87 없음·설정 trading.sell-quarantine.legacy-before 없음) ? 반영 표시 없는 매도를 모두 판별 불가로 보고 자동 반영을 보류한다(청산 확정이 대금을 넣지 않아 CLOSING 이 남을 수 있다). 1분마다 다시 읽는다
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

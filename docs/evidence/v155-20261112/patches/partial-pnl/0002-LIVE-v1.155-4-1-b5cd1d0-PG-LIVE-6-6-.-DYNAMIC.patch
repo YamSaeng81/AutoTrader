@@ -1,0 +1,47 @@
+From be179428a30cbf30fce03e6443c7e6d5acfc37dd Mon Sep 17 00:00:00 2001
+From: YamSaeng81 <manicstr81@gmail.com>
+Date: Thu, 12 Nov 2026 11:18:51 +0900
+Subject: [PATCH 2/3] =?UTF-8?q?LIVE=20=EC=B5=9C=EC=A2=85=20=EB=A7=A4?=
+ =?UTF-8?q?=EB=8F=84=EA=B0=80=20=EB=B6=80=EB=B6=84=20=EB=A7=A4=EB=8F=84=20?=
+ =?UTF-8?q?=EC=86=90=EC=9D=B5=EC=9D=84=20=EB=8D=AE=EC=A7=80=20=EC=95=8A?=
+ =?UTF-8?q?=EA=B3=A0=20=EB=8D=94=ED=95=A8(=EC=B4=9D=EA=B4=84=20v1.155=20?=
+ =?UTF-8?q?=C2=A74-1,=20b5cd1d0=20=EA=B8=B0=EC=A0=90,=20=EB=AF=B8=EC=8A=B9?=
+ =?UTF-8?q?=EC=9D=B8)=20=E2=80=94=20=EC=8B=A4=EC=A0=9C=20PG=20LIVE=206/6(?=
+ =?UTF-8?q?=EC=86=90=EC=8B=A4=E2=86=92=EC=86=90=EC=8B=A4=C2=B7=EB=B6=80?=
+ =?UTF-8?q?=ED=98=B8=20=EB=92=A4=EC=A7=91=ED=9E=98=C2=B7=EC=9D=B4=EC=9D=B5?=
+ =?UTF-8?q?=E2=86=92=EC=86=90=EC=8B=A4=C2=B7=EB=B0=98=EB=B3=B5=20=ED=99=95?=
+ =?UTF-8?q?=EC=A0=95/=EB=8A=A6=EC=9D=80=20=EC=A0=95=EC=A0=95=C2=B7?=
+ =?UTF-8?q?=EC=B7=A8=EC=86=8C=20=EB=B6=80=EB=B6=84=20=EC=B2=B4=EA=B2=B0+?=
+ =?UTF-8?q?=EC=9E=AC=EC=8B=9C=EC=9E=91,=20=EC=A0=84=EB=9F=89=20=EB=8C=80?=
+ =?UTF-8?q?=EC=A1=B0),=20=EC=97=B0=EC=86=8D=20=EC=86=90=EC=8B=A4=20?=
+ =?UTF-8?q?=ED=8C=90=EC=A0=95=20=EC=97=B0=EA=B2=B0,=20=EC=9E=94=EC=95=A1?=
+ =?UTF-8?q?=C2=B7=EC=88=98=EC=88=98=EB=A3=8C=C2=B7=EC=88=98=EB=9F=89=20?=
+ =?UTF-8?q?=EB=B6=88=EB=B3=80.=20DYNAMIC=20=E2=91=A6=20=EC=9D=80=20?=
+ =?UTF-8?q?=EB=8B=A4=EC=9D=8C=20=EC=BB=A4=EB=B0=8B?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .../com/cryptoautotrader/api/service/LiveTradingService.java  | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
+index 4c1bdd26..4419b7c0 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
+@@ -3307,7 +3307,9 @@ public class LiveTradingService {
+             pos.setStatus("OPEN");
+             pos.setClosingAt(null);
+         } else {
+-            pos.setRealizedPnl(realizedPnl);
++            // 🔴 앞 부분 매도 손익에 더한다 (총괄 v1.155 §4-1, 2026-11-12) — 덮어쓰면 부분 매도 뒤 최종 매도가 앞 다리 손익을
++            //    지워 연속 손실·성과가 마지막 다리만 본다(실제 PG: −1,000.50 + −2,000 이 −2,000 으로, 손실→이익이면 이익으로).
++            pos.setRealizedPnl(nzFee(pos.getRealizedPnl()).add(realizedPnl));
+             // 🔴 덮어쓰지 않고 더한다 (2026-10-14, DYNAMIC 2026-09-07 수정과 같은 규칙) — 덮어쓰면 매수 때 기록한 수수료가
+             //    사라져 position_fee 가 매도분만 담는다.
+             pos.setPositionFee(nzFee(pos.getPositionFee()).add(fee));
+-- 
+2.51.1.windows.1
+

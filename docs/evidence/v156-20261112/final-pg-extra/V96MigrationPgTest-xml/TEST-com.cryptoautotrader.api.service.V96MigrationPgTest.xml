@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="V96 실제 PG 이행 — V94 기점 + 두 열, 기존 행 불변, validate" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-11-12T06:54:13" hostname="DESKTOP-SF1KUQ5" time="3.099">
+  <properties/>
+  <testcase name="V94 → V96: 두 열 nullable·기본값 없음·타입, 기존 행 불변·새 열 NULL, validate 통과, 이력 94·96" classname="com.cryptoautotrader.api.service.V96MigrationPgTest" time="3.099"/>
+  <system-out><![CDATA[15:54:13.866 [Test worker] INFO org.flywaydb.core.internal.license.VersionPrinter -- Flyway Community Edition 9.22.3 by Redgate
+15:54:13.871 [Test worker] INFO org.flywaydb.core.internal.license.VersionPrinter -- See release notes here: https://rd.gt/416ObMi
+15:54:13.871 [Test worker] INFO org.flywaydb.core.internal.license.VersionPrinter -- 
+15:54:13.966 [Test worker] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:15437/p156_v96migrationpgtest_4674 (PostgreSQL 15.13)
+15:54:14.032 [Test worker] INFO org.flywaydb.core.internal.schemahistory.JdbcTableSchemaHistory -- Schema history table "public"."flyway_schema_history" does not exist yet
+15:54:14.042 [Test worker] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 95 migrations (execution time 00:00.057s)
+15:54:14.064 [Test worker] INFO org.flywaydb.core.internal.schemahistory.JdbcTableSchemaHistory -- Creating Schema History table "public"."flyway_schema_history" ...
+15:54:14.127 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": << Empty Schema >>
+15:54:14.136 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "1 - create candle data"
+15:54:14.155 [Test worker] WARN org.flywaydb.core.internal.sqlscript.DefaultSqlScriptExecutor -- DB: column type "character varying" used for "coin_pair" does not follow best practices (SQL State: 01000 - Error Code: 0)
+15:54:14.155 [Test worker] WARN org.flywaydb.core.internal.sqlscript.DefaultSqlScriptExecutor -- DB: column type "character varying" used for "timeframe" does not follow best practices (SQL State: 01000 - Error Code: 0)
+15:54:14.156 [Test worker] INFO org.flywaydb.core.internal.sqlscript.DefaultSqlScriptExecutor -- +--------------------------+
+| create_hypertable        |
++--------------------------+
+| (1,public,candle_data,t) |
++--------------------------+
+
+15:54:14.174 [Test worker] INFO org.flywaydb.core.internal.sqlscript.DefaultSqlScriptExecutor -- +------------------------+
+| add_compression_policy |
++------------------------+
+| 1000                   |
++------------------------+
+
+15:54:14.201 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "2 - create backtest tables"
+15:54:14.265 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "3 - create strategy config"
+15:54:14.295 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "4 - create position order"
+15:54:14.346 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "5 - create risk config"
+15:54:14.374 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "6 - create log tables"
+15:54:14.418 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "7 - create strategy signal"
+15:54:14.450 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "8 - create paper trading schema"
+15:54:14.524 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "9 - enhance paper trading"
+15:54:14.541 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "10 - paper trading multi session"
+15:54:14.566 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "11 - add manual override to strategy config"
+15:54:14.582 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "12 - create live trading session"
+15:54:14.615 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "13 - create market data cache"
+15:54:14.636 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "14 - create strategy type enabled"
+15:54:14.653 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "15 - add telegram to paper trading"
+15:54:14.667 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "16 - create telegram notification log"
+15:54:14.698 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "17 - add session type to strategy log"
+15:54:14.718 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "18 - add pnl fee to virtual balance"
+15:54:14.730 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "19 - add invest ratio to live trading session"
+15:54:14.743 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "20 - add position fee to paper position"
+15:54:14.754 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "21 - add version to virtual balance"
+15:54:14.766 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "22 - add position fee to position"
+15:54:14.778 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "23 - add closing at to position"
+15:54:14.789 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "24 - add circuit breaker"
+15:54:14.803 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "25 - fix market regime varchar length"
+15:54:14.816 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "26 - add sl tp to positions"
+15:54:14.830 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "27 - add response json to order"
+15:54:14.842 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "28 - add executed funds to order"
+15:54:14.854 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "29 - add invested krw to position"
+15:54:14.869 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "30 - add backtest job"
+15:54:14.906 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "31 - add signal quality to strategy log"
+15:54:14.928 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "32 - add market regime to position"
+15:54:14.944 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "33 - create regime change log"
+15:54:14.983 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "34 - create llm config"
+15:54:15.019 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "35 - create news source config"
+15:54:15.071 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "36 - create notion report"
+15:54:15.117 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "37 - create discord config"
+15:54:15.160 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "38 - add wf result json"
+15:54:15.174 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "39 - add exit rule to risk config"
+15:54:15.189 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "40 - create llm call log"
+15:54:15.218 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "41 - create nightly scheduler config"
+15:54:15.241 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "42 - fix scheduler config column types"
+15:54:15.296 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "43 - add version to live trading session"
+15:54:15.307 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "44 - create execution drift log"
+15:54:15.334 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "45 - add capital utilization to risk config"
+15:54:15.347 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "46 - add session type to live trading session"
+15:54:15.365 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "47 - add confidence score to strategy log"
+15:54:15.377 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "48 - add portfolio drawdown to risk config"
+15:54:15.390 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "49 - create weight optimizer snapshot"
+15:54:15.412 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "50 - create dynamic session"
+15:54:15.443 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "51 - add session kind to position"
+15:54:15.461 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "52 - add session kind to order"
+15:54:15.478 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "53 - add profit factor expectancy to backtest metrics"
+15:54:15.490 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "54 - add signal price to order"
+15:54:15.506 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "55 - add circuit breaker to dynamic session"
+15:54:15.520 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "56 - add dynamic scan tuning to risk config"
+15:54:15.536 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "57 - add watchlist quality to risk config"
+15:54:15.551 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "58 - switch llm to claude"
+15:54:15.566 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "59 - set llm model sonnet"
+15:54:15.579 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "60 - expand news sources"
+15:54:15.594 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "61 - drop polymorphic session id fk"
+15:54:15.608 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "62 - add max hold hours"
+15:54:15.620 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "63 - default max hold hours off"
+15:54:15.632 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "64 - add max hold hours to live trading session"
+15:54:15.645 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "65 - create daily health snapshot"
+15:54:15.667 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "66 - align paper trading with live"
+15:54:15.682 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "67 - add trading mode to dynamic session"
+15:54:15.696 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "68 - default max hold hours on"
+15:54:15.714 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "69 - add circuit breaker trip count"
+15:54:15.730 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "70 - create kill criteria judgment"
+15:54:15.763 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "71 - add ruleset fingerprint"
+15:54:15.805 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "72 - create dynamic sell settlement"
+15:54:15.833 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "73 - add exit reason and analysis columns"
+15:54:15.873 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "74 - add session strategy params"
+15:54:15.892 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "75 - hold baseline index"
+15:54:15.910 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "76 - add timeframe to strategy log"
+15:54:15.927 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "77 - timestamptz for naive tables"
+15:54:16.076 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "78 - add exit rules version to backtest run"
+15:54:16.092 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "79 - add timeframe to weight optimizer snapshot"
+15:54:16.110 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "80 - create strategy timeframe enabled"
+15:54:16.133 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "81 - order reported vs applied settlement"
+15:54:16.152 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "82 - order settlement tracking and discrepancy"
+15:54:16.192 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "83 - order fill observation and pending"
+15:54:16.209 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "84 - order intent claim and unknown"
+15:54:16.233 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "85 - account capital lock and reservation"
+15:54:16.250 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "86 - failure code and intent owner"
+15:54:16.263 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "87 - cancel confirmation and stop cleanup"
+15:54:16.294 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "88 - seed default risk config"
+15:54:16.308 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "89 - pool loss limit baseline and snapshot"
+15:54:16.336 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "90 - position limit allocation peak breach"
+15:54:16.363 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "91 - order manual adjustment"
+15:54:16.386 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "92 - order fill price source"
+15:54:16.398 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "93 - exchange maintenance window"
+15:54:16.419 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "94 - sell quarantine release"
+15:54:16.443 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Successfully applied 94 migrations to schema "public", now at version v94 (execution time 00:01.242s)
+15:54:16.599 [Test worker] INFO org.flywaydb.core.FlywayExecutor -- Database: jdbc:postgresql://127.0.0.1:15437/p156_v96migrationpgtest_4674 (PostgreSQL 15.13)
+15:54:16.639 [Test worker] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 95 migrations (execution time 00:00.030s)
+15:54:16.659 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Current version of schema "public": 94
+15:54:16.663 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Migrating schema "public" to version "96 - paper aligned runtime state"
+15:54:16.687 [Test worker] INFO org.flywaydb.core.internal.command.DbMigrate -- Successfully applied 1 migration to schema "public", now at version v96 (execution time 00:00.010s)
+15:54:16.735 [Test worker] INFO org.flywaydb.core.internal.command.DbValidate -- Successfully validated 95 migrations (execution time 00:00.021s)
+[V96 PG 이행] 현재=96 이력=[94|t, 96|t] 열=[position|exit_decided_at|timestamp with time zone|null|null|YES|<none>, virtual_balance|mdd_peak_krw|numeric|20|2|YES|<none>] 새 열 NOT NULL 수=[0|0] 세션 전/후 같음=true 포지션 전/후 같음=true
+[V96 PG 이행] 세션=[1|10000000.00|10000000.00|STOPPED|0|null, 2|20200.00|200.00|RUNNING|0|{"paperExecutionMode": "LIVE_ALIGNED", "paperMaxInvestment": 20000}] 포지션=[1|2|OPEN|200.00000000|100.00000000|null|null|0.00000000, 2|2|CLOSED|200.00000000|100.00000000|STOP_LOSS|2026-11-12 15:54:17.902284+09|12.34000000]
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

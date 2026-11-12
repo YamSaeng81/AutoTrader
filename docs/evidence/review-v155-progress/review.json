@@ -1,0 +1,38 @@
+{
+  "version": "v1.156",
+  "main_at_review": "877055450f7bc5b61cb635b12176739a232477ab",
+  "scope": "local fixed Git sources, preserved results and five static guard/key checks; no N15/Spring/full regression/PG/production execution",
+  "decision": "retain B01 and authorize test-only N15 hour-grid/time/isolation repair in three named classes; no final candidate/deploy approval",
+  "full": {
+    "core-engine": {
+      "tests": 298,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 7
+    },
+    "exchange-adapter": {
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "strategy-lib": {
+      "tests": 113,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "web-api": {
+      "tests": 1291,
+      "failures": 8,
+      "errors": 0,
+      "skipped": 49
+    }
+  },
+  "checksums": "267/268; XML266 and Gradle log match, time.txt added hashed line whose prior prefix matches original digest",
+  "unresolved": [
+    "O1O3 LIVE REST_TRADE sell0 with stop-trigger WARN",
+    "three prior intermittent test failures still cause-unconfirmed",
+    "final SHA and complete regression/PG/jar/D4 not accepted"
+  ]
+}

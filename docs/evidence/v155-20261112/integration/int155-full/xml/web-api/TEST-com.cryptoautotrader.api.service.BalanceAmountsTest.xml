@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="잔액 반영값 규칙 — 요청액 버림·누적 금액 두 자리 HALF_UP" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-12T03:20:52" hostname="DESKTOP-SF1KUQ5" time="0.005">
+  <properties/>
+  <testcase name="매수 요청액은 둘째 자리 버림 — 최소 주문 5,000 판정이 버림 뒤 금액으로 갈린다" classname="com.cryptoautotrader.api.service.BalanceAmountsTest" time="0.004"/>
+  <testcase name="정정 차분의 합 = 최종 누적값 한 번 — 몇 번에 나눠 받아도 같다" classname="com.cryptoautotrader.api.service.BalanceAmountsTest" time="0.001"/>
+  <testcase name=".005 경계 — 0 에서 먼 쪽(HALF_UP), 그 바로 아래는 내림" classname="com.cryptoautotrader.api.service.BalanceAmountsTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

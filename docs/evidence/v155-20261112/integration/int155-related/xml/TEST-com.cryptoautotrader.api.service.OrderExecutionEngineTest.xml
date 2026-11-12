@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.OrderExecutionEngineTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-11-12T02:51:46" hostname="DESKTOP-SF1KUQ5" time="0.055">
+  <properties/>
+  <testcase name="§15 cancelAllActiveOrders — 활성 주문 전체 취소 카운트" classname="com.cryptoautotrader.api.service.OrderExecutionEngineTest" time="0.014"/>
+  <testcase name="§15 cancelOrder — 존재하지 않는 주문 ID (IllegalArgumentException)" classname="com.cryptoautotrader.api.service.OrderExecutionEngineTest" time="0.006"/>
+  <testcase name="§15 cancelOrder — FAILED 상태는 취소 불가 (IllegalStateException)" classname="com.cryptoautotrader.api.service.OrderExecutionEngineTest" time="0.005"/>
+  <testcase name="§15 cancelOrder — PENDING → CANCELLED 전이" classname="com.cryptoautotrader.api.service.OrderExecutionEngineTest" time="0.007"/>
+  <testcase name="§15 cancelOrder — FILLED 상태는 취소 불가 (IllegalStateException)" classname="com.cryptoautotrader.api.service.OrderExecutionEngineTest" time="0.007"/>
+  <testcase name="§15 OrderRepository — 동일 코인·방향 활성 주문 존재 여부 쿼리" classname="com.cryptoautotrader.api.service.OrderExecutionEngineTest" time="0.008"/>
+  <testcase name="§15 cancelOrder — SUBMITTED → CANCELLED 전이" classname="com.cryptoautotrader.api.service.OrderExecutionEngineTest" time="0.004"/>
+  <system-out><![CDATA[11:51:46.359 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.OrderExecutionEngineTest
+11:51:46.363 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:51:46.378 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:51:46.382 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:51:46.389 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:51:46.398 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:51:46.405 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:51:46.413 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

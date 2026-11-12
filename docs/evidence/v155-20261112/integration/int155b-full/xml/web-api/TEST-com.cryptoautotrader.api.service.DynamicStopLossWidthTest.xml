@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.DynamicStopLossWidthTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-11-12T03:54:00" hostname="DESKTOP-SF1KUQ5" time="0.002">
+  <properties/>
+  <testcase name="ATR 계산 불가(캔들 부족)면 세션 설정값으로 폴백 — 진입을 막지 않는다" classname="com.cryptoautotrader.api.service.DynamicStopLossWidthTest" time="0.001"/>
+  <testcase name="하한을 넘는 구간에서 SL 폭은 정확히 ATR의 1.5배다" classname="com.cryptoautotrader.api.service.DynamicStopLossWidthTest" time="0.001"/>
+  <testcase name="SL 폭에 상한이 있다 — 비정상 ATR로 손실이 무한정 커지지 않는다" classname="com.cryptoautotrader.api.service.DynamicStopLossWidthTest" time="0.0"/>
+  <testcase name="SL 폭은 절대 세션 설정값보다 좁아지지 않는다 (휩쏘 방지 하한)" classname="com.cryptoautotrader.api.service.DynamicStopLossWidthTest" time="0.0"/>
+  <testcase name="실측 사고 재현 — META2 ATR 3.48%는 이제 SL 5.2%대로 잡힌다 (구 설정 6.96%)" classname="com.cryptoautotrader.api.service.DynamicStopLossWidthTest" time="0.0"/>
+  <testcase name="고변동 종목일수록 SL이 넓어진다 — 세션 설정값은 하한으로만 작동" classname="com.cryptoautotrader.api.service.DynamicStopLossWidthTest" time="0.0"/>
+  <system-out><![CDATA[12:54:00.438 [ForkJoinPool.commonPool-worker-2] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 성공
+12:54:00.438 [ForkJoinPool.commonPool-worker-2] INFO  c.c.e.upbit.UpbitWebSocketClient - WebSocket 구독 메시지 전송: coins=[KRW-XRP]
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

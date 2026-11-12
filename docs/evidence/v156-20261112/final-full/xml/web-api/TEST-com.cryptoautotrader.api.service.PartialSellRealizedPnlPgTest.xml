@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="v1.155 §4-1 부분 매도 뒤 실현손익 — 덮어쓰기 없이 다리별 합 (로컬 PostgreSQL)" tests="7" skipped="7" failures="0" errors="0" timestamp="2026-11-12T06:51:05" hostname="DESKTOP-SF1KUQ5" time="0.0">
+  <properties/>
+  <testcase name="① 손실→손실: −1,000.50 + −2,000.00 = −3,000.50 (기점은 마지막 다리 −2,000 만 남김)" classname="com.cryptoautotrader.api.service.PartialSellRealizedPnlPgTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="② 손실→이익(부호 뒤집힘): −1,000.50 + 998.50 = −2.00 — 연속 손실 판정도 손실 1회(기점은 +998.50 이익으로 읽음)" classname="com.cryptoautotrader.api.service.PartialSellRealizedPnlPgTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="③ 이익→손실: 998.50 + −2,000.00 = −1,001.50" classname="com.cryptoautotrader.api.service.PartialSellRealizedPnlPgTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="④ 전량 매도 대조: 같은 총대금 17,000·총수수료 8.5 를 한 번에 팔면 −3,000.50 — ① 과 같아야 한다" classname="com.cryptoautotrader.api.service.PartialSellRealizedPnlPgTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="⑤ 반복 확정·늦은 정정 정확히 한 번 — 첫 다리 수수료 4.5→5.5, 같은 정정 재전달, 둘째 다리 4→5" classname="com.cryptoautotrader.api.service.PartialSellRealizedPnlPgTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="⑥ 첫 다리 '부분 체결 후 취소' + 다리 사이 재시작 복구 — 합 −3,000.50" classname="com.cryptoautotrader.api.service.PartialSellRealizedPnlPgTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="⑦ DYNAMIC REAL 같은 분기 — 손실→손실 합 −3,000.50" classname="com.cryptoautotrader.api.service.PartialSellRealizedPnlPgTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

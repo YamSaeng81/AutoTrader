@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.DynamicBlackSwanPriceGuardTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-11-12T03:22:22" hostname="DESKTOP-SF1KUQ5" time="0.001">
+  <properties/>
+  <testcase name="쿨다운 구간(240분 이내)은 가격과 무관하게 차단된다" classname="com.cryptoautotrader.api.service.DynamicBlackSwanPriceGuardTest" time="0.0"/>
+  <testcase name="24시간이 지나면 가격과 무관하게 이력이 만료된다 — 영구 차단 방지" classname="com.cryptoautotrader.api.service.DynamicBlackSwanPriceGuardTest" time="0.0"/>
+  <testcase name="쿨다운이 끝나고 차단 시점가 이하로 내려오면 진입을 허용하고 이력을 폐기한다" classname="com.cryptoautotrader.api.service.DynamicBlackSwanPriceGuardTest" time="0.0"/>
+  <testcase name="차단 이력이 없으면 통과한다 — 정상 종목에 부작용 없음" classname="com.cryptoautotrader.api.service.DynamicBlackSwanPriceGuardTest" time="0.0"/>
+  <testcase name="기준가가 없으면(구 로그 복원) 진입가 가드는 비활성 — 쿨다운만 작동한다" classname="com.cryptoautotrader.api.service.DynamicBlackSwanPriceGuardTest" time="0.001"/>
+  <testcase name="★ 쿨다운이 끝나도 차단 시점가보다 비싸면 차단된다 — META2 사고 재발 방지" classname="com.cryptoautotrader.api.service.DynamicBlackSwanPriceGuardTest" time="0.0"/>
+  <testcase name="차단 시점가와 같으면 허용한다 — 가드는 '초과'만 막는다" classname="com.cryptoautotrader.api.service.DynamicBlackSwanPriceGuardTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

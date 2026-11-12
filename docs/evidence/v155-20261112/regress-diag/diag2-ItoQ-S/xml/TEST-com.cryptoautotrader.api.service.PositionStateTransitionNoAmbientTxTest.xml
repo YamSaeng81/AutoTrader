@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="포지션 원자적 전환은 트랜잭션 없는 호출부에서도 동작한다" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-11-12T02:50:00" hostname="DESKTOP-SF1KUQ5" time="0.027">
+  <properties/>
+  <testcase name="리포지토리 직접 호출은 트랜잭션 없이 실패한다 — 헬퍼를 거쳐야 하는 이유" classname="com.cryptoautotrader.api.service.PositionStateTransitionNoAmbientTxTest" time="0.005"/>
+  <testcase name="markClosingIfOpen — 트랜잭션 없이 불러도 CLOSING 으로 전환되고 사유가 남는다" classname="com.cryptoautotrader.api.service.PositionStateTransitionNoAmbientTxTest" time="0.006"/>
+  <testcase name="두 번째 호출은 0 을 돌려준다 — 시장가 이중 매도를 막는 보장이 유지된다" classname="com.cryptoautotrader.api.service.PositionStateTransitionNoAmbientTxTest" time="0.007"/>
+  <testcase name="closeIfOpen — 트랜잭션 없이 불러도 CLOSED 로 전환된다" classname="com.cryptoautotrader.api.service.PositionStateTransitionNoAmbientTxTest" time="0.007"/>
+  <system-out><![CDATA[11:50:00.729 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.PositionStateTransitionNoAmbientTxTest
+11:50:00.732 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:50:00.738 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:50:00.745 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:50:00.752 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:50:00.755 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+11:50:00.756 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] SESSION_STOP 전송 실패(REJECTED) ? 5000ms 후 재시도 (2/3)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

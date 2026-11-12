@@ -1,0 +1,38 @@
+> Task :strategy-lib:compileJava
+> Task :strategy-lib:processResources NO-SOURCE
+> Task :strategy-lib:classes
+> Task :strategy-lib:jar
+> Task :core-engine:compileJava
+> Task :core-engine:processResources NO-SOURCE
+> Task :core-engine:classes
+> Task :core-engine:jar
+> Task :exchange-adapter:compileJava
+> Task :exchange-adapter:processResources NO-SOURCE
+> Task :exchange-adapter:classes
+> Task :exchange-adapter:jar
+> Task :web-api:compileJava
+> Task :web-api:processResources
+> Task :web-api:classes
+
+> Task :web-api:compileTestJava
+D:\tmp\b01-wt\web-api\src\test\java\com\cryptoautotrader\api\service\B01RealNextSellBarTest.java:139: error: cannot find symbol
+        assertThat(pa.getExitReason()).isEqualTo(ExitReason.STRATEGY_SIGNAL);
+                                                 ^
+  symbol:   variable ExitReason
+  location: class B01RealNextSellBarTest
+1 error
+
+> Task :web-api:compileTestJava FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':web-api:compileTestJava'.
+> Compilation failed; see the compiler error output for details.
+
+* Try:
+> Run with --info option to get more log output.
+> Run with --scan to get full insights.
+
+BUILD FAILED in 14s
+9 actionable tasks: 9 executed

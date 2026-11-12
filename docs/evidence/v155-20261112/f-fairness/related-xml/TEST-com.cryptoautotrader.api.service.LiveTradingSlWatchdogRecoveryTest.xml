@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.LiveTradingSlWatchdogRecoveryTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-11-12T02:34:38" hostname="DESKTOP-SF1KUQ5" time="0.101">
+  <properties/>
+  <testcase name="forceRefreshPrice: REST 시세 조회 성공(신선한 체결 시각) 시 PUBLISHED 반환 — ~~true~~ (N02 보완)" classname="com.cryptoautotrader.api.service.LiveTradingSlWatchdogRecoveryTest" time="0.01"/>
+  <testcase name="forceRefreshPrice: 거래소 API 오류 시 false 반환 (예외를 삼키고 다음 주기로 넘김)" classname="com.cryptoautotrader.api.service.LiveTradingSlWatchdogRecoveryTest" time="0.009"/>
+  <testcase name="warnStaleSlCheck: 강제 복구 자체가 실패하면 사람 개입이 필요하다는 문구를 보낸다" classname="com.cryptoautotrader.api.service.LiveTradingSlWatchdogRecoveryTest" time="0.024"/>
+  <testcase name="warnStaleSlCheck: 방금 점검된 세션은 건드리지 않는다 (오탐 방지 회귀)" classname="com.cryptoautotrader.api.service.LiveTradingSlWatchdogRecoveryTest" time="0.015"/>
+  <testcase name="forceRefreshPrice: 응답이 비어있으면 false 반환" classname="com.cryptoautotrader.api.service.LiveTradingSlWatchdogRecoveryTest" time="0.01"/>
+  <testcase name="warnStaleSlCheck: SL 미점검 감지 시 강제 갱신을 시도하고 발행 문구를 보낸다 — ~~재개 성공 문구~~ (N02 보완)" classname="com.cryptoautotrader.api.service.LiveTradingSlWatchdogRecoveryTest" time="0.029"/>
+  <system-out><![CDATA[11:34:38.864 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.LiveTradingSlWatchdogRecoveryTest
+11:34:38.869 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:34:38.879 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:34:38.883 [Test worker] ERROR c.c.api.service.LiveTradingService - [§9] SL 미점검 세션 강제 복구 실패 ? 조회·변환 예외(원문 생략)
+11:34:38.889 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:34:38.900 [Test worker] WARN  c.c.api.service.LiveTradingService - [§9] SL 미점검 경고: sessionId=7 coin=KRW-BTC 마지막체크=2026-11-12T02:24:38.895605700Z (3분 초과)
+11:34:38.902 [Test worker] ERROR c.c.api.service.LiveTradingService - [§9] SL 미점검 세션 강제 복구 실패 ? 조회·변환 예외(원문 생략)
+11:34:38.909 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 성공
+11:34:38.914 [ForkJoinPool.commonPool-worker-1] INFO  c.c.e.upbit.UpbitWebSocketClient - WebSocket 구독 메시지 전송: coins=[KRW-XRP]
+11:34:38.914 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:34:38.931 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:34:38.941 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+11:34:38.957 [Test worker] WARN  c.c.api.service.LiveTradingService - [§9] SL 미점검 경고: sessionId=9 coin=KRW-BTC 마지막체크=2026-11-12T02:24:38.954389100Z (3분 초과)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

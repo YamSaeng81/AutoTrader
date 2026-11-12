@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="N15 실제 PostgreSQL 잠금 대기 중 E — LIVE 계좌 잠금·DYNAMIC 세션 행 잠금, 차감·의도·슬롯·거래소 0 · 대조군 정상 진입" tests="4" skipped="4" failures="0" errors="0" timestamp="2026-11-12T03:23:01" hostname="DESKTOP-SF1KUQ5" time="0.0">
+  <properties/>
+  <testcase name="② DYNAMIC 세션 행(dynamic_session) refresh 실제 대기 중 E — '차감 직전' ENTRY_EXPIRED, 가용 10000·슬롯·의도·거래소 0" classname="com.cryptoautotrader.api.service.N15PgLockWaitExpiryTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="① LIVE 계좌 잠금 행(account_capital_lock) 실제 대기 중 E — '잠금 뒤' ENTRY_EXPIRED, 가용 20000·슬롯·의도·거래소 0" classname="com.cryptoautotrader.api.service.N15PgLockWaitExpiryTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="④ 대조군 DYNAMIC 같은 세션 행 실제 대기, 시계 E−1ms 유지 → 정상 진입(차감 10000→2000·슬롯·매수 의도 1)" classname="com.cryptoautotrader.api.service.N15PgLockWaitExpiryTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <testcase name="③ 대조군 LIVE 같은 계좌 잠금 실제 대기, 시계 E−1ms 유지 → 정상 진입(차감 20000→15000·슬롯·매수 의도 1)" classname="com.cryptoautotrader.api.service.N15PgLockWaitExpiryTest" time="0.0">
+    <skipped/>
+  </testcase>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

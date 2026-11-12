@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="무변동 구간 경계" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-11-12T06:33:06" hostname="DESKTOP-SF1KUQ5" time="0.02">
+  <properties/>
+  <testcase name="RSI — 하락이 전혀 없고 상승만 있으면 여전히 100 이다" classname="com.cryptoautotrader.strategy.ZeroMovementBoundaryTest" time="0.0"/>
+  <testcase name="VolumeDelta — high==low 봉은 매도가 아니라 방향 없음으로 센다" classname="com.cryptoautotrader.strategy.ZeroMovementBoundaryTest" time="0.011"/>
+  <testcase name="VolumeDelta — 오른 뒤 완전히 멎은 시장을 강한 매도로 읽으면 안 된다" classname="com.cryptoautotrader.strategy.ZeroMovementBoundaryTest" time="0.002"/>
+  <testcase name="RSI — 완전 횡보는 100 이 아니라 50 이다" classname="com.cryptoautotrader.strategy.ZeroMovementBoundaryTest" time="0.004"/>
+  <testcase name="RSI — RsiStrategy 의 자체 구현도 같아야 한다 (같은 결함이 복제돼 있었다)" classname="com.cryptoautotrader.strategy.ZeroMovementBoundaryTest" time="0.001"/>
+  <testcase name="VolumeDelta — 종가가 고가면 여전히 매수 우위다" classname="com.cryptoautotrader.strategy.ZeroMovementBoundaryTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

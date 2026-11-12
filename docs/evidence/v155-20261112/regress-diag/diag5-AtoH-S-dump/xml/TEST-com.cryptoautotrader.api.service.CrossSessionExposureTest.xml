@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.CrossSessionExposureTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-11-12T03:01:42" hostname="DESKTOP-SF1KUQ5" time="0.001">
+  <properties/>
+  <testcase name="아무 세션도 안 들고 있으면 통과한다 — 정상 진입에 부작용 없음" classname="com.cryptoautotrader.api.service.CrossSessionExposureTest" time="0.0"/>
+  <testcase name="차단 사유에 보유 건수가 남아 blocked_reason 으로 원인 추적이 된다" classname="com.cryptoautotrader.api.service.CrossSessionExposureTest" time="0.0"/>
+  <testcase name="✅ 다른 세션이 1건 보유 중이면 통과한다 — 2세션 구간이 실측 최고(+1.75%)" classname="com.cryptoautotrader.api.service.CrossSessionExposureTest" time="0.0"/>
+  <testcase name="&#x1f534; 다른 세션이 2건 보유 중이면 차단한다 — 3세션 집중은 −1.33%" classname="com.cryptoautotrader.api.service.CrossSessionExposureTest" time="0.0"/>
+  <testcase name="상한값이 2다 — 39·45 DOGE 사고(단일 코인 자본 23% 집중)는 여전히 막힌다" classname="com.cryptoautotrader.api.service.CrossSessionExposureTest" time="0.0"/>
+  <testcase name="이미 여러 세션이 물려 있어도 계속 차단한다 — 4세션 집중은 −2.13%" classname="com.cryptoautotrader.api.service.CrossSessionExposureTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,1072 @@
+From da8a33a096f00f9767bb7042df53ff4a7e92c8a7 Mon Sep 17 00:00:00 2001
+From: YamSaeng81 <manicstr81@gmail.com>
+Date: Thu, 12 Nov 2026 13:27:13 +0900
+Subject: [PATCH 1/2] =?UTF-8?q?N15=20=EC=84=B8=20=EC=8B=9C=ED=97=98=20?=
+ =?UTF-8?q?=EC=A0=95=EC=8B=9C=20=EA=B2=A9=EC=9E=90=C2=B7=ED=9A=8C=EC=B0=A8?=
+ =?UTF-8?q?=20=EA=B2=A9=EB=A6=AC(=EC=8B=9C=ED=97=98=EB=A7=8C,=20=EC=B4=9D?=
+ =?UTF-8?q?=EA=B4=84=20v1.156=20=C2=A7124)=20=E2=80=94=20LIVE=20=EC=9E=85?=
+ =?UTF-8?q?=EB=A0=A5=EC=9D=80=20=EC=A0=95=EC=8B=9C=20=EB=B4=89(=EC=BD=94?=
+ =?UTF-8?q?=EC=9D=B8=20L=C2=B7BTC=20=EC=A7=84=ED=96=89=20=EC=A4=91=20?=
+ =?UTF-8?q?=EB=B4=89=20C)=EA=B3=BC=20=ED=9A=8C=EC=B0=A8=20=ED=82=A4?=
+ =?UTF-8?q?=EB=A5=BC=20=EC=A0=95=EC=8B=9C=EC=97=90=20=EB=91=90=EA=B3=A0=20?=
+ =?UTF-8?q?=EC=A0=91=EC=88=98=20=EC=8B=9C=EA=B0=81=20=EB=91=90=20=EC=9C=84?=
+ =?UTF-8?q?=EC=B9=98(C+1s=C2=B7D=E2=88=921ms)=EB=A5=BC=20=EC=8B=9C?=
+ =?UTF-8?q?=ED=97=98=20=EC=8B=9C=EA=B3=84=EB=A1=9C=20=EA=B3=A0=EC=A0=95,?=
+ =?UTF-8?q?=20=EB=8F=85=EB=A6=BD=20=EC=9E=85=EB=A0=A5=EB=A7=88=EB=8B=A4=20?=
+ =?UTF-8?q?=EC=83=88=20=ED=9A=8C=EC=B0=A8=20=EC=83=81=ED=83=9C(EntryPriori?=
+ =?UTF-8?q?tyRounds=20=EC=83=88=20=EC=9D=B8=EC=8A=A4=ED=84=B4=EC=8A=A4?=
+ =?UTF-8?q?=EB=A5=BC=20=EC=97=94=EC=A7=84=EC=97=90=20=EA=BD=82=EA=B3=A0=20?=
+ =?UTF-8?q?=EC=9B=90=EB=9E=98=20=EB=B9=88=EC=9C=BC=EB=A1=9C=20=EB=B3=B5?=
+ =?UTF-8?q?=EC=9B=90).=20=EC=B4=88=C2=B7=EB=B0=80=EB=A6=AC=EC=B4=88=20?=
+ =?UTF-8?q?=EC=98=A4=ED=94=84=EC=85=8B=20=EC=A0=9C=EA=B1=B0.=20=E2=91=A1?=
+ =?UTF-8?q?=20DYNAMIC=20=EC=A0=91=EC=88=98=200=20=EC=9D=80=20=EC=88=9C?=
+ =?UTF-8?q?=EB=B2=88=C3=975=EC=B4=88=20=EC=98=A4=ED=94=84=EC=85=8B?=
+ =?UTF-8?q?=EC=9D=B4=20=EA=B2=BD=EA=B3=BC=205=EC=B4=88=EC=99=80=20?=
+ =?UTF-8?q?=EC=83=81=EC=87=84=EB=8F=BC=20=EC=95=9E=20=EC=8B=9C=ED=97=98?=
+ =?UTF-8?q?=EC=9D=98=20=EB=8B=AB=ED=9E=8C=20=ED=82=A4=EC=99=80=20=EA=B0=99?=
+ =?UTF-8?q?=EC=95=84=EC=A7=84=20=EA=B2=83.=20DYNAMIC=20=EC=9D=80=20?=
+ =?UTF-8?q?=EC=A0=9C=ED=92=88=EC=9D=B4=20=EC=A0=91=EC=88=98=C2=B7=EC=B5=9C?=
+ =?UTF-8?q?=EC=8B=A0=EC=84=B1=C2=B7BTC=20=EB=A5=BC=20=EC=8B=A4=EC=A0=9C=20?=
+ =?UTF-8?q?=EC=8B=9C=EA=B0=81=EC=9C=BC=EB=A1=9C=20=EB=B4=90=20=EC=A0=95?=
+ =?UTF-8?q?=EC=8B=9C=20=EA=B2=A9=EC=9E=90=EB=8A=94=20=EC=A0=9C=ED=92=88=20?=
+ =?UTF-8?q?=EC=A0=91=EC=A0=90=20=ED=95=84=EC=9A=94(=EB=B2=94=EC=9C=84=20?=
+ =?UTF-8?q?=EB=B0=96,=20=EB=B6=84=EB=A6=AC=20=EB=B3=B4=EA=B3=A0)=20?=
+ =?UTF-8?q?=E2=80=94=20=EC=8B=A4=EC=A0=9C=20=EC=8B=9C=EA=B0=81=20=EA=B8=B0?=
+ =?UTF-8?q?=EC=A4=80=20=EC=9E=90=EB=A3=8C=EC=97=90=20=EC=83=88=20=ED=9A=8C?=
+ =?UTF-8?q?=EC=B0=A8=20=EC=83=81=ED=83=9C=EB=A7=8C.=20=EC=8A=A4=EC=BC=80?=
+ =?UTF-8?q?=EC=A4=84=EB=9F=AC=EB=8A=94=20=EC=8B=9C=ED=97=98=20=ED=94=84?=
+ =?UTF-8?q?=EB=A1=9C=ED=95=84=EC=97=90=EC=84=9C=20=EA=BA=BC=EC=A7=90?=
+ =?UTF-8?q?=EC=9D=84=20=ED=99=95=EC=9D=B8.=20=EB=8B=A8=EC=96=B8=C2=B7?=
+ =?UTF-8?q?=EC=A0=9C=ED=92=88=20=EC=BD=94=EB=93=9C=20=EA=B7=B8=EB=8C=80?=
+ =?UTF-8?q?=EB=A1=9C.=20H2=2019/19(1=ED=9A=8C=EC=B0=A8=207=EC=8B=A4?=
+ =?UTF-8?q?=ED=8C=A8=EB=8A=94=20=EC=A4=80=EB=B9=84=20=EC=BD=94=EB=93=9C=20?=
+ =?UTF-8?q?=EA=B2=B0=ED=95=A8=20=E2=80=94=20=EA=B0=99=EC=9D=80=20=EB=A9=94?=
+ =?UTF-8?q?=EC=84=9C=EB=93=9C=20=EB=91=90=20=EB=B2=88=EC=A7=B8=20=EA=B2=A9?=
+ =?UTF-8?q?=EB=A6=AC),=20=EC=8B=A4=EC=A0=9C=20PG=206/6?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .../api/service/N15EntryExpiryTest.java       | 160 ++++++++++--------
+ .../service/N15FinalApprovalBoundaryTest.java | 141 +++++++++------
+ .../api/service/N15GridRounds.java            | 115 +++++++++++++
+ .../api/service/N15PgLockWaitExpiryTest.java  | 110 +++++++-----
+ 4 files changed, 366 insertions(+), 160 deletions(-)
+ create mode 100644 web-api/src/test/java/com/cryptoautotrader/api/service/N15GridRounds.java
+
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/N15EntryExpiryTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/N15EntryExpiryTest.java
+index 44493990..a8098c48 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/N15EntryExpiryTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/N15EntryExpiryTest.java
+@@ -18,6 +18,8 @@ import org.junit.jupiter.api.AfterEach;
+ import org.junit.jupiter.api.BeforeEach;
+ import org.junit.jupiter.api.DisplayName;
+ import org.junit.jupiter.api.Test;
++import org.junit.jupiter.params.ParameterizedTest;
++import org.junit.jupiter.params.provider.EnumSource;
+ import org.springframework.beans.factory.annotation.Autowired;
+ import org.springframework.boot.test.mock.mockito.MockBean;
+ import org.springframework.boot.test.mock.mockito.SpyBean;
+@@ -70,6 +72,10 @@ import static org.mockito.Mockito.when;
+  *
+  * <p>수정 전 코드(운영 fe01207)에서도 컴파일되도록 시계 연결·만료 정의 확인은 반사로 한다 — 수정 전에는 시계가 없으므로 만료가
+  * 강제되지 않아 거절 기대가 실패한다(실패 먼저 원문용).</p>
++ *
++ * <p>🔴 2026-11-12 (총괄 v1.156 §124): 종전 "실제 현재 − 61분 − 초 오프셋 + 371ms" 비정시 봉과 초 오프셋 회차 격리를 걷었다.
++ * LIVE 입력은 정시 격자 봉·회차 키에 접수 시각 두 위치(C+1s·D−1ms)를 시험 시계로 고정하고, 독립 입력마다 새 회차 상태를 쓴다
++ * ({@link N15GridRounds}). DYNAMIC 입력은 제품이 실제 시각을 보므로 실제 시각 기준 자료에 새 회차 상태만 쓴다. 단언은 그대로다.</p>
+  */
+ @DisplayName("N15 승인 실행 만료 — E=D+W 이상 새 예약·매수 의도 없음")
+ class N15EntryExpiryTest extends IntegrationTestBase {
+@@ -108,6 +114,7 @@ class N15EntryExpiryTest extends IntegrationTestBase {
+     private final List<String> coins = List.of("KRW-INJ", "KRW-CRO", "KRW-IOTA", "KRW-ONG", "KRW-BTC");
+     private final MutableClock fake = new MutableClock(Instant.now());
+     private Object entryClock;
++    private final List<N15GridRounds.Isolated> isolated = new ArrayList<>();
+ 
+     static final class AlwaysBuy implements Strategy {
+         @Override public String getName() { return STRATEGY; }
+@@ -118,8 +125,10 @@ class N15EntryExpiryTest extends IntegrationTestBase {
+     }
+ 
+     /**
+-     * 시험이 움직이는 시계 — <b>등록한 스레드에만</b> 가짜 시각을 준다. 🔴 운영 스케줄러({@code processDueRounds}, 5초 주기)도 같은
+-     * 시계를 읽으므로, 모든 스레드에 미래 시각을 주면 스케줄러가 시험 회차를 먼저 처리한다(2차 실행 설계 실수). 다른 스레드는 실제 시각.
++     * 시험이 움직이는 시계 — <b>등록한 스레드에만</b> 가짜 시각을 준다. 다른 스레드는 실제 시각.
++     * 🔴 2026-11-12 점검(v1.156 §124): 이 시험 프로필은 {@code app.scheduling.enabled=false} 라 {@code processDueRounds} 는 돌지 않는다
++     * (2026-10-13 부터 — {@link N15GridRounds#assertNoBackgroundScheduler} 로 확인). 그래도 등록 스레드 한정은 유지한다 — 시험 밖
++     * 스레드(주문 실행기 등)는 실제 시각을 본다. 승인은 시험 스레드나 등록한 대기 스레드에서만 돈다.
+      */
+     static final class MutableClock extends Clock {
+         private volatile Instant now;
+@@ -149,10 +158,13 @@ class N15EntryExpiryTest extends IntegrationTestBase {
+         limits.setTotalCapKrw(positionRepository.sumPoolExposureKrw(-1L).add(new BigDecimal("1000000")));
+         fake.fakeFor(Thread.currentThread());
+         wireClock(fake);
++        N15GridRounds.assertNoBackgroundScheduler(ctx);
+     }
+ 
+     @AfterEach
+     void tearDown() throws Exception {
++        for (int i = isolated.size() - 1; i >= 0; i--) isolated.get(i).close();
++        isolated.clear();
+         wireClock(null);
+         rounds.setForcedForTest(false);
+         for (Long id : liveIds) {
+@@ -213,20 +225,30 @@ class N15EntryExpiryTest extends IntegrationTestBase {
+                 .build()).toList());
+     }
+ 
+-    private static final java.util.concurrent.atomic.AtomicInteger BASE_SEQ = new java.util.concurrent.atomic.AtomicInteger();
++    /** 독립 입력 하나의 새 회차 상태 — 정리에서 원래 빈으로 되돌린다({@link N15GridRounds.Isolated}). */
++    private EntryPriorityRounds isolate() {
++        if (!isolated.isEmpty()) isolated.get(isolated.size() - 1).close();   // 앞 입력의 회차 상태를 먼저 원래 빈으로 되돌린다
++        N15GridRounds.Isolated i = new N15GridRounds.Isolated(ctx);
++        isolated.add(i);
++        return i.rounds;
++    }
+ 
+-    /**
+-     * 실제 현재 약 61분 전 시작한 봉이 마지막 닫힌 봉 — E 는 실제 현재 + 약 8분. 🔴 회차 키는 (타임프레임, 봉 시작)뿐이고 닫힌 회차는
+-     * 2일 보존되므로, 같은 초에 도는 시험끼리 키가 겹치지 않게 시험마다 기준을 5초씩 더 당긴다(1차 실행 설계 실수). 같은 JVM 에서 먼저
+-     * 돈 다른 시험 클래스는 초 단위 {@code now−61분} 을 회차 키로 쓰므로, 여기서는 밀리초 오프셋(371ms)을 붙여 그 키와 겹칠 수 없게 한다
+-     * (관련 시험과 함께 돈 3·4차 실행 설계 실수).
+-     */
+-    private static Instant base() {
+-        return Instant.now().minus(61, ChronoUnit.MINUTES).truncatedTo(ChronoUnit.SECONDS)
+-                .minusSeconds(17L + 5L * BASE_SEQ.incrementAndGet()).plusMillis(371);
++    /** LIVE 정시 격자 — 거래 코인 L 까지, BTC 는 진행 중 봉 C 까지(DB). 조회 대역은 같은 정시 자료. */
++    private Instant liveGrid() {
++        Instant last = N15GridRounds.gridLastOpen();
++        insertCandleData("KRW-BTC", candles(N15GridRounds.btcLastOpen(last)));
++        when(marketDataSyncService.fetchWithCache(anyString(), anyString(), anyInt())).thenReturn(candles(last));
++        return last;
+     }
+ 
+-    /** 코인마다 자기 회차(마감 봉 시작 시각을 초 단위로 달리한다). */
++    /** DYNAMIC 실제 시각 기준 자료(비정시 — {@link N15GridRounds#dynamicLastOpen}). DYNAMIC 은 캔들을 조회 대역으로만 읽는다(BTC 포함). */
++    private Instant dynamicData() {
++        Instant last = N15GridRounds.dynamicLastOpen();
++        when(marketDataSyncService.fetchWithCache(anyString(), anyString(), anyInt())).thenReturn(candles(last));
++        return last;
++    }
++
++    /** 코인 자료를 넣는다 — 회차 격리는 시각이 아니라 입력마다 새 회차 상태로 한다. */
+     private Instant market(String coin, Instant lastOpen) {
+         List<Candle> cs = candles(lastOpen);
+         insertCandleData(coin, cs);
+@@ -306,12 +328,11 @@ class N15EntryExpiryTest extends IntegrationTestBase {
+      * ① LIVE 경계 — 실제 의도 경로. D 직후·E 직전은 진입, E·E 직후는 콜백 없이 만료(예약·의도·거래소 호출 0, 신호에 사유,
+      * 회차 닫힘). 이미 확정된 주문은 시계가 E 를 지나도 그대로다.
+      */
+-    @Test
++    @ParameterizedTest(name = "접수 {0}")
++    @EnumSource(N15GridRounds.Intake.class)
+     @DisplayName("① LIVE: D+1ms·E−1ms 진입, E·E+1ms 만료 — 예약·의도·거래소 0, 원래 신호에 만료 사유, 회차 닫힘, 확정 주문 그대로")
+-    void liveBoundary() {
+-        Instant base = base();
+-        insertCandleData("KRW-BTC", candles(base));
+-        when(marketDataSyncService.fetchWithCache(anyString(), anyString(), anyInt())).thenReturn(candles(base));
++    void liveBoundary(N15GridRounds.Intake intake) {
++        Instant base = liveGrid();
+         List<String> order = List.of("KRW-INJ", "KRW-CRO", "KRW-IOTA", "KRW-ONG");
+         Map<String, Long> confirmed = new LinkedHashMap<>();
+         Map<Long, BigDecimal> confirmedReserved = new LinkedHashMap<>();
+@@ -319,7 +340,8 @@ class N15EntryExpiryTest extends IntegrationTestBase {
+         Instant lastE = null;
+         for (int i = 0; i < order.size(); i++) {
+             String coin = order.get(i);
+-            Instant lastOpen = market(coin, base.minusSeconds(i + 1L));
++            EntryPriorityRounds r = isolate();
++            Instant lastOpen = market(coin, base);
+             EntryPriorityRounds.RoundKey round = new EntryPriorityRounds.RoundKey("H1", lastOpen);
+             Instant d = EntryPriorityRounds.deadline(round);
+             Instant e = expiryOf(round);
+@@ -332,19 +354,19 @@ class N15EntryExpiryTest extends IntegrationTestBase {
+             };
+             boolean allowed = i < 2;
+             LiveTradingSessionEntity s = live(coin);
+-            fake.set(Instant.now());
++            fake.set(intake.at(round));
+             evaluateLive(s);
+-            assertThat(rounds.openRounds()).as(coin + " 접수").isEqualTo(1);
++            assertThat(r.openRounds()).as(coin + " 접수").isEqualTo(1);
+             fake.set(at);
+-            List<EntryPriorityRounds.Outcome> out = rounds.processDue(at);
++            List<EntryPriorityRounds.Outcome> out = r.processDue(at);
+             List<OrderEntity> b = buys("LIVE", s.getId());
+             Object[] sig = signal("LIVE", s.getId(), coin);
+-            System.out.println("[N15E ①] " + coin + " D " + d + " · E " + e + " · 처리·판정 " + at + " (E 대비 "
++            System.out.println("[N15E ①] 접수 " + intake + " " + intake.at(round) + " · " + coin + " D " + d + " · E " + e + " · 처리·판정 " + at + " (E 대비 "
+                     + Duration.between(e, at).toMillis() + "ms) → " + reasons(out) + " · 매수 의도 " + b.size()
+                     + " · 열린 포지션 " + openPositions("LIVE", s.getId()) + " · 가용 " + liveFunds(s.getId())
+                     + " · 거래소 호출 " + exchangeCalls(coin) + " · 신호 실행 " + sig[0] + " 사유 " + sig[1]);
+             assertThat(out).hasSize(1);
+-            assertThat(rounds.openRounds()).as("회차 닫힘").isZero();
++            assertThat(r.openRounds()).as("회차 닫힘").isZero();
+             if (allowed) {
+                 assertThat(out.get(0).reason()).as(coin + " 진입").isNull();
+                 assertThat(b).hasSize(1);
+@@ -361,12 +383,12 @@ class N15EntryExpiryTest extends IntegrationTestBase {
+                 assertThat(sig[0]).isEqualTo(false);
+                 assertThat((String) sig[1]).as("원래 신호에 만료 사유").contains(EXPIRED);
+             }
+-            assertThat(rounds.processDue(at.plus(1, ChronoUnit.HOURS))).as("다시 대기열에 넣지 않음").isEmpty();
++            assertThat(r.processDue(at.plus(1, ChronoUnit.HOURS))).as("다시 대기열에 넣지 않음").isEmpty();
+         }
+         // 이미 예약·의도가 확정된 주문 — 시계가 E 를 한참 지나도 만료가 건드리지 않는다(삭제·철회·자금 복원 없음). 상태는 비동기 제출
+         // 실행기가 기존 경로대로 진행시킨다(INTENT_READY → SUBMITTING 등 — 4차 실행에서 상태 동일을 단언한 것은 시험 설계 실수).
+         fake.set(lastE.plus(10, ChronoUnit.MINUTES));
+-        rounds.processDue(lastE.plus(10, ChronoUnit.MINUTES));
++        for (N15GridRounds.Isolated i : isolated) i.rounds.processDue(lastE.plus(10, ChronoUnit.MINUTES));
+         for (var c : confirmed.entrySet()) {
+             OrderEntity o = orderRepository.findById(c.getValue()).orElseThrow();
+             Long sid = confirmedSession.get(o.getId());
+@@ -382,22 +404,21 @@ class N15EntryExpiryTest extends IntegrationTestBase {
+     @Test
+     @DisplayName("② DYNAMIC: E−1ms 진입, E 만료 — 예약·의도·거래소 0, 원래 신호에 만료 사유")
+     void dynamicBoundary() {
+-        Instant base = base();
+-        insertCandleData("KRW-BTC", candles(base));
+-        when(marketDataSyncService.fetchWithCache(anyString(), anyString(), anyInt())).thenReturn(candles(base));
++        Instant base = dynamicData();
+         List<String> order = List.of("KRW-IOTA", "KRW-CRO");
+         for (int i = 0; i < order.size(); i++) {
+             String coin = order.get(i);
+-            Instant lastOpen = market(coin, base.minusSeconds(i + 1L));
++            EntryPriorityRounds r = isolate();
++            Instant lastOpen = market(coin, base);
+             EntryPriorityRounds.RoundKey round = new EntryPriorityRounds.RoundKey("H1", lastOpen);
+             Instant e = expiryOf(round);
+             Instant at = i == 0 ? e.minusMillis(1) : e;
+             DynamicSessionEntity d = dynamic(coin);
+             fake.set(Instant.now());
+             evaluateDynamic(d);
+-            assertThat(rounds.openRounds()).as(coin + " 접수").isEqualTo(1);
++            assertThat(r.openRounds()).as(coin + " 접수").isEqualTo(1);
+             fake.set(at);
+-            List<EntryPriorityRounds.Outcome> out = rounds.processDue(at);
++            List<EntryPriorityRounds.Outcome> out = r.processDue(at);
+             List<OrderEntity> b = buys("DYNAMIC", d.getId());
+             Object[] sig = signal("DYNAMIC", d.getId(), coin);
+             System.out.println("[N15E ②] DYNAMIC " + coin + " E " + e + " · 처리·판정 " + at + " → " + reasons(out)
+@@ -420,27 +441,27 @@ class N15EntryExpiryTest extends IntegrationTestBase {
+     }
+ 
+     /** ③ 앞 후보 지연 — 1위 후보의 콜백 동안 시각이 E 를 지나면 뒤 후보는 콜백 없이 만료된다(가짜 시계, sleep 없음). */
+-    @Test
++    @ParameterizedTest(name = "접수 {0}")
++    @EnumSource(N15GridRounds.Intake.class)
+     @DisplayName("③ 앞 후보 승인이 E 를 넘기면 뒤 LIVE 후보는 콜백 없이 만료 — 주문 0, 원래 신호에 사유")
+-    void headOfLineCrossesExpiry() {
+-        Instant base = base();
+-        insertCandleData("KRW-BTC", candles(base));
+-        when(marketDataSyncService.fetchWithCache(anyString(), anyString(), anyInt())).thenReturn(candles(base));
+-        Instant lastOpen = market("KRW-CRO", base.minusSeconds(1));
++    void headOfLineCrossesExpiry(N15GridRounds.Intake intake) {
++        Instant base = liveGrid();
++        EntryPriorityRounds r = isolate();
++        Instant lastOpen = market("KRW-CRO", base);
+         EntryPriorityRounds.RoundKey round = new EntryPriorityRounds.RoundKey("H1", lastOpen);
+         Instant d = EntryPriorityRounds.deadline(round);
+         Instant e = expiryOf(round);
+         LiveTradingSessionEntity cro = live("KRW-CRO");   // 등록 순서 3위
+-        fake.set(Instant.now());
++        fake.set(intake.at(round));
+         evaluateLive(cro);
+-        assertThat(rounds.submit(new EntryPriorityRounds.Candidate("LIVE", -15101L, "KRW-IOTA", round, () -> {
++        assertThat(r.submit(new EntryPriorityRounds.Candidate("LIVE", -15101L, "KRW-IOTA", round, () -> {
+             fake.set(e);   // 1위 후보의 승인이 E 까지 걸렸다
+             return "N15 지연 후보(주문 없음)";
+-        }), Instant.now())).isNull();
++        }), intake.at(round))).isNull();
+         fake.set(d.plusMillis(1));
+-        List<EntryPriorityRounds.Outcome> out = rounds.processDue(d.plusMillis(1));
++        List<EntryPriorityRounds.Outcome> out = r.processDue(d.plusMillis(1));
+         Object[] sig = signal("LIVE", cro.getId(), "KRW-CRO");
+-        System.out.println("[N15E ③] 처리 시작 D+1ms · 1위 콜백 뒤 시계 " + e + " → " + reasons(out) + " · CRO 매수 의도 "
++        System.out.println("[N15E ③] 접수 " + intake + " " + intake.at(round) + " · 처리 시작 D+1ms · 1위 콜백 뒤 시계 " + e + " → " + reasons(out) + " · CRO 매수 의도 "
+                 + buys("LIVE", cro.getId()).size() + " · 신호 사유 " + sig[1]);
+         assertThat(out.stream().map(o -> o.candidate().coinPair()).toList()).containsExactly("KRW-IOTA", "KRW-CRO");
+         assertThat(out.get(1).reason()).contains(EXPIRED);
+@@ -450,26 +471,28 @@ class N15EntryExpiryTest extends IntegrationTestBase {
+     }
+ 
+     /** ④ 자기 관문 대기 — 콜백 직전은 E 전이지만 엔진 관문 안에서 E 를 지나면 잠금 안 예약 직전 재검사가 막는다. */
+-    @Test
++    @ParameterizedTest(name = "LIVE 접수 {0}")
++    @EnumSource(N15GridRounds.Intake.class)
+     @DisplayName("④ 자기 관문 대기 중 E 통과 — LIVE·DYNAMIC 모두 잠금 안 재검사로 예약·의도·슬롯·거래소 0, 신호에 ENTRY_EXPIRED")
+-    void ownGateCrossesExpiry() {
+-        Instant base = base();
+-        insertCandleData("KRW-BTC", candles(base));
+-        when(marketDataSyncService.fetchWithCache(anyString(), anyString(), anyInt())).thenReturn(candles(base));
++    void ownGateCrossesExpiry(N15GridRounds.Intake intake) {
++        Instant base = liveGrid();
+         // LIVE — 승인 관문의 전역 위험 검사 동안 시각이 E 에 닿는다
+-        Instant liveOpen = market("KRW-CRO", base.minusSeconds(1));
+-        Instant eLive = expiryOf(new EntryPriorityRounds.RoundKey("H1", liveOpen));
++        EntryPriorityRounds rL = isolate();
++        Instant liveOpen = market("KRW-CRO", base);
++        EntryPriorityRounds.RoundKey liveRound = new EntryPriorityRounds.RoundKey("H1", liveOpen);
++        Instant eLive = expiryOf(liveRound);
+         LiveTradingSessionEntity l = live("KRW-CRO");
+-        fake.set(Instant.now());
++        fake.set(intake.at(liveRound));
+         evaluateLive(l);
++        assertThat(rL.openRounds()).as("LIVE 접수").isEqualTo(1);
+         doAnswer(inv -> {
+             fake.set(eLive);
+             return com.cryptoautotrader.core.risk.RiskCheckResult.approve();
+         }).when(riskManagementService).checkRisk();
+         fake.set(eLive.minusMillis(1));
+-        List<EntryPriorityRounds.Outcome> outL = rounds.processDue(eLive.minusMillis(1));
++        List<EntryPriorityRounds.Outcome> outL = rL.processDue(eLive.minusMillis(1));
+         Object[] sigL = signal("LIVE", l.getId(), "KRW-CRO");
+-        System.out.println("[N15E ④] LIVE 콜백 직전 E−1ms · 관문 안에서 E → " + reasons(outL) + " · 매수 의도 "
++        System.out.println("[N15E ④] LIVE 접수 " + intake + " " + intake.at(liveRound) + " · 콜백 직전 E−1ms · 관문 안에서 E → " + reasons(outL) + " · 매수 의도 "
+                 + buys("LIVE", l.getId()).size() + " · 포지션 " + positionRepository.findBySessionKindAndSessionId("LIVE", l.getId()).size()
+                 + " · 가용 " + liveFunds(l.getId()) + " · 거래소 " + exchangeCalls("KRW-CRO") + " · 신호 사유 " + sigL[1]);
+         assertThat(outL.get(0).reason()).contains("ENTRY_EXPIRED");
+@@ -479,18 +502,21 @@ class N15EntryExpiryTest extends IntegrationTestBase {
+         assertThat(exchangeCalls("KRW-CRO")).isZero();
+         assertThat((String) sigL[1]).contains("ENTRY_EXPIRED");
+ 
+-        // DYNAMIC — 승인 관문의 서킷 브레이커 검사 동안 시각이 E 에 닿는다
+-        Instant dynOpen = market("KRW-IOTA", base.minusSeconds(2));
++        // DYNAMIC — 승인 관문의 서킷 브레이커 검사 동안 시각이 E 에 닿는다(실제 시각 기준 자료 — N15GridRounds 설명)
++        Instant dynBase = dynamicData();
++        EntryPriorityRounds rD = isolate();
++        Instant dynOpen = market("KRW-IOTA", dynBase);
+         Instant eDyn = expiryOf(new EntryPriorityRounds.RoundKey("H1", dynOpen));
+         DynamicSessionEntity d = dynamic("KRW-IOTA");
+         fake.set(Instant.now());
+         evaluateDynamic(d);
++        assertThat(rD.openRounds()).as("DYNAMIC 접수").isEqualTo(1);
+         doAnswer(inv -> {
+             fake.set(eDyn);
+             return inv.callRealMethod();
+         }).when(riskManagementService).checkCircuitBreaker(any(DynamicSessionEntity.class));
+         fake.set(eDyn.minusMillis(1));
+-        List<EntryPriorityRounds.Outcome> outD = rounds.processDue(eDyn.minusMillis(1));
++        List<EntryPriorityRounds.Outcome> outD = rD.processDue(eDyn.minusMillis(1));
+         Object[] sigD = signal("DYNAMIC", d.getId(), "KRW-IOTA");
+         System.out.println("[N15E ④] DYNAMIC 콜백 직전 E−1ms · 관문 안에서 E → " + reasons(outD) + " · 매수 의도 "
+                 + buys("DYNAMIC", d.getId()).size() + " · 열린 포지션 " + openPositions("DYNAMIC", d.getId())
+@@ -504,17 +530,19 @@ class N15EntryExpiryTest extends IntegrationTestBase {
+     }
+ 
+     /** ⑤ 계좌 잠금 대기 — 다른 트랜잭션이 잠금을 쥔 동안 E 를 지나면, 잠금을 얻은 뒤 예약 직전에 막힌다. */
+-    @Test
++    @ParameterizedTest(name = "접수 {0}")
++    @EnumSource(N15GridRounds.Intake.class)
+     @DisplayName("⑤ 계좌 잠금 대기 중 E 통과 — 잠금을 얻은 뒤 재검사로 예약·의도 0, 신호에 ENTRY_EXPIRED")
+-    void lockWaitCrossesExpiry() throws Exception {
+-        Instant base = base();
+-        insertCandleData("KRW-BTC", candles(base));
+-        when(marketDataSyncService.fetchWithCache(anyString(), anyString(), anyInt())).thenReturn(candles(base));
+-        Instant lastOpen = market("KRW-CRO", base.minusSeconds(1));
+-        Instant e = expiryOf(new EntryPriorityRounds.RoundKey("H1", lastOpen));
++    void lockWaitCrossesExpiry(N15GridRounds.Intake intake) throws Exception {
++        Instant base = liveGrid();
++        EntryPriorityRounds r = isolate();
++        Instant lastOpen = market("KRW-CRO", base);
++        EntryPriorityRounds.RoundKey round = new EntryPriorityRounds.RoundKey("H1", lastOpen);
++        Instant e = expiryOf(round);
+         LiveTradingSessionEntity l = live("KRW-CRO");
+-        fake.set(Instant.now());
++        fake.set(intake.at(round));
+         evaluateLive(l);
++        assertThat(r.openRounds()).as("LIVE 접수").isEqualTo(1);
+ 
+         ExecutorService pool = Executors.newFixedThreadPool(2);
+         CountDownLatch held = new CountDownLatch(1);
+@@ -535,7 +563,7 @@ class N15EntryExpiryTest extends IntegrationTestBase {
+             Future<List<EntryPriorityRounds.Outcome>> result = pool.submit(() -> {
+                 fake.fakeFor(Thread.currentThread());
+                 approver.set(Thread.currentThread());
+-                return rounds.processDue(e.minusMillis(1));
++                return r.processDue(e.minusMillis(1));
+             });
+             boolean waiting = false;
+             long until = System.currentTimeMillis() + 5_000;
+@@ -550,7 +578,7 @@ class N15EntryExpiryTest extends IntegrationTestBase {
+             holder.get(10, TimeUnit.SECONDS);
+             List<EntryPriorityRounds.Outcome> out = result.get(20, TimeUnit.SECONDS);
+             Object[] sig = signal("LIVE", l.getId(), "KRW-CRO");
+-            System.out.println("[N15E ⑤] 잠금 대기 관측 " + waiting + " · 대기 중 시계 E → " + reasons(out) + " · 매수 의도 "
++            System.out.println("[N15E ⑤] 접수 " + intake + " " + intake.at(round) + " · 잠금 대기 관측 " + waiting + " · 대기 중 시계 E → " + reasons(out) + " · 매수 의도 "
+                     + buys("LIVE", l.getId()).size() + " · 포지션 " + positionRepository.findBySessionKindAndSessionId("LIVE", l.getId()).size()
+                     + " · 가용 " + liveFunds(l.getId()) + " · 신호 사유 " + sig[1]);
+             assertThat(waiting).as("승인 스레드가 계좌 잠금에서 기다렸다").isTrue();
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/N15FinalApprovalBoundaryTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/N15FinalApprovalBoundaryTest.java
+index a383eb6d..efb943d1 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/N15FinalApprovalBoundaryTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/N15FinalApprovalBoundaryTest.java
+@@ -19,6 +19,8 @@ import org.junit.jupiter.api.AfterEach;
+ import org.junit.jupiter.api.BeforeEach;
+ import org.junit.jupiter.api.DisplayName;
+ import org.junit.jupiter.api.Test;
++import org.junit.jupiter.params.ParameterizedTest;
++import org.junit.jupiter.params.provider.EnumSource;
+ import org.springframework.beans.factory.annotation.Autowired;
+ import org.springframework.boot.test.mock.mockito.MockBean;
+ import org.springframework.boot.test.mock.mockito.SpyBean;
+@@ -73,6 +75,10 @@ import static org.mockito.Mockito.when;
+  *
+  * <p>🔴 H2 의 행 잠금으로 PostgreSQL 잠금 동작 전체를 검증한 것은 아니다. (b) 는 "그 refresh 가 기다리는 동안 E 를 지나면 차감 전에
+  * 걸린다" 는 순서만 확인한다.</p>
++ *
++ * <p>🔴 2026-11-12 (총괄 v1.156 §124): 종전 "실제 현재 − 61분 − 초 오프셋 + 613ms" 비정시 봉과 초 오프셋 회차 격리를 걷었다.
++ * LIVE 입력은 정시 격자 봉·회차 키에 접수 시각 두 위치(C+1s·D−1ms)를 시험 시계로 고정하고, 독립 입력마다 새 회차 상태를 쓴다
++ * ({@link N15GridRounds}). DYNAMIC 입력은 제품이 실제 시각을 보므로 실제 시각 기준 자료에 새 회차 상태만 쓴다. 단언은 그대로다.</p>
+  */
+ @DisplayName("N15 최종 승인 경계 — 한도 조회·세션 잠금·의도 승인 중 E 도달 시 차감·의도 없음")
+ class N15FinalApprovalBoundaryTest extends IntegrationTestBase {
+@@ -109,6 +115,7 @@ class N15FinalApprovalBoundaryTest extends IntegrationTestBase {
+     private final List<Long> dynIds = new ArrayList<>();
+     private final List<String> coins = List.of("KRW-INJ", "KRW-CRO", "KRW-IOTA", "KRW-ONG", "KRW-BTC");
+     private final MutableClock fake = new MutableClock(Instant.now());
++    private final List<N15GridRounds.Isolated> isolated = new ArrayList<>();
+ 
+     static final class AlwaysBuy implements Strategy {
+         @Override public String getName() { return STRATEGY; }
+@@ -118,7 +125,10 @@ class N15FinalApprovalBoundaryTest extends IntegrationTestBase {
+         @Override public int getMinimumCandleCount() { return 50; }
+     }
+ 
+-    /** 등록한 스레드에만 가짜 시각을 준다(운영 스케줄러는 실제 시각) — N15EntryExpiryTest 와 같은 방식. */
++    /**
++     * 등록한 스레드에만 가짜 시각을 준다(다른 스레드는 실제 시각) — N15EntryExpiryTest 와 같은 방식. 🔴 2026-11-12 점검: 시험 프로필은
++     * 스케줄러가 꺼져 있다({@link N15GridRounds#assertNoBackgroundScheduler}). 승인은 시험 스레드나 등록한 대기 스레드에서만 돈다.
++     */
+     static final class MutableClock extends Clock {
+         private volatile Instant now;
+         private final java.util.Set<Thread> faked = java.util.concurrent.ConcurrentHashMap.newKeySet();
+@@ -147,10 +157,13 @@ class N15FinalApprovalBoundaryTest extends IntegrationTestBase {
+         limits.setTotalCapKrw(positionRepository.sumPoolExposureKrw(-1L).add(new BigDecimal("1000000")));
+         fake.fakeFor(Thread.currentThread());
+         wireClock(fake);
++        N15GridRounds.assertNoBackgroundScheduler(ctx);
+     }
+ 
+     @AfterEach
+     void tearDown() throws Exception {
++        for (int i = isolated.size() - 1; i >= 0; i--) isolated.get(i).close();
++        isolated.clear();
+         wireClock(null);
+         rounds.setForcedForTest(false);
+         for (Long id : liveIds) {
+@@ -200,15 +213,27 @@ class N15FinalApprovalBoundaryTest extends IntegrationTestBase {
+                 .build()).toList());
+     }
+ 
+-    private static final AtomicInteger BASE_SEQ = new AtomicInteger();
++    /** 독립 입력 하나의 새 회차 상태 — 정리에서 원래 빈으로 되돌린다({@link N15GridRounds.Isolated}). */
++    private EntryPriorityRounds isolate() {
++        if (!isolated.isEmpty()) isolated.get(isolated.size() - 1).close();   // 앞 입력의 회차 상태를 먼저 원래 빈으로 되돌린다
++        N15GridRounds.Isolated i = new N15GridRounds.Isolated(ctx);
++        isolated.add(i);
++        return i.rounds;
++    }
+ 
+-    /**
+-     * 실제 현재 약 61분 전 시작한 봉이 마지막 닫힌 봉(E ≈ 지금 + 8분). 회차 키 충돌을 피하려고 N15EntryExpiryTest(371ms)와 다른 밀리초
+-     * 오프셋(613ms)과 시험마다 다른 초 오프셋을 쓴다.
+-     */
+-    private static Instant base() {
+-        return Instant.now().minus(61, ChronoUnit.MINUTES).truncatedTo(ChronoUnit.SECONDS)
+-                .minusSeconds(19L + 5L * BASE_SEQ.incrementAndGet()).plusMillis(613);
++    /** LIVE 정시 격자 — 거래 코인 L 까지, BTC 는 진행 중 봉 C 까지(DB). 조회 대역은 같은 정시 자료. */
++    private Instant liveGrid() {
++        Instant last = N15GridRounds.gridLastOpen();
++        insertCandleData("KRW-BTC", candles(N15GridRounds.btcLastOpen(last)));
++        when(marketDataSyncService.fetchWithCache(anyString(), anyString(), anyInt())).thenReturn(candles(last));
++        return last;
++    }
++
++    /** DYNAMIC 실제 시각 기준 자료(비정시 — {@link N15GridRounds#dynamicLastOpen}). DYNAMIC 은 캔들을 조회 대역으로만 읽는다(BTC 포함). */
++    private Instant dynamicData() {
++        Instant last = N15GridRounds.dynamicLastOpen();
++        when(marketDataSyncService.fetchWithCache(anyString(), anyString(), anyInt())).thenReturn(candles(last));
++        return last;
+     }
+ 
+     private Instant market(String coin, Instant lastOpen) {
+@@ -294,18 +319,27 @@ class N15FinalApprovalBoundaryTest extends IntegrationTestBase {
+                 .anyMatch(f -> method.equals(f.getMethodName()) && f.getClassName().contains(classPart));
+     }
+ 
+-    /** 세션 하나를 접수하고 회차 E 를 돌려준다. */
+-    private Instant enqueue(String kind, Long id, String coin, Instant lastOpen) {
++    /**
++     * 세션 하나를 그 입력의 회차 상태 {@code r} 에 접수하고 회차 E 를 돌려준다. LIVE 는 시험 시계의 접수 위치({@code intake}),
++     * DYNAMIC 은 제품이 실제 시각으로 접수한다({@code intake} 무시).
++     */
++    private Instant enqueue(EntryPriorityRounds r, String kind, Long id, String coin, Instant lastOpen, N15GridRounds.Intake intake) {
+         market(coin, lastOpen);
+-        fake.set(Instant.now());
+-        if ("LIVE".equals(kind)) evaluateLive(liveRepo.findById(id).orElseThrow());
+-        else evaluateDynamic(dynamicRepo.findById(id).orElseThrow());
+-        assertThat(rounds.openRounds()).as(kind + " " + coin + " 접수").isEqualTo(1);
+-        return expiryOf(new EntryPriorityRounds.RoundKey("H1", lastOpen));
++        EntryPriorityRounds.RoundKey round = new EntryPriorityRounds.RoundKey("H1", lastOpen);
++        if ("LIVE".equals(kind)) {
++            fake.set(intake.at(round));
++            System.out.println("[N15F] LIVE " + coin + " 접수 " + intake + " " + intake.at(round));
++            evaluateLive(liveRepo.findById(id).orElseThrow());
++        } else {
++            fake.set(Instant.now());
++            evaluateDynamic(dynamicRepo.findById(id).orElseThrow());
++        }
++        assertThat(r.openRounds()).as(kind + " " + coin + " 접수").isEqualTo(1);
++        return expiryOf(round);
+     }
+ 
+     /** 만료 거절의 공통 기대 — 원래 가용액·슬롯 0·의도 0·거래소 0·원래 신호에 ENTRY_EXPIRED. */
+-    private void assertExpired(String tag, String kind, Long id, String coin, List<EntryPriorityRounds.Outcome> out,
++    private void assertExpired(EntryPriorityRounds r, String tag, String kind, Long id, String coin, List<EntryPriorityRounds.Outcome> out,
+                                String initial, String stage) {
+         Object[] sig = signal(kind, id, coin);
+         System.out.println("[N15F " + tag + "] " + kind + " " + coin + " → " + reasons(out) + " · 매수 주문(모든 상태) "
+@@ -319,15 +353,14 @@ class N15FinalApprovalBoundaryTest extends IntegrationTestBase {
+         assertThat(exchangeCalls(coin)).as(tag + " 거래소 0").isZero();
+         assertThat(sig[0]).isEqualTo(false);
+         assertThat((String) sig[1]).as(tag + " 원래 신호에 만료 사유").contains(CODE);
+-        assertThat(rounds.openRounds()).as("회차 닫힘").isZero();
+-        assertThat(rounds.processDue(Instant.now().plus(2, ChronoUnit.HOURS))).as("재대기 없음").isEmpty();
++        assertThat(r.openRounds()).as("회차 닫힘").isZero();
++        assertThat(r.processDue(Instant.now().plus(2, ChronoUnit.HOURS))).as("재대기 없음").isEmpty();
+     }
+ 
+     /** (a) 잠금 직후 E−1ms, 손실 한도 검사 중 E. 갈고리는 예약 경로 안에서만 시계를 움직인다. */
+-    private void lossCheckCase(String kind, String coin, String initial) {
+-        Instant base = base();
+-        insertCandleData("KRW-BTC", candles(base));
+-        when(marketDataSyncService.fetchWithCache(anyString(), anyString(), anyInt())).thenReturn(candles(base));
++    private void lossCheckCase(String kind, String coin, String initial, N15GridRounds.Intake intake) {
++        Instant base = "LIVE".equals(kind) ? liveGrid() : dynamicData();
++        EntryPriorityRounds r = isolate();
+         AtomicReference<Instant> target = new AtomicReference<>();
+         AtomicInteger hooked = new AtomicInteger();
+         doAnswer(inv -> {
+@@ -338,37 +371,37 @@ class N15FinalApprovalBoundaryTest extends IntegrationTestBase {
+             return inv.callRealMethod();
+         }).when(poolLossGuard).checkForEntry(any(Instant.class), any());
+         Long id = "LIVE".equals(kind) ? live(coin).getId() : dynamic(coin).getId();
+-        Instant e = enqueue(kind, id, coin, base.minusSeconds(1));
++        Instant e = enqueue(r, kind, id, coin, base, intake);
+         target.set(e);
+         fake.set(e.minusMillis(1));
+-        List<EntryPriorityRounds.Outcome> out = rounds.processDue(e.minusMillis(1));
++        List<EntryPriorityRounds.Outcome> out = r.processDue(e.minusMillis(1));
+         target.set(null);
+         System.out.println("[N15F ⑦] " + kind + " 콜백·잠금 직후 E−1ms, 손실 한도 검사 갈고리 " + hooked.get() + "회 → 시계 " + e);
+         assertThat(hooked.get()).as("갈고리가 예약 경로 안에서 불렸다").isEqualTo(1);
+-        assertExpired("⑦", kind, id, coin, out, initial, "차감 직전");
++        assertExpired(r, "⑦", kind, id, coin, out, initial, "차감 직전");
+     }
+ 
+-    @Test
++    @ParameterizedTest(name = "접수 {0}")
++    @EnumSource(N15GridRounds.Intake.class)
+     @DisplayName("⑦a (a) LIVE 잠금 직후 E−1ms·손실 한도 검사 중 E — 차감·슬롯·의도·거래소 0, 신호에 ENTRY_EXPIRED")
+-    void lossCheckCrossesExpiryLive() {
+-        lossCheckCase("LIVE", "KRW-CRO", "20000");
++    void lossCheckCrossesExpiryLive(N15GridRounds.Intake intake) {
++        lossCheckCase("LIVE", "KRW-CRO", "20000", intake);
+     }
+ 
+     @Test
+     @DisplayName("⑦b (a) DYNAMIC 잠금 직후 E−1ms·손실 한도 검사 중 E — 차감·슬롯·의도·거래소 0, 신호에 ENTRY_EXPIRED")
+     void lossCheckCrossesExpiryDynamic() {
+-        lossCheckCase("DYNAMIC", "KRW-IOTA", "10000");
++        lossCheckCase("DYNAMIC", "KRW-IOTA", "10000", null);
+     }
+ 
+     /** (b) DYNAMIC 예약의 세션 행 refresh 가 다른 트랜잭션의 행 잠금을 기다리는 동안 E — 실제 잠금 대기. */
+     @Test
+     @DisplayName("⑧ (b) DYNAMIC 세션 행 잠금(refresh) 대기 중 E — 차감·슬롯·의도·거래소 0, 신호에 ENTRY_EXPIRED")
+     void dynamicRefreshLockWaitCrossesExpiry() throws Exception {
+-        Instant base = base();
+-        insertCandleData("KRW-BTC", candles(base));
+-        when(marketDataSyncService.fetchWithCache(anyString(), anyString(), anyInt())).thenReturn(candles(base));
++        Instant base = dynamicData();
++        EntryPriorityRounds r = isolate();
+         DynamicSessionEntity d = dynamic("KRW-IOTA");
+-        Instant e = enqueue("DYNAMIC", d.getId(), "KRW-IOTA", base.minusSeconds(1));
++        Instant e = enqueue(r, "DYNAMIC", d.getId(), "KRW-IOTA", base, null);
+ 
+         ExecutorService pool = Executors.newFixedThreadPool(2);
+         CountDownLatch held = new CountDownLatch(1);
+@@ -389,7 +422,7 @@ class N15FinalApprovalBoundaryTest extends IntegrationTestBase {
+             Future<List<EntryPriorityRounds.Outcome>> result = pool.submit(() -> {
+                 fake.fakeFor(Thread.currentThread());
+                 approver.set(Thread.currentThread());
+-                return rounds.processDue(e.minusMillis(1));
++                return r.processDue(e.minusMillis(1));
+             });
+             boolean waiting = false;
+             String where = "";
+@@ -412,7 +445,7 @@ class N15FinalApprovalBoundaryTest extends IntegrationTestBase {
+             List<EntryPriorityRounds.Outcome> out = result.get(20, TimeUnit.SECONDS);
+             System.out.println("[N15F ⑧] 예약 refresh 잠금 대기 관측 " + waiting + " " + where + " · 대기 중 시계 E " + e);
+             assertThat(waiting).as("승인 스레드가 예약의 세션 refresh 에서 기다렸다").isTrue();
+-            assertExpired("⑧", "DYNAMIC", d.getId(), "KRW-IOTA", out, "10000", "차감 직전");
++            assertExpired(r, "⑧", "DYNAMIC", d.getId(), "KRW-IOTA", out, "10000", "차감 직전");
+         } finally {
+             release.countDown();
+             pool.shutdownNow();
+@@ -420,10 +453,9 @@ class N15FinalApprovalBoundaryTest extends IntegrationTestBase {
+     }
+ 
+     /** (c) 예약(차감) 뒤 의도 승인 조회 중 E. 차감이 정확히 되돌려지고 의도·슬롯이 남지 않는다. */
+-    private void intentGateCase(String kind, String coin, String initial) {
+-        Instant base = base();
+-        insertCandleData("KRW-BTC", candles(base));
+-        when(marketDataSyncService.fetchWithCache(anyString(), anyString(), anyInt())).thenReturn(candles(base));
++    private void intentGateCase(String kind, String coin, String initial, N15GridRounds.Intake intake) {
++        Instant base = "LIVE".equals(kind) ? liveGrid() : dynamicData();
++        EntryPriorityRounds r = isolate();
+         AtomicReference<Instant> target = new AtomicReference<>();
+         AtomicInteger hooked = new AtomicInteger();
+         doAnswer(inv -> {
+@@ -434,35 +466,34 @@ class N15FinalApprovalBoundaryTest extends IntegrationTestBase {
+             return inv.callRealMethod();
+         }).when(riskManagementService).hasRiskConfig();
+         Long id = "LIVE".equals(kind) ? live(coin).getId() : dynamic(coin).getId();
+-        Instant e = enqueue(kind, id, coin, base.minusSeconds(1));
++        Instant e = enqueue(r, kind, id, coin, base, intake);
+         target.set(e);
+         fake.set(e.minusMillis(1));
+-        List<EntryPriorityRounds.Outcome> out = rounds.processDue(e.minusMillis(1));
++        List<EntryPriorityRounds.Outcome> out = r.processDue(e.minusMillis(1));
+         target.set(null);
+         System.out.println("[N15F ⑨] " + kind + " 예약 통과(E−1ms) 뒤 의도 승인 조회 갈고리 " + hooked.get() + "회 → 시계 " + e);
+         assertThat(hooked.get()).as("갈고리가 의도 승인 안에서 불렸다").isEqualTo(1);
+-        assertExpired("⑨", kind, id, coin, out, initial, "의도 직전");
++        assertExpired(r, "⑨", kind, id, coin, out, initial, "의도 직전");
+     }
+ 
+-    @Test
++    @ParameterizedTest(name = "접수 {0}")
++    @EnumSource(N15GridRounds.Intake.class)
+     @DisplayName("⑨a (c) LIVE 차감 뒤 의도 승인 조회 중 E — 가용 원복·슬롯·의도·거래소 0, 신호에 ENTRY_EXPIRED")
+-    void intentGateCrossesExpiryLive() {
+-        intentGateCase("LIVE", "KRW-CRO", "20000");
++    void intentGateCrossesExpiryLive(N15GridRounds.Intake intake) {
++        intentGateCase("LIVE", "KRW-CRO", "20000", intake);
+     }
+ 
+     @Test
+     @DisplayName("⑨b (c) DYNAMIC 차감 뒤 의도 승인 조회 중 E — 가용 원복·열린 슬롯·의도·거래소 0, 신호에 ENTRY_EXPIRED")
+     void intentGateCrossesExpiryDynamic() {
+-        intentGateCase("DYNAMIC", "KRW-IOTA", "10000");
++        intentGateCase("DYNAMIC", "KRW-IOTA", "10000", null);
+     }
+ 
+     /** ⑩ 대조군 — 같은 두 지점에 갈고리가 불리지만 시계는 E−1ms 그대로: 정상 진입(차감·슬롯·의도 1). */
+-    @Test
++    @ParameterizedTest(name = "LIVE 접수 {0}")
++    @EnumSource(N15GridRounds.Intake.class)
+     @DisplayName("⑩ 대조군: 갈고리 지점을 지나도 시계가 E−1ms 면 LIVE·DYNAMIC 정상 진입 — 차감·슬롯·매수 의도 1")
+-    void controlBeforeExpiryEnters() {
+-        Instant base = base();
+-        insertCandleData("KRW-BTC", candles(base));
+-        when(marketDataSyncService.fetchWithCache(anyString(), anyString(), anyInt())).thenReturn(candles(base));
++    void controlBeforeExpiryEnters(N15GridRounds.Intake intake) {
+         AtomicInteger lossHook = new AtomicInteger();
+         AtomicInteger intentHook = new AtomicInteger();
+         doAnswer(inv -> {
+@@ -477,11 +508,13 @@ class N15FinalApprovalBoundaryTest extends IntegrationTestBase {
+         String[][] cases = {{"LIVE", "KRW-CRO", "15000"}, {"DYNAMIC", "KRW-IOTA", "2000"}};
+         for (int i = 0; i < cases.length; i++) {
+             String kind = cases[i][0], coin = cases[i][1];
++            Instant base = "LIVE".equals(kind) ? liveGrid() : dynamicData();
++            EntryPriorityRounds r = isolate();
+             Long id = "LIVE".equals(kind) ? live(coin).getId() : dynamic(coin).getId();
+-            Instant e = enqueue(kind, id, coin, base.minusSeconds(i + 1L));
++            Instant e = enqueue(r, kind, id, coin, base, intake);
+             int l0 = lossHook.get(), i0 = intentHook.get();
+             fake.set(e.minusMillis(1));
+-            List<EntryPriorityRounds.Outcome> out = rounds.processDue(e.minusMillis(1));
++            List<EntryPriorityRounds.Outcome> out = r.processDue(e.minusMillis(1));
+             List<OrderEntity> b = buys(kind, id);
+             System.out.println("[N15F ⑩] " + kind + " " + coin + " E−1ms 유지 · 손실 갈고리 " + (lossHook.get() - l0) + " · 의도 갈고리 "
+                     + (intentHook.get() - i0) + " → " + reasons(out) + " · 매수 의도 " + b.size()
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/N15GridRounds.java b/web-api/src/test/java/com/cryptoautotrader/api/service/N15GridRounds.java
+new file mode 100644
+index 00000000..9d5d9ee2
+--- /dev/null
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/N15GridRounds.java
+@@ -0,0 +1,115 @@
++package com.cryptoautotrader.api.service;
++
++import com.cryptoautotrader.api.util.TimeframeUtils;
++import org.springframework.context.ApplicationContext;
++import org.springframework.test.util.AopTestUtils;
++import org.springframework.test.util.ReflectionTestUtils;
++
++import java.time.Duration;
++import java.time.Instant;
++import java.time.temporal.ChronoUnit;
++import java.util.ArrayList;
++import java.util.List;
++
++import static org.assertj.core.api.Assertions.assertThat;
++
++/**
++ * N15 세 시험(N15EntryExpiryTest·N15FinalApprovalBoundaryTest·N15PgLockWaitExpiryTest) 공용 준비 — 시험 전용 (총괄 v1.156 §124, 2026-11-12).
++ *
++ * <p>🔴 종전 준비는 마지막 봉을 "실제 현재 − 61분 − 초 오프셋 + 밀리초" 로 두었다. 두 가지가 틀렸다.</p>
++ * <ol>
++ *   <li><b>비정시 봉.</b> B01 뒤 LIVE 는 캔들 조회 상한·최신성을 공통 시계({@link EntryClock})로 본다. 승인 시각 E−1ms 의 정시가
++ *       봉 시작 + 2시간으로 넘어가면(실행 시각의 분이 늦을 때) "필요 다음 정시 이후" 로 최신성에서 막혀, 만료 방어에 닿기 전에
++ *       거절됐다(12:54·12:57 실행 실패 원문, 총괄 고정 시각 탐침 5/5). 운영 H1 봉은 언제나 정시에 시작한다.</li>
++ *   <li><b>초 오프셋 회차 격리.</b> 회차 키는 (타임프레임, 봉 시작)뿐이고 닫힌 회차는 2일 남는다. "순번 × 5초" 오프셋은 앞 시험이
++ *       5초 걸리면 실제 경과와 상쇄돼 앞 시험의 닫힌 키와 같아졌다(2026-11-12 ② DYNAMIC "접수 0" — ⑤ 시작 12:54:15, ② 12:54:20,
++ *       두 base 가 같은 초).</li>
++ * </ol>
++ *
++ * <p>여기서는 (1) LIVE 입력의 거래 코인·BTC 자료와 회차 키를 정시 격자에 두고 접수·승인 시각은 시험 시계로 고정하며,
++ * (2) 독립 입력마다 <b>새 회차 상태</b>({@link EntryPriorityRounds} 새 인스턴스)를 엔진에 꽂았다가 되돌린다. 닫힌 회차를 다시 열거나
++ * 지우지 않는다 — 원래 빈의 회차 상태는 손대지 않는다. 제품 코드·만료/마감/유예/최신성 규칙은 그대로다.</p>
++ *
++ * <p>🔴 스케줄러: 시험 프로필은 {@code app.scheduling.enabled=false} 라 {@code processDueRounds} 가 돌지 않는다(2026-10-13). 새 회차
++ * 상태는 빈이 아니어서 켜진 프로필에서도 스케줄러가 가져갈 수 없다. {@link #assertNoBackgroundScheduler} 로 확인한다.</p>
++ *
++ * <p>🔴 남는 실제 시각 의존(제품): LIVE BTC 급락 관문의 최신성은 실제 시각이다(B01 접점 아님). 그래서 격자는 실제 현재의 정시에
++ * 맞추고(L = 지금 정시 − 1시간, C = 지금 정시), BTC 자료는 진행 중 봉 C 까지 둔다(운영 DB 와 같다) — 시험 중 실제 정시가 바뀌어도
++ * BTC 는 최신이다. DYNAMIC 은 접수·최신성·BTC 판정이 모두 실제 시각이라 정시 격자 회차는 실제 시각이 C~D(매시 0~5분)일 때만
++ * 접수된다. DYNAMIC 을 정시로 옮기려면 DYNAMIC 제품 시계 접점이 필요하다 — 이번 수정 범위 밖(v1.156 §124-2)이라 분리 제출하고,
++ * DYNAMIC 입력은 실제 시각 기준 자료({@link #dynamicLastOpen})에 새 회차 상태만 쓴다.</p>
++ */
++final class N15GridRounds {
++
++    private N15GridRounds() { }
++
++    /** LIVE 접수 시각 두 위치 — 회차 마감 C 직후(C+1s)와 접수 마감 직전(D−1ms). 벽시계의 분을 기다리지 않는다. */
++    enum Intake {
++        EARLY, LATE;
++
++        Instant at(EntryPriorityRounds.RoundKey r) {
++            Instant close = r.candleOpenTime().plus(Duration.ofMinutes(TimeframeUtils.toMinutes(r.timeframe())));
++            return this == EARLY ? close.plusSeconds(1) : EntryPriorityRounds.deadline(r).minusMillis(1);
++        }
++    }
++
++    /** LIVE 정시 회차의 마지막 닫힌 봉 시작 L = 실제 현재 정시 − 1시간 (C = 실제 현재 정시). */
++    static Instant gridLastOpen() {
++        return Instant.now().truncatedTo(ChronoUnit.HOURS).minus(1, ChronoUnit.HOURS);
++    }
++
++    /** BTC 자료 마지막 봉 — 진행 중 봉 C(= L + 1시간). LIVE BTC 관문이 실제 시각으로 최신성을 보기 때문(위 설명). */
++    static Instant btcLastOpen(Instant gridLastOpen) {
++        return gridLastOpen.plus(1, ChronoUnit.HOURS);
++    }
++
++    /**
++     * DYNAMIC 입력의 마지막 닫힌 봉 — 실제 현재 61분 전(비정시). DYNAMIC 은 제품이 실제 시각으로 접수·최신성을 보므로 정시 격자는
++     * 접점 없이는 불가하다(위 설명, 분리 제출). 회차 격리는 오프셋이 아니라 새 회차 상태로 한다.
++     */
++    static Instant dynamicLastOpen() {
++        return Instant.now().minus(61, ChronoUnit.MINUTES);
++    }
++
++    /** 시험 프로필에서 스케줄러가 꺼져 있음을 확인한다 — 시험이 직접 {@code processDue} 를 구동한다. */
++    static void assertNoBackgroundScheduler(ApplicationContext ctx) {
++        assertThat(ctx.getEnvironment().getProperty("app.scheduling.enabled")).as("시험 프로필 스케줄러 꺼짐").isEqualTo("false");
++        assertThat(ctx.getBeanNamesForType(org.springframework.scheduling.annotation.ScheduledAnnotationBeanPostProcessor.class))
++                .as("@Scheduled 처리기 없음 — processDueRounds 가 배경에서 돌지 않는다").isEmpty();
++    }
++
++    /**
++     * 독립 입력 하나의 회차 상태 — 새 {@link EntryPriorityRounds} 를 LIVE·DYNAMIC·PAPER 엔진에 꽂고 {@link #close} 에서 원래 빈으로
++     * 되돌린다(되돌림 확인). 원래 빈의 열린/닫힌 회차는 건드리지 않는다. 한 번에 하나만 꽂는다 — 다음 입력 전에 앞 것을 닫는다
++     * (꽂을 때 엔진이 원래 빈을 가리키는지 확인한다).
++     */
++    static final class Isolated implements AutoCloseable {
++        final EntryPriorityRounds rounds;
++        private final EntryPriorityRounds original;
++        private final List<Object> targets = new ArrayList<>();
++        private boolean closed;
++
++        Isolated(ApplicationContext ctx) {
++            this.original = ctx.getBean(EntryPriorityRounds.class);
++            this.rounds = new EntryPriorityRounds(ctx.getBean(CapitalPoolLimits.class), ctx.getBean(EntryClock.class));
++            this.rounds.setForcedForTest(true);
++            for (Class<?> k : List.of(LiveTradingService.class, DynamicTradingService.class, PaperTradingService.class)) {
++                Object target = AopTestUtils.getUltimateTargetObject(ctx.getBean(k));
++                assertThat(ReflectionTestUtils.getField(target, "entryPriorityRounds")).as(k.getSimpleName() + " 원래 회차 빈").isSameAs(original);
++                ReflectionTestUtils.setField(target, "entryPriorityRounds", rounds);
++                targets.add(target);
++            }
++        }
++
++        /** 한 번만 되돌린다. 닫은 뒤에도 {@link #rounds} 자체({@code processDue}·{@code openRounds})는 시험이 계속 볼 수 있다. */
++        @Override
++        public void close() {
++            if (closed) return;
++            closed = true;
++            for (Object target : targets) {
++                ReflectionTestUtils.setField(target, "entryPriorityRounds", original);
++                assertThat(ReflectionTestUtils.getField(target, "entryPriorityRounds")).as("회차 빈 복원").isSameAs(original);
++            }
++        }
++    }
++}
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/N15PgLockWaitExpiryTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/N15PgLockWaitExpiryTest.java
+index cfbd946f..558ffd36 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/N15PgLockWaitExpiryTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/N15PgLockWaitExpiryTest.java
+@@ -18,6 +18,8 @@ import org.junit.jupiter.api.AfterEach;
+ import org.junit.jupiter.api.BeforeEach;
+ import org.junit.jupiter.api.DisplayName;
+ import org.junit.jupiter.api.Test;
++import org.junit.jupiter.params.ParameterizedTest;
++import org.junit.jupiter.params.provider.EnumSource;
+ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+ import org.springframework.beans.factory.annotation.Autowired;
+ import org.springframework.boot.test.context.SpringBootTest;
+@@ -49,7 +51,6 @@ import java.util.concurrent.ExecutorService;
+ import java.util.concurrent.Executors;
+ import java.util.concurrent.Future;
+ import java.util.concurrent.TimeUnit;
+-import java.util.concurrent.atomic.AtomicInteger;
+ import java.util.concurrent.atomic.AtomicLong;
+ import java.util.concurrent.atomic.AtomicReference;
+ 
+@@ -74,6 +75,10 @@ import static org.mockito.Mockito.when;
+  * </ul>
+  * <p>기대(①②): 원래 가용액·열린 슬롯 0·매수 의도(모든 상태) 0·거래소 0·원래 신호에 {@code ENTRY_EXPIRED}. 제품에 새 시계·트랜잭션·잠금
+  * 정책을 만들지 않는다. 환경 변수 {@code N15_PG_URL} 이 있을 때만 돈다(기본 H2 시험에서는 건너뜀). 대상은 격리 DB 여야 한다.</p>
++ *
++ * <p>🔴 2026-11-12 (총괄 v1.156 §124): 종전 "실제 현재 − 61분 − 초 오프셋 + 829ms" 비정시 봉과 초 오프셋 회차 격리를 걷었다.
++ * LIVE 입력(①③)은 정시 격자 봉·회차 키에 접수 시각 두 위치(C+1s·D−1ms)를 시험 시계로 고정하고, 독립 입력마다 새 회차 상태를 쓴다
++ * ({@link N15GridRounds}). DYNAMIC 입력(②④)은 제품이 실제 시각을 보므로 실제 시각 기준 자료에 새 회차 상태만 쓴다. 단언은 그대로다.</p>
+  */
+ @EnabledIfEnvironmentVariable(named = "N15_PG_URL", matches = ".+")
+ @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, properties = {
+@@ -128,6 +133,7 @@ class N15PgLockWaitExpiryTest {
+     private final List<Long> dynIds = new ArrayList<>();
+     private final List<String> coins = List.of("KRW-CRO", "KRW-IOTA", "KRW-BTC");
+     private final MutableClock fake = new MutableClock(Instant.now());
++    private final List<N15GridRounds.Isolated> isolated = new ArrayList<>();
+ 
+     static final class AlwaysBuy implements Strategy {
+         @Override public String getName() { return STRATEGY; }
+@@ -137,7 +143,10 @@ class N15PgLockWaitExpiryTest {
+         @Override public int getMinimumCandleCount() { return 50; }
+     }
+ 
+-    /** 등록한 스레드에만 가짜 시각을 준다 — {@link N15FinalApprovalBoundaryTest} 와 같은 방식. */
++    /**
++     * 등록한 스레드에만 가짜 시각을 준다 — {@link N15FinalApprovalBoundaryTest} 와 같은 방식. 🔴 2026-11-12 점검: 시험 프로필은 스케줄러가
++     * 꺼져 있다({@link N15GridRounds#assertNoBackgroundScheduler}). 승인은 시험 스레드나 등록한 대기 스레드에서만 돈다.
++     */
+     static final class MutableClock extends Clock {
+         private volatile Instant now;
+         private final java.util.Set<Thread> faked = java.util.concurrent.ConcurrentHashMap.newKeySet();
+@@ -168,10 +177,13 @@ class N15PgLockWaitExpiryTest {
+         limits.setTotalCapKrw(positionRepository.sumPoolExposureKrw(-1L).add(new BigDecimal("1000000")));
+         fake.fakeFor(Thread.currentThread());
+         wireClock(fake);
++        N15GridRounds.assertNoBackgroundScheduler(ctx);
+     }
+ 
+     @AfterEach
+     void tearDown() throws Exception {
++        for (int i = isolated.size() - 1; i >= 0; i--) isolated.get(i).close();
++        isolated.clear();
+         wireClock(null);
+         rounds.setForcedForTest(false);
+         drain(orderExecutor);       // 매수 의도 뒤 비동기 주문 처리(trade_log 기록)가 끝난 뒤 지운다
+@@ -242,12 +254,12 @@ class N15PgLockWaitExpiryTest {
+                 .build()).toList());
+     }
+ 
+-    private static final AtomicInteger BASE_SEQ = new AtomicInteger();
+-
+-    /** 실제 현재 약 61분 전 시작한 봉이 마지막 닫힌 봉(E ≈ 지금 + 8분). 시험마다 다른 초·밀리초 오프셋으로 회차 키 충돌을 피한다. */
+-    private static Instant base() {
+-        return Instant.now().minus(61, ChronoUnit.MINUTES).truncatedTo(ChronoUnit.SECONDS)
+-                .minusSeconds(23L + 7L * BASE_SEQ.incrementAndGet()).plusMillis(829);
++    /** 독립 입력 하나의 새 회차 상태 — 정리에서 원래 빈으로 되돌린다({@link N15GridRounds.Isolated}). */
++    private EntryPriorityRounds isolate() {
++        if (!isolated.isEmpty()) isolated.get(isolated.size() - 1).close();   // 앞 입력의 회차 상태를 먼저 원래 빈으로 되돌린다
++        N15GridRounds.Isolated i = new N15GridRounds.Isolated(ctx);
++        isolated.add(i);
++        return i.rounds;
+     }
+ 
+     private LiveTradingSessionEntity live(String coin) {
+@@ -274,12 +286,21 @@ class N15PgLockWaitExpiryTest {
+         return s;
+     }
+ 
+-    /** 세션 하나를 접수하고 회차 E 를 돌려준다. */
+-    private Instant enqueue(String kind, Long id, String coin, Instant lastOpen) {
++    /**
++     * 세션 하나를 그 입력의 회차 상태 {@code r} 에 접수하고 회차 E 를 돌려준다. LIVE 는 시험 시계의 접수 위치({@code intake}),
++     * DYNAMIC 은 제품이 실제 시각으로 접수한다({@code intake} 무시).
++     */
++    private Instant enqueue(EntryPriorityRounds r, String kind, Long id, String coin, Instant lastOpen, N15GridRounds.Intake intake) {
+         List<Candle> cs = candles(lastOpen);
+         insertCandleData(coin, cs);
+         when(marketDataSyncService.fetchWithCache(eq(coin), anyString(), anyInt())).thenReturn(cs);
+-        fake.set(Instant.now());
++        EntryPriorityRounds.RoundKey round = new EntryPriorityRounds.RoundKey("H1", lastOpen);
++        if ("LIVE".equals(kind)) {
++            fake.set(intake.at(round));
++            System.out.println("[N15PG] LIVE " + coin + " 접수 " + intake + " " + intake.at(round));
++        } else {
++            fake.set(Instant.now());
++        }
+         if ("LIVE".equals(kind)) {
+             Object target = AopTestUtils.getUltimateTargetObject(liveTradingService);
+             ReflectionTestUtils.invokeMethod(target, "evaluateAndExecuteSession",
+@@ -287,8 +308,8 @@ class N15PgLockWaitExpiryTest {
+         } else {
+             dynamicTradingService.processTick(dynamicRepo.findById(id).orElseThrow());
+         }
+-        assertThat(rounds.openRounds()).as(kind + " " + coin + " 접수").isEqualTo(1);
+-        return expiryOf(new EntryPriorityRounds.RoundKey("H1", lastOpen));
++        assertThat(r.openRounds()).as(kind + " " + coin + " 접수").isEqualTo(1);
++        return expiryOf(round);
+     }
+ 
+     private List<OrderEntity> buys(String kind, Long id) {
+@@ -361,15 +382,16 @@ class N15PgLockWaitExpiryTest {
+     }
+ 
+     /** 실행 결과 묶음. */
+-    record Run(List<EntryPriorityRounds.Outcome> out, LockWait lockWait, Instant expiry) { }
++    record Run(List<EntryPriorityRounds.Outcome> out, LockWait lockWait, Instant expiry, EntryPriorityRounds rounds) { }
+ 
+     /**
+      * 다른 트랜잭션이 {@code lockSql} 로 행을 쥔 동안 승인 스레드가 E−1ms 로 회차를 처리하게 하고, 실제 잠금 대기를 확인한 뒤
+      * {@code moveToE} 면 시계를 E 로 움직이고 잠금을 푼다.
+      */
+-    private Run runWithHeldLock(String kind, Long id, String coin, Instant lastOpen, String lockSql, Object lockArg,
+-                                String table, String frame, boolean moveToE) throws Exception {
+-        Instant e = enqueue(kind, id, coin, lastOpen);
++    private Run runWithHeldLock(String kind, Long id, String coin, Instant lastOpen, N15GridRounds.Intake intake, String lockSql,
++                                Object lockArg, String table, String frame, boolean moveToE) throws Exception {
++        EntryPriorityRounds r = isolate();
++        Instant e = enqueue(r, kind, id, coin, lastOpen, intake);
+         ExecutorService pool = Executors.newFixedThreadPool(2);
+         CountDownLatch held = new CountDownLatch(1);
+         CountDownLatch release = new CountDownLatch(1);
+@@ -392,7 +414,7 @@ class N15PgLockWaitExpiryTest {
+             Future<List<EntryPriorityRounds.Outcome>> result = pool.submit(() -> {
+                 fake.fakeFor(Thread.currentThread());
+                 approver.set(Thread.currentThread());
+-                return rounds.processDue(e.minusMillis(1));
++                return r.processDue(e.minusMillis(1));
+             });
+             while (approver.get() == null) Thread.sleep(1);
+             LockWait w = awaitLockWait(table, holderPid.get(), approver.get(), frame);
+@@ -406,7 +428,7 @@ class N15PgLockWaitExpiryTest {
+                     + " · 시계 " + (moveToE ? "E " + e : "E−1ms 유지") + " → " + reasons(out) + " · 매수 의도 " + buys(kind, id).size()
+                     + " · 열린 슬롯 " + openPositions(kind, id) + " · 가용 " + funds(kind, id) + " · 거래소 " + exchangeCalls(coin)
+                     + " · 신호 " + Arrays.toString(signal(kind, id, coin)));
+-            return new Run(out, w, e);
++            return new Run(out, w, e, r);
+         } finally {
+             release.countDown();
+             pool.shutdownNow();
+@@ -424,8 +446,8 @@ class N15PgLockWaitExpiryTest {
+         Object[] sig = signal(kind, id, coin);
+         assertThat(sig[0]).isEqualTo(false);
+         assertThat((String) sig[1]).as(tag + " 원래 신호에 만료 사유").contains(CODE);
+-        assertThat(rounds.openRounds()).as("회차 닫힘").isZero();
+-        assertThat(rounds.processDue(Instant.now().plus(2, ChronoUnit.HOURS))).as("재대기 없음").isEmpty();
++        assertThat(r.rounds().openRounds()).as("회차 닫힘").isZero();
++        assertThat(r.rounds().processDue(Instant.now().plus(2, ChronoUnit.HOURS))).as("재대기 없음").isEmpty();
+     }
+ 
+     private void assertEntered(String tag, String kind, Long id, String coin, Run r, String after) {
+@@ -437,51 +459,59 @@ class N15PgLockWaitExpiryTest {
+         assertThat(funds(kind, id)).as(tag + " 차감").isEqualByComparingTo(after);
+     }
+ 
+-    private void btc(Instant base) {
+-        insertCandleData("KRW-BTC", candles(base));
+-        when(marketDataSyncService.fetchWithCache(anyString(), anyString(), anyInt())).thenReturn(candles(base));
++    /** LIVE 정시 격자 — 거래 코인 L 까지, BTC 는 진행 중 봉 C 까지(DB). 조회 대역은 같은 정시 자료. */
++    private Instant liveGrid() {
++        Instant last = N15GridRounds.gridLastOpen();
++        insertCandleData("KRW-BTC", candles(N15GridRounds.btcLastOpen(last)));
++        when(marketDataSyncService.fetchWithCache(anyString(), anyString(), anyInt())).thenReturn(candles(last));
++        return last;
++    }
++
++    /** DYNAMIC 실제 시각 기준 자료(비정시 — {@link N15GridRounds#dynamicLastOpen}). DYNAMIC 은 캔들을 조회 대역으로만 읽는다(BTC 포함). */
++    private Instant dynamicData() {
++        Instant last = N15GridRounds.dynamicLastOpen();
++        when(marketDataSyncService.fetchWithCache(anyString(), anyString(), anyInt())).thenReturn(candles(last));
++        return last;
+     }
+ 
+     private static final String ACCOUNT_LOCK = "SELECT id FROM account_capital_lock WHERE id = 1 FOR UPDATE";
+     private static final String SESSION_LOCK = "SELECT status FROM dynamic_session WHERE id = ? FOR UPDATE";
+ 
+-    @Test
++    @ParameterizedTest(name = "접수 {0}")
++    @EnumSource(N15GridRounds.Intake.class)
+     @DisplayName("① LIVE 계좌 잠금 행(account_capital_lock) 실제 대기 중 E — '잠금 뒤' ENTRY_EXPIRED, 가용 20000·슬롯·의도·거래소 0")
+-    void liveAccountLockWaitCrossesExpiry() throws Exception {
+-        Instant base = base();
+-        btc(base);
++    void liveAccountLockWaitCrossesExpiry(N15GridRounds.Intake intake) throws Exception {
++        Instant base = liveGrid();
+         Long id = live("KRW-CRO").getId();
+-        Run r = runWithHeldLock("LIVE", id, "KRW-CRO", base.minusSeconds(1), ACCOUNT_LOCK, null, "account_capital_lock", "lockAccount", true);
++        Run r = runWithHeldLock("LIVE", id, "KRW-CRO", base, intake, ACCOUNT_LOCK, null, "account_capital_lock", "lockAccount", true);
+         assertExpired("①", "LIVE", id, "KRW-CRO", r, "20000", "잠금 뒤");
+     }
+ 
+     @Test
+     @DisplayName("② DYNAMIC 세션 행(dynamic_session) refresh 실제 대기 중 E — '차감 직전' ENTRY_EXPIRED, 가용 10000·슬롯·의도·거래소 0")
+     void dynamicSessionRowLockWaitCrossesExpiry() throws Exception {
+-        Instant base = base();
+-        btc(base);
++        Instant base = dynamicData();
+         Long id = dynamic("KRW-IOTA").getId();
+-        Run r = runWithHeldLock("DYNAMIC", id, "KRW-IOTA", base.minusSeconds(1), SESSION_LOCK, id, "dynamic_session", "refresh", true);
++        Run r = runWithHeldLock("DYNAMIC", id, "KRW-IOTA", base, null, SESSION_LOCK, id, "dynamic_session", "refresh", true);
+         assertExpired("②", "DYNAMIC", id, "KRW-IOTA", r, "10000", "차감 직전");
+     }
+ 
+-    @Test
++    @ParameterizedTest(name = "접수 {0}")
++    @EnumSource(N15GridRounds.Intake.class)
+     @DisplayName("③ 대조군 LIVE 같은 계좌 잠금 실제 대기, 시계 E−1ms 유지 → 정상 진입(차감 20000→15000·슬롯·매수 의도 1)")
+-    void controlLiveAccountLockWaitEnters() throws Exception {
+-        Instant base = base();
+-        btc(base);
++    void controlLiveAccountLockWaitEnters(N15GridRounds.Intake intake) throws Exception {
++        Instant base = liveGrid();
+         Long id = live("KRW-CRO").getId();
+-        Run r = runWithHeldLock("LIVE", id, "KRW-CRO", base.minusSeconds(1), ACCOUNT_LOCK, null, "account_capital_lock", "lockAccount", false);
++        Run r = runWithHeldLock("LIVE", id, "KRW-CRO", base, intake, ACCOUNT_LOCK, null, "account_capital_lock", "lockAccount", false);
+         assertEntered("③", "LIVE", id, "KRW-CRO", r, "15000");
+     }
+ 
+     @Test
+     @DisplayName("④ 대조군 DYNAMIC 같은 세션 행 실제 대기, 시계 E−1ms 유지 → 정상 진입(차감 10000→2000·슬롯·매수 의도 1)")
+     void controlDynamicSessionRowLockWaitEnters() throws Exception {
+-        Instant base = base();
+-        btc(base);
++        Instant base = dynamicData();
+         Long id = dynamic("KRW-IOTA").getId();
+-        Run r = runWithHeldLock("DYNAMIC", id, "KRW-IOTA", base.minusSeconds(1), SESSION_LOCK, id, "dynamic_session", "refresh", false);
++        Run r = runWithHeldLock("DYNAMIC", id, "KRW-IOTA", base, null, SESSION_LOCK, id, "dynamic_session", "refresh", false);
+         assertEntered("④", "DYNAMIC", id, "KRW-IOTA", r, "2000");
+     }
+ }
+-- 
+2.51.1.windows.1
+

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest" tests="6" skipped="0" failures="1" errors="0" timestamp="2026-11-12T02:27:07" hostname="DESKTOP-SF1KUQ5" time="0.067">
+  <properties/>
+  <testcase name="페이퍼 분기가 허용 목록 밖으로 늘어나지 않는다 — 새 분기는 사람이 판단할 것" classname="com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest" time="0.041"/>
+  <testcase name="&#x1f534; 노출 상한에 페이퍼 예외가 없다 — 08-25 면제를 08-30 철회했다" classname="com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest" time="0.008"/>
+  <testcase name="&#x1f534; WF 게이트에 페이퍼 예외가 없다 — 08-25 면제를 08-31 철회했다" classname="com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest" time="0.003"/>
+  <testcase name="SL 미점검 워치독이 페이퍼도 감시한다 — 감시가 멈추면 실전 예측력이 사라진다" classname="com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest" time="0.002"/>
+  <testcase name="&#x1f534; WS 실시간 SL/TP 감시가 페이퍼에도 열려 있다 — 08-31 해소" classname="com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest" time="0.008">
+    <failure message="java.lang.AssertionError: [페이퍼 포지션은 session_kind='DYN_PAPER' 라 SESSION_KIND 로는 안 잡힌다] &#13;&#10;Expecting actual:&#13;&#10;  &quot;doOnRealtimePriceEvent(RealtimePriceEvent event) {&#10;        String coinCode = event.getCoinCode();&#10;        BigDecimal price = event.getPrice();&#10;        long now = System.currentTimeMillis();&#10;&#10;        // &#x1f534; N02 (2026-11-01): 관측 시각이 유효기간을 넘은 가격은 현재가가 아니다 — LIVE 처리기·시세 장부와 같은 정의.&#10;        //    점검 간격·SL 점검 시각을 남기기 전에 버린다.&#10;        if (markPriceBook != null &amp;&amp; markPriceBook.isStale(event.getObservedAt(), Instant.now())) {&#10;            log.debug(&quot;[Dynamic] 낡은 실시간 시세 무시: {} {} 관측 {}&quot;, coinCode, price, event.getObservedAt());&#10;            return;&#10;        }&#10;&#10;        // &#x1f534; N16 (2026-11-05): 가격이 아닌 값(null·0·음수)은 버린다 — 시세 장부와 같은 정의({@link MarkPriceBook#isPrice}).&#10;        //    0 은 '손절가 이하'로 읽혀 보호 매도를 냈고, null 은 이력·점검 시각을 오염시켜 다음 정상 가격의 점검을 막거나 가렸다.&#10;        //    운영 웹소켓 파서는 체결가가 없는 ticker 를 0 으로 메운다. 이력·점검 간격·SL 점검 시각을 남기기 전에 버린다.&#10;        if (!MarkPriceBook.isPrice(price)) {&#10;            log.warn(&quot;[Dynamic] 가격이 아닌 실시간 시세 무시: {} {} 관측 {} 출처 {}&quot;, coinCode, price, event.getObservedAt(), event.getSource());&#10;            return;&#10;        }&#10;&#10;        BigDecimal prevValid = rtLastValidPrice.put(coinCode, price);&#10;        BigDecimal floor = rtProtectFloor.get(coinCode);&#10;        BigDecimal ceiling = rtProtectCeiling.get(coinCode);&#10;        boolean firstCross = (floor != null &amp;&amp; price.compareTo(floor) &lt;= 0 &amp;&amp; (prevValid == null || prevValid.compareTo(floor) &gt; 0))&#10;                || (ceiling != null &amp;&amp; price.compareTo(ceiling) &gt;= 0 &amp;&amp; (prevValid == null || prevValid.compareTo(ceiling) &lt; 0));&#10;        Long lastMs = rtCheckLastMs.get(coinCode);&#10;        if (firstCross) {&#10;            log.info(&quot;[Dynamic] 보호선 첫 통과 — 점검 간격과 무관하게 점검: {} {} (손절 발동가 {}, 익절가 {}, 직전 {})&quot;,&#10;                    coinCode, price, floor, ceiling, prevValid);&#10;        } else if (lastMs != null &amp;&amp; now - lastMs &lt; RT_CHECK_INTERVAL_MS) {&#10;            return;&#10;        }&#10;        rtCheckLastMs.put(coinCode, now);&#10;&#10;        BigDecimal nextFloor = null;&#10;        BigDecimal nextCeiling = null;&#10;        List&lt;DynamicSessionEntity&gt; sessions = dynamicSessionRepo.findByStatus(&quot;RUNNING&quot;);&#10;        for (DynamicSessionEntity session : sessions) {&#10;            // 2026-08-31: PAPER 도 여기 들어온다 — LIVE 와 같은 5초 주기로 SL/TP 를 본다.&#10;            // 매도는 executeSell 이 세션 종류에 따라 갈라 페이퍼는 시뮬레이션으로 처리된다.&#10;            if (!coinCode.equals(session.getCurrentCoinPair())) continue;&#10;&#10;            // 세션의 실제 kind 로 조회해야 REAL/PAPER 포지션이 섞이지 않는다.&#10;            // List 변형을 쓰는 이유는 processMonitoringTick 과 같다 — 중복 OPEN 이 있어도&#10;            // 예외로 죽지 않아야 한다(여기는 @Async 라 세션을 멈추진 않지만 감시가 건너뛰어진다).&#10;            Optional&lt;PositionEntity&gt; openPos = pickMonitoredPosition(&#10;                    sessio&quot;&#13;&#10;to contain:&#13;&#10;  &quot;sessionKind(session)&quot; " type="java.lang.AssertionError">java.lang.AssertionError: [페이퍼 포지션은 session_kind='DYN_PAPER' 라 SESSION_KIND 로는 안 잡힌다] 
+Expecting actual:
+  &quot;doOnRealtimePriceEvent(RealtimePriceEvent event) {
+        String coinCode = event.getCoinCode();
+        BigDecimal price = event.getPrice();
+        long now = System.currentTimeMillis();
+
+        // &#x1f534; N02 (2026-11-01): 관측 시각이 유효기간을 넘은 가격은 현재가가 아니다 — LIVE 처리기·시세 장부와 같은 정의.
+        //    점검 간격·SL 점검 시각을 남기기 전에 버린다.
+        if (markPriceBook != null &amp;&amp; markPriceBook.isStale(event.getObservedAt(), Instant.now())) {
+            log.debug(&quot;[Dynamic] 낡은 실시간 시세 무시: {} {} 관측 {}&quot;, coinCode, price, event.getObservedAt());
+            return;
+        }
+
+        // &#x1f534; N16 (2026-11-05): 가격이 아닌 값(null·0·음수)은 버린다 — 시세 장부와 같은 정의({@link MarkPriceBook#isPrice}).
+        //    0 은 '손절가 이하'로 읽혀 보호 매도를 냈고, null 은 이력·점검 시각을 오염시켜 다음 정상 가격의 점검을 막거나 가렸다.
+        //    운영 웹소켓 파서는 체결가가 없는 ticker 를 0 으로 메운다. 이력·점검 간격·SL 점검 시각을 남기기 전에 버린다.
+        if (!MarkPriceBook.isPrice(price)) {
+            log.warn(&quot;[Dynamic] 가격이 아닌 실시간 시세 무시: {} {} 관측 {} 출처 {}&quot;, coinCode, price, event.getObservedAt(), event.getSource());
+            return;
+        }
+
+        BigDecimal prevValid = rtLastValidPrice.put(coinCode, price);
+        BigDecimal floor = rtProtectFloor.get(coinCode);
+        BigDecimal ceiling = rtProtectCeiling.get(coinCode);
+        boolean firstCross = (floor != null &amp;&amp; price.compareTo(floor) &lt;= 0 &amp;&amp; (prevValid == null || prevValid.compareTo(floor) &gt; 0))
+                || (ceiling != null &amp;&amp; price.compareTo(ceiling) &gt;= 0 &amp;&amp; (prevValid == null || prevValid.compareTo(ceiling) &lt; 0));
+        Long lastMs = rtCheckLastMs.get(coinCode);
+        if (firstCross) {
+            log.info(&quot;[Dynamic] 보호선 첫 통과 — 점검 간격과 무관하게 점검: {} {} (손절 발동가 {}, 익절가 {}, 직전 {})&quot;,
+                    coinCode, price, floor, ceiling, prevValid);
+        } else if (lastMs != null &amp;&amp; now - lastMs &lt; RT_CHECK_INTERVAL_MS) {
+            return;
+        }
+        rtCheckLastMs.put(coinCode, now);
+
+        BigDecimal nextFloor = null;
+        BigDecimal nextCeiling = null;
+        List&lt;DynamicSessionEntity&gt; sessions = dynamicSessionRepo.findByStatus(&quot;RUNNING&quot;);
+        for (DynamicSessionEntity session : sessions) {
+            // 2026-08-31: PAPER 도 여기 들어온다 — LIVE 와 같은 5초 주기로 SL/TP 를 본다.
+            // 매도는 executeSell 이 세션 종류에 따라 갈라 페이퍼는 시뮬레이션으로 처리된다.
+            if (!coinCode.equals(session.getCurrentCoinPair())) continue;
+
+            // 세션의 실제 kind 로 조회해야 REAL/PAPER 포지션이 섞이지 않는다.
+            // List 변형을 쓰는 이유는 processMonitoringTick 과 같다 — 중복 OPEN 이 있어도
+            // 예외로 죽지 않아야 한다(여기는 @Async 라 세션을 멈추진 않지만 감시가 건너뛰어진다).
+            Optional&lt;PositionEntity&gt; openPos = pickMonitoredPosition(
+                    sessio&quot;
+to contain:
+  &quot;sessionKind(session)&quot; 
+	at com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest.realtimeSlTpMonitoringCoversPaper(DynamicPaperLiveRuleParityTest.java:170)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+</failure>
+  </testcase>
+  <testcase name="실계좌 배정 예외는 계좌 동기화와 배정 검사만 한다 — 매매 규칙이 끼어들지 않는다" classname="com.cryptoautotrader.api.service.DynamicPaperLiveRuleParityTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="청산 A/B 팔 생성 계약 — 8개 요청 본문·저장값·지문·같은 입력 진입의 손절/익절 차이" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-11-12T03:13:52" hostname="DESKTOP-SF1KUQ5" time="0.075">
+  <properties/>
+  <testcase name="같은 입력 진입 — 매수금 같음(100,000×0.8 → 상한 20,000), A 손절 거리는 ATR 식·B 는 5%, 익절은 손절 폭에서 파생" classname="com.cryptoautotrader.api.service.ExitAbArmContractTest" time="0.033"/>
+  <testcase name="8개 본문 — 저장값은 stopLossPct(null/5.00)만 다르고 지문은 A≠B" classname="com.cryptoautotrader.api.service.ExitAbArmContractTest" time="0.042"/>
+  <system-out><![CDATA[12:13:52.253 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.ExitAbArmContractTest
+12:13:52.255 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[A/B 진입] 매수금 A=20000.00000000 B=20000.00000000 · 진입가 A=12507495.00000000 B=12507495.00000000 · 손절 거리 A=0.7795% B=5.0000% · 익절 거리 A=1.5590% B=8.0000%
+12:13:52.288 [Test worker] INFO  o.a.c.c.C.[Tomcat-8].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[A/B 생성] COMPOSITE_MEANREV_BB KRW-BTC A#52 sl=null hash=4db7e2626f9a / B#53 sl=5.00 hash=897b9ed5f056
+[A/B 생성] COMPOSITE_MEANREV_BB KRW-ETH A#54 sl=null hash=4db7e2626f9a / B#55 sl=5.00 hash=897b9ed5f056
+[A/B 생성] COMPOSITE_MTF_CONFIRMED KRW-BTC A#56 sl=null hash=4db7e2626f9a / B#57 sl=5.00 hash=897b9ed5f056
+[A/B 생성] COMPOSITE_MTF_CONFIRMED KRW-ETH A#58 sl=null hash=4db7e2626f9a / B#59 sl=5.00 hash=897b9ed5f056
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

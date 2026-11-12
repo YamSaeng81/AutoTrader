@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.Sma20LiveAlignedAADiagTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-11-12T03:03:12" hostname="DESKTOP-SF1KUQ5" time="0.006">
+  <properties/>
+  <testcase name="dump()" classname="com.cryptoautotrader.api.service.Sma20LiveAlignedAADiagTest" time="0.006"/>
+  <system-out><![CDATA[12:03:12.733 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.Sma20LiveAlignedAADiagTest
+12:03:12.736 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+[DIAG155] position = []
+[DIAG155] position KRW-BTC/ETH OPEN = []
+[DIAG155] live session = []
+[DIAG155] live RUNNING BTC = []
+[DIAG155] dynamic session = []
+[DIAG155] paper 실패 StatementCallback; bad SQL grammar [SELECT status, COUNT(*) n FROM paper_trading GROUP BY 1]
+[DIAG155] orders active = []
+[DIAG155] risk_config = [{ID=25, MAX_DAILY_LOSS_PCT=1.50, MAX_WEEKLY_LOSS_PCT=4.00, MAX_MONTHLY_LOSS_PCT=8.00, MAX_POSITIONS=8, MAX_CAPITAL_UTILIZATION_PCT=50.00, COOLDOWN_MINUTES=60, PORTFOLIO_LIMIT_KRW=null, MDD_THRESHOLD_PCT=10.00, CONSECUTIVE_LOSS_LIMIT=5, CIRCUIT_BREAKER_ENABLED=true, STOP_LOSS_PCT=5.00, TAKE_PROFIT_MULTIPLIER=2.00, TRAILING_ENABLED=true, TRAILING_TP_MARGIN_PCT=0.500, TRAILING_SL_MARGIN_PCT=0.300, INVEST_RATIO_PCT=25.00, MAX_PORTFOLIO_DRAWDOWN_PCT=15.00, SCAN_WEAK_THRESHOLD=null, SCAN_STRONG_THRESHOLD=null, SCAN_EMA_DAMPEN_FACTOR=null, SCAN_EMA200_BUY_MARGIN_PCT=null, SCAN_MIN_TRADE_VALUE_KRW=null, SCAN_MAX_ATR_PCT=null, SCAN_REQUIRE_UPTREND=null, SCAN_EXCLUDE_CRASHING=null, UPDATED_AT=2026-11-12 12:03:00.412251, SCAN_MIN_ATR_PCT=null, SCAN_MAX_SPREAD_PCT=null, SCAN_MAX_CANDIDATE_SIZE=null}]
+[DIAG155] account_capital_lock = [{ID=1, PURPOSE=留ㅼ닔 ?삁?빟 吏곷젹?솕 (?븳?룄 ?솗?씤 + ?옄湲댟룹뒳濡? ?삁?빟 + 二쇰Ц ?쓽?룄), UPDATED_AT=2026-11-12 11:59:58.716845}]
+[DIAG155] capital_stage_baseline = [{STAGE=TEST, STARTED_AT=2026-11-12T12:00:33.122045+09:00, TOTAL_CAP_KRW=1000000000000.00, CREATED_AT=2026-11-12T12:00:33.125052+09:00}]
+[DIAG155] pool_equity_snapshot = [{N=0}]
+[DIAG155] market_data_cache KRW-BTC H1 = [{N=0, MN=null, MX=null}]
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

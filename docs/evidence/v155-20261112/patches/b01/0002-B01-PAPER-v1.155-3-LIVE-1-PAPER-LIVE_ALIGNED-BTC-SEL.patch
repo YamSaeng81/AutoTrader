@@ -1,0 +1,133 @@
+From 96fd27a2cfeaadc0815d6b36cd5ff0387ca6a573 Mon Sep 17 00:00:00 2001
+From: YamSaeng81 <manicstr81@gmail.com>
+Date: Thu, 12 Nov 2026 11:40:48 +0900
+Subject: [PATCH 2/2] =?UTF-8?q?B01=20=ED=9B=84=EB=B3=B4=20=EC=A0=91?=
+ =?UTF-8?q?=EC=88=98=20=ED=8C=90=EB=8B=A8=20=EC=8B=9C=EA=B0=81=C2=B7PAPER?=
+ =?UTF-8?q?=20=EC=84=A0=ED=83=9D=20=EB=AA=A8=EB=93=9C=20=ED=8C=90=EB=8B=A8?=
+ =?UTF-8?q?=20=EC=8B=9C=EA=B0=81=20=EC=A0=91=EC=A0=90=EC=9D=84=20=EA=B3=B5?=
+ =?UTF-8?q?=ED=86=B5=20=EC=8B=9C=EA=B3=84=EB=A1=9C(=EC=B4=9D=EA=B4=84=20v1?=
+ =?UTF-8?q?.155=20=C2=A73,=20=EB=B3=84=EB=8F=84=20=EA=B0=80=EC=A7=80,=20?=
+ =?UTF-8?q?=EB=AF=B8=EC=8A=B9=EC=9D=B8)=20=E2=80=94=20LIVE=20=ED=9A=8C?=
+ =?UTF-8?q?=EC=B0=A8=20=EC=A0=91=EC=88=98=201=EA=B3=B3=20+=20PAPER=20LIVE?=
+ =?UTF-8?q?=5FALIGNED=20=EC=A1=B0=ED=9A=8C=20=EC=83=81=ED=95=9C(=EC=A0=84?=
+ =?UTF-8?q?=EC=9A=A9=20=ED=8B=B1=20=EC=BA=90=EC=8B=9C=20=ED=82=A4)=C2=B7?=
+ =?UTF-8?q?=EC=B5=9C=EC=8B=A0=EC=84=B1=C2=B7BTC=20=ED=8C=90=EC=A0=95=C2=B7?=
+ =?UTF-8?q?=EC=8B=A0=ED=98=B8=20SELL=20=EB=B3=B4=EC=9C=A0=20=EC=8B=9C?=
+ =?UTF-8?q?=EA=B0=84=C2=B7=ED=9A=8C=EC=B0=A8=20=EC=A0=91=EC=88=98.=20?=
+ =?UTF-8?q?=ED=82=A4=20=EC=97=86=EB=8A=94=20PAPER=C2=B7DYNAMIC=C2=B7?=
+ =?UTF-8?q?=EA=B0=90=EC=82=AC/=EC=B2=B4=EA=B2=B0/=EC=A3=BC=EB=AC=B8=20?=
+ =?UTF-8?q?=EC=83=9D=EC=84=B1/=EC=8B=A4=EC=8B=9C=EA=B0=84=20=EC=8B=9C?=
+ =?UTF-8?q?=EC=84=B8=20=EC=8B=9C=EA=B0=81=EC=9D=80=20=EA=B7=B8=EB=8C=80?=
+ =?UTF-8?q?=EB=A1=9C,=20=EC=9A=B4=EC=98=81=20=EA=B8=B0=EB=B3=B8=20?=
+ =?UTF-8?q?=EC=8B=9C=EC=8A=A4=ED=85=9C=20UTC.=20D=201/1(=EC=A0=95=EC=8B=9C?=
+ =?UTF-8?q?=20=EC=9E=90=EB=A3=8C),=20B01=202/2(=EB=91=90=20=EC=97=94?=
+ =?UTF-8?q?=EC=A7=84=20=EC=8B=A4=EC=A0=9C=20=EB=8B=A4=EC=9D=8C=20=EB=A7=A4?=
+ =?UTF-8?q?=EB=8F=84=20=EB=B4=89=C2=B7=EA=B0=99=EC=9D=80=20=EC=B2=B4?=
+ =?UTF-8?q?=EA=B2=B0=EA=B0=80=20=EC=9E=94=EC=95=A1=2020,223.88=20=EC=9D=BC?=
+ =?UTF-8?q?=EC=B9=98=C2=B7=EC=88=98=EC=88=98=EB=A3=8C=20=EA=B0=81=201?=
+ =?UTF-8?q?=ED=9A=8C=C2=B7=EC=9E=AC=EC=B2=98=EB=A6=AC=20=EC=97=86=EC=9D=8C?=
+ =?UTF-8?q?),=20=EA=B4=80=EB=A0=A8=2019=ED=81=B4=EB=9E=98=EC=8A=A4=20145/1?=
+ =?UTF-8?q?45?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .../api/service/LiveTradingService.java       |  2 +-
+ .../api/service/PaperTradingService.java      | 31 ++++++++++++++-----
+ 2 files changed, 25 insertions(+), 8 deletions(-)
+
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
+index fab6aff7..d0344f93 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/LiveTradingService.java
+@@ -1372,7 +1372,7 @@ public class LiveTradingService {
+                                 () -> approveQueuedEntry(sessionId, coinPair, buyReason, finalSignal,
+                                         regimeAtSignal, candlesAtSignal, signalLogRef, expiresAt),
+                                 expired -> saveSignalQuality(signalLogRef, false, expired)),
+-                                Instant.now());
++                                judgeNow());   // 후보 접수 판단 시각 — 회차 마감과 같은 판단 시계(v1.155 §3)
+                         if (notQueued != null) {
+                             saveSignalQuality(signalLogRef, false, notQueued);
+                         }
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java
+index 3352fe61..3dd19745 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/PaperTradingService.java
+@@ -827,8 +827,9 @@ public class PaperTradingService {
+         String timeframe = session.getTimeframe();
+         String strategyName = session.getStrategyName();
+ 
+-        List<Candle> candles = candlesFor(coinPair, timeframe);
+         final boolean aligned = PaperExecutionMode.isLiveAligned(session.getStrategyParams());
++        // 선택 모드는 판단 시계로 조회 상한을 정한다(총괄 v1.155 §3). 키 없는 PAPER 는 종전 경로·시각·캐시 그대로.
++        List<Candle> candles = aligned ? alignedCandlesFor(coinPair, timeframe) : candlesFor(coinPair, timeframe);
+         if (aligned) {
+             // LIVE 틱 시작의 세션 서킷 브레이커와 같은 자리·같은 기준 — 발동이면 정지(강제 청산)하고 이 틱은 끝낸다. 입력은 이 모의 계좌다.
+             CircuitBreakerResult cb = alignedCircuitBreaker(session);
+@@ -1070,7 +1071,7 @@ public class PaperTradingService {
+                             EntryPriorityRounds.KIND_PAPER, sessionId, coinPair, roundKey,
+                             () -> approveAlignedEntry(sessionId, coinPair, finalSignal, regimeAtSignal, candlesAtSignal, logRef, expiresAt),
+                             expired -> saveSignalQuality(logRef, false, expired)),
+-                            Instant.now());
++                            judgeNow());   // 후보 접수 판단 시각 — 회차 마감과 같은 판단 시계(v1.155 §3)
+                     if (notQueued != null) saveSignalQuality(savedSignalLog, false, notQueued);
+                     return;
+                 } else if (openPos.isEmpty()) {
+@@ -1101,7 +1102,7 @@ public class PaperTradingService {
+                 if (openPos.isPresent()) {
+                     PaperPositionEntity pos = openPos.get();
+                     long heldMinutes = pos.getOpenedAt() != null
+-                            ? Duration.between(pos.getOpenedAt(), Instant.now()).toMinutes()
++                            ? Duration.between(pos.getOpenedAt(), aligned ? judgeNow() : Instant.now()).toMinutes()   // 선택 모드는 판단 시계(v1.155 §3)
+                             : Long.MAX_VALUE;
+                     BigDecimal heldPnlPct = (pos.getAvgPrice() != null
+                             && pos.getAvgPrice().compareTo(BigDecimal.ZERO) > 0)
+@@ -1223,15 +1224,15 @@ public class PaperTradingService {
+ 
+     /** LIVE {@code freshCandles} 와 같은 판정 — 판정 불가면 사유, 쓸 수 있으면 {@code null}. 공유 stale 지도·경보는 건드리지 않는다. */
+     private String alignedCandleProblem(String coinPair, String timeframe, List<Candle> candles) {
+-        Instant now = Instant.now();
++        Instant now = judgeNow();   // v1.155 §3 — 판단 시계
+         return CandleFreshnessGuard.problem(candles, timeframe, now,
+                 candleFreshnessGuard == null ? null : candleFreshnessGuard.maintenanceExemption(coinPair, timeframe, now));
+     }
+ 
+     /** LIVE {@code btcMarketGate} 와 같은 판정 — BTC 세션은 최신성을 거른 자기 캔들, 아니면 BTC 캔들(진행 중 봉 포함). */
+     private BtcMarketGuard.Result alignedBtcGate(String coinPair, String timeframe, List<Candle> ownCandles) {
+-        List<Candle> btc = "KRW-BTC".equals(coinPair) ? ownCandles : candlesFor("KRW-BTC", timeframe);
+-        Instant now = Instant.now();
++        List<Candle> btc = "KRW-BTC".equals(coinPair) ? ownCandles : alignedCandlesFor("KRW-BTC", timeframe);
++        Instant now = judgeNow();   // v1.155 §3 — 판단 시계
+         return CandleFreshnessGuard.btcGate(timeframe, btc, btc, now,
+                 candleFreshnessGuard == null ? null : candleFreshnessGuard.maintenanceExemption("KRW-BTC", timeframe, now));
+     }
+@@ -2050,7 +2051,23 @@ public class PaperTradingService {
+     }
+ 
+     private List<Candle> fetchRecentCandles(String coinPair, String timeframe) {
+-        Instant to = Instant.now();
++        return fetchRecentCandles(coinPair, timeframe, Instant.now());
++    }
++
++    /**
++     * 선택 모드(LIVE_ALIGNED) 캔들 — 조회 상한을 판단 시계로(총괄 v1.155 §3, LIVE {@code loadRecentCandles} 와 같은 접점). 틱 캐시는 키 없는 PAPER 와
++     * 다른 키를 쓴다 — 시험 시계와 실제 시각이 다를 때 한 틱 안에서 서로의 조회 결과를 섞지 않는다(운영은 두 시각이 같다).
++     */
++    private List<Candle> alignedCandlesFor(String coinPair, String timeframe) {
++        return TickCandleCache.get(coinPair, timeframe + "@판단시계", () -> fetchRecentCandles(coinPair, timeframe, judgeNow()));
++    }
++
++    /** 선택 모드 판단 시각 — 공통 시계(운영 기본 시스템 UTC). 감사·체결·주문 생성·실시간 시세 시각에는 쓰지 않는다. */
++    private Instant judgeNow() {
++        return entryClock != null ? entryClock.now() : Instant.now();
++    }
++
++    private List<Candle> fetchRecentCandles(String coinPair, String timeframe, Instant to) {
+         Instant from = to.minus(CANDLE_LOOKBACK * TimeframeUtils.toMinutes(timeframe), ChronoUnit.MINUTES);
+ 
+         // MarketDataSyncService 가 미리 DB에 저장한 캔들만 사용
+-- 
+2.51.1.windows.1
+

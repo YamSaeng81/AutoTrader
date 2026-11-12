@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="N20 보유 시세 보강 — 항목 격리·고정 기록 계약" tests="33" skipped="0" failures="0" errors="0" timestamp="2026-11-12T03:54:26" hostname="DESKTOP-SF1KUQ5" time="0.231">
+  <properties/>
+  <testcase name="B 기존 WS 90초 전 190 + 이번 PRICE_ZERO × 호가 FAIL" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.105"/>
+  <testcase name="B 기존 WS 90초 전 190 + 이번 PRICE_NEG × 호가 FAIL" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.001"/>
+  <testcase name="B 기존 WS 90초 전 190 + 이번 PRICE_ZERO × 호가 DEEP" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.001"/>
+  <testcase name="B 기존 WS 90초 전 190 + 이번 PRICE_NEG × 호가 DEEP" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.001"/>
+  <testcase name="④ B 호가만 형식 이상 — 그 코인의 호가 조회 실패(고정 문구), C 는 영향 없음" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.001"/>
+  <testcase name="⑨ 회차 오류(보유 조회 예외) — 고정 ERROR, 예외 원문 없음" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.0"/>
+  <testcase name="⑧ 실패 시작 → 같은 사유 지속 → 사유 변경 → 회복 — 경보 1회·ERROR 1·변경 WARN·회복 WARN, 원문 없음" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.002"/>
+  <testcase name="PRICE_FORGED × C 기존 WS 90초 전 × 호가 FAIL" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.001"/>
+  <testcase name="PRICE_FORGED × C 기존 WS 130초 전 × 호가 FAIL" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.001"/>
+  <testcase name="MARKET_NUM × C 기존 WS 90초 전 × 호가 FAIL" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.001"/>
+  <testcase name="MARKET_NUM × C 기존 WS 130초 전 × 호가 FAIL" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.001"/>
+  <testcase name="⑤ 시세 조회 예외·호가 예외 원문이 오류문·실패 표시·ERROR·경보에 실리지 않는다" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.0"/>
+  <testcase name="CONTROL × 호가 DEEP" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.001"/>
+  <testcase name="CONTROL × 호가 FAIL" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.001"/>
+  <testcase name="PRICE_FORGED × 호가 DEEP" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.001"/>
+  <testcase name="PRICE_FORGED × 호가 SHALLOW" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.001"/>
+  <testcase name="PRICE_FORGED × 호가 FAIL" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.001"/>
+  <testcase name="PRICE_ABC × 호가 DEEP" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.001"/>
+  <testcase name="PRICE_ABC × 호가 SHALLOW" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.0"/>
+  <testcase name="PRICE_ABC × 호가 FAIL" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.001"/>
+  <testcase name="MARKET_NUM × 호가 DEEP" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.001"/>
+  <testcase name="MARKET_NUM × 호가 SHALLOW" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.001"/>
+  <testcase name="MARKET_NUM × 호가 FAIL" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.0"/>
+  <testcase name="PRICE_ZERO × 호가 DEEP" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.0"/>
+  <testcase name="PRICE_ZERO × 호가 FAIL" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.001"/>
+  <testcase name="PRICE_NEG × 호가 DEEP" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.001"/>
+  <testcase name="PRICE_NEG × 호가 FAIL" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.0"/>
+  <testcase name="PRICE_NULL × 호가 DEEP" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.001"/>
+  <testcase name="PRICE_NULL × 호가 FAIL" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.001"/>
+  <testcase name="TS_BAD × 호가 DEEP" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.0"/>
+  <testcase name="TS_BAD × 호가 FAIL" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.0"/>
+  <testcase name="⑦ 경보 전송 실패 — 원문 없는 고정 WARN, 실패 표시는 남는다(성공으로 바꾸지 않음)" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.001"/>
+  <testcase name="⑥ 장부 내부 예외는 항목 건너뜀으로 삼키지 않는다 — 고정 '시세 처리 실패' 로 남고 뒤 코인은 호가 경로" classname="com.cryptoautotrader.api.service.N20HeldMarkItemIsolationTest" time="0.093"/>
+  <system-out><![CDATA[12:54:26.398 [Test worker] WARN  c.c.api.service.HeldMarkRefresher - [시세 보강] 시세 항목 건너뜀 ? 가격이 아님 (부호=0)
+N20계약행|PRICE_ZERO+B기존90초×FAIL|byTrade=[N20A, N20C]|byBook=[]|unobserved=[]|장부=N20A:REST_TRADE/100 N20B:WS_TRADE/190 N20C:REST_TRADE/300|실패표시=false|경보=0|오류문=KRW-N20B 호가 조회 실패; |로그=WARN [시세 보강] 시세 항목 건너뜀 ? 가격이 아님 (부호=0)
+12:54:26.402 [Test worker] WARN  c.c.api.service.HeldMarkRefresher - [시세 보강] 시세 항목 건너뜀 ? 가격이 아님 (부호=음수)
+N20계약행|PRICE_NEG+B기존90초×FAIL|byTrade=[N20A, N20C]|byBook=[]|unobserved=[]|장부=N20A:REST_TRADE/100 N20B:WS_TRADE/190 N20C:REST_TRADE/300|실패표시=false|경보=0|오류문=KRW-N20B 호가 조회 실패; |로그=WARN [시세 보강] 시세 항목 건너뜀 ? 가격이 아님 (부호=음수)
+12:54:26.403 [Test worker] WARN  c.c.api.service.HeldMarkRefresher - [시세 보강] 시세 항목 건너뜀 ? 가격이 아님 (부호=0)
+12:54:26.403 [Test worker] INFO  c.c.api.service.HeldMarkRefresher - [시세 보강] 호가로 보강한 보유 [KRW-N20B] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+N20계약행|PRICE_ZERO+B기존90초×DEEP|byTrade=[N20A, N20C]|byBook=[N20B]|unobserved=[]|장부=N20A:REST_TRADE/100 N20B:REST_ORDERBOOK_DEPTH/99.00000000 N20C:REST_TRADE/300|실패표시=false|경보=0|오류문=null|로그=WARN [시세 보강] 시세 항목 건너뜀 ? 가격이 아님 (부호=0) ? INFO [시세 보강] 호가로 보강한 보유 [KRW-N20B] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+12:54:26.404 [Test worker] WARN  c.c.api.service.HeldMarkRefresher - [시세 보강] 시세 항목 건너뜀 ? 가격이 아님 (부호=음수)
+12:54:26.404 [Test worker] INFO  c.c.api.service.HeldMarkRefresher - [시세 보강] 호가로 보강한 보유 [KRW-N20B] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+N20계약행|PRICE_NEG+B기존90초×DEEP|byTrade=[N20A, N20C]|byBook=[N20B]|unobserved=[]|장부=N20A:REST_TRADE/100 N20B:REST_ORDERBOOK_DEPTH/99.00000000 N20C:REST_TRADE/300|실패표시=false|경보=0|오류문=null|로그=WARN [시세 보강] 시세 항목 건너뜀 ? 가격이 아님 (부호=음수) ? INFO [시세 보강] 호가로 보강한 보유 [KRW-N20B] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+12:54:26.405 [Test worker] WARN  c.c.api.service.HeldMarkRefresher - [시세 보강] 시세 항목 건너뜀 ? 가격 형식이 숫자가 아님
+12:54:26.405 [Test worker] ERROR c.c.api.service.HeldMarkRefresher - ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 조회 실패; 
+N20계약행|PRICE_FORGED+B호가형식이상|byTrade=[N20A, N20C]|byBook=[]|unobserved=[N20B]|장부=N20A:REST_TRADE/100 N20B:- N20C:REST_TRADE/300|실패표시=true|경보=1|오류문=KRW-N20B 호가 조회 실패; |로그=WARN [시세 보강] 시세 항목 건너뜀 ? 가격 형식이 숫자가 아님 ? ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 조회 실패; 
+12:54:26.407 [Test worker] ERROR c.c.api.service.HeldMarkRefresher - [시세 보강] 회차 오류 (종류=IllegalStateException)
+N20계약행|회차오류|로그=ERROR [시세 보강] 회차 오류 (종류=IllegalStateException)
+12:54:26.407 [Test worker] WARN  c.c.api.service.HeldMarkRefresher - [시세 보강] 시세 항목 건너뜀 ? 가격 형식이 숫자가 아님
+12:54:26.407 [Test worker] ERROR c.c.api.service.HeldMarkRefresher - ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 조회 실패; 
+12:54:26.407 [Test worker] WARN  c.c.api.service.HeldMarkRefresher - [시세 보강] 시세 항목 건너뜀 ? 가격 형식이 숫자가 아님
+12:54:26.408 [Test worker] DEBUG c.c.api.service.HeldMarkRefresher - [시세 보강] 관측 가격 없음 지속 [KRW-N20B]: KRW-N20B 호가 조회 실패; 
+12:54:26.408 [Test worker] WARN  c.c.api.service.HeldMarkRefresher - [시세 보강] 시세 항목 건너뜀 ? 가격 형식이 숫자가 아님
+12:54:26.408 [Test worker] WARN  c.c.api.service.HeldMarkRefresher - [시세 보강] 관측 가격 없음 지속 ? 사유 변경 [KRW-N20B]: KRW-N20B 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); 
+12:54:26.408 [Test worker] WARN  c.c.api.service.HeldMarkRefresher - [시세 보강] 시세 항목 건너뜀 ? 가격 형식이 숫자가 아님
+12:54:26.408 [Test worker] WARN  c.c.api.service.HeldMarkRefresher - [시세 보강] 회복 ? 보유 코인 관측 가격 공급 재개 (종전: 2026-11-12T03:54:26.407051200Z 관측 가격 없음 [KRW-N20B] ? KRW-N20B 호가 조회 실패; )
+12:54:26.408 [Test worker] INFO  c.c.api.service.HeldMarkRefresher - [시세 보강] 호가로 보강한 보유 [KRW-N20B] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+N20계약행|시작→지속→변경→회복|byTrade=[N20A, N20C]|byBook=[N20B]|unobserved=[]|장부=N20A:REST_TRADE/100 N20B:REST_ORDERBOOK_DEPTH/99.00000000 N20C:REST_TRADE/300|실패표시=false|경보=1|오류문=null|로그=WARN [시세 보강] 시세 항목 건너뜀 ? 가격 형식이 숫자가 아님 ? ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 조회 실패;  ? WARN [시세 보강] 시세 항목 건너뜀 ? 가격 형식이 숫자가 아님 ? DEBUG [시세 보강] 관측 가격 없음 지속 [KRW-N20B]: KRW-N20B 호가 조회 실패;  ? WARN [시세 보강] 시세 항목 건너뜀 ? 가격 형식이 숫자가 아님 ? WARN [시세 보강] 관측 가격 없음 지속 ? 사유 변경 [KRW-N20B]: KRW-N20B 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10);  ? WARN [시세 보강] 시세 항목 건너뜀 ? 가격 형식이 숫자가 아님 ? WARN [시세 보강] 회복 ? 보유 코인 관측 가격 공급 재개 (종전: 2026-11-12T03:54:26.407051200Z 관측 가격 없음 [KRW-N20B] ? KRW-N20B 호가 조회 실패; ) ? INFO [시세 보강] 호가로 보강한 보유 [KRW-N20B] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+12:54:26.410 [Test worker] WARN  c.c.api.service.HeldMarkRefresher - [시세 보강] 시세 항목 건너뜀 ? 가격 형식이 숫자가 아님
+12:54:26.411 [Test worker] ERROR c.c.api.service.HeldMarkRefresher - ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 조회 실패; 
+N20계약행|PRICE_FORGED+C기존90초|byTrade=[N20A, N20C]|byBook=[]|unobserved=[N20B]|장부=N20A:REST_TRADE/100 N20B:- N20C:REST_TRADE/300|실패표시=true|경보=1|오류문=KRW-N20B 호가 조회 실패; |로그=WARN [시세 보강] 시세 항목 건너뜀 ? 가격 형식이 숫자가 아님 ? ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 조회 실패; 
+12:54:26.412 [Test worker] WARN  c.c.api.service.HeldMarkRefresher - [시세 보강] 시세 항목 건너뜀 ? 가격 형식이 숫자가 아님
+12:54:26.412 [Test worker] ERROR c.c.api.service.HeldMarkRefresher - ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 조회 실패; 
+N20계약행|PRICE_FORGED+C기존130초|byTrade=[N20A, N20C]|byBook=[]|unobserved=[N20B]|장부=N20A:REST_TRADE/100 N20B:- N20C:REST_TRADE/300|실패표시=true|경보=1|오류문=KRW-N20B 호가 조회 실패; |로그=WARN [시세 보강] 시세 항목 건너뜀 ? 가격 형식이 숫자가 아님 ? ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 조회 실패; 
+12:54:26.413 [Test worker] WARN  c.c.api.service.HeldMarkRefresher - [시세 보강] 시세 항목 건너뜀 ? 코인 형식이 문자열이 아님
+12:54:26.413 [Test worker] ERROR c.c.api.service.HeldMarkRefresher - ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 조회 실패; 
+N20계약행|MARKET_NUM+C기존90초|byTrade=[N20A, N20C]|byBook=[]|unobserved=[N20B]|장부=N20A:REST_TRADE/100 N20B:- N20C:REST_TRADE/300|실패표시=true|경보=1|오류문=KRW-N20B 호가 조회 실패; |로그=WARN [시세 보강] 시세 항목 건너뜀 ? 코인 형식이 문자열이 아님 ? ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 조회 실패; 
+12:54:26.415 [Test worker] WARN  c.c.api.service.HeldMarkRefresher - [시세 보강] 시세 항목 건너뜀 ? 코인 형식이 문자열이 아님
+12:54:26.415 [Test worker] ERROR c.c.api.service.HeldMarkRefresher - ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 조회 실패; 
+N20계약행|MARKET_NUM+C기존130초|byTrade=[N20A, N20C]|byBook=[]|unobserved=[N20B]|장부=N20A:REST_TRADE/100 N20B:- N20C:REST_TRADE/300|실패표시=true|경보=1|오류문=KRW-N20B 호가 조회 실패; |로그=WARN [시세 보강] 시세 항목 건너뜀 ? 코인 형식이 문자열이 아님 ? ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 조회 실패; 
+12:54:26.415 [Test worker] ERROR c.c.api.service.HeldMarkRefresher - ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20A, KRW-N20B, KRW-N20C] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패; KRW-N20A 호가 조회 실패; KRW-N20B 호가 조회 실패; KRW-N20C 호가 조회 실패; 
+N20계약행|시세예외+호가예외|byTrade=[]|byBook=[]|unobserved=[N20A, N20B, N20C]|장부=N20A:- N20B:- N20C:-|실패표시=true|경보=1|오류문=시세 조회 실패; KRW-N20A 호가 조회 실패; KRW-N20B 호가 조회 실패; KRW-N20C 호가 조회 실패; |로그=ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20A, KRW-N20B, KRW-N20C] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 조회 실패; KRW-N20A 호가 조회 실패; KRW-N20B 호가 조회 실패; KRW-N20C 호가 조회 실패; 
+N20계약행|CONTROL×DEEP|byTrade=[N20A, N20B, N20C]|byBook=[]|unobserved=[]|장부=N20A:REST_TRADE/100 N20B:REST_TRADE/200 N20C:REST_TRADE/300|실패표시=false|경보=0|오류문=null|로그=
+N20계약행|CONTROL×FAIL|byTrade=[N20A, N20B, N20C]|byBook=[]|unobserved=[]|장부=N20A:REST_TRADE/100 N20B:REST_TRADE/200 N20C:REST_TRADE/300|실패표시=false|경보=0|오류문=null|로그=
+12:54:26.421 [Test worker] WARN  c.c.api.service.HeldMarkRefresher - [시세 보강] 시세 항목 건너뜀 ? 가격 형식이 숫자가 아님
+12:54:26.421 [Test worker] INFO  c.c.api.service.HeldMarkRefresher - [시세 보강] 호가로 보강한 보유 [KRW-N20B] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+N20계약행|PRICE_FORGED×DEEP|byTrade=[N20A, N20C]|byBook=[N20B]|unobserved=[]|장부=N20A:REST_TRADE/100 N20B:REST_ORDERBOOK_DEPTH/99.00000000 N20C:REST_TRADE/300|실패표시=false|경보=0|오류문=null|로그=WARN [시세 보강] 시세 항목 건너뜀 ? 가격 형식이 숫자가 아님 ? INFO [시세 보강] 호가로 보강한 보유 [KRW-N20B] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+12:54:26.422 [Test worker] WARN  c.c.api.service.HeldMarkRefresher - [시세 보강] 시세 항목 건너뜀 ? 가격 형식이 숫자가 아님
+12:54:26.422 [Test worker] ERROR c.c.api.service.HeldMarkRefresher - ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); 
+N20계약행|PRICE_FORGED×SHALLOW|byTrade=[N20A, N20C]|byBook=[]|unobserved=[N20B]|장부=N20A:REST_TRADE/100 N20B:REST_ORDERBOOK_DEPTH/null N20C:REST_TRADE/300|실패표시=true|경보=1|오류문=KRW-N20B 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); |로그=WARN [시세 보강] 시세 항목 건너뜀 ? 가격 형식이 숫자가 아님 ? ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); 
+12:54:26.423 [Test worker] WARN  c.c.api.service.HeldMarkRefresher - [시세 보강] 시세 항목 건너뜀 ? 가격 형식이 숫자가 아님
+12:54:26.424 [Test worker] ERROR c.c.api.service.HeldMarkRefresher - ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 조회 실패; 
+N20계약행|PRICE_FORGED×FAIL|byTrade=[N20A, N20C]|byBook=[]|unobserved=[N20B]|장부=N20A:REST_TRADE/100 N20B:- N20C:REST_TRADE/300|실패표시=true|경보=1|오류문=KRW-N20B 호가 조회 실패; |로그=WARN [시세 보강] 시세 항목 건너뜀 ? 가격 형식이 숫자가 아님 ? ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 조회 실패; 
+12:54:26.424 [Test worker] WARN  c.c.api.service.HeldMarkRefresher - [시세 보강] 시세 항목 건너뜀 ? 가격 형식이 숫자가 아님
+12:54:26.424 [Test worker] INFO  c.c.api.service.HeldMarkRefresher - [시세 보강] 호가로 보강한 보유 [KRW-N20B] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+N20계약행|PRICE_ABC×DEEP|byTrade=[N20A, N20C]|byBook=[N20B]|unobserved=[]|장부=N20A:REST_TRADE/100 N20B:REST_ORDERBOOK_DEPTH/99.00000000 N20C:REST_TRADE/300|실패표시=false|경보=0|오류문=null|로그=WARN [시세 보강] 시세 항목 건너뜀 ? 가격 형식이 숫자가 아님 ? INFO [시세 보강] 호가로 보강한 보유 [KRW-N20B] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+12:54:26.424 [Test worker] WARN  c.c.api.service.HeldMarkRefresher - [시세 보강] 시세 항목 건너뜀 ? 가격 형식이 숫자가 아님
+12:54:26.424 [Test worker] ERROR c.c.api.service.HeldMarkRefresher - ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); 
+N20계약행|PRICE_ABC×SHALLOW|byTrade=[N20A, N20C]|byBook=[]|unobserved=[N20B]|장부=N20A:REST_TRADE/100 N20B:REST_ORDERBOOK_DEPTH/null N20C:REST_TRADE/300|실패표시=true|경보=1|오류문=KRW-N20B 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); |로그=WARN [시세 보강] 시세 항목 건너뜀 ? 가격 형식이 숫자가 아님 ? ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); 
+12:54:26.425 [Test worker] WARN  c.c.api.service.HeldMarkRefresher - [시세 보강] 시세 항목 건너뜀 ? 가격 형식이 숫자가 아님
+12:54:26.425 [Test worker] ERROR c.c.api.service.HeldMarkRefresher - ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 조회 실패; 
+N20계약행|PRICE_ABC×FAIL|byTrade=[N20A, N20C]|byBook=[]|unobserved=[N20B]|장부=N20A:REST_TRADE/100 N20B:- N20C:REST_TRADE/300|실패표시=true|경보=1|오류문=KRW-N20B 호가 조회 실패; |로그=WARN [시세 보강] 시세 항목 건너뜀 ? 가격 형식이 숫자가 아님 ? ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 조회 실패; 
+12:54:26.426 [Test worker] WARN  c.c.api.service.HeldMarkRefresher - [시세 보강] 시세 항목 건너뜀 ? 코인 형식이 문자열이 아님
+12:54:26.426 [Test worker] INFO  c.c.api.service.HeldMarkRefresher - [시세 보강] 호가로 보강한 보유 [KRW-N20B] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+N20계약행|MARKET_NUM×DEEP|byTrade=[N20A, N20C]|byBook=[N20B]|unobserved=[]|장부=N20A:REST_TRADE/100 N20B:REST_ORDERBOOK_DEPTH/99.00000000 N20C:REST_TRADE/300|실패표시=false|경보=0|오류문=null|로그=WARN [시세 보강] 시세 항목 건너뜀 ? 코인 형식이 문자열이 아님 ? INFO [시세 보강] 호가로 보강한 보유 [KRW-N20B] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+12:54:26.427 [Test worker] WARN  c.c.api.service.HeldMarkRefresher - [시세 보강] 시세 항목 건너뜀 ? 코인 형식이 문자열이 아님
+12:54:26.427 [Test worker] ERROR c.c.api.service.HeldMarkRefresher - ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); 
+N20계약행|MARKET_NUM×SHALLOW|byTrade=[N20A, N20C]|byBook=[]|unobserved=[N20B]|장부=N20A:REST_TRADE/100 N20B:REST_ORDERBOOK_DEPTH/null N20C:REST_TRADE/300|실패표시=true|경보=1|오류문=KRW-N20B 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); |로그=WARN [시세 보강] 시세 항목 건너뜀 ? 코인 형식이 문자열이 아님 ? ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 깊이 부족(보이는 매수 잔량 3 < 보유 10); 
+12:54:26.427 [Test worker] WARN  c.c.api.service.HeldMarkRefresher - [시세 보강] 시세 항목 건너뜀 ? 코인 형식이 문자열이 아님
+12:54:26.428 [Test worker] ERROR c.c.api.service.HeldMarkRefresher - ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 조회 실패; 
+N20계약행|MARKET_NUM×FAIL|byTrade=[N20A, N20C]|byBook=[]|unobserved=[N20B]|장부=N20A:REST_TRADE/100 N20B:- N20C:REST_TRADE/300|실패표시=true|경보=1|오류문=KRW-N20B 호가 조회 실패; |로그=WARN [시세 보강] 시세 항목 건너뜀 ? 코인 형식이 문자열이 아님 ? ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 조회 실패; 
+12:54:26.428 [Test worker] WARN  c.c.api.service.HeldMarkRefresher - [시세 보강] 시세 항목 건너뜀 ? 가격이 아님 (부호=0)
+12:54:26.428 [Test worker] INFO  c.c.api.service.HeldMarkRefresher - [시세 보강] 호가로 보강한 보유 [KRW-N20B] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+N20계약행|PRICE_ZERO×DEEP|byTrade=[N20A, N20C]|byBook=[N20B]|unobserved=[]|장부=N20A:REST_TRADE/100 N20B:REST_ORDERBOOK_DEPTH/99.00000000 N20C:REST_TRADE/300|실패표시=false|경보=0|오류문=null|로그=WARN [시세 보강] 시세 항목 건너뜀 ? 가격이 아님 (부호=0) ? INFO [시세 보강] 호가로 보강한 보유 [KRW-N20B] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+12:54:26.429 [Test worker] WARN  c.c.api.service.HeldMarkRefresher - [시세 보강] 시세 항목 건너뜀 ? 가격이 아님 (부호=0)
+12:54:26.429 [Test worker] ERROR c.c.api.service.HeldMarkRefresher - ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 조회 실패; 
+N20계약행|PRICE_ZERO×FAIL|byTrade=[N20A, N20C]|byBook=[]|unobserved=[N20B]|장부=N20A:REST_TRADE/100 N20B:- N20C:REST_TRADE/300|실패표시=true|경보=1|오류문=KRW-N20B 호가 조회 실패; |로그=WARN [시세 보강] 시세 항목 건너뜀 ? 가격이 아님 (부호=0) ? ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 조회 실패; 
+12:54:26.430 [Test worker] WARN  c.c.api.service.HeldMarkRefresher - [시세 보강] 시세 항목 건너뜀 ? 가격이 아님 (부호=음수)
+12:54:26.430 [Test worker] INFO  c.c.api.service.HeldMarkRefresher - [시세 보강] 호가로 보강한 보유 [KRW-N20B] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+N20계약행|PRICE_NEG×DEEP|byTrade=[N20A, N20C]|byBook=[N20B]|unobserved=[]|장부=N20A:REST_TRADE/100 N20B:REST_ORDERBOOK_DEPTH/99.00000000 N20C:REST_TRADE/300|실패표시=false|경보=0|오류문=null|로그=WARN [시세 보강] 시세 항목 건너뜀 ? 가격이 아님 (부호=음수) ? INFO [시세 보강] 호가로 보강한 보유 [KRW-N20B] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+12:54:26.430 [Test worker] WARN  c.c.api.service.HeldMarkRefresher - [시세 보강] 시세 항목 건너뜀 ? 가격이 아님 (부호=음수)
+12:54:26.431 [Test worker] ERROR c.c.api.service.HeldMarkRefresher - ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 조회 실패; 
+N20계약행|PRICE_NEG×FAIL|byTrade=[N20A, N20C]|byBook=[]|unobserved=[N20B]|장부=N20A:REST_TRADE/100 N20B:- N20C:REST_TRADE/300|실패표시=true|경보=1|오류문=KRW-N20B 호가 조회 실패; |로그=WARN [시세 보강] 시세 항목 건너뜀 ? 가격이 아님 (부호=음수) ? ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 조회 실패; 
+12:54:26.431 [Test worker] INFO  c.c.api.service.HeldMarkRefresher - [시세 보강] 호가로 보강한 보유 [KRW-N20B] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+N20계약행|PRICE_NULL×DEEP|byTrade=[N20A, N20C]|byBook=[N20B]|unobserved=[]|장부=N20A:REST_TRADE/100 N20B:REST_ORDERBOOK_DEPTH/99.00000000 N20C:REST_TRADE/300|실패표시=false|경보=0|오류문=null|로그=INFO [시세 보강] 호가로 보강한 보유 [KRW-N20B] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+12:54:26.432 [Test worker] ERROR c.c.api.service.HeldMarkRefresher - ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 조회 실패; 
+N20계약행|PRICE_NULL×FAIL|byTrade=[N20A, N20C]|byBook=[]|unobserved=[N20B]|장부=N20A:REST_TRADE/100 N20B:- N20C:REST_TRADE/300|실패표시=true|경보=1|오류문=KRW-N20B 호가 조회 실패; |로그=ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 조회 실패; 
+12:54:26.433 [Test worker] INFO  c.c.api.service.HeldMarkRefresher - [시세 보강] 호가로 보강한 보유 [KRW-N20B] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+N20계약행|TS_BAD×DEEP|byTrade=[N20A, N20C]|byBook=[N20B]|unobserved=[]|장부=N20A:REST_TRADE/100 N20B:REST_ORDERBOOK_DEPTH/99.00000000 N20C:REST_TRADE/300|실패표시=false|경보=0|오류문=null|로그=INFO [시세 보강] 호가로 보강한 보유 [KRW-N20B] ? 보유량을 매수호가에 채운 평균 가격으로 관측
+12:54:26.433 [Test worker] ERROR c.c.api.service.HeldMarkRefresher - ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 조회 실패; 
+N20계약행|TS_BAD×FAIL|byTrade=[N20A, N20C]|byBook=[]|unobserved=[N20B]|장부=N20A:REST_TRADE/100 N20B:- N20C:REST_TRADE/300|실패표시=true|경보=1|오류문=KRW-N20B 호가 조회 실패; |로그=ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 조회 실패; 
+12:54:26.435 [Test worker] WARN  c.c.api.service.HeldMarkRefresher - [시세 보강] 시세 항목 건너뜀 ? 가격 형식이 숫자가 아님
+12:54:26.435 [Test worker] ERROR c.c.api.service.HeldMarkRefresher - ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 조회 실패; 
+12:54:26.435 [Test worker] WARN  c.c.api.service.HeldMarkRefresher - [시세 보강] 경보 전송 실패 (종류=RuntimeException)
+N20계약행|경보전송실패|byTrade=[N20A, N20C]|byBook=[]|unobserved=[N20B]|장부=N20A:REST_TRADE/100 N20B:- N20C:REST_TRADE/300|실패표시=true|경보=1|오류문=KRW-N20B 호가 조회 실패; |로그=WARN [시세 보강] 시세 항목 건너뜀 ? 가격 형식이 숫자가 아님 ? ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): KRW-N20B 호가 조회 실패;  ? WARN [시세 보강] 경보 전송 실패 (종류=RuntimeException)
+12:54:26.527 [Test worker] WARN  c.c.api.service.HeldMarkRefresher - [시세 보강] 시세 처리 실패 (종류=IllegalStateException)
+12:54:26.527 [Test worker] ERROR c.c.api.service.HeldMarkRefresher - ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B, KRW-N20C] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 처리 실패; KRW-N20B 호가 조회 실패; KRW-N20C 호가 조회 실패; 
+N20계약행|장부내부예외|byTrade=[N20A]|byBook=[]|unobserved=[N20B, N20C]|장부=N20A:REST_TRADE/100 N20B:- N20C:-|실패표시=true|경보=1|오류문=시세 처리 실패; KRW-N20B 호가 조회 실패; KRW-N20C 호가 조회 실패; |로그=WARN [시세 보강] 시세 처리 실패 (종류=IllegalStateException) ? ERROR ? [시세 보강] 보유 코인의 관측 가격을 얻지 못했다 [KRW-N20B, KRW-N20C] ? 공유 풀 신규 진입이 막힌다(청산·추적은 계속): 시세 처리 실패; KRW-N20B 호가 조회 실패; KRW-N20C 호가 조회 실패; 
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

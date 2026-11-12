@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="실행기 장벽 — 꺼낸 뒤·실행 전 창에서는 기다리고, 작업 종료 뒤에 성립" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-11-12T03:55:51" hostname="DESKTOP-SF1KUQ5" time="1.02">
+  <properties/>
+  <testcase name="waitsThroughTheGapWindowAndCompletesAfterTask()" classname="com.cryptoautotrader.api.support.ExecutorBarrierTest" time="1.02"/>
+  <system-out><![CDATA[12:55:51.769 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+12:55:51.769 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] STOP_LOSS 전송 실패(REJECTED) ? 5000ms 후 재시도 (2/3)
+12:55:52.256 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+12:55:52.256 [telegram-1] ERROR c.c.a.s.TelegramNotificationService - [Telegram] ? CLEANUP_INCOMPLETE 알림 3회 시도 ? 최종 실패: 전달되지 않음(마지막 REJECTED HTTP 404)(이력 success=false): ? *세션 #495 정지 ? 정리 미완료*
+
+? 미해결 제출: `1건` (제출 결과 불명)
+? 접수 가능성이 있어 자금·슬롯을 유지하고 식별자로 추적을 계속합니다.
+? 자동 종결하지 않으므로 확인이 필요합니
+[장벽] 창 안: 옛 조건=true 장벽 성립=false 실행=false
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="§15 calculateInvestAmount — 포지션 사이징" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-11-12T03:31:35" hostname="DESKTOP-SF1KUQ5" time="0.002">
+  <properties/>
+  <testcase name="정확히 최소 금액 충족 — 투자 진행" classname="com.cryptoautotrader.core.risk.ExitRuleCheckerTest$CalculateInvestAmount" time="0.0"/>
+  <testcase name="리스크 사이징 — 손절폭이 매우 좁아도 정률 사이징 상한을 넘지 않음" classname="com.cryptoautotrader.core.risk.ExitRuleCheckerTest$CalculateInvestAmount" time="0.001"/>
+  <testcase name="리스크 사이징 활성 — 허용손실/손절거리로 투자금 산정" classname="com.cryptoautotrader.core.risk.ExitRuleCheckerTest$CalculateInvestAmount" time="0.0"/>
+  <testcase name="최소 투자 금액(5000) 미만이면 0 반환" classname="com.cryptoautotrader.core.risk.ExitRuleCheckerTest$CalculateInvestAmount" time="0.0"/>
+  <testcase name="가용 자금 × 80% 투자" classname="com.cryptoautotrader.core.risk.ExitRuleCheckerTest$CalculateInvestAmount" time="0.0"/>
+  <testcase name="리스크 사이징 비활성이면 손절거리를 넘겨도 정률 사이징 그대로" classname="com.cryptoautotrader.core.risk.ExitRuleCheckerTest$CalculateInvestAmount" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

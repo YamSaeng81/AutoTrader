@@ -1,0 +1,20 @@
+core-engine tests 298 fail 0 err 0 skip 7 pass 291
+exchange-adapter tests 11 fail 0 err 0 skip 0 pass 11
+strategy-lib tests 113 fail 0 err 0 skip 0 pass 113
+web-api tests 1291 fail 8 err 0 skip 49 pass 1234
+FAIL com.cryptoautotrader.api.service.N15EntryExpiryTest # ⑤ 계좌 잠금 대기 중 E 통과 — 잠금을 얻은 뒤 재검사로 예약·의도 0, 신호에 ENTRY_EXPIRED
+    org.opentest4j.AssertionFailedError: [승인 스레드가 계좌 잠금에서 기다렸다]  Expecting value to be true but was false
+FAIL com.cryptoautotrader.api.service.N15EntryExpiryTest # ② DYNAMIC: E−1ms 진입, E 만료 — 예약·의도·거래소 0, 원래 신호에 만료 사유
+    org.opentest4j.AssertionFailedError: [KRW-IOTA 접수]  expected: 1  but was: 0
+FAIL com.cryptoautotrader.api.service.N15EntryExpiryTest # ① LIVE: D+1ms·E−1ms 진입, E·E+1ms 만료 — 예약·의도·거래소 0, 원래 신호에 만료 사유, 회차 닫힘, 확정 주문 그대로
+    org.opentest4j.AssertionFailedError: [KRW-CRO 진입]  expected: null  but was: "승인 차례에 최신 캔들을 못 읽었다(0건)"
+FAIL com.cryptoautotrader.api.service.N15EntryExpiryTest # ④ 자기 관문 대기 중 E 통과 — LIVE·DYNAMIC 모두 잠금 안 재검사로 예약·의도·슬롯·거래소 0, 신호에 ENTRY_EXPIRED
+    java.lang.AssertionError:  Expecting actual:   "승인 차례에 최신 캔들을 못 읽었다(0건)" to contain:   "ENTRY_EXPIRED" 
+FAIL com.cryptoautotrader.api.service.N15FinalApprovalBoundaryTest # ⑨a (c) LIVE 차감 뒤 의도 승인 조회 중 E — 가용 원복·슬롯·의도·거래소 0, 신호에 ENTRY_EXPIRED
+    org.opentest4j.AssertionFailedError: [갈고리가 의도 승인 안에서 불렸다]  expected: 1  but was: 0
+FAIL com.cryptoautotrader.api.service.N15FinalApprovalBoundaryTest # ⑩ 대조군: 갈고리 지점을 지나도 시계가 E−1ms 면 LIVE·DYNAMIC 정상 진입 — 차감·슬롯·매수 의도 1
+    org.opentest4j.AssertionFailedError:  expected: 1  but was: 0
+FAIL com.cryptoautotrader.api.service.N15FinalApprovalBoundaryTest # ⑦a (a) LIVE 잠금 직후 E−1ms·손실 한도 검사 중 E — 차감·슬롯·의도·거래소 0, 신호에 ENTRY_EXPIRED
+    org.opentest4j.AssertionFailedError: [갈고리가 예약 경로 안에서 불렸다]  expected: 1  but was: 0
+FAIL com.cryptoautotrader.api.service.O1O3LogContractTest # LIVE REST_TRADE
+    org.opentest4j.AssertionFailedError: [손절가 285 아래 280 → 보호 매도 1회]  expected: 1L  but was: 0L

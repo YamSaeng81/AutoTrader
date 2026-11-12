@@ -1,0 +1,44 @@
+package com.cryptoautotrader.api.service;
+
+import com.cryptoautotrader.api.support.IntegrationTestBase;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+/** 진단 전용(커밋하지 않음, v1.155 §5 오염 탐침) — 실패 클래스 바로 앞(이름순)에서 공유 H2 상태만 출력한다. 단언 없음. */
+class Sma20LiveAlignedAADiagTest extends IntegrationTestBase {
+    @Autowired JdbcTemplate jdbc;
+
+    private void q(String name, String sql) {
+        try {
+            System.out.println("[DIAG155] " + name + " = " + jdbc.queryForList(sql));
+        } catch (Exception e) {
+            System.out.println("[DIAG155] " + name + " 실패 " + e.getMessage());
+        }
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void dump() throws Exception {
+        java.lang.reflect.Field f = AbstractSma20SameInputFixture.class.getDeclaredField("LAST_ROUND");
+        f.setAccessible(true);
+        java.util.concurrent.atomic.AtomicReference<java.time.Instant> lr = (java.util.concurrent.atomic.AtomicReference<java.time.Instant>) f.get(null);
+        java.time.Instant v = lr.get();
+        System.out.println("[DIAG155] LAST_ROUND=" + v + " 지금−61분 대비 뒤처짐(초)=" + (v.equals(java.time.Instant.MAX) ? "초기값"
+                : java.time.Duration.between(v, java.time.Instant.now().minus(61, java.time.temporal.ChronoUnit.MINUTES)).getSeconds())
+                + " 재설정=" + System.getenv("DIAG_RESET_LAST_ROUND"));
+        if ("1".equals(System.getenv("DIAG_RESET_LAST_ROUND"))) lr.set(java.time.Instant.MAX);
+        q("position", "SELECT session_kind, status, COUNT(*) n, COUNT(DISTINCT coin_pair) coins FROM position GROUP BY session_kind, status ORDER BY 1,2");
+        q("position KRW-BTC/ETH OPEN", "SELECT session_kind, coin_pair, status, COUNT(*) n FROM position WHERE status IN ('OPEN','CLOSING') AND coin_pair IN ('KRW-BTC','KRW-ETH') GROUP BY 1,2,3");
+        q("live session", "SELECT status, session_type, COUNT(*) n FROM live_trading_session GROUP BY 1,2");
+        q("live RUNNING BTC", "SELECT id, coin_pair, status, available_krw FROM live_trading_session WHERE status='RUNNING' ORDER BY id");
+        q("dynamic session", "SELECT status, trading_mode, COUNT(*) n FROM dynamic_session GROUP BY 1,2");
+        q("paper", "SELECT status, COUNT(*) n FROM paper_trading GROUP BY 1");
+        q("orders active", "SELECT session_kind, side, state, COUNT(*) n FROM \"order\" WHERE state NOT IN ('FILLED','FAILED','CANCELLED') GROUP BY 1,2,3");
+        q("risk_config", "SELECT * FROM risk_config");
+        q("account_capital_lock", "SELECT * FROM account_capital_lock");
+        q("capital_stage_baseline", "SELECT * FROM capital_stage_baseline");
+        q("pool_equity_snapshot", "SELECT COUNT(*) n FROM pool_equity_snapshot");
+        q("market_data_cache KRW-BTC H1", "SELECT COUNT(*) n, MIN(time) mn, MAX(time) mx FROM market_data_cache WHERE coin_pair='KRW-BTC' AND timeframe='H1'");
+    }
+}

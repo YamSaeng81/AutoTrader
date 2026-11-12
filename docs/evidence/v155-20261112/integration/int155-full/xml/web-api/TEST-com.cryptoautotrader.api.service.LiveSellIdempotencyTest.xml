@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.LiveSellIdempotencyTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-12T03:22:56" hostname="DESKTOP-SF1KUQ5" time="0.046">
+  <properties/>
+  <testcase name="markClosingIfOpen: OPEN일 때만 1 반환 — 두 번째 매도 시도는 주문을 내지 않는다" classname="com.cryptoautotrader.api.service.LiveSellIdempotencyTest" time="0.013"/>
+  <testcase name="CLOSING reconcile: 체결이 하나도 없이 FAILED만 있으면 기존대로 OPEN 롤백한다" classname="com.cryptoautotrader.api.service.LiveSellIdempotencyTest" time="0.019"/>
+  <testcase name="CLOSING reconcile: FAILED 재시도가 뒤에 쌓여도 FILLED 주문으로 정산한다" classname="com.cryptoautotrader.api.service.LiveSellIdempotencyTest" time="0.011"/>
+  <system-out><![CDATA[12:22:56.699 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.LiveSellIdempotencyTest
+12:22:56.703 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+12:22:56.717 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+12:22:56.726 [Test worker] WARN  c.c.api.service.LiveTradingService - 매도 주문 FAILED ? 포지션 OPEN 롤백 (orderId=381, posId=429, sessionId=259)
+12:22:56.739 [Test worker] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+12:22:56.743 [Test worker] WARN  c.c.api.service.LiveTradingService - 매도 주문 다건 ? FAILED 재시도 뒤의 FILLED를 채택 (posId=430, 채택 orderId=382, 후속 주문 1건)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

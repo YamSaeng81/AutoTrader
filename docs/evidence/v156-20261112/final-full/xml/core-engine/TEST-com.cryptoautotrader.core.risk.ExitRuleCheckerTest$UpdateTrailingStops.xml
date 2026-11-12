@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="§15 updateTrailingStops — 트레일링 스탑 갱신" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-11-12T06:32:25" hostname="DESKTOP-SF1KUQ5" time="0.001">
+  <properties/>
+  <testcase name="트레일링 비활성화 — SL/TP 불변" classname="com.cryptoautotrader.core.risk.ExitRuleCheckerTest$UpdateTrailingStops" time="0.0"/>
+  <testcase name="TP 래칫은 단방향 — 고점이 낮아지면 TP 불변" classname="com.cryptoautotrader.core.risk.ExitRuleCheckerTest$UpdateTrailingStops" time="0.001"/>
+  <testcase name="수익 구간 — 고점 갱신 시 TP 래칫 상향" classname="com.cryptoautotrader.core.risk.ExitRuleCheckerTest$UpdateTrailingStops" time="0.0"/>
+  <testcase name="손실 구간 — SL을 조이지 않는다 (2026-09-08 회귀 방지)" classname="com.cryptoautotrader.core.risk.ExitRuleCheckerTest$UpdateTrailingStops" time="0.0"/>
+  <testcase name="진입가 바로 아래 1틱 — 0.3% 손절로 바뀌지 않는다 (운영 −1,270만원 사고 재현)" classname="com.cryptoautotrader.core.risk.ExitRuleCheckerTest$UpdateTrailingStops" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.WsFallbackTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-11-12T03:55:47" hostname="DESKTOP-SF1KUQ5" time="3.829">
+  <properties/>
+  <testcase name="§9 WS 재연결: isWsDownLongerThan 리셋" classname="com.cryptoautotrader.api.service.WsFallbackTest" time="0.002"/>
+  <testcase name="§9 WS 중복 해제: wsDisconnectedSince 최초 시점 유지" classname="com.cryptoautotrader.api.service.WsFallbackTest" time="0.515"/>
+  <testcase name="§9 조용한 정지: 연결됨이지만 틱 끊기면 isWsStale/isWsUnhealthy 감지, markWsTick으로 회복" classname="com.cryptoautotrader.api.service.WsFallbackTest" time="1.105"/>
+  <testcase name="§9 never-connected: WS가 한 번도 연결 안 돼도 틱 정지로 폴백 발동(연결 플래그 무관)" classname="com.cryptoautotrader.api.service.WsFallbackTest" time="1.104"/>
+  <testcase name="§9 WS 끊김 &gt;30초: isWsDownLongerThan 정확성" classname="com.cryptoautotrader.api.service.WsFallbackTest" time="1.103"/>
+  <system-out><![CDATA[12:55:47.413 [Test worker] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+12:55:47.415 [Test worker] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+12:55:47.554 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+12:55:47.554 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] STOP_LOSS 전송 실패(REJECTED) ? 2000ms 후 재시도 (1/3)
+12:55:47.927 [Test worker] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+12:55:49.230 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+12:55:49.230 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] SESSION_STOP 전송 실패(REJECTED) ? 5000ms 후 재시도 (2/3)
+12:55:49.237 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+12:55:49.237 [telegram-1] ERROR c.c.a.s.TelegramNotificationService - [Telegram] ? STOP_LOSS 알림 3회 시도 ? 최종 실패: 전달되지 않음(마지막 REJECTED HTTP 404)(이력 success=false): ?? *손절 실행*
+
+? 세션 ID: `400`
+? 코인: `KRW-F3X28100`
+? 손실률: `6.67%`
+? 시각: `2026-11-12 12:54:43`
+12:55:49.500 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+12:55:49.500 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] STOP_LOSS 전송 실패(REJECTED) ? 2000ms 후 재시도 (1/3)
+12:55:49.847 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+12:55:49.847 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] STOP_LOSS 전송 실패(REJECTED) ? 5000ms 후 재시도 (2/3)
+12:55:50.139 [Test worker] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+12:55:50.215 [telegram-2] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+12:55:50.215 [telegram-2] ERROR c.c.a.s.TelegramNotificationService - [Telegram] ? STOP_LOSS 알림 3회 시도 ? 최종 실패: 전달되지 않음(마지막 REJECTED HTTP 404)(이력 success=false): ?? *손절 실행*
+
+? 세션 ID: `401`
+? 코인: `KRW-F4X45699`
+? 손실률: `6.67%`
+? 시각: `2026-11-12 12:54:43`
+12:55:50.475 [telegram-2] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+12:55:50.475 [telegram-2] WARN  c.c.a.s.TelegramNotificationService - [Telegram] STOP_LOSS 전송 실패(REJECTED) ? 2000ms 후 재시도 (1/3)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

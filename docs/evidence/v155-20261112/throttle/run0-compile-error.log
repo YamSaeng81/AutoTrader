@@ -1,0 +1,48 @@
+> Task :strategy-lib:compileJava
+> Task :strategy-lib:processResources NO-SOURCE
+> Task :strategy-lib:classes
+> Task :strategy-lib:jar
+> Task :core-engine:compileJava
+> Task :core-engine:processResources NO-SOURCE
+> Task :core-engine:classes
+> Task :core-engine:jar
+> Task :exchange-adapter:compileJava
+> Task :exchange-adapter:processResources NO-SOURCE
+> Task :exchange-adapter:classes
+> Task :exchange-adapter:jar
+> Task :web-api:compileJava
+> Task :web-api:processResources
+> Task :web-api:classes
+
+> Task :web-api:compileTestJava
+D:\tmp\thr-b5cd1d0\web-api\src\test\java\com\cryptoautotrader\api\service\RealtimeThrottleCrossingTest.java:11: error: cannot find symbol
+import com.cryptoautotrader.api.support.ExecutorBarrier;
+                                       ^
+  symbol:   class ExecutorBarrier
+  location: package com.cryptoautotrader.api.support
+D:\tmp\thr-b5cd1d0\web-api\src\test\java\com\cryptoautotrader\api\service\RealtimeThrottleCrossingTest.java:165: error: cannot find symbol
+        ExecutorBarrier.awaitPriorTasks(marketDataExecutor.getThreadPoolExecutor(), 15_000);
+        ^
+  symbol:   variable ExecutorBarrier
+  location: class RealtimeThrottleCrossingTest
+D:\tmp\thr-b5cd1d0\web-api\src\test\java\com\cryptoautotrader\api\service\RealtimeThrottleCrossingTest.java:166: error: cannot find symbol
+        ExecutorBarrier.awaitPriorTasks(orderExecutor.getThreadPoolExecutor(), 15_000);
+        ^
+  symbol:   variable ExecutorBarrier
+  location: class RealtimeThrottleCrossingTest
+3 errors
+
+> Task :web-api:compileTestJava FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':web-api:compileTestJava'.
+> Compilation failed; see the compiler error output for details.
+
+* Try:
+> Run with --info option to get more log output.
+> Run with --scan to get full insights.
+
+BUILD FAILED in 12s
+9 actionable tasks: 9 executed

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="A. 자본 보호는 세션 단위이고 거래 0건이어도 발동한다" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-11-12T02:52:26" hostname="DESKTOP-SF1KUQ5" time="0.0">
+  <properties/>
+  <testcase name="CB_REPEAT: 누적 3회에서 폐기, 2회는 유지" classname="com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest$CapitalProtection" time="0.0"/>
+  <testcase name="CAPITAL_LOSS 는 거래 0건 · 표본 0 에서도 발동한다 (문서 §2)" classname="com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest$CapitalProtection" time="0.0"/>
+  <testcase name="세션 판정은 엣지를 보지 않는다 — 손실 20거래여도 자본이 멀쩡하면 KEEP" classname="com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest$CapitalProtection" time="0.0"/>
+  <testcase name="MAX_DRAWDOWN: 고점 기준이라 초기자본 대비 이익 중이어도 발동한다" classname="com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest$CapitalProtection" time="0.0"/>
+  <testcase name="CAPITAL_LOSS: −15% 도달 시 폐기, −14.99%는 유지" classname="com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest$CapitalProtection" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

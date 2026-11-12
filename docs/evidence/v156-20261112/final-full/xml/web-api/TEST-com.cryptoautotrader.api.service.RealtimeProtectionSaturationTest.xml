@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="F 실시간 보호 전달 — 실행기 포화 중 발행 지속·시세 장부·LIVE/DYNAMIC 손절 주문 의도·중복 없음·비가격 방어·해제 후 처리" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-11-12T06:51:16" hostname="DESKTOP-SF1KUQ5" time="5.042">
+  <properties/>
+  <testcase name="단위 — 처리기 예외는 그 시세 하나만 실패로 세고 같은 코인의 다음 시세를 계속 처리, 발행 쪽 예외 없음" classname="com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest" time="0.006"/>
+  <testcase name="계약 — 급등 뒤 반락(310→290→280), 정상 300 뒤 280, 미래 관측(+24h) 300 뒤 정상 280: 각 기준 실행과 같다" classname="com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest" time="0.035"/>
+  <testcase name="v1.155 §2-3 — 포화 중 대기한 시세가 유효기간(120초)을 넘으면 처리기가 버리고(매도 0), 다음 신선 시세에서 LIVE·DYNAMIC 손절 1회씩 회복" classname="com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest" time="0.017"/>
+  <testcase name="작업자 바쁨·대기열 여유 — 발행 예외 없음, 해제 전 매도 0, 해제 뒤 손절 1회(대기 지연 = 앞선 작업 완료까지), 거절 0" classname="com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest" time="0.026"/>
+  <testcase name="종료된 실행기 — 발행 예외 없음, 거절 수·고정 사유·대기 유지, 처리기 호출 없음" classname="com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest" time="0.002"/>
+  <testcase name="단위 — 작업자를 붙잡은 동안 쌓인 시세가 같은 객체·같은 순서(관측 시각 원문 그대로)로 처리기에 간다, 상한 초과는 새 시세만 버리고 센다" classname="com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest" time="0.007"/>
+  <testcase name="대기열 가득 — 발행 예외 없음·시세 장부 갱신·다음 코인 전달, 해제 전 매도 0, 해제 후 새 시세 없이 LIVE·DYNAMIC 손절 1회씩, 재시세에 중복 없음" classname="com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest" time="0.938"/>
+  <testcase name="비교 — 행 잠금 400ms 중: 안 A(호출 스레드) 발행 지연 ≥ 잠금, 안 B(대기칸) 발행 지연 &lt; 잠금, 두 안 모두 손절 1회" classname="com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest" time="0.43"/>
+  <testcase name="v1.155 §2-3 — 포화 중 거래소 복구 이벤트(@Async marketDataExecutor)는 종전대로 발행 쪽에 접수 거절이 드러난다(경계가 삼키지 않음), 같은 포화의 보호 시세는 대기·해제 뒤 처리" classname="com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest" time="0.009"/>
+  <testcase name="계약 — 대기 중 280→300(손절가 285): 기준과 같고 두 엔진 손절(총괄 탐침 ①의 반대 결과)" classname="com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest" time="0.557"/>
+  <testcase name="계약 — 비가격(0·null)·낡은 값(관측 −200초) 뒤 유효 280, 역순 관측: 각 기준 실행과 같다(경계는 거르거나 덮지 않는다)" classname="com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest" time="1.998"/>
+  <testcase name="지연 — 같은 엔진 코인 A 포지션 행 잠금(400ms) 중 코인 B 손절은 A 를 기다리지 않는다(작업자 여유일 때)" classname="com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest" time="0.411"/>
+  <testcase name="계약 — 서로 다른 코인 교차(A280·B300·A300·B280): 코인별로 기준 실행과 같다" classname="com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest" time="0.6"/>
+  <system-out><![CDATA[15:51:16.768 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest
+15:51:16.774 [ThreadPoolTaskExecutor-1] ERROR c.c.a.s.RealtimeProtectionDispatcher - [실시간 보호] LIVE 처리기 예외 ? coin=KRW-E, price=281
+java.lang.IllegalStateException: 시험 처리기 예외
+	at com.cryptoautotrader.api.service.RealtimeProtectionSaturationTest.lambda$unitHandlerExceptionCountedAndContinues$17(RealtimeProtectionSaturationTest.java:768)
+	at org.mockito.internal.stubbing.StubbedInvocationMatcher.answer(StubbedInvocationMatcher.java:42)
+	at org.mockito.internal.handler.MockHandlerImpl.handle(MockHandlerImpl.java:103)
+	at org.mockito.internal.handler.NullResultGuardian.handle(NullResultGuardian.java:29)
+	at org.mockito.internal.handler.InvocationNotifierHandler.handle(InvocationNotifierHandler.java:34)
+	at org.mockito.internal.creation.bytebuddy.MockMethodInterceptor.doIntercept(MockMethodInterceptor.java:82)
+	at org.mockito.internal.creation.bytebuddy.MockMethodAdvice.handle(MockMethodAdvice.java:134)
+	at com.cryptoautotrader.api.service.LiveTradingService.onRealtimePriceEvent(LiveTradingService.java:3383)
+	at com.cryptoautotrader.api.service.RealtimeProtectionDispatcher$CoinLane.drain(RealtimeProtectionDispatcher.java:189)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+[F154] 단위 예외: 처리 [280, 281, 282] | Snapshot[engine=LIVE, rejected=0, overflow=0, pendingCoins=0, pendingEvents=0, processed=3, failures=1, lastRejectReason=null, lastOverflowReason=null]
+15:51:16.780 [Test worker] WARN  c.c.api.service.LiveTradingService - 급락 감지 (sessionId=374, KRW-F1X37200): 손익=-3.333300% ? SL 유지 285.00000000 (조임 없음)
+15:51:16.783 [market-data-1] WARN  c.c.api.service.LiveTradingService - 급락 감지 (sessionId=375, KRW-F2X81600): 손익=-3.333300% ? SL 유지 285.00000000 (조임 없음)
+[F154] 310→290→280 | 기준 {A=LIVE=OPEN DYNAMIC=OPEN 매도=0} | 경계 {A=LIVE=OPEN DYNAMIC=OPEN 매도=0} | Snapshot[engine=LIVE, rejected=0, overflow=0, pendingCoins=0, pendingEvents=0, processed=5, failures=0, lastRejectReason=null, lastOverflowReason=null] | Snapshot[engine=DYNAMIC, rejected=0, overflow=0, pendingCoins=0, pendingEvents=0, processed=5, failures=0, lastRejectReason=null, lastOverflowReason=null]
+15:51:16.785 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=376, KRW-F3X35300, 손익=-6.666700%
+15:51:16.790 [market-data-2] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=377, KRW-F4X67500, 손익=-6.666700%
+[F154] 300→280 | 기준 {A=LIVE=CLOSING DYNAMIC=OPEN 매도=1} | 경계 {A=LIVE=CLOSING DYNAMIC=OPEN 매도=1} | Snapshot[engine=LIVE, rejected=0, overflow=0, pendingCoins=0, pendingEvents=0, processed=7, failures=0, lastRejectReason=null, lastOverflowReason=null] | Snapshot[engine=DYNAMIC, rejected=0, overflow=0, pendingCoins=0, pendingEvents=0, processed=7, failures=0, lastRejectReason=null, lastOverflowReason=null]
+15:51:16.795 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=378, KRW-F5X22100, 손익=-6.666700%
+15:51:16.798 [market-data-2] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=379, KRW-F6X13500, 손익=-6.666700%
+[F154] 미래300→280 | 기준 {A=LIVE=CLOSING DYNAMIC=OPEN 매도=1} | 경계 {A=LIVE=CLOSING DYNAMIC=OPEN 매도=1} | Snapshot[engine=LIVE, rejected=0, overflow=0, pendingCoins=0, pendingEvents=0, processed=9, failures=0, lastRejectReason=null, lastOverflowReason=null] | Snapshot[engine=DYNAMIC, rejected=0, overflow=0, pendingCoins=0, pendingEvents=0, processed=9, failures=0, lastRejectReason=null, lastOverflowReason=null]
+[F153] 포화 준비: 코어/떠 있던 작업자 2 · 채움 100 · 비코어 래치 2 · 작업자 4/4 · 대기열 100/100 · 끼어든 작업 0 []
+15:51:16.821 [Test worker] WARN  c.c.a.s.RealtimeProtectionDispatcher - [실시간 보호] LIVE 실행기 포화 ? 보호 점검 접수 거절, 코인별 최신 시세 대기 유지 (coin=KRW-F7X3100, 대기 1, 누적 거절 1)
+15:51:16.821 [Test worker] WARN  c.c.a.s.RealtimeProtectionDispatcher - [실시간 보호] DYNAMIC 실행기 포화 ? 보호 점검 접수 거절, 코인별 최신 시세 대기 유지 (coin=KRW-F7X3100, 대기 1, 누적 거절 1)
+15:51:16.823 [market-data-2] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=380, KRW-F7X3100, 손익=-5.333300%
+15:51:16.823 [market-data-1] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-F7X3100 @ 284 pnl=-5.333300% (id=242)
+[F155] 낡은 대기 시세: 발행 예외 null · 낡은 시세 뒤 매도 0 LIVE=OPEN DYNAMIC=OPEN | Snapshot[engine=LIVE, rejected=1, overflow=0, pendingCoins=0, pendingEvents=0, processed=10, failures=0, lastRejectReason=실행기 포화 ? 보호 점검 접수 거절, 코인별 최신 시세 대기 유지, lastOverflowReason=null] | Snapshot[engine=DYNAMIC, rejected=1, overflow=0, pendingCoins=0, pendingEvents=0, processed=10, failures=0, lastRejectReason=실행기 포화 ? 보호 점검 접수 거절, 코인별 최신 시세 대기 유지, lastOverflowReason=null] · 신선 284 뒤 매도 2 LIVE=CLOSING DYNAMIC=CLOSING 발행 예외 null
+15:51:16.832 [market-data-2] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=381, KRW-F8X19500, 손익=-6.666700%
+[F153] 작업자 바쁨: 예외 null 매도 1 상태 CLOSING | LIVE Snapshot[engine=LIVE, rejected=1, overflow=0, pendingCoins=0, pendingEvents=0, processed=12, failures=0, lastRejectReason=실행기 포화 ? 보호 점검 접수 거절, 코인별 최신 시세 대기 유지, lastOverflowReason=null]
+15:51:16.858 [Test worker] WARN  c.c.a.s.RealtimeProtectionDispatcher - [실시간 보호] LIVE 실행기 포화 ? 보호 점검 접수 거절, 코인별 최신 시세 대기 유지 (coin=KRW-SHUT, 대기 1, 누적 거절 1)
+15:51:16.858 [Test worker] WARN  c.c.a.s.RealtimeProtectionDispatcher - [실시간 보호] DYNAMIC 실행기 포화 ? 보호 점검 접수 거절, 코인별 최신 시세 대기 유지 (coin=KRW-SHUT, 대기 1, 누적 거절 1)
+[F153] 종료 거절: 예외 null | Snapshot[engine=LIVE, rejected=2, overflow=0, pendingCoins=1, pendingEvents=1, processed=0, failures=0, lastRejectReason=실행기 포화 ? 보호 점검 접수 거절, 코인별 최신 시세 대기 유지, lastOverflowReason=null]
+15:51:16.862 [Test worker] WARN  c.c.a.s.RealtimeProtectionDispatcher - [실시간 보호] LIVE 코인별 보호 대기열 초과 ? 새 시세 버림 (coin=KRW-U, 누적 초과 1)
+15:51:16.862 [Test worker] WARN  c.c.a.s.RealtimeProtectionDispatcher - [실시간 보호] DYNAMIC 코인별 보호 대기열 초과 ? 새 시세 버림 (coin=KRW-U, 누적 초과 1)
+[F154] 단위 순서: 보냄 100 · 초과 1 · 대기 100 · 처리 100 | Snapshot[engine=LIVE, rejected=0, overflow=1, pendingCoins=0, pendingEvents=0, processed=100, failures=0, lastRejectReason=null, lastOverflowReason=코인별 보호 대기열 초과 ? 새 시세 버림]
+[F153] 포화 준비: 코어/떠 있던 작업자 4 · 채움 100 · 비코어 래치 0 · 작업자 4/4 · 대기열 100/100 · 끼어든 작업 0 []
+15:51:16.872 [market-data-3] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=382, KRW-F9X72200, 손익=-6.666700%
+15:51:16.872 [market-data-4] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=383, KRW-F10X85400, 손익=-6.666700%
+15:51:16.872 [market-data-1] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-F9X72200 @ 280 pnl=-6.666700% (id=243)
+15:51:16.872 [market-data-3] WARN  c.c.api.service.LiveTradingService - 가격이 아닌 실시간 시세 무시: KRW-F9X72200 0 관측 2026-11-12T06:51:16.870947400Z 출처 WS_TRADE
+15:51:16.873 [market-data-1] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 가격이 아닌 실시간 시세 무시: KRW-F9X72200 0 관측 2026-11-12T06:51:16.870947400Z 출처 WS_TRADE
+15:51:17.206 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+15:51:17.207 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] SESSION_STOP 전송 실패(REJECTED) ? 5000ms 후 재시도 (2/3)
+[F153] 포화 중 발행 예외: null / null / null
+[F153] 포화 중 시세 장부 a=280 b=280
+[F153] 포화 중 매도: a=0 b=0 | LIVE Snapshot[engine=LIVE, rejected=4, overflow=0, pendingCoins=2, pendingEvents=3, processed=12, failures=0, lastRejectReason=실행기 포화 ? 보호 점검 접수 거절, 코인별 최신 시세 대기 유지, lastOverflowReason=null] | DYNAMIC Snapshot[engine=DYNAMIC, rejected=4, overflow=0, pendingCoins=2, pendingEvents=3, processed=12, failures=0, lastRejectReason=실행기 포화 ? 보호 점검 접수 거절, 코인별 최신 시세 대기 유지, lastOverflowReason=null]
+[F153] 해제·재접수(true) 뒤 매도: a=2 b=1 상태 la=CLOSING da=CLOSING lb=CLOSING | LIVE Snapshot[engine=LIVE, rejected=4, overflow=0, pendingCoins=0, pendingEvents=0, processed=15, failures=0, lastRejectReason=실행기 포화 ? 보호 점검 접수 거절, 코인별 최신 시세 대기 유지, lastOverflowReason=null] | DYNAMIC Snapshot[engine=DYNAMIC, rejected=4, overflow=0, pendingCoins=0, pendingEvents=0, processed=15, failures=0, lastRejectReason=실행기 포화 ? 보호 점검 접수 거절, 코인별 최신 시세 대기 유지, lastOverflowReason=null]
+[F153] 재시세 뒤 매도: a=2 b=1 발행 예외 null 거래소 주문 증가 3
+[F153] 포화 준비: 코어/떠 있던 작업자 4 · 채움 100 · 비코어 래치 0 · 작업자 4/4 · 대기열 100/100 · 끼어든 작업 0 []
+15:51:17.810 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=384, KRW-F11X93300, 손익=-6.666700%
+15:51:17.929 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+15:51:17.929 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] SESSION_STOP 전송 실패(REJECTED) ? 5000ms 후 재시도 (2/3)
+[F153] 포화 준비: 코어/떠 있던 작업자 4 · 채움 100 · 비코어 래치 0 · 작업자 4/4 · 대기열 100/100 · 끼어든 작업 0 []
+15:51:18.229 [market-data-3] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=385, KRW-F12X97200, 손익=-6.666700%
+[F153] 비교(잠금 400ms): 안 A 발행 416ms 매도 1 | 안 B 발행 0ms 매도 1
+[F153] 포화 준비: 코어/떠 있던 작업자 4 · 채움 100 · 비코어 래치 0 · 작업자 4/4 · 대기열 100/100 · 끼어든 작업 0 []
+15:51:18.237 [market-data-1] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=386, KRW-F13X85000, 손익=-6.666700%
+[F155] 복구 이벤트: 포화 중 org.springframework.core.task.TaskRejectedException · 보호 시세 발행 예외 null · 해제 뒤 복구 이벤트 null · 매도 1 LIVE=CLOSING
+15:51:18.251 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=387, KRW-F14X57700, 손익=-6.666700%
+15:51:18.251 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-F14X57700 @ 280 pnl=-6.666700% (id=244)
+15:51:18.790 [market-data-3] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-F15X78100 @ 280 pnl=-6.666700% (id=245)
+15:51:18.790 [market-data-4] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=388, KRW-F15X78100, 손익=-6.666700%
+[F154] 280→300 | 기준 {A=LIVE=CLOSING DYNAMIC=CLOSING 매도=2} | 경계 {A=LIVE=CLOSING DYNAMIC=CLOSING 매도=2} | Snapshot[engine=LIVE, rejected=6, overflow=0, pendingCoins=0, pendingEvents=0, processed=20, failures=0, lastRejectReason=실행기 포화 ? 보호 점검 접수 거절, 코인별 최신 시세 대기 유지, lastOverflowReason=null] | Snapshot[engine=DYNAMIC, rejected=6, overflow=0, pendingCoins=0, pendingEvents=0, processed=20, failures=0, lastRejectReason=실행기 포화 ? 보호 점검 접수 거절, 코인별 최신 시세 대기 유지, lastOverflowReason=null]
+15:51:18.803 [Test worker] WARN  c.c.api.service.LiveTradingService - 가격이 아닌 실시간 시세 무시: KRW-F16X13600 0 관측 2026-11-12T06:51:18.803553600Z 출처 WS_TRADE
+15:51:18.803 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=389, KRW-F16X13600, 손익=-6.666700%
+15:51:18.803 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 가격이 아닌 실시간 시세 무시: KRW-F16X13600 0 관측 2026-11-12T06:51:18.803553600Z 출처 WS_TRADE
+15:51:18.804 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-F16X13600 @ 280 pnl=-6.666700% (id=246)
+15:51:19.233 [market-data-3] WARN  c.c.api.service.LiveTradingService - 가격이 아닌 실시간 시세 무시: KRW-F17X55700 0 관측 2026-11-12T06:51:19.232772600Z 출처 WS_TRADE
+15:51:19.233 [market-data-1] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 가격이 아닌 실시간 시세 무시: KRW-F17X55700 0 관측 2026-11-12T06:51:19.232772600Z 출처 WS_TRADE
+15:51:19.233 [market-data-1] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-F17X55700 @ 280 pnl=-6.666700% (id=247)
+15:51:19.233 [market-data-3] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=390, KRW-F17X55700, 손익=-6.666700%
+[F154] 0→280 | 기준 {A=LIVE=CLOSING DYNAMIC=CLOSING 매도=2} | 경계 {A=LIVE=CLOSING DYNAMIC=CLOSING 매도=2} | Snapshot[engine=LIVE, rejected=6, overflow=0, pendingCoins=0, pendingEvents=0, processed=22, failures=0, lastRejectReason=실행기 포화 ? 보호 점검 접수 거절, 코인별 최신 시세 대기 유지, lastOverflowReason=null] | Snapshot[engine=DYNAMIC, rejected=6, overflow=0, pendingCoins=0, pendingEvents=0, processed=22, failures=0, lastRejectReason=실행기 포화 ? 보호 점검 접수 거절, 코인별 최신 시세 대기 유지, lastOverflowReason=null]
+15:51:19.253 [Test worker] WARN  c.c.api.service.LiveTradingService - 가격이 아닌 실시간 시세 무시: KRW-F18X82300 null 관측 2026-11-12T06:51:19.253874900Z 출처 WS_TRADE
+15:51:19.254 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=391, KRW-F18X82300, 손익=-6.666700%
+15:51:19.254 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 가격이 아닌 실시간 시세 무시: KRW-F18X82300 null 관측 2026-11-12T06:51:19.253874900Z 출처 WS_TRADE
+15:51:19.254 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-F18X82300 @ 280 pnl=-6.666700% (id=248)
+15:51:19.278 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+15:51:19.278 [telegram-1] ERROR c.c.a.s.TelegramNotificationService - [Telegram] ? CLEANUP_INCOMPLETE 알림 3회 시도 ? 최종 실패: 전달되지 않음(마지막 REJECTED HTTP 404)(이력 success=false): ? *세션 #48 정지 ? 정리 미완료*
+
+? 미해결 제출: `1건` (제출 결과 불명)
+? 접수 가능성이 있어 자금·슬롯을 유지하고 식별자로 추적을 계속합니다.
+? 자동 종결하지 않으므로 확인이 필요합니다
+15:51:19.525 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+15:51:19.525 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] SESSION_STOP 전송 실패(REJECTED) ? 2000ms 후 재시도 (1/3)
+15:51:19.797 [market-data-4] WARN  c.c.api.service.LiveTradingService - 가격이 아닌 실시간 시세 무시: KRW-F19X73200 null 관측 2026-11-12T06:51:19.795069400Z 출처 WS_TRADE
+15:51:19.797 [market-data-3] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 가격이 아닌 실시간 시세 무시: KRW-F19X73200 null 관측 2026-11-12T06:51:19.795069400Z 출처 WS_TRADE
+15:51:19.797 [market-data-4] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=392, KRW-F19X73200, 손익=-6.666700%
+15:51:19.798 [market-data-3] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-F19X73200 @ 280 pnl=-6.666700% (id=249)
+[F154] null→280 | 기준 {A=LIVE=CLOSING DYNAMIC=CLOSING 매도=2} | 경계 {A=LIVE=CLOSING DYNAMIC=CLOSING 매도=2} | Snapshot[engine=LIVE, rejected=6, overflow=0, pendingCoins=0, pendingEvents=0, processed=24, failures=0, lastRejectReason=실행기 포화 ? 보호 점검 접수 거절, 코인별 최신 시세 대기 유지, lastOverflowReason=null] | Snapshot[engine=DYNAMIC, rejected=6, overflow=0, pendingCoins=0, pendingEvents=0, processed=24, failures=0, lastRejectReason=실행기 포화 ? 보호 점검 접수 거절, 코인별 최신 시세 대기 유지, lastOverflowReason=null]
+[F154] 낡은280→300 | 기준 {A=LIVE=OPEN DYNAMIC=OPEN 매도=0} | 경계 {A=LIVE=OPEN DYNAMIC=OPEN 매도=0} | Snapshot[engine=LIVE, rejected=6, overflow=0, pendingCoins=0, pendingEvents=0, processed=26, failures=0, lastRejectReason=실행기 포화 ? 보호 점검 접수 거절, 코인별 최신 시세 대기 유지, lastOverflowReason=null] | Snapshot[engine=DYNAMIC, rejected=6, overflow=0, pendingCoins=0, pendingEvents=0, processed=26, failures=0, lastRejectReason=실행기 포화 ? 보호 점검 접수 거절, 코인별 최신 시세 대기 유지, lastOverflowReason=null]
+15:51:20.232 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=395, KRW-F22X20200, 손익=-6.666700%
+15:51:20.233 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-F22X20200 @ 280 pnl=-6.666700% (id=252)
+15:51:20.234 [Test worker] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+15:51:20.243 [market-data-4] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=396, KRW-F23X78700, 손익=-6.666700%
+15:51:20.243 [market-data-3] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-F23X78700 @ 280 pnl=-6.666700% (id=253)
+15:51:20.266 [ForkJoinPool.commonPool-worker-2] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 성공
+15:51:20.266 [ForkJoinPool.commonPool-worker-2] INFO  c.c.e.upbit.UpbitWebSocketClient - WebSocket 구독 메시지 전송: coins=[KRW-F20X19900, KRW-F21X70700]
+[F154] 역순 관측 280(?10초) 뒤 300(?20초) | 기준 {A=LIVE=CLOSING DYNAMIC=CLOSING 매도=2} | 경계 {A=LIVE=CLOSING DYNAMIC=CLOSING 매도=2} | Snapshot[engine=LIVE, rejected=6, overflow=0, pendingCoins=0, pendingEvents=0, processed=28, failures=0, lastRejectReason=실행기 포화 ? 보호 점검 접수 거절, 코인별 최신 시세 대기 유지, lastOverflowReason=null] | Snapshot[engine=DYNAMIC, rejected=6, overflow=0, pendingCoins=0, pendingEvents=0, processed=28, failures=0, lastRejectReason=실행기 포화 ? 보호 점검 접수 거절, 코인별 최신 시세 대기 유지, lastOverflowReason=null]
+15:51:20.803 [market-data-2] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=397, KRW-F24X57100, 손익=-6.666700%
+15:51:20.803 [market-data-4] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=398, KRW-F25X72300, 손익=-6.666700%
+15:51:20.840 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+15:51:20.840 [telegram-1] ERROR c.c.a.s.TelegramNotificationService - [Telegram] ? EXCHANGE_DOWN 알림 3회 시도 ? 최종 실패: 전달되지 않음(마지막 REJECTED HTTP 404)(이력 success=false): ? *거래소 연결 끊김*
+
+? 사유: `Upbit API 연속 3회 연결 실패`
+? 모든 실전매매 세션이 비상 정지됩니다.
+? 시각: `2026-11-12 15:50:39`
+15:51:21.160 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+15:51:21.160 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] SESSION_STOP 전송 실패(REJECTED) ? 2000ms 후 재시도 (1/3)
+[F154] 코인 잠금 지연(잠금 400ms): A 매도 주문 403ms · B 매도 주문 2ms | Snapshot[engine=LIVE, rejected=6, overflow=0, pendingCoins=0, pendingEvents=0, processed=30, failures=0, lastRejectReason=실행기 포화 ? 보호 점검 접수 거절, 코인별 최신 시세 대기 유지, lastOverflowReason=null]
+15:51:21.213 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=399, KRW-F26X59200, 손익=-6.666700%
+15:51:21.214 [Test worker] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=400, KRW-F27X72800, 손익=-6.666700%
+15:51:21.215 [Test worker] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-F26X59200 @ 280 pnl=-6.666700% (id=254)
+15:51:21.215 [Test worker] WARN  c.c.e.upbit.UpbitWebSocketClient - 이미 WebSocket에 연결되어 있음. 기존 연결 종료 후 재연결합니다.
+15:51:21.215 [Test worker] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+15:51:21.216 [Test worker] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+15:51:21.229 [HttpClient-769-Worker-0] WARN  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 종료: code=1000, reason=정상 종료
+15:51:21.229 [HttpClient-769-Worker-0] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+15:51:21.229 [HttpClient-769-Worker-0] INFO  c.c.e.upbit.UpbitWebSocketClient - 1000ms 후 WebSocket 재연결 시도
+15:51:21.244 [market-data-2] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=401, KRW-F28X77400, 손익=-6.666700%
+15:51:21.244 [market-data-1] WARN  c.c.a.service.DynamicTradingService - [Dynamic] 실시간 손절: KRW-F28X77400 @ 280 pnl=-6.666700% (id=256)
+15:51:21.244 [market-data-3] WARN  c.c.api.service.LiveTradingService - 실시간 손절 발동: sessionId=402, KRW-F29X81700, 손익=-6.666700%
+15:51:21.245 [market-data-1] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 시도: wss://api.upbit.com/websocket/v1
+15:51:21.245 [ForkJoinPool.commonPool-worker-2] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 성공
+15:51:21.246 [ForkJoinPool.commonPool-worker-2] INFO  c.c.e.upbit.UpbitWebSocketClient - WebSocket 구독 메시지 전송: coins=[KRW-F27X72800, KRW-F29X81700]
+15:51:21.272 [ForkJoinPool.commonPool-worker-2] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 연결 성공
+15:51:21.272 [ForkJoinPool.commonPool-worker-2] INFO  c.c.e.upbit.UpbitWebSocketClient - WebSocket 구독 메시지 전송: coins=[KRW-F27X72800, KRW-F29X81700]
+15:51:21.491 [telegram-2] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+15:51:21.491 [telegram-2] WARN  c.c.a.s.TelegramNotificationService - [Telegram] STOP_LOSS 전송 실패(REJECTED) ? 2000ms 후 재시도 (1/3)
+15:51:21.772 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+15:51:21.772 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] SESSION_STOP 전송 실패(REJECTED) ? 5000ms 후 재시도 (2/3)
+[F154] A/B 교차 | 기준 {A=LIVE=CLOSING DYNAMIC=CLOSING 매도=2, B=LIVE=CLOSING DYNAMIC=OPEN 매도=1} | 경계 {A=LIVE=CLOSING DYNAMIC=CLOSING 매도=2, B=LIVE=CLOSING DYNAMIC=OPEN 매도=1} | Snapshot[engine=LIVE, rejected=6, overflow=0, pendingCoins=0, pendingEvents=0, processed=34, failures=0, lastRejectReason=실행기 포화 ? 보호 점검 접수 거절, 코인별 최신 시세 대기 유지, lastOverflowReason=null] | Snapshot[engine=DYNAMIC, rejected=6, overflow=0, pendingCoins=0, pendingEvents=0, processed=34, failures=0, lastRejectReason=실행기 포화 ? 보호 점검 접수 거절, 코인별 최신 시세 대기 유지, lastOverflowReason=null]
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,16 @@
+# int155b-full 해시 보완 목록 (2026-11-12, 총괄 v1.156 지적 반영) — 원래 목록 int155b-full/hashes.sha256 은 고치지 않는다.
+#
+# 경위: 12:56:31 에 hashes.sha256(268개)을 만든 뒤 같은 폴더의 time.txt 끝에 "hashed 12:56:31 268" 한 줄을 덧붙였다.
+#       그래서 sha256sum -c 는 267 OK · time.txt 1 FAILED 다. XML 266개·gradle.log 는 모두 일치한다(변경·손실 아님).
+# 대조: 원래 목록의 time.txt 값 = 현재 time.txt 에서 마지막 한 줄을 뺀 앞부분의 해시.
+#   원래 목록 time.txt           658c158991ed25c3101422c56608abac8277f573c19d5f4438c07d65c250cf8c
+#   현재 time.txt 앞 3줄(끝 줄 제외) 658c158991ed25c3101422c56608abac8277f573c19d5f4438c07d65c250cf8c  (같음)
+#   덧붙인 줄                    hashed 12:56:31 268
+# 현재 파일 해시(이 보완 목록이 고정하는 값):
+7f76f96189c314262e2fdec7e8baf436fa93ffba5d89d5663d4cd440fc06b60f *./int155b-full/time.txt
+# 이후 전체 회귀(v156 final-full)는 시각·종료값·요약을 모두 쓴 다음 마지막에 해시를 만들고, 그 뒤 그 폴더에 쓰지 않았다.
+
+# 같은 경위가 통합 3차 1회차 전체 회귀 int155-full(c6b14e18, 11:58~12:25)에도 있다 — 총괄 지적 범위 밖이지만 같은 방식으로 보완한다.
+#   원래 목록 time.txt 37b88a9a6f1dc28b044ed28673f17f85d253b6d62cb7b0ac42ffc1bbcbfc0d1d
+#   현재 time.txt 앞부분(끝 줄 제외) 37b88a9a6f1dc28b044ed28673f17f85d253b6d62cb7b0ac42ffc1bbcbfc0d1d  (같음) · 덧붙인 줄 "hashed 12:25:38 268"
+aabe953fd269858d7e60be950e883dfc3fb64c7b4c8aa919d037c8cf0e86fc44 *./int155-full/time.txt

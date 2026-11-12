@@ -1,0 +1,219 @@
+package com.cryptoautotrader.api.service;
+
+import com.cryptoautotrader.api.entity.LiveTradingSessionEntity;
+import com.cryptoautotrader.api.entity.OrderEntity;
+import com.cryptoautotrader.api.entity.PositionEntity;
+import com.cryptoautotrader.api.repository.LiveTradingSessionRepository;
+import com.cryptoautotrader.api.repository.OrderRepository;
+import com.cryptoautotrader.api.repository.PositionCleanupRepository;
+import com.cryptoautotrader.api.repository.PositionRepository;
+import com.cryptoautotrader.api.support.IntegrationTestBase;
+import com.cryptoautotrader.exchange.upbit.UpbitOrderClient;
+import com.cryptoautotrader.exchange.upbit.UpbitRestClient;
+import com.cryptoautotrader.exchange.upbit.dto.OrderResponse;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.test.context.TestPropertySource;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+/**
+ * 진단 전용(커밋하지 않는다, 총괄 v1.156 §124-4) — O1·O3 LIVE REST_TRADE "보호 매도 0" 을 같은 SHA 의 실제 처리기·실제
+ * OrderExecutionEngine 경로에서 고정 경합으로 재현한다. orderExecutor 빈만 운영 설정(core 2·max 4·queue 50)과 같은
+ * "큐에서 꺼낸 뒤 실행 표시 전" 을 붙잡을 수 있는 실행기로 바꾼다(그 밖 제품 코드 그대로).
+ */
+@TestPropertySource(properties = "spring.main.allow-bean-definition-overriding=true")
+class O1O3DrainGapDiagTest extends IntegrationTestBase {
+
+    static final AtomicReference<CountDownLatch> DEQUEUED = new AtomicReference<>();
+    static final AtomicReference<CountDownLatch> ALLOW = new AtomicReference<>();
+
+    @TestConfiguration
+    static class GatedOrderExecutor {
+        @Bean("orderExecutor")
+        ThreadPoolTaskExecutor orderExecutor() {
+            ThreadPoolTaskExecutor ex = new ThreadPoolTaskExecutor() {
+                @Override
+                protected BlockingQueue<Runnable> createQueue(int queueCapacity) {
+                    return new LinkedBlockingQueue<>(queueCapacity) {
+                        @Override
+                        public Runnable take() throws InterruptedException {
+                            Runnable task = super.take();
+                            CountDownLatch d = DEQUEUED.get();
+                            CountDownLatch a = ALLOW.get();
+                            if (d != null && a != null && DEQUEUED.compareAndSet(d, null)) {
+                                d.countDown();
+                                a.await();
+                            }
+                            return task;
+                        }
+                    };
+                }
+            };
+            ex.setCorePoolSize(2);
+            ex.setMaxPoolSize(4);
+            ex.setQueueCapacity(50);
+            ex.setThreadNamePrefix("order-exec-");
+            ex.initialize();
+            return ex;
+        }
+    }
+
+    private static final BigDecimal SIZE = new BigDecimal("9.80000000");
+    private static final AtomicInteger SEQ = new AtomicInteger();
+
+    @Autowired private LiveTradingService liveTradingService;
+    @Autowired private LiveTradingSessionRepository liveRepo;
+    @Autowired private PositionRepository positionRepository;
+    @Autowired private OrderRepository orderRepository;
+    @Autowired private PositionCleanupRepository cleanupRepository;
+    @Autowired @Qualifier("orderExecutor") private ThreadPoolTaskExecutor orderExecutor;
+    @Autowired @Qualifier("marketDataExecutor") private ThreadPoolTaskExecutor marketDataExecutor;
+
+    @MockBean private UpbitOrderClient upbitOrderClient;
+    @MockBean private UpbitRestClient upbitRestClient;
+    @MockBean private TelegramNotificationService telegramService;
+
+    private final List<Long> sessions = new ArrayList<>();
+
+    @BeforeEach
+    void setUp() {
+        Mockito.when(upbitOrderClient.createOrder(Mockito.anyString(), Mockito.eq("ask"),
+                        Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
+                .thenAnswer(inv -> new UpbitOrderClient.ExchangeResult(report("uuid-diag-" + System.nanoTime(), inv.getArgument(0)), "{}"));
+        Mockito.when(upbitOrderClient.getOrder(Mockito.anyString())).thenAnswer(inv -> report(inv.getArgument(0), null));
+    }
+
+    @AfterEach
+    void cleanUp() throws Exception {
+        CountDownLatch a = ALLOW.getAndSet(null);
+        if (a != null) a.countDown();
+        DEQUEUED.set(null);
+        long until = System.currentTimeMillis() + 20_000;   // 거래소 호출 뒤 남은 기록은 잠긴 작업자 안이라 옛 조건으로 충분
+        while (!oldDrained(orderExecutor) && System.currentTimeMillis() < until) Thread.sleep(50);
+        for (Long sid : sessions) {
+            positionRepository.findBySessionKindAndSessionId("LIVE", sid).forEach(p -> cleanupRepository.deleteById(p.getId()));
+            orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc("LIVE", sid).forEach(orderRepository::delete);
+            positionRepository.findBySessionKindAndSessionId("LIVE", sid).forEach(positionRepository::delete);
+            liveRepo.deleteById(sid);
+        }
+    }
+
+    private static OrderResponse report(String uuid, String market) {
+        OrderResponse r = new OrderResponse();
+        r.setUuid(uuid);
+        r.setSide("ask");
+        r.setOrdType("market");
+        r.setState("wait");
+        r.setMarket(market);
+        r.setVolume(SIZE);
+        r.setExecutedVolume(BigDecimal.ZERO);
+        return r;
+    }
+
+    private String holding() {
+        String coin = "KRW-DGL" + SEQ.incrementAndGet();
+        Long sid = liveRepo.saveAndFlush(LiveTradingSessionEntity.builder()
+                .sessionType("REAL").strategyType("COMPOSITE_MOMENTUM_ICHIMOKU_V2")
+                .coinPair(coin).timeframe("M5")
+                .initialCapital(new BigDecimal("10000")).availableKrw(new BigDecimal("7000"))
+                .totalAssetKrw(new BigDecimal("10000"))
+                .status("RUNNING").startedAt(Instant.now()).build()).getId();
+        sessions.add(sid);
+        positionRepository.saveAndFlush(PositionEntity.builder()
+                .coinPair(coin).side("BUY")
+                .entryPrice(new BigDecimal("300")).avgPrice(new BigDecimal("300"))
+                .size(SIZE).investedKrw(new BigDecimal("2940")).entryAllocationKrw(new BigDecimal("3000"))
+                .stopLossPrice(new BigDecimal("285"))
+                .status("OPEN").sessionKind("LIVE").sessionId(sid)
+                .openedAt(Instant.now()).build());
+        return coin;
+    }
+
+    /** O1O3LogContractTest 의 옛 대기 조건 그대로. */
+    private static boolean oldDrained(ThreadPoolTaskExecutor executor) {
+        var pool = executor.getThreadPoolExecutor();
+        return pool.getQueue().isEmpty() && pool.getActiveCount() == 0 && pool.getTaskCount() == pool.getCompletedTaskCount();
+    }
+
+    private long sells(String coin) {
+        return Mockito.mockingDetails(upbitOrderClient).getInvocations().stream()
+                .filter(i -> "createOrder".equals(i.getMethod().getName()) && coin.equals(i.getArgument(0))).count();
+    }
+
+    private String poolState() {
+        ThreadPoolExecutor p = orderExecutor.getThreadPoolExecutor();
+        return "pool=" + p.getPoolSize() + " active=" + p.getActiveCount() + " queue=" + p.getQueue().size()
+                + " tasks=" + p.getTaskCount() + " completed=" + p.getCompletedTaskCount();
+    }
+
+    @Test
+    void reproduceAndCompare() throws Exception {
+        ThreadPoolExecutor pool = orderExecutor.getThreadPoolExecutor();
+        pool.prestartAllCoreThreads();   // 전체 실행처럼 같은 컨텍스트 앞 클래스가 만든 놀고 있는 작업자 2개
+        System.out.println("[DIAG] 시작 " + poolState());
+
+        // (가) 옛 대기: 놀고 있는 작업자가 매도 작업을 꺼낸 뒤 실행 표시 전에 옛 조건이 참 → 매도 0 으로 읽힌다
+        String coinA = holding();
+        CountDownLatch dqA = new CountDownLatch(1);
+        CountDownLatch allowA = new CountDownLatch(1);
+        ALLOW.set(allowA);
+        DEQUEUED.set(dqA);
+        liveTradingService.onRealtimePriceEvent(new RealtimePriceEvent(coinA, new BigDecimal("280"), Instant.now(), "REST_TRADE"));
+        boolean dequeued = dqA.await(10, TimeUnit.SECONDS);
+        boolean drained = oldDrained(orderExecutor);
+        long sellsAtDrain = sells(coinA);
+        List<OrderEntity> ordersAtDrain = orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc("LIVE", sessions.get(0));
+        System.out.println("[DIAG 가] 꺼냄 " + dequeued + " · 옛 조건 비워짐=" + drained + " · " + poolState()
+                + " · 그 시점 거래소 매도 " + sellsAtDrain + " · 주문 행 " + ordersAtDrain.size());
+        allowA.countDown();
+        Mockito.verify(upbitOrderClient, Mockito.timeout(20_000).times(1)).createOrder(Mockito.eq(coinA), Mockito.eq("ask"),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
+        System.out.println("[DIAG 가] 풀어 준 뒤 거래소 매도 " + sells(coinA) + " · 주문 행 "
+                + orderRepository.findBySessionKindAndSessionIdOrderByCreatedAtDesc("LIVE", sessions.get(0)).size());
+
+        // (나) 보완 대기: 실제 거래소 호출(작업 결과)을 기다린다 — 같은 붙잡기를 300ms 뒤 풀어도 1회
+        String coinB = holding();
+        CountDownLatch dqB = new CountDownLatch(1);
+        CountDownLatch allowB = new CountDownLatch(1);
+        ALLOW.set(allowB);
+        DEQUEUED.set(dqB);
+        liveTradingService.onRealtimePriceEvent(new RealtimePriceEvent(coinB, new BigDecimal("280"), Instant.now(), "REST_TRADE"));
+        assertThat(dqB.await(10, TimeUnit.SECONDS)).isTrue();
+        boolean drainedB = oldDrained(orderExecutor);
+        Thread releaser = new Thread(() -> {
+            try { TimeUnit.MILLISECONDS.sleep(300); } catch (InterruptedException ignored) { }
+            allowB.countDown();
+        });
+        releaser.start();
+        Mockito.verify(upbitOrderClient, Mockito.timeout(20_000).times(1)).createOrder(Mockito.eq(coinB), Mockito.eq("ask"),
+                Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any());
+        System.out.println("[DIAG 나] 꺼낸 뒤 옛 조건 비워짐=" + drainedB + " · 거래소 호출 대기 뒤 매도 " + sells(coinB));
+
+        assertThat(dequeued).isTrue();
+        assertThat(drained).as("옛 조건이 실행 전 작업을 비워짐으로 본다").isTrue();
+        assertThat(sellsAtDrain).as("그 시점 매도 0 — 전체 실행 실패와 같은 값").isZero();
+        assertThat(sells(coinA)).as("붙잡기를 풀면 제품 경로는 매도 1회").isEqualTo(1);
+        assertThat(sells(coinB)).isEqualTo(1);
+    }
+}

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.core.selector.BtcMarketGuardTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-11-12T02:58:09" hostname="DESKTOP-SF1KUQ5" time="0.001">
+  <properties/>
+  <testcase name="캔들이 비어있으면 판정 불가 — 발동은 아니지만 신규 진입을 막는다 (2026-10-15 리뷰 8회차)" classname="com.cryptoautotrader.core.selector.BtcMarketGuardTest" time="0.0"/>
+  <testcase name="평온한 BTC 시장 — 미발동" classname="com.cryptoautotrader.core.selector.BtcMarketGuardTest" time="0.0"/>
+  <testcase name="1시간보다 오래 전 고점은 낙폭 계산에서 제외됨" classname="com.cryptoautotrader.core.selector.BtcMarketGuardTest" time="0.001"/>
+  <testcase name="BTC 1시간 내 고점 대비 -1.5% 이상 급락 — 발동" classname="com.cryptoautotrader.core.selector.BtcMarketGuardTest" time="0.0"/>
+  <testcase name="BTC 1시간 내 -1.5% 미만 하락 — 미발동" classname="com.cryptoautotrader.core.selector.BtcMarketGuardTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

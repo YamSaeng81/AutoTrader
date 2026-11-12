@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.ExchangeHealthRecoveryEventTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-12T03:54:02" hostname="DESKTOP-SF1KUQ5" time="0.003">
+  <properties/>
+  <testcase name="DOWN → UP 직행 — 복구 1회" classname="com.cryptoautotrader.api.service.ExchangeHealthRecoveryEventTest" time="0.0"/>
+  <testcase name="&#x1f534; DOWN → DEGRADED → UP — 종전에는 복구 이벤트가 나지 않았다(점검 재개 직후의 느린 응답)" classname="com.cryptoautotrader.api.service.ExchangeHealthRecoveryEventTest" time="0.001"/>
+  <testcase name="DOWN 이 없었으면 DEGRADED → UP 은 복구가 아니고, 복구 뒤 다시 UP 이어도 한 번뿐" classname="com.cryptoautotrader.api.service.ExchangeHealthRecoveryEventTest" time="0.0"/>
+  <system-out><![CDATA[12:54:02.424 [Test worker] ERROR c.c.a.service.ExchangeHealthMonitor - 거래소 DOWN 감지 ? ExchangeDownEvent 발행 (Upbit API 연속 0회 연결 실패)
+12:54:02.426 [Test worker] ERROR c.c.a.service.ExchangeHealthMonitor - 거래소 DOWN 감지 ? ExchangeDownEvent 발행 (Upbit API 연속 0회 연결 실패)
+12:54:02.427 [Test worker] ERROR c.c.a.service.ExchangeHealthMonitor - 거래소 DOWN 감지 ? ExchangeDownEvent 발행 (Upbit API 연속 0회 연결 실패)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

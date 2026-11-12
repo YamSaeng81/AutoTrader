@@ -1,0 +1,76 @@
+> Task :strategy-lib:compileJava UP-TO-DATE
+> Task :strategy-lib:processResources NO-SOURCE
+> Task :strategy-lib:classes UP-TO-DATE
+> Task :strategy-lib:jar UP-TO-DATE
+> Task :core-engine:compileJava UP-TO-DATE
+> Task :core-engine:processResources NO-SOURCE
+> Task :core-engine:classes UP-TO-DATE
+> Task :core-engine:jar UP-TO-DATE
+> Task :exchange-adapter:compileJava UP-TO-DATE
+> Task :exchange-adapter:processResources NO-SOURCE
+> Task :exchange-adapter:classes UP-TO-DATE
+> Task :exchange-adapter:jar UP-TO-DATE
+> Task :web-api:compileJava UP-TO-DATE
+> Task :web-api:processResources UP-TO-DATE
+> Task :web-api:classes UP-TO-DATE
+> Task :web-api:compileTestJava UP-TO-DATE
+> Task :web-api:processTestResources UP-TO-DATE
+> Task :web-api:testClasses UP-TO-DATE
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+
+> Task :web-api:test
+
+N15 승인 실행 만료 ? E=D+W 이상 새 예약·매수 의도 없음 > ⑤ 계좌 잠금 대기 중 E 통과 ? 잠금을 얻은 뒤 재검사로 예약·의도 0, 신호에 ENTRY_EXPIRED FAILED
+    org.opentest4j.AssertionFailedError at N15EntryExpiryTest.java:556
+
+N15 승인 실행 만료 ? E=D+W 이상 새 예약·매수 의도 없음 > ② DYNAMIC: E?1ms 진입, E 만료 ? 예약·의도·거래소 0, 원래 신호에 만료 사유 FAILED
+    org.opentest4j.AssertionFailedError at N15EntryExpiryTest.java:398
+
+N15 승인 실행 만료 ? E=D+W 이상 새 예약·매수 의도 없음 > ① LIVE: D+1ms·E?1ms 진입, E·E+1ms 만료 ? 예약·의도·거래소 0, 원래 신호에 만료 사유, 회차 닫힘, 확정 주문 그대로 FAILED
+    org.opentest4j.AssertionFailedError at N15EntryExpiryTest.java:349
+
+N15 승인 실행 만료 ? E=D+W 이상 새 예약·매수 의도 없음 > ④ 자기 관문 대기 중 E 통과 ? LIVE·DYNAMIC 모두 잠금 안 재검사로 예약·의도·슬롯·거래소 0, 신호에 ENTRY_EXPIRED FAILED
+    java.lang.AssertionError at N15EntryExpiryTest.java:475
+
+N15 최종 승인 경계 ? 한도 조회·세션 잠금·의도 승인 중 E 도달 시 차감·의도 없음 > ⑨a (c) LIVE 차감 뒤 의도 승인 조회 중 E ? 가용 원복·슬롯·의도·거래소 0, 신호에 ENTRY_EXPIRED FAILED
+    org.opentest4j.AssertionFailedError at N15FinalApprovalBoundaryTest.java:443
+
+N15 최종 승인 경계 ? 한도 조회·세션 잠금·의도 승인 중 E 도달 시 차감·의도 없음 > ⑩ 대조군: 갈고리 지점을 지나도 시계가 E?1ms 면 LIVE·DYNAMIC 정상 진입 ? 차감·슬롯·매수 의도 1 FAILED
+    org.opentest4j.AssertionFailedError at N15FinalApprovalBoundaryTest.java:490
+
+N15 최종 승인 경계 ? 한도 조회·세션 잠금·의도 승인 중 E 도달 시 차감·의도 없음 > ⑦a (a) LIVE 잠금 직후 E?1ms·손실 한도 검사 중 E ? 차감·슬롯·의도·거래소 0, 신호에 ENTRY_EXPIRED FAILED
+    org.opentest4j.AssertionFailedError at N15FinalApprovalBoundaryTest.java:347
+
+12:57:29.468 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+12:57:29.468 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+12:57:29.470 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+12:57:29.471 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+12:57:29.473 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+12:57:29.490 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+12:57:29.491 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+12:57:29.491 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+12:57:29.492 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-2 - Shutdown initiated...
+12:57:29.492 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-2 - Shutdown completed.
+12:57:29.507 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+12:57:29.507 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+12:57:29.507 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+12:57:29.508 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-3 - Shutdown initiated...
+12:57:29.509 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-3 - Shutdown completed.
+
+> Task :web-api:test
+
+29 tests completed, 7 failed
+
+> Task :web-api:test FAILED
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':web-api:test'.
+> There were failing tests. See the report at: file:///D:/tmp/int155/web-api/build/reports/tests/test/index.html
+
+* Try:
+> Run with --scan to get full insights.
+
+BUILD FAILED in 27s
+11 actionable tasks: 1 executed, 10 up-to-date

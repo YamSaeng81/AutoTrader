@@ -1,0 +1,164 @@
+From 7a9d18adda49d282263f0f975926349a9efa810f Mon Sep 17 00:00:00 2001
+From: YamSaeng81 <manicstr81@gmail.com>
+Date: Thu, 12 Nov 2026 11:13:55 +0900
+Subject: [PATCH] =?UTF-8?q?LIVE=20=EC=86=90=EC=8B=A4=20=ED=95=A9=EC=82=B0?=
+ =?UTF-8?q?=20OrderRepository=20=EB=A5=BC=20=ED=95=84=EC=88=98=20=EC=9D=98?=
+ =?UTF-8?q?=EC=A1=B4=EC=84=B1=EC=9C=BC=EB=A1=9C(=EC=B4=9D=EA=B4=84=20v1.15?=
+ =?UTF-8?q?5=20=C2=A74)=20=E2=80=94=20=EC=84=A0=ED=83=9D=20=EC=A3=BC?=
+ =?UTF-8?q?=EC=9E=85=C2=B7null=20=EC=9A=B0=ED=9A=8C=20=EC=A0=9C=EA=B1=B0,?=
+ =?UTF-8?q?=20=EC=83=9D=EC=84=B1=EC=9E=90=20=EC=8B=9C=ED=97=98=202?=
+ =?UTF-8?q?=EA=B3=B3=EC=97=90=20=EC=9B=90=EC=B2=9C=20=EC=A3=BC=EC=9E=85,?=
+ =?UTF-8?q?=20=EB=8B=A8=EC=9C=84=20=EC=8B=9C=ED=97=98=203=EA=B1=B4(?=
+ =?UTF-8?q?=EC=A3=BC=EB=AC=B8=20=EC=9B=90=EC=B2=9C=EB=A7=8C=EC=9C=BC?=
+ =?UTF-8?q?=EB=A1=9C=20=EC=9D=BC=EC=9D=BC=20=ED=95=9C=EB=8F=84=20=EC=B0=A8?=
+ =?UTF-8?q?=EB=8B=A8=C2=B7FILL+=EC=84=B8=EC=85=98=20=ED=95=A9=203.50%=20?=
+ =?UTF-8?q?=EC=B0=A8=EB=8B=A8=C2=B7=EC=84=B8=EC=85=98=200/null=20=EC=9D=B4?=
+ =?UTF-8?q?=EB=A9=B4=20FILL=20=EB=A7=8C).=20=EC=8B=A4=EC=A0=9C=20PG=207/7,?=
+ =?UTF-8?q?=20=EA=B4=80=EB=A0=A8=2014=ED=81=B4=EB=9E=98=EC=8A=A4=20105/105?=
+ =?UTF-8?q?=20=E2=80=94=20=EB=AF=B8=EC=8A=B9=EC=9D=B8?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .../api/service/RiskManagementService.java    | 15 +++---
+ .../api/service/RiskConfigMissingTest.java    |  3 +-
+ .../service/RiskManagementServiceTest.java    | 50 ++++++++++++++++++-
+ 3 files changed, 57 insertions(+), 11 deletions(-)
+
+diff --git a/web-api/src/main/java/com/cryptoautotrader/api/service/RiskManagementService.java b/web-api/src/main/java/com/cryptoautotrader/api/service/RiskManagementService.java
+index 15a8cc25..425806b8 100644
+--- a/web-api/src/main/java/com/cryptoautotrader/api/service/RiskManagementService.java
++++ b/web-api/src/main/java/com/cryptoautotrader/api/service/RiskManagementService.java
+@@ -39,11 +39,10 @@ public class RiskManagementService {
+     private final TradeLogRepository tradeLogRepository;
+     private final LiveTradingSessionRepository sessionRepository;
+     /**
+-     * LIVE 세션 매도의 확정 손실 원천 (총괄 v1.154 §3, 2026-11-12) — 생성자를 바꾸지 않으려고 필드 주입. 운영 문맥에는 항상 있다.
+-     * 없으면(생성자로 만든 단위 시험) 종전대로 FILL 만 본다.
++     * LIVE 세션 매도의 확정 손실 원천 (총괄 v1.154 §3, 2026-11-12). 필수 의존성이다(v1.155 §4) — 없으면 문맥이 뜨지 않는다.
++     * 선택 주입으로 두면 이 원천이 빠진 채 과거 FILL 만 보는 판정이 조용히 남을 수 있다.
+      */
+-    @org.springframework.beans.factory.annotation.Autowired(required = false)
+-    private com.cryptoautotrader.api.repository.OrderRepository orderRepository;
++    private final com.cryptoautotrader.api.repository.OrderRepository orderRepository;
+ 
+     /**
+      * 현재 리스크 설정 조회. 설정이 없으면 기본값으로 신규 생성.
+@@ -297,11 +296,9 @@ public class RiskManagementService {
+         BigDecimal grossLoss = tradeLogRepository.sumRealizedLossSince(since);
+         // 🔴 LIVE 세션 매도는 trade_log FILL 을 남기지 않는다(handleSellFill 조기 반환) — 확정된 매도 손실을 주문 행에서 더한다 (v1.154 §3).
+         //    두 원천은 겹치지 않는다(FILL = 비세션 매도, 주문 원천 = 세션 매도). 매도 한 건당 손실 행만이라 이익과 상쇄하지 않는다.
+-        if (orderRepository != null) {
+-            BigDecimal sessionLoss = orderRepository.sumLiveSessionRealizedLossSince(since);
+-            if (sessionLoss != null && sessionLoss.signum() < 0) {
+-                grossLoss = (grossLoss == null ? BigDecimal.ZERO : grossLoss).add(sessionLoss);
+-            }
++        BigDecimal sessionLoss = orderRepository.sumLiveSessionRealizedLossSince(since);
++        if (sessionLoss != null && sessionLoss.signum() < 0) {
++            grossLoss = (grossLoss == null ? BigDecimal.ZERO : grossLoss).add(sessionLoss);
+         }
+         if (grossLoss == null || grossLoss.compareTo(BigDecimal.ZERO) >= 0) {
+             return BigDecimal.ZERO;
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/RiskConfigMissingTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/RiskConfigMissingTest.java
+index be06887d..65c71a7e 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/RiskConfigMissingTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/RiskConfigMissingTest.java
+@@ -22,7 +22,8 @@ class RiskConfigMissingTest {
+ 
+     private final RiskConfigRepository repo = mock(RiskConfigRepository.class);
+     private final RiskManagementService service = new RiskManagementService(repo, mock(PositionRepository.class),
+-            mock(TradeLogRepository.class), mock(LiveTradingSessionRepository.class));
++            mock(TradeLogRepository.class), mock(LiveTradingSessionRepository.class),
++            mock(com.cryptoautotrader.api.repository.OrderRepository.class));
+ 
+     @Test
+     void 행이_없으면_INSERT_하지_않고_코드_기본값을_돌려준다() {
+diff --git a/web-api/src/test/java/com/cryptoautotrader/api/service/RiskManagementServiceTest.java b/web-api/src/test/java/com/cryptoautotrader/api/service/RiskManagementServiceTest.java
+index d4d342dd..9af08818 100644
+--- a/web-api/src/test/java/com/cryptoautotrader/api/service/RiskManagementServiceTest.java
++++ b/web-api/src/test/java/com/cryptoautotrader/api/service/RiskManagementServiceTest.java
+@@ -32,6 +32,7 @@ class RiskManagementServiceTest {
+     private PositionRepository positionRepository;
+     private TradeLogRepository tradeLogRepository;
+     private LiveTradingSessionRepository sessionRepository;
++    private com.cryptoautotrader.api.repository.OrderRepository orderRepository;
+     private RiskManagementService service;
+ 
+     @BeforeEach
+@@ -40,9 +41,10 @@ class RiskManagementServiceTest {
+         positionRepository   = mock(PositionRepository.class);
+         tradeLogRepository   = mock(TradeLogRepository.class);
+         sessionRepository    = mock(LiveTradingSessionRepository.class);
++        orderRepository      = mock(com.cryptoautotrader.api.repository.OrderRepository.class);
+ 
+         service = new RiskManagementService(
+-                riskConfigRepository, positionRepository, tradeLogRepository, sessionRepository);
++                riskConfigRepository, positionRepository, tradeLogRepository, sessionRepository, orderRepository);
+ 
+         RiskConfigEntity config = RiskConfigEntity.builder()
+                 .maxDailyLossPct(new BigDecimal("3.0"))
+@@ -57,6 +59,7 @@ class RiskManagementServiceTest {
+         when(positionRepository.countRealPositionsByStatus("OPEN")).thenReturn(0L);
+         when(tradeLogRepository.sumRealizedPnlSince(any())).thenReturn(BigDecimal.ZERO);
+         when(tradeLogRepository.sumRealizedLossSince(any())).thenReturn(BigDecimal.ZERO);
++        when(orderRepository.sumLiveSessionRealizedLossSince(any())).thenReturn(BigDecimal.ZERO);
+         // 자본 사용률 계산용 — 기본값: 사용률 0% (차단 안 됨)
+         when(sessionRepository.sumInitialCapitalByStatusIn(any())).thenReturn(new BigDecimal("10000000"));
+         when(sessionRepository.sumAvailableKrwByStatusIn(any())).thenReturn(new BigDecimal("10000000"));
+@@ -144,6 +147,51 @@ class RiskManagementServiceTest {
+                 .isTrue();
+     }
+ 
++    @Test
++    @DisplayName("v1.155 §4 필수 원천 — FILL 손실 0 이어도 LIVE 세션 확정 매도 손실(주문 원천)이 한도를 넘으면 차단")
++    void liveSessionLossFromOrders_breachesDailyLimit() {
++        when(sessionRepository.findByStatus("RUNNING")).thenReturn(List.of(flatSession(new BigDecimal("10000000"))));
++        when(tradeLogRepository.sumRealizedLossSince(any())).thenReturn(BigDecimal.ZERO);
++        when(orderRepository.sumLiveSessionRealizedLossSince(any())).thenReturn(new BigDecimal("-400000"));
++
++        RiskCheckResult result = service.checkRisk();
++
++        // 400k / 10M = 4% > 일일 3%
++        assertThat(result.isApproved()).isFalse();
++        assertThat(result.getReason()).contains("일일 손실 한도 초과");
++    }
++
++    @Test
++    @DisplayName("v1.155 §4 두 원천 합 — FILL 손실 −200k + 세션 손실 −150k = 3.5% 로 차단, 각각만으로는 한도 아래")
++    void fillAndSessionLossesAddedOnce() {
++        when(sessionRepository.findByStatus("RUNNING")).thenReturn(List.of(flatSession(new BigDecimal("10000000"))));
++        when(tradeLogRepository.sumRealizedLossSince(any())).thenReturn(new BigDecimal("-200000"));
++        when(orderRepository.sumLiveSessionRealizedLossSince(any())).thenReturn(new BigDecimal("-150000"));
++
++        RiskCheckResult result = service.checkRisk();
++
++        assertThat(result.isApproved()).isFalse();
++        assertThat(result.getReason()).contains("3.50%");
++    }
++
++    @Test
++    @DisplayName("v1.155 §4 세션 원천이 0·null 이면 FILL 만 — 한도 아래면 통과")
++    void sessionSourceZeroOrNull_fillOnly() {
++        when(sessionRepository.findByStatus("RUNNING")).thenReturn(List.of(flatSession(new BigDecimal("10000000"))));
++        when(tradeLogRepository.sumRealizedLossSince(any())).thenReturn(new BigDecimal("-200000"));
++        when(orderRepository.sumLiveSessionRealizedLossSince(any())).thenReturn(null);
++        assertThat(service.checkRisk().isApproved()).isTrue();
++        when(orderRepository.sumLiveSessionRealizedLossSince(any())).thenReturn(BigDecimal.ZERO);
++        assertThat(service.checkRisk().isApproved()).isTrue();
++    }
++
++    /** 총자산 = 초기자본(드로우다운 0) — 손실 창만 판정에 남긴다. buildRunningSession 은 총자산이 없어 드로우다운 100% 가 된다(1회차 원문 보존). */
++    private LiveTradingSessionEntity flatSession(BigDecimal initialCapital) {
++        LiveTradingSessionEntity session = buildRunningSession(initialCapital);
++        session.setTotalAssetKrw(initialCapital);
++        return session;
++    }
++
+     private LiveTradingSessionEntity buildRunningSession(BigDecimal initialCapital) {
+         LiveTradingSessionEntity session = new LiveTradingSessionEntity();
+         session.setStatus("RUNNING");
+-- 
+2.51.1.windows.1
+

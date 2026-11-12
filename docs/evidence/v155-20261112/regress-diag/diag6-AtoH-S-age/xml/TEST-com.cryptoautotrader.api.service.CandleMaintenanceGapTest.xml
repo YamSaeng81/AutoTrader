@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="공식 점검 공백 — 캔들 최신성 관문 예외" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-11-12T03:08:55" hostname="DESKTOP-SF1KUQ5" time="1.025">
+  <properties/>
+  <testcase name="② 점검 구간은 있으나 거래소 조회 전 → 판정 불가" classname="com.cryptoautotrader.api.service.CandleMaintenanceGapTest" time="0.009"/>
+  <testcase name="&#x1f534; ⑧ 점검 끝에 걸친 경계 봉은 빼지 않는다 — 경계 봉 1 + 점검 밖 2 = 3칸 → 판정 불가 (겹침 기준이면 통과했다)" classname="com.cryptoautotrader.api.service.CandleMaintenanceGapTest" time="0.134"/>
+  <testcase name="⑥ 점검 공백은 빼도 점검 밖 결측 3칸이 남으면 판정 불가" classname="com.cryptoautotrader.api.service.CandleMaintenanceGapTest" time="0.132"/>
+  <testcase name="③ 거래소에도 없지만 점검 구간이 아님(무체결·미확인) → 판정 불가 — 종전 기준 유지" classname="com.cryptoautotrader.api.service.CandleMaintenanceGapTest" time="0.122"/>
+  <testcase name="&#x1f534; ⑤ 과거 점검 예외가 현재 적재 정지를 가리지 않는다 — 최신 완료 봉이 없으면 판정 불가" classname="com.cryptoautotrader.api.service.CandleMaintenanceGapTest" time="0.122"/>
+  <testcase name="⑦ BTC 급락 관문 — 점검 공백만 있으면 판정 가능, 점검 구간이 없으면 판정 불가" classname="com.cryptoautotrader.api.service.CandleMaintenanceGapTest" time="0.122"/>
+  <testcase name="① 점검 구간 + 거래소에도 없음 → 판정 가능 (결측 5칸을 뺀다)" classname="com.cryptoautotrader.api.service.CandleMaintenanceGapTest" time="0.125"/>
+  <testcase name="⑨ 봉 경계에 맞춰 끝난 점검 — 마지막 칸까지 뺀다(점검 밖 2칸만 남아 판정 가능)" classname="com.cryptoautotrader.api.service.CandleMaintenanceGapTest" time="0.133"/>
+  <testcase name="④ 진행 중인 점검(끝 시각이 미래) → 쓰지 않는다" classname="com.cryptoautotrader.api.service.CandleMaintenanceGapTest" time="0.122"/>
+  <system-out><![CDATA[12:08:55.393 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.CandleMaintenanceGapTest
+12:08:55.396 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+12:08:55.401 [Test worker] ERROR c.c.api.service.CandleFreshnessGuard - ? [캔들 최신성] KRW-MTB:H1 판정 불가 (DYNAMIC) ? 이 회차의 진입·캔들 기반 청산을 하지 않는다: 결측 5칸(허용 2) ? 완료 봉 55개 / 기대 60개 (2026-11-09T15:00:00Z ~ 2026-11-12T02:00:00Z)
+12:08:55.404 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+12:08:55.531 [Test worker] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-MTG H1 13 건
+12:08:55.534 [Test worker] ERROR c.c.api.service.CandleFreshnessGuard - ? [캔들 최신성] KRW-MTG:H1 판정 불가 (DYNAMIC) ? 이 회차의 진입·캔들 기반 청산을 하지 않는다: 결측 3칸(허용 2) ? 완료 봉 53개 / 기대 60개 (2026-11-09T15:00:00Z ~ 2026-11-12T02:00:00Z) · 공식 점검 공백 4칸 제외 후
+12:08:55.540 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+12:08:55.668 [Test worker] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-MTF H1 12 건
+12:08:55.668 [Test worker] ERROR c.c.api.service.CandleFreshnessGuard - ? [캔들 최신성] KRW-MTF:H1 판정 불가 (DYNAMIC) ? 이 회차의 진입·캔들 기반 청산을 하지 않는다: 결측 4칸(허용 2) ? 완료 봉 52개 / 기대 60개 (2026-11-09T15:00:00Z ~ 2026-11-12T02:00:00Z) · 공식 점검 공백 4칸 제외 후
+12:08:55.672 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+12:08:55.790 [Test worker] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-MTC H1 0 건
+12:08:55.790 [Test worker] ERROR c.c.api.service.CandleFreshnessGuard - ? [캔들 최신성] KRW-MTC:H1 판정 불가 (DYNAMIC) ? 이 회차의 진입·캔들 기반 청산을 하지 않는다: 결측 5칸(허용 2) ? 완료 봉 55개 / 기대 60개 (2026-11-09T15:00:00Z ~ 2026-11-12T02:00:00Z)
+12:08:55.794 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+12:08:55.912 [Test worker] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-MTE H1 0 건
+12:08:55.913 [Test worker] ERROR c.c.api.service.CandleFreshnessGuard - ? [캔들 최신성] KRW-MTE:H1 판정 불가 (DYNAMIC) ? 이 회차의 진입·캔들 기반 청산을 하지 않는다: 최신 완료 봉 없음 ? 마지막 완료 봉 2026-11-11T23:00:00Z, 필요 2026-11-12T02:00:00Z 이후(180분 늦음)
+12:08:55.917 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+12:08:56.035 [Test worker] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-BTC M30 0 건
+12:08:56.036 [Test worker] ERROR c.c.api.service.CandleFreshnessGuard - ? [캔들 최신성] BTC 급락 관문 M30 판정 불가 (DYNAMIC) ? 이 관문을 요구하는 신규 진입을 막는다: BTC 캔들 판정 불가(결측 6칸(허용 2) ? 완료 봉 74개 / 기대 80개 (2026-11-10T11:00:00Z ~ 2026-11-12T02:30:00Z)) ? 급락 여부를 모른다
+12:08:56.036 [Test worker] WARN  c.c.api.service.CandleFreshnessGuard - [캔들 최신성] BTC 급락 관문 M30 판정 재개 (DYNAMIC): 종전 2026-11-12T03:08:56.036522400Z BTC 캔들 판정 불가(결측 6칸(허용 2) ? 완료 봉 74개 / 기대 80개 (2026-11-10T11:00:00Z ~ 2026-11-12T02:30:00Z)) ? 급락 여부를 모른다
+12:08:56.039 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+12:08:56.158 [Test worker] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-MTA H1 0 건
+12:08:56.167 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+12:08:56.295 [Test worker] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-MTH H1 13 건
+12:08:56.299 [Test worker] INFO  o.a.c.c.C.[Tomcat-5].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+12:08:56.417 [Test worker] INFO  c.c.e.upbit.UpbitCandleCollector - 캔들 수집 완료: KRW-MTD H1 0 건
+12:08:56.417 [Test worker] ERROR c.c.api.service.CandleFreshnessGuard - ? [캔들 최신성] KRW-MTD:H1 판정 불가 (DYNAMIC) ? 이 회차의 진입·캔들 기반 청산을 하지 않는다: 결측 5칸(허용 2) ? 완료 봉 55개 / 기대 60개 (2026-11-09T15:00:00Z ~ 2026-11-12T02:00:00Z)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

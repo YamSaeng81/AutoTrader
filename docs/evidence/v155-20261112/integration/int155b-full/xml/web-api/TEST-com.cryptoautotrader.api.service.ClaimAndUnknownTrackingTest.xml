@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="claim 규칙과 응답 불명 추적 (V84)" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-11-12T03:53:34" hostname="DESKTOP-SF1KUQ5" time="1.137">
+  <properties/>
+  <testcase name="시험 1·2 — 응답을 잃으면 UNKNOWN 으로 남고 식별자로 추적 가능하며 자금·슬롯이 유지된다" classname="com.cryptoautotrader.api.service.ClaimAndUnknownTrackingTest" time="0.057"/>
+  <testcase name="시험 3 — 조회가 반복 실패해도 새 식별자로 재주문하지 않고 상태를 유지한다" classname="com.cryptoautotrader.api.service.ClaimAndUnknownTrackingTest" time="0.071"/>
+  <testcase name="시험 21 — claim 전환이 1행이어도 커밋이 실패하면 제출 0회다" classname="com.cryptoautotrader.api.service.ClaimAndUnknownTrackingTest" time="0.005"/>
+  <testcase name="시험 20 — SUBMITTING 을 발견한 복구 작업자는 재제출하지 않고 식별자로 조회만 한다" classname="com.cryptoautotrader.api.service.ClaimAndUnknownTrackingTest" time="0.007"/>
+  <testcase name="불명 주문이 남은 세션은 정지해도 정리 완료가 아니고 신규 매수가 막힌다" classname="com.cryptoautotrader.api.service.ClaimAndUnknownTrackingTest" time="0.928"/>
+  <testcase name="시험 20-b — 식별자로 조회되지 않아도 미접수로 단정하지 않는다" classname="com.cryptoautotrader.api.service.ClaimAndUnknownTrackingTest" time="0.057"/>
+  <testcase name="시험 21-b — 철회는 claim 할 작업이 없음이 확정될 때만 한다 (나이는 근거가 아니다)" classname="com.cryptoautotrader.api.service.ClaimAndUnknownTrackingTest" time="0.009"/>
+  <system-out><![CDATA[12:53:34.754 [Test worker] INFO  o.s.b.t.c.SpringBootTestContextBootstrapper - Found @SpringBootConfiguration com.cryptoautotrader.api.CryptoAutoTraderApplication for test class com.cryptoautotrader.api.service.ClaimAndUnknownTrackingTest
+12:53:34.756 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+12:53:34.760 [order-exec-1] ERROR c.c.api.service.OrderExecutionEngine - 거래소 주문 제출의 결과가 불명이다 (orderId=191, 식별자=cat-4c125e20-eef9-4118-b29a-36efb59bfdeb, 분류=SubmitRejection[explicit=false, status=null, errorName=null, errorMessage=null]): java.net.http.HttpTimeoutException: request timed out
+java.lang.RuntimeException: java.net.http.HttpTimeoutException: request timed out
+	at com.cryptoautotrader.api.service.ClaimAndUnknownTrackingTest.lambda$stubAcceptThenTimeout$2(ClaimAndUnknownTrackingTest.java:178)
+	at org.mockito.internal.stubbing.StubbedInvocationMatcher.answer(StubbedInvocationMatcher.java:42)
+	at org.mockito.internal.handler.MockHandlerImpl.handle(MockHandlerImpl.java:103)
+	at org.mockito.internal.handler.NullResultGuardian.handle(NullResultGuardian.java:29)
+	at org.mockito.internal.handler.InvocationNotifierHandler.handle(InvocationNotifierHandler.java:34)
+	at org.mockito.internal.creation.bytebuddy.MockMethodInterceptor.doIntercept(MockMethodInterceptor.java:82)
+	at org.mockito.internal.creation.bytebuddy.MockMethodAdvice.handle(MockMethodAdvice.java:134)
+	at com.cryptoautotrader.exchange.upbit.UpbitOrderClient.createOrder(UpbitOrderClient.java:110)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.submitToExchange(OrderExecutionEngine.java:2316)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.callExchangeAndRecord(OrderExecutionEngine.java:955)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.submitOrder(OrderExecutionEngine.java:404)
+	at jdk.internal.reflect.GeneratedMethodAccessor199.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at org.springframework.aop.interceptor.AsyncExecutionInterceptor.lambda$invoke$0(AsyncExecutionInterceptor.java:113)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.http.HttpTimeoutException: request timed out
+	... 23 common frames omitted
+12:53:34.813 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+12:53:34.816 [order-exec-2] ERROR c.c.api.service.OrderExecutionEngine - 거래소 주문 제출의 결과가 불명이다 (orderId=192, 식별자=cat-10d99788-397b-4ecc-89b0-bc8c3dd7b28a, 분류=SubmitRejection[explicit=false, status=null, errorName=null, errorMessage=null]): java.net.http.HttpTimeoutException: request timed out
+java.lang.RuntimeException: java.net.http.HttpTimeoutException: request timed out
+	at com.cryptoautotrader.api.service.ClaimAndUnknownTrackingTest.lambda$stubAcceptThenTimeout$2(ClaimAndUnknownTrackingTest.java:178)
+	at org.mockito.internal.stubbing.StubbedInvocationMatcher.answer(StubbedInvocationMatcher.java:42)
+	at org.mockito.internal.handler.MockHandlerImpl.handle(MockHandlerImpl.java:103)
+	at org.mockito.internal.handler.NullResultGuardian.handle(NullResultGuardian.java:29)
+	at org.mockito.internal.handler.InvocationNotifierHandler.handle(InvocationNotifierHandler.java:34)
+	at org.mockito.internal.creation.bytebuddy.MockMethodInterceptor.doIntercept(MockMethodInterceptor.java:82)
+	at org.mockito.internal.creation.bytebuddy.MockMethodAdvice.handle(MockMethodAdvice.java:134)
+	at com.cryptoautotrader.exchange.upbit.UpbitOrderClient.createOrder(UpbitOrderClient.java:110)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.submitToExchange(OrderExecutionEngine.java:2316)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.callExchangeAndRecord(OrderExecutionEngine.java:955)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.submitOrder(OrderExecutionEngine.java:404)
+	at jdk.internal.reflect.GeneratedMethodAccessor199.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at org.springframework.aop.interceptor.AsyncExecutionInterceptor.lambda$invoke$0(AsyncExecutionInterceptor.java:113)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.http.HttpTimeoutException: request timed out
+	... 23 common frames omitted
+12:53:34.877 [Test worker] WARN  c.c.api.service.OrderExecutionEngine - 식별자 조회 실패 ? 상태를 유지한다 (orderId=192, 식별자=cat-10d99788-397b-4ecc-89b0-bc8c3dd7b28a): 조회 실패
+12:53:34.879 [Test worker] WARN  c.c.api.service.OrderExecutionEngine - 식별자 조회 실패 ? 상태를 유지한다 (orderId=192, 식별자=cat-10d99788-397b-4ecc-89b0-bc8c3dd7b28a): 조회 실패
+12:53:34.880 [Test worker] WARN  c.c.api.service.OrderExecutionEngine - 식별자 조회 실패 ? 상태를 유지한다 (orderId=192, 식별자=cat-10d99788-397b-4ecc-89b0-bc8c3dd7b28a): 조회 실패
+12:53:34.884 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+12:53:34.889 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+12:53:34.897 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+12:53:34.902 [order-exec-1] ERROR c.c.api.service.OrderExecutionEngine - 거래소 주문 제출의 결과가 불명이다 (orderId=195, 식별자=cat-2a8b7fc9-fc0b-4950-87e3-d53581027812, 분류=SubmitRejection[explicit=false, status=null, errorName=null, errorMessage=null]): java.net.http.HttpTimeoutException: request timed out
+java.lang.RuntimeException: java.net.http.HttpTimeoutException: request timed out
+	at com.cryptoautotrader.api.service.ClaimAndUnknownTrackingTest.lambda$stubAcceptThenTimeout$2(ClaimAndUnknownTrackingTest.java:178)
+	at org.mockito.internal.stubbing.StubbedInvocationMatcher.answer(StubbedInvocationMatcher.java:42)
+	at org.mockito.internal.handler.MockHandlerImpl.handle(MockHandlerImpl.java:103)
+	at org.mockito.internal.handler.NullResultGuardian.handle(NullResultGuardian.java:29)
+	at org.mockito.internal.handler.InvocationNotifierHandler.handle(InvocationNotifierHandler.java:34)
+	at org.mockito.internal.creation.bytebuddy.MockMethodInterceptor.doIntercept(MockMethodInterceptor.java:82)
+	at org.mockito.internal.creation.bytebuddy.MockMethodAdvice.handle(MockMethodAdvice.java:134)
+	at com.cryptoautotrader.exchange.upbit.UpbitOrderClient.createOrder(UpbitOrderClient.java:110)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.submitToExchange(OrderExecutionEngine.java:2316)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.callExchangeAndRecord(OrderExecutionEngine.java:955)
+	at com.cryptoautotrader.api.service.OrderExecutionEngine.submitOrder(OrderExecutionEngine.java:404)
+	at jdk.internal.reflect.GeneratedMethodAccessor199.invoke(Unknown Source)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:568)
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:354)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.proceed(CglibAopProxy.java:768)
+	at org.springframework.aop.interceptor.AsyncExecutionInterceptor.lambda$invoke$0(AsyncExecutionInterceptor.java:113)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+Caused by: java.net.http.HttpTimeoutException: request timed out
+	... 23 common frames omitted
+12:53:35.043 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+12:53:35.043 [telegram-1] ERROR c.c.a.s.TelegramNotificationService - [Telegram] ? SESSION_STOP 알림 3회 시도 ? 최종 실패: 전달되지 않음(마지막 REJECTED HTTP 404)(이력 success=false): ? *실전매매 세션 종료*
+
+? 세션 ID: `71`
+? 코인: `KRW-DOGE`
+? 총 자산: `10,000 KRW`
+? 수익률: `+0.00%`
+? 시각: `2026-11-12 12:53:19`
+12:53:35.315 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+12:53:35.315 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] CLEANUP_INCOMPLETE 전송 실패(REJECTED) ? 2000ms 후 재시도 (1/3)
+12:53:35.818 [Test worker] WARN  c.c.api.service.OrderExecutionEngine - 식별자로 취소할 주문이 거래소에 없다 ? 미접수로 단정하지 않고 상태를 유지한다 (orderId=195, 식별자=cat-2a8b7fc9-fc0b-4950-87e3-d53581027812)
+12:53:35.820 [Test worker] WARN  c.c.api.service.LiveTradingService - 정지 ? 매수 확인 전인 size=0 포지션은 열어 두고 정리 대기로 둔다 (posId=167, sessionId=116)
+12:53:35.822 [Test worker] WARN  c.c.api.service.LiveTradingService - ? 정지했으나 **정리 미완료** ? 미해결 제출 1건이 남았다 (sessionId=116). 그 주문은 접수됐을 수 있으므로 자금·슬롯을 점유한 것으로 두고 추적을 계속한다. 종결은 근거를 확인한 사람이 한다.
+12:53:35.825 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+12:53:35.884 [Test worker] INFO  o.a.c.c.C.[Tomcat-1].[localhost].[/] - Initializing Spring TestDispatcherServlet ''
+12:53:35.888 [Test worker] WARN  c.c.api.service.OrderExecutionEngine - 의도가 600초째 claim 되지 않았다 ? 작업이 살아 있으므로 철회하지 않는다 (orderId=197). 실행기 적체 여부를 사람이 확인해야 한다.
+12:53:35.889 [Test worker] WARN  c.c.api.service.OrderExecutionEngine - 의도를 철회했다 ? 외부에 나간 적이 없다 (orderId=197, 사유=WITHDRAWN_DISPATCH_LOST: 시험 ? 실행기 거절). ? 예약 해제는 고아 매수 정리가 담당한다(FAILED 매수 + size=0 포지션).
+12:53:35.889 [Test worker] WARN  c.c.api.service.OrderExecutionEngine - 의도를 철회했다 ? 외부에 나간 적이 없다 (orderId=198, 사유=WITHDRAWN_OWNER_LOST: 의도를 만든 프로세스(inst-previous-boot)가 지금 프로세스가 아니다 ? 제출하지 않았다). ? 예약 해제는 고아 매수 정리가 담당한다(FAILED 매수 + size=0 포지션).
+12:53:35.889 [Test worker] WARN  c.c.api.service.OrderExecutionEngine - 의도를 철회했다 ? 외부에 나간 적이 없다 (orderId=199, 사유=WITHDRAWN_DISPATCH_LOST: claim 할 작업이 이 프로세스에 없다 ? 제출하지 않았다). ? 예약 해제는 고아 매수 정리가 담당한다(FAILED 매수 + size=0 포지션).
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

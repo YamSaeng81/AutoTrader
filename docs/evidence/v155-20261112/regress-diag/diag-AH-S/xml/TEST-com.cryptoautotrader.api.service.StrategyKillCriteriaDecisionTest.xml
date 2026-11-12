@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-11-12T02:48:15" hostname="DESKTOP-SF1KUQ5" time="0.003">
+  <properties/>
+  <testcase name="NO_SIGNAL: 30일 0거래는 경보만 — 성과가 나쁜 게 아니므로 정지하지 않는다" classname="com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest" time="0.001"/>
+  <testcase name="지문과 무관하게 정말로 거래가 없으면 NO_SIGNAL" classname="com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest" time="0.001"/>
+  <testcase name="공유 풀 세션은 세션 초기자본·세션 고점 기준 CAPITAL_LOSS·MAX_DRAWDOWN 을 보지 않는다 — PositionLimitGuard 가 맡는다" classname="com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest" time="0.0"/>
+  <testcase name="29일차에는 NO_SIGNAL 경보를 내지 않는다" classname="com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest" time="0.0"/>
+  <testcase name="지문이 갈려 표본이 0이어도, 실제로 거래 중이면 NO_SIGNAL 이 아니다" classname="com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest" time="0.0"/>
+  <testcase name="공유 풀 세션도 서킷브레이커 반복은 세션 단위 그대로 본다" classname="com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest" time="0.001"/>
+  <testcase name="기준을 건드리지 않으면 KEEP" classname="com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest" time="0.0"/>
+  <testcase name="자본 한도 초과가 NO_SIGNAL 경보보다 우선한다 (문서 §2)" classname="com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest" time="0.0"/>
+  <testcase name="기본 임계값은 문서 §4 와 일치한다 — 바꾸려면 문서 §7 절차를 따를 것" classname="com.cryptoautotrader.api.service.StrategyKillCriteriaDecisionTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

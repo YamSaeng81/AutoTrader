@@ -1,0 +1,62 @@
+> Task :strategy-lib:compileJava UP-TO-DATE
+> Task :strategy-lib:processResources NO-SOURCE
+> Task :strategy-lib:classes UP-TO-DATE
+> Task :strategy-lib:jar UP-TO-DATE
+> Task :core-engine:compileJava UP-TO-DATE
+> Task :core-engine:processResources NO-SOURCE
+> Task :core-engine:classes UP-TO-DATE
+> Task :core-engine:jar UP-TO-DATE
+> Task :exchange-adapter:compileJava UP-TO-DATE
+> Task :exchange-adapter:processResources NO-SOURCE
+> Task :exchange-adapter:classes UP-TO-DATE
+> Task :exchange-adapter:jar UP-TO-DATE
+> Task :web-api:compileJava UP-TO-DATE
+> Task :web-api:processResources UP-TO-DATE
+> Task :web-api:classes UP-TO-DATE
+> Task :web-api:compileTestJava
+> Task :web-api:processTestResources UP-TO-DATE
+> Task :web-api:testClasses
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+
+> Task :web-api:test
+
+v1.155 §4-1 부분 매도 뒤 실현손익 ? 덮어쓰기 없이 다리별 합 (로컬 PostgreSQL) > ① 손실→손실: ?1,000.50 + ?2,000.00 = ?3,000.50 (기점은 마지막 다리 ?2,000 만 남김) FAILED
+    org.opentest4j.AssertionFailedError at PartialSellRealizedPnlPgTest.java:216
+
+v1.155 §4-1 부분 매도 뒤 실현손익 ? 덮어쓰기 없이 다리별 합 (로컬 PostgreSQL) > ② 손실→이익(부호 뒤집힘): ?1,000.50 + 998.50 = ?2.00 ? 연속 손실 판정도 손실 1회(기점은 +998.50 이익으로 읽음) FAILED
+    org.opentest4j.AssertionFailedError at PartialSellRealizedPnlPgTest.java:232
+
+v1.155 §4-1 부분 매도 뒤 실현손익 ? 덮어쓰기 없이 다리별 합 (로컬 PostgreSQL) > ③ 이익→손실: 998.50 + ?2,000.00 = ?1,001.50 FAILED
+    org.opentest4j.AssertionFailedError at PartialSellRealizedPnlPgTest.java:247
+
+v1.155 §4-1 부분 매도 뒤 실현손익 ? 덮어쓰기 없이 다리별 합 (로컬 PostgreSQL) > ⑤ 반복 확정·늦은 정정 정확히 한 번 ? 첫 다리 수수료 4.5→5.5, 같은 정정 재전달, 둘째 다리 4→5 FAILED
+    org.opentest4j.AssertionFailedError at PartialSellRealizedPnlPgTest.java:287
+
+v1.155 §4-1 부분 매도 뒤 실현손익 ? 덮어쓰기 없이 다리별 합 (로컬 PostgreSQL) > ⑥ 첫 다리 '부분 체결 후 취소' + 다리 사이 재시작 복구 ? 합 ?3,000.50 FAILED
+    org.opentest4j.AssertionFailedError at PartialSellRealizedPnlPgTest.java:301
+
+v1.155 §4-1 부분 매도 뒤 실현손익 ? 덮어쓰기 없이 다리별 합 (로컬 PostgreSQL) > ⑦ DYNAMIC REAL 같은 분기 ? 손실→손실 합 ?3,000.50 FAILED
+    org.opentest4j.AssertionFailedError at PartialSellRealizedPnlPgTest.java:313
+
+11:18:02.240 [telegram-1] WARN  c.c.a.s.TelegramNotificationService - [Telegram] 메시지 전송 거부: HTTP 404 / {"ok":false,"error_code":404,"description":"Not Found"}
+11:18:02.317 [SpringApplicationShutdownHook] WARN  c.c.a.service.ExchangeHealthMonitor - WebSocket 연결 해제 감지
+11:18:02.317 [SpringApplicationShutdownHook] INFO  c.c.e.upbit.UpbitWebSocketClient - Upbit WebSocket 클라이언트 완전 종료
+11:18:02.320 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+11:18:02.321 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+11:18:02.323 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
+
+> Task :web-api:test FAILED
+
+7 tests completed, 6 failed
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':web-api:test'.
+> There were failing tests. See the report at: file:///D:/tmp/pnl-b5cd1d0/web-api/build/reports/tests/test/index.html
+
+* Try:
+> Run with --scan to get full insights.
+
+BUILD FAILED in 22s
+11 actionable tasks: 2 executed, 9 up-to-date

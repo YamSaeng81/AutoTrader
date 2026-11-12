@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="CandleDownsampler — 시각 경계 집계" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-11-12T06:32:25" hostname="DESKTOP-SF1KUQ5" time="0.003">
+  <properties/>
+  <testcase name="말미의 형성 중인 그룹은 남긴다 — 잘린 봉이 아니라 진행 중인 봉이다" classname="com.cryptoautotrader.core.selector.CandleDownsamplerBoundaryTest" time="0.0"/>
+  <testcase name="선두의 잘린 그룹은 버린다 — 창 시작 위치가 결과에 스미지 않게" classname="com.cryptoautotrader.core.selector.CandleDownsamplerBoundaryTest" time="0.001"/>
+  <testcase name="결측이 맨 앞과 버킷 머리에 있어도 경계가 깨지지 않는다" classname="com.cryptoautotrader.core.selector.CandleDownsamplerBoundaryTest" time="0.001"/>
+  <testcase name="OHLCV 집계 — open 은 첫 캔들, close 는 마지막, high/low 는 극값, volume 은 합" classname="com.cryptoautotrader.core.selector.CandleDownsamplerBoundaryTest" time="0.0"/>
+  <testcase name="창 시작 위치가 달라도 같은 구간은 같은 HTF 봉을 낸다" classname="com.cryptoautotrader.core.selector.CandleDownsamplerBoundaryTest" time="0.0"/>
+  <testcase name="HTF 봉의 시각은 경계로 정렬된다 — 그룹 첫 캔들 시각이 아니다" classname="com.cryptoautotrader.core.selector.CandleDownsamplerBoundaryTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
