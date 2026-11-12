@@ -30,7 +30,8 @@ class RiskCircuitBreakerOrderTest {
     private final RiskConfigRepository cr = mock(RiskConfigRepository.class);
     private final PositionRepository pr = mock(PositionRepository.class);
     private final RiskManagementService svc = new RiskManagementService(cr, pr, mock(TradeLogRepository.class),
-            mock(LiveTradingSessionRepository.class));
+            mock(LiveTradingSessionRepository.class),
+            mock(com.cryptoautotrader.api.repository.OrderRepository.class));   // v1.155 §4 필수 원천 — 통합 적응(이 시험은 서킷 브레이커만 본다)
 
     private LiveTradingSessionEntity session(String total) {
         return LiveTradingSessionEntity.builder().id(1L).initialCapital(new BigDecimal("20200"))
