@@ -165,7 +165,11 @@ public class CandleFreshnessGuard {
      * @param forCheck 관문 계산에 넣을 캔들(엔진이 닫힌 봉만 넣는다면 그 목록)
      */
     public BtcMarketGuard.Result btcGate(String engine, String timeframe, List<Candle> raw, List<Candle> forCheck) {
-        Instant now = Instant.now();
+        return btcGate(engine, timeframe, raw, forCheck, Instant.now());
+    }
+
+    /** 판단 시각을 받는 BTC 관문 (v1.158, DYNAMIC 판단 시계) — 판정·로그는 4인자와 같다. */
+    public BtcMarketGuard.Result btcGate(String engine, String timeframe, List<Candle> raw, List<Candle> forCheck, Instant now) {
         BtcMarketGuard.Result r = btcGate(timeframe, raw, forCheck, now, maintenanceExemption("KRW-BTC", timeframe, now));
         String key = "BTC관문:" + timeframe;
         if (!r.unknown()) {
