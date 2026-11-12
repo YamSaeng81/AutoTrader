@@ -3312,7 +3312,9 @@ public class LiveTradingService {
             pos.setStatus("OPEN");
             pos.setClosingAt(null);
         } else {
-            pos.setRealizedPnl(realizedPnl);
+            // 🔴 앞 부분 매도 손익에 더한다 (총괄 v1.155 §4-1, 2026-11-12) — 덮어쓰면 부분 매도 뒤 최종 매도가 앞 다리 손익을
+            //    지워 연속 손실·성과가 마지막 다리만 본다(실제 PG: −1,000.50 + −2,000 이 −2,000 으로, 손실→이익이면 이익으로).
+            pos.setRealizedPnl(nzFee(pos.getRealizedPnl()).add(realizedPnl));
             // 🔴 덮어쓰지 않고 더한다 (2026-10-14, DYNAMIC 2026-09-07 수정과 같은 규칙) — 덮어쓰면 매수 때 기록한 수수료가
             //    사라져 position_fee 가 매도분만 담는다.
             pos.setPositionFee(nzFee(pos.getPositionFee()).add(fee));
